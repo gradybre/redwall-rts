@@ -1,0 +1,220 @@
+{
+  "source_sha256": {
+    "godot/scripts/core/construction.gd": "119b06209bd8eb996da424c5857ae447cbd0518877d961679b94f31985777aa6",
+    "godot/test/test_construction_columns.gd": "ab28c4f1ba29b13a3f3e7aa08f5767133a49a7ec590ef69b462f28f9ce016638",
+    "godot/test/run_tests.gd": "1e4032bafb0a34965a4d184c56ee116f73f0a34941cfc13b37edff21c2a2ecb7"
+  },
+  "seconds": 95.032,
+  "results": [
+    {
+      "case": "baseline-before",
+      "seconds": 11.442,
+      "exit_code": 0,
+      "counts": [
+        1,
+        60,
+        0
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "assertion_failures": [],
+      "expected_assertion_failures": [],
+      "errors": [],
+      "mutated_sha256": "119b06209bd8eb996da424c5857ae447cbd0518877d961679b94f31985777aa6",
+      "log_sha256": "9536ea158be6ea0f24c5ccad0d41a8d750371bc2ffd19ad25c6c93d4d7e17274"
+    },
+    {
+      "case": "omit-ready-begun",
+      "seconds": 11.932,
+      "exit_code": 1,
+      "counts": [
+        1,
+        60,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "assertion_failures": [
+        "ready-begun1-remaining-w row 0 (expected COLUMN_PHASE, got )",
+        "ready-begun1-remaining-w row 1 (expected COLUMN_PHASE, got )",
+        "ready-begun1-remaining-w row 41471 (expected COLUMN_PHASE, got )",
+        "ready-begun1-remaining-w row 41472 (expected COLUMN_PHASE, got )",
+        "ready-begun1-remaining-w row 82943 (expected COLUMN_PHASE, got )"
+      ],
+      "expected_assertion_failures": [
+        "ready-begun1-remaining-w row 0 (expected COLUMN_PHASE, got )",
+        "ready-begun1-remaining-w row 1 (expected COLUMN_PHASE, got )",
+        "ready-begun1-remaining-w row 41471 (expected COLUMN_PHASE, got )",
+        "ready-begun1-remaining-w row 41472 (expected COLUMN_PHASE, got )",
+        "ready-begun1-remaining-w row 82943 (expected COLUMN_PHASE, got )"
+      ],
+      "errors": [],
+      "mutated_sha256": "511952c5698063c97e2d30089a9633d87e2b908925aef5e5f064fdd23ee7da1e",
+      "log_sha256": "8aba68268112109e90beee785c717f1a61f27541bcc94e3f93c198d01392160f"
+    },
+    {
+      "case": "omit-ready-remaining",
+      "seconds": 11.836,
+      "exit_code": 1,
+      "counts": [
+        1,
+        60,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "assertion_failures": [
+        "ready-begun0-remaining-w-minus-1 row 0 (expected COLUMN_PHASE, got )",
+        "ready-begun0-remaining-w-minus-1 row 1 (expected COLUMN_PHASE, got )",
+        "ready-begun0-remaining-w-minus-1 row 41471 (expected COLUMN_PHASE, got )",
+        "ready-begun0-remaining-w-minus-1 row 41472 (expected COLUMN_PHASE, got )",
+        "ready-begun0-remaining-w-minus-1 row 82943 (expected COLUMN_PHASE, got )"
+      ],
+      "expected_assertion_failures": [
+        "ready-begun0-remaining-w-minus-1 row 0 (expected COLUMN_PHASE, got )",
+        "ready-begun0-remaining-w-minus-1 row 1 (expected COLUMN_PHASE, got )",
+        "ready-begun0-remaining-w-minus-1 row 41471 (expected COLUMN_PHASE, got )",
+        "ready-begun0-remaining-w-minus-1 row 41472 (expected COLUMN_PHASE, got )",
+        "ready-begun0-remaining-w-minus-1 row 82943 (expected COLUMN_PHASE, got )"
+      ],
+      "errors": [],
+      "mutated_sha256": "a358ca2806232e79648a53ab6e78afb0c1f1a040ec37ccb27c061b2f4f35c45a",
+      "log_sha256": "1a76e34d5fa996d36f948b01127390212a9d551b1788c36f855a20c59cdacfc8"
+    },
+    {
+      "case": "omit-working-begun",
+      "seconds": 11.86,
+      "exit_code": 1,
+      "counts": [
+        1,
+        60,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "assertion_failures": [
+        "working-begun0-remaining-1 row 0 (expected COLUMN_PHASE, got )",
+        "working-begun0-remaining-1 row 1 (expected COLUMN_PHASE, got )",
+        "working-begun0-remaining-1 row 41471 (expected COLUMN_PHASE, got )",
+        "working-begun0-remaining-1 row 41472 (expected COLUMN_PHASE, got )",
+        "working-begun0-remaining-1 row 82943 (expected COLUMN_PHASE, got )"
+      ],
+      "expected_assertion_failures": [
+        "working-begun0-remaining-1 row 0 (expected COLUMN_PHASE, got )",
+        "working-begun0-remaining-1 row 1 (expected COLUMN_PHASE, got )",
+        "working-begun0-remaining-1 row 41471 (expected COLUMN_PHASE, got )",
+        "working-begun0-remaining-1 row 41472 (expected COLUMN_PHASE, got )",
+        "working-begun0-remaining-1 row 82943 (expected COLUMN_PHASE, got )"
+      ],
+      "errors": [],
+      "mutated_sha256": "8be852ab0a401195b6a0e17515a282f32379a5571b1ea7e40d652f5a6ff21cc0",
+      "log_sha256": "a0de2447867e33fac3592fb3c8185173d896fe6fda595409825f0bd84bf97311"
+    },
+    {
+      "case": "omit-working-upper",
+      "seconds": 12.216,
+      "exit_code": 1,
+      "counts": [
+        1,
+        60,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "assertion_failures": [
+        "working-begun1-remaining-w-plus-1 row 0 (expected COLUMN_PHASE, got )",
+        "working-begun1-remaining-w-plus-1 row 1 (expected COLUMN_PHASE, got )",
+        "working-begun1-remaining-w-plus-1 row 41471 (expected COLUMN_PHASE, got )",
+        "working-begun1-remaining-w-plus-1 row 41472 (expected COLUMN_PHASE, got )",
+        "working-begun1-remaining-w-plus-1 row 82943 (expected COLUMN_PHASE, got )"
+      ],
+      "expected_assertion_failures": [
+        "working-begun1-remaining-w-plus-1 row 0 (expected COLUMN_PHASE, got )",
+        "working-begun1-remaining-w-plus-1 row 1 (expected COLUMN_PHASE, got )",
+        "working-begun1-remaining-w-plus-1 row 41471 (expected COLUMN_PHASE, got )",
+        "working-begun1-remaining-w-plus-1 row 41472 (expected COLUMN_PHASE, got )",
+        "working-begun1-remaining-w-plus-1 row 82943 (expected COLUMN_PHASE, got )"
+      ],
+      "errors": [],
+      "mutated_sha256": "0b056d6e04c181e9ba251316327f1cbaae15deeec9fbd90ee3ce0496a219298b",
+      "log_sha256": "a3d30370dc1ac7728030fc79092b2410a053e0ad87f752a0eb5e34d5c6f29a0c"
+    },
+    {
+      "case": "omit-work-done-begun",
+      "seconds": 12.028,
+      "exit_code": 1,
+      "counts": [
+        1,
+        60,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "assertion_failures": [
+        "work-done-begun0-remaining-0 row 0 (expected COLUMN_PHASE, got )",
+        "work-done-begun0-remaining-0 row 1 (expected COLUMN_PHASE, got )",
+        "work-done-begun0-remaining-0 row 41471 (expected COLUMN_PHASE, got )",
+        "work-done-begun0-remaining-0 row 41472 (expected COLUMN_PHASE, got )",
+        "work-done-begun0-remaining-0 row 82943 (expected COLUMN_PHASE, got )"
+      ],
+      "expected_assertion_failures": [
+        "work-done-begun0-remaining-0 row 0 (expected COLUMN_PHASE, got )",
+        "work-done-begun0-remaining-0 row 1 (expected COLUMN_PHASE, got )",
+        "work-done-begun0-remaining-0 row 41471 (expected COLUMN_PHASE, got )",
+        "work-done-begun0-remaining-0 row 41472 (expected COLUMN_PHASE, got )",
+        "work-done-begun0-remaining-0 row 82943 (expected COLUMN_PHASE, got )"
+      ],
+      "errors": [],
+      "mutated_sha256": "b3946afb420a9f5373b05d9609c7cc51cfff7c58202cb4fd46e40b98e4e76e1e",
+      "log_sha256": "2dae985c84ce5ed4d5c17a0d433f297dd8ec935bd018325a37b27f9e6254b5ef"
+    },
+    {
+      "case": "omit-refunding-upper",
+      "seconds": 12.022,
+      "exit_code": 1,
+      "counts": [
+        1,
+        60,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "assertion_failures": [
+        "refund-begun1-remaining-w-plus-1 row 0 (expected COLUMN_PHASE, got )",
+        "refund-begun1-remaining-w-plus-1 row 1 (expected COLUMN_PHASE, got )",
+        "refund-begun1-remaining-w-plus-1 row 41471 (expected COLUMN_PHASE, got )",
+        "refund-begun1-remaining-w-plus-1 row 41472 (expected COLUMN_PHASE, got )",
+        "refund-begun1-remaining-w-plus-1 row 82943 (expected COLUMN_PHASE, got )"
+      ],
+      "expected_assertion_failures": [
+        "refund-begun1-remaining-w-plus-1 row 0 (expected COLUMN_PHASE, got )",
+        "refund-begun1-remaining-w-plus-1 row 1 (expected COLUMN_PHASE, got )",
+        "refund-begun1-remaining-w-plus-1 row 41471 (expected COLUMN_PHASE, got )",
+        "refund-begun1-remaining-w-plus-1 row 41472 (expected COLUMN_PHASE, got )",
+        "refund-begun1-remaining-w-plus-1 row 82943 (expected COLUMN_PHASE, got )"
+      ],
+      "errors": [],
+      "mutated_sha256": "983e7c50c2e82fa0f3ea48382bb3e712645844080fb9c91dd39f781b189e6975",
+      "log_sha256": "801d41a3f55fd2328f54bcc953fcfd4b22cdc4e0f27e64615d6aaa87086ece52"
+    },
+    {
+      "case": "baseline-after",
+      "seconds": 11.442,
+      "exit_code": 0,
+      "counts": [
+        1,
+        60,
+        0
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "assertion_failures": [],
+      "expected_assertion_failures": [],
+      "errors": [],
+      "mutated_sha256": "119b06209bd8eb996da424c5857ae447cbd0518877d961679b94f31985777aa6",
+      "log_sha256": "9536ea158be6ea0f24c5ccad0d41a8d750371bc2ffd19ad25c6c93d4d7e17274"
+    }
+  ],
+  "source_unchanged": true,
+  "passed": true
+}

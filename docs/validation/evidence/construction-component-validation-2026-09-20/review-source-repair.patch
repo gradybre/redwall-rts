@@ -1,0 +1,166 @@
+diff --git a/godot/scripts/core/construction.gd b/godot/scripts/core/construction.gd
+--- a/godot/scripts/core/construction.gd
++++ b/godot/scripts/core/construction.gd
+@@ -1831,19 +1831,27 @@
+ 
+ 
+ static func _source_stored_key_types_ok() -> bool:
+-	"""The four source dictionaries the canonical ID walk then looks keys up in.
++	"""The eight source dictionaries the canonical ID walk then looks keys up in.
+ 
+ 	Runs after the extent pins and BEFORE `_source_row_scan_refusal()`, so the ID/value walk
+ 	still proves every ordinal, work, max-worker and bill shape exactly as before; this only
+-	removes the aliasing blind spot ahead of it. No gate-consumed value scope changes.
++	removes the aliasing blind spot ahead of it. Independent review closure extends the same
++	guard to the four bill/work dictionaries the row and upgrade scans look keys up in --
++	BUILD_MATERIALS, FURNITURE_MATERIALS, UPGRADE_MATERIALS and UPGRADE_WORK_MWU -- which
++	alias identically. Bill ELEMENT key types stay separate, in `_bill_shape_ok()`. No
++	gate-consumed value scope changes.
+ 	"""
+ 	if not _stored_keys_are_exact_strings(Catalog.BUILDING_DEFINITION):
+ 		return false
+ 	if not _stored_keys_are_exact_strings(Catalog.FURNITURE_DEFINITION):
+ 		return false
+ 	if not _stored_keys_are_exact_strings(BuildingDefinitions.BUILDING_FACTS):
+ 		return false
+-	return _stored_keys_are_exact_strings(BuildingDefinitions.FURNITURE_FACTS)
++	if not _stored_keys_are_exact_strings(BuildingDefinitions.FURNITURE_FACTS):
++		return false
++	if not _stored_keys_are_exact_strings(BUILD_MATERIALS):
++		return false
++	if not _stored_keys_are_exact_strings(FURNITURE_MATERIALS):
++		return false
++	if not _stored_keys_are_exact_strings(UPGRADE_MATERIALS):
++		return false
++	return _stored_keys_are_exact_strings(UPGRADE_WORK_MWU)
+ 
+ 
+ static func _source_row_scan_refusal() -> StringName:
+@@ -1984,7 +1992,13 @@
+ 
+ 
+ static func _workers_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:
+-	"""Gate 6 (WORKERS): catalog-matched capacity, the assigned cap, paused/refunding idleness."""
++	"""Gate 6 (WORKERS): catalog-matched capacity, the assigned cap, paused/refunding idleness.
++
++	PRECONDITION, NOT A NEW FAILURE PATH: `_row_refusal()` reaches this helper only AFTER gate 5
++	(TYPE) has returned REFUSE_NONE for this row, so a non-sentinel `type_id` is already proven
++	to lie inside its purpose's own domain before COLUMN_BUILDING_MAX_WORKERS is indexed below.
++	The frozen gate order is unchanged and this helper stays private by convention: it must
++	never be called before the TYPE gate has passed.
++	"""
+ 	var max_workers_val: int = image.max_workers[row]
+ 	if image.type_id[row] != -1:
+ 		var expected_max: int = MAX_BUILDERS if purpose == PURPOSE_FURNITURE \
+diff --git a/godot/scripts/core/save_owner_construction.gd b/godot/scripts/core/save_owner_construction.gd
+--- a/godot/scripts/core/save_owner_construction.gd
++++ b/godot/scripts/core/save_owner_construction.gd
+@@ -623,33 +623,80 @@
+ 	return _column_array_refusal()
+ 
+ 
+-static func _column_array_refusal() -> SaveHeader.Refusal:
+-	"""The ten frozen COLUMN_* arrays, entry by entry, against Construction's own gate arrays."""
+-	var arrays: Array = [
+-		["building keys", SOURCE_BUILDING_KEYS, Construction.COLUMN_BUILDING_KEYS],
+-		["building work", SOURCE_BUILDING_WORK_MWU, Construction.COLUMN_BUILDING_WORK_MWU],
+-		["building max workers", SOURCE_BUILDING_MAX_WORKERS, Construction.COLUMN_BUILDING_MAX_WORKERS],
+-		["building bill pair counts", SOURCE_BUILDING_BILL_PAIR_COUNTS,
+-			Construction.COLUMN_BUILDING_BILL_PAIR_COUNTS],
+-		["furniture keys", SOURCE_FURNITURE_KEYS, Construction.COLUMN_FURNITURE_KEYS],
+-		["furniture work", SOURCE_FURNITURE_WORK_MWU, Construction.COLUMN_FURNITURE_WORK_MWU],
+-		["furniture bill pair counts", SOURCE_FURNITURE_BILL_PAIR_COUNTS,
+-			Construction.COLUMN_FURNITURE_BILL_PAIR_COUNTS],
+-		["upgrade ids", SOURCE_UPGRADE_IDS, Construction.COLUMN_UPGRADE_IDS],
+-		["upgrade work", SOURCE_UPGRADE_WORK_MWU, Construction.COLUMN_UPGRADE_WORK_MWU],
+-		["upgrade bill pair counts", SOURCE_UPGRADE_BILL_PAIR_COUNTS,
+-			Construction.COLUMN_UPGRADE_BILL_PAIR_COUNTS],
+-	]
+-	for entry: Array in arrays:
+-		var label: String = entry[0]
+-		var frozen: Array = entry[1]
+-		var live: Array = entry[2]
+-		if live.size() != frozen.size():
+-			return _refuse_metadata("%s holds %d entries, not %d" % [label, live.size(), frozen.size()])
+-		for i: int in frozen.size():
+-			if live[i] != frozen[i]:
+-				return _refuse_metadata("%s entry %d does not match the frozen source" % [label, i])
+-	return _accept()
++static func _array_anchor(label: String, frozen: Array, live: Array) -> SaveHeader.Refusal:
++	"""One frozen gate array against its live COLUMN_* mirror: size first, then entry by entry.
++
++	The single typed comparator the ten explicit anchor calls below reuse. Its two messages are
++	the exact wordings the dynamic check table used, so no refusal string, comparison or
++	priority changes: a size disagreement first, then the lowest disagreeing index.
++	"""
++	if live.size() != frozen.size():
++		return _refuse_metadata("%s holds %d entries, not %d" % [label, live.size(), frozen.size()])
++	for i: int in frozen.size():
++		if live[i] != frozen[i]:
++			return _refuse_metadata("%s entry %d does not match the frozen source" % [label, i])
++	return _accept()
++
++
++static func _building_array_refusal() -> SaveHeader.Refusal:
++	"""Anchors 1-4: building keys, work, max workers and bill pair counts, in that order."""
++	var keys: SaveHeader.Refusal = _array_anchor("building keys",
++		SOURCE_BUILDING_KEYS, Construction.COLUMN_BUILDING_KEYS)
++	if not keys.is_ok():
++		return keys
++	var work: SaveHeader.Refusal = _array_anchor("building work",
++		SOURCE_BUILDING_WORK_MWU, Construction.COLUMN_BUILDING_WORK_MWU)
++	if not work.is_ok():
++		return work
++	var workers: SaveHeader.Refusal = _array_anchor("building max workers",
++		SOURCE_BUILDING_MAX_WORKERS, Construction.COLUMN_BUILDING_MAX_WORKERS)
++	if not workers.is_ok():
++		return workers
++	return _array_anchor("building bill pair counts",
++		SOURCE_BUILDING_BILL_PAIR_COUNTS, Construction.COLUMN_BUILDING_BILL_PAIR_COUNTS)
++
++
++static func _furniture_array_refusal() -> SaveHeader.Refusal:
++	"""Anchors 5-7: furniture keys, work and bill pair counts, in that order."""
++	var keys: SaveHeader.Refusal = _array_anchor("furniture keys",
++		SOURCE_FURNITURE_KEYS, Construction.COLUMN_FURNITURE_KEYS)
++	if not keys.is_ok():
++		return keys
++	var work: SaveHeader.Refusal = _array_anchor("furniture work",
++		SOURCE_FURNITURE_WORK_MWU, Construction.COLUMN_FURNITURE_WORK_MWU)
++	if not work.is_ok():
++		return work
++	return _array_anchor("furniture bill pair counts",
++		SOURCE_FURNITURE_BILL_PAIR_COUNTS, Construction.COLUMN_FURNITURE_BILL_PAIR_COUNTS)
++
++
++static func _upgrade_array_refusal() -> SaveHeader.Refusal:
++	"""Anchors 8-10: upgrade ids, work and bill pair counts, in that order."""
++	var ids: SaveHeader.Refusal = _array_anchor("upgrade ids",
++		SOURCE_UPGRADE_IDS, Construction.COLUMN_UPGRADE_IDS)
++	if not ids.is_ok():
++		return ids
++	var work: SaveHeader.Refusal = _array_anchor("upgrade work",
++		SOURCE_UPGRADE_WORK_MWU, Construction.COLUMN_UPGRADE_WORK_MWU)
++	if not work.is_ok():
++		return work
++	return _array_anchor("upgrade bill pair counts",
++		SOURCE_UPGRADE_BILL_PAIR_COUNTS, Construction.COLUMN_UPGRADE_BILL_PAIR_COUNTS)
++
++
++static func _column_array_refusal() -> SaveHeader.Refusal:
++	"""The ten frozen COLUMN_* arrays, in the frozen order, as explicit grouped anchor calls.
++
++	No check table is allocated, so no anchor can be lost inside one: every array is compared by
++	an explicit call, in the same order, with the same label, comparison and refusal priority as
++	the table it replaces.
++	"""
++	var buildings: SaveHeader.Refusal = _building_array_refusal()
++	if not buildings.is_ok():
++		return buildings
++	var furniture: SaveHeader.Refusal = _furniture_array_refusal()
++	if not furniture.is_ok():
++		return furniture
++	return _upgrade_array_refusal()
+ 
+ 
+ static func _catalog_bijection_refusal() -> SaveHeader.Refusal:

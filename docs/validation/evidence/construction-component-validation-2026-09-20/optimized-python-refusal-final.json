@@ -1,0 +1,14 @@
+[
+  {
+    "tool": "tools/test_construction_metadata_preflights.py",
+    "sha256": "a44d5a1306f6cbdab0f3793d2d5250539568fbd92b41146cad42ad65133748bb",
+    "exit_code": 1,
+    "output": "Construction evidence requires Python assertions enabled; optimized mode is unsupported\n"
+  },
+  {
+    "tool": "tools/test_construction_allocation.py",
+    "sha256": "5e4b6634fe75154696406b5d3c420504baf282186d170266602cc1b72c8f46fa",
+    "exit_code": 1,
+    "output": "Construction evidence requires Python assertions enabled; optimized mode is unsupported\n"
+  }
+]

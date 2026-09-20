@@ -1,0 +1,413 @@
+{
+  "scope": "Bounded scalar/extent and exact fact-row-type source correction witnesses only, not complete metadata or Construction acceptance",
+  "contract": "CONSTRUCTION-S4-VALIDATE-R01v2",
+  "cases": [
+    {
+      "id": "construction-construction_capacity",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "CONSTRUCTION_CAPACITY",
+      "frozen_original_expression": "82944",
+      "new_expression": "82945",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-material_slots_per_project",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "MATERIAL_SLOTS_PER_PROJECT",
+      "frozen_original_expression": "4",
+      "new_expression": "5",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-max_builders",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "MAX_BUILDERS",
+      "frozen_original_expression": "4",
+      "new_expression": "5",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-demolition_work_num",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "DEMOLITION_WORK_NUM",
+      "frozen_original_expression": "1",
+      "new_expression": "2",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-demolition_work_den",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "DEMOLITION_WORK_DEN",
+      "frozen_original_expression": "4",
+      "new_expression": "0",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-purpose_build",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "PURPOSE_BUILD",
+      "frozen_original_expression": "0",
+      "new_expression": "1",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-purpose_upgrade",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "PURPOSE_UPGRADE",
+      "frozen_original_expression": "1",
+      "new_expression": "2",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-purpose_furniture",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "PURPOSE_FURNITURE",
+      "frozen_original_expression": "2",
+      "new_expression": "3",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-purpose_demolish",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "PURPOSE_DEMOLISH",
+      "frozen_original_expression": "3",
+      "new_expression": "4",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-purpose_count",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "PURPOSE_COUNT",
+      "frozen_original_expression": "4",
+      "new_expression": "5",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-phase_awaiting_materials",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "PHASE_AWAITING_MATERIALS",
+      "frozen_original_expression": "0",
+      "new_expression": "1",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-phase_ready",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "PHASE_READY",
+      "frozen_original_expression": "1",
+      "new_expression": "2",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-phase_working",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "PHASE_WORKING",
+      "frozen_original_expression": "2",
+      "new_expression": "3",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-phase_work_done",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "PHASE_WORK_DONE",
+      "frozen_original_expression": "3",
+      "new_expression": "4",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-phase_refunding",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "PHASE_REFUNDING",
+      "frozen_original_expression": "4",
+      "new_expression": "5",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-phase_count",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "PHASE_COUNT",
+      "frozen_original_expression": "5",
+      "new_expression": "6",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-refund_full",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "REFUND_FULL",
+      "frozen_original_expression": "0",
+      "new_expression": "1",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-refund_partial",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "REFUND_PARTIAL",
+      "frozen_original_expression": "1",
+      "new_expression": "2",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-refund_demolition",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "REFUND_DEMOLITION",
+      "frozen_original_expression": "2",
+      "new_expression": "3",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-refund_policy_count",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "REFUND_POLICY_COUNT",
+      "frozen_original_expression": "3",
+      "new_expression": "4",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-int32_max",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "INT32_MAX",
+      "frozen_original_expression": "2147483647",
+      "new_expression": "2147483646",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-null_ref",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "NULL_REF",
+      "frozen_original_expression": "EntityDirectory.NULL_REF",
+      "new_expression": "Vector2i(-1, 1)",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-building_kinds",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "BUILDING_KINDS",
+      "frozen_original_expression": "BuildingDefinitions.BUILDING_DEFINITION_COUNT",
+      "new_expression": "31",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-furniture_kinds",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "FURNITURE_KINDS",
+      "frozen_original_expression": "BuildingDefinitions.FURNITURE_DEFINITION_COUNT",
+      "new_expression": "10",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-material_key_count",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "MATERIAL_KEY_COUNT",
+      "frozen_original_expression": "6",
+      "new_expression": "7",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-column_directory_capacity",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "scalar",
+      "name": "COLUMN_DIRECTORY_CAPACITY",
+      "frozen_original_expression": "EntityDirectory.DIRECTORY_CAPACITY",
+      "new_expression": "352419",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "building_definitions-building_definition_count",
+      "path": "godot/scripts/core/building_definitions.gd",
+      "kind": "scalar",
+      "name": "BUILDING_DEFINITION_COUNT",
+      "frozen_original_expression": "30",
+      "new_expression": "31",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "building_definitions-furniture_definition_count",
+      "path": "godot/scripts/core/building_definitions.gd",
+      "kind": "scalar",
+      "name": "FURNITURE_DEFINITION_COUNT",
+      "frozen_original_expression": "9",
+      "new_expression": "10",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "building_definitions-b_work_mwu",
+      "path": "godot/scripts/core/building_definitions.gd",
+      "kind": "scalar",
+      "name": "B_WORK_MWU",
+      "frozen_original_expression": "2",
+      "new_expression": "99",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "building_definitions-b_max_builders",
+      "path": "godot/scripts/core/building_definitions.gd",
+      "kind": "scalar",
+      "name": "B_MAX_BUILDERS",
+      "frozen_original_expression": "9",
+      "new_expression": "99",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "building_definitions-b_field_count",
+      "path": "godot/scripts/core/building_definitions.gd",
+      "kind": "scalar",
+      "name": "B_FIELD_COUNT",
+      "frozen_original_expression": "10",
+      "new_expression": "11",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "building_definitions-f_work_mwu",
+      "path": "godot/scripts/core/building_definitions.gd",
+      "kind": "scalar",
+      "name": "F_WORK_MWU",
+      "frozen_original_expression": "2",
+      "new_expression": "99",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "building_definitions-f_field_count",
+      "path": "godot/scripts/core/building_definitions.gd",
+      "kind": "scalar",
+      "name": "F_FIELD_COUNT",
+      "frozen_original_expression": "4",
+      "new_expression": "5",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "entity_directory-directory_capacity",
+      "path": "godot/scripts/core/entity_directory.gd",
+      "kind": "scalar",
+      "name": "DIRECTORY_CAPACITY",
+      "frozen_original_expression": "352418",
+      "new_expression": "352419",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "entity_directory-null_slot",
+      "path": "godot/scripts/core/entity_directory.gd",
+      "kind": "scalar",
+      "name": "NULL_SLOT",
+      "frozen_original_expression": "-1",
+      "new_expression": "-2",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "entity_directory-null_generation",
+      "path": "godot/scripts/core/entity_directory.gd",
+      "kind": "scalar",
+      "name": "NULL_GENERATION",
+      "frozen_original_expression": "0",
+      "new_expression": "1",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-material_keys-short",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "array",
+      "name": "MATERIAL_KEYS",
+      "operation": "short",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-material_keys-swap-first-two",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "array",
+      "name": "MATERIAL_KEYS",
+      "operation": "swap-first-two",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "building_definitions-tier_two_keys-long",
+      "path": "godot/scripts/core/building_definitions.gd",
+      "kind": "array",
+      "name": "TIER_TWO_KEYS",
+      "operation": "long",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "building_definitions-tier_two_keys-short",
+      "path": "godot/scripts/core/building_definitions.gd",
+      "kind": "array",
+      "name": "TIER_TWO_KEYS",
+      "operation": "short",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-column_building_keys-short",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "array",
+      "name": "COLUMN_BUILDING_KEYS",
+      "operation": "short",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-column_furniture_work_mwu-long",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "array",
+      "name": "COLUMN_FURNITURE_WORK_MWU",
+      "operation": "long",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "construction-column_upgrade_ids-short",
+      "path": "godot/scripts/core/construction.gd",
+      "kind": "array",
+      "name": "COLUMN_UPGRADE_IDS",
+      "operation": "short",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "definitions-building_facts-unused-field-type",
+      "path": "godot/scripts/core/building_definitions.gd",
+      "kind": "dictionary-field-type",
+      "name": "BUILDING_FACTS",
+      "expected": "COLUMN_SOURCE_METADATA"
+    },
+    {
+      "id": "definitions-furniture_facts-unused-field-type",
+      "path": "godot/scripts/core/building_definitions.gd",
+      "kind": "dictionary-field-type",
+      "name": "FURNITURE_FACTS",
+      "expected": "COLUMN_SOURCE_METADATA"
+    }
+  ],
+  "controls": [
+    "unmodified candidate before faults",
+    "unmodified candidate after faults"
+  ],
+  "execution": "Cold isolated clone with autoload section removed, static owner APIs only, authored metadata-owner-probe.gd; parse/runtime failures invalidate execution rather than count as caught faults.",
+  "source_hashes": {
+    "godot/scripts/core/construction.gd": "9b429f0ffc277372892d87dd0b45bc7370945ff0b6628e4b2801c69a8b3d73e8",
+    "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
+    "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a"
+  },
+  "executed": false,
+  "revision": 2,
+  "preceding_evidence": "metadata-scalars-a1/result.json: all48 executions valid;43scalar/extent faults and2controls pass; scalar bypass caught; two fact-type refusals missing."
+}

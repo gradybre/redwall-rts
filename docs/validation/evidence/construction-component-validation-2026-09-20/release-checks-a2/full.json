@@ -1,0 +1,33 @@
+{
+  "step": "full",
+  "command": [
+    "./tools/run_tests.sh"
+  ],
+  "seconds": 287.123,
+  "exit_code": 0,
+  "counts": [
+    5108,
+    528323,
+    0
+  ],
+  "expected_counts": [
+    5108,
+    528323,
+    0
+  ],
+  "passed": true,
+  "error_lines": [
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'OVERFLOW' at hour tick 750 is unrecovered (retries attempted: 0); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: ui_frame_builder: UI_FRAME_PANEL_TOO_SMALL for frame 0 at (20.000000, 20.000000)",
+    "ERROR: ui_frame_builder: UI_FRAME_UNKNOWN_FRAME for frame 5 at (300.000000, 120.000000)",
+    "ERROR: ui_frame_builder: UI_FRAME_NULL_PANEL",
+    "ERROR: UIManager.register_hud() was given null; the HUD will not update."
+  ],
+  "error_multiset_matches_expected": true,
+  "leak_diagnostic_lines": [],
+  "log_sha256": "ab8244c41e9329135648c681510f104983a20213f9d32e61cbf0f602a598b774"
+}

@@ -1,0 +1,10 @@
+{
+  "existing_gameplay_prefix_unchanged": true,
+  "base_sha256": "78e724618362bfb3dd37945a27be6be1c0a70aa27b59e7bdd300f1c26bdfb5b9",
+  "candidate_sha256": "e72306aa1407662f0864bae20683cf788612c45ecd5b1343dbae657ed6279e09",
+  "metadata_evidence": "metadata-scalars-a2/result.json",
+  "metadata_cases": 48,
+  "observations": 240,
+  "semantic_guard_bypass_caught": true,
+  "accepted": false
+}

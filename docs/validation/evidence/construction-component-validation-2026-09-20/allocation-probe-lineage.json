@@ -1,0 +1,25 @@
+{
+  "kind": "Mechanical adaptation of qualified family ballast probe; actual baseline and default-constructor mutation still required",
+  "source": "docs/validation/evidence/buildings-validation-planning-2026-09-20/parent-allocation-probe.gd",
+  "source_sha256": "98b3fc92b49bad67650964ea5867ad7e2ef5cb5ad48198e3555c4877591923dd",
+  "output_sha256": "632ca9618ca844a6777ede6c00d1c32d51fa6bdc916134b3368f5587c67aeaa6",
+  "replacements": [
+    [
+      "save_owner_buildings.gd",
+      "save_owner_construction.gd"
+    ],
+    [
+      "BUILDINGS_ALLOCATION",
+      "CONSTRUCTION_ALLOCATION"
+    ],
+    [
+      "Section.FramedOwner.new(0)",
+      "Section.FramedOwner.new(1)"
+    ],
+    [
+      "[5,9,11,13,22,24,26]",
+      "[1,9,11,14]"
+    ]
+  ],
+  "field_rationale": "Owner1 all-zero frame except material/ref/subject slot fields1,9,11 and type_id14 require -1; default image all clear"
+}

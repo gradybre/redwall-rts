@@ -1,0 +1,59 @@
+{
+  "status": "PASS",
+  "scope": "Cold actual-adapter incremental Godot static allocation; ballast is apparatus, not game budget or process RSS",
+  "cases": [
+    {
+      "after_peak": 101329682,
+      "after_usage": 101320990,
+      "ballast_bytes": 54123048,
+      "before_peak": 101320026,
+      "bridge_code": "",
+      "code": "",
+      "increment": 9656,
+      "lifted_usage": 101320026,
+      "limit": 1048576,
+      "prior_peak": 100271394,
+      "prior_usage": 47196922,
+      "status": "PASS",
+      "case": "baseline"
+    },
+    {
+      "after_peak": 106218854,
+      "after_usage": 101320586,
+      "ballast_bytes": 54122688,
+      "before_peak": 101319622,
+      "bridge_code": "",
+      "code": "ALLOCATION_EXTRA_OWNER",
+      "increment": 4899232,
+      "lifted_usage": 101319622,
+      "limit": 1048576,
+      "prior_peak": 100270990,
+      "prior_usage": 47196878,
+      "status": "FAIL",
+      "case": "forbidden-default-constructor"
+    },
+    {
+      "after_peak": 101329682,
+      "after_usage": 101320990,
+      "ballast_bytes": 54123048,
+      "before_peak": 101320026,
+      "bridge_code": "",
+      "code": "",
+      "increment": 9656,
+      "lifted_usage": 101320026,
+      "limit": 1048576,
+      "prior_peak": 100271394,
+      "prior_usage": 47196922,
+      "status": "PASS",
+      "case": "restored"
+    }
+  ],
+  "source_sha256": {
+    "godot/scripts/core/save_owner_construction.gd": "e07b9cbed538a5a1f0bdeaf13824add464c97c815949677292e911c8c500323e",
+    "godot/scripts/core/construction.gd": "119b06209bd8eb996da424c5857ae447cbd0518877d961679b94f31985777aa6",
+    "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+    "godot/project.godot": "3bdf9bd24e40e46dcf07b2fa84a065ea663146a3cd25bb9fb92529f1ebc85a2a",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/allocation-probe.gd": "632ca9618ca844a6777ede6c00d1c32d51fa6bdc916134b3368f5587c67aeaa6"
+  }
+}

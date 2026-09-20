@@ -1,0 +1,174 @@
+{
+  "title": "Proposed Construction F2/F3 review follow-up source faults",
+  "date": "2026-09-20",
+  "status": "PROPOSAL ONLY; exact textual mutations verified, no source edits, parser/runtime jobs or acceptance performed",
+  "contract": "CONSTRUCTION-S4-VALIDATE-R01v2 / ADR0186",
+  "source_sha256": {
+    "godot/scripts/core/construction.gd": "119b06209bd8eb996da424c5857ae447cbd0518877d961679b94f31985777aa6",
+    "godot/scripts/core/save_owner_construction.gd": "e07b9cbed538a5a1f0bdeaf13824add464c97c815949677292e911c8c500323e",
+    "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
+    "tools/test_construction_metadata_preflights.py": "4fd6a1acd418438a45cb72973a37f5878b30ced9228f387be10c15c485b273f5",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/metadata-bridge-observer.gd": "227594d68fd2c13bf16a74149e37694a6c4f6d9923977a26e09c9a45ca1273a2",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/independent-combined-review.md": "1e8fb129b410fa8c32a22d1c3a0cdf609aae668222d3c458b23fa365e865685a",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/bridge-metadata-fault-proposal.json": "2cf2aa4edbbe3795ce0ab80b614e11c1067164e6ebccd37d98d7fdde760c67a9"
+  },
+  "compatibility": {
+    "case_fields": "Same cases[].edits[path,line,occurrences_required,old,new] and expected[pure_source_code,bridge_code,bridge_detail_prefix,first_gate] as bridge-metadata-fault-proposal.json. Extra evidence fields are descriptive.",
+    "harness_note": "tools/test_construction_metadata_preflights.py currently hardcodes the old manifest filename and len(cases)==55. These five cases are structurally compatible but require an explicitly revised/adopted harness input/count; do not silently claim they run through its current invocation.",
+    "observer": "Reuse metadata-bridge-observer.gd cold empty owner1 frame. Supply --fault for the four nonempty pure_source_code cases; omit it for the coherent pair-count case and explicitly require empty pure metadata. Direct unallocated Columns must still yield COLUMN_SHAPE; bridge must refuse metadata before empty-frame shape.",
+    "baseline_note": "Baseline before/after uses empty owner1 frame -> SAVE_COMPONENT_SHAPE; null frame -> SAVE_COMPONENT_SHAPE, wrong owner -> SAVE_COMPONENT_OWNER, pure/schema metadata empty."
+  },
+  "planned_repair_dependency": {
+    "guard": "Extend actual stored-key inspection to all four named dictionaries before row scan; preserve scope/order/code. Existing source at snapshot covers only four catalog/fact dictionaries, so F3 expectations are post-repair requirements, not assertions of present refusal.",
+    "array_checks": "Replace the bridge ten-entry allocated check table with explicit calls while preserving all ten labels, order, messages and constants. Pair-count witness depends on unchanged independent building pair-count anchor preceding bill-content comparison.",
+    "rebase_rule": "After author repair, pin actual executed source hashes and recheck each old substring exactly once. The six requested edits are in constants outside the repaired guard/helper bodies; compatibility still must be verified, not presumed."
+  },
+  "execution_requirements": [
+    "Apply every case independently in an isolated no-autoload cold source clone; both coherent edits are one atomic fault unit. Do not instantiate mutable Construction/Buildings/Definitions/Directory owners.",
+    "Reject SCRIPT ERROR, Parse Error, ERROR, crash, timeout, missing observation or wrong check count as INVALID execution. Compare exact literal codes and the given detail prefix; never weaken to any refusal.",
+    "Retain baseline-before/after, actual source hashes, one-occurrence proof and logs. Do not change an accepted F3 fault to expected success. This proposal records no observed engine results."
+  ],
+  "unique_proposed_fault_units": 5,
+  "exact_replacements": 6,
+  "cases": [
+    {
+      "id": "build-materials-actual-key-stringname",
+      "purpose": "F3: change the actual stored BUILD_MATERIALS dictionary key 'apiary' from String to StringName; leave every value, array element, dictionary extent and other key unchanged. This is not the existing bill-array-element key fault.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 147,
+          "occurrences_required": 1,
+          "occurrences_observed": 1,
+          "old": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12000, \"rope\", 2000]",
+          "new": "const BUILD_MATERIALS: Dictionary = {\n\t&\"apiary\": [\"wood\", 12000, \"rope\", 2000]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "Required after the planned stored-key guard extension; source-derived expectation, not an executed pass.",
+      "parse_validity": "Both key literals are valid GDScript for this untyped Dictionary. A parse/runtime engine error is invalid evidence, never the expected refusal."
+    },
+    {
+      "id": "furniture-materials-actual-key-stringname",
+      "purpose": "F3: change the actual stored FURNITURE_MATERIALS dictionary key 'bed' from String to StringName; leave every value, array element, dictionary extent and other key unchanged. This is not the existing bill-array-element key fault.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 194,
+          "occurrences_required": 1,
+          "occurrences_observed": 1,
+          "old": "const FURNITURE_MATERIALS: Dictionary = {\n\t\"bed\": [\"wood\", 2000, \"cloth\", 1000]",
+          "new": "const FURNITURE_MATERIALS: Dictionary = {\n\t&\"bed\": [\"wood\", 2000, \"cloth\", 1000]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "Required after the planned stored-key guard extension; source-derived expectation, not an executed pass.",
+      "parse_validity": "Both key literals are valid GDScript for this untyped Dictionary. A parse/runtime engine error is invalid evidence, never the expected refusal."
+    },
+    {
+      "id": "upgrade-materials-actual-key-stringname",
+      "purpose": "F3: change the actual stored UPGRADE_MATERIALS dictionary key 'covered_store' from String to StringName; leave every value, array element, dictionary extent and other key unchanged. This is not the existing bill-array-element key fault.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 183,
+          "occurrences_required": 1,
+          "occurrences_observed": 1,
+          "old": "const UPGRADE_MATERIALS: Dictionary = {\n\t\"covered_store\": [\"wood\", 25000, \"stone\", 20000]",
+          "new": "const UPGRADE_MATERIALS: Dictionary = {\n\t&\"covered_store\": [\"wood\", 25000, \"stone\", 20000]"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "Required after the planned stored-key guard extension; source-derived expectation, not an executed pass.",
+      "parse_validity": "Both key literals are valid GDScript for this untyped Dictionary. A parse/runtime engine error is invalid evidence, never the expected refusal."
+    },
+    {
+      "id": "upgrade-work-mwu-actual-key-stringname",
+      "purpose": "F3: change the actual stored UPGRADE_WORK_MWU dictionary key 'covered_store' from String to StringName; leave every value, array element, dictionary extent and other key unchanged. This is not the existing bill-array-element key fault.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 189,
+          "occurrences_required": 1,
+          "occurrences_observed": 1,
+          "old": "const UPGRADE_WORK_MWU: Dictionary = {\n\t\"covered_store\": 600000",
+          "new": "const UPGRADE_WORK_MWU: Dictionary = {\n\t&\"covered_store\": 600000"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "expectation_status": "Required after the planned stored-key guard extension; source-derived expectation, not an executed pass.",
+      "parse_validity": "Both key literals are valid GDScript for this untyped Dictionary. A parse/runtime engine error is invalid evidence, never the expected refusal."
+    },
+    {
+      "id": "coherent-building-bill-pair-count",
+      "purpose": "F2: append one valid positive stone pair to apiary and change only Construction COLUMN_BUILDING_BILL_PAIR_COUNTS[0] from2 to3. Pure bill-shape validation remains satisfied; the untouched bridge independent pair-count array must refuse before its later exact bill-content check.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 147,
+          "occurrences_required": 1,
+          "occurrences_observed": 1,
+          "old": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12000, \"rope\", 2000],",
+          "new": "const BUILD_MATERIALS: Dictionary = {\n\t\"apiary\": [\"wood\", 12000, \"rope\", 2000, \"stone\", 1000],"
+        },
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1427,
+          "occurrences_required": 1,
+          "occurrences_observed": 1,
+          "old": "const COLUMN_BUILDING_BILL_PAIR_COUNTS: Array[int] = [\n\t2, 3, 3, 2, 1, 2,",
+          "new": "const COLUMN_BUILDING_BILL_PAIR_COUNTS: Array[int] = [\n\t3, 3, 3, 2, 1, 2,"
+        }
+      ],
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: building bill pair counts entry 0 does not match the frozen source",
+        "first_gate": "4/independent array anchor"
+      },
+      "expectation_status": "Source-supported expectation; requires explicit pure preflight success to prove bridge independence.",
+      "parse_validity": "Dictionary/array literal syntax remains valid; count3 is within MATERIAL_SLOTS_PER_PROJECT4. Added key is a TYPE_STRING member of MATERIAL_KEYS and quantity is positive TYPE_INT. No other metadata or bridge SOURCE_* value changes.",
+      "source_reasoning": [
+        "godot/scripts/core/construction.gd:1552",
+        "godot/scripts/core/construction.gd:1595",
+        "godot/scripts/core/save_owner_construction.gd:604",
+        "godot/scripts/core/save_owner_construction.gd:626"
+      ]
+    }
+  ],
+  "upgrade_id_reorder_assessment": {
+    "disposition": "Not included as a sixth runnable case: the reviewer suggestion does not isolate the upgrade-IDs independent array anchor.",
+    "two_edit_suggestion": "Changing COLUMN_UPGRADE_IDS order and BuildingDefinitions.TIER_TWO_KEYS together still differs from Construction.SOURCE_TIER_TWO_KEYS. _source_key_scalars_ok refuses COLUMN_SOURCE_METADATA before _metadata_refusal_upgrade or any bridge array anchor.",
+    "earlier_pure_gate": "godot/scripts/core/construction.gd:1734",
+    "three_way_coherent_example": "Even swapping hall/residence (indexes1 and2) in COLUMN_UPGRADE_IDS, BuildingDefinitions.TIER_TWO_KEYS and Construction.SOURCE_TIER_TWO_KEYS to keep the pure preflight coherent cannot reach the bridge upgrade-IDs row: hall/residence already have equal work1200000 and pair-count3, so no additional work/count mirror is needed, but the bridge immutable SOURCE_TIER_TWO_KEYS remains independent.",
+    "earlier_bridge_gate": "godot/scripts/core/save_owner_construction.gd:604",
+    "coherent_example_expected": {
+      "pure_source_code": "",
+      "bridge_code": "SAVE_COMPONENT_METADATA",
+      "bridge_detail_prefix": "Construction owner1 metadata: tier two key 1 is not 'hall'",
+      "first_gate": "4/independent tier-two-key anchor before COLUMN array checks"
+    },
+    "index_zero_warning": "The reviewer specifically suggests mutating COLUMN_UPGRADE_IDS[0]. A covered_store/hall swap also requires owner work and bill-pair arrays to follow their differing values before pure row preflight can pass. Even with those extra coherent edits and Construction.SOURCE_TIER_TWO_KEYS updated, the bridge refuses tier two key0 before upgrade IDs.",
+    "coverage_limit": "Do not label either form an upgrade-ID-array discrimination witness. Editing the bridge tier-key anchor or bypassing the earlier gate solely to force access would corrupt the independent oracle; explicit ten-array calls address the stated table-omission concern without that false coverage claim."
+  }
+}

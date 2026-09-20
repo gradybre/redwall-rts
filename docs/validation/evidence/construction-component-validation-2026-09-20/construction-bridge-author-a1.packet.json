@@ -1,0 +1,32 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "task": "Construction owner1 borrowed section4 validation adapter",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-local-validation-bridge",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/construction_component_validation_contract.md",
+    "docs/decisions/0186-construction-validation-preserves-retired-purpose-and-refund-history.md",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/frozen-source-facts.json",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/source-layout.json",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/witness-plan-v2.json",
+    "godot/scripts/core/construction.gd",
+    "godot/scripts/core/save_owner_buildings.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_header.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/immutable-collaborator-excerpts.md"
+  ],
+  "allowedWrites": {
+    "godot/scripts/core/save_owner_construction.gd": null
+  },
+  "instructions": "Implement ONLY new save_owner_construction.gd, accepted R01v2/ADR0186, the established bridge family with no new model/policy. Return complete file <=750lines; aim compact300\u2013450 with short typed documented helpers and clear exact-source refusals. Four preloads Construction/Schema/Section/SaveHeader only, reach other immutable sources through existingConstruction aliases. Seven ordered gates frozen in contract: null, owner1, schema, metadata+source, framedshape, one Columns(false) and16explicit assignments via actual static _project_columns(record,out), purepredicate. Preserve unwrapped purecodes, exactprefixes 'Construction owner1 metadata:' / 'Construction owner 1 '. Null/wrongowner/schema/shapedetail forwarded perfamily. No mutable module state, live constructor, copies/default image/resize/fill/sort/hash, no extra packed scratch, no gameplay/economic/save restoration claim.\nFreeze owner1 keyconstruction/version1 primary82944/child0 fieldbegin29/count16 exactkey/type/count table fromcontract. The one actual mapper helper is called by framed_refusal and callable directly by tests, no alternatepublicwrapper. Correcttyped u8/i32/i64 readers (remaining ordinal6 i64). Owner column_source_metadata_refusal safely protects itself and must be called for source preflight, but DOES NOT replace this bridge's INDEPENDENT OUT-OF-FILE frozen SOURCE_ anchors. Source coherence attacks changing source plus Construction gate mirror must still refuse via bridgeanchors. Freeze exact10COLUMN_* arrays under SOURCE_* names(contract) and exact SOURCE_BUILD_BILLS/FURNITURE_BILLS/UPGRADE_BILLS dictionary contents fromfrozenfacts. Pin owner/source scalar ordinals/indices/capacities/material keys independently from Construction's newly added in-file SOURCE_* scalar anchors, so changing both source and its in-file mirror cannot silently alter gate semantics. Bounds/types before every fact access; exactly canonicalCatalogkey-toordinal bijections30/9 andupgradeIDs5/12/23/29. Source exactbillkey TYPE_STRING vs materialkeysStringName distinct; checktype beforeexplicitmembershipconversion andexactquantity/order compare. Safe directpreflight checksallsourcefactrowtypes; bridgealso exactquantity/order drift, no livecatalogcompilation.\nUse onlyactual providedAPIs, do notguess Schema/FramedOwner methods. No source or tests elsewhere. No authorapproval/executionclaims. StrictJSON5keys(status/summary/questions/files/decisionIds). ONE fileentry exactly baseSha256:null FIRST,path:'godot/scripts/core/save_owner_construction.gd',content:fullsource. Null baseSha256 must not be omitted (priortransport failures were missing this key). Surface realcontradictions inquestions ratherthaninventscope."
+}

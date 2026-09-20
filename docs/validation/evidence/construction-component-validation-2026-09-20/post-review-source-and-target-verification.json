@@ -1,0 +1,719 @@
+{
+  "owner_sha256": "ec758c4fc40746962b50fa7294d9ee7954208cfed579dbe10bfc54e0a2aeff70",
+  "bridge_sha256": "f275eedebde522821b159cf598bdf5d4aea57564bb974af8667917a338b62a86",
+  "accepted_gameplay_prefix_bytes": 62245,
+  "prefix_unchanged": true,
+  "plans": [
+    {
+      "path": "bridge-metadata-fault-proposal.json",
+      "units": 55,
+      "edits": [
+        {
+          "case": "catalog-building-extra-key",
+          "path": "godot/scripts/core/catalog.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "catalog-building-key-missing",
+          "path": "godot/scripts/core/catalog.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "catalog-building-id-type",
+          "path": "godot/scripts/core/catalog.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "catalog-building-duplicate-id",
+          "path": "godot/scripts/core/catalog.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "catalog-furniture-wrong-domain-id",
+          "path": "godot/scripts/core/catalog.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "building_definition-actual-key-stringname",
+          "path": "godot/scripts/core/catalog.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "furniture_definition-actual-key-stringname",
+          "path": "godot/scripts/core/catalog.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "building_facts-actual-key-stringname",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "furniture_facts-actual-key-stringname",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "building-fact-nonarray",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "building-fact-short",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "furniture-fact-short",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "building-fact-work-drift",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "building-fact-workers-drift",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "upgrade-work-type",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "build-bill-not-array",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "build-bill-odd",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "build-bill-five-pairs",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "build-bill-wrong-pair-count",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "build-bill-key-stringname",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "build-bill-key-unknown",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "build-bill-quantity-float",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "build-bill-quantity-zero",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "build-bill-positive-content",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "build-bill-order",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "furniture-bill-positive-content",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "upgrade-bill-positive-content",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-building-work",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-building-work",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-building-workers",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-building-workers",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-furniture-work",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-furniture-work",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-upgrade-work",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-upgrade-work",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-demolition-numerator",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-demolition-numerator",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-material-key-order",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-material-key-order",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-b_work_mwu",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-b_work_mwu",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-b_work_mwu",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-b_max_builders",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-b_max_builders",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-b_max_builders",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-b_field_count",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-b_field_count",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-b_field_count",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-f_work_mwu",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-f_work_mwu",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-f_work_mwu",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-f_field_count",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-f_field_count",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-f_field_count",
+          "path": "godot/scripts/core/building_definitions.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-section-version",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-section-byte-budget",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-descriptor-row-budget",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-owner-begin",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-owner-field-count",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-owner-child-count",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-owner-payload-budget",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-unsupported-field-type",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-owner-key",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-owner-version",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-coherent-primary-count",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-field-ordinal-swap",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-balanced-field-types",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-balanced-field-extents",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-coherent-owner-field-begin",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-coherent-owner-field-begin",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-coherent-owner-field-begin",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-coherent-owner-field-begin",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-coherent-owner-field-begin",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-coherent-owner-field-count",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-coherent-owner-field-count",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-coherent-owner-field-count",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-coherent-owner-field-count",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-coherent-owner-field-count",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-coherent-owner-child-count",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-coherent-owner-child-count",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-coherent-owner-child-count",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-coherent-owner-child-count",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "schema-coherent-owner-child-count",
+          "path": "godot/scripts/core/save_component_columns_schema.gd",
+          "occurrences": 1
+        }
+      ],
+      "all_exact_once": true
+    },
+    {
+      "path": "review-followup-fault-proposal.json",
+      "units": 5,
+      "edits": [
+        {
+          "case": "build-materials-actual-key-stringname",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "furniture-materials-actual-key-stringname",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "upgrade-materials-actual-key-stringname",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "upgrade-work-mwu-actual-key-stringname",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-building-bill-pair-count",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "coherent-building-bill-pair-count",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        }
+      ],
+      "all_exact_once": true
+    },
+    {
+      "path": "row-allocation-fault-proposal.json",
+      "units": 39,
+      "edits": [
+        {
+          "case": "skip-final-row",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "skip-upper-half",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "reverse-row-order",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "flag-two-permitted-present",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "flag-two-permitted-paused",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "flag-two-permitted-work_begun",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "flags-after-row-semantics",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "relax-enum-purpose",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "relax-enum-phase",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "relax-enum-refund_policy",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "omit-negative-remaining",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "omit-negative-type-sentinel-bound",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "permit-half-null-slot",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "permit-zero-generation",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "directory-off-by-one",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "container-wrong-directory-namespace",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "omit-retired-work-clear",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "omit-never-used-purpose",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "permit-live-null-self",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "permit-live-sentinel-type",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "restrict-valid-furniture-domain",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "deny-valid-upgrade-member",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "omit-worker-cap-parity",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 0
+        },
+        {
+          "case": "assigned-cap-off-by-one",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 0
+        },
+        {
+          "case": "omit-paused-idleness",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 0
+        },
+        {
+          "case": "omit-refunding-idleness",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 0
+        },
+        {
+          "case": "forbid-workers-outside-working",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 0
+        },
+        {
+          "case": "recompute-retired-policy-from-cleared-begun",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "demolition-policy-changed-to-full",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "omit-awaiting-begun",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "allow-working-zero",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "allow-done-positive",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "allow-short-unbegun-refund",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "allow-empty-bill-awaiting",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "allow-retired-ready",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "demolition-work-not-quartered",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "value-before-enum",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "phase-before-policy",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "wrap-column-error-as-family-metadata",
+          "path": "godot/scripts/core/save_owner_construction.gd",
+          "occurrences": 1
+        }
+      ],
+      "all_exact_once": false
+    },
+    {
+      "path": "negative-phase-fault-proposal.json",
+      "units": 6,
+      "edits": [
+        {
+          "case": "omit-ready-begun",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "omit-ready-remaining",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "omit-working-begun",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "omit-working-upper",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "omit-work-done-begun",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        },
+        {
+          "case": "omit-refunding-upper",
+          "path": "godot/scripts/core/construction.gd",
+          "occurrences": 1
+        }
+      ],
+      "all_exact_once": true
+    }
+  ],
+  "row_semantic_rebase": {
+    "cases": [
+      "omit-worker-cap-parity",
+      "assigned-cap-off-by-one",
+      "omit-paused-idleness",
+      "omit-refunding-idleness",
+      "forbid-workers-outside-working"
+    ],
+    "old_and_new_executable_bodies_unchanged": true,
+    "reason": "F4 changed TYPE-before-WORKERS precondition docstring only. Original proposal/evidence retained; every final-source old target now matches exactly once.",
+    "all39_targets_verified_exact_once": true
+  },
+  "original_vs_rebased": "plans[] measures ORIGINAL proposal strings. Five WORKERS mutations have stale docstring context only; row_semantic_rebase plus row-allocation-fault-proposal-rebased.json supersede those five 0-occurrence entries, proving all39 final targets exact once with unchanged executable old/new bodies."
+}

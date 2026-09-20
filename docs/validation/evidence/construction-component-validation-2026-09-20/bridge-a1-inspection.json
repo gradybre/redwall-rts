@@ -1,0 +1,29 @@
+{
+  "candidate_sha256": "fda855cf3edde92fe6b53768007644be8c062b17304a463111635e7d0ac9b3b5",
+  "import": "bridge-import-a1.log: no script/parse/engine errors",
+  "accepted": false,
+  "findings": [
+    {
+      "id": "B1",
+      "severity": "must_fix",
+      "fact": "_identity_refusal omits explicit fieldbegin29 pin although contract and author summary claim it.",
+      "required": "Independent OWNER_FIELD_BEGIN29 and check actual Schema.OWNER_FIELD_BEGIN[1] after schema protection."
+    },
+    {
+      "id": "B2",
+      "severity": "must_fix",
+      "fact": "Bridge lacks independent B_WORK_MWU/B_MAX_BUILDERS/B_FIELD_COUNT/F_WORK_MWU/F_FIELD_COUNT anchors. Pure preflight compares source against same-file owner mirrors, so coherent index+mirror+fact-row rearrangement can pass.",
+      "required": "Independent frozen2/9/10/2/4 comparisons against BuildingDefinitions and Construction SOURCE mirrors before projection; retain all other scalar gates."
+    },
+    {
+      "id": "B3",
+      "severity": "style",
+      "fact": "_scalar_anchor_refusal constructs a long per-call array-of-arrays list and exceeds30code lines. Owner _init and column_source_metadata_refusal also exceed30bodylines.",
+      "required": "Decompose into short helpers without changing gate order, state, allocator behavior or frozen constants. Prefer direct scalar comparisons over building dynamic check tables."
+    }
+  ],
+  "not_findings": [
+    "Material and tier-two key comparisons are correctly reached through _array_anchor_refusal; no missing-call claim."
+  ],
+  "remaining": "New functional/metadata/allocation evidence, independent exact-source review and final gates."
+}

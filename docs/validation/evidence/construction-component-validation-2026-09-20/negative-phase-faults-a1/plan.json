@@ -1,0 +1,271 @@
+{
+  "title": "Six negative Construction phase relation mutation proposals",
+  "status": "PROPOSAL ONLY; no source/test mutation, parse, runtime execution or acceptance",
+  "contract": "CONSTRUCTION-S4-VALIDATE-R01v2 / ADR0186",
+  "date": "2026-09-20",
+  "source_sha256": {
+    "godot/scripts/core/construction.gd": "119b06209bd8eb996da424c5857ae447cbd0518877d961679b94f31985777aa6",
+    "godot/test/test_construction_columns.gd": "ab28c4f1ba29b13a3f3e7aa08f5767133a49a7ec590ef69b462f28f9ce016638"
+  },
+  "unique_source_fault_units": 6,
+  "target_test_assertions_per_run": 60,
+  "expected_mutant_assertion_failures_per_run": 5,
+  "expected_mutant_assertion_passes_per_run": 55,
+  "count_explanation": "6 cases \u00d75 rows \u00d7(one BASE_LIVE control +one negative expectation)=60 assertions in test_negative_phase_relation_cases. Each isolated mutation changes only one case across5 rows. Counts exclude test_negative_phase_case_count and framework setup assertions.",
+  "protocol": [
+    "Apply one case only in an isolated no-autoload clone; never edit integration sources/tests. Before applying, require both frozen hashes and exact old-string occurrence count1. Replace once and retain raw before/after hash and patch.",
+    "Run the actual existing test_negative_phase_relation_cases method with its real framework assertions and unchanged fixtures. Obtain clean baseline before faults and after restoration. Do not substitute new fixtures or read expected codes from production constants.",
+    "Require the five listed exact assertion labels to report expected COLUMN_PHASE versus actual empty code. Each paired BASE_LIVE control must still return empty code. Other five negative case IDs must still return COLUMN_PHASE at every row.",
+    "A SCRIPT ERROR, Parse Error, compiler/warning-as-error failure, invalid indexing, fixture/control failure, missing method or summary, timeout or crash is invalid execution, not a caught source fault. Replacements preserve complete conditions and branches and retain all parameters/locals in use, but parsing has not been executed by this proposal.",
+    "Count six source faults; repeated row observations and baseline/restoration runs are not additional unique faults. No need rerun the separate39-unit semantic campaign to execute this packet.",
+    "Current owner includes the source key-type repair; prior manifest hashes must not be reused. Refreeze explicitly if owner/test changes after this proposal."
+  ],
+  "cases": [
+    {
+      "id": "omit-ready-begun",
+      "omitted_condition": "begun != 0",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2080,
+          "occurrences_required": 1,
+          "occurrences_observed": 1,
+          "old": "\t\tPHASE_READY:\n\t\t\tif begun != 0 or remaining != w:",
+          "new": "\t\tPHASE_READY:\n\t\t\tif remaining != w:"
+        }
+      ],
+      "target_test": {
+        "path": "godot/test/test_construction_columns.gd",
+        "method": "test_negative_phase_relation_cases",
+        "line": 639,
+        "case_id": "ready-begun1-remaining-w",
+        "rows": [
+          0,
+          1,
+          41471,
+          41472,
+          82943
+        ],
+        "exact_assertion_labels": [
+          "ready-begun1-remaining-w row 0",
+          "ready-begun1-remaining-w row 1",
+          "ready-begun1-remaining-w row 41471",
+          "ready-begun1-remaining-w row 41472",
+          "ready-begun1-remaining-w row 82943"
+        ]
+      },
+      "expected_baseline_code": "COLUMN_PHASE",
+      "expected_mutant_code": "",
+      "expected_failed_assertions": 5,
+      "expected_control_code": "",
+      "expected_other_negative_case_failures": 0,
+      "reason": "Only the matching phase relation is omitted. All preceding enum/value/reference/free/type/worker/policy gates remain valid for the matching frozen fixture, so it incorrectly reaches REFUSE_NONE. The unchanged BASE_LIVE control and other five negative cases retain their expected results.",
+      "executed": false
+    },
+    {
+      "id": "omit-ready-remaining",
+      "omitted_condition": "remaining != w",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2080,
+          "occurrences_required": 1,
+          "occurrences_observed": 1,
+          "old": "\t\tPHASE_READY:\n\t\t\tif begun != 0 or remaining != w:",
+          "new": "\t\tPHASE_READY:\n\t\t\tif begun != 0:"
+        }
+      ],
+      "target_test": {
+        "path": "godot/test/test_construction_columns.gd",
+        "method": "test_negative_phase_relation_cases",
+        "line": 639,
+        "case_id": "ready-begun0-remaining-w-minus-1",
+        "rows": [
+          0,
+          1,
+          41471,
+          41472,
+          82943
+        ],
+        "exact_assertion_labels": [
+          "ready-begun0-remaining-w-minus-1 row 0",
+          "ready-begun0-remaining-w-minus-1 row 1",
+          "ready-begun0-remaining-w-minus-1 row 41471",
+          "ready-begun0-remaining-w-minus-1 row 41472",
+          "ready-begun0-remaining-w-minus-1 row 82943"
+        ]
+      },
+      "expected_baseline_code": "COLUMN_PHASE",
+      "expected_mutant_code": "",
+      "expected_failed_assertions": 5,
+      "expected_control_code": "",
+      "expected_other_negative_case_failures": 0,
+      "reason": "Only the matching phase relation is omitted. All preceding enum/value/reference/free/type/worker/policy gates remain valid for the matching frozen fixture, so it incorrectly reaches REFUSE_NONE. The unchanged BASE_LIVE control and other five negative cases retain their expected results.",
+      "executed": false
+    },
+    {
+      "id": "omit-working-begun",
+      "omitted_condition": "begun != 1",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2083,
+          "occurrences_required": 1,
+          "occurrences_observed": 1,
+          "old": "\t\tPHASE_WORKING:\n\t\t\tif begun != 1 or remaining < 1 or remaining > w:",
+          "new": "\t\tPHASE_WORKING:\n\t\t\tif remaining < 1 or remaining > w:"
+        }
+      ],
+      "target_test": {
+        "path": "godot/test/test_construction_columns.gd",
+        "method": "test_negative_phase_relation_cases",
+        "line": 639,
+        "case_id": "working-begun0-remaining-1",
+        "rows": [
+          0,
+          1,
+          41471,
+          41472,
+          82943
+        ],
+        "exact_assertion_labels": [
+          "working-begun0-remaining-1 row 0",
+          "working-begun0-remaining-1 row 1",
+          "working-begun0-remaining-1 row 41471",
+          "working-begun0-remaining-1 row 41472",
+          "working-begun0-remaining-1 row 82943"
+        ]
+      },
+      "expected_baseline_code": "COLUMN_PHASE",
+      "expected_mutant_code": "",
+      "expected_failed_assertions": 5,
+      "expected_control_code": "",
+      "expected_other_negative_case_failures": 0,
+      "reason": "Only the matching phase relation is omitted. All preceding enum/value/reference/free/type/worker/policy gates remain valid for the matching frozen fixture, so it incorrectly reaches REFUSE_NONE. The unchanged BASE_LIVE control and other five negative cases retain their expected results.",
+      "executed": false
+    },
+    {
+      "id": "omit-working-upper",
+      "omitted_condition": "remaining > w",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2083,
+          "occurrences_required": 1,
+          "occurrences_observed": 1,
+          "old": "\t\tPHASE_WORKING:\n\t\t\tif begun != 1 or remaining < 1 or remaining > w:",
+          "new": "\t\tPHASE_WORKING:\n\t\t\tif begun != 1 or remaining < 1:"
+        }
+      ],
+      "target_test": {
+        "path": "godot/test/test_construction_columns.gd",
+        "method": "test_negative_phase_relation_cases",
+        "line": 639,
+        "case_id": "working-begun1-remaining-w-plus-1",
+        "rows": [
+          0,
+          1,
+          41471,
+          41472,
+          82943
+        ],
+        "exact_assertion_labels": [
+          "working-begun1-remaining-w-plus-1 row 0",
+          "working-begun1-remaining-w-plus-1 row 1",
+          "working-begun1-remaining-w-plus-1 row 41471",
+          "working-begun1-remaining-w-plus-1 row 41472",
+          "working-begun1-remaining-w-plus-1 row 82943"
+        ]
+      },
+      "expected_baseline_code": "COLUMN_PHASE",
+      "expected_mutant_code": "",
+      "expected_failed_assertions": 5,
+      "expected_control_code": "",
+      "expected_other_negative_case_failures": 0,
+      "reason": "Only the matching phase relation is omitted. All preceding enum/value/reference/free/type/worker/policy gates remain valid for the matching frozen fixture, so it incorrectly reaches REFUSE_NONE. The unchanged BASE_LIVE control and other five negative cases retain their expected results.",
+      "executed": false
+    },
+    {
+      "id": "omit-work-done-begun",
+      "omitted_condition": "begun != 1",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2086,
+          "occurrences_required": 1,
+          "occurrences_observed": 1,
+          "old": "\t\tPHASE_WORK_DONE:\n\t\t\tif begun != 1 or remaining != 0:",
+          "new": "\t\tPHASE_WORK_DONE:\n\t\t\tif remaining != 0:"
+        }
+      ],
+      "target_test": {
+        "path": "godot/test/test_construction_columns.gd",
+        "method": "test_negative_phase_relation_cases",
+        "line": 639,
+        "case_id": "work-done-begun0-remaining-0",
+        "rows": [
+          0,
+          1,
+          41471,
+          41472,
+          82943
+        ],
+        "exact_assertion_labels": [
+          "work-done-begun0-remaining-0 row 0",
+          "work-done-begun0-remaining-0 row 1",
+          "work-done-begun0-remaining-0 row 41471",
+          "work-done-begun0-remaining-0 row 41472",
+          "work-done-begun0-remaining-0 row 82943"
+        ]
+      },
+      "expected_baseline_code": "COLUMN_PHASE",
+      "expected_mutant_code": "",
+      "expected_failed_assertions": 5,
+      "expected_control_code": "",
+      "expected_other_negative_case_failures": 0,
+      "reason": "Only the matching phase relation is omitted. All preceding enum/value/reference/free/type/worker/policy gates remain valid for the matching frozen fixture, so it incorrectly reaches REFUSE_NONE. The unchanged BASE_LIVE control and other five negative cases retain their expected results.",
+      "executed": false
+    },
+    {
+      "id": "omit-refunding-upper",
+      "omitted_condition": "remaining <= w",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2091,
+          "occurrences_required": 1,
+          "occurrences_observed": 1,
+          "old": "\t\t\tvar working_shape: bool = begun == 1 and remaining >= 0 and remaining <= w",
+          "new": "\t\t\tvar working_shape: bool = begun == 1 and remaining >= 0"
+        }
+      ],
+      "target_test": {
+        "path": "godot/test/test_construction_columns.gd",
+        "method": "test_negative_phase_relation_cases",
+        "line": 639,
+        "case_id": "refund-begun1-remaining-w-plus-1",
+        "rows": [
+          0,
+          1,
+          41471,
+          41472,
+          82943
+        ],
+        "exact_assertion_labels": [
+          "refund-begun1-remaining-w-plus-1 row 0",
+          "refund-begun1-remaining-w-plus-1 row 1",
+          "refund-begun1-remaining-w-plus-1 row 41471",
+          "refund-begun1-remaining-w-plus-1 row 41472",
+          "refund-begun1-remaining-w-plus-1 row 82943"
+        ]
+      },
+      "expected_baseline_code": "COLUMN_PHASE",
+      "expected_mutant_code": "",
+      "expected_failed_assertions": 5,
+      "expected_control_code": "",
+      "expected_other_negative_case_failures": 0,
+      "reason": "Only the matching phase relation is omitted. All preceding enum/value/reference/free/type/worker/policy gates remain valid for the matching frozen fixture, so it incorrectly reaches REFUSE_NONE. The unchanged BASE_LIVE control and other five negative cases retain their expected results.",
+      "executed": false
+    }
+  ]
+}

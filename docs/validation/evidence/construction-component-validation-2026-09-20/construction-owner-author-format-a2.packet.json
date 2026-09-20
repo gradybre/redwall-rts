@@ -1,0 +1,30 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "task": "Recover completed owner patch in strict file-bundle format",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-local-validation-owner",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/construction_component_validation_contract.md",
+    "docs/decisions/0186-construction-validation-preserves-retired-purpose-and-refund-history.md",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/frozen-source-facts.json",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/witness-plan-v2.json",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/review-r02-disposition.md",
+    "godot/scripts/core/construction.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/entity_directory.gd"
+  ],
+  "allowedWrites": {
+    "docs/validation/evidence/construction-component-validation-2026-09-20/author-owner.patch": null
+  },
+  "instructions": "FORMAT REPAIR ONLY. Your preceding stopped result failed BUNDLE_FILE_KEYS_INVALID: a file entry did not have exactly the required keys. No source was applied. The adapter did not retain the invalid public response. Reissue your completed Construction append-only patch from this same author context, preserving its implementation and decisions, without redoing the source analysis. Exact output object, exactly these5top-level keys: {\"status\":\"complete\",\"summary\":\"brief implementation summary\",\"questions\":[],\"files\":[{\"path\":\"docs/validation/evidence/construction-component-validation-2026-09-20/author-owner.patch\",\"content\":\"YOUR COMPLETE STANDARD UNIFIED DIFF STRING\",\"baseSha256\":null}],\"decisionIds\":[\"0186\"]}. Exactly3keys in the one file entry: path,content,baseSha256. NO operation/action/type/hash/patch/diff/encoding fields, no extra top-level keys, no markdown fence. Unified diff modifies ONLY construction.gd by appending accepted R01v2 code, at least3context lines, trailing newline. Do not return the whole unchanged source.900actualpatchline maximum. This is a transport repair, no approval or executionclaim. If your prior output was not a diff, mechanically express its exact additions as the required append-only unifieddiff; do not invent new code or alter semantics.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/construction-owner-author-a1"
+}

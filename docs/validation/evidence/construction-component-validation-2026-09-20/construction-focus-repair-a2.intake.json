@@ -1,0 +1,19 @@
+{
+  "attempt": "construction-focus-repair-a2",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-local-validation-functional-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "session_id": "af0acb5b-8c21-437d-963a-cd81c0ff8a79",
+  "owner_stopped": true,
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "integration_head": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "source_inputs_reverified": true,
+  "files": {
+    "godot/test/construction_columns_focus.gd": "79889b617bfcca0a5374ac7b2614d3cdf810bdd8304ffb028f4591b12e4fdd96"
+  },
+  "approval": "artifact_intake_only_not_product_acceptance"
+}

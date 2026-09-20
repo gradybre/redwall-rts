@@ -1,0 +1,7 @@
+{
+  "original_sha256": "b2da8a0ac48c5ec005a0a5dbf3f1506b59c31546cff85835ae9069040463916d",
+  "normalized_sha256": "dd826804211ded24d77d42b3281ddddfb69d2026abdf01c34d3b689833414b24",
+  "normalization": "Add exact diff --git file boundary headers only; hunk old/new source content unchanged. Every original old-side hunk occurred exactly once in declared input sources.",
+  "check_exit": 0,
+  "source_applied": false
+}

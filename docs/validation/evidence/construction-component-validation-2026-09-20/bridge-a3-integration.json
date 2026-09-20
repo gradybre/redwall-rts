@@ -1,0 +1,14 @@
+{
+  "attempt": "construction-bridge-specialist-a3",
+  "ownerStopped": true,
+  "source_applied": true,
+  "intake": "Original strict source/target checks passed, git rejected absent explicit multi-file boundaries under recount. Added only two diff --git headers; preserved original artifact, exact old/new hunk source content and all frozen inputs. Normalized patch passed git apply --recount --check then applied.",
+  "original_prefix_1327_lines_unchanged": true,
+  "old_scalar_anchors_preserved_in_order": 58,
+  "new_independent_fact_scalar_anchors": 10,
+  "source_sha256": {
+    "godot/scripts/core/construction.gd": "e5d3fd006311c43c3b20b0a3f2209945e5ade12ad08b84ddcaf8d49ef6e3e326",
+    "godot/scripts/core/save_owner_construction.gd": "e07b9cbed538a5a1f0bdeaf13824add464c97c815949677292e911c8c500323e"
+  },
+  "accepted": false
+}

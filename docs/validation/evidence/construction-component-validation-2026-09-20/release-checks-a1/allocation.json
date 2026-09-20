@@ -1,0 +1,16 @@
+{
+  "step": "allocation",
+  "command": [
+    "python3",
+    "tools/test_construction_allocation.py"
+  ],
+  "seconds": 2.479,
+  "exit_code": 0,
+  "counts": null,
+  "expected_counts": null,
+  "passed": true,
+  "error_lines": [],
+  "error_multiset_matches_expected": true,
+  "leak_diagnostic_lines": [],
+  "log_sha256": "18c4054b6d570ce80f0f077f8f9862e39ecc14fc7bd5db04f75029cdbc9b6b27"
+}

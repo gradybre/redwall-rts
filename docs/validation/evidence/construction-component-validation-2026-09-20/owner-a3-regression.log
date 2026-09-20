@@ -1,0 +1,71 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_construction.gd
+  PASS  test_the_build_bill_is_gameplay_balance_4_1_verbatim
+  PASS  test_an_empty_bill_is_dirt_paths_own_authored_row
+  PASS  test_a_demolition_bill_is_empty_but_its_return_basis_is_not
+  PASS  test_an_upgrade_bill_exists_only_for_the_four_tier_two_keys
+  PASS  test_a_material_index_is_resolved_by_key_and_refuses_a_stranger
+  PASS  test_the_furniture_bill_is_gameplay_balance_4_3_verbatim
+  PASS  test_opening_a_project_deducts_nothing_and_delivers_nothing
+  PASS  test_the_project_is_bound_to_its_building_in_both_directions
+  PASS  test_work_cannot_be_earned_before_materials_are_delivered
+  PASS  test_partial_delivery_leaves_the_project_awaiting_materials
+  PASS  test_over_delivery_is_refused_and_credits_nothing
+  PASS  test_a_nonpositive_delivery_and_a_stranger_line_both_refuse
+  PASS  test_an_empty_bill_opens_straight_into_ready
+  PASS  test_begin_work_consumes_and_moves_the_building_into_the_building_state
+  PASS  test_work_retires_milli_wu_and_caps_the_final_contribution
+  PASS  test_work_refuses_once_the_project_is_done
+  PASS  test_completion_publishes_the_building_and_retires_the_project
+  PASS  test_completion_refuses_before_the_work_is_done
+  PASS  test_cancellation_before_work_returns_one_hundred_percent
+  PASS  test_cancellation_after_work_returns_eighty_percent
+  PASS  test_the_eighty_percent_refund_floors_to_milli_u
+  PASS  test_a_partially_delivered_cancellation_refunds_only_what_arrived
+  PASS  test_a_cancelled_construction_leaves_no_live_row_and_no_blueprint
+  PASS  test_a_refunding_project_accepts_no_further_delivery_or_work
+  PASS  test_close_refund_refuses_before_begin_refund
+  PASS  test_demolition_returns_fifty_percent_of_the_original_cost
+  PASS  test_the_two_refund_paths_refuse_each_other
+  PASS  test_demolition_work_is_a_quarter_of_the_declared_construction_work
+  PASS  test_a_finished_demolition_removes_the_building
+  PASS  test_a_refused_completion_restores_the_buildings_back_reference
+  PASS  test_a_refused_cancellation_close_restores_the_buildings_back_reference
+  PASS  test_demolition_is_blocked_by_room_occupants_and_reports_the_count
+  PASS  test_demolition_is_blocked_by_furniture_still_in_use
+  PASS  test_pausing_retains_materials_and_progress_and_releases_workers
+  PASS  test_a_paused_project_accepts_no_work_and_no_delivery
+  PASS  test_assigned_count_is_capped_by_the_declared_builder_limit
+  PASS  test_an_upgrade_project_raises_the_tier_exactly_once
+  PASS  test_a_building_carries_at_most_one_project
+  PASS  test_a_furniture_project_runs_the_same_lifecycle
+  PASS  test_a_stale_project_reference_refuses_every_operation
+  PASS  test_a_project_cannot_be_opened_on_a_finished_building
+  PASS  test_the_material_container_is_an_inventory_reference_not_a_directory_one
+  PASS  test_the_refund_policy_column_agrees_with_its_own_recomputation
+  PASS  test_clear_releases_every_project_row_and_its_directory_slots
+  PASS  test_the_store_capacity_matches_the_directory_and_the_architecture
+  PASS  test_project_of_subject_answers_for_a_furniture_row_as_well_as_a_building
+  PASS  test_project_of_subject_refuses_a_retired_subject_rather_than_guessing
+  PASS  test_the_demolition_counters_are_public_and_read_the_live_rows
+construction_retired_probe.gd
+  PASS  test_dirt_path_build_retires_with_expected_residual_row
+  PASS  test_open_stockpile_cancelled_before_work_retires_full_refund
+  PASS  test_open_stockpile_partial_refund_after_work_begins
+  PASS  test_corrupted_snapshot_length_is_rejected_before_decode
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+52 test(s), 613 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

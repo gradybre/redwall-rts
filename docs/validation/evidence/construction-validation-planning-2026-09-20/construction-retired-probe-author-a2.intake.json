@@ -1,0 +1,19 @@
+{
+  "attempt": "construction-retired-probe-author-a2",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-retired-state-probe",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "CONSTRUCTION-STATE-PROBE-R01"
+  },
+  "session_id": "69db22fe-15c2-43be-a926-b0edc272ba14",
+  "owner_stopped": true,
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "integration_head": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "source_inputs_reverified": true,
+  "files": {
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/retired-state-probe.gd": "eb5142d4c5c89e4d7bffb56b91551086c397bfc79d62256a43c76f796a55a150"
+  },
+  "approval": "artifact_intake_only_not_product_acceptance"
+}

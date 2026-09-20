@@ -1,0 +1,19 @@
+{
+  "scope": "Existing Construction lifecycle and reviewed retained-state probe regression only; no new validator acceptance",
+  "source_sha256": {
+    "godot/scripts/core/construction.gd": "9b429f0ffc277372892d87dd0b45bc7370945ff0b6628e4b2801c69a8b3d73e8",
+    "godot/scripts/core/buildings.gd": "eb6d09a1d80d169fa60795b6e6d22d05dd64329b8ea85f36e805b482ea705dd5",
+    "godot/test/test_construction.gd": "94238745efb50a2d6a55509ec71b124fddf9e172da5296ce7ee4b4554a42e7f6",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/retired-state-probe.gd": "eb5142d4c5c89e4d7bffb56b91551086c397bfc79d62256a43c76f796a55a150"
+  },
+  "seconds": 4.215,
+  "exit_code": 0,
+  "counts": [
+    52,
+    613,
+    0
+  ],
+  "script_or_engine_error": false,
+  "passed": true,
+  "log_sha256": "93868ec72addff6a8c224ab8a1fb5ea6660c3ea5b02b3d00b5ad4b9166db4f71"
+}

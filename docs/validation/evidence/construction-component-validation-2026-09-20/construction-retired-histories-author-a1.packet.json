@@ -1,0 +1,30 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "task": "Author12genuine public Construction retirement history witnesses",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-retired-history-tests",
+    "role": "author",
+    "model": "claude-opus-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/construction_component_validation_contract.md",
+    "docs/decisions/0186-construction-validation-preserves-retired-purpose-and-refund-history.md",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/real-history-authoring-guide.md",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/retired-state-probe.gd",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/frozen-source-facts.json",
+    "godot/scripts/core/construction.gd",
+    "godot/test/test_construction.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/construction_columns_focus.gd"
+  ],
+  "allowedWrites": {
+    "godot/test/test_construction_retired_histories.gd": null,
+    "godot/test/construction_columns_focus.gd": "79889b617bfcca0a5374ac7b2614d3cdf810bdd8304ffb028f4591b12e4fdd96"
+  },
+  "instructions": "Fresh specialist QA author for bounded persistence-history evidence. Implement all12REALpublic componentlifecycles in guide:4purposes x completion/cancelbefore/cancelafter. Exact delivered/refund/work literals independent sourcefacts; no privatefield access/mutation/_retire calls. Per-casefreshBuildings+Construction, actualsharedDirectory. Guard every fixture/mutator success before usingoutput; failedsetupcannotmasqueradeaspassingtest. Read genuine publicstate_bytes using reviewed probe dynamicvar_to_bytes prototypeframing, wholelengthbefore slicing andeachdecodedtype/count; compareevery16retainedfield+4ledger+livecount andproject/subjectgeneration/lifetime. Preserve retiredpurpose/type/max/phase/policy. Strong distinctions: furniture survives cancellations;democancelrestoresACTIVEandDEMOLITIONpolicy;demoreturnmanifestbeforecompletionretirement. No physicalInventoryconservation/firstplayableclaim fromcomponentdelivery/refund seams. Add12separatetestmethods(eachasserts), typedhelpers/docstrings<=30codelines. Emitonecompactreal-historyJSON per completedscenario includingactualobserved16fields/ledger/livecount, purpose/outcome andsubjectresult, labelscopepubliccomponentnotgameplay. If validating observedrow throughColumns, useactualsnapshotrow withotherwise-clearimage and labelrow-admissiononly, not whole-snapshotprojection; never claimforgedsame-type-swap oracle. No hardcodedVariantheaders, no exception suppression or private live getter. Existing probe shows working decoder butitsobserved3BUILDhistoriesdonotsatisfyall12. ReuseknownpublicAPIs shownexistingtest andguide; askprecisequestionifmissing. Newtest<=1100lines andonlyfocusaddition ofnewfourthsuite, preservecorrectconstArrayString/runtimePackedStringArray pattern. No productionchanges orclaimexecution. Returnstrict5topkeyJSON, eachof2files exactlybaseSha256FIRST,path,content. NoMarkdownfence."
+}

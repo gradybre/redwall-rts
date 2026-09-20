@@ -1,0 +1,7 @@
+{
+  "kind": "Instrument existing independent owner probe with cold bridge observations only; frozen expected codes/detail remain in separate proposed manifest and Python comparison",
+  "source": "metadata-owner-probe.gd",
+  "source_sha256": "5ef8fab1f129d724fd6079e0539553f81f2fe8da67d5bf63ba8363eb81a4e7ec",
+  "output_sha256": "227594d68fd2c13bf16a74149e37694a6c4f6d9923977a26e09c9a45ca1273a2",
+  "scope": "No FramedOwner schema allocation: new(-1) then public owner1 selects metadata-before-shape; also report exact schema forwarding/null/wrong-owner priority"
+}

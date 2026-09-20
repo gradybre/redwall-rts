@@ -1,0 +1,9 @@
+{
+  "baseline": "6910c073f0ce2cb7d2244a58ffc34ecc689dba24",
+  "path": "godot/scripts/core/construction.gd",
+  "original_bytes": 62245,
+  "original_lines": 1327,
+  "original_sha256": "78e724618362bfb3dd37945a27be6be1c0a70aa27b59e7bdd300f1c26bdfb5b9",
+  "candidate_sha256": "119b06209bd8eb996da424c5857ae447cbd0518877d961679b94f31985777aa6",
+  "entire_accepted_gameplay_prefix_identical": true
+}

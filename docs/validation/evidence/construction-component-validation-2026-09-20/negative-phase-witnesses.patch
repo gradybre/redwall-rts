@@ -1,0 +1,50 @@
+--- a/godot/test/test_construction_columns.gd
++++ b/godot/test/test_construction_columns.gd
+@@ -571,8 +571,47 @@
+ func test_full_capacity_mixed_image_accepted() -> void:
+ 	"""All 82944 rows, cycling through every generated valid tuple, are accepted."""
+ 	var rows: Array[Dictionary] = _all_valid_rows()
+ 	var image: Construction.Columns = Construction.Columns.new(true)
+ 	for row: int in OWNER_CAPACITY:
+ 		_set_row(image, row, rows[row % rows.size()])
+ 	var code: StringName = Construction.columns_refusal(image)
+ 	assert_equal(code, StringName(""), "full capacity mixed image accepted")
++
++
++# --- independent negative phase-relation cases: work=60000 (type19), earlier gates valid --------
++
++const NEGATIVE_PHASE_CASES: Array[Dictionary] = [
++	{"id": "ready-begun1-remaining-w",
++		"changes": {"phase": 1, "work_begun": 1, "refund_policy": 1}},
++	{"id": "ready-begun0-remaining-w-minus-1", "changes": {"phase": 1, "remaining_mwu": 59999}},
++	{"id": "working-begun0-remaining-1", "changes": {"phase": 2, "remaining_mwu": 1}},
++	{"id": "working-begun1-remaining-w-plus-1",
++		"changes": {"phase": 2, "work_begun": 1, "refund_policy": 1, "remaining_mwu": 60001}},
++	{"id": "work-done-begun0-remaining-0", "changes": {"phase": 3, "remaining_mwu": 0}},
++	{"id": "refund-begun1-remaining-w-plus-1", "changes": {"phase": 4, "work_begun": 1,
++		"refund_policy": 1, "remaining_mwu": 60001, "assigned_count": 0}},
++]
++
++
++func test_negative_phase_case_count() -> void:
++	"""The six frozen negative phase-relation cases are present; none are silently dropped."""
++	assert_equal(NEGATIVE_PHASE_CASES.size(), 6, "6 frozen negative phase-relation cases")
++
++
++func test_negative_phase_relation_cases() -> void:
++	"""Each frozen negative phase-relation case, at every frozen row position, after first
++	showing the unmodified BASE_LIVE control at that row is accepted."""
++	for case: Dictionary in NEGATIVE_PHASE_CASES:
++		for row: int in ROW_POSITIONS:
++			_assert_negative_phase_case(case, row)
++
++
++func _assert_negative_phase_case(case: Dictionary, row: int) -> void:
++	"""Assert the BASE_LIVE control reaches NONE, then the case's earlier-valid PHASE fault."""
++	var control_image: Construction.Columns = _clear_image_with_row(row, BASE_LIVE)
++	assert_equal(Construction.columns_refusal(control_image), StringName(""),
++		"%s row %d control (BASE_LIVE) accepted" % [case["id"], row])
++	var faulted: Dictionary = _merged(BASE_LIVE, case["changes"])
++	var image: Construction.Columns = _clear_image_with_row(row, faulted)
++	var code: StringName = Construction.columns_refusal(image)
++	assert_equal(code, StringName("COLUMN_PHASE"), "%s row %d" % [case["id"], row])

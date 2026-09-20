@@ -1,0 +1,34 @@
+{
+  "id": "construction-functional-repair-a3",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/construction-functional-repair-a3",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-local-validation-functional-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/construction_component_validation_contract.md",
+    "docs/decisions/0186-construction-validation-preserves-retired-purpose-and-refund-history.md",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/frozen-source-facts.json",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/witness-plan-v2.json",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/test-author-guidance.md",
+    "godot/scripts/core/construction.gd",
+    "godot/scripts/core/save_owner_construction.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_header.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "godot/test/test_construction_columns.gd",
+    "godot/test/test_save_owner_construction.gd",
+    "godot/test/construction_columns_focus.gd"
+  ],
+  "instructions": "Same QA role; original three files intaken, focus corrected. Astra inspected candidate and found material omissions. Fix EXACTLY two allowed test files, no production/focus edits. This is bounded repair, not permission to drop requirements. Preserve frozen40cases/48shape/all5positions. Findings:\nF1 test_save_owner_construction.test_row_workers_fault_forwards_exact_column_code contains nonexistent SOC.FIELD_PRESENT_AS_I32_PLACEHOLDER, comment placeholder, return, zero assertions. Replace with a genuinely valid live row except wrong max_workers, using actual u8 setter and independent frozen facts; assert exact COLUMN_WORKERS and gate7 detail. No TODO/stub/unused test anywhere.\nF2 Nonmutation currently only compares present (or one purpose) and refusal uses unsized image; 'injected_write_before_return_is_caught_not_masked' merely sets invalid enum before call and is NOT a write counterfactual. Replace misleading method with direct all16 full packed-column before/after equality on success and representative SHAPE/FLAG/late semantic refusals. Use independently captured deep copies and compare actual original Columns after call; do not reproject a view. Framed record separately compare all16 before/after on success and same meaningful representative refusal. Actual source write injection will be later campaign, no claim now. No handwritten mapper evidence substitution.\nF3 Valid matrix missing paused variants except READY, missing REFUND begun1 remaining1, WORKING worker/work cross combinations, many retired purpose/state/policy combinations. Implement required cross product: for all73types, every admissible phase/work boundary (AWAIT only nonempty,READY,WORKING1/W,DONE0,REFUND begun0/W and begun1/0,1,W), paused0/1, workers0/max whenever unpaused and nonrefunding (else0). Retired each73type: DONE properpolicy and REFUND full/partial non-demo or demo2, cleared mutable fields. Include clear. Pack once plus82944mixed; print exact full tuple marker. No owner gate arrays for expectedfacts.\nF4 Borrowed empties checks only3fields and default type checks absent. Assertall16types/extents/default values independently, use helpers <=30code lines; testloops are fine.\nF5 Ordered within-row gate collision pairs missing. Add independent literal two-fault cases for ENUM beforeVALUE beforeREF beforeFREE beforeTYPE beforeWORKERS beforePOLICY beforePHASE, with combinations preserving other earlier gates. Source/shape collisions requiring mutations remain later but name current baseline tests honestly (shape-only does not prove sourcecollision). Separate rowordering currentlygood. Use assertions/guards to ensure later-only image yields expectedlatercode before addingearlierfault.\nF6 actual mapper distinctpatterns currently compares onlyfirstelement withoutguards, so omission may cause index error. Assertfull-column equality actualSOC._project_columns output against actual typedfieldbuffers foreach16field; guardshape beforeindex or noindex needed. Caller omissionhelper is shape-only not actualsourcefault; retain explicit distinction.\nF7 Mostnewhelpers/testmethods lack required docstrings. Add concise docstrings while retaining typed signatures and<=30code-lines/helper. No claimtestsrun; no evidence fabrication. Independentreview/fullruntime stillpending. Return complete twofiles only with currentbasehashfirst. Keep existinggoodwitnesses and bound total<=1500lines. Ifambiguity concretequestion insteadplaceholder.\n\nDispatch audit: {\"base_commit\":\"818197313aa87cae2c1e6cfe091abe27d24817fc\",\"task\":\"Repair concrete incomplete Construction functional witnesses before runtime acceptance\",\"allowedWrites\":{\"godot/test/test_construction_columns.gd\":\"0a9dcd7e54579044f44310180236bea56a90ff6b99cedd866a4ef08e34966b49\",\"godot/test/test_save_owner_construction.gd\":\"2e7a4d9b66ca64722e83693ffafe0544715319137b78abac6b4b11027548bb36\"}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/construction-focus-repair-a2"
+}

@@ -1,0 +1,1459 @@
+{
+  "source_sha256": {
+    "godot/scripts/core/construction.gd": "119b06209bd8eb996da424c5857ae447cbd0518877d961679b94f31985777aa6",
+    "godot/test/test_construction_columns.gd": "ab28c4f1ba29b13a3f3e7aa08f5767133a49a7ec590ef69b462f28f9ce016638",
+    "godot/scripts/core/save_owner_construction.gd": "e07b9cbed538a5a1f0bdeaf13824add464c97c815949677292e911c8c500323e",
+    "godot/test/run_tests.gd": "1e4032bafb0a34965a4d184c56ee116f73f0a34941cfc13b37edff21c2a2ecb7",
+    "godot/test/test_save_owner_construction.gd": "d42cc22c680da808ca2659a6815525d03291254221b1664e3aaf58d985605c21"
+  },
+  "proposal_source_sha256": {
+    "godot/scripts/core/construction.gd": "e5d3fd006311c43c3b20b0a3f2209945e5ade12ad08b84ddcaf8d49ef6e3e326",
+    "godot/scripts/core/save_owner_construction.gd": "e07b9cbed538a5a1f0bdeaf13824add464c97c815949677292e911c8c500323e",
+    "godot/test/test_construction_columns.gd": "fe8d125c99e6198d3abd4bc3dff15d48fb7c0e836d33bfea9446744ad16a819d",
+    "godot/test/test_save_owner_construction.gd": "d42cc22c680da808ca2659a6815525d03291254221b1664e3aaf58d985605c21",
+    "docs/planning/construction_component_validation_contract.md": "447a3c6ad488a3c87684fff42c9aee909574f53dfca17bf1d8223eca5410b705"
+  },
+  "rebase": "Current owner adds exact stored-key preflight; tests add six phase witnesses. All39 exact mutations and every named target verified once. Selected original test bodies/framework unchanged; only deterministic method filter inserted in isolated runner.",
+  "seconds": 579.353,
+  "results": [
+    {
+      "case": "baseline-before",
+      "seconds": 21.288,
+      "exit_code": 0,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_flag_precedes_earlier_row_semantic_fault"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_flag_scan_refuses"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_full_capacity_mixed_image_accepted"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_gate_collision_pairs"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_inventory_container_full_i32_boundary_accepted"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_packed_valid_tuples_image_accepted"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_row_scan_returns_first_failing_row_ascending"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ],
+        [
+          "godot/test/test_save_owner_construction.gd",
+          "test_direct_columns_full_equality_after_late_semantic_refusal"
+        ],
+        [
+          "godot/test/test_save_owner_construction.gd",
+          "test_row_semantic_fault_forwards_exact_column_code"
+        ],
+        [
+          "godot/test/test_save_owner_construction.gd",
+          "test_row_workers_fault_forwards_exact_column_code"
+        ]
+      ],
+      "counts": [
+        11,
+        265,
+        0
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [],
+      "failing_tests": [],
+      "errors": [],
+      "mutated_sha256": {},
+      "log_sha256": "d9be32bd15835e4bb97588e2670df6fa2bdf32925dbc9c711238989d2413463d"
+    },
+    {
+      "case": "skip-final-row",
+      "seconds": 19.954,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ],
+        [
+          "godot/test/test_save_owner_construction.gd",
+          "test_direct_columns_full_equality_after_late_semantic_refusal"
+        ]
+      ],
+      "counts": [
+        2,
+        217,
+        2
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_ENUM, got )"
+        },
+        {
+          "test": "test_direct_columns_full_equality_after_late_semantic_refusal",
+          "code_pair": "(expected COLUMN_ENUM, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases",
+        "test_direct_columns_full_equality_after_late_semantic_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "7c2923869bab193933b523c88516b76c09995dad08d5d6c9de46b7189a672031"
+      },
+      "log_sha256": "0cc4baf7c9bbabe65f0eb20ea5b05258f62f97691962f3af18916e325bbfa9e3"
+    },
+    {
+      "case": "skip-upper-half",
+      "seconds": 15.566,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_ENUM, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "4e8273363f6a12b0d434298b94c93750dfa35d4fec13a3e4b5f1f22c5e943c40"
+      },
+      "log_sha256": "587a91bb241b8c8029263666a6a2c5e3631325194842b2379e0cd22e00cd9b34"
+    },
+    {
+      "case": "reverse-row-order",
+      "seconds": 2.752,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_row_scan_returns_first_failing_row_ascending"
+        ]
+      ],
+      "counts": [
+        1,
+        1,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_row_scan_returns_first_failing_row_ascending",
+          "code_pair": "(expected COLUMN_ENUM, got COLUMN_WORKERS)"
+        }
+      ],
+      "failing_tests": [
+        "test_row_scan_returns_first_failing_row_ascending"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "af1a0d94e94cf15577d799fd93d3fb6c50e71e624a82079e5a216beadb963a18"
+      },
+      "log_sha256": "49aad0daefe7c65633c74c243bad67466001da719e13acdb4daeab9a87d881ef"
+    },
+    {
+      "case": "flag-two-permitted-present",
+      "seconds": 2.855,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_flag_scan_refuses"
+        ]
+      ],
+      "counts": [
+        1,
+        24,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_flag_scan_refuses",
+          "code_pair": "(expected COLUMN_FLAG, got COLUMN_FREE)"
+        }
+      ],
+      "failing_tests": [
+        "test_flag_scan_refuses"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "799841353f611625f3b596ec083a08036c257a6dc664799bd355ba093ab5e697"
+      },
+      "log_sha256": "dd9b5ff4f53c70b251b320ef6b0d0e65c84f1c64e3dbb5e92dbc1e351644c0d1"
+    },
+    {
+      "case": "flag-two-permitted-paused",
+      "seconds": 2.863,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_flag_scan_refuses"
+        ]
+      ],
+      "counts": [
+        1,
+        24,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_flag_scan_refuses",
+          "code_pair": "(expected COLUMN_FLAG, got COLUMN_FREE)"
+        }
+      ],
+      "failing_tests": [
+        "test_flag_scan_refuses"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "1c03e7e31c6e69145c0299dc703d0a7f62633e22b8d7e3cef5f888f1feb0170f"
+      },
+      "log_sha256": "fe94a2e55c7158b64cb58a9bbe2b910d65062d5ba9e9e47145b736b24ea76a00"
+    },
+    {
+      "case": "flag-two-permitted-work_begun",
+      "seconds": 2.843,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_flag_scan_refuses"
+        ]
+      ],
+      "counts": [
+        1,
+        24,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_flag_scan_refuses",
+          "code_pair": "(expected COLUMN_FLAG, got COLUMN_FREE)"
+        }
+      ],
+      "failing_tests": [
+        "test_flag_scan_refuses"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "5bba0c4c9c2b4eafdf748a16ad5932d3fe7bdfd28edc6c3080262f9c5df7557c"
+      },
+      "log_sha256": "4424ea828cd79686b61274ea8c62752382414b60a7810c0795bc58118901a96c"
+    },
+    {
+      "case": "flags-after-row-semantics",
+      "seconds": 2.466,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_flag_precedes_earlier_row_semantic_fault"
+        ]
+      ],
+      "counts": [
+        1,
+        1,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_flag_precedes_earlier_row_semantic_fault",
+          "code_pair": "(expected COLUMN_FLAG, got COLUMN_ENUM)"
+        }
+      ],
+      "failing_tests": [
+        "test_flag_precedes_earlier_row_semantic_fault"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "087faf36a9d019230451bf98a6bcd53dc0b3632507fb72f1b8357c7229d0868d"
+      },
+      "log_sha256": "3d9f3223706ec2632609dc11b817f60794be61199630ef568cc9bac8c1c0dcb3"
+    },
+    {
+      "case": "relax-enum-purpose",
+      "seconds": 19.892,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_ENUM, got COLUMN_PHASE)"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "68e62f30480686b1a68793ad18b624d4ffde561fab57c454fe45774fb5cd3b63"
+      },
+      "log_sha256": "31d1866973cc2864665f45f6d881fad6a48b3831dd0b4669aab9775e6356ca37"
+    },
+    {
+      "case": "relax-enum-phase",
+      "seconds": 20.164,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_ENUM, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "7d6477bcd0a0869edc3d729cd2da258e1cb268ce33453ce29b669e5e7f5c1f27"
+      },
+      "log_sha256": "981fcdf14004e2787221c85811855044bd1095d9e86beec38cf313be7a5021b3"
+    },
+    {
+      "case": "relax-enum-refund_policy",
+      "seconds": 20.016,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_ENUM, got COLUMN_POLICY)"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "01a8fc9692f7319e1be8fb0f9df6c934d7f37e43606e8246f57c5b6ab402d001"
+      },
+      "log_sha256": "55488ee70d875b7c61d05eb30e4585fac2869d09d427683008817291eef5441c"
+    },
+    {
+      "case": "omit-negative-remaining",
+      "seconds": 18.671,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_VALUE, got COLUMN_PHASE)"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "55bf7722c8a81c041d7dc920a5307ef642c788b85d96b4af35f667df21f20b3b"
+      },
+      "log_sha256": "bb40ae0f282ab4568ecb01fa198fa27ecbe7d1cceb1111f43b4b66f9bfb3dabc"
+    },
+    {
+      "case": "omit-negative-type-sentinel-bound",
+      "seconds": 19.009,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_VALUE, got COLUMN_TYPE)"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "7be8f6dbbf99acb9df2183e7c8213ee8f8331e1611a773361facb69719321fc9"
+      },
+      "log_sha256": "ab0e9c4e5632fe37addb0dd94c5f8064b779013269e298c0ea31312ce1df72b7"
+    },
+    {
+      "case": "permit-half-null-slot",
+      "seconds": 22.011,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_REF, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "ce9d068eb3f24d5330de1b5bbe2a2a3aa944707921d8d51ac502ebdbfde8a999"
+      },
+      "log_sha256": "c099f202f7500728b50dd7b45bb82cf38af8ec60d4316b3954b3dcce5a8aa105"
+    },
+    {
+      "case": "permit-zero-generation",
+      "seconds": 21.806,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_REF, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "fd1796ecd42bbf52f795b6f2769003d1dede04816a36ff865b6764315e45f53d"
+      },
+      "log_sha256": "37b4e3230ae7b1b78866cf6640f8539ee3bceefc8bc46b4da49a6274bbb6e5bc"
+    },
+    {
+      "case": "directory-off-by-one",
+      "seconds": 20.324,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_REF, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "88c3c7d32977fd159dc469efcb974d52b3bafaf5ca3a487277fab99127ed5568"
+      },
+      "log_sha256": "8b6875068d71073c6db06976b1482b6e3419e0536b8ffb9a267ecaad8979f638"
+    },
+    {
+      "case": "container-wrong-directory-namespace",
+      "seconds": 2.36,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_inventory_container_full_i32_boundary_accepted"
+        ]
+      ],
+      "counts": [
+        1,
+        1,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_inventory_container_full_i32_boundary_accepted",
+          "code_pair": "(expected , got COLUMN_REF)"
+        }
+      ],
+      "failing_tests": [
+        "test_inventory_container_full_i32_boundary_accepted"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "09dc662c7fe54a93b8107d18e8efb065c763d53e290b217fad2f381cf2d6bca8"
+      },
+      "log_sha256": "a77aa3a3feff334521e98bbd2293ce8d9a7887cb36083585888fa2da35f339dd"
+    },
+    {
+      "case": "omit-retired-work-clear",
+      "seconds": 19.127,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_FREE, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "c5af479c0baf008d29eaeb0b834c5f8123a879adaea76813db0d78a76357bee8"
+      },
+      "log_sha256": "7b61be23ae97e021aaf7a054af97b236a9d0e628023d3941b18fd7b270c9d64f"
+    },
+    {
+      "case": "omit-never-used-purpose",
+      "seconds": 19.551,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_FREE, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "c23a0ef71f3e5522966800bee2e3640140f09b7a1b5f20cb7a38c097276c73f1"
+      },
+      "log_sha256": "81961175c8651670f7de57c42327bba3b6881cfce125d3c1395e9ee06b92ff8f"
+    },
+    {
+      "case": "permit-live-null-self",
+      "seconds": 21.184,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_FREE, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "25492de9a75e2f04b33c481fe95637d6669f9df9b4f4aebfe9643aea4e2df697"
+      },
+      "log_sha256": "3208f2b20dd011dcd7c6cbe02b8796d9002c613e897d5919ca58df84ab6476a4"
+    },
+    {
+      "case": "permit-live-sentinel-type",
+      "seconds": 19.975,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_TYPE, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "b67187a783b5b100b4319d6e4b06ec05da3540e5f70712971fad7ca34507fe64"
+      },
+      "log_sha256": "dc99850ef1530763065701e178fe903683e8df95197253f4d1bd23cb91f267d9"
+    },
+    {
+      "case": "restrict-valid-furniture-domain",
+      "seconds": 2.461,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_full_capacity_mixed_image_accepted"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_packed_valid_tuples_image_accepted"
+        ]
+      ],
+      "counts": [
+        2,
+        3,
+        2
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_packed_valid_tuples_image_accepted",
+          "code_pair": "(expected , got COLUMN_TYPE)"
+        },
+        {
+          "test": "test_full_capacity_mixed_image_accepted",
+          "code_pair": "(expected , got COLUMN_TYPE)"
+        }
+      ],
+      "failing_tests": [
+        "test_packed_valid_tuples_image_accepted",
+        "test_full_capacity_mixed_image_accepted"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "aeda6eb15b3c2b27b6d31729288752a4c5385c97fe391af236de20904faec0df"
+      },
+      "log_sha256": "e7457907a430afa62c605ce8295825c9fa6fa764dd46b5eb640be1cfe1a3cdad"
+    },
+    {
+      "case": "deny-valid-upgrade-member",
+      "seconds": 2.472,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_full_capacity_mixed_image_accepted"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_packed_valid_tuples_image_accepted"
+        ]
+      ],
+      "counts": [
+        2,
+        3,
+        2
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_packed_valid_tuples_image_accepted",
+          "code_pair": "(expected , got COLUMN_TYPE)"
+        },
+        {
+          "test": "test_full_capacity_mixed_image_accepted",
+          "code_pair": "(expected , got COLUMN_TYPE)"
+        }
+      ],
+      "failing_tests": [
+        "test_packed_valid_tuples_image_accepted",
+        "test_full_capacity_mixed_image_accepted"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "62556b9b787bb840b8a3e60f80e7a1c3d0dce0c59810237dfb27ada08953bd07"
+      },
+      "log_sha256": "e7457907a430afa62c605ce8295825c9fa6fa764dd46b5eb640be1cfe1a3cdad"
+    },
+    {
+      "case": "omit-worker-cap-parity",
+      "seconds": 20.126,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_WORKERS, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "428d8815519df325d3a54f6b598a0dffdce98a3510d59f1257bb01c4fc6641de"
+      },
+      "log_sha256": "94eaa3b3354d3ade1febd3c462dfc9ec028906646a2cfaa8b5d90513175f1c73"
+    },
+    {
+      "case": "assigned-cap-off-by-one",
+      "seconds": 20.216,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_WORKERS, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "96e92b16c8ac1473155f7aa5a4e169741ef91aa43fb9f50eecfe078df43c3f51"
+      },
+      "log_sha256": "be78bfa585aa8d7414213a346130bd472e6322a6430920d1d49fba1f4fb99cdb"
+    },
+    {
+      "case": "omit-paused-idleness",
+      "seconds": 19.81,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_WORKERS, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "28f9f7acd6fb7ecea4142afc423b7057f28c8344c9b4ff92471c587dcdb8f3e6"
+      },
+      "log_sha256": "de491da3efe60b900f5bf8382499e00805a68fa1ebc6aa79b77c92ae63a1eab8"
+    },
+    {
+      "case": "omit-refunding-idleness",
+      "seconds": 19.899,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_WORKERS, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "4eef6d9b3c46969a8d1158427d34c7c4b5615458eb87580cc5e0e1b21cab2569"
+      },
+      "log_sha256": "80d43546541205ce2abddbfbc4ebc7ab5aef4358732620e29deb4d69518df856"
+    },
+    {
+      "case": "forbid-workers-outside-working",
+      "seconds": 2.475,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_full_capacity_mixed_image_accepted"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_packed_valid_tuples_image_accepted"
+        ]
+      ],
+      "counts": [
+        2,
+        3,
+        2
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_packed_valid_tuples_image_accepted",
+          "code_pair": "(expected , got COLUMN_WORKERS)"
+        },
+        {
+          "test": "test_full_capacity_mixed_image_accepted",
+          "code_pair": "(expected , got COLUMN_WORKERS)"
+        }
+      ],
+      "failing_tests": [
+        "test_packed_valid_tuples_image_accepted",
+        "test_full_capacity_mixed_image_accepted"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "682cafb87f27041f83ae55a485dd234fd47cc329b270e077fdf7fec4821ed0ae"
+      },
+      "log_sha256": "a6d772ee189e1d7d6e894fbb9927207e9fe9972f9a4b56d99d26f102e9876f5c"
+    },
+    {
+      "case": "recompute-retired-policy-from-cleared-begun",
+      "seconds": 2.491,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_full_capacity_mixed_image_accepted"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_packed_valid_tuples_image_accepted"
+        ]
+      ],
+      "counts": [
+        2,
+        3,
+        2
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_packed_valid_tuples_image_accepted",
+          "code_pair": "(expected , got COLUMN_POLICY)"
+        },
+        {
+          "test": "test_full_capacity_mixed_image_accepted",
+          "code_pair": "(expected , got COLUMN_POLICY)"
+        }
+      ],
+      "failing_tests": [
+        "test_packed_valid_tuples_image_accepted",
+        "test_full_capacity_mixed_image_accepted"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "64ddf2ffe510ee9b7d07cb4854080949baef67b63c99b6bd55c74a896c886ce5"
+      },
+      "log_sha256": "9300d56d01fed353323d648926946d1b4b5c50682a570228d3a4ff6331c712ff"
+    },
+    {
+      "case": "demolition-policy-changed-to-full",
+      "seconds": 20.447,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_POLICY, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "cd2ab8d68f59b10284591e98f218b3f0b8f759b85e9bd3eff59c6419eb38063b"
+      },
+      "log_sha256": "511519cfc2f6b6c16440ad0bd0f0f4e9bc6a4517ac4bf0dd2ed11a2192295d5c"
+    },
+    {
+      "case": "omit-awaiting-begun",
+      "seconds": 20.324,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_PHASE, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "1c3bba0a0ad7102e32359b593d4c6201e8fbf5ae25ae32f63d65765f1b03cae1"
+      },
+      "log_sha256": "81ebd81aadbdbb776808ef913745cf0ddae7a37a0282eabe47556c183cf16cc8"
+    },
+    {
+      "case": "allow-working-zero",
+      "seconds": 20.686,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_PHASE, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "a342c582c96f5415a67ddb9da7f675d17c9352cfeaa632912080c92329c3f445"
+      },
+      "log_sha256": "9a80bba14f3afb74cdbb7d6e50967fae8b57fa6a6c5fd125637e7467eba49eae"
+    },
+    {
+      "case": "allow-done-positive",
+      "seconds": 20.401,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_PHASE, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "3f0ef004b01a5c977b768b1a6c33055c6369902b8d940cfa440d22d1b84cbf0a"
+      },
+      "log_sha256": "57411c14ea6cc7b247dde4f100c4a7da8d4412c32c6fefe064c25a0f7766463c"
+    },
+    {
+      "case": "allow-short-unbegun-refund",
+      "seconds": 20.142,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_PHASE, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "5e3f3168b32a73712803268002cdb09cb0922fb193b86b093b6853edddd17631"
+      },
+      "log_sha256": "e64b2e6ca0b0873e1f612a90a5264ed80d62e829dee85af83ad633c1b5df18eb"
+    },
+    {
+      "case": "allow-empty-bill-awaiting",
+      "seconds": 21.017,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_PHASE, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "f255d18e35ecd957f24626c575e1794d7bde0c5fe7aed3f0ce25c79e22e5271c"
+      },
+      "log_sha256": "4f55ca725cb0016d492f4108ea17c4ff1655752d443d9e13298949df8e1f6041"
+    },
+    {
+      "case": "allow-retired-ready",
+      "seconds": 20.754,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ]
+      ],
+      "counts": [
+        1,
+        200,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_single_fault_cases",
+          "code_pair": "(expected COLUMN_PHASE, got )"
+        }
+      ],
+      "failing_tests": [
+        "test_single_fault_cases"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "30c6fd645464e0a2925313be63f551cdbfc73830ccd6006b8326dcff142c151b"
+      },
+      "log_sha256": "90f93d2f6d57757e8ba904b3215c8a428b880eb01fe4255d0908fc88c9651d6d"
+    },
+    {
+      "case": "demolition-work-not-quartered",
+      "seconds": 2.572,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_full_capacity_mixed_image_accepted"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_packed_valid_tuples_image_accepted"
+        ]
+      ],
+      "counts": [
+        2,
+        3,
+        2
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_packed_valid_tuples_image_accepted",
+          "code_pair": "(expected , got COLUMN_PHASE)"
+        },
+        {
+          "test": "test_full_capacity_mixed_image_accepted",
+          "code_pair": "(expected , got COLUMN_PHASE)"
+        }
+      ],
+      "failing_tests": [
+        "test_packed_valid_tuples_image_accepted",
+        "test_full_capacity_mixed_image_accepted"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "018c7dc032a5329f1b145e85462771769f60ce3477852cccf033f0f441554f15"
+      },
+      "log_sha256": "7bf25f5804358eebc0cfce2bf828d958dfe42f4ac0a1f6eaa8a6fb18a37a729b"
+    },
+    {
+      "case": "value-before-enum",
+      "seconds": 2.558,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_gate_collision_pairs"
+        ]
+      ],
+      "counts": [
+        1,
+        14,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_gate_collision_pairs",
+          "code_pair": "(expected COLUMN_ENUM, got COLUMN_VALUE)"
+        }
+      ],
+      "failing_tests": [
+        "test_gate_collision_pairs"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "93d94a17d3477fcd90f1e077fd8230561cbfe7837f9ddfe118cea3893c4776b8"
+      },
+      "log_sha256": "557956f207c6b9150e3f47a6714152a28bb432764dae6c11553c8cb2e04871bc"
+    },
+    {
+      "case": "phase-before-policy",
+      "seconds": 2.473,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_gate_collision_pairs"
+        ]
+      ],
+      "counts": [
+        1,
+        14,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_gate_collision_pairs",
+          "code_pair": "(expected COLUMN_POLICY, got COLUMN_PHASE)"
+        }
+      ],
+      "failing_tests": [
+        "test_gate_collision_pairs"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/construction.gd": "090c178ad105ff53f59a011113c291dbcbee52d73b1292d04e8457a83c093ac2"
+      },
+      "log_sha256": "3dca216991173d29f04a9b8d75df3a1a63dd1c7d37975e0767ae4d607d8004b1"
+    },
+    {
+      "case": "wrap-column-error-as-family-metadata",
+      "seconds": 2.464,
+      "exit_code": 1,
+      "selected_tests": [
+        [
+          "godot/test/test_save_owner_construction.gd",
+          "test_row_semantic_fault_forwards_exact_column_code"
+        ],
+        [
+          "godot/test/test_save_owner_construction.gd",
+          "test_row_workers_fault_forwards_exact_column_code"
+        ]
+      ],
+      "counts": [
+        2,
+        4,
+        2
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [
+        {
+          "test": "test_row_semantic_fault_forwards_exact_column_code",
+          "code_pair": "(expected COLUMN_ENUM, got SAVE_COMPONENT_METADATA)"
+        },
+        {
+          "test": "test_row_workers_fault_forwards_exact_column_code",
+          "code_pair": "(expected COLUMN_WORKERS, got SAVE_COMPONENT_METADATA)"
+        }
+      ],
+      "failing_tests": [
+        "test_row_semantic_fault_forwards_exact_column_code",
+        "test_row_workers_fault_forwards_exact_column_code"
+      ],
+      "errors": [],
+      "mutated_sha256": {
+        "godot/scripts/core/save_owner_construction.gd": "eb394921c311192bf7c9e8c174ab00665ea438159ab24e7ad6e9ad87f9affadd"
+      },
+      "log_sha256": "1b0ed2147223669789d8f706a7271d09992afc1143ffac89f5c7738899dabfc4"
+    },
+    {
+      "case": "baseline-after",
+      "seconds": 20.581,
+      "exit_code": 0,
+      "selected_tests": [
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_flag_precedes_earlier_row_semantic_fault"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_flag_scan_refuses"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_full_capacity_mixed_image_accepted"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_gate_collision_pairs"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_inventory_container_full_i32_boundary_accepted"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_packed_valid_tuples_image_accepted"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_row_scan_returns_first_failing_row_ascending"
+        ],
+        [
+          "godot/test/test_construction_columns.gd",
+          "test_single_fault_cases"
+        ],
+        [
+          "godot/test/test_save_owner_construction.gd",
+          "test_direct_columns_full_equality_after_late_semantic_refusal"
+        ],
+        [
+          "godot/test/test_save_owner_construction.gd",
+          "test_row_semantic_fault_forwards_exact_column_code"
+        ],
+        [
+          "godot/test/test_save_owner_construction.gd",
+          "test_row_workers_fault_forwards_exact_column_code"
+        ]
+      ],
+      "counts": [
+        11,
+        265,
+        0
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "matching_evidence": [],
+      "failing_tests": [],
+      "errors": [],
+      "mutated_sha256": {},
+      "log_sha256": "d9be32bd15835e4bb97588e2670df6fa2bdf32925dbc9c711238989d2413463d"
+    }
+  ],
+  "source_unchanged": true,
+  "passed": true
+}

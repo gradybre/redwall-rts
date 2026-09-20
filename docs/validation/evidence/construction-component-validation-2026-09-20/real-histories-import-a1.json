@@ -1,0 +1,19 @@
+{
+  "name": "real-histories-import-a1",
+  "source_sha256": {
+    "godot/scripts/core/construction.gd": "e5d3fd006311c43c3b20b0a3f2209945e5ade12ad08b84ddcaf8d49ef6e3e326",
+    "godot/scripts/core/save_owner_construction.gd": "e07b9cbed538a5a1f0bdeaf13824add464c97c815949677292e911c8c500323e",
+    "godot/test/test_construction.gd": "94238745efb50a2d6a55509ec71b124fddf9e172da5296ce7ee4b4554a42e7f6",
+    "godot/test/test_construction_columns.gd": "fe8d125c99e6198d3abd4bc3dff15d48fb7c0e836d33bfea9446744ad16a819d",
+    "godot/test/test_save_owner_construction.gd": "d42cc22c680da808ca2659a6815525d03291254221b1664e3aaf58d985605c21",
+    "godot/test/test_construction_retired_histories.gd": "8b2bbbfd5795b9086bd4839059636bcaeb2c914199e887fd87933c00f8b4fe1e",
+    "godot/test/construction_columns_focus.gd": "fd24cdddca0c3c687c23e9234737fe38efb2b638f16b52e3f0989bf8891f0267"
+  },
+  "source_unchanged": true,
+  "seconds": 2.474,
+  "exit_code": 0,
+  "counts": null,
+  "errors": false,
+  "real_histories": [],
+  "passed": true
+}

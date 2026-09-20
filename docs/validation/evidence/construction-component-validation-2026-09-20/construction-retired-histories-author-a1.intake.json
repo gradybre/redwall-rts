@@ -1,0 +1,20 @@
+{
+  "attempt": "construction-retired-histories-author-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-retired-history-tests",
+    "role": "author",
+    "model": "claude-opus-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "session_id": "579d11c0-4570-479b-af68-129915bbb050",
+  "owner_stopped": true,
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "integration_head": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "source_inputs_reverified": true,
+  "files": {
+    "godot/test/test_construction_retired_histories.gd": "8b2bbbfd5795b9086bd4839059636bcaeb2c914199e887fd87933c00f8b4fe1e",
+    "godot/test/construction_columns_focus.gd": "fd24cdddca0c3c687c23e9234737fe38efb2b638f16b52e3f0989bf8891f0267"
+  },
+  "approval": "artifact_intake_only_not_product_acceptance"
+}

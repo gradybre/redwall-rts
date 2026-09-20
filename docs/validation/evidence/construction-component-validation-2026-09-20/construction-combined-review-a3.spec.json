@@ -1,0 +1,33 @@
+{
+  "id": "construction-combined-review-a3",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/construction-combined-review-a3",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-combined-review",
+    "role": "review",
+    "model": "claude-opus-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "paths": [
+    "tools/test_construction_metadata_preflights.py",
+    "docs/planning/construction_component_validation_contract.md",
+    ".github/workflows/tests.yml",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/review-a3-evidence-closure.md",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/metadata-final-a3/result.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/candidate-validation-index.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/release-checks-a2/focus.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/release-checks-a2/source-manifest.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/release-checks-a2/result.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/row-semantic-unchanged-code-proof.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/post-review-source-and-target-verification.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/static-a3.json"
+  ],
+  "instructions": "Same independent reviewer. Bounded evidence-only follow-up to your APPROVE source a2; production/tests unchanged. Check N1 durable evidence output option + actual full60case retainedrecord, N2 pre-run manifest source linkage (already existed, focusnowlinks), N3/N4/N5/N7 record fixes. Supplied completion result full5108/528323/0sourceunchanged and17static, CIpin. Do not reopen unchanged source approval or claim any optional unwitnessedanchors tested. State whether remaining auditability conditions close and exact residual ifnot. New argparse output option is only executablechange; no source/test semanticchange. Final exactcommit/CI normal parentgates. Concise scoped review sufficient, no restatement of fulla1/a2; substantivefindings retained. Return five-keyJSON files:[], review in summary.\n\nDispatch audit: {\"base_commit\":\"818197313aa87cae2c1e6cfe091abe27d24817fc\",\"task\":\"Construction evidence-only N1/N2 closure after source approval\",\"allowedWrites\":{\"docs/validation/evidence/construction-component-validation-2026-09-20/independent-evidence-closure-a3.md\":null}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/construction-combined-review-a2",
+  "reviewTarget": {
+    "path": "docs/validation/evidence/construction-component-validation-2026-09-20/independent-evidence-closure-a3.md",
+    "baseSha256": null
+  }
+}

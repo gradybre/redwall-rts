@@ -1,0 +1,77 @@
+{
+  "scope": "Revalidation of unchanged row-semantic gate code after F4 docstring-only change; does not claim mutants rerun",
+  "historical_result": "row-semantic-faults-a1/result.json",
+  "historical_owner_sha256": "119b06209bd8eb996da424c5857ae447cbd0518877d961679b94f31985777aa6",
+  "review_input_owner_sha256": "119b06209bd8eb996da424c5857ae447cbd0518877d961679b94f31985777aa6",
+  "current_owner_sha256": "ec758c4fc40746962b50fa7294d9ee7954208cfed579dbe10bfc54e0a2aeff70",
+  "checks": [
+    {
+      "function": "_declared_work_mwu_for_row",
+      "executable_text_unchanged": true
+    },
+    {
+      "function": "_enum_gate_refusal",
+      "executable_text_unchanged": true
+    },
+    {
+      "function": "_free_gate_refusal",
+      "executable_text_unchanged": true
+    },
+    {
+      "function": "_free_row_refusal",
+      "executable_text_unchanged": true
+    },
+    {
+      "function": "_live_phase_shape_refusal",
+      "executable_text_unchanged": true
+    },
+    {
+      "function": "_phase_gate_refusal",
+      "executable_text_unchanged": true
+    },
+    {
+      "function": "_policy_gate_refusal",
+      "executable_text_unchanged": true
+    },
+    {
+      "function": "_ref_pair_refusal",
+      "executable_text_unchanged": true
+    },
+    {
+      "function": "_row_refusal",
+      "executable_text_unchanged": true
+    },
+    {
+      "function": "_type_gate_refusal",
+      "executable_text_unchanged": true
+    },
+    {
+      "function": "_type_refusal",
+      "executable_text_unchanged": true
+    },
+    {
+      "function": "_value_gate_refusal",
+      "executable_text_unchanged": true
+    },
+    {
+      "function": "_workers_gate_refusal",
+      "executable_text_unchanged": true
+    },
+    {
+      "function": "columns_refusal",
+      "executable_text_unchanged": true
+    },
+    {
+      "function": "_ref_gate_refusal",
+      "executable_text_unchanged": true
+    },
+    {
+      "function": "_declared_bill_pairs_for_row",
+      "executable_text_unchanged": true
+    },
+    {
+      "function": "_column_flag_scan_refusal",
+      "executable_text_unchanged": true
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "id": "construction-metadata-author-a2",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/construction-metadata-author-a2",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-local-validation-metadata",
+    "role": "author",
+    "model": "claude-opus-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/construction_component_validation_contract.md",
+    "docs/decisions/0186-construction-validation-preserves-retired-purpose-and-refund-history.md",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/frozen-source-facts.json",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/witness-plan-v2.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/immutable-collaborator-excerpts.md",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/preliminary-owner-inspection.json",
+    "godot/scripts/core/construction.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/metadata-scalars-a1/result.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/metadata-scalars-a1/definitions-building_facts-unused-field-type.log",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/metadata-scalars-a1/definitions-furniture_facts-unused-field-type.log"
+  ],
+  "instructions": "Same metadata author continuation; original184linepatch applied after stopped/provenance verification. Actual no-autoload cold diagnostic executed48cases/240observations, all valid(no parse/runtime failures). All43planned scalar/extent faults refused,2baseline controls passed, injected scalar-guard bypass correctly failed, but TWO added contract-required fact-row type cases failed. BuildingDefinitions.BUILDING_FACTS lastrow workshop field0 string and FURNITURE_FACTS lastrow shelf field0 string are accepted by directmetadata and clear predicate; invalidflag returnsCOLUMN_FLAG rather thanSOURCE_METADATA. Exact logs/result supplied. Your original packet required every fact-row scalar type to be checked, not just work/maxworker indices. Correct only the two existing owner metadata helpers, or one short shared safe helper called by them: after exact row TYPE_ARRAY and extent proof, require every scalar in each10field building/4field furniture row to have exact TYPE_INT before interpreting; no coercion. Do not compare unrelated geometry VALUES to new numeric mirrors, change row domains, add dictionaries/packed buffers, touch gameplay or alter probe. Return ONLY new metadata-row-types-repair.patch standarddiff modifyingconstruction.gd, <=80lines,3contextlines. One file entry exactly baseSha256:null FIRST, path, content. Strict5key JSONbundle. This is bounded semantic repair1, not a new broadreview or policy change. No execution/acceptance claims. Preserve previous numeric and scalar protections.\n\nDispatch audit: {\"base_commit\":\"818197313aa87cae2c1e6cfe091abe27d24817fc\",\"task\":\"Close two observed immutable source fact-row type witnesses\",\"allowedWrites\":{\"docs/validation/evidence/construction-component-validation-2026-09-20/metadata-row-types-repair.patch\":null}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/construction-metadata-author-a1"
+}

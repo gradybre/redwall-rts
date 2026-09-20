@@ -1,0 +1,39 @@
+{
+  "scope": "Exact owned Claude CLI session public output only; no thinking or unrelated messages copied",
+  "deliveries": [
+    {
+      "attempt": "author-a1",
+      "raw_sha256": "5a9b5bde98ce39db9d2840218e46c2dea1cc4b5329b933e73f78c1d56fa750b8",
+      "file_keys": [
+        "path",
+        "content"
+      ],
+      "patch_sha256": "fd1f1cf222b57cf17200b77645fc548995afc83de8c4f8197eb5d5fc097e65fb",
+      "patch_lines": 610
+    },
+    {
+      "attempt": "author-format-a2",
+      "raw_sha256": "9cd09abc6db15eaebe37629bbc586431ebcdca45167b553610c50786789bbb8c",
+      "file_keys": [
+        "path",
+        "content"
+      ],
+      "patch_sha256": "fd1f1cf222b57cf17200b77645fc548995afc83de8c4f8197eb5d5fc097e65fb",
+      "patch_lines": 610
+    },
+    {
+      "attempt": "author-format-a3",
+      "raw_sha256": "2c67e1b9308b682fe0aa9b744e1058cbf3515a0f83e55ce9634e960e729fe094",
+      "file_keys": [
+        "baseSha256",
+        "path",
+        "content"
+      ],
+      "patch_sha256": "fd1f1cf222b57cf17200b77645fc548995afc83de8c4f8197eb5d5fc097e65fb",
+      "patch_lines": 610
+    }
+  ],
+  "all_patch_bytes_identical": true,
+  "schema_relaxed": false,
+  "applied_delivery": "author-format-a3"
+}

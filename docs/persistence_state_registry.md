@@ -785,6 +785,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---|---|---|:-:|---|---|
 | Buildings validation bridge | -- | -- | -- | -- | 3 | -- | Pure owner0 bridge, BUILDINGS-S4-VALIDATE-R01v1/ADR0183. No mutable authoritative state or live owner construction. Columns(false) borrows29 pre-shaped buffers; no full second3298304-byte image. Logical4150272 envelope within6417408 stream allowance; native/RSS costs unqualified. Retired building/room/furniture history preserved. Directory/section1/section5 identity, geometry, chain, arena, construction/user/clock joins and bulk restoration remain BUILDINGS-SAVED-BINDINGS. |
 
+### `godot/scripts/core/save_owner_construction.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---|---|---|:-:|---|---|
+| Construction validation bridge | -- | -- | -- | -- | 3 | -- | Pure owner1 bridge, CONSTRUCTION-S4-VALIDATE-R01v2/ADR0186. No mutable authoritative state or live owner construction. Columns(false) borrows16 pre-shaped buffers; no second4893696-byte default image or packed scratch. Caller4893696 + two663552 field copies + three65536 stream windows =6417408 logical packed allowance; native overhead remains unmeasured. Retained purpose, type, phase and refund history are preserved. Same-file Directory/Buildings identity, section5 delivered-material ledger, material conservation, clock and bulk restoration remain CONSTRUCTION-SAVED-BINDINGS. Classification is not candidate acceptance. |
+
 ### `godot/scripts/core/save_owner_movement.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

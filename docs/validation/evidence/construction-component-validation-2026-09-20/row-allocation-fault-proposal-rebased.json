@@ -1,0 +1,1107 @@
+{
+  "title": "Proposed Construction row-semantic mutation campaign and allocation witness gap",
+  "status": "PROPOSAL ONLY; no mutation execution, no production/test edits, no acceptance",
+  "contract": "CONSTRUCTION-S4-VALIDATE-R01v2 / ADR0186",
+  "date": "2026-09-20",
+  "source_sha256": {
+    "godot/scripts/core/construction.gd": "e5d3fd006311c43c3b20b0a3f2209945e5ade12ad08b84ddcaf8d49ef6e3e326",
+    "godot/scripts/core/save_owner_construction.gd": "e07b9cbed538a5a1f0bdeaf13824add464c97c815949677292e911c8c500323e",
+    "godot/test/test_construction_columns.gd": "fe8d125c99e6198d3abd4bc3dff15d48fb7c0e836d33bfea9446744ad16a819d",
+    "godot/test/test_save_owner_construction.gd": "d42cc22c680da808ca2659a6815525d03291254221b1664e3aaf58d985605c21",
+    "docs/planning/construction_component_validation_contract.md": "447a3c6ad488a3c87684fff42c9aee909574f53dfca17bf1d8223eca5410b705"
+  },
+  "existing_evidence_context": "Parent reports current94-test/2293-assertion focus passing including12 public histories. This task did not rerun or independently accept that report. Tests here are inspected exact source, not new tests.",
+  "scope": "Row semantic logic and one exact bridge column-code forwarding fault. Excludes prior26 projection/purity units, proposed55 metadata/schema units, static schema/catalog facts, source-key repair, live lifecycle implementation and save binding.",
+  "unique_proposed_fault_units": 39,
+  "execution_protocol_proposal": [
+    "Astra/QA inspect before adoption. Use a fresh isolated no-autoload clone, not integration checkout. Freeze every source/test hash listed; pending source-key repair may require an explicit refreeze even if row edits remain textually unchanged.",
+    "Each case is independent. Require every old string exactly once and replace once in the isolated source, without altering tests or fixtures. Replacements scoped as complete functions are intentional uniqueness context, not additional functional edits. Do not stack cases.",
+    "Run listed existing test method(s) through the actual existing test framework, preserving setup/assertion reporting. An author harness may select those methods but must not replace test bodies, rebuild weaker fixtures, rewrite expected values or count an uncalled method as execution.",
+    "Obtain clean unmutated baseline for the same methods first and after restoration. For each mutation require at least one specifically named assertion failure with expected baseline versus mutant code shown here. Additional safe assertion failures are permitted. A wrong numerical prediction here must be inspected, not silently broadened to any nonzero exit.",
+    "Parse/compiler warnings treated as errors, SCRIPT ERROR, invalid array access, missing method, missing summary, timeout, crash, allocation/fixture setup failure or a broken baseline are INVALID execution, not discriminating test failures. No forbidden type-gate omission that can index beyond frozen arrays is proposed.",
+    "For parameterized tests retain case id AND physical row position in raw assertion output. ROW_POSITIONS are0,1,41471,41472,82943; FLAG_POSITIONS0,1,41472,82943. They are multiple observations of one source mutation, not new fault units.",
+    "A full positive tuple matrix emits a large marker; keep raw log but summarize only failed semantic assertion and fixture tuple if diagnosing. The test oracle uses independent T_* facts; never substitute production COLUMN_* values.",
+    "Record source/test hashes, exact applied edit, method names, baseline/mutant assertion counts, exit status, clean-runtime check and main-source unchanged verification. A surviving mutant is a test-gap finding, never a pass. Do not widen to full project regression unless parent separately requests it."
+  ],
+  "allocation_discriminator": {
+    "status": "MISSING runtime witness in inspected Construction test/probe sources; no executable allocation fault unit included",
+    "actual_bridge_location": "godot/scripts/core/save_owner_construction.gd:260",
+    "actual_statement": "var columns: Construction.Columns = Construction.Columns.new(false)",
+    "why_existing_tests_do_not_prove_it": "test_borrowed_image_all_columns_empty_and_typed proves Columns(false) itself leaves buffers empty. Bridge functional/projection/input-equality tests cannot distinguish constructing default packed buffers then replacing them with borrowed columns; outputs are identical.",
+    "search_scope": [
+      "godot/test/*.gd",
+      "godot/**/*.gd for static-memory APIs",
+      "construction-component-validation-2026-09-20 *.gd/*.py",
+      "construction-validation-planning-2026-09-20 *.gd/*.py"
+    ],
+    "search_result": "Only generic godot/tools/memory_ledger_probe.gd and measure_memory_ledger.gd reference static-memory APIs; no Construction bridge adapter allocation/ballast witness found. Contract87 specifies one; specification is not execution.",
+    "required_next_test_before_fault_is_eligible": "Dedicated actual Bridge.framed_refusal path with valid shaped frame; allocate fixture before measurement; validate strictly positive Godot static-memory readings; establish ballast above previous process peak; measure incremental peak attributable to adapter and require <1048576. Keep record/view lifetime controlled. Invalid readings/engine errors invalidate result. Pair baseline and actual bridge default-image-allocation fault only after this witness exists.",
+    "frozen_logical_facts": {
+      "caller_bytes": 4893696,
+      "largest_field_bytes": 663552,
+      "existing_stream_allowance": 6417408,
+      "caller_plus_second_default_image": 9787392,
+      "incremental_peak_bound_exclusive": 1048576
+    },
+    "limits": "Logical packed bytes are not measured native memory or RSS. Even an eventual1MiB discriminator cannot prove absence of one663552-byte copy; prior direct-purity/allocation obligations remain separate."
+  },
+  "known_limits_not_claimed_covered": [
+    "Current single-fault table has no isolated READY begun/remaining corruption. Do not claim that weakening READY relation is discriminated merely because valid READY rows pass.",
+    "Current table has WORKING zero but no isolated WORKING remaining>W or begun0 with correctly matching FULL policy; likewise no isolated WORK_DONE begun0/remaining0 with matching FULL policy. Omission mutants for these precise bounds are not proposed as caught without new negative witnesses.",
+    "REFUNDING unbegun short-work is covered; begun remaining>W is not separately represented. Positive boundary W does not prove rejection of W+1.",
+    "Enum negative values and some reference/value branches lack individual negative fixtures; this is a bounded meaningful campaign, not exhaustive branch coverage.",
+    "Removing BUILD/FURNITURE type guards or moving WORKERS before TYPE can cause out-of-bounds indexing on existing bad-type fixtures. Such runtime errors would not be valid mutation discrimination; use safe strict-domain positive mutants here instead.",
+    "No metadata facts mutated. Parent clarified exact types for all fact fields and numeric anchors only for gate-consumed values. Four StringName key failures and queued source-key repair belong to the separate metadata campaign.",
+    "Allocation witness absence remains a separate acceptance gate; no inference from94 passing functional tests or logical byte arithmetic closes it."
+  ],
+  "cases": [
+    {
+      "id": "skip-final-row",
+      "purpose": "Detect incomplete tail scan using a non-flag error; flag buffers still scan fully.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2125,
+          "occurrences_required": 1,
+          "old": "\tfor row: int in image.present.size():\n\t\tvar row_code: StringName = _row_refusal(image, row)",
+          "new": "\tfor row: int in range(image.present.size() - 1):\n\t\tvar row_code: StringName = _row_refusal(image, row)"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "enum-purpose at row82943",
+          "baseline_expected": "COLUMN_ENUM",
+          "mutant_expected": ""
+        },
+        {
+          "path": "godot/test/test_save_owner_construction.gd",
+          "function": "test_direct_columns_full_equality_after_late_semantic_refusal",
+          "line": 360,
+          "fixture": "invalid purpose at final row82943",
+          "baseline_expected": "COLUMN_ENUM",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "skip-upper-half",
+      "purpose": "Detect a truncated row pass at exact half boundary; row41471 must remain detected.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2125,
+          "occurrences_required": 1,
+          "old": "\tfor row: int in image.present.size():\n\t\tvar row_code: StringName = _row_refusal(image, row)",
+          "new": "\tfor row: int in range(image.present.size() / 2):\n\t\tvar row_code: StringName = _row_refusal(image, row)"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "enum-purpose at row41472 and82943",
+          "baseline_expected": "COLUMN_ENUM",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "reverse-row-order",
+      "purpose": "All rows still scanned; only deterministic first-refusal order changes.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2125,
+          "occurrences_required": 1,
+          "old": "\tfor row: int in image.present.size():\n\t\tvar row_code: StringName = _row_refusal(image, row)",
+          "new": "\tfor row: int in range(image.present.size() - 1, -1, -1):\n\t\tvar row_code: StringName = _row_refusal(image, row)"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_row_scan_returns_first_failing_row_ascending",
+          "line": 404,
+          "fixture": "row5 ENUM plus row6 WORKERS",
+          "baseline_expected": "COLUMN_ENUM",
+          "mutant_expected": "COLUMN_WORKERS"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "flag-two-permitted-present",
+      "purpose": "Relax only this byte scan to accept2; later inactive/live field constraints return FREE rather than FLAG. Value255 remains refused.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1836,
+          "occurrences_required": 1,
+          "old": "\tfor value: int in image.present:\n\t\tif value != 0 and value != 1:\n\t\t\treturn REFUSE_COLUMN_FLAG",
+          "new": "\tfor value: int in image.present:\n\t\tif value != 0 and value > 2:\n\t\t\treturn REFUSE_COLUMN_FLAG"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_flag_scan_refuses",
+          "line": 375,
+          "fixture": "present=2 at FLAG_POSITIONS [0,1,41472,82943] on clear row",
+          "baseline_expected": "COLUMN_FLAG",
+          "mutant_expected": "COLUMN_FREE"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "flag-two-permitted-paused",
+      "purpose": "Relax only this byte scan to accept2; later inactive/live field constraints return FREE rather than FLAG. Value255 remains refused.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1839,
+          "occurrences_required": 1,
+          "old": "\tfor value: int in image.paused:\n\t\tif value != 0 and value != 1:\n\t\t\treturn REFUSE_COLUMN_FLAG",
+          "new": "\tfor value: int in image.paused:\n\t\tif value != 0 and value > 2:\n\t\t\treturn REFUSE_COLUMN_FLAG"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_flag_scan_refuses",
+          "line": 375,
+          "fixture": "paused=2 at FLAG_POSITIONS [0,1,41472,82943] on clear row",
+          "baseline_expected": "COLUMN_FLAG",
+          "mutant_expected": "COLUMN_FREE"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "flag-two-permitted-work_begun",
+      "purpose": "Relax only this byte scan to accept2; later inactive/live field constraints return FREE rather than FLAG. Value255 remains refused.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1842,
+          "occurrences_required": 1,
+          "old": "\tfor value: int in image.work_begun:\n\t\tif value != 0 and value != 1:\n\t\t\treturn REFUSE_COLUMN_FLAG",
+          "new": "\tfor value: int in image.work_begun:\n\t\tif value != 0 and value > 2:\n\t\t\treturn REFUSE_COLUMN_FLAG"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_flag_scan_refuses",
+          "line": 375,
+          "fixture": "work_begun=2 at FLAG_POSITIONS [0,1,41472,82943] on clear row",
+          "baseline_expected": "COLUMN_FLAG",
+          "mutant_expected": "COLUMN_FREE"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "flags-after-row-semantics",
+      "purpose": "Real precedence mutation; no skipped buffers or fixture edits.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2107,
+          "occurrences_required": 1,
+          "old": "static func columns_refusal(image: Columns) -> StringName:\n\t\"\"\"Deterministic local refusal order (contract \"Deterministic local refusal order\").\n\n\tRead-only pure predicate over a caller-owned cold `Columns` image: no diagnostics, live reads,\n\tclock, callbacks, serialized copies, packed scratch or per-row objects. Shape fails first, then\n\tthe independent source preflight, then the three flag buffers are scanned in full (present,\n\tpaused, work_begun, that order), then rows 0..82943 are visited ascending and the first failing\n\tgate on a row is returned. Never relies on any caller having already run the source preflight.\n\tReturns REFUSE_NONE on success.\n\t\"\"\"\n\tif image == null or not image.is_sized():\n\t\treturn REFUSE_COLUMN_SHAPE\n\tvar source_code: StringName = column_source_metadata_refusal()\n\tif source_code != REFUSE_NONE:\n\t\treturn source_code\n\tvar flag_code: StringName = _column_flag_scan_refusal(image)\n\tif flag_code != REFUSE_NONE:\n\t\treturn flag_code\n\tfor row: int in image.present.size():\n\t\tvar row_code: StringName = _row_refusal(image, row)\n\t\tif row_code != REFUSE_NONE:\n\t\t\treturn row_code\n\treturn REFUSE_NONE",
+          "new": "static func columns_refusal(image: Columns) -> StringName:\n\t\"\"\"Deterministic local refusal order (contract \"Deterministic local refusal order\").\n\n\tRead-only pure predicate over a caller-owned cold `Columns` image: no diagnostics, live reads,\n\tclock, callbacks, serialized copies, packed scratch or per-row objects. Shape fails first, then\n\tthe independent source preflight, then the three flag buffers are scanned in full (present,\n\tpaused, work_begun, that order), then rows 0..82943 are visited ascending and the first failing\n\tgate on a row is returned. Never relies on any caller having already run the source preflight.\n\tReturns REFUSE_NONE on success.\n\t\"\"\"\n\tif image == null or not image.is_sized():\n\t\treturn REFUSE_COLUMN_SHAPE\n\tvar source_code: StringName = column_source_metadata_refusal()\n\tif source_code != REFUSE_NONE:\n\t\treturn source_code\n\tfor row: int in image.present.size():\n\t\tvar row_code: StringName = _row_refusal(image, row)\n\t\tif row_code != REFUSE_NONE:\n\t\t\treturn row_code\n\tvar flag_code: StringName = _column_flag_scan_refusal(image)\n\tif flag_code != REFUSE_NONE:\n\t\treturn flag_code\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_flag_precedes_earlier_row_semantic_fault",
+          "line": 394,
+          "fixture": "row0 purpose4; last-row paused2",
+          "baseline_expected": "COLUMN_FLAG",
+          "mutant_expected": "COLUMN_ENUM"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "relax-enum-purpose",
+      "purpose": "One ordinal beyond valid domain escapes ENUM. Subsequent checks remain memory-safe for this fixture.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1848,
+          "occurrences_required": 1,
+          "old": "static func _enum_gate_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"Gate 1 (ENUM): purpose 0..3, phase 0..4, refund_policy 0..2.\"\"\"\n\tvar purpose: int = image.purpose[row]\n\tif purpose < PURPOSE_BUILD or purpose >= PURPOSE_COUNT:\n\t\treturn REFUSE_COLUMN_ENUM\n\tvar phase: int = image.phase[row]\n\tif phase < PHASE_AWAITING_MATERIALS or phase >= PHASE_COUNT:\n\t\treturn REFUSE_COLUMN_ENUM\n\tvar policy: int = image.refund_policy[row]\n\tif policy < REFUND_FULL or policy >= REFUND_POLICY_COUNT:\n\t\treturn REFUSE_COLUMN_ENUM\n\treturn REFUSE_NONE",
+          "new": "static func _enum_gate_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"Gate 1 (ENUM): purpose 0..3, phase 0..4, refund_policy 0..2.\"\"\"\n\tvar purpose: int = image.purpose[row]\n\tif purpose < PURPOSE_BUILD or purpose >= PURPOSE_COUNT + 1:\n\t\treturn REFUSE_COLUMN_ENUM\n\tvar phase: int = image.phase[row]\n\tif phase < PHASE_AWAITING_MATERIALS or phase >= PHASE_COUNT:\n\t\treturn REFUSE_COLUMN_ENUM\n\tvar policy: int = image.refund_policy[row]\n\tif policy < REFUND_FULL or policy >= REFUND_POLICY_COUNT:\n\t\treturn REFUSE_COLUMN_ENUM\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "enum-purpose at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_ENUM",
+          "mutant_expected": "COLUMN_PHASE"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "relax-enum-phase",
+      "purpose": "One ordinal beyond valid domain escapes ENUM. Subsequent checks remain memory-safe for this fixture.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1848,
+          "occurrences_required": 1,
+          "old": "static func _enum_gate_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"Gate 1 (ENUM): purpose 0..3, phase 0..4, refund_policy 0..2.\"\"\"\n\tvar purpose: int = image.purpose[row]\n\tif purpose < PURPOSE_BUILD or purpose >= PURPOSE_COUNT:\n\t\treturn REFUSE_COLUMN_ENUM\n\tvar phase: int = image.phase[row]\n\tif phase < PHASE_AWAITING_MATERIALS or phase >= PHASE_COUNT:\n\t\treturn REFUSE_COLUMN_ENUM\n\tvar policy: int = image.refund_policy[row]\n\tif policy < REFUND_FULL or policy >= REFUND_POLICY_COUNT:\n\t\treturn REFUSE_COLUMN_ENUM\n\treturn REFUSE_NONE",
+          "new": "static func _enum_gate_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"Gate 1 (ENUM): purpose 0..3, phase 0..4, refund_policy 0..2.\"\"\"\n\tvar purpose: int = image.purpose[row]\n\tif purpose < PURPOSE_BUILD or purpose >= PURPOSE_COUNT:\n\t\treturn REFUSE_COLUMN_ENUM\n\tvar phase: int = image.phase[row]\n\tif phase < PHASE_AWAITING_MATERIALS or phase >= PHASE_COUNT + 1:\n\t\treturn REFUSE_COLUMN_ENUM\n\tvar policy: int = image.refund_policy[row]\n\tif policy < REFUND_FULL or policy >= REFUND_POLICY_COUNT:\n\t\treturn REFUSE_COLUMN_ENUM\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "enum-phase at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_ENUM",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "relax-enum-refund_policy",
+      "purpose": "One ordinal beyond valid domain escapes ENUM. Subsequent checks remain memory-safe for this fixture.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1848,
+          "occurrences_required": 1,
+          "old": "static func _enum_gate_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"Gate 1 (ENUM): purpose 0..3, phase 0..4, refund_policy 0..2.\"\"\"\n\tvar purpose: int = image.purpose[row]\n\tif purpose < PURPOSE_BUILD or purpose >= PURPOSE_COUNT:\n\t\treturn REFUSE_COLUMN_ENUM\n\tvar phase: int = image.phase[row]\n\tif phase < PHASE_AWAITING_MATERIALS or phase >= PHASE_COUNT:\n\t\treturn REFUSE_COLUMN_ENUM\n\tvar policy: int = image.refund_policy[row]\n\tif policy < REFUND_FULL or policy >= REFUND_POLICY_COUNT:\n\t\treturn REFUSE_COLUMN_ENUM\n\treturn REFUSE_NONE",
+          "new": "static func _enum_gate_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"Gate 1 (ENUM): purpose 0..3, phase 0..4, refund_policy 0..2.\"\"\"\n\tvar purpose: int = image.purpose[row]\n\tif purpose < PURPOSE_BUILD or purpose >= PURPOSE_COUNT:\n\t\treturn REFUSE_COLUMN_ENUM\n\tvar phase: int = image.phase[row]\n\tif phase < PHASE_AWAITING_MATERIALS or phase >= PHASE_COUNT:\n\t\treturn REFUSE_COLUMN_ENUM\n\tvar policy: int = image.refund_policy[row]\n\tif policy < REFUND_FULL or policy >= REFUND_POLICY_COUNT + 1:\n\t\treturn REFUSE_COLUMN_ENUM\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "enum-refund_policy at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_ENUM",
+          "mutant_expected": "COLUMN_POLICY"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "omit-negative-remaining",
+      "purpose": "Omit one value precondition; phase catches wrong work later, proving correct classification/order.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1862,
+          "occurrences_required": 1,
+          "old": "static func _value_gate_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"Gate 2 (VALUE): non-negative counters/quantities; type_id no lower than the -1 sentinel.\"\"\"\n\tif image.remaining_mwu[row] < 0 or image.assigned_count[row] < 0:\n\t\treturn REFUSE_COLUMN_VALUE\n\tif image.max_workers[row] < 0 or image.type_id[row] < -1:\n\t\treturn REFUSE_COLUMN_VALUE\n\treturn REFUSE_NONE",
+          "new": "static func _value_gate_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"Gate 2 (VALUE): non-negative counters/quantities; type_id no lower than the -1 sentinel.\"\"\"\n\tif image.assigned_count[row] < 0:\n\t\treturn REFUSE_COLUMN_VALUE\n\tif image.max_workers[row] < 0 or image.type_id[row] < -1:\n\t\treturn REFUSE_COLUMN_VALUE\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "negative-remaining_mwu at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_VALUE",
+          "mutant_expected": "COLUMN_PHASE"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "omit-negative-type-sentinel-bound",
+      "purpose": "TYPE safely catches type\u22122 later; do not remove the domain guard and index arrays out of bounds.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1862,
+          "occurrences_required": 1,
+          "old": "static func _value_gate_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"Gate 2 (VALUE): non-negative counters/quantities; type_id no lower than the -1 sentinel.\"\"\"\n\tif image.remaining_mwu[row] < 0 or image.assigned_count[row] < 0:\n\t\treturn REFUSE_COLUMN_VALUE\n\tif image.max_workers[row] < 0 or image.type_id[row] < -1:\n\t\treturn REFUSE_COLUMN_VALUE\n\treturn REFUSE_NONE",
+          "new": "static func _value_gate_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"Gate 2 (VALUE): non-negative counters/quantities; type_id no lower than the -1 sentinel.\"\"\"\n\tif image.remaining_mwu[row] < 0 or image.assigned_count[row] < 0:\n\t\treturn REFUSE_COLUMN_VALUE\n\tif image.max_workers[row] < 0:\n\t\treturn REFUSE_COLUMN_VALUE\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "negative-type_id at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_VALUE",
+          "mutant_expected": "COLUMN_TYPE"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "permit-half-null-slot",
+      "purpose": "Null-slot with positive generation slips through; exact NULL pair remains accepted.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1871,
+          "occurrences_required": 1,
+          "old": "static func _ref_pair_refusal(slot: int, generation: int, max_slot: int) -> StringName:\n\t\"\"\"One reference pair: exactly NULL(-1,0), or slot 0..max_slot with generation 1..MAX_i32.\"\"\"\n\tif slot == NULL_REF.x and generation == NULL_REF.y:\n\t\treturn REFUSE_NONE\n\tif slot < 0 or slot > max_slot:\n\t\treturn REFUSE_COLUMN_REF\n\tif generation < 1 or generation > INT32_MAX:\n\t\treturn REFUSE_COLUMN_REF\n\treturn REFUSE_NONE",
+          "new": "static func _ref_pair_refusal(slot: int, generation: int, max_slot: int) -> StringName:\n\t\"\"\"One reference pair: exactly NULL(-1,0), or slot 0..max_slot with generation 1..MAX_i32.\"\"\"\n\tif slot == NULL_REF.x and generation == NULL_REF.y:\n\t\treturn REFUSE_NONE\n\tif slot < -1 or slot > max_slot:\n\t\treturn REFUSE_COLUMN_REF\n\tif generation < 1 or generation > INT32_MAX:\n\t\treturn REFUSE_COLUMN_REF\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "half-null-ref / half-null-subject / half-null-material_container at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_REF",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "permit-zero-generation",
+      "purpose": "Allow generation0 for a nonnull slot; no Directory access or fabricated liveness.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1871,
+          "occurrences_required": 1,
+          "old": "static func _ref_pair_refusal(slot: int, generation: int, max_slot: int) -> StringName:\n\t\"\"\"One reference pair: exactly NULL(-1,0), or slot 0..max_slot with generation 1..MAX_i32.\"\"\"\n\tif slot == NULL_REF.x and generation == NULL_REF.y:\n\t\treturn REFUSE_NONE\n\tif slot < 0 or slot > max_slot:\n\t\treturn REFUSE_COLUMN_REF\n\tif generation < 1 or generation > INT32_MAX:\n\t\treturn REFUSE_COLUMN_REF\n\treturn REFUSE_NONE",
+          "new": "static func _ref_pair_refusal(slot: int, generation: int, max_slot: int) -> StringName:\n\t\"\"\"One reference pair: exactly NULL(-1,0), or slot 0..max_slot with generation 1..MAX_i32.\"\"\"\n\tif slot == NULL_REF.x and generation == NULL_REF.y:\n\t\treturn REFUSE_NONE\n\tif slot < 0 or slot > max_slot:\n\t\treturn REFUSE_COLUMN_REF\n\tif generation < 0 or generation > INT32_MAX:\n\t\treturn REFUSE_COLUMN_REF\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "zero-generation-ref / zero-generation-subject / zero-generation-material_container at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_REF",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "directory-off-by-one",
+      "purpose": "Allow exactly invalid slot352418 without changing the metadata scalar.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1884,
+          "occurrences_required": 1,
+          "old": "\tvar max_directory_slot: int = COLUMN_DIRECTORY_CAPACITY - 1",
+          "new": "\tvar max_directory_slot: int = COLUMN_DIRECTORY_CAPACITY"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "directory-overflow-ref / directory-overflow-subject at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_REF",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "container-wrong-directory-namespace",
+      "purpose": "Positive namespace boundary distinguishes Inventory handles from Directory bounds.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1894,
+          "occurrences_required": 1,
+          "old": "\t\timage.material_container_slot[row], image.material_container_generation[row], INT32_MAX)",
+          "new": "\t\timage.material_container_slot[row], image.material_container_generation[row], max_directory_slot)"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_inventory_container_full_i32_boundary_accepted",
+          "line": 458,
+          "fixture": "container(slot,generation)=(2147483647,2147483647)",
+          "baseline_expected": "",
+          "mutant_expected": "COLUMN_REF"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "omit-retired-work-clear",
+      "purpose": "Retained completed row with remaining1 otherwise passes retained phase/policy rules.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1897,
+          "occurrences_required": 1,
+          "old": "static func _free_row_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"Gate 4 (FREE), inactive-row half: null self/subject/container and zeroed progress, always;\n\tthe never-used clear shortcut is stricter still, and distinct from retained-row history.\"\"\"\n\tif image.ref_slot[row] != NULL_REF.x or image.ref_generation[row] != NULL_REF.y:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.subject_slot[row] != NULL_REF.x or image.subject_generation[row] != NULL_REF.y:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.material_container_slot[row] != NULL_REF.x \\\n\t\t\tor image.material_container_generation[row] != NULL_REF.y:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.remaining_mwu[row] != 0 or image.assigned_count[row] != 0:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.paused[row] != 0 or image.work_begun[row] != 0:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.max_workers[row] == 0:\n\t\tif image.purpose[row] != PURPOSE_BUILD or image.type_id[row] != -1:\n\t\t\treturn REFUSE_COLUMN_FREE\n\t\tif image.phase[row] != PHASE_AWAITING_MATERIALS or image.refund_policy[row] != REFUND_FULL:\n\t\t\treturn REFUSE_COLUMN_FREE\n\treturn REFUSE_NONE",
+          "new": "static func _free_row_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"Gate 4 (FREE), inactive-row half: null self/subject/container and zeroed progress, always;\n\tthe never-used clear shortcut is stricter still, and distinct from retained-row history.\"\"\"\n\tif image.ref_slot[row] != NULL_REF.x or image.ref_generation[row] != NULL_REF.y:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.subject_slot[row] != NULL_REF.x or image.subject_generation[row] != NULL_REF.y:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.material_container_slot[row] != NULL_REF.x \\\n\t\t\tor image.material_container_generation[row] != NULL_REF.y:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.assigned_count[row] != 0:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.paused[row] != 0 or image.work_begun[row] != 0:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.max_workers[row] == 0:\n\t\tif image.purpose[row] != PURPOSE_BUILD or image.type_id[row] != -1:\n\t\t\treturn REFUSE_COLUMN_FREE\n\t\tif image.phase[row] != PHASE_AWAITING_MATERIALS or image.refund_policy[row] != REFUND_FULL:\n\t\t\treturn REFUSE_COLUMN_FREE\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "retired-progress at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_FREE",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "omit-never-used-purpose",
+      "purpose": "Do not equate a never-used row with any structurally inactive sentinel row.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1897,
+          "occurrences_required": 1,
+          "old": "static func _free_row_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"Gate 4 (FREE), inactive-row half: null self/subject/container and zeroed progress, always;\n\tthe never-used clear shortcut is stricter still, and distinct from retained-row history.\"\"\"\n\tif image.ref_slot[row] != NULL_REF.x or image.ref_generation[row] != NULL_REF.y:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.subject_slot[row] != NULL_REF.x or image.subject_generation[row] != NULL_REF.y:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.material_container_slot[row] != NULL_REF.x \\\n\t\t\tor image.material_container_generation[row] != NULL_REF.y:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.remaining_mwu[row] != 0 or image.assigned_count[row] != 0:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.paused[row] != 0 or image.work_begun[row] != 0:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.max_workers[row] == 0:\n\t\tif image.purpose[row] != PURPOSE_BUILD or image.type_id[row] != -1:\n\t\t\treturn REFUSE_COLUMN_FREE\n\t\tif image.phase[row] != PHASE_AWAITING_MATERIALS or image.refund_policy[row] != REFUND_FULL:\n\t\t\treturn REFUSE_COLUMN_FREE\n\treturn REFUSE_NONE",
+          "new": "static func _free_row_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"Gate 4 (FREE), inactive-row half: null self/subject/container and zeroed progress, always;\n\tthe never-used clear shortcut is stricter still, and distinct from retained-row history.\"\"\"\n\tif image.ref_slot[row] != NULL_REF.x or image.ref_generation[row] != NULL_REF.y:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.subject_slot[row] != NULL_REF.x or image.subject_generation[row] != NULL_REF.y:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.material_container_slot[row] != NULL_REF.x \\\n\t\t\tor image.material_container_generation[row] != NULL_REF.y:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.remaining_mwu[row] != 0 or image.assigned_count[row] != 0:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.paused[row] != 0 or image.work_begun[row] != 0:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.max_workers[row] == 0:\n\t\tif image.type_id[row] != -1:\n\t\t\treturn REFUSE_COLUMN_FREE\n\t\tif image.phase[row] != PHASE_AWAITING_MATERIALS or image.refund_policy[row] != REFUND_FULL:\n\t\t\treturn REFUSE_COLUMN_FREE\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "clear-retains-purpose at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_FREE",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "permit-live-null-self",
+      "purpose": "Keep exact valid NULL reference shape but wrongly allow it for a live subject.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1919,
+          "occurrences_required": 1,
+          "old": "static func _free_gate_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"Gate 4 (FREE): dispatch by present. Present rows require nonnull self AND subject.\"\"\"\n\tif image.present[row] == 0:\n\t\treturn _free_row_refusal(image, row)\n\tif image.ref_slot[row] == NULL_REF.x and image.ref_generation[row] == NULL_REF.y:\n\t\treturn REFUSE_COLUMN_FREE\n\tif image.subject_slot[row] == NULL_REF.x and image.subject_generation[row] == NULL_REF.y:\n\t\treturn REFUSE_COLUMN_FREE\n\treturn REFUSE_NONE",
+          "new": "static func _free_gate_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"Gate 4 (FREE): dispatch by present. Present rows require nonnull self AND subject.\"\"\"\n\tif image.present[row] == 0:\n\t\treturn _free_row_refusal(image, row)\n\tif image.ref_slot[row] == NULL_REF.x and image.ref_generation[row] == NULL_REF.y:\n\t\treturn REFUSE_NONE\n\tif image.subject_slot[row] == NULL_REF.x and image.subject_generation[row] == NULL_REF.y:\n\t\treturn REFUSE_COLUMN_FREE\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "active-null-self at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_FREE",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "permit-live-sentinel-type",
+      "purpose": "Safely bypass only live\u22121 sentinel refusal; workers and phase intentionally skip sentinel indexing.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1945,
+          "occurrences_required": 1,
+          "old": "static func _type_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 5 (TYPE): the -1 sentinel is legal only for the exact never-used clear row.\"\"\"\n\tvar type_id: int = image.type_id[row]\n\tif type_id == -1:\n\t\tif image.present[row] == 0 and image.max_workers[row] == 0:\n\t\t\treturn REFUSE_NONE\n\t\treturn REFUSE_COLUMN_TYPE\n\treturn _type_refusal(purpose, type_id)",
+          "new": "static func _type_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 5 (TYPE): the -1 sentinel is legal only for the exact never-used clear row.\"\"\"\n\tvar type_id: int = image.type_id[row]\n\tif type_id == -1:\n\t\tif image.present[row] == 0 and image.max_workers[row] == 0:\n\t\t\treturn REFUSE_NONE\n\t\treturn REFUSE_NONE\n\treturn _type_refusal(purpose, type_id)"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "live-sentinel-type at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_TYPE",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "restrict-valid-furniture-domain",
+      "purpose": "Reject valid shelf ID8; a safe domain mutation, unlike broadening to ID9 then indexing out of bounds.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1930,
+          "occurrences_required": 1,
+          "old": "static func _type_refusal(purpose: int, type_id: int) -> StringName:\n\t\"\"\"A validated (non-sentinel) type_id against its purpose's own domain.\"\"\"\n\tmatch purpose:\n\t\tPURPOSE_BUILD, PURPOSE_DEMOLISH:\n\t\t\tif type_id < 0 or type_id >= BUILDING_KINDS:\n\t\t\t\treturn REFUSE_COLUMN_TYPE\n\t\tPURPOSE_FURNITURE:\n\t\t\tif type_id < 0 or type_id >= FURNITURE_KINDS:\n\t\t\t\treturn REFUSE_COLUMN_TYPE\n\t\tPURPOSE_UPGRADE:\n\t\t\tif not COLUMN_UPGRADE_IDS.has(type_id):\n\t\t\t\treturn REFUSE_COLUMN_TYPE\n\treturn REFUSE_NONE",
+          "new": "static func _type_refusal(purpose: int, type_id: int) -> StringName:\n\t\"\"\"A validated (non-sentinel) type_id against its purpose's own domain.\"\"\"\n\tmatch purpose:\n\t\tPURPOSE_BUILD, PURPOSE_DEMOLISH:\n\t\t\tif type_id < 0 or type_id >= BUILDING_KINDS:\n\t\t\t\treturn REFUSE_COLUMN_TYPE\n\t\tPURPOSE_FURNITURE:\n\t\t\tif type_id < 0 or type_id >= FURNITURE_KINDS - 1:\n\t\t\t\treturn REFUSE_COLUMN_TYPE\n\t\tPURPOSE_UPGRADE:\n\t\t\tif not COLUMN_UPGRADE_IDS.has(type_id):\n\t\t\t\treturn REFUSE_COLUMN_TYPE\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_packed_valid_tuples_image_accepted",
+          "line": 597,
+          "fixture": "Independently generated all-purpose/type valid live and retained tuples",
+          "baseline_expected": "",
+          "mutant_expected": "COLUMN_TYPE"
+        },
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_full_capacity_mixed_image_accepted",
+          "line": 609,
+          "fixture": "Same tuple catalog repeated across all82944 rows",
+          "baseline_expected": "",
+          "mutant_expected": "COLUMN_TYPE"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "deny-valid-upgrade-member",
+      "purpose": "Reject existing covered_store upgrade ID5; independent positive matrix supplies it.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1930,
+          "occurrences_required": 1,
+          "old": "static func _type_refusal(purpose: int, type_id: int) -> StringName:\n\t\"\"\"A validated (non-sentinel) type_id against its purpose's own domain.\"\"\"\n\tmatch purpose:\n\t\tPURPOSE_BUILD, PURPOSE_DEMOLISH:\n\t\t\tif type_id < 0 or type_id >= BUILDING_KINDS:\n\t\t\t\treturn REFUSE_COLUMN_TYPE\n\t\tPURPOSE_FURNITURE:\n\t\t\tif type_id < 0 or type_id >= FURNITURE_KINDS:\n\t\t\t\treturn REFUSE_COLUMN_TYPE\n\t\tPURPOSE_UPGRADE:\n\t\t\tif not COLUMN_UPGRADE_IDS.has(type_id):\n\t\t\t\treturn REFUSE_COLUMN_TYPE\n\treturn REFUSE_NONE",
+          "new": "static func _type_refusal(purpose: int, type_id: int) -> StringName:\n\t\"\"\"A validated (non-sentinel) type_id against its purpose's own domain.\"\"\"\n\tmatch purpose:\n\t\tPURPOSE_BUILD, PURPOSE_DEMOLISH:\n\t\t\tif type_id < 0 or type_id >= BUILDING_KINDS:\n\t\t\t\treturn REFUSE_COLUMN_TYPE\n\t\tPURPOSE_FURNITURE:\n\t\t\tif type_id < 0 or type_id >= FURNITURE_KINDS:\n\t\t\t\treturn REFUSE_COLUMN_TYPE\n\t\tPURPOSE_UPGRADE:\n\t\t\tif not COLUMN_UPGRADE_IDS.has(type_id) or type_id == 5:\n\t\t\t\treturn REFUSE_COLUMN_TYPE\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_packed_valid_tuples_image_accepted",
+          "line": 597,
+          "fixture": "Independently generated all-purpose/type valid live and retained tuples",
+          "baseline_expected": "",
+          "mutant_expected": "COLUMN_TYPE"
+        },
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_full_capacity_mixed_image_accepted",
+          "line": 609,
+          "fixture": "Same tuple catalog repeated across all82944 rows",
+          "baseline_expected": "",
+          "mutant_expected": "COLUMN_TYPE"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "omit-worker-cap-parity",
+      "purpose": "Wrong capacity3 escapes but expected_max remains referenced, avoiding unused-local diagnostic.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1955,
+          "occurrences_required": 1,
+          "old": "static func _workers_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 6 (WORKERS): catalog-matched capacity, the assigned cap, paused/refunding idleness.\n\n\tPRECONDITION, NOT A NEW FAILURE PATH: `_row_refusal()` reaches this helper only AFTER gate 5\n\t(TYPE) has returned REFUSE_NONE for this row, so a non-sentinel `type_id` is already proven\n\tto lie inside its purpose's own domain before COLUMN_BUILDING_MAX_WORKERS is indexed below.\n\tThe frozen gate order is unchanged and this helper stays private by convention: it must\n\tnever be called before the TYPE gate has passed.\n\t\"\"\"\n\tvar max_workers_val: int = image.max_workers[row]\n\tif image.type_id[row] != -1:\n\t\tvar expected_max: int = MAX_BUILDERS if purpose == PURPOSE_FURNITURE \\\n\t\t\telse COLUMN_BUILDING_MAX_WORKERS[image.type_id[row]]\n\t\tif max_workers_val != expected_max:\n\t\t\treturn REFUSE_COLUMN_WORKERS\n\tif image.assigned_count[row] > max_workers_val:\n\t\treturn REFUSE_COLUMN_WORKERS\n\tvar must_be_idle: bool = image.paused[row] == 1 or image.phase[row] == PHASE_REFUNDING\n\tif must_be_idle and image.assigned_count[row] != 0:\n\t\treturn REFUSE_COLUMN_WORKERS\n\treturn REFUSE_NONE",
+          "new": "static func _workers_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 6 (WORKERS): catalog-matched capacity, the assigned cap, paused/refunding idleness.\n\n\tPRECONDITION, NOT A NEW FAILURE PATH: `_row_refusal()` reaches this helper only AFTER gate 5\n\t(TYPE) has returned REFUSE_NONE for this row, so a non-sentinel `type_id` is already proven\n\tto lie inside its purpose's own domain before COLUMN_BUILDING_MAX_WORKERS is indexed below.\n\tThe frozen gate order is unchanged and this helper stays private by convention: it must\n\tnever be called before the TYPE gate has passed.\n\t\"\"\"\n\tvar max_workers_val: int = image.max_workers[row]\n\tif image.type_id[row] != -1:\n\t\tvar expected_max: int = MAX_BUILDERS if purpose == PURPOSE_FURNITURE \\\n\t\t\telse COLUMN_BUILDING_MAX_WORKERS[image.type_id[row]]\n\t\tif max_workers_val != expected_max and max_workers_val > expected_max:\n\t\t\treturn REFUSE_COLUMN_WORKERS\n\tif image.assigned_count[row] > max_workers_val:\n\t\treturn REFUSE_COLUMN_WORKERS\n\tvar must_be_idle: bool = image.paused[row] == 1 or image.phase[row] == PHASE_REFUNDING\n\tif must_be_idle and image.assigned_count[row] != 0:\n\t\treturn REFUSE_COLUMN_WORKERS\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "wrong-max-workers at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_WORKERS",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "assigned-cap-off-by-one",
+      "purpose": "Allow assigned5 against capacity4.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1955,
+          "occurrences_required": 1,
+          "old": "static func _workers_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 6 (WORKERS): catalog-matched capacity, the assigned cap, paused/refunding idleness.\n\n\tPRECONDITION, NOT A NEW FAILURE PATH: `_row_refusal()` reaches this helper only AFTER gate 5\n\t(TYPE) has returned REFUSE_NONE for this row, so a non-sentinel `type_id` is already proven\n\tto lie inside its purpose's own domain before COLUMN_BUILDING_MAX_WORKERS is indexed below.\n\tThe frozen gate order is unchanged and this helper stays private by convention: it must\n\tnever be called before the TYPE gate has passed.\n\t\"\"\"\n\tvar max_workers_val: int = image.max_workers[row]\n\tif image.type_id[row] != -1:\n\t\tvar expected_max: int = MAX_BUILDERS if purpose == PURPOSE_FURNITURE \\\n\t\t\telse COLUMN_BUILDING_MAX_WORKERS[image.type_id[row]]\n\t\tif max_workers_val != expected_max:\n\t\t\treturn REFUSE_COLUMN_WORKERS\n\tif image.assigned_count[row] > max_workers_val:\n\t\treturn REFUSE_COLUMN_WORKERS\n\tvar must_be_idle: bool = image.paused[row] == 1 or image.phase[row] == PHASE_REFUNDING\n\tif must_be_idle and image.assigned_count[row] != 0:\n\t\treturn REFUSE_COLUMN_WORKERS\n\treturn REFUSE_NONE",
+          "new": "static func _workers_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 6 (WORKERS): catalog-matched capacity, the assigned cap, paused/refunding idleness.\n\n\tPRECONDITION, NOT A NEW FAILURE PATH: `_row_refusal()` reaches this helper only AFTER gate 5\n\t(TYPE) has returned REFUSE_NONE for this row, so a non-sentinel `type_id` is already proven\n\tto lie inside its purpose's own domain before COLUMN_BUILDING_MAX_WORKERS is indexed below.\n\tThe frozen gate order is unchanged and this helper stays private by convention: it must\n\tnever be called before the TYPE gate has passed.\n\t\"\"\"\n\tvar max_workers_val: int = image.max_workers[row]\n\tif image.type_id[row] != -1:\n\t\tvar expected_max: int = MAX_BUILDERS if purpose == PURPOSE_FURNITURE \\\n\t\t\telse COLUMN_BUILDING_MAX_WORKERS[image.type_id[row]]\n\t\tif max_workers_val != expected_max:\n\t\t\treturn REFUSE_COLUMN_WORKERS\n\tif image.assigned_count[row] > max_workers_val + 1:\n\t\treturn REFUSE_COLUMN_WORKERS\n\tvar must_be_idle: bool = image.paused[row] == 1 or image.phase[row] == PHASE_REFUNDING\n\tif must_be_idle and image.assigned_count[row] != 0:\n\t\treturn REFUSE_COLUMN_WORKERS\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "assigned-over-cap at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_WORKERS",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "omit-paused-idleness",
+      "purpose": "Paused AWAITING row with assigned1 is otherwise valid.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1955,
+          "occurrences_required": 1,
+          "old": "static func _workers_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 6 (WORKERS): catalog-matched capacity, the assigned cap, paused/refunding idleness.\n\n\tPRECONDITION, NOT A NEW FAILURE PATH: `_row_refusal()` reaches this helper only AFTER gate 5\n\t(TYPE) has returned REFUSE_NONE for this row, so a non-sentinel `type_id` is already proven\n\tto lie inside its purpose's own domain before COLUMN_BUILDING_MAX_WORKERS is indexed below.\n\tThe frozen gate order is unchanged and this helper stays private by convention: it must\n\tnever be called before the TYPE gate has passed.\n\t\"\"\"\n\tvar max_workers_val: int = image.max_workers[row]\n\tif image.type_id[row] != -1:\n\t\tvar expected_max: int = MAX_BUILDERS if purpose == PURPOSE_FURNITURE \\\n\t\t\telse COLUMN_BUILDING_MAX_WORKERS[image.type_id[row]]\n\t\tif max_workers_val != expected_max:\n\t\t\treturn REFUSE_COLUMN_WORKERS\n\tif image.assigned_count[row] > max_workers_val:\n\t\treturn REFUSE_COLUMN_WORKERS\n\tvar must_be_idle: bool = image.paused[row] == 1 or image.phase[row] == PHASE_REFUNDING\n\tif must_be_idle and image.assigned_count[row] != 0:\n\t\treturn REFUSE_COLUMN_WORKERS\n\treturn REFUSE_NONE",
+          "new": "static func _workers_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 6 (WORKERS): catalog-matched capacity, the assigned cap, paused/refunding idleness.\n\n\tPRECONDITION, NOT A NEW FAILURE PATH: `_row_refusal()` reaches this helper only AFTER gate 5\n\t(TYPE) has returned REFUSE_NONE for this row, so a non-sentinel `type_id` is already proven\n\tto lie inside its purpose's own domain before COLUMN_BUILDING_MAX_WORKERS is indexed below.\n\tThe frozen gate order is unchanged and this helper stays private by convention: it must\n\tnever be called before the TYPE gate has passed.\n\t\"\"\"\n\tvar max_workers_val: int = image.max_workers[row]\n\tif image.type_id[row] != -1:\n\t\tvar expected_max: int = MAX_BUILDERS if purpose == PURPOSE_FURNITURE \\\n\t\t\telse COLUMN_BUILDING_MAX_WORKERS[image.type_id[row]]\n\t\tif max_workers_val != expected_max:\n\t\t\treturn REFUSE_COLUMN_WORKERS\n\tif image.assigned_count[row] > max_workers_val:\n\t\treturn REFUSE_COLUMN_WORKERS\n\tvar must_be_idle: bool = image.phase[row] == PHASE_REFUNDING\n\tif must_be_idle and image.assigned_count[row] != 0:\n\t\treturn REFUSE_COLUMN_WORKERS\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "paused-assigned at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_WORKERS",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "omit-refunding-idleness",
+      "purpose": "Unbegun full-work REFUNDING row with assigned1 otherwise passes phase/policy.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1955,
+          "occurrences_required": 1,
+          "old": "static func _workers_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 6 (WORKERS): catalog-matched capacity, the assigned cap, paused/refunding idleness.\n\n\tPRECONDITION, NOT A NEW FAILURE PATH: `_row_refusal()` reaches this helper only AFTER gate 5\n\t(TYPE) has returned REFUSE_NONE for this row, so a non-sentinel `type_id` is already proven\n\tto lie inside its purpose's own domain before COLUMN_BUILDING_MAX_WORKERS is indexed below.\n\tThe frozen gate order is unchanged and this helper stays private by convention: it must\n\tnever be called before the TYPE gate has passed.\n\t\"\"\"\n\tvar max_workers_val: int = image.max_workers[row]\n\tif image.type_id[row] != -1:\n\t\tvar expected_max: int = MAX_BUILDERS if purpose == PURPOSE_FURNITURE \\\n\t\t\telse COLUMN_BUILDING_MAX_WORKERS[image.type_id[row]]\n\t\tif max_workers_val != expected_max:\n\t\t\treturn REFUSE_COLUMN_WORKERS\n\tif image.assigned_count[row] > max_workers_val:\n\t\treturn REFUSE_COLUMN_WORKERS\n\tvar must_be_idle: bool = image.paused[row] == 1 or image.phase[row] == PHASE_REFUNDING\n\tif must_be_idle and image.assigned_count[row] != 0:\n\t\treturn REFUSE_COLUMN_WORKERS\n\treturn REFUSE_NONE",
+          "new": "static func _workers_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 6 (WORKERS): catalog-matched capacity, the assigned cap, paused/refunding idleness.\n\n\tPRECONDITION, NOT A NEW FAILURE PATH: `_row_refusal()` reaches this helper only AFTER gate 5\n\t(TYPE) has returned REFUSE_NONE for this row, so a non-sentinel `type_id` is already proven\n\tto lie inside its purpose's own domain before COLUMN_BUILDING_MAX_WORKERS is indexed below.\n\tThe frozen gate order is unchanged and this helper stays private by convention: it must\n\tnever be called before the TYPE gate has passed.\n\t\"\"\"\n\tvar max_workers_val: int = image.max_workers[row]\n\tif image.type_id[row] != -1:\n\t\tvar expected_max: int = MAX_BUILDERS if purpose == PURPOSE_FURNITURE \\\n\t\t\telse COLUMN_BUILDING_MAX_WORKERS[image.type_id[row]]\n\t\tif max_workers_val != expected_max:\n\t\t\treturn REFUSE_COLUMN_WORKERS\n\tif image.assigned_count[row] > max_workers_val:\n\t\treturn REFUSE_COLUMN_WORKERS\n\tvar must_be_idle: bool = image.paused[row] == 1\n\tif must_be_idle and image.assigned_count[row] != 0:\n\t\treturn REFUSE_COLUMN_WORKERS\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "refunding-assigned at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_WORKERS",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "forbid-workers-outside-working",
+      "purpose": "Invalid tempting shortcut; positive matrix explicitly includes unpaused assigned4 in AWAITING, READY and WORK_DONE.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1955,
+          "occurrences_required": 1,
+          "old": "static func _workers_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 6 (WORKERS): catalog-matched capacity, the assigned cap, paused/refunding idleness.\n\n\tPRECONDITION, NOT A NEW FAILURE PATH: `_row_refusal()` reaches this helper only AFTER gate 5\n\t(TYPE) has returned REFUSE_NONE for this row, so a non-sentinel `type_id` is already proven\n\tto lie inside its purpose's own domain before COLUMN_BUILDING_MAX_WORKERS is indexed below.\n\tThe frozen gate order is unchanged and this helper stays private by convention: it must\n\tnever be called before the TYPE gate has passed.\n\t\"\"\"\n\tvar max_workers_val: int = image.max_workers[row]\n\tif image.type_id[row] != -1:\n\t\tvar expected_max: int = MAX_BUILDERS if purpose == PURPOSE_FURNITURE \\\n\t\t\telse COLUMN_BUILDING_MAX_WORKERS[image.type_id[row]]\n\t\tif max_workers_val != expected_max:\n\t\t\treturn REFUSE_COLUMN_WORKERS\n\tif image.assigned_count[row] > max_workers_val:\n\t\treturn REFUSE_COLUMN_WORKERS\n\tvar must_be_idle: bool = image.paused[row] == 1 or image.phase[row] == PHASE_REFUNDING\n\tif must_be_idle and image.assigned_count[row] != 0:\n\t\treturn REFUSE_COLUMN_WORKERS\n\treturn REFUSE_NONE",
+          "new": "static func _workers_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 6 (WORKERS): catalog-matched capacity, the assigned cap, paused/refunding idleness.\n\n\tPRECONDITION, NOT A NEW FAILURE PATH: `_row_refusal()` reaches this helper only AFTER gate 5\n\t(TYPE) has returned REFUSE_NONE for this row, so a non-sentinel `type_id` is already proven\n\tto lie inside its purpose's own domain before COLUMN_BUILDING_MAX_WORKERS is indexed below.\n\tThe frozen gate order is unchanged and this helper stays private by convention: it must\n\tnever be called before the TYPE gate has passed.\n\t\"\"\"\n\tvar max_workers_val: int = image.max_workers[row]\n\tif image.type_id[row] != -1:\n\t\tvar expected_max: int = MAX_BUILDERS if purpose == PURPOSE_FURNITURE \\\n\t\t\telse COLUMN_BUILDING_MAX_WORKERS[image.type_id[row]]\n\t\tif max_workers_val != expected_max:\n\t\t\treturn REFUSE_COLUMN_WORKERS\n\tif image.assigned_count[row] > max_workers_val:\n\t\treturn REFUSE_COLUMN_WORKERS\n\tvar must_be_idle: bool = image.paused[row] == 1 or image.phase[row] != PHASE_WORKING\n\tif must_be_idle and image.assigned_count[row] != 0:\n\t\treturn REFUSE_COLUMN_WORKERS\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_packed_valid_tuples_image_accepted",
+          "line": 597,
+          "fixture": "Independently generated all-purpose/type valid live and retained tuples",
+          "baseline_expected": "",
+          "mutant_expected": "COLUMN_WORKERS"
+        },
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_full_capacity_mixed_image_accepted",
+          "line": 609,
+          "fixture": "Same tuple catalog repeated across all82944 rows",
+          "baseline_expected": "",
+          "mutant_expected": "COLUMN_WORKERS"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "recompute-retired-policy-from-cleared-begun",
+      "purpose": "Retired non-demolition PARTIAL persists after work_begun clears; applying live recomputation wrongly refuses it.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1971,
+          "occurrences_required": 1,
+          "old": "static func _policy_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 7 (POLICY): demolition is always DEMOLITION; never recompute from cleared work_begun.\"\"\"\n\tif purpose == PURPOSE_DEMOLISH:\n\t\tif image.refund_policy[row] != REFUND_DEMOLITION:\n\t\t\treturn REFUSE_COLUMN_POLICY\n\t\treturn REFUSE_NONE\n\tif image.present[row] == 1:\n\t\tvar expected: int = REFUND_PARTIAL if image.work_begun[row] == 1 else REFUND_FULL\n\t\tif image.refund_policy[row] != expected:\n\t\t\treturn REFUSE_COLUMN_POLICY\n\t\treturn REFUSE_NONE\n\tif image.phase[row] == PHASE_WORK_DONE and image.refund_policy[row] != REFUND_PARTIAL:\n\t\treturn REFUSE_COLUMN_POLICY\n\tif image.phase[row] == PHASE_REFUNDING and image.refund_policy[row] != REFUND_FULL \\\n\t\t\tand image.refund_policy[row] != REFUND_PARTIAL:\n\t\treturn REFUSE_COLUMN_POLICY\n\treturn REFUSE_NONE",
+          "new": "static func _policy_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 7 (POLICY): demolition is always DEMOLITION; never recompute from cleared work_begun.\"\"\"\n\tif purpose == PURPOSE_DEMOLISH:\n\t\tif image.refund_policy[row] != REFUND_DEMOLITION:\n\t\t\treturn REFUSE_COLUMN_POLICY\n\t\treturn REFUSE_NONE\n\tif image.present[row] == 1 or image.max_workers[row] != 0:\n\t\tvar expected: int = REFUND_PARTIAL if image.work_begun[row] == 1 else REFUND_FULL\n\t\tif image.refund_policy[row] != expected:\n\t\t\treturn REFUSE_COLUMN_POLICY\n\t\treturn REFUSE_NONE\n\tif image.phase[row] == PHASE_WORK_DONE and image.refund_policy[row] != REFUND_PARTIAL:\n\t\treturn REFUSE_COLUMN_POLICY\n\tif image.phase[row] == PHASE_REFUNDING and image.refund_policy[row] != REFUND_FULL \\\n\t\t\tand image.refund_policy[row] != REFUND_PARTIAL:\n\t\treturn REFUSE_COLUMN_POLICY\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_packed_valid_tuples_image_accepted",
+          "line": 597,
+          "fixture": "Independently generated all-purpose/type valid live and retained tuples",
+          "baseline_expected": "",
+          "mutant_expected": "COLUMN_POLICY"
+        },
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_full_capacity_mixed_image_accepted",
+          "line": 609,
+          "fixture": "Same tuple catalog repeated across all82944 rows",
+          "baseline_expected": "",
+          "mutant_expected": "COLUMN_POLICY"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "demolition-policy-changed-to-full",
+      "purpose": "Live DEMOLISH READY and retained DEMOLISH WORK_DONE with FULL now incorrectly pass: the demolition branch returns immediately, so non-demolition retained policy checks do not run.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1971,
+          "occurrences_required": 1,
+          "old": "static func _policy_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 7 (POLICY): demolition is always DEMOLITION; never recompute from cleared work_begun.\"\"\"\n\tif purpose == PURPOSE_DEMOLISH:\n\t\tif image.refund_policy[row] != REFUND_DEMOLITION:\n\t\t\treturn REFUSE_COLUMN_POLICY\n\t\treturn REFUSE_NONE\n\tif image.present[row] == 1:\n\t\tvar expected: int = REFUND_PARTIAL if image.work_begun[row] == 1 else REFUND_FULL\n\t\tif image.refund_policy[row] != expected:\n\t\t\treturn REFUSE_COLUMN_POLICY\n\t\treturn REFUSE_NONE\n\tif image.phase[row] == PHASE_WORK_DONE and image.refund_policy[row] != REFUND_PARTIAL:\n\t\treturn REFUSE_COLUMN_POLICY\n\tif image.phase[row] == PHASE_REFUNDING and image.refund_policy[row] != REFUND_FULL \\\n\t\t\tand image.refund_policy[row] != REFUND_PARTIAL:\n\t\treturn REFUSE_COLUMN_POLICY\n\treturn REFUSE_NONE",
+          "new": "static func _policy_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 7 (POLICY): demolition is always DEMOLITION; never recompute from cleared work_begun.\"\"\"\n\tif purpose == PURPOSE_DEMOLISH:\n\t\tif image.refund_policy[row] != REFUND_FULL:\n\t\t\treturn REFUSE_COLUMN_POLICY\n\t\treturn REFUSE_NONE\n\tif image.present[row] == 1:\n\t\tvar expected: int = REFUND_PARTIAL if image.work_begun[row] == 1 else REFUND_FULL\n\t\tif image.refund_policy[row] != expected:\n\t\t\treturn REFUSE_COLUMN_POLICY\n\t\treturn REFUSE_NONE\n\tif image.phase[row] == PHASE_WORK_DONE and image.refund_policy[row] != REFUND_PARTIAL:\n\t\treturn REFUSE_COLUMN_POLICY\n\tif image.phase[row] == PHASE_REFUNDING and image.refund_policy[row] != REFUND_FULL \\\n\t\t\tand image.refund_policy[row] != REFUND_PARTIAL:\n\t\treturn REFUSE_COLUMN_POLICY\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "demolition-full-policy / retired-demolition-full at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_POLICY",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "omit-awaiting-begun",
+      "purpose": "Fixture supplies PARTIAL policy to avoid earlier POLICY gate masking phase witness.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2036,
+          "occurrences_required": 1,
+          "old": "static func _live_phase_shape_refusal(image: Columns, row: int, purpose: int, type_id: int,\n\t\tphase: int, w: int) -> StringName:\n\t\"\"\"The per-phase work_begun/remaining_mwu shape a LIVE row's phase declares (contract \u00a78).\"\"\"\n\tvar begun: int = image.work_begun[row]\n\tvar remaining: int = image.remaining_mwu[row]\n\tmatch phase:\n\t\tPHASE_AWAITING_MATERIALS:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\t\tif _declared_bill_pairs_for_row(purpose, type_id) <= 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_READY:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORKING:\n\t\t\tif begun != 1 or remaining < 1 or remaining > w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORK_DONE:\n\t\t\tif begun != 1 or remaining != 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_REFUNDING:\n\t\t\tvar awaiting_shape: bool = begun == 0 and remaining == w\n\t\t\tvar working_shape: bool = begun == 1 and remaining >= 0 and remaining <= w\n\t\t\tif not (awaiting_shape or working_shape):\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\treturn REFUSE_NONE",
+          "new": "static func _live_phase_shape_refusal(image: Columns, row: int, purpose: int, type_id: int,\n\t\tphase: int, w: int) -> StringName:\n\t\"\"\"The per-phase work_begun/remaining_mwu shape a LIVE row's phase declares (contract \u00a78).\"\"\"\n\tvar begun: int = image.work_begun[row]\n\tvar remaining: int = image.remaining_mwu[row]\n\tmatch phase:\n\t\tPHASE_AWAITING_MATERIALS:\n\t\t\tif remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\t\tif _declared_bill_pairs_for_row(purpose, type_id) <= 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_READY:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORKING:\n\t\t\tif begun != 1 or remaining < 1 or remaining > w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORK_DONE:\n\t\t\tif begun != 1 or remaining != 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_REFUNDING:\n\t\t\tvar awaiting_shape: bool = begun == 0 and remaining == w\n\t\t\tvar working_shape: bool = begun == 1 and remaining >= 0 and remaining <= w\n\t\t\tif not (awaiting_shape or working_shape):\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "awaiting-begun at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_PHASE",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "allow-working-zero",
+      "purpose": "Correct begun/policy isolate lower WORKING work bound.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2036,
+          "occurrences_required": 1,
+          "old": "static func _live_phase_shape_refusal(image: Columns, row: int, purpose: int, type_id: int,\n\t\tphase: int, w: int) -> StringName:\n\t\"\"\"The per-phase work_begun/remaining_mwu shape a LIVE row's phase declares (contract \u00a78).\"\"\"\n\tvar begun: int = image.work_begun[row]\n\tvar remaining: int = image.remaining_mwu[row]\n\tmatch phase:\n\t\tPHASE_AWAITING_MATERIALS:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\t\tif _declared_bill_pairs_for_row(purpose, type_id) <= 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_READY:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORKING:\n\t\t\tif begun != 1 or remaining < 1 or remaining > w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORK_DONE:\n\t\t\tif begun != 1 or remaining != 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_REFUNDING:\n\t\t\tvar awaiting_shape: bool = begun == 0 and remaining == w\n\t\t\tvar working_shape: bool = begun == 1 and remaining >= 0 and remaining <= w\n\t\t\tif not (awaiting_shape or working_shape):\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\treturn REFUSE_NONE",
+          "new": "static func _live_phase_shape_refusal(image: Columns, row: int, purpose: int, type_id: int,\n\t\tphase: int, w: int) -> StringName:\n\t\"\"\"The per-phase work_begun/remaining_mwu shape a LIVE row's phase declares (contract \u00a78).\"\"\"\n\tvar begun: int = image.work_begun[row]\n\tvar remaining: int = image.remaining_mwu[row]\n\tmatch phase:\n\t\tPHASE_AWAITING_MATERIALS:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\t\tif _declared_bill_pairs_for_row(purpose, type_id) <= 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_READY:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORKING:\n\t\t\tif begun != 1 or remaining < 0 or remaining > w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORK_DONE:\n\t\t\tif begun != 1 or remaining != 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_REFUNDING:\n\t\t\tvar awaiting_shape: bool = begun == 0 and remaining == w\n\t\t\tvar working_shape: bool = begun == 1 and remaining >= 0 and remaining <= w\n\t\t\tif not (awaiting_shape or working_shape):\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "working-zero at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_PHASE",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "allow-done-positive",
+      "purpose": "WORK_DONE remaining1 must refuse even with begun1/PARTIAL.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2036,
+          "occurrences_required": 1,
+          "old": "static func _live_phase_shape_refusal(image: Columns, row: int, purpose: int, type_id: int,\n\t\tphase: int, w: int) -> StringName:\n\t\"\"\"The per-phase work_begun/remaining_mwu shape a LIVE row's phase declares (contract \u00a78).\"\"\"\n\tvar begun: int = image.work_begun[row]\n\tvar remaining: int = image.remaining_mwu[row]\n\tmatch phase:\n\t\tPHASE_AWAITING_MATERIALS:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\t\tif _declared_bill_pairs_for_row(purpose, type_id) <= 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_READY:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORKING:\n\t\t\tif begun != 1 or remaining < 1 or remaining > w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORK_DONE:\n\t\t\tif begun != 1 or remaining != 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_REFUNDING:\n\t\t\tvar awaiting_shape: bool = begun == 0 and remaining == w\n\t\t\tvar working_shape: bool = begun == 1 and remaining >= 0 and remaining <= w\n\t\t\tif not (awaiting_shape or working_shape):\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\treturn REFUSE_NONE",
+          "new": "static func _live_phase_shape_refusal(image: Columns, row: int, purpose: int, type_id: int,\n\t\tphase: int, w: int) -> StringName:\n\t\"\"\"The per-phase work_begun/remaining_mwu shape a LIVE row's phase declares (contract \u00a78).\"\"\"\n\tvar begun: int = image.work_begun[row]\n\tvar remaining: int = image.remaining_mwu[row]\n\tmatch phase:\n\t\tPHASE_AWAITING_MATERIALS:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\t\tif _declared_bill_pairs_for_row(purpose, type_id) <= 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_READY:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORKING:\n\t\t\tif begun != 1 or remaining < 1 or remaining > w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORK_DONE:\n\t\t\tif begun != 1 or remaining < 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_REFUNDING:\n\t\t\tvar awaiting_shape: bool = begun == 0 and remaining == w\n\t\t\tvar working_shape: bool = begun == 1 and remaining >= 0 and remaining <= w\n\t\t\tif not (awaiting_shape or working_shape):\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "done-positive at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_PHASE",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "allow-short-unbegun-refund",
+      "purpose": "Unbegun refund must retain exactly W, not any nonnegative partial work.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2036,
+          "occurrences_required": 1,
+          "old": "static func _live_phase_shape_refusal(image: Columns, row: int, purpose: int, type_id: int,\n\t\tphase: int, w: int) -> StringName:\n\t\"\"\"The per-phase work_begun/remaining_mwu shape a LIVE row's phase declares (contract \u00a78).\"\"\"\n\tvar begun: int = image.work_begun[row]\n\tvar remaining: int = image.remaining_mwu[row]\n\tmatch phase:\n\t\tPHASE_AWAITING_MATERIALS:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\t\tif _declared_bill_pairs_for_row(purpose, type_id) <= 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_READY:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORKING:\n\t\t\tif begun != 1 or remaining < 1 or remaining > w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORK_DONE:\n\t\t\tif begun != 1 or remaining != 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_REFUNDING:\n\t\t\tvar awaiting_shape: bool = begun == 0 and remaining == w\n\t\t\tvar working_shape: bool = begun == 1 and remaining >= 0 and remaining <= w\n\t\t\tif not (awaiting_shape or working_shape):\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\treturn REFUSE_NONE",
+          "new": "static func _live_phase_shape_refusal(image: Columns, row: int, purpose: int, type_id: int,\n\t\tphase: int, w: int) -> StringName:\n\t\"\"\"The per-phase work_begun/remaining_mwu shape a LIVE row's phase declares (contract \u00a78).\"\"\"\n\tvar begun: int = image.work_begun[row]\n\tvar remaining: int = image.remaining_mwu[row]\n\tmatch phase:\n\t\tPHASE_AWAITING_MATERIALS:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\t\tif _declared_bill_pairs_for_row(purpose, type_id) <= 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_READY:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORKING:\n\t\t\tif begun != 1 or remaining < 1 or remaining > w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORK_DONE:\n\t\t\tif begun != 1 or remaining != 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_REFUNDING:\n\t\t\tvar awaiting_shape: bool = begun == 0 and remaining <= w\n\t\t\tvar working_shape: bool = begun == 1 and remaining >= 0 and remaining <= w\n\t\t\tif not (awaiting_shape or working_shape):\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "refund-unbegun-short-work at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_PHASE",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "allow-empty-bill-awaiting",
+      "purpose": "Dirt_path and demolition have zero delivery bill; AWAITING is impossible for both.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2036,
+          "occurrences_required": 1,
+          "old": "static func _live_phase_shape_refusal(image: Columns, row: int, purpose: int, type_id: int,\n\t\tphase: int, w: int) -> StringName:\n\t\"\"\"The per-phase work_begun/remaining_mwu shape a LIVE row's phase declares (contract \u00a78).\"\"\"\n\tvar begun: int = image.work_begun[row]\n\tvar remaining: int = image.remaining_mwu[row]\n\tmatch phase:\n\t\tPHASE_AWAITING_MATERIALS:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\t\tif _declared_bill_pairs_for_row(purpose, type_id) <= 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_READY:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORKING:\n\t\t\tif begun != 1 or remaining < 1 or remaining > w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORK_DONE:\n\t\t\tif begun != 1 or remaining != 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_REFUNDING:\n\t\t\tvar awaiting_shape: bool = begun == 0 and remaining == w\n\t\t\tvar working_shape: bool = begun == 1 and remaining >= 0 and remaining <= w\n\t\t\tif not (awaiting_shape or working_shape):\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\treturn REFUSE_NONE",
+          "new": "static func _live_phase_shape_refusal(image: Columns, row: int, purpose: int, type_id: int,\n\t\tphase: int, w: int) -> StringName:\n\t\"\"\"The per-phase work_begun/remaining_mwu shape a LIVE row's phase declares (contract \u00a78).\"\"\"\n\tvar begun: int = image.work_begun[row]\n\tvar remaining: int = image.remaining_mwu[row]\n\tmatch phase:\n\t\tPHASE_AWAITING_MATERIALS:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\t\tif _declared_bill_pairs_for_row(purpose, type_id) < 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_READY:\n\t\t\tif begun != 0 or remaining != w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORKING:\n\t\t\tif begun != 1 or remaining < 1 or remaining > w:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_WORK_DONE:\n\t\t\tif begun != 1 or remaining != 0:\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\t\tPHASE_REFUNDING:\n\t\t\tvar awaiting_shape: bool = begun == 0 and remaining == w\n\t\t\tvar working_shape: bool = begun == 1 and remaining >= 0 and remaining <= w\n\t\t\tif not (awaiting_shape or working_shape):\n\t\t\t\treturn REFUSE_COLUMN_PHASE\n\treturn REFUSE_NONE"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "empty-build-awaiting / demolition-awaiting at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_PHASE",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "allow-retired-ready",
+      "purpose": "Fixture uses retained FULL policy valid for this forbidden phase so PHASE is isolated.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2064,
+          "occurrences_required": 1,
+          "old": "static func _phase_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 8 (PHASE): retained rows admit only WORK_DONE/REFUNDING; live rows check W exactly.\"\"\"\n\tvar type_id: int = image.type_id[row]\n\tif type_id == -1:\n\t\treturn REFUSE_NONE\n\tvar phase: int = image.phase[row]\n\tif image.present[row] == 0:\n\t\tif phase != PHASE_WORK_DONE and phase != PHASE_REFUNDING:\n\t\t\treturn REFUSE_COLUMN_PHASE\n\t\treturn REFUSE_NONE\n\tvar w: int = _declared_work_mwu_for_row(purpose, type_id)\n\tif w <= 0:\n\t\treturn REFUSE_COLUMN_PHASE\n\treturn _live_phase_shape_refusal(image, row, purpose, type_id, phase, w)",
+          "new": "static func _phase_gate_refusal(image: Columns, row: int, purpose: int) -> StringName:\n\t\"\"\"Gate 8 (PHASE): retained rows admit only WORK_DONE/REFUNDING; live rows check W exactly.\"\"\"\n\tvar type_id: int = image.type_id[row]\n\tif type_id == -1:\n\t\treturn REFUSE_NONE\n\tvar phase: int = image.phase[row]\n\tif image.present[row] == 0:\n\t\tif phase != PHASE_WORK_DONE and phase != PHASE_REFUNDING and phase != PHASE_READY:\n\t\t\treturn REFUSE_COLUMN_PHASE\n\t\treturn REFUSE_NONE\n\tvar w: int = _declared_work_mwu_for_row(purpose, type_id)\n\tif w <= 0:\n\t\treturn REFUSE_COLUMN_PHASE\n\treturn _live_phase_shape_refusal(image, row, purpose, type_id, phase, w)"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_single_fault_cases",
+          "line": 357,
+          "fixture": "retired-ready at each ROW_POSITIONS [0,1,41471,41472,82943]",
+          "baseline_expected": "COLUMN_PHASE",
+          "mutant_expected": ""
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "demolition-work-not-quartered",
+      "purpose": "Change only row-derived work formula; metadata constants remain coherent and matrix frozen source oracle still divides by4.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 1990,
+          "occurrences_required": 1,
+          "old": "static func _declared_work_mwu_for_row(purpose: int, type_id: int) -> int:\n\t\"\"\"Frozen declared work W for a validated purpose/type pair, from the gate arrays alone.\n\n\tCallers must have already run the TYPE gate; an out-of-range pair returns 0, which the PHASE\n\tgate treats as a refusal rather than a valid zero-work project (\"All W are positive\").\n\t\"\"\"\n\tmatch purpose:\n\t\tPURPOSE_BUILD:\n\t\t\tif type_id < 0 or type_id >= BUILDING_KINDS:\n\t\t\t\treturn 0\n\t\t\treturn COLUMN_BUILDING_WORK_MWU[type_id]\n\t\tPURPOSE_FURNITURE:\n\t\t\tif type_id < 0 or type_id >= FURNITURE_KINDS:\n\t\t\t\treturn 0\n\t\t\treturn COLUMN_FURNITURE_WORK_MWU[type_id]\n\t\tPURPOSE_UPGRADE:\n\t\t\tvar index: int = COLUMN_UPGRADE_IDS.find(type_id)\n\t\t\tif index < 0:\n\t\t\t\treturn 0\n\t\t\treturn COLUMN_UPGRADE_WORK_MWU[index]\n\t\tPURPOSE_DEMOLISH:\n\t\t\tif type_id < 0 or type_id >= BUILDING_KINDS:\n\t\t\t\treturn 0\n\t\t\treturn COLUMN_BUILDING_WORK_MWU[type_id] * DEMOLITION_WORK_NUM / DEMOLITION_WORK_DEN\n\treturn 0",
+          "new": "static func _declared_work_mwu_for_row(purpose: int, type_id: int) -> int:\n\t\"\"\"Frozen declared work W for a validated purpose/type pair, from the gate arrays alone.\n\n\tCallers must have already run the TYPE gate; an out-of-range pair returns 0, which the PHASE\n\tgate treats as a refusal rather than a valid zero-work project (\"All W are positive\").\n\t\"\"\"\n\tmatch purpose:\n\t\tPURPOSE_BUILD:\n\t\t\tif type_id < 0 or type_id >= BUILDING_KINDS:\n\t\t\t\treturn 0\n\t\t\treturn COLUMN_BUILDING_WORK_MWU[type_id]\n\t\tPURPOSE_FURNITURE:\n\t\t\tif type_id < 0 or type_id >= FURNITURE_KINDS:\n\t\t\t\treturn 0\n\t\t\treturn COLUMN_FURNITURE_WORK_MWU[type_id]\n\t\tPURPOSE_UPGRADE:\n\t\t\tvar index: int = COLUMN_UPGRADE_IDS.find(type_id)\n\t\t\tif index < 0:\n\t\t\t\treturn 0\n\t\t\treturn COLUMN_UPGRADE_WORK_MWU[index]\n\t\tPURPOSE_DEMOLISH:\n\t\t\tif type_id < 0 or type_id >= BUILDING_KINDS:\n\t\t\t\treturn 0\n\t\t\treturn COLUMN_BUILDING_WORK_MWU[type_id] * DEMOLITION_WORK_NUM\n\treturn 0"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_packed_valid_tuples_image_accepted",
+          "line": 597,
+          "fixture": "Independently generated all-purpose/type valid live and retained tuples",
+          "baseline_expected": "",
+          "mutant_expected": "COLUMN_PHASE"
+        },
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_full_capacity_mixed_image_accepted",
+          "line": 609,
+          "fixture": "Same tuple catalog repeated across all82944 rows",
+          "baseline_expected": "",
+          "mutant_expected": "COLUMN_PHASE"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "value-before-enum",
+      "purpose": "Preserve every gate, swap first two; baseline later-only value case remains valid discrimination control.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2080,
+          "occurrences_required": 1,
+          "old": "static func _row_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"One row through gates 1-8 in the frozen order; returns the first gate that refuses.\"\"\"\n\tvar enum_code: StringName = _enum_gate_refusal(image, row)\n\tif enum_code != REFUSE_NONE:\n\t\treturn enum_code\n\tvar value_code: StringName = _value_gate_refusal(image, row)\n\tif value_code != REFUSE_NONE:\n\t\treturn value_code\n\tvar ref_code: StringName = _ref_gate_refusal(image, row)\n\tif ref_code != REFUSE_NONE:\n\t\treturn ref_code\n\tvar free_code: StringName = _free_gate_refusal(image, row)\n\tif free_code != REFUSE_NONE:\n\t\treturn free_code\n\tvar purpose: int = image.purpose[row]\n\tvar type_code: StringName = _type_gate_refusal(image, row, purpose)\n\tif type_code != REFUSE_NONE:\n\t\treturn type_code\n\tvar workers_code: StringName = _workers_gate_refusal(image, row, purpose)\n\tif workers_code != REFUSE_NONE:\n\t\treturn workers_code\n\tvar policy_code: StringName = _policy_gate_refusal(image, row, purpose)\n\tif policy_code != REFUSE_NONE:\n\t\treturn policy_code\n\treturn _phase_gate_refusal(image, row, purpose)",
+          "new": "static func _row_refusal(image: Columns, row: int) -> StringName:\n\t\"\"\"One row through gates 1-8 in the frozen order; returns the first gate that refuses.\"\"\"\n\tvar value_code: StringName = _value_gate_refusal(image, row)\n\tif value_code != REFUSE_NONE:\n\t\treturn value_code\n\tvar enum_code: StringName = _enum_gate_refusal(image, row)\n\tif enum_code != REFUSE_NONE:\n\t\treturn enum_code\n\tvar ref_code: StringName = _ref_gate_refusal(image, row)\n\tif ref_code != REFUSE_NONE:\n\t\treturn ref_code\n\tvar free_code: StringName = _free_gate_refusal(image, row)\n\tif free_code != REFUSE_NONE:\n\t\treturn free_code\n\tvar purpose: int = image.purpose[row]\n\tvar type_code: StringName = _type_gate_refusal(image, row, purpose)\n\tif type_code != REFUSE_NONE:\n\t\treturn type_code\n\tvar workers_code: StringName = _workers_gate_refusal(image, row, purpose)\n\tif workers_code != REFUSE_NONE:\n\t\treturn workers_code\n\tvar policy_code: StringName = _policy_gate_refusal(image, row, purpose)\n\tif policy_code != REFUSE_NONE:\n\t\treturn policy_code\n\treturn _phase_gate_refusal(image, row, purpose)"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_gate_collision_pairs",
+          "line": 414,
+          "fixture": "enum-before-value combined purpose4/remaining\u22121",
+          "baseline_expected": "COLUMN_ENUM",
+          "mutant_expected": "COLUMN_VALUE"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "phase-before-policy",
+      "purpose": "Reorder final safe gates; neither performs unsafe indexing after TYPE has passed.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/construction.gd",
+          "line": 2101,
+          "occurrences_required": 1,
+          "old": "\tvar policy_code: StringName = _policy_gate_refusal(image, row, purpose)\n\tif policy_code != REFUSE_NONE:\n\t\treturn policy_code\n\treturn _phase_gate_refusal(image, row, purpose)",
+          "new": "\tvar phase_code: StringName = _phase_gate_refusal(image, row, purpose)\n\tif phase_code != REFUSE_NONE:\n\t\treturn phase_code\n\treturn _policy_gate_refusal(image, row, purpose)"
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_construction_columns.gd",
+          "function": "test_gate_collision_pairs",
+          "line": 414,
+          "fixture": "policy-before-phase combined awaiting begun1/FULL",
+          "baseline_expected": "COLUMN_POLICY",
+          "mutant_expected": "COLUMN_PHASE"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    },
+    {
+      "id": "wrap-column-error-as-family-metadata",
+      "purpose": "Catch wrong bridge code wrapping on gate7, distinct from source metadata/schema and projection campaigns.",
+      "edits": [
+        {
+          "path": "godot/scripts/core/save_owner_construction.gd",
+          "line": 264,
+          "occurrences_required": 1,
+          "old": "return _refuse(code, \"%srefuses this image with column code %s\"",
+          "new": "return _refuse(Section.REFUSE_METADATA, \"%srefuses this image with column code %s\""
+        }
+      ],
+      "targets": [
+        {
+          "path": "godot/test/test_save_owner_construction.gd",
+          "function": "test_row_semantic_fault_forwards_exact_column_code",
+          "line": 168,
+          "fixture": "purpose4 in frame",
+          "baseline_expected": "COLUMN_ENUM",
+          "mutant_expected": "SAVE_COMPONENT_METADATA"
+        },
+        {
+          "path": "godot/test/test_save_owner_construction.gd",
+          "function": "test_row_workers_fault_forwards_exact_column_code",
+          "line": 177,
+          "fixture": "max_workers3 in frame",
+          "baseline_expected": "COLUMN_WORKERS",
+          "mutant_expected": "SAVE_COMPONENT_METADATA"
+        }
+      ],
+      "expected_outcome": "A named semantic assertion mismatch in an otherwise clean execution; not parser/runtime failure",
+      "executed": false
+    }
+  ],
+  "source_verification_at_finish": {
+    "all_exact_replacements_match_once": true,
+    "all_target_methods_exist_once": true,
+    "whole_source_hash_drift": [],
+    "runtime_executed": false
+  },
+  "comment_only_rebase": {
+    "cases": [
+      "omit-worker-cap-parity",
+      "assigned-cap-off-by-one",
+      "omit-paused-idleness",
+      "omit-refunding-idleness",
+      "forbid-workers-outside-working"
+    ],
+    "old_and_new_executable_bodies_unchanged": true,
+    "reason": "F4 changed TYPE-before-WORKERS precondition docstring only. Original proposal/evidence retained; every final-source old target now matches exactly once."
+  }
+}

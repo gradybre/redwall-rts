@@ -1,0 +1,29 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_construction_columns.gd
+  FAIL  test_single_fault_cases
+        case empty-build-awaiting row 0 (expected COLUMN_PHASE, got )
+        case empty-build-awaiting row 1 (expected COLUMN_PHASE, got )
+        case empty-build-awaiting row 41471 (expected COLUMN_PHASE, got )
+        case empty-build-awaiting row 41472 (expected COLUMN_PHASE, got )
+        case empty-build-awaiting row 82943 (expected COLUMN_PHASE, got )
+        case demolition-awaiting row 0 (expected COLUMN_PHASE, got )
+        case demolition-awaiting row 1 (expected COLUMN_PHASE, got )
+        case demolition-awaiting row 41471 (expected COLUMN_PHASE, got )
+        case demolition-awaiting row 41472 (expected COLUMN_PHASE, got )
+        case demolition-awaiting row 82943 (expected COLUMN_PHASE, got )
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+1 test(s), 200 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

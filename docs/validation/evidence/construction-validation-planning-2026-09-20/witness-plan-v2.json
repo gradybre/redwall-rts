@@ -1,0 +1,740 @@
+{
+  "scope": "Frozen contract witness definitions before implementation; no execution or passing-test claim",
+  "contract": "CONSTRUCTION-S4-VALIDATE-R01v2",
+  "source_facts_sha256": "9e1fa4710e5e5c56a4e2c0900fd387e9b985ce062440c8ab1042badd32ade298",
+  "field_order": [
+    "present",
+    "material_container_slot",
+    "material_container_generation",
+    "assigned_count",
+    "max_workers",
+    "refund_policy",
+    "remaining_mwu",
+    "paused",
+    "work_begun",
+    "ref_slot",
+    "ref_generation",
+    "subject_slot",
+    "subject_generation",
+    "purpose",
+    "type_id",
+    "phase"
+  ],
+  "bases": {
+    "clear": {
+      "present": 0,
+      "material_container_slot": -1,
+      "material_container_generation": 0,
+      "assigned_count": 0,
+      "max_workers": 0,
+      "refund_policy": 0,
+      "remaining_mwu": 0,
+      "paused": 0,
+      "work_begun": 0,
+      "ref_slot": -1,
+      "ref_generation": 0,
+      "subject_slot": -1,
+      "subject_generation": 0,
+      "purpose": 0,
+      "type_id": -1,
+      "phase": 0
+    },
+    "live": {
+      "present": 1,
+      "material_container_slot": -1,
+      "material_container_generation": 0,
+      "assigned_count": 0,
+      "max_workers": 4,
+      "refund_policy": 0,
+      "remaining_mwu": 60000,
+      "paused": 0,
+      "work_begun": 0,
+      "ref_slot": 0,
+      "ref_generation": 1,
+      "subject_slot": 1,
+      "subject_generation": 1,
+      "purpose": 0,
+      "type_id": 19,
+      "phase": 0
+    },
+    "retired": {
+      "present": 0,
+      "material_container_slot": -1,
+      "material_container_generation": 0,
+      "assigned_count": 0,
+      "max_workers": 4,
+      "refund_policy": 1,
+      "remaining_mwu": 0,
+      "paused": 0,
+      "work_begun": 0,
+      "ref_slot": -1,
+      "ref_generation": 0,
+      "subject_slot": -1,
+      "subject_generation": 0,
+      "purpose": 0,
+      "type_id": 19,
+      "phase": 3
+    }
+  },
+  "row_positions": [
+    0,
+    1,
+    41471,
+    41472,
+    82943
+  ],
+  "shape_cases": [
+    {
+      "field": "present",
+      "length": 0,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "present",
+      "length": 82943,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "present",
+      "length": 82945,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "material_container_slot",
+      "length": 0,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "material_container_slot",
+      "length": 82943,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "material_container_slot",
+      "length": 82945,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "material_container_generation",
+      "length": 0,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "material_container_generation",
+      "length": 82943,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "material_container_generation",
+      "length": 82945,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "assigned_count",
+      "length": 0,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "assigned_count",
+      "length": 82943,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "assigned_count",
+      "length": 82945,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "max_workers",
+      "length": 0,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "max_workers",
+      "length": 82943,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "max_workers",
+      "length": 82945,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "refund_policy",
+      "length": 0,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "refund_policy",
+      "length": 82943,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "refund_policy",
+      "length": 82945,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "remaining_mwu",
+      "length": 0,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "remaining_mwu",
+      "length": 82943,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "remaining_mwu",
+      "length": 82945,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "paused",
+      "length": 0,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "paused",
+      "length": 82943,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "paused",
+      "length": 82945,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "work_begun",
+      "length": 0,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "work_begun",
+      "length": 82943,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "work_begun",
+      "length": 82945,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "ref_slot",
+      "length": 0,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "ref_slot",
+      "length": 82943,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "ref_slot",
+      "length": 82945,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "ref_generation",
+      "length": 0,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "ref_generation",
+      "length": 82943,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "ref_generation",
+      "length": 82945,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "subject_slot",
+      "length": 0,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "subject_slot",
+      "length": 82943,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "subject_slot",
+      "length": 82945,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "subject_generation",
+      "length": 0,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "subject_generation",
+      "length": 82943,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "subject_generation",
+      "length": 82945,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "purpose",
+      "length": 0,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "purpose",
+      "length": 82943,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "purpose",
+      "length": 82945,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "type_id",
+      "length": 0,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "type_id",
+      "length": 82943,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "type_id",
+      "length": 82945,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "phase",
+      "length": 0,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "phase",
+      "length": 82943,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": "phase",
+      "length": 82945,
+      "expected": "COLUMN_SHAPE"
+    }
+  ],
+  "single_fault_cases": [
+    {
+      "id": "enum-purpose",
+      "base": "live",
+      "changes": {
+        "purpose": 4
+      },
+      "expected": "COLUMN_ENUM"
+    },
+    {
+      "id": "enum-phase",
+      "base": "live",
+      "changes": {
+        "phase": 5
+      },
+      "expected": "COLUMN_ENUM"
+    },
+    {
+      "id": "enum-refund_policy",
+      "base": "live",
+      "changes": {
+        "refund_policy": 3
+      },
+      "expected": "COLUMN_ENUM"
+    },
+    {
+      "id": "negative-remaining_mwu",
+      "base": "live",
+      "changes": {
+        "remaining_mwu": -1
+      },
+      "expected": "COLUMN_VALUE"
+    },
+    {
+      "id": "negative-assigned_count",
+      "base": "live",
+      "changes": {
+        "assigned_count": -1
+      },
+      "expected": "COLUMN_VALUE"
+    },
+    {
+      "id": "negative-max_workers",
+      "base": "live",
+      "changes": {
+        "max_workers": -1
+      },
+      "expected": "COLUMN_VALUE"
+    },
+    {
+      "id": "negative-type_id",
+      "base": "live",
+      "changes": {
+        "type_id": -2
+      },
+      "expected": "COLUMN_VALUE"
+    },
+    {
+      "id": "half-null-ref",
+      "base": "live",
+      "changes": {
+        "ref_slot": -1,
+        "ref_generation": 1
+      },
+      "expected": "COLUMN_REF"
+    },
+    {
+      "id": "zero-generation-ref",
+      "base": "live",
+      "changes": {
+        "ref_slot": 0,
+        "ref_generation": 0
+      },
+      "expected": "COLUMN_REF"
+    },
+    {
+      "id": "half-null-subject",
+      "base": "live",
+      "changes": {
+        "subject_slot": -1,
+        "subject_generation": 1
+      },
+      "expected": "COLUMN_REF"
+    },
+    {
+      "id": "zero-generation-subject",
+      "base": "live",
+      "changes": {
+        "subject_slot": 0,
+        "subject_generation": 0
+      },
+      "expected": "COLUMN_REF"
+    },
+    {
+      "id": "half-null-material_container",
+      "base": "live",
+      "changes": {
+        "material_container_slot": -1,
+        "material_container_generation": 1
+      },
+      "expected": "COLUMN_REF"
+    },
+    {
+      "id": "zero-generation-material_container",
+      "base": "live",
+      "changes": {
+        "material_container_slot": 0,
+        "material_container_generation": 0
+      },
+      "expected": "COLUMN_REF"
+    },
+    {
+      "id": "directory-overflow-ref",
+      "base": "live",
+      "changes": {
+        "ref_slot": 352418
+      },
+      "expected": "COLUMN_REF"
+    },
+    {
+      "id": "directory-overflow-subject",
+      "base": "live",
+      "changes": {
+        "subject_slot": 352418
+      },
+      "expected": "COLUMN_REF"
+    },
+    {
+      "id": "inactive-self",
+      "base": "live",
+      "changes": {
+        "present": 0
+      },
+      "expected": "COLUMN_FREE"
+    },
+    {
+      "id": "clear-retains-purpose",
+      "base": "clear",
+      "changes": {
+        "purpose": 1
+      },
+      "expected": "COLUMN_FREE"
+    },
+    {
+      "id": "clear-retains-phase",
+      "base": "clear",
+      "changes": {
+        "phase": 1
+      },
+      "expected": "COLUMN_FREE"
+    },
+    {
+      "id": "active-null-self",
+      "base": "live",
+      "changes": {
+        "ref_slot": -1,
+        "ref_generation": 0
+      },
+      "expected": "COLUMN_FREE"
+    },
+    {
+      "id": "active-null-subject",
+      "base": "live",
+      "changes": {
+        "subject_slot": -1,
+        "subject_generation": 0
+      },
+      "expected": "COLUMN_FREE"
+    },
+    {
+      "id": "building-type-overflow",
+      "base": "live",
+      "changes": {
+        "type_id": 30
+      },
+      "expected": "COLUMN_TYPE"
+    },
+    {
+      "id": "furniture-type-overflow",
+      "base": "live",
+      "changes": {
+        "purpose": 2,
+        "type_id": 9
+      },
+      "expected": "COLUMN_TYPE"
+    },
+    {
+      "id": "upgrade-nonmember",
+      "base": "live",
+      "changes": {
+        "purpose": 1,
+        "type_id": 0
+      },
+      "expected": "COLUMN_TYPE"
+    },
+    {
+      "id": "live-sentinel-type",
+      "base": "live",
+      "changes": {
+        "type_id": -1
+      },
+      "expected": "COLUMN_TYPE"
+    },
+    {
+      "id": "wrong-max-workers",
+      "base": "live",
+      "changes": {
+        "max_workers": 3
+      },
+      "expected": "COLUMN_WORKERS"
+    },
+    {
+      "id": "assigned-over-cap",
+      "base": "live",
+      "changes": {
+        "assigned_count": 5
+      },
+      "expected": "COLUMN_WORKERS"
+    },
+    {
+      "id": "paused-assigned",
+      "base": "live",
+      "changes": {
+        "paused": 1,
+        "assigned_count": 1
+      },
+      "expected": "COLUMN_WORKERS"
+    },
+    {
+      "id": "refunding-assigned",
+      "base": "live",
+      "changes": {
+        "phase": 4,
+        "assigned_count": 1
+      },
+      "expected": "COLUMN_WORKERS"
+    },
+    {
+      "id": "unbegun-partial-policy",
+      "base": "live",
+      "changes": {
+        "refund_policy": 1
+      },
+      "expected": "COLUMN_POLICY"
+    },
+    {
+      "id": "demolition-full-policy",
+      "base": "live",
+      "changes": {
+        "purpose": 3,
+        "phase": 1,
+        "remaining_mwu": 15000
+      },
+      "expected": "COLUMN_POLICY"
+    },
+    {
+      "id": "awaiting-begun",
+      "base": "live",
+      "changes": {
+        "work_begun": 1,
+        "refund_policy": 1
+      },
+      "expected": "COLUMN_PHASE"
+    },
+    {
+      "id": "working-zero",
+      "base": "live",
+      "changes": {
+        "phase": 2,
+        "work_begun": 1,
+        "refund_policy": 1,
+        "remaining_mwu": 0
+      },
+      "expected": "COLUMN_PHASE"
+    },
+    {
+      "id": "done-positive",
+      "base": "live",
+      "changes": {
+        "phase": 3,
+        "work_begun": 1,
+        "refund_policy": 1,
+        "remaining_mwu": 1
+      },
+      "expected": "COLUMN_PHASE"
+    },
+    {
+      "id": "refund-unbegun-short-work",
+      "base": "live",
+      "changes": {
+        "phase": 4,
+        "remaining_mwu": 59999
+      },
+      "expected": "COLUMN_PHASE"
+    },
+    {
+      "id": "empty-build-awaiting",
+      "base": "live",
+      "changes": {
+        "type_id": 6,
+        "remaining_mwu": 2000
+      },
+      "expected": "COLUMN_PHASE"
+    },
+    {
+      "id": "demolition-awaiting",
+      "base": "live",
+      "changes": {
+        "purpose": 3,
+        "refund_policy": 2,
+        "remaining_mwu": 15000
+      },
+      "expected": "COLUMN_PHASE"
+    },
+    {
+      "id": "retired-ready",
+      "base": "retired",
+      "changes": {
+        "phase": 1,
+        "refund_policy": 0
+      },
+      "expected": "COLUMN_PHASE"
+    },
+    {
+      "id": "retired-demolition-full",
+      "base": "retired",
+      "changes": {
+        "purpose": 3,
+        "refund_policy": 0
+      },
+      "expected": "COLUMN_POLICY"
+    },
+    {
+      "id": "retired-completed-full",
+      "base": "retired",
+      "changes": {
+        "refund_policy": 0
+      },
+      "expected": "COLUMN_POLICY"
+    },
+    {
+      "id": "retired-progress",
+      "base": "retired",
+      "changes": {
+        "remaining_mwu": 1
+      },
+      "expected": "COLUMN_FREE"
+    }
+  ],
+  "additional_required_groups": {
+    "flag_scan": {
+      "buffers_in_order": [
+        "present",
+        "paused",
+        "work_begun"
+      ],
+      "invalid_values": [
+        2,
+        255
+      ],
+      "positions": [
+        0,
+        1,
+        41472,
+        82943
+      ],
+      "expected": "COLUMN_FLAG",
+      "collision": "Global flags precede earlier-row semantic errors; flag-buffer order fixed by contract"
+    },
+    "valid_phase_matrix": {
+      "all_type_rows": "30build +4upgrade +9furniture +30demolition, from frozen source facts",
+      "phases": [
+        "AWAITING only nonempty bills:begun0,remainingW",
+        "READY:begun0,remainingW",
+        "WORKING:begun1,remaining1 andW",
+        "WORK_DONE:begun1,remaining0",
+        "REFUNDING:begun0/remainingW;begun1/remaining0,1,W"
+      ],
+      "workers": "0andmax except paused/refunding0; includeAWAITING/READY/WORK_DONEmax",
+      "paused": "Both flags across valid phases, assigned0 whenpaused",
+      "full_capacity": "Mix valid rows at all82944positions; exact unused suffix wherefixtureusesprefix"
+    },
+    "retired_histories": "12 real public lifecycles: each of BUILD/UPGRADE/FURNITURE/DEMOLISH completion, cancel before work, cancel after work. Observe genuine state_bytes with reviewed fixed-width framing helper and compare all16 retained fields,4ledger cells,livecount. Also test synthetic local images; do not claim snapshot decoder is a forged-image oracle.",
+    "local_ref_boundaries": "Self/subject slot352417/gen2147483647 accepted structurally; container slot2147483647/gen2147483647 accepted; no saved liveness/kind/uniqueness claim.",
+    "gate_collisions": "Each ordered gate pair: construct otherwise-valid later violation plus earlier violation; assert earliercode. Direct shape precedessource, bridge metadataprecedesshape separately.",
+    "projection": "16omissions failshape; actual _project_columns called with distinctshape-valid typedpatterns, all16public outputproperties equal intendedordinals. Same-type swaps caughtbyactualmapperwitness, not promisedbylocaldomains.",
+    "entry_hygiene": "Null/wrongowner/schema/source/framedshape/pureerror exactcode/detail; success emptycode/detail; inputbefore/after byte-equivalence at everyrefusal/success.",
+    "source_metadata": "Canonicalkeymissing/extra/rename/nonintegerID/duplicateID; wrongfactrowtype/extent/index; work/maxworker/upgrade membership/values; billnonarray/oddlength/too-manypairs/nonstringkey/unknownkey/nonintegerquantity/nonpositivequantity/contentdrift; sourceandmirrorcoherentmutationsrefusedbybridgefrozenanchor. Directpreflightchecks shape/gatefacts; exactquantity/orderdrift belongsbridgeanchor. Exact bill key TYPE_STRING before StringName membership; building work positive/divisible4, other work positive; DEMOLISH empty bill is structural source assumption.",
+    "allocation": "Validballast/staticmemory<1048576increment; new(false)->new() validmutationfailsbound; no unavailablemeasurementpass.",
+    "direct_entry_collisions": [
+      {
+        "pair": [
+          "SHAPE",
+          "SOURCE_METADATA"
+        ],
+        "expected": "COLUMN_SHAPE"
+      },
+      {
+        "pair": [
+          "SOURCE_METADATA",
+          "FLAG"
+        ],
+        "expected": "COLUMN_SOURCE_METADATA"
+      }
+    ],
+    "nonmutation": "Direct caller-owned Columns before/after equality on success/refusal, plus valid injected write counterfactual caught there. Bridge copy-on-write input equality is a separate witness, not proof of direct purity."
+  },
+  "limits": [
+    "No witness is counted as executed until actual output exists.",
+    "Mutation counts refer to unique executed units, not descriptions in this manifest.",
+    "Template scalar histories are local-domain witnesses, not saved-world consistency."
+  ]
+}

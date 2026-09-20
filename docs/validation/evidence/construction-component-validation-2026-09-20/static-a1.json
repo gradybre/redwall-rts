@@ -1,0 +1,60 @@
+[
+  {
+    "command": [
+      "python3",
+      "docs/validation/decision_numbers.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.034,
+    "output": "decision_numbers: PASS -- 180 records, 0 problem(s)\n"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/ready07_arithmetic.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.046,
+    "output": "{\"status\": \"PASS\", \"field_rows\": 144, \"allocation_rows\": 34, \"scheduler_total_bytes\": 8224, \"checked_local_links\": 129, \"runtime_tests\": \"NOT_RUN\"}\n"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/merge_gate.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.037,
+    "output": "merge_gate: PASS -- ledger only, 0 problem(s)\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/dispatch_plan.py",
+      "--validate"
+    ],
+    "exit_code": 0,
+    "seconds": 0.038,
+    "output": "dispatch_plan: PASS -- 119 tasks, 0 problem(s)\n"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/astra_inbox.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.036,
+    "output": "astra_inbox: PASS -- OPEN.md matches open_items.json\n"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_save_registry_handoff.py",
+      "--source-root",
+      "."
+    ],
+    "exit_code": 1,
+    "seconds": 0.265,
+    "output": "PASS 31 independent name, cursor, UTF-8 framing and name-section-bound fixtures\nFAIL C1 save_owner_construction.gd has no registry section -- a new store must be classified\nstate_registry_coverage: 1 failure(s)\nTraceback (most recent call last):\n  File \"/Users/brendan/Developer/redwall-rts-construction-validation-2026-09-20/docs/validation/validate_save_registry_handoff.py\", line 149, in <module>\n    if __name__=='__main__':raise SystemExit(main())\n  File \"/Users/brendan/Developer/redwall-rts-construction-validation-2026-09-20/docs/validation/validate_save_registry_handoff.py\", line 142, in main\n    if args.source_root:validate_source(data,args.source_root)\n  File \"/Users/brendan/Developer/redwall-rts-construction-validation-2026-09-20/docs/validation/validate_save_registry_handoff.py\", line 73, in validate_source\n    assert mod.main() == 0, 'source classification registry failed'\nAssertionError: source classification registry failed\n"
+  }
+]

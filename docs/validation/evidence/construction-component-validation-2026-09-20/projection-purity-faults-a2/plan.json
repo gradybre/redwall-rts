@@ -1,0 +1,328 @@
+{
+  "units": [
+    {
+      "id": "omit-present",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.present = record.u8_column(FIELD_PRESENT)",
+          "\t# Actual mapping assignment omitted by controlled fault."
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "omit-material_container_slot",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.material_container_slot = record.i32_column(FIELD_MATERIAL_CONTAINER_SLOT)",
+          "\t# Actual mapping assignment omitted by controlled fault."
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "omit-material_container_generation",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.material_container_generation = record.i32_column(FIELD_MATERIAL_CONTAINER_GENERATION)",
+          "\t# Actual mapping assignment omitted by controlled fault."
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "omit-assigned_count",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.assigned_count = record.i32_column(FIELD_ASSIGNED_COUNT)",
+          "\t# Actual mapping assignment omitted by controlled fault."
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "omit-max_workers",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.max_workers = record.i32_column(FIELD_MAX_WORKERS)",
+          "\t# Actual mapping assignment omitted by controlled fault."
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "omit-refund_policy",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.refund_policy = record.i32_column(FIELD_REFUND_POLICY)",
+          "\t# Actual mapping assignment omitted by controlled fault."
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "omit-remaining_mwu",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.remaining_mwu = record.i64_column(FIELD_REMAINING_MWU)",
+          "\t# Actual mapping assignment omitted by controlled fault."
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "omit-paused",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.paused = record.u8_column(FIELD_PAUSED)",
+          "\t# Actual mapping assignment omitted by controlled fault."
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "omit-work_begun",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.work_begun = record.u8_column(FIELD_WORK_BEGUN)",
+          "\t# Actual mapping assignment omitted by controlled fault."
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "omit-ref_slot",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.ref_slot = record.i32_column(FIELD_REF_SLOT)",
+          "\t# Actual mapping assignment omitted by controlled fault."
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "omit-ref_generation",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.ref_generation = record.i32_column(FIELD_REF_GENERATION)",
+          "\t# Actual mapping assignment omitted by controlled fault."
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "omit-subject_slot",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.subject_slot = record.i32_column(FIELD_SUBJECT_SLOT)",
+          "\t# Actual mapping assignment omitted by controlled fault."
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "omit-subject_generation",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.subject_generation = record.i32_column(FIELD_SUBJECT_GENERATION)",
+          "\t# Actual mapping assignment omitted by controlled fault."
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "omit-purpose",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.purpose = record.i32_column(FIELD_PURPOSE)",
+          "\t# Actual mapping assignment omitted by controlled fault."
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "omit-type_id",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.type_id = record.i32_column(FIELD_TYPE_ID)",
+          "\t# Actual mapping assignment omitted by controlled fault."
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "omit-phase",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.phase = record.i32_column(FIELD_PHASE)",
+          "\t# Actual mapping assignment omitted by controlled fault."
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "swap-present-paused",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.present = record.u8_column(FIELD_PRESENT)",
+          "\tout.present = record.u8_column(FIELD_PAUSED)"
+        ],
+        [
+          "\tout.paused = record.u8_column(FIELD_PAUSED)",
+          "\tout.paused = record.u8_column(FIELD_PRESENT)"
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "swap-paused-work_begun",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.paused = record.u8_column(FIELD_PAUSED)",
+          "\tout.paused = record.u8_column(FIELD_WORK_BEGUN)"
+        ],
+        [
+          "\tout.work_begun = record.u8_column(FIELD_WORK_BEGUN)",
+          "\tout.work_begun = record.u8_column(FIELD_PAUSED)"
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "swap-present-work_begun",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.present = record.u8_column(FIELD_PRESENT)",
+          "\tout.present = record.u8_column(FIELD_WORK_BEGUN)"
+        ],
+        [
+          "\tout.work_begun = record.u8_column(FIELD_WORK_BEGUN)",
+          "\tout.work_begun = record.u8_column(FIELD_PRESENT)"
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "swap-material_container_slot-material_container_generation",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.material_container_slot = record.i32_column(FIELD_MATERIAL_CONTAINER_SLOT)",
+          "\tout.material_container_slot = record.i32_column(FIELD_MATERIAL_CONTAINER_GENERATION)"
+        ],
+        [
+          "\tout.material_container_generation = record.i32_column(FIELD_MATERIAL_CONTAINER_GENERATION)",
+          "\tout.material_container_generation = record.i32_column(FIELD_MATERIAL_CONTAINER_SLOT)"
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "swap-assigned_count-max_workers",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.assigned_count = record.i32_column(FIELD_ASSIGNED_COUNT)",
+          "\tout.assigned_count = record.i32_column(FIELD_MAX_WORKERS)"
+        ],
+        [
+          "\tout.max_workers = record.i32_column(FIELD_MAX_WORKERS)",
+          "\tout.max_workers = record.i32_column(FIELD_ASSIGNED_COUNT)"
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "swap-refund_policy-phase",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.refund_policy = record.i32_column(FIELD_REFUND_POLICY)",
+          "\tout.refund_policy = record.i32_column(FIELD_PHASE)"
+        ],
+        [
+          "\tout.phase = record.i32_column(FIELD_PHASE)",
+          "\tout.phase = record.i32_column(FIELD_REFUND_POLICY)"
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "swap-ref_slot-subject_slot",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.ref_slot = record.i32_column(FIELD_REF_SLOT)",
+          "\tout.ref_slot = record.i32_column(FIELD_SUBJECT_SLOT)"
+        ],
+        [
+          "\tout.subject_slot = record.i32_column(FIELD_SUBJECT_SLOT)",
+          "\tout.subject_slot = record.i32_column(FIELD_REF_SLOT)"
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "swap-ref_generation-subject_generation",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.ref_generation = record.i32_column(FIELD_REF_GENERATION)",
+          "\tout.ref_generation = record.i32_column(FIELD_SUBJECT_GENERATION)"
+        ],
+        [
+          "\tout.subject_generation = record.i32_column(FIELD_SUBJECT_GENERATION)",
+          "\tout.subject_generation = record.i32_column(FIELD_REF_GENERATION)"
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "swap-purpose-type_id",
+      "path": "godot/scripts/core/save_owner_construction.gd",
+      "replacements": [
+        [
+          "\tout.purpose = record.i32_column(FIELD_PURPOSE)",
+          "\tout.purpose = record.i32_column(FIELD_TYPE_ID)"
+        ],
+        [
+          "\tout.type_id = record.i32_column(FIELD_TYPE_ID)",
+          "\tout.type_id = record.i32_column(FIELD_PURPOSE)"
+        ]
+      ],
+      "expected_test": "test_direct_project_columns_matches_distinguishable_patterns"
+    },
+    {
+      "id": "direct-predicate-writes-valid-retired-row",
+      "path": "godot/scripts/core/construction.gd",
+      "replacements": [
+        [
+          "\tvar source_code: StringName = column_source_metadata_refusal()",
+          "\timage.max_workers[82943] = 4\n\timage.refund_policy[82943] = 1\n\timage.type_id[82943] = 19\n\timage.phase[82943] = 3\n\tvar source_code: StringName = column_source_metadata_refusal()"
+        ]
+      ],
+      "expected_test": "test_direct_columns_full_equality_after_success",
+      "rationale": "Turns final clear row into a locally valid retired BUILD/DONE row; success code stays NONE, caller-owned bytes change."
+    }
+  ],
+  "scope": "16 actual mapper omissions,9 same-type swaps covering all multi-field type members,1 direct valid-row write; no exhaustive arbitrary fault claim"
+}

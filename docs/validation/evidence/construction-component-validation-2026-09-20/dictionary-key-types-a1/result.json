@@ -1,0 +1,65 @@
+{
+  "scope": "Four required TYPE_STRING key refusals through existing independent owner probe; bridge not executed",
+  "source_unchanged": true,
+  "source_sha256": {
+    "godot/scripts/core/catalog.gd": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1",
+    "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074"
+  },
+  "probe_sha256": "5ef8fab1f129d724fd6079e0539553f81f2fe8da67d5bf63ba8363eb81a4e7ec",
+  "results": [
+    {
+      "case": "baseline-before",
+      "valid_execution": true,
+      "exit_code": 0,
+      "checks": 5,
+      "mismatches": 0,
+      "required_expectations_met": true,
+      "seconds": 0.541
+    },
+    {
+      "case": "building_definition-actual-key-stringname",
+      "valid_execution": true,
+      "exit_code": 1,
+      "checks": 5,
+      "mismatches": 3,
+      "required_expectations_met": false,
+      "seconds": 0.439
+    },
+    {
+      "case": "furniture_definition-actual-key-stringname",
+      "valid_execution": true,
+      "exit_code": 1,
+      "checks": 5,
+      "mismatches": 3,
+      "required_expectations_met": false,
+      "seconds": 0.435
+    },
+    {
+      "case": "building_facts-actual-key-stringname",
+      "valid_execution": true,
+      "exit_code": 1,
+      "checks": 5,
+      "mismatches": 3,
+      "required_expectations_met": false,
+      "seconds": 0.435
+    },
+    {
+      "case": "furniture_facts-actual-key-stringname",
+      "valid_execution": true,
+      "exit_code": 1,
+      "checks": 5,
+      "mismatches": 3,
+      "required_expectations_met": false,
+      "seconds": 0.441
+    },
+    {
+      "case": "baseline-after",
+      "valid_execution": true,
+      "exit_code": 0,
+      "checks": 5,
+      "mismatches": 0,
+      "required_expectations_met": true,
+      "seconds": 0.44
+    }
+  ]
+}

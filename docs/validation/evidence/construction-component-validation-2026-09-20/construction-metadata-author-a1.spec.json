@@ -1,0 +1,26 @@
+{
+  "id": "construction-metadata-author-a1",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/construction-metadata-author-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-local-validation-metadata",
+    "role": "author",
+    "model": "claude-opus-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/construction_component_validation_contract.md",
+    "docs/decisions/0186-construction-validation-preserves-retired-purpose-and-refund-history.md",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/frozen-source-facts.json",
+    "docs/validation/evidence/construction-validation-planning-2026-09-20/witness-plan-v2.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/immutable-collaborator-excerpts.md",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/preliminary-owner-inspection.json",
+    "godot/scripts/core/construction.gd",
+    "godot/scripts/core/building_definitions.gd"
+  ],
+  "instructions": "High-risk specialized author correction, NOT independent review. Existing owner candidate imports and passes52original/probe tests613assertions. It remains unaccepted because source preflight omits contract-pinned scalar guards, making drift cause wrong interpretation or unsafe indexing. New bounded packet after delivered original implementation; original610linepatch and failed transport attempts retained. Implement only safe immutable preflight repair in construction.gd, preserving every existing gameplay byte and all row predicate semantics. Pin exact SOURCE scalars named R01v2 before any dictionary/index use: Construction capacity82944, MAX_BUILDERS4, MATERIAL_SLOTS_PER_PROJECT4, DEMOLITION_WORK_NUM1/DEN4, purpose0/1/2/3/count4, phase0..4/count5, refund0/1/2/count3, INT32_MAX2147483647, null(-1,0), Directory352418, building/furniture counts30/9 and B_WORK_MWU2/B_MAX_BUILDERS9/B_FIELD_COUNT10/F_WORK_MWU2/F_FIELD_COUNT4; material key count6 and sequence wood,stone,cloth,iron,rope,wax. COLUMN_DIRECTORY_CAPACITY must agree with frozen bound. Gate array lengths against frozen30/9/4, exact4tier-two keys/list size. Exact TYPE_STRING authored keys and safe array/fact fields remain. Check all fact row scalar types before interpreting; independent numeric mirror needed only gate-consumed indices(work,maxworkers), not unrelated geometry. Do not turn the pure helper into a duplicate bill-quantity oracle; that is the later bridge's independent anchor. No constructor, sorting, hashing, packed scratch, per-row objects, diagnostic writes, floats or source gameplay changes. Keep short typed helpers; no function longer than30lines excluding documentation absent recorded exception. This strengthens exact existing contract, not newpolicy.\nReturn exactly2files, each with exactly baseSha256:null,path,content (put baseSha256 FIRST so it is not omitted): (1)docs/validation/evidence/construction-component-validation-2026-09-20/metadata-owner-repair.patch, a standard unifieddiff modifying ONLY construction.gd, max300patchlines,3contextlines/trailingnewline; (2)docs/validation/evidence/construction-component-validation-2026-09-20/metadata-owner-probe.gd, a complete cold diagnostic SceneTree script <=100lines. Probe takes optional user arg --fault: baseline expects empty direct metadata/clear predicate success and invalid flag COLUMN_FLAG; fault expects COLUMN_SOURCE_METADATA from direct metadata, full-sized clear and invalid-flag images; both expect null/unallocated image COLUMN_SHAPE before metadata. Emit exact boolean/count summary and exit1 on any mismatch; no warning suppression or release claim. Exercise static Owner APIs only, no Construction instance or collaborators. Source faults will be introduced deterministically in isolated no-autoload clones by Astra; probe must use frozen expected codes rather than production REFUSE aliases. No tests claimed run. Return strict5key JSON bundle status/summary/questions/files/decisionIds; both file entries MUST include baseSha256:null explicitly. State ambiguities rather than inventing a wider source gate.\n\nDispatch audit: {\"base_commit\":\"818197313aa87cae2c1e6cfe091abe27d24817fc\",\"task\":\"Safe immutable metadata guards for Construction local validation\",\"allowedWrites\":{\"docs/validation/evidence/construction-component-validation-2026-09-20/metadata-owner-repair.patch\":null,\"docs/validation/evidence/construction-component-validation-2026-09-20/metadata-owner-probe.gd\":null}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized."
+}

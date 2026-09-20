@@ -1,0 +1,20 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-construction-validation-2026-09-20",
+  "base": "6910c073f0ce2cb7d2244a58ffc34ecc689dba24",
+  "source_sha256": {
+    "godot/scripts/core/construction.gd": "119b06209bd8eb996da424c5857ae447cbd0518877d961679b94f31985777aa6",
+    "godot/scripts/core/save_owner_construction.gd": "e07b9cbed538a5a1f0bdeaf13824add464c97c815949677292e911c8c500323e",
+    "godot/scripts/core/save_owner_construction.gd.uid": "2a3e0532a38b6d1c6d9d2af76d6334017eccd0c2e5a28b621c386e6da453d66e",
+    "godot/test/construction_columns_focus.gd": "fd24cdddca0c3c687c23e9234737fe38efb2b638f16b52e3f0989bf8891f0267",
+    "godot/test/construction_columns_focus.gd.uid": "fde3bf9c574e9f48b81016d0b3e37b4a0d3f0fc5cf6f6b346da9e3f6c8f6bcfe",
+    "godot/test/test_construction_columns.gd": "ab28c4f1ba29b13a3f3e7aa08f5767133a49a7ec590ef69b462f28f9ce016638",
+    "godot/test/test_construction_columns.gd.uid": "563ad8ca46da3c5b937e1c7830e1b036a4ffcbcca874aabc5011b35afb501a78",
+    "godot/test/test_construction_retired_histories.gd": "8b2bbbfd5795b9086bd4839059636bcaeb2c914199e887fd87933c00f8b4fe1e",
+    "godot/test/test_construction_retired_histories.gd.uid": "550285a837b176c3aacd7f8c1662e35f96eda7f82b29d810d1c6402467229bed",
+    "godot/test/test_save_owner_construction.gd": "d42cc22c680da808ca2659a6815525d03291254221b1664e3aaf58d985605c21",
+    "godot/test/test_save_owner_construction.gd.uid": "f1869ce129fff7451833f31e69d8cc0ba774758cefa5f8e6525ff4408e11b24c",
+    "docs/decisions/0186-construction-validation-preserves-retired-purpose-and-refund-history.md": "2becb2f4acf01342801f5d92411e6abf2109d59f4cd95a44b2f89b1248fa88af",
+    "docs/planning/construction_component_validation_contract.md": "447a3c6ad488a3c87684fff42c9aee909574f53dfca17bf1d8223eca5410b705"
+  },
+  "purpose": "Isolate Construction release checks from in-progress ground placement schema staging; main sources unchanged"
+}

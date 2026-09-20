@@ -1,0 +1,604 @@
+{
+  "source_sha256": {
+    "godot/scripts/core/save_owner_construction.gd": "e07b9cbed538a5a1f0bdeaf13824add464c97c815949677292e911c8c500323e",
+    "godot/scripts/core/construction.gd": "e5d3fd006311c43c3b20b0a3f2209945e5ade12ad08b84ddcaf8d49ef6e3e326",
+    "godot/test/test_save_owner_construction.gd": "d42cc22c680da808ca2659a6815525d03291254221b1664e3aaf58d985605c21"
+  },
+  "seconds": 90.038,
+  "results": [
+    {
+      "case": "baseline-before",
+      "seconds": 3.433,
+      "exit_code": 0,
+      "counts": [
+        16,
+        146,
+        0
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [],
+      "errors": [],
+      "mutated_sha256": null,
+      "log_sha256": "4cad4ab9dbae2144af18b438494dc7f875b4c8258d89f2e93a75cd195c1372bd"
+    },
+    {
+      "case": "omit-present",
+      "seconds": 2.965,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        6
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_semantic_fault_forwards_exact_column_code",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success",
+        "test_framed_record_full_equality_after_representative_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": "b9dc461be06451df17ecba4c6aba718501554b21d0ef019a3fb3d486e48150cc",
+      "log_sha256": "5b7c82b387cddfcbef6e1b356969aa68af52283b0452c8b32584ee65b0e8a2ec"
+    },
+    {
+      "case": "omit-material_container_slot",
+      "seconds": 2.959,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        6
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_semantic_fault_forwards_exact_column_code",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success",
+        "test_framed_record_full_equality_after_representative_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": "73ee81bb8c63ece5605dfaef17f5b1540ec7e87f488a88b70790d6483f6fc0d3",
+      "log_sha256": "18480da9566dd2dcc470c6597d71024a2b110e03876e9a4959e47319ab8c2c02"
+    },
+    {
+      "case": "omit-material_container_generation",
+      "seconds": 3.066,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        6
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_semantic_fault_forwards_exact_column_code",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success",
+        "test_framed_record_full_equality_after_representative_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": "0ebdaf90b995a59304d307805e20cd8ce28d675e5fc1aeb313f95971bb0ac829",
+      "log_sha256": "35e55d883708e00da07a1e23f2fa7d6293bb8ae8ac04f3f6d06f04ce81f6e5af"
+    },
+    {
+      "case": "omit-assigned_count",
+      "seconds": 2.878,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        6
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_semantic_fault_forwards_exact_column_code",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success",
+        "test_framed_record_full_equality_after_representative_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": "ef8aacf54f399d48772ca744378242ed5f965ae20704056753ee9a45ac542495",
+      "log_sha256": "dac5ea89de7eeea45bca4d7973df790aca501fafb5aebef4fd0ba8a09b319623"
+    },
+    {
+      "case": "omit-max_workers",
+      "seconds": 2.951,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        6
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_semantic_fault_forwards_exact_column_code",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success",
+        "test_framed_record_full_equality_after_representative_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": "ee6be9bbd339e353cd92d4cec2360926e68bf1c1aca16050acb89f8e141a06d6",
+      "log_sha256": "c291f7ce26bb7c08407bb3dc089677aa60c5d541df5f6e2b42e257adb182bc29"
+    },
+    {
+      "case": "omit-refund_policy",
+      "seconds": 3.062,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        6
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_semantic_fault_forwards_exact_column_code",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success",
+        "test_framed_record_full_equality_after_representative_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": "5759e546b2b0156de212ed1be6b760766ee5fc57abba1cb5209c23effb11348f",
+      "log_sha256": "34580a69995c950a3e9c53d84ca4638f9f74b8e8c19323a7650cd160c39bf532"
+    },
+    {
+      "case": "omit-remaining_mwu",
+      "seconds": 3.029,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        6
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_semantic_fault_forwards_exact_column_code",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success",
+        "test_framed_record_full_equality_after_representative_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": "ed88386b4e98fd490d6b454fee1a104107a1f0b2737d7abc3ded44b18224ab35",
+      "log_sha256": "ceffbee41cecee0cae0fb228decdf9e04f14a8c4b417aaba1b03c251a9ab21f2"
+    },
+    {
+      "case": "omit-paused",
+      "seconds": 2.975,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        6
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_semantic_fault_forwards_exact_column_code",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success",
+        "test_framed_record_full_equality_after_representative_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": "c5cb555db2ad4b0bdf083a88b8f2a5a4e4d6a97f801c8898ebdb2f5f6186f2bc",
+      "log_sha256": "15493d68ca600c9c34a9c024e920bb2f5557085733b5c3d0157c9d82e582d5da"
+    },
+    {
+      "case": "omit-work_begun",
+      "seconds": 3.071,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        6
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_semantic_fault_forwards_exact_column_code",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success",
+        "test_framed_record_full_equality_after_representative_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": "1fc2bf45bfedc75e9a745f53af3686d8724e014c23f126854f0bcac749dbd623",
+      "log_sha256": "53e267ff95acf8958abdc527280446136f242ea056784d22e8de6209dcbda84a"
+    },
+    {
+      "case": "omit-ref_slot",
+      "seconds": 3.155,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        6
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_semantic_fault_forwards_exact_column_code",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success",
+        "test_framed_record_full_equality_after_representative_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": "e817e5195f4b7e660216c34989d5c20d8e448c31992e821fc3e14aaf0551aae5",
+      "log_sha256": "ceab1e81d27a688337918aa38336b410840863f99f01f673fceddd7d898beb3d"
+    },
+    {
+      "case": "omit-ref_generation",
+      "seconds": 3.051,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        6
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_semantic_fault_forwards_exact_column_code",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success",
+        "test_framed_record_full_equality_after_representative_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": "6a3cf2cd05340bc6f7e5a0d4ae4a39de0a8724256f0bb3ec1640feb617d40dfd",
+      "log_sha256": "006a2625bf6316676db580701bbf763118f7f6a309172a0ec55377a45317b8e3"
+    },
+    {
+      "case": "omit-subject_slot",
+      "seconds": 2.967,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        6
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_semantic_fault_forwards_exact_column_code",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success",
+        "test_framed_record_full_equality_after_representative_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": "d0ae2d088b17506d3154eb8fd3c883ff5ef116fe41b0015669982fd454e1cdab",
+      "log_sha256": "73282102c83c15055f6cd0af954acdc6e83da5275a3d6d380d07f1a227417729"
+    },
+    {
+      "case": "omit-subject_generation",
+      "seconds": 3.051,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        6
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_semantic_fault_forwards_exact_column_code",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success",
+        "test_framed_record_full_equality_after_representative_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": "5dcecd24141662990a887690758ee5d2470d53fe2a22754efe3c0b697dcf12e1",
+      "log_sha256": "c531c2584f3a01825b4abfb7d5a22469ff26fedd104c91860f86279a0905c79c"
+    },
+    {
+      "case": "omit-purpose",
+      "seconds": 3.064,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        6
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_semantic_fault_forwards_exact_column_code",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success",
+        "test_framed_record_full_equality_after_representative_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": "27f9247abb3c4c659830e168639aea304c13deab51429e628b726577187c4fa6",
+      "log_sha256": "babd3498cc4b6ce7f22f0e9324d47ffad1cb2f2447a53a066fe9f630ad8da650"
+    },
+    {
+      "case": "omit-type_id",
+      "seconds": 3.068,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        6
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_semantic_fault_forwards_exact_column_code",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success",
+        "test_framed_record_full_equality_after_representative_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": "687fb172edb17417b47fe3508bc67a70fd115ed35578f4dded9525eb30151152",
+      "log_sha256": "12b776829e9e54c30a649466a220b2b282f88c09b5f6169d2af128830e3ec8bb"
+    },
+    {
+      "case": "omit-phase",
+      "seconds": 3.059,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        6
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_semantic_fault_forwards_exact_column_code",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success",
+        "test_framed_record_full_equality_after_representative_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": "c54cf22e69b451612a06efbcdb51d8eca1f8a36e5a32c9ad72c8da03a0f2ebab",
+      "log_sha256": "fc52b5e5253bb10cd767f66a93ca068143311e231419b33b45049d381262997e"
+    },
+    {
+      "case": "swap-present-paused",
+      "seconds": 3.45,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        2
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns"
+      ],
+      "errors": [],
+      "mutated_sha256": "a64e642053173c5e3e8669e8f313f012be56a1357a532e48cf2b12dce8e40b9b",
+      "log_sha256": "bd0bfa56c1ffbc87dcd68f679207b0c27e37174b781c0d23da239439a8be7b0b"
+    },
+    {
+      "case": "swap-paused-work_begun",
+      "seconds": 3.444,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_direct_project_columns_matches_distinguishable_patterns"
+      ],
+      "errors": [],
+      "mutated_sha256": "8e793c24b1f01351a62b0c3baf79b0b1cdd99fd711c3ea6d305e19d20c234777",
+      "log_sha256": "4efba4dff955f5e01b36f97f062ccc32bbaebb1421091842c5e472db3269c80f"
+    },
+    {
+      "case": "swap-present-work_begun",
+      "seconds": 3.442,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        2
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns"
+      ],
+      "errors": [],
+      "mutated_sha256": "25b4a005a69d9f2f8bb4cfb028120f9ea39a7559c4a4d89ac3bcf77a4d6e3ff8",
+      "log_sha256": "98fd75a31962b72c20e8bc19216a2a60df4a42684bc579fbfd0672a91cbfc70a"
+    },
+    {
+      "case": "swap-material_container_slot-material_container_generation",
+      "seconds": 3.088,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        4
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success"
+      ],
+      "errors": [],
+      "mutated_sha256": "7ba3cea64df1c82c71fadc30757c064ecb9ce4967473815ae8034738cfb14404",
+      "log_sha256": "e6a4bc898a3244eccd122b1ca195a8311cd7438cb0992fc7c71e6e8bf26482ca"
+    },
+    {
+      "case": "swap-assigned_count-max_workers",
+      "seconds": 3.468,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_direct_project_columns_matches_distinguishable_patterns"
+      ],
+      "errors": [],
+      "mutated_sha256": "3ec2776bc14f93b2d1669adb9dd46584115139a7b4fedf2e0659df230a7e6dc1",
+      "log_sha256": "ff2a99ca74ddd34c7396c7ceaceeea7d22283070594a023270dc3e743fc21e70"
+    },
+    {
+      "case": "swap-refund_policy-phase",
+      "seconds": 3.575,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_direct_project_columns_matches_distinguishable_patterns"
+      ],
+      "errors": [],
+      "mutated_sha256": "0e3391ac88b61b78041c6c6f5194c15c3baf766462902ba3445f01ed3381dffc",
+      "log_sha256": "dcadf39622d7101673b749e8e3047cf58d00e47f2811c2c765947c70668d1569"
+    },
+    {
+      "case": "swap-ref_slot-subject_slot",
+      "seconds": 3.472,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_direct_project_columns_matches_distinguishable_patterns"
+      ],
+      "errors": [],
+      "mutated_sha256": "202f68848027d3903c3d1c74973f561aed33e4a6e76745aba81aeef01a0c9620",
+      "log_sha256": "7debbbfca3f6c2e42f976f8aa53e206ce37f58153603a9d59704dc67cec58bbc"
+    },
+    {
+      "case": "swap-ref_generation-subject_generation",
+      "seconds": 3.471,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        1
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_direct_project_columns_matches_distinguishable_patterns"
+      ],
+      "errors": [],
+      "mutated_sha256": "2ef0e7272c759b4d7a398cac6afb4ca3595302f8bc61a9e4b16a48b2abfe5c25",
+      "log_sha256": "6a7fdde9448056c34fb4ae9e0c24b55aaafbc0d1dfd7a00412a59bd2e72c03e6"
+    },
+    {
+      "case": "swap-purpose-type_id",
+      "seconds": 3.092,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        4
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_valid_clear_record_accepted_with_empty_detail",
+        "test_row_workers_fault_forwards_exact_column_code",
+        "test_direct_project_columns_matches_distinguishable_patterns",
+        "test_framed_record_full_equality_after_success"
+      ],
+      "errors": [],
+      "mutated_sha256": "0486c3efc8b6e3294ec657a7a135319edf2f027af11bca08a54e47cad9d6aa34",
+      "log_sha256": "ba2fb5e1df09002d978997b9cffc8d90f58ed44d9a9044f11827efd352698bea"
+    },
+    {
+      "case": "direct-predicate-writes-valid-retired-row",
+      "seconds": 3.881,
+      "exit_code": 1,
+      "counts": [
+        16,
+        146,
+        5
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [
+        "test_direct_columns_full_equality_after_success",
+        "test_direct_columns_full_equality_after_flag_refusal",
+        "test_direct_columns_full_equality_after_late_semantic_refusal",
+        "test_framed_record_full_equality_after_success",
+        "test_framed_record_full_equality_after_representative_refusal"
+      ],
+      "errors": [],
+      "mutated_sha256": "e32c0fd1c3e4b04a0eacda7b3713ce588179b3ae33469861e3e21411b880e823",
+      "log_sha256": "717fdfe243e7c23345f05bf26fb429dffb55a5e89eff3e9dcca6c851f04520be"
+    },
+    {
+      "case": "baseline-after",
+      "seconds": 3.446,
+      "exit_code": 0,
+      "counts": [
+        16,
+        146,
+        0
+      ],
+      "valid_execution": true,
+      "expected_outcome": true,
+      "failing_tests": [],
+      "errors": [],
+      "mutated_sha256": null,
+      "log_sha256": "4cad4ab9dbae2144af18b438494dc7f875b4c8258d89f2e93a75cd195c1372bd"
+    }
+  ],
+  "source_unchanged": true,
+  "passed": true
+}

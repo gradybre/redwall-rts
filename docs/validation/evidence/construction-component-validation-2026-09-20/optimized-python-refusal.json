@@ -1,0 +1,22 @@
+[
+  {
+    "command": [
+      "python3",
+      "-O",
+      "tools/test_construction_allocation.py"
+    ],
+    "exit_code": 1,
+    "output": "Construction evidence requires Python assertions enabled; optimized mode is unsupported\n",
+    "passed": true
+  },
+  {
+    "command": [
+      "python3",
+      "-O",
+      "tools/test_construction_metadata_preflights.py"
+    ],
+    "exit_code": 1,
+    "output": "Construction evidence requires Python assertions enabled; optimized mode is unsupported\n",
+    "passed": true
+  }
+]

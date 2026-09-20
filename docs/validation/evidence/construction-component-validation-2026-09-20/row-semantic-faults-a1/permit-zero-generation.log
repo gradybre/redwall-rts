@@ -1,0 +1,34 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_construction_columns.gd
+  FAIL  test_single_fault_cases
+        case zero-generation-ref row 0 (expected COLUMN_REF, got )
+        case zero-generation-ref row 1 (expected COLUMN_REF, got )
+        case zero-generation-ref row 41471 (expected COLUMN_REF, got )
+        case zero-generation-ref row 41472 (expected COLUMN_REF, got )
+        case zero-generation-ref row 82943 (expected COLUMN_REF, got )
+        case zero-generation-subject row 0 (expected COLUMN_REF, got )
+        case zero-generation-subject row 1 (expected COLUMN_REF, got )
+        case zero-generation-subject row 41471 (expected COLUMN_REF, got )
+        case zero-generation-subject row 41472 (expected COLUMN_REF, got )
+        case zero-generation-subject row 82943 (expected COLUMN_REF, got )
+        case zero-generation-material_container row 0 (expected COLUMN_REF, got )
+        case zero-generation-material_container row 1 (expected COLUMN_REF, got )
+        case zero-generation-material_container row 41471 (expected COLUMN_REF, got )
+        case zero-generation-material_container row 41472 (expected COLUMN_REF, got )
+        case zero-generation-material_container row 82943 (expected COLUMN_REF, got )
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+1 test(s), 200 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

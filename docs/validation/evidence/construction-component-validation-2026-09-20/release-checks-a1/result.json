@@ -1,0 +1,120 @@
+{
+  "scope": "Isolated Construction candidate on accepted PR177; excludes all incomplete goods/placement candidates",
+  "results": [
+    {
+      "step": "import",
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "seconds": 3.346,
+      "exit_code": 0,
+      "counts": null,
+      "expected_counts": null,
+      "passed": true,
+      "error_lines": [],
+      "error_multiset_matches_expected": true,
+      "leak_diagnostic_lines": [],
+      "log_sha256": "9abe7766e1994cbed56941a08ed4168676d675697b5e5c03598cb40c420bf2fc"
+    },
+    {
+      "step": "focus",
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--script",
+        "test/construction_columns_focus.gd"
+      ],
+      "seconds": 35.953,
+      "exit_code": 0,
+      "counts": [
+        96,
+        2354,
+        0
+      ],
+      "expected_counts": [
+        96,
+        2354,
+        0
+      ],
+      "passed": true,
+      "error_lines": [],
+      "error_multiset_matches_expected": true,
+      "leak_diagnostic_lines": [],
+      "log_sha256": "9323aab14bb389158bea1ff966b519d2baab0b6b7bd3dcbfb94742e832cac745"
+    },
+    {
+      "step": "metadata",
+      "command": [
+        "python3",
+        "tools/test_construction_metadata_preflights.py"
+      ],
+      "seconds": 37.455,
+      "exit_code": 0,
+      "counts": null,
+      "expected_counts": null,
+      "passed": true,
+      "error_lines": [],
+      "error_multiset_matches_expected": true,
+      "leak_diagnostic_lines": [],
+      "log_sha256": "acd73fb3053e1e07ea7653318b06b54b59ea4a73b26c943b19a39482a63b110c"
+    },
+    {
+      "step": "allocation",
+      "command": [
+        "python3",
+        "tools/test_construction_allocation.py"
+      ],
+      "seconds": 2.479,
+      "exit_code": 0,
+      "counts": null,
+      "expected_counts": null,
+      "passed": true,
+      "error_lines": [],
+      "error_multiset_matches_expected": true,
+      "leak_diagnostic_lines": [],
+      "log_sha256": "18c4054b6d570ce80f0f077f8f9862e39ecc14fc7bd5db04f75029cdbc9b6b27"
+    },
+    {
+      "step": "full",
+      "command": [
+        "./tools/run_tests.sh"
+      ],
+      "seconds": 299.452,
+      "exit_code": 0,
+      "counts": [
+        5108,
+        528323,
+        0
+      ],
+      "expected_counts": [
+        5108,
+        528323,
+        0
+      ],
+      "passed": true,
+      "error_lines": [
+        "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+        "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+        "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+        "ERROR: SettlementSystem: stock integrity fault 'OVERFLOW' at hour tick 750 is unrecovered (retries attempted: 0); the simulation is halted until the settlement is reset.",
+        "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+        "ERROR: ui_frame_builder: UI_FRAME_PANEL_TOO_SMALL for frame 0 at (20.000000, 20.000000)",
+        "ERROR: ui_frame_builder: UI_FRAME_UNKNOWN_FRAME for frame 5 at (300.000000, 120.000000)",
+        "ERROR: ui_frame_builder: UI_FRAME_NULL_PANEL",
+        "ERROR: UIManager.register_hud() was given null; the HUD will not update."
+      ],
+      "error_multiset_matches_expected": true,
+      "leak_diagnostic_lines": [],
+      "log_sha256": "299f4738d0382d6106f90a20c7e3cd7db3e66aa391ce96a8f8358f0623766d19"
+    }
+  ],
+  "source_unchanged": true,
+  "passed": true
+}

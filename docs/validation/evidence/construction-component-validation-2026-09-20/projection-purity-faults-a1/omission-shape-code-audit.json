@@ -1,0 +1,118 @@
+{
+  "scope": "Additional classification of retained raw logs; no rerun",
+  "all16_actual_mapper_omissions_reach_column_shape": true,
+  "records": [
+    {
+      "case": "omit-assigned_count",
+      "shape_code_mismatches": [
+        "valid clear record accepted (expected , got COLUMN_SHAPE)",
+        "valid record accepted (expected , got COLUMN_SHAPE)"
+      ]
+    },
+    {
+      "case": "omit-material_container_generation",
+      "shape_code_mismatches": [
+        "valid clear record accepted (expected , got COLUMN_SHAPE)",
+        "valid record accepted (expected , got COLUMN_SHAPE)"
+      ]
+    },
+    {
+      "case": "omit-material_container_slot",
+      "shape_code_mismatches": [
+        "valid clear record accepted (expected , got COLUMN_SHAPE)",
+        "valid record accepted (expected , got COLUMN_SHAPE)"
+      ]
+    },
+    {
+      "case": "omit-max_workers",
+      "shape_code_mismatches": [
+        "valid clear record accepted (expected , got COLUMN_SHAPE)",
+        "valid record accepted (expected , got COLUMN_SHAPE)"
+      ]
+    },
+    {
+      "case": "omit-paused",
+      "shape_code_mismatches": [
+        "valid clear record accepted (expected , got COLUMN_SHAPE)",
+        "valid record accepted (expected , got COLUMN_SHAPE)"
+      ]
+    },
+    {
+      "case": "omit-phase",
+      "shape_code_mismatches": [
+        "valid clear record accepted (expected , got COLUMN_SHAPE)",
+        "valid record accepted (expected , got COLUMN_SHAPE)"
+      ]
+    },
+    {
+      "case": "omit-present",
+      "shape_code_mismatches": [
+        "valid clear record accepted (expected , got COLUMN_SHAPE)",
+        "valid record accepted (expected , got COLUMN_SHAPE)"
+      ]
+    },
+    {
+      "case": "omit-purpose",
+      "shape_code_mismatches": [
+        "valid clear record accepted (expected , got COLUMN_SHAPE)",
+        "valid record accepted (expected , got COLUMN_SHAPE)"
+      ]
+    },
+    {
+      "case": "omit-ref_generation",
+      "shape_code_mismatches": [
+        "valid clear record accepted (expected , got COLUMN_SHAPE)",
+        "valid record accepted (expected , got COLUMN_SHAPE)"
+      ]
+    },
+    {
+      "case": "omit-ref_slot",
+      "shape_code_mismatches": [
+        "valid clear record accepted (expected , got COLUMN_SHAPE)",
+        "valid record accepted (expected , got COLUMN_SHAPE)"
+      ]
+    },
+    {
+      "case": "omit-refund_policy",
+      "shape_code_mismatches": [
+        "valid clear record accepted (expected , got COLUMN_SHAPE)",
+        "valid record accepted (expected , got COLUMN_SHAPE)"
+      ]
+    },
+    {
+      "case": "omit-remaining_mwu",
+      "shape_code_mismatches": [
+        "valid clear record accepted (expected , got COLUMN_SHAPE)",
+        "valid record accepted (expected , got COLUMN_SHAPE)"
+      ]
+    },
+    {
+      "case": "omit-subject_generation",
+      "shape_code_mismatches": [
+        "valid clear record accepted (expected , got COLUMN_SHAPE)",
+        "valid record accepted (expected , got COLUMN_SHAPE)"
+      ]
+    },
+    {
+      "case": "omit-subject_slot",
+      "shape_code_mismatches": [
+        "valid clear record accepted (expected , got COLUMN_SHAPE)",
+        "valid record accepted (expected , got COLUMN_SHAPE)"
+      ]
+    },
+    {
+      "case": "omit-type_id",
+      "shape_code_mismatches": [
+        "valid clear record accepted (expected , got COLUMN_SHAPE)",
+        "valid record accepted (expected , got COLUMN_SHAPE)"
+      ]
+    },
+    {
+      "case": "omit-work_begun",
+      "shape_code_mismatches": [
+        "valid clear record accepted (expected , got COLUMN_SHAPE)",
+        "valid record accepted (expected , got COLUMN_SHAPE)"
+      ]
+    }
+  ]
+}

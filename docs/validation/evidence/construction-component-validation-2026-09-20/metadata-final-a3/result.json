@@ -1,0 +1,1576 @@
+{
+  "scope": "60 source/schema/independent bridge-anchor fault units, no whole-save claim",
+  "source_sha256": {
+    "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
+    "godot/scripts/core/catalog.gd": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1",
+    "godot/scripts/core/construction.gd": "ec758c4fc40746962b50fa7294d9ee7954208cfed579dbe10bfc54e0a2aeff70",
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+    "godot/scripts/core/save_owner_construction.gd": "f275eedebde522821b159cf598bdf5d4aea57564bb974af8667917a338b62a86"
+  },
+  "proposal_rebase": {
+    "godot/scripts/core/construction.gd": {
+      "proposed": "e5d3fd006311c43c3b20b0a3f2209945e5ade12ad08b84ddcaf8d49ef6e3e326",
+      "executed": "ec758c4fc40746962b50fa7294d9ee7954208cfed579dbe10bfc54e0a2aeff70"
+    },
+    "godot/scripts/core/save_owner_construction.gd": {
+      "proposed": "e07b9cbed538a5a1f0bdeaf13824add464c97c815949677292e911c8c500323e",
+      "executed": "f275eedebde522821b159cf598bdf5d4aea57564bb974af8667917a338b62a86"
+    }
+  },
+  "rebase_rationale": "Historical proposal hashes retained; actual current hashes recorded and all60 exact edits verified once before execution.",
+  "observer_sha256": "227594d68fd2c13bf16a74149e37694a6c4f6d9923977a26e09c9a45ca1273a2",
+  "results": [
+    {
+      "case": "baseline-before",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_SHAPE",
+        "detail": "field 0 of owner 'construction' holds -1 values, not 82944",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_SHAPE",
+        "bridge_detail_prefix": "",
+        "first_gate": "5/shape"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.663
+    },
+    {
+      "case": "catalog-building-extra-key",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.461
+    },
+    {
+      "case": "catalog-building-key-missing",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.459
+    },
+    {
+      "case": "catalog-building-id-type",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.451
+    },
+    {
+      "case": "catalog-building-duplicate-id",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.454
+    },
+    {
+      "case": "catalog-furniture-wrong-domain-id",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.454
+    },
+    {
+      "case": "building_definition-actual-key-stringname",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.46
+    },
+    {
+      "case": "furniture_definition-actual-key-stringname",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.46
+    },
+    {
+      "case": "building_facts-actual-key-stringname",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.456
+    },
+    {
+      "case": "furniture_facts-actual-key-stringname",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.451
+    },
+    {
+      "case": "building-fact-nonarray",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.46
+    },
+    {
+      "case": "building-fact-short",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.451
+    },
+    {
+      "case": "furniture-fact-short",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.46
+    },
+    {
+      "case": "building-fact-work-drift",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.456
+    },
+    {
+      "case": "building-fact-workers-drift",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.456
+    },
+    {
+      "case": "upgrade-work-type",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.46
+    },
+    {
+      "case": "build-bill-not-array",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.461
+    },
+    {
+      "case": "build-bill-odd",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.446
+    },
+    {
+      "case": "build-bill-five-pairs",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.454
+    },
+    {
+      "case": "build-bill-wrong-pair-count",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.455
+    },
+    {
+      "case": "build-bill-key-stringname",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.46
+    },
+    {
+      "case": "build-bill-key-unknown",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.453
+    },
+    {
+      "case": "build-bill-quantity-float",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.454
+    },
+    {
+      "case": "build-bill-quantity-zero",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.448
+    },
+    {
+      "case": "build-bill-positive-content",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: build bills bill 'apiary' does not match the frozen contents",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: build bills bill 'apiary' does not match the frozen contents",
+        "first_gate": "4/independent bill anchor"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.664
+    },
+    {
+      "case": "build-bill-order",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: build bills bill 'apiary' does not match the frozen contents",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: build bills bill 'apiary' does not match the frozen contents",
+        "first_gate": "4/independent bill anchor"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.658
+    },
+    {
+      "case": "furniture-bill-positive-content",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: furniture bills bill 'bed' does not match the frozen contents",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: furniture bills bill 'bed' does not match the frozen contents",
+        "first_gate": "4/independent bill anchor"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.66
+    },
+    {
+      "case": "upgrade-bill-positive-content",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: upgrade bills bill 'covered_store' does not match the frozen contents",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: upgrade bills bill 'covered_store' does not match the frozen contents",
+        "first_gate": "4/independent bill anchor"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.657
+    },
+    {
+      "case": "coherent-building-work",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: building work entry 0 does not match the frozen source",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: building work entry 0 does not match the frozen source",
+        "first_gate": "4/independent array anchor"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.663
+    },
+    {
+      "case": "coherent-building-workers",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: building max workers entry 0 does not match the frozen source",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: building max workers entry 0 does not match the frozen source",
+        "first_gate": "4/independent array anchor"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.667
+    },
+    {
+      "case": "coherent-furniture-work",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: furniture work entry 0 does not match the frozen source",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: furniture work entry 0 does not match the frozen source",
+        "first_gate": "4/independent array anchor"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.655
+    },
+    {
+      "case": "coherent-upgrade-work",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: upgrade work entry 0 does not match the frozen source",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: upgrade work entry 0 does not match the frozen source",
+        "first_gate": "4/independent array anchor"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.66
+    },
+    {
+      "case": "coherent-demolition-numerator",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: demolition work num is 2, not 1",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: demolition work num is 2, not 1",
+        "first_gate": "4/independent scalar anchor"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.659
+    },
+    {
+      "case": "coherent-material-key-order",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: material key 0 is not 'wood'",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: material key 0 is not 'wood'",
+        "first_gate": "4/independent key anchor"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.646
+    },
+    {
+      "case": "coherent-b_work_mwu",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: building work index is 0, not 2",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: building work index is 0, not 2",
+        "first_gate": "4/independent fact-index anchor"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.659
+    },
+    {
+      "case": "coherent-b_max_builders",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: building max builders index is 8, not 9",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: building max builders index is 8, not 9",
+        "first_gate": "4/independent fact-index anchor"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.646
+    },
+    {
+      "case": "coherent-b_field_count",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: building field count is 11, not 10",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: building field count is 11, not 10",
+        "first_gate": "4/independent fact-index anchor"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.655
+    },
+    {
+      "case": "coherent-f_work_mwu",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: furniture work index is 0, not 2",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: furniture work index is 0, not 2",
+        "first_gate": "4/independent fact-index anchor"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.664
+    },
+    {
+      "case": "coherent-f_field_count",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: furniture field count is 5, not 4",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: furniture field count is 5, not 4",
+        "first_gate": "4/independent fact-index anchor"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.666
+    },
+    {
+      "case": "schema-section-version",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_SCHEMA",
+        "detail": "declaration 1 / section schema 3 is not 1 / 2",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "SAVE_COMPONENT_SCHEMA",
+        "schema_detail": "declaration 1 / section schema 3 is not 1 / 2",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_SCHEMA",
+        "bridge_detail_prefix": "declaration 1 / section schema 3 is not 1 / 2",
+        "first_gate": "3/schema forwarded unchanged"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.669
+    },
+    {
+      "case": "schema-section-byte-budget",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_SCHEMA",
+        "detail": "compiled totals 18 owners / 298 fields / 12947566 bytes / 193184 rows are not the pinned body",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "SAVE_COMPONENT_SCHEMA",
+        "schema_detail": "compiled totals 18 owners / 298 fields / 12947566 bytes / 193184 rows are not the pinned body",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_SCHEMA",
+        "bridge_detail_prefix": "compiled totals 18 owners / 298 fields / 12947566 bytes / 193184 rows are not the pinned body",
+        "first_gate": "3/schema forwarded unchanged"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.662
+    },
+    {
+      "case": "schema-descriptor-row-budget",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_SCHEMA",
+        "detail": "compiled totals 18 owners / 298 fields / 12947565 bytes / 193185 rows are not the pinned body",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "SAVE_COMPONENT_SCHEMA",
+        "schema_detail": "compiled totals 18 owners / 298 fields / 12947565 bytes / 193185 rows are not the pinned body",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_SCHEMA",
+        "bridge_detail_prefix": "compiled totals 18 owners / 298 fields / 12947565 bytes / 193185 rows are not the pinned body",
+        "first_gate": "3/schema forwarded unchanged"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.663
+    },
+    {
+      "case": "schema-owner-begin",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "owner 1 declares span 30/2 at 3298593; the walk reached 29/2 at 3298593",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "SAVE_COMPONENT_METADATA",
+        "schema_detail": "owner 1 declares span 30/2 at 3298593; the walk reached 29/2 at 3298593",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "owner 1 declares span 30/2 at 3298593; the walk reached 29/2 at 3298593",
+        "first_gate": "3/schema forwarded unchanged"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.659
+    },
+    {
+      "case": "schema-owner-field-count",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "owner 'construction' declares 4893828/4893864 bytes; framing gives 4562044/4562080",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "SAVE_COMPONENT_METADATA",
+        "schema_detail": "owner 'construction' declares 4893828/4893864 bytes; framing gives 4562044/4562080",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "owner 'construction' declares 4893828/4893864 bytes; framing gives",
+        "first_gate": "3/schema forwarded unchanged"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.649
+    },
+    {
+      "case": "schema-owner-child-count",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "owner 'construction' declares 4893828/4893864 bytes; framing gives 4893836/4893872",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "SAVE_COMPONENT_METADATA",
+        "schema_detail": "owner 'construction' declares 4893828/4893864 bytes; framing gives 4893836/4893872",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "owner 'construction' declares 4893828/4893864 bytes; framing gives",
+        "first_gate": "3/schema forwarded unchanged"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.657
+    },
+    {
+      "case": "schema-owner-payload-budget",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "owner 'construction' declares 4893829/4893864 bytes; framing gives 4893828/4893864",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "SAVE_COMPONENT_METADATA",
+        "schema_detail": "owner 'construction' declares 4893829/4893864 bytes; framing gives 4893828/4893864",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "owner 'construction' declares 4893829/4893864 bytes; framing gives 4893828/4893864",
+        "first_gate": "3/schema forwarded unchanged"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.635
+    },
+    {
+      "case": "schema-unsupported-field-type",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_SCHEMA",
+        "detail": "field '_present' declares unsupported type 1",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "SAVE_COMPONENT_SCHEMA",
+        "schema_detail": "field '_present' declares unsupported type 1",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_SCHEMA",
+        "bridge_detail_prefix": "field '_present' declares unsupported type 1",
+        "first_gate": "3/schema forwarded unchanged"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.653
+    },
+    {
+      "case": "schema-owner-key",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: compiled owner 'constructiom' is not 'construction'",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: compiled owner 'constructiom' is not 'construction'",
+        "first_gate": "4/compiled owner or field parity"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.648
+    },
+    {
+      "case": "schema-owner-version",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: compiled owner version 2 is not 1",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: compiled owner version 2 is not 1",
+        "first_gate": "4/compiled owner or field parity"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.661
+    },
+    {
+      "case": "schema-coherent-primary-count",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: 82943 primaries are not 82944",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: 82943 primaries are not 82944",
+        "first_gate": "4/compiled owner or field parity"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.662
+    },
+    {
+      "case": "schema-field-ordinal-swap",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: field 1 is '_material_container_generation'; owner 1 declares '_material_container_slot'",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: field 1 is '_material_container_generation'; owner 1 declares '_material_container_slot'",
+        "first_gate": "4/compiled owner or field parity"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.668
+    },
+    {
+      "case": "schema-balanced-field-types",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: field 0 has type 2; 0 is declared",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: field 0 has type 2; 0 is declared",
+        "first_gate": "4/compiled owner or field parity"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.667
+    },
+    {
+      "case": "schema-balanced-field-extents",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: field 1 holds 82943 values; 82944 are declared",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: field 1 holds 82943 values; 82944 are declared",
+        "first_gate": "4/compiled owner or field parity"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.66
+    },
+    {
+      "case": "schema-coherent-owner-field-begin",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: compiled field begin 30 is not 29",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: compiled field begin 30 is not 29",
+        "first_gate": "4/compiled owner identity after coherent generic schema"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.666
+    },
+    {
+      "case": "schema-coherent-owner-field-count",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: 17 fields are not 16",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: 17 fields are not 16",
+        "first_gate": "4/compiled owner identity after coherent generic schema"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.657
+    },
+    {
+      "case": "schema-coherent-owner-child-count",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: 1 child extents are not 0",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: 1 child extents are not 0",
+        "first_gate": "4/compiled owner identity after coherent generic schema"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.667
+    },
+    {
+      "case": "build-materials-actual-key-stringname",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.452
+    },
+    {
+      "case": "furniture-materials-actual-key-stringname",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.449
+    },
+    {
+      "case": "upgrade-materials-actual-key-stringname",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.449
+    },
+    {
+      "case": "upgrade-work-mwu-actual-key-stringname",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "COLUMN_SOURCE_METADATA",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: the pure source preflight refused with COLUMN_SOURCE_METADATA",
+        "first_gate": "4/pure source"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.459
+    },
+    {
+      "case": "coherent-building-bill-pair-count",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_METADATA",
+        "detail": "Construction owner1 metadata: building bill pair counts entry 0 does not match the frozen source",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_METADATA",
+        "bridge_detail_prefix": "Construction owner1 metadata: building bill pair counts entry 0 does not match the frozen source",
+        "first_gate": "4/independent array anchor"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.663
+    },
+    {
+      "case": "baseline-after",
+      "exit_code": 0,
+      "valid_execution": true,
+      "pure_checks": 5,
+      "pure_mismatches": 0,
+      "bridge": {
+        "code": "SAVE_COMPONENT_SHAPE",
+        "detail": "field 0 of owner 'construction' holds -1 values, not 82944",
+        "null_code": "SAVE_COMPONENT_SHAPE",
+        "schema_code": "",
+        "schema_detail": "",
+        "wrong_owner_code": "SAVE_COMPONENT_OWNER"
+      },
+      "expected": {
+        "pure_source_code": "",
+        "bridge_code": "SAVE_COMPONENT_SHAPE",
+        "bridge_detail_prefix": "",
+        "first_gate": "5/shape"
+      },
+      "forward_exact": true,
+      "early_priority": true,
+      "passed": true,
+      "seconds": 0.659
+    }
+  ],
+  "seconds": 35.626,
+  "source_unchanged": true
+}

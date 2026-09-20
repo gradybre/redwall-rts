@@ -1,0 +1,13 @@
+from pathlib import Path
+import json,re,hashlib
+r=Path('/Users/brendan/Developer/redwall-rts-loop-2026-09-19');e=r/'docs/validation/evidence/construction-component-validation-2026-09-20';owner='godot/scripts/core/construction.gd';defs='godot/scripts/core/building_definitions.gd';directory='godot/scripts/core/entity_directory.gd';cases=[]
+scalars={owner:{'CONSTRUCTION_CAPACITY':'82945','MATERIAL_SLOTS_PER_PROJECT':'5','MAX_BUILDERS':'5','DEMOLITION_WORK_NUM':'2','DEMOLITION_WORK_DEN':'0','PURPOSE_BUILD':'1','PURPOSE_UPGRADE':'2','PURPOSE_FURNITURE':'3','PURPOSE_DEMOLISH':'4','PURPOSE_COUNT':'5','PHASE_AWAITING_MATERIALS':'1','PHASE_READY':'2','PHASE_WORKING':'3','PHASE_WORK_DONE':'4','PHASE_REFUNDING':'5','PHASE_COUNT':'6','REFUND_FULL':'1','REFUND_PARTIAL':'2','REFUND_DEMOLITION':'3','REFUND_POLICY_COUNT':'4','INT32_MAX':'2147483646','NULL_REF':'Vector2i(-1, 1)','BUILDING_KINDS':'31','FURNITURE_KINDS':'10','MATERIAL_KEY_COUNT':'7','COLUMN_DIRECTORY_CAPACITY':'352419'},defs:{'BUILDING_DEFINITION_COUNT':'31','FURNITURE_DEFINITION_COUNT':'10','B_WORK_MWU':'99','B_MAX_BUILDERS':'99','B_FIELD_COUNT':'11','F_WORK_MWU':'99','F_FIELD_COUNT':'5'},directory:{'DIRECTORY_CAPACITY':'352419','NULL_SLOT':'-2','NULL_GENERATION':'1'}}
+for path,entries in scalars.items():
+ source=(r/path).read_text()
+ for name,value in entries.items():
+  found=re.findall(r'^const '+re.escape(name)+r': [^=\n]+ = (.+)$',source,re.M);assert len(found)==1,(name,found)
+  cases.append(dict(id=Path(path).stem+'-'+name.lower(),path=path,kind='scalar',name=name,frozen_original_expression=found[0],new_expression=value,expected='COLUMN_SOURCE_METADATA'))
+for path,name,kind in [(owner,'MATERIAL_KEYS','short'),(owner,'MATERIAL_KEYS','swap-first-two'),(defs,'TIER_TWO_KEYS','long'),(defs,'TIER_TWO_KEYS','short'),(owner,'COLUMN_BUILDING_KEYS','short'),(owner,'COLUMN_FURNITURE_WORK_MWU','long'),(owner,'COLUMN_UPGRADE_IDS','short')]:
+ cases.append(dict(id=Path(path).stem+'-'+name.lower()+'-'+kind,path=path,kind='array',name=name,operation=kind,expected='COLUMN_SOURCE_METADATA'))
+j=dict(scope='Bounded source-scalar/extent correction witnesses only, not complete metadata or Construction acceptance',contract='CONSTRUCTION-S4-VALIDATE-R01v2',cases=cases,controls=['unmodified candidate before faults','unmodified candidate after faults'],execution='Cold isolated clone with autoload section removed, static owner APIs only, authored metadata-owner-probe.gd; parse/runtime failures invalidate execution rather than count as caught faults.',source_hashes={p:hashlib.sha256((r/p).read_bytes()).hexdigest() for p in scalars},executed=False)
+(e/'metadata-scalar-fault-plan.json').write_text(json.dumps(j,indent=2)+'\n');print(json.dumps({'cases':len(cases),'executed':False}))

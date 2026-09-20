@@ -1,0 +1,52 @@
+{
+  "id": "construction-combined-review-a1",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/construction-combined-review-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-combined-review",
+    "role": "review",
+    "model": "claude-opus-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/construction_component_validation_contract.md",
+    "docs/decisions/0186-construction-validation-preserves-retired-purpose-and-refund-history.md",
+    "godot/scripts/core/construction.gd",
+    "godot/scripts/core/save_owner_construction.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "godot/test/test_construction_columns.gd",
+    "godot/test/test_save_owner_construction.gd",
+    "godot/test/test_construction_retired_histories.gd",
+    "godot/test/construction_columns_focus.gd",
+    "tools/test_construction_metadata_preflights.py",
+    "tools/test_construction_allocation.py",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/combined-review-dependency-excerpts.md",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/real-histories-focus-a1.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/bridge-metadata-a1/result.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/row-semantic-faults-a1/result.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/projection-purity-faults-a1/result.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/negative-phase-faults-a1/result.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/allocation-probe.gd",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/allocation-a1/result.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/metadata-bridge-observer.gd",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/bridge-metadata-fault-proposal.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/gameplay-prefix-identity.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/candidate-validation-index.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/static-a2.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/release-checks-a1/focus.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/release-checks-a1/metadata.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/release-checks-a1/allocation.json",
+    "docs/validation/evidence/construction-component-validation-2026-09-20/release-checks-a1/allocation.log"
+  ],
+  "instructions": "Fresh independent reviewer, not author. Review exact current Construction pure Columns validator, borrowed framed-owner bridge, independent functional/12real-history tests, counterfactual evidence and two new portable CI harnesses. Full combined code/security/QA review; no separate UX necessary for this internal validator. Give verdict, candidate identity, material findings with source location/trigger, evidence limits. Use tools-free supplied sources; no writes except runner materialized summary. Return files:[] and full substantive review in summary with five-key JSON. All39 row faults and26projection/purity faults caught;55bridge/source/schema faults pass incl4actualstoredStringName keys previously missed. Six negative-phase witnesses and actualconditionomissions covered by supplied result. All1776positive tuples independently enumerated,82944mixed image,12publichistories. Allocation-a1 preceded only keyguard repair (bridge unchanged); current-owner allocation/focus/full/static/exact-headCI pending separately, DO NOT claim them run. Metadatacontractnumericvalueanchors intentionally limit unrelated geometry values: all shape/types, consumedwork/worker exact; not missing geometry-number mirrors. Stored String keys+canonicalID/valuewalk both required. Existing gameplay first1327lines unchanged (source author adds end-of-file Columns/helpers); fullhistories still assess retained semantics. Bridge7gates preserves Schema and Section contracts; directshape-beforemetadata differs from bridge metadata-beforeframe by design. Section5delivered ledger already registered; cross-owner/same-filebinding/captureapply/diskrollback explicitly outside bounded scope. No rule permitting extra default Columns/copies/packed scratch. Distinguish actual source/allocation regression from hypothetical unmeasured whole-process native memory. Inspect helpers, unsafe type/index/coercion, full row phase/retired policy domain, COW-purity witness and exactmapper, meaningfulnegative priority assertions, parse-error rejection and CI exit/error checks. Full suite will run in isolated PR177 checkout excluding unfinished goods/placement stages; same Construction sources byte-identical. Preserve full findings; no arbitrary prose limit. Do not accept milestone on author claims or counts alone. If context lacks a material dependency, identify exact missing function and why instead of inventing.\nDispatch update: isolated96tests2354assertions focus passed; portable55fault+2controlmetadata passed; final current-sourceallocation passed and its full JSON log is supplied. All17staticchecks pass after a packaging omission was corrected by copying existing bridge classification. Full regression running, no verdict on it yet. These supersede earlier pending labels. Candidatevalidationindex historical pending labels are history, not acceptance. Exact gameplay-prefix proof supplied.\n\nDispatch audit: {\"base_commit\":\"818197313aa87cae2c1e6cfe091abe27d24817fc\",\"task\":\"Independent code/security/QA review of exact Construction component-validation candidate\",\"allowedWrites\":{\"docs/validation/evidence/construction-component-validation-2026-09-20/independent-combined-review.md\":null}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized.",
+  "reviewTarget": {
+    "path": "docs/validation/evidence/construction-component-validation-2026-09-20/independent-combined-review.md",
+    "baseSha256": null
+  }
+}

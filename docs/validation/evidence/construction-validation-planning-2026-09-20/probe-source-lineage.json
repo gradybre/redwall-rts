@@ -1,0 +1,8 @@
+{
+  "public-history-probe": "public-history-probe.json",
+  "retired-probe": "retired-probe-a2.json",
+  "construction_same": "78e724618362bfb3dd37945a27be6be1c0a70aa27b59e7bdd300f1c26bdfb5b9",
+  "buildings_public_history_prefix": "8f21111b",
+  "buildings_retired_probe": "eb6d09a1d80d169fa60795b6e6d22d05dd64329b8ea85f36e805b482ea705dd5",
+  "scope": "Separate source-bound runs; not one coherent collaborator baseline"
+}

@@ -1,0 +1,19 @@
+{
+  "attempt": "construction-bridge-author-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "construction-local-validation-bridge",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "CONSTRUCTION-S4-VALIDATE-R01v2"
+  },
+  "session_id": "45b82575-add0-4ce2-a09a-18d987b04f2f",
+  "owner_stopped": true,
+  "base_commit": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "integration_head": "818197313aa87cae2c1e6cfe091abe27d24817fc",
+  "source_inputs_reverified": true,
+  "files": {
+    "godot/scripts/core/save_owner_construction.gd": "fda855cf3edde92fe6b53768007644be8c062b17304a463111635e7d0ac9b3b5"
+  },
+  "approval": "artifact_intake_only_not_product_acceptance"
+}

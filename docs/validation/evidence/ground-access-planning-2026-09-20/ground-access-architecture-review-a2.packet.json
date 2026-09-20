@@ -1,0 +1,51 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "446d6d73d0dabc603df648b92a2d7e9edae55e92",
+  "task": "Bounded reviewer correction on diagonal proof, root-preserving placement, existing section9 and ledger",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "ground-access-architecture",
+    "role": "review",
+    "model": "claude-opus-5",
+    "contractEpoch": "GROUND-ACCESS-DISCOVERY-R01"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/movement_contracts.md",
+    "docs/rulings/2026-09-14_cycle02_movement_envelopes.md",
+    "docs/rulings/2026-09-14_cycle03_movement_policy.md",
+    "docs/rulings/2026-09-12_movement_dependency_rulings.md",
+    "docs/movement_direction_amendment.md",
+    "docs/planning/movement_envelope_schema.json",
+    "docs/planning/starter_structures_preparation_contract.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/next-ground-access-discovery.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/placement-followup-proposal.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/placement-source-impact.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/mouse-static-vertex-diagnostic.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/topology-interface-audit.json",
+    "docs/validation/evidence/ground-access-planning-2026-09-20/scope.md",
+    "docs/validation/evidence/ground-access-planning-2026-09-20/source-manifest.json",
+    "godot/scripts/core/movement.gd",
+    "godot/scripts/core/spatial_world.gd",
+    "godot/scripts/core/navigation.gd",
+    "godot/scripts/core/transforms.gd",
+    "docs/validation/evidence/ground-access-planning-2026-09-20/review-corrections-r01.md",
+    "docs/validation/evidence/ground-access-planning-2026-09-20/diagonal-clearance-coverage.json",
+    "docs/validation/evidence/ground-access-planning-2026-09-20/mouse-rigid-yaw-diagnostic.json",
+    "godot/scripts/core/save_section_navigation.gd",
+    "docs/persistence_state_registry.md",
+    "docs/systems_architecture.md",
+    "docs/validation/ready07_arithmetic.py",
+    "godot/scripts/core/save_owner_movement.gd"
+  ],
+  "allowedWrites": {
+    "docs/validation/evidence/ground-access-planning-2026-09-20/architecture-review-corrections.md": null
+  },
+  "reviewTarget": {
+    "path": "docs/validation/evidence/ground-access-planning-2026-09-20/architecture-review-corrections.md",
+    "baseSha256": null
+  },
+  "instructions": "Continue your own independent review with the bounded corrections requested in review-corrections-r01.md. Your review is not adopted. Verify the counterarguments and supplied current source rather than preserve earlier conclusions. Distinguish codec/capture capability from whole-file disk restoration. Return a correction/addendum, concise but complete, no repeated broad source audit, no code or execution claims; summary/files:[] at trusted target.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/ground-access-architecture-review-a1"
+}

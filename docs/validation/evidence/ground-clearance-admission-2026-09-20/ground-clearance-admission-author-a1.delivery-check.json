@@ -1,0 +1,18 @@
+{
+  "scope": {
+    "project": "redwall-rts",
+    "task": "ground-clearance-admission",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "GROUND-CLEARANCE-R01v1"
+  },
+  "base_commit": "446d6d73d0dabc603df648b92a2d7e9edae55e92",
+  "allowedWrites": {
+    "docs/validation/evidence/ground-clearance-admission-2026-09-20/implementation.patch": null
+  },
+  "returnedPaths": [
+    "docs/validation/evidence/ground-clearance-admission-2026-09-20/implementation.patch"
+  ],
+  "sourceApplied": false,
+  "approval": "not_granted"
+}

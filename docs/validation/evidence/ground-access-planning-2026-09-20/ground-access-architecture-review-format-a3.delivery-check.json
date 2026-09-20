@@ -1,0 +1,18 @@
+{
+  "scope": {
+    "project": "redwall-rts",
+    "task": "ground-access-architecture",
+    "role": "review",
+    "model": "claude-opus-5",
+    "contractEpoch": "GROUND-ACCESS-DISCOVERY-R01"
+  },
+  "base_commit": "446d6d73d0dabc603df648b92a2d7e9edae55e92",
+  "allowedWrites": {
+    "docs/validation/evidence/ground-access-planning-2026-09-20/architecture-review-corrections.md": null
+  },
+  "returnedPaths": [
+    "docs/validation/evidence/ground-access-planning-2026-09-20/architecture-review-corrections.md"
+  ],
+  "sourceApplied": false,
+  "approval": "not_granted"
+}

@@ -1,0 +1,72 @@
+{
+  "scope": "Diagnostic of continuous rigid yaw of the existing static mesh ONLY; not the seven-state body/gear/cargo sweep, no approved margin, profile, support, doorway or movement admission",
+  "source": "godot/assets/units/species_mouse_body_a_lod0.glb",
+  "sha256": "6e71d409142efc2b870c800e68961d77b9ebdd72da81711cd330bc4b40a36b9b",
+  "vertices": 11103,
+  "maximum_squared_horizontal_radius_units": {
+    "numerator": 52734379146325705,
+    "denominator": 274877906944
+  },
+  "outward_integer_radius_units": 439,
+  "method": "Decode exact float32 vertex values; compute rational squared XZ distances; integer sqrt with exact outward check. Convex triangle interiors cannot exceed the maximum vertex radius. Rotations about the root preserve radius.",
+  "trials": [
+    {
+      "offset_units_xz": [
+        256,
+        256
+      ],
+      "translated_min_units_xz": [
+        -183,
+        -183
+      ],
+      "translated_max_units_xz": [
+        695,
+        695
+      ],
+      "static_rigid_yaw_containment_class": null,
+      "production_qualified": false
+    },
+    {
+      "offset_units_xz": [
+        768,
+        256
+      ],
+      "translated_min_units_xz": [
+        329,
+        -183
+      ],
+      "translated_max_units_xz": [
+        1207,
+        695
+      ],
+      "static_rigid_yaw_containment_class": null,
+      "production_qualified": false
+    },
+    {
+      "offset_units_xz": [
+        768,
+        768
+      ],
+      "translated_min_units_xz": [
+        329,
+        329
+      ],
+      "translated_max_units_xz": [
+        1207,
+        1207
+      ],
+      "static_rigid_yaw_containment_class": 3,
+      "production_qualified": false
+    }
+  ],
+  "finding": "A placement that contains the original static pose on X but retains +256 on Z cannot contain its full rigid yaw. Choosing both offsets +768 is a diagnostic containment alternative, not production policy.",
+  "omissions": [
+    "art approval of source anatomy",
+    "deformation and articulated poses",
+    "clothing/gear/cargo changes",
+    "authored margins",
+    "support and continuous translation",
+    "contact and doorway admission",
+    "save/anchor semantic changes"
+  ]
+}

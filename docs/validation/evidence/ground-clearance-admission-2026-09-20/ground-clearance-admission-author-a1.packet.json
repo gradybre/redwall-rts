@@ -1,0 +1,32 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "446d6d73d0dabc603df648b92a2d7e9edae55e92",
+  "task": "Implement the bounded qualified-clearance admission guard and explicit synthetic motion fixtures",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "ground-clearance-admission",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "GROUND-CLEARANCE-R01v1"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/ground_clearance_admission_contract.md",
+    "docs/decisions/0185-bind-travel-admission-to-qualified-route-clearance.md",
+    "docs/validation/evidence/ground-clearance-admission-2026-09-20/source-base.json",
+    "godot/scripts/core/movement.gd",
+    "godot/scripts/core/navigation.gd",
+    "godot/test/test_movement.gd",
+    "godot/test/test_movement_readmission.gd",
+    "godot/scripts/core/spatial_world.gd",
+    "godot/scripts/core/int_math.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "godot/test/starter_structures_focus.gd"
+  ],
+  "allowedWrites": {
+    "docs/validation/evidence/ground-clearance-admission-2026-09-20/implementation.patch": null
+  },
+  "instructions": "Implement exactly GROUND-CLEARANCE-R01v1. Return one complete standard unified diff at the sole patch target, baseSha256 null, modifying exactly the seven targets listed in source-base.json; production change is small, tests and explicit synthetic fixture are the main work. Preserve existing positive motion/readmission scenarios via the test-only subclass, and preserve actual-base production clearance refusal coverage. No production bypass/test flag, no body dimensions, no new state/schema, no graph or arithmetic changes. New test helpers typed/documented and short; all tests actual production admission, not an overridden begin method. You have no tools: do not claim execution. Surface any genuine missing contract as a question rather than invent semantics. Output exact strict JSON keys status,summary,questions,files,decisionIds. Prefer a compact patch with at least3unchanged context lines and newline at end; a 900line resource limit is generous for this bounded change. Do not reproduce whole unchanged source files. Base hashes and sources frozen; author cannot self-accept."
+}

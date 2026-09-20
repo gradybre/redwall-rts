@@ -1,0 +1,50 @@
+{
+  "id": "ground-access-architecture-review-format-a3",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/ground-access-architecture-review-format-a3",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "ground-access-architecture",
+    "role": "review",
+    "model": "claude-opus-5",
+    "contractEpoch": "GROUND-ACCESS-DISCOVERY-R01"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/movement_contracts.md",
+    "docs/rulings/2026-09-14_cycle02_movement_envelopes.md",
+    "docs/rulings/2026-09-14_cycle03_movement_policy.md",
+    "docs/rulings/2026-09-12_movement_dependency_rulings.md",
+    "docs/movement_direction_amendment.md",
+    "docs/planning/movement_envelope_schema.json",
+    "docs/planning/starter_structures_preparation_contract.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/next-ground-access-discovery.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/placement-followup-proposal.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/placement-source-impact.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/mouse-static-vertex-diagnostic.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/topology-interface-audit.json",
+    "docs/validation/evidence/ground-access-planning-2026-09-20/scope.md",
+    "docs/validation/evidence/ground-access-planning-2026-09-20/source-manifest.json",
+    "godot/scripts/core/movement.gd",
+    "godot/scripts/core/spatial_world.gd",
+    "godot/scripts/core/navigation.gd",
+    "godot/scripts/core/transforms.gd",
+    "docs/validation/evidence/ground-access-planning-2026-09-20/review-corrections-r01.md",
+    "docs/validation/evidence/ground-access-planning-2026-09-20/diagonal-clearance-coverage.json",
+    "docs/validation/evidence/ground-access-planning-2026-09-20/mouse-rigid-yaw-diagnostic.json",
+    "godot/scripts/core/save_section_navigation.gd",
+    "docs/persistence_state_registry.md",
+    "docs/systems_architecture.md",
+    "docs/validation/ready07_arithmetic.py",
+    "godot/scripts/core/save_owner_movement.gd",
+    "docs/validation/evidence/ground-access-planning-2026-09-20/astra-correction-to-review-request.md"
+  ],
+  "instructions": "Your preceding attempt stopped safely but failed transport validation BUNDLE_KEYS_INVALID. Its raw public text was not retained by this validation path, so no delivery was applied. This is FORMAT REPAIR, not a new source audit: reissue your completed correction/addendum in exactly this JSON object with exactly these five top-level keys: {\"status\":\"complete\",\"summary\":\"YOUR COMPLETE CORRECTED REVIEW TEXT\",\"questions\":[],\"files\":[],\"decisionIds\":[]}. No verdict/findings/scope/corrections top-level fields, no markdown fence, no extra fields. Put every heading and all substantive review content INSIDE summary as a JSON string; files stays empty because trusted review mode materializes it. Preserve the completed reasoning and corrections from your previous response; do not reread/repeat the full codebase. One new brief Astra erratum is supplied confirming that section8 job planner capture had been confused with section9: section9 codec exists, live Navigation/Movement bulk APIs remain unfinished. Incorporate that boundary if your previous review did not already resolve it. No claims of execution or permission to waive save parity.\n\nDispatch audit: {\"base_commit\":\"446d6d73d0dabc603df648b92a2d7e9edae55e92\",\"task\":\"Same-reviewer strict bundle format repair only\",\"allowedWrites\":{\"docs/validation/evidence/ground-access-planning-2026-09-20/architecture-review-corrections.md\":null}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/ground-access-architecture-review-a2",
+  "reviewTarget": {
+    "path": "docs/validation/evidence/ground-access-planning-2026-09-20/architecture-review-corrections.md",
+    "baseSha256": null
+  }
+}

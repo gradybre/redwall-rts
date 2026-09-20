@@ -1,0 +1,22 @@
+[
+  {
+    "path": "godot/scripts/core/movement.gd",
+    "sha256": "152951b44b02fc91e7c164c6a2baf56dec6bc7407f402dfc0df4051d5bfe8f8e",
+    "bytes": 65750
+  },
+  {
+    "path": "godot/scripts/core/spatial_world.gd",
+    "sha256": "3825788db07885db94dab7288c832b8219f89e54da22d871d58e98e2d590b26b",
+    "bytes": 33447
+  },
+  {
+    "path": "godot/scripts/core/navigation.gd",
+    "sha256": "00f43ec4f4d834fb836c2a72bdc882cb7eddd5d53e596ecd154a4d83f7caacf2",
+    "bytes": 59190
+  },
+  {
+    "path": "godot/scripts/core/transforms.gd",
+    "sha256": "0c2a532f0869ee1280f830693f0521d2644148828217af7cf2602a1eeca7d675",
+    "bytes": 23473
+  }
+]

@@ -1,0 +1,6 @@
+{
+  "a2": "Rejected before provider launch because previousPrefix was relative; wrapper had already written exclusive spec. No model owner started.",
+  "a2_retry": "Corrected absolute previousPrefix; exclusive spec correctly prevented overwrite.",
+  "a2r": "New unique attempt prefix, same stopped latest author checkpoint, valid absolute previousPrefix; launched normally.",
+  "scope": "Controller dispatch framing only; no source or contract change"
+}

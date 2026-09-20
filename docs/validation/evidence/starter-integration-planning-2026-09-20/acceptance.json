@@ -1,0 +1,16 @@
+{
+  "task": "INIT-C-PREP",
+  "accepted": true,
+  "scope": "Compact cold refuge layout preparation only; not live startup/physical access/first playable",
+  "pr": 175,
+  "head": "446d6d73d0dabc603df648b92a2d7e9edae55e92",
+  "merge_commit": "260292e0033c33034d73ca83a33f80272f1284fb",
+  "merged_at": "2026-09-20T17:00:10Z",
+  "ci_run": 35522852314,
+  "tests": 5034,
+  "assertions": 526086,
+  "failures": 0,
+  "log_sha256": "d531876e62db94c1d7c5b93d14e4de46a0476c1c264bee8d3f1e38ac2e1a1282",
+  "shutdown_diagnostics": "553 ObjectDB instances and33resources remain open",
+  "merge_gate_note": "First attempt held because PR body lacked required declaration blocks; added truthful none declarations for this bounded change and normal gate passed. No bypass."
+}

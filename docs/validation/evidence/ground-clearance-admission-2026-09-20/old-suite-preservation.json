@@ -1,0 +1,28 @@
+{
+  "scope": "Exact whole-function comparison against branch base; header additions permitted. Base production refusal test changes receiver only and gains explanatory documentation. This is not test execution.",
+  "results": [
+    {
+      "path": "godot/test/test_movement.gd",
+      "original_sha256": "12c5cbe8c96871be21f57e813964fcd6531e785c9e55660792ad6ae2512bd46f",
+      "current_sha256": "fe01cb3593b5acffd26a3f708002be631c19817545a0edc84c05e7571cd43178",
+      "test_function_count": 54,
+      "functions_unchanged": 68,
+      "changed_functions": [
+        "_build",
+        "test_no_profile_publishes_a_clearance_class"
+      ],
+      "no_function_removed_or_added": true
+    },
+    {
+      "path": "godot/test/test_movement_readmission.gd",
+      "original_sha256": "3d3b8ea12020eaefc6f2f58422d841158f14e956ce6e7e8970e69b3049147380",
+      "current_sha256": "4a0305654e5146bef116903885ed069d2f2d59a1634dd51820abd8ee4c35e0d6",
+      "test_function_count": 5,
+      "functions_unchanged": 17,
+      "changed_functions": [
+        "_build"
+      ],
+      "no_function_removed_or_added": true
+    }
+  ]
+}

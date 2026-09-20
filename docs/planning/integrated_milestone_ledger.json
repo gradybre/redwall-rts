@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-09-20T16:26:47.135504+00:00",
+  "updated_at": "2026-09-20T17:18:46.644128+00:00",
   "policy_source": "/Users/brendan/Documents/Codex/2026-09-18/help-me-build-out-and-define/skills/loop-engineering/references/efficient-execution.md",
   "policy_sha256": "ec007d1261dcfff0a11b26bd0e1599c94c5350818b11a74f5052b87e983103e9",
   "product_scope": "Complete adopted settlement release; no campaign/battle expansion",
@@ -10,15 +10,15 @@
     "status": "not_accepted",
     "acceptance": "docs/planning/first_playable_acceptance.md",
     "near_term": [
-      "Complete repaired compact refuge plan, independent tests/review and exact-head CI; Buildings validation merged in PR174",
+      "Refuge preparation and Buildings validation accepted in PR175/174; complete profile-to-route clearance admission repair next",
       "Close INIT-C spatial/door/contact preparation and INIT-D goods/equipment contracts from the current source",
       "Develop separately scoped empty-world preparation/boot where authorized; retain INIT-E prior-world replacement dependency on full disk rollback",
       "Finish remaining persistence owner domains and same-file binding/assembly needed for safe replacement"
     ],
     "completion": {
-      "merged_loop_prs": 35,
-      "last_merged_pr": 174,
-      "last_merged_candidate": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
+      "merged_loop_prs": 36,
+      "last_merged_pr": 175,
+      "last_merged_candidate": "260292e0033c33034d73ca83a33f80272f1284fb",
       "first_playable_cases_passed": 0,
       "first_playable_cases_executed": 0
     },
@@ -31,13 +31,84 @@
     ]
   },
   "active": {
+    "id": "GROUND-CLEARANCE-ADMISSION",
+    "status": "local_gates_passed_packaging",
+    "contract": "docs/planning/ground_clearance_admission_contract.md",
+    "evidence": "docs/validation/evidence/ground-clearance-admission-2026-09-20/",
+    "scope": "Bind travel admission to qualified matching route clearance; no dimensions or runtime profile publication",
+    "preceding_review": "docs/validation/evidence/ground-access-planning-2026-09-20/astra-disposition-r01.json",
+    "first_candidate": {
+      "import": "passed",
+      "focus": {
+        "tests": 67,
+        "assertions": 2602,
+        "failures": 1,
+        "script_or_engine_errors": 0
+      },
+      "observed_defect": "Successful route clearance getter failed to clear prior refusal diagnostic",
+      "repair": "Diagnostic fix and full contract preservation/priority witnesses",
+      "evidence": "focus-a1.json"
+    },
+    "candidate_evidence": {
+      "focus": {
+        "tests": 71,
+        "assertions": 2655,
+        "failures": 0,
+        "evidence": "focus-a2.json"
+      },
+      "mutations": {
+        "caught": 3,
+        "total": 3,
+        "invalid_execution": 0,
+        "evidence": "mutation-results.json"
+      },
+      "remaining": [
+        "Committed identity",
+        "Exact-head CI and merge"
+      ],
+      "full": {
+        "tests": 5046,
+        "assertions": 526349,
+        "failures": 0,
+        "evidence": "full-a2-classification.json",
+        "initial_harness_note": "Rejected existing baseline intentional ERROR logs; exact baseline comparison corrected classification, original retained."
+      },
+      "static": {
+        "checks": 17,
+        "failures": 0,
+        "evidence": "static-a2.json"
+      },
+      "review": {
+        "verdict": "No must-fix",
+        "evidence": "source-review.md",
+        "disposition": "source-review-disposition.json"
+      }
+    }
+  },
+  "runner": {
+    "current": "CLI-compatible loop-session/worker.mjs invoking installed /Users/brendan/.local/bin/loop-worker",
+    "shared_runner": "0.1.2 installed and adopted at stopped boundary",
+    "source": "d46467f9d72a66f2080ea1145657271defbe2472",
+    "unattended": false
+  },
+  "last_accepted": {
     "id": "INIT-C-PREP",
-    "status": "review_approved_packaging_and_ci_pending",
+    "pr": 175,
+    "merge_commit": "260292e0033c33034d73ca83a33f80272f1284fb",
+    "ci_run": 35522852314,
+    "tests": 5034,
+    "assertions": 526086,
+    "failures": 0,
+    "evidence": "docs/validation/evidence/starter-integration-planning-2026-09-20/"
+  },
+  "completed_preparation": {
+    "id": "INIT-C-PREP",
+    "status": "accepted_merged",
     "contract": "docs/planning/starter_structures_preparation_contract.md",
     "evidence": "docs/validation/evidence/starter-integration-planning-2026-09-20/",
     "scope": "Compact authored plan only, not materialized or admission-qualified settlement",
     "initial_candidate": "Rejected before integration: compile error, incomplete structural/source validation and extra Plan allocation",
-    "next_gate": "Commit identity and exact-head CI before PR merge",
+    "next_gate": "Complete runtime materialization under separately closed contracts",
     "repair_disposition": "Whole-candidate Sonnet and Opus repairs each reached the 15-minute hard bound without delivering source; both owners stopped, candidate unchanged. Repairs split into compile/allocation, metadata and structural parts. All original acceptance gates retained.",
     "intermediate_evidence": "All four repair parts passed smoke1test/6assertions/0; exact immutable fixtures unchanged; source inspection sees one staged Plan constructor and10COW publications. Candidate462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa",
     "integration_evidence": "Candidate module+UID and cold derived registry row integrated on development branch; Godot import and17static checks pass; no startup wiring and no product acceptance",
@@ -70,7 +141,7 @@
       "verdict": "Approve test delta; no new must-fix",
       "evidence": "source-review-followup.md",
       "disposition": "source-review-disposition-r02.json",
-      "remaining": "Final cosmetic integration focused check, commit identity and exact-head CI"
+      "remaining": "No gate remains for INIT-C-PREP; accepted in PR175. Downstream runtime scope remains separate."
     },
     "review_followup_initial": {
       "tests": 32,
@@ -83,29 +154,18 @@
       "tests": 35,
       "assertions": 3674,
       "failures": 0,
-      "evidence": "functional-review-followup.json"
+      "evidence": "functional-final-packaging.json"
+    },
+    "pr": 175,
+    "head": "446d6d73d0dabc603df648b92a2d7e9edae55e92",
+    "acceptance": "docs/validation/evidence/starter-integration-planning-2026-09-20/acceptance.json",
+    "exact_head_ci": {
+      "head": "446d6d73d0dabc603df648b92a2d7e9edae55e92",
+      "run": 35522852314,
+      "required_checks": "Both success",
+      "tests": 5034,
+      "assertions": 526086,
+      "failures": 0
     }
-  },
-  "runner": {
-    "current": "CLI-compatible loop-session/worker.mjs invoking installed /Users/brendan/.local/bin/loop-worker",
-    "shared_runner": "0.1.2 installed and adopted at stopped boundary",
-    "source": "d46467f9d72a66f2080ea1145657271defbe2472",
-    "unattended": false
-  },
-  "last_accepted": {
-    "id": "SAVE-S4-BUILDINGS-VALIDATE",
-    "pr": 174,
-    "merge_commit": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
-    "ci_run": 35514899019,
-    "tests": 4999,
-    "assertions": 522412,
-    "failures": 0,
-    "evidence": "docs/validation/evidence/buildings-component-validation-2026-09-20/"
-  },
-  "parallel_work": {
-    "id": "SAVE-S4-CONSTRUCTION-VALIDATE",
-    "status": "source_derived_domain_proposal",
-    "evidence": "docs/validation/evidence/construction-validation-planning-2026-09-20/",
-    "scope": "Planning only; not author dispatched or accepted validator"
   }
 }

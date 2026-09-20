@@ -1,27 +1,19 @@
 # World-art look-development brief
 
-Document `SET-ART-LOOKDEV-001`, revision 1.1, 2026-09-11.
+Document `SET-ART-LOOKDEV-001`, revision 1.2, 2026-09-20; reconciles DEC-039 without new art approval.
 Status: **preparation only — no asset is authored, generated or paid for by this document.**
 
-> **Revision 1.1 — the 2026-09-11 ruling is bound into this brief.**
-> [The asset/save/movement ruling](../rulings/2026-09-11_asset_save_movement_blockers.md) and
-> [asset dimensions and budgets](../planning/asset_dimensions_and_budgets.md) (ART-GAP-R01–05)
-> supply the numbers revision 1.0 refused to invent. **Six of the nine blocked entries now
-> have authoring answers. Three creature entries — A2 mole, A3 squirrel, A4 otter — have
-> concrete comparison briefs. **DEC-039 approved their proportions on 2026-09-12**, so they are
-> production-ready, and neither are the other six in the sense of qualification: an
-> authoring contract is not exported evidence or a measured frame time.**
+> **Revision1.2 applies DEC-039 consistently.** The five anatomical height anchors
+> were approved on September12: mouse1024u, mole922u, squirrel1178u, otter1526u,
+> badger2611u. Bulk creature authoring is unblocked at those scales. Landmark ratios,
+> production anatomy, measured movement fit and final assets retain their own review.
+> Paid generation is not authorized by that approval. Historical gap-search quotations
+> in section8 remain evidence of earlier states, not current execution blockers.
 >
-> The numbers are bound for the engine in
-> [`godot/assets/lookdev/lookdev_dimensions.gd`](../../godot/assets/lookdev/lookdev_dimensions.gd),
-> the GAP-06 hierarchy check in
-> [`asset_import_validator.gd`](../../godot/assets/lookdev/asset_import_validator.gd), and the
-> review scene decision 0002 requires in
-> [`proportion_comparison.gd`](../../godot/assets/lookdev/proportion_comparison.gd) with its
-> captures under `godot/assets/lookdev/captures/`. Recorded as
-> [decision 0082](../decisions/0082-lookdev-dimensions-are-bound-and-the-comparison-scene-is-built.md).
-> **Every creature height below remains a comparison candidate until Brendan approves the
-> comparison scene. Bulk creature generation does not start before that.**
+> Dimension metadata and comparison-scene code already bind these values; this revision
+> corrects contradictory prose and tables, not runtime geometry. See
+> [DEC-039](../setting_decisions.md#dec-039--approved-creature-proportions-for-all-five-species)
+> and [asset dimensions](../planning/asset_dimensions_and_budgets.md).
 
 This is the brief that [the consolidated handoff](claude_visual_handoff.md) §6 asks for:
 "a concrete look-development brief using the approved image plus named original
@@ -280,21 +272,21 @@ anatomy. They exist so the review in §2.4 can happen.
 
 ### 2.4 Species heights, the measurement convention, and the review that gates them
 
-ART-GAP-R01/R02 supply anatomical-height **comparison candidates**. The ruling states in
-terms that these are "not bulk-production approval".
+ART-GAP-R01/R02 supplied the original comparison candidates. DEC-039 supersedes their
+pending-height status and approves the following anatomical scales.
 
-| Species | Candidate, units (1/1024 m) | Integer millimetres (derived) | Status |
+| Species | Approved units (1/1024m) | Approximate integer millimetres | Scope |
 |---|---:|---:|---|
-| mouse | 1024 | 1000 | Inherited crowd §9.1 anchor; measurement convention newly specified. **Still a comparison input** — what is judged is the relation between all five |
-| mole | 922 | 900 | **Comparison candidate — not bulk-production approval** |
-| squirrel | 1024 | 1000 | **Comparison candidate — not bulk-production approval** |
-| otter | 1526 | 1490 | **Comparison candidate — not bulk-production approval.** Retains the prior 1.49 m candidate at integer precision; that is not an elevation into an approved tier |
-| badger | 2611 | 2550 | **Comparison candidate — not bulk-production approval.** Same, for the prior 2.55 m |
+| mouse | 1024 | 1000 | Inherited anchor; relative scale confirmed |
+| mole | 922 | 900 | Anatomical scale approved |
+| squirrel | 1178 | 1150 | Raised above mouse and approved |
+| otter | 1526 | 1490 | Anatomical scale approved |
+| badger | 2611 | 2550 | Anatomical scale approved |
 
-Heights are authored in **integer millimetres**; float is import and presentation only. The
-authoritative unit remains 1/1024 m, and the millimetre column is derived by half-up
-rounding. Where they disagree the unit column wins — see §8's GAP-03 note for the one
-building row where they do.
+The integer simulation-unit column governs. Millimetres here are rounded display
+values, not a competing exact scale. Approval covers anatomical height and relative
+scale; it does not approve landmark ratios, body widths, service contacts or movement
+clearance. Those require actual geometry and separate evidence.
 
 **The measurement convention** (new, and the reason a squirrel's tail cannot shrink its
 torso): neutral standing, bare adult body, supporting soles on Y = 0, height to the highest
@@ -310,15 +302,15 @@ landmark metadata, apply the same transform to every attachment, and validate th
 animated bounds. Do not run a squirrel through whole-tail-height scaling, and do not
 silently modify an existing source asset. Axes stay −Z forward, +Y up, foot-origin.
 
-**These candidate heights set no navigation clearance, service reach, step height or
+**These approved heights set no navigation clearance, service reach, step height or
 movement capability.** MOVE-G01 owns those independently.
 
-#### The prescribed comparison scene — built, and awaiting Brendan's eye
+#### The prescribed comparison scene — built; height decision recorded in DEC-039
 
 Decision 0002 requires mouse / hare-or-otter / badger beside the **same** door, table and
 workbench, standing, walking, carrying and crouching, close and at the RTS camera, before
-bulk proportions are approved. Mole and squirrel are included because the ruling gives them
-new candidates. Giant residents remain excluded.
+bulk proportions are approved. DEC-039 records the completed anatomical-scale review;
+landmark and production-anatomy review remains separate. Giant residents remain excluded.
 
 That scene now exists as `godot/assets/lookdev/proportion_comparison.tscn`, rebuildable with:
 
@@ -352,7 +344,7 @@ so the shipped yaw shows their backs; orbit yaw is unrestricted, so 225° is an 
 camera and is where a face is visible. The pair doubles as the facing check, which §2.1 says
 no script can make.
 
-#### What the captures already show, before anyone rules on them
+#### Historical observations from the initial comparison
 
 Three observations that follow from the ruling's own numbers and need no landmark
 assumption. They are offered as **questions for the review**, not as findings:
@@ -368,12 +360,13 @@ assumption. They are offered as **questions for the review**, not as findings:
    opening. That passes as a model brief. It is **not** a clearance qualification: the
    movement profile must qualify the real opening against a real animated body with gear,
    and this brief makes no claim about it.
-3. **Mouse and squirrel share a candidate height**, so nothing in this sheet distinguishes
-   them by stature. Their whole difference is tail, ear tufts and cheek mass — which is
-   precisely what a blockout cannot judge, and what A3's construction sheet must.
+3. **The initial mouse/squirrel equality was superseded by DEC-039.** Brendan requested
+   the squirrel be taller, and the current1178u anchor supplies that difference.
+   Tail, ear and cheek anatomy still need the A3 construction sheet.
 
 One further note, kept honest. IMG-25's lineup ranks mole slightly below mouse and squirrel
-at or above it, which is **directionally consistent** with 922 / 1024 / 1024. Its otter and
+at or above it, which is **directionally consistent** with the original922/1024/1024 candidates. The current
+approved sequence is922/1024/1178. Its otter and
 badger read taller relative to the mouse than the candidates imply. That observation is
 **not** offered as a measurement: the lineup carries horizontal guide rules across the whole
 frame, the figures are line art with no orthographic depth, and
@@ -495,13 +488,9 @@ own manifest as exceeding the intended runtime simplification.
 
 **Geometry constraints.**
 
-- Height **922 u = 900 mm — COMPARISON CANDIDATE, NOT PRODUCTION APPROVAL** (ART-GAP-R01,
-  §2.4). Revision 1.0 carried a derived 1.00 m from IMG-25's "Small" category, which
-  [screenshot_review IMG-25](screenshot_review.md#img-25) rejects as a height source —
-  those bands are "squad model counts, not colony populations, hitboxes or height
-  multipliers". The ruling replaces that derivation with an authored candidate: **the mole
-  is shorter than the mouse, not equal to it.** Author to 922 u, labelled a candidate, and
-  accept that the §2.4 review may still move it.
+- Anatomical height **922u (approximately900mm), approved by DEC-039**.
+  The mole remains shorter than the mouse. This approves scale only; use the
+  actual references for anatomy and retain separate landmark/contact review.
 - Digging hands are wider than the mouse's; check them against the L2/L3 ceilings early,
   because claws are where triangles disappear first and where silhouette lives.
 - All shared constraints as A1. Naming `species_mole_body_a_lod0..3`, `rig_mole_v1`.
@@ -542,11 +531,9 @@ own manifest as exceeding the intended runtime simplification.
 
 **Geometry constraints.**
 
-- Height **1024 u = 1000 mm — COMPARISON CANDIDATE, NOT PRODUCTION APPROVAL**
-  (ART-GAP-R01, §2.4). The squirrel's candidate equals the mouse anchor, so **height is not
-  what distinguishes it**: tail, ear tufts and cheek mass carry the whole silhouette
-  difference. The measurement convention excludes the raised tail from height, which is the
-  specific clause written for this species.
+- Anatomical height **1178u (approximately1150mm), approved by DEC-039**.
+  The squirrel is taller than the1024u mouse. The measurement convention excludes
+  raised tail height; tail, ear and cheek anatomy still need construction review.
 - The tail must not consume the LOD budget. At L3's 350 triangles including gear, the
   tail and the body compete directly; decide the split at blockout, not at simplification.
 - All shared constraints as A1. `species_squirrel_body_a_lod0..3`, `rig_squirrel_v1`.
@@ -583,10 +570,8 @@ own manifest as exceeding the intended runtime simplification.
 
 **Geometry constraints.**
 
-- Height **1526 u = 1490 mm — COMPARISON CANDIDATE, NOT PRODUCTION APPROVAL**
-  (ART-GAP-R02, §2.4). This retains revision 1.0's unconfirmed 1.49 m figure at integer
-  precision. **It is not an elevation of that figure into an approved tier**, and the
-  ruling says so.
+- Anatomical height **1526u (approximately1490mm), approved by DEC-039**.
+  Anatomical scale approval does not qualify body/gear passage or landmark ratios.
 - The contradiction revision 1.0 found is **resolved by separating the domains, not by
   picking a winner**. [Crowd §5](../crowd_rendering_architecture.md)'s small/medium/large/
   giant radii of **184/246/461/922 units** are horizontal battle locomotion and separation
@@ -598,7 +583,7 @@ own manifest as exceeding the intended runtime simplification.
   **DEC-039 approved the otter's proportions on 2026-09-12.** A re-export
   after a late ruling is the expensive path the skill warns about.
 
-**Acceptance views.** As A1 once the proportions are approved, plus the otter-beside-mouse
+**Acceptance views.** As A1 under the approved anatomical scale, plus the otter-beside-mouse
 relation already captured in §2.4's comparison sheet, and a wet/dry material pair under the
 same light.
 
@@ -1241,7 +1226,7 @@ before a rig is reused, and states that similar-looking species are not proof. I
 mole needs its own rig, that is a finding, not a failure.
 Gate: **mole and mouse distinguishable by silhouette at 40 m.**
 
-### Phase 3 — A3 squirrel; A4 otter once the §2.4 proportions are approved
+### Phase 3 — A3 squirrel and A4 otter under DEC-039 scales
 
 Squirrel repeats the sequence, with the tail-bounds check at 1.12 as the likely failure
 point. The otter's reference sheets, blockout drawings and comparison bay are done; its
@@ -1298,8 +1283,9 @@ residents are not yet renderable, say so; do not stage a fake populated colony.
 
 Each entry names where it was searched, not merely that it is missing.
 
-**Revision 1.1 status at a glance.** The search records below are kept as written, because
-they are the evidence that the gap was real. What follows each is the ruling's answer.
+**Current status with historical evidence retained.** The search records and quoted
+September11 rulings below preserve the earlier candidate state. DEC-039 supersedes
+their pending-height claims; sections2.4 and10 give current authoring status.
 
 | Gap | Status after the 2026-09-11 ruling |
 |---|---|
@@ -1599,15 +1585,15 @@ These raise output quality more than budget does. Revision 1.0 listed four as op
 
 | Parameter | Value available as of revision 1.1 |
 |---|---|
-| Target height (GAP-01/02) | The §2.4 candidates — **but they are candidates, and generating to an unapproved height is exactly the re-export this brief exists to avoid** |
+| Target height (GAP-01/02) | The five DEC-039 approved anatomical height anchors in §2.4; geometry and fit still require qualification |
 | `target_polycount` (GAP-04) | Creature L0 12,000 including gear; the non-creature families in §4–§6 |
 | Naming (GAP-08) | §2.1's six ratified patterns |
 | Material model (GAP-09) | Phase 0b's metallic/roughness baseline |
 
-**The blocking condition has therefore moved, not disappeared.** It is no longer "the
-generator would invent these numbers"; it is "**the proportions have not been approved**",
-which is §2.4's review and Brendan's alone. The reference derivation boundary is settled:
-DEC-036 authorizes direct use of supplied material, so no further permission question exists.
+The anatomical-height decision is complete. Authoring can use those anchors; actual
+anatomy, exports, physical-fit evidence and finished-asset review remain required.
+DEC-036 already authorizes direct supplied-reference use. Paid generation still needs
+its separate itemized approval.
 
 ### Step 3 — the itemised request, for Brendan's decision
 
@@ -1658,26 +1644,24 @@ at the real contract. And having paid for a mesh does not make it good — the v
 verdict is Brendan's, recorded separately from any test result, and a miss keeps the
 check OPEN.
 
-## 10. Status summary — revision 1.1
+## 10. Status summary — revision1.2
 
 | Family | Entries | Authoring-ready | Comparison brief only |
 |---|---:|---|---|
-| A — residents | 5 | A1 mouse, A5 tool | **A2 mole, A3 squirrel, A4 otter** — candidates and a measurement convention exist; proportion approval does not |
+| A — residents | 5 | A1 mouse, A2 mole, A3 squirrel, A4 otter, A5 tool; DEC-039 approves body height anchors | Landmark ratios, actual anatomy, final assets and fit still require review |
 | B — dwelling/workspace | 3 | B1, B2 (GAP-03 envelopes, GAP-04 ceilings), B3 (GAP-06 cutaway hierarchy) | none |
 | C — ground/vegetation | 4 | C1, C2, C3, C4 | none |
 | D — props | 6 | D1, D2, D3, D4, D5, D6 | none |
 
-**Fifteen of eighteen are authoring-ready. Three are not.** Six of the nine entries
-revision 1.0 blocked now have authoring answers; the three creature entries have concrete
-comparison briefs and still need proportion approval. **Do not call all nine
-production-ready** — the ruling says so in terms, and "authoring-ready" is a statement about
-contracts, not about exported meshes or measured frames.
+All18 entries have an authoring direction and the creature height blocker is closed.
+This is not production qualification: exports, actual anatomy/rigs, materials,
+movement/contact measurements, gameplay-camera evidence and performance remain work.
 
 ### What still gates work, in the order it bites
 
-1. **The §2.4 proportion review.** Brendan looks at
-   `godot/assets/lookdev/captures/` and rules on the five candidate heights. Until then no
-   bulk creature generation starts, and A2/A3/A4 stay where they are.
+1. **Production anatomy and landmark review.** DEC-039 settles heights; its approval
+   expressly leaves landmark ratios proposed. Author actual bodies under the approved
+   scales and provide the declared anatomy, pose and camera evidence.
 2. **Facing, by eye.** No script can see it. Every creature acceptance set carries the
    check, and §2.4's yaw 45°/225° pair is the first instance of it.
 3. **GAP-06's unnamed cap and opening parts.** Named as a blocker rather than invented.

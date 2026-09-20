@@ -614,6 +614,23 @@ func route_length_into(row: int, out: IntMath.IntResult) -> bool:
 	return out.succeed(_d_count[_r_route_id[row]])
 
 
+func route_clearance_into(row: int, out: IntMath.IntResult) -> bool:
+	"""GROUND-CLEARANCE-R01v1: the clearance class a ready request's route was searched under.
+
+	Refuses REFUSE_NOT_READY for any row that is not READY (invalid/free/pending/cancelled/
+	stale), exactly as `route_length_into()` does. Read only: no phase, route reference, queue,
+	descriptor, cache-use or packed state changes as a result of calling this.
+
+	A successful read clears the diagnostic: a prior failed read's REQUEST_NOT_READY must not
+	linger behind a subsequent success. Repair a2 -- focus-a1 observed this omission directly.
+	"""
+	if not is_ready(row):
+		_last_refusal = REFUSE_NOT_READY
+		return out.refuse(REFUSE_NOT_READY)
+	_last_refusal = REFUSE_NONE
+	return out.succeed(_d_clearance[_r_route_id[row]])
+
+
 func route_cell_into(row: int, index: int, out: IntMath.IntResult) -> bool:
 	"""One cell of a ready request's route, start first and goal last, or an explicit refusal."""
 	if not is_ready(row):

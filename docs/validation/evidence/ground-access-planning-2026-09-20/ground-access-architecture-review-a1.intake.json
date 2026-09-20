@@ -1,0 +1,19 @@
+{
+  "attempt": "ground-access-architecture-review-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "ground-access-architecture",
+    "role": "review",
+    "model": "claude-opus-5",
+    "contractEpoch": "GROUND-ACCESS-DISCOVERY-R01"
+  },
+  "session_id": "3b4f6b5d-3b62-472d-94b7-04da4b0651b7",
+  "owner_stopped": true,
+  "base_commit": "446d6d73d0dabc603df648b92a2d7e9edae55e92",
+  "integration_head": "446d6d73d0dabc603df648b92a2d7e9edae55e92",
+  "source_inputs_reverified": true,
+  "files": {
+    "docs/validation/evidence/ground-access-planning-2026-09-20/architecture-review.md": "e4ab7ecc7a7046b187688d6ba562c93278c91542f672464ebc135fd1faa19772"
+  },
+  "approval": "artifact_intake_only_not_product_acceptance"
+}

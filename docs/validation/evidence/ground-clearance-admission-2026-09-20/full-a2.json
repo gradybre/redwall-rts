@@ -1,0 +1,39 @@
+{
+  "kind": "full",
+  "command": [
+    "./tools/run_tests.sh"
+  ],
+  "source_sha256": {
+    "godot/scripts/core/movement.gd": "905524b356d1a12be64baaccf6745a2c84ff286309852fb36be1da873e4fb531",
+    "godot/scripts/core/navigation.gd": "27356d8d5e086acb47267125ba655ad5ea10af60582af6e708a4ae4933f4b2af",
+    "godot/test/test_movement.gd": "fe01cb3593b5acffd26a3f708002be631c19817545a0edc84c05e7571cd43178",
+    "godot/test/test_movement_readmission.gd": "4a0305654e5146bef116903885ed069d2f2d59a1634dd51820abd8ee4c35e0d6",
+    "godot/test/fixtures/synthetic_ground_movement.gd": "15ea27b2d099dd38e74839d6dbcc49c85013c909c1ac75eaa53524b155d0adb9",
+    "godot/test/test_movement_clearance.gd": "78fda5963ad9aa3a9e332c08358506fb32a0dca3f07f275db2493cb692602569",
+    "godot/test/ground_clearance_focus.gd": "5f014cf36e20c610da11d091af99d4f6cdf4ff6531f9e397afef4ad15b4f45f7"
+  },
+  "source_unchanged": true,
+  "seconds": 253.241,
+  "exit_code": 0,
+  "timed_out": false,
+  "counts": [
+    5046,
+    526349,
+    0
+  ],
+  "engine_errors": [
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'OVERFLOW' at hour tick 750 is unrecovered (retries attempted: 0); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: ui_frame_builder: UI_FRAME_PANEL_TOO_SMALL for frame 0 at (20.000000, 20.000000)",
+    "ERROR: ui_frame_builder: UI_FRAME_UNKNOWN_FRAME for frame 5 at (300.000000, 120.000000)",
+    "ERROR: ui_frame_builder: UI_FRAME_NULL_PANEL",
+    "ERROR: UIManager.register_hud() was given null; the HUD will not update.",
+    "ERROR: 33 resources still in use at exit (run with --verbose for details)."
+  ],
+  "passed": false,
+  "log_sha256": "f46b9e4a42658423809edd57ea37df16f28478941dbbd2d16ee26c869bc82a70",
+  "scope": "Candidate verification only; independent review and exact committed CI required"
+}

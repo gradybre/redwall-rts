@@ -6,6 +6,13 @@ extends "res://test/framework/test_case.gd"
 ## transition, no work contact, no reservation lease and no 300/900-tick retry. READY_07 1.2 places
 ## those after starter profiles, real services and work-unit context, and there is no JobState write
 ## anywhere in `movement.gd` for a test to assert against.
+##
+## GROUND-CLEARANCE-R01v1: production `Movement` admits no travel at all, because no starter
+## profile publishes a clearance class. Every readmission scenario below therefore runs against
+## the test-only `test/fixtures/synthetic_ground_movement.gd` subclass, which overrides ONLY
+## `profile_clearance_class_into()` with an explicit synthetic class. Their passing motion and
+## history are REFERENCE MOVEMENT under a synthetic clearance, not evidence of qualified
+## physical travel -- see `test_movement_clearance.gd` for the actual admission-gate coverage.
 
 const SpatialWorldScript := preload("res://scripts/core/spatial_world.gd")
 const NavigationScript := preload("res://scripts/core/navigation.gd")
@@ -15,6 +22,7 @@ const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const IntMathScript := preload("res://scripts/core/int_math.gd")
+const SyntheticGroundMovementScript := preload("res://test/fixtures/synthetic_ground_movement.gd")
 
 ## GDD 5.2's inherited caps, read here only to assert that movement uses them unchanged.
 const SMALL_CAP_U_PER_S: int = 3277
@@ -67,13 +75,18 @@ func after_each() -> void:
 
 
 func _build(world: SpatialWorldScript) -> void:
-	"""Wire one directory, resident store, navigator, Transform store and mover together."""
+	"""Wire one directory, resident store, navigator, Transform store and a SYNTHETIC mover.
+
+	`_movement` is the test-only clearance fixture, not production `Movement`; production's own
+	refusal is covered in `test_movement.gd`'s `test_no_profile_publishes_a_clearance_class()`.
+	"""
 	_world = world
 	_directory = EntityDirectoryScript.new()
 	_residents = ResidentsScript.new(_directory, null)
 	_navigation = NavigationScript.new(_directory, world)
 	_transforms = TransformsScript.new(_directory)
-	_movement = MovementScript.new(_directory, world, _navigation, _transforms, _residents)
+	_movement = SyntheticGroundMovementScript.new(
+		_directory, world, _navigation, _transforms, _residents)
 	_result = IntMathScript.IntResult.new()
 	_pose = TransformsScript.Pose.new()
 

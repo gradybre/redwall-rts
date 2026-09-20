@@ -1,0 +1,77 @@
+{
+  "task": "GROUND-ACCESS-DISCOVERY",
+  "attempts": [
+    {
+      "id": "ground-access-architecture-review-a1",
+      "model": "claude-opus-5",
+      "sessionId": "3b4f6b5d-3b62-472d-94b7-04da4b0651b7",
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 25306,
+        "cacheReadTokens": 0,
+        "cacheCreationTokens": 162726,
+        "costEstimateUsd": 2.25992
+      },
+      "elapsedMs": 360886,
+      "state": "complete",
+      "code": null,
+      "contextMetrics": {
+        "fullBytes": 348921,
+        "sentBytes": 348921,
+        "omittedFiles": 0
+      },
+      "ownerStopped": true
+    },
+    {
+      "id": "ground-access-architecture-review-a2",
+      "model": "claude-opus-5",
+      "sessionId": "3b4f6b5d-3b62-472d-94b7-04da4b0651b7",
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 18998,
+        "cacheReadTokens": 162726,
+        "cacheCreationTokens": 272533,
+        "costEstimateUsd": 3.2816530000000004
+      },
+      "elapsedMs": 266567,
+      "state": "invalid_output",
+      "code": "BUNDLE_KEYS_INVALID",
+      "contextMetrics": {
+        "fullBytes": 872498,
+        "sentBytes": 523577,
+        "omittedFiles": 20
+      },
+      "ownerStopped": true
+    },
+    {
+      "id": "ground-access-architecture-review-format-a3",
+      "model": "claude-opus-5",
+      "sessionId": "3b4f6b5d-3b62-472d-94b7-04da4b0651b7",
+      "usage": {
+        "inputTokens": 2,
+        "outputTokens": 10483,
+        "cacheReadTokens": 435259,
+        "cacheCreationTokens": 22747,
+        "costEstimateUsd": 0.7071845000000001
+      },
+      "elapsedMs": 111569,
+      "state": "complete",
+      "code": null,
+      "contextMetrics": {
+        "fullBytes": 873721,
+        "sentBytes": 1223,
+        "omittedFiles": 28
+      },
+      "ownerStopped": true
+    }
+  ],
+  "billing": "Subscription-backed provider telemetry. costEstimateUsd is an estimate returned by provider, not actual billed cost. No paid API fallback.",
+  "outcome": "Review completed with substantive corrections and one format repair; selectively dispositioned. No body profile or geometry policy accepted.",
+  "repair_count": 2,
+  "repair_kinds": [
+    "Source reasoning corrections with additional required source context",
+    "Strict bundle framing failure recovery"
+  ],
+  "remaining_uncertainty": "Unadopted geometry/profile/ownership proposals require separate bounded contracts; see astra-disposition-r01.json",
+  "efficiency_claim": "None; substantial source correction and large context remain material costs. Context omissions are bytes, not demonstrated monetary savings."
+}

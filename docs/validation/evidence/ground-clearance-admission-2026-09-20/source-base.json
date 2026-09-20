@@ -1,0 +1,9 @@
+{
+  "godot/scripts/core/movement.gd": "152951b44b02fc91e7c164c6a2baf56dec6bc7407f402dfc0df4051d5bfe8f8e",
+  "godot/scripts/core/navigation.gd": "00f43ec4f4d834fb836c2a72bdc882cb7eddd5d53e596ecd154a4d83f7caacf2",
+  "godot/test/test_movement.gd": "12c5cbe8c96871be21f57e813964fcd6531e785c9e55660792ad6ae2512bd46f",
+  "godot/test/test_movement_readmission.gd": "3d3b8ea12020eaefc6f2f58422d841158f14e956ce6e7e8970e69b3049147380",
+  "godot/test/fixtures/synthetic_ground_movement.gd": null,
+  "godot/test/test_movement_clearance.gd": null,
+  "godot/test/ground_clearance_focus.gd": null
+}

@@ -1,0 +1,38 @@
+{
+  "id": "ground-clearance-admission-author-a2r",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/ground-clearance-admission-author-a2r",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "ground-clearance-admission",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "GROUND-CLEARANCE-R01v1"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/ground_clearance_admission_contract.md",
+    "docs/decisions/0185-bind-travel-admission-to-qualified-route-clearance.md",
+    "docs/validation/evidence/ground-clearance-admission-2026-09-20/source-base.json",
+    "godot/scripts/core/movement.gd",
+    "godot/scripts/core/navigation.gd",
+    "godot/test/test_movement.gd",
+    "godot/test/test_movement_readmission.gd",
+    "godot/scripts/core/spatial_world.gd",
+    "godot/scripts/core/int_math.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "godot/test/starter_structures_focus.gd",
+    "godot/test/fixtures/synthetic_ground_movement.gd",
+    "godot/test/test_movement_clearance.gd",
+    "godot/test/ground_clearance_focus.gd",
+    "godot/scripts/core/transforms.gd",
+    "docs/validation/evidence/ground-clearance-admission-2026-09-20/repair-request-a2.md",
+    "docs/validation/evidence/ground-clearance-admission-2026-09-20/focus-a1.json",
+    "docs/validation/evidence/ground-clearance-admission-2026-09-20/patch-normalization.json"
+  ],
+  "instructions": "Same author continuation; unchanged contract. Follow repair-request-a2.md exactly. Return single unified diff only for navigation.gd and test_movement_clearance.gd at repair-a2.patch, baseSha256 null, <=500 lines. Keep prior passing tests and observed diagnostic assertion. Supplied source is actual current integrated source after framing-only normalization. No production gate change, helper override or new accessor. Strict five-key JSON bundle. No tools: do not claim execution.\n\nDispatch audit: {\"base_commit\":\"446d6d73d0dabc603df648b92a2d7e9edae55e92\",\"task\":\"Repair observed getter diagnostic and complete contract preservation/priority witnesses\",\"allowedWrites\":{\"docs/validation/evidence/ground-clearance-admission-2026-09-20/repair-a2.patch\":null}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/ground-clearance-admission-author-a1"
+}

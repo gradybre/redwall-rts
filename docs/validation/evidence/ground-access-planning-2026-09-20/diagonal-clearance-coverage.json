@@ -1,0 +1,584 @@
+{
+  "scope": "Finite arithmetic witnesses for existing corner rule; no engine run or general continuous-body qualification",
+  "source_sha256": "00f43ec4f4d834fb836c2a72bdc882cb7eddd5d53e596ecd154a4d83f7caacf2",
+  "source_fact": "_corner_open tests _search_clearance, not bare single-cell walkability. A valid current anchor, destination and both orthogonal anchors therefore supply all four k-squares.",
+  "general_argument": "After translating/reflection to anchors(0,0),(1,0),(0,1),(1,1), unions of each axis intervals [0,k] and [1,k+1] form [0,k+1]. Cartesian products from all four anchors cover the entire (k+1)-square. The continuous diagonal sweep of an enclosed k-square lies inside it.",
+  "checks": [
+    {
+      "k": 1,
+      "step": [
+        -1,
+        -1
+      ],
+      "covered_cells": 4,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 1,
+      "step": [
+        -1,
+        1
+      ],
+      "covered_cells": 4,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 1,
+      "step": [
+        1,
+        -1
+      ],
+      "covered_cells": 4,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 1,
+      "step": [
+        1,
+        1
+      ],
+      "covered_cells": 4,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 2,
+      "step": [
+        -1,
+        -1
+      ],
+      "covered_cells": 9,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 2,
+      "step": [
+        -1,
+        1
+      ],
+      "covered_cells": 9,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 2,
+      "step": [
+        1,
+        -1
+      ],
+      "covered_cells": 9,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 2,
+      "step": [
+        1,
+        1
+      ],
+      "covered_cells": 9,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 3,
+      "step": [
+        -1,
+        -1
+      ],
+      "covered_cells": 16,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 3,
+      "step": [
+        -1,
+        1
+      ],
+      "covered_cells": 16,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 3,
+      "step": [
+        1,
+        -1
+      ],
+      "covered_cells": 16,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 3,
+      "step": [
+        1,
+        1
+      ],
+      "covered_cells": 16,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 4,
+      "step": [
+        -1,
+        -1
+      ],
+      "covered_cells": 25,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 4,
+      "step": [
+        -1,
+        1
+      ],
+      "covered_cells": 25,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 4,
+      "step": [
+        1,
+        -1
+      ],
+      "covered_cells": 25,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 4,
+      "step": [
+        1,
+        1
+      ],
+      "covered_cells": 25,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 5,
+      "step": [
+        -1,
+        -1
+      ],
+      "covered_cells": 36,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 5,
+      "step": [
+        -1,
+        1
+      ],
+      "covered_cells": 36,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 5,
+      "step": [
+        1,
+        -1
+      ],
+      "covered_cells": 36,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 5,
+      "step": [
+        1,
+        1
+      ],
+      "covered_cells": 36,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 6,
+      "step": [
+        -1,
+        -1
+      ],
+      "covered_cells": 49,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 6,
+      "step": [
+        -1,
+        1
+      ],
+      "covered_cells": 49,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 6,
+      "step": [
+        1,
+        -1
+      ],
+      "covered_cells": 49,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 6,
+      "step": [
+        1,
+        1
+      ],
+      "covered_cells": 49,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 7,
+      "step": [
+        -1,
+        -1
+      ],
+      "covered_cells": 64,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 7,
+      "step": [
+        -1,
+        1
+      ],
+      "covered_cells": 64,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 7,
+      "step": [
+        1,
+        -1
+      ],
+      "covered_cells": 64,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 7,
+      "step": [
+        1,
+        1
+      ],
+      "covered_cells": 64,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 8,
+      "step": [
+        -1,
+        -1
+      ],
+      "covered_cells": 81,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 8,
+      "step": [
+        -1,
+        1
+      ],
+      "covered_cells": 81,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 8,
+      "step": [
+        1,
+        -1
+      ],
+      "covered_cells": 81,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 8,
+      "step": [
+        1,
+        1
+      ],
+      "covered_cells": 81,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 9,
+      "step": [
+        -1,
+        -1
+      ],
+      "covered_cells": 100,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 9,
+      "step": [
+        -1,
+        1
+      ],
+      "covered_cells": 100,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 9,
+      "step": [
+        1,
+        -1
+      ],
+      "covered_cells": 100,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 9,
+      "step": [
+        1,
+        1
+      ],
+      "covered_cells": 100,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 10,
+      "step": [
+        -1,
+        -1
+      ],
+      "covered_cells": 121,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 10,
+      "step": [
+        -1,
+        1
+      ],
+      "covered_cells": 121,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 10,
+      "step": [
+        1,
+        -1
+      ],
+      "covered_cells": 121,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 10,
+      "step": [
+        1,
+        1
+      ],
+      "covered_cells": 121,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 11,
+      "step": [
+        -1,
+        -1
+      ],
+      "covered_cells": 144,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 11,
+      "step": [
+        -1,
+        1
+      ],
+      "covered_cells": 144,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 11,
+      "step": [
+        1,
+        -1
+      ],
+      "covered_cells": 144,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 11,
+      "step": [
+        1,
+        1
+      ],
+      "covered_cells": 144,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 12,
+      "step": [
+        -1,
+        -1
+      ],
+      "covered_cells": 169,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 12,
+      "step": [
+        -1,
+        1
+      ],
+      "covered_cells": 169,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 12,
+      "step": [
+        1,
+        -1
+      ],
+      "covered_cells": 169,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 12,
+      "step": [
+        1,
+        1
+      ],
+      "covered_cells": 169,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 13,
+      "step": [
+        -1,
+        -1
+      ],
+      "covered_cells": 196,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 13,
+      "step": [
+        -1,
+        1
+      ],
+      "covered_cells": 196,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 13,
+      "step": [
+        1,
+        -1
+      ],
+      "covered_cells": 196,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 13,
+      "step": [
+        1,
+        1
+      ],
+      "covered_cells": 196,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 14,
+      "step": [
+        -1,
+        -1
+      ],
+      "covered_cells": 225,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 14,
+      "step": [
+        -1,
+        1
+      ],
+      "covered_cells": 225,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 14,
+      "step": [
+        1,
+        -1
+      ],
+      "covered_cells": 225,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 14,
+      "step": [
+        1,
+        1
+      ],
+      "covered_cells": 225,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 15,
+      "step": [
+        -1,
+        -1
+      ],
+      "covered_cells": 256,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 15,
+      "step": [
+        -1,
+        1
+      ],
+      "covered_cells": 256,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 15,
+      "step": [
+        1,
+        -1
+      ],
+      "covered_cells": 256,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 15,
+      "step": [
+        1,
+        1
+      ],
+      "covered_cells": 256,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 16,
+      "step": [
+        -1,
+        -1
+      ],
+      "covered_cells": 289,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 16,
+      "step": [
+        -1,
+        1
+      ],
+      "covered_cells": 289,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 16,
+      "step": [
+        1,
+        -1
+      ],
+      "covered_cells": 289,
+      "equals_expanded_square": true
+    },
+    {
+      "k": 16,
+      "step": [
+        1,
+        1
+      ],
+      "covered_cells": 289,
+      "equals_expanded_square": true
+    }
+  ]
+}

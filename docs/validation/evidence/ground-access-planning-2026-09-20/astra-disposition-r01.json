@@ -1,0 +1,32 @@
+{
+  "scope": "Astra disposition of independent ground-access discovery; no wholesale adoption of proposed GA-01r",
+  "review": "architecture-review.md",
+  "superseding_addendum": "architecture-review-corrections.md",
+  "adopted_now": [
+    "Source-proven missing profile/route clearance admission guard only; GROUND-CLEARANCE-R01v1 and ADR0185 define exact implementation."
+  ],
+  "accepted_source_findings": [
+    "Existing full-class orthogonal corner checks already establish diagonal containment; no redundant guard or semantics bump.",
+    "Section9 wire codec exists; live Navigation/Movement capture/apply and full disk continuation remain separate missing work. Planner capture was section8.",
+    "Movement cursor/admission allocation arrears were paid by0066 and0083; do not double allocate.",
+    "Production profiles remain unqualified. Static mouse and rigid-yaw diagnostics are not accepted animation/body-envelope evidence.",
+    "Existing tick order is Navigation before Movement; no additional map revision column justified by this finding.",
+    "Physical walls/apertures, qualified contacts, placement policy and request ownership still require bounded contracts."
+  ],
+  "not_adopted": [
+    "Global q or any numeric placement/profile/margin; one pipeline mesh cannot define all starter species.",
+    "Per-profile q key bytes: review assumes a single packed placement key; raw qx/qz would require a different representation.",
+    "Review calls an equivalent diagonal test strictly over-conservative; equality proof shows redundancy, not stricter acceptance.",
+    "Automatic travel-budget repair: current dropped remainder needs reconciliation against its existing explicit contract before changing.",
+    "Automatic release_request at arrival: production request ownership/sharing must be settled first.",
+    "Calling schema evolution free because live adapters are absent: wire compatibility still requires explicit ruling.",
+    "Geometry realignment, reduced release scope or save-parity waiver."
+  ],
+  "process": {
+    "a1": "Retained, corrected source mistakes; never blanket accepted",
+    "a2": "Stopped invalid_output BUNDLE_KEYS_INVALID; no output applied; original public response unavailable",
+    "a3": "Same-reviewer format recovery delivered addendum; full artifact retained",
+    "independent_review_is_acceptance": false
+  },
+  "next": "Complete bounded clearance admission repair, then qualify placement/topology/contact packages from authoritative geometry without fabricating body profiles."
+}

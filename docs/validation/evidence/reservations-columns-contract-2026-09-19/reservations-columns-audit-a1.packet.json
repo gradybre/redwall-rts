@@ -1,0 +1,13 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "f4368a31ee9b496240502c7e3eaaf72d80c816fe",
+  "task": "Feasibility audit exact Reservations columns and section7 block adapter",
+  "paths": [
+    "godot/scripts/core/reservations.gd",
+    "godot/scripts/core/save_section_inventories.gd",
+    "godot/test/test_reservations.gd",
+    "docs/decisions/0019-reservations-use-a-global-pool.md",
+    "docs/validation/evidence/reservations-columns-contract-2026-09-19/astra-source-notes.md"
+  ],
+  "instructions": "Read-only feasibility audit, not implementation or acceptance. Astra is preparing exact owner column contract after StockAge. Analyze8canonicalarrays, constructor extents, no binding, derived sorted intrusive lists/minheap/counts, cold validation/capture/restore atomicity, duplicate keys and mixed generation rows, positive quantities/expired leases/opaque signedpurpose, overflow semantics and actual public future operations. Evaluate packed bottom-up mergesort rebuild O(RlogR) with2row-index buffers, source derived validation, and adapter clock/optionalInventorytransaction flags choice without inventing total invariants or changing healthywire. Important: row identities must remain, no Inventory mutation or claim replay; only8canonicalarrays section7, defaultrow32768/job8192/lot16384 reducedharnesscapacity preserved. Current codec onlyfieldvalidates, no crossrowchecks. Parent notes are candidates not instructions to accept. Return concrete blockers, exact proposed APIs/refusals/validation order, memory/phases, negative/continuation test requirements and any existing authority contradictions requiring Astra disposition. <=2300words; no code/tools. ExactJSON status complete,summary,questions[],files exactly one NEW docs/validation/evidence/reservations-columns-contract-2026-09-19/feasibility-audit.md with baseSha256 null,decisionIds[]."
+}

@@ -1,0 +1,142 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_reservations_columns.gd
+  PASS  test_exact_rows_rebuild_semantic_chains_without_compaction
+  PASS  test_all_column_shapes_and_extent_metadata_refuse_atomically
+  PASS  test_inactive_residue_and_occupancy_refuse_without_repair
+  PASS  test_live_reference_quantity_and_expiry_domains
+  PASS  test_source_derived_corruption_is_refused_without_traversal_or_repair
+  PASS  test_cross_row_conflicts_and_lot_overflow_refuse_but_job_wide_set_survives
+  PASS  test_valid_nonascending_heap_and_stale_tail_are_accepted
+  PASS  test_restore_replaces_bad_old_payload_and_preserves_scratch
+  PASS  test_exports_and_restores_separate_caller_buffer_aliases
+  PASS  test_real_coalesce_renew_expire_and_release_continue_after_restore
+  PASS  test_adapter_null_shape_barrier_and_busy_precedence
+  PASS  test_every_adapter_block_shape_refuses_without_indexing
+  PASS  test_adapter_reduced_context_and_cross_row_asymmetry
+  PASS  test_generated_owner_admission_implies_codec_admission
+  PASS  test_full_capacity_reverse_keys_and_literal_wire_hashes
+  PASS  test_corrupt_live_payload_refuses_before_export
+  PASS  test_adapter_overwrites_target_payload_and_preserves_old_buffers
+  PASS  test_live_shapes_and_forged_owner_extents_refuse_before_allocation
+  PASS  test_in_range_counts_must_match_occupancy_and_restore_recomputes_them
+  PASS  test_aliased_restore_inputs_are_installed_independently
+  PASS  test_capture_apply_recapture_payload_bytes_are_identical
+  PASS  test_foreign_idle_inventory_is_not_world_attestation
+test_reservations.gd
+  PASS  test_indexing_allocation_matches_the_decision_0019_budget
+  PASS  test_capacity_requests_are_clamped_to_the_specified_maxima
+  PASS  test_recipe_reserves_across_five_or_more_lots
+  PASS  test_one_job_may_claim_far_more_lots_than_four
+  PASS  test_job_list_is_iterated_in_canonical_lot_order
+  PASS  test_rows_come_from_the_lowest_free_index
+  PASS  test_freed_rows_return_to_the_pool
+  PASS  test_clear_returns_every_row_to_the_pool
+  PASS  test_identical_job_lot_purpose_claims_coalesce_into_one_row
+  PASS  test_a_different_purpose_or_job_gets_its_own_row
+  PASS  test_coalescing_keeps_the_later_expiry_and_never_the_earlier
+  PASS  test_pool_exhaustion_refuses_explicitly_with_no_partial_reservations
+  PASS  test_a_full_pool_still_accepts_a_batch_that_only_coalesces
+  PASS  test_a_batch_that_outruns_one_lot_reserves_nothing
+  PASS  test_an_invalid_lot_anywhere_in_the_batch_voids_the_whole_batch
+  PASS  test_reserved_milli_equals_the_sum_of_active_rows
+  PASS  test_audit_catches_a_reserved_total_that_drifts
+  PASS  test_audit_reports_a_healthy_pool_and_counts_its_rows
+  PASS  test_audit_bites_on_structural_corruption
+  PASS  test_a_release_refuses_when_the_inventory_no_longer_covers_the_rows
+  PASS  test_a_claim_is_never_found_under_the_wrong_job_generation
+  PASS  test_spoiling_a_reserved_lot_releases_every_claim_in_stable_order
+  PASS  test_a_lot_consumed_to_nothing_leaves_droppable_rows
+  PASS  test_replacing_a_party_member_leaves_the_coordinator_claims_intact
+  PASS  test_cancelling_the_coordinator_releases_only_the_shared_claims
+  PASS  test_releasing_a_job_with_no_claims_is_not_a_refusal
+  PASS  test_two_logically_identical_worlds_serialize_identically
+  PASS  test_a_different_claim_changes_the_image
+  PASS  test_expired_claims_release_and_live_ones_survive
+  PASS  test_renewal_only_ever_extends_a_lease
+  PASS  test_batch_refuses_an_unusable_job_reference
+  PASS  test_batch_refuses_malformed_input
+  PASS  test_batch_refuses_to_join_an_open_inventory_transaction
+  PASS  test_a_reused_job_slot_refuses_until_the_old_claims_are_released
+  PASS  test_a_null_inventory_is_refused_rather_than_dereferenced
+  PASS  test_releasing_an_unknown_claim_is_an_explicit_refusal
+  PASS  test_claim_expiry_is_reported_without_a_sentinel
+  PASS  test_row_accessors_refuse_an_inactive_row
+test_save_section_inventories.gd
+  PASS  test_store_count_and_owner_order_are_ascii
+  PASS  test_owner_schema_versions_match_the_registry
+  PASS  test_section_opens_with_a_store_count_of_six
+  PASS  test_default_capacity_section_has_the_declared_byte_vector
+  PASS  test_small_record_block_arithmetic_is_exact
+  PASS  test_empty_record_round_trips_byte_identically
+  PASS  test_populated_record_round_trips_byte_identically
+  PASS  test_offset_decoding_reads_the_same_section
+  PASS  test_free_stack_order_survives_a_round_trip
+  PASS  test_free_stack_garbage_tail_is_not_persisted
+  PASS  test_declared_slot_list_tail_is_not_persisted
+  PASS  test_free_stack_naming_a_live_slot_is_refused
+  PASS  test_slot_that_is_neither_live_nor_free_must_be_retired
+  PASS  test_free_count_above_capacity_is_refused
+  PASS  test_gear_declares_no_generation_of_its_own
+  PASS  test_reservations_declares_no_generation_of_its_own
+  PASS  test_generation_high_bit_is_read_signed
+  PASS  test_every_published_provenance_member_is_accepted
+  PASS  test_provenance_six_is_refused_not_clamped
+  PASS  test_out_of_domain_provenance_refuses_a_full_length_section_without_writing
+  PASS  test_child_extent_is_not_the_first_column_length
+  PASS  test_only_inventory_declares_a_child_extent
+  PASS  test_child_extent_above_the_compiled_lot_capacity_is_refused
+  PASS  test_primary_count_bounds_are_enforced_per_owner
+  PASS  test_blocks_out_of_ascii_order_are_refused
+  PASS  test_wrong_owner_schema_version_is_refused
+  PASS  test_declared_payload_length_must_match_what_the_block_consumes
+  PASS  test_wrong_element_count_is_refused
+  PASS  test_wrong_store_count_is_refused
+  PASS  test_extent_refusal_is_the_primary_gate
+  PASS  test_truncated_section_leaves_the_target_untouched
+  PASS  test_chunk_cursor_is_bounded_and_reproduces_the_section
+  PASS  test_large_column_is_split_into_bounded_chunks
+  PASS  test_occupancy_byte_above_one_is_refused
+  PASS  test_released_row_residue_is_refused
+  PASS  test_reserved_above_quantity_is_refused
+  PASS  test_negative_age_is_refused
+  PASS  test_container_over_capacity_is_refused
+  PASS  test_storage_class_outside_the_domain_is_refused
+  PASS  test_declared_list_must_match_the_storage_classes
+  PASS  test_undeclared_container_carries_no_declaration_generation
+  PASS  test_source_holds_no_float
+  PASS  test_the_reserved_merge_residue_is_real_in_the_live_store
+  PASS  test_normalized_reserved_merge_residue_at_literal_wire_offsets
+  PASS  test_capture_does_not_touch_one_byte_of_the_live_store
+  PASS  test_one_free_lot_slot_transfer_survives_capture_and_restore
+  PASS  test_save_load_save_is_byte_identical_through_a_live_store
+  PASS  test_two_histories_with_different_residue_produce_identical_bytes
+  PASS  test_meaningful_differences_still_change_the_canonical_stream
+  PASS  test_free_max_live_max_and_retired_max_stay_three_distinct_states
+  PASS  test_final_reuse_of_a_generation_max_slot_is_captured
+  PASS  test_capture_refuses_a_boundary_that_is_not_quiescent
+  PASS  test_capture_refuses_a_store_whose_extents_are_not_the_records
+  PASS  test_generation_zero_on_an_inactive_row_is_refused_under_schema_three
+  PASS  test_every_noncanonical_inactive_value_is_refused_one_at_a_time
+  PASS  test_a_noncanonical_inactive_provenance_is_refused_and_never_mapped_to_ordinary
+  PASS  test_publication_refuses_without_writing_a_byte_of_the_target_store
+  PASS  test_restoration_rebuilds_the_derived_counts_and_scan_bounds
+  PASS  test_the_adapter_supplies_every_declared_field_and_refuses_any_other
+  PASS  test_the_free_stack_fields_hash_only_their_used_prefix
+  PASS  test_residue_only_differences_produce_the_same_digest
+  PASS  test_a_live_difference_still_changes_the_digest
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+122 test(s), 2944 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

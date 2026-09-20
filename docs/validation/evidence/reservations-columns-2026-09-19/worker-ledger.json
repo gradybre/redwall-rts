@@ -1,0 +1,43 @@
+{
+  "attempts": [
+    {
+      "id": "reservations-columns-a1",
+      "role": "author",
+      "model": "claude-opus-5",
+      "sessionId": "a1dbc0d7-ef80-47bb-843d-a79bc268d407",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/reservations_columns_contract.md": "cc79293abc46a62703e9bbfdd543ccd4633a730c0f597113f9afcdc808677b9a",
+        "docs/decisions/0163-restore-reservation-row-identities-and-semantic-indexes.md": "2dc7274b3aa24a8affe37553672f2cb0eee998406a83b9db2d74f53a00c83988",
+        "docs/validation/evidence/reservations-columns-contract-2026-09-19/contract-v1-disposition.md": "221cb6c05038650c4976c18921ad1db8f92d8559265959aec41adceee42c1932",
+        "docs/validation/evidence/reservations-columns-contract-2026-09-19/bound-api-excerpts.md": "f9e8eb3e0f168da95681c062e94d2d0224d6890f53deb910246c6673f51c9e0e",
+        "godot/scripts/core/reservations.gd": "3211416652559e63e7b3926038514e422b90a08782113d469d45f30c5cfd0ef0",
+        "godot/scripts/core/save_section_inventories.gd": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567",
+        "godot/scripts/core/save_stock_age_restore.gd": "39e2071d3c4b4e8324d682464cf4a8523611a9d35de9cdf81da42717a7c081c9",
+        "godot/scripts/core/save_header.gd": "55570d407a9f18dd2d8471f7fd58e98f34fce241b8d5fc06f44b49fbcd27eaa0"
+      },
+      "intake": "Exact2newfiles; inputs SHA verified; owner fragment appended."
+    },
+    {
+      "id": "reservations-columns-review-a1",
+      "role": "independent source reviewer",
+      "model": "claude-opus-5",
+      "sessionId": "24e20cb1-7a5e-422d-ac02-562e6fd771ac",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/reservations_columns_contract.md": "cc79293abc46a62703e9bbfdd543ccd4633a730c0f597113f9afcdc808677b9a",
+        "docs/decisions/0163-restore-reservation-row-identities-and-semantic-indexes.md": "2dc7274b3aa24a8affe37553672f2cb0eee998406a83b9db2d74f53a00c83988",
+        "godot/scripts/core/reservations.gd": "408358c2a64af0295bfd8bd6fd16087780f54a446bfcff66eaddacb850ca6feb",
+        "godot/scripts/core/save_reservations_restore.gd": "197d4aa9b98a1c9c1d83b1eb41ed4f5ea67b90ded26bb34907ac3db31bd1ea37",
+        "godot/scripts/core/save_section_inventories.gd": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567",
+        "docs/validation/evidence/reservations-columns-contract-2026-09-19/bound-api-excerpts.md": "f9e8eb3e0f168da95681c062e94d2d0224d6890f53deb910246c6673f51c9e0e",
+        "godot/test/test_reservations_columns.gd": "5e538cac74fd9b6e4bc84b2013e6cec91e2fc408cd9dd0af56fd091c7fff1ec0",
+        "docs/validation/evidence/reservations-columns-2026-09-19/focus-integrated.log": "7b89d90756632959cc8d6184d10ba6c5a93b9a9873e4114f807aecb8b3159338",
+        "docs/validation/evidence/reservations-columns-2026-09-19/parent-integration-notes.md": "9a213da1619e8bd717c955d229774276d838120b4c13a185b93f73c641c48d8c",
+        "docs/validation/evidence/reservations-columns-contract-2026-09-19/wire-baseline.json": "4451d5c19fd023fd40142c1e66b7a09a0723f8c1f243b147b98f9e3bd6a69877"
+      }
+    }
+  ]
+}

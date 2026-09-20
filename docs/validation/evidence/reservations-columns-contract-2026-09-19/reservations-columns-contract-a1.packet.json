@@ -1,0 +1,17 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "79dfc3c91401239a350d0857e381a4aafefd2341",
+  "task": "Independent contract review SAVE-RES-R01v1 exact Reservations restore",
+  "paths": [
+    "docs/planning/reservations_columns_contract.md",
+    "docs/decisions/0163-restore-reservation-row-identities-and-semantic-indexes.md",
+    "docs/validation/evidence/reservations-columns-contract-2026-09-19/astra-audit-disposition.md",
+    "docs/validation/evidence/reservations-columns-contract-2026-09-19/public-probe-disposition.md",
+    "docs/validation/evidence/reservations-columns-contract-2026-09-19/public_overflow_probe.log",
+    "docs/validation/evidence/reservations-columns-contract-2026-09-19/wire-baseline.json",
+    "godot/scripts/core/reservations.gd",
+    "godot/scripts/core/save_section_inventories.gd",
+    "godot/scripts/core/save_stock_age_restore.gd"
+  ],
+  "instructions": "Independently review proposed SAVE-RES-R01v1 for implementability, atomicity, exact admission domain, private stage ownership, source-derived validation, stable sorted chains, nonunique minheap validity, hostile shape safety, overflow semantics, target constructor capacities absent fromwire, cold memory and test sufficiency. Do not implement. Auditor and this review are separate sessions. Parent has actual publicAPI proof of admitted cross-lot job-totaloverflow: must preserve snapshotpayload and separatelyrepairruntime later, notrejectnewdomain. Expired leases preserved; owner has noInventory binding; separateadapterrequires suppliedInventory flagcheck and heldClock onlyapply. No wholeworld correctness inferred. Identify concrete contradictions or underdefined algorithm/refusalorder/capacity gaps with exact proposed resolutions; ACCEPT ifnone. Return exactJSON status complete,summary,questions[],files exactlyone NEW docs/validation/evidence/reservations-columns-contract-2026-09-19/contract-v1-review.md baseSha256 null, content<=2200words,decisionIds[]."
+}

@@ -1,0 +1,36 @@
+{
+  "source_sha256": "408358c2a64af0295bfd8bd6fd16087780f54a446bfcff66eaddacb850ca6feb",
+  "results": [
+    {
+      "name": "omit-source-derived-check",
+      "exit_code": 1,
+      "summary": [
+        "22",
+        "1384",
+        "3"
+      ],
+      "killed": true
+    },
+    {
+      "name": "reverse-purpose-order",
+      "exit_code": 1,
+      "summary": [
+        "22",
+        "1384",
+        "1"
+      ],
+      "killed": true
+    },
+    {
+      "name": "omit-lot-overflow-guard",
+      "exit_code": 1,
+      "summary": [
+        "22",
+        "1384",
+        "1"
+      ],
+      "killed": true
+    }
+  ],
+  "source_restored": true
+}

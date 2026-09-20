@@ -1,0 +1,7 @@
+{
+  "godot/scripts/core/reservations.gd": "408358c2a64af0295bfd8bd6fd16087780f54a446bfcff66eaddacb850ca6feb",
+  "godot/scripts/core/save_reservations_restore.gd": "3433d48c92fb33f9f727c661f4c4de318d6c38f21812ca6c4eca7409bef6e03b",
+  "godot/test/test_reservations_columns.gd": "27e4aa65681c6fcf235b48f6c2b5770802f5596ecb5a2905f78c9c3febfea4b0",
+  "godot/test/reservations_columns_focus.gd": "f502cace9e9e3f87845a883d63668eb9a05d4476e44d25ff822cdf00f5c9c92a",
+  "docs/planning/reservations_columns_contract.md": "cc79293abc46a62703e9bbfdd543ccd4633a730c0f597113f9afcdc808677b9a"
+}

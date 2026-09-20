@@ -1,0 +1,16 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "2f47bc97910282ba93d8dcc835c623d581b60654",
+  "task": "Implement exact Reservations columns and single-block adapter SAVE-RES-R01v2",
+  "paths": [
+    "docs/planning/reservations_columns_contract.md",
+    "docs/decisions/0163-restore-reservation-row-identities-and-semantic-indexes.md",
+    "docs/validation/evidence/reservations-columns-contract-2026-09-19/contract-v1-disposition.md",
+    "docs/validation/evidence/reservations-columns-contract-2026-09-19/bound-api-excerpts.md",
+    "godot/scripts/core/reservations.gd",
+    "godot/scripts/core/save_section_inventories.gd",
+    "godot/scripts/core/save_stock_age_restore.gd",
+    "godot/scripts/core/save_header.gd"
+  ],
+  "instructions": "Implement accepted SAVE-RES-R01v2 exactly. TWO NEW outputs only: docs/validation/evidence/reservations-columns-2026-09-19/reservations-owner-block.gd append fragment for existing reservations.gd, noextends/preloads/redefinitionofoldmembers; godot/scripts/core/save_reservations_restore.gd full newadapter. Each exact keys path/content/baseSha256:null. Parent appends fragment and owns tests/registry/evidence. Acknowledgev2. <=1100total code lines, concise comments explaining invariants; explicit Godot4.7.2types. Private derived staging plus2localpackedmergebuffers, deterministic bottom-up mergesort O(RlogR), allarrayshapes/nativeextents beforeindexing/allocating, noquadraticliveinsertion/replay/reflection/callback. Callerrecords onlycanonicalarrays+3metadata; failures onlynewownercolumncode, preserve _math/_pending_new_rows. Capture validate source indices/heap/counts thenexport; restore permit malformedoldpayload butrequireoldshapes/validcapacities, installs8independentduplicates andprivatederivedarrays onlyafterallchecks. Validheappermutations accepted, tailignored. No new Inventorybinding; separate adapter null/busy/clockrefusalorders exact,3groups1/5/2 totalshape, context J/L fromtarget, nofull6Record/secondInventory. Do not change codec/wire/existingmutators. Keep admitted cross-lot jobtotaloverflow state; per-lot overflowrefuses. Return exactJSON status complete,summary,questions[],files exactly2allowedpaths,decisionIds[]. Ifcontractambiguousreturnquestion notinvent. No tools."
+}

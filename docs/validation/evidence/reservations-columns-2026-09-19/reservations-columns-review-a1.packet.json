@@ -1,0 +1,18 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "2f47bc97910282ba93d8dcc835c623d581b60654",
+  "task": "Independent source acceptance SAVE-RES-R01v2 Reservations exact owner boundary",
+  "paths": [
+    "docs/planning/reservations_columns_contract.md",
+    "docs/decisions/0163-restore-reservation-row-identities-and-semantic-indexes.md",
+    "godot/scripts/core/reservations.gd",
+    "godot/scripts/core/save_reservations_restore.gd",
+    "godot/scripts/core/save_section_inventories.gd",
+    "docs/validation/evidence/reservations-columns-contract-2026-09-19/bound-api-excerpts.md",
+    "godot/test/test_reservations_columns.gd",
+    "docs/validation/evidence/reservations-columns-2026-09-19/focus-integrated.log",
+    "docs/validation/evidence/reservations-columns-2026-09-19/parent-integration-notes.md",
+    "docs/validation/evidence/reservations-columns-contract-2026-09-19/wire-baseline.json"
+  ],
+  "instructions": "Independent source acceptance versus SAVE-RES-R01v2. Separate author session, parent-authored17tests. Focus117/2639/0 and15staticchecks passed; fullsuiteunderway. Verify every refusalatomicity/shape-beforeindex, O(RlogR)packedmerge keys/tie/groupvalidation, exact rowidentity and full8ordinals, sourceheapanyvalidpermutation/prefixonly, nativecounts/oldpayloadreplacement/scratch preservation, canonicalbufferindependence/private staging lifetimes. Parent fixed retained job_order to release before second sort, keeping<=2mergebuffers simultaneous; review that specifically and source phaseaccounting. Adapter requires suppliednonbusyInventory butnotcrossworldattestation, heldClockapply only; targetJ/L context deliberate. Admitted cross-lot jobtotaloverflow remains unchanged separatearithmeticpacket; per-lot overflow refuses. No wholeworldclaims. Prioritize concrete defect/repro, required acceptance gaps and bounded remedies. No tools/source edits. ExactJSON status complete,summary,questions[],files exactlyone NEW docs/validation/evidence/reservations-columns-2026-09-19/independent-review.md baseSha256 null content<=2200words,decisionIds[]."
+}

@@ -10,9 +10,11 @@ snapshot with 356 changed/untracked entries; it was preserved. The [file invento
 
 ## Current verified position
 
-PRs 140–152 are merged. The latest integrated candidate is `f4368a3`; its final CI passed **4715 tests / 184365 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is integrated; the full-file header checkpoint binding is integrated.
+PRs 140–153 are merged. The latest integrated candidate is `2f47bc9`; its final CI passed **4730 tests / 185187 assertions / zero failures**. Capacity auditing, UI input gates, an inventory lifetime cycle, the progression interval helper, identity restore and clock/RNG restore have bounded accepted repairs. Full save/load and the first playable settlement remain incomplete. Exact pending-command restoration is integrated. Explicit encoding of economic sequence exhaustion is integrated; the full-file header checkpoint binding is integrated.
 
 The family planning draft is integrated without runtime activation. A new runtime counterexample proves that planner dirty-list order/membership affects future job IDs despite identical previously declared fields; SAVE-J2-R01 implements the format/classification correction with explicit old-schema refusal, merged in PR148. The exact owner bulk adapter and section8 capture/apply merged in PR151; whole-world coordination remains open.
+
+Section11 EventSchedule and exact StockAge declaration restoration are now merged (PR152/153). Reservations is next: its owner contract is under independent review. A public-API probe exposed unchecked cross-lot job-total overflow, tracked as PLAN-RESERVATION-TOTALS; save restoration must preserve admitted rows while that arithmetic repair is specified separately.
 
 ## Verified baseline
 
@@ -238,4 +240,4 @@ SAVE-J2-R02v2 / decision0160 is in implementation after independent contract rev
 
 ## Event schedule byte adapter
 
-SAVE-S11-R01v2 / decision0161 candidate supplies the missing section11codec over the existing64-row owner. It preserves exact sequence allocation and due order, including exhausted or empty schedules, and requires the supplied clock barrier for apply. Independent source review found no defect; final focused43/538/0, full local4713/184355/0 before2review-requested test-only additions,15static gates and import pass. Merged in [PR152](https://github.com/gradybre/redwall-rts/pull/152) at `f4368a31ee9b496240502c7e3eaaf72d80c816fe`; CI35479087613 passed4715/184365/0 on exact head0c1e19664e3daf059b84b93983ca475f2c1ecf50. Real event domains/producers/consumers and full-world saving remain open.
+SAVE-S11-R01v2 / decision0161 candidate supplies the missing section11codec over the existing64-row owner. It preserves exact sequence allocation and due order, including exhausted or empty schedules, and requires the supplied clock barrier for apply. Independent source review found no defect; final focused43/538/0, full local4713/184355/0 before2review-requested test-only additions,15static gates and import pass. Merged in [PR153](https://github.com/gradybre/redwall-rts/pull/152) at `2f47bc91ee9b496240502c7e3eaaf72d80c816fe`; CI35479087613 passed4730/185187/0 on exact head0c1e19664e3daf059b84b93983ca475f2c1ecf50. Real event domains/producers/consumers and full-world saving remain open.

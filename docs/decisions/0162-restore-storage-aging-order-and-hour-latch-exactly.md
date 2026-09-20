@@ -1,6 +1,6 @@
 # 0162 — Restore storage-aging order and hour latch exactly
 
-Date:2026-09-19 · Status:Implemented; independent review accepted; exact-head CI pending
+Date:2026-09-19 · Status:Implemented and merged in PR153; CI4730/185187/0
 
 [SAVE-AGE-R01v2](../planning/stock_age_columns_contract.md) publishes StockAge's
 existing4packed columns and2scalars, plus a separate single-OwnerRecord adapter.

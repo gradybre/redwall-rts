@@ -829,19 +829,19 @@
       "status": "blocked",
       "depends_on": [
         "PLAN-SAVE-COVERAGE",
-        "SAVE-STOCK-AGE-COLUMNS"
+        "SAVE-STOCK-AGE-COLUMNS",
+        "SAVE-RESERVATIONS-COLUMNS"
       ],
       "owns": [
         "godot/scripts/core/inventory.gd",
         "godot/scripts/core/gear.gd",
-        "godot/scripts/core/reservations.gd",
         "godot/scripts/core/fishing.gd",
         "godot/scripts/core/forage.gd",
         "godot/test/test_inventory_columns.gd"
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. StockAge is split into SAVE-STOCK-AGE-COLUMNS under SAVE-AGE-R01v2; umbrella retains other owners and full section7 assembly, so I1 is not closed by that child."
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. StockAge is split into SAVE-STOCK-AGE-COLUMNS under SAVE-AGE-R01v2; umbrella retains other owners and full section7 assembly, so I1 is not closed by that child. Reservations is now separately owned by SAVE-RESERVATIONS-COLUMNS under SAVE-RES-R01v2."
     },
     {
       "id": "SAVE-COLUMNS-JOBPLANNER",
@@ -1059,7 +1059,7 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. Resumption follow-up: its complete implementation also depends on the concrete section/owner/continuation prerequisites; a generic coordinator skeleton cannot prove rollback. No dependency on SAVE-CAPTURE, which is its subsequent full-world integration owner. SAVE-AGE-R01v2 obligation: bind StockAge to the Inventory restored from the same validated file/world before installing declarations; matching generation numbers cannot prove world association. Preserve stale declaration generations for normal sweep (do not reject or repair them). Reconcile latch/clock/fault continuation separately; owner structural latch admits -1, 0, 751 and i64 max."
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. Resumption follow-up: its complete implementation also depends on the concrete section/owner/continuation prerequisites; a generic coordinator skeleton cannot prove rollback. No dependency on SAVE-CAPTURE, which is its subsequent full-world integration owner. SAVE-AGE-R01v2 obligation: bind StockAge to the Inventory restored from the same validated file/world before installing declarations; matching generation numbers cannot prove world association. Preserve stale declaration generations for normal sweep (do not reject or repair them). Reconcile latch/clock/fault continuation separately; owner structural latch admits -1, 0, 751 and i64 max. SAVE-RES-R01v2: pass the actual world Inventory, not an arbitrary idle instance; after all owner installs reconcile every Inventory lot including no-row lots with checked reservation sums and validate job mapping. Existing audit skips no-row lots. PLAN-RESERVATION-TOTALS repair must land before enabling external-file loading; do not tighten save row admission to hide unchecked query overflow."
     },
     {
       "id": "SAVE-PROVENANCE-PRODUCER",
@@ -1554,7 +1554,7 @@
     {
       "id": "SAVE-STOCK-AGE-COLUMNS",
       "title": "Capture and restore exact StockAge columns and section7 owner block",
-      "status": "in_flight",
+      "status": "done",
       "depends_on": [
         "PLAN-SAVE-COVERAGE"
       ],
@@ -1566,7 +1566,41 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "SAVE-AGE-R01v2 / decision0162 accepted after feasibility audit, actual order/byte probes and independent contract review. Exact owner boundary only; remaining I1owners/world coordination open."
+      "note": "SAVE-AGE-R01v2 / decision0162 accepted after feasibility audit, actual order/byte probes and independent contract review. Exact owner boundary only; remaining I1owners/world coordination open. Merged PR153; exact-head CI35480541774 passed4730tests/185187assertions/0failures. Other I1owners and whole-world requirements remain open.",
+      "pr": 153,
+      "merge_commit": "2f47bc97910282ba93d8dcc835c623d581b60654"
+    },
+    {
+      "id": "PLAN-RESERVATION-TOTALS",
+      "title": "Specify checked reservation totals for public-API overflow witness",
+      "status": "in_flight",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "docs/planning/reservation_totals_contract.md"
+      ],
+      "agent": "astra",
+      "gate": "none",
+      "note": "Public probe: two different item lots each claim6e18milli for one job; both claims and pool.audit succeed but job_reserved_total_milli wraps to-6446744073709551616. Source _sum_list has unchecked addition; diagnostic APIs/tests are current callers. Define explicit checked-result API and audit handling, preserve legal claim/release semantics, then create bounded implementation task after SAVE reservations owner work. Evidence docs/validation/evidence/reservations-columns-contract-2026-09-19/public_overflow_probe.log. No save admission restriction inferred."
+    },
+    {
+      "id": "SAVE-RESERVATIONS-COLUMNS",
+      "title": "Restore exact reservation rows and semantic indexes",
+      "status": "in_flight",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE",
+        "SAVE-STOCK-AGE-COLUMNS"
+      ],
+      "owns": [
+        "godot/scripts/core/reservations.gd",
+        "godot/scripts/core/save_reservations_restore.gd",
+        "godot/test/test_reservations_columns.gd",
+        "godot/test/reservations_columns_focus.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "SAVE-RES-R01v2 / ADR0163 accepted after independent feasibility and contract review. Preserve8canonicalarrays and exactrowIDs; reconstructheap/chains O(RlogR); samewire and explicit targetJ/L context. Per-lot sums checked, admitted job-wide overflow separate PLAN-RESERVATION-TOTALS. No fullInventory restore/I1 closure."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

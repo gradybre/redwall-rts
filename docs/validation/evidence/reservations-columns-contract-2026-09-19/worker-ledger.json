@@ -1,0 +1,38 @@
+{
+  "attempts": [
+    {
+      "id": "reservations-columns-audit-a1",
+      "role": "feasibility auditor",
+      "model": "claude-opus-5",
+      "sessionId": "dc2120c5-211f-424e-8b28-e801d58393d3",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "godot/scripts/core/reservations.gd": "3211416652559e63e7b3926038514e422b90a08782113d469d45f30c5cfd0ef0",
+        "godot/scripts/core/save_section_inventories.gd": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567",
+        "godot/test/test_reservations.gd": "ad2da364adaebbcf720ee377687f9a90943227199feaff74965588e5a8b3535b",
+        "docs/decisions/0019-reservations-use-a-global-pool.md": "0206f079abca224786b8a326a66f80784b5a02ce68809096bfdeb79fa7f7124a",
+        "docs/validation/evidence/reservations-columns-contract-2026-09-19/astra-source-notes.md": "d89dd45c582e3879f0d01e54c186befe1efb825418ba9964d0c58818fa00bdb7"
+      }
+    },
+    {
+      "id": "reservations-columns-contract-a1",
+      "role": "independent contract reviewer",
+      "model": "claude-opus-5",
+      "sessionId": "16fe99f9-5aeb-4e6f-8c8d-4b910699c19f",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/reservations_columns_contract.md": "4ddf26012aff510fc379344a5a81f745ca6a452358063010124060079a2a022f",
+        "docs/decisions/0163-restore-reservation-row-identities-and-semantic-indexes.md": "129dd8c4f0c73e53f1abe4aeb2d28a9a41256af36929bcad3d9574fb2d4e97f1",
+        "docs/validation/evidence/reservations-columns-contract-2026-09-19/astra-audit-disposition.md": "ee864ac3273c9a0bb390928f9cbbb6c4b6d532d911b780a45fb63f8c6be84886",
+        "docs/validation/evidence/reservations-columns-contract-2026-09-19/public-probe-disposition.md": "2eee9d64fa5016eb209e7b575277102e8168af59a0b174ee4626046695ddd3b1",
+        "docs/validation/evidence/reservations-columns-contract-2026-09-19/public_overflow_probe.log": "274e54caa4e6f355a5cc79b134a4aae210074fa46feb48f6d34e50c594c03507",
+        "docs/validation/evidence/reservations-columns-contract-2026-09-19/wire-baseline.json": "4451d5c19fd023fd40142c1e66b7a09a0723f8c1f243b147b98f9e3bd6a69877",
+        "godot/scripts/core/reservations.gd": "3211416652559e63e7b3926038514e422b90a08782113d469d45f30c5cfd0ef0",
+        "godot/scripts/core/save_section_inventories.gd": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567",
+        "godot/scripts/core/save_stock_age_restore.gd": "39e2071d3c4b4e8324d682464cf4a8523611a9d35de9cdf81da42717a7c081c9"
+      }
+    }
+  ]
+}

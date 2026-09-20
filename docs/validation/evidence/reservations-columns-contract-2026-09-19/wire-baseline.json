@@ -1,0 +1,26 @@
+[
+  {
+    "bytes": 400,
+    "rows": 8,
+    "sha256": "a623cbc40a1890197af25b3bf718e679edc4a604c9322c1267732fc45f23d140",
+    "variant": 0
+  },
+  {
+    "bytes": 400,
+    "rows": 8,
+    "sha256": "347b6d9743756e07e9c0a171033e93022166dd63db395cb886ac452a711bb241",
+    "variant": 1
+  },
+  {
+    "bytes": 1212520,
+    "rows": 32768,
+    "sha256": "3798c5cf5b34163c1dfb4c9e7c1bd91c8159f72fd27ae23e4bc845a1c9cca898",
+    "variant": 2
+  },
+  {
+    "bytes": 1212520,
+    "rows": 32768,
+    "sha256": "a6e0867126e6273d4b1faffd5c379eb04740a1a8de8e2510e546569757195254",
+    "variant": 3
+  }
+]

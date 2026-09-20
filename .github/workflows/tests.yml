@@ -81,6 +81,9 @@ jobs:
       - name: Transforms metadata preflight fault injection
         run: python3 tools/test_transforms_metadata_preflights.py
 
+      - name: Fauna metadata preflight fault injection
+        run: python3 tools/test_fauna_metadata_preflights.py
+
       - name: UI refinement contract
         # This one hashes PNGs and asserts their magic bytes. *.png is LFS, so
         # it runs in this job, whose checkout already sets lfs: true, rather

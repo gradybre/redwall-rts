@@ -1,0 +1,20 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "dd68860bb81e1f267ead75f835f359455cb82169",
+  "task": "Review reserved-fauna owner17 save-validation domain and shared empty predicate feasibility",
+  "paths": [
+    "AGENTS.md",
+    "docs/validation/evidence/fauna-validation-planning-2026-09-20/astra-source-note.md",
+    "docs/setting_rules_amendment.md",
+    "docs/tasks/09_persistence_replay_reliability.md",
+    "godot/scripts/core/world_init.gd",
+    "godot/test/test_world_init.gd",
+    "godot/scripts/core/save_owner_schedule.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/scripts/core/resource_catalog_binding.gd",
+    "docs/persistence_state_registry.md"
+  ],
+  "instructions": "Independent read-only feasibility review of proposed WorldInit owner17 permanentlyemptyreservedfauna validator. Noimplementation yet. Re-derive exact9columns8i32/1i64 counts384/nullzone(-1,0)/otherzeros fromallsourcewriters, authorityretiredhunting, dependencycycles, existingfaunaemptyreader/section1diagnostic preservation. Propose exact9typedstaticAPI two globalgates shape andcanonicalreserveddefaults (countscan orloops no scratch/owner), standardframedowner17 bridge, and rigoroussubstitution/shape/metadatafaultoracles. Noactivefauna/capacityrepurposing/speciesmapping/zero-wiredefaultrepair. Verify parentfindings constructorallocatesmultiplemap/storesbutstaticnoconstruction. Mark bulksection1/4 atomicrestoredeferredexistingtask; do nottreatprimitiveasfullworldacceptance. Assess missingpublicsnapshotall9 foractualownerfixture: useexistingfaunaemptyreaderbehavior/generationtests/source-ownedfixeddefaults, nofabricatedprivategetter. ReturnONEnew docs/validation/evidence/fauna-validation-planning-2026-09-20/feasibility-review.md; hard160lines AND1600words aim90/900; newbaseSha256null. RawJSONstatus/summary/questions/files/decisionIds only, no runclaims orotherfiles. Concreteblockers only; internalcodesordinaryAstrachoice."
+}

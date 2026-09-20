@@ -779,6 +779,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---|---|---|:-:|---|---|
 | Pure owner15 pose and binding validator | -- | -- | -- | -- | 3 | -- | Decision0173 / TRANSFORMS-S4-VALIDATE-R01v1. No mutable module state or live owner/Directory construction. Nine typed caller-owned i32 columns feed the static predicate; positive binding uniqueness uses one private350208-byte duplicate-and-sort. Framed3151872 + scratch350208 + three65536stream windows =3698688logical packed bytes, below existing6417408one-owner stream allowance. Native/wrapper overhead is unmeasured. Preserve all signed pose/yaw values, independent current/previous and legitimate stale bindings. Bulk APIs/nonzero-stamp count rebuild and saved cursor/Directory identity remain separate. |
 
+### `godot/scripts/core/save_owner_world_init.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---|---|---|:-:|---|---|
+| Pure owner17 reserved-fauna validator | -- | -- | -- | -- | 3 | -- | Decision0174 / FAUNA-S4-VALIDATE-R01v1. No mutable module state or WorldInit/collaborator construction. Eight i32 and one i64 caller-owned columns feed the shared static predicate. Every row is fixed empty: null zone reference (-1,0), all other values zero. The15360framed packed bytes are already inside the streaming allowance; no projection, duplicate or scratch is added. Native/wrapper overhead is unmeasured. Source null sentinels are pinned before column reads. No hunting, repair, combined section1/4 restoration or publication is supplied. |
+
 ### `godot/scripts/core/save_resource_claims_reconcile.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

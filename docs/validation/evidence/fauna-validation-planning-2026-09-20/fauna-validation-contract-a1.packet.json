@@ -1,0 +1,21 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "7b98c61cb6a1bfdbc38a960b4fe53975cb779ee7",
+  "task": "Final reserved-fauna owner17 validation contract review",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/fauna_component_validation_contract.md",
+    "docs/validation/evidence/fauna-validation-planning-2026-09-20/feasibility-review.md",
+    "docs/validation/evidence/fauna-validation-planning-2026-09-20/feasibility-disposition.md",
+    "docs/validation/evidence/fauna-validation-planning-2026-09-20/metadata-fault-plan.md",
+    "docs/validation/evidence/fauna-validation-planning-2026-09-20/proposed-preload-closure.json",
+    "docs/validation/evidence/fauna-validation-planning-2026-09-20/int64_count_probe.gd",
+    "docs/validation/evidence/fauna-validation-planning-2026-09-20/int64-count-probe.log",
+    "godot/scripts/core/world_init.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_owner_transforms.gd"
+  ],
+  "instructions": "Independent final review of FAUNA-S4-VALIDATE-R01 draft1 before author dispatch. Recheck authority/source-shaped fixedreservedemptyimage8i32+1i64, sharedstatic9args/count exactshape-beforedefaults, unchangedoldempty/refreaders andsection1diagnostics. Parentverifiedactuali64countprecision andliteralpreloadclosure: baselineIntMath/SaveCodec selfpreloads exist, no proposednewbridgecycle; do notclaimentiregraphacyclic. Metadata cross-checks WorldInit.EntityDirectory NULL_SLOT/GEN plus3faunaconstants; confirmstaticaccessfeasible fromsource. Inspectlastownerfieldcountfault arithmetic: moveWorklastdescriptor288 toend298entrytables; newbegin17=288 count16=8 count17=10; first9faunafieldsretained, bytes\u00b1520; distinguishescountguardwithoutchangingglobalfieldtotal. Re-derive19mutantoracles, equivalenceofzerodefaultswaps, defaultzone\u22121 rawzeroinvalid, noowner/projection/callback. No bulk/combined1/4/worldpublicationclaim. ReturnONEnew docs/validation/evidence/fauna-validation-planning-2026-09-20/contract-review.md; hard140lines AND1400words aim80/800, baseSha256null. RawJSONstatus/summary/questions/files/decisionIds; nootherfiles/runclaims; actualblockers/clarifications only."
+}

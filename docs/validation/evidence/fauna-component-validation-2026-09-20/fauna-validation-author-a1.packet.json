@@ -1,0 +1,18 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "7b98c61cb6a1bfdbc38a960b4fe53975cb779ee7",
+  "task": "Implement owner17 reserved-fauna validation and shared canonical-empty reader",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/fauna_component_validation_contract.md",
+    "docs/decisions/0174-reject-noncanonical-reserved-fauna-columns.md",
+    "docs/validation/evidence/fauna-validation-planning-2026-09-20/contract-review-disposition.md",
+    "docs/validation/evidence/fauna-validation-planning-2026-09-20/parent-test-matrix.md",
+    "godot/scripts/core/world_init.gd",
+    "godot/scripts/core/save_owner_schedule.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_header.gd"
+  ],
+  "instructions": "Implement accepted FAUNA-S4-VALIDATE-R01v1/ADR0174. Return ONE new docs/validation/evidence/fauna-component-validation-2026-09-20/implementation.patch with baseSha256null. Unified git diff modifying ONLY godot/scripts/core/world_init.gd and NEW godot/scripts/core/save_owner_world_init.gd; no othertargets/rename/binary/modechanges, new100644ordinarycreation allowed. Hard480patchlines. Use exact suppliedsource context/nonoverlappinghunks (one predecessor patch failed from a surplus unchanged blankline); parentgitapply--recount--check. Add static nine typed packed args8i32/1i64 in canonical order; all9shapes first\u2192COLUMN_FAUNA_SHAPE, then count exact defaults\u2192COLUMN_FAUNA_RESERVED, success existingREFUSE_NONE. Add constantsREFUSE_COLUMN_FAUNA_SHAPE/RESERVED. Slot EntityDirectory.NULL_SLOT\u22121, genNULL_GENERATION0, otherszero. Everycolumn explicitly checked, no constructor/store/catalog/projection/scratch/rangeArray/diagnosticwrite/repair. Existingfauna_is_canonically_empty delegates exact9privatecolumns; keepfauna_zone_ref_of andallocation/gen/section1 methods unchanged. Bridgeowner17/version1/384/0children/9 exactfields/types/counts,3faunaconstants andWorldInit.EntityDirectory nullsentinels checked before column evaluation; exactWorldInit owner17 metadata: prefix andWorldInit owner 17 rawcodedetail. Sevenstandardgates, first8i32accessors,lasti64; scalar metadata only. No WorldInit/collaborator construction; no packedallocation beyondcaller15360image. Source const-preload chaining mustcompile inGodot (parenttests). Authorowns ONLY two productionfiles; parentownstests/tooling/docs/CI. Concise readablecomments; no runclaims. RawJSONstatus/summary/questions/files/decisionIds only; acceptedv1 acknowledgement, genuinequestionsonly."
+}

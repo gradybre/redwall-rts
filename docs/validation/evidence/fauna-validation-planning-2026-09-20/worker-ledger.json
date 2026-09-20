@@ -1,0 +1,55 @@
+{
+  "attempts": [
+    {
+      "id": "fauna-validation-feasibility-a1",
+      "model": "claude-opus-5",
+      "sessionId": "5dbb4a19-acb5-45f2-a208-99bbfeebb4f4",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/validation/evidence/fauna-validation-planning-2026-09-20/astra-source-note.md": "abc529c74662fe8aae70d3d4e964a5be70e25ec0f71ac0d5f07484348e477e2d",
+        "docs/setting_rules_amendment.md": "ede2b0508f8428b7216c3b831d5ea54d1db3a868d903224b192d56b61cf1db10",
+        "docs/tasks/09_persistence_replay_reliability.md": "47633bec5d233783addcd99594e0a0174ba38307bb9a0a4eb82c549e75f8494a",
+        "godot/scripts/core/world_init.gd": "21a88aebbacb757c552056144379b57251119fdc606aa4344fe3c698fb387e5a",
+        "godot/test/test_world_init.gd": "924e9f87ccef27c3935cd1825335a71be0a9f32eb0a4b4cccf9c305cdfe8e9e1",
+        "godot/scripts/core/save_owner_schedule.gd": "1a123674881744ec4d97c510f9b75f5d46e8389dd1cfb6544a555cc10a816697",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+        "godot/scripts/core/resource_catalog_binding.gd": "74bc0fddbc829af0877d6616ecd508c48efc1d7b443be6b6fa27d95b440a0fec",
+        "docs/persistence_state_registry.md": "1b9ca916c66cf17bd971fa2f2226f75959895fcc1feffff80d8ced27a43be611"
+      },
+      "outputLines": 153,
+      "outputWords": 1241,
+      "outputLineBudget": 160,
+      "outputWordBudget": 1600
+    },
+    {
+      "id": "fauna-validation-contract-a1",
+      "model": "claude-opus-5",
+      "sessionId": "79325a6d-bfa7-4d50-a6e1-134ab6e81707",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/fauna_component_validation_contract.md": "235735d3daf9d87fde726c626683ef20fa6bd88397867528f61c23c12ce6f80a",
+        "docs/validation/evidence/fauna-validation-planning-2026-09-20/feasibility-review.md": "d7147a0c330c5d688068e23bae500f9f78c0908c2c9f31ae2239b72a8b4cd288",
+        "docs/validation/evidence/fauna-validation-planning-2026-09-20/feasibility-disposition.md": "4bcd078769bc15508c867bd72292a3de6ad9b21b558f57c4dbdb7ac5fc4c86c5",
+        "docs/validation/evidence/fauna-validation-planning-2026-09-20/metadata-fault-plan.md": "47ffb8ac9c40b50e9af8bae96468136e3cb077f2c07b43cd60b931164f16e698",
+        "docs/validation/evidence/fauna-validation-planning-2026-09-20/proposed-preload-closure.json": "2b05dd1468900fdf6d24258a740fb81df023b9cbe0290fd88025a1e0f46d2a3d",
+        "docs/validation/evidence/fauna-validation-planning-2026-09-20/int64_count_probe.gd": "8dd4f668614cda6f6c5a120d6438ebda41fc6a37936a571704465883a8029b2e",
+        "docs/validation/evidence/fauna-validation-planning-2026-09-20/int64-count-probe.log": "dd4062454e4e06cac1bdbdb83ceff5cebc54a471c574efa3f66c2328f6a171a3",
+        "godot/scripts/core/world_init.gd": "21a88aebbacb757c552056144379b57251119fdc606aa4344fe3c698fb387e5a",
+        "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/scripts/core/save_owner_transforms.gd": "a82c4df98598a62cc97c84c936c6a00649b2f2f66788ac885cb5ea4378855790"
+      },
+      "outputLines": 134,
+      "outputWords": 1226,
+      "outputLineBudget": 140,
+      "outputWordBudget": 1400
+    }
+  ]
+}

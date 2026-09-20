@@ -1792,7 +1792,8 @@
         "SAVE-S4-PRIORITIES-VALIDATE",
         "SAVE-S4-SCHEDULE-VALIDATE",
         "SAVE-S4-TRANSFORMS-VALIDATE",
-        "TRANSFORMS-SAVED-IDENTITY"
+        "TRANSFORMS-SAVED-IDENTITY",
+        "SAVE-S4-FAUNA-VALIDATE"
       ],
       "owns": [
         "docs/planning/component_owner_domains.md",
@@ -1914,7 +1915,7 @@
     {
       "id": "SAVE-S4-TRANSFORMS-VALIDATE",
       "title": "Validate Transform saved pose history and unique binding IDs without live owners",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "SAVE-S4-STREAM"
       ],
@@ -1929,7 +1930,7 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Local acceptance TRANSFORMS-S4-VALIDATE-R01v1/ADR0173: 4916 tests,236229 assertions,0 failures; focus34/3277/0;14 required mutants and8metadata bypasses caught;18metadata cases;17static checks/import and independent source review pass. Preserves signed pose history and stale bindings;350208-byte scratch within existing stream allowance. Exact-head CI pending. No bulk binding or full saved identity acceptance."
+      "note": "Local acceptance TRANSFORMS-S4-VALIDATE-R01v1/ADR0173: 4916 tests,236229 assertions,0 failures; focus34/3277/0;14 required mutants and8metadata bypasses caught;18metadata cases;17static checks/import and independent source review pass. Preserves signed pose history and stale bindings;350208-byte scratch within existing stream allowance. Merged PR164 commit38e916e after exact-head CI35497087870 passed4916/236229/0 and18metadata cases (79seconds). No bulk binding or full saved identity acceptance."
     },
     {
       "id": "TRANSFORMS-SAVED-IDENTITY",
@@ -1944,6 +1945,26 @@
       "agent": "astra",
       "gate": "none",
       "note": "Pure savedstate contract required: allpositive stamps below savedsection1cursor, correct savedDirectory/typedrow associations while allowing legitimate stalehistoricalstamps. No liveDirectory lookup or unconditional liveentitymatch; localuniqueness does not proveworldprovenance. Directory.cursor_refusal expectswrongarrayextent forTransform andcannotbereused directly."
+    },
+    {
+      "id": "SAVE-S4-FAUNA-VALIDATE",
+      "title": "Reject noncanonical WorldInit reserved-fauna save columns",
+      "status": "review",
+      "depends_on": [
+        "SAVE-S4-STREAM"
+      ],
+      "owns": [
+        "godot/scripts/core/world_init.gd",
+        "godot/scripts/core/save_owner_world_init.gd",
+        "godot/test/test_save_owner_world_init.gd",
+        "godot/test/fauna_validation_focus.gd",
+        "tools/test_fauna_metadata_preflights.py",
+        ".github/workflows/tests.yml",
+        "docs/persistence_state_registry.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Local acceptance FAUNA-S4-VALIDATE-R01v1/ADR0174:4924tests/242248assertions/0;focused8/6019/0;19required mutants +8metadata and2source-sentinel bypasses caught;22metadata cases;17static gates/import;independent review no blocker and tracked evidence items closed. Shared empty reader and pure owner17 bridge preserve reserved384rows, no projection/scratch. Exact-head CI pending. Combined section1/4 restore remains owner-binding work."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

@@ -1,0 +1,11 @@
+# Astra Schedule feasibility disposition
+
+The source review confirms both candidate state implications across every public writer: unresolved0 implies currentANYTHING/sleep0, and sleep1 implies resolved1/currentANYTHING. Adopt both as hard local saved-image rules. The suggestion to warn on the latter is not adopted: it identifies no reachable public counterexample, the two fields are owned and updated together inside Schedule, and no live Needs or clock is needed to compare their saved values. A future producer changing this invariant must revise its contract; hypothetical future behavior is not a present valid save. No warning-only channel is introduced into a refusal API.
+
+This does NOT infer activity from the current timetable. The public_history_probe.gd run proves legal edit/reassignment histories: after latching, editing hour22 toWORK leaves currentANYTHING/sleep1; resolving SOCIAL then assigning flexible leaves currentSOCIAL while hour18 becomesANYTHING. Invalid-hour resolution preserves currentSOCIAL. Those must remain accepted. Static complete writer inspection, not this small probe alone, supports the two row-state implications.
+
+Use six typed packed arguments for the owner-wide predicate, with no slot argument; a slot is only an internal free-row helper input. The feasibility sketch's ownerwide-plus-slot wording is not adopted. Range-check template/current across all physical rows before exact free-row rules, avoiding inconsistent inactive-domain admission. Refuse malformed flags and use exact distinct codes for both state flags.
+
+Inactive rows use ANYTHING1 for hourly/current, template0, flags0; no zero-wire default substitution. Share the existing inactive-row definition. Local template range does not verify catalog identity, and no Schedule->CatalogIds dependency is allowed because CatalogIds already preloads Schedule. Section2matching and any explicit future migration remain downstream. Correct registry wording for the last-resolved flag; no new hourly-reset behavior.
+
+Review precision: its sleep-column writer paragraph says exactlythree places but lists four; the enumerated sites and resulting implications are correct. No field/version/newstore or gameplay expansion follows from this acceptance direction. A final explicit contract still precedes author dispatch.

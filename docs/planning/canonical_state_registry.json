@@ -9441,7 +9441,7 @@
   },
   "C102": {
    "unused": "`_present == 0` is a free row",
-   "notes": "`_sleep_satisfied` is a per-night latch and `_resolved` records that this hour's activity has been applied; both change what the next hour does."
+   "notes": "`_sleep_satisfied` is the sleep-exception latch. `_resolved` records that at least one successful resolve produced `_current_activity`; it is retained across timetable edits and template reassignment, not derived from the current hour. Decision0172 pins saved local consistency without re-resolving history."
   },
   "C103": {
    "unused": "One byte per (resident, hour); the value is a real activity, never absence",

@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "1369fce5fee64d7c292453f5d4fe8c6123328251",
+  "task": "Read-only Schedule saved-state domain and catalog dependency feasibility",
+  "paths": [
+    "AGENTS.md",
+    "docs/validation/evidence/schedule-validation-planning-2026-09-20/source-leads.md",
+    "docs/validation/evidence/schedule-validation-planning-2026-09-20/astra-questions.md",
+    "godot/scripts/core/schedule.gd",
+    "godot/test/test_schedule.gd",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/save_component_columns_schema.gd"
+  ],
+  "instructions": "Read-only source-backed feasibility for owner14 Schedule semantic validator. No code/test/finalcontract authored. Investigate precise public-producer invariants for resolved0/currentANYTHING/sleep0 and sleep1/resolved1/currentANYTHING across resolve/assign/edit/refusals/clear/spawn/despawn. Preserve customized schedules and historical currentactivity; never rederivefromcurrentNeeds/time. Confirm sixfield order/types/17920bytes, inactiveANYTHING1 defaults vszeroWire andall512addressable. Assess numerictemplate0..2 domain vs installedcatalog2 verification, with no liveSchedule/Needs and no CatalogIds preloadcycle; referencesexcerptsprovided. Identify any realunsettleddomain/unsafeproposedtightening and registry_thishourwording mismatch. Suggest boundedpureAPI/gates/codes/mappingtestwitnesses if justified. ExactlyONEnew docs/validation/evidence/schedule-validation-planning-2026-09-20/feasibility-review.md; hard150lines AND1500words, aim80/800. RawJSONstatus/summary/questions/files/decisionIds newbaseSha256null. No runclaims; citeactualsources, do not manufacturegameplay."
+}

@@ -1,0 +1,48 @@
+{
+  "attempts": [
+    {
+      "id": "schedule-validation-feasibility-a1",
+      "model": "claude-opus-5",
+      "sessionId": "45f1a3db-2174-41ba-b17b-5e692a150eba",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/validation/evidence/schedule-validation-planning-2026-09-20/source-leads.md": "84f1b25c45a63738d62c6347fae1768dca45d6f44e9c85f454e3e9ce0dcef9ee",
+        "docs/validation/evidence/schedule-validation-planning-2026-09-20/astra-questions.md": "6e1bf3dfcbf35297d77dafa3abf900d7d4800fc083ede21e80d79b797c8d2cac",
+        "godot/scripts/core/schedule.gd": "9da6ee9fde956812017b7d01ccfcef97832145849949d9a92bb000a11fde3ab7",
+        "godot/test/test_schedule.gd": "953f91e65bb71b9127c6b82b4a955172df8e86ffec590c242d647c720fad2d73",
+        "godot/scripts/core/catalog.gd": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad"
+      },
+      "outputLines": 109,
+      "outputWords": 995,
+      "outputLineBudget": 150,
+      "outputWordBudget": 1500
+    },
+    {
+      "id": "schedule-validation-contract-a1",
+      "model": "claude-opus-5",
+      "sessionId": "3b57d060-924b-46aa-8b05-a2bf2d5df535",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/schedule_component_validation_contract.md": "6362424169e62ad77cb9707c8f26f3b96d9126e15c086e654de96a74f7100772",
+        "docs/validation/evidence/schedule-validation-planning-2026-09-20/feasibility-review.md": "2d529d423467b16f6842a490934da09e82ce307f2fc2313fb36808dd9673b15e",
+        "docs/validation/evidence/schedule-validation-planning-2026-09-20/feasibility-disposition.md": "9c66d311c0f06dc20f2a0cbeabf1a24443f27acc0cc2c36b9d0942b06da71545",
+        "docs/validation/evidence/schedule-validation-planning-2026-09-20/source-leads.md": "84f1b25c45a63738d62c6347fae1768dca45d6f44e9c85f454e3e9ce0dcef9ee",
+        "docs/validation/evidence/schedule-validation-planning-2026-09-20/public_history_probe.gd": "276e57236d807e5859cb8d4013287ff642d9061dac907c88b03086142c6e2b89",
+        "docs/validation/evidence/schedule-validation-planning-2026-09-20/public-history-probe.log": "d243e547e442d93740b8c00dad701c9db9156e201ef9eea4b78725deceb9e321",
+        "godot/scripts/core/schedule.gd": "9da6ee9fde956812017b7d01ccfcef97832145849949d9a92bb000a11fde3ab7",
+        "godot/test/test_schedule.gd": "953f91e65bb71b9127c6b82b4a955172df8e86ffec590c242d647c720fad2d73",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_owner_priorities.gd": "82ae61b2cb1afe3b48660a191c52aedab29fb90f723322a22cd62fd308dfca7c"
+      },
+      "outputLines": 114,
+      "outputWords": 1052,
+      "outputLineBudget": 140,
+      "outputWordBudget": 1400
+    }
+  ]
+}

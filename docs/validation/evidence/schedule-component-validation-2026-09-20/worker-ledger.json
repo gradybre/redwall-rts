@@ -1,0 +1,55 @@
+{
+  "attempts": [
+    {
+      "id": "schedule-validation-author-a1",
+      "model": "claude-opus-5",
+      "sessionId": "60e227ae-a6d9-46be-8cac-b20b4e988912",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/schedule_component_validation_contract.md": "7e149d23109a8fc958d90408734e6aa08fa59b93dd3235bb349c6b75ab110858",
+        "docs/decisions/0172-validate-saved-schedule-history-without-rederiving-it.md": "09281c3a723791564be3d7c1b1481054674eba5b35085caf448db1f0ce1de290",
+        "docs/validation/evidence/schedule-validation-planning-2026-09-20/contract-review-disposition.md": "6dbe6f9dcbe165a373aba85805db1100b970c144f299d92061dfcd446ea90609",
+        "docs/validation/evidence/schedule-validation-planning-2026-09-20/parent-test-matrix.md": "ff9a9d6e44fb684198ea3ff5b0959d5c4a768f82610204d40435421385bc5074",
+        "godot/scripts/core/schedule.gd": "9da6ee9fde956812017b7d01ccfcef97832145849949d9a92bb000a11fde3ab7",
+        "godot/scripts/core/save_owner_priorities.gd": "82ae61b2cb1afe3b48660a191c52aedab29fb90f723322a22cd62fd308dfca7c",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/scripts/core/save_header.gd": "55570d407a9f18dd2d8471f7fd58e98f34fce241b8d5fc06f44b49fbcd27eaa0"
+      },
+      "outputLines": 336,
+      "outputLineBudget": 550,
+      "applied": "git apply --recount --check then --recount; all frozen hashes match after PR162 merge transition"
+    },
+    {
+      "id": "schedule-validation-source-review-a1",
+      "model": "claude-opus-5",
+      "sessionId": "2a54fcfe-8efe-4ded-8397-3ec8becdad19",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/schedule_component_validation_contract.md": "7e149d23109a8fc958d90408734e6aa08fa59b93dd3235bb349c6b75ab110858",
+        "docs/decisions/0172-validate-saved-schedule-history-without-rederiving-it.md": "09281c3a723791564be3d7c1b1481054674eba5b35085caf448db1f0ce1de290",
+        "docs/validation/evidence/schedule-validation-planning-2026-09-20/feasibility-disposition.md": "9c66d311c0f06dc20f2a0cbeabf1a24443f27acc0cc2c36b9d0942b06da71545",
+        "docs/validation/evidence/schedule-validation-planning-2026-09-20/contract-review-disposition.md": "6dbe6f9dcbe165a373aba85805db1100b970c144f299d92061dfcd446ea90609",
+        "godot/scripts/core/schedule.gd": "1637b4d118cfba1a6f728165c7a092e9d70a3450624464bf78f29442210e78bb",
+        "godot/scripts/core/save_owner_schedule.gd": "1a123674881744ec4d97c510f9b75f5d46e8389dd1cfb6544a555cc10a816697",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/test/test_save_owner_schedule.gd": "0d7c409ffd19511f6d72c085851417425e08b2ed119918450068acf863d965f8",
+        "godot/test/test_schedule.gd": "953f91e65bb71b9127c6b82b4a955172df8e86ffec590c242d647c720fad2d73",
+        "tools/test_schedule_metadata_preflights.py": "c38c2f0302a148212663fbd5947b92da644a72aaddc35dd196c5f75303cc1ba2",
+        ".github/workflows/tests.yml": "379e2b3833498c766755389a1224f8cbc0bc08bc678b86657f7e6269696074ab",
+        "docs/validation/evidence/schedule-component-validation-2026-09-20/focus-first.log": "e31ba1284c8c297e77ff3215a8026b88e7547c43b2373b77f92ef259e7594cc2",
+        "docs/validation/evidence/schedule-component-validation-2026-09-20/metadata-preflights-final.json": "4f33779b38310d0baceb8c93e394701da96a230ee0160da53f42ac0ab6774f1c",
+        "docs/validation/evidence/schedule-component-validation-2026-09-20/metadata-harness-correction.md": "35b6f8eac3499eadec06c32e55530c29f9edee82c2f0856a5a8d949caf47ffdc"
+      },
+      "outputLines": 108,
+      "outputWords": 1112,
+      "outputLineBudget": 160,
+      "outputWordBudget": 1600
+    }
+  ]
+}

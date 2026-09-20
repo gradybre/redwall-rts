@@ -1,0 +1,19 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "65924c716163e7bf5795212b925dd2e0ada12477",
+  "task": "Final Schedule owner14 contract review and local state invariant scrutiny",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/schedule_component_validation_contract.md",
+    "docs/validation/evidence/schedule-validation-planning-2026-09-20/feasibility-review.md",
+    "docs/validation/evidence/schedule-validation-planning-2026-09-20/feasibility-disposition.md",
+    "docs/validation/evidence/schedule-validation-planning-2026-09-20/source-leads.md",
+    "docs/validation/evidence/schedule-validation-planning-2026-09-20/public_history_probe.gd",
+    "docs/validation/evidence/schedule-validation-planning-2026-09-20/public-history-probe.log",
+    "godot/scripts/core/schedule.gd",
+    "godot/test/test_schedule.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_owner_priorities.gd"
+  ],
+  "instructions": "Final pre-author review SCHEDULE-S4-VALIDATE-R01draft1. Astra adopts sleep1->currentANYTHING hard local saved invariant after everypublicwriter proof, rejecting earlierwarningrecommendation absent reachablecounterexample. Independently scrutinize actualsource: find any validpublichistory or higherauthoritycase strictgatewronglyrejects; futurehypotheticalproducerchanges alone are not a counterexample. Publicprobe shows legaleditedlatched/reassignedcurrenthistory acceptance mustremain. Check fullgateorder acrossdifferentrows, sixarguments/mappingwitnesses, helperguard/presence, localnumerictemplates vsCatalogIds no cycle,17920packedmemory, allzero invalid, metadata and acceptance. No production/test/finalcontract edits orrunclaims. ExactlyONEnew docs/validation/evidence/schedule-validation-planning-2026-09-20/contract-review.md; hard140lines AND1400words, aim70/700. RawJSONstatus/summary/questions/files/decisionIds newbaseSha256null. Identify actual unresolvedauthorambiguity with boundedfix; no settledscopeexpansion."
+}

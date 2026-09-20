@@ -1,0 +1,171 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_schedule.gd
+  FAIL  test_exact_field_layout_and_nonzero_empty_defaults
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+  FAIL  test_six_independent_mapping_witnesses
+        framed exact code (expected COLUMN_CURRENT_ACTIVITY, got COLUMN_FREE_ROW)
+        column identity (expected true, got false)
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+  PASS  test_every_hourly_byte_and_each_i32_row_is_checked
+  FAIL  test_all_local_template_and_activity_values_and_signed_extrema
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+        framed exact code (expected COLUMN_CURRENT_ACTIVITY, got COLUMN_FREE_ROW)
+        column identity (expected true, got false)
+        framed exact code (expected COLUMN_CURRENT_ACTIVITY, got COLUMN_FREE_ROW)
+        column identity (expected true, got false)
+        framed exact code (expected COLUMN_CURRENT_ACTIVITY, got COLUMN_FREE_ROW)
+        column identity (expected true, got false)
+  FAIL  test_unresolved_and_latched_state_implications
+        framed exact code (expected COLUMN_UNRESOLVED_STATE, got COLUMN_FREE_ROW)
+        column identity (expected true, got false)
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+        framed exact code (expected COLUMN_UNRESOLVED_STATE, got COLUMN_FREE_ROW)
+        column identity (expected true, got false)
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+        framed exact code (expected COLUMN_SLEEP_STATE, got COLUMN_FREE_ROW)
+        column identity (expected true, got false)
+        framed exact code (expected COLUMN_SLEEP_STATE, got COLUMN_FREE_ROW)
+        column identity (expected true, got false)
+        framed exact code (expected COLUMN_SLEEP_STATE, got COLUMN_FREE_ROW)
+        column identity (expected true, got false)
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+  PASS  test_free_rows_require_exact_anything_defaults_at_both_ends
+  FAIL  test_refusal_precedence_is_global_across_distinct_rows
+        framed exact code (expected COLUMN_SLEEP_STATE, got COLUMN_FREE_ROW)
+        column identity (expected true, got false)
+        framed exact code (expected COLUMN_UNRESOLVED_STATE, got COLUMN_FREE_ROW)
+        column identity (expected true, got false)
+        framed exact code (expected COLUMN_CURRENT_ACTIVITY, got COLUMN_FREE_ROW)
+        column identity (expected true, got false)
+  FAIL  test_all512_present_rows_remain_valid
+        framed exact code (expected , got COLUMN_UNRESOLVED_STATE)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_UNRESOLVED_STATE)
+  FAIL  test_public_edits_reassignment_and_failed_resolution_preserve_history
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+  FAIL  test_shared_inactive_reader_preserves_address_and_presence_guards
+        framed exact code (expected , got COLUMN_FREE_ROW)
+        success channel (expected true, got false)
+        success diagnostic empty (expected , got Schedule owner 14 refuses this image with column code COLUMN_FREE_ROW)
+  PASS  test_every_extent_is_checked_before_domains
+  PASS  test_null_wrong_owner_and_typed_bucket_shapes
+test_schedule.gd
+  PASS  test_template_ids_are_compiled_in_ascending_ascii_order
+  PASS  test_template_id_of_refuses_an_unknown_key
+  PASS  test_default_template_id_names_the_5_3_default_schedule
+  PASS  test_default_template_matches_the_5_3_hour_table
+  PASS  test_every_default_boundary_differs_from_the_hour_before_it
+  PASS  test_default_sleep_block_wraps_midnight_for_exactly_eight_hours
+  PASS  test_default_block_lengths_sum_to_the_whole_day
+  PASS  test_night_shift_matches_the_independently_written_offset_table
+  PASS  test_night_shift_is_the_default_pattern_offset_by_twelve_hours
+  PASS  test_flexible_template_is_all_anything
+  PASS  test_template_activity_refuses_an_unknown_template_or_hour
+  PASS  test_the_5_3_segment_list_tiles_the_day_at_both_offsets
+  PASS  test_the_tiling_guard_catches_a_gap
+  PASS  test_the_tiling_guard_catches_an_overlap
+  PASS  test_the_tiling_guard_catches_malformed_segments
+  PASS  test_spawn_copies_all_twenty_four_template_hours_into_the_row
+  PASS  test_the_hourly_stride_is_slot_times_twenty_four_plus_hour
+  PASS  test_set_hour_activity_customizes_one_hour_only
+  PASS  test_set_hour_activity_refuses_a_value_outside_the_activity_enum
+  PASS  test_assign_template_replaces_every_customized_hour
+  PASS  test_assign_template_resets_the_sleep_exception_latch
+  PASS  test_despawn_leaves_no_residue_in_the_inactive_row
+  PASS  test_clear_returns_every_row_to_the_same_empty_state_as_despawn
+  PASS  test_lifecycle_refusals_and_capacity
+  PASS  test_current_activity_refuses_before_the_first_resolve
+  PASS  test_resolve_stores_the_activity_it_returns
+  PASS  test_resolution_reads_the_owners_own_hour_row_not_slot_zeros
+  PASS  test_resolution_of_one_row_does_not_disturb_another
+  PASS  test_a_contented_resident_resolves_to_the_scheduled_activity
+  PASS  test_rest_at_or_below_500_forces_sleep_over_scheduled_work
+  PASS  test_rest_of_501_does_not_force_sleep
+  PASS  test_hunger_at_or_below_3500_displaces_scheduled_work_when_a_meal_is_reachable
+  PASS  test_hunger_of_3501_does_not_displace_work
+  PASS  test_the_eat_interrupt_only_displaces_work_hours
+  PASS  test_no_reachable_meal_leaves_work_alone_above_the_urgent_threshold
+  PASS  test_no_reachable_meal_displaces_work_at_or_below_1500
+  PASS  test_meal_reachability_changes_the_threshold_at_the_same_hunger
+  PASS  test_sleep_continues_below_the_rest_threshold
+  PASS  test_rest_reaching_9000_ends_sleep_for_the_rest_of_the_window
+  PASS  test_the_sleep_exception_survives_rest_decaying_inside_the_window
+  PASS  test_the_sleep_exception_clears_when_the_window_ends
+  PASS  test_decision_0021_the_latch_holds_all_window_while_rest_decays
+  PASS  test_a_collapse_restarts_sleep_even_after_the_exception_latched
+  PASS  test_the_sleep_exception_applies_to_the_night_shift_window_too
+  PASS  test_resolve_refuses_a_dead_resident
+  PASS  test_resolve_refuses_an_incapacitated_resident
+  PASS  test_resolve_refuses_a_row_with_no_needs_and_an_invalid_hour
+  PASS  test_resolve_into_reports_failure_without_allocating_a_result
+  PASS  test_activity_constants_come_from_the_protected_catalog_table
+  PASS  test_the_rest_thresholds_are_the_specified_ones
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+62 test(s), 17896 assertion(s), 8 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

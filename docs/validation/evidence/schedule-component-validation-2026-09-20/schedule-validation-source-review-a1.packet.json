@@ -1,0 +1,24 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "546a90714bbcaa2d2af42dfb3065b10eb159a181",
+  "task": "Independent Schedule saved-history validator and typed owner14 bridge source review",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/schedule_component_validation_contract.md",
+    "docs/decisions/0172-validate-saved-schedule-history-without-rederiving-it.md",
+    "docs/validation/evidence/schedule-validation-planning-2026-09-20/feasibility-disposition.md",
+    "docs/validation/evidence/schedule-validation-planning-2026-09-20/contract-review-disposition.md",
+    "godot/scripts/core/schedule.gd",
+    "godot/scripts/core/save_owner_schedule.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/test/test_save_owner_schedule.gd",
+    "godot/test/test_schedule.gd",
+    "tools/test_schedule_metadata_preflights.py",
+    ".github/workflows/tests.yml",
+    "docs/validation/evidence/schedule-component-validation-2026-09-20/focus-first.log",
+    "docs/validation/evidence/schedule-component-validation-2026-09-20/metadata-preflights-final.json",
+    "docs/validation/evidence/schedule-component-validation-2026-09-20/metadata-harness-correction.md"
+  ],
+  "instructions": "Independent source/security/correctness review against accepted SCHEDULE-S4-VALIDATE-R01v1/ADR0172. Focus62tests17896assertions0; realengine metadata18cases162assertions including8bypasses killed now pass; initial field-count witness correction is explicit. Required12projection/state mutants running; fullsuite notyet. Verify six typed argument mappings, all6 shapes and physical extents,10 global whole-column gates, shared inactive helper preserves reader guards, strict local unresolved/latch implications with historical edits retained, no Needs/clock/catalog dependency cycle or liveowner/newpackedmemory. Inspect balanced schema-valid fault arithmetic including moved child and Transforms first i32[87552] moved to Schedule (350216bytes); actual bypass assertions not parse failures. Read tests including every12288byte witness, global precedence, signed extrema, public-owner history. Do not reopen accepted deferred bulk/crossowner/section2 identity scope; report actual blockers or material gaps. Return ONE new docs/validation/evidence/schedule-component-validation-2026-09-20/source-review.md; hard160lines AND1600words, aim80/800. No otherfiles, newbaseSha256null, rawJSONstatus/summary/questions/files/decisionIds. No runclaims."
+}

@@ -1,0 +1,28 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-loop-2026-09-19/tools/test_schedule_metadata_preflights.py", line 159, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-loop-2026-09-19/tools/test_schedule_metadata_preflights.py", line 145, in main
+    results.append(execute(clone,fault+'-gate-bypassed',True))
+  File "/Users/brendan/Developer/redwall-rts-loop-2026-09-19/tools/test_schedule_metadata_preflights.py", line 111, in execute
+    assert killed if expect_failure else passed,label+'\n'+run.stdout
+AssertionError: field_count-gate-bypassed
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_schedule_metadata_probe.gd
+  PASS  test_actual_metadata_gate
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+1 test(s), 9 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+

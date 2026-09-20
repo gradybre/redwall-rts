@@ -1,0 +1,18 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "65924c716163e7bf5795212b925dd2e0ada12477",
+  "task": "Implement accepted Schedule saved-history validator and framed owner14 bridge",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/schedule_component_validation_contract.md",
+    "docs/decisions/0172-validate-saved-schedule-history-without-rederiving-it.md",
+    "docs/validation/evidence/schedule-validation-planning-2026-09-20/contract-review-disposition.md",
+    "docs/validation/evidence/schedule-validation-planning-2026-09-20/parent-test-matrix.md",
+    "godot/scripts/core/schedule.gd",
+    "godot/scripts/core/save_owner_priorities.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_header.gd"
+  ],
+  "instructions": "Implement accepted SCHEDULE-S4-VALIDATE-R01v1/ADR0172 exactly. ReturnONEnew docs/validation/evidence/schedule-component-validation-2026-09-20/implementation.patch with baseSha256null, unifiedgitdiff modifyingONLY godot/scripts/core/schedule.gd andNEW godot/scripts/core/save_owner_schedule.gd. No othertargets/rename/binary/modechanges; newfile100644normalcreationallowed. Hard550patchlines. Accurate suppliedsource, nonoverlappinghunks, parentgitapply--recount--check. Sixpackedargument staticpredicate exactcanonicalorder (template_ids maps_template),10completegatepasses globallyacrossrows notperrowinterleaving. Strictsource-backedunresolved andsleep/current rules; preservehistoricalcurrent evenaftertemplate/hour edits; no Needs/time/timetablechecks. Shared typedprivatefreehelper5columns+slot, nopresence/noaddressguardinside;existingreaderguardsunchanged. Bytecountloops/int32loops no duplicate/sort/rangeArray/newpackedbuffers/ownerinstance. Bridge7gates owner14/version1/512/6fields exactkeys/types/extents+fiveSourceConstants, distinctprefix, exactu8/i32accessors incontract, rawcolumncodes, noCatalogIdscycle/projection/livestore/I/O/reflection. Styleconcisecomments, boundedfunctions; parentownstests/registrywording/sidecar/docs/CI. Do not modifyordinarygameplay. No runclaims. RawJSONstatus/summary/questions/files/decisionIds only; acknowledgev1 realquestionsonly."
+}

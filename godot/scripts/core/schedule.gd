@@ -155,6 +155,18 @@ const REFUSE_INCAPACITATED: StringName = &"RESIDENT_INCAPACITATED"
 const REFUSE_NEEDS_UNAVAILABLE: StringName = &"NEEDS_ROW_UNAVAILABLE"
 const REFUSE_TEMPLATE_CATALOG: StringName = &"TEMPLATE_CATALOG_INVALID"
 
+## SCHEDULE-S4-VALIDATE-R01 saved-column codes, in columns_refusal()'s exact gate order.
+const REFUSE_COLUMN_SHAPE: StringName = &"COLUMN_SHAPE"
+const REFUSE_COLUMN_PRESENT_BYTE: StringName = &"COLUMN_PRESENT_BYTE"
+const REFUSE_COLUMN_SLEEP_SATISFIED_BYTE: StringName = &"COLUMN_SLEEP_SATISFIED_BYTE"
+const REFUSE_COLUMN_RESOLVED_BYTE: StringName = &"COLUMN_RESOLVED_BYTE"
+const REFUSE_COLUMN_HOURLY_ACTIVITY: StringName = &"COLUMN_HOURLY_ACTIVITY"
+const REFUSE_COLUMN_TEMPLATE_ID: StringName = &"COLUMN_TEMPLATE_ID"
+const REFUSE_COLUMN_CURRENT_ACTIVITY: StringName = &"COLUMN_CURRENT_ACTIVITY"
+const REFUSE_COLUMN_FREE_ROW: StringName = &"COLUMN_FREE_ROW"
+const REFUSE_COLUMN_UNRESOLVED_STATE: StringName = &"COLUMN_UNRESOLVED_STATE"
+const REFUSE_COLUMN_SLEEP_STATE: StringName = &"COLUMN_SLEEP_STATE"
+
 
 class OpResult:
 	"""Outcome of one schedule operation: success flag, refusal code, produced value.
@@ -573,15 +585,106 @@ func inactive_row_is_clear(slot: int) -> bool:
 	"""
 	if slot < 0 or slot >= SCHEDULE_CAPACITY or _present[slot] != 0:
 		return false
-	if _template[slot] != 0 or _current_activity[slot] != ACTIVITY_ANYTHING:
+	return _free_row_is_clear(_hourly_activity, _template, _current_activity, _sleep_satisfied,
+		_resolved, slot)
+
+
+static func _free_row_is_clear(hourly_activity: PackedByteArray, template_ids: PackedInt32Array,
+		current_activity: PackedInt32Array, sleep_satisfied: PackedByteArray,
+		resolved: PackedByteArray, slot: int) -> bool:
+	"""The inactive-row rule for one slot, shared by the reader above and the validator below.
+
+	No presence or address guard lives here: the caller must supply correctly sized columns and
+	a slot in 0..SCHEDULE_CAPACITY-1 it has already validated.
+	"""
+	if template_ids[slot] != 0 or current_activity[slot] != ACTIVITY_ANYTHING:
 		return false
-	if _resolved[slot] != 0 or _sleep_satisfied[slot] != 0:
+	if resolved[slot] != 0 or sleep_satisfied[slot] != 0:
 		return false
 	var base: int = slot * HOURS_PER_DAY
 	for hour: int in HOURS_PER_DAY:
-		if _hourly_activity[base + hour] != ACTIVITY_ANYTHING:
+		if hourly_activity[base + hour] != ACTIVITY_ANYTHING:
 			return false
 	return true
+
+
+# --- SCHEDULE-S4-VALIDATE-R01 saved-column validation -------------------------------------------
+
+static func columns_refusal(present: PackedByteArray, hourly_activity: PackedByteArray,
+		template_ids: PackedInt32Array, current_activity: PackedInt32Array,
+		sleep_satisfied: PackedByteArray, resolved: PackedByteArray) -> StringName:
+	"""Judge six saved Schedule columns: REFUSE_NONE, or the first failing gate's column code.
+
+	Pure and owner-free -- no Schedule, Needs or catalog is built, nothing is duplicated, sorted
+	or written -- and every gate completes across all 512 physical rows before the next begins.
+	The two present-row gates compare saved local values only, never the current timetable, the
+	assigned template, the clock or Needs: a resolved activity stays canonical history after an
+	hour edit, a template reassignment or a later refused resolve.
+	"""
+	if present.size() != SCHEDULE_CAPACITY or sleep_satisfied.size() != SCHEDULE_CAPACITY \
+			or resolved.size() != SCHEDULE_CAPACITY \
+			or template_ids.size() != SCHEDULE_CAPACITY \
+			or current_activity.size() != SCHEDULE_CAPACITY \
+			or hourly_activity.size() != SCHEDULE_CAPACITY * HOURS_PER_DAY:
+		return REFUSE_COLUMN_SHAPE
+	var flags: StringName = _flag_columns_refusal(present, sleep_satisfied, resolved)
+	if flags != REFUSE_NONE:
+		return flags
+	var domains: StringName = _domain_columns_refusal(hourly_activity, template_ids,
+		current_activity)
+	if domains != REFUSE_NONE:
+		return domains
+	return _row_state_refusal(present, hourly_activity, template_ids, current_activity,
+		sleep_satisfied, resolved)
+
+
+static func _flag_columns_refusal(present: PackedByteArray, sleep_satisfied: PackedByteArray,
+		resolved: PackedByteArray) -> StringName:
+	"""Gates 2-4: every flag byte is 0 or 1, one whole column at a time, by byte count."""
+	if present.count(0) + present.count(1) != SCHEDULE_CAPACITY:
+		return REFUSE_COLUMN_PRESENT_BYTE
+	if sleep_satisfied.count(0) + sleep_satisfied.count(1) != SCHEDULE_CAPACITY:
+		return REFUSE_COLUMN_SLEEP_SATISFIED_BYTE
+	if resolved.count(0) + resolved.count(1) != SCHEDULE_CAPACITY:
+		return REFUSE_COLUMN_RESOLVED_BYTE
+	return REFUSE_NONE
+
+
+static func _domain_columns_refusal(hourly_activity: PackedByteArray,
+		template_ids: PackedInt32Array, current_activity: PackedInt32Array) -> StringName:
+	"""Gates 5-7: all 12288 hourly bytes, then all template IDs, then all current activities."""
+	for index: int in hourly_activity.size():
+		if hourly_activity[index] >= ACTIVITY_COUNT:
+			return REFUSE_COLUMN_HOURLY_ACTIVITY
+	for slot: int in SCHEDULE_CAPACITY:
+		if template_ids[slot] < 0 or template_ids[slot] >= TEMPLATE_COUNT:
+			return REFUSE_COLUMN_TEMPLATE_ID
+	for slot: int in SCHEDULE_CAPACITY:
+		if current_activity[slot] < 0 or current_activity[slot] >= ACTIVITY_COUNT:
+			return REFUSE_COLUMN_CURRENT_ACTIVITY
+	return REFUSE_NONE
+
+
+static func _row_state_refusal(present: PackedByteArray, hourly_activity: PackedByteArray,
+		template_ids: PackedInt32Array, current_activity: PackedInt32Array,
+		sleep_satisfied: PackedByteArray, resolved: PackedByteArray) -> StringName:
+	"""Gates 8-10: inactive residue, then unresolved rows, then latched rows, each globally.
+
+	Gate 9 already leaves a latched row resolved 1, so gate 10 only pins its current activity.
+	"""
+	for slot: int in SCHEDULE_CAPACITY:
+		if present[slot] == 0 and not _free_row_is_clear(hourly_activity, template_ids,
+				current_activity, sleep_satisfied, resolved, slot):
+			return REFUSE_COLUMN_FREE_ROW
+	for slot: int in SCHEDULE_CAPACITY:
+		if present[slot] == 1 and resolved[slot] == 0 \
+				and (current_activity[slot] != ACTIVITY_ANYTHING or sleep_satisfied[slot] != 0):
+			return REFUSE_COLUMN_UNRESOLVED_STATE
+	for slot: int in SCHEDULE_CAPACITY:
+		if present[slot] == 1 and sleep_satisfied[slot] == 1 \
+				and current_activity[slot] != ACTIVITY_ANYTHING:
+			return REFUSE_COLUMN_SLEEP_STATE
+	return REFUSE_NONE
 
 
 func sleep_satisfied_of(slot: int) -> IntMath.IntResult:

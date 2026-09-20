@@ -711,7 +711,7 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Activity templates | `_template_hours` | 1 | `TEMPLATE_COUNT * HOURS_PER_DAY` = 72 | Three templates x 24 hours | 2 | §2 CATALOG_IDS | Compiled from the catalog at construction; rebuilt on load. |
 | Per-resident hourly schedule | `_hourly_activity` | 1 | `SCHEDULE_CAPACITY * HOURS_PER_DAY` = 12288 | One byte per (resident, hour); the value is a real activity, never absence | 1 | §4 COMPONENT_COLUMNS | Player-authored by SET_ACTIVITY_SCHEDULE commands, so nothing recomputes it. ARCH-SAVE-005 bounds each byte by `ACTIVITY_COUNT`. |
 | Schedule assignment | `_template`, `_current_activity` | 4 | `SCHEDULE_CAPACITY` = 512 | None on a live row | 1 | §4 COMPONENT_COLUMNS | `_current_activity` is resolved each hour but is read within the hour it is set, so a mid-hour save must carry it. |
-| Schedule flags | `_present`, `_sleep_satisfied`, `_resolved` | 1 | `SCHEDULE_CAPACITY` = 512 | `_present == 0` is a free row | 1 | §4 COMPONENT_COLUMNS | `_sleep_satisfied` is a per-night latch and `_resolved` records that this hour's activity has been applied; both change what the next hour does. |
+| Schedule flags | `_present`, `_sleep_satisfied`, `_resolved` | 1 | `SCHEDULE_CAPACITY` = 512 | `_present == 0` is a free row | 1 | §4 COMPONENT_COLUMNS | `_sleep_satisfied` is the sleep-exception latch. `_resolved` records that at least one successful resolve produced `_current_activity`; it is retained across timetable edits and template reassignment, not derived from the current hour. Decision0172 pins saved local consistency without re-resolving history. |
 | Schedule catalog and count | -- | -- | -- | -- | 2 | §2 CATALOG_IDS | `_template_ids` and `_catalog_error` are rebuilt from the catalog; `_present_count` is recomputed from `_present`. |
 | Schedule scratch | -- | -- | -- | -- | 3 | -- | `_hunger_scratch` and `_rest_scratch`, consumed inside one hourly resolve. |
 
@@ -766,6 +766,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Pure owner11 policy validator | -- | -- | -- | -- | 3 | -- | Decision0171 / PRIORITIES-S4-VALIDATE-R01v1. No mutable module state or live owner construction. Four caller-owned byte columns feed the same static predicate reusable by future bulk restore. Exact domains and reserved/free rules preserve player choices. The7680framed bytes are already inside the streaming allowance; no default projection, duplicate or sort buffer is added. Native/wrapper overhead is unmeasured. This does not supply bulk APIs, present_count rebuild or cross-owner/publication validity. |
+
+### `godot/scripts/core/save_owner_schedule.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---|---|---|:-:|---|---|
+| Pure owner14 saved-history validator | -- | -- | -- | -- | 3 | -- | Decision0172 / SCHEDULE-S4-VALIDATE-R01v1. No mutable module state, live owner construction or catalog dependency. Six typed caller-owned packed columns feed the static predicate, which shares the existing inactive-row rule. Full physical domain and local history checks preserve customized timetables and resolved activity history. The17920framed bytes are already inside the streaming allowance; no projection, duplicate or sort buffer is added. Native/wrapper overhead is unmeasured. No bulk APIs, present_count rebuild, section2 catalog identity, cross-owner validity or publication is supplied. |
 
 ### `godot/scripts/core/save_resource_claims_reconcile.gd`
 

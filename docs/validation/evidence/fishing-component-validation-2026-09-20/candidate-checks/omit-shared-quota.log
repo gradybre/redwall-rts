@@ -1,0 +1,40 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_fishing.gd
+  PASS  test_layout_defaults_and_conditional_memory
+  FAIL  test_frozen_domains_history_relations_and_projection_witnesses
+        coast-aggregate-over-quota pure (expected COLUMN_QUOTA, got )
+        coast-aggregate-over-quota bridge (expected COLUMN_QUOTA, got )
+        coast-aggregate-over-quota success (expected false, got true)
+        coast-aggregate-over-quota owner detail (expected true, got false)
+        coast-aggregate-over-quota raw code detail (expected true, got false)
+        lake-aggregate-over-quota pure (expected COLUMN_QUOTA, got )
+        lake-aggregate-over-quota bridge (expected COLUMN_QUOTA, got )
+        lake-aggregate-over-quota success (expected false, got true)
+        lake-aggregate-over-quota owner detail (expected true, got false)
+        lake-aggregate-over-quota raw code detail (expected true, got false)
+        river-aggregate-over-quota pure (expected COLUMN_QUOTA, got )
+        river-aggregate-over-quota bridge (expected COLUMN_QUOTA, got )
+        river-aggregate-over-quota success (expected false, got true)
+        river-aggregate-over-quota owner detail (expected true, got false)
+        river-aggregate-over-quota raw code detail (expected true, got false)
+  PASS  test_null_all_extents_and_bucket_shapes
+  PASS  test_every_field_at_every_physical_row
+  PASS  test_full_capacity_and_present_identity_endpoints
+  PASS  test_retained_inactive_history_all_rows
+  PASS  test_paired_priorities_not_just_acceptance
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+7 test(s), 16230 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

@@ -1,0 +1,48 @@
+{
+  "attempts": [
+    {
+      "id": "fishing-validation-feasibility-a1",
+      "model": "claude-opus-5",
+      "sessionId": "7f8f4001-03e2-4029-9113-61e49ae060de",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "godot/scripts/core/fishing.gd": "08ff3b69c64a14c4b7817813b67af52d981e1b4eeaa457c2222f4ada3ffd9469",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+        "docs/validation/evidence/fishing-validation-planning-2026-09-20/astra-source-note.md": "5414fa7411b2342b3cc879d2e80ee28921a8bc5c969df8db326606db26812649",
+        "docs/validation/evidence/fishing-validation-planning-2026-09-20/source-layout.json": "3b7392f1b1cde2f684dc30b87dc2e58ed8273049e4a602788f3f15bf4e1466a8",
+        "docs/planning/fishing_claim_identity_contract.md": "68d0bac84f8ceeaf45285d7bede67cb93d5111af9b290f972b3b081e00caf42f"
+      },
+      "outputLines": 78,
+      "outputWords": 639,
+      "outputLineBudget": 80,
+      "outputWordBudget": 850
+    },
+    {
+      "id": "fishing-validation-contract-a1",
+      "model": "claude-opus-5",
+      "sessionId": "3a8235b0-c5f9-4223-af5d-4970c6348eeb",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/fishing_component_validation_contract.md": "3bc7343d9e0c852b103bba829a7956b6ed290e9112631b244ef544378a009f40",
+        "godot/scripts/core/fishing.gd": "08ff3b69c64a14c4b7817813b67af52d981e1b4eeaa457c2222f4ada3ffd9469",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "docs/validation/evidence/fishing-validation-planning-2026-09-20/feasibility-review.md": "0fa6fe033da656acd0b3311f682364d4efc42ce33ed5c3d6c8fd00e780d772e2",
+        "docs/validation/evidence/fishing-validation-planning-2026-09-20/feasibility-disposition.md": "fb82908ae0e9fbfb3b84d725d082fd9d5c38001a78cc2f24943b39197f3d7888",
+        "docs/validation/evidence/fishing-validation-planning-2026-09-20/source-layout.json": "3b7392f1b1cde2f684dc30b87dc2e58ed8273049e4a602788f3f15bf4e1466a8",
+        "docs/validation/evidence/fishing-validation-planning-2026-09-20/metadata-arithmetic-check.json": "25ecd3dda49a6d58032a8d9ef0eab131feab0da87b780432728bb5db157d3c7e",
+        "docs/validation/evidence/fishing-validation-planning-2026-09-20/frozen-witnesses.json": "979e0d4d45b3b70d6b4169eba79d3129a50eb92b0bd6a81ea08564c0669cecc9",
+        "docs/validation/evidence/fishing-validation-planning-2026-09-20/mutation-witness-plan.md": "0535f7568863401491202fec8870d1d80297840f9fab88c2dfc1bad6a85f9860",
+        "docs/validation/evidence/fishing-validation-planning-2026-09-20/public_history_probe.gd": "d642170b3d12cc58e052fbfc26f352086a8dc7ae1b23b1aed14a793bc7b93bc2"
+      },
+      "outputLines": 67,
+      "outputWords": 639,
+      "outputLineBudget": 75,
+      "outputWordBudget": 850
+    }
+  ]
+}

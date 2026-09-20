@@ -1805,7 +1805,9 @@
         "SAVE-S4-FIELD-POLICY-VALIDATE",
         "FIELD-POLICY-SAVED-BINDINGS",
         "SAVE-S4-FARMING-VALIDATE",
-        "FARMING-SAVED-BINDINGS"
+        "FARMING-SAVED-BINDINGS",
+        "SAVE-S4-FISHING-VALIDATE",
+        "FISHING-SAVED-BINDINGS"
       ],
       "owns": [
         "docs/planning/component_owner_domains.md",
@@ -2168,7 +2170,7 @@
     {
       "id": "SAVE-S4-FARMING-VALIDATE",
       "title": "Validate saved FarmPlot columns and distinguish live crop state from retained history",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "SAVE-S4-STREAM"
       ],
@@ -2183,7 +2185,10 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Local acceptance FARMING-S4-VALIDATE-R01v1/ADR0180: full4975/462434/0; focus7/17915/0 clean;50 required code mutations and8 metadata bypasses detected,24metadata cases/216assertions;17static checks/import and independent exact-source review pass. Candidate clone evidence is tied to actual applied owner/bridge/tests/tool by SHA identity. Inactive history, healthy age-withering and health-death distinctions preserved. Full shutdown baseline553objects/33resources unchanged. Exact-head CI pending; saved bindings/bulk APIs/live gameplay remain separate."
+      "note": "Local acceptance FARMING-S4-VALIDATE-R01v1/ADR0180: full4975/462434/0; focus7/17915/0 clean;50 required code mutations and8 metadata bypasses detected,24metadata cases/216assertions;17static checks/import and independent exact-source review pass. Candidate clone evidence is tied to actual applied owner/bridge/tests/tool by SHA identity. Inactive history, healthy age-withering and health-death distinctions preserved. Full shutdown baseline553objects/33resources unchanged. Merged PR171 after CI35508240869 passed4975/462434/0 and24metadata cases; saved bindings/bulk APIs/live gameplay remain separate.",
+      "pr": 171,
+      "merged_at": "2026-09-20T12:04:10Z",
+      "merge_commit": "673e0cbc987643b313fad9b87bc04295bf837843"
     },
     {
       "id": "FARMING-SAVED-BINDINGS",
@@ -2198,6 +2203,40 @@
       "agent": "astra",
       "gate": "none",
       "note": "Required before semantic acceptance: saved section1 inverse, Directory kind/current generation/typed row, fertility/family/streak mirrors, compost against loaded season, ripe tick/growth remainder/tended/orchard bindings, loaded lifecycle and common-file provenance. Existing section1 live checks do not establish same-file restoration. Full bulk capture/apply and gameplay integration remain separate."
+    },
+    {
+      "id": "SAVE-S4-FISHING-VALIDATE",
+      "title": "Validate saved Fishing habitat and stock columns while preserving hysteresis and basin generations",
+      "status": "review",
+      "depends_on": [
+        "SAVE-S4-STREAM"
+      ],
+      "owns": [
+        "godot/scripts/core/fishing.gd",
+        "godot/scripts/core/save_owner_fishing.gd",
+        "godot/test/test_save_owner_fishing.gd",
+        "godot/test/fishing_validation_focus.gd",
+        "tools/test_fishing_metadata_preflights.py",
+        ".github/workflows/tests.yml",
+        "docs/persistence_state_registry.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Local acceptance FISHING-S4-VALIDATE-R01v1/ADR0181: full4982/478664/0; focus7/16230/0 clean;63 required code mutations and8 metadata bypasses detected,31metadata cases/279assertions;17static checks/import and independent exact-source review pass. Candidate clone evidence is tied to actual applied owner/bridge/tests/tool by SHA identity. Hysteresis, inactive habitat history and zone generation distinctions preserved. Full shutdown baseline553objects/33resources unchanged. Exact-head CI pending; saved bindings/bulk APIs/live gameplay remain separate."
+    },
+    {
+      "id": "FISHING-SAVED-BINDINGS",
+      "title": "Reconcile saved Fishing habitats, stocks and effort claims with shared file identity",
+      "status": "blocked",
+      "depends_on": [
+        "SAVE-S4-FISHING-VALIDATE"
+      ],
+      "owns": [
+        "docs/planning/fishing_saved_binding_contract.md"
+      ],
+      "agent": "astra",
+      "gate": "none",
+      "note": "Required before semantic acceptance: saved Directory kind/current generation/typed row; Forage basin semantics and retained generation history; ItemDefinition mapping; section7 effort totals/claims with Jobs and Expedition; loaded events/clock and common-file provenance. Full habitat/stock capture/apply and live fishing gameplay remain separate."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

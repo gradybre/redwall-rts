@@ -1,0 +1,35 @@
+{
+  "scope": "Candidate clone only; not production or full-suite acceptance",
+  "focus": {
+    "tests": 7,
+    "assertions": 16230,
+    "failures": 0
+  },
+  "mutations": {
+    "units": 63,
+    "valid_runs": 65,
+    "caught": 63,
+    "oracle": "Assertions only"
+  },
+  "metadata": {
+    "cases": 31,
+    "assertions": 279,
+    "bypasses_detected": 8,
+    "scope": "Cold bridge metadata in disposable clone with live autoloads disabled; normal focus/full suite keep autoloads"
+  },
+  "source_review": "No production defect; source-review-disposition.md closes frozen-evidence notes",
+  "input_sha256": {
+    "godot/scripts/core/fishing.gd": "4083d0d5ca67a5df9788800a88ceec6608a9c83cfeb0201e85ebe6febc851837",
+    "godot/scripts/core/save_owner_fishing.gd": "6a46d2be1c7bc0c3b364ccaea29a39af51193647757ea15467bd42cd41a4bc6d",
+    "godot/test/test_save_owner_fishing.gd": "04f7cc7f850826f7ebb72e0b6eb6639cb0305e9130828c2b0d91471c61d72bc0",
+    "godot/test/fishing_validation_focus.gd": "3be21fed4d53979caad931e7a068b3d048c6a47fdeb33a255fa3e3575f3acef9",
+    "tools/test_fishing_metadata_preflights.py": "62a87042ac91e9000edeec3c3a86cb1afcf1a23ad1f22c9d57a3143048ef5dc9"
+  },
+  "remaining": [
+    "PR171 merge",
+    "raw production intake and exact byte identity",
+    "17 static checks, actual import/full suite",
+    "exact-head CI and merge",
+    "saved bindings, bulk APIs and gameplay"
+  ]
+}

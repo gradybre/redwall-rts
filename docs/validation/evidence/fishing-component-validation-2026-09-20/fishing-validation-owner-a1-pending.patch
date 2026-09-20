@@ -1,0 +1,392 @@
+--- a/godot/scripts/core/fishing.gd
++++ b/godot/scripts/core/fishing.gd
+@@ -2952,4 +2952,373 @@
+ func _refuse_claim_column(code: StringName) -> bool:
+ 	"""Record one claim-column refusal and return false. Changes no other field."""
+ 	_last_claim_column_refusal = code
+ 	return false
++
++
++# --- FISHING-S4-VALIDATE-R01 v1: the cold section 4 column image ---------------------------------
++
++## ADR0181's section 4 codes. They are DISTINCT from every gameplay refusal above: a cold image
++## is refused by shape and stored relation, never by a live store's admission rules.
++const REFUSE_COLUMN_SHAPE: StringName = &"COLUMN_SHAPE"
++const REFUSE_COLUMN_FLAG: StringName = &"COLUMN_FLAG"
++const REFUSE_COLUMN_HABITAT_ENUM: StringName = &"COLUMN_HABITAT_ENUM"
++const REFUSE_COLUMN_HABITAT_VALUE: StringName = &"COLUMN_HABITAT_VALUE"
++const REFUSE_COLUMN_HABITAT_REF: StringName = &"COLUMN_HABITAT_REF"
++const REFUSE_COLUMN_HABITAT_FREE: StringName = &"COLUMN_HABITAT_FREE"
++const REFUSE_COLUMN_HABITAT_STATE: StringName = &"COLUMN_HABITAT_STATE"
++const REFUSE_COLUMN_STOCK_LINK: StringName = &"COLUMN_STOCK_LINK"
++const REFUSE_COLUMN_STOCK_FREE: StringName = &"COLUMN_STOCK_FREE"
++const REFUSE_COLUMN_STOCK_SPECIES: StringName = &"COLUMN_STOCK_SPECIES"
++const REFUSE_COLUMN_STOCK_VALUE: StringName = &"COLUMN_STOCK_VALUE"
++const REFUSE_COLUMN_STOCK_STATE: StringName = &"COLUMN_STOCK_STATE"
++const REFUSE_COLUMN_SPECIES_DUPLICATE: StringName = &"COLUMN_SPECIES_DUPLICATE"
++const REFUSE_COLUMN_QUOTA: StringName = &"COLUMN_QUOTA"
++const REFUSE_COLUMN_SELF_DUPLICATE: StringName = &"COLUMN_SELF_DUPLICATE"
++const REFUSE_COLUMN_ZONE_DUPLICATE: StringName = &"COLUMN_ZONE_DUPLICATE"
++
++## The blank a cleared stock row carries in its species column.
++const COLUMN_BLANK_SPECIES_ID: int = -1
++
++
++class Columns:
++	"""The cold section 4 image: 22 typed packed columns, 32 habitat rows and 96 stock rows.
++
++	The constructor takes no arguments; both extents are compiled capacities and no record may
++	reconfigure them. A freshly constructed image is the exact cold clear state, which differs
++	from a created live habitat: every column is zero except the four reference and identity
++	columns, which carry -1.
++	"""
++	var habitat_present: PackedByteArray = PackedByteArray()
++	var stock_present: PackedByteArray = PackedByteArray()
++	var habitat_type: PackedInt32Array = PackedInt32Array()
++	var habitat_zone_slot: PackedInt32Array = PackedInt32Array()
++	var habitat_zone_generation: PackedInt32Array = PackedInt32Array()
++	var habitat_effort_slots: PackedInt32Array = PackedInt32Array()
++	var habitat_pollution: PackedInt32Array = PackedInt32Array()
++	var habitat_danger: PackedInt32Array = PackedInt32Array()
++	var habitat_protected_fraction: PackedInt32Array = PackedInt32Array()
++	var habitat_capacity_milli: PackedInt64Array = PackedInt64Array()
++	var habitat_ref_slot: PackedInt32Array = PackedInt32Array()
++	var habitat_ref_generation: PackedInt32Array = PackedInt32Array()
++	var habitat_effort_used: PackedInt32Array = PackedInt32Array()
++	var habitat_intensive: PackedByteArray = PackedByteArray()
++	var stock_habitat_slot: PackedInt32Array = PackedInt32Array()
++	var stock_habitat_generation: PackedInt32Array = PackedInt32Array()
++	var stock_species_id: PackedInt32Array = PackedInt32Array()
++	var stock_population_milli: PackedInt64Array = PackedInt64Array()
++	var stock_capacity_milli: PackedInt64Array = PackedInt64Array()
++	var stock_harvested_today_milli: PackedInt64Array = PackedInt64Array()
++	var stock_closed: PackedByteArray = PackedByteArray()
++	var stock_restocking: PackedByteArray = PackedByteArray()
++
++	func _init() -> void:
++		"""Size all 22 columns and fill each with its cold clear default."""
++		_size_habitat_columns()
++		_size_stock_columns()
++
++	func _size_habitat_columns() -> void:
++		"""Size and blank the 13 habitat columns at 32 rows."""
++		habitat_present.resize(FISH_HABITAT_CAPACITY)
++		habitat_type.resize(FISH_HABITAT_CAPACITY)
++		habitat_zone_slot.resize(FISH_HABITAT_CAPACITY)
++		habitat_zone_generation.resize(FISH_HABITAT_CAPACITY)
++		habitat_effort_slots.resize(FISH_HABITAT_CAPACITY)
++		habitat_pollution.resize(FISH_HABITAT_CAPACITY)
++		habitat_danger.resize(FISH_HABITAT_CAPACITY)
++		habitat_protected_fraction.resize(FISH_HABITAT_CAPACITY)
++		habitat_capacity_milli.resize(FISH_HABITAT_CAPACITY)
++		habitat_ref_slot.resize(FISH_HABITAT_CAPACITY)
++		habitat_ref_generation.resize(FISH_HABITAT_CAPACITY)
++		habitat_effort_used.resize(FISH_HABITAT_CAPACITY)
++		habitat_intensive.resize(FISH_HABITAT_CAPACITY)
++		habitat_zone_slot.fill(CLAIM_COLUMN_BLANK_SLOT)
++		habitat_ref_slot.fill(CLAIM_COLUMN_BLANK_SLOT)
++
++	func _size_stock_columns() -> void:
++		"""Size and blank the 9 stock columns at 96 rows."""
++		stock_present.resize(FISH_STOCK_CAPACITY)
++		stock_habitat_slot.resize(FISH_STOCK_CAPACITY)
++		stock_habitat_generation.resize(FISH_STOCK_CAPACITY)
++		stock_species_id.resize(FISH_STOCK_CAPACITY)
++		stock_population_milli.resize(FISH_STOCK_CAPACITY)
++		stock_capacity_milli.resize(FISH_STOCK_CAPACITY)
++		stock_harvested_today_milli.resize(FISH_STOCK_CAPACITY)
++		stock_closed.resize(FISH_STOCK_CAPACITY)
++		stock_restocking.resize(FISH_STOCK_CAPACITY)
++		stock_habitat_slot.fill(CLAIM_COLUMN_BLANK_SLOT)
++		stock_species_id.fill(COLUMN_BLANK_SPECIES_ID)
++
++	func is_sized() -> bool:
++		"""True when all 22 columns carry their exact compiled extent."""
++		return _habitat_columns_sized() and _stock_columns_sized()
++
++	func _habitat_columns_sized() -> bool:
++		"""True when all 13 habitat columns are 32 cells."""
++		return habitat_present.size() == FISH_HABITAT_CAPACITY \
++			and habitat_type.size() == FISH_HABITAT_CAPACITY \
++			and habitat_zone_slot.size() == FISH_HABITAT_CAPACITY \
++			and habitat_zone_generation.size() == FISH_HABITAT_CAPACITY \
++			and habitat_effort_slots.size() == FISH_HABITAT_CAPACITY \
++			and habitat_pollution.size() == FISH_HABITAT_CAPACITY \
++			and habitat_danger.size() == FISH_HABITAT_CAPACITY \
++			and habitat_protected_fraction.size() == FISH_HABITAT_CAPACITY \
++			and habitat_capacity_milli.size() == FISH_HABITAT_CAPACITY \
++			and habitat_ref_slot.size() == FISH_HABITAT_CAPACITY \
++			and habitat_ref_generation.size() == FISH_HABITAT_CAPACITY \
++			and habitat_effort_used.size() == FISH_HABITAT_CAPACITY \
++			and habitat_intensive.size() == FISH_HABITAT_CAPACITY
++
++	func _stock_columns_sized() -> bool:
++		"""True when all 9 stock columns are 96 cells."""
++		return stock_present.size() == FISH_STOCK_CAPACITY \
++			and stock_habitat_slot.size() == FISH_STOCK_CAPACITY \
++			and stock_habitat_generation.size() == FISH_STOCK_CAPACITY \
++			and stock_species_id.size() == FISH_STOCK_CAPACITY \
++			and stock_population_milli.size() == FISH_STOCK_CAPACITY \
++			and stock_capacity_milli.size() == FISH_STOCK_CAPACITY \
++			and stock_harvested_today_milli.size() == FISH_STOCK_CAPACITY \
++			and stock_closed.size() == FISH_STOCK_CAPACITY \
++			and stock_restocking.size() == FISH_STOCK_CAPACITY
++
++
++static func columns_refusal(image: Columns) -> StringName:
++	"""The exact section 4 refusal code for one cold image, or REFUSE_NONE.
++
++	Argument-only and immutable: no live store, directory, catalog, callback, diagnostic, clock
++	or float is touched, and the image is never written. The gate order is the contract's:
++	shape, global flags, habitats, stocks, per-habitat species then quota, and finally the two
++	separate uniqueness scans.
++	"""
++	if image == null or not image.is_sized():
++		return REFUSE_COLUMN_SHAPE
++	var code: StringName = _columns_flag_refusal(image)
++	if code != REFUSE_NONE:
++		return code
++	code = _columns_habitat_refusal(image)
++	if code != REFUSE_NONE:
++		return code
++	code = _columns_stock_refusal(image)
++	if code != REFUSE_NONE:
++		return code
++	code = _columns_species_quota_refusal(image)
++	if code != REFUSE_NONE:
++		return code
++	return _columns_duplicate_refusal(image)
++
++
++static func _columns_flag_refusal(image: Columns) -> StringName:
++	"""Every byte column in canonical field order, ascending physical rows within each."""
++	for slot: int in FISH_HABITAT_CAPACITY:
++		if image.habitat_present[slot] > 1:
++			return REFUSE_COLUMN_FLAG
++	for row: int in FISH_STOCK_CAPACITY:
++		if image.stock_present[row] > 1:
++			return REFUSE_COLUMN_FLAG
++	for slot: int in FISH_HABITAT_CAPACITY:
++		if image.habitat_intensive[slot] > 1:
++			return REFUSE_COLUMN_FLAG
++	for row: int in FISH_STOCK_CAPACITY:
++		if image.stock_closed[row] > 1:
++			return REFUSE_COLUMN_FLAG
++	for row: int in FISH_STOCK_CAPACITY:
++		if image.stock_restocking[row] > 1:
++			return REFUSE_COLUMN_FLAG
++	return REFUSE_NONE
++
++
++static func _columns_habitat_refusal(image: Columns) -> StringName:
++	"""Every habitat row in ascending order, first refusal winning."""
++	for slot: int in FISH_HABITAT_CAPACITY:
++		var code: StringName = _columns_habitat_row_refusal(image, slot)
++		if code != REFUSE_NONE:
++			return code
++	return REFUSE_NONE
++
++
++static func _columns_habitat_row_refusal(image: Columns, slot: int) -> StringName:
++	"""One habitat row: enum, scalar domains, references, then free or present state."""
++	var habitat_type_id: int = image.habitat_type[slot]
++	if habitat_type_id < 0 or habitat_type_id >= HABITAT_TYPE_COUNT:
++		return REFUSE_COLUMN_HABITAT_ENUM
++	if image.habitat_pollution[slot] < 0 or image.habitat_protected_fraction[slot] < 0:
++		return REFUSE_COLUMN_HABITAT_VALUE
++	var danger: int = image.habitat_danger[slot]
++	if danger < DANGER_MIN or danger > DANGER_MAX:
++		return REFUSE_COLUMN_HABITAT_VALUE
++	var present: bool = image.habitat_present[slot] == 1
++	var code: StringName = _columns_habitat_ref_refusal(image, slot, present)
++	if code != REFUSE_NONE:
++		return code
++	if not present:
++		return _columns_habitat_free_refusal(image, slot, habitat_type_id)
++	return _columns_habitat_state_refusal(image, slot, habitat_type_id)
++
++
++static func _columns_habitat_ref_refusal(image: Columns, slot: int, present: bool) -> StringName:
++	"""Structural reference domains only: a stale but well-formed zone pair stays legal here."""
++	var self_slot: int = image.habitat_ref_slot[slot]
++	var self_generation: int = image.habitat_ref_generation[slot]
++	var zone_slot: int = image.habitat_zone_slot[slot]
++	var zone_generation: int = image.habitat_zone_generation[slot]
++	if not present:
++		if _columns_is_null_ref(self_slot, self_generation) \
++				and _columns_is_null_ref(zone_slot, zone_generation):
++			return REFUSE_NONE
++		return REFUSE_COLUMN_HABITAT_REF
++	if not _columns_is_live_ref(self_slot, self_generation):
++		return REFUSE_COLUMN_HABITAT_REF
++	if _columns_is_null_ref(zone_slot, zone_generation):
++		return REFUSE_NONE
++	if not _columns_is_live_ref(zone_slot, zone_generation):
++		return REFUSE_COLUMN_HABITAT_REF
++	return REFUSE_NONE
++
++
++static func _columns_is_null_ref(slot: int, generation: int) -> bool:
++	"""True for the exact null reference (-1, 0)."""
++	return slot == CLAIM_COLUMN_BLANK_SLOT and generation == CLAIM_COLUMN_BLANK_GENERATION
++
++
++static func _columns_is_live_ref(slot: int, generation: int) -> bool:
++	"""True for a nonnull structural reference: slot in the directory domain, generation > 0."""
++	return slot >= 0 and slot <= CLAIM_COLUMN_DIRECTORY_SLOT_MAX \
++		and generation > CLAIM_COLUMN_BLANK_GENERATION
++
++
++static func _columns_habitat_free_refusal(image: Columns, slot: int,
++		habitat_type_id: int) -> StringName:
++	"""An inactive habitat keeps its retained scalars but holds no capacity, effort or policy."""
++	if image.habitat_capacity_milli[slot] != 0 or image.habitat_effort_used[slot] != 0:
++		return REFUSE_COLUMN_HABITAT_FREE
++	if image.habitat_intensive[slot] != 0:
++		return REFUSE_COLUMN_HABITAT_FREE
++	var slots: int = image.habitat_effort_slots[slot]
++	if slots != 0 and slots != EFFORT_SLOTS_BY_TYPE[habitat_type_id]:
++		return REFUSE_COLUMN_HABITAT_FREE
++	return REFUSE_NONE
++
++
++static func _columns_habitat_state_refusal(image: Columns, slot: int,
++		habitat_type_id: int) -> StringName:
++	"""A present habitat's source-table effort capacity, occupancy range and summed capacity."""
++	var slots: int = image.habitat_effort_slots[slot]
++	if slots != EFFORT_SLOTS_BY_TYPE[habitat_type_id]:
++		return REFUSE_COLUMN_HABITAT_STATE
++	var used: int = image.habitat_effort_used[slot]
++	if used < 0 or used > slots:
++		return REFUSE_COLUMN_HABITAT_STATE
++	if image.habitat_capacity_milli[slot] != _capacity_milli_for_type(habitat_type_id):
++		return REFUSE_COLUMN_HABITAT_STATE
++	return REFUSE_NONE
++
++
++static func _columns_stock_refusal(image: Columns) -> StringName:
++	"""Every stock row in ascending order, first refusal winning."""
++	for row: int in FISH_STOCK_CAPACITY:
++		var code: StringName = _columns_stock_row_refusal(image, row)
++		if code != REFUSE_NONE:
++			return code
++	return REFUSE_NONE
++
++
++static func _columns_stock_row_refusal(image: Columns, row: int) -> StringName:
++	"""One stock row against its owning habitat row/3 and species position row%3."""
++	var parent: int = row / SPECIES_PER_HABITAT
++	if image.stock_present[row] != image.habitat_present[parent]:
++		return REFUSE_COLUMN_STOCK_LINK
++	if image.stock_present[row] != 1:
++		return _columns_stock_free_refusal(image, row)
++	if image.stock_habitat_slot[row] != image.habitat_ref_slot[parent] \
++			or image.stock_habitat_generation[row] != image.habitat_ref_generation[parent]:
++		return REFUSE_COLUMN_STOCK_LINK
++	if image.stock_species_id[row] < 0:
++		return REFUSE_COLUMN_STOCK_SPECIES
++	var code: StringName = _columns_stock_value_refusal(image, row, parent)
++	if code != REFUSE_NONE:
++		return code
++	return _columns_stock_state_refusal(image, row)
++
++
++static func _columns_stock_free_refusal(image: Columns, row: int) -> StringName:
++	"""An inactive stock row is entirely blank: no retained history of any kind."""
++	if not _columns_is_null_ref(image.stock_habitat_slot[row],
++			image.stock_habitat_generation[row]):
++		return REFUSE_COLUMN_STOCK_FREE
++	if image.stock_species_id[row] != COLUMN_BLANK_SPECIES_ID:
++		return REFUSE_COLUMN_STOCK_FREE
++	if image.stock_population_milli[row] != 0 or image.stock_capacity_milli[row] != 0 \
++			or image.stock_harvested_today_milli[row] != 0:
++		return REFUSE_COLUMN_STOCK_FREE
++	if image.stock_closed[row] != 0 or image.stock_restocking[row] != 0:
++		return REFUSE_COLUMN_STOCK_FREE
++	return REFUSE_NONE
++
++
++static func _columns_stock_value_refusal(image: Columns, row: int, parent: int) -> StringName:
++	"""Source capacity, the 10%..K population band and the quota-bounded daily harvest.
++
++	The species is the compiled table row for this habitat type and position, never the stored
++	item id, which is an arbitrary nonnegative i32 and subscripts nothing.
++	"""
++	var species: int = HABITAT_SPECIES_ROWS[image.habitat_type[parent] * SPECIES_PER_HABITAT
++		+ row % SPECIES_PER_HABITAT]
++	var capacity: int = SPECIES_CAPACITY_U[species] * MILLI_PER_UNIT
++	if image.stock_capacity_milli[row] != capacity:
++		return REFUSE_COLUMN_STOCK_VALUE
++	var population: int = image.stock_population_milli[row]
++	if population < _percent_of(capacity, HARD_FLOOR_PERCENT) or population > capacity:
++		return REFUSE_COLUMN_STOCK_VALUE
++	var harvested: int = image.stock_harvested_today_milli[row]
++	if harvested < 0 or harvested > image.habitat_capacity_milli[parent] / DAILY_QUOTA_DIVISOR:
++		return REFUSE_COLUMN_STOCK_VALUE
++	return REFUSE_NONE
++
++
++static func _columns_stock_state_refusal(image: Columns, row: int) -> StringName:
++	"""Strict 30-down/40-up hysteresis by cross multiplication; the 30..40 band accepts either.
++
++	`closed` is an independent stored boolean and is deliberately not derived here.
++	"""
++	var scaled_population: int = PERCENT_DENOMINATOR * image.stock_population_milli[row]
++	var capacity: int = image.stock_capacity_milli[row]
++	var restocking: int = image.stock_restocking[row]
++	if scaled_population < DEPLETION_WARNING_PERCENT * capacity and restocking != 1:
++		return REFUSE_COLUMN_STOCK_STATE
++	if scaled_population > RESTOCK_RECOVERY_PERCENT * capacity and restocking != 0:
++		return REFUSE_COLUMN_STOCK_STATE
++	return REFUSE_NONE
++
++
++static func _columns_species_quota_refusal(image: Columns) -> StringName:
++	"""Per present habitat in ascending order: distinct item ids, then the shared daily quota.
++
++	Every single-stock value was bounded above, so the three-term sum is safe.
++	"""
++	for slot: int in FISH_HABITAT_CAPACITY:
++		if image.habitat_present[slot] != 1:
++			continue
++		var base: int = slot * SPECIES_PER_HABITAT
++		for position: int in SPECIES_PER_HABITAT:
++			for other: int in position:
++				if image.stock_species_id[base + other] \
++						== image.stock_species_id[base + position]:
++					return REFUSE_COLUMN_SPECIES_DUPLICATE
++		var taken: int = 0
++		for index: int in SPECIES_PER_HABITAT:
++			taken += image.stock_harvested_today_milli[base + index]
++		if taken > image.habitat_capacity_milli[slot] / DAILY_QUOTA_DIVISOR:
++			return REFUSE_COLUMN_QUOTA
++	return REFUSE_NONE
++
++
++static func _columns_duplicate_refusal(image: Columns) -> StringName:
++	"""Self SLOT uniqueness first, then a SEPARATE nonnull zone SLOT+GENERATION pair scan.
++
++	Two zone generations sharing one slot are accepted; two current self generations sharing
++	one slot are refused. Both scans are fixed 32-row and allocate no packed scratch.
++	"""
++	for slot: int in FISH_HABITAT_CAPACITY:
++		if image.habitat_present[slot] != 1:
++			continue
++		for other: int in slot:
++			if image.habitat_present[other] == 1 \
++					and image.habitat_ref_slot[other] == image.habitat_ref_slot[slot]:
++				return REFUSE_COLUMN_SELF_DUPLICATE
++	for zone_row: int in FISH_HABITAT_CAPACITY:
++		if image.habitat_present[zone_row] != 1:
++			continue
++		if _columns_is_null_ref(image.habitat_zone_slot[zone_row],
++				image.habitat_zone_generation[zone_row]):
++			continue
++		for zone_other: int in zone_row:
++			if image.habitat_present[zone_other] != 1:
++				continue
++			if image.habitat_zone_slot[zone_other] == image.habitat_zone_slot[zone_row] \
++					and image.habitat_zone_generation[zone_other] \
++					== image.habitat_zone_generation[zone_row]:
++				return REFUSE_COLUMN_ZONE_DUPLICATE
++	return REFUSE_NONE

@@ -1,0 +1,44 @@
+Traceback (most recent call last):
+  File "/private/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/redwall-fishing-integration-candidate-xi45nq9l/tools/test_fishing_metadata_preflights.py", line 180, in <module>
+    main()
+  File "/private/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/redwall-fishing-integration-candidate-xi45nq9l/tools/test_fishing_metadata_preflights.py", line 154, in main
+    results.append(execute(clone,name+'-'+fault))
+  File "/private/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/redwall-fishing-integration-candidate-xi45nq9l/tools/test_fishing_metadata_preflights.py", line 113, in execute
+    assert killed if expect_failure else passed,label+'\n'+run.stdout
+AssertionError: EFFORT_SLOTS_BY_TYPE-short
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_fishing_metadata_probe.gd
+SCRIPT ERROR: Parse Error: Cannot get index "2" from "[6, 6]".
+          at: GDScript::reload (res://scripts/core/fishing.gd:691)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:125)
+              [1] _run_worker (res://test/run_tests.gd:91)
+              [2] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://scripts/core/save_owner_fishing.gd:0)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:125)
+              [1] _run_worker (res://test/run_tests.gd:91)
+              [2] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://test/test_fishing_metadata_probe.gd:0)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:125)
+              [1] _run_worker (res://test/run_tests.gd:91)
+              [2] _initialize (res://test/run_tests.gd:78)
+ERROR: Failed to load script "res://test/test_fishing_metadata_probe.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _run_suite (res://test/run_tests.gd:125)
+       [1] _run_worker (res://test/run_tests.gd:91)
+       [2] _initialize (res://test/run_tests.gd:78)
+  PASS  test_actual_metadata_gate
+
+  FAIL  <test run>
+        3 script error(s) outside any test method
+
+1 test(s), 9 assertion(s), 1 failure(s)
+

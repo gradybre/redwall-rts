@@ -1,0 +1,5 @@
+# Fishing public probe disposition
+
+The actual engine probe passes106 assertions with clean shutdown. It uses only existing public APIs in a disposable clone and preserves the production source. All three habitat types accept full nonnegative i32 pollution/protected_fraction/species item IDs, use the expected capacity/effort tables, create all three stocks and destroy them together. Inactive getters refuse; no private retained bytes are claimed from that result.
+
+The coast path demonstrates non-mussel event closure, reopening, cross-species quota sharing and reset, explicit intensive policy, exact30% reached from above with latchfalse, one unit below enteringtrue, recovery into the interior band retainingtrue, above40% clearing, exact40% retainingfalse, exact10% hard floor, and one-unit-below refusal with unchanged population/quota. A separate shared Directory proves stale/current generations of one zone slot can coexist as two habitat references. This does not prove external loaded-file consistency, complete fishing gameplay or an exact40% latchtrue public witness; inclusive-band acceptance is also justified by source rules.

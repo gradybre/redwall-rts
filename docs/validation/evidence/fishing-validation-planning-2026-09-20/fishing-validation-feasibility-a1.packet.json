@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "314b5c057ce1416a8fb83b7cc14c61f36b0327b6",
+  "task": "Fishing section4 independent source-domain feasibility audit",
+  "paths": [
+    "AGENTS.md",
+    "godot/scripts/core/fishing.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "docs/validation/evidence/fishing-validation-planning-2026-09-20/astra-source-note.md",
+    "docs/validation/evidence/fishing-validation-planning-2026-09-20/source-layout.json",
+    "docs/planning/fishing_claim_identity_contract.md"
+  ],
+  "instructions": "Read-only source feasibility review; no implementation authorized by this packet. Re-derive owner4 section4 schema1 22fields32habitats96stocks (no child extents), not section7claims schema2. Check source-note hypotheses against every writer: presentpopulation10%K..K and restocking strict below30/above40 with retained inclusiveband; harvested sum<=Ktotal/40; inactive habitat retained type/effort/pollution/danger/protected, zero capacity/self/zone/intensive/used and wholly blank stocks; exact same-owner presence/reference/capacity/three speciesdistinct relation; arbitrary nonnegative itemIDs vs species table rows; stale zone pairs can share SLOT differentgeneration, current selfSLOT uniqueness; effort aggregates require separatesection7bindings. Find any public-path counterexample or producer defect, distinguish illegal injected states. Candidate new coldCols/purepredicate/bridge, preserve all gameplay. Identify source tables/constants necessary for safe indexing and exact metadata pins. No execution claims; public probe is not run yet. Write ONE NEW docs/validation/evidence/fishing-validation-planning-2026-09-20/feasibility-review.md baseSha256null, HARD80actual lines/850words, aim40lines/650words. Count actual newline-separated lines, not paragraphs. RawJSONstatus/summary/questions/files/decisionIds."
+}

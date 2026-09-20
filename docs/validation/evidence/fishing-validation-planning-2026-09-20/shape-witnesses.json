@@ -1,0 +1,539 @@
+{
+  "scope": "Explicit additional shape cases, not runtime evidence",
+  "cases": [
+    {
+      "name": "null",
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 0,
+      "extent": 0,
+      "paired_flag_field": 1,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 0,
+      "extent": 31,
+      "paired_flag_field": 1,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 0,
+      "extent": 33,
+      "paired_flag_field": 1,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 1,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 1,
+      "extent": 95,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 1,
+      "extent": 97,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 2,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 2,
+      "extent": 31,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 2,
+      "extent": 33,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 3,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 3,
+      "extent": 31,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 3,
+      "extent": 33,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 4,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 4,
+      "extent": 31,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 4,
+      "extent": 33,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 5,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 5,
+      "extent": 31,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 5,
+      "extent": 33,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 6,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 6,
+      "extent": 31,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 6,
+      "extent": 33,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 7,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 7,
+      "extent": 31,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 7,
+      "extent": 33,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 8,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 8,
+      "extent": 31,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 8,
+      "extent": 33,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 9,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 9,
+      "extent": 31,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 9,
+      "extent": 33,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 10,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 10,
+      "extent": 31,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 10,
+      "extent": 33,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 11,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 11,
+      "extent": 31,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 11,
+      "extent": 33,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 12,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 12,
+      "extent": 31,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 12,
+      "extent": 33,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 13,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 13,
+      "extent": 31,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 13,
+      "extent": 33,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 14,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 14,
+      "extent": 95,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 14,
+      "extent": 97,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 15,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 15,
+      "extent": 95,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 15,
+      "extent": 97,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 16,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 16,
+      "extent": 95,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 16,
+      "extent": 97,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 17,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 17,
+      "extent": 95,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 17,
+      "extent": 97,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 18,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 18,
+      "extent": 95,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 18,
+      "extent": 97,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 19,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 19,
+      "extent": 95,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 19,
+      "extent": 97,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 20,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 20,
+      "extent": 95,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 20,
+      "extent": 97,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 21,
+      "extent": 0,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 21,
+      "extent": 95,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    },
+    {
+      "field": 21,
+      "extent": 97,
+      "paired_flag_field": 0,
+      "paired_flag_row": 0,
+      "paired_flag_value": 2,
+      "expected": "COLUMN_SHAPE"
+    }
+  ],
+  "mutant": "Shape/present-priority mutation checks habitat_present[0] only if image and that array are nonempty, then returns COLUMN_FLAG before the original shape gate. A wrong extent in any other field plus habitat_present[0]=2 must kill it by assertion, never by runtime error.",
+  "excluded": "Removing every shape guard and then indexing a short/null image can cause runtime errors; no parser/runtime-error kill is counted. Per-field extents are asserted directly; the declared priority unit is a separate safe behavioral mutant."
+}

@@ -1,0 +1,37 @@
+{
+  "scope": "Frozen candidate clone only, not production or full-suite acceptance",
+  "base_commit": "261095878ef0b668e07f8e1ab4ce57abc7d8bfd8",
+  "input_sha256": {
+    "godot/scripts/core/fishing.gd": "4083d0d5ca67a5df9788800a88ceec6608a9c83cfeb0201e85ebe6febc851837",
+    "godot/scripts/core/save_owner_fishing.gd": "6a46d2be1c7bc0c3b364ccaea29a39af51193647757ea15467bd42cd41a4bc6d",
+    "godot/test/test_save_owner_fishing.gd": "04f7cc7f850826f7ebb72e0b6eb6639cb0305e9130828c2b0d91471c61d72bc0",
+    "godot/test/fishing_validation_focus.gd": "3be21fed4d53979caad931e7a068b3d048c6a47fdeb33a255fa3e3575f3acef9",
+    "tools/test_fishing_metadata_preflights.py": "d5dbc5c5ba0821cc7c395806f3b5363d9e90dc80ccba035a1dbdc64ec8c7f8aa"
+  },
+  "runs": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--script",
+        "res://test/fishing_validation_focus.gd"
+      ],
+      "log": "focus.log",
+      "exit_code": 0,
+      "valid": true,
+      "seconds": 2.114
+    },
+    {
+      "command": [
+        "python3",
+        "tools/test_fishing_metadata_preflights.py"
+      ],
+      "log": "metadata.log",
+      "exit_code": 1,
+      "valid": false,
+      "seconds": 1.615
+    }
+  ]
+}

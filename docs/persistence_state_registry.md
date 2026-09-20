@@ -779,6 +779,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---|---|---|:-:|---|---|
 | Pure owner15 pose and binding validator | -- | -- | -- | -- | 3 | -- | Decision0173 / TRANSFORMS-S4-VALIDATE-R01v1. No mutable module state or live owner/Directory construction. Nine typed caller-owned i32 columns feed the static predicate; positive binding uniqueness uses one private350208-byte duplicate-and-sort. Framed3151872 + scratch350208 + three65536stream windows =3698688logical packed bytes, below existing6417408one-owner stream allowance. Native/wrapper overhead is unmeasured. Preserve all signed pose/yaw values, independent current/previous and legitimate stale bindings. Bulk APIs/nonzero-stamp count rebuild and saved cursor/Directory identity remain separate. |
 
+### `godot/scripts/core/save_owner_fishing.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---|---|---|:-:|---|---|
+| Fishing habitat and stock validation bridge | -- | -- | -- | -- | 3 | -- | Pure owner4 bridge, FISHING-S4-VALIDATE-R01v1/ADR0181. No mutable authoritative state or live owner construction. Caller5344 + cold Columns defaults5344 =10688 conservative logical packed bytes; fixed32-row duplicate scans add no packed scratch, within6417408 stream allowance; native/RSS unmeasured. Inactive habitat history is retained while stock rows are blank. Same-file Directory/Forage/claims/catalog/clock bindings and bulk restoration remain FISHING-SAVED-BINDINGS. |
+
 ### `godot/scripts/core/save_owner_farming.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

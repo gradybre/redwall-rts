@@ -1,0 +1,19 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "314b5c057ce1416a8fb83b7cc14c61f36b0327b6",
+  "task": "Independent Fishing component validation contract review",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/fishing_component_validation_contract.md",
+    "godot/scripts/core/fishing.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "docs/validation/evidence/fishing-validation-planning-2026-09-20/feasibility-review.md",
+    "docs/validation/evidence/fishing-validation-planning-2026-09-20/feasibility-disposition.md",
+    "docs/validation/evidence/fishing-validation-planning-2026-09-20/source-layout.json",
+    "docs/validation/evidence/fishing-validation-planning-2026-09-20/metadata-arithmetic-check.json",
+    "docs/validation/evidence/fishing-validation-planning-2026-09-20/frozen-witnesses.json",
+    "docs/validation/evidence/fishing-validation-planning-2026-09-20/mutation-witness-plan.md",
+    "docs/validation/evidence/fishing-validation-planning-2026-09-20/public_history_probe.gd"
+  ],
+  "instructions": "Review candidate FISHING-S4-VALIDATE-R01v1 before any implementation. Check exact22field layout (section4 version1 vssection7claims2), frozen196expectedcases, coherentmetadatafaults27enginecasesplanned, ordered pure domains/strongpopulation10%floor/hysteresis/quotas, broadinactivehabitat vsblankstocks, sameownerstockpresence/selfref/capacity and speciesdistinctness, selfSLOT vs zonePAIR uniqueness with stale generations,10688logicalpacked memory. Independentfeasibilityfound no producerdefect. Publicprobe is authored but WAITING for heavyjobslot: it has not passed or run yet, do not claim otherwise. Find contract contradictions or source counterexamples; distinguish savedcrossowner/section7 bindings from local checks. 63logicalmutationunits planned per named groups; check grouping/equivalence and priority witness sufficiency, not invented execution. API no liveworld/capture/apply/newgameplay. Return ONE NEW docs/validation/evidence/fishing-validation-planning-2026-09-20/contract-review.md baseSha256null, HARD75actualnewline-separatedlines/850words; aim45lines/650words. No edits. RawJSONstatus/summary/questions/files/decisionIds."
+}

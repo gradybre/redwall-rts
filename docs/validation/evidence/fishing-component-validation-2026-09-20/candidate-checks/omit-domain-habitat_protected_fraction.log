@@ -1,0 +1,72 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_fishing.gd
+  PASS  test_layout_defaults_and_conditional_memory
+  FAIL  test_frozen_domains_history_relations_and_projection_witnesses
+        habitat_protected_fraction-negative pure (expected COLUMN_HABITAT_VALUE, got )
+        habitat_protected_fraction-negative bridge (expected COLUMN_HABITAT_VALUE, got )
+        habitat_protected_fraction-negative success (expected false, got true)
+        habitat_protected_fraction-negative owner detail (expected true, got false)
+        habitat_protected_fraction-negative raw code detail (expected true, got false)
+  PASS  test_null_all_extents_and_bucket_shapes
+  FAIL  test_every_field_at_every_physical_row
+        physical field8 row0 (expected COLUMN_HABITAT_VALUE, got )
+        bridge edges pure (expected COLUMN_HABITAT_VALUE, got )
+        bridge edges bridge (expected COLUMN_HABITAT_VALUE, got )
+        bridge edges success (expected false, got true)
+        bridge edges owner detail (expected true, got false)
+        bridge edges raw code detail (expected true, got false)
+        physical field8 row1 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row2 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row3 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row4 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row5 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row6 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row7 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row8 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row9 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row10 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row11 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row12 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row13 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row14 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row15 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row16 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row17 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row18 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row19 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row20 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row21 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row22 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row23 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row24 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row25 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row26 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row27 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row28 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row29 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row30 (expected COLUMN_HABITAT_VALUE, got )
+        physical field8 row31 (expected COLUMN_HABITAT_VALUE, got )
+        bridge edges pure (expected COLUMN_HABITAT_VALUE, got )
+        bridge edges bridge (expected COLUMN_HABITAT_VALUE, got )
+        bridge edges success (expected false, got true)
+        bridge edges owner detail (expected true, got false)
+        bridge edges raw code detail (expected true, got false)
+  PASS  test_full_capacity_and_present_identity_endpoints
+  PASS  test_retained_inactive_history_all_rows
+  PASS  test_paired_priorities_not_just_acceptance
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+7 test(s), 16230 assertion(s), 2 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

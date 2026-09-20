@@ -1,0 +1,55 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_fishing.gd
+  PASS  test_layout_defaults_and_conditional_memory
+  FAIL  test_frozen_domains_history_relations_and_projection_witnesses
+        coast-0-bad-population-119999 pure (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        coast-0-bad-population-119999 bridge (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        coast-0-bad-population-119999 raw code detail (expected true, got false)
+        coast-1-bad-population-89999 pure (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        coast-1-bad-population-89999 bridge (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        coast-1-bad-population-89999 raw code detail (expected true, got false)
+        coast-2-bad-population-99999 pure (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        coast-2-bad-population-99999 bridge (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        coast-2-bad-population-99999 raw code detail (expected true, got false)
+        lake-0-bad-population-89999 pure (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        lake-0-bad-population-89999 bridge (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        lake-0-bad-population-89999 raw code detail (expected true, got false)
+        lake-1-bad-population-69999 pure (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        lake-1-bad-population-69999 bridge (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        lake-1-bad-population-69999 raw code detail (expected true, got false)
+        lake-2-bad-population-59999 pure (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        lake-2-bad-population-59999 bridge (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        lake-2-bad-population-59999 raw code detail (expected true, got false)
+        river-0-bad-population-59999 pure (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        river-0-bad-population-59999 bridge (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        river-0-bad-population-59999 raw code detail (expected true, got false)
+        river-1-bad-population-89999 pure (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        river-1-bad-population-89999 bridge (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        river-1-bad-population-89999 raw code detail (expected true, got false)
+        river-2-bad-population-59999 pure (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        river-2-bad-population-59999 bridge (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        river-2-bad-population-59999 raw code detail (expected true, got false)
+        stock-value-before-hysteresis pure (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        stock-value-before-hysteresis bridge (expected COLUMN_STOCK_VALUE, got COLUMN_STOCK_STATE)
+        stock-value-before-hysteresis raw code detail (expected true, got false)
+  PASS  test_null_all_extents_and_bucket_shapes
+  PASS  test_every_field_at_every_physical_row
+  PASS  test_full_capacity_and_present_identity_endpoints
+  PASS  test_retained_inactive_history_all_rows
+  PASS  test_paired_priorities_not_just_acceptance
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+7 test(s), 16230 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

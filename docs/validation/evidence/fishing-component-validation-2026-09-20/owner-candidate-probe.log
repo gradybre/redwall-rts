@@ -1,0 +1,142 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_fishing.gd
+  PASS  test_capacities_match_the_specification
+  PASS  test_habitat_ids_are_the_generated_ascii_order
+  PASS  test_species_capacities_transcribe_the_table
+  PASS  test_species_recovery_rates_transcribe_the_table
+  PASS  test_availability_transcribes_every_season
+  PASS  test_species_index_addresses_the_table_by_habitat
+  PASS  test_a_river_habitats_species_are_trout_dace_and_salmon_by_key
+  PASS  test_the_species_keys_transcribe_the_printed_table
+  PASS  test_species_lookups_refuse_out_of_range_arguments
+  PASS  test_habitat_capacity_is_the_sum_of_its_three_species
+  PASS  test_create_habitat_writes_every_field
+  PASS  test_effort_slots_come_from_the_habitat_type
+  PASS  test_create_habitat_stocks_start_at_eighty_percent
+  PASS  test_stock_rows_are_owner_major
+  PASS  test_create_habitat_refuses_bad_fields_without_allocating
+  PASS  test_create_habitat_refuses_bad_species_ids
+  PASS  test_create_habitat_validates_its_zone_reference
+  PASS  test_unbound_habitat_keeps_the_null_zone_reference
+  PASS  test_destroy_habitat_releases_its_stocks_and_slot
+  PASS  test_destroy_habitat_refuses_while_an_effort_slot_is_reserved
+  PASS  test_habitat_capacity_is_thirty_two
+  PASS  test_clear_releases_every_directory_slot
+  PASS  test_live_habitat_list_is_ascending_and_bounded
+  PASS  test_readers_refuse_absent_rows
+  PASS  test_effort_slots_reserve_and_release
+  PASS  test_occupied_effort_slots_queue_further_fishers
+  PASS  test_lake_and_coast_take_six_fishers
+  PASS  test_release_without_a_reservation_is_refused
+  PASS  test_effort_operations_refuse_a_stale_habitat
+  PASS  test_gear_effort_slots_transcribe_the_table
+  PASS  test_the_gear_keys_transcribe_the_printed_table
+  PASS  test_a_two_slot_cycle_refuses_without_changing_anything
+  PASS  test_a_two_slot_cycle_takes_both_slots_together
+  PASS  test_a_slot_count_outside_the_habitat_is_refused
+  PASS  test_an_effort_claim_needs_a_live_expedition_and_a_live_job
+  PASS  test_only_a_coordinator_job_owns_an_effort_claim
+  PASS  test_cancelling_one_member_leaves_the_coordinators_claim_alone
+  PASS  test_a_stale_release_cannot_free_someone_elses_slots
+  PASS  test_a_second_claim_on_one_expedition_is_refused
+  PASS  test_a_destroyed_expedition_leaves_a_claim_only_a_purge_can_release
+  PASS  test_a_reused_expedition_row_cannot_inherit_the_previous_claim
+  PASS  test_effort_claims_need_the_owner_stores
+  PASS  test_the_claim_slice_is_one_row_per_expedition
+  PASS  test_restored_claims_rebuild_the_aggregate_they_cannot_prove
+  PASS  test_a_restored_claim_with_a_stale_owner_is_refused
+  PASS  test_an_aggregate_no_claim_accounts_for_is_refused
+  PASS  test_a_restored_claim_beyond_the_habitat_capacity_is_refused
+  PASS  test_herring_spring_run_replaces_the_multiplier
+  PASS  test_mackerel_has_no_winter_harvest
+  PASS  test_salmon_is_available_only_in_autumn
+  PASS  test_closure_windows_are_exact
+  PASS  test_unwindowed_species_are_never_closed_by_the_calendar
+  PASS  test_salmon_harvest_run_window
+  PASS  test_season_and_day_arguments_are_validated
+  PASS  test_stored_closed_bit_and_calendar_window_are_separate
+  PASS  test_set_closed_refuses_bad_arguments
+  PASS  test_daily_recovery_matches_the_stated_formula
+  PASS  test_recovery_is_capped_at_capacity
+  PASS  test_salmon_receives_three_hundred_units_at_autumn_day_one
+  PASS  test_closed_species_still_recover
+  PASS  test_recover_daily_sweeps_every_live_stock
+  PASS  test_recover_daily_refuses_an_invalid_calendar
+  PASS  test_recovery_refuses_absent_rows_and_bad_days
+  PASS  test_daily_quota_is_capacity_over_forty
+  PASS  test_quota_is_shared_across_a_habitats_species
+  PASS  test_reset_harvested_today_reopens_the_quota
+  PASS  test_harvest_refuses_more_than_the_remaining_quota
+  PASS  test_floor_defaults_to_thirty_percent_of_capacity
+  PASS  test_intensive_policy_lowers_the_floor_to_ten_percent
+  PASS  test_only_the_policy_flag_can_lower_the_floor
+  PASS  test_intensive_override_is_prohibited_during_a_closure
+  PASS  test_habitat_refuge_is_twenty_five_percent_and_applies_to_nothing
+  PASS  test_pollution_changes_no_outcome
+  PASS  test_depletion_and_recovery_thresholds_are_thirty_and_forty
+  PASS  test_falling_below_thirty_percent_starts_restocking
+  PASS  test_restocking_persists_through_the_thirty_to_forty_band
+  PASS  test_restocking_blocks_harvest_unless_the_policy_is_visible
+  PASS  test_update_restocking_refuses_an_absent_row
+  PASS  test_abundance_is_clamped_between_two_hundred_and_one_thousand
+  PASS  test_catch_formula_matches_the_gdd
+  PASS  test_catch_uses_the_seasonal_multiplier
+  PASS  test_catch_is_limited_by_the_remaining_quota
+  PASS  test_catch_is_limited_by_the_policy_floor
+  PASS  test_catch_is_zero_when_closed_or_unavailable
+  PASS  test_catch_refuses_a_skill_outside_zero_to_ten
+  PASS  test_catch_refuses_an_unusable_base_catch
+  PASS  test_catch_refuses_overflow_at_the_maximum_skill
+  PASS  test_catch_refuses_an_invalid_calendar
+  PASS  test_harvest_debits_the_population_and_the_daily_total
+  PASS  test_harvest_refuses_a_closed_species
+  PASS  test_harvest_refuses_an_unavailable_species
+  PASS  test_harvest_refuses_a_non_positive_amount
+  PASS  test_harvest_refuses_stale_and_out_of_range_targets
+  PASS  test_harvest_block_code_explains_an_unavailable_species
+  PASS  test_the_depletion_latch_does_not_flip_at_exactly_thirty_percent
+  PASS  test_the_recovery_latch_does_not_clear_at_exactly_forty_percent
+  PASS  test_the_latch_moves_independently_of_the_intensive_override
+  PASS  test_the_explicit_intensive_choice_is_never_reset_automatically
+  PASS  test_restocking_never_bypasses_a_closure_or_an_unavailable_species
+  PASS  test_revalidation_reports_a_lowered_policy_and_refunds_nothing
+  PASS  test_revalidation_refuses_without_a_claim_or_a_stock
+  PASS  test_the_initial_estuary_is_three_habitats_and_nine_stocks
+  PASS  test_the_estuary_is_generated_once_and_never_multiplied
+  PASS  test_an_estuary_with_an_unusable_species_set_creates_nothing
+  PASS  test_ecology_allocation_beyond_thirty_two_refuses_atomically
+  PASS  test_a_designation_binds_to_the_basins_existing_habitat
+  PASS  test_designation_history_leaves_the_basins_ecology_identical
+  PASS  test_a_basin_with_no_habitat_refuses_rather_than_creating_one
+  PASS  test_a_stale_habitat_binding_does_not_answer_for_the_reused_slot
+  PASS  test_two_habitats_cannot_claim_one_basin
+  PASS  test_a_chained_basin_reference_refuses
+  PASS  test_binding_refuses_a_zone_that_is_not_a_fish_basin
+  PASS  test_binding_a_habitat_to_its_basin_creates_and_resets_nothing
+  PASS  test_designation_binding_needs_the_harvest_zone_store
+  PASS  test_the_mussel_event_closure_writes_every_present_mussel_stock
+  PASS  test_the_mussel_closure_reopens_when_it_is_written_false
+  PASS  test_the_mussel_closure_touches_no_other_species
+  PASS  test_a_world_with_no_mussel_stock_writes_none_and_refuses_nothing
+  PASS  test_harvest_closed_is_the_union_of_the_calendar_and_the_event
+  PASS  test_an_event_closed_mussel_bed_still_recovers
+  PASS  test_the_habitat_catalog_is_verifiable_for_the_boundary_preflight
+test_fishing_owner_candidate.gd
+  PASS  test_frozen_candidate_images
+  PASS  test_every_field_at_every_physical_row
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+123 test(s), 8555 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

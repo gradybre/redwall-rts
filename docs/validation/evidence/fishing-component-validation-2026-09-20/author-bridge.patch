@@ -1,0 +1,390 @@
+diff --git a/godot/scripts/core/save_owner_fishing.gd b/godot/scripts/core/save_owner_fishing.gd
+new file mode 100644
+--- /dev/null
++++ b/godot/scripts/core/save_owner_fishing.gd
+@@ -0,0 +1,385 @@
++extends RefCounted
++## Owner 4 (`fishing`) column validation bridge (FISHING-S4-VALIDATE-R01 v1, ADR 0181).
++##
++## ONE PUBLIC ENTRY POINT. `framed_refusal()` judges one already framed section 4 owner block
++## against the Fishing store's own cold column predicate and returns a `SaveHeader.Refusal`.
++## It constructs no live Fishing store, Directory, Forage, Jobs or Catalog domain, reads no
++## clock, takes no callback, captures nothing, restores nothing and writes no diagnostic.
++##
++## GATE ORDER:
++##   1. a null record                   -> SAVE_COMPONENT_SHAPE
++##   2. an owner index that is not 4    -> SAVE_COMPONENT_OWNER
++##   3. `Schema.schema_refusal()`       -> forwarded UNCHANGED, both code and detail
++##   4. this owner's compiled metadata and the pinned Fishing source constants ->
++##      SAVE_COMPONENT_METADATA, with a detail beginning `Fishing owner4 metadata:`
++##   5. `Section.owner_shape_refusal()` -> forwarded UNCHANGED
++##   6. one cold `Fishing.Columns` whose TWENTY-TWO canonical typed columns are all assigned
++##      explicitly, in declared ordinal order
++##   7. `Fishing.columns_refusal()`     -> the EXACT unwrapped column code, for example
++##      COLUMN_QUOTA, wrapped in a detail naming owner 4 and carrying no row identity.
++## Success carries an empty code and an empty detail.
++##
++## SECTION 4 IS NOT SECTION 7. This owner is section-4 version 1; Fishing's
++## CANONICAL_OWNER_SCHEMA_VERSION 2 belongs to the section 7 claim block and is deliberately
++## neither pinned nor reinterpreted here. LOCAL ACCEPTANCE IS NOT PUBLICATION: Directory
++## identity, Forage basins, item definitions, section 7 effort claims, loaded events, the clock
++## and file provenance all remain FISHING-SAVED-BINDINGS obligations, and Fishing bulk capture
++## and apply do not exist.
++##
++## MEMORY, CONDITIONALLY. The projection SHARES the caller's packed buffers by assignment: no
++## `duplicate()` runs here. The contract's conservative figure is 10688 logical packed bytes --
++## the 5344-byte caller image and the 5344-byte default Columns buffers -- inside the 6417408
++## stream allowance, and the fixed 32-row duplicate scans add no packed scratch. That is
++## allocation arithmetic, not a measured resident set.
++##
++## NO FLOAT. ARCH-AUTH-002: there is no float in this file and there must never be one.
++
++const Fishing := preload("res://scripts/core/fishing.gd")
++const Schema := preload("res://scripts/core/save_component_columns_schema.gd")
++const Section := preload("res://scripts/core/save_section_component_columns.gd")
++const SaveHeader := preload("res://scripts/core/save_header.gd")
++
++## The section-local owner this bridge accepts, and the compiled metadata it demands of it.
++const OWNER_INDEX: int = 4
++const OWNER_KEY: String = "fishing"
++const OWNER_VERSION: int = 1
++const OWNER_PRIMARY_COUNT: int = 32
++## Owner 4 declares NO independent child extent: the 96 stock rows are a fixed derived stride.
++const OWNER_CHILD_EXTENT_COUNT: int = 0
++const OWNER_FIELD_COUNT: int = 22
++## Gate 4's detail prefix. Gate 3 forwards the schema module's own detail unchanged.
++const METADATA_DETAIL_PREFIX: String = "Fishing owner4 metadata:"
++## Gate 7's detail prefix. It names the owner and the code, and never a row.
++const COLUMN_DETAIL_PREFIX: String = "Fishing owner 4"
++
++## The canonical owner-local field declarations, in registry ordinal order.
++const FIELD_KEYS: Array[StringName] = [
++	&"_habitat_present", &"_stock_present", &"_habitat_type", &"_habitat_zone_slot",
++	&"_habitat_zone_generation", &"_habitat_effort_slots", &"_habitat_pollution",
++	&"_habitat_danger", &"_habitat_protected_fraction", &"_habitat_capacity_milli",
++	&"_habitat_ref_slot", &"_habitat_ref_generation", &"_habitat_effort_used",
++	&"_habitat_intensive", &"_stock_habitat_slot", &"_stock_habitat_generation",
++	&"_stock_species_id", &"_stock_population_milli", &"_stock_capacity_milli",
++	&"_stock_harvested_today_milli", &"_stock_closed", &"_stock_restocking",
++]
++const FIELD_TYPES: Array[int] = [
++	Schema.TYPE_U8, Schema.TYPE_U8, Schema.TYPE_I32, Schema.TYPE_I32,
++	Schema.TYPE_I32, Schema.TYPE_I32, Schema.TYPE_I32, Schema.TYPE_I32,
++	Schema.TYPE_I32, Schema.TYPE_I64, Schema.TYPE_I32, Schema.TYPE_I32,
++	Schema.TYPE_I32, Schema.TYPE_U8, Schema.TYPE_I32, Schema.TYPE_I32,
++	Schema.TYPE_I32, Schema.TYPE_I64, Schema.TYPE_I64, Schema.TYPE_I64,
++	Schema.TYPE_U8, Schema.TYPE_U8,
++]
++const FIELD_COUNTS: Array[int] = [
++	32, 96, 32, 32, 32, 32, 32, 32, 32, 32, 32,
++	32, 32, 32, 96, 96, 96, 96, 96, 96, 96, 96,
++]
++
++## Owner-local field ordinals, in the order the canonical registry publishes them.
++const FIELD_HABITAT_PRESENT: int = 0
++const FIELD_STOCK_PRESENT: int = 1
++const FIELD_HABITAT_TYPE: int = 2
++const FIELD_HABITAT_ZONE_SLOT: int = 3
++const FIELD_HABITAT_ZONE_GENERATION: int = 4
++const FIELD_HABITAT_EFFORT_SLOTS: int = 5
++const FIELD_HABITAT_POLLUTION: int = 6
++const FIELD_HABITAT_DANGER: int = 7
++const FIELD_HABITAT_PROTECTED_FRACTION: int = 8
++const FIELD_HABITAT_CAPACITY_MILLI: int = 9
++const FIELD_HABITAT_REF_SLOT: int = 10
++const FIELD_HABITAT_REF_GENERATION: int = 11
++const FIELD_HABITAT_EFFORT_USED: int = 12
++const FIELD_HABITAT_INTENSIVE: int = 13
++const FIELD_STOCK_HABITAT_SLOT: int = 14
++const FIELD_STOCK_HABITAT_GENERATION: int = 15
++const FIELD_STOCK_SPECIES_ID: int = 16
++const FIELD_STOCK_POPULATION_MILLI: int = 17
++const FIELD_STOCK_CAPACITY_MILLI: int = 18
++const FIELD_STOCK_HARVESTED_TODAY_MILLI: int = 19
++const FIELD_STOCK_CLOSED: int = 20
++const FIELD_STOCK_RESTOCKING: int = 21
++
++## The Fishing source constants this bridge pins as contract before it reads a column.
++const SOURCE_FISH_HABITAT_CAPACITY: int = 32
++const SOURCE_SPECIES_PER_HABITAT: int = 3
++const SOURCE_FISH_STOCK_CAPACITY: int = 96
++const SOURCE_HABITAT_TYPE_COUNT: int = 3
++const SOURCE_HABITAT_COAST: int = 0
++const SOURCE_HABITAT_LAKE: int = 1
++const SOURCE_HABITAT_RIVER: int = 2
++const SOURCE_COAST_EFFORT_SLOTS: int = 6
++const SOURCE_LAKE_EFFORT_SLOTS: int = 6
++const SOURCE_RIVER_EFFORT_SLOTS: int = 4
++const SOURCE_SPECIES_COUNT: int = 9
++const SOURCE_SPECIES_TROUT: int = 0
++const SOURCE_SPECIES_DACE: int = 1
++const SOURCE_SPECIES_SALMON: int = 2
++const SOURCE_SPECIES_PERCH: int = 3
++const SOURCE_SPECIES_CARP: int = 4
++const SOURCE_SPECIES_WHITEFISH: int = 5
++const SOURCE_SPECIES_HERRING: int = 6
++const SOURCE_SPECIES_MACKEREL: int = 7
++const SOURCE_SPECIES_MUSSEL: int = 8
++const SOURCE_MILLI_PER_UNIT: int = 1000
++const SOURCE_DANGER_MIN: int = 0
++const SOURCE_DANGER_MAX: int = 3
++const SOURCE_HARD_FLOOR_PERCENT: int = 10
++const SOURCE_DEPLETION_WARNING_PERCENT: int = 30
++const SOURCE_RESTOCK_RECOVERY_PERCENT: int = 40
++const SOURCE_PERCENT_DENOMINATOR: int = 100
++const SOURCE_DAILY_QUOTA_DIVISOR: int = 40
++const SOURCE_NULL_REF: Vector2i = Vector2i(-1, 0)
++const SOURCE_NULL_SLOT: int = -1
++const SOURCE_NULL_GENERATION: int = 0
++## The GLOBAL Directory capacity, not this owner's 32: the structural reference rule uses it.
++const SOURCE_DIRECTORY_CAPACITY: int = 352418
++## The owner's own cold aliases and sentinels, pinned as the actual inputs the predicate reads.
++const SOURCE_COLUMN_BLANK_SLOT: int = -1
++const SOURCE_COLUMN_BLANK_GENERATION: int = 0
++const SOURCE_COLUMN_DIRECTORY_SLOT_MAX: int = 352417
++const SOURCE_COLUMN_BLANK_SPECIES_ID: int = -1
++## The three source tables the pure predicate indexes. Their LENGTHS are pinned before any
++## entry is read. These are this schema version's wire pins, not a new gameplay mapping.
++const SOURCE_EFFORT_TABLE_LENGTH: int = 3
++const SOURCE_SPECIES_TABLE_LENGTH: int = 9
++const SOURCE_EFFORT_SLOTS_BY_TYPE: Array[int] = [6, 6, 4]
++const SOURCE_HABITAT_SPECIES_ROWS: Array[int] = [6, 7, 8, 3, 4, 5, 0, 1, 2]
++const SOURCE_SPECIES_CAPACITY_U: Array[int] = [600, 900, 600, 900, 700, 600, 1200, 900, 1000]
++
++
++static func framed_refusal(record: Section.FramedOwner) -> SaveHeader.Refusal:
++	"""Judge one framed owner 4 block against the Fishing store's own cold column rules."""
++	if record == null:
++		return _refuse(Section.REFUSE_SHAPE,
++			"no framed owner was supplied for owner %d ('%s')" % [OWNER_INDEX, OWNER_KEY])
++	if record.owner != OWNER_INDEX:
++		return _refuse(Section.REFUSE_OWNER,
++			"owner %d was supplied where owner %d ('%s') is required"
++				% [record.owner, OWNER_INDEX, OWNER_KEY])
++	var schema: SaveHeader.Refusal = Schema.schema_refusal()
++	if not schema.is_ok():
++		return schema
++	var metadata: SaveHeader.Refusal = _metadata_refusal()
++	if not metadata.is_ok():
++		return metadata
++	var shape: SaveHeader.Refusal = Section.owner_shape_refusal(record)
++	if not shape.is_ok():
++		return shape
++	var columns: Fishing.Columns = Fishing.Columns.new()
++	_project_columns(record, columns)
++	var code: StringName = Fishing.columns_refusal(columns)
++	if code != Fishing.REFUSE_NONE:
++		return _refuse(code, "%s refuses this image with column code %s"
++			% [COLUMN_DETAIL_PREFIX, String(code)])
++	return _accept()
++
++
++static func _metadata_refusal() -> SaveHeader.Refusal:
++	"""Gate 4: compiled owner identity and extents, then the pinned Fishing constants."""
++	if Schema.owner_key(OWNER_INDEX) != OWNER_KEY \
++			or Schema.owner_version(OWNER_INDEX) != OWNER_VERSION:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s compiled owner '%s' version %d is not '%s' version %d"
++				% [METADATA_DETAIL_PREFIX, Schema.owner_key(OWNER_INDEX),
++					Schema.owner_version(OWNER_INDEX), OWNER_KEY, OWNER_VERSION])
++	if Schema.primary_count(OWNER_INDEX) != OWNER_PRIMARY_COUNT \
++			or Schema.child_extent_count(OWNER_INDEX) != OWNER_CHILD_EXTENT_COUNT \
++			or Schema.field_count(OWNER_INDEX) != OWNER_FIELD_COUNT:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s %d primaries, %d child extents and %d fields are not %d/%d/%d"
++				% [METADATA_DETAIL_PREFIX, Schema.primary_count(OWNER_INDEX),
++					Schema.child_extent_count(OWNER_INDEX), Schema.field_count(OWNER_INDEX),
++					OWNER_PRIMARY_COUNT, OWNER_CHILD_EXTENT_COUNT, OWNER_FIELD_COUNT])
++	if FIELD_KEYS.size() != OWNER_FIELD_COUNT or FIELD_TYPES.size() != OWNER_FIELD_COUNT \
++			or FIELD_COUNTS.size() != OWNER_FIELD_COUNT:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s this bridge pins %d/%d/%d field declarations, not %d"
++				% [METADATA_DETAIL_PREFIX, FIELD_KEYS.size(), FIELD_TYPES.size(),
++					FIELD_COUNTS.size(), OWNER_FIELD_COUNT])
++	var source: SaveHeader.Refusal = _source_refusal()
++	if not source.is_ok():
++		return source
++	return _field_parity_refusal()
++
++
++static func _source_refusal() -> SaveHeader.Refusal:
++	"""Gate 4's source half: the two extents, the habitat domain and its effort capacities."""
++	if Fishing.FISH_HABITAT_CAPACITY != SOURCE_FISH_HABITAT_CAPACITY \
++			or Fishing.SPECIES_PER_HABITAT != SOURCE_SPECIES_PER_HABITAT \
++			or Fishing.FISH_STOCK_CAPACITY != SOURCE_FISH_STOCK_CAPACITY:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s Fishing declares %d habitats of %d species over %d stock rows, not %d/%d/%d"
++				% [METADATA_DETAIL_PREFIX, Fishing.FISH_HABITAT_CAPACITY,
++					Fishing.SPECIES_PER_HABITAT, Fishing.FISH_STOCK_CAPACITY,
++					SOURCE_FISH_HABITAT_CAPACITY, SOURCE_SPECIES_PER_HABITAT,
++					SOURCE_FISH_STOCK_CAPACITY])
++	if Fishing.HABITAT_COAST != SOURCE_HABITAT_COAST \
++			or Fishing.HABITAT_LAKE != SOURCE_HABITAT_LAKE \
++			or Fishing.HABITAT_RIVER != SOURCE_HABITAT_RIVER \
++			or Fishing.HABITAT_TYPE_COUNT != SOURCE_HABITAT_TYPE_COUNT:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s the habitat domain is not the pinned coast %d, lake %d, river %d bounded by %d"
++				% [METADATA_DETAIL_PREFIX, SOURCE_HABITAT_COAST, SOURCE_HABITAT_LAKE,
++					SOURCE_HABITAT_RIVER, SOURCE_HABITAT_TYPE_COUNT])
++	if Fishing.COAST_EFFORT_SLOTS != SOURCE_COAST_EFFORT_SLOTS \
++			or Fishing.LAKE_EFFORT_SLOTS != SOURCE_LAKE_EFFORT_SLOTS \
++			or Fishing.RIVER_EFFORT_SLOTS != SOURCE_RIVER_EFFORT_SLOTS:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s the coast/lake/river effort capacities are not %d/%d/%d"
++				% [METADATA_DETAIL_PREFIX, SOURCE_COAST_EFFORT_SLOTS,
++					SOURCE_LAKE_EFFORT_SLOTS, SOURCE_RIVER_EFFORT_SLOTS])
++	return _source_species_refusal()
++
++
++static func _source_species_refusal() -> SaveHeader.Refusal:
++	"""Gate 4: the nine species table row ordinals and the milli unit their capacities use."""
++	if Fishing.SPECIES_COUNT != SOURCE_SPECIES_COUNT \
++			or Fishing.SPECIES_TROUT != SOURCE_SPECIES_TROUT \
++			or Fishing.SPECIES_DACE != SOURCE_SPECIES_DACE \
++			or Fishing.SPECIES_SALMON != SOURCE_SPECIES_SALMON \
++			or Fishing.SPECIES_PERCH != SOURCE_SPECIES_PERCH \
++			or Fishing.SPECIES_CARP != SOURCE_SPECIES_CARP \
++			or Fishing.SPECIES_WHITEFISH != SOURCE_SPECIES_WHITEFISH \
++			or Fishing.SPECIES_HERRING != SOURCE_SPECIES_HERRING \
++			or Fishing.SPECIES_MACKEREL != SOURCE_SPECIES_MACKEREL \
++			or Fishing.SPECIES_MUSSEL != SOURCE_SPECIES_MUSSEL:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s the nine species row ordinals are not the pinned 0..%d numbering"
++				% [METADATA_DETAIL_PREFIX, SOURCE_SPECIES_COUNT - 1])
++	if Fishing.MILLI_PER_UNIT != SOURCE_MILLI_PER_UNIT:
++		return _refuse(Section.REFUSE_METADATA, "%s a unit is %d milli, not %d"
++			% [METADATA_DETAIL_PREFIX, Fishing.MILLI_PER_UNIT, SOURCE_MILLI_PER_UNIT])
++	return _source_scalar_refusal()
++
++
++static func _source_scalar_refusal() -> SaveHeader.Refusal:
++	"""Gate 4: the danger band, the conservation percents and the shared daily quota divisor."""
++	if Fishing.DANGER_MIN != SOURCE_DANGER_MIN or Fishing.DANGER_MAX != SOURCE_DANGER_MAX:
++		return _refuse(Section.REFUSE_METADATA, "%s danger is not bounded %d..%d"
++			% [METADATA_DETAIL_PREFIX, SOURCE_DANGER_MIN, SOURCE_DANGER_MAX])
++	if Fishing.HARD_FLOOR_PERCENT != SOURCE_HARD_FLOOR_PERCENT \
++			or Fishing.DEPLETION_WARNING_PERCENT != SOURCE_DEPLETION_WARNING_PERCENT \
++			or Fishing.RESTOCK_RECOVERY_PERCENT != SOURCE_RESTOCK_RECOVERY_PERCENT \
++			or Fishing.PERCENT_DENOMINATOR != SOURCE_PERCENT_DENOMINATOR \
++			or Fishing.DAILY_QUOTA_DIVISOR != SOURCE_DAILY_QUOTA_DIVISOR:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s the floor, hysteresis, denominator and quota divisor are not %d/%d/%d/%d/%d"
++				% [METADATA_DETAIL_PREFIX, SOURCE_HARD_FLOOR_PERCENT,
++					SOURCE_DEPLETION_WARNING_PERCENT, SOURCE_RESTOCK_RECOVERY_PERCENT,
++					SOURCE_PERCENT_DENOMINATOR, SOURCE_DAILY_QUOTA_DIVISOR])
++	if Fishing.NULL_REF != SOURCE_NULL_REF:
++		return _refuse(Section.REFUSE_METADATA, "%s the null reference is not (%d, %d)"
++			% [METADATA_DETAIL_PREFIX, SOURCE_NULL_REF.x, SOURCE_NULL_REF.y])
++	return _source_alias_refusal()
++
++
++static func _source_alias_refusal() -> SaveHeader.Refusal:
++	"""Gate 4: the cold aliases and blank species sentinel the predicate actually reads."""
++	if Fishing.CLAIM_COLUMN_BLANK_SLOT != SOURCE_COLUMN_BLANK_SLOT \
++			or Fishing.CLAIM_COLUMN_BLANK_GENERATION != SOURCE_COLUMN_BLANK_GENERATION \
++			or Fishing.CLAIM_COLUMN_DIRECTORY_SLOT_MAX != SOURCE_COLUMN_DIRECTORY_SLOT_MAX:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s the cold blank and slot-ceiling aliases are not %d/%d/%d"
++				% [METADATA_DETAIL_PREFIX, SOURCE_COLUMN_BLANK_SLOT,
++					SOURCE_COLUMN_BLANK_GENERATION, SOURCE_COLUMN_DIRECTORY_SLOT_MAX])
++	if Fishing.COLUMN_BLANK_SPECIES_ID != SOURCE_COLUMN_BLANK_SPECIES_ID:
++		return _refuse(Section.REFUSE_METADATA, "%s the blank species id is %d, not %d"
++			% [METADATA_DETAIL_PREFIX, Fishing.COLUMN_BLANK_SPECIES_ID,
++				SOURCE_COLUMN_BLANK_SPECIES_ID])
++	return _source_directory_refusal()
++
++
++static func _source_directory_refusal() -> SaveHeader.Refusal:
++	"""Gate 4: the global Directory handle, reached through the existing Fishing preload."""
++	if Fishing.EntityDirectory.NULL_SLOT != SOURCE_NULL_SLOT \
++			or Fishing.EntityDirectory.NULL_GENERATION != SOURCE_NULL_GENERATION \
++			or Fishing.EntityDirectory.DIRECTORY_CAPACITY != SOURCE_DIRECTORY_CAPACITY:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s the null handle is not (%d, %d) over a %d-row global Directory"
++				% [METADATA_DETAIL_PREFIX, SOURCE_NULL_SLOT, SOURCE_NULL_GENERATION,
++					SOURCE_DIRECTORY_CAPACITY])
++	return _source_table_refusal()
++
++
++static func _source_table_refusal() -> SaveHeader.Refusal:
++	"""Gate 4's last half: all THREE table lengths, and only then any entry of any table."""
++	if Fishing.EFFORT_SLOTS_BY_TYPE.size() != SOURCE_EFFORT_TABLE_LENGTH \
++			or Fishing.HABITAT_SPECIES_ROWS.size() != SOURCE_SPECIES_TABLE_LENGTH \
++			or Fishing.SPECIES_CAPACITY_U.size() != SOURCE_SPECIES_TABLE_LENGTH:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s the effort, species-row and capacity tables hold %d/%d/%d rows, not %d/%d/%d"
++				% [METADATA_DETAIL_PREFIX, Fishing.EFFORT_SLOTS_BY_TYPE.size(),
++					Fishing.HABITAT_SPECIES_ROWS.size(), Fishing.SPECIES_CAPACITY_U.size(),
++					SOURCE_EFFORT_TABLE_LENGTH, SOURCE_SPECIES_TABLE_LENGTH,
++					SOURCE_SPECIES_TABLE_LENGTH])
++	for habitat_type: int in SOURCE_EFFORT_TABLE_LENGTH:
++		if int(Fishing.EFFORT_SLOTS_BY_TYPE[habitat_type]) \
++				!= int(SOURCE_EFFORT_SLOTS_BY_TYPE[habitat_type]):
++			return _refuse(Section.REFUSE_METADATA, "%s habitat %d admits %d effort slots, not %d"
++				% [METADATA_DETAIL_PREFIX, habitat_type,
++					int(Fishing.EFFORT_SLOTS_BY_TYPE[habitat_type]),
++					int(SOURCE_EFFORT_SLOTS_BY_TYPE[habitat_type])])
++	for entry: int in SOURCE_SPECIES_TABLE_LENGTH:
++		if int(Fishing.HABITAT_SPECIES_ROWS[entry]) != int(SOURCE_HABITAT_SPECIES_ROWS[entry]):
++			return _refuse(Section.REFUSE_METADATA, "%s species position %d binds row %d, not %d"
++				% [METADATA_DETAIL_PREFIX, entry, int(Fishing.HABITAT_SPECIES_ROWS[entry]),
++					int(SOURCE_HABITAT_SPECIES_ROWS[entry])])
++		if int(Fishing.SPECIES_CAPACITY_U[entry]) != int(SOURCE_SPECIES_CAPACITY_U[entry]):
++			return _refuse(Section.REFUSE_METADATA, "%s species %d holds %d U, not %d"
++				% [METADATA_DETAIL_PREFIX, entry, int(Fishing.SPECIES_CAPACITY_U[entry]),
++					int(SOURCE_SPECIES_CAPACITY_U[entry])])
++	return _accept()
++
++
++static func _field_parity_refusal() -> SaveHeader.Refusal:
++	"""Gate 4's per-field half: key, type code and element count, ordinal by ordinal."""
++	for field: int in OWNER_FIELD_COUNT:
++		if Schema.field_key(OWNER_INDEX, field) != String(FIELD_KEYS[field]):
++			return _refuse(Section.REFUSE_METADATA, "%s field %d is '%s'; owner 4 declares '%s'"
++				% [METADATA_DETAIL_PREFIX, field, Schema.field_key(OWNER_INDEX, field),
++					String(FIELD_KEYS[field])])
++		if Schema.field_type(OWNER_INDEX, field) != int(FIELD_TYPES[field]):
++			return _refuse(Section.REFUSE_METADATA, "%s field %d has type %d; %d is declared"
++				% [METADATA_DETAIL_PREFIX, field, Schema.field_type(OWNER_INDEX, field),
++					int(FIELD_TYPES[field])])
++		if Schema.element_count(OWNER_INDEX, field) != int(FIELD_COUNTS[field]):
++			return _refuse(Section.REFUSE_METADATA, "%s field %d holds %d values; %d are declared"
++				% [METADATA_DETAIL_PREFIX, field, Schema.element_count(OWNER_INDEX, field),
++					int(FIELD_COUNTS[field])])
++	return _accept()
++
++
++static func _project_columns(record: Section.FramedOwner, columns: Fishing.Columns) -> void:
++	"""Ordinals 0..21: the 32-row habitat and 96-row stock image, every column assigned."""
++	columns.habitat_present = record.u8_column(FIELD_HABITAT_PRESENT)
++	columns.stock_present = record.u8_column(FIELD_STOCK_PRESENT)
++	columns.habitat_type = record.i32_column(FIELD_HABITAT_TYPE)
++	columns.habitat_zone_slot = record.i32_column(FIELD_HABITAT_ZONE_SLOT)
++	columns.habitat_zone_generation = record.i32_column(FIELD_HABITAT_ZONE_GENERATION)
++	columns.habitat_effort_slots = record.i32_column(FIELD_HABITAT_EFFORT_SLOTS)
++	columns.habitat_pollution = record.i32_column(FIELD_HABITAT_POLLUTION)
++	columns.habitat_danger = record.i32_column(FIELD_HABITAT_DANGER)
++	columns.habitat_protected_fraction = record.i32_column(FIELD_HABITAT_PROTECTED_FRACTION)
++	columns.habitat_capacity_milli = record.i64_column(FIELD_HABITAT_CAPACITY_MILLI)
++	columns.habitat_ref_slot = record.i32_column(FIELD_HABITAT_REF_SLOT)
++	columns.habitat_ref_generation = record.i32_column(FIELD_HABITAT_REF_GENERATION)
++	columns.habitat_effort_used = record.i32_column(FIELD_HABITAT_EFFORT_USED)
++	columns.habitat_intensive = record.u8_column(FIELD_HABITAT_INTENSIVE)
++	columns.stock_habitat_slot = record.i32_column(FIELD_STOCK_HABITAT_SLOT)
++	columns.stock_habitat_generation = record.i32_column(FIELD_STOCK_HABITAT_GENERATION)
++	columns.stock_species_id = record.i32_column(FIELD_STOCK_SPECIES_ID)
++	columns.stock_population_milli = record.i64_column(FIELD_STOCK_POPULATION_MILLI)
++	columns.stock_capacity_milli = record.i64_column(FIELD_STOCK_CAPACITY_MILLI)
++	columns.stock_harvested_today_milli = record.i64_column(FIELD_STOCK_HARVESTED_TODAY_MILLI)
++	columns.stock_closed = record.u8_column(FIELD_STOCK_CLOSED)
++	columns.stock_restocking = record.u8_column(FIELD_STOCK_RESTOCKING)
++
++
++static func _refuse(code: StringName, detail: String) -> SaveHeader.Refusal:
++	"""Build a refusal carrying an exact code: a section code, or a raw Fishing column code."""
++	return SaveHeader.Refusal.new(code, detail)
++
++
++static func _accept() -> SaveHeader.Refusal:
++	"""The accepted result: an empty code and no detail."""
++	return SaveHeader.Refusal.new(SaveHeader.REFUSE_NONE, "")

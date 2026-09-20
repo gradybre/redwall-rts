@@ -1,0 +1,10 @@
+# Fishing contract review disposition
+
+Accepted after independent feasibility and contract review, with all four findings dispositioned and public probe106/0 complete.
+
+1. Shape fixtures were already required in the contract and planned parent tests, but were not enumerated in the196 value-image JSON. New shape-witnesses.json freezes67 cases: null plus every22 zero/short/long extent paired with an independently safe malformed byte. The declared63 mutation units already include the shape/flags priority inversion; its safe implementation and witness are now explicit. Entire shape-guard removal may crash before a return, so it is not a separately counted assertion-oracle unit. We do not count runtime errors as catches.
+2. The six priority items name intentionally swapped-order mutants, not desired implementation order. The accepted order remains shape, global flags, ascending habitats, ascending stocks, per-habitat species then quota, global self then zone uniqueness. Both contract and mutation plan now say this explicitly.
+3. Use producer-form cross multiplication100*P versus30*K/40*K after validated capacities and populations. All products are bounded. The percent-form rewrite is equivalent for the pinned capacities and is excluded; the required two units remove one strict hysteresis constraint each, not an equivalent expression rewrite. Boundary cases distinguish < from<= and > from>=.
+4. Fishing already preloads EntityDirectory. The bridge pins Fishing.EntityDirectory.NULL_SLOT/NULL_GENERATION/DIRECTORY_CAPACITY, keeping only four direct preloads; this is the same legal constant access used by the validated Farming bridge. Actual import/runtime remain required.
+
+The review's metadata arithmetic describes expected schema coherence, not executed Godot faults. The actual27 cases/243 assertions,63 code units, focused/full suites and source review remain required. Section4 Fishing version1 is independent of section7 claim version2. Saved cross-section/Directory/catalog/clock bindings and full capture/apply remain separate tasks.

@@ -1,0 +1,30 @@
+{
+  "ownerStopped": true,
+  "quarantine": false,
+  "model": "claude-opus-5",
+  "sessionId": "7f8f4001-03e2-4029-9113-61e49ae060de",
+  "usage": {
+    "inputTokens": 2,
+    "outputTokens": 6901,
+    "cacheReadTokens": 0,
+    "cacheCreationTokens": 124527,
+    "costEstimateUsd": 1.4178050000000002
+  },
+  "elapsedMs": 83569,
+  "pid": 16947,
+  "exitCode": 0,
+  "state": "complete",
+  "result": {
+    "status": "complete",
+    "summary": "Wrote a read-only feasibility review for owner 4 section 4 (fishing): re-derived the 22-field/32-habitat/96-stock layout and its byte arithmetic, checked each source-note hypothesis against every public writer, recorded two findings (inactive type/effort_slots pair cannot be required equal because clear() leaves COAST/0; fishing.gd's CANONICAL_OWNER_SCHEMA_VERSION=2 is the section 7 claim schema and must not be read as the section 4 owner version 1), and listed the source tables, constants and metadata pins a cold column record, pure predicate and bridge would need. No execution or acceptance is claimed.",
+    "questions": [],
+    "files": [
+      {
+        "path": "docs/validation/evidence/fishing-validation-planning-2026-09-20/feasibility-review.md",
+        "content": "# Fishing owner 4 section 4 feasibility review\n\nRead-only source review of the current heads named in `source-layout.json`. No public\nprobe has been run; nothing below is a runtime result, an acceptance, or an\nauthorization to implement.\n\n## Re-derived pins (section 4 only)\n\n`save_component_columns_schema.gd` owner index 4: key `fishing`, key_bytes 7,\nOWNER_VERSIONS 1, primary_count 32, field_count 22, field_begin 80,\nchild_count 0, child_begin 3, offset 8503348, payload 5524, block 5555.\nTypes split 5 u8 / 13 i32 / 4 i64. Values are 352 + 1280 + 1152 + 256 + 2304 =\n5344 bytes; payload 5344 + 22*8 + 4 = 5524; block 5524 + 24 + 7 = 5555; and\n8503348 + 5555 = 8508903, the next owner offset. Section pins: declaration 1,\nsection schema 2, 18 owners, 298 fields, 193184 rows, 12947565 bytes. Stock\ncolumns are literal 96-length fields, not a declared child extent.\n\n**Pin hazard.** `fishing.gd` declares `CANONICAL_OWNER_SCHEMA_VERSION = 2`, which\nis the section 7 claim owner schema under FISH-ID-R01. Section 4's owner version\nis 1. A bridge must read the section 4 metadata table, never that constant.\n\n## Hypotheses against the writers\n\nSection 4 population writers are `_write_created_stocks` (80% of the table\ncapacity), `harvest_into`, `recover_stock`, `recover_daily`, and the clear and\ndestroy paths. Harvest refuses any amount above `allowed_stock`, whose floor is\n30% or 10% under the visible intensive policy (restored to 30% inside a closure\nwindow), and recovery caps at the room below K. No public path lowers P below\n`floor(K/10)` or raises it above K, so 10%K..K holds for present stocks; I found\nno counterexample and no producer defect on that path.\n\nThe restocking latch is written only by `_update_restocking`, reached from both\nmutators. `100*P < 30*K` forces 1 and `100*P > 40*K` forces 0; inside the\ninclusive 30..40 band either value is reachable, because a rise from below and a\nfall from above both retain. Equality at exactly 30 or 40 admits both values.\nNever recompute the latch from P.\n\nPer-habitat `harvested_today` is incremented only in `harvest_into`, which is\nbounded by `remaining_quota_milli` against `floor(K_total/40)`, and zeroed\nglobally by `reset_harvested_today`. The three-stock sum bound holds.\n\n`destroy_habitat` refuses while `effort_used > 0`, then clears presence, self\nref, zone ref, capacity and intensive, and blanks all three stock rows, while\nretaining type, effort_slots, pollution, danger and protected_fraction.\n`clear()` instead zeroes everything, leaving type COAST(0) beside effort_slots 0.\n**Finding:** an inactive row therefore cannot be required to satisfy\n`effort_slots == EFFORT_SLOTS_BY_TYPE[type]`; the admissible domain is\n`effort_slots in {0, EFFORT_SLOTS_BY_TYPE[type]}` with `effort_used == 0`.\n\nFor a present habitat the same-owner relation holds exactly: its three stock rows\nare present, each stock reference equals the habitat's own self reference, each\nstock capacity is `SPECIES_CAPACITY_U[HABITAT_SPECIES_ROWS[type*3+i]] * 1000`,\nthe habitat capacity is their sum, and the three species ids are distinct.\n\nSpecies ids are validated only as nonnegative int32; they are never used to\nsubscript the nine-row tables. Do not require catalog membership.\n\n`_refuse_zone_binding` rejects only an exact duplicate slot/generation pair among\nlive habitats, so two live habitats may legitimately hold the same zone slot at\ndifferent generations. Slot-only zone uniqueness would be a false refusal.\nPresent self-reference slot uniqueness is sound, since each live row owns one\ncurrent Directory slot.\n\n`effort_used` is locally constrained to 0..effort_slots only. Equality against\nclaim totals needs the section 7 claim columns plus Directory, Jobs and\nExpedition joins; `restore_effort_claim` deliberately leaves `effort_used`\nuntouched, so section 4 alone cannot prove the aggregate.\n\n## Candidate shape\n\nA cold 22-array `SectionColumns` with fixed 32/96 lengths, a static pure\npredicate over it, and a bridge pair on `fishing.gd` that adds no gameplay path\nand mutates no existing column. Needed sources: `HABITAT_SPECIES_ROWS`,\n`SPECIES_CAPACITY_U`, `MILLI_PER_UNIT`, `EFFORT_SLOTS_BY_TYPE`, `Catalog`\nHabitatType ids, `SPECIES_PER_HABITAT`, the two capacities, `DANGER_MIN/MAX`,\nthe percent and quota constants, and `EntityDirectory` NULL/bound values. Pin\nevery table length before indexing. Conservative logical cost 5344 + 5344 =\n10688 packed bytes; native overhead unmeasured.\n",
+        "baseSha256": null
+      }
+    ],
+    "decisionIds": []
+  }
+}

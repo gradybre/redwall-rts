@@ -1,0 +1,137 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "case": "positive-control",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": false,
+      "passed": true
+    },
+    {
+      "case": "key-fault-refused",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": false,
+      "passed": true
+    },
+    {
+      "case": "key-gate-bypassed",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": true,
+      "passed": false
+    },
+    {
+      "case": "version-fault-refused",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": false,
+      "passed": true
+    },
+    {
+      "case": "version-gate-bypassed",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": true,
+      "passed": false
+    },
+    {
+      "case": "primary-fault-refused",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": false,
+      "passed": true
+    },
+    {
+      "case": "primary-gate-bypassed",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": true,
+      "passed": false
+    },
+    {
+      "case": "children-fault-refused",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": false,
+      "passed": true
+    },
+    {
+      "case": "children-gate-bypassed",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": true,
+      "passed": false
+    },
+    {
+      "case": "field_count-fault-refused",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": false,
+      "passed": true
+    },
+    {
+      "case": "field_count-gate-bypassed",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": true,
+      "passed": false
+    },
+    {
+      "case": "field_key-fault-refused",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": false,
+      "passed": true
+    },
+    {
+      "case": "field_key-gate-bypassed",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": true,
+      "passed": false
+    },
+    {
+      "case": "field_type-fault-refused",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": false,
+      "passed": true
+    },
+    {
+      "case": "field_type-gate-bypassed",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": true,
+      "passed": false
+    },
+    {
+      "case": "field_extent-fault-refused",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": false,
+      "passed": true
+    },
+    {
+      "case": "field_extent-gate-bypassed",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": true,
+      "passed": false
+    },
+    {
+      "case": "schema-first-forwarding",
+      "assertions": 9,
+      "valid_execution": true,
+      "killed_bypass": false,
+      "passed": true
+    }
+  ],
+  "source_sha256": {
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+    "godot/scripts/core/save_owner_work.gd": "59b2a556433842dd1dff1bdba94bd65557aa9681a5ea2e9b884735a505d62fbe",
+    "godot/scripts/core/work.gd": "75e4b30b3f122008ea7977b9b0510bee18d061630c1d04f9fb295018613183af",
+    "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a"
+  }
+}

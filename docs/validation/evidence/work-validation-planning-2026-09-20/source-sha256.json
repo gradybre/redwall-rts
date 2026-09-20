@@ -1,0 +1,10 @@
+{
+  "godot/scripts/core/work.gd": "378c6ca26b77e8cc0fdfbe269c38e0da19efddfafa46aacc9da1f3b2a3f02151",
+  "godot/scripts/core/gear.gd": "73da2f20963c40747790efb8484cec451698c8ebf12a289db1e1307025a5ac8f",
+  "godot/scripts/core/jobs.gd": "bf74583b409dd22da8b9100318e224b63bede5ed01c66be09f4ed0ab38809f3c",
+  "godot/scripts/core/inventory.gd": "28ae01f313261b234bf11661e48ea3e8eac2bbe8e95a63b1234185f349727d39",
+  "godot/scripts/core/residents.gd": "7ce35ffc7e14ff9e8ba86d70d54a1401e0814751d0b71779d92ba476cd89655c",
+  "godot/scripts/core/needs.gd": "cd62106b42e0641612b1a5178b9124f2e81ddd61a9d933fdabc334806dba950f",
+  "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+  "godot/test/test_work.gd": "0ab51bc6065a54218ab54e8ba3b2e802d22da642cfbb960b02fcdb875f0a8ae2"
+}

@@ -1,0 +1,60 @@
+{
+  "attempts": [
+    {
+      "id": "work-validation-author-a1",
+      "model": "claude-opus-5",
+      "sessionId": "7cec31bb-7718-45a3-84de-2c52892c82a8",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/work_component_validation_contract.md": "bc0d88b8ec1816d5a66843c6edd9f026e591c2ed1ee98947c9afcbcc19f2b1c7",
+        "docs/decisions/0175-validate-work-carries-and-retained-tool-bindings.md": "87a2ff2fe6753c137f4d5925eeb98e8e7028214ed7407ba4acd71fb0274a174c",
+        "docs/validation/evidence/work-validation-planning-2026-09-20/contract-review-disposition.md": "e50f90b4c8daa4624391b998444b7d3540cc2c64be59012f90f47bc775153c96",
+        "docs/validation/evidence/work-validation-planning-2026-09-20/parent-test-matrix.md": "94c8694834d7f08e2134cb28b42d91e220498145fdbedb3adb84ac8f54ecf93d",
+        "godot/scripts/core/work.gd": "378c6ca26b77e8cc0fdfbe269c38e0da19efddfafa46aacc9da1f3b2a3f02151",
+        "godot/scripts/core/save_owner_transforms.gd": "a82c4df98598a62cc97c84c936c6a00649b2f2f66788ac885cb5ea4378855790",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/scripts/core/save_header.gd": "55570d407a9f18dd2d8471f7fd58e98f34fce241b8d5fc06f44b49fbcd27eaa0"
+      },
+      "outputLines": 344,
+      "outputLineBudget": 560,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "6bdab15fd57c73252e19c6ba017c2615cef8bfa0"
+    },
+    {
+      "id": "work-validation-source-review-a2",
+      "model": "claude-opus-5",
+      "sessionId": "458f10f6-26ab-4957-a10f-247eca6345fa",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/work_component_validation_contract.md": "bc0d88b8ec1816d5a66843c6edd9f026e591c2ed1ee98947c9afcbcc19f2b1c7",
+        "docs/decisions/0175-validate-work-carries-and-retained-tool-bindings.md": "87a2ff2fe6753c137f4d5925eeb98e8e7028214ed7407ba4acd71fb0274a174c",
+        "docs/validation/evidence/work-validation-planning-2026-09-20/contract-review-disposition.md": "e50f90b4c8daa4624391b998444b7d3540cc2c64be59012f90f47bc775153c96",
+        "godot/scripts/core/work.gd": "75e4b30b3f122008ea7977b9b0510bee18d061630c1d04f9fb295018613183af",
+        "godot/scripts/core/save_owner_work.gd": "59b2a556433842dd1dff1bdba94bd65557aa9681a5ea2e9b884735a505d62fbe",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/test/test_save_owner_work.gd": "2f9fc9a2b9cc562ab03b2706ca2ff2f44b948170afdeb61064ec2fe5f159e706",
+        "godot/test/work_validation_focus.gd": "6c59a6857cd85b83c2f90f038637fe24fb8bac14db3e8733869cec095e2f6ecc",
+        "godot/test/test_work.gd": "0ab51bc6065a54218ab54e8ba3b2e802d22da642cfbb960b02fcdb875f0a8ae2",
+        "tools/test_work_metadata_preflights.py": "855a6297012391e8d3784c314b96a8f8cefd7792941293e77b53cd29a063b91d",
+        ".github/workflows/tests.yml": "b3775477f8f66d57b5c4150bc36d94504f45f0d62c82094f68ead9bd91eea303",
+        "docs/persistence_state_registry.md": "3ebaf3b90bb5dd649a8f37431290d5cc9250dd92c0e35c30a4187c4802a8490f",
+        "docs/validation/evidence/work-component-validation-2026-09-20/tests-focus-final.log": "c4ed0394e0ad15d713224cb92322f574e045f9c67a597a9a613cd2db39c44a7a",
+        "docs/validation/evidence/work-component-validation-2026-09-20/metadata-preflights-first.json": "d9d2715348850fd8b4b31d911f1115f0eca452bcf0191f91626a87333cdd4fa0",
+        "docs/validation/evidence/work-component-validation-2026-09-20/run_mutants.py": "e5c6437595b7810effe4b724cb8107d4c8f23a304f2224abb019f61824808683",
+        "docs/validation/evidence/work-component-validation-2026-09-20/fixture-teardown-note.md": "2b402afd6387f187c1cc6ed727f89838b614494b692083da4bf7448b0f9b7815"
+      },
+      "rawOutputLines": 45,
+      "outputLines": 40,
+      "outputWords": 449,
+      "normalization": "Astra removed five blank lines only; every nonblank line and every word unchanged; raw output retained",
+      "outputLineBudget": 40,
+      "outputWordBudget": 500
+    }
+  ]
+}

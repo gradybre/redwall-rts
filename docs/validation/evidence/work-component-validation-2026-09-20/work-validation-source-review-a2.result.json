@@ -1,0 +1,30 @@
+{
+  "ownerStopped": true,
+  "quarantine": false,
+  "model": "claude-opus-5",
+  "sessionId": "458f10f6-26ab-4957-a10f-247eca6345fa",
+  "usage": {
+    "inputTokens": 2,
+    "outputTokens": 1500,
+    "cacheReadTokens": 0,
+    "cacheCreationTokens": 241046,
+    "costEstimateUsd": 2.44797
+  },
+  "elapsedMs": 23701,
+  "pid": 58107,
+  "exitCode": 0,
+  "state": "complete",
+  "result": {
+    "status": "complete",
+    "summary": "Condensed independent source review of work.gd (columns_refusal, _handle_is_valid) and save_owner_work.gd into a new 27-line source-review.md: verdict, re-derived canonical accessor/ordinal derivation, memory-zero equivalence warrant, gate-order and domain findings, observed evidence limits (21 mutants with real assertion kills across 23 valid runs, 8 metadata bypasses, full suite running, no CI), and the four material gaps with no blocker. No contract tables restated; no run claims made.",
+    "questions": [],
+    "files": [
+      {
+        "path": "docs/validation/evidence/work-component-validation-2026-09-20/source-review.md",
+        "content": "# Independent source review — Work owner 16 validation\n\n2026-09-20. Scope: `work.gd` (`columns_refusal`, `_handle_is_valid`) and `save_owner_work.gd`,\nread against WORK-S4-VALIDATE-R01 v1, ADR 0175 and the compiled section-4 schema. Verdict:\nno contradiction found with the accepted contract; the two files are fit to merge subject to\nthe outstanding evidence below. This is a reading, not a run.\n\n## Independently re-derived\n\n- Ordinal 2 is provably `_memory_total`. `OWNER_FIELD_BEGIN[16] = 280`; `FIELD_KEYS[280..288]`,\n  `FIELD_TYPES` (2×8 then 0) and `FIELD_COUNTS` (512, 6144, 512×7) match the contract, and gate 4\n  pins every key/type/extent by ordinal before any column is read. Ordinals 0..7 are all i32, so\n  `storage_index()` is the identity on that bucket and `i32_columns[2]` is the memory column,\n  `u8_columns[0]` the broken column. That structural derivation — not a test — is the honest\n  warrant for excluding the correctly sized memory-zero substitution, which is genuinely\n  equivalent while every int32 value is legal.\n- Block arithmetic checks out: 512×4×7 + 6144×4 + 512 = 39424 value bytes, 39500 payload,\n  39528 block, 12892567 + 39528 = 12932095 = owner 17's compiled offset.\n- Gate order matches the contract exactly, and each gate is a full-extent loop, so a fault at\n  row 511 under an earlier gate beats row 0 under a later one. `_handle_is_valid` accepts only\n  `(-1,0)` or bounded slot with positive generation, using typed-store capacities (16384/8192),\n  not directory bounds; both malformed null halves refuse. Broken uses `> 1` on unsigned bytes,\n  so no negative case exists. Memory has no value gate at any row, which REQ-SET-020 requires.\n- The predicate constructs nothing, calls no collaborator, sorts nothing and allocates no packed\n  scratch; the bridge forwards schema and owner-shape refusals unchanged and returns stored\n  columns unduplicated, so the caller image stays the existing 39424 bytes.\n\n## Observed evidence limits\n\nThe 21 required mutants completed with real assertion kills across 23 valid runs (baseline and\nrestored controls passing); the 8 metadata bypasses were killed. The full suite is still running\nand there is no CI result yet, so bridge import under exact head and full-suite parity are\nunconfirmed. Native and wrapper overhead beside the 39424 caller bytes is unmeasured.\n\n## Material gaps, no blocker\n\n1. The direct static predicate is unpinned: only the bridge compares capacities and denominators\n   to contract literals, so a future direct caller gains no source guard.\n2. Gate 4 compares compiled metadata to literals; it is not publication-table parity. The\n   independent schema generator and source-capacity audit remain required.\n3. No duplicate lot/job rule here, by design. Saved Work/Gear/Jobs/Inventory and resident\n   identity, claim coherence, bulk capture/restore and the derived bound-tool count stay\n   downstream under SEMANTICS and OWNER-BINDINGS.\n4. Source pins must never be described as an executable value-domain kill; the reviewed files\n   do not do so.\n",
+        "baseSha256": null
+      }
+    ],
+    "decisionIds": []
+  }
+}

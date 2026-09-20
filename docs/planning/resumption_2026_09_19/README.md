@@ -270,3 +270,7 @@ PR160 is merged after exact-head CI35491728462 passed4869/202461/0. Twenty-one b
 2026-09-20: PR164 merged 38e916e after CI35497087870 passed4916/236229/0 and18metadata cases;25loop PRs140–164 merged. Reserved-fauna owner17 contract FAUNA-S4-VALIDATE-R01v1/ADR0174 accepted after two planning reviews and actual i64-count probe; patch integrated, first focused8/6019/0. No new game behavior or combined restore acceptance. Original checkout preserved; full settlement scope remains open.
 
 2026-09-20 fauna follow-through: local full4924/242248/0, focused8/6019/0,29mutants caught,22metadata cases,17static gates/import and independent source review pass. Exact-head CI pending. Work owner16 feasibility is separate read-only planning; no Work production changes. Shutdown baseline remains553objects/33resources, not fixed or hidden.
+
+2026-09-20: PR165 merged 6bdab15 after CI35498343811 passed4924/242248/0 and22metadata cases;26loop PRs140–165 merged. Work owner16version2 contract WORK-S4-VALIDATE-R01v1/ADR0175 accepted after review caught/corrected initial version1 mistake. Publichistory217/0 andsource/API20/0;344line patch integrated, firstfocused10/12784/0. No fullsave/gameplay/firstplayable claim.
+
+2026-09-20 Work follow-through: local4934/255034/0, focused10/12786/0 with public fixture cleanup,29mutants caught,18metadata cases,17static gates/import and independent review pass. Fullshutdown baseline unchanged553objects/33resources. Exact-head CI pending; ResourceNodes owner13 is separate read-only planning, no production changes.

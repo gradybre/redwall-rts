@@ -1,0 +1,150 @@
+{
+  "status": "NO_NEW_ROOT_CYCLE",
+  "method": "Literal const/var preload declarations with triple-quoted docs removed; records existing cycles rather than requiring entire graph acyclic. Actual bridge engine import remains required.",
+  "proposed_root": "godot/scripts/core/save_owner_work.gd",
+  "root_is_planned_not_implemented": true,
+  "node_count": 22,
+  "existing_cycles": [
+    [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/int_math.gd"
+    ],
+    [
+      "godot/scripts/core/save_codec.gd",
+      "godot/scripts/core/save_codec.gd"
+    ]
+  ],
+  "edges": {
+    "godot/scripts/core/save_owner_work.gd": [
+      "godot/scripts/core/work.gd",
+      "godot/scripts/core/save_component_columns_schema.gd",
+      "godot/scripts/core/save_section_component_columns.gd",
+      "godot/scripts/core/save_header.gd"
+    ],
+    "godot/scripts/core/save_header.gd": [
+      "godot/scripts/core/save_codec.gd",
+      "godot/scripts/core/catalog_ids.gd",
+      "godot/scripts/core/int_math.gd"
+    ],
+    "godot/scripts/core/int_math.gd": [
+      "godot/scripts/core/int_math.gd"
+    ],
+    "godot/scripts/core/catalog_ids.gd": [
+      "godot/scripts/core/catalog.gd",
+      "godot/scripts/core/item_definitions.gd",
+      "godot/scripts/core/residents.gd",
+      "godot/scripts/core/farming.gd",
+      "godot/scripts/core/schedule.gd",
+      "godot/scripts/core/forage.gd"
+    ],
+    "godot/scripts/core/forage.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/entity_directory.gd",
+      "godot/scripts/core/catalog.gd",
+      "godot/scripts/core/rng.gd",
+      "godot/scripts/core/sim_clock.gd",
+      "godot/scripts/core/jobs.gd"
+    ],
+    "godot/scripts/core/jobs.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/catalog.gd",
+      "godot/scripts/core/entity_directory.gd",
+      "godot/scripts/core/needs.gd",
+      "godot/scripts/core/residents.gd",
+      "godot/scripts/core/priorities.gd",
+      "godot/scripts/core/schedule.gd"
+    ],
+    "godot/scripts/core/schedule.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/catalog.gd",
+      "godot/scripts/core/needs.gd"
+    ],
+    "godot/scripts/core/needs.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/entity_directory.gd"
+    ],
+    "godot/scripts/core/entity_directory.gd": [],
+    "godot/scripts/core/catalog.gd": [],
+    "godot/scripts/core/priorities.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/catalog.gd",
+      "godot/scripts/core/needs.gd"
+    ],
+    "godot/scripts/core/residents.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/entity_directory.gd",
+      "godot/scripts/core/needs.gd",
+      "godot/scripts/core/catalog.gd"
+    ],
+    "godot/scripts/core/sim_clock.gd": [
+      "godot/scripts/core/int_math.gd"
+    ],
+    "godot/scripts/core/rng.gd": [
+      "godot/scripts/core/int_math.gd"
+    ],
+    "godot/scripts/core/farming.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/catalog.gd",
+      "godot/scripts/core/sim_clock.gd",
+      "godot/scripts/core/entity_directory.gd"
+    ],
+    "godot/scripts/core/item_definitions.gd": [
+      "godot/scripts/core/catalog.gd",
+      "godot/scripts/core/inventory.gd"
+    ],
+    "godot/scripts/core/inventory.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/catalog.gd"
+    ],
+    "godot/scripts/core/save_codec.gd": [
+      "godot/scripts/core/save_codec.gd"
+    ],
+    "godot/scripts/core/save_section_component_columns.gd": [
+      "godot/scripts/core/save_component_columns_schema.gd",
+      "godot/scripts/core/save_codec.gd",
+      "godot/scripts/core/save_header.gd"
+    ],
+    "godot/scripts/core/save_component_columns_schema.gd": [
+      "godot/scripts/core/save_header.gd"
+    ],
+    "godot/scripts/core/work.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/entity_directory.gd",
+      "godot/scripts/core/needs.gd",
+      "godot/scripts/core/residents.gd",
+      "godot/scripts/core/jobs.gd",
+      "godot/scripts/core/gear.gd",
+      "godot/scripts/core/inventory.gd"
+    ],
+    "godot/scripts/core/gear.gd": [
+      "godot/scripts/core/inventory.gd",
+      "godot/scripts/core/item_definitions.gd",
+      "godot/scripts/core/entity_directory.gd",
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/residents.gd"
+    ]
+  },
+  "source_sha256": {
+    "godot/scripts/core/save_header.gd": "55570d407a9f18dd2d8471f7fd58e98f34fce241b8d5fc06f44b49fbcd27eaa0",
+    "godot/scripts/core/int_math.gd": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca",
+    "godot/scripts/core/catalog_ids.gd": "63dfd84986c0761316301470c8dfb845a41670a91bb0f34f08cfc2ceeba84afb",
+    "godot/scripts/core/forage.gd": "8f1be765de10b5adba1a623ce54033c9830bc8d7bd1eedcc3d82712850b8144a",
+    "godot/scripts/core/jobs.gd": "bf74583b409dd22da8b9100318e224b63bede5ed01c66be09f4ed0ab38809f3c",
+    "godot/scripts/core/schedule.gd": "1637b4d118cfba1a6f728165c7a092e9d70a3450624464bf78f29442210e78bb",
+    "godot/scripts/core/needs.gd": "cd62106b42e0641612b1a5178b9124f2e81ddd61a9d933fdabc334806dba950f",
+    "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+    "godot/scripts/core/catalog.gd": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1",
+    "godot/scripts/core/priorities.gd": "7352fe17f8973655f2f31c8755b0c5c5aa569310662ec649578a9a34f2d7632a",
+    "godot/scripts/core/residents.gd": "7ce35ffc7e14ff9e8ba86d70d54a1401e0814751d0b71779d92ba476cd89655c",
+    "godot/scripts/core/sim_clock.gd": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a",
+    "godot/scripts/core/rng.gd": "3bfc333d24db8eb239c10cb5a910d00abe9e440eb897219b3894ea1fdafeffef",
+    "godot/scripts/core/farming.gd": "c025f23da0f88ddff8c5ea64bae0f3bb75d7085f83f949bd3877e70443aea773",
+    "godot/scripts/core/item_definitions.gd": "4e745577260b8cbb7b16370ebb6f5be05c9441eb8b6976e5022f734814175551",
+    "godot/scripts/core/inventory.gd": "28ae01f313261b234bf11661e48ea3e8eac2bbe8e95a63b1234185f349727d39",
+    "godot/scripts/core/save_codec.gd": "afd7b7f51b8ddc2cd282baecf19ff8a582695346a7005108cb4de3958e3af508",
+    "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+    "godot/scripts/core/work.gd": "378c6ca26b77e8cc0fdfbe269c38e0da19efddfafa46aacc9da1f3b2a3f02151",
+    "godot/scripts/core/gear.gd": "73da2f20963c40747790efb8484cec451698c8ebf12a289db1e1307025a5ac8f"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "6bdab15fd57c73252e19c6ba017c2615cef8bfa0",
+  "task": "Independent source review of Work local validation and owner16 bridge",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/work_component_validation_contract.md",
+    "docs/decisions/0175-validate-work-carries-and-retained-tool-bindings.md",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/contract-review-disposition.md",
+    "godot/scripts/core/work.gd",
+    "godot/scripts/core/save_owner_work.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/test/test_save_owner_work.gd",
+    "godot/test/work_validation_focus.gd",
+    "godot/test/test_work.gd",
+    "tools/test_work_metadata_preflights.py",
+    ".github/workflows/tests.yml",
+    "docs/persistence_state_registry.md",
+    "docs/validation/evidence/work-component-validation-2026-09-20/tests-focus-final.log",
+    "docs/validation/evidence/work-component-validation-2026-09-20/metadata-preflights-first.json",
+    "docs/validation/evidence/work-component-validation-2026-09-20/run_mutants.py",
+    "docs/validation/evidence/work-component-validation-2026-09-20/fixture-teardown-note.md"
+  ],
+  "instructions": "Independent source/security/correctness review against acceptedWORK-S4-VALIDATE-R01v1/ADR0175. Focus10/12786/0;18metadata cases162assertions incl8guardbypasses actualpass;21requiredmutants running/fullpending. Re-derive9canonicalaccessors, allshape/globalorder, ranges/reservedXP, signedmemory anyphysicalrow, typedlot16384/job8192 positivegen ornull, pairednull/unboundbroken. PreserveallordinaryWorkcode anddiagnosticmemory-beforeXP mapping; no liveowner/repair/scratch. Memoryzeroaccessorequivalentexcluded honestly; directstaticmemoryextentwitness. Mutation21=8mapping+9clauses+memoryshape+3order (shape-preemption mutation checksfirstpotentialonly whennonempty toavoidoutofbounds; actualassertionsnotparserkills). Exact version2/sourcepins/metadataarithFauna firsti32transfer1544; primarybalance; type+2048/extent+4;schemaforwarding. ActualWorkfixtures usepublicstatebytes/readers/count, factoryhelpersfromexistingtestsuite; cleanup onlyafterallobservations viapublicInventory.clear/set_equipment_authority(null), fixtureownershipcycle removed no productedit. Registrycategory3/caller39424streamallowance/nativeunmeasured; combinedsavedidentity/bulk/fullworlddeferredexplicit. OutputONEnew docs/validation/evidence/work-component-validation-2026-09-20/source-review.md, HARD100lines AND1100words, aim60/750; baseSha256null. RawJSONstatus/summary/questions/files/decisionIds. Nootherfiles/runclaims. Concreteblockers/materialgaps only."
+}

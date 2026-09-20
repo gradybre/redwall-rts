@@ -1,0 +1,10 @@
+{
+  "attempt": "work-validation-source-review-a2",
+  "raw_lines": 45,
+  "raw_words": 449,
+  "normalized_lines": 40,
+  "blank_lines_removed": 5,
+  "all_nonblank_lines_byte_identical": true,
+  "all_words_identical": true,
+  "normalized_sha256": "61168a2e2901843b510dfb95b98b42677d6a1c01c8184149db3247708843f562"
+}

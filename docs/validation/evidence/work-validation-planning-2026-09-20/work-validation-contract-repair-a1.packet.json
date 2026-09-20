@@ -1,0 +1,20 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "fa1878966c80f9a54030af587175325f099bef7b",
+  "task": "Confirm bounded Work contract repair before author",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/work_component_validation_contract.md",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/contract-review.md",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/contract-review-disposition.md",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/metadata-fault-plan.md",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/proposed-preload-closure-multiline.json",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/source_pin_probe.gd",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/source-pin-probe.log",
+    "godot/scripts/core/work.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_owner_priorities.gd"
+  ],
+  "instructions": "Independent bounded repair confirmation of Workdraft2. Prior review B1 actualowner16version2: contractnowpins2 andfault2->3. C1 byteaccessor existedalready andPrioritiesusesit; suppliedSection andactual20assertionprobe proveu8set/get/malformedextent. C2 directstatic memoryshape witnessspecified, framedgateearlier so memoryzeroequivalentexcluded. C3 actualchainedconstantprobe verifiesmissingnumericbindings; generator/sourcecapacitychecksstillrequired. Preloadscan correctedmultiline:22nodes,three existing selfloops(IntMath,SaveCodec,Sectioncomponent),none involving newroot. Recheck fixes and no newcontractblocker. OutputONEnew docs/validation/evidence/work-validation-planning-2026-09-20/contract-repair-review.md, baseSha256null, HARD45lines/500words aim25/300. RawJSONstatus/summary/questions/files/decisionIds. Nootherfiles/implementation/runclaims. Concrete unresolvedblockers only; donotreopen accepted deferred fullworld scope."
+}

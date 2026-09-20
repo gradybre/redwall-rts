@@ -1,0 +1,29 @@
+{
+  "contract": "WORK-S4-VALIDATE-R01v1",
+  "decision": "0175",
+  "base_commit": "6bdab15fd57c73252e19c6ba017c2615cef8bfa0",
+  "owner_version": 2,
+  "full_tests": 4934,
+  "full_assertions": 255034,
+  "full_failures": 0,
+  "focus_tests": 10,
+  "focus_assertions": 12786,
+  "metadata_cases": 18,
+  "metadata_assertions": 162,
+  "required_mutants_killed": 21,
+  "metadata_bypasses_killed": 8,
+  "equivalent_excluded_mutant": "Correctly-sized memory zero accessor substitution: full signed i32 domain; exact mapping independently source-reviewed",
+  "static_gates": 17,
+  "source_review": "no blocker",
+  "shutdown_objects": 553,
+  "shutdown_resources": 33,
+  "new_focus_shutdown_warnings": false,
+  "exact_head_ci": "pending",
+  "source_sha256": {
+    "godot/scripts/core/work.gd": "75e4b30b3f122008ea7977b9b0510bee18d061630c1d04f9fb295018613183af",
+    "godot/scripts/core/save_owner_work.gd": "59b2a556433842dd1dff1bdba94bd65557aa9681a5ea2e9b884735a505d62fbe",
+    "godot/test/test_save_owner_work.gd": "2f9fc9a2b9cc562ab03b2706ca2ff2f44b948170afdeb61064ec2fe5f159e706",
+    "godot/test/work_validation_focus.gd": "6c59a6857cd85b83c2f90f038637fe24fb8bac14db3e8733869cec095e2f6ecc",
+    "tools/test_work_metadata_preflights.py": "855a6297012391e8d3784c314b96a8f8cefd7792941293e77b53cd29a063b91d"
+  }
+}

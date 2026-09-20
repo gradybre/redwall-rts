@@ -37,7 +37,7 @@
       "stock_age": "7293272e02e0bb2b0ab0231bdade8d355aeb291abd30c152a9af848cb0405d22",
       "transforms": "0c2a532f0869ee1280f830693f0521d2644148828217af7cf2602a1eeca7d675",
       "weather": "f2c1bf034645b897c80edcce861cd488a01b0d280e8eb7dcc5067c9e8aa7ca3e",
-      "work": "378c6ca26b77e8cc0fdfbe269c38e0da19efddfafa46aacc9da1f3b2a3f02151",
+      "work": "75e4b30b3f122008ea7977b9b0510bee18d061630c1d04f9fb295018613183af",
       "world_init": "1b4c7d85a881d8375aa1738ea3502c0231d16e121ac6eec58651b9c66c1e8ede"
     },
     "root": "godot/scripts/core"
@@ -8290,7 +8290,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 459,
+      "source_resize_line": 544,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -8316,7 +8316,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY * SKILL_COUNT",
-      "source_resize_line": 461,
+      "source_resize_line": 546,
       "source_value": 6144,
       "status": "proved_equality"
     },
@@ -8340,7 +8340,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 460,
+      "source_resize_line": 545,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -8364,7 +8364,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 462,
+      "source_resize_line": 547,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -8388,7 +8388,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 463,
+      "source_resize_line": 548,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -8412,7 +8412,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 464,
+      "source_resize_line": 549,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -8436,7 +8436,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 465,
+      "source_resize_line": 550,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -8460,7 +8460,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 466,
+      "source_resize_line": 551,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -8484,7 +8484,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 467,
+      "source_resize_line": 552,
       "source_value": 512,
       "status": "proved_equality"
     },

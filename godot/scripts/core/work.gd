@@ -315,6 +315,91 @@ const REFUSE_TOOL_SETTLEMENT: StringName = &"TOOL_SETTLEMENT_REFUSED"
 const REFUSE_INVALID_QUANTITY: StringName = &"INVALID_QUANTITY_MILLI"
 
 
+# --- WORK-S4-VALIDATE-R01 owner 16 column validation (ADR 0175) -------------------------------
+
+## The nine local-domain codes `columns_refusal()` publishes, in global gate order.
+const REFUSE_COLUMN_SHAPE: StringName = &"COLUMN_SHAPE"
+const REFUSE_COLUMN_POTENTIAL_REMAINDER: StringName = &"COLUMN_POTENTIAL_REMAINDER"
+const REFUSE_COLUMN_XP_REMAINDER: StringName = &"COLUMN_XP_REMAINDER"
+const REFUSE_COLUMN_RESERVED_XP: StringName = &"COLUMN_RESERVED_XP"
+const REFUSE_COLUMN_WEAR_REMAINDER: StringName = &"COLUMN_WEAR_REMAINDER"
+const REFUSE_COLUMN_BROKEN_FLAG: StringName = &"COLUMN_BROKEN_FLAG"
+const REFUSE_COLUMN_TOOL_LOT_REF: StringName = &"COLUMN_TOOL_LOT_REF"
+const REFUSE_COLUMN_TOOL_JOB_REF: StringName = &"COLUMN_TOOL_JOB_REF"
+const REFUSE_COLUMN_TOOL_BINDING: StringName = &"COLUMN_TOOL_BINDING"
+
+
+static func columns_refusal(potential_remainder: PackedInt32Array,
+		xp_remainder: PackedInt32Array, memory_total: PackedInt32Array,
+		wear_remainder: PackedInt32Array, tool_lot_slot: PackedInt32Array,
+		tool_lot_generation: PackedInt32Array, tool_job_slot: PackedInt32Array,
+		tool_job_generation: PackedInt32Array,
+		tool_broken: PackedByteArray) -> StringName:
+	"""Judge one whole nine-column owner-16 image; REFUSE_NONE when every local rule holds.
+
+	Pure and synchronous over frozen arguments: no store, lookup, catalog, repair, projection,
+	sort, duplicate scan or new packed scratch. Every gate is GLOBAL -- each one finishes over
+	all rows before the next begins -- so two faults at different rows resolve by gate order.
+
+	Memory is a signed REQ-SET-020 input and has no value gate at any row. Unbound retained
+	carries, stale saved job history and a broken bound tool are all legal images.
+	"""
+	if potential_remainder.size() != RESIDENT_CAPACITY \
+			or xp_remainder.size() != RESIDENT_CAPACITY * SKILL_COUNT \
+			or memory_total.size() != RESIDENT_CAPACITY \
+			or wear_remainder.size() != RESIDENT_CAPACITY \
+			or tool_lot_slot.size() != RESIDENT_CAPACITY \
+			or tool_lot_generation.size() != RESIDENT_CAPACITY \
+			or tool_job_slot.size() != RESIDENT_CAPACITY \
+			or tool_job_generation.size() != RESIDENT_CAPACITY \
+			or tool_broken.size() != RESIDENT_CAPACITY:
+		return REFUSE_COLUMN_SHAPE
+	for row: int in RESIDENT_CAPACITY:
+		var carry: int = potential_remainder[row]
+		if carry < 0 or carry >= WORK_FACTOR_DENOMINATOR:
+			return REFUSE_COLUMN_POTENTIAL_REMAINDER
+	for entry: int in RESIDENT_CAPACITY * SKILL_COUNT:
+		var progress: int = xp_remainder[entry]
+		if progress < 0 or progress >= MILLI_WU_PER_WU:
+			return REFUSE_COLUMN_XP_REMAINDER
+	for row: int in RESIDENT_CAPACITY:
+		if xp_remainder[row * SKILL_COUNT + SKILL_RESERVED_INDEX] != 0:
+			return REFUSE_COLUMN_RESERVED_XP
+	for row: int in RESIDENT_CAPACITY:
+		var wear: int = wear_remainder[row]
+		if wear < 0 or wear >= WEAR_MWU_PER_DURABILITY_POINT:
+			return REFUSE_COLUMN_WEAR_REMAINDER
+	for row: int in RESIDENT_CAPACITY:
+		if tool_broken[row] > 1:
+			return REFUSE_COLUMN_BROKEN_FLAG
+	for row: int in RESIDENT_CAPACITY:
+		if not _handle_is_valid(tool_lot_slot[row], tool_lot_generation[row],
+				GearScript.LOT_CAPACITY):
+			return REFUSE_COLUMN_TOOL_LOT_REF
+	for row: int in RESIDENT_CAPACITY:
+		if not _handle_is_valid(tool_job_slot[row], tool_job_generation[row],
+				GearScript.JOB_CAPACITY):
+			return REFUSE_COLUMN_TOOL_JOB_REF
+	for row: int in RESIDENT_CAPACITY:
+		var bound: bool = tool_lot_slot[row] != NULL_SLOT
+		if bound != (tool_job_slot[row] != NULL_SLOT):
+			return REFUSE_COLUMN_TOOL_BINDING
+		if not bound and tool_broken[row] != 0:
+			return REFUSE_COLUMN_TOOL_BINDING
+	return REFUSE_NONE
+
+
+static func _handle_is_valid(slot: int, generation: int, capacity: int) -> bool:
+	"""Exact null (-1, 0), or a bounded typed-store slot with a positive generation.
+
+	Shared by the lot and Job gates so one rule cannot drift into two. No live collaborator is
+	called: the typed-store capacity is passed in as a constant by the caller.
+	"""
+	if slot == NULL_SLOT and generation == EntityDirectory.NULL_GENERATION:
+		return true
+	return slot >= 0 and slot < capacity and generation > 0
+
+
 class TickResult:
 	"""Outcome of one productive tick against one activity.
 

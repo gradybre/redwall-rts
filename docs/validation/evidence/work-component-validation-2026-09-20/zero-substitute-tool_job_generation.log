@@ -1,0 +1,51 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_work.gd
+  PASS  test_layout_version_and_null_defaults
+  FAIL  test_endpoints_memory_and_retained_unbound_carries
+        framed exact code (expected , got COLUMN_TOOL_JOB_REF)
+        success channel (expected true, got false)
+        empty success detail (expected , got Work owner 16 refuses this image with column code COLUMN_TOOL_JOB_REF)
+        framed exact code (expected , got COLUMN_TOOL_JOB_REF)
+        success channel (expected true, got false)
+        empty success detail (expected , got Work owner 16 refuses this image with column code COLUMN_TOOL_JOB_REF)
+  PASS  test_every_physical_domain_and_reserved_skill_position
+  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses
+        framed exact code (expected COLUMN_TOOL_JOB_REF, got )
+        success channel (expected false, got true)
+        owner identity (expected true, got false)
+        raw code (expected true, got false)
+        framed exact code (expected COLUMN_TOOL_BINDING, got COLUMN_TOOL_JOB_REF)
+        raw code (expected true, got false)
+  FAIL  test_numeric_upper_limits_and_typed_reference_halves
+        framed exact code (expected COLUMN_TOOL_JOB_REF, got COLUMN_TOOL_BINDING)
+        raw code (expected true, got false)
+  PASS  test_global_gate_precedence_at_opposite_rows
+  PASS  test_all_shapes_and_direct_memory_extent_before_values
+  PASS  test_null_wrong_owner_and_bucket_cardinality
+  FAIL  test_public_fractional_release_and_stale_job_history
+        framed exact code (expected , got COLUMN_TOOL_JOB_REF)
+        success channel (expected true, got false)
+        empty success detail (expected , got Work owner 16 refuses this image with column code COLUMN_TOOL_JOB_REF)
+        framed exact code (expected , got COLUMN_TOOL_JOB_REF)
+        success channel (expected true, got false)
+        empty success detail (expected , got Work owner 16 refuses this image with column code COLUMN_TOOL_JOB_REF)
+  FAIL  test_public_broken_tool_binding_remains_valid_history
+        framed exact code (expected , got COLUMN_TOOL_JOB_REF)
+        success channel (expected true, got false)
+        empty success detail (expected , got Work owner 16 refuses this image with column code COLUMN_TOOL_JOB_REF)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+10 test(s), 12786 assertion(s), 5 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

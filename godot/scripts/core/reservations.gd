@@ -946,28 +946,81 @@ func _count_list(head: int, by_job: bool) -> int:
 	return count
 
 
-func job_reserved_total_milli(job_ref: Vector2i) -> int:
-	"""Total milli-units claimed by one Job across every lot."""
-	return _sum_list(_list_head(job_ref, true), true)
+func job_reserved_total_milli(job_ref: Vector2i) -> IntMath.IntResult:
+	"""Total milli-units claimed by one Job across every lot, as an explicit checked result.
 
+	COLD PATH: allocates exactly one IntResult and delegates to the `_into` form, so the two
+	surfaces can never disagree. `.ok` MUST be inspected before `.value`; a job whose claims sum
+	past int64 yields an explicit refusal, never a wrapped negative total.
 
-func lot_reserved_total_milli(lot_ref: Vector2i) -> int:
-	"""Total milli-units claimed against one lot, re-derived from the rows themselves.
-
-	This is the right-hand side of decision 0019's invariant. `audit()` compares it with the
-	`reserved_milli` that `inventory.gd` maintains independently.
+	Each call returns an INDEPENDENT result object holding no reference to owner scratch.
 	"""
-	return _sum_list(_list_head(lot_ref, false), false)
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	job_reserved_total_milli_into(job_ref, out)
+	return out
 
 
-func _sum_list(head: int, by_job: bool) -> int:
-	"""Sum of the claimed quantities along one intrusive list."""
+func lot_reserved_total_milli(lot_ref: Vector2i) -> IntMath.IntResult:
+	"""Total milli-units claimed against one lot, re-derived from the rows, as a checked result.
+
+	This is the right-hand side of decision 0019's invariant. COLD PATH: allocates exactly one
+	IntResult and delegates to the `_into` form.
+	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	lot_reserved_total_milli_into(lot_ref, out)
+	return out
+
+
+func job_reserved_total_milli_into(job_ref: Vector2i, out: IntMath.IntResult) -> bool:
+	"""Non-allocating job_reserved_total_milli(): sum into caller-owned `out`, return out.ok.
+
+	`out` is caller-owned and is ALSO this call's arithmetic scratch, so it must not be a result
+	the caller still needs. A null `out` is refused before this touches a head column or any row,
+	and no owner field -- canonical, derived, pending or `_math` -- is written on any path.
+
+	A job with no list at all, including an out-of-range or generation-mismatched reference, is a
+	total of zero rather than a refusal: `_list_head()` answers NULL_ROW and the traversal ends
+	immediately in `out.succeed(0)`, clearing whatever failure `out` carried before.
+	"""
+	if out == null:
+		return false
+	return _sum_list_into(_list_head(job_ref, true), true, out)
+
+
+func lot_reserved_total_milli_into(lot_ref: Vector2i, out: IntMath.IntResult) -> bool:
+	"""Non-allocating lot_reserved_total_milli(): sum into caller-owned `out`, return out.ok.
+
+	Same contract as the job form, against the lot list: `out` doubles as scratch, a null `out`
+	is refused before any list access, a missing lot list succeeds at zero, and nothing in this
+	pool or in any Inventory is mutated.
+	"""
+	if out == null:
+		return false
+	return _sum_list_into(_list_head(lot_ref, false), false, out)
+
+
+func _sum_list_into(head: int, by_job: bool, out: IntMath.IntResult) -> bool:
+	"""Checked sum of the claimed quantities along one intrusive list, written into `out`.
+
+	The ONLY summation helper in this module. Traversal order is the list's existing canonical
+	order, unchanged; what changes is that every quantity goes through `IntMath.checked_add_into`
+	instead of `+=`. Because `out` is the scratch for each step, the running value is copied into
+	a local BEFORE the next call, which is the convention every checked caller here already uses.
+
+	Overflow returns false with `out.ok == false`, `out.value == 0` and a non-empty IntMath error,
+	so no partial total is ever exposed as a success. An empty list -- head == NULL_ROW -- reaches
+	the final `out.succeed(0)` and is an explicit success, not a refusal.
+	"""
+	if out == null:
+		return false
 	var total: int = 0
 	var row: int = head
 	while row != NULL_ROW:
-		total += _r_quantity_milli[row]
+		if not IntMath.checked_add_into(total, _r_quantity_milli[row], out):
+			return false
+		total = out.value
 		row = _job_next[row] if by_job else _lot_next[row]
-	return total
+	return out.succeed(total)
 
 
 # --- Row iteration ----------------------------------------------------------------------------
@@ -1121,7 +1174,26 @@ func _audit_order(previous: int, row: int, by_job: bool) -> int:
 
 
 func _audit_lot_totals(inventory: Inventory) -> StringName:
-	"""Decision 0019's invariant, per lot the pool holds rows for."""
+	"""Decision 0019's invariant, per lot the pool holds rows for, with a CHECKED sum.
+
+	Fixed order, per lot:
+	  1. the existing `is_lot_valid` gate, whose REFUSE_AUDIT_RESERVED_TOTAL precedence over
+	     every arithmetic outcome is preserved -- an invalid lot is still reported as such even
+	     when its rows would also overflow;
+	  2. the checked sum, returning the ALREADY EXISTING REFUSE_OVERFLOW before any comparison,
+	     so audit can never compare a wrapped total against a real reserved figure and call a
+	     broken world healthy;
+	  3. equality against `inventory.reserved_milli`;
+	  4. the quantity bound.
+
+	`_math.value` is copied into `total` IMMEDIATELY, before the two further Inventory queries,
+	because `_math` is shared scratch and any later checked call would overwrite it.
+
+	This closes one blind spot only. Lots the pool holds no rows for -- including Inventory lots
+	reserved by a caller going around this pool -- are still invisible here; that reconciliation
+	remains the coordinator's separately documented task, and this change does not claim to fix
+	all audit coverage.
+	"""
 	for slot: int in range(_lot_capacity):
 		var head: int = _lot_head[slot]
 		if head == NULL_ROW:
@@ -1129,7 +1201,9 @@ func _audit_lot_totals(inventory: Inventory) -> StringName:
 		var lot_ref: Vector2i = Vector2i(slot, _r_lot_generation[head])
 		if not inventory.is_lot_valid(lot_ref):
 			return REFUSE_AUDIT_RESERVED_TOTAL
-		var total: int = _sum_list(head, false)
+		if not _sum_list_into(head, false, _math):
+			return REFUSE_OVERFLOW
+		var total: int = _math.value
 		if total != inventory.lot_reserved_milli(lot_ref):
 			return REFUSE_AUDIT_RESERVED_TOTAL
 		if total > inventory.lot_quantity_milli(lot_ref):

@@ -1,0 +1,21 @@
+{
+  "attempts": [
+    {
+      "id": "reservation-totals-contract-a1",
+      "role": "independent contract reviewer",
+      "model": "claude-opus-5",
+      "sessionId": "6e778166-83cc-412c-ab93-d4876b510fea",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/reservation_totals_contract.md": "0fd54732e12eb9c973fdd851560558f0d16b646f501c29740440c647fbeeb2aa",
+        "docs/validation/evidence/reservation-totals-contract-2026-09-19/current-query-excerpts.md": "95ad45f4e165e376a826b30c5b84b58b2e870531b3f1c94e154f41b0d4e3c0f8",
+        "godot/scripts/core/int_math.gd": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca",
+        "godot/test/test_reservations.gd": "ad2da364adaebbcf720ee377687f9a90943227199feaff74965588e5a8b3535b",
+        "docs/validation/evidence/reservations-columns-contract-2026-09-19/public_overflow_probe.gd": "2d261208c98be2f75b53e4a539f6c650201139aa75fda35dc8742bd169919997",
+        "docs/validation/evidence/reservations-columns-contract-2026-09-19/public_overflow_probe.log": "274e54caa4e6f355a5cc79b134a4aae210074fa46feb48f6d34e50c594c03507",
+        "docs/planning/reservations_columns_contract.md": "cc79293abc46a62703e9bbfdd543ccd4633a730c0f597113f9afcdc808677b9a"
+      }
+    }
+  ]
+}

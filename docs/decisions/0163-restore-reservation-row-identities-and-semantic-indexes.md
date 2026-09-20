@@ -1,6 +1,6 @@
 # 0163 — Restore reservation row identities and semantic indexes
 
-Date:2026-09-19 · Status:Implemented; independent source review dispositioned; exact-head CI pending
+Date:2026-09-19 · Status:Merged PR154 at1798854; independent review resolved; CI4752tests/186571assertions/0failures
 
 SAVE-RES-R01v2 preserves the existing eight canonical arrays without compacting
 row indices. Derived minheap and intrusive lists are reconstructed from the

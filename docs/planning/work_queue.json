@@ -1051,7 +1051,8 @@
         "SAVE-S6-CODEC",
         "SAVE-W1-PUBLISH",
         "PLAN-REPLAY-CHECKPOINT-CONTRACT",
-        "SAVE-HEADER-REPLAY-FORMAT"
+        "SAVE-HEADER-REPLAY-FORMAT",
+        "FIX-RESERVATION-TOTALS"
       ],
       "owns": [
         "godot/scripts/core/save_file.gd",
@@ -1573,7 +1574,7 @@
     {
       "id": "PLAN-RESERVATION-TOTALS",
       "title": "Specify checked reservation totals for public-API overflow witness",
-      "status": "in_flight",
+      "status": "done",
       "depends_on": [
         "PLAN-SAVE-COVERAGE"
       ],
@@ -1582,12 +1583,12 @@
       ],
       "agent": "astra",
       "gate": "none",
-      "note": "Public probe: two different item lots each claim6e18milli for one job; both claims and pool.audit succeed but job_reserved_total_milli wraps to-6446744073709551616. Source _sum_list has unchecked addition; diagnostic APIs/tests are current callers. Define explicit checked-result API and audit handling, preserve legal claim/release semantics, then create bounded implementation task after SAVE reservations owner work. Evidence docs/validation/evidence/reservations-columns-contract-2026-09-19/public_overflow_probe.log. No save admission restriction inferred."
+      "note": "Public probe: two different item lots each claim6e18milli for one job; both claims and pool.audit succeed but job_reserved_total_milli wraps to-6446744073709551616. Source _sum_list has unchecked addition; diagnostic APIs/tests are current callers. Define explicit checked-result API and audit handling, preserve legal claim/release semantics, then create bounded implementation task after SAVE reservations owner work. Evidence docs/validation/evidence/reservations-columns-contract-2026-09-19/public_overflow_probe.log. No save admission restriction inferred. RES-TOTAL-R01v2 / ADR0164 accepted after independent contract review. Implementation split to FIX-RESERVATION-TOTALS, serialized after SAVE-RESERVATIONS-COLUMNS."
     },
     {
       "id": "SAVE-RESERVATIONS-COLUMNS",
       "title": "Restore exact reservation rows and semantic indexes",
-      "status": "in_flight",
+      "status": "done",
       "depends_on": [
         "PLAN-SAVE-COVERAGE",
         "SAVE-STOCK-AGE-COLUMNS"
@@ -1600,7 +1601,25 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "SAVE-RES-R01v2 / ADR0163 accepted after independent feasibility and contract review. Preserve8canonicalarrays and exactrowIDs; reconstructheap/chains O(RlogR); samewire and explicit targetJ/L context. Per-lot sums checked, admitted job-wide overflow separate PLAN-RESERVATION-TOTALS. No fullInventory restore/I1 closure."
+      "note": "SAVE-RES-R01v2 / ADR0163 accepted after independent feasibility and contract review. Preserve8canonicalarrays and exactrowIDs; reconstructheap/chains O(RlogR); samewire and explicit targetJ/L context. Per-lot sums checked, admitted job-wide overflow separate PLAN-RESERVATION-TOTALS. No fullInventory restore/I1 closure. Merged PR154 at1798854; exact-head CI4752tests/186571assertions/0failures, bothchecks green."
+    },
+    {
+      "id": "FIX-RESERVATION-TOTALS",
+      "title": "Refuse overflow explicitly in reservation total queries and audit",
+      "status": "in_flight",
+      "depends_on": [
+        "PLAN-RESERVATION-TOTALS",
+        "SAVE-RESERVATIONS-COLUMNS"
+      ],
+      "owns": [
+        "godot/scripts/core/reservations.gd",
+        "godot/test/test_reservations.gd",
+        "godot/test/test_reservation_totals.gd",
+        "godot/test/reservation_totals_focus.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "RES-TOTAL-R01v2 / ADR0164. Replace unchecked integer getters with checked cold/into results; migrate all callers; audit checked sum with existingREFUSE_OVERFLOW. Keep valid claims/save domain; actual public6e18+6e18witness. Do not dispatch before predecessor merges."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

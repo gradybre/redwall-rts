@@ -1,0 +1,12 @@
+1798854a6a6394680d2c78e310952c11a0c6f3f4
+godot/scripts/core/reservations.gd:949:func job_reserved_total_milli(job_ref: Vector2i) -> int:
+godot/scripts/core/reservations.gd:951:	return _sum_list(_list_head(job_ref, true), true)
+godot/scripts/core/reservations.gd:954:func lot_reserved_total_milli(lot_ref: Vector2i) -> int:
+godot/scripts/core/reservations.gd:960:	return _sum_list(_list_head(lot_ref, false), false)
+godot/scripts/core/reservations.gd:963:func _sum_list(head: int, by_job: bool) -> int:
+godot/scripts/core/reservations.gd:1132:		var total: int = _sum_list(head, false)
+godot/test/test_reservations.gd:175:	assert_equal(_pool.job_reserved_total_milli(JOB_A), 4200, "job total")
+godot/test/test_reservations.gd:295:	assert_equal(_pool.lot_reserved_total_milli(lot_ref), 900, "the pool re-derives the same sum")
+godot/test/test_reservations.gd:393:	assert_equal(_pool.lot_reserved_total_milli(lot_ref), 1000, "rows sum to 1000")
+godot/test/test_reservations.gd:397:	assert_equal(_pool.lot_reserved_total_milli(lot_ref), 500, "rows sum to 500")
+godot/test/test_reservations.gd:611:	assert_equal(_pool.job_reserved_total_milli(COORDINATOR), 2100, "the shared quantity is unchanged")

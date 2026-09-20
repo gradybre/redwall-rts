@@ -1,0 +1,13 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "1798854a6a6394680d2c78e310952c11a0c6f3f4",
+  "task": "Implement accepted RES-TOTAL-R01v2 checked reservation total functions",
+  "paths": [
+    "docs/planning/reservation_totals_contract.md",
+    "docs/decisions/0164-return-checked-reservation-totals.md",
+    "godot/scripts/core/reservations.gd",
+    "godot/scripts/core/int_math.gd",
+    "docs/validation/evidence/reservation-totals-2026-09-19/caller-census-before.txt"
+  ],
+  "instructions": "Implement RES-TOTAL-R01v2 exactly. Return exactly TWO NEW fragment files: docs/validation/evidence/reservation-totals-2026-09-19/query-functions.gd containing complete replacement query block (2 cold,2 into,_sum_list_into); docs/validation/evidence/reservation-totals-2026-09-19/audit-function.gd containing replacement _audit_lot_totals. No extends/preloads/other existing members. Parent replaces bounded blocks and owns tests/caller migration. Null out must return false before accessing any list. Into methods change caller result only, no owner math/pending writes. Cold each allocate one Math.IntResult and delegate. Use actual IntMath preload name from source. Checked add every quantity, failure false with cleared value, final succeed(total) incl empty. Audit preserves invalid lot precedence, checked sum into existing _math then REFUSE_OVERFLOW before total comparisons. Preserve legal cross-lot claims and save schema. Explicit Godot4.7.2 types. Under200 code lines. No tools. Output exact JSON status complete,summary,questions[],files each exact path/content/baseSha256:null,decisionIds[]. Acknowledge v2; ambiguities return questions."
+}

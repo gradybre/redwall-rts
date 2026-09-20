@@ -1,0 +1,17 @@
+{
+  "unchanged_existing_functions": 88,
+  "changed": [
+    "_audit_lot_totals",
+    "job_reserved_total_milli",
+    "lot_reserved_total_milli"
+  ],
+  "added": [
+    "_sum_list_into",
+    "job_reserved_total_milli_into",
+    "lot_reserved_total_milli_into"
+  ],
+  "removed": [
+    "_sum_list"
+  ],
+  "source_sha256": "53b53155ee42871e08ab102beccea205d39627aec7b699399072fc269ac49659"
+}

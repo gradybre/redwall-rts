@@ -1,0 +1,52 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_reservation_totals.gd
+  FAIL  test_real_public_api_job_overflow_refuses_without_narrowing_claims
+        12e18 exceeds i64 (expected false, got true)
+        explicit failure (expected false, got true)
+        no partial total (expected 0, got -6446744073709551616)
+        explicit diagnostic (expected true, got false)
+        explicit failure (expected false, got true)
+        no partial total (expected 0, got -6446744073709551616)
+        explicit diagnostic (expected true, got false)
+  PASS  test_exact_i64_max_and_ordinary_totals_have_no_false_overflow
+  FAIL  test_reused_output_recovers_across_success_overflow_and_missing_refs
+        then overflow (expected false, got true)
+        explicit failure (expected false, got true)
+        no partial total (expected 0, got -6446744073709551616)
+        explicit diagnostic (expected true, got false)
+  FAIL  test_public_queries_do_not_mutate_owner_math_or_inventory
+        hot overflow (expected false, got true)
+        explicit failure (expected false, got true)
+        no partial total (expected 0, got -6446744073709551616)
+        explicit diagnostic (expected true, got false)
+  PASS  test_null_output_refuses_before_list_access
+  FAIL  test_cold_results_are_independent_and_outcome_is_not_a_sentinel
+        explicit failure (expected false, got true)
+        no partial total (expected 0, got -6446744073709551616)
+        explicit diagnostic (expected true, got false)
+  FAIL  test_checked_query_survives_exact_owner_snapshot_and_restoration
+        explicit failure (expected false, got true)
+        no partial total (expected 0, got -6446744073709551616)
+        explicit diagnostic (expected true, got false)
+  FAIL  test_audit_refuses_checked_per_lot_overflow_before_comparison
+        forged lot sum overflows (expected false, got true)
+        explicit failure (expected false, got true)
+        no partial total (expected 0, got -9223372036854775808)
+        explicit diagnostic (expected true, got false)
+        overflow wins before reserved-total mismatch (expected OVERFLOW, got AUDIT_RESERVED_TOTAL_MISMATCH)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 195 assertion(s), 6 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

@@ -1,0 +1,36 @@
+{
+  "attempts": [
+    {
+      "id": "reservation-totals-author-a1",
+      "role": "implementation author",
+      "model": "claude-opus-5",
+      "sessionId": "8f9040b8-9b15-4860-a736-03874b73edc4",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/reservation_totals_contract.md": "f4e54cb95cb5c9f0f165f23db356d1ed9a182e7a8c906aa09be31272ff630356",
+        "docs/decisions/0164-return-checked-reservation-totals.md": "02efb10cd87913b0a4b3ab8d77e9907c154755aa63bacdff0c9d6b29ae3444bb",
+        "godot/scripts/core/reservations.gd": "408358c2a64af0295bfd8bd6fd16087780f54a446bfcff66eaddacb850ca6feb",
+        "godot/scripts/core/int_math.gd": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca",
+        "docs/validation/evidence/reservation-totals-2026-09-19/caller-census-before.txt": "5721c3391af9962735aee77891b420b459535af6d1b1fadd71451ad15bb704ce"
+      }
+    },
+    {
+      "id": "reservation-totals-review-a1",
+      "role": "independent source reviewer",
+      "model": "claude-opus-5",
+      "sessionId": "d9b74bcb-f346-4cde-9b39-285e415e2f84",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/reservation_totals_contract.md": "f4e54cb95cb5c9f0f165f23db356d1ed9a182e7a8c906aa09be31272ff630356",
+        "docs/decisions/0164-return-checked-reservation-totals.md": "02efb10cd87913b0a4b3ab8d77e9907c154755aa63bacdff0c9d6b29ae3444bb",
+        "godot/scripts/core/reservations.gd": "6ea3241912d7b7072c03def64121aa1ce72df320d0648fe3131f468a4052ce17",
+        "godot/scripts/core/int_math.gd": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca",
+        "godot/test/test_reservations.gd": "054cc54f3b79f2d8a27e7d12e47cd3a0d14c67c707f50e44620f9fe23ccc1c29",
+        "godot/test/test_reservation_totals.gd": "cbc0738f96ec9408653efd28a5eab83508a262fbfbd2e454fb81ee2386762ae7",
+        "docs/validation/evidence/reservation-totals-2026-09-19/integration.diff": "da725804e79d2845019674fd629a69d85411fc9db1d71cb90202dfa7e93d7ca5"
+      }
+    }
+  ]
+}

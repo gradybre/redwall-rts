@@ -1,0 +1,40 @@
+{
+  "attempts": [
+    {
+      "id": "resource-claim-columns-author-a1",
+      "role": "implementation author",
+      "model": "claude-opus-5",
+      "sessionId": "d9ef43eb-52f5-401b-8416-e45a871fb184",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/resource_claim_columns_contract.md": "6dcd34ca8fbf7b99190ade7d69bc10169d69b553ef904433411ab12d9fc4c50e",
+        "docs/decisions/0166-restore-resource-claims-without-rebuilding-other-sections.md": "060012c676450a7763fd5178ff22dee8b7256098139e7ec07bb93393816a6575",
+        "docs/validation/evidence/claim-columns-contract-2026-09-19/contract-v1-disposition.md": "c0fbce211f4b055c22fb87c28cf8b9f4db2ecfd019fa519224b8d89802c4db39",
+        "godot/scripts/core/fishing.gd": "85f5437585155faab04c140641710014cf4cb477ea82eb08078aa0ac85f34025",
+        "godot/scripts/core/forage.gd": "74694b212993599a8ffc0f488f2e45d6c81acdaba1297c4fd723c0860790dbcb",
+        "godot/scripts/core/save_section_inventories.gd": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567",
+        "godot/scripts/core/save_gear_restore.gd": "da193149f2b79d960c699e69bbfa9faade9edaa409b80da52ff0ee65b676d8dc"
+      }
+    },
+    {
+      "id": "resource-claim-columns-review-a1",
+      "role": "independent source reviewer",
+      "model": "claude-opus-5",
+      "sessionId": "e9cb4045-648f-46d4-ae20-79e9003f9f60",
+      "state": "invalid_output",
+      "ownerStopped": true,
+      "recovery": "Removed exactly one outer JSON code fence from public assistant text in the owned session transcript; parsed and validated one new report. Original invalid result retained.",
+      "inputHashes": {
+        "docs/planning/resource_claim_columns_contract.md": "6dcd34ca8fbf7b99190ade7d69bc10169d69b553ef904433411ab12d9fc4c50e",
+        "docs/decisions/0166-restore-resource-claims-without-rebuilding-other-sections.md": "060012c676450a7763fd5178ff22dee8b7256098139e7ec07bb93393816a6575",
+        "godot/scripts/core/fishing.gd": "e0860c41c3883faae1c75b5afbbfe43396651d6fdf3e702ca3cf375536f659bf",
+        "godot/scripts/core/forage.gd": "9252c9085d1d993057215fc794c0eaf9a71892991aa534ff9a922c9d6a9fef6d",
+        "godot/scripts/core/save_resource_claims_restore.gd": "79e375f2d4fde24337d45e32a627254eccbf70ba3a20040c9a1290cb653f9460",
+        "godot/test/test_resource_claim_columns.gd": "343add401602e9d7ae6af711c76c5217da6c3375e3bff4d6dadf50175835b75a",
+        "docs/persistence_state_registry.md": "b7368e82e33457b9a88d0648745ae966b0228f8cc0d8c8fcb1a58ff84b726de4",
+        "docs/validation/evidence/resource-claim-columns-2026-09-19/parent-integration-notes.md": "2d0b901108f9d270993c5c00f6d210823c6b0d4b523b177fd2e74d5f11b24dfb"
+      }
+    }
+  ]
+}

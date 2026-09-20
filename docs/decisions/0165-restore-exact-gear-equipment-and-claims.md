@@ -1,6 +1,6 @@
 # 0165 — Restore exact Gear equipment and claims
 
-Date:2026-09-19 · Status:Implemented; independent review resolved; exact-head CI pending
+Date:2026-09-19 · Status:Merged PR156 at52307da; CI4783tests/188038assertions/0failures
 
 SAVE-GEAR-R01v2 preserves all12canonical arrays and bare row identities, including
 equipped flags lost by legacy row replay. Validate complete payloads privately;

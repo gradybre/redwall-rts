@@ -1,0 +1,16 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "8a2857d99f57db0cc09d81d546aa2b5619cf8657",
+  "task": "Review exact Fishing/Forage claim-only owner contract SAVE-CLAIMS-R01v1",
+  "paths": [
+    "docs/planning/resource_claim_columns_contract.md",
+    "docs/validation/evidence/claim-columns-contract-2026-09-19/astra-audit-disposition.md",
+    "docs/validation/evidence/claim-columns-contract-2026-09-19/fishing-capacity-writer-census.json",
+    "godot/scripts/core/fishing.gd",
+    "godot/scripts/core/forage.gd",
+    "godot/scripts/core/save_section_inventories.gd",
+    "godot/scripts/core/save_gear_restore.gd",
+    "docs/planning/canonical_state_registry.json"
+  ],
+  "instructions": "Independent bounded contract review. Full owner modules supplied to resolve earlier excerpt gaps. Judge exact7/11 claimonlyfields andcounts, fixed512/8192, claimed strongeramountboundsFish1..maxexisting6 andForage1..1180000 as preserving healthy public states, positionaltypedrowvsdirectory identity, stale/ref/orderkeypreservation, no othersection/scratch/bindingwrite or hotreplay/rebuild, exactnoInventorystore adapter gates and clocks, packed3P/5P/4Penvelopes, finite tests and mutants. Identify actual contractblockers, missing crossworld obligations and ordinaryAstra resolutions; no user preferences. Do not authorimplementation or claim runtime acceptance. Return one NEW report docs/validation/evidence/claim-columns-contract-2026-09-19/contract-v1-review.md <=2300words exactJSON status complete,summary,questions[],files[path/content/baseSha256:null],decisionIds[]. No tools. No needreview full unrelated source functionality; focusclaimboundary."
+}

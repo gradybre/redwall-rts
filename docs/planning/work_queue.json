@@ -831,17 +831,16 @@
         "PLAN-SAVE-COVERAGE",
         "SAVE-STOCK-AGE-COLUMNS",
         "SAVE-RESERVATIONS-COLUMNS",
-        "SAVE-GEAR-COLUMNS"
+        "SAVE-GEAR-COLUMNS",
+        "SAVE-RESOURCE-CLAIM-COLUMNS"
       ],
       "owns": [
         "godot/scripts/core/inventory.gd",
-        "godot/scripts/core/fishing.gd",
-        "godot/scripts/core/forage.gd",
         "godot/test/test_inventory_columns.gd"
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. StockAge is split into SAVE-STOCK-AGE-COLUMNS under SAVE-AGE-R01v2; umbrella retains other owners and full section7 assembly, so I1 is not closed by that child. Reservations is now separately owned by SAVE-RESERVATIONS-COLUMNS under SAVE-RES-R01v2. Gear split to SAVE-GEAR-COLUMNS; umbrella retains Fishing/Forage and fullsection assembly."
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. StockAge is split into SAVE-STOCK-AGE-COLUMNS under SAVE-AGE-R01v2; umbrella retains other owners and full section7 assembly, so I1 is not closed by that child. Reservations is now separately owned by SAVE-RESERVATIONS-COLUMNS under SAVE-RES-R01v2. Gear split to SAVE-GEAR-COLUMNS; umbrella retains Fishing/Forage and fullsection assembly. Fishing/Forage claims split to SAVE-RESOURCE-CLAIM-COLUMNS; umbrella retains fullsection7 assembly and I1 acceptance."
     },
     {
       "id": "SAVE-COLUMNS-JOBPLANNER",
@@ -1052,7 +1051,8 @@
         "SAVE-W1-PUBLISH",
         "PLAN-REPLAY-CHECKPOINT-CONTRACT",
         "SAVE-HEADER-REPLAY-FORMAT",
-        "FIX-RESERVATION-TOTALS"
+        "FIX-RESERVATION-TOTALS",
+        "SAVE-CLAIM-RECONCILIATION"
       ],
       "owns": [
         "godot/scripts/core/save_file.gd",
@@ -1060,7 +1060,7 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. Resumption follow-up: its complete implementation also depends on the concrete section/owner/continuation prerequisites; a generic coordinator skeleton cannot prove rollback. No dependency on SAVE-CAPTURE, which is its subsequent full-world integration owner. SAVE-AGE-R01v2 obligation: bind StockAge to the Inventory restored from the same validated file/world before installing declarations; matching generation numbers cannot prove world association. Preserve stale declaration generations for normal sweep (do not reject or repair them). Reconcile latch/clock/fault continuation separately; owner structural latch admits -1, 0, 751 and i64 max. SAVE-RES-R01v2: pass the actual world Inventory, not an arbitrary idle instance; after all owner installs reconcile every Inventory lot including no-row lots with checked reservation sums and validate job mapping. Existing audit skips no-row lots. PLAN-RESERVATION-TOTALS repair must land before enabling external-file loading; do not tighten save row admission to hide unchecked query overflow. SAVE-GEAR-R01v2: bind equipment before installing equipped rows; verify catalog/item/cap/manufacture/mirrors/lot quantities and claim domain across Jobs/Work. Gear live8192claim bound differs from codec352418; generation mapping needs explicit integration ruling before resume. Owner preserves structural values and never repairs incompatible refs."
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. Resumption follow-up: its complete implementation also depends on the concrete section/owner/continuation prerequisites; a generic coordinator skeleton cannot prove rollback. No dependency on SAVE-CAPTURE, which is its subsequent full-world integration owner. SAVE-AGE-R01v2 obligation: bind StockAge to the Inventory restored from the same validated file/world before installing declarations; matching generation numbers cannot prove world association. Preserve stale declaration generations for normal sweep (do not reject or repair them). Reconcile latch/clock/fault continuation separately; owner structural latch admits -1, 0, 751 and i64 max. SAVE-RES-R01v2: pass the actual world Inventory, not an arbitrary idle instance; after all owner installs reconcile every Inventory lot including no-row lots with checked reservation sums and validate job mapping. Existing audit skips no-row lots. PLAN-RESERVATION-TOTALS repair must land before enabling external-file loading; do not tighten save row admission to hide unchecked query overflow. SAVE-GEAR-R01v2: bind equipment before installing equipped rows; verify catalog/item/cap/manufacture/mirrors/lot quantities and claim domain across Jobs/Work. Gear live8192claim bound differs from codec352418; generation mapping needs explicit integration ruling before resume. Owner preserves structural values and never repairs incompatible refs. Resource claims require NEW read-only checked aggregate verification against saved section4, exact rowmapping and orderkeyprovenance. Legacy rebuild/validate helpers mutate fields and are forbidden in reconciliation."
     },
     {
       "id": "SAVE-PROVENANCE-PRODUCER",
@@ -1624,7 +1624,7 @@
     {
       "id": "SAVE-GEAR-COLUMNS",
       "title": "Restore exact Gear equipped rows, claims and derived heap",
-      "status": "in_flight",
+      "status": "done",
       "depends_on": [
         "PLAN-SAVE-COVERAGE",
         "SAVE-RESERVATIONS-COLUMNS"
@@ -1637,7 +1637,57 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "SAVE-GEAR-R01v2 / ADR0165 accepted after independent feasibility and contract review. Exact12columns, sourceheap/count/cache validation, catalogIDrefresh and boundequipment identities. Fullworld mirrors/jobdomain/rollback separate."
+      "note": "SAVE-GEAR-R01v2 / ADR0165 accepted after independent feasibility and contract review. Exact12columns, sourceheap/count/cache validation, catalogIDrefresh and boundequipment identities. Fullworld mirrors/jobdomain/rollback separate. Merged PR156 at52307da, CI4783tests/188038assertions/0failures, unchanged553objects/33resources shutdown baseline."
+    },
+    {
+      "id": "SAVE-RESOURCE-CLAIM-COLUMNS",
+      "title": "Restore exact Fishing and Forage section7 claim slices",
+      "status": "in_flight",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE",
+        "SAVE-GEAR-COLUMNS"
+      ],
+      "owns": [
+        "godot/scripts/core/fishing.gd",
+        "godot/scripts/core/forage.gd",
+        "godot/scripts/core/save_resource_claims_restore.gd",
+        "godot/test/test_resource_claim_columns.gd",
+        "godot/test/resource_claim_columns_focus.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "SAVE-CLAIMS-R01v2 / ADR0166 accepted after independent feasibility/contract review. Exactfixed7/11columns, noothersectionmutation; boundquantitiesexistingruntime, canonicalorderingpreserved. Fullsectionassembly/reconciliation separate."
+    },
+    {
+      "id": "PLAN-CLAIM-RECONCILIATION",
+      "title": "Specify read-only checked cross-section resource claim reconciliation",
+      "status": "ready",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "docs/planning/resource_claim_reconciliation_contract.md"
+      ],
+      "agent": "astra",
+      "gate": "none",
+      "note": "Name exact liveness/rowmapping/provenance policy and checked aggregate comparison against SAVED section4 values. Never use destructive legacy rebuilders or repair keys. Includes missing habitats and zero persistentID on live Jobs."
+    },
+    {
+      "id": "SAVE-CLAIM-RECONCILIATION",
+      "title": "Validate resource claims against saved world state without repair",
+      "status": "blocked",
+      "depends_on": [
+        "PLAN-CLAIM-RECONCILIATION",
+        "SAVE-RESOURCE-CLAIM-COLUMNS",
+        "SAVE-S4-CODEC"
+      ],
+      "owns": [
+        "godot/scripts/core/save_resource_claims_reconcile.gd",
+        "godot/test/test_save_resource_claims_reconcile.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "No dispatch until exact contract accepted. Read-only checked totals/identity/provenance, no canonical/scratch mutations or old rebuild helpers. World coordinator required pre-resume gate."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

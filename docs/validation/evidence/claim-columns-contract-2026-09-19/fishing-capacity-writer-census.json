@@ -1,0 +1,30 @@
+{
+  "source_sha256": "85f5437585155faab04c140641710014cf4cb477ea82eb08078aa0ac85f34025",
+  "lines": [
+    [
+      551,
+      "var _habitat_effort_slots: PackedInt32Array = PackedInt32Array()"
+    ],
+    [
+      722,
+      "\t_habitat_effort_slots.resize(FISH_HABITAT_CAPACITY)"
+    ],
+    [
+      791,
+      "\t_habitat_effort_slots.fill(0)"
+    ],
+    [
+      1006,
+      "\t_habitat_effort_slots[slot] = EFFORT_SLOTS_BY_TYPE[habitat_type]"
+    ],
+    [
+      1472,
+      "\tvar free: int = _habitat_effort_slots[_pending_habitat_slot] \\"
+    ],
+    [
+      1690,
+      "\tif slot_count <= 0 or slot_count > _habitat_effort_slots[_math.value]:"
+    ]
+  ],
+  "ruling": "Healthy habitat creation takes EFFORT_SLOTS_BY_TYPE; allocation/clear are not positive capacity setters. Existing constants coast6/lake6/river4. Proposed claim bound maximum6."
+}

@@ -304,8 +304,10 @@ Neither needs new state.
 | FishStock closure flags | `_stock_closed`, `_stock_restocking` | 1 | `FISH_STOCK_CAPACITY` = 96 | 0 = open / not restocking | 1 | §4 COMPONENT_COLUMNS | Closure survives a reload or a closed fishery reopens itself. |
 | FishingEffortClaim (u8) | `_effort_claim_active` | 1 | `FISHING_EFFORT_CLAIM_CAPACITY` = 512 | `_effort_claim_active == 0` is a free claim row | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | A live claim on habitat effort slots: exactly task 09.1's "clocks/leases/claims". Indexed by the OWNING EXPEDITION'S typed row, so the row index itself is identity and the loader must not compact these rows. The owner reference is rebuilt through `entity_directory.owner_slot_of_typed_row()`, which is why only the generation is stored. |
 | FishingEffortClaim (i32) | `_effort_claim_expedition_generation`, `_effort_claim_habitat_slot`, `_effort_claim_habitat_generation`, `_effort_claim_job_slot`, `_effort_claim_job_generation`, `_effort_claim_slot_count` | 4 | `FISHING_EFFORT_CLAIM_CAPACITY` = 512 | `_effort_claim_active == 0` is a free claim row | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | See the first row of this group. |
+| Fishing claim count | -- | -- | -- | -- | 2 | §7 INVENTORIES_AND_LEASE_INDEXES | `_effort_claim_count` is recomputed from `_effort_claim_active`; capture validates it, restore derives it privately. |
 | Effort tally scratch | `_effort_total_scratch` | 4 | `FISH_HABITAT_CAPACITY` = 32 | Refilled per pass | 3 | -- | Per-habitat running total inside one effort pass. |
-| Fishing scratch | -- | -- | -- | -- | 3 | -- | `_math`, `_math_b`, `_math_c`, `_effort_claim_count`, `_pending_claim_row`, `_pending_habitat_slot`, `_owns_directory`. `_effort_claim_count` is recomputed from `_effort_claim_active`. |
+| Fishing scratch | -- | -- | -- | -- | 3 | -- | `_math`, `_math_b`, `_math_c`, `_pending_claim_row`, `_pending_habitat_slot`, `_owns_directory`. |
+| Claim-column diagnostic | -- | -- | -- | -- | 3 | -- | `_last_claim_column_refusal` belongs only to the exact section7 claim boundary. Code echo; failure-only owner write, cleared on success. Local Columns/tally objects are cold staging and do not add canonical fields. |
 
 ### `godot/scripts/core/forage.gd`
 
@@ -331,6 +333,7 @@ Neither needs new state.
 | Forage link allocator | -- | -- | -- | `_link_free_head == -1` (`NO_LINK`) when the free list is empty | 1 | §5 CHILD_ARENAS | `_link_bump`, `_link_free_head` and `_link_used`. A bump pointer plus a free LIST, not a min-heap: like `inventory.gd`'s stacks and unlike `entity_directory.gd`'s heaps, the order it hands links out depends on the list contents, so it must be written. |
 | Forage live counts | -- | -- | -- | -- | 2 | §4 COMPONENT_COLUMNS | `_live_zone_count` and `_claim_count`, recomputed from `_zone_present` and `_claim_active`. |
 | Forage scratch | -- | -- | -- | `_pending_*` use `-1` / `NULL_SLOT` between calls | 3 | -- | `_math`, `_math_b`, `_math_c`, `_pending_designation_slot`, `_pending_basin_slot`, `_pending_patch_row` and `_owns_directory`. |
+| Claim-column diagnostic | -- | -- | -- | -- | 3 | -- | `_last_claim_column_refusal` belongs only to the exact section7 claim boundary. Code echo; failure-only owner write, cleared on success. Local Columns/tally objects are cold staging and do not add canonical fields. |
 
 ### `godot/scripts/core/gear.gd`
 
@@ -739,6 +742,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Cell terrain and height | `_terrain`, `_height_units` | 4 | `CELL_COUNT` = 262144 | None; every cell has both | 1 | §1 WORLD | Height in 1/1024 m units, int32, per AGENTS.md. |
 | Cell clearance | `_clearance` | 4 | `CELL_COUNT` = 262144 | 0 = no clearance computed yet | 2 | §1 WORLD | A derived distance field over `_walkable`; `_clearance_dirty` exists precisely because it is recomputed. Writing it would let a save disagree with its own passability map. |
 | Map revision and scalars | -- | -- | -- | -- | 1 | §1 WORLD | `_map_revision` is `World.map_revision` in §2's ledger and is compared against `navigation.gd`'s cached `_d_map_revision`/`_r_map_revision`, so a restored world that restarted the revision counter would silently accept stale routes. `_walkable_count` is recomputed, `_clearance_dirty` must be resolved before a save, `_last_refusal` is diagnostic. |
+
+### `godot/scripts/core/save_resource_claims_restore.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Exact resource claim block adapter | -- | -- | -- | -- | 3 | -- | SAVE-CLAIMS-R01v2 / decision0166. Stateless single-block section7 owner0/1 adapter. Total shape and codec admission precede exact owner publication; apply requires supplied held clock. No Inventory dependency. No other-section aggregates or canonical ordering fields rebuilt. Separate checked cross-section claim reconciliation must pass before full-world activation. |
 
 ### `godot/scripts/core/save_gear_restore.gd`
 

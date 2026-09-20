@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "52307daa31488f2e1bf154479f2a9dfce88b666f",
+  "task": "Implement exact Fishing and Forage claim slices SAVE-CLAIMS-R01v2",
+  "paths": [
+    "docs/planning/resource_claim_columns_contract.md",
+    "docs/decisions/0166-restore-resource-claims-without-rebuilding-other-sections.md",
+    "docs/validation/evidence/claim-columns-contract-2026-09-19/contract-v1-disposition.md",
+    "godot/scripts/core/fishing.gd",
+    "godot/scripts/core/forage.gd",
+    "godot/scripts/core/save_section_inventories.gd",
+    "godot/scripts/core/save_gear_restore.gd"
+  ],
+  "instructions": "Implement accepted SAVE-CLAIMS-R01v2 exactly, acknowledgev2. THREE NEW outputs only: docs/validation/evidence/resource-claim-columns-2026-09-19/fishing-claim-owner-block.gd append fragment to fishing.gd; docs/validation/evidence/resource-claim-columns-2026-09-19/forage-claim-owner-block.gd append fragment to forage.gd; godot/scripts/core/save_resource_claims_restore.gd fullnewstatelessadapter. Each exactpath/content/baseSha256:null. Parent appends and owns tests/registry/evidence. <=1100totalcode lines, concisecomments. Noextends/preloads/redefinedoldmembers inownerfragments. Exactfixedrecord7/11arrays noargs/no metadata/count. Totalcaller/liveclaimshapesfirst, wholeactiveflags, exactblanks andactivefields wireorder, Fishslotcount1..maxexistingEFFORT_SLOTS_BY_TYPE6 (deriveexistingconstantswithoutnewarray), Forageremaining1..1180000,keysnonnegative,refdirectorybounds352418nottypedrow. Sourcecountcheckafterpayload, privatecountrecompute restore, independentduplicates; failureonlynew_last_claim_column_refusal, successclear. NO OTHERSECTIONFIELD/scratch/bindingwrite, no oldclearer/writer/rebuild/replay/collaboratorcall. Sharedvalidator typedarrays plus tiny nativecount/code object allowed; nofullsourcerecordallocation/reflection/Dictionary/perrowobjects; integeriterationno range arrays. Adapter6publicmethods exactcontract typeddefaultnullclock, shapeallgroupsbeforeindex, literalordinalconstants +storage_index_of, privatestagedgroupcontainers, nofull6Record/noInventorydependency. No worldreconciliation implementation. Return exactJSON status complete,summary,questions[],files exactly3allowedpaths,decisionIds[]. No tools. Ifmaterialambiguityreturnquestions notinvent."
+}

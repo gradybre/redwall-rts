@@ -1,0 +1,53 @@
+{
+  "results": [
+    {
+      "mutant": "drop-forage-order-key",
+      "exit_code": 1,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_defaults_sparse_last_row_and_independent_arrays_are_exact",
+        "  FAIL  test_other_section_aggregates_scratch_and_order_keys_are_never_rebuilt",
+        "  FAIL  test_maximum_ref_and_quantity_fields_are_preserved_without_typed_row_clamp",
+        "  FAIL  test_adapter_literal_mapping_recapture_and_independent_containers",
+        "  FAIL  test_six_complete_literal_owner_wire_goldens",
+        "  FAIL  test_real_stale_claims_survive_slice_restore_until_normal_purge",
+        "15 test(s), 1531 assertion(s), 6 failure(s)"
+      ]
+    },
+    {
+      "mutant": "rewrite-fishing-effort",
+      "exit_code": 1,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_other_section_aggregates_scratch_and_order_keys_are_never_rebuilt",
+        "  FAIL  test_public_claims_continue_after_structural_slice_only_restore",
+        "  FAIL  test_real_stale_claims_survive_slice_restore_until_normal_purge",
+        "15 test(s), 1531 assertion(s), 3 failure(s)"
+      ]
+    },
+    {
+      "mutant": "skip-forage-amount-bound",
+      "exit_code": 1,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_payload_domains_and_inactive_blanks_refuse_on_both_paths",
+        "  FAIL  test_adapter_forwards_codec_and_stronger_owner_refusals_atomically",
+        "15 test(s), 1531 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "mutant": "skip-fishing-amount-bound",
+      "exit_code": 1,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_payload_domains_and_inactive_blanks_refuse_on_both_paths",
+        "  FAIL  test_adapter_forwards_codec_and_stronger_owner_refusals_atomically",
+        "15 test(s), 1531 assertion(s), 2 failure(s)"
+      ]
+    }
+  ],
+  "restored_source_sha256": {
+    "fishing": "7a82dcea6ce9e8100045d736049ab912b508195eb35aa07c34c76ce3b42c12e9",
+    "forage": "8f1be765de10b5adba1a623ce54033c9830bc8d7bd1eedcc3d82712850b8144a"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "52307daa31488f2e1bf154479f2a9dfce88b666f",
+  "task": "Independent review exact Fishing/Forage claim boundary",
+  "paths": [
+    "docs/planning/resource_claim_columns_contract.md",
+    "docs/decisions/0166-restore-resource-claims-without-rebuilding-other-sections.md",
+    "godot/scripts/core/fishing.gd",
+    "godot/scripts/core/forage.gd",
+    "godot/scripts/core/save_resource_claims_restore.gd",
+    "godot/test/test_resource_claim_columns.gd",
+    "docs/persistence_state_registry.md",
+    "docs/validation/evidence/resource-claim-columns-2026-09-19/parent-integration-notes.md"
+  ],
+  "instructions": "Independently audit implementation against SAVE-CLAIMS-R01v2 and ADR0166. No tools; inputs supplied. Check parser/runtime GDScript issues, atomicity, memory accounting, wire ordinal mapping, exact blanks/namespace/quantity/count gates, preservation of every other canonical field and scratch/binding, array ownership and future continuation, test gaps. Review accepted scope: cross-section reconciliation is separately required before world activation; do not demand it in this slice. Initial test run had parent Array ternary typing error now fixed. Return exactly ONE NEW markdown report docs/validation/evidence/resource-claim-columns-2026-09-19/independent-review.md, baseSha256 null, max160lines. Severity and exact locations for actionable defects; distinguish release blockers from optional tests; no source edits. Acknowledge v2. No invented CI evidence. Structured status complete only if review completed, questions=[] unless unresolved."
+}

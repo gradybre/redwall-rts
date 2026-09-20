@@ -1,0 +1,29 @@
+{
+  "scope": "Independent literal wrapper+column fixtures, not production runtime acceptance",
+  "fixtures": {
+    "fishing_empty": {
+      "bytes": 12891,
+      "sha256": "af9ba7a0b9f9f749567be9459cd7b517ab76ec49406df4a0d97c9d26578049e7"
+    },
+    "fishing_sparse": {
+      "bytes": 12891,
+      "sha256": "61177f0279489529c147dc7d586a05261cf46d48d5d6c31805c352f3b599acd2"
+    },
+    "fishing_full": {
+      "bytes": 12891,
+      "sha256": "8e60834b4be590fc4e3d9dd4316ff92983d7cd4624e8357ca11acd9f10bbe647"
+    },
+    "forage_empty": {
+      "bytes": 434298,
+      "sha256": "30bd50093ba8e17671186b5ecea6a04395eedbf0347f3d985265de03e2fb65fd"
+    },
+    "forage_sparse": {
+      "bytes": 434298,
+      "sha256": "f80144a350e53d48f8ff2e0e1071be3e148091c76d51331127db20d72d5d1cb1"
+    },
+    "forage_full": {
+      "bytes": 434298,
+      "sha256": "9b3092df5707b9577fe245511fac11f0d345e3712230f04c9a008d74d1111c31"
+    }
+  }
+}

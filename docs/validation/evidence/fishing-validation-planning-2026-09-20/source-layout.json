@@ -1,0 +1,134 @@
+{
+  "scope": "Read-only layout/source snapshot; not runtime acceptance",
+  "owner_index": 4,
+  "owner_metadata": {
+    "OWNER_KEYS": "fishing",
+    "OWNER_KEY_BYTES": 7,
+    "OWNER_VERSIONS": 1,
+    "OWNER_PRIMARY_COUNTS": 32,
+    "OWNER_FIELD_COUNTS": 22,
+    "OWNER_FIELD_BEGIN": 80,
+    "OWNER_CHILD_COUNTS": 0,
+    "OWNER_CHILD_BEGIN": 3,
+    "OWNER_OFFSETS": 8503348,
+    "OWNER_PAYLOAD_BYTES": 5524,
+    "OWNER_BLOCK_BYTES": 5555
+  },
+  "fields": [
+    {
+      "FIELD_KEYS": "_habitat_present",
+      "FIELD_TYPES": 0,
+      "FIELD_COUNTS": 32
+    },
+    {
+      "FIELD_KEYS": "_stock_present",
+      "FIELD_TYPES": 0,
+      "FIELD_COUNTS": 96
+    },
+    {
+      "FIELD_KEYS": "_habitat_type",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 32
+    },
+    {
+      "FIELD_KEYS": "_habitat_zone_slot",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 32
+    },
+    {
+      "FIELD_KEYS": "_habitat_zone_generation",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 32
+    },
+    {
+      "FIELD_KEYS": "_habitat_effort_slots",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 32
+    },
+    {
+      "FIELD_KEYS": "_habitat_pollution",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 32
+    },
+    {
+      "FIELD_KEYS": "_habitat_danger",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 32
+    },
+    {
+      "FIELD_KEYS": "_habitat_protected_fraction",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 32
+    },
+    {
+      "FIELD_KEYS": "_habitat_capacity_milli",
+      "FIELD_TYPES": 4,
+      "FIELD_COUNTS": 32
+    },
+    {
+      "FIELD_KEYS": "_habitat_ref_slot",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 32
+    },
+    {
+      "FIELD_KEYS": "_habitat_ref_generation",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 32
+    },
+    {
+      "FIELD_KEYS": "_habitat_effort_used",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 32
+    },
+    {
+      "FIELD_KEYS": "_habitat_intensive",
+      "FIELD_TYPES": 0,
+      "FIELD_COUNTS": 32
+    },
+    {
+      "FIELD_KEYS": "_stock_habitat_slot",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 96
+    },
+    {
+      "FIELD_KEYS": "_stock_habitat_generation",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 96
+    },
+    {
+      "FIELD_KEYS": "_stock_species_id",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 96
+    },
+    {
+      "FIELD_KEYS": "_stock_population_milli",
+      "FIELD_TYPES": 4,
+      "FIELD_COUNTS": 96
+    },
+    {
+      "FIELD_KEYS": "_stock_capacity_milli",
+      "FIELD_TYPES": 4,
+      "FIELD_COUNTS": 96
+    },
+    {
+      "FIELD_KEYS": "_stock_harvested_today_milli",
+      "FIELD_TYPES": 4,
+      "FIELD_COUNTS": 96
+    },
+    {
+      "FIELD_KEYS": "_stock_closed",
+      "FIELD_TYPES": 0,
+      "FIELD_COUNTS": 96
+    },
+    {
+      "FIELD_KEYS": "_stock_restocking",
+      "FIELD_TYPES": 0,
+      "FIELD_COUNTS": 96
+    }
+  ],
+  "value_bytes": 5344,
+  "source_sha256": {
+    "godot/scripts/core/fishing.gd": "08ff3b69c64a14c4b7817813b67af52d981e1b4eeaa457c2222f4ada3ffd9469",
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad"
+  }
+}

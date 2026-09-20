@@ -1,0 +1,72 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_fishing.gd
+  PASS  test_layout_defaults_and_conditional_memory
+  FAIL  test_frozen_domains_history_relations_and_projection_witnesses
+        inactive-state-habitat_capacity_milli pure (expected COLUMN_HABITAT_FREE, got )
+        inactive-state-habitat_capacity_milli bridge (expected COLUMN_HABITAT_FREE, got )
+        inactive-state-habitat_capacity_milli success (expected false, got true)
+        inactive-state-habitat_capacity_milli owner detail (expected true, got false)
+        inactive-state-habitat_capacity_milli raw code detail (expected true, got false)
+  PASS  test_null_all_extents_and_bucket_shapes
+  FAIL  test_every_field_at_every_physical_row
+        physical field9 row0 (expected COLUMN_HABITAT_FREE, got )
+        bridge edges pure (expected COLUMN_HABITAT_FREE, got )
+        bridge edges bridge (expected COLUMN_HABITAT_FREE, got )
+        bridge edges success (expected false, got true)
+        bridge edges owner detail (expected true, got false)
+        bridge edges raw code detail (expected true, got false)
+        physical field9 row1 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row2 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row3 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row4 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row5 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row6 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row7 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row8 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row9 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row10 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row11 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row12 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row13 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row14 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row15 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row16 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row17 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row18 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row19 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row20 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row21 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row22 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row23 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row24 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row25 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row26 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row27 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row28 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row29 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row30 (expected COLUMN_HABITAT_FREE, got )
+        physical field9 row31 (expected COLUMN_HABITAT_FREE, got )
+        bridge edges pure (expected COLUMN_HABITAT_FREE, got )
+        bridge edges bridge (expected COLUMN_HABITAT_FREE, got )
+        bridge edges success (expected false, got true)
+        bridge edges owner detail (expected true, got false)
+        bridge edges raw code detail (expected true, got false)
+  PASS  test_full_capacity_and_present_identity_endpoints
+  PASS  test_retained_inactive_history_all_rows
+  PASS  test_paired_priorities_not_just_acceptance
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+7 test(s), 16230 assertion(s), 2 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

@@ -1,0 +1,35 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_fishing.gd
+  PASS  test_layout_defaults_and_conditional_memory
+  FAIL  test_frozen_domains_history_relations_and_projection_witnesses
+        stock-link-stock_habitat_slot pure (expected COLUMN_STOCK_LINK, got )
+        stock-link-stock_habitat_slot bridge (expected COLUMN_STOCK_LINK, got )
+        stock-link-stock_habitat_slot success (expected false, got true)
+        stock-link-stock_habitat_slot owner detail (expected true, got false)
+        stock-link-stock_habitat_slot raw code detail (expected true, got false)
+        stock-link-stock_habitat_generation pure (expected COLUMN_STOCK_LINK, got )
+        stock-link-stock_habitat_generation bridge (expected COLUMN_STOCK_LINK, got )
+        stock-link-stock_habitat_generation success (expected false, got true)
+        stock-link-stock_habitat_generation owner detail (expected true, got false)
+        stock-link-stock_habitat_generation raw code detail (expected true, got false)
+  PASS  test_null_all_extents_and_bucket_shapes
+  PASS  test_every_field_at_every_physical_row
+  PASS  test_full_capacity_and_present_identity_endpoints
+  PASS  test_retained_inactive_history_all_rows
+  PASS  test_paired_priorities_not_just_acceptance
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+7 test(s), 16230 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

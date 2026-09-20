@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "df3f97cfe79cc24ad88c06181687ac93e42ba90a",
+  "task": "Fishing owner-only cold Columns and local section4 predicate",
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/fishing_component_validation_contract.md",
+    "docs/decisions/0181-fishing-validation-preserves-hysteresis-and-basin-generations.md",
+    "godot/scripts/core/fishing.gd",
+    "docs/validation/evidence/fishing-validation-planning-2026-09-20/contract-disposition.md",
+    "docs/validation/evidence/fishing-validation-planning-2026-09-20/mutation-witness-plan.md"
+  ],
+  "instructions": "Implement ONLY additions to godot/scripts/core/fishing.gd for accepted FISHING-S4-VALIDATE-R01v1/ADR0181. Add22typed Columns with exact32/96 defaults/is_sized, staticcolumns_refusal and small static argument-only helpers, exact named REFUSE_COLUMN_* constants from contract. Keep existing EffortClaimColumns/schema2/allwriters andmethods byte-unchanged. Section4 version1 is separate. Exactorder shape/global5flags canonical/ascendinghabitat thenascendingstock thenperhabitat species/quota thenseparate selfSLOT andzonePAIR scans. Inactivehabitat retainedscalars vsblankstock; strongsourcebounds10%..K andstrictcrossmultiplyhysteresis, sharedquota, exactsameownerpresence/refs/capacity; stockitemIDs nottablesubscripts. Source table indexing only after type/ranges; bridge will pin lengths/values. No live constructors/callback/diagnostic/inputmutation/bulkAPI or float. Nested32pair scans no packed scratch,10688conservativepackedbudget. ReturnONE NEW docs/validation/evidence/fishing-component-validation-2026-09-20/author-owner.patch baseSha256null with unifieddiff only, HARD550actualpatchlines AIM350. No bridge/tests/docs/source fullfile, no executionclaims. Count newline-separated lines accurately. RawJSONstatus/summary/questions/files/decisionIds."
+}

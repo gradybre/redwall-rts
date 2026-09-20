@@ -1,0 +1,41 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_fishing.gd
+  PASS  test_layout_defaults_and_conditional_memory
+  FAIL  test_frozen_domains_history_relations_and_projection_witnesses
+        flag-stock_closed bridge (expected COLUMN_FLAG, got )
+        flag-stock_closed success (expected false, got true)
+        flag-stock_closed owner detail (expected true, got false)
+        flag-stock_closed raw code detail (expected true, got false)
+        free-stock-stock_closed bridge (expected COLUMN_STOCK_FREE, got )
+        free-stock-stock_closed success (expected false, got true)
+        free-stock-stock_closed owner detail (expected true, got false)
+        free-stock-stock_closed raw code detail (expected true, got false)
+  PASS  test_null_all_extents_and_bucket_shapes
+  FAIL  test_every_field_at_every_physical_row
+        bridge edges bridge (expected COLUMN_FLAG, got )
+        bridge edges success (expected false, got true)
+        bridge edges owner detail (expected true, got false)
+        bridge edges raw code detail (expected true, got false)
+        bridge edges bridge (expected COLUMN_FLAG, got )
+        bridge edges success (expected false, got true)
+        bridge edges owner detail (expected true, got false)
+        bridge edges raw code detail (expected true, got false)
+  PASS  test_full_capacity_and_present_identity_endpoints
+  PASS  test_retained_inactive_history_all_rows
+  PASS  test_paired_priorities_not_just_acceptance
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+7 test(s), 16230 assertion(s), 2 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

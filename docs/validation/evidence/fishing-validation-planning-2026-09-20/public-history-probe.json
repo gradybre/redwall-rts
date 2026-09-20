@@ -1,0 +1,7 @@
+{
+  "scope": "Public lifecycle APIs in disposable clone; no new Columns/capture/restore or private inactive-byte assertion",
+  "exit_code": 0,
+  "seconds": 1.072,
+  "source_sha256": "08ff3b69c64a14c4b7817813b67af52d981e1b4eeaa457c2222f4ada3ffd9469",
+  "probe_sha256": "d642170b3d12cc58e052fbfc26f352086a8dc7ae1b23b1aed14a793bc7b93bc2"
+}

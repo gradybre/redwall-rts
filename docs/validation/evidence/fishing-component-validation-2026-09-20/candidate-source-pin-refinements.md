@@ -1,0 +1,5 @@
+# Fishing candidate source pins
+
+The owner candidate reuses existing CLAIM_COLUMN_BLANK_SLOT, CLAIM_COLUMN_BLANK_GENERATION and CLAIM_COLUMN_DIRECTORY_SLOT_MAX constants, and introduces COLUMN_BLANK_SPECIES_ID. These currently equal the contract's -1,0,352417,-1 values. They do not change gameplay or the section4 format, but the bridge should explicitly pin these actual inputs as well as the underlying Fishing.EntityDirectory constants. This is a source-specific compatibility refinement; no owner code repair is needed.
+
+Add four isolated scalar-source drift cases to the metadata experiment, one per alias/sentinel, each expected to fail the metadata gate before projection. The original27 planned cases remain, giving31 cases/279 assertions. The four new drift cases are not additional counted mutation bypasses. The candidate owner has passed the original public Fishing suite plus196 explicit images and every field at every physical row:123 tests/8555 assertions/0, clean shutdown. This is candidate evidence, not applied production acceptance.

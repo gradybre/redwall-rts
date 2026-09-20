@@ -1,0 +1,2728 @@
+{
+  "scope": "Explicit contract fixtures, not runtime results",
+  "fields": [
+    "habitat_present",
+    "stock_present",
+    "habitat_type",
+    "habitat_zone_slot",
+    "habitat_zone_generation",
+    "habitat_effort_slots",
+    "habitat_pollution",
+    "habitat_danger",
+    "habitat_protected_fraction",
+    "habitat_capacity_milli",
+    "habitat_ref_slot",
+    "habitat_ref_generation",
+    "habitat_effort_used",
+    "habitat_intensive",
+    "stock_habitat_slot",
+    "stock_habitat_generation",
+    "stock_species_id",
+    "stock_population_milli",
+    "stock_capacity_milli",
+    "stock_harvested_today_milli",
+    "stock_closed",
+    "stock_restocking"
+  ],
+  "fixture_rule": "Present fixtures use habitat31/self(31,1), optional NULL zone, three stock rows93..95 with IDs101,102,103 and table capacities/populations80percent. Inactive fixtures retain type and effort, pollution/protected MAXi32, danger3, other bytes clear. Multi-row variants add habitat0/self(0,1), stocks0..2 with same IDs and table values; duplicate-self variants relink all three child refs as well. Zone variants set both zone slots352417 with generations1/1 or1/2.",
+  "cases": [
+    {
+      "name": "accept-clear",
+      "base": "clear",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-coast",
+      "base": "coast",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-lake",
+      "base": "lake",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-river",
+      "base": "river",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-inactive-coast",
+      "base": "inactive-coast",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-inactive-lake",
+      "base": "inactive-lake",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "accept-inactive-river",
+      "base": "inactive-river",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "flag-habitat_present",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_present",
+          31,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAG"
+    },
+    {
+      "name": "flag-stock_present",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_present",
+          95,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAG"
+    },
+    {
+      "name": "flag-habitat_intensive",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_intensive",
+          31,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAG"
+    },
+    {
+      "name": "flag-stock_closed",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_closed",
+          95,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAG"
+    },
+    {
+      "name": "flag-stock_restocking",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_restocking",
+          95,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAG"
+    },
+    {
+      "name": "habitat-type--1",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_type",
+          31,
+          -1
+        ]
+      ],
+      "code": "COLUMN_HABITAT_ENUM"
+    },
+    {
+      "name": "habitat-type-3",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_type",
+          31,
+          3
+        ]
+      ],
+      "code": "COLUMN_HABITAT_ENUM"
+    },
+    {
+      "name": "habitat_pollution-negative",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_pollution",
+          31,
+          -1
+        ]
+      ],
+      "code": "COLUMN_HABITAT_VALUE"
+    },
+    {
+      "name": "habitat_pollution-MAX",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_pollution",
+          31,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "inactive-habitat_pollution-MAX",
+      "base": "inactive-river",
+      "changes": [
+        [
+          "habitat_pollution",
+          31,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "habitat_protected_fraction-negative",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_protected_fraction",
+          31,
+          -1
+        ]
+      ],
+      "code": "COLUMN_HABITAT_VALUE"
+    },
+    {
+      "name": "habitat_protected_fraction-MAX",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_protected_fraction",
+          31,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "inactive-habitat_protected_fraction-MAX",
+      "base": "inactive-river",
+      "changes": [
+        [
+          "habitat_protected_fraction",
+          31,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "danger--1",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_danger",
+          31,
+          -1
+        ]
+      ],
+      "code": "COLUMN_HABITAT_VALUE"
+    },
+    {
+      "name": "danger-4",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_danger",
+          31,
+          4
+        ]
+      ],
+      "code": "COLUMN_HABITAT_VALUE"
+    },
+    {
+      "name": "danger-accepted-0",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_danger",
+          31,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "danger-accepted-3",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_danger",
+          31,
+          3
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "hab-ref-habitat_ref_slot-1",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_ref_slot",
+          31,
+          -1
+        ]
+      ],
+      "code": "COLUMN_HABITAT_REF"
+    },
+    {
+      "name": "hab-ref-habitat_ref_slot352418",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_ref_slot",
+          31,
+          352418
+        ]
+      ],
+      "code": "COLUMN_HABITAT_REF"
+    },
+    {
+      "name": "hab-ref-habitat_ref_generation0",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_ref_generation",
+          31,
+          0
+        ]
+      ],
+      "code": "COLUMN_HABITAT_REF"
+    },
+    {
+      "name": "hab-ref-habitat_ref_generation-1",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_ref_generation",
+          31,
+          -1
+        ]
+      ],
+      "code": "COLUMN_HABITAT_REF"
+    },
+    {
+      "name": "hab-ref-habitat_zone_slot-2",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_zone_slot",
+          31,
+          -2
+        ]
+      ],
+      "code": "COLUMN_HABITAT_REF"
+    },
+    {
+      "name": "hab-ref-habitat_zone_slot352418",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_zone_slot",
+          31,
+          352418
+        ]
+      ],
+      "code": "COLUMN_HABITAT_REF"
+    },
+    {
+      "name": "hab-ref-habitat_zone_generation1",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_zone_generation",
+          31,
+          1
+        ]
+      ],
+      "code": "COLUMN_HABITAT_REF"
+    },
+    {
+      "name": "nonnull-zone",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_zone_slot",
+          31,
+          352417
+        ],
+        [
+          "habitat_zone_generation",
+          31,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "inactive-ref-habitat_ref_slot",
+      "base": "clear",
+      "changes": [
+        [
+          "habitat_ref_slot",
+          31,
+          0
+        ]
+      ],
+      "code": "COLUMN_HABITAT_REF"
+    },
+    {
+      "name": "inactive-ref-habitat_ref_generation",
+      "base": "clear",
+      "changes": [
+        [
+          "habitat_ref_generation",
+          31,
+          1
+        ]
+      ],
+      "code": "COLUMN_HABITAT_REF"
+    },
+    {
+      "name": "inactive-ref-habitat_zone_slot",
+      "base": "clear",
+      "changes": [
+        [
+          "habitat_zone_slot",
+          31,
+          0
+        ]
+      ],
+      "code": "COLUMN_HABITAT_REF"
+    },
+    {
+      "name": "inactive-ref-habitat_zone_generation",
+      "base": "clear",
+      "changes": [
+        [
+          "habitat_zone_generation",
+          31,
+          1
+        ]
+      ],
+      "code": "COLUMN_HABITAT_REF"
+    },
+    {
+      "name": "inactive-state-habitat_capacity_milli",
+      "base": "inactive-river",
+      "changes": [
+        [
+          "habitat_capacity_milli",
+          31,
+          1
+        ]
+      ],
+      "code": "COLUMN_HABITAT_FREE"
+    },
+    {
+      "name": "inactive-state-habitat_effort_used",
+      "base": "inactive-river",
+      "changes": [
+        [
+          "habitat_effort_used",
+          31,
+          1
+        ]
+      ],
+      "code": "COLUMN_HABITAT_FREE"
+    },
+    {
+      "name": "inactive-state-habitat_intensive",
+      "base": "inactive-river",
+      "changes": [
+        [
+          "habitat_intensive",
+          31,
+          1
+        ]
+      ],
+      "code": "COLUMN_HABITAT_FREE"
+    },
+    {
+      "name": "inactive-state-habitat_effort_slots",
+      "base": "inactive-river",
+      "changes": [
+        [
+          "habitat_effort_slots",
+          31,
+          5
+        ]
+      ],
+      "code": "COLUMN_HABITAT_FREE"
+    },
+    {
+      "name": "inactive-coast-zero-effort",
+      "base": "inactive-coast",
+      "changes": [
+        [
+          "habitat_effort_slots",
+          31,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "inactive-lake-zero-effort",
+      "base": "inactive-lake",
+      "changes": [
+        [
+          "habitat_effort_slots",
+          31,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "inactive-river-zero-effort",
+      "base": "inactive-river",
+      "changes": [
+        [
+          "habitat_effort_slots",
+          31,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "hab-state-habitat_capacity_milli0",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_capacity_milli",
+          31,
+          0
+        ]
+      ],
+      "code": "COLUMN_HABITAT_STATE"
+    },
+    {
+      "name": "hab-state-habitat_capacity_milli3100001",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_capacity_milli",
+          31,
+          3100001
+        ]
+      ],
+      "code": "COLUMN_HABITAT_STATE"
+    },
+    {
+      "name": "hab-state-habitat_effort_slots0",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_effort_slots",
+          31,
+          0
+        ]
+      ],
+      "code": "COLUMN_HABITAT_STATE"
+    },
+    {
+      "name": "hab-state-habitat_effort_slots7",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_effort_slots",
+          31,
+          7
+        ]
+      ],
+      "code": "COLUMN_HABITAT_STATE"
+    },
+    {
+      "name": "hab-state-habitat_effort_used-1",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_effort_used",
+          31,
+          -1
+        ]
+      ],
+      "code": "COLUMN_HABITAT_STATE"
+    },
+    {
+      "name": "hab-state-habitat_effort_used7",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_effort_used",
+          31,
+          7
+        ]
+      ],
+      "code": "COLUMN_HABITAT_STATE"
+    },
+    {
+      "name": "effort-used-endpoint-0",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_effort_used",
+          31,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "effort-used-endpoint-6",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_effort_used",
+          31,
+          6
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "missing-owned-stock",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_present",
+          95,
+          0
+        ]
+      ],
+      "code": "COLUMN_STOCK_LINK"
+    },
+    {
+      "name": "orphan-stock",
+      "base": "clear",
+      "changes": [
+        [
+          "stock_present",
+          95,
+          1
+        ]
+      ],
+      "code": "COLUMN_STOCK_LINK"
+    },
+    {
+      "name": "free-stock-stock_habitat_slot",
+      "base": "clear",
+      "changes": [
+        [
+          "stock_habitat_slot",
+          95,
+          0
+        ]
+      ],
+      "code": "COLUMN_STOCK_FREE"
+    },
+    {
+      "name": "free-stock-stock_habitat_generation",
+      "base": "clear",
+      "changes": [
+        [
+          "stock_habitat_generation",
+          95,
+          1
+        ]
+      ],
+      "code": "COLUMN_STOCK_FREE"
+    },
+    {
+      "name": "free-stock-stock_species_id",
+      "base": "clear",
+      "changes": [
+        [
+          "stock_species_id",
+          95,
+          0
+        ]
+      ],
+      "code": "COLUMN_STOCK_FREE"
+    },
+    {
+      "name": "free-stock-stock_population_milli",
+      "base": "clear",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          1
+        ]
+      ],
+      "code": "COLUMN_STOCK_FREE"
+    },
+    {
+      "name": "free-stock-stock_capacity_milli",
+      "base": "clear",
+      "changes": [
+        [
+          "stock_capacity_milli",
+          95,
+          1
+        ]
+      ],
+      "code": "COLUMN_STOCK_FREE"
+    },
+    {
+      "name": "free-stock-stock_harvested_today_milli",
+      "base": "clear",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          95,
+          1
+        ]
+      ],
+      "code": "COLUMN_STOCK_FREE"
+    },
+    {
+      "name": "free-stock-stock_closed",
+      "base": "clear",
+      "changes": [
+        [
+          "stock_closed",
+          95,
+          1
+        ]
+      ],
+      "code": "COLUMN_STOCK_FREE"
+    },
+    {
+      "name": "free-stock-stock_restocking",
+      "base": "clear",
+      "changes": [
+        [
+          "stock_restocking",
+          95,
+          1
+        ]
+      ],
+      "code": "COLUMN_STOCK_FREE"
+    },
+    {
+      "name": "stock-link-stock_habitat_slot",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_habitat_slot",
+          95,
+          352417
+        ]
+      ],
+      "code": "COLUMN_STOCK_LINK"
+    },
+    {
+      "name": "stock-link-stock_habitat_generation",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_habitat_generation",
+          95,
+          2
+        ]
+      ],
+      "code": "COLUMN_STOCK_LINK"
+    },
+    {
+      "name": "negative-species",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_species_id",
+          95,
+          -1
+        ]
+      ],
+      "code": "COLUMN_STOCK_SPECIES"
+    },
+    {
+      "name": "MAX-species",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_species_id",
+          95,
+          2147483647
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-0-wrong-capacity",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_capacity_milli",
+          93,
+          1200001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "coast-0-bad-population-119999",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          119999
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "coast-0-bad-population-1200001",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          1200001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "coast-0-10percent-latch0",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          120000
+        ],
+        [
+          "stock_restocking",
+          93,
+          0
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "coast-0-10percent-latch1",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          120000
+        ],
+        [
+          "stock_restocking",
+          93,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-0-30percent-latch0",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          360000
+        ],
+        [
+          "stock_restocking",
+          93,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-0-30percent-latch1",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          360000
+        ],
+        [
+          "stock_restocking",
+          93,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-0-40percent-latch0",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          480000
+        ],
+        [
+          "stock_restocking",
+          93,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-0-40percent-latch1",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          480000
+        ],
+        [
+          "stock_restocking",
+          93,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-0-100percent-latch0",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          1200000
+        ],
+        [
+          "stock_restocking",
+          93,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-0-100percent-latch1",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          1200000
+        ],
+        [
+          "stock_restocking",
+          93,
+          1
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "coast-1-wrong-capacity",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_capacity_milli",
+          94,
+          900001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "coast-1-bad-population-89999",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          89999
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "coast-1-bad-population-900001",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          900001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "coast-1-10percent-latch0",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          90000
+        ],
+        [
+          "stock_restocking",
+          94,
+          0
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "coast-1-10percent-latch1",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          90000
+        ],
+        [
+          "stock_restocking",
+          94,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-1-30percent-latch0",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          270000
+        ],
+        [
+          "stock_restocking",
+          94,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-1-30percent-latch1",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          270000
+        ],
+        [
+          "stock_restocking",
+          94,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-1-40percent-latch0",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          360000
+        ],
+        [
+          "stock_restocking",
+          94,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-1-40percent-latch1",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          360000
+        ],
+        [
+          "stock_restocking",
+          94,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-1-100percent-latch0",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          900000
+        ],
+        [
+          "stock_restocking",
+          94,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-1-100percent-latch1",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          900000
+        ],
+        [
+          "stock_restocking",
+          94,
+          1
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "coast-2-wrong-capacity",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_capacity_milli",
+          95,
+          1000001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "coast-2-bad-population-99999",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          99999
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "coast-2-bad-population-1000001",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          1000001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "coast-2-10percent-latch0",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          100000
+        ],
+        [
+          "stock_restocking",
+          95,
+          0
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "coast-2-10percent-latch1",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          100000
+        ],
+        [
+          "stock_restocking",
+          95,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-2-30percent-latch0",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          300000
+        ],
+        [
+          "stock_restocking",
+          95,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-2-30percent-latch1",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          300000
+        ],
+        [
+          "stock_restocking",
+          95,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-2-40percent-latch0",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          400000
+        ],
+        [
+          "stock_restocking",
+          95,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-2-40percent-latch1",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          400000
+        ],
+        [
+          "stock_restocking",
+          95,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-2-100percent-latch0",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          1000000
+        ],
+        [
+          "stock_restocking",
+          95,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-2-100percent-latch1",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          1000000
+        ],
+        [
+          "stock_restocking",
+          95,
+          1
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "coast-bad-harvest--1",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          95,
+          -1
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "coast-bad-harvest-77501",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          95,
+          77501
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "coast-bad-harvest-9223372036854775807",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          95,
+          9223372036854775807
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "coast-quota-endpoint",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          95,
+          77500
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "coast-aggregate-over-quota",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          93,
+          77500
+        ],
+        [
+          "stock_harvested_today_milli",
+          94,
+          1
+        ]
+      ],
+      "code": "COLUMN_QUOTA"
+    },
+    {
+      "name": "coast-aggregate-exact-quota",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          93,
+          77499
+        ],
+        [
+          "stock_harvested_today_milli",
+          94,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-0-wrong-capacity",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_capacity_milli",
+          93,
+          900001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "lake-0-bad-population-89999",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          89999
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "lake-0-bad-population-900001",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          900001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "lake-0-10percent-latch0",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          90000
+        ],
+        [
+          "stock_restocking",
+          93,
+          0
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "lake-0-10percent-latch1",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          90000
+        ],
+        [
+          "stock_restocking",
+          93,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-0-30percent-latch0",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          270000
+        ],
+        [
+          "stock_restocking",
+          93,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-0-30percent-latch1",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          270000
+        ],
+        [
+          "stock_restocking",
+          93,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-0-40percent-latch0",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          360000
+        ],
+        [
+          "stock_restocking",
+          93,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-0-40percent-latch1",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          360000
+        ],
+        [
+          "stock_restocking",
+          93,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-0-100percent-latch0",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          900000
+        ],
+        [
+          "stock_restocking",
+          93,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-0-100percent-latch1",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          900000
+        ],
+        [
+          "stock_restocking",
+          93,
+          1
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "lake-1-wrong-capacity",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_capacity_milli",
+          94,
+          700001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "lake-1-bad-population-69999",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          69999
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "lake-1-bad-population-700001",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          700001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "lake-1-10percent-latch0",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          70000
+        ],
+        [
+          "stock_restocking",
+          94,
+          0
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "lake-1-10percent-latch1",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          70000
+        ],
+        [
+          "stock_restocking",
+          94,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-1-30percent-latch0",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          210000
+        ],
+        [
+          "stock_restocking",
+          94,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-1-30percent-latch1",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          210000
+        ],
+        [
+          "stock_restocking",
+          94,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-1-40percent-latch0",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          280000
+        ],
+        [
+          "stock_restocking",
+          94,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-1-40percent-latch1",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          280000
+        ],
+        [
+          "stock_restocking",
+          94,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-1-100percent-latch0",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          700000
+        ],
+        [
+          "stock_restocking",
+          94,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-1-100percent-latch1",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          700000
+        ],
+        [
+          "stock_restocking",
+          94,
+          1
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "lake-2-wrong-capacity",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_capacity_milli",
+          95,
+          600001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "lake-2-bad-population-59999",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          59999
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "lake-2-bad-population-600001",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          600001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "lake-2-10percent-latch0",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          60000
+        ],
+        [
+          "stock_restocking",
+          95,
+          0
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "lake-2-10percent-latch1",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          60000
+        ],
+        [
+          "stock_restocking",
+          95,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-2-30percent-latch0",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          180000
+        ],
+        [
+          "stock_restocking",
+          95,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-2-30percent-latch1",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          180000
+        ],
+        [
+          "stock_restocking",
+          95,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-2-40percent-latch0",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          240000
+        ],
+        [
+          "stock_restocking",
+          95,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-2-40percent-latch1",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          240000
+        ],
+        [
+          "stock_restocking",
+          95,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-2-100percent-latch0",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          600000
+        ],
+        [
+          "stock_restocking",
+          95,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-2-100percent-latch1",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          600000
+        ],
+        [
+          "stock_restocking",
+          95,
+          1
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "lake-bad-harvest--1",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          95,
+          -1
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "lake-bad-harvest-55001",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          95,
+          55001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "lake-bad-harvest-9223372036854775807",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          95,
+          9223372036854775807
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "lake-quota-endpoint",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          95,
+          55000
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "lake-aggregate-over-quota",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          93,
+          55000
+        ],
+        [
+          "stock_harvested_today_milli",
+          94,
+          1
+        ]
+      ],
+      "code": "COLUMN_QUOTA"
+    },
+    {
+      "name": "lake-aggregate-exact-quota",
+      "base": "lake",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          93,
+          54999
+        ],
+        [
+          "stock_harvested_today_milli",
+          94,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-0-wrong-capacity",
+      "base": "river",
+      "changes": [
+        [
+          "stock_capacity_milli",
+          93,
+          600001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "river-0-bad-population-59999",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          59999
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "river-0-bad-population-600001",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          600001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "river-0-10percent-latch0",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          60000
+        ],
+        [
+          "stock_restocking",
+          93,
+          0
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "river-0-10percent-latch1",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          60000
+        ],
+        [
+          "stock_restocking",
+          93,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-0-30percent-latch0",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          180000
+        ],
+        [
+          "stock_restocking",
+          93,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-0-30percent-latch1",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          180000
+        ],
+        [
+          "stock_restocking",
+          93,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-0-40percent-latch0",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          240000
+        ],
+        [
+          "stock_restocking",
+          93,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-0-40percent-latch1",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          240000
+        ],
+        [
+          "stock_restocking",
+          93,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-0-100percent-latch0",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          600000
+        ],
+        [
+          "stock_restocking",
+          93,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-0-100percent-latch1",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          93,
+          600000
+        ],
+        [
+          "stock_restocking",
+          93,
+          1
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "river-1-wrong-capacity",
+      "base": "river",
+      "changes": [
+        [
+          "stock_capacity_milli",
+          94,
+          900001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "river-1-bad-population-89999",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          89999
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "river-1-bad-population-900001",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          900001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "river-1-10percent-latch0",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          90000
+        ],
+        [
+          "stock_restocking",
+          94,
+          0
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "river-1-10percent-latch1",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          90000
+        ],
+        [
+          "stock_restocking",
+          94,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-1-30percent-latch0",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          270000
+        ],
+        [
+          "stock_restocking",
+          94,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-1-30percent-latch1",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          270000
+        ],
+        [
+          "stock_restocking",
+          94,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-1-40percent-latch0",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          360000
+        ],
+        [
+          "stock_restocking",
+          94,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-1-40percent-latch1",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          360000
+        ],
+        [
+          "stock_restocking",
+          94,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-1-100percent-latch0",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          900000
+        ],
+        [
+          "stock_restocking",
+          94,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-1-100percent-latch1",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          94,
+          900000
+        ],
+        [
+          "stock_restocking",
+          94,
+          1
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "river-2-wrong-capacity",
+      "base": "river",
+      "changes": [
+        [
+          "stock_capacity_milli",
+          95,
+          600001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "river-2-bad-population-59999",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          59999
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "river-2-bad-population-600001",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          600001
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "river-2-10percent-latch0",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          60000
+        ],
+        [
+          "stock_restocking",
+          95,
+          0
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "river-2-10percent-latch1",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          60000
+        ],
+        [
+          "stock_restocking",
+          95,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-2-30percent-latch0",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          180000
+        ],
+        [
+          "stock_restocking",
+          95,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-2-30percent-latch1",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          180000
+        ],
+        [
+          "stock_restocking",
+          95,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-2-40percent-latch0",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          240000
+        ],
+        [
+          "stock_restocking",
+          95,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-2-40percent-latch1",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          240000
+        ],
+        [
+          "stock_restocking",
+          95,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-2-100percent-latch0",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          600000
+        ],
+        [
+          "stock_restocking",
+          95,
+          0
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-2-100percent-latch1",
+      "base": "river",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          600000
+        ],
+        [
+          "stock_restocking",
+          95,
+          1
+        ]
+      ],
+      "code": "COLUMN_STOCK_STATE"
+    },
+    {
+      "name": "river-bad-harvest--1",
+      "base": "river",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          95,
+          -1
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "river-bad-harvest-52501",
+      "base": "river",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          95,
+          52501
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "river-bad-harvest-9223372036854775807",
+      "base": "river",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          95,
+          9223372036854775807
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    },
+    {
+      "name": "river-quota-endpoint",
+      "base": "river",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          95,
+          52500
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "river-aggregate-over-quota",
+      "base": "river",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          93,
+          52500
+        ],
+        [
+          "stock_harvested_today_milli",
+          94,
+          1
+        ]
+      ],
+      "code": "COLUMN_QUOTA"
+    },
+    {
+      "name": "river-aggregate-exact-quota",
+      "base": "river",
+      "changes": [
+        [
+          "stock_harvested_today_milli",
+          93,
+          52499
+        ],
+        [
+          "stock_harvested_today_milli",
+          94,
+          1
+        ]
+      ],
+      "code": ""
+    },
+    {
+      "name": "species-duplicate",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_species_id",
+          95,
+          101
+        ]
+      ],
+      "code": "COLUMN_SPECIES_DUPLICATE"
+    },
+    {
+      "name": "species-before-quota",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_species_id",
+          95,
+          101
+        ],
+        [
+          "stock_harvested_today_milli",
+          93,
+          77500
+        ],
+        [
+          "stock_harvested_today_milli",
+          94,
+          1
+        ]
+      ],
+      "code": "COLUMN_SPECIES_DUPLICATE"
+    },
+    {
+      "name": "two-present",
+      "base": "two-coast",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "same-species-across-habitats",
+      "base": "two-coast",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "duplicate-self-samegen",
+      "base": "duplicate-self",
+      "changes": [],
+      "code": "COLUMN_SELF_DUPLICATE"
+    },
+    {
+      "name": "duplicate-self-differentgen",
+      "base": "duplicate-self-newgen",
+      "changes": [],
+      "code": "COLUMN_SELF_DUPLICATE"
+    },
+    {
+      "name": "duplicate-zone-pair",
+      "base": "duplicate-zone",
+      "changes": [],
+      "code": "COLUMN_ZONE_DUPLICATE"
+    },
+    {
+      "name": "zone-same-slot-newgen",
+      "base": "zone-newgen",
+      "changes": [],
+      "code": ""
+    },
+    {
+      "name": "self-before-zone",
+      "base": "duplicate-self-zone",
+      "changes": [],
+      "code": "COLUMN_SELF_DUPLICATE"
+    },
+    {
+      "name": "global-flag-before-habitat-enum",
+      "base": "clear",
+      "changes": [
+        [
+          "habitat_type",
+          0,
+          3
+        ],
+        [
+          "stock_restocking",
+          95,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAG"
+    },
+    {
+      "name": "earlier-habitat-value-before-later-enum",
+      "base": "clear",
+      "changes": [
+        [
+          "habitat_pollution",
+          0,
+          -1
+        ],
+        [
+          "habitat_type",
+          31,
+          3
+        ]
+      ],
+      "code": "COLUMN_HABITAT_VALUE"
+    },
+    {
+      "name": "habitat-before-stock",
+      "base": "coast",
+      "changes": [
+        [
+          "habitat_pollution",
+          31,
+          -1
+        ],
+        [
+          "stock_species_id",
+          0,
+          0
+        ]
+      ],
+      "code": "COLUMN_HABITAT_VALUE"
+    },
+    {
+      "name": "stock-link-before-stock-free",
+      "base": "clear",
+      "changes": [
+        [
+          "stock_present",
+          95,
+          1
+        ],
+        [
+          "stock_capacity_milli",
+          95,
+          1
+        ]
+      ],
+      "code": "COLUMN_STOCK_LINK"
+    },
+    {
+      "name": "stock-value-before-hysteresis",
+      "base": "coast",
+      "changes": [
+        [
+          "stock_population_milli",
+          95,
+          -1
+        ],
+        [
+          "stock_restocking",
+          95,
+          0
+        ]
+      ],
+      "code": "COLUMN_STOCK_VALUE"
+    }
+  ]
+}

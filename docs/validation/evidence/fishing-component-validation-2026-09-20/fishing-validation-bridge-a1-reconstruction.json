@@ -1,0 +1,7 @@
+{
+  "scope": "Exact source reconstruction only; production unapplied and runtime not tested",
+  "pending_production_intake": "PR171 merge",
+  "sha256": {
+    "godot/scripts/core/save_owner_fishing.gd": "6a46d2be1c7bc0c3b364ccaea29a39af51193647757ea15467bd42cd41a4bc6d"
+  }
+}

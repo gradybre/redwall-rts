@@ -1,0 +1,85 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_fishing.gd
+  PASS  test_layout_defaults_and_conditional_memory
+  FAIL  test_frozen_domains_history_relations_and_projection_witnesses
+        free-stock-stock_harvested_today_milli bridge (expected COLUMN_STOCK_FREE, got )
+        free-stock-stock_harvested_today_milli success (expected false, got true)
+        free-stock-stock_harvested_today_milli owner detail (expected true, got false)
+        free-stock-stock_harvested_today_milli raw code detail (expected true, got false)
+        coast-bad-harvest--1 bridge (expected COLUMN_STOCK_VALUE, got )
+        coast-bad-harvest--1 success (expected false, got true)
+        coast-bad-harvest--1 owner detail (expected true, got false)
+        coast-bad-harvest--1 raw code detail (expected true, got false)
+        coast-bad-harvest-77501 bridge (expected COLUMN_STOCK_VALUE, got )
+        coast-bad-harvest-77501 success (expected false, got true)
+        coast-bad-harvest-77501 owner detail (expected true, got false)
+        coast-bad-harvest-77501 raw code detail (expected true, got false)
+        coast-bad-harvest-9223372036854775807 bridge (expected COLUMN_STOCK_VALUE, got )
+        coast-bad-harvest-9223372036854775807 success (expected false, got true)
+        coast-bad-harvest-9223372036854775807 owner detail (expected true, got false)
+        coast-bad-harvest-9223372036854775807 raw code detail (expected true, got false)
+        coast-aggregate-over-quota bridge (expected COLUMN_QUOTA, got )
+        coast-aggregate-over-quota success (expected false, got true)
+        coast-aggregate-over-quota owner detail (expected true, got false)
+        coast-aggregate-over-quota raw code detail (expected true, got false)
+        lake-bad-harvest--1 bridge (expected COLUMN_STOCK_VALUE, got )
+        lake-bad-harvest--1 success (expected false, got true)
+        lake-bad-harvest--1 owner detail (expected true, got false)
+        lake-bad-harvest--1 raw code detail (expected true, got false)
+        lake-bad-harvest-55001 bridge (expected COLUMN_STOCK_VALUE, got )
+        lake-bad-harvest-55001 success (expected false, got true)
+        lake-bad-harvest-55001 owner detail (expected true, got false)
+        lake-bad-harvest-55001 raw code detail (expected true, got false)
+        lake-bad-harvest-9223372036854775807 bridge (expected COLUMN_STOCK_VALUE, got )
+        lake-bad-harvest-9223372036854775807 success (expected false, got true)
+        lake-bad-harvest-9223372036854775807 owner detail (expected true, got false)
+        lake-bad-harvest-9223372036854775807 raw code detail (expected true, got false)
+        lake-aggregate-over-quota bridge (expected COLUMN_QUOTA, got )
+        lake-aggregate-over-quota success (expected false, got true)
+        lake-aggregate-over-quota owner detail (expected true, got false)
+        lake-aggregate-over-quota raw code detail (expected true, got false)
+        river-bad-harvest--1 bridge (expected COLUMN_STOCK_VALUE, got )
+        river-bad-harvest--1 success (expected false, got true)
+        river-bad-harvest--1 owner detail (expected true, got false)
+        river-bad-harvest--1 raw code detail (expected true, got false)
+        river-bad-harvest-52501 bridge (expected COLUMN_STOCK_VALUE, got )
+        river-bad-harvest-52501 success (expected false, got true)
+        river-bad-harvest-52501 owner detail (expected true, got false)
+        river-bad-harvest-52501 raw code detail (expected true, got false)
+        river-bad-harvest-9223372036854775807 bridge (expected COLUMN_STOCK_VALUE, got )
+        river-bad-harvest-9223372036854775807 success (expected false, got true)
+        river-bad-harvest-9223372036854775807 owner detail (expected true, got false)
+        river-bad-harvest-9223372036854775807 raw code detail (expected true, got false)
+        river-aggregate-over-quota bridge (expected COLUMN_QUOTA, got )
+        river-aggregate-over-quota success (expected false, got true)
+        river-aggregate-over-quota owner detail (expected true, got false)
+        river-aggregate-over-quota raw code detail (expected true, got false)
+  PASS  test_null_all_extents_and_bucket_shapes
+  FAIL  test_every_field_at_every_physical_row
+        bridge edges bridge (expected COLUMN_STOCK_FREE, got )
+        bridge edges success (expected false, got true)
+        bridge edges owner detail (expected true, got false)
+        bridge edges raw code detail (expected true, got false)
+        bridge edges bridge (expected COLUMN_STOCK_FREE, got )
+        bridge edges success (expected false, got true)
+        bridge edges owner detail (expected true, got false)
+        bridge edges raw code detail (expected true, got false)
+  PASS  test_full_capacity_and_present_identity_endpoints
+  PASS  test_retained_inactive_history_all_rows
+  PASS  test_paired_priorities_not_just_acceptance
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+7 test(s), 16230 assertion(s), 2 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

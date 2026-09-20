@@ -1,0 +1,12 @@
+{
+  "base_commit": "673e0cbc987643b313fad9b87bc04295bf837843",
+  "source_sha256": {
+    "godot/scripts/core/fishing.gd": "4083d0d5ca67a5df9788800a88ceec6608a9c83cfeb0201e85ebe6febc851837",
+    "godot/scripts/core/save_owner_fishing.gd": "6a46d2be1c7bc0c3b364ccaea29a39af51193647757ea15467bd42cd41a4bc6d",
+    "godot/test/test_save_owner_fishing.gd": "04f7cc7f850826f7ebb72e0b6eb6639cb0305e9130828c2b0d91471c61d72bc0",
+    "godot/test/fishing_validation_focus.gd": "3be21fed4d53979caad931e7a068b3d048c6a47fdeb33a255fa3e3575f3acef9",
+    "tools/test_fishing_metadata_preflights.py": "62a87042ac91e9000edeec3c3a86cb1afcf1a23ad1f22c9d57a3143048ef5dc9"
+  },
+  "review_scope": "Exact owner and bridge bytes independently reviewed as reconstructed candidates; actual applied sources are byte-identical",
+  "candidate_tests_scope": "Clone evidence transfers only by identical source/test/tool bytes; actual integration import/static/full/CI still required"
+}

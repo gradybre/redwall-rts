@@ -1,0 +1,14 @@
+{
+  "attempt": "fishing-validation-bridge-a1",
+  "model": "claude-opus-5",
+  "sessionId": "41969c6f-b8cb-4ea4-bd1a-b089193fb480",
+  "state": "complete",
+  "ownerStopped": true,
+  "lines": 390,
+  "line_budget": 450,
+  "frozen_inputs_verified": true,
+  "target_mode_allowlist_verified": true,
+  "raw_apply_check_exit": 0,
+  "applied": false,
+  "pending": "PR171 exact-head CI and merge before production intake"
+}

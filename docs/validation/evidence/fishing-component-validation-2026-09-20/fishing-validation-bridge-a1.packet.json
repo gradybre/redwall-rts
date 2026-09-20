@@ -1,0 +1,19 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "261095878ef0b668e07f8e1ab4ce57abc7d8bfd8",
+  "task": "Fishing section4 framed owner bridge",
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/fishing_component_validation_contract.md",
+    "docs/decisions/0181-fishing-validation-preserves-hysteresis-and-basin-generations.md",
+    "docs/validation/evidence/fishing-component-validation-2026-09-20/candidate-fishing.gd",
+    "docs/validation/evidence/fishing-component-validation-2026-09-20/candidate-source-pin-refinements.md",
+    "docs/validation/evidence/fishing-validation-planning-2026-09-20/contract-disposition.md",
+    "godot/scripts/core/save_owner_farming.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_header.gd"
+  ],
+  "instructions": "Implement ONLY new godot/scripts/core/save_owner_fishing.gd, accepted FISHING-S4-VALIDATE-R01v1/ADR0181 + source-pin refinement. Seven ordered gates and22explicit typedprojection assignments; source candidate full file provided. Onlyfourpreloads Fishing/Schema/Section/SaveHeader, access Directory viaFishing.EntityDirectory. Section4owner4 version1/primary32/childcount0/22fields; doNOTpinFishing.CANONICAL_OWNER_SCHEMA_VERSION2 (section7). Exactmetadata/source tables inclallTHREE lengths beforeANYentry, 9speciesIDs/tableinputs, ranges/nulls plusactualCLAIM_COLUMN_BLANK_SLOT=-1,CLAIM_COLUMN_BLANK_GENERATION=0,CLAIM_COLUMN_DIRECTORY_SLOT_MAX=352417,COLUMN_BLANK_SPECIES_ID=-1. No liveconstructor/getter/catalog/clock/callback/diagnostic/inputmutation. Share packedbuffers intoonecoldColumns. Owner-only10688conservativepacked notRSS. Metadata expressions must exactly use Schema.owner_key(OWNER_INDEX) != OWNER_KEY; owner_version != OWNER_VERSION; primary_count != OWNER_PRIMARY_COUNT; child_extent_count != OWNER_CHILD_EXTENT_COUNT; field_count != OWNER_FIELD_COUNT, using sameSchema.call(OWNER_INDEX) syntax. Field checks Schema.field_key(OWNER_INDEX, field) != String(FIELD_KEYS[field]), Schema.field_type(OWNER_INDEX, field) != int(FIELD_TYPES[field]), Schema.element_count(OWNER_INDEX, field) != int(FIELD_COUNTS[field]); arrays22. PrefixFishing owner4 metadata:, rawcolumncodes wrapperdetailFishing owner 4 . Success empty/empty. No newbulkAPIs, preserve source. ReturnONE NEW docs/validation/evidence/fishing-component-validation-2026-09-20/author-bridge.patch baseSha256null containingunifieddiffnewfile100644; HARD450actualpatchlines AIM320. No tests/docs/othercode/noexecutionclaims. RawJSONstatus/summary/questions/files/decisionIds."
+}

@@ -1,0 +1,5 @@
+# Fishing metadata experiment isolation
+
+The initial normal-startup owner/bridge focus passes7 tests with no errors. The first shortened EFFORT_SLOTS_BY_TYPE experiment fails before cold validation: Godot constant-folds the unrelated existing live constructor assertion EFFORT_SLOTS_BY_TYPE[HABITAT_RIVER] and rejects the deliberate two-entry array during compilation. No test assertion kill or production defect is claimed. Initial logs and inputs remain archived.
+
+For only that shortened-table counterfactual, the metadata tool preserves all three live constructor assertions but changes their index expressions to local variables initialized from the same constants. This prevents compile-time indexing without removing their runtime checks. The cold clone already disables unrelated autoload construction. The bridge and new predicate are unchanged; the source table remains malformed. All other fault cases use the original constructor source. Original production files and project configuration must remain hash-identical, and any script/parser error still fails the experiment. Normal focus/import/full runs retain the actual constructor and startup configuration.

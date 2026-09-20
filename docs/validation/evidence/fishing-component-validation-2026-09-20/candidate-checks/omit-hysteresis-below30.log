@@ -1,0 +1,70 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_fishing.gd
+  PASS  test_layout_defaults_and_conditional_memory
+  FAIL  test_frozen_domains_history_relations_and_projection_witnesses
+        coast-0-10percent-latch0 pure (expected COLUMN_STOCK_STATE, got )
+        coast-0-10percent-latch0 bridge (expected COLUMN_STOCK_STATE, got )
+        coast-0-10percent-latch0 success (expected false, got true)
+        coast-0-10percent-latch0 owner detail (expected true, got false)
+        coast-0-10percent-latch0 raw code detail (expected true, got false)
+        coast-1-10percent-latch0 pure (expected COLUMN_STOCK_STATE, got )
+        coast-1-10percent-latch0 bridge (expected COLUMN_STOCK_STATE, got )
+        coast-1-10percent-latch0 success (expected false, got true)
+        coast-1-10percent-latch0 owner detail (expected true, got false)
+        coast-1-10percent-latch0 raw code detail (expected true, got false)
+        coast-2-10percent-latch0 pure (expected COLUMN_STOCK_STATE, got )
+        coast-2-10percent-latch0 bridge (expected COLUMN_STOCK_STATE, got )
+        coast-2-10percent-latch0 success (expected false, got true)
+        coast-2-10percent-latch0 owner detail (expected true, got false)
+        coast-2-10percent-latch0 raw code detail (expected true, got false)
+        lake-0-10percent-latch0 pure (expected COLUMN_STOCK_STATE, got )
+        lake-0-10percent-latch0 bridge (expected COLUMN_STOCK_STATE, got )
+        lake-0-10percent-latch0 success (expected false, got true)
+        lake-0-10percent-latch0 owner detail (expected true, got false)
+        lake-0-10percent-latch0 raw code detail (expected true, got false)
+        lake-1-10percent-latch0 pure (expected COLUMN_STOCK_STATE, got )
+        lake-1-10percent-latch0 bridge (expected COLUMN_STOCK_STATE, got )
+        lake-1-10percent-latch0 success (expected false, got true)
+        lake-1-10percent-latch0 owner detail (expected true, got false)
+        lake-1-10percent-latch0 raw code detail (expected true, got false)
+        lake-2-10percent-latch0 pure (expected COLUMN_STOCK_STATE, got )
+        lake-2-10percent-latch0 bridge (expected COLUMN_STOCK_STATE, got )
+        lake-2-10percent-latch0 success (expected false, got true)
+        lake-2-10percent-latch0 owner detail (expected true, got false)
+        lake-2-10percent-latch0 raw code detail (expected true, got false)
+        river-0-10percent-latch0 pure (expected COLUMN_STOCK_STATE, got )
+        river-0-10percent-latch0 bridge (expected COLUMN_STOCK_STATE, got )
+        river-0-10percent-latch0 success (expected false, got true)
+        river-0-10percent-latch0 owner detail (expected true, got false)
+        river-0-10percent-latch0 raw code detail (expected true, got false)
+        river-1-10percent-latch0 pure (expected COLUMN_STOCK_STATE, got )
+        river-1-10percent-latch0 bridge (expected COLUMN_STOCK_STATE, got )
+        river-1-10percent-latch0 success (expected false, got true)
+        river-1-10percent-latch0 owner detail (expected true, got false)
+        river-1-10percent-latch0 raw code detail (expected true, got false)
+        river-2-10percent-latch0 pure (expected COLUMN_STOCK_STATE, got )
+        river-2-10percent-latch0 bridge (expected COLUMN_STOCK_STATE, got )
+        river-2-10percent-latch0 success (expected false, got true)
+        river-2-10percent-latch0 owner detail (expected true, got false)
+        river-2-10percent-latch0 raw code detail (expected true, got false)
+  PASS  test_null_all_extents_and_bucket_shapes
+  PASS  test_every_field_at_every_physical_row
+  PASS  test_full_capacity_and_present_identity_endpoints
+  PASS  test_retained_inactive_history_all_rows
+  PASS  test_paired_priorities_not_just_acceptance
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+7 test(s), 16230 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

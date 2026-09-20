@@ -1,0 +1,39 @@
+[
+  {
+    "attempt": "event-schedule-contract-a1",
+    "model": "claude-opus-5",
+    "session_id": "0e5cd7d3-cfcf-4780-a950-a2016e5c8978",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/event_schedule_codec_contract.md",
+        "sha256": "2523a65abce87802cdbf21eff45c33c5c4a9ccc790984e83bcec5803365570ed"
+      },
+      {
+        "path": "docs/rulings/2026-09-11_save_codec_contract.md",
+        "sha256": "ff83ad9cad824fca0a31390ae30061b1e3a09cb2feedbd0f90416b876c4901a4"
+      },
+      {
+        "path": "docs/rulings/2026-09-12_save_registry_answers.md",
+        "sha256": "958e899f37e87f38b5c1e38dfd36a3f65b824cf568e7d2cf1cb6f7c79373337b"
+      },
+      {
+        "path": "godot/scripts/core/event_schedule.gd",
+        "sha256": "954fc1f65e9b19989d4675ccec7e97e356d5e5f2a2e15ce300219f98971b4c5f"
+      },
+      {
+        "path": "godot/test/test_event_schedule.gd",
+        "sha256": "a1b68915437eab268e16513223cb8c299515001211612e5cf62752aaad2ee85d"
+      },
+      {
+        "path": "godot/scripts/core/save_codec.gd",
+        "sha256": "afd7b7f51b8ddc2cd282baecf19ff8a582695346a7005108cb4de3958e3af508"
+      },
+      {
+        "path": "godot/scripts/core/save_header.gd",
+        "sha256": "55570d407a9f18dd2d8471f7fd58e98f34fce241b8d5fc06f44b49fbcd27eaa0"
+      }
+    ]
+  }
+]

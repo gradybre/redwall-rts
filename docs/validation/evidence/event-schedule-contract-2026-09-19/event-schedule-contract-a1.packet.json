@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "d495b9cbb7603096a31822d8c2b9078b5020076d",
+  "task": "Independent contract review SAVE-S11-R01v1",
+  "paths": [
+    "docs/planning/event_schedule_codec_contract.md",
+    "docs/rulings/2026-09-11_save_codec_contract.md",
+    "docs/rulings/2026-09-12_save_registry_answers.md",
+    "godot/scripts/core/event_schedule.gd",
+    "godot/test/test_event_schedule.gd",
+    "godot/scripts/core/save_codec.gd",
+    "godot/scripts/core/save_header.gd"
+  ],
+  "instructions": "Review exact section11 codec contract feasibility before author dispatch. Existing ruled payload8+32N, descriptorcount/schema, public getters and atomic restore. Distinguish bounded wire adapter from absent real event semantics. Check shape/allocator/order/duplicate/refusal ordering, stale output safety, validation temporaryowner memory, capture existing diagnostic changes, barrier/world responsibility and tests. Surface concrete ambiguities now. No source edits/tools. Return exact JSON status complete, summary, questions[], files exactly one NEW docs/validation/evidence/event-schedule-contract-2026-09-19/contract-v1-review.md baseSha256 null content<=1800words,decisionIds[]."
+}

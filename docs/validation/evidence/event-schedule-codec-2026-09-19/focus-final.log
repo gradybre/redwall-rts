@@ -1,0 +1,62 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_section_event_schedule.gd
+  PASS  test_literal_empty_and_extreme_row_bytes
+  PASS  test_full_capacity_descriptor_and_variable_length_output
+  PASS  test_decode_bounds_precedence_and_atomic_output
+  PASS  test_record_validation_order_and_encode_failure_clears_stale_bytes
+  PASS  test_real_continuation_preserves_consumed_ids_and_pop_order
+  PASS  test_barrier_refusals_and_invalid_apply_are_atomic
+  PASS  test_exhausted_allocator_with_live_and_empty_rows_stays_exhausted
+  PASS  test_copy_decode_capture_and_apply_buffers_are_independent
+  PASS  test_capture_diagnostics_and_source_failures_are_explicit
+  PASS  test_semantically_invalid_wire_preserves_output_and_input_bytes
+  PASS  test_empty_high_allocator_issues_the_saved_next_identity
+  PASS  test_offset_at_exact_buffer_end_refuses_without_publication
+test_event_schedule.gd
+  PASS  test_the_declared_owner_identity_matches_the_registry
+  PASS  test_the_declared_field_keys_keep_the_registry_order_and_ordinals
+  PASS  test_the_declared_field_types_match_the_registry_type_codes
+  PASS  test_the_record_layout_is_save_r09_005s_thirty_two_byte_stride
+  PASS  test_a_new_schedule_is_empty_with_the_allocator_at_one
+  PASS  test_sequences_are_issued_from_one_and_never_repeat
+  PASS  test_rows_are_held_sorted_by_due_tick_then_sequence
+  PASS  test_every_stored_field_reads_back_unchanged
+  PASS  test_a_refused_past_due_tick_leaves_the_store_byte_identical
+  PASS  test_a_refused_non_int32_argument_leaves_the_store_byte_identical
+  PASS  test_a_refused_insertion_into_a_full_schedule_consumes_no_sequence
+  PASS  test_an_exhausted_allocator_refuses_every_insertion
+  PASS  test_the_allocator_exhausts_rather_than_wrapping_to_one
+  PASS  test_a_cancelled_row_leaves_no_stale_tail
+  PASS  test_a_popped_row_leaves_no_stale_tail
+  PASS  test_cancelling_an_unknown_sequence_refuses_and_changes_nothing
+  PASS  test_a_due_row_never_expires_on_its_own
+  PASS  test_popping_with_nothing_due_returns_a_cleared_event
+  PASS  test_reading_outside_the_live_rows_refuses_and_clears
+  PASS  test_find_sequence_refuses_instead_of_returning_a_sentinel
+  PASS  test_the_next_day_boundary_after_tick_zero_is_the_first_midnight
+  PASS  test_the_next_day_boundary_is_strictly_after_the_given_tick
+  PASS  test_every_computed_boundary_satisfies_the_offset_formula
+  PASS  test_the_due_day_index_uses_the_offset_calendar
+  PASS  test_scheduling_at_the_next_day_boundary_lands_on_midnight
+  PASS  test_restore_installs_a_valid_schedule
+  PASS  test_restore_refuses_every_invariant_violation_atomically
+  PASS  test_restore_refuses_more_rows_than_the_declared_maximum
+  PASS  test_restore_refuses_ragged_columns
+  PASS  test_restore_accepts_an_exhausted_allocator_with_live_rows
+  PASS  test_clear_returns_the_store_to_its_initial_image
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+43 test(s), 538 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

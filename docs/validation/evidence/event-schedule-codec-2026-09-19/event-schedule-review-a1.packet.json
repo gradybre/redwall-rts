@@ -1,0 +1,16 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "04791eb6ad7c99648a90289fbf21dbff42d9a23b",
+  "task": "Independent acceptance SAVE-S11-R01v2 codec and tests",
+  "paths": [
+    "docs/planning/event_schedule_codec_contract.md",
+    "docs/decisions/0161-encode-event-schedules-without-inventing-event-kinds.md",
+    "godot/scripts/core/save_section_event_schedule.gd",
+    "godot/scripts/core/event_schedule.gd",
+    "godot/scripts/core/save_codec.gd",
+    "godot/scripts/core/sim_clock.gd",
+    "godot/test/test_save_section_event_schedule.gd",
+    "docs/validation/evidence/event-schedule-codec-2026-09-19/focus-expanded.log"
+  ],
+  "instructions": "Independent source review against accepted v2. Author separate Opus session; parent authored tests. Verify exact8+32N wire, literalgoldens, variable count/shape/allocator/order/duplicate preservation, decode bounds and atomic publication, no aliasing, actual event continuation and exhaustion, owner diagnostic allowances, apply direct atomic owner restore under held clock. No real event activation or worldsaveclaim. Focus41/528/0 passed; fullsuiteunderway. Ifdefect concrete repro/remedy. No tools/source edits. Return exactJSON status complete,summary,questions[],files exactly one NEW docs/validation/evidence/event-schedule-codec-2026-09-19/independent-review.md baseSha256 null content<=1800words,decisionIds[]."
+}

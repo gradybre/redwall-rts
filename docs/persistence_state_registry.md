@@ -643,6 +643,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---:|---|---|:-:|---|---|
 | Section 1 WORLD composer | -- | -- | -- | -- | 3 | -- | R-WORLD-S1-001. Holds no module-level `var`; every function is static and the only mutable objects are a caller-owned `State`, a caller-owned `Stores` and per-call slices. Writes §1 under SAVE-LAYOUT-R01: the 44-byte map-provenance prefix, `store_count:u32` = **9**, then `buildings`, `entity_directory`, `farming`, `forage`, `resource_nodes`, `spatial_world`, `weather`, `world_init`, `world_runtime` in ASCII key order. Owner schema versions are 1 except **resource_nodes = 2**, and the SECTION schema version is **3**; both moved with the deposit-scratch reclassification below. Seven owners use the ordinary `element_count:u64` + values form; `entity_directory` (4 bytes) and `world_runtime` (80 bytes) keep their existing fixed formats and carry no count prefixes. Payloads total 3752409 bytes, wrappers 311, section length **3752768**, descriptor `row_count` **344067** as the checked sum of the nine primary counts. The decoder reads every wrapper item and every field at a COMPILED absolute offset and compares the declared extents against it, rather than advancing a cursor by what it just read. Restores the seven ordinary owners through their own `restore_section_1_columns()`; the D2 cursor is installed with §3 and `world_runtime` has no side-effect-free publication path (BLOCKER W1). Carries §1's nine canonical value adapters. `State` is 3.75 MB of BOUNDED COLD-PATH CODEC SCRATCH, not a second world. |
 
+### `godot/scripts/core/save_section_event_schedule.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Section11 byte adapter | -- | -- | -- | -- | 3 | -- | Decision0161 / SAVE-S11-R01v2. Stateless8+32N codec over existing EventSchedule; exact allocator and row order. Descriptor count0..64, schema1; no inline count/owner wrapper. Does not activate event semantics. |
+
 ### `godot/scripts/core/save_section_inventories.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

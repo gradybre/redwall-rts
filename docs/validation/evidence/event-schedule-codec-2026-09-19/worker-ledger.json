@@ -1,0 +1,84 @@
+[
+  {
+    "attempt": "event-schedule-codec-a1",
+    "model": "claude-opus-5",
+    "session_id": "850be70e-da5d-401b-8f3e-cb513af23d6f",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/event_schedule_codec_contract.md",
+        "sha256": "a4c342181129309bf0e5e1f2e29192f5917c39eef8f1260a13a89a6f6d39e8b2"
+      },
+      {
+        "path": "docs/validation/evidence/event-schedule-contract-2026-09-19/astra-contract-disposition.md",
+        "sha256": "590adbb94efe837dd0604cc571afcd788aed181cddcd3cd526d5823872deb595"
+      },
+      {
+        "path": "godot/scripts/core/event_schedule.gd",
+        "sha256": "954fc1f65e9b19989d4675ccec7e97e356d5e5f2a2e15ce300219f98971b4c5f"
+      },
+      {
+        "path": "godot/scripts/core/save_codec.gd",
+        "sha256": "afd7b7f51b8ddc2cd282baecf19ff8a582695346a7005108cb4de3958e3af508"
+      },
+      {
+        "path": "godot/scripts/core/save_header.gd",
+        "sha256": "55570d407a9f18dd2d8471f7fd58e98f34fce241b8d5fc06f44b49fbcd27eaa0"
+      },
+      {
+        "path": "godot/scripts/core/sim_clock.gd",
+        "sha256": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a"
+      },
+      {
+        "path": "godot/scripts/core/int_math.gd",
+        "sha256": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca"
+      },
+      {
+        "path": "godot/scripts/core/save_section_rng.gd",
+        "sha256": "4269c6e7bf9a59c96ef3b5d8cb58bfe5729a53446494d08dddd8a466a03fcaa4"
+      }
+    ]
+  },
+  {
+    "attempt": "event-schedule-review-a1",
+    "model": "claude-opus-5",
+    "session_id": "48244d32-0fe5-4a78-9890-f10b74374d9e",
+    "state": "complete",
+    "owner_stopped": true,
+    "inputs": [
+      {
+        "path": "docs/planning/event_schedule_codec_contract.md",
+        "sha256": "a4c342181129309bf0e5e1f2e29192f5917c39eef8f1260a13a89a6f6d39e8b2"
+      },
+      {
+        "path": "docs/decisions/0161-encode-event-schedules-without-inventing-event-kinds.md",
+        "sha256": "5746ffdc06038df018531e7a25d972d8922eb9edb241b28ec71eb80308328cf5"
+      },
+      {
+        "path": "godot/scripts/core/save_section_event_schedule.gd",
+        "sha256": "b4e607fd51a55e8229d39fe8f2b7a699ad8dc941fe908fd9217fefbff64b338f"
+      },
+      {
+        "path": "godot/scripts/core/event_schedule.gd",
+        "sha256": "954fc1f65e9b19989d4675ccec7e97e356d5e5f2a2e15ce300219f98971b4c5f"
+      },
+      {
+        "path": "godot/scripts/core/save_codec.gd",
+        "sha256": "afd7b7f51b8ddc2cd282baecf19ff8a582695346a7005108cb4de3958e3af508"
+      },
+      {
+        "path": "godot/scripts/core/sim_clock.gd",
+        "sha256": "a5c6282467092ee85a69a183f2405caf96c68355af2fdc1d181c9c7bf25c645a"
+      },
+      {
+        "path": "godot/test/test_save_section_event_schedule.gd",
+        "sha256": "228e07a993b04d11dde55e84310602536af6c1f36991e45db15b0eafb72b9a0e"
+      },
+      {
+        "path": "docs/validation/evidence/event-schedule-codec-2026-09-19/focus-expanded.log",
+        "sha256": "652003f2c337c86f333c12c4452b2c6d67a4d3413d069d5d174bef1ed8cdad50"
+      }
+    ]
+  }
+]

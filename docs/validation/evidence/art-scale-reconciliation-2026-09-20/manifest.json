@@ -1,0 +1,22 @@
+{
+  "authority": "docs/setting_decisions.md DEC-039; existing user confirmation, no new approval",
+  "files": {
+    "docs/planning/asset_dimensions_and_budgets.md": {
+      "before_sha256": "386d126596dacea90d6fa05ae10e6009acf91ee893774b986f1d55bee6642e33",
+      "after_sha256": "1abafca0c502358e5ef8d2b60a56c99d80045eb22d170826f034f6f9f8a2b21f"
+    },
+    "docs/art-reference/world_art_lookdev_brief.md": {
+      "before_sha256": "637c43560d59d709aa42276ee9b3ffbefb27ac196181e3030f0e83e7010dbbfa",
+      "after_sha256": "5ac1e075f850ea0f87f6c450e79a13d8805cc21e2c6476e51f02f147316dc639"
+    },
+    "docs/planning/asset_dimensions_and_budgets.json": {
+      "before_sha256": "fa9f3a1a6b31f8e3ad13a0ffa9027f52159d21381c77e1b99a5c13cf233f43dc",
+      "after_sha256": "5f1d79a40921d34af60f8cd713da9d55059a18c6cf2ec24248a3d1c5c9fa492a"
+    }
+  },
+  "runtime_geometry_changed": false,
+  "approval_ledger_changed": false,
+  "paid_generation": false,
+  "historical_quotations": "Retained and explicitly superseded for current anatomical heights",
+  "remaining": "Landmark ratios/production anatomy, full pose and gear geometry, gameplay-camera evidence and final visual acceptance; paid generation separate"
+}

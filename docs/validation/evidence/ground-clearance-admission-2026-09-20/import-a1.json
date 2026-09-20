@@ -1,0 +1,29 @@
+{
+  "kind": "import",
+  "command": [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--editor",
+    "--quit"
+  ],
+  "source_sha256": {
+    "godot/scripts/core/movement.gd": "905524b356d1a12be64baaccf6745a2c84ff286309852fb36be1da873e4fb531",
+    "godot/scripts/core/navigation.gd": "4f662c44ae231f445e7446e18754a375b14c2cc04f877594c99002dde2628204",
+    "godot/test/test_movement.gd": "fe01cb3593b5acffd26a3f708002be631c19817545a0edc84c05e7571cd43178",
+    "godot/test/test_movement_readmission.gd": "4a0305654e5146bef116903885ed069d2f2d59a1634dd51820abd8ee4c35e0d6",
+    "godot/test/fixtures/synthetic_ground_movement.gd": "15ea27b2d099dd38e74839d6dbcc49c85013c909c1ac75eaa53524b155d0adb9",
+    "godot/test/test_movement_clearance.gd": "c5706f82e70faebb7fbc834687b67ece1f3162f8a3741e3d6cab6ded8c1d0c2c",
+    "godot/test/ground_clearance_focus.gd": "5f014cf36e20c610da11d091af99d4f6cdf4ff6531f9e397afef4ad15b4f45f7"
+  },
+  "source_unchanged": true,
+  "seconds": 2.068,
+  "exit_code": 0,
+  "timed_out": false,
+  "counts": null,
+  "engine_errors": [],
+  "passed": true,
+  "log_sha256": "a6d3e6d6f78ad3e4adf6c6260eac7149c7247c2a51abd8fee46b7d5184ea6b63",
+  "scope": "Candidate verification only; independent review and exact committed CI required"
+}

@@ -1,0 +1,8 @@
+{
+  "attempt": "ground-access-architecture-review-a2",
+  "owner_stopped": true,
+  "code": "BUNDLE_KEYS_INVALID",
+  "raw_public_response_retained": false,
+  "applied": false,
+  "recovery": "Same-role latest checkpoint format-only continuation; no new code audit requested"
+}

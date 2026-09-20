@@ -267,6 +267,9 @@ const REFUSE_CONTACT_OWNER: StringName = &"CONTACT_OWNER_REF_STALE"
 const REFUSE_CONTACT_LOCATION: StringName = &"CONTACT_LOCATION_NOT_CURRENT"
 const REFUSE_CONTACT_REVISION: StringName = &"CONTACT_DESTINATION_REVISION_STALE"
 const REFUSE_ROUTE_CONTACT: StringName = &"ROUTE_DOES_NOT_END_AT_CONTACT_APPROACH"
+## GROUND-CLEARANCE-R01v1: the admitted profile's clearance class and the route's actual
+## searched clearance class are not exactly equal. See `_refuse_clearance()`.
+const REFUSE_ROUTE_CLEARANCE: StringName = &"ROUTE_PROFILE_CLEARANCE_MISMATCH"
 
 ## The nine cold-image refusals of MOVEMENT-S4-VALIDATE-R01, one per gate of `columns_refusal()`.
 ## Each names a SAVED-IMAGE domain violation and never a live-admission outcome, so they are a
@@ -641,9 +644,33 @@ func _refuse_admission(
 		return contact_refusal
 	if not _navigation.is_ready(request_row):
 		return REFUSE_ROUTE_NOT_READY
+	var clearance_refusal: StringName = _refuse_clearance(admission, request_row)
+	if clearance_refusal != REFUSE_NONE:
+		return clearance_refusal
 	if not _route_ends_at(request_row, contact.approach.cell):
 		return REFUSE_ROUTE_CONTACT
 	return _refuse_route_start(resident, request_row)
+
+
+func _refuse_clearance(admission: Admission, request_row: int) -> StringName:
+	"""GROUND-CLEARANCE-R01v1's admission gate: the actual profile qualification result and the
+	route's actual searched clearance class must be exactly equal.
+
+	Reuses `_scratch` for both reads, capturing the profile's successful class into a local
+	BEFORE the second call overwrites it, per int_math.gd's aliasing rule. A route-reader
+	refusal on an already-confirmed-READY row is unexpected and maps to REFUSE_ROUTE_NOT_READY,
+	matching the contract's stated fallback. Production `profile_clearance_class_into()` is
+	unmodified and still refuses REFUSE_PROFILE_CLEARANCE for every starter profile; its named
+	refusal is propagated here rather than converted into a default class.
+	"""
+	if not profile_clearance_class_into(admission.profile_id, _scratch):
+		return StringName(_scratch.error)
+	var profile_class: int = _scratch.value
+	if not _navigation.route_clearance_into(request_row, _scratch):
+		return REFUSE_ROUTE_NOT_READY
+	if _scratch.value != profile_class:
+		return REFUSE_ROUTE_CLEARANCE
+	return REFUSE_NONE
 
 
 func _refuse_profile_terms(resident: Vector2i, admission: Admission) -> StringName:

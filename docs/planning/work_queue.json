@@ -1290,7 +1290,7 @@
       "agent": "self",
       "gate": "none",
       "acceptance": "PC-04/task08.2: household/caregiver schema, age-stage species coefficients, schedules, services, safety/interruption/warnings/rescue/consequences. No births/aging, child productive/hazardous work or adults-only fallback; exact integer coefficients and save/replay contracts.",
-      "note": "Astra v3 numerical/routine draft, state/lifecycle v2 and two independent reviews. Exact arithmetic passes; review repair confirmation and API/transaction packets remain. No dependent runtime activation or planning-complete claim."
+      "note": "Four independent planning reviews confirmed numerical tables, care latches, bounded state and repaired illness episodes. Fixed-stage FAMILY-RULES-R01 helper merged in PR149; family owner APIs, admission/lifecycle atomicity, relationship/injury consumers, named scenarios and qualified stage profiles remain. No dependent runtime activation or whole-family completion claim."
     },
     {
       "id": "PLAN-PC06-PROGRESSION",
@@ -2329,7 +2329,7 @@
     {
       "id": "INIT-C-PREP",
       "title": "Prepare exact authored refuge structures and candidate access graph",
-      "status": "in_flight",
+      "status": "done",
       "depends_on": [
         "INIT-A"
       ],
@@ -2342,7 +2342,28 @@
       "agent": "game-coder",
       "gate": "none",
       "acceptance": "INIT-C-PREP-R01v1/ADR0184:10packed arrays2480bytes, exact7buildings/4rooms/31floor instances/8edges/51candidate entries/12bed ordinals; atomic refusal and source pins, independent review, actual focused/full/CI. No live mutable owner allocation or physical admission claim.",
-      "note": "Independent review approved; final focused35/3674/0, reviewed full5034/526086/0, metadata26/450/0 and17static checks pass. Commit packaging and exact-headCI remain; runtime materialization and physical admission are still INIT-C work."
+      "note": "Accepted after independent review and both exact-head CI checks. CI5034tests/526086assertions/0; focus35/3674/0; metadata26/450/0. Runtime materialization and physical admission remain INIT-C work.",
+      "pr": 175,
+      "merge_commit": "260292e0033c33034d73ca83a33f80272f1284fb"
+    },
+    {
+      "id": "GROUND-CLEARANCE-ADMISSION",
+      "title": "Bind ground travel admission to qualified route clearance",
+      "status": "in_flight",
+      "depends_on": [],
+      "owns": [
+        "godot/scripts/core/movement.gd",
+        "godot/scripts/core/navigation.gd",
+        "godot/test/test_movement.gd",
+        "godot/test/test_movement_readmission.gd",
+        "godot/test/fixtures/synthetic_ground_movement.gd",
+        "godot/test/test_movement_clearance.gd",
+        "godot/test/ground_clearance_focus.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "acceptance": "GROUND-CLEARANCE-R01v1 / ADR0185: qualified profile and exact descriptor class required before attachment; prior traveller preserved on refusal; actual focused/full, three valid mutation witnesses, independent source review, committed identity and CI.",
+      "note": "Source-proven gap selected from corrected ground architecture review; all production profiles remain unqualified, existing positive motion suites use explicit test-only fixture."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

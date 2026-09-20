@@ -1,0 +1,18 @@
+{
+  "scope": "Historical framing evidence is not a current-source hash manifest. All original artifacts retained unchanged.",
+  "stages": [
+    {
+      "artifact": "implementation.patch",
+      "application": "patch-normalization.json / implementation-normalized.patch",
+      "source_identity": "import-a1.json / focus-a1.json",
+      "result": "Imported; one named semantic diagnostic failure found."
+    },
+    {
+      "artifact": "repair-a2.patch",
+      "application": "git apply --recount --check then --recount; worker-ledger.json",
+      "source_identity": "focus-a2.json / final-candidate.patch / mutation-results.json",
+      "result": "Repaired navigation.gd and new clearance suite only; all7 final source hashes in focus-a2.json."
+    }
+  ],
+  "review_scope": "source-review.md reviews stage2 current sources; stage1 normalized final_sha256 values describe the initial application only."
+}

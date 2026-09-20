@@ -1,0 +1,26 @@
+{
+  "review": "source-review.md",
+  "review_sha256": "5d4b35a15ed0e43fe189b886827bd6e88f68f32294c62ef5d2d49dc5e9c6bbd2",
+  "verdict": "No must-fix; accept source for remaining regression/static/commit/CI gates",
+  "advisories": {
+    "empty_error_propagation": "No current provider returns false with an empty error. Retain exact contract propagation; future profile publication must preserve named nonempty refusals. No speculative production fallback added.",
+    "unreachable_reader_refusal": "Documented in ADR0185 as equivalent current-production branch, retained defensive fallback. No fabricated independent path claimed.",
+    "admission_only": "Documented in ADR0185; no per-tick qualification/profile publication is part of this repair.",
+    "getter_assertion_completeness": "Shared nonready branch is exercised across requested phases; explicit error asserted for invalid row and success clearing. Extra repeated assertions advisory, not a missing branch or semantic gap.",
+    "long_test_scenarios": "Astra grants narrow test-only style exception for cohesive ordered before/after and getter-phase witnesses; helpers remain typed/bounded, production routines short. No blanket style waiver.",
+    "spawn_ok_assertion": "Nonblocking setup diagnostic suggestion; failure already prevents passing execution under strict runner. Existing success is executed. No change needed to source for this bounded repair.",
+    "patch_normalization": "Historical a1 snapshot preserved byte-exact. patch-lineage.json explicitly identifies later normally applied repair and final sources."
+  },
+  "source_corrections": [
+    "The review repeats stale movement-header arrears12384 in out-of-scope list. They were already paid via0066 and0083; no current debt exists. See ground-access-planning astra-disposition-r01.json.",
+    "Navigation._hold_route is called by Navigation._attach_route, not Movement._attach_route. Movement records an already READY request and does not acquire an extra descriptor hold; unchanged Navigation ownership on refusal is still established by read-only getter and executed snapshots.",
+    "Active mismatch witness uses public getter values plus full Transform bytes; review wording fifteen public getters is imprecise. Snapshot helper lists exact16scalar values; no complete private Movement image is claimed."
+  ],
+  "remaining": [
+    "Full regression on reviewed sources",
+    "Specification/generated metadata checks",
+    "Committed identity",
+    "Exact-head CI and merge"
+  ],
+  "accepted_product": false
+}

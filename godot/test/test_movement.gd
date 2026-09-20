@@ -6,6 +6,15 @@ extends "res://test/framework/test_case.gd"
 ## transition, no work contact, no reservation lease and no 300/900-tick retry. READY_07 1.2 places
 ## those after starter profiles, real services and work-unit context, and there is no JobState write
 ## anywhere in `movement.gd` for a test to assert against.
+##
+## GROUND-CLEARANCE-R01v1: production `Movement` admits no travel at all, because no starter
+## profile publishes a clearance class (`profile_clearance_class_into()` always refuses). Every
+## positive motion/readmission scenario below therefore runs against the test-only
+## `test/fixtures/synthetic_ground_movement.gd` subclass, which overrides ONLY that one reader
+## with an explicit synthetic class. Their passing motion and history are REFERENCE MOVEMENT
+## under a synthetic clearance, not evidence of qualified physical travel -- see
+## `test_movement_clearance.gd` for the actual admission-gate coverage, and
+## `test_no_profile_publishes_a_clearance_class` below for production's own, unweakened refusal.
 
 const SpatialWorldScript := preload("res://scripts/core/spatial_world.gd")
 const NavigationScript := preload("res://scripts/core/navigation.gd")
@@ -15,6 +24,7 @@ const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const IntMathScript := preload("res://scripts/core/int_math.gd")
+const SyntheticGroundMovementScript := preload("res://test/fixtures/synthetic_ground_movement.gd")
 
 ## GDD 5.2's inherited caps, read here only to assert that movement uses them unchanged.
 const SMALL_CAP_U_PER_S: int = 3277
@@ -66,13 +76,20 @@ func after_each() -> void:
 
 
 func _build(world: SpatialWorldScript) -> void:
-	"""Wire one directory, resident store, navigator, Transform store and mover together."""
+	"""Wire one directory, resident store, navigator, Transform store and a SYNTHETIC mover.
+
+	`_movement` is the test-only clearance fixture, not production `Movement`, so this suite's
+	positive travel scenarios can run at all -- see the file header. Production's own refusal is
+	asserted separately in `test_no_profile_publishes_a_clearance_class()`, against a freshly
+	built production instance sharing these same collaborators.
+	"""
 	_world = world
 	_directory = EntityDirectoryScript.new()
 	_residents = ResidentsScript.new(_directory, null)
 	_navigation = NavigationScript.new(_directory, world)
 	_transforms = TransformsScript.new(_directory)
-	_movement = MovementScript.new(_directory, world, _navigation, _transforms, _residents)
+	_movement = SyntheticGroundMovementScript.new(
+		_directory, world, _navigation, _transforms, _residents)
 	_result = IntMathScript.IntResult.new()
 	_pose = TransformsScript.Pose.new()
 
@@ -657,16 +674,24 @@ func test_an_unprofiled_species_refuses_rather_than_borrowing_a_size_neighbour()
 
 
 func test_no_profile_publishes_a_clearance_class() -> void:
-	"""The gap is a refusal a caller must handle, not a field nobody notices is missing."""
+	"""The gap is a refusal a caller must handle, not a field nobody notices is missing.
+
+	THIS TEST EXERCISES ACTUAL PRODUCTION `Movement`, not `_movement` -- which in this suite is
+	the synthetic clearance fixture -- because GROUND-CLEARANCE-R01v1 requires production's own
+	refusal to stay observed and unweakened. It builds a second Movement instance sharing this
+	test's other collaborators.
+	"""
+	var production: MovementScript = MovementScript.new(
+		_directory, _world, _navigation, _transforms, _residents)
 	for profile: int in MovementScript.PROFILE_COUNT:
 		assert_false(
-			_movement.profile_clearance_class_into(profile, _result),
+			production.profile_clearance_class_into(profile, _result),
 			"%s publishes no clearance" % MovementScript.PROFILE_KEYS[profile])
 		assert_equal(
-			_movement.last_refusal(), MovementScript.REFUSE_PROFILE_CLEARANCE, "refusal is named")
+			production.last_refusal(), MovementScript.REFUSE_PROFILE_CLEARANCE, "refusal is named")
 	assert_false(
-		_movement.profile_clearance_class_into(-1, _result), "and a bad id refuses differently")
-	assert_equal(_movement.last_refusal(), MovementScript.REFUSE_PROFILE_ID, "by its own name")
+		production.profile_clearance_class_into(-1, _result), "and a bad id refuses differently")
+	assert_equal(production.last_refusal(), MovementScript.REFUSE_PROFILE_ID, "by its own name")
 
 
 func test_only_ground_and_ford_walking_are_profiled_and_the_rest_are_enumerated() -> void:

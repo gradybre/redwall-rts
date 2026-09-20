@@ -101,7 +101,7 @@
   "props_texels_per_meter": 256,
   "source_lookdev_brief": {
     "path": "docs/art-reference/world_art_lookdev_brief.md",
-    "sha256": "4e8138103bb709dac9e71445b69c76f35fb63ce05f18decf4ef43fca76cd7edf"
+    "sha256": "5ac1e075f850ea0f87f6c450e79a13d8805cc21e2c6476e51f02f147316dc639"
   },
   "building_material_count": 4,
   "building_surfaces_by_lod": {
@@ -118,5 +118,7 @@
     "demote_mid_below_px": 43.2,
     "residence_seconds": 0.2,
     "status": "NEW_STATIC_POLICY"
-  }
+  },
+  "heights_field_note": "Legacy heights_candidate_u key retained for compatibility; values are DEC-039 approved anatomical height anchors, not movement clearances or approved landmark ratios.",
+  "reconciled_on": "2026-09-20"
 }

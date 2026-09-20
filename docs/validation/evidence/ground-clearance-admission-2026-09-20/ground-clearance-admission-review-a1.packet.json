@@ -1,0 +1,43 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "446d6d73d0dabc603df648b92a2d7e9edae55e92",
+  "task": "Independent exact-source review of qualified-clearance travel admission",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "ground-clearance-admission-review",
+    "role": "review",
+    "model": "claude-opus-5",
+    "contractEpoch": "GROUND-CLEARANCE-R01v1"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/ground_clearance_admission_contract.md",
+    "docs/decisions/0185-bind-travel-admission-to-qualified-route-clearance.md",
+    "docs/validation/evidence/ground-clearance-admission-2026-09-20/source-base.json",
+    "godot/scripts/core/movement.gd",
+    "godot/scripts/core/navigation.gd",
+    "godot/test/test_movement.gd",
+    "godot/test/test_movement_readmission.gd",
+    "godot/scripts/core/spatial_world.gd",
+    "godot/scripts/core/int_math.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "godot/test/fixtures/synthetic_ground_movement.gd",
+    "godot/test/test_movement_clearance.gd",
+    "godot/test/ground_clearance_focus.gd",
+    "docs/validation/evidence/ground-clearance-admission-2026-09-20/final-candidate.patch",
+    "docs/validation/evidence/ground-clearance-admission-2026-09-20/focus-a2.json",
+    "docs/validation/evidence/ground-clearance-admission-2026-09-20/mutation-results.json",
+    "godot/scripts/core/transforms.gd",
+    "docs/validation/evidence/ground-clearance-admission-2026-09-20/patch-normalization.json"
+  ],
+  "allowedWrites": {
+    "docs/validation/evidence/ground-clearance-admission-2026-09-20/source-review.md": null
+  },
+  "instructions": "Fresh independent combined correctness, safety, regression and test-quality review against GROUND-CLEARANCE-R01v1 and ADR0185. Review exact changed sources and patch. Return full review in summary, files:[], strict five-key bundle. State verdict and exact source scope; concrete must-fix counterexamples; distinguish source reasoning from supplied runtime evidence. Verify ordering of existing admission gates, actual profile qualification and exact descriptor class, read-only ready getter, refusal-before-any-attachment preserving existing traveller and Navigation ownership, no production permissive default/override flag/schema or graph change. Explicit synthetic test helper must override only existing profile reader, valid IDs only; base-production four-species refusal must remain independently covered. Check preserved old tests/assertions, meaningful positive advancement both classes, both mismatch directions, active-traveller readmission preservation all public getters/Transform state/route identity/refcount, getter status/result/diagnostic/purity behavior, refusal priorities and three valid counterfactuals. No actual profiles/body dimensions/publication are intended in this repair; do not demand separate physical topology/contact/whole-save milestones for its acceptance. Any old unchanged problem should be separate and must not justify silently widening this bounded repair. Parent will run full regression/static and exact committed CI; do not assert execution not present in supplied evidence. No first-playable claim. Preserve all material findings; no arbitrary line target. Actual final focus71tests2655assertions0, three semantic mutants caught without parse/engine errors. Initial one diagnostic failure is repaired; original source patch had framing-only unique-hunk normalization, repaired delta applied normally. Full regression is running separately. Final-candidate.patch and current full sources are authoritative for review.",
+  "reviewTarget": {
+    "path": "docs/validation/evidence/ground-clearance-admission-2026-09-20/source-review.md",
+    "baseSha256": null
+  }
+}

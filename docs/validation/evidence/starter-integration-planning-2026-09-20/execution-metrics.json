@@ -367,12 +367,6 @@
       "accepted_product": false
     }
   ],
-  "acceptance": {
-    "status": "review_approved_ci_pending",
-    "focused": "35/3674/0",
-    "local_full": "5034/526086/0 at e972ab6f; subsequent cosmetic signature/header checked by focus and pending CI",
-    "metadata": "26 cases/450 assertions/0 failures/0 invalid",
-    "review": "source-review-followup.md",
-    "disposition": "source-review-disposition-r02.json"
-  }
+  "acceptance": "acceptance.json",
+  "accepted": true
 }

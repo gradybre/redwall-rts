@@ -1,15 +1,16 @@
 # Settlement asset dimensions, budgets and close-actor admission
 
 2026-09-11 · ART-GAP-R01–05 · Astra authoring/engineering package.
-New budgets and vertical envelopes below are explicit design decisions, not
-measurements. Species-height candidates remain subject to decision 0002's
-user-required proportion review. DEC-038 approved the visual look, not new meters.
+The budgets and vertical envelopes are authored engineering decisions, not measurements.
+DEC-039 subsequently approved all five anatomical height anchors on 2026-09-12,
+including the squirrel's increase to1178u. This September20 reconciliation applies
+that existing decision; it adds no approval of landmark ratios, physical fit,
+finished assets or paid generation.
 
 ## GAP-01/02 — Separate anatomical height, movement radius and animated bounds
 
 The mouse anchor remains 1024 units = 1.0 m. Use integer units (1024/m) in
-metadata, converting to float only for import/presentation. The legacy medium
-1.49 m / large 2.55 m numbers are comparison candidates, not production ratios.
+metadata, converting to float only for import/presentation. The otter1526u and badger2611u height anchors are approved by DEC-039.
 Crowd §5's radii 184/246/461/922 are horizontal battle locomotion/separation
 inputs, not heights: dividing them by 184 cannot specify animal stature.
 Do not normalize a species by multiplying mouse height by its radius ratio.
@@ -22,25 +23,21 @@ AABB, carried/stowed equipment bounds and locomotion envelope. A squirrel's tail
 must not shrink its torso when imported. Nonstanding species need their own
 length/wingspan/contact conventions before production.
 
-| Species | Comparison height units | Approximate meters | Status |
+| Species | Approved anatomical height units | Approximate meters | Status |
 | --- | ---: | ---: | --- |
-| mouse | 1024 | 1.000000 | Inherited 1.0 m anchor; measurement convention newly specified |
-| mole | 922 | 0.900391 | Authored comparison candidate; not bulk-production approval |
-| squirrel | 1024 | 1.000000 | Authored comparison candidate; not bulk-production approval |
-| otter | 1526 | 1.490234 | Authored comparison candidate; not bulk-production approval |
-| badger | 2611 | 2.549805 | Authored comparison candidate; not bulk-production approval |
+| mouse | 1024 | 1.000000 | Inherited anchor; relative scale confirmed by DEC-039 |
+| mole | 922 | 0.900391 | Anatomical scale approved by DEC-039 |
+| squirrel | 1178 | 1.150391 | Raised above mouse and approved by DEC-039 |
+| otter | 1526 | 1.490234 | Anatomical scale approved by DEC-039 |
+| badger | 2611 | 2.549805 | Anatomical scale approved by DEC-039 |
 
-The otter and badger entries retain the prior 1.49/2.55 m candidates to integer
-precision; they do not elevate them into approved tier values. Mole/squirrel
-candidates now make single comparison assets and rig/pose studies concrete.
-Species anatomy and the approved courtyard look remain the visual guides.
-
-Decision 0002 explicitly requires mouse/hare-or-otter/badger beside the SAME
-door, table and workbench, standing/walking/carrying/crouching, close and at the
-RTS camera, before bulk proportions are approved. Produce that review rather
-than inventing user approval. Include mole and squirrel to resolve their new
-candidates. Giant residents remain excluded. These candidate heights do NOT
-set navigation clearance, service reach, step height or movement capability.
+DEC-039 records Brendan's review of the five-species comparison beside the same
+doorway and explicitly unblocks bulk creature authoring. Landmark ratios and
+production anatomy remain proposed; the comparison's boxes are not final assets.
+Do not request the settled height decision again or treat it as approval of
+unreviewed mesh proportions, poses or contacts. Giant residents remain excluded.
+These approved heights set no navigation clearance, service reach, step height
+or movement capability. Paid generation remains separately authorized.
 
 The current prep_unit.py scales the joined whole mesh AABB, including attachments.
 It is insufficient to verify this anatomical convention. Executor must separate
@@ -300,8 +297,11 @@ performance or exported-rig acceptance.
 
 ## Next execution and honest closure
 
-First bind these model-brief metadata and asset ceilings, prepare the single
-proportion comparison, and implement camera proxies/skeletal admission against
-existing runtime interfaces. No paid generation or bulk creature proportion
-approval is implied. Preserve the approved grounded visual style and supplied
-reference permission. The executor brief is now [docs/art-reference/world_art_lookdev_brief.md](../art-reference/world_art_lookdev_brief.md) (SET-ART-LOOKDEV-001); its originating temporary worktree has been removed. Its explicit blocked rows total nine: A2/A3/A4, B1/B2/B3, C3, D3/D5, despite its introductory claim of six. Use the entry mapping above; distinguish authoring readiness from production qualification.
+The dimension metadata and comparison scene already exist, and DEC-039 settles the
+five anatomical scales. Continue source-based anatomy, rig/pose and actual camera
+studies under those anchors, then qualify exported assets and movement envelopes.
+Preserve the approved grounded visual style and direct supplied-reference permission.
+The [world-art brief](../art-reference/world_art_lookdev_brief.md) carries the current
+asset assignments. Its original nine blocked entries are historical; current
+height approval must not be reported as pending. Finished-asset acceptance, paid
+generation and runtime/performance qualification remain separate.

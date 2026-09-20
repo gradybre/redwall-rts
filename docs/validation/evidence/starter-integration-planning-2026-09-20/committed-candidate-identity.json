@@ -1,0 +1,97 @@
+{
+  "scope": "Explicit-path commit packaging identity only, not test/review acceptance",
+  "commit": "446d6d73d0dabc603df648b92a2d7e9edae55e92",
+  "all_match": true,
+  "files": [
+    {
+      "path": "godot/scripts/core/starter_structures.gd",
+      "local_sha256": "462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa",
+      "committed_sha256": "462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa",
+      "match": true
+    },
+    {
+      "path": "godot/scripts/core/starter_structures.gd.uid",
+      "local_sha256": "882f5a623a85fec52bc7bc2452c3a08fb37b9097352c94172591dacb3cf44bb5",
+      "committed_sha256": "882f5a623a85fec52bc7bc2452c3a08fb37b9097352c94172591dacb3cf44bb5",
+      "match": true
+    },
+    {
+      "path": "godot/test/test_starter_structures.gd",
+      "local_sha256": "8ff3299e4c5644f79985636356a5afefa9edcd372ff0eaee289de63c2e6c1360",
+      "committed_sha256": "8ff3299e4c5644f79985636356a5afefa9edcd372ff0eaee289de63c2e6c1360",
+      "match": true
+    },
+    {
+      "path": "godot/test/test_starter_structures.gd.uid",
+      "local_sha256": "22120fabdc2515d1f7b376cd1177ce51b5f51d5910ad12099e240c40436e2311",
+      "committed_sha256": "22120fabdc2515d1f7b376cd1177ce51b5f51d5910ad12099e240c40436e2311",
+      "match": true
+    },
+    {
+      "path": "godot/test/starter_structures_focus.gd",
+      "local_sha256": "b82347f7176e1c8158234733ad8b2876163d2c48947f24e6928e93dd1f68178c",
+      "committed_sha256": "b82347f7176e1c8158234733ad8b2876163d2c48947f24e6928e93dd1f68178c",
+      "match": true
+    },
+    {
+      "path": "godot/test/starter_structures_focus.gd.uid",
+      "local_sha256": "8a6eb94b5f877495308a79fff41811fb16cb924182f034c8ab08a0f4e9b69352",
+      "committed_sha256": "8a6eb94b5f877495308a79fff41811fb16cb924182f034c8ab08a0f4e9b69352",
+      "match": true
+    },
+    {
+      "path": "tools/test_starter_structures_metadata.py",
+      "local_sha256": "daf155cacef1f0142fea2f0268ccfb13755c24f90893ce62a051761b38bdb831",
+      "committed_sha256": "daf155cacef1f0142fea2f0268ccfb13755c24f90893ce62a051761b38bdb831",
+      "match": true
+    },
+    {
+      "path": ".github/workflows/tests.yml",
+      "local_sha256": "0589a41da598ab42e791c1ab60e8492ac9bf6b39a7144aac684383e946d8085d",
+      "committed_sha256": "0589a41da598ab42e791c1ab60e8492ac9bf6b39a7144aac684383e946d8085d",
+      "match": true
+    },
+    {
+      "path": "docs/persistence_state_registry.md",
+      "local_sha256": "b47e7c1c0df77dd963f221946a249420388dff5fd37e1d265d423c2e0d740c58",
+      "committed_sha256": "b47e7c1c0df77dd963f221946a249420388dff5fd37e1d265d423c2e0d740c58",
+      "match": true
+    },
+    {
+      "path": "docs/validation/evidence/starter-integration-planning-2026-09-20/layout-reference.json",
+      "local_sha256": "924e03d9a9e8a3ac1d3d7fc6ec7a2d81161963a15dd6ff9d7066183c6e6861d6",
+      "committed_sha256": "924e03d9a9e8a3ac1d3d7fc6ec7a2d81161963a15dd6ff9d7066183c6e6861d6",
+      "match": true
+    },
+    {
+      "path": "docs/validation/evidence/starter-integration-planning-2026-09-20/README.md",
+      "local_sha256": "5aa2420977580db5e05d970c9338b7c185052cea3c48008f4d2b77f4bd4e297e",
+      "committed_sha256": "5aa2420977580db5e05d970c9338b7c185052cea3c48008f4d2b77f4bd4e297e",
+      "match": true
+    },
+    {
+      "path": "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd",
+      "local_sha256": "462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa",
+      "committed_sha256": "462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa",
+      "match": true
+    },
+    {
+      "path": "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures.gd",
+      "local_sha256": "8ff3299e4c5644f79985636356a5afefa9edcd372ff0eaee289de63c2e6c1360",
+      "committed_sha256": "8ff3299e4c5644f79985636356a5afefa9edcd372ff0eaee289de63c2e6c1360",
+      "match": true
+    },
+    {
+      "path": "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures_focus.gd",
+      "local_sha256": "b82347f7176e1c8158234733ad8b2876163d2c48947f24e6928e93dd1f68178c",
+      "committed_sha256": "b82347f7176e1c8158234733ad8b2876163d2c48947f24e6928e93dd1f68178c",
+      "match": true
+    },
+    {
+      "path": "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures_metadata.py",
+      "local_sha256": "daf155cacef1f0142fea2f0268ccfb13755c24f90893ce62a051761b38bdb831",
+      "committed_sha256": "daf155cacef1f0142fea2f0268ccfb13755c24f90893ce62a051761b38bdb831",
+      "match": true
+    }
+  ]
+}

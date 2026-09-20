@@ -1,0 +1,19 @@
+{
+  "attempt": "ground-clearance-admission-review-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "ground-clearance-admission-review",
+    "role": "review",
+    "model": "claude-opus-5",
+    "contractEpoch": "GROUND-CLEARANCE-R01v1"
+  },
+  "session_id": "354f6d8b-1402-42df-bb4a-44ef3ed7927f",
+  "owner_stopped": true,
+  "base_commit": "446d6d73d0dabc603df648b92a2d7e9edae55e92",
+  "integration_head": "446d6d73d0dabc603df648b92a2d7e9edae55e92",
+  "source_inputs_reverified": true,
+  "files": {
+    "docs/validation/evidence/ground-clearance-admission-2026-09-20/source-review.md": "5d4b35a15ed0e43fe189b886827bd6e88f68f32294c62ef5d2d49dc5e9c6bbd2"
+  },
+  "approval": "artifact_intake_only_not_product_acceptance"
+}

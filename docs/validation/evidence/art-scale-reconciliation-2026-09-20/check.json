@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "checks": [
+    "both current species tables equal DEC-039 anchors",
+    "JSON numeric anchors unchanged",
+    "source brief digest matches",
+    "diff whitespace check passed"
+  ],
+  "scope": "Document authority reconciliation only; not visual or geometry acceptance"
+}

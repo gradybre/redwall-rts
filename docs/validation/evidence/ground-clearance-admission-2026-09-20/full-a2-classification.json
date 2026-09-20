@@ -1,0 +1,26 @@
+{
+  "reason": "Initial new parent harness allowed shutdown resource diagnostic but did not allow existing deliberate fault-test ERROR messages. The underlying guarded full suite exited0 with zero test failures. Original classification retained; this separate comparison corrects only evidence interpretation.",
+  "candidate": "full-a2.json",
+  "candidate_log_sha256": "f46b9e4a42658423809edd57ea37df16f28478941dbbd2d16ee26c869bc82a70",
+  "baseline": "docs/validation/evidence/starter-integration-planning-2026-09-20/integrated-review-full-suite.log",
+  "baseline_log_sha256": "7f169fe58e701e8aeafa6e163702b58d98ef547eb88bc7f16cb1acaa9fdbb68f",
+  "exact_error_multiset_equal": true,
+  "baseline_errors": [
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'OVERFLOW' at hour tick 750 is unrecovered (retries attempted: 0); the simulation is halted until the settlement is reset.",
+    "ERROR: SettlementSystem: stock integrity fault 'INVENTORY_TRANSACTION_OPEN' at hour tick 750 is unrecovered (retries attempted: 1); the simulation is halted until the settlement is reset.",
+    "ERROR: ui_frame_builder: UI_FRAME_PANEL_TOO_SMALL for frame 0 at (20.000000, 20.000000)",
+    "ERROR: ui_frame_builder: UI_FRAME_UNKNOWN_FRAME for frame 5 at (300.000000, 120.000000)",
+    "ERROR: ui_frame_builder: UI_FRAME_NULL_PANEL",
+    "ERROR: UIManager.register_hud() was given null; the HUD will not update.",
+    "ERROR: 33 resources still in use at exit (run with --verbose for details)."
+  ],
+  "new_errors": [],
+  "tests": 5046,
+  "assertions": 526349,
+  "failures": 0,
+  "passed": true,
+  "shutdown_diagnostics": "Existing553ObjectDB/33resources remain open; no leak fix claimed"
+}

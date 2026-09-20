@@ -1,0 +1,111 @@
+{
+  "scope": "Literal preload graph only; actual import remains separate",
+  "root": "godot/scripts/core/save_owner_field_policy.gd",
+  "node_count": 21,
+  "edges": {
+    "godot/scripts/core/save_owner_field_policy.gd": [
+      "godot/scripts/core/field_policy.gd",
+      "godot/scripts/core/save_component_columns_schema.gd",
+      "godot/scripts/core/save_section_component_columns.gd",
+      "godot/scripts/core/save_header.gd"
+    ],
+    "godot/scripts/core/field_policy.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/entity_directory.gd",
+      "godot/scripts/core/farming.gd",
+      "godot/scripts/core/forage.gd",
+      "godot/scripts/core/jobs.gd",
+      "godot/scripts/core/sim_clock.gd"
+    ],
+    "godot/scripts/core/int_math.gd": [
+      "godot/scripts/core/int_math.gd"
+    ],
+    "godot/scripts/core/entity_directory.gd": [],
+    "godot/scripts/core/farming.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/catalog.gd",
+      "godot/scripts/core/sim_clock.gd",
+      "godot/scripts/core/entity_directory.gd"
+    ],
+    "godot/scripts/core/catalog.gd": [],
+    "godot/scripts/core/sim_clock.gd": [
+      "godot/scripts/core/int_math.gd"
+    ],
+    "godot/scripts/core/forage.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/entity_directory.gd",
+      "godot/scripts/core/catalog.gd",
+      "godot/scripts/core/rng.gd",
+      "godot/scripts/core/sim_clock.gd",
+      "godot/scripts/core/jobs.gd"
+    ],
+    "godot/scripts/core/rng.gd": [
+      "godot/scripts/core/int_math.gd"
+    ],
+    "godot/scripts/core/jobs.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/catalog.gd",
+      "godot/scripts/core/entity_directory.gd",
+      "godot/scripts/core/needs.gd",
+      "godot/scripts/core/residents.gd",
+      "godot/scripts/core/priorities.gd",
+      "godot/scripts/core/schedule.gd"
+    ],
+    "godot/scripts/core/needs.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/entity_directory.gd"
+    ],
+    "godot/scripts/core/residents.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/entity_directory.gd",
+      "godot/scripts/core/needs.gd",
+      "godot/scripts/core/catalog.gd"
+    ],
+    "godot/scripts/core/priorities.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/catalog.gd",
+      "godot/scripts/core/needs.gd"
+    ],
+    "godot/scripts/core/schedule.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/catalog.gd",
+      "godot/scripts/core/needs.gd"
+    ],
+    "godot/scripts/core/save_component_columns_schema.gd": [
+      "godot/scripts/core/save_header.gd"
+    ],
+    "godot/scripts/core/save_header.gd": [
+      "godot/scripts/core/save_codec.gd",
+      "godot/scripts/core/catalog_ids.gd",
+      "godot/scripts/core/int_math.gd"
+    ],
+    "godot/scripts/core/save_codec.gd": [
+      "godot/scripts/core/save_codec.gd"
+    ],
+    "godot/scripts/core/catalog_ids.gd": [
+      "godot/scripts/core/catalog.gd",
+      "godot/scripts/core/item_definitions.gd",
+      "godot/scripts/core/residents.gd",
+      "godot/scripts/core/farming.gd",
+      "godot/scripts/core/schedule.gd",
+      "godot/scripts/core/forage.gd"
+    ],
+    "godot/scripts/core/item_definitions.gd": [
+      "godot/scripts/core/catalog.gd",
+      "godot/scripts/core/inventory.gd"
+    ],
+    "godot/scripts/core/inventory.gd": [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/catalog.gd"
+    ],
+    "godot/scripts/core/save_section_component_columns.gd": [
+      "godot/scripts/core/save_component_columns_schema.gd",
+      "godot/scripts/core/save_codec.gd",
+      "godot/scripts/core/save_header.gd"
+    ]
+  },
+  "self_edges": [
+    "godot/scripts/core/int_math.gd",
+    "godot/scripts/core/save_codec.gd"
+  ]
+}

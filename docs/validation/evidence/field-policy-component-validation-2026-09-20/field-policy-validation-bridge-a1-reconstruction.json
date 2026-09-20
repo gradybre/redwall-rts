@@ -1,0 +1,7 @@
+{
+  "scope": "Exact source reconstruction only; production unapplied and runtime not tested",
+  "pending_production_intake": "PR169 merge",
+  "sha256": {
+    "godot/scripts/core/save_owner_field_policy.gd": "1ac4a181ca75dbfdfc82891203a22dd5b6082e6d2740b1c5801eb95fb698991d"
+  }
+}

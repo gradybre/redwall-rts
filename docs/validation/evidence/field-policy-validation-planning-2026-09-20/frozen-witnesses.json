@@ -1,0 +1,2137 @@
+{
+  "status": "frozen planned fixtures; not execution",
+  "fields": [
+    "field_present",
+    "zone_slot",
+    "zone_generation",
+    "rotation_ids",
+    "rotation_cursor",
+    "auto_rotation",
+    "seed_reserve",
+    "cycle_ordinal",
+    "participants",
+    "resolved",
+    "withdrawn",
+    "completed_cycles",
+    "cancelled_cycles",
+    "requested_crop",
+    "cycle_state",
+    "close_reason",
+    "request_state",
+    "plot_field_slot",
+    "plot_cycle",
+    "plot_outcome"
+  ],
+  "fixtures": {
+    "clear": {},
+    "idle": {
+      "field_present": 1,
+      "zone_slot": 352417,
+      "zone_generation": 2147483647,
+      "cycle_ordinal": 2
+    },
+    "open_empty": {
+      "field_present": 1,
+      "zone_slot": 352417,
+      "zone_generation": 2147483647,
+      "cycle_ordinal": 2,
+      "cycle_state": 1
+    },
+    "open": {
+      "field_present": 1,
+      "zone_slot": 352417,
+      "zone_generation": 2147483647,
+      "cycle_ordinal": 2,
+      "cycle_state": 1,
+      "participants": 3,
+      "resolved": 1,
+      "withdrawn": 1
+    },
+    "completed": {
+      "field_present": 1,
+      "zone_slot": 352417,
+      "zone_generation": 2147483647,
+      "cycle_ordinal": 4,
+      "participants": 2,
+      "resolved": 2,
+      "withdrawn": 1,
+      "completed_cycles": 1,
+      "cycle_state": 2,
+      "close_reason": 1
+    },
+    "cancelled": {
+      "field_present": 1,
+      "zone_slot": 352417,
+      "zone_generation": 2147483647,
+      "cycle_ordinal": 4,
+      "participants": 2,
+      "resolved": 1,
+      "withdrawn": 1,
+      "cancelled_cycles": 1,
+      "cycle_state": 2,
+      "close_reason": 2
+    },
+    "cancelled_empty": {
+      "field_present": 1,
+      "zone_slot": 352417,
+      "zone_generation": 2147483647,
+      "cycle_ordinal": 1,
+      "cancelled_cycles": 1,
+      "cycle_state": 2,
+      "close_reason": 2
+    },
+    "abandoned": {
+      "field_present": 1,
+      "zone_slot": 352417,
+      "zone_generation": 2147483647,
+      "cycle_ordinal": 1,
+      "withdrawn": 1,
+      "cycle_state": 2,
+      "close_reason": 3
+    },
+    "inactive_completed": {
+      "cycle_ordinal": 4,
+      "completed_cycles": 1,
+      "withdrawn": 1,
+      "close_reason": 1
+    },
+    "inactive_cancelled": {
+      "cycle_ordinal": 4,
+      "cancelled_cycles": 1,
+      "withdrawn": 1,
+      "close_reason": 2
+    },
+    "inactive_abandoned": {
+      "cycle_ordinal": 4,
+      "withdrawn": 1,
+      "close_reason": 3
+    },
+    "request": {
+      "field_present": 1,
+      "zone_slot": 352417,
+      "zone_generation": 2147483647,
+      "cycle_ordinal": 4,
+      "participants": 2,
+      "resolved": 2,
+      "withdrawn": 1,
+      "completed_cycles": 1,
+      "cycle_state": 2,
+      "close_reason": 1,
+      "requested_crop": 4,
+      "request_state": 1
+    }
+  },
+  "fixture_expansion": {
+    "target_field_row": 127,
+    "request_rotation_index": 381,
+    "request_rotation_value": 4,
+    "open_plot_rows": [
+      4092,
+      4093,
+      4094,
+      4095
+    ],
+    "open_plot_field": 127,
+    "open_plot_stamp": 2,
+    "open_plot_outcomes": [
+      0,
+      0,
+      1,
+      3
+    ]
+  },
+  "cases": [
+    {
+      "name": "accept-clear",
+      "base": "clear",
+      "changes": [],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-idle",
+      "base": "idle",
+      "changes": [],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-open_empty",
+      "base": "open_empty",
+      "changes": [],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-open",
+      "base": "open",
+      "changes": [],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-completed",
+      "base": "completed",
+      "changes": [],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-cancelled",
+      "base": "cancelled",
+      "changes": [],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-cancelled_empty",
+      "base": "cancelled_empty",
+      "changes": [],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-abandoned",
+      "base": "abandoned",
+      "changes": [],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-inactive_completed",
+      "base": "inactive_completed",
+      "changes": [],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-inactive_cancelled",
+      "base": "inactive_cancelled",
+      "changes": [],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-inactive_abandoned",
+      "base": "inactive_abandoned",
+      "changes": [],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-request",
+      "base": "request",
+      "changes": [],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "projection-field_present",
+      "base": "clear",
+      "changes": [
+        [
+          0,
+          127,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAGS",
+      "mutant": "omit-projection-field_present"
+    },
+    {
+      "name": "projection-zone_slot",
+      "base": "clear",
+      "changes": [
+        [
+          1,
+          127,
+          -2
+        ]
+      ],
+      "code": "COLUMN_ZONE_REF",
+      "mutant": "omit-projection-zone_slot"
+    },
+    {
+      "name": "projection-zone_generation",
+      "base": "clear",
+      "changes": [
+        [
+          2,
+          127,
+          -1
+        ]
+      ],
+      "code": "COLUMN_ZONE_REF",
+      "mutant": "omit-projection-zone_generation"
+    },
+    {
+      "name": "projection-rotation_ids",
+      "base": "clear",
+      "changes": [
+        [
+          3,
+          381,
+          -2
+        ]
+      ],
+      "code": "COLUMN_ROTATION",
+      "mutant": "omit-projection-rotation_ids"
+    },
+    {
+      "name": "projection-rotation_cursor",
+      "base": "clear",
+      "changes": [
+        [
+          4,
+          127,
+          3
+        ]
+      ],
+      "code": "COLUMN_ROTATION",
+      "mutant": "omit-projection-rotation_cursor"
+    },
+    {
+      "name": "projection-auto_rotation",
+      "base": "clear",
+      "changes": [
+        [
+          5,
+          127,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAGS",
+      "mutant": "omit-projection-auto_rotation"
+    },
+    {
+      "name": "projection-seed_reserve",
+      "base": "clear",
+      "changes": [
+        [
+          6,
+          127,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAGS",
+      "mutant": "omit-projection-seed_reserve"
+    },
+    {
+      "name": "projection-cycle_ordinal",
+      "base": "clear",
+      "changes": [
+        [
+          7,
+          127,
+          -1
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "omit-projection-cycle_ordinal"
+    },
+    {
+      "name": "projection-participants",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          127,
+          -1
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "omit-projection-participants"
+    },
+    {
+      "name": "projection-resolved",
+      "base": "clear",
+      "changes": [
+        [
+          9,
+          127,
+          -1
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "omit-projection-resolved"
+    },
+    {
+      "name": "projection-withdrawn",
+      "base": "clear",
+      "changes": [
+        [
+          10,
+          127,
+          -1
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "omit-projection-withdrawn"
+    },
+    {
+      "name": "projection-completed_cycles",
+      "base": "clear",
+      "changes": [
+        [
+          11,
+          127,
+          -1
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "omit-projection-completed_cycles"
+    },
+    {
+      "name": "projection-cancelled_cycles",
+      "base": "clear",
+      "changes": [
+        [
+          12,
+          127,
+          -1
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "omit-projection-cancelled_cycles"
+    },
+    {
+      "name": "projection-requested_crop",
+      "base": "clear",
+      "changes": [
+        [
+          13,
+          127,
+          -2
+        ]
+      ],
+      "code": "COLUMN_ROTATION",
+      "mutant": "omit-projection-requested_crop"
+    },
+    {
+      "name": "projection-cycle_state",
+      "base": "clear",
+      "changes": [
+        [
+          14,
+          127,
+          3
+        ]
+      ],
+      "code": "COLUMN_FLAGS",
+      "mutant": "omit-projection-cycle_state"
+    },
+    {
+      "name": "projection-close_reason",
+      "base": "clear",
+      "changes": [
+        [
+          15,
+          127,
+          4
+        ]
+      ],
+      "code": "COLUMN_FLAGS",
+      "mutant": "omit-projection-close_reason"
+    },
+    {
+      "name": "projection-request_state",
+      "base": "clear",
+      "changes": [
+        [
+          16,
+          127,
+          6
+        ]
+      ],
+      "code": "COLUMN_FLAGS",
+      "mutant": "omit-projection-request_state"
+    },
+    {
+      "name": "projection-plot_field_slot",
+      "base": "clear",
+      "changes": [
+        [
+          17,
+          4095,
+          -2
+        ]
+      ],
+      "code": "COLUMN_PLOT_LEDGER",
+      "mutant": "omit-projection-plot_field_slot"
+    },
+    {
+      "name": "projection-plot_cycle",
+      "base": "clear",
+      "changes": [
+        [
+          18,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_PLOT_LEDGER",
+      "mutant": "omit-projection-plot_cycle"
+    },
+    {
+      "name": "projection-plot_outcome",
+      "base": "clear",
+      "changes": [
+        [
+          19,
+          4095,
+          4
+        ]
+      ],
+      "code": "COLUMN_FLAGS",
+      "mutant": "omit-projection-plot_outcome"
+    },
+    {
+      "name": "byte-field_present",
+      "base": "clear",
+      "changes": [
+        [
+          0,
+          127,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAGS",
+      "mutant": "omit-byte-field_present"
+    },
+    {
+      "name": "byte-auto_rotation",
+      "base": "clear",
+      "changes": [
+        [
+          5,
+          127,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAGS",
+      "mutant": "omit-byte-auto_rotation"
+    },
+    {
+      "name": "byte-seed_reserve",
+      "base": "clear",
+      "changes": [
+        [
+          6,
+          127,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAGS",
+      "mutant": "omit-byte-seed_reserve"
+    },
+    {
+      "name": "byte-cycle_state",
+      "base": "clear",
+      "changes": [
+        [
+          14,
+          127,
+          3
+        ]
+      ],
+      "code": "COLUMN_FLAGS",
+      "mutant": "omit-byte-cycle_state"
+    },
+    {
+      "name": "byte-close_reason",
+      "base": "clear",
+      "changes": [
+        [
+          15,
+          127,
+          4
+        ]
+      ],
+      "code": "COLUMN_FLAGS",
+      "mutant": "omit-byte-close_reason"
+    },
+    {
+      "name": "byte-request_state",
+      "base": "clear",
+      "changes": [
+        [
+          16,
+          127,
+          6
+        ]
+      ],
+      "code": "COLUMN_FLAGS",
+      "mutant": "omit-byte-request_state"
+    },
+    {
+      "name": "byte-plot_outcome",
+      "base": "clear",
+      "changes": [
+        [
+          19,
+          4095,
+          4
+        ]
+      ],
+      "code": "COLUMN_FLAGS",
+      "mutant": "omit-byte-plot_outcome"
+    },
+    {
+      "name": "rotation-3--2",
+      "base": "clear",
+      "changes": [
+        [
+          3,
+          383,
+          -2
+        ]
+      ],
+      "code": "COLUMN_ROTATION",
+      "mutant": "rotation-domain-rotation_ids"
+    },
+    {
+      "name": "rotation-3-5",
+      "base": "clear",
+      "changes": [
+        [
+          3,
+          383,
+          5
+        ]
+      ],
+      "code": "COLUMN_ROTATION",
+      "mutant": "rotation-domain-rotation_ids"
+    },
+    {
+      "name": "rotation-4--1",
+      "base": "clear",
+      "changes": [
+        [
+          4,
+          127,
+          -1
+        ]
+      ],
+      "code": "COLUMN_ROTATION",
+      "mutant": "rotation-domain-rotation_cursor"
+    },
+    {
+      "name": "rotation-4-3",
+      "base": "clear",
+      "changes": [
+        [
+          4,
+          127,
+          3
+        ]
+      ],
+      "code": "COLUMN_ROTATION",
+      "mutant": "rotation-domain-rotation_cursor"
+    },
+    {
+      "name": "rotation-13--2",
+      "base": "clear",
+      "changes": [
+        [
+          13,
+          127,
+          -2
+        ]
+      ],
+      "code": "COLUMN_ROTATION",
+      "mutant": "rotation-domain-requested_crop"
+    },
+    {
+      "name": "rotation-13-5",
+      "base": "clear",
+      "changes": [
+        [
+          13,
+          127,
+          5
+        ]
+      ],
+      "code": "COLUMN_ROTATION",
+      "mutant": "rotation-domain-requested_crop"
+    },
+    {
+      "name": "zone-idle-1--1",
+      "base": "idle",
+      "changes": [
+        [
+          1,
+          127,
+          -1
+        ]
+      ],
+      "code": "COLUMN_ZONE_REF",
+      "mutant": "zone-pair-idle"
+    },
+    {
+      "name": "zone-idle-1-352418",
+      "base": "idle",
+      "changes": [
+        [
+          1,
+          127,
+          352418
+        ]
+      ],
+      "code": "COLUMN_ZONE_REF",
+      "mutant": "zone-pair-idle"
+    },
+    {
+      "name": "zone-idle-2-0",
+      "base": "idle",
+      "changes": [
+        [
+          2,
+          127,
+          0
+        ]
+      ],
+      "code": "COLUMN_ZONE_REF",
+      "mutant": "zone-pair-idle"
+    },
+    {
+      "name": "zone-idle-2--1",
+      "base": "idle",
+      "changes": [
+        [
+          2,
+          127,
+          -1
+        ]
+      ],
+      "code": "COLUMN_ZONE_REF",
+      "mutant": "zone-pair-idle"
+    },
+    {
+      "name": "zone-clear-1-0",
+      "base": "clear",
+      "changes": [
+        [
+          1,
+          127,
+          0
+        ]
+      ],
+      "code": "COLUMN_ZONE_REF",
+      "mutant": "zone-pair-clear"
+    },
+    {
+      "name": "zone-clear-2-1",
+      "base": "clear",
+      "changes": [
+        [
+          2,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_ZONE_REF",
+      "mutant": "zone-pair-clear"
+    },
+    {
+      "name": "negative-counter-cycle_ordinal",
+      "base": "clear",
+      "changes": [
+        [
+          7,
+          127,
+          -1
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "negative-cycle_ordinal"
+    },
+    {
+      "name": "negative-counter-participants",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          127,
+          -1
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "negative-participants"
+    },
+    {
+      "name": "negative-counter-resolved",
+      "base": "clear",
+      "changes": [
+        [
+          9,
+          127,
+          -1
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "negative-resolved"
+    },
+    {
+      "name": "negative-counter-withdrawn",
+      "base": "clear",
+      "changes": [
+        [
+          10,
+          127,
+          -1
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "negative-withdrawn"
+    },
+    {
+      "name": "negative-counter-completed_cycles",
+      "base": "clear",
+      "changes": [
+        [
+          11,
+          127,
+          -1
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "negative-completed_cycles"
+    },
+    {
+      "name": "negative-counter-cancelled_cycles",
+      "base": "clear",
+      "changes": [
+        [
+          12,
+          127,
+          -1
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "negative-cancelled_cycles"
+    },
+    {
+      "name": "oversize-counter-participants",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          127,
+          4097
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "oversize-participants"
+    },
+    {
+      "name": "oversize-counter-resolved",
+      "base": "clear",
+      "changes": [
+        [
+          9,
+          127,
+          4097
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "oversize-resolved"
+    },
+    {
+      "name": "oversize-counter-withdrawn",
+      "base": "clear",
+      "changes": [
+        [
+          10,
+          127,
+          4097
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "oversize-withdrawn"
+    },
+    {
+      "name": "resolved-over-participants",
+      "base": "completed",
+      "changes": [
+        [
+          9,
+          127,
+          3
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "resolved-over-participants"
+    },
+    {
+      "name": "participants-plus-withdrawn",
+      "base": "completed",
+      "changes": [
+        [
+          8,
+          127,
+          4096
+        ],
+        [
+          9,
+          127,
+          4096
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "participants-plus-withdrawn"
+    },
+    {
+      "name": "history-sum-over-ordinal",
+      "base": "inactive_completed",
+      "changes": [
+        [
+          11,
+          127,
+          3
+        ],
+        [
+          12,
+          127,
+          2
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "history-sum-over-ordinal"
+    },
+    {
+      "name": "history-sum-no-i32-wrap",
+      "base": "inactive_completed",
+      "changes": [
+        [
+          7,
+          127,
+          2147483647
+        ],
+        [
+          11,
+          127,
+          2147483647
+        ],
+        [
+          12,
+          127,
+          2147483647
+        ]
+      ],
+      "code": "COLUMN_COUNTERS",
+      "mutant": "history-sum-no-i32-wrap"
+    },
+    {
+      "name": "accept-max-history",
+      "base": "inactive_completed",
+      "changes": [
+        [
+          7,
+          127,
+          2147483647
+        ],
+        [
+          11,
+          127,
+          2147483647
+        ],
+        [
+          10,
+          127,
+          4096
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "inactive-state",
+      "base": "clear",
+      "changes": [
+        [
+          14,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "inactive-state"
+    },
+    {
+      "name": "inactive-participants",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "inactive-participants"
+    },
+    {
+      "name": "inactive-resolved",
+      "base": "clear",
+      "changes": [
+        [
+          8,
+          127,
+          1
+        ],
+        [
+          9,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "inactive-resolved"
+    },
+    {
+      "name": "idle-participants",
+      "base": "idle",
+      "changes": [
+        [
+          8,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "idle-participants"
+    },
+    {
+      "name": "idle-resolved",
+      "base": "idle",
+      "changes": [
+        [
+          8,
+          127,
+          1
+        ],
+        [
+          9,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "idle-resolved"
+    },
+    {
+      "name": "idle-withdrawn",
+      "base": "idle",
+      "changes": [
+        [
+          10,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "idle-withdrawn"
+    },
+    {
+      "name": "idle-completed",
+      "base": "idle",
+      "changes": [
+        [
+          11,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "idle-completed"
+    },
+    {
+      "name": "idle-cancelled",
+      "base": "idle",
+      "changes": [
+        [
+          12,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "idle-cancelled"
+    },
+    {
+      "name": "idle-close",
+      "base": "idle",
+      "changes": [
+        [
+          15,
+          127,
+          3
+        ],
+        [
+          10,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "idle-close"
+    },
+    {
+      "name": "open-zero-ordinal",
+      "base": "open_empty",
+      "changes": [
+        [
+          7,
+          127,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "open-zero-ordinal"
+    },
+    {
+      "name": "open-close",
+      "base": "open_empty",
+      "changes": [
+        [
+          15,
+          127,
+          3
+        ],
+        [
+          10,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "open-close"
+    },
+    {
+      "name": "open-empty-withdrawn",
+      "base": "open_empty",
+      "changes": [
+        [
+          10,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "open-empty-withdrawn"
+    },
+    {
+      "name": "open-all-resolved",
+      "base": "open",
+      "changes": [
+        [
+          9,
+          127,
+          3
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "open-all-resolved"
+    },
+    {
+      "name": "closed-zero-ordinal",
+      "base": "abandoned",
+      "changes": [
+        [
+          7,
+          127,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "closed-zero-ordinal"
+    },
+    {
+      "name": "closed-no-reason",
+      "base": "completed",
+      "changes": [
+        [
+          15,
+          127,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "closed-no-reason"
+    },
+    {
+      "name": "completed-empty",
+      "base": "completed",
+      "changes": [
+        [
+          8,
+          127,
+          0
+        ],
+        [
+          9,
+          127,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "completed-empty"
+    },
+    {
+      "name": "completed-unresolved",
+      "base": "completed",
+      "changes": [
+        [
+          9,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "completed-unresolved"
+    },
+    {
+      "name": "cancelled-all-resolved",
+      "base": "cancelled",
+      "changes": [
+        [
+          9,
+          127,
+          2
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "cancelled-all-resolved"
+    },
+    {
+      "name": "cancelled-empty-withdrawn",
+      "base": "cancelled_empty",
+      "changes": [
+        [
+          10,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "cancelled-empty-withdrawn"
+    },
+    {
+      "name": "abandoned-participants",
+      "base": "abandoned",
+      "changes": [
+        [
+          8,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "abandoned-participants"
+    },
+    {
+      "name": "history-close-zero-ordinal",
+      "base": "clear",
+      "changes": [
+        [
+          15,
+          127,
+          3
+        ],
+        [
+          10,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "history-close-zero-ordinal"
+    },
+    {
+      "name": "history-completed-zero-count",
+      "base": "inactive_completed",
+      "changes": [
+        [
+          11,
+          127,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "history-completed-zero-count"
+    },
+    {
+      "name": "history-cancelled-zero-count",
+      "base": "inactive_cancelled",
+      "changes": [
+        [
+          12,
+          127,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "history-cancelled-zero-count"
+    },
+    {
+      "name": "history-abandoned-zero-withdrawn",
+      "base": "inactive_abandoned",
+      "changes": [
+        [
+          10,
+          127,
+          0
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "history-abandoned-zero-withdrawn"
+    },
+    {
+      "name": "withdrawn-zero-ordinal",
+      "base": "clear",
+      "changes": [
+        [
+          10,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_STATE",
+      "mutant": "withdrawn-zero-ordinal"
+    },
+    {
+      "name": "request-none-crop",
+      "base": "completed",
+      "changes": [
+        [
+          13,
+          127,
+          0
+        ]
+      ],
+      "code": "COLUMN_REQUEST",
+      "mutant": "request-none-crop"
+    },
+    {
+      "name": "inactive-request",
+      "base": "inactive_completed",
+      "changes": [
+        [
+          16,
+          127,
+          4
+        ]
+      ],
+      "code": "COLUMN_REQUEST",
+      "mutant": "inactive-request"
+    },
+    {
+      "name": "idle-request",
+      "base": "idle",
+      "changes": [
+        [
+          16,
+          127,
+          4
+        ]
+      ],
+      "code": "COLUMN_REQUEST",
+      "mutant": "idle-request"
+    },
+    {
+      "name": "open-request",
+      "base": "open_empty",
+      "changes": [
+        [
+          16,
+          127,
+          4
+        ]
+      ],
+      "code": "COLUMN_REQUEST",
+      "mutant": "open-request"
+    },
+    {
+      "name": "request-not-completed",
+      "base": "cancelled",
+      "changes": [
+        [
+          16,
+          127,
+          4
+        ]
+      ],
+      "code": "COLUMN_REQUEST",
+      "mutant": "request-not-completed"
+    },
+    {
+      "name": "request-crop-mismatch",
+      "base": "request",
+      "changes": [
+        [
+          13,
+          127,
+          3
+        ]
+      ],
+      "code": "COLUMN_REQUEST",
+      "mutant": "request-crop-mismatch"
+    },
+    {
+      "name": "request-empty-wrong-state",
+      "base": "completed",
+      "changes": [
+        [
+          16,
+          127,
+          1
+        ]
+      ],
+      "code": "COLUMN_REQUEST",
+      "mutant": "request-empty-wrong-state"
+    },
+    {
+      "name": "request-configured-empty-state",
+      "base": "request",
+      "changes": [
+        [
+          16,
+          127,
+          4
+        ]
+      ],
+      "code": "COLUMN_REQUEST",
+      "mutant": "request-configured-empty-state"
+    },
+    {
+      "name": "accept-request-state-1",
+      "base": "request",
+      "changes": [
+        [
+          16,
+          127,
+          1
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-request-state-2",
+      "base": "request",
+      "changes": [
+        [
+          16,
+          127,
+          2
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-request-state-3",
+      "base": "request",
+      "changes": [
+        [
+          16,
+          127,
+          3
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-request-state-5",
+      "base": "request",
+      "changes": [
+        [
+          16,
+          127,
+          5
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-empty-request",
+      "base": "completed",
+      "changes": [
+        [
+          16,
+          127,
+          4
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-request-auto-off",
+      "base": "request",
+      "changes": [
+        [
+          5,
+          127,
+          0
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-request-auto-on",
+      "base": "request",
+      "changes": [
+        [
+          5,
+          127,
+          1
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "plot-field-negative",
+      "base": "idle",
+      "changes": [
+        [
+          17,
+          4095,
+          -2
+        ]
+      ],
+      "code": "COLUMN_PLOT_LEDGER",
+      "mutant": "plot-field-negative"
+    },
+    {
+      "name": "plot-field-over-cap",
+      "base": "idle",
+      "changes": [
+        [
+          17,
+          4095,
+          128
+        ]
+      ],
+      "code": "COLUMN_PLOT_LEDGER",
+      "mutant": "plot-field-over-cap"
+    },
+    {
+      "name": "null-plot-cycle",
+      "base": "idle",
+      "changes": [
+        [
+          18,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_PLOT_LEDGER",
+      "mutant": "null-plot-cycle"
+    },
+    {
+      "name": "null-plot-outcome",
+      "base": "idle",
+      "changes": [
+        [
+          19,
+          4095,
+          1
+        ]
+      ],
+      "code": "COLUMN_PLOT_LEDGER",
+      "mutant": "null-plot-outcome"
+    },
+    {
+      "name": "linked-cycle-zero",
+      "base": "idle",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ]
+      ],
+      "code": "COLUMN_PLOT_LEDGER",
+      "mutant": "linked-cycle-zero"
+    },
+    {
+      "name": "linked-cycle-negative",
+      "base": "idle",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          -1
+        ]
+      ],
+      "code": "COLUMN_PLOT_LEDGER",
+      "mutant": "linked-cycle-negative"
+    },
+    {
+      "name": "linked-cycle-future",
+      "base": "idle",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          3
+        ]
+      ],
+      "code": "COLUMN_PLOT_LEDGER",
+      "mutant": "linked-cycle-future"
+    },
+    {
+      "name": "accept-stale-idle-0",
+      "base": "idle",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          1
+        ],
+        [
+          19,
+          4095,
+          0
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-stale-idle-1",
+      "base": "idle",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          1
+        ],
+        [
+          19,
+          4095,
+          1
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-stale-idle-2",
+      "base": "idle",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          1
+        ],
+        [
+          19,
+          4095,
+          2
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-stale-idle-3",
+      "base": "idle",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          1
+        ],
+        [
+          19,
+          4095,
+          3
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-stale-completed-0",
+      "base": "completed",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          1
+        ],
+        [
+          19,
+          4095,
+          0
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-stale-completed-1",
+      "base": "completed",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          1
+        ],
+        [
+          19,
+          4095,
+          1
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-stale-completed-2",
+      "base": "completed",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          1
+        ],
+        [
+          19,
+          4095,
+          2
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-stale-completed-3",
+      "base": "completed",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          1
+        ],
+        [
+          19,
+          4095,
+          3
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-stale-inactive_completed-0",
+      "base": "inactive_completed",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          1
+        ],
+        [
+          19,
+          4095,
+          0
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-stale-inactive_completed-1",
+      "base": "inactive_completed",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          1
+        ],
+        [
+          19,
+          4095,
+          1
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-stale-inactive_completed-2",
+      "base": "inactive_completed",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          1
+        ],
+        [
+          19,
+          4095,
+          2
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-stale-inactive_completed-3",
+      "base": "inactive_completed",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          1
+        ],
+        [
+          19,
+          4095,
+          3
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-stale-open_empty-0",
+      "base": "open_empty",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          1
+        ],
+        [
+          19,
+          4095,
+          0
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-stale-open_empty-1",
+      "base": "open_empty",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          1
+        ],
+        [
+          19,
+          4095,
+          1
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-stale-open_empty-2",
+      "base": "open_empty",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          1
+        ],
+        [
+          19,
+          4095,
+          2
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-stale-open_empty-3",
+      "base": "open_empty",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          1
+        ],
+        [
+          19,
+          4095,
+          3
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "open-participant-mismatch",
+      "base": "open",
+      "changes": [
+        [
+          8,
+          127,
+          4
+        ]
+      ],
+      "code": "COLUMN_OPEN_COUNTS",
+      "mutant": "open-participant-mismatch"
+    },
+    {
+      "name": "open-resolved-mismatch",
+      "base": "open",
+      "changes": [
+        [
+          9,
+          127,
+          2
+        ]
+      ],
+      "code": "COLUMN_OPEN_COUNTS",
+      "mutant": "open-resolved-mismatch"
+    },
+    {
+      "name": "open-withdrawn-mismatch",
+      "base": "open",
+      "changes": [
+        [
+          10,
+          127,
+          2
+        ]
+      ],
+      "code": "COLUMN_OPEN_COUNTS",
+      "mutant": "open-withdrawn-mismatch"
+    },
+    {
+      "name": "open-unresolved-contribution",
+      "base": "open",
+      "changes": [
+        [
+          19,
+          4092,
+          1
+        ]
+      ],
+      "code": "COLUMN_OPEN_COUNTS",
+      "mutant": "open-unresolved-contribution"
+    },
+    {
+      "name": "open-cleared-contribution",
+      "base": "open",
+      "changes": [
+        [
+          19,
+          4094,
+          2
+        ]
+      ],
+      "code": "",
+      "mutant": "open-cleared-contribution"
+    },
+    {
+      "name": "accept-closed-ledger-not-reconstructed-completed",
+      "base": "completed",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          4
+        ],
+        [
+          19,
+          4095,
+          0
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-closed-ledger-not-reconstructed-inactive_completed",
+      "base": "inactive_completed",
+      "changes": [
+        [
+          17,
+          4095,
+          127
+        ],
+        [
+          18,
+          4095,
+          4
+        ],
+        [
+          19,
+          4095,
+          0
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "accept-open-older-stamp-ignored",
+      "base": "open",
+      "changes": [
+        [
+          17,
+          4091,
+          127
+        ],
+        [
+          18,
+          4091,
+          1
+        ],
+        [
+          19,
+          4091,
+          3
+        ]
+      ],
+      "code": "",
+      "mutant": null
+    },
+    {
+      "name": "priority-field-row-zone-before-later-counter",
+      "base": "idle",
+      "changes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          7,
+          127,
+          -1
+        ]
+      ],
+      "code": "COLUMN_ZONE_REF",
+      "mutant": "per-row-priority"
+    },
+    {
+      "name": "priority-global-flags",
+      "base": "idle",
+      "changes": [
+        [
+          1,
+          0,
+          0
+        ],
+        [
+          6,
+          127,
+          2
+        ]
+      ],
+      "code": "COLUMN_FLAGS",
+      "mutant": "global-byte-priority"
+    }
+  ]
+}

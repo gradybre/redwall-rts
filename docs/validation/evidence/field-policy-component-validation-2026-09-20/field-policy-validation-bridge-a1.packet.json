@@ -1,0 +1,17 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "a97f9e8fc37d331ecdefc531c58d01d17b24c5f0",
+  "task": "FieldPolicy owner3 framed-column bridge only",
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/field_policy_component_validation_contract.md",
+    "docs/decisions/0179-field-policy-validation-retains-closed-cycle-history.md",
+    "godot/scripts/core/save_owner_residents.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "docs/validation/evidence/field-policy-component-validation-2026-09-20/candidate-field_policy.gd",
+    "docs/validation/evidence/field-policy-validation-planning-2026-09-20/contract-disposition.md"
+  ],
+  "instructions": "Implement ONLY new godot/scripts/core/save_owner_field_policy.gd, accepted FIELD-POLICY-S4-VALIDATE-R01v1/ADR0179. Owner candidate provided for exact Columns/staticAPI (pendingproductionintake until predecessorPR169merge). Seven ordered gates and20explicit canonicaltypedassignments; noowner/capture/restore/liveworld construction. Fixed owner3version1primary128childcount1childextent4096fieldcount20. Source pin DIRECTORY_CAPACITY352418 via FieldPolicy.EntityDirectory; Farming CROP_NONE-1/CROP_COUNT5 and five IDs; all enum ordinals/counts, capacities, NO_FIELD/NO_CROP/NO_CYCLE/FIRST/MAX. Four preloads only FieldPolicy/Schema/Section/SaveHeader, staticsourceconstantchains allowed. ColdColumnsnew only. Follow concise existingbridge style, no inflatedheader. For parentfaulttool use constants OWNER_INDEX,OWNER_KEY,OWNER_VERSION,OWNER_PRIMARY_COUNT,OWNER_CHILD_EXTENT_COUNT,OWNER_PLOT_COUNT,OWNER_FIELD_COUNT; expected arrays FIELD_KEYS:Array[StringName], FIELD_TYPES:Array[int],FIELD_COUNTS:Array[int] (20canonical entries). In metadata compare exact expressions Schema.owner_key(OWNER_INDEX) != OWNER_KEY, Schema.owner_version(OWNER_INDEX) != OWNER_VERSION, Schema.primary_count(OWNER_INDEX) != OWNER_PRIMARY_COUNT, Schema.child_extent_count(OWNER_INDEX) != OWNER_CHILD_EXTENT_COUNT, Schema.child_extent(OWNER_INDEX, 0) != OWNER_PLOT_COUNT, Schema.field_count(OWNER_INDEX) != OWNER_FIELD_COUNT; loop field metadata expressions Schema.field_key(OWNER_INDEX, field) != String(FIELD_KEYS[field]), Schema.field_type(OWNER_INDEX, field) != int(FIELD_TYPES[field]), Schema.element_count(OWNER_INDEX, field) != int(FIELD_COUNTS[field]). Groupinghelpersallowed; no duplicatevalidationmetadata. Prefix METADATA_DETAIL_PREFIX exactly FieldPolicy owner3 metadata:, columns detail FieldPolicy owner 3 plusrawcode, success empty. Budget90112logical notRSS. Return ONE NEW docs/validation/evidence/field-policy-component-validation-2026-09-20/author-bridge.patch baseSha256null, UNIFIEDDIFFcontent newfile100644 only. HARD400actualpatchlines AIM260. No owner/test/docs edits. No executionclaim. RawJSONstatus/summary/questions/files/decisionIds; properlyescapedJSON."
+}

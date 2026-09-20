@@ -1,0 +1,29 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_field_policy.gd
+  PASS  test_canonical_layout_and_clear_defaults
+  FAIL  test_frozen_state_history_request_and_projection_witnesses
+        priority-field-row-zone-before-later-counter pure (expected COLUMN_ZONE_REF, got COLUMN_COUNTERS)
+        priority-field-row-zone-before-later-counter bridge (expected COLUMN_ZONE_REF, got COLUMN_COUNTERS)
+        priority-field-row-zone-before-later-counter raw code (expected true, got false)
+  PASS  test_null_shapes_and_bucket_cardinalities_precede_values
+  PASS  test_every_physical_address_has_domain_checks
+  PASS  test_open_ledger_filters_and_multiple_fields
+  PASS  test_full_plot_capacity_and_counter_boundary
+  PASS  test_accepted_scalar_endpoints_do_not_normalize_history
+  PASS  test_closed_reason_gate_has_an_independent_abandoned_shape_witness
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 42353 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

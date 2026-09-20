@@ -1,0 +1,27 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "65eeaf9b3b9e5855afd44f36769d48d274baaa74",
+  "task": "Independent actual-source FieldPolicy validation review",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/field_policy_component_validation_contract.md",
+    "docs/decisions/0179-field-policy-validation-retains-closed-cycle-history.md",
+    "godot/scripts/core/field_policy.gd",
+    "godot/scripts/core/save_owner_field_policy.gd",
+    "godot/scripts/core/farming.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/test/test_save_owner_field_policy.gd",
+    "godot/test/field_policy_validation_focus.gd",
+    "tools/test_field_policy_metadata_preflights.py",
+    "docs/validation/evidence/field-policy-component-validation-2026-09-20/owner_mutations.py",
+    "docs/validation/evidence/field-policy-component-validation-2026-09-20/run_mutants.py",
+    "docs/validation/evidence/field-policy-component-validation-2026-09-20/focused-first.log",
+    "docs/validation/evidence/field-policy-component-validation-2026-09-20/parent-source-findings.md",
+    "docs/validation/evidence/field-policy-component-validation-2026-09-20/parent-candidate-repairs.patch",
+    "docs/validation/evidence/field-policy-validation-planning-2026-09-20/contract-disposition.md",
+    "docs/validation/evidence/field-policy-validation-planning-2026-09-20/mutation-witness-plan.md",
+    "docs/validation/evidence/field-policy-validation-planning-2026-09-20/candidate-witness-refinements.md"
+  ],
+  "instructions": "Independent read-only review actualapplied FieldPolicy andframedbridge/test/fault/mutationoracles againstacceptedcontract/ADR0179. Owner464linepatch+bridge345 afterPR169merge, exactcandidatehashproof, parentcropfix nowpinsALL5actualFarmingIDs andremovesunrelateddefaultrotationpin; ownercommentqualifieslive reads. Focus8tests42353assertions0 clean. Originalpublicprobe76/0; ownercandidate83/3901/0 separateearlierstage. Metadata20casescurrentlyrunning;69requiredmutantsplannednotyetexecuted. Do notinventpassedfaults/fullCI. Check20mapping/typeddefaults/globalshape/flags/rotation thenPERROWzone,counter,state,request thenledger+OPENcounts; inactive/closedretainedhistory; presentOPENexactcounts/no liveDirectory/Farming/Forage/callback/purity; memory90112packedconservativevsRSS. Review49owner+20projectionlogicalmutants andredundancyexclusions, runtimeerrornotkill. Parentadded CLOSED NONE+abandonedshapeindependentwitness, OPEN sharedfiltervsredundanttallyonly clearlydispositioned. Identify productiondefects/blockersvsoptionalcoverage; actualknownsourceconstantchainslegal fourpreloads. FullCrossownerbindings/missingbulkAPIs/gameplayseedreserve notcompletedhere. OutputONE NEW docs/validation/evidence/field-policy-component-validation-2026-09-20/source-review.md baseSha256null HARD75lines850words AIM50lines650words. No codeediting/executionclaim. RawJSONstatus/summary/questions/files/decisionIds."
+}

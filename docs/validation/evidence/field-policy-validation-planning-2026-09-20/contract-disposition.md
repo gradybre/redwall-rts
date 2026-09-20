@@ -1,0 +1,9 @@
+# FieldPolicy independent contract review disposition
+
+B1 fixed before author: actual EntityDirectory.DIRECTORY_CAPACITY352418, not nonexistent TOTAL_CAPACITY87552. Parent independently found the same draft error; parent-contract-findings.md preserves that finding. Transforms87552 is a different store. IntMath.INT32_MAX2147483647 and Farming CROP_NONE-1/CROP_COUNT5/IDs0..4 verified directly; pure validation reads Script constants without constructing owners.
+
+B2 closed by metadata-arithmetic-check.json: nine coherent images plus control validate all18owner spans, offsets/payload/block arithmetic,298fields,5children and193184primaries. Unchanged totals are preserved, not needlessly rewritten. The childcount fault moves Jobs child512 to owner3 as a second extent, preserving first4096 so count and extent gates are independently testable. Representative ordinal60 key/type/extent faults are separate from all20 projection tests. Twenty actual engine runs/180assertions remain required implementation evidence, not claimed here.
+
+B3 closed by frozen-witnesses.json138 explicit images and mutation-witness-plan.md69 logical mutation units plus9 metadata bypasses. The review's statement that every individual clause has an independent witness is too broad: redundant scalar bounds and repeated state implications are documented explicitly and grouped, not falsely claimed killed. Every required group has a concrete fixture family. Exact code oracles distinguish later refusal from original stage. Three OPEN filter cases are explicitly required alongside the frozen tail cases.
+
+Contract accepted for bounded owner/bridge implementation under ADR0179. Source review, Godot tests, mutation results, metadata faults and CI remain required. Local saved binding does not authorize publication or gameplay-complete claims.

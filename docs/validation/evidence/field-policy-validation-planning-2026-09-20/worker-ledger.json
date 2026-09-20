@@ -1,0 +1,49 @@
+{
+  "attempts": [
+    {
+      "id": "field-policy-validation-feasibility-a1",
+      "model": "claude-opus-5",
+      "sessionId": "4f17a5a6-4d55-4bfa-9bff-b06a51f26cd5",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "godot/scripts/core/field_policy.gd": "262198e7a04d340c5205007c7ff1124264efe761b675fd99f657fb38a9fb5315",
+        "godot/test/test_field_policy.gd": "5c9ef6d287e11a5ce8bc3e6d23d40217316bdc7dce99240be549e57531930ded",
+        "docs/decisions/0045-field-rotation-advances-once-per-field-not-once-per-tile.md": "fdfcf11905b6bb10be0d79b8b1137c6f5b39ad52f152671f169dddef553fbff3",
+        "docs/rulings/2026-09-09_ready06_open_item_answers.md": "f2b9cead5dc3f84f0aafd40bd62423276f962de3c850c68481de9d78c4b6ebd1",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "docs/validation/evidence/field-policy-validation-planning-2026-09-20/astra-source-note.md": "dea484198e744a88ab52a86f8baf30b7d9fe4a33454e36e9dba022a82b687060"
+      },
+      "rawLines": 92,
+      "outputLines": 73,
+      "outputWords": 770,
+      "outputLineBudget": 85,
+      "outputWordBudget": 900,
+      "normalization": "Raw92line report exceeded85line budget; removed only blank lines. Every nonblank line and every word preserved exactly, raw report archived. No finding or scope claim edited."
+    },
+    {
+      "id": "field-policy-validation-contract-a1",
+      "model": "claude-opus-5",
+      "sessionId": "28dc034b-f9a6-48d6-aa99-fa5840c8350c",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "godot/scripts/core/field_policy.gd": "262198e7a04d340c5205007c7ff1124264efe761b675fd99f657fb38a9fb5315",
+        "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+        "godot/scripts/core/farming.gd": "c025f23da0f88ddff8c5ea64bae0f3bb75d7085f83f949bd3877e70443aea773",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "docs/decisions/0132-three-component-stores-publish-their-columns-and-rebuild-the-rest.md": "98bd435dbf7482871d33e0bedeb4c16ad99b4c6d5c4aebddd988fd607af16b14",
+        "docs/planning/field_policy_component_validation_contract.md": "ca1deea9d96ff4c71e3e14d1d04628c1bbbae11a904251452355384706184ffe",
+        "docs/validation/evidence/field-policy-validation-planning-2026-09-20/public_history_probe.gd": "47f15b9c84bdc1a2d3ebb25e0e4ec039f095706d39b6e4ae8e5bf07010cc20b4",
+        "docs/validation/evidence/field-policy-validation-planning-2026-09-20/public-history-probe.log": "11d39c1eec0296e5eb813300ffbcf5eead2ce36fe864da09d5d2d1acd37936df",
+        "docs/validation/evidence/field-policy-validation-planning-2026-09-20/feasibility-disposition.md": "63ab3a644ece2973dafebee7a301575a9c68c0041b35f032456bf4dc7f7351b8"
+      },
+      "outputLines": 77,
+      "outputWords": 705,
+      "outputLineBudget": 80,
+      "outputWordBudget": 850
+    }
+  ]
+}

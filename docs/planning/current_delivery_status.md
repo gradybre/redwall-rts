@@ -4,11 +4,11 @@ The settlement remains under development and has not passed first-playable accep
 
 ## Accepted work
 
-29 loop PRs, #140–168, have merged after their required checks. The latest merged build passes 4,951 tests and 354,744 assertions. Injury’s overflow repair and component validation passed both exact-head CI checks before merging.
+30 loop PRs, #140–169, have merged after their required checks. The latest merged build passes 4,960 tests and 402,166 assertions. Residents’ null/arrival repairs and component validation passed both exact-head CI checks before merging.
 
-This work has reconciled planning and state ownership, repaired several runtime defects, and implemented persistence primitives with explicit contracts, independent reviews and fault tests. Eight of the eighteen component owners now have merged local validation implementations. Local component validation does not establish complete-file consistency or authorize world restoration by itself.
+This work has reconciled planning and state ownership, repaired several runtime defects, and implemented persistence primitives with explicit contracts, independent reviews and fault tests. Nine of the eighteen component owners now have merged local validation implementations. Local component validation does not establish complete-file consistency or authorize world restoration by itself.
 
-Residents is locally accepted and awaiting exact-head CI: 4,960 tests and 402,166 assertions pass; focused tests pass 9/47,422 with clean shutdown. All48 required code mutations and8 metadata bypasses were detected;27 metadata cases pass. The change preserves legacy capture/restore error order and retained departure history, refuses negative arrival writes and fixes script errors on null capture/restore. Independent source review found no production defect. FieldPolicy is in contract review; its public lifecycle probe passes76 assertions, with no production change yet.
+Residents is merged after exact-head CI, including all27 metadata cases. FieldPolicy is locally accepted and awaiting exact-head CI: full4,968tests/444,519assertions pass, focused8/42,353 shuts down cleanly,69code mutations plus9metadata bypasses were detected, and independent source review passed. The change preserves stale and closed-cycle history while requiring exact counts for current open cycles. Farming’s contract is accepted and implementation is underway; its public lifecycle probe passes434 assertions. Neither change completes whole-file save/load or the live farming workflow.
 
 ## Remaining delivery work
 

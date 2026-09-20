@@ -1,0 +1,43 @@
+{
+  "contract": "FIELD-POLICY-S4-VALIDATE-R01v1",
+  "full": {
+    "tests": 4968,
+    "assertions": 444519,
+    "failures": 0
+  },
+  "focus": {
+    "tests": 8,
+    "assertions": 42353,
+    "failures": 0
+  },
+  "mutations": {
+    "total": 69,
+    "assertion_oracles": 69,
+    "valid_runs": 71
+  },
+  "metadata": {
+    "cases": 20,
+    "assertions": 180,
+    "bypasses_detected": 9
+  },
+  "static_checks": 17,
+  "import_exit": 0,
+  "shutdown_baseline": {
+    "objects": 553,
+    "resources": 33
+  },
+  "source_sha256": {
+    "godot/scripts/core/field_policy.gd": "b425eb0a2a1f63940d55fe5489ca27e981796022f0b1e63d9966141274eb0aaa",
+    "godot/scripts/core/save_owner_field_policy.gd": "b718dc513cd5068897fffa214c2334969a6ee08989af741555d22f8b73d3a297",
+    "godot/test/test_save_owner_field_policy.gd": "e7c75352288d4fb3910141f6770a44433e2cde31f78633a43b24448cba71fbb2",
+    "godot/test/field_policy_validation_focus.gd": "0304e091a93b9154fcd42cccd76fa642ccb42ca959454bcca28b8932472310ec",
+    "tools/test_field_policy_metadata_preflights.py": "a35fc4acd4d7443560b2aa4ff16d9672e91f1260938ef506069d0b8840111840",
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad"
+  },
+  "remaining": [
+    "exact-head CI and merge",
+    "same-file saved bindings and bulk capture/apply",
+    "live field orchestration and seed reservation",
+    "complete save/load and settlement delivery"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "kind": "Python contract consistency model; not implementation or engine evidence",
+  "cases": 138,
+  "failures": 0,
+  "witness_sha256": "5d2c19f25266e49131a8b9af5c46b3a185555c016605e41c77e2d2cada244f24"
+}

@@ -1,0 +1,31 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_field_policy.gd
+  PASS  test_canonical_layout_and_clear_defaults
+  PASS  test_frozen_state_history_request_and_projection_witnesses
+  PASS  test_null_shapes_and_bucket_cardinalities_precede_values
+  PASS  test_every_physical_address_has_domain_checks
+  PASS  test_open_ledger_filters_and_multiple_fields
+  PASS  test_full_plot_capacity_and_counter_boundary
+  PASS  test_accepted_scalar_endpoints_do_not_normalize_history
+  FAIL  test_closed_reason_gate_has_an_independent_abandoned_shape_witness
+        closed NONE cannot fall through as abandoned pure (expected COLUMN_STATE, got )
+        closed NONE cannot fall through as abandoned bridge (expected COLUMN_STATE, got )
+        closed NONE cannot fall through as abandoned success (expected false, got true)
+        closed NONE cannot fall through as abandoned owner detail (expected true, got false)
+        closed NONE cannot fall through as abandoned raw code (expected true, got false)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 42353 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

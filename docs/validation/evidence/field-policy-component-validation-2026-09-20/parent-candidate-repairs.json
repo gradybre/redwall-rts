@@ -1,0 +1,10 @@
+{
+  "godot/scripts/core/field_policy.gd": {
+    "author_sha256": "3c148d5c871e1e5b8b3937ae7e1f633df3131c431a13d4e297614056a5f49619",
+    "parent_sha256": "b425eb0a2a1f63940d55fe5489ca27e981796022f0b1e63d9966141274eb0aaa"
+  },
+  "godot/scripts/core/save_owner_field_policy.gd": {
+    "author_sha256": "1ac4a181ca75dbfdfc82891203a22dd5b6082e6d2740b1c5801eb95fb698991d",
+    "parent_sha256": "b718dc513cd5068897fffa214c2334969a6ee08989af741555d22f8b73d3a297"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "ownerStopped": true,
+  "quarantine": false,
+  "model": "claude-opus-5",
+  "sessionId": "4c63da19-26c7-4111-a97c-a0b6016cac99",
+  "usage": {
+    "inputTokens": 2,
+    "outputTokens": 2216,
+    "cacheReadTokens": 0,
+    "cacheCreationTokens": 92020,
+    "costEstimateUsd": 0.97561
+  },
+  "elapsedMs": 28935,
+  "pid": 52721,
+  "exitCode": 0,
+  "state": "complete",
+  "result": {
+    "status": "complete",
+    "summary": "Wrote one repair-confirmation review for the Workdraft2 contract. Re-derived B1 (owner16 version 2 in the compiled OWNER_VERSIONS, contract and fault plan now agree; fault moves 2->3), C1 (Section already publishes set_u8/u8_column and validates the u8 bucket; Priorities bridge precedent; probe exercises field8 set/get and a malformed extent), C2 (direct static wrong-length memory witness named, framed gate ordering excludes the memory-zero equivalent) and C3 (chained-constant probe covers the requested numeric pins; generator and source-capacity audits stay owed). Re-checked the corrected multiline preload scan: 22 nodes, three pre-existing self-loops, no new root cycle. Also re-derived byte geometry 39424/39500/39528 and offset 12932095, and the 21-mutant census. Records only unresolved items that are genuinely outstanding (engine import of the unimplemented bridge, generator/capacity audit, probe teardown leakage) and does not reopen the accepted deferred full-world coherence scope. No implementation, no execution and no other files.",
+    "questions": [],
+    "files": [
+      {
+        "path": "docs/validation/evidence/work-validation-planning-2026-09-20/contract-repair-review.md",
+        "content": "# Work owner16 contract repair confirmation — draft2\n\n2026-09-20. Bounded independent recheck of the three review-B1/C items only. No production\nedit, no run, no acceptance of the wider slice.\n\n## B1 — closed\n\nThe compiled `OWNER_VERSIONS[16]` is 2, and owner index 16 is `work`. Draft2 pins version 2\nand `metadata-fault-plan.md` now mutates 2 to 3, so the metadata fault is a real change rather\nthan a no-op. The earlier version-1 claim is superseded. Nothing else in the block moved:\nkey `work`, primary 512, no children, field begin 280 / count 9.\n\n## C1 — closed\n\n`save_section_component_columns.gd` already publishes `u8_column()` and `set_u8()`, and\n`_column_shape_refusal()` tallies and extent-checks the u8 bucket alongside i32 and i64. The\n`priorities` bridge consumes four u8 ordinals today, so field8 is not a first-of-kind path.\nThe supplied probe sets and reads field8, accepts a valid shape and refuses a 511-byte extent.\nNo Section change is implied, so the author's two-file scope holds.\n\n## C2 — closed\n\nThe memory-extent omission is killed by calling `Work.columns_refusal` directly with a\nwrong-length memory column and otherwise valid columns; the bridge cannot witness it because\nSection shape runs first. Stated that way in the contract. The correctly sized memory-zero\nsubstitution stays excluded as semantically equivalent, with source review in its place.\n\n## C3 — closed as far as it can be\n\nThe chained-constant probe reports 20 assertions and 0 failures across owner key/version/\nprimary/field count and every requested Work, Gear, Inventory, Jobs and Directory constant.\nThat is evidence for the pins, not for the registry: the independent schema-generator and\nsource-capacity audits remain required after any edit.\n\n## Re-derived, unchanged\n\nValue bytes 9728*4 + 512 = 39424; payload 39500; block 39528; 12892567 + 39528 = 12932095.\nMutant census still 21. Corrected multiline preload scan: 22 nodes, three pre-existing\nself-loops (IntMath, SaveCodec, SaveSectionComponentColumns), none touching the new root.\n\n## Outstanding, not contract blockers\n\nEngine import of the not-yet-written bridge; the generator/capacity audit above; the probe's\n28 objects and 5 resources at shutdown, which is not a clean-teardown claim. No new blocker.\n",
+        "baseSha256": null
+      }
+    ],
+    "decisionIds": []
+  }
+}

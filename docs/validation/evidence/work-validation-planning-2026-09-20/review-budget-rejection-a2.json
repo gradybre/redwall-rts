@@ -1,0 +1,13 @@
+{
+  "attempt": "work-validation-feasibility-a2",
+  "accepted": false,
+  "ownerStopped": true,
+  "observed_lines": 157,
+  "observed_words": 1550,
+  "limits": [
+    100,
+    1200
+  ],
+  "next_attempt": "work-validation-feasibility-a3",
+  "note": "Worker summary estimated output length incorrectly; actual file limits govern."
+}

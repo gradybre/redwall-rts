@@ -1,0 +1,17 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "38e916e3b7eca7a5adb86709da5dd74c9e584d06",
+  "task": "Read-only Work owner16 local-save-validation feasibility review",
+  "paths": [
+    "AGENTS.md",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/astra-source-note.md",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/source-sha256.json",
+    "godot/scripts/core/work.gd",
+    "godot/scripts/core/gear.gd",
+    "godot/test/test_work.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_owner_transforms.gd",
+    "docs/planning/component_columns_stream_contract.md"
+  ],
+  "instructions": "Independent read-only feasibility review of Work owner16 proposed local validator; no implementation. Re-derive all9columns/typed extents/carry ranges/reservedskill3/memory full signed int32/ref domains/paired-null/broken rules from writers. Distinguish typed InventoryLot16384 and Job8192 refs from Directory resident identity; never live-store validate or repair retained stale current-job history. Examine uniqueness of lot/job bindings: is either a pure intrinsic invariant, what source reachability or counterexample supports it, and is it required locally versus saved cross-owner checker? No tighter absent-row or living256 rule; carries survive release and memory total writes any address. state_bytes order memory beforeXP differs canonical XPbeforememory, explicitly remap. Constructor may allocate entire collaborators; staticAPI no construction/projection. Memory zero accessor substitution is equivalent under full-i32 domain; design rigorous shape/canonical source proof rather than claim a kill. Recommend exact domain/global precedence and minimal scratch, source-capacity pins, cycle concerns; name ordinary runtime gaps separately. Return ONE NEW docs/validation/evidence/work-validation-planning-2026-09-20/feasibility-review.md hard160lines AND1600words aim90/1000; baseSha256null. RawJSON status/summary/questions/files/decisionIds. No other outputs or execution claims."
+}

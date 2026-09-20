@@ -1,0 +1,14 @@
+{
+  "attempt": "work-validation-source-review-a1",
+  "accepted": false,
+  "ownerStopped": true,
+  "limits": [
+    100,
+    1100
+  ],
+  "observed": [
+    102,
+    1123
+  ],
+  "next_attempt": "work-validation-source-review-a2"
+}

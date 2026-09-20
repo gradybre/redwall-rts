@@ -1,0 +1,3 @@
+# Parent fixture teardown
+
+First focused run passed10/12784/0 but logged28objects/5resources at shutdown, matching the planning history probe. The two new actual-Work fixtures each created a strong Inventory equipment-authority -> Gear -> Inventory ownership cycle through existing public APIs. Parent tests now clear only their disposable Inventory after every state assertion, then call its public set_equipment_authority(null) and after_each. No product state or validator code changed. This follows existing test_gear_columns/test_inventory_stock_counts cleanup. Final focused/full results and baseline diagnostics are recorded separately; the old probe/log remain truthful historical evidence.

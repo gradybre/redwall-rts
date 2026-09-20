@@ -1,0 +1,20 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "fa1878966c80f9a54030af587175325f099bef7b",
+  "task": "Final Work owner16 local validation contract review",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/work_component_validation_contract.md",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/feasibility-review.md",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/feasibility-disposition.md",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/metadata-fault-plan.md",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/proposed-preload-closure.json",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/public_history_probe.gd",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/public-history-probe.log",
+    "godot/scripts/core/work.gd",
+    "godot/scripts/core/gear.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_owner_world_init.gd"
+  ],
+  "instructions": "Independent final contract review WORK-S4-VALIDATE-R01 draft1 before author. Check exact9fields8i32+1u8 canonicalorder/memory-XP diagnosticremap; globalshape/potential/XP/reservedXP/wear/broken/lotref/jobref/bindinggates; typed InventoryLot16384/Job8192 notDirectory; arbitrarysignedmemory; retainedcarries/stalejob/brokenbindings; no live projection/constructor/scratch; full-world consistencyexplicitly deferred. Check21requiredmutants8zeroaccessors excludingequivalentmemory+9valueclauses+memoryshape+3order; no falsememorykill. Re-derive metadata fieldcount +1544 transferFaunafirsti32[384] toWorkend, Workfirst9unchanged; primary512/384balance; child10->16;type+2048/extent+4. Sourceconstantchains feasibility/no new bridgecycle. Probe actual217assertions0 but28objects5resources shutdownnotclean. Return ONE NEW docs/validation/evidence/work-validation-planning-2026-09-20/contract-review.md; HARD80lines AND900words, aim50/600. baseSha256null. RawJSON status/summary/questions/files/decisionIds. Noimplementation/otherfiles/runclaims. Concreteblockers/clarifications only. Ensure measured output length stays below bothlimits."
+}

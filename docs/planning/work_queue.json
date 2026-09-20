@@ -1793,7 +1793,9 @@
         "SAVE-S4-SCHEDULE-VALIDATE",
         "SAVE-S4-TRANSFORMS-VALIDATE",
         "TRANSFORMS-SAVED-IDENTITY",
-        "SAVE-S4-FAUNA-VALIDATE"
+        "SAVE-S4-FAUNA-VALIDATE",
+        "SAVE-S4-WORK-VALIDATE",
+        "WORK-SAVED-BINDINGS"
       ],
       "owns": [
         "docs/planning/component_owner_domains.md",
@@ -1949,7 +1951,7 @@
     {
       "id": "SAVE-S4-FAUNA-VALIDATE",
       "title": "Reject noncanonical WorldInit reserved-fauna save columns",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "SAVE-S4-STREAM"
       ],
@@ -1964,7 +1966,42 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Local acceptance FAUNA-S4-VALIDATE-R01v1/ADR0174:4924tests/242248assertions/0;focused8/6019/0;19required mutants +8metadata and2source-sentinel bypasses caught;22metadata cases;17static gates/import;independent review no blocker and tracked evidence items closed. Shared empty reader and pure owner17 bridge preserve reserved384rows, no projection/scratch. Exact-head CI pending. Combined section1/4 restore remains owner-binding work."
+      "note": "Local acceptance FAUNA-S4-VALIDATE-R01v1/ADR0174:4924tests/242248assertions/0;focused8/6019/0;19required mutants +8metadata and2source-sentinel bypasses caught;22metadata cases;17static gates/import;independent review no blocker and tracked evidence items closed. Shared empty reader and pure owner17 bridge preserve reserved384rows, no projection/scratch. Merged PR165 commit6bdab15 after CI35498343811 passed4924/242248/0 and22metadata cases (98seconds). Combined section1/4 restore remains owner-binding work."
+    },
+    {
+      "id": "SAVE-S4-WORK-VALIDATE",
+      "title": "Validate saved Work carries and retained tool bindings without live owners",
+      "status": "review",
+      "depends_on": [
+        "SAVE-S4-STREAM"
+      ],
+      "owns": [
+        "godot/scripts/core/work.gd",
+        "godot/scripts/core/save_owner_work.gd",
+        "godot/test/test_save_owner_work.gd",
+        "godot/test/work_validation_focus.gd",
+        "tools/test_work_metadata_preflights.py",
+        ".github/workflows/tests.yml",
+        "docs/persistence_state_registry.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Local acceptance WORK-S4-VALIDATE-R01v1/ADR0175:existing owner16version2; full4934/255034/0;focused10/12786/0;21required mutants and8metadata bypasses caught;18metadata cases;17static gates/import;independent source review no blocker. Preserves signedmemory/carries/stalejob/brokenbindings with no packed scratch. Exact-head CI pending; same-file claim/ownership and bulk restore remain separate."
+    },
+    {
+      "id": "WORK-SAVED-BINDINGS",
+      "title": "Reconcile saved Work tool history with Gear, Inventory, Jobs and resident ownership",
+      "status": "blocked",
+      "depends_on": [
+        "SAVE-S4-WORK-VALIDATE",
+        "SAVE-S5-CODEC"
+      ],
+      "owns": [
+        "docs/planning/work_saved_binding_contract.md"
+      ],
+      "agent": "astra",
+      "gate": "none",
+      "note": "Required explicit same-file saved-state contract before section4 semantics complete. Validate ownership/claim/reference coherence and duplicate claims without requiring current-job equality or live-store lookup; preserve lawful stalehistory and toolwear. Local domain acceptance alone cannot authorize publication. Complete related owner contracts and projections before implementation; no coordinator dependency cycle."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

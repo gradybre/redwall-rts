@@ -1,0 +1,17 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "38e916e3b7eca7a5adb86709da5dd74c9e584d06",
+  "task": "Final bounded Work feasibility review condensation",
+  "paths": [
+    "AGENTS.md",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/astra-source-note.md",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/source-sha256.json",
+    "godot/scripts/core/work.gd",
+    "godot/scripts/core/gear.gd",
+    "godot/test/test_work.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_owner_transforms.gd",
+    "docs/planning/component_columns_stream_contract.md"
+  ],
+  "instructions": "Return exactly one NEW docs/validation/evidence/work-validation-planning-2026-09-20/feasibility-review.md (baseSha256 null). HARD LIMIT 60lines and600words; aim10 short bullets totaling400words. Prior two outputs exceeded budgets, not applied. No long quotations, headings limited to one. Review source-backed Work owner16 local save validation: canonical9fields/shape/carries0..999 andwear0..9999/reservedskill3zero; memory anyi32 anyphysicalrow; typed lot16384/job8192 refs (not Directory); nullpairs/binding parity/unboundbroken0; carry and stalejob history retained. No local binding uniqueness, defer saved Work/Gear relationships. State_bytes memory/XP order needsremap. No live owner/projection/scratch. Zero memory substitution is equivalent and cannot be killed with malformed source extent because bridge shape gate runs first; report canonical source review separately. List any realblocker and minimal precise gateorder, sourcepins, testwitnesses. Runtime toolgate/MoodMemory gaps deferred. RawJSON status/summary/questions/files/decisionIds. DO NOT exceed600words/60lines; omit duplicated rationale. No implementation or execution claims."
+}

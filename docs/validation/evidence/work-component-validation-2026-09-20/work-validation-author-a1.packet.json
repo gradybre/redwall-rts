@@ -1,0 +1,18 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "fa1878966c80f9a54030af587175325f099bef7b",
+  "task": "Implement accepted Work owner16 pure column validator and framed bridge",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/work_component_validation_contract.md",
+    "docs/decisions/0175-validate-work-carries-and-retained-tool-bindings.md",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/contract-review-disposition.md",
+    "docs/validation/evidence/work-validation-planning-2026-09-20/parent-test-matrix.md",
+    "godot/scripts/core/work.gd",
+    "godot/scripts/core/save_owner_transforms.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_header.gd"
+  ],
+  "instructions": "Implement exactly WORK-S4-VALIDATE-R01v1/ADR0175. Return ONE NEW docs/validation/evidence/work-component-validation-2026-09-20/implementation.patch (baseSha256null), contentunifiedgitdiff ONLY modifying godot/scripts/core/work.gd andadding godot/scripts/core/save_owner_work.gd. HARD560lines TOTAL patch includingcontext; aim380-450. Minimalcompletehunks, ordinary100644 newfile, nootherfiles/renames/modechanges. First8paramsPackedInt32Array lastPackedByteArray exactcanonicalorder; ALL9shapes before globalpotential/XP/reservedXP/wear/broken/lotref/Jobref/bindingcoupling gates; exactREFUSE_COLUMN_* codes. Fullsignedmemory accepted; nullslots-1/gen0 else typedlot16384/job8192positivegen; preservedunboundcarries/stalejobhistory/brokenboundstates. No uniquenessscan orliveowner/projection/scratch/sort/repair/rangeArray. No changeordinaryWorkmethods/constructor/state_bytes; addonlyconstants/staticfunctions. Bridgepublicstaticframed_refusal standard7gates exactcodes/schemaforwarding; OWNER_VERSION=2 (NOT1), metadataWork owner16 metadata:, sourcepinsascontractincludingchainedWork.InventoryScript/JobsScript/GearScript; no extra preloadsconstArrays orconstruction. Canonicalfieldsfirst8i32,lastu8. Keepmetadatafieldhelper signature field,key,type_code,count consistentpriorbridge forparentfaulttooling. Accessorconstants FIELD_POTENTIAL_REMAINDER, FIELD_XP_REMAINDER, FIELD_MEMORY_TOTAL, FIELD_WEAR_REMAINDER, FIELD_TOOL_LOT_SLOT, FIELD_TOOL_LOT_GENERATION, FIELD_TOOL_JOB_SLOT, FIELD_TOOL_JOB_GENERATION, FIELD_TOOL_BROKEN. Ownercomparison names OWNER_INDEX,OWNER_KEY,OWNER_VERSION,OWNER_PRIMARY_COUNT,OWNER_CHILD_EXTENT_COUNT,OWNER_FIELD_COUNT asprior. Shortclearcomments; no hugeheaderrepeatingcontract. Parentownstests/tooling/registry/CI. OutputrawJSONstatus/summary/questions/files/decisionIds; nootheroutputs/runclaims. Preservefrozeninputs; authorpatchintakeonlyafterPR165merge."
+}

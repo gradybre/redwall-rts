@@ -1,0 +1,76 @@
+{
+  "attempts": [
+    {
+      "id": "work-validation-feasibility-a3",
+      "model": "claude-opus-5",
+      "sessionId": "b3d3c804-30ae-47d2-be6c-d1b1481af957",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/validation/evidence/work-validation-planning-2026-09-20/astra-source-note.md": "10d47a55ade01e3a22cd75f874be0754642bdd077d08b1a62414611a835de21d",
+        "docs/validation/evidence/work-validation-planning-2026-09-20/source-sha256.json": "b7ed8b75e9bbae2a454c4f68847208519cfb1ebf1a569c0f2beeceb1e1d9ec73",
+        "godot/scripts/core/work.gd": "378c6ca26b77e8cc0fdfbe269c38e0da19efddfafa46aacc9da1f3b2a3f02151",
+        "godot/scripts/core/gear.gd": "73da2f20963c40747790efb8484cec451698c8ebf12a289db1e1307025a5ac8f",
+        "godot/test/test_work.gd": "0ab51bc6065a54218ab54e8ba3b2e802d22da642cfbb960b02fcdb875f0a8ae2",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_owner_transforms.gd": "a82c4df98598a62cc97c84c936c6a00649b2f2f66788ac885cb5ea4378855790",
+        "docs/planning/component_columns_stream_contract.md": "c777f71e566c881b3af784cee54a4b1155983ef4ad8e2777a278ae6ae6c0bfe4"
+      },
+      "outputLines": 16,
+      "outputWords": 495,
+      "outputLineBudget": 60,
+      "outputWordBudget": 600
+    },
+    {
+      "id": "work-validation-contract-a1",
+      "model": "claude-opus-5",
+      "sessionId": "45484952-7da4-4591-9058-92b4ab3b26d6",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/work_component_validation_contract.md": "bfe04fe06db2fd22c827f90b11cb71e20045f0a6bde5aeea7aa79104f4ae0b6f",
+        "docs/validation/evidence/work-validation-planning-2026-09-20/feasibility-review.md": "5de8a386121ad9c63f5532f847fc1de36fe8e47aa8820b05851e6d7d7bea4961",
+        "docs/validation/evidence/work-validation-planning-2026-09-20/feasibility-disposition.md": "af2ec41105556ec80e0b19aa652b18e3b07e6b8a6f5cb42bd76c0ea14dad2976",
+        "docs/validation/evidence/work-validation-planning-2026-09-20/metadata-fault-plan.md": "1c8a30052d71b9244979fc5e4e1f1dec34e1cb1cbe9ffa46a8a54e1a1d611488",
+        "docs/validation/evidence/work-validation-planning-2026-09-20/proposed-preload-closure.json": "7ac26d40d7370b5d2cc5d0520d7476c7aa308e8ecb7f5e775902119bca580664",
+        "docs/validation/evidence/work-validation-planning-2026-09-20/public_history_probe.gd": "5364c6318a98a1ff6051ca49285435d68ee453519794d7b5e1e8f286c4faf07a",
+        "docs/validation/evidence/work-validation-planning-2026-09-20/public-history-probe.log": "d4eb8191c2d105a29355d866fef1553c3e44b7916c4af0d8bc39750211a9f167",
+        "godot/scripts/core/work.gd": "378c6ca26b77e8cc0fdfbe269c38e0da19efddfafa46aacc9da1f3b2a3f02151",
+        "godot/scripts/core/gear.gd": "73da2f20963c40747790efb8484cec451698c8ebf12a289db1e1307025a5ac8f",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_owner_world_init.gd": "cf4aa28da9f434dd5554697ebc8db8290c290ac4831e281901a7a0db0b08608e"
+      },
+      "outputLines": 60,
+      "outputWords": 663,
+      "outputLineBudget": 80,
+      "outputWordBudget": 900
+    },
+    {
+      "id": "work-validation-contract-repair-a1",
+      "model": "claude-opus-5",
+      "sessionId": "4c63da19-26c7-4111-a97c-a0b6016cac99",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/work_component_validation_contract.md": "0fd34ebd41fe4bce03fdce1083ebcd439fed09694f1180430d819b039d142f3b",
+        "docs/validation/evidence/work-validation-planning-2026-09-20/contract-review.md": "87b5d5410595aa6b5a838677a6ebc13eb86246470b535ca5bc0c3612402d85a0",
+        "docs/validation/evidence/work-validation-planning-2026-09-20/contract-review-disposition.md": "3eeaf992ce901f605f5501f5d4ecd18f5dace7d649f22fb10070faba22503b5a",
+        "docs/validation/evidence/work-validation-planning-2026-09-20/metadata-fault-plan.md": "d4d55bcfcdcbd0d4e908815b776d8d15c087849c6c30b559e9ba0db3a61384fb",
+        "docs/validation/evidence/work-validation-planning-2026-09-20/proposed-preload-closure-multiline.json": "3235f9d842172259df0310f472bc708346162f7b8b7eeffcf067bab6c736c20a",
+        "docs/validation/evidence/work-validation-planning-2026-09-20/source_pin_probe.gd": "a371a05b0c005663e1b32eeaafacdd359c174e531e9a8935232bd18f477bb0f2",
+        "docs/validation/evidence/work-validation-planning-2026-09-20/source-pin-probe.log": "03d3268a70de3254f07c82843b6c1b67a31475116cb677fbb5d6b55a54da8ce9",
+        "godot/scripts/core/work.gd": "378c6ca26b77e8cc0fdfbe269c38e0da19efddfafa46aacc9da1f3b2a3f02151",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/scripts/core/save_owner_priorities.gd": "82ae61b2cb1afe3b48660a191c52aedab29fb90f723322a22cd62fd308dfca7c"
+      },
+      "outputLines": 44,
+      "outputWords": 337,
+      "outputLineBudget": 45,
+      "outputWordBudget": 500
+    }
+  ]
+}

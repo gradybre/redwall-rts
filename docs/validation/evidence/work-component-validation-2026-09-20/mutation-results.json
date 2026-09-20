@@ -1,0 +1,288 @@
+{
+  "source_sha256": {
+    "godot/scripts/core/work.gd": "75e4b30b3f122008ea7977b9b0510bee18d061630c1d04f9fb295018613183af",
+    "godot/scripts/core/save_owner_work.gd": "59b2a556433842dd1dff1bdba94bd65557aa9681a5ea2e9b884735a505d62fbe"
+  },
+  "source_unchanged": true,
+  "results": [
+    {
+      "case": "mutation-baseline",
+      "exit_code": 0,
+      "valid_execution": true,
+      "killed": false,
+      "summary": [
+        "10 test(s), 12786 assertion(s), 0 failure(s)"
+      ]
+    },
+    {
+      "case": "zero-substitute-potential_remainder",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses",
+        "  FAIL  test_numeric_upper_limits_and_typed_reference_halves",
+        "  FAIL  test_global_gate_precedence_at_opposite_rows",
+        "  FAIL  test_public_fractional_release_and_stale_job_history",
+        "10 test(s), 12786 assertion(s), 4 failure(s)"
+      ]
+    },
+    {
+      "case": "zero-substitute-xp_remainder",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses",
+        "  FAIL  test_numeric_upper_limits_and_typed_reference_halves",
+        "  FAIL  test_global_gate_precedence_at_opposite_rows",
+        "10 test(s), 12786 assertion(s), 3 failure(s)"
+      ]
+    },
+    {
+      "case": "zero-substitute-wear_remainder",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses",
+        "  FAIL  test_numeric_upper_limits_and_typed_reference_halves",
+        "  FAIL  test_global_gate_precedence_at_opposite_rows",
+        "10 test(s), 12786 assertion(s), 3 failure(s)"
+      ]
+    },
+    {
+      "case": "zero-substitute-tool_lot_slot",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_layout_version_and_null_defaults",
+        "  FAIL  test_endpoints_memory_and_retained_unbound_carries",
+        "  FAIL  test_every_physical_domain_and_reserved_skill_position",
+        "  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses",
+        "  FAIL  test_numeric_upper_limits_and_typed_reference_halves",
+        "  FAIL  test_global_gate_precedence_at_opposite_rows",
+        "  FAIL  test_public_fractional_release_and_stale_job_history",
+        "  FAIL  test_public_broken_tool_binding_remains_valid_history",
+        "10 test(s), 12786 assertion(s), 8 failure(s)"
+      ]
+    },
+    {
+      "case": "zero-substitute-tool_lot_generation",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_endpoints_memory_and_retained_unbound_carries",
+        "  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses",
+        "  FAIL  test_numeric_upper_limits_and_typed_reference_halves",
+        "  FAIL  test_global_gate_precedence_at_opposite_rows",
+        "  FAIL  test_public_fractional_release_and_stale_job_history",
+        "  FAIL  test_public_broken_tool_binding_remains_valid_history",
+        "10 test(s), 12786 assertion(s), 6 failure(s)"
+      ]
+    },
+    {
+      "case": "zero-substitute-tool_job_slot",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_layout_version_and_null_defaults",
+        "  FAIL  test_endpoints_memory_and_retained_unbound_carries",
+        "  FAIL  test_every_physical_domain_and_reserved_skill_position",
+        "  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses",
+        "  FAIL  test_public_fractional_release_and_stale_job_history",
+        "  FAIL  test_public_broken_tool_binding_remains_valid_history",
+        "10 test(s), 12786 assertion(s), 6 failure(s)"
+      ]
+    },
+    {
+      "case": "zero-substitute-tool_job_generation",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_endpoints_memory_and_retained_unbound_carries",
+        "  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses",
+        "  FAIL  test_numeric_upper_limits_and_typed_reference_halves",
+        "  FAIL  test_public_fractional_release_and_stale_job_history",
+        "  FAIL  test_public_broken_tool_binding_remains_valid_history",
+        "10 test(s), 12786 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "zero-substitute-tool_broken",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses",
+        "  FAIL  test_global_gate_precedence_at_opposite_rows",
+        "10 test(s), 12786 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-potential",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_physical_domain_and_reserved_skill_position",
+        "  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses",
+        "  FAIL  test_numeric_upper_limits_and_typed_reference_halves",
+        "  FAIL  test_global_gate_precedence_at_opposite_rows",
+        "  FAIL  test_public_fractional_release_and_stale_job_history",
+        "10 test(s), 12786 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-xp",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_physical_domain_and_reserved_skill_position",
+        "  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses",
+        "  FAIL  test_numeric_upper_limits_and_typed_reference_halves",
+        "  FAIL  test_global_gate_precedence_at_opposite_rows",
+        "10 test(s), 12786 assertion(s), 4 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-reserved-xp",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_physical_domain_and_reserved_skill_position",
+        "  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses",
+        "  FAIL  test_global_gate_precedence_at_opposite_rows",
+        "10 test(s), 12786 assertion(s), 3 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-wear",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_physical_domain_and_reserved_skill_position",
+        "  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses",
+        "  FAIL  test_numeric_upper_limits_and_typed_reference_halves",
+        "  FAIL  test_global_gate_precedence_at_opposite_rows",
+        "10 test(s), 12786 assertion(s), 4 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-broken",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_physical_domain_and_reserved_skill_position",
+        "  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses",
+        "  FAIL  test_global_gate_precedence_at_opposite_rows",
+        "10 test(s), 12786 assertion(s), 3 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-lot-ref",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_layout_version_and_null_defaults",
+        "  FAIL  test_every_physical_domain_and_reserved_skill_position",
+        "  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses",
+        "  FAIL  test_numeric_upper_limits_and_typed_reference_halves",
+        "  FAIL  test_global_gate_precedence_at_opposite_rows",
+        "10 test(s), 12786 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-job-ref",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_physical_domain_and_reserved_skill_position",
+        "  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses",
+        "  FAIL  test_numeric_upper_limits_and_typed_reference_halves",
+        "  FAIL  test_global_gate_precedence_at_opposite_rows",
+        "10 test(s), 12786 assertion(s), 4 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-paired-binding",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses",
+        "10 test(s), 12786 assertion(s), 1 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-unbound-broken",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_eight_zero_argument_and_nine_value_clause_witnesses",
+        "10 test(s), 12786 assertion(s), 1 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-memory-shape",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_all_shapes_and_direct_memory_extent_before_values",
+        "10 test(s), 12786 assertion(s), 1 failure(s)"
+      ]
+    },
+    {
+      "case": "potential-before-shape",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_all_shapes_and_direct_memory_extent_before_values",
+        "10 test(s), 12786 assertion(s), 1 failure(s)"
+      ]
+    },
+    {
+      "case": "wear-before-reserved-xp",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_global_gate_precedence_at_opposite_rows",
+        "10 test(s), 12786 assertion(s), 1 failure(s)"
+      ]
+    },
+    {
+      "case": "job-ref-before-lot-ref",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_layout_version_and_null_defaults",
+        "  FAIL  test_global_gate_precedence_at_opposite_rows",
+        "10 test(s), 12786 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "case": "mutation-restored",
+      "exit_code": 0,
+      "valid_execution": true,
+      "killed": false,
+      "summary": [
+        "10 test(s), 12786 assertion(s), 0 failure(s)"
+      ]
+    }
+  ]
+}

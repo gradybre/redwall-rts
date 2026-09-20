@@ -1,0 +1,10 @@
+{
+  "attempt": "work-validation-feasibility-a1",
+  "state": "complete",
+  "ownerStopped": true,
+  "accepted": false,
+  "reason": "191 lines and1914words exceed160lines/1600words; no output applied",
+  "observed_lines": 191,
+  "observed_words": 1914,
+  "next_attempt": "work-validation-feasibility-a2"
+}

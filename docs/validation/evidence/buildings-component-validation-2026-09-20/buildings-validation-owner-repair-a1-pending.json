@@ -1,0 +1,11 @@
+{
+  "state": "complete",
+  "ownerStopped": true,
+  "sessionId": "51c65f3f-974f-4180-b457-c6f85f75eb76",
+  "model": "claude-opus-5",
+  "lines": 22,
+  "line_budget": 60,
+  "scope": "Checked only on exact initial candidate; production unchanged",
+  "initial_sha256": "44af6c26a3d6e50f6fb25d6083dfb69f45106ad1c0dc2c8441003ca84d0abcdc",
+  "repaired_sha256": "eb6d09a1d80d169fa60795b6e6d22d05dd64329b8ea85f36e805b482ea705dd5"
+}

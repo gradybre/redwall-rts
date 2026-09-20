@@ -1,0 +1,11 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "2d6f25020e88985b57099db7a0dea0c0a5ae8e56",
+  "task": "Buildings bridge ROOM_TYPE domain-shape follow-up",
+  "paths": [
+    "docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-save_owner_buildings-repaired.gd",
+    "docs/validation/evidence/buildings-component-validation-2026-09-20/review-followup-decision.md"
+  ],
+  "resume_attempt": "buildings-validation-bridge-repair-a1",
+  "instructions": "Resume YOUR priorauthor role for a bounded follow-up, not independent review. OriginalADC0183contractandcatalogcontextunchanged, suppliedcurrentbridgecontainsyourpriorstatepinpatch. ImplementONLY ROOM_TYPE dictionary shape/key/type/ordinal preflight per Astra decision M2. MirrorstateblockwithSOURCE_ROOM_TYPE_KEYS eightkeys DORMITORY,PRIVATE_ROOM,KITCHEN,DINING,COMMON,INFIRMARY,PANTRY,CORRIDOR. Length8,size8,has,typeofTYPE_INT/exactordinal; beforeprojection, preserve sourcechainandallothercode including existingroomaliases/statepins. No other changes/M3literalcomparisons unchanged. ReturnONE NEW docs/validation/evidence/buildings-component-validation-2026-09-20/author-room-metadata-repair.patch baseSha256null unifieddiffONLYgodot/scripts/core/save_owner_buildings.gd ONTO suppliedcurrentbridge HARD100lines AIM50. StrictJSONstatuscomplete/summary/questions/files/decisionIds. No executionclaims."
+}

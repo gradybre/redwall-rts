@@ -1,0 +1,33 @@
+{
+  "ownerStopped": true,
+  "quarantine": false,
+  "model": "claude-opus-5",
+  "sessionId": "51c65f3f-974f-4180-b457-c6f85f75eb76",
+  "usage": {
+    "inputTokens": 2,
+    "outputTokens": 3886,
+    "cacheReadTokens": 0,
+    "cacheCreationTokens": 74173,
+    "costEstimateUsd": 0.83889
+  },
+  "elapsedMs": 40561,
+  "pid": 56928,
+  "exitCode": 0,
+  "state": "complete",
+  "result": {
+    "status": "complete",
+    "summary": "Adds a single new bounded corrective patch file, docs/validation/evidence/buildings-component-validation-2026-09-20/author-owner-repair.patch, to be applied on top of the supplied candidate buildings.gd. The unified diff touches only godot/scripts/core/buildings.gd, in one hunk inside _columns_furniture_refusal. Under ADR 0183 the candidate's inactive-furniture branch returned _columns_furniture_free_refusal unconditionally, so every inactive row terminated there and retired rows with a retained nonnull room parent never reached the present/state gates; the frozen witness retired-furniture-f_origin_tile--1 therefore observed REFUSE_NONE where COLUMN_FURNITURE_STATE is required (recorded as 65 tests / 11511 assertions / 1 failure). The patch keeps the FREE gate first and returns any FREE refusal immediately, so the null-user requirement for every inactive row is unchanged; it then returns success only for a validated never-used row whose parent pair is exactly the GDD null reference, decided through the existing _columns_ref_is_null helper; otherwise it falls through to _columns_furniture_state_refusal, which is what makes a retired nonnull-parent row with origin -1 earn COLUMN_FURNITURE_STATE. _columns_furniture_free_refusal, _columns_furniture_state_refusal, the building and room domains, the flag and shape gates, the borrowed Columns.new(false) path, the frozen source-fact arrays, the section 1 tile-map code and all older gameplay code are preserved byte for byte. No helper domains, test expectations, contracts, documentation or other code are changed, and no execution, testing or application of the patch is claimed.",
+    "questions": [],
+    "files": [
+      {
+        "path": "docs/validation/evidence/buildings-component-validation-2026-09-20/author-owner-repair.patch",
+        "content": "Bounded corrective patch for BUILDINGS-S4-VALIDATE-R01 v1 (ADR 0183).\nApplied on top of the supplied candidate buildings.gd. Restores the ordered\ninactive-furniture contract: FREE refusals still win, a NULL-parent never-used\nrow succeeds, and a retired row with a retained nonnull parent falls through to\nthe present/state gates, so the frozen retired-furniture-f_origin_tile--1\nwitness earns COLUMN_FURNITURE_STATE instead of REFUSE_NONE.\n\ndiff --git a/godot/scripts/core/buildings.gd b/godot/scripts/core/buildings.gd\n--- a/godot/scripts/core/buildings.gd\n+++ b/godot/scripts/core/buildings.gd\n@@ -1489,6 +1489,10 @@ static func _columns_furniture_refusal(image: Columns, row: int) -> StringName:\n \tif (not _columns_ref_ok(image.f_room_slot[row], image.f_room_generation[row])\n \t\t\tor not _columns_ref_ok(image.f_user_slot[row], image.f_user_generation[row])):\n \t\treturn REFUSE_COLUMN_FURNITURE_REF\n \tif image.f_present[row] == 0:\n-\t\treturn _columns_furniture_free_refusal(image, row)\n+\t\tvar free_code: StringName = _columns_furniture_free_refusal(image, row)\n+\t\tif free_code != REFUSE_NONE:\n+\t\t\treturn free_code\n+\t\tif _columns_ref_is_null(image.f_room_slot[row], image.f_room_generation[row]):\n+\t\t\treturn REFUSE_NONE\n \treturn _columns_furniture_state_refusal(image, row)\n",
+        "baseSha256": null
+      }
+    ],
+    "decisionIds": [
+      "ADR-0183",
+      "BUILDINGS-S4-VALIDATE-R01"
+    ]
+  }
+}

@@ -1,0 +1,319 @@
+{
+  "scope": "Frozen planned engine cases, not observed results",
+  "cases": [
+    {
+      "case": "positive-control",
+      "expectation": "pass"
+    },
+    {
+      "case": "key-fault-refused",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "key-gate-bypassed",
+      "expectation": "assertion catch"
+    },
+    {
+      "case": "version-fault-refused",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "version-gate-bypassed",
+      "expectation": "assertion catch"
+    },
+    {
+      "case": "primary-fault-refused",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "primary-gate-bypassed",
+      "expectation": "assertion catch"
+    },
+    {
+      "case": "children-fault-refused",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "children-gate-bypassed",
+      "expectation": "assertion catch"
+    },
+    {
+      "case": "child_room-fault-refused",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "child_room-gate-bypassed",
+      "expectation": "assertion catch"
+    },
+    {
+      "case": "child_furniture-fault-refused",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "child_furniture-gate-bypassed",
+      "expectation": "assertion catch"
+    },
+    {
+      "case": "field_count-fault-refused",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "field_count-gate-bypassed",
+      "expectation": "assertion catch"
+    },
+    {
+      "case": "field_key-fault-refused",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "field_key-gate-bypassed",
+      "expectation": "assertion catch"
+    },
+    {
+      "case": "field_type-fault-refused",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "field_type-gate-bypassed",
+      "expectation": "assertion catch"
+    },
+    {
+      "case": "field_extent-fault-refused",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "field_extent-gate-bypassed",
+      "expectation": "assertion catch"
+    },
+    {
+      "case": "schema-first-forwarding",
+      "expectation": "unchanged schema refusal"
+    },
+    {
+      "case": "COLUMN_BUILDING_KEYS-short",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_BUILDING_KEYS-long",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_BUILDING_KEYS-last-value",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_BUILDING_FOOTPRINT_X-short",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_BUILDING_FOOTPRINT_X-long",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_BUILDING_FOOTPRINT_X-last-value",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_BUILDING_FOOTPRINT_Z-short",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_BUILDING_FOOTPRINT_Z-long",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_BUILDING_FOOTPRINT_Z-last-value",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_FURNITURE_KEYS-short",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_FURNITURE_KEYS-long",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_FURNITURE_KEYS-last-value",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_FURNITURE_FLOOR_X-short",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_FURNITURE_FLOOR_X-long",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_FURNITURE_FLOOR_X-last-value",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_FURNITURE_FLOOR_Z-short",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_FURNITURE_FLOOR_Z-long",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_FURNITURE_FLOOR_Z-last-value",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_TIER_TWO_TYPE_IDS-short",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_TIER_TWO_TYPE_IDS-long",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "COLUMN_TIER_TWO_TYPE_IDS-last-value",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.BUILDING_DEFINITION-missing",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.BUILDING_DEFINITION-extra",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.BUILDING_DEFINITION-last-id-value",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.BUILDING_DEFINITION-last-id-type",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.FURNITURE_DEFINITION-missing",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.FURNITURE_DEFINITION-extra",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.FURNITURE_DEFINITION-last-id-value",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.FURNITURE_DEFINITION-last-id-type",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.BUILDING_STATE-last-ordinal",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.ROOM_TYPE-last-ordinal",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "BuildingDefinitions.BUILDING_FACTS-missing",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "BuildingDefinitions.BUILDING_FACTS-last-row-type",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "BuildingDefinitions.BUILDING_FACTS-last-row-short",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "BuildingDefinitions.BUILDING_FACTS-last-row-long",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "BuildingDefinitions.BUILDING_FACTS-last-dimension-type",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "BuildingDefinitions.BUILDING_FACTS-last-dimension-value",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "BuildingDefinitions.FURNITURE_FACTS-missing",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "BuildingDefinitions.FURNITURE_FACTS-last-row-type",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "BuildingDefinitions.FURNITURE_FACTS-last-row-short",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "BuildingDefinitions.FURNITURE_FACTS-last-row-long",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "BuildingDefinitions.FURNITURE_FACTS-last-dimension-type",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "BuildingDefinitions.FURNITURE_FACTS-last-dimension-value",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "BuildingDefinitions.TIER_TWO_KEYS-short",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "BuildingDefinitions.TIER_TWO_KEYS-long",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "BuildingDefinitions.TIER_TWO_KEYS-last-value",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Directory.NULL_GENERATION-value",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.BUILDING_STATE-missing",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.BUILDING_STATE-extra",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.BUILDING_STATE-last-id-type",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.ROOM_TYPE-missing",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.ROOM_TYPE-extra",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.ROOM_TYPE-last-id-type",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.BUILDING_STATE-rename-key",
+      "expectation": "metadata refusal"
+    },
+    {
+      "case": "Catalog.ROOM_TYPE-rename-key",
+      "expectation": "metadata refusal"
+    }
+  ],
+  "total": 77,
+  "assertions_per_case": 9,
+  "assertions": 693,
+  "notes": "Last-entry drift attacks truncated source-table loops. All malformed source dictionary rows must be refused by type/shape before subscripting. Source fault harness may disable autoloads only in its owned clone. Revision 3 adds two size-preserving 'rename-key' faults (last key removed, its unchanged integer value reinserted under key+\"_renamed\") for Catalog.BUILDING_STATE and Catalog.ROOM_TYPE only. Both faults leave dictionary size and the retained value's type untouched, so they pass every preceding size/type check and are the only witnesses in this plan that a real key is absent from the has()/membership branch of _source_state_refusal and _source_room_type_refusal, closing the F1 coverage gap noted in the independent source-review follow-up. The ROOM_TYPE rename-key case reuses the existing isolated_room owned-clone shim (an equal-valued literal '7' standing in for Catalog.ROOM_TYPE[\"CORRIDOR\"]) for the same compile-fold reason as the missing/last-id-type room faults, since rename-key also removes the last (CORRIDOR) key; BUILDING_STATE needs no such shim because no production alias names its last key. No other dictionary in this plan carries a rename-key case.",
+  "revision": 3,
+  "disposition": "Independent source review M2 adds dictionary shape/type witnesses (revision 2, 75 cases/675 assertions, retained here unchanged). Revision 3 appends exactly the two rename-key membership-witness cases identified as F1 in the follow-up review, bringing the total to 77 cases / 693 assertions with the bypass-kill total unchanged at 10, since no new bypass expression was introduced. Missing/type/rename-key ROOM_TYPE counterfactuals preserve only the integer CORRIDOR alias in owned cold clones; production unchanged."
+}

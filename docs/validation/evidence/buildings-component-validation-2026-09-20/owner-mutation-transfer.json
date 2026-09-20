@@ -1,0 +1,217 @@
+{
+  "scope": "46 exact unchanged owner mutants have pure-owner assertion witnesses, independent of bridge metadata.29 bridge projection units rerun on final bridge; all75 distinct semantic units retained.",
+  "owner_sha256": "eb6d09a1d80d169fa60795b6e6d22d05dd64329b8ea85f36e805b482ea705dd5",
+  "pure_test_sha256": "d602cfa7aa99606dceec591240c769f9755be07096ea49c6817a3eb772eacd1f",
+  "witnesses": {
+    "flag-b_present": [
+      "clear-b_present-2 pure (expected COLUMN_FLAG, got COLUMN_BUILDING_STATE)",
+      "clear-b_present-255 pure (expected COLUMN_FLAG, got COLUMN_BUILDING_STATE)",
+      "sampled field0 row0 pure (expected COLUMN_FLAG, got COLUMN_BUILDING_STATE)"
+    ],
+    "flag-r_present": [
+      "clear-r_present-2 pure (expected COLUMN_FLAG, got COLUMN_ROOM_STATE)",
+      "clear-r_present-255 pure (expected COLUMN_FLAG, got COLUMN_ROOM_STATE)",
+      "sampled field1 row0 pure (expected COLUMN_FLAG, got COLUMN_ROOM_STATE)"
+    ],
+    "flag-f_present": [
+      "clear-f_present-2 pure (expected COLUMN_FLAG, got COLUMN_FURNITURE_STATE)",
+      "clear-f_present-255 pure (expected COLUMN_FLAG, got COLUMN_FURNITURE_STATE)",
+      "later-flag-before-building-enum pure (expected COLUMN_FLAG, got COLUMN_BUILDING_ENUM)"
+    ],
+    "flag-r_valid": [
+      "clear-r_valid-2 pure (expected COLUMN_FLAG, got COLUMN_ROOM_FREE)",
+      "clear-r_valid-255 pure (expected COLUMN_FLAG, got COLUMN_ROOM_FREE)",
+      "sampled field20 row0 pure (expected COLUMN_FLAG, got COLUMN_ROOM_FREE)"
+    ],
+    "building-type": [
+      "building-b_type_id--1 pure (expected COLUMN_BUILDING_ENUM, got )",
+      "building-b_type_id-30 pure (expected COLUMN_BUILDING_ENUM, got )",
+      "building-before-room pure (expected COLUMN_BUILDING_ENUM, got COLUMN_ROOM_ENUM)"
+    ],
+    "building-tier-ordinal": [
+      "building-b_tier--1 pure (expected COLUMN_BUILDING_ENUM, got COLUMN_BUILDING_STATE)",
+      "building-b_tier-3 pure (expected COLUMN_BUILDING_ENUM, got COLUMN_BUILDING_STATE)",
+      "sampled field4 row0 pure (expected COLUMN_BUILDING_ENUM, got COLUMN_BUILDING_STATE)"
+    ],
+    "building-rotation": [
+      "building-b_rotation--1 pure (expected COLUMN_BUILDING_ENUM, got )",
+      "building-b_rotation-4 pure (expected COLUMN_BUILDING_ENUM, got )",
+      "sampled field6 row0 pure (expected COLUMN_BUILDING_ENUM, got COLUMN_BUILDING_FREE)"
+    ],
+    "building-state": [
+      "building-b_state--1 pure (expected COLUMN_BUILDING_ENUM, got )",
+      "building-b_state-6 pure (expected COLUMN_BUILDING_ENUM, got )",
+      "sampled field7 row0 pure (expected COLUMN_BUILDING_ENUM, got COLUMN_BUILDING_FREE)"
+    ],
+    "building-origin": [
+      "building-b_origin_tile--2 pure (expected COLUMN_BUILDING_VALUE, got COLUMN_BUILDING_STATE)",
+      "building-b_origin_tile-16384 pure (expected COLUMN_BUILDING_VALUE, got COLUMN_BUILDING_STATE)",
+      "sampled field5 row0 pure (expected COLUMN_BUILDING_VALUE, got COLUMN_BUILDING_FREE)"
+    ],
+    "building-condition": [
+      "building-b_condition--1 pure (expected COLUMN_BUILDING_VALUE, got )",
+      "earlier-building-row-before-later-enum pure (expected COLUMN_BUILDING_VALUE, got COLUMN_BUILDING_FREE)",
+      "building-value-before-reference pure (expected COLUMN_BUILDING_VALUE, got COLUMN_BUILDING_REF)"
+    ],
+    "building-interior": [
+      "building-b_interior_id--2 pure (expected COLUMN_BUILDING_VALUE, got )",
+      "sampled field11 row0 pure (expected COLUMN_BUILDING_VALUE, got COLUMN_BUILDING_FREE)",
+      "sampled field11 row512 pure (expected COLUMN_BUILDING_VALUE, got COLUMN_BUILDING_FREE)"
+    ],
+    "building-construction-reference": [
+      "building-b_construction-ref--2-0 pure (expected COLUMN_BUILDING_REF, got )",
+      "building-b_construction-ref-352418-1 pure (expected COLUMN_BUILDING_REF, got )",
+      "building-b_construction-ref--1-1 pure (expected COLUMN_BUILDING_REF, got )"
+    ],
+    "building-clear-union": [
+      "clear-b_type_id-1 pure (expected COLUMN_BUILDING_FREE, got )",
+      "clear-b_origin_tile-0 pure (expected COLUMN_BUILDING_FREE, got )",
+      "clear-b_rotation-1 pure (expected COLUMN_BUILDING_FREE, got )"
+    ],
+    "building-eligible-tier": [
+      "tier2-type-0 pure (expected COLUMN_BUILDING_STATE, got )",
+      "tier2-type-1 pure (expected COLUMN_BUILDING_STATE, got )",
+      "tier2-type-2 pure (expected COLUMN_BUILDING_STATE, got )"
+    ],
+    "building-footprint": [
+      "hall-offmap-x-rot0 pure (expected COLUMN_BUILDING_STATE, got )",
+      "hall-offmap-z-rot0 pure (expected COLUMN_BUILDING_STATE, got )",
+      "hall-offmap-x-rot1 pure (expected COLUMN_BUILDING_STATE, got )"
+    ],
+    "room-type": [
+      "room-r_type--1 pure (expected COLUMN_ROOM_ENUM, got )",
+      "room-r_type-8 pure (expected COLUMN_ROOM_ENUM, got )",
+      "room-before-furniture pure (expected COLUMN_ROOM_ENUM, got COLUMN_ROOM_FREE)"
+    ],
+    "room-offset": [
+      "room-r_tile_offset--1 pure (expected COLUMN_ROOM_VALUE, got )",
+      "room-r_tile_offset-16385 pure (expected COLUMN_ROOM_VALUE, got COLUMN_ROOM_STATE)",
+      "sampled field15 row0 pure (expected COLUMN_ROOM_VALUE, got COLUMN_ROOM_FREE)"
+    ],
+    "room-count": [
+      "room-r_tile_count--1 pure (expected COLUMN_ROOM_VALUE, got COLUMN_ROOM_STATE)",
+      "room-r_tile_count-16385 pure (expected COLUMN_ROOM_VALUE, got COLUMN_ROOM_STATE)",
+      "sampled field16 row0 pure (expected COLUMN_ROOM_VALUE, got COLUMN_ROOM_FREE)"
+    ],
+    "room-mask": [
+      "room-r_furniture_mask--1 pure (expected COLUMN_ROOM_VALUE, got )",
+      "room-r_furniture_mask-512 pure (expected COLUMN_ROOM_VALUE, got )",
+      "sampled field18 row0 pure (expected COLUMN_ROOM_VALUE, got COLUMN_ROOM_FREE)"
+    ],
+    "room-occupants": [
+      "room-r_occupants--1 pure (expected COLUMN_ROOM_VALUE, got )",
+      "room-r_occupants-257 pure (expected COLUMN_ROOM_VALUE, got )",
+      "room-value-before-reference pure (expected COLUMN_ROOM_VALUE, got COLUMN_ROOM_REF)"
+    ],
+    "room-parent-reference": [
+      "room-r_building-ref--2-0 pure (expected COLUMN_ROOM_REF, got )",
+      "room-r_building-ref-352418-1 pure (expected COLUMN_ROOM_REF, got )",
+      "room-r_building-ref--1-1 pure (expected COLUMN_ROOM_REF, got )"
+    ],
+    "room-inactive-cleared": [
+      "retired-room-r_tile_offset-1 pure (expected COLUMN_ROOM_FREE, got )",
+      "retired-room-r_tile_count-1 pure (expected COLUMN_ROOM_FREE, got )",
+      "retired-room-r_furniture_mask-1 pure (expected COLUMN_ROOM_FREE, got )"
+    ],
+    "room-clear-union": [
+      "clear-r_type-1 pure (expected COLUMN_ROOM_FREE, got )",
+      "clear-r_temperature_tenths-1 pure (expected COLUMN_ROOM_FREE, got )",
+      "clear-r_occupants-1 pure (expected COLUMN_ROOM_FREE, got )"
+    ],
+    "room-present-nonnull": [
+      "present-room-null-parent pure (expected COLUMN_ROOM_STATE, got )"
+    ],
+    "room-positive-count": [
+      "room-r_tile_count-0 pure (expected COLUMN_ROOM_STATE, got )"
+    ],
+    "room-span": [
+      "room-r_tile_offset-16384 pure (expected COLUMN_ROOM_STATE, got )"
+    ],
+    "furniture-type": [
+      "furniture-f_type_id--1 pure (expected COLUMN_FURNITURE_ENUM, got )",
+      "furniture-f_type_id-9 pure (expected COLUMN_FURNITURE_ENUM, got )",
+      "furniture-enum-before-value pure (expected COLUMN_FURNITURE_ENUM, got )"
+    ],
+    "furniture-rotation": [
+      "furniture-f_rotation--1 pure (expected COLUMN_FURNITURE_ENUM, got )",
+      "furniture-f_rotation-4 pure (expected COLUMN_FURNITURE_ENUM, got )",
+      "sampled field25 row0 pure (expected COLUMN_FURNITURE_ENUM, got COLUMN_FURNITURE_FREE)"
+    ],
+    "furniture-origin": [
+      "furniture-f_origin_tile--2 pure (expected COLUMN_FURNITURE_VALUE, got COLUMN_FURNITURE_STATE)",
+      "furniture-f_origin_tile-16384 pure (expected COLUMN_FURNITURE_VALUE, got COLUMN_FURNITURE_STATE)",
+      "sampled field24 row0 pure (expected COLUMN_FURNITURE_VALUE, got COLUMN_FURNITURE_FREE)"
+    ],
+    "furniture-condition": [
+      "furniture-f_condition--1 pure (expected COLUMN_FURNITURE_VALUE, got )",
+      "furniture-value-before-reference pure (expected COLUMN_FURNITURE_VALUE, got COLUMN_FURNITURE_REF)",
+      "sampled field28 row0 pure (expected COLUMN_FURNITURE_VALUE, got COLUMN_FURNITURE_FREE)"
+    ],
+    "furniture-room-reference": [
+      "furniture-f_room-ref--2-0 pure (expected COLUMN_FURNITURE_REF, got )",
+      "furniture-f_room-ref-352418-1 pure (expected COLUMN_FURNITURE_REF, got )",
+      "furniture-f_room-ref--1-1 pure (expected COLUMN_FURNITURE_REF, got )"
+    ],
+    "furniture-user-reference": [
+      "furniture-f_user-ref--2-0 pure (expected COLUMN_FURNITURE_REF, got )",
+      "furniture-f_user-ref-352418-1 pure (expected COLUMN_FURNITURE_REF, got )",
+      "furniture-f_user-ref--1-1 pure (expected COLUMN_FURNITURE_REF, got )"
+    ],
+    "furniture-inactive-null-user": [
+      "retired-furniture-user-forbidden pure (expected COLUMN_FURNITURE_FREE, got )"
+    ],
+    "furniture-clear-union": [
+      "clear-f_type_id-1 pure (expected COLUMN_FURNITURE_FREE, got )",
+      "clear-f_origin_tile-0 pure (expected COLUMN_FURNITURE_FREE, got )",
+      "clear-f_rotation-1 pure (expected COLUMN_FURNITURE_FREE, got )"
+    ],
+    "furniture-present-nonnull": [
+      "present-furniture-null-room pure (expected COLUMN_FURNITURE_STATE, got )"
+    ],
+    "furniture-footprint": [
+      "hearth-offmap pure (expected COLUMN_FURNITURE_STATE, got )"
+    ],
+    "flag-before-shape": [
+      "shape before flag (expected COLUMN_SHAPE, got COLUMN_FLAG)",
+      "shape before flag (expected COLUMN_SHAPE, got COLUMN_FLAG)",
+      "shape before flag (expected COLUMN_SHAPE, got COLUMN_FLAG)"
+    ],
+    "building-before-global-flags": [
+      "clear-b_present-2 pure (expected COLUMN_FLAG, got COLUMN_BUILDING_STATE)",
+      "clear-b_present-255 pure (expected COLUMN_FLAG, got COLUMN_BUILDING_STATE)",
+      "later-flag-before-building-enum pure (expected COLUMN_FLAG, got COLUMN_BUILDING_ENUM)"
+    ],
+    "room-before-building": [
+      "building-before-room pure (expected COLUMN_BUILDING_ENUM, got COLUMN_ROOM_ENUM)"
+    ],
+    "furniture-before-room": [
+      "room-before-furniture pure (expected COLUMN_ROOM_ENUM, got COLUMN_FURNITURE_ENUM)"
+    ],
+    "global-building-enum-before-earlier-row": [
+      "earlier-building-row-before-later-enum pure (expected COLUMN_BUILDING_VALUE, got COLUMN_BUILDING_ENUM)"
+    ],
+    "first-row-only": [
+      "sampled field3 row512 pure (expected COLUMN_BUILDING_ENUM, got )",
+      "sampled field3 row1023 pure (expected COLUMN_BUILDING_ENUM, got )",
+      "sampled field4 row512 pure (expected COLUMN_BUILDING_ENUM, got )"
+    ],
+    "even-rows-only": [
+      "sampled field3 row1023 pure (expected COLUMN_BUILDING_ENUM, got )",
+      "sampled field4 row1023 pure (expected COLUMN_BUILDING_ENUM, got )",
+      "sampled field5 row1023 pure (expected COLUMN_BUILDING_VALUE, got )"
+    ],
+    "skip-furniture-group": [
+      "furniture-f_room-ref--2-0 pure (expected COLUMN_FURNITURE_REF, got )",
+      "furniture-f_room-ref-352418-1 pure (expected COLUMN_FURNITURE_REF, got )",
+      "furniture-f_room-ref--1-1 pure (expected COLUMN_FURNITURE_REF, got )"
+    ],
+    "direct-image-write": [
+      "clear pure (expected , got COLUMN_BUILDING_FREE)",
+      "clear input unchanged (expected true, got false)",
+      "accept-clear pure (expected , got COLUMN_BUILDING_FREE)"
+    ],
+    "overrestrict-retired-construction": [
+      "retired-building-keeps-nonnull-construction pure (expected , got COLUMN_BUILDING_STATE)"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "aa541f4885b2a0b8ac94c2d8c527ac9a2bfec406",
+  "task": "Repair Buildings retired furniture geometry fallthrough",
+  "paths": [
+    "CLAUDE.md",
+    "docs/planning/buildings_component_validation_contract.md",
+    "docs/decisions/0183-buildings-validation-borrows-columns-and-preserves-retired-history.md",
+    "docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-buildings.gd",
+    "docs/validation/evidence/buildings-component-validation-2026-09-20/owner-candidate-probe.log",
+    "docs/validation/evidence/buildings-component-validation-2026-09-20/owner-candidate-probe.json"
+  ],
+  "instructions": "Bounded corrective patch ONLY godot/scripts/core/buildings.gd APPLIED ON TOP OF supplied candidate-buildings.gd (same source pathlogical; original baselineownerpatchwillbeappliedfirst). Candidate sourceguard returns _columns_furniture_free_refusal for EVERYinactivefurniturerow andtherefore bypassesSTATEonretirednonnullparenthistory. Frozen existing retired-furniture-f_origin_tile--1 witness fails,actual65tests11511assertions1failureclean. Fix: inactivebranchmustfirstcheckFREEandreturnanyrefusal; ifparentNULLreturnsuccessforvalidatednever-usedclearrow; elsefallthrough _columns_furniture_state_refusal forretirednonnullparent. Preserveallother codebyteforbyte,includingoldgameplay. The validated NULLpair isknownafterREFbutusehelperifclear. Presentpathunchanged. No changestohelperdomains/testsexpectations/contracts. ReturnONE NEW docs/validation/evidence/buildings-component-validation-2026-09-20/author-owner-repair.patch baseSha256null unifieddiffmodifyingONLYbuildings.gd HARD60actualpatchlines AIM20. No tests/docs/othercode/executionclaims. StrictJSONstatuscomplete/summary/questions/files/decisionIds. AcknowledgeADR0183andfrozenwitness."
+}

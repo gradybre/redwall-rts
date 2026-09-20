@@ -1,0 +1,32 @@
+{
+  "ownerStopped": true,
+  "quarantine": false,
+  "model": "claude-opus-5",
+  "sessionId": "7e311ef6-89d7-48c2-9512-1f1a20dc2412",
+  "usage": {
+    "inputTokens": 2,
+    "outputTokens": 11535,
+    "cacheReadTokens": 0,
+    "cacheCreationTokens": 32403,
+    "costEstimateUsd": 0.612415
+  },
+  "elapsedMs": 106374,
+  "pid": 57451,
+  "exitCode": 0,
+  "state": "complete",
+  "result": {
+    "status": "complete",
+    "summary": "Produced one new evidence patch, docs/validation/evidence/buildings-component-validation-2026-09-20/author-bridge-repair.patch (baseSha256 null), as a unified diff touching ONLY godot/scripts/core/save_owner_buildings.gd. It closes the gap Astra's source inspection found: the candidate's _source_ordinal_refusal pinned only Buildings.STATE_BLUEPRINT, while the accepted BUILDINGS-S4-VALIDATE-R01 v1 contract and ADR 0183 require the exact protected Catalog.BUILDING_STATE ordinals BLUEPRINT 0, BUILDING 1, ACTIVE 2, PAUSED 3, DAMAGED 4, DEMOLISHING 5 (the existing 69-case metadata plan already includes a last-ordinal DEMOLISHING-6 counterfactual the candidate would miss). Hunk 1 adds one small typed constant Array[String] SOURCE_STATE_KEYS of the six keys in ordinal order beside the retained SOURCE_STATE_BLUEPRINT pin. Hunk 2 redirects the tail of _source_ordinal_refusal to a new _source_state_refusal(), which is a safe preflight over the compiled immutable dictionary reached through the existing Buildings preload (Buildings.Catalog.BUILDING_STATE): it pins the bridge's own key-array length against SOURCE_STATE_COUNT, then the dictionary size == 6, then per key has(key), typeof(id) == TYPE_INT and value == expected ordinal 0..5, coercing only after the type check; it then returns _tier_two_refusal() so the existing chain and ordering are unchanged. The loop is a bounded six-iteration preflight before any column projection or indexing, with no per-row allocation, no live Buildings/Definitions/Directory construction, no duplicate/resize/serialisation and no float. All refusals use Section.REFUSE_METADATA with the unchanged METADATA_DETAIL_PREFIX literal 'Buildings owner0 metadata:'; the distinct gate-7 prefix 'Buildings owner 0 ' and its spacing are untouched. Everything else is byte-preserved: the 29 projection assignments and ordinals, Columns.new(false) borrowed-image construction, all other source/metadata/sentinel/definition/tier-two/fact-array checks, existing expressions and room-ordinal block (no unrelated room changes). Patch body is 46 lines total (well under the 90 hard bound, near the 40 aim) across two hunks. This is authored diff text only; no tests, docs, full-file rewrite, execution, import or measurement is claimed or implied, and no engine-observed result is asserted.",
+    "questions": [],
+    "files": [
+      {
+        "path": "docs/validation/evidence/buildings-component-validation-2026-09-20/author-bridge-repair.patch",
+        "content": "diff --git a/godot/scripts/core/save_owner_buildings.gd b/godot/scripts/core/save_owner_buildings.gd\n--- a/godot/scripts/core/save_owner_buildings.gd\n+++ b/godot/scripts/core/save_owner_buildings.gd\n@@ -146,3 +146,6 @@\n ## GDD 4.3's protected BuildingState and RoomType ordinals, pinned exactly.\n const SOURCE_STATE_BLUEPRINT: int = 0\n+const SOURCE_STATE_KEYS: Array[String] = [\n+\t\"BLUEPRINT\", \"BUILDING\", \"ACTIVE\", \"PAUSED\", \"DAMAGED\", \"DEMOLISHING\",\n+]\n const SOURCE_ROOM_TYPE_DORMITORY: int = 0\n@@ -363,10 +366,35 @@ static func _source_ordinal_refusal() -> SaveHeader.Refusal:\n \tif not columns_ok:\n \t\treturn _refuse(Section.REFUSE_METADATA,\n \t\t\t\"%s the fact-row columns are not x=%d/z=%d of %d and x=%d/z=%d of %d\"\n \t\t\t\t% [METADATA_DETAIL_PREFIX, SOURCE_B_FOOTPRINT_X, SOURCE_B_FOOTPRINT_Z,\n \t\t\t\t\tSOURCE_B_FIELD_COUNT, SOURCE_F_FLOOR_X, SOURCE_F_FLOOR_Z,\n \t\t\t\t\tSOURCE_F_FIELD_COUNT])\n-\treturn _tier_two_refusal()\n+\treturn _source_state_refusal()\n+\n+\n+static func _source_state_refusal() -> SaveHeader.Refusal:\n+\t\"\"\"Gate 4: ALL SIX protected BuildingState ordinals, from the compiled catalog dictionary.\n+\n+\tThe BLUEPRINT pin above stays. Size, key existence and integer type are proven before any\n+\tid is coerced, so a renumbered or truncated BUILDING_STATE refuses METADATA before gate 5.\n+\t\"\"\"\n+\tif SOURCE_STATE_KEYS.size() != SOURCE_STATE_COUNT:\n+\t\treturn _refuse(Section.REFUSE_METADATA, \"%s this bridge pins %d state keys, not %d\"\n+\t\t\t% [METADATA_DETAIL_PREFIX, SOURCE_STATE_KEYS.size(), SOURCE_STATE_COUNT])\n+\tif Buildings.Catalog.BUILDING_STATE.size() != SOURCE_STATE_COUNT:\n+\t\treturn _refuse(Section.REFUSE_METADATA, \"%s BUILDING_STATE holds %d states, not %d\"\n+\t\t\t% [METADATA_DETAIL_PREFIX, Buildings.Catalog.BUILDING_STATE.size(),\n+\t\t\t\tSOURCE_STATE_COUNT])\n+\tfor ordinal: int in SOURCE_STATE_COUNT:\n+\t\tvar key: String = SOURCE_STATE_KEYS[ordinal]\n+\t\tif not Buildings.Catalog.BUILDING_STATE.has(key):\n+\t\t\treturn _refuse(Section.REFUSE_METADATA, \"%s BUILDING_STATE has no '%s' key\"\n+\t\t\t\t% [METADATA_DETAIL_PREFIX, key])\n+\t\tvar state_id: Variant = Buildings.Catalog.BUILDING_STATE[key]\n+\t\tif typeof(state_id) != TYPE_INT or int(state_id) != ordinal:\n+\t\t\treturn _refuse(Section.REFUSE_METADATA, \"%s '%s' is not integer state ordinal %d\"\n+\t\t\t\t% [METADATA_DETAIL_PREFIX, key, ordinal])\n+\treturn _tier_two_refusal()\n \n \n static func _tier_two_refusal() -> SaveHeader.Refusal:\n",
+        "baseSha256": null
+      }
+    ],
+    "decisionIds": [
+      "0183"
+    ]
+  }
+}

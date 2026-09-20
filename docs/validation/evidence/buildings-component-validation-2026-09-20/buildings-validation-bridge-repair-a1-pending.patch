@@ -1,0 +1,47 @@
+diff --git a/godot/scripts/core/save_owner_buildings.gd b/godot/scripts/core/save_owner_buildings.gd
+--- a/godot/scripts/core/save_owner_buildings.gd
++++ b/godot/scripts/core/save_owner_buildings.gd
+@@ -146,3 +146,6 @@
+ ## GDD 4.3's protected BuildingState and RoomType ordinals, pinned exactly.
+ const SOURCE_STATE_BLUEPRINT: int = 0
++const SOURCE_STATE_KEYS: Array[String] = [
++	"BLUEPRINT", "BUILDING", "ACTIVE", "PAUSED", "DAMAGED", "DEMOLISHING",
++]
+ const SOURCE_ROOM_TYPE_DORMITORY: int = 0
+@@ -363,10 +366,35 @@ static func _source_ordinal_refusal() -> SaveHeader.Refusal:
+ 	if not columns_ok:
+ 		return _refuse(Section.REFUSE_METADATA,
+ 			"%s the fact-row columns are not x=%d/z=%d of %d and x=%d/z=%d of %d"
+ 				% [METADATA_DETAIL_PREFIX, SOURCE_B_FOOTPRINT_X, SOURCE_B_FOOTPRINT_Z,
+ 					SOURCE_B_FIELD_COUNT, SOURCE_F_FLOOR_X, SOURCE_F_FLOOR_Z,
+ 					SOURCE_F_FIELD_COUNT])
+-	return _tier_two_refusal()
++	return _source_state_refusal()
++
++
++static func _source_state_refusal() -> SaveHeader.Refusal:
++	"""Gate 4: ALL SIX protected BuildingState ordinals, from the compiled catalog dictionary.
++
++	The BLUEPRINT pin above stays. Size, key existence and integer type are proven before any
++	id is coerced, so a renumbered or truncated BUILDING_STATE refuses METADATA before gate 5.
++	"""
++	if SOURCE_STATE_KEYS.size() != SOURCE_STATE_COUNT:
++		return _refuse(Section.REFUSE_METADATA, "%s this bridge pins %d state keys, not %d"
++			% [METADATA_DETAIL_PREFIX, SOURCE_STATE_KEYS.size(), SOURCE_STATE_COUNT])
++	if Buildings.Catalog.BUILDING_STATE.size() != SOURCE_STATE_COUNT:
++		return _refuse(Section.REFUSE_METADATA, "%s BUILDING_STATE holds %d states, not %d"
++			% [METADATA_DETAIL_PREFIX, Buildings.Catalog.BUILDING_STATE.size(),
++				SOURCE_STATE_COUNT])
++	for ordinal: int in SOURCE_STATE_COUNT:
++		var key: String = SOURCE_STATE_KEYS[ordinal]
++		if not Buildings.Catalog.BUILDING_STATE.has(key):
++			return _refuse(Section.REFUSE_METADATA, "%s BUILDING_STATE has no '%s' key"
++				% [METADATA_DETAIL_PREFIX, key])
++		var state_id: Variant = Buildings.Catalog.BUILDING_STATE[key]
++		if typeof(state_id) != TYPE_INT or int(state_id) != ordinal:
++			return _refuse(Section.REFUSE_METADATA, "%s '%s' is not integer state ordinal %d"
++				% [METADATA_DETAIL_PREFIX, key, ordinal])
++	return _tier_two_refusal()
+ 
+ 
+ static func _tier_two_refusal() -> SaveHeader.Refusal:

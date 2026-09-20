@@ -1,0 +1,39 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_buildings.gd
+  PASS  test_layout_defaults_and_borrowed_constructor
+  FAIL  test_frozen_scalar_history_geometry_and_priority_images
+        clear-r_present-2 pure (expected COLUMN_FLAG, got COLUMN_ROOM_STATE)
+        clear-r_present-2 bridge (expected COLUMN_FLAG, got COLUMN_ROOM_STATE)
+        clear-r_present-2 raw code detail (expected true, got false)
+        clear-r_present-255 pure (expected COLUMN_FLAG, got COLUMN_ROOM_STATE)
+        clear-r_present-255 bridge (expected COLUMN_FLAG, got COLUMN_ROOM_STATE)
+        clear-r_present-255 raw code detail (expected true, got false)
+  PASS  test_null_unallocated_all_extents_and_bucket_shapes
+  FAIL  test_each_field_at_first_midpoint_and_last_physical_row
+        sampled field1 row0 pure (expected COLUMN_FLAG, got COLUMN_ROOM_STATE)
+        sampled field1 row0 bridge (expected COLUMN_FLAG, got COLUMN_ROOM_STATE)
+        sampled field1 row0 raw code detail (expected true, got false)
+        sampled field1 row8192 pure (expected COLUMN_FLAG, got COLUMN_ROOM_STATE)
+        sampled field1 row8192 bridge (expected COLUMN_FLAG, got COLUMN_ROOM_STATE)
+        sampled field1 row8192 raw code detail (expected true, got false)
+        sampled field1 row16383 pure (expected COLUMN_FLAG, got COLUMN_ROOM_STATE)
+        sampled field1 row16383 bridge (expected COLUMN_FLAG, got COLUMN_ROOM_STATE)
+        sampled field1 row16383 raw code detail (expected true, got false)
+  PASS  test_all_catalog_geometries_at_rotated_map_boundary
+  PASS  test_full_capacity_mixed_live_retired_and_never_used_rows
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+6 test(s), 19242 assertion(s), 2 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

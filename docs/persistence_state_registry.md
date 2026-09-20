@@ -779,6 +779,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 |---|---|---|---|---|:-:|---|---|
 | Pure owner15 pose and binding validator | -- | -- | -- | -- | 3 | -- | Decision0173 / TRANSFORMS-S4-VALIDATE-R01v1. No mutable module state or live owner/Directory construction. Nine typed caller-owned i32 columns feed the static predicate; positive binding uniqueness uses one private350208-byte duplicate-and-sort. Framed3151872 + scratch350208 + three65536stream windows =3698688logical packed bytes, below existing6417408one-owner stream allowance. Native/wrapper overhead is unmeasured. Preserve all signed pose/yaw values, independent current/previous and legitimate stale bindings. Bulk APIs/nonzero-stamp count rebuild and saved cursor/Directory identity remain separate. |
 
+### `godot/scripts/core/save_owner_buildings.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---|---|---|:-:|---|---|
+| Buildings validation bridge | -- | -- | -- | -- | 3 | -- | Pure owner0 bridge, BUILDINGS-S4-VALIDATE-R01v1/ADR0183. No mutable authoritative state or live owner construction. Columns(false) borrows29 pre-shaped buffers; no full second3298304-byte image. Logical4150272 envelope within6417408 stream allowance; native/RSS costs unqualified. Retired building/room/furniture history preserved. Directory/section1/section5 identity, geometry, chain, arena, construction/user/clock joins and bulk restoration remain BUILDINGS-SAVED-BINDINGS. |
+
 ### `godot/scripts/core/save_owner_movement.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

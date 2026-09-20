@@ -1,0 +1,23 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "aa541f4885b2a0b8ac94c2d8c527ac9a2bfec406",
+  "task": "Buildings borrowed-buffer framed validation and immutable source metadata preflight",
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/buildings_component_validation_contract.md",
+    "docs/decisions/0183-buildings-validation-borrows-columns-and-preserves-retired-history.md",
+    "docs/validation/evidence/buildings-component-validation-2026-09-20/candidate-buildings.gd",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/contract-disposition.md",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/source-layout.json",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/frozen-source-facts.json",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/catalog-excerpts.md",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/directory-excerpts.md",
+    "godot/scripts/core/building_definitions.gd",
+    "godot/scripts/core/save_owner_fishing.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_header.gd"
+  ],
+  "instructions": "Implement ONLY NEW godot/scripts/core/save_owner_buildings.gd for BUILDINGS-S4-VALIDATE-R01v1/ADR0183. Use exactly four direct preloads Buildings/Schema/Section/SaveHeader. Access Catalog/BuildingDefinitions/Directory through existing Buildings preloads. Seven gates null/wrongowner0/unchanged schema refusal/metadata AND immutable source pins/unchanged shape refusal/Columns.new(false)+29 explicitcanonicaltypedassignments/purecode wrapped. Critical false constructor: no full-sized second3298304byte image,duplicate,new buffers,serialization or live Buildings/Definitions/Directory instantiation. All sourcefacts incontract pinned safely: owner arrays lengths FIRST, Catalog and Definitions dictionaries exactsizes, each has(key), catalog id typeint/valueordinal, fact typeofTYPE_ARRAY/exactrowlength BEFOREdimensions,dimensionstypeint/exactvalues, ownerfactarrays exactcanonicalexpectedvalues. Pinallmetadata/sourceconstantsandprotectedstate/roomordinals plusTierTwoKeys length/order. Source rows are10/4. No schemachanges.17rawcolumnrefusals wrappedwith detail containingexact Buildings owner 0 pluscode. Metadata constant METADATA_DETAIL_PREFIX exact Buildings owner0 metadata: (intentionaldifferent spacing); empty successcode/detail. Pinshape/rowbounds priorprojection. Columnvariable named columns orout and parameter record so explicitprojection auditing canfreeze. No perrowobjects/floats/callbacks/inputmutation. Metadata bypass tests require these unique exact expressions: Schema.owner_key(OWNER_INDEX) != OWNER_KEY; Schema.owner_version(OWNER_INDEX) != OWNER_VERSION; Schema.primary_count(OWNER_INDEX) != OWNER_PRIMARY_COUNT; Schema.child_extent_count(OWNER_INDEX) != OWNER_CHILD_EXTENT_COUNT; Schema.child_extent(OWNER_INDEX, 0) != 16384; Schema.child_extent(OWNER_INDEX, 1) != 81920; Schema.field_count(OWNER_INDEX) != OWNER_FIELD_COUNT; Schema.field_key(OWNER_INDEX, field) != String(FIELD_KEYS[field]); Schema.field_type(OWNER_INDEX, field) != int(FIELD_TYPES[field]); Schema.element_count(OWNER_INDEX, field) != int(FIELD_COUNTS[field]). Do not duplicate equivalents that hide individualbypasswitnesses. Existing GDScript innerColumns canresolve outerconstants viaowner. ReturnONE NEW docs/validation/evidence/buildings-component-validation-2026-09-20/author-bridge.patch baseSha256null unifieddiffnewfile100644 HARD650actualpatchlines AIM430. No tests/docs/othercode/executionclaims. StrictJSONstatuscomplete/summary/questions/files/decisionIds; acknowledgeADR0183."
+}

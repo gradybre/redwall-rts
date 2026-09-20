@@ -1,0 +1,44 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_buildings.gd
+  PASS  test_layout_defaults_and_borrowed_constructor
+  FAIL  test_frozen_scalar_history_geometry_and_priority_images
+        clear-f_type_id-1 pure (expected COLUMN_FURNITURE_FREE, got )
+        clear-f_type_id-1 bridge (expected COLUMN_FURNITURE_FREE, got )
+        clear-f_type_id-1 success (expected false, got true)
+        clear-f_type_id-1 owner detail (expected true, got false)
+        clear-f_type_id-1 raw code detail (expected true, got false)
+        clear-f_origin_tile-0 pure (expected COLUMN_FURNITURE_FREE, got )
+        clear-f_origin_tile-0 bridge (expected COLUMN_FURNITURE_FREE, got )
+        clear-f_origin_tile-0 success (expected false, got true)
+        clear-f_origin_tile-0 owner detail (expected true, got false)
+        clear-f_origin_tile-0 raw code detail (expected true, got false)
+        clear-f_rotation-1 pure (expected COLUMN_FURNITURE_FREE, got )
+        clear-f_rotation-1 bridge (expected COLUMN_FURNITURE_FREE, got )
+        clear-f_rotation-1 success (expected false, got true)
+        clear-f_rotation-1 owner detail (expected true, got false)
+        clear-f_rotation-1 raw code detail (expected true, got false)
+        clear-f_condition-1 pure (expected COLUMN_FURNITURE_FREE, got )
+        clear-f_condition-1 bridge (expected COLUMN_FURNITURE_FREE, got )
+        clear-f_condition-1 success (expected false, got true)
+        clear-f_condition-1 owner detail (expected true, got false)
+        clear-f_condition-1 raw code detail (expected true, got false)
+  PASS  test_null_unallocated_all_extents_and_bucket_shapes
+  PASS  test_each_field_at_first_midpoint_and_last_physical_row
+  PASS  test_all_catalog_geometries_at_rotated_map_boundary
+  PASS  test_full_capacity_mixed_live_retired_and_never_used_rows
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+6 test(s), 19242 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

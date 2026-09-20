@@ -1,0 +1,7 @@
+{
+  "scope": "Initial unrepaired owner/bridge metadata probe, not acceptance",
+  "exit_code": 1,
+  "seconds": 17.646,
+  "owner_sha256": "44af6c26a3d6e50f6fb25d6083dfb69f45106ad1c0dc2c8441003ca84d0abcdc",
+  "bridge_sha256": "65c07676115721aeafd29034e3f96f0bc86f0b793139dddede66fe4d3f5e2a1d"
+}

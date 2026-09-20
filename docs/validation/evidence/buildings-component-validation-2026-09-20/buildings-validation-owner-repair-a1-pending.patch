@@ -1,0 +1,22 @@
+Bounded corrective patch for BUILDINGS-S4-VALIDATE-R01 v1 (ADR 0183).
+Applied on top of the supplied candidate buildings.gd. Restores the ordered
+inactive-furniture contract: FREE refusals still win, a NULL-parent never-used
+row succeeds, and a retired row with a retained nonnull parent falls through to
+the present/state gates, so the frozen retired-furniture-f_origin_tile--1
+witness earns COLUMN_FURNITURE_STATE instead of REFUSE_NONE.
+
+diff --git a/godot/scripts/core/buildings.gd b/godot/scripts/core/buildings.gd
+--- a/godot/scripts/core/buildings.gd
++++ b/godot/scripts/core/buildings.gd
+@@ -1489,6 +1489,10 @@ static func _columns_furniture_refusal(image: Columns, row: int) -> StringName:
+ 	if (not _columns_ref_ok(image.f_room_slot[row], image.f_room_generation[row])
+ 			or not _columns_ref_ok(image.f_user_slot[row], image.f_user_generation[row])):
+ 		return REFUSE_COLUMN_FURNITURE_REF
+ 	if image.f_present[row] == 0:
+-		return _columns_furniture_free_refusal(image, row)
++		var free_code: StringName = _columns_furniture_free_refusal(image, row)
++		if free_code != REFUSE_NONE:
++			return free_code
++		if _columns_ref_is_null(image.f_room_slot[row], image.f_room_generation[row]):
++			return REFUSE_NONE
+ 	return _columns_furniture_state_refusal(image, row)

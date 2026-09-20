@@ -1,0 +1,10 @@
+{
+  "pr": 174,
+  "initial_head": "7a05c17e5d6ba21220892f883d1a400c33730dfe",
+  "run": 35514832649,
+  "spec_job": 106088896844,
+  "conclusion": "failure",
+  "cause": "Generated registry_capacity_audit.json was regenerated and checked locally but accidentally omitted from explicit staging. Local pass did not describe committed artifact.",
+  "repair": "Commit the already verified generated sidecar; no runtime source or test changes. Fresh exact-head CI is mandatory.",
+  "sidecar_sha256": "928067b4040536da79b1908cde93c75c24b875a7ca505c04b1b2d24aafeb3800"
+}

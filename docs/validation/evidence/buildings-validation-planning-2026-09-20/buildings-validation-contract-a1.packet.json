@@ -1,0 +1,28 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "f36d36644d4983d057183893391937a19d0c5677",
+  "task": "Independent Buildings borrowed-buffer validation contract review",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/buildings_component_validation_contract.md",
+    "godot/scripts/core/buildings.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "docs/planning/component_columns_stream_contract.md",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/source-layout.json",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/catalog-excerpts.md",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/directory-excerpts.md",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/frozen-source-facts.json",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/feasibility-review.md",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/feasibility-disposition.md",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/frozen-witnesses.json",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/shape-witnesses.json",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/mutation-witness-plan.md",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/metadata-arithmetic-check.json",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/metadata-cases.json",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/borrowed-view-feasibility-probe.gd",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/borrowed-view-feasibility.json",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/borrowed-view-disposition.md",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/public-user-binding-probe.log"
+  ],
+  "instructions": "Read-only independent review of candidate BUILDINGS-S4-VALIDATE-R01v1 before implementation. Audit29field canonicalorder/1024primary16384room81920furniture/2childextents/3298304values. Check exactpriority/default-vs-retired union discriminants and everywriter, broadscalarrefs/externallyvalidrooms/userbindings evenzero-slotkinds (public1/16), activeandretiredtype-specific tiers/rotatedgeometry withoutinventingcrossfileliveness. Verify170explicitvaluecases89shape87sampledfield-row plan,75logicalcode units for equivalence/unsafe mutation ormissingwitness;69metadata621 planned including10schemafault/bypass pairs. SourceDictionary type/size/has/index ordering andstaticfacts parity mustprevent unsafeaccess. ExplicitcoldColumns allocate_defaults=false viaadapter mustavoiddoubleimagewithoutcodec coupling; actualadapter stillrequired despite synthetics3.7KBvs3.3MBexperiment. Review1048576incrementalstaticpeak threshold+ballastmethod asone allocation discriminator, notRSS/gamebudget; COWframenonmutation alone insufficient. OriginalborrowexperimentImage classname parsefailure preserved/corrected notperformanceevidence. No sourcecodewrittenyet. Contractmayneedrefinements, identifyprecisemustfix orpubliccounterexample, don'tinventpolicy. ReturnONE NEW docs/validation/evidence/buildings-validation-planning-2026-09-20/contract-review.md baseSha256null HARD130actualnewline-lines1400words AIM65lines950words. No otherfiles/code/executionclaims. StrictJSONstatuscomplete/summary/questions/files/decisionIds."
+}

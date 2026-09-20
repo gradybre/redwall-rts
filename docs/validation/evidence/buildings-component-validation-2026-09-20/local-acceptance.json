@@ -1,0 +1,96 @@
+{
+  "contract": "BUILDINGS-S4-VALIDATE-R01v1",
+  "full": {
+    "tests": 4999,
+    "assertions": 522412,
+    "failures": 0
+  },
+  "focus": {
+    "tests": 6,
+    "assertions": 19242,
+    "failures": 0
+  },
+  "mutations": {
+    "total": 76,
+    "functional_assertion_oracles": 75,
+    "final_projection_valid_runs": 31,
+    "unchanged_owner_units_with_pure_witnesses": 46,
+    "prior_campaign_valid_runs": 77,
+    "allocation_discriminator_units": 1,
+    "allocation_valid_runs": 3
+  },
+  "metadata": {
+    "cases": 77,
+    "assertions": 693,
+    "bypasses_detected": 10,
+    "scope": "Cold owned clone only; autoloads disabled; missing-shelf counterfactual uses equal-valued local key in unrelated accessor; missing/type/renamed CORRIDOR counterfactuals preserve integer7 alias to avoid compile-time folds; originals preserved; production unchanged"
+  },
+  "allocation": [
+    {
+      "after_peak": 101065843,
+      "after_usage": 101060171,
+      "ballast_bytes": 56825482,
+      "before_peak": 101059207,
+      "bridge_code": "",
+      "code": "",
+      "increment": 6636,
+      "lifted_usage": 101059207,
+      "limit": 1048576,
+      "prior_peak": 100010575,
+      "prior_usage": 44233669,
+      "status": "PASS",
+      "case": "baseline"
+    },
+    {
+      "after_peak": 104364387,
+      "after_usage": 101059767,
+      "ballast_bytes": 56825122,
+      "before_peak": 101058803,
+      "bridge_code": "",
+      "code": "ALLOCATION_EXTRA_OWNER",
+      "increment": 3305584,
+      "lifted_usage": 101058803,
+      "limit": 1048576,
+      "prior_peak": 100010171,
+      "prior_usage": 44233625,
+      "status": "FAIL",
+      "case": "forbidden-default-constructor"
+    },
+    {
+      "after_peak": 101065843,
+      "after_usage": 101060171,
+      "ballast_bytes": 56825482,
+      "before_peak": 101059207,
+      "bridge_code": "",
+      "code": "",
+      "increment": 6636,
+      "lifted_usage": 101059207,
+      "limit": 1048576,
+      "prior_peak": 100010575,
+      "prior_usage": 44233669,
+      "status": "PASS",
+      "case": "restored"
+    }
+  ],
+  "static_checks": 17,
+  "import_exit": 0,
+  "shutdown_baseline": {
+    "objects": 553,
+    "resources": 33
+  },
+  "source_sha256": {
+    "godot/scripts/core/buildings.gd": "eb6d09a1d80d169fa60795b6e6d22d05dd64329b8ea85f36e805b482ea705dd5",
+    "godot/scripts/core/save_owner_buildings.gd": "d6a44702489b988afe525a56f5f82a5feef272d0877ec0664b99279286681c13",
+    "godot/test/test_save_owner_buildings.gd": "d602cfa7aa99606dceec591240c769f9755be07096ea49c6817a3eb772eacd1f",
+    "godot/test/buildings_validation_focus.gd": "7106b220e0586a8f5291aaf48b19524f209d632722c620f0bdbf6ee980b29312",
+    "tools/test_buildings_metadata_preflights.py": "81e991f918b5235b463fb3998ea05fade50e228c25c8d0544000ace966a6682e",
+    "tools/test_buildings_allocation.py": "75d873d12888a8e61badb57e7b8d38a9aa9656f53619a5c12e783c0e07b302c7",
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad"
+  },
+  "remaining": [
+    "exact-head CI and merge",
+    "same-file Directory/section1/section5/construction/user/clock bindings",
+    "bulk29-column capture/apply",
+    "live construction and complete settlement"
+  ]
+}

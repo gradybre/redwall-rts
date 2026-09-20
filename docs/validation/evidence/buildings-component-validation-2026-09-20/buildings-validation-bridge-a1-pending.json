@@ -1,0 +1,14 @@
+{
+  "attempt": "buildings-validation-bridge-a1",
+  "model": "claude-opus-5",
+  "sessionId": "b9a1dad6-b704-4b1c-862d-d079a5f193ce",
+  "state": "complete",
+  "ownerStopped": true,
+  "lines": 565,
+  "line_budget": 650,
+  "frozen_inputs_verified": true,
+  "target_mode_allowlist_verified": true,
+  "raw_apply_check_exit": 0,
+  "applied": false,
+  "pending": "PR173 exact-head CI and merge before production intake"
+}

@@ -1,0 +1,11 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "2d6f25020e88985b57099db7a0dea0c0a5ae8e56",
+  "task": "Mechanical metadata harness additions from independently reviewed precise recipe",
+  "paths": [
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/parent-metadata-v2.py",
+    "docs/validation/evidence/buildings-validation-planning-2026-09-20/metadata-cases-v2.json",
+    "docs/validation/evidence/buildings-component-validation-2026-09-20/source-review-followup.md"
+  ],
+  "instructions": "Author a bounded mechanical test-harness revision, no production code. Return exactly TWO NEW files with baseSha256 null: docs/validation/evidence/buildings-validation-planning-2026-09-20/parent-metadata-v3.py and docs/validation/evidence/buildings-validation-planning-2026-09-20/metadata-cases-v3.json. Preserve v2 all existing behavior and add exactly two size-preserving dictionary rename-key cases, one each Catalog.BUILDING_STATE and Catalog.ROOM_TYPE. dictionary_fault rename-key removes last key and reinserts same integer value under key+\"_renamed\". Include rename-key in state/room source_faults only, not other dictionaries. ROOM_TYPE rename-key must also use existing isolated_room equal-valued CORRIDOR alias7 shim, like missing/type, to avoid compile-fold. Preserve production sources. Assert77 cases (693 assertions), still10 bypass catches. New harness planned path metadata-cases-v3.json. JSON plan append exactly2 cases expectation metadata refusal, total77 assertions693 revision3, accurately describe size-preserving membership witnesses. Retain old75cases. Do not alter existing file bytes except required replacements in new copies. No execution claims. Return strict JSON status complete, summary, questions [], files [{path,baseSha256:null,content}], decisionIds []. No Markdown fences. Target concise summary; full source files necessary."
+}

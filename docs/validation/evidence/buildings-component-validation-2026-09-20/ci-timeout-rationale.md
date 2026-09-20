@@ -1,0 +1,3 @@
+# Bounded CI timeout adjustment
+
+Movement exact-head CI35511631889 completed its Godot job in27m17s (12:47:37–13:14:54UTC), with9m23s for the full suite and29s for the21-case Movement metadata tool. Buildings adds6fullsuite tests (local combined focus19.580s),69metadata cases (local47.590s) and the3-run allocation discriminator (local2.140s). CI is slower than local on these existing gates. Raise the Godot job's30-minute limit to35minutes to accommodate the added required work without weakening a test, predicate or acceptance condition. Specification timeout stays5minutes. This is a bounded workflow allowance, not a performance qualification or an assertion that the CI duration is already measured for Buildings.

@@ -1,0 +1,526 @@
+{
+  "source_sha256": {
+    "godot/scripts/core/buildings.gd": "eb6d09a1d80d169fa60795b6e6d22d05dd64329b8ea85f36e805b482ea705dd5",
+    "godot/scripts/core/save_owner_buildings.gd": "d6a44702489b988afe525a56f5f82a5feef272d0877ec0664b99279286681c13"
+  },
+  "source_unchanged": true,
+  "results": [
+    {
+      "case": "mutation-baseline",
+      "oracle": "assertions",
+      "exit_code": 0,
+      "seconds": 20.485,
+      "valid_execution": true,
+      "killed": false,
+      "passed": true,
+      "summary": [
+        "6 test(s), 19242 assertion(s), 0 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-b_present",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.247,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-r_present",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.341,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-f_present",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.272,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-b_type_id",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.377,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-b_tier",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.35,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-b_origin_tile",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.456,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-b_rotation",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.541,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-b_state",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.373,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-b_condition",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.435,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-b_construction_slot",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.666,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-b_construction_generation",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.834,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-b_interior_id",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.528,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-r_type",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.629,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-r_building_slot",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.453,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-r_building_generation",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.445,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-r_tile_offset",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.518,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-r_tile_count",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.531,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-r_temperature_tenths",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.533,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-r_furniture_mask",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.54,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-r_occupants",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.435,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-r_valid",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.425,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-f_type_id",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.421,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-f_room_slot",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.529,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-f_room_generation",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.442,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-f_origin_tile",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.422,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-f_rotation",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.529,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-f_user_slot",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.554,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-f_user_generation",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.541,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-projection-f_condition",
+      "oracle": "assertions",
+      "exit_code": 1,
+      "seconds": 11.341,
+      "valid_execution": true,
+      "killed": true,
+      "passed": false,
+      "summary": [
+        "  FAIL  test_layout_defaults_and_borrowed_constructor",
+        "  FAIL  test_frozen_scalar_history_geometry_and_priority_images",
+        "  FAIL  test_each_field_at_first_midpoint_and_last_physical_row",
+        "  FAIL  test_all_catalog_geometries_at_rotated_map_boundary",
+        "  FAIL  test_full_capacity_mixed_live_retired_and_never_used_rows",
+        "6 test(s), 19242 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "mutation-restored",
+      "oracle": "assertions",
+      "exit_code": 0,
+      "seconds": 20.054,
+      "valid_execution": true,
+      "killed": false,
+      "passed": true,
+      "summary": [
+        "6 test(s), 19242 assertion(s), 0 failure(s)"
+      ]
+    }
+  ]
+}

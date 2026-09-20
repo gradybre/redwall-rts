@@ -1,0 +1,1 @@
+The full source review is154lines/1584words, as recorded in source-review-fence-recovery.json. The follow-up decision packet said160lines/approximately1800words in its first paragraph; that is a descriptive count typo, not a modification or truncation of the report. Preserve the frozen dispatched packet; use the measured154/1584 counts.

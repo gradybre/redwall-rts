@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "1369fce5fee64d7c292453f5d4fe8c6123328251",
+  "task": "Bounded review of Priorities two-line allocation cleanup and evidence disposition",
+  "paths": [
+    "docs/planning/priorities_component_validation_contract.md",
+    "docs/validation/evidence/priorities-component-validation-2026-09-20/source-review.md",
+    "docs/validation/evidence/priorities-component-validation-2026-09-20/source-review-disposition.md",
+    "docs/validation/evidence/priorities-component-validation-2026-09-20/review-cleanup.md",
+    "godot/scripts/core/priorities.gd",
+    "godot/test/test_save_owner_priorities.gd",
+    "docs/validation/evidence/priorities-component-validation-2026-09-20/before-review-cleanup/mutation-results.json"
+  ],
+  "instructions": "Bounded follow-up to independent source review. Only production change after review: _is_priority_column now loops integercount MAX-MIN+1 and count(MIN+offset), removing range5Array without assumingMIN0. Parent test ownerdetail assertion pins full ownerlabel. Precleanupfull4895/216053/0 and8requiredmutantskilled archived; final evidence beingrerun. Check equivalent bounds, noallocationclaim, diagnosticassertion and dispositions; no reopeningsettledproduction or gameplay. ReturnONEnew docs/validation/evidence/priorities-component-validation-2026-09-20/review-followup.md; hard80lines AND800words, aim35/350. RawJSONstatus/summary/questions/files/decisionIds; newbaseSha256null. No edits or runclaims."
+}

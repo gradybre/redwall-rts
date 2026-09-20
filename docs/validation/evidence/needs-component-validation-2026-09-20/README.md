@@ -14,3 +14,5 @@ Local acceptance:
 - Independent source review found no blocker. Its actual metadata coverage improvements are implemented; bounded follow-up review also found no blocker. Full suite passes4884tests /208744assertions /0failures; unchanged553objects/33resources shutdown diagnostics. Exact-head CI and its timing are pending.
 
 The all18-owner semantic parent, two further Needs domain contracts, owner capture/apply, coupled-section validity, common-file provenance, coordinator and complete save/load remain incomplete. This is neither a full-save nor a first-playable milestone.
+
+Merged PR161 as1369fce5fee64d7c292453f5d4fe8c6123328251 after exact-head CI35493467909 passed4884/208744/0 and both required checks. CI metadata step completed in86seconds inside the existing30-minute job; the whole Godot job ran9m16s. No timeout increase was needed.

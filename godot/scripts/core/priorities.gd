@@ -118,6 +118,19 @@ const REFUSE_INVALID_JOB_KIND: StringName = &"INVALID_JOB_KIND"
 const REFUSE_INVALID_PRIORITY: StringName = &"INVALID_PRIORITY"
 const REFUSE_RESERVED_JOB_KIND: StringName = &"RESERVED_JOB_KIND"
 
+## PRIORITIES-S4-VALIDATE-R01 v1 (decision 0171): the argument-only column predicate's ordered
+## codes. Gate 1 shape; gate 2 presence bytes; gate 3 the two policy flags, with a DISTINCT code
+## each so a transposed flag argument is observable; gate 4 the 0-4 priority domain; gate 5 the
+## permanently zero reserved index; gate 6 an inactive row still holding residue. Success is the
+## existing REFUSE_NONE.
+const REFUSE_COLUMN_SHAPE: StringName = &"COLUMN_SHAPE"
+const REFUSE_COLUMN_PRESENT_BYTE: StringName = &"COLUMN_PRESENT_BYTE"
+const REFUSE_COLUMN_AUTO_FALLBACK_BYTE: StringName = &"COLUMN_AUTO_FALLBACK_BYTE"
+const REFUSE_COLUMN_DANGEROUS_WORK_BYTE: StringName = &"COLUMN_DANGEROUS_WORK_BYTE"
+const REFUSE_COLUMN_PRIORITY_RANGE: StringName = &"COLUMN_PRIORITY_RANGE"
+const REFUSE_COLUMN_RESERVED_PRIORITY: StringName = &"COLUMN_RESERVED_PRIORITY"
+const REFUSE_COLUMN_FREE_ROW: StringName = &"COLUMN_FREE_ROW"
+
 
 class OpResult:
 	"""Outcome of one priorities operation: success flag, refusal code, produced value.
@@ -284,13 +297,78 @@ func inactive_row_is_clear(slot: int) -> bool:
 	"""
 	if slot < 0 or slot >= PRIORITY_CAPACITY or _present[slot] != 0:
 		return false
-	if _auto_fallback[slot] != 0 or _dangerous_work[slot] != 0:
+	return _free_row_is_clear(_job_priority, _auto_fallback, _dangerous_work, slot)
+
+
+static func _free_row_is_clear(job_priority: PackedByteArray, auto_fallback: PackedByteArray,
+		dangerous_work: PackedByteArray, slot: int) -> bool:
+	"""True when this physical row's two flags and all twelve priority bytes are zero.
+
+	The ONE definition of a clear free row, shared by `inactive_row_is_clear()` above -- which
+	keeps its own invalid-address and present-row guards and delegates only after them -- and by
+	the packed free-row gate of `columns_refusal()`, which calls it only after complete shape and
+	domain admission. It takes no presence argument and never reads live presence, so it cannot
+	decide on its own whether a row is allowed to hold values. Its two flag checks are symmetric.
+	"""
+	if auto_fallback[slot] != 0 or dangerous_work[slot] != 0:
 		return false
 	var base: int = slot * JOB_KIND_COUNT
 	for kind: int in JOB_KIND_COUNT:
-		if _job_priority[base + kind] != PRIORITY_FORBIDDEN:
+		if job_priority[base + kind] != PRIORITY_FORBIDDEN:
 			return false
 	return true
+
+
+static func columns_refusal(present: PackedByteArray, job_priority: PackedByteArray,
+		auto_fallback: PackedByteArray, dangerous_work: PackedByteArray) -> StringName:
+	"""PRIORITIES-S4-VALIDATE-R01 v1: judge four packed columns, in canonical argument order.
+
+	Pure and static over its arguments: no live owner, no Columns object, no default buffer, no
+	duplicate, no sort, no per-row object, no derived occupancy array and no diagnostic write. It
+	answers only this owner's own local domain over all 512 physical rows -- the separate 256
+	living cap is a cross-owner rule this owner cannot see, and a present row need not hold the
+	spawn-default priorities or flags.
+
+	First refusal wins, in the contract's exact order: all four extents including an empty one,
+	the presence bytes, auto_fallback then dangerous_work with distinct codes, the 0-4 priority
+	domain, the permanently zero reserved index at every slot including 0 and 511, then any
+	inactive row holding residue. A code names the first violated gate only, and never claims a
+	row identity. Later bulk restore must reuse this exact predicate.
+	"""
+	if present.size() != PRIORITY_CAPACITY \
+			or job_priority.size() != PRIORITY_CAPACITY * JOB_KIND_COUNT \
+			or auto_fallback.size() != PRIORITY_CAPACITY \
+			or dangerous_work.size() != PRIORITY_CAPACITY:
+		return REFUSE_COLUMN_SHAPE
+	if not _is_flag_column(present):
+		return REFUSE_COLUMN_PRESENT_BYTE
+	if not _is_flag_column(auto_fallback):
+		return REFUSE_COLUMN_AUTO_FALLBACK_BYTE
+	if not _is_flag_column(dangerous_work):
+		return REFUSE_COLUMN_DANGEROUS_WORK_BYTE
+	if not _is_priority_column(job_priority):
+		return REFUSE_COLUMN_PRIORITY_RANGE
+	for slot: int in PRIORITY_CAPACITY:
+		if job_priority[slot * JOB_KIND_COUNT + JOB_KIND_RESERVED_INDEX] != PRIORITY_FORBIDDEN:
+			return REFUSE_COLUMN_RESERVED_PRIORITY
+	for slot: int in PRIORITY_CAPACITY:
+		if present[slot] == 0 \
+				and not _free_row_is_clear(job_priority, auto_fallback, dangerous_work, slot):
+			return REFUSE_COLUMN_FREE_ROW
+	return REFUSE_NONE
+
+
+static func _is_flag_column(column: PackedByteArray) -> bool:
+	"""True when every byte of a presence or policy column is 0 or 1. Bounded by its own size."""
+	return column.count(0) + column.count(1) == column.size()
+
+
+static func _is_priority_column(column: PackedByteArray) -> bool:
+	"""True when every one of the 6144 priority bytes is inside REQ-SET-026's 0-4 scale."""
+	var legal: int = 0
+	for offset: int in PRIORITY_MAX - PRIORITY_MIN + 1:
+		legal += column.count(PRIORITY_MIN + offset)
+	return legal == column.size()
 
 
 func priority_of(slot: int, kind: int) -> IntMath.IntResult:

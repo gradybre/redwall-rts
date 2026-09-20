@@ -1,0 +1,18 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "cbfe060fda278bbbf0e6af57c96230f33d564ad9",
+  "task": "Final contract review for Priorities pure owner11 validator",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/priorities_component_validation_contract.md",
+    "docs/validation/evidence/priorities-validation-planning-2026-09-20/authority-excerpts.md",
+    "docs/validation/evidence/priorities-validation-planning-2026-09-20/feasibility-review.md",
+    "docs/validation/evidence/priorities-validation-planning-2026-09-20/feasibility-disposition.md",
+    "godot/scripts/core/priorities.gd",
+    "godot/test/test_priorities.gd",
+    "godot/scripts/core/save_owner_needs.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd"
+  ],
+  "instructions": "Final pre-author contract review of PRIORITIES-S4-VALIDATE-R01draft2. Feasibility reviewed; Astra disposition resolves ordering, granularflagcodes, sharedfreepredicate and honest metadata checks. Identify only material unresolved ambiguity/unsafeapi/domain/memory/test witness issue before author dispatch. Check shared existing inactive_row_is_clear guard vs newhelper, distinct flag transposition exactcodes and no512vs256confusion. No production/test edits, no runclaims, no reopening excluded gameplay. ExactlyONEnew docs/validation/evidence/priorities-validation-planning-2026-09-20/contract-review.md; hard100lines AND1000words, aim50/500. RawJSON status/summary/questions/files/decisionIds; newbaseSha256null."
+}

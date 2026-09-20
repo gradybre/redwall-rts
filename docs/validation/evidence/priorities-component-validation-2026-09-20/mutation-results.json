@@ -1,0 +1,126 @@
+{
+  "source_sha256": {
+    "godot/scripts/core/priorities.gd": "7352fe17f8973655f2f31c8755b0c5c5aa569310662ec649578a9a34f2d7632a",
+    "godot/scripts/core/save_owner_priorities.gd": "82ae61b2cb1afe3b48660a191c52aedab29fb90f723322a22cd62fd308dfca7c"
+  },
+  "source_unchanged": true,
+  "results": [
+    {
+      "case": "mutation-baseline",
+      "exit_code": 0,
+      "valid_execution": true,
+      "killed": false,
+      "summary": [
+        "33 test(s), 7585 assertion(s), 0 failure(s)"
+      ]
+    },
+    {
+      "case": "zero-substitute-present",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_independent_projection_witnesses_and_asymmetric_flags",
+        "  FAIL  test_active_priority_values_and_policy_flags_are_mutable_domains",
+        "  FAIL  test_refusal_order_across_distinct_rows",
+        "  FAIL  test_all512_present_rows_are_legal_for_policy_storage",
+        "  FAIL  test_public_lifecycle_and_shared_free_row_reader",
+        "33 test(s), 7585 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "zero-substitute-job_priority",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_independent_projection_witnesses_and_asymmetric_flags",
+        "  FAIL  test_every_physical_priority_byte_is_checked",
+        "  FAIL  test_reserved_first_and_last_rows_precede_inactive_residue",
+        "  FAIL  test_free_rows_require_every_policy_and_active_kind_to_be_zero",
+        "  FAIL  test_refusal_order_across_distinct_rows",
+        "33 test(s), 7585 assertion(s), 5 failure(s)"
+      ]
+    },
+    {
+      "case": "zero-substitute-auto_fallback",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_independent_projection_witnesses_and_asymmetric_flags",
+        "  FAIL  test_active_priority_values_and_policy_flags_are_mutable_domains",
+        "  FAIL  test_free_rows_require_every_policy_and_active_kind_to_be_zero",
+        "  FAIL  test_refusal_order_across_distinct_rows",
+        "33 test(s), 7585 assertion(s), 4 failure(s)"
+      ]
+    },
+    {
+      "case": "zero-substitute-dangerous_work",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_independent_projection_witnesses_and_asymmetric_flags",
+        "  FAIL  test_active_priority_values_and_policy_flags_are_mutable_domains",
+        "  FAIL  test_free_rows_require_every_policy_and_active_kind_to_be_zero",
+        "  FAIL  test_refusal_order_across_distinct_rows",
+        "33 test(s), 7585 assertion(s), 4 failure(s)"
+      ]
+    },
+    {
+      "case": "swap-policy-arguments",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_independent_projection_witnesses_and_asymmetric_flags",
+        "  FAIL  test_active_priority_values_and_policy_flags_are_mutable_domains",
+        "  FAIL  test_refusal_order_across_distinct_rows",
+        "33 test(s), 7585 assertion(s), 3 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-reserved-rule",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_reserved_first_and_last_rows_precede_inactive_residue",
+        "  FAIL  test_refusal_order_across_distinct_rows",
+        "33 test(s), 7585 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "case": "omit-free-row-rule",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_free_rows_require_every_policy_and_active_kind_to_be_zero",
+        "  FAIL  test_refusal_order_across_distinct_rows",
+        "33 test(s), 7585 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "case": "free-before-reserved",
+      "exit_code": 1,
+      "valid_execution": true,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_reserved_first_and_last_rows_precede_inactive_residue",
+        "  FAIL  test_refusal_order_across_distinct_rows",
+        "33 test(s), 7585 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "case": "mutation-restored",
+      "exit_code": 0,
+      "valid_execution": true,
+      "killed": false,
+      "summary": [
+        "33 test(s), 7585 assertion(s), 0 failure(s)"
+      ]
+    }
+  ]
+}

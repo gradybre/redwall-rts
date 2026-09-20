@@ -1788,7 +1788,8 @@
         "SAVE-S4-STREAM",
         "SAVE-S4-NEEDS-VALIDATE",
         "NEEDS-STATUS-PRECEDENCE",
-        "NEEDS-DEPARTURE-DOMAIN"
+        "NEEDS-DEPARTURE-DOMAIN",
+        "SAVE-S4-PRIORITIES-VALIDATE"
       ],
       "owns": [
         "docs/planning/component_owner_domains.md",
@@ -1819,7 +1820,7 @@
     {
       "id": "SAVE-S4-NEEDS-VALIDATE",
       "title": "Extract pure Needs framed validation and reject contradictory death status",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "SAVE-S4-STREAM"
       ],
@@ -1834,7 +1835,10 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Local acceptance:4884/208744/0,focused39/6432/0,24requiredmutants +4metadata-bypass mutants killed,19metadata cases,17static gates and import pass. Two independent source reviews no blocker. Exact-head CI pending. NEEDS-S4-VALIDATE-R01v2/ADR0170 primitive only; status/departure follow-ups remain incomplete."
+      "note": "Merged PR161 after exact-head CI35493467909 passed4884/208744/0,19metadata cases and both required checks. NEEDS-S4-VALIDATE-R01v2/ADR0170 primitive only; status/departure domains and all18semantic parent remain incomplete.",
+      "pr": 161,
+      "merge_commit": "1369fce5fee64d7c292453f5d4fe8c6123328251",
+      "merged_at": "2026-09-20T06:18:43Z"
     },
     {
       "id": "NEEDS-STATUS-PRECEDENCE",
@@ -1863,6 +1867,26 @@
       "agent": "astra",
       "gate": "none",
       "note": "Current restore admits nonnegative int32 including retained inactive values. No producer currently writes the counter. Reconcile GDD and registry before any semantic tightening."
+    },
+    {
+      "id": "SAVE-S4-PRIORITIES-VALIDATE",
+      "title": "Validate saved Priorities columns and framed owner11 without live allocation",
+      "status": "review",
+      "depends_on": [
+        "SAVE-S4-STREAM"
+      ],
+      "owns": [
+        "godot/scripts/core/priorities.gd",
+        "godot/scripts/core/save_owner_priorities.gd",
+        "godot/test/test_save_owner_priorities.gd",
+        "godot/test/priorities_validation_focus.gd",
+        "tools/test_priorities_metadata_preflights.py",
+        ".github/workflows/tests.yml",
+        "docs/persistence_state_registry.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Local acceptance PRIORITIES-S4-VALIDATE-R01v1/ADR0171:4895/216053/0;focused33/7585/0;8projection/domain +8metadata bypass mutants killed;18metadata cases;17static gates/import;two independent source reviews no blocker. Final source includes integer-count loop cleanup. Exact-head CI pending. No bulkAPIs/crossownerpublication."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

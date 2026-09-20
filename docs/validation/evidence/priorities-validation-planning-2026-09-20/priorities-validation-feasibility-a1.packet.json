@@ -1,0 +1,16 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "cbfe060fda278bbbf0e6af57c96230f33d564ad9",
+  "task": "Source-backed Priorities owner11 validation feasibility",
+  "paths": [
+    "AGENTS.md",
+    "docs/validation/evidence/priorities-validation-planning-2026-09-20/authority-excerpts.md",
+    "docs/validation/evidence/priorities-validation-planning-2026-09-20/astra-scope-proposal.md",
+    "godot/scripts/core/priorities.gd",
+    "godot/test/test_priorities.gd",
+    "godot/scripts/core/save_owner_needs.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd"
+  ],
+  "instructions": "Read-only source/domain feasibility review for next owner11 Priorities primitive. Existing accepted broadscope settlement endtoend. Review proposed four-packed-argument pureownerpredicate rather than inventing a Columns allocation for an owner without bulk APIs yet. Identify actual missing domain, unsafe coupling, reserved/free row/cap mistake, exact refusal order ambiguity, mapping mutant witness flaw or memory gap. Do not author production, tests or final contract; Astra decides. Explicitly distinguish ownercolumn validity from Directory/world agreement and deferred bulkcapture/apply. Existing Needs metadata boundary is precedent, not mandatory projection allocation. Return exactlyONEnew docs/validation/evidence/priorities-validation-planning-2026-09-20/feasibility-review.md; hard140lines AND1400words, aim70/700. RawJSON status/summary/questions/files/decisionIds only; newbaseSha256null. No runclaims. Suggest concrete finalAPI/codes only if source supports them."
+}

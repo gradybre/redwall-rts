@@ -1,0 +1,5 @@
+# Astra final contract disposition — accepted v1
+
+M1: bind each substitution to the explicit asymmetric exact-code witnesses in parent-test-matrix.md, including an accepted nondefault presence witness. Allzero is only the positive empty control. M2: the draft said count MAY be used, not must; the existing Needs predicate uses PackedByteArray.count and passed focused/full suites under pinned4.7.2. Both count and a bounded single pass are allowed explicitly; no speculative engine-compatibility blocker. M3: pin the complete typed helper signature, no presence read and unchanged existing reader guards. The two helper flag checks are symmetric; swap mutants target the externally observable bridge/predicate argument boundary. M4: column diagnostics identify owner/code only, without row claims.
+
+No unresolved material contract issue remains. Adopt PRIORITIES-S4-VALIDATE-R01v1 / ADR0171, with the full-world/bulk API boundaries unchanged. Pinned metadata guards plus generator/source-capacity proof remain separate evidence layers.

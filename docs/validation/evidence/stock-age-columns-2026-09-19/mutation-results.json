@@ -1,0 +1,36 @@
+{
+  "source_sha256": "7293272e02e0bb2b0ab0231bdade8d355aeb291abd30c152a9af848cb0405d22",
+  "results": [
+    {
+      "name": "omit-capture-payload",
+      "exit_code": 1,
+      "summary": [
+        "15",
+        "822",
+        "1"
+      ],
+      "killed": true
+    },
+    {
+      "name": "omit-restore-latch",
+      "exit_code": 1,
+      "summary": [
+        "15",
+        "822",
+        "2"
+      ],
+      "killed": true
+    },
+    {
+      "name": "omit-restore-cache-reset",
+      "exit_code": 1,
+      "summary": [
+        "15",
+        "822",
+        "1"
+      ],
+      "killed": true
+    }
+  ],
+  "source_restored": true
+}

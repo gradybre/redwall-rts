@@ -826,22 +826,22 @@
     {
       "id": "SAVE-COLUMNS-INVENTORY",
       "title": "Publish bulk column APIs on the six section 7 owners; closes BLOCKER I1",
-      "status": "ready",
+      "status": "blocked",
       "depends_on": [
-        "PLAN-SAVE-COVERAGE"
+        "PLAN-SAVE-COVERAGE",
+        "SAVE-STOCK-AGE-COLUMNS"
       ],
       "owns": [
         "godot/scripts/core/inventory.gd",
         "godot/scripts/core/gear.gd",
         "godot/scripts/core/reservations.gd",
-        "godot/scripts/core/stock_age.gd",
         "godot/scripts/core/fishing.gd",
         "godot/scripts/core/forage.gd",
         "godot/test/test_inventory_columns.gd"
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen."
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. StockAge is split into SAVE-STOCK-AGE-COLUMNS under SAVE-AGE-R01v2; umbrella retains other owners and full section7 assembly, so I1 is not closed by that child."
     },
     {
       "id": "SAVE-COLUMNS-JOBPLANNER",
@@ -929,7 +929,7 @@
     {
       "id": "SAVE-S11-CODEC",
       "title": "Section 11 codec over the existing event_schedule store",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "PLAN-SAVE-COVERAGE"
       ],
@@ -940,7 +940,9 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "SAVE-S11-R01v2 / decision0161 accepted after independent contract review. Exact8+32N distinct byte form over existing EventSchedule; real event domains/production/consumption remain PLAN-COMMUNITY-EVENTS, not activated by codec. Independent source review found no defect; final focus43/538/0, full local4713/184355/0 before2test-only additions,15static gates/import pass. Exact-head CI/merge pending."
+      "note": "SAVE-S11-R01v2 / decision0161 accepted after independent contract review. Exact8+32N distinct byte form over existing EventSchedule; real event domains/production/consumption remain PLAN-COMMUNITY-EVENTS, not activated by codec. Independent source review found no defect; final focus43/538/0, full local4713/184355/0 before2test-only additions,15static gates/import pass. PR152 merged after CI35479087613 passed4715/184365/0 on exact head0c1e19664e3daf059b84b93983ca475f2c1ecf50.",
+      "merge_commit": "f4368a31ee9b496240502c7e3eaaf72d80c816fe",
+      "pr": 152
     },
     {
       "id": "SAVE-S13-CODEC",
@@ -1057,7 +1059,7 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. Resumption follow-up: its complete implementation also depends on the concrete section/owner/continuation prerequisites; a generic coordinator skeleton cannot prove rollback. No dependency on SAVE-CAPTURE, which is its subsequent full-world integration owner."
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. Resumption follow-up: its complete implementation also depends on the concrete section/owner/continuation prerequisites; a generic coordinator skeleton cannot prove rollback. No dependency on SAVE-CAPTURE, which is its subsequent full-world integration owner. SAVE-AGE-R01v2 obligation: bind StockAge to the Inventory restored from the same validated file/world before installing declarations; matching generation numbers cannot prove world association. Preserve stale declaration generations for normal sweep (do not reject or repair them). Reconcile latch/clock/fault continuation separately; owner structural latch admits -1, 0, 751 and i64 max."
     },
     {
       "id": "SAVE-PROVENANCE-PRODUCER",
@@ -1548,6 +1550,23 @@
       "note": "INIT-COUNT-R01v2 / decision0159. Independent contract review disposition accepted. Unbound owner primitive; no Economy/UI/startup activation. PR150 merged after exact-head CI35477230365:4686tests/183384assertions/0failures.",
       "merge_commit": "d495b9cbb7603096a31822d8c2b9078b5020076d",
       "pr": 150
+    },
+    {
+      "id": "SAVE-STOCK-AGE-COLUMNS",
+      "title": "Capture and restore exact StockAge columns and section7 owner block",
+      "status": "in_flight",
+      "depends_on": [
+        "PLAN-SAVE-COVERAGE"
+      ],
+      "owns": [
+        "godot/scripts/core/stock_age.gd",
+        "godot/scripts/core/save_stock_age_restore.gd",
+        "godot/test/test_stock_age_columns.gd",
+        "godot/test/stock_age_columns_focus.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "SAVE-AGE-R01v2 / decision0162 accepted after feasibility audit, actual order/byte probes and independent contract review. Exact owner boundary only; remaining I1owners/world coordination open."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

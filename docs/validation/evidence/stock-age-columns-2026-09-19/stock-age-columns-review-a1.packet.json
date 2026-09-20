@@ -1,0 +1,17 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "f4368a31ee9b496240502c7e3eaaf72d80c816fe",
+  "task": "Independent acceptance of SAVE-AGE-R01v2 owner and single-block adapter",
+  "paths": [
+    "docs/planning/stock_age_columns_contract.md",
+    "docs/decisions/0162-restore-storage-aging-order-and-hour-latch-exactly.md",
+    "godot/scripts/core/stock_age.gd",
+    "godot/scripts/core/save_stock_age_restore.gd",
+    "godot/scripts/core/save_section_inventories.gd",
+    "docs/validation/evidence/stock-age-columns-contract-2026-09-19/bound-api-excerpts.md",
+    "godot/test/test_stock_age_columns.gd",
+    "docs/validation/evidence/stock-age-columns-2026-09-19/focus-second.log",
+    "docs/validation/evidence/stock-age-columns-contract-2026-09-19/wire-baseline.json"
+  ],
+  "instructions": "Independent source acceptance against exact accepted SAVE-AGE-R01v2. Author was separate Opus; parent authored tests. Check total shape gates, source/target failure atomicity, untouched noncanonical state except column diagnostic/two cache invalidations, native scalar domain before narrowing, dense list order and stale generations preserved, unique owner APIs/no codec cycle, local scratch/array independence, all six ordinal mapping and existing wire stability, actual follow-on aging and lot allocation, clock/barrier precedence. Focus126/1938/0 and15staticchecks passed; fullsuite running. Contract explicitly preserves structural latch>=-1 incl0/751, relies caller on world association/transaction attestation/reentry, and excludes fullInventoryrestore or wholeworldsave. Existingcodec ignores unusedlisttail; owner must require-1. Do not fabricate strongercaller guarantees. Identify concrete defects or acceptance/test gaps with remedy, prioritize correctness. No source edits/tools. Return exactJSON status complete,summary,questions[],files exactly one NEW docs/validation/evidence/stock-age-columns-2026-09-19/independent-review.md with baseSha256 null, content<=2000words,decisionIds[]."
+}

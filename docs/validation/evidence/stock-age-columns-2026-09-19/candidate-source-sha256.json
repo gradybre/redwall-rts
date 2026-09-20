@@ -1,0 +1,7 @@
+{
+  "godot/scripts/core/stock_age.gd": "7293272e02e0bb2b0ab0231bdade8d355aeb291abd30c152a9af848cb0405d22",
+  "godot/scripts/core/save_stock_age_restore.gd": "39e2071d3c4b4e8324d682464cf4a8523611a9d35de9cdf81da42717a7c081c9",
+  "godot/test/test_stock_age_columns.gd": "94fcbc2536147e080b890e94b9556d90994781ff4da37ce2f2720609d3646a50",
+  "godot/test/stock_age_columns_focus.gd": "5f023bb28ea93d02f136414bcd5c6174c909f52fa4bb379f653cf7fe800fdc09",
+  "docs/planning/stock_age_columns_contract.md": "c3d82a316e445211749c0101609aa5b1dc3aa34cdc8258435e0c67b8bbdd2ae9"
+}

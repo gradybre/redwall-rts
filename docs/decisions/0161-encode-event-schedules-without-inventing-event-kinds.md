@@ -1,6 +1,6 @@
 # 0161 — Encode event schedules without inventing event kinds
 
-Date:2026-09-19 · Status:Implemented candidate; independent review, focused/full tests and static gates passed; CI/merge pending
+Date:2026-09-19 · Status:Implemented and merged in PR152 (`f4368a3`); independent review and exact-head CI4715/184365/0 passed
 
 [SAVE-S11-R01v2](../planning/event_schedule_codec_contract.md) implements the
 already ruled section11 form: next_sequence:i64 then0..64sorted32-byte records,

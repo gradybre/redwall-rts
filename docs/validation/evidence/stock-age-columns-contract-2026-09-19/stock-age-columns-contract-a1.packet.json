@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "0c1e19664e3daf059b84b93983ca475f2c1ecf50",
+  "task": "Independent review SAVE-AGE-R01v1 exact owner and adapter contract",
+  "paths": [
+    "docs/planning/stock_age_columns_contract.md",
+    "docs/validation/evidence/stock-age-columns-contract-2026-09-19/astra-audit-disposition.md",
+    "docs/validation/evidence/stock-age-columns-contract-2026-09-19/probe-disposition.md",
+    "docs/validation/evidence/stock-age-columns-contract-2026-09-19/order_probe.log",
+    "godot/scripts/core/stock_age.gd",
+    "godot/scripts/core/save_section_inventories.gd",
+    "godot/scripts/core/item_definitions.gd"
+  ],
+  "instructions": "Independent contract feasibility review before author. V1 precise6field ownercolumns + separate oneOwnerRecord adapter. Review shape/order/refusal atomicity, stale refs/denseorder/latch compatibility, bindings/caches/quiescencecaller obligations,buffer ownership,memoryaccounting,codeccycleavoidance,totalgroupgates,tests. Astra explicitly rejected audit strongerhouralignment to preserveexistingstructural latchdomain; do notstate that a narrower validator changesnoacceptance. Newread APIs mustnotmutate olddiagnostics/scratch; restoreonly2cachedIDsinvalidated. Identify concrete holes thenboundedfixes. No tools/sourceedits. Return rawJSON status complete,summary,questions[],files EXACTLY one new docs/validation/evidence/stock-age-columns-contract-2026-09-19/contract-v1-review.md with allTHREEkeys path,content,baseSha256:null;decisionIds[]. Do notomitbaseSha256. <=1800words."
+}

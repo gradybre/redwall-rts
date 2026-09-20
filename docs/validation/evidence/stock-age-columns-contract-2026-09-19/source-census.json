@@ -1,0 +1,22 @@
+{
+  "godot/scripts/core/stock_age.gd": {
+    "sha256": "339b85a374bdabe1242474f25fbbf4b16ffd42e077c52156d49db1fe5fecd557",
+    "bytes": 44350
+  },
+  "godot/scripts/core/save_section_inventories.gd": {
+    "sha256": "d45dfdfe80408b34a02e4ceba82e3570d3b902832d75a6a8973a8e065708e567",
+    "bytes": 117218
+  },
+  "godot/scripts/core/inventory.gd": {
+    "sha256": "28ae01f313261b234bf11661e48ea3e8eac2bbe8e95a63b1234185f349727d39",
+    "bytes": 177378
+  },
+  "godot/test/test_stock_age.gd": {
+    "sha256": "ba96adf98ef405ccd0dc4131c24f7297fa0dd126f925ebe84964a6cbbcfcf140",
+    "bytes": 52681
+  },
+  "docs/persistence_state_registry.md": {
+    "sha256": "f2ebb34ef20de1f691c89026c5ec1e9e3aa1851ee4ced1a49901d9b49338e421",
+    "bytes": 163485
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "f4368a31ee9b496240502c7e3eaaf72d80c816fe",
+  "task": "Implement exact StockAge columns and single-block adapter SAVE-AGE-R01v2",
+  "paths": [
+    "docs/planning/stock_age_columns_contract.md",
+    "docs/decisions/0162-restore-storage-aging-order-and-hour-latch-exactly.md",
+    "docs/validation/evidence/stock-age-columns-contract-2026-09-19/contract-v1-disposition.md",
+    "docs/validation/evidence/stock-age-columns-contract-2026-09-19/bound-api-excerpts.md",
+    "godot/scripts/core/stock_age.gd",
+    "godot/scripts/core/save_section_inventories.gd",
+    "godot/scripts/core/save_header.gd"
+  ],
+  "instructions": "Implement accepted SAVE-AGE-R01v2 exactly, acknowledgev2. TWO allowed new outputs: (1) docs/validation/evidence/stock-age-columns-2026-09-19/stock-age-owner-block.gd containing ONLY a top-level append fragment for stock_age.gd (newnestedCanonicalColumns,newrefusalconstants/scalar and owner methods/privatehelpers); noextends/preloads/existingmembersredefinitions. Parent appends it and owns registry/testintegration. (2) godot/scripts/core/save_stock_age_restore.gd full new adapter. Each file keys path/content/baseSha256:null. Exact uniquecopy_stock_age_columns_into/restore_stock_age_columns names. Preserve all oldfields except specified2cache resets on restore; localmembership scratch only; count/latchdomain>=-1; stalerefsandorder preserved; totalgroupgates beforeindexing; directprivatearraytransfer bypassessetters aftervalidation; noalias assumptions; applyrequiresheldclock. No codec/owner cycle. No extra proofstate_bytes method needed; parent independenttestsuse reflection. Do not change existingcodec; use oneOwnerRecord notfull6owner Record. ExplicitGodot4.7.2types and comments onlyneeded toexplaincontracts; <=700total source lines. No tools/reflection inproduction, nogameplay/Worldclaims. Parent independentlywrites tests thenreview/CI. Return rawJSON status complete,summary,questions[],files exactly2allowlisted,decisionIds[]. If ambiguity returnquestionnotinvent. Do not omit baseSha256 keys."
+}

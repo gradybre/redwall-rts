@@ -1,0 +1,12 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+{"original":{"declared_count":2,"next_slots":[0,1],"order":[2,1]},"sorted":{"declared_count":2,"next_slots":[1,0],"order":[1,2]}}
+SCRIPT ERROR: Assertion failed.
+          at: _initialize (res://../docs/validation/evidence/stock-age-columns-contract-2026-09-19/order_probe.gd:12)
+          GDScript backtrace (most recent call first):
+              [0] _initialize (res://../docs/validation/evidence/stock-age-columns-contract-2026-09-19/order_probe.gd:12)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

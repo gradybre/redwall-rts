@@ -1,0 +1,83 @@
+{
+  "attempts": [
+    {
+      "id": "field-policy-validation-owner-a1",
+      "model": "claude-opus-5",
+      "sessionId": "e0b9eb53-4850-4ac7-aab9-1668ca8b73c1",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/field_policy_component_validation_contract.md": "54a7ac7cc020b77505145210b7f3aed56468a552c6f08eee5d4d9efde1684a7e",
+        "docs/decisions/0179-field-policy-validation-retains-closed-cycle-history.md": "263fca044ed92955503d9b0d2d38dbc60b6067ae7e9e051f456488df8b095934",
+        "godot/scripts/core/field_policy.gd": "262198e7a04d340c5205007c7ff1124264efe761b675fd99f657fb38a9fb5315",
+        "docs/validation/evidence/field-policy-validation-planning-2026-09-20/contract-disposition.md": "1fa710fabaebb5b552195a369bb58800f94e7c9d2bc9af35b75e014e3e84d9c2",
+        "docs/validation/evidence/field-policy-validation-planning-2026-09-20/mutation-witness-plan.md": "533fa4329a282a7dda2f9357c5e62af144a09eea0fa29bc587c6c6125bfe0c10"
+      },
+      "outputLines": 464,
+      "outputLineBudget": 500,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "65eeaf9b3b9e5855afd44f36769d48d274baaa74"
+    },
+    {
+      "id": "field-policy-validation-bridge-a1",
+      "model": "claude-opus-5",
+      "sessionId": "da0a59f7-11d7-4900-a00b-f9bb3e892243",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/field_policy_component_validation_contract.md": "54a7ac7cc020b77505145210b7f3aed56468a552c6f08eee5d4d9efde1684a7e",
+        "docs/decisions/0179-field-policy-validation-retains-closed-cycle-history.md": "263fca044ed92955503d9b0d2d38dbc60b6067ae7e9e051f456488df8b095934",
+        "godot/scripts/core/save_owner_residents.gd": "730cff604dd0c4d7f39caabfd96169c0438b503d3242cf5ccbe7681bb6b31785",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "docs/validation/evidence/field-policy-component-validation-2026-09-20/candidate-field_policy.gd": "3c148d5c871e1e5b8b3937ae7e1f633df3131c431a13d4e297614056a5f49619",
+        "docs/validation/evidence/field-policy-validation-planning-2026-09-20/contract-disposition.md": "1fa710fabaebb5b552195a369bb58800f94e7c9d2bc9af35b75e014e3e84d9c2"
+      },
+      "outputLines": 345,
+      "outputLineBudget": 400,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "65eeaf9b3b9e5855afd44f36769d48d274baaa74"
+    },
+    {
+      "id": "field-policy-validation-source-review-a1",
+      "model": "claude-opus-5",
+      "sessionId": "b6577b82-d05a-4131-b2f4-0e4520bf478c",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/field_policy_component_validation_contract.md": "54a7ac7cc020b77505145210b7f3aed56468a552c6f08eee5d4d9efde1684a7e",
+        "docs/decisions/0179-field-policy-validation-retains-closed-cycle-history.md": "263fca044ed92955503d9b0d2d38dbc60b6067ae7e9e051f456488df8b095934",
+        "godot/scripts/core/field_policy.gd": "b425eb0a2a1f63940d55fe5489ca27e981796022f0b1e63d9966141274eb0aaa",
+        "godot/scripts/core/save_owner_field_policy.gd": "b718dc513cd5068897fffa214c2334969a6ee08989af741555d22f8b73d3a297",
+        "godot/scripts/core/farming.gd": "c025f23da0f88ddff8c5ea64bae0f3bb75d7085f83f949bd3877e70443aea773",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/test/test_save_owner_field_policy.gd": "e7c75352288d4fb3910141f6770a44433e2cde31f78633a43b24448cba71fbb2",
+        "godot/test/field_policy_validation_focus.gd": "0304e091a93b9154fcd42cccd76fa642ccb42ca959454bcca28b8932472310ec",
+        "tools/test_field_policy_metadata_preflights.py": "a35fc4acd4d7443560b2aa4ff16d9672e91f1260938ef506069d0b8840111840",
+        "docs/validation/evidence/field-policy-component-validation-2026-09-20/owner_mutations.py": "e4b8defe3fc08b2f0c543940e7b9238f7f39e210ddb287dc53a71be408c9dfa8",
+        "docs/validation/evidence/field-policy-component-validation-2026-09-20/run_mutants.py": "c534e7ef1e906ad97eec01287286ec385fe1af999cabe6e36325f137098ae137",
+        "docs/validation/evidence/field-policy-component-validation-2026-09-20/focused-first.log": "d797a054a7ae987e6ec10db2ae74d91d1965b6150048c87006c796d9023a5d0e",
+        "docs/validation/evidence/field-policy-component-validation-2026-09-20/parent-source-findings.md": "4ea431f96201722c54ab6ce93fddf6e44b3d71b49695cd2bb2d8c162d4c4266a",
+        "docs/validation/evidence/field-policy-component-validation-2026-09-20/parent-candidate-repairs.patch": "f83c6a7f27e7d98754b42d2de63a1830d1bdcf98f66694ea13605d0eb4fc05a4",
+        "docs/validation/evidence/field-policy-validation-planning-2026-09-20/contract-disposition.md": "1fa710fabaebb5b552195a369bb58800f94e7c9d2bc9af35b75e014e3e84d9c2",
+        "docs/validation/evidence/field-policy-validation-planning-2026-09-20/mutation-witness-plan.md": "533fa4329a282a7dda2f9357c5e62af144a09eea0fa29bc587c6c6125bfe0c10",
+        "docs/validation/evidence/field-policy-validation-planning-2026-09-20/candidate-witness-refinements.md": "5501b9d47147e7995a21554142c9a94910b34dab32ac529918fe792cb70e0667"
+      },
+      "rawOutputLines": 80,
+      "rawOutputWords": 782,
+      "outputLineBudget": 75,
+      "outputWordBudget": 850,
+      "normalization": "Parent one-off removes exactly five blank lines only; all nonblank lines and words unchanged",
+      "normalizedLines": 75,
+      "normalizedWords": 782,
+      "rawSHA256": "f91b9359340be40a0c37d60b93d2e7454581b48840c676ed558176497d05f1a7",
+      "normalizedSHA256": "e6e5c65dbb5b7a9fc975c3c7c39491c9e9d3e42281a4cfccd334e929abfdc775"
+    }
+  ]
+}

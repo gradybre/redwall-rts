@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "bc78d3215bfb0c405c21a734bd53d41ea92df811",
+  "task": "FieldPolicy owner3 pure-validation feasibility and retained-cycle-domain audit",
+  "paths": [
+    "AGENTS.md",
+    "godot/scripts/core/field_policy.gd",
+    "godot/test/test_field_policy.gd",
+    "docs/decisions/0045-field-rotation-advances-once-per-field-not-once-per-tile.md",
+    "docs/rulings/2026-09-09_ready06_open_item_answers.md",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "docs/validation/evidence/field-policy-validation-planning-2026-09-20/astra-source-note.md"
+  ],
+  "instructions": "Read-only independent feasibility; noimplementation/contractacceptance yet. Owner3v1 primary128child4096 twentyfields,values44288,payload44460/block44496. Parent source note contains HYPOTHESES about scalar/state/ledger invariants; challenge every relation against publicwriters, espdestroy/recreate retainedordinal/history, auto toggledaftercompletedrequest, closedplotledger overwrittenbyotherfield, activeOPEN countreconstruction and stale stamp<=ordinal. Need no liveForage/Farming/Directory/callback in savedlocalpredicate. Consider newcoldColumns20typedproperties forreviewability vs20positionalargs; oldADR0132largeownerColumns precedent, no existingFieldPolicycapture/state_bytes. DoNOTinvent publiccaptureAPIor claim privatecolumninspection as publichistory. Identify whatpublictypedreaders can prove, whatpure syntheticfixtures/sourceproof cover, whether savedbindings deferFarming/Forage/Directoryidentity. Countscompleted+cancelled<=ordinal? cancellation/withdrawalrelations? Requestedcroprelationwithrotation/cycle/auto? DefensiveNO_LEGAL_WINDOWenum accepteddespitecurrentcatalogunreachable? Memory88576ifcaller+defaultCols, noextra scratchif nested128x4096countscan; compare betterboundedone-scan scratchonlyifexplicitbudget. Allinteger. Does existingseedreserveunavailable remainfuturegameintegrationgap separate? Sourcefacts only noexecutedclaims. OutputONE NEW docs/validation/evidence/field-policy-validation-planning-2026-09-20/feasibility-review.md baseSha256null HARD85lines900words AIM50lines650words; conciseproof/counterexamples/missingdecisions; no code. RawJSONstatus/summary/questions/files/decisionIds."
+}

@@ -1,0 +1,54 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_field_policy.gd
+  PASS  test_canonical_layout_and_clear_defaults
+  FAIL  test_frozen_state_history_request_and_projection_witnesses
+        open-cleared-contribution pure (expected , got COLUMN_OPEN_COUNTS)
+        open-cleared-contribution bridge (expected , got COLUMN_OPEN_COUNTS)
+        open-cleared-contribution success (expected true, got false)
+        open-cleared-contribution empty success detail (expected , got FieldPolicy owner 3 refuses this image with column code COLUMN_OPEN_COUNTS)
+  PASS  test_null_shapes_and_bucket_cardinalities_precede_values
+  PASS  test_every_physical_address_has_domain_checks
+  FAIL  test_open_ledger_filters_and_multiple_fields
+        two open fields pure (expected , got COLUMN_OPEN_COUNTS)
+        two open fields bridge (expected , got COLUMN_OPEN_COUNTS)
+        two open fields success (expected true, got false)
+        two open fields empty success detail (expected , got FieldPolicy owner 3 refuses this image with column code COLUMN_OPEN_COUNTS)
+        closed ledger ignored alongside open pure (expected , got COLUMN_OPEN_COUNTS)
+        closed ledger ignored alongside open bridge (expected , got COLUMN_OPEN_COUNTS)
+        closed ledger ignored alongside open success (expected true, got false)
+        closed ledger ignored alongside open empty success detail (expected , got FieldPolicy owner 3 refuses this image with column code COLUMN_OPEN_COUNTS)
+        inactive ledger ignored alongside open pure (expected , got COLUMN_OPEN_COUNTS)
+        inactive ledger ignored alongside open bridge (expected , got COLUMN_OPEN_COUNTS)
+        inactive ledger ignored alongside open success (expected true, got false)
+        inactive ledger ignored alongside open empty success detail (expected , got FieldPolicy owner 3 refuses this image with column code COLUMN_OPEN_COUNTS)
+        older stamp ignored alongside current open pure (expected , got COLUMN_OPEN_COUNTS)
+        older stamp ignored alongside current open bridge (expected , got COLUMN_OPEN_COUNTS)
+        older stamp ignored alongside current open success (expected true, got false)
+        older stamp ignored alongside current open empty success detail (expected , got FieldPolicy owner 3 refuses this image with column code COLUMN_OPEN_COUNTS)
+  FAIL  test_full_plot_capacity_and_counter_boundary
+        cleared tail counts once pure (expected , got COLUMN_OPEN_COUNTS)
+        cleared tail counts once bridge (expected , got COLUMN_OPEN_COUNTS)
+        cleared tail counts once success (expected true, got false)
+        cleared tail counts once empty success detail (expected , got FieldPolicy owner 3 refuses this image with column code COLUMN_OPEN_COUNTS)
+        withdrawn head excluded from participants pure (expected , got COLUMN_OPEN_COUNTS)
+        withdrawn head excluded from participants bridge (expected , got COLUMN_OPEN_COUNTS)
+        withdrawn head excluded from participants success (expected true, got false)
+        withdrawn head excluded from participants empty success detail (expected , got FieldPolicy owner 3 refuses this image with column code COLUMN_OPEN_COUNTS)
+  PASS  test_accepted_scalar_endpoints_do_not_normalize_history
+  PASS  test_closed_reason_gate_has_an_independent_abandoned_shape_witness
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 42353 assertion(s), 3 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

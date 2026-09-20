@@ -1,0 +1,14 @@
+{
+  "attempt": "field-policy-validation-bridge-a1",
+  "model": "claude-opus-5",
+  "sessionId": "da0a59f7-11d7-4900-a00b-f9bb3e892243",
+  "state": "complete",
+  "ownerStopped": true,
+  "lines": 345,
+  "line_budget": 400,
+  "frozen_inputs_verified": true,
+  "target_mode_allowlist_verified": true,
+  "raw_apply_check_exit": 0,
+  "applied": false,
+  "pending": "PR169 exact-head CI and merge before production intake"
+}

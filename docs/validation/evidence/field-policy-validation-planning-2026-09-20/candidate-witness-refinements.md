@@ -1,0 +1,3 @@
+# Candidate-source witness refinements
+
+Candidate-source refinement before actual mutation execution: CLOSED/no-reason rejection needs an ABANDONED-shaped fixture (participants/resolved0,withdrawn1,ordinal1,closeNONE). A completed-shaped NONE fixture also fails the source's final abandoned-shape branch, so cannot independently kill the first no-reason guard. This added exact-code fixture is in parent-test-draft.gd. The present/OPEN count-filter unit removes the shared active-row filter used both in tally and comparison; tally-only removal is equivalent because nonOPEN scratch rows are otherwise never compared, so it is not claimed independently killed.

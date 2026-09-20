@@ -1,0 +1,18 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "bc78d3215bfb0c405c21a734bd53d41ea92df811",
+  "task": "Independent FieldPolicy typed-column validation contract review",
+  "paths": [
+    "AGENTS.md",
+    "godot/scripts/core/field_policy.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/scripts/core/farming.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "docs/decisions/0132-three-component-stores-publish-their-columns-and-rebuild-the-rest.md",
+    "docs/planning/field_policy_component_validation_contract.md",
+    "docs/validation/evidence/field-policy-validation-planning-2026-09-20/public_history_probe.gd",
+    "docs/validation/evidence/field-policy-validation-planning-2026-09-20/public-history-probe.log",
+    "docs/validation/evidence/field-policy-validation-planning-2026-09-20/feasibility-disposition.md"
+  ],
+  "instructions": "Read-only independent contract review, no implementation. Challenge every proposed invariant against actual public writers and retained inactive/stale data. Verify all20type/extents/budget, Directory global capacity constant name, crop/source constants, OPEN ledger exact counts, close/request/ordinal history, null/defaultColumns, metadata-child-fault plan completeness. Identify concrete blockers and bounded repairs; no redundant refutations of warnings already in contract. Publicprobe76/0 supports only observable histories, not privatecapture or MAXhistory. Contract requires concrete mutation witnesses and coherent metadataarith before author, currently not yet frozen: distinguish pending gate from impossible requirement. Need no live FieldPolicy/Farming/Forage/Directory construction in purepredicate/bridge. Output ONE NEW docs/validation/evidence/field-policy-validation-planning-2026-09-20/contract-review.md, baseSha256null, HARD80lines850words AIM55lines650words, concise findings/accepted conditional status. RawJSON status/summary/questions/files/decisionIds. No tools or execution claims."
+}

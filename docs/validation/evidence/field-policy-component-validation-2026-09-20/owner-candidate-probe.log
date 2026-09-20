@@ -1,0 +1,102 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_field_policy.gd
+  PASS  test_a_new_policy_carries_the_default_grain_beans_roots_rotation
+  PASS  test_a_new_policy_starts_at_rotation_cursor_zero
+  PASS  test_a_new_policy_has_auto_rotation_off
+  PASS  test_a_new_policy_has_the_seed_reserve_on
+  PASS  test_a_new_policy_is_idle_with_no_cycle_and_no_request
+  PASS  test_a_mixed_duration_field_advances_its_cursor_exactly_once
+  PASS  test_a_resolution_after_the_cycle_closed_cannot_advance_again
+  PASS  test_the_same_plot_cannot_resolve_twice_inside_one_cycle
+  PASS  test_a_plot_enrolled_after_others_resolved_holds_the_cycle_open
+  PASS  test_a_cleared_withered_plot_counts_as_a_resolution
+  PASS  test_the_advance_requests_the_next_configured_crop_and_no_other
+  PASS  test_a_blocked_rotation_entry_is_not_skipped_and_no_crop_is_substituted
+  PASS  test_a_blocked_entry_does_not_advance_onward_to_the_next_configured_crop
+  PASS  test_the_cursor_wraps_from_the_third_entry_back_to_the_first
+  PASS  test_three_completed_cycles_walk_the_whole_rotation_in_order
+  PASS  test_a_future_legal_window_retains_the_request
+  PASS  test_a_missed_window_warns_and_waits
+  PASS  test_a_missed_window_is_not_replaced_by_a_crop_that_is_in_season
+  PASS  test_a_player_edit_resolves_a_missed_window_without_starting_work
+  PASS  test_a_rotation_edit_creates_no_request_where_none_stood
+  PASS  test_a_cursor_edit_re_evaluates_an_outstanding_request
+  PASS  test_opening_the_next_cycle_consumes_the_retained_request
+  PASS  test_a_crop_naming_no_legal_day_reports_its_own_blocked_reason
+  PASS  test_auto_rotation_off_never_requests_another_sowing_cycle
+  PASS  test_ten_completed_cycles_with_auto_off_never_move_the_cursor
+  PASS  test_enabling_auto_rotation_does_not_retroactively_advance_a_closed_cycle
+  PASS  test_erasing_a_tile_is_not_counted_as_a_harvest
+  PASS  test_erasing_every_tile_abandons_the_cycle_and_advances_nothing
+  PASS  test_a_resolved_plot_cannot_then_be_withdrawn
+  PASS  test_a_withdrawn_plot_cannot_then_be_recorded_as_harvested
+  PASS  test_record_plot_resolved_refuses_the_withdrawn_outcome
+  PASS  test_erasing_the_last_unresolved_plot_completes_what_genuinely_resolved
+  PASS  test_a_cancelled_cycle_records_a_cancellation_not_a_completion
+  PASS  test_a_cancellation_needs_an_open_cycle
+  PASS  test_cancellation_and_completion_histories_are_kept_separately
+  PASS  test_the_seed_reserve_gate_is_unanswerable_while_the_reserve_is_on
+  PASS  test_the_seed_reserve_gate_is_not_required_once_the_policy_is_off
+  PASS  test_a_seed_release_refuses_while_the_reserve_is_enabled
+  PASS  test_a_seed_release_is_unconstrained_once_the_reserve_is_off
+  PASS  test_the_seed_requirement_is_the_crops_own_per_tile_cost_times_the_tiles
+  PASS  test_the_seed_requirement_follows_a_retained_request_rather_than_the_cursor
+  PASS  test_the_seed_requirement_refuses_a_negative_tile_count_and_an_overflow
+  PASS  test_the_seed_requirement_refuses_an_unconfigured_rotation_entry
+  PASS  test_a_policy_binds_only_to_a_farm_type_zone
+  PASS  test_a_policy_refuses_a_reference_that_names_no_live_zone
+  PASS  test_a_second_policy_on_the_same_live_zone_refuses
+  PASS  test_a_row_whose_zone_was_destroyed_is_reclaimed_by_the_next_zone
+  PASS  test_an_enrolment_does_not_survive_its_policy_row_being_rebound
+  PASS  test_destroy_policy_retires_the_row_and_its_open_cycle
+  PASS  test_field_slot_of_resolves_a_live_policy_and_refuses_anything_else
+  PASS  test_the_zone_reference_reader_answers_the_null_reference_for_an_empty_row
+  PASS  test_a_second_open_while_a_cycle_runs_refuses
+  PASS  test_each_open_cycle_takes_the_next_ordinal
+  PASS  test_the_cycle_ordinal_refuses_at_int32s_maximum_rather_than_wrapping
+  PASS  test_enrolment_validates_the_plot_and_the_open_cycle
+  PASS  test_a_plot_cannot_be_enrolled_in_two_open_cycles
+  PASS  test_a_plot_can_be_enrolled_again_in_the_next_cycle
+  PASS  test_one_fields_plot_cannot_be_resolved_through_another_field
+  PASS  test_a_negative_tick_refuses_on_every_entry_point_that_takes_one
+  PASS  test_a_rotation_edit_refuses_a_value_that_names_no_crop
+  PASS  test_a_rotation_edit_accepts_the_empty_catalog_id
+  PASS  test_a_cursor_edit_refuses_a_position_outside_the_three_entry_list
+  PASS  test_every_edit_entry_point_refuses_a_zone_with_no_policy
+  PASS  test_the_auto_rotation_and_seed_reserve_flags_round_trip
+  PASS  test_every_reader_refuses_a_row_that_holds_no_policy
+  PASS  test_a_rotation_entry_reader_refuses_an_index_outside_the_list
+  PASS  test_the_plot_field_reader_refuses_rather_than_answering_the_null_row
+  PASS  test_the_blocked_reason_table_covers_every_request_state
+  PASS  test_the_into_readers_agree_with_their_allocating_forms
+  PASS  test_more_into_readers_agree_with_their_allocating_forms
+  PASS  test_history_and_gate_into_readers_agree_with_their_allocating_forms
+  PASS  test_the_store_allocates_its_columns_once_and_clear_refills_them
+  PASS  test_the_store_exposes_the_two_collaborators_it_validates_against
+  PASS  test_slot_predicates_bound_both_tables
+  PASS  test_two_fields_advance_independently
+  PASS  test_the_global_counters_track_every_field
+  PASS  test_a_window_starting_tomorrow_is_future_and_not_missed
+  PASS  test_the_one_day_window_is_ready_on_its_own_day_and_missed_after_it
+  PASS  test_a_crop_reaching_ripe_does_not_resolve_its_own_cycle
+  PASS  test_a_crop_withering_and_being_cleared_does_not_resolve_its_own_cycle
+  PASS  test_the_explicit_resolution_path_is_the_only_one_that_advances
+  PASS  test_record_plot_resolved_still_refuses_every_outcome_that_is_not_a_job_completion
+test_field_policy_owner_candidate.gd
+  PASS  test_candidate_frozen_local_images
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+83 test(s), 3901 assertion(s), 0 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

@@ -1,0 +1,47 @@
+--- a/godot/scripts/core/field_policy.gd
++++ b/godot/scripts/core/field_policy.gd
+@@ -1461,7 +1461,7 @@
+ 
+ # --- FIELD-POLICY-S4-VALIDATE-R01: cold saved-column image and its pure predicate ----------------
+ #
+-# Local validation scope only. Nothing below constructs a live store, reads Directory, Farming
++# Local validation scope only. Nothing below constructs a live store, reads live Directory, Farming
+ # or Forage, mutates an input, decodes a calendar or uses float. Budget: one cold Columns image
+ # plus three 128-entry int32 scratch columns, allocated only when an OPEN cycle exists.
+ 
+--- a/godot/scripts/core/save_owner_field_policy.gd
++++ b/godot/scripts/core/save_owner_field_policy.gd
+@@ -264,23 +264,17 @@
+ 
+ 
+ static func _source_crop_refusal() -> SaveHeader.Refusal:
+-	"""Gate 4's crop half: Farming's empty id, its five-wide domain and the default rotation."""
++	"""Gate 4: the fixed five-crop domain and every named crop ordinal, not gameplay defaults."""
+ 	if FieldPolicy.FarmingScript.CROP_NONE != SOURCE_CROP_NONE \
+-			or FieldPolicy.FarmingScript.CROP_COUNT != SOURCE_CROP_COUNT:
+-		return _refuse(Section.REFUSE_METADATA,
+-			"%s Farming declares empty crop %d over %d crops, not %d over %d"
+-				% [METADATA_DETAIL_PREFIX, FieldPolicy.FarmingScript.CROP_NONE,
+-					FieldPolicy.FarmingScript.CROP_COUNT, SOURCE_CROP_NONE, SOURCE_CROP_COUNT])
+-	if FieldPolicy.DEFAULT_ROTATION.size() != SOURCE_ROTATION_LENGTH:
+-		return _refuse(Section.REFUSE_METADATA,
+-			"%s the default rotation holds %d entries, not %d"
+-				% [METADATA_DETAIL_PREFIX, FieldPolicy.DEFAULT_ROTATION.size(),
+-					SOURCE_ROTATION_LENGTH])
+-	for entry: int in FieldPolicy.DEFAULT_ROTATION:
+-		if entry < 0 or entry >= SOURCE_CROP_COUNT:
+-			return _refuse(Section.REFUSE_METADATA,
+-				"%s default rotation crop %d is outside the pinned 0..%d domain"
+-					% [METADATA_DETAIL_PREFIX, entry, SOURCE_CROP_COUNT - 1])
++			or FieldPolicy.FarmingScript.CROP_COUNT != SOURCE_CROP_COUNT \
++			or FieldPolicy.FarmingScript.CROP_BEANS != 0 \
++			or FieldPolicy.FarmingScript.CROP_CABBAGE != 1 \
++			or FieldPolicy.FarmingScript.CROP_FLAX != 2 \
++			or FieldPolicy.FarmingScript.CROP_GRAIN != 3 \
++			or FieldPolicy.FarmingScript.CROP_ROOTS != 4:
++		return _refuse(Section.REFUSE_METADATA,
++			"%s Farming crop sentinels or bean/cabbage/flax/grain/root ordinals differ"
++				% METADATA_DETAIL_PREFIX)
+ 	return _accept()
+ 
+ 

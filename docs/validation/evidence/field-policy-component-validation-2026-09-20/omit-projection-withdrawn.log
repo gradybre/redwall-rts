@@ -1,0 +1,88 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_field_policy.gd
+  PASS  test_canonical_layout_and_clear_defaults
+  FAIL  test_frozen_state_history_request_and_projection_witnesses
+        accept-open bridge (expected , got COLUMN_OPEN_COUNTS)
+        accept-open success (expected true, got false)
+        accept-open empty success detail (expected , got FieldPolicy owner 3 refuses this image with column code COLUMN_OPEN_COUNTS)
+        accept-abandoned bridge (expected , got COLUMN_STATE)
+        accept-abandoned success (expected true, got false)
+        accept-abandoned empty success detail (expected , got FieldPolicy owner 3 refuses this image with column code COLUMN_STATE)
+        accept-inactive_abandoned bridge (expected , got COLUMN_STATE)
+        accept-inactive_abandoned success (expected true, got false)
+        accept-inactive_abandoned empty success detail (expected , got FieldPolicy owner 3 refuses this image with column code COLUMN_STATE)
+        projection-withdrawn bridge (expected COLUMN_COUNTERS, got )
+        projection-withdrawn success (expected false, got true)
+        projection-withdrawn owner detail (expected true, got false)
+        projection-withdrawn raw code (expected true, got false)
+        negative-counter-withdrawn bridge (expected COLUMN_COUNTERS, got )
+        negative-counter-withdrawn success (expected false, got true)
+        negative-counter-withdrawn owner detail (expected true, got false)
+        negative-counter-withdrawn raw code (expected true, got false)
+        oversize-counter-withdrawn bridge (expected COLUMN_COUNTERS, got )
+        oversize-counter-withdrawn success (expected false, got true)
+        oversize-counter-withdrawn owner detail (expected true, got false)
+        oversize-counter-withdrawn raw code (expected true, got false)
+        participants-plus-withdrawn bridge (expected COLUMN_COUNTERS, got )
+        participants-plus-withdrawn success (expected false, got true)
+        participants-plus-withdrawn owner detail (expected true, got false)
+        participants-plus-withdrawn raw code (expected true, got false)
+        idle-withdrawn bridge (expected COLUMN_STATE, got )
+        idle-withdrawn success (expected false, got true)
+        idle-withdrawn owner detail (expected true, got false)
+        idle-withdrawn raw code (expected true, got false)
+        open-empty-withdrawn bridge (expected COLUMN_STATE, got )
+        open-empty-withdrawn success (expected false, got true)
+        open-empty-withdrawn owner detail (expected true, got false)
+        open-empty-withdrawn raw code (expected true, got false)
+        cancelled-empty-withdrawn bridge (expected COLUMN_STATE, got )
+        cancelled-empty-withdrawn success (expected false, got true)
+        cancelled-empty-withdrawn owner detail (expected true, got false)
+        cancelled-empty-withdrawn raw code (expected true, got false)
+        withdrawn-zero-ordinal bridge (expected COLUMN_STATE, got )
+        withdrawn-zero-ordinal success (expected false, got true)
+        withdrawn-zero-ordinal owner detail (expected true, got false)
+        withdrawn-zero-ordinal raw code (expected true, got false)
+        open-cleared-contribution bridge (expected , got COLUMN_OPEN_COUNTS)
+        open-cleared-contribution success (expected true, got false)
+        open-cleared-contribution empty success detail (expected , got FieldPolicy owner 3 refuses this image with column code COLUMN_OPEN_COUNTS)
+        accept-open-older-stamp-ignored bridge (expected , got COLUMN_OPEN_COUNTS)
+        accept-open-older-stamp-ignored success (expected true, got false)
+        accept-open-older-stamp-ignored empty success detail (expected , got FieldPolicy owner 3 refuses this image with column code COLUMN_OPEN_COUNTS)
+  PASS  test_null_shapes_and_bucket_cardinalities_precede_values
+  PASS  test_every_physical_address_has_domain_checks
+  FAIL  test_open_ledger_filters_and_multiple_fields
+        two open fields bridge (expected , got COLUMN_OPEN_COUNTS)
+        two open fields success (expected true, got false)
+        two open fields empty success detail (expected , got FieldPolicy owner 3 refuses this image with column code COLUMN_OPEN_COUNTS)
+        closed ledger ignored alongside open bridge (expected , got COLUMN_OPEN_COUNTS)
+        closed ledger ignored alongside open success (expected true, got false)
+        closed ledger ignored alongside open empty success detail (expected , got FieldPolicy owner 3 refuses this image with column code COLUMN_OPEN_COUNTS)
+        inactive ledger ignored alongside open bridge (expected , got COLUMN_OPEN_COUNTS)
+        inactive ledger ignored alongside open success (expected true, got false)
+        inactive ledger ignored alongside open empty success detail (expected , got FieldPolicy owner 3 refuses this image with column code COLUMN_OPEN_COUNTS)
+        older stamp ignored alongside current open bridge (expected , got COLUMN_OPEN_COUNTS)
+        older stamp ignored alongside current open success (expected true, got false)
+        older stamp ignored alongside current open empty success detail (expected , got FieldPolicy owner 3 refuses this image with column code COLUMN_OPEN_COUNTS)
+  FAIL  test_full_plot_capacity_and_counter_boundary
+        withdrawn head excluded from participants bridge (expected , got COLUMN_OPEN_COUNTS)
+        withdrawn head excluded from participants success (expected true, got false)
+        withdrawn head excluded from participants empty success detail (expected , got FieldPolicy owner 3 refuses this image with column code COLUMN_OPEN_COUNTS)
+  PASS  test_accepted_scalar_endpoints_do_not_normalize_history
+  PASS  test_closed_reason_gate_has_an_independent_abandoned_shape_witness
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 42353 assertion(s), 3 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

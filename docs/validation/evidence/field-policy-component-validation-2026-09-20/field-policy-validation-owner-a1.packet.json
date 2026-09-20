@@ -1,0 +1,15 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "a97f9e8fc37d331ecdefc531c58d01d17b24c5f0",
+  "task": "FieldPolicy owner-only pure typed Columns implementation",
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/field_policy_component_validation_contract.md",
+    "docs/decisions/0179-field-policy-validation-retains-closed-cycle-history.md",
+    "godot/scripts/core/field_policy.gd",
+    "docs/validation/evidence/field-policy-validation-planning-2026-09-20/contract-disposition.md",
+    "docs/validation/evidence/field-policy-validation-planning-2026-09-20/mutation-witness-plan.md"
+  ],
+  "instructions": "Implement ONLY existing godot/scripts/core/field_policy.gd accepted FIELD-POLICY-S4-VALIDATE-R01v1/ADR0179. Add cold inner Columns20typed properties(defaults=clear), static columns_refusal plus small static argument-only helpers and9newrefusal constants. No gameplaywriters/constructors/capture/getters/schema changes. Actual Directory constant DIRECTORY_CAPACITY352418; source crop count5. Preserve exactglobalshape->bytes->rotation->ascending per-row zone,counters,state,request->plotledger->OPENcounts order. Sharedretainedclosechecks avoid duplicatedconditions wherepossible; all contractrelationsrequired evenif redundant. Oneplotpass/3PackedInt32Array128 scratch; noOPEN earlyreturn onlyAFTERplotvalidation. No live owner construction/callback/diagnostics/inputmutation/float. DoNOT reproduce historic header subsystem claims; may append concise localvalidation scope/budget note. Return ONE NEW docs/validation/evidence/field-policy-component-validation-2026-09-20/author-owner.patch baseSha256null with unifieddiff ONLY content. HARD500actualpatchlines AIM350. No fullfile or tests/bridge. Parenthandles tests69logicalmutants and allverification. Explicitly consume contract/ADR/disposition. Summary<=100words; no executionclaim. RawJSONstatus/summary/questions/files/decisionIds; properlyescapedJSON."
+}

@@ -19,6 +19,39 @@
         "docs/rulings/2026-09-11_save_codec_contract.md": "ff83ad9cad824fca0a31390ae30061b1e3a09cb2feedbd0f90416b876c4901a4",
         "docs/planning/save_implementation_matrix.md": "a7da6f0d7b1e8fb1f32b624a1188270a4344844b0647cffe9c8f1975c2943497"
       }
+    },
+    {
+      "id": "claim-reconciliation-followup-a1",
+      "model": "claude-opus-5",
+      "sessionId": "2e16b690-a9c7-45f0-ad01-6302b193eab8",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/followup-sources.md": "469ce308cb4bcf74024bac359631b48ea7b70f75180a58ca43cd2bde9222b15b",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/followup-registry-snapshot.json": "8dd4de4dba33b98b10fa24da4a7bcfd082d0e6721a5c2004c1fbbe796d96b9ca",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/followup-astra-questions.md": "50078d8071272b777f41b9f00f91368bab43fc7646e508aef76cc0baa8c3023e",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/astra-audit-disposition.md": "0c7a23d1653318680c94f53aa2cbfe78d3e75a4143b92bb483a4508e051a362a",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/feasibility-review.md": "ebd5465da058726fc2116f83161a91035c7795eb27e68188e48b7cf662ad7e89"
+      }
+    },
+    {
+      "id": "claim-reconciliation-contract-a1",
+      "model": "claude-opus-5",
+      "sessionId": "679ca9ba-2a58-47bc-a905-431e637ead6b",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/resource_claim_reconciliation_contract.md": "7ff9aeb7a2d5dc687f73e59a5c249d02667b96f14c6d7f2f6baf81ad022b653f",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/contract-complete-calls.md": "eead67be2b78cb36171fc343820c95e22ee194b3d798df335c46bbbbe7082d55",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/followup-sources.md": "469ce308cb4bcf74024bac359631b48ea7b70f75180a58ca43cd2bde9222b15b",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/followup-registry-snapshot.json": "8dd4de4dba33b98b10fa24da4a7bcfd082d0e6721a5c2004c1fbbe796d96b9ca",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/followup-review.md": "186c5c69f98f0f14fbe90a1d884c1a7dece3822c48f073791629658ded9bd3af",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/followup-disposition.md": "862ea6db52510a386519175052e69d7f540b07fda3f565962cd27216b59fe106",
+        "godot/test/test_resource_claim_lifecycle.gd": "89345299939b2e6c61a960fd9b1dea5cf33fb8edbda6b84161bd15dd06ce78e4",
+        "godot/scripts/core/save_section_directory.gd": "e074a3cd8d880e8a6c6bb184f9b04d297601622194dca35dd9c1dd93e93e27e8",
+        "godot/scripts/core/save_identity_restore.gd": "dcce8b6977c47ee01130804c6556286c8810ad62cf60a7e790b300daab39da98",
+        "godot/scripts/core/save_resource_claims_restore.gd": "66baf9549b5d3584a33dbf89aa22fd2c03ce8a11bd8fe9ba40ebd694527c45fa"
+      }
     }
   ]
 }

@@ -188,7 +188,8 @@
         "SAVE-S8-COUNT",
         "SAVE-W1-PUBLISH",
         "PLAN-REPLAY-CHECKPOINT-CONTRACT",
-        "SAVE-HEADER-REPLAY-FORMAT"
+        "SAVE-HEADER-REPLAY-FORMAT",
+        "SAVE-CLAIM-WORLD-BINDING"
       ],
       "owns": [
         "godot/scripts/core/save_file.gd",
@@ -1062,7 +1063,7 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. Resumption follow-up: its complete implementation also depends on the concrete section/owner/continuation prerequisites; a generic coordinator skeleton cannot prove rollback. No dependency on SAVE-CAPTURE, which is its subsequent full-world integration owner. SAVE-AGE-R01v2 obligation: bind StockAge to the Inventory restored from the same validated file/world before installing declarations; matching generation numbers cannot prove world association. Preserve stale declaration generations for normal sweep (do not reject or repair them). Reconcile latch/clock/fault continuation separately; owner structural latch admits -1, 0, 751 and i64 max. SAVE-RES-R01v2: pass the actual world Inventory, not an arbitrary idle instance; after all owner installs reconcile every Inventory lot including no-row lots with checked reservation sums and validate job mapping. Existing audit skips no-row lots. PLAN-RESERVATION-TOTALS repair must land before enabling external-file loading; do not tighten save row admission to hide unchecked query overflow. SAVE-GEAR-R01v2: bind equipment before installing equipped rows; verify catalog/item/cap/manufacture/mirrors/lot quantities and claim domain across Jobs/Work. Gear live8192claim bound differs from codec352418; generation mapping needs explicit integration ruling before resume. Owner preserves structural values and never repairs incompatible refs. Resource claims require NEW read-only checked aggregate verification against saved section4, exact rowmapping and orderkeyprovenance. Legacy rebuild/validate helpers mutate fields and are forbidden in reconciliation. FISH-ID-R01v2 requires fishingowner2/section7schema4; call decode_into_versioned with actual descriptor. Old owner identity cannot be reconstructed safely."
+      "note": "Materialised by PLAN-SAVE-COVERAGE from docs/planning/save_implementation_matrix.md, read off source at 50e78ce. SAVE-CAPTURE depended on four tasks; the true set is thirteen. Resumption follow-up: its complete implementation also depends on the concrete section/owner/continuation prerequisites; a generic coordinator skeleton cannot prove rollback. No dependency on SAVE-CAPTURE, which is its subsequent full-world integration owner. SAVE-AGE-R01v2 obligation: bind StockAge to the Inventory restored from the same validated file/world before installing declarations; matching generation numbers cannot prove world association. Preserve stale declaration generations for normal sweep (do not reject or repair them). Reconcile latch/clock/fault continuation separately; owner structural latch admits -1, 0, 751 and i64 max. SAVE-RES-R01v2: pass the actual world Inventory, not an arbitrary idle instance; after all owner installs reconcile every Inventory lot including no-row lots with checked reservation sums and validate job mapping. Existing audit skips no-row lots. PLAN-RESERVATION-TOTALS repair must land before enabling external-file loading; do not tighten save row admission to hide unchecked query overflow. SAVE-GEAR-R01v2: bind equipment before installing equipped rows; verify catalog/item/cap/manufacture/mirrors/lot quantities and claim domain across Jobs/Work. Gear live8192claim bound differs from codec352418; generation mapping needs explicit integration ruling before resume. Owner preserves structural values and never repairs incompatible refs. Resource claims require NEW read-only checked aggregate verification against saved section4, exact rowmapping and orderkeyprovenance. Legacy rebuild/validate helpers mutate fields and are forbidden in reconciliation. FISH-ID-R01v2 requires fishingowner2/section7schema4; call decode_into_versioned with actual descriptor. Old owner identity cannot be reconstructed safely. SAVE-CLAIM-CHECK-R01v2: pure checker is separate from same-file projection binding. Keep external-file publication gated until SAVE-CLAIM-WORLD-BINDING is integrated; SAVE-CAPTURE depends on that later task to avoid circular dependencies."
     },
     {
       "id": "SAVE-PROVENANCE-PRODUCER",
@@ -1664,7 +1665,7 @@
     {
       "id": "PLAN-CLAIM-RECONCILIATION",
       "title": "Specify read-only checked cross-section resource claim reconciliation",
-      "status": "blocked",
+      "status": "done",
       "depends_on": [
         "PLAN-SAVE-COVERAGE",
         "FIX-FISHING-CLAIM-IDENTITY"
@@ -1674,16 +1675,16 @@
       ],
       "agent": "astra",
       "gate": "none",
-      "note": "Name exact liveness/rowmapping/provenance policy and checked aggregate comparison against SAVED section4 values. Never use destructive legacy rebuilders or repair keys. Includes missing habitats and zero persistentID on live Jobs. Feasibility audit confirmed public typed-row/generation owner alias; full identity repair must land before final contract."
+      "note": "SAVE-CLAIM-CHECK-R01v2 / ADR0168 accepted after source, public-lifecycle and independent contract reviews. Pure checker has exact NEW immutable projections; separate production binding remains blocked. Seven public tests95assertions refute alleged Forage defects; no new gameplay rule."
     },
     {
       "id": "SAVE-CLAIM-RECONCILIATION",
       "title": "Validate resource claims against saved world state without repair",
-      "status": "blocked",
+      "status": "review",
       "depends_on": [
         "PLAN-CLAIM-RECONCILIATION",
         "SAVE-RESOURCE-CLAIM-COLUMNS",
-        "SAVE-S4-CODEC"
+        "FIX-FISHING-CLAIM-IDENTITY"
       ],
       "owns": [
         "godot/scripts/core/save_resource_claims_reconcile.gd",
@@ -1691,12 +1692,12 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "No dispatch until exact contract accepted. Read-only checked totals/identity/provenance, no canonical/scratch mutations or old rebuild helpers. World coordinator required pre-resume gate."
+      "note": "SAVE-CLAIM-CHECK-R01v2 / ADR0168 candidate passes full4843/190435/0 before five final test additions, final focused56/2465/0, independent review and five mutants. Exact-head CI pending. Pure read-only checker only; SAVE-CLAIM-WORLD-BINDING still owns validated-file projection and activation."
     },
     {
       "id": "FIX-FISHING-CLAIM-IDENTITY",
       "title": "Preserve the full Expedition reference on Fishing claims",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "SAVE-RESOURCE-CLAIM-COLUMNS"
       ],
@@ -1712,7 +1713,7 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "FISH-ID-R01v2 / ADR0167. Confirmed A(2,1)->zone(2,2)->B(3,1) row0 alias. One canonical slot array, exact fullpair, owner2/section7schema4/registry6. Normal stale cleanup, no hidden load repair. Includes2048 runtime bytes and223 declaration-ledger correction. Integrated and independently reviewed; finalfocus258/7980/0, full4806/189775/0 before two final tests; four mutants killed, 15static+editor pass. Exact-head CI/merge pending."
+      "note": "FISH-ID-R01v2 / ADR0167 merged PR158 ate8985336c13f95cddb291df13a143c8ea17d9130. Exact-head CI35486828355 passed4808tests/189832assertions/0failures; baseline553objects/33resources. Full stored pair, owner2/section7schema4/registry6, four mutants killed; no whole-save/activation acceptance."
     },
     {
       "id": "MEMORY-PROBE-REFRESH",
@@ -1728,6 +1729,24 @@
       "agent": "astra",
       "gate": "none",
       "note": "Current probe is explicitly labeled historical decision0066/24rows/60823126bytes. Reconcile attribution and live33-row allocations with actual runtime source, preserve prior evidence and distinguish planned payload from observed engine overhead. Does not replace integrated minimum-spec memory qualification."
+    },
+    {
+      "id": "SAVE-CLAIM-WORLD-BINDING",
+      "title": "Bind claim checker projections to the validated file and invoke before world publication",
+      "status": "blocked",
+      "depends_on": [
+        "SAVE-CLAIM-RECONCILIATION",
+        "SAVE-S4-CODEC",
+        "SAVE-S5-CODEC",
+        "SAVE-ORCHESTRATOR"
+      ],
+      "owns": [
+        "godot/scripts/core/save_resource_claims_binding.gd",
+        "godot/test/test_save_resource_claims_binding.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "No dispatch before real section4/5/coordinator interfaces exist and bounded binding contract accepted. Project exact owner fields from SAME validated file, verify actual descriptor/wrapper versions and all owner prerequisites, invoke checker before publication, preserve normal-stage cleanup. Coordinator implementation alone cannot enable external-file publication. Final SAVE-CAPTURE depends on this integration; no token proves common origin."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

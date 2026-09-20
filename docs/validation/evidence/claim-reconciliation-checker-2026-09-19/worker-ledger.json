@@ -1,0 +1,45 @@
+{
+  "attempts": [
+    {
+      "id": "claim-reconciliation-author-a1",
+      "model": "claude-opus-5",
+      "sessionId": "362e7da7-2297-4d1f-80e6-fe7ef2a532d1",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/resource_claim_reconciliation_contract.md": "aefc5a6c751294955e851aa20ad2ea5ca68b65d0832474add820edc456e63386",
+        "docs/decisions/0168-check-resource-claims-without-repairing-saved-state.md": "ba3fb332c1fa5a3056034b47328c49b9d7cb1e002fed2ca8d4c9c915f3fe3213",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/contract-draft1-disposition.md": "7e3c1635fe89be6cb50191565a698c7f5ac6d76af65893e1ac5efab6d1dc4b48",
+        "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/accepted-owner-domains.md": "7562e2580c3e24ef4ec956691a55579f7c5bac5776d844016150f4b33bf3ba9f",
+        "godot/scripts/core/save_section_directory.gd": "e074a3cd8d880e8a6c6bb184f9b04d297601622194dca35dd9c1dd93e93e27e8",
+        "godot/scripts/core/save_section_inventories.gd": "5b12195a52bf641bd5609f1b529ddff48696755ba4d3c5e840052183458285f0",
+        "godot/scripts/core/save_resource_claims_restore.gd": "66baf9549b5d3584a33dbf89aa22fd2c03ce8a11bd8fe9ba40ebd694527c45fa",
+        "godot/scripts/core/save_identity_restore.gd": "dcce8b6977c47ee01130804c6556286c8810ad62cf60a7e790b300daab39da98",
+        "godot/scripts/core/int_math.gd": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca"
+      },
+      "outputLineBudget": 950,
+      "outputLines": 1155,
+      "budgetDisposition": "Astra accepted 205-line implementation verbosity overrun after exact file/API scope inspection. Initial intake refused line count before any write; no source truncation or undisclosed output recovery."
+    },
+    {
+      "id": "claim-reconciliation-review-a1",
+      "model": "claude-opus-5",
+      "sessionId": "ec86026b-6705-4e76-9002-e48f9a3a9a26",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "docs/planning/resource_claim_reconciliation_contract.md": "aefc5a6c751294955e851aa20ad2ea5ca68b65d0832474add820edc456e63386",
+        "docs/decisions/0168-check-resource-claims-without-repairing-saved-state.md": "ba3fb332c1fa5a3056034b47328c49b9d7cb1e002fed2ca8d4c9c915f3fe3213",
+        "godot/scripts/core/save_resource_claims_reconcile.gd": "7950ff804c0558297785d2a34259e6f9194ac402336ee83518fa835540f43c81",
+        "godot/test/test_save_resource_claims_reconcile.gd": "8df49634ac16673d945a93c59575c03fef3b5fa0c66b71a3bb315e6614fcfa50",
+        "godot/test/test_resource_claim_lifecycle.gd": "89345299939b2e6c61a960fd9b1dea5cf33fb8edbda6b84161bd15dd06ce78e4",
+        "godot/test/test_resource_claim_columns.gd": "d3c6b909ba610fbcf46f7ed24c715d956fee3d80b0b321e47f3f12756f01c681",
+        "docs/validation/evidence/claim-reconciliation-checker-2026-09-19/parent-integration-notes.md": "6b08e53d3ed3b833a206b0104f0450a959d3c7225c992c6cc0ee555337f94488",
+        "godot/scripts/core/save_section_directory.gd": "e074a3cd8d880e8a6c6bb184f9b04d297601622194dca35dd9c1dd93e93e27e8"
+      },
+      "outputLineBudget": 150,
+      "outputLines": 168,
+      "budgetDisposition": "Astra accepted18-line scoped report overrun; findings fully dispositioned."
+    }
+  ]
+}

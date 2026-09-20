@@ -1,0 +1,54 @@
+{
+  "results": [
+    {
+      "mutant": "skip-live-tick-provenance",
+      "exit_code": 1,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_forage_live_tick_and_pid_provenance_refuse_without_repair",
+        "49 test(s), 2370 assertion(s), 1 failure(s)"
+      ]
+    },
+    {
+      "mutant": "skip-zero-claim-totals",
+      "exit_code": 1,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_every_zone_total_is_checked_even_without_any_claim",
+        "49 test(s), 2370 assertion(s), 1 failure(s)"
+      ]
+    },
+    {
+      "mutant": "double-count-shared-zone",
+      "exit_code": 1,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_shared_designation_and_basin_counts_the_amount_once",
+        "  FAIL  test_full_forage_quantity_bound_is_a_structural_sum_exercise",
+        "49 test(s), 2370 assertion(s), 2 failure(s)"
+      ]
+    },
+    {
+      "mutant": "reinterpret-stale-owner",
+      "exit_code": 1,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_dead_expedition_is_preserved_and_never_reconstructed_from_reused_row",
+        "  FAIL  test_claim_owner_future_generation_and_live_wrong_kind_are_distinct",
+        "  FAIL  test_fully_live_owner_must_map_to_the_claim_row",
+        "  FAIL  test_checker_accepts_real_stale_claim_snapshots_before_exact_restore_and_normal_cleanup",
+        "49 test(s), 2370 assertion(s), 4 failure(s)"
+      ]
+    },
+    {
+      "mutant": "skip-reverse-component-walk",
+      "exit_code": 1,
+      "killed": true,
+      "summary": [
+        "  FAIL  test_reverse_directory_walk_requires_each_component_kind",
+        "49 test(s), 2370 assertion(s), 1 failure(s)"
+      ]
+    }
+  ],
+  "restored_source_sha256": "7950ff804c0558297785d2a34259e6f9194ac402336ee83518fa835540f43c81"
+}

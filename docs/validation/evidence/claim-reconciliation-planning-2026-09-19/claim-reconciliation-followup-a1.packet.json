@@ -1,0 +1,13 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "ccb3da6a6ac58906f44d9c45bcf25b035c690032",
+  "task": "Close remaining resource claim reconciliation feasibility questions after identity repair",
+  "paths": [
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/followup-sources.md",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/followup-registry-snapshot.json",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/followup-astra-questions.md",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/astra-audit-disposition.md",
+    "docs/validation/evidence/claim-reconciliation-planning-2026-09-19/feasibility-review.md"
+  ],
+  "instructions": "Independent bounded source review of Astra proposed reconciliation policy. Read additional immutable source and schema snapshots, historical audit/disposition, and precise questions. Identify concrete counterexamples and exact unavoidable prerequisites; avoid speculative generic scope. Return exactly one NEW report docs/validation/evidence/claim-reconciliation-planning-2026-09-19/followup-review.md max160lines, baseSha256 null. No runtime test claims. RAW JSON object status/summary/questions/files/decisionIds, no code fences or prose outside JSON."
+}

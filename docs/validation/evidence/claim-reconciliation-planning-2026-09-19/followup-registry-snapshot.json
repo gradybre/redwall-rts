@@ -1,0 +1,1796 @@
+{
+  "registry_version": 6,
+  "section_schema_versions": [
+    3,
+    2,
+    1,
+    2,
+    1,
+    1,
+    4,
+    2,
+    2,
+    1,
+    1,
+    3,
+    1,
+    2,
+    1
+  ],
+  "owners": [
+    {
+      "section_id": 1,
+      "owner_key": "entity_directory",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "field_key": "_next_persistent_id",
+          "type": "u32",
+          "type_code": 1,
+          "hash": true,
+          "source_module": "entity_directory",
+          "source_member": "_next_persistent_id",
+          "shape": {
+            "count": 1,
+            "order": "scalar"
+          },
+          "scalar": true,
+          "ordinal": 0,
+          "range": {
+            "min": 1,
+            "max": 2147483648,
+            "exhausted": 2147483648
+          }
+        }
+      ],
+      "wire": {
+        "primary_count": 1,
+        "payload_bytes": 4,
+        "format": "one_u32_le"
+      }
+    },
+    {
+      "section_id": 1,
+      "owner_key": "forage",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "field_key": "_tile_link_head",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_tile_link_head",
+          "shape": {
+            "declared_capacity": "`TILE_COUNT` = 16384",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 0,
+          "source_contract": "C005"
+        }
+      ]
+    },
+    {
+      "section_id": 3,
+      "owner_key": "entity_directory",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "field_key": "_active",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "entity_directory",
+          "source_member": "_active",
+          "shape": {
+            "declared_capacity": "`DIRECTORY_CAPACITY` = 352418",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 0,
+          "source_contract": "C015"
+        },
+        {
+          "field_key": "_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "entity_directory",
+          "source_member": "_generation",
+          "shape": {
+            "declared_capacity": "`DIRECTORY_CAPACITY` = 352418",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 1,
+          "source_contract": "C016"
+        },
+        {
+          "field_key": "_retired",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "entity_directory",
+          "source_member": "_retired",
+          "shape": {
+            "declared_capacity": "`DIRECTORY_CAPACITY` = 352418",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 2,
+          "source_contract": "C017"
+        },
+        {
+          "field_key": "_persistent_id",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "entity_directory",
+          "source_member": "_persistent_id",
+          "shape": {
+            "declared_capacity": "`DIRECTORY_CAPACITY` = 352418",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 3,
+          "source_contract": "C018"
+        },
+        {
+          "field_key": "_kind",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "entity_directory",
+          "source_member": "_kind",
+          "shape": {
+            "declared_capacity": "`DIRECTORY_CAPACITY` = 352418",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 4,
+          "source_contract": "C018"
+        },
+        {
+          "field_key": "_typed_row",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "entity_directory",
+          "source_member": "_typed_row",
+          "shape": {
+            "declared_capacity": "`DIRECTORY_CAPACITY` = 352418",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 5,
+          "source_contract": "C019"
+        }
+      ]
+    },
+    {
+      "section_id": 4,
+      "owner_key": "fishing",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "field_key": "_habitat_present",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_habitat_present",
+          "shape": {
+            "declared_capacity": "`FISH_HABITAT_CAPACITY` = 32",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 0,
+          "source_contract": "C022"
+        },
+        {
+          "field_key": "_stock_present",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_stock_present",
+          "shape": {
+            "declared_capacity": "`FISH_STOCK_CAPACITY` = 96",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 1,
+          "source_contract": "C040"
+        },
+        {
+          "field_key": "_habitat_type",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_habitat_type",
+          "shape": {
+            "declared_capacity": "`FISH_HABITAT_CAPACITY` = 32",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 2,
+          "source_contract": "C041"
+        },
+        {
+          "field_key": "_habitat_zone_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_habitat_zone_slot",
+          "shape": {
+            "declared_capacity": "`FISH_HABITAT_CAPACITY` = 32",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 3,
+          "source_contract": "C041"
+        },
+        {
+          "field_key": "_habitat_zone_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_habitat_zone_generation",
+          "shape": {
+            "declared_capacity": "`FISH_HABITAT_CAPACITY` = 32",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 4,
+          "source_contract": "C041"
+        },
+        {
+          "field_key": "_habitat_effort_slots",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_habitat_effort_slots",
+          "shape": {
+            "declared_capacity": "`FISH_HABITAT_CAPACITY` = 32",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 5,
+          "source_contract": "C041"
+        },
+        {
+          "field_key": "_habitat_pollution",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_habitat_pollution",
+          "shape": {
+            "declared_capacity": "`FISH_HABITAT_CAPACITY` = 32",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 6,
+          "source_contract": "C041"
+        },
+        {
+          "field_key": "_habitat_danger",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_habitat_danger",
+          "shape": {
+            "declared_capacity": "`FISH_HABITAT_CAPACITY` = 32",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 7,
+          "source_contract": "C041"
+        },
+        {
+          "field_key": "_habitat_protected_fraction",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_habitat_protected_fraction",
+          "shape": {
+            "declared_capacity": "`FISH_HABITAT_CAPACITY` = 32",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 8,
+          "source_contract": "C041"
+        },
+        {
+          "field_key": "_habitat_capacity_milli",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_habitat_capacity_milli",
+          "shape": {
+            "declared_capacity": "`FISH_HABITAT_CAPACITY` = 32",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 9,
+          "source_contract": "C042"
+        },
+        {
+          "field_key": "_habitat_ref_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_habitat_ref_slot",
+          "shape": {
+            "declared_capacity": "`FISH_HABITAT_CAPACITY` = 32",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 10,
+          "source_contract": "C043"
+        },
+        {
+          "field_key": "_habitat_ref_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_habitat_ref_generation",
+          "shape": {
+            "declared_capacity": "`FISH_HABITAT_CAPACITY` = 32",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 11,
+          "source_contract": "C043"
+        },
+        {
+          "field_key": "_habitat_effort_used",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_habitat_effort_used",
+          "shape": {
+            "declared_capacity": "`FISH_HABITAT_CAPACITY` = 32",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 12,
+          "source_contract": "C043"
+        },
+        {
+          "field_key": "_habitat_intensive",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_habitat_intensive",
+          "shape": {
+            "declared_capacity": "`FISH_HABITAT_CAPACITY` = 32",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 13,
+          "source_contract": "C044"
+        },
+        {
+          "field_key": "_stock_habitat_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_stock_habitat_slot",
+          "shape": {
+            "declared_capacity": "`FISH_STOCK_CAPACITY` = 96",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 14,
+          "source_contract": "C045"
+        },
+        {
+          "field_key": "_stock_habitat_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_stock_habitat_generation",
+          "shape": {
+            "declared_capacity": "`FISH_STOCK_CAPACITY` = 96",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 15,
+          "source_contract": "C045"
+        },
+        {
+          "field_key": "_stock_species_id",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_stock_species_id",
+          "shape": {
+            "declared_capacity": "`FISH_STOCK_CAPACITY` = 96",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 16,
+          "source_contract": "C045"
+        },
+        {
+          "field_key": "_stock_population_milli",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_stock_population_milli",
+          "shape": {
+            "declared_capacity": "`FISH_STOCK_CAPACITY` = 96",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 17,
+          "source_contract": "C046"
+        },
+        {
+          "field_key": "_stock_capacity_milli",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_stock_capacity_milli",
+          "shape": {
+            "declared_capacity": "`FISH_STOCK_CAPACITY` = 96",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 18,
+          "source_contract": "C046"
+        },
+        {
+          "field_key": "_stock_harvested_today_milli",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_stock_harvested_today_milli",
+          "shape": {
+            "declared_capacity": "`FISH_STOCK_CAPACITY` = 96",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 19,
+          "source_contract": "C046"
+        },
+        {
+          "field_key": "_stock_closed",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_stock_closed",
+          "shape": {
+            "declared_capacity": "`FISH_STOCK_CAPACITY` = 96",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 20,
+          "source_contract": "C047"
+        },
+        {
+          "field_key": "_stock_restocking",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_stock_restocking",
+          "shape": {
+            "declared_capacity": "`FISH_STOCK_CAPACITY` = 96",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 21,
+          "source_contract": "C047"
+        }
+      ]
+    },
+    {
+      "section_id": 4,
+      "owner_key": "forage",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "field_key": "_zone_present",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_zone_present",
+          "shape": {
+            "declared_capacity": "`HARVEST_ZONE_CAPACITY` = 128",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 0,
+          "source_contract": "C022"
+        },
+        {
+          "field_key": "_patch_present",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_patch_present",
+          "shape": {
+            "declared_capacity": "`FORAGE_PATCH_CAPACITY` = 640",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 1,
+          "source_contract": "C048"
+        },
+        {
+          "field_key": "_zone_type",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_zone_type",
+          "shape": {
+            "declared_capacity": "`HARVEST_ZONE_CAPACITY` = 128",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 2,
+          "source_contract": "C049"
+        },
+        {
+          "field_key": "_zone_danger",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_zone_danger",
+          "shape": {
+            "declared_capacity": "`HARVEST_ZONE_CAPACITY` = 128",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 3,
+          "source_contract": "C049"
+        },
+        {
+          "field_key": "_zone_quota_milli",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_zone_quota_milli",
+          "shape": {
+            "declared_capacity": "`HARVEST_ZONE_CAPACITY` = 128",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 4,
+          "source_contract": "C050"
+        },
+        {
+          "field_key": "_zone_protected",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_zone_protected",
+          "shape": {
+            "declared_capacity": "`HARVEST_ZONE_CAPACITY` = 128",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 5,
+          "source_contract": "C051"
+        },
+        {
+          "field_key": "_zone_enabled",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_zone_enabled",
+          "shape": {
+            "declared_capacity": "`HARVEST_ZONE_CAPACITY` = 128",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 6,
+          "source_contract": "C051"
+        },
+        {
+          "field_key": "_zone_ref_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_zone_ref_slot",
+          "shape": {
+            "declared_capacity": "`HARVEST_ZONE_CAPACITY` = 128",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 7,
+          "source_contract": "C052"
+        },
+        {
+          "field_key": "_zone_ref_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_zone_ref_generation",
+          "shape": {
+            "declared_capacity": "`HARVEST_ZONE_CAPACITY` = 128",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 8,
+          "source_contract": "C052"
+        },
+        {
+          "field_key": "_zone_basin_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_zone_basin_slot",
+          "shape": {
+            "declared_capacity": "`HARVEST_ZONE_CAPACITY` = 128",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 9,
+          "source_contract": "C052"
+        },
+        {
+          "field_key": "_zone_basin_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_zone_basin_generation",
+          "shape": {
+            "declared_capacity": "`HARVEST_ZONE_CAPACITY` = 128",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 10,
+          "source_contract": "C052"
+        },
+        {
+          "field_key": "_zone_harvested_today_milli",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_zone_harvested_today_milli",
+          "shape": {
+            "declared_capacity": "`HARVEST_ZONE_CAPACITY` = 128",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 11,
+          "source_contract": "C053"
+        },
+        {
+          "field_key": "_zone_quota_reserved_milli",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_zone_quota_reserved_milli",
+          "shape": {
+            "declared_capacity": "`HARVEST_ZONE_CAPACITY` = 128",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 12,
+          "source_contract": "C053"
+        },
+        {
+          "field_key": "_zone_quota_mode",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_zone_quota_mode",
+          "shape": {
+            "declared_capacity": "`HARVEST_ZONE_CAPACITY` = 128",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 13,
+          "source_contract": "C054"
+        },
+        {
+          "field_key": "_patch_item_id",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_patch_item_id",
+          "shape": {
+            "declared_capacity": "`FORAGE_PATCH_CAPACITY` = 640",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 14,
+          "source_contract": "C055"
+        },
+        {
+          "field_key": "_patch_zone_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_patch_zone_slot",
+          "shape": {
+            "declared_capacity": "`FORAGE_PATCH_CAPACITY` = 640",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 15,
+          "source_contract": "C055"
+        },
+        {
+          "field_key": "_patch_zone_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_patch_zone_generation",
+          "shape": {
+            "declared_capacity": "`FORAGE_PATCH_CAPACITY` = 640",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 16,
+          "source_contract": "C055"
+        },
+        {
+          "field_key": "_patch_stock_milli",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_patch_stock_milli",
+          "shape": {
+            "declared_capacity": "`FORAGE_PATCH_CAPACITY` = 640",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 17,
+          "source_contract": "C055"
+        },
+        {
+          "field_key": "_patch_capacity_milli",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_patch_capacity_milli",
+          "shape": {
+            "declared_capacity": "`FORAGE_PATCH_CAPACITY` = 640",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 18,
+          "source_contract": "C055"
+        },
+        {
+          "field_key": "_patch_harvested_year_milli",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_patch_harvested_year_milli",
+          "shape": {
+            "declared_capacity": "`FORAGE_PATCH_CAPACITY` = 640",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 19,
+          "source_contract": "C055"
+        }
+      ]
+    },
+    {
+      "section_id": 4,
+      "owner_key": "jobs",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "field_key": "_job_present",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_job_present",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 0,
+          "source_contract": "C022"
+        },
+        {
+          "field_key": "_agent_present",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_agent_present",
+          "shape": {
+            "declared_capacity": "`AGENT_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 1,
+          "source_contract": "C056"
+        },
+        {
+          "field_key": "_kind",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_kind",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 2,
+          "source_contract": "C057"
+        },
+        {
+          "field_key": "_requester_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_requester_slot",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 3,
+          "source_contract": "C057"
+        },
+        {
+          "field_key": "_requester_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_requester_generation",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 4,
+          "source_contract": "C057"
+        },
+        {
+          "field_key": "_destination_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_destination_slot",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 5,
+          "source_contract": "C057"
+        },
+        {
+          "field_key": "_destination_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_destination_generation",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 6,
+          "source_contract": "C057"
+        },
+        {
+          "field_key": "_source_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_source_slot",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 7,
+          "source_contract": "C057"
+        },
+        {
+          "field_key": "_source_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_source_generation",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 8,
+          "source_contract": "C057"
+        },
+        {
+          "field_key": "_priority",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_priority",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 9,
+          "source_contract": "C057"
+        },
+        {
+          "field_key": "_required_skill",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_required_skill",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 10,
+          "source_contract": "C057"
+        },
+        {
+          "field_key": "_state",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_state",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 11,
+          "source_contract": "C057"
+        },
+        {
+          "field_key": "_worker_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_worker_slot",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 12,
+          "source_contract": "C057"
+        },
+        {
+          "field_key": "_worker_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_worker_generation",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 13,
+          "source_contract": "C057"
+        },
+        {
+          "field_key": "_remaining_mwu",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_remaining_mwu",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 14,
+          "source_contract": "C058"
+        },
+        {
+          "field_key": "_created_tick",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_created_tick",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 15,
+          "source_contract": "C058"
+        },
+        {
+          "field_key": "_job_ref_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_job_ref_slot",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 16,
+          "source_contract": "C059"
+        },
+        {
+          "field_key": "_job_ref_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_job_ref_generation",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 17,
+          "source_contract": "C059"
+        },
+        {
+          "field_key": "_urgency",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_urgency",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 18,
+          "source_contract": "C060"
+        },
+        {
+          "field_key": "_dangerous",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_dangerous",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 19,
+          "source_contract": "C060"
+        },
+        {
+          "field_key": "_station_gate",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_station_gate",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 20,
+          "source_contract": "C060"
+        },
+        {
+          "field_key": "_tool_gate",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_tool_gate",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 21,
+          "source_contract": "C060"
+        },
+        {
+          "field_key": "_unlock_gate",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_unlock_gate",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 22,
+          "source_contract": "C060"
+        },
+        {
+          "field_key": "_inputs_gate",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_inputs_gate",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 23,
+          "source_contract": "C060"
+        },
+        {
+          "field_key": "_is_coordinator",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_is_coordinator",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 24,
+          "source_contract": "C060"
+        },
+        {
+          "field_key": "_agent_job_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_agent_job_slot",
+          "shape": {
+            "declared_capacity": "`AGENT_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 25,
+          "source_contract": "C061"
+        },
+        {
+          "field_key": "_agent_job_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_agent_job_generation",
+          "shape": {
+            "declared_capacity": "`AGENT_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 26,
+          "source_contract": "C061"
+        },
+        {
+          "field_key": "_agent_phase",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_agent_phase",
+          "shape": {
+            "declared_capacity": "`AGENT_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 27,
+          "source_contract": "C061"
+        },
+        {
+          "field_key": "_agent_target_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_agent_target_slot",
+          "shape": {
+            "declared_capacity": "`AGENT_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 28,
+          "source_contract": "C061"
+        },
+        {
+          "field_key": "_agent_target_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_agent_target_generation",
+          "shape": {
+            "declared_capacity": "`AGENT_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 29,
+          "source_contract": "C061"
+        },
+        {
+          "field_key": "_agent_path_id",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_agent_path_id",
+          "shape": {
+            "declared_capacity": "`AGENT_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 30,
+          "source_contract": "C062"
+        },
+        {
+          "field_key": "_agent_path_cursor",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_agent_path_cursor",
+          "shape": {
+            "declared_capacity": "`AGENT_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 31,
+          "source_contract": "C062"
+        },
+        {
+          "field_key": "_agent_lease_expiry",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_agent_lease_expiry",
+          "shape": {
+            "declared_capacity": "`AGENT_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 32,
+          "source_contract": "C063"
+        },
+        {
+          "field_key": "_agent_blocked_tick",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_agent_blocked_tick",
+          "shape": {
+            "declared_capacity": "`AGENT_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 33,
+          "source_contract": "C063"
+        },
+        {
+          "field_key": "_agent_manual_until",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_agent_manual_until",
+          "shape": {
+            "declared_capacity": "`AGENT_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 34,
+          "source_contract": "C063"
+        },
+        {
+          "field_key": "_agent_hazard_locked",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_agent_hazard_locked",
+          "shape": {
+            "declared_capacity": "`AGENT_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 35,
+          "source_contract": "C056"
+        },
+        {
+          "field_key": "_job_scan_cursor",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_job_scan_cursor",
+          "shape": {
+            "declared_capacity": "`AGENT_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 36,
+          "source_contract": "C064"
+        },
+        {
+          "field_key": "_continuation_bucket",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_continuation_bucket",
+          "shape": {
+            "declared_capacity": "`AGENT_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 37,
+          "source_contract": "C065"
+        }
+      ]
+    },
+    {
+      "section_id": 5,
+      "owner_key": "forage",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "field_key": "_link_bump",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_link_bump",
+          "shape": {
+            "count": 1,
+            "order": "scalar"
+          },
+          "scalar": true,
+          "ordinal": 0
+        },
+        {
+          "field_key": "_link_free_head",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_link_free_head",
+          "shape": {
+            "count": 1,
+            "order": "scalar"
+          },
+          "scalar": true,
+          "ordinal": 1
+        },
+        {
+          "field_key": "_link_used",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_link_used",
+          "shape": {
+            "count": 1,
+            "order": "scalar"
+          },
+          "scalar": true,
+          "ordinal": 2
+        },
+        {
+          "field_key": "_zone_link_head",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_zone_link_head",
+          "shape": {
+            "declared_capacity": "`HARVEST_ZONE_CAPACITY` = 128",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 3,
+          "source_contract": "C117"
+        },
+        {
+          "field_key": "_zone_tile_count",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_zone_tile_count",
+          "shape": {
+            "declared_capacity": "`HARVEST_ZONE_CAPACITY` = 128",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 4,
+          "source_contract": "C117"
+        },
+        {
+          "field_key": "_zone_patch_count",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_zone_patch_count",
+          "shape": {
+            "declared_capacity": "`HARVEST_ZONE_CAPACITY` = 128",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 5,
+          "source_contract": "C117"
+        },
+        {
+          "field_key": "_link_tile",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_link_tile",
+          "shape": {
+            "declared_capacity": "`ZONE_LINK_CAPACITY` = 16384",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 6,
+          "source_contract": "C118"
+        },
+        {
+          "field_key": "_link_zone",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_link_zone",
+          "shape": {
+            "declared_capacity": "`ZONE_LINK_CAPACITY` = 16384",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 7,
+          "source_contract": "C118"
+        },
+        {
+          "field_key": "_link_tile_next",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_link_tile_next",
+          "shape": {
+            "declared_capacity": "`ZONE_LINK_CAPACITY` = 16384",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 8,
+          "source_contract": "C118"
+        },
+        {
+          "field_key": "_link_zone_next",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_link_zone_next",
+          "shape": {
+            "declared_capacity": "`ZONE_LINK_CAPACITY` = 16384",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 9,
+          "source_contract": "C118"
+        }
+      ]
+    },
+    {
+      "section_id": 5,
+      "owner_key": "jobs",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "field_key": "_coordinator_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_coordinator_slot",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 0,
+          "source_contract": "C119"
+        },
+        {
+          "field_key": "_coordinator_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_coordinator_generation",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 1,
+          "source_contract": "C119"
+        },
+        {
+          "field_key": "_member_head",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_member_head",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 2,
+          "source_contract": "C119"
+        },
+        {
+          "field_key": "_member_next",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "jobs",
+          "source_member": "_member_next",
+          "shape": {
+            "declared_capacity": "`JOB_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 3,
+          "source_contract": "C119"
+        }
+      ]
+    },
+    {
+      "section_id": 7,
+      "owner_key": "fishing",
+      "owner_schema_version": 2,
+      "fields": [
+        {
+          "field_key": "_effort_claim_active",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_effort_claim_active",
+          "shape": {
+            "declared_capacity": "`FISHING_EFFORT_CLAIM_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 0,
+          "source_contract": "C122"
+        },
+        {
+          "field_key": "_effort_claim_expedition_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_effort_claim_expedition_generation",
+          "shape": {
+            "declared_capacity": "`FISHING_EFFORT_CLAIM_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 1,
+          "source_contract": "C123"
+        },
+        {
+          "field_key": "_effort_claim_habitat_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_effort_claim_habitat_slot",
+          "shape": {
+            "declared_capacity": "`FISHING_EFFORT_CLAIM_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 2,
+          "source_contract": "C123"
+        },
+        {
+          "field_key": "_effort_claim_habitat_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_effort_claim_habitat_generation",
+          "shape": {
+            "declared_capacity": "`FISHING_EFFORT_CLAIM_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 3,
+          "source_contract": "C123"
+        },
+        {
+          "field_key": "_effort_claim_job_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_effort_claim_job_slot",
+          "shape": {
+            "declared_capacity": "`FISHING_EFFORT_CLAIM_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 4,
+          "source_contract": "C123"
+        },
+        {
+          "field_key": "_effort_claim_job_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_effort_claim_job_generation",
+          "shape": {
+            "declared_capacity": "`FISHING_EFFORT_CLAIM_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 5,
+          "source_contract": "C123"
+        },
+        {
+          "field_key": "_effort_claim_slot_count",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_effort_claim_slot_count",
+          "shape": {
+            "declared_capacity": "`FISHING_EFFORT_CLAIM_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 6,
+          "source_contract": "C123"
+        },
+        {
+          "field_key": "_effort_claim_expedition_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "fishing",
+          "source_member": "_effort_claim_expedition_slot",
+          "shape": {
+            "declared_capacity": "`FISHING_EFFORT_CLAIM_CAPACITY` = 512",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 7,
+          "source_contract": "C123"
+        }
+      ]
+    },
+    {
+      "section_id": 7,
+      "owner_key": "forage",
+      "owner_schema_version": 1,
+      "fields": [
+        {
+          "field_key": "_claim_active",
+          "type": "u8",
+          "type_code": 0,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_claim_active",
+          "shape": {
+            "declared_capacity": "`FORAGE_CLAIM_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 0,
+          "source_contract": "C124"
+        },
+        {
+          "field_key": "_claim_job_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_claim_job_slot",
+          "shape": {
+            "declared_capacity": "`FORAGE_CLAIM_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 1,
+          "source_contract": "C125"
+        },
+        {
+          "field_key": "_claim_job_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_claim_job_generation",
+          "shape": {
+            "declared_capacity": "`FORAGE_CLAIM_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 2,
+          "source_contract": "C125"
+        },
+        {
+          "field_key": "_claim_designation_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_claim_designation_slot",
+          "shape": {
+            "declared_capacity": "`FORAGE_CLAIM_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 3,
+          "source_contract": "C125"
+        },
+        {
+          "field_key": "_claim_designation_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_claim_designation_generation",
+          "shape": {
+            "declared_capacity": "`FORAGE_CLAIM_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 4,
+          "source_contract": "C125"
+        },
+        {
+          "field_key": "_claim_basin_slot",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_claim_basin_slot",
+          "shape": {
+            "declared_capacity": "`FORAGE_CLAIM_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 5,
+          "source_contract": "C125"
+        },
+        {
+          "field_key": "_claim_basin_generation",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_claim_basin_generation",
+          "shape": {
+            "declared_capacity": "`FORAGE_CLAIM_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 6,
+          "source_contract": "C125"
+        },
+        {
+          "field_key": "_claim_patch_kind",
+          "type": "i32",
+          "type_code": 2,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_claim_patch_kind",
+          "shape": {
+            "declared_capacity": "`FORAGE_CLAIM_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 7,
+          "source_contract": "C125"
+        },
+        {
+          "field_key": "_claim_remaining_milli",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_claim_remaining_milli",
+          "shape": {
+            "declared_capacity": "`FORAGE_CLAIM_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 8,
+          "source_contract": "C125"
+        },
+        {
+          "field_key": "_claim_created_tick",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_claim_created_tick",
+          "shape": {
+            "declared_capacity": "`FORAGE_CLAIM_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 9,
+          "source_contract": "C125"
+        },
+        {
+          "field_key": "_claim_persistent_id",
+          "type": "i64",
+          "type_code": 4,
+          "hash": true,
+          "source_module": "forage",
+          "source_member": "_claim_persistent_id",
+          "shape": {
+            "declared_capacity": "`FORAGE_CLAIM_CAPACITY` = 8192",
+            "order": "ascending_physical_slot"
+          },
+          "ordinal": 10,
+          "source_contract": "C125"
+        }
+      ]
+    }
+  ]
+}

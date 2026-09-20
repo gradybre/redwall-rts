@@ -743,6 +743,12 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Cell clearance | `_clearance` | 4 | `CELL_COUNT` = 262144 | 0 = no clearance computed yet | 2 | §1 WORLD | A derived distance field over `_walkable`; `_clearance_dirty` exists precisely because it is recomputed. Writing it would let a save disagree with its own passability map. |
 | Map revision and scalars | -- | -- | -- | -- | 1 | §1 WORLD | `_map_revision` is `World.map_revision` in §2's ledger and is compared against `navigation.gd`'s cached `_d_map_revision`/`_r_map_revision`, so a restored world that restarted the revision counter would silently accept stale routes. `_walkable_count` is recomputed, `_clearance_dirty` must be resolved before a save, `_last_refusal` is diagnostic. |
 
+### `godot/scripts/core/save_resource_claims_reconcile.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Read-only claim checker | -- | -- | -- | -- | 3 | -- | Decision0168 / SAVE-CLAIM-CHECK-R01v2. No module-level mutable state or live owner access. New caller-owned component projections total148768 packed bytes; private Directory Derived, two internal Directory-validator sort copies and 32+128 int64 sums have a conservative4230440-byte packed allocation bound, not RSS. Compares exact live/stale ownership, provenance, ecological references and all saved aggregates without mutation. Result and temporary sums are cold scratch, not canonical/resident columns. Actual section4/file projection, versions and coordinator invocation remain SAVE-CLAIM-WORLD-BINDING; no complete-save acceptance. |
+
 ### `godot/scripts/core/save_resource_claims_restore.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

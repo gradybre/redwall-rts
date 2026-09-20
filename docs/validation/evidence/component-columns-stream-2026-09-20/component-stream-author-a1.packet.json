@@ -1,0 +1,17 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "f0d91ba0b34323ea6b8f4b1d41836c40c15a7847",
+  "task": "Implement accepted one-owner-at-a-time section4 stream cursor",
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/component_columns_stream_contract.md",
+    "docs/decisions/0169-stream-component-columns-one-owner-at-a-time.md",
+    "docs/validation/evidence/section4-planning-2026-09-20/contract-acceptance.md",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_header.gd",
+    "godot/scripts/core/save_codec.gd",
+    "godot/scripts/core/save_section_directory.gd"
+  ],
+  "instructions": "Claude Opus persistence author. Implement ONLY NEW godot/scripts/core/save_section_component_columns.gd, baseSha256 null, at most1000lines. Accepted SAVE-S4-STREAM-R01v2 is exact API/wire/error/lifetime authority. Existing Schema in inputs is generated, repaired, and independently tested6tests2685assertions; use its exact APIs, do not edit. Implement FramedOwner typed buckets/accessors/setters, shape refusal, WireChunk/OwnerResult, EncodeCursor and DecodeCursor, local host-order probe. Preserve signed full-width bits and arbitrary u8. One owner at a time, exact fragment boundaries, sticky refusal, no whole-column/owner/section concatenation helpers. Preload Schema plus SaveCodec/SaveHeader and self if needed for inner classes; Directory input is reference only, do not preload it or call live owners. Consider COW lifetime when updating typed packed column buckets: never leave an unbounded retained old-column reference; use at most the accepted two copies of one field transient allowance. No tests, metadata edits, owner/domain validation, disk I/O, full-file coordination, or invented approval claims. Functions fully typed and <=30lines where practical, concise docstrings. Parent independently tests and reviews. Escalate actual contract uncertainty rather than guess. RAW JSON status/summary/questions/files/decisionIds, no prose/fences. No runtime/test claims. Return only exact allowed path."
+}

@@ -14,3 +14,5 @@ Decision0168 implements a pure validation boundary over a saved Directory, alloc
 The synthetic maximum-row arithmetic exercise is structural coverage, not a reachable gameplay-world claim. The private packed scratch bound4230440bytes and caller projection148768bytes exclude native overhead. No schema/canonical state/resident allocation changed.
 
 SAVE-CLAIM-WORLD-BINDING still owns projection from the same validated file and invocation before publication. Section bodies, coordinator/disk rollback, live binding and first-playable acceptance remain unfinished. Exact-head CI and merge evidence will be appended after completion.
+
+Merged [PR159](https://github.com/gradybre/redwall-rts/pull/159) at `f0d91ba0b34323ea6b8f4b1d41836c40c15a7847`. Both required CI checks passed on exact head `eb83b403c5959d1a3389a9312f0ad6673033736c`, run35488733439. Final full CI: **4848tests /190647assertions /0failures**; unchanged553objects/33resources shutdown baseline.

@@ -1,0 +1,50 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "case": "unmodified-positive-control",
+      "assertions": 8,
+      "assertion_failure_killed_bypass": false,
+      "valid_execution": true
+    },
+    {
+      "case": "byte_order-fault-refused",
+      "assertions": 8,
+      "assertion_failure_killed_bypass": false,
+      "valid_execution": true
+    },
+    {
+      "case": "byte_order-encode-bypass",
+      "assertions": 8,
+      "assertion_failure_killed_bypass": true,
+      "valid_execution": true
+    },
+    {
+      "case": "byte_order-decode-bypass",
+      "assertions": 8,
+      "assertion_failure_killed_bypass": true,
+      "valid_execution": true
+    },
+    {
+      "case": "metadata-fault-refused",
+      "assertions": 8,
+      "assertion_failure_killed_bypass": false,
+      "valid_execution": true
+    },
+    {
+      "case": "metadata-encode-bypass",
+      "assertions": 8,
+      "assertion_failure_killed_bypass": true,
+      "valid_execution": true
+    },
+    {
+      "case": "metadata-decode-bypass",
+      "assertions": 8,
+      "assertion_failure_killed_bypass": true,
+      "valid_execution": true
+    }
+  ],
+  "stream_sha256": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+  "schema_sha256": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+  "native_big_endian_tested": false
+}

@@ -1,0 +1,14 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "f0d91ba0b34323ea6b8f4b1d41836c40c15a7847",
+  "task": "Verify disposition closure of section4 streaming contract",
+  "paths": [
+    "docs/planning/component_columns_stream_contract.md",
+    "docs/planning/component_columns_layout.json",
+    "docs/validation/evidence/section4-planning-2026-09-20/stream-contract-review.md",
+    "docs/validation/evidence/section4-planning-2026-09-20/stream-draft1-disposition.md",
+    "docs/validation/evidence/section4-planning-2026-09-20/independent_wire_fixture.py",
+    "docs/validation/evidence/section4-planning-2026-09-20/independent-wire-goldens.json"
+  ],
+  "instructions": "Bounded independent follow-up. Verify draft2 closes B1-B5/A1-A10 from first review and identify only remaining implementer-blocking ambiguities or actual incorrect arithmetic. Earlier refuted findings stay refuted unless concrete contrary evidence. Return exactly one NEW report docs/validation/evidence/section4-planning-2026-09-20/stream-contract-followup.md, under900words and at most160lines. baseSha256 null. RAW JSON status/summary/questions/files/decisionIds; no fences outside JSON. No implementation or runtime claims. If dispatchable, explicitly say so with bounded scope."
+}

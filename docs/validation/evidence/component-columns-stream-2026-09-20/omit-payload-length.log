@@ -1,0 +1,50 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_component_columns_schema.gd
+  PASS  test_literal_protocol_totals_and_section_local_versions
+  PASS  test_every_field_matches_registry_and_explicit_source_count_layout
+  PASS  test_all_offsets_tile_the_exact_independent_framing
+  PASS  test_independent_children_remain_distinct_and_exact
+  PASS  test_fixed_strides_are_not_independent_child_extents
+  PASS  test_invalid_lookup_indices_have_separate_validity
+test_save_section_component_columns.gd
+  PASS  test_zero_wire_stream_matches_independent_bytes
+  PASS  test_signed_boundary_pattern_stream_preserves_every_column
+  PASS  test_descriptor_preflight_refuses_before_any_fragment
+  PASS  test_initial_decode_read_sizes_are_literal_protocol_boundaries
+  FAIL  test_each_wrapper_member_is_checked_before_owner_allocation
+        malformed wrapper member refuses (expected SAVE_COMPONENT_FRAME, got )
+        bad wrapper never advances accepted offset (expected 4, got 57)
+        failed cursor requests no column input (expected 0, got 8)
+        first error stays sticky (expected SAVE_COMPONENT_FRAME, got SAVE_COMPONENT_STATE)
+        finish preserves first refusal (expected SAVE_COMPONENT_FRAME, got SAVE_COMPONENT_STATE)
+        malformed wrapper member refuses (expected SAVE_COMPONENT_FRAME, got )
+        bad wrapper never advances accepted offset (expected 4, got 57)
+        failed cursor requests no column input (expected 0, got 8)
+        first error stays sticky (expected SAVE_COMPONENT_FRAME, got SAVE_COMPONENT_STATE)
+        finish preserves first refusal (expected SAVE_COMPONENT_FRAME, got SAVE_COMPONENT_STATE)
+  PASS  test_fragment_sizes_and_early_finish_do_not_advance
+  PASS  test_encoder_requires_expected_owner_and_complete_shape
+  PASS  test_setters_snapshot_input_and_refuse_type_or_extent_without_changes
+  PASS  test_field_count_must_match_before_values
+  PASS  test_null_outputs_and_wrong_states_are_sticky
+  PASS  test_encoder_preflight_early_bind_and_finish
+  PASS  test_ready_owner_requires_transfer_before_any_more_input
+  PASS  test_transferred_record_survives_later_refusal
+  PASS  test_typed_setters_snapshot_signed_extrema_and_shape_checks_buckets
+  PASS  test_component_sources_keep_integer_conversion_paths
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+21 test(s), 11814 assertion(s), 1 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

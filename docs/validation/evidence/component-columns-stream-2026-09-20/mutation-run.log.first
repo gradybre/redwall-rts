@@ -1,0 +1,11 @@
+{"name": "mutation-baseline", "exit_code": 0, "valid_execution": true, "killed": false, "summary": ["20 test(s), 11764 assertion(s), 0 failure(s)"]}
+{"name": "omit-child-extents", "exit_code": 1, "valid_execution": true, "killed": true, "summary": ["  FAIL  test_each_wrapper_member_is_checked_before_owner_allocation", "20 test(s), 11764 assertion(s), 1 failure(s)"]}
+{"name": "omit-payload-length", "exit_code": 1, "valid_execution": true, "killed": true, "summary": ["  FAIL  test_each_wrapper_member_is_checked_before_owner_allocation", "20 test(s), 11764 assertion(s), 1 failure(s)"]}
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-loop-2026-09-19/docs/validation/evidence/component-columns-stream-2026-09-20/run_mutants.py", line 73, in <module>
+    (clone/REL).write_text(variant(name))
+  File "/Users/brendan/Developer/redwall-rts-loop-2026-09-19/docs/validation/evidence/component-columns-stream-2026-09-20/run_mutants.py", line 40, in variant
+    return replace(s, anchor, '\tif record.owner == 0 and field in [3,4]:\n\t\tfield = 7 - field\n' + anchor)
+  File "/Users/brendan/Developer/redwall-rts-loop-2026-09-19/docs/validation/evidence/component-columns-stream-2026-09-20/run_mutants.py", line 17, in replace
+    assert source.count(old) == 1, (old, source.count(old))
+AssertionError: ('\tvar code: int = Schema.field_type(record.owner, field)\n', 2)

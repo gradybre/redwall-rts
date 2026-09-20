@@ -1,0 +1,21 @@
+# Astra disposition of independent source review
+
+No blocking source defect was reported. Both runtime GDScript files remain byte-identical to the independently reviewed versions. Parent takes the following bounded actions before merge.
+
+- M1: add meaningful runtime fault injection in disposable clones, rather than merely count source call sites. tools/test_component_stream_preflights.py corrupts the first compiled owner offset and separately reverses the probe buffer; both cursors refuse before progress. Four variants bypassing each cursor's metadata/host-order gate are killed by assertion failures. Positive control and both fault baselines pass. Seven cases/56assertions, no parser-error kills. CI runs this tool in its Godot job. This simulates the mismatch branch and does not claim a native big-endian test.
+- M2: a source policy test guards both new runtime files against floating conversion/type paths, matching the existing primitive codec convention. The actual native probe is also called on this host.
+- L3: reproduce the generator accepting registry type_code0.0, then reject non-int numeric parity fields (section_id, owner_schema_version, ordinal, type_code). Do not apply the suggested recursive blanket rejection to the registry: release_save_ready and canonical-policy flags are legitimate booleans. Three negative registry fixtures raise the generator suite to58checks.
+- L4: add primary and child high-byte witnesses24,44,52.
+- L5: retain cheap defensive alignment check without claiming its unreachable branch is exercised; the documented readiness/completion/refusal accessors disambiguate zero read size.
+- L6: retain SECTION_ID as documented protocol identity.
+- L7: retain reviewed immutable tables and separate10536 logical table payload. This is not a wire payload or actual resident footprint; native/header/Variant overhead remains unmeasured and reserve qualification stays open.
+- L8: retain bounded cold staging. Reallocation may hold two copies of one field, already charged by the accepted6417408 allowance. No full owner/section concatenation or hot-tick change is introduced.
+- L9: no repair to unreachable absent-binding/duplicate-key branches; registry parity and explicit fixed owner map precede them. No claim to have exercised unreachable diagnostics.
+
+The six required mutants were executed, not merely argued killable. The actual swap mutant changes Buildings fields3/4 only in encoder emission and is caught by the patterned stream test. A globally consistent storage_index permutation would instead be caught by the schema's independent bucket-index assertion; it was not this run's mutant. Equal OrchardHive primary/child values are explicitly declared but a swap of two identical1024 literals is not a distinguishable corruption; the review's wording suggesting otherwise is not adopted.
+
+The schema payload validator's roughly32-line body and the complete stream-test helper remain cohesive bounded walks; retain them as an ordinary readability exception rather than split arithmetic across helpers solely for physical line count. No gameplay, wire, memory-policy or acceptance-scope change.
+
+Follow-up independent review accepts all remedies with no blocker. Its134lines/1303words exceeded the100line/1200word budget; initial intake refused before writing. Astra inspected the complete read-only report and accepted the bounded34line/103word overrun, recorded in the worker ledger.
+
+Follow-up low findings: retain the source-policy token guard as protection for known conversion/type paths, not a complete GDScript float parser (F1). The reviewed runtime sources contain no floating implementation; future edits still require review. Fault-injection anchors are deliberately source-specific and fail closed on reformatting, with replace_once reporting the offending anchor and count; the fixed8-assertion contract similarly refuses missing assertions (F2/F3). Retain nonzero-exit plus parsed-summary plus no-script-error criteria as conservative acceptance, never a false-green shortcut (F4). Test tool is qualified for this Mac and the configured Linux CI, with editor import first; native Windows execution and cold-import timing remain unclaimed (F5). The positive control actually passed locally, proving the runner hook rather than merely assuming its presence. No new production repair is needed.

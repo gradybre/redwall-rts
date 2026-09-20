@@ -1,0 +1,528 @@
+extends RefCounted
+## Section 4 COMPONENT_COLUMNS immutable metadata (SAVE-S4-STREAM-R01 v2, ADR 0169).
+##
+## The compiled metadata for section 4's first implemented body: 18 owner blocks in ASCII key
+## order, 298 owner-local fields, five independent child extents, 12947565 bytes over 193184
+## descriptor rows. tools/generate_component_columns_schema.py compiles the marked region below
+## from docs/planning/component_columns_layout.json plus the canonical registry, after re-proving
+## all 298 counts against the section-4 source-capacity equalities. Nothing here reads JSON at
+## runtime, instantiates a live store, or calls an owner module.
+##
+## Every index is section-local and `field` is the ordinal WITHIN its owner, never a position in a
+## type bucket; storage_index() reports that separately. Invalid lookups return an empty String or
+## zero, and ZERO IS NOT AN ERROR SENTINEL -- no real count, extent or offset here is zero. Every
+## stream and accessor caller MUST call owner_valid(), field_valid() or child_valid() first.
+##
+## No framing, cursor, record type, byte-order probe or semantic validator lives here; those belong
+## to save_section_component_columns.gd and to the 18 owner adapters SAVE-S4-CODEC still requires.
+##
+## The tables are an added IMMUTABLE METADATA LOGICAL PAYLOAD -- 18 owner rows across 11 columns,
+## 298 field rows across 3 columns and 5 child extents -- charged SEPARATELY from the 6417408-byte
+## owner plus transient allowance, and not a measured resident-set figure.
+
+const SaveHeader := preload("res://scripts/core/save_header.gd")
+
+## Pinned by hand, outside the generated region, so a regenerated table that moved the declaration,
+## the section schema or a total is refused rather than believed.
+const EXPECTED_DECLARATION_VERSION: int = 1
+const EXPECTED_SECTION_SCHEMA_VERSION: int = 2
+const EXPECTED_STORE_COUNT: int = 18
+const EXPECTED_FIELD_COUNT: int = 298
+const EXPECTED_SECTION_BYTES: int = 12947565
+const EXPECTED_DESCRIPTOR_ROW_COUNT: int = 193184
+
+## The bounded fragment window both cursors use. Not a layout value.
+const CHUNK_BYTES: int = 65536
+
+## Framing widths: store_count u32; wrapper key-length u32 + version u32 + primary u64 +
+## payload_length u64 = 24 fixed bytes beside the key text; child_extent_count u32; each child
+## extent u64; each field element_count u64.
+const STORE_COUNT_BYTES: int = 4
+const OWNER_HEADER_FIXED_BYTES: int = 24
+const CHILD_COUNT_BYTES: int = 4
+const CHILD_EXTENT_BYTES: int = 8
+const FIELD_COUNT_BYTES: int = 8
+
+## The only value types section 4 declares. There is no u32, u64 or string value field.
+const TYPE_U8: int = 0
+const TYPE_I32: int = 2
+const TYPE_I64: int = 4
+
+## Only the codes this module itself returns; the streaming module owns the other SAVE_COMPONENT_*.
+const REFUSE_NONE: StringName = &""
+const REFUSE_SCHEMA: StringName = &"SAVE_COMPONENT_SCHEMA"
+const REFUSE_METADATA: StringName = &"SAVE_COMPONENT_METADATA"
+
+# --- validity predicates ---------------------------------------------------------------------
+
+
+static func owner_valid(owner: int) -> bool:
+	"""True when `owner` is one of the 18 section-local owner indexes."""
+	return owner >= 0 and owner < STORE_COUNT
+
+
+static func field_valid(owner: int, field: int) -> bool:
+	"""True when `field` is an owner-local ordinal of a valid owner."""
+	return owner_valid(owner) and field >= 0 and field < int(OWNER_FIELD_COUNTS[owner])
+
+
+static func child_valid(owner: int, child: int) -> bool:
+	"""True when `child` indexes one of this owner's declared independent child extents."""
+	return owner_valid(owner) and child >= 0 and child < int(OWNER_CHILD_COUNTS[owner])
+
+
+# --- owner metadata --------------------------------------------------------------------------
+
+
+static func owner_key(owner: int) -> String:
+	"""ASCII owner key, or an empty String on an invalid index."""
+	if not owner_valid(owner):
+		return ""
+	return String(OWNER_KEYS[owner])
+
+
+static func owner_version(owner: int) -> int:
+	"""This owner's section 4 schema version, which is its own and not another section's."""
+	if not owner_valid(owner):
+		return 0
+	return int(OWNER_VERSIONS[owner])
+
+
+static func primary_count(owner: int) -> int:
+	"""Exact declared primary row count. Not an entity count, and never inferred from a field."""
+	if not owner_valid(owner):
+		return 0
+	return int(OWNER_PRIMARY_COUNTS[owner])
+
+
+static func child_extent_count(owner: int) -> int:
+	"""Number of INDEPENDENT child extents declared; fixed derived strides are not extents."""
+	if not owner_valid(owner):
+		return 0
+	return int(OWNER_CHILD_COUNTS[owner])
+
+
+static func child_extent(owner: int, child: int) -> int:
+	"""One declared child extent, exact and never compacted."""
+	if not child_valid(owner, child):
+		return 0
+	return int(CHILD_EXTENTS[int(OWNER_CHILD_BEGIN[owner]) + child])
+
+
+static func field_count(owner: int) -> int:
+	"""Number of fields this owner declares, in owner-local ordinal order."""
+	if not owner_valid(owner):
+		return 0
+	return int(OWNER_FIELD_COUNTS[owner])
+
+
+# --- field metadata --------------------------------------------------------------------------
+
+
+static func field_key(owner: int, field: int) -> String:
+	"""ASCII field key at this owner-local ordinal, or an empty String when invalid."""
+	if not field_valid(owner, field):
+		return ""
+	return String(FIELD_KEYS[int(OWNER_FIELD_BEGIN[owner]) + field])
+
+
+static func field_type(owner: int, field: int) -> int:
+	"""Type code 0 (u8), 2 (i32) or 4 (i64). Invalid gives -1, since 0 is a real type code."""
+	if not field_valid(owner, field):
+		return -1
+	return int(FIELD_TYPES[int(OWNER_FIELD_BEGIN[owner]) + field])
+
+
+static func storage_index(owner: int, field: int) -> int:
+	"""Count of EARLIER fields of the SAME type in this owner: the column's bucket position."""
+	if not field_valid(owner, field):
+		return 0
+	var begin: int = int(OWNER_FIELD_BEGIN[owner])
+	var code: int = int(FIELD_TYPES[begin + field])
+	var seen: int = 0
+	for earlier: int in field:
+		if int(FIELD_TYPES[begin + earlier]) == code:
+			seen += 1
+	return seen
+
+
+static func element_count(owner: int, field: int) -> int:
+	"""Exact element count of this column; every column covers its full physical capacity."""
+	if not field_valid(owner, field):
+		return 0
+	return int(FIELD_COUNTS[int(OWNER_FIELD_BEGIN[owner]) + field])
+
+
+static func field_width(owner: int, field: int) -> int:
+	"""Bytes per element of this field: 1, 4 or 8."""
+	if not field_valid(owner, field):
+		return 0
+	return _type_width(int(FIELD_TYPES[int(OWNER_FIELD_BEGIN[owner]) + field]))
+
+
+static func _type_width(type_code: int) -> int:
+	"""Width of a supported type code, or 0 for a code section 4 does not declare."""
+	if type_code == TYPE_U8:
+		return 1
+	if type_code == TYPE_I32:
+		return 4
+	if type_code == TYPE_I64:
+		return 8
+	return 0
+
+
+# --- byte geometry, relative to section start --------------------------------------------------
+
+
+static func payload_bytes(owner: int) -> int:
+	"""Declared payload length: child header, child extents, field counts and all values."""
+	if not owner_valid(owner):
+		return 0
+	return int(OWNER_PAYLOAD_BYTES[owner])
+
+
+static func owner_block_bytes(owner: int) -> int:
+	"""Whole owner block: wrapper words, key text and payload."""
+	if not owner_valid(owner):
+		return 0
+	return int(OWNER_BLOCK_BYTES[owner])
+
+
+static func owner_offset(owner: int) -> int:
+	"""Offset of this owner's block; the first owner follows the store_count fragment."""
+	if not owner_valid(owner):
+		return 0
+	return int(OWNER_OFFSETS[owner])
+
+
+static func _key_bytes(owner: int) -> int:
+	"""UTF-8 byte length of the owner key as framed after its u32 length prefix."""
+	if not owner_valid(owner):
+		return 0
+	return int(OWNER_KEY_BYTES[owner])
+
+
+static func _payload_offset(owner: int) -> int:
+	"""Offset of this owner's payload, immediately after its wrapper words and key text."""
+	return owner_offset(owner) + OWNER_HEADER_FIXED_BYTES + _key_bytes(owner)
+
+
+static func field_count_offset(owner: int, field: int) -> int:
+	"""Offset of this field's 8-byte element_count fragment."""
+	if not field_valid(owner, field):
+		return 0
+	var offset: int = _payload_offset(owner) + CHILD_COUNT_BYTES \
+		+ CHILD_EXTENT_BYTES * child_extent_count(owner)
+	var begin: int = int(OWNER_FIELD_BEGIN[owner])
+	for earlier: int in field:
+		var index: int = begin + earlier
+		offset += FIELD_COUNT_BYTES + int(FIELD_COUNTS[index]) * _type_width(int(FIELD_TYPES[index]))
+	return offset
+
+
+static func field_value_offset(owner: int, field: int) -> int:
+	"""Offset of this field's first value byte, immediately after its element_count."""
+	if not field_valid(owner, field):
+		return 0
+	return field_count_offset(owner, field) + FIELD_COUNT_BYTES
+
+
+# --- compiled metadata validation --------------------------------------------------------------
+
+
+static func schema_refusal() -> SaveHeader.Refusal:
+	"""Refuse unless the declaration, the section schema, the pinned totals, the table shape and
+	every compiled arithmetic relation agree, and every type is u8, i32 or i64."""
+	if DECLARATION_VERSION != EXPECTED_DECLARATION_VERSION \
+			or SECTION_SCHEMA_VERSION != EXPECTED_SECTION_SCHEMA_VERSION:
+		return _refuse(REFUSE_SCHEMA, "declaration %d / section schema %d is not %d / %d"
+			% [DECLARATION_VERSION, SECTION_SCHEMA_VERSION, EXPECTED_DECLARATION_VERSION,
+				EXPECTED_SECTION_SCHEMA_VERSION])
+	if STORE_COUNT != EXPECTED_STORE_COUNT or FIELD_COUNT != EXPECTED_FIELD_COUNT \
+			or SECTION_BYTES != EXPECTED_SECTION_BYTES \
+			or DESCRIPTOR_ROW_COUNT != EXPECTED_DESCRIPTOR_ROW_COUNT:
+		return _refuse(REFUSE_SCHEMA,
+			"compiled totals %d owners / %d fields / %d bytes / %d rows are not the pinned body"
+				% [STORE_COUNT, FIELD_COUNT, SECTION_BYTES, DESCRIPTOR_ROW_COUNT])
+	var shape: SaveHeader.Refusal = _table_shape_refusal()
+	if not shape.is_ok():
+		return shape
+	return _table_arithmetic_refusal()
+
+
+static func _table_shape_refusal() -> SaveHeader.Refusal:
+	"""Every owner column holds 18 rows and every field column holds 298 rows."""
+	var owner_columns: Array = [OWNER_KEYS, OWNER_KEY_BYTES, OWNER_VERSIONS, OWNER_PRIMARY_COUNTS,
+		OWNER_FIELD_COUNTS, OWNER_FIELD_BEGIN, OWNER_CHILD_COUNTS, OWNER_CHILD_BEGIN,
+		OWNER_OFFSETS, OWNER_PAYLOAD_BYTES, OWNER_BLOCK_BYTES]
+	for column: Array in owner_columns:
+		if column.size() != STORE_COUNT:
+			return _refuse(REFUSE_METADATA, "an owner column holds %d of %d rows"
+				% [column.size(), STORE_COUNT])
+	for column: Array in [FIELD_KEYS, FIELD_TYPES, FIELD_COUNTS]:
+		if column.size() != FIELD_COUNT:
+			return _refuse(REFUSE_METADATA, "a field column holds %d of %d rows"
+				% [column.size(), FIELD_COUNT])
+	return _accept()
+
+
+static func _table_arithmetic_refusal() -> SaveHeader.Refusal:
+	"""Walk the 18 owners once, rebuilding spans, offsets and totals from the framing rules."""
+	var fields: int = 0
+	var children: int = 0
+	var offset: int = STORE_COUNT_BYTES
+	var rows: int = 0
+	for owner: int in STORE_COUNT:
+		var owner_refusal: SaveHeader.Refusal = _owner_refusal(owner, fields, children, offset)
+		if not owner_refusal.is_ok():
+			return owner_refusal
+		fields += field_count(owner)
+		children += child_extent_count(owner)
+		offset += owner_block_bytes(owner)
+		rows += primary_count(owner)
+	if fields != FIELD_COUNT or children != CHILD_EXTENTS.size():
+		return _refuse(REFUSE_METADATA, "owner spans cover %d fields and %d child extents"
+			% [fields, children])
+	if offset != SECTION_BYTES or rows != DESCRIPTOR_ROW_COUNT:
+		return _refuse(REFUSE_METADATA, "compiled blocks total %d bytes over %d rows"
+			% [offset, rows])
+	return _accept()
+
+
+static func _owner_refusal(owner: int, fields: int, children: int,
+		offset: int) -> SaveHeader.Refusal:
+	"""One owner's span cursors, identity and payload arithmetic."""
+	if int(OWNER_FIELD_BEGIN[owner]) != fields or int(OWNER_CHILD_BEGIN[owner]) != children \
+			or owner_offset(owner) != offset:
+		return _refuse(REFUSE_METADATA,
+			"owner %d declares span %d/%d at %d; the walk reached %d/%d at %d"
+				% [owner, int(OWNER_FIELD_BEGIN[owner]), int(OWNER_CHILD_BEGIN[owner]),
+					owner_offset(owner), fields, children, offset])
+	var identity: SaveHeader.Refusal = _owner_identity_refusal(owner)
+	if not identity.is_ok():
+		return identity
+	return _owner_payload_refusal(owner)
+
+
+static func _owner_identity_refusal(owner: int) -> SaveHeader.Refusal:
+	"""Key text, key byte length, owner version, primary count and strict ASCII owner order."""
+	var key: String = String(OWNER_KEYS[owner])
+	if key.is_empty() or key.to_utf8_buffer().size() != _key_bytes(owner):
+		return _refuse(REFUSE_METADATA, "owner %d key '%s' is not %d UTF-8 bytes"
+			% [owner, key, _key_bytes(owner)])
+	if owner_version(owner) < 1 or primary_count(owner) <= 0:
+		return _refuse(REFUSE_METADATA, "owner '%s' declares version %d and %d primaries"
+			% [key, owner_version(owner), primary_count(owner)])
+	if owner > 0 and String(OWNER_KEYS[owner - 1]) >= key:
+		return _refuse(REFUSE_METADATA, "owner '%s' does not follow '%s' in ASCII order"
+			% [key, String(OWNER_KEYS[owner - 1])])
+	return _accept()
+
+
+static func _owner_payload_refusal(owner: int) -> SaveHeader.Refusal:
+	"""Rebuild this owner's payload and block length from its extents, types and counts."""
+	var begin: int = int(OWNER_FIELD_BEGIN[owner])
+	var wrapper: int = OWNER_HEADER_FIXED_BYTES + _key_bytes(owner) + CHILD_COUNT_BYTES \
+		+ CHILD_EXTENT_BYTES * child_extent_count(owner)
+	var bytes: int = CHILD_COUNT_BYTES + CHILD_EXTENT_BYTES * child_extent_count(owner)
+	for child: int in child_extent_count(owner):
+		if child_extent(owner, child) <= 0:
+			return _refuse(REFUSE_METADATA, "owner '%s' child extent %d is not positive"
+				% [owner_key(owner), child])
+	for ordinal: int in field_count(owner):
+		var index: int = begin + ordinal
+		var width: int = _type_width(int(FIELD_TYPES[index]))
+		if width == 0:
+			return _refuse(REFUSE_SCHEMA, "field '%s' declares unsupported type %d"
+				% [String(FIELD_KEYS[index]), int(FIELD_TYPES[index])])
+		if int(FIELD_COUNTS[index]) <= 0 or String(FIELD_KEYS[index]).is_empty():
+			return _refuse(REFUSE_METADATA, "field %d of owner '%s' declares count %d"
+				% [ordinal, owner_key(owner), int(FIELD_COUNTS[index])])
+		bytes += FIELD_COUNT_BYTES + int(FIELD_COUNTS[index]) * width
+	if bytes != payload_bytes(owner) \
+			or owner_block_bytes(owner) != OWNER_HEADER_FIXED_BYTES + _key_bytes(owner) + bytes:
+		return _refuse(REFUSE_METADATA, "owner '%s' declares %d/%d bytes; framing gives %d/%d"
+			% [owner_key(owner), payload_bytes(owner), owner_block_bytes(owner), bytes,
+				OWNER_HEADER_FIXED_BYTES + _key_bytes(owner) + bytes])
+	if wrapper > CHUNK_BYTES:
+		return _refuse(REFUSE_METADATA, "owner '%s' wrapper is %d bytes, over the %d window"
+			% [owner_key(owner), wrapper, CHUNK_BYTES])
+	return _accept()
+
+
+static func _refuse(code: StringName, detail: String) -> SaveHeader.Refusal:
+	"""Build a refusal carrying this module's own code and detail."""
+	return SaveHeader.Refusal.new(code, detail)
+
+
+static func _accept() -> SaveHeader.Refusal:
+	"""The accepted result: an empty code and no detail."""
+	return SaveHeader.Refusal.new(REFUSE_NONE, "")
+
+
+# --- BEGIN GENERATED COMPONENT COLUMN METADATA ---
+# Generated from docs/planning/component_columns_layout.json and the canonical registry by
+# tools/generate_component_columns_schema.py. Do not hand-edit: the generator re-proves all 298
+# counts against tools/audit_registry_capacities.py's section-4 source equalities before writing.
+#   layout RWL-COMPONENT-COLUMNS-LAYOUT-1, declaration_version 1, base registry 6
+#   18 owners, 298 fields, 5 child extents, 193184 descriptor rows, 12947565 section bytes.
+
+const LAYOUT_SCHEMA: String = "RWL-COMPONENT-COLUMNS-LAYOUT-1"
+const DECLARATION_VERSION: int = 1
+const STORE_COUNT: int = 18
+const FIELD_COUNT: int = 298
+const SECTION_SCHEMA_VERSION: int = 2
+const SECTION_BYTES: int = 12947565
+const DESCRIPTOR_ROW_COUNT: int = 193184
+
+const OWNER_KEYS: Array = [
+	"buildings", "construction", "farming", "field_policy", "fishing", "forage", "injury", "jobs",
+	"movement", "needs", "orchard_hive", "priorities", "residents", "resource_nodes", "schedule",
+	"transforms", "work", "world_init"
+]
+
+const OWNER_KEY_BYTES: Array = [
+	9, 12, 7, 12, 7, 6, 6, 4, 8, 5, 12, 10, 9, 14, 8, 10, 4, 10
+]
+
+const OWNER_VERSIONS: Array = [
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1
+]
+
+const OWNER_PRIMARY_COUNTS: Array = [
+	1024, 82944, 4096, 128, 32, 128, 512, 8192, 512, 512, 1024, 512, 512, 4096, 512, 87552, 512, 384
+]
+
+const OWNER_FIELD_COUNTS: Array = [
+	29, 16, 15, 20, 22, 20, 11, 38, 16, 20, 25, 4, 19, 10, 6, 9, 9, 9
+]
+
+const OWNER_FIELD_BEGIN: Array = [
+	0, 29, 45, 60, 80, 102, 122, 133, 171, 187, 207, 232, 236, 255, 265, 271, 280, 289
+]
+
+const OWNER_CHILD_COUNTS: Array = [
+	2, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
+]
+
+const OWNER_CHILD_BEGIN: Array = [
+	0, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5
+]
+
+const CHILD_EXTENTS: Array = [
+	16384, 81920, 4096, 512, 1024
+]
+
+const OWNER_OFFSETS: Array = [
+	4, 3298593, 8192457, 8458852, 8503348, 8508903, 8539433, 8560547, 9246459, 9279391, 9336928,
+	9439576, 9447326, 9550427, 9722581, 9740585, 12892567, 12932095
+]
+
+const OWNER_PAYLOAD_BYTES: Array = [
+	3298556, 4893828, 266364, 44460, 5524, 30500, 21084, 685884, 32900, 57508, 102612, 7716, 103068,
+	172116, 17972, 3151948, 39500, 15436
+]
+
+const OWNER_BLOCK_BYTES: Array = [
+	3298589, 4893864, 266395, 44496, 5555, 30530, 21114, 685912, 32932, 57537, 102648, 7750, 103101,
+	172154, 18004, 3151982, 39528, 15470
+]
+
+const FIELD_KEYS: Array = [
+	"_b_present", "_r_present", "_f_present", "_b_type_id", "_b_tier", "_b_origin_tile",
+	"_b_rotation", "_b_state", "_b_condition", "_b_construction_slot", "_b_construction_generation",
+	"_b_interior_id", "_r_type", "_r_building_slot", "_r_building_generation", "_r_tile_offset",
+	"_r_tile_count", "_r_temperature_tenths", "_r_furniture_mask", "_r_occupants", "_r_valid",
+	"_f_type_id", "_f_room_slot", "_f_room_generation", "_f_origin_tile", "_f_rotation",
+	"_f_user_slot", "_f_user_generation", "_f_condition", "_present", "_material_container_slot",
+	"_material_container_generation", "_assigned_count", "_max_workers", "_refund_policy",
+	"_remaining_mwu", "_paused", "_work_begun", "_ref_slot", "_ref_generation", "_subject_slot",
+	"_subject_generation", "_purpose", "_type_id", "_phase", "_present", "_crop_id", "_state",
+	"_soil", "_fertility", "_moisture", "_growth_milli_hours", "_health", "_last_family",
+	"_family_streak", "_compost_milli", "_sow_day", "_tile", "_ref_slot", "_ref_generation",
+	"_field_present", "_zone_slot", "_zone_generation", "_rotation_ids", "_rotation_cursor",
+	"_auto_rotation", "_seed_reserve", "_cycle_ordinal", "_participants", "_resolved", "_withdrawn",
+	"_completed_cycles", "_cancelled_cycles", "_requested_crop", "_cycle_state", "_close_reason",
+	"_request_state", "_plot_field_slot", "_plot_cycle", "_plot_outcome", "_habitat_present",
+	"_stock_present", "_habitat_type", "_habitat_zone_slot", "_habitat_zone_generation",
+	"_habitat_effort_slots", "_habitat_pollution", "_habitat_danger", "_habitat_protected_fraction",
+	"_habitat_capacity_milli", "_habitat_ref_slot", "_habitat_ref_generation",
+	"_habitat_effort_used", "_habitat_intensive", "_stock_habitat_slot",
+	"_stock_habitat_generation", "_stock_species_id", "_stock_population_milli",
+	"_stock_capacity_milli", "_stock_harvested_today_milli", "_stock_closed", "_stock_restocking",
+	"_zone_present", "_patch_present", "_zone_type", "_zone_danger", "_zone_quota_milli",
+	"_zone_protected", "_zone_enabled", "_zone_ref_slot", "_zone_ref_generation",
+	"_zone_basin_slot", "_zone_basin_generation", "_zone_harvested_today_milli",
+	"_zone_quota_reserved_milli", "_zone_quota_mode", "_patch_item_id", "_patch_zone_slot",
+	"_patch_zone_generation", "_patch_stock_milli", "_patch_capacity_milli",
+	"_patch_harvested_year_milli", "_present", "_kind", "_airless_episode", "_exhaustion_latch",
+	"_care_context_blocked", "_severity", "_rescuer_slot", "_rescuer_generation",
+	"_untreated_ticks", "_care_progress_mwu", "_last_incident_ordinal", "_job_present",
+	"_agent_present", "_kind", "_requester_slot", "_requester_generation", "_destination_slot",
+	"_destination_generation", "_source_slot", "_source_generation", "_priority", "_required_skill",
+	"_state", "_worker_slot", "_worker_generation", "_remaining_mwu", "_created_tick",
+	"_job_ref_slot", "_job_ref_generation", "_urgency", "_dangerous", "_station_gate", "_tool_gate",
+	"_unlock_gate", "_inputs_gate", "_is_coordinator", "_agent_job_slot", "_agent_job_generation",
+	"_agent_phase", "_agent_target_slot", "_agent_target_generation", "_agent_path_id",
+	"_agent_path_cursor", "_agent_lease_expiry", "_agent_blocked_tick", "_agent_manual_until",
+	"_agent_hazard_locked", "_job_scan_cursor", "_continuation_bucket", "_vx", "_vz",
+	"_remainder_x", "_remainder_z", "_next_x", "_next_z", "_correction_x", "_correction_z",
+	"_radius_u", "_desired_yaw", "_next_yaw", "_grid_next", "_grid_cell", "_speed_u_per_s",
+	"_movement_phase", "_blocked_ticks", "_present", "_need_value", "_need_remainder", "_health",
+	"_health_remainder", "_cold_milli_hours", "_cold_remainder", "_starving_ticks",
+	"_departure_days", "_status", "_size_class", "_activity", "_comfort_environment",
+	"_social_paired", "_purpose_source", "_cold_environment", "_clothing_tier", "_infirmary",
+	"_injury_state", "_airless", "_o_present", "_h_present", "_o_species_id", "_o_age_days",
+	"_o_health", "_o_chill_days", "_o_tended_today", "_o_harvested_year", "_o_origin_x",
+	"_o_origin_z", "_o_ref_slot", "_o_ref_generation", "_h_building_slot", "_h_building_generation",
+	"_h_strength", "_h_serviced_day", "_h_feed_milli", "_h_honey_milli", "_h_wax_milli",
+	"_h_min_tile_x", "_h_min_tile_z", "_h_max_tile_x", "_h_max_tile_z", "_h_ref_slot",
+	"_h_ref_generation", "_present", "_job_priority", "_auto_fallback", "_dangerous_work",
+	"_present", "_species", "_size_class", "_named", "_life_stage", "_arrival_tick", "_role",
+	"_home_slot", "_home_generation", "_bed_slot", "_bed_generation", "_ref_slot",
+	"_ref_generation", "_equip_tool_item_id", "_equip_tool_durability", "_equip_satchel_slot",
+	"_equip_satchel_generation", "_skill_xp", "_skill_level", "_present", "_resource_id",
+	"_quantity_milli", "_capacity_milli", "_regrow_days", "_planted_day", "_exhausted", "_tile",
+	"_ref_slot", "_ref_generation", "_present", "_hourly_activity", "_template",
+	"_current_activity", "_sleep_satisfied", "_resolved", "_bound_persistent_id", "_x", "_y", "_z",
+	"_yaw", "_prev_x", "_prev_y", "_prev_z", "_prev_yaw", "_potential_remainder", "_xp_remainder",
+	"_memory_total", "_wear_remainder", "_tool_lot_slot", "_tool_lot_generation", "_tool_job_slot",
+	"_tool_job_generation", "_tool_broken", "_fauna_zone_slot", "_fauna_zone_generation",
+	"_fauna_species_id", "_fauna_population", "_fauna_capacity", "_fauna_tracks",
+	"_fauna_harvest_today", "_fauna_migration_link", "_fauna_birth_remainder"
+]
+
+const FIELD_TYPES: Array = [
+	0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2,
+	2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 2, 2, 2, 4, 2, 2, 2, 2, 0, 2, 2, 2,
+	2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 0, 2, 2,
+	2, 4, 4, 4, 0, 0, 0, 0, 2, 2, 4, 0, 0, 2, 2, 2, 2, 4, 4, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 0, 2,
+	2, 2, 4, 4, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2,
+	2, 2, 2, 2, 2, 4, 4, 4, 0, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 4, 2, 4, 4,
+	4, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4,
+	4, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 2, 0, 0, 0, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 0, 2,
+	4, 4, 2, 2, 0, 2, 2, 2, 0, 0, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	0, 2, 2, 2, 2, 2, 2, 2, 2, 4
+]
+
+const FIELD_COUNTS: Array = [
+	1024, 16384, 81920, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 16384, 16384, 16384,
+	16384, 16384, 16384, 16384, 16384, 16384, 81920, 81920, 81920, 81920, 81920, 81920, 81920,
+	81920, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944, 82944,
+	82944, 82944, 82944, 82944, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096, 4096,
+	4096, 4096, 4096, 4096, 128, 128, 128, 384, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
+	128, 128, 128, 4096, 4096, 4096, 32, 96, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 96, 96,
+	96, 96, 96, 96, 96, 96, 128, 640, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128,
+	640, 640, 640, 640, 640, 640, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 8192, 512,
+	8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192, 8192,
+	8192, 8192, 8192, 8192, 8192, 8192, 8192, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512,
+	512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512,
+	2560, 2560, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512,
+	1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024,
+	1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 1024, 512, 6144, 512, 512, 512, 512, 512, 512,
+	512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 6144, 6144, 4096, 4096, 4096, 4096,
+	4096, 4096, 4096, 4096, 4096, 4096, 512, 12288, 512, 512, 512, 512, 87552, 87552, 87552, 87552,
+	87552, 87552, 87552, 87552, 87552, 512, 6144, 512, 512, 512, 512, 512, 512, 512, 384, 384, 384,
+	384, 384, 384, 384, 384, 384
+]
+# --- END GENERATED COMPONENT COLUMN METADATA ---

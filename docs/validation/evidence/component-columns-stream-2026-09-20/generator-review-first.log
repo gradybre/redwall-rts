@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-loop-2026-09-19/tools/test_component_columns_schema.py", line 113, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-loop-2026-09-19/tools/test_component_columns_schema.py", line 86, in main
+    refused_without_write(clone, label)
+  File "/Users/brendan/Developer/redwall-rts-loop-2026-09-19/tools/test_component_columns_schema.py", line 36, in refused_without_write
+    check(result.returncode != 0, label + " refuses")
+  File "/Users/brendan/Developer/redwall-rts-loop-2026-09-19/tools/test_component_columns_schema.py", line 25, in check
+    raise AssertionError(message)
+AssertionError: registry float type code refuses

@@ -1,0 +1,17 @@
+{
+  "pr": 159,
+  "head": "eb83b403c5959d1a3389a9312f0ad6673033736c",
+  "merge": "f0d91ba0b34323ea6b8f4b1d41836c40c15a7847",
+  "run": 35488733439,
+  "tests": 4848,
+  "assertions": 190647,
+  "failures": 0,
+  "shutdown_objects": 553,
+  "shutdown_resources": 33,
+  "ci_log_sha256": "9b3469f79d54994a0f07a659545a8c2d12b45be8912fe52e90235056c028fc68",
+  "summary_lines": [
+    "Godot headless suite\tRun the suite\t2026-09-20T04:24:35.3560552Z WARNING: 553 ObjectDB instances were leaked at exit (run with `--verbose` for details).",
+    "Godot headless suite\tRun the suite\t2026-09-20T04:24:35.3560872Z ERROR: 33 resources still in use at exit (run with --verbose for details).",
+    "Godot headless suite\tRun the suite\t2026-09-20T04:24:35.3561114Z 4848 test(s), 190647 assertion(s), 0 failure(s)"
+  ]
+}

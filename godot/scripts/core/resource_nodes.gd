@@ -178,6 +178,25 @@ const REFUSE_REGROW_NOT_DUE: StringName = &"REGROW_NOT_DUE"
 const REFUSE_INVALID_INDEX: StringName = &"INVALID_INDEX"
 const REFUSE_OVERFLOW: StringName = &"OVERFLOW"
 
+## The §4 COMPONENT_COLUMNS owner-13 column codes, one per gate of `columns_refusal()` at the
+## foot of this file. Deliberately distinct from this file's §1 `COLUMN_REFUSE_*` tile-map
+## codes: those judge the 16384-entry `_resource_slot` block at schema version 2, these judge
+## the ten 4096-row §4.2 columns at schema version 1, and neither stands in for the other.
+const REFUSE_COLUMN_SHAPE: StringName = &"COLUMN_SHAPE"
+const REFUSE_COLUMN_PRESENT_FLAG: StringName = &"COLUMN_PRESENT_FLAG"
+const REFUSE_COLUMN_EXHAUSTED_FLAG: StringName = &"COLUMN_EXHAUSTED_FLAG"
+const REFUSE_COLUMN_RESOURCE_ID: StringName = &"COLUMN_RESOURCE_ID"
+const REFUSE_COLUMN_QUANTITY: StringName = &"COLUMN_QUANTITY"
+const REFUSE_COLUMN_CAPACITY: StringName = &"COLUMN_CAPACITY"
+const REFUSE_COLUMN_REGROW_DAYS: StringName = &"COLUMN_REGROW_DAYS"
+const REFUSE_COLUMN_PLANTED_DAY: StringName = &"COLUMN_PLANTED_DAY"
+const REFUSE_COLUMN_STOCK: StringName = &"COLUMN_STOCK"
+const REFUSE_COLUMN_PRESENT_DAY: StringName = &"COLUMN_PRESENT_DAY"
+const REFUSE_COLUMN_EXHAUSTION: StringName = &"COLUMN_EXHAUSTION"
+const REFUSE_COLUMN_TILE: StringName = &"COLUMN_TILE"
+const REFUSE_COLUMN_REF: StringName = &"COLUMN_REF"
+const REFUSE_COLUMN_INACTIVE: StringName = &"COLUMN_INACTIVE"
+
 ## A deposit footprint that runs off the 128x128 grid, and a footprint tile held by a node the
 ## caller did not declare replaceable. Both are deposit-only, so neither can be confused with
 ## `create_at_tile()`'s single-tile INVALID_TILE and TILE_OCCUPIED.
@@ -735,7 +754,13 @@ func tile_of(slot: int) -> IntMath.IntResult:
 
 
 func resource_id_of(slot: int) -> IntMath.IntResult:
-	"""The row's resource id, or an explicit refusal. See the header on its unstated domain."""
+	"""The row's extracted-output `ItemDefinition` id, or an explicit refusal.
+
+	The domain is SETTLED -- READY_07 §2 and decision 0052, as the header records -- and this
+	store still validates the RANGE only, because an int32 column cannot prove catalog
+	membership. The loaded registry and the verified `catalog_ids.json` behind the binding
+	boundary own that proof.
+	"""
 	return _read(slot, _resource_id)
 
 
@@ -1098,3 +1123,227 @@ func _refuse_section_1(code: StringName, detail: String) -> bool:
 	"""Record one §1 column refusal's detail and return false, so callers can `return` it."""
 	_section_1_detail = "%s: %s" % [code, detail]
 	return false
+
+
+# --- §4 COMPONENT_COLUMNS owner 13: the pure ten-column scalar-domain predicate -----------------
+#
+# RESOURCE-NODES-S4-VALIDATE-R01 v1, decision 0176. `columns_refusal()` judges ONE decoded
+# owner-13 image -- the ten §4.2 columns, every physical row of all 4096, with no living-256 cap
+# anywhere near it -- and returns the first refused gate's code. It is STATIC and pure over its
+# arguments: it allocates nothing, sorts nothing, duplicates no packed array, builds no range
+# Array, constructs no store, reads no clock, consults no directory or catalog instance, writes
+# no diagnostic, and touches not one member of any live ResourceNodes.
+#
+# EACH GATE SCANS THE WHOLE IMAGE BEFORE THE NEXT ONE RUNS. That global order is the contract
+# rather than an optimisation: a paired fault on two different rows must always report the
+# earlier gate's code, whichever row it happens to sit on.
+#
+# `present` MEANS EXACTLY `present[row] == 1`, and inactive means `present[row] != 1`, judged
+# only after gate 2 has proved that column holds nothing but 0 and 1. The exhaustion relation is
+# `(exhausted[row] == 1) == (quantity_milli[row] == 0)`. Both comparisons are pinned so that an
+# isolated flag fault is caught by its own flag gate and not masked by a later one.
+#
+# THE CAPACITY GATE IS REDUNDANT FOR ACCEPTANCE AND IS KEPT ANYWAY. A nonnegative quantity plus
+# `quantity <= capacity` already excludes a negative capacity, so no image is accepted because
+# this gate exists. It exists to fix the REFUSAL IDENTITY: a negative capacity must answer
+# COLUMN_CAPACITY and not COLUMN_STOCK.
+#
+# WHAT ACCEPTANCE IS NOT. Scalar domain only. It does NOT prove the §1 tile-map inverse in
+# either direction, the Directory kind/typed-row/reference agreement, unique tile or unique
+# reference placement, or that a `_resource_id` names a compiled `ItemDefinition` in the same
+# file's catalog -- RESOURCE-NODES-SAVED-BINDINGS owns every one of those, and duplicate valid
+# scalar rows pass here while failing there. Positive int64 capacities up to INT64_MAX are
+# legal, are never converted to float, and are never summed with a quantity; `planted_day` and
+# `regrow_days` extrema stay legal even where the later runtime due-date operation answers
+# OVERFLOW. An inactive row keeps whatever nonnegative resource id, capacity, regrow period and
+# planting date its history left, so a felled stump's record survives a save unaltered.
+
+static func columns_refusal(present: PackedByteArray, resource_id: PackedInt32Array,
+		quantity_milli: PackedInt64Array, capacity_milli: PackedInt64Array,
+		regrow_days: PackedInt32Array, planted_day: PackedInt32Array,
+		exhausted: PackedByteArray, tile: PackedInt32Array, ref_slot: PackedInt32Array,
+		ref_generation: PackedInt32Array) -> StringName:
+	"""The first refused gate's code for one decoded owner-13 image, or REFUSE_NONE.
+
+	Gate order is global and fixed: shape, present flag, exhausted flag, the five nonnegative
+	scalar columns, stock, present planting date, exhaustion, tile, reference, inactive.
+	"""
+	if not _columns_are_row_sized(present, resource_id, quantity_milli, capacity_milli,
+			regrow_days, planted_day, exhausted, tile, ref_slot, ref_generation):
+		return REFUSE_COLUMN_SHAPE
+	var flags: StringName = _column_flag_refusal(present, exhausted)
+	if flags != REFUSE_NONE:
+		return flags
+	var scalars: StringName = _column_scalar_refusal(resource_id, quantity_milli,
+		capacity_milli, regrow_days, planted_day)
+	if scalars != REFUSE_NONE:
+		return scalars
+	return _column_row_refusal(present, quantity_milli, capacity_milli, planted_day, exhausted,
+		tile, ref_slot, ref_generation)
+
+
+static func _columns_are_row_sized(present: PackedByteArray, resource_id: PackedInt32Array,
+		quantity_milli: PackedInt64Array, capacity_milli: PackedInt64Array,
+		regrow_days: PackedInt32Array, planted_day: PackedInt32Array,
+		exhausted: PackedByteArray, tile: PackedInt32Array, ref_slot: PackedInt32Array,
+		ref_generation: PackedInt32Array) -> bool:
+	"""Gate 1: all ten columns are exactly 4096 long, checked before anything indexes one."""
+	return present.size() == RESOURCE_NODE_CAPACITY \
+		and resource_id.size() == RESOURCE_NODE_CAPACITY \
+		and quantity_milli.size() == RESOURCE_NODE_CAPACITY \
+		and capacity_milli.size() == RESOURCE_NODE_CAPACITY \
+		and regrow_days.size() == RESOURCE_NODE_CAPACITY \
+		and planted_day.size() == RESOURCE_NODE_CAPACITY \
+		and exhausted.size() == RESOURCE_NODE_CAPACITY \
+		and tile.size() == RESOURCE_NODE_CAPACITY \
+		and ref_slot.size() == RESOURCE_NODE_CAPACITY \
+		and ref_generation.size() == RESOURCE_NODE_CAPACITY
+
+
+static func _column_flag_refusal(present: PackedByteArray,
+		exhausted: PackedByteArray) -> StringName:
+	"""Gates 2 and 3: both occupancy bytes hold nothing but 0 and 1, each over the whole image."""
+	if present.count(0) + present.count(1) != RESOURCE_NODE_CAPACITY:
+		return REFUSE_COLUMN_PRESENT_FLAG
+	if exhausted.count(0) + exhausted.count(1) != RESOURCE_NODE_CAPACITY:
+		return REFUSE_COLUMN_EXHAUSTED_FLAG
+	return REFUSE_NONE
+
+
+static func _column_scalar_refusal(resource_id: PackedInt32Array,
+		quantity_milli: PackedInt64Array, capacity_milli: PackedInt64Array,
+		regrow_days: PackedInt32Array, planted_day: PackedInt32Array) -> StringName:
+	"""Gates 4..8: five whole-image sweeps, one per nonnegative scalar column, in fixed order."""
+	if _i32_has_negative(resource_id):
+		return REFUSE_COLUMN_RESOURCE_ID
+	if _i64_has_negative(quantity_milli):
+		return REFUSE_COLUMN_QUANTITY
+	if _i64_has_negative(capacity_milli):
+		return REFUSE_COLUMN_CAPACITY
+	if _i32_has_negative(regrow_days):
+		return REFUSE_COLUMN_REGROW_DAYS
+	if _i32_has_negative(planted_day):
+		return REFUSE_COLUMN_PLANTED_DAY
+	return REFUSE_NONE
+
+
+static func _i32_has_negative(column: PackedInt32Array) -> bool:
+	"""True when any of the 4096 int32 values is below zero. Scans, never sorts or duplicates."""
+	for row: int in RESOURCE_NODE_CAPACITY:
+		if column[row] < 0:
+			return true
+	return false
+
+
+static func _i64_has_negative(column: PackedInt64Array) -> bool:
+	"""True when any of the 4096 int64 values is below zero. INT64_MAX is an ordinary value."""
+	for row: int in RESOURCE_NODE_CAPACITY:
+		if column[row] < 0:
+			return true
+	return false
+
+
+static func _column_row_refusal(present: PackedByteArray, quantity_milli: PackedInt64Array,
+		capacity_milli: PackedInt64Array, planted_day: PackedInt32Array,
+		exhausted: PackedByteArray, tile: PackedInt32Array, ref_slot: PackedInt32Array,
+		ref_generation: PackedInt32Array) -> StringName:
+	"""Gates 9..14, each a separate whole-image sweep, never all of them per row."""
+	var stock: StringName = _column_stock_refusal(present, quantity_milli, capacity_milli)
+	if stock != REFUSE_NONE:
+		return stock
+	var day: StringName = _column_present_day_refusal(present, planted_day)
+	if day != REFUSE_NONE:
+		return day
+	var exhaustion: StringName = _column_exhaustion_refusal(present, quantity_milli, exhausted)
+	if exhaustion != REFUSE_NONE:
+		return exhaustion
+	var tiles: StringName = _column_tile_refusal(present, tile)
+	if tiles != REFUSE_NONE:
+		return tiles
+	var refs: StringName = _column_ref_refusal(present, ref_slot, ref_generation)
+	if refs != REFUSE_NONE:
+		return refs
+	return _column_inactive_refusal(present, quantity_milli, exhausted)
+
+
+static func _column_stock_refusal(present: PackedByteArray, quantity_milli: PackedInt64Array,
+		capacity_milli: PackedInt64Array) -> StringName:
+	"""Gate 9: every row holds at most its capacity, and a present row's capacity is positive.
+
+	The bound applies to EVERY physical row, inactive ones included, so a retained stump's
+	history cannot record more stock than the node ever held.
+	"""
+	for row: int in RESOURCE_NODE_CAPACITY:
+		if quantity_milli[row] > capacity_milli[row]:
+			return REFUSE_COLUMN_STOCK
+		if present[row] == 1 and capacity_milli[row] <= 0:
+			return REFUSE_COLUMN_STOCK
+	return REFUSE_NONE
+
+
+static func _column_present_day_refusal(present: PackedByteArray,
+		planted_day: PackedInt32Array) -> StringName:
+	"""Gate 10: a present row's planting or stump date is day 1 or later. Day 0 names no day."""
+	for row: int in RESOURCE_NODE_CAPACITY:
+		if present[row] == 1 and planted_day[row] < MIN_CALENDAR_DAY:
+			return REFUSE_COLUMN_PRESENT_DAY
+	return REFUSE_NONE
+
+
+static func _column_exhaustion_refusal(present: PackedByteArray,
+		quantity_milli: PackedInt64Array, exhausted: PackedByteArray) -> StringName:
+	"""Gate 11: a present row is exhausted EXACTLY when its stock is zero, in both directions."""
+	for row: int in RESOURCE_NODE_CAPACITY:
+		if present[row] != 1:
+			continue
+		if (exhausted[row] == 1) != (quantity_milli[row] == 0):
+			return REFUSE_COLUMN_EXHAUSTION
+	return REFUSE_NONE
+
+
+static func _column_tile_refusal(present: PackedByteArray,
+		tile: PackedInt32Array) -> StringName:
+	"""Gate 12: a present row stands on one of the 16384 tiles; an inactive row holds NO_NODE."""
+	for row: int in RESOURCE_NODE_CAPACITY:
+		if present[row] == 1:
+			if tile[row] < 0 or tile[row] >= TILE_COUNT:
+				return REFUSE_COLUMN_TILE
+		elif tile[row] != NO_NODE:
+			return REFUSE_COLUMN_TILE
+	return REFUSE_NONE
+
+
+static func _column_ref_refusal(present: PackedByteArray, ref_slot: PackedInt32Array,
+		ref_generation: PackedInt32Array) -> StringName:
+	"""Gate 13: a present row carries a GLOBAL directory slot with a positive generation.
+
+	The bound is EntityDirectory.DIRECTORY_CAPACITY, the 352418-slot global arena, and never
+	this store's typed 4096 -- a resource node's reference names a directory row, not a typed
+	one. An inactive row carries exactly the §4.1 null reference (-1, 0).
+	"""
+	for row: int in RESOURCE_NODE_CAPACITY:
+		if present[row] == 1:
+			if ref_slot[row] < 0 \
+					or ref_slot[row] >= EntityDirectory.DIRECTORY_CAPACITY:
+				return REFUSE_COLUMN_REF
+			if ref_generation[row] <= 0:
+				return REFUSE_COLUMN_REF
+		elif ref_slot[row] != EntityDirectory.NULL_SLOT \
+				or ref_generation[row] != EntityDirectory.NULL_GENERATION:
+			return REFUSE_COLUMN_REF
+	return REFUSE_NONE
+
+
+static func _column_inactive_refusal(present: PackedByteArray,
+		quantity_milli: PackedInt64Array, exhausted: PackedByteArray) -> StringName:
+	"""Gate 14: an inactive row holds no stock and no exhaustion flag, exactly as `destroy()` left it.
+
+	Its resource id, capacity, regrow period and planting date are NOT forced to zero: those are
+	retained history, and any independently nonnegative mixture of them is legal.
+	"""
+	for row: int in RESOURCE_NODE_CAPACITY:
+		if present[row] == 1:
+			continue
+		if quantity_milli[row] != 0 or exhausted[row] != 0:
+			return REFUSE_COLUMN_INACTIVE
+	return REFUSE_NONE

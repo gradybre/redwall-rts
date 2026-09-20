@@ -1,0 +1,6 @@
+{
+  "godot/scripts/core/resource_nodes.gd": "033f5255a0904d193a08197c71321f8ff3a8aa58d8274fdd42dd3a54da20de23",
+  "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+  "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+  "godot/test/test_resource_nodes.gd": "350943654e53280e2ef1d5bc55230d94e55fa3f954864a45900248c398c4923c"
+}

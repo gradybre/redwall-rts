@@ -1,0 +1,11 @@
+# Astra feasibility disposition — ResourceNodes
+
+2026-09-20. The worker is an independent read-only reviewer, not an authority gate. Its opening "no reviewer dispatch" and closing "no reviewer authority" are inaccurate boilerplate: this review was dispatched and completed. The user authorizes plan completion and implementation through the established loop. Astra must freeze the bounded contract before author dispatch; no additional human permission is missing.
+
+The initial source note and worker prompt incorrectly described the main ResourceNodes header as stale. Actual lines46–54 already state the settled compiled ItemDefinition domain. Preserve that correct header. Only resource_id_of()'s "unstated domain" docstring and the old unit suite's introductory/domain comments need correction. Preserve the raw note, packet and review as historical evidence; this disposition supersedes those specific claims.
+
+Accept a pure scalar-domain predicate and standard owner13 framed bridge. Existing clear/destroy both mandate inactive tile=-1, ref=(-1,0), quantity=0 and exhausted=0; enforce these. Preserve all nonnegative inactive resourceID, capacity, regrow_days and planted_day values without additional tuple coupling. This admits a domain superset, not a claim that every tuple was produced by current writers. No authority supports arbitrary absent-row tightening.
+
+The public probe passed24assertions/0 with clean shutdown: creation accepts positive i64 extrema, exact partial debit above2^53, exhausted-date overflow answered by OVERFLOW, regrowth restores exact capacity and retains stump date. No calendar sum-fit restriction is authorized. Generic arbitrary IDs demonstrate API range behavior only; they are not valid published catalog fixtures.
+
+Freeze no local uniqueness scan or scratch. An explicit RESOURCE-NODES-SAVED-BINDINGS prerequisite must prove saved section1 inverse in both directions, saved Directory kind/typed row/ref identity and unique placement/ownership. It must resolve resourceID membership from the same verified catalog (wood/stone/iron output IDs), never current live state or numeric guesses. Full-file provenance and bulk capture/restore remain separate. Local acceptance cannot authorize publication. Existing section1 APIs and diagnostics stay unchanged.

@@ -1,0 +1,24 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "f6249f53297f92c4345ef928a04c493dcf53555f",
+  "task": "Independent final ResourceNodes pure validator source and regression review",
+  "paths": [
+    "AGENTS.md",
+    "docs/planning/resource_nodes_component_validation_contract.md",
+    "docs/decisions/0176-validate-resource-node-columns-and-preserve-stump-history.md",
+    "godot/scripts/core/resource_nodes.gd",
+    "godot/scripts/core/save_owner_resource_nodes.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/test/test_save_owner_resource_nodes.gd",
+    "godot/test/resource_nodes_validation_focus.gd",
+    "godot/test/test_resource_nodes.gd",
+    "tools/test_resource_nodes_metadata_preflights.py",
+    "docs/validation/evidence/resource-nodes-component-validation-2026-09-20/run_mutants.py",
+    "docs/validation/evidence/resource-nodes-component-validation-2026-09-20/focus-second.log",
+    "docs/validation/evidence/resource-nodes-component-validation-2026-09-20/first-focus-disposition.md",
+    "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/metadata-fault-plan.md",
+    "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/metadata-arithmetic-check.json"
+  ],
+  "instructions": "Review actual implementation and parenttest/faulttools against acceptedcontract. Verify10explicittypedaccessors/nozero substitute (bothi64true), 14wholeimagegates/nofloat/scratch/liveowner/constructor/repair, domain/history/sentinels/globalDirectory352418 vs4096, exact7bridgegates andmetadata/sourcepins. ExistingordinaryAPIsunchangedexceptstaledocstring. Parentfocused8tests85132assertions0 nowpassed aftertestaliasfix: everypackedcolumn duplicated fornonmutation andbadfixture, rawfirstfailurearchived. Assess30actualplannedmutants (capacitycodeidentity notacceptancekill), 18coherentmetadataarithmetic/schemaisolation, globalpriority/deferredsavedcatalog/inversebindings. Metadata/mutant/fullruns willcompleteindependently; do notclaimthey ran basedsource. HARD100lines AND900words aim45lines600words. Return ONE NEW docs/validation/evidence/resource-nodes-component-validation-2026-09-20/source-review.md baseSha256null; rawJSONstatus/summary/questions/files/decisionIds. No code/otherfiles/runclaims, independent concreteblockers only. Authorrawpatch545actualwith650bound summary434mistake iscorrectedinevidence; no normalizationused."
+}

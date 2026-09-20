@@ -1,0 +1,70 @@
+# Exact authority excerpts for ResourceNodes feasibility
+
+Source: docs/game_gdd.md
+SHA256: bdb0b35a982a27dd7fe85d2142f9b484f6e0ca23afb4b81b7b6f526be671d85e
+
+## Lines 148–173
+
+| ProductionOrder | recipe_id: int32, building: EntityRef, mode: enum, target_milli: int64, priority: int32, completed_batches: int32, enabled: bool | At most 32 orders/building |
+| Job | kind: enum, requester: EntityRef, destination: EntityRef, source: EntityRef, priority: int32, required_skill: int32, remaining_mwu: int64, state: enum, created_tick: int64, worker: EntityRef | At most 8192 active/queued jobs |
+| FishHabitat | type: enum, zone: EntityRef, capacity_milli: int64, effort_slots: int32, pollution: int32, danger: int32, protected_fraction: int32, **effort_used: int32**, **intensive_harvest: bool** | One per marked water basin; up to 32 — an **allocation ceiling**, not a generation count (READY_06 §8B). `zone` refers exclusively to the owning basin, never to a player designation, and exactly one habitat may name a given basin reference. Bold fields ratified 2026-09-09 (decision 0027): `effort_slots` is a capacity and `effort_used` its occupancy; `intensive_harvest` is §5.4's explicitly visible policy |
+| FishStock | habitat: EntityRef, species_id: int32, population_milli: int64, capacity_milli: int64, harvested_today_milli: int64, closed: bool, **restocking: bool** | 3 stocks/habitat; no shared global fish counter. `stock_row = habitat_typed_slot * 3 + species_index`. Bold field ratified 2026-09-09 (decision 0027): REQ-SET-048's 30-down/40-up latch |
+| FishingEffortClaim | active: bool, expedition_generation: int32, habitat: EntityRef, job: EntityRef, slot_count: int32 | One per owning Expedition, `claim_row = owning_expedition_typed_row` within the 512 Expedition rows (READY_06 §5, decision 0037). A cycle reserves its whole gear requirement atomically; only its coordinator Job owns the claim |
+| HarvestZone | type: enum, tiles: packed int32[], danger: int32, quota_milli: int64, protected: bool, enabled: bool, **basin: EntityRef**, **harvested_today_milli: int64**, **quota_reserved_milli: int64**, **quota_mode: enum** | Up to 128; tile membership max 16384 total zone links. Bold fields ruled 2026-09-09 (decisions 0026, 0030): `quota_milli` is a **daily** limit on total forage across all five kinds, shared by the basin; a designation may be stricter but never larger in effect |
+| FaunaStockReserved | zone: EntityRef, species_id: int32, population: int32, capacity: int32, tracks: int32, harvest_today: int32, migration_link: int32, birth_remainder: int64 | Reserved allocation only: all numeric fields 0, refs (-1,0), no active rows or updates |
+| ForagePatch | zone: EntityRef, item_id: int32, stock_milli: int64, capacity_milli: int64, harvested_year_milli: int64 | 5 patches per **basin** (decision 0026); `zone` refers exclusively to the owning basin, never to a player designation, so overlapping designations share one stock. `patch_row = basin_typed_slot * 5 + patch_kind`, kinds Berries 0, Nuts 1, Mushrooms 2, Herb 3, Roots 4. `harvested_year_milli` is annual ecological history, **not** the quota accumulator (decision 0030) |
+| ForageClaim | active: bool, job: EntityRef, designation: EntityRef, basin: EntityRef, patch_kind: int32, remaining_milli: int64 | One per owning Job, `claim_row = owning_job_typed_row` within the 8192 Job rows (decision 0030). Uncollected forage is ecological stock, not an InventoryLot |
+| ResourceNode | resource_id: int32, quantity_milli: int64, capacity_milli: int64, regrow_days: int32, planted_day: int32, exhausted: bool | Tree/stone/iron source; at most 4096 |
+| Expedition | kind: enum, zone: EntityRef, member_ids: int32[3], member_count: int32, phase: enum, remaining_mwu: int64, cargo: EntityRef, hazard_roll: int32, consent: bool | Fishing 1–2 members; third member slot reserved empty; one job/member |
+| FarmPlot | crop_id: int32, state: enum, soil: enum, fertility: int32, moisture: int32, growth_milli_hours: int64, health: int32, last_family: int32, family_streak: int32, compost_milli: int64, sow_day: int32 | One per 2 m tile; up to 4096 active farm tiles |
+| OrchardPlot | species_id: int32, age_days: int32, health: int32, tended_today: bool, harvested_year: bool, chill_days: int32 | One per 4×4 farm-tile orchard block |
+| Hive | building: EntityRef, strength: int32, feed_milli: int64, serviced_day: int32, honey_milli: int64, wax_milli: int64 | One per apiary; six pollination links max per field block |
+| Weather | event: enum, start_day: int32, duration_days: int32, temperature_tenths: int32, rain: int32, forecast: int32[3] | One active major event/world; daily baseline independently |
+| Feast | recipe_theme: enum, state: enum, attendees: int32[], reserved_lots: int32[], start_tick: int64, capacity: int32, coverage: int32 | At most 1 scheduled/active feast |
+| Progress | milestone: enum, unlocked_mask: int64, victory_streak_days: int32, mastered_recipe_mask: int64, feasts_completed: int32, charter_awarded: bool | Exactly 1 |
+| Notice | severity: enum, category: enum, source: EntityRef, code: StringName, created_tick: int64, resolved: bool, acknowledged: bool | 500 history entries; deduplicated active key(code, source) |
+| TransferManifest | manifest_id: int32, resident_ids: int32[], item_lot_ids: int32[], quantity_milli: int64[], status: enum, rules_hash: StringName | Inactive future adapter; no army entity in this release |
+
+**Ruled 2026-09-11 (READY_07 §2) — resource identity.** `ResourceNode.resource_id` identifies the extracted output's compiled `ItemDefinition` ID: `wood`, `stone` and `iron`. `ForagePatch.item_id` and `FishStock.species_id` use the same domain — `berries, nuts, mushrooms, herb, roots` and `trout, dace, salmon, perch, carp, whitefish, herring, mackerel, mussel`. These seventeen bindings are resolved by key against the compiled catalog and its verified `catalog_ids.json` hash; no generic `tree`, `forage` or `fish` ItemDefinition exists, and `fish` in a recipe is a selector over the approved nine species keys rather than a runtime stock item. Patch kind, fish species row and habitat type remain **different indexes from the item ID**: a compiled item ID never subscripts the five-row patch or nine-row species tables. See decision 0052.
+
+`StringName name_key` references a localized authored name or sanitized player alias; it is not part of simulation ordering. Selection flags, navigation debug visuals, skin palettes, and scene nodes are outside saved gameplay truth. Child-array capacities are hard validation limits, with explicit refusal when full.
+
+Additional fixed child stores close persistence requirements used by the job and UI contracts:
+
+
+## Lines 270–280
+
+
+The standard map preset has river, lake, and coastal inlets so all three fishing systems are accessible without a campaign. The player may choose Abbey, Holt, or Fortress architecture; these are visual kits with identical costs/capacities. A fixed-seed tutorial uses seed 20260905. Terrain generator validation guarantees: one river edge within 24 m, one forest zone within 32 m,64 loam tiles within 24 m, a 1200 U wood stock and 1200 U stone deposit within 48 m, renewable saplings, and an iron deposit within 80 m. Invalid seeds are rejected and regenerated with seed+1.
+
+The shipping map is a deterministic authored estuary preset; the seed changes ecology events, resource variants, and names, not the following navigability guarantees. Exterior tile index is `z*128+x`; tile center in simulation units is `(2048*x+1024,0,2048*z+1024)`. Apply terrain masks in this priority: coast, river, lake, land. Coast is z=0..15; river is x=76..78 and z=16..127; lake is `(x-100)^2+(z-66)^2<=14^2`. Water surface is y=0; navigable land y=512 units. The natural ford at river tiles z=48..51 is walkable, y=−128 units, and is not a fishing work tile. In the existing baseline fixture all other water blocks residents, including bird residents. SET-MOVE-001 supersedes this as a release-wide swimming exclusion: surface swimming, diving and shore transitions are required under completed traversal profiles. Flight remains separately unspecified; anatomy alone grants no bypass. Water-bank interpolation affects visuals only. There is one stock basin of each habitat type; dividing a player zone never creates extra ecology stock. **Ruled 2026-09-09 (READY_06 §8B):** the specified initial estuary generates exactly one river, one lake and one coast basin — nine FishStock rows, capacities 2100/2200/3100 U, stocks at 80%. A player FISH designation binds to existing ecological ownership through its HarvestZone basin; overlapping, splitting, deleting, protecting or redrawing it creates and resets no fish, quota history, restocking state or effort capacity.
+
+Land soil is LOAM for x=40..74,z=40..88, SAND within 4 tiles of coast or x>=112, CLAY otherwise. Clear initial building footprints, a one-tile apron, and the loam rectangle x=58..65,z=46..53 before placing resource nodes. Forest ecology basins are west x=8..49,z=20..105 and east x=82..119,z=20..105 excluding water; each is split at z=62 into north/south migration partners. FaunaStockReserved has no active instances; forage stocks are floor(0.8×capacity), including dormant stocks. Player harvest zones reference basin IDs; all intersecting zones share its quotas and do not multiply capacity.
+
+Tree centers occupy every second x/every second z in forest masks. If more than 3000 centers qualify, retain the lowest tile indices. Each mature node contains 12 wood U. Add a guaranteed grove of 100 trees at x=40..49,z=54..63, one per tile, skipping duplicate centers and all cleared aprons; replace any skipped center at the lowest unused land tile inside x=36..49,z=50..67 until exactly 100 guaranteed nodes exist. Guaranteed stone deposit origin (44,70), footprint 4×4, quantity 1200 U; renewable bedrock access (48,70); iron origin (32,60), footprint 4×4, quantity 300 U. Ore footprints replace tree nodes. **A deposit's listed quantity is the sum across its footprint (ruled 2026-09-09, decision 0029):** each 4×4 deposit is sixteen independently exhaustible ResourceNode rows, one per tile, created in ascending tile-index order -- stone `x=44..47, z=70..73` at 75000 milli-U each, iron `x=32..35, z=60..63` at 18750 milli-U each, 32 rows of the 4096 total. Per-tile depletion is intended visible behaviour, and no ResourceNode footprint column is added. A footprint tile holding a tree node has that node replaced before the ore node is published, preserving one resource node per tile. The renewable bedrock access at (48,70) is separate and is in neither deposit total. Arrival/departure exit is (64,126), joined to the hall by ordinary land navigation. A failed topology assertion rejects generation after at most 16 seed attempts and returns the explicit failed assertion to the new-settlement form; the authored geometry makes repeated topology failure an implementation error, not an endless retry.
+
+```text
+MACRO MAP: each cell represents 16x16 exterior tiles; N is decreasing Z
+
+## Lines 723–730
+
+| REQ-SET-135 | Where a valid dining/common room is within 12 m walking distance of a kitchen, the system shall add comfort 200 per served meal and show the adjacency bonus. |
+| REQ-SET-136 | When a tier 1 residence/hall/store/workshop is upgraded, the system shall apply the exact upgrade package below without multiplying previous upgrades recursively. |
+| REQ-SET-137 | While construction or demolition is paused by the player, the system shall retain delivered materials/progress and release workers and unfinished ingredient leases. |
+| REQ-SET-138 | When a tree is felled, the system shall debit its wood once and leave a dated stump for permitted regrowth. |
+| REQ-SET-139 | When a renewable bedrock quarry is used, the system shall generate only its declared work output and shall never require a tool material available exclusively from that same unavailable tool. |
+| REQ-SET-140 | The system shall implement fences, walls, and lookouts solely as access, wildlife, and risk-management structures in settlement release 1, with no attack commands. |
+
+Tier 2 upgrade packages: residence/hall stone 40+wood 20+cloth 8,1200 WU, heat fuel×0.75 and room comfort target+1000, no new floor/beds; store wood 25+stone 20,600 WU, capacity+100% of tier 1; workshop wood 20+iron 8,720 WU, craft speed+10%, slots remain 3. Only one upgrade per building; tier 3 is absent. Baseline comfort targets: floor/camp 2000, dormitory 6000, private 8000, heated common 7500; these targets cap the room's comfort restoration, and decorations add up to 1000 without exceeding 10000.
+
+## Lines 724–731
+
+| REQ-SET-136 | When a tier 1 residence/hall/store/workshop is upgraded, the system shall apply the exact upgrade package below without multiplying previous upgrades recursively. |
+| REQ-SET-137 | While construction or demolition is paused by the player, the system shall retain delivered materials/progress and release workers and unfinished ingredient leases. |
+| REQ-SET-138 | When a tree is felled, the system shall debit its wood once and leave a dated stump for permitted regrowth. |
+| REQ-SET-139 | When a renewable bedrock quarry is used, the system shall generate only its declared work output and shall never require a tool material available exclusively from that same unavailable tool. |
+| REQ-SET-140 | The system shall implement fences, walls, and lookouts solely as access, wildlife, and risk-management structures in settlement release 1, with no attack commands. |
+
+Tier 2 upgrade packages: residence/hall stone 40+wood 20+cloth 8,1200 WU, heat fuel×0.75 and room comfort target+1000, no new floor/beds; store wood 25+stone 20,600 WU, capacity+100% of tier 1; workshop wood 20+iron 8,720 WU, craft speed+10%, slots remain 3. Only one upgrade per building; tier 3 is absent. Baseline comfort targets: floor/camp 2000, dormitory 6000, private 8000, heated common 7500; these targets cap the room's comfort restoration, and decorations add up to 1000 without exceeding 10000.
+
+

@@ -1795,7 +1795,9 @@
         "TRANSFORMS-SAVED-IDENTITY",
         "SAVE-S4-FAUNA-VALIDATE",
         "SAVE-S4-WORK-VALIDATE",
-        "WORK-SAVED-BINDINGS"
+        "WORK-SAVED-BINDINGS",
+        "SAVE-S4-RESOURCE-NODES-VALIDATE",
+        "RESOURCE-NODES-SAVED-BINDINGS"
       ],
       "owns": [
         "docs/planning/component_owner_domains.md",
@@ -1971,7 +1973,7 @@
     {
       "id": "SAVE-S4-WORK-VALIDATE",
       "title": "Validate saved Work carries and retained tool bindings without live owners",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "SAVE-S4-STREAM"
       ],
@@ -1986,7 +1988,10 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Local acceptance WORK-S4-VALIDATE-R01v1/ADR0175:existing owner16version2; full4934/255034/0;focused10/12786/0;21required mutants and8metadata bypasses caught;18metadata cases;17static gates/import;independent source review no blocker. Preserves signedmemory/carries/stalejob/brokenbindings with no packed scratch. Exact-head CI pending; same-file claim/ownership and bulk restore remain separate."
+      "note": "Local acceptance WORK-S4-VALIDATE-R01v1/ADR0175:existing owner16version2; full4934/255034/0;focused10/12786/0;21required mutants and8metadata bypasses caught;18metadata cases;17static gates/import;independent source review no blocker. Preserves signedmemory/carries/stalejob/brokenbindings with no packed scratch. Merged PR166 commitf6249f5 after CI35499620404 passed4934/255034/0 and18metadata cases; same-file claim/ownership and bulk restore remain separate.",
+      "pr": 166,
+      "merge_commit": "f6249f53297f92c4345ef928a04c493dcf53555f",
+      "merged_at": "2026-09-20T08:45:34Z"
     },
     {
       "id": "WORK-SAVED-BINDINGS",
@@ -2002,6 +2007,41 @@
       "agent": "astra",
       "gate": "none",
       "note": "Required explicit same-file saved-state contract before section4 semantics complete. Validate ownership/claim/reference coherence and duplicate claims without requiring current-job equality or live-store lookup; preserve lawful stalehistory and toolwear. Local domain acceptance alone cannot authorize publication. Complete related owner contracts and projections before implementation; no coordinator dependency cycle."
+    },
+    {
+      "id": "SAVE-S4-RESOURCE-NODES-VALIDATE",
+      "title": "Validate ResourceNodes scalar columns while preserving inactive stump history",
+      "status": "review",
+      "depends_on": [
+        "SAVE-S4-STREAM"
+      ],
+      "owns": [
+        "godot/scripts/core/resource_nodes.gd",
+        "godot/scripts/core/save_owner_resource_nodes.gd",
+        "godot/test/test_save_owner_resource_nodes.gd",
+        "godot/test/resource_nodes_validation_focus.gd",
+        "godot/test/test_resource_nodes.gd",
+        "tools/test_resource_nodes_metadata_preflights.py",
+        ".github/workflows/tests.yml",
+        "docs/persistence_state_registry.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "note": "Local acceptance RESOURCE-NODES-S4-VALIDATE-R01v1/ADR0176:full4942/340166/0;focus8/85132/0;30required mutants and8metadata bypasses caught;18metadata cases;17static gates/import;independent source review no implementation blocker. Fulli64/retainedinactivehistory/globalDirectoryrefs preserved; initial parentfixturealias corrected with fullpackedcopies. Exact-head CI pending; full saved inverse/Directory/catalog and bulk binding remain separate."
+    },
+    {
+      "id": "RESOURCE-NODES-SAVED-BINDINGS",
+      "title": "Reconcile saved resource rows with tile inverse, Directory identity and catalog outputs",
+      "status": "blocked",
+      "depends_on": [
+        "SAVE-S4-RESOURCE-NODES-VALIDATE"
+      ],
+      "owns": [
+        "docs/planning/resource_nodes_saved_binding_contract.md"
+      ],
+      "agent": "astra",
+      "gate": "none",
+      "note": "Required before section4 semantics acceptance: same-file section1 inverse both directions, Directory kind/typed-row/ref and unique placement/ownership, resourceID membership in verified compiled wood/stone/iron outputs; no live-world lookup. Resolve complete saved input ownership/common-file provenance before implementation; bulk restoration remains owner-binding task. Local numeric range acceptance cannot authorize published content."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

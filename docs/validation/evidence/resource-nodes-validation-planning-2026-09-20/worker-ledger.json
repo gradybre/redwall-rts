@@ -1,0 +1,55 @@
+{
+  "attempts": [
+    {
+      "id": "resource-nodes-validation-feasibility-a1",
+      "model": "claude-opus-5",
+      "sessionId": "d7e8fa43-f6fe-409f-aa29-60e4345337fc",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/astra-source-note.md": "38c223447595137901dadef59bd9ec614c81163ca41885c5d80e4cb9c2b1df19",
+        "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/source-sha256.json": "381ba21e383c6b05007060e24a0bf41987f49fa238e9dbdde5a7eef3966784ee",
+        "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/authority-excerpts.md": "5622182ad38e88a4afcd3d7f1fce0d7dda93f60db99a94fe2506720e0f3431d9",
+        "docs/decisions/0052-resource-ids-are-compiled-item-definition-keys.md": "12da460b1c3e851be3ee312aff0262126eb325ff00c0929950c4497377516273",
+        "godot/scripts/core/resource_nodes.gd": "033f5255a0904d193a08197c71321f8ff3a8aa58d8274fdd42dd3a54da20de23",
+        "godot/scripts/core/resource_catalog_binding.gd": "74bc0fddbc829af0877d6616ecd508c48efc1d7b443be6b6fa27d95b440a0fec",
+        "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+        "godot/test/test_resource_nodes.gd": "350943654e53280e2ef1d5bc55230d94e55fa3f954864a45900248c398c4923c",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_owner_world_init.gd": "cf4aa28da9f434dd5554697ebc8db8290c290ac4831e281901a7a0db0b08608e"
+      },
+      "outputLines": 72,
+      "outputWords": 655,
+      "outputLineBudget": 80,
+      "outputWordBudget": 900
+    },
+    {
+      "id": "resource-nodes-validation-contract-a1",
+      "model": "claude-opus-5",
+      "sessionId": "f58fbb96-5f3b-4536-9e20-23e02f20516c",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/resource_nodes_component_validation_contract.md": "f86fe12368bc91e5b969b37c4025fc2e959adfc740574a4d9df365d47682fd60",
+        "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/feasibility-review.md": "dc8d816b1c8c05586192b6636f224058f321eb92d5b2f88aab746d8623b37c00",
+        "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/feasibility-disposition.md": "80495239ed8edfb56628b190d9a46f0a737f9f083ad8cc3b08364b8cd48ab6c6",
+        "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/metadata-fault-plan.md": "aa7724f3e6ea8c11d70bce7cb3174dee7705c44ee7a5e52b35e132ddebbddd44",
+        "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/proposed-preload-closure.json": "26526b12e5a953768a8326a43a1d1f9952530adf685af1d71611c91b391a018d",
+        "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/public_history_probe.gd": "96697ebf344932ebb44cdb124daad4247497aa5d4e0f3ad7402625a7e7cf233c",
+        "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/public-history-probe.log": "05cfcba2541e1e88b98874b8f1671e0831e3212941e9a3c3cdd546e028009b33",
+        "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/authority-excerpts.md": "5622182ad38e88a4afcd3d7f1fce0d7dda93f60db99a94fe2506720e0f3431d9",
+        "godot/scripts/core/resource_nodes.gd": "033f5255a0904d193a08197c71321f8ff3a8aa58d8274fdd42dd3a54da20de23",
+        "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+        "godot/scripts/core/resource_catalog_binding.gd": "74bc0fddbc829af0877d6616ecd508c48efc1d7b443be6b6fa27d95b440a0fec",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_owner_work.gd": "59b2a556433842dd1dff1bdba94bd65557aa9681a5ea2e9b884735a505d62fbe"
+      },
+      "outputLines": 73,
+      "outputWords": 793,
+      "outputLineBudget": 100,
+      "outputWordBudget": 900
+    }
+  ]
+}

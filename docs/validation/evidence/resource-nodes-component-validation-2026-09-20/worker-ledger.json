@@ -1,0 +1,60 @@
+{
+  "attempts": [
+    {
+      "id": "resource-nodes-validation-author-a1",
+      "model": "claude-opus-5",
+      "sessionId": "fbe68c4c-e7c7-4337-811a-8b202ff21109",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "CLAUDE.md": "9beab5468ebaecbbb6e59835f2485e6b45de155928696520b66c93a86c6009cf",
+        "docs/planning/resource_nodes_component_validation_contract.md": "af572368ef971228211680e9933457a076081e806922798ae0d78c3d3919cf6a",
+        "docs/decisions/0176-validate-resource-node-columns-and-preserve-stump-history.md": "a71ce9e7e56770341d42938b9f062300b218cfefede5318a6ace23dbc4312444",
+        "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/contract-review.md": "d96638c9165b43ae52b6166c4f92b172478df89d0e47451747b62c2f8831159c",
+        "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/contract-disposition.md": "d5ea2f2bd351731198e1573d08ac43474a2f09ff23b715fa8eeba6436b3cd469",
+        "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/metadata-fault-plan.md": "aa7724f3e6ea8c11d70bce7cb3174dee7705c44ee7a5e52b35e132ddebbddd44",
+        "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/typed-api-probe.log": "44c351830f5a0e1f1bc42374139e44740095222a955b8bc2ede778a480eec59b",
+        "godot/scripts/core/resource_nodes.gd": "033f5255a0904d193a08197c71321f8ff3a8aa58d8274fdd42dd3a54da20de23",
+        "godot/scripts/core/entity_directory.gd": "0367a5995327721bbd1d467cff494efa1ec9b5d707e5e997949fbac3575c709a",
+        "godot/scripts/core/save_owner_work.gd": "59b2a556433842dd1dff1bdba94bd65557aa9681a5ea2e9b884735a505d62fbe",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_header.gd": "55570d407a9f18dd2d8471f7fd58e98f34fce241b8d5fc06f44b49fbcd27eaa0"
+      },
+      "outputLines": 545,
+      "outputLineBudget": 650,
+      "applied": "git apply --recount --check then --recount; frozen inputs and target/mode allowlist verified",
+      "integration_base": "f6249f53297f92c4345ef928a04c493dcf53555f"
+    },
+    {
+      "id": "resource-nodes-validation-source-review-a1",
+      "model": "claude-opus-5",
+      "sessionId": "fcf42751-6afb-4d70-a21d-e19383a1b792",
+      "state": "complete",
+      "ownerStopped": true,
+      "inputHashes": {
+        "AGENTS.md": "8acd58b0fa0cbbfa9880c675f7aa8b220eaf4f653cd34fe4003f5100cbecd85d",
+        "docs/planning/resource_nodes_component_validation_contract.md": "af572368ef971228211680e9933457a076081e806922798ae0d78c3d3919cf6a",
+        "docs/decisions/0176-validate-resource-node-columns-and-preserve-stump-history.md": "a71ce9e7e56770341d42938b9f062300b218cfefede5318a6ace23dbc4312444",
+        "godot/scripts/core/resource_nodes.gd": "d43c9439a55522a1bc7ed31d3ade391dfd4bc09b97e8b42bf82b089dde962507",
+        "godot/scripts/core/save_owner_resource_nodes.gd": "599dea37303df8ecdf37f4a77a04d14fbf0a5500c30e1fbca12d5f787e4c03cc",
+        "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+        "godot/scripts/core/save_section_component_columns.gd": "de265cbf288fe64359d7a4aa74c1cfef92c0ba2e047ba29c8e71dbe06ab5c524",
+        "godot/test/test_save_owner_resource_nodes.gd": "ddfb740f05aa39ad7e510940427d7e2dad5dc2b48da686d3432bb61761b186d4",
+        "godot/test/resource_nodes_validation_focus.gd": "1dd79e68e3735129e845844c85c405471e78a4454d4b2db4d3e417b7a9700e62",
+        "godot/test/test_resource_nodes.gd": "a5c95edd5e3d59a38b208f1abcd7addfe6d89929763ca86c2fdc879ff4b15103",
+        "tools/test_resource_nodes_metadata_preflights.py": "80d1d23bad4b39aad91eb25067360295dcb7230f4c77bbe46135dadac2ec8aaf",
+        "docs/validation/evidence/resource-nodes-component-validation-2026-09-20/run_mutants.py": "bbc327529ece53278b52c1d7bf6a8e833effda11aa7c449668aba1d7e7a68d63",
+        "docs/validation/evidence/resource-nodes-component-validation-2026-09-20/focus-second.log": "5eadcc0101aefce1fc348f8f9618ed4cab3dc1c83bc61868ddf9f98fec51d988",
+        "docs/validation/evidence/resource-nodes-component-validation-2026-09-20/first-focus-disposition.md": "a61c82c6c1880faa73edc978a1ab38a1c8137f97db9c52b8f2069362b421580e",
+        "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/metadata-fault-plan.md": "aa7724f3e6ea8c11d70bce7cb3174dee7705c44ee7a5e52b35e132ddebbddd44",
+        "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/metadata-arithmetic-check.json": "2c8ec96b0f5851d151238277b0be774c7867459a4ff76300ed4ae10ccdb0ee52"
+      },
+      "outputLines": 73,
+      "outputWords": 745,
+      "outputLineBudget": 100,
+      "outputWordBudget": 900
+    }
+  ]
+}

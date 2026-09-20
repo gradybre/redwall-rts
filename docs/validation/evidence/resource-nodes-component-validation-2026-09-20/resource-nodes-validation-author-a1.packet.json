@@ -1,0 +1,22 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "c8ac39342f2807fe564ac657d4a73179939a2eef",
+  "task": "Implement ResourceNodes owner13 pure columns validator and framed bridge",
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/resource_nodes_component_validation_contract.md",
+    "docs/decisions/0176-validate-resource-node-columns-and-preserve-stump-history.md",
+    "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/contract-review.md",
+    "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/contract-disposition.md",
+    "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/metadata-fault-plan.md",
+    "docs/validation/evidence/resource-nodes-validation-planning-2026-09-20/typed-api-probe.log",
+    "godot/scripts/core/resource_nodes.gd",
+    "godot/scripts/core/entity_directory.gd",
+    "godot/scripts/core/save_owner_work.gd",
+    "godot/scripts/core/save_section_component_columns.gd",
+    "godot/scripts/core/save_component_columns_schema.gd",
+    "godot/scripts/core/save_header.gd"
+  ],
+  "instructions": "Implement accepted RESOURCE-NODES-S4-VALIDATE-R01v1 ADR0176 exactly. OutputONE NEW docs/validation/evidence/resource-nodes-component-validation-2026-09-20/author.patch, baseSha256null, standard unified git diff editing ONLY godot/scripts/core/resource_nodes.gd and ADDINGgodot/scripts/core/save_owner_resource_nodes.gd. Rawpatch valid gitapply--recount; preserve exact context no invented blanklines, no manualline-hunk repair. HARD650patchlines, aim450. No tests/docs/otheredits. ExistingmainResourceNodesheader alreadycorrect, leaveit; correctonly resource_id_of staleunstateddomain docstring. Add10typedargs staticpredicate14globalgates incontractsequence, exactREFUSE_COLUMN_* constants. Helpers keepfunctions~30lines; eachgatewholeimagebeforelatergate, notper-rowallgates. present==1/exhausted==1 comparisons pinned. No float/livecalls/newpackedstorage/sort/rangeArray/constructor/normalization/bulkAPIs/diagnosticwrites. Keep fulli64/extrema andinactivehistory. Bridge7gates/null/wrongowner/schemaforward/metadata+source/shape/10explicittypedaccessors/rawcode. Use fieldconstants FIELD_PRESENT,RESOURCE_ID,QUANTITY_MILLI,CAPACITY_MILLI,REGROW_DAYS,PLANTED_DAY,EXHAUSTED,TILE,REF_SLOT,REF_GENERATION; standard owner/source/field metadata helpers fromWork. Names _field_refusal(field,key,type_code,count) preserve exact comparisonstrings for parentfaulttool. Pinowner13version1/4096rows andsourceglobalDirectory352418/nulldaytileconstants. No newconstArray. Distinguish scalarvalid from fullsavedcatalog/inverseidentity. Parent owns30mutants,18metadata cases/tests. Capacitygateomission isexactcodewitness, not acceptinginvalidstate. Re-derive metadata arithmetic fromattachedplan. Full rawJSON status/summary/questions/files/decisionIds only, no runclaims. Return uncertainties beforeinventing behavior."
+}

@@ -1,0 +1,26 @@
+{
+  "first_attempt": "starter-structures-author-a1",
+  "first_result_state": "complete",
+  "first_owner_stopped": true,
+  "first_session_id": "4efb93d5-38bf-40fc-ae35-0b807cfa1a24",
+  "product_acceptance": false,
+  "first_candidate_disposition": "Rejected by actual compile smoke and source inspection; bounded same-author repair requested",
+  "usage": {
+    "inputTokens": 2,
+    "outputTokens": 59291,
+    "cacheReadTokens": 0,
+    "cacheCreationTokens": 80921,
+    "costEstimateUsd": 0.916598
+  },
+  "context": {
+    "fullBytes": 157781,
+    "sentBytes": 157781,
+    "omittedFiles": 0
+  },
+  "repair_attempt": "starter-structures-author-repair-a1",
+  "repair_dispatch_files": 10,
+  "repair_omitted_files": 7,
+  "repair_omitted_source_bytes": 157781,
+  "repair_completion_pending": true,
+  "approval": "not_granted"
+}

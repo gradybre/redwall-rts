@@ -1,0 +1,7 @@
+{
+  "exit_code": 1,
+  "source_sha256": "c9c909639d94efc489194d43fdf06f945b3988d08d3273eb9a4f8ca20ce194fe",
+  "seconds": 2.461,
+  "raw_log": "initial-smoke.log",
+  "valid_execution": false
+}

@@ -1,0 +1,427 @@
+{
+  "scope": "Source-derived candidate arithmetic for INIT-D; proposed container order/filter binding, not runtime or admission evidence",
+  "container_order": [
+    "hall pantry room",
+    "stockpile(50,60)",
+    "stockpile(50,65)",
+    "stockpile(70,60)",
+    "stockpile(70,65)"
+  ],
+  "capacities_g": [
+    200000,
+    400000,
+    400000,
+    400000,
+    400000
+  ],
+  "stored_used_g": [
+    179200,
+    400000,
+    400000,
+    400000,
+    300000
+  ],
+  "equipped_mass_g": 12000,
+  "tool_staging_peak_used_g": 200000,
+  "lots": [
+    {
+      "item": "berries",
+      "item_id": 1,
+      "quantity_milli": 40000,
+      "mass_g": 10000,
+      "container_plan_ordinal": 0,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "dried_fish",
+      "item_id": 9,
+      "quantity_milli": 60000,
+      "mass_g": 15000,
+      "container_plan_ordinal": 0,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "grain",
+      "item_id": 15,
+      "quantity_milli": 80000,
+      "mass_g": 20000,
+      "container_plan_ordinal": 0,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "herb",
+      "item_id": 16,
+      "quantity_milli": 12000,
+      "mass_g": 3000,
+      "container_plan_ordinal": 0,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "nuts",
+      "item_id": 36,
+      "quantity_milli": 40000,
+      "mass_g": 10000,
+      "container_plan_ordinal": 0,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "ration",
+      "item_id": 39,
+      "quantity_milli": 60000,
+      "mass_g": 30000,
+      "container_plan_ordinal": 0,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "roots",
+      "item_id": 40,
+      "quantity_milli": 80000,
+      "mass_g": 20000,
+      "container_plan_ordinal": 0,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "seed_beans",
+      "item_id": 47,
+      "quantity_milli": 16000,
+      "mass_g": 1600,
+      "container_plan_ordinal": 0,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "seed_cabbage",
+      "item_id": 48,
+      "quantity_milli": 16000,
+      "mass_g": 1600,
+      "container_plan_ordinal": 0,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "seed_flax",
+      "item_id": 49,
+      "quantity_milli": 16000,
+      "mass_g": 1600,
+      "container_plan_ordinal": 0,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "seed_grain",
+      "item_id": 50,
+      "quantity_milli": 32000,
+      "mass_g": 3200,
+      "container_plan_ordinal": 0,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "seed_roots",
+      "item_id": 51,
+      "quantity_milli": 32000,
+      "mass_g": 3200,
+      "container_plan_ordinal": 0,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "water",
+      "item_id": 57,
+      "quantity_milli": 60000,
+      "mass_g": 60000,
+      "container_plan_ordinal": 0,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "cloth",
+      "item_id": 6,
+      "quantity_milli": 24000,
+      "mass_g": 6000,
+      "container_plan_ordinal": 1,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "compost",
+      "item_id": 7,
+      "quantity_milli": 32000,
+      "mass_g": 32000,
+      "container_plan_ordinal": 1,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "iron",
+      "item_id": 20,
+      "quantity_milli": 20000,
+      "mass_g": 40000,
+      "container_plan_ordinal": 1,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "rope",
+      "item_id": 41,
+      "quantity_milli": 20000,
+      "mass_g": 10000,
+      "container_plan_ordinal": 1,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "stone",
+      "item_id": 53,
+      "quantity_milli": 62400,
+      "mass_g": 312000,
+      "container_plan_ordinal": 1,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "stone",
+      "item_id": 53,
+      "quantity_milli": 37600,
+      "mass_g": 188000,
+      "container_plan_ordinal": 2,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": null,
+      "equipped_owner_persistent_id": 1,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": null,
+      "equipped_owner_persistent_id": 2,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": null,
+      "equipped_owner_persistent_id": 3,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": null,
+      "equipped_owner_persistent_id": 4,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": null,
+      "equipped_owner_persistent_id": 5,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": null,
+      "equipped_owner_persistent_id": 6,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": null,
+      "equipped_owner_persistent_id": 7,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": null,
+      "equipped_owner_persistent_id": 8,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": null,
+      "equipped_owner_persistent_id": 9,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": null,
+      "equipped_owner_persistent_id": 10,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": null,
+      "equipped_owner_persistent_id": 11,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": null,
+      "equipped_owner_persistent_id": 12,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": 2,
+      "equipped_owner_persistent_id": null,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": 2,
+      "equipped_owner_persistent_id": null,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": 2,
+      "equipped_owner_persistent_id": null,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": 2,
+      "equipped_owner_persistent_id": null,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": 2,
+      "equipped_owner_persistent_id": null,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": 2,
+      "equipped_owner_persistent_id": null,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": 2,
+      "equipped_owner_persistent_id": null,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": 2,
+      "equipped_owner_persistent_id": null,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": 2,
+      "equipped_owner_persistent_id": null,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": 2,
+      "equipped_owner_persistent_id": null,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": 2,
+      "equipped_owner_persistent_id": null,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "tool",
+      "item_id": 54,
+      "quantity_milli": 1000,
+      "mass_g": 1000,
+      "container_plan_ordinal": 2,
+      "equipped_owner_persistent_id": null,
+      "staging_container_plan_ordinal": 2
+    },
+    {
+      "item": "wood",
+      "item_id": 60,
+      "quantity_milli": 40000,
+      "mass_g": 200000,
+      "container_plan_ordinal": 2,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "wood",
+      "item_id": 60,
+      "quantity_milli": 80000,
+      "mass_g": 400000,
+      "container_plan_ordinal": 3,
+      "equipped_owner_persistent_id": null
+    },
+    {
+      "item": "wood",
+      "item_id": 60,
+      "quantity_milli": 60000,
+      "mass_g": 300000,
+      "container_plan_ordinal": 4,
+      "equipped_owner_persistent_id": null
+    }
+  ],
+  "total_lot_count": 46,
+  "source_sha256": {
+    "godot/scripts/main.gd": "59e3b8a91b458523375251d1ce8bdde2d4ac29e28a6d56c6f0977561cc53b29d",
+    "godot/data/item_definitions.json": "a44243af22c22258ce2999f42504b22e33f7584d6d374b2063c01efefaa981ab",
+    "godot/scripts/core/gear.gd": "73da2f20963c40747790efb8484cec451698c8ebf12a289db1e1307025a5ac8f",
+    "godot/scripts/core/catalog.gd": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1"
+  }
+}

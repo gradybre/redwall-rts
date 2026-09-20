@@ -1,0 +1,31 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
+  "task": "Starter repair part3: real room and floor-furniture membership",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-staged-repair",
+    "role": "author",
+    "model": "claude-opus-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "paths": [
+    "docs/planning/starter_structures_preparation_contract.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/layout-reference.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/author-repair-r01.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/initial-smoke.log",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/opus-repair-disposition.json",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/part1-disposition.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/repair1-smoke.log",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/part2-disposition.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/repair2-smoke.log"
+  ],
+  "allowedWrites": {
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/repair-part3.patch": null
+  },
+  "instructions": "Part2 was intaken; actual smoke passed 1 test/6 assertions/0 failures and source inspection confirmed shared safe metadata gate. Its independent counterfactual witnesses remain required. Resume your own current author session to implement repair requirements3 and4 from author-repair-r01.md, preserving earlier repairs. Hall identity must be unique actual compiled hall key, and all80 sorted room tiles must belong to that actual hall interior. Derive passed-plan membership, not immutable room bounds. Furniture must validate unique origins, contiguous exact footprint runs, safe catalog geometry/type/rotation, actual room ownership, sorted12bed ordinals and exact actual bed count. Candidate validation must safely bound all scalars before indexing/loops, require contiguous sorted unique COMPLETE walk-neighbor sets across unblocked edges including cross-room open boundaries, and unchanged -1 tail. Malformed candidate data belongs to ACCESS_CANDIDATES; avoid an earlier FURNITURE refusal merely because candidate data is bad. Keep source metadata safety: any definition fact read for a type must have been checked; explicitly restrict to relevant floor types before lookup or safely validate any extra fact rows you read. Do not weaken final authored comparison or add a bypass switch. Edges/exits requirements5/6 and final whole-source bounds audit7 follow in part4, still required. Return one narrowly targeted unifieddiff repair-part3.patch at declared path against candidate-starter_structures.gd only. Complete correct code without long commentary; strict JSON bundle; no execution/acceptance claims.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/starter-structures-staged-repair-a2"
+}

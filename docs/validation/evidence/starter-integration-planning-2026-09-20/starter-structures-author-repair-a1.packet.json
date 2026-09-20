@@ -1,0 +1,29 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "2aba1882e8dfa9428ea7fa33a1216d397272937b",
+  "task": "Bounded author repair1 for exact starter plan compile/contract gaps",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-implementation",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "paths": [
+    "docs/planning/starter_structures_preparation_contract.md",
+    "docs/decisions/0184-prepare-the-authored-refuge-without-fabricating-physical-access.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/layout-reference.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/source-excerpts.md",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "godot/scripts/core/int_math.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/author-repair-r01.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/initial-smoke.log"
+  ],
+  "allowedWrites": {
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/author-repair.patch": null
+  },
+  "instructions": "Resume your own author session. Astra rejected your exact candidate before integration. Consume author-repair-r01.md and actual smoke error. Repair ALL seven enumerated existing requirements together; no scope change. Return ONE new docs/validation/evidence/starter-integration-planning-2026-09-20/author-repair.patch baseSha256null containing a unifieddiff with a/ and b/ targets ONLY docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd. No source files directly, no commentary fences. InputcandidateSHA verified. Do not only addclass_name: eliminate thirdPlan allocation/undefinedself from canonical comparison and share staged arrays into caller after validation; fully safe sourcepins and real structuralmembership/candidategates required. Allunchangedcontext is supplied via verified sharedrunner delta. No tests claimed. Outputtarget~600patchlines advisory; complete necessary corrections within8MB. Preserve exact authoredfixture andcontract. StrictbundleJSON.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/starter-structures-author-a1"
+}

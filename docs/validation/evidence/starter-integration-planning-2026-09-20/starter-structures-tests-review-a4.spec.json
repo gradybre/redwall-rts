@@ -1,0 +1,40 @@
+{
+  "id": "starter-structures-tests-review-a4",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/starter-structures-tests-review-a4",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "paths": [
+    "docs/planning/starter_structures_preparation_contract.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/layout-reference.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/test-author-requirements.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "godot/scripts/core/int_math.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/test-subclass-reference.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/part4-disposition.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/repair4-smoke.log",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/test-format-disposition.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures_focus.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-initial.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-initial.log",
+    "godot/test/buildings_validation_focus.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-coverage-triage-r02.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-syntax-repair.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-syntax-repair.log",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/review-test-followup-r01.md",
+    "godot/test/test_save_section_component_columns.gd"
+  ],
+  "instructions": "Implement review-test-followup-r01.md exactly. Return one JSON file envelope at sole allowed patch path with baseSha256:null; its content is a unified diff whose only target is docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures.gd. Do not output a full rewritten test file or edit source. Existing suite30/3360/0 and full5029/525772/0 pass. This is review-driven incremental testing, not reauthoring the suite. Keep assertions and independent literals; reference loading adds executable reference consistency. Every old hunk must exactly match the current candidate. If any case is unclear report it; do not claim tests ran.\n\nDispatch audit: {\"base_commit\":\"205e56bc8bed9e9d06ca7abcf77a16629671aecb\",\"task\":\"Close independent review reference-loading condition and focused test findings\",\"allowedWrites\":{\"docs/validation/evidence/starter-integration-planning-2026-09-20/review-test-followup.patch\":null}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/starter-structures-tests-coverage-a3"
+}

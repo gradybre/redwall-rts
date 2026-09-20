@@ -1,0 +1,25 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "2d6f25020e88985b57099db7a0dea0c0a5ae8e56",
+  "task": "Implement INIT-C-PREP-R01v1 compact authored refuge plan",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-implementation",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "paths": [
+    "docs/planning/starter_structures_preparation_contract.md",
+    "docs/decisions/0184-prepare-the-authored-refuge-without-fabricating-physical-access.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/layout-reference.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/source-excerpts.md",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "godot/scripts/core/int_math.gd"
+  ],
+  "allowedWrites": {
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd": null
+  },
+  "instructions": "Implement ONLY the exact accepted INIT-C-PREP-R01v1 production GDScript module, supplied as ONE NEW candidate artifact docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd baseSha256 null for Astra intake into godot/scripts/core/starter_structures.gd later. No tests or other edits this packet. Follow contract exact10array2480byte Plan, column-major, explicitrefusalorder, no mutableworldconstructors, no livecontactclaim, atomicstaged publish, emptyfreshinvalid, identicalrepeatedsuccess, no serial. Pure plan_refusal must inspect passedplan (not simply comparecanonical first), independently verify graph/reachability/candidate lists beforelastcanonicalgate. Small boundedcounterfactualprivatehelpertests allowedlater. Unusedcandidatetail-1. Source pins useactualnamedconstants withsafehas/type/shape beforeindex; no load/new BuildingDefinitions. Catalog preload alsohasno mutableworldconstruction. No internet/filetools. All tests/full/independentreview/integration runbyAstra later. Return compactsummary plus completecode via strictfilebundleJSON. Do not claim execution. GDScript explicittypes, integerauthority, documentedpublicAPI. Keep implementation direct and bounded; no parallelalternative design or extra savedstate."
+}

@@ -1,0 +1,9 @@
+{
+  "scope": "Public API source-history probes only; no Construction validator or private retired-byte reads",
+  "exit_code": 0,
+  "seconds": 2.279,
+  "source_sha256": {
+    "godot/scripts/core/construction.gd": "78e724618362bfb3dd37945a27be6be1c0a70aa27b59e7bdd300f1c26bdfb5b9",
+    "godot/scripts/core/buildings.gd": "8f21111b4857714f4ac803c30c3eec46f206c0b5cdedfeeb357a0061ba3f875e"
+  }
+}

@@ -1,0 +1,220 @@
+--- a/docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures_metadata.py
++++ b/docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures_metadata.py
+@@ -13,8 +13,10 @@
+ established owned-disposable-clone technique.
+ 
+ Every one of the 25 planned cases (24 faults + the plan's own positive-control), plus one
+-additional restored control run at the end (26 records total), does the following inside a
+-fresh temporary clone of the repository's godot/ tree:
++additional restored control run at the end (26 records total), runs inside ONE owned
++temporary clone of the repository's godot/ tree, created once and reused for every case
++(each mutated file's clone copy is restored to its original bytes between cases). Each case
++is executed as its own separate cold Godot process within that same reused clone:
+ 
+   * Disables ONLY that clone's [autoload] section, so a deliberately malformed immutable
+     catalog table reaches the cold, non-instantiating metadata gate instead of being
+@@ -101,7 +103,9 @@
+     r"##STARTERFAULT## case=(\S+) static=(\S*) last=(\S*) prepared=(\S+) "
+     r"probe=(\S*) malformed=(\S*)"
+ )
+-INVALID_MARKERS = ("SCRIPT ERROR:", "USER SCRIPT ERROR:", "Parse Error:", "Parser Error:")
++INVALID_MARKERS = (
++    "SCRIPT ERROR:", "USER SCRIPT ERROR:", "Parse Error:", "Parser Error:", "ERROR:",
++)
+ 
+ 
+ # --- generic GDScript source-literal editing helpers, mirroring the established pattern -------
+@@ -433,6 +437,35 @@
+     ("edge-floor-dimensions", DEFINITIONS, fault_edge_floor_dimensions),
+ ]
+ 
++FAULT_NAMES = {name for name, _relpath, _fn in FAULTS}
++
++# Pinned expected values, cross-checked against this candidate's actual behavior in
++# metadata-initial.log (26/26 passed, 424 assertions before this hardening). A case is only
++# ever credited as a real catch when EVERY one of these fields matches exactly, not merely
++# when the worker's own PASS/FAIL verdict happens to agree.
++EXPECTED_OBSERVATION = {
++    "fault": {
++        "static_refusal": "STARTER_SOURCE_METADATA",
++        "last_refusal": "STARTER_SOURCE_METADATA",
++        "prepared": "false",
++        "probe_refusal": "STARTER_SOURCE_METADATA",
++        "malformed_refusal": "STARTER_SOURCE_METADATA",
++    },
++    "control": {
++        "static_refusal": "",
++        "last_refusal": "",
++        "prepared": "true",
++        "probe_refusal": "STARTER_BUILDING_LAYOUT",
++        "malformed_refusal": "STARTER_PLAN_SHAPE",
++    },
++}
++EXPECTED_ASSERTIONS = {"fault": 18, "control": 9}
++
++
++def case_kind_of(case_name: str) -> str:
++    """'fault' for one of the 24 named faults, 'control' for a positive/restored control."""
++    return "fault" if case_name in FAULT_NAMES else "control"
++
+ 
+ # --- GDScript suite generation ------------------------------------------------------------------
+ 
+@@ -490,6 +523,11 @@
+     lines.append(
+         '\t\tassert_false(out.header == before_header, "header populated on success for %s")'
+         % case_name
++    )
++    lines.append("")
++    lines.append(
++        '\tassert_equal(StarterStructures.plan_refusal(out), %s, '
++        '"plan_refusal(out) after prepare_into agrees for %s")' % (expected_literal, case_name)
+     )
+     lines.append("")
+     lines.append("\tvar probe: StarterStructures.Plan = StarterStructures.Plan.new()")
+@@ -577,13 +615,18 @@
+     )
+ 
+ 
+-def execute(clone: Path, case_name: str) -> dict:
++def execute(clone: Path, case_name: str, expected_refusal: str) -> dict:
+     """Run the one focused suite, returning a fully honest per-case evidence record.
+ 
+-    A case is only ever counted `caught`/`passed` when the worker's own summary line was
+-    parsed cleanly AND no script/parse error text appears anywhere in the merged output --
+-    the presence of the expected refusal string elsewhere in the log is never sufficient by
+-    itself.
++    A case is only ever credited `passed` when: the worker's own merged output contains NO
++    generic engine `ERROR:`/`SCRIPT ERROR:`/`USER SCRIPT ERROR:`/`Parse Error:`/
++    `Parser Error:` text, exactly one parsed "N test(s), N assertion(s), N failure(s)"
++    summary line, exactly one ##STARTERFAULT## observation line naming THIS case, that
++    summary reports exactly one test, zero failures and the pinned expected assertion
++    count for this case's kind, the process exited 0, AND every one of the observed
++    static/last/prepared/probe/malformed refusal fields exactly matches the pinned
++    EXPECTED_OBSERVATION table for this case's kind. The presence of the expected refusal
++    string anywhere else in the log is never sufficient by itself.
+     """
+     run = subprocess.run(
+         ["godot", "--headless", "--path", "godot", "--script", "res://test/starter_metadata_probe_focus.gd"],
+@@ -594,16 +637,66 @@
+         timeout=90,
+     )
+     text = run.stdout
+-    summary = SUMMARY_RE.search(text)
++    problems = []
++
+     has_invalid_marker = any(marker in text for marker in INVALID_MARKERS)
+-    valid_execution = summary is not None and not has_invalid_marker
+-    fault_line = FAULT_LINE_RE.search(text)
++    if has_invalid_marker:
++        problems.append("an engine ERROR:/SCRIPT ERROR:/Parse Error: marker was present")
++
++    summaries = list(SUMMARY_RE.finditer(text))
++    if len(summaries) != 1:
++        problems.append("expected exactly one summary line, found %d" % len(summaries))
++    summary = summaries[0] if len(summaries) == 1 else None
++
++    fault_lines = list(FAULT_LINE_RE.finditer(text))
++    if len(fault_lines) != 1:
++        problems.append("expected exactly one ##STARTERFAULT## marker, found %d" % len(fault_lines))
++    fault_line = fault_lines[0] if len(fault_lines) == 1 else None
++    if fault_line is not None and fault_line.group(1) != case_name:
++        problems.append(
++            "observation marker named '%s', not this case '%s'" % (fault_line.group(1), case_name)
++        )
+ 
+     tests = int(summary.group(1)) if summary else None
+     assertions = int(summary.group(2)) if summary else None
+     failures = int(summary.group(3)) if summary else None
+ 
+-    passed = bool(valid_execution and failures == 0 and tests == 1 and run.returncode == 0)
++    kind = case_kind_of(case_name)
++    expected_assertions = EXPECTED_ASSERTIONS[kind]
++    if tests != 1:
++        problems.append("expected exactly one test, got %s" % tests)
++    if failures != 0:
++        problems.append("expected zero failures, got %s" % failures)
++    if assertions != expected_assertions:
++        problems.append(
++            "expected %d assertion(s) for a %s case, got %s" % (expected_assertions, kind, assertions)
++        )
++    if run.returncode != 0:
++        problems.append("expected exit code 0, got %d" % run.returncode)
++
++    observed = None
++    if fault_line is not None and fault_line.group(1) == case_name:
++        observed = {
++            "static_refusal": fault_line.group(2),
++            "last_refusal": fault_line.group(3),
++            "prepared": fault_line.group(4),
++            "probe_refusal": fault_line.group(5),
++            "malformed_refusal": fault_line.group(6),
++        }
++        expected_observation = EXPECTED_OBSERVATION[kind]
++        for field, expected_value in expected_observation.items():
++            if observed[field] != expected_value:
++                problems.append(
++                    "observed %s='%s', expected '%s'" % (field, observed[field], expected_value)
++                )
++        if observed["static_refusal"] != expected_refusal:
++            problems.append(
++                "observed static_refusal '%s' disagrees with the planned expected_refusal '%s'"
++                % (observed["static_refusal"], expected_refusal)
++            )
++
++    valid_execution = not has_invalid_marker and summary is not None
++    passed = bool(valid_execution and not problems)
+ 
+     record = {
+         "case": case_name,
+@@ -614,24 +707,10 @@
+         "failures": failures,
+         "returncode": run.returncode,
+         "summary_line": summary.group(0) if summary else None,
++        "observed": observed,
+     }
+-    if fault_line:
+-        record["observed"] = {
+-            "static_refusal": fault_line.group(2),
+-            "last_refusal": fault_line.group(3),
+-            "prepared": fault_line.group(4),
+-            "probe_refusal": fault_line.group(5),
+-            "malformed_refusal": fault_line.group(6),
+-        }
+-    else:
+-        record["observed"] = None
+-    if not valid_execution:
+-        record["execution_problem"] = (
+-            "Worker output was not a clean pass/fail run (a SCRIPT ERROR:/Parser Error:/"
+-            "Parse Error: line was present, or no summary line was parsed). This is reported "
+-            "as an execution problem, not credited as a caught refusal, even if the expected "
+-            "refusal string also appears in the log."
+-        )
++    if not passed:
++        record["problems"] = problems
+         record["tail"] = "\n".join(text.splitlines()[-40:])
+     return record
+ 
+@@ -662,7 +741,7 @@
+             suite_file = clone / SUITE_PATH
+ 
+             suite_file.write_text(suite_source("positive-control", ""))
+-            positive = execute(clone, "positive-control")
++            positive = execute(clone, "positive-control", "")
+             assert positive["passed"], "positive-control\n" + json.dumps(positive, indent=2)
+             results.append(positive)
+ 
+@@ -672,11 +751,11 @@
+                 assert mutated_text != original_text, case_name
+                 (clone / relpath).write_text(mutated_text)
+                 suite_file.write_text(suite_source(case_name, "STARTER_SOURCE_METADATA"))
+-                results.append(execute(clone, case_name))
++                results.append(execute(clone, case_name, "STARTER_SOURCE_METADATA"))
+                 (clone / relpath).write_text(original_text)
+ 
+             suite_file.write_text(suite_source("restored-control", ""))
+-            restored = execute(clone, "restored-control")
++            restored = execute(clone, "restored-control", "")
+             results.append(restored)
+     finally:
+         for path, original in originals.items():

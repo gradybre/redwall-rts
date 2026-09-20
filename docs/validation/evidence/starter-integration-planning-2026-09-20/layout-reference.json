@@ -1,0 +1,512 @@
+{
+  "scope": "Independent GDD tile arithmetic only; no creature fit, live allocation or runtime topology claim",
+  "gdd_sha256": "bdb0b35a982a27dd7fe85d2142f9b484f6e0ca23afb4b81b7b6f526be671d85e",
+  "diagram": [
+    "BBBB..KKHH",
+    ".........S",
+    "BBBB..TTTT",
+    "..........",
+    "BBBB..TTTT",
+    "......TTTT",
+    "..........",
+    "......SSSS"
+  ],
+  "walk_tiles": [
+    4,
+    5,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    24,
+    25,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    44,
+    45,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75
+  ],
+  "reachable_walk_tiles": [
+    4,
+    5,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    24,
+    25,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    44,
+    45,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75
+  ],
+  "floor_furniture": [
+    {
+      "symbol": "B",
+      "origin": 0,
+      "room": 0,
+      "footprint": [
+        0
+      ],
+      "candidate_walk_tiles": [
+        10
+      ]
+    },
+    {
+      "symbol": "B",
+      "origin": 1,
+      "room": 0,
+      "footprint": [
+        1
+      ],
+      "candidate_walk_tiles": [
+        11
+      ]
+    },
+    {
+      "symbol": "B",
+      "origin": 2,
+      "room": 0,
+      "footprint": [
+        2
+      ],
+      "candidate_walk_tiles": [
+        12
+      ]
+    },
+    {
+      "symbol": "B",
+      "origin": 3,
+      "room": 0,
+      "footprint": [
+        3
+      ],
+      "candidate_walk_tiles": [
+        4,
+        13
+      ]
+    },
+    {
+      "symbol": "K",
+      "origin": 6,
+      "room": 1,
+      "footprint": [
+        6,
+        7
+      ],
+      "candidate_walk_tiles": [
+        5,
+        16,
+        17
+      ]
+    },
+    {
+      "symbol": "H",
+      "origin": 8,
+      "room": 1,
+      "footprint": [
+        8,
+        9
+      ],
+      "candidate_walk_tiles": [
+        18
+      ]
+    },
+    {
+      "symbol": "S",
+      "origin": 19,
+      "room": 1,
+      "footprint": [
+        19
+      ],
+      "candidate_walk_tiles": [
+        18
+      ]
+    },
+    {
+      "symbol": "B",
+      "origin": 20,
+      "room": 0,
+      "footprint": [
+        20
+      ],
+      "candidate_walk_tiles": [
+        10,
+        30
+      ]
+    },
+    {
+      "symbol": "B",
+      "origin": 21,
+      "room": 0,
+      "footprint": [
+        21
+      ],
+      "candidate_walk_tiles": [
+        11,
+        31
+      ]
+    },
+    {
+      "symbol": "B",
+      "origin": 22,
+      "room": 0,
+      "footprint": [
+        22
+      ],
+      "candidate_walk_tiles": [
+        12,
+        32
+      ]
+    },
+    {
+      "symbol": "B",
+      "origin": 23,
+      "room": 0,
+      "footprint": [
+        23
+      ],
+      "candidate_walk_tiles": [
+        13,
+        24,
+        33
+      ]
+    },
+    {
+      "symbol": "T",
+      "origin": 26,
+      "room": 2,
+      "footprint": [
+        26
+      ],
+      "candidate_walk_tiles": [
+        16,
+        25,
+        36
+      ]
+    },
+    {
+      "symbol": "T",
+      "origin": 27,
+      "room": 2,
+      "footprint": [
+        27
+      ],
+      "candidate_walk_tiles": [
+        17,
+        37
+      ]
+    },
+    {
+      "symbol": "T",
+      "origin": 28,
+      "room": 2,
+      "footprint": [
+        28
+      ],
+      "candidate_walk_tiles": [
+        18,
+        38
+      ]
+    },
+    {
+      "symbol": "T",
+      "origin": 29,
+      "room": 2,
+      "footprint": [
+        29
+      ],
+      "candidate_walk_tiles": [
+        39
+      ]
+    },
+    {
+      "symbol": "B",
+      "origin": 40,
+      "room": 0,
+      "footprint": [
+        40
+      ],
+      "candidate_walk_tiles": [
+        30,
+        50
+      ]
+    },
+    {
+      "symbol": "B",
+      "origin": 41,
+      "room": 0,
+      "footprint": [
+        41
+      ],
+      "candidate_walk_tiles": [
+        31,
+        51
+      ]
+    },
+    {
+      "symbol": "B",
+      "origin": 42,
+      "room": 0,
+      "footprint": [
+        42
+      ],
+      "candidate_walk_tiles": [
+        32,
+        52
+      ]
+    },
+    {
+      "symbol": "B",
+      "origin": 43,
+      "room": 0,
+      "footprint": [
+        43
+      ],
+      "candidate_walk_tiles": [
+        33,
+        44,
+        53
+      ]
+    },
+    {
+      "symbol": "T",
+      "origin": 46,
+      "room": 2,
+      "footprint": [
+        46
+      ],
+      "candidate_walk_tiles": [
+        36,
+        45
+      ]
+    },
+    {
+      "symbol": "T",
+      "origin": 47,
+      "room": 2,
+      "footprint": [
+        47
+      ],
+      "candidate_walk_tiles": [
+        37
+      ]
+    },
+    {
+      "symbol": "T",
+      "origin": 48,
+      "room": 2,
+      "footprint": [
+        48
+      ],
+      "candidate_walk_tiles": [
+        38
+      ]
+    },
+    {
+      "symbol": "T",
+      "origin": 49,
+      "room": 2,
+      "footprint": [
+        49
+      ],
+      "candidate_walk_tiles": [
+        39
+      ]
+    },
+    {
+      "symbol": "T",
+      "origin": 56,
+      "room": 2,
+      "footprint": [
+        56
+      ],
+      "candidate_walk_tiles": [
+        55,
+        66
+      ]
+    },
+    {
+      "symbol": "T",
+      "origin": 57,
+      "room": 2,
+      "footprint": [
+        57
+      ],
+      "candidate_walk_tiles": [
+        67
+      ]
+    },
+    {
+      "symbol": "T",
+      "origin": 58,
+      "room": 2,
+      "footprint": [
+        58
+      ],
+      "candidate_walk_tiles": [
+        68
+      ]
+    },
+    {
+      "symbol": "T",
+      "origin": 59,
+      "room": 2,
+      "footprint": [
+        59
+      ],
+      "candidate_walk_tiles": [
+        69
+      ]
+    },
+    {
+      "symbol": "S",
+      "origin": 76,
+      "room": 3,
+      "footprint": [
+        76
+      ],
+      "candidate_walk_tiles": [
+        66,
+        75
+      ]
+    },
+    {
+      "symbol": "S",
+      "origin": 77,
+      "room": 3,
+      "footprint": [
+        77
+      ],
+      "candidate_walk_tiles": [
+        67
+      ]
+    },
+    {
+      "symbol": "S",
+      "origin": 78,
+      "room": 3,
+      "footprint": [
+        78
+      ],
+      "candidate_walk_tiles": [
+        68
+      ]
+    },
+    {
+      "symbol": "S",
+      "origin": 79,
+      "room": 3,
+      "footprint": [
+        79
+      ],
+      "candidate_walk_tiles": [
+        69
+      ]
+    }
+  ],
+  "solid_partition_edges": [
+    [
+      4,
+      5
+    ],
+    [
+      14,
+      15
+    ],
+    [
+      24,
+      25
+    ],
+    [
+      34,
+      35
+    ],
+    [
+      54,
+      55
+    ],
+    [
+      64,
+      65
+    ],
+    [
+      74,
+      75
+    ]
+  ],
+  "door_edge": [
+    44,
+    45
+  ],
+  "exit_interior_tile": 75
+}

@@ -1,0 +1,9 @@
+{
+  "scope": "Context-framing accommodation only; no semantic edits",
+  "reason": "Original patch omitted trailing context on some hunks. All six old hunk bodies uniquely match frozen source in order/nonoverlapping. git apply --recount --unidiff-zero passed check; actual result equals the exact authored hunk replacements.",
+  "old_sha256": "75bfc1c3fd04425e644fbbc1e792ed3418d68467ae6952719677fc7198984185",
+  "new_sha256": "5709771040e0fb9b0776cb5176f89ca97853e66ab5b9dbb5991933c79f7f0a3b",
+  "owner_stopped": true,
+  "inputs_reverified": true,
+  "product_accepted": false
+}

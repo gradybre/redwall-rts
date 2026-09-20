@@ -1,0 +1,464 @@
+{
+  "status": "PASS",
+  "scope": "Independent starter_structures immutable-source metadata fault witnesses, per docs/planning/starter_structures_preparation_contract.md and docs/validation/evidence/starter-integration-planning-2026-09-20/metadata-test-plan.json. Owned disposable clone, autoloads disabled only there. No production source, test owner or save schema was written.",
+  "starter_source_used": {
+    "path": "godot/scripts/core/starter_structures.gd",
+    "note": "production module (already installed)"
+  },
+  "totals": {
+    "cases": 26,
+    "passed": 26,
+    "failed": 0,
+    "invalid_execution": 0
+  },
+  "cases": [
+    {
+      "case": "positive-control",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 8,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 8 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "",
+        "last_refusal": "",
+        "prepared": "true",
+        "probe_refusal": "STARTER_BUILDING_LAYOUT",
+        "malformed_refusal": "STARTER_PLAN_SHAPE"
+      }
+    },
+    {
+      "case": "building-catalog-missing-required",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "building-catalog-extra",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "building-catalog-ordinal",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "building-catalog-integer-type",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "furniture-catalog-missing-required",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "furniture-catalog-extra",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "furniture-catalog-ordinal",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "furniture-catalog-integer-type",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "room-protected-ordinal",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "active-protected-ordinal",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "building-count",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "furniture-count",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "building-field-index",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "furniture-field-index",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "building-facts-row-type",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "building-facts-row-size",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "building-facts-value-type",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "building-footprint",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "building-unlock",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "furniture-facts-row-type",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "furniture-facts-row-size",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "furniture-facts-value-type",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "furniture-floor-dimensions",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "edge-floor-dimensions",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 17,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 17 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "STARTER_SOURCE_METADATA",
+        "last_refusal": "STARTER_SOURCE_METADATA",
+        "prepared": "false",
+        "probe_refusal": "STARTER_SOURCE_METADATA",
+        "malformed_refusal": "STARTER_SOURCE_METADATA"
+      }
+    },
+    {
+      "case": "restored-control",
+      "valid_execution": true,
+      "passed": true,
+      "tests": 1,
+      "assertions": 8,
+      "failures": 0,
+      "returncode": 0,
+      "summary_line": "1 test(s), 8 assertion(s), 0 failure(s)",
+      "observed": {
+        "static_refusal": "",
+        "last_refusal": "",
+        "prepared": "true",
+        "probe_refusal": "STARTER_BUILDING_LAYOUT",
+        "malformed_refusal": "STARTER_PLAN_SHAPE"
+      }
+    }
+  ],
+  "source_sha256": {
+    "godot/scripts/core/catalog.gd": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1",
+    "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
+    "godot/project.godot": "3bdf9bd24e40e46dcf07b2fa84a065ea663146a3cd25bb9fb92529f1ebc85a2a",
+    "godot/scripts/core/starter_structures.gd": "462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa"
+  }
+}

@@ -938,3 +938,10 @@ existing8-byte WorldRuntime event allocator moved to EventSchedule ownership,
 without duplicate allocation/serialization. Existing generation spaces remain distinct.
 STATE-COHORT-R01 corrects `_cohort_slots` above; the previous founder-history
 interpretation is retained as superseded evidence in the dated ruling.
+
+
+### `godot/scripts/core/starter_structures.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
+|---|---|---|---|---|---|---|---|
+| Authored refuge preparation | -- | -- | -- | Plan defaults -1; header zero | 3 | -- | INIT-C-PREP-R01v1 / decision0184. Cold derived plan, no saved authority or live owner construction. Ten caller-owned PackedInt32Array payloads total2480 logical bytes; caller plus one staged Plan bound4960, with bounded metadata/graph scratch. Success publishes validated arrays by copy-on-write assignment; refusal preserves prior output. Producer last_refusal is transient diagnostic state. Actual native overhead is not measured. Exact tile layout and candidate adjacency establish no body fit, topology publication, room validity, heat, real contacts or container admission; those remain INIT-C and related integration contracts. |

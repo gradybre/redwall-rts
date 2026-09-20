@@ -1,0 +1,20 @@
+{
+  "exit_code": 0,
+  "seconds": 244.342,
+  "counts": [
+    5029,
+    525772,
+    0
+  ],
+  "log_sha256": "14c504673cdd15dd7df41ca19c1a6f8a124eda699501b999d66d16f119f6652b",
+  "raw_log": "integrated-full-suite.log",
+  "accepted": false,
+  "scope": "Actual integrated local regression, not product acceptance",
+  "shutdown_diagnostics": [
+    "WARNING: 553 ObjectDB instances were leaked at exit (run with `--verbose` for details).",
+    "ERROR: 33 resources still in use at exit (run with --verbose for details)."
+  ],
+  "script_error_lines": [],
+  "test_summary_passed": true,
+  "shutdown_disposition": "Matches previously recorded full-suite553objects/33resources; remains an open release diagnostic, not new starter failure."
+}

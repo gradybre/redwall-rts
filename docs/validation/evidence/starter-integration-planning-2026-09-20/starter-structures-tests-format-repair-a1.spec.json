@@ -1,0 +1,30 @@
+{
+  "id": "starter-structures-tests-format-repair-a1",
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "cwd": "/Users/brendan/Developer/redwall-rts",
+  "outputPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/starter-structures-tests-format-repair-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "paths": [
+    "docs/planning/starter_structures_preparation_contract.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/layout-reference.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/test-author-requirements.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "godot/scripts/core/int_math.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/test-subclass-reference.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/part4-disposition.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/repair4-smoke.log",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/test-format-disposition.json"
+  ],
+  "instructions": "Your preceding completed response failed strict bundle parsing with BUNDLE_NOT_JSON; no file was applied. This is FORMAT REPAIR ONLY. Return your already-authored test suite and exact focused runner as one valid JSON object, no prose before/after, no Markdown fences, no concatenated JSON objects. Required schema: {\"status\":\"complete\",\"summary\":\"...\",\"questions\":[],\"files\":[{\"path\":\"docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures.gd\",\"content\":\"FULL SOURCE AS A JSON STRING WITH ESCAPED NEWLINES/QUOTES\",\"baseSha256\":null},{\"path\":\"docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures_focus.gd\",\"content\":\"FULL SOURCE AS A JSON STRING WITH ESCAPED NEWLINES/QUOTES\",\"baseSha256\":null}],\"decisionIds\":[]}. Preserve your prior drafted test semantics and the original requirements; do not redo the implementation. The source manifest is unchanged and your own session is continued. The provider did not retain a public raw body for Astra, so do not claim it was independently parsed or executed. If you cannot recover your prior suite from your session context, return needs_decision with a concise explanation rather than inventing test results. This is the sole format repair attempt.\n\nDispatch audit: {\"base_commit\":\"205e56bc8bed9e9d06ca7abcf77a16629671aecb\",\"task\":\"One bounded same-author JSON packaging repair for starter functional tests\",\"allowedWrites\":{\"docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures.gd\":null,\"docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures_focus.gd\":null}}\nOnly declared file paths/base hashes may be returned. No automatic source application or acceptance is authorized.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/starter-structures-tests-a1"
+}

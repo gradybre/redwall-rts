@@ -1,0 +1,25 @@
+{
+  "exit_code": 0,
+  "seconds": 260.958,
+  "counts": [
+    5034,
+    526086,
+    0
+  ],
+  "source_sha256": {
+    "godot/scripts/core/starter_structures.gd": "462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa",
+    "godot/test/test_starter_structures.gd": "e972ab6f12fa80a1c074014064a29b0a2ba7875803a84f0c1464a1fde2d92b17",
+    "godot/test/starter_structures_focus.gd": "b82347f7176e1c8158234733ad8b2876163d2c48947f24e6928e93dd1f68178c"
+  },
+  "source_unchanged_during_run": true,
+  "log_sha256": "7f169fe58e701e8aeafa6e163702b58d98ef547eb88bc7f16cb1acaa9fdbb68f",
+  "raw_log": "integrated-review-full-suite.log",
+  "script_error_lines": [],
+  "test_summary_passed": true,
+  "accepted": false,
+  "scope": "Post-review integrated local regression, not product acceptance",
+  "shutdown_diagnostics": [
+    "WARNING: 553 ObjectDB instances were leaked at exit (run with `--verbose` for details).",
+    "ERROR: 33 resources still in use at exit (run with --verbose for details)."
+  ]
+}

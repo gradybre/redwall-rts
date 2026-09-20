@@ -1,0 +1,15 @@
+{
+  "evidence": "metadata-hardened.log",
+  "cases": 26,
+  "assertions": 450,
+  "failures": 0,
+  "invalid_execution": 0,
+  "source_sha256": {
+    "godot/scripts/core/catalog.gd": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1",
+    "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
+    "godot/project.godot": "3bdf9bd24e40e46dcf07b2fa84a065ea663146a3cd25bb9fb92529f1ebc85a2a",
+    "godot/scripts/core/starter_structures.gd": "462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa"
+  },
+  "product_acceptance": false,
+  "next": "Independent combined code review, then exact-head CI/merge"
+}

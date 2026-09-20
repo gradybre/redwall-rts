@@ -1,0 +1,71 @@
+{
+  "scope": "Candidate constructor/publication and transitive preload source inspection; not native or RSS measurement",
+  "candidate_sha256": "462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa",
+  "candidate_constructor_calls": [
+    "Plan"
+  ],
+  "packed_fields": [
+    "buildings",
+    "rooms",
+    "room_tiles",
+    "furniture",
+    "footprints",
+    "candidate_access_tiles",
+    "edges",
+    "exit_tiles",
+    "bed_furniture_ordinals",
+    "header"
+  ],
+  "cow_publication_fields": [
+    "buildings",
+    "rooms",
+    "room_tiles",
+    "furniture",
+    "footprints",
+    "candidate_access_tiles",
+    "edges",
+    "exit_tiles",
+    "bed_furniture_ordinals",
+    "header"
+  ],
+  "logical_plan_payload": 2480,
+  "maximum_simultaneous_plan_payload": 4960,
+  "preload_source_hashes": {
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd": "462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa",
+    "godot/scripts/core/building_definitions.gd": "eedac020ca29c92d9ffcb60d77d2ab8d0d309beee52b98a44c89795dc63fc074",
+    "godot/scripts/core/milestones.gd": "34aabaa1d72187c984c4cbbd1f6772d96f0f9056c7af76bd9b912c1765fb4fc5",
+    "godot/scripts/core/int_math.gd": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca",
+    "godot/scripts/core/catalog.gd": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1"
+  },
+  "preload_edges": [
+    [
+      "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd",
+      "godot/scripts/core/catalog.gd"
+    ],
+    [
+      "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd",
+      "godot/scripts/core/building_definitions.gd"
+    ],
+    [
+      "godot/scripts/core/building_definitions.gd",
+      "godot/scripts/core/catalog.gd"
+    ],
+    [
+      "godot/scripts/core/building_definitions.gd",
+      "godot/scripts/core/milestones.gd"
+    ],
+    [
+      "godot/scripts/core/milestones.gd",
+      "godot/scripts/core/catalog.gd"
+    ],
+    [
+      "godot/scripts/core/milestones.gd",
+      "godot/scripts/core/int_math.gd"
+    ],
+    [
+      "godot/scripts/core/int_math.gd",
+      "godot/scripts/core/int_math.gd"
+    ]
+  ],
+  "remaining": "Independent functional/metadata tests, review, final integration identity and full checks"
+}

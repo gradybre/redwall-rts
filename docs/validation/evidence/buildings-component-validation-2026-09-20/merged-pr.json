@@ -1,0 +1,16 @@
+{
+  "headRefOid": "2aba1882e8dfa9428ea7fa33a1216d397272937b",
+  "mergeCommit": {
+    "oid": "205e56bc8bed9e9d06ca7abcf77a16629671aecb"
+  },
+  "mergedAt": "2026-09-20T14:25:54Z",
+  "number": 174,
+  "state": "MERGED",
+  "url": "https://github.com/gradybre/redwall-rts/pull/174",
+  "exact_head_ci_run": 35514899019,
+  "checks": [
+    "Specification contracts: SUCCESS",
+    "Godot headless suite: SUCCESS"
+  ],
+  "merge_gate": "tools/auto_merge.py --only 174 --merge; 1 merged, 0 held"
+}

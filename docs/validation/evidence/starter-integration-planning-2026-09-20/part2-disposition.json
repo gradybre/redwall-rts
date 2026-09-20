@@ -1,0 +1,13 @@
+{
+  "attempt": "starter-structures-staged-repair-a2",
+  "candidate_sha256": "4b433c8b3b0fc1046b94b434c54e3071e06722de9672e1e87f5deb57b82e2fd0",
+  "part": "Safe metadata source gate",
+  "smoke": "1 test, 6 assertions, 0 failures; no script errors",
+  "source_inspection": "Both public preparation and pure validation call static gate after null and before shape/source indexing; required source fact types/indexes/dimensions and protected ordinals checked",
+  "product_acceptance": false,
+  "remaining": [
+    "Independent metadata fault witnesses",
+    "Room/furniture/edge/exit/candidate structural checks",
+    "Independent functional tests, review, full checks and CI"
+  ]
+}

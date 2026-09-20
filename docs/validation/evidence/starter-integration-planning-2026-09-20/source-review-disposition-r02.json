@@ -1,0 +1,25 @@
+{
+  "updated_at": "2026-09-20T16:26:47.135504+00:00",
+  "review": "source-review-followup.md",
+  "verdict": "Approve test delta; no new must-fix",
+  "local_full": "integrated-review-full-suite.json: 5034 tests, 526086 assertions, zero failures at reviewed test hash e972ab6f",
+  "remaining": "Committed-file identity and exact-head CI before acceptance",
+  "low_findings": {
+    "NEW-1": "Required fixture lifecycle recorded in README.md",
+    "NEW-2": "Header uses the actual test_frozen_layout_reference_* family",
+    "NEW-3": "Registry headings normalized",
+    "NEW-4": "Applied the reviewer-supplied typed comparator signature; algorithm unchanged",
+    "NEW-5": "Repository headless path supported by focused run; final CI remains required"
+  },
+  "integration_delta": {
+    "test_before_sha256": "e972ab6f12fa80a1c074014064a29b0a2ba7875803a84f0c1464a1fde2d92b17",
+    "test_after_sha256": "8ff3299e4c5644f79985636356a5afefa9edcd372ff0eaee289de63c2e6c1360",
+    "provenance": "Exact reviewer-supplied comment/signature edits integrated by Astra; no production module change",
+    "validation": "Focused rerun follows cosmetic integration. Prior full-suite evidence remains tied to e972ab6f; exact-head CI will cover final file."
+  },
+  "review_reasoning_corrections": [
+    "Both static-check records were collected after module installation. Equal census counts do not establish a pre/post installation delta or prove inner Plan members are excluded. The verified fact is that all 17 post-installation checks pass.",
+    "The two-output mutation witness establishes observable isolation. Packed-array copy-on-write can preserve that isolation while buffers initially share storage. Fresh staged Plan allocation is established by source inspection, not this test alone.",
+    "Universal neighbour-set bound is 80 interior tiles. A production two-tile footprint can have six adjacent candidates. The tighter 80-minus-footprint bound assumes the occupied set contains the footprint, which a private synthetic fixture need not satisfy."
+  ]
+}

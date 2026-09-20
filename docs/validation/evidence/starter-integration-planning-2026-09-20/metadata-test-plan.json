@@ -1,0 +1,114 @@
+{
+  "scope": "Required independent source-metadata witnesses before starter preparation acceptance; not yet implemented or run",
+  "cases": [
+    {
+      "name": "positive-control",
+      "expected_refusal": ""
+    },
+    {
+      "name": "building-catalog-missing-required",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "building-catalog-extra",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "building-catalog-ordinal",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "building-catalog-integer-type",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "furniture-catalog-missing-required",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "furniture-catalog-extra",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "furniture-catalog-ordinal",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "furniture-catalog-integer-type",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "room-protected-ordinal",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "active-protected-ordinal",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "building-count",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "furniture-count",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "building-field-index",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "furniture-field-index",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "building-facts-row-type",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "building-facts-row-size",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "building-facts-value-type",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "building-footprint",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "building-unlock",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "furniture-facts-row-type",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "furniture-facts-row-size",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "furniture-facts-value-type",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "furniture-floor-dimensions",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    },
+    {
+      "name": "edge-floor-dimensions",
+      "expected_refusal": "STARTER_SOURCE_METADATA"
+    }
+  ],
+  "requirements": [
+    "positive actual prepare and pure plan_refusal",
+    "faulted prepare returnsfalse and SOURCE_METADATA without output mutation",
+    "pure plan_refusal runs source gate before indexing",
+    "cold owned clones only; disable autoloads for malformed immutable catalog inputs",
+    "invalid execution/parser/runtime error never counts as semantic refusal",
+    "use non-shelf missing furniture key to avoid unrelated shelf constantfold; if another source alias blocks execution, report separately before any isolated shim",
+    "restored unmodified source positive control and all inputs unchanged"
+  ]
+}

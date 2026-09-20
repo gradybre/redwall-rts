@@ -1,0 +1,19 @@
+{
+  "attempt": "starter-structures-source-review-a1",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-source-review",
+    "role": "review",
+    "model": "claude-opus-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "session_id": "e76be55b-3554-4171-8372-4584a635fca5",
+  "owner_stopped": true,
+  "base_commit": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
+  "integration_head": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
+  "source_inputs_reverified": true,
+  "files": {
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/source-review.md": "ea1e28c3774c8c8310c64b1b6300fcee3c50b21004179928d68df5d765cba696"
+  },
+  "approval": "artifact_intake_only_not_product_acceptance"
+}

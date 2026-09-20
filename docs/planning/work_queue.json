@@ -292,7 +292,10 @@
       "astra_request": "docs/rulings/requests/OPEN.md#move-g01-clearance-and-modes",
       "astra_answered": false,
       "partial_ruling": "docs/rulings/2026-09-14_cycle03_movement_policy.md",
-      "note": "Cycle3 resolves specific policy and error accounting only. Production profiles/costs/envelopes/support/G02 remain open; no measured gate closure."
+      "note": "Cycle3 resolves specific policy and error accounting only. Production profiles/costs/envelopes/support/G02 remain open; no measured gate closure.",
+      "new_evidence": "docs/validation/evidence/starter-integration-planning-2026-09-20/mouse-static-vertex-diagnostic.json",
+      "followup_proposal": "docs/validation/evidence/starter-integration-planning-2026-09-20/placement-followup-proposal.md",
+      "evidence_note": "Actual existing static mesh has translated X minimum-182u at baseline+256 offset; not a continuous sweep/profile qualification. Grid-lattice-preserving alternative anchor is a review proposal only. Existing gate/authority unchanged."
     },
     {
       "id": "ART-PROPORTION",
@@ -1187,7 +1190,8 @@
       "title": "Build the seven starter buildings and hall interior",
       "status": "blocked",
       "depends_on": [
-        "INIT-A"
+        "INIT-A",
+        "INIT-C-PREP"
       ],
       "owns": [
         "godot/scripts/core/starter_structures.gd",
@@ -1197,7 +1201,8 @@
       "gate": "astra_ruling",
       "acceptance": "Exact locations/rooms/furniture per starter_settlement.md; actual topology/doors/contact reachability; no blueprint-only completion, null physical owners or fabricated access.",
       "astra_answered": false,
-      "astra_request": "docs/planning/resumption_2026_09_19/starter_settlement.md; bounded implementation contract and physical dependencies must close before dispatch"
+      "astra_request": "docs/planning/resumption_2026_09_19/starter_settlement.md; bounded implementation contract and physical dependencies must close before dispatch",
+      "note": "Compact preparation contract INIT-C-PREP-R01v1/ADR0184 accepted after independent design review. INIT-C remains blocked on runtime edge/wall geometry, terrain support, source-bound profiles and actual revisioned contacts/materialization; pure tile plan is not production access."
     },
     {
       "id": "INIT-D",
@@ -2286,7 +2291,7 @@
     {
       "id": "SAVE-S4-BUILDINGS-VALIDATE",
       "title": "Validate saved building room and furniture columns without a second full owner image",
-      "status": "review",
+      "status": "done",
       "depends_on": [
         "SAVE-S4-STREAM"
       ],
@@ -2302,7 +2307,10 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "note": "Local acceptance BUILDINGS-S4-VALIDATE-R01v1/ADR0183: full4999/522412/0; focus6/19242/0 clean;75functional mutations plus1full-image allocation mutation caught;77metadata cases/693assertions with10bypass catches;17static checks/import and independent exact-source review pass. Borrowed adapter preserves retired history and avoids a second full image. Candidate source/test/tool hashes match actual raw intake. Full shutdown baseline553objects/33resources unchanged. Exact-head CI pending; bindings/bulk APIs/live gameplay separate."
+      "note": "Local acceptance BUILDINGS-S4-VALIDATE-R01v1/ADR0183: full4999/522412/0; focus6/19242/0 clean;75functional mutations plus1full-image allocation mutation caught;77metadata cases/693assertions with10bypass catches;17static checks/import and independent exact-source review pass. Borrowed adapter preserves retired history and avoids a second full image. Candidate source/test/tool hashes match actual raw intake. Full shutdown baseline553objects/33resources unchanged. Exact-head CI35514899019 passed both required checks and PR174 merged; bindings/bulk APIs/live gameplay separate.",
+      "pr": 174,
+      "merge_commit": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
+      "merged_at": "2026-09-20T14:25:54Z"
     },
     {
       "id": "BUILDINGS-SAVED-BINDINGS",
@@ -2317,6 +2325,24 @@
       "agent": "astra",
       "gate": "none",
       "note": "Required before semantic acceptance: Directory saved self identities; section5 parent/child chains, room arena and kind counts; section1 tile maps, footprint overlap and mask equality; construction and user references, loaded tick and common provenance. Local retired history does not imply present saved liveness. Full capture/apply and gameplay occupancy policy remain separate."
+    },
+    {
+      "id": "INIT-C-PREP",
+      "title": "Prepare exact authored refuge structures and candidate access graph",
+      "status": "in_flight",
+      "depends_on": [
+        "INIT-A"
+      ],
+      "owns": [
+        "godot/scripts/core/starter_structures.gd",
+        "godot/test/test_starter_structures.gd",
+        "godot/test/starter_structures_focus.gd",
+        "tools/test_starter_structures_metadata.py"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "acceptance": "INIT-C-PREP-R01v1/ADR0184:10packed arrays2480bytes, exact7buildings/4rooms/31floor instances/8edges/51candidate entries/12bed ordinals; atomic refusal and source pins, independent review, actual focused/full/CI. No live mutable owner allocation or physical admission claim.",
+      "note": "Independent review approved; final focused35/3674/0, reviewed full5034/526086/0, metadata26/450/0 and17static checks pass. Commit packaging and exact-headCI remain; runtime materialization and physical admission are still INIT-C work."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

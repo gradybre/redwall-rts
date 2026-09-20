@@ -1,0 +1,276 @@
+INIT-C-PREP-R01v1 bounded author repair, part 4 of author-repair-r01.md.
+Scope: requirements 5, 6 and 7 -- real edge endpoints without an early door rule,
+range-checked exits on plan ownership, and the whole-source bounded-indexing audit.
+
+--- a/docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd
++++ b/docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd
+@@ -717,7 +717,7 @@
+ 	var furniture_refusal: StringName = _check_furniture_layout(plan, hall_origin_tile)
+ 	if furniture_refusal != REFUSE_NONE:
+ 		return furniture_refusal
+-	var edge_refusal: StringName = _check_edge_layout(plan)
++	var edge_refusal: StringName = _check_edge_layout(plan, hall_origin_tile)
+ 	if edge_refusal != REFUSE_NONE:
+ 		return edge_refusal
+ 	var exit_refusal: StringName = _check_exit(plan, hall_origin_tile)
+@@ -1016,105 +1016,134 @@
+ 	return REFUSE_NONE
+ 
+ 
+-static func _check_edge_layout(plan: Plan) -> StringName:
+-	"""Every edge names two distinct adjacent local tiles, a known kind, two distinct rooms,
+-	and the rows are sorted ascending by their first tile."""
+-	var door_id: int = _catalog_int(Catalog.FURNITURE_DEFINITION, INTERIOR_DOOR_KEY)
+-	var partition_id: int = _catalog_int(Catalog.FURNITURE_DEFINITION, INTERIOR_PARTITION_KEY)
+-	var previous_a: int = -1
+-	var door_count: int = 0
+-	for row: int in Plan.EDGE_ROW_COUNT:
+-		var tile_a: int = plan.edge_field(row, Plan.EDGE_COL_TILE_A)
+-		var tile_b: int = plan.edge_field(row, Plan.EDGE_COL_TILE_B)
+-		var kind_id: int = plan.edge_field(row, Plan.EDGE_COL_KIND_ID)
+-		var room_a: int = plan.edge_field(row, Plan.EDGE_COL_ROOM_A)
+-		var room_b: int = plan.edge_field(row, Plan.EDGE_COL_ROOM_B)
+-		if tile_a < 0 or tile_a >= INTERIOR_TILE_COUNT or tile_b < 0 or tile_b >= INTERIOR_TILE_COUNT:
+-			return REFUSE_EDGE_LAYOUT
+-		if tile_a >= tile_b or tile_a <= previous_a:
+-			return REFUSE_EDGE_LAYOUT
+-		var horizontal: bool = tile_b == tile_a + 1 and tile_a / INTERIOR_WIDTH == tile_b / INTERIOR_WIDTH
+-		var vertical: bool = tile_b == tile_a + INTERIOR_WIDTH
+-		if not (horizontal or vertical):
+-			return REFUSE_EDGE_LAYOUT
+-		if kind_id != door_id and kind_id != partition_id:
+-			return REFUSE_EDGE_LAYOUT
+-		if kind_id == door_id:
+-			door_count += 1
+-		if room_a < 0 or room_a >= Plan.ROOM_ROW_COUNT or room_b < 0 or room_b >= Plan.ROOM_ROW_COUNT:
+-			return REFUSE_EDGE_LAYOUT
+-		if room_a == room_b:
+-			return REFUSE_EDGE_LAYOUT
+-		previous_a = tile_a
+-	if door_count != 1:
+-		return REFUSE_EDGE_LAYOUT
+-	return REFUSE_NONE
++static func _check_edge_layout(plan: Plan, hall_origin_tile: int) -> StringName:
++	"""The eight edges are one partition column's distinct adjacent horizontal pairs, each of
++	a legal kind and carrying the ACTUAL room ordinals of its two endpoints. Door count is
++	deliberately not policed here: a sole door replaced by a partition must reach the graph
++	gate, and an alternately placed door must reach the final authored gate."""
++	if hall_origin_tile < 0:
++		return REFUSE_EDGE_LAYOUT
++	var owner: Dictionary = _room_ownership(plan, hall_origin_tile)
++	if owner.size() != INTERIOR_TILE_COUNT:
++		return REFUSE_EDGE_LAYOUT
++	var door_id: int = _catalog_int(Catalog.FURNITURE_DEFINITION, INTERIOR_DOOR_KEY)
++	var partition_id: int = _catalog_int(Catalog.FURNITURE_DEFINITION, INTERIOR_PARTITION_KEY)
++	if door_id < 0 or partition_id < 0 or door_id == partition_id:
++		return REFUSE_EDGE_LAYOUT
++	var column: int = -1
++	var seen_rows: Dictionary = {}
++	var previous_a: int = -1
++	for row: int in Plan.EDGE_ROW_COUNT:
++		var tile_a: int = plan.edge_field(row, Plan.EDGE_COL_TILE_A)
++		var tile_b: int = plan.edge_field(row, Plan.EDGE_COL_TILE_B)
++		var kind_id: int = plan.edge_field(row, Plan.EDGE_COL_KIND_ID)
++		var room_a: int = plan.edge_field(row, Plan.EDGE_COL_ROOM_A)
++		var room_b: int = plan.edge_field(row, Plan.EDGE_COL_ROOM_B)
++		if tile_a < 0 or tile_a >= INTERIOR_TILE_COUNT:
++			return REFUSE_EDGE_LAYOUT
++		if tile_b < 0 or tile_b >= INTERIOR_TILE_COUNT:
++			return REFUSE_EDGE_LAYOUT
++		if tile_a <= previous_a:
++			return REFUSE_EDGE_LAYOUT
++		previous_a = tile_a
++		var local_x: int = tile_a % INTERIOR_WIDTH
++		var local_z: int = tile_a / INTERIOR_WIDTH
++		if local_x + 1 >= INTERIOR_WIDTH or tile_b != tile_a + 1:
++			return REFUSE_EDGE_LAYOUT
++		if column == -1:
++			column = local_x
++		elif local_x != column:
++			return REFUSE_EDGE_LAYOUT
++		if seen_rows.has(local_z):
++			return REFUSE_EDGE_LAYOUT
++		seen_rows[local_z] = true
++		if kind_id != door_id and kind_id != partition_id:
++			return REFUSE_EDGE_LAYOUT
++		if not owner.has(tile_a) or not owner.has(tile_b):
++			return REFUSE_EDGE_LAYOUT
++		if room_a != int(owner[tile_a]) or room_b != int(owner[tile_b]):
++			return REFUSE_EDGE_LAYOUT
++		if room_a == room_b:
++			return REFUSE_EDGE_LAYOUT
++	if seen_rows.size() != INTERIOR_HEIGHT:
++		return REFUSE_EDGE_LAYOUT
++	return REFUSE_NONE
+ 
+ 
+-static func _check_exit(plan: Plan, hall_origin_tile: int) -> StringName:
+-	"""Interior/wall/exterior exit gates, checked in that order with distinct refusal codes."""
+-	var interior_local: int = plan.exit_field(Plan.EXIT_COL_INTERIOR)
+-	var wall_global: int = plan.exit_field(Plan.EXIT_COL_WALL)
+-	var exterior_global: int = plan.exit_field(Plan.EXIT_COL_EXTERIOR)
+-	if hall_origin_tile < 0:
+-		return REFUSE_EXIT_INTERIOR
+-	if interior_local < 0 or interior_local >= INTERIOR_TILE_COUNT:
+-		return REFUSE_EXIT_INTERIOR
+-	if not _local_owned_by_some_room(plan, interior_local):
+-		return REFUSE_EXIT_INTERIOR
+-	var occupied: Dictionary = _occupied_locals(plan)
+-	if occupied.has(interior_local):
+-		return REFUSE_EXIT_INTERIOR
+-	var interior_global: int = _local_to_global(interior_local, hall_origin_tile)
+-	if not _orthogonally_adjacent_global(interior_global, wall_global):
+-		return REFUSE_EXIT_WALL
+-	if _global_to_local(wall_global, hall_origin_tile) != -1:
+-		return REFUSE_EXIT_WALL
+-	if not _inside_building_footprint(plan, wall_global, hall_origin_tile):
+-		return REFUSE_EXIT_WALL
+-	if not _orthogonally_adjacent_global(wall_global, exterior_global):
+-		return REFUSE_EXIT_EXTERIOR
+-	if _inside_any_building_footprint(plan, exterior_global):
+-		return REFUSE_EXIT_EXTERIOR
+-	return REFUSE_NONE
++static func _check_exit(plan: Plan, hall_origin_tile: int) -> StringName:
++	"""Interior/wall/exterior exit gates with distinct refusals. Every global tile is range
++	checked before any coordinate conversion, and interior ownership comes from the plan's
++	own room runs rather than from the authored bounds table."""
++	var interior_local: int = plan.exit_field(Plan.EXIT_COL_INTERIOR)
++	var wall_global: int = plan.exit_field(Plan.EXIT_COL_WALL)
++	var exterior_global: int = plan.exit_field(Plan.EXIT_COL_EXTERIOR)
++	var tile_limit: int = MAP_TILES_X * MAP_TILES_Z
++	if hall_origin_tile < 0 or hall_origin_tile >= tile_limit:
++		return REFUSE_EXIT_INTERIOR
++	if interior_local < 0 or interior_local >= INTERIOR_TILE_COUNT:
++		return REFUSE_EXIT_INTERIOR
++	var owner: Dictionary = _room_ownership(plan, hall_origin_tile)
++	if not owner.has(interior_local):
++		return REFUSE_EXIT_INTERIOR
++	var occupied: Dictionary = _occupied_locals(plan)
++	if occupied.has(interior_local):
++		return REFUSE_EXIT_INTERIOR
++	if wall_global < 0 or wall_global >= tile_limit:
++		return REFUSE_EXIT_WALL
++	var interior_global: int = _local_to_global(interior_local, hall_origin_tile)
++	if not _orthogonally_adjacent_global(interior_global, wall_global):
++		return REFUSE_EXIT_WALL
++	if _global_to_local(wall_global, hall_origin_tile) != -1:
++		return REFUSE_EXIT_WALL
++	if not _inside_building_footprint(plan, wall_global, hall_origin_tile):
++		return REFUSE_EXIT_WALL
++	if exterior_global < 0 or exterior_global >= tile_limit:
++		return REFUSE_EXIT_EXTERIOR
++	if not _orthogonally_adjacent_global(wall_global, exterior_global):
++		return REFUSE_EXIT_EXTERIOR
++	if _global_to_local(exterior_global, hall_origin_tile) != -1:
++		return REFUSE_EXIT_EXTERIOR
++	if _inside_any_building_footprint(plan, exterior_global):
++		return REFUSE_EXIT_EXTERIOR
++	return REFUSE_NONE
+ 
+ 
+-static func _local_owned_by_some_room(plan: Plan, local_tile: int) -> bool:
+-	"""True when `local_tile` falls within one of the four rooms' declared local bounds."""
+-	var lx: int = local_tile % INTERIOR_WIDTH
+-	var lz: int = local_tile / INTERIOR_WIDTH
+-	for bounds: Array in ROOM_LOCAL_BOUNDS:
+-		if lx >= int(bounds[0]) and lx <= int(bounds[1]) and lz >= int(bounds[2]) and lz <= int(bounds[3]):
+-			return true
+-	return false
+-
+-
+-static func _orthogonally_adjacent_global(a: int, b: int) -> bool:
+-	"""True when two global tiles are exactly one step apart on the exterior grid."""
+-	var ax: int = a % MAP_TILES_X
+-	var az: int = a / MAP_TILES_X
+-	var bx: int = b % MAP_TILES_X
+-	var bz: int = b / MAP_TILES_X
+-	var dx: int = absi(ax - bx)
+-	var dz: int = absi(az - bz)
+-	return (dx == 1 and dz == 0) or (dx == 0 and dz == 1)
++static func _orthogonally_adjacent_global(a: int, b: int) -> bool:
++	"""True when two IN-RANGE global tiles are exactly one step apart on the exterior grid."""
++	var tile_limit: int = MAP_TILES_X * MAP_TILES_Z
++	if a < 0 or a >= tile_limit or b < 0 or b >= tile_limit:
++		return false
++	var ax: int = a % MAP_TILES_X
++	var az: int = a / MAP_TILES_X
++	var bx: int = b % MAP_TILES_X
++	var bz: int = b / MAP_TILES_X
++	var dx: int = absi(ax - bx)
++	var dz: int = absi(az - bz)
++	return (dx == 1 and dz == 0) or (dx == 0 and dz == 1)
+ 
+ 
+-static func _inside_building_footprint(plan: Plan, global_tile: int, origin_tile: int) -> bool:
+-	"""True when `global_tile` lies inside the building whose origin tile is `origin_tile`."""
+-	for row: int in Plan.BUILDING_ROW_COUNT:
+-		if plan.building_field(row, Plan.BUILDING_COL_GLOBAL_ORIGIN_TILE) != origin_tile:
+-			continue
+-		var footprint_x: int = plan.building_field(row, Plan.BUILDING_COL_FOOTPRINT_X)
+-		var footprint_z: int = plan.building_field(row, Plan.BUILDING_COL_FOOTPRINT_Z)
+-		var rotation: int = plan.building_field(row, Plan.BUILDING_COL_ROTATION)
+-		var extent: Vector2i = _building_extent(footprint_x, footprint_z, rotation)
+-		var min_x: int = origin_tile % MAP_TILES_X
+-		var min_z: int = origin_tile / MAP_TILES_X
+-		var gx: int = global_tile % MAP_TILES_X
+-		var gz: int = global_tile / MAP_TILES_X
+-		return gx >= min_x and gx < min_x + extent.x and gz >= min_z and gz < min_z + extent.y
+-	return false
++static func _inside_building_footprint(plan: Plan, global_tile: int, origin_tile: int) -> bool:
++	"""True when an IN-RANGE `global_tile` lies inside the building at `origin_tile`."""
++	var tile_limit: int = MAP_TILES_X * MAP_TILES_Z
++	if global_tile < 0 or global_tile >= tile_limit:
++		return false
++	if origin_tile < 0 or origin_tile >= tile_limit:
++		return false
++	for row: int in Plan.BUILDING_ROW_COUNT:
++		if plan.building_field(row, Plan.BUILDING_COL_GLOBAL_ORIGIN_TILE) != origin_tile:
++			continue
++		var footprint_x: int = plan.building_field(row, Plan.BUILDING_COL_FOOTPRINT_X)
++		var footprint_z: int = plan.building_field(row, Plan.BUILDING_COL_FOOTPRINT_Z)
++		var rotation: int = plan.building_field(row, Plan.BUILDING_COL_ROTATION)
++		if footprint_x <= 0 or footprint_z <= 0 or rotation < 0 or rotation > 3:
++			return false
++		var extent: Vector2i = _building_extent(footprint_x, footprint_z, rotation)
++		var min_x: int = origin_tile % MAP_TILES_X
++		var min_z: int = origin_tile / MAP_TILES_X
++		var gx: int = global_tile % MAP_TILES_X
++		var gz: int = global_tile / MAP_TILES_X
++		return gx >= min_x and gx < min_x + extent.x and gz >= min_z and gz < min_z + extent.y
++	return false
+ 
+ 
+ static func _inside_any_building_footprint(plan: Plan, global_tile: int) -> bool:
+@@ -1126,13 +1155,13 @@
+ 	return false
+ 
+ 
+-static func _occupied_locals(plan: Plan) -> Dictionary:
+-	"""The set of interior-local tiles any furniture footprint occupies."""
+-	var occupied: Dictionary = {}
+-	for tile: int in plan.footprints:
+-		if tile >= 0:
+-			occupied[tile] = true
+-	return occupied
++static func _occupied_locals(plan: Plan) -> Dictionary:
++	"""The set of IN-RANGE interior-local tiles any furniture footprint occupies."""
++	var occupied: Dictionary = {}
++	for tile: int in plan.footprints:
++		if tile >= 0 and tile < INTERIOR_TILE_COUNT:
++			occupied[tile] = true
++	return occupied
+ 
+ 
+ static func _local_neighbors(local_tile: int) -> Array[int]:
+@@ -1255,7 +1284,10 @@
+ 	var active_state: int = _catalog_int(Catalog.BUILDING_STATE, BUILDING_STATE_ACTIVE_KEY)
+ 	for row: int in Plan.BUILDING_ROW_COUNT:
+ 		var building_key: String = BUILD_KEYS[row]
+-		var facts: Array = BuildingDefinitions.BUILDING_FACTS[building_key]
++		var facts: Array = _int_fact_row(BuildingDefinitions.BUILDING_FACTS, building_key,
++				EXPECTED_B_FIELD_COUNT)
++		if facts.is_empty():
++			return false
+ 		if plan.building_field(row, Plan.BUILDING_COL_TYPE_ID) \
+ 				!= _catalog_int(Catalog.BUILDING_DEFINITION, building_key):
+ 			return false

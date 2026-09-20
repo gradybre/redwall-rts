@@ -1,0 +1,8 @@
+# First project adoption observations
+
+The installed0.1.2 runner completed the first actual7-input Redwall author dispatch, with a stopped owner and declared-path/base-hash verification. The first candidate was not accepted: actual Godot smoke found an undefined self type, and Astra's source inspection found incomplete metadata/geometry gates and a third Plan allocation. One bounded repair was dispatched to the same author session using the new context manifest; all seven unchanged source files (157781bytes) were omitted and three new evidence inputs were sent. Repair completion and independent product review remain pending.
+
+This is actual runner transport/context evidence, not accepted product delivery or a savings claim. The new geometry-validator implementation was a broader Sonnet routing trial than the preceding two-case metadata edit. Do not treat the successful mechanical edit as qualification of this whole new pattern. Record its repair count and accepted outcome before using it as a future routing precedent; escalate unresolved structural defects rather than repeating cosmetic repairs. Provider costEstimateUsd remains subscription telemetry/list-price estimation, not a billed charge.
+
+
+Follow-up routing evidence: the first same-author Sonnet repair and the fresh full-context Opus whole-candidate repair each reached the 900-second hard bound without a complete source bundle. Both owners stopped without quarantine; no partial patch was applied. Usage is unavailable for those attempts, not zero. The work is split into narrower sequential source patches on the same contract. This is an observed failure of the broad packet to fit the time bound, not evidence of savings or model-quality equivalence.

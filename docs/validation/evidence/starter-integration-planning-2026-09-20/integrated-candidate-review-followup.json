@@ -1,0 +1,12 @@
+{
+  "scope": "Post-review test integration; production module and metadata harness unchanged",
+  "source_sha256": {
+    "godot/scripts/core/starter_structures.gd": "462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa",
+    "godot/test/test_starter_structures.gd": "e972ab6f12fa80a1c074014064a29b0a2ba7875803a84f0c1464a1fde2d92b17",
+    "godot/test/starter_structures_focus.gd": "b82347f7176e1c8158234733ad8b2876163d2c48947f24e6928e93dd1f68178c",
+    "tools/test_starter_structures_metadata.py": "daf155cacef1f0142fea2f0268ccfb13755c24f90893ce62a051761b38bdb831"
+  },
+  "focused_evidence": "functional-review-followup.json",
+  "metadata_evidence": "metadata-hardened.log",
+  "full_regression": "New full run pending; earlier integrated-full-suite.json applies to prior30-test suite"
+}

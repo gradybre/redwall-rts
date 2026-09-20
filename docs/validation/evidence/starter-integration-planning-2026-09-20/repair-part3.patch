@@ -1,0 +1,424 @@
+INIT-C-PREP-R01v1 bounded author repair, part 3 of author-repair-r01.md.
+Scope: requirements 3 and 4 -- real hall identity and room membership, real floor
+furniture geometry/ownership, and complete bounded candidate access sets.
+
+--- a/docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd
++++ b/docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd
+@@ -707,19 +707,19 @@
+ 		return metadata_refusal
+ 	if not _shape_ok(plan):
+ 		return REFUSE_PLAN_SHAPE
+ 	var building_refusal: StringName = _check_building_layout(plan)
+ 	if building_refusal != REFUSE_NONE:
+ 		return building_refusal
+-	var room_refusal: StringName = _check_room_layout(plan)
++	var hall_origin_tile: int = _find_hall_origin(plan)
++	var room_refusal: StringName = _check_room_layout(plan, hall_origin_tile)
+ 	if room_refusal != REFUSE_NONE:
+ 		return room_refusal
+-	var furniture_refusal: StringName = _check_furniture_layout(plan)
++	var furniture_refusal: StringName = _check_furniture_layout(plan, hall_origin_tile)
+ 	if furniture_refusal != REFUSE_NONE:
+ 		return furniture_refusal
+ 	var edge_refusal: StringName = _check_edge_layout(plan)
+ 	if edge_refusal != REFUSE_NONE:
+ 		return edge_refusal
+-	var hall_origin_tile: int = _find_hall_origin(plan)
+ 	var exit_refusal: StringName = _check_exit(plan, hall_origin_tile)
+ 	if exit_refusal != REFUSE_NONE:
+ 		return exit_refusal
+@@ -808,103 +808,209 @@
+ 	return REFUSE_NONE
+ 
+ 
+-static func _find_hall_origin(plan: Plan) -> int:
+-	"""The building row's global origin tile whose footprint is 12x10 (the hall), or -1."""
+-	for row: int in Plan.BUILDING_ROW_COUNT:
+-		if plan.building_field(row, Plan.BUILDING_COL_FOOTPRINT_X) == 12 \
+-				and plan.building_field(row, Plan.BUILDING_COL_FOOTPRINT_Z) == 10:
+-			return plan.building_field(row, Plan.BUILDING_COL_GLOBAL_ORIGIN_TILE)
+-	return -1
++static func _find_hall_origin(plan: Plan) -> int:
++	"""The UNIQUE hall row's global origin tile, identified by the compiled hall type id and
++	its catalog footprint at rotation 0; -1 when absent, duplicated, rotated or misshapen."""
++	var hall_type_id: int = _catalog_int(Catalog.BUILDING_DEFINITION, HALL_KEY)
++	if hall_type_id < 0:
++		return -1
++	var hall_floor: Vector2i = _catalog_building_footprint(HALL_KEY)
++	if hall_floor.x <= 0 or hall_floor.y <= 0:
++		return -1
++	var origin_tile: int = -1
++	for row: int in Plan.BUILDING_ROW_COUNT:
++		if plan.building_field(row, Plan.BUILDING_COL_TYPE_ID) != hall_type_id:
++			continue
++		if origin_tile != -1:
++			return -1
++		if plan.building_field(row, Plan.BUILDING_COL_ROTATION) != 0:
++			return -1
++		if plan.building_field(row, Plan.BUILDING_COL_FOOTPRINT_X) != hall_floor.x:
++			return -1
++		if plan.building_field(row, Plan.BUILDING_COL_FOOTPRINT_Z) != hall_floor.y:
++			return -1
++		origin_tile = plan.building_field(row, Plan.BUILDING_COL_GLOBAL_ORIGIN_TILE)
++	if origin_tile < 0:
++		return -1
++	if origin_tile >= MAP_TILES_X * MAP_TILES_Z:
++		return -1
++	var hall_x: int = origin_tile % MAP_TILES_X
++	var hall_z: int = origin_tile / MAP_TILES_X
++	if hall_x + INTERIOR_INSET_TILES + INTERIOR_WIDTH > MAP_TILES_X:
++		return -1
++	if hall_z + INTERIOR_INSET_TILES + INTERIOR_HEIGHT > MAP_TILES_Z:
++		return -1
++	return origin_tile
++
++
++static func _catalog_building_footprint(key: String) -> Vector2i:
++	"""The validated catalog footprint of one building key, or (-1,-1) when unusable."""
++	var row: Array = _int_fact_row(BuildingDefinitions.BUILDING_FACTS, key, EXPECTED_B_FIELD_COUNT)
++	if row.is_empty():
++		return Vector2i(-1, -1)
++	return Vector2i(int(row[BuildingDefinitions.B_FOOTPRINT_X]), int(row[BuildingDefinitions.B_FOOTPRINT_Z]))
++
++
++static func _furniture_key_of(type_id: int) -> String:
++	"""The compiled furniture key one id names, or an empty String when no key carries it."""
++	for key: Variant in Catalog.FURNITURE_DEFINITION.keys():
++		if typeof(key) != TYPE_STRING:
++			continue
++		if typeof(Catalog.FURNITURE_DEFINITION[key]) != TYPE_INT:
++			continue
++		if int(Catalog.FURNITURE_DEFINITION[key]) == type_id:
++			return String(key)
++	return ""
++
++
++static func _catalog_furniture_floor(type_id: int) -> Vector2i:
++	"""The validated catalog floor footprint of one furniture id, or (-1,-1) when unusable.
++	Edge kinds answer 0x0 here, so they can never pass as floor furniture."""
++	var key: String = _furniture_key_of(type_id)
++	if key.is_empty():
++		return Vector2i(-1, -1)
++	var row: Array = _int_fact_row(BuildingDefinitions.FURNITURE_FACTS, key, EXPECTED_F_FIELD_COUNT)
++	if row.is_empty():
++		return Vector2i(-1, -1)
++	return Vector2i(int(row[BuildingDefinitions.F_FLOOR_X]), int(row[BuildingDefinitions.F_FLOOR_Z]))
+ 
+ 
+-static func _check_room_layout(plan: Plan) -> StringName:
+-	"""Room ordinals own a contiguous, gapless, nonoverlapping partition of all 80 tiles."""
+-	var seen_types: Dictionary = {}
+-	var expected_offset: int = 0
+-	for room_ordinal: int in Plan.ROOM_ROW_COUNT:
+-		var room_type_id: int = plan.room_field(room_ordinal, Plan.ROOM_COL_TYPE_ID)
+-		var tile_offset: int = plan.room_field(room_ordinal, Plan.ROOM_COL_TILE_OFFSET)
+-		var tile_count: int = plan.room_field(room_ordinal, Plan.ROOM_COL_TILE_COUNT)
+-		if room_type_id < 0 or room_type_id >= Catalog.ROOM_TYPE.size():
+-			return REFUSE_ROOM_LAYOUT
+-		if seen_types.has(room_type_id):
+-			return REFUSE_ROOM_LAYOUT
+-		seen_types[room_type_id] = true
+-		if tile_count <= 0 or tile_offset != expected_offset:
+-			return REFUSE_ROOM_LAYOUT
+-		if tile_offset + tile_count > Plan.ROOM_TILES_ROW_COUNT:
+-			return REFUSE_ROOM_LAYOUT
+-		expected_offset += tile_count
+-	if expected_offset != Plan.ROOM_TILES_ROW_COUNT:
+-		return REFUSE_ROOM_LAYOUT
+-	var seen_tiles: Dictionary = {}
+-	for tile: int in plan.room_tiles:
+-		if tile < 0 or tile >= MAP_TILES_X * MAP_TILES_Z:
+-			return REFUSE_ROOM_LAYOUT
+-		if seen_tiles.has(tile):
+-			return REFUSE_ROOM_LAYOUT
+-		seen_tiles[tile] = true
+-	return REFUSE_NONE
++static func _check_room_layout(plan: Plan, hall_origin_tile: int) -> StringName:
++	"""The four room runs are contiguous and strictly ascending, and their 80 tiles are
++	exactly the real hall interior of `hall_origin_tile`, each owned exactly once."""
++	if hall_origin_tile < 0:
++		return REFUSE_ROOM_LAYOUT
++	var seen_types: Dictionary = {}
++	var seen_tiles: Dictionary = {}
++	var expected_offset: int = 0
++	for room_ordinal: int in Plan.ROOM_ROW_COUNT:
++		var room_type_id: int = plan.room_field(room_ordinal, Plan.ROOM_COL_TYPE_ID)
++		var tile_offset: int = plan.room_field(room_ordinal, Plan.ROOM_COL_TILE_OFFSET)
++		var tile_count: int = plan.room_field(room_ordinal, Plan.ROOM_COL_TILE_COUNT)
++		if room_type_id < 0 or room_type_id >= Catalog.ROOM_TYPE.size():
++			return REFUSE_ROOM_LAYOUT
++		if seen_types.has(room_type_id):
++			return REFUSE_ROOM_LAYOUT
++		seen_types[room_type_id] = true
++		if tile_count <= 0 or tile_offset != expected_offset:
++			return REFUSE_ROOM_LAYOUT
++		if tile_offset + tile_count > Plan.ROOM_TILES_ROW_COUNT:
++			return REFUSE_ROOM_LAYOUT
++		expected_offset += tile_count
++		var previous_local: int = -1
++		for index: int in tile_count:
++			var global_tile: int = plan.room_tiles[tile_offset + index]
++			if global_tile < 0 or global_tile >= MAP_TILES_X * MAP_TILES_Z:
++				return REFUSE_ROOM_LAYOUT
++			var local_tile: int = _global_to_local(global_tile, hall_origin_tile)
++			if local_tile < 0 or local_tile <= previous_local:
++				return REFUSE_ROOM_LAYOUT
++			if seen_tiles.has(local_tile):
++				return REFUSE_ROOM_LAYOUT
++			seen_tiles[local_tile] = true
++			previous_local = local_tile
++	if expected_offset != Plan.ROOM_TILES_ROW_COUNT:
++		return REFUSE_ROOM_LAYOUT
++	if seen_tiles.size() != INTERIOR_TILE_COUNT:
++		return REFUSE_ROOM_LAYOUT
++	return REFUSE_NONE
++
++
++static func _room_ownership(plan: Plan, hall_origin_tile: int) -> Dictionary:
++	"""Interior-local tile -> owning room ordinal, derived from the plan's own room runs."""
++	var owner: Dictionary = {}
++	for room_ordinal: int in Plan.ROOM_ROW_COUNT:
++		var tile_offset: int = plan.room_field(room_ordinal, Plan.ROOM_COL_TILE_OFFSET)
++		var tile_count: int = plan.room_field(room_ordinal, Plan.ROOM_COL_TILE_COUNT)
++		if tile_offset < 0 or tile_count <= 0:
++			continue
++		if tile_offset + tile_count > Plan.ROOM_TILES_ROW_COUNT:
++			continue
++		for index: int in tile_count:
++			var local_tile: int = _global_to_local(plan.room_tiles[tile_offset + index], hall_origin_tile)
++			if local_tile >= 0:
++				owner[local_tile] = room_ordinal
++	return owner
+ 
+ 
+-static func _check_furniture_layout(plan: Plan) -> StringName:
+-	"""Range/ownership checks, footprint arena bounds and global footprint-tile uniqueness."""
+-	var footprint_used: int = plan.header_field(Plan.HEADER_COL_FOOTPRINT_USED)
+-	if footprint_used != Plan.FOOTPRINTS_ROW_COUNT:
+-		return REFUSE_FURNITURE_LAYOUT
+-	var seen_footprint_tiles: Dictionary = {}
+-	var candidate_used: int = plan.header_field(Plan.HEADER_COL_CANDIDATE_USED)
+-	var accounted_candidates: int = 0
+-	for row: int in Plan.FURNITURE_ROW_COUNT:
+-		var type_id: int = plan.furniture_field(row, Plan.FURNITURE_COL_TYPE_ID)
+-		var room_ordinal: int = plan.furniture_field(row, Plan.FURNITURE_COL_ROOM_ORDINAL)
+-		var origin_local: int = plan.furniture_field(row, Plan.FURNITURE_COL_ORIGIN_LOCAL)
+-		var rotation: int = plan.furniture_field(row, Plan.FURNITURE_COL_ROTATION)
+-		var footprint_offset: int = plan.furniture_field(row, Plan.FURNITURE_COL_FOOTPRINT_OFFSET)
+-		var footprint_count: int = plan.furniture_field(row, Plan.FURNITURE_COL_FOOTPRINT_COUNT)
+-		var candidate_offset: int = plan.furniture_field(row, Plan.FURNITURE_COL_CANDIDATE_OFFSET)
+-		var candidate_count: int = plan.furniture_field(row, Plan.FURNITURE_COL_CANDIDATE_COUNT)
+-		if type_id < 0 or type_id >= BuildingDefinitions.FURNITURE_DEFINITION_COUNT:
+-			return REFUSE_FURNITURE_LAYOUT
+-		if room_ordinal < 0 or room_ordinal >= Plan.ROOM_ROW_COUNT:
+-			return REFUSE_FURNITURE_LAYOUT
+-		if origin_local < 0 or origin_local >= INTERIOR_TILE_COUNT:
+-			return REFUSE_FURNITURE_LAYOUT
+-		if rotation < 0 or rotation > 3:
+-			return REFUSE_FURNITURE_LAYOUT
+-		if footprint_count <= 0 or footprint_offset < 0 \
+-				or footprint_offset + footprint_count > Plan.FOOTPRINTS_ROW_COUNT:
+-			return REFUSE_FURNITURE_LAYOUT
+-		if candidate_count <= 0 or candidate_offset < 0 \
+-				or candidate_offset + candidate_count > Plan.CANDIDATE_ROW_COUNT:
+-			return REFUSE_FURNITURE_LAYOUT
+-		accounted_candidates += candidate_count
+-		for index: int in footprint_count:
+-			var tile: int = plan.footprints[footprint_offset + index]
+-			if tile < 0 or tile >= INTERIOR_TILE_COUNT:
+-				return REFUSE_FURNITURE_LAYOUT
+-			if seen_footprint_tiles.has(tile):
+-				return REFUSE_FURNITURE_LAYOUT
+-			seen_footprint_tiles[tile] = true
+-	if seen_footprint_tiles.size() != Plan.FOOTPRINTS_ROW_COUNT:
+-		return REFUSE_FURNITURE_LAYOUT
+-	if accounted_candidates != candidate_used:
+-		return REFUSE_FURNITURE_LAYOUT
+-	for tail_index in range(candidate_used, Plan.CANDIDATE_ROW_COUNT):
+-		if plan.candidate_access_tiles[tail_index] != Plan.NO_VALUE:
+-			return REFUSE_FURNITURE_LAYOUT
+-	var seen_bed_ordinals: Dictionary = {}
+-	var bed_type_id: int = _catalog_int(Catalog.FURNITURE_DEFINITION, BED_KEY)
+-	for bed_index: int in Plan.BED_ROW_COUNT:
+-		var ordinal: int = plan.bed_furniture_ordinals[bed_index]
+-		if ordinal < 0 or ordinal >= Plan.FURNITURE_ROW_COUNT:
+-			return REFUSE_FURNITURE_LAYOUT
+-		if seen_bed_ordinals.has(ordinal):
+-			return REFUSE_FURNITURE_LAYOUT
+-		seen_bed_ordinals[ordinal] = true
+-		if plan.furniture_field(ordinal, Plan.FURNITURE_COL_TYPE_ID) != bed_type_id:
+-			return REFUSE_FURNITURE_LAYOUT
+-	return REFUSE_NONE
++static func _check_furniture_layout(plan: Plan, hall_origin_tile: int) -> StringName:
++	"""Unique origins, exact catalog footprint runs and real room ownership of every occupied
++	tile. Candidate arena data belongs to the access-candidate gate, not to this one."""
++	if hall_origin_tile < 0:
++		return REFUSE_FURNITURE_LAYOUT
++	if plan.header_field(Plan.HEADER_COL_FOOTPRINT_USED) != Plan.FOOTPRINTS_ROW_COUNT:
++		return REFUSE_FURNITURE_LAYOUT
++	var owner: Dictionary = _room_ownership(plan, hall_origin_tile)
++	if owner.size() != INTERIOR_TILE_COUNT:
++		return REFUSE_FURNITURE_LAYOUT
++	var bed_type_id: int = _catalog_int(Catalog.FURNITURE_DEFINITION, BED_KEY)
++	var seen_origins: Dictionary = {}
++	var seen_tiles: Dictionary = {}
++	var expected_offset: int = 0
++	var bed_count: int = 0
++	for row: int in Plan.FURNITURE_ROW_COUNT:
++		var type_id: int = plan.furniture_field(row, Plan.FURNITURE_COL_TYPE_ID)
++		var room_ordinal: int = plan.furniture_field(row, Plan.FURNITURE_COL_ROOM_ORDINAL)
++		var origin_local: int = plan.furniture_field(row, Plan.FURNITURE_COL_ORIGIN_LOCAL)
++		var rotation: int = plan.furniture_field(row, Plan.FURNITURE_COL_ROTATION)
++		var footprint_offset: int = plan.furniture_field(row, Plan.FURNITURE_COL_FOOTPRINT_OFFSET)
++		var footprint_count: int = plan.furniture_field(row, Plan.FURNITURE_COL_FOOTPRINT_COUNT)
++		if type_id < 0 or type_id >= BuildingDefinitions.FURNITURE_DEFINITION_COUNT:
++			return REFUSE_FURNITURE_LAYOUT
++		if room_ordinal < 0 or room_ordinal >= Plan.ROOM_ROW_COUNT:
++			return REFUSE_FURNITURE_LAYOUT
++		if origin_local < 0 or origin_local >= INTERIOR_TILE_COUNT:
++			return REFUSE_FURNITURE_LAYOUT
++		if rotation < 0 or rotation > 3:
++			return REFUSE_FURNITURE_LAYOUT
++		if seen_origins.has(origin_local):
++			return REFUSE_FURNITURE_LAYOUT
++		seen_origins[origin_local] = true
++		var floor_size: Vector2i = _catalog_furniture_floor(type_id)
++		if floor_size.x <= 0 or floor_size.y <= 0:
++			return REFUSE_FURNITURE_LAYOUT
++		var extent: Vector2i = _building_extent(floor_size.x, floor_size.y, rotation)
++		if footprint_offset != expected_offset:
++			return REFUSE_FURNITURE_LAYOUT
++		if footprint_count != extent.x * extent.y:
++			return REFUSE_FURNITURE_LAYOUT
++		if footprint_offset + footprint_count > Plan.FOOTPRINTS_ROW_COUNT:
++			return REFUSE_FURNITURE_LAYOUT
++		var origin_x: int = origin_local % INTERIOR_WIDTH
++		var origin_z: int = origin_local / INTERIOR_WIDTH
++		if origin_x + extent.x > INTERIOR_WIDTH or origin_z + extent.y > INTERIOR_HEIGHT:
++			return REFUSE_FURNITURE_LAYOUT
++		var write_index: int = footprint_offset
++		for dz: int in extent.y:
++			for dx: int in extent.x:
++				var local_tile: int = (origin_z + dz) * INTERIOR_WIDTH + (origin_x + dx)
++				if plan.footprints[write_index] != local_tile:
++					return REFUSE_FURNITURE_LAYOUT
++				if seen_tiles.has(local_tile):
++					return REFUSE_FURNITURE_LAYOUT
++				seen_tiles[local_tile] = true
++				if not owner.has(local_tile) or int(owner[local_tile]) != room_ordinal:
++					return REFUSE_FURNITURE_LAYOUT
++				write_index += 1
++		expected_offset += footprint_count
++		if type_id == bed_type_id:
++			bed_count += 1
++	if expected_offset != Plan.FOOTPRINTS_ROW_COUNT:
++		return REFUSE_FURNITURE_LAYOUT
++	if seen_tiles.size() != Plan.FOOTPRINTS_ROW_COUNT:
++		return REFUSE_FURNITURE_LAYOUT
++	if bed_count != Plan.BED_ROW_COUNT:
++		return REFUSE_FURNITURE_LAYOUT
++	var previous_ordinal: int = -1
++	for bed_index: int in Plan.BED_ROW_COUNT:
++		var ordinal: int = plan.bed_furniture_ordinals[bed_index]
++		if ordinal < 0 or ordinal >= Plan.FURNITURE_ROW_COUNT:
++			return REFUSE_FURNITURE_LAYOUT
++		if ordinal <= previous_ordinal:
++			return REFUSE_FURNITURE_LAYOUT
++		previous_ordinal = ordinal
++		if plan.furniture_field(ordinal, Plan.FURNITURE_COL_TYPE_ID) != bed_type_id:
++			return REFUSE_FURNITURE_LAYOUT
++	return REFUSE_NONE
+ 
+ 
+ static func _check_edge_layout(plan: Plan) -> StringName:
+@@ -1079,32 +1185,64 @@
+ 	return visited.size() == expected_walk_count
+ 
+ 
+-static func _check_access_candidates(plan: Plan, occupied: Dictionary) -> StringName:
+-	"""Every used candidate tile is a real, unblocked, walkable orthogonal neighbor of a
+-	footprint tile of its own furniture instance."""
+-	for row: int in Plan.FURNITURE_ROW_COUNT:
+-		var footprint_offset: int = plan.furniture_field(row, Plan.FURNITURE_COL_FOOTPRINT_OFFSET)
+-		var footprint_count: int = plan.furniture_field(row, Plan.FURNITURE_COL_FOOTPRINT_COUNT)
+-		var candidate_offset: int = plan.furniture_field(row, Plan.FURNITURE_COL_CANDIDATE_OFFSET)
+-		var candidate_count: int = plan.furniture_field(row, Plan.FURNITURE_COL_CANDIDATE_COUNT)
+-		var footprint_tiles: Array[int] = []
+-		for index: int in footprint_count:
+-			footprint_tiles.append(plan.footprints[footprint_offset + index])
+-		for index: int in candidate_count:
+-			var candidate: int = plan.candidate_access_tiles[candidate_offset + index]
+-			if candidate < 0 or candidate >= INTERIOR_TILE_COUNT:
+-				return REFUSE_ACCESS_CANDIDATES
+-			if occupied.has(candidate):
+-				return REFUSE_ACCESS_CANDIDATES
+-			var reaches_footprint: bool = false
+-			for footprint_tile: int in footprint_tiles:
+-				if _local_neighbors(footprint_tile).has(candidate) \
+-						and not _edge_blocks(plan, footprint_tile, candidate):
+-					reaches_footprint = true
+-					break
+-			if not reaches_footprint:
+-				return REFUSE_ACCESS_CANDIDATES
+-	return REFUSE_NONE
++static func _check_access_candidates(plan: Plan, occupied: Dictionary) -> StringName:
++	"""Each instance owns a contiguous run holding the COMPLETE sorted unique set of its
++	unoccupied orthogonal neighbours across unblocked edges; the unused tail stays -1."""
++	var candidate_used: int = plan.header_field(Plan.HEADER_COL_CANDIDATE_USED)
++	if candidate_used < 0 or candidate_used > Plan.CANDIDATE_ROW_COUNT:
++		return REFUSE_ACCESS_CANDIDATES
++	var expected_offset: int = 0
++	for row: int in Plan.FURNITURE_ROW_COUNT:
++		var footprint_offset: int = plan.furniture_field(row, Plan.FURNITURE_COL_FOOTPRINT_OFFSET)
++		var footprint_count: int = plan.furniture_field(row, Plan.FURNITURE_COL_FOOTPRINT_COUNT)
++		var candidate_offset: int = plan.furniture_field(row, Plan.FURNITURE_COL_CANDIDATE_OFFSET)
++		var candidate_count: int = plan.furniture_field(row, Plan.FURNITURE_COL_CANDIDATE_COUNT)
++		if candidate_offset != expected_offset:
++			return REFUSE_ACCESS_CANDIDATES
++		if candidate_count <= 0 or candidate_count > Plan.CANDIDATE_ROW_COUNT:
++			return REFUSE_ACCESS_CANDIDATES
++		if candidate_offset + candidate_count > Plan.CANDIDATE_ROW_COUNT:
++			return REFUSE_ACCESS_CANDIDATES
++		var expected_tiles: Array[int] = _neighbour_candidates(plan, footprint_offset,
++				footprint_count, occupied)
++		if expected_tiles.size() != candidate_count:
++			return REFUSE_ACCESS_CANDIDATES
++		for index: int in candidate_count:
++			if plan.candidate_access_tiles[candidate_offset + index] != expected_tiles[index]:
++				return REFUSE_ACCESS_CANDIDATES
++		expected_offset += candidate_count
++	if expected_offset != candidate_used:
++		return REFUSE_ACCESS_CANDIDATES
++	for tail_index in range(candidate_used, Plan.CANDIDATE_ROW_COUNT):
++		if plan.candidate_access_tiles[tail_index] != Plan.NO_VALUE:
++			return REFUSE_ACCESS_CANDIDATES
++	return REFUSE_NONE
++
++
++static func _neighbour_candidates(plan: Plan, footprint_offset: int, footprint_count: int,
++		occupied: Dictionary) -> Array[int]:
++	"""The complete sorted unique set of unoccupied tiles orthogonally reachable from one
++	instance's footprint across unblocked edges, open cross-room boundaries included."""
++	var tiles: Array[int] = []
++	if footprint_offset < 0 or footprint_count <= 0:
++		return tiles
++	if footprint_offset + footprint_count > Plan.FOOTPRINTS_ROW_COUNT:
++		return tiles
++	var found: Dictionary = {}
++	for index: int in footprint_count:
++		var footprint_tile: int = plan.footprints[footprint_offset + index]
++		if footprint_tile < 0 or footprint_tile >= INTERIOR_TILE_COUNT:
++			tiles.clear()
++			return tiles
++		for neighbour: int in _local_neighbors(footprint_tile):
++			if occupied.has(neighbour) or found.has(neighbour):
++				continue
++			if _edge_blocks(plan, footprint_tile, neighbour):
++				continue
++			found[neighbour] = true
++			tiles.append(neighbour)
++	tiles.sort()
++	return tiles
+ 
+ 
+ static func _matches_authored_fixture(plan: Plan) -> bool:

@@ -1,0 +1,29 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
+  "task": "Bounded metadata harness acceptance hardening after26-case actual pass",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-metadata-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "paths": [
+    "docs/planning/starter_structures_preparation_contract.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/metadata-test-plan.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd",
+    "tools/test_buildings_metadata_preflights.py",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures_metadata.py",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/metadata-initial.log"
+  ],
+  "allowedWrites": {
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/metadata-harness-hardening.patch": null
+  },
+  "instructions": "Actual initial harness passed26cases424assertions, all observation markers present and no reported invalid executions. Source unchanged. Return a small unified diff patch (not full rewritten harness) as content at the sole allowed output path, baseSha256:null. Its only target is docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures_metadata.py. Hardening required: (1) add a direct assertion plan_refusal(out)==expected_refusal after prepare, including healthy populated output==empty code; current positive fresh-probe-not-SOURCE assertion does not establish this. This adds one assertion per case, giving9for each positive/restored control and18for each fault,450total; pin expected per-case assertion counts. (2) INVALID_MARKERS must also reject generic ERROR: engine failures. Require exactly one valid summary, exactly one observation marker naming the actual case, expected assertion count, one test, zero failures and exit0 before passed. Verify observed static/last/prepared and fault probe/malformed agree with expected values; positive malformed should be STARTER_PLAN_SHAPE. Retain diagnostic output on any failed case, including assertion failures or malformed observations, not just parse errors. (3) Correct introductory documentation: one owned temporary clone reused with restored source bytes, separate cold Godot process per case; not a fresh clone for each case. Preserve all24 faults and26records, real-source byte preservation and no production source modification. No new test scope or bypass. Output patch only within JSON file envelope; no execution claims.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/starter-structures-metadata-a1"
+}

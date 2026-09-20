@@ -1,0 +1,46 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
+  "task": "Independent combined correctness, safety and allocation review of starter preparation",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-source-review",
+    "role": "review",
+    "model": "claude-opus-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "paths": [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "docs/planning/starter_structures_preparation_contract.md",
+    "docs/decisions/0184-prepare-the-authored-refuge-without-fabricating-physical-access.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/layout-reference.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures_focus.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures_metadata.py",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-preload-closure.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-static-checks.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/metadata-test-plan.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-coverage-triage-r02.json",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "godot/scripts/core/int_math.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-coverage-repair.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/functional-coverage-disposition-r02.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/integrated-full-suite.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/metadata-hardened.log",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/metadata-patch-normalization.json",
+    ".github/workflows/tests.yml"
+  ],
+  "allowedWrites": {
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/source-review.md": null
+  },
+  "reviewTarget": {
+    "path": "docs/validation/evidence/starter-integration-planning-2026-09-20/source-review.md",
+    "baseSha256": null
+  },
+  "instructions": "Fresh independent review; you authored none of this candidate. Provide one combined code/correctness/safety and bounded allocation review against INIT-C-PREP-R01v1. Return full review in summary with files:[]; runner materializes the trusted target. State verdict, exact scope, concrete must-fix counterexamples, evidence and remaining limitations. Inspect ten packed arrays2480logicalbytes, one staged Plan only/10COWpublication, no live mutable-owner construction, source metadata/null/shape precedence, bounds before indexing, structural room/furniture/edge ownership, exact independent oracle and final authored gate, candidate completeness/tail, atomic no-output-change on rejection and cleared refusal after success. Structural edge gate permits a shared partition column under actual room ownership, while final exact gate pins authored x4/x5: assess this separation against contract rather than assuming intermediate structurally valid plans are accepted. Check test independence and actual fault harness failures cannot count parse/runtime errors as successful refusal. Functional and metadata execution evidence will be added before dispatch; distinguish code reasoning from execution. Scope is cold preparation only: no startup, physical contact/body fit, room validity, full settlement or save-schema claim. Do not demand those separate tracked dependencies as part of this bounded module. No invented public bypass, new world owner, prototype startup or broad rearchitecture. Preserve material findings even if review is longer than a presentation target. Current functional suite30tests3360assertions0; integrated full5029tests525772assertions0, unchanged baseline shutdown553objects/33resources. Exact metadata result is supplied in metadata-hardened.log; review that actual record rather than assuming expected450assertions. Metadata patch framing was deterministically normalized from seven uniquely matching frozen old/new hunk texts; no semantic edits by integrator. Contract change since authors only clarifies CI workflow integration allowlist. Production and evidence source/test copies are byte-identical; packaging identity will be rechecked before PR. Existing full-suite shutdown diagnostics and full native/RSS qualification remain separate tracked release issues."
+}

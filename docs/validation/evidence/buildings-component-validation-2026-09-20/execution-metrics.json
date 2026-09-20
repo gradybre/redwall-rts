@@ -195,8 +195,15 @@
       "acceptance": "Source/focused acceptance complete; actual integrated/full checks and exact-head CI remain"
     }
   ],
-  "remaining": [
-    "exact-head CI/merge"
-  ],
-  "local_acceptance": "4999tests/522412assertions/0;17static/import;final77metadata;76distinct fault units; independent review closed"
+  "remaining": [],
+  "local_acceptance": "4999tests/522412assertions/0;17static/import;final77metadata;76distinct fault units; independent review closed",
+  "final_acceptance": {
+    "pr": 174,
+    "merge_commit": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
+    "exact_head": "2aba1882e8dfa9428ea7fa33a1216d397272937b",
+    "ci_run": 35514899019,
+    "tests": 4999,
+    "assertions": 522412,
+    "failures": 0
+  }
 }

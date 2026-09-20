@@ -1,0 +1,18 @@
+{
+  "scope": "Owned clone focused candidate execution; not product acceptance",
+  "source_sha256": {
+    "candidate-starter_structures.gd": "462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa",
+    "candidate-test_starter_structures.gd": "4844827637d2e9fb75ec4aa685475c6ca979159ff7abf368569cf2603fe5afbd",
+    "candidate-starter_structures_focus.gd": "9b3c4017314cf0d2bad0be78f4b7deab9e39039e6543d4eec3e4c147c1d127ba"
+  },
+  "exit_code": 1,
+  "seconds": 1.994,
+  "counts": [
+    1,
+    0,
+    2
+  ],
+  "script_or_engine_error": true,
+  "passed": false,
+  "raw_log": "functional-initial.log"
+}

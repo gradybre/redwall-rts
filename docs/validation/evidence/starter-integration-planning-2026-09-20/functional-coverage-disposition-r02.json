@@ -1,0 +1,21 @@
+{
+  "triage": "functional-coverage-triage-r02.json",
+  "test_sha256": "75bfc1c3fd04425e644fbbc1e792ed3418d68467ae6952719677fc7198984185",
+  "resolved": [
+    "TEST-R02-1",
+    "TEST-R02-2",
+    "TEST-R02-3",
+    "TEST-R02-4",
+    "TEST-R02-5",
+    "TEST-R02-6",
+    "TEST-R02-7"
+  ],
+  "evidence": "functional-coverage-repair.json",
+  "counts": [
+    30,
+    3360,
+    0
+  ],
+  "reviewer": "Astra intake, independent code review still required",
+  "remaining": "Metadata fault tests, independent review, full regression currently running, exact-head CI"
+}

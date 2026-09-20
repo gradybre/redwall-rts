@@ -1,0 +1,101 @@
+{
+  "scope": "Source-bound logical memory arithmetic for proposed Construction validator; not native measurement or acceptance",
+  "source_sha256": {
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+    "godot/scripts/core/construction.gd": "78e724618362bfb3dd37945a27be6be1c0a70aa27b59e7bdd300f1c26bdfb5b9",
+    "docs/planning/component_columns_stream_contract.md": "c777f71e566c881b3af784cee54a4b1155983ef4ad8e2777a278ae6ae6c0bfe4"
+  },
+  "fields": [
+    {
+      "ordinal": 0,
+      "key": "_present",
+      "bytes": 82944
+    },
+    {
+      "ordinal": 1,
+      "key": "_material_container_slot",
+      "bytes": 331776
+    },
+    {
+      "ordinal": 2,
+      "key": "_material_container_generation",
+      "bytes": 331776
+    },
+    {
+      "ordinal": 3,
+      "key": "_assigned_count",
+      "bytes": 331776
+    },
+    {
+      "ordinal": 4,
+      "key": "_max_workers",
+      "bytes": 331776
+    },
+    {
+      "ordinal": 5,
+      "key": "_refund_policy",
+      "bytes": 331776
+    },
+    {
+      "ordinal": 6,
+      "key": "_remaining_mwu",
+      "bytes": 663552
+    },
+    {
+      "ordinal": 7,
+      "key": "_paused",
+      "bytes": 82944
+    },
+    {
+      "ordinal": 8,
+      "key": "_work_begun",
+      "bytes": 82944
+    },
+    {
+      "ordinal": 9,
+      "key": "_ref_slot",
+      "bytes": 331776
+    },
+    {
+      "ordinal": 10,
+      "key": "_ref_generation",
+      "bytes": 331776
+    },
+    {
+      "ordinal": 11,
+      "key": "_subject_slot",
+      "bytes": 331776
+    },
+    {
+      "ordinal": 12,
+      "key": "_subject_generation",
+      "bytes": 331776
+    },
+    {
+      "ordinal": 13,
+      "key": "_purpose",
+      "bytes": 331776
+    },
+    {
+      "ordinal": 14,
+      "key": "_type_id",
+      "bytes": 331776
+    },
+    {
+      "ordinal": 15,
+      "key": "_phase",
+      "bytes": 331776
+    }
+  ],
+  "caller_values": 4893696,
+  "largest_field": 663552,
+  "two_field_allowances": 1327104,
+  "three_window_allowances": 196608,
+  "logical_stream_ceiling": 6417408,
+  "borrowed_projection_formula_total": 6417408,
+  "logical_slack": 0,
+  "forbidden_caller_plus_default_image": 9787392,
+  "excess_over_stream_ceiling": 3369984,
+  "remaining": "False-allocation Columns API, actual borrowed adapter allocation discriminator and complete native overhead qualification remain unimplemented.",
+  "budget_authority": "docs/planning/component_columns_stream_contract.md:105"
+}

@@ -1,0 +1,23 @@
+{
+  "scope": "Source-bound terminology/impact note for a future G02 contract; no runtime policy change",
+  "sources": {
+    "godot/scripts/core/spatial_world.gd": "3825788db07885db94dab7288c832b8219f89e54da22d871d58e98e2d590b26b",
+    "godot/scripts/core/navigation.gd": "00f43ec4f4d834fb836c2a72bdc882cb7eddd5d53e596ecd154a4d83f7caacf2",
+    "godot/scripts/core/movement.gd": "152951b44b02fc91e7c164c6a2baf56dec6bc7407f402dfc0df4051d5bfe8f8e"
+  },
+  "findings": [
+    {
+      "source": "spatial_world.gd:60-62,310-315",
+      "fact": "Half-metre cells use512u size and256u center offset; existing center conversion functions directly derive a world position from a cell ID."
+    },
+    {
+      "source": "movement.gd:1310-1315",
+      "fact": "Existing lattice-position admission checks minimum/maximum center bounds and modulus against the256u offset. A root-preserving offset family must keep root position admission distinct from footprint anchor bounds."
+    },
+    {
+      "source": "navigation.gd:762-834,1475-1476",
+      "fact": "PATH-R02 exact-start routing already uses anchor terminology for macro/cache compatibility and publishes actual start paths. Its descriptor/request anchor fields are not an available profile-footprint anchor field to repurpose silently."
+    }
+  ],
+  "consequence": "The future contract must give separate names and semantics to physical footprint anchor, root-containing cell, exact path start and existing macro/cache anchor; preserve PATH-R02 exact-start behavior and saved route versioning."
+}

@@ -1,0 +1,20 @@
+{
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "base_commit": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
+  "allowedWrites": {
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures.gd": "4844827637d2e9fb75ec4aa685475c6ca979159ff7abf368569cf2603fe5afbd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures_focus.gd": "9b3c4017314cf0d2bad0be78f4b7deab9e39039e6543d4eec3e4c147c1d127ba"
+  },
+  "returnedPaths": [
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures_focus.gd"
+  ],
+  "sourceApplied": false,
+  "approval": "not_granted"
+}

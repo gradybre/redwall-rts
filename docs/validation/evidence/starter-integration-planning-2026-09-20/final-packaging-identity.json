@@ -1,0 +1,30 @@
+{
+  "files": [
+    {
+      "installed": "godot/scripts/core/starter_structures.gd",
+      "evidence": "candidate-starter_structures.gd",
+      "sha256": "462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa",
+      "match": true
+    },
+    {
+      "installed": "godot/test/test_starter_structures.gd",
+      "evidence": "candidate-test_starter_structures.gd",
+      "sha256": "8ff3299e4c5644f79985636356a5afefa9edcd372ff0eaee289de63c2e6c1360",
+      "match": true
+    },
+    {
+      "installed": "godot/test/starter_structures_focus.gd",
+      "evidence": "candidate-starter_structures_focus.gd",
+      "sha256": "b82347f7176e1c8158234733ad8b2876163d2c48947f24e6928e93dd1f68178c",
+      "match": true
+    },
+    {
+      "installed": "tools/test_starter_structures_metadata.py",
+      "evidence": "candidate-test_starter_structures_metadata.py",
+      "sha256": "daf155cacef1f0142fea2f0268ccfb13755c24f90893ce62a051761b38bdb831",
+      "match": true
+    }
+  ],
+  "scope": "Working copy identity; commit identity and CI pending",
+  "focus": "functional-final-packaging.json"
+}

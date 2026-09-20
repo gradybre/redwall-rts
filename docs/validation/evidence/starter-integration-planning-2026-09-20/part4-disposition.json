@@ -1,0 +1,17 @@
+{
+  "attempt": "starter-structures-staged-repair-a4",
+  "candidate_sha256": "462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa",
+  "part": "Edges, exits and index safety",
+  "smoke": "1 test, 6 assertions, 0 failures; no script errors",
+  "fixture_identity": "7 immutable comparisons pass",
+  "source_inspection": "Actual endpoint ownership and column/row edge geometry; no early one-door rule; distinct exit ranges/adjacency; metadata+shape+range gates precede indexed reads",
+  "review_note": "Structural edge gate permits one shared partition column; final authored gate pins exact x4/x5. Independent reviewer should confirm separation under contract and coordinated room-layout alternatives. All accepted outputs remain exact authored layout.",
+  "product_acceptance": false,
+  "remaining": [
+    "Independent complete functional suite",
+    "Owned source-metadata fault witnesses",
+    "Preload/allocation closure",
+    "Independent code review",
+    "Integrated full checks and exact-head CI"
+  ]
+}

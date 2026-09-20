@@ -1,0 +1,56 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_starter_probe.gd
+SCRIPT ERROR: Parse Error: Could not find type "StarterStructures" in the current scope.
+          at: GDScript::reload (res://scripts/core/starter_structures.gd:982)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:125)
+              [1] _run_worker (res://test/run_tests.gd:91)
+              [2] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Parse Error: Identifier "StarterStructures" not declared in the current scope.
+          at: GDScript::reload (res://scripts/core/starter_structures.gd:982)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:125)
+              [1] _run_worker (res://test/run_tests.gd:91)
+              [2] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://test/test_starter_probe.gd:0)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:125)
+              [1] _run_worker (res://test/run_tests.gd:91)
+              [2] _initialize (res://test/run_tests.gd:78)
+ERROR: Failed to load script "res://test/test_starter_probe.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _run_suite (res://test/run_tests.gd:125)
+       [1] _run_worker (res://test/run_tests.gd:91)
+       [2] _initialize (res://test/run_tests.gd:78)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_exact_candidate_smoke (res://test/test_starter_probe.gd:4)
+          GDScript backtrace (most recent call first):
+              [0] test_exact_candidate_smoke (res://test/test_starter_probe.gd:4)
+              [1] _run_test (res://test/run_tests.gd:161)
+              [2] _run_suite (res://test/run_tests.gd:138)
+              [3] _run_worker (res://test/run_tests.gd:91)
+              [4] _initialize (res://test/run_tests.gd:78)
+  FAIL  test_exact_candidate_smoke
+        made no assertions (vacuous, or aborted before reaching its first one)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+  FAIL  <test run>
+        3 script error(s) outside any test method
+
+1 test(s), 0 assertion(s), 2 failure(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

@@ -1,0 +1,120 @@
+{
+  "scope": "Read-only source extraction, not accepted domain contract or runtime evidence",
+  "owner": 1,
+  "metadata": {
+    "OWNER_KEYS": "construction",
+    "OWNER_KEY_BYTES": 12,
+    "OWNER_VERSIONS": 1,
+    "OWNER_PRIMARY_COUNTS": 82944,
+    "OWNER_FIELD_COUNTS": 16,
+    "OWNER_FIELD_BEGIN": 29,
+    "OWNER_CHILD_COUNTS": 0,
+    "OWNER_CHILD_BEGIN": 2,
+    "OWNER_OFFSETS": 3298593,
+    "OWNER_PAYLOAD_BYTES": 4893828,
+    "OWNER_BLOCK_BYTES": 4893864
+  },
+  "values": 4893696,
+  "fields": [
+    {
+      "index": 0,
+      "FIELD_KEYS": "_present",
+      "FIELD_TYPES": 0,
+      "FIELD_COUNTS": 82944
+    },
+    {
+      "index": 1,
+      "FIELD_KEYS": "_material_container_slot",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 82944
+    },
+    {
+      "index": 2,
+      "FIELD_KEYS": "_material_container_generation",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 82944
+    },
+    {
+      "index": 3,
+      "FIELD_KEYS": "_assigned_count",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 82944
+    },
+    {
+      "index": 4,
+      "FIELD_KEYS": "_max_workers",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 82944
+    },
+    {
+      "index": 5,
+      "FIELD_KEYS": "_refund_policy",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 82944
+    },
+    {
+      "index": 6,
+      "FIELD_KEYS": "_remaining_mwu",
+      "FIELD_TYPES": 4,
+      "FIELD_COUNTS": 82944
+    },
+    {
+      "index": 7,
+      "FIELD_KEYS": "_paused",
+      "FIELD_TYPES": 0,
+      "FIELD_COUNTS": 82944
+    },
+    {
+      "index": 8,
+      "FIELD_KEYS": "_work_begun",
+      "FIELD_TYPES": 0,
+      "FIELD_COUNTS": 82944
+    },
+    {
+      "index": 9,
+      "FIELD_KEYS": "_ref_slot",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 82944
+    },
+    {
+      "index": 10,
+      "FIELD_KEYS": "_ref_generation",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 82944
+    },
+    {
+      "index": 11,
+      "FIELD_KEYS": "_subject_slot",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 82944
+    },
+    {
+      "index": 12,
+      "FIELD_KEYS": "_subject_generation",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 82944
+    },
+    {
+      "index": 13,
+      "FIELD_KEYS": "_purpose",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 82944
+    },
+    {
+      "index": 14,
+      "FIELD_KEYS": "_type_id",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 82944
+    },
+    {
+      "index": 15,
+      "FIELD_KEYS": "_phase",
+      "FIELD_TYPES": 2,
+      "FIELD_COUNTS": 82944
+    }
+  ],
+  "source_sha256": {
+    "godot/scripts/core/save_component_columns_schema.gd": "3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad",
+    "godot/scripts/core/construction.gd": "78e724618362bfb3dd37945a27be6be1c0a70aa27b59e7bdd300f1c26bdfb5b9"
+  }
+}

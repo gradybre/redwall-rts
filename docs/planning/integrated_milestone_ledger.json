@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated_at": "2026-09-20T13:19:36.780280+00:00",
+  "updated_at": "2026-09-20T16:26:47.135504+00:00",
   "policy_source": "/Users/brendan/Documents/Codex/2026-09-18/help-me-build-out-and-define/skills/loop-engineering/references/efficient-execution.md",
   "policy_sha256": "ec007d1261dcfff0a11b26bd0e1599c94c5350818b11a74f5052b87e983103e9",
   "product_scope": "Complete adopted settlement release; no campaign/battle expansion",
@@ -10,15 +10,15 @@
     "status": "not_accepted",
     "acceptance": "docs/planning/first_playable_acceptance.md",
     "near_term": [
-      "Finish current Buildings exact-source review, fault campaign, actual integration and exact-head CI",
+      "Complete repaired compact refuge plan, independent tests/review and exact-head CI; Buildings validation merged in PR174",
       "Close INIT-C spatial/door/contact preparation and INIT-D goods/equipment contracts from the current source",
       "Develop separately scoped empty-world preparation/boot where authorized; retain INIT-E prior-world replacement dependency on full disk rollback",
       "Finish remaining persistence owner domains and same-file binding/assembly needed for safe replacement"
     ],
     "completion": {
-      "merged_loop_prs": 34,
-      "last_merged_pr": 173,
-      "last_merged_candidate": "2d6f25020e88985b57099db7a0dea0c0a5ae8e56",
+      "merged_loop_prs": 35,
+      "last_merged_pr": 174,
+      "last_merged_candidate": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
       "first_playable_cases_passed": 0,
       "first_playable_cases_executed": 0
     },
@@ -31,17 +31,81 @@
     ]
   },
   "active": {
-    "id": "SAVE-S4-BUILDINGS-VALIDATE",
-    "status": "locally_accepted_pending_exact_head_ci",
-    "local_evidence": "docs/validation/evidence/buildings-component-validation-2026-09-20/",
-    "required_remaining": [
-      "exact-head CI and merge"
-    ]
+    "id": "INIT-C-PREP",
+    "status": "review_approved_packaging_and_ci_pending",
+    "contract": "docs/planning/starter_structures_preparation_contract.md",
+    "evidence": "docs/validation/evidence/starter-integration-planning-2026-09-20/",
+    "scope": "Compact authored plan only, not materialized or admission-qualified settlement",
+    "initial_candidate": "Rejected before integration: compile error, incomplete structural/source validation and extra Plan allocation",
+    "next_gate": "Commit identity and exact-head CI before PR merge",
+    "repair_disposition": "Whole-candidate Sonnet and Opus repairs each reached the 15-minute hard bound without delivering source; both owners stopped, candidate unchanged. Repairs split into compile/allocation, metadata and structural parts. All original acceptance gates retained.",
+    "intermediate_evidence": "All four repair parts passed smoke1test/6assertions/0; exact immutable fixtures unchanged; source inspection sees one staged Plan constructor and10COW publications. Candidate462cda6ade4e7944282d0f9208bc6cef59cc2f57f37d8076e6af57c5ee73e5aa",
+    "integration_evidence": "Candidate module+UID and cold derived registry row integrated on development branch; Godot import and17static checks pass; no startup wiring and no product acceptance",
+    "test_author_disposition": "Final reviewed focus35/3674/0, full5034/526086/0, metadata26/450/0. Independent reviewer approves; exact supplied cosmetic fixes integrated for final focused/CI checks.",
+    "focused_test_evidence": "functional-review-followup.json",
+    "full_regression": {
+      "tests": 5034,
+      "assertions": 526086,
+      "failures": 0,
+      "seconds": 260.958,
+      "evidence": "integrated-review-full-suite.json",
+      "shutdown_diagnostics": "Existing553objects/33resources unchanged",
+      "test_sha256": "e972ab6f12fa80a1c074014064a29b0a2ba7875803a84f0c1464a1fde2d92b17"
+    },
+    "metadata_initial": {
+      "cases": 26,
+      "assertions": 424,
+      "failures": 0,
+      "evidence": "metadata-initial.log",
+      "accepted": false
+    },
+    "metadata_final": {
+      "cases": 26,
+      "assertions": 450,
+      "failures": 0,
+      "invalid_execution": 0,
+      "evidence": "metadata-hardened.log"
+    },
+    "review": {
+      "verdict": "Approve test delta; no new must-fix",
+      "evidence": "source-review-followup.md",
+      "disposition": "source-review-disposition-r02.json",
+      "remaining": "Final cosmetic integration focused check, commit identity and exact-head CI"
+    },
+    "review_followup_initial": {
+      "tests": 32,
+      "assertions": 3675,
+      "failures": 0,
+      "accepted": false,
+      "evidence": "functional-review-initial.json"
+    },
+    "focused_final": {
+      "tests": 35,
+      "assertions": 3674,
+      "failures": 0,
+      "evidence": "functional-review-followup.json"
+    }
   },
   "runner": {
     "current": "CLI-compatible loop-session/worker.mjs invoking installed /Users/brendan/.local/bin/loop-worker",
     "shared_runner": "0.1.2 installed and adopted at stopped boundary",
     "source": "d46467f9d72a66f2080ea1145657271defbe2472",
     "unattended": false
+  },
+  "last_accepted": {
+    "id": "SAVE-S4-BUILDINGS-VALIDATE",
+    "pr": 174,
+    "merge_commit": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
+    "ci_run": 35514899019,
+    "tests": 4999,
+    "assertions": 522412,
+    "failures": 0,
+    "evidence": "docs/validation/evidence/buildings-component-validation-2026-09-20/"
+  },
+  "parallel_work": {
+    "id": "SAVE-S4-CONSTRUCTION-VALIDATE",
+    "status": "source_derived_domain_proposal",
+    "evidence": "docs/validation/evidence/construction-validation-planning-2026-09-20/",
+    "scope": "Planning only; not author dispatched or accepted validator"
   }
 }

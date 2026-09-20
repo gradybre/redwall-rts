@@ -1,0 +1,10 @@
+{
+  "attempt": "starter-structures-opus-repair-a1",
+  "result": "timeout",
+  "elapsed_ms": 900273,
+  "owner_stopped": true,
+  "source_applied": false,
+  "usage": null,
+  "next_action": "Split repair into sequential bounded parts; fresh full relevant context, no reuse of failed continuation",
+  "acceptance": "Initial candidate remains rejected. All seven gaps still required; partial repair is not acceptance."
+}

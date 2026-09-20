@@ -1,0 +1,29 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
+  "task": "Starter repair part2: safe immutable-source metadata validation",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-staged-repair",
+    "role": "author",
+    "model": "claude-opus-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "paths": [
+    "docs/planning/starter_structures_preparation_contract.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/layout-reference.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/author-repair-r01.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/initial-smoke.log",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/opus-repair-disposition.json",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/part1-disposition.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/repair1-smoke.log"
+  ],
+  "allowedWrites": {
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/repair-part2.patch": null
+  },
+  "instructions": "Resume your own latest successful author checkpoint; Part1 was intaken and its actual owned-clone smoke passed 1 test/6 assertions/0 failures; source inspected one Plan.new, COW publication and direct canonical comparison. Repair requirement2 of author-repair-r01.md ONLY: safe and complete source metadata preflight, including the same SOURCE_METADATA gate before source-derived expectations in pure plan_refusal. Preserve part1 and exact contract. Validate expected compiled ascending domains/counts, integer IDs, all required membership, protected ROOM_TYPE and ACTIVE ordinals, fact row TYPE_ARRAY before assignment/indexing, exact 10/4 fields and integer element types, required dimensions/unlock and named field indices. No mutable Definitions construction or new Plan. Leave structural requirements3-7 for the next bounded patch; their acceptance remains required. Return exactly one unified diff repair-part2.patch at the declared path, targeting only candidate-starter_structures.gd, baseSha256 null. Keep focused readable code and avoid long comments. Tests not executed by you; do not claim acceptance. Strict JSON bundle.",
+  "previousPrefix": "/Users/brendan/Documents/Codex/2026-09-19/please-use-astra-loop-engineering-to/loop-session/starter-structures-staged-repair-a1"
+}

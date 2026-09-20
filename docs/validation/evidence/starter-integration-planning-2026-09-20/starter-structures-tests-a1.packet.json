@@ -1,0 +1,31 @@
+{
+  "root": "/Users/brendan/Developer/redwall-rts-loop-2026-09-19",
+  "base_commit": "205e56bc8bed9e9d06ca7abcf77a16629671aecb",
+  "task": "Independent starter refuge preparation functional tests",
+  "scope": {
+    "project": "redwall-rts",
+    "task": "starter-structures-tests",
+    "role": "author",
+    "model": "claude-sonnet-5",
+    "contractEpoch": "INIT-C-PREP-R01v1"
+  },
+  "paths": [
+    "docs/planning/starter_structures_preparation_contract.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/layout-reference.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/test-author-requirements.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures.gd",
+    "godot/test/framework/test_case.gd",
+    "godot/test/run_tests.gd",
+    "godot/scripts/core/catalog.gd",
+    "godot/scripts/core/building_definitions.gd",
+    "godot/scripts/core/int_math.gd",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/test-subclass-reference.md",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/part4-disposition.json",
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/repair4-smoke.log"
+  ],
+  "allowedWrites": {
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-test_starter_structures.gd": null,
+    "docs/validation/evidence/starter-integration-planning-2026-09-20/candidate-starter_structures_focus.gd": null
+  },
+  "instructions": "Author the independent functional test suite specified by test-author-requirements.md. Current candidate will be installed at res://scripts/core/starter_structures.gd in an owned clone. Your test candidate will be installed at res://test/test_starter_structures.gd; focus script must discover exactly that suite. Use the frozen layout-reference.json and explicit contract as independent oracle, materialize expected arrays in test code; do not load repository docs at runtime. Do not change implementation, contract or existing framework. Any revealed defect is a finding, not permission to weaken expectations. All null/shape/index/refusal/nonmutation gates and exact contents plus synthetic graph coverage required. No broad catch treating runtime or parser errors as successful refusal. Return two full source artifacts with declared paths/baseSha256 null using strict JSON bundle. No tests have been executed by you. Keep complete coverage and readable assertions; if blocked return needs_decision with precise contract/interface issue. The implementation is being repaired by an independent Opus author; do not presume acceptance. If real contract violations remain, expose them in tests and report them. This is one bounded author attempt; prioritize exact coverage over long explanatory source comments. All four bounded repair parts are now applied, source inspected, and smoke passes1test/6assertions/0. Immutable fixture identity checks pass. No functional or metadata fault acceptance is yet claimed. Prefer data-driven matrices of genuinely distinct malformed cases and independent all-array expectations, avoiding repetitive boilerplate or commentary. Output only the declared two source artifacts."
+}

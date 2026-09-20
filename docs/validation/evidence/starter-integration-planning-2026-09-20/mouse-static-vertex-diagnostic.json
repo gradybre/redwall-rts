@@ -1,0 +1,39 @@
+{
+  "scope": "Actual static vertex bounds of the existing unskinned mouse asset; no approved profile, continuous sweep, margin, motion, turn, support or production fit qualification",
+  "source": "godot/assets/units/species_mouse_body_a_lod0.glb",
+  "sha256": "6e71d409142efc2b870c800e68961d77b9ebdd72da81711cd330bc4b40a36b9b",
+  "position_vertices": 11103,
+  "node_transform": "single mesh node, identity; no skin/animation",
+  "axis": "glTF +Y up; coordinates read directly from float32 POSITION buffers",
+  "static_min_metres_xyz": [
+    -0.42727145552635193,
+    0.0,
+    -0.20429377257823944
+  ],
+  "static_max_metres_xyz": [
+    0.42727145552635193,
+    1.0,
+    0.20429377257823944
+  ],
+  "static_min_units_xyz_outward": [
+    -438,
+    0,
+    -210
+  ],
+  "static_max_units_xyz_outward": [
+    438,
+    1024,
+    210
+  ],
+  "baseline_offset_units_xz": [
+    256,
+    256
+  ],
+  "translated_static_min_units_xz": [
+    -182,
+    46
+  ],
+  "placement_diagnostic": "At least one translated static minimum is negative; no larger north-west anchored clearance square contains this exact source pose at this offset.",
+  "margin_and_interpolation_error": "Not authored or qualified; zero extra margin used only for a necessary static containment diagnostic",
+  "consequence": "Retain current admission refusal. Do not relocate residents, crop geometry or publish a clearance class from this diagnostic. Use in the reviewed G02 anchor/asset contract."
+}

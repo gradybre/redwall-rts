@@ -1,0 +1,8 @@
+{
+  "attempt": "starter-structures-tests-a1",
+  "code": "BUNDLE_NOT_JSON",
+  "owner_stopped": true,
+  "applied_files": [],
+  "provider_public_output_retained": false,
+  "note": "Provider outcome contains BUNDLE_NOT_JSON and no raw public body; no deterministic content normalization or source recovery was possible. Shared runner explicitly permits same-role invalid_output continuation with its verified context. One bounded format repair requested; do not claim functional evidence."
+}

@@ -267,15 +267,15 @@ are tracked with **Git LFS** — see `.gitattributes`, and confirm a path with
 tracking *before* their first commit — converting existing history later means a
 rewrite.
 
-> Decision 0188's "Tool behaviour discovered" list says `*.glb` is **not**
-> LFS-tracked. That is wrong: `.gitattributes` on master has carried `*.glb` since
-> it was added (a54041f), `git check-attr` reports `filter: lfs` for GLBs under
-> `assets/` and `godot/`, and both committed GLBs are stored as LFS pointers.
+Read `.gitattributes` whole, not through `head` — `*.glb` is line 11, and a
+truncated read once produced the false claim that GLBs are not LFS-tracked.
 
 The Meshy **asset library** is not committed at all: decision 0188 keeps its
 binaries in gitignored `assets/library/` and commits only the ledger — task IDs,
 parameters, credits, prompts and SHA-256 list — in
 `docs/art-reference/asset_library/`. Any file is re-downloadable from its task ID.
+The reason is size: *because* `*.glb` is LFS-tracked, committing the 13.7 GB
+library would charge it against GitHub's 1 GB free LFS tier.
 
 ## Directory layout
 

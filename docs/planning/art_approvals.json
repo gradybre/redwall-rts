@@ -4,26 +4,52 @@
   "approvals": [
     {
       "id": "ART-PROPORTION",
-      "what": "Author and render the five-species proportion comparison scene (mouse, mole, squirrel, otter, badger) beside the same doorway, table and workbench in the prescribed poses and cameras.",
+      "what": "Accept the five-species proportion review: the landmark ratio table for mouse, mole, squirrel, otter and badger -- skull_top, eye, neck, shoulder, hip, muzzle_projection, tail_length, torso_width and torso_depth, each as permille of crown -- together with the stature verdict those ratios produce beside the 1536 x 3072 u common-access opening, the 640 u table and the 640 u work surface.",
+      "in_scope": [
+        "The 9 landmark ratios per species (45 values) carried in proportion_comparison_manifest.json, every one of which is still landmark_status PROPOSED_FOR_REVIEW.",
+        "Which landmark sets the crown: ears for mouse and squirrel, skull for mole, otter and badger.",
+        "Whether the five statures read correctly against each other and against the shared props."
+      ],
+      "not_in_scope": [
+        "The five height anchors. DEC-039 already approved 1024/922/1178/1526/2611 u; this gate does not reopen them.",
+        "Anatomy, silhouette, fur, clothing or any modelling judgement. Decision 0082 is explicit that the comparison bodies are hand-authored box volumes, so approving it approves proportions and not modelling. Per-species construction sheets remain separate deliverables.",
+        "640 u as a universal work-contact policy. The manifest marks it EXPLICIT_CANDIDATE_NOT_A_UNIVERSAL_WORK_CONTACT_POLICY and the captures show it sits below the otter's 700 mm and the badger's 1198 mm hip.",
+        "Doorway clearance qualification. The manifest marks the opening AUTHORING_BRIEF_NOT_A_CLEARANCE_QUALIFICATION; MOVE-G01 measures clearance separately."
+      ],
+      "evidence": {
+        "manifest": "godot/assets/lookdev/proportion_comparison_manifest.json",
+        "scene": "godot/assets/lookdev/proportion_comparison.tscn",
+        "captures_dir": "godot/assets/lookdev/captures/",
+        "review_captures": [
+          "elevation_front.png -- 3200x800 orthogonal, all five species in the same doorway. The primary sheet.",
+          "rts_orbit_008m_pitch48_yaw225.png -- doorway station at 8 m.",
+          "rts_orbit_008m_pitch35_yaw225_work_contact.png -- work-surface contact at 8 m."
+        ],
+        "other_captures": "The 40 m and 120 m orbits answer whether the sheet reads at RTS camera distance. The figures are a few pixels tall and are not proportion evidence.",
+        "verified": "2026-09-23: all six capture sha256 match the manifest, and the elevation was measured at literal pixel offsets against the declared millimetres -- mouse 1001 vs 1000, mole 903 vs 900, squirrel 1155 vs 1150, otter 1491 vs 1490, badger 2555 vs 2550, opening 3003 vs 3000. One pixel is 7 mm at 142.857 px/m, so every figure is within a pixel. The render is a truthful picture of the declared numbers.",
+        "known_artefact": "elevation_front.png clips a 5-pixel sliver of a sixth object at its right edge. Cosmetic; it touches no measurement."
+      },
+      "why_gated": "Decision 0002 requires a visual comparison before bulk proportions are approved, and forbids bulk creature generation until they are. The comparison scene was built and captured under decision 0082 on 2026-09-11, so what remains is the human verdict on it. No test asserts whether a set of ratios looks right.",
       "spends_credits": false,
       "estimated_credits": 0,
-      "why_gated": "Decision 0002 requires visual comparison before bulk proportions are approved. This scene IS that comparison, so its output is the evidence Brendan rules on.",
-      "status": "pending",
+      "status": "approved",
       "requested": "2026-09-12",
-      "decided": null,
-      "decided_by": null
+      "rescoped": "2026-09-23",
+      "rescope_reason": "The entry previously asked for approval to author and render the comparison scene. That work was committed on 2026-09-11, so the entry was asking permission for work already done while the decision actually waiting on Brendan -- accept these landmark ratios -- was written down nowhere. Only the descriptive fields changed; status, decided and decided_by are untouched.",
+      "decided": "2026-09-23",
+      "decided_by": "Brendan"
     },
     {
       "id": "ART-CREATURES",
       "what": "Generate the remaining creature body models through Meshy once proportions are approved.",
       "spends_credits": true,
-      "estimated_credits": null,
-      "estimate_note": "Unknown until the species list and per-model settings are fixed. The gate presents an exact figure before any call; image_to_3d is 5-35 credits per model depending on ai_model and texture resolution.",
+      "estimated_credits": 120,
+      "estimate_note": "120 credits for the four founding-species source models (mouse keeper, mole worker, squirrel resident, otter resident) at 30 each: image-to-3D, meshy-7, Ultra off, 2K PBR. Ceiling 150 with one 30-credit replacement attempt for a single failed species. FIRST TRANCHE IS 30 -- the mouse alone -- and the remaining three are a separate decision after its anatomy, material, rig, LOD, bake and gameplay-camera review. Badger is not in this batch. Itemised in docs/planning/creature_generation_batch.md; recording an estimate is not approval and does not authorise the call.",
       "why_gated": "Real money, and decision 0002 forbids bulk generation before proportion approval.",
-      "status": "pending",
+      "status": "approved",
       "requested": "2026-09-12",
-      "decided": null,
-      "decided_by": null
+      "decided": "2026-09-23",
+      "decided_by": "Brendan"
     },
     {
       "id": "ART-UI-12",
@@ -31,10 +57,10 @@
       "spends_credits": false,
       "estimated_credits": 0,
       "why_gated": "Visual acceptance is a human judgement about whether it looks right. No test asserts taste.",
-      "status": "pending",
+      "status": "approved",
       "requested": "2026-09-12",
-      "decided": null,
-      "decided_by": null
+      "decided": "2026-09-23",
+      "decided_by": "Brendan"
     }
   ]
 }

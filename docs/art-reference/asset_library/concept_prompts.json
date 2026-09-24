@@ -1,0 +1,907 @@
+{
+  "source": "Meshy task names for image-to-image tasks, captured 2026-09-24",
+  "prompts": [
+    {
+      "family": "creature",
+      "key": "mouse_keeper",
+      "task_id": "01a0d59b-6ed5-77e3-a803-484d082d3dff",
+      "model": "nano-banana-pro",
+      "multi_view": true,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png",
+        "assets/library/_reference/style_left_panel_characters.png"
+      ],
+      "prompt": "Character reference sheet of the anthropomorphic MOUSE from the reference, a village keeper: moss-green working dress, oatmeal linen apron, leather belt with small pouch, linen cap. Large round ears, pointed muzzle, chestnut fur, pale muzzle, long thin tail. Strict T-pose: arms straight out horizontally, fingers spread, legs slightly apart, feet flat. Same painted stylized-realistic look and matte cloth/leather as the reference. Plain light grey background, flat even light, no shadows, nothing held, no text. Front, side and back views."
+    },
+    {
+      "family": "creature",
+      "key": "mouse_fieldworker",
+      "task_id": "01a0d59b-7a02-7736-868f-c9292d28fe92",
+      "model": "nano-banana-pro",
+      "multi_view": true,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png",
+        "assets/library/_reference/style_left_panel_characters.png"
+      ],
+      "prompt": "Character reference sheet of an anthropomorphic MOUSE field worker in the reference style: undyed linen tunic, brown wool trousers rolled at the ankle, wide leather belt with two pouches, short hooded cape. Large round ears, pointed muzzle, chestnut fur, pale muzzle, long thin tail. Strict T-pose: arms straight out horizontally, fingers spread, legs slightly apart, feet flat. Painted stylized-realistic look, matte cloth and leather. Plain light grey background, flat even light, no shadows, nothing held, no text. Front, side and back views."
+    },
+    {
+      "family": "creature",
+      "key": "mole_digger",
+      "task_id": "01a0d59b-86e1-7669-a548-b3c301e95364",
+      "model": "nano-banana-pro",
+      "multi_view": true,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png",
+        "assets/library/_reference/style_left_panel_characters.png"
+      ],
+      "prompt": "Character reference sheet of the anthropomorphic MOLE from the reference, a digger: mustard wool waistcoat with buttons, rolled linen sleeves, rust neckerchief, olive trousers, leather belt with pouches. Compact heavy body, high hunched shoulders, velvety dark fur, long pink snout, tiny eyes, broad digging claws, short tail. Strict T-pose: arms straight out horizontally, claws spread, legs apart, feet flat. Painted stylized-realistic look. Plain light grey background, flat even light, no shadows, nothing held, no text. Front, side and back views."
+    },
+    {
+      "family": "creature",
+      "key": "mole_mason",
+      "task_id": "01a0d59b-9427-7394-b5d3-58d61ddf42d4",
+      "model": "nano-banana-pro",
+      "multi_view": true,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png",
+        "assets/library/_reference/style_left_panel_characters.png"
+      ],
+      "prompt": "Character reference sheet of an anthropomorphic MOLE stonemason in the reference style: heavy leather work apron over a grey linen shirt, sleeves rolled, brown knitted cap, patched trousers. Compact heavy body, high hunched shoulders, velvety dark fur, long pink snout, tiny eyes, broad digging claws, short tail. Strict T-pose: arms straight out horizontally, claws spread, legs apart, feet flat. Painted stylized-realistic look. Plain light grey background, flat even light, no shadows, nothing held, no text. Front, side and back views."
+    },
+    {
+      "family": "creature",
+      "key": "squirrel_forester",
+      "task_id": "01a0d59b-a0be-74b9-8057-bfbab2ab01ca",
+      "model": "nano-banana-pro",
+      "multi_view": true,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png",
+        "assets/library/_reference/style_left_panel_characters.png"
+      ],
+      "prompt": "Character reference sheet of an anthropomorphic red SQUIRREL forester in the reference style: short green wool jerkin, laced leather bracers, soft brown hood down on the shoulders, belt with pouch. Slender agile build, tufted ears, russet fur, cream belly, large bushy tail held straight down and back, not curled over the body. Strict T-pose: arms straight out horizontally, fingers spread, legs apart, feet flat. Painted stylized-realistic look. Plain light grey background, flat even light, no shadows, nothing held, no text. Front, side and back views."
+    },
+    {
+      "family": "creature",
+      "key": "squirrel_gatherer",
+      "task_id": "01a0d59b-ad00-7497-805d-ee1d3a794fcc",
+      "model": "nano-banana-pro",
+      "multi_view": true,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png",
+        "assets/library/_reference/style_left_panel_characters.png"
+      ],
+      "prompt": "Character reference sheet of an anthropomorphic red SQUIRREL gatherer in the reference style: ochre linen smock, cross-body leather satchel strap, woven belt, short breeches. Slender agile build, tufted ears, russet fur, cream belly, large bushy tail held straight down and back, not curled over the body. Strict T-pose: arms straight out horizontally, fingers spread, legs apart, feet flat. Painted stylized-realistic look, matte cloth and leather. Plain light grey background, flat even light, no shadows, nothing held, no text. Front, side and back views."
+    },
+    {
+      "family": "creature",
+      "key": "otter_fisher",
+      "task_id": "01a0d59b-b97b-7689-8448-c2cf30ee774d",
+      "model": "nano-banana-pro",
+      "multi_view": true,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png",
+        "assets/library/_reference/style_left_panel_characters.png"
+      ],
+      "prompt": "Character reference sheet of an anthropomorphic river OTTER fisher in the reference style: waxed canvas smock in slate blue, rope belt, trousers rolled to the knee, bare webbed feet. Long streamlined torso, broad flat head, small round ears, sleek brown fur with pale throat, thick tapering tail. Strict T-pose: arms straight out horizontally, webbed fingers spread, legs apart, feet flat. Painted stylized-realistic look. Plain light grey background, flat even light, no shadows, nothing held, no text. Front, side and back views."
+    },
+    {
+      "family": "creature",
+      "key": "otter_boatwright",
+      "task_id": "01a0d59b-c4e1-7323-8542-74ade167d455",
+      "model": "nano-banana-pro",
+      "multi_view": true,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png",
+        "assets/library/_reference/style_left_panel_characters.png"
+      ],
+      "prompt": "Character reference sheet of an anthropomorphic river OTTER boatwright in the reference style: brown leather vest over a cream linen shirt with rolled sleeves, green neckerchief, sturdy canvas trousers, tool belt with empty loops. Long streamlined torso, broad flat head, small round ears, sleek brown fur with pale throat, thick tapering tail. Strict T-pose: arms straight out horizontally, fingers spread, legs apart, feet flat. Painted stylized-realistic look. Plain light grey background, flat even light, no shadows, nothing held, no text. Front, side and back views."
+    },
+    {
+      "family": "creature",
+      "key": "badger_cellarer",
+      "task_id": "01a0d59b-d350-7410-922b-b25b0c3edd72",
+      "model": "nano-banana-pro",
+      "multi_view": true,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png",
+        "assets/library/_reference/style_left_panel_characters.png"
+      ],
+      "prompt": "Character reference sheet of an anthropomorphic BADGER cellarer in the reference style: long brown wool tunic, heavy canvas apron, wide leather belt with iron buckle, rolled sleeves. Massive broad powerful body, black and white striped face, grizzled grey back fur, dark limbs, small ears, short tail. Strict T-pose: arms straight out horizontally, claws spread, legs apart, feet flat. Painted stylized-realistic look, matte cloth and leather. Plain light grey background, flat even light, no shadows, nothing held, no text, no emblems. Front, side and back views."
+    },
+    {
+      "family": "creature",
+      "key": "badger_steward",
+      "task_id": "01a0d59b-df3a-73ec-bb70-da87c482d06a",
+      "model": "nano-banana-pro",
+      "multi_view": true,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png",
+        "assets/library/_reference/style_left_panel_characters.png"
+      ],
+      "prompt": "Character reference sheet of an anthropomorphic BADGER steward in the reference style: long sage-green wool robe belted with rope, short hooded mantle over the shoulders, soft leather boots. Massive broad powerful body, black and white striped face, grizzled grey back fur, dark limbs, small ears, short tail. Strict T-pose: arms straight out horizontally, claws spread, legs apart, feet flat. Painted stylized-realistic look, matte cloth. Plain light grey background, flat even light, no shadows, nothing held, no text, no emblems. Front, side and back views."
+    },
+    {
+      "family": "building",
+      "key": "hall",
+      "task_id": "01a0d59c-31b3-735b-980c-d0d9f55864d9",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A great HALL for a woodland creature village: long two-storey stone and oak-timber hall, steep slate roof, tall arched double doors, stone chimney, small leaded windows, timber buttresses. Single isolated building on a small dirt base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and stone, timber and slate materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "residence",
+      "task_id": "01a0d59c-39f7-7638-b3b0-5999806d5a38",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A RESIDENCE for a woodland creature village: large two-storey cottage of fieldstone and timber framing, slate roof with two dormers, stone chimney, wide front door, shuttered windows, lantern by the door. Single isolated building on a small dirt base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and stone, timber and slate materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "kitchen",
+      "task_id": "01a0d59c-4413-76d9-9d60-5e7bdf108084",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A communal KITCHEN for a woodland creature village: single-storey stone building with a big bread oven bulging from one wall, two chimneys with smoke vents, slate roof, open side hatch with a timber serving counter, herb bundles under the eaves. Single isolated building on a small dirt base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "workbench",
+      "task_id": "01a0d59c-4e94-7769-ab0d-7b85a3b265aa",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A WORKBENCH shelter for a woodland creature village: open-sided timber lean-to on four oak posts with a shingled roof, a heavy plank workbench beneath, a vise, tool rack pegs on the back wall, sawdust on a flagstone floor. Single isolated structure on a small dirt base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "workshop",
+      "task_id": "01a0d59c-5937-760a-b88f-14aa4aeef0c3",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A WORKSHOP for a woodland creature village: single-storey timber-framed building on a stone plinth, wide barn doors open, slate roof, a small forge chimney, stacked planks and a chopping block beside the door. Single isolated building on a small dirt base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and stone, timber and slate materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "mill",
+      "task_id": "01a0d59c-61ca-7589-b6ee-d32e244ac1bd",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A watermill (MILL) for a woodland creature village: tall stone mill house with a large wooden waterwheel on one side over a short stone millrace, slate roof, timber loading door with a hoist beam above. Single isolated building on a small base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and stone, timber and slate materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "infirmary",
+      "task_id": "01a0d59c-6b12-7092-8209-ac553119daeb",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "An INFIRMARY for a woodland creature village: calm single-storey stone house with a long covered porch, whitewashed plaster between timbers, slate roof, many shuttered windows, drying herb bundles and a small herb bed by the door. Single isolated building on a small dirt base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "lookout",
+      "task_id": "01a0d59c-747e-75a3-ad5e-148b03b03a6f",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A LOOKOUT tower for a woodland creature village: tall slender tower of timber posts on a fieldstone base, ladder up the side, square roofed platform at the top with a wooden railing and a small bell. Single isolated structure on a small dirt base, elevated three-quarter view from front-left, entire structure visible top to bottom, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and stone, timber and slate materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "brewery",
+      "task_id": "01a0d59c-7e5e-7017-a654-f23ef63df48f",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A BREWERY for a woodland creature village: stone and timber building with a tall louvred roof vent, a copper kettle visible through a wide open door, oak barrels stacked outside, slate roof, hanging sign bracket with no text. Single isolated building on a small dirt base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "boathouse",
+      "task_id": "01a0d59c-883a-7754-a4c6-7b67c9219622",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A BOATHOUSE for a woodland creature village: timber boathouse on stone footings at a riverbank edge, wide water-facing opening with a small rowing boat inside, shingled roof, short wooden jetty, coiled rope and oars. Single isolated structure on a small base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and timber and slate materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "covered_store",
+      "task_id": "01a0d59c-9142-74a4-88b7-6874222f0629",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A COVERED STORE (granary barn) for a woodland creature village: timber barn raised on mushroom-shaped staddle stones, plank walls, big double doors, thatched-slate roof, sacks and crates at the doorway. Single isolated building on a small dirt base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and timber and slate materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "preserver",
+      "task_id": "01a0d59c-9ac6-725d-9501-858fce986801",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A PRESERVER house for a woodland creature village: stone building for pickling and smoking food, a smokehouse chimney, shelves of clay jars visible through an open door, hanging strings of dried fruit under the eaves, slate roof. Single isolated building on a small dirt base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and stone, timber and slate materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "forester_lodge",
+      "task_id": "01a0d59c-a3b5-7340-b87a-788bf8b9b706",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A FORESTER LODGE for a woodland creature village: sturdy log cabin with a mossy shingled roof, deep porch, stacked split logs along one wall, a saw horse and a chopping stump outside, stone chimney. Single isolated building on a small dirt base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and timber and stone materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "quarry_shed",
+      "task_id": "01a0d59c-af3c-708f-a23d-c9ec96681972",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A QUARRY SHED for a woodland creature village: open-fronted timber shed with a heavy plank roof beside cut stone blocks, a wooden lifting frame with a pulley, rubble and dressed stones stacked on pallets. Single isolated structure on a small rocky base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and stone and timber materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "nursery",
+      "task_id": "01a0d59c-b751-7061-aa9f-d0f877d7150a",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A NURSERY house for a woodland creature village: small cosy stone cottage with rounded doorway, low eaves, window boxes of flowers, a little fenced play yard with a swing hung from a beam, slate roof. Single isolated building on a small dirt base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and stone, timber and slate materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "fisher_shelter",
+      "task_id": "01a0d59c-c0e4-771b-bd29-5c34ae90b1ca",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A FISHER SHELTER for a woodland creature village: small open timber shelter on stilts at a stream edge, reed-thatched roof, drying fish nets hung on poles, a wicker fish trap and a plank platform. Single isolated structure on a small base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and timber materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "dryer",
+      "task_id": "01a0d59c-ca6c-7428-a5d7-7b5d6aa4fda1",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A DRYER for a woodland creature village: tall open timber drying rack frame with a small shingled roof, rows of wooden rails hung with herbs, flax and hides, a stone footing at each post. Single isolated structure on a small dirt base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and timber materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "cellar",
+      "task_id": "01a0d59c-d339-7449-b101-88cb5a3911ee",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A root CELLAR for a woodland creature village: grassy earth mound with a fieldstone arched entrance and a heavy plank door set into it, stone steps leading down, a small vent pipe on top. Single isolated structure on a small dirt base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and stone, timber and grass materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "apiary",
+      "task_id": "01a0d59c-dbb2-7098-ad50-ebe5823fa976",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "An APIARY for a woodland creature village: row of three woven straw bee skeps on a low timber bench under a small shingled shelter, stone base, wildflowers around it. Single isolated structure on a small dirt base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "composter",
+      "task_id": "01a0d59c-e62d-70bc-9b4e-297f9f5f8e19",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A COMPOSTER for a woodland creature village: three-bay compost bin of weathered wooden slats with a hinged lid on one bay, dark compost and vegetable scraps showing, a pitchfork leaning on it. Single isolated structure on a small dirt base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and timber materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "well",
+      "task_id": "01a0d59c-ee27-71dd-9dbe-d76f8712d77b",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A stone WELL for a woodland creature village, like the one in the reference: round fieldstone well with a small shingled roof on two timber posts, a crank winch, rope and a wooden bucket. Single isolated structure on a small cobbled base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and stone and timber materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "open_stockpile",
+      "task_id": "01a0d59c-f8b5-76d7-b3a2-bd5ff8f55970",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "An OPEN STOCKPILE yard for a woodland creature village: low square timber-edged platform on the ground with corner posts, holding neat piles of sacks, crates, split logs and stacked stone blocks. Single isolated structure on a small dirt base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "memorial_garden",
+      "task_id": "01a0d59d-018e-73ef-8284-59bf793634dc",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A MEMORIAL GARDEN for a woodland creature village: small square garden enclosed by a low mossy stone wall, a weathered standing stone at the centre with no carving, a stone bench, flower beds and a young tree. Single isolated structure on a small base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and stone and plant materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "saltpan",
+      "task_id": "01a0d59d-09fa-711a-b490-a56a41c0542f",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A SALTPAN for a woodland creature village: shallow rectangular evaporation pans edged with low clay and stone walls, white salt crust in some pans and brine in others, a wooden rake and a small plank walkway. Single isolated structure on a small base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "weir",
+      "task_id": "01a0d59d-13f2-700c-9dc3-8458b451684f",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small WEIR for a woodland creature village: low timber and stone dam across a narrow stream, a wooden sluice gate with a wheel, water spilling over a stone lip. Single isolated structure on a small base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and stone and timber materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "fence",
+      "task_id": "01a0d59d-1cdc-740a-b0e8-4ce95bbcbd7e",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A straight modular section of rustic wooden FENCE for a woodland creature village, like the one in the reference: two split-rail posts with three horizontal rails, weathered grey-brown wood, short grass at the base. Single isolated fence section, elevated three-quarter view from front-left, entire piece visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and timber materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "stone_wall",
+      "task_id": "01a0d59d-3cd0-76ce-bc0f-28c08af331a4",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A straight modular section of dry-stone WALL for a woodland creature village, like the low wall in the reference: rounded fieldstones stacked without mortar, flat capstones on top, moss in the joints, square ends so sections can join. Single isolated wall section, elevated three-quarter view from front-left, entire piece visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and stone materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "gate",
+      "task_id": "01a0d59d-43c0-773b-a007-9279f912aa1f",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A village GATE for a woodland creature village: sturdy timber gateway with two squared oak posts on stone footings, a small shingled roof beam across the top, and closed plank double gates with iron strap hinges. Single isolated structure on a small dirt base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and timber and stone materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "basket",
+      "task_id": "01a0d5a1-3cdd-70c9-b261-b738065f8fc5",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single woven wicker carry basket with a bent-wood handle, empty, warm straw colour. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "log_stack",
+      "task_id": "01a0d5a1-444f-768d-9bb5-f5214a21a885",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A neat stack of split firewood logs, like the log pile beside the cottage in the reference, cut ends showing pale rings, bark on the outer faces. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "sack_pile",
+      "task_id": "01a0d5a1-4be0-7447-ba6e-2e5b6671df69",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small heap of tied burlap grain sacks piled on a low wooden pallet. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and matte cloth and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "table_stools",
+      "task_id": "01a0d5a1-53d7-74ec-bf67-4bac5ee357f2",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A rustic plank table with two three-legged stools, like the outdoor table in the reference, bare tabletop, worn oak. One isolated game prop set, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "hearth",
+      "task_id": "01a0d5a1-77cf-7405-a48f-321aa7f52e9c",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A cottage hearth: open fieldstone fireplace with a heavy timber mantel beam, an iron cooking pot on a hook, glowing embers and a few logs. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and stone and iron materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "wall_lantern",
+      "task_id": "01a0d5a1-7e06-761d-ac11-6309a93f4489",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A wrought-iron wall lantern on a curled bracket, like the lanterns by the cottage door in the reference, glass panes with a lit candle inside. One isolated game prop, side three-quarter view, whole object visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look and iron materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "spade",
+      "task_id": "01a0d5a1-83e0-7553-8197-bbfc1f7738f8",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_left_panel_characters.png"
+      ],
+      "prompt": "The iron spade from the reference on its own: worn iron blade, ash-wood shaft, D-shaped wooden grip. One isolated game prop lying flat, seen from above at an angle, whole object visible, plain light grey background, flat even light, no characters, no hands, no text. Same painted stylized-realistic look and iron and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "axe",
+      "task_id": "01a0d5a1-8b5c-7424-a6e5-19927df00d81",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A woodcutter's felling axe: iron axe head, long curved ash handle, leather wrap at the grip. One isolated game prop lying flat, seen from above at an angle, whole object visible, plain light grey background, flat even light, no characters, no hands, no text. Same painted stylized-realistic look and iron and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "hoe",
+      "task_id": "01a0d5a1-91af-76b9-afc2-54e05237cf51",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A garden hoe: flat iron blade set at a right angle on a long wooden handle. One isolated game prop lying flat, seen from above at an angle, whole object visible, plain light grey background, flat even light, no characters, no hands, no text. Same painted stylized-realistic look and iron and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "sickle",
+      "task_id": "01a0d5a1-97c7-7075-bb85-6fa224bf2f15",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A harvest sickle: curved iron blade with a short turned wooden handle. One isolated game prop lying flat, seen from above at an angle, whole object visible, plain light grey background, flat even light, no characters, no hands, no text. Same painted stylized-realistic look and iron and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "fish_creel",
+      "task_id": "01a0d5a1-c4b4-7628-8ebb-ae09d4e5b8ef",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A woven wicker fishing creel with a hinged lid and a leather shoulder strap. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "barrel",
+      "task_id": "01a0d5a1-cbb5-7554-bf34-d1bd73a38135",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "An oak barrel with iron hoops and a closed lid, like the barrels in the reference. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood and iron materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "crate",
+      "task_id": "01a0d5a1-d2c2-70ae-8dcc-883249a8fe30",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A closed wooden storage crate of rough nailed planks with rope handles. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "wheelbarrow",
+      "task_id": "01a0d5a1-da8e-7069-995a-d1bb311ca55e",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "An empty wooden wheelbarrow with a spoked wooden wheel, plank tray and two long handles. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood and iron materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "handcart",
+      "task_id": "01a0d5a1-e187-779b-a7fb-97f1ca27df64",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "An empty two-wheeled wooden hand cart with slatted sides and a pull bar. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood and iron materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "bed",
+      "task_id": "01a0d5a1-ea94-75bd-a0f8-a512b38a6b09",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A simple cottage bed: low wooden frame, straw-stuffed linen mattress, a folded patchwork wool blanket and a pillow. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and cloth and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "cauldron_tripod",
+      "task_id": "01a0d5a1-f1ae-77b7-9f68-b4bf408fe6eb",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "An iron cooking cauldron hanging from a wooden tripod over a ring of stones with unlit logs. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and iron, stone and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "water_bucket",
+      "task_id": "01a0d5a1-f921-769a-a0c4-6627742d97b3",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A wooden water bucket with iron bands and a rope handle, empty. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood and iron materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "clay_jars",
+      "task_id": "01a0d5a2-0153-7247-b503-8940c4a91fdf",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A group of three glazed clay storage jars of different sizes with cloth-tied tops, like the pots on the table in the reference. One isolated game prop group, three-quarter view from slightly above, whole group visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "pantry_shelf",
+      "task_id": "01a0d5a2-08c1-709c-ab57-4ec449a8b3b2",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A freestanding wooden pantry shelf unit with three plank shelves holding a few clay pots, a cheese round and bundled herbs. One isolated game prop, three-quarter front view, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "oak_mature",
+      "task_id": "01a0d5a2-b166-714d-b27a-abab90ada22b",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single mature English oak tree like the one in the reference: thick gnarled trunk, broad rounded canopy of grouped leaf masses, visible roots at the base. One isolated game asset, three-quarter view from slightly above, whole tree visible top to roots, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "beech_mature",
+      "task_id": "01a0d5a2-b78c-753c-aa53-70d248350739",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single mature beech tree: smooth silver-grey trunk, tall domed canopy of grouped bright-green leaf masses. One isolated game asset, three-quarter view from slightly above, whole tree visible top to roots, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "birch_mature",
+      "task_id": "01a0d5a2-bf4c-74cf-be8d-6809eede8afa",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single mature silver birch tree: slender white trunk with dark bark marks, light airy canopy of small grouped leaf masses. One isolated game asset, three-quarter view from slightly above, whole tree visible top to roots, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "apple_mature",
+      "task_id": "01a0d5a2-c7e8-74f2-98af-eefefd704cac",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single old orchard apple tree: short crooked trunk, low wide spreading boughs, rounded canopy dotted with russet-red apples. One isolated game asset, three-quarter view from slightly above, whole tree visible top to roots, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "oak_stump_fresh",
+      "task_id": "01a0d5a2-d035-71fd-b9d2-9d7a42f6246c",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A freshly felled oak tree stump with a flat pale saw-cut top showing growth rings, rough bark sides and spreading roots, like the stump in the reference. One isolated game asset, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no axe, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "stump_mossy",
+      "task_id": "01a0d5a2-d7eb-72cf-aff0-1fa7067fe22c",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "An old weathered tree stump, grey and cracked on top, covered in moss with a few small mushrooms and fern shoots at the base. One isolated game asset, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "oak_sapling",
+      "task_id": "01a0d5a2-e06e-7144-b3b9-bb766314b953",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A young oak sapling: thin straight stem, a few small branches with lobed oak leaves, tied to a short wooden support stake. One isolated game asset, three-quarter view from slightly above, whole plant visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "birch_sapling",
+      "task_id": "01a0d5a2-e838-720d-869a-4253e70da6dd",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A young birch sapling: slender white stem, a light spray of small green leaves, a little mound of soil at the base. One isolated game asset, three-quarter view from slightly above, whole plant visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "crop_beans_ripe",
+      "task_id": "01a0d5a3-1a0f-7604-bf4f-4c5fa971178d",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A square 2 by 2 metre garden plot of ripe climbing bean plants on a row of hazel pole teepees, green pods hanging, dark tilled soil edged with a low timber board. One isolated game asset tile, three-quarter view from above, whole plot visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the vegetable beds in the reference."
+    },
+    {
+      "family": "environment",
+      "key": "crop_cabbage_ripe",
+      "task_id": "01a0d5a3-21ef-7517-a6b6-c995c878b702",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A square 2 by 2 metre garden plot of ripe cabbages in neat rows, big round blue-green heads, dark tilled soil edged with a low timber board. One isolated game asset tile, three-quarter view from above, whole plot visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the vegetable beds in the reference."
+    },
+    {
+      "family": "environment",
+      "key": "crop_flax_ripe",
+      "task_id": "01a0d5a3-2a43-75d8-8f07-ac25e2e09020",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A square 2 by 2 metre field plot of ripe flax: dense upright golden-green stems topped with round seed bolls, tilled soil edged with a low timber board. One isolated game asset tile, three-quarter view from above, whole plot visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "crop_grain_ripe",
+      "task_id": "01a0d5a3-3195-75be-a75e-cac6d23a2085",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A square 2 by 2 metre field plot of ripe golden wheat, dense heavy seed heads, tilled soil edged with a low timber board. One isolated game asset tile, three-quarter view from above, whole plot visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "crop_roots_ripe",
+      "task_id": "01a0d5a3-3a4a-7015-8953-9e9b592d2d79",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A square 2 by 2 metre garden plot of ripe root vegetables: rows of leafy carrot and turnip tops with orange and purple roots just showing above dark tilled soil, edged with a low timber board. One isolated game asset tile, three-quarter view from above, whole plot visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "fern_clump",
+      "task_id": "01a0d5a3-5e5a-7061-a3e8-2c053b544f5c",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A lush clump of woodland ferns like those in the reference, arching fronds from one crown, a little leaf litter at the base. One isolated game asset, three-quarter view from slightly above, whole plant visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "grass_tuft",
+      "task_id": "01a0d5a3-a280-76bb-8d55-ae1241be9a93",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A tuft of wild meadow grass with a few seed heads, grouped into chunky blade clusters rather than thin strands. One isolated game asset, three-quarter view from slightly above, whole tuft visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "wildflower_patch",
+      "task_id": "01a0d5a3-a9bd-75de-83d8-a4ebc868cea8",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small patch of wildflowers and herbs: foxgloves, daisies, yarrow and clover in a low mound of leaves. One isolated game asset, three-quarter view from slightly above, whole patch visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "bramble",
+      "task_id": "01a0d5a3-afc9-770d-836c-93e2e29a938c",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A rounded bramble bush with arching thorny canes, dark green leaves and clusters of ripe blackberries. One isolated game asset, three-quarter view from slightly above, whole bush visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "reeds",
+      "task_id": "01a0d5a3-c0fd-77f3-a4f3-48b3e8a15b73",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A clump of riverbank reeds and bulrushes with brown cattail heads, rising from a small patch of wet mud. One isolated game asset, three-quarter view from slightly above, whole clump visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "mushroom_cluster",
+      "task_id": "01a0d5a3-c89a-7379-b890-029116ddc47b",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A cluster of woodland mushrooms: brown caps of different sizes growing from moss and leaf litter. One isolated game asset, three-quarter view from slightly above, whole cluster visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "mossy_boulder",
+      "task_id": "01a0d5a3-f4d6-734d-85d7-7d0f4ae0e199",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A large rounded granite boulder with moss on its top and a few ferns at its base, like the rocks in the reference. One isolated game asset, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "rock_cluster",
+      "task_id": "01a0d5a3-fc9d-7263-946c-0269e45bf13f",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small cluster of five weathered grey fieldstones of mixed sizes half-sunk in soil with grass between them. One isolated game asset, three-quarter view from slightly above, whole cluster visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "fallen_log",
+      "task_id": "01a0d5a4-0486-74b1-941b-f57723d140b2",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A fallen mossy log lying on the ground, broken bark, a hollow end, small ferns and mushrooms growing along it. One isolated game asset, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "creature",
+      "key": "badger_quarryman",
+      "task_id": "01a0d5b7-afce-7691-adb2-bf941d240a2f",
+      "model": "nano-banana-pro",
+      "multi_view": true,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png",
+        "assets/library/_reference/style_left_panel_characters.png"
+      ],
+      "prompt": "Character sheet of an anthropomorphic BADGER quarryman in the reference style: sleeveless leather jerkin over a linen shirt, rolled sleeves, sturdy brown trousers, wide belt, legs and feet clearly visible and separate. Massive broad body, black and white striped face, grizzled grey back, dark limbs, short tail. Strict T-pose: arms straight out horizontally, claws spread, legs apart. Plain light grey background, flat even light, nothing held, no text. Front, side and back views."
+    }
+  ]
+}

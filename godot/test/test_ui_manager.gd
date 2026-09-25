@@ -434,6 +434,31 @@ func test_a_generated_world_is_populated_and_beds_stay_unpopulated() -> void:
 	SettlementSystem.reset()
 
 
+func test_create_stands_the_cohort_exactly_where_boot_stands_it() -> void:
+	"""Create must place §5.1's twelve, and place them where booting does, byte for byte.
+
+	`living_count() == 12` above proved the residents EXIST after Create. It never asked whether
+	anyone was STANDING anywhere, and nobody was: INIT-POSE-R01 added the apron placement to the
+	boot transaction only, so Create left twelve living residents with no pose and the crowd
+	skipped every one of them. The Cycle-3 HUD captures show an empty field for that reason.
+
+	The expectation is not the authored constants -- that would agree with the placement code by
+	construction. It is the OTHER path's whole pose store: boot and Create are two routes to one
+	§5.1 initialization, so their Transform images must be identical.
+	"""
+	assert_true(SettlementSystem.create_generated_settlement(EconomySystem.definitions()),
+		"boot's own transaction succeeds: %s" % SettlementSystem.last_refusal())
+	assert_equal(SettlementSystem.transforms().bound_count(), 12, "boot stands all twelve")
+	var booted: PackedByteArray = SettlementSystem.transforms().state_bytes()
+	SettlementSystem.reset()
+	assert_true(_ui.create_world(), "Create succeeds: %s" % _ui.world_session().last_refusal())
+	assert_equal(SettlementSystem.transforms().bound_count(), 12,
+		"Create stands all twelve, not twelve living residents with nowhere to stand")
+	assert_true(SettlementSystem.transforms().state_bytes() == booted,
+		"and the pose store Create leaves is byte-identical to the one booting leaves")
+	SettlementSystem.reset()
+
+
 func test_the_generation_report_reaches_the_player_with_its_own_counts() -> void:
 	"""The player is told what was made, in the generator's own figures."""
 	_ui.register_hud(_hud)

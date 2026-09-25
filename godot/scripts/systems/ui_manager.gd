@@ -219,7 +219,7 @@ func create_world() -> bool:
 		SettlementSystem.ecology().fishing(), SettlementSystem.rng(),
 		SettlementSystem.crop_weather().farming(), SettlementSystem.ecology().orchard_hive(),
 		SettlementSystem.jobs(), SettlementSystem.commands(), report,
-		SettlementSystem.reset, SettlementSystem.create_initial_settlement)
+		SettlementSystem.reset, SettlementSystem.create_placed_cohort_on)
 	if not ok and report.error == UiWorldSession.REFUSE_COHORT:
 		report.error = SettlementSystem.last_refusal()
 	_report_generation(ok, report)

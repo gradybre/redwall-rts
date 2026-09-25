@@ -104,7 +104,15 @@ def main():
     states = {t['id']: t['status'] for t in q['tasks']}
     assert states.get('BASELINE-INTEGRATION') == 'done', states.get('BASELINE-INTEGRATION')
     assert 'SAVE-CAPTURE' not in planned
-    assert 'ART-CREATURES' not in planned and 'ART-UI-12' not in planned
+    # The art gates are the same kind of snapshot. Cycle 1 pinned ART-CREATURES and ART-UI-12 out
+    # of the plan because neither was approved then; the pin fails the day Brendan approves
+    # them, which is the gate working. The durable invariant is how an art task gets in:
+    # every planned brendan_art task must name an approval that a human signed and dated.
+    signed = {a['id'] for a in approvals['approvals']
+              if a['status'] == 'approved' and a.get('decided_by') and a.get('decided')}
+    for t in q['tasks']:
+        if t['id'] in planned and t.get('gate') == 'brendan_art':
+            assert t.get('approval_id') in signed, (t['id'], t.get('approval_id'))
     text=(ROOT/'docs/rulings/requests/OPEN.md').read_text()
     for i in items['items']:assert text.count(f'id="{i["anchor"]}"')==1
     packet=(ROOT/'docs/planning/review_packet.md').read_text()

@@ -94,7 +94,15 @@ def main():
     # format constant, and freezing one refuses every later landing.
     check(tasks['PACKET-EVIDENCE']['status'] in ('review','done') and tasks['PACKET-EVIDENCE']['pr']==117)
     check(tasks['ART-UI-12-EVIDENCE']['status'] in ('review','done') and tasks['ART-UI-12-EVIDENCE']['pr']==118)
-    check(not any(a['status']=='approved' for a in json.loads((ROOT/'docs/planning/art_approvals.json').read_text())['approvals']))
+    # Cycle 2 must not INFER a visual approval. That is a rule about how an approval is
+    # RECORDED, not a count of how many exist. The old form pinned 'none are approved',
+    # so the first real human decision would have broken CI -- the same world-snapshot
+    # bug that left validate_cycle01_handoff failing unnoticed for two cycles. An
+    # approval is legitimate iff a named human and a date stand against it, and neither
+    # is something an agent can supply.
+    for a in json.loads((ROOT/'docs/planning/art_approvals.json').read_text())['approvals']:
+        check(a['status'] in ('pending','approved','denied'))
+        check(a['status']!='approved' or (bool(a.get('decided_by')) and bool(a.get('decided'))))
     print(f'PASS Cycle 2 contract fixtures: {CHECKS} checks; projection, allocator, fit, gate and handoff cases.')
     print('No production codec, body measurement, movement admission, visual approval or save-continuation result is inferred.')
 if __name__=='__main__':main()

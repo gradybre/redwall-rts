@@ -329,6 +329,11 @@ func create_with_cohort_into(directory: EntityDirectoryScript, nodes: ResourceNo
 	This session still owns the published map, the attempt report and the generator's own
 	refusal codes. Delegating the whole operation to `SettlementSystem` was tried and reverted
 	because it lost all three; the caller supplies its reset and cohort as Callables instead.
+
+	`cohort` RECEIVES THE PREPARED WORLD. INIT-POSE-R01 places the twelve against the prepared
+	plan before publication, and this session's `_world` is that plan; a cohort callable that
+	could not see it could create residents but never stand them anywhere, which is what
+	Create did until the placement was given the world it must be proved against.
 	"""
 	out.reset()
 	if not can_create():
@@ -352,7 +357,7 @@ func create_with_cohort_into(directory: EntityDirectoryScript, nodes: ResourceNo
 	if seeded != REFUSE_NONE:
 		_world.discard_prepared_plan()
 		return _report_refusal(out, seeded, "the prepared world could not seed its streams")
-	if not cohort.call():
+	if not cohort.call(_world):
 		_world.discard_prepared_plan()
 		return _report_refusal(out, REFUSE_COHORT,
 			"the world was prepared but its cohort could not be allocated")

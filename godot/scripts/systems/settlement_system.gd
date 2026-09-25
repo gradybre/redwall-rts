@@ -1213,7 +1213,37 @@ func create_initial_settlement() -> bool:
 
 # --- INIT-POSE-R01: the authored starter placement ---------------------------------------------
 
+func create_placed_cohort_on(world: WorldInitScript) -> bool:
+	"""Spawn §5.1's cohort AND stand it on the apron of `world`'s prepared plan. All or nothing.
+
+	THE CREATE BUTTON'S COHORT STEP. `UiWorldSession` prepares its own WorldInit and hands it
+	here between its seed and its publish, which is exactly where the boot transaction places.
+	Before this existed Create called `create_initial_settlement()` alone: INIT-POSE-R01's
+	placement lived only in `_run_initialization_transaction()`, so Create left twelve living
+	residents with no pose and the crowd drew none of them. Boot and Create now share ONE
+	placement body; only the world it is proved against differs.
+
+	A placement refusal empties the settlement, as a cohort refusal does, with its code kept.
+	"""
+	if not create_initial_settlement():
+		return false
+	if _place_initial_cohort_on(world):
+		return true
+	var code: StringName = _last_refusal
+	reset()
+	_last_refusal = code
+	return false
+
+
 func _place_initial_cohort() -> bool:
+	"""The boot transaction's placement: this settlement's own prepared world.
+
+	Kept as its own method because the suite overrides it to observe the instant of placement.
+	"""
+	return _place_initial_cohort_on(_world)
+
+
+func _place_initial_cohort_on(world: WorldInitScript) -> bool:
 	"""Stand §5.1's twelve on the hall's south apron, inside the generation transaction.
 
 	VALIDATE EVERYTHING FIRST, THEN PLACE. The ruling is explicit that a failure on resident
@@ -1225,7 +1255,7 @@ func _place_initial_cohort() -> bool:
 	`publish_prepared()` creates a single world entity -- so the ground it proves clear is the
 	ground the world is about to be published onto.
 	"""
-	var code: StringName = _refuse_assembly_row()
+	var code: StringName = _refuse_assembly_row_on(world)
 	if code != REFUSE_NONE:
 		return _refuse(code)
 	for index: int in ASSEMBLY_COHORT_SIZE:
@@ -1246,9 +1276,9 @@ static func assembly_tile_index(index: int) -> int:
 	return ASSEMBLY_FIRST_TILE_INDEX + index
 
 
-func _refuse_assembly_row() -> StringName:
-	"""Every INIT-POSE-R01 input, decided before the first write. Returns REFUSE_NONE when clear."""
-	if not _world.has_prepared_plan():
+func _refuse_assembly_row_on(world: WorldInitScript) -> StringName:
+	"""Every INIT-POSE-R01 input against `world`, decided before the first write."""
+	if world == null or not world.has_prepared_plan():
 		return REFUSE_POSE_NO_PLAN
 	var identities: StringName = _resolve_assembly_slots()
 	if identities != REFUSE_NONE:
@@ -1256,7 +1286,7 @@ func _refuse_assembly_row() -> StringName:
 	var ground: StringName = _refuse_assembly_ground()
 	if ground != REFUSE_NONE:
 		return ground
-	return refuse_assembly_occupancy(_world)
+	return refuse_assembly_occupancy(world)
 
 
 static func resolve_assembly_order_into(residents: ResidentsScript,

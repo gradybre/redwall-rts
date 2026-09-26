@@ -12,6 +12,8 @@ NEGATIVE TESTS COME FIRST AND OUTNUMBER THE POSITIVE ONES:
   N06  a joint whose inverse bind disagrees with the node hierarchy is caught by
        verify_bind -- the check that keeps the chain's two halves honest.
   N07  a mesh with two primitives refuses rather than half-rigging it.
+  N08  a chain with more segments than the tail has surface for refuses: an empty segment
+       has no radius to measure, and a guessed one is what let fur sink through the ground.
 
 THE FIXTURE REPRODUCES EACH REAL DEFECT FOUND ON 2026-09-26:
   * the tail is bound to a THIGH (LeftUpLeg), as Meshy bound the squirrel gatherer's;
@@ -193,8 +195,16 @@ def test_n04_no_hips_refuses() -> None:
 
 def test_n05_the_socket_reserve_is_kept() -> None:
 	"""2 joints + 60 tail bones would leave no room for socket_main/off/head within 64."""
-	plan, sha = _plan(_glb(), bones=60)
+	plan, sha = _plan(_glb())
+	plan["bones"] = 60
+	plan["stations"] = (plan["stations"] * 8)[:60]
+	plan["radii"] = [0.01] * 60
 	_refuses("N05 chain that eats the socket reserve refuses", lambda: tail.rig_file(_glb(), plan, sha))
+
+
+def test_n08_a_chain_longer_than_its_tail_refuses() -> None:
+	"""60 segments on a 25-vertex tail leaves segments with no surface to measure a radius from."""
+	_refuses("N08 a segment with no vertices refuses", lambda: _plan(_glb(), bones=60))
 
 
 def test_n06_verify_bind_catches_a_moved_joint() -> None:
@@ -257,6 +267,17 @@ def test_weights_cut_the_thigh_and_blend_at_the_root() -> None:
 	check("the root vertices blend from Hips", all(w(v, "Hips") > 0.0 for v in roles["root"]))
 	check("the tip vertices are entirely tail_07", all(abs(w(v, "tail_07") - 1.0) < 1e-6 for v in roles["tip"]))
 	check("the body keeps its Hips binding", all(w(v, "Hips") == 1.0 for v in roles["body"]))
+
+
+def test_each_joint_carries_its_measured_radius() -> None:
+	"""Each segment's surface radius, stored on the node: 5 mm for the strip, wider where the fringe is."""
+	plan, sha = _plan(_glb())
+	doc, _ = read_glb(tail.rig_file(_glb(), plan, sha)[0])
+	radii = [n["extras"]["spring_radius_m"] for n in doc["nodes"] if n.get("name", "").startswith("tail_")]
+	check("eight radii, one per joint", len(radii) == 8)
+	check("seven segments are the strip's 5 mm half-width", sum(1 for r in radii if abs(r - 0.005) < 1e-4) == 7)
+	check("the segment holding the 1.2x fringe vertex is wider, 25-37 mm: the fringe is surface",
+		0.025 <= radii[4] <= 0.037)
 
 
 def test_bind_check_reports_the_repairs_root_scale() -> None:

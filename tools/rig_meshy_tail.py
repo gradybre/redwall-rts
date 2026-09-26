@@ -47,6 +47,7 @@ ROOT_BLEND_SEGMENTS = 1.0   # the first segment blends from the hips into tail_0
 WELD_DECIMALS = 5
 GROW_RINGS = 3              # rings of neighbours added past the capsule, to take the clipped surface
 GROW_RADIUS_FACTOR = 1.35   # ...but never beyond this multiple of the capsule radius
+RADIUS_PERCENTILE = 0.95   # a segment's collision radius: this share of its surface lies within it
 STAMP = "redwall_tail_rig"
 STAMP_VERSION = 1
 
@@ -275,7 +276,31 @@ def plan_chain(positions: list, indices: list, entry: dict, bones: int) -> dict:
 	refit = refit_centreline(positions, tail, rough)
 	length = polyline_length(refit)
 	stations = [point_at(refit, i * length / bones) for i in range(bones)]
-	return {"tail": tail, "centreline": refit, "length": length, "stations": stations, "bones": bones}
+	plan = {"tail": tail, "centreline": refit, "length": length, "stations": stations, "bones": bones}
+	plan["radii"] = segment_radii(positions, plan)
+	return plan
+
+
+def segment_radii(positions: list, plan: dict) -> list[float]:
+	"""Each segment's surface radius about the centreline, in metres.
+
+	A spring's collision radius must be the tail's SURFACE, not its axis: a bushy squirrel tail is
+	about twice as thick as a single guessed radius, and with the axis held off the ground the fur
+	still sinks through it. A high percentile, not the maximum, so one stray fringe vertex cannot
+	inflate a whole segment.
+	"""
+	segment = plan["length"] / plan["bones"]
+	buckets: list[list[float]] = [[] for _ in range(plan["bones"])]
+	for v in plan["tail"]:
+		distance, t, _before = closest_on_polyline(plan["centreline"], positions[v])
+		buckets[min(int(t / segment), plan["bones"] - 1)].append(distance)
+	radii = []
+	for bucket in buckets:
+		if not bucket:
+			raise TailRefused("a tail segment has no vertices; the chain is longer than the tail")
+		bucket.sort()
+		radii.append(round(bucket[min(int(len(bucket) * RADIUS_PERCENTILE), len(bucket) - 1)], 4))
+	return radii
 
 
 def tail_weights(plan: dict, positions: list, hips: int, first: int, joints: list, weights: list) -> None:
@@ -314,7 +339,8 @@ def add_joints(doc: dict, binary: bytes, plan: dict) -> tuple[bytes, int, int]:
 	parent_node, previous = skin["joints"][hips], None
 	for i, p in enumerate(plan["stations"]):
 		local = transform_point(a, p) if previous is None else transform_point(basis, _sub(p, previous))
-		doc["nodes"].append({"name": f"tail_{i:02d}", "translation": local})
+		doc["nodes"].append({"name": f"tail_{i:02d}", "translation": local,
+			"extras": {"spring_radius_m": plan["radii"][i]}})
 		node = len(doc["nodes"]) - 1
 		doc["nodes"][parent_node].setdefault("children", []).append(node)
 		skin["joints"].append(node)
@@ -387,7 +413,7 @@ def rig_creature(key_dir: pathlib.Path, entry: dict, bones: int, dry_run: bool) 
 			(key_dir / "tailed").mkdir(exist_ok=True)
 			(key_dir / "tailed" / path.name).write_bytes(out)
 		rows.append({"key": key_dir.name, "file": path.name, "tail_vertices": len(plan["tail"]),
-			"tail_length_m": round(plan["length"], 4), **report,
+			"tail_length_m": round(plan["length"], 4), "joint_radius_m": plan["radii"], **report,
 			"source_sha256": hashlib.sha256(data).hexdigest(), "output_sha256": hashlib.sha256(out).hexdigest()})
 	return rows
 
@@ -410,7 +436,7 @@ def main() -> int:
 		return 1
 	for key in sorted({r["key"] for r in rows}):
 		r = next(x for x in rows if x["key"] == key)
-		print(f"  {key:18} {r['tail_vertices']:5} tail vertices, {r['tail_length_m']:.3f} m, {r['joints']} joints, bind scale {r['bind_scale']}")
+		print(f"  {key:18} {r['tail_vertices']:5} tail vertices, {r['tail_length_m']:.3f} m, {r['joints']} joints, bind scale {r['bind_scale']}, radii {r['joint_radius_m']}")
 	print(f"rig_meshy_tail: {len(rows)} files chained{' (dry run)' if args.dry_run else ''}; "
 		f"no chain by design: {sorted(config.get('no_chain', {}))}")
 	if not args.dry_run:

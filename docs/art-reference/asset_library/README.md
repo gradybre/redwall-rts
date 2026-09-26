@@ -17,6 +17,7 @@ exists, what Brendan authorised and what it overrides:
 | Every **repaired** rigged/animated file: source and output SHA-256, height before and after, scale factor | [`repaired.json`](repaired.json) | yes |
 | The authored tail centrelines, and the spring settings to drive each chain | [`tail_centrelines.json`](tail_centrelines.json) | yes |
 | Every **tail-chained** file: tail vertices, tail length, joints, bind check, hashes | [`tailed.json`](tailed.json) | yes |
+| Every **tail-baked** clip: frames, loop seam, largest one-frame step, tail/feet/base lowest points, ground and motion verdicts, hash | [`baked.json`](baked.json) | yes |
 | The prompt and reference image behind every concept | [`concept_prompts.json`](concept_prompts.json) | yes |
 | Rendered contact sheets of every L0 | [`contact_sheets/`](contact_sheets/) | yes (LFS) |
 
@@ -25,8 +26,10 @@ Per asset directory: `concept_*.png`, `highpoly.glb` (+ `highpoly_textures/`), `
 `anim_<action>.glb`.
 Rigged creatures also have `repaired/`: the same rigged and animated files with the material
 and height repaired (decision 0190). The six tailed creatures also have `tailed/`: the repaired
-files plus the tail chain (decision 0191). **Use `tailed/` where it exists, otherwise `repaired/`;
-never the raw rig files.**
+files plus the tail chain (decision 0191), and `baked/`: every `tailed/` clip with the tail's
+spring motion written in as keys, for the crowd tier (decision 0192). **For crowd clips use
+`baked/`; for the skeletal pool, which runs the spring live, `tailed/`; otherwise `repaired/`.
+Never the raw rig files.**
 
 **Lost the files?** Every task ID in `meshy_tasks.jsonl` can be downloaded again with
 `meshy_download_model` — no credits. Verify against `files.json`. Rig and animation
@@ -208,6 +211,9 @@ Both are scratch tools, not part of the game:
   Arguments after `--`: `<out_dir> <walk|clips> <frames> [fixmat]`. `fixmat` applies the
   material repair described under *Known problems*. `walk` rescales the three short rigs to
   their DEC-039 height, in the viewer only.
+- `capture_baked.gd` plays one `baked/` clip beside its `tailed/` twin with **no spring
+  running**, as the crowd tier plays it: whatever the baked tail does is in the clip.
+  Arguments after `--`: `<out_dir> <frames>`.
 
 ## What still has to happen before anything is in the game
 
@@ -216,9 +222,10 @@ Both are scratch tools, not part of the game:
 2. L1–L3 in Blender from the L0 (`FAMILY_TRIANGLE_CEILING` has every tier).
 3. Repack textures into the shared 2048² albedo/normal/ORM contract per family.
 4. The production rig per species: the three sockets and a fixed rig manifest within the 64-bone
-   budget. Six tails already have their chain (decision 0191), but the crowd tier plays baked clips,
-   so **tail motion has to be baked into every clip** for crowd actors; the spring only serves the
-   skeletal pool. Retarget the Meshy clips onto the production rig, or treat them as references.
+   budget. Six tails have their chain (decision 0191) and their motion baked into every clip
+   (decision 0192). Retarget the Meshy clips onto the production rig, or treat them as
+   references. Some Meshy clips sink the feet below the ground themselves; `baked.json`
+   flags them as `clip_below_ground`.
 5. Door openings at 1536 × 3072 u, and the residence cutaway (GAP-06). Meshy honoured
    neither.
 6. `asset_import_validator.gd` against the GAP-03 envelopes and GAP-04 budgets.

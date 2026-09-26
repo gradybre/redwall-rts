@@ -233,3 +233,4 @@ jobs:
           python3 docs/validation/test_qualify.py
           python3 docs/validation/test_winter.py
           python3 docs/validation/test_merge_gate.py
+          python3 tools/test_repair_meshy_rig.py

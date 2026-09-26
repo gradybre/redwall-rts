@@ -14,12 +14,15 @@ exists, what Brendan authorised and what it overrides:
 | The binaries — 1,105 files, 13.7 GB | `assets/library/<family>/<key>/` | **No** — gitignored |
 | Every Meshy task: ID, model, parameters, outcome, credits | [`meshy_tasks.jsonl`](meshy_tasks.jsonl) | yes |
 | Every file: path, bytes, SHA-256, source task | [`files.json`](files.json) | yes |
+| Every **repaired** rigged/animated file: source and output SHA-256, height before and after, scale factor | [`repaired.json`](repaired.json) | yes |
 | The prompt and reference image behind every concept | [`concept_prompts.json`](concept_prompts.json) | yes |
 | Rendered contact sheets of every L0 | [`contact_sheets/`](contact_sheets/) | yes (LFS) |
 
 Per asset directory: `concept_*.png`, `highpoly.glb` (+ `highpoly_textures/`), `l0.glb`
 (+ `l0_textures/`), and for creatures `rigged.glb`, `anim_walk.glb`, `anim_run.glb` and
 `anim_<action>.glb`.
+Rigged creatures also have `repaired/`: the same rigged and animated files with the material
+and height repaired (decision 0190). **Use `repaired/`, not the raw rig files.**
 
 **Lost the files?** Every task ID in `meshy_tasks.jsonl` can be downloaded again with
 `meshy_download_model` — no credits. Verify against `files.json`. Rig and animation
@@ -171,9 +174,9 @@ Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceil
 |---|---|---|
 | bramble, fern_clump, wildflower_patch, birch_mature, apple_mature, crop_beans_ripe, basket | Leaves, fronds and the woven rim shatter under the automatic remesh at these budgets. **Every high-poly source is good** — see `contact_sheets/foliage_compare.png` | Build the L0 in Blender as leaf cards with alpha, or retopologise by hand. Not a Meshy remesh |
 | badger_steward | The robe hides the legs, so Meshy's auto-rigger refused it (`422 Pose estimation failed`) | Rig in Blender; or use badger_quarryman |
-| mole_digger, mole_mason, badger_cellarer rigs and clips | 17–19% short: the rig scaled their arm span, not their height (see above) | Rescale the rig by the factor above. It is a uniform scale; nothing needs regenerating |
+| mole_digger, mole_mason, badger_cellarer rigs and clips | 17–19% short: the rig scaled their arm span, not their height (see above) | **Fixed** by `tools/repair_meshy_rig.py` (decision 0190): the single scene root is scaled ×1.2269, ×1.1860 and ×1.2020, measured from the files to within 1 mm of `SPECIES_HEIGHT_U`. Repaired copies are in `<key>/repaired/` |
 | *(not a file defect)* | Importing a rigged GLB into **Blender** adds a 2 m `Icosphere`. It is **not in the file** (0 of 110 contain one): Blender's glTF importer creates it as the bones' display shape (`io_scene_gltf2/blender/imp/node.py`) | Import with `disable_bone_shape=True`, or ignore it; it never reaches Godot |
-| **Every rigged and animated GLB (110 files)** | Reads glossy and self-lit. Meshy's rig step rewrote the material: no metallic or roughness value, so glTF's default **metallic 1.0** applies; the colour map is wired in **again as full emission** (`emissiveFactor [1,1,1]`); `KHR_materials_specular` is **2.0**; the L0's roughness and normal maps are **dropped**. Godot's imported material confirms it: metallic 1.00, roughness 1.00, emission on. The high-poly and L0 files (162) are correct: roughness median 0.93, metallic 0 | A free, local material repair, with no regeneration: metallic 0, emission off, specular 1.0, and the **L0's own roughness and normal maps**. The rigged mesh is the L0 mesh (identical triangle counts; the extra vertices are skinning-seam splits). Proven in Godot with a constant roughness of 0.93: `contact_sheets/gloss_before_after.png` |
+| **Every rigged and animated GLB (110 files)** | Reads glossy and self-lit. Meshy's rig step rewrote the material: no metallic or roughness value, so glTF's default **metallic 1.0** applies; the colour map is wired in **again as full emission** (`emissiveFactor [1,1,1]`); `KHR_materials_specular` is **2.0**; the L0's roughness and normal maps are **dropped**. Godot's imported material confirms it: metallic 1.00, roughness 1.00, emission on. The high-poly and L0 files (162) are correct: roughness median 0.93, metallic 0 | **Fixed** by `tools/repair_meshy_rig.py` (decision 0190) in all 110 files: metallic 0, roughness from the L0's own map, the L0's normal map, no emission, no specular or ior extension. Before attaching the L0's maps, it proves the atlas is shared: the colour map must be byte-identical to the L0's. Godot reads every repaired material as metallic 0 with a roughness texture and a normal map, and emission off. Output in `<key>/repaired/`; the originals are untouched |
 | `chair_sit_idle` clips | Sits on nothing | Pair it with a seat at play time |
 | crop_cabbage_ripe | Cabbages read cyan-blue | Recolour the texture |
 | stone_wall | Generated as an L-shaped corner, not a straight modular section | Cut it in Blender |

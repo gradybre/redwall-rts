@@ -15,6 +15,8 @@ exists, what Brendan authorised and what it overrides:
 | Every Meshy task: ID, model, parameters, outcome, credits | [`meshy_tasks.jsonl`](meshy_tasks.jsonl) | yes |
 | Every file: path, bytes, SHA-256, source task | [`files.json`](files.json) | yes |
 | Every **repaired** rigged/animated file: source and output SHA-256, height before and after, scale factor | [`repaired.json`](repaired.json) | yes |
+| The authored tail centrelines, and the spring settings to drive each chain | [`tail_centrelines.json`](tail_centrelines.json) | yes |
+| Every **tail-chained** file: tail vertices, tail length, joints, bind check, hashes | [`tailed.json`](tailed.json) | yes |
 | The prompt and reference image behind every concept | [`concept_prompts.json`](concept_prompts.json) | yes |
 | Rendered contact sheets of every L0 | [`contact_sheets/`](contact_sheets/) | yes (LFS) |
 
@@ -22,7 +24,9 @@ Per asset directory: `concept_*.png`, `highpoly.glb` (+ `highpoly_textures/`), `
 (+ `l0_textures/`), and for creatures `rigged.glb`, `anim_walk.glb`, `anim_run.glb` and
 `anim_<action>.glb`.
 Rigged creatures also have `repaired/`: the same rigged and animated files with the material
-and height repaired (decision 0190). **Use `repaired/`, not the raw rig files.**
+and height repaired (decision 0190). The six tailed creatures also have `tailed/`: the repaired
+files plus the tail chain (decision 0191). **Use `tailed/` where it exists, otherwise `repaired/`;
+never the raw rig files.**
 
 **Lost the files?** Every task ID in `meshy_tasks.jsonl` can be downloaded again with
 `meshy_download_model` — no credits. Verify against `files.json`. Rig and animation
@@ -154,6 +158,10 @@ Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceil
 - **Rigs** are Meshy's generic humanoid: 24 joints, **no tail, no fingers, no sockets**.
   In motion the missing tail chain shows: bending clips (gather, pull radish, bucket) leave
   the tail rigid, riding on the hips and sticking out behind.
+  **Fixed for six creatures** by `tools/rig_meshy_tail.py` (decision 0191): an 8-bone chain
+  `tail_00`–`tail_07` under `Hips`, in `<key>/tailed/`. Meshy had bound three of those tails to a
+  **thigh**, so they swung with one leg; that binding is gone. Moles and badgers have no separable
+  tail, and no chain, by design.
 - **Rigged and animated files are NOT all at DEC-039 height.** Meshy's rig `height_meters`
   scales the model's **longest** rest-pose dimension, not its height. Three creatures are
   wider in T-pose than they are tall, and came out short. The rigged file and every
@@ -194,6 +202,9 @@ Both are scratch tools, not part of the game:
 - `capture.gd` runs in a throwaway Godot project, imports the animated GLBs exactly as the
   game would, advances every clip by exactly 1/24 s per captured frame, and saves each frame.
   It must run **windowed**: headless Godot has no renderer to capture from.
+- `capture_tail.gd` records the tail chains before and after, driving each chain with
+  `SpringBoneSimulator3D` and a ground `SpringBoneCollisionPlane3D`. **Spring gravity and radius are in
+  world metres**, not the skeleton's 0.01-scaled local units; getting that wrong collapses the tails.
   Arguments after `--`: `<out_dir> <walk|clips> <frames> [fixmat]`. `fixmat` applies the
   material repair described under *Known problems*. `walk` rescales the three short rigs to
   their DEC-039 height, in the viewer only.
@@ -204,8 +215,10 @@ Both are scratch tools, not part of the game:
    "face north" fixture.
 2. L1–L3 in Blender from the L0 (`FAMILY_TRIANGLE_CEILING` has every tier).
 3. Repack textures into the shared 2048² albedo/normal/ORM contract per family.
-4. The production rig per species, with a tail, the three sockets and the 64-bone budget.
-   Retarget the Meshy clips onto it, or treat them as references.
+4. The production rig per species: the three sockets and a fixed rig manifest within the 64-bone
+   budget. Six tails already have their chain (decision 0191), but the crowd tier plays baked clips,
+   so **tail motion has to be baked into every clip** for crowd actors; the spring only serves the
+   skeletal pool. Retarget the Meshy clips onto the production rig, or treat them as references.
 5. Door openings at 1536 × 3072 u, and the residence cutaway (GAP-06). Meshy honoured
    neither.
 6. `asset_import_validator.gd` against the GAP-03 envelopes and GAP-04 budgets.

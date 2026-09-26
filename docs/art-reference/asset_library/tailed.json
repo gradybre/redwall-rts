@@ -1,0 +1,1327 @@
+{
+ "tool": "tools/rig_meshy_tail.py",
+ "decision": "0191",
+ "count": 66,
+ "files": [
+  {
+   "key": "mouse_fieldworker",
+   "file": "anim_carry_heavy_object_walk.glb",
+   "tail_vertices": 151,
+   "tail_length_m": 0.296,
+   "joint_radius_m": [
+    0.0116,
+    0.0138,
+    0.0208,
+    0.0147,
+    0.0146,
+    0.0167,
+    0.0154,
+    0.0134
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "5e9fc7aa1ca577b3054f6c667dace7794d2b476a777d5427055e8e9741752956",
+   "output_sha256": "9777f7dc39fcc5436189e856b034f38fe548760ee18d034807801c3b9b0873d3"
+  },
+  {
+   "key": "mouse_fieldworker",
+   "file": "anim_carry_water_bucket_walk.glb",
+   "tail_vertices": 151,
+   "tail_length_m": 0.296,
+   "joint_radius_m": [
+    0.0116,
+    0.0138,
+    0.0208,
+    0.0147,
+    0.0146,
+    0.0167,
+    0.0154,
+    0.0134
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "15f1578b02452ab31bd881f91c7b45ce3b244d9b08a61e68ceeabad52d6286b4",
+   "output_sha256": "6d2af369f41ab4676dc029045424e007491c0c1b46f081262566c63a53b26ed3"
+  },
+  {
+   "key": "mouse_fieldworker",
+   "file": "anim_chair_sit_idle.glb",
+   "tail_vertices": 151,
+   "tail_length_m": 0.296,
+   "joint_radius_m": [
+    0.0116,
+    0.0138,
+    0.0208,
+    0.0147,
+    0.0146,
+    0.0167,
+    0.0154,
+    0.0134
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "fa0c971be36945d27fdc4026f9a5cdab06883d22e83150ed372d1debc6223729",
+   "output_sha256": "b8c2b8b3825d7b4764206e2735e88b4c076c3464e9e6f3f951bdc160841eedad"
+  },
+  {
+   "key": "mouse_fieldworker",
+   "file": "anim_collect_object.glb",
+   "tail_vertices": 151,
+   "tail_length_m": 0.296,
+   "joint_radius_m": [
+    0.0116,
+    0.0138,
+    0.0208,
+    0.0147,
+    0.0146,
+    0.0167,
+    0.0154,
+    0.0134
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "59d1490333c4bb95500654abd27d0672af7652b36597d3837fa547351f9a2b74",
+   "output_sha256": "19accb40dfc6317725f84ebf0f7bd83f3614ce9b86891c5b587a9928db1ad693"
+  },
+  {
+   "key": "mouse_fieldworker",
+   "file": "anim_idle.glb",
+   "tail_vertices": 151,
+   "tail_length_m": 0.296,
+   "joint_radius_m": [
+    0.0116,
+    0.0138,
+    0.0208,
+    0.0147,
+    0.0146,
+    0.0167,
+    0.0154,
+    0.0134
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "387ab7cc9000a5ac0817f95b2e1de6dd661c96f08fe6cc01108bd20ee6807950",
+   "output_sha256": "aeffeaa772089cee115692ec50ca753cb5c4b7bc98949c7a712ca2b08c3c4ed6"
+  },
+  {
+   "key": "mouse_fieldworker",
+   "file": "anim_pull_radish.glb",
+   "tail_vertices": 151,
+   "tail_length_m": 0.296,
+   "joint_radius_m": [
+    0.0116,
+    0.0138,
+    0.0208,
+    0.0147,
+    0.0146,
+    0.0167,
+    0.0154,
+    0.0134
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "41b76f30682a006010121616af09cc463407268b15e6f35081ab972bb6d3ff3b",
+   "output_sha256": "db8026d61ed7ebcc7340984e382d44c09a7ce20594e6c07376a7fda6ccf5cdff"
+  },
+  {
+   "key": "mouse_fieldworker",
+   "file": "anim_run.glb",
+   "tail_vertices": 151,
+   "tail_length_m": 0.296,
+   "joint_radius_m": [
+    0.0116,
+    0.0138,
+    0.0208,
+    0.0147,
+    0.0146,
+    0.0167,
+    0.0154,
+    0.0134
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "381fbb8c6e66e7eaa1646e55a7d1dee67fb7fb618cd570e5ae3f7a3c9ec2a59e",
+   "output_sha256": "98b22380ce775321775dc271ceb90ef0e1f72ac0d89dfc4233f6c3a260f8e7e5"
+  },
+  {
+   "key": "mouse_fieldworker",
+   "file": "anim_stand_and_drink.glb",
+   "tail_vertices": 151,
+   "tail_length_m": 0.296,
+   "joint_radius_m": [
+    0.0116,
+    0.0138,
+    0.0208,
+    0.0147,
+    0.0146,
+    0.0167,
+    0.0154,
+    0.0134
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "5986aa8c5a0ed2b307c3f986f3ecb96a1442ce92765e72b86a43da9ddf144bc3",
+   "output_sha256": "5b16894d95fef6c4aae15fba3641ed5b1f0ef57c825b7b8b81c01f2dcb12b5a2"
+  },
+  {
+   "key": "mouse_fieldworker",
+   "file": "anim_walk.glb",
+   "tail_vertices": 151,
+   "tail_length_m": 0.296,
+   "joint_radius_m": [
+    0.0116,
+    0.0138,
+    0.0208,
+    0.0147,
+    0.0146,
+    0.0167,
+    0.0154,
+    0.0134
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "701451dea620a820d3fb4c674686f486388cd49bb9673a8f80f88d82205a1c34",
+   "output_sha256": "ac28e269f795ecaecc5fc5d3b58e41fc5da72ee6854c52c421b2a459e621a3b3"
+  },
+  {
+   "key": "mouse_fieldworker",
+   "file": "anim_wave_one_hand.glb",
+   "tail_vertices": 151,
+   "tail_length_m": 0.296,
+   "joint_radius_m": [
+    0.0116,
+    0.0138,
+    0.0208,
+    0.0147,
+    0.0146,
+    0.0167,
+    0.0154,
+    0.0134
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "4880671aa73dede0a9e7bc4ea6fdae72196dbc569a2ef74d1cd2df80953053b7",
+   "output_sha256": "2b05fb08a4d864c05bbc6605cfedd723b6b5dfc1dbba7034628c2a41d37eea63"
+  },
+  {
+   "key": "mouse_fieldworker",
+   "file": "rigged.glb",
+   "tail_vertices": 151,
+   "tail_length_m": 0.296,
+   "joint_radius_m": [
+    0.0116,
+    0.0138,
+    0.0208,
+    0.0147,
+    0.0146,
+    0.0167,
+    0.0154,
+    0.0134
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "e09223305a5290d10241e51e641c5df33ffbed0c3c664748ae39e7eb70caa4c4",
+   "output_sha256": "4d73d6a98966dffed6800e9f812247d71c13bcebcc610bb0e8173459d3b2f015"
+  },
+  {
+   "key": "mouse_keeper",
+   "file": "anim_carry_heavy_object_walk.glb",
+   "tail_vertices": 72,
+   "tail_length_m": 0.241,
+   "joint_radius_m": [
+    0.0054,
+    0.0108,
+    0.0054,
+    0.0091,
+    0.0054,
+    0.0054,
+    0.0096,
+    0.0094
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "7139442bfe50d7429f452be6e1411d0c122425c2a6837caec7bc1332af7d0a4e",
+   "output_sha256": "2ea170190b1476cc8706996d08142771669b0693da90faa08c2363e33740701e"
+  },
+  {
+   "key": "mouse_keeper",
+   "file": "anim_carry_water_bucket_walk.glb",
+   "tail_vertices": 72,
+   "tail_length_m": 0.241,
+   "joint_radius_m": [
+    0.0054,
+    0.0108,
+    0.0054,
+    0.0091,
+    0.0054,
+    0.0054,
+    0.0096,
+    0.0094
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "1b9c554991fead058580045a039d4296f8253d89c6f41bb1a276bc47fc97b9bc",
+   "output_sha256": "a675c5a3560e4ca7daf26a40231c0bf6c97fced2a2f58ac54e0350de5b93417c"
+  },
+  {
+   "key": "mouse_keeper",
+   "file": "anim_chair_sit_idle.glb",
+   "tail_vertices": 72,
+   "tail_length_m": 0.241,
+   "joint_radius_m": [
+    0.0054,
+    0.0108,
+    0.0054,
+    0.0091,
+    0.0054,
+    0.0054,
+    0.0096,
+    0.0094
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "065b804d2bde051081b52054a9bdf34c7429172d83a14ae706c13cbf7ffc6bb5",
+   "output_sha256": "39c8b9cf94142bb01f60c6c29494ee3af131764d34940698a4bde3577ef870b1"
+  },
+  {
+   "key": "mouse_keeper",
+   "file": "anim_collect_object.glb",
+   "tail_vertices": 72,
+   "tail_length_m": 0.241,
+   "joint_radius_m": [
+    0.0054,
+    0.0108,
+    0.0054,
+    0.0091,
+    0.0054,
+    0.0054,
+    0.0096,
+    0.0094
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "7ca00bd6817d91892b005d703d02a492ebb80ea7096beb9684b569bd92df22a6",
+   "output_sha256": "e84adb357711be2191af9fbf1b6a1a9285395405087ff3ab0a838c5e14e95b0f"
+  },
+  {
+   "key": "mouse_keeper",
+   "file": "anim_idle.glb",
+   "tail_vertices": 72,
+   "tail_length_m": 0.241,
+   "joint_radius_m": [
+    0.0054,
+    0.0108,
+    0.0054,
+    0.0091,
+    0.0054,
+    0.0054,
+    0.0096,
+    0.0094
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "29c4e834ac83bb28e4a64c571ebf81d03e4003a9703f6827a3db19fce7afcece",
+   "output_sha256": "f9b7ac8366daacf62d7025e0d118c15bcff64c862ac13c936a0cdadbb662f1af"
+  },
+  {
+   "key": "mouse_keeper",
+   "file": "anim_pull_radish.glb",
+   "tail_vertices": 72,
+   "tail_length_m": 0.241,
+   "joint_radius_m": [
+    0.0054,
+    0.0108,
+    0.0054,
+    0.0091,
+    0.0054,
+    0.0054,
+    0.0096,
+    0.0094
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "460983d5889f2be8131f21b4af0e563d2636dec694e072fe5cb684e80cc0f8ea",
+   "output_sha256": "adbdd1c1846dade30a0c3dbee990f94b0435f737806f5f111b506b5593a21afb"
+  },
+  {
+   "key": "mouse_keeper",
+   "file": "anim_run.glb",
+   "tail_vertices": 72,
+   "tail_length_m": 0.241,
+   "joint_radius_m": [
+    0.0054,
+    0.0108,
+    0.0054,
+    0.0091,
+    0.0054,
+    0.0054,
+    0.0096,
+    0.0094
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "1d495e0778f11b01e9e561b9631503c66c3c528cd7e804bc027211ad724de598",
+   "output_sha256": "42bf3b154745dd85a22878bc12f56034fb4793095a91e3b86f1fc8e80b20f107"
+  },
+  {
+   "key": "mouse_keeper",
+   "file": "anim_stand_and_drink.glb",
+   "tail_vertices": 72,
+   "tail_length_m": 0.241,
+   "joint_radius_m": [
+    0.0054,
+    0.0108,
+    0.0054,
+    0.0091,
+    0.0054,
+    0.0054,
+    0.0096,
+    0.0094
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "b12b40b4cb9fda68a558a5e8ba8fe7e1622be813d6ac2cf6306320f221b2c515",
+   "output_sha256": "1291071dbf4b321244382c5720191221a845787e3f5dbd34fad72d254032b335"
+  },
+  {
+   "key": "mouse_keeper",
+   "file": "anim_walk.glb",
+   "tail_vertices": 72,
+   "tail_length_m": 0.241,
+   "joint_radius_m": [
+    0.0054,
+    0.0108,
+    0.0054,
+    0.0091,
+    0.0054,
+    0.0054,
+    0.0096,
+    0.0094
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "fe163ce5431bb9ba3308a5fb4c8a851d54de47bf28bec3db8da33cfd1b1f8810",
+   "output_sha256": "e3716dd67be5f00c9ed779b66ce8bbe9b4a263bf8067cccc4beb081084cbe8ab"
+  },
+  {
+   "key": "mouse_keeper",
+   "file": "anim_wave_one_hand.glb",
+   "tail_vertices": 72,
+   "tail_length_m": 0.241,
+   "joint_radius_m": [
+    0.0054,
+    0.0108,
+    0.0054,
+    0.0091,
+    0.0054,
+    0.0054,
+    0.0096,
+    0.0094
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "ec0b58e64a3fa81f3d07913169586225446d2528d08bab384cb778bd04b15744",
+   "output_sha256": "053ef3d5d4971e9ba0ee285f4c6a15f53044da65f762a6bbc7e50531d01ba2f2"
+  },
+  {
+   "key": "mouse_keeper",
+   "file": "rigged.glb",
+   "tail_vertices": 72,
+   "tail_length_m": 0.241,
+   "joint_radius_m": [
+    0.0054,
+    0.0108,
+    0.0054,
+    0.0091,
+    0.0054,
+    0.0054,
+    0.0096,
+    0.0094
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "57c1fdbd077dbd34bf471ae6cb57a85fb9812d6adb71e0e6f2ea9178d5903949",
+   "output_sha256": "17861d45948210738ea1f0d08405f51380835cb1df7ba02e32eb2d2775dbbf5b"
+  },
+  {
+   "key": "otter_boatwright",
+   "file": "anim_carry_heavy_object_walk.glb",
+   "tail_vertices": 6096,
+   "tail_length_m": 0.7737,
+   "joint_radius_m": [
+    0.0752,
+    0.1117,
+    0.1585,
+    0.0689,
+    0.0688,
+    0.0657,
+    0.0648,
+    0.0585
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "33d5435b8c9400e164b0a7e46d7c58cbeed08d0c0379baa076267110edc8f780",
+   "output_sha256": "bb5cf3af5de9d9d3726c1e88b54eb1e078456555ac82f76f19c7b7a711deb43f"
+  },
+  {
+   "key": "otter_boatwright",
+   "file": "anim_carry_water_bucket_walk.glb",
+   "tail_vertices": 6096,
+   "tail_length_m": 0.7737,
+   "joint_radius_m": [
+    0.0752,
+    0.1117,
+    0.1585,
+    0.0689,
+    0.0688,
+    0.0657,
+    0.0648,
+    0.0585
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "f64f813f95e83434274c7f8ffa3b39ae7b9daaa87df56a0f150a98fd92b8fae9",
+   "output_sha256": "62f557bb5abc7a4d644f21373bdfd91ad37b8f791705dcba7f287165c695ae06"
+  },
+  {
+   "key": "otter_boatwright",
+   "file": "anim_chair_sit_idle.glb",
+   "tail_vertices": 6096,
+   "tail_length_m": 0.7737,
+   "joint_radius_m": [
+    0.0752,
+    0.1117,
+    0.1585,
+    0.0689,
+    0.0688,
+    0.0657,
+    0.0648,
+    0.0585
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "6f7968e7d269cca03ed5cfa37aa82d3255c25adc3eba1dba4934490ad239d5d2",
+   "output_sha256": "f8c0b106b6493996f1fbedc3fb77dfcc62d7cdfee50ff44d90f50fab91305a3d"
+  },
+  {
+   "key": "otter_boatwright",
+   "file": "anim_collect_object.glb",
+   "tail_vertices": 6096,
+   "tail_length_m": 0.7737,
+   "joint_radius_m": [
+    0.0752,
+    0.1117,
+    0.1585,
+    0.0689,
+    0.0688,
+    0.0657,
+    0.0648,
+    0.0585
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "4f0b6f3fe3d41728cb8e181c2b4bba8e660706f785edb98c67e2f5dc6afc300d",
+   "output_sha256": "9cd58560b9ca78e7c8795e3dfdea601c89fdf28af1e0abfc531705852a9a60ba"
+  },
+  {
+   "key": "otter_boatwright",
+   "file": "anim_idle.glb",
+   "tail_vertices": 6096,
+   "tail_length_m": 0.7737,
+   "joint_radius_m": [
+    0.0752,
+    0.1117,
+    0.1585,
+    0.0689,
+    0.0688,
+    0.0657,
+    0.0648,
+    0.0585
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "11d3b6acdb4585449f0b4b53a54b02b5d59152f4d923863054243960998c4e75",
+   "output_sha256": "aafbeed7f27316e94a854997a61e025e56a45c65601bdc468756bc2128ca6cd6"
+  },
+  {
+   "key": "otter_boatwright",
+   "file": "anim_pull_radish.glb",
+   "tail_vertices": 6096,
+   "tail_length_m": 0.7737,
+   "joint_radius_m": [
+    0.0752,
+    0.1117,
+    0.1585,
+    0.0689,
+    0.0688,
+    0.0657,
+    0.0648,
+    0.0585
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "d59d77c82d073d4332e8f922a740c9a75ddde0586b020dc4352c78cb3d412ff3",
+   "output_sha256": "5fa89965ed66e8e1454a19f30960d49f5844f3e8d25ebda2c5523e2308659596"
+  },
+  {
+   "key": "otter_boatwright",
+   "file": "anim_run.glb",
+   "tail_vertices": 6096,
+   "tail_length_m": 0.7737,
+   "joint_radius_m": [
+    0.0752,
+    0.1117,
+    0.1585,
+    0.0689,
+    0.0688,
+    0.0657,
+    0.0648,
+    0.0585
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "3bea16f7c1bdba13513b42f573fa34e5362aa4443c9ca521b29ad151d100a7cc",
+   "output_sha256": "dd73f7c03a63b600b539bbb50fa66d26b2f7ae31ad3e046551556744ab0f6ac3"
+  },
+  {
+   "key": "otter_boatwright",
+   "file": "anim_stand_and_drink.glb",
+   "tail_vertices": 6096,
+   "tail_length_m": 0.7737,
+   "joint_radius_m": [
+    0.0752,
+    0.1117,
+    0.1585,
+    0.0689,
+    0.0688,
+    0.0657,
+    0.0648,
+    0.0585
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "117aca5ca829b93415fa43a720403af48c296299728ba55df3f325829e78c4d8",
+   "output_sha256": "b20f3b64b3a08668446adeaf5f4aa9129fa48c649c680ee1248d473dd8890662"
+  },
+  {
+   "key": "otter_boatwright",
+   "file": "anim_walk.glb",
+   "tail_vertices": 6096,
+   "tail_length_m": 0.7737,
+   "joint_radius_m": [
+    0.0752,
+    0.1117,
+    0.1585,
+    0.0689,
+    0.0688,
+    0.0657,
+    0.0648,
+    0.0585
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "44b223a9634adde7d64428ed0ce02b988a7f382254aa02c988f1156758151680",
+   "output_sha256": "27bfcd6ffbfbbacd318b85634273865cf656006bc21090c140ef9362eda1d0f4"
+  },
+  {
+   "key": "otter_boatwright",
+   "file": "anim_wave_one_hand.glb",
+   "tail_vertices": 6096,
+   "tail_length_m": 0.7737,
+   "joint_radius_m": [
+    0.0752,
+    0.1117,
+    0.1585,
+    0.0689,
+    0.0688,
+    0.0657,
+    0.0648,
+    0.0585
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "cf1df56a505d2294879304570143208e3e6ac3ff18b113fa03e3552bbe25c6fe",
+   "output_sha256": "d958443343144adea1cc4d105d3203a1bd5eb12cd399cd1bfb100c8dfa13b029"
+  },
+  {
+   "key": "otter_boatwright",
+   "file": "rigged.glb",
+   "tail_vertices": 6096,
+   "tail_length_m": 0.7737,
+   "joint_radius_m": [
+    0.0752,
+    0.1117,
+    0.1585,
+    0.0689,
+    0.0688,
+    0.0657,
+    0.0648,
+    0.0585
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "aed97d01e4bb22d4bc6417e55f187906da13238785da7cd1f70e23fd434b94d5",
+   "output_sha256": "e7392d1b1e46d930355e8001a12863ef13b6ecf1d802dd0456f68e720ed21dce"
+  },
+  {
+   "key": "otter_fisher",
+   "file": "anim_carry_heavy_object_walk.glb",
+   "tail_vertices": 1475,
+   "tail_length_m": 0.8096,
+   "joint_radius_m": [
+    0.0695,
+    0.0822,
+    0.0875,
+    0.0706,
+    0.0911,
+    0.0784,
+    0.0738,
+    0.0631
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "80c86e506639ab1c7e12cb6f36e5758d3d39c8466945a5836750fdabed7bb52b",
+   "output_sha256": "ed2af391415034d440a4b282f4df4d7863609f7831d10feadb369f3d6532b3a5"
+  },
+  {
+   "key": "otter_fisher",
+   "file": "anim_carry_water_bucket_walk.glb",
+   "tail_vertices": 1475,
+   "tail_length_m": 0.8096,
+   "joint_radius_m": [
+    0.0695,
+    0.0822,
+    0.0875,
+    0.0706,
+    0.0911,
+    0.0784,
+    0.0738,
+    0.0631
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "258e8539121e487ca3ea1feae5e6c2446630b4fb6a35aed7fdfb142410badccc",
+   "output_sha256": "71cb8e070f239bda26f1cc9fed25d766d0d6d0af860299edf414fab125c22c73"
+  },
+  {
+   "key": "otter_fisher",
+   "file": "anim_chair_sit_idle.glb",
+   "tail_vertices": 1475,
+   "tail_length_m": 0.8096,
+   "joint_radius_m": [
+    0.0695,
+    0.0822,
+    0.0875,
+    0.0706,
+    0.0911,
+    0.0784,
+    0.0738,
+    0.0631
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "ab9ae9f4a2cd67e98c5bc0e13ac64083382326c553bc237ae116090b1a5b7925",
+   "output_sha256": "481d8f2cdbe78c195bc457b2d15199cdf0fc7f285391a8a2e1866c6d1fc5af77"
+  },
+  {
+   "key": "otter_fisher",
+   "file": "anim_collect_object.glb",
+   "tail_vertices": 1475,
+   "tail_length_m": 0.8096,
+   "joint_radius_m": [
+    0.0695,
+    0.0822,
+    0.0875,
+    0.0706,
+    0.0911,
+    0.0784,
+    0.0738,
+    0.0631
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "9cc0a416027daf272b7e20f0a6976a88c8be493212fa77e3794b123bb15e2ede",
+   "output_sha256": "c80afd9a4a9721973be95817a9113710a4773004a0ab42e596ed2819c08166d3"
+  },
+  {
+   "key": "otter_fisher",
+   "file": "anim_idle.glb",
+   "tail_vertices": 1475,
+   "tail_length_m": 0.8096,
+   "joint_radius_m": [
+    0.0695,
+    0.0822,
+    0.0875,
+    0.0706,
+    0.0911,
+    0.0784,
+    0.0738,
+    0.0631
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "f7ef29ef49332fe754bdf847d480a4b5eaa4193ab6dcfc4944cbd1eff901cd24",
+   "output_sha256": "d4ff9abc0373505bdd0173fceec9e372e570c082b1a7f6fb0cc2dbbfde94928b"
+  },
+  {
+   "key": "otter_fisher",
+   "file": "anim_pull_radish.glb",
+   "tail_vertices": 1475,
+   "tail_length_m": 0.8096,
+   "joint_radius_m": [
+    0.0695,
+    0.0822,
+    0.0875,
+    0.0706,
+    0.0911,
+    0.0784,
+    0.0738,
+    0.0631
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "25577ad12f04a0e39ca36a3da96f7c36303f2cd51a225d4c76560cc22f0b2a86",
+   "output_sha256": "f7ec272901fe069b17d4af66674128529ff8a4415bca6103775c026873b746bd"
+  },
+  {
+   "key": "otter_fisher",
+   "file": "anim_run.glb",
+   "tail_vertices": 1475,
+   "tail_length_m": 0.8096,
+   "joint_radius_m": [
+    0.0695,
+    0.0822,
+    0.0875,
+    0.0706,
+    0.0911,
+    0.0784,
+    0.0738,
+    0.0631
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "df4c75738f732cab10e5d5122f848aa6a42674c70f9663c26e81b9d8fe6da898",
+   "output_sha256": "6412fbed76f705187174a71963d5ac50b76ed43b209bf768c36a493f6f2b1f6b"
+  },
+  {
+   "key": "otter_fisher",
+   "file": "anim_stand_and_drink.glb",
+   "tail_vertices": 1475,
+   "tail_length_m": 0.8096,
+   "joint_radius_m": [
+    0.0695,
+    0.0822,
+    0.0875,
+    0.0706,
+    0.0911,
+    0.0784,
+    0.0738,
+    0.0631
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "a371e8cf0bcaa84a24620346ae178184ce04712679fb7a96d8f4fbc44723cae7",
+   "output_sha256": "f6a78e5061ab4973e13c33f688f939a27ca09c6f2a1edaad457c0f7519c93c80"
+  },
+  {
+   "key": "otter_fisher",
+   "file": "anim_walk.glb",
+   "tail_vertices": 1475,
+   "tail_length_m": 0.8096,
+   "joint_radius_m": [
+    0.0695,
+    0.0822,
+    0.0875,
+    0.0706,
+    0.0911,
+    0.0784,
+    0.0738,
+    0.0631
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "f7feaeca4b513b0bad49e5362c4c57e28c830fa778757de93ae1220823d35fd4",
+   "output_sha256": "79ef763c64814b25f91ed7274f7fd437128f4b0590a897f2b4b010570bebf7c2"
+  },
+  {
+   "key": "otter_fisher",
+   "file": "anim_wave_one_hand.glb",
+   "tail_vertices": 1475,
+   "tail_length_m": 0.8096,
+   "joint_radius_m": [
+    0.0695,
+    0.0822,
+    0.0875,
+    0.0706,
+    0.0911,
+    0.0784,
+    0.0738,
+    0.0631
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "3b2397d1701fc8fc5a5142188e44051dead547e141fb14e80a62d95b72a38ba5",
+   "output_sha256": "f808db4f96220d6fe64a012a36e29519124a17af5615e5c301ce8690163af357"
+  },
+  {
+   "key": "otter_fisher",
+   "file": "rigged.glb",
+   "tail_vertices": 1475,
+   "tail_length_m": 0.8096,
+   "joint_radius_m": [
+    0.0695,
+    0.0822,
+    0.0875,
+    0.0706,
+    0.0911,
+    0.0784,
+    0.0738,
+    0.0631
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "727189b410de46bf60dab7c86be1ff4202bd3ee31258279c180a01608552c51f",
+   "output_sha256": "9661e86940105c969b5a7bb49afcff0ff3aac304911b9dc9cb946b5df04ddc7f"
+  },
+  {
+   "key": "squirrel_forester",
+   "file": "anim_carry_heavy_object_walk.glb",
+   "tail_vertices": 9806,
+   "tail_length_m": 1.43,
+   "joint_radius_m": [
+    0.1919,
+    0.1579,
+    0.1875,
+    0.1855,
+    0.175,
+    0.1789,
+    0.1769,
+    0.1437
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "45b94da4c79e0cc3a98a3e365fe629830fcf23a4a464b53a9203a4fa8ec8a0d1",
+   "output_sha256": "61c5cbd65e4c2cb3ce50bc9719455172991fed2c26b7aef7ebe0d217ef8f56b5"
+  },
+  {
+   "key": "squirrel_forester",
+   "file": "anim_carry_water_bucket_walk.glb",
+   "tail_vertices": 9806,
+   "tail_length_m": 1.43,
+   "joint_radius_m": [
+    0.1919,
+    0.1579,
+    0.1875,
+    0.1855,
+    0.175,
+    0.1789,
+    0.1769,
+    0.1437
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "58a797e41e7314280e7e6f91eb7dc5925e6f72df802545cbf660a76cb8ac1c5a",
+   "output_sha256": "d998658c077b1982f248618e1e6bcd8c4e7b5ac2d301baa48fdd0ec48f15942e"
+  },
+  {
+   "key": "squirrel_forester",
+   "file": "anim_chair_sit_idle.glb",
+   "tail_vertices": 9806,
+   "tail_length_m": 1.43,
+   "joint_radius_m": [
+    0.1919,
+    0.1579,
+    0.1875,
+    0.1855,
+    0.175,
+    0.1789,
+    0.1769,
+    0.1437
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "5ec53cb84afe6beedac3efe7f3980a2cf0d2af0aae30ecad50b6bdba15b6c9d3",
+   "output_sha256": "03380abd8eacce03bec92e86c7e28b5b9b06daf23aa672e0419c11b728620b5f"
+  },
+  {
+   "key": "squirrel_forester",
+   "file": "anim_collect_object.glb",
+   "tail_vertices": 9806,
+   "tail_length_m": 1.43,
+   "joint_radius_m": [
+    0.1919,
+    0.1579,
+    0.1875,
+    0.1855,
+    0.175,
+    0.1789,
+    0.1769,
+    0.1437
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "6350ee7a9970725383e81b7ec3b3e98af1514dc6e38109e754bbcca0c4c01275",
+   "output_sha256": "4e90f744606f6dc19f3c04d32010fb74cf32b79624676ce6be13b0c566e5f9c6"
+  },
+  {
+   "key": "squirrel_forester",
+   "file": "anim_idle.glb",
+   "tail_vertices": 9806,
+   "tail_length_m": 1.43,
+   "joint_radius_m": [
+    0.1919,
+    0.1579,
+    0.1875,
+    0.1855,
+    0.175,
+    0.1789,
+    0.1769,
+    0.1437
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "9439e4070700e753f3df37d44b0770e95beb87f1a56d57f014e003a0d8d6f672",
+   "output_sha256": "645fd9578849b7642b96b8abcb48d7fe99f99944aef7da3e64fa9f4753d5ba59"
+  },
+  {
+   "key": "squirrel_forester",
+   "file": "anim_pull_radish.glb",
+   "tail_vertices": 9806,
+   "tail_length_m": 1.43,
+   "joint_radius_m": [
+    0.1919,
+    0.1579,
+    0.1875,
+    0.1855,
+    0.175,
+    0.1789,
+    0.1769,
+    0.1437
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "5e7cecc62971bb5d395967541060fc53a5f298d1412fd1168d271e6ed0633da3",
+   "output_sha256": "25417400a143b5d2a44cdf27d1df9974d6c9e1b84d5ed718638fc16cac3d7d65"
+  },
+  {
+   "key": "squirrel_forester",
+   "file": "anim_run.glb",
+   "tail_vertices": 9806,
+   "tail_length_m": 1.43,
+   "joint_radius_m": [
+    0.1919,
+    0.1579,
+    0.1875,
+    0.1855,
+    0.175,
+    0.1789,
+    0.1769,
+    0.1437
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "8f8a9a57241c140e44e16186032bf9068fecfd306f2b0a4d748d436ace15118c",
+   "output_sha256": "22e0359a72e9f5e0526089098cd54dbf8956da3a7089d0fa5ff1466923a917a2"
+  },
+  {
+   "key": "squirrel_forester",
+   "file": "anim_stand_and_drink.glb",
+   "tail_vertices": 9806,
+   "tail_length_m": 1.43,
+   "joint_radius_m": [
+    0.1919,
+    0.1579,
+    0.1875,
+    0.1855,
+    0.175,
+    0.1789,
+    0.1769,
+    0.1437
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "482e981e4db5f4207ba2e10ccf32e2b395d8aea28a82bed066d056786353b060",
+   "output_sha256": "df9bab4e2d8c4f5851b93ebdeac64479c37a641fc8e2f8c4c251dedbd536850b"
+  },
+  {
+   "key": "squirrel_forester",
+   "file": "anim_walk.glb",
+   "tail_vertices": 9806,
+   "tail_length_m": 1.43,
+   "joint_radius_m": [
+    0.1919,
+    0.1579,
+    0.1875,
+    0.1855,
+    0.175,
+    0.1789,
+    0.1769,
+    0.1437
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "22c66508b15a1ab3dd8b107f9e04ccdd0dfbf92cd42b4f36b9d5fb80dd18bf60",
+   "output_sha256": "79a322f262487eea154897a8ae03c6c70b546a08502c6ddad890deac7822cff0"
+  },
+  {
+   "key": "squirrel_forester",
+   "file": "anim_wave_one_hand.glb",
+   "tail_vertices": 9806,
+   "tail_length_m": 1.43,
+   "joint_radius_m": [
+    0.1919,
+    0.1579,
+    0.1875,
+    0.1855,
+    0.175,
+    0.1789,
+    0.1769,
+    0.1437
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "a9d7885584ad540f641437ee0d0a08c986da91953eef3725b9ed7c94e0db8fe1",
+   "output_sha256": "83ac2431d84bd9e3ca2a0e0de72890aa5f701c70505a37e3444e92f6cc5c9429"
+  },
+  {
+   "key": "squirrel_forester",
+   "file": "rigged.glb",
+   "tail_vertices": 9806,
+   "tail_length_m": 1.43,
+   "joint_radius_m": [
+    0.1919,
+    0.1579,
+    0.1875,
+    0.1855,
+    0.175,
+    0.1789,
+    0.1769,
+    0.1437
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "e3261c902800d7c95b0253961232a266dce96f3a261538a919bb6fc3ab6bbd1b",
+   "output_sha256": "6d99b963eb488d65130a7ceaef0dd566703e5a0a5cf726b0b2f1d20f0cc82def"
+  },
+  {
+   "key": "squirrel_gatherer",
+   "file": "anim_carry_heavy_object_walk.glb",
+   "tail_vertices": 8385,
+   "tail_length_m": 0.763,
+   "joint_radius_m": [
+    0.0753,
+    0.0821,
+    0.1018,
+    0.108,
+    0.1171,
+    0.111,
+    0.0929,
+    0.0753
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "f8a95b8c91ff48c34bb20b0117895a330aa2c1cb3ba7dbc8eb5aafc4c9e4605a",
+   "output_sha256": "d6fc385bb3925ba3831ea732af99b8a4841fdfbd6ffbe6227ab66170abd4535c"
+  },
+  {
+   "key": "squirrel_gatherer",
+   "file": "anim_carry_water_bucket_walk.glb",
+   "tail_vertices": 8385,
+   "tail_length_m": 0.763,
+   "joint_radius_m": [
+    0.0753,
+    0.0821,
+    0.1018,
+    0.108,
+    0.1171,
+    0.111,
+    0.0929,
+    0.0753
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "9c338445b60807909a7c4fa915cc91ea753d3b5f3dec5d8490aab41657cec01f",
+   "output_sha256": "f553db8c168d1f70888ecd685a1f65ece19da82a780a23979cfae42a0f4929f7"
+  },
+  {
+   "key": "squirrel_gatherer",
+   "file": "anim_chair_sit_idle.glb",
+   "tail_vertices": 8385,
+   "tail_length_m": 0.763,
+   "joint_radius_m": [
+    0.0753,
+    0.0821,
+    0.1018,
+    0.108,
+    0.1171,
+    0.111,
+    0.0929,
+    0.0753
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "08d24554ca31bd9748786d975b3b7313bd7d0ff53fa625724cb1e9feeb37c157",
+   "output_sha256": "4760ddce3b1f7ae04c983697ecd21b4b42025e5bbeaf54b6750698cdada65e0a"
+  },
+  {
+   "key": "squirrel_gatherer",
+   "file": "anim_collect_object.glb",
+   "tail_vertices": 8385,
+   "tail_length_m": 0.763,
+   "joint_radius_m": [
+    0.0753,
+    0.0821,
+    0.1018,
+    0.108,
+    0.1171,
+    0.111,
+    0.0929,
+    0.0753
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "7df96ebe21d1817a9dc41c76b7582bc3cb9a2101b0af83a90b13556e83756efc",
+   "output_sha256": "d3d6bbd06d21676dfcb77c669e90c421c7118f746398878ba7f2eb6c6b966e6c"
+  },
+  {
+   "key": "squirrel_gatherer",
+   "file": "anim_idle.glb",
+   "tail_vertices": 8385,
+   "tail_length_m": 0.763,
+   "joint_radius_m": [
+    0.0753,
+    0.0821,
+    0.1018,
+    0.108,
+    0.1171,
+    0.111,
+    0.0929,
+    0.0753
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "3922d8713c63a5fe02491ac907ccd103c0361cfda647e69a2e44732cecbe3a77",
+   "output_sha256": "b2ea22c943ab5a6920ac849e2a0a3e5f54b4718d4d294da7f76aed71c6b6d9bb"
+  },
+  {
+   "key": "squirrel_gatherer",
+   "file": "anim_pull_radish.glb",
+   "tail_vertices": 8385,
+   "tail_length_m": 0.763,
+   "joint_radius_m": [
+    0.0753,
+    0.0821,
+    0.1018,
+    0.108,
+    0.1171,
+    0.111,
+    0.0929,
+    0.0753
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "86f7b9987e492ff8b57cdaa712d52d0609d8e4a92eb669cea873c0cb60309508",
+   "output_sha256": "fda89f96fbe847f904f76c60aafa79c4f72ea78bb6ef83eaa0aa494199c25a8c"
+  },
+  {
+   "key": "squirrel_gatherer",
+   "file": "anim_run.glb",
+   "tail_vertices": 8385,
+   "tail_length_m": 0.763,
+   "joint_radius_m": [
+    0.0753,
+    0.0821,
+    0.1018,
+    0.108,
+    0.1171,
+    0.111,
+    0.0929,
+    0.0753
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "66c77240016fe7b07eae01d58f5231e38ed09d16a715b74f016eeb03b3c444fc",
+   "output_sha256": "7bc61985611962bfa24764564198c2fa3f768360df8b75d5d68d1f2a5297bde0"
+  },
+  {
+   "key": "squirrel_gatherer",
+   "file": "anim_stand_and_drink.glb",
+   "tail_vertices": 8385,
+   "tail_length_m": 0.763,
+   "joint_radius_m": [
+    0.0753,
+    0.0821,
+    0.1018,
+    0.108,
+    0.1171,
+    0.111,
+    0.0929,
+    0.0753
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "224a00d38d2a873db489d2df0907bb5aa507e3c80fdc0978e263049b8446d1bf",
+   "output_sha256": "40a4ff9511f85b7f31fa15cc61bbad8b72dde3d20dada51a536b82220a1e8cb8"
+  },
+  {
+   "key": "squirrel_gatherer",
+   "file": "anim_walk.glb",
+   "tail_vertices": 8385,
+   "tail_length_m": 0.763,
+   "joint_radius_m": [
+    0.0753,
+    0.0821,
+    0.1018,
+    0.108,
+    0.1171,
+    0.111,
+    0.0929,
+    0.0753
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "8b0ad74684e59bb9563e0b8fb2e776f2be699a59ce8b07860ea4c56781657d1e",
+   "output_sha256": "039337386432b149f91d17d823d80fe58c5aa0a69c70ae4ee71e37f828424a42"
+  },
+  {
+   "key": "squirrel_gatherer",
+   "file": "anim_wave_one_hand.glb",
+   "tail_vertices": 8385,
+   "tail_length_m": 0.763,
+   "joint_radius_m": [
+    0.0753,
+    0.0821,
+    0.1018,
+    0.108,
+    0.1171,
+    0.111,
+    0.0929,
+    0.0753
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "32ec7ff5a6203e49df2a72357bfa22318902b1cf23e2a7383a7eeaff320fe3f0",
+   "output_sha256": "97bfdfac54782a1456679062cceb3b0cedb203e2979d111285a7af8c9789c9dc"
+  },
+  {
+   "key": "squirrel_gatherer",
+   "file": "rigged.glb",
+   "tail_vertices": 8385,
+   "tail_length_m": 0.763,
+   "joint_radius_m": [
+    0.0753,
+    0.0821,
+    0.1018,
+    0.108,
+    0.1171,
+    0.111,
+    0.0929,
+    0.0753
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "f686b68a75e78c72151b5f64053bffefcc79118ebdbb23c65694184bcef535a1",
+   "output_sha256": "05217f3e9fa10c2c8c49712e1775eb769645ca42a0360f013448bd97e2067102"
+  }
+ ]
+}

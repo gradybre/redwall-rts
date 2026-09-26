@@ -33,11 +33,11 @@
     ]
    ],
    "spring": {
-    "stiffness": 0.35,
-    "drag": 0.35,
-    "gravity": 3.0,
+    "stiffness": 4.0,
+    "drag": 0.9,
+    "gravity": 0.5,
     "radius": 0.012,
-    "tested": "collect_object"
+    "tested": "2026-09-26 bake (decision 0192): at 0.35/0.35/3.0 the thin tail, lying on the floor at rest, folded into hairpins once the ground collided correctly. 4.0/0.9/0.5: largest one-frame step 50 deg (keeper) and 69 deg (fieldworker idle), except collect_object (112 and 94 deg, flagged in baked.json: the base straightens as she rises)"
    },
    "refit": false,
    "grow": false,
@@ -73,11 +73,11 @@
     ]
    ],
    "spring": {
-    "stiffness": 0.35,
-    "drag": 0.35,
-    "gravity": 3.0,
+    "stiffness": 4.0,
+    "drag": 0.9,
+    "gravity": 0.5,
     "radius": 0.012,
-    "tested": "not in the demo; copied from mouse_keeper"
+    "tested": "2026-09-26 bake (decision 0192): at 0.35/0.35/3.0 the thin tail, lying on the floor at rest, folded into hairpins once the ground collided correctly. 4.0/0.9/0.5: largest one-frame step 50 deg (keeper) and 69 deg (fieldworker idle), except collect_object (112 and 94 deg, flagged in baked.json: the base straightens as she rises)"
    },
    "refit": false,
    "grow": false,
@@ -155,11 +155,11 @@
     ]
    ],
    "spring": {
-    "stiffness": 1.6,
-    "drag": 0.45,
+    "stiffness": 6.4,
+    "drag": 0.9,
     "gravity": 0.6,
     "radius": 0.07,
-    "tested": "walking"
+    "tested": "2026-09-26 bake (decision 0192): 1.6/0.45 was tuned under the collider bug; with correct collisions the tail thrashed on anim_run (median 31-47 deg per frame, seam 54-127). x4 stiffness, drag 0.9: run max 24-25 deg per frame, seam 12-14"
    }
   },
   "otter_boatwright": {
@@ -192,11 +192,11 @@
     ]
    ],
    "spring": {
-    "stiffness": 0.8,
-    "drag": 0.5,
+    "stiffness": 3.2,
+    "drag": 0.9,
     "gravity": 2.0,
     "radius": 0.045,
-    "tested": "carry_water_bucket_walk"
+    "tested": "2026-09-26 bake (decision 0192): 0.8/0.5 was tuned under the collider bug; with correct collisions the tail thrashed on anim_run (median 31-47 deg per frame, seam 54-127). x4 stiffness, drag 0.9: run max 24-25 deg per frame, seam 12-14"
    }
   },
   "otter_fisher": {
@@ -224,11 +224,11 @@
     ]
    ],
    "spring": {
-    "stiffness": 0.8,
-    "drag": 0.5,
+    "stiffness": 3.2,
+    "drag": 0.9,
     "gravity": 2.0,
     "radius": 0.045,
-    "tested": "not in the demo; copied from otter_boatwright"
+    "tested": "2026-09-26 bake (decision 0192): 0.8/0.5 was tuned under the collider bug; with correct collisions the tail thrashed on anim_run (median 31-47 deg per frame, seam 54-127). x4 stiffness, drag 0.9: run max 24-25 deg per frame, seam 12-14"
    }
   }
  },

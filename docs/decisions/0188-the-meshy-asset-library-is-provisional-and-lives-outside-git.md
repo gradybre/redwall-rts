@@ -169,8 +169,10 @@ and in Godot 4.7.2. That surfaced one error in this batch and settled two open q
 - **Godot imports these files upright with no rotation,** confirming the Y-up measurement.
 - **In motion, the missing tail chain is visible.** Bending clips leave the tail rigid on the
   hips. The production rig's tail chain is a requirement, not a refinement.
-- **Every animated GLB carries a stray 2 m `Icosphere` mesh** in Blender's importer. Godot's
-  importer does not bring it in.
+- **The 2 m `Icosphere` seen in Blender is not in the files.** 0 of 110 rigged and animated
+  GLBs contain one. Blender's glTF importer creates it as the bones' display shape
+  (`io_scene_gltf2/blender/imp/node.py`; off with `disable_bone_shape`). A first reading
+  blamed the files, and was corrected before this addendum merged.
 - **The rig step also breaks the material, in all 110 rigged and animated files.** It keeps
   only the colour map, and then:
   - sets **no metallic or roughness**, so glTF's default of metallic 1.0 applies;

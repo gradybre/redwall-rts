@@ -238,6 +238,37 @@ def test_segmentation_welds_the_seam_and_takes_the_fringe() -> None:
 	check("exactly 25 vertices", len(chosen) == 25)
 
 
+def test_a_thin_tail_can_opt_out_of_refit_and_growth() -> None:
+	"""With "grow": false the 1.2x fringe stays out: a mouse tail beside a dress must not walk onto it."""
+	_pos, _tris, _bind, roles = _mesh()
+	doc, binary = read_glb(_glb())
+	_p, positions, indices = tail.mesh_arrays(doc, binary)
+	plan = tail.plan_chain(positions, indices, {**ENTRY, "refit": False, "grow": False}, 8)
+	check("growth off: the 1.2x fringe vertex is not taken", roles["near"] not in plan["tail"])
+	check("growth off: the whole strip still is", roles["strip"] <= plan["tail"])
+
+
+def test_refit_off_means_one_capture_pass() -> None:
+	"""The refit is a feedback loop beside clothing: with "refit": false the tail is captured ONCE."""
+	doc, binary = read_glb(_glb())
+	_p, positions, indices = tail.mesh_arrays(doc, binary)
+	real, calls = tail.segment_tail, []
+	def counting(*args, **kwargs):
+		calls.append(1)
+		return real(*args, **kwargs)
+	tail.segment_tail = counting
+	try:
+		tail.plan_chain(positions, indices, {**ENTRY, "refit": False}, 8)
+		once = len(calls)
+		calls.clear()
+		tail.plan_chain(positions, indices, ENTRY, 8)
+		twice = len(calls)
+	finally:
+		tail.segment_tail = real
+	check("refit off: one capture pass", once == 1)
+	check("refit on (the default): two capture passes", twice == 2)
+
+
 def test_the_chain_hangs_from_hips_in_order() -> None:
 	"""tail_00..tail_07, tail_00 under Hips, each under the one before, all in the skin."""
 	plan, sha = _plan(_glb())
@@ -278,6 +309,22 @@ def test_each_joint_carries_its_measured_radius() -> None:
 	check("seven segments are the strip's 5 mm half-width", sum(1 for r in radii if abs(r - 0.005) < 1e-4) == 7)
 	check("the segment holding the 1.2x fringe vertex is wider, 25-37 mm: the fringe is surface",
 		0.025 <= radii[4] <= 0.037)
+
+
+def test_a_sparse_segment_is_floored_at_the_tails_median_radius() -> None:
+	"""A segment holding one vertex ON the axis measures 0 m; it must not tell the spring that.
+
+	The mouse keeper's visible tail is 72 vertices over 24 cm, and two of its eight segments
+	measured 0.0 and 0.002 m. A zero collision radius lets half the tail's thickness sink.
+	"""
+	line = [[0.0, 0.5, 0.0], [0.0, 0.5, -0.4]]
+	positions = [(-0.005, 0.5, -0.05), (0.005, 0.5, -0.05), (-0.005, 0.5, -0.15), (0.005, 0.5, -0.15),
+		(0.0, 0.5, -0.25),                                  # segment 2: one vertex, on the axis
+		(-0.005, 0.5, -0.35), (0.005, 0.5, -0.35)]
+	plan = {"tail": set(range(len(positions))), "centreline": line, "length": 0.4, "bones": 4}
+	radii = tail.segment_radii(positions, plan)
+	check("the on-axis segment is floored to the 5 mm median, not 0", radii[2] == 0.005)
+	check("the other segments keep their own 5 mm", radii[0] == radii[1] == radii[3] == 0.005)
 
 
 def test_bind_check_reports_the_repairs_root_scale() -> None:

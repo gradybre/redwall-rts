@@ -147,7 +147,7 @@ def weld(positions: list) -> list[int]:
 	return [ids.setdefault(tuple(round(c, WELD_DECIMALS) for c in p), len(ids)) for p in positions]
 
 
-def segment_tail(positions: list, indices: list, poly: list, radius: float) -> set[int]:
+def segment_tail(positions: list, indices: list, poly: list, radius: float, grow: bool = True) -> set[int]:
 	"""Vertices the surface connects to the tail tip inside the capsule, past the root plane."""
 	info = [closest_on_polyline(poly, p) for p in positions]
 	inside = [i for i, (d, _t, before) in enumerate(info) if d < radius and not before]
@@ -172,7 +172,7 @@ def segment_tail(positions: list, indices: list, poly: list, radius: float) -> s
 				seen.add(nxt)
 				stack.append(nxt)
 	core = {i for w in seen for i in members[w]}
-	return _grow(core, positions, indices, ids, info, radius)
+	return _grow(core, positions, indices, ids, info, radius) if grow else core
 
 
 def _grow(core: set[int], positions: list, indices: list, ids: list, info: list, radius: float) -> set[int]:
@@ -268,12 +268,20 @@ def mesh_arrays(doc: dict, binary: bytes) -> tuple[dict, list, list]:
 
 def plan_chain(positions: list, indices: list, entry: dict, bones: int) -> dict:
 	"""Segment, refit, and place `bones` joint stations along the tail. File-independent."""
-	## Two passes: the authored line is rough, so segment against it, refit the line to what was
-	## found, then segment again against the refitted line, which sits in the tail's real centre.
-	first = segment_tail(positions, indices, entry["centreline"], entry["radius"])
-	rough = refit_centreline(positions, first, entry["centreline"])
-	tail = segment_tail(positions, indices, rough, entry["radius"])
-	refit = refit_centreline(positions, tail, rough)
+	## Two passes for a thick tail: the authored line is rough, so segment against it, refit the
+	## line to what was found, then segment again against the refitted line.
+	## A THIN tail running beside clothing opts out ("refit": false, "grow": false). There the
+	## refit is a feedback loop -- a little dress in the first pass pulls the line into the dress,
+	## and the second pass takes more of it -- and growth walks across the fabric.
+	grow = entry.get("grow", True)
+	first = segment_tail(positions, indices, entry["centreline"], entry["radius"], grow)
+	if entry.get("refit", True):
+		rough = refit_centreline(positions, first, entry["centreline"])
+		tail = segment_tail(positions, indices, rough, entry["radius"], grow)
+		refit = refit_centreline(positions, tail, rough)
+	else:
+		tail = first
+		refit = refit_centreline(positions, tail, entry["centreline"])
 	length = polyline_length(refit)
 	stations = [point_at(refit, i * length / bones) for i in range(bones)]
 	plan = {"tail": tail, "centreline": refit, "length": length, "stations": stations, "bones": bones}
@@ -294,12 +302,16 @@ def segment_radii(positions: list, plan: dict) -> list[float]:
 	for v in plan["tail"]:
 		distance, t, _before = closest_on_polyline(plan["centreline"], positions[v])
 		buckets[min(int(t / segment), plan["bones"] - 1)].append(distance)
+	## Floor every segment at the tail's median thickness: a sparse thin tail can leave a segment
+	## with a vertex or two lying on the line, and a zero radius lets half the tail sink.
+	everything = sorted(d for bucket in buckets for d in bucket)
+	floor = everything[len(everything) // 2] if everything else 0.0
 	radii = []
 	for bucket in buckets:
 		if not bucket:
 			raise TailRefused("a tail segment has no vertices; the chain is longer than the tail")
 		bucket.sort()
-		radii.append(round(bucket[min(int(len(bucket) * RADIUS_PERCENTILE), len(bucket) - 1)], 4))
+		radii.append(round(max(floor, bucket[min(int(len(bucket) * RADIUS_PERCENTILE), len(bucket) - 1)]), 4))
 	return radii
 
 

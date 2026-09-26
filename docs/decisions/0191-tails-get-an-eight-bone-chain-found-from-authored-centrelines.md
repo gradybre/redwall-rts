@@ -117,3 +117,29 @@ The chain makes the tail bendable. It still has to be moved:
 - The two spring settings copied rather than tested: `mouse_fieldworker` and `otter_fisher`.
 - Tail chains for the moles and badgers, if a later model gives them a separable tail.
 - The production rig: sockets, a fixed rig manifest, and the crowd bake.
+
+## Addendum, 2026-09-26: a thin tail beside clothing chains only what is visible
+
+Brendan saw the mouse keeper's tail dragging her apron and dress. It was a segmentation fault,
+not a spring fault. The keeper's selection had taken the back of the dress, and the fieldworker's
+had taken the seat of his trousers, through two steps that help a thick tail:
+
+- **The refit was a feedback loop.** A little fabric in the first pass pulled the refitted line
+  towards the fabric, and the second pass took more of it.
+- **Growth walked across the fabric**, because the dress surface touches the tail.
+
+Above the hem the mouse tail runs 1–3 cm under the cloth. Nothing captured there can move without
+taking the cloth, and a spring there would push the tail through it. So:
+
+- **A chain may opt out** with `"refit": false` and `"grow": false`. The file then gets one
+  capture pass against the authored line, with no growth. The squirrels and otters keep both steps.
+- **Both mice are re-authored to the visible tail only**, from the hem (keeper, y ≈ 0.14) or trouser
+  seat (fieldworker, y ≈ 0.23) to the floor. Radii are 0.016 and 0.018. The hidden part stays
+  bound to the hips.
+- **Each segment's spring radius is floored at the tail's median thickness.** A sparse thin tail
+  left segments with one or two vertices lying on the line, and a zero radius let that part sink.
+
+Result: the keeper has 72 tail vertices, with max |x| 0.011 and y ≤ 0.131. The fieldworker has
+151, with max |x| 0.017 and y ≤ 0.222. Neither selection includes cloth. The test suite has
+**38 checks**, and **three more mutants are killed**: ignore `grow: false`, ignore `refit: false`
+(the test counts the capture passes), and drop the median floor.

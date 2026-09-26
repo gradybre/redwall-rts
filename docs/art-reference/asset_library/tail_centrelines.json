@@ -1,0 +1,227 @@
+{
+ "schema": 1,
+ "doc": "Authored tail centrelines for tools/rig_meshy_tail.py (decision 0191). Points are bind-pose metres in glTF axes (+Y up, +Z front), root first. radius is the capsule that bounds the surface walk from the tail tip. Validated against rendered segmentation plots, 2026-09-26.",
+ "bones": 8,
+ "chains": {
+  "mouse_keeper": {
+   "radius": 0.045,
+   "centreline": [
+    [
+     0,
+     0.4,
+     -0.02
+    ],
+    [
+     0,
+     0.26,
+     -0.08
+    ],
+    [
+     0,
+     0.12,
+     -0.17
+    ],
+    [
+     0,
+     0.02,
+     -0.28
+    ]
+   ],
+   "spring": {
+    "stiffness": 0.35,
+    "drag": 0.35,
+    "gravity": 3.0,
+    "radius": 0.012,
+    "tested": "collect_object"
+   }
+  },
+  "mouse_fieldworker": {
+   "radius": 0.045,
+   "centreline": [
+    [
+     0,
+     0.4,
+     -0.05
+    ],
+    [
+     0,
+     0.28,
+     -0.12
+    ],
+    [
+     0,
+     0.14,
+     -0.2
+    ],
+    [
+     0,
+     0.02,
+     -0.28
+    ]
+   ],
+   "spring": {
+    "stiffness": 0.35,
+    "drag": 0.35,
+    "gravity": 3.0,
+    "radius": 0.012,
+    "tested": "not in the demo; copied from mouse_keeper"
+   }
+  },
+  "squirrel_forester": {
+   "radius": 0.19,
+   "centreline": [
+    [
+     0,
+     0.38,
+     0.1
+    ],
+    [
+     0,
+     0.36,
+     -0.05
+    ],
+    [
+     0,
+     0.55,
+     -0.15
+    ],
+    [
+     0,
+     0.78,
+     -0.22
+    ],
+    [
+     0,
+     0.86,
+     -0.35
+    ],
+    [
+     0,
+     0.72,
+     -0.5
+    ]
+   ],
+   "spring": {
+    "stiffness": 4.0,
+    "drag": 0.55,
+    "gravity": 0.25,
+    "radius": 0.07,
+    "tested": "pull_radish"
+   }
+  },
+  "squirrel_gatherer": {
+   "radius": 0.12,
+   "centreline": [
+    [
+     0,
+     0.35,
+     0.2
+    ],
+    [
+     0,
+     0.3,
+     0.05
+    ],
+    [
+     0,
+     0.24,
+     -0.15
+    ],
+    [
+     0,
+     0.2,
+     -0.35
+    ],
+    [
+     0,
+     0.19,
+     -0.57
+    ]
+   ],
+   "spring": {
+    "stiffness": 1.6,
+    "drag": 0.45,
+    "gravity": 0.6,
+    "radius": 0.07,
+    "tested": "walking"
+   }
+  },
+  "otter_boatwright": {
+   "radius": 0.15,
+   "centreline": [
+    [
+     0,
+     0.48,
+     -0.02
+    ],
+    [
+     0,
+     0.34,
+     -0.1
+    ],
+    [
+     0,
+     0.22,
+     -0.22
+    ],
+    [
+     0,
+     0.12,
+     -0.35
+    ],
+    [
+     0,
+     0.05,
+     -0.5
+    ]
+   ],
+   "spring": {
+    "stiffness": 0.8,
+    "drag": 0.5,
+    "gravity": 2.0,
+    "radius": 0.045,
+    "tested": "carry_water_bucket_walk"
+   }
+  },
+  "otter_fisher": {
+   "radius": 0.08,
+   "centreline": [
+    [
+     0,
+     0.56,
+     -0.12
+    ],
+    [
+     0,
+     0.36,
+     -0.17
+    ],
+    [
+     0,
+     0.16,
+     -0.19
+    ],
+    [
+     0,
+     0.02,
+     -0.2
+    ]
+   ],
+   "spring": {
+    "stiffness": 0.8,
+    "drag": 0.5,
+    "gravity": 2.0,
+    "radius": 0.045,
+    "tested": "not in the demo; copied from otter_boatwright"
+   }
+  }
+ },
+ "no_chain": {
+  "mole_digger": "No tail separable from the body in the 2026-09-26 bind-pose plots. The DEC-039 landmarks give moles a 120 permille stub (~0.11 m), which can ride the hips.",
+  "mole_mason": "No tail separable from the body in the 2026-09-26 bind-pose plots; same 120 permille stub landmark as mole_digger.",
+  "badger_cellarer": "No tail separable in the 2026-09-26 bind-pose plots; the long tunic covers the seat.",
+  "badger_quarryman": "No tail separable in the 2026-09-26 bind-pose plots.",
+  "badger_steward": "Not rigged at all: the robe defeated Meshy's auto-rigger (decision 0188)."
+ },
+ "spring_units": "Godot 4.7 SpringBoneSimulator3D: gravity in m/s^2 and radius in metres, in WORLD units -- not the skeleton's local units, although the skeleton sits under the glTF's 0.01-scale armature. Verified 2026-09-26: scaling both by 100 collapsed the squirrel forester's tail and lifted the otter's."
+}

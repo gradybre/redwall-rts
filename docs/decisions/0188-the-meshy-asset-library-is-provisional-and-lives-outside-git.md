@@ -148,3 +148,41 @@ It does not accept any art, satisfy ART-CREATURES' production bodies, make any l
 detail below L0, verify facing, pack textures to the 2048² family contract, or touch any
 gate in `art_approvals.json`. The existing `godot/assets/units/species_mouse_body_a_lod0.glb`
 is unchanged.
+
+## Addendum — 2026-09-26: the rigs checked in motion
+
+Brendan asked to see the creatures moving, so the animated files were played in Blender 5.2.1
+and in Godot 4.7.2. That surfaced one error in this batch and settled two open questions.
+
+- **Meshy's `height_meters` scales the longest rest-pose dimension, not the height.** In
+  T-pose, mole_digger, mole_mason and badger_cellarer are wider than they are tall, so their
+  rigged and animated files came out at 0.734, 0.759 and 2.121 m against 0.90, 0.90 and
+  2.55 — and in each case the *width* equals the target exactly. Measured from the glTF
+  accessors of `rigged.glb` and `anim_walk.glb`, and matched by Godot's own mesh AABB. The
+  other seven are exact, and every L0 is exact, because the remesh used `resize_height`,
+  which does mean height. **Anyone rigging through Meshy should pass the height the
+  longest axis will scale to, or rescale afterwards.** An earlier Blender render sent to
+  Brendan was described as showing true relative heights; for these three it did not.
+- **Facing is +Z**, glTF's front. The project faces −Z, so every creature takes a 180° turn
+  on import. This was the one property the asset-pipeline skill says only a human can
+  check. A camera on +Z in Godot sees every face.
+- **Godot imports these files upright with no rotation,** confirming the Y-up measurement.
+- **In motion, the missing tail chain is visible.** Bending clips leave the tail rigid on the
+  hips. The production rig's tail chain is a requirement, not a refinement.
+- **Every animated GLB carries a stray 2 m `Icosphere` mesh** in Blender's importer. Godot's
+  importer does not bring it in.
+- **The rig step also breaks the material, in all 110 rigged and animated files.** It keeps
+  only the colour map, and then:
+  - sets **no metallic or roughness**, so glTF's default of metallic 1.0 applies;
+  - wires the colour map in **a second time as full emission**;
+  - sets `KHR_materials_specular` to **2.0**;
+  - **drops** the L0's roughness and normal maps.
+
+  Godot's imported material reads metallic 1.00, roughness 1.00, emission on, and the cloth
+  renders glossy and self-lit. All 162 high-poly and L0 files are correct (roughness median
+  0.93, metallic 0), and the rigged mesh *is* the L0 mesh, with identical triangle counts. So
+  the fix is a local material repair, not regeneration: metallic 0, emission off, specular
+  1.0, and the L0's own roughness and normal maps. A Godot override with a constant
+  roughness of 0.93 was captured before and after; see
+  `contact_sheets/gloss_before_after.png`.
+

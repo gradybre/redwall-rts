@@ -144,9 +144,25 @@ Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceil
   and centred on the origin. The asset-pipeline skill's claim that Meshy GLBs are Z-up
   does not hold for this output. **Run `prep_unit.py` with `--no-rotate`**, or it will
   tip every one of them onto its back.
-- **Facing** has not been checked. glTF faces +Z and the project faces −Z; this needs a
-  person looking at it.
+- **Facing: +Z**, glTF's front. Checked 2026-09-26 by running the animated files in
+  Godot 4.7.2: a camera on +Z sees every creature's face. The project's convention is −Z
+  forward, so each one needs a **180° turn** on import. Godot imports them upright with no
+  rotation, which confirms the Y-up finding above.
 - **Rigs** are Meshy's generic humanoid: 24 joints, **no tail, no fingers, no sockets**.
+  In motion the missing tail chain shows: bending clips (gather, pull radish, bucket) leave
+  the tail rigid, riding on the hips and sticking out behind.
+- **Rigged and animated files are NOT all at DEC-039 height.** Meshy's rig `height_meters`
+  scales the model's **longest** rest-pose dimension, not its height. Three creatures are
+  wider in T-pose than they are tall, and came out short. The rigged file and every
+  animation file for them share the error; their L0 is correct.
+
+  | Key | Rigged height | Rest width | Target | Fix |
+  |---|---:|---:|---:|---|
+  | mole_digger | 0.734 | 0.900 | 0.90 | scale ×1.226 |
+  | mole_mason | 0.759 | 0.900 | 0.90 | scale ×1.185 |
+  | badger_cellarer | 2.121 | 2.550 | 2.55 | scale ×1.202 |
+
+  The other seven rigged creatures match their target to the millimetre.
 - **Triangle counts** land 0–4% over the remesh target; that is Meshy's tolerance.
 
 ## Known problems
@@ -155,6 +171,10 @@ Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceil
 |---|---|---|
 | bramble, fern_clump, wildflower_patch, birch_mature, apple_mature, crop_beans_ripe, basket | Leaves, fronds and the woven rim shatter under the automatic remesh at these budgets. **Every high-poly source is good** — see `contact_sheets/foliage_compare.png` | Build the L0 in Blender as leaf cards with alpha, or retopologise by hand. Not a Meshy remesh |
 | badger_steward | The robe hides the legs, so Meshy's auto-rigger refused it (`422 Pose estimation failed`) | Rig in Blender; or use badger_quarryman |
+| mole_digger, mole_mason, badger_cellarer rigs and clips | 17–19% short: the rig scaled their arm span, not their height (see above) | Rescale the rig by the factor above. It is a uniform scale; nothing needs regenerating |
+| Every animated GLB | Carries a stray 2 m **Icosphere** mesh. Blender's importer brings it in; Godot's does not | Delete it when a clip is prepared in Blender |
+| **Every rigged and animated GLB (110 files)** | Reads glossy and self-lit. Meshy's rig step rewrote the material: no metallic or roughness value, so glTF's default **metallic 1.0** applies; the colour map is wired in **again as full emission** (`emissiveFactor [1,1,1]`); `KHR_materials_specular` is **2.0**; the L0's roughness and normal maps are **dropped**. Godot's imported material confirms it: metallic 1.00, roughness 1.00, emission on. The high-poly and L0 files (162) are correct: roughness median 0.93, metallic 0 | A free, local material repair, with no regeneration: metallic 0, emission off, specular 1.0, and the **L0's own roughness and normal maps**. The rigged mesh is the L0 mesh (identical triangle counts; the extra vertices are skinning-seam splits). Proven in Godot with a constant roughness of 0.93: `contact_sheets/gloss_before_after.png` |
+| `chair_sit_idle` clips | Sits on nothing | Pair it with a seat at play time |
 | crop_cabbage_ripe | Cabbages read cyan-blue | Recolour the texture |
 | stone_wall | Generated as an L-shaped corner, not a straight modular section | Cut it in Blender |
 | boathouse, weir, fisher_shelter | Water surfaces are baked into the mesh | Strip them; water is the engine's |
@@ -162,6 +182,18 @@ Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceil
 | mill | The waterwheel the prompt asked for isn't visible from the default view | Inspect it; may need adding |
 | squirrel_gatherer | A basket is attached to the hand, although the prompt said nothing held | Separate it in Blender |
 | Crops | Only RIPE was generated, and the runtime module ceiling is **256** triangles | Author EMPTY, SOWN, GROWING and WITHERED, and a 256-triangle module, in Blender from these sources |
+
+## Seeing them move
+
+[`viewer/`](viewer/) holds the two scripts used on 2026-09-26 to check the rigs in motion.
+Both are scratch tools, not part of the game:
+- `render_lineup.py` renders ten creatures walking in Blender, headless.
+- `capture.gd` runs in a throwaway Godot project, imports the animated GLBs exactly as the
+  game would, advances every clip by exactly 1/24 s per captured frame, and saves each frame.
+  It must run **windowed**: headless Godot has no renderer to capture from.
+  Arguments after `--`: `<out_dir> <walk|clips> <frames> [fixmat]`. `fixmat` applies the
+  material repair described under *Known problems*. `walk` rescales the three short rigs to
+  their DEC-039 height, in the viewer only.
 
 ## What still has to happen before anything is in the game
 

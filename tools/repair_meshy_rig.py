@@ -44,7 +44,7 @@ CHUNK_BIN = 0x004E4942
 UNITS_PER_METRE = 1024
 HEIGHT_TOLERANCE_M = 0.001
 STAMP = "redwall_rig_repair"
-STAMP_VERSION = 1
+STAMP_VERSION = 2   # 2: the root scale is folded into the hierarchy (decision 0194)
 DROPPED_EXTENSIONS = ("KHR_materials_specular", "KHR_materials_ior")
 
 
@@ -78,6 +78,38 @@ def write_glb(doc: dict, binary: bytes) -> bytes:
 	header = struct.pack("<III", GLB_MAGIC, 2, total)
 	return (header + struct.pack("<II", len(text), CHUNK_JSON) + text
 			+ struct.pack("<II", len(binary), CHUNK_BIN) + binary)
+
+
+## glTF component codes and element widths, shared by every tool that reads accessors.
+COMPONENTS = {5120: ("b", 1), 5121: ("B", 1), 5122: ("h", 2), 5123: ("H", 2), 5125: ("I", 4), 5126: ("f", 4)}
+WIDTHS = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4, "MAT4": 16}
+
+
+def read_accessor(doc: dict, binary: bytes, index: int) -> list[tuple]:
+	"""Every element of one accessor, honouring stride and normalisation."""
+	accessor = doc["accessors"][index]
+	view = doc["bufferViews"][accessor["bufferView"]]
+	code, size = COMPONENTS[accessor["componentType"]]
+	width = WIDTHS[accessor["type"]]
+	stride = view.get("byteStride", size * width)
+	base = view.get("byteOffset", 0) + accessor.get("byteOffset", 0)
+	scale = {"B": 255.0, "H": 65535.0}.get(code) if accessor.get("normalized") else None
+	rows = []
+	for k in range(accessor["count"]):
+		row = struct.unpack_from("<" + code * width, binary, base + k * stride)
+		rows.append(tuple(v / scale for v in row) if scale else row)
+	return rows
+
+
+def append_accessor(doc: dict, binary: bytes, rows: list, component: int, kind: str) -> tuple[bytes, int]:
+	"""Pack rows into a new tightly-packed bufferView and accessor at the end of the BIN."""
+	code, size = COMPONENTS[component]
+	data = b"".join(struct.pack("<" + code * WIDTHS[kind], *row) for row in rows)
+	binary = binary + b"\x00" * (-len(binary) % 4)
+	doc["bufferViews"].append({"buffer": 0, "byteOffset": len(binary), "byteLength": len(data)})
+	doc["accessors"].append({"bufferView": len(doc["bufferViews"]) - 1, "componentType": component,
+		"count": len(rows), "type": kind})
+	return binary + data, len(doc["accessors"]) - 1
 
 
 def image_bytes(doc: dict, binary: bytes, image: int) -> bytes:
@@ -177,15 +209,15 @@ def root_scale(doc: dict) -> float:
 
 
 def drawn_height_m(output: bytes, source: bytes) -> float:
-	"""The output's bind-pose height, measured from the two FILES, not from the recorded factor.
+	"""The output's bind-pose height, measured from the FILES, not from the recorded factor.
 
-	The geometry is untouched by the repair, so the drawn height is the source extent times the
-	ratio of the output's root scale to the source's. Reading both back from their bytes keeps
-	this check independent of the number the repair decided to write.
-	"""
-	out_doc, _ = read_glb(output)
-	src_doc, _ = read_glb(source)
-	return geometry_height_m(src_doc) * root_scale(out_doc) / root_scale(src_doc)
+	The vertices are untouched by the repair, so the drawn height is the source extent times the
+	output's bind scale (joint_world * inverse_bind) relative to the source's. Reading both back
+	from their bytes keeps this independent of the numbers the repair decided to write -- and of
+	where the scale lives, root or joints (decision 0194)."""
+	out_doc, out_bin = read_glb(output)
+	src_doc, src_bin = read_glb(source)
+	return geometry_height_m(src_doc) * bind_scale(out_doc, out_bin) / bind_scale(src_doc, src_bin)
 
 
 def scale_root(doc: dict, factor: float) -> None:
@@ -202,6 +234,108 @@ def scale_root(doc: dict, factor: float) -> None:
 	if "matrix" in node:
 		raise RepairRefused("scene root uses a matrix, not TRS")
 	node["scale"] = [s * factor for s in node.get("scale", [1.0, 1.0, 1.0])]
+
+
+def _descendants(doc: dict, root: int) -> list[int]:
+	"""Every node below `root`, not including it."""
+	out, stack = [], list(doc["nodes"][root].get("children", []))
+	while stack:
+		node = stack.pop()
+		out.append(node)
+		stack.extend(doc["nodes"][node].get("children", []))
+	return out
+
+
+def _scaled_rows(rows: list, s: float) -> list:
+	"""Every component of every row multiplied by s."""
+	return [tuple(v * s for v in row) for row in rows]
+
+
+def fold_root_scale(doc: dict, binary: bytes) -> tuple[bytes, float]:
+	"""Move the scene root's uniform scale s into the hierarchy, leaving the root at scale 1.
+
+	Meshy's Armature carries s = 0.01 (times any height repair), and under a scaled skeleton
+	Godot 4.7.2's SpringBoneCollisionPlane3D collides wrongly (decision 0194). With S = scale(s):
+	every descendant's translation, and every translation KEY on one, is multiplied by s, so each
+	joint's world becomes old_world * S^-1; every inverse bind becomes S * IBM. A skinned vertex,
+	joint_world * IBM * v, is then drawn exactly where it was, in every pose."""
+	root = doc["scenes"][doc.get("scene", 0)]["nodes"][0]
+	s = root_scale(doc)
+	below = set(_descendants(doc, root))
+	anim_targets = {c["target"]["node"] for a in doc.get("animations", []) for c in a["channels"]}
+	if root in anim_targets:
+		raise RepairRefused("the scene root is animated; its scale cannot be folded")
+	if any("matrix" in doc["nodes"][n] for n in below):
+		raise RepairRefused("a node below the root uses a matrix, not TRS")
+	doc["nodes"][root]["scale"] = [1.0, 1.0, 1.0]
+	for n in below:
+		if "translation" in doc["nodes"][n]:
+			doc["nodes"][n]["translation"] = [v * s for v in doc["nodes"][n]["translation"]]
+	for skin in doc.get("skins", []):
+		ibm = _inverse_binds(doc, binary, skin)
+		scaled = [tuple(v * s if i % 4 < 3 else v for i, v in enumerate(m)) for m in ibm]   # S * M: rows 0-2
+		binary, skin["inverseBindMatrices"] = append_accessor(doc, binary, scaled, 5126, "MAT4")
+	return _fold_translation_keys(doc, binary, below, s), s
+
+
+def _fold_translation_keys(doc: dict, binary: bytes, below: set, s: float) -> bytes:
+	"""Every translation key on a node below the root, multiplied by s, as new accessors."""
+	for anim in doc.get("animations", []):
+		users: dict[int, int] = {}
+		for c in anim["channels"]:
+			users[c["sampler"]] = users.get(c["sampler"], 0) + 1
+		for c in anim["channels"]:
+			if c["target"]["path"] != "translation" or c["target"]["node"] not in below:
+				continue
+			if users[c["sampler"]] != 1:
+				raise RepairRefused("a translation sampler is shared between channels")
+			sampler = anim["samplers"][c["sampler"]]
+			rows = _scaled_rows(read_accessor(doc, binary, sampler["output"]), s)
+			binary, sampler["output"] = append_accessor(doc, binary, rows, 5126, "VEC3")
+	return binary
+
+
+def _inverse_binds(doc: dict, binary: bytes, skin: dict) -> list:
+	"""A skin's inverse bind matrices; glTF makes them optional, and absent means identity."""
+	if "inverseBindMatrices" not in skin:
+		return [(1.0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 1.0)] * len(skin["joints"])
+	return read_accessor(doc, binary, skin["inverseBindMatrices"])
+
+
+def bind_scale(doc: dict, binary: bytes) -> float:
+	"""joint_world * inverse_bind for the first joint: the uniform scale a skinned vertex is drawn at."""
+	import math
+	skin = doc["skins"][0]
+	joint = skin["joints"][0]
+	worlds = _rest_worlds(doc)
+	m = _mat_mul(worlds[joint], list(_inverse_binds(doc, binary, skin)[0]))
+	return math.sqrt(m[0] * m[0] + m[1] * m[1] + m[2] * m[2])
+
+
+def _trs(node: dict) -> list:
+	"""Column-major 4x4 from a node's translation, rotation and scale."""
+	x, y, z, w = node.get("rotation", [0.0, 0.0, 0.0, 1.0])
+	sx, sy, sz = node.get("scale", [1.0, 1.0, 1.0])
+	tx, ty, tz = node.get("translation", [0.0, 0.0, 0.0])
+	return [(1 - 2 * (y * y + z * z)) * sx, (2 * (x * y + z * w)) * sx, (2 * (x * z - y * w)) * sx, 0.0,
+		(2 * (x * y - z * w)) * sy, (1 - 2 * (x * x + z * z)) * sy, (2 * (y * z + x * w)) * sy, 0.0,
+		(2 * (x * z + y * w)) * sz, (2 * (y * z - x * w)) * sz, (1 - 2 * (x * x + y * y)) * sz, 0.0, tx, ty, tz, 1.0]
+
+
+def _mat_mul(a: list, b: list) -> list:
+	"""Column-major 4x4 product a*b."""
+	return [sum(a[k * 4 + r] * b[c * 4 + k] for k in range(4)) for c in range(4) for r in range(4)]
+
+
+def _rest_worlds(doc: dict) -> dict[int, list]:
+	"""World matrix of every node in the rest (non-animated) hierarchy."""
+	worlds: dict[int, list] = {}
+	stack = [(n, [1.0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 1.0]) for n in doc["scenes"][doc.get("scene", 0)]["nodes"]]
+	while stack:
+		index, parent = stack.pop()
+		worlds[index] = _mat_mul(parent, _trs(doc["nodes"][index]))
+		stack.extend((c, worlds[index]) for c in doc["nodes"][index].get("children", []))
+	return worlds
 
 
 def species_heights_m(source: str) -> dict[str, float]:
@@ -232,8 +366,9 @@ def repair(rigged: bytes, l0: bytes, target_m: float) -> tuple[bytes, dict]:
 	factor = 1.0 if abs(before - target_m) <= HEIGHT_TOLERANCE_M else target_m / before
 	if factor != 1.0:
 		scale_root(doc, factor)
+	binary, folded = fold_root_scale(doc, binary)
 	doc.setdefault("asset", {}).setdefault("extras", {})[STAMP] = {
-		"version": STAMP_VERSION, "height_scale": factor, "target_height_m": target_m,
+		"version": STAMP_VERSION, "height_scale": factor, "target_height_m": target_m, "root_scale_folded": folded,
 		"source_sha256": hashlib.sha256(rigged).hexdigest()}
 	out = write_glb(doc, binary)
 	if not read_glb(out)[1].startswith(original_bin):
@@ -241,8 +376,10 @@ def repair(rigged: bytes, l0: bytes, target_m: float) -> tuple[bytes, dict]:
 	after = drawn_height_m(out, rigged)
 	if abs(after - target_m) > HEIGHT_TOLERANCE_M:
 		raise RepairRefused(f"repaired height {after:.4f} m misses the target {target_m:.4f} m")
+	if root_scale(read_glb(out)[0]) != 1.0:
+		raise RepairRefused("the root scale was not folded")
 	return out, {"height_before_m": round(before, 4), "height_after_m": round(after, 4),
-				 "height_scale": factor}
+				 "height_scale": factor, "root_scale_folded": folded}
 
 
 def _sha(data: bytes) -> str:

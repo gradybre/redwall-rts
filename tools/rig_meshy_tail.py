@@ -33,7 +33,8 @@ import struct
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from repair_meshy_rig import RepairRefused, read_glb, write_glb  # noqa: E402
+from repair_meshy_rig import (COMPONENTS, WIDTHS, RepairRefused, append_accessor, read_accessor,  # noqa: E402
+	read_glb, write_glb)
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 LIBRARY = ROOT / "assets/library/creature"
@@ -48,11 +49,11 @@ WELD_DECIMALS = 5
 GROW_RINGS = 3              # rings of neighbours added past the capsule, to take the clipped surface
 GROW_RADIUS_FACTOR = 1.35   # ...but never beyond this multiple of the capsule radius
 RADIUS_PERCENTILE = 0.95   # a segment's collision radius: this share of its surface lies within it
+CLEARANCE_PERCENTILE = 0.99   # a segment's ground clearance, for the exact constraint (decision 0194)
+SPRING_KEYS = ("stiffness", "drag", "gravity")
 STAMP = "redwall_tail_rig"
 STAMP_VERSION = 1
 
-COMPONENTS = {5120: ("b", 1), 5121: ("B", 1), 5122: ("h", 2), 5123: ("H", 2), 5125: ("I", 4), 5126: ("f", 4)}
-WIDTHS = {"SCALAR": 1, "VEC2": 2, "VEC3": 3, "VEC4": 4, "MAT4": 16}
 
 
 class TailRefused(RepairRefused):
@@ -61,22 +62,6 @@ class TailRefused(RepairRefused):
 
 # --- accessors ---------------------------------------------------------------------------
 
-def read_accessor(doc: dict, binary: bytes, index: int) -> list[tuple]:
-	"""Every element of one accessor, honouring stride and normalisation."""
-	accessor = doc["accessors"][index]
-	view = doc["bufferViews"][accessor["bufferView"]]
-	code, size = COMPONENTS[accessor["componentType"]]
-	width = WIDTHS[accessor["type"]]
-	stride = view.get("byteStride", size * width)
-	base = view.get("byteOffset", 0) + accessor.get("byteOffset", 0)
-	scale = {"B": 255.0, "H": 65535.0}.get(code) if accessor.get("normalized") else None
-	rows = []
-	for k in range(accessor["count"]):
-		row = struct.unpack_from("<" + code * width, binary, base + k * stride)
-		rows.append(tuple(v / scale for v in row) if scale else row)
-	return rows
-
-
 def accessor_bytes(doc: dict, binary: bytes, index: int) -> bytes:
 	"""The raw bytes one accessor spans, for exact comparison between files."""
 	accessor = doc["accessors"][index]
@@ -84,17 +69,6 @@ def accessor_bytes(doc: dict, binary: bytes, index: int) -> bytes:
 	start = view.get("byteOffset", 0) + accessor.get("byteOffset", 0)
 	code, size = COMPONENTS[accessor["componentType"]]
 	return binary[start:start + accessor["count"] * size * WIDTHS[accessor["type"]]]
-
-
-def append_accessor(doc: dict, binary: bytes, rows: list, component: int, kind: str) -> tuple[bytes, int]:
-	"""Pack rows into a new tightly-packed bufferView and accessor at the end of the BIN."""
-	code, size = COMPONENTS[component]
-	data = b"".join(struct.pack("<" + code * WIDTHS[kind], *row) for row in rows)
-	binary = binary + b"\x00" * (-len(binary) % 4)
-	doc["bufferViews"].append({"buffer": 0, "byteOffset": len(binary), "byteLength": len(data)})
-	doc["accessors"].append({"bufferView": len(doc["bufferViews"]) - 1, "componentType": component,
-		"count": len(rows), "type": kind})
-	return binary + data, len(doc["accessors"]) - 1
 
 
 # --- geometry ----------------------------------------------------------------------------
@@ -336,6 +310,48 @@ def tail_weights(plan: dict, positions: list, hips: int, first: int, joints: lis
 		weights[v] = tuple(p[1] / total for p in pairs)
 
 
+def _joint_extras(plan: dict, i: int) -> dict:
+	"""What the live tail reads from each bone (decision 0194): radius, clearance, and on tail_00 the spring."""
+	extras = {"spring_radius_m": plan["radii"][i]}
+	if "clearances" in plan:
+		extras["ground_clearance_m"] = plan["clearances"][i]
+	if i == 0 and "spring" in plan:
+		extras["spring"] = {k: plan["spring"][k] for k in SPRING_KEYS}
+	return extras
+
+
+def ground_clearances(doc: dict, binary: bytes) -> list[float]:
+	"""Per tail segment, the CLEARANCE_PERCENTILE distance of its vertices from the segment's axis.
+
+	Each vertex belongs to its strongest tail joint; the axis runs from that joint to the next (for
+	tail_07, to the tip the spring extends it to). Bind pose, world metres. The spring's own radius
+	(RADIUS_PERCENTILE) let outer fur dip up to 2.7 cm into the ground (decision 0193)."""
+	skin = doc["skins"][0]
+	names = [doc["nodes"][n].get("name", "") for n in skin["joints"]]
+	primitive = doc["meshes"][0]["primitives"][0]
+	pos = read_accessor(doc, binary, primitive["attributes"]["POSITION"])
+	jnt = read_accessor(doc, binary, primitive["attributes"]["JOINTS_0"])
+	wgt = read_accessor(doc, binary, primitive["attributes"]["WEIGHTS_0"])
+	worlds = node_worlds(doc)
+	by_name = {n.get("name"): i for i, n in enumerate(doc["nodes"])}
+	tail = [by_name[f"tail_{i:02d}"] for i in range(sum(1 for n in names if n.startswith("tail_")))]
+	points = [worlds[n][12:15] for n in tail] + [transform_point(worlds[tail[-1]], doc["nodes"][tail[-1]]["translation"])]
+	spread: list[list[float]] = [[] for _ in tail]
+	for v in range(len(pos)):
+		strongest = names[jnt[v][max(range(4), key=lambda q: wgt[v][q])]]
+		if strongest.startswith("tail_"):
+			i = int(strongest[5:])
+			spread[i].append(_axis_distance(points[i], points[i + 1], pos[v]))
+	return [round(sorted(d)[min(len(d) - 1, int(len(d) * CLEARANCE_PERCENTILE))], 4) if d else 0.0 for d in spread]
+
+
+def _axis_distance(a: list, b: list, p) -> float:
+	"""Distance from p to the segment a-b."""
+	ab = _sub(b, a)
+	u = max(0.0, min(1.0, _dot(ab, _sub(p, a)) / _dot(ab, ab)))
+	return math.dist(p, [a[k] + u * ab[k] for k in range(3)])
+
+
 def add_joints(doc: dict, binary: bytes, plan: dict) -> tuple[bytes, int, int]:
 	"""Append tail_00.. under Hips, with inverse binds sharing the hips' basis. Returns slots."""
 	skin = doc["skins"][0]
@@ -351,8 +367,7 @@ def add_joints(doc: dict, binary: bytes, plan: dict) -> tuple[bytes, int, int]:
 	parent_node, previous = skin["joints"][hips], None
 	for i, p in enumerate(plan["stations"]):
 		local = transform_point(a, p) if previous is None else transform_point(basis, _sub(p, previous))
-		doc["nodes"].append({"name": f"tail_{i:02d}", "translation": local,
-			"extras": {"spring_radius_m": plan["radii"][i]}})
+		doc["nodes"].append({"name": f"tail_{i:02d}", "translation": local, "extras": _joint_extras(plan, i)})
 		node = len(doc["nodes"]) - 1
 		doc["nodes"][parent_node].setdefault("children", []).append(node)
 		skin["joints"].append(node)
@@ -417,6 +432,11 @@ def rig_creature(key_dir: pathlib.Path, entry: dict, bones: int, dry_run: bool) 
 	primitive, positions, indices = mesh_arrays(doc, binary)
 	sha = hashlib.sha256(accessor_bytes(doc, binary, primitive["attributes"]["POSITION"])).hexdigest()
 	plan = plan_chain(positions, indices, entry, bones)
+	if "spring" in entry:
+		plan["spring"] = entry["spring"]
+	## Clearances are measured on the chained mesh (each vertex's strongest tail joint), so chain the
+	## rigged file once to measure, then chain every file with the clearances written in.
+	plan["clearances"] = ground_clearances(*read_glb(rig_file(source.read_bytes(), plan, sha)[0]))
 	rows = []
 	for path in sorted((key_dir / "repaired").glob("*.glb")):
 		data = path.read_bytes()
@@ -425,7 +445,8 @@ def rig_creature(key_dir: pathlib.Path, entry: dict, bones: int, dry_run: bool) 
 			(key_dir / "tailed").mkdir(exist_ok=True)
 			(key_dir / "tailed" / path.name).write_bytes(out)
 		rows.append({"key": key_dir.name, "file": path.name, "tail_vertices": len(plan["tail"]),
-			"tail_length_m": round(plan["length"], 4), "joint_radius_m": plan["radii"], **report,
+			"tail_length_m": round(plan["length"], 4), "joint_radius_m": plan["radii"],
+			"ground_clearance_m": plan["clearances"], **report,
 			"source_sha256": hashlib.sha256(data).hexdigest(), "output_sha256": hashlib.sha256(out).hexdigest()})
 	return rows
 

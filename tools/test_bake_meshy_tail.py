@@ -257,51 +257,27 @@ def test_the_springs_floor_follows_the_clip() -> None:
 			bake.clip_floor(path) == [0.0] * 5)
 
 
-def _chain_after(data: bytes, rotations: list, k: int) -> list:
-	"""World points of the chain (and tip) at key k with `rotations` on the tail joints."""
+def test_the_clearance_deficit_is_read_back_from_the_written_clip() -> None:
+	"""The live constraint promises every joint its clearance; this measures the written file.
+
+	Hips at 0.02 m on key 2 put the level tail 2 cm up. Against 3 cm clearances every point past the
+	base is 1 cm short there; with the floor lowered 5 cm, nothing is."""
+	def clear_all(doc: dict) -> None:
+		for n in doc["nodes"]:
+			if n.get("name", "").startswith("tail_"):
+				n.setdefault("extras", {})["ground_clearance_m"] = 0.03
+	source = _edit_doc(_clip(_chained(), hips_y=[0.5, 0.5, 0.02, 0.5, 0.5]), clear_all)
+	out = bake.write_keys(source, {"times": TIMES, "rotations": [[[0.0, 0.0, 0.0, 1.0]] * 8] * 5})
+	check("1 cm short on key 2", _near(bake.clearance_deficit_m(out, [0.0] * 5), 0.01, 1e-4))
+	check("nothing short over a floor 5 cm lower", bake.clearance_deficit_m(out, [0.0, 0.0, -0.05, 0.0, 0.0]) < 0.0)
+	_refuses("a chain without clearances refuses", lambda: bake.chain_clearances(read_glb(_chained())[0]))
+
+
+def _edit_doc(data: bytes, change) -> bytes:
+	"""Apply `change(doc)` to a copy of the file."""
 	doc, binary = read_glb(data)
-	tail, _base = bake._chain(doc)
-	_times, animated = bake._channels(doc, binary)
-	animated = {**animated, **{node: {"rotation": [f[j] for f in rotations]} for j, node in enumerate(tail)}}
-	return bake._chain_points(doc, bake._worlds_at(doc, animated, k), tail)
-
-
-def test_the_ground_constraint_lifts_a_tail_to_its_clearance() -> None:
-	"""Hips at 0.02 m on key 2: the level tail is closer to the ground than its thickness, and is lifted."""
-	data = _clip(_chained(), hips_y=[0.5, 0.5, 0.02, 0.5, 0.5])
-	doc, binary = read_glb(data)
-	clear = bake.tail_clearances(doc, binary)
-	still = [[[0.0, 0.0, 0.0, 1.0]] * 8 for _ in range(5)]
-	out = bake.lift_tail(doc, binary, still, [0.0] * 5, clear)
-	check("frames above their clearance come back unchanged", all(out[k] == still[k] for k in (0, 1, 3, 4)))
-	before, after = _chain_after(data, still, 2), _chain_after(data, out, 2)
-	need = [0.0] + [max(clear[i - 1], clear[min(i, 7)]) for i in range(1, 9)]
-	check("key 2 was below its clearance", any(before[i][1] < need[i] for i in range(1, 9)))
-	check("key 2: every joint and the tip at or above its clearance", all(after[i][1] >= need[i] - 1e-9 for i in range(1, 9)))
-	check("the base does not move", all(_near(a, b, 1e-12) for a, b in zip(before[0], after[0])))
-	check("every segment keeps its length", all(_near(math.dist(before[i], before[i + 1]), math.dist(after[i], after[i + 1]), 1e-9) for i in range(8)))
-	lowered = bake.lift_tail(doc, binary, still, [0.0, 0.0, -0.5, 0.0, 0.0], clear)
-	check("a floor lowered under the tail lifts nothing", lowered == [[bake._normal(q) for q in f] for f in still])
-	## 0.04 m: reachable from a base held at 0.02 m (a floor beyond reach is the buried-base case).
-	raised = bake.lift_tail(doc, binary, still, [0.0, 0.0, 0.04, 0.0, 0.0], clear)
-	check("a floor raised to 0.04 m lifts every joint above 0.04 m plus its clearance",
-		all(p[1] >= 0.04 + need[i] - 1e-9 for i, p in enumerate(_chain_after(data, raised, 2)) if i))
-	def heading(points: list) -> float:
-		return math.degrees(math.atan2(points[8][0] - points[0][0], points[8][2] - points[0][2]))
-	check("the lifted tail keeps its heading (the hips' 30 deg yaw is respected)", abs(heading(after) - heading(before)) < 5.0)
-	turned = [[[0.0, math.sin(math.radians(2.5)), 0.0, math.cos(math.radians(2.5))]] * 8 for _ in range(5)]
-	kept = bake.lift_tail(doc, binary, turned, [-0.5] * 5, clear)
-	check("a frame needing no lift is passed through exactly, not recomputed", kept == [[bake._normal(q) for q in f] for f in turned])
-
-
-def test_clearances_measure_the_tails_thickness() -> None:
-	"""The strip is 1 cm wide; one segment also holds the fringe vertex 3.6 cm above the strip."""
-	doc, binary = read_glb(_chained())
-	clear = bake.tail_clearances(doc, binary)
-	check("eight clearances", len(clear) == 8)
-	check("plain strip segments clear exactly half its width", round(clear[1], 4) == 0.005 and round(clear[2], 4) == 0.005)
-	check("exactly one segment holds the fringe, and clears more than 3.5 cm", sum(1 for c in clear if c > 0.035) == 1)
-	check("the root segment's vertices blend into the hips, so it has none of its own", clear[0] == 0.0)
+	change(doc)
+	return write_glb(doc, binary)
 
 
 def test_the_verdict_measures_the_tail_against_what_the_spring_controls() -> None:

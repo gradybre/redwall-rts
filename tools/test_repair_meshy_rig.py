@@ -186,21 +186,67 @@ def test_material_is_repaired_with_the_l0s_own_maps() -> None:
 	check("extensionsUsed no longer declares them", "extensionsUsed" not in doc)
 
 
+def _ibm(doc: dict, binary: bytes) -> tuple:
+	"""The first inverse bind matrix, read by hand."""
+	view = doc["bufferViews"][doc["accessors"][doc["skins"][0]["inverseBindMatrices"]]["bufferView"]]
+	return struct.unpack_from("<16f", binary, view["byteOffset"])
+
+
 def test_a_short_rig_is_rescaled_to_its_target() -> None:
-	"""Extent 0.5 m against a 0.9 m target: the root becomes 0.018, a literal, not 0.01*factor."""
+	"""Extent 0.5 m against a 0.9 m target: scale 0.01 x 1.8 = 0.018, folded out of the root."""
 	source = _rigged(extent_y=0.5)
 	out, report = rig.repair(source, _l0(), 0.9)
-	scale = _raw(out)[0]["nodes"][2]["scale"]
-	check("root scale is 0.018 on every axis", all(abs(s - 0.018) < 1e-12 for s in scale))
-	check("geometry itself is untouched", _raw(out)[0]["accessors"][0]["max"][1] == 0.5)
+	doc, binary = _raw(out)
+	check("the root is folded to scale 1", doc["nodes"][2]["scale"] == [1.0, 1.0, 1.0])
+	check("Hips moves from 45 to 0.81 (45 x 0.018)", abs(doc["nodes"][0]["translation"][1] - 0.81) < 1e-9)
+	check("the inverse bind becomes scale 0.018", all(abs(a - b) < 1e-7 for a, b in zip(_ibm(doc, binary),
+		(0.018, 0, 0, 0, 0, 0.018, 0, 0, 0, 0, 0.018, 0, 0, 0, 0, 1))))
+	check("geometry itself is untouched", doc["accessors"][0]["max"][1] == 0.5)
 	check("reported height after is 0.9", report["height_after_m"] == 0.9)
+	check("the folded scale is reported", abs(report["root_scale_folded"] - 0.018) < 1e-12)
 
 
 def test_a_rig_already_at_height_is_not_rescaled() -> None:
-	"""Within one millimetre the root is left exactly as exported."""
+	"""Within one millimetre no height factor is applied; the 0.01 is still folded."""
 	out, report = rig.repair(_rigged(extent_y=0.9), _l0(), 922 / 1024)
-	check("root scale stays exactly 0.01", _raw(out)[0]["nodes"][2]["scale"] == [0.01, 0.01, 0.01])
+	doc, _binary = _raw(out)
 	check("reported scale is exactly 1.0", report["height_scale"] == 1.0)
+	check("the root is folded to scale 1", doc["nodes"][2]["scale"] == [1.0, 1.0, 1.0])
+	check("Hips moves from 45 to 0.45", abs(doc["nodes"][0]["translation"][1] - 0.45) < 1e-9)
+
+
+def _animated_rig() -> bytes:
+	"""Hips 45 cm up under a 0.01 root, a real inverse bind (T(0,-45,0) S(100)), and a clip that
+	raises the hips to 50 cm. At that key the vertex (0, 0.45, 0) m is drawn at (0, 0.5, 0)."""
+	doc, binary = _raw(_rigged(extent_y=0.9))
+	ibm = struct.pack("<16f", 100, 0, 0, 0, 0, 100, 0, 0, 0, 0, 100, 0, 0, -45, 0, 1)
+	times, keys = struct.pack("<2f", 0.0, 1.0), struct.pack("<6f", 0, 45, 0, 0, 50, 0)
+	for blob, kind, count in ((ibm, "MAT4", 1), (times, "SCALAR", 2), (keys, "VEC3", 2)):
+		binary += b"\x00" * (-len(binary) % 4)
+		doc["bufferViews"].append({"buffer": 0, "byteOffset": len(binary), "byteLength": len(blob)})
+		doc["accessors"].append({"bufferView": len(doc["bufferViews"]) - 1, "componentType": 5126, "count": count, "type": kind})
+		binary += blob
+	doc["accessors"][-2].update({"min": [0.0], "max": [1.0]})
+	doc["skins"][0]["inverseBindMatrices"] = len(doc["accessors"]) - 3
+	doc["animations"] = [{"samplers": [{"input": len(doc["accessors"]) - 2, "output": len(doc["accessors"]) - 1}],
+		"channels": [{"sampler": 0, "target": {"node": 0, "path": "translation"}}]}]
+	doc["buffers"] = [{"byteLength": len(binary)}]
+	return rig.write_glb(doc, binary)
+
+
+def test_the_fold_draws_every_vertex_where_it_was_in_every_pose() -> None:
+	"""After the fold: Hips key 0.5 m, inverse bind T(0,-0.45,0), so the vertex is still drawn at 0.5 m."""
+	out, _report = rig.repair(_animated_rig(), _l0(), 922 / 1024)
+	doc, binary = _raw(out)
+	sampler = doc["animations"][0]["samplers"][0]
+	view = doc["bufferViews"][doc["accessors"][sampler["output"]]["bufferView"]]
+	keys = struct.unpack_from("<6f", binary, view["byteOffset"])
+	check("the translation keys are scaled to metres", all(abs(a - b) < 1e-6 for a, b in zip(keys, (0, 0.45, 0, 0, 0.5, 0))))
+	ibm = _ibm(doc, binary)
+	check("the inverse bind is T(0, -0.45, 0) with unit basis", all(abs(a - b) < 1e-6 for a, b in zip(ibm,
+		(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -0.45, 0, 1))))
+	drawn = keys[4] + ibm[13] + 0.45            # joint world T(0, key) * IBM * (0, 0.45, 0): all translations
+	check("the vertex is drawn at 0.5 m at the raised key, as before the fold", abs(drawn - 0.5) < 1e-6)
 
 
 def test_original_data_survives_and_the_glb_is_well_formed() -> None:

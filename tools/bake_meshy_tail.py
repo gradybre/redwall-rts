@@ -37,20 +37,21 @@ import tempfile
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from repair_meshy_rig import RepairRefused, read_glb, write_glb  # noqa: E402
-from rig_meshy_tail import append_accessor, mat_mul, node_worlds, read_accessor, trs_matrix  # noqa: E402
+from rig_meshy_tail import append_accessor, mat_mul, read_accessor, trs_matrix  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 LIBRARY = ROOT / "assets/library/creature"
 CONFIG = ROOT / "docs/art-reference/asset_library/tail_centrelines.json"
 MANIFEST = ROOT / "docs/art-reference/asset_library/baked.json"
 GODOT_SCRIPT = pathlib.Path(__file__).resolve().parent / "godot/bake_tail_spring.gd"
+## The game's own live-tail scripts: the bake runs them, so both tiers share one implementation.
+GAME_SCRIPTS = ("scripts/presentation/tail_rig.gd", "scripts/presentation/tail_ground_constraint.gd")
 SOURCE = "grounded"               # tailed/ clips with the feet lifted onto the ground (decision 0193)
 TAIL_BONES = 8
 STAMP = "redwall_tail_bake"
 GROUND_TOLERANCE_M = 0.005     # tail surface may dip this far below the plane and still pass
 TIME_TOLERANCE_S = 1e-4
-CLEARANCE_PERCENTILE = 0.99      # a tail segment's thickness below which the ground constraint keeps it
-HEADING_BLEND = 0.3              # how strongly a lifted segment turns towards "behind the hips"
+CLEARANCE_TOLERANCE_M = 0.001    # the live constraint's promise, checked from the written file
 MAX_STEP_DEG = 90.0             # a tail joint turning further than this in one 30 Hz frame is reported
 GODOT_TIMEOUT_S = 1800
 
@@ -70,7 +71,7 @@ def run_godot(args: list[str], expect: str) -> str:
 	return proc.stdout
 
 
-def simulate(key_dir: pathlib.Path, spring: dict, radii: list[float], clips: list[str]) -> dict:
+def simulate(key_dir: pathlib.Path, clips: list[str]) -> dict:
 	"""Build a throwaway project with the creature's tailed clips, import, and run the bake."""
 	with tempfile.TemporaryDirectory(prefix="tailbake_") as tmp:
 		project = pathlib.Path(tmp)
@@ -79,10 +80,14 @@ def simulate(key_dir: pathlib.Path, spring: dict, radii: list[float], clips: lis
 		for clip in clips:
 			shutil.copyfile(key_dir / SOURCE / f"{clip}.glb", project / "glb" / f"{clip}.glb")
 		shutil.copyfile(GODOT_SCRIPT, project / "bake.gd")
+		for script in GAME_SCRIPTS:
+			(project / script).parent.mkdir(parents=True, exist_ok=True)
+			shutil.copyfile(ROOT / "godot" / script, project / script)
 		spec = project / "spec.json"
-		spec.write_text(json.dumps({"spring": spring, "radii": radii, "clips": clips,
+		spec.write_text(json.dumps({"clips": clips,
 			"times": {c: clip_times(key_dir / SOURCE / f"{c}.glb") for c in clips},
-			"floor": {c: clip_floor(key_dir / SOURCE / f"{c}.glb") for c in clips}}))
+			"floor": {c: clip_floor(key_dir / SOURCE / f"{c}.glb") for c in clips},
+			"poses": {c: clip_poses(key_dir / SOURCE / f"{c}.glb") for c in clips}}))
 		subprocess.run(["godot", "--headless", "--path", str(project), "--editor", "--quit"],
 			capture_output=True, timeout=GODOT_TIMEOUT_S)
 		missing = [c for c in clips if not (project / "glb" / f"{c}.glb.import").exists()]
@@ -92,6 +97,28 @@ def simulate(key_dir: pathlib.Path, spring: dict, radii: list[float], clips: lis
 		run_godot(["--headless", "--path", str(project), "--script", "bake.gd", "--", str(spec), str(out)],
 			"[bake] done")
 		return json.loads(out.read_text())
+
+
+def clip_poses(path: pathlib.Path) -> dict:
+	"""Every non-tail joint's exact local [translation, rotation, scale] at every file key, flat.
+
+	The bake poses the body from these rather than letting Godot play the clip: Godot's glTF import
+	drops keys lying near the line through their neighbours, so its pose and the file's differ by
+	up to a centimetre on those keys (decision 0194)."""
+	doc, binary = read_glb(path.read_bytes())
+	skin = doc["skins"][0]
+	joints = [n for n in skin["joints"] if not doc["nodes"][n].get("name", "").startswith("tail_")]
+	times, animated = _channels(doc, binary)
+	keys = []
+	for k in range(len(times)):
+		row: list[float] = []
+		for n in joints:
+			node = doc["nodes"][n]
+			for path_name, rest in (("translation", [0.0, 0.0, 0.0]), ("rotation", [0.0, 0.0, 0.0, 1.0]), ("scale", [1.0, 1.0, 1.0])):
+				rows = animated.get(n, {}).get(path_name)
+				row.extend(rows[k] if rows is not None else node.get(path_name, rest))
+		keys.append(row)
+	return {"bones": [doc["nodes"][n]["name"] for n in joints], "keys": keys}
 
 
 def clip_times(path: pathlib.Path) -> list[float]:
@@ -159,56 +186,6 @@ def write_keys(data: bytes, baked: dict) -> bytes:
 
 # --- the exact ground constraint -------------------------------------------------------------
 
-def _qmul(a: list, b: list) -> list:
-	"""Hamilton product a*b, quaternions as [x, y, z, w]."""
-	ax, ay, az, aw = a
-	bx, by, bz, bw = b
-	return [aw * bx + ax * bw + ay * bz - az * by, aw * by - ax * bz + ay * bw + az * bx,
-		aw * bz + ax * by - ay * bx + az * bw, aw * bw - ax * bx - ay * by - az * bz]
-
-
-def _qrot(q: list, v: list) -> list:
-	"""Rotate vector v by unit quaternion q."""
-	x, y, z, w = q
-	tx, ty, tz = 2 * (y * v[2] - z * v[1]), 2 * (z * v[0] - x * v[2]), 2 * (x * v[1] - y * v[0])
-	return [v[0] + w * tx + (y * tz - z * ty), v[1] + w * ty + (z * tx - x * tz), v[2] + w * tz + (x * ty - y * tx)]
-
-
-def _normal(v: list) -> list:
-	"""v scaled to unit length."""
-	n = math.sqrt(sum(c * c for c in v))
-	return [c / n for c in v]
-
-
-def _matrix_rotation(m: list) -> list:
-	"""The rotation of a column-major 4x4 matrix whose basis may be scaled, as a unit quaternion."""
-	c = [_normal([m[0], m[1], m[2]]), _normal([m[4], m[5], m[6]]), _normal([m[8], m[9], m[10]])]
-	r = [[c[col][row] for col in range(3)] for row in range(3)]
-	t = r[0][0] + r[1][1] + r[2][2]
-	if t > 0.0:
-		s = math.sqrt(t + 1.0) * 2.0
-		q = [(r[2][1] - r[1][2]) / s, (r[0][2] - r[2][0]) / s, (r[1][0] - r[0][1]) / s, 0.25 * s]
-	elif r[0][0] > r[1][1] and r[0][0] > r[2][2]:
-		s = math.sqrt(1.0 + r[0][0] - r[1][1] - r[2][2]) * 2.0
-		q = [0.25 * s, (r[0][1] + r[1][0]) / s, (r[0][2] + r[2][0]) / s, (r[2][1] - r[1][2]) / s]
-	elif r[1][1] > r[2][2]:
-		s = math.sqrt(1.0 + r[1][1] - r[0][0] - r[2][2]) * 2.0
-		q = [(r[0][1] + r[1][0]) / s, 0.25 * s, (r[1][2] + r[2][1]) / s, (r[0][2] - r[2][0]) / s]
-	else:
-		s = math.sqrt(1.0 + r[2][2] - r[0][0] - r[1][1]) * 2.0
-		q = [(r[0][2] + r[2][0]) / s, (r[1][2] + r[2][1]) / s, 0.25 * s, (r[1][0] - r[0][1]) / s]
-	return _normal(q)
-
-
-def _from_to(a: list, b: list) -> list:
-	"""The shortest-arc rotation taking unit vector a onto unit vector b."""
-	d = sum(x * y for x, y in zip(a, b))
-	if d < -0.999999:
-		return [0.0, 0.0, 1.0, 0.0] if abs(a[2]) < 0.9 else [1.0, 0.0, 0.0, 0.0]
-	c = [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
-	return _normal([c[0], c[1], c[2], 1.0 + d])
-
-
 def _point(m: list, v: list) -> list:
 	"""Transform point v by column-major 4x4 m."""
 	return [m[0] * v[0] + m[4] * v[1] + m[8] * v[2] + m[12], m[1] * v[0] + m[5] * v[1] + m[9] * v[2] + m[13],
@@ -228,83 +205,32 @@ def _chain_points(doc: dict, worlds: dict, tail: list[int]) -> list[list[float]]
 	return [worlds[n][12:15] for n in tail] + [_point(worlds[tail[-1]], doc["nodes"][tail[-1]]["translation"])]
 
 
-def tail_clearances(doc: dict, binary: bytes) -> list[float]:
-	"""Per tail segment, the CLEARANCE_PERCENTILE distance of its vertices from the segment's axis, bind pose.
+def chain_clearances(doc: dict) -> list[float]:
+	"""The measured ground clearance on each tail_NN node (rig_meshy_tail.py, decision 0194)."""
+	by_name = {n.get("name"): n for n in doc["nodes"]}
+	try:
+		return [by_name[f"tail_{i:02d}"]["extras"]["ground_clearance_m"] for i in range(TAIL_BONES)]
+	except KeyError as missing:
+		raise BakeRefused(f"no ground clearance on the chain ({missing}); re-run rig_meshy_tail.py") from None
 
-	The spring's own radius (the 95th percentile, decision 0191) let the outer fur of 39 of 60
-	grounded clips dip 0.5-2.7 cm under the ground; the constraint clears the 99th."""
-	skin, names, _ibm, pos, jnt, wgt = _skinning(doc, binary)
+
+def clearance_deficit_m(data: bytes, floors: list[float]) -> float:
+	"""How far any joint (or the tip) of the WRITTEN clip falls short of its clearance above that
+	key's floor, at worst. The live constraint promises 0; read back from the file, independently."""
+	doc, binary = read_glb(data)
 	tail, _base = _chain(doc)
-	points = _chain_points(doc, node_worlds(doc), tail)
-	spread: list[list[float]] = [[] for _ in range(TAIL_BONES)]
-	for v in range(len(pos)):
-		strongest = names[jnt[v][max(range(4), key=lambda q: wgt[v][q])]]
-		if not strongest.startswith("tail_"):
-			continue
-		i = int(strongest[5:])
-		a, b = points[i], points[i + 1]
-		ab = [b[k] - a[k] for k in range(3)]
-		u = max(0.0, min(1.0, sum(x * (pos[v][k] - a[k]) for k, x in enumerate(ab)) / sum(x * x for x in ab)))
-		spread[i].append(math.dist(pos[v], [a[k] + u * ab[k] for k in range(3)]))
-	return [sorted(d)[min(len(d) - 1, int(len(d) * CLEARANCE_PERCENTILE))] if d else 0.0 for d in spread]
-
-
-def _lift_segment(base: list, d: list, low: float, behind: tuple) -> list:
-	"""Segment d hanging from `base`, swung up just enough that its end is at `low`: length kept.
-
-	The swing turns it towards `behind` only as far as it had to go down -- a barely-touching
-	segment keeps its own heading, so the lift switches on and off without a jump."""
-	length = math.sqrt(sum(c * c for c in d))
-	dy = max(-1.0, min(1.0, (low - base[1]) / length))
-	w = HEADING_BLEND * length * min(1.0, (low - base[1] - d[1]) / (0.25 * length))
-	hx, hz = d[0] + w * behind[0], d[2] + w * behind[1]
-	h, flat = math.hypot(hx, hz), math.sqrt(max(0.0, 1.0 - dy * dy)) * length
-	return [hx / h * flat, dy * length, hz / h * flat] if h > 1e-12 else [0.0, dy * length, 0.0]
-
-
-def _lift_frame(points: list, world_rot: list, base_rot: list, floor: float, clear: list, behind: tuple) -> list:
-	"""One frame: walk down the chain; any joint closer to the floor than its clearance swings up."""
-	placed, lifted = [points[0]], []
-	for i in range(TAIL_BONES):
-		d = [points[i + 1][c] - points[i][c] for c in range(3)]
-		low = floor + clear[i + 1]
-		nd = d if placed[i][1] + d[1] >= low else _lift_segment(placed[i], d, low, behind)
-		placed.append([placed[i][c] + nd[c] for c in range(3)])
-		lifted.append(_qmul(_from_to(_normal(d), _normal(nd)), world_rot[i]))
-	local, parent = [], base_rot
-	for q in lifted:
-		local.append(_normal(_qmul([-parent[0], -parent[1], -parent[2], parent[3]], q)))
-		parent = q
-	return local
-
-
-def lift_tail(doc: dict, binary: bytes, rotations: list, floors: list[float], clearances: list[float]) -> list:
-	"""The EXACT ground constraint, applied after Godot's spring (decision 0193).
-
-	Godot's collision is soft: it pushes a joint out once per step and the stiffness pulls it back
-	towards the animated pose, which for a tail points into the ground. Here every joint of every
-	frame is kept at least its segment's clearance above that key's floor, by swinging the segment
-	above it up -- length and the rest of the chain's world directions kept. Returns new local
-	rotations; frames that needed nothing come back unchanged."""
-	tail, base = _chain(doc)
+	clear = _point_clearances(chain_clearances(doc))
 	times, animated = _channels(doc, binary)
-	animated = {**animated, **{node: {"rotation": [f[j] for f in rotations]} for j, node in enumerate(tail)}}
-	clear = [clearances[0]] + [max(clearances[i - 1], clearances[min(i, TAIL_BONES - 1)]) for i in range(1, TAIL_BONES + 1)]
-	bind = _matrix_rotation(node_worlds(doc)[base])
-	back_local = _qrot([-bind[0], -bind[1], -bind[2], bind[3]], [0.0, 0.0, -1.0])   # at bind, behind is -Z
-	out = []
+	worst = -math.inf
 	for k in range(len(times)):
-		worlds = _worlds_at(doc, animated, k)
-		base_rot = _matrix_rotation(worlds[base])
-		back = _qrot(base_rot, back_local)
-		n = math.hypot(back[0], back[2]) or 1.0
-		points = _chain_points(doc, worlds, tail)
-		if all(points[i][1] >= floors[k] + clear[i] for i in range(1, TAIL_BONES + 1)):
-			out.append([_normal(list(q)) for q in rotations[k]])
-			continue
-		out.append(_lift_frame(points, [_matrix_rotation(worlds[j]) for j in tail], base_rot, floors[k], clear,
-			(back[0] / n, back[2] / n)))
-	return out
+		points = _chain_points(doc, _worlds_at(doc, animated, k), tail)
+		worst = max(worst, max(floors[k] + clear[i] - points[i][1] for i in range(1, TAIL_BONES + 1)))
+	return worst
+
+
+def _point_clearances(segments: list[float]) -> list[float]:
+	"""Per chain point, the thicker of the two segments it joins -- as the Godot constraint does."""
+	return [segments[0]] + [max(segments[i - 1], segments[min(i, TAIL_BONES - 1)]) for i in range(1, TAIL_BONES + 1)]
 
 
 def _unit(q: list) -> list:
@@ -488,21 +414,18 @@ def _report_file(path: str) -> tuple[str, dict]:
 
 # --- the batch ---------------------------------------------------------------------------
 
-def bake_creature(key_dir: pathlib.Path, spring: dict) -> list[dict]:
+def bake_creature(key_dir: pathlib.Path) -> list[dict]:
 	"""Simulate every tailed clip of one creature and write <key>/baked/."""
-	rig_doc, rig_binary = read_glb((key_dir / SOURCE / "rigged.glb").read_bytes())
-	radii, clearances = spring_radii(rig_doc), tail_clearances(rig_doc, rig_binary)
+	rig_doc = read_glb((key_dir / SOURCE / "rigged.glb").read_bytes())[0]
+	spring_radii(rig_doc), chain_clearances(rig_doc)   # refuse early: the live tail reads both
 	clips = sorted(p.stem for p in (key_dir / SOURCE).glob("anim_*.glb"))
-	baked = simulate(key_dir, spring, radii, clips)
+	baked = simulate(key_dir, clips)
 	(key_dir / "baked").mkdir(exist_ok=True)
 	rows = []
 	for clip in clips:
 		if clip not in baked:
 			raise BakeRefused(f"{key_dir.name}/{clip} was not baked")
 		source = (key_dir / SOURCE / f"{clip}.glb").read_bytes()
-		doc, binary = read_glb(source)
-		baked[clip]["rotations"] = lift_tail(doc, binary, baked[clip]["rotations"],
-			clip_floor(key_dir / SOURCE / f"{clip}.glb"), clearances)
 		try:
 			out = write_keys(source, baked[clip])
 		except BakeRefused as refused:
@@ -511,7 +434,8 @@ def bake_creature(key_dir: pathlib.Path, spring: dict) -> list[dict]:
 		(key_dir / "baked" / f"{clip}.glb").write_bytes(out)
 		rows.append({"key": key_dir.name, "clip": clip, "frames": len(baked[clip]["times"]),
 			"seam_deg": round(seam_degrees(baked[clip]), 2), "max_step_deg": round(step, 2),
-			"motion_ok": step <= MAX_STEP_DEG, "output_sha256": hashlib.sha256(out).hexdigest()})
+			"motion_ok": step <= MAX_STEP_DEG, "output_sha256": hashlib.sha256(out).hexdigest(),
+			"clearance_deficit_m": round(clearance_deficit_m(out, clip_floor(key_dir / SOURCE / f"{clip}.glb")), 5)})
 	return rows
 
 
@@ -549,16 +473,18 @@ def main() -> int:
 			if args.check:
 				rows += [{"key": key, "clip": p.stem} for p in sorted((args.library / key / "baked").glob("anim_*.glb"))]
 			else:
-				rows += bake_creature(args.library / key, entry["spring"])
+				rows += bake_creature(args.library / key)
 				print(f"  baked {key}: {sum(1 for r in rows if r['key'] == key)} clips")
 		rows = check_ground(args.library, rows)
 	except RepairRefused as refused:
 		print(f"bake_meshy_tail: REFUSED -- {refused}")
 		return 1
-	failing = [r for r in rows if not r["ground_ok"] or not r.get("motion_ok", True)]
+	for r in rows:
+		r["constraint_ok"] = r.get("clearance_deficit_m", 0.0) <= CLEARANCE_TOLERANCE_M
+	failing = [r for r in rows if not r["ground_ok"] or not r.get("motion_ok", True) or not r["constraint_ok"]]
 	for r in rows:
 		print(f"  {r['key']:18} {r['clip']:30} tail low {r['tail_min_y_baked_m']:+.4f} (rigid {r['tail_min_y_rigid_m']:+.4f})"
-			f"  feet low {r['feet_min_y_m']:+.4f}  seam {r.get('seam_deg', '-')}  {'ok' if r['ground_ok'] else 'TAIL BELOW GROUND'}{'' if r.get('motion_ok', True) else '  MOTION: ' + str(r['max_step_deg']) + ' deg in one frame'}{'  (clip below ground)' if r['clip_below_ground'] else ''}")
+			f"  feet low {r['feet_min_y_m']:+.4f}  seam {r.get('seam_deg', '-')}  {'ok' if r['ground_ok'] else 'TAIL BELOW GROUND'}{'' if r.get('motion_ok', True) else '  MOTION: ' + str(r['max_step_deg']) + ' deg in one frame'}{'' if r['constraint_ok'] else '  CONSTRAINT SHORT BY ' + str(r['clearance_deficit_m']) + ' m'}{'  (clip below ground)' if r['clip_below_ground'] else ''}")
 	sinking = sum(1 for r in rows if r["clip_below_ground"])
 	below = sum(1 for r in rows if not r["ground_ok"])
 	jumps = sum(1 for r in rows if not r.get("motion_ok", True))

@@ -26,14 +26,17 @@ Per asset directory: `concept_*.png`, `highpoly.glb` (+ `highpoly_textures/`), `
 (+ `l0_textures/`), and for creatures `rigged.glb`, `anim_walk.glb`, `anim_run.glb` and
 `anim_<action>.glb`.
 Rigged creatures also have `repaired/`: the same rigged and animated files with the material
-and height repaired (decision 0190). The six tailed creatures also have `tailed/`: the repaired
+and height repaired (decision 0190), and Meshy's 0.01 Armature scale folded into the joints so every
+skeleton is at unit scale (decision 0194). The six tailed creatures also have `tailed/`: the repaired
 files plus the tail chain (decision 0191). Every rigged creature then has `grounded/`: its
 `tailed/` (or `repaired/`) clips with the hips lifted so the feet, or the knees in a kneel,
 never go below the ground (decision 0193). The six tailed creatures also have `baked/`: every
 `grounded/` clip with the tail's spring motion written in as keys, for the crowd tier (decision
 0192). **For crowd clips use `baked/` where it exists, otherwise `grounded/`; for the skeletal
-pool, which runs the spring live, `grounded/`. Never the raw rig files, and no longer `repaired/`
-or `tailed/` clips: their feet go through the ground.**
+pool, which runs the spring live, `grounded/`, with `godot/scripts/presentation/tail_rig.gd`
+attaching the spring and the exact ground constraint from the tail bones' own metadata (decision
+0194). Never the raw rig files, and no longer `repaired/` or `tailed/` clips: their feet go
+through the ground.**
 
 **Lost the files?** Every task ID in `meshy_tasks.jsonl` can be downloaded again with
 `meshy_download_model` — no credits. Verify against `files.json`. Rig and animation
@@ -210,8 +213,9 @@ Both are scratch tools, not part of the game:
   game would, advances every clip by exactly 1/24 s per captured frame, and saves each frame.
   It must run **windowed**: headless Godot has no renderer to capture from.
 - `capture_tail.gd` records the tail chains before and after, driving each chain with
-  `SpringBoneSimulator3D` and a ground `SpringBoneCollisionPlane3D`. **Spring gravity and radius are in
-  world metres**, not the skeleton's 0.01-scaled local units; getting that wrong collapses the tails.
+  `SpringBoneSimulator3D` and a ground `SpringBoneCollisionPlane3D`. It predates decisions 0192 and
+  0194: it drove the spring under Meshy's 0.01-scaled skeleton, where Godot's plane collider is
+  wrong, so its before/after sheet shows that bug too. The live tail is now `tail_rig.gd`.
   Arguments after `--`: `<out_dir> <walk|clips> <frames> [fixmat]`. `fixmat` applies the
   material repair described under *Known problems*. `walk` rescales the three short rigs to
   their DEC-039 height, in the viewer only.

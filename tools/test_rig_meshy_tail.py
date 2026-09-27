@@ -347,6 +347,30 @@ def test_the_output_is_well_formed_and_keeps_the_source() -> None:
 	check("stamped once", json.dumps(read_glb(out)[0]["asset"]).count("redwall_tail_rig") == 1)
 
 
+def test_ground_clearances_measure_each_segments_thickness() -> None:
+	"""The strip is 1 cm wide; one segment also holds the fringe vertex 3.6 cm above the strip."""
+	plan, sha = _plan(_glb())
+	doc, binary = read_glb(tail.rig_file(_glb(), plan, sha)[0])
+	clear = tail.ground_clearances(doc, binary)
+	check("eight clearances", len(clear) == 8)
+	check("plain strip segments clear exactly half its width", clear[1] == 0.005 and clear[2] == 0.005)
+	check("exactly one segment holds the fringe, and clears more than 3.5 cm", sum(1 for c in clear if c > 0.035) == 1)
+	check("the root segment's vertices blend into the hips, so it has none of its own", clear[0] == 0.0)
+
+
+def test_each_joint_carries_what_the_live_tail_reads() -> None:
+	"""Decision 0194: radius and clearance on every tail joint, the three spring settings on tail_00."""
+	plan, sha = _plan(_glb())
+	plan["clearances"] = [0.01 * (i + 1) for i in range(8)]
+	plan["spring"] = {"stiffness": 4.0, "drag": 0.9, "gravity": 0.5, "radius": 0.012, "tested": "prose"}
+	doc, _binary = read_glb(tail.rig_file(_glb(), plan, sha)[0])
+	extras = {n["name"]: n.get("extras", {}) for n in doc["nodes"] if n.get("name", "").startswith("tail_")}
+	check("tail_03 carries its clearance", extras["tail_03"]["ground_clearance_m"] == 0.04)
+	check("tail_03 carries its radius", extras["tail_03"]["spring_radius_m"] == plan["radii"][3])
+	check("tail_00 carries exactly the three spring settings", extras["tail_00"]["spring"] == {"stiffness": 4.0, "drag": 0.9, "gravity": 0.5})
+	check("only tail_00 carries the spring", all("spring" not in e for k, e in extras.items() if k != "tail_00"))
+
+
 def main() -> int:
 	"""Run every test and print the summary line."""
 	for name, test in sorted(globals().items()):

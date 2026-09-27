@@ -236,3 +236,4 @@ jobs:
           python3 tools/test_repair_meshy_rig.py
           python3 tools/test_rig_meshy_tail.py
           python3 tools/test_bake_meshy_tail.py
+          python3 tools/test_ground_meshy_clips.py

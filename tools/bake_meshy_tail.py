@@ -6,7 +6,8 @@ by tools/rig_meshy_tail.py (decision 0191) only moves there if its motion is wri
 each clip. This runs Godot's own SpringBoneSimulator3D headless over every tailed clip --
 the same simulator the skeletal pool uses at runtime, so both tiers move alike -- and
 appends the recorded tail rotations to the clip as ordinary glTF rotation channels, on the
-clip's own 30 Hz key times. Output: <key>/baked/anim_*.glb.
+clip's own 30 Hz key times. Input: <key>/grounded/ (the tailed clips with the feet lifted onto
+the ground, decision 0193). Output: <key>/baked/anim_*.glb.
 
 GROUND CHECK. The spring collides with the plane the creature stands on, using each tail
 segment's measured surface radius (the tail_NN node's extras.spring_radius_m). Whether the
@@ -36,17 +37,20 @@ import tempfile
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from repair_meshy_rig import RepairRefused, read_glb, write_glb  # noqa: E402
-from rig_meshy_tail import append_accessor, mat_mul, read_accessor, trs_matrix  # noqa: E402
+from rig_meshy_tail import append_accessor, mat_mul, node_worlds, read_accessor, trs_matrix  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 LIBRARY = ROOT / "assets/library/creature"
 CONFIG = ROOT / "docs/art-reference/asset_library/tail_centrelines.json"
 MANIFEST = ROOT / "docs/art-reference/asset_library/baked.json"
 GODOT_SCRIPT = pathlib.Path(__file__).resolve().parent / "godot/bake_tail_spring.gd"
+SOURCE = "grounded"               # tailed/ clips with the feet lifted onto the ground (decision 0193)
 TAIL_BONES = 8
 STAMP = "redwall_tail_bake"
 GROUND_TOLERANCE_M = 0.005     # tail surface may dip this far below the plane and still pass
 TIME_TOLERANCE_S = 1e-4
+CLEARANCE_PERCENTILE = 0.99      # a tail segment's thickness below which the ground constraint keeps it
+HEADING_BLEND = 0.3              # how strongly a lifted segment turns towards "behind the hips"
 MAX_STEP_DEG = 90.0             # a tail joint turning further than this in one 30 Hz frame is reported
 GODOT_TIMEOUT_S = 1800
 
@@ -73,12 +77,12 @@ def simulate(key_dir: pathlib.Path, spring: dict, radii: list[float], clips: lis
 		(project / "glb").mkdir()
 		(project / "project.godot").write_text('config_version=5\n\n[application]\nconfig/name="tail bake"\n')
 		for clip in clips:
-			shutil.copyfile(key_dir / "tailed" / f"{clip}.glb", project / "glb" / f"{clip}.glb")
+			shutil.copyfile(key_dir / SOURCE / f"{clip}.glb", project / "glb" / f"{clip}.glb")
 		shutil.copyfile(GODOT_SCRIPT, project / "bake.gd")
 		spec = project / "spec.json"
 		spec.write_text(json.dumps({"spring": spring, "radii": radii, "clips": clips,
-			"times": {c: clip_times(key_dir / "tailed" / f"{c}.glb") for c in clips},
-			"floor": {c: clip_floor(key_dir / "tailed" / f"{c}.glb") for c in clips}}))
+			"times": {c: clip_times(key_dir / SOURCE / f"{c}.glb") for c in clips},
+			"floor": {c: clip_floor(key_dir / SOURCE / f"{c}.glb") for c in clips}}))
 		subprocess.run(["godot", "--headless", "--path", str(project), "--editor", "--quit"],
 			capture_output=True, timeout=GODOT_TIMEOUT_S)
 		missing = [c for c in clips if not (project / "glb" / f"{c}.glb.import").exists()]
@@ -127,7 +131,7 @@ def write_keys(data: bytes, baked: dict) -> bytes:
 	"""Append one rotation channel per tail joint, on the clip's own time accessor."""
 	doc, binary = read_glb(data)
 	if STAMP in doc.get("asset", {}).get("extras", {}):
-		raise BakeRefused("already baked; bake the tailed file, not an output")
+		raise BakeRefused("already baked; bake the grounded file, not an output")
 	anim = doc["animations"][0]
 	if any(doc["nodes"][c["target"]["node"]].get("name", "").startswith("tail_") for c in anim["channels"]):
 		raise BakeRefused("the clip already animates a tail joint")
@@ -150,6 +154,156 @@ def write_keys(data: bytes, baked: dict) -> bytes:
 	out = write_glb(doc, binary)
 	if not read_glb(out)[1].startswith(original):
 		raise BakeRefused("original BIN data did not survive intact")
+	return out
+
+
+# --- the exact ground constraint -------------------------------------------------------------
+
+def _qmul(a: list, b: list) -> list:
+	"""Hamilton product a*b, quaternions as [x, y, z, w]."""
+	ax, ay, az, aw = a
+	bx, by, bz, bw = b
+	return [aw * bx + ax * bw + ay * bz - az * by, aw * by - ax * bz + ay * bw + az * bx,
+		aw * bz + ax * by - ay * bx + az * bw, aw * bw - ax * bx - ay * by - az * bz]
+
+
+def _qrot(q: list, v: list) -> list:
+	"""Rotate vector v by unit quaternion q."""
+	x, y, z, w = q
+	tx, ty, tz = 2 * (y * v[2] - z * v[1]), 2 * (z * v[0] - x * v[2]), 2 * (x * v[1] - y * v[0])
+	return [v[0] + w * tx + (y * tz - z * ty), v[1] + w * ty + (z * tx - x * tz), v[2] + w * tz + (x * ty - y * tx)]
+
+
+def _normal(v: list) -> list:
+	"""v scaled to unit length."""
+	n = math.sqrt(sum(c * c for c in v))
+	return [c / n for c in v]
+
+
+def _matrix_rotation(m: list) -> list:
+	"""The rotation of a column-major 4x4 matrix whose basis may be scaled, as a unit quaternion."""
+	c = [_normal([m[0], m[1], m[2]]), _normal([m[4], m[5], m[6]]), _normal([m[8], m[9], m[10]])]
+	r = [[c[col][row] for col in range(3)] for row in range(3)]
+	t = r[0][0] + r[1][1] + r[2][2]
+	if t > 0.0:
+		s = math.sqrt(t + 1.0) * 2.0
+		q = [(r[2][1] - r[1][2]) / s, (r[0][2] - r[2][0]) / s, (r[1][0] - r[0][1]) / s, 0.25 * s]
+	elif r[0][0] > r[1][1] and r[0][0] > r[2][2]:
+		s = math.sqrt(1.0 + r[0][0] - r[1][1] - r[2][2]) * 2.0
+		q = [0.25 * s, (r[0][1] + r[1][0]) / s, (r[0][2] + r[2][0]) / s, (r[2][1] - r[1][2]) / s]
+	elif r[1][1] > r[2][2]:
+		s = math.sqrt(1.0 + r[1][1] - r[0][0] - r[2][2]) * 2.0
+		q = [(r[0][1] + r[1][0]) / s, 0.25 * s, (r[1][2] + r[2][1]) / s, (r[0][2] - r[2][0]) / s]
+	else:
+		s = math.sqrt(1.0 + r[2][2] - r[0][0] - r[1][1]) * 2.0
+		q = [(r[0][2] + r[2][0]) / s, (r[1][2] + r[2][1]) / s, 0.25 * s, (r[1][0] - r[0][1]) / s]
+	return _normal(q)
+
+
+def _from_to(a: list, b: list) -> list:
+	"""The shortest-arc rotation taking unit vector a onto unit vector b."""
+	d = sum(x * y for x, y in zip(a, b))
+	if d < -0.999999:
+		return [0.0, 0.0, 1.0, 0.0] if abs(a[2]) < 0.9 else [1.0, 0.0, 0.0, 0.0]
+	c = [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]
+	return _normal([c[0], c[1], c[2], 1.0 + d])
+
+
+def _point(m: list, v: list) -> list:
+	"""Transform point v by column-major 4x4 m."""
+	return [m[0] * v[0] + m[4] * v[1] + m[8] * v[2] + m[12], m[1] * v[0] + m[5] * v[1] + m[9] * v[2] + m[13],
+		m[2] * v[0] + m[6] * v[1] + m[10] * v[2] + m[14]]
+
+
+def _chain(doc: dict) -> tuple[list[int], int]:
+	"""The tail joints' node indices, and the node the chain hangs from."""
+	names = {n.get("name"): i for i, n in enumerate(doc["nodes"])}
+	tail = [names[f"tail_{i:02d}"] for i in range(TAIL_BONES)]
+	parents = {c: i for i, n in enumerate(doc["nodes"]) for c in n.get("children", [])}
+	return tail, parents[tail[0]]
+
+
+def _chain_points(doc: dict, worlds: dict, tail: list[int]) -> list[list[float]]:
+	"""World positions of tail_00..tail_07 and of the tip the spring extends past tail_07."""
+	return [worlds[n][12:15] for n in tail] + [_point(worlds[tail[-1]], doc["nodes"][tail[-1]]["translation"])]
+
+
+def tail_clearances(doc: dict, binary: bytes) -> list[float]:
+	"""Per tail segment, the CLEARANCE_PERCENTILE distance of its vertices from the segment's axis, bind pose.
+
+	The spring's own radius (the 95th percentile, decision 0191) let the outer fur of 39 of 60
+	grounded clips dip 0.5-2.7 cm under the ground; the constraint clears the 99th."""
+	skin, names, _ibm, pos, jnt, wgt = _skinning(doc, binary)
+	tail, _base = _chain(doc)
+	points = _chain_points(doc, node_worlds(doc), tail)
+	spread: list[list[float]] = [[] for _ in range(TAIL_BONES)]
+	for v in range(len(pos)):
+		strongest = names[jnt[v][max(range(4), key=lambda q: wgt[v][q])]]
+		if not strongest.startswith("tail_"):
+			continue
+		i = int(strongest[5:])
+		a, b = points[i], points[i + 1]
+		ab = [b[k] - a[k] for k in range(3)]
+		u = max(0.0, min(1.0, sum(x * (pos[v][k] - a[k]) for k, x in enumerate(ab)) / sum(x * x for x in ab)))
+		spread[i].append(math.dist(pos[v], [a[k] + u * ab[k] for k in range(3)]))
+	return [sorted(d)[min(len(d) - 1, int(len(d) * CLEARANCE_PERCENTILE))] if d else 0.0 for d in spread]
+
+
+def _lift_segment(base: list, d: list, low: float, behind: tuple) -> list:
+	"""Segment d hanging from `base`, swung up just enough that its end is at `low`: length kept.
+
+	The swing turns it towards `behind` only as far as it had to go down -- a barely-touching
+	segment keeps its own heading, so the lift switches on and off without a jump."""
+	length = math.sqrt(sum(c * c for c in d))
+	dy = max(-1.0, min(1.0, (low - base[1]) / length))
+	w = HEADING_BLEND * length * min(1.0, (low - base[1] - d[1]) / (0.25 * length))
+	hx, hz = d[0] + w * behind[0], d[2] + w * behind[1]
+	h, flat = math.hypot(hx, hz), math.sqrt(max(0.0, 1.0 - dy * dy)) * length
+	return [hx / h * flat, dy * length, hz / h * flat] if h > 1e-12 else [0.0, dy * length, 0.0]
+
+
+def _lift_frame(points: list, world_rot: list, base_rot: list, floor: float, clear: list, behind: tuple) -> list:
+	"""One frame: walk down the chain; any joint closer to the floor than its clearance swings up."""
+	placed, lifted = [points[0]], []
+	for i in range(TAIL_BONES):
+		d = [points[i + 1][c] - points[i][c] for c in range(3)]
+		low = floor + clear[i + 1]
+		nd = d if placed[i][1] + d[1] >= low else _lift_segment(placed[i], d, low, behind)
+		placed.append([placed[i][c] + nd[c] for c in range(3)])
+		lifted.append(_qmul(_from_to(_normal(d), _normal(nd)), world_rot[i]))
+	local, parent = [], base_rot
+	for q in lifted:
+		local.append(_normal(_qmul([-parent[0], -parent[1], -parent[2], parent[3]], q)))
+		parent = q
+	return local
+
+
+def lift_tail(doc: dict, binary: bytes, rotations: list, floors: list[float], clearances: list[float]) -> list:
+	"""The EXACT ground constraint, applied after Godot's spring (decision 0193).
+
+	Godot's collision is soft: it pushes a joint out once per step and the stiffness pulls it back
+	towards the animated pose, which for a tail points into the ground. Here every joint of every
+	frame is kept at least its segment's clearance above that key's floor, by swinging the segment
+	above it up -- length and the rest of the chain's world directions kept. Returns new local
+	rotations; frames that needed nothing come back unchanged."""
+	tail, base = _chain(doc)
+	times, animated = _channels(doc, binary)
+	animated = {**animated, **{node: {"rotation": [f[j] for f in rotations]} for j, node in enumerate(tail)}}
+	clear = [clearances[0]] + [max(clearances[i - 1], clearances[min(i, TAIL_BONES - 1)]) for i in range(1, TAIL_BONES + 1)]
+	bind = _matrix_rotation(node_worlds(doc)[base])
+	back_local = _qrot([-bind[0], -bind[1], -bind[2], bind[3]], [0.0, 0.0, -1.0])   # at bind, behind is -Z
+	out = []
+	for k in range(len(times)):
+		worlds = _worlds_at(doc, animated, k)
+		base_rot = _matrix_rotation(worlds[base])
+		back = _qrot(base_rot, back_local)
+		n = math.hypot(back[0], back[2]) or 1.0
+		points = _chain_points(doc, worlds, tail)
+		if all(points[i][1] >= floors[k] + clear[i] for i in range(1, TAIL_BONES + 1)):
+			out.append([_normal(list(q)) for q in rotations[k]])
+			continue
+		out.append(_lift_frame(points, [_matrix_rotation(worlds[j]) for j in tail], base_rot, floors[k], clear,
+			(back[0] / n, back[2] / n)))
 	return out
 
 
@@ -336,16 +490,21 @@ def _report_file(path: str) -> tuple[str, dict]:
 
 def bake_creature(key_dir: pathlib.Path, spring: dict) -> list[dict]:
 	"""Simulate every tailed clip of one creature and write <key>/baked/."""
-	radii = spring_radii(read_glb((key_dir / "tailed" / "rigged.glb").read_bytes())[0])
-	clips = sorted(p.stem for p in (key_dir / "tailed").glob("anim_*.glb"))
+	rig_doc, rig_binary = read_glb((key_dir / SOURCE / "rigged.glb").read_bytes())
+	radii, clearances = spring_radii(rig_doc), tail_clearances(rig_doc, rig_binary)
+	clips = sorted(p.stem for p in (key_dir / SOURCE).glob("anim_*.glb"))
 	baked = simulate(key_dir, spring, radii, clips)
 	(key_dir / "baked").mkdir(exist_ok=True)
 	rows = []
 	for clip in clips:
 		if clip not in baked:
 			raise BakeRefused(f"{key_dir.name}/{clip} was not baked")
+		source = (key_dir / SOURCE / f"{clip}.glb").read_bytes()
+		doc, binary = read_glb(source)
+		baked[clip]["rotations"] = lift_tail(doc, binary, baked[clip]["rotations"],
+			clip_floor(key_dir / SOURCE / f"{clip}.glb"), clearances)
 		try:
-			out = write_keys((key_dir / "tailed" / f"{clip}.glb").read_bytes(), baked[clip])
+			out = write_keys(source, baked[clip])
 		except BakeRefused as refused:
 			raise BakeRefused(f"{key_dir.name}/{clip}: {refused}") from None
 		step = max_step_degrees(baked[clip])
@@ -357,17 +516,17 @@ def bake_creature(key_dir: pathlib.Path, spring: dict) -> list[dict]:
 
 
 def check_ground(library: pathlib.Path, rows: list[dict]) -> list[dict]:
-	"""Ground reports for every baked clip and its rigid (tailed, unbaked) twin, in parallel."""
+	"""Ground reports for every baked clip and its rigid (grounded, unbaked) twin, in parallel."""
 	jobs = []
 	for r in rows:
 		key_dir = library / r["key"]
-		jobs += [str(key_dir / "baked" / f"{r['clip']}.glb"), str(key_dir / "tailed" / f"{r['clip']}.glb")]
+		jobs += [str(key_dir / "baked" / f"{r['clip']}.glb"), str(key_dir / SOURCE / f"{r['clip']}.glb")]
 	with concurrent.futures.ProcessPoolExecutor() as pool:
 		reports = dict(pool.map(_report_file, jobs))
 	for r in rows:
 		key_dir = library / r["key"]
 		baked = reports[str(key_dir / "baked" / f"{r['clip']}.glb")]
-		rigid = reports[str(key_dir / "tailed" / f"{r['clip']}.glb")]
+		rigid = reports[str(key_dir / SOURCE / f"{r['clip']}.glb")]
 		r.update({"tail_min_y_baked_m": baked["tail_min_y_m"], "tail_min_y_rigid_m": rigid["tail_min_y_m"],
 			"feet_min_y_m": baked["feet_min_y_m"], "worst_time_s": baked["worst_time_s"],
 			"root_floor_y_m": baked["root_floor_y_m"],

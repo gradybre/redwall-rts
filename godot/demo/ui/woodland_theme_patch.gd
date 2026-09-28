@@ -99,7 +99,7 @@ static func skinned(original: Theme) -> Theme:
 		_patch_panel(theme, original, variation)
 	for variation: StringName in BUTTON_PIECES:
 		_patch_button(theme, original, variation)
-	_patch_labels(theme)
+	_patch_labels(theme, original)
 	_patch_scrollbars(theme)
 	theme.set_meta(META_SKINNED, true)
 	return theme
@@ -160,17 +160,18 @@ static func _set_state_colors(theme: Theme, variation: StringName, state: int,
 		theme.set_color(item, variation, text)
 
 
-static func _patch_labels(theme: Theme) -> void:
+static func _patch_labels(theme: Theme, original: Theme) -> void:
 	"""Ink for labels on parchment, umber for secondary lines, serif for the headings."""
 	for type_name: StringName in INK_LABELS:
 		theme.set_color(&"font_color", type_name, Palette.text_on(Palette.SURFACE_PARCHMENT))
 	theme.set_color(&"font_color", SECONDARY_LABEL,
 		Palette.secondary_on(Palette.SURFACE_PARCHMENT))
-	var serif: Font = Styles.heading_font()
-	if serif == null:
-		return
 	for variation: StringName in HEADING_VARIATIONS:
-		theme.set_font(&"font", variation, serif)
+		var before: Font = original.get_font(&"font", variation) \
+			if original.has_font(&"font", variation) else null
+		var serif: Font = Styles.heading_variant(before)
+		if serif != null:
+			theme.set_font(&"font", variation, serif)
 
 
 static func _patch_scrollbars(theme: Theme) -> void:

@@ -21,6 +21,7 @@ const Palette := preload("res://demo/ui/woodland_palette.gd")
 const Textures := preload("res://demo/ui/woodland_textures.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const ThemePatch := preload("res://demo/ui/woodland_theme_patch.gd")
+const Ornament := preload("res://demo/ui/woodland_ornament.gd")
 const WoodlandSkin := preload("res://demo/ui/woodland_skin.gd")
 const UiTheme := preload("res://scripts/ui/ui_theme.gd")
 const HudScript := preload("res://scripts/ui/hud.gd")
@@ -34,6 +35,18 @@ const LOCK_HEX: PackedStringArray = [
 ## The game's cream TEXT and grey MUTED, which the shell writes as per-label overrides.
 const SHELL_TEXT: Color = Color("#F5F0DF")
 const SHELL_MUTED: Color = Color("#BECABF")
+## A painted, full-colour icon from the game's own set, which the skin must never tint.
+const PAINTED_ICON_PATH: String = "res://ui/painted/cmd_zone.svg"
+## A cream line glyph from the game's own set, which the skin inks on parchment.
+const LOCK_ICON_PATH: String = "res://ui/icons/lock.svg"
+## Button slots whose StyleBox minimum decides a Button's minimum size.
+const SIZING_SLOTS: Array[StringName] = [&"normal", &"hover", &"pressed", &"disabled", &"focus"]
+## The shell's own layout canvas for the real-HUD tests: WIDE at 1920x1080.
+const CANVAS: Vector2i = Vector2i(1920, 1080)
+## Names of the decorative children that are allowed to overlap a panel's padding.
+const DECORATION_NAMES: Array[StringName] = [&"FrameArt", &"Ornament"]
+## A seam may differ from its neighbours by at most this multiple of an ordinary column step.
+const SEAM_TOLERANCE: float = 2.0
 ## Texels sampled from a piece's middle to check it stays inside its tone range.
 const SAMPLE_STEP: int = 3
 const LUMINANCE_SLACK: float = 0.002
@@ -230,7 +243,8 @@ func test_heading_font_is_the_vendored_serif() -> void:
 	var serif: Font = Styles.heading_font()
 	assert_not_null(serif, "the serif font loads")
 	var skinned: Theme = ThemePatch.skinned(_synthetic_theme())
-	assert_true(skinned.get_font(&"font", &"WoodlandCounter") == serif, "counter values are serif")
+	var counter: FontVariation = skinned.get_font(&"font", &"WoodlandCounter") as FontVariation
+	assert_true(counter != null and counter.base_font == serif, "counter values are serif")
 
 
 # --- 2b. the skin on a synthetic tree -------------------------------------------------------------
@@ -257,18 +271,50 @@ func test_skin_restyles_a_synthetic_tree() -> void:
 	assert_equal(tile.get_theme_color(&"font_color"), Palette.INK, "dock tile text is ink")
 	assert_true(tile.get_theme_stylebox(&"normal") is StyleBoxTexture, "dock tile is textured")
 	assert_equal((tree["pause"] as Label).get_theme_color(&"font_color"), Palette.CREAM,
-		"pause line is cream on its banner")
+		"pause line, given ink here, is cream on its banner")
 	assert_not_null((tree["pause"] as Label).get_node_or_null(^"WoodlandBanner"), "banner added")
 
 
+func test_skin_inks_line_glyphs_and_leaves_painted_icons_untinted() -> void:
+	"""A counter's line glyph takes ink; a painted icon on a tile keeps white in every state."""
+	var tree: Dictionary = _synthetic_tree()
+	WoodlandSkin.apply(tree["root"])
+	assert_equal((tree["icon"] as TextureRect).modulate, Palette.INK, "counter glyph inked")
+	var painted: Button = tree["painted"]
+	for state: Array in ThemePatch.ICON_COLORS_BY_STATE:
+		for item: StringName in state:
+			assert_equal(painted.get_theme_color(item), Color.WHITE, "painted %s untinted" % item)
+	assert_equal((tree["tile"] as Button).get_theme_color(&"icon_normal_color"), Palette.INK,
+		"a line icon on a tile is inked")
+
+
+func test_clipped_modal_wears_the_frame_held_inside_it() -> void:
+	"""UI-SET-051 is a clipping WoodlandModal: its frame is the inside carving, not the outside."""
+	var root: Control = _own(Control.new()) as Control
+	root.theme = _synthetic_theme()
+	var modal: Panel = _panel(root, &"UI-SET-051", &"WoodlandModal", Vector2(480.0, 180.0))
+	modal.clip_contents = true
+	WoodlandSkin.apply(root)
+	var style: StyleBoxTexture = modal.get_theme_stylebox(&"panel") as StyleBoxTexture
+	assert_not_null(style, "textured")
+	if style == null:
+		return
+	assert_true(style.texture == Styles.piece(Styles.PIECE_PANEL_TIGHT), "the inside carving")
+	assert_almost_equal(style.expand_margin_left, 0.0, "nothing drawn outside a clipping panel")
+
+
 func test_skin_moves_and_resizes_nothing() -> void:
-	"""Every existing control keeps its position, size, minimum size and mouse filter."""
+	"""Every existing control keeps its rectangle, filters, and every INPUT to its minimum size.
+
+	A control's combined minimum size is cached off-tree and would repeat itself, so this compares
+	what the minimum is computed FROM: each Button slot's StyleBox minimum and each body label's
+	measured text."""
 	var tree: Dictionary = _synthetic_tree()
 	var root: Control = tree["root"]
 	var before: Array[Control] = WoodlandSkin.collect(root)
-	var snapshot: Array = _geometry_of(before)
+	var snapshot: Array = _layout_inputs(before)
 	WoodlandSkin.apply(root)
-	assert_equal(_geometry_of(before), snapshot, "geometry unchanged")
+	assert_equal(_layout_inputs(before), snapshot, "layout inputs unchanged")
 
 
 func test_skin_adds_only_decoration() -> void:
@@ -310,12 +356,25 @@ func test_skin_tolerates_a_null_root() -> void:
 
 
 func test_skin_tolerates_a_bare_control() -> void:
-	"""A Control with no theme and no children is dressed without error and gains nothing."""
+	"""A Control with no theme is an unbuilt HUD: nothing is touched and nothing is marked."""
 	var bare: Control = _own(Control.new()) as Control
 	WoodlandSkin.apply(bare)
-	assert_true(WoodlandSkin.is_applied(bare), "marked applied")
+	assert_false(WoodlandSkin.is_applied(bare), "an unbuilt HUD is not marked applied")
 	assert_null(bare.theme, "no theme invented")
 	assert_equal(bare.get_child_count(), 0, "nothing added")
+
+
+func test_skin_called_before_the_hud_builds_still_works_after() -> void:
+	"""An early call is a no-op, so the call after the shell assigns its Theme dresses it."""
+	var root: Control = _own(Control.new()) as Control
+	var panel: Panel = _panel(root, &"UI-SET-001", &"WoodlandPanel", Vector2(16.0, 16.0))
+	var text: Label = _text(panel, SHELL_TEXT)
+	WoodlandSkin.apply(root)
+	assert_equal(text.get_theme_color(&"font_color"), SHELL_TEXT, "untouched before the build")
+	root.theme = _synthetic_theme()
+	WoodlandSkin.apply(root)
+	assert_true(WoodlandSkin.is_applied(root), "applied once built")
+	assert_equal(text.get_theme_color(&"font_color"), Palette.INK, "dressed after the build")
 
 
 func test_skin_tolerates_a_tree_missing_every_named_target() -> void:
@@ -334,20 +393,18 @@ func test_skin_tolerates_a_tree_missing_every_named_target() -> void:
 # --- 2c. the skin on the real HUD -----------------------------------------------------------------
 
 func test_skin_on_the_real_hud_changes_style_and_not_geometry() -> void:
-	"""hud.tscn's built shell: skinned theme, inked counters, and not one control moved."""
-	var hud: HudScript = (load(HUD_SCENE_PATH) as PackedScene).instantiate() as HudScript
-	_own(hud)
-	hud._ready()
+	"""hud.tscn's built shell: skinned theme, inked counters, and no layout input changed."""
+	var hud: HudScript = _real_hud()
 	var root: Control = hud.get_node(^"Root") as Control
 	var shell: Control = hud.get_node(^"Root/Shell") as Control
 	var original: Theme = shell.theme
 	var controls: Array[Control] = WoodlandSkin.collect(root)
-	var snapshot: Array = _geometry_of(controls)
+	var snapshot: Array = _layout_inputs(controls)
 	WoodlandSkin.apply(root)
 	assert_true(shell.theme != original and shell.theme.has_meta(ThemePatch.META_SKINNED),
 		"the shell wears a skinned copy")
 	assert_false(original.has_meta(ThemePatch.META_SKINNED), "the cached theme is untouched")
-	assert_equal(_geometry_of(controls), snapshot, "no existing control moved or resized")
+	assert_equal(_layout_inputs(controls), snapshot, "no layout input changed")
 	var caption: Label = shell.get_node_or_null(^"UI-SET-001/UI-SET-004/Caption") as Label
 	assert_not_null(caption, "the Wood counter's caption exists")
 	if caption == null:
@@ -355,7 +412,111 @@ func test_skin_on_the_real_hud_changes_style_and_not_geometry() -> void:
 	assert_equal(caption.get_theme_color(&"font_color"), Palette.INK, "counter caption is ink")
 
 
+func test_real_hud_counters_keep_tabular_figures_in_the_serif() -> void:
+	"""The serif counter face keeps the shell's `tnum`, in the theme and on each value label."""
+	var hud: HudScript = _real_hud()
+	var shell: Control = hud.get_node(^"Root/Shell") as Control
+	var before: FontVariation = shell.theme.get_font(&"font", &"WoodlandCounter") as FontVariation
+	assert_not_null(before, "the shell's counter face is a FontVariation")
+	if before == null:
+		return
+	WoodlandSkin.apply(hud.get_node(^"Root") as Control)
+	var after: FontVariation = shell.theme.get_font(&"font", &"WoodlandCounter") as FontVariation
+	assert_true(after != null and after.base_font == Styles.heading_font(), "serif base")
+	assert_equal(after.opentype_features, before.opentype_features, "features kept (tnum)")
+	var value: Label = shell.get_node_or_null(^"UI-SET-001/UI-SET-004/Value") as Label
+	assert_not_null(value, "the Wood counter's value exists")
+	if value == null:
+		return
+	var face: FontVariation = value.get_theme_font(&"font") as FontVariation
+	assert_true(face != null and face.base_font == Styles.heading_font(), "value is serif")
+	assert_equal(face.opentype_features, before.opentype_features, "value keeps tnum")
+
+
+func test_real_hud_ornaments_stay_clear_of_every_control() -> void:
+	"""Laid out at 1920x1080, no oak spray shape reaches a visible control or its focus ring."""
+	var hud: HudScript = _real_hud()
+	var shell: Control = hud.get_node(^"Root/Shell") as Control
+	assert_true(shell.call(&"layout_for", CANVAS.x, CANVAS.y), "the shell lays out")
+	WoodlandSkin.apply(hud.get_node(^"Root") as Control)
+	var sprays: int = 0
+	for control: Control in WoodlandSkin.collect(shell):
+		if not String(control.name).begins_with(Ornament.NAME_PREFIX):
+			continue
+		sprays += 1
+		var panel: Control = control.get_parent() as Control
+		var hit: String = _ornament_overlap(control, panel)
+		assert_equal(hit, "", "spray on %s overlaps %s" % [panel.name, hit])
+	assert_equal(sprays, 5, "five oak sprays placed")
+
+
+func test_tiled_pieces_are_seamless() -> void:
+	"""Stepping from the tiled middle's last column into the next tile's first changes the noise
+	no more than an ordinary step between neighbouring columns does."""
+	for piece: StringName in [Styles.PIECE_PANEL, Styles.PIECE_PANEL_TIGHT, Styles.PIECE_MAP,
+			Styles.PIECE_DOCK]:
+		var spec: Textures.Spec = Styles.spec_for(piece)
+		var noise: Image = Textures.noise_image(spec.period(), spec.noise_seed)
+		var last: int = spec.size - spec.margin - 1
+		var seam: float = _noise_step(spec, noise, last, spec.margin)
+		var ordinary: float = _noise_step(spec, noise, spec.margin, spec.margin + 1)
+		assert_true(seam <= ordinary * SEAM_TOLERANCE + 0.002,
+			"%s seam step %.4f against ordinary %.4f" % [piece, seam, ordinary])
+
+
+func test_inset_shadow_is_gone_before_the_tiled_middle() -> void:
+	"""No piece darkens its field at or beyond its nine-patch margin, so tiles show no grid."""
+	for piece: StringName in Styles.RECIPES:
+		var spec: Textures.Spec = Styles.spec_for(piece)
+		assert_almost_equal(Textures.inset_shade(spec, float(spec.margin)), 0.0,
+			"%s is unshaded at its margin" % piece)
+	var panel: Textures.Spec = Styles.spec_for(Styles.PIECE_PANEL)
+	assert_true(Textures.inset_shade(panel, panel.band + 2.0) > 0.0, "shaded beside the band")
+
+
+func test_heading_variant_keeps_opentype_features() -> void:
+	"""Wrapping the serif keeps whatever features the replaced face carried."""
+	var original: FontVariation = FontVariation.new()
+	original.opentype_features = {"tnum": 1}
+	var variant: FontVariation = Styles.heading_variant(original) as FontVariation
+	assert_true(variant != null and variant.base_font == Styles.heading_font(), "serif base")
+	assert_equal(variant.opentype_features, original.opentype_features, "tnum kept")
+
+
 # --- helpers --------------------------------------------------------------------------------------
+
+func _real_hud() -> HudScript:
+	"""hud.tscn instantiated and built off-tree, as test_hud.gd builds it; freed after the test."""
+	var hud: HudScript = (load(HUD_SCENE_PATH) as PackedScene).instantiate() as HudScript
+	_own(hud)
+	hud._ready()
+	return hud
+
+
+func _ornament_overlap(ornament: Control, panel: Control) -> String:
+	"""The name of the first visible control in `panel` that a spray shape touches, or ""."""
+	for child: Node in panel.get_children():
+		var control: Control = child as Control
+		if control == null or not control.visible or DECORATION_NAMES.has(control.name) \
+				or String(control.name).begins_with(Ornament.NAME_PREFIX):
+			continue
+		var reach: Rect2 = Rect2(control.position, control.size).grow(Styles.RING_EXPAND)
+		for shape: Rect2 in ornament.call(&"rects_in_panel", panel.size):
+			if shape.intersects(reach):
+				return String(control.name)
+	return ""
+
+
+func _noise_step(spec: Textures.Spec, noise: Image, from_x: int, to_x: int) -> float:
+	"""Mean absolute change in the sampled noise between two columns over the middle rows."""
+	var total: float = 0.0
+	var rows: int = 0
+	for y: int in range(spec.margin, spec.size - spec.margin):
+		total += absf(Textures.sample_noise(spec, noise, from_x, y)
+			- Textures.sample_noise(spec, noise, to_x, y))
+		rows += 1
+	return total / float(maxi(rows, 1))
+
 
 func _own(node: Node) -> Node:
 	"""Track a node for freeing after the test."""
@@ -397,7 +558,7 @@ func _synthetic_tree() -> Dictionary:
 	var notice: Panel = _panel(root, &"UI-SET-011", &"WoodlandNotice", Vector2(600.0, 16.0))
 	out["notice_text"] = _text(notice, SHELL_TEXT)
 	_add_dock(root, out)
-	var pause: Label = _text(root, SHELL_TEXT)
+	var pause: Label = _text(root, Palette.INK)
 	pause.name = "UI-SET-086"
 	pause.text = "Paused: PLAYER"
 	out["pause"] = pause
@@ -417,6 +578,11 @@ func _add_resources(root: Control, out: Dictionary) -> void:
 	cell.size = Vector2(144.0, 56.0)
 	panel.add_child(cell)
 	out["caption"] = _text(cell, SHELL_TEXT)
+	var icon: TextureRect = TextureRect.new()
+	icon.name = "Icon"
+	icon.texture = ImageTexture.create_from_image(Image.create_empty(2, 2, false, Image.FORMAT_RGBA8))
+	cell.add_child(icon)
+	out["icon"] = icon
 	out["rate"] = _text(panel, SHELL_MUTED)
 	var fill: ColorRect = ColorRect.new()
 	fill.name = "TrackFill"
@@ -433,9 +599,17 @@ func _add_dock(root: Control, out: Dictionary) -> void:
 	tile.text = "Build"
 	tile.position = Vector2(12.0, 12.0)
 	tile.size = Vector2(112.0, 44.0)
+	tile.icon = load(LOCK_ICON_PATH) as Texture2D
 	dock.add_child(tile)
+	var painted: Button = Button.new()
+	painted.theme_type_variation = &"WoodlandButton"
+	painted.icon = load(PAINTED_ICON_PATH) as Texture2D
+	painted.position = Vector2(132.0, 12.0)
+	painted.size = Vector2(112.0, 44.0)
+	dock.add_child(painted)
 	out["dock"] = dock
 	out["tile"] = tile
+	out["painted"] = painted
 
 
 func _panel(parent: Control, key: StringName, variation: StringName, at: Vector2) -> Panel:
@@ -460,10 +634,24 @@ func _text(parent: Control, color: Color) -> Label:
 	return label
 
 
-func _geometry_of(controls: Array[Control]) -> Array:
-	"""Position, size, minimum size and mouse filter of every control, in order."""
+func _layout_inputs(controls: Array[Control]) -> Array:
+	"""What each control's layout is computed from: rectangle, filters, custom minimum, every
+	sizing StyleBox's minimum and, for a body label, its measured text."""
 	var out: Array = []
 	for control: Control in controls:
-		out.append([control.name, control.position, control.size,
-			control.get_combined_minimum_size(), control.mouse_filter, control.focus_mode])
+		out.append([control.name, control.position, control.size, control.custom_minimum_size,
+			control.mouse_filter, control.focus_mode, _sizing_of(control)])
+	return out
+
+
+func _sizing_of(control: Control) -> Array:
+	"""A Button's slot minimums, or a non-heading Label's text extent; empty otherwise."""
+	var out: Array = []
+	if control is Button:
+		for slot: StringName in SIZING_SLOTS:
+			out.append(control.get_theme_stylebox(slot).get_minimum_size())
+	elif control is Label and not ThemePatch.HEADING_VARIATIONS.has(control.theme_type_variation):
+		var label: Label = control as Label
+		out.append(label.get_theme_font(&"font").get_string_size(label.text,
+			HORIZONTAL_ALIGNMENT_LEFT, -1.0, label.get_theme_font_size(&"font_size")))
 	return out

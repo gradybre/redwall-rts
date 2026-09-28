@@ -91,17 +91,30 @@ const TILE_SURFACES: Array[int] = [
 
 
 static func apply(root: Control) -> void:
-	"""Dress the HUD under `root` in the woodland skin. Safe on a partial tree; once only."""
+	"""Dress the HUD under `root` in the woodland skin. Safe on a partial tree; once only.
+
+	The shell assigns its Theme in `build()`, so a tree with no Theme anywhere is a HUD that has
+	not built yet: nothing is touched and the root is NOT marked, so a later call still works."""
 	if root == null or root.has_meta(META_APPLIED):
 		return
-	root.set_meta(META_APPLIED, true)
 	var controls: Array[Control] = collect(root)
+	if not holds_theme(controls):
+		return
+	root.set_meta(META_APPLIED, true)
 	for control: Control in controls:
 		_skin_theme_of(control)
 	for control: Control in controls:
 		_skin_special(control)
 	for control: Control in controls:
 		_skin_contents(control, root)
+
+
+static func holds_theme(controls: Array[Control]) -> bool:
+	"""True when any of the controls carries a Theme of its own -- the mark of a built shell."""
+	for control: Control in controls:
+		if control.theme != null:
+			return true
+	return false
 
 
 static func is_applied(root: Control) -> bool:
@@ -164,8 +177,8 @@ static func _skin_special(control: Control) -> void:
 		control.modulate = Color(1.0, 1.0, 1.0, 0.0)
 	elif control.name == DOCK_NAME and control is Panel:
 		_skin_dock(control as Panel)
-	elif control is Panel and control.clip_contents \
-			and control.theme_type_variation == &"WoodlandPanel":
+	elif control is Panel and control.clip_contents and ThemePatch.PANEL_PIECES.get(
+			control.theme_type_variation, &"") == Styles.PIECE_PANEL:
 		_skin_clipped_panel(control as Panel)
 	elif control is Label and BANNER_LABELS.has(StringName(control.name)):
 		_skin_banner_label(control as Label)
@@ -235,10 +248,11 @@ static func _skin_label(label: Label, root: Control) -> void:
 	elif not Palette.is_light(surface):
 		var ground: int = Palette.SURFACE_WOOD if surface == Palette.SURFACE_NONE else surface
 		label.add_theme_color_override(&"font_color", Palette.text_on(ground))
-	var serif: Font = Styles.heading_font()
-	if serif != null and label.has_theme_font_override(&"font") \
+	if label.has_theme_font_override(&"font") \
 			and ThemePatch.HEADING_VARIATIONS.has(label.theme_type_variation):
-		label.add_theme_font_override(&"font", serif)
+		var serif: Font = Styles.heading_variant(label.get_theme_font(&"font"))
+		if serif != null:
+			label.add_theme_font_override(&"font", serif)
 
 
 static func _skin_track(rect: ColorRect, root: Control) -> void:

@@ -211,6 +211,23 @@ static func _set_content_margins(style: StyleBox, margins: PackedFloat32Array) -
 	style.content_margin_bottom = margins[3] if margins.size() > 3 else 0.0
 
 
+static func heading_variant(original: Font) -> Font:
+	"""The serif in place of `original`, keeping its OpenType features (the counters' `tnum`).
+
+	The shell's counter face is a FontVariation carrying `"tnum": 1`, so digits share one
+	advance and a changing value does not jitter. Swapping in the bare serif would drop that;
+	this wraps the serif in a FontVariation with the same features. Null when the serif has not
+	been imported, so the caller keeps the original."""
+	var serif: Font = heading_font()
+	if serif == null:
+		return null
+	var variant: FontVariation = FontVariation.new()
+	variant.base_font = serif
+	if original is FontVariation:
+		variant.opentype_features = (original as FontVariation).opentype_features.duplicate()
+	return variant
+
+
 static func heading_font() -> Font:
 	"""Noto Serif SemiBold, or null when the font has not been imported (degrade, never fail)."""
 	if _heading_font == null and ResourceLoader.exists(HEADING_FONT_PATH):

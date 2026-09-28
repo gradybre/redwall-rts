@@ -13,6 +13,9 @@ extends Control
 
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 
+## Each spray is named for its corner, so two on one panel never collide into an "@Control@".
+const NAME_PREFIX: String = "WoodlandOrnament"
+
 const CORNER_TOP_LEFT: int = 0
 const CORNER_TOP_RIGHT: int = 1
 const CORNER_BOTTOM_LEFT: int = 2
@@ -21,8 +24,9 @@ const CORNER_BOTTOM_RIGHT: int = 3
 ## The ornament's own square, in logical pixels, and where its stem sits within it.
 const SIDE: float = 84.0
 const STEM: Vector2 = Vector2(16.0, 16.0)
-## How far outside the panel's corner the stem is pinned, so the spray lies over the frame.
-const CORNER_OFFSET: float = 3.0
+## How far outside the panel's corner the stem is pinned. Far enough that no leaf or acorn
+## reaches past the panel's 8 px padding into a control, its hit area or its focus ring.
+const CORNER_OFFSET: float = 12.0
 ## Leaf outline: samples along the midrib, and the lobes an oak leaf shows down each side.
 const LEAF_SAMPLES: int = 28
 const LEAF_LOBES: float = 3.5
@@ -32,7 +36,7 @@ const LEAF_WIDTH: float = 0.24
 const LEAF_ANGLES: Array[float] = [-0.10, 1.67]
 const LEAF_SCALES: Array[float] = [1.0, 0.82]
 const OUTLINE_WIDTH: float = 1.4
-const ACORN_CENTER: Vector2 = Vector2(27.0, 27.0)
+const ACORN_CENTER: Vector2 = Vector2(23.0, 23.0)
 const ACORN_RADIUS: Vector2 = Vector2(6.5, 8.5)
 const ACORN_SEGMENTS: int = 18
 
@@ -46,12 +50,14 @@ var _nut_loop: PackedVector2Array = PackedVector2Array()
 var _cap: PackedVector2Array = PackedVector2Array()
 var _cap_loop: PackedVector2Array = PackedVector2Array()
 var _mirror: Transform2D = Transform2D.IDENTITY
+## The bounds of each shape the spray draws, in its own unmirrored coordinates, contour included.
+var _shape_bounds: Array[Rect2] = []
 var _corner: int = CORNER_TOP_LEFT
 
 
 func _init() -> void:
 	"""Build the spray's polygons once and make the node purely decorative."""
-	name = "WoodlandOrnament"
+	name = NAME_PREFIX
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	focus_mode = Control.FOCUS_NONE
 	accessibility_name = ""
@@ -66,17 +72,42 @@ func _init() -> void:
 	_nut_loop = closed(_nut)
 	_cap = _ellipse(ACORN_CENTER - Vector2(0.0, 3.2), ACORN_RADIUS + Vector2(1.6, -3.4), PI, TAU)
 	_cap_loop = closed(_cap)
+	for shape: PackedVector2Array in [_leaves[0], _leaves[1], _nut, _cap]:
+		_shape_bounds.append(_bounds_of(shape).grow(OUTLINE_WIDTH))
 
 
 func set_corner(corner: int) -> void:
 	"""Choose which panel corner the spray grows out of; it is mirrored to face outward."""
 	_corner = corner
+	name = "%s%d" % [NAME_PREFIX, corner]
 	var right: bool = corner == CORNER_TOP_RIGHT or corner == CORNER_BOTTOM_RIGHT
 	var bottom: bool = corner == CORNER_BOTTOM_LEFT or corner == CORNER_BOTTOM_RIGHT
 	_mirror = Transform2D(Vector2(-1.0 if right else 1.0, 0.0),
 		Vector2(0.0, -1.0 if bottom else 1.0),
 		Vector2(SIDE if right else 0.0, SIDE if bottom else 0.0))
 	queue_redraw()
+
+
+func _bounds_of(shape: PackedVector2Array) -> Rect2:
+	"""The smallest rectangle holding every point of one shape."""
+	var bounds: Rect2 = Rect2(shape[0], Vector2.ZERO)
+	for point: Vector2 in shape:
+		bounds = bounds.expand(point)
+	return bounds
+
+
+func rects_in_panel(panel_size: Vector2) -> Array[Rect2]:
+	"""Where each drawn shape lands in its panel's coordinates, for a panel of `panel_size`.
+
+	Computed from the anchors and offsets rather than read from `position`, because anchors
+	only resolve against a parent that is inside the tree."""
+	var origin: Vector2 = Vector2(anchor_left * panel_size.x + offset_left,
+		anchor_top * panel_size.y + offset_top)
+	var out: Array[Rect2] = []
+	for bounds: Rect2 in _shape_bounds:
+		var drawn: Rect2 = _mirror * bounds
+		out.append(Rect2(origin + drawn.position, drawn.size))
+	return out
 
 
 func pinned_corner() -> int:

@@ -78,17 +78,21 @@ def _chained(with_chain: bool = True) -> bytes:
 	return tail.rig_file(data, plan, sha)[0]
 
 
-def _clip(data: bytes, tail_channel: bool = False, hips_y: list | None = None, foot_y: list | None = None) -> bytes:
+def _clip(data: bytes, tail_channel: bool = False, hips_y: list | None = None, foot_y: list | None = None,
+		times: list | None = None, hips_xyz: list | None = None) -> bytes:
 	"""Add a Meshy-shaped clip: a 2-key constant rotation FIRST, then the 5-key timeline.
 
-	`hips_y` overrides the hips' drop; `foot_y` adds a translation channel lowering LeftFoot."""
+	`hips_y` overrides the hips' drop; `foot_y` adds a translation channel lowering LeftFoot;
+	`times` with `hips_xyz` replaces the timeline and the whole hips path."""
+	times = times or TIMES
+	path = hips_xyz or [(0.0, y, 0.0) for y in (hips_y or HIPS_Y)]
 	doc, binary = read_glb(data)
 	nodes = {n.get("name"): i for i, n in enumerate(doc["nodes"])}
-	binary, short_t = tail.append_accessor(doc, binary, [(0.0,), (TIMES[-1],)], 5126, "SCALAR")
+	binary, short_t = tail.append_accessor(doc, binary, [(0.0,), (times[-1],)], 5126, "SCALAR")
 	binary, short_r = tail.append_accessor(doc, binary, [(0.0, 0.0, 0.0, 1.0)] * 2, 5126, "VEC4")
-	binary, full_t = tail.append_accessor(doc, binary, [(t,) for t in TIMES], 5126, "SCALAR")
-	binary, hips_r = tail.append_accessor(doc, binary, [tuple(rig_fixture.HIPS_ROTATION)] * 5, 5126, "VEC4")
-	binary, hips_t = tail.append_accessor(doc, binary, [(0.0, y, 0.0) for y in (hips_y or HIPS_Y)], 5126, "VEC3")
+	binary, full_t = tail.append_accessor(doc, binary, [(t,) for t in times], 5126, "SCALAR")
+	binary, hips_r = tail.append_accessor(doc, binary, [tuple(rig_fixture.HIPS_ROTATION)] * len(times), 5126, "VEC4")
+	binary, hips_t = tail.append_accessor(doc, binary, [tuple(v) for v in path], 5126, "VEC3")
 	samplers = [{"input": short_t, "output": short_r}, {"input": full_t, "output": hips_r},
 		{"input": full_t, "output": hips_t}]
 	channels = [{"sampler": 0, "target": {"node": nodes["LeftFoot"], "path": "rotation"}},

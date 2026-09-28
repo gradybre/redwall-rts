@@ -38,7 +38,8 @@ var _result: Dictionary = {}
 var _pending: bool = false          # exactly one recorded update per stepped key
 var _extra_updates: int = 0
 var _rig: RefCounted = null
-var _travel: Vector3 = Vector3.ZERO  # the clip's horizontal root motion over one loop, world
+var _root: PackedVector2Array = PackedVector2Array()   # the clip's root path, world (x, z), per key
+var _loop_offset: Vector3 = Vector3.ZERO                 # the whole travel of every loop already played
 var _floor: PackedFloat64Array       # per key: min(0, the clip's feet, its tail base's floor)
 
 
@@ -90,7 +91,7 @@ func _configure() -> void:
 	for i in TAIL_BONES:
 		_tail.append(_skel.find_bone("tail_%02d" % i))
 	_read_poses(_spec["poses"][_clips[_clip]])
-	_travel = _loop_travel()
+	_loop_offset = Vector3.ZERO
 	_rig = TailRigScript.new()
 	var refused: StringName = _rig.attach(_skel)
 	if refused != TailRigScript.REFUSE_NONE:
@@ -116,6 +117,9 @@ func _read_poses(poses: Dictionary) -> void:
 	_pose_keys = []
 	for key in poses["keys"]:
 		_pose_keys.append(PackedFloat64Array(key))
+	_root = PackedVector2Array()
+	for xz in poses["root_xz"]:
+		_root.append(Vector2(xz[0], xz[1]))
 
 
 func _apply_pose(k: int) -> void:
@@ -128,20 +132,11 @@ func _apply_pose(k: int) -> void:
 		_skel.set_bone_pose_scale(_pose_bones[j], Vector3(key[o + 7], key[o + 8], key[o + 9]))
 
 
-func _loop_travel() -> Vector3:
-	"""How far the hips travel horizontally over one loop (the carry walks carry root motion).
-
-	At the wrap the clip snaps the hips back by this much. The spring would see a 1-2 m teleport
-	and whip the tail; instead the creature is moved forward by it, so the motion is continuous.
-	"""
-	var hips := _pose_bones.find(_skel.find_bone("Hips"))
-	if hips < 0:
-		return Vector3.ZERO
-	var first: PackedFloat64Array = _pose_keys[0]
-	var last: PackedFloat64Array = _pose_keys[_pose_keys.size() - 1]
-	var d := Vector3(last[hips * 10] - first[hips * 10], 0.0, last[hips * 10 + 2] - first[hips * 10 + 2])
-	var world: Vector3 = _skel.global_basis * d
-	return Vector3(world.x, 0.0, world.z)
+func _place_root(k: int) -> void:
+	"""Move the creature along the clip's root path (decision 0195): the clip is in place, so this
+	is where the travel went. Each finished loop adds its whole travel, so the spring feels the body
+	walk on -- it never sees a snap back to the start."""
+	_inst.position = Vector3(_root[k].x, 0.0, _root[k].y) + _loop_offset
 
 
 func _step() -> void:
@@ -154,6 +149,7 @@ func _step() -> void:
 	var dt: float = t - _times[_key - 1] if _key > 0 else _times[1] - _times[0]
 	_pending = true
 	_rig.set_floor(_floor[_key])
+	_place_root(_key)
 	_apply_pose(_key)
 	_skel.advance(dt)
 
@@ -176,7 +172,8 @@ func _on_updated() -> void:
 	if _key < _times.size():
 		return
 	_key = 0
-	_inst.position += _travel
+	var travel := _root[_root.size() - 1]
+	_loop_offset += Vector3(travel.x, 0.0, travel.y)
 	if not _recording:
 		_warm_loops_left -= 1
 		_recording = _warm_loops_left <= 0   # warm-up done: record the next loop

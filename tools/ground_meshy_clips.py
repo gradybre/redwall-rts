@@ -30,6 +30,7 @@ import argparse
 import concurrent.futures
 import hashlib
 import json
+import math
 import pathlib
 import sys
 
@@ -42,6 +43,9 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 LIBRARY = ROOT / "assets/library/creature"
 MANIFEST = ROOT / "docs/art-reference/asset_library/grounded.json"
 STAMP = "redwall_clip_ground"
+STAMP_VERSION = 2          # 2: root motion extracted (decision 0195)
+ROOT_MOTION_MIN_M = 0.01   # a clip travelling less than this over its loop is already in place
+ROOT_WINDOW_S = 1.0        # one gait cycle: Meshy's walk loop is 1.03 s
 SUPPORT_JOINTS = ("Foot", "Toe", "Leg")
 GROUND_TOLERANCE_M = 0.001
 
@@ -97,23 +101,63 @@ def _hips(doc: dict) -> tuple[int, dict]:
 	return hips, channel
 
 
-def lift_in_parent_space(doc: dict, hips: int) -> list[float]:
-	"""The Hips-local translation that moves the hips 1 m straight up in the world."""
+def world_in_parent_space(doc: dict, hips: int, world: list[float]) -> list[float]:
+	"""The Hips-local translation that moves the hips by `world` (metres) in the world."""
 	parents = {c: i for i, n in enumerate(doc["nodes"]) for c in n.get("children", [])}
 	if hips not in parents:
-		return [0.0, 1.0, 0.0]
+		return list(world)
 	m = node_worlds(doc)[parents[hips]]
 	a, b, c = [m[0], m[1], m[2]], [m[4], m[5], m[6]], [m[8], m[9], m[10]]   # the parent's basis columns
 	det = a[0] * (b[1] * c[2] - b[2] * c[1]) + a[1] * (b[2] * c[0] - b[0] * c[2]) + a[2] * (b[0] * c[1] - b[1] * c[0])
 	if abs(det) < 1e-12:
 		raise GroundRefused("the Hips parent's basis is singular")
-	## Solve [a b c] x = (0, 1, 0). The inverse's rows are (b x c, c x a, a x b) / det, so x is their y
-	## components. The basis may be scaled (Meshy's armature is 0.01) or rotated.
-	return [(b[2] * c[0] - b[0] * c[2]) / det, (c[2] * a[0] - c[0] * a[2]) / det, (a[2] * b[0] - a[0] * b[2]) / det]
+	## Solve [a b c] x = world. The inverse's rows are (b x c, c x a, a x b) / det. The basis may be
+	## scaled or rotated.
+	rows = ([b[1] * c[2] - b[2] * c[1], b[2] * c[0] - b[0] * c[2], b[0] * c[1] - b[1] * c[0]],
+		[c[1] * a[2] - c[2] * a[1], c[2] * a[0] - c[0] * a[2], c[0] * a[1] - c[1] * a[0]],
+		[a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]])
+	return [sum(r[i] * world[i] for i in range(3)) / det for r in rows]
 
 
-def apply_lift(doc: dict, binary: bytes, times_index: int, times: list[float], lifts: list[float]) -> bytes:
-	"""Rewrite the Hips translation on the clip's full timeline, lifted by `lifts` (world metres) per key."""
+def lift_in_parent_space(doc: dict, hips: int) -> list[float]:
+	"""The Hips-local translation that moves the hips 1 m straight up in the world."""
+	return world_in_parent_space(doc, hips, [0.0, 1.0, 0.0])
+
+
+def root_path(doc: dict, binary: bytes) -> tuple[list[float], list[list[float]]]:
+	"""The clip's timeline, and the world horizontal hips position (x, z) at every key."""
+	hips, _channel = _hips(doc)
+	times, animated = _channels(doc, binary)
+	return times, [[_worlds_at(doc, animated, k)[hips][12], _worlds_at(doc, animated, k)[hips][14]] for k in range(len(times))]
+
+
+def extract_root(times: list[float], path: list[list[float]]) -> list[list[float]] | None:
+	"""The root trajectory to take out of the hips, relative to the first key, or None if in place.
+
+	The root is the hips' horizontal path averaged over ROOT_WINDOW_S -- one gait cycle -- so a
+	stride's own sway stays in the clip and only the net progression leaves it. The average runs
+	past the clip's ends as the loop would continue: one loop further on is the same pose, moved
+	by the whole travel. Its first key is 0 and its last is the travel, so the clip closes."""
+	n = len(path)
+	travel = [path[-1][0] - path[0][0], path[-1][1] - path[0][1]]
+	if math.hypot(*travel) < ROOT_MOTION_MIN_M:
+		return None
+	dt = (times[-1] - times[0]) / (n - 1)
+	half = max(1, round(ROOT_WINDOW_S / (2.0 * dt)))
+	def at(k: int) -> list[float]:
+		loops, i = divmod(k, n - 1)
+		return [path[i][0] + loops * travel[0], path[i][1] + loops * travel[1]]
+	average = []
+	for k in range(n):
+		window = [at(j) for j in range(k - half, k + half + 1)]
+		average.append([sum(w[0] for w in window) / len(window), sum(w[1] for w in window) / len(window)])
+	return [[a[0] - average[0][0], a[1] - average[0][1]] for a in average]
+
+
+def apply_lift(doc: dict, binary: bytes, times_index: int, times: list[float], lifts: list[float],
+		roots: list[list[float]] | None = None) -> bytes:
+	"""Rewrite the Hips translation on the clip's full timeline: lifted by `lifts` (world metres) per
+	key and, when `roots` is given, moved back by that key's root (x, z) so the clip plays in place."""
 	hips, channel = _hips(doc)
 	anim = doc["animations"][0]
 	sampler = anim["samplers"][channel["sampler"]]
@@ -121,10 +165,12 @@ def apply_lift(doc: dict, binary: bytes, times_index: int, times: list[float], l
 	values = read_accessor(doc, binary, sampler["output"])
 	step = sampler.get("interpolation", "LINEAR") == "STEP"
 	up = lift_in_parent_space(doc, hips)
+	east, north = world_in_parent_space(doc, hips, [1.0, 0.0, 0.0]), world_in_parent_space(doc, hips, [0.0, 0.0, 1.0])
 	rows = []
-	for t, lift in zip(times, lifts):
+	for k, (t, lift) in enumerate(zip(times, lifts)):
 		v = _sample(keys, values, t, step, False)
-		rows.append(tuple(v[i] + up[i] * lift for i in range(3)))
+		rx, rz = roots[k] if roots is not None else (0.0, 0.0)
+		rows.append(tuple(v[i] + up[i] * lift - east[i] * rx - north[i] * rz for i in range(3)))
 	binary, output = append_accessor(doc, binary, rows, 5126, "VEC3")
 	anim["samplers"].append({"input": times_index, "output": output, "interpolation": "LINEAR"})
 	channel["sampler"] = len(anim["samplers"]) - 1
@@ -140,10 +186,13 @@ def ground_clip(data: bytes) -> tuple[bytes, dict]:
 		raise GroundRefused("the file has no animation to ground")
 	times, lows = lowest_support(doc, binary)
 	lifts = [max(0.0, -low) for low in lows]
+	roots = extract_root(times, root_path(doc, binary)[1])
 	original = binary
-	binary = apply_lift(doc, binary, rotation_time_accessor(doc), times, lifts)
-	doc["asset"].setdefault("extras", {})[STAMP] = {"version": 1, "max_lift_m": round(max(lifts), 4),
-		"source_sha256": hashlib.sha256(data).hexdigest()}
+	binary = apply_lift(doc, binary, rotation_time_accessor(doc), times, lifts, roots)
+	if roots is not None:
+		_record_root_motion(doc, times, roots)
+	doc["asset"].setdefault("extras", {})[STAMP] = {"version": STAMP_VERSION, "max_lift_m": round(max(lifts), 4),
+		"root_motion": roots is not None, "source_sha256": hashlib.sha256(data).hexdigest()}
 	out = write_glb(doc, binary)
 	out_doc, out_binary = read_glb(out)
 	if not out_binary.startswith(original):
@@ -153,9 +202,30 @@ def ground_clip(data: bytes) -> tuple[bytes, dict]:
 		raise GroundRefused(f"after grounding the support still reaches {min(after):+.4f} m")
 	if any(lift == 0.0 and abs(a - b) > 1e-5 for lift, a, b in zip(lifts, lows, after)):
 		raise GroundRefused("a key that needed no lift moved")
-	return out, {"keys": len(times), "keys_lifted": sum(1 for x in lifts if x > 0.0),
+	return out, {**_root_report(out_doc, out_binary, roots), "keys": len(times), "keys_lifted": sum(1 for x in lifts if x > 0.0),
 		"max_lift_m": round(max(lifts), 4), "support_min_before_m": round(min(lows), 4),
 		"support_min_after_m": round(min(after), 4), "support_max_after_m": round(max(after), 4)}
+
+
+def _record_root_motion(doc: dict, times: list[float], roots: list[list[float]]) -> None:
+	"""Onto the Hips node's extras (Godot imports them as bone metadata): the root path per key, the
+	loop's travel and period, and its mean speed -- what gameplay needs to move the creature."""
+	hips, _channel = _hips(doc)
+	period = times[-1] - times[0]
+	travel = roots[-1]
+	doc["nodes"][hips].setdefault("extras", {})["root_motion"] = {
+		"period_s": round(period, 5), "travel_m": [round(travel[0], 5), round(travel[1], 5)],
+		"mean_speed_m_s": round(math.hypot(*travel) / period, 5), "window_s": ROOT_WINDOW_S,
+		"keys_xz": [[round(r[0], 5), round(r[1], 5)] for r in roots]}
+
+
+def _root_report(doc: dict, binary: bytes, roots: list[list[float]] | None) -> dict:
+	"""Read back from the written clip: how far the hips still travel over the loop (the loop's gap)."""
+	_times, path = root_path(doc, binary)
+	gap = math.hypot(path[-1][0] - path[0][0], path[-1][1] - path[0][1])
+	if roots is not None and gap > ROOT_MOTION_MIN_M:
+		raise GroundRefused(f"the clip still travels {gap:.3f} m after its root was extracted")
+	return {"root_travel_m": round(math.hypot(*roots[-1]), 4) if roots else 0.0, "loop_gap_m": round(gap, 4)}
 
 
 def _source_dir(key_dir: pathlib.Path) -> pathlib.Path:

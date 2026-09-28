@@ -118,7 +118,11 @@ def clip_poses(path: pathlib.Path) -> dict:
 				rows = animated.get(n, {}).get(path_name)
 				row.extend(rows[k] if rows is not None else node.get(path_name, rest))
 		keys.append(row)
-	return {"bones": [doc["nodes"][n]["name"] for n in joints], "keys": keys}
+	hips = next((doc["nodes"][n] for n in joints if doc["nodes"][n].get("name") == "Hips"), {})
+	root = hips.get("extras", {}).get("root_motion", {}).get("keys_xz", [[0.0, 0.0]] * len(times))
+	if len(root) != len(times):
+		raise BakeRefused("the recorded root path does not have one key per clip key")
+	return {"bones": [doc["nodes"][n]["name"] for n in joints], "keys": keys, "root_xz": root}
 
 
 def clip_times(path: pathlib.Path) -> list[float]:

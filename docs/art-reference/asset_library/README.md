@@ -17,7 +17,7 @@ exists, what Brendan authorised and what it overrides:
 | Every **repaired** rigged/animated file: source and output SHA-256, height before and after, scale factor | [`repaired.json`](repaired.json) | yes |
 | The authored tail centrelines, and the spring settings to drive each chain | [`tail_centrelines.json`](tail_centrelines.json) | yes |
 | Every **tail-chained** file: tail vertices, tail length, joints, bind check, hashes | [`tailed.json`](tailed.json) | yes |
-| Every **grounded** clip: keys lifted, largest lift, lowest support before and after, hash | [`grounded.json`](grounded.json) | yes |
+| Every **grounded** clip: keys lifted, largest lift, lowest support before and after, root travel extracted, loop gap, hash | [`grounded.json`](grounded.json) | yes |
 | Every **tail-baked** clip: frames, loop seam, largest one-frame step, tail/feet/base lowest points, ground and motion verdicts, hash | [`baked.json`](baked.json) | yes |
 | The prompt and reference image behind every concept | [`concept_prompts.json`](concept_prompts.json) | yes |
 | Rendered contact sheets of every L0 | [`contact_sheets/`](contact_sheets/) | yes (LFS) |
@@ -30,7 +30,9 @@ and height repaired (decision 0190), and Meshy's 0.01 Armature scale folded into
 skeleton is at unit scale (decision 0194). The six tailed creatures also have `tailed/`: the repaired
 files plus the tail chain (decision 0191). Every rigged creature then has `grounded/`: its
 `tailed/` (or `repaired/`) clips with the hips lifted so the feet, or the knees in a kneel,
-never go below the ground (decision 0193). The six tailed creatures also have `baked/`: every
+never go below the ground (decision 0193), and playing in place: the two carry walks' travel is
+recorded as `root_motion` on the Hips bone instead (decision 0195;
+`godot/scripts/presentation/clip_root_motion.gd` reads it). The six tailed creatures also have `baked/`: every
 `grounded/` clip with the tail's spring motion written in as keys, for the crowd tier (decision
 0192). **For crowd clips use `baked/` where it exists, otherwise `grounded/`; for the skeletal
 pool, which runs the spring live, `grounded/`, with `godot/scripts/presentation/tail_rig.gd`

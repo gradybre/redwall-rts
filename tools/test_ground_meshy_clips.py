@@ -152,12 +152,12 @@ def test_a_scaled_armature_gets_its_lift_in_local_units() -> None:
 def test_a_lift_that_does_not_ground_the_clip_refuses() -> None:
 	"""The re-skinned output is checked: with the lift sabotaged to nothing, the clip is refused."""
 	real = ground.apply_lift
-	ground.apply_lift = lambda doc, binary, times_index, times, lifts: real(doc, binary, times_index, times, [0.0] * len(lifts))
+	ground.apply_lift = lambda doc, binary, times_index, times, lifts, roots=None: real(doc, binary, times_index, times, [0.0] * len(lifts), roots)
 	try:
 		_refuses("a lift that leaves the foot below ground refuses", lambda: ground.ground_clip(fixture._clip(fixture._chained())))
 	finally:
 		ground.apply_lift = real
-	ground.apply_lift = lambda doc, binary, times_index, times, lifts: real(doc, binary, times_index, times, [x + 0.01 for x in lifts])
+	ground.apply_lift = lambda doc, binary, times_index, times, lifts, roots=None: real(doc, binary, times_index, times, [x + 0.01 for x in lifts], roots)
 	try:
 		_refuses("a lift that moves keys needing none refuses", lambda: ground.ground_clip(fixture._clip(fixture._chained())))
 	finally:
@@ -172,6 +172,74 @@ def test_the_output_keeps_the_source_and_is_stamped() -> None:
 	stamp = read_glb(out)[0]["asset"]["extras"][ground.STAMP]
 	check("stamped with the source hash", stamp["source_sha256"] == __import__("hashlib").sha256(source).hexdigest())
 	check("stamped once", json.dumps(read_glb(out)[0]["asset"]).count(ground.STAMP) == 1)
+
+
+## A walk: 63 keys at 30 Hz, the hips going 0.5 m/s forward (+Z) with a 5 cm sideways-and-forward
+## sway whose period is exactly the 31-key averaging window. The average of the sway over any window
+## is then exactly 0, so the root is exactly the straight 0.5 m/s line and what stays is the sway.
+WALK_TIMES = [k / 30 for k in range(63)]
+
+
+def _sway(k: int) -> float:
+	"""The sway at key k: period 31 keys, starting mid-stride (7 keys in), so the hips' first position
+	is NOT the root's -- the root line runs through the sway's middle."""
+	return 0.05 * math.sin(2.0 * math.pi * (k + 7) / 31)
+
+
+def _walk() -> bytes:
+	"""The hips 0.5 m up (so no lift), travelling 0.5 m/s along +Z with the sway in X and Z."""
+	path = [(_sway(k), 0.5, 0.5 * WALK_TIMES[k] + _sway(k)) for k in range(63)]
+	return fixture._clip(fixture._chained(), times=WALK_TIMES, hips_xyz=path)
+
+
+def test_a_travelling_clip_is_put_in_place_with_its_sway_kept() -> None:
+	"""The 1.0333 m of travel leaves the hips; the stride's sway does not."""
+	out, row = ground.ground_clip(_walk())
+	doc, binary = read_glb(out)
+	_times, path = ground.root_path(doc, binary)
+	check("the hips now end where they began", math.hypot(path[-1][0] - path[0][0], path[-1][1] - path[0][1]) < 1e-5)
+	check("key 5 keeps its sway in Z", _near(path[5][1] - path[0][1], _sway(5) - _sway(0), 1e-5))
+	check("key 5 keeps its sway in X", _near(path[5][0] - path[0][0], _sway(5) - _sway(0), 1e-5))
+	check("the travel is reported", _near(row["root_travel_m"], 1.0333, 1e-4) and row["loop_gap_m"] < 1e-4)
+
+
+def test_the_root_motion_is_recorded_on_the_hips() -> None:
+	"""What gameplay needs: the path, the travel and period, the mean speed of 0.5 m/s."""
+	out, _row = ground.ground_clip(_walk())
+	hips = next(n for n in read_glb(out)[0]["nodes"] if n.get("name") == "Hips")
+	motion = hips["extras"]["root_motion"]
+	check("travel 1.0333 m along +Z", motion["travel_m"] == [0.0, 1.03333])
+	check("period 2.0667 s", motion["period_s"] == 2.06667)
+	check("mean speed 0.5 m/s", _near(motion["mean_speed_m_s"], 0.5, 1e-4))
+	check("key 5's root is 0.5 x 5/30 m forward", motion["keys_xz"][5] == [0.0, round(0.5 * 5 / 30, 5)])
+	check("one root key per clip key", len(motion["keys_xz"]) == 63)
+
+
+def test_a_clip_that_still_travels_is_refused() -> None:
+	"""The written clip is read back: with the extracted root sabotaged to half, it still travels."""
+	real = ground.extract_root
+	ground.extract_root = lambda times, path: [[r[0] / 2, r[1] / 2] for r in real(times, path)]
+	try:
+		_refuses("a clip left travelling half a metre refuses", lambda: ground.ground_clip(_walk()))
+	finally:
+		ground.extract_root = real
+
+
+def test_a_clip_in_place_has_no_root_motion() -> None:
+	"""The 5-key fixture never moves sideways: nothing is extracted, nothing recorded."""
+	out, row = ground.ground_clip(fixture._clip(fixture._chained()))
+	hips = next(n for n in read_glb(out)[0]["nodes"] if n.get("name") == "Hips")
+	check("no root motion recorded", "root_motion" not in hips.get("extras", {}))
+	check("no travel reported", row["root_travel_m"] == 0.0)
+
+
+def test_extracting_the_root_changes_no_height() -> None:
+	"""The lift is vertical and the root horizontal: the support's heights are what the lift alone gives."""
+	source = _walk()
+	out, _row = ground.ground_clip(source)
+	_t, before = ground.lowest_support(*read_glb(source))
+	_t, after = ground.lowest_support(*read_glb(out))
+	check("every key's lowest support height is unchanged (no lift was needed)", all(_near(a, b, 1e-6) for a, b in zip(before, after)))
 
 
 def main() -> int:

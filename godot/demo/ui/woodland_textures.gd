@@ -116,9 +116,7 @@ static func texel(spec: Spec, noise: Image, x: int, y: int) -> Color:
 	var depth: float = -_rounded_sdf(spec, float(x) + 0.5, float(y) + 0.5)
 	if depth <= -0.5:
 		return Color(0.0, 0.0, 0.0, 0.0)
-	var period: int = spec.period()
-	var n: float = noise.get_pixel(posmod(x - spec.margin, period),
-		posmod(y - spec.margin, period)).r
+	var n: float = sample_noise(spec, noise, x, y)
 	var color: Color
 	if depth < spec.band:
 		color = _band_color(spec, depth, n, _facing(spec, float(x) + 0.5, float(y) + 0.5))
@@ -130,6 +128,12 @@ static func texel(spec: Spec, noise: Image, x: int, y: int) -> Color:
 		color = color.lerp(spec.outline, clampf(OUTLINE_WIDTH - depth, 0.0, 1.0))
 	color.a = clampf(depth + 0.5, 0.0, 1.0)
 	return color
+
+
+static func sample_noise(spec: Spec, noise: Image, x: int, y: int) -> float:
+	"""The noise value at a texel, read at the tile period so the tiled middle meets itself."""
+	var period: int = spec.period()
+	return noise.get_pixel(posmod(x - spec.margin, period), posmod(y - spec.margin, period)).r
 
 
 static func _rounded_sdf(spec: Spec, px: float, py: float) -> float:
@@ -183,9 +187,16 @@ static func _field_color(spec: Spec, depth: float, n: float, x: int, y: int) -> 
 	var spread: float = lerpf(PAPER_SPREAD, GRAIN_SPREAD, spec.grain)
 	var mix: float = 0.55 + (pattern - 0.5) * spread + fibre * FIBRE_AMOUNT
 	var tone: Color = spec.face_dark.lerp(spec.face_light, clampf(mix, 0.0, 1.0))
-	var reach: float = depth - spec.band - (INLAY_WIDTH if spec.inlay.a > 0.0 else 0.0)
-	var shade: float = spec.inset_shadow * exp(-maxf(reach, 0.0) / INSET_REACH)
-	return tone.lerp(Palette.DEEP_SHADE, shade)
+	return tone.lerp(Palette.DEEP_SHADE, inset_shade(spec, depth))
+
+
+static func inset_shade(spec: Spec, depth: float) -> float:
+	"""How much the field darkens at `depth` beside the band. Exactly 0 from the nine-patch
+	margin inward, so the tiled middle repeats without a faint dark grid at each tile edge."""
+	var inner: float = spec.band + (INLAY_WIDTH if spec.inlay.a > 0.0 else 0.0)
+	var reach: float = maxf(depth - inner, 0.0)
+	var fade: float = 1.0 - smoothstep(inner, float(spec.margin), depth)
+	return spec.inset_shadow * exp(-reach / INSET_REACH) * fade
 
 
 static func _hash01(x: int, y: int) -> float:

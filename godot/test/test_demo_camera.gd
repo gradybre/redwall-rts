@@ -177,6 +177,29 @@ func test_rotation_turns_the_heading() -> void:
 	assert_true(float(_rig.yaw_degrees()) < 0.0, "turned right")
 
 
+func test_alt_page_up_pitches_and_does_not_zoom() -> void:
+	"""Alt+PgUp is camera_pitch_up; it also contains PgUp, but zoom is matched exactly."""
+	var key: InputEventKey = InputEventKey.new()
+	key.keycode = KEY_PAGEUP
+	key.alt_pressed = true
+	key.pressed = true
+	assert_true(_rig.handle_input(key), "a camera action")
+	assert_almost_equal(_rig.target_distance(), DemoCamera.DISTANCE_DEFAULT, "distance unchanged")
+	_rig.step(SETTLE_SECONDS)
+	assert_almost_equal(_rig.pitch_degrees(),
+		DemoCamera.PITCH_DEFAULT_DEGREES + DemoCamera.PITCH_STEP_DEGREES, "pitched up one step")
+
+
+func test_focus_loss_releases_every_held_key() -> void:
+	"""After the window loses focus a key whose release never arrived no longer pans or turns."""
+	_rig.handle_input(_action(DemoCamera.ACTION_PAN_LEFT, true))
+	_rig.handle_input(_action(DemoCamera.ACTION_ROTATE_LEFT, true))
+	_rig.notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+	_rig.step(0.5)
+	assert_equal(_rig.target_focus(), Vector3.ZERO, "no pan after focus loss")
+	assert_almost_equal(_rig.yaw_degrees(), 0.0, "no turn after focus loss")
+
+
 func test_unrelated_input_is_left_alone() -> void:
 	"""A non-camera action is not consumed, so the HUD and the game still receive it."""
 	assert_false(_rig.handle_input(_action(&"select_primary", true)), "not a camera action")

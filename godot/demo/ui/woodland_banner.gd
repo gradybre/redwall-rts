@@ -46,6 +46,8 @@ static func attach(label: Label) -> Control:
 func bind(label: Label) -> void:
 	"""Follow one label, and fit to whatever it says now."""
 	_label = label
+	if not _label.resized.is_connected(_fit):
+		_label.resized.connect(_fit)
 	_fit()
 
 

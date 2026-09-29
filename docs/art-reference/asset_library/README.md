@@ -32,7 +32,8 @@ files plus the tail chain (decision 0191). Every rigged creature then has `groun
 `tailed/` (or `repaired/`) clips with the hips lifted so the feet, or the knees in a kneel,
 never go below the ground (decision 0193), and playing in place: the two carry walks' travel is
 recorded as `root_motion` on the Hips bone instead (decision 0195;
-`godot/scripts/presentation/clip_root_motion.gd` reads it). The six tailed creatures also have `baked/`: every
+`godot/scripts/presentation/clip_root_motion.gd` reads it). The ten idles are also held at the walk's
+heading, with their feet pinned, instead of swinging round (decision 0201). The six tailed creatures also have `baked/`: every
 `grounded/` clip with the tail's spring motion written in as keys, for the crowd tier (decision
 0192). **For crowd clips use `baked/` where it exists, otherwise `grounded/`; for the skeletal
 pool, which runs the spring live, `grounded/`, with `godot/scripts/presentation/tail_rig.gd`
@@ -198,6 +199,7 @@ Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceil
 | *(not a file defect)* | Importing a rigged GLB into **Blender** adds a 2 m `Icosphere`. It is **not in the file** (0 of 110 contain one): Blender's glTF importer creates it as the bones' display shape (`io_scene_gltf2/blender/imp/node.py`) | Import with `disable_bone_shape=True`, or ignore it; it never reaches Godot |
 | **Every rigged and animated GLB (110 files)** | Reads glossy and self-lit. Meshy's rig step rewrote the material: no metallic or roughness value, so glTF's default **metallic 1.0** applies; the colour map is wired in **again as full emission** (`emissiveFactor [1,1,1]`); `KHR_materials_specular` is **2.0**; the L0's roughness and normal maps are **dropped**. Godot's imported material confirms it: metallic 1.00, roughness 1.00, emission on. The high-poly and L0 files (162) are correct: roughness median 0.93, metallic 0 | **Fixed** by `tools/repair_meshy_rig.py` (decision 0190) in all 110 files: metallic 0, roughness from the L0's own map, the L0's normal map, no emission, no specular or ior extension. Before attaching the L0's maps, it proves the atlas is shared: the colour map must be byte-identical to the L0's. Godot reads every repaired material as metallic 0 with a roughness texture and a normal map, and emission off. Output in `<key>/repaired/`; the originals are untouched |
 | Every `anim_idle` clip (10 of 10) | The creature **grows and shrinks**: Meshy keys the Hips at a constant scale 1.1765, so each creature idles 17.65% larger and swells or shrinks as it blends to and from any other clip. No other channel in the 110 files strays from rest by more than 1%. With the scale removed, the idle's feet floated 3 mm - 20 cm | **Fixed** (decision 0197). `tools/repair_meshy_rig.py` resets every bone scale key more than 1% from rest. `tools/ground_meshy_clips.py` seats a standing clip whose feet never touch the ground, and refuses a clip that still scales a bone. Audited: 0 stray scale channels in all 160 `grounded/` and `baked/` clips |
+| Every `anim_idle` clip (10 of 10) | The creature **spins on the spot**. Meshy's idle stands turned −43° from the walk, then swings the whole body through 72–92° of yaw and back: the hips go to about +8°, then −79°, then −43° again. The feet shuffle 1–28 cm with it (the squirrels most). Every walk → idle blend turns the body about 50°. The head faces the viewer while the body is turned. No other clip swings more than 31.9° | **Fixed** (decision 0201). `tools/ground_meshy_clips.py` **untwists** an in-place clip whose Hips heading swings more than 45° and returns within 10°. The Hips face +Z on every key, and the upper body keeps its own motion. The feet are pinned where the first key has them, with the legs re-solved by two-bone IK. The hips stand over the rest hips, lowered at most 4.3 cm where a leg could not reach. The head gets one twist so it faces +Z at rest. Godot 4.7.2: heading range 0.00° on all ten, feet within 2 mm, walk → idle blend turns 2–8° (the walk's own stride). Sheets: `contact_sheets/idle_untwist_*.png` |
 | `chair_sit_idle` clips | Sits on nothing | Pair it with a seat at play time |
 | crop_cabbage_ripe | Cabbages read cyan-blue | Recolour the texture |
 | stone_wall | Generated as an L-shaped corner, not a straight modular section | Cut it in Blender |
@@ -225,6 +227,14 @@ Both are scratch tools, not part of the game:
 - `capture_baked.gd` plays one `baked/` clip beside its `grounded/` twin with **no spring
   running**, as the crowd tier plays it: whatever the baked tail does is in the clip.
   Arguments after `--`: `<out_dir> <frames>`.
+- `measure_idle.gd`, `blend_idle.gd` and `shots_idle.gd` check decision 0201's untwisted idles. Put
+  `<key>__before.glb` (Meshy's idle, grounded), `<key>__after.glb` (the untwisted idle) and
+  `<key>__walk.glb` in a throwaway project's `res://glb/`.
+  - `measure_idle.gd` (headless) samples the Hips heading and the feet across each loop.
+  - `blend_idle.gd` (headless) plays idle → walk → idle with 0.3 s crossfades, and reports how far each
+    blend turns the body.
+  - `shots_idle.gd` (windowed) renders before and after side by side, from above and from the front,
+    with an arrow along the walk. Arguments after `--`: `<out_dir> <key> <height_m> <times>`.
 
 ## What still has to happen before anything is in the game
 
@@ -236,7 +246,8 @@ Both are scratch tools, not part of the game:
    budget. Six tails have their chain (decision 0191) and their motion baked into every clip
    (decision 0192). Retarget the Meshy clips onto the production rig, or treat them as
    references. Meshy's clips sank the feet in 90 of 100 clips; `grounded/` lifts them
-   (decision 0193). Foot sliding is not corrected.
+   (decision 0193). Foot sliding is not corrected, except in the idles, whose feet are pinned
+   (decision 0201).
 5. Door openings at 1536 × 3072 u, and the residence cutaway (GAP-06). Meshy honoured
    neither.
 6. `asset_import_validator.gd` against the GAP-03 envelopes and GAP-04 budgets.

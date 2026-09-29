@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Self-test for tools/ground_meshy_clips.py (decision 0193).
+"""Self-test for tools/ground_meshy_clips.py (decisions 0193, 0195, 0197, 0201).
 
 NEGATIVE TESTS COME FIRST:
 
@@ -11,7 +11,10 @@ NEGATIVE TESTS COME FIRST:
   N05  a clip that does not animate the Hips translation refuses.
   N06  a clip that scales a bone away from its rest refuses: the creature would grow and shrink
        (decision 0197). A scale key at rest passes.
-  (and a standing clip the seat leaves floating refuses: test_a_seat_that_leaves_the_clip_floating_refuses)
+  N07  a clip that swings round but cannot be untwisted refuses (decision 0201): no Head, a missing
+       leg, a leg that changes length, a foot beyond reach, a straight leg, an upside-down Hips key.
+  (and a standing clip the seat leaves floating refuses: test_a_seat_that_leaves_the_clip_floating_refuses;
+  an untwist that leaves the hips turning or a foot sliding refuses: test_an_untwist_that_does_not_hold_is_refused)
 
 THE FIXTURE is the bake test's Meshy-shaped clip: the hips drop 0.6 m on key 2. The foot's
 lowest vertex (y 0.548 at bind) then reaches -0.052, while the tail and the body -- both on the
@@ -31,6 +34,7 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import ground_meshy_clips as ground  # noqa: E402
 import rig_meshy_tail as tail  # noqa: E402
+import bake_meshy_tail as bake  # noqa: E402
 import test_bake_meshy_tail as fixture  # noqa: E402
 from repair_meshy_rig import read_glb, write_glb  # noqa: E402
 
@@ -51,6 +55,16 @@ def _refuses(name: str, action) -> None:
 		action()
 	except ground.RepairRefused:
 		check(name, True)
+		return
+	check(name + " (did not refuse)", False)
+
+
+def _refuses_with(name: str, text: str, action) -> None:
+	"""Check that `action` raises the tool's refusal, for the stated reason."""
+	try:
+		action()
+	except ground.RepairRefused as refused:
+		check(name + ("" if text in str(refused) else f" (refused for another reason: {refused})"), text in str(refused))
 		return
 	check(name + " (did not refuse)", False)
 
@@ -305,6 +319,325 @@ def test_extracting_the_root_changes_no_height() -> None:
 	_t, before = ground.lowest_support(*read_glb(source))
 	_t, after = ground.lowest_support(*read_glb(out))
 	check("every key's lowest support height is unchanged (no lift was needed)", all(_near(a, b, 1e-6) for a, b in zip(before, after)))
+
+
+# --- untwisting: an in-place clip that swings round is held at the walk's heading (0201) ---
+#
+# THE BIPED FIXTURE: Armature -> Hips -> (LeftUpLeg -> LeftLeg -> LeftFoot), the same on the right,
+# and Spine -> Head. Every rest rotation is identity, so the rest pose faces +Z; each leg bends its
+# knee 5 cm forward and puts its foot 0.48 m below the hips at x = +-0.1. One vertex under each foot
+# (the support) and one on the head. The clip stands 0.2 m to the side and 0.1 m forward of the rest
+# hips, and yaws them -40, -40, +10, -80, -40 deg -- Meshy's idle in five keys -- with a 5 deg pitch on
+# keys 1 and 3; the legs are not keyed, so the feet swing round with the hips. The head is keyed at
+# +40, +40, +80, 0, +40 deg: on key 0 it looks straight ahead while the body is turned, as Meshy's does.
+#
+# Expected, as literals: the hips face 0 deg on every key and keep their pitch; they stand over the
+# rest hips at (0, 0.5, 0); both feet stay at (+-0.1, 0.02, 0) on every key; the head's own yaw is
+# kept less the 40 deg gaze fix (0, 0, +40, -40, 0); the spine's channel is untouched.
+
+BIPED_TIMES = [0.0, 1 / 30, 2 / 30, 3 / 30, 4 / 30]
+BIPED_YAW = [-40.0, -40.0, 10.0, -80.0, -40.0]
+BIPED_PITCH = [0.0, 5.0, 0.0, 5.0, 0.0]
+BIPED_HEAD = [40.0, 40.0, 80.0, 0.0, 40.0]
+
+
+def _q(axis: str, degrees: float) -> tuple:
+	"""A quaternion (x, y, z, w) for `degrees` about the X or Y axis."""
+	h = math.radians(degrees) / 2.0
+	return (math.sin(h), 0.0, 0.0, math.cos(h)) if axis == "x" else (0.0, math.sin(h), 0.0, math.cos(h))
+
+
+def _q_mul(a: tuple, b: tuple) -> tuple:
+	"""The quaternion product a * b."""
+	ax, ay, az, aw = a
+	bx, by, bz, bw = b
+	return (aw * bx + ax * bw + ay * bz - az * by, aw * by - ax * bz + ay * bw + az * bx,
+		aw * bz + ax * by - ay * bx + az * bw, aw * bw - ax * bx - ay * by - az * bz)
+
+
+BIPED_NODES = [("Armature", [0.0, 0.0, 0.0], [1]), ("Hips", [0.0, 0.5, 0.0], [2, 5, 8]),
+	("LeftUpLeg", [0.1, 0.0, 0.0], [3]), ("LeftLeg", [0.0, -0.24, 0.05], [4]), ("LeftFoot", [0.0, -0.24, -0.05], []),
+	("RightUpLeg", [-0.1, 0.0, 0.0], [6]), ("RightLeg", [0.0, -0.24, 0.05], [7]), ("RightFoot", [0.0, -0.24, -0.05], []),
+	("Spine", [0.0, 0.1, 0.0], [9]), ("Head", [0.0, 0.15, 0.0], [])]
+BIPED_REST = {"Hips": (0.0, 0.5, 0.0), "LeftUpLeg": (0.1, 0.5, 0.0), "LeftLeg": (0.1, 0.26, 0.05), "LeftFoot": (0.1, 0.02, 0.0),
+	"RightUpLeg": (-0.1, 0.5, 0.0), "RightLeg": (-0.1, 0.26, 0.05), "RightFoot": (-0.1, 0.02, 0.0),
+	"Spine": (0.0, 0.6, 0.0), "Head": (0.0, 0.75, 0.0)}
+
+
+def _biped(yaw: list | None = None, hips_xz: tuple = (0.2, 0.1), drop: tuple = (), head: bool = True,
+		leg_len: list | None = None, spine_pitch: list | None = None) -> bytes:
+	"""The biped fixture and its clip. `drop` removes named nodes; `leg_len` keys LeftLeg's translation."""
+	yaw = yaw or BIPED_YAW
+	times = BIPED_TIMES[:len(yaw)]
+	names = [n for n, _t, _c in BIPED_NODES]
+	joints = names[1:]
+	nodes = [{"name": n, "translation": t, "children": c} for n, t, c in BIPED_NODES]
+	nodes.append({"name": "body", "mesh": 0, "skin": 0})
+	verts = [((0.1, 0.0, 0.0), joints.index("LeftFoot")), ((-0.1, 0.0, 0.0), joints.index("RightFoot")),
+		((0.0, 0.8, 0.0), joints.index("Head"))]
+	ibm = []
+	for j in joints:
+		x, y, z = BIPED_REST[j]
+		ibm.append((1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -x, -y, -z, 1))
+	doc = {"asset": {"version": "2.0"}, "scene": 0, "scenes": [{"nodes": [0, 10]}], "nodes": nodes,
+		"skins": [{"joints": list(range(1, 10)), "inverseBindMatrices": 3}],
+		"meshes": [{"primitives": [{"attributes": {"POSITION": 0, "JOINTS_0": 1, "WEIGHTS_0": 2}}]}],
+		"accessors": [], "bufferViews": [], "buffers": [{"byteLength": 0}]}
+	binary = b""
+	binary, _ = tail.append_accessor(doc, binary, [v for v, _j in verts], 5126, "VEC3")
+	binary, _ = tail.append_accessor(doc, binary, [(j, 0, 0, 0) for _v, j in verts], 5123, "VEC4")
+	binary, _ = tail.append_accessor(doc, binary, [(1.0, 0.0, 0.0, 0.0)] * len(verts), 5126, "VEC4")
+	binary, _ = tail.append_accessor(doc, binary, ibm, 5126, "MAT4")
+	binary, t_in = tail.append_accessor(doc, binary, [(t,) for t in times], 5126, "SCALAR")
+	hips_r = [_q_mul(_q("y", y), _q("x", p)) for y, p in zip(yaw, BIPED_PITCH)]
+	outs = {("Hips", "rotation"): hips_r, ("Hips", "translation"): [(hips_xz[0], 0.5, hips_xz[1])] * len(times),
+		("Spine", "rotation"): [_q("x", p) for p in (spine_pitch or BIPED_PITCH)[:len(times)]]}
+	if head:
+		outs[("Head", "rotation")] = [_q("y", h) for h in BIPED_HEAD[:len(times)]]
+	if leg_len:
+		outs[("LeftLeg", "translation")] = [(0.0, -y, 0.05) for y in leg_len]
+	samplers, channels = [], []
+	for (name, path), rows in outs.items():
+		binary, out = tail.append_accessor(doc, binary, rows, 5126, "VEC4" if path == "rotation" else "VEC3")
+		samplers.append({"input": t_in, "output": out})
+		channels.append({"sampler": len(samplers) - 1, "target": {"node": names.index(name), "path": path}})
+	doc["animations"] = [{"name": "idle", "samplers": samplers, "channels": channels}]
+	doc["buffers"][0]["byteLength"] = len(binary)
+	for name in drop:
+		node = names.index(name)
+		doc["nodes"][node]["name"] = name + "_gone"
+	return write_glb(doc, binary)
+
+
+def _poses(data: bytes, names: tuple) -> list[dict]:
+	"""World matrices of the named nodes on every key of the clip."""
+	doc, binary = read_glb(data)
+	index = {n.get("name"): i for i, n in enumerate(doc["nodes"])}
+	times, animated = bake._channels(doc, binary)
+	return [{n: bake._worlds_at(doc, animated, k)[index[n]] for n in names} for k in range(len(times))]
+
+
+def _local_yaw(data: bytes, name: str) -> list[float]:
+	"""Degrees of the Y-twist in the named node's local rotation keys."""
+	doc, binary = read_glb(data)
+	node = next(i for i, n in enumerate(doc["nodes"]) if n.get("name") == name)
+	anim = doc["animations"][0]
+	channel = next(c for c in anim["channels"] if c["target"] == {"node": node, "path": "rotation"})
+	return [math.degrees(2.0 * math.atan2(q[1], q[3])) for q in tail.read_accessor(doc, binary, anim["samplers"][channel["sampler"]]["output"])]
+
+
+def test_n07_untwisting_refuses_what_it_cannot_solve() -> None:
+	"""A swinging clip with no Head, no right leg, or a leg that changes length; a straight leg; an
+	upside-down Hips key; a foot beyond reach. Each for its own reason."""
+	_refuses_with("N07 a swinging clip with no Head refuses", "Head", lambda: ground.ground_clip(_biped(drop=("Head",), head=False)))
+	_refuses_with("N07 a swinging clip with no RightLeg refuses", "RightLeg", lambda: ground.ground_clip(_biped(drop=("RightLeg",))))
+	_refuses_with("N07 a leg that changes length refuses", "changes length",
+		lambda: ground.ground_clip(_biped(leg_len=[0.24, 0.24, 0.3, 0.24, 0.24])))
+	_refuses_with("N07 a foot beyond its leg's horizontal reach refuses", "beyond",
+		lambda: ground._hip_drop([0.0, 1.0, 0.0], [0.5, 0.0, 0.0], 0.4))
+	_refuses_with("N07 a straight leg has no knee direction", "straight",
+		lambda: ground._solve_leg([0, 0.5, 0], [0, 0.02, 0], 0.24, 0.24, [0.0, -1.0, 0.0]))
+	flip = [[1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, -1.0]]   # 180 deg about X: no heading
+	_refuses_with("N07 an upside-down Hips key refuses", "upside down", lambda: ground._yaw_of(flip))
+
+
+def test_a_swinging_idle_faces_the_walk_on_every_key() -> None:
+	"""The Hips' heading is 0 deg on every key; their pitch is kept; they stand over the rest hips."""
+	out, row = ground.ground_clip(_biped())
+	doc, binary = read_glb(out)
+	check("untwisted, reported", row["untwisted"] and row["heading_swing_deg"] == 90.0 and row["heading_net_deg"] == 0.0)
+	check("turned by +40 deg, gaze fixed by -40 deg", row["turned_deg"] == 40.0 and row["gaze_deg"] == -40.0)
+	check("every Hips key faces 0 deg", all(_near(h, 0.0, 1e-4) for h in ground.hips_headings(doc, binary)))
+	check("the report reads it back", row["heading_off_after_deg"] == 0.0)
+	pitch = [math.degrees(2.0 * math.atan2(q[0], q[3])) for q in _hips_rotations(out)]
+	check("the Hips keep their 5 deg pitch", all(_near(a, b, 1e-3) for a, b in zip(pitch, BIPED_PITCH)))
+	hips = [p["Hips"] for p in _poses(out, ("Hips",))]
+	check("the hips stand over the rest hips", all(_near(m[12], 0.0) and _near(m[13], 0.5) and _near(m[14], 0.0) for m in hips))
+	check("no drop was needed", row["hips_drop_max_m"] == 0.0)
+
+
+def _hips_rotations(data: bytes) -> list[tuple]:
+	"""The Hips rotation keys of a file."""
+	doc, binary = read_glb(data)
+	hips, _channel = ground._hips(doc)
+	anim = doc["animations"][0]
+	channel = next(c for c in anim["channels"] if c["target"] == {"node": hips, "path": "rotation"})
+	return tail.read_accessor(doc, binary, anim["samplers"][channel["sampler"]]["output"])
+
+
+def test_the_feet_stay_planted() -> None:
+	"""The source's feet swing round with the hips: the right foot 0.1087 m on key 3 (40 deg of yaw about
+	the hips plus the 5 deg pitch, computed by hand). The output's stay at (+-0.1, 0.02, 0)."""
+	out, row = ground.ground_clip(_biped())
+	check("the source's feet slid 0.1087 m", row["feet_slide_before_m"] == 0.1087)
+	check("the output's feet do not slide", row["feet_slide_after_m"] == 0.0)
+	poses = _poses(out, ("LeftFoot", "RightFoot"))
+	check("the left foot is at (0.1, 0.02, 0) on every key",
+		all(_near(p["LeftFoot"][12], 0.1) and _near(p["LeftFoot"][13], 0.02) and _near(p["LeftFoot"][14], 0.0) for p in poses))
+	check("the right foot is at (-0.1, 0.02, 0) on every key",
+		all(_near(p["RightFoot"][12], -0.1) and _near(p["RightFoot"][13], 0.02) and _near(p["RightFoot"][14], 0.0) for p in poses))
+	check("the feet still touch the ground", _near(row["support_min_after_m"], 0.0, 1e-4) and row["seated_m"] == 0.0)
+	knees = _poses(out, ("LeftLeg", "RightLeg"))
+	check("the knees stay bent forward, where the rest pose has them",
+		all(_near(p[n][14], 0.05) and _near(p[n][13], 0.26) for p in knees for n in p))
+
+
+def test_the_upper_body_keeps_its_own_motion() -> None:
+	"""The head's yaw on its neck is kept, less the gaze fix; the spine's channel is not touched."""
+	source, (out, _row) = _biped(), ground.ground_clip(_biped())
+	check("the head keeps its look-around, turned -40", all(_near(a, b, 1e-3) for a, b in zip(_local_yaw(out, "Head"), (0.0, 0.0, 40.0, -40.0, 0.0))))
+	head = [p["Head"] for p in _poses(out, ("Head",))]
+	check("on key 0 the head faces the walk", _near(math.degrees(math.atan2(head[0][8], head[0][10])), 0.0, 1e-3))
+	def spine_output(data: bytes) -> int:
+		"""The Spine rotation channel's output accessor."""
+		doc = read_glb(data)[0]
+		anim = doc["animations"][0]
+		return anim["samplers"][next(c for c in anim["channels"] if c["target"] == {"node": 8, "path": "rotation"})["sampler"]]["output"]
+	check("the spine's channel is untouched", spine_output(out) == spine_output(source))
+
+
+def test_the_untwisted_clip_still_loops() -> None:
+	"""The source's first and last keys match, and so do the output's, bone by bone."""
+	poses = _poses(ground.ground_clip(_biped())[0], ("Hips", "LeftLeg", "RightLeg", "LeftFoot", "Head"))
+	check("the last key is the first", all(_near(a, b, 1e-5) for n in poses[0] for a, b in zip(poses[0][n], poses[-1][n])))
+
+
+def test_a_clip_that_does_not_swing_far_is_untouched() -> None:
+	"""A 44.8 deg swing is gait or a gesture: nothing is rewritten. 45.2 deg is untwisted."""
+	source = _biped(yaw=[0.0, 44.8, 0.0])
+	out, row = ground.ground_clip(source)
+	check("44.8 deg: not untwisted", row["untwisted"] is False and "untwisted" not in read_glb(out)[0]["asset"]["extras"][ground.STAMP])
+	check("44.8 deg: the Hips rotation is the source's", _hips_rotations(out) == _hips_rotations(source))
+	check("45.2 deg: untwisted", ground.ground_clip(_biped(yaw=[0.0, 45.2, 0.0]))[1]["untwisted"])
+
+
+def test_a_clip_that_turns_for_good_is_untouched() -> None:
+	"""A clip ending 10.2 deg from where it began turns on purpose; 9.8 deg is a swing that returns."""
+	check("net 10.2 deg: not untwisted", ground.ground_clip(_biped(yaw=[0.0, 60.0, 10.2]))[1]["untwisted"] is False)
+	check("net 9.8 deg: untwisted", ground.ground_clip(_biped(yaw=[0.0, 60.0, 9.8]))[1]["untwisted"])
+
+
+def test_a_travelling_clip_is_not_untwisted() -> None:
+	"""A walk's heading follows its path; only an in-place clip is held still. The 63-key walk with its
+	hips swinging 0 -> 90 -> 0 deg is left turning. (Its skeleton has no legs, so an untwist would refuse.)"""
+	doc, binary = read_glb(_walk())
+	hips = next(i for i, n in enumerate(doc["nodes"]) if n.get("name") == "Hips")
+	anim = doc["animations"][0]
+	channel = next(c for c in anim["channels"] if c["target"] == {"node": hips, "path": "rotation"})
+	binary, out = tail.append_accessor(doc, binary, [_q("y", 90.0 * math.sin(math.pi * k / 62)) for k in range(63)], 5126, "VEC4")
+	anim["samplers"].append({"input": anim["samplers"][channel["sampler"]]["input"], "output": out})
+	channel["sampler"] = len(anim["samplers"]) - 1
+	doc["buffers"][0]["byteLength"] = len(binary)
+	_out, row = ground.ground_clip(write_glb(doc, binary), stands=False)
+	check("a travelling clip swinging 90 deg is never untwisted", row["heading_swing_deg"] == 90.0 and row["untwisted"] is False)
+	check("...and its travel is still extracted", row["root_travel_m"] > 1.0)
+
+
+def test_the_stamp_records_the_untwist_only_where_it_happened() -> None:
+	"""A clip that was untwisted says so in its stamp; the Meshy fixture, which does not swing, does not."""
+	stamp = read_glb(ground.ground_clip(_biped())[0])[0]["asset"]["extras"][ground.STAMP]
+	check("the stamp records the untwist", stamp["untwisted"] == {"turned_deg": 40.0, "gaze_deg": -40.0, "hips_drop_max_m": 0.0, "decision": "0201"})
+	plain = read_glb(ground.ground_clip(fixture._clip(fixture._chained()))[0])[0]["asset"]["extras"][ground.STAMP]
+	check("a clip that does not swing has no untwist in its stamp", "untwisted" not in plain and plain["version"] == 3)
+
+
+def test_a_hips_drop_is_exactly_what_the_reach_needs() -> None:
+	"""The hip 0.5 m above a foot directly below, with 0.4 m of reach: down 0.1 m. Within reach: 0."""
+	check("a drop of exactly 0.1 m", _near(ground._hip_drop([0.0, 0.5, 0.0], [0.0, 0.0, 0.0], 0.4), 0.1, 1e-12))
+	check("0.3 m above: no drop", ground._hip_drop([0.0, 0.3, 0.0], [0.0, 0.0, 0.0], 0.4) == 0.0)
+	check("0.3 across, 0.5 up, reach 0.5: down 0.1", _near(ground._hip_drop([0.3, 0.5, 0.0], [0.0, 0.0, 0.0], 0.5), 0.1, 1e-12))
+
+
+def test_a_raised_idle_is_lowered_where_its_legs_cannot_reach() -> None:
+	"""With the hips raised 3 cm on key 2 -- further than the legs ever straighten -- the hips come down
+	exactly those 3 cm there, and the feet still stay put."""
+	doc, binary = read_glb(_biped())
+	hips = next(i for i, n in enumerate(doc["nodes"]) if n.get("name") == "Hips")
+	anim = doc["animations"][0]
+	channel = next(c for c in anim["channels"] if c["target"] == {"node": hips, "path": "translation"})
+	binary, out = tail.append_accessor(doc, binary, [(0.2, 0.5, 0.1), (0.2, 0.5, 0.1), (0.2, 0.53, 0.1), (0.2, 0.5, 0.1), (0.2, 0.5, 0.1)], 5126, "VEC3")
+	anim["samplers"].append({"input": anim["samplers"][channel["sampler"]]["input"], "output": out})
+	channel["sampler"] = len(anim["samplers"]) - 1
+	doc["buffers"][0]["byteLength"] = len(binary)
+	result, row = ground.ground_clip(write_glb(doc, binary))
+	check("the hips dropped 0.03 m", row["hips_drop_max_m"] == 0.03)
+	check("so key 2 is back at 0.5 m", all(_near(p["Hips"][13], 0.5) for p in _poses(result, ("Hips",))))
+	check("and the feet did not slide", row["feet_slide_after_m"] == 0.0)
+
+
+def test_the_gaze_fix_turns_the_head_about_the_vertical() -> None:
+	"""With the spine pitched 20 deg on key 0, the head's key-0 world rotation is the source's turned
+	about the world vertical by exactly turned + gaze = 0 deg: the nod stays a nod, in the new facing."""
+	source = _biped(spine_pitch=[20.0, 25.0, 20.0, 25.0, 20.0])
+	out, row = ground.ground_clip(source)
+	before, after = _poses(source, ("Head",))[0]["Head"], _poses(out, ("Head",))[0]["Head"]
+	turn = math.radians(row["turned_deg"] + row["gaze_deg"])
+	c, s_ = math.cos(turn), math.sin(turn)
+	expected = [[c * before[4 * i] + s_ * before[4 * i + 2], before[4 * i + 1], -s_ * before[4 * i] + c * before[4 * i + 2]] for i in range(3)]
+	check("the head is the source's, turned about the vertical", all(_near(expected[i][j], after[4 * i + j], 1e-5) for i in range(3) for j in range(3)))
+
+
+def test_the_reach_is_the_clips_straightest_but_never_straighter_than_099() -> None:
+	"""A leg the clip holds dead straight may reach 0.99 of its length; one it holds at 0.8, 0.8."""
+	def m(y: float) -> list:
+		return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0.0, y, 0.0, 1]
+	check("straight: 0.99", _near(ground._chain_lengths([{0: m(1.0), 1: m(0.5), 2: m(0.0)}], (0, 1, 2))[2], 0.99))
+	bent = [{0: m(1.0), 1: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0.3, 0.6, 0.0, 1], 2: m(0.2)}]
+	l1, l2, reach = ground._chain_lengths(bent, (0, 1, 2))
+	check("bent: the clip's own straightest", _near(reach, 0.8, 1e-12) and _near(l1 + l2, 1.0, 1e-12))
+
+
+def test_headings_unwrap_and_keys_never_flip() -> None:
+	"""A heading crossing 180 deg continues past it; consecutive keys keep their quaternions on one side
+	(-150 deg and -100 deg come out of the matrix conversion on opposite sides)."""
+	check("170 then -170 is 170 then 190", ground._unwrap([170.0, -170.0]) == [170.0, 190.0])
+	quats = ground._quats([ground._yaw(math.radians(-150.0)), ground._yaw(math.radians(-100.0))])
+	check("consecutive keys on the same side", sum(a * b for a, b in zip(*quats)) > 0.0)
+
+
+def _patched(name: str, replacement, action) -> None:
+	"""Run `action` with ground.<name> replaced, then put it back."""
+	real = getattr(ground, name)
+	setattr(ground, name, replacement(real))
+	try:
+		action()
+	finally:
+		setattr(ground, name, real)
+
+
+def test_an_untwist_that_does_not_hold_is_refused() -> None:
+	"""Each check on the result catches what only it can see, with the untwist sabotaged three ways:
+	- the hips written 3 cm high: the feet float off their pins, which only the 3-D pin check sees
+	  (the ground step would otherwise just seat the clip);
+	- the untwist skipped but reported done: the hips still swing, and the read-back heading check sees it;
+	- key 2's hips moved 5 cm sideways after the untwist: a foot slides, and the read-back slide check sees it."""
+	high = lambda real: (lambda doc, hips, world: real(doc, hips, [world[0], world[1] + 0.03, world[2]]))
+	_patched("_hips_local", high, lambda: _refuses_with("hips written high refuse", "misses its pin", lambda: ground.ground_clip(_biped())))
+	def skip(real):
+		def fake(doc: dict, binary: bytes) -> tuple:
+			_b, report = real(*read_glb(write_glb(doc, binary)))
+			return binary, report
+		return fake
+	_patched("untwist", skip, lambda: _refuses_with("an untwist not written refuses", "still turn", lambda: ground.ground_clip(_biped())))
+	shove = lambda real: (lambda doc, binary, times_index, times, lifts, roots=None: real(doc, binary, times_index, times, lifts,
+		[[0.0, 0.0], [0.0, 0.0], [0.05, 0.0], [0.0, 0.0], [0.0, 0.0]]))
+	_patched("apply_lift", shove, lambda: _refuses_with("a foot moved after the untwist refuses", "slides", lambda: ground.ground_clip(_biped())))
+
+
+def test_a_crouching_key_bends_the_knees_and_keeps_the_feet() -> None:
+	"""The hips 5 cm lower on key 2: the knees swing forward to take it, and the feet stay on their pins."""
+	doc, binary = read_glb(_biped())
+	hips = next(i for i, n in enumerate(doc["nodes"]) if n.get("name") == "Hips")
+	anim = doc["animations"][0]
+	channel = next(c for c in anim["channels"] if c["target"] == {"node": hips, "path": "translation"})
+	binary, out = tail.append_accessor(doc, binary, [(0.2, 0.5, 0.1), (0.2, 0.5, 0.1), (0.2, 0.45, 0.1), (0.2, 0.5, 0.1), (0.2, 0.5, 0.1)], 5126, "VEC3")
+	anim["samplers"].append({"input": anim["samplers"][channel["sampler"]]["input"], "output": out})
+	channel["sampler"] = len(anim["samplers"]) - 1
+	doc["buffers"][0]["byteLength"] = len(binary)
+	result, row = ground.ground_clip(write_glb(doc, binary))
+	poses = _poses(result, ("LeftLeg", "LeftFoot"))
+	check("key 2's knee comes forward", poses[2]["LeftLeg"][14] > 0.1 and _near(poses[0]["LeftLeg"][14], 0.05))
+	check("key 2's foot stays on its pin", _near(poses[2]["LeftFoot"][12], 0.1) and _near(poses[2]["LeftFoot"][13], 0.02) and _near(poses[2]["LeftFoot"][14], 0.0))
 
 
 def main() -> int:

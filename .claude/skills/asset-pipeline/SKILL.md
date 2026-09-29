@@ -145,7 +145,7 @@ python3 tools/bake_meshy_tail.py   --library assets/library/creature
 |---|---|---|
 | `repair_meshy_rig.py` | `repaired/` | Glossy self-lit material (0190); rigs 17–19% short (0190); the 0.01 Armature scale (0194); **bone scale keys away from rest (0197)** |
 | `rig_meshy_tail.py` | `tailed/` | No tail chain, tails bound to a thigh (0191) |
-| `ground_meshy_clips.py` | `grounded/` | Feet through the ground (0193); travelling carry walks (0195); **standing clips floating (0197)** |
+| `ground_meshy_clips.py` | `grounded/` | Feet through the ground (0193); travelling carry walks (0195); standing clips floating (0197); **idles spinning on the spot (0201)** |
 | `bake_meshy_tail.py` | `baked/` | The crowd tier's tail motion (0192) |
 
 Play `grounded/` clips on the skeletal pool and `baked/` (else `grounded/`) on
@@ -165,9 +165,25 @@ clip whose feet never touch the ground. Only clips listed in `OFF_THE_GROUND`
 (the chair sit) may hover. **A new clip that sits, hangs, swims or flies must
 be added to `OFF_THE_GROUND`**, or it will be pulled down to the ground.
 
+**Creatures that spin when standing still.** Meshy's idle stands turned −43° from
+the walk and swings the whole body through 72–92° of yaw and back (10 of 10). The
+creature appears to turn in a half circle on the spot, and every blend between walk
+and idle turns it about 50°. **An idle must hold the walk's heading.** The grounding step
+therefore **untwists** any in-place clip whose Hips heading swings more than 45°
+and returns within 10° of where it began (decision 0201):
+- the Hips face +Z on every key;
+- the feet are pinned where the first key has them;
+- the legs are re-solved;
+- the head is turned to face +Z at rest.
+
+It leaves alone a clip that travels, or that ends turned: those turn on purpose. It
+refuses a swinging clip it cannot solve: no Head, a missing leg, a foot out of
+reach. Do not "fix" such a refusal by editing the clip by hand; fix the step. The
+manifest's `heading_swing_deg` shows every clip's swing. Anything new near 45° deserves a look.
+
 **Before calling a creature done**, watch it in Godot blend idle → walk → idle,
-and check that it stays the same size and its feet stay planted. Every automated
-check can pass on a clip that reads wrong.
+and check that it stays the same size, **does not turn**, and its feet stay planted.
+Every automated check can pass on a clip that reads wrong.
 
 ## Gotchas, each one confirmed the hard way
 

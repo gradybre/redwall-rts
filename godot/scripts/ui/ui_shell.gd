@@ -2136,7 +2136,7 @@ func _place_history_interior() -> void:
 func _row_commands(owner_size: Vector2) -> void:
 	"""Decision 0199: the seven commands in ONE row, sharing the strip's width evenly.
 
-	Each cell is (interior - gaps) / 7, clamped to §4's 44..112 command cell, and the row is
+	Each cell is (interior - gaps) / 7, clamped to 44..120 (decision 0199), and the row is
 	centred when the strip is wider than it. When even 44 px cells do not fit, a command that would
 	cross the right edge is hidden: §1.2's "excess commands live in the context quick menu, not
 	outside the viewport"."""

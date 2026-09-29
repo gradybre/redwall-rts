@@ -38,7 +38,7 @@ const QUOTED_ROWS: Array = [
 	[20, "Minimap frame", UiRegistry.ZONE_BOTTOM_LEFT, UiRegistry.PROFILE_PANEL,
 		UiRegistry.GATE_ALWAYS, 160, 192, 256, 288],
 	[26, "Command strip", UiRegistry.ZONE_BOTTOM_CENTER, UiRegistry.PROFILE_PANEL,
-		UiRegistry.GATE_ALWAYS, 240, 68, 856, 68],  # decision 0199: one row
+		UiRegistry.GATE_ALWAYS, 240, 68, 912, 68],  # decision 0199: one row
 	[36, "Context detail", UiRegistry.ZONE_BOTTOM_RIGHT, UiRegistry.PROFILE_PANEL,
 		UiRegistry.GATE_SELECTED, 320, 240, 384, 936],
 	[51, "Workspace frame", UiRegistry.ZONE_CENTER, UiRegistry.PROFILE_MODAL,

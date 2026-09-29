@@ -102,15 +102,17 @@ const DETAIL_HEIGHT_MARGIN: float = 144.0
 
 ## Command strip: "left=Mw+32; right=Lw-D-32 when detail open, otherwise Lw-16", centred in that
 ## interval. Minimum command width 240. ONE ROW (decision 0199, Brendan): the seven commands sit
-## side by side at the bottom, so the strip is as wide as seven 112 px cells, six 8 px gaps and
-## 12 px padding each side need -- 856 -- or the interval, whichever is less, and one 44 px cell
+## side by side at the bottom, so the strip is as wide as seven 120 px cells, six 8 px gaps and
+## 12 px padding each side need -- 912 -- or the interval, whichever is less, and one 44 px cell
 ## plus padding tall. Its bottom stays where §1.2's 136-tall strip ended: SAFE_INSET above the
 ## viewport's bottom edge. This replaces §1.2's "width=min(640, available); y=Lh-152; height
 ## 136 ... wrap into two or three rows".
 const COMMAND_LEFT_GAP: float = 32.0
 const COMMAND_RIGHT_GAP_OPEN: float = 32.0
 const COMMAND_COUNT: int = 7
-const COMMAND_CELL_MAX: float = 112.0
+## 120, not §4's 112: "Objectives" with its lock icon measures 114 px in both the plain HUD and
+## the demo skin, and 120 is §4's own selection-command cell.
+const COMMAND_CELL_MAX: float = 120.0
 const COMMAND_CELL_MIN: float = 44.0
 const COMMAND_GAP: float = 8.0
 const COMMAND_MAX_WIDTH: float = COMMAND_COUNT * COMMAND_CELL_MAX + (COMMAND_COUNT - 1) * COMMAND_GAP \

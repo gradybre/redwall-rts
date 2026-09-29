@@ -613,14 +613,14 @@ func _command_rects() -> Array[Rect2]:
 
 
 func test_at_1920_the_seven_commands_are_one_row_of_full_cells() -> void:
-	"""1920x1080, detail closed: an 856 x 68 strip, seven 112 x 44 cells at x 12, 132 ... 732, y 12."""
+	"""1920x1080, detail closed: a 912 x 68 strip, seven 120 x 44 cells at x 12, 140 ... 780, y 12."""
 	assert_true(_shell.layout_for(1920, 1080), "the wide layout computes")
 	var strip: Control = _shell.control_for(UiShell.ID_COMMAND_STRIP)
-	assert_equal(strip.size, Vector2(856.0, 68.0), "the strip is one row")
+	assert_equal(strip.size, Vector2(912.0, 68.0), "the strip is one row")
 	assert_equal(strip.position.y + strip.size.y, 1064.0, "its bottom is 16 px above the screen's")
 	var rects: Array[Rect2] = _command_rects()
 	for index: int in rects.size():
-		assert_equal(rects[index], Rect2(12.0 + 120.0 * index, 12.0, 112.0, 44.0), "command %d" % index)
+		assert_equal(rects[index], Rect2(12.0 + 128.0 * index, 12.0, 120.0, 44.0), "command %d" % index)
 
 
 func test_a_narrower_strip_shrinks_every_cell_evenly() -> void:

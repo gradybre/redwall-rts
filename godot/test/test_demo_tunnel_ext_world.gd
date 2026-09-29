@@ -18,6 +18,7 @@ const JobsScript := preload("res://demo/tunnel/tunnel_jobs.gd")
 const JobTaskScript := preload("res://demo/tunnel/tunnel_job_task.gd")
 const TaskScript := preload("res://demo/tunnel/tunnel_task.gd")
 const PanelScript := preload("res://demo/tunnel/tunnel_panel.gd")
+const ExtScript := preload("res://demo/tunnel/tunnel_ext.gd")
 const MarksScript := preload("res://demo/tunnel/tunnel_marks.gd")
 const GroundViewScript := preload("res://demo/tunnel/tunnel_ground_view.gd")
 const HazardsScript := preload("res://demo/tunnel/tunnel_hazards.gd")
@@ -39,6 +40,9 @@ const CrewScript := preload("res://demo/tunnel/tunnel_crew.gd")
 const CrewTaskScript := preload("res://demo/tunnel/tunnel_crew_task.gd")
 const ControlScript := preload("res://demo/tunnel/tunnel_control.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
+const ServicesScript := preload("res://demo/demo_services.gd")
+const NoticesScript := preload("res://demo/demo_notices.gd")
+const CoreWeather := preload("res://scripts/core/weather.gd")
 
 const DT: float = 1.0 / 60.0
 const SEED: int = 9091
@@ -47,8 +51,14 @@ const WALK_M_S: float = 1.0
 const BOUNDS_U := Rect2i(-20480, -20480, 40960, 40960)
 
 var _nodes: Array[Node] = []
-var _alerts: PackedStringArray = PackedStringArray()
 var _notices: PackedStringArray = PackedStringArray()
+## The demo's shared weather, water and notice feed, fresh for every test.
+var _services: ServicesScript = ServicesScript.new()
+
+
+func before_each() -> void:
+	"""A fresh set of demo services per test."""
+	_services = ServicesScript.new()
 
 
 func after_each() -> void:
@@ -57,7 +67,6 @@ func after_each() -> void:
 		if is_instance_valid(node):
 			node.free()
 	_nodes.clear()
-	_alerts.clear()
 	_notices.clear()
 
 
@@ -138,16 +147,34 @@ func _say(text: String) -> void:
 	_notices.append(text)
 
 
-func _alert(text: String) -> void:
-	"""An alert callable."""
-	_alerts.append(text)
+func _warned(summary: String) -> bool:
+	"""Whether the demo's notice feed holds a WARNING with this short summary."""
+	return _posted(summary, NoticesScript.LEVEL_WARNING)
+
+
+func _noted(summary: String) -> bool:
+	"""Whether the demo's notice feed holds a NOTE with this short summary."""
+	return _posted(summary, NoticesScript.LEVEL_NOTE)
+
+
+func _posted(summary: String, level: int) -> bool:
+	"""Whether the feed holds an entry with this summary at this level."""
+	for k in _services.notices.count():
+		if _services.notices.summary(k) == summary and _services.notices.level(k) == level:
+			return true
+	return false
+
+
+func _rain(works: WorksScript) -> void:
+	"""Make the one weather read an hour of spring heavy rain (the entry point its sync uses)."""
+	works.weather.observe(0, 3, 12, 90, 3200, CoreWeather.EVENT_HEAVY_RAIN)
 
 
 func _works(space: CastSpaceScript, brains: Array[BrainScript], species: PackedStringArray) -> WorksScript:
 	"""Tunnel works over this cast (out of the tree; stepped by hand)."""
 	var works := WorksScript.new()
 	_nodes.append(works)
-	works.setup(space, brains, species, BOUNDS_U, _say, _alert)
+	works.setup(space, brains, species, BOUNDS_U, _say, _services)
 	return works
 
 
@@ -369,13 +396,18 @@ func _cast_of(space: CastSpaceScript, spots: Array[Vector2], species: PackedStri
 
 
 func test_the_weather_sets_the_planners_surface_speed_each_frame() -> void:
-	"""After a spell of rain comes in, the network's surface speed is the weather's 800."""
+	"""The works read the demo's one weather every frame (a paused one too): once it rains, the
+	network's surface speed is the weather's 800. They never run or announce the weather themselves."""
 	var space := _space([])
 	var works := _works(space, _cast_of(space, [Vector2.ZERO], PackedStringArray(["Mouse"])), PackedStringArray(["Mouse"]))
-	assert_equal(space.tunnels.surface_permille, 1000, "spring's ideal spell")
+	assert_true(works.weather == _services.weather, "the shared weather, not one of their own")
+	assert_equal(space.tunnels.surface_permille, 1000, "spring, 06:00: clear")
 	works.step(45000000)
+	assert_equal(space.tunnels.surface_permille, 1000, "a long frame does not change the weather")
+	_rain(works)
+	works.step(0)
 	assert_equal(space.tunnels.surface_permille, 800, "heavy rain")
-	assert_equal(_alerts, PackedStringArray(["Weather: Rain, walking 80%"]), "the alert card's line")
+	assert_equal(_services.notices.count(), 0, "and the works say nothing of it")
 
 
 func test_nothing_moves_while_paused_and_speed_scales_exactly() -> void:
@@ -384,13 +416,12 @@ func test_nothing_moves_while_paused_and_speed_scales_exactly() -> void:
 	var brains := _cast_of(space, [Vector2.ZERO], PackedStringArray(["Mouse"]))
 	var works := _works(space, brains, PackedStringArray(["Mouse"]))
 	works.step(0)
-	assert_equal(works.weather.spell_usec, 0, "weather paused")
+	assert_equal(works.weather.revision, 0, "the weather untouched")
 	assert_equal(works.events.next_auto_usec, EventsScript.FIRST_AUTO_USEC, "threats paused")
 	works.step(1000000)
 	works.step(1000000)
 	var other := _works(space, brains, PackedStringArray(["Mouse"]))
 	other.step(2000000)
-	assert_equal(works.weather.spell_usec, other.weather.spell_usec, "weather")
 	assert_equal(works.events.next_auto_usec, other.events.next_auto_usec, "threat schedule")
 
 
@@ -423,7 +454,7 @@ func test_digging_through_the_rock_pocket_finds_a_relic_and_yields_stone() -> vo
 	assert_equal(works.stores.finds[FindsScript.FIND_FLINT], 3, "flints")
 	assert_equal(works.stores.finds[FindsScript.FIND_RELIC], 1, "the relic")
 	assert_equal(works.stores.stone_milli_u, 23200, "20 U and four rock quanta's 800")
-	assert_true(_alerts.has("A relic dug up — see the tunnel panel"), "alerted")
+	assert_true(_noted("A relic dug up — see the tunnel panel"), "posted")
 	assert_true(Array(works.log_lines).has(FindsScript.relic_story(1)), "its story told")
 
 
@@ -445,15 +476,15 @@ func test_rain_floods_an_unbraced_wet_tunnel_with_warning_and_everyone_turns_bac
 	var brains := _cast_of(space, [Vector2(-1.0, 0.5)], species)
 	var works := _works(space, brains, species)
 	var slot := _wet_tunnel(works, space)
-	works.weather.set_spell(1)
+	_rain(works)
 	works.step(1)
 	brains[0].order_move(Vector2(6.0, 0.5))
 	assert_true(brains[0].crosses_tunnel(), "in the rain the tunnel is quicker (7.75 against 8.75)")
 	_until(brains[0], func() -> bool: return brains[0].underground and brains[0].bore_along_m() > 1.0, 10.0)
 	works.step(20000000)
-	assert_true(_alerts.has("Tunnel 1 is seeping — brace it"), "warned")
+	assert_true(_warned("Tunnel 1 is seeping — brace it"), "warned")
 	works.step(20000000)
-	assert_true(_alerts.has("Tunnel 1 flooded — pump it out"), "flooded")
+	assert_true(_warned("Tunnel 1 flooded — pump it out"), "flooded")
 	assert_equal(space.tunnels.closed[slot], NetworkScript.CLOSED_FLOODED, "closed")
 	var surfaced := Vector2.INF
 	for f in 60 * 10:
@@ -480,7 +511,7 @@ func test_a_roof_holds_while_someone_is_under_it() -> void:
 	works.hazards.strain_usec[slot] = HazardsScript.STRAIN_FULL_USEC - 1
 	works._act_on(slot, works.hazards.add_crossing(slot))
 	assert_equal(space.tunnels.closed[slot], NetworkScript.CLOSED_NONE, "holds")
-	assert_true(_alerts.has("Tunnel 1 holds while someone is under"), "creaks")
+	assert_true(_warned("Tunnel 1 holds while someone is under"), "creaks")
 	space.set_in_bore(brains[0].index, slot, 0.2, 0)
 	brains[0].task_surface(slot, false)
 	works._act_on(slot, HazardsScript.EVENT_COLLAPSE_DUE)
@@ -519,7 +550,7 @@ func test_a_walker_under_a_fall_s_far_side_turns_to_the_exit() -> void:
 	for c in [22, 23]:
 		works.ground.cells[20 * works.ground.columns + c] = GroundScript.SAND
 	var slot := _open_tunnel(space, [Vector2i(512, 512), Vector2i(8704, 512)])
-	works.weather.set_spell(1)
+	_rain(works)
 	works.step(1)
 	brains[0].order_move(Vector2(10.0, 0.5))
 	brains[1].order_move(Vector2(10.0, 1.5))
@@ -549,7 +580,7 @@ func test_walking_into_a_weak_bore_strains_it() -> void:
 	for c in [22, 23]:
 		works.ground.cells[20 * works.ground.columns + c] = GroundScript.SAND
 	var slot := _open_tunnel(space, [Vector2i(512, 512), Vector2i(4608, 512)])
-	works.weather.set_spell(1)
+	_rain(works)
 	works.step(1)
 	var strain := works.hazards.strain_usec[slot]
 	brains[0].order_move(Vector2(6.0, 0.5))
@@ -561,8 +592,8 @@ func test_walking_into_a_weak_bore_strains_it() -> void:
 
 
 func test_the_foremole_speaks_up_at_rock() -> void:
-	"""A dig whose face reaches rock with no badger on the crew: the Foremole says so, and the alert
-	card carries the short line."""
+	"""A dig whose face reaches rock with no badger on the crew: the Foremole says so, as a warning in the
+	demo's notice feed carrying the short line."""
 	var space := _space([])
 	var species := PackedStringArray(["Mole"])
 	var works := _works(space, _cast_of(space, [Vector2(0.0, 0.0)], species), species)
@@ -571,8 +602,8 @@ func test_the_foremole_speaks_up_at_rock() -> void:
 	for k in 12:
 		space.tunnels.dig_usec[0] = k * 100 * 1000000 / 30
 		works.step(1)
-	assert_true(Array(works.log_lines).has(CrewScript.LINE_ROCK_ALONE) or _notices.has(CrewScript.LINE_ROCK_ALONE), "said")
-	assert_true(_alerts.has("Rock! The Foremole needs the badger"), "alerted")
+	assert_true(_services.notices.has_text(CrewScript.LINE_ROCK_ALONE), "said, in the notice feed")
+	assert_true(_warned("Rock! The Foremole needs the badger"), "a warning, with its short line")
 
 
 func test_a_widening_crew_works_side_by_side() -> void:
@@ -607,7 +638,7 @@ func test_a_job_done_takes_effect_and_is_announced() -> void:
 	works.jobs.work(slot, 5000000)
 	works.step(1)
 	assert_equal(space.tunnels.braced[slot], 1, "braced")
-	assert_true(_alerts.has("Tunnel 1 braced"), "announced")
+	assert_true(_noted("Tunnel 1 braced"), "announced")
 	assert_equal(works.stores.wood_milli_u, 39000, "paid for")
 
 
@@ -624,7 +655,7 @@ func test_a_flood_by_the_stream_sends_residents_through_a_tunnel_and_home_again(
 	assert_true(brains[0].task is EvacuateTaskScript, "the cabbage mouse evacuates")
 	assert_true((brains[0].task as EvacuateTaskScript).through_tunnel, "through the tunnel")
 	assert_true(brains[1].task == null, "the square mouse does not")
-	assert_true(_alerts.has("Flood by the stream — evacuating"), "alerted")
+	assert_true(_warned("Flood by the stream — evacuating"), "alerted")
 	var below := false
 	for f in 60 * 15:
 		brains[0].step(DT)
@@ -633,7 +664,7 @@ func test_a_flood_by_the_stream_sends_residents_through_a_tunnel_and_home_again(
 	assert_true(brains[0].position.x > -3.0, "came out beyond it (%s)" % brains[0].position)
 	assert_false(brains[0].underground, "and is on the surface, not walking the ground from below")
 	works.step(EventsScript.DURATION_USEC)
-	assert_true(_alerts.has("The flood has gone down"), "the all-clear")
+	assert_true(_noted("The flood has gone down"), "the all-clear")
 	_step([brains[0]], 0.1)
 	assert_true(brains[0].task == null, "home again: the task is over")
 
@@ -892,11 +923,19 @@ func _space_of(tool: ControlScript) -> CastSpaceScript:
 
 
 func test_the_panel_s_demo_buttons() -> void:
-	"""Next weather skips a spell and says so; a second test event while one runs is refused."""
+	"""Next weather runs the demo calendar through the hook it is given and says how far -- and says
+	why not without one; a second test event while one runs is refused."""
 	var tool := _tool(PackedInt32Array())
 	tool.ext.on_action(PanelScript.ACTION_NEXT_WEATHER)
-	assert_equal(tool.ext.works.weather.spell, 1, "heavy rain")
-	assert_equal(_notices[-1], "Weather: Rain — Spring, Heavy rain, 9.0 °C · walking outdoors at 80%, tunnels unaffected", "said")
+	assert_equal(_notices[-1], ExtScript.NO_SKIP, "no calendar here")
+	var skips: Array[int] = []
+	tool.ext.set_weather_skip(func() -> int:
+		skips.append(1)
+		tool.ext.works.weather.observe(0, 1, 12, 120, 1200, CoreWeather.EVENT_NONE)
+		return 6)
+	tool.ext.on_action(PanelScript.ACTION_NEXT_WEATHER)
+	assert_equal(skips.size(), 1, "the hook ran once")
+	assert_equal(_notices[-1], "Skipped 6 h ahead on the demo calendar: Rain — Spring 1, 12.0 °C · rain 12:00–17:59 · walking outdoors at 80%, tunnels unaffected", "said")
 	tool.ext.on_action(PanelScript.ACTION_EVENT)
 	assert_true(tool.ext.works.events.active, "a threat")
 	tool.ext.on_action(PanelScript.ACTION_EVENT)
@@ -1104,7 +1143,7 @@ func test_the_weather_view_falls_and_dims_on_the_demo_clock() -> void:
 	var view := WeatherViewScript.new()
 	_nodes.append(view)
 	view.configure(weather, clock, null)
-	weather.set_spell(1)
+	weather.observe(0, 3, 12, 90, 3200, CoreWeather.EVENT_HEAVY_RAIN)
 	clock.speed = 0
 	clock.frame_usec = 0
 	view._process(0.0)
@@ -1113,7 +1152,7 @@ func test_the_weather_view_falls_and_dims_on_the_demo_clock() -> void:
 	clock.advance(1.5)
 	view._process(0.0)
 	assert_near(view.sun_share(), 0.725, 0.0001, "half way to 0.45")
-	weather.set_spell(4)
+	weather.observe(2, 10, 15, -30, 700, CoreWeather.EVENT_EARLY_FROST)
 	view._process(0.0)
 	assert_true(view.snowing(), "snow falls")
 	assert_false(view.raining(), "rain stops")

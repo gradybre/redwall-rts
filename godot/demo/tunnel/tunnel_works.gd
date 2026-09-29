@@ -3,10 +3,11 @@ extends Node
 ## Presentation only: it moves the demo cast and the demo's own stores, never the simulation.
 ##
 ## It owns the pieces the tunnel extensions add, and joins them up:
-##   weather   demo/weather/demo_weather.gd -- THE weather source; its surface speed is handed to the
-##             tunnel planner (tunnel_network.surface_permille) every frame
-##   water     tunnel_water.gd -- the ONE query for where water is (a demo table until the village's
-##             real water is merged); the ground's wetness and the flood's reach come from it
+##   weather   demo/weather/demo_weather.gd -- THE demo weather (demo_services.gd), which this only
+##             reads: its surface speed is handed to the tunnel planner (tunnel_network.surface_permille)
+##             every frame, and its rain soaks the wet ground (hazards)
+##   water     demo/demo_water.gd -- THE village water adapter (demo_services.gd): the ground's wetness
+##             and the flood's reach come from it (placeholder tables until the real water merges)
 ##   ground    tunnel_ground.gd -- what the village's ground is made of
 ##   stores    tunnel_stores.gd -- the demo's wood, stone and finds
 ##   finds     tunnel_finds.gd -- one seeded roll per metre cut
@@ -17,19 +18,23 @@ extends Node
 ##   events    demo/events/demo_events.gd -- floods and fires, and who shelters from them
 ## The player's orders on them are tunnel_actions.gd.
 ##
-## EACH FRAME (`step`, with the frame's demo microseconds -- none while paused): the weather runs on;
-## every dig and mole job gets its crew's rate for the next frame; new cuts post their finds, stone
-## and experience; finished jobs take effect; hazards build and strike; walkers entering weak bores
-## strain them; threats come and go. What happens is said -- in the party panel's notice line, in
-## the tunnel panel's log, and, for what matters, in the HUD's alert zone (`alert`).
+## EACH FRAME (`step`, with the frame's demo microseconds -- none while paused): every dig and mole job
+## gets its crew's rate for the next frame; new cuts post their finds, stone and experience; finished
+## jobs take effect; hazards build and strike; walkers entering weak bores strain them; threats come
+## and go. What HAPPENS is said in the tunnel panel's log and posted to the demo's one notice feed
+## (demo_notices.gd): a NOTE (`say`), or a WARNING (`warn`) when it asks for a response. What the player's own
+## ORDERS answer (`tell`: a refusal, a prompt, who is on the job) goes to the log and the party panel's
+## notice line, beside the selection, not to the feed. Nothing here raises a HUD alert card.
 ##
 ## Nothing here allocates per frame: callables are made once, and every column is sized at setup.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
-const WaterScript := preload("res://demo/tunnel/tunnel_water.gd")
+const WaterScript := preload("res://demo/demo_water.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
+const ServicesScript := preload("res://demo/demo_services.gd")
+const NoticesScript := preload("res://demo/demo_notices.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
 const CrewScript := preload("res://demo/tunnel/tunnel_crew.gd")
@@ -43,7 +48,6 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const QueueScript := preload("res://demo/tunnel/tunnel_queue.gd")
 
 const LOG_LINES: int = 4
-const WEATHER_ALERT: String = "Weather: %s"
 const EVENT_STARTED: String = "Demo event: %s! Residents nearby are taking the tunnels to safety."
 const EVENT_ENDED: String = "The %s is over — everybeast is heading home."
 const SEEP_WARNING: String = "Tunnel %d: water is seeping in from the wet ground by the stream. Brace it before the rain floods it."
@@ -51,8 +55,7 @@ const STRAIN_WARNING: String = "Tunnel %d: sand is trickling from the roof. Brac
 const FLOODED: String = "Tunnel %d has flooded and is closed. Select it and order \"Pump out\"."
 const COLLAPSED: String = "Tunnel %d: part of the roof has fallen in, and the tunnel is closed. Select it and order \"Clear the fall\"."
 const CREAKING: String = "Tunnel %d is creaking — the roof holds while someone is under it."
-## The HUD alert card's short lines (see `say`).
-const ALERT_WEATHER: String = "Weather: %s"
+## The short summaries of what asks for a response (see `say`).
 const ALERT_ROCK: String = "Rock! The Foremole needs the badger"
 const ALERT_RELIC: String = "A relic dug up — see the tunnel panel"
 const ALERT_SEEP: String = "Tunnel %d is seeping — brace it"
@@ -68,8 +71,9 @@ const JOB_DONE: Array[String] = ["", "Tunnel %d widened: otters and the badger f
 	"Tunnel %d lit: walkers go a little quicker below.", "Tunnel %d pumped out and open again.",
 	"Tunnel %d cleared and open again.", "%s dug off tunnel %d."]
 
-var weather: WeatherScript = WeatherScript.new()
-var water: WaterScript = WaterScript.new()
+var weather: WeatherScript = null
+var water: WaterScript = null
+var notices: NoticesScript = null
 var ground: GroundScript = null
 var stores: StoresScript = StoresScript.new()
 var finds: FindsScript = null
@@ -77,7 +81,7 @@ var crew: CrewScript = CrewScript.new()
 var jobs: JobsScript = null
 var hazards: HazardsScript = null
 var chambers: ChambersScript = ChambersScript.new()
-var events: EventsScript = EventsScript.new(water)
+var events: EventsScript = null
 ## The last few things said, newest last (the tunnel panel shows them).
 var log_lines: PackedStringArray = PackedStringArray()
 ## Bumped whenever something is said, so the panel redraws on change.
@@ -87,7 +91,6 @@ var _space: CastSpaceScript = null
 var _network: NetworkScript = null
 var _brains: Array[BrainScript] = []
 var _notice: Callable = Callable()
-var _alert: Callable = Callable()
 var _fits: Array[Callable] = []
 var _seen_cuts: PackedInt32Array = PackedInt32Array()
 var _seen_stone: PackedInt64Array = PackedInt64Array()
@@ -100,15 +103,20 @@ var _escape: PackedFloat32Array = PackedFloat32Array()
 
 
 func setup(space: CastSpaceScript, brains: Array[BrainScript], species: PackedStringArray, bounds_u: Rect2i,
-		notice: Callable, alert: Callable) -> void:
-	"""Run the works for this cast (`brains` and `species` by resident index) over these bounds.
-	`notice(text)` shows a line in the party panel; `alert(text)` raises it in the HUD's alert zone."""
+		notice: Callable, services: ServicesScript = null) -> void:
+	"""Run the works for this cast (`brains` and `species` by resident index) over these bounds, with
+	the demo's shared weather, water and notice feed (none: a fresh set of its own). `notice(text)`
+	shows an order's answer in the party panel (see `tell`)."""
 	name = "TunnelWorks"
 	_space = space
 	_network = space.tunnels
 	_brains = brains
 	_notice = notice
-	_alert = alert
+	var shared: ServicesScript = services if services != null else ServicesScript.new()
+	weather = shared.weather
+	water = shared.water
+	notices = shared.notices
+	events = EventsScript.new(water)
 	ground = GroundScript.new(bounds_u, water)
 	_network.set_ground(ground)
 	finds = FindsScript.new(ground.cells.size())
@@ -120,11 +128,6 @@ func setup(space: CastSpaceScript, brains: Array[BrainScript], species: PackedSt
 		_fits.append(_fits_bore.bind(slot))
 	_size_columns(brains.size())
 	_network.surface_permille = weather.surface_speed_permille()
-
-
-func set_alert(alert: Callable) -> void:
-	"""Where alerts are raised: `alert(text)` (UIManager.push_alert in the demo; none: the log only)."""
-	_alert = alert
 
 
 func _size_columns(residents: int) -> void:
@@ -184,28 +187,49 @@ func crew_along(slot: int) -> float:
 
 # --- saying things ------------------------------------------------------------------------
 
-func say(text: String, alert: String = "") -> void:
-	"""Say `text` in the party panel and the tunnel panel's log -- and raise `alert`, a line short
-	enough for the HUD's alert card to show whole (decision 0076: a card too narrow for its message
-	shows only a summary), in the HUD's alert zone."""
+func say(text: String, summary: String = "", source: int = NoticesScript.SOURCE_TUNNELS) -> void:
+	"""Something HAPPENED: `text` goes to the tunnel panel's log and to the demo's notice feed as a NOTE,
+	with `summary`, its short one-line form, when one is authored."""
+	_post(text, summary, source, NoticesScript.LEVEL_NOTE)
+
+
+func warn(text: String, summary: String, source: int = NoticesScript.SOURCE_TUNNELS) -> void:
+	"""Something that ASKS FOR A RESPONSE happened (brace it, pump it out, bring the badger, a threat):
+	as `say`, but a WARNING in the feed."""
+	_post(text, summary, source, NoticesScript.LEVEL_WARNING)
+
+
+func _post(text: String, summary: String, source: int, level: int) -> void:
+	"""Log `text` and post it to the feed at `level`."""
 	if text.is_empty():
 		return
+	_log(text)
+	notices.post(source, level, text, summary)
+
+
+func tell(text: String) -> void:
+	"""The answer to the player's own order (a refusal, a prompt, who is on it): the tunnel panel's log
+	and the party panel's notice line, beside the selection -- not the feed."""
+	if text.is_empty():
+		return
+	_log(text)
+	if _notice.is_valid():
+		_notice.call(text)
+
+
+func _log(text: String) -> void:
+	"""Keep `text` among the panel's last LOG_LINES lines."""
 	if log_lines.size() >= LOG_LINES:
 		log_lines.remove_at(0)
 	log_lines.append(text)
 	log_revision += 1
-	if _notice.is_valid():
-		_notice.call(text)
-	if not alert.is_empty() and _alert.is_valid():
-		_alert.call(alert)
 
 
 # --- each frame ---------------------------------------------------------------------------
 
 func step(usec: int) -> void:
-	"""One frame of the works, `usec` demo microseconds long (see EACH FRAME)."""
-	if weather.advance(usec):
-		say(WEATHER_ALERT % weather.readout(), ALERT_WEATHER % weather.alert_line())
+	"""One frame of the works, `usec` demo microseconds long (see EACH FRAME). The weather is not run
+	here: its owner keeps it on the calendar; this only reads it."""
 	_network.surface_permille = weather.surface_speed_permille()
 	for slot in Rules.MAX_TUNNELS:
 		_watch_opening(slot)
@@ -278,7 +302,7 @@ func _note_rock(slot: int, lead: int, face: int) -> void:
 		return
 	_rock_note[slot] = note
 	if note == 1:
-		say(CrewScript.LINE_ROCK_ALONE, ALERT_ROCK)
+		warn(CrewScript.LINE_ROCK_ALONE, ALERT_ROCK)
 	elif note == 2:
 		say(CrewScript.LINE_ROCK_BADGER)
 
@@ -376,13 +400,13 @@ func _act_on(slot: int, event: int) -> void:
 	"""Warn, flood or collapse, as a hazard's verdict says."""
 	match event:
 		HazardsScript.EVENT_SEEP_WARNING:
-			say(SEEP_WARNING % (slot + 1), ALERT_SEEP % (slot + 1))
+			warn(SEEP_WARNING % (slot + 1), ALERT_SEEP % (slot + 1))
 		HazardsScript.EVENT_STRAIN_WARNING:
-			say(STRAIN_WARNING % (slot + 1), ALERT_STRAIN % (slot + 1))
+			warn(STRAIN_WARNING % (slot + 1), ALERT_STRAIN % (slot + 1))
 		HazardsScript.EVENT_FLOODED:
 			hazards.flood(slot)
 			_empty_bore(slot)
-			say(FLOODED % (slot + 1), ALERT_FLOODED % (slot + 1))
+			warn(FLOODED % (slot + 1), ALERT_FLOODED % (slot + 1))
 		HazardsScript.EVENT_COLLAPSE_DUE:
 			_try_collapse(slot)
 
@@ -393,12 +417,12 @@ func _try_collapse(slot: int) -> void:
 		if b.is_in_bore(slot) and hazards.in_fall(slot, b.bore_along_m()):
 			if _creaked[slot] == 0:
 				_creaked[slot] = 1
-				say(CREAKING % (slot + 1), ALERT_CREAKING % (slot + 1))
+				warn(CREAKING % (slot + 1), ALERT_CREAKING % (slot + 1))
 			return
 	_creaked[slot] = 0
 	hazards.collapse(slot)
 	_empty_bore(slot)
-	say(COLLAPSED % (slot + 1), ALERT_COLLAPSED % (slot + 1))
+	warn(COLLAPSED % (slot + 1), ALERT_COLLAPSED % (slot + 1))
 
 
 func _empty_bore(slot: int) -> void:
@@ -432,7 +456,7 @@ func _run_events(usec: int) -> void:
 	if change == EventsScript.CHANGE_STARTED:
 		_start_threat()
 	elif change == EventsScript.CHANGE_ENDED:
-		say(EVENT_ENDED % events.threat_name(), ALERT_EVENT_OVER[events.kind])
+		say(EVENT_ENDED % events.threat_name(), ALERT_EVENT_OVER[events.kind], NoticesScript.SOURCE_EVENTS)
 
 
 func start_test_event() -> bool:
@@ -445,7 +469,7 @@ func start_test_event() -> bool:
 
 func _start_threat() -> void:
 	"""Say what threatens, and send everyone on the surface inside it away (demo_events.gd)."""
-	say(EVENT_STARTED % events.threat_name(), ALERT_EVENT[events.kind])
+	warn(EVENT_STARTED % events.threat_name(), ALERT_EVENT[events.kind], NoticesScript.SOURCE_EVENTS)
 	for b in _brains:
 		if b.underground or b.order == BrainScript.ORDER_DIG or not events.covers(b.position):
 			continue

@@ -1,15 +1,16 @@
 extends RefCounted
 ## The demo farm's model: six beds as REAL FarmPlot rows, advanced by the REAL crop arithmetic on the
-## farm's calendar. Decision 0196. Presentation-only as a whole -- nothing here writes into the
+## demo's one calendar. Decision 0196. Presentation-only as a whole -- nothing here writes into the
 ## running settlement -- but every crop number is the settlement's own.
 ##
 ## ---------------------------------------------------------------------------------------
 ## HOW THE REAL SIM IS DRIVEN. The farm owns one `crop_weather.gd` stage over its own ecology and a
 ## seeded Rng (WEATHER_SEED), so it cannot disturb the game's world; `prime_day(1)` writes spring's
 ## opening weather as the world generator would. Each bed is one plot created through the stage's
-## `create_plot_at_tile()` join on its own exterior tile. Then, on the farm calendar
-## (farm_calendar.gd), at every HOUR CROSSING this module runs the stage's hourly leg ITSELF, per
-## bed, calling exactly the three farming.gd entry points `crop_weather._integrate_plots()` calls --
+## `create_plot_at_tile()` join on its own exterior tile. Then, on the demo's one calendar
+## (demo/demo_calendar.gd -- this module is the one thing that ADVANCES it, `advance_usec`; the weather
+## and the HUD's date only read it), at every HOUR CROSSING this module runs the stage's hourly leg
+## ITSELF, per bed, calling exactly the three farming.gd entry points `crop_weather._integrate_plots()` calls --
 ## `advance_growth_hour_into()` (REQ-SET-072/073), `apply_frost_hour()` (REQ-SET-084) and
 ## `apply_ripe_expiry()` (REQ-SET-075) -- because a bed's temperature for the hour differs from the
 ## air's when it is covered or raised, and the stage reads one temperature for every plot. At every
@@ -40,7 +41,7 @@ const RngScript := preload("res://scripts/core/rng.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
-const CalendarScript := preload("res://demo/farm/farm_calendar.gd")
+const CalendarScript := preload("res://demo/demo_calendar.gd")
 const Weather := preload("res://demo/farm/farm_weather.gd")
 
 ## The WEATHER stream's world seed (demo value).
@@ -97,6 +98,7 @@ const REFUSE_NOTHING_TO_CLEAR: StringName = &"NOTHING_TO_CLEAR"
 const REFUSE_ALREADY: StringName = &"ALREADY_DONE"
 const REFUSE_NO_CROP: StringName = &"NO_CROP_STANDING"
 const REFUSE_STALLED: StringName = &"GROWTH_STALLED"
+const REFUSE_CALENDAR_STARTED: StringName = &"CALENDAR_ALREADY_RUNNING"
 
 var calendar: CalendarScript = CalendarScript.new()
 var compost_milli: int = START_COMPOST_MILLI
@@ -181,6 +183,17 @@ func _grow_opening_crop(bed: int, item: int, hours: int) -> void:
 
 
 # --- time -----------------------------------------------------------------------------------
+
+func share_calendar(shared: CalendarScript) -> FarmingScript.OpResult:
+	"""Advance `shared` -- the demo's one calendar (demo_services.gd) -- instead of a calendar of the
+	farm's own. Refuses CALENDAR_ALREADY_RUNNING unless both still stand at tick 0 with nothing carried,
+	so adopting it can neither lose nor repeat an hour."""
+	if shared == null or calendar.tick != 0 or calendar.remainder() != 0 or shared.tick != 0 \
+			or shared.remainder() != 0 or hours_run != 0:
+		return _refuse(REFUSE_CALENDAR_STARTED)
+	calendar = shared
+	return _succeed(1)
+
 
 func advance_usec(usec: int) -> int:
 	"""Run the farm forward by `usec` demo microseconds: every hour crossing (and midnight) passed,

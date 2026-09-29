@@ -1,12 +1,12 @@
 extends RefCounted
 ## Where the farm finds water. Decision 0196.
 ##
-## THE ONE WATER QUERY. Irrigation needs a single fact about the village's water: is this point (x, z
-## in the tunnel network's integer u) at a water edge? Every water reference in demo/farm/ goes
-## through `edge_query()` -- a Callable `(x_u: int, z_u: int) -> bool` that demo_village.gd hands to
-## the farm -- so pointing the farm at the village's real water (feat/demo-water: the stream and
-## pond, with their shore map) is one line there. Until then the query is backed by DEMO_EDGES, a
-## tiny table of water-edge circles, and the tests pass fixture Callables of their own.
+## THE FARM'S WATER QUERY. Irrigation needs a single fact about the village's water: is this point (x, z
+## in the tunnel network's integer u) at a water edge? The farm asks it only through the Callable
+## demo_village.gd hands it -- `edge_query()` of demo/demo_water.gd, the village's ONE water adapter,
+## which the tunnel works' wet-ground and flood queries go through too. Until the village's real water
+## (feat/demo-water: the stream and pond, with their shore map) is wired into that adapter, the answer
+## comes from DEMO_EDGES below, a tiny table of water-edge circles; the tests pass fixtures of their own.
 ##
 ## THE PLACEHOLDER POND, and only it, is water the farm draws itself: the demo world draws reeds at
 ## the west edge beside the beds (world_layout.gd NATURE: reeds_a..c) but no open water. It is a flat
@@ -25,18 +25,13 @@ const SEGMENTS: int = 40
 
 
 static func is_demo_edge_u(x_u: int, z_u: int) -> bool:
-	"""The demo table's answer: whether (x, z) in u lies within reach of a DEMO_EDGES circle."""
+	"""PLACEHOLDER, asked only by demo_water.gd: the demo table's answer: whether (x, z) in u lies within reach of a DEMO_EDGES circle."""
 	for edge: Vector3i in DEMO_EDGES:
 		var dx: int = x_u - edge.x
 		var dz: int = z_u - edge.y
 		if dx * dx + dz * dz <= edge.z * edge.z:
 			return true
 	return false
-
-
-static func edge_query() -> Callable:
-	"""The farm's water-edge query until the village's real water is wired in (see the header)."""
-	return func(x_u: int, z_u: int) -> bool: return is_demo_edge_u(x_u, z_u)
 
 
 # --- PLACEHOLDER POND: remove both when feat/demo-water merges ------------------------------------

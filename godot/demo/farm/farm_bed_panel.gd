@@ -3,8 +3,8 @@ extends CanvasLayer
 ## Decision 0196. DEMO UI in the woodland skin, in the HUD's right column (UI §1.2's detail zone,
 ## "Bottom-right: Context info panel"), drawn below the HUD's own layer so a true modal covers it.
 ##
-## With no bed selected it shows the farm's calendar -- which runs apart from the HUD's date -- and
-## how to start. With a bed: its crop and stage with the hours to ripe or to withering, moisture
+## With no bed selected it shows the demo calendar's date and how to start. Under the date, always, the farm's latest NEWS_LINES notices from the demo's notice feed
+## (demo_notices.gd). With a bed: its crop and stage with the hours to ripe or to withering, moisture
 ## against the crop's band, soil fertility and health, what has been done to the ground (drained,
 ## irrigated, raised, banked, covered), the expected yield, and the jobs on it; then the verbs.
 ## A verb that cannot be done now is disabled, its reason in its tooltip. "Plant…" opens the PICKER:
@@ -23,6 +23,7 @@ const CrewScript := preload("res://demo/farm/farm_crew.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const NoticesScript := preload("res://demo/demo_notices.gd")
 
 signal verb_requested(kind: int)
 signal crop_picked(item: int)
@@ -36,7 +37,7 @@ const VERB_KINDS: Array[int] = [JobsScript.KIND_WATER, JobsScript.KIND_HARVEST, 
 	JobsScript.KIND_COMPOST, JobsScript.KIND_COVER, JobsScript.KIND_RAISE, JobsScript.KIND_BANK]
 const VERB_LABELS: Array[String] = ["Water", "Harvest", "Clear", "Compost", "Cover", "Raise", "Bank"]
 const PICKER_MAX_H: float = 520.0
-## The farm's latest warnings, newest first, always shown under the calendar.
+## The farm's latest notices from the feed, newest first, always shown under the date.
 const NEWS_LINES: int = 3
 ## An order's answer stays under the readout this long (real time), then goes.
 const MESSAGE_MSEC: int = 8000
@@ -47,6 +48,9 @@ var picking: bool = false
 
 var _sim: SimScript = null
 var _crew: CrewScript = null
+var _notices: NoticesScript = null
+var _news_seen: int = -1
+var _news_scratch: PackedStringArray = PackedStringArray()
 var _frame: PanelContainer = null
 var _title: Label = null
 var _clock: Label = null
@@ -70,10 +74,11 @@ var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 
 
-func configure(sim: SimScript, crew: CrewScript) -> void:
-	"""Read this farm, and build."""
+func configure(sim: SimScript, crew: CrewScript, notices: NoticesScript) -> void:
+	"""Read this farm and this notice feed, and build."""
 	_sim = sim
 	_crew = crew
+	_notices = notices
 	layer = 0
 	name = "FarmBedPanel"
 	_build()
@@ -190,13 +195,16 @@ func show_bed(p_bed: int) -> void:
 	refresh()
 
 
-func push_news(text: String) -> void:
-	"""A farm warning (farm_alerts.gd): shown at the top, newest first; the oldest of NEWS_LINES goes."""
-	for k: int in range(NEWS_LINES - 1, 0, -1):
-		_news[k].text = _news[k - 1].text
-		_news[k].visible = _news[k - 1].visible
-	_news[0].text = "• " + text
-	_news[0].visible = true
+func _refresh_news() -> void:
+	"""The farm's latest notices from the feed (only when the feed changed)."""
+	if _notices == null or _notices.revision == _news_seen:
+		return
+	_news_seen = _notices.revision
+	_news_scratch.clear()
+	_notices.latest_of_into(NoticesScript.SOURCE_FARM, NEWS_LINES, _news_scratch)
+	for k: int in NEWS_LINES:
+		_news[k].visible = k < _news_scratch.size()
+		_news[k].text = "• " + _news_scratch[k] if k < _news_scratch.size() else ""
 	_place.call_deferred()
 
 
@@ -217,6 +225,7 @@ func refresh() -> void:
 	if _sim == null:
 		return
 	_clock.text = Text.clock_line(_sim)
+	_refresh_news()
 	if _message.visible and Time.get_ticks_msec() - _message_since > MESSAGE_MSEC:
 		_message.visible = false
 	var has_bed: bool = Catalog.is_bed(bed)

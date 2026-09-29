@@ -11,7 +11,8 @@ extends "res://test/framework/test_case.gd"
 ## the demo values named in each module.
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
-const CalendarScript := preload("res://demo/farm/farm_calendar.gd")
+const DemoWaterScript := preload("res://demo/demo_water.gd")
+const CalendarScript := preload("res://demo/demo_calendar.gd")
 const Weather := preload("res://demo/farm/farm_weather.gd")
 const SimScript := preload("res://demo/farm/farm_sim.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
@@ -24,7 +25,7 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
 
-## Demo microseconds per farm hour (farm_calendar.FARM_HOUR_USEC), written out.
+## Demo microseconds per farm hour (demo_calendar.HOUR_USEC), written out.
 const HOUR_USEC: int = 2500000
 const RADISH: int = 0
 const CARROT: int = 2
@@ -628,15 +629,16 @@ func _open(network: NetworkScript, points_m: Array[Vector2]) -> int:
 
 func test_the_demo_water_table_is_the_placeholder_pond_in_u() -> void:
 	"""The one demo edge circle is the placeholder pond's centre, rounded once, reaching its 3 m radius
-	plus 2 m of shore; the query answers from it."""
+	plus 2 m of shore; the village's water adapter (demo_water.gd) answers the farm's query from it."""
 	assert_equal(Water.DEMO_EDGES.size(), 1, "one water")
 	assert_equal(Water.DEMO_EDGES[0], Vector3i(Rules.to_u(Water.PLACEHOLDER_CENTRE_M.x),
 		Rules.to_u(Water.PLACEHOLDER_CENTRE_M.y), Rules.to_u(Water.PLACEHOLDER_RADIUS_M) + Rules.to_u(2.0)), "the pond")
 	assert_true(Water.is_demo_edge_u(Rules.to_u(-17.2), Rules.to_u(11.0)), "4.28 m from the centre: at the edge")
 	assert_true(Water.is_demo_edge_u(Rules.to_u(-16.42), Rules.to_u(10.2)), "4.98 m: still")
 	assert_false(Water.is_demo_edge_u(Rules.to_u(-16.3), Rules.to_u(11.0)), "5.16 m: not")
-	var query: Callable = Water.edge_query()
-	assert_true(bool(query.call(Rules.to_u(-17.2), Rules.to_u(11.0))), "the query agrees")
+	var village_water := DemoWaterScript.new()
+	var query: Callable = village_water.edge_query()
+	assert_true(bool(query.call(Rules.to_u(-17.2), Rules.to_u(11.0))), "the village adapter's query agrees")
 	assert_false(bool(query.call(0, 0)), "the square is dry")
 	assert_equal(Water.placeholder_obstacle(), Vector3(-21.4, 3.0, 10.2), "the placeholder obstacle")
 

@@ -17,13 +17,22 @@ extends Node3D
 ## and clearing jobs whenever they are wandering.
 ##
 ## TIME. Everything runs on the demo clock the cast advances first each frame (demo_clock.gd):
-## `frame_usec` drives the farm calendar (farm_calendar.gd) and the crew's work, so the HUD's pause
-## freezes the farm and 2x / 4x speed it up.
+## `frame_usec` drives the demo's ONE calendar (demo_calendar.gd, shared through demo_services.gd --
+## the farm's model is what advances it) and the crew's work, so the HUD's pause freezes the farm and
+## 2x / 4x speed it up. After each advance the demo's ONE weather (demo/weather/demo_weather.gd) is
+## re-read from the farm's real §5.10 row -- the same rain that wets the beds slows the walkers -- and
+## a change of weather is posted to the notice feed.
+##
+## WHAT IT SAYS goes to the demo's ONE notice feed (demo_notices.gd): the farm's warnings (farm_alerts.gd,
+## WARNING or NOTE) and the crew's reports; the bed panel shows the farm's latest from there. Only the
+## answer to a click or key (an order, the overlay) is shown where the player looks -- the bed panel's
+## message line, or the party panel's notice. No HUD alert card is raised.
 ##
 ## Wiring (demo_village.gd `_build_farm`): the world, the cast, the command layer (for the selection,
-## order marks, click hooks and the tunnel tool), the HUD shell, the storage providers (root cellars)
-## as Callables -- see farm_storage.gd for the provider API -- and the one water query
-## (farm_water.gd `edge_query()`).
+## order marks, click hooks and the tunnel tool), the HUD shell, the storage providers (root cellars,
+## demo/farm/farm_cellars.gd) as Callables -- see farm_storage.gd for the provider API -- and the shared
+## services (demo_services.gd): the calendar, the weather, the one water adapter (demo_water.gd, whose
+## `edge_query()` is the farm's water query) and the notice feed.
 
 const SimScript := preload("res://demo/farm/farm_sim.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
@@ -40,6 +49,9 @@ const BedPanelScript := preload("res://demo/farm/farm_bed_panel.gd")
 const PantryPanelScript := preload("res://demo/farm/farm_pantry_panel.gd")
 const Weather := preload("res://demo/farm/farm_weather.gd")
 const Water := preload("res://demo/farm/farm_water.gd")
+const ServicesScript := preload("res://demo/demo_services.gd")
+const NoticesScript := preload("res://demo/demo_notices.gd")
+const CalendarScript := preload("res://demo/demo_calendar.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoCommandScript := preload("res://demo/control/demo_command.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
@@ -55,6 +67,8 @@ const STORE_ID: StringName = &"store"
 const WELL_ID: StringName = &"well"
 const PANEL_REFRESH_S: float = 0.25
 const NO_BED: int = -1
+## "Next weather" skips the calendar ahead at most this many hours looking for a change (demo value).
+const MAX_WEATHER_SKIP_HOURS: int = 48
 
 var sim: SimScript = SimScript.new()
 var tunnels: TunnelsScript = TunnelsScript.new()
@@ -68,6 +82,7 @@ var view: ViewScript = null
 var bed_panel: BedPanelScript = null
 var pantry_panel: PantryPanelScript = null
 var selected_bed: int = NO_BED
+var services: ServicesScript = null
 
 var _cast: DemoCastScript = null
 var _command: DemoCommandScript = null
@@ -76,24 +91,26 @@ var _refresh_in: float = 0.0
 var _events: PackedInt32Array = PackedInt32Array()
 var _spoiled: PackedInt32Array = PackedInt32Array()
 var _lines: PackedStringArray = PackedStringArray()
+var _levels: PackedByteArray = PackedByteArray()
 var _water: PackedByteArray = PackedByteArray([0, 0])
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 
 
 func configure(manifest: Dictionary, world: DemoWorldScript, cast: DemoCastScript, command: DemoCommandScript,
-		camera: Camera3D, shell: UiShell, providers: Array[Callable], water_edge: Callable) -> void:
-	"""Build the farm over this village (see the header on the wiring). `water_edge(x_u, z_u) -> bool`
-	is the one water query (farm_water.gd)."""
+		camera: Camera3D, shell: UiShell, providers: Array[Callable], shared: ServicesScript = null) -> void:
+	"""Build the farm over this village (see the header on the wiring); `shared` is the demo's services
+	(none: a fresh set of its own)."""
 	name = "DemoFarm"
 	_cast = cast
 	_command = command
 	_camera = camera
+	_bind_services(shared if shared != null else ServicesScript.new())
 	storage = StorageScript.new(store_position(cast))
 	for provider: Callable in providers:
 		storage.add_provider(provider)
 	pantry = PantryScript.new(storage)
-	tunnels.water_edge = water_edge
-	crew.configure(cast, sim, pantry, tunnels, well_position(), _say)
+	crew.configure(cast, sim, pantry, tunnels, well_position(), services.notices.poster(
+		NoticesScript.SOURCE_CREW, NoticesScript.LEVEL_NOTE))
 	recipes.load_index()
 	_build_view(manifest, world, command)
 	_build_panels()
@@ -101,6 +118,16 @@ func configure(manifest: Dictionary, world: DemoWorldScript, cast: DemoCastScrip
 	hud.unlock_food_command(toggle_pantry)
 	command.set_ground_handlers(on_ground_click, on_ground_order)
 	command.set_task_text(crew.task_text)
+
+
+func _bind_services(shared: ServicesScript) -> void:
+	"""Advance the shared calendar, drive the shared weather from this farm's real row, and ask the
+	shared water adapter where the water's edge is."""
+	services = shared
+	var adopted: bool = sim.share_calendar(services.calendar).ok
+	assert(adopted, "the farm must adopt the demo calendar before either has run")
+	services.weather.bind(services.calendar, sim.crop_weather().weather())
+	tunnels.water_edge = services.water.edge_query()
 
 
 func _build_view(manifest: Dictionary, world: DemoWorldScript, command: DemoCommandScript) -> void:
@@ -128,7 +155,7 @@ func _build_placeholder_pond(world: DemoWorldScript) -> void:
 func _build_panels() -> void:
 	"""The bed panel and the Pantry, wired to the farm's verbs."""
 	bed_panel = BedPanelScript.new()
-	bed_panel.configure(sim, crew)
+	bed_panel.configure(sim, crew, services.notices)
 	add_child(bed_panel)
 	bed_panel.verb_requested.connect(func(kind: int) -> void: order(kind, selected_bed))
 	bed_panel.crop_picked.connect(plant)
@@ -180,14 +207,38 @@ func _process(delta: float) -> void:
 
 
 func step(usec: int) -> void:
-	"""Advance the farm by `usec` demo microseconds: calendar, pantry ageing, the crew's work."""
+	"""Advance the farm by `usec` demo microseconds: the calendar and everything on it, then the crew's
+	work and the HUD's Food figure."""
+	advance_calendar(usec)
+	crew.update(usec)
+	hud.sync(pantry.total_units())
+
+
+func advance_calendar(usec: int) -> int:
+	"""The calendar part of a step: every hour crossed (pantry ageing, the hourly jobs and alerts), then
+	the weather re-read and a change of it posted. Returns the hours crossed."""
 	var hours: int = sim.advance_usec(usec)
 	for hour: int in hours:
 		pantry.age_hour(sim.season())
 	if hours > 0:
 		_hourly()
-	crew.update(usec)
-	hud.sync(pantry.total_units())
+	if services.weather.sync():
+		var weather := services.weather
+		services.notices.post(NoticesScript.SOURCE_WEATHER, NoticesScript.LEVEL_NOTE,
+			"Weather: %s" % weather.readout(), "Weather: %s" % weather.alert_line())
+	return hours
+
+
+func skip_to_next_weather() -> int:
+	"""The panel's "Next weather (demo)": run the ONE calendar -- farm, weather and date together --
+	ahead an hour at a time until the weather changes, at most MAX_WEATHER_SKIP_HOURS. The crew's work
+	is not skipped. Returns the hours run."""
+	var before: int = services.weather.revision
+	for hour: int in MAX_WEATHER_SKIP_HOURS:
+		advance_calendar(CalendarScript.HOUR_USEC)
+		if services.weather.revision != before:
+			return hour + 1
+	return MAX_WEATHER_SKIP_HOURS
 
 
 func _hourly() -> void:
@@ -203,10 +254,10 @@ func _hourly() -> void:
 	_spoiled.clear()
 	pantry.take_spoiled_items_into(_spoiled)
 	_lines.clear()
-	alerts.collect_into(sim, _events, _spoiled, _lines)
-	for line: String in _lines:
-		bed_panel.push_news(line)
-		HudScript.alert(line)
+	_levels.clear()
+	alerts.collect_into(sim, _events, _spoiled, _lines, _levels)
+	for k: int in _lines.size():
+		services.notices.post(NoticesScript.SOURCE_FARM, _levels[k], _lines[k])
 
 
 # --- the player's verbs -----------------------------------------------------------------------------
@@ -335,8 +386,8 @@ func handle_key(event: InputEventKey) -> bool:
 
 
 func _say(text: String) -> void:
-	"""What the crew reports (a job taken, done or given up), and the overlay switching: the demo party
-	panel's notice. An order's own answer shows in the bed panel (order()); threats go to the HUD's
-	alert card (_hourly)."""
+	"""The answer to a key the player pressed (the overlay switching): the demo party panel's notice.
+	An order's own answer shows in the bed panel (order()); the crew's reports and the farm's warnings
+	go to the notice feed (configure, _hourly)."""
 	if _command != null and _command.panel() != null:
 		_command.panel().show_notice(text)

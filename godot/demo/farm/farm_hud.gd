@@ -14,7 +14,8 @@ extends RefCounted
 ## yet, so the shell draws it locked. The demo unlocks the button, gives it its own painted food
 ## icon, and connects it -- and K, `open_food` -- to the Pantry.
 ##
-## ALERTS go to the HUD's own alert card through UIManager.push_alert(), as settlement notices.
+## NO ALERTS go to the HUD's alert cards: the farm's warnings go to the demo's one notice feed
+## (demo_notices.gd), which explains why.
 
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 
@@ -70,9 +71,3 @@ func unlock_food_command(open_pantry: Callable) -> bool:
 	food.pressed.connect(open_pantry)
 	return true
 
-
-static func alert(text: String) -> void:
-	"""One line on the HUD's alert card (UIManager, when it exists -- not in the headless suite)."""
-	var manager: Node = Engine.get_main_loop().root.get_node_or_null(^"UIManager") if Engine.get_main_loop() is SceneTree else null
-	if manager != null and manager.has_method(&"push_alert"):
-		manager.call(&"push_alert", text)

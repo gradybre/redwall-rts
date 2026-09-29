@@ -5,7 +5,6 @@ extends RefCounted
 const SimScript := preload("res://demo/farm/farm_sim.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
-const SimClock := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 
 const SEASONS: Array[String] = ["Spring", "Summer", "Autumn", "Winter"]
@@ -14,10 +13,9 @@ const ROWS: Array[String] = ["beans", "cabbage", "flax", "grain", "roots"]
 
 
 static func clock_line(sim: SimScript) -> String:
-	"""'Farm: Spring 3, 14:00 · 12 °C' -- the farm calendar, which runs apart from the HUD's date."""
-	var now: SimClock.Calendar = sim.calendar.calendar_at(sim.calendar.tick)
-	return "Farm: %s %d, %02d:00 · %s °C" % [SEASONS[sim.season()], sim.season_day(), now.hour,
-		_tenths(sim.air_tenths())]
+	"""'Y1 Spring 3, 14:00 · 12 °C' -- the demo's one calendar date (the HUD's date shows the same
+	string) and the real weather's temperature."""
+	return "%s · %s °C" % [sim.calendar.date_text(), _tenths(sim.air_tenths())]
 
 
 static func _tenths(tenths: int) -> String:

@@ -53,6 +53,7 @@ const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const PickScript := preload("res://demo/control/demo_pick.gd")
 const ExtScript := preload("res://demo/tunnel/tunnel_ext.gd")
 const CrewScript := preload("res://demo/tunnel/tunnel_crew.gd")
+const ServicesScript := preload("res://demo/demo_services.gd")
 
 ## A right click this close to a tunnel's entrance is about that tunnel.
 const RESUME_PICK_M: float = 1.1
@@ -108,10 +109,12 @@ var _seen_generation: PackedInt32Array = PackedInt32Array()
 var _seen_reason: PackedByteArray = PackedByteArray()
 
 
-func configure(cast: DemoCastScript, camera: Camera3D, selection: Callable, mark: Callable, notice: Callable) -> void:
+func configure(cast: DemoCastScript, camera: Camera3D, selection: Callable, mark: Callable, notice: Callable,
+		services: ServicesScript = null) -> void:
 	"""Plan and draw tunnels for this cast, picking through this camera. `selection` returns the
 	selected actor indices; `mark(at: Vector3, accepted: bool)` drops an order marker; `notice(text)`
-	shows a line in the party panel."""
+	shows a line in the party panel; `services` are the demo's shared weather, water and notice feed
+	(none: the extensions make a set of their own)."""
 	name = "TunnelControl"
 	_cast = cast
 	_camera = camera
@@ -125,6 +128,16 @@ func configure(cast: DemoCastScript, camera: Camera3D, selection: Callable, mark
 		Rules.to_u(bounds.size.y))
 	_refresh_clearances()
 	_describe_cast()
+	_build_parts(cast, camera, selection, mark, services)
+	_seen_phase.resize(Rules.MAX_TUNNELS)
+	_seen_generation.resize(Rules.MAX_TUNNELS)
+	_seen_reason.resize(Rules.MAX_TUNNELS)
+	_sync_seen()
+
+
+func _build_parts(cast: DemoCastScript, camera: Camera3D, selection: Callable, mark: Callable,
+		services: ServicesScript) -> void:
+	"""The overlay, the underground view and the extensions."""
 	overlay = OverlayScript.new()
 	add_child(overlay)
 	overlay.configure(network, _space, cast.clock)
@@ -133,11 +146,7 @@ func configure(cast: DemoCastScript, camera: Camera3D, selection: Callable, mark
 	view.configure(null, cast, overlay)
 	ext = ExtScript.new()
 	add_child(ext)
-	ext.configure(cast, camera, overlay, _bounds_u, selection, mark, _say)
-	_seen_phase.resize(Rules.MAX_TUNNELS)
-	_seen_generation.resize(Rules.MAX_TUNNELS)
-	_seen_reason.resize(Rules.MAX_TUNNELS)
-	_sync_seen()
+	ext.configure(cast, camera, overlay, _bounds_u, selection, mark, _say, services)
 
 
 func set_world(world: DemoWorldScript) -> void:

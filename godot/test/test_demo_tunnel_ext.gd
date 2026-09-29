@@ -22,6 +22,8 @@ const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
 const EventsScript := preload("res://demo/events/demo_events.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const WaterScript := preload("res://demo/tunnel/tunnel_water.gd")
+const DemoWaterScript := preload("res://demo/demo_water.gd")
+const CoreWeather := preload("res://scripts/core/weather.gd")
 
 ## A 4 m route along z = 0.5 m from x = 0.5 m: its six timeline quanta lie in cells 20..24 of row 20.
 const ROW: int = 20
@@ -76,71 +78,106 @@ func _open(network: NetworkScript, slot: int) -> void:
 
 # --- weather ----------------------------------------------------------------------------------
 
-func test_every_spell_s_climate_is_the_real_table_s() -> void:
-	"""Temperature and rain per spell come from weather.gd's own §5.10 readers."""
+func test_every_day_s_climate_is_the_real_table_s() -> void:
+	"""The weather holds no climate of its own: fed §5.10's (season, event) days from weather.gd's own
+	readers, it reads each at 15:00 (a shower hour for every rainy day) and at 03:00."""
+	var table := CoreWeather.new()
+	var seasons: Array[int] = [0, 0, 0, 1, 2, 2, 3, 3]
+	var events: Array[int] = [CoreWeather.EVENT_NONE, CoreWeather.EVENT_IDEAL_SPELL, CoreWeather.EVENT_HEAVY_RAIN,
+		CoreWeather.EVENT_CALM_DAYS, CoreWeather.EVENT_HEAVY_RAIN, CoreWeather.EVENT_EARLY_FROST, CoreWeather.EVENT_NONE,
+		CoreWeather.EVENT_HARD_FREEZE]
+	var expected_t: Array[int] = [120, 180, 90, 220, 70, -30, -50, -120]
+	var expected_r: Array[int] = [1200, 1800, 3200, 300, 2700, 700, 0, 0]
+	var at_three: Array[int] = [0, 0, 0, 0, 0, 3, 3, 3]
+	var at_fifteen: Array[int] = [1, 1, 1, 1, 1, 2, 3, 3]
 	var weather := WeatherScript.new()
-	var expected_t: Array[int] = [180, 90, 220, 70, -30, -50, -120]
-	var expected_r: Array[int] = [1800, 3200, 300, 2700, 700, 0, 0]
-	var expected_c: Array[int] = [0, 1, 0, 1, 2, 3, 3]
-	for k in weather.spell_count():
-		weather.set_spell(k)
-		assert_equal(weather.temperature_tenths(), expected_t[k], "temperature of spell %d" % k)
-		assert_equal(weather.rain(), expected_r[k], "rain of spell %d" % k)
-		assert_equal(weather.condition(), expected_c[k], "condition of spell %d" % k)
+	for k in seasons.size():
+		var t: int = table.temperature_tenths_for(seasons[k], events[k]).value
+		var r: int = table.rain_for(seasons[k], events[k]).value
+		weather.observe(seasons[k], 1, 15, t, r, events[k])
+		assert_equal(weather.temperature_tenths(), expected_t[k], "temperature of day %d" % k)
+		assert_equal(weather.rain(), expected_r[k], "rain of day %d" % k)
+		assert_equal(weather.condition(), at_fifteen[k], "15:00 of day %d" % k)
+		weather.observe(seasons[k], 1, 3, t, r, events[k])
+		assert_equal(weather.condition(), at_three[k], "03:00 of day %d" % k)
 
 
-func test_a_climate_reads_as_sky_at_exact_thresholds() -> void:
-	"""Rain from 2500 above freezing; snow from 500 at or below 0.0 C; frost otherwise at or below."""
-	assert_equal(WeatherScript.classify(1, 2499), WeatherScript.COND_CLEAR, "just short of rain")
-	assert_equal(WeatherScript.classify(1, 2500), WeatherScript.COND_RAIN, "rain")
-	assert_equal(WeatherScript.classify(1, 500), WeatherScript.COND_CLEAR, "above freezing, no snow")
-	assert_equal(WeatherScript.classify(0, 499), WeatherScript.COND_FROST, "freezing, too dry to snow")
-	assert_equal(WeatherScript.classify(0, 500), WeatherScript.COND_SNOW, "freezing and wet: snow")
-	assert_equal(WeatherScript.classify(-120, 0), WeatherScript.COND_FROST, "hard freeze")
+func test_an_hour_reads_as_sky_at_exact_thresholds() -> void:
+	"""Above 0.0 C a rain hour is rain, else clear; at or below it snow, else frost."""
+	assert_equal(WeatherScript.classify(1, false), WeatherScript.COND_CLEAR, "dry and mild")
+	assert_equal(WeatherScript.classify(1, true), WeatherScript.COND_RAIN, "a shower above freezing")
+	assert_equal(WeatherScript.classify(0, true), WeatherScript.COND_SNOW, "a shower at freezing: snow")
+	assert_equal(WeatherScript.classify(0, false), WeatherScript.COND_FROST, "freezing and dry")
+	assert_equal(WeatherScript.classify(-120, false), WeatherScript.COND_FROST, "hard freeze")
+
+
+func test_a_day_s_rain_falls_as_whole_shower_hours() -> void:
+	"""rain / 200 whole hours (at most 24), centred on 15:00 and kept inside the day."""
+	var cases: Array[Vector3i] = [Vector3i(1200, 6, 12), Vector3i(1800, 9, 11), Vector3i(3200, 16, 7),
+		Vector3i(300, 1, 15), Vector3i(199, 0, 15), Vector3i(200, 1, 15), Vector3i(0, 0, 15),
+		Vector3i(4800, 24, 0), Vector3i(9999, 24, 0)]
+	for c in cases:
+		assert_equal(WeatherScript.shower_hours(c.x), c.y, "hours of %d" % c.x)
+		assert_equal(WeatherScript.first_shower_hour(c.x), c.z, "first hour of %d" % c.x)
+	assert_false(WeatherScript.is_rain_hour(1200, 11), "11:00 is before spring's showers")
+	assert_true(WeatherScript.is_rain_hour(1200, 12), "12:00 is the first")
+	assert_true(WeatherScript.is_rain_hour(1200, 17), "17:00 the last")
+	assert_false(WeatherScript.is_rain_hour(1200, 18), "18:00 is dry")
+	assert_false(WeatherScript.is_rain_hour(0, 15), "a dry day never rains")
 
 
 func test_the_surface_speed_query() -> void:
-	"""The one query other code reads: 1000, 800, 600, 850 per mille by condition."""
+	"""The one walking query: 1000 clear, 800 rain, 600 snow, 850 frost per mille; only rain is wet."""
 	var weather := WeatherScript.new()
-	var expected: Array[int] = [1000, 800, 1000, 800, 600, 850, 850]
-	for k in weather.spell_count():
-		weather.set_spell(k)
-		assert_equal(weather.surface_speed_permille(), expected[k], "spell %d" % k)
-	assert_equal(weather.is_wet(), false, "hard freeze is not wet")
-	weather.set_spell(1)
-	assert_true(weather.is_wet(), "heavy rain is wet")
+	var hours: Array[Vector3i] = [Vector3i(120, 1200, 6), Vector3i(120, 1200, 12), Vector3i(-30, 700, 15),
+		Vector3i(-50, 0, 12)]
+	var expected: Array[int] = [1000, 800, 600, 850]
+	var wet: Array[bool] = [false, true, false, false]
+	for k in hours.size():
+		weather.observe(0, 1, hours[k].z, hours[k].x, hours[k].y, CoreWeather.EVENT_NONE)
+		assert_equal(weather.surface_speed_permille(), expected[k], "hour %d" % k)
+		assert_equal(weather.is_wet(), wet[k], "wet %d" % k)
 
 
-func test_the_weather_runs_on_whole_microseconds_and_wraps() -> void:
-	"""45 s a spell: a microsecond short changes nothing; nothing passes while paused (0 usec); a long
-	frame passes several spells at once and wraps round the year."""
+func test_a_frost_night_s_hours_read_as_frost() -> void:
+	"""Spring day 4 is a demo frost night: 02:00-05:59 fall to -3.0 C and read as frost; 06:00 is mild."""
 	var weather := WeatherScript.new()
-	assert_false(weather.advance(0), "paused")
-	assert_false(weather.advance(-5), "no negative time")
-	assert_false(weather.advance(44999999), "a microsecond short")
-	assert_equal(weather.spell, 0, "still spring's ideal spell")
-	assert_true(weather.advance(1), "the spell turns")
-	assert_equal(weather.spell, 1, "heavy rain")
+	weather.observe(0, 4, 2, 120, 1200, CoreWeather.EVENT_NONE)
+	assert_equal(weather.temperature_tenths(), -30, "the frost night's air")
+	assert_equal(weather.condition(), WeatherScript.COND_FROST, "frost")
+	assert_equal(weather.day_temperature_tenths(), 120, "the day's own temperature is kept")
+	weather.observe(0, 4, 6, 120, 1200, CoreWeather.EVENT_NONE)
+	assert_equal(weather.condition(), WeatherScript.COND_CLEAR, "morning")
+	weather.observe(0, 5, 2, 120, 1200, CoreWeather.EVENT_NONE)
+	assert_equal(weather.condition(), WeatherScript.COND_CLEAR, "day 5 is no frost night")
+
+
+func test_a_change_of_condition_bumps_the_revision_once() -> void:
+	"""Unbound it opens clear at 06:00 of spring 1; a new condition bumps the revision, the same one
+	again does not."""
+	var weather := WeatherScript.new()
+	assert_false(weather.is_bound(), "unbound")
+	assert_equal(weather.revision, 0, "opening")
+	assert_equal(weather.condition(), WeatherScript.COND_CLEAR, "spring 1, 06:00")
+	assert_true(weather.observe(0, 1, 12, 120, 1200, CoreWeather.EVENT_NONE), "the showers start")
+	assert_false(weather.observe(0, 1, 13, 120, 1200, CoreWeather.EVENT_NONE), "still raining")
 	assert_equal(weather.revision, 1, "one change")
-	assert_true(weather.advance(45000000 * 6 + 7), "six spells in one long frame")
-	assert_equal(weather.spell, 0, "wrapped to spring")
-	assert_equal(weather.spell_usec, 7, "the remainder kept")
-	weather.set_spell(6)
-	weather.next_spell()
-	assert_equal(weather.spell, 0, "next after the hard freeze is spring")
+	assert_false(weather.sync(), "unbound: nothing to sync from")
 
 
 func test_the_weather_speaks() -> void:
-	"""The panel's readout and the alert card's short line."""
+	"""The panels' readout and the short line."""
 	var weather := WeatherScript.new()
-	weather.set_spell(1)
-	assert_equal(weather.readout(), "Rain — Spring, Heavy rain, 9.0 °C · walking outdoors at 80%, tunnels unaffected", "rain")
-	assert_equal(weather.alert_line(), "Rain, walking 80%", "rain alert")
-	weather.set_spell(5)
-	assert_equal(weather.readout(), "Frost — Winter, -5.0 °C · walking outdoors at 85%, tunnels unaffected", "baseline winter")
-	weather.set_spell(0)
-	assert_equal(weather.readout(), "Clear — Spring, Ideal spell, 18.0 °C · walking at full pace", "clear")
-	assert_equal(weather.alert_line(), "Clear", "clear alert")
+	weather.observe(0, 3, 12, 90, 3200, CoreWeather.EVENT_HEAVY_RAIN)
+	assert_equal(weather.readout(),
+		"Rain — Spring 3, Heavy rain, 9.0 °C · rain 07:00–22:59 · walking outdoors at 80%, tunnels unaffected", "rain")
+	assert_equal(weather.alert_line(), "Rain, walking 80%", "rain's short line")
+	weather.observe(3, 1, 12, -50, 0, CoreWeather.EVENT_NONE)
+	assert_equal(weather.readout(), "Frost — Winter 1, -5.0 °C · a dry day · walking outdoors at 85%, tunnels unaffected",
+		"baseline winter")
+	weather.observe(0, 1, 6, 120, 1200, CoreWeather.EVENT_NONE)
+	assert_equal(weather.readout(), "Clear — Spring 1, 12.0 °C · rain 12:00–17:59 · walking at full pace", "clear")
+	assert_equal(weather.alert_line(), "Clear", "clear's short line")
 
 
 # --- the water query ----------------------------------------------------------------------------
@@ -158,13 +195,17 @@ func test_the_demo_water_table_wets_the_west_stream_edge() -> void:
 
 
 func test_a_fixture_water_table_is_obeyed_everywhere() -> void:
-	"""A fixture reach across the square (0..10240, z = 0, 1024 u wide) and a fixture spill: the query,
-	the ground's wet cells and the flood's disc all follow it."""
-	var water := WaterScript.new(PackedInt32Array([0, 0, 10240, 0, 1024]), PackedInt32Array([0, 0, 2048]))
+	"""A fixture reach across the square (0..10240, z = 0, 1024 u wide) and a fixture spill, handed to
+	the village's water adapter: the adapter's query, the ground's wet cells and the flood's disc all
+	follow it."""
+	var table := WaterScript.new(PackedInt32Array([0, 0, 10240, 0, 1024]), PackedInt32Array([0, 0, 2048]))
+	var water := DemoWaterScript.new(table)
 	assert_true(water.near_water(5000, 1023), "beside it")
 	assert_false(water.near_water(5000, 1024), "just clear")
 	assert_true(water.near_water(11263, 0), "round its end")
 	assert_false(water.near_water(11264, 0), "past it")
+	assert_equal(water.spill_centre_u(), Vector2i(0, 0), "the adapter's flood centre is the table's")
+	assert_equal(water.spill_radius_u(), 2048, "and its reach")
 	var ground := GroundScript.new(Rect2i(-20480, -20480, 40960, 40960), water)
 	assert_true(ground.wet_at(512, 512), "the cell at the square's corner is wet")
 	assert_false(ground.wet_at(-19968, 10240), "the demo stream edge is dry under the fixture")

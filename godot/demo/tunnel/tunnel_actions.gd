@@ -148,7 +148,7 @@ func order(job: int, selection: PackedInt32Array) -> bool:
 	if reason.is_empty():
 		reason = _cost_refusal(job)
 	if not reason.is_empty():
-		_works.say(REFUSED % reason)
+		_works.tell(REFUSED % reason)
 		return false
 	_post(job, _works.brain(_pick[0]), selection)
 	return true
@@ -273,7 +273,7 @@ func _post(job: int, worker: BrainScript, selection: PackedInt32Array) -> void:
 	if job == JobsScript.JOB_WIDEN and not resumed:
 		_regrade_heaps(slot)
 	worker.order_task(JobTaskScript.new(jobs, _network, slot))
-	_works.say(POSTED % [JobsScript.NAMES[job], _names[worker.index], slot + 1])
+	_works.tell(POSTED % [JobsScript.NAMES[job], _names[worker.index], slot + 1])
 	if _mole_job(job):
 		add_crew(slot, selection, worker.index)
 
@@ -313,7 +313,7 @@ func add_crew(slot: int, members: PackedInt32Array, lead: int) -> int:
 		b.order_task(CrewTaskScript.new(_works.crew, _network, slot, fits, spot, _works.crew_active, _works.crew_along))
 		joined += 1
 	if joined > 0:
-		_works.say(CREW_JOINED % [joined, slot + 1])
+		_works.tell(CREW_JOINED % [joined, slot + 1])
 		_works.say(CrewScript.LINE_CREW)
 	return joined
 
@@ -351,10 +351,10 @@ func begin_chamber(kind: int, selection: PackedInt32Array) -> bool:
 	if reason.is_empty() and not mole_into(selection, _pick):
 		reason = NO_MOLE
 	if not reason.is_empty():
-		_works.say(REFUSED % reason)
+		_works.tell(REFUSED % reason)
 		return false
 	placing = kind
-	_works.say(PLACE_PROMPT % [selected + 1, ChambersScript.KIND_NAMES[kind].to_lower()])
+	_works.tell(PLACE_PROMPT % [selected + 1, ChambersScript.KIND_NAMES[kind].to_lower()])
 	return true
 
 
@@ -363,7 +363,7 @@ func cancel_chamber() -> void:
 	if placing == ChambersScript.KIND_NONE:
 		return
 	placing = ChambersScript.KIND_NONE
-	_works.say(PLACE_CANCELLED)
+	_works.tell(PLACE_CANCELLED)
 
 
 func place_chamber(at: Vector2, selection: PackedInt32Array) -> bool:
@@ -371,7 +371,7 @@ func place_chamber(at: Vector2, selection: PackedInt32Array) -> bool:
 	False, said, when refused (placement stays armed)."""
 	var slot := selected
 	if not has_selection() or _network.distance_to_route(slot, at) > CHAMBER_PICK_M:
-		_works.say(REFUSED % (PLACE_FAR % (selected + 1)))
+		_works.tell(REFUSED % (PLACE_FAR % (selected + 1)))
 		return false
 	var along := clampi(Rules.to_u(_network.along_of(slot, at)), Rules.QUANTUM_U, _network.length_u[slot] - Rules.QUANTUM_U)
 	var centre := Vector2i.ZERO
@@ -382,7 +382,7 @@ func place_chamber(at: Vector2, selection: PackedInt32Array) -> bool:
 		if reason == ChambersScript.REFUSE_NONE:
 			break
 	if reason != ChambersScript.REFUSE_NONE:
-		_works.say(REFUSED % ChambersScript.reason_text(reason))
+		_works.tell(REFUSED % ChambersScript.reason_text(reason))
 		return false
 	return _dig_chamber(slot, along, centre, selection)
 
@@ -399,13 +399,13 @@ func _dig_chamber(slot: int, along: int, centre: Vector2i, selection: PackedInt3
 	"""Plan the chamber and post its job for the Foremole (with the rest of the selection as crew)."""
 	var ref := PackedInt32Array([0, 0])
 	if not mole_into(selection, _pick) or not _works.chambers.add_into(placing, _network, slot, along, centre, ref):
-		_works.say(REFUSED % ChambersScript.reason_text(ChambersScript.REFUSE_FULL))
+		_works.tell(REFUSED % ChambersScript.reason_text(ChambersScript.REFUSE_FULL))
 		return false
 	var kind := _works.ground.type_at(centre.x, centre.y)
 	_works.jobs.post_chamber(slot, _pick[0], ref[0], along, kind)
 	placing = ChambersScript.KIND_NONE
 	var mole := _works.brain(_pick[0])
 	mole.order_task(JobTaskScript.new(_works.jobs, _network, slot))
-	_works.say(POSTED % [ChambersScript.KIND_NAMES[_works.chambers.kind[ref[0]]], _names[mole.index], slot + 1])
+	_works.tell(POSTED % [ChambersScript.KIND_NAMES[_works.chambers.kind[ref[0]]], _names[mole.index], slot + 1])
 	add_crew(slot, selection, mole.index)
 	return true

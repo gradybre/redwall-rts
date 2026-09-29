@@ -45,6 +45,7 @@ const Palette := preload("res://demo/ui/woodland_palette.gd")
 const TunnelControlScript := preload("res://demo/tunnel/tunnel_control.gd")
 const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
+const ServicesScript := preload("res://demo/demo_services.gd")
 
 const RING_GAP_M: float = 0.12
 const PULSE_HZ: float = 1.1
@@ -93,9 +94,11 @@ var _ground_order: Callable = Callable()
 var _task_text: Callable = Callable()
 
 
-func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null) -> void:
+func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null,
+		services: ServicesScript = null) -> void:
 	"""Command this cast, picking through this camera. Builds the marks, box and party panel; the
-	panel keeps clear of the HUD under `hud_root` (see demo_party_panel.gd)."""
+	panel keeps clear of the HUD under `hud_root` (see demo_party_panel.gd). `services` are the demo's
+	shared weather, water and notice feed, for the tunnel works (none: they make their own)."""
 	name = "DemoCommand"
 	_cast = cast
 	_camera = camera
@@ -114,14 +117,9 @@ func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null)
 	_panel.watch_hud(hud_root)
 	_tunnels = TunnelControlScript.new()
 	add_child(_tunnels)
-	_tunnels.configure(cast, camera, selected, mark, _panel.show_notice)
+	_tunnels.configure(cast, camera, selected, mark, _panel.show_notice, services)
 	_panel.dig_requested.connect(_on_dig_requested)
-	_tunnels.ext.set_hud(hud_root, Callable())
-
-
-func set_alert(alert: Callable) -> void:
-	"""Where the tunnel works raise alerts: `alert(text)` (UIManager.push_alert in the demo)."""
-	_tunnels.ext.works.set_alert(alert)
+	_tunnels.ext.set_hud(hud_root)
 
 
 func set_world(world: DemoWorldScript) -> void:

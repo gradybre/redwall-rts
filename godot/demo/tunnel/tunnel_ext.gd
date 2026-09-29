@@ -13,11 +13,16 @@ extends Node3D
 ##                                               Clear the fall) · Burrow home · Root cellar
 ##   after Burrow home / Root cellar: left click on or beside the tunnel   place the chamber there
 ##                                   Esc or right click                    cancel the placement
-##   the panel's "Next weather (demo)" and "Test event (demo)"             skip the weather on /
+##   the panel's "Next weather (demo)" and "Test event (demo)"             run the demo calendar on
+##                                                                          to the next weather (the
+##                                                                          whole village: farm, date
+##                                                                          and weather together) /
 ##                                                                          bring the next threat
 ##   T with the mole AND others selected, or right click a tunnel being dug with residents selected:
 ##                                               they join the Foremole's dig crew
 ## Residents selected when a tunnel job is ordered become its worker or crew (tunnel_actions.gd).
+##
+## The weather, the water and the notice feed are the demo's shared ones (demo_services.gd).
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
@@ -39,11 +44,14 @@ const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const PickScript := preload("res://demo/control/demo_pick.gd")
 const PlanScript := preload("res://demo/tunnel/tunnel_plan.gd")
+const ServicesScript := preload("res://demo/demo_services.gd")
 
 const PANEL_REFRESH_S: float = 0.2
 const JOB_FOR_ACTION: Dictionary = {&"widen": JobsScript.JOB_WIDEN, &"brace": JobsScript.JOB_BRACE,
 	&"lanterns": JobsScript.JOB_LANTERNS}
 const BORE_NAMES: Array[String] = ["standard bore (1 m)", "wide bore (2 x 3 m)"]
+const SKIPPED: String = "Skipped %d h ahead on the demo calendar: %s"
+const NO_SKIP: String = "The weather follows the farm's calendar, which is not running here"
 
 var works: WorksScript = null
 var actions: ActionsScript = null
@@ -61,6 +69,7 @@ var _camera: Camera3D = null
 var _selection: Callable = Callable()
 var _mark: Callable = Callable()
 var _refresh_in: float = 0.0
+var _weather_skip: Callable = Callable()
 var _enabled: Dictionary = {}
 var _ground: Vector2 = Vector2.ZERO
 ## The tunnel the marks last drew as selected (-1: none; -2: not drawn yet).
@@ -68,9 +77,10 @@ var _marked: int = -2
 
 
 func configure(cast: DemoCastScript, camera: Camera3D, overlay: OverlayScript, bounds_u: Rect2i,
-		selection: Callable, mark: Callable, notice: Callable) -> void:
+		selection: Callable, mark: Callable, notice: Callable, services: ServicesScript = null) -> void:
 	"""Wire the extensions for this cast, picking through this camera, drawing beside `overlay`.
-	`selection() -> PackedInt32Array`, `mark(at, accepted)` and `notice(text)` are the tunnel tool's."""
+	`selection() -> PackedInt32Array`, `mark(at, accepted)` and `notice(text)` are the tunnel tool's;
+	`services` the demo's shared weather, water and notice feed (none: a fresh set)."""
 	name = "TunnelExt"
 	_cast = cast
 	_camera = camera
@@ -90,7 +100,7 @@ func configure(cast: DemoCastScript, camera: Camera3D, overlay: OverlayScript, b
 		names.append(actor.display_name)
 		species.append(actor.species)
 		moles.append(1 if Rules.is_digger(actor.species) else 0)
-	works.setup(cast.space(), brains, species, bounds_u, notice, Callable())
+	works.setup(cast.space(), brains, species, bounds_u, notice, services)
 	actions = ActionsScript.new(works, cast.space(), moles, names, bounds_u)
 	_build_views()
 
@@ -124,10 +134,15 @@ func set_world(world: Node, under_u: PackedInt32Array) -> void:
 	weather_view.configure(works.weather, _cast.clock, world)
 
 
-func set_hud(hud_root: Control, alert: Callable) -> void:
-	"""The HUD the panel keeps clear of, and where alerts are raised (UIManager.push_alert in the demo)."""
+func set_hud(hud_root: Control) -> void:
+	"""The HUD whose resident journal the panel keeps clear of."""
 	panel.watch_hud(hud_root)
-	works.set_alert(alert)
+
+
+func set_weather_skip(skip: Callable) -> void:
+	"""`skip() -> int`: what "Next weather (demo)" does -- run the demo's one calendar on to the next
+	weather (demo_farm.gd `skip_to_next_weather`), returning the hours run."""
+	_weather_skip = skip
 
 
 # --- per frame ------------------------------------------------------------------------------
@@ -226,12 +241,10 @@ func on_action(name: StringName) -> void:
 	var selection := _selection.call() as PackedInt32Array
 	match name:
 		PanelScript.ACTION_NEXT_WEATHER:
-			works.weather.next_spell()
-			works.say(WorksScript.WEATHER_ALERT % works.weather.readout(),
-				WorksScript.ALERT_WEATHER % works.weather.alert_line())
+			_skip_weather()
 		PanelScript.ACTION_EVENT:
 			if not works.start_test_event():
-				works.say("A demo event is already under way")
+				works.tell("A demo event is already under way")
 		PanelScript.ACTION_REPAIR:
 			actions.order(_repair_job(), selection)
 		PanelScript.ACTION_HOME:
@@ -241,6 +254,15 @@ func on_action(name: StringName) -> void:
 		_:
 			actions.order(JOB_FOR_ACTION[name], selection)
 	_refresh_in = 0.0
+
+
+func _skip_weather() -> void:
+	"""Run the calendar on to the next weather, and say how far; without a calendar, say why not."""
+	if not _weather_skip.is_valid():
+		works.tell(NO_SKIP)
+		return
+	var hours: int = int(_weather_skip.call())
+	works.tell(SKIPPED % [hours, works.weather.readout()])
 
 
 func _repair_job() -> int:

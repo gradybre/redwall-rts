@@ -11,8 +11,8 @@ extends RefCounted
 ## (x, z, radius in u) whose disc holds its centre -- rock pockets first, then clay and sand --
 ## else loam. Each patch edge is roughened by an integer hash of (cell, SEED) of up to EDGE_WOBBLE_U,
 ## so the patches read as ground rather than circles, yet every run is identical. A cell is WET when
-## the water query says it lies near water (tunnel_water.gd -- the one place the tunnel works learn
-## where water is; the village's real water is another branch's, and replaces its demo table).
+## the water query says it lies near water (demo/demo_water.gd, the village's one water adapter --
+## the one place the demo learns where water is; the real water module replaces its placeholder).
 ##
 ## WHAT THE TYPES DO (all DEMO values -- ECON-003 adopts "no soil type multiplier" for production,
 ## and this demo departs from it on purpose; see decision 0196):
@@ -26,7 +26,7 @@ extends RefCounted
 ## Allocation: the grid is allocated once in _init(); every query is integer and allocates nothing.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
-const WaterScript := preload("res://demo/tunnel/tunnel_water.gd")
+const WaterScript := preload("res://demo/demo_water.gd")
 
 const LOAM: int = 0
 const CLAY: int = 1
@@ -63,7 +63,7 @@ var _water: WaterScript = null
 
 func _init(bounds_u: Rect2i = Rect2i(-20480, -20480, 40960, 40960), water: WaterScript = null) -> void:
 	"""Lay the ground over these bounds (u), whole cells, once; wet where `water` says (none: the demo
-	water table)."""
+	village's water adapter over its placeholder tables)."""
 	_water = water if water != null else WaterScript.new()
 	origin_u = bounds_u.position
 	columns = Rules.ceil_div(bounds_u.size.x, CELL_U)

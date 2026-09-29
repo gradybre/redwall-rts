@@ -41,6 +41,8 @@ const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
 const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
 const DemoClockScript := preload("res://demo/demo_clock.gd")
+const ServicesScript := preload("res://demo/demo_services.gd")
+const NoticesScript := preload("res://demo/demo_notices.gd")
 
 const DT: float = 1.0 / 60.0
 const HOUR_USEC: int = 2500000
@@ -48,6 +50,8 @@ const CARROT: int = 2
 const RADISH: int = 0
 const PEA: int = 11
 const WHEAT: int = 13
+## The frost warning for the night into spring day 4 (02:00-05:59), named by its calendar date.
+const FROST_SPRING_4: String = "Frost tonight (Spring 4, 02:00–05:59)! Cover growing beds (or raise them with spoil) and harvest what is ripe"
 const BED_LOAM: int = 0
 const BED_CLAY: int = 1
 const BED_CARROTS: int = 2
@@ -57,6 +61,13 @@ const BED_WHEAT: int = 5
 var _nodes: Array[Node] = []
 var _notices: PackedStringArray = PackedStringArray()
 var _read: IntMath.IntResult = IntMath.IntResult.new()
+## The demo's shared calendar, weather, water and feed, fresh for every test.
+var _services: ServicesScript = ServicesScript.new()
+
+
+func before_each() -> void:
+	"""A fresh set of demo services per test."""
+	_services = ServicesScript.new()
 
 
 func after_each() -> void:
@@ -416,7 +427,7 @@ func test_the_panel_words_come_from_the_rules() -> void:
 	assert_equal(Text.pick_reason(sim, BED_CLAY, RADISH), "needs loam or sand (this bed is clay)", "soil")
 	assert_equal(Text.pick_reason(sim, BED_LOAM, PEA), "sow in Spring 5–10; Summer 1–3", "window")
 	assert_equal(Text.pick_reason(sim, BED_LOAM, WHEAT), "", "sowable")
-	assert_equal(Text.clock_line(sim), "Farm: Spring 1, 06:00 · 12 °C", "the farm calendar")
+	assert_equal(Text.clock_line(sim), "Y1 Spring 1, 06:00 · 12 °C", "the demo calendar's date, as the HUD prints it")
 	assert_equal(Text.moisture_line(sim, BED_CARROTS), "Moisture 6000 — good (2500–7000)", "moisture")
 	assert_equal(Text.soil_line(sim, BED_CARROTS), "Sand · fertility 70% (yield ×0.85) · health 100%", "soil")
 	assert_equal(Text.stage_line(sim, BED_CARROTS, _read), "Growing 80% — ripe in about 24 h", "growing")
@@ -444,13 +455,13 @@ func test_alerts_warn_once_with_the_response() -> void:
 	lines.clear()
 	sim.advance_usec(26 * HOUR_USEC)
 	alerts.collect_into(sim, PackedInt32Array(), PackedInt32Array(), lines)
-	assert_false(lines.has("Frost tonight! Cover growing beds (or raise them with spoil) and harvest what is ripe"), "not at 08:00")
+	assert_false(lines.has(FROST_SPRING_4), "not at 08:00")
 	sim.advance_usec(4 * HOUR_USEC)
 	alerts.collect_into(sim, PackedInt32Array(), PackedInt32Array(), lines)
-	assert_true(lines.has("Frost tonight! Cover growing beds (or raise them with spoil) and harvest what is ripe"), "frost")
+	assert_true(lines.has(FROST_SPRING_4), "frost")
 	lines.clear()
 	alerts.collect_into(sim, PackedInt32Array(), PackedInt32Array(), lines)
-	assert_false(lines.has("Frost tonight! Cover growing beds (or raise them with spoil) and harvest what is ripe"), "once")
+	assert_false(lines.has(FROST_SPRING_4), "once")
 	sim.farming().apply_moisture_delta(sim.slot_of(BED_RADISH), 10000)
 	alerts.collect_into(sim, PackedInt32Array(), PackedInt32Array(), lines)
 	assert_true(lines.has("Bed 4 (radish) is waterlogged and has stopped growing — drain it with a tunnel or raise it"), "wet")
@@ -628,7 +639,7 @@ func test_the_bed_panel_offers_only_what_the_bed_can_take() -> void:
 	var crew := _crew(cast, sim, _pantry(cast))
 	var panel := BedPanelScript.new()
 	_nodes.append(panel)
-	panel.configure(sim, crew)
+	panel.configure(sim, crew, NoticesScript.new())
 	panel.show_bed(BED_LOAM)
 	assert_false(panel.verb_button(JobsScript.KIND_SOW).disabled, "plant")
 	assert_true(panel.verb_button(JobsScript.KIND_WATER).disabled, "water")
@@ -649,8 +660,24 @@ func test_the_bed_panel_offers_only_what_the_bed_can_take() -> void:
 	panel.crop_picked.connect(func(item: int) -> void: picked.append(item))
 	panel.picker_button(WHEAT).pressed.emit()
 	assert_equal(picked, [WHEAT], "wheat picked")
-	panel.push_news("Frost tonight!")
-	assert_equal(panel.news_text(0), "• Frost tonight!", "news")
+
+
+func test_the_bed_panel_shows_the_farm_s_news_from_the_feed() -> void:
+	"""Under the date, the farm's latest notices from the demo's one feed, newest first; another
+	source's are not the farm's."""
+	var cast := _cast()
+	var sim := SimScript.new()
+	var panel := BedPanelScript.new()
+	_nodes.append(panel)
+	var notices := NoticesScript.new()
+	panel.configure(sim, _crew(cast, sim, _pantry(cast)), notices)
+	notices.post(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_NOTE, "Bed 3 (carrot) is ripe")
+	notices.post(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_WARNING, "Frost tonight!")
+	notices.post(NoticesScript.SOURCE_TUNNELS, NoticesScript.LEVEL_NOTE, "Tunnel 1 widened.")
+	panel.refresh()
+	assert_equal(panel.news_text(0), "• — · Warning: Frost tonight!", "the newest farm notice first")
+	assert_equal(panel.news_text(1), "• — · Bed 3 (carrot) is ripe", "then the older")
+	assert_equal(panel.news_text(2), "", "the tunnels' news is not the farm's")
 
 
 func test_the_pantry_panel_breaks_the_food_out_by_item() -> void:
@@ -685,11 +712,11 @@ func _farm() -> DemoFarmScript:
 	_nodes.append(command)
 	var camera := Camera3D.new()
 	_nodes.append(camera)
-	command.configure(cast, camera)
+	command.configure(cast, camera, null, _services)
 	var farm := DemoFarmScript.new()
 	_nodes.append(farm)
 	var providers: Array[Callable] = []
-	farm.configure({}, null, cast, command, camera, null, providers, Water.edge_query())
+	farm.configure({}, null, cast, command, camera, null, providers, _services)
 	return farm
 
 

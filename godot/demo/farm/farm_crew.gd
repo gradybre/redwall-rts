@@ -370,7 +370,7 @@ func _end_work(row: int, work: int) -> String:
 
 func _end_harvest(row: int) -> String:
 	"""REQ-SET-074's harvest: the yield of the bed's item becomes the worker's load, bound for the
-	store that spoils it slowest with room for it."""
+	store that spoils it slowest with room for it -- the nearest to the bed among equals."""
 	var bed: int = jobs.bed[row]
 	var item: int = _sim.item_of(bed)
 	var cut: FarmingScript.OpResult = _sim.harvest(bed)
@@ -378,7 +378,7 @@ func _end_harvest(row: int) -> String:
 		return "Can't harvest: %s" % reason_text(cut.error)
 	jobs.load_item[row] = item
 	jobs.load_milli[row] = cut.value
-	if not _pantry.location_for_into(cut.value, _read):
+	if not _pantry.location_near_into(cut.value, Catalog.bed_centre_m(bed), _read):
 		return "No room in any store for the %s" % Catalog.ITEM_LABELS[item].to_lower()
 	jobs.location[row] = _read.value
 	return ""

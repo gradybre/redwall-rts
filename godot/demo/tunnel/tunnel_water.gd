@@ -1,15 +1,15 @@
 extends RefCounted
-## Where the demo's tunnel works meet water: the ONE query they ask. Decision 0196 (live demo).
-## Presentation only.
+## PLACEHOLDER: the tunnel works' stream table, answered THROUGH demo/demo_water.gd (the village's one
+## water adapter) and asked by nothing else. Decision 0196 (live demo). Presentation only.
 ##
 ## The village's real water -- a stream and a pond, with a surface and a depth and shore map -- is
-## built on another branch (feat/demo-water). Until it is merged, a tiny demo table stands in, and
-## nothing else in the tunnel works knows where water is:
+## built on another branch (feat/demo-water). Until it is merged, this tiny demo table answers the
+## adapter's two tunnel-side questions:
 ##   * `near_water(x_u, z_u)`: whether ground at a point is wet from nearby water. The ground map
 ##     (tunnel_ground.gd) asks it once per cell; tunnel hazards and the planning tint read the result.
 ##   * `spill_centre_u()` / `spill_radius_u()`: the disc a flood of the stream covers (the demo's
 ##     flood event, demo/events/).
-## On merge, point these at the real water module and delete the table.
+## On merge, demo_water.gd answers them from the real water module and this file is deleted.
 ##
 ## THE DEMO TABLE: REACHES, stretches of water as capsules -- (ax, az, bx, bz, radius) in u, ground
 ## within `radius` of the segment A-B being wet -- here the reed-bed stream edge along the west of the

@@ -27,6 +27,8 @@ const MAX_LOTS: int = 128
 const FREE: int = -1
 const MILLI_PER_U: int = 1000
 const FACTOR_DENOMINATOR: int = 1000
+## Metres to the tunnel network's integer u (1/1024 m), for comparing haul distances exactly.
+const U_PER_M: float = 1024.0
 ## §5.7: "compost | spoiled_food 4 ... | compost 2".
 const COMPOST_FROM_SPOILED_IN: int = 4
 const COMPOST_FROM_SPOILED_OUT: int = 2
@@ -110,15 +112,40 @@ func _oldest_lot_into(item: int, location: int, out: IntMath.IntResult) -> bool:
 func location_for_into(milli: int, out: IntMath.IntResult) -> bool:
 	"""Where a delivery of `milli` should go: the location that spoils slowest (lowest permille) with
 	room for all of it, the lowest index on a tie. Refuses NO_STORAGE_ROOM."""
+	return _best_location_into(milli, false, Vector2i.ZERO, out)
+
+
+func location_near_into(milli: int, from: Vector2, out: IntMath.IntResult) -> bool:
+	"""Where a harvest carried from `from` (x, z metres; its bed) should go: the slowest-spoiling
+	location with room for all of it, and among equals the one nearest `from` -- so a root cellar dug
+	near the beds shortens the haul. Distances are compared in integer u, converted once. Refuses
+	NO_STORAGE_ROOM."""
+	return _best_location_into(milli, true, Vector2i(roundi(from.x * U_PER_M), roundi(from.y * U_PER_M)), out)
+
+
+func _best_location_into(milli: int, by_distance: bool, from_u: Vector2i, out: IntMath.IntResult) -> bool:
+	"""The lowest-permille location with room; ties to the nearest `from_u` (by_distance) or the lowest
+	index. Refuses NO_STORAGE_ROOM."""
 	var best: int = FREE
 	for location: int in storage.count():
 		if used_milli_of(location) + milli > storage.capacity_milli_of(location):
 			continue
 		if best == FREE or storage.permille_of(location) < storage.permille_of(best):
 			best = location
+		elif by_distance and storage.permille_of(location) == storage.permille_of(best) \
+				and _distance2_u(location, from_u) < _distance2_u(best, from_u):
+			best = location
 	if best == FREE:
 		return out.refuse(REFUSE_NO_ROOM)
 	return out.succeed(best)
+
+
+func _distance2_u(location: int, from_u: Vector2i) -> int:
+	"""Squared distance, in u, from `from_u` to where a location is delivered to."""
+	var at: Vector2 = storage.position_of(location)
+	var dx: int = roundi(at.x * U_PER_M) - from_u.x
+	var dz: int = roundi(at.y * U_PER_M) - from_u.y
+	return dx * dx + dz * dz
 
 
 func used_milli_of(location: int) -> int:

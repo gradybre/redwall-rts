@@ -13,11 +13,23 @@ extends Node3D
 ## world's walkable bounds and the demo camera; it reads input the HUD did not consume. Its tunnel
 ## tool (demo/tunnel/) also gets the world, which the underground view fades.
 ##
-## TUNNEL WORKS (demo/tunnel/tunnel_ext.gd: weather, hazards, chambers, threats) raise their alerts
-## through UIManager.push_alert -- the transient alert zone the game's own opening line uses -- and
-## show the rest in their own panel. Two of their pieces are for the rest of the demo to read:
-## `weather()`, the demo's one weather source, and `chambers()`, whose `cellars()` lists the root
-## cellars (for the farming demo).
+## TUNNEL WORKS (demo/tunnel/tunnel_ext.gd: hazards, upgrades, chambers, threats) show themselves in the
+## "Tunnels & burrows (demo)" panel; `chambers()` lists their chambers, whose root cellars are the
+## farm's pantry stores (see FARM).
+##
+## ONE OF EACH (demo_services.gd, made first and handed to the tunnel works and the farm):
+##   * ONE CALENDAR (demo_calendar.gd): farm time and the weather's hour. The farm advances it on the
+##     demo clock; the farm panel and every notice's stamp read its date. The settlement's own clock
+##     runs on apart, unwritten.
+##   * ONE WEATHER (demo/weather/demo_weather.gd, `weather()`): the farm's REAL §5.10 row read hour by
+##     hour on that calendar. Its rain is the rain the beds take; it slows surface walking, soaks the
+##     tunnels' wet ground and falls on screen.
+##   * ONE WATER ADAPTER (demo_water.gd, `water()`): the farm's edge query and the tunnels' wet-ground
+##     and flood queries. The real water module (feat/demo-water) is wired in THERE and nowhere else.
+##   * ONE NOTICE FEED (demo_notices.gd): every farm, weather, tunnel and threat notice, date-stamped,
+##     shown per source in the two panels. Nothing in the demo raises a HUD alert card: the HUD shows
+##     the two earliest unresolved notices and demo lines, which nothing resolves, would hold both
+##     cards for good (UI §7).
 ##
 ## TIME. The game's clock is started by `Game` itself (scripts/main.gd calls start_game()), and
 ## UIManager then holds UI-SET-103's opening inspection pause (PLAYER). The demo releases that one
@@ -27,8 +39,9 @@ extends Node3D
 ##
 ## FARM (demo/farm/): the six crop beds grow individual pantry ingredients by the settlement's own
 ## crop arithmetic, worked by the residents; the HUD's Food cell shows the pantry total and its Food
-## command opens the Pantry. `_build_farm()` wires it; `storage_providers()` is where root cellars
-## (and any other food store) are handed to it -- see demo/farm/farm_storage.gd for the API.
+## command opens the Pantry. `_build_farm()` wires it; `storage_providers()` hands it the tunnels'
+## root cellars (demo/farm/farm_cellars.gd over burrow_chambers `cellars()`), so a harvest goes to the
+## slowest-spoiling store with room, the nearest to its bed among equals -- see farm_storage.gd.
 
 const DemoManifestScript := preload("res://demo/demo_manifest.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
@@ -39,9 +52,12 @@ const DemoCommandScript := preload("res://demo/control/demo_command.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const FarmWater := preload("res://demo/farm/farm_water.gd")
+const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
+const WaterScript := preload("res://demo/demo_water.gd")
 const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
+const ServicesScript := preload("res://demo/demo_services.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -57,6 +73,7 @@ var _cast: Node3D = null
 var _camera: Node3D = null
 var _command: Node3D = null
 var _farm: DemoFarmScript = null
+var _services: ServicesScript = ServicesScript.new()
 var _shadow_view_m: float = -1.0
 
 
@@ -81,9 +98,8 @@ func _ready() -> void:
 	_cast.set_bounds(_world.bounds())
 	_command = DemoCommandScript.new()
 	add_child(_command)
-	_command.configure(_cast, _camera.camera(), _game.get_node_or_null(GAME_HUD_ROOT) as Control)
+	_command.configure(_cast, _camera.camera(), _game.get_node_or_null(GAME_HUD_ROOT) as Control, _services)
 	_command.set_world(_world as DemoWorldScript)
-	_command.set_alert(UIManager.push_alert)
 	_build_farm(manifest)
 	_skin_hud.call_deferred()
 	_open_running()
@@ -101,22 +117,33 @@ func _build_farm(manifest: Dictionary) -> void:
 	"""The farm, after the world, the cast, the camera and the command layer it works through."""
 	_farm = DemoFarmScript.new()
 	add_child(_farm)
-	var hud_root: Node = _game.get_node_or_null(GAME_HUD_ROOT)
-	var shell: UiShell = hud_root.get_node_or_null(^"Shell") as UiShell if hud_root != null else null
 	_farm.configure(manifest, _world as DemoWorldScript, _cast as DemoCastScript, _command as DemoCommandScript,
-		_camera.camera(), shell, storage_providers(), water_edge_query())
+		_camera.camera(), _shell(), storage_providers(), _services)
+	_command.tunnels().ext.set_weather_skip(_farm.skip_to_next_weather)
+
+
+func _shell() -> UiShell:
+	"""The game HUD's §4 shell (null without a HUD)."""
+	var hud_root: Node = _game.get_node_or_null(GAME_HUD_ROOT)
+	return hud_root.get_node_or_null(^"Shell") as UiShell if hud_root != null else null
 
 
 func storage_providers() -> Array[Callable]:
-	"""Food stores beyond the covered store, for the farm's pantry (farm_storage.gd's provider API).
-	None yet: the root cellars of the tunnel extension are wired here when it merges."""
-	return []
+	"""Food stores beyond the covered store, for the farm's pantry (farm_storage.gd's provider API): the
+	tunnels' finished root cellars (demo/farm/farm_cellars.gd over burrow_chambers `cellars()`)."""
+	var providers: Array[Callable] = [FarmCellars.provider(chambers())]
+	return providers
 
 
-func water_edge_query() -> Callable:
-	"""The farm's one water query, `(x_u: int, z_u: int) -> bool` (demo/farm/farm_water.gd): the demo
-	table for now; point it at the village's real water when feat/demo-water merges."""
-	return FarmWater.edge_query()
+func water() -> WaterScript:
+	"""THE village water adapter (demo_water.gd): the farm's edge query and the tunnels' wet-ground and
+	flood queries both go through it. Wire the real water module in there, and only there."""
+	return _services.water
+
+
+func services() -> ServicesScript:
+	"""The demo's shared calendar, weather, water and notice feed."""
+	return _services
 
 
 func _open_running() -> void:
@@ -127,9 +154,9 @@ func _open_running() -> void:
 
 
 func weather() -> WeatherScript:
-	"""The demo's one weather source (demo/weather/demo_weather.gd): `surface_speed_permille()`,
-	`condition()`, `temperature_tenths()`, `rain()`. Read-only for everyone but the tunnel works."""
-	return _command.tunnels().ext.works.weather
+	"""The demo's one weather (demo/weather/demo_weather.gd): `surface_speed_permille()`, `condition()`,
+	`temperature_tenths()`, `rain()`. Driven by the farm's real row; read-only for everyone."""
+	return _services.weather
 
 
 func chambers() -> ChambersScript:

@@ -6,7 +6,8 @@ extends RefCounted
 ## pulls its moisture toward its crop's low side each farm day. A finished tunnel with a mouth at a
 ## water edge carries water instead, and IRRIGATES every bed it passes under: moisture is pulled
 ## toward the band's middle, up or down. "At a water edge" is `water_edge`, the one water query
-## (farm_water.gd `edge_query()`: the demo table until the village's real water is wired in). "Passes under" is an INTEGER test
+## (demo/demo_water.gd `edge_query()`, the village's one water adapter; its placeholder pond until the real
+## water is wired in). "Passes under" is an INTEGER test
 ## in the network's own units (u, 1/1024 m): some leg of the route comes within UNDER_REACH_U of the
 ## bed's centre. The beds' centres are imported from the layout once (float is import only).
 ##
@@ -18,7 +19,7 @@ extends RefCounted
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
-const Water := preload("res://demo/farm/farm_water.gd")
+const WaterScript := preload("res://demo/demo_water.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 
 ## A bore within this of a bed's centre runs under the bed: the bed's half-width (1.5 m).
@@ -28,7 +29,9 @@ const REFUSE_NO_SPOIL: String = "NOT_ENOUGH_SPOIL"
 const REFUSE_BAD_HEAP: String = "NO_SUCH_HEAP"
 
 ## `(x_u: int, z_u: int) -> bool`: whether a point is at a water edge (see the header).
-var water_edge: Callable = Water.edge_query()
+## A water adapter of its own, held so `water_edge` stays valid until the village hands its query in.
+var _own_water: WaterScript = WaterScript.new()
+var water_edge: Callable = _own_water.edge_query()
 
 var _bed_x: PackedInt32Array = PackedInt32Array()
 var _bed_z: PackedInt32Array = PackedInt32Array()

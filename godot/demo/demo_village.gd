@@ -52,6 +52,13 @@ extends Node3D
 ## command opens the Pantry. `_build_farm()` wires it; `storage_providers()` hands it the tunnels'
 ## root cellars (demo/farm/farm_cellars.gd over burrow_chambers `cellars()`), so a harvest goes to the
 ## slowest-spoiling store with room, the nearest to its bed among equals -- see farm_storage.gd.
+##
+## WOODS (demo/forestry/): every tree is a real ResourceNode row -- felled, hauled, regrown, blown down,
+## replanted -- worked by the residents, with forestry and conservation zones, deadfall, a sawhorse and
+## the "Woods (demo)" panel, the right column's third tab. Its wood goes into the demo's ONE stores
+## (demo_services.gd `stores`), which the tunnels' bracing and lanterns spend; planting takes its
+## compost from the farm's compost store. `_build_forestry()` wires it; its trees' and yard's circles
+## join the cast's obstacles before the cast is built.
 
 const DemoManifestScript := preload("res://demo/demo_manifest.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
@@ -74,6 +81,8 @@ const TunnelExtScript := preload("res://demo/tunnel/tunnel_ext.gd")
 const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
 const DemoWaterScript := preload("res://demo/water/demo_water.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
+const ForestryScript := preload("res://demo/forestry/demo_forestry.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -98,6 +107,7 @@ var _hud_date: HudDateScript = HudDateScript.new()
 var _news: NewsStripScript = null
 var _zone: DetailZoneScript = null
 var _water: DemoWaterScript = null
+var _forestry: ForestryScript = null
 var _shadow_view_m: float = -1.0
 
 
@@ -117,6 +127,7 @@ func _ready() -> void:
 	_command.configure(_cast, _camera.camera(), _game.get_node_or_null(GAME_HUD_ROOT) as Control, _services)
 	_command.set_world(_world as DemoWorldScript)
 	_build_farm(manifest)
+	_build_forestry()
 	_build_shared_ui()
 	_skin_hud.call_deferred()
 	_open_running()
@@ -142,8 +153,9 @@ func _build_cast(manifest: Dictionary) -> void:
 	the same clock and the demo calendar; and the camera, which may look over the water."""
 	_cast = DemoCastScript.new()
 	add_child(_cast)
-	_cast.build(manifest, _water.merged_points(_world.points_of_interest()),
-		_water.merged_obstacles(_world.obstacles()))
+	var obstacles: Array[Vector3] = _water.merged_obstacles(_world.obstacles())
+	obstacles.append_array(ForestryScript.extra_obstacles(_world as DemoWorldScript))
+	_cast.build(manifest, _water.merged_points(_world.points_of_interest()), obstacles)
 	_cast.clock.bind(GameManager as GameManagerScript)
 	_water.bind_clock(_cast.clock, _services.calendar.tick)
 	_water.bind_calendar(_services.calendar)
@@ -166,6 +178,39 @@ func _build_farm(manifest: Dictionary) -> void:
 	_farm.add_overlay(WATER_OVERLAY_NAME, _water.set_overlay_shown)
 
 
+func _build_forestry() -> void:
+	"""The woods, after the farm (the calendar's owner): the world's trees bound to real rows with the
+	compiled `wood` item, the crew on the cast, planting's compost from the farm's store, and the woods'
+	overlay last on V's cycle."""
+	_forestry = ForestryScript.new()
+	add_child(_forestry)
+	var wood := IntMath.IntResult.new()
+	ForestryScript.resolve_wood_id_into(wood)
+	_forestry.configure(_world as DemoWorldScript, _cast as DemoCastScript, _command as DemoCommandScript,
+		_camera.camera(), _services, wood)
+	_forestry.crew.set_compost(compost_left, take_compost)
+	_forestry.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
+	_farm.add_overlay(ForestryScript.OVERLAY_NAME, _forestry.set_overlay)
+
+
+func compost_left() -> int:
+	"""The farm's compost store, milli-U (what planting a sapling spends)."""
+	return _farm.sim.compost_milli
+
+
+func take_compost(milli: int) -> bool:
+	"""Take `milli` of the farm's compost -- all of it, or (false) none."""
+	if milli <= 0 or _farm.sim.compost_milli < milli:
+		return false
+	_farm.sim.compost_milli -= milli
+	return true
+
+
+func forestry() -> ForestryScript:
+	"""The woods (demo/forestry/demo_forestry.gd)."""
+	return _forestry
+
+
 func _build_shared_ui() -> void:
 	"""The HUD date on the demo calendar, the news strip, and the right column's one-panel zone."""
 	_hud_date.bind(_shell(), _services.calendar, GameManager as GameManagerScript)
@@ -178,8 +223,10 @@ func _build_shared_ui() -> void:
 	_zone.add_panel(DetailZoneScript.PANEL_FARM, _farm.bed_panel)
 	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
 	_zone.add_panel(DetailZoneScript.PANEL_TUNNELS, ext.panel)
+	_zone.add_panel(DetailZoneScript.PANEL_WOODS, _forestry.panel)
 	_farm.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_FARM))
 	ext.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_TUNNELS))
+	_forestry.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_WOODS))
 
 
 func _shell() -> UiShell:

@@ -33,7 +33,7 @@ and dig while paused -- the orders are carried out on resume.
 
 ## One village: one calendar, one weather, one water, one feed
 
-The farm and the tunnel works were built apart; in the demo they are one village, sharing four things
+The farm and the tunnel works were built apart; in the demo they are one village (the woods too), sharing four things
 that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
 
 - **One calendar** (`demo_calendar.gd`). Farm time, the weather's hour and the **date the HUD shows**
@@ -64,10 +64,14 @@ that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
   any more: the HUD shows the two earliest unresolved notices, and demo lines, which nothing resolves,
   held both cards for good.
 
-**The right column holds one demo panel at a time** (`ui/demo_detail_zone.gd`): a tab strip, *Farm*
-and *Tunnels & burrows*, over the HUD's detail zone. Clicking a bed brings the farm's panel; selecting a
-tunnel or laying a route brings the tunnels'; the tabs switch by hand; both hide while the resident
-journal is open.
+**One stores** (`demo_services.gd` `stores`, `tunnel/tunnel_stores.gd`): the demo's wood, stone, planks
+and finds. The woods put their wood in and saw their planks from it; the tunnels' bracing and lanterns
+are paid from it. The HUD's Wood and Stone are the settlement's and are never written.
+
+**The right column holds one demo panel at a time** (`ui/demo_detail_zone.gd`): a tab strip, *Farm*,
+*Tunnels & burrows* and *Woods*, over the HUD's detail zone. Clicking a bed brings the farm's panel;
+selecting a tunnel or laying a route brings the tunnels'; clicking a tree, a zone or giving a woods
+order brings the woods'; the tabs switch by hand; all hide while the resident journal is open.
 
 ## Commanding the residents
 
@@ -83,7 +87,8 @@ journal is open.
 | T (or "Dig tunnel") | With the mole selected: lay out a tunnel (below); again: cancel it |
 | U | Underground view: the surface fades, tunnels show as lit bores with anyone inside |
 | Left click a finished tunnel | Select it for the "Tunnels & burrows (demo)" panel (see below) |
-| V | The one map-overlay cycle: the farm's moisture, its ripeness, the water's zones and fishery (wade / swim / dive, fords, bridge spans, landings, fish stocks), off |
+| Right click a tree, trunk, deadfall, stump, cleared spot or the sawhorse | The woods' verb for it (see The woods) |
+| V | The one map-overlay cycle: the farm's moisture, its ripeness, the water's zones and fishery (wade / swim / dive, fords, bridge spans, landings, fish stocks), the woods' zones and trees, off |
 
 The "Demo party" panel in the HUD's left column lists the selection. Orders move the demo cast
 only, never the simulation.
@@ -141,7 +146,7 @@ ingredient, freshness (GDD §5.8 spoilage by where it is stored), and the librar
 | Water / Harvest / Clear / Compost / Cover | Given to the selected residents, or queued for the field crew (the fieldworker and gatherer take queued work while wandering) |
 | Raise / Bank | A resident fetches 2 U of tunnel spoil from a heap: a raised bed drains and is warmer at night; a banked bed keeps half of each dry day's loss |
 | Rest | Rest the bed fallow (it regains fertility; nothing is sown) |
-| V | Map overlay: moisture, then ripeness, then the water's zones, then off (one key for every overlay) |
+| V | Map overlay: moisture, then ripeness, then the water's zones, then the woods, then off (one key for every overlay) |
 | K / Food | The Pantry |
 
 Threats: spring is wet (beds waterlog and stop growing -- drain them with a tunnel, or raise them),
@@ -171,8 +176,9 @@ hold; at 2x and 4x they run faster.
   widened one, the badger none); only the surface part of its trip counts toward the carry limit.
   A busy mouth has a short **queue**: walkers wait in a line beside it rather than crowding the hole.
 - **Upgrades**: Widen (the mole re-digs five more quanta a metre; otters and the badger then fit),
-  Brace (ECON-002's wood 250 + stone 250 milli-U and 25 ticks a quantum, from the demo's own stores --
-  the HUD's Wood and Stone are the settlement's), Hang lanterns (a lit bore, walked 10% faster).
+  Brace (ECON-002's wood 250 + stone 250 milli-U and 25 ticks a quantum, from the demo's one stores --
+  the wood the woods bring in; the HUD's Wood and Stone are the settlement's), Hang lanterns (a lit
+  bore, walked 10% faster).
 - **Hazards** (deterministic, warned, preventable): an unbraced tunnel through wet ground floods after
   40 s of rain (warned at 20); through sand it partly collapses after 75 s of rain or crossings (warned
   at half). The tunnel closes, walkers inside turn back, and Pump out / Clear the fall reopens it.
@@ -250,11 +256,58 @@ What changed on screen:
   a cellar).
 - **Water**: a jetty off the boathouse with the rowboat alongside and the coracle off its end, a
   raft on the pond, a rod, a net, an eel trap and a smoking rack by the fisher shelter, a trout and a
-  perch in the creels. The bridge models, and the forestry step's gnawed log and felled trunk, are
-  staged only.
+  perch in the creels. The bridge models are staged only; the gnawed log and felled trunk lie in the
+  woods (below).
 - **Walking**: the cast walks at the gait speed the grounding tool recorded on each walk clip
   (`gait.speed_m_s`, decision 0202), not the old toe-slide estimate, and the walk clip always plays at
   ground speed over that speed -- in a lit bore too.
+
+## The woods
+
+Every tree in the village and its woods -- 173 oaks, beeches and saplings -- is a REAL ResourceNode row
+(`scripts/core/resource_nodes.gd`) on the GDD §5.1 tile it stands on, of the compiled `wood` item
+(`forestry/forest_stand.gd`): a mature tree holds 12 U. Felling is the store's own single debit, which
+dates the stump (REQ-SET-138); the wood lies as the felled trunk until it is hauled to the log stack
+into the demo's one stores. A stump regrows on the 48th day after it was cut, if nothing (a tunnel
+mouth or spoil heap) stands on it; a storm's blow-down is uprooted, leaving a cleared spot that can be
+replanted (compost 0.25 U from the farm's compost store and 4 WU, §5.9), also maturing in 48 days.
+Residents work trees within 30 m of the square (`forestry/forest_rules.gd` REACH_M).
+
+| Input | Does |
+|---|---|
+| Right click a mature tree (residents selected) | The nearest fells it -- with the axe; the beaver gnaws it (same job, its own look) -- and the rest of the selection wait by it and haul it (up to 3) |
+| Right click a felled trunk | Every selected resident hauls it, 6 U a trip, to the log stack |
+| Right click a deadfall pile | Gather it: no felling, slow (20 WU a U), 1-2 U -- the wood of the early game and of protected woods |
+| Right click a stump / a cleared spot | Grub the stump out / plant a sapling |
+| Right click the sawhorse or the plank stack | Saw 2 U of logs into 2 U of planks |
+| Left click a tree, stump or spot | Select it: the Woods panel shows its state, its zone's floor and its verbs |
+| Left click inside a zone | Select the zone: intensive (keep 10%), auto-fell, unmark |
+| Woods panel | The same verbs with nobody selected are queued for the forestry crew (the squirrel forester and the beaver, who take the board's work while wandering); Mark forestry / conservation zone, then drag on the ground (Esc: cancel); Gather deadfall; Saw planks; Cancel woods jobs; Storm gust (demo) |
+
+- **Zones** (`forestry/forest_zones.gd`, GDD ZoneType FORESTRY 5 and CONSERVATION 8): a forestry zone keeps
+  20% of its trees mature (10% intensive) -- a fell that would breach it, counting fells already ordered,
+  is refused with the floor in words; a conservation zone is never cut, by order or routine, but its
+  deadfall may be gathered. Auto-fell (off by default) lets the crew work a forestry zone down to its
+  floor. The demo opens with the North stand (forestry) and the Old grove (conservation), edged on the
+  ground in brass and sage.
+- **Seasons and weather**: winter felling takes 80% of the time (no sap, demo); a heavy rain/storm day of
+  the one weather slows outdoor work to 80% (§5.10), blows one tree down (a warning in the feed and a
+  clearing job for the crew) and brings deadfall down. A pile of deadfall falls every midnight.
+- **Skills** (`forestry/forest_skills.gd`): felling and sawing, §5.3's arithmetic (10 XP a WU, level =
+  floor_sqrt(xp / 5000), work time / (1000 + 50 x level)), shown in the party panel; anybeast learns
+  (LORE-P12); the forester and the beaver start at felling 3.
+- **Drawing** (`forestry/forest_view.gd`): a felled tree is cut above its root mound -- its model split
+  once per kind (`forest_split.gd`) -- and the trunk and crown topple away from the feller, land in a
+  burst of leaves and dust and give way to the felled trunk (the beaver's: the gnawed log); the stump
+  wears the fresh-cut oak stump for a season, then the mossy one, and grows a shoot. Residents walking
+  over a mature tree's root mound are lifted onto it (`forest_lift.gd`). The yard by the workbench holds
+  the sawhorse, the plank stack (as tall as the planks), a second woodpile (as tall as the wood), the
+  chopping block and the sapling baskets.
+- **For bridges and boats next**: the planks are `tunnel_stores.gd` `plank_milli_u` with
+  `add_planks`, `can_pay_planks` and `pay_planks` (all or nothing), on `demo_village.services().stores`.
+
+Every number that is not the GDD's is a demo value named in `forestry/forest_rules.gd` (and the root
+mounds' measured profiles in `forest_roots.gd`).
 
 ## Water
 
@@ -291,6 +344,7 @@ zone thresholds are demo values (`water/water_rules.gd`); decision 0196 records 
 | `events/` | Seeded threats (a flood, a fire) and evacuation |
 | `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the V overlay |
 | `farm/` | The farm: real FarmPlot rows, the pantry and its storage providers, the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves |
+| `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |
 | `ui/` | The woodland HUD skin; the HUD date, the news strip and the right column's tabs |
 | `camera/` | The RTS camera |

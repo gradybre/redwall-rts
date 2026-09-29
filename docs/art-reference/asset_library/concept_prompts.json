@@ -902,6 +902,358 @@
         "assets/library/_reference/style_left_panel_characters.png"
       ],
       "prompt": "Character sheet of an anthropomorphic BADGER quarryman in the reference style: sleeveless leather jerkin over a linen shirt, rolled sleeves, sturdy brown trousers, wide belt, legs and feet clearly visible and separate. Massive broad body, black and white striped face, grizzled grey back, dark limbs, short tail. Strict T-pose: arms straight out horizontally, claws spread, legs apart. Plain light grey background, flat even light, nothing held, no text. Front, side and back views."
+    },
+    {
+      "family": "environment",
+      "key": "plant_radish",
+      "task_id": "01a0edb0-7e73-77f9-a66b-6a938bdb4703",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single ripe RADISH plant growing from a small patch of dark tilled soil: a rosette of bright green leaves with the round red radish root half showing above the soil. One isolated game asset, three-quarter view from slightly above, whole plant visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "plant_turnip",
+      "task_id": "01a0edb0-8651-72e2-809f-b1e16860eb8a",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single ripe TURNIP plant growing from a small patch of dark tilled soil: broad rough green leaves above a white turnip root with a purple crown showing above the soil. One isolated game asset, three-quarter view from slightly above, whole plant visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "plant_carrot",
+      "task_id": "01a0edb0-8e24-70e5-858a-801833667bed",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single ripe CARROT plant growing from a small patch of dark tilled soil: feathery fern-like carrot tops with the orange shoulder of the root just showing above the soil. One isolated game asset, three-quarter view from slightly above, whole plant visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "plant_beetroot",
+      "task_id": "01a0edb0-965d-704e-87a3-4790672ba6e5",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single ripe BEETROOT plant growing from a small patch of dark tilled soil: glossy dark green leaves with crimson veins and stems above the deep red beetroot shoulder showing. One isolated game asset, three-quarter view from slightly above, whole plant visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "plant_onion",
+      "task_id": "01a0edb0-9dc4-71df-b8c0-819751dec894",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single ripe ONION plant growing from a small patch of dark tilled soil: tall hollow blue-green leaves above a golden-brown onion bulb sitting half out of the soil. One isolated game asset, three-quarter view from slightly above, whole plant visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "plant_leek",
+      "task_id": "01a0edb0-a5c6-7017-a51d-1b2c94bd5d2e",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single ripe LEEK plant growing from a small patch of dark tilled soil: a thick white shaft rising into a fan of broad blue-green leaves. One isolated game asset, three-quarter view from slightly above, whole plant visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "plant_lettuce",
+      "task_id": "01a0edb0-ae54-7045-b058-82186e2c6839",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single ripe LETTUCE plant growing from a small patch of dark tilled soil: a round open butterhead lettuce with soft pale-green overlapping leaves. One isolated game asset, three-quarter view from slightly above, whole plant visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "plant_celery",
+      "task_id": "01a0edb0-b62f-7693-bf55-decf7e64fec1",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single ripe CELERY plant growing from a small patch of dark tilled soil: a bunch of upright ribbed pale-green stalks with leafy tops. One isolated game asset, three-quarter view from slightly above, whole plant visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "plant_strawberry",
+      "task_id": "01a0edb1-715e-723d-ae6d-ef92973fffa2",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single STRAWBERRY plant growing from a small patch of dark tilled soil with straw around it: low trifoliate leaves, a few white flowers and several ripe red strawberries. One isolated game asset, three-quarter view from slightly above, whole plant visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "plant_peas",
+      "task_id": "01a0edb1-7955-74d9-ab97-9fe91d9e2fc4",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single PEA plant growing from a small patch of dark tilled soil, climbing a small twig support: tendrils, white flowers and plump green pods. One isolated game asset, three-quarter view from slightly above, whole plant visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "plant_barley",
+      "task_id": "01a0edb1-810a-748b-b731-3089837b4036",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small clump of ripe BARLEY growing from a small patch of dark tilled soil: golden stalks with long-bearded nodding ears. One isolated game asset, three-quarter view from slightly above, whole plant visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "plant_oats",
+      "task_id": "01a0edb1-8a86-775b-b1f6-63c27843c647",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small clump of ripe OATS growing from a small patch of dark tilled soil: golden stalks with loose drooping spikelets. One isolated game asset, three-quarter view from slightly above, whole plant visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_radish",
+      "task_id": "01a0edb1-9461-7521-8f35-c3a219e31967",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A freshly harvested bunch of three red RADISHES with their green leafy tops, tied with twine. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_turnip",
+      "task_id": "01a0edb1-9bb4-767c-ad02-f3891faf3da5",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "Two freshly harvested TURNIPS, white with purple crowns, leaves trimmed short, a little soil on the roots. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_carrot",
+      "task_id": "01a0edb1-a349-73d3-853c-254cfc5d7b33",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A freshly harvested bunch of orange CARROTS with feathery green tops, tied with twine. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_beetroot",
+      "task_id": "01a0edb1-ab77-749a-9b77-7a3ed031fb74",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "Two freshly harvested BEETROOTS, deep red, with red-veined leaves. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_onion",
+      "task_id": "01a0edb1-bfdc-7722-b55a-7a2cfc340889",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "Three harvested golden ONIONS with dry papery skins and trimmed roots. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_leek",
+      "task_id": "01a0edb1-c7ad-771b-b149-93fa88fadb4b",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "Two freshly harvested LEEKS, white shafts and green leaves, a little soil on the roots. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_lettuce",
+      "task_id": "01a0edb1-cf23-763b-896c-9189f1adca51",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "One freshly harvested head of butterhead LETTUCE with soft pale-green leaves. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_celery",
+      "task_id": "01a0edb1-d760-7478-8f98-8bdbcc07508e",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A freshly harvested bunch of CELERY stalks with leafy tops. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_strawberry",
+      "task_id": "01a0edb1-df77-769e-8fde-1f61b8694f48",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small woven willow punnet heaped with ripe red STRAWBERRIES. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_peas",
+      "task_id": "01a0edb1-e7e3-7175-ac44-66625402556e",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small heap of green PEA pods, one split open showing the round peas inside. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_barley",
+      "task_id": "01a0edb1-f21f-7658-86ea-3b5448ff5f55",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small sheaf of harvested BARLEY, golden bearded ears, bound with a twist of straw. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_oats",
+      "task_id": "01a0edb1-f9f2-7083-9f58-83e1d5e11c12",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small sheaf of harvested OATS, golden drooping spikelets, bound with a twist of straw. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "tunnel_brace",
+      "task_id": "01a0edb2-0f75-7771-8477-8f15e49a7bb4",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A timber brace frame for a mole's underground tunnel: two rough-hewn upright posts and a crossbeam lintel joined with wooden pegs, bark still on in places. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "tunnel_rubble",
+      "task_id": "01a0edb2-173b-7403-9e81-fc9ddf0a239a",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small collapse heap of earth clods, pebbles, roots and a snapped timber, as from a caved-in tunnel section. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "find_flint",
+      "task_id": "01a0edb2-1f0d-7494-8176-697992346633",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A few knapped grey-black FLINT nodules with pale chalky rind, one with a sharp flaked edge. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "find_clay",
+      "task_id": "01a0edb2-26b7-7209-834d-1a8bde2f2cc7",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A lump of wet red-brown potter's CLAY with a scoop mark and finger prints. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "relic_bell",
+      "task_id": "01a0edb2-2e9d-768a-9dea-4ced65df0f71",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "An old tarnished bronze hand BELL with a worn wooden handle and green verdigris. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and bronze materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "relic_key",
+      "task_id": "01a0edb2-35d9-75ee-809b-b72acb83c5e3",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "An old large iron KEY with an ornate bow worked in an oak-leaf pattern, a little rust. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and iron materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "relic_banner",
+      "task_id": "01a0edb2-3d1f-76f2-a51c-c7946ad4b9a0",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A folded fragment of faded embroidered cloth BANNER with a stitched acorn-and-leaf border and frayed edges. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "mole_pick",
+      "task_id": "01a0edb2-4480-7738-97b3-a94949dd9803",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A mole's digging PICK-MATTOCK with a stout ash handle and a worn iron head. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood and iron materials as the reference."
     }
   ]
 }

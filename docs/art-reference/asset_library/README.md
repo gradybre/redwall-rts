@@ -50,6 +50,26 @@ outputs come back as signed URLs, not files, and those URLs expire after about 2
 `credits_charged` column sums to exactly 3,728. Five tasks failed on Meshy's side and were
 charged nothing; one rig was refused.
 
+## Farm and tunnel pass — 2026-09-29
+
+32 more assets for the demo's farming and tunnel features, **1,152 credits** (Brendan approved
+exactly that: 3,575 before, 2,423 after). They follow the library's recipe:
+- a **concept** from the style reference (`nano-banana-2`, 6 credits);
+- a **textured high-poly** from that concept (`meshy-7`, PBR, 2K, triangles, no remesh, 30 credits).
+
+The **L0 is not a Meshy remesh**. Game-budget versions are made free in Blender instead: plant
+cards for the fields, decimated meshes for props. Every task, prompt and file hash is in
+`meshy_tasks.jsonl`, `concept_prompts.json` and `files.json`.
+
+| Family | Keys | What for |
+|---|---|---|
+| environment | `plant_radish`, `plant_turnip`, `plant_carrot`, `plant_beetroot`, `plant_onion`, `plant_leek`, `plant_lettuce`, `plant_celery`, `plant_strawberry`, `plant_peas`, `plant_barley`, `plant_oats` | **One plant each, not a bed.** A planned lot, dynamic planting, pots and wild patches are all arrangements of the same plant. Growth stages are derived from the mature plant by scale, leaf thinning and tint. |
+| prop | `item_radish` … `item_oats` (the same 12 crops) | The harvested item: carried to the store, rendered as the pantry icon, shown on shelves and in jars, and later used as a cooking ingredient. |
+| prop | `tunnel_brace`, `tunnel_rubble`, `find_flint`, `find_clay`, `relic_bell`, `relic_key`, `relic_banner`, `mole_pick` | Tunnel bracing, collapse rubble, digging finds and relics, and the mole's tool. |
+
+Known from the concepts: the turnip and carrot plants show their roots below the soil clump, as
+a cut-away. Staging sinks each plant to its soil line.
+
 ## What is in it
 
 Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceiling.

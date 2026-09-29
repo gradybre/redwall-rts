@@ -52,6 +52,13 @@ const SIZES: Dictionary = {
 	&"boat_coracle": [RULE_LONGEST, 1.4], &"boat_rowboat": [RULE_LONGEST, 3.2], &"boat_raft": [RULE_LONGEST, 2.2],
 	&"jetty": [RULE_LONGEST, 3.4], &"fishing_rod": [RULE_LONGEST, 1.8], &"fishing_net": [RULE_LONGEST, 0.9],
 	&"eel_trap": [RULE_LONGEST, 0.85], &"smoking_rack": [RULE_HEIGHT, 1.5],
+	# The woods (demo/forestry/): a felled oak's bole and the beaver's gnawed one lying where they fell
+	# (a 13 m oak, world_sizes.gd); the sawhorse with its frame saw at a squirrel's height; a plank stack
+	# a mouse sees over; the chopping block and its axe to a mouse's hip; a sapling in its basket carried
+	# in both arms; a stock log and a plank the length a mouse carries on its shoulder.
+	&"felled_trunk": [RULE_LONGEST, 5.5], &"gnawed_log": [RULE_LONGEST, 5.0], &"sawhorse": [RULE_HEIGHT, 1.3],
+	&"plank_stack": [RULE_HEIGHT, 0.9], &"chopping_block": [RULE_HEIGHT, 0.8], &"sapling_basket": [RULE_HEIGHT, 0.95],
+	&"bridge_log": [RULE_LONGEST, 1.8], &"bridge_plank": [RULE_LONGEST, 1.6],
 }
 ## Library BUILDINGS this pass draws as props: drawn at their authoritative envelope height
 ## (world_sizes.gd, lookdev_dimensions.gd BUILDING_MAX_Y_MM) -- the root cellar's door-in-a-mound

@@ -15,6 +15,10 @@ extends Node3D
 ##                                and, while a route is being laid, takes the clicks and keys it uses
 ##   left click a finished tunnel select it for the "Tunnels & burrows (demo)" panel, keeping any
 ##                                selected residents (demo/tunnel/tunnel_ext.gd)
+##   left / right click a bed, a tree, a trunk, deadfall or the sawhorse: the farm's and the woods'
+##                                GROUND HANDLERS take it first, in the order they were added
+##                                (add_ground_handlers); a tool of theirs (the woods' zone marking)
+##                                sees every event before selection does (add_input_hook)
 ## The camera keeps WASD/arrows, wheel, Q/E and Home: nothing here reads them. R is the project's
 ## `placement_rotate`, which nothing in the demo handles (no placement tool is open); Esc is also
 ## `ui_cancel`/`open_menu`, so it is consumed here only while something is selected.
@@ -88,10 +92,13 @@ var _shown: PackedInt32Array = PackedInt32Array()
 var _time: float = 0.0
 var _refresh_in: float = 0.0
 var _proxy: PackedFloat32Array = PackedFloat32Array([0.0, 0.0, 0.0, 0.0, 0.0])
-## Farm hooks (demo/farm/, see set_ground_handlers and set_task_text); unset: not used.
-var _ground_click: Callable = Callable()
-var _ground_order: Callable = Callable()
-var _task_text: Callable = Callable()
+## Farm and woods hooks (demo/farm/, demo/forestry/): see add_ground_handlers, add_task_text,
+## add_input_hook and set_skill_text; none: not used.
+var _ground_clicks: Array[Callable] = []
+var _ground_orders: Array[Callable] = []
+var _task_texts: Array[Callable] = []
+var _input_hooks: Array[Callable] = []
+var _skill_text: Callable = Callable()
 
 
 func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null,
@@ -138,17 +145,41 @@ func tunnels() -> TunnelControlScript:
 
 
 func set_ground_handlers(click: Callable, order: Callable) -> void:
-	"""Let the farm (demo/farm/) take world clicks first: `click(screen: Vector2) -> bool` on a left click
-	that hit no resident (true: taken, and the selection is kept), `order(screen: Vector2) -> bool` on a
-	right click with a selection (true: taken, no move or work order is given)."""
-	_ground_click = click
-	_ground_order = order
+	"""Let one owner (the farm, demo/farm/) take world clicks first, replacing any others:
+	`click(screen: Vector2) -> bool` on a left click that hit no resident (true: taken, and the
+	selection is kept), `order(screen: Vector2) -> bool` on a right click with a selection (true: taken,
+	no move or work order is given)."""
+	_ground_clicks = [click]
+	_ground_orders = [order]
+
+
+func add_ground_handlers(click: Callable, order: Callable) -> void:
+	"""Another owner's ground handlers (the woods, demo/forestry/), asked after those added before it."""
+	_ground_clicks.append(click)
+	_ground_orders.append(order)
 
 
 func set_task_text(provider: Callable) -> void:
 	"""`provider(actor_index: int) -> String`: what a resident is doing for the farm ("" for nothing),
-	shown in the panel in place of its walking or holding state (see doing_text)."""
-	_task_text = provider
+	shown in the panel in place of its walking or holding state (see doing_text). Replaces any others."""
+	_task_texts = [provider]
+
+
+func add_task_text(provider: Callable) -> void:
+	"""Another owner's "doing" words (the woods'), asked after those added before it."""
+	_task_texts.append(provider)
+
+
+func add_input_hook(hook: Callable) -> void:
+	"""`hook(event: InputEvent) -> bool`: sees every world event after the tunnel tool and before
+	selection (the woods' zone marking); true takes the event."""
+	_input_hooks.append(hook)
+
+
+func set_skill_text(provider: Callable) -> void:
+	"""`provider(actor_index: int, alone: bool) -> String`: a resident's skills for the panel -- the
+	long form when it is selected alone, the short one in a list (demo/forestry/forest_skills.gd)."""
+	_skill_text = provider
 
 
 func doing_text(actor_index: int) -> String:
@@ -161,8 +192,10 @@ func doing_text(actor_index: int) -> String:
 	var brain := (_cast.actor(actor_index) as DemoActorScript).brain
 	if brain.order == BrainScript.ORDER_TASK:
 		return brain.task_label()
-	if _task_text.is_valid():
-		return String(_task_text.call(actor_index))
+	for provider: Callable in _task_texts:
+		var said: String = String(provider.call(actor_index))
+		if not said.is_empty():
+			return said
 	return ""
 
 
@@ -236,6 +269,10 @@ func handle_input(event: InputEvent) -> bool:
 	if _tunnels != null and _tunnels.handle_input(event):
 		_refresh_in = 0.0
 		return true
+	for hook: Callable in _input_hooks:
+		if bool(hook.call(event)):
+			_refresh_in = 0.0
+			return true
 	if event is InputEventMouseButton:
 		return _on_button(event as InputEventMouseButton)
 	if event is InputEventMouseMotion:
@@ -299,7 +336,7 @@ func _finish_select(at: Vector2) -> void:
 		select_box(_press_at, at, _additive)
 		return
 	var hit := pick(at)
-	if hit < 0 and _ground_click.is_valid() and bool(_ground_click.call(at)):
+	if hit < 0 and _ground_clicked(at):
 		_refresh_in = 0.0
 		return
 	if hit < 0:
@@ -314,6 +351,14 @@ func _finish_select(at: Vector2) -> void:
 		_selected.fill(0)
 		_selected[hit] = 1
 	_refresh_in = 0.0
+
+
+func _ground_clicked(at: Vector2) -> bool:
+	"""Offer a left click on no resident to each ground handler in turn; true when one took it."""
+	for handler: Callable in _ground_clicks:
+		if bool(handler.call(at)):
+			return true
+	return false
 
 
 func select_box(corner_a: Vector2, corner_b: Vector2, additive: bool) -> void:
@@ -413,9 +458,10 @@ func _update_screen() -> void:
 func order_at(at: Vector2) -> bool:
 	"""Order the selection to the ground under a screen point: work at a POI's spot, otherwise move.
 	Marks where the order landed, or a refusal. True when accepted."""
-	if _ground_order.is_valid() and bool(_ground_order.call(at)):
-		_refresh_in = 0.0
-		return true
+	for handler: Callable in _ground_orders:
+		if bool(handler.call(at)):
+			_refresh_in = 0.0
+			return true
 	var t := PickScript.ray_ground(_camera.project_ray_origin(at), _camera.project_ray_normal(at), 0.0)
 	if t < 0.0:
 		return false
@@ -517,6 +563,7 @@ func _refresh_panel() -> void:
 			_signature.append(brain.clip.hash())
 			_signature.append(_dug_percent(brain))
 			_signature.append(doing_text(i).hash())
+			_signature.append(skills_text(i).hash())
 	if _signature == _shown:
 		return
 	_shown = _signature.duplicate()
@@ -538,8 +585,16 @@ func party_entries() -> Array[Dictionary]:
 		var doing := doing_text(i)
 		var state := PanelScript.state_text(brain.activity(), brain.clip, place, _dug_percent(brain))
 		entries.append({"name": actor.display_name, "species": actor.species, "colour": actor.chip_colour,
-			"digger": _tunnels.is_digger(i), "state": doing if doing != "" else state})
+			"digger": _tunnels.is_digger(i), "state": doing if doing != "" else state, "skills": skills_text(i)})
 	return entries
+
+
+func skills_text(actor_index: int) -> String:
+	"""A resident's skills for the panel ("" with no provider): the long form when it is selected
+	alone, the short form in a list."""
+	if not _skill_text.is_valid():
+		return ""
+	return String(_skill_text.call(actor_index, selection_count() <= 1))
 
 
 func _dug_percent(brain: BrainScript) -> int:

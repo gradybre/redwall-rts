@@ -15,6 +15,12 @@ extends Node3D
 ##                         player-dug tunnel may pass under (demo/tunnel/).
 ##   hide_cover(...)       hide the ground cover over a new tunnel's holes, heaps and route, so no
 ##                         grass pokes up through a hole or a mound.
+##   trees()               every tree placement -- the authored ones and the woods' -- in a fixed
+##                         order; `tree_node(i)` is the node drawing tree i once built (the woods,
+##                         demo/forestry/, fell, regrow and replace them).
+##   woods_obstacles(r)    the woods' blocking circles standing beyond the play area's report margin
+##                         but within `r` m of the square: the ground the forestry crew walks.
+##   make_piece(...)       one more model of a world key, drawn exactly as the world draws it.
 ## The three queries are pure functions of the authored layout: they answer identically before
 ## or after `build()`, and whether or not assets are staged.
 ##
@@ -54,6 +60,10 @@ const PLACEHOLDER_STONE: Array[StringName] = [&"mossy_boulder", &"rock_cluster"]
 const COVER_MARGIN_M: float = 0.45
 
 var _layout_ready: bool = false
+## The manifest's world rows (for make_piece after build).
+var _world_rows: Dictionary = {}
+## Per tree placement (trees() order): the node drawing it (null before build).
+var _tree_nodes: Array[Node3D] = []
 var _structure: Array[Dictionary] = []
 var _dressing: Array[Dictionary] = []
 var _cover: Array[Dictionary] = []
@@ -77,13 +87,18 @@ func build(manifest: Dictionary) -> void:
 	_clear_built()
 	_ensure_layout()
 	var world: Dictionary = manifest.get("world", {})
+	_world_rows = world
 	var village := Node3D.new()
 	village.name = "Village"
 	_built = [Look.make_ground(), Look.make_sun(), Look.make_environment(), village]
 	for node: Node in _built:
 		add_child(node)
+	_tree_nodes.clear()
 	for p: Dictionary in _placed():
-		village.add_child(_make_piece(world, p))
+		var piece: Node3D = _make_piece(world, p)
+		village.add_child(piece)
+		if PLACEHOLDER_TREES.has(p["key"]):
+			_tree_nodes.append(piece)
 	_cover_nodes.clear()
 	_cover_at.clear()
 	_cover_hidden.clear()
@@ -179,6 +194,42 @@ func set_view_distance(camera_distance_m: float) -> void:
 func bounds() -> AABB:
 	"""The walkable area, from the ground up to a badger's head."""
 	return Layout.bounds()
+
+
+func trees() -> Array[Dictionary]:
+	"""Every tree placement (oak, beech, sapling) in the order the world draws them: the authored ones,
+	then the woods'. A fresh copy; the same before or after build()."""
+	_ensure_layout()
+	var out: Array[Dictionary] = []
+	for p: Dictionary in _placed():
+		if PLACEHOLDER_TREES.has(p["key"]):
+			out.append(p.duplicate())
+	return out
+
+
+func tree_node(i: int) -> Node3D:
+	"""The node drawing tree `i` (trees() order), or null before build()."""
+	return _tree_nodes[i] if i >= 0 and i < _tree_nodes.size() else null
+
+
+func make_piece(key: StringName, at: Vector2, yaw: float, size: float) -> Node3D:
+	"""A new model of `key` standing at `at`, drawn as the world draws it (staged, or its placeholder of
+	the same footprint). The caller parents it."""
+	return _make_piece(_world_rows, {"key": key, "at": at, "yaw": yaw, "size": size})
+
+
+func woods_obstacles(reach_m: float) -> Array[Vector3]:
+	"""The woods' and the authored nature's blocking circles (x, radius, z) that obstacles() leaves out
+	-- beyond its report margin -- but that come within `reach_m` of the square (Chebyshev)."""
+	_ensure_layout()
+	var out: Array[Vector3] = []
+	for p: Dictionary in _placed():
+		for circle: Vector3 in Layout.placement_circles(p):
+			var reach: float = reach_m + circle.z
+			if Layout.circle_reaches_play(circle) or absf(circle.x) > reach or absf(circle.y) > reach:
+				continue
+			out.append(public_circle(circle))
+	return out
 
 
 func _ensure_layout() -> void:

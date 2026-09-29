@@ -17,8 +17,9 @@ extends Node3D
 ## to the other, placed on the skeleton's `skeleton_updated` so it sits on this frame's posed hands
 ## rather than last frame's. A trip carrying a HARVEST holds that item's own model instead (`hold()`,
 ## demo/farm/farm_carry_view.gd), centred between the hands and facing the way the carrier walks.
-## A mole digging holds its pick (`set_tool()`) in its right hand. Presentation only; the brain
-## decides when a trip carries, and the farm what.
+## A mole digging holds its pick (`set_tool()`) in its right hand; a resident felling a tree holds the
+## woods' axe there (`set_work_tool()`, demo/forestry/) for as long as the work lasts. Presentation
+## only; the brain decides when a trip carries, and the farm and the woods what.
 ##
 ## UNDERGROUND (demo/tunnel/). In a tunnel the actor stands on the bore floor (the brain's
 ## `ground_y_m`) and is hidden -- unless the underground view is on (`set_underground_view`), when
@@ -89,6 +90,9 @@ var _holding: bool = false
 ## A tool in the right hand while the brain digs (the mole's pick), and its fit to the hand.
 var _tool: MeshInstance3D = null
 var _tool_fit: Transform3D = Transform3D.IDENTITY
+## A work tool held while a job wants it (the woods' axe), whatever the brain's state.
+var _work_tool: MeshInstance3D = null
+var _work_tool_fit: Transform3D = Transform3D.IDENTITY
 var _hand_bone: int = -1
 var _hand_left: int = -1
 var _hand_right: int = -1
@@ -193,7 +197,7 @@ func advance(clock: DemoClockScript) -> void:
 		brain.step(clock.step_s(k))
 	_apply_transform()
 	_apply_clip(clock.speed)
-	if _skeleton == null and (_held != null or _tool != null):
+	if _skeleton == null and (_held != null or _tool != null or _work_tool != null):
 		_place_load()
 
 
@@ -365,22 +369,58 @@ func set_tool(mesh: Mesh, fit: Transform3D) -> void:
 		_hand_bone = _skeleton.find_bone("RightHand")
 
 
+func set_work_tool(mesh: Mesh, fit: Transform3D) -> void:
+	"""Hold this tool in the right hand from now until `clear_work_tool()` (`fit`: in the hand bone's
+	frame) -- the woods' axe while felling."""
+	if _work_tool == null:
+		_work_tool = MeshInstance3D.new()
+		_work_tool.name = &"WorkTool"
+		add_child(_work_tool)
+		_listen_to_pose()
+	_work_tool.mesh = mesh
+	_work_tool_fit = fit
+	_work_tool.visible = true
+	if _skeleton != null and _hand_bone < 0:
+		_hand_bone = _skeleton.find_bone("RightHand")
+	if _skeleton == null:
+		_place_tool()
+
+
+func clear_work_tool() -> void:
+	"""Put the work tool away."""
+	if _work_tool != null:
+		_work_tool.visible = false
+
+
+func work_tool_shown() -> bool:
+	"""Whether a work tool is held now (tests and the scripted check)."""
+	return _work_tool != null and _work_tool.visible
+
+
 func tool_shown() -> bool:
 	"""Whether the tool shows now (tests and the scripted check)."""
 	return _tool != null and _tool.visible
 
 
 func _place_tool() -> void:
-	"""The tool in the right hand on this frame's pose, while digging; hidden otherwise."""
+	"""The tool in the right hand on this frame's pose, while digging; hidden otherwise. A work tool
+	held for a job goes in the same hand."""
+	if _work_tool != null and _work_tool.visible:
+		_work_tool.transform = _in_right_hand(_work_tool_fit)
 	if _tool == null:
 		return
 	_tool.visible = brain.state == BrainScript.State.DIG and (_hand_bone >= 0 or is_placeholder)
 	if not _tool.visible:
 		return
-	if _hand_bone >= 0:
-		_tool.transform = _skeleton_to_actor * _skeleton.get_bone_global_pose(_hand_bone) * _tool_fit
-	else:
-		_tool.transform = Transform3D(Basis.IDENTITY, Vector3(body_radius(height_m), height_m * 0.5, 0.2)) * _tool_fit
+	_tool.transform = _in_right_hand(_tool_fit)
+
+
+func _in_right_hand(fit: Transform3D) -> Transform3D:
+	"""`fit` in the right hand bone's frame on this frame's pose, as the actor's local transform; a
+	placeholder holds it at its side."""
+	if _hand_bone >= 0 and _skeleton != null:
+		return _skeleton_to_actor * _skeleton.get_bone_global_pose(_hand_bone) * fit
+	return Transform3D(Basis.IDENTITY, Vector3(body_radius(height_m), height_m * 0.5, 0.2)) * fit
 
 
 func _listen_to_pose() -> void:

@@ -264,8 +264,9 @@ static func placement(width: int, height: int, layout: UiLayout, geometry: UiLay
 
 
 static func party_lines(entries: Array[Dictionary]) -> PackedStringArray:
-	"""The panel's body lines: nobody; one resident's name, species and state; or a count and a
-	line per resident (at most MAX_ROWS, then "+ n more")."""
+	"""The panel's body lines: nobody; one resident's name, species, state and -- when it has any
+	(an entry's "skills", demo/forestry/) -- its skills; or a count and a line per resident, its short
+	skills after its state (at most MAX_ROWS, then "+ n more")."""
 	var lines := PackedStringArray()
 	if entries.is_empty():
 		lines.append(NOBODY)
@@ -273,10 +274,13 @@ static func party_lines(entries: Array[Dictionary]) -> PackedStringArray:
 		lines.append(String(entries[0]["name"]))
 		lines.append(String(entries[0]["species"]))
 		lines.append(String(entries[0]["state"]))
+		if not String(entries[0].get("skills", "")).is_empty():
+			lines.append(String(entries[0]["skills"]))
 	else:
 		lines.append("%d residents" % entries.size())
 		for i in mini(entries.size(), MAX_ROWS):
-			lines.append("%s — %s" % [entries[i]["name"], entries[i]["state"]])
+			var skills: String = String(entries[i].get("skills", ""))
+			lines.append("%s — %s%s" % [entries[i]["name"], entries[i]["state"], "" if skills.is_empty() else " · " + skills])
 		if entries.size() > MAX_ROWS:
 			lines.append("+ %d more" % (entries.size() - MAX_ROWS))
 	return lines

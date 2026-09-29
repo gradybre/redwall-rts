@@ -31,6 +31,7 @@ const DEMO_HEIGHT_M: Dictionary = {
 	&"beech_mature": 15.0,      # beeches run taller and narrower than oaks
 	&"oak_sapling": 3.2,        # a young oak about three mice tall
 	&"stump_mossy": 0.9,        # a felled-oak stump a mouse can sit on (model is 2:1 wide)
+	&"oak_stump_fresh": 0.8,    # a newly felled oak's stump, a little under the mossy one (it has not settled)
 	&"mossy_boulder": 1.7,      # a boulder taller than a mouse, below a badger's shoulder
 	&"rock_cluster": 0.8,       # knee-to-waist stones for a mouse
 	&"fallen_log": 0.9,         # a log section roughly mouse-chest thick
@@ -69,6 +70,7 @@ const NATIVE_AABB: Dictionary = {
 	&"beech_mature": [Vector3(-0.5307, 0.0, -0.4848), Vector3(0.5475, 1.9004, 0.4888)],
 	&"oak_sapling": [Vector3(-0.3719, 0.0, -0.1772), Vector3(0.3838, 1.9007, 0.1693)],
 	&"stump_mossy": [Vector3(-0.9507, 0.0, -0.9217), Vector3(0.9472, 0.9494, 0.9324)],
+	&"oak_stump_fresh": [Vector3(-0.9077, 0.0, -0.9488), Vector3(0.9062, 0.7792, 0.9497)],
 	&"mossy_boulder": [Vector3(-0.7325, 0.0, -0.9114), Vector3(0.7995, 1.511, 0.9225)],
 	&"rock_cluster": [Vector3(-0.9523, 0.0, -0.8745), Vector3(0.9507, 0.8433, 0.8667)],
 	&"fallen_log": [Vector3(-0.8699, 0.0, -0.3725), Vector3(0.944, 0.7296, 0.3399)],

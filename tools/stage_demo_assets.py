@@ -58,8 +58,9 @@ WORLD = {
 	"building": ["residence", "hall", "kitchen", "well", "workbench", "covered_store", "open_stockpile", "fence"],
 	## The README's shattered-foliage L0s (bramble, fern, wildflower, birch, apple) are left out.
 	## crop_grain_ripe and crop_roots_ripe shatter too; they are staged by make_demo_crop_cards.py.
-	"environment": ["oak_mature", "beech_mature", "oak_sapling", "stump_mossy", "mossy_boulder", "rock_cluster",
-		"fallen_log", "grass_tuft", "mushroom_cluster", "reeds", "crop_cabbage_ripe"],
+	## oak_stump_fresh is the forestry demo's newly felled stump (godot/demo/forestry/).
+	"environment": ["oak_mature", "beech_mature", "oak_sapling", "stump_mossy", "oak_stump_fresh", "mossy_boulder",
+		"rock_cluster", "fallen_log", "grass_tuft", "mushroom_cluster", "reeds", "crop_cabbage_ripe"],
 	"prop": ["barrel", "crate", "log_stack", "handcart", "water_bucket", "sack_pile", "table_stools",
 		"wheelbarrow", "cauldron_tripod"],
 }

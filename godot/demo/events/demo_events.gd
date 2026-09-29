@@ -4,10 +4,10 @@ extends RefCounted
 ## demo cast out of harm's way and back.
 ##
 ## ---------------------------------------------------------------------------------------
-## A THREAT covers a disc for DURATION_USEC of demo time: the STREAM FLOODING its edge by the reed
-## beds (west) -- the disc the water query says a flood of it spills over (demo/demo_water.gd, the
-## village's one water adapter; the demo knows water only through it) -- or a FIRE at the covered store (east; the village has no
-## barn, so the store stands in for one). Which comes next is SEEDED: kind = roll(count) mod 2, an integer hash of the
+## A THREAT covers a disc for DURATION_USEC of demo time: the east STREAM FLOODING over its west bank
+## at the ford -- the disc the water query says a flood of it spills over (demo/village_water.gd, the
+## village's one water adapter over the real water map; the demo knows water only through it) -- or a
+## FIRE at the covered store (the village has no barn, so the store stands in for one). Which comes next is SEEDED: kind = roll(count) mod 2, an integer hash of the
 ## event's ordinal and SEED, so every run meets the same sequence. They come on their own on a seeded
 ## schedule (FIRST_AUTO_USEC, then every AUTO_EVERY_USEC plus a seeded jitter), and the tunnel
 ## panel's "Test event (demo)" brings the next one at once.
@@ -22,7 +22,7 @@ extends RefCounted
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
-const WaterScript := preload("res://demo/demo_water.gd")
+const WaterScript := preload("res://demo/village_water.gd")
 
 const KIND_FLOOD: int = 0
 const KIND_FIRE: int = 1
@@ -56,7 +56,7 @@ var _water: WaterScript = null
 
 
 func _init(water: WaterScript = null) -> void:
-	"""Threats over this water (none: the village's water adapter over its placeholder tables)."""
+	"""Threats over this water (none: the village's water adapter over its authored water)."""
 	_water = water if water != null else WaterScript.new()
 
 

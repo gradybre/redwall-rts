@@ -9,6 +9,9 @@ extends Node3D
 ##                               fishery. `world` is demo_world.gd (or null: water without a world).
 ##   bind_clock(clock, tick)     follow the demo clock (demo_clock.gd): flow and fishing stop when
 ##                               paused and run 2x / 4x with the HUD; the fishery starts at `tick`.
+##   bind_calendar(calendar)     run the fishery on the demo's ONE calendar (demo_calendar.gd), tick
+##                               for tick, so its days are the farm's and the HUD's days; unbound it
+##                               counts the clock's microseconds at the settlement's 30 ticks a second.
 ##   map()                       the integer depth/shore/zone/flow/crossing/tunnel queries
 ##                               (water_map.gd) -- the foundation phase 2 depends on.
 ##   fishing()                   the fishing driver (fishing_driver.gd), or null if the item catalog
@@ -16,7 +19,10 @@ extends Node3D
 ##   points_of_interest()        the water's resident spots, in demo_world.gd's published shape.
 ##   obstacles()                 the dressing circles residents walk round, (x, radius, z).
 ##   merged_points(p) / merged_obstacles(o)   the world's lists with the water's appended.
-##   toggle_overlay()            the V inspection overlay (also bound to the V key).
+##   toggle_overlay() / set_overlay_shown(on)   the inspection overlay. It has no key of its own: V is
+##                               the village's one overlay cycle (demo_farm.gd add_overlay), and the
+##                               water's zones are its last step.
+##   set_flood_rise(level)       raise the stream to `level` (0..1) of its bank: a flood (demo/events/).
 ##
 ## UNDERGROUND VIEW (U, demo/tunnel/tunnel_view.gd) hides the world's Ground node by name and fades
 ## the Village. The water follows the Ground's own visibility -- its bank film hides with it and the
@@ -27,6 +33,7 @@ extends Node3D
 ## writes into the simulation, a pantry or an inventory.
 
 const DemoClockScript := preload("res://demo/demo_clock.gd")
+const DemoCalendarScript := preload("res://demo/demo_calendar.gd")
 const Look := preload("res://demo/world/world_look.gd")
 const Layout := preload("res://demo/world/world_layout.gd")
 const Rules := preload("res://demo/water/water_rules.gd")
@@ -41,8 +48,9 @@ const FishingDriverScript := preload("res://demo/water/fishing_driver.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const BANK_SHADER := preload("res://demo/water/water_bank.gdshader")
 
-## The inspection overlay's key: unbound in project.godot and in every demo control (T, U, R).
-const OVERLAY_KEY: Key = KEY_V
+## A flood raises the stream this share of its surface's drop below the ground datum (demo value):
+## nearly brim-full, so the water climbs its carved banks and spills onto their tops.
+const FLOOD_RISE_PERMILLE: int = 900
 const GROUND_NODE: NodePath = ^"Ground"
 const ENVIRONMENT_NODE: NodePath = ^"Environment"
 ## Where the camera may look: the stream from the mill to the pond's far shore (m).
@@ -61,6 +69,9 @@ var _driver: FishingDriverScript = null
 var _clock: DemoClockScript = null
 var _species_ids: PackedInt32Array = PackedInt32Array()
 var _underground: bool = false
+var _calendar: DemoCalendarScript = null
+var _stream_surface: Node3D = null
+var _flood_rise_m: float = 0.0
 
 
 func build(manifest: Dictionary, world: Node3D) -> void:
@@ -74,8 +85,11 @@ func build(manifest: Dictionary, world: Node3D) -> void:
 	add_child(_skirt)
 	_surface = WaterSurfaceScript.new()
 	_surface.build(_grid, _map, _sky_colour(world))
-	for node: MeshInstance3D in _surface.nodes:
-		add_child(node)
+	for body: int in _surface.nodes.size():
+		add_child(_surface.nodes[body])
+		if _map.body_kind(body) == WaterMapScript.KIND_STREAM:
+			_stream_surface = _surface.nodes[body]
+			_flood_rise_m = Rules.to_m(_map.body_level_drop_u(body) * FLOOD_RISE_PERMILLE / 1000)
 	var village: Node3D = world.get_node_or_null(VILLAGE_NODE) as Node3D if world != null else null
 	WaterDressing.build(village if village != null else self, manifest.get("world", {}), _map)
 	if world != null:
@@ -103,6 +117,24 @@ func bind_clock(clock: DemoClockScript, start_tick: int) -> void:
 		return
 	_driver = made.driver as FishingDriverScript
 	_overlay.set_driver(_driver, _map)
+
+
+func bind_calendar(calendar: DemoCalendarScript) -> void:
+	"""Run the fishery on `calendar` (see the header); its first catch-up happens on the next frame."""
+	_calendar = calendar
+
+
+func set_flood_rise(level: float) -> void:
+	"""Raise the stream's surface `level` (0 dry .. 1 in full flood) of FLOOD_RISE_PERMILLE of its
+	drop below the ground datum: a flood visibly climbs the real banks. Presentation only."""
+	if _stream_surface == null:
+		return
+	_stream_surface.position.y = _flood_rise_m * clampf(level, 0.0, 1.0)
+
+
+func flood_rise_m() -> float:
+	"""How high the stream's surface stands above its level now, in metres (checks)."""
+	return _stream_surface.position.y if _stream_surface != null else 0.0
 
 
 func weir_width_u() -> int:
@@ -153,6 +185,12 @@ func toggle_overlay() -> bool:
 	return _overlay.toggle()
 
 
+func set_overlay_shown(on: bool) -> void:
+	"""Show or hide the inspection overlay (the village's V cycle)."""
+	if _overlay.visible != on:
+		_overlay.toggle()
+
+
 func overlay() -> WaterOverlayScript:
 	"""The inspection overlay node."""
 	return _overlay
@@ -169,27 +207,17 @@ func is_underground_view() -> bool:
 
 
 func _process(_delta: float) -> void:
-	"""Advance the flow and the fishery by this frame's demo time (0 while paused). No allocation."""
+	"""Advance the flow by this frame's demo time (0 while paused), and the fishery to the demo
+	calendar's tick -- or by the frame's microseconds with no calendar bound. No allocation."""
 	if _clock == null:
 		return
 	_surface.advance(_clock.frame_usec)
-	if _driver != null:
+	if _driver == null:
+		return
+	if _calendar != null:
+		_driver.advance_ticks(maxi(_calendar.tick - _driver.completed_tick(), 0))
+	else:
 		_driver.advance_usec(_clock.frame_usec)
-
-
-func _unhandled_input(event: InputEvent) -> void:
-	"""V (no modifiers) toggles the inspection overlay."""
-	var key := event as InputEventKey
-	if key == null or not key.pressed or key.echo:
-		return
-	if key.shift_pressed or key.ctrl_pressed or key.alt_pressed or key.meta_pressed:
-		return
-	var code: Key = key.physical_keycode if key.physical_keycode != KEY_NONE else key.keycode
-	if code == OVERLAY_KEY and _overlay != null:
-		_overlay.toggle()
-		var viewport: Viewport = get_viewport()
-		if viewport != null:
-			viewport.set_input_as_handled()
 
 
 func set_underground_view(on: bool) -> void:

@@ -17,7 +17,6 @@ const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const TunnelsScript := preload("res://demo/farm/farm_tunnels.gd")
 const CrewScript := preload("res://demo/farm/farm_crew.gd")
 const JobsScript := preload("res://demo/farm/farm_jobs.gd")
-const Water := preload("res://demo/farm/farm_water.gd")
 const Look := preload("res://demo/farm/farm_look.gd")
 const Text := preload("res://demo/farm/farm_text.gd")
 const AlertsScript := preload("res://demo/farm/farm_alerts.gd")
@@ -82,11 +81,10 @@ func after_each() -> void:
 # --- fixtures -----------------------------------------------------------------------------------
 
 func _cast() -> DemoCastScript:
-	"""The placeholder cast in the real village layout, with the farm's pond as an obstacle."""
+	"""The placeholder cast in the real village layout."""
 	var world := DemoWorldScript.new()
 	_nodes.append(world)
 	var circles: Array[Vector3] = world.obstacles()
-	circles.append(Water.placeholder_obstacle())
 	var cast := DemoCastScript.new()
 	_nodes.append(cast)
 	cast.build({}, world.points_of_interest(), circles)
@@ -786,6 +784,20 @@ func test_keys_cycle_the_overlay_and_open_the_pantry() -> void:
 	assert_false(farm.handle_key(key), "nothing left to close")
 	key.physical_keycode = KEY_J
 	assert_false(farm.handle_key(key), "other keys pass")
+
+
+func test_one_key_cycles_every_map_overlay() -> void:
+	"""V: moisture, ripeness, then an overlay the village added (the water's zones), then off -- each
+	shown alone, so no two overlays share V."""
+	var farm := _farm()
+	var water_shown: Array[bool] = []
+	farm.add_overlay("water zones", func(on: bool) -> void: water_shown.append(on))
+	var names: Array[String] = []
+	for press: int in 4:
+		names.append(farm.cycle_overlays())
+	assert_equal(names, ["moisture", "ripeness", "water zones", "off"] as Array[String], "the cycle")
+	assert_equal(water_shown, [false, false, true, false] as Array[bool], "the water shown only on its step")
+	assert_equal(farm.view.overlay_mode, ViewScript.OVERLAY_OFF, "and the farm's off again")
 
 
 func test_planting_from_the_picker_orders_the_sowing() -> void:

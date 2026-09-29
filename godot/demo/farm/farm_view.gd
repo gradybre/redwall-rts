@@ -174,7 +174,12 @@ func select_bed(bed: int) -> void:
 
 func cycle_overlay() -> int:
 	"""Off -> moisture -> ripeness -> off. Returns the new mode."""
-	overlay_mode = (overlay_mode + 1) % OVERLAY_NAMES.size()
+	return set_overlay((overlay_mode + 1) % OVERLAY_NAMES.size())
+
+
+func set_overlay(mode: int) -> int:
+	"""Show overlay `mode` (OVERLAY_*; anything else: off). Returns the mode shown."""
+	overlay_mode = mode if mode > OVERLAY_OFF and mode < OVERLAY_NAMES.size() else OVERLAY_OFF
 	return overlay_mode
 
 

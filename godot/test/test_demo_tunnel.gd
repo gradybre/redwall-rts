@@ -313,11 +313,11 @@ func test_each_point_is_checked_as_it_is_laid() -> void:
 
 func test_every_refusal_has_words() -> void:
 	"""A reason per REFUSE_* code, and none for REFUSE_NONE."""
-	assert_equal(Rules.REASONS.size(), 16, "sixteen codes")
+	assert_equal(Rules.REASONS.size(), 17, "seventeen codes (the last: under water)")
 	assert_equal(Rules.reason_text(Rules.REFUSE_NONE), "", "no reason")
 	assert_equal(Rules.reason_text(Rules.REFUSE_NOT_A_DIGGER), "only a mole can dig tunnels -- select the mole", "not a mole")
 	assert_equal(Rules.reason_text(Rules.REFUSE_UNDER_BUILDING), "a tunnel cannot pass under a building or the well", "under")
-	for code in range(1, 16):
+	for code in range(1, 17):
 		assert_false(Rules.reason_text(code).is_empty(), "code %d has words" % code)
 
 

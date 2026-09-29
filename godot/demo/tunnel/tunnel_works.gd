@@ -6,8 +6,8 @@ extends Node
 ##   weather   demo/weather/demo_weather.gd -- THE demo weather (demo_services.gd), which this only
 ##             reads: its surface speed is handed to the tunnel planner (tunnel_network.surface_permille)
 ##             every frame, and its rain soaks the wet ground (hazards)
-##   water     demo/demo_water.gd -- THE village water adapter (demo_services.gd): the ground's wetness
-##             and the flood's reach come from it (placeholder tables until the real water merges)
+##   water     demo/village_water.gd -- THE village water adapter (demo_services.gd), over the real
+##             water map: the ground's wetness, the flood's reach and the routes' water check
 ##   ground    tunnel_ground.gd -- what the village's ground is made of
 ##   stores    tunnel_stores.gd -- the demo's wood, stone and finds
 ##   finds     tunnel_finds.gd -- one seeded roll per metre cut
@@ -31,7 +31,7 @@ extends Node
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
-const WaterScript := preload("res://demo/demo_water.gd")
+const WaterScript := preload("res://demo/village_water.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")

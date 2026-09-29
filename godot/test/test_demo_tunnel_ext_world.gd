@@ -643,16 +643,17 @@ func test_a_job_done_takes_effect_and_is_announced() -> void:
 
 
 func test_a_flood_by_the_stream_sends_residents_through_a_tunnel_and_home_again() -> void:
-	"""The test event (a flood) sends the resident at the cabbages down the tunnel out of the disc; the
-	one on the square stays put; when the water goes down the evacuee's task ends."""
+	"""The test event (a flood of the real stream at the ford) sends the resident on the east road down
+	the tunnel out of the disc; the one on the square stays put; when the water goes down the
+	evacuee's task ends."""
 	var space := _space([])
 	var species := PackedStringArray(["Mouse", "Mouse"])
-	var brains := _cast_of(space, [Vector2(-10.0, 7.0), Vector2(0.0, -1.0)], species)
+	var brains := _cast_of(space, [Vector2(16.0, -0.9), Vector2(0.0, -1.0)], species)
 	var works := _works(space, brains, species)
-	_open_tunnel(space, [Vector2i(-9216, 7168), Vector2i(-3072, 7168)])
+	_open_tunnel(space, [Vector2i(17408, -922), Vector2i(11264, -922)])
 	assert_true(works.start_test_event(), "the flood comes")
 	assert_false(works.start_test_event(), "one at a time")
-	assert_true(brains[0].task is EvacuateTaskScript, "the cabbage mouse evacuates")
+	assert_true(brains[0].task is EvacuateTaskScript, "the east-road mouse evacuates")
 	assert_true((brains[0].task as EvacuateTaskScript).through_tunnel, "through the tunnel")
 	assert_true(brains[1].task == null, "the square mouse does not")
 	assert_true(_warned("Flood by the stream — evacuating"), "alerted")
@@ -661,7 +662,7 @@ func test_a_flood_by_the_stream_sends_residents_through_a_tunnel_and_home_again(
 		brains[0].step(DT)
 		below = below or brains[0].underground
 	assert_true(below, "went through the tunnel")
-	assert_true(brains[0].position.x > -3.0, "came out beyond it (%s)" % brains[0].position)
+	assert_true(brains[0].position.x < 11.0, "came out beyond it (%s)" % brains[0].position)
 	assert_false(brains[0].underground, "and is on the surface, not walking the ground from below")
 	works.step(EventsScript.DURATION_USEC)
 	assert_true(_noted("The flood has gone down"), "the all-clear")

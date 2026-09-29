@@ -1,14 +1,15 @@
 extends Node3D
 ## What the demo's threats look like. Decision 0196 (live demo). Presentation only.
 ##
-## A threat's disc is ringed in clay on the ground while it lasts. A FLOOD spreads a sheet of water
-## over its disc, rising in over RISE_S and draining away as it clears; a FIRE burns at the covered
-## store -- flames, smoke and a warm flickering light.
+## A threat's disc is ringed in clay on the ground while it lasts. A FLOOD raises the REAL stream: its
+## level eases up over RISE_S and back down as it clears, and each change is handed to the water
+## (`set_flood_rise`, demo/water/demo_water.gd `set_flood_rise`), which lifts the stream's own surface
+## up its carved banks -- the ring marks how far into the village the spill reaches, from the stream's
+## real west bank (village_water.gd). There is no stand-in sheet of water any more. A FIRE burns at the
+## covered store -- flames, smoke and a warm flickering light.
 ##
-## THE FLOOD SHEET IS A STAND-IN WATER VISUAL, kept to one flat disc in `_water` and isolated here:
-## the village's real water (feat/demo-water) owns water drawing, and when it is merged this sheet
-## should be removed (or given to it) -- nothing else reads it. Everything runs on the demo clock: paused,
-## the water stands and the flames hang still. Built once; per frame it only eases and scales.
+## Everything runs on the demo clock: paused, the water stands and the flames hang still. Built once;
+## per frame it only eases, and hands the water a new level only when it moved.
 
 const EventsScript := preload("res://demo/events/demo_events.gd")
 const DemoClockScript := preload("res://demo/demo_clock.gd")
@@ -16,8 +17,6 @@ const MarksScript := preload("res://demo/control/demo_marks.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 
 const RISE_S: float = 3.0
-const WATER_COLOUR: Color = Color(0.28, 0.48, 0.66, 0.62)
-const WATER_Y_M: float = 0.07
 ## Flames go from a hot yellow to red and out; smoke rises in, greys and thins away.
 const FLAME_RAMP: Array[Color] = [Color(1.0, 0.86, 0.45, 0.95), Color(1.0, 0.5, 0.12, 0.8), Color(0.55, 0.12, 0.04, 0.0)]
 const SMOKE_RAMP: Array[Color] = [Color(0.32, 0.3, 0.28, 0.0), Color(0.3, 0.29, 0.28, 0.55), Color(0.26, 0.26, 0.26, 0.0)]
@@ -27,7 +26,9 @@ const FIRE_HEIGHT_M: float = 3.4
 
 var _events: EventsScript = null
 var _clock: DemoClockScript = null
-var _water: MeshInstance3D = null
+## `(level: float) -> void`: raises the real stream (none: the flood is only ringed).
+var _flood_rise: Callable = Callable()
+var _risen: float = 0.0
 var _ring: MeshInstance3D = null
 var _flames: CPUParticles3D = null
 var _smoke: CPUParticles3D = null
@@ -41,21 +42,6 @@ func configure(events: EventsScript, clock: DemoClockScript) -> void:
 	name = "EventsView"
 	_events = events
 	_clock = clock
-	_water = MeshInstance3D.new()
-	var disc := CylinderMesh.new()
-	disc.top_radius = 1.0
-	disc.bottom_radius = 1.0
-	disc.height = 0.02
-	disc.radial_segments = 48
-	_water.mesh = disc
-	var material := StandardMaterial3D.new()
-	material.albedo_color = WATER_COLOUR
-	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	material.roughness = 0.08
-	material.metallic_specular = 0.8
-	_water.material_override = material
-	_water.visible = false
-	add_child(_water)
 	_ring = MarksScript.make_ring(Palette.CLAY)
 	_ring.visible = false
 	add_child(_ring)
@@ -142,10 +128,21 @@ func _process(_delta: float) -> void:
 	_ring.visible = _events.active
 	_ring.position = Vector3(centre.x, MarksScript.LIFT_M, centre.y)
 	_ring.scale = Vector3(radius, 1.0, radius)
-	_water.visible = flood and _level > 0.01
-	_water.position = Vector3(centre.x, WATER_Y_M, centre.y)
-	_water.scale = Vector3(radius * _level, 1.0, radius * _level)
+	_raise_stream(_level if flood else 0.0)
 	_fire(not flood and _events.active, Vector3(centre.x, 0.0, centre.y))
+
+
+func set_flood_rise(rise: Callable) -> void:
+	"""`rise(level: float)`: how a flood raises the real stream (demo_water.gd `set_flood_rise`)."""
+	_flood_rise = rise
+
+
+func _raise_stream(level: float) -> void:
+	"""Hand the stream its flood level when it moved."""
+	if level == _risen or not _flood_rise.is_valid():
+		return
+	_risen = level
+	_flood_rise.call(level)
 
 
 func _fire(on: bool, at: Vector3) -> void:

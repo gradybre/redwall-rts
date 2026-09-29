@@ -50,11 +50,13 @@ that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
   1200 is 12:00-17:59) -- so the rain that slows walkers is the rain that wets the beds. Frost nights
   (the farm's demo overlay) read as frost. Rain slows surface walking to 80%, snow to 60%, frost to 85%;
   tunnels are not slowed, so walkers take them in bad weather. Rain and snow fall, the light dims.
-- **One water adapter** (`demo_water.gd`, `demo_village.water()`): the farm's water-edge query
-  (irrigation) and the tunnels' wet-ground and flood queries. Until the real water module
-  (feat/demo-water) is wired in there, it answers from two isolated PLACEHOLDERS: the farm's reed pond
-  (`farm/farm_water.gd`) and the tunnels' stream table and flood sheet (`tunnel/tunnel_water.gd`,
-  `events/events_view.gd`).
+- **One water adapter** (`village_water.gd`, `demo_village.water()`) over the real water map
+  (`water/water_map.gd`, see Water): the farm's water-edge query (irrigation: dry ground within 2.5 m
+  of the waterline), the tunnels' wet ground (within 4.5 m), their flood (the stream spills over the
+  ford's west bank, 8.2 m into the village) and their routes (no bore passes within half a bore of
+  water: "a tunnel cannot pass under the stream or the pond"). The three reaches are demo values,
+  each the one the placeholder it replaced used; the placeholders -- the farm's reed pond and the
+  tunnels' stream table and flood sheet -- are gone.
 - **One notice feed** (`demo_notices.gd`). Every farm warning, weather change, tunnel happening, threat
   and crew report is posted there with its date; the newest show bottom centre as **Village news
   (demo)** (`ui/demo_news_strip.gd`: notes 12 s, warnings 30 s, warnings worded and in clay), and the
@@ -81,7 +83,7 @@ journal is open.
 | T (or "Dig tunnel") | With the mole selected: lay out a tunnel (below); again: cancel it |
 | U | Underground view: the surface fades, tunnels show as lit bores with anyone inside |
 | Left click a finished tunnel | Select it for the "Tunnels & burrows (demo)" panel (see below) |
-| V | Water inspection overlay: wade / swim / dive zones, fords, bridge spans, landings, fish stocks |
+| V | The one map-overlay cycle: the farm's moisture, its ripeness, the water's zones and fishery (wade / swim / dive, fords, bridge spans, landings, fish stocks), off |
 
 The "Demo party" panel in the HUD's left column lists the selection. Orders move the demo cast
 only, never the simulation.
@@ -139,14 +141,15 @@ ingredient, freshness (GDD §5.8 spoilage by where it is stored), and the librar
 | Water / Harvest / Clear / Compost / Cover | Given to the selected residents, or queued for the field crew (the fieldworker and gatherer take queued work while wandering) |
 | Raise / Bank | A resident fetches 2 U of tunnel spoil from a heap: a raised bed drains and is warmer at night; a banked bed keeps half of each dry day's loss |
 | Rest | Rest the bed fallow (it regains fertility; nothing is sown) |
-| V | Map overlay: moisture, then ripeness, then off |
+| V | Map overlay: moisture, then ripeness, then the water's zones, then off (one key for every overlay) |
 | K / Food | The Pantry |
 
 Threats: spring is wet (beds waterlog and stop growing -- drain them with a tunnel, or raise them),
 summer dry (water), frost nights are announced the day before (cover or raise), blight spreads to
 the next beds at midnight unless the blighted bed is cleared, and a ripe crop starts losing yield after
 48 hours and withers at 120. A finished tunnel under a bed drains it; a tunnel with a mouth at the
-water's edge irrigates the beds it runs under. Details and every number's source: `farm/*.gd` headers.
+real stream's edge (dry ground within 2.5 m of its waterline -- inside the square, by the ford or at
+x 19.5 m, z 4) irrigates the beds it runs under. Details and every number's source: `farm/*.gd` headers.
 
 ## Weather, upgrades, hazards, finds, chambers, crews and threats
 
@@ -201,7 +204,9 @@ by the fisher shelter -- into a pond beyond the south-east corner with a boathou
 All of it lies outside the ±20 m square residents and tunnels are kept in, so nothing in the
 village moved; the spots that serve it (fishing, the weir, the boat landing) stand at the square's
 edge. The ground is carved into banks and beds; the surface flows at the stream's own speed and
-stops when the game pauses. Press V for the zones and the live fishery.
+stops when the game pauses. V's overlay cycle ends on the zones and the live fishery. The fishery
+runs on the demo's one calendar (its days are the farm's and the HUD's). A flood (the tunnels' threat)
+raises the stream up its banks at the ford.
 
 `water/water_map.gd` is the foundation the next phase builds on: integer depth, wade / swim / dive
 zones, ground and bed height, flow, nearest bank, landings, ford and bridge candidates, and
@@ -220,7 +225,7 @@ zone thresholds are demo values (`water/water_rules.gd`); decision 0196 records 
 | `cast/` | The residents: body, clips, live tail, job routines, orders |
 | `control/` | Selecting and ordering residents, and the demo party panel |
 | `tunnel/` | Player-dug tunnels: rules, the tunnel network and planner, planning, drawing, the underground view; and their extensions -- ground, queues, crews, jobs, hazards, finds, the demo stores, the tunnel panel |
-| `demo_calendar.gd`, `demo_services.gd`, `demo_water.gd`, `demo_notices.gd` | The one calendar, the shared set, the one water adapter, the one notice feed |
+| `demo_calendar.gd`, `demo_services.gd`, `village_water.gd`, `demo_notices.gd` | The one calendar, the shared set, the one water adapter (over `water/water_map.gd`), the one notice feed |
 | `weather/` | The demo's one weather (read from the farm's real §5.10 row) and its rain, snow and light |
 | `burrow/` | Chambers dug off tunnels: burrow homes and root cellars (the cellar API) |
 | `events/` | Seeded threats (a flood, a fire) and evacuation |

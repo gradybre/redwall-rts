@@ -10,7 +10,8 @@ extends Node3D
 ##   bed panel buttons                Plant… (the crop picker), Water, Harvest, Clear, Compost, Cover,
 ##                                    Raise and Bank (tunnel spoil), Rest (fallow), Cancel jobs --
 ##                                    given to the selected residents, or queued for the field crew
-##   V                                map overlay: off -> moisture -> ripeness
+##   V                                map overlays: off -> moisture -> ripeness -> any added by the
+##                                    village (the water's zones, add_overlay) -> off
 ##   K, or the HUD's Food command     the Pantry: stock per ingredient, freshness, dishes it feeds
 ##   Esc                              close the Pantry, then the bed panel
 ## The routine crew (the fieldworker and the gatherer) take queued jobs and the farm's own harvest
@@ -31,8 +32,8 @@ extends Node3D
 ## Wiring (demo_village.gd `_build_farm`): the world, the cast, the command layer (for the selection,
 ## order marks, click hooks and the tunnel tool), the HUD shell, the storage providers (root cellars,
 ## demo/farm/farm_cellars.gd) as Callables -- see farm_storage.gd for the provider API -- and the shared
-## services (demo_services.gd): the calendar, the weather, the one water adapter (demo_water.gd, whose
-## `edge_query()` is the farm's water query) and the notice feed.
+## services (demo_services.gd): the calendar, the weather, the one water adapter (village_water.gd,
+## whose `edge_query()` is the farm's water query, over the real stream and pond) and the notice feed.
 
 const SimScript := preload("res://demo/farm/farm_sim.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
@@ -48,7 +49,6 @@ const ViewScript := preload("res://demo/farm/farm_view.gd")
 const BedPanelScript := preload("res://demo/farm/farm_bed_panel.gd")
 const PantryPanelScript := preload("res://demo/farm/farm_pantry_panel.gd")
 const Weather := preload("res://demo/farm/farm_weather.gd")
-const Water := preload("res://demo/farm/farm_water.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
@@ -95,6 +95,11 @@ var _events: PackedInt32Array = PackedInt32Array()
 var _spoiled: PackedInt32Array = PackedInt32Array()
 var _lines: PackedStringArray = PackedStringArray()
 var _levels: PackedByteArray = PackedByteArray()
+## Overlays after the farm's own on the V cycle (add_overlay): their names and `(on: bool)` switches.
+var _extra_names: PackedStringArray = PackedStringArray()
+var _extra_shows: Array[Callable] = []
+## Where the V cycle stands: 0 off, then the farm's modes, then the extras in order.
+var _overlay_step: int = 0
 var _shown_hour: int = 0
 var _water: PackedByteArray = PackedByteArray([0, 0])
 var _read: IntMath.IntResult = IntMath.IntResult.new()
@@ -135,25 +140,16 @@ func _bind_services(shared: ServicesScript) -> void:
 
 
 func _build_view(manifest: Dictionary, world: DemoWorldScript, command: DemoCommandScript) -> void:
-	"""The beds and the pond, over the world's hidden crop pieces; heaps shrink with spoil taken."""
+	"""The beds, over the world's hidden crop pieces; heaps shrink with spoil taken."""
 	view = ViewScript.new()
 	add_child(view)
 	view.build(manifest, sim)
 	var village: Node = world.get_node_or_null(^"Village") if world != null else null
 	if village != null:
 		ViewScript.hide_world_beds(village)
-	if world != null:
-		_build_placeholder_pond(world)
 	var tool: TunnelControlScript = command.tunnels() if command != null else null
 	if tool != null:
 		view.follow_tunnels(tunnels, _cast.space().tunnels, tool.overlay, func() -> bool: return tool.view != null and tool.view.on)
-
-
-func _build_placeholder_pond(world: DemoWorldScript) -> void:
-	"""PLACEHOLDER (farm_water.gd): the reed pond's disc, and no grass or mushrooms in it. Delete this
-	and its call when the village's real water (feat/demo-water) merges."""
-	world.add_child(Water.build_placeholder())
-	world.hide_cover(PackedVector2Array(), 0.0, PackedVector3Array([Water.placeholder_obstacle()]))
 
 
 func _build_panels() -> void:
@@ -377,8 +373,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func handle_key(event: InputEventKey) -> bool:
 	"""Apply one key press; true when it was the farm's."""
 	if event.physical_keycode == KEY_V:
-		var mode: int = view.cycle_overlay()
-		_say("Map overlay: %s" % ViewScript.OVERLAY_NAMES[mode])
+		_say("Map overlay: %s" % cycle_overlays())
 		return true
 	if event.is_action_pressed(&"open_food") or event.physical_keycode == KEY_K:
 		toggle_pantry()
@@ -391,6 +386,25 @@ func handle_key(event: InputEventKey) -> bool:
 			select_bed(NO_BED)
 			return true
 	return false
+
+
+func add_overlay(overlay_name: String, show: Callable) -> void:
+	"""Put another map overlay on V's cycle, after the farm's own: `show(on: bool)` switches it (the
+	village's water zones). One key, one cycle, so no two overlays fight for V."""
+	_extra_names.append(overlay_name)
+	_extra_shows.append(show)
+
+
+func cycle_overlays() -> String:
+	"""V: off -> moisture -> ripeness -> each added overlay -> off. Returns what now shows."""
+	var farm_modes: int = ViewScript.OVERLAY_NAMES.size()
+	_overlay_step = (_overlay_step + 1) % (farm_modes + _extra_shows.size())
+	view.set_overlay(_overlay_step if _overlay_step < farm_modes else ViewScript.OVERLAY_OFF)
+	for k: int in _extra_shows.size():
+		_extra_shows[k].call(_overlay_step == farm_modes + k)
+	if _overlay_step < farm_modes:
+		return ViewScript.OVERLAY_NAMES[_overlay_step]
+	return _extra_names[_overlay_step - farm_modes]
 
 
 func _say(text: String) -> void:

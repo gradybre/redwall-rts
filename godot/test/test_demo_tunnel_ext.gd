@@ -21,8 +21,8 @@ const HazardsScript := preload("res://demo/tunnel/tunnel_hazards.gd")
 const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
 const EventsScript := preload("res://demo/events/demo_events.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
-const WaterScript := preload("res://demo/tunnel/tunnel_water.gd")
-const DemoWaterScript := preload("res://demo/demo_water.gd")
+const WaterMapScript := preload("res://demo/water/water_map.gd")
+const VillageWaterScript := preload("res://demo/village_water.gd")
 const CoreWeather := preload("res://scripts/core/weather.gd")
 
 ## A 4 m route along z = 0.5 m from x = 0.5 m: its six timeline quanta lie in cells 20..24 of row 20.
@@ -182,43 +182,46 @@ func test_the_weather_speaks() -> void:
 
 # --- the water query ----------------------------------------------------------------------------
 
-func test_the_demo_water_table_wets_the_west_stream_edge() -> void:
-	"""The reed-bed reach: wet within 4608 u of x = -19968 between z = 3072 and 17408, round its ends."""
-	var water := WaterScript.new()
-	assert_equal(water.reach_count(), 1, "one reach")
-	assert_true(water.near_water(-15361, 10000), "4607 u east of it")
-	assert_false(water.near_water(-15360, 10000), "4608 u east")
-	assert_true(water.near_water(-19968, -1535), "4607 u past its south end")
-	assert_false(water.near_water(-19968, -1536), "4608 u past it")
-	assert_equal(water.spill_centre_u(), Vector2i(-14131, 10445), "its flood's centre")
+func test_the_village_water_wets_the_east_stream_bank() -> void:
+	"""The real stream, through the village's water adapter: ground within 4608 u of its waterline is
+	wet (x = 19.0 m by the run is; 17.5 m, 4626 u off, is not), the square's middle is dry, and the
+	flood spills at the ford's west bank, 8397 u into the village."""
+	var water := VillageWaterScript.new()
+	assert_true(water.near_water(Rules.to_u(19.0), Rules.to_u(9.0)), "by the run")
+	assert_false(water.near_water(Rules.to_u(17.5), Rules.to_u(9.0)), "4626 u off")
+	assert_false(water.near_water(0, 0), "the well")
+	var ground := GroundScript.new(Rect2i(-20480, -20480, 40960, 40960), water)
+	assert_true(ground.wet_at(Rules.to_u(19.0), Rules.to_u(9.0)), "the ground map's east edge is wet")
+	assert_false(ground.wet_at(0, 0), "its middle dry")
+	assert_equal(water.spill_centre_u(), Vector2i(22427, -895), "the ford's west waterline")
 	assert_equal(water.spill_radius_u(), 8397, "its flood's reach")
 
 
-func test_a_fixture_water_table_is_obeyed_everywhere() -> void:
-	"""A fixture reach across the square (0..10240, z = 0, 1024 u wide) and a fixture spill, handed to
-	the village's water adapter: the adapter's query, the ground's wet cells and the flood's disc all
-	follow it."""
-	var table := WaterScript.new(PackedInt32Array([0, 0, 10240, 0, 1024]), PackedInt32Array([0, 0, 2048]))
-	var water := DemoWaterScript.new(table)
-	assert_true(water.near_water(5000, 1023), "beside it")
-	assert_false(water.near_water(5000, 1024), "just clear")
-	assert_true(water.near_water(11263, 0), "round its end")
-	assert_false(water.near_water(11264, 0), "past it")
-	assert_equal(water.spill_centre_u(), Vector2i(0, 0), "the adapter's flood centre is the table's")
-	assert_equal(water.spill_radius_u(), 2048, "and its reach")
+func test_a_fixture_water_map_is_obeyed_everywhere() -> void:
+	"""A fixture pond (1024 u at the origin, with a ford landing) handed to the village's water adapter:
+	the adapter's query, the ground's wet cells and the flood's disc all follow it."""
+	var map := WaterMapScript.new(1229)
+	assert_true(map.add_pond(&"pond", PackedInt32Array([0, 0, 1024, 512]), 184, 512).ok, "pond")
+	assert_true(map.add_landing(&"ford_west", Vector2i(1024, 0), 1536).ok, "landing")
+	assert_true(map.finalize().ok, "finalized")
+	var water := VillageWaterScript.new(map)
+	assert_true(water.near_water(5000, 0), "3976 u off the waterline: wet")
+	assert_false(water.near_water(5700, 0), "4676 u off: dry")
 	var ground := GroundScript.new(Rect2i(-20480, -20480, 40960, 40960), water)
-	assert_true(ground.wet_at(512, 512), "the cell at the square's corner is wet")
-	assert_false(ground.wet_at(-19968, 10240), "the demo stream edge is dry under the fixture")
+	assert_true(ground.wet_at(512, 512), "the cell by the pond is wet")
+	assert_false(ground.wet_at(Rules.to_u(19.0), Rules.to_u(9.0)), "the real stream's bank is dry under the fixture")
 	var events := EventsScript.new(water)
 	events.trigger()
-	assert_true(events.covers(Vector2(1.9, 0.0)), "inside the fixture spill")
-	assert_false(events.covers(Vector2(2.1, 0.0)), "outside it")
+	var spill := Vector2(Rules.to_m(water.spill_centre_u().x), Rules.to_m(water.spill_centre_u().y))
+	assert_equal(events.centre_m(), spill, "the flood spills where the adapter says")
+	assert_true(events.covers(spill + Vector2(8.1, 0.0)), "inside the spill")
+	assert_false(events.covers(spill + Vector2(8.3, 0.0)), "outside it")
 
 
 # --- ground -----------------------------------------------------------------------------------
 
 func test_the_authored_ground() -> void:
-	"""Patch centres take their type; the stream edge is wet; the square is plain loam."""
+	"""Patch centres take their type; the real stream's west bank is wet; the square is plain loam."""
 	var ground := GroundScript.new()
 	assert_equal(ground.columns, 40, "40 columns")
 	assert_equal(ground.rows, 40, "40 rows")
@@ -227,8 +230,9 @@ func test_the_authored_ground() -> void:
 	assert_equal(ground.type_at(0, 0), GroundScript.LOAM, "the square")
 	assert_false(ground.wet_at(0, 0), "the square is dry")
 	assert_equal(ground.type_at(-19968, 10240), GroundScript.SAND, "sand by the reeds")
-	assert_true(ground.wet_at(-19968, 10240), "and wet")
-	assert_false(ground.wet_at(-10000, 10000), "beyond the stream edge")
+	assert_false(ground.wet_at(-19968, 10240), "the reeds' sand is dry: the water is east")
+	assert_true(ground.wet_at(19456, 9216), "the stream's west bank is wet (4.5 m of the waterline)")
+	assert_false(ground.wet_at(17408, 9216), "5140 u off it: dry")
 
 
 func test_ground_cells_are_found_with_floor_division_and_clamped() -> void:
@@ -1007,48 +1011,49 @@ func test_the_first_threat_comes_on_its_own_after_six_minutes() -> void:
 
 
 func test_the_flood_s_disc_and_shelters() -> void:
-	"""The stream flood covers the cabbages but not the square; a shelter is 2 m beyond its edge."""
+	"""The stream's flood spills over the ford's west bank onto the east road but not the square; a
+	shelter is 2 m beyond its edge."""
 	var events := EventsScript.new()
-	assert_false(events.covers(Vector2(-13.8, 10.2)), "no threat, nothing covered")
+	assert_false(events.covers(Vector2(17.0, -0.9)), "no threat, nothing covered")
 	events.trigger()
-	assert_true(events.covers(Vector2(-9.4, 6.9)), "the cabbages")
+	assert_true(events.covers(Vector2(17.0, -0.9)), "the east road by the ford")
 	assert_false(events.covers(Vector2(0.0, 0.0)), "the square")
 	var shelter := events.shelter_from(events.centre_m() + Vector2(1.0, 0.0))
 	assert_true(shelter.is_equal_approx(events.centre_m() + Vector2(events.radius_m() + 2.0, 0.0)), "straight out, 2 m beyond")
 
 
 func test_nobody_walks_past_a_tunnel_s_way_out_to_its_far_mouth() -> void:
-	"""A tunnel from inside the flood (12 m west) to just outside it (4 m west): a resident standing
-	nearer its outer mouth walks out on foot rather than going round to the inner mouth."""
+	"""A tunnel from inside the flood (1.8 m from its spill point) to just outside it (9.8 m): a resident
+	standing nearer its outer mouth walks out on foot rather than going round to the inner mouth."""
 	var events := EventsScript.new()
 	events.trigger()
 	var network := NetworkScript.new()
 	var ref := PackedInt32Array([-1, 0])
-	network.add_into(PackedInt32Array([-12288, 10240, -4096, 10240]), 2, 0, ref)
+	network.add_into(PackedInt32Array([20582, -922, 12390, -922]), 2, 0, ref)
 	_open(network, 0)
 	network.set_fit(0, true)
-	assert_false(events.covers(Vector2(-4.0, 10.0)), "the outer mouth is dry")
+	assert_false(events.covers(Vector2(12.1, -0.9)), "the outer mouth is dry")
 	var out := PackedFloat32Array([0.0, 0.0, 0.0, 0.0])
-	assert_false(events.plan_escape(network, 0, Vector2(-7.0, 10.0), out), "no escape by that tunnel")
+	assert_false(events.plan_escape(network, 0, Vector2(15.1, -0.9), out), "no escape by that tunnel")
 
 
 func test_an_escape_goes_through_the_nearest_tunnel_out_of_the_disc() -> void:
-	"""From the cabbages, the tunnel whose near mouth is inside and far mouth outside; none when both
-	mouths are inside."""
+	"""From the east road by the ford, the tunnel whose near mouth is inside and far mouth outside;
+	none when both mouths are inside."""
 	var events := EventsScript.new()
 	events.trigger()
 	var network := NetworkScript.new()
 	var ref := PackedInt32Array([-1, 0])
-	network.add_into(PackedInt32Array([-9216, 7168, -3072, 7168]), 2, 0, ref)
-	network.add_into(PackedInt32Array([-17000, 8000, -15000, 12000]), 2, 0, ref)
+	network.add_into(PackedInt32Array([17408, -922, 11264, -922]), 2, 0, ref)
+	network.add_into(PackedInt32Array([19968, -3072, 19456, 1536]), 2, 0, ref)
 	_open(network, 0)
 	_open(network, 1)
 	network.set_fit(0, true)
 	var out := PackedFloat32Array([0.0, 0.0, 0.0, 0.0])
-	assert_true(events.plan_escape(network, 0, Vector2(-10.0, 7.0), out), "an escape")
+	assert_true(events.plan_escape(network, 0, Vector2(16.0, -0.9), out), "an escape")
 	assert_equal(int(out[0]), 0, "the tunnel to the square")
 	assert_equal(int(out[1]), 0, "in at its entrance")
-	assert_true(Vector2(out[2], out[3]).x > -3.0, "a shelter beyond its far mouth")
-	assert_false(events.plan_escape(network, 0, Vector2(-16.0, 9.0), out) and int(out[0]) == 1,
+	assert_true(Vector2(out[2], out[3]).x < 11.0, "a shelter beyond its far mouth")
+	assert_false(events.plan_escape(network, 0, Vector2(19.5, -1.0), out) and int(out[0]) == 1,
 		"never the tunnel with both mouths under water")
-	assert_false(events.plan_escape(network, 5, Vector2(-10.0, 7.0), out), "nobody who does not fit")
+	assert_false(events.plan_escape(network, 5, Vector2(16.0, -0.9), out), "nobody who does not fit")

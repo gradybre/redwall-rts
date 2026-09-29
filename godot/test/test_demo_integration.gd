@@ -8,13 +8,14 @@ extends "res://test/framework/test_case.gd"
 const ServicesScript := preload("res://demo/demo_services.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
-const DemoWaterScript := preload("res://demo/demo_water.gd")
-const TunnelWaterScript := preload("res://demo/tunnel/tunnel_water.gd")
+const VillageWaterScript := preload("res://demo/village_water.gd")
+const WaterMapScript := preload("res://demo/water/water_map.gd")
+const TunnelPlanScript := preload("res://demo/tunnel/tunnel_plan.gd")
+const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
 const CoreWeather := preload("res://scripts/core/weather.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
-const FarmWater := preload("res://demo/farm/farm_water.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
@@ -46,6 +47,7 @@ const HOUR_USEC: int = 2500000
 const CARROT: int = 2
 const BED_LOAM: int = 0
 const BED_CARROTS: int = 2
+const BED_RADISH: int = 3
 const BED_GRAIN_E: int = 5
 const SPRING_EVAPORATION: int = 600
 
@@ -74,11 +76,10 @@ func after_each() -> void:
 # --- fixtures -----------------------------------------------------------------------------------
 
 func _cast() -> DemoCastScript:
-	"""The placeholder cast in the real village layout, with the farm's placeholder pond as an obstacle."""
+	"""The placeholder cast in the real village layout."""
 	var world := DemoWorldScript.new()
 	_nodes.append(world)
 	var circles: Array[Vector3] = world.obstacles()
-	circles.append(FarmWater.placeholder_obstacle())
 	var cast := DemoCastScript.new()
 	_nodes.append(cast)
 	cast.build({}, world.points_of_interest(), circles)
@@ -348,22 +349,77 @@ func test_the_village_hands_the_tunnels_cellars_to_the_farm() -> void:
 
 # --- one water adapter --------------------------------------------------------------------------------
 
-func test_both_water_queries_go_through_the_one_adapter() -> void:
-	"""The farm's edge query is the shared adapter's, and the tunnel works' ground and floods ask the
-	same adapter (the placeholder tables behind it)."""
+func test_every_water_query_goes_through_the_one_adapter_over_the_real_map() -> void:
+	"""The farm's edge query and the tunnel works' ground, floods and route checks all ask the shared
+	adapter, and it answers from the real stream (hand-read distances: the ford's bank 2460 u from
+	x = 19.5, the run's 2567 u; the wet reach 4608 u)."""
 	var farm := _village(false)
-	var water: DemoWaterScript = _services.water
+	var water: VillageWaterScript = _services.water
 	assert_true(_works().water == water, "the tunnel works' water is the village's")
 	assert_true(_works().events._water == water, "and their floods'")
 	assert_true(farm.tunnels.water_edge == water.edge_query(), "the farm's edge query is the adapter's")
-	assert_true(water.at_edge(Rules.to_u(-17.2), Rules.to_u(11.0)), "the pond's edge (placeholder)")
-	assert_false(water.at_edge(0, 0), "the square is dry")
-	assert_true(water.near_water(-15361, 10000), "the stream reach (placeholder)")
-	assert_equal(water.spill_centre_u(), Vector2i(-14131, 10445), "the flood's disc (placeholder)")
-	var table := TunnelWaterScript.new(PackedInt32Array([0, 0, 1024, 0, 512]), PackedInt32Array([1, 2, 3]))
-	var fixture := DemoWaterScript.new(table)
-	assert_true(fixture.near_water(512, 0), "a fixture table answers through the adapter")
-	assert_equal(fixture.spill_radius_u(), 3, "its spill too")
+	assert_true(_command.tunnels().plan.water_crossing == water.crosses_water, "the planner asks it too")
+	assert_true(water.at_edge(Rules.to_u(19.5), Rules.to_u(-0.8)), "by the ford")
+	assert_false(water.at_edge(Rules.to_u(19.5), Rules.to_u(9.0)), "by the run: 2567 u")
+	assert_true(water.near_water(Rules.to_u(19.0), Rules.to_u(9.0)), "wet ground by the stream")
+	assert_false(water.near_water(Rules.to_u(17.5), Rules.to_u(9.0)), "4626 u: dry")
+	assert_true(_works().ground.wet_at(Rules.to_u(19.0), Rules.to_u(9.0)), "the tunnels' ground map agrees")
+	assert_equal(water.spill_centre_u(), Vector2i(22427, -895), "the flood spills at the ford's west bank")
+	assert_equal(_works().events.centre_m(), Vector2(Rules.to_m(22427), Rules.to_m(-895)), "where the flood event is")
+
+
+func test_a_tunnel_from_the_stream_s_edge_irrigates_the_beds_it_runs_under() -> void:
+	"""A finished tunnel with its east mouth by the ford (at the real stream's edge) running under the
+	radish bed irrigates it; the same route from the run's bank (just too far) only drains it."""
+	var farm := _village(false)
+	var network: NetworkScript = farm._cast.space().tunnels
+	var ref := PackedInt32Array([-1, 0])
+	var route := PackedInt32Array([Rules.to_u(19.5), Rules.to_u(-0.8), Rules.to_u(-6.0), Rules.to_u(12.8),
+		Rules.to_u(-12.0), Rules.to_u(12.8)])
+	assert_true(network.add_into(route, 3, 0, ref), "the ford tunnel")
+	network.advance(ref[0], ref[1], 3600 * Rules.USEC_PER_SECOND)
+	farm.step(HOUR_USEC)
+	assert_true(farm.sim.is_irrigated(BED_RADISH), "irrigated from the stream")
+	_services = ServicesScript.new()
+	var other := _village(false)
+	var other_network: NetworkScript = other._cast.space().tunnels
+	var dry := PackedInt32Array([Rules.to_u(19.5), Rules.to_u(9.0), Rules.to_u(-6.0), Rules.to_u(12.8),
+		Rules.to_u(-12.0), Rules.to_u(12.8)])
+	assert_true(other_network.add_into(dry, 3, 0, ref), "the run tunnel")
+	other_network.advance(ref[0], ref[1], 3600 * Rules.USEC_PER_SECOND)
+	other.step(HOUR_USEC)
+	assert_false(other.sim.is_irrigated(BED_RADISH), "not from 2567 u away")
+	assert_true(other.sim.is_drained(BED_RADISH), "it drains instead")
+
+
+func _pond_map() -> WaterMapScript:
+	"""A fixture: a pond of 1 m radius at the origin, with the ford landing the adapter spills at."""
+	var map := WaterMapScript.new(1229)
+	assert_true(map.add_pond(&"pond", PackedInt32Array([0, 0, 1024, 512]), 184, 512).ok, "pond")
+	assert_true(map.add_landing(&"ford_west", Vector2i(1024, 0), 1536).ok, "landing")
+	assert_true(map.finalize().ok, "finalized")
+	return map
+
+
+func test_the_planner_refuses_a_bore_under_water() -> void:
+	"""With the adapter's route check, a point in the water and a leg passing within half a bore of it
+	are refused REFUSE_UNDER_WATER; a leg clear of it is laid; a laid route crossing it is refused too."""
+	var water := VillageWaterScript.new(_pond_map())
+	var plan := TunnelPlanScript.new()
+	plan.water_crossing = water.crosses_water
+	var bounds := Rect2i(-20480, -20480, 40960, 40960)
+	var none := PackedInt32Array()
+	assert_equal(plan.try_add(0, 0, bounds, none), Rules.REFUSE_UNDER_WATER, "a point in the pond")
+	assert_equal(plan.try_add(-3072, 0, bounds, none), Rules.REFUSE_NONE, "west of it")
+	assert_equal(plan.try_add(3072, 0, bounds, none), Rules.REFUSE_UNDER_WATER, "a leg through it")
+	assert_equal(plan.try_add(3072, 3072, bounds, none), Rules.REFUSE_UNDER_WATER,
+		"a leg 1374 u from its centre: 350 u off the water, inside half a bore")
+	assert_equal(plan.try_add(3072, 4096, bounds, none), Rules.REFUSE_NONE, "1704 u: 680 u off, clear")
+	assert_equal(plan.count, 2, "two points laid")
+	plan.points_u[2] = 3072
+	plan.points_u[3] = 0
+	assert_equal(plan.route_reason(bounds, none), Rules.REFUSE_UNDER_WATER, "a route through it is refused")
+	assert_equal(Rules.reason_text(Rules.REFUSE_UNDER_WATER), "a tunnel cannot pass under the stream or the pond", "in words")
 
 
 # --- one notice feed ------------------------------------------------------------------------------

@@ -11,14 +11,13 @@ extends "res://test/framework/test_case.gd"
 ## the demo values named in each module.
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
-const DemoWaterScript := preload("res://demo/demo_water.gd")
+const VillageWaterScript := preload("res://demo/village_water.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const Weather := preload("res://demo/farm/farm_weather.gd")
 const SimScript := preload("res://demo/farm/farm_sim.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const TunnelsScript := preload("res://demo/farm/farm_tunnels.gd")
-const Water := preload("res://demo/farm/farm_water.gd")
 const JobsScript := preload("res://demo/farm/farm_jobs.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
@@ -627,20 +626,17 @@ func _open(network: NetworkScript, points_m: Array[Vector2]) -> int:
 	return ref[0]
 
 
-func test_the_demo_water_table_is_the_placeholder_pond_in_u() -> void:
-	"""The one demo edge circle is the placeholder pond's centre, rounded once, reaching its 3 m radius
-	plus 2 m of shore; the village's water adapter (demo_water.gd) answers the farm's query from it."""
-	assert_equal(Water.DEMO_EDGES.size(), 1, "one water")
-	assert_equal(Water.DEMO_EDGES[0], Vector3i(Rules.to_u(Water.PLACEHOLDER_CENTRE_M.x),
-		Rules.to_u(Water.PLACEHOLDER_CENTRE_M.y), Rules.to_u(Water.PLACEHOLDER_RADIUS_M) + Rules.to_u(2.0)), "the pond")
-	assert_true(Water.is_demo_edge_u(Rules.to_u(-17.2), Rules.to_u(11.0)), "4.28 m from the centre: at the edge")
-	assert_true(Water.is_demo_edge_u(Rules.to_u(-16.42), Rules.to_u(10.2)), "4.98 m: still")
-	assert_false(Water.is_demo_edge_u(Rules.to_u(-16.3), Rules.to_u(11.0)), "5.16 m: not")
-	var village_water := DemoWaterScript.new()
+func test_the_farm_s_water_edge_is_the_real_stream_s_bank() -> void:
+	"""The farm asks the village's water adapter, over the real stream: dry ground within 2.5 m of the
+	waterline is at its edge -- by the ford 2460 u away, yes; by the run 2567 u away, no; in the water
+	or in the square, no."""
+	var village_water := VillageWaterScript.new()
 	var query: Callable = village_water.edge_query()
-	assert_true(bool(query.call(Rules.to_u(-17.2), Rules.to_u(11.0))), "the village adapter's query agrees")
+	assert_true(bool(query.call(Rules.to_u(19.5), Rules.to_u(-0.8))), "by the ford: 2460 u from the waterline")
+	assert_true(bool(query.call(Rules.to_u(19.5), Rules.to_u(4.0))), "2502 u")
+	assert_false(bool(query.call(Rules.to_u(19.5), Rules.to_u(9.0))), "by the run: 2567 u, just too far")
+	assert_false(bool(query.call(Rules.to_u(24.5), Rules.to_u(9.0))), "in the stream is not its edge")
 	assert_false(bool(query.call(0, 0)), "the square is dry")
-	assert_equal(Water.placeholder_obstacle(), Vector3(-21.4, 3.0, 10.2), "the placeholder obstacle")
 
 
 func test_segment_nearness_is_exact_in_integers() -> void:
@@ -656,11 +652,11 @@ func test_segment_nearness_is_exact_in_integers() -> void:
 
 
 func test_a_pond_tunnel_irrigates_and_another_drains() -> void:
-	"""From the pond's edge east along z 12.8: irrigates both roots beds; along z 16.4 from inland:
-	drains both grain beds; the cabbage beds are untouched."""
+	"""From the real stream's edge by the ford west along z 12.8: irrigates both roots beds; along z 16.4
+	from inland: drains both grain beds; the cabbage beds are untouched."""
 	var network := NetworkScript.new()
 	var tunnels := TunnelsScript.new()
-	_open(network, [Vector2(-17.2, 11.0), Vector2(-14.0, 12.8), Vector2(-7.0, 12.8)])
+	_open(network, [Vector2(19.5, -0.8), Vector2(-7.0, 12.8), Vector2(-14.0, 12.8)])
 	_open(network, [Vector2(-14.0, 16.4), Vector2(-7.0, 16.4)])
 	var water := PackedByteArray([0, 0])
 	for case: Array in [[BED_CARROTS, 0, 1], [BED_RADISH, 0, 1], [BED_WHEAT, 1, 0], [BED_EMPTY_CLAY_2, 1, 0],

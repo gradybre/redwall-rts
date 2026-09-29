@@ -1014,27 +1014,50 @@ func test_merged_lists_and_view_bounds() -> void:
 	assert_true(view.position.x <= -20.0 and view.end.x >= 36.0, "square and stream")
 
 
-func test_v_toggles_the_overlay_and_nothing_else_does() -> void:
-	"""V shows, V hides; Shift+V and K do nothing."""
+func test_the_overlay_has_no_key_of_its_own() -> void:
+	"""V is the village's one overlay cycle (demo_farm.gd add_overlay), so the water takes no key:
+	V, Shift+V and K leave it; set_overlay_shown shows and hides it, and says nothing twice."""
 	var water: DemoWater = _built()[1]
 	assert_false(water.overlay().visible, "hidden at first")
-	water._unhandled_input(_key(KEY_V, false))
-	assert_true(water.overlay().visible, "V shows")
-	water._unhandled_input(_key(KEY_V, true))
-	assert_true(water.overlay().visible, "Shift+V ignored")
-	water._unhandled_input(_key(KEY_K, false))
-	assert_true(water.overlay().visible, "K ignored")
-	water._unhandled_input(_key(KEY_V, false))
-	assert_false(water.overlay().visible, "V hides")
+	assert_false(water.has_method(&"_unhandled_input"), "no key handler")
+	water.set_overlay_shown(true)
+	assert_true(water.overlay().visible, "shown")
+	water.set_overlay_shown(true)
+	assert_true(water.overlay().visible, "shown once, not toggled back")
+	water.set_overlay_shown(false)
+	assert_false(water.overlay().visible, "hidden")
 
 
-func _key(code: Key, shift: bool) -> InputEventKey:
-	"""A pressed key event."""
-	var event := InputEventKey.new()
-	event.physical_keycode = code
-	event.pressed = true
-	event.shift_pressed = shift
-	return event
+func test_the_fishery_keeps_the_demo_calendar() -> void:
+	"""Bound to the demo calendar, the fishery stands at the calendar's tick each frame -- the farm's
+	and the HUD's day -- whatever the clock's microseconds; a paused frame moves nothing."""
+	var water: DemoWater = _built()[1]
+	var clock := DemoWater.DemoClockScript.new()
+	var calendar := DemoWater.DemoCalendarScript.new()
+	water.bind_clock(clock, calendar.tick)
+	water.bind_calendar(calendar)
+	calendar.tick = 18000 + 750
+	clock.advance(0.1)
+	water._process(0.1)
+	assert_equal(water.fishing().completed_tick(), 18750, "a day and an hour: the calendar's tick")
+	assert_equal(water.fishing().season_day(), 2, "the farm's day 2")
+	clock.frame_usec = 0
+	calendar.tick = 18750
+	water._process(0.1)
+	assert_equal(water.fishing().completed_tick(), 18750, "paused")
+
+
+func test_a_flood_raises_the_stream_up_its_banks() -> void:
+	"""set_flood_rise lifts the stream's surface (not the pond's) 900 permille of its 184 u drop at
+	full flood, half that at half, and back to its level after."""
+	var water: DemoWater = _built()[1]
+	assert_equal(water.flood_rise_m(), 0.0, "at its level")
+	water.set_flood_rise(1.0)
+	assert_almost_equal(water.flood_rise_m(), Rules.to_m(184 * 900 / 1000), "brim-full")
+	water.set_flood_rise(0.5)
+	assert_almost_equal(water.flood_rise_m(), Rules.to_m(184 * 900 / 1000) * 0.5, "half")
+	water.set_flood_rise(0.0)
+	assert_equal(water.flood_rise_m(), 0.0, "drained away")
 
 
 func test_overlay_site_text_reads_the_fishery() -> void:

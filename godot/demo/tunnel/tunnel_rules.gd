@@ -109,6 +109,7 @@ const REFUSE_REPEATED_POINT: int = 12
 const REFUSE_UNDER_BUILDING: int = 13
 const REFUSE_ENTRANCE_OCCUPIED: int = 14
 const REFUSE_ON_SPOT: int = 15
+const REFUSE_UNDER_WATER: int = 16
 const REASONS: Array[String] = [
 	"",
 	"a tunnel needs an entrance and an exit",
@@ -126,6 +127,7 @@ const REASONS: Array[String] = [
 	"a tunnel cannot pass under a building or the well",
 	"someone is standing on that entrance",
 	"a mouth would open on a work spot or another tunnel's mouth",
+	"a tunnel cannot pass under the stream or the pond",
 ]
 
 

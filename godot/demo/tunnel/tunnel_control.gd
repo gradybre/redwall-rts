@@ -19,7 +19,8 @@ extends Node3D
 ##
 ## WHAT A ROUTE MUST CLEAR (tunnel_rules.gd): the village's edge; obstacles and spoil heaps at each
 ## mouth; work spots and other tunnels' mouths at each mouth (`_spots_u`); buildings and the well
-## along every leg (`_under_u`, from the world); and, on digging, someone standing on the entrance
+## along every leg (`_under_u`, from the world); water under every point and leg (the plan asks the
+## village's water adapter, tunnel_plan.gd WATER); and, on digging, someone standing on the entrance
 ## or no walk to it for the mole. Accepted, the tunnel's heaps are placed (tunnel_heaps.gd) and the
 ## world's grass is cleared from its holes, heaps and route.
 ##
@@ -147,6 +148,7 @@ func _build_parts(cast: DemoCastScript, camera: Camera3D, selection: Callable, m
 	ext = ExtScript.new()
 	add_child(ext)
 	ext.configure(cast, camera, overlay, _bounds_u, selection, mark, _say, services)
+	plan.water_crossing = ext.works.water.crosses_water
 
 
 func set_world(world: DemoWorldScript) -> void:

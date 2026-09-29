@@ -461,3 +461,23 @@ func test_a_carded_entry_whose_files_are_missing_falls_back_to_a_placeholder() -
 	_world.build({"world": world, "cast": {}})
 	var village: Node = _world.get_node(^"Village")
 	assert_true(village.get_child_count() >= Layout.placements().size(), "the village is complete")
+
+
+func test_the_shadow_range_follows_the_zoom_between_its_limits() -> void:
+	"""Twice the camera distance, clamped: 7 m -> 30, 22 m (the default) -> 44, 70 m -> 85."""
+	assert_equal(DemoWorld.Look.shadow_distance_for(7.0), 30.0, "close in: the 30 m floor")
+	assert_equal(DemoWorld.Look.shadow_distance_for(22.0), 44.0, "the default view")
+	assert_equal(DemoWorld.Look.shadow_distance_for(70.0), 85.0, "zoomed out: the 85 m cap")
+
+
+func test_the_sun_takes_the_fitted_shadow_range() -> void:
+	"""set_view_distance() reaches the world's own sun, and the sun blurs at 1.0, not 1.2."""
+	var world: Node3D = DemoWorld.new()
+	world.build({})
+	world.set_view_distance(22.0)
+	var suns: Array[Node] = world.find_children("*", "DirectionalLight3D", true, false)
+	assert_equal(suns.size(), 1, "one sun")
+	var sun: DirectionalLight3D = suns[0] as DirectionalLight3D
+	assert_equal(sun.directional_shadow_max_distance, 44.0, "44 m at the default zoom")
+	assert_equal(sun.shadow_blur, 1.0, "a 1.0 blur")
+	world.free()

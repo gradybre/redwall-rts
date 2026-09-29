@@ -31,6 +31,8 @@ const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
 const GAME_CAMERA: NodePath = ^"World/Camera3D"
 const GAME_HUD_ROOT: NodePath = ^"UI/HUD/Root"
+## Refit the sun's shadow range when the zoom has moved this far since the last fit.
+const SHADOW_REFIT_M: float = 0.5
 
 @onready var _game: Node = $Game
 
@@ -38,6 +40,7 @@ var _world: Node3D = null
 var _cast: Node3D = null
 var _camera: Node3D = null
 var _command: Node3D = null
+var _shadow_view_m: float = -1.0
 
 
 func _ready() -> void:
@@ -46,6 +49,7 @@ func _ready() -> void:
 	var manifest: Dictionary = DemoManifestScript.load_manifest()
 	if not DemoManifestScript.is_staged(manifest):
 		push_warning("demo assets are not staged (tools/stage_demo_assets.py); running on placeholders")
+	DemoWorldScript.Look.apply_shadow_quality()
 	_world = DemoWorldScript.new()
 	add_child(_world)
 	_world.build(manifest)
@@ -61,7 +65,7 @@ func _ready() -> void:
 	_command = DemoCommandScript.new()
 	add_child(_command)
 	_command.configure(_cast, _camera.camera(), _game.get_node_or_null(GAME_HUD_ROOT) as Control)
-	_command.set_world(_world)
+	_command.set_world(_world as DemoWorldScript)
 	_skin_hud.call_deferred()
 	_open_running()
 
@@ -71,6 +75,15 @@ func _open_running() -> void:
 	the PLAYER reason is released; any other held reason stays."""
 	if UIManager.opening_pause_applied() and not UIManager.player_has_resumed() and GameManager.is_paused():
 		GameManager.resume_game()
+
+
+func _process(_delta: float) -> void:
+	"""Keep the sun's shadow range fitted to the zoom; only touch it when the zoom moved."""
+	var view_m: float = _camera.distance()
+	if absf(view_m - _shadow_view_m) < SHADOW_REFIT_M:
+		return
+	_shadow_view_m = view_m
+	_world.set_view_distance(view_m)
 
 
 func _quiet_game_presentation() -> void:

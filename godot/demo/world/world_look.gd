@@ -34,6 +34,18 @@ const SUN_COLOR: Color = Color(1.0, 0.9, 0.76)
 const SUN_ENERGY: float = 1.45
 ## Shadows only need to cover the ~40 m village seen from an RTS height.
 const SHADOW_MAX_DISTANCE_M: float = 85.0
+## SHADOW QUALITY. Brendan: the shadows "look good in form, but look a bit grainy". Godot's soft
+## shadows blur with a few jittered taps at the default LOW filter quality, which reads as a
+## checkerboard unless TAA hides it, and an 85 m range spread the 4096 map thin. Compared side by
+## side on a resident and a bucket (decision 0196): ULTRA filter + an 8192 map + a range that
+## follows the zoom gives solid, soft-edged shadows; HIGH alone still speckled.
+const SHADOW_FILTER: RenderingServer.ShadowQuality = RenderingServer.SHADOW_QUALITY_SOFT_ULTRA
+const SHADOW_ATLAS_SIZE: int = 8192
+const SHADOW_BLUR: float = 1.0
+## The range follows the camera: twice its distance to the focus covers what is on screen from
+## the 50-degree default pitch; 22 m (the default) gives 44 m, the zoomed-out 70 m hits the cap.
+const SHADOW_RANGE_PER_CAMERA_M: float = 2.0
+const SHADOW_MIN_DISTANCE_M: float = 30.0
 
 
 static func _noise_texture(seed_value: int, frequency: float, octaves: int,
@@ -95,6 +107,17 @@ static func make_ground() -> MeshInstance3D:
 	return ground
 
 
+static func apply_shadow_quality() -> void:
+	"""The renderer-wide directional shadow filter and map size the demo's sun needs."""
+	RenderingServer.directional_soft_shadow_filter_set_quality(SHADOW_FILTER)
+	RenderingServer.directional_shadow_atlas_set_size(SHADOW_ATLAS_SIZE, true)
+
+
+static func shadow_distance_for(camera_distance_m: float) -> float:
+	"""How far the sun's shadows reach for a camera this far from its focus."""
+	return clampf(camera_distance_m * SHADOW_RANGE_PER_CAMERA_M, SHADOW_MIN_DISTANCE_M, SHADOW_MAX_DISTANCE_M)
+
+
 static func make_sun() -> DirectionalLight3D:
 	"""The warm late-morning sun, with soft shadows tuned for a ~40 m village."""
 	var sun := DirectionalLight3D.new()
@@ -106,7 +129,7 @@ static func make_sun() -> DirectionalLight3D:
 	sun.shadow_enabled = true
 	sun.shadow_bias = 0.04
 	sun.shadow_normal_bias = 1.1
-	sun.shadow_blur = 1.2
+	sun.shadow_blur = SHADOW_BLUR
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
 	sun.directional_shadow_max_distance = SHADOW_MAX_DISTANCE_M
 	sun.directional_shadow_blend_splits = true

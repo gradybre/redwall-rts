@@ -234,3 +234,15 @@ func _pressed(bound: InputEvent) -> InputEvent:
 	elif event is InputEventMouseButton:
 		(event as InputEventMouseButton).pressed = true
 	return event
+
+
+func test_the_rig_reports_its_distance_for_the_shadow_fit() -> void:
+	"""distance() is the eye-to-focus distance the demo fits the sun's shadow range to."""
+	assert_almost_equal(_rig.distance(), 22.0, "the 22 m default")
+	var wheel := InputEventMouseButton.new()
+	wheel.button_index = MOUSE_BUTTON_WHEEL_UP
+	wheel.pressed = true
+	_rig.handle_input(wheel)
+	for i: int in int(SETTLE_SECONDS / FRAME):
+		_rig.step(FRAME)
+	assert_true(_rig.distance() < 22.0, "zooming in shortens it")

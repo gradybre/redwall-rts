@@ -43,6 +43,7 @@ const WaterGridScript := preload("res://demo/water/water_grid.gd")
 const WaterTerrain := preload("res://demo/water/water_terrain.gd")
 const WaterSurfaceScript := preload("res://demo/water/water_surface.gd")
 const WaterDressing := preload("res://demo/water/water_dressing.gd")
+const PropsScript := preload("res://demo/props/demo_props.gd")
 const WaterOverlayScript := preload("res://demo/water/water_overlay.gd")
 const FishingDriverScript := preload("res://demo/water/fishing_driver.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
@@ -74,8 +75,9 @@ var _stream_surface: Node3D = null
 var _flood_rise_m: float = 0.0
 
 
-func build(manifest: Dictionary, world: Node3D) -> void:
-	"""Lay the water into `world` (see the header). Call once, after world.build()."""
+func build(manifest: Dictionary, world: Node3D, props: PropsScript = null) -> void:
+	"""Lay the water into `world` (see the header), its small props from `props` (the demo's; none:
+	boxes). Call once, after world.build()."""
 	name = "Water"
 	process_priority = PROCESS_AFTER_CAST
 	_map = WaterLayout.make_map()
@@ -91,7 +93,7 @@ func build(manifest: Dictionary, world: Node3D) -> void:
 			_stream_surface = _surface.nodes[body]
 			_flood_rise_m = Rules.to_m(_map.body_level_drop_u(body) * FLOOD_RISE_PERMILLE / 1000)
 	var village: Node3D = world.get_node_or_null(VILLAGE_NODE) as Node3D if world != null else null
-	WaterDressing.build(village if village != null else self, manifest.get("world", {}), _map)
+	WaterDressing.build(village if village != null else self, manifest.get("world", {}), _map, props)
 	if world != null:
 		_attach_ground(world)
 		_clear_cover(world)

@@ -10,20 +10,25 @@ extends RefCounted
 ##   water      village_water.gd -- THE water adapter: the farm's edge query and the tunnels' wet-ground,
 ##              flood and route queries, answered from the real water map (demo/water/water_map.gd).
 ##   notices    demo_notices.gd -- THE notice feed: every demo warning and report, date-stamped.
+##   props      demo/props/demo_props.gd -- THE staged small props (items, finds, tunnel and water
+##              gear, chamber furniture): each model's mesh loaded once and shared by every placement,
+##              and the icons. demo_village.gd loads it from the manifest; a fresh set draws boxes.
 ##
 ## A suite that builds a farm or tunnel works without a village passes nothing and gets a fresh set of
-## its own, so no module ever runs without one of the four.
+## its own, so no module ever runs without one of the five.
 
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
 const WaterScript := preload("res://demo/village_water.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
+const PropsScript := preload("res://demo/props/demo_props.gd")
 
 var calendar: CalendarScript = CalendarScript.new()
 var weather: WeatherScript = WeatherScript.new()
 var water: WaterScript = null
 var notices: NoticesScript = NoticesScript.new()
+var props: PropsScript = PropsScript.new()
 
 
 func _init(water_map: WaterMapScript = null) -> void:

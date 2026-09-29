@@ -73,6 +73,7 @@ const DetailZoneScript := preload("res://demo/ui/demo_detail_zone.gd")
 const TunnelExtScript := preload("res://demo/tunnel/tunnel_ext.gd")
 const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
 const DemoWaterScript := preload("res://demo/water/demo_water.gd")
+const PropsScript := preload("res://demo/props/demo_props.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -127,10 +128,13 @@ func _build_world(manifest: Dictionary) -> void:
 	_world = DemoWorldScript.new()
 	add_child(_world)
 	_world.build(manifest)
+	var props := PropsScript.new()
+	props.load_from(manifest)
 	_water = DemoWaterScript.new()
 	add_child(_water)
-	_water.build(manifest, _world)
+	_water.build(manifest, _world, props)
 	_services = ServicesScript.new(_water.map())
+	_services.props = props
 
 
 func _build_cast(manifest: Dictionary) -> void:

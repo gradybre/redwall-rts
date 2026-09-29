@@ -23,6 +23,17 @@ extends RefCounted
 ## the demo surface and their base blocks hide beneath it and the bank. Reeds sink their mud plate
 ## 0.1 m into the bank. Presentation only.
 ##
+## THE WATER'S SMALL PROPS (asset pass, tools/make_demo_props.py; sized by demo/props/demo_props.gd):
+## a jetty runs out into the pond from the boathouse's front, the rowboat moored alongside it and the
+## coracle off its end, a raft at the pond's west side; by the fisher shelter a fishing rod propped
+## at the bank, a folded net, an eel trap in the shallows and a smoking rack; a trout and a perch in
+## the two creels' lids. Each is placed from the water map's depths (probed at 0.5 m): the boats
+## float with their waterline about a third up the hull; the jetty's deck (measured at 66% of the
+## model's height) stands 0.22 m above the water. They are
+## drawn only: none blocks a resident -- every one stands outside the play square or in the water.
+## The bridge models (bridge_plank, bridge_log, bridge_pier) are staged for the bridge-building step
+## and not placed.
+##
 ## NOT PLACED: the saltpan. GDD §5.7 accepts salt only from "coastal-brine provenance; well/river
 ## water is rejected", so a saltpan beside a freshwater pond would read as a working salt source the
 ## rules forbid. It stays unplaced until the demo has a coast.
@@ -33,6 +44,7 @@ const Look := preload("res://demo/world/world_look.gd")
 const WaterLayout := preload("res://demo/water/water_layout.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
 const Rules := preload("res://demo/water/water_rules.gd")
+const PropsScript := preload("res://demo/props/demo_props.gd")
 
 ## Measured model bounds [min, max] in metres, from the staging manifest (tools/stage_demo_assets.py,
 ## WATER). Y-up, front +Z.
@@ -58,6 +70,21 @@ const PLACEMENTS: Array[Dictionary] = [
 		"sink": 0.0},
 	{"id": &"creel_weir", "key": &"fish_creel", "at": Vector2(19.75, -16.3), "yaw_deg": -35.0,
 		"sink": 0.0},
+]
+
+## The water's small props: key, where (m), which way (+X of the model turned by yaw_deg), and the
+## height its base stands at (m; the water's surface is at -0.18).
+const PROP_PLACEMENTS: Array[Dictionary] = [
+	{"key": &"jetty", "at": Vector2(24.6, 28.2), "yaw_deg": -90.0, "base_y": -1.29},
+	{"key": &"boat_rowboat", "at": Vector2(26.5, 28.6), "yaw_deg": -88.0, "base_y": -0.48},
+	{"key": &"boat_coracle", "at": Vector2(23.0, 30.4), "yaw_deg": 20.0, "base_y": -0.38},
+	{"key": &"boat_raft", "at": Vector2(23.2, 32.2), "yaw_deg": 35.0, "base_y": -0.3},
+	{"key": &"fishing_rod", "at": Vector2(21.3, 9.7), "yaw_deg": 0.0, "base_y": 0.0},
+	{"key": &"fishing_net", "at": Vector2(21.0, 5.2), "yaw_deg": 20.0, "base_y": 0.0},
+	{"key": &"eel_trap", "at": Vector2(22.4, 11.9), "yaw_deg": 30.0, "base_y": -0.28},
+	{"key": &"smoking_rack", "at": Vector2(20.9, 11.6), "yaw_deg": 90.0, "base_y": 0.0},
+	{"key": &"item_trout", "at": Vector2(19.72, 5.66), "yaw_deg": 115.0, "base_y": 0.47},
+	{"key": &"item_perch", "at": Vector2(19.74, -16.28), "yaw_deg": 55.0, "base_y": 0.47},
 ]
 
 ## Reed clumps: each snaps to the waterline nearest its point (m), at a demo size.
@@ -205,9 +232,11 @@ static func reed_placements(map: WaterMapScript) -> Array[Dictionary]:
 
 # --- drawing -----------------------------------------------------------------------------------
 
-static func build(parent: Node3D, world_manifest: Dictionary, map: WaterMapScript) -> Array[Node3D]:
+static func build(parent: Node3D, world_manifest: Dictionary, map: WaterMapScript,
+		props: PropsScript = null) -> Array[Node3D]:
 	"""Instance every dressing piece and reed under `parent`; the staged model where there is one,
-	else a box of the same footprint. Returns the pieces made (presentation only)."""
+	else a box of the same footprint; and the small props (`props`: the demo's, none: boxes). Returns
+	the pieces made (presentation only)."""
 	var made: Array[Node3D] = []
 	var scenes: Dictionary = {}
 	var all: Array[Dictionary] = placements()
@@ -216,7 +245,23 @@ static func build(parent: Node3D, world_manifest: Dictionary, map: WaterMapScrip
 		var piece: Node3D = _piece(world_manifest, scenes, p)
 		parent.add_child(piece)
 		made.append(piece)
+	var table: PropsScript = props if props != null else PropsScript.new()
+	for p: Dictionary in PROP_PLACEMENTS:
+		var prop: MeshInstance3D = prop_piece(table, p)
+		parent.add_child(prop)
+		made.append(prop)
 	return made
+
+
+static func prop_piece(props: PropsScript, p: Dictionary) -> MeshInstance3D:
+	"""One small prop at its place, turned and at its height, at the props table's size."""
+	var key: StringName = p["key"]
+	var piece: MeshInstance3D = props.instance(key)
+	var at: Vector2 = p["at"]
+	piece.name = "Water_%s" % key
+	piece.transform = Transform3D(Basis(Vector3.UP, deg_to_rad(float(p["yaw_deg"]))),
+		Vector3(at.x, float(p["base_y"]), at.y)) * props.fit_of(key)
+	return piece
 
 
 static func _piece(world_manifest: Dictionary, scenes: Dictionary, p: Dictionary) -> Node3D:

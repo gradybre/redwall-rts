@@ -1648,6 +1648,29 @@ func test_a_carrier_s_replan_takes_only_a_bore_its_load_fits() -> void:
 	assert_false(badger.crosses_tunnel(), "carrying, the replan goes round")
 
 
+func test_an_ordered_carry_hauls_by_the_same_rule() -> void:
+	"""The farm's ordered carry (order_carry) goes by the routine's hauling rule: planned WITH its load,
+	a squirrel carries through the standard bore under the wall; the badger, whose load no bore fits,
+	carries round on the surface -- and neither drops the load for want of a tunnel."""
+	var space := _space(_wall())
+	var slot := _open_tunnel(space, [Vector2i(0, -2048), Vector2i(0, 2048)])
+	var squirrel := _brain(space, Vector2(-1.0, -4.0), true)
+	squirrel.set_carry_motion(_carry_motion())
+	space.tunnels.set_body(squirrel.index, 1178, 259)
+	squirrel.order_carry(Vector2(-1.0, 4.0))
+	assert_true(squirrel.carrying, "the squirrel carries")
+	assert_true(squirrel.crosses_tunnel(), "through the bore its load fits")
+	space.tunnels.set_bore(slot, Rules.BORE_WIDE)
+	var badger := _brain(space, Vector2(1.0, -4.0), true)
+	badger.set_carry_motion(_carry_motion())
+	space.tunnels.set_body(badger.index, 2611, 574)
+	badger.order_move(Vector2(1.0, 4.0))
+	assert_true(badger.crosses_tunnel(), "unloaded, the badger would take the wide bore")
+	badger.order_carry(Vector2(1.0, 4.0))
+	assert_true(badger.carrying, "loaded, it still carries")
+	assert_false(badger.crosses_tunnel(), "but round, on the surface")
+
+
 func _two_in_a_tunnel(second_from: Vector2, second_to: Vector2) -> Array:
 	"""A 10 m open tunnel under a long wall; walker A from its south end north, walker B as given:
 	[space, a, b]."""

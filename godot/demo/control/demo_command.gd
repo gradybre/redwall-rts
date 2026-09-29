@@ -149,8 +149,23 @@ func set_ground_handlers(click: Callable, order: Callable) -> void:
 
 func set_task_text(provider: Callable) -> void:
 	"""`provider(actor_index: int) -> String`: what a resident is doing for the farm ("" for nothing),
-	shown in the panel in place of its walking or holding state."""
+	shown in the panel in place of its walking or holding state (see doing_text)."""
 	_task_text = provider
+
+
+func doing_text(actor_index: int) -> String:
+	"""THE ONE ANSWER to "what is this resident doing for someone else?", in words ("" for nothing: the
+	panel then says what it is walking or holding for). Two kinds of outside work drive a resident, and
+	they never overlap: a TASK (resident_brain ORDER_TASK -- a tunnel job, a dig crew's place, an
+	evacuation) speaks for itself through `task_label()`; the farm's work is ordered walks and holds, so
+	the farm's crew says what it is (set_task_text). A task takes a resident from the farm's work, so it
+	is asked first."""
+	var brain := (_cast.actor(actor_index) as DemoActorScript).brain
+	if brain.order == BrainScript.ORDER_TASK:
+		return brain.task_label()
+	if _task_text.is_valid():
+		return String(_task_text.call(actor_index))
+	return ""
 
 
 func _build_marks(count: int) -> void:
@@ -503,9 +518,7 @@ func _refresh_panel() -> void:
 			_signature.append(brain.poi)
 			_signature.append(brain.clip.hash())
 			_signature.append(_dug_percent(brain))
-			_signature.append(brain.task_label().hash())
-			if _task_text.is_valid():
-				_signature.append(String(_task_text.call(i)).hash())
+			_signature.append(doing_text(i).hash())
 	if _signature == _shown:
 		return
 	_shown = _signature.duplicate()
@@ -520,16 +533,14 @@ func party_entries() -> Array[Dictionary]:
 		var actor := _cast.actor(i) as DemoActorScript
 		var brain := actor.brain
 		var place := ""
-		if brain.order == BrainScript.ORDER_TASK:
-			place = brain.task_label()
-		elif brain.poi >= 0:
+		if brain.poi >= 0:
 			place = String(space.poi_names[brain.poi]).replace("_", " ")
 		elif brain.order == BrainScript.ORDER_DIG:
 			place = "dig site"
+		var doing := doing_text(i)
 		var state := PanelScript.state_text(brain.activity(), brain.clip, place, _dug_percent(brain))
-		var task := String(_task_text.call(i)) if _task_text.is_valid() else ""
 		entries.append({"name": actor.display_name, "species": actor.species, "colour": actor.chip_colour,
-			"digger": _tunnels.is_digger(i), "state": task if task != "" else state})
+			"digger": _tunnels.is_digger(i), "state": doing if doing != "" else state})
 	return entries
 
 

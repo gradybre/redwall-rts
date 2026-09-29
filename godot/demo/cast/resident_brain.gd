@@ -442,19 +442,21 @@ func _depart() -> void:
 	carrying = leaving_stockpile and can_carry() and _surface_length() <= CARRY_MAX_TRIP_M \
 			and rng.randf() < CARRY_CHANCE
 	if carrying and crosses_tunnel():
-		_plan_loaded()
+		_plan_loaded(CARRY_MAX_TRIP_M)
 	_replans = 0
 	_trip_s = 0.0
 	_begin_leg()
 
 
-func _plan_loaded() -> void:
+func _plan_loaded(max_surface_m: float) -> void:
 	"""A carrier's trip crossing a tunnel: plan it again with the load, so only bores that fit the
-	load are taken (see HAULING). Too long a walk that way, and it goes unloaded on the first plan."""
+	load are taken (see HAULING). With no loaded route, or more than `max_surface_m` of it on the
+	surface, it goes unloaded on the first plan. (The routine's carries and the farm's ordered carries
+	both come through here: one hauling rule.)"""
 	var legs := path_tunnel.duplicate()
 	var route := path.duplicate()
 	_space.plan_path(index, position, _goal, radius, path, path_tunnel, true, true)
-	if _space.nav.last_found and _surface_length() <= CARRY_MAX_TRIP_M:
+	if _space.nav.last_found and _surface_length() <= max_surface_m:
 		return
 	carrying = false
 	path = route
@@ -921,19 +923,23 @@ func _enter_hold() -> void:
 # --- farm tasks (demo/farm/) ------------------------------------------------------------------
 
 func order_carry(goal: Vector2, face_toward: Vector2 = Vector2.INF) -> void:
-	"""order_move(), walking with the carry clip when this resident has one and the route stays on the
-	surface -- the farm's harvest to the store, and water or spoil to a bed. Arriving drops the load."""
+	"""order_move(), walking with the carry clip when this resident has one -- the farm's harvest to
+	the store, and water or spoil to a bed. A route through a tunnel is planned again LOADED (HAULING:
+	the routine's own rule, `_plan_loaded`), so the load goes below only through a bore it fits, and
+	on the surface otherwise. Arriving drops the load."""
 	order_move(goal, face_toward)
-	carrying = can_carry() and not underground and not crosses_tunnel() \
-			and (state == State.TURN or state == State.WALK)
+	carrying = can_carry() and not underground and (state == State.TURN or state == State.WALK)
+	if carrying and crosses_tunnel():
+		_plan_loaded(INF)
+		_begin_leg()
 
 
 func play_in_place(name: StringName) -> bool:
-	"""While holding, play clip `name` where it stands (the farm's work at a bed, well or heap), or
-	idle when this resident has no such clip. False, changing nothing, when it is not holding."""
+	"""While holding, play clip `name` where it stands (the farm's work at a bed, well or heap) --
+	task_play()'s clip rule. False, changing nothing, when it is not holding."""
 	if state != State.HOLD:
 		return false
-	_set_clip(name if has_clip(name) else CLIP_IDLE, 1.0)
+	task_play(name)
 	return true
 
 

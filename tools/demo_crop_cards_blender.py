@@ -459,4 +459,6 @@ def main():
 	print("RESULT " + json.dumps(result), flush=True)
 
 
-main()
+# Guarded so tools/demo_props_blender.py can import the card helpers without running a job.
+if __name__ == "__main__":
+	main()

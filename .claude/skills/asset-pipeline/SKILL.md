@@ -145,7 +145,7 @@ python3 tools/bake_meshy_tail.py   --library assets/library/creature
 |---|---|---|
 | `repair_meshy_rig.py` | `repaired/` | Glossy self-lit material (0190); rigs 17–19% short (0190); the 0.01 Armature scale (0194); **bone scale keys away from rest (0197)** |
 | `rig_meshy_tail.py` | `tailed/` | No tail chain, tails bound to a thigh (0191) |
-| `ground_meshy_clips.py` | `grounded/` | Feet through the ground (0193); travelling carry walks (0195); standing clips floating (0197); **idles spinning on the spot (0201)** |
+| `ground_meshy_clips.py` | `grounded/` | Feet through the ground (0193); travelling carry walks (0195); standing clips floating (0197); idles spinning on the spot (0201); **planted feet sliding (0202)** |
 | `bake_meshy_tail.py` | `baked/` | The crowd tier's tail motion (0192) |
 
 Play `grounded/` clips on the skeletal pool and `baked/` (else `grounded/`) on
@@ -181,8 +181,37 @@ refuses a swinging clip it cannot solve: no Head, a missing leg, a foot out of
 reach. Do not "fix" such a refusal by editing the clip by hand; fix the step. The
 manifest's `heading_swing_deg` shows every clip's swing. Anything new near 45° deserves a look.
 
+**Creatures whose planted feet slide.** Meshy lets a foot drift across the ground
+while it is planted: up to 13 cm in its kneels, 3 cm on the moles' chair, 2–9 cm
+in a gait's stance. **A planted foot must stay where it lands.** The grounding step
+therefore **pins** any contact that strays more than 2 cm (decision 0202):
+- A foot is planted when its lowest point is within 2 cm of the ground. In a clip
+  named in `GAIT_CLIPS`, it is planted when it moves with the ground at under half
+  the gait's speed.
+- The pinned foot keeps its height and rotation. The legs are re-solved, with the
+  hips lowered at most 3 cm where a leg cannot reach.
+- A step lifts the foot and starts a new contact, so steps are never undone.
+
+**A new walk, run or other locomotion clip must be added to `GAIT_CLIPS`.** Otherwise
+its scraping swing foot is taken for a planted one. An in-place gait records
+`gait.speed_m_s` on its Hips: move the creature at that speed, or play the clip at
+`ground_speed / gait.speed_m_s`, or the pinned stance slides again.
+
+**How to check it:**
+- The manifest's `contact_slide_before_m` and `contact_slide_after_m` give each
+  clip's worst planted slide. After should be under 2 cm.
+- `unpinned` lists contacts the step left, each with a reason: `"reach"` or
+  `"support"` (a kneeling knee).
+- `ground_scrape_m` shows how far a gait drags its swinging foot. That is not fixed
+  yet; see the asset library README.
+- In Godot, `viewer/dump_bones.gd` measures the feet as played. `viewer/shots_feet.gd`
+  renders them against a disc where each contact began.
+
+As with the untwist, never fix a refusal by editing the clip by hand; fix the step.
+
 **Before calling a creature done**, watch it in Godot blend idle → walk → idle,
 and check that it stays the same size, **does not turn**, and its feet stay planted.
+Watch a kneel and a walk too: a planted foot should not creep off its spot.
 Every automated check can pass on a clip that reads wrong.
 
 ## Gotchas, each one confirmed the hard way

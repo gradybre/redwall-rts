@@ -200,6 +200,8 @@ Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceil
 | **Every rigged and animated GLB (110 files)** | Reads glossy and self-lit. Meshy's rig step rewrote the material: no metallic or roughness value, so glTF's default **metallic 1.0** applies; the colour map is wired in **again as full emission** (`emissiveFactor [1,1,1]`); `KHR_materials_specular` is **2.0**; the L0's roughness and normal maps are **dropped**. Godot's imported material confirms it: metallic 1.00, roughness 1.00, emission on. The high-poly and L0 files (162) are correct: roughness median 0.93, metallic 0 | **Fixed** by `tools/repair_meshy_rig.py` (decision 0190) in all 110 files: metallic 0, roughness from the L0's own map, the L0's normal map, no emission, no specular or ior extension. Before attaching the L0's maps, it proves the atlas is shared: the colour map must be byte-identical to the L0's. Godot reads every repaired material as metallic 0 with a roughness texture and a normal map, and emission off. Output in `<key>/repaired/`; the originals are untouched |
 | Every `anim_idle` clip (10 of 10) | The creature **grows and shrinks**: Meshy keys the Hips at a constant scale 1.1765, so each creature idles 17.65% larger and swells or shrinks as it blends to and from any other clip. No other channel in the 110 files strays from rest by more than 1%. With the scale removed, the idle's feet floated 3 mm - 20 cm | **Fixed** (decision 0197). `tools/repair_meshy_rig.py` resets every bone scale key more than 1% from rest. `tools/ground_meshy_clips.py` seats a standing clip whose feet never touch the ground, and refuses a clip that still scales a bone. Audited: 0 stray scale channels in all 160 `grounded/` and `baked/` clips |
 | Every `anim_idle` clip (10 of 10) | The creature **spins on the spot**. Meshy's idle stands turned −43° from the walk, then swings the whole body through 72–92° of yaw and back: the hips go to about +8°, then −79°, then −43° again. The feet shuffle 1–28 cm with it (the squirrels most). Every walk → idle blend turns the body about 50°. The head faces the viewer while the body is turned. No other clip swings more than 31.9° | **Fixed** (decision 0201). `tools/ground_meshy_clips.py` **untwists** an in-place clip whose Hips heading swings more than 45° and returns within 10°. The Hips face +Z on every key, and the upper body keeps its own motion. The feet are pinned where the first key has them, with the legs re-solved by two-bone IK. The hips stand over the rest hips, lowered at most 4.3 cm where a leg could not reach. The head gets one twist so it faces +Z at rest. Godot 4.7.2: heading range 0.00° on all ten, feet within 2 mm, walk → idle blend turns 2–8° (the walk's own stride). Sheets: `contact_sheets/idle_untwist_*.png` |
+| Every clip with a planted foot (46 of 100 over 2 cm) | **Planted feet slide.** A foot on the ground drifts within one contact: up to 12.7 cm in pull_radish, 9.0 cm in collect_object, 3.2 cm on the moles' chair. The stance drifts 1.3–8.6 cm against the ground in the walk, run and carry walks | **Fixed** (decision 0202). `tools/ground_meshy_clips.py` finds each foot's contacts (within 2 cm of the ground standing; moving with the ground at under half the gait's speed in a gait). It holds any contact straying more than 2 cm where it landed, re-solving the legs with 0201's IK and lowering the hips at most 3 cm where a leg cannot reach. Steps are kept. 46 clips are pinned. Every pinned contact reads back at 0.0 mm from the file. In Godot 4.7.2 playback the worst clip goes from 12.6 to 0.2 cm; a few read up to 3.2 cm where Godot's import drops a key (see the next row). An in-place gait records `gait.speed_m_s` on its Hips; **move the creature at that speed**, or the stance slides again. Two kneeling contacts are left, reported `"support"`. Sheets: `contact_sheets/foot_pin_*.png` |
+| Walk, run and both carry walks (all 10 creatures) | **The swinging foot scrapes along the ground** (0.1–1.2 m per clip, `ground_scrape_m`) while the planted foot hovers 2–22 cm. Meshy's retarget puts the swing foot below the planted one, and grounding (0193) stands the clip on the lowest point | **Open.** A pin cannot fix this; it needs a retargeted or authored gait cycle. Godot 4.7.2's import also drops an occasional key (up to 3 cm at the feet, original clips too) |
 | `chair_sit_idle` clips | Sits on nothing | Pair it with a seat at play time |
 | crop_cabbage_ripe | Cabbages read cyan-blue | Recolour the texture |
 | stone_wall | Generated as an L-shaped corner, not a straight modular section | Cut it in Blender |
@@ -235,6 +237,14 @@ Both are scratch tools, not part of the game:
     blend turns the body.
   - `shots_idle.gd` (windowed) renders before and after side by side, from above and from the front,
     with an arrow along the walk. Arguments after `--`: `<out_dir> <key> <height_m> <times>`.
+- `dump_bones.gd` and `shots_feet.gd` check decision 0202's pinned feet.
+  - `dump_bones.gd` (headless) plays each GLB in a job file through Godot's import and `AnimationPlayer`, and
+    writes every bone's global transform at the clip's own key times. Arguments after `--`:
+    `<job.json> <out.json>`. The foot vertices are then skinned with those transforms, and measured with
+    `ground_meshy_clips.foot_slips` and `contact_slide`.
+  - `shots_feet.gd` (windowed) renders the before and pinned clip side by side, carried along the ground as
+    the game would move them. It draws each foot's contact trail, and a red disc where each planted contact
+    began. Arguments after `--`: `<out_dir> <plan.json>`; the header documents the plan's shape.
 
 ## What still has to happen before anything is in the game
 
@@ -246,8 +256,8 @@ Both are scratch tools, not part of the game:
    budget. Six tails have their chain (decision 0191) and their motion baked into every clip
    (decision 0192). Retarget the Meshy clips onto the production rig, or treat them as
    references. Meshy's clips sank the feet in 90 of 100 clips; `grounded/` lifts them
-   (decision 0193). Foot sliding is not corrected, except in the idles, whose feet are pinned
-   (decision 0201).
+   (decision 0193). Planted feet are pinned (decisions 0201 and 0202). The gaits' swinging foot still scrapes the
+   ground; see *Known problems*.
 5. Door openings at 1536 × 3072 u, and the residence cutaway (GAP-06). Meshy honoured
    neither.
 6. `asset_import_validator.gd` against the GAP-03 envelopes and GAP-04 budgets.

@@ -16,6 +16,7 @@ exists, what Brendan authorised and what it overrides:
 | Every file: path, bytes, SHA-256, source task | [`files.json`](files.json) | yes |
 | Every **repaired** rigged/animated file: source and output SHA-256, height before and after, scale factor | [`repaired.json`](repaired.json) | yes |
 | The authored tail centrelines, and the spring settings to drive each chain | [`tail_centrelines.json`](tail_centrelines.json) | yes |
+| Every **authored** water clip (swim, tread-water, dive): style, parameters, period, anchor height, hashes | [`authored.json`](authored.json) | yes |
 | Every **tail-chained** file: tail vertices, tail length, joints, bind check, hashes | [`tailed.json`](tailed.json) | yes |
 | Every **grounded** clip: keys lifted, largest lift, lowest support before and after, root travel extracted, loop gap, hash | [`grounded.json`](grounded.json) | yes |
 | Every **tail-baked** clip: frames, loop seam, largest one-frame step, tail/feet/base lowest points, ground and motion verdicts, hash | [`baked.json`](baked.json) | yes |
@@ -55,13 +56,14 @@ charged nothing; one rig was refused.
 
 Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceiling.
 
-### Creatures (11)
+### Creatures (12)
 
 | Key | High-poly | L0 tris | Rig | Clips |
 |---|---|---:|---|---:|
 | `badger_cellarer` | meshy-7 | 10,262 | yes | 10 |
 | `badger_quarryman` | meshy-7 | 10,359 | yes | 10 |
 | `badger_steward` | meshy-7 | 10,384 | **no — robe defeated the auto-rigger** | 0 |
+| `beaver_bridgewright` | meshy-7 | 10,332 | yes (DEC-041; decision 0203) | 10 |
 | `mole_digger` | meshy-7 | 10,209 | yes | 10 |
 | `mole_mason` | meshy-7 | 10,313 | yes | 10 |
 | `mouse_fieldworker` | meshy-7 | 10,375 | yes | 10 |
@@ -159,7 +161,7 @@ Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceil
 
 - **Height and pivot.** Creature L0s are exactly their DEC-039 height along **+Y** —
   mouse 1.00 m, mole 0.90, squirrel 1.15, otter 1.49, badger 2.55 — with the feet at
-  y = 0.
+  y = 0. The beaver's L0 is 1.40 m, DEC-041's proposed 1434 u.
 - **Axes.** These GLBs are ordinary glTF **Y-up**, and the high-poly sources are Y-up
   and centred on the origin. The asset-pipeline skill's claim that Meshy GLBs are Z-up
   does not hold for this output. **Run `prep_unit.py` with `--no-rotate`**, or it will
@@ -174,7 +176,8 @@ Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceil
   **Fixed for six creatures** by `tools/rig_meshy_tail.py` (decision 0191): an 8-bone chain
   `tail_00`–`tail_07` under `Hips`, in `<key>/tailed/`. Meshy had bound three of those tails to a
   **thigh**, so they swung with one leg; that binding is gone. Moles and badgers have no separable
-  tail, and no chain, by design.
+  tail, and no chain, by design. The **beaver** has a chain (decision 0203): its flat paddle is
+  measured by thickness, not width, and kept level by `tail_flat_roll.gd`.
 - **Rigged and animated files are NOT all at DEC-039 height.** Meshy's rig `height_meters`
   scales the model's **longest** rest-pose dimension, not its height. Three creatures are
   wider in T-pose than they are tall, and came out short. The rigged file and every
@@ -185,6 +188,7 @@ Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceil
   | mole_digger | 0.734 | 0.900 | 0.90 | scale ×1.226 |
   | mole_mason | 0.759 | 0.900 | 0.90 | scale ×1.185 |
   | badger_cellarer | 2.121 | 2.550 | 2.55 | scale ×1.202 |
+  | beaver_bridgewright | 1.179 | 1.400 | 1.40 | scale ×1.1879 |
 
   The other seven rigged creatures match their target to the millimetre.
 - **Triangle counts** land 0–4% over the remesh target; that is Meshy's tolerance.
@@ -203,6 +207,8 @@ Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceil
 | Every clip with a planted foot (46 of 100 over 2 cm) | **Planted feet slide.** A foot on the ground drifts within one contact: up to 12.7 cm in pull_radish, 9.0 cm in collect_object, 3.2 cm on the moles' chair. The stance drifts 1.3–8.6 cm against the ground in the walk, run and carry walks | **Fixed** (decision 0202). `tools/ground_meshy_clips.py` finds each foot's contacts (within 2 cm of the ground standing; moving with the ground at under half the gait's speed in a gait). It holds any contact straying more than 2 cm where it landed, re-solving the legs with 0201's IK and lowering the hips at most 3 cm where a leg cannot reach. Steps are kept. 46 clips are pinned. Every pinned contact reads back at 0.0 mm from the file. In Godot 4.7.2 playback the worst clip goes from 12.6 to 0.2 cm; a few read up to 3.2 cm where Godot's import drops a key (see the next row). An in-place gait records `gait.speed_m_s` on its Hips; **move the creature at that speed**, or the stance slides again. Two kneeling contacts are left, reported `"support"`. Sheets: `contact_sheets/foot_pin_*.png` |
 | Walk, run and both carry walks (all 10 creatures) | **The swinging foot scrapes along the ground** (0.1–1.2 m per clip, `ground_scrape_m`) while the planted foot hovers 2–22 cm. Meshy's retarget puts the swing foot below the planted one, and grounding (0193) stands the clip on the lowest point | **Open.** A pin cannot fix this; it needs a retargeted or authored gait cycle. Godot 4.7.2's import also drops an occasional key (up to 3 cm at the feet, original clips too) |
 | `chair_sit_idle` clips | Sits on nothing | Pair it with a seat at play time |
+| beaver_bridgewright tail | A broad, flat paddle. Meshy bound it to the Hips. Left there, it sank up to 43 cm into the ground (collect_object) and flew 61 cm up (bucket walk). Measured round, a chain's clearance would be its half-width, holding it off the ground it lies on. The first chain's spring rolled it 32–56°, and its edge dug up to 5.5 cm in | **Fixed** (decision 0203). Chained with `"section": "flat"`: clearance by thickness, in drawn metres. `tail_flat_roll.gd` keeps the paddle level after the spring. All 10 land clips pass the bake's ground and constraint checks |
+| Water clips (tailed creatures) | With the land gravity, the spring hung the otters' tails straight down under them in every swim and dive | **Fixed** (decision 0203). In a water clip the spring pulls the tail back along the body, not down. With no pull at all it stood out of the water. The live tail must be told too: `TailRig.set_water(true, back)` |
 | crop_cabbage_ripe | Cabbages read cyan-blue | Recolour the texture |
 | stone_wall | Generated as an L-shaped corner, not a straight modular section | Cut it in Blender |
 | boathouse, weir, fisher_shelter | Water surfaces are baked into the mesh | Strip them; water is the engine's |
@@ -210,6 +216,27 @@ Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceil
 | mill | The waterwheel the prompt asked for isn't visible from the default view | Inspect it; may need adding |
 | squirrel_gatherer | A basket is attached to the hand, although the prompt said nothing held | Separate it in Blender |
 | Crops | Only RIPE was generated, and the runtime module ceiling is **256** triangles | Author EMPTY, SOWN, GROWING and WITHERED, and a 256-triangle module, in Blender from these sources |
+
+## The beaver and the water clips — 2026-09-29
+
+Decision [0203](../../decisions/0203-the-beaver-joins-the-pipeline-and-every-creature-can-swim.md).
+
+- **The beaver bridgewright went through the whole chain.**
+  - Repaired ×1.1879 to 1.4004 m (1434 u).
+  - Its paddle tail is chained, with `"section": "flat"`. Left on the Hips, it sank up to 43 cm into the
+    ground and flew 61 cm up.
+  - The idle is untwisted from an 81° swing.
+  - Its gaits record `gait.speed_m_s`: walk 0.992, run 3.140.
+- **Every rigged creature can swim.** `tools/author_water_clips.py` writes `anim_swim` and
+  `anim_tread_water`, and for the otters `anim_dive`, into `<key>/authored/`. The repair takes them from
+  there with Meshy's clips.
+  - **The waterline is y = 0.** Place a swimmer's root at the water surface.
+  - `grounded.json` rows for them carry `water`, `head_min_y_m` and `hips_max_y_m`, and for the dive
+    `body_max_y_m`.
+  - `baked.json` gives them `ground_ok: null` (no ground) and `water_ok`. Their tails were baked pulled
+    back along the body, not down; call `TailRig.set_water(true, back)` on a live swimmer.
+- Sheets: `contact_sheets/beaver_lineup.png` (beside an otter and a badger), and
+  `contact_sheets/water_<key>.png` for the otter, mouse, badger and beaver, side views with the waterline.
 
 ## Seeing them move
 
@@ -245,6 +272,14 @@ Both are scratch tools, not part of the game:
   - `shots_feet.gd` (windowed) renders the before and pinned clip side by side, carried along the ground as
     the game would move them. It draws each foot's contact trail, and a red disc where each planted contact
     began. Arguments after `--`: `<out_dir> <plan.json>`; the header documents the plan's shape.
+- `verify_water.gd` and `shots_water.gd` check decision 0203's beaver and water clips. Put the files in a
+  throwaway project's `res://glb/` as `<key>__rigged.glb`, `<key>__idle.glb`, `<key>__walk.glb` and
+  `<key>__anim_swim.glb` (and so on).
+  - `verify_water.gd` (headless) measures each rig's rest height and blends idle → walk → idle. For every
+    water clip it reports the neck's and hips' heights against the waterline, the skinned top and extent,
+    and the bone-length drift. The headless renderer registers no skin, so it skins the vertices itself.
+  - `shots_water.gd` (windowed) renders each shot of a plan: side or front, with the waterline and tinted
+    water, or with height rules on the ground. Arguments after `--`: `<out_dir> <plan.json>`.
 
 ## What still has to happen before anything is in the game
 

@@ -30,6 +30,7 @@ length/wingspan/contact conventions before production.
 | squirrel | 1178 | 1.150391 | Raised above mouse and approved by DEC-039 |
 | otter | 1526 | 1.490234 | Anatomical scale approved by DEC-039 |
 | badger | 2611 | 2.549805 | Anatomical scale approved by DEC-039 |
+| beaver | 1434 | 1.400391 | `PROPOSED_FOR_REVIEW`: added by DEC-041 (2026-09-29), after this package; needs the same comparison by eye before confirmation |
 
 DEC-039 records Brendan's review of the five-species comparison beside the same
 doorway and explicitly unblocks bulk creature authoring. Landmark ratios and

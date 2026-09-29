@@ -9,6 +9,7 @@ extends "res://test/framework/test_case.gd"
 
 const TailRigScript := preload("res://scripts/presentation/tail_rig.gd")
 const ConstraintScript := preload("res://scripts/presentation/tail_ground_constraint.gd")
+const FlatRollScript := preload("res://scripts/presentation/tail_flat_roll.gd")
 
 const SEGMENT_M: float = 0.05
 const CLEARANCE_M: float = 0.03
@@ -202,3 +203,103 @@ func test_a_barely_touching_segment_keeps_its_own_heading() -> void:
 		0.0, Vector2(0.0, -1.0))
 	assert_almost_equal(0.07 + d.y, 0.0, "the end sits on the floor")
 	assert_true(absf(d.z) < 0.01 * d.length(), "heading stays +X (z %.5f)" % d.z)
+
+
+# --- a flat tail's roll (decision 0203) ------------------------------------------------------
+
+func _breadth(skeleton: Skeleton3D, bone_name: String) -> Vector3:
+	"""The bone's breadth (its rest +X) in the skeleton's space, composed from the local poses."""
+	return _composed(skeleton, skeleton.find_bone(bone_name)).basis * Vector3.RIGHT
+
+
+func _rolled() -> Skeleton3D:
+	"""The level chain with tail_02 rolled 40 degrees about its length (-Z), and tail_05 swung 30 degrees
+	sideways and rolled -25: what the spring does to a paddle down a curved chain."""
+	var skeleton := _creature(1.0, true)
+	skeleton.set_bone_pose_rotation(skeleton.find_bone("tail_02"), Quaternion(Vector3(0, 0, -1), deg_to_rad(40.0)))
+	skeleton.set_bone_pose_rotation(skeleton.find_bone("tail_05"),
+		Quaternion(Vector3.UP, deg_to_rad(30.0)) * Quaternion(Vector3(0, 0, -1), deg_to_rad(-25.0)))
+	return skeleton
+
+
+func test_a_flat_tail_is_read_as_flat_and_a_round_one_is_not() -> void:
+	var skeleton := _creature(1.0, true)
+	assert_false(TailRigScript.read_chain_metadata(skeleton)["flat"], "no section: round")
+	var extras: Dictionary = skeleton.get_bone_meta(skeleton.find_bone("tail_00"), &"extras")
+	extras["section"] = "flat"
+	skeleton.set_bone_meta(skeleton.find_bone("tail_00"), &"extras", extras)
+	assert_true(TailRigScript.read_chain_metadata(skeleton)["flat"], "section flat: flat")
+
+
+func test_the_flat_roll_levels_every_bone_with_the_hips() -> void:
+	"""The hips are level. Bones 0-4 run straight back, so their breadth ends level. Bones 5-7 were swung up
+	and sideways by tail_02's roll; their breadth ends as near level as a bone pointing that way allows: the
+	hips' breadth seen square to the bone."""
+	var skeleton := _rolled()
+	assert_true(absf(_breadth(skeleton, "tail_02").y) > 0.6, "tail_02 starts rolled 40 degrees")
+	var roll: SkeletonModifier3D = FlatRollScript.new()
+	assert_equal(roll.bind_chain(skeleton), FlatRollScript.REFUSE_NONE, "the chain binds")
+	var worst: float = roll.apply(skeleton)
+	roll.free()
+	assert_true(absf(worst - 40.0) < 0.01, "the largest roll taken out is tail_02's 40 degrees (%.4f)" % worst)
+	for i in 5:
+		assert_true(absf(_breadth(skeleton, "tail_%02d" % i).y) < 1e-5, "tail_%02d's breadth is level" % i)
+	for i in range(5, FlatRollScript.TAIL_BONES):
+		var bone := skeleton.find_bone("tail_%02d" % i)
+		var axis := (_composed(skeleton, bone).basis * Vector3(0, 0, -1)).normalized()
+		var square := (Vector3.RIGHT - axis * Vector3.RIGHT.dot(axis)).normalized()
+		assert_true(absf(_breadth(skeleton, "tail_%02d" % i).dot(square) - 1.0) < 1e-5,
+			"tail_%02d's breadth is the level breadth seen square to it" % i)
+
+
+func test_the_flat_roll_moves_no_joint() -> void:
+	"""A turn about a bone's own length leaves the next joint where it was: every point is kept to 1e-6."""
+	var skeleton := _rolled()
+	var before := _points(skeleton)
+	var roll: SkeletonModifier3D = FlatRollScript.new()
+	roll.bind_chain(skeleton)
+	roll.apply(skeleton)
+	roll.free()
+	var after := _points(skeleton)
+	for i in before.size():
+		assert_true(before[i].distance_to(after[i]) < 1e-6, "point %d kept" % i)
+
+
+func test_the_flat_roll_stays_level_under_a_rolled_hips() -> void:
+	"""Hips rolled 20 degrees: the paddle does not roll with them. It lies level, as on the ground."""
+	var skeleton := _rolled()
+	skeleton.set_bone_pose_rotation(0, Quaternion(Vector3(0, 0, 1), deg_to_rad(20.0)))
+	assert_true(absf((_composed(skeleton, 0).basis * Vector3.RIGHT).y) > 0.3, "the hips' breadth is tilted")
+	var roll: SkeletonModifier3D = FlatRollScript.new()
+	roll.bind_chain(skeleton)
+	roll.apply(skeleton)
+	roll.free()
+	for i in 5:
+		assert_true(absf(_breadth(skeleton, "tail_%02d" % i).y) < 1e-5, "tail_%02d's breadth is level" % i)
+
+
+func test_level_breadth_drops_the_tilt_and_keeps_a_vertical_one() -> void:
+	var level: Vector3 = FlatRollScript.level_breadth(Vector3(0.6, 0.8, 0.0))
+	assert_true(level.is_equal_approx(Vector3.RIGHT), "a tilted breadth is levelled")
+	assert_true(FlatRollScript.level_breadth(Vector3.UP).is_equal_approx(Vector3.UP), "a vertical one is kept")
+
+
+func test_roll_to_is_signed_about_the_axis_and_zero_along_it() -> void:
+	assert_true(absf(FlatRollScript.roll_to(Vector3(0, 0, -1), Vector3.RIGHT, Vector3.UP) - deg_to_rad(-90.0)) < 1e-6,
+		"+X to +Y about -Z is -90 degrees")
+	assert_almost_equal(FlatRollScript.roll_to(Vector3.RIGHT, Vector3.RIGHT, Vector3.UP), 0.0, "a breadth along the axis has no roll")
+
+
+func test_a_chain_without_its_bones_refuses_the_flat_roll() -> void:
+	var skeleton := _creature(1.0, true)
+	skeleton.set_bone_name(skeleton.find_bone("tail_04"), "Spine")
+	var roll: SkeletonModifier3D = FlatRollScript.new()
+	assert_equal(roll.bind_chain(skeleton), FlatRollScript.REFUSE_NO_BONE, "tail_04 missing")
+	roll.free()
+
+
+func test_a_tail_in_water_is_pulled_back_not_down() -> void:
+	"""Decision 0203: on land the pull is down; in water it is the creature's back direction, normalised."""
+	assert_true(TailRigScript.gravity_direction_for(false, Vector3(0, 0, -1)).is_equal_approx(Vector3.DOWN), "land: down")
+	assert_true(TailRigScript.gravity_direction_for(true, Vector3(0, 0, -3)).is_equal_approx(Vector3(0, 0, -1)), "water: back")
+	assert_true(TailRigScript.gravity_direction_for(true, Vector3(2, 0, 0)).is_equal_approx(Vector3.RIGHT), "a turned swimmer: its own back")

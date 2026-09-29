@@ -16,6 +16,9 @@ NEGATIVE TESTS COME FIRST:
   N08  a foot that must be pinned but cannot be refuses (decision 0202): no legs to re-solve, a leg that
        changes length, a gait whose feet never move back. (A contact the leg cannot reach, or whose pin would
        move a kneeling knee, is not refused: it is left and reported -- see the pinning tests.)
+  N09  a water clip that breaks its medium's rule refuses (decision 0203): a surface clip whose Head dips
+       under the waterline or whose Hips rise above it; a submerged clip any body vertex of which breaks the
+       surface (a chained tail's are the spring's, and are not counted); an unknown medium.
   (and a standing clip the seat leaves floating refuses: test_a_seat_that_leaves_the_clip_floating_refuses;
   an untwist that leaves the hips turning or a foot sliding refuses: test_an_untwist_that_does_not_hold_is_refused;
   a pin that does not hold refuses: test_a_pin_that_does_not_hold_is_refused)
@@ -1152,6 +1155,88 @@ def test_the_support_culprit_is_the_side_that_moved_it_nearest_the_key() -> None
 	check("a new lowest sank below it: its side", culprit((0.0, "Left"), (-0.02, "Right")) == ("Right", (6, 9)))
 	check("of that side's contacts, the nearest key 8", culprit((-0.005, "Right"), (0.0, "Right")) == ("Right", (6, 9)))
 	check("a side with none pinned: the nearest of any", culprit((0.0, "Right"), (0.0, "Right"), {"Left": ([(0, 3), (5, 7)], None)}) == ("Left", (5, 7)))
+
+
+# --- water clips (decision 0203) ---------------------------------------------------------------
+#
+# The stander's rest: Hips 0.5, Spine 0.6, Head joint 0.75, head vertex 0.8, foot vertices 0. Held at hips height
+# h, the Head joint is at h + 0.25, the head vertex at h + 0.3 and the feet at h - 0.5: far under any ground.
+
+def _swimmer(height: float, n: int = 5, extra: tuple = (), rename: dict | None = None, hips: list | None = None) -> bytes:
+	"""The stander held at hips height `height` on every key, optionally with nodes renamed."""
+	data = _stander(n, height=height, extra=extra, hips=hips)
+	return _edit(data, lambda doc: [n.__setitem__("name", rename[n["name"]]) for n in doc["nodes"] if n.get("name") in (rename or {})])
+
+
+def test_n09_a_water_clip_that_breaks_its_rule_refuses() -> None:
+	"""Surface: Head 0.25 above the hips must clear y = 0 and the hips must not. Submerged: nothing breaks it."""
+	_refuses_with("N09 a surface clip whose Head dips under refuses", "Head above the waterline",
+		lambda: ground.ground_clip(_swimmer(-0.26), stands=False, water="surface"))
+	_refuses_with("N09 a surface clip whose Hips rise above refuses", "Head above the waterline",
+		lambda: ground.ground_clip(_swimmer(0.0), stands=False, water="surface"))
+	_refuses_with("N09 a submerged clip whose head breaks the surface refuses", "breaks the surface",
+		lambda: ground.ground_clip(_swimmer(-0.29), stands=False, water="submerged"))
+	_refuses_with("N09 an unknown medium refuses", "unknown water medium",
+		lambda: ground.ground_clip(_swimmer(-0.5), stands=False, water="lava"))
+	_refuses_with("N09 a body vertex above the surface is counted", "breaks the surface",
+		lambda: ground.ground_clip(_swimmer(-0.9, extra=(((0.0, 1.5, 0.0), "Spine"),)), stands=False, water="submerged"))
+
+
+def test_a_surface_clip_is_held_at_the_waterline_not_the_ground() -> None:
+	"""Hips at -0.1 on every key: the feet are 0.6 m under the ground, and nothing is lifted, seated or pinned."""
+	source = _swimmer(-0.1)
+	out, row = ground.ground_clip(source, stands=False, water="surface")
+	check("no hips key moves", all(_near(y, -0.1) for y in _hips_y(out)))
+	check("nothing lifted or seated", row["keys_lifted"] == 0 and row["max_lift_m"] == 0.0 and row["seated_m"] == 0.0)
+	check("the feet stay 0.6 m down", row["support_min_before_m"] == -0.6 and row["support_min_after_m"] == -0.6)
+	check("no contact is found or pinned", row["contacts"] == 0 and row["contacts_pinned"] == 0 and not row["untwisted"])
+	check("the Head's lowest is 0.15 and the Hips' highest -0.1", row["head_min_y_m"] == 0.15 and row["hips_max_y_m"] == -0.1)
+	check("the medium is reported", row["water"] == "surface" and "body_max_y_m" not in row)
+	stamp = read_glb(out)[0]["asset"]["extras"][ground.STAMP]
+	check("the stamp names the medium, for the bake", stamp["water"] == "surface" and stamp["max_lift_m"] == 0.0)
+	check("the source BIN survives as a prefix", read_glb(out)[1].startswith(read_glb(source)[1]))
+
+
+def test_a_submerged_clip_reports_its_highest_point() -> None:
+	"""Hips at -0.9: the head vertex is the highest point, at 0.8 - 0.5 - 0.9 = -0.6."""
+	_out, row = ground.ground_clip(_swimmer(-0.9), stands=False, water="submerged")
+	check("the body's highest point is -0.6", row["body_max_y_m"] == -0.6)
+	check("and the Head joint's lowest -0.65", row["head_min_y_m"] == -0.65)
+
+
+def test_a_chained_tail_may_break_the_surface_in_a_dive() -> None:
+	"""The same vertex 2.0 m up, on a joint named tail_00: the spring's, so not counted -- the bake checks it."""
+	_out, row = ground.ground_clip(_swimmer(-0.9, extra=(((0.0, 2.0, 0.0), "Spine"),), rename={"Spine": "tail_00"}),
+		stands=False, water="submerged")
+	check("the tail vertex is left to the bake", row["body_max_y_m"] == -0.6)
+
+
+def test_a_water_clip_that_travels_has_its_travel_taken_out() -> None:
+	"""A swimmer drifting 0.3 m forward over the loop plays in place, its travel recorded, as a carry walk's is."""
+	path = [(0.0, 0.3 * k / 8) for k in range(9)]
+	out, row = ground.ground_clip(_swimmer(-0.1, n=9, hips=path), stands=False, water="surface")
+	check("the travel is 0.3 m", row["root_travel_m"] == 0.3)
+	doc = read_glb(out)[0]
+	hips = next(n for n in doc["nodes"] if n.get("name") == "Hips")
+	check("recorded on the Hips as root motion", hips["extras"]["root_motion"]["travel_m"] == [0.0, 0.3])
+	check("and the loop closes", row["loop_gap_m"] <= ground.ROOT_MOTION_MIN_M)
+
+
+def test_a_water_clip_that_moves_is_refused() -> None:
+	"""The rewrite of an in-place water clip must leave every key where it was; a lift slipped in is caught."""
+	def lifting(real):
+		return lambda doc, binary, times_index, times, lifts, roots=None: real(doc, binary, times_index, times, [0.01] * len(lifts), roots)
+	_patched("apply_lift", lifting, lambda: _refuses_with("an in-place water clip that moves refuses", "water clip moved",
+		lambda: ground.ground_clip(_swimmer(-0.1), stands=False, water="surface")))
+
+
+def test_the_water_clips_are_named() -> None:
+	"""swim and tread-water at the surface, the dive submerged; none stands; a walk is not a water clip."""
+	check("swim is a surface clip", ground.water_medium("/lib/otter_fisher/tailed/anim_swim.glb") == "surface")
+	check("tread-water is a surface clip", ground.water_medium("/lib/otter_fisher/tailed/anim_tread_water.glb") == "surface")
+	check("the dive is submerged", ground.water_medium("/lib/otter_fisher/tailed/anim_dive.glb") == "submerged")
+	check("a walk is not in water", ground.water_medium("/lib/otter_fisher/tailed/anim_walk.glb") is None)
+	check("no water clip stands", not any(ground.stands(f"/lib/k/tailed/{c}.glb") for c in ground.WATER_CLIPS))
 
 
 def main() -> int:

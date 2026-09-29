@@ -1121,20 +1121,27 @@ func test_the_chamber_drawings() -> void:
 
 
 func test_the_flood_rises_on_the_demo_clock_and_holds_while_paused() -> void:
-	"""1.5 s of demo time raises the water half way (3 s to full); a paused frame raises nothing."""
+	"""1.5 s of demo time raises the water half way (3 s to full) and hands the real stream that level;
+	a paused frame raises nothing and hands nothing."""
 	var events := EventsScript.new()
 	var clock := DemoClockScript.new()
 	var view := EventsViewScript.new()
 	_nodes.append(view)
 	view.configure(events, clock)
+	var risen: Array[float] = []
+	view.set_flood_rise(func(level: float) -> void: risen.append(level))
 	events.trigger()
+	assert_equal(events.kind, EventsScript.KIND_FLOOD, "the first threat is the flood")
 	clock.advance(1.5)
 	view._process(0.0)
 	assert_near(view.water_level(), 0.5, 0.0001, "half way")
+	assert_equal(risen.size(), 1, "the stream told once")
+	assert_near(risen[0], 0.5, 0.0001, "half way up its banks")
 	clock.speed = 0
 	clock.frame_usec = 0
 	view._process(0.0)
 	assert_near(view.water_level(), 0.5, 0.0001, "held while paused")
+	assert_equal(risen.size(), 1, "nothing new to tell")
 
 
 func test_the_weather_view_falls_and_dims_on_the_demo_clock() -> void:

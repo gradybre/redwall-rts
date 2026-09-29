@@ -392,6 +392,16 @@ func test_a_tunnel_from_the_stream_s_edge_irrigates_the_beds_it_runs_under() -> 
 	assert_true(other.sim.is_drained(BED_RADISH), "it drains instead")
 
 
+func test_the_services_answer_from_the_map_they_are_given() -> void:
+	"""demo_village hands the services its water node's map; the adapter answers from exactly that map
+	(a fixture pond here), not the authored village water."""
+	var map := _pond_map()
+	var shared := ServicesScript.new(map)
+	assert_true(shared.water.map() == map, "the given map")
+	assert_true(shared.water.near_water(0, 0), "the fixture pond is wet")
+	assert_false(shared.water.near_water(Rules.to_u(19.0), Rules.to_u(9.0)), "the authored stream is not there")
+
+
 func _pond_map() -> WaterMapScript:
 	"""A fixture: a pond of 1 m radius at the origin, with the ford landing the adapter spills at."""
 	var map := WaterMapScript.new(1229)

@@ -1054,6 +1054,9 @@ func test_a_flood_raises_the_stream_up_its_banks() -> void:
 	assert_equal(water.flood_rise_m(), 0.0, "at its level")
 	water.set_flood_rise(1.0)
 	assert_almost_equal(water.flood_rise_m(), Rules.to_m(184 * 900 / 1000), "brim-full")
+	for node: MeshInstance3D in water.surface().nodes:
+		var stream: bool = node.name == "WaterSurface_stream"
+		assert_equal(node.position.y > 0.0, stream, "%s raised: %s" % [node.name, stream])
 	water.set_flood_rise(0.5)
 	assert_almost_equal(water.flood_rise_m(), Rules.to_m(184 * 900 / 1000) * 0.5, "half")
 	water.set_flood_rise(0.0)

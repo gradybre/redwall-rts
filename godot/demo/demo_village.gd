@@ -18,6 +18,11 @@ extends Node3D
 ## pause as it opens, so the village is alive and the HUD reads Playing; from then on the HUD's pause
 ## and 1x / 2x / 4x buttons are the real GameManager's, and the demo follows them: the cast's clock
 ## (demo_clock.gd) reads GameManager.get_effective_speed() every frame.
+##
+## FARM (demo/farm/): the six crop beds grow individual pantry ingredients by the settlement's own
+## crop arithmetic, worked by the residents; the HUD's Food cell shows the pantry total and its Food
+## command opens the Pantry. `_build_farm()` wires it; `storage_providers()` is where root cellars
+## (and any other food store) are handed to it -- see demo/farm/farm_storage.gd for the API.
 
 const DemoManifestScript := preload("res://demo/demo_manifest.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
@@ -26,6 +31,9 @@ const DemoCameraScript := preload("res://demo/camera/demo_camera.gd")
 const WoodlandSkinScript := preload("res://demo/ui/woodland_skin.gd")
 const DemoCommandScript := preload("res://demo/control/demo_command.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
+const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
+const FarmWater := preload("res://demo/farm/farm_water.gd")
+const UiShell := preload("res://scripts/ui/ui_shell.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -40,6 +48,7 @@ var _world: Node3D = null
 var _cast: Node3D = null
 var _camera: Node3D = null
 var _command: Node3D = null
+var _farm: DemoFarmScript = null
 var _shadow_view_m: float = -1.0
 
 
@@ -55,7 +64,7 @@ func _ready() -> void:
 	_world.build(manifest)
 	_cast = DemoCastScript.new()
 	add_child(_cast)
-	_cast.build(manifest, _world.points_of_interest(), _world.obstacles())
+	_cast.build(manifest, _world.points_of_interest(), _obstacles_with_pond())
 	_cast.clock.bind(GameManager as GameManagerScript)
 	_camera = DemoCameraScript.new()
 	add_child(_camera)
@@ -66,8 +75,39 @@ func _ready() -> void:
 	add_child(_command)
 	_command.configure(_cast, _camera.camera(), _game.get_node_or_null(GAME_HUD_ROOT) as Control)
 	_command.set_world(_world as DemoWorldScript)
+	_build_farm(manifest)
 	_skin_hud.call_deferred()
 	_open_running()
+
+
+func _obstacles_with_pond() -> Array[Vector3]:
+	"""The world's obstacles and the farm's PLACEHOLDER reed pond (demo/farm/farm_water.gd), which nobody
+	walks into. Drop the append when the village's real water merges."""
+	var circles: Array[Vector3] = _world.obstacles()
+	circles.append(FarmWater.placeholder_obstacle())
+	return circles
+
+
+func _build_farm(manifest: Dictionary) -> void:
+	"""The farm, after the world, the cast, the camera and the command layer it works through."""
+	_farm = DemoFarmScript.new()
+	add_child(_farm)
+	var hud_root: Node = _game.get_node_or_null(GAME_HUD_ROOT)
+	var shell: UiShell = hud_root.get_node_or_null(^"Shell") as UiShell if hud_root != null else null
+	_farm.configure(manifest, _world as DemoWorldScript, _cast as DemoCastScript, _command as DemoCommandScript,
+		_camera.camera(), shell, storage_providers(), water_edge_query())
+
+
+func storage_providers() -> Array[Callable]:
+	"""Food stores beyond the covered store, for the farm's pantry (farm_storage.gd's provider API).
+	None yet: the root cellars of the tunnel extension are wired here when it merges."""
+	return []
+
+
+func water_edge_query() -> Callable:
+	"""The farm's one water query, `(x_u: int, z_u: int) -> bool` (demo/farm/farm_water.gd): the demo
+	table for now; point it at the village's real water when feat/demo-water merges."""
+	return FarmWater.edge_query()
 
 
 func _open_running() -> void:

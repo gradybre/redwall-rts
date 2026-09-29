@@ -80,6 +80,35 @@ Digging runs at the adopted excavation rate (113 ticks and 2 U of spoil per cubi
 `docs/underground_economy_hazard_amendment.md`); the bore size, the stoop that lets a squirrel
 through, the depth and the drawn size of a heap are demo values (`tunnel/tunnel_rules.gd`).
 
+## Farming
+
+The six crop beds grow **individual pantry ingredients** -- radish, turnip, carrot, beetroot, parsnip,
+onion, cabbage, lettuce, spinach, leek, celery, pea, broad bean, wheat, barley, oats, each a LEAF of the
+content library's pantry -- by the settlement's **own crop arithmetic** (`scripts/core/farming.gd` and
+`crop_weather.gd`, GDD §5.6): each bed is a real FarmPlot row, and each ingredient grows by the §5.6 row
+it belongs to (roots, cabbage, beans or grain). The farm keeps its own calendar on the demo clock, a
+game hour every 2.5 demo seconds (a day a minute at 1x), so pause and 1x/2x/4x govern it too; the
+HUD's date is the settlement's clock and runs apart. Harvests go into the **pantry**, counted per item;
+the HUD's Food cell shows the pantry total, and the Food command (or K) opens the Pantry: stock per
+ingredient, freshness (GDD §5.8 spoilage by where it is stored), and the library dishes each feeds.
+
+| Input | Does |
+|---|---|
+| Left click a bed | Its panel: crop, stage, hours to ripe or withering, moisture band, fertility, health, what was done to the ground, expected yield, jobs, and the verbs |
+| Right click a bed (residents selected) | The nearest selected resident does its most pressing work: clear, harvest, water a dry bed, cover before frost, sow |
+| Plant… (bed panel) | The crop picker: every ingredient, sowable ones first, with growth hours, yield, family and its rotation effect in this bed; the rest say why not (soil, planting window) |
+| Water / Harvest / Clear / Compost / Cover | Given to the selected residents, or queued for the field crew (the fieldworker and gatherer take queued work while wandering) |
+| Raise / Bank | A resident fetches 2 U of tunnel spoil from a heap: a raised bed drains and is warmer at night; a banked bed keeps half of each dry day's loss |
+| Rest | Rest the bed fallow (it regains fertility; nothing is sown) |
+| V | Map overlay: moisture, then ripeness, then off |
+| K / Food | The Pantry |
+
+Threats: spring is wet (beds waterlog and stop growing -- drain them with a tunnel, or raise them),
+summer dry (water), frost nights are announced the day before (cover or raise), blight spreads to
+the next beds at midnight unless the blighted bed is cleared, and a ripe crop starts losing yield after
+48 hours and withers at 120. A finished tunnel under a bed drains it; a tunnel with a mouth at the
+water's edge irrigates the beds it runs under. Details and every number's source: `farm/*.gd` headers.
+
 Staging also runs `tools/make_demo_crop_cards.py` (needs `blender` on PATH, ~2 minutes): the grain
 and roots L0s shatter, so their beds are rebuilt as a bare bed plus alpha-cutout cards rendered
 from the high-poly sources. Re-run it alone after changing it:
@@ -95,6 +124,7 @@ from the high-poly sources. Re-run it alone after changing it:
 | `cast/` | The residents: body, clips, live tail, job routines, orders |
 | `control/` | Selecting and ordering residents, and the demo party panel |
 | `tunnel/` | Player-dug tunnels: rules, the tunnel network and planner, planning, drawing, the underground view |
+| `farm/` | The farm: real FarmPlot rows, the pantry and its storage providers, the crew's jobs, beds, panels, alerts |
 | `ui/` | The woodland HUD skin |
 | `camera/` | The RTS camera |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

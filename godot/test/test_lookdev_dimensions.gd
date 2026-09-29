@@ -24,6 +24,9 @@ const Dimensions := preload("res://assets/lookdev/lookdev_dimensions.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 
+## The rows DEC-039 approved on 2026-09-12: the first five. Row 5, the beaver, is DEC-041's.
+const DEC_039_SPECIES: int = 5
+
 
 func test_every_building_definition_has_exactly_one_vertical_envelope() -> void:
 	"""A building with no envelope has no model brief; a stray key describes nothing."""
@@ -83,11 +86,17 @@ func test_dirt_path_is_the_only_envelope_millimetres_cannot_express() -> void:
 
 
 func test_every_species_candidate_is_present_and_looked_up_by_key() -> void:
-	"""The five species the ruling names, and no silent extra."""
-	assert_equal(Dimensions.species_count(), 5, "five comparison candidates")
+	"""The five species the ruling names, the beaver DEC-041 added, and no silent extra.
+
+	Six since DEC-041 (2026-09-29) put the beaver on the release roster at a proposed 1434 u.
+	It is the LAST row, so the five DEC-039 rows keep the indices the comparison scene uses."""
+	assert_equal(Dimensions.species_count(), 6, "five DEC-039 species and the DEC-041 beaver")
 	var expected: Dictionary = {
 		&"mouse": 1024, &"mole": 922, &"squirrel": 1178, &"otter": 1526, &"badger": 2611,
+		&"beaver": 1434,
 	}
+	assert_equal(Dimensions.SPECIES_KEY[5], &"beaver", "the beaver is appended after the five")
+	assert_equal(Dimensions.SPECIES_HEIGHT_MM[5], 1400, "1434 u is 1400 mm, half up from 1400.39")
 	var found := IntMath.IntResult.new()
 	for key: StringName in expected:
 		assert_true(Dimensions.has_species(key), "%s is declared" % key)
@@ -110,7 +119,7 @@ func test_every_species_row_names_its_approval_and_the_anchor_keeps_its_provenan
 	"""
 	assert_equal(Dimensions.SPECIES_STATUS.size(), Dimensions.species_count(),
 		"one status per species")
-	for row: int in Dimensions.species_count():
+	for row: int in DEC_039_SPECIES:
 		var status: String = String(Dimensions.SPECIES_STATUS[row])
 		assert_true(status.contains("APPROVED"),
 			"%s names its approval" % Dimensions.SPECIES_KEY[row])
@@ -118,6 +127,19 @@ func test_every_species_row_names_its_approval_and_the_anchor_keeps_its_provenan
 			"%s no longer reads as an unapproved candidate" % Dimensions.SPECIES_KEY[row])
 	assert_true(String(Dimensions.SPECIES_STATUS[0]).contains("ANCHOR_SOURCED"),
 		"the mouse still records that its height is sourced, not authored for this review")
+
+
+func test_the_beaver_height_is_proposed_not_approved() -> void:
+	"""DEC-041: the beaver's 1434 u is PROPOSED_FOR_REVIEW until Brendan compares it by eye.
+
+	The DEC-039 rows above read as approved; this one must not, or a proposed height would pass
+	for a reviewed one."""
+	var row: int = Dimensions.SPECIES_KEY.find(&"beaver")
+	assert_equal(row, DEC_039_SPECIES, "the beaver follows the DEC-039 rows")
+	var status: String = String(Dimensions.SPECIES_STATUS[row])
+	assert_true(status.contains("PROPOSED_FOR_REVIEW"), "the beaver's height is proposed")
+	assert_true(status.contains("DEC_041"), "and names the decision that proposed it")
+	assert_false(status.contains("APPROVED"), "and does not read as approved")
 
 
 func test_an_unknown_species_refuses_instead_of_reporting_a_height() -> void:

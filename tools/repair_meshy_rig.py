@@ -47,6 +47,7 @@ SCALE_TOLERANCE = 0.01     # a scale key further than this from its bone's rest 
 STAMP = "redwall_rig_repair"
 STAMP_VERSION = 3   # 2: root scale folded (decision 0194); 3: stray scale keys reset (0197)
 DROPPED_EXTENSIONS = ("KHR_materials_specular", "KHR_materials_ior")
+AUTHORED = "authored"      # <key>/authored/: clips authored in this repository, not by Meshy (decision 0203)
 
 
 class RepairRefused(Exception):
@@ -416,14 +417,40 @@ def _sha(data: bytes) -> str:
 	return hashlib.sha256(data).hexdigest()
 
 
+def species_target_m(key: str, heights: dict[str, float]) -> float:
+	"""The target height of the creature `key` (`<species>_<role>`), or a refusal naming the species.
+
+	A creature whose species has no SPECIES_HEIGHT_U row has no height to repair to. Guessing one, or
+	passing the rig through at Meshy's scale, would ship a creature at the wrong size; the beaver
+	crashed the whole run with a bare KeyError before DEC-041 gave it a row (decision 0203)."""
+	species = key.split("_")[0]
+	if species not in heights:
+		raise RepairRefused(f"{key}: species '{species}' has no height in lookdev_dimensions.gd "
+			f"(SPECIES_KEY/SPECIES_HEIGHT_U); add its row before repairing it")
+	return heights[species]
+
+
+def clip_sources(key_dir: pathlib.Path) -> list[pathlib.Path]:
+	"""A creature's files to repair: Meshy's anim_*.glb, the clips authored for it in authored/ (decision 0203),
+	and rigged.glb. An authored clip named like one of Meshy's refuses: both would write repaired/<name>."""
+	meshy, authored = sorted(key_dir.glob("anim_*.glb")), sorted((key_dir / AUTHORED).glob("anim_*.glb"))
+	clash = sorted({p.name for p in meshy} & {p.name for p in authored})
+	if clash:
+		raise RepairRefused(f"{key_dir.name}: {clash} is both a Meshy clip and an authored one")
+	return meshy + authored + sorted(key_dir.glob("rigged.glb"))
+
+
 def repair_library(library: pathlib.Path, heights: dict[str, float], dry_run: bool) -> list[dict]:
-	"""Repair every rigged.glb and anim_*.glb under each creature, writing to <key>/repaired/."""
+	"""Repair every rigged.glb and anim_*.glb under each creature, writing to <key>/repaired/.
+
+	Every creature's species is resolved before anything is written, so an unknown species refuses
+	the run without leaving some creatures repaired and the manifest stale."""
+	creatures = [p for p in sorted(library.iterdir()) if (p / "l0.glb").exists() and clip_sources(p)]
+	targets = {key_dir.name: species_target_m(key_dir.name, heights) for key_dir in creatures}
 	rows = []
-	for key_dir in sorted(p for p in library.iterdir() if (p / "l0.glb").exists()):
-		sources = sorted(key_dir.glob("anim_*.glb")) + sorted(key_dir.glob("rigged.glb"))
-		if not sources:
-			continue
-		target = heights[key_dir.name.split("_")[0]]
+	for key_dir in creatures:
+		sources = clip_sources(key_dir)
+		target = targets[key_dir.name]
 		l0 = (key_dir / "l0.glb").read_bytes()
 		for source in sources:
 			data = source.read_bytes()
@@ -432,7 +459,8 @@ def repair_library(library: pathlib.Path, heights: dict[str, float], dry_run: bo
 			if not dry_run:
 				dest.parent.mkdir(exist_ok=True)
 				dest.write_bytes(out)
-			rows.append({"key": key_dir.name, "file": source.name, "target_height_m": round(target, 4),
+			rows.append({"key": key_dir.name, "file": source.name, **({"source": AUTHORED} if source.parent.name == AUTHORED else {}),
+						 "target_height_m": round(target, 4),
 						 **report, "source_sha256": _sha(data), "output_sha256": _sha(out),
 						 "output_bytes": len(out)})
 	return rows

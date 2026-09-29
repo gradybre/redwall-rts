@@ -41,6 +41,23 @@ func after_each() -> void:
 func test_the_scene_holds_every_species_in_every_pose() -> void:
 	"""Twenty cells. A missing one silently removes a species from the comparison."""
 	assert_equal(Comparison.species_count(), 5, "five species")
+	assert_equal(Dimensions.species_count(), 6, "of the six the dimensions table carries")
+
+
+func test_the_beaver_is_absent_because_it_has_no_landmarks() -> void:
+	"""DEC-041 added a sixth height row, the beaver's. The scene places only rows with landmarks.
+
+	No reference has been read for a beaver's eye, shoulder or hip. Placing it would need landmark
+	permilles nobody sourced, so it stays out of the scene rather than getting invented ones -- and
+	the five compared rows are exactly the first five of the dimensions table, in its order."""
+	assert_equal(Comparison.SKULL_TOP_PERMILLE.size(), Comparison.species_count(),
+		"the scene's species are the rows with landmarks")
+	for row: int in Comparison.species_count():
+		assert_true(Dimensions.SPECIES_KEY[row] != &"beaver", "row %d is not the beaver" % row)
+	assert_equal(Dimensions.SPECIES_KEY.find(&"beaver"), Comparison.species_count(),
+		"the beaver is the first row past the compared five")
+	var cell: Node = _scene.get_node_or_null(NodePath("beaver_standing"))
+	assert_null(cell, "and no beaver cell is built")
 	assert_equal(Comparison.POSE_COUNT, 4, "four poses")
 	for row: int in Comparison.species_count():
 		for pose: int in Comparison.POSE_COUNT:

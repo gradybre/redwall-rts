@@ -33,8 +33,8 @@ import struct
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from repair_meshy_rig import (COMPONENTS, WIDTHS, RepairRefused, append_accessor, read_accessor,  # noqa: E402
-	read_glb, write_glb)
+from repair_meshy_rig import (COMPONENTS, WIDTHS, RepairRefused, append_accessor, bind_scale,  # noqa: E402
+	read_accessor, read_glb, write_glb)
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 LIBRARY = ROOT / "assets/library/creature"
@@ -51,6 +51,8 @@ GROW_RADIUS_FACTOR = 1.35   # ...but never beyond this multiple of the capsule r
 RADIUS_PERCENTILE = 0.95   # a segment's collision radius: this share of its surface lies within it
 CLEARANCE_PERCENTILE = 0.99   # a segment's ground clearance, for the exact constraint (decision 0194)
 SPRING_KEYS = ("stiffness", "drag", "gravity")
+SECTIONS = ("round", "flat")   # how a segment's radius and clearance are measured (decision 0203)
+UNIT_SCALE_TOLERANCE = 1e-6    # a bind scale this close to 1 is 1: a unit-scale rig is measured exactly as before
 STAMP = "redwall_tail_rig"
 STAMP_VERSION = 1
 
@@ -240,7 +242,7 @@ def mesh_arrays(doc: dict, binary: bytes) -> tuple[dict, list, list]:
 	return primitive, positions, indices
 
 
-def plan_chain(positions: list, indices: list, entry: dict, bones: int) -> dict:
+def plan_chain(positions: list, indices: list, entry: dict, bones: int, scale: float = 1.0) -> dict:
 	"""Segment, refit, and place `bones` joint stations along the tail. File-independent."""
 	## Two passes for a thick tail: the authored line is rough, so segment against it, refit the
 	## line to what was found, then segment again against the refitted line.
@@ -258,24 +260,44 @@ def plan_chain(positions: list, indices: list, entry: dict, bones: int) -> dict:
 		refit = refit_centreline(positions, tail, entry["centreline"])
 	length = polyline_length(refit)
 	stations = [point_at(refit, i * length / bones) for i in range(bones)]
-	plan = {"tail": tail, "centreline": refit, "length": length, "stations": stations, "bones": bones}
-	plan["radii"] = segment_radii(positions, plan)
+	section = entry.get("section", "round")
+	if section not in SECTIONS:
+		raise TailRefused(f"unknown tail section {section!r}; expected one of {SECTIONS}")
+	plan = {"tail": tail, "centreline": refit, "length": length, "stations": stations, "bones": bones, "section": section}
+	plan["radii"] = segment_radii(positions, plan, scale)
 	return plan
 
 
-def segment_radii(positions: list, plan: dict) -> list[float]:
-	"""Each segment's surface radius about the centreline, in metres.
+def section_measure(section: str, axis_point: list, p) -> float:
+	"""How far the surface point p stands off the tail's axis at `axis_point`, as the ground sees it.
+
+	ROUND (every tail until the beaver): the distance from the axis, whichever way. FLAT (a paddle whose
+	breadth lies across the body, decision 0203): the distance with the creature's left-right offset (x)
+	left out -- the paddle's THICKNESS, whichever way the segment points in the body's midplane. A beaver's
+	paddle is ~28 cm wide and ~6-12 cm thick; measured round, its clearance is its half-width, and the
+	ground constraint holds it a hand's breadth above the ground it lies on at rest. A roll of the paddle
+	about its own axis tips an edge down by up to half its width; the bake's skinned ground check sees it."""
+	if section == "flat":
+		return math.hypot(p[1] - axis_point[1], p[2] - axis_point[2])
+	return math.dist(axis_point, p)
+
+
+def segment_radii(positions: list, plan: dict, scale: float = 1.0) -> list[float]:
+	"""Each segment's surface radius about the centreline, in drawn metres (mesh metres x `scale`).
 
 	A spring's collision radius must be the tail's SURFACE, not its axis: a bushy squirrel tail is
 	about twice as thick as a single guessed radius, and with the axis held off the ground the fur
 	still sinks through it. A high percentile, not the maximum, so one stray fringe vertex cannot
-	inflate a whole segment.
+	inflate a whole segment. `scale` is the rig's bind scale: the repair rescales a short rig by its
+	joints, not its vertices, so the beaver's mesh is drawn 1.1879x the size its POSITION data says.
 	"""
 	segment = plan["length"] / plan["bones"]
+	section = plan.get("section", "round")
 	buckets: list[list[float]] = [[] for _ in range(plan["bones"])]
 	for v in plan["tail"]:
-		distance, t, _before = closest_on_polyline(plan["centreline"], positions[v])
-		buckets[min(int(t / segment), plan["bones"] - 1)].append(distance)
+		_distance, t, _before = closest_on_polyline(plan["centreline"], positions[v])
+		measure = section_measure(section, point_at(plan["centreline"], t), positions[v])
+		buckets[min(int(t / segment), plan["bones"] - 1)].append(measure)
 	## Floor every segment at the tail's median thickness: a sparse thin tail can leave a segment
 	## with a vertex or two lying on the line, and a zero radius lets half the tail sink.
 	everything = sorted(d for bucket in buckets for d in bucket)
@@ -285,7 +307,7 @@ def segment_radii(positions: list, plan: dict) -> list[float]:
 		if not bucket:
 			raise TailRefused("a tail segment has no vertices; the chain is longer than the tail")
 		bucket.sort()
-		radii.append(round(max(floor, bucket[min(int(len(bucket) * RADIUS_PERCENTILE), len(bucket) - 1)]), 4))
+		radii.append(round(max(floor, bucket[min(int(len(bucket) * RADIUS_PERCENTILE), len(bucket) - 1)]) * scale, 4))
 	return radii
 
 
@@ -317,15 +339,27 @@ def _joint_extras(plan: dict, i: int) -> dict:
 		extras["ground_clearance_m"] = plan["clearances"][i]
 	if i == 0 and "spring" in plan:
 		extras["spring"] = {k: plan["spring"][k] for k in SPRING_KEYS}
+	if i == 0 and plan.get("section", "round") != "round":
+		extras["section"] = plan["section"]    # the live tail keeps a flat one's roll with the hips (decision 0203)
 	return extras
 
 
-def ground_clearances(doc: dict, binary: bytes) -> list[float]:
-	"""Per tail segment, the CLEARANCE_PERCENTILE distance of its vertices from the segment's axis.
+def rig_scale(doc: dict, binary: bytes) -> float:
+	"""The rig's bind scale -- how much larger than its POSITION data the mesh is drawn -- snapped to
+	exactly 1.0 within UNIT_SCALE_TOLERANCE. Only a creature the repair rescaled (the beaver, x1.1879)
+	has another; every tail chained before it measures exactly as it did."""
+	c = bind_scale(doc, binary)
+	return 1.0 if abs(c - 1.0) < UNIT_SCALE_TOLERANCE else c
+
+
+def ground_clearances(doc: dict, binary: bytes, section: str = "round") -> list[float]:
+	"""Per tail segment, the CLEARANCE_PERCENTILE measure (section_measure) of its vertices off the
+	segment's axis.
 
 	Each vertex belongs to its strongest tail joint; the axis runs from that joint to the next (for
-	tail_07, to the tip the spring extends it to). Bind pose, world metres. The spring's own radius
-	(RADIUS_PERCENTILE) let outer fur dip up to 2.7 cm into the ground (decision 0193)."""
+	tail_07, to the tip the spring extends it to). Bind pose, world metres: the vertices are drawn at
+	the rig's bind scale, which is where the joints are. The spring's own radius (RADIUS_PERCENTILE)
+	let outer fur dip up to 2.7 cm into the ground (decision 0193)."""
 	skin = doc["skins"][0]
 	names = [doc["nodes"][n].get("name", "") for n in skin["joints"]]
 	primitive = doc["meshes"][0]["primitives"][0]
@@ -336,20 +370,27 @@ def ground_clearances(doc: dict, binary: bytes) -> list[float]:
 	by_name = {n.get("name"): i for i, n in enumerate(doc["nodes"])}
 	tail = [by_name[f"tail_{i:02d}"] for i in range(sum(1 for n in names if n.startswith("tail_")))]
 	points = [worlds[n][12:15] for n in tail] + [transform_point(worlds[tail[-1]], doc["nodes"][tail[-1]]["translation"])]
+	scale = rig_scale(doc, binary)
 	spread: list[list[float]] = [[] for _ in tail]
 	for v in range(len(pos)):
 		strongest = names[jnt[v][max(range(4), key=lambda q: wgt[v][q])]]
 		if strongest.startswith("tail_"):
 			i = int(strongest[5:])
-			spread[i].append(_axis_distance(points[i], points[i + 1], pos[v]))
+			p = pos[v] if scale == 1.0 else [c * scale for c in pos[v]]
+			spread[i].append(section_measure(section, _axis_foot(points[i], points[i + 1], p), p))
 	return [round(sorted(d)[min(len(d) - 1, int(len(d) * CLEARANCE_PERCENTILE))], 4) if d else 0.0 for d in spread]
+
+
+def _axis_foot(a: list, b: list, p) -> list[float]:
+	"""The point of the segment a-b closest to p."""
+	ab = _sub(b, a)
+	u = max(0.0, min(1.0, _dot(ab, _sub(p, a)) / _dot(ab, ab)))
+	return [a[k] + u * ab[k] for k in range(3)]
 
 
 def _axis_distance(a: list, b: list, p) -> float:
 	"""Distance from p to the segment a-b."""
-	ab = _sub(b, a)
-	u = max(0.0, min(1.0, _dot(ab, _sub(p, a)) / _dot(ab, ab)))
-	return math.dist(p, [a[k] + u * ab[k] for k in range(3)])
+	return math.dist(p, _axis_foot(a, b, p))
 
 
 def add_joints(doc: dict, binary: bytes, plan: dict) -> tuple[bytes, int, int]:
@@ -431,12 +472,13 @@ def rig_creature(key_dir: pathlib.Path, entry: dict, bones: int, dry_run: bool) 
 	doc, binary = read_glb(source.read_bytes())
 	primitive, positions, indices = mesh_arrays(doc, binary)
 	sha = hashlib.sha256(accessor_bytes(doc, binary, primitive["attributes"]["POSITION"])).hexdigest()
-	plan = plan_chain(positions, indices, entry, bones)
+	scale = rig_scale(doc, binary)
+	plan = plan_chain(positions, indices, entry, bones, scale)
 	if "spring" in entry:
 		plan["spring"] = entry["spring"]
 	## Clearances are measured on the chained mesh (each vertex's strongest tail joint), so chain the
 	## rigged file once to measure, then chain every file with the clearances written in.
-	plan["clearances"] = ground_clearances(*read_glb(rig_file(source.read_bytes(), plan, sha)[0]))
+	plan["clearances"] = ground_clearances(*read_glb(rig_file(source.read_bytes(), plan, sha)[0]), plan["section"])
 	rows = []
 	for path in sorted((key_dir / "repaired").glob("*.glb")):
 		data = path.read_bytes()
@@ -445,8 +487,8 @@ def rig_creature(key_dir: pathlib.Path, entry: dict, bones: int, dry_run: bool) 
 			(key_dir / "tailed").mkdir(exist_ok=True)
 			(key_dir / "tailed" / path.name).write_bytes(out)
 		rows.append({"key": key_dir.name, "file": path.name, "tail_vertices": len(plan["tail"]),
-			"tail_length_m": round(plan["length"], 4), "joint_radius_m": plan["radii"],
-			"ground_clearance_m": plan["clearances"], **report,
+			"tail_length_m": round(plan["length"] * scale, 4), "joint_radius_m": plan["radii"],
+			"ground_clearance_m": plan["clearances"], **({"section": plan["section"]} if plan["section"] != "round" else {}), **report,
 			"source_sha256": hashlib.sha256(data).hexdigest(), "output_sha256": hashlib.sha256(out).hexdigest()})
 	return rows
 

@@ -1,0 +1,473 @@
+{
+ "tool": "tools/author_water_clips.py",
+ "decision": "0203",
+ "waterline_y_m": 0.0,
+ "key_rate_hz": 30,
+ "count": 24,
+ "clips": [
+  {
+   "key": "badger_cellarer",
+   "clip": "anim_swim",
+   "style": "paddle",
+   "medium": "surface",
+   "keys": 40,
+   "period_s": 1.3,
+   "anchor": "neck",
+   "anchor_y_m": [
+    -0.0254,
+    0.0254
+   ],
+   "params": {
+    "pitch": 48.0,
+    "amp": 1.15,
+    "neck_y": 0.0
+   },
+   "source_sha256": "d358927e2dfebcc1a649b9675c024eee58c25d4c237ec7f273b8bf5e78516c57",
+   "output_sha256": "aea3fd2c68004f30edbb07977fa78b5b2a20ff778fe3ea39529375f95703a93c"
+  },
+  {
+   "key": "badger_cellarer",
+   "clip": "anim_tread_water",
+   "style": "tread",
+   "medium": "surface",
+   "keys": 61,
+   "period_s": 2.0,
+   "anchor": "neck",
+   "anchor_y_m": [
+    0.0171,
+    0.0677
+   ],
+   "params": {
+    "pitch": 10.0,
+    "neck_y": 0.02
+   },
+   "source_sha256": "d358927e2dfebcc1a649b9675c024eee58c25d4c237ec7f273b8bf5e78516c57",
+   "output_sha256": "69f64e9702b3abdbcbe2541528877f6307ec7a0f20fd1d18258e33af12c74b58"
+  },
+  {
+   "key": "badger_quarryman",
+   "clip": "anim_swim",
+   "style": "paddle",
+   "medium": "surface",
+   "keys": 40,
+   "period_s": 1.3,
+   "anchor": "neck",
+   "anchor_y_m": [
+    -0.0306,
+    0.0306
+   ],
+   "params": {
+    "pitch": 48.0,
+    "amp": 1.15,
+    "neck_y": 0.0
+   },
+   "source_sha256": "884f0de2c529b989ca5153f420ea318d598c1f1bfe7f6129fd3057cec60620f7",
+   "output_sha256": "3c02b6779c7f86b37fd774a1ab8aa3b7f047f7cc85be478c0f472cde5a1ece42"
+  },
+  {
+   "key": "badger_quarryman",
+   "clip": "anim_tread_water",
+   "style": "tread",
+   "medium": "surface",
+   "keys": 61,
+   "period_s": 2.0,
+   "anchor": "neck",
+   "anchor_y_m": [
+    0.0206,
+    0.0814
+   ],
+   "params": {
+    "pitch": 10.0,
+    "neck_y": 0.02
+   },
+   "source_sha256": "884f0de2c529b989ca5153f420ea318d598c1f1bfe7f6129fd3057cec60620f7",
+   "output_sha256": "3a82854e02803f4eb0a412db4c8ee56b2e04d74a675214b446636c987197605b"
+  },
+  {
+   "key": "beaver_bridgewright",
+   "clip": "anim_swim",
+   "style": "hindkick",
+   "medium": "surface",
+   "keys": 34,
+   "period_s": 1.1,
+   "anchor": "neck",
+   "anchor_y_m": [
+    0.0024,
+    0.0212
+   ],
+   "params": {
+    "pitch": 64.0,
+    "neck_y": 0.01
+   },
+   "source_sha256": "fd60f63e2917ad77d195643dc71a90eb01c0f5294c35746b65b6189cf91b1438",
+   "output_sha256": "2203430afac7121fcd496f6cb26229f96282042d3a7511339ec48ca9a69ba0fc"
+  },
+  {
+   "key": "beaver_bridgewright",
+   "clip": "anim_tread_water",
+   "style": "tread",
+   "medium": "surface",
+   "keys": 55,
+   "period_s": 1.8,
+   "anchor": "neck",
+   "anchor_y_m": [
+    0.0095,
+    0.0377
+   ],
+   "params": {
+    "pitch": 10.0,
+    "neck_y": 0.02
+   },
+   "source_sha256": "fd60f63e2917ad77d195643dc71a90eb01c0f5294c35746b65b6189cf91b1438",
+   "output_sha256": "96738eb3fd57ff0868a48205409e31ae65ef00fb994021d75e42c3acbdb06d2f"
+  },
+  {
+   "key": "mole_digger",
+   "clip": "anim_swim",
+   "style": "paddle",
+   "medium": "surface",
+   "keys": 25,
+   "period_s": 0.8,
+   "anchor": "neck",
+   "anchor_y_m": [
+    -0.0088,
+    0.0088
+   ],
+   "params": {
+    "pitch": 55.0,
+    "amp": 1.0,
+    "neck_y": 0.0
+   },
+   "source_sha256": "a668a5e8c3db15c9e68d0ae881eecf30bc9a887f0287ba12816ff08fec4a91fc",
+   "output_sha256": "2e7fa140fcb1d1ea7f07a02a1e0cb2da279bcdf982c08ce44f2b5970e2c14503"
+  },
+  {
+   "key": "mole_digger",
+   "clip": "anim_tread_water",
+   "style": "tread",
+   "medium": "surface",
+   "keys": 46,
+   "period_s": 1.5,
+   "anchor": "neck",
+   "anchor_y_m": [
+    0.0059,
+    0.0235
+   ],
+   "params": {
+    "pitch": 10.0,
+    "neck_y": 0.02
+   },
+   "source_sha256": "a668a5e8c3db15c9e68d0ae881eecf30bc9a887f0287ba12816ff08fec4a91fc",
+   "output_sha256": "62006ac9fb6dc0f6957b39c833d726a33fa7c11708ca2e4e6d6d8961c86fcbe3"
+  },
+  {
+   "key": "mole_mason",
+   "clip": "anim_swim",
+   "style": "paddle",
+   "medium": "surface",
+   "keys": 25,
+   "period_s": 0.8,
+   "anchor": "neck",
+   "anchor_y_m": [
+    -0.0091,
+    0.0091
+   ],
+   "params": {
+    "pitch": 55.0,
+    "amp": 1.0,
+    "neck_y": 0.0
+   },
+   "source_sha256": "dde9191d7013c6378ed861b301837fb2dae717148f25d644a1dc235e4683fb5b",
+   "output_sha256": "a4504cf803c8cf8bb7ea70927f6715360b6df41792b7262b04b8f86f54e3fbb6"
+  },
+  {
+   "key": "mole_mason",
+   "clip": "anim_tread_water",
+   "style": "tread",
+   "medium": "surface",
+   "keys": 46,
+   "period_s": 1.5,
+   "anchor": "neck",
+   "anchor_y_m": [
+    0.0061,
+    0.0243
+   ],
+   "params": {
+    "pitch": 10.0,
+    "neck_y": 0.02
+   },
+   "source_sha256": "dde9191d7013c6378ed861b301837fb2dae717148f25d644a1dc235e4683fb5b",
+   "output_sha256": "283035653c433b07eb008f6911b0387a464e8bebe84916e1ea89669c3f1d473f"
+  },
+  {
+   "key": "mouse_fieldworker",
+   "clip": "anim_swim",
+   "style": "paddle",
+   "medium": "surface",
+   "keys": 28,
+   "period_s": 0.9,
+   "anchor": "neck",
+   "anchor_y_m": [
+    -0.012,
+    0.012
+   ],
+   "params": {
+    "pitch": 52.0,
+    "amp": 1.0,
+    "neck_y": 0.0
+   },
+   "source_sha256": "45bb5621be56360d1300a7c3c32785044b569a56f66bde12602ff3181ac5966a",
+   "output_sha256": "ff5cb0ee61bc450651d6e2edd751dc5ae78dfb56c0c1cff0f5cbc6e74c603593"
+  },
+  {
+   "key": "mouse_fieldworker",
+   "clip": "anim_tread_water",
+   "style": "tread",
+   "medium": "surface",
+   "keys": 49,
+   "period_s": 1.6,
+   "anchor": "neck",
+   "anchor_y_m": [
+    0.008,
+    0.032
+   ],
+   "params": {
+    "pitch": 10.0,
+    "neck_y": 0.02
+   },
+   "source_sha256": "45bb5621be56360d1300a7c3c32785044b569a56f66bde12602ff3181ac5966a",
+   "output_sha256": "5a4002b231cc5961b07702016d6153c3adf2901b3ef5a5375c3814225d2b91f0"
+  },
+  {
+   "key": "mouse_keeper",
+   "clip": "anim_swim",
+   "style": "paddle",
+   "medium": "surface",
+   "keys": 28,
+   "period_s": 0.9,
+   "anchor": "neck",
+   "anchor_y_m": [
+    -0.012,
+    0.012
+   ],
+   "params": {
+    "pitch": 52.0,
+    "amp": 1.0,
+    "neck_y": 0.0
+   },
+   "source_sha256": "b849b1bebb335f1bd2479c99bfb12f63911d281c15e888a451608a8d1ca8f19c",
+   "output_sha256": "0283defc501be49915bf402af1af467de301ce1bd433232f7b35568bf33bf980"
+  },
+  {
+   "key": "mouse_keeper",
+   "clip": "anim_tread_water",
+   "style": "tread",
+   "medium": "surface",
+   "keys": 49,
+   "period_s": 1.6,
+   "anchor": "neck",
+   "anchor_y_m": [
+    0.008,
+    0.032
+   ],
+   "params": {
+    "pitch": 10.0,
+    "neck_y": 0.02
+   },
+   "source_sha256": "b849b1bebb335f1bd2479c99bfb12f63911d281c15e888a451608a8d1ca8f19c",
+   "output_sha256": "ef0ebcc4b7026e1aba5c3034fcf93e23bba61e149550dc7ff7aaf3962123de98"
+  },
+  {
+   "key": "otter_boatwright",
+   "clip": "anim_dive",
+   "style": "dive",
+   "medium": "submerged",
+   "keys": 43,
+   "period_s": 1.4,
+   "anchor": "Spine01",
+   "anchor_y_m": [
+    -0.6555,
+    -0.5961
+   ],
+   "params": {
+    "pitch": 88.0,
+    "spine_y": -0.42
+   },
+   "source_sha256": "722719a5dfbc525ac4dac55603fdd4cbd9b55c0d8c4bec0dcad9d94dbbb9f3f3",
+   "output_sha256": "f0f817929b1b8b84e298d783d0fd3930bffa5d01fcef2ebb096c4f7c571946af"
+  },
+  {
+   "key": "otter_boatwright",
+   "clip": "anim_swim",
+   "style": "undulate",
+   "medium": "surface",
+   "keys": 37,
+   "period_s": 1.2,
+   "anchor": "neck",
+   "anchor_y_m": [
+    0.0149,
+    0.0447
+   ],
+   "params": {
+    "pitch": 72.0,
+    "neck_y": 0.02
+   },
+   "source_sha256": "722719a5dfbc525ac4dac55603fdd4cbd9b55c0d8c4bec0dcad9d94dbbb9f3f3",
+   "output_sha256": "7c27a324597ad91e1a7bd14f5b45639da8f293b2f1e4ce45e2f5f6d3fbd2dfef"
+  },
+  {
+   "key": "otter_boatwright",
+   "clip": "anim_tread_water",
+   "style": "tread",
+   "medium": "surface",
+   "keys": 49,
+   "period_s": 1.6,
+   "anchor": "neck",
+   "anchor_y_m": [
+    0.0119,
+    0.0477
+   ],
+   "params": {
+    "pitch": 10.0,
+    "neck_y": 0.02
+   },
+   "source_sha256": "722719a5dfbc525ac4dac55603fdd4cbd9b55c0d8c4bec0dcad9d94dbbb9f3f3",
+   "output_sha256": "606f2f55d3cbc294b0190cc437218a448df74787273283ec5f243f4b381011b1"
+  },
+  {
+   "key": "otter_fisher",
+   "clip": "anim_dive",
+   "style": "dive",
+   "medium": "submerged",
+   "keys": 43,
+   "period_s": 1.4,
+   "anchor": "Spine01",
+   "anchor_y_m": [
+    -0.6555,
+    -0.5961
+   ],
+   "params": {
+    "pitch": 88.0,
+    "spine_y": -0.42
+   },
+   "source_sha256": "7616b555cc52ac50c4d23834a3655d01e4cf6bba9365144257355ba3b9704f83",
+   "output_sha256": "752cc997a1da56f65feb7e5504819d2e3f40e59dcdda163f049c8cf6b69f37a3"
+  },
+  {
+   "key": "otter_fisher",
+   "clip": "anim_swim",
+   "style": "undulate",
+   "medium": "surface",
+   "keys": 37,
+   "period_s": 1.2,
+   "anchor": "neck",
+   "anchor_y_m": [
+    0.0149,
+    0.0447
+   ],
+   "params": {
+    "pitch": 72.0,
+    "neck_y": 0.02
+   },
+   "source_sha256": "7616b555cc52ac50c4d23834a3655d01e4cf6bba9365144257355ba3b9704f83",
+   "output_sha256": "169f4c5860ce34d01914722fbb65fe0631d6b938adc0ad20a002207ec2861e9b"
+  },
+  {
+   "key": "otter_fisher",
+   "clip": "anim_tread_water",
+   "style": "tread",
+   "medium": "surface",
+   "keys": 49,
+   "period_s": 1.6,
+   "anchor": "neck",
+   "anchor_y_m": [
+    0.0119,
+    0.0477
+   ],
+   "params": {
+    "pitch": 10.0,
+    "neck_y": 0.02
+   },
+   "source_sha256": "7616b555cc52ac50c4d23834a3655d01e4cf6bba9365144257355ba3b9704f83",
+   "output_sha256": "109138f261d65f5c863d8a771de81ee3e8724dfd074bd90dc2f8078e158ffb1d"
+  },
+  {
+   "key": "squirrel_forester",
+   "clip": "anim_swim",
+   "style": "paddle",
+   "medium": "surface",
+   "keys": 28,
+   "period_s": 0.9,
+   "anchor": "neck",
+   "anchor_y_m": [
+    -0.0138,
+    0.0138
+   ],
+   "params": {
+    "pitch": 52.0,
+    "amp": 1.0,
+    "neck_y": 0.0
+   },
+   "source_sha256": "ff190e2f6e192a7670e3bcc1e23815923ee976370174fc8db039bef1ac0a9f39",
+   "output_sha256": "ebcb4e639a34857aa29deb60c5a38ba4febb96e44dc76e3de9fe58f4fbb010d4"
+  },
+  {
+   "key": "squirrel_forester",
+   "clip": "anim_tread_water",
+   "style": "tread",
+   "medium": "surface",
+   "keys": 49,
+   "period_s": 1.6,
+   "anchor": "neck",
+   "anchor_y_m": [
+    0.0092,
+    0.0368
+   ],
+   "params": {
+    "pitch": 10.0,
+    "neck_y": 0.02
+   },
+   "source_sha256": "ff190e2f6e192a7670e3bcc1e23815923ee976370174fc8db039bef1ac0a9f39",
+   "output_sha256": "40e300a2d5842fe4b0853a43cb9f8796ab18f26a2363fd1e79b5a1b48bc724e5"
+  },
+  {
+   "key": "squirrel_gatherer",
+   "clip": "anim_swim",
+   "style": "paddle",
+   "medium": "surface",
+   "keys": 28,
+   "period_s": 0.9,
+   "anchor": "neck",
+   "anchor_y_m": [
+    -0.0138,
+    0.0138
+   ],
+   "params": {
+    "pitch": 52.0,
+    "amp": 1.0,
+    "neck_y": 0.0
+   },
+   "source_sha256": "a6c5971da2242adbfc00b2e9d5ead4462da0c103efbadf0ef0afdf11d0e43026",
+   "output_sha256": "1eea66ea3691bed30dc0f4b5c954977baf2add536277dc536aa0db2eb22a6ab2"
+  },
+  {
+   "key": "squirrel_gatherer",
+   "clip": "anim_tread_water",
+   "style": "tread",
+   "medium": "surface",
+   "keys": 49,
+   "period_s": 1.6,
+   "anchor": "neck",
+   "anchor_y_m": [
+    0.0092,
+    0.0368
+   ],
+   "params": {
+    "pitch": 10.0,
+    "neck_y": 0.02
+   },
+   "source_sha256": "a6c5971da2242adbfc00b2e9d5ead4462da0c103efbadf0ef0afdf11d0e43026",
+   "output_sha256": "d34638ec1e7760f9bbc30fc832a2043b51db0cfc5fc834b8d5232cfef95701fe"
+  }
+ ]
+}

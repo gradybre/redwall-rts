@@ -279,7 +279,7 @@ These records preserve useful prior thinking without importing the old game's se
 | LORE-L06 | Raiding begins in hardship, becomes custom, then supports one ruler's conquest | `LEGACY_CANDIDATE`; optional future faction history, not a universal explanation for Redwall antagonists; DEC-013 |
 | LORE-L07 | Distant harsh homeland; current rat warlord establishes an unusual permanent camp | `LEGACY_CANDIDATE`; no current location, antagonist, camp, or recurring raid is established; DEC-013 |
 | LORE-L08 | Warm nature names for woodlanders and harsher names for raiders | `LEGACY_CANDIDATE`; useful style option but not a moral classifier; DEC-016 |
-| LORE-L09 | Beaver builder with species construction bonus | Not adopted; beaver absent from release catalog and hidden productivity bonuses conflict with LORE-P12 |
+| LORE-L09 | Beaver builder with species construction bonus | Species bonus still not adopted (LORE-P12). The beaver joins the release roster as a resident whose trade is bridge-building, a learnable skill: DEC-041 |
 | LORE-L10 | Original-only proper names and exclusion of Redwall names | `SUPERSEDED` for this project by SRC-U01 |
 | LORE-L11 | Fernwhistle, Brambeck, Hollowmere, Brackenhall, Thistledown, Millstone, Reedwhisker, Gnashfang, Cragmaw, Skarrow | Illustrative legacy candidates only; none is a current character, place or final name |
 | LORE-L12 | Recurring raids with no inciting incident | `LEGACY_CANDIDATE`; do not contradict a subsequently chosen founding event or install release 1 raids |
@@ -426,7 +426,7 @@ Status: `PROJECT_BASELINE`. Table order follows the GDD's species list, not an i
 | Wildcat | LARGE | 0 | No automatic tyranny or hereditary nobility |
 | Wolverine | LARGE | 0 | No automatic resident predation mechanic |
 
-The early concept also names stoats; the release 1 resident catalog does not. Do not quietly add stoats, beavers or giant residents through lore generation.
+The early concept also names stoats; the release 1 resident catalog does not. Do not quietly add stoats or giant residents through lore generation. The beaver was added explicitly by DEC-041.
 
 ### 8.2 Three separate questions
 
@@ -979,7 +979,7 @@ The current task creates documents only. No additional culture, religion, morali
 | LORE-C11 | Confirmed visible family/age diversity versus adult-only simulation | Dependent-resident model adopted; complete family rules/schema/UI revisions with adopted non-graphic child survival vulnerability | DEC-015/032/033 confirmed |
 | LORE-C12 | Rare meaningful wonder and its supernatural interpretation | Resolved direction: truth uncertain; preserve attributed beliefs without objective confirmation or debunking | DEC-009/030 confirmed |
 | LORE-C13 | Charter name could imply an outside granting authority | Resolved for Rowan’s Refuge: community-written civic promise; preserve current M4 mechanics | DEC-023 confirmed |
-| LORE-C14 | Stoats in the early concept / beavers in legacy versus fixed current roster | No catalog additions by flavor text; roster changes require explicit follow-through | DEC-005 |
+| LORE-C14 | Stoats in the early concept / beavers in legacy versus fixed current roster | No catalog additions by flavor text; roster changes require explicit follow-through. The beaver has had that follow-through (DEC-041); stoats have not | DEC-005, DEC-041 |
 | LORE-C15 | Confirmed first-release starting-premise variety versus one fixed twelve-adult furnished-hall start | Author exact initialization and objectives for every available launch scenario; do not apply Rowan's start to every premise by default | DEC-002/028 confirmed; individual scenario specs outstanding |
 | LORE-C16 | Whole-series references versus a single undifferentiated era or cast | Record context per scenario and verify relevant chronology; cross-era play remains an explicit adaptation choice | DEC-004/025 |
 | LORE-C17 | All three underground methods versus current flat-placement/single-floor construction | All-method interoperability confirmed; implement §14.6 engineering contracts without exclusive construction modes | DEC-010/029/031 confirmed |

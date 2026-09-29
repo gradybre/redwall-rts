@@ -230,6 +230,51 @@
     "radius": 0.045,
     "tested": "2026-09-26 bake (decision 0192): 0.8/0.5 was tuned under the collider bug; with correct collisions the tail thrashed on anim_run (median 31-47 deg per frame, seam 54-127). x4 stiffness, drag 0.9: run max 24-25 deg per frame, seam 12-14"
    }
+  },
+  "beaver_bridgewright": {
+   "radius": 0.16,
+   "centreline": [
+    [
+     0,
+     0.3,
+     -0.155
+    ],
+    [
+     0,
+     0.19,
+     -0.2
+    ],
+    [
+     0,
+     0.1,
+     -0.26
+    ],
+    [
+     0,
+     0.065,
+     -0.33
+    ],
+    [
+     0,
+     0.06,
+     -0.4
+    ],
+    [
+     0,
+     0.07,
+     -0.445
+    ]
+   ],
+   "spring": {
+    "stiffness": 8.0,
+    "drag": 0.9,
+    "gravity": 1.0,
+    "radius": 0.08,
+    "tested": "2026-09-29 bake (decision 0203): a paddle is stiff, so twice the otter's stiffness (8.0 vs 3.2), drag 0.9, half its gravity (1.0). All 10 land clips: tail no lower than 3.8 mm below the ground, feet and base; largest one-frame step 41.8 deg (carry_water_bucket_walk); constraint within 0.02 mm."
+   },
+   "refit": false,
+   "section": "flat",
+   "note": "A broad flat paddle, 28 cm wide and 6-12 cm thick (mesh units), bound wholly to the Hips by Meshy. Chained because, left on the Hips, it sank up to 43 cm into the ground (collect_object), 32 cm (chair_sit_idle) and 13 cm (idle), and flew 61 cm up in the bucket walk (decision 0203). The chain starts at y 0.30, below the trouser seat, where the tail is clear of the legs; above that it stays on the Hips. Points are in the mesh's own POSITION space, which for the beaver is 1/1.1879 of its drawn size (the repair rescales by joints, not vertices); radii and clearances are converted to drawn metres. refit is off: on a flat paddle the second pass's centroids zigzag (1.09 m for a 0.47 m tail). section flat: its clearance is its thickness, and tail_flat_roll.gd keeps it level. 2026-09-29."
   }
  },
  "no_chain": {

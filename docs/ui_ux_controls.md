@@ -65,11 +65,11 @@ Safe inset 16 logical pixels; grid spacing 8; panel internal padding 12; section
 
 Rectangles: resources `(16,16,R,88)`; time `(Lw−16−T,16,T,88)` (narrow 48 high); alerts `(Lw/2−A/2,alert_y,A,alert_h)`; minimap `(16,Lh−16−Mh,Mw,Mh)`; detail `(Lw−16−D,128,D,Lh−144)`. Detail is hidden until selection and closed by default in narrow layout. Modal frame is centered with width=`min(960,Lw−32)`, height=`min(720,Lh−32)`.
 
-Command strip uses the remaining bottom interval: left=`Mw+32`; right=`Lw−D−32` when detail open, otherwise`Lw−16`; available=right−left; width=min(640, available); x=left+(available−width)/2; y=Lh−152; height 136. Minimum command width 240. At the minimum tested logical width 853.33 (1280 pixels with 1.5× user scale), open-detail available width 309.33, so it still fits. Command buttons wrap into two or three rows; excess commands live in the context quick menu, not outside the viewport.
+Command strip uses the remaining bottom interval: left=`Mw+32`; right=`Lw−D−32` when detail open, otherwise`Lw−16`; available=right−left; width=min(912, available); x=left+(available−width)/2; y=Lh−84; height 68 (one row, decision 0199: seven 120-px cells, six 8-px gaps and 12-px padding). Minimum command width 240. At the minimum tested logical width 853.33 (1280 pixels with 1.5× user scale), open-detail available width 309.33, so it still fits. Command buttons sit in ONE row and share its width evenly, each cell between 44 and 120 px (decision 0199); when even 44-px cells do not fit, excess commands live in the context quick menu, not outside the viewport.
 
 World click-through rectangle is the viewport minus the **actual visible input rectangles**. A transparent full-screen Control must not block the center. Full-screen HUD roots and decorative graphics use `MOUSE_FILTER_IGNORE`; interactive controls consume `_gui_input` events. World commands use `_unhandled_input`, after UI handling. Visual z-order alone is insufficient to define interaction priority. [Control input/anchors](https://docs.godotengine.org/en/4.7/classes/class_control.html)
 
-At 1280×720 default scale: resources x16..376; alerts x460..820; time x960..1264; minimap x16..224, y464..704; detail x928..1264, y128..704; commands with detail x256..896, y568..704. These rectangles do not overlap. At 1920×1080: wide layout with scale 1. At 3840×2160: wide layout with scale 2 and the same logical 1920×1080 composition. Non 16:9 windows use the equations without letterboxing UI.
+At 1280×720 default scale: resources x16..376; alerts x460..820; time x960..1264; minimap x16..224, y464..704; detail x928..1264, y128..704; commands with detail x240..912, y636..704 (decision 0199). These rectangles do not overlap. At 1920×1080: wide layout with scale 1. At 3840×2160: wide layout with scale 2 and the same logical 1920×1080 composition. Non 16:9 windows use the equations without letterboxing UI.
 
 Resource/time/minimap frames override profile padding to 8 px; the narrow time row uses 4 px. Standard/wide resources use three columns and two 36-high rows, top y8/y44, horizontal gap 8, counter width `min(144,(R-32)/3)`. Expand-resources control is hidden there because all six counters open the ledger. Standard/wide time has two 36-high rows at y8/y44; row 1 holds Pause and three speed buttons, row 2 date and menu, with 8 px gaps. Alert stack padding is 2; two 44-high cards plus a 4 px gap fit 96. Each card width is `A-40`; its right 36 px rail contains the 32×32 history trigger. Narrow uses one card in 48 px. The history trigger remains visible on its own even with no active card.
 
@@ -201,14 +201,14 @@ Sizes are`minimum→maximum`width×height. Fixed sizes repeat both ends. Contain
 | UI-SET-023 World surface |CENTER, full viewport |Full remaining viewport |OVERLAY |“Settlement world; use world list for keyboard navigation” |ALWAYS; not a fullscreen UI hit block |
 | UI-SET-024 Selection ring |CENTER, entity projected |8×8→512×512 |OVERLAY |Entity name announced by selection, ring excluded |SELECTED; gold solid ring+short health strip if injured |
 | UI-SET-025 Box selection |CENTER, pointer drag rect |1×1→Lw×Lh |OVERLAY |“Selecting residents: ”+candidate_count |WORLD_TOOL; INK 2 px outer/GOLD 1 px inner; fill GOLD alpha 0.08 |
-| UI-SET-026 Command strip |BC, remaining bottom interval |240×136→640×136 |PANEL |“Commands for ”+selection_summary |ALWAYS; global tools when empty; wrap buttons |
-| UI-SET-027 Build command |BC, command cell |44×44→112×44 |BUTTON |“Build exterior structures” |ALWAYS; opens 052 |
-| UI-SET-028 Zone command |BC, command cell |44×44→112×44 |BUTTON |“Designate work or conservation zone” |ALWAYS; opens 059 |
-| UI-SET-029 Jobs command |BC, command cell |44×44→112×44 |BUTTON |“Set job priorities and schedules” |ALWAYS; opens 070 |
-| UI-SET-030 Food command |BC, command cell |44×44→112×44 |BUTTON |“Manage recipes and food orders” |ALWAYS; opens 060 |
-| UI-SET-031 Residents command |BC, command cell |44×44→112×44 |BUTTON |“View residents” |ALWAYS; opens roster rows 069 |
-| UI-SET-032 Feast command |BC, command cell |44×44→112×44 |BUTTON |“Plan a feast” |M1; opens 063 |
-| UI-SET-033 Objectives command |BC, command cell |44×44→112×44 |BUTTON |“Hearth Charter objectives” |ALWAYS; opens progress in 051/071 |
+| UI-SET-026 Command strip |BC, remaining bottom interval |240×68→912×68 |PANEL |“Commands for ”+selection_summary |ALWAYS; global tools when empty; one row of buttons (decision 0199) |
+| UI-SET-027 Build command |BC, command cell |44×44→120×44 |BUTTON |“Build exterior structures” |ALWAYS; opens 052 |
+| UI-SET-028 Zone command |BC, command cell |44×44→120×44 |BUTTON |“Designate work or conservation zone” |ALWAYS; opens 059 |
+| UI-SET-029 Jobs command |BC, command cell |44×44→120×44 |BUTTON |“Set job priorities and schedules” |ALWAYS; opens 070 |
+| UI-SET-030 Food command |BC, command cell |44×44→120×44 |BUTTON |“Manage recipes and food orders” |ALWAYS; opens 060 |
+| UI-SET-031 Residents command |BC, command cell |44×44→120×44 |BUTTON |“View residents” |ALWAYS; opens roster rows 069 |
+| UI-SET-032 Feast command |BC, command cell |44×44→120×44 |BUTTON |“Plan a feast” |M1; opens 063 |
+| UI-SET-033 Objectives command |BC, command cell |44×44→120×44 |BUTTON |“Hearth Charter objectives” |ALWAYS; opens progress in 051/071 |
 | UI-SET-034 Demolish command |BC, selection cell |44×44→120×44 |BUTTON |“Demolish ”+building_name+“; review evacuation and refund” |SELECTED building; opens confirmation, never immediate destruction |
 | UI-SET-035 Upgrade command |BC, selection cell |44×44→120×44 |BUTTON |“Upgrade or repair ”+building_name |SELECTED eligible building; locked reason if missing materials |
 | UI-SET-036 Context detail |BR, right/bottom, grows up |320×240→384×936 |PANEL |“Details: ”+entity_or_zone_name |SELECTED; closed by 093; drawer in narrow |

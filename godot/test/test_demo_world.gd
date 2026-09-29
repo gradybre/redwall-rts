@@ -17,6 +17,7 @@ const Layout := preload("res://demo/world/world_layout.gd")
 const Sizes := preload("res://demo/world/world_sizes.gd")
 const Scatter := preload("res://demo/world/world_scatter.gd")
 const Dimensions := preload("res://assets/lookdev/lookdev_dimensions.gd")
+const CropCards := preload("res://demo/world/crop_cards.gd")
 
 const DEMO_BUILDINGS: Array[StringName] = [
 	&"residence", &"hall", &"kitchen", &"well", &"workbench", &"covered_store",
@@ -83,10 +84,28 @@ func test_named_building_heights_match_the_ruling() -> void:
 
 
 func test_every_staged_world_key_has_a_positive_size() -> void:
-	"""No model can be drawn at zero or negative height."""
+	"""No model can be drawn at zero or negative size: a height, or for a crop bed a width."""
 	for key: StringName in Sizes.NATIVE_AABB:
-		assert_true(Sizes.target_height_m(key) > 0.0, "%s has a target height" % key)
+		if not Sizes.CROP_KEYS.has(key):
+			assert_true(Sizes.target_height_m(key) > 0.0, "%s has a target height" % key)
 		assert_true(Sizes.native_scale(key) > 0.0, "%s has a positive scale" % key)
+
+
+func test_crop_beds_are_scaled_to_their_width() -> void:
+	"""Every crop bed is CROP_BED_WIDTH_M wide whatever its model height, carded or not."""
+	var lo := Vector3(-0.95, 0.0, -0.95)
+	var hi := Vector3(0.93, 0.18, 0.95)
+	for key: StringName in Sizes.CROP_KEYS:
+		var s: float = Sizes.uniform_scale(key, lo, hi)
+		assert_almost_equal(s * (hi.x - lo.x), Sizes.CROP_BED_WIDTH_M, "%s bed width" % key)
+		assert_almost_equal(Sizes.native_scale(key) * _native_width(key), Sizes.CROP_BED_WIDTH_M,
+			"%s placeholder bed width" % key)
+
+
+func _native_width(key: StringName) -> float:
+	"""The recorded native bound's X extent."""
+	var bound: Array = Sizes.NATIVE_AABB[key]
+	return (bound[1] as Vector3).x - (bound[0] as Vector3).x
 
 
 func test_the_table_top_is_the_work_surface_candidate() -> void:
@@ -295,3 +314,128 @@ func test_ground_cover_stays_out_of_obstacles_and_off_points() -> void:
 		var at: Vector2 = piece["at"]
 		assert_false(piece["block"], "cover at %s does not block" % at)
 		assert_true(Layout.clearance(at, circles) >= 0.0, "cover at %s is outside every obstacle" % at)
+
+
+# --- crop cards (no assets: a synthetic manifest block and a 1 px texture) -------------------
+
+func _cards_block(variants: int, kinds: Dictionary) -> Dictionary:
+	"""A manifest `cards` block shaped like make_demo_crop_cards.py writes it."""
+	return {
+		"texture": "res://nowhere.png", "variants": variants, "cell_m": [0.24, 0.43],
+		"kinds": kinds, "soil_y": 0.14, "inner": [-0.86, 0.86, -0.86, 0.86],
+		"tops": {"texture": "res://nowhere_tops.png", "variants": variants, "cell_m": [0.42, 0.42]},
+	}
+
+
+func _grain_cards() -> Dictionary:
+	"""The grain bed's cards block: six wheat cells, and no top-down atlas."""
+	var cards: Dictionary = _cards_block(6, {"wheat": [0, 1, 2, 3, 4, 5]})
+	cards.erase("tops")
+	return cards
+
+
+func _roots_cards() -> Dictionary:
+	"""The roots bed's cards block: three carrots and two turnips."""
+	return _cards_block(5, {"carrot": [0, 1, 2], "turnip": [3, 4]})
+
+
+func _tiny_texture() -> Texture2D:
+	"""A 1 x 1 texture: enough for a material, needs no staged file."""
+	var image := Image.create(1, 1, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0.8, 0.6, 0.2, 1.0))
+	return ImageTexture.create_from_image(image)
+
+
+func test_card_placement_is_deterministic() -> void:
+	"""Two plantings of the same bed agree exactly: fixed seeds, no global RNG."""
+	for key: StringName in CropCards.LAYOUTS:
+		var cards: Dictionary = _grain_cards() if key == &"crop_grain_ripe" else _roots_cards()
+		assert_equal(CropCards.placements(key, cards), CropCards.placements(key, cards), "%s placement" % key)
+
+
+func test_every_card_stays_inside_the_bed() -> void:
+	"""A plant's centre, and for the wheat its whole widest card, lie inside the frame's inner edge."""
+	for key: StringName in CropCards.LAYOUTS:
+		var cards: Dictionary = _grain_cards() if key == &"crop_grain_ripe" else _roots_cards()
+		var layout: Dictionary = CropCards.LAYOUTS[key]
+		var inner := Rect2(-0.86, -0.86, 1.72, 1.72)
+		var reach: float = CropCards.plant_reach(layout, cards["cell_m"])
+		var plants: Array[Dictionary] = CropCards.placements(key, cards)
+		assert_true(plants.size() > 0, "%s has plants" % key)
+		for plant: Dictionary in plants:
+			var at: Vector2 = plant["at"]
+			assert_true(inner.grow(-reach).has_point(at), "%s plant at %s keeps its reach inside" % [key, at])
+
+
+func test_every_card_shows_a_cell_of_its_own_kind() -> void:
+	"""A carrot never shows a turnip; every cell index is inside the atlas."""
+	var cards: Dictionary = _roots_cards()
+	var kinds: Dictionary = cards["kinds"]
+	for plant: Dictionary in CropCards.placements(&"crop_roots_ripe", cards):
+		var cells: Array = kinds[plant["kind"]]
+		assert_true(cells.has(plant["variant"]), "%s shows cell %d" % [plant["kind"], plant["variant"]])
+	for plant: Dictionary in CropCards.placements(&"crop_grain_ripe", _grain_cards()):
+		assert_true(int(plant["variant"]) >= 0 and int(plant["variant"]) < 6, "wheat cell in the atlas")
+
+
+func test_roots_bed_rows_match_the_source() -> void:
+	"""Two rows of five turnips at the back, four rows of eight carrots in front."""
+	var counts: Dictionary = {}
+	var back_most_carrot: float = INF
+	var front_most_turnip: float = -INF
+	for plant: Dictionary in CropCards.placements(&"crop_roots_ripe", _roots_cards()):
+		counts[plant["kind"]] = int(counts.get(plant["kind"], 0)) + 1
+		var z: float = (plant["at"] as Vector2).y
+		if plant["kind"] == "carrot":
+			back_most_carrot = minf(back_most_carrot, z)
+		else:
+			front_most_turnip = maxf(front_most_turnip, z)
+	assert_equal(counts, {"turnip": 10, "carrot": 32}, "plant counts")
+	assert_true(front_most_turnip < back_most_carrot, "turnips stand behind the carrots")
+
+
+func test_card_mesh_stands_on_the_soil_within_its_cell() -> void:
+	"""Three quads, every vertex between the soil and the cell's height, lit from above."""
+	var mesh: ArrayMesh = CropCards.card_mesh(Vector2(0.24, 0.43))
+	var arrays: Array = mesh.surface_get_arrays(0)
+	var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+	assert_equal(verts.size(), CropCards.PLANES * 4, "four vertices per plane")
+	for i: int in verts.size():
+		assert_true(verts[i].y >= 0.0 and verts[i].y <= 0.43 + 0.0001, "vertex %d within the cell height" % i)
+		assert_true(normals[i].dot(Vector3.UP) > 0.99, "vertex %d normal points up (%s)" % [i, normals[i]])
+
+
+func test_card_material_is_alpha_scissor_not_blend() -> void:
+	"""Scissor keeps shadows and sorting sane; the shader must never switch to blending."""
+	var code: String = CropCards.CARD_SHADER.code
+	assert_true(code.contains("ALPHA_SCISSOR_THRESHOLD"), "the card shader scissors")
+	assert_false(code.contains("blend_"), "the card shader sets no blend mode")
+	assert_false(code.contains("shadows_disabled"), "the cards cast shadows")
+
+
+func test_card_build_needs_no_staged_assets() -> void:
+	"""With a synthetic block and a 1 px texture: an underlay, one card per plant, a top per root."""
+	var texture: Texture2D = _tiny_texture()
+	var grain: Node3D = CropCards.build(&"crop_grain_ripe", _grain_cards(), texture, texture)
+	var roots: Node3D = CropCards.build(&"crop_roots_ripe", _roots_cards(), texture, texture)
+	var grain_cards := grain.get_node(^"Cards") as MultiMeshInstance3D
+	var roots_tops := roots.get_node_or_null(^"Tops") as MultiMeshInstance3D
+	assert_not_null(grain.get_node_or_null(^"SoilUnderlay"), "the grain bed has a soil underlay")
+	assert_equal(grain_cards.multimesh.instance_count,
+		CropCards.placements(&"crop_grain_ripe", _grain_cards()).size(), "one card per wheat plant")
+	assert_null(grain.get_node_or_null(^"Tops"), "the wheat lays no flat canopy")
+	assert_not_null(roots_tops, "the roots bed lays a top over each plant")
+	assert_equal(roots_tops.multimesh.instance_count, 42, "one top per root plant")
+	grain.free()
+	roots.free()
+
+
+func test_a_carded_entry_whose_files_are_missing_falls_back_to_a_placeholder() -> void:
+	"""A manifest naming a bed and cards that are not on disk still builds the whole village."""
+	var world: Dictionary = {"crop_grain_ripe": {"category": "environment",
+		"path": "res://demo/assets/world/missing_bed.glb", "aabb_min": [-0.95, 0.0, -0.95],
+		"aabb_max": [0.95, 0.18, 0.95], "cards": _grain_cards()}}
+	_world.build({"world": world, "cast": {}})
+	var village: Node = _world.get_node(^"Village")
+	assert_true(village.get_child_count() >= Layout.placements().size(), "the village is complete")

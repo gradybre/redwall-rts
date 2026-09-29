@@ -20,6 +20,11 @@ godot --path godot demo/demo_village.tscn
 
 Without staging it still runs, on placeholder shapes.
 
+Staging also runs `tools/make_demo_crop_cards.py` (needs `blender` on PATH, ~2 minutes): the grain
+and roots L0s shatter, so their beds are rebuilt as a bare bed plus alpha-cutout cards rendered
+from the high-poly sources. Re-run it alone after changing it:
+`python3 tools/make_demo_crop_cards.py`. Without Blender those two beds are placeholders.
+
 ## Layout
 
 | Folder | Owns |

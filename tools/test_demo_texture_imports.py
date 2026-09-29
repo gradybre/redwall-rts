@@ -7,20 +7,27 @@ NEGATIVE TESTS COME FIRST:
 
   N01  an image named like a normal map but used by its GLB as colour is compressed as colour, and one
        named `Image_2` that the material uses as its normal map is a normal map: the role is the GLB's.
-  N02  a PNG no GLB embeds (a card atlas, an icon) is never VRAM-compressed: its importer is `keep`.
+  N02  a PNG the manifest names (a card atlas, an icon) is never VRAM-compressed: its importer is `keep`.
   N03  an extracted image with no .import yet is left alone (Godot has not extracted it; run again).
   N04  --check writes nothing and reports what would change.
+  N05  an image that is neither a GLB's nor the manifest's is refused, not kept as a file.
+  N06  unnamed and oddly named GLB images are matched by Godot's own naming (index; file part without
+       extension, invalid characters made `_`; `_<index>` on a clash), not by `Image_<n>`.
+  N07  a Godot import that exits 0 but prints an engine error is a failure, and one that never
+       settles raises.
 
 Then: normal maps get compress/normal_map=1; the roughness map gets the green-channel limiter fed by
 its material's normal map and is capped at its colour map's size (and not capped when it is no
 larger); every other key of an existing .import survives; a second run changes nothing; a file
-previously `keep` that is now a GLB image becomes a texture import again.
+previously `keep` that is now a GLB image becomes a texture import again; occlusion counts as roughness
+and emissive as colour; the first material's normal map feeds a shared roughness map; JPEG sizes read.
 """
 
 from __future__ import annotations
 
 import json
 import pathlib
+import stat
 import struct
 import sys
 import tempfile
@@ -109,6 +116,9 @@ def fixture(root: pathlib.Path) -> pathlib.Path:
 	png(world / "trick_normal.png", 512, 512)
 	png(world / "crop_grain_ripe_cards.png", 1392, 464)
 	png(icons / "find_clay.png", 128, 128)
+	(project / "demo/assets/manifest.json").write_text(json.dumps({"world": {"crop_grain_ripe": {"cards": {
+		"texture": "res://demo/assets/world/crop_grain_ripe_cards.png"}}, "item_clay": {"icon":
+		"res://demo/assets/icons/find_clay.png"}}, "cast": {}}))
 	for image in world.glob("*.png"):
 		if image.name != "crop_bed_Image_1.png":          # N03: not extracted yet
 			image.with_name(image.name + ".import").write_text(EXISTING_IMPORT)
@@ -205,11 +215,111 @@ def test_a_kept_file_that_became_a_glb_image_is_a_texture_again() -> None:
 		check("and compressed", params(settings)["compress/mode"] == "2")
 
 
-def test_the_real_enum_values() -> None:
-	"""Godot 4.7.2's option enums (editor/import/resource_importer_texture.cpp), quoted."""
-	check("VRAM Compressed is 2 of Lossless,Lossy,VRAM Compressed", dti.COMPRESS_VRAM == 2)
-	check("Enable is 1 of Detect,Enable,Disabled", dti.NORMAL_MAP_ENABLE == 1)
-	check("Green is 3 of Detect,Disabled,Red,Green", dti.ROUGHNESS_GREEN == 3)
+def test_n05_an_unknown_image_is_refused() -> None:
+	with tempfile.TemporaryDirectory() as tmp:
+		project = fixture(pathlib.Path(tmp))
+		png(project / "demo/assets/world/barrel_stale.png", 64, 64)
+		try:
+			dti.apply(project / "demo/assets", project)
+			refused = False
+		except RuntimeError as error:
+			refused = "barrel_stale.png" in str(error)
+		check("N05 an unlisted, unmatched image is refused by name", refused)
+
+
+def test_n06_godot_names_extracted_images_its_own_way() -> None:
+	names = dti.godot_image_names([{}, {"name": ""}, {"name": "tex.png"}, {"name": "dir/a:b"}, {"name": "tex"},
+		{"name": " spaced "}])
+	check("N06 unnamed: its index", names[:2] == ["0", "1"])
+	check("N06 the file part without extension", names[2] == "tex")
+	check("N06 invalid characters made _", names[3] == "a_b")
+	check("N06 a clash gets _<index>", names[4] == "tex_4")
+	check("N06 edges stripped", names[5] == "spaced")
+	with tempfile.TemporaryDirectory() as tmp:
+		folder = pathlib.Path(tmp)
+		glb(folder / "thing.glb", ["", ""], {"normalTexture": {"index": 0}, "pbrMetallicRoughness": {
+			"baseColorTexture": {"index": 1}}})
+		png(folder / "thing_0.png", 64, 64)
+		png(folder / "thing_1.png", 64, 64)
+		found = dti.extracted_images(folder)
+		check("N06 thing_0 is the unnamed normal map", found.get(folder / "thing_0.png", {}).get("role") == dti.ROLE_NORMAL)
+		check("N06 thing_1 is the unnamed colour map", found.get(folder / "thing_1.png", {}).get("role") == dti.ROLE_COLOUR)
+
+
+def _fake_godot(folder: pathlib.Path, output: str, status: int) -> str:
+	"""An executable standing in for Godot that prints `output` and exits `status`."""
+	script = folder / "fake_godot"
+	script.write_text(f"#!/bin/sh\ncat <<'OUT'\n{output}\nOUT\nexit {status}\n")
+	script.chmod(script.stat().st_mode | stat.S_IEXEC)
+	return str(script)
+
+
+def test_n07_a_bad_import_fails() -> None:
+	with tempfile.TemporaryDirectory() as tmp:
+		folder = pathlib.Path(tmp)
+		for output, status, name in [("ERROR: Failed loading resource: x.png", 0, "an error line with exit 0"),
+				("fine", 1, "a failing exit")]:
+			try:
+				dti.godot_import(_fake_godot(folder, output, status), folder)
+				failed = False
+			except RuntimeError:
+				failed = True
+			check(f"N07 {name} fails the import", failed)
+		try:
+			dti.godot_import(_fake_godot(folder, "imported", 0), folder)
+			clean = True
+		except RuntimeError:
+			clean = False
+		check("N07 a clean import passes", clean)
+	original = dti.godot_import
+	calls = []
+	try:
+		dti.godot_import = lambda godot, project: calls.append(godot)
+		with tempfile.TemporaryDirectory() as tmp:
+			project = fixture(pathlib.Path(tmp))
+			(project / "demo/assets/world/barrel_texture_0.png.import").write_text(EXISTING_IMPORT)
+			original_apply = dti.apply
+			dti.apply = lambda assets, proj, write=True: {"changed": [assets]}
+			try:
+				dti.settle("godot", project / "demo/assets", project)
+				raised = False
+			except RuntimeError:
+				raised = True
+			finally:
+				dti.apply = original_apply
+		check("N07 settings that never settle raise", raised and len(calls) == dti.IMPORT_PASSES)
+	finally:
+		dti.godot_import = original
+
+
+def test_more_roles() -> None:
+	doc = {"images": [{"name": "a"}, {"name": "b"}, {"name": "c"}, {"name": "d"}, {"name": "e"}],
+		"textures": [{"source": i} for i in range(5)],
+		"materials": [
+			{"normalTexture": {"index": 0}, "pbrMetallicRoughness": {"baseColorTexture": {"index": 1},
+				"metallicRoughnessTexture": {"index": 2}}, "occlusionTexture": {"index": 3}, "emissiveTexture": {"index": 4}},
+			{"normalTexture": {"index": 4}, "pbrMetallicRoughness": {"metallicRoughnessTexture": {"index": 2}}}]}
+	roles = dti.image_roles(doc)
+	check("occlusion is roughness-like", roles["d"]["role"] == dti.ROLE_ORM)
+	check("a normal map wins over emissive colour", roles["e"]["role"] == dti.ROLE_NORMAL)
+	check("a shared roughness map keeps the first material's normal", roles["c"]["normal"] == "a")
+	check("and its colour map", roles["c"]["colour"] == "b")
+
+
+def test_a_roughness_map_is_never_a_normal_map() -> None:
+	with tempfile.TemporaryDirectory() as tmp:
+		project = fixture(pathlib.Path(tmp))
+		dti.apply(project / "demo/assets", project)
+		orm = params(project / "demo/assets/world/barrel_texture_0_metallic_roughness.png.import")
+		check("its normal-map flag is Disabled (RG only would lose metallic in blue)", orm["compress/normal_map"] == "2")
+
+
+def test_a_jpeg_size_is_read() -> None:
+	with tempfile.TemporaryDirectory() as tmp:
+		path = pathlib.Path(tmp) / "x.jpg"
+		sof = b"\xff\xc0" + struct.pack(">HBHH", 17, 8, 300, 400) + b"\x03" + b"\x00" * 9
+		path.write_bytes(b"\xff\xd8" + b"\xff\xe0" + struct.pack(">H", 4) + b"JF" + sof)
+		check("JPEG width and height", dti.image_size(path) == (400, 300))
 
 
 def main() -> int:

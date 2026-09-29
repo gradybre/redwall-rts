@@ -250,7 +250,10 @@ def stage_texture_imports(out: pathlib.Path) -> None:
 	.import files already exist. A GLB's images are extracted -- and their .import files written -- only
 	when Godot imports it, so after staging new models run the settle step, which imports, rewrites and
 	reimports until nothing changes (the Windows build runs it itself)."""
-	counts = demo_texture_imports.apply(out, out.resolve().parents[1])
+	if out.resolve() != demo_texture_imports.ASSETS.resolve():
+		print(f"stage_demo_assets: {out} is not the project's demo/assets; texture imports left as they are")
+		return
+	counts = demo_texture_imports.apply(out, demo_texture_imports.PROJECT)
 	print(f"stage_demo_assets: texture imports set ({len(counts['changed'])} changed); to import and compress "
 		"what staging added: python3 tools/demo_texture_imports.py --godot godot")
 

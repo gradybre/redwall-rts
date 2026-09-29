@@ -22,10 +22,14 @@ or one the demo reads itself with `Image.load_from_file` (the card atlases, the 
                                                      material's normal map, and never larger than
                                                      the material's colour map (Meshy's 4096 px
                                                      roughness maps sit beside 2048 px colour maps)
-  * Images no staged GLB embeds are read raw at run time, so the importer is set to `keep`: the PNG
-    itself is exported, byte for byte (lossless), and `Image.load_from_file("res://...")` finds it in
-    the pack. Without `keep` an exported build contains only the `.ctex`, and every icon and card
-    atlas would be missing.
+  * Images the staged manifest names (card atlases, tops, icons) are read raw at run time, so the
+    importer is set to `keep`: the PNG itself is exported, byte for byte (lossless), and the demo
+    finds it in the pack. Without `keep` an exported build contains only the `.ctex`, and every icon
+    and card atlas would be missing.
+  * Any other image is refused, not guessed at: kept as a file, a model's texture would vanish.
+
+GLB image names follow Godot's own rule (`godot_image_names`): an unnamed image is extracted as
+`<stem>_<index>`, a named one by its file part without extension, with invalid characters made `_`.
 
 `high_quality` stays false, so desktop builds use S3TC (DXT1/DXT5, BC5 for normal maps). UI art
 outside `godot/demo/assets/` (godot/assets/ui/, the woodland skin, which is generated at run time) is
@@ -41,6 +45,7 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import re
 import struct
 import subprocess
 import sys
@@ -61,6 +66,8 @@ COMPRESS_VRAM = 2
 NORMAL_MAP_ENABLE = 1
 ROUGHNESS_GREEN = 3       # "Detect,Disabled,Red,Green,..." -- glTF keeps roughness in G
 IMPORT_PASSES = 3
+INVALID_FILENAME_CHARACTERS = (":", "/", "\\", "?", "*", '"', "|", "%", "<", ">")
+MANIFEST = "manifest.json"
 
 
 # --- GLB reading ------------------------------------------------------------------------------
@@ -75,12 +82,30 @@ def glb_json(path: pathlib.Path) -> dict:
 		return json.loads(handle.read(length))
 
 
+def godot_image_names(images: list[dict]) -> list[str]:
+	"""The names Godot 4.7.2 gives a glTF's images when it extracts them (modules/gltf/gltf_document.cpp,
+	`_parse_images`): the name's file part without its extension, invalid filename characters made `_`;
+	the image's index when that leaves nothing; `_<index>` appended while a name is already taken."""
+	names: list[str] = []
+	for index, image in enumerate(images):
+		name = str(image.get("name", "")).replace("\\", "/").rsplit("/", 1)[-1]
+		name = name.rsplit(".", 1)[0] if "." in name else name
+		name = name.strip()
+		for character in INVALID_FILENAME_CHARACTERS:
+			name = name.replace(character, "_")
+		name = name or str(index)
+		while name in names:
+			name += f"_{index}"
+		names.append(name)
+	return names
+
+
 def image_roles(doc: dict) -> dict[str, dict]:
 	"""{image name: {"role", "normal", "colour"}} from a glTF's materials. `normal` and `colour` name the
 	images the same material uses for those, so an ORM map can find its limiter and its size cap."""
 	images = doc.get("images", [])
 	textures = doc.get("textures", [])
-	names = [image.get("name") or f"Image_{index}" for index, image in enumerate(images)]
+	names = godot_image_names(images)
 	roles: dict[str, dict] = {}
 
 	def image_of(slot: dict | None) -> str | None:
@@ -206,16 +231,43 @@ KEEP_TEXT = '[remap]\n\nimporter="keep"\n'
 TEXTURE_REMAP = '[remap]\n\nimporter="texture"\ntype="CompressedTexture2D"\n'
 
 
+def manifest_images(assets: pathlib.Path, project: pathlib.Path) -> set[pathlib.Path]:
+	"""Every image the staged manifest names (card atlases, tops, icons): the ones the demo reads itself."""
+	path = assets / MANIFEST
+	if not path.is_file():
+		return set()
+	found: set[pathlib.Path] = set()
+
+	def walk(value: object) -> None:
+		if isinstance(value, dict):
+			for item in value.values():
+				walk(item)
+		elif isinstance(value, list):
+			for item in value:
+				walk(item)
+		elif isinstance(value, str) and value.startswith("res://") and value.lower().endswith(IMAGE_SUFFIXES):
+			found.add((project / value[len("res://"):]).resolve())
+
+	walk(json.loads(path.read_text()))
+	return found
+
+
 def plan(assets: pathlib.Path, project: pathlib.Path) -> dict[pathlib.Path, tuple[str, str]]:
 	"""{.import file: (role, the text it must hold)} for every staged image. A GLB image with no .import
-	yet is skipped: Godot writes one when it extracts the image, on the next import (run again then)."""
+	yet is skipped: Godot writes one when it extracts the image, on the next import (run again then).
+	An image that is neither a GLB's nor named by the manifest is REFUSED rather than guessed at: kept as
+	a file, a model's texture would silently vanish from its material."""
 	wanted: dict[pathlib.Path, tuple[str, str]] = {}
+	raw = manifest_images(assets, project)
 	folders = sorted({path.parent for path in assets.rglob("*") if path.suffix.lower() in IMAGE_SUFFIXES})
 	for folder in folders:
 		extracted = extracted_images(folder)
 		for image in sorted(path for path in folder.iterdir() if path.suffix.lower() in IMAGE_SUFFIXES):
 			settings = image.with_name(image.name + ".import")
 			if image not in extracted:
+				if image.resolve() not in raw:
+					raise RuntimeError(f"{image} is neither an image a staged GLB embeds nor one the manifest "
+						"names; delete it if it is stale, or stage it through the manifest")
 				wanted[settings] = (ROLE_RAW, KEEP_TEXT)
 			elif settings.is_file():
 				current = settings.read_text()
@@ -240,11 +292,14 @@ def apply(assets: pathlib.Path = ASSETS, project: pathlib.Path = PROJECT, write:
 
 
 def godot_import(godot: str, project: pathlib.Path) -> None:
-	"""One headless import of the project; refuses on a failed run."""
+	"""One headless import of the project; refuses on a failed run, including one that exits 0 but
+	printed an engine error (docs/ENVIRONMENT.md: Godot's exit status alone proves nothing)."""
 	completed = subprocess.run([godot, "--headless", "--path", str(project), "--import"],
 		capture_output=True, text=True, check=False)
-	if completed.returncode != 0:
-		raise RuntimeError(f"godot --import failed ({completed.returncode}):\n{completed.stderr[-4000:]}")
+	output = re.sub(r"\x1b\[[0-9;]*m", "", completed.stdout + completed.stderr)
+	errors = [line for line in output.splitlines() if line.startswith(("ERROR:", "SCRIPT ERROR:"))]
+	if completed.returncode != 0 or errors:
+		raise RuntimeError(f"godot --import failed ({completed.returncode}):\n" + "\n".join(errors[:20] or [output[-4000:]]))
 
 
 def settle(godot: str, assets: pathlib.Path = ASSETS, project: pathlib.Path = PROJECT) -> dict:

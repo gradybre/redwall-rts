@@ -7,26 +7,32 @@ extends RefCounted
 ##
 ## ---------------------------------------------------------------------------------------
 ## NEVER WALK INTO A CIRCLE. Two layers keep a resident out of an obstacle:
-##   * `plan_path()` routes each trip around every circle, inflated by the walker's body radius and
-##     a margin, on a visibility graph of points ringed round each circle. Residents standing still
-##     (working, idling, turning on the spot) count as circles too, so a walker plans round someone
-##     at the well rather than walking into them. It runs once per trip, and again when blocked.
+##   * `plan_path()` routes each trip round every circle and every resident standing still, inflated
+##     by the walker's body radius and a margin (cast_nav.gd: a static visibility graph per body
+##     class built once, plus the trip's own start, goal and standing residents).
 ##   * `constrain()` runs every frame and is exact: a resident's centre never comes closer to an
 ##     obstacle's centre than its radius plus the body radius, nor to another resident than their
 ##     two radii. It is MONOTONE -- a resident already closer than that (spawned there, or a POI
-##     placed tight against a building) may move away but never further in -- so nothing pops.
-##   A POI inside an inflated circle would be unreachable, so the inflation is shrunk to leave the
+##     placed tight against a building) may move away but never further in -- so nothing pops. A
+##     step that one push would resolve only by shoving the walker into something else is refused
+##     outright, so nobody squeezes through a gap narrower than their body.
+##   A POI tucked against a building would be unreachable, so the inflation is shrunk to leave the
 ##   trip's goal just outside it, and never below the obstacle's own radius.
 ##
-## Per-frame work (`constrain`, `separation`, `segment_clear`) allocates nothing. Planning reuses
-## member arrays and runs only when a trip starts.
+## A circle whose radius is not positive is refused at setup (push_error) and ignored.
+##
+## Per-frame work (`constrain`, `separation`, `line_clear`) allocates nothing.
 
-const RING_POINTS: int = 6
-const PLAN_MARGIN_M: float = 0.18
-const GOAL_EPSILON_M: float = 0.03
+const CastNavScript := preload("res://demo/cast/cast_nav.gd")
+
+const PLAN_MARGIN_M: float = CastNavScript.PLAN_MARGIN_M
+const GOAL_EPSILON_M: float = CastNavScript.GOAL_EPSILON_M
 const SLOT_SPACING_M: float = 1.2
+## A slot must stand this far clear of every obstacle edge, or another spot is tried.
+const SLOT_CLEARANCE_M: float = 0.3
 const SEPARATION_MARGIN_M: float = 0.55
 const MAX_SLOTS: int = 16
+const CONSTRAIN_PASSES: int = 2
 const STOCKPILE_WORDS: PackedStringArray = ["stockpile", "store", "storage", "pile", "crate", "sack", "log"]
 const CARRY_CLIP: StringName = &"carry_heavy_object_walk"
 const LOCOMOTION_CLIPS: Array[StringName] = [&"walk", &"carry_heavy_object_walk"]
@@ -42,31 +48,40 @@ var poi_activities: Array[Array] = []
 var resident_position: PackedVector2Array = PackedVector2Array()
 var resident_radius: PackedFloat32Array = PackedFloat32Array()
 var resident_walking: PackedByteArray = PackedByteArray()
+var nav: CastNavScript = CastNavScript.new()
 
-var _circles: PackedVector3Array = PackedVector3Array()
-var _plan_radius: PackedFloat32Array = PackedFloat32Array()
-var _nodes: PackedVector2Array = PackedVector2Array()
-var _cost: PackedFloat32Array = PackedFloat32Array()
-var _parent: PackedInt32Array = PackedInt32Array()
-var _closed: PackedByteArray = PackedByteArray()
+var _slot_at: PackedVector2Array = PackedVector2Array()
+var _standing: PackedVector3Array = PackedVector3Array()
 
 
 func setup(points: Array[Dictionary], obstacle_list: Array[Vector3]) -> void:
-	"""Take the world's POIs and obstacle circles. Clears every resident and reservation."""
-	obstacles = PackedVector3Array(obstacle_list)
+	"""Take the world's POIs and obstacle circles (x, radius, z). Clears every resident and reservation."""
+	obstacles.clear()
+	for circle in obstacle_list:
+		if circle.y > 0.0:
+			obstacles.append(circle)
+		else:
+			push_error("demo cast: obstacle at (%.2f, %.2f) has radius %.3f; a circle is (x, radius, z) -- ignored" % [circle.x, circle.z, circle.y])
+	nav.setup(obstacles)
+	_clear_pois()
+	for point in points:
+		_add_poi(point)
+	poi_used.resize(poi_position.size())
+	poi_used.fill(0)
+	_place_slots()
+	resident_position.clear()
+	resident_radius.clear()
+	resident_walking.clear()
+
+
+func _clear_pois() -> void:
+	"""Forget every POI."""
 	poi_names.clear()
 	poi_position.clear()
 	poi_face.clear()
 	poi_capacity.clear()
 	poi_stockpile.clear()
 	poi_activities.clear()
-	for point in points:
-		_add_poi(point)
-	poi_used.resize(poi_position.size())
-	poi_used.fill(0)
-	resident_position.clear()
-	resident_radius.clear()
-	resident_walking.clear()
 
 
 func _add_poi(point: Dictionary) -> void:
@@ -106,6 +121,8 @@ func add_resident(at: Vector2, radius: float) -> int:
 	resident_position.append(at)
 	resident_radius.append(radius)
 	resident_walking.append(0)
+	_standing.resize(resident_position.size())
+	nav.ensure_graph(radius)
 	return resident_position.size() - 1
 
 
@@ -139,25 +156,51 @@ func separation(index: int, at: Vector2, forward: Vector2) -> Vector2:
 
 
 func constrain(index: int, from: Vector2, to: Vector2, goal: Vector2) -> Vector2:
-	"""Where a resident moving `from` -> `to` may actually stand: out of every other resident, then
-	out of every obstacle (obstacles win). Monotone, so it never pushes anyone further out than they
-	were."""
+	"""Where a resident moving `from` -> `to` may actually stand: pushed out of every other resident and
+	every obstacle, twice over so it can slide along a corner. Monotone, so it never pushes anyone
+	further out than they were; a step that still ends too deep in anything is refused (`from`)."""
 	var radius := resident_radius[index]
+	var pad := nav.max_radius + radius
+	var count := nav.circles_near(to.min(from) - Vector2(pad, pad), to.max(from) + Vector2(pad, pad))
 	var at := to
+	for pass_index in CONSTRAIN_PASSES:
+		at = _push_from_residents(index, from, at)
+		for k in count:
+			var o := obstacles[nav.hit(k)]
+			at = _keep_out(Vector2(o.x, o.z), _obstacle_reach(o, radius, goal), from, at)
+	if _clear_of_residents(index, from, at) and _clear_of_obstacles(count, radius, from, at, goal):
+		return at
+	return from
+
+
+func _obstacle_reach(o: Vector3, radius: float, goal: Vector2) -> float:
+	"""How close a body may come to an obstacle's centre: radius + body, shrunk (never below the
+	obstacle's own radius) to leave the trip's goal just outside."""
+	return maxf(o.y, minf(o.y + radius, Vector2(o.x, o.z).distance_to(goal) - GOAL_EPSILON_M))
+
+
+func _push_from_residents(index: int, from: Vector2, at: Vector2) -> Vector2:
+	"""`at` pushed out of every other resident's circle (monotone)."""
+	var radius := resident_radius[index]
 	for j in resident_position.size():
 		if j != index:
-			var other := resident_position[j]
-			at = _keep_out(other, radius + resident_radius[j], from, at)
-	for i in obstacles.size():
-		var o := obstacles[i]
+			at = _keep_out(resident_position[j], radius + resident_radius[j], from, at)
+	return at
+
+
+func _clear_of_obstacles(count: int, radius: float, from: Vector2, at: Vector2, goal: Vector2) -> bool:
+	"""Whether `at` keeps the monotone distance to every obstacle from the last circles_near() query."""
+	for k in count:
+		var o := obstacles[nav.hit(k)]
 		var centre := Vector2(o.x, o.z)
-		var reach := maxf(o.y, minf(o.y + radius, centre.distance_to(goal) - GOAL_EPSILON_M))
-		at = _keep_out(centre, reach, from, at)
-	return at if _clear_of_residents(index, from, at) else from
+		var limit := minf(_obstacle_reach(o, radius, goal), centre.distance_to(from))
+		if centre.distance_to(at) < limit - 1e-4:
+			return false
+	return true
 
 
 func _clear_of_residents(index: int, from: Vector2, at: Vector2) -> bool:
-	"""Whether `at` (after an obstacle pushed it) still keeps the monotone distance to every resident."""
+	"""Whether `at` keeps the monotone distance to every other resident."""
 	var radius := resident_radius[index]
 	for j in resident_position.size():
 		if j == index:
@@ -204,22 +247,44 @@ func release(poi: int, slot: int) -> void:
 
 
 func occupancy(poi: int) -> int:
-	"""How many slots at `poi` are taken."""
+	"""How many reservation bits at `poi` are set -- all of them, so a bit past capacity shows."""
+	var bits := poi_used[poi]
 	var count := 0
-	for slot in poi_capacity[poi]:
-		if poi_used[poi] & (1 << slot) != 0:
-			count += 1
+	while bits != 0:
+		bits &= bits - 1
+		count += 1
 	return count
 
 
 func slot_position(poi: int, slot: int) -> Vector2:
-	"""Where a slot stands: slots line up side by side across the POI's face direction."""
-	var face := poi_face[poi]
-	if face == Vector2.ZERO:
-		face = Vector2(0.0, 1.0)
-	var across := Vector2(-face.y, face.x)
-	var offset := (float(slot) - float(poi_capacity[poi] - 1) * 0.5) * SLOT_SPACING_M
-	return poi_position[poi] + across * offset
+	"""Where a slot stands (worked out at setup; see _place_slots)."""
+	return _slot_at[poi * MAX_SLOTS + slot]
+
+
+func _place_slots() -> void:
+	"""Slots line up side by side across each POI's face direction. A slot that would stand within
+	SLOT_CLEARANCE_M of an obstacle edge goes behind the POI instead, away from what it faces."""
+	_slot_at.resize(poi_position.size() * MAX_SLOTS)
+	for poi in poi_position.size():
+		var face := poi_face[poi] if poi_face[poi] != Vector2.ZERO else Vector2(0.0, 1.0)
+		var across := Vector2(-face.y, face.x)
+		for slot in poi_capacity[poi]:
+			var offset := (float(slot) - float(poi_capacity[poi] - 1) * 0.5) * SLOT_SPACING_M
+			var at := poi_position[poi] + across * offset
+			if obstacle_clearance(at) < SLOT_CLEARANCE_M:
+				at = poi_position[poi] - face * SLOT_SPACING_M * float(slot)
+			_slot_at[poi * MAX_SLOTS + slot] = at
+
+
+func obstacle_clearance(at: Vector2) -> float:
+	"""Distance from `at` to the nearest obstacle edge (negative inside one; INF with none near)."""
+	var pad := nav.max_radius + SLOT_SPACING_M * 4.0
+	var count := nav.circles_near(at - Vector2(pad, pad), at + Vector2(pad, pad))
+	var best := INF
+	for k in count:
+		var o := obstacles[nav.hit(k)]
+		best = minf(best, Vector2(o.x, o.z).distance_to(at) - o.y)
+	return best
 
 
 func choose_poi(current: int, rng: RandomNumberGenerator) -> int:
@@ -243,156 +308,36 @@ func choose_poi(current: int, rng: RandomNumberGenerator) -> int:
 
 func plan_path(index: int, from: Vector2, to: Vector2, body_radius: float, out: PackedVector2Array) -> void:
 	"""Fill `out` with waypoints from `from` (excluded) to `to` (last), round every obstacle and every
-	standing resident but `index`. Falls back to the straight line when no route exists;
-	`constrain()` still keeps the walker out."""
-	out.clear()
-	_gather_circles(index, from, to, body_radius)
-	if segment_clear(from, to):
-		out.append(to)
-		return
-	_ring_nodes(from, to)
-	if not _search():
-		out.append(to)
-		return
-	var chain := PackedInt32Array()
-	var node := 1
-	while node > 0:
-		chain.append(node)
-		node = _parent[node]
-	for k in range(chain.size() - 1, -1, -1):
-		out.append(_nodes[chain[k]])
-
-
-func _gather_circles(index: int, from: Vector2, to: Vector2, body_radius: float) -> void:
-	"""This plan's circles -- obstacles, then standing residents other than `index` -- each with its
-	planning radius: inflated by body and margin, shrunk to leave start and goal outside."""
-	_circles.clear()
-	_circles.append_array(obstacles)
+	standing resident but `index`. Falls back to the straight line when no route exists."""
+	var count := 0
 	for j in resident_position.size():
 		if j != index and resident_walking[j] == 0:
-			_circles.append(Vector3(resident_position[j].x, resident_radius[j], resident_position[j].y))
-	_plan_radius.resize(_circles.size())
-	for i in _circles.size():
-		_plan_radius[i] = maxf(_inflated(_circles[i], body_radius, from, to), 0.0)
-
-
-static func _inflated(circle: Vector3, body_radius: float, from: Vector2, goal: Vector2) -> float:
-	"""A circle's radius plus body and margin, shrunk to leave `from` and `goal` just outside it."""
-	var centre := Vector2(circle.x, circle.z)
-	var reach := circle.y + body_radius + PLAN_MARGIN_M
-	reach = minf(reach, centre.distance_to(goal) - GOAL_EPSILON_M)
-	return minf(reach, centre.distance_to(from) - GOAL_EPSILON_M)
-
-
-func segment_clear(a: Vector2, b: Vector2) -> bool:
-	"""Whether the segment a-b stays outside every circle of the last plan at its planning radius."""
-	for i in _circles.size():
-		var o := _circles[i]
-		var r := _plan_radius[i]
-		if r <= 0.0:
-			continue
-		if minf(a.x, b.x) > o.x + r or maxf(a.x, b.x) < o.x - r or minf(a.y, b.y) > o.z + r or maxf(a.y, b.y) < o.z - r:
-			continue
-		if distance_to_segment(Vector2(o.x, o.z), a, b) < r - 1e-4:
-			return false
-	return true
+			_standing[count] = Vector3(resident_position[j].x, resident_radius[j], resident_position[j].y)
+			count += 1
+	nav.plan(from, to, body_radius, _standing, count, out)
 
 
 func line_clear(index: int, a: Vector2, b: Vector2, body_radius: float, goal: Vector2) -> bool:
 	"""Per-frame sight test for walker `index` heading to `goal`: whether a-b clears every obstacle and
-	standing resident, inflated as a plan inflates them. Uses no shared plan state; allocates nothing."""
-	for i in obstacles.size():
-		if _blocks(obstacles[i], body_radius, a, b, goal):
-			return false
+	standing resident, inflated as a plan inflates them (shrunk to leave `a` and the goal outside)."""
+	if nav.segment_hits_obstacle(a, b, body_radius, PLAN_MARGIN_M, a, goal, true):
+		return false
+	return not standing_blocks(index, a, b, body_radius, goal, CastNavScript.LINK_MARGIN_M)
+
+
+func standing_blocks(index: int, a: Vector2, b: Vector2, body_radius: float, goal: Vector2, margin: float) -> bool:
+	"""Whether a resident standing still (not `index`) is in the way of segment a-b, by the walker's
+	own body radius plus `margin` (negative for a tolerance), shrunk to leave `a` and the goal outside.
+	Allocates nothing."""
 	for j in resident_position.size():
 		if j != index and resident_walking[j] == 0:
 			var at := resident_position[j]
-			if _blocks(Vector3(at.x, resident_radius[j], at.y), body_radius, a, b, goal):
-				return false
-	return true
-
-
-static func _blocks(circle: Vector3, body_radius: float, a: Vector2, b: Vector2, goal: Vector2) -> bool:
-	"""Whether segment a-b cuts `circle` at its planning radius."""
-	var r := _inflated(circle, body_radius, a, goal)
-	return r > 0.0 and distance_to_segment(Vector2(circle.x, circle.z), a, b) < r - 1e-4
+			var r := CastNavScript.inflated(Vector3(at.x, resident_radius[j], at.y), body_radius, margin, a, goal, true)
+			if r > 0.0 and CastNavScript.distance_to_segment(at, a, b) < r - 1e-4:
+				return true
+	return false
 
 
 static func distance_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
 	"""Distance from p to the closest point of segment a-b."""
-	var ab := b - a
-	var length_sq := ab.length_squared()
-	var t := 0.0 if length_sq < 1e-12 else clampf((p - a).dot(ab) / length_sq, 0.0, 1.0)
-	return p.distance_to(a + ab * t)
-
-
-func _ring_nodes(from: Vector2, to: Vector2) -> void:
-	"""Node 0 is the start, node 1 the goal, then RING_POINTS round each circle that lie in the open."""
-	_nodes.clear()
-	_nodes.append(from)
-	_nodes.append(to)
-	var outward := 1.0 / cos(PI / RING_POINTS) * 1.02
-	for i in _circles.size():
-		var o := _circles[i]
-		var ring := _plan_radius[i] * outward + 0.02
-		for k in RING_POINTS:
-			var angle := TAU * (float(k) + 0.5) / RING_POINTS
-			var point := Vector2(o.x + cos(angle) * ring, o.z + sin(angle) * ring)
-			if _in_open(point):
-				_nodes.append(point)
-
-
-func _in_open(point: Vector2) -> bool:
-	"""Whether a point lies outside every circle's planning radius."""
-	for i in _circles.size():
-		var o := _circles[i]
-		if Vector2(o.x, o.z).distance_to(point) < _plan_radius[i]:
-			return false
-	return true
-
-
-func _search() -> bool:
-	"""A* from node 0 to node 1 over the visibility graph, edges tested lazily. Fills _parent."""
-	var count := _nodes.size()
-	_cost.resize(count)
-	_cost.fill(INF)
-	_parent.resize(count)
-	_parent.fill(-1)
-	_closed.resize(count)
-	_closed.fill(0)
-	_cost[0] = 0.0
-	while true:
-		var u := _cheapest_open()
-		if u < 0:
-			return false
-		if u == 1:
-			return true
-		_closed[u] = 1
-		_relax(u)
-	return false
-
-
-func _cheapest_open() -> int:
-	"""The open node with the lowest cost plus straight-line distance to the goal, or -1."""
-	var best := -1
-	var best_f := INF
-	var goal := _nodes[1]
-	for v in _nodes.size():
-		if _closed[v] == 0 and _cost[v] < INF:
-			var f := _cost[v] + _nodes[v].distance_to(goal)
-			if f < best_f:
-				best_f = f
-				best = v
-	return best
-
-
-func _relax(u: int) -> void:
-	"""Offer every node still open a route through u, testing sight only when it would be cheaper."""
-	var at := _nodes[u]
-	for v in _nodes.size():
-		if _closed[v] != 0:
-			continue
-		var cost := _cost[u] + at.distance_to(_nodes[v])
-		if cost < _cost[v] and segment_clear(at, _nodes[v]):
-			_cost[v] = cost
-			_parent[v] = u
+	return CastNavScript.distance_to_segment(p, a, b)

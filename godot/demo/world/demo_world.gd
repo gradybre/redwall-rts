@@ -7,7 +7,9 @@ extends Node3D
 ##                         (`manifest["world"]` empty -- CI, a fresh clone) it builds the SAME
 ##                         layout from placeholder shapes of the same footprints.
 ##   points_of_interest()  where residents stand to work, drink, wave or idle.
-##   obstacles()           circles (x, z, radius in y) residents walk around.
+##   obstacles()           circles residents walk around, as Vector3(x, radius, z): x and z the
+##                         centre, y the radius. (world_layout.gd keeps its own (x, z, radius)
+##                         form internally; obstacles() converts at this boundary.)
 ##   bounds()              the walkable area.
 ## The three queries are pure functions of the authored layout: they answer identically before
 ## or after `build()`, and whether or not assets are staged.
@@ -75,9 +77,22 @@ func points_of_interest() -> Array[Dictionary]:
 
 
 func obstacles() -> Array[Vector3]:
-	"""Circles residents must walk around: x, z = centre, y = radius (metres)."""
+	"""Circles residents must walk around: Vector3(x, radius, z) -- x, z the centre, y the radius (m)."""
 	_ensure_layout()
-	return _obstacles.duplicate()
+	var out: Array[Vector3] = []
+	for circle: Vector3 in _obstacles:
+		out.append(public_circle(circle))
+	return out
+
+
+static func public_circle(layout_circle: Vector3) -> Vector3:
+	"""A layout circle (x, z, radius) in the published form (x, radius, z)."""
+	return Vector3(layout_circle.x, layout_circle.z, layout_circle.y)
+
+
+static func layout_circle(public: Vector3) -> Vector3:
+	"""A published circle (x, radius, z) back in world_layout.gd's (x, z, radius) form."""
+	return Vector3(public.x, public.z, public.y)
 
 
 func bounds() -> AABB:

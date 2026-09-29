@@ -59,14 +59,15 @@ var _hand_right: int = -1
 var _skeleton_to_actor: Transform3D = Transform3D.IDENTITY
 
 
-func setup_creature(key: StringName, row: Dictionary, space: CastSpaceScript, seed: int) -> bool:
-	"""Build a real creature from its manifest row. Returns false (and builds a placeholder) if its body
-	cannot be loaded."""
+func setup_creature(index: int, key: StringName, row: Dictionary, space: CastSpaceScript, seed: int) -> bool:
+	"""Build a real creature from its manifest row. Returns false (and builds a placeholder, keeping
+	the manifest key and taking cast slot `index`'s colour) if its body cannot be loaded."""
 	var body_path := String(row.get("body", ""))
 	var scene: PackedScene = load(body_path) as PackedScene if ResourceLoader.exists(body_path) else null
 	if scene == null:
 		push_warning("demo cast: %s has no loadable body; using a placeholder" % key)
-		setup_placeholder(0, space, seed)
+		setup_placeholder(index, space, seed)
+		creature_key = key
 		return false
 	creature_key = key
 	var body := scene.instantiate() as Node3D
@@ -83,7 +84,7 @@ func setup_creature(key: StringName, row: Dictionary, space: CastSpaceScript, se
 	brain = BrainScript.new()
 	brain.configure(space, float(row.get("walk_speed_m_s", PLACEHOLDER_WALK_SPEED_M_S)), body_radius(height), seed, lengths)
 	brain.set_carry_motion(motion)
-	if brain.can_carry():
+	if brain.can_carry() and _skeleton != null:
 		_build_load(height)
 	return true
 
@@ -253,7 +254,7 @@ func _build_library(paths: Dictionary, motion_out: Dictionary) -> Dictionary:
 			library.add_animation(clip, animation)
 			lengths[clip] = animation.length
 			_library_names[clip] = StringName("%s/%s" % [LIBRARY, clip])
-			if clip == BrainScript.CLIP_CARRY and _find_skeleton(holder) != null:
+			if clip == BrainScript.CLIP_CARRY and _skeleton != null and _find_skeleton(holder) != null:
 				motion_out.merge(ClipRootMotionScript.read(_find_skeleton(holder)))
 		holder.free()
 	_player.add_animation_library(LIBRARY, library)

@@ -15,6 +15,11 @@ extends RefCounted
 ##            path key by key -- its uneven pace AND its sideways weave (up to +-0.24 m over a loop on
 ##            the badger) -- so a planted foot stays planted there too (decision 0195).
 ##
+## Getting unstuck, all bounded: someone standing across the current leg -> replan at once; held back
+## by the constraint for BLOCKED_AFTER_S, no headway (or turning) for STUCK_AFTER_S, or more than
+## MAX_FLIPS walk -> turn flips on one leg -> replan; more than MAX_REPLANS -> give the trip up and
+## release the slot.
+##
 ## Yaw 0 faces +Z, the way the models face: forward is Vector2(sin(yaw), cos(yaw)) in (x, z).
 ## Deterministic: every random choice comes from this resident's own seeded generator.
 
@@ -40,8 +45,10 @@ const SEPARATION_WEIGHT: float = 1.2
 const STUCK_AFTER_S: float = 2.5
 const BLOCKED_AFTER_S: float = 0.35         ## held back this long by someone -> plan round them
 const BLOCKED_FRACTION: float = 0.3         ## a frame moving less than this share of its step is held back
+const STANDING_TOLERANCE_M: float = 0.08    ## how deep a leg may graze someone standing before replanning
 const STUCK_PROGRESS_M: float = 0.05
 const MAX_REPLANS: int = 4
+const MAX_FLIPS: int = 4                    ## walk -> stop-and-turn flips on one leg before replanning
 const IDLE_MIN_S: float = 1.2
 const IDLE_MAX_S: float = 3.2
 const ACT_MIN_S: float = 4.0
@@ -81,6 +88,7 @@ var _best_distance: float = INF
 var _stuck_time: float = 0.0
 var _blocked_time: float = 0.0
 var _replans: int = 0
+var _flips: int = 0
 var _carry_velocity: PackedVector2Array = PackedVector2Array()
 var _carry_key_s: float = 1.0
 var _carry_rate: float = 1.0
@@ -100,9 +108,10 @@ func set_carry_motion(motion: Dictionary) -> void:
 	"""The carry clip's recorded root motion (clip_root_motion.read). Without it, nobody carries."""
 	var keys: Array = motion.get("keys_xz", [])
 	var mean := float(motion.get("mean_speed_m_s", 0.0))
-	if keys.size() < 2 or mean < ClipRootMotionScript.MIN_SPEED_M_S or not has_clip(CLIP_CARRY):
+	var period := float(motion.get("period_s", 0.0))
+	if keys.size() < 2 or mean < ClipRootMotionScript.MIN_SPEED_M_S or period <= 0.0 or not has_clip(CLIP_CARRY):
 		return
-	_carry_key_s = float(motion.get("period_s", 1.0)) / float(keys.size() - 1)
+	_carry_key_s = period / float(keys.size() - 1)
 	_carry_velocity.resize(keys.size() - 1)
 	for k in keys.size() - 1:
 		var a: Array = keys[k]
@@ -141,7 +150,6 @@ func start_at(at: Vector2, face_yaw: float, start_poi: int, start_slot: int) -> 
 func step(delta: float) -> void:
 	"""Advance this resident by `delta` seconds."""
 	_clip_time += delta * clip_speed
-	_space.set_walking(index, state == State.WALK)
 	match state:
 		State.IDLE:
 			_step_idle(delta)
@@ -153,6 +161,7 @@ func step(delta: float) -> void:
 			_step_face(delta)
 		State.ACT:
 			_step_act(delta)
+	_space.set_walking(index, state == State.WALK)
 
 
 func forward() -> Vector2:
@@ -267,6 +276,7 @@ func _trip_length() -> float:
 func _begin_leg() -> void:
 	"""Start following `path` from its first waypoint: turn on the spot first."""
 	path_index = 0
+	_flips = 0
 	_reset_progress()
 	_enter_turn(yaw_of(path[0] - position), _locomotion_clip())
 
@@ -288,7 +298,12 @@ func _enter_turn(target_yaw: float, shuffle_clip: StringName) -> void:
 
 
 func _step_turn(delta: float) -> void:
-	"""Turn toward the current waypoint; set off once facing it."""
+	"""Turn toward the current waypoint; set off once facing it. Time spent turning counts toward
+	being stuck, so a walker flipping between walking and turning cannot stall for ever."""
+	_stuck_time += delta
+	if _stuck_time >= STUCK_AFTER_S:
+		_replan_or_abandon()
+		return
 	var target_yaw := yaw_of(path[path_index] - position)
 	yaw = turn_toward(yaw, target_yaw, SPOT_TURN_RATE * delta)
 	if absf(angle_difference(yaw, target_yaw)) <= START_WALK_ANGLE:
@@ -311,8 +326,12 @@ func _step_face(delta: float) -> void:
 # --- walking --------------------------------------------------------------------------------
 
 func _step_walk(delta: float) -> void:
-	"""Steer toward the route (and away from neighbours) at a limited yaw rate, and step forward."""
+	"""Steer toward the route (and away from neighbours) at a limited yaw rate, and step forward. Someone
+	who has stopped in the way of the current leg means a new plan round them, straight away."""
 	_advance_waypoint()
+	if _blocked_by_standing(path[path_index]):
+		_replan_or_abandon()
+		return
 	var to_target := path[path_index] - position
 	var distance := to_target.length()
 	var step := ground_step(delta)
@@ -324,7 +343,11 @@ func _step_walk(delta: float) -> void:
 			+ _space.separation(index, position, facing) * SEPARATION_WEIGHT
 	var error := angle_difference(yaw, yaw_of(desired))
 	if absf(error) > STOP_TO_TURN_ANGLE:
-		_enter_turn(yaw_of(desired), _locomotion_clip())
+		_flips += 1
+		if _flips > MAX_FLIPS:
+			_replan_or_abandon()
+		else:
+			_enter_turn(yaw_of(desired), _locomotion_clip())
 		return
 	yaw = turn_toward(yaw, yaw + error, WALK_TURN_RATE * delta)
 	var moved := _space.constrain(index, position, position + step, _goal)
@@ -335,14 +358,24 @@ func _step_walk(delta: float) -> void:
 
 
 func _advance_waypoint() -> void:
-	"""Move on past a waypoint once near it, or as soon as the one after it is in clear sight."""
+	"""Move on past a waypoint as soon as the one after it is in clear sight, or once near it -- but not
+	while near would start the next leg through someone standing (the plan's leg began at the
+	waypoint itself; cutting the corner could clip them and trigger a needless replan)."""
 	while path_index < path.size() - 1:
-		var near := position.distance_to(path[path_index]) < WAYPOINT_REACH_M
-		if near or _space.line_clear(index, position, path[path_index + 1], radius, _goal):
+		var next := path[path_index + 1]
+		var d := position.distance_to(path[path_index])
+		var near := d < ARRIVE_RADIUS_M or (d < WAYPOINT_REACH_M and not _blocked_by_standing(next))
+		if near or _space.line_clear(index, position, next, radius, _goal):
 			path_index += 1
 			_reset_progress()
 		else:
 			return
+
+
+func _blocked_by_standing(to: Vector2) -> bool:
+	"""Whether someone standing still is plainly in the way from here to `to`: their radius plus ours,
+	less STANDING_TOLERANCE_M, so a leg the plan passed (at a wider margin) never trips it."""
+	return _space.standing_blocks(index, position, to, radius, _goal, -STANDING_TOLERANCE_M)
 
 
 func ground_step(delta: float) -> Vector2:
@@ -383,6 +416,11 @@ func _watch_progress(distance: float, held: bool, delta: float) -> void:
 		_stuck_time += delta
 	if _stuck_time < STUCK_AFTER_S and _blocked_time < BLOCKED_AFTER_S:
 		return
+	_replan_or_abandon()
+
+
+func _replan_or_abandon() -> void:
+	"""Plan the trip again from here, or give it up after MAX_REPLANS."""
 	_replans += 1
 	if _replans > MAX_REPLANS:
 		_abandon_trip()

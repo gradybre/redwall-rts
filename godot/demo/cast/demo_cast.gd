@@ -39,7 +39,7 @@ func build(manifest: Dictionary, points: Array[Dictionary], obstacles: Array[Vec
 		if keys.is_empty():
 			actor.setup_placeholder(i, _space, BASE_SEED + i * SEED_STRIDE)
 		else:
-			actor.setup_creature(StringName(keys[i]), cast[keys[i]], _space, BASE_SEED + i * SEED_STRIDE)
+			actor.setup_creature(i, StringName(keys[i]), cast[keys[i]], _space, BASE_SEED + i * SEED_STRIDE)
 		actor.name = String(actor.creature_key)
 		_place(actor, i, count)
 		add_child(actor)

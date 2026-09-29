@@ -38,7 +38,7 @@ const ACTION_CANCEL: StringName = &"cancel"
 const BUTTON_TEXT: Dictionary = {
 	&"fell": "Fell", &"haul": "Haul logs", &"grub": "Grub out stump", &"plant": "Plant sapling",
 	&"forestry_zone": "Mark forestry zone", &"conservation_zone": "Mark conservation zone",
-	&"intensive": "Intensive (keep 10%)", &"auto": "Auto-fell", &"remove_zone": "Unmark zone",
+	&"intensive": "Intensive: off", &"auto": "Auto-fell", &"remove_zone": "Unmark zone",
 	&"gather": "Gather deadfall", &"saw": "Saw planks", &"storm": "Storm gust (demo)", &"cancel": "Cancel woods jobs",
 }
 const TREE_ACTIONS: Array[StringName] = [&"fell", &"haul", &"grub", &"plant"]
@@ -199,7 +199,8 @@ func show_zone(title: String, text: String, enabled: Dictionary, intensive: bool
 	_zone_box.visible = not title.is_empty()
 	_set_line(&"zone_title", title)
 	_set_line(&"zone", text)
-	(_buttons[ACTION_INTENSIVE] as Button).text = "Intensive (keep 10%%): %s" % ("on" if intensive else "off")
+	(_buttons[ACTION_INTENSIVE] as Button).tooltip_text = "Intensive: the zone keeps 10% of its trees mature, not 20% (GDD §5.9)"
+	(_buttons[ACTION_INTENSIVE] as Button).text = "Intensive: %s" % ("on" if intensive else "off")
 	(_buttons[ACTION_AUTO] as Button).text = "Auto-fell: %s" % ("on" if auto_on else "off")
 	_enable(ZONE_ACTIONS, enabled, not title.is_empty())
 

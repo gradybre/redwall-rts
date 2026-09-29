@@ -21,8 +21,8 @@ const MarksScript := preload("res://demo/control/demo_marks.gd")
 const LIFT_M: float = 0.06
 const BAND_M: float = 0.18
 const SELECTED_BAND_M: float = 0.34
-const WASH_ALPHA: float = 0.16
-const DISC_RADIUS_M: float = 0.55
+const WASH_ALPHA: float = 0.22
+const DISC_RADIUS_M: float = 1.2
 const DISC_LIFT_M: float = 0.08
 const RING_EXTRA_M: float = 0.5
 ## A young tree's or a cleared spot's ring is this wide before RING_EXTRA_M.

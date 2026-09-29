@@ -20,6 +20,21 @@ godot --path godot demo/demo_village.tscn
 
 Without staging it still runs, on placeholder shapes.
 
+## Commanding the residents
+
+| Input | Does |
+|---|---|
+| Left click a resident | Select it alone (Shift: toggle it in the selection) |
+| Left drag | Box-select by screen position (Shift: add to the selection) |
+| Left click empty ground | Clear the selection |
+| Right click ground | Move there in a formation, then hold |
+| Right click a work spot | Work there; anyone beyond its free slots holds behind it |
+| R | Release the selection back to its own routine |
+| Esc | Clear the selection |
+
+The "Demo party" panel in the HUD's left column lists the selection. Orders move the demo cast
+only, never the simulation.
+
 Staging also runs `tools/make_demo_crop_cards.py` (needs `blender` on PATH, ~2 minutes): the grain
 and roots L0s shatter, so their beds are rebuilt as a bare bed plus alpha-cutout cards rendered
 from the high-poly sources. Re-run it alone after changing it:
@@ -31,7 +46,8 @@ from the high-poly sources. Re-run it alone after changing it:
 |---|---|
 | `demo_manifest.gd` | Reads the staged manifest |
 | `world/` | Terrain, lighting, village layout, points of interest |
-| `cast/` | The residents: body, clips, live tail, wandering |
+| `cast/` | The residents: body, clips, live tail, job routines, orders |
+| `control/` | Selecting and ordering residents, and the demo party panel |
 | `ui/` | The woodland HUD skin |
 | `camera/` | The RTS camera |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

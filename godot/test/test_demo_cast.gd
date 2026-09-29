@@ -13,6 +13,7 @@ const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const ClipRootMotionScript := preload("res://scripts/presentation/clip_root_motion.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
+const CastRoutinesScript := preload("res://demo/cast/cast_routines.gd")
 
 const DT: float = 1.0 / 60.0
 const BODY_M: float = 0.25
@@ -213,7 +214,7 @@ func test_turning_is_rate_limited_and_happens_before_setting_off() -> void:
 	assert_true(arrived, "arrives")
 	assert_true(worst[0] <= BrainScript.SPOT_TURN_RATE * DT + EPS, "on-the-spot turn rate (%.4f rad/frame)" % worst[0])
 	assert_true(worst[1] <= BrainScript.WALK_TURN_RATE * DT + EPS, "walking turn rate (%.4f rad/frame)" % worst[1])
-	assert_true(first_walk_error[0] <= BrainScript.START_WALK_ANGLE + 0.05, "faces the route before setting off")
+	assert_true(first_walk_error[0] <= BrainScript.BLEND_WALK_ANGLE + 0.05, "within the blend angle of the route before setting off (%.2f rad)" % first_walk_error[0])
 	assert_almost_equal(moved_while_turning[0], 0.0, "turning on the spot does not move")
 
 
@@ -421,7 +422,7 @@ func test_a_carry_trip_follows_the_clips_root_path_at_its_playback_rate() -> voi
 		var space := _space(points, [])
 		var brain := _brain(space, 0, SEED + attempt)
 		brain.set_carry_motion(_carry_motion())
-		for f in 60 * 12:
+		for f in 60 * 60:
 			brain.step(DT)
 			if brain.state == BrainScript.State.WALK and brain.carrying:
 				carried = true
@@ -614,7 +615,7 @@ func test_a_brain_marks_itself_walking_only_while_it_walks() -> void:
 	var brain := _brain(space, 0, SEED)
 	var seen := {}
 	var mismatches := 0
-	for f in 60 * 20:
+	for f in 60 * 90:
 		brain.step(DT)
 		var flag := space.resident_walking[brain.index]
 		mismatches += 0 if (flag == 1) == (brain.state == BrainScript.State.WALK) else 1
@@ -725,29 +726,28 @@ func test_a_walker_jammed_in_a_lane_gives_up_within_seconds() -> void:
 
 
 func test_a_walled_in_walker_gives_up_and_frees_its_slot() -> void:
-	"""No way out of a ring of circles: the walker replans, then abandons the trip and releases the
-	slot it reserved at the destination."""
-	var ring: Array[Vector3] = []
-	for k in 16:
-		var angle := TAU * float(k) / 16.0
-		ring.append(Vector3(cos(angle) * 3.0, 0.8, sin(angle) * 3.0))
-	var points: Array[Dictionary] = [
-		_poi(&"inside", Vector3.ZERO, Vector3(0.0, 0.0, -1.0), [&"idle"], 1),
-		_poi(&"outside", Vector3(0.0, 0.0, 8.0), Vector3(0.0, 0.0, 1.0), [&"idle"], 1)]
-	var space := _space(points, ring)
+	"""The pocket's only gap is closed behind a walker already on its way out (someone steps into it):
+	the walker replans, then abandons the trip and releases the slot it reserved at the destination.
+	(This test used to wall the walker in from the start; a resident with no route at all now never
+	sets off -- test_a_resident_boxed_in_waits_for_the_way_out_instead_of_walking_into_it.)"""
+	var space := _pocket_space()
 	var brain := _brain(space, 0, SEED)
+	var blocker := -1
 	var abandoned := false
 	var freed := false
-	for f in 60 * 90:
+	for f in 60 * 120:
 		var before := brain.poi
 		brain.step(DT)
+		if blocker < 0 and brain.poi == 1 and brain.state == BrainScript.State.WALK:
+			blocker = space.add_resident(Vector2(-7.0, 0.0), 0.3)
 		if before == 1 and brain.poi == -1:
 			abandoned = true
 			freed = space.poi_used[1] == 0
 			break
+	assert_true(blocker >= 0, "set off through the gap before it closed")
 	assert_true(abandoned, "the trip was given up")
 	assert_true(freed, "and the destination's slot released")
-	assert_true(brain.position.length() < 3.0 - 0.8, "still inside the ring")
+	assert_true(brain.position.distance_to(Vector2(-10.0, 0.0)) < 3.0, "still inside the ring")
 
 
 func test_the_real_village_is_well_formed_for_the_cast() -> void:
@@ -858,3 +858,288 @@ func test_a_turn_that_never_finishes_counts_as_stuck() -> void:
 		frames += 1
 	assert_equal(brain.path[0], goal, "the chase ended in a fresh plan to the goal")
 	assert_true(float(frames) * DT <= BrainScript.STUCK_AFTER_S + 0.1, "after about STUCK_AFTER_S (%.2f s)" % (float(frames) * DT))
+
+
+# --- pathing review: departures, turning, routines ------------------------------------------
+
+func _tight_slot_space() -> CastSpaceScript:
+	"""A POI 0.35 m off a 1 m circle (inside radius + body, like the village's tight slots), facing
+	it, and a destination 6 m behind the POI."""
+	var points: Array[Dictionary] = [
+		_poi(&"bench", Vector3(0.0, 0.0, -1.35), Vector3(0.0, 0.0, 1.0), [&"idle"], 1),
+		_poi(&"away", Vector3(0.0, 0.0, -7.5), Vector3(0.0, 0.0, -1.0), [&"idle"], 1)]
+	return _space(points, [Vector3(0.0, 1.0, 0.0)])
+
+
+func test_leaving_a_tight_slot_never_stalls() -> void:
+	"""Setting off from a slot tight against a building: the walker turns and is 0.5 m clear within
+	1.5 s of starting to turn, and never goes 1 s without moving 0.15 m while walking or turning."""
+	var space := _tight_slot_space()
+	var brain := _brain(space, 0, SEED)
+	var started := -1
+	var cleared := -1
+	var anchor := brain.position
+	var worst := 0.0
+	var still := 0.0
+	for f in 60 * 60:
+		brain.step(DT)
+		var moving := brain.state == BrainScript.State.TURN or brain.state == BrainScript.State.WALK
+		if moving and started < 0:
+			started = f
+		if started >= 0 and cleared < 0 and brain.position.distance_to(space.slot_position(0, 0)) >= 0.5:
+			cleared = f
+		if moving and brain.position.distance_to(anchor) < 0.15:
+			still += DT
+			worst = maxf(worst, still)
+		else:
+			still = 0.0
+			anchor = brain.position
+		if brain.poi == 1 and brain.state == BrainScript.State.ACT:
+			break
+	assert_true(started >= 0 and cleared >= 0 and cleared - started <= 90, "clear of the slot within 1.5 s (%d frames)" % (cleared - started))
+	assert_true(worst < 1.0, "no 1 s without headway while leaving (worst %.2f s)" % worst)
+	assert_true(brain.poi == 1 and brain.state == BrainScript.State.ACT, "and reached the destination")
+
+
+func test_a_big_turn_finishes_walking_when_the_way_is_clear() -> void:
+	"""In the open, an about-face hands over to WALK within BLEND_WALK_ANGLE, before it is squared up."""
+	var space := _two_ends([])
+	var brain := _brain(space, 0, SEED)
+	var first_walk_error := -1.0
+	for f in 60 * 60:
+		var was := brain.state
+		brain.step(DT)
+		if was == BrainScript.State.TURN and brain.state == BrainScript.State.WALK:
+			first_walk_error = absf(angle_difference(brain.yaw, BrainScript.yaw_of(brain.path[brain.path_index] - brain.position)))
+			break
+	assert_true(first_walk_error > BrainScript.START_WALK_ANGLE, "set off before squaring up (%.2f rad)" % first_walk_error)
+	assert_true(first_walk_error <= BrainScript.BLEND_WALK_ANGLE + 1e-3, "but within the blend angle")
+
+
+func test_a_turn_facing_a_wall_does_not_set_off_early() -> void:
+	"""Facing into a building 0.3 m away with the route 50 degrees off: inside the blend angle, but the
+	way ahead is blocked, so it keeps turning on the spot. The same turn in the open sets off."""
+	var blocked := _turning_at(Vector2(0.0, -1.3), [Vector3(0.0, 1.0, 0.0)])
+	var open := _turning_at(Vector2(0.0, -1.3), [])
+	assert_equal(blocked, BrainScript.State.TURN, "boxed in: still turning")
+	assert_equal(open, BrainScript.State.WALK, "in the open: walking")
+
+
+func _turning_at(at: Vector2, circles: Array[Vector3]) -> int:
+	"""The state after one step of a resident at `at` facing +Z, turning toward a point 50 degrees
+	to its left, with these circles about."""
+	var space := _space([_poi(&"spot", Vector3(at.x, 0.0, at.y), Vector3(0.0, 0.0, 1.0), [&"idle"], 1)], circles)
+	var brain := _brain(space, 0, SEED)
+	brain.yaw = 0.0
+	brain.path = PackedVector2Array([at + Vector2(sin(deg_to_rad(50.0)), cos(deg_to_rad(50.0))) * 3.0])
+	brain.path_index = 0
+	brain._goal = brain.path[0]
+	brain._enter_turn(deg_to_rad(50.0), BrainScript.CLIP_WALK)
+	brain.step(DT)
+	return brain.state
+
+
+func test_a_big_turn_on_the_spot_uses_the_shuffle() -> void:
+	"""A turn over SHUFFLE_ANGLE steps in place with the walk clip; a small one stands idle."""
+	var space := _two_ends([])
+	var brain := _brain(space, 0, SEED)
+	brain._enter_turn(brain.yaw + PI, BrainScript.CLIP_WALK)
+	assert_equal(brain.clip, BrainScript.CLIP_WALK, "an about-face shuffles")
+	brain._enter_turn(brain.yaw + 0.3, BrainScript.CLIP_WALK)
+	assert_equal(brain.clip, BrainScript.CLIP_IDLE, "a small turn does not")
+
+
+func test_routines_resolve_homes_and_socials_by_name() -> void:
+	"""A creature's homes are its routine's POIs that this world has; unknown names are skipped."""
+	var names: Array[StringName] = [&"well_drink", &"stockpile", &"cauldron", &"square_east"]
+	var homes := CastRoutinesScript.homes_for(&"badger_quarryman", names)
+	assert_equal(homes, PackedInt32Array([1, 2]), "stockpile and cauldron (no hall steps here)")
+	assert_equal(CastRoutinesScript.socials_for(names), PackedInt32Array([3, 0]), "square east and the well")
+	assert_true(CastRoutinesScript.homes_for(&"placeholder_0", names).is_empty(), "no routine, no homes")
+
+
+func test_choosing_from_a_pool_prefers_near_and_respects_capacity() -> void:
+	"""choose_poi_from stays in its pool, skips the current and full POIs, and favours nearer ones."""
+	var points: Array[Dictionary] = [
+		_poi(&"here", Vector3.ZERO, Vector3.FORWARD, [], 1),
+		_poi(&"near", Vector3(3, 0, 0), Vector3.FORWARD, [], 1),
+		_poi(&"far", Vector3(30, 0, 0), Vector3.FORWARD, [], 1),
+		_poi(&"outside", Vector3(1, 0, 0), Vector3.FORWARD, [], 1)]
+	var space := _space(points, [])
+	var rng := RandomNumberGenerator.new()
+	rng.seed = SEED
+	var counts := PackedInt32Array([0, 0, 0, 0])
+	var pool := PackedInt32Array([0, 1, 2])
+	for i in 2000:
+		counts[space.choose_poi_from(pool, 0, Vector2.ZERO, rng)] += 1
+	assert_equal(counts[0] + counts[3], 0, "never the current POI, never outside the pool")
+	assert_true(counts[1] > counts[2] * 2, "the near one far more often (%d vs %d)" % [counts[1], counts[2]])
+	space.reserve(1, 0)
+	assert_equal(space.choose_poi_from(pool, 0, Vector2.ZERO, rng), 2, "a full POI is skipped")
+
+
+func test_work_bouts_cycle_through_a_pois_activities() -> void:
+	"""With two activities at a POI, consecutive bouts there alternate (an ordered worker, so it stays)."""
+	var space := _space([_poi(&"bench", Vector3.ZERO, Vector3.FORWARD, [&"collect_object", &"wave_one_hand"], 1)], [])
+	var brain := _brain(space, 0, SEED)
+	brain.order_work(0, 0)
+	var bouts: Array[StringName] = []
+	for f in 60 * 120:
+		var was := brain.state
+		brain.step(DT)
+		if brain.state == BrainScript.State.ACT and was != BrainScript.State.ACT:
+			bouts.append(brain.clip)
+	var repeats := 0
+	for i in range(1, bouts.size()):
+		repeats += 1 if bouts[i] == bouts[i - 1] else 0
+	var idle := bouts.count(&"idle")
+	assert_true(bouts.size() >= 3, "several bouts (%d)" % bouts.size())
+	assert_equal(repeats, 0, "no activity repeated back to back")
+	assert_equal(idle, 0, "every bout is one of the POI's activities")
+
+
+func test_ten_minutes_on_the_real_village_never_stall_away_from_residents() -> void:
+	"""The placeholder cast on DemoWorld's real layout for 10 minutes: no walking/turning streak of
+	1.5 s or more with under 0.15 m of headway, unless another resident was within 1 m."""
+	var world: Node3D = DemoWorldScript.new()
+	var cast: Node3D = DemoCastScript.new()
+	cast.build({"world": {}, "cast": {}}, world.points_of_interest(), world.obstacles())
+	world.free()
+	var bad := _unexplained_streaks(cast, 60 * 600)
+	cast.free()
+	assert_equal(bad, 0, "stalls away from any resident")
+
+
+func _unexplained_streaks(cast: Node3D, frames: int) -> int:
+	"""Count no-headway streaks >= 1.5 s with nobody within 1 m, over `frames` fixed steps."""
+	var n: int = cast.actor_count()
+	var anchor := PackedVector2Array()
+	var still := PackedFloat32Array()
+	anchor.resize(n)
+	still.resize(n)
+	var bad := 0
+	for f in frames:
+		for i in n:
+			var brain: BrainScript = cast.actor(i).brain
+			brain.step(DT)
+			var moving := brain.state == BrainScript.State.WALK or brain.state == BrainScript.State.TURN
+			if moving and brain.position.distance_to(anchor[i]) < 0.15:
+				still[i] += DT
+				continue
+			if still[i] >= 1.5 and _nearest_other(cast, i) > 1.0:
+				bad += 1
+			still[i] = 0.0
+			anchor[i] = brain.position
+	return bad
+
+
+func _nearest_other(cast: Node3D, i: int) -> float:
+	"""Distance from actor i to the nearest other actor."""
+	var best := INF
+	for j in cast.actor_count():
+		if j != i:
+			best = minf(best, cast.actor(i).brain.position.distance_to(cast.actor(j).brain.position))
+	return best
+
+
+func test_a_routine_keeps_a_resident_to_its_homes() -> void:
+	"""With homes 1 and 2 (and no social spots), five minutes of wandering only ever visits them,
+	although POIs 0 and 3 are open and nearer."""
+	var points: Array[Dictionary] = [
+		_poi(&"start", Vector3.ZERO, Vector3.FORWARD, [&"idle"], 1),
+		_poi(&"home_a", Vector3(6, 0, 0), Vector3.FORWARD, [&"idle"], 1),
+		_poi(&"home_b", Vector3(-6, 0, 0), Vector3.FORWARD, [&"idle"], 1),
+		_poi(&"elsewhere", Vector3(0, 0, 3), Vector3.FORWARD, [&"idle"], 1)]
+	var space := _space(points, [])
+	var brain := _brain(space, 0, SEED)
+	brain.homes = PackedInt32Array([1, 2])
+	var visited := {}
+	for f in 60 * 300:
+		var before := brain.poi
+		brain.step(DT)
+		if brain.poi != before and brain.poi >= 0:
+			visited[brain.poi] = true
+	assert_true(visited.has(1) and visited.has(2), "both homes visited (%s)" % [visited.keys()])
+	assert_false(visited.has(0) or visited.has(3), "and nowhere else")
+
+
+func test_a_slow_walker_works_longer() -> void:
+	"""Same seed, same POI: a 0.5 m/s walker's first bout lasts SLOW_WALK_M_S / 0.5 times longer."""
+	var fast := _first_bout_seconds(0.8)
+	var slow := _first_bout_seconds(0.5)
+	assert_true(slow > fast * 1.3, "slow %.1f s vs fast %.1f s" % [slow, fast])
+
+
+func _first_bout_seconds(speed: float) -> float:
+	"""How long the first work bout lasts for a resident of this walking speed."""
+	var space := _space([_poi(&"bench", Vector3.ZERO, Vector3.FORWARD, [&"collect_object"], 1)], [])
+	var brain := BrainScript.new()
+	brain.configure(space, speed, BODY_M, SEED, _lengths())
+	space.reserve(0, 0)
+	brain.start_at(space.slot_position(0, 0), 0.0, 0, 0)
+	var frames := 0
+	for f in 60 * 120:
+		brain.step(DT)
+		if brain.state == BrainScript.State.ACT:
+			frames += 1
+		elif frames > 0:
+			break
+	return float(frames) * DT
+
+
+func test_a_resident_works_twice_as_long_as_it_walked_to_get_there() -> void:
+	"""After a 40 m trip (about 50 s at 0.8 m/s -- more than BOUTS_MAX bouts of ACT_MAX_S could fill
+	on their own), the resident keeps adding bouts until it has worked WORK_PER_WALK times the trip."""
+	var points: Array[Dictionary] = [
+		_poi(&"west", Vector3(-20.0, 0.0, 0.0), Vector3.FORWARD, [&"collect_object"], 1),
+		_poi(&"east", Vector3(20.0, 0.0, 0.0), Vector3.FORWARD, [&"collect_object"], 1)]
+	var brain := _brain(_space(points, []), 0, SEED)
+	var trip := 0.0
+	var worked := 0.0
+	for f in 60 * 400:
+		var was := brain.state
+		brain.step(DT)
+		var travelling := brain.state == BrainScript.State.TURN or brain.state == BrainScript.State.WALK
+		if brain.poi == 1 and travelling and worked > 0.0:
+			break
+		if brain.poi == 1 and travelling:
+			trip += DT
+		elif brain.poi == 1 and brain.state == BrainScript.State.ACT:
+			worked += DT
+	assert_true(trip > 40.0, "a long trip (%.1f s)" % trip)
+	assert_true(worked >= BrainScript.WORK_PER_WALK * trip - 0.1, "worked %.1f s for a %.1f s trip" % [worked, trip])
+	assert_true(worked > float(BrainScript.BOUTS_MAX) * BrainScript.ACT_MAX_S, "more than the random bouts alone")
+
+
+func _pocket_space() -> CastSpaceScript:
+	"""A closed ring of 15 circles round (-10, 0) whose one gap faces +X, a POI at its centre and
+	another 10 m outside the gap."""
+	var ring: Array[Vector3] = []
+	for k in range(1, 16):
+		var angle := TAU * float(k) / 16.0
+		ring.append(Vector3(cos(angle) * 3.0 - 10.0, 0.8, sin(angle) * 3.0))
+	var points: Array[Dictionary] = [
+		_poi(&"inside", Vector3(-10.0, 0.0, 0.0), Vector3.FORWARD, [&"collect_object"], 1),
+		_poi(&"outside", Vector3(0.0, 0.0, 0.0), Vector3.FORWARD, [&"collect_object"], 1)]
+	return _space(points, ring)
+
+
+func test_a_resident_boxed_in_waits_for_the_way_out_instead_of_walking_into_it() -> void:
+	"""Someone standing in the pocket's only gap: the resident inside never sets off (no straight-line
+	fallback into the blocker) and never takes the outside POI's slot. Once the gap clears it leaves."""
+	var space := _pocket_space()
+	var brain := _brain(space, 0, SEED)
+	var blocker := space.add_resident(Vector2(-7.0, 0.0), 0.3)
+	var walked := false
+	for f in 60 * 90:
+		brain.step(DT)
+		walked = walked or brain.state == BrainScript.State.WALK
+	assert_false(walked, "never walked while boxed in")
+	assert_equal(brain.poi, 0, "still holds its own slot")
+	assert_equal(space.poi_used[1], 0, "and never reserved the outside one")
+	space.move_resident(blocker, Vector2(20.0, 20.0))
+	var left := false
+	for f in 60 * 30:
+		brain.step(DT)
+		left = left or (brain.poi == 1 and brain.state == BrainScript.State.WALK)
+	assert_true(left, "sets off once the gap is clear")

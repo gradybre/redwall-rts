@@ -4,12 +4,17 @@ extends RefCounted
 ## actor node reads `position`, `yaw`, `clip` and `clip_speed` back each frame and draws them.
 ##
 ## The cycle:  IDLE -> (pick a POI, plan) -> TURN -> WALK -> FACE -> ACT -> IDLE -> ACT ... -> IDLE -> TURN
-##   * TURN   turns on the spot toward the route before setting off (stepping in place past
-##            SHUFFLE_ANGLE, standing otherwise), so a walker never pivots sharply at speed.
+##   * TURN   turns on the spot toward the route before setting off, stepping in place (the
+##            shuffle) past SHUFFLE_ANGLE. It hands over to WALK as soon as the route is within
+##            BLEND_WALK_ANGLE and the ground ahead is clear, so a big turn finishes on a walking
+##            curve; only a walker boxed in (facing a wall, say) turns all the way on the spot.
 ##   * WALK   moves along `yaw` at the creature's measured walk speed with the walk clip at 1.0,
 ##            which is what keeps the planted foot from sliding (tools/stage_demo_assets.py). The yaw
 ##            turns toward the route at a limited rate; a demand past STOP_TO_TURN_ANGLE stops the
 ##            walker and hands back to TURN rather than skating round a tight corner.
+##   * ACT    plays the POI's activities in bouts (BOUTS_MIN..MAX of them, each a different activity
+##            from the last where there is a choice), and keeps adding bouts until it has worked
+##            WORK_PER_WALK times as long as the trip there took.
 ##   * A trip away from a stockpile may carry: the carry clip plays at clip_root_motion's playback
 ##            rate for the chosen speed, and each frame's step follows the clip's own recorded root
 ##            path key by key -- its uneven pace AND its sideways weave (up to +-0.24 m over a loop on
@@ -20,24 +25,44 @@ extends RefCounted
 ## MAX_FLIPS walk -> turn flips on one leg -> replan; more than MAX_REPLANS -> give the trip up and
 ## release the slot.
 ##
+## ORDERS (the demo's select-and-command layer, demo/control/). `order_move()` gives up any POI slot,
+## walks to a point and HOLDs there -- idle, facing the way it came, never wandering. `order_work()`
+## takes a given free slot at a POI and works there, bout after bout, until released. A trip an order
+## cannot finish ends in HOLD where the walker stands, never in wandering. `release()` hands the
+## resident back: a holder or an ordered walker stops, idles a moment and wanders on; an ordered
+## worker finishes its bout and wanders on from there.
+##
 ## Yaw 0 faces +Z, the way the models face: forward is Vector2(sin(yaw), cos(yaw)) in (x, z).
 ## Deterministic: every random choice comes from this resident's own seeded generator.
 
 const ClipRootMotionScript := preload("res://scripts/presentation/clip_root_motion.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
+const CastRoutinesScript := preload("res://demo/cast/cast_routines.gd")
 
-enum State { IDLE, TURN, WALK, FACE, ACT }
+enum State { IDLE, TURN, WALK, FACE, ACT, HOLD }
+
+const ORDER_NONE: int = 0
+const ORDER_MOVE: int = 1
+const ORDER_WORK: int = 2
+
+## What the command layer shows a resident doing (activity()).
+const ACTIVITY_WANDERING: int = 0
+const ACTIVITY_WALKING: int = 1
+const ACTIVITY_WORKING: int = 2
+const ACTIVITY_HOLDING: int = 3
 
 const CLIP_IDLE: StringName = &"idle"
 const CLIP_WALK: StringName = &"walk"
 const CLIP_CARRY: StringName = &"carry_heavy_object_walk"
 
 const WALK_TURN_RATE: float = 1.75          ## rad/s while walking (~100 deg/s)
-const SPOT_TURN_RATE: float = 1.9           ## rad/s turning on the spot (~110 deg/s)
+const SPOT_TURN_RATE: float = 3.2           ## rad/s turning on the spot (~185 deg/s)
 const STOP_TO_TURN_ANGLE: float = 1.31      ## ~75 deg: stop and turn on the spot instead
-const START_WALK_ANGLE: float = 0.21        ## ~12 deg: close enough to set off
+const START_WALK_ANGLE: float = 0.21        ## ~12 deg: close enough to set off whatever is ahead
+const BLEND_WALK_ANGLE: float = 1.05        ## ~60 deg: set off and finish the turn walking, if clear
+const BLEND_CLEAR_M: float = 0.7            ## how far ahead must be clear to finish a turn walking
 const FACE_DONE_ANGLE: float = 0.035        ## ~2 deg
-const SHUFFLE_ANGLE: float = 0.44           ## ~25 deg: a turn this big steps in place
+const SHUFFLE_ANGLE: float = 0.79           ## ~45 deg: a turn this big steps in place
 const SHUFFLE_CLIP_SPEED: float = 0.75
 const WAYPOINT_REACH_M: float = 0.3
 const ARRIVE_RADIUS_M: float = 0.12
@@ -51,11 +76,23 @@ const MAX_REPLANS: int = 4
 const MAX_FLIPS: int = 4                    ## walk -> stop-and-turn flips on one leg before replanning
 const IDLE_MIN_S: float = 1.2
 const IDLE_MAX_S: float = 3.2
-const ACT_MIN_S: float = 4.0
-const ACT_MAX_S: float = 8.0
+const ACT_MIN_S: float = 8.0
+const ACT_MAX_S: float = 20.0
+## A walker slower than SLOW_WALK_M_S works proportionally longer (up to SLOW_WORK_MAX times), so
+## the mole's day is not mostly walking.
+const SLOW_WALK_M_S: float = 0.75
+const SLOW_WORK_MAX: float = 1.6
+const BOUTS_MIN: int = 1
+const BOUTS_MAX: int = 3
+## A wandering resident works at a POI at least this many times as long as it spent walking and
+## turning to get there, adding bouts until it has -- so no one's day is mostly walking, whatever
+## its speed or however far its homes lie apart (walking stays under 1 / (1 + WORK_PER_WALK)).
+const WORK_PER_WALK: float = 2.0
 const RETRY_S: float = 1.5
 const CARRY_CHANCE: float = 0.5
-const CARRY_MAX_TRIP_M: float = 14.0
+## A carry walks at the clip's own (slow) pace -- a squirrel forester covers 0.25 m/s -- so only
+## short trips carry; a long one would read as a resident crawling across the village.
+const CARRY_MAX_TRIP_M: float = 8.0
 const CARRY_WALK_FRACTION: float = 0.5
 const CARRY_MIN_RATE: float = 1.0
 const CARRY_MAX_RATE: float = 1.6
@@ -72,9 +109,15 @@ var radius: float = 0.25
 var poi: int = -1
 var slot: int = -1
 var carrying: bool = false
+## ORDER_NONE while wandering on its own; ORDER_MOVE / ORDER_WORK while under a player's order.
+var order: int = ORDER_NONE
 var path: PackedVector2Array = PackedVector2Array()
 var path_index: int = 0
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+## This resident's routine (cast_routines.gd): its home POIs and the village's social ones. Empty
+## homes means "anywhere, nearer preferred".
+var homes: PackedInt32Array = PackedInt32Array()
+var socials: PackedInt32Array = PackedInt32Array()
 
 var _space: CastSpaceScript = null
 var _clip_lengths: Dictionary = {}
@@ -89,6 +132,14 @@ var _stuck_time: float = 0.0
 var _blocked_time: float = 0.0
 var _replans: int = 0
 var _flips: int = 0
+var _last_activity: StringName = &""
+## Seconds spent turning and walking on the current trip, and working since arriving (WORK_PER_WALK).
+var _trip_s: float = 0.0
+var _worked_s: float = 0.0
+## Where an ordered holder turns to face on arrival, when _faces_on_hold (else it keeps facing the
+## way it came).
+var _hold_face: Vector2 = Vector2.ZERO
+var _faces_on_hold: bool = false
 var _carry_velocity: PackedVector2Array = PackedVector2Array()
 var _carry_key_s: float = 1.0
 var _carry_rate: float = 1.0
@@ -161,6 +212,10 @@ func step(delta: float) -> void:
 			_step_face(delta)
 		State.ACT:
 			_step_act(delta)
+		State.HOLD:
+			pass
+	if state == State.TURN or state == State.WALK:
+		_trip_s += delta
 	_space.set_walking(index, state == State.WALK)
 
 
@@ -201,8 +256,11 @@ func _step_idle(delta: float) -> void:
 	_timer -= delta
 	if _timer > 0.0:
 		return
-	if _bouts_left > 0 and poi >= 0:
+	if poi >= 0 and (_bouts_left > 0 or order == ORDER_WORK or owes_work()):
+		_bouts_left = maxi(_bouts_left, 1)
 		_enter_act()
+	elif order != ORDER_NONE:
+		_enter_hold()
 	else:
 		_depart()
 
@@ -211,25 +269,33 @@ func _enter_act() -> void:
 	"""Play one of this POI's activities for a whole number of its loops, about ACT_MIN..MAX seconds."""
 	state = State.ACT
 	_bouts_left -= 1
-	var activity := _pick_activity()
+	var activity := _pick_activity(_last_activity)
+	_last_activity = activity
 	var length := float(_clip_lengths.get(activity, DEFAULT_CLIP_S))
-	var loops := maxi(1, roundi(rng.randf_range(ACT_MIN_S, ACT_MAX_S) / maxf(length, 0.1)))
+	var seconds := rng.randf_range(ACT_MIN_S, ACT_MAX_S) * clampf(SLOW_WALK_M_S / walk_speed, 1.0, SLOW_WORK_MAX)
+	var loops := maxi(1, roundi(seconds / maxf(length, 0.1)))
 	_timer = length * loops
 	_set_clip(activity, 1.0)
 
 
-func _pick_activity() -> StringName:
-	"""A random one of the POI's activities that this resident can play, else idle."""
+func owes_work() -> bool:
+	"""Whether a wandering resident has not yet worked WORK_PER_WALK times its last trip here."""
+	return order == ORDER_NONE and _worked_s < WORK_PER_WALK * _trip_s
+
+
+func _pick_activity(last: StringName) -> StringName:
+	"""A random one of the POI's activities this resident can play -- a different one from `last` when
+	there is a choice, so bouts cycle -- else idle."""
 	var activities := _space.poi_activities[poi]
 	var playable := 0
 	for activity in activities:
-		if has_clip(activity):
+		if has_clip(activity) and activity != last:
 			playable += 1
 	if playable == 0:
-		return CLIP_IDLE
+		return last if has_clip(last) and activities.has(last) else CLIP_IDLE
 	var pick := rng.randi_range(0, playable - 1)
 	for activity in activities:
-		if has_clip(activity):
+		if has_clip(activity) and activity != last:
 			if pick == 0:
 				return activity
 			pick -= 1
@@ -239,28 +305,46 @@ func _pick_activity() -> StringName:
 func _step_act(delta: float) -> void:
 	"""Hold the activity until its loops are done, then idle between bouts."""
 	_timer -= delta
+	_worked_s += delta
 	if _timer <= 0.0:
 		_enter_idle(rng.randf_range(IDLE_MIN_S, IDLE_MAX_S))
 
 
 func _depart() -> void:
-	"""Pick the next POI with room, swap reservations, plan the route and start turning toward it."""
-	var next := _space.choose_poi(poi, rng)
+	"""Pick the next POI with room, plan the route, swap reservations and start turning toward it. When
+	no route exists -- someone standing across the only way out of a tight slot -- it stays put and
+	tries again after RETRY_S, rather than walking the planner's straight-line fallback into a wall."""
+	var next := _choose_next()
 	if next < 0:
 		_enter_idle(RETRY_S)
 		return
 	var next_slot := _space.free_slot(next)
+	_space.plan_path(index, position, _space.slot_position(next, next_slot), radius, path)
+	if not _space.nav.last_found:
+		_enter_idle(RETRY_S)  # boxed in by residents standing across every way out: wait, then retry
+		return
 	_space.reserve(next, next_slot)
 	var leaving_stockpile := poi >= 0 and _space.poi_stockpile[poi] == 1
 	_space.release(poi, slot)
 	poi = next
 	slot = next_slot
 	_goal = _space.slot_position(next, next_slot)
-	_space.plan_path(index, position, _goal, radius, path)
 	carrying = leaving_stockpile and can_carry() and _trip_length() <= CARRY_MAX_TRIP_M \
 			and rng.randf() < CARRY_CHANCE
 	_replans = 0
+	_trip_s = 0.0
 	_begin_leg()
+
+
+func _choose_next() -> int:
+	"""The next POI: usually one of the homes, sometimes a social spot, nearer ones preferred."""
+	if homes.is_empty():
+		return _space.choose_poi_from(homes, poi, position, rng)
+	var social := not socials.is_empty() and rng.randf() < CastRoutinesScript.SOCIAL_CHANCE
+	var next := _space.choose_poi_from(socials if social else homes, poi, position, rng)
+	if next < 0:
+		next = _space.choose_poi_from(homes if social else socials, poi, position, rng)
+	return next if next >= 0 else _space.choose_poi_from(PackedInt32Array(), poi, position, rng)
 
 
 func _trip_length() -> float:
@@ -306,13 +390,30 @@ func _step_turn(delta: float) -> void:
 		return
 	var target_yaw := yaw_of(path[path_index] - position)
 	yaw = turn_toward(yaw, target_yaw, SPOT_TURN_RATE * delta)
-	if absf(angle_difference(yaw, target_yaw)) <= START_WALK_ANGLE:
+	var error := absf(angle_difference(yaw, target_yaw))
+	if error <= START_WALK_ANGLE or (error <= BLEND_WALK_ANGLE and _clear_ahead()):
 		state = State.WALK
 		_set_clip(_locomotion_clip(), _carry_rate if carrying else 1.0)
 
 
+func _face_hold(delta: float) -> void:
+	"""An ordered holder turning to face its point, then holding."""
+	var target_yaw := yaw_of(_hold_face - position)
+	yaw = turn_toward(yaw, target_yaw, SPOT_TURN_RATE * delta)
+	if absf(angle_difference(yaw, target_yaw)) <= FACE_DONE_ANGLE:
+		_enter_hold()
+
+
+func _clear_ahead() -> bool:
+	"""Whether the next BLEND_CLEAR_M straight ahead is clear of obstacles and standing residents."""
+	return _space.line_clear(index, position, position + forward() * BLEND_CLEAR_M, radius, _goal)
+
+
 func _step_face(delta: float) -> void:
-	"""Turn to the POI's face direction, then start working."""
+	"""Turn to the POI's face direction, then start working -- or, holding, toward _hold_face."""
+	if poi < 0:
+		_face_hold(delta)
+		return
 	var face := _space.poi_face[poi]
 	if face == Vector2.ZERO:
 		_enter_act()
@@ -390,9 +491,15 @@ func ground_step(delta: float) -> Vector2:
 
 
 func _arrive() -> void:
-	"""At the slot: turn to the POI's face direction, and plan one or two bouts of work."""
+	"""At the slot: turn to the POI's face direction, and plan one or two bouts of work. At an ordered
+	point with no POI, hold instead, facing the way it came."""
 	carrying = false
-	_bouts_left = rng.randi_range(1, 2)
+	if poi < 0:
+		_hold_here()
+		return
+	_bouts_left = rng.randi_range(BOUTS_MIN, BOUTS_MAX)
+	_last_activity = &""
+	_worked_s = 0.0
 	var face := _space.poi_face[poi]
 	_enter_turn(yaw_of(face) if face != Vector2.ZERO else yaw, CLIP_WALK)
 	state = State.FACE  # _enter_turn chose the clip; this turn ends in work, not a walk
@@ -430,9 +537,107 @@ func _replan_or_abandon() -> void:
 
 
 func _abandon_trip() -> void:
-	"""Give the slot back and stand a moment before choosing somewhere else."""
+	"""Give the slot back and stand a moment before choosing somewhere else -- or, under an order,
+	hold right here."""
 	_space.release(poi, slot)
 	poi = -1
 	slot = -1
 	carrying = false
-	_enter_idle(RETRY_S)
+	if order != ORDER_NONE:
+		order = ORDER_MOVE
+		_hold_here()
+	else:
+		_enter_idle(RETRY_S)
+
+
+# --- orders ---------------------------------------------------------------------------------
+
+func order_move(goal: Vector2, face_toward: Vector2 = Vector2.INF) -> void:
+	"""Give up any POI slot, walk to `goal` and hold there until ordered again or released. Given a
+	finite `face_toward`, it turns to face that point on arrival (a queue facing its POI)."""
+	release_slot()
+	order = ORDER_MOVE
+	_faces_on_hold = face_toward.is_finite()
+	_hold_face = face_toward if _faces_on_hold else Vector2.ZERO
+	_start_ordered_trip(goal)
+
+
+func order_work(work_poi: int, work_slot: int) -> void:
+	"""Walk to `work_slot` at `work_poi` and work there until released. The caller has checked the
+	slot is free (or is this resident's own); any other slot held is given up first."""
+	if work_poi != poi or work_slot != slot:
+		release_slot()
+		_space.reserve(work_poi, work_slot)
+		poi = work_poi
+		slot = work_slot
+	order = ORDER_WORK
+	_start_ordered_trip(_space.slot_position(work_poi, work_slot))
+
+
+func release_slot() -> void:
+	"""Give back any POI slot this resident holds."""
+	_space.release(poi, slot)
+	poi = -1
+	slot = -1
+
+
+func release() -> void:
+	"""Back to wandering. Holding or walking under a move order, it stops and idles a moment first;
+	working under an order, it finishes the bout in hand."""
+	if order == ORDER_NONE:
+		return
+	var was_move := order == ORDER_MOVE or state == State.HOLD
+	order = ORDER_NONE
+	if was_move or poi < 0:
+		release_slot()
+		carrying = false
+		_bouts_left = 0
+		_enter_idle(rng.randf_range(IDLE_MIN_S * 0.5, IDLE_MIN_S))
+	else:
+		_bouts_left = mini(_bouts_left, 1)
+		_trip_s = 0.0
+
+
+func _start_ordered_trip(goal: Vector2) -> void:
+	"""Plan to `goal` and set off (turning first); an order never carries."""
+	carrying = false
+	_bouts_left = 0
+	_goal = goal
+	_replans = 0
+	if position.distance_to(goal) <= ARRIVE_RADIUS_M:
+		_arrive()
+		return
+	_space.plan_path(index, position, _goal, radius, path)
+	_begin_leg()
+
+
+func _hold_here() -> void:
+	"""Hold where it stands -- after turning to face _hold_face, when the order gave one."""
+	if _faces_on_hold and _hold_face.distance_to(position) > 0.05:
+		_enter_turn(yaw_of(_hold_face - position), CLIP_WALK)
+		state = State.FACE
+	else:
+		_enter_hold()
+
+
+func _enter_hold() -> void:
+	"""Stand still, idling, facing the way it came; only an order or release moves it on."""
+	state = State.HOLD
+	carrying = false
+	_set_clip(CLIP_IDLE, 1.0)
+
+
+func activity() -> int:
+	"""ACTIVITY_*: holding, wandering on its own, walking under an order, or working under one."""
+	if state == State.HOLD or (order == ORDER_MOVE and state == State.FACE):
+		return ACTIVITY_HOLDING
+	if order == ORDER_NONE:
+		return ACTIVITY_WANDERING
+	if state == State.WALK or state == State.TURN:
+		return ACTIVITY_WALKING
+	return ACTIVITY_WORKING
+
+
+func goal() -> Vector2:
+	"""Where the current trip is going (meaningful while walking or turning)."""
+	return _goal

@@ -75,8 +75,12 @@ CAST = ["mouse_keeper", "mouse_fieldworker", "squirrel_gatherer", "squirrel_fore
 	"otter_fisher", "mole_digger", "badger_quarryman"]
 ## pull_radish is the tunnel digger's clip (godot/demo/tunnel/): no creature has a dig clip, and
 ## hauling up out of the ground reads closest to one. Staged for every creature, like the others.
+## swim and tread_water (every creature) and dive (the otters) are staged for the water gameplay to come
+## (decision 0203); the demo's actors do not play them yet (godot/demo/cast/demo_actor.gd CLIPS).
 CLIPS = ["idle", "walk", "collect_object", "stand_and_drink", "wave_one_hand", "carry_heavy_object_walk",
-	"pull_radish"]
+	"pull_radish", "swim", "tread_water"]
+## Staged where the creature's grounded/ output has it.
+OPTIONAL_CLIPS = ["dive"]
 ## Staged only once its grounded clips exist (the beaver bridgewright, DEC-041, is still going through
 ## repair -> tail -> ground -> bake): a resident with no special gameplay yet.
 OPTIONAL_CAST = ["beaver_bridgewright"]
@@ -199,7 +203,7 @@ def stage_cast(library: pathlib.Path, out: pathlib.Path) -> dict:
 		folder.mkdir(parents=True, exist_ok=True)
 		shutil.copyfile(grounded / "rigged.glb", folder / "body.glb")
 		clips = {}
-		for clip in CLIPS:
+		for clip in [*CLIPS, *(c for c in OPTIONAL_CLIPS if (grounded / f"anim_{c}.glb").is_file())]:
 			(folder / f"{clip}.glb").write_bytes(strip_to_animation((grounded / f"anim_{clip}.glb").read_bytes()))
 			clips[clip] = f"res://demo/assets/cast/{key}/{clip}.glb"
 		species = key.split("_")[0]

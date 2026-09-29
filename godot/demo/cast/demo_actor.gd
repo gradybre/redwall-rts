@@ -15,7 +15,10 @@ extends Node3D
 ##
 ## THE LOAD. A carry trip holds a log between the hands: a bark-coloured cylinder laid from one hand
 ## to the other, placed on the skeleton's `skeleton_updated` so it sits on this frame's posed hands
-## rather than last frame's. Presentation only; the brain decides when a trip carries.
+## rather than last frame's. A trip carrying a HARVEST holds that item's own model instead (`hold()`,
+## demo/farm/farm_carry_view.gd), centred between the hands and facing the way the carrier walks.
+## A mole digging holds its pick (`set_tool()`) in its right hand. Presentation only; the brain
+## decides when a trip carries, and the farm what.
 ##
 ## UNDERGROUND (demo/tunnel/). In a tunnel the actor stands on the bore floor (the brain's
 ## `ground_y_m`) and is hidden -- unless the underground view is on (`set_underground_view`), when
@@ -48,6 +51,9 @@ const PLACEHOLDER_CLIP_S: float = 3.0
 const LOAD_RADIUS_PER_HEIGHT: float = 0.055
 const LOAD_OVERHANG_PER_HEIGHT: float = 0.12
 const LOAD_COLOUR: Color = Color(0.36, 0.25, 0.16)
+## A held harvest sits this far (per metre of height) before the hands' midpoint, out of the chest:
+## the carry clip holds its hands wide, as round a log.
+const HOLD_FORWARD_PER_HEIGHT: float = 0.07
 ## How far a resident still on the surface fades while the underground view is on.
 const SURFACE_FADE: float = 0.7
 const PLACEHOLDER_COLOURS: Array[Color] = [Color(0.72, 0.52, 0.36), Color(0.55, 0.62, 0.38),
@@ -76,6 +82,14 @@ var _playing: StringName = &""
 var _library_names: Dictionary = {}
 var _load: MeshInstance3D = null
 var _load_length: float = 0.0
+## The model held in place of the log on a harvest carry (hidden unless holding), and its fit.
+var _held: MeshInstance3D = null
+var _held_fit: Transform3D = Transform3D.IDENTITY
+var _holding: bool = false
+## A tool in the right hand while the brain digs (the mole's pick), and its fit to the hand.
+var _tool: MeshInstance3D = null
+var _tool_fit: Transform3D = Transform3D.IDENTITY
+var _hand_bone: int = -1
 var _hand_left: int = -1
 var _hand_right: int = -1
 var _skeleton_to_actor: Transform3D = Transform3D.IDENTITY
@@ -179,6 +193,8 @@ func advance(clock: DemoClockScript) -> void:
 		brain.step(clock.step_s(k))
 	_apply_transform()
 	_apply_clip(clock.speed)
+	if _skeleton == null and (_held != null or _tool != null):
+		_place_load()
 
 
 func _apply_transform() -> void:
@@ -275,18 +291,108 @@ func _relative_transform(node: Node3D) -> Transform3D:
 
 
 func _place_load() -> void:
-	"""Lay the log from hand to hand on this frame's pose, overhanging each hand a little. It shows only
-	once the crossfade into the carry is over, so it never spans hands still swinging into place."""
-	_load.visible = brain.carrying and brain.clip == BrainScript.CLIP_CARRY and brain.clip_time() >= CROSSFADE_S
-	if not _load.visible:
+	"""Lay the log from hand to hand on this frame's pose, overhanging each hand a little -- or hold the
+	harvest there. It shows only once the crossfade into the carry is over, so it never spans hands
+	still swinging into place. (A placeholder, with no hands, holds before its chest.)"""
+	_place_tool()
+	var posed: bool = brain.clip == BrainScript.CLIP_CARRY and brain.clip_time() >= CROSSFADE_S
+	var carrying: bool = brain.carrying and (is_placeholder or posed)
+	if _held != null:
+		_held.visible = carrying and _holding
+	if _load != null:
+		_load.visible = carrying and not _holding
+	if not carrying or _skeleton == null or _hand_left < 0 or (_load == null and not _holding):
 		return
 	var left := _skeleton_to_actor * _skeleton.get_bone_global_pose(_hand_left).origin
 	var right := _skeleton_to_actor * _skeleton.get_bone_global_pose(_hand_right).origin
+	if _holding:
+		var ahead := Vector3(0.0, 0.0, height_m * HOLD_FORWARD_PER_HEIGHT)
+		_held.transform = Transform3D(Basis.IDENTITY, (left + right) * 0.5 + ahead) * _held_fit
+		return
 	var across := right - left
 	var span := maxf(across.length(), 1e-3)
 	var axis := across / span
 	var side := Vector3.UP.cross(axis).normalized()
 	_load.transform = Transform3D(Basis(axis.cross(side), axis * (span + _load_length), side), (left + right) * 0.5)
+
+
+# --- held goods and tools --------------------------------------------------------------------
+
+func hold(mesh: Mesh, fit: Transform3D) -> void:
+	"""Carry this model between the hands on the carry walk, in place of the log (`fit` centres it on
+	the hands' midpoint at its drawn size). A placeholder holds it before its chest."""
+	if _held == null:
+		_held = MeshInstance3D.new()
+		_held.name = &"Held"
+		add_child(_held)
+		_listen_to_pose()
+	_held.mesh = mesh
+	_held_fit = fit
+	_holding = true
+	_held.visible = is_placeholder and brain.carrying
+	if is_placeholder:
+		_held.transform = Transform3D(Basis.IDENTITY, Vector3(0.0, height_m * 0.55, body_radius(height_m) + 0.12)) * fit
+
+
+func drop_held() -> void:
+	"""Stop holding (the log comes back for an ordinary carry)."""
+	_holding = false
+	if _held != null:
+		_held.visible = false
+
+
+func holding() -> bool:
+	"""Whether a model is held in place of the log."""
+	return _holding
+
+
+func held_mesh() -> Mesh:
+	"""The held model's mesh (null: none; tests and the scripted check)."""
+	return _held.mesh if _held != null and _holding else null
+
+
+func set_tool(mesh: Mesh, fit: Transform3D) -> void:
+	"""Hold this tool in the right hand while the brain digs (`fit`: the tool in the hand bone's frame)."""
+	if _tool == null:
+		_tool = MeshInstance3D.new()
+		_tool.name = &"Tool"
+		_tool.visible = false
+		add_child(_tool)
+		_listen_to_pose()
+	_tool.mesh = mesh
+	_tool_fit = fit
+	if _skeleton != null:
+		_hand_bone = _skeleton.find_bone("RightHand")
+
+
+func tool_shown() -> bool:
+	"""Whether the tool shows now (tests and the scripted check)."""
+	return _tool != null and _tool.visible
+
+
+func _place_tool() -> void:
+	"""The tool in the right hand on this frame's pose, while digging; hidden otherwise."""
+	if _tool == null:
+		return
+	_tool.visible = brain.state == BrainScript.State.DIG and (_hand_bone >= 0 or is_placeholder)
+	if not _tool.visible:
+		return
+	if _hand_bone >= 0:
+		_tool.transform = _skeleton_to_actor * _skeleton.get_bone_global_pose(_hand_bone) * _tool_fit
+	else:
+		_tool.transform = Transform3D(Basis.IDENTITY, Vector3(body_radius(height_m), height_m * 0.5, 0.2)) * _tool_fit
+
+
+func _listen_to_pose() -> void:
+	"""Place held things on every posed frame (a placeholder: every advance)."""
+	if _skeleton == null:
+		return
+	_skeleton_to_actor = _relative_transform(_skeleton)
+	if _hand_left < 0:
+		_hand_left = _skeleton.find_bone("LeftHand")
+		_hand_right = _skeleton.find_bone("RightHand")
+	if not _skeleton.skeleton_updated.is_connected(_place_load):
+		_skeleton.skeleton_updated.connect(_place_load)
 
 
 func has_live_tail() -> bool:

@@ -3,7 +3,8 @@ extends CanvasLayer
 ## breaking the HUD's one Food figure out ingredient by ingredient. Decision 0196. DEMO UI in the
 ## woodland skin, in the HUD's modal rectangle, below the HUD's layer.
 ##
-## Left: every farmed ingredient with its whole units in store, how fresh its oldest lot is and how
+## Left: every farmed ingredient -- its icon (farm_goods.gd: a render of its own model, else a roundel
+## in its colour) -- with its whole units in store, how fresh its oldest lot is and how
 ## many hours before it spoils (§5.8), in stock first. Right: for the ingredient picked, the content
 ## library's dishes it feeds (farm_recipes.gd) -- candidates for a kitchen that does not exist yet.
 ## Above: each storage place, its load and how fast it spoils food (the cellar providers' permille);
@@ -18,6 +19,7 @@ const SimScript := preload("res://demo/farm/farm_sim.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const GoodsScript := preload("res://demo/farm/farm_goods.gd")
 
 signal compost_requested
 signal close_requested
@@ -47,6 +49,7 @@ var _body: HBoxContainer = null
 var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 var _read: IntMath.IntResult = IntMath.IntResult.new()
+var _goods: GoodsScript = null
 
 
 func configure(sim: SimScript, pantry: PantryScript, recipes: RecipesScript) -> void:
@@ -58,6 +61,13 @@ func configure(sim: SimScript, pantry: PantryScript, recipes: RecipesScript) -> 
 	name = "FarmPantryPanel"
 	_build()
 	visible = false
+
+
+func set_goods(goods: GoodsScript) -> void:
+	"""Show each ingredient's icon from these goods."""
+	_goods = goods
+	for item: int in Catalog.ITEM_COUNT:
+		FarmUi.set_icon(_item_buttons[item], goods.icon_of(item))
 
 
 func _ready() -> void:

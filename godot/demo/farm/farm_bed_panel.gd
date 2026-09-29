@@ -28,6 +28,7 @@ const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const DetailZone := preload("res://demo/ui/demo_detail_zone.gd")
+const GoodsScript := preload("res://demo/farm/farm_goods.gd")
 
 signal verb_requested(kind: int)
 signal crop_picked(item: int)
@@ -81,6 +82,7 @@ var _pick_buttons: Array[Button] = []
 var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 var _read: IntMath.IntResult = IntMath.IntResult.new()
+var _goods: GoodsScript = null
 
 
 func configure(sim: SimScript, crew: CrewScript, notices: NoticesScript) -> void:
@@ -92,6 +94,11 @@ func configure(sim: SimScript, crew: CrewScript, notices: NoticesScript) -> void
 	name = "FarmBedPanel"
 	_build()
 	show_nothing()
+
+
+func set_goods(goods: GoodsScript) -> void:
+	"""Show each ingredient's icon in the crop picker (farm_goods.gd)."""
+	_goods = goods
 
 
 func _ready() -> void:
@@ -330,6 +337,8 @@ func _pick_row(item: int, reason: String) -> Control:
 	row.add_theme_constant_override(&"separation", 1)
 	var pick: Button = FarmUi.button(Catalog.ITEM_LABELS[item], FarmUi.BODY_PX)
 	pick.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	if _goods != null:
+		FarmUi.set_icon(pick, _goods.icon_of(item))
 	FarmUi.set_enabled(pick, reason == "", reason)
 	pick.pressed.connect(func() -> void: crop_picked.emit(item))
 	row.add_child(pick)

@@ -23,6 +23,7 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
 const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
+const StockViewScript := preload("res://demo/farm/farm_stock_view.gd")
 
 const OVERLAY_OFF: int = 0
 const OVERLAY_MOISTURE: int = 1
@@ -36,6 +37,8 @@ const UNDERGROUND_FADE: float = 0.82
 var assets: AssetsScript = AssetsScript.new()
 var beds: Array[BedVisualScript] = []
 var overlay_mode: int = OVERLAY_OFF
+## The stores' shelves (demo_farm.gd configures and refreshes it).
+var stock: StockViewScript = StockViewScript.new()
 
 var _sim: SimScript = null
 var _tunnels: TunnelsScript = null
@@ -68,6 +71,7 @@ func build(manifest: Dictionary, sim: SimScript) -> void:
 		beds.append(visual)
 	_shown.resize(Catalog.BED_COUNT)
 	_shown.fill(-1)
+	add_child(stock)
 	refresh()
 
 
@@ -104,6 +108,7 @@ func _process(_delta: float) -> void:
 		_faded = under
 		for visual: BedVisualScript in beds:
 			visual.set_faded(UNDERGROUND_FADE if under else 0.0)
+		stock.set_underground_view(under)
 
 
 func refresh() -> void:

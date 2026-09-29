@@ -48,6 +48,9 @@ const HudScript := preload("res://demo/farm/farm_hud.gd")
 const ViewScript := preload("res://demo/farm/farm_view.gd")
 const BedPanelScript := preload("res://demo/farm/farm_bed_panel.gd")
 const PantryPanelScript := preload("res://demo/farm/farm_pantry_panel.gd")
+const GoodsScript := preload("res://demo/farm/farm_goods.gd")
+const CarryViewScript := preload("res://demo/farm/farm_carry_view.gd")
+const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
 const Weather := preload("res://demo/farm/farm_weather.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
@@ -86,6 +89,9 @@ var bed_panel: BedPanelScript = null
 var pantry_panel: PantryPanelScript = null
 var selected_bed: int = NO_BED
 var services: ServicesScript = null
+## The harvested goods' models and icons, and who is drawn carrying which (presentation).
+var goods: GoodsScript = null
+var carry_view: CarryViewScript = CarryViewScript.new()
 
 var _cast: DemoCastScript = null
 var _command: DemoCommandScript = null
@@ -121,6 +127,7 @@ func configure(manifest: Dictionary, world: DemoWorldScript, cast: DemoCastScrip
 	crew.configure(cast, sim, pantry, tunnels, well_position(), services.notices.poster(
 		NoticesScript.SOURCE_CREW, NoticesScript.LEVEL_NOTE))
 	recipes.load_index()
+	goods = GoodsScript.new(services.props)
 	_build_view(manifest, world, command)
 	_build_panels()
 	hud.bind(shell)
@@ -144,6 +151,9 @@ func _build_view(manifest: Dictionary, world: DemoWorldScript, command: DemoComm
 	view = ViewScript.new()
 	add_child(view)
 	view.build(manifest, sim)
+	view.stock.configure(pantry, goods)
+	if _cast != null:
+		carry_view.configure(_cast, crew.jobs, goods)
 	var village: Node = world.get_node_or_null(^"Village") if world != null else null
 	if village != null:
 		ViewScript.hide_world_beds(village)
@@ -164,6 +174,8 @@ func _build_panels() -> void:
 	bed_panel.close_requested.connect(func() -> void: select_bed(NO_BED))
 	pantry_panel = PantryPanelScript.new()
 	pantry_panel.configure(sim, pantry, recipes)
+	pantry_panel.set_goods(goods)
+	bed_panel.set_goods(goods)
 	add_child(pantry_panel)
 	pantry_panel.compost_requested.connect(compost_spoiled)
 	pantry_panel.close_requested.connect(toggle_pantry)
@@ -194,12 +206,19 @@ static func _building_at(id: StringName) -> Vector2:
 	return Vector2.INF
 
 
+func follow_chambers(chambers: ChambersScript) -> void:
+	"""Stock the root cellars' rooms below ground too (their shelves; demo_village.gd wires it)."""
+	view.stock.follow_chambers(chambers)
+
+
 # --- per frame ------------------------------------------------------------------------------------
 
 func _process(delta: float) -> void:
 	"""Run the farm on this frame's demo time; keep the HUD's Food figure and the panels current -- at
 	once when the calendar's hour turns, so the panel's date never trails the HUD's."""
 	step(_cast.clock.frame_usec if _cast != null else 0)
+	if _cast != null:
+		carry_view.refresh()
 	_refresh_in -= delta
 	var hour: int = services.calendar.hour_index()
 	if _refresh_in <= 0.0 or hour != _shown_hour:
@@ -207,6 +226,7 @@ func _process(delta: float) -> void:
 		_refresh_in = PANEL_REFRESH_S
 		bed_panel.refresh()
 		pantry_panel.refresh()
+		view.stock.refresh()
 
 
 func step(usec: int) -> void:

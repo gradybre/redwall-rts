@@ -11,6 +11,8 @@ const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const TITLE_PX: int = 20
 const BODY_PX: int = 15
 const SMALL_PX: int = 13
+## An item's icon on a list row (the Pantry's, the crop picker's).
+const ICON_PX: int = 28
 const CONTENT_MARGINS: PackedFloat32Array = [14.0, 10.0, 14.0, 12.0]
 const BUTTON_MARGINS: PackedFloat32Array = [10.0, 5.0, 10.0, 6.0]
 ## The carved frame draws this far outside the panel rectangle (woodland_styles PIECE_PANEL).
@@ -53,6 +55,13 @@ static func button(text: String, px: int = BODY_PX) -> Button:
 	made.add_theme_color_override(&"font_pressed_color", Palette.text_on(Palette.SURFACE_BRASS))
 	made.add_theme_color_override(&"font_disabled_color", Palette.text_on(Palette.SURFACE_WOOD_DISABLED))
 	return made
+
+
+static func set_icon(control: Button, icon: Texture2D) -> void:
+	"""Put an item's icon at the button's left, ICON_PX across (never the icon's own size)."""
+	control.icon = icon
+	control.add_theme_constant_override(&"icon_max_width", ICON_PX)
+	control.add_theme_constant_override(&"h_separation", 8)
 
 
 static func set_enabled(control: Button, enabled: bool, why: String) -> void:

@@ -160,6 +160,7 @@ func _build_farm(manifest: Dictionary) -> void:
 	add_child(_farm)
 	_farm.configure(manifest, _world as DemoWorldScript, _cast as DemoCastScript, _command as DemoCommandScript,
 		_camera.camera(), _shell(), storage_providers(), _services)
+	_farm.follow_chambers(chambers())
 	_command.tunnels().ext.set_weather_skip(_farm.skip_to_next_weather)
 	_command.tunnels().ext.events_view.set_flood_rise(_water.set_flood_rise)
 	_farm.add_overlay(WATER_OVERLAY_NAME, _water.set_overlay_shown)

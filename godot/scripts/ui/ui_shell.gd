@@ -962,6 +962,7 @@ func _build_alerts() -> void:
 	_build_history()
 	_build_error_panel()
 	var pause_label: Label = _new_label(ID_PAUSE_LABEL, "")
+	pause_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_zones[ID_PAUSE_LABEL] = pause_label
 	add_child(pause_label)
 
@@ -1704,8 +1705,7 @@ func _place_zones() -> void:
 	_place(ID_ALERT_STACK, _geometry.alerts)
 	var below_alerts: Vector2 = _geometry.alerts.position \
 		+ Vector2(0.0, _geometry.alerts.size.y + ROW_GAP)
-	_place(ID_PAUSE_LABEL, Rect2(below_alerts,
-		_preferred_size(ID_PAUSE_LABEL, _geometry.alerts.size.x)))
+	_place_pause_label()
 	var below_pause: Vector2 = below_alerts \
 		+ Vector2(0.0, _minimum_size(ID_PAUSE_LABEL).y + ROW_GAP)
 	var error_rect: Rect2 = _fit_in_viewport(Rect2(below_pause, _error_panel_size()))
@@ -2627,6 +2627,17 @@ func set_speed_selected(speed: int) -> void:
 		toggle.button_pressed = SPEED_VALUES[index] == speed
 
 
+func _place_pause_label() -> void:
+	"""UI-SET-086, "TC, below time/alerts": centred on the alert column, which is the screen's own
+	centre line, and directly under the alert card when one is showing -- in the card's place when
+	none is, rather than hanging a card's height below an empty zone (decision 0200)."""
+	var size: Vector2 = _preferred_size(ID_PAUSE_LABEL, _geometry.alerts.size.x)
+	var top: float = _geometry.alerts.position.y
+	if (_controls[ID_ALERT_STACK] as Control).visible:
+		top += _geometry.alerts.size.y + ROW_GAP
+	_place(ID_PAUSE_LABEL, Rect2(Vector2(_geometry.alerts.get_center().x - size.x / 2.0, top), size))
+
+
 func set_pause_display(paused: bool, reasons: String) -> void:
 	"""UI-SET-014's selected state and UI-SET-086's pause label, from the clock's own reasons."""
 	var pause: Button = _controls[ID_PAUSE] as Button
@@ -2772,6 +2783,7 @@ func _show_alert_card(shown: bool) -> void:
 	"""
 	(_controls[ID_ALERT_STACK] as Control).visible = shown
 	_alert_cards[0].visible = shown
+	_place_pause_label()
 	if not shown:
 		for instance: int in ALERT_CARD_INSTANCES:
 			_alert_cards[instance].visible = false

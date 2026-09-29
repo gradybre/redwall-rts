@@ -75,6 +75,11 @@ func set_bounds(bounds: AABB) -> void:
 	_bounds = Rect2(bounds.position.x, bounds.position.z, bounds.size.x, bounds.size.z)
 
 
+func bounds() -> Rect2:
+	"""The walkable area (x, z) orders and tunnels stay inside."""
+	return _bounds
+
+
 func order_move(members: PackedInt32Array, point: Vector3) -> Dictionary:
 	"""Send these actors to stand in a formation at `point`. {"ok": bool, "at": Vector3}: where the
 	order landed (snapped when `point` was not standable), or ok false when refused."""

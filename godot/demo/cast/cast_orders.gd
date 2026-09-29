@@ -113,7 +113,7 @@ static func standing_except(space: CastSpaceScript, members: Array[BrainScript])
 	"""Circles (x, radius, z) of every resident standing still who is not one of `members`."""
 	var out := PackedVector3Array()
 	for j in space.resident_position.size():
-		if space.resident_walking[j] == 0 and not _has_index(members, j):
+		if space.resident_walking[j] == 0 and space.resident_underground[j] == 0 and not _has_index(members, j):
 			out.append(Vector3(space.resident_position[j].x, space.resident_radius[j], space.resident_position[j].y))
 	return out
 
@@ -143,12 +143,12 @@ static func order_move(space: CastSpaceScript, members: Array[BrainScript], poin
 	if members.is_empty():
 		return spots
 	var avoid := standing_except(space, members)
-	if not formation_slots(space, point, members.size(), widest(members), bounds, avoid, members[0].position, spots):
+	if not formation_slots(space, point, members.size(), widest(members), bounds, avoid, members[0].surface_point(), spots):
 		spots.clear()
 		return spots
 	var from := PackedVector2Array()
 	for brain in members:
-		from.append(brain.position)
+		from.append(brain.surface_point())
 	var pairing := match_nearest(from, spots)
 	for i in members.size():
 		members[i].order_move(spots[pairing[i]], face_toward)

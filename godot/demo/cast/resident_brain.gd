@@ -32,28 +32,49 @@ extends RefCounted
 ## resident back: a holder or an ordered walker stops, idles a moment and wanders on; an ordered
 ## worker finishes its bout and wanders on from there.
 ##
+## TUNNELS (demo/tunnel/). A route may cross a finished tunnel: `path_tunnel` holds, per waypoint,
+## the leg code of the tunnel crossed to reach it (or SURFACE_LEG). The walker must reach the mouth
+## itself -- no corner is cut into or past one -- then TUNNEL walks it underground at walk speed,
+## off the surface (CastSpace.set_underground), and comes up at the far mouth to go on. A tunnel
+## entered is always finished (MOVE-REQ-007): an order given underground is carried out from the
+## mouth it comes up at. `order_dig()` walks a mole to a tunnel's entrance and DIGs: the tunnel's
+## own integer clock advances while it works (tunnel_network.gd), and the mole follows the dig face
+## underground and comes up at the exit when it opens, holding there. Called away while digging, it
+## leaves the tunnel paused and backs out through what it dug to the entrance first.
+##
 ## Yaw 0 faces +Z, the way the models face: forward is Vector2(sin(yaw), cos(yaw)) in (x, z).
 ## Deterministic: every random choice comes from this resident's own seeded generator.
 
 const ClipRootMotionScript := preload("res://scripts/presentation/clip_root_motion.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const CastRoutinesScript := preload("res://demo/cast/cast_routines.gd")
+const TunnelRouterScript := preload("res://demo/tunnel/tunnel_router.gd")
+const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
 
-enum State { IDLE, TURN, WALK, FACE, ACT, HOLD }
+enum State { IDLE, TURN, WALK, FACE, ACT, HOLD, TUNNEL, DIG }
 
 const ORDER_NONE: int = 0
 const ORDER_MOVE: int = 1
 const ORDER_WORK: int = 2
+const ORDER_DIG: int = 3
 
 ## What the command layer shows a resident doing (activity()).
 const ACTIVITY_WANDERING: int = 0
 const ACTIVITY_WALKING: int = 1
 const ACTIVITY_WORKING: int = 2
 const ACTIVITY_HOLDING: int = 3
+const ACTIVITY_TUNNEL: int = 4
+const ACTIVITY_DIGGING: int = 5
 
 const CLIP_IDLE: StringName = &"idle"
 const CLIP_WALK: StringName = &"walk"
 const CLIP_CARRY: StringName = &"carry_heavy_object_walk"
+## Digging plays the first of these the creature has: pulling up from the ground, else collecting.
+const DIG_CLIPS: Array[StringName] = [&"pull_radish", &"collect_object"]
+## Out of a finished tunnel, the digger steps this far on (demo) so the exit is left clear, when the
+## ground there keeps this much clear of every obstacle beyond its body.
+const STEP_OUT_M: float = 1.0
+const STEP_OUT_CLEAR_M: float = 0.12
 
 const WALK_TURN_RATE: float = 1.75          ## rad/s while walking (~100 deg/s)
 const SPOT_TURN_RATE: float = 3.2           ## rad/s turning on the spot (~185 deg/s)
@@ -118,6 +139,14 @@ var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 ## homes means "anywhere, nearer preferred".
 var homes: PackedInt32Array = PackedInt32Array()
 var socials: PackedInt32Array = PackedInt32Array()
+## Per waypoint of `path`: the tunnel leg crossed to reach it, or SURFACE_LEG (see TUNNELS).
+var path_tunnel: PackedInt32Array = PackedInt32Array()
+## Inside a tunnel, and how far below the ground its feet are (presentation: 0 on the surface).
+var underground: bool = false
+var ground_y_m: float = 0.0
+## The tunnel this resident is ordered to dig, as an EntityRef (slot, generation); null (-1, 0).
+var dig_tunnel: int = -1
+var dig_generation: int = 0
 
 var _space: CastSpaceScript = null
 var _clip_lengths: Dictionary = {}
@@ -143,6 +172,14 @@ var _faces_on_hold: bool = false
 var _carry_velocity: PackedVector2Array = PackedVector2Array()
 var _carry_key_s: float = 1.0
 var _carry_rate: float = 1.0
+## Walking a tunnel: which, from where to where along it (metres), and whether toward the dig face.
+var _travel_slot: int = 0
+var _travel_m: float = 0.0
+var _travel_end_m: float = 0.0
+var _travel_forward: bool = true
+var _travel_to_face: bool = false
+## Released while underground: idle once up, rather than going on.
+var _idle_on_surface: bool = false
 
 
 func configure(space: CastSpaceScript, speed_m_s: float, body_radius: float, seed: int, clip_lengths: Dictionary) -> void:
@@ -170,6 +207,11 @@ func set_carry_motion(motion: Dictionary) -> void:
 		_carry_velocity[k] = Vector2(float(b[0]) - float(a[0]), float(b[1]) - float(a[1])) / _carry_key_s
 	var carry_speed := clampf(walk_speed * CARRY_WALK_FRACTION, mean * CARRY_MIN_RATE, mean * CARRY_MAX_RATE)
 	_carry_rate = ClipRootMotionScript.playback_rate(motion, carry_speed)
+
+
+func trip_seconds() -> float:
+	"""Seconds spent turning, walking and in tunnels on the current trip (what WORK_PER_WALK weighs)."""
+	return _trip_s
 
 
 func clip_time() -> float:
@@ -214,7 +256,11 @@ func step(delta: float) -> void:
 			_step_act(delta)
 		State.HOLD:
 			pass
-	if state == State.TURN or state == State.WALK:
+		State.TUNNEL:
+			_step_tunnel(delta)
+		State.DIG:
+			_step_dig(delta)
+	if state == State.TURN or state == State.WALK or state == State.TUNNEL:
 		_trip_s += delta
 	_space.set_walking(index, state == State.WALK)
 
@@ -319,7 +365,7 @@ func _depart() -> void:
 		_enter_idle(RETRY_S)
 		return
 	var next_slot := _space.free_slot(next)
-	_space.plan_path(index, position, _space.slot_position(next, next_slot), radius, path)
+	_space.plan_path(index, position, _space.slot_position(next, next_slot), radius, path, path_tunnel)
 	if not _space.nav.last_found:
 		_enter_idle(RETRY_S)  # boxed in by residents standing across every way out: wait, then retry
 		return
@@ -330,7 +376,7 @@ func _depart() -> void:
 	slot = next_slot
 	_goal = _space.slot_position(next, next_slot)
 	carrying = leaving_stockpile and can_carry() and _trip_length() <= CARRY_MAX_TRIP_M \
-			and rng.randf() < CARRY_CHANCE
+			and not crosses_tunnel() and rng.randf() < CARRY_CHANCE
 	_replans = 0
 	_trip_s = 0.0
 	_begin_leg()
@@ -358,11 +404,18 @@ func _trip_length() -> float:
 
 
 func _begin_leg() -> void:
-	"""Start following `path` from its first waypoint: turn on the spot first."""
+	"""Start following `path` from its first waypoint: turn on the spot first -- or, standing at a
+	tunnel's mouth already, go straight down it."""
 	path_index = 0
 	_flips = 0
 	_reset_progress()
-	_enter_turn(yaw_of(path[0] - position), _locomotion_clip())
+	while path_index < path.size() - 1 and _leg(path_index + 1) != TunnelRouterScript.SURFACE_LEG \
+			and position.distance_to(path[path_index]) < WAYPOINT_REACH_M:
+		path_index += 1
+	if _leg(path_index) != TunnelRouterScript.SURFACE_LEG:
+		_enter_tunnel_leg()
+		return
+	_enter_turn(yaw_of(path[path_index] - position), _locomotion_clip())
 
 
 func _locomotion_clip() -> StringName:
@@ -429,9 +482,7 @@ func _step_face(delta: float) -> void:
 func _step_walk(delta: float) -> void:
 	"""Steer toward the route (and away from neighbours) at a limited yaw rate, and step forward. Someone
 	who has stopped in the way of the current leg means a new plan round them, straight away."""
-	_advance_waypoint()
-	if _blocked_by_standing(path[path_index]):
-		_replan_or_abandon()
+	if _leg_handled():
 		return
 	var to_target := path[path_index] - position
 	var distance := to_target.length()
@@ -458,13 +509,32 @@ func _step_walk(delta: float) -> void:
 	_watch_progress(distance, held, delta)
 
 
+func _leg_handled() -> bool:
+	"""Pass the waypoints reached; then at a tunnel's mouth go down it, or with someone standing across
+	the leg plan round them. True when either happened, so this frame's walking is done."""
+	_advance_waypoint()
+	if _leg(path_index) != TunnelRouterScript.SURFACE_LEG:
+		_enter_tunnel_leg()
+		return true
+	if _blocked_by_standing(path[path_index]):
+		_replan_or_abandon()
+		return true
+	return false
+
+
 func _advance_waypoint() -> void:
 	"""Move on past a waypoint as soon as the one after it is in clear sight, or once near it -- but not
 	while near would start the next leg through someone standing (the plan's leg began at the
-	waypoint itself; cutting the corner could clip them and trigger a needless replan)."""
-	while path_index < path.size() - 1:
+	waypoint itself; cutting the corner could clip them and trigger a needless replan). A tunnel's
+	mouth is never cut: it is passed only on reaching it, and nothing past it is skipped to."""
+	while path_index < path.size() - 1 and _leg(path_index) == TunnelRouterScript.SURFACE_LEG:
 		var next := path[path_index + 1]
 		var d := position.distance_to(path[path_index])
+		if _leg(path_index + 1) != TunnelRouterScript.SURFACE_LEG:
+			if d < WAYPOINT_REACH_M:
+				path_index += 1
+				_reset_progress()
+			return
 		var near := d < ARRIVE_RADIUS_M or (d < WAYPOINT_REACH_M and not _blocked_by_standing(next))
 		if near or _space.line_clear(index, position, next, radius, _goal):
 			path_index += 1
@@ -492,8 +562,11 @@ func ground_step(delta: float) -> Vector2:
 
 func _arrive() -> void:
 	"""At the slot: turn to the POI's face direction, and plan one or two bouts of work. At an ordered
-	point with no POI, hold instead, facing the way it came."""
+	point with no POI, hold instead, facing the way it came. At a dig site, start digging."""
 	carrying = false
+	if order == ORDER_DIG:
+		_begin_dig()
+		return
 	if poi < 0:
 		_hold_here()
 		return
@@ -532,13 +605,14 @@ func _replan_or_abandon() -> void:
 	if _replans > MAX_REPLANS:
 		_abandon_trip()
 		return
-	_space.plan_path(index, position, _goal, radius, path)
+	_space.plan_path(index, position, _goal, radius, path, path_tunnel, not carrying)
 	_begin_leg()
 
 
 func _abandon_trip() -> void:
 	"""Give the slot back and stand a moment before choosing somewhere else -- or, under an order,
-	hold right here."""
+	hold right here. A dig it was walking to is given up."""
+	_leave_dig()
 	_space.release(poi, slot)
 	poi = -1
 	slot = -1
@@ -556,6 +630,7 @@ func order_move(goal: Vector2, face_toward: Vector2 = Vector2.INF) -> void:
 	"""Give up any POI slot, walk to `goal` and hold there until ordered again or released. Given a
 	finite `face_toward`, it turns to face that point on arrival (a queue facing its POI)."""
 	release_slot()
+	_leave_dig()
 	order = ORDER_MOVE
 	_faces_on_hold = face_toward.is_finite()
 	_hold_face = face_toward if _faces_on_hold else Vector2.ZERO
@@ -565,6 +640,7 @@ func order_move(goal: Vector2, face_toward: Vector2 = Vector2.INF) -> void:
 func order_work(work_poi: int, work_slot: int) -> void:
 	"""Walk to `work_slot` at `work_poi` and work there until released. The caller has checked the
 	slot is free (or is this resident's own); any other slot held is given up first."""
+	_leave_dig()
 	if work_poi != poi or work_slot != slot:
 		release_slot()
 		_space.reserve(work_poi, work_slot)
@@ -588,6 +664,11 @@ func release() -> void:
 		return
 	var was_move := order == ORDER_MOVE or state == State.HOLD
 	order = ORDER_NONE
+	_leave_dig()
+	if underground:
+		_idle_on_surface = true
+		_finish_tunnel_then_stop()
+		return
 	if was_move or poi < 0:
 		release_slot()
 		carrying = false
@@ -599,15 +680,19 @@ func release() -> void:
 
 
 func _start_ordered_trip(goal: Vector2) -> void:
-	"""Plan to `goal` and set off (turning first); an order never carries."""
+	"""Plan to `goal` and set off (turning first); an order never carries. Underground, it finishes
+	the tunnel first and plans from the mouth it comes up at."""
 	carrying = false
 	_bouts_left = 0
 	_goal = goal
 	_replans = 0
+	if underground:
+		_finish_tunnel_then_stop()
+		return
 	if position.distance_to(goal) <= ARRIVE_RADIUS_M:
 		_arrive()
 		return
-	_space.plan_path(index, position, _goal, radius, path)
+	_space.plan_path(index, position, _goal, radius, path, path_tunnel)
 	_begin_leg()
 
 
@@ -628,7 +713,12 @@ func _enter_hold() -> void:
 
 
 func activity() -> int:
-	"""ACTIVITY_*: holding, wandering on its own, walking under an order, or working under one."""
+	"""ACTIVITY_*: digging, in a tunnel, holding, wandering on its own, walking under an order, or
+	working under one."""
+	if state == State.DIG or (state == State.TUNNEL and _travel_to_face):
+		return ACTIVITY_DIGGING
+	if state == State.TUNNEL:
+		return ACTIVITY_TUNNEL
 	if state == State.HOLD or (order == ORDER_MOVE and state == State.FACE):
 		return ACTIVITY_HOLDING
 	if order == ORDER_NONE:
@@ -641,3 +731,219 @@ func activity() -> int:
 func goal() -> Vector2:
 	"""Where the current trip is going (meaningful while walking or turning)."""
 	return _goal
+
+
+func surface_point() -> Vector2:
+	"""Where this resident stands on the surface -- or, underground, the mouth it will come up at."""
+	if not underground:
+		return position
+	if state == State.DIG or _travel_to_face:
+		return _space.tunnels.mouth(dig_tunnel, false)
+	return _space.tunnels.point_at(_travel_slot, _travel_end_m)
+
+
+func crosses_tunnel() -> bool:
+	"""Whether the current route goes through a tunnel."""
+	return path_tunnel.count(TunnelRouterScript.SURFACE_LEG) != path_tunnel.size()
+
+
+# --- tunnels --------------------------------------------------------------------------------
+
+func _leg(k: int) -> int:
+	"""The leg code into waypoint `k`: SURFACE_LEG, or the tunnel crossed to reach it."""
+	return path_tunnel[k] if k < path_tunnel.size() else TunnelRouterScript.SURFACE_LEG
+
+
+func _set_underground(below: bool) -> void:
+	"""Go below the surface, or come back up onto it."""
+	underground = below
+	_space.set_underground(index, below)
+	if not below:
+		ground_y_m = 0.0
+
+
+func _enter_tunnel_leg() -> void:
+	"""At a mouth: go down and cross the tunnel the leg into path[path_index] names."""
+	var code := path_tunnel[path_index]
+	var slot_index := TunnelRouterScript.leg_slot(code)
+	var length := _space.tunnels.length_m(slot_index)
+	if TunnelRouterScript.leg_reversed(code):
+		_start_travel(slot_index, length, 0.0)
+	else:
+		_start_travel(slot_index, 0.0, length)
+
+
+func _start_travel(slot_index: int, from_m: float, to_m: float) -> void:
+	"""Walk tunnel `slot_index` underground from `from_m` to `to_m` metres along it."""
+	_travel_slot = slot_index
+	_travel_m = from_m
+	_travel_end_m = to_m
+	_travel_forward = to_m >= from_m
+	state = State.TUNNEL
+	_set_underground(true)
+	_set_clip(CLIP_WALK, 1.0)
+	_place_in_tunnel()
+
+
+func _step_tunnel(delta: float) -> void:
+	"""Walk on along the tunnel at walk speed; at the end, come up (or reach the dig face)."""
+	_travel_m = move_toward(_travel_m, _travel_end_m, walk_speed * delta)
+	_place_in_tunnel()
+	if _travel_m == _travel_end_m:
+		_end_travel()
+
+
+func _place_in_tunnel() -> void:
+	"""Stand on the bore floor at the current distance along the tunnel, facing the way it walks."""
+	var tunnels := _space.tunnels
+	position = tunnels.point_at(_travel_slot, _travel_m)
+	var ahead := tunnels.direction_at(_travel_slot, _travel_m)
+	yaw = yaw_of(ahead if _travel_forward else -ahead)
+	ground_y_m = tunnels.floor_y_at(_travel_slot, _travel_m)
+	_space.move_resident(index, position)
+
+
+func _end_travel() -> void:
+	"""At the end of a tunnel walk: start digging at the face, or come up and go on (idle, arrive
+	or replan when the route ended at the mouth)."""
+	if _travel_to_face:
+		_travel_to_face = false
+		_enter_dig_state()
+		return
+	_set_underground(false)
+	if _idle_on_surface:
+		_idle_on_surface = false
+		_enter_idle(rng.randf_range(IDLE_MIN_S * 0.5, IDLE_MIN_S))
+		return
+	if path_index < path.size() - 1:
+		path_index += 1
+		_flips = 0
+		_reset_progress()
+		_enter_turn(yaw_of(path[path_index] - position), _locomotion_clip())
+	elif position.distance_to(_goal) <= ARRIVE_RADIUS_M:
+		_arrive()
+	else:
+		_space.plan_path(index, position, _goal, radius, path, path_tunnel)
+		_begin_leg()
+
+
+func _finish_tunnel_then_stop() -> void:
+	"""Underground under a new order: keep walking to the far mouth (the route ends there), then
+	plan the order from it. Committed progress is never undone mid-tunnel (MOVE-REQ-007)."""
+	path.resize(path_index + 1)
+	path_tunnel.resize(path_index + 1)
+
+
+# --- digging --------------------------------------------------------------------------------
+
+func order_dig(tunnel_slot: int, tunnel_generation: int) -> void:
+	"""Walk to tunnel (slot, generation)'s entrance and dig until it opens, then hold at its exit.
+	The caller has added (or resumed) the tunnel with this resident as its digger."""
+	release_slot()
+	_leave_dig()
+	dig_tunnel = tunnel_slot
+	dig_generation = tunnel_generation
+	order = ORDER_DIG
+	_faces_on_hold = false
+	_start_ordered_trip(_space.tunnels.mouth(tunnel_slot, false))
+
+
+func dig_clip() -> StringName:
+	"""The clip digging plays: the first of DIG_CLIPS this creature has, else idle."""
+	for name in DIG_CLIPS:
+		if has_clip(name):
+			return name
+	return CLIP_IDLE
+
+
+func _begin_dig() -> void:
+	"""At the entrance: dig the entrance shaft here, or -- a paused tunnel resumed -- walk down to its
+	face first. A tunnel that no longer exists leaves the mole holding."""
+	var tunnels := _space.tunnels
+	if not tunnels.is_ref(dig_tunnel, dig_generation):
+		_forget_dig()
+		order = ORDER_MOVE
+		_enter_hold()
+		return
+	yaw = yaw_of(tunnels.direction_at(dig_tunnel, 0.0))
+	if tunnels.stage(dig_tunnel) == TunnelRules.STAGE_ENTRANCE:
+		_enter_dig_state()
+		return
+	_travel_to_face = true
+	_start_travel(dig_tunnel, 0.0, tunnels.face_m(dig_tunnel))
+
+
+func _enter_dig_state() -> void:
+	"""Dig, playing the dig clip."""
+	state = State.DIG
+	_set_clip(dig_clip(), 1.0)
+
+
+func _step_dig(delta: float) -> void:
+	"""Work the tunnel's clock; follow its face underground once the entrance shaft is through; come
+	up at the exit when it opens."""
+	var tunnels := _space.tunnels
+	tunnels.advance(dig_tunnel, dig_generation, roundi(delta * float(TunnelRules.USEC_PER_SECOND)))
+	if tunnels.is_open(dig_tunnel):
+		_finish_dig()
+		return
+	if tunnels.stage(dig_tunnel) == TunnelRules.STAGE_ENTRANCE:
+		return
+	if not underground:
+		_set_underground(true)
+	var face := tunnels.face_m(dig_tunnel)
+	position = tunnels.point_at(dig_tunnel, face)
+	yaw = yaw_of(tunnels.direction_at(dig_tunnel, face))
+	ground_y_m = tunnels.floor_y_at(dig_tunnel, face)
+	_space.move_resident(index, position)
+
+
+func _finish_dig() -> void:
+	"""The tunnel is open: come up at the exit facing on out of it, step clear of the hole (where the
+	ground allows) and hold there."""
+	var tunnels := _space.tunnels
+	var outward := tunnels.direction_at(dig_tunnel, tunnels.length_m(dig_tunnel))
+	position = tunnels.mouth(dig_tunnel, true)
+	yaw = yaw_of(outward)
+	_forget_dig()
+	_set_underground(false)
+	_space.move_resident(index, position)
+	var clear := position + outward * STEP_OUT_M
+	if _space.obstacle_clearance(clear) >= radius + STEP_OUT_CLEAR_M:
+		order_move(clear)
+		return
+	order = ORDER_MOVE
+	_faces_on_hold = false
+	_enter_hold()
+
+
+func _forget_dig() -> void:
+	"""Hold no dig reference: the null EntityRef (-1, 0)."""
+	dig_tunnel = -1
+	dig_generation = 0
+
+
+func _leave_dig() -> void:
+	"""Stop digging, if it was: the tunnel is paused with its progress (or dropped, if nothing was
+	dug). Underground, the mole backs out through what it dug to the entrance."""
+	if dig_tunnel < 0:
+		return
+	var slot_index := dig_tunnel
+	_space.tunnels.stop_digging(slot_index, dig_generation)
+	_forget_dig()
+	if state == State.DIG and underground:
+		_back_out(slot_index, _space.tunnels.face_m(slot_index))
+	elif state == State.TUNNEL and _travel_to_face:
+		_back_out(slot_index, _travel_m)
+
+
+func _back_out(slot_index: int, from_m: float) -> void:
+	"""Walk back from `from_m` along tunnel `slot_index` to its entrance: a one-waypoint route whose
+	only leg is that tunnel, reversed."""
+	_travel_to_face = false
+	path.resize(1)
+	path[0] = _space.tunnels.mouth(slot_index, false)
+	path_tunnel.resize(1)
+	path_tunnel[0] = TunnelRouterScript.leg_code(slot_index, true)
+	path_index = 0
+	_start_travel(slot_index, from_m, 0.0)

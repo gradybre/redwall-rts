@@ -58,7 +58,10 @@ WORLD = {
 }
 CAST = ["mouse_keeper", "mouse_fieldworker", "squirrel_gatherer", "squirrel_forester", "otter_boatwright",
 	"otter_fisher", "mole_digger", "badger_quarryman"]
-CLIPS = ["idle", "walk", "collect_object", "stand_and_drink", "wave_one_hand", "carry_heavy_object_walk"]
+## pull_radish is the tunnel digger's clip (godot/demo/tunnel/): no creature has a dig clip, and
+## hauling up out of the ground reads closest to one. Staged for every creature, like the others.
+CLIPS = ["idle", "walk", "collect_object", "stand_and_drink", "wave_one_hand", "carry_heavy_object_walk",
+	"pull_radish"]
 SPECIES_HEIGHT_M = {"mouse": 1.00, "mole": 0.90, "squirrel": 1.15, "otter": 1.49, "badger": 2.55}
 FEET = ("LeftToeBase", "RightToeBase")
 PLANTED_M = 0.01       # a toe within this of the clip's lowest toe point is planted

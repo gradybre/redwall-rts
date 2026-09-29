@@ -10,7 +10,8 @@ extends Node3D
 ##
 ## DEMO COMMAND (demo/control/): residents can be selected and ordered to move or work, with a
 ## "Demo party" panel in the HUD's free left column. The controller only needs the cast, the
-## world's walkable bounds and the demo camera; it reads input the HUD did not consume.
+## world's walkable bounds and the demo camera; it reads input the HUD did not consume. Its tunnel
+## tool (demo/tunnel/) also gets the world, which the underground view fades.
 
 const DemoManifestScript := preload("res://demo/demo_manifest.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
@@ -52,6 +53,7 @@ func _ready() -> void:
 	_command = DemoCommandScript.new()
 	add_child(_command)
 	_command.configure(_cast, _camera.camera(), _game.get_node_or_null(GAME_HUD_ROOT) as Control)
+	_command.set_world(_world)
 	_skin_hud.call_deferred()
 
 

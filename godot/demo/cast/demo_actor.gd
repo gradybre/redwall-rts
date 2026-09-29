@@ -17,6 +17,11 @@ extends Node3D
 ## to the other, placed on the skeleton's `skeleton_updated` so it sits on this frame's posed hands
 ## rather than last frame's. Presentation only; the brain decides when a trip carries.
 ##
+## UNDERGROUND (demo/tunnel/). In a tunnel the actor stands on the bore floor (the brain's
+## `ground_y_m`) and is hidden -- unless the underground view is on (`set_underground_view`), when
+## it shows there and residents still on the surface fade to SURFACE_FADE instead. The tail's floor
+## follows the ground it stands on.
+##
 ## FACING. The models face +Z, so the node's yaw is the brain's yaw: local +Z points along travel.
 ## With no staged cast (CI, a fresh clone), a capsule with a nose stands in, with the same brain.
 
@@ -28,7 +33,7 @@ const ClipRootMotionScript := preload("res://scripts/presentation/clip_root_moti
 const CROSSFADE_S: float = 0.25
 const LIBRARY: StringName = &"cast"
 const CLIPS: Array[StringName] = [&"idle", &"walk", &"collect_object", &"stand_and_drink", &"wave_one_hand",
-	&"carry_heavy_object_walk"]
+	&"carry_heavy_object_walk", &"pull_radish"]
 const RADIUS_PER_HEIGHT: float = 0.22
 const MIN_RADIUS_M: float = 0.2
 const MAX_RADIUS_M: float = 0.6
@@ -38,6 +43,8 @@ const PLACEHOLDER_CLIP_S: float = 3.0
 const LOAD_RADIUS_PER_HEIGHT: float = 0.055
 const LOAD_OVERHANG_PER_HEIGHT: float = 0.12
 const LOAD_COLOUR: Color = Color(0.36, 0.25, 0.16)
+## How far a resident still on the surface fades while the underground view is on.
+const SURFACE_FADE: float = 0.7
 const PLACEHOLDER_COLOURS: Array[Color] = [Color(0.72, 0.52, 0.36), Color(0.55, 0.62, 0.38),
 	Color(0.47, 0.55, 0.7), Color(0.75, 0.66, 0.42), Color(0.62, 0.45, 0.58), Color(0.5, 0.5, 0.5)]
 
@@ -67,6 +74,10 @@ var _load_length: float = 0.0
 var _hand_left: int = -1
 var _hand_right: int = -1
 var _skeleton_to_actor: Transform3D = Transform3D.IDENTITY
+var _underground_view: bool = false
+## What the view last drew: bit 0 underground, bit 1 the underground view (-1: not yet drawn).
+var _view_key: int = -1
+var _floor_y: float = 0.0
 
 
 func setup_creature(index: int, key: StringName, row: Dictionary, space: CastSpaceScript, seed: int) -> bool:
@@ -164,11 +175,34 @@ func _process(delta: float) -> void:
 
 
 func _apply_transform() -> void:
-	"""Stand on the ground at the brain's position; local +Z along its yaw."""
+	"""Stand on the ground -- or a bore's floor -- at the brain's position; local +Z along its yaw."""
 	position.x = brain.position.x
-	position.y = 0.0
+	position.y = brain.ground_y_m
 	position.z = brain.position.y
 	rotation.y = brain.yaw
+	_apply_view()
+	if _tail != null and brain.ground_y_m != _floor_y:
+		_floor_y = brain.ground_y_m
+		_tail.set_floor(_floor_y)
+
+
+func set_underground_view(on: bool) -> void:
+	"""Show residents in tunnels (and fade those on the surface), or the ordinary view."""
+	_underground_view = on
+	_apply_view()
+
+
+func _apply_view() -> void:
+	"""Hidden underground in the ordinary view; faded on the surface in the underground view. Only
+	touches the meshes when that changes."""
+	var key := (1 if brain.underground else 0) | (2 if _underground_view else 0)
+	if key == _view_key:
+		return
+	_view_key = key
+	visible = _underground_view or not brain.underground
+	var fade := SURFACE_FADE if _underground_view and not brain.underground else 0.0
+	for node in find_children("*", "GeometryInstance3D", true, false):
+		(node as GeometryInstance3D).transparency = fade
 
 
 func _apply_clip() -> void:

@@ -10,6 +10,9 @@ extends Node3D
 ##   right click a POI's spot     work there (its free slots; the rest hold behind it)
 ##   R                            release the selection back to wandering
 ##   Esc (`selection_clear`)      clear the selection
+##   T / U                        plan a tunnel with the selected mole / underground view -- the
+##                                tunnel tool (demo/tunnel/tunnel_control.gd) sees every event first
+##                                and, while a route is being laid, takes the clicks and keys it uses
 ## The camera keeps WASD/arrows, wheel, Q/E and Home: nothing here reads them. R is the project's
 ## `placement_rotate`, which nothing in the demo handles (no placement tool is open); Esc is also
 ## `ui_cancel`/`open_menu`, so it is consumed here only while something is selected.
@@ -31,6 +34,7 @@ const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
+const TunnelControlScript := preload("res://demo/tunnel/tunnel_control.gd")
 
 const RING_GAP_M: float = 0.12
 const PULSE_HZ: float = 1.1
@@ -45,6 +49,7 @@ const BOX_BORDER_PX: int = 2
 var _cast: DemoCastScript = null
 var _camera: Camera3D = null
 var _panel: PanelScript = null
+var _tunnels: TunnelControlScript = null
 var _selected: PackedByteArray = PackedByteArray()
 var _hover: int = -1
 var _pressing: bool = false
@@ -90,6 +95,25 @@ func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null)
 	_panel = PanelScript.new()
 	add_child(_panel)
 	_panel.watch_hud(hud_root)
+	_tunnels = TunnelControlScript.new()
+	add_child(_tunnels)
+	_tunnels.configure(cast, camera, selected, mark, _panel.show_notice)
+	_panel.dig_requested.connect(_on_dig_requested)
+
+
+func set_world(world: Node3D) -> void:
+	"""The world the tunnel tool's underground view fades."""
+	_tunnels.set_world(world)
+
+
+func _on_dig_requested() -> void:
+	"""The panel's "Dig tunnel" button: the same as T."""
+	_tunnels.begin_plan()
+
+
+func tunnels() -> TunnelControlScript:
+	"""The tunnel tool."""
+	return _tunnels
 
 
 func _build_marks(count: int) -> void:
@@ -144,7 +168,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func handle_input(event: InputEvent) -> bool:
-	"""Apply one event; true when it was a selection or order input (and so consumed)."""
+	"""Apply one event; true when it was a tunnel, selection or order input (and so consumed)."""
+	if _tunnels != null and _tunnels.handle_input(event):
+		_refresh_in = 0.0
+		return true
 	if event is InputEventMouseButton:
 		return _on_button(event as InputEventMouseButton)
 	if event is InputEventMouseMotion:
@@ -228,6 +255,15 @@ func select_box(corner_a: Vector2, corner_b: Vector2, additive: bool) -> void:
 	var count := PickScript.box_members(_screen, _on_screen, corner_a, corner_b, _hits)
 	for k in count:
 		_selected[_hits[k]] = 1
+	_refresh_in = 0.0
+
+
+func select(members: PackedInt32Array) -> void:
+	"""Select exactly these actor indices (unknown ones are skipped)."""
+	_selected.fill(0)
+	for i in members:
+		if i >= 0 and i < _selected.size():
+			_selected[i] = 1
 	_refresh_in = 0.0
 
 
@@ -381,6 +417,7 @@ func _refresh_panel() -> void:
 			_signature.append(brain.activity())
 			_signature.append(brain.poi)
 			_signature.append(brain.clip.hash())
+			_signature.append(_dug_percent(brain))
 	if _signature == _shown:
 		return
 	_shown = _signature.duplicate()
@@ -397,9 +434,17 @@ func party_entries() -> Array[Dictionary]:
 		var place := ""
 		if brain.poi >= 0:
 			place = String(space.poi_names[brain.poi]).replace("_", " ")
+		elif brain.order == BrainScript.ORDER_DIG:
+			place = "dig site"
 		entries.append({"name": actor.display_name, "species": actor.species, "colour": actor.chip_colour,
-			"state": PanelScript.state_text(brain.activity(), brain.clip, place)})
+			"digger": _tunnels.is_digger(i),
+			"state": PanelScript.state_text(brain.activity(), brain.clip, place, _dug_percent(brain))})
 	return entries
+
+
+func _dug_percent(brain: BrainScript) -> int:
+	"""How much of the tunnel this resident is digging is dug (0 when it digs none)."""
+	return _cast.space().tunnels.percent(brain.dig_tunnel) if brain.dig_tunnel >= 0 else 0
 
 
 func panel() -> PanelScript:

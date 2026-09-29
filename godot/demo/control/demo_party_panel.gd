@@ -18,14 +18,26 @@ extends CanvasLayer
 ## STYLE. The woodland skin's own pieces (demo/ui/): carved-wood panel with parchment face, Noto
 ## Serif title, ink and umber text -- both >= 4.5:1 on the parchment (test_demo_command.gd checks).
 ## The panel stops the mouse, so a click on it never selects or orders anything in the world.
+##
+## TUNNELS (demo/tunnel/). With a mole in the party a "Dig tunnel" button shows (emits
+## `dig_requested`, the same as T); it never takes focus, so Enter while laying a route digs rather
+## than pressing it again. A NOTICE line under the party carries the tunnel tool's prompts, lengths
+## and refusals. The wood button's cream text and the notice's ink are checked for contrast
+## (test_demo_tunnel.gd).
 
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 
+signal dig_requested
+
 const TITLE: String = "Demo party"
-const HINT: String = "Click or drag: select · Shift: add · Right-click: move / work · R: release · Esc: clear"
+const HINT: String = "Click or drag: select · Shift: add · Right-click: move / work · R: release · Esc: clear · T: dig tunnel (mole) · U: underground"
+const DIG_BUTTON: String = "Dig tunnel (T)"
+const DIGGING: String = "Digging tunnel — %d%%"
+const IN_TUNNEL: String = "Using tunnel"
+const BUTTON_MARGINS: PackedFloat32Array = [12.0, 6.0, 12.0, 7.0]
 const NOBODY: String = "No one selected"
 const WIDTH: float = 320.0
 ## The carved frame draws this far outside the panel rectangle (woodland_styles PIECE_PANEL).
@@ -43,6 +55,9 @@ const LEDGER_GAP: float = 8.0
 
 var _frame: PanelContainer = null
 var _rows: VBoxContainer = null
+var _notice: Label = null
+var _dig: Button = null
+var _pending_notice: String = ""
 var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 var _hud_root: Control = null
@@ -56,6 +71,7 @@ func _ready() -> void:
 	name = "DemoPartyPanel"
 	_build()
 	show_party([])
+	show_notice(_pending_notice)
 	get_viewport().size_changed.connect(_place)
 	_place()
 
@@ -73,9 +89,33 @@ func _build() -> void:
 	_rows = VBoxContainer.new()
 	_rows.add_theme_constant_override(&"separation", 3)
 	column.add_child(_rows)
+	_notice = _label("", BODY_PX, Palette.INK, null)
+	_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_notice.visible = false
+	column.add_child(_notice)
+	_dig = _build_dig_button()
+	column.add_child(_dig)
 	var hint := _label(HINT, HINT_PX, Palette.UMBER, null)
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(hint)
+
+
+func _build_dig_button() -> Button:
+	"""The wood "Dig tunnel" button: cream on wood, brass when pressed; never takes focus."""
+	var button := Button.new()
+	button.text = DIG_BUTTON
+	button.focus_mode = Control.FOCUS_NONE
+	button.visible = false
+	button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	button.add_theme_font_size_override(&"font_size", BODY_PX)
+	button.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, BUTTON_MARGINS))
+	button.add_theme_stylebox_override(&"hover", Styles.box(Styles.PIECE_WOOD_HOVER, BUTTON_MARGINS))
+	button.add_theme_stylebox_override(&"pressed", Styles.box(Styles.PIECE_BRASS, BUTTON_MARGINS))
+	for item: StringName in [&"font_color", &"font_hover_color"]:
+		button.add_theme_color_override(item, Palette.text_on(Palette.SURFACE_WOOD))
+	button.add_theme_color_override(&"font_pressed_color", Palette.text_on(Palette.SURFACE_BRASS))
+	button.pressed.connect(func() -> void: dig_requested.emit())
+	return button
 
 
 func _label(text: String, px: int, colour: Color, font: Font) -> Label:
@@ -107,7 +147,32 @@ func show_party(entries: Array[Dictionary]) -> void:
 		elif entries.size() > 1 and i > 0 and i - 1 < colours.size():
 			chip = colours[i - 1]
 		_rows.add_child(_row(lines[i], chip, i == 0))
+	_dig.visible = has_digger(entries)
 	_place.call_deferred()
+
+
+static func has_digger(entries: Array[Dictionary]) -> bool:
+	"""Whether any of these residents digs tunnels (an entry's "digger")."""
+	for entry in entries:
+		if bool(entry.get("digger", false)):
+			return true
+	return false
+
+
+func show_notice(text: String) -> void:
+	"""One line under the party for the tunnel tool: a prompt, a length or a refusal ("" hides it).
+	Before the panel is built (out of the tree) the text waits for it."""
+	_pending_notice = text
+	if _notice == null:
+		return
+	_notice.text = text
+	_notice.visible = not text.is_empty()
+	_place.call_deferred()
+
+
+func notice() -> String:
+	"""The notice line's text ("" when hidden)."""
+	return _pending_notice
 
 
 func _row(text: String, chip: Color, lead: bool) -> Control:
@@ -196,8 +261,13 @@ static func party_lines(entries: Array[Dictionary]) -> PackedStringArray:
 	return lines
 
 
-static func state_text(activity: int, clip: StringName, place: String) -> String:
-	"""What a resident is doing, in words: wandering / walking to X / working: collect / holding."""
+static func state_text(activity: int, clip: StringName, place: String, dug_percent: int = 0) -> String:
+	"""What a resident is doing, in words: wandering / walking to X / working: collect / holding /
+	Digging tunnel — 43% (with `dug_percent`) / Using tunnel."""
+	if activity == BrainScript.ACTIVITY_DIGGING:
+		return DIGGING % dug_percent
+	if activity == BrainScript.ACTIVITY_TUNNEL:
+		return IN_TUNNEL
 	if activity == BrainScript.ACTIVITY_HOLDING:
 		return "holding"
 	if activity == BrainScript.ACTIVITY_WALKING:

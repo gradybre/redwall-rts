@@ -21,10 +21,16 @@ extends RefCounted
 ##
 ## A circle whose radius is not positive is refused at setup (push_error) and ignored.
 ##
+## UNDERGROUND. A resident inside a tunnel (demo/tunnel/) is flagged in `resident_underground` and
+## is not on the surface at all: nobody separates from it, is constrained by it or plans round it,
+## wherever its x/z lies. `tunnels` holds the finished tunnels, and `plan_path` routes a resident who
+## fits their bore through them when that is genuinely shorter (tunnel_router.gd).
+##
 ## Per-frame work (`constrain`, `separation`, `line_clear`) allocates nothing.
 
 const CastNavScript := preload("res://demo/cast/cast_nav.gd")
 const CastRoutinesScript := preload("res://demo/cast/cast_routines.gd")
+const TunnelNetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
 
 const PLAN_MARGIN_M: float = CastNavScript.PLAN_MARGIN_M
 const GOAL_EPSILON_M: float = CastNavScript.GOAL_EPSILON_M
@@ -49,7 +55,9 @@ var poi_activities: Array[Array] = []
 var resident_position: PackedVector2Array = PackedVector2Array()
 var resident_radius: PackedFloat32Array = PackedFloat32Array()
 var resident_walking: PackedByteArray = PackedByteArray()
+var resident_underground: PackedByteArray = PackedByteArray()
 var nav: CastNavScript = CastNavScript.new()
+var tunnels: TunnelNetworkScript = TunnelNetworkScript.new()
 
 var _slot_at: PackedVector2Array = PackedVector2Array()
 var _standing: PackedVector3Array = PackedVector3Array()
@@ -73,6 +81,8 @@ func setup(points: Array[Dictionary], obstacle_list: Array[Vector3]) -> void:
 	resident_position.clear()
 	resident_radius.clear()
 	resident_walking.clear()
+	resident_underground.clear()
+	tunnels = TunnelNetworkScript.new()
 
 
 func _clear_pois() -> void:
@@ -122,6 +132,7 @@ func add_resident(at: Vector2, radius: float) -> int:
 	resident_position.append(at)
 	resident_radius.append(radius)
 	resident_walking.append(0)
+	resident_underground.append(0)
 	_standing.resize(resident_position.size())
 	nav.ensure_graph(radius)
 	return resident_position.size() - 1
@@ -137,12 +148,17 @@ func set_walking(index: int, walking: bool) -> void:
 	resident_walking[index] = 1 if walking else 0
 
 
+func set_underground(index: int, underground: bool) -> void:
+	"""Whether a resident is inside a tunnel, and so off the surface (see UNDERGROUND)."""
+	resident_underground[index] = 1 if underground else 0
+
+
 func separation(index: int, at: Vector2, forward: Vector2) -> Vector2:
 	"""Soft push away from nearby residents, plus a pass-on-the-right nudge for anyone ahead."""
 	var push := Vector2.ZERO
 	var radius := resident_radius[index]
 	for j in resident_position.size():
-		if j == index:
+		if j == index or resident_underground[j] != 0:
 			continue
 		var offset := at - resident_position[j]
 		var reach := radius + resident_radius[j] + SEPARATION_MARGIN_M
@@ -184,7 +200,7 @@ func _push_from_residents(index: int, from: Vector2, at: Vector2) -> Vector2:
 	"""`at` pushed out of every other resident's circle (monotone)."""
 	var radius := resident_radius[index]
 	for j in resident_position.size():
-		if j != index:
+		if j != index and resident_underground[j] == 0:
 			at = _keep_out(resident_position[j], radius + resident_radius[j], from, at)
 	return at
 
@@ -204,7 +220,7 @@ func _clear_of_residents(index: int, from: Vector2, at: Vector2) -> bool:
 	"""Whether `at` keeps the monotone distance to every other resident."""
 	var radius := resident_radius[index]
 	for j in resident_position.size():
-		if j == index:
+		if j == index or resident_underground[j] != 0:
 			continue
 		var other := resident_position[j]
 		var limit := minf(radius + resident_radius[j], other.distance_to(from))
@@ -334,15 +350,25 @@ func _pool_size(pool: PackedInt32Array) -> int:
 
 # --- planning -------------------------------------------------------------------------------
 
-func plan_path(index: int, from: Vector2, to: Vector2, body_radius: float, out: PackedVector2Array) -> void:
+func plan_path(index: int, from: Vector2, to: Vector2, body_radius: float, out: PackedVector2Array,
+		legs: PackedInt32Array = PackedInt32Array(), allow_tunnels: bool = true) -> void:
 	"""Fill `out` with waypoints from `from` (excluded) to `to` (last), round every obstacle and every
-	standing resident but `index`. Falls back to the straight line when no route exists."""
+	standing resident but `index`, and `legs` with each waypoint's leg code (-1 on the surface, or the
+	tunnel crossed to reach it: tunnel_router.gd). Resident `index` is routed through a finished
+	tunnel when `allow_tunnels` (not while carrying), it fits the bore and that is shorter. Falls
+	back to the straight line when no route exists; `nav.last_found` says whether one did, with or
+	without tunnels."""
 	var count := 0
 	for j in resident_position.size():
-		if j != index and resident_walking[j] == 0:
+		if j != index and resident_walking[j] == 0 and resident_underground[j] == 0:
 			_standing[count] = Vector3(resident_position[j].x, resident_radius[j], resident_position[j].y)
 			count += 1
-	nav.plan(from, to, body_radius, _standing, count, out)
+	if not allow_tunnels or tunnels.open_count() == 0 or not tunnels.fits(index):
+		nav.plan(from, to, body_radius, _standing, count, out)
+		legs.resize(out.size())
+		legs.fill(-1)
+		return
+	nav.last_found = tunnels.plan(nav, from, to, body_radius, _standing, count, out, legs)
 
 
 func line_clear(index: int, a: Vector2, b: Vector2, body_radius: float, goal: Vector2) -> bool:
@@ -358,7 +384,7 @@ func standing_blocks(index: int, a: Vector2, b: Vector2, body_radius: float, goa
 	own body radius plus `margin` (negative for a tolerance), shrunk to leave `a` and the goal outside.
 	Allocates nothing."""
 	for j in resident_position.size():
-		if j != index and resident_walking[j] == 0:
+		if j != index and resident_walking[j] == 0 and resident_underground[j] == 0:
 			var at := resident_position[j]
 			var r := CastNavScript.inflated(Vector3(at.x, resident_radius[j], at.y), body_radius, margin, a, goal, true)
 			if r > 0.0 and CastNavScript.distance_to_segment(at, a, b) < r - 1e-4:

@@ -623,6 +623,21 @@ func test_a_click_does_not_put_the_description_up() -> void:
 	assert_true(UiShell.draws_focus_visuals(false, false), "a signalled focus off-tree: drawn")
 
 
+
+func test_a_clicked_tab_draws_no_description_but_is_still_the_focused_element() -> void:
+	"""The call site: focus read as a click's (held, hidden) draws nothing, and the router still
+	knows which element is focused, so Enter and arrow keys carry on from it."""
+	_shell.focus_state = func(_control: Control) -> Array: return [true, false]
+	var zone: Button = _shell.control_for(UiShell.ID_ZONE) as Button
+	zone.emit_signal(&"focus_entered")
+	assert_false(_shell.control_for(UiShell.ID_TOOLTIP).visible, "no description under the clicked tab")
+	assert_false(_shell.control_for(UiShell.ID_FOCUS_OUTLINE).visible, "and no outline")
+	assert_equal(_shell.focused_element(), UiShell.ID_ZONE, "but Zone is the focused element")
+	_shell.focus_state = func(_control: Control) -> Array: return [true, true]
+	zone.emit_signal(&"focus_entered")
+	assert_true(_shell.control_for(UiShell.ID_TOOLTIP).visible, "Tab onto it: the description shows")
+
+
 func test_the_description_goes_when_focus_leaves() -> void:
 	"""Focus leaving the control takes its description down; another panel closing does not."""
 	var zone: Button = _shell.control_for(UiShell.ID_ZONE) as Button

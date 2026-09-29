@@ -58,9 +58,26 @@ Godot 4.7 marks focus taken by a click as hidden. Checked live on the demo HUD: 
 UI-SET-073/074 only when `draws_focus_visuals(has_focus(), has_focus(true))` is true. Off-tree
 nothing holds focus, so a signalled focus still draws, and the existing focus tests are unchanged.
 
+The shell reads focus through `focus_state`, a Callable that returns
+`[has_focus(), has_focus(true)]`. It is a seam: off-tree nothing can hold focus, and the suite
+must still prove the rule where it is applied.
+
+Writing that test also showed that **UI-SET-074 was visible from the moment the shell was
+built**. The tooltip was hidden at build time, but the outline never was. It is now hidden until
+focus lands.
+
 Evidence:
 
 - `test_a_click_does_not_put_the_description_up` covers the predicate's three cases.
-- Two mutants are killed: always draw, and require shown focus.
-- Skipping the check at the call site survives off-tree. The live probe covers it: clicking a tab
-  draws nothing, and Tab draws the description.
+- `test_a_clicked_tab_draws_no_description_but_is_still_the_focused_element` drives the call site
+  through the seam. A click's focus draws nothing but still sets the focused element, and Tab
+  onto the same button draws the description.
+- `test_ui_shell.gd`: 1668 assertions, 0 failed. `test_ui_focus_order`, `test_ui_registry`,
+  `test_ui_theme` and `test_ui_theme_resource` pass unchanged.
+- Mutants: 5 of 5 killed:
+  - the call site skips the check;
+  - the outline is shown at build;
+  - no `focus_exited` watch;
+  - no sweep;
+  - always draw.
+- Live, on the demo HUD: clicking Food leaves no description, and Tab shows one.

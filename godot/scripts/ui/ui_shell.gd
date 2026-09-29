@@ -470,6 +470,9 @@ var _create_button: Button = null
 var _brush_size: int = 1
 var _focused_element: int = 0
 var _focus_visuals_owner: Control = null
+## How a control's focus is read: [has_focus(), has_focus(true)]. The suite runs off-tree, where
+## nothing can hold focus, so this is the seam that lets it prove a click's focus draws nothing.
+var focus_state: Callable = func(control: Control) -> Array: return [control.has_focus(), control.has_focus(true)]
 var _roster_rows: Array[Button] = []
 var _roster_shown: int = 0
 var _workspace_page: int = ID_NEW_SETTLEMENT
@@ -1516,7 +1519,9 @@ func _build_overlays() -> void:
 	tooltip.visible = false
 	add_child(tooltip)
 	_tooltip_line = _new_text(tooltip, &"Line", "")
-	add_child(_new_label(ID_FOCUS_OUTLINE, ""))
+	var outline: Label = _new_label(ID_FOCUS_OUTLINE, "")
+	outline.visible = false
+	add_child(outline)
 	var quick: Panel = _zone_panel(ID_QUICK_MENU, "Actions for the selected job")
 	quick.visible = false
 
@@ -1552,7 +1557,8 @@ func _show_focus_visuals(control: Control, id: int) -> void:
 	every clicked tab until focus moved (decision 0198). Godot marks a click's focus hidden, so
 	`has_focus(true)` is false for it; off-tree nothing has focus, and the visuals are drawn."""
 	_focused_element = id
-	if not draws_focus_visuals(control.has_focus(), control.has_focus(true)):
+	var state: Array = focus_state.call(control)
+	if not draws_focus_visuals(state[0], state[1]):
 		return
 	var tooltip: Panel = _controls[ID_TOOLTIP] as Panel
 	_tooltip_line.text = control.tooltip_text

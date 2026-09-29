@@ -24,6 +24,7 @@ extends RefCounted
 ## Per-frame work (`constrain`, `separation`, `line_clear`) allocates nothing.
 
 const CastNavScript := preload("res://demo/cast/cast_nav.gd")
+const CastRoutinesScript := preload("res://demo/cast/cast_routines.gd")
 
 const PLAN_MARGIN_M: float = CastNavScript.PLAN_MARGIN_M
 const GOAL_EPSILON_M: float = CastNavScript.GOAL_EPSILON_M
@@ -302,6 +303,33 @@ func choose_poi(current: int, rng: RandomNumberGenerator) -> int:
 				return poi
 			pick -= 1
 	return -1
+
+
+func choose_poi_from(pool: PackedInt32Array, current: int, at: Vector2, rng: RandomNumberGenerator) -> int:
+	"""A POI from `pool` (every POI when empty) other than `current`, with a free slot, drawn with
+	weight 1 / (1 + distance / NEAR_M) from `at`; -1 when none is open."""
+	var total := 0.0
+	for k in _pool_size(pool):
+		var poi := pool[k] if not pool.is_empty() else k
+		if poi != current and free_slot(poi) >= 0:
+			total += CastRoutinesScript.weight(at.distance_to(poi_position[poi]))
+	if total <= 0.0:
+		return -1
+	var pick := rng.randf() * total
+	var last := -1
+	for k in _pool_size(pool):
+		var poi := pool[k] if not pool.is_empty() else k
+		if poi != current and free_slot(poi) >= 0:
+			last = poi
+			pick -= CastRoutinesScript.weight(at.distance_to(poi_position[poi]))
+			if pick <= 0.0:
+				return poi
+	return last
+
+
+func _pool_size(pool: PackedInt32Array) -> int:
+	"""How many entries a pool has (an empty pool means every POI)."""
+	return pool.size() if not pool.is_empty() else poi_position.size()
 
 
 # --- planning -------------------------------------------------------------------------------

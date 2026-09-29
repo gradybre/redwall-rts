@@ -41,8 +41,18 @@ const LOAD_COLOUR: Color = Color(0.36, 0.25, 0.16)
 const PLACEHOLDER_COLOURS: Array[Color] = [Color(0.72, 0.52, 0.36), Color(0.55, 0.62, 0.38),
 	Color(0.47, 0.55, 0.7), Color(0.75, 0.66, 0.42), Color(0.62, 0.45, 0.58), Color(0.5, 0.5, 0.5)]
 
+## Distinct chip colours for the demo party panel, one per cast slot (repeating past eight).
+const CHIP_COLOURS: Array[Color] = [Color("#B76545"), Color("#466647"), Color("#4F6E8F"), Color("#D99743"),
+	Color("#7E5A86"), Color("#8A8D84"), Color("#91613E"), Color("#3F7F7A")]
+
 var brain: BrainScript = null
 var creature_key: StringName = &""
+## For the demo's select-and-command layer: friendly name, species, height (the picking capsule)
+## and panel chip colour.
+var display_name: String = ""
+var species: String = ""
+var height_m: float = PLACEHOLDER_HEIGHT_M
+var chip_colour: Color = CHIP_COLOURS[0]
 var is_placeholder: bool = false
 var tail_refusal: StringName = TailRigScript.REFUSE_NONE
 
@@ -68,6 +78,7 @@ func setup_creature(index: int, key: StringName, row: Dictionary, space: CastSpa
 		push_warning("demo cast: %s has no loadable body; using a placeholder" % key)
 		setup_placeholder(index, space, seed)
 		creature_key = key
+		display_name = friendly_name(key)
 		return false
 	creature_key = key
 	var body := scene.instantiate() as Node3D
@@ -81,6 +92,7 @@ func setup_creature(index: int, key: StringName, row: Dictionary, space: CastSpa
 	var motion := {}
 	var lengths := _build_library(row.get("clips", {}), motion)
 	var height := float(row.get("height_m", PLACEHOLDER_HEIGHT_M))
+	_describe(index, key, String(row.get("species", key.split("_")[0])), height)
 	brain = BrainScript.new()
 	brain.configure(space, float(row.get("walk_speed_m_s", PLACEHOLDER_WALK_SPEED_M_S)), body_radius(height), seed, lengths)
 	brain.set_carry_motion(motion)
@@ -93,6 +105,7 @@ func setup_placeholder(index: int, space: CastSpaceScript, seed: int) -> void:
 	"""A capsule with a nose on its +Z side, driven by the same brain at a nominal walk speed."""
 	is_placeholder = true
 	creature_key = StringName("placeholder_%d" % index)
+	_describe(index, creature_key, "placeholder", PLACEHOLDER_HEIGHT_M)
 	var material := StandardMaterial3D.new()
 	material.albedo_color = PLACEHOLDER_COLOURS[index % PLACEHOLDER_COLOURS.size()]
 	var radius := body_radius(PLACEHOLDER_HEIGHT_M)
@@ -110,9 +123,23 @@ func setup_placeholder(index: int, space: CastSpaceScript, seed: int) -> void:
 	brain.configure(space, PLACEHOLDER_WALK_SPEED_M_S, radius, seed, lengths)
 
 
-static func body_radius(height_m: float) -> float:
+func _describe(index: int, key: StringName, kind: String, height: float) -> void:
+	"""The names, height and chip colour the command layer shows."""
+	display_name = friendly_name(key)
+	species = kind.capitalize()
+	height_m = height
+	chip_colour = CHIP_COLOURS[index % CHIP_COLOURS.size()]
+
+
+static func friendly_name(key: StringName) -> String:
+	"""`otter_boatwright` -> "Otter boatwright"; `placeholder_3` -> "Placeholder 3"."""
+	var words := String(key).replace("_", " ").strip_edges()
+	return words.left(1).to_upper() + words.substr(1)
+
+
+static func body_radius(height: float) -> float:
 	"""The circle a creature of this height keeps clear around itself."""
-	return clampf(height_m * RADIUS_PER_HEIGHT, MIN_RADIUS_M, MAX_RADIUS_M)
+	return clampf(height * RADIUS_PER_HEIGHT, MIN_RADIUS_M, MAX_RADIUS_M)
 
 
 func place(at: Vector2, face_yaw: float, poi: int, slot: int) -> void:

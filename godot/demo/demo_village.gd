@@ -7,12 +7,17 @@ extends Node3D
 ## draws its own world, cast and camera in their place, and re-skins the HUD in the woodland
 ## visual language. Nothing here writes into the simulation: the cast's walking is presentation
 ## only, because the settlement's movement system is not built yet (MOVE gates are open).
+##
+## DEMO COMMAND (demo/control/): residents can be selected and ordered to move or work, with a
+## "Demo party" panel in the HUD's free left column. The controller only needs the cast, the
+## world's walkable bounds and the demo camera; it reads input the HUD did not consume.
 
 const DemoManifestScript := preload("res://demo/demo_manifest.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoCameraScript := preload("res://demo/camera/demo_camera.gd")
 const WoodlandSkinScript := preload("res://demo/ui/woodland_skin.gd")
+const DemoCommandScript := preload("res://demo/control/demo_command.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -24,6 +29,7 @@ const GAME_HUD_ROOT: NodePath = ^"UI/HUD/Root"
 var _world: Node3D = null
 var _cast: Node3D = null
 var _camera: Node3D = null
+var _command: Node3D = null
 
 
 func _ready() -> void:
@@ -42,6 +48,10 @@ func _ready() -> void:
 	add_child(_camera)
 	_camera.configure(_world.bounds(), Vector3.ZERO)
 	_camera.make_current()
+	_cast.set_bounds(_world.bounds())
+	_command = DemoCommandScript.new()
+	add_child(_command)
+	_command.configure(_cast, _camera.camera(), _game.get_node_or_null(GAME_HUD_ROOT) as Control)
 	_skin_hud.call_deferred()
 
 

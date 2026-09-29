@@ -749,6 +749,25 @@ func _enter_hold() -> void:
 	_set_clip(CLIP_IDLE, 1.0)
 
 
+# --- farm tasks (demo/farm/) ------------------------------------------------------------------
+
+func order_carry(goal: Vector2, face_toward: Vector2 = Vector2.INF) -> void:
+	"""order_move(), walking with the carry clip when this resident has one and the route stays on the
+	surface -- the farm's harvest to the store, and water or spoil to a bed. Arriving drops the load."""
+	order_move(goal, face_toward)
+	carrying = can_carry() and not underground and not crosses_tunnel() \
+			and (state == State.TURN or state == State.WALK)
+
+
+func play_in_place(name: StringName) -> bool:
+	"""While holding, play clip `name` where it stands (the farm's work at a bed, well or heap), or
+	idle when this resident has no such clip. False, changing nothing, when it is not holding."""
+	if state != State.HOLD:
+		return false
+	_set_clip(name if has_clip(name) else CLIP_IDLE, 1.0)
+	return true
+
+
 func activity() -> int:
 	"""ACTIVITY_*: digging, in a tunnel, holding, wandering on its own, walking under an order, or
 	working under one."""

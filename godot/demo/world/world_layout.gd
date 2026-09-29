@@ -83,10 +83,13 @@ const CROPS: Array[Dictionary] = [
 	{"id": &"bed_grain_e", "key": &"crop_grain_ripe", "at": Vector2(-9.4, 16.4), "yaw_deg": 0.0},
 ]
 
-## Fence runs as [from, to]; each is filled with whole segments.
+## Fence runs as [from, to]; each is filled with whole segments. The west run stands 1.6 m clear of
+## the beds and starts south of residence_b's corner, so a resident can walk round the north-west
+## corner and down the beds' west side to the middle and bottom west beds, which the 3 m beds
+## otherwise wall in on every other side (demo/farm/ works them from there).
 const FENCE_RUNS: Array[Array] = [
-	[Vector2(-15.4, 7.4), Vector2(-15.4, 18.6)],
-	[Vector2(-15.4, 18.6), Vector2(-7.4, 18.6)],
+	[Vector2(-17.0, 9.6), Vector2(-17.0, 18.6)],
+	[Vector2(-17.0, 18.6), Vector2(-7.4, 18.6)],
 ]
 
 ## Hand-placed nature inside or at the edge of the play area.
@@ -158,11 +161,13 @@ const PATH_SEGMENTS: Array[Vector4] = [
 	Vector4(0.8, 7.2, -6.8, 7.2),      # to the crops
 	Vector4(-6.8, 7.2, -6.6, 17.2),    # down the east side of the beds
 	Vector4(-6.8, 7.2, -12.8, 6.8),    # along the front of the beds
+	Vector4(-12.8, 6.8, -15.9, 7.3),   # round the beds' north-west corner
+	Vector4(-15.9, 7.3, -15.9, 17.0),  # down the west side of the beds
 	Vector4(4.6, -1.0, 7.5, -3.2),     # to the cauldron
 ]
 const PATH_RADII: Array[float] = [
 	4.6, 1.5, 2.0, 1.25, 0.85, 0.85, 0.8, 1.3, 0.85, 0.85, 0.95, 1.25, 1.25, 0.9, 0.7, 0.9, 0.7,
-	0.7, 0.8,
+	0.7, 0.6, 0.55, 0.8,
 ]
 
 

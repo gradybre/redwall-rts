@@ -85,6 +85,10 @@ var _shown: PackedInt32Array = PackedInt32Array()
 var _time: float = 0.0
 var _refresh_in: float = 0.0
 var _proxy: PackedFloat32Array = PackedFloat32Array([0.0, 0.0, 0.0, 0.0, 0.0])
+## Farm hooks (demo/farm/, see set_ground_handlers and set_task_text); unset: not used.
+var _ground_click: Callable = Callable()
+var _ground_order: Callable = Callable()
+var _task_text: Callable = Callable()
 
 
 func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null) -> void:
@@ -125,6 +129,20 @@ func _on_dig_requested() -> void:
 func tunnels() -> TunnelControlScript:
 	"""The tunnel tool."""
 	return _tunnels
+
+
+func set_ground_handlers(click: Callable, order: Callable) -> void:
+	"""Let the farm (demo/farm/) take world clicks first: `click(screen: Vector2) -> bool` on a left click
+	that hit no resident (true: taken, and the selection is kept), `order(screen: Vector2) -> bool` on a
+	right click with a selection (true: taken, no move or work order is given)."""
+	_ground_click = click
+	_ground_order = order
+
+
+func set_task_text(provider: Callable) -> void:
+	"""`provider(actor_index: int) -> String`: what a resident is doing for the farm ("" for nothing),
+	shown in the panel in place of its walking or holding state."""
+	_task_text = provider
 
 
 func _build_marks(count: int) -> void:
@@ -260,6 +278,9 @@ func _finish_select(at: Vector2) -> void:
 		select_box(_press_at, at, _additive)
 		return
 	var hit := pick(at)
+	if hit < 0 and _ground_click.is_valid() and bool(_ground_click.call(at)):
+		_refresh_in = 0.0
+		return
 	if hit < 0:
 		if not _additive:
 			clear_selection()
@@ -368,6 +389,9 @@ func _update_screen() -> void:
 func order_at(at: Vector2) -> bool:
 	"""Order the selection to the ground under a screen point: work at a POI's spot, otherwise move.
 	Marks where the order landed, or a refusal. True when accepted."""
+	if _ground_order.is_valid() and bool(_ground_order.call(at)):
+		_refresh_in = 0.0
+		return true
 	var t := PickScript.ray_ground(_camera.project_ray_origin(at), _camera.project_ray_normal(at), 0.0)
 	if t < 0.0:
 		return false
@@ -468,6 +492,8 @@ func _refresh_panel() -> void:
 			_signature.append(brain.poi)
 			_signature.append(brain.clip.hash())
 			_signature.append(_dug_percent(brain))
+			if _task_text.is_valid():
+				_signature.append(String(_task_text.call(i)).hash())
 	if _signature == _shown:
 		return
 	_shown = _signature.duplicate()
@@ -486,9 +512,10 @@ func party_entries() -> Array[Dictionary]:
 			place = String(space.poi_names[brain.poi]).replace("_", " ")
 		elif brain.order == BrainScript.ORDER_DIG:
 			place = "dig site"
+		var state := PanelScript.state_text(brain.activity(), brain.clip, place, _dug_percent(brain))
+		var task := String(_task_text.call(i)) if _task_text.is_valid() else ""
 		entries.append({"name": actor.display_name, "species": actor.species, "colour": actor.chip_colour,
-			"digger": _tunnels.is_digger(i),
-			"state": PanelScript.state_text(brain.activity(), brain.clip, place, _dug_percent(brain))})
+			"digger": _tunnels.is_digger(i), "state": task if task != "" else state})
 	return entries
 
 

@@ -16,6 +16,8 @@ uniform float alpha_cut : hint_range(0.0, 1.0) = 0.5;
 uniform float up_bend : hint_range(0.0, 1.0) = 0.5;
 uniform float base_shade : hint_range(0.0, 1.0) = 0.45;
 uniform float backlight = 0.12;
+// A colour laid over the plants (white: none). The farm (demo/farm/) tints a bed by its crop and stage.
+uniform vec3 tint = vec3(1.0);
 
 varying float shade;
 
@@ -27,12 +29,12 @@ void vertex() {
 void fragment() {
 	vec4 texel = texture(atlas, UV);
 	float lod = max(textureQueryLod(atlas, UV).y, 0.0);
-	ALBEDO = texel.rgb * shade;
+	ALBEDO = texel.rgb * shade * tint;
 	ALPHA = clamp(texel.a * (1.0 + lod * 0.3), 0.0, 1.0);
 	ALPHA_SCISSOR_THRESHOLD = alpha_cut;
 	vec3 up = normalize((VIEW_MATRIX * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
 	NORMAL = normalize(mix(NORMAL, up, up_bend));
 	ROUGHNESS = 0.9;
 	SPECULAR = 0.25;
-	BACKLIGHT = texel.rgb * backlight;
+	BACKLIGHT = texel.rgb * tint * backlight;
 }

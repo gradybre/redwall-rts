@@ -56,6 +56,8 @@ WORLD = {
 	"prop": ["barrel", "crate", "log_stack", "handcart", "water_bucket", "sack_pile", "table_stools",
 		"wheelbarrow", "cauldron_tripod"],
 }
+## Water-side dressing, placed by godot/demo/water/ (not world_layout.gd). Staged like WORLD.
+WATER = {"building": ["boathouse", "weir", "fisher_shelter", "mill"], "prop": ["fish_creel"]}
 CAST = ["mouse_keeper", "mouse_fieldworker", "squirrel_gatherer", "squirrel_forester", "otter_boatwright",
 	"otter_fisher", "mole_digger", "badger_quarryman"]
 ## pull_radish is the tunnel digger's clip (godot/demo/tunnel/): no creature has a dig clip, and
@@ -116,7 +118,7 @@ def strip_to_animation(data: bytes) -> bytes:
 def stage_world(library: pathlib.Path, out: pathlib.Path) -> dict:
 	"""Copy each world L0 and measure it."""
 	rows = {}
-	for category, keys in WORLD.items():
+	for category, keys in [*WORLD.items(), *WATER.items()]:
 		for key in keys:
 			source = library / category / key / "l0.glb"
 			target = out / "world" / f"{key}.glb"

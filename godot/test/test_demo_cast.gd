@@ -755,7 +755,8 @@ func test_the_real_village_is_well_formed_for_the_cast() -> void:
 	var world: Node3D = DemoWorldScript.new()
 	var space := _space(world.points_of_interest(), world.obstacles())
 	world.free()
-	assert_equal(space.obstacles.size(), 196, "all 196 circles kept (none refused)")
+	# 192: the water (demo/water/) keeps trees and logs out of the stream and off its banks.
+	assert_equal(space.obstacles.size(), 192, "all 192 circles kept (none refused)")
 	var bad_radius := 0
 	for circle in space.obstacles:
 		bad_radius += 0 if circle.y > 0.0 and circle.y < 3.0 else 1

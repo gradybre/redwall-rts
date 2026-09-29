@@ -70,6 +70,38 @@ cards for the fields, decimated meshes for props. Every task, prompt and file ha
 Known from the concepts: the turnip and carrot plants show their roots below the soil clump, as
 a cut-away. Staging sinks each plant to its soil line.
 
+## Water, bridge, beaver and forestry pass — 2026-09-29
+
+A second pass of 24 assets for the demo's water, bridge-building and forestry features. **901
+credits**, against about 913 Brendan approved (2,423 before, 1,522 after). It uses the same recipe
+as above: props are a concept plus a meshy-7 high-poly, 36 credits each.
+
+| Family | Keys |
+|---|---|
+| prop: water | `boat_coracle`, `boat_rowboat`, `boat_raft`, `jetty`, `fishing_rod`, `fishing_net`, `eel_trap`, `smoking_rack` |
+| prop: catches | `item_trout`, `item_perch`, `item_eel`, `item_shrimp`, `item_mussels`, `item_hotroot` |
+| prop: bridges | `bridge_plank`, `bridge_log`, `bridge_pier`, `gnawed_log` |
+| prop: forestry | `felled_trunk`, `plank_stack`, `sawhorse`, `chopping_block`, `sapling_basket` |
+| creature | `beaver_bridgewright` (DEC-041) |
+
+**The beaver follows the other creatures' recipe:**
+
+| Step | Credits |
+|---|---|
+| Multi-view concept (nano-banana-pro) | 9 |
+| T-pose multi-image high-poly (meshy-7) | 30 |
+| L0 remesh at 10,000 triangles and 1.40 m | 5 |
+| Rig at 1.40 m, walk and run included | 5 |
+| 8 clips, with the same action IDs as the otters | 24 |
+
+Its height, 1434 u, is DEC-041's proposed value. It still needs the repair → tail → ground → bake
+chain (SKILL.md §6), and the beaver needs a row in `lookdev_dimensions.gd`'s species tables first.
+
+**`fishing_net` failed once on meshy-7:** `OverDenseInputError`, 77,382 active voxels against a
+limit of 65,536, charged 0. The retry on meshy-6 succeeded, for 30 credits. **Swim and dive clips
+were not bought:** Meshy's action catalog cannot be listed without spending, so swim cycles will
+be authored in Blender.
+
 ## What is in it
 
 Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceiling.

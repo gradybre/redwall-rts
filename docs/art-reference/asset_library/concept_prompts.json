@@ -1254,6 +1254,271 @@
         "assets/library/_reference/style_right_panel_rts.png"
       ],
       "prompt": "A mole's digging PICK-MATTOCK with a stout ash handle and a worn iron head. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood and iron materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "boat_coracle",
+      "task_id": "01a0edc5-7522-70c7-bde5-5484d608d345",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small round woven-willow CORACLE boat covered in tarred hide, with a single wooden paddle resting across it. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "boat_rowboat",
+      "task_id": "01a0edc5-7cb8-70fc-93ae-b3735cbff439",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small wooden clinker-built ROWING BOAT with two oars shipped inside, weathered planks and a coiled mooring rope. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "boat_raft",
+      "task_id": "01a0edc5-8414-7658-aab1-ea3bdfb1bedd",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A simple LOG RAFT of lashed logs bound with rope, with a long wooden punting pole lying on it. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "jetty",
+      "task_id": "01a0edc5-8b45-763b-b906-6e29348f962a",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A short wooden JETTY landing stage on stout log piles, a plank deck and a mooring post with coiled rope. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "fishing_rod",
+      "task_id": "01a0edc5-9267-732b-b812-94f6341d6d08",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A simple hazel-wood FISHING ROD with a line wound on a small wooden reel and a bone hook. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "fishing_net",
+      "task_id": "01a0edc5-9972-707a-a7ed-a494ff4d238c",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A folded hand-knotted FISHING NET of hemp cord with small cork floats and stone sinkers. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "eel_trap",
+      "task_id": "01a0edc5-be23-7108-ba4b-b5b9dea75e0c",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A woven willow EEL TRAP, a long funnel-shaped basket with a narrow neck. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_trout",
+      "task_id": "01a0edc5-c57f-71ef-9da6-602791692af2",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A freshly caught brown TROUT with speckled skin, lying on its side. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_perch",
+      "task_id": "01a0edc5-cca0-7070-be6e-68a6acf8443d",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A freshly caught striped green-gold PERCH with red-orange fins, lying on its side. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_eel",
+      "task_id": "01a0edc5-d40e-7132-9f65-a59aa5c7c992",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A freshly caught dark olive EEL loosely coiled on a bed of wet leaves. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_shrimp",
+      "task_id": "01a0edc5-dbf0-7360-9225-decbc461bd76",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small heap of freshwater SHRIMP, pale pink-grey, on a flat grey stone. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_mussels",
+      "task_id": "01a0edc5-e398-77ca-9a4d-5f9426772bc4",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small heap of blue-black freshwater MUSSELS, one open showing the pearly inside. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "item_hotroot",
+      "task_id": "01a0edc5-f915-703f-9cd8-023a1736f58e",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A bundle of knobbly red-orange HOTROOT roots, a fiery root vegetable, tied with twine. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "smoking_rack",
+      "task_id": "01a0edc6-010b-7617-b6fa-941380ee1ffc",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A wooden fish SMOKING RACK: a frame of poles with a few fish hanging over a small smouldering fire pit ringed with stones. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "bridge_plank",
+      "task_id": "01a0edc6-0981-76c4-9c81-15dae28384d6",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A short wooden PLANK FOOTBRIDGE section with rope handrails on posts, weathered planks, built to span a narrow stream. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "bridge_log",
+      "task_id": "01a0edc6-10ed-76ab-93ea-842963c00add",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A LOG BRIDGE: one large split log with a flattened top walking surface and a simple pole handrail on short posts. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "bridge_pier",
+      "task_id": "01a0edc6-199e-7444-90a8-9aa4876bbd7e",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A stout wooden bridge PIER POST: a driven log pile bound with iron straps, with a green weed line near its base. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "gnawed_log",
+      "task_id": "01a0edc6-20f5-7685-a7c4-04d00a5d6b4e",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A felled tree LOG with pointed beaver-gnawed ends and pale wood chips scattered around it. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "creature",
+      "key": "beaver_bridgewright",
+      "task_id": "01a0edc5-b547-76e2-a836-80e39f76bf53",
+      "model": "nano-banana-pro",
+      "multi_view": true,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png",
+        "assets/library/_reference/style_left_panel_characters.png"
+      ],
+      "prompt": "Character reference sheet of an anthropomorphic BEAVER bridgewright in the reference style: leather work apron over a moss-green linen shirt, rolled sleeves, brown trousers, wide belt. Stocky rounded body, broad blunt muzzle, two orange front teeth, small round ears, glossy dark-brown fur, broad flat scaly paddle tail. Strict T-pose: arms straight out, fingers spread, legs apart, feet flat. Plain light grey background, flat even light, no shadows, nothing held, no text. Front, side and back views."
+    },
+    {
+      "family": "prop",
+      "key": "felled_trunk",
+      "task_id": "01a0edcb-0515-7271-9360-6ad826e52473",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A freshly FELLED TREE TRUNK lying on its side with a few lopped branches still attached, a clean axe-cut end showing pale rings. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "plank_stack",
+      "task_id": "01a0edcb-0d16-70fd-9a4e-c4bfece83289",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A neat STACK OF SAWN PLANKS on two wooden bearers, pale fresh timber with visible grain. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "sawhorse",
+      "task_id": "01a0edcb-15f1-71e6-9739-b3433a1a918a",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A wooden SAWHORSE trestle holding a log, with a two-handed bow saw resting against it and sawdust on the ground. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "chopping_block",
+      "task_id": "01a0edcb-1d34-7678-b16e-45e6c3690874",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A round CHOPPING BLOCK stump with a hatchet stuck in its top, split firewood pieces and a scatter of wood chips around it. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "sapling_basket",
+      "task_id": "01a0edcb-24e7-72f8-b237-0350347d19cd",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A young oak SAPLING with its root ball wrapped in a small woven basket, ready for planting, a few green leaves. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
     }
   ]
 }

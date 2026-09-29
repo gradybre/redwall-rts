@@ -100,14 +100,24 @@ const NARROW_TIME_HEIGHT: float = 48.0
 const DETAIL_TOP: float = 128.0
 const DETAIL_HEIGHT_MARGIN: float = 144.0
 
-## Command strip: "left=Mw+32; right=Lw-D-32 when detail open, otherwise Lw-16; width=min(640,
-## available); y=Lh-152; height 136. Minimum command width 240."
+## Command strip: "left=Mw+32; right=Lw-D-32 when detail open, otherwise Lw-16", centred in that
+## interval. Minimum command width 240. ONE ROW (decision 0199, Brendan): the seven commands sit
+## side by side at the bottom, so the strip is as wide as seven 112 px cells, six 8 px gaps and
+## 12 px padding each side need -- 856 -- or the interval, whichever is less, and one 44 px cell
+## plus padding tall. Its bottom stays where §1.2's 136-tall strip ended: SAFE_INSET above the
+## viewport's bottom edge. This replaces §1.2's "width=min(640, available); y=Lh-152; height
+## 136 ... wrap into two or three rows".
 const COMMAND_LEFT_GAP: float = 32.0
 const COMMAND_RIGHT_GAP_OPEN: float = 32.0
-const COMMAND_MAX_WIDTH: float = 640.0
+const COMMAND_COUNT: int = 7
+const COMMAND_CELL_MAX: float = 112.0
+const COMMAND_CELL_MIN: float = 44.0
+const COMMAND_GAP: float = 8.0
+const COMMAND_MAX_WIDTH: float = COMMAND_COUNT * COMMAND_CELL_MAX + (COMMAND_COUNT - 1) * COMMAND_GAP \
+	+ 2.0 * PANEL_PADDING
 const COMMAND_MIN_WIDTH: float = 240.0
-const COMMAND_HEIGHT: float = 136.0
-const COMMAND_BOTTOM_OFFSET: float = 152.0
+const COMMAND_HEIGHT: float = COMMAND_CELL_MIN + 2.0 * PANEL_PADDING
+const COMMAND_BOTTOM_OFFSET: float = COMMAND_HEIGHT + SAFE_INSET
 
 ## "Modal frame is centered with width=min(960,Lw-32), height=min(720,Lh-32)." This is the TRUE
 ## modal, which UI-C3-R01 §4 preserves for New Settlement, confirmation and error surfaces. It is

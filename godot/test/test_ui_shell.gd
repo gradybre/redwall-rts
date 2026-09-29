@@ -601,6 +601,52 @@ func test_the_layer_toggle_refuses_when_no_snapshot_is_bound() -> void:
 
 # --- keyboard focus shows the description and the outline ---------------------------------------
 
+# --- decision 0199: the seven commands in one row -------------------------------------------------
+
+func _command_rects() -> Array[Rect2]:
+	"""The seven command buttons' rectangles inside the strip, in §4's order."""
+	var rects: Array[Rect2] = []
+	for id: int in UiShell.COMMAND_IDS:
+		var button: Control = _shell.control_for(id)
+		rects.append(Rect2(button.position, button.size) if button.visible else Rect2())
+	return rects
+
+
+func test_at_1920_the_seven_commands_are_one_row_of_full_cells() -> void:
+	"""1920x1080, detail closed: an 856 x 68 strip, seven 112 x 44 cells at x 12, 132 ... 732, y 12."""
+	assert_true(_shell.layout_for(1920, 1080), "the wide layout computes")
+	var strip: Control = _shell.control_for(UiShell.ID_COMMAND_STRIP)
+	assert_equal(strip.size, Vector2(856.0, 68.0), "the strip is one row")
+	assert_equal(strip.position.y + strip.size.y, 1064.0, "its bottom is 16 px above the screen's")
+	var rects: Array[Rect2] = _command_rects()
+	for index: int in rects.size():
+		assert_equal(rects[index], Rect2(12.0 + 120.0 * index, 12.0, 112.0, 44.0), "command %d" % index)
+
+
+func test_a_narrower_strip_shrinks_every_cell_evenly() -> void:
+	"""1280x720 with the detail panel open: the strip is 672 wide, so each cell is 600 / 7 px."""
+	_shell.set_detail_open(true)
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	var rects: Array[Rect2] = _command_rects()
+	for index: int in rects.size():
+		assert_almost_equal(rects[index].size.x, 85.714286, "command %d shares the width" % index)
+		assert_equal(rects[index].position.y, 12.0, "command %d is on the one row" % index)
+	assert_almost_equal(rects[6].end.x, 660.0, "the last cell ends at the padding")
+
+
+func test_when_even_the_smallest_cells_do_not_fit_the_excess_is_hidden() -> void:
+	"""1280 px at 150 percent (Lw 853.33), detail open: 309.33 wide, so 44 px cells fit five; Feast and Objectives go
+	to the quick menu rather than outside the strip."""
+	_shell.set_detail_open(true)
+	assert_true(_shell.apply_user_scale(150), "150 percent applies")
+	assert_true(_shell.layout_for(1280, 720), "Lw 853.33 computes")
+	var rects: Array[Rect2] = _command_rects()
+	for index: int in 5:
+		assert_equal(rects[index].size, Vector2(44.0, 44.0), "command %d at the minimum cell" % index)
+	assert_equal(rects[5], Rect2(), "Feast is hidden")
+	assert_equal(rects[6], Rect2(), "Objectives is hidden")
+
+
 func test_focusing_a_control_shows_its_description_and_the_gold_outline() -> void:
 	"""§2.2: tooltips appear at 0 ms on keyboard focus, and the outline follows the focus."""
 	var zone: Button = _shell.control_for(UiShell.ID_ZONE) as Button

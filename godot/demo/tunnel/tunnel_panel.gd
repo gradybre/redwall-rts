@@ -51,6 +51,9 @@ const FRAME_EXPAND: float = 10.0
 const TITLE_PX: int = 19
 const BODY_PX: int = 14
 const SMALL_PX: int = 12
+## The finds shelf under the finds line: an icon per kind of find with its count, then one per relic.
+const FIND_SLOTS: int = 10
+const FIND_ICON_PX: float = 30.0
 const CONTENT_MARGINS: PackedFloat32Array = [14.0, 10.0, 14.0, 12.0]
 const BUTTON_MARGINS: PackedFloat32Array = [10.0, 5.0, 10.0, 6.0]
 
@@ -61,6 +64,8 @@ var _column: VBoxContainer = null
 var _lines: Dictionary = {}
 var _buttons: Dictionary = {}
 var _tunnel_box: VBoxContainer = null
+var _find_icons: Array[TextureRect] = []
+var _find_counts: Array[Label] = []
 var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 var _hud_root: Control = null
@@ -99,11 +104,53 @@ func build() -> void:
 	for key: StringName in [&"weather", &"stores", &"housing", &"finds"]:
 		_lines[key] = _label("", BODY_PX, Palette.INK, null)
 		column.add_child(_lines[key])
+	column.add_child(_build_finds_row())
 	column.add_child(_button(ACTION_NEXT_WEATHER))
 	_build_tunnel_box(column)
 	_lines[&"log"] = _label("", SMALL_PX, Palette.UMBER, null)
 	column.add_child(_lines[&"log"])
 	column.add_child(_button(ACTION_EVENT))
+
+
+func _build_finds_row() -> HFlowContainer:
+	"""The finds shelf: FIND_SLOTS icons, each with a count beside it, all hidden until shown."""
+	var row := HFlowContainer.new()
+	row.add_theme_constant_override(&"h_separation", 4)
+	for k: int in FIND_SLOTS:
+		var icon := TextureRect.new()
+		icon.custom_minimum_size = Vector2.ONE * FIND_ICON_PX
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.visible = false
+		row.add_child(icon)
+		_find_icons.append(icon)
+		var count := _label("", SMALL_PX, Palette.UMBER, null)
+		count.custom_minimum_size.x = 0.0
+		count.autowrap_mode = TextServer.AUTOWRAP_OFF
+		count.visible = false
+		row.add_child(count)
+		_find_counts.append(count)
+	return row
+
+
+func show_finds(icons: Array[Texture2D], counts: PackedInt32Array) -> void:
+	"""The finds shelf: icon k with its count (a count below 1 shows no number); the rest hidden."""
+	for k: int in FIND_SLOTS:
+		var shown: bool = k < icons.size()
+		_find_icons[k].visible = shown
+		_find_counts[k].visible = shown and counts[k] > 0
+		if shown:
+			_find_icons[k].texture = icons[k]
+			_find_counts[k].text = "×%d" % counts[k]
+	_place.call_deferred()
+
+
+func finds_shown() -> int:
+	"""How many finds icons show (for checks)."""
+	var count: int = 0
+	for icon: TextureRect in _find_icons:
+		count += 1 if icon.visible else 0
+	return count
 
 
 func _build_tunnel_box(column: VBoxContainer) -> void:

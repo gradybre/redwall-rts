@@ -58,7 +58,14 @@ const RELIC_STORIES: Array[String] = [
 	"A relic! A slate scratched with a little map: a stream, three stones and a star. The stream on it runs somewhere else now, and nobeast knows where the star meant.",
 	"A relic! A bone whistle carved like a wren. Blown softly it gives one clear note, and the Foremole swears the hedge-birds answer it.",
 	"A relic! A clay beaker with a spout like a sparrow's beak, still smelling faintly of elderflower. Someone brewed cordial down here in summers long gone.",
+	"A relic! An iron key as long as a mouse's paw, its bow worked into a knot of oak leaves. Whatever door it opened rotted to loam long ago, but the Foremole pockets it all the same.",
+	"A relic! A folded scrap of banner, faded blue and rust, stitched round with acorns and oak leaves. Somebeast carried it proudly once, then folded it away down here where no rain could reach it.",
 ]
+## The library model each relic is shown as (demo/props/demo_props.gd), by story; &"" for a relic
+## with no model of its own (its icon is a roundel, and nothing is drawn where it was found).
+const RELIC_MODEL: Array[StringName] = [&"relic_bell", &"", &"", &"", &"", &"relic_key", &"relic_banner"]
+## The model of each find (FIND_*) that is not a relic; the root store is an old basket.
+const FIND_MODEL: Array[StringName] = [&"", &"find_flint", &"find_clay", &"basket", &""]
 
 ## Per layer, one bit per ground cell: already rolled.
 var _claimed: Array[PackedByteArray] = []
@@ -102,6 +109,13 @@ func dig(cell: int, layer: int, ground: int) -> int:
 	if not claim(cell, layer):
 		return FIND_NONE
 	return find_for(roll(cell, layer), ground)
+
+
+static func model_of(kind: int, relic_number: int) -> StringName:
+	"""The model a find is shown as: its kind's, or for a relic its story's (&"": none)."""
+	if kind == FIND_RELIC:
+		return RELIC_MODEL[(relic_number - 1) % RELIC_MODEL.size()]
+	return FIND_MODEL[kind]
 
 
 static func relic_story(relic_number: int) -> String:

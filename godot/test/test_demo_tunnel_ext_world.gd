@@ -1119,7 +1119,12 @@ func test_the_chamber_drawings() -> void:
 	view.refresh()
 	assert_equal(view.label(0).text, "Root cellar", "done")
 	assert_true(view.room(0).visible, "the room below")
-	assert_equal(view.room(0).get_child_count(), 4, "a floor and three crates")
+	assert_equal(view.room(0).get_child_count(), 3, "a floor and two baskets by the door (the farm stocks its shelf)")
+	assert_false(view.cellar_door(0).visible, "no cellar on the surface while looking below")
+	view.set_underground_view(false)
+	view.refresh()
+	assert_true(view.cellar_door(0).visible, "the done root cellar is the library's cellar on the surface")
+	assert_true(view.cellar_door(0).position.is_equal_approx(Vector3(2.0, 0.0, 4.0)), "over the room")
 
 
 func test_the_flood_rises_on_the_demo_clock_and_holds_while_paused() -> void:

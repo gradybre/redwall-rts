@@ -67,6 +67,7 @@ const ALERT_EVENT: Array[String] = ["Flood by the stream — evacuating", "Fire 
 const ALERT_EVENT_OVER: Array[String] = ["The flood has gone down", "The fire is out"]
 const ALERT_DONE: Array[String] = ["", "Tunnel %d widened", "Tunnel %d braced", "Tunnel %d lit", "Tunnel %d pumped out",
 	"Tunnel %d cleared", "%s dug"]
+const FOUND_RING: int = 12
 const JOB_DONE: Array[String] = ["", "Tunnel %d widened: otters and the badger fit now.", "Tunnel %d braced: no more seeping or falling in.",
 	"Tunnel %d lit: walkers go a little quicker below.", "Tunnel %d pumped out and open again.",
 	"Tunnel %d cleared and open again.", "%s dug off tunnel %d."]
@@ -86,6 +87,15 @@ var events: EventsScript = null
 var log_lines: PackedStringArray = PackedStringArray()
 ## Bumped whenever something is said, so the panel redraws on change.
 var log_revision: int = 0
+## Where the latest finds were cut, for the dig-face drawing (tunnel_find_props.gd): a ring of
+## FOUND_RING entries -- the cut's point (u), the find (FindsScript.FIND_*), its relic number (0: not
+## a relic) and its tunnel -- written at found_count % FOUND_RING. found_count counts every find.
+var found_x_u: PackedInt32Array = PackedInt32Array()
+var found_z_u: PackedInt32Array = PackedInt32Array()
+var found_kind: PackedInt32Array = PackedInt32Array()
+var found_relic: PackedInt32Array = PackedInt32Array()
+var found_slot: PackedInt32Array = PackedInt32Array()
+var found_count: int = 0
 
 var _space: CastSpaceScript = null
 var _network: NetworkScript = null
@@ -120,6 +130,8 @@ func setup(space: CastSpaceScript, brains: Array[BrainScript], species: PackedSt
 	ground = GroundScript.new(bounds_u, water)
 	_network.set_ground(ground)
 	finds = FindsScript.new(ground.cells.size())
+	for column: PackedInt32Array in [found_x_u, found_z_u, found_kind, found_relic, found_slot]:
+		column.resize(FOUND_RING)
 	jobs = JobsScript.new(_network, stores)
 	hazards = HazardsScript.new(_network)
 	for i in brains.size():
@@ -313,10 +325,22 @@ func _on_cut(slot: int, c: int, layer: int, kind: int, at: Vector2i) -> void:
 	if found == FindsScript.FIND_NONE:
 		return
 	stores.add_find(found)
+	_record_find(slot, at, found)
 	if found == FindsScript.FIND_RELIC:
 		say(FindsScript.relic_story(stores.finds[FindsScript.FIND_RELIC]), ALERT_RELIC)
 	else:
 		say("Tunnel %d: %s" % [slot + 1, FindsScript.find_line(found)])
+
+
+func _record_find(slot: int, at: Vector2i, found: int) -> void:
+	"""Remember where a find was cut (the ring's oldest entry goes)."""
+	var k: int = found_count % FOUND_RING
+	found_x_u[k] = at.x
+	found_z_u[k] = at.y
+	found_kind[k] = found
+	found_relic[k] = stores.finds[FindsScript.FIND_RELIC] if found == FindsScript.FIND_RELIC else 0
+	found_slot[k] = slot
+	found_count += 1
 
 
 func _run_job(slot: int) -> void:

@@ -657,7 +657,8 @@ func test_each_metre_is_rolled_once_per_layer() -> void:
 	assert_true(finds.claim(845, FindsScript.LAYER_WIDEN), "another layer")
 	assert_false(finds.claim(1600, 0), "off the grid")
 	assert_equal(finds.dig(845, FindsScript.LAYER_BORE, GroundScript.ROCK), FindsScript.FIND_NONE, "already rolled")
-	assert_equal(FindsScript.relic_story(6), FindsScript.relic_story(1), "the stories cycle every five")
+	assert_equal(FindsScript.relic_story(8), FindsScript.relic_story(1), "the stories cycle every seven")
+	assert_true(FindsScript.relic_story(7) != FindsScript.relic_story(1), "the seventh is its own (the banner)")
 
 
 func test_the_village_s_rock_pocket_holds_a_relic() -> void:

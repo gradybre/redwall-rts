@@ -47,6 +47,9 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const PickScript := preload("res://demo/control/demo_pick.gd")
 const PlanScript := preload("res://demo/tunnel/tunnel_plan.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
+const PropsScript := preload("res://demo/props/demo_props.gd")
+const FindPropsScript := preload("res://demo/tunnel/tunnel_find_props.gd")
+const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
 
 ## The player did something on the tunnels (selected one, laid a route, armed a chamber): show the
 ## tunnels panel.
@@ -59,6 +62,16 @@ const BORE_NAMES: Array[String] = ["standard bore (1 m)", "wide bore (2 x 3 m)"]
 const SKIPPED: String = "Skipped %d h ahead on the demo calendar: %s"
 const NO_SKIP: String = "The weather follows the farm's calendar, which is not running here"
 
+## The mole's pick: the library model lies with its head at -X and its handle out to +X (read off a
+## top render). In the right hand bone's frame (+Y along the fingers) it is gripped PICK_GRIP_SHARE of
+## its length from the handle's end, the handle across the fist and the head standing up.
+const PICK_KEY: StringName = &"mole_pick"
+const PICK_GRIP_SHARE: float = 0.14
+const PICK_EULER_DEG: Vector3 = Vector3(0.0, 90.0, 90.0)
+## The finds shelf's roundel colours for a find with no model icon: a root store, a relic.
+const ROOT_STORE_SWATCH: Color = Color(0.45, 0.33, 0.22)
+const RELIC_SWATCH: Color = Color(0.62, 0.52, 0.3)
+
 var works: WorksScript = null
 var actions: ActionsScript = null
 var panel: PanelScript = null
@@ -66,9 +79,12 @@ var marks: MarksScript = null
 var ground_view: GroundViewScript = null
 var burrow_view: BurrowViewScript = null
 var events_view: EventsViewScript = null
+var find_props: FindPropsScript = null
 var weather_view: WeatherViewScript = null
 
 var _cast: DemoCastScript = null
+## The demo's shared props (demo_services.gd): brace, rubble, lanterns, finds, chamber furniture.
+var _props: PropsScript = null
 var _network: NetworkScript = null
 var _overlay: OverlayScript = null
 var _camera: Camera3D = null
@@ -78,6 +94,8 @@ var _refresh_in: float = 0.0
 var _weather_skip: Callable = Callable()
 var _enabled: Dictionary = {}
 var _ground: Vector2 = Vector2.ZERO
+## The stores' revision the finds shelf was last drawn for.
+var _finds_seen: int = -1
 ## The tunnel the marks last drew as selected (-1: none; -2: not drawn yet).
 var _marked: int = -2
 
@@ -108,20 +126,32 @@ func configure(cast: DemoCastScript, camera: Camera3D, overlay: OverlayScript, b
 		moles.append(1 if Rules.is_digger(actor.species) else 0)
 	works.setup(cast.space(), brains, species, bounds_u, notice, services)
 	actions = ActionsScript.new(works, cast.space(), moles, names, bounds_u)
+	_props = services.props if services != null else PropsScript.new()
+	_arm_diggers(moles)
 	_build_views()
+
+
+func _arm_diggers(moles: PackedByteArray) -> void:
+	"""Every digger holds the pick while it digs (demo_actor.gd set_tool)."""
+	for i in moles.size():
+		if moles[i] == 1:
+			(_cast.actor(i) as DemoActorScript).set_tool(_props.mesh_of(PICK_KEY), pick_fit(_props))
 
 
 func _build_views() -> void:
 	"""The drawings and the panel."""
 	marks = MarksScript.new()
 	add_child(marks)
-	marks.configure(_network, works.hazards)
+	marks.configure(_network, works.hazards, _props)
 	ground_view = GroundViewScript.new()
 	add_child(ground_view)
 	ground_view.configure(works.ground)
 	burrow_view = BurrowViewScript.new()
 	add_child(burrow_view)
-	burrow_view.configure(works.chambers)
+	burrow_view.configure(works.chambers, _props)
+	find_props = FindPropsScript.new()
+	add_child(find_props)
+	find_props.configure(works, _network, _props)
 	events_view = EventsViewScript.new()
 	add_child(events_view)
 	events_view.configure(works.events, _cast.clock)
@@ -162,6 +192,7 @@ func _process(delta: float) -> void:
 		marks.select(_marked)
 	marks.refresh()
 	burrow_view.refresh()
+	find_props.refresh()
 	_refresh_in -= delta
 	if _refresh_in <= 0.0:
 		_refresh_in = PANEL_REFRESH_S
@@ -285,6 +316,7 @@ func set_underground_view(on: bool) -> void:
 	ground_view.set_underground_view(on)
 	marks.set_underground_view(on)
 	burrow_view.set_underground_view(on)
+	find_props.set_underground_view(on)
 	weather_view.set_underground_view(on)
 
 
@@ -322,10 +354,38 @@ func route_ground(points_u: PackedInt32Array, count: int) -> String:
 
 # --- the panel ------------------------------------------------------------------------------
 
+static func pick_fit(props: PropsScript) -> Transform3D:
+	"""The pick in the hand bone's frame (see PICK_*)."""
+	var bound: AABB = props.drawn_bound(PICK_KEY)
+	var grip := Vector3(bound.end.x - bound.size.x * PICK_GRIP_SHARE, bound.get_center().y, bound.get_center().z)
+	var turn := Basis.from_euler(PICK_EULER_DEG * (PI / 180.0))
+	return Transform3D(turn, Vector3.ZERO) * Transform3D(Basis.IDENTITY, -grip) * props.fit_of(PICK_KEY)
+
+
+func _show_finds() -> void:
+	"""The panel's finds shelf: flint, clay and root stores with their counts, then each relic found
+	(up to the shelf's room), each as its model's icon or a roundel."""
+	var icons: Array[Texture2D] = []
+	var counts := PackedInt32Array()
+	var tally: PackedInt32Array = works.stores.finds
+	for kind: int in [FindsScript.FIND_FLINT, FindsScript.FIND_CLAY, FindsScript.FIND_ROOT_STORE]:
+		if tally[kind] > 0:
+			icons.append(_props.icon_of(FindsScript.FIND_MODEL[kind], ROOT_STORE_SWATCH))
+			counts.append(tally[kind])
+	for relic: int in range(1, tally[FindsScript.FIND_RELIC] + 1):
+		if icons.size() >= PanelScript.FIND_SLOTS:
+			break
+		icons.append(_props.icon_of(FindsScript.model_of(FindsScript.FIND_RELIC, relic), RELIC_SWATCH))
+		counts.append(0)
+	panel.show_finds(icons, counts)
+
 func refresh_panel() -> void:
 	"""Fill the panel from the works and the selected tunnel."""
 	panel.show_status(works.weather.readout(), works.stores.stock_line() + " — the HUD's Wood and Stone are the settlement's",
 		works.chambers.housing_line() + " — demo beds, not the HUD's Beds", works.stores.finds_line(), "\n".join(works.log_lines))
+	if works.stores.revision != _finds_seen:
+		_finds_seen = works.stores.revision
+		_show_finds()
 	if ground_view.planning:
 		panel.show_tunnel(PanelScript.PLANNING, GroundViewScript.LEGEND, "", {})
 		return

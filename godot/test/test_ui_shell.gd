@@ -317,6 +317,33 @@ func test_an_empty_alert_stack_does_not_block_the_world() -> void:
 	assert_false(_shell.hit_test().world_receives(centre), "which then takes its own point")
 
 
+func test_the_pause_label_is_centred_in_the_alert_slot_when_no_alert_shows() -> void:
+	"""Decision 0200: with no alert card, UI-SET-086 takes the card's place at the top centre."""
+	_shell.set_pause_display(true, "PLAYER")
+	_shell.set_alert_display("")
+	assert_true(_shell.layout_for(1280, 720), "the layout computes")
+	var label: Control = _shell.control_for(UiShell.ID_PAUSE_LABEL)
+	var stack: Control = _shell.control_for(UiShell.ID_ALERT_STACK)
+	assert_false(stack.visible, "no alert is showing")
+	assert_almost_equal(label.position.x + label.size.x / 2.0, 640.0, "centred on the screen")
+	assert_almost_equal(label.position.y, stack.position.y, "in the alert card's slot")
+	assert_equal(label.horizontal_alignment, HORIZONTAL_ALIGNMENT_CENTER, "its text centred too")
+
+
+func test_the_pause_label_sits_under_a_showing_alert_card() -> void:
+	"""With a card up, the label moves below it -- still centred -- and back up when it goes."""
+	_shell.set_pause_display(true, "PLAYER")
+	assert_true(_shell.layout_for(1280, 720), "the layout computes")
+	_shell.set_alert_display("Mossflower stirs.")
+	var label: Control = _shell.control_for(UiShell.ID_PAUSE_LABEL)
+	var stack: Control = _shell.control_for(UiShell.ID_ALERT_STACK)
+	assert_true(stack.visible, "the alert is showing")
+	assert_almost_equal(label.position.y, stack.position.y + stack.size.y + 8.0, "just below the card")
+	assert_almost_equal(label.position.x + label.size.x / 2.0, 640.0, "and centred")
+	_shell.set_alert_display("")
+	assert_almost_equal(label.position.y, stack.position.y, "back in the slot once the card hides")
+
+
 func test_the_pause_label_has_no_hit_rectangle_when_the_world_is_running() -> void:
 	"""§4: UI-SET-086 is "not clickable; no empty hit rect"."""
 	_shell.set_pause_display(false, "")

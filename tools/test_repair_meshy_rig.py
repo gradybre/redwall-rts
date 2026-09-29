@@ -12,6 +12,8 @@ of paid-for art; the ways it must refuse matter more than the way it succeeds:
   N05  a non-uniform root scale refuses; a uniform repair cannot be proved on it.
   N06  SPECIES_KEY and SPECIES_HEIGHT_U disagreeing in length refuses.
   N07  a missing SPECIES_HEIGHT_U refuses rather than falling back to a copied number.
+  N08  a scale sampler shared with another channel, or cubic, refuses: resetting its keys
+       would move the other channel, or turn tangents into scales.
 
 EXPECTED VALUES ARE LITERALS, NOT RECOMPUTATIONS. The rescaled root is checked against
 0.018, not against `0.01 * factor` -- a test that recomputes the factor agrees with the
@@ -247,6 +249,52 @@ def test_the_fold_draws_every_vertex_where_it_was_in_every_pose() -> None:
 		(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, -0.45, 0, 1))))
 	drawn = keys[4] + ibm[13] + 0.45            # joint world T(0, key) * IBM * (0, 0.45, 0): all translations
 	check("the vertex is drawn at 0.5 m at the raised key, as before the fold", abs(drawn - 0.5) < 1e-6)
+
+
+def _scaled_idle(hips_scale: float, interpolation: str = "LINEAR", shared: bool = False) -> bytes:
+	"""Meshy's idle clip: two Hips scale keys held at `hips_scale`, whose rest scale is 1."""
+	doc, binary = _raw(_rigged(extent_y=0.9))
+	times, keys = struct.pack("<2f", 0.033, 4.033), struct.pack("<6f", *([hips_scale] * 6))
+	for blob, kind in ((times, "SCALAR"), (keys, "VEC3")):
+		binary += b"\x00" * (-len(binary) % 4)
+		doc["bufferViews"].append({"buffer": 0, "byteOffset": len(binary), "byteLength": len(blob)})
+		doc["accessors"].append({"bufferView": len(doc["bufferViews"]) - 1, "componentType": 5126, "count": 2, "type": kind})
+		binary += blob
+	doc["accessors"][-2].update({"min": [0.033], "max": [4.033]})
+	channels = [{"sampler": 0, "target": {"node": 0, "path": "scale"}}]
+	if shared:
+		channels.append({"sampler": 0, "target": {"node": 1, "path": "scale"}})
+	doc["animations"] = [{"name": "Armature|idle", "channels": channels, "samplers": [{"input": len(doc["accessors"]) - 2,
+		"output": len(doc["accessors"]) - 1, "interpolation": interpolation}]}]
+	doc["buffers"] = [{"byteLength": len(binary)}]
+	return rig.write_glb(doc, binary)
+
+
+def _scale_keys(out: bytes) -> tuple:
+	"""The idle clip's six scale-key floats, read by hand."""
+	doc, binary = _raw(out)
+	view = doc["bufferViews"][doc["accessors"][doc["animations"][0]["samplers"][0]["output"]]["bufferView"]]
+	return struct.unpack_from("<6f", binary, view["byteOffset"])
+
+
+def test_n08_a_shared_or_cubic_scale_sampler_refuses() -> None:
+	_refuses("N08 a scale sampler shared by two channels", lambda: rig.repair(_scaled_idle(1.1765, shared=True), _l0(), 0.9))
+	_refuses("N08 a cubic scale sampler", lambda: rig.repair(_scaled_idle(1.1765, "CUBICSPLINE"), _l0(), 0.9))
+
+
+def test_meshy_s_idle_hips_scale_is_reset_to_rest() -> None:
+	"""Every Meshy idle clip holds the Hips at 1.1765: the creature idles 17.65% too large."""
+	out, report = rig.repair(_scaled_idle(1.1765), _l0(), 0.9)
+	check("the Hips scale keys are 1, the rest scale", all(abs(v - 1.0) < 1e-7 for v in _scale_keys(out)))
+	check("one channel is reported reset", report["scale_channels_reset"] == 1)
+	check("the stamp records it", _raw(out)[0]["asset"]["extras"][rig.STAMP]["scale_channels_reset"] == 1)
+
+
+def test_a_scale_within_tolerance_is_left_alone() -> None:
+	"""1.005 is within 1% of rest: its keys are not rewritten."""
+	out, report = rig.repair(_scaled_idle(1.005), _l0(), 0.9)
+	check("the keys are still 1.005", all(abs(v - 1.005) < 1e-6 for v in _scale_keys(out)))
+	check("nothing is reported reset", report["scale_channels_reset"] == 0)
 
 
 def test_original_data_survives_and_the_glb_is_well_formed() -> None:

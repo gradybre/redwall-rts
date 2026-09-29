@@ -128,6 +128,47 @@ load `res://assets/units/<name>.glb`, instantiate, and check the
 `MeshInstance3D` AABB — `size.y` should be the tier height and `position.y`
 should be 0.0.
 
+### 6. Rigged creatures: the post-processing chain (mandatory)
+
+**Never play Meshy's rigged or animation files as they come.** Every one has
+defects that show on screen. Run these four tools in order, over the whole
+creature library, whenever a creature is rigged, re-rigged or given new clips:
+
+```bash
+python3 tools/repair_meshy_rig.py  --library assets/library/creature
+python3 tools/rig_meshy_tail.py    --library assets/library/creature
+python3 tools/ground_meshy_clips.py --library assets/library/creature
+python3 tools/bake_meshy_tail.py   --library assets/library/creature
+```
+
+| Step | Output | Fixes |
+|---|---|---|
+| `repair_meshy_rig.py` | `repaired/` | Glossy self-lit material (0190); rigs 17–19% short (0190); the 0.01 Armature scale (0194); **bone scale keys away from rest (0197)** |
+| `rig_meshy_tail.py` | `tailed/` | No tail chain, tails bound to a thigh (0191) |
+| `ground_meshy_clips.py` | `grounded/` | Feet through the ground (0193); travelling carry walks (0195); **standing clips floating (0197)** |
+| `bake_meshy_tail.py` | `baked/` | The crowd tier's tail motion (0192) |
+
+Play `grounded/` clips on the skeletal pool and `baked/` (else `grounded/`) on
+the crowd. Never `repaired/` or `tailed/` clips: their feet go through the
+ground.
+
+**Creatures that grow and shrink.** Meshy's idle clip keys the Hips at a
+constant **scale 1.1765** on every creature (10 of 10). The creature then idles
+17.65% larger, and swells or shrinks each time it blends between idle and
+walk. The repair resets any bone scale key more than 1% from that bone's rest.
+The grounding step **refuses** any clip that still has one. So if grounding
+fails with "scaled away from its rest", the clip skipped the repair, or Meshy
+has found a new way to do this: fix the repair, never the clip by hand. With
+the scale gone, the idle's hips stood where they held the larger body, and its
+feet floated 3 mm to 20 cm. The grounding step therefore **seats** any standing
+clip whose feet never touch the ground. Only clips listed in `OFF_THE_GROUND`
+(the chair sit) may hover. **A new clip that sits, hangs, swims or flies must
+be added to `OFF_THE_GROUND`**, or it will be pulled down to the ground.
+
+**Before calling a creature done**, watch it in Godot blend idle → walk → idle,
+and check that it stays the same size and its feet stay planted. Every automated
+check can pass on a clip that reads wrong.
+
 ## Gotchas, each one confirmed the hard way
 
 **Meshy GLBs are Z-up, violating the glTF spec.** glTF mandates Y-up. Blender's

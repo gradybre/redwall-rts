@@ -9,6 +9,9 @@ NEGATIVE TESTS COME FIRST:
        by some other part.
   N04  a clip that animates an ancestor of Hips refuses: a Hips lift would not be a world lift.
   N05  a clip that does not animate the Hips translation refuses.
+  N06  a clip that scales a bone away from its rest refuses: the creature would grow and shrink
+       (decision 0197). A scale key at rest passes.
+  (and a standing clip the seat leaves floating refuses: test_a_seat_that_leaves_the_clip_floating_refuses)
 
 THE FIXTURE is the bake test's Meshy-shaped clip: the hips drop 0.6 m on key 2. The foot's
 lowest vertex (y 0.548 at bind) then reaches -0.052, while the tail and the body -- both on the
@@ -22,6 +25,7 @@ from __future__ import annotations
 import json
 import math
 import pathlib
+import struct
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
@@ -107,6 +111,34 @@ def test_n05_no_hips_translation_refuses() -> None:
 	_refuses("N05 no Hips translation refuses", lambda: ground.ground_clip(_edit(fixture._clip(fixture._chained()), drop)))
 
 
+def _scale_hips(value: float):
+	"""An edit adding a Hips scale channel held at `value` on the clip's 2-key sampler."""
+	def change(doc: dict) -> None:
+		hips = next(i for i, n in enumerate(doc["nodes"]) if n.get("name") == "Hips")
+		anim = doc["animations"][0]
+		anim["samplers"].append({"input": anim["samplers"][0]["input"], "output": len(doc["accessors"])})
+		anim["channels"].append({"sampler": len(anim["samplers"]) - 1, "target": {"node": hips, "path": "scale"}})
+		doc["accessors"].append({"bufferView": len(doc["bufferViews"]), "componentType": 5126, "count": 2, "type": "VEC3"})
+		doc["bufferViews"].append({"buffer": 0, "byteOffset": doc["buffers"][0]["byteLength"], "byteLength": 24})
+	return change
+
+
+def _with_hips_scale(value: float) -> bytes:
+	"""The fixture clip with a 2-key Hips scale channel held at `value`."""
+	doc, binary = read_glb(fixture._clip(fixture._chained()))
+	_scale_hips(value)(doc)
+	binary += struct.pack("<6f", *([value] * 6))
+	doc["buffers"][0]["byteLength"] = len(binary)
+	return write_glb(doc, binary)
+
+
+def test_n06_a_clip_that_scales_a_bone_refuses() -> None:
+	"""Meshy's idle Hips scale, 1.1765, left in: refused. The same channel at rest, 1.0: grounded."""
+	_refuses("N06 a Hips scale of 1.1765 refuses", lambda: ground.ground_clip(_with_hips_scale(1.1765)))
+	_out, row = ground.ground_clip(_with_hips_scale(1.0))
+	check("a Hips scale at rest grounds", row["keys"] == 5)
+
+
 # --- positive tests ---------------------------------------------------------------------
 
 def test_the_lift_is_the_feets_depth_on_that_key_only() -> None:
@@ -119,11 +151,43 @@ def test_the_lift_is_the_feets_depth_on_that_key_only() -> None:
 	check("support before -0.052, after 0", row["support_min_before_m"] == -0.052 and _near(row["support_min_after_m"], 0.0, 1e-4))
 
 
-def test_a_clip_above_the_ground_is_never_lowered() -> None:
-	"""Hips held at 0.5: the foot never goes below the ground, so nothing moves."""
-	out, row = ground.ground_clip(fixture._clip(fixture._chained(), hips_y=[0.5] * 5))
+def test_a_clip_off_the_ground_by_design_is_never_lowered() -> None:
+	"""Hips held at 0.5, a chair clip: the foot floats 0.548 m on every key, and nothing moves."""
+	out, row = ground.ground_clip(fixture._clip(fixture._chained(), hips_y=[0.5] * 5), stands=False)
 	check("no key lifted", row["keys_lifted"] == 0)
 	check("no hips key lowered", all(_near(y, 0.5) for y in _hips_y(out)))
+	check("nothing seated", row["seated_m"] == 0.0)
+
+
+def test_a_standing_clip_that_floats_is_seated() -> None:
+	"""The same clip standing: every hips key drops the whole 0.548 m gap, to -0.048, so it touches."""
+	out, row = ground.ground_clip(fixture._clip(fixture._chained(), hips_y=[0.5] * 5))
+	check("every hips key lowered to -0.048", all(_near(y, -0.048) for y in _hips_y(out)))
+	check("seated by 0.548", row["seated_m"] == 0.548 and row["keys_lifted"] == 0)
+	check("the support now touches the ground", _near(row["support_min_after_m"], 0.0, 1e-4))
+
+
+def test_a_float_within_tolerance_is_not_seated() -> None:
+	"""A clip whose lowest support is within a millimetre of the ground already touches it."""
+	check("0.0009 m: nothing moves", ground.ground_lifts([0.0009, 0.3], True) == [0.0, 0.0])
+	check("0.0011 m: seated", ground.ground_lifts([0.0011, 0.3], True) == [-0.0011, -0.0011])
+	check("a clip that dips still only lifts that key", ground.ground_lifts([0.2, -0.05], True) == [0.0, 0.05])
+
+
+def test_only_the_chair_clip_is_off_the_ground() -> None:
+	"""The library grounds a chair clip as off the ground, and the idle as standing."""
+	check("the chair clip does not stand", not ground.stands("/lib/badger_cellarer/tailed/anim_chair_sit_idle.glb"))
+	check("the idle stands", ground.stands("/lib/badger_cellarer/tailed/anim_idle.glb"))
+
+
+def test_a_seat_that_leaves_the_clip_floating_refuses() -> None:
+	"""With the seat sabotaged to nothing, the re-skinned standing clip still floats and is refused."""
+	real = ground.apply_lift
+	ground.apply_lift = lambda doc, binary, times_index, times, lifts, roots=None: real(doc, binary, times_index, times, [0.0] * len(lifts), roots)
+	try:
+		_refuses("a standing clip left floating refuses", lambda: ground.ground_clip(fixture._clip(fixture._chained(), hips_y=[0.5] * 5)))
+	finally:
+		ground.apply_lift = real
 
 
 def test_the_lift_is_converted_into_the_hips_parent_space() -> None:
@@ -234,9 +298,10 @@ def test_a_clip_in_place_has_no_root_motion() -> None:
 
 
 def test_extracting_the_root_changes_no_height() -> None:
-	"""The lift is vertical and the root horizontal: the support's heights are what the lift alone gives."""
+	"""The lift is vertical and the root horizontal: the support's heights are what the lift alone gives.
+	The walk floats, so it is grounded as off the ground; seating it would move every key."""
 	source = _walk()
-	out, _row = ground.ground_clip(source)
+	out, _row = ground.ground_clip(source, stands=False)
 	_t, before = ground.lowest_support(*read_glb(source))
 	_t, after = ground.lowest_support(*read_glb(out))
 	check("every key's lowest support height is unchanged (no lift was needed)", all(_near(a, b, 1e-6) for a, b in zip(before, after)))

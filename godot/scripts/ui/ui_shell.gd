@@ -469,6 +469,7 @@ var _picked_tile: int = NO_TILE
 var _create_button: Button = null
 var _brush_size: int = 1
 var _focused_element: int = 0
+var _focus_visuals_owner: Control = null
 var _roster_rows: Array[Button] = []
 var _roster_shown: int = 0
 var _workspace_page: int = ID_NEW_SETTLEMENT
@@ -572,6 +573,7 @@ func _new_button(id: int, text: String) -> Button:
 	button.toggle_mode = _registry.profile_of(id).value == UiRegistry.PROFILE_TOGGLE
 	button.disabled = not _availability.is_wired(id)
 	button.focus_entered.connect(_on_control_focused.bind(id))
+	_watch_focus_loss(button)
 	_style_button(button, id)
 	_apply_semantics(button, id, text)
 	_controls[id] = button
@@ -974,6 +976,7 @@ func _build_alert_card(instance: int) -> Panel:
 	card.visible = false
 	card.focus_mode = Control.FOCUS_ALL
 	card.focus_entered.connect(_on_alert_card_focused.bind(instance))
+	_watch_focus_loss(card)
 	card.gui_input.connect(_on_alert_card_input.bind(instance))
 	_alert_cards.append(card)
 	_alert_icons.append(_add_severity_icon(card, WARNING_ICON))
@@ -1554,6 +1557,36 @@ func _show_focus_visuals(control: Control, id: int) -> void:
 	_set_rect(tooltip, Rect2(rect.position + Vector2(0.0, rect.size.y + ROW_GAP),
 		Vector2(rect.size.x, MAP_HEADER_BUTTON)))
 	_focused_element = id
+	_focus_visuals_owner = control
+
+
+func _watch_focus_loss(control: Control) -> void:
+	"""Take the focus visuals down when `control` loses focus."""
+	control.focus_exited.connect(_on_focus_left.bind(control))
+
+
+func _on_focus_left(control: Control) -> void:
+	"""Focus left `control`: UI-SET-073 and UI-SET-074 describe it, so they go with it."""
+	if control == _focus_visuals_owner:
+		_hide_focus_visuals()
+
+
+func _drop_hidden_focus_visuals() -> void:
+	"""Take the focus visuals down if the control they describe is no longer shown.
+
+	Nothing hid them before: pressing the detail panel's Close gave it focus, which put its
+	description ("x") up, and the panel then closed around it, leaving that "x" floating over the
+	world. Run by the hit table's rebuild, which every visibility change goes through, rather than
+	trusting the engine to move focus, which it does not do off-tree."""
+	if _focus_visuals_owner != null and not (_focus_visuals_owner.visible and _is_visible_chain(_focus_visuals_owner)):
+		_hide_focus_visuals()
+
+
+func _hide_focus_visuals() -> void:
+	"""Hide UI-SET-073 and UI-SET-074; nothing is described until focus lands again."""
+	(_controls[ID_TOOLTIP] as Control).visible = false
+	(_controls[ID_FOCUS_OUTLINE] as Control).visible = false
+	_focus_visuals_owner = null
 
 
 func _focus_outline_rect(control: Control, id: int) -> Rect2:
@@ -2365,6 +2398,7 @@ func _register_hit_regions() -> void:
 		_hits.raise_scrim(UiHitTest.LAYER_MODAL)
 	else:
 		_hits.lower_scrim()
+	_drop_hidden_focus_visuals()
 
 
 func _workspace_owns_input() -> bool:

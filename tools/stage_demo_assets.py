@@ -30,6 +30,10 @@ Measured from the files, not assumed, and written to the manifest:
 `--only world|cast` restages one half and MERGES it into an existing manifest.json, so restaging
 the cast keeps the world's entries (and the other way round).
 
+Textures: staging ends by applying tools/demo_texture_imports.py (VRAM compression for the models'
+textures, the card atlases and icons packed as files); `--godot godot` on that tool imports whatever
+staging added and settles it.
+
     python3 tools/stage_demo_assets.py
 """
 
@@ -49,6 +53,7 @@ from repair_meshy_rig import read_accessor, read_glb, write_glb  # noqa: E402
 from rig_meshy_tail import node_worlds, transform_point  # noqa: E402
 import make_demo_crop_cards  # noqa: E402
 import make_demo_props  # noqa: E402
+import demo_texture_imports  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 LIBRARY = ROOT / "assets/library"
@@ -236,7 +241,18 @@ def main() -> int:
 		print(f"  {key:18} walk {row['walk_speed_m_s']:.3f} m/s ({row['walk_speed_source']}; estimate "
 			f"{row['walk_speed_estimate_m_s']:.3f})  tailed {row['tailed']}")
 	print(f"stage_demo_assets: {len(manifest['world'])} world assets, {len(manifest['cast'])} creatures -> {args.out}")
+	stage_texture_imports(args.out)
 	return 0
+
+
+def stage_texture_imports(out: pathlib.Path) -> None:
+	"""Put the staged textures' import settings to the rule (tools/demo_texture_imports.py) wherever their
+	.import files already exist. A GLB's images are extracted -- and their .import files written -- only
+	when Godot imports it, so after staging new models run the settle step, which imports, rewrites and
+	reimports until nothing changes (the Windows build runs it itself)."""
+	counts = demo_texture_imports.apply(out, out.resolve().parents[1])
+	print(f"stage_demo_assets: texture imports set ({len(counts['changed'])} changed); to import and compress "
+		"what staging added: python3 tools/demo_texture_imports.py --godot godot")
 
 
 if __name__ == "__main__":

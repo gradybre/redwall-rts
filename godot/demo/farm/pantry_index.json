@@ -1,0 +1,2196 @@
+{
+ "schema": "demo_pantry_index_v1",
+ "activation": "NOT_RUNTIME_ACTIVE",
+ "source": "docs/redwall-content-library/shared/pantry.json",
+ "source_sha256": "321291472aec3b123a05161ed05bed3823e201f52e1ab4326363a122e299810c",
+ "max_listed": 40,
+ "items": [
+  {
+   "leaf_id": "LEAF_radish",
+   "direct_count": 17,
+   "component_count": 1,
+   "dishes": [
+    {
+     "label": "Carrot-radish spring salad",
+     "id": "rakkety_tam::RAK_recipe_carrot_radish_spring_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured oat-curd adaptation of Red radish and onion cheese",
+     "id": "pearls_lutra::PL_RECIPE_red_radish_and_onion_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Didjety-inspired garden forager soup",
+     "id": "rakkety_tam::RAK_recipe_didjety_s_forager_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Festival spring salad",
+     "id": "rakkety_tam::RAK_recipe_festival_spring_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Fresh spring salad",
+     "id": "long_patrol::LP-RECIPE-fresh-spring-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Pretended mussel salad",
+     "id": "lord_brocktree::LB-RECIPE-pretended-shrimp-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Leek and chestnut pastie with thyme-radish sauce",
+     "id": "martin_warrior::MW_RECIPE_leek_and_chestnut_pastie_with_thyme_radish_sauce",
+     "use": "direct"
+    },
+    {
+     "label": "Lettuce watercress and scallion salad",
+     "id": "lord_brocktree::LB-RECIPE-lettuce-watercress-and-scallion-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Mussel and woodland-plant version of Shrimberry pie / shrimpberry pie",
+     "id": "marlfox::MF_RECIPE_shrimberry_pie_shrimpberry_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Plant-pantry game version of Hodgepodge pie",
+     "id": "marlfox::MF_RECIPE_hodgepodge_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Remembered salad",
+     "id": "lord_brocktree::LB-RECIPE-remembered-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Remembered summer salad",
+     "id": "lord_brocktree::LB-RECIPE-remembered-summer-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Salad",
+     "id": "redwall::RW-RECIPE-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Summer salad",
+     "id": "redwall::RW-RECIPE-summer-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Watermeadow salad",
+     "id": "rakkety_tam::RAK_recipe_watermeadow_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Woodland assembly with celery, parsley, thyme",
+     "id": "mossflower::MF_recipe_celery_and_herb_cheese_on_acorn_bread_with_radishes",
+     "use": "direct"
+    },
+    {
+     "label": "Woodland soup bread with mussel, arrowhead, radish",
+     "id": "mossflower::MF_recipe_freshwater_shrimp_soup_with_arrowhead_bread_and_radishes",
+     "use": "direct"
+    },
+    {
+     "label": "Cold hodgepodge pie",
+     "id": "marlfox::MF_RECIPE_cold_hodgepodge_pie",
+     "use": "component"
+    }
+   ]
+  },
+  {
+   "leaf_id": "LEAF_turnip",
+   "direct_count": 70,
+   "component_count": 14,
+   "dishes": [
+    {
+     "label": "Autumn Harvest soup",
+     "id": "taggerung::TAG_recipe_autumn_harvest_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Bad-cook stew",
+     "id": "rakkety_tam::RAK_recipe_bad_cook_stew",
+     "use": "direct"
+    },
+    {
+     "label": "Cabbage-turnip pasties",
+     "id": "triss::TRI_recipe_cabbage_turnip_pasties",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot and turnip farl",
+     "id": "martin_warrior::MW_RECIPE_carrot_and_turnip_farl",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot mushroom and onion hotpot",
+     "id": "long_patrol::LP-RECIPE-carrot-mushroom-and-onion-hotpot",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot, turnip, pea and leek stew",
+     "id": "martin_warrior::MW_RECIPE_carrot_turnip_pea_and_leek_stew",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot-turnip flan",
+     "id": "taggerung::TAG_recipe_carrot_turnip_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Cave farm vegetables",
+     "id": "outcast::OUT_recipe_cave_farm_vegetables",
+     "use": "direct"
+    },
+    {
+     "label": "Chopped herring and roots",
+     "id": "triss::TRI_recipe_chopped_herring_and_roots",
+     "use": "direct"
+    },
+    {
+     "label": "Cold turnip and carrot pie",
+     "id": "long_patrol::LP-RECIPE-cold-turnip-and-carrot-pie",
+     "use": "direct"
+    },
+    {
+     "label": "Cornflower's homemade vegetable soup",
+     "id": "redwall::RW-RECIPE-cornflower-s-homemade-vegetable-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper 'n' Ever turnip, potato and beetroot pie",
+     "id": "martin_warrior::MW_RECIPE_deeper_n_ever_turnip_potato_and_beetroot_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n ever potato turnip and beetroot pie",
+     "id": "salamandastron::SAL_recipe_deeper_n_ever_potato_turnip_and_beetroot_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n ever turnip potato beetroot pie",
+     "id": "pearls_lutra::PL_RECIPE_deeper_n_ever_turnip_potato_beetroot_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n ever turnip tater and beetroot pie",
+     "id": "long_patrol::LP-RECIPE-deeper-n-ever-turnip-tater-and-beetroot-pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n ever turnip-potato-beetroot pie",
+     "id": "marlfox::MF_RECIPE_deeper_n_ever_turnip_potato_beetroot_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n ever turnip-tater-beetroot pie",
+     "id": "taggerung::TAG_recipe_deeper_n_ever_turnip_tater_beetroot_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n'ever turnip potato and beetroot pie",
+     "id": "outcast::OUT_recipe_deeper_n_ever_turnip_potato_and_beetroot_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n'ever turnip potato beetroot pie",
+     "id": "lord_brocktree::LB-RECIPE-deeper-n-ever-turnip-potato-beetroot-pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n'ever turnip-potato-beetroot pie",
+     "id": "triss::TRI_recipe_deeper_n_ever_turnip_potato_beetroot_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n'ever turnip-tater-beetroot pie",
+     "id": "rakkety_tam::RAK_recipe_deeper_n_ever_turnip_tater_beetroot_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Dotti's alleged windowsill pie",
+     "id": "lord_brocktree::LB-RECIPE-dotti-s-alleged-windowsill-pie",
+     "use": "direct"
+    },
+    {
+     "label": "Drufo's hot grain and root soup",
+     "id": "triss::TRI_recipe_drufo_s_hot_grain_and_root_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Early spring vegetable soup",
+     "id": "long_patrol::LP-RECIPE-early-spring-vegetable-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Edible roots of the survivors",
+     "id": "rakkety_tam::RAK_recipe_edible_roots_of_the_survivors",
+     "use": "direct"
+    },
+    {
+     "label": "Feast pasties",
+     "id": "triss::TRI_recipe_feast_pasties",
+     "use": "direct"
+    },
+    {
+     "label": "Forager's stew",
+     "id": "long_patrol::LP-RECIPE-forager-s-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Pretended mussel stew",
+     "id": "lord_brocktree::LB-RECIPE-pretended-shrimp-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Deeper 'n' ever pie with tomato chutney",
+     "id": "mossflower::MF_recipe_deeper_n_ever_pie_with_tomato_chutney",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Grumm's rose, onion, daisy, carrot, plum and turnip soup",
+     "id": "martin_warrior::MW_RECIPE_grumm_s_rose_onion_daisy_carrot_plum_and_turnip_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game flan: carrot, leek, turnip, oat flour",
+     "id": "salamandastron::SAL_recipe_vegetable_flans",
+     "use": "direct"
+    },
+    {
+     "label": "Game pasty: carrot, leek, turnip, oat flour",
+     "id": "salamandastron::SAL_recipe_vegetable_pasty",
+     "use": "direct"
+    },
+    {
+     "label": "Game raw: apple, blackberry, raspberry, dandelion",
+     "id": "salamandastron::SAL_recipe_foraged_apples_berries_and_dandelions",
+     "use": "direct"
+    },
+    {
+     "label": "Game raw: turnip",
+     "id": "salamandastron::SAL_recipe_roots_for_horde_food",
+     "use": "direct"
+    },
+    {
+     "label": "Grandma's hard-baked stew",
+     "id": "rakkety_tam::RAK_recipe_grandma_s_hard_baked_stew",
+     "use": "direct"
+    },
+    {
+     "label": "Guosim-style mussel and vegetable stew",
+     "id": "long_patrol::LP-RECIPE-guosim-prebattle-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Gurt tunnel stew",
+     "id": "lord_brocktree::LB-RECIPE-gurt-tunnel-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Hare-song pasties",
+     "id": "lord_brocktree::LB-RECIPE-hare-song-pasties",
+     "use": "direct"
+    },
+    {
+     "label": "Hazelnut-mushroom-turnip casserole",
+     "id": "taggerung::TAG_recipe_hazelnut_mushroom_turnip_casserole",
+     "use": "direct"
+    },
+    {
+     "label": "Hot vegetable soup",
+     "id": "long_patrol::LP-RECIPE-hot-vegetable-soup",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "leaf_id": "LEAF_carrot",
+   "direct_count": 109,
+   "component_count": 15,
+   "dishes": [
+    {
+     "label": "Apple and carrot chews",
+     "id": "redwall::RW-RECIPE-apple-and-carrot-chews",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and carrot meal",
+     "id": "martin_warrior::MW_RECIPE_apple_and_carrot_meal",
+     "use": "direct"
+    },
+    {
+     "label": "Autumn Harvest soup",
+     "id": "taggerung::TAG_recipe_autumn_harvest_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Bad-cook stew",
+     "id": "rakkety_tam::RAK_recipe_bad_cook_stew",
+     "use": "direct"
+    },
+    {
+     "label": "Barrack-song vegetable soup",
+     "id": "rakkety_tam::RAK_recipe_cook_s_poison_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Bloggflash Special",
+     "id": "outcast::OUT_recipe_bloggflash_special",
+     "use": "direct"
+    },
+    {
+     "label": "Brocktree's unnamed camp soup",
+     "id": "lord_brocktree::LB-RECIPE-brocktree-s-unnamed-camp-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Burdock-stalk salad",
+     "id": "marlfox::MF_RECIPE_burdock_stalk_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot and celery broth",
+     "id": "martin_warrior::MW_RECIPE_carrot_and_celery_broth",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot and celery flan",
+     "id": "long_patrol::LP-RECIPE-carrot-and-celery-flan",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot and leek flan",
+     "id": "outcast::OUT_recipe_carrot_and_leek_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot and mushroom flan",
+     "id": "pearls_lutra::PL_RECIPE_carrot_and_mushroom_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot and mushroom pastie",
+     "id": "outcast::OUT_recipe_carrot_and_mushroom_pastie",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot and parsley bread",
+     "id": "mossflower::MF_recipe_carrot_and_parsley_bread",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot and parsley turnover",
+     "id": "martin_warrior::MW_RECIPE_carrot_and_parsley_turnover",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot and turnip farl",
+     "id": "martin_warrior::MW_RECIPE_carrot_and_turnip_farl",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot flan",
+     "id": "lord_brocktree::LB-RECIPE-carrot-flan",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot mushroom and onion hotpot",
+     "id": "long_patrol::LP-RECIPE-carrot-mushroom-and-onion-hotpot",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot, berry and dandelion bowl",
+     "id": "triss::TRI_recipe_dawn_roots_and_berries",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot, turnip, pea and leek stew",
+     "id": "martin_warrior::MW_RECIPE_carrot_turnip_pea_and_leek_stew",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot-fennel sauce",
+     "id": "triss::TRI_recipe_carrot_fennel_sauce",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot-mushroom bake with cultured hazelnut cheese",
+     "id": "triss::TRI_recipe_carrot_mushroom_bake_with_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot-radish spring salad",
+     "id": "rakkety_tam::RAK_recipe_carrot_radish_spring_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot-turnip flan",
+     "id": "taggerung::TAG_recipe_carrot_turnip_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Cave household salad",
+     "id": "outcast::OUT_recipe_cave_household_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Celery-carrot soup",
+     "id": "taggerung::TAG_recipe_celery_carrot_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Chopped herring and roots",
+     "id": "triss::TRI_recipe_chopped_herring_and_roots",
+     "use": "direct"
+    },
+    {
+     "label": "Cold turnip and carrot pie",
+     "id": "long_patrol::LP-RECIPE-cold-turnip-and-carrot-pie",
+     "use": "direct"
+    },
+    {
+     "label": "Corkal's duel salad",
+     "id": "pearls_lutra::PL_RECIPE_corkal_s_duel_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Cornflower's homemade vegetable soup",
+     "id": "redwall::RW-RECIPE-cornflower-s-homemade-vegetable-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured oat-curd adaptation of Fawn carrot and acorn cheese",
+     "id": "pearls_lutra::PL_RECIPE_fawn_carrot_and_acorn_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Didjety's vegetable sausages",
+     "id": "rakkety_tam::RAK_recipe_didjety_s_vegetable_sausages",
+     "use": "direct"
+    },
+    {
+     "label": "Dotti's alleged windowsill pie",
+     "id": "lord_brocktree::LB-RECIPE-dotti-s-alleged-windowsill-pie",
+     "use": "direct"
+    },
+    {
+     "label": "Drufo's hot grain and root soup",
+     "id": "triss::TRI_recipe_drufo_s_hot_grain_and_root_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Early spring vegetable soup",
+     "id": "long_patrol::LP-RECIPE-early-spring-vegetable-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Edible roots of the survivors",
+     "id": "rakkety_tam::RAK_recipe_edible_roots_of_the_survivors",
+     "use": "direct"
+    },
+    {
+     "label": "Feast scones cheese and salad vegetables",
+     "id": "outcast::OUT_recipe_feast_scones_cheese_and_salad_vegetables",
+     "use": "direct"
+    },
+    {
+     "label": "Feast vegetable salad",
+     "id": "triss::TRI_recipe_feast_vegetable_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Folrig and Ruddle's hotroot soup",
+     "id": "outcast::OUT_recipe_folrig_and_ruddle_s_hotroot_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Forager's stew",
+     "id": "long_patrol::LP-RECIPE-forager-s-stew",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "leaf_id": "LEAF_beetroot",
+   "direct_count": 19,
+   "component_count": 1,
+   "dishes": [
+    {
+     "label": "Barley and beet soup with corn dumplings",
+     "id": "long_patrol::LP-RECIPE-barley-and-beet-soup-with-corn-dumplings",
+     "use": "direct"
+    },
+    {
+     "label": "Beetroot and mushroom pastie with leek gravy",
+     "id": "martin_warrior::MW_RECIPE_beetroot_and_mushroom_pastie_with_leek_gravy",
+     "use": "direct"
+    },
+    {
+     "label": "Beetroot and raspberry wine",
+     "id": "outcast::OUT_recipe_beetroot_and_raspberry_wine",
+     "use": "direct"
+    },
+    {
+     "label": "Beetroot wine",
+     "id": "martin_warrior::MW_RECIPE_beetroot_wine",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper 'n' Ever turnip, potato and beetroot pie",
+     "id": "martin_warrior::MW_RECIPE_deeper_n_ever_turnip_potato_and_beetroot_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n ever potato turnip and beetroot pie",
+     "id": "salamandastron::SAL_recipe_deeper_n_ever_potato_turnip_and_beetroot_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n ever turnip potato beetroot pie",
+     "id": "pearls_lutra::PL_RECIPE_deeper_n_ever_turnip_potato_beetroot_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n ever turnip tater and beetroot pie",
+     "id": "long_patrol::LP-RECIPE-deeper-n-ever-turnip-tater-and-beetroot-pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n ever turnip-potato-beetroot pie",
+     "id": "marlfox::MF_RECIPE_deeper_n_ever_turnip_potato_beetroot_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n ever turnip-tater-beetroot pie",
+     "id": "taggerung::TAG_recipe_deeper_n_ever_turnip_tater_beetroot_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n'ever turnip potato and beetroot pie",
+     "id": "outcast::OUT_recipe_deeper_n_ever_turnip_potato_and_beetroot_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n'ever turnip potato beetroot pie",
+     "id": "lord_brocktree::LB-RECIPE-deeper-n-ever-turnip-potato-beetroot-pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n'ever turnip-potato-beetroot pie",
+     "id": "triss::TRI_recipe_deeper_n_ever_turnip_potato_beetroot_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n'ever turnip-tater-beetroot pie",
+     "id": "rakkety_tam::RAK_recipe_deeper_n_ever_turnip_tater_beetroot_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Deeper 'n' ever pie with tomato chutney",
+     "id": "mossflower::MF_recipe_deeper_n_ever_pie_with_tomato_chutney",
+     "use": "direct"
+    },
+    {
+     "label": "Old plum and beetroot wine",
+     "id": "lord_brocktree::LB-RECIPE-old-plum-and-beetroot-wine",
+     "use": "direct"
+    },
+    {
+     "label": "Plant-pantry game version of Hodgepodge pie",
+     "id": "marlfox::MF_RECIPE_hodgepodge_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Turnip, potato and beetroot pie",
+     "id": "martin_warrior::MW_RECIPE_turnip_potato_and_beetroot_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Wild-beetroot soup",
+     "id": "triss::TRI_recipe_wild_beetroot_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Cold hodgepodge pie",
+     "id": "marlfox::MF_RECIPE_cold_hodgepodge_pie",
+     "use": "component"
+    }
+   ]
+  },
+  {
+   "leaf_id": "LEAF_parsnip",
+   "direct_count": 3,
+   "component_count": 0,
+   "dishes": [
+    {
+     "label": "Baked parsnips",
+     "id": "long_patrol::LP-RECIPE-baked-parsnips",
+     "use": "direct"
+    },
+    {
+     "label": "Parsnip and mushroom pastie with gravy",
+     "id": "pearls_lutra::PL_RECIPE_parsnip_and_mushroom_pastie_with_gravy",
+     "use": "direct"
+    },
+    {
+     "label": "Parsnip cordial",
+     "id": "pearls_lutra::PL_RECIPE_parsnip_cordial",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "leaf_id": "LEAF_onion",
+   "direct_count": 128,
+   "component_count": 9,
+   "dishes": [
+    {
+     "label": "Autumn Harvest soup",
+     "id": "taggerung::TAG_recipe_autumn_harvest_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Barley and beet soup with corn dumplings",
+     "id": "long_patrol::LP-RECIPE-barley-and-beet-soup-with-corn-dumplings",
+     "use": "direct"
+    },
+    {
+     "label": "Brocktree's unnamed camp soup",
+     "id": "lord_brocktree::LB-RECIPE-brocktree-s-unnamed-camp-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Button-mushroom herb-sauce sandwich",
+     "id": "taggerung::TAG_recipe_button_mushroom_herb_sauce_sandwich",
+     "use": "direct"
+    },
+    {
+     "label": "Camp mushroom pot",
+     "id": "rakkety_tam::RAK_recipe_half_stewed_unplucked_birds",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot and celery broth",
+     "id": "martin_warrior::MW_RECIPE_carrot_and_celery_broth",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot mushroom and onion hotpot",
+     "id": "long_patrol::LP-RECIPE-carrot-mushroom-and-onion-hotpot",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot, turnip, pea and leek stew",
+     "id": "martin_warrior::MW_RECIPE_carrot_turnip_pea_and_leek_stew",
+     "use": "direct"
+    },
+    {
+     "label": "Cave farm vegetables",
+     "id": "outcast::OUT_recipe_cave_farm_vegetables",
+     "use": "direct"
+    },
+    {
+     "label": "Cherry soup (Grumm proposed)",
+     "id": "martin_warrior::MW_RECIPE_cherry_soup_grumm_proposed",
+     "use": "direct"
+    },
+    {
+     "label": "Cold greasy killy",
+     "id": "pearls_lutra::PL_RECIPE_cold_greasy_killy",
+     "use": "direct"
+    },
+    {
+     "label": "Convalescent hot soup",
+     "id": "pearls_lutra::PL_RECIPE_convalescent_hot_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Cooked onion pie",
+     "id": "rakkety_tam::RAK_recipe_raw_onion_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Cooled onion-mint cereal broth",
+     "id": "triss::TRI_recipe_mock_seasickness_tonic",
+     "use": "direct"
+    },
+    {
+     "label": "Corkal's duel salad",
+     "id": "pearls_lutra::PL_RECIPE_corkal_s_duel_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Cornflower's homemade vegetable soup",
+     "id": "redwall::RW-RECIPE-cornflower-s-homemade-vegetable-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Creamy mushroom soup",
+     "id": "long_patrol::LP-RECIPE-creamy-mushroom-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Cultivated watercress soup",
+     "id": "long_patrol::LP-RECIPE-pondweed-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured hazelnut cheese-onion farl",
+     "id": "rakkety_tam::RAK_recipe_cheese_onion_farl",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured oat-curd adaptation of Red radish and onion cheese",
+     "id": "pearls_lutra::PL_RECIPE_red_radish_and_onion_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Drufo's hot grain and root soup",
+     "id": "triss::TRI_recipe_drufo_s_hot_grain_and_root_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Early spring vegetable soup",
+     "id": "long_patrol::LP-RECIPE-early-spring-vegetable-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Forager's stew",
+     "id": "long_patrol::LP-RECIPE-forager-s-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Frutch's family mussel and hotroot soup",
+     "id": "lord_brocktree::LB-RECIPE-frutch-s-family-shrimp-and-hotroot-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Grandmother Brookback's crusted dace",
+     "id": "lord_brocktree::LB-RECIPE-grandmother-brookback-s-crusted-dace",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Pretended mussel soup",
+     "id": "lord_brocktree::LB-RECIPE-pretended-shrimp-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Pretended mussel stew",
+     "id": "lord_brocktree::LB-RECIPE-pretended-shrimp-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Ruff's mussel and hotroot soup",
+     "id": "lord_brocktree::LB-RECIPE-ruff-s-watershrimp-and-hotroot-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Savory oat cheese and onion flan",
+     "id": "lord_brocktree::LB-RECIPE-savory-cheese-and-onion-flan",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Yellow sage and onion oat cheese",
+     "id": "lord_brocktree::LB-RECIPE-yellow-sage-and-onion-cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Durral's dried-fish biscuit soup",
+     "id": "pearls_lutra::PL_RECIPE_durral_s_dried_fish_biscuit_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Fish guts boiled in old tallowfat",
+     "id": "pearls_lutra::PL_RECIPE_fish_guts_boiled_in_old_tallowfat",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Grumm's rose, onion, daisy, carrot, plum and turnip soup",
+     "id": "martin_warrior::MW_RECIPE_grumm_s_rose_onion_daisy_carrot_plum_and_turnip_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Hot vegetable broth",
+     "id": "pearls_lutra::PL_RECIPE_hot_vegetable_broth",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Iceberg survival soup",
+     "id": "pearls_lutra::PL_RECIPE_iceberg_survival_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Mushroom, cress and green-acorn soup",
+     "id": "martin_warrior::MW_RECIPE_mushroom_cress_and_green_acorn_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Seafood soup",
+     "id": "pearls_lutra::PL_RECIPE_seafood_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Skipper's expanded hotroot soup",
+     "id": "pearls_lutra::PL_RECIPE_skipper_s_expanded_hotroot_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Vegetable and seafood soup",
+     "id": "pearls_lutra::PL_RECIPE_vegetable_and_seafood_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Vegetable soup (Grumm shore camp)",
+     "id": "martin_warrior::MW_RECIPE_vegetable_soup_grumm_shore_camp",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "leaf_id": "LEAF_cabbage",
+   "direct_count": 8,
+   "component_count": 4,
+   "dishes": [
+    {
+     "label": "Bad-cook boiled cabbage",
+     "id": "rakkety_tam::RAK_recipe_bad_cook_boiled_cabbage",
+     "use": "direct"
+    },
+    {
+     "label": "Cabbage pudding (song)",
+     "id": "marlfox::MF_RECIPE_cabbage_pudding_song",
+     "use": "direct"
+    },
+    {
+     "label": "Cabbage-fennel bake",
+     "id": "taggerung::TAG_recipe_cabbage_fennel_bake",
+     "use": "direct"
+    },
+    {
+     "label": "Cabbage-turnip pasties",
+     "id": "triss::TRI_recipe_cabbage_turnip_pasties",
+     "use": "direct"
+    },
+    {
+     "label": "Cave farm vegetables",
+     "id": "outcast::OUT_recipe_cave_farm_vegetables",
+     "use": "direct"
+    },
+    {
+     "label": "Leek and cabbage soup",
+     "id": "martin_warrior::MW_RECIPE_leek_and_cabbage_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Nimbalo-style safe-greens and berry salad",
+     "id": "taggerung::TAG_recipe_nimbalo_s_flatlands_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Plant-pantry game version of Hodgepodge pie",
+     "id": "marlfox::MF_RECIPE_hodgepodge_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Cabbage-fennel pasties",
+     "id": "taggerung::TAG_recipe_cabbage_fennel_pasties",
+     "use": "component"
+    },
+    {
+     "label": "Cold hodgepodge pie",
+     "id": "marlfox::MF_RECIPE_cold_hodgepodge_pie",
+     "use": "component"
+    },
+    {
+     "label": "Leaf-wrapped steamed fruit",
+     "id": "triss::TRI_recipe_leaf_wrapped_steamed_fruit",
+     "use": "component"
+    },
+    {
+     "label": "Leaf-wrapped steamed vegetables",
+     "id": "triss::TRI_recipe_leaf_wrapped_steamed_vegetables",
+     "use": "component"
+    }
+   ]
+  },
+  {
+   "leaf_id": "LEAF_lettuce",
+   "direct_count": 34,
+   "component_count": 1,
+   "dishes": [
+    {
+     "label": "Burdock-stalk salad",
+     "id": "marlfox::MF_RECIPE_burdock_stalk_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Cave household salad",
+     "id": "outcast::OUT_recipe_cave_household_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Corkal's duel salad",
+     "id": "pearls_lutra::PL_RECIPE_corkal_s_duel_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Feast scones cheese and salad vegetables",
+     "id": "outcast::OUT_recipe_feast_scones_cheese_and_salad_vegetables",
+     "use": "direct"
+    },
+    {
+     "label": "Feast vegetable salad",
+     "id": "triss::TRI_recipe_feast_vegetable_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Festival spring salad",
+     "id": "rakkety_tam::RAK_recipe_festival_spring_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Frame picnic salad",
+     "id": "outcast::OUT_recipe_frame_picnic_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Fresh spring salad",
+     "id": "long_patrol::LP-RECIPE-fresh-spring-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Mixed woodland forage greens",
+     "id": "lord_brocktree::LB-RECIPE-mixed-woodland-forage-greens",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Pretended mussel salad",
+     "id": "lord_brocktree::LB-RECIPE-pretended-shrimp-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Fresh fruit salad",
+     "id": "pearls_lutra::PL_RECIPE_fresh_fruit_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Fresh spring salad",
+     "id": "pearls_lutra::PL_RECIPE_fresh_spring_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Ruddaring tropical fruit salad",
+     "id": "pearls_lutra::PL_RECIPE_ruddaring_tropical_fruit_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Summer salad",
+     "id": "pearls_lutra::PL_RECIPE_summer_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Summer salad and cheese",
+     "id": "martin_warrior::MW_RECIPE_summer_salad_and_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Game meal: cultured oat cheese, lettuce, watercress",
+     "id": "salamandastron::SAL_recipe_bank_cheese_and_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Game meal: oats, lettuce, watercress",
+     "id": "salamandastron::SAL_recipe_oatloaf_and_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Game salad: lettuce, watercress, apple vinegar",
+     "id": "salamandastron::SAL_recipe_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Game salad: lettuce, watercress, fennel, apple vinegar",
+     "id": "salamandastron::SAL_recipe_ten_homecoming_salads",
+     "use": "direct"
+    },
+    {
+     "label": "Last Summer Salad",
+     "id": "marlfox::MF_RECIPE_last_summer_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Lettuce watercress and scallion salad",
+     "id": "lord_brocktree::LB-RECIPE-lettuce-watercress-and-scallion-salad",
+     "use": "direct"
+    },
+    {
+     "label": "New bread and fresh salad",
+     "id": "mossflower::MF_recipe_new_bread_and_fresh_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Raft salad",
+     "id": "marlfox::MF_RECIPE_raft_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Remembered lettuce broth",
+     "id": "lord_brocktree::LB-RECIPE-remembered-lettuce-broth",
+     "use": "direct"
+    },
+    {
+     "label": "Remembered salad",
+     "id": "lord_brocktree::LB-RECIPE-remembered-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Remembered summer salad",
+     "id": "lord_brocktree::LB-RECIPE-remembered-summer-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Salad",
+     "id": "redwall::RW-RECIPE-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Salad luncheon",
+     "id": "mossflower::MF_recipe_salad_luncheon",
+     "use": "direct"
+    },
+    {
+     "label": "Spring salad",
+     "id": "outcast::OUT_recipe_spring_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Streambank salad with hazelnuts",
+     "id": "outcast::OUT_recipe_streambank_salad_with_hazelnuts",
+     "use": "direct"
+    },
+    {
+     "label": "Summer salad",
+     "id": "marlfox::MF_RECIPE_summer_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Summer salad with hazelnuts",
+     "id": "marlfox::MF_RECIPE_summer_salad_with_hazelnuts",
+     "use": "direct"
+    },
+    {
+     "label": "Voluntary lettuce side salad and water",
+     "id": "triss::TRI_recipe_lettuce_and_water_ration",
+     "use": "direct"
+    },
+    {
+     "label": "Winter salad",
+     "id": "martin_warrior::MW_RECIPE_winter_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Plant-pantry game version of Summer vegetable soup",
+     "id": "marlfox::MF_RECIPE_summer_vegetable_soup",
+     "use": "component"
+    }
+   ]
+  },
+  {
+   "leaf_id": "LEAF_spinach",
+   "direct_count": 1,
+   "component_count": 0,
+   "dishes": [
+    {
+     "label": "Mackerel, spinach and sorrel stew",
+     "id": "taggerung::TAG_recipe_mackerel_milkweed_and_dock_stew",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "leaf_id": "LEAF_leek",
+   "direct_count": 78,
+   "component_count": 6,
+   "dishes": [
+    {
+     "label": "Barrack-song vegetable soup",
+     "id": "rakkety_tam::RAK_recipe_cook_s_poison_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Beetroot and mushroom pastie with leek gravy",
+     "id": "martin_warrior::MW_RECIPE_beetroot_and_mushroom_pastie_with_leek_gravy",
+     "use": "direct"
+    },
+    {
+     "label": "Bloggflash Special",
+     "id": "outcast::OUT_recipe_bloggflash_special",
+     "use": "direct"
+    },
+    {
+     "label": "Brocktree's unnamed camp soup",
+     "id": "lord_brocktree::LB-RECIPE-brocktree-s-unnamed-camp-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot and leek flan",
+     "id": "outcast::OUT_recipe_carrot_and_leek_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot, turnip, pea and leek stew",
+     "id": "martin_warrior::MW_RECIPE_carrot_turnip_pea_and_leek_stew",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot-radish spring salad",
+     "id": "rakkety_tam::RAK_recipe_carrot_radish_spring_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Cave farm vegetables",
+     "id": "outcast::OUT_recipe_cave_farm_vegetables",
+     "use": "direct"
+    },
+    {
+     "label": "Celery and leek turnovers",
+     "id": "pearls_lutra::PL_RECIPE_celery_and_leek_turnovers",
+     "use": "direct"
+    },
+    {
+     "label": "Cheese mushroom and leek bake",
+     "id": "outcast::OUT_recipe_cheese_mushroom_and_leek_bake",
+     "use": "direct"
+    },
+    {
+     "label": "Chestnut mushroom and leek pastie",
+     "id": "salamandastron::SAL_recipe_chestnut_mushroom_and_leek_pastie",
+     "use": "direct"
+    },
+    {
+     "label": "Cold deeper'n'ever pie breakfast",
+     "id": "outcast::OUT_recipe_cold_deeper_n_ever_pie_breakfast",
+     "use": "direct"
+    },
+    {
+     "label": "Cornflower's homemade vegetable soup",
+     "id": "redwall::RW-RECIPE-cornflower-s-homemade-vegetable-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Deeper'n'ever pie",
+     "id": "outcast::OUT_recipe_deeper_n_ever_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Dotti's alleged windowsill pie",
+     "id": "lord_brocktree::LB-RECIPE-dotti-s-alleged-windowsill-pie",
+     "use": "direct"
+    },
+    {
+     "label": "Early spring vegetable soup",
+     "id": "long_patrol::LP-RECIPE-early-spring-vegetable-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Feast pasties",
+     "id": "triss::TRI_recipe_feast_pasties",
+     "use": "direct"
+    },
+    {
+     "label": "Folrig and Ruddle's hotroot soup",
+     "id": "outcast::OUT_recipe_folrig_and_ruddle_s_hotroot_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Frame picnic pastie",
+     "id": "outcast::OUT_recipe_frame_picnic_pastie",
+     "use": "direct"
+    },
+    {
+     "label": "Fresh vegetable broth",
+     "id": "triss::TRI_recipe_fresh_vegetable_broth",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Frutch's potato mussel and leek chowder",
+     "id": "lord_brocktree::LB-RECIPE-frutch-s-potato-whelk-and-leek-chowder",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Grandmother Brookback's crusted dace",
+     "id": "lord_brocktree::LB-RECIPE-grandmother-brookback-s-crusted-dace",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Skipper's expanded hotroot soup",
+     "id": "pearls_lutra::PL_RECIPE_skipper_s_expanded_hotroot_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game flan: carrot, leek, turnip, oat flour",
+     "id": "salamandastron::SAL_recipe_vegetable_flans",
+     "use": "direct"
+    },
+    {
+     "label": "Game flan: leek, cultured oat cheese, oat flour, oat drink",
+     "id": "salamandastron::SAL_recipe_leek_and_cheese_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Game pasty: carrot, leek, turnip, oat flour",
+     "id": "salamandastron::SAL_recipe_vegetable_pasty",
+     "use": "direct"
+    },
+    {
+     "label": "Game pasty: leek, mushroom, oat pastry, watercress",
+     "id": "salamandastron::SAL_recipe_giant_leek_and_mushroom_pastie",
+     "use": "direct"
+    },
+    {
+     "label": "Game soup: leek, carrot, water, salt",
+     "id": "salamandastron::SAL_recipe_faith_s_soup_jug",
+     "use": "direct"
+    },
+    {
+     "label": "Gravy-filled pastie",
+     "id": "outcast::OUT_recipe_gravy_filled_pastie",
+     "use": "direct"
+    },
+    {
+     "label": "Guosim camp stew",
+     "id": "rakkety_tam::RAK_recipe_guosim_camp_stew",
+     "use": "direct"
+    },
+    {
+     "label": "Guosim-style mussel and vegetable stew",
+     "id": "long_patrol::LP-RECIPE-guosim-prebattle-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Hare-song pasties",
+     "id": "lord_brocktree::LB-RECIPE-hare-song-pasties",
+     "use": "direct"
+    },
+    {
+     "label": "Hazelnut and leek stew",
+     "id": "mossflower::MF_recipe_hazelnut_and_leek_stew",
+     "use": "direct"
+    },
+    {
+     "label": "Hot mushroom and leek soup",
+     "id": "salamandastron::SAL_recipe_hot_mushroom_and_leek_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Hot vegetable soup",
+     "id": "long_patrol::LP-RECIPE-hot-vegetable-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Hot vegetable watch soup",
+     "id": "triss::TRI_recipe_hot_vegetable_watch_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Leaf-wrapped steamed vegetables",
+     "id": "triss::TRI_recipe_leaf_wrapped_steamed_vegetables",
+     "use": "direct"
+    },
+    {
+     "label": "Leek and bean soup",
+     "id": "martin_warrior::MW_RECIPE_leek_and_bean_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Leek and cabbage soup",
+     "id": "martin_warrior::MW_RECIPE_leek_and_cabbage_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Leek and chestnut pastie with thyme-radish sauce",
+     "id": "martin_warrior::MW_RECIPE_leek_and_chestnut_pastie_with_thyme_radish_sauce",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "leaf_id": "LEAF_celery",
+   "direct_count": 40,
+   "component_count": 0,
+   "dishes": [
+    {
+     "label": "Carrot and celery broth",
+     "id": "martin_warrior::MW_RECIPE_carrot_and_celery_broth",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot and celery flan",
+     "id": "long_patrol::LP-RECIPE-carrot-and-celery-flan",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot-radish spring salad",
+     "id": "rakkety_tam::RAK_recipe_carrot_radish_spring_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Celery and fennel stew with hazelnut dumplings",
+     "id": "mossflower::MF_recipe_celery_and_fennel_stew_with_hazelnut_dumplings",
+     "use": "direct"
+    },
+    {
+     "label": "Celery and leek turnovers",
+     "id": "pearls_lutra::PL_RECIPE_celery_and_leek_turnovers",
+     "use": "direct"
+    },
+    {
+     "label": "Celery and mushroom turnover",
+     "id": "pearls_lutra::PL_RECIPE_celery_and_mushroom_turnover",
+     "use": "direct"
+    },
+    {
+     "label": "Celery salad",
+     "id": "taggerung::TAG_recipe_celery_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Celery wafers",
+     "id": "martin_warrior::MW_RECIPE_celery_wafers",
+     "use": "direct"
+    },
+    {
+     "label": "Celery-carrot soup",
+     "id": "taggerung::TAG_recipe_celery_carrot_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Celery-chestnut bake",
+     "id": "taggerung::TAG_recipe_celery_chestnut_bake",
+     "use": "direct"
+    },
+    {
+     "label": "Cornflower's homemade vegetable soup",
+     "id": "redwall::RW-RECIPE-cornflower-s-homemade-vegetable-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured hazelnut cheese-celery pasty",
+     "id": "triss::TRI_recipe_cheese_celery_pasty",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured oat-curd adaptation of Celery-studded old cheese",
+     "id": "martin_warrior::MW_RECIPE_celery_studded_old_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured oat-curd adaptation of Yellow chestnut and celery cheese",
+     "id": "pearls_lutra::PL_RECIPE_yellow_chestnut_and_celery_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Filboonimgun cultured hazelnut wheel",
+     "id": "taggerung::TAG_recipe_filboonimgun_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Celery and cheese turnover",
+     "id": "pearls_lutra::PL_RECIPE_celery_and_cheese_turnover",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Wild celery and herb soup",
+     "id": "martin_warrior::MW_RECIPE_wild_celery_and_herb_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game cheese: cultured almond cheese, celery, onion, oats",
+     "id": "salamandastron::SAL_recipe_white_cheese_with_celery_and_onion",
+     "use": "direct"
+    },
+    {
+     "label": "Game cheese: cultured almond cheese, cultured pumpkin-seed cheese, cultured hazelnut cheese, hazelnut",
+     "id": "salamandastron::SAL_recipe_nut_herb_and_celery_cheeses",
+     "use": "direct"
+    },
+    {
+     "label": "Game cheese: cultured pumpkin-seed cheese, celery, oats, water",
+     "id": "salamandastron::SAL_recipe_yellow_celery_studded_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Game meal: chestnut, celery, cultured oat cheese, vegetable flan",
+     "id": "salamandastron::SAL_recipe_chestnut_and_celery_cheese_on_vegetable_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Guosim pit-baked trout",
+     "id": "rakkety_tam::RAK_recipe_guosim_pit_baked_trout",
+     "use": "direct"
+    },
+    {
+     "label": "Leek-and-celery soup",
+     "id": "marlfox::MF_RECIPE_leek_and_celery_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Leek-celery soup",
+     "id": "rakkety_tam::RAK_recipe_leek_celery_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Mushroom and celery soup with dandelion petals",
+     "id": "martin_warrior::MW_RECIPE_mushroom_and_celery_soup_with_dandelion_petals",
+     "use": "direct"
+    },
+    {
+     "label": "Mushroom-and-celery turnover",
+     "id": "marlfox::MF_RECIPE_mushroom_and_celery_turnover",
+     "use": "direct"
+    },
+    {
+     "label": "Mushroom-celery broth with hotroot pepper",
+     "id": "taggerung::TAG_recipe_mushroom_celery_broth_with_hotroot_pepper",
+     "use": "direct"
+    },
+    {
+     "label": "Mussels with wild celery and onion",
+     "id": "taggerung::TAG_recipe_scallops_with_wild_celery_and_onion",
+     "use": "direct"
+    },
+    {
+     "label": "Pea and celery soup",
+     "id": "long_patrol::LP-RECIPE-pea-and-celery-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Plant-pantry game version of Celery cheese",
+     "id": "marlfox::MF_RECIPE_celery_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Plant-pantry game version of Cheese-and-celery flan with sage and parsley",
+     "id": "marlfox::MF_RECIPE_cheese_and_celery_flan_with_sage_and_parsley",
+     "use": "direct"
+    },
+    {
+     "label": "Plant-pantry game version of White celery cheese",
+     "id": "marlfox::MF_RECIPE_white_celery_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Pressed oat-cheese with celery and carrot",
+     "id": "long_patrol::LP-RECIPE-yellow-celery-and-carrot-cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Raft salad",
+     "id": "marlfox::MF_RECIPE_raft_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Soft cultured hazelnut cheese with celery",
+     "id": "triss::TRI_recipe_soft_cheese_with_celery",
+     "use": "direct"
+    },
+    {
+     "label": "Summer vegetable soup",
+     "id": "taggerung::TAG_recipe_summer_vegetable_soup",
+     "use": "direct"
+    },
+    {
+     "label": "White cheese with celery and hazelnuts — plant/approved-fish game adaptation",
+     "id": "taggerung::TAG_recipe_white_cheese_with_celery_and_hazelnuts",
+     "use": "direct"
+    },
+    {
+     "label": "Wild celery stalk",
+     "id": "pearls_lutra::PL_RECIPE_wild_celery_stalk",
+     "use": "direct"
+    },
+    {
+     "label": "Woodland assembly with bread, cultured hazelnut spread, celery",
+     "id": "mossflower::MF_recipe_hot_oven_bread_with_cheese_and_celery",
+     "use": "direct"
+    },
+    {
+     "label": "Woodland assembly with celery, parsley, thyme",
+     "id": "mossflower::MF_recipe_celery_and_herb_cheese_on_acorn_bread_with_radishes",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "leaf_id": "LEAF_pea",
+   "direct_count": 3,
+   "component_count": 2,
+   "dishes": [
+    {
+     "label": "Carrot, turnip, pea and leek stew",
+     "id": "martin_warrior::MW_RECIPE_carrot_turnip_pea_and_leek_stew",
+     "use": "direct"
+    },
+    {
+     "label": "Cave farm vegetables",
+     "id": "outcast::OUT_recipe_cave_farm_vegetables",
+     "use": "direct"
+    },
+    {
+     "label": "Pea and celery soup",
+     "id": "long_patrol::LP-RECIPE-pea-and-celery-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Fresh spring salad",
+     "id": "pearls_lutra::PL_RECIPE_fresh_spring_salad",
+     "use": "component"
+    },
+    {
+     "label": "Game adaptation: Spring vegetable pasties",
+     "id": "martin_warrior::MW_RECIPE_spring_vegetable_pasties",
+     "use": "component"
+    }
+   ]
+  },
+  {
+   "leaf_id": "LEAF_broad_bean",
+   "direct_count": 1,
+   "component_count": 0,
+   "dishes": [
+    {
+     "label": "Woodlander's vegetable stew",
+     "id": "outcast::OUT_recipe_woodlander_s_vegetable_stew",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "leaf_id": "LEAF_wheat",
+   "direct_count": 3,
+   "component_count": 382,
+   "dishes": [
+    {
+     "label": "Crusty wheat bread",
+     "id": "rakkety_tam::RAK_recipe_crusty_wheat_bread",
+     "use": "direct"
+    },
+    {
+     "label": "Game meal: wheat, cultured oat cheese, apple",
+     "id": "salamandastron::SAL_recipe_wheatcake_with_cheese_and_apple",
+     "use": "direct"
+    },
+    {
+     "label": "Savory stuffed wheaten bread — plant or approved-aquatic adaptation",
+     "id": "rakkety_tam::RAK_recipe_savory_stuffed_wheaten_bread",
+     "use": "direct"
+    },
+    {
+     "label": "Abbey Trifle",
+     "id": "long_patrol::LP-RECIPE-abbey-trifle",
+     "use": "component"
+    },
+    {
+     "label": "Almond slice",
+     "id": "rakkety_tam::RAK_recipe_almond_slice",
+     "use": "component"
+    },
+    {
+     "label": "Almond wafers",
+     "id": "marlfox::MF_RECIPE_almond_wafers",
+     "use": "component"
+    },
+    {
+     "label": "Apple and damson pie",
+     "id": "pearls_lutra::PL_RECIPE_apple_and_damson_pie",
+     "use": "component"
+    },
+    {
+     "label": "Apple and redcurrant pie",
+     "id": "long_patrol::LP-RECIPE-apple-and-redcurrant-pie",
+     "use": "component"
+    },
+    {
+     "label": "Apple pie",
+     "id": "lord_brocktree::LB-RECIPE-apple-pie",
+     "use": "component"
+    },
+    {
+     "label": "Apple turnover with maple syrup",
+     "id": "marlfox::MF_RECIPE_apple_turnover_with_maple_syrup",
+     "use": "component"
+    },
+    {
+     "label": "Apple turnovers",
+     "id": "martin_warrior::MW_RECIPE_apple_turnovers",
+     "use": "component"
+    },
+    {
+     "label": "Apple-and-blackcurrant flan",
+     "id": "marlfox::MF_RECIPE_apple_and_blackcurrant_flan",
+     "use": "component"
+    },
+    {
+     "label": "Apples and scones",
+     "id": "marlfox::MF_RECIPE_apples_and_scones",
+     "use": "component"
+    },
+    {
+     "label": "Applescones",
+     "id": "martin_warrior::MW_RECIPE_applescones",
+     "use": "component"
+    },
+    {
+     "label": "Arven's hard scones",
+     "id": "pearls_lutra::PL_RECIPE_arven_s_hard_scones",
+     "use": "component"
+    },
+    {
+     "label": "Bad-cook hard scones",
+     "id": "rakkety_tam::RAK_recipe_bad_cook_hard_scones",
+     "use": "component"
+    },
+    {
+     "label": "Bad-cook toast",
+     "id": "rakkety_tam::RAK_recipe_bad_cook_toast",
+     "use": "component"
+    },
+    {
+     "label": "Banquet cakes",
+     "id": "rakkety_tam::RAK_recipe_banquet_cakes",
+     "use": "component"
+    },
+    {
+     "label": "Banquet tarts",
+     "id": "rakkety_tam::RAK_recipe_banquet_tarts",
+     "use": "component"
+    },
+    {
+     "label": "Banquet turnovers",
+     "id": "rakkety_tam::RAK_recipe_banquet_turnovers",
+     "use": "component"
+    },
+    {
+     "label": "Barley and honey scones",
+     "id": "long_patrol::LP-RECIPE-barley-and-honey-scones",
+     "use": "component"
+    },
+    {
+     "label": "Barley bread",
+     "id": "marlfox::MF_RECIPE_barley_bread",
+     "use": "component"
+    },
+    {
+     "label": "Barley feast bread",
+     "id": "outcast::OUT_recipe_barley_feast_bread",
+     "use": "component"
+    },
+    {
+     "label": "Barley scone",
+     "id": "lord_brocktree::LB-RECIPE-barley-scone",
+     "use": "component"
+    },
+    {
+     "label": "Barley scones",
+     "id": "martin_warrior::MW_RECIPE_barley_scones",
+     "use": "component"
+    },
+    {
+     "label": "Barley toast with quince jam",
+     "id": "taggerung::TAG_recipe_barley_toast_with_quince_jam",
+     "use": "component"
+    },
+    {
+     "label": "Barleybread",
+     "id": "martin_warrior::MW_RECIPE_barleybread",
+     "use": "component"
+    },
+    {
+     "label": "Barrack-ball cherry trifle — plant or approved-aquatic adaptation",
+     "id": "rakkety_tam::RAK_recipe_barrack_ball_cherry_trifle",
+     "use": "component"
+    },
+    {
+     "label": "Barrack-ball flan",
+     "id": "rakkety_tam::RAK_recipe_barrack_ball_flan",
+     "use": "component"
+    },
+    {
+     "label": "Batch loaves",
+     "id": "long_patrol::LP-RECIPE-batch-loaves",
+     "use": "component"
+    },
+    {
+     "label": "Baton loaf",
+     "id": "marlfox::MF_RECIPE_baton_loaf",
+     "use": "component"
+    },
+    {
+     "label": "Beechnut sponge",
+     "id": "marlfox::MF_RECIPE_beechnut_sponge",
+     "use": "component"
+    },
+    {
+     "label": "Beetroot and mushroom pastie with leek gravy",
+     "id": "martin_warrior::MW_RECIPE_beetroot_and_mushroom_pastie_with_leek_gravy",
+     "use": "component"
+    },
+    {
+     "label": "Bilberry scones",
+     "id": "pearls_lutra::PL_RECIPE_bilberry_scones",
+     "use": "component"
+    },
+    {
+     "label": "Blackberry and apple tarts",
+     "id": "martin_warrior::MW_RECIPE_blackberry_and_apple_tarts",
+     "use": "component"
+    },
+    {
+     "label": "Blackberry muffin",
+     "id": "redwall::RW-RECIPE-blackberry-muffin",
+     "use": "component"
+    },
+    {
+     "label": "Blackberry muffins",
+     "id": "pearls_lutra::PL_RECIPE_blackberry_muffins",
+     "use": "component"
+    },
+    {
+     "label": "Blackberry tarts",
+     "id": "long_patrol::LP-RECIPE-blackberry-tarts",
+     "use": "component"
+    },
+    {
+     "label": "Blackberry-filled scone",
+     "id": "marlfox::MF_RECIPE_blackberry_filled_scone",
+     "use": "component"
+    },
+    {
+     "label": "Blackcurrant muffins",
+     "id": "pearls_lutra::PL_RECIPE_blackcurrant_muffins",
+     "use": "component"
+    }
+   ]
+  },
+  {
+   "leaf_id": "LEAF_barley",
+   "direct_count": 47,
+   "component_count": 167,
+   "dishes": [
+    {
+     "label": "Autumn Harvest soup",
+     "id": "taggerung::TAG_recipe_autumn_harvest_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Barley and beet soup with corn dumplings",
+     "id": "long_patrol::LP-RECIPE-barley-and-beet-soup-with-corn-dumplings",
+     "use": "direct"
+    },
+    {
+     "label": "Barley and honey scones",
+     "id": "long_patrol::LP-RECIPE-barley-and-honey-scones",
+     "use": "direct"
+    },
+    {
+     "label": "Barley bread",
+     "id": "outcast::OUT_recipe_barley_bread",
+     "use": "direct"
+    },
+    {
+     "label": "Barley broth",
+     "id": "outcast::OUT_recipe_barley_broth",
+     "use": "direct"
+    },
+    {
+     "label": "Barley farl",
+     "id": "taggerung::TAG_recipe_barley_farl",
+     "use": "direct"
+    },
+    {
+     "label": "Barley farls",
+     "id": "triss::TRI_recipe_barley_farls",
+     "use": "direct"
+    },
+    {
+     "label": "Barley feast bread",
+     "id": "outcast::OUT_recipe_barley_feast_bread",
+     "use": "direct"
+    },
+    {
+     "label": "Barley scone",
+     "id": "lord_brocktree::LB-RECIPE-barley-scone",
+     "use": "direct"
+    },
+    {
+     "label": "Barley scones",
+     "id": "martin_warrior::MW_RECIPE_barley_scones",
+     "use": "direct"
+    },
+    {
+     "label": "Barleybread",
+     "id": "martin_warrior::MW_RECIPE_barleybread",
+     "use": "direct"
+    },
+    {
+     "label": "Breakfast strawberry-honey burgoo",
+     "id": "taggerung::TAG_recipe_breakfast_strawberry_honey_burgoo",
+     "use": "direct"
+    },
+    {
+     "label": "Captives' grain porridge",
+     "id": "triss::TRI_recipe_captives_grain_porridge",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot mushroom and onion hotpot",
+     "id": "long_patrol::LP-RECIPE-carrot-mushroom-and-onion-hotpot",
+     "use": "direct"
+    },
+    {
+     "label": "Chestnut-barley bread",
+     "id": "rakkety_tam::RAK_recipe_chestnut_barley_bread",
+     "use": "direct"
+    },
+    {
+     "label": "Dark sweet shrewbeer",
+     "id": "rakkety_tam::RAK_recipe_dark_sweet_shrewbeer",
+     "use": "direct"
+    },
+    {
+     "label": "Didjety's vegetable sausages",
+     "id": "rakkety_tam::RAK_recipe_didjety_s_vegetable_sausages",
+     "use": "direct"
+    },
+    {
+     "label": "Drufo's hot grain and root soup",
+     "id": "triss::TRI_recipe_drufo_s_hot_grain_and_root_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Flat barleybread",
+     "id": "pearls_lutra::PL_RECIPE_flat_barleybread",
+     "use": "direct"
+    },
+    {
+     "label": "Forager's stew",
+     "id": "long_patrol::LP-RECIPE-forager-s-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Pretended mussel stew",
+     "id": "lord_brocktree::LB-RECIPE-pretended-shrimp-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Barley-bread farl with onion gravy and mashed turnip",
+     "id": "martin_warrior::MW_RECIPE_barley_bread_farl_with_onion_gravy_and_mashed_turnip",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Barleymeal porridge",
+     "id": "pearls_lutra::PL_RECIPE_barleymeal_porridge",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Oatmeal barley breakfast mixture",
+     "id": "pearls_lutra::PL_RECIPE_oatmeal_barley_breakfast_mixture",
+     "use": "direct"
+    },
+    {
+     "label": "Grandma's hard-baked stew",
+     "id": "rakkety_tam::RAK_recipe_grandma_s_hard_baked_stew",
+     "use": "direct"
+    },
+    {
+     "label": "Guosim camp stew",
+     "id": "rakkety_tam::RAK_recipe_guosim_camp_stew",
+     "use": "direct"
+    },
+    {
+     "label": "Guosim-style mussel and vegetable stew",
+     "id": "long_patrol::LP-RECIPE-guosim-prebattle-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Gurt tunnel stew",
+     "id": "lord_brocktree::LB-RECIPE-gurt-tunnel-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Hot oat and barley water",
+     "id": "pearls_lutra::PL_RECIPE_hot_oat_and_barley_water",
+     "use": "direct"
+    },
+    {
+     "label": "Oat and barley cordial",
+     "id": "pearls_lutra::PL_RECIPE_oat_and_barley_cordial",
+     "use": "direct"
+    },
+    {
+     "label": "Oat and barley water",
+     "id": "outcast::OUT_recipe_oat_and_barley_water",
+     "use": "direct"
+    },
+    {
+     "label": "October Ale",
+     "id": "rakkety_tam::RAK_recipe_october_ale",
+     "use": "direct"
+    },
+    {
+     "label": "October ale",
+     "id": "mossflower::MF_recipe_october_ale",
+     "use": "direct"
+    },
+    {
+     "label": "October Ale — brewing-song formula",
+     "id": "long_patrol::LP-RECIPE-october-ale-brewing-song-formula",
+     "use": "direct"
+    },
+    {
+     "label": "Pretend boiled-nettle ale",
+     "id": "rakkety_tam::RAK_recipe_pretend_boiled_nettle_ale",
+     "use": "direct"
+    },
+    {
+     "label": "Rawback's stone-baked flatcakes",
+     "id": "taggerung::TAG_recipe_rawback_s_stone_baked_flatcakes",
+     "use": "direct"
+    },
+    {
+     "label": "Roderick's beer",
+     "id": "rakkety_tam::RAK_recipe_roderick_s_beer",
+     "use": "direct"
+    },
+    {
+     "label": "Rough barleycakes",
+     "id": "long_patrol::LP-RECIPE-rough-barleycakes",
+     "use": "direct"
+    },
+    {
+     "label": "Scarum's mixed-pot meal",
+     "id": "triss::TRI_recipe_scarum_s_mixed_pot_meal",
+     "use": "direct"
+    },
+    {
+     "label": "Seed and sweet barley cake with mint icing",
+     "id": "mossflower::MF_recipe_seed_and_sweet_barley_cake_with_mint_icing",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "leaf_id": "LEAF_oats",
+   "direct_count": 92,
+   "component_count": 413,
+   "dishes": [
+    {
+     "label": "Aged oat-and-seed cheese",
+     "id": "redwall::RW-RECIPE-cheddar",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-rhubarb crumble",
+     "id": "rakkety_tam::RAK_recipe_apple_rhubarb_crumble",
+     "use": "direct"
+    },
+    {
+     "label": "Autumn oat-and-nut cheese",
+     "id": "long_patrol::LP-RECIPE-autumn-nut-cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Bad-cook porridge",
+     "id": "rakkety_tam::RAK_recipe_bad_cook_porridge",
+     "use": "direct"
+    },
+    {
+     "label": "Banquet crumbles",
+     "id": "rakkety_tam::RAK_recipe_banquet_crumbles",
+     "use": "direct"
+    },
+    {
+     "label": "Barrack-ball crumble",
+     "id": "rakkety_tam::RAK_recipe_barrack_ball_crumble",
+     "use": "direct"
+    },
+    {
+     "label": "Barrack-ball pudding",
+     "id": "rakkety_tam::RAK_recipe_barrack_ball_pudding",
+     "use": "direct"
+    },
+    {
+     "label": "Barrack-song oat pudding",
+     "id": "rakkety_tam::RAK_recipe_mother_s_weapon_pudding",
+     "use": "direct"
+    },
+    {
+     "label": "Bloggwood's rejected porridge",
+     "id": "outcast::OUT_recipe_bloggwood_s_rejected_porridge",
+     "use": "direct"
+    },
+    {
+     "label": "Breakfast oatcake",
+     "id": "rakkety_tam::RAK_recipe_breakfast_oatcake",
+     "use": "direct"
+    },
+    {
+     "label": "Breakfast strawberry-honey burgoo",
+     "id": "taggerung::TAG_recipe_breakfast_strawberry_honey_burgoo",
+     "use": "direct"
+    },
+    {
+     "label": "Bunfold's home-baked oat scone",
+     "id": "outcast::OUT_recipe_bunfold_s_home_baked_oat_scone",
+     "use": "direct"
+    },
+    {
+     "label": "Clover oatcakes with hot redcurrant sauce",
+     "id": "mossflower::MF_recipe_clover_oatcakes_with_hot_redcurrant_sauce",
+     "use": "direct"
+    },
+    {
+     "label": "Creamy stout",
+     "id": "redwall::RW-RECIPE-creamy-stout",
+     "use": "direct"
+    },
+    {
+     "label": "Crusty bread with pressed oat-and-seed cheese",
+     "id": "long_patrol::LP-RECIPE-crusty-bread-and-ripe-yellow-cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Didjety's vegetable sausages",
+     "id": "rakkety_tam::RAK_recipe_didjety_s_vegetable_sausages",
+     "use": "direct"
+    },
+    {
+     "label": "Fennel and oatcakes",
+     "id": "redwall::RW-RECIPE-fennel-and-oatcakes",
+     "use": "direct"
+    },
+    {
+     "label": "Flat oatcakes",
+     "id": "taggerung::TAG_recipe_flat_oatcakes",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Grandmother Brookback's crusted dace",
+     "id": "lord_brocktree::LB-RECIPE-grandmother-brookback-s-crusted-dace",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — oat cheese and oatmeal cakes",
+     "id": "lord_brocktree::LB-RECIPE-cheese-and-oatmeal-cakes",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Travel oat cheese",
+     "id": "lord_brocktree::LB-RECIPE-travel-cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Yellow sage and onion oat cheese",
+     "id": "lord_brocktree::LB-RECIPE-yellow-sage-and-onion-cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Barleymeal porridge",
+     "id": "pearls_lutra::PL_RECIPE_barleymeal_porridge",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Oatmeal barley breakfast mixture",
+     "id": "pearls_lutra::PL_RECIPE_oatmeal_barley_breakfast_mixture",
+     "use": "direct"
+    },
+    {
+     "label": "Game cheese: chestnut, cultured pumpkin-seed cheese, oats, water",
+     "id": "salamandastron::SAL_recipe_yellow_chestnut_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Game cheese: cultured almond cheese, celery, onion, oats",
+     "id": "salamandastron::SAL_recipe_white_cheese_with_celery_and_onion",
+     "use": "direct"
+    },
+    {
+     "label": "Game cheese: cultured almond cheese, cultured pumpkin-seed cheese, cultured hazelnut cheese, hazelnut",
+     "id": "salamandastron::SAL_recipe_nut_herb_and_celery_cheeses",
+     "use": "direct"
+    },
+    {
+     "label": "Game cheese: cultured pumpkin-seed cheese, celery, oats, water",
+     "id": "salamandastron::SAL_recipe_yellow_celery_studded_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Game cheese: cultured pumpkin-seed cheese, cultured almond cheese, oats, water",
+     "id": "salamandastron::SAL_recipe_yellow_and_white_cheeses",
+     "use": "direct"
+    },
+    {
+     "label": "Game meal: oats, lettuce, watercress",
+     "id": "salamandastron::SAL_recipe_oatloaf_and_salad",
+     "use": "direct"
+    },
+    {
+     "label": "Game milk: oat drink, oats, water",
+     "id": "salamandastron::SAL_recipe_greensap_milk",
+     "use": "direct"
+    },
+    {
+     "label": "Glogg's plum pudding",
+     "id": "rakkety_tam::RAK_recipe_glogg_s_plum_pudding",
+     "use": "direct"
+    },
+    {
+     "label": "Goody's porridge",
+     "id": "mossflower::MF_recipe_goody_s_porridge",
+     "use": "direct"
+    },
+    {
+     "label": "Greensap milk from white grass stems and tubers",
+     "id": "outcast::OUT_recipe_greensap_milk_from_white_grass_stems_and_tubers",
+     "use": "direct"
+    },
+    {
+     "label": "Gruel",
+     "id": "redwall::RW-RECIPE-gruel",
+     "use": "direct"
+    },
+    {
+     "label": "Grumm's invention cakes",
+     "id": "martin_warrior::MW_RECIPE_grumm_s_invention_cakes",
+     "use": "direct"
+    },
+    {
+     "label": "Hard oatcakes",
+     "id": "rakkety_tam::RAK_recipe_hard_oatcakes",
+     "use": "direct"
+    },
+    {
+     "label": "Hazelnut oat-and-seed cheese",
+     "id": "redwall::RW-RECIPE-goat-milk-cheese-with-hazelnuts",
+     "use": "direct"
+    },
+    {
+     "label": "Honey oat-curds with roasted almonds",
+     "id": "long_patrol::LP-RECIPE-honey-curds-with-roasted-almonds",
+     "use": "direct"
+    },
+    {
+     "label": "Honey-nut oatloaf",
+     "id": "triss::TRI_recipe_honey_nut_oatloaf",
+     "use": "direct"
+    }
+   ]
+  }
+ ]
+}

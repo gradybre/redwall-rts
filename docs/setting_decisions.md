@@ -1027,6 +1027,40 @@ Revision 0.19 records DEC-035 and the separate design-focused pass. SET-MOVE-001
 
 Revision 0.20 adds the systematic supplied-book content library. Source coverage is complete for available normalized blocks; missing source material and all existing engineering/creative decisions retain their stated limits. No DEC-nnn policy is newly closed.
 
+### DEC-041 — The beaver joins the release roster; bridge-building is a skill
+
+2026-09-29 · State: `USER_CONFIRMED` for adding the species and for its role; its height is
+`PROPOSED_FOR_REVIEW`.
+
+Brendan, asking for water features in the live demo: "also a beaver that can build bridges".
+Asked whether that meant a demo-only exception or the release catalog, he chose **the release
+roster**. This is the explicit roster follow-through that LORE-C14 requires ("no catalog
+additions by flavor text; roster changes require explicit follow-through"). It resolves
+LORE-L09's "beaver absent from release catalog".
+
+**Role, not species bonus.** LORE-L09's rejected form, "beaver builder with species construction
+bonus", stays rejected. LORE-P12 holds: skills and roles are distinct from species, and work has
+no hidden species productivity multiplier and no species job lock. So:
+- the beaver arrives as a skilled **bridgewright**, as a resident with a trade, not as a racial
+  trait;
+- any resident can learn bridge-building, slower until practised;
+- skill and experience are visible on the resident, never a hidden multiplier.
+
+**Height, proposed:** 1434 u (1400 mm, 1.40× the mouse). That is shorter than the otter's 1526 u
+but read as stockier, in DEC-039's compressed scale. Like DEC-039's other entries it needs
+Brendan's comparison by eye before it is `USER_CONFIRMED`. The asset pipeline scales to it, and a
+later change is a free re-scale, not a regeneration.
+
+**Follow-ups this exposes:**
+- **The live demo's tunnel digging is mole-only**, which is a species job lock against LORE-P12.
+  It should become a digging skill that moles start with.
+- **The catalog, lookdev dimensions and species tables** need the beaver row wherever the five
+  species are enumerated: `SPECIES_KEY` and `SPECIES_HEIGHT_U` in
+  `godot/assets/lookdev/lookdev_dimensions.gd`, and the GDD's species references.
+
+Paid generation of the beaver asset was approved separately (the demo asset pass, 2026-09-29).
+This decision does not authorize any other roster addition.
+
 ### DEC-040 engineering follow-through
 
 Brendan subsequently requested: “let's plan those as well, then give me what to send back to claude”. [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) records the resulting Astra-authored numeric economy/hazard choices. This is delegated engineering authoring, not a claim the user supplied every value. DEC-040's four-level candidate status remains unchanged. [Decision0092](decisions/0092-underground-economy-and-hazard-parameters.md) records adoption and its limits.

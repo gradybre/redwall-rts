@@ -14,6 +14,8 @@ NEGATIVE TESTS COME FIRST AND OUTNUMBER THE POSITIVE ONES:
   N07  a mesh with two primitives refuses rather than half-rigging it.
   N08  a chain with more segments than the tail has surface for refuses: an empty segment
        has no radius to measure, and a guessed one is what let fur sink through the ground.
+  N09  an unknown tail section refuses (decision 0203): "round" and "flat" are measured differently,
+       and a misspelt one must not silently measure round.
 
 THE FIXTURE REPRODUCES EACH REAL DEFECT FOUND ON 2026-09-26:
   * the tail is bound to a THIGH (LeftUpLeg), as Meshy bound the squirrel gatherer's;
@@ -369,6 +371,98 @@ def test_each_joint_carries_what_the_live_tail_reads() -> None:
 	check("tail_03 carries its radius", extras["tail_03"]["spring_radius_m"] == plan["radii"][3])
 	check("tail_00 carries exactly the three spring settings", extras["tail_00"]["spring"] == {"stiffness": 4.0, "drag": 0.9, "gravity": 0.5})
 	check("only tail_00 carries the spring", all("spring" not in e for k, e in extras.items() if k != "tail_00"))
+
+
+# --- the beaver: a flat paddle, on a rescaled rig (decision 0203) ----------------------------------
+
+PADDLE_LINE = [[0.0, 0.05, 0.0], [0.0, 0.05, -0.4]]
+
+
+def _paddle() -> tuple[list, dict]:
+	"""A paddle lying flat along -Z: 28 cm wide (x +-0.14) and 6 cm thick (y 0.02-0.08) about its axis at y 0.05,
+	four rows of four vertices per 10 cm, so every one of four segments holds the same section."""
+	positions = [(x, y, z) for z in (-0.05, -0.15, -0.25, -0.35) for x in (-0.14, 0.14) for y in (0.02, 0.08)]
+	return positions, {"tail": set(range(len(positions))), "centreline": PADDLE_LINE, "length": 0.4, "bones": 4}
+
+
+def test_n09_an_unknown_section_refuses() -> None:
+	"""A section that is neither round nor flat."""
+	doc, binary = read_glb(_glb())
+	_p, positions, indices = tail.mesh_arrays(doc, binary)
+	_refuses("N09 an unknown section refuses", lambda: tail.plan_chain(positions, indices, {**ENTRY, "section": "oval"}, 8))
+
+
+def test_a_section_is_measured_round_or_flat() -> None:
+	"""Round: the distance from the axis. Flat: the distance with the left-right (x) offset left out."""
+	axis = [0.0, 0.05, -0.1]
+	check("round: 0.14 across and 0.03 down is 0.1432 away", abs(tail.section_measure("round", axis, (0.14, 0.02, -0.1)) - 0.143178) < 1e-6)
+	check("flat: the same point is 0.03 off, its breadth ignored", abs(tail.section_measure("flat", axis, (0.14, 0.02, -0.1)) - 0.03) < 1e-12)
+	check("flat: 0.03 above counts as 0.03 too", abs(tail.section_measure("flat", axis, (0.0, 0.08, -0.1)) - 0.03) < 1e-12)
+	check("flat: a vertical segment's thickness is front-back: 0.04 behind and 0.03 up is 0.05",
+		abs(tail.section_measure("flat", axis, (0.1, 0.08, -0.14)) - 0.05) < 1e-12)
+
+
+def test_a_flat_paddle_is_as_deep_as_its_underside_not_as_wide() -> None:
+	"""Measured round, a 28 cm paddle's radius is its half-width, 0.1432; flat, its 3 cm half-thickness."""
+	positions, plan = _paddle()
+	check("round: every segment 0.1432", tail.segment_radii(positions, plan) == [0.1432] * 4)
+	check("flat: every segment 0.03", tail.segment_radii(positions, {**plan, "section": "flat"}) == [0.03] * 4)
+
+
+def test_radii_are_in_drawn_metres_on_a_rescaled_rig() -> None:
+	"""The repair rescales the beaver by its joints (x1.1879), not its vertices: 0.03 of mesh is 0.0356 drawn."""
+	positions, plan = _paddle()
+	check("flat radii at bind scale 1.1879", tail.segment_radii(positions, {**plan, "section": "flat"}, 1.1879) == [0.0356] * 4)
+
+
+def test_clearances_are_in_drawn_metres_and_by_section() -> None:
+	"""The fixture strip, 1 cm wide and lying ON its axis, on a rig rescaled x1.2: round clears half its width in
+	drawn metres, 0.006; flat clears nothing, as it has no thickness -- only breadth."""
+	plan, sha = _plan(_glb())
+	doc, binary = read_glb(tail.rig_file(_glb(root_scale=1.2), plan, sha)[0])
+	round_ = tail.ground_clearances(doc, binary)
+	flat = tail.ground_clearances(doc, binary, "flat")
+	check("round, rescaled: the plain segments clear 0.006", round_[1] == 0.006 and round_[2] == 0.006)
+	check("flat: the strip's segments clear 0", flat[1] == 0.0 and flat[2] == 0.0)
+
+
+def test_the_manifest_row_is_in_drawn_metres_and_names_a_flat_section() -> None:
+	"""rig_creature on a rig rescaled x1.2: the 0.4313 m mesh tail is reported 0.5176 m drawn. A round chain's row
+	has no `section` (the six rows before the beaver are unchanged); a flat one says so."""
+	import tempfile
+	with tempfile.TemporaryDirectory() as tmp:
+		key_dir = pathlib.Path(tmp) / "beaver_x"
+		(key_dir / "repaired").mkdir(parents=True)
+		(key_dir / "repaired" / "rigged.glb").write_bytes(_glb(root_scale=1.2))
+		row = tail.rig_creature(key_dir, ENTRY, 8, dry_run=True)[0]
+		check("the tail length is drawn metres, 0.5176", row["tail_length_m"] == 0.5176)
+		check("the strip's radii are drawn metres, 0.006", row["joint_radius_m"][1] == 0.006)
+		check("and so are its clearances", row["ground_clearance_m"][1] == 0.006)
+		check("a round chain's row has no section", "section" not in row)
+		row = tail.rig_creature(key_dir, {**ENTRY, "section": "flat"}, 8, dry_run=True)[0]
+		check("a flat chain's row names it", row["section"] == "flat")
+		check("and its clearance is measured flat: the strip has no thickness", row["ground_clearance_m"][1] == 0.0)
+		check("a dry run writes nothing", not (key_dir / "tailed").exists())
+
+
+def test_a_flat_tail_tells_the_live_tail_so_on_tail_00() -> None:
+	"""tail_00 carries `section: flat`, so tail_rig.gd keeps the paddle's roll with the hips; a round tail's
+	bones carry no section at all, and read exactly as before."""
+	plan, sha = _plan(_glb())
+	doc, _ = read_glb(tail.rig_file(_glb(), {**plan, "section": "flat"}, sha)[0])
+	extras = {n["name"]: n.get("extras", {}) for n in doc["nodes"] if n.get("name", "").startswith("tail_")}
+	check("tail_00 says flat", extras["tail_00"].get("section") == "flat")
+	check("only tail_00 says it", all("section" not in e for k, e in extras.items() if k != "tail_00"))
+	doc, _ = read_glb(tail.rig_file(_glb(), plan, sha)[0])
+	check("a round tail's bones carry no section", all("section" not in n.get("extras", {}) for n in doc["nodes"]))
+
+
+def test_a_unit_rig_measures_exactly_as_before() -> None:
+	"""A bind scale within 1e-6 of 1 is 1, so the six tails chained before the beaver measure unchanged."""
+	doc, binary = read_glb(_glb(root_scale=1.0000004))
+	check("1.0000004 snaps to exactly 1.0", tail.rig_scale(doc, binary) == 1.0)
+	doc, binary = read_glb(_glb(root_scale=1.2))
+	check("1.2 is kept (float32 inverse binds: to 1e-6)", abs(tail.rig_scale(doc, binary) - 1.2) < 1e-6)
 
 
 def main() -> int:

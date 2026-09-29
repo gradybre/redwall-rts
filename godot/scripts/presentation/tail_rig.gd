@@ -21,9 +21,12 @@ extends RefCounted
 ## not resolve and it silently does nothing (decision 0191).
 
 const TailGroundConstraintScript := preload("res://scripts/presentation/tail_ground_constraint.gd")
+const TailFlatRollScript := preload("res://scripts/presentation/tail_flat_roll.gd")
 
 const TAIL_BONES: int = 8
 const SCALE_TOLERANCE: float = 1e-4
+## tail_00's `section` for a paddle (decision 0203); absent means round, as every tail before the beaver.
+const SECTION_FLAT: String = "flat"
 
 const REFUSE_NONE: StringName = &""
 const REFUSE_NOT_IN_TREE: StringName = &"TAIL_SKELETON_NOT_IN_TREE"
@@ -35,6 +38,8 @@ const REFUSE_SPRING_REJECTED: StringName = &"TAIL_SPRING_REJECTED"
 var spring: SpringBoneSimulator3D = null
 var plane: SpringBoneCollisionPlane3D = null
 var constraint: SkeletonModifier3D = null
+## Only on a flat tail: keeps the paddle's roll with the hips (decision 0203). Null on a round tail.
+var flat_roll: SkeletonModifier3D = null
 var refusal: StringName = REFUSE_NONE
 
 
@@ -68,7 +73,7 @@ static func check_chain(skeleton: Skeleton3D) -> StringName:
 
 
 static func read_chain_metadata(skeleton: Skeleton3D) -> Dictionary:
-	"""{spring: Dictionary, radii, clearances: PackedFloat32Array} from the bones' `extras`, or {}."""
+	"""{spring: Dictionary, radii, clearances: PackedFloat32Array, flat: bool} from the bones' `extras`, or {}."""
 	var radii := PackedFloat32Array()
 	var clearances := PackedFloat32Array()
 	for i in TAIL_BONES:
@@ -81,7 +86,8 @@ static func read_chain_metadata(skeleton: Skeleton3D) -> Dictionary:
 	for key in ["stiffness", "drag", "gravity"]:
 		if not spring_settings.has(key):
 			return {}
-	return {"spring": spring_settings, "radii": radii, "clearances": clearances}
+	var flat: bool = str(_bone_extras(skeleton, "tail_00").get("section", "")) == SECTION_FLAT
+	return {"spring": spring_settings, "radii": radii, "clearances": clearances, "flat": flat}
 
 
 static func _bone_extras(skeleton: Skeleton3D, bone_name: String) -> Dictionary:
@@ -93,7 +99,7 @@ static func _bone_extras(skeleton: Skeleton3D, bone_name: String) -> Dictionary:
 
 
 func _build(skeleton: Skeleton3D, meta: Dictionary) -> StringName:
-	"""Spring (with its plane) first, constraint second: modifiers run in child order."""
+	"""Spring (with its plane) first, constraint second, a flat tail's roll last: modifiers run in child order."""
 	spring = SpringBoneSimulator3D.new()
 	skeleton.add_child(spring)
 	if not _configure_spring(skeleton, meta["spring"], meta["radii"]):
@@ -106,6 +112,12 @@ func _build(skeleton: Skeleton3D, meta: Dictionary) -> StringName:
 	constraint = TailGroundConstraintScript.new()
 	skeleton.add_child(constraint)
 	var bound: StringName = constraint.bind_chain(skeleton, meta["clearances"])
+	if bound != TailGroundConstraintScript.REFUSE_NONE:
+		return bound
+	if meta.get("flat", false):
+		flat_roll = TailFlatRollScript.new()
+		skeleton.add_child(flat_roll)
+		bound = flat_roll.bind_chain(skeleton)
 	return REFUSE_NONE if bound == TailGroundConstraintScript.REFUSE_NONE else bound
 
 
@@ -140,6 +152,20 @@ func _spring_kept(settings: Dictionary, radii: PackedFloat32Array) -> bool:
 				and is_equal_approx(spring.get_joint_gravity(0, j), float(settings["gravity"]))):
 			return false
 	return true
+
+
+static func gravity_direction_for(in_water: bool, backward: Vector3) -> Vector3:
+	"""Where the spring's pull points: down on land; in water, BACK along the creature, as the water streaming past a
+	swimmer carries its tail. Down in water hung the otters' tails under them like keels; with no pull at all, a tail
+	followed the pitched hips and stood 0.1-0.4 m out of the water (decision 0203). The magnitude is the asset's own."""
+	return backward.normalized() if in_water else Vector3.DOWN
+
+
+func set_water(in_water: bool, backward: Vector3 = Vector3(0.0, 0.0, -1.0)) -> void:
+	"""The owner calls this when the creature enters or leaves the water, with `backward` its world back direction
+	(a glTF creature faces +Z, so -Z unturned), and sets the floor far below while it swims."""
+	for j in TAIL_BONES:
+		spring.set_joint_gravity_direction(0, j, gravity_direction_for(in_water, backward))
 
 
 func set_floor(height: float) -> void:

@@ -45,7 +45,8 @@ CONFIG = ROOT / "docs/art-reference/asset_library/tail_centrelines.json"
 MANIFEST = ROOT / "docs/art-reference/asset_library/baked.json"
 GODOT_SCRIPT = pathlib.Path(__file__).resolve().parent / "godot/bake_tail_spring.gd"
 ## The game's own live-tail scripts: the bake runs them, so both tiers share one implementation.
-GAME_SCRIPTS = ("scripts/presentation/tail_rig.gd", "scripts/presentation/tail_ground_constraint.gd")
+GAME_SCRIPTS = ("scripts/presentation/tail_rig.gd", "scripts/presentation/tail_ground_constraint.gd",
+	"scripts/presentation/tail_flat_roll.gd")
 SOURCE = "grounded"               # tailed/ clips with the feet lifted onto the ground (decision 0193)
 TAIL_BONES = 8
 STAMP = "redwall_tail_bake"
@@ -53,6 +54,8 @@ GROUND_TOLERANCE_M = 0.005     # tail surface may dip this far below the plane a
 TIME_TOLERANCE_S = 1e-4
 CLEARANCE_TOLERANCE_M = 0.001    # the live constraint's promise, checked from the written file
 MAX_STEP_DEG = 90.0             # a tail joint turning further than this in one 30 Hz frame is reported
+GROUND_STAMP = "redwall_clip_ground"   # tools/ground_meshy_clips.py's stamp; its `water` names a water clip
+WATER_FLOOR_M = -100.0          # a water clip's spring floor: no ground within any tail's reach (decision 0203)
 GODOT_TIMEOUT_S = 1800
 
 
@@ -84,10 +87,7 @@ def simulate(key_dir: pathlib.Path, clips: list[str]) -> dict:
 			(project / script).parent.mkdir(parents=True, exist_ok=True)
 			shutil.copyfile(ROOT / "godot" / script, project / script)
 		spec = project / "spec.json"
-		spec.write_text(json.dumps({"clips": clips,
-			"times": {c: clip_times(key_dir / SOURCE / f"{c}.glb") for c in clips},
-			"floor": {c: clip_floor(key_dir / SOURCE / f"{c}.glb") for c in clips},
-			"poses": {c: clip_poses(key_dir / SOURCE / f"{c}.glb") for c in clips}}))
+		spec.write_text(json.dumps(bake_spec(key_dir, clips)))
 		subprocess.run(["godot", "--headless", "--path", str(project), "--editor", "--quit"],
 			capture_output=True, timeout=GODOT_TIMEOUT_S)
 		missing = [c for c in clips if not (project / "glb" / f"{c}.glb.import").exists()]
@@ -97,6 +97,14 @@ def simulate(key_dir: pathlib.Path, clips: list[str]) -> dict:
 		run_godot(["--headless", "--path", str(project), "--script", "bake.gd", "--", str(spec), str(out)],
 			"[bake] done")
 		return json.loads(out.read_text())
+
+
+def bake_spec(key_dir: pathlib.Path, clips: list[str]) -> dict:
+	"""What the Godot half needs per clip: its key times, its floor, whether it is in water (no gravity on the
+	tail, decision 0203), and every body joint's pose on every key."""
+	path = {c: key_dir / SOURCE / f"{c}.glb" for c in clips}
+	return {"clips": clips, "times": {c: clip_times(path[c]) for c in clips}, "floor": {c: clip_floor(path[c]) for c in clips},
+		"water": {c: clip_water(path[c]) is not None for c in clips}, "poses": {c: clip_poses(path[c]) for c in clips}}
 
 
 def clip_poses(path: pathlib.Path) -> dict:
@@ -348,6 +356,11 @@ def _foot_vertices(names: list, jnt: list, wgt: list) -> list[int]:
 	return [v for v in range(len(jnt)) if jnt[v][max(range(4), key=lambda q: wgt[v][q])] in foot_slots][::3]
 
 
+def clip_water(path: pathlib.Path) -> str | None:
+	"""The water medium the grounding step stamped on this clip ("surface", "submerged"), or None on land."""
+	return read_glb(path.read_bytes())[0].get("asset", {}).get("extras", {}).get(GROUND_STAMP, {}).get("water")
+
+
 def clip_floor(path: pathlib.Path) -> list[float]:
 	"""Per clip key, the spring's ground: y = 0, lowered only where the clip buries the tail's base.
 
@@ -356,8 +369,13 @@ def clip_floor(path: pathlib.Path) -> list[float]:
 	FEET are deliberately not followed: Meshy's clips sink them 1-10 cm in most clips, and a plane
 	following them took the tail down with them -- 27 of 60 clips then failed against y = 0,
 	against 9 with the base alone. The tail keeps to the real ground wherever its base allows.
+
+	A WATER clip (decision 0203) has no ground: its floor is WATER_FLOOR_M on every key, so neither the
+	spring's plane nor the exact constraint ever acts, and the tail trails in the water as the spring moves it.
 	"""
 	doc, binary = read_glb(path.read_bytes())
+	if doc.get("asset", {}).get("extras", {}).get(GROUND_STAMP, {}).get("water"):
+		return [WATER_FLOOR_M] * len(_channels(doc, binary)[0])
 	skin = doc["skins"][0]
 	root = next(n for n in skin["joints"] if doc["nodes"][n].get("name") == "tail_00")
 	root_radius = doc["nodes"][root].get("extras", {}).get("spring_radius_m", 0.0)
@@ -381,16 +399,18 @@ def ground_report(data: bytes) -> dict:
 	times, animated = _channels(doc, binary)
 	root = next(n for n in skin["joints"] if doc["nodes"][n].get("name") == "tail_00")
 	root_radius = doc["nodes"][root].get("extras", {}).get("spring_radius_m", 0.0)
-	tail_low, foot_low, root_low, worst_key = math.inf, math.inf, math.inf, 0
+	tail_low, foot_low, root_low, worst_key, tail_high = math.inf, math.inf, math.inf, 0, -math.inf
 	for k in range(len(times)):
 		worlds = _worlds_at(doc, animated, k)
 		root_low = min(root_low, worlds[root][13])
 		mats = [mat_mul(worlds[node], list(ibm[s])) for s, node in enumerate(skin["joints"])]
-		low = min(_skin(mats, jnt[v], wgt[v], pos[v]) for v in tail_v)
+		heights = [_skin(mats, jnt[v], wgt[v], pos[v]) for v in tail_v]
+		low = min(heights)
+		tail_high = max(tail_high, max(heights))
 		if low < tail_low:
 			tail_low, worst_key = low, k
 		foot_low = min(foot_low, min(_skin(mats, jnt[v], wgt[v], pos[v]) for v in foot_v))
-	return {"tail_min_y_m": round(tail_low, 4), "feet_min_y_m": round(foot_low, 4),
+	return {"tail_min_y_m": round(tail_low, 4), "tail_max_y_m": round(tail_high, 4), "feet_min_y_m": round(foot_low, 4),
 		"root_floor_y_m": round(root_low - root_radius, 4),
 		"worst_time_s": round(times[worst_key], 4), "tail_vertices": len(tail_v), "keys": len(times)}
 
@@ -409,6 +429,13 @@ def ground_verdict(tail_low: float, feet_low: float, root_floor: float) -> dict:
 	floor = min(0.0, feet_low, root_floor)
 	return {"ground_ok": tail_low >= floor - GROUND_TOLERANCE_M,
 		"clip_below_ground": min(feet_low, root_floor) < -GROUND_TOLERANCE_M}
+
+
+def water_verdict(medium: str, tail_high: float) -> dict:
+	"""A water clip's verdict (decision 0203): no ground verdict (None); a submerged clip's tail must stay
+	below the waterline, y = 0 (`water_ok`); a surface clip's tail may break it, as a swimmer's does."""
+	return {"water": medium, "ground_ok": None, "clip_below_ground": False, "tail_max_y_baked_m": tail_high,
+		"water_ok": tail_high < 0.0 if medium == "submerged" else True}
 
 
 def _report_file(path: str) -> tuple[str, dict]:
@@ -457,9 +484,20 @@ def check_ground(library: pathlib.Path, rows: list[dict]) -> list[dict]:
 		rigid = reports[str(key_dir / SOURCE / f"{r['clip']}.glb")]
 		r.update({"tail_min_y_baked_m": baked["tail_min_y_m"], "tail_min_y_rigid_m": rigid["tail_min_y_m"],
 			"feet_min_y_m": baked["feet_min_y_m"], "worst_time_s": baked["worst_time_s"],
-			"root_floor_y_m": baked["root_floor_y_m"],
-			**ground_verdict(baked["tail_min_y_m"], baked["feet_min_y_m"], baked["root_floor_y_m"])})
+			"root_floor_y_m": baked["root_floor_y_m"]})
+		medium = clip_water(key_dir / SOURCE / f"{r['clip']}.glb")
+		## A water clip has no ground to judge the tail against: its ground verdict is None, not a pass. A
+		## submerged one is judged against the waterline instead: the tail must stay under it (decision 0203).
+		r.update(water_verdict(medium, baked["tail_max_y_m"]) if medium else
+			ground_verdict(baked["tail_min_y_m"], baked["feet_min_y_m"], baked["root_floor_y_m"]))
 	return rows
+
+
+def failing_rows(rows: list[dict]) -> list[dict]:
+	"""The rows that fail the run: a tail below the ground, a flick, a constraint short of its promise, or a dived
+	tail breaking the surface. A water clip's ground verdict is None -- no ground -- which is not a failure."""
+	return [r for r in rows if r["ground_ok"] is False or not r.get("motion_ok", True) or not r["constraint_ok"]
+		or r.get("water_ok") is False]
 
 
 def main() -> int:
@@ -485,12 +523,12 @@ def main() -> int:
 		return 1
 	for r in rows:
 		r["constraint_ok"] = r.get("clearance_deficit_m", 0.0) <= CLEARANCE_TOLERANCE_M
-	failing = [r for r in rows if not r["ground_ok"] or not r.get("motion_ok", True) or not r["constraint_ok"]]
+	failing = failing_rows(rows)
 	for r in rows:
 		print(f"  {r['key']:18} {r['clip']:30} tail low {r['tail_min_y_baked_m']:+.4f} (rigid {r['tail_min_y_rigid_m']:+.4f})"
-			f"  feet low {r['feet_min_y_m']:+.4f}  seam {r.get('seam_deg', '-')}  {'ok' if r['ground_ok'] else 'TAIL BELOW GROUND'}{'' if r.get('motion_ok', True) else '  MOTION: ' + str(r['max_step_deg']) + ' deg in one frame'}{'' if r['constraint_ok'] else '  CONSTRAINT SHORT BY ' + str(r['clearance_deficit_m']) + ' m'}{'  (clip below ground)' if r['clip_below_ground'] else ''}")
+			f"  feet low {r['feet_min_y_m']:+.4f}  seam {r.get('seam_deg', '-')}  {('water: no ground' + ('' if r['water_ok'] else ', TAIL BREAKS THE SURFACE')) if r['ground_ok'] is None else 'ok' if r['ground_ok'] else 'TAIL BELOW GROUND'}{'' if r.get('motion_ok', True) else '  MOTION: ' + str(r['max_step_deg']) + ' deg in one frame'}{'' if r['constraint_ok'] else '  CONSTRAINT SHORT BY ' + str(r['clearance_deficit_m']) + ' m'}{'  (clip below ground)' if r['clip_below_ground'] else ''}")
 	sinking = sum(1 for r in rows if r["clip_below_ground"])
-	below = sum(1 for r in rows if not r["ground_ok"])
+	below = sum(1 for r in rows if r["ground_ok"] is False)
 	jumps = sum(1 for r in rows if not r.get("motion_ok", True))
 	print(f"bake_meshy_tail: {len(rows)} clips; {below} with the tail more than {GROUND_TOLERANCE_M * 1000:.0f} mm below "
 		f"the ground, feet and tail base; {jumps} with a tail joint turning over {MAX_STEP_DEG:.0f} deg in one frame; "

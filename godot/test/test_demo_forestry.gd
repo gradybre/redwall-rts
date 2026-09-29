@@ -179,6 +179,7 @@ func test_the_retention_floor_arithmetic() -> void:
 	assert_equal(Rules.floor_mature(0, 20), 0, "none")
 	assert_true(Rules.retention_allows(2, 6, 20), "200 >= 120")
 	assert_false(Rules.retention_allows(1, 6, 20), "100 < 120")
+	assert_true(Rules.retention_allows(1, 5, 20), "exactly 20% is kept")
 	assert_true(Rules.retention_allows(1, 6, 10), "100 >= 60")
 	assert_false(Rules.retention_allows(0, 6, 10), "0 < 60")
 	assert_false(Rules.retention_allows(-1, 0, 20), "never below none")
@@ -477,6 +478,10 @@ func test_deadfall_falls_under_trees_seeded_and_is_gathered_once() -> void:
 	assert_equal(_read.value, amount, "all of it")
 	assert_false(a.take_into(0, gen, _read), "once")
 	assert_equal(a.live_count(), 2, "two left")
+	a.spawn(1, sources, anywhere)
+	assert_equal(a.generation[0], gen + 1, "a new pile in the gathered pile's row")
+	assert_false(a.take_into(0, gen, _read), "the old pile's name does not take the new one")
+	assert_true(a.take_into(0, gen + 1, _read), "the new one is taken by its own")
 	assert_equal(a.spawn(3, sources, func(_at: Vector2) -> bool: return false), 0, "nowhere to fall")
 	assert_equal(a.spawn(20, sources, anywhere), 8, "never more than ten lying")
 
@@ -575,8 +580,18 @@ func test_the_others_selected_wait_by_the_tree_and_haul_it_with_the_feller() -> 
 	var said: String = forestry.order_on(PickScript.KIND_TREE, WEST_OAK, PackedInt32Array([0, 1, 2]))
 	assert_true(said.ends_with("; 2 waiting to haul"), "two wait: " + said)
 	assert_equal(forestry.crew.jobs.on_target(JobsScript.KIND_HAUL, WEST_OAK), 2, "two hauls")
+	assert_true(_run(forestry, func() -> bool: return forestry.stand.state_of(WEST_OAK) == StandScript.STATE_STUMP), "felled")
+	assert_equal(forestry.crew.jobs.on_target(JobsScript.KIND_HAUL, WEST_OAK), 3, "the two waited for the fall; the feller joins them")
 	assert_true(_run(forestry, func() -> bool: return forestry.crew.jobs.live_count() == 0), "done")
 	assert_equal(_services.stores.wood_milli_u, 52000, "12 U, once")
+
+
+func test_a_right_click_on_a_tree_being_felled_joins_the_haul() -> void:
+	"""A second order on a tree someone is felling sends the newcomers to wait and haul it."""
+	var forestry := _forestry()
+	forestry.order_on(PickScript.KIND_TREE, WEST_OAK, PackedInt32Array([0]))
+	assert_equal(forestry.order_on(PickScript.KIND_TREE, WEST_OAK, PackedInt32Array([1])), "Haul logs: 1 on it", "joins the haul")
+	assert_equal(forestry.crew.jobs.on_target(JobsScript.KIND_FELL, WEST_OAK), 1, "still one fell")
 
 
 func test_a_resident_ordered_away_drops_the_job_where_it_had_got_to() -> void:
@@ -771,7 +786,10 @@ func test_a_felled_tree_topples_then_lies_as_its_trunk_by_a_fresh_stump() -> voi
 	assert_false(view.trunk_visible(WEST_OAK), "no trunk mid-fall")
 	view.advance(2.0)
 	assert_true(view.is_falling(WEST_OAK), "still falling")
-	view.advance(1.9)
+	view.advance(0.6)
+	assert_true(view.has_landed(WEST_OAK) and view.is_falling(WEST_OAK), "landed, lying a moment")
+	assert_false(view.trunk_visible(WEST_OAK), "not yet the trunk")
+	view.advance(1.3)
 	assert_false(view.is_falling(WEST_OAK), "down")
 	assert_true(view.trunk_visible(WEST_OAK), "the trunk lies there")
 	assert_false(view.tree_visible(WEST_OAK), "the tree is gone")

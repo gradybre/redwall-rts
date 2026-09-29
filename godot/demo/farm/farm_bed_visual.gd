@@ -4,10 +4,13 @@ extends Node3D
 ## Decision 0196. Presentation only: `show_state()` is handed what to draw (farm_view.gd reads the
 ## sim); nothing here decides anything.
 ##
-## The plants are the staged card atlases (tools/make_demo_crop_cards.py) in ONE MultiMesh per bed
-## (plus one of top-down leaves where the atlas has them), laid out once per visual kind with a
-## seed per bed, and only re-transformed -- never re-allocated -- when the growth step changes.
-## Scale and tint come from farm_look.gd.
+## The plants are the staged card atlases -- each item's own library plant (tools/make_demo_props.py),
+## or the old atlas it borrows (tools/make_demo_crop_cards.py) -- in ONE MultiMesh per bed (plus one
+## of top-down leaves where the atlas has them), laid out once per visual kind with a seed per bed,
+## and only re-transformed and re-celled -- never re-allocated -- when the growth step changes.
+## Scale, the cells a stage shows, tint, bleach, blotches, droop and slump come from farm_look.gd. A
+## head plant (the lettuce) is drawn filled out and ripe as its close-up mesh instead, in one more
+## MultiMesh laid out the same, tinted by one material per bed.
 
 const Look := preload("res://demo/farm/farm_look.gd")
 const SimScript := preload("res://demo/farm/farm_sim.gd")
@@ -16,8 +19,11 @@ const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const CropCards := preload("res://demo/world/crop_cards.gd")
 const MarksScript := preload("res://demo/control/demo_marks.gd")
 
-## Plants per bed by visual kind, as rows x columns over the inner soil.
-const GRID: Array[Vector2i] = [Vector2i(14, 14), Vector2i(4, 6), Vector2i(5, 8)]
+## A library plant's top-down cell for each of its standing cells (full, side, thinned, sparse):
+## the tops atlas has full, thinned and sparse.
+const TOP_OF_CELL: Array[int] = [0, 0, 1, 2]
+## Where the old roots atlas's tops lie, as a share of its card's height.
+const OLD_TOP_LIFT: float = 0.55
 const JITTER: float = 0.3
 const SCALE_JITTER: Vector2 = Vector2(0.85, 1.1)
 const FURROWS: int = 5
@@ -61,6 +67,7 @@ var _base: Node3D = null
 var _heads: Node3D = null
 var _plants: MultiMeshInstance3D = null
 var _tops: MultiMeshInstance3D = null
+var _heads_mm: MultiMeshInstance3D = null
 var _furrows: MultiMeshInstance3D = null
 var _sheen: MeshInstance3D = null
 var _card_material: Material = null
@@ -69,6 +76,8 @@ var _kind: int = -1
 var _layout: Array[Transform3D] = []
 var _shown_key: int = -1
 var _heads_item: int = Catalog.NO_ITEM
+## The atlas cell each plant shows now (kept here: headless MultiMeshes keep no instance data).
+var _cells_shown: PackedInt32Array = PackedInt32Array()
 
 
 func build(p_bed: int, assets: AssetsScript) -> void:
@@ -250,38 +259,90 @@ func show_state(stage: int, item: int, growth: int, band: int, ripe_hours: int, 
 
 
 func _show_plants(stage: int, item: int, growth: int, heads: bool) -> void:
-	"""Lay out (once per kind) and scale the plants for the stage; none when bare or showing heads."""
+	"""Lay out (once per kind), cell, scale and colour the plants for the stage; none when bare or
+	showing heads."""
 	var scale_now: float = Look.plant_scale(stage, growth)
 	var visible_now: bool = scale_now > 0.0 and not heads and Catalog.is_item(item)
-	if _plants != null:
-		_plants.visible = visible_now
-	if _tops != null:
-		_tops.visible = visible_now
+	_show_parts(visible_now, false)
 	if not visible_now:
 		return
 	var kind: int = Catalog.ITEM_VISUAL[item]
 	if kind != _kind:
 		_rebuild(kind)
-	var tint: Vector3 = Look.plant_tint(stage, item, growth)
-	AssetsScript.set_tint(_card_material, tint)
-	if _top_material != null:
-		AssetsScript.set_tint(_top_material, tint)
+	_show_parts(true, _heads_mm != null and Look.shows_head_mesh(stage, growth))
+	_paint(stage, item, growth)
 	var key: int = stage * 100000 + growth / GROWTH_STEP
 	if key != _shown_key:
 		_shown_key = key
-		_place(scale_now, Look.droop(stage))
+		_assign_cells(stage, growth)
+		_place(scale_now, Look.droop(stage), Look.limp(stage))
+
+
+func _show_parts(on: bool, heads: bool) -> void:
+	"""The cards (and tops), or the head meshes, or nothing."""
+	if _plants != null:
+		_plants.visible = on and not heads
+	if _tops != null:
+		_tops.visible = on and not heads
+	if _heads_mm != null:
+		_heads_mm.visible = on and heads
+
+
+func showing_cards() -> bool:
+	"""Whether the bed draws its plants as cards now (tests)."""
+	return _plants != null and _plants.visible
+
+
+func showing_head_meshes() -> bool:
+	"""Whether the bed draws its plants as head meshes now (tests)."""
+	return _heads_mm != null and _heads_mm.visible
+
+
+func _paint(stage: int, item: int, growth: int) -> void:
+	"""Tint, bleach and blotch the bed's card materials for the stage; tint the head meshes."""
+	var tint: Vector3 = Look.plant_tint(stage, item, growth)
+	if _heads_mm != null:
+		(_heads_mm.material_override as BaseMaterial3D).albedo_color = Color(tint.x, tint.y, tint.z)
+	for material: Material in [_card_material, _top_material]:
+		if material != null:
+			AssetsScript.set_tint(material, tint)
+			AssetsScript.set_blight(material, Look.bleach(stage), Look.spots(stage))
+
+
+func cells_for(stage: int, growth: int) -> PackedInt32Array:
+	"""The atlas cells this bed's plants show at a stage: a library plant's stage subset
+	(farm_look.gd stage_cells), or every cell of an old atlas's kind."""
+	if Catalog.is_plant_kind(_kind):
+		return PackedInt32Array(Look.stage_cells(stage, growth))
+	return _assets.cells[_kind]
+
+
+func _assign_cells(stage: int, growth: int) -> void:
+	"""Give each plant (and its top) a cell of the stage's subset, spread by a per-bed stride."""
+	var shown: PackedInt32Array = cells_for(stage, growth)
+	var plant_kind: bool = Catalog.is_plant_kind(_kind)
+	for i: int in _layout.size():
+		var cell: int = shown[(i * 7 + bed) % shown.size()]
+		_cells_shown[i] = cell
+		_plants.multimesh.set_instance_custom_data(i, Color(float(cell), 0.0, 0.0, 0.0))
+		if _tops != null:
+			var top: int = TOP_OF_CELL[cell] if plant_kind else cell
+			_tops.multimesh.set_instance_custom_data(i, Color(float(top), 0.0, 0.0, 0.0))
 
 
 func _rebuild(kind: int) -> void:
 	"""New plant MultiMeshes and a new layout for a visual kind (only when the kind changes)."""
+	_assets.ensure_loaded(kind)
 	_kind = kind
 	_shown_key = -1
-	for node: Node in [_plants, _tops]:
+	for node: Node in [_plants, _tops, _heads_mm]:
 		if node == null:
 			continue
 		_units.remove_child(node)
 		node.queue_free()
 	_layout = _layout_for(kind)
+	_cells_shown.resize(_layout.size())
+	_heads_mm = _head_node(kind)
 	var cell: Vector2 = _assets.card_cell[kind]
 	var mesh: ArrayMesh = CropCards.card_mesh(cell)
 	_card_material = _assets.card_material(kind, Vector3.ONE)
@@ -298,16 +359,28 @@ func _rebuild(kind: int) -> void:
 		_units.add_child(_tops)
 
 
+func _head_node(kind: int) -> MultiMeshInstance3D:
+	"""A head plant's mesh for every plant of the layout, with the bed's own tinted copy of its
+	material; null when the kind has no staged head mesh."""
+	var mesh: Mesh = _assets.head_mesh[kind]
+	if mesh == null:
+		return null
+	var node: MultiMeshInstance3D = _multimesh(mesh, _layout.size(), "Heads")
+	var source := mesh.surface_get_material(0) as BaseMaterial3D
+	node.material_override = source.duplicate() if source != null else StandardMaterial3D.new()
+	node.visible = false
+	_units.add_child(node)
+	return node
+
+
 func _multimesh(mesh: Mesh, count: int, node_name: String) -> MultiMeshInstance3D:
-	"""A MultiMesh of `count` plants, each showing a cell of its kind (custom data red)."""
+	"""A MultiMesh of `count` plants, each showing the atlas cell in its custom data red (set by
+	_assign_cells)."""
 	var multimesh := MultiMesh.new()
 	multimesh.transform_format = MultiMesh.TRANSFORM_3D
 	multimesh.use_custom_data = true
 	multimesh.mesh = mesh
 	multimesh.instance_count = count
-	var cells: PackedInt32Array = _assets.cells[_kind]
-	for i: int in count:
-		multimesh.set_instance_custom_data(i, Color(float(cells[(i * 7 + bed) % cells.size()]), 0.0, 0.0, 0.0))
 	var instance := MultiMeshInstance3D.new()
 	instance.name = node_name
 	instance.multimesh = multimesh
@@ -318,7 +391,7 @@ func _layout_for(kind: int) -> Array[Transform3D]:
 	"""Where each plant stands (bed units) and its own yaw and size: a jittered grid, seeded by bed."""
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7700 + bed * 31 + kind
-	var grid: Vector2i = GRID[kind]
+	var grid: Vector2i = _assets.grid[kind]
 	var span: float = (_assets.inner_half - 0.08) * 2.0
 	var out: Array[Transform3D] = []
 	for row: int in grid.x:
@@ -330,22 +403,37 @@ func _layout_for(kind: int) -> Array[Transform3D]:
 	return out
 
 
-func _place(scale_now: float, lean: float) -> void:
-	"""Scale every plant (and its top) to the stage, drooping when withered."""
+func _place(scale_now: float, lean: float, slump: float) -> void:
+	"""Scale every plant (and its top) to the stage, drooping and slumping when withered."""
 	shown_scale = scale_now
-	var top_height: float = _assets.card_cell[_kind].y * 0.55
+	var top_height: float = _assets.card_cell[_kind].y * top_lift(_kind) * slump
+	var top_scale: float = scale_now * top_size(_kind)
 	for i: int in _layout.size():
-		_plants.multimesh.set_instance_transform(i, plant_transform(i, scale_now, lean))
+		_plants.multimesh.set_instance_transform(i, plant_transform(i, scale_now, lean, slump))
+		if _heads_mm != null:
+			_heads_mm.multimesh.set_instance_transform(i, plant_transform(i, scale_now, lean, slump) * _assets.head_fit[_kind])
 		if _tops != null:
 			var t: Transform3D = _layout[i]
 			var up: Vector3 = t.origin + Vector3(0.0, top_height * scale_now, 0.0)
-			_tops.multimesh.set_instance_transform(i, Transform3D(t.basis.scaled(Vector3.ONE * scale_now), up))
+			_tops.multimesh.set_instance_transform(i, Transform3D(t.basis.scaled(Vector3.ONE * top_scale), up))
 
 
-func plant_transform(i: int, scale_now: float, lean: float) -> Transform3D:
-	"""Plant `i` at `scale_now` of its own size, leaning `lean` radians (bed units)."""
+static func top_lift(kind: int) -> float:
+	"""Where a kind's top card lies, as a share of its standing card's height (the old atlases: 0.55)."""
+	return Catalog.PLANT_TOP_LIFT[kind - Catalog.VIS_PLANT_FIRST] if Catalog.is_plant_kind(kind) else OLD_TOP_LIFT
+
+
+static func top_size(kind: int) -> float:
+	"""How much larger than the standing cards a kind's top card is drawn (the old atlases: as large)."""
+	return Catalog.PLANT_TOP_SCALE[kind - Catalog.VIS_PLANT_FIRST] if Catalog.is_plant_kind(kind) else 1.0
+
+
+func plant_transform(i: int, scale_now: float, lean: float, slump: float = 1.0) -> Transform3D:
+	"""Plant `i` at `scale_now` of its own size, leaning `lean` radians and keeping `slump` of its
+	height (bed units)."""
 	var t: Transform3D = _layout[i]
-	return Transform3D((Basis(Vector3.RIGHT, lean) * t.basis).scaled(Vector3.ONE * scale_now), t.origin)
+	var basis: Basis = (Basis(Vector3.RIGHT, lean) * t.basis).scaled(Vector3.ONE * scale_now)
+	return Transform3D(Basis.from_scale(Vector3(1.0, slump, 1.0)) * basis, t.origin)
 
 
 func _show_heads(on: bool, item: int) -> void:
@@ -398,6 +486,16 @@ func set_faded(alpha: float) -> void:
 func plant_count() -> int:
 	"""How many plants the bed draws (0 with none laid out)."""
 	return _layout.size() if _plants != null and _plants.visible else 0
+
+
+func cell_shown(i: int) -> int:
+	"""The atlas cell plant `i` shows (tests)."""
+	return _cells_shown[i]
+
+
+func visual_kind() -> int:
+	"""The visual kind the bed's plants are laid out for (-1: none yet; tests)."""
+	return _kind
 
 
 func layout_scale(i: int) -> float:

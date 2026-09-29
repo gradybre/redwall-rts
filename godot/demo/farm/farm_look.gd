@@ -4,8 +4,16 @@ extends RefCounted
 ##
 ## Stages (farm_sim STAGE_*): EMPTY bare soil; SOWN furrows; SPROUTING small bright shoots; GROWING
 ## plants that grow with the crop (SEEDLING_SCALE at 0 to full at ripeness); RIPE full plants in the
-## item's own colour (leaf crops show their heads); WITHERED shrunk, brown and drooping; BLIGHTED
-## the growing plants darkened and spotted. The soil sheen tells moisture at a glance: pale and dry,
+## item's own colour (leaf crops without a plant of their own show their heads); WITHERED shrunk,
+## thinned, limp and drooping, bleached to dry straw-brown; BLIGHTED full-size, standing, but dark
+## and blotched with black spots -- the two used to differ only in tint, and read alike.
+##
+## A library plant's cards come in four cells (tools/make_demo_props.py): FULL from the front, FULL
+## from the side, THINNED (a third of its leaves gone) and SPARSE (two-thirds gone). A stage shows a
+## SUBSET of them (stage_cells): a sprout its sparse cell only, a young plant sparse and thinned,
+## then thinned, then all three views as it fills out; ripe the two full views; withered the thinned
+## and sparse (it has lost leaves); blighted the full plant. The old atlases (wheat, the roots bed's
+## turnips and carrots) have no such cells and show all of theirs at every stage. The soil sheen tells moisture at a glance: pale and dry,
 ## dark and wet, standing water when waterlogged. Colours are blends of the demo's ART-LOCK-001
 ## pigments (world/world_look.gd), tuned by eye on the staged atlases.
 
@@ -21,8 +29,26 @@ const YOUNG_TINT: Vector3 = Vector3(0.62, 1.12, 0.5)
 const TURN_FROM: float = 0.45
 const WITHERED_TINT: Vector3 = Vector3(0.78, 0.6, 0.38)
 const BLIGHT_TINT: Vector3 = Vector3(0.36, 0.38, 0.3)
-## Plants lean this far (radians) when withered.
+## Plants lean this far (radians) when withered, and slump to this share of their height.
 const WITHERED_DROOP: float = 0.55
+const WITHERED_LIMP: float = 0.72
+## How far withered leaves are bleached toward dry straw, and blighted ones (0..1, crop_card.gdshader).
+const WITHERED_BLEACH: float = 0.85
+const BLIGHT_BLEACH: float = 0.25
+## The plant cells (FULL, SIDE, THINNED, SPARSE) each stage shows; see the header.
+const CELL_FULL: int = 0
+const CELL_SIDE: int = 1
+const CELL_THINNED: int = 2
+const CELL_SPARSE: int = 3
+const CELLS_SPROUT: Array[int] = [CELL_SPARSE]
+const CELLS_YOUNG: Array[int] = [CELL_SPARSE, CELL_THINNED]
+const CELLS_FILLING: Array[int] = [CELL_THINNED]
+const CELLS_FULL: Array[int] = [CELL_FULL, CELL_SIDE, CELL_THINNED]
+const CELLS_RIPE: Array[int] = [CELL_FULL, CELL_SIDE]
+const CELLS_WITHERED: Array[int] = [CELL_THINNED, CELL_SPARSE]
+## Growth (permille) at which a growing plant moves from young to filling to full.
+const YOUNG_UNTIL: int = 350
+const FILLING_UNTIL: int = 700
 ## Soil sheen per moisture band (dry, low, good, wet, waterlogged); alpha 0 draws nothing.
 const SHEEN: Array[Color] = [
 	Color(0.86, 0.74, 0.5, 0.42), Color(0.86, 0.76, 0.56, 0.18), Color(0.0, 0.0, 0.0, 0.0),
@@ -76,6 +102,47 @@ static func plant_tint(stage: int, item: int, growth_permille: int) -> Vector3:
 static func droop(stage: int) -> float:
 	"""How far the plants lean over."""
 	return WITHERED_DROOP if stage == SimScript.STAGE_WITHERED else 0.0
+
+
+static func limp(stage: int) -> float:
+	"""How much of its height a plant keeps (a withered one slumps)."""
+	return WITHERED_LIMP if stage == SimScript.STAGE_WITHERED else 1.0
+
+
+static func bleach(stage: int) -> float:
+	"""How far the leaves are bleached toward dry straw (0: not at all)."""
+	match stage:
+		SimScript.STAGE_WITHERED:
+			return WITHERED_BLEACH
+		SimScript.STAGE_BLIGHTED:
+			return BLIGHT_BLEACH
+	return 0.0
+
+
+static func spots(stage: int) -> float:
+	"""How strongly the leaves are blotched (blight only)."""
+	return 1.0 if stage == SimScript.STAGE_BLIGHTED else 0.0
+
+
+static func stage_cells(stage: int, growth_permille: int) -> Array[int]:
+	"""Which of a library plant's four cells a stage shows (see the header)."""
+	match stage:
+		SimScript.STAGE_SPROUTING:
+			return CELLS_SPROUT
+		SimScript.STAGE_RIPE:
+			return CELLS_RIPE
+		SimScript.STAGE_WITHERED:
+			return CELLS_WITHERED
+		SimScript.STAGE_BLIGHTED:
+			return CELLS_FULL
+	if growth_permille < YOUNG_UNTIL:
+		return CELLS_YOUNG
+	return CELLS_FILLING if growth_permille < FILLING_UNTIL else CELLS_FULL
+
+
+static func shows_head_mesh(stage: int, growth_permille: int) -> bool:
+	"""Whether a head plant (farm_catalog PLANT_HEAD_MESH) draws its mesh: filled out, or ripe."""
+	return stage == SimScript.STAGE_RIPE or (stage == SimScript.STAGE_GROWING and growth_permille >= FILLING_UNTIL)
 
 
 static func shows_heads(stage: int, item: int) -> bool:

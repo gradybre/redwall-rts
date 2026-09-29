@@ -91,31 +91,86 @@ const CROP_SHELF_HOURS: Array[int] = [480, 144, 0, 720, 240]
 const CROP_ITEM_ID: Array[StringName] = [&"beans", &"cabbage", &"flax", &"grain", &"roots"]
 const FAMILY_NAMES: Array[String] = ["cereal", "fibre", "leaf", "legume", "root"]
 
-## PRESENTATION. Which plant cards a bed of each item shows (the staged atlases of
-## tools/make_demo_crop_cards.py), and the tint laid over them when ripe.
+## PRESENTATION. Which plant a bed of each item shows (farm_assets.gd loads them), the model it is
+## carried and shelved as, and its icon's fallback colour. Decision 0196.
+##
+## VISUAL KINDS. The twelve library plants (tools/make_demo_props.py: one plant each, rendered to
+## alpha cards) give eleven farmed items their OWN plant; strawberry is staged but not farmed (see
+## EXCLUDED). The other five have no plant of their own and show the best visual there is: wheat its
+## grain cards (crop_grain_ripe, make_demo_crop_cards.py); parsnip the roots bed's carrot cards (a
+## carrot-family root, feathery top and a shoulder at the soil, as before); cabbage and spinach the
+## roots bed's turnip cards while growing (a leafy rosette) and the staged cabbage bed's heads when
+## ripe, as before; and broad bean the PEA plant, darkened -- it used to borrow the carrot cards, whose
+## orange shoulders read as carrots in a bean bed, and the pea is the other upright legume.
 const VIS_WHEAT: int = 0
 const VIS_TURNIP: int = 1
 const VIS_CARROT: int = 2
-const ITEM_VISUAL: Array[int] = [
-	VIS_TURNIP, VIS_TURNIP, VIS_CARROT, VIS_TURNIP, VIS_CARROT, VIS_CARROT,
-	VIS_TURNIP, VIS_TURNIP, VIS_TURNIP, VIS_CARROT, VIS_CARROT,
-	VIS_CARROT, VIS_CARROT,
-	VIS_WHEAT, VIS_WHEAT, VIS_WHEAT,
+## The plant kinds follow, one per PLANT_KEYS entry: VIS_PLANT_FIRST + its index.
+const VIS_PLANT_FIRST: int = 3
+const PLANT_KEYS: Array[StringName] = [
+	&"plant_radish", &"plant_turnip", &"plant_carrot", &"plant_beetroot", &"plant_onion", &"plant_leek",
+	&"plant_lettuce", &"plant_celery", &"plant_peas", &"plant_barley", &"plant_oats",
 ]
-## The leaf crops show the staged cabbage bed when ripe (its heads), tinted per item.
+const VIS_COUNT: int = 14
+## Each plant's drawn height when ripe, soil to top (metres; DEMO-ONLY, judged against a 1.00 m mouse
+## and the old cards: the roots bed's plants stood ~0.5 m, its wheat ~0.68 m). NOT a sizing policy.
+const PLANT_HEIGHT_M: Array[float] = [0.38, 0.48, 0.5, 0.5, 0.5, 0.66, 0.34, 0.62, 0.95, 0.74, 0.74]
+## How far apart each plant stands, as a share of its card's width (farm_assets.gd plant_grid): the
+## rosettes and heads a little closer than their width, as a sown row's leaves overlap; the pea a
+## little closer still; the cereals -- each card a clump of a few stalks -- close enough to read as a
+## stand, as the wheat's narrow clumps do.
+const PLANT_SPACING: Array[float] = [0.62, 0.62, 0.62, 0.62, 0.62, 0.62, 0.62, 0.62, 0.5, 0.34, 0.34]
+## Where a rosette's top-down card lies, as a share of its standing card's height, and how much larger
+## than the standing cards it is drawn. The leafy rosettes lie at 0.55 (their leaves' mean height);
+## the lettuce is a squat head whose three standing cards read as a triangle of flat discs from the
+## camera, so its top lies near the head's crown and covers them.
+const PLANT_TOP_LIFT: Array[float] = [0.55, 0.55, 0.55, 0.55, 0.55, 0.55, 0.8, 0.55, 0.55, 0.55, 0.55]
+const PLANT_TOP_SCALE: Array[float] = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.3, 1.0, 1.0, 1.0, 1.0]
+## Plants drawn as their close-up MESH (the plant's 580-triangle L0) once filled out and when ripe,
+## rather than as cards: the lettuce, a solid head its cards cannot draw from the camera's height.
+## The leafy plants' meshes shatter at that budget (their leaves are too thin), so they stay cards.
+const PLANT_HEAD_MESH: Array[bool] = [false, false, false, false, false, false, true, false, false, false, false]
+const ITEM_VISUAL: Array[int] = [
+	VIS_PLANT_FIRST + 0, VIS_PLANT_FIRST + 1, VIS_PLANT_FIRST + 2, VIS_PLANT_FIRST + 3, VIS_CARROT, VIS_PLANT_FIRST + 4,
+	VIS_TURNIP, VIS_PLANT_FIRST + 6, VIS_TURNIP, VIS_PLANT_FIRST + 5, VIS_PLANT_FIRST + 7,
+	VIS_PLANT_FIRST + 8, VIS_PLANT_FIRST + 8,
+	VIS_WHEAT, VIS_PLANT_FIRST + 9, VIS_PLANT_FIRST + 10,
+]
+## The leaf crops without a plant of their own show the staged cabbage bed when ripe (its heads).
 const ITEM_RIPE_HEADS: Array[bool] = [
 	false, false, false, false, false, false,
-	true, true, true, false, false,
+	true, false, true, false, false,
 	false, false,
 	false, false, false,
 ]
+## A tint laid over the borrowed cards so a borrowing item reads apart from the item it borrows
+## from; an item on its own plant is drawn in the plant's own colours (white) -- but for the onion,
+## whose rendered leaves read cyan under the demo's sky light: a little blue is taken out.
 const ITEM_TINT: Array[Color] = [
-	Color(1.0, 1.0, 1.0), Color(1.0, 1.0, 1.0), Color(1.0, 1.0, 1.0), Color(1.12, 0.78, 0.8),
-	Color(1.06, 1.05, 0.88), Color(0.86, 1.0, 1.06),
-	Color(1.16, 1.0, 0.95), Color(1.28, 1.22, 0.78), Color(0.78, 0.95, 0.8),
-	Color(0.84, 1.0, 1.1), Color(1.12, 1.16, 0.9),
-	Color(0.95, 1.12, 0.85), Color(0.84, 1.0, 0.84),
-	Color(1.0, 1.0, 1.0), Color(1.06, 1.0, 0.84), Color(1.06, 1.06, 0.96),
+	Color(1.0, 1.0, 1.0), Color(1.0, 1.0, 1.0), Color(1.0, 1.0, 1.0), Color(1.0, 1.0, 1.0),
+	Color(1.06, 1.05, 0.88), Color(0.94, 1.05, 0.74),
+	Color(1.16, 1.0, 0.95), Color(1.0, 1.0, 1.0), Color(0.78, 0.95, 0.8),
+	Color(1.0, 1.0, 1.0), Color(1.0, 1.0, 1.0),
+	Color(1.0, 1.0, 1.0), Color(0.84, 1.0, 0.84),
+	Color(1.0, 1.0, 1.0), Color(1.0, 1.0, 1.0), Color(1.0, 1.0, 1.0),
+]
+## The harvested item's model (demo/props/demo_props.gd), carried to the store, shelved and drawn
+## as its pantry icon; &"" for the five with none (they carry and shelve nothing, and their icon is
+## a roundel in ITEM_SWATCH).
+const ITEM_PROP: Array[StringName] = [
+	&"item_radish", &"item_turnip", &"item_carrot", &"item_beetroot", &"", &"item_onion",
+	&"", &"item_lettuce", &"", &"item_leek", &"item_celery",
+	&"item_peas", &"",
+	&"", &"item_barley", &"item_oats",
+]
+## The fallback icon's colour: the item's own, from its produce (parsnip cream, spinach dark leaf).
+const ITEM_SWATCH: Array[Color] = [
+	Color(0.78, 0.2, 0.24), Color(0.66, 0.38, 0.62), Color(0.9, 0.5, 0.16), Color(0.5, 0.12, 0.22),
+	Color(0.88, 0.82, 0.62), Color(0.78, 0.55, 0.3),
+	Color(0.42, 0.6, 0.48), Color(0.62, 0.78, 0.4), Color(0.2, 0.4, 0.22), Color(0.5, 0.66, 0.44),
+	Color(0.52, 0.72, 0.36),
+	Color(0.48, 0.68, 0.3), Color(0.58, 0.7, 0.4),
+	Color(0.86, 0.7, 0.36), Color(0.82, 0.68, 0.4), Color(0.84, 0.74, 0.5),
 ]
 
 ## The beds: world crop ids, one FarmPlot each, their demo soils.
@@ -137,6 +192,16 @@ const BED_START_HOURS: Array[int] = [0, 0, 96, 36, 0, 60]
 const NEIGHBOUR_M: float = 4.0
 ## A bed's half-width on the ground: every bed is drawn 3 m wide (world_sizes.gd CROP_BED_WIDTH_M).
 const BED_HALF_M: float = 1.5
+
+
+static func is_plant_kind(kind: int) -> bool:
+	"""Whether a visual kind is one of the library plants (with stage cells), not an old atlas."""
+	return kind >= VIS_PLANT_FIRST and kind < VIS_COUNT
+
+
+static func plant_key_of(kind: int) -> StringName:
+	"""The library plant a plant kind draws."""
+	return PLANT_KEYS[kind - VIS_PLANT_FIRST]
 
 
 static func is_item(item: int) -> bool:

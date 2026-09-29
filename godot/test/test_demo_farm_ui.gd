@@ -564,8 +564,11 @@ func test_a_bed_visual_draws_each_stage() -> void:
 	assert_almost_equal(visual.plant_transform(0, 0.57, 0.0).basis.get_scale().x, 0.57 * visual.layout_scale(0),
 		"each plant at 0.57 of its own size")
 	assert_equal(visual.label.text, "Wheat\n50%", "the label")
+	var parsnip: int = Catalog.ITEM_KEYS.find(&"parsnip")
+	visual.show_state(SimScript.STAGE_GROWING, parsnip, 500, SimScript.BAND_GOOD, 0, "Parsnip", "50%")
+	assert_equal(visual.plant_count(), 40, "parsnip keeps the roots bed's carrot cards: 5 rows of 8")
 	visual.show_state(SimScript.STAGE_GROWING, CARROT, 500, SimScript.BAND_GOOD, 0, "Carrot", "50%")
-	assert_equal(visual.plant_count(), 40, "carrots: 5 rows of 8")
+	assert_equal(visual.plant_count(), 36, "carrots on their own plant: the unstaged plant grid, 6 x 6")
 	visual.show_state(SimScript.STAGE_SOWN, WHEAT, 0, SimScript.BAND_GOOD, 0, "Wheat", "sowing")
 	assert_equal(visual.plant_count(), 0, "sown: furrows only")
 	visual.set_selected(true)

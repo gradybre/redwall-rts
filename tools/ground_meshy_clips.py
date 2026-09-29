@@ -1,11 +1,17 @@
 #!/usr/bin/env python3
-"""Lift Meshy's clips so the creature's support never goes below the ground. Decision 0193.
+"""Lift Meshy's clips so the creature's support never goes below the ground. Decisions 0193, 0197.
 
 Every repaired bind pose stands exactly on y = 0, but Meshy's retargeted clips sink the feet:
 1-10 cm at idle, 17 cm in the otter boatwright's walk, 35 cm in the squirrels' pull_radish.
 This lifts the hips, key by key, by exactly as much as the lowest SUPPORT point is below the
 ground -- max(0, -lowest) -- and never lowers them, so a run keeps its flight phase and a chair
 clip keeps its seat height.
+
+The one exception is a STANDING clip whose support never reaches the ground on any key: it is
+SEATED, lowered as a whole by that constant gap so its lowest key just touches. Once the repair
+step resets Meshy's idle Hips scale (1.1765 on every creature) to rest, the idle's hips stand
+where they held a 17.65% larger body, and its feet float 3 mm - 20 cm (decision 0197). Every clip
+stands except those in OFF_THE_GROUND, whose height is their own: a chair's seat.
 
 SUPPORT is every vertex whose strongest influence is a foot, toe or leg joint: the feet when
 standing, the knees when kneeling. Arms are not support (they reach into the soil to dig or pull
@@ -36,18 +42,19 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from bake_meshy_tail import _channels, _sample, _skin, _skinning, _worlds_at, rotation_time_accessor  # noqa: E402
-from repair_meshy_rig import RepairRefused, read_glb, write_glb  # noqa: E402
+from repair_meshy_rig import SCALE_TOLERANCE, RepairRefused, read_glb, write_glb  # noqa: E402
 from rig_meshy_tail import append_accessor, mat_mul, node_worlds, read_accessor  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 LIBRARY = ROOT / "assets/library/creature"
 MANIFEST = ROOT / "docs/art-reference/asset_library/grounded.json"
 STAMP = "redwall_clip_ground"
-STAMP_VERSION = 2          # 2: root motion extracted (decision 0195)
+STAMP_VERSION = 3          # 2: root motion extracted (decision 0195); 3: floating standing clips seated (0197)
 ROOT_MOTION_MIN_M = 0.01   # a clip travelling less than this over its loop is already in place
 ROOT_WINDOW_S = 1.0        # one gait cycle: Meshy's walk loop is 1.03 s
 SUPPORT_JOINTS = ("Foot", "Toe", "Leg")
 GROUND_TOLERANCE_M = 0.001
+OFF_THE_GROUND = ("anim_chair_sit_idle",)   # clips whose support may hover: never seated
 
 
 class GroundRefused(RepairRefused):
@@ -177,15 +184,40 @@ def apply_lift(doc: dict, binary: bytes, times_index: int, times: list[float], l
 	return binary
 
 
-def ground_clip(data: bytes) -> tuple[bytes, dict]:
-	"""Lift one clip so its support is never below the ground; verify by re-skinning the output."""
+def refuse_stray_scale(doc: dict, binary: bytes) -> None:
+	"""Refuse a clip that animates any bone's scale away from its rest: the creature would grow and
+	shrink as the clip blends in and out. repair_meshy_rig.py resets Meshy's (decision 0197); one
+	still here means the clip skipped the repair, or Meshy found a new way to do it."""
+	for anim in doc["animations"]:
+		for channel in anim["channels"]:
+			if channel["target"]["path"] != "scale":
+				continue
+			node = doc["nodes"][channel["target"]["node"]]
+			rest = node.get("scale", [1.0, 1.0, 1.0])
+			rows = read_accessor(doc, binary, anim["samplers"][channel["sampler"]]["output"])
+			if any(abs(v - r) > SCALE_TOLERANCE for row in rows for v, r in zip(row, rest)):
+				raise GroundRefused(f"{node.get('name')} is scaled away from its rest; repair the clip first")
+
+
+def ground_lifts(lows: list[float], stands: bool) -> list[float]:
+	"""Each key's world lift: its support's depth below the ground, or -- for a standing clip whose
+	support never comes within GROUND_TOLERANCE_M of it -- the whole clip lowered by that gap."""
+	if stands and min(lows) > GROUND_TOLERANCE_M:
+		return [-min(lows)] * len(lows)
+	return [max(0.0, -low) for low in lows]
+
+
+def ground_clip(data: bytes, stands: bool = True) -> tuple[bytes, dict]:
+	"""Ground one clip -- lift it out of the ground, or seat it if it stands and floats -- and verify
+	by re-skinning the output."""
 	doc, binary = read_glb(data)
 	if STAMP in doc.get("asset", {}).get("extras", {}):
 		raise GroundRefused("already grounded; ground the source, not an output")
 	if not doc.get("animations"):
 		raise GroundRefused("the file has no animation to ground")
+	refuse_stray_scale(doc, binary)
 	times, lows = lowest_support(doc, binary)
-	lifts = [max(0.0, -low) for low in lows]
+	lifts = ground_lifts(lows, stands)
 	roots = extract_root(times, root_path(doc, binary)[1])
 	original = binary
 	binary = apply_lift(doc, binary, rotation_time_accessor(doc), times, lifts, roots)
@@ -200,10 +232,12 @@ def ground_clip(data: bytes) -> tuple[bytes, dict]:
 	_after_times, after = lowest_support(out_doc, out_binary)
 	if min(after) < -GROUND_TOLERANCE_M:
 		raise GroundRefused(f"after grounding the support still reaches {min(after):+.4f} m")
+	if stands and min(after) > GROUND_TOLERANCE_M:
+		raise GroundRefused(f"a standing clip still floats {min(after):.4f} m above the ground")
 	if any(lift == 0.0 and abs(a - b) > 1e-5 for lift, a, b in zip(lifts, lows, after)):
 		raise GroundRefused("a key that needed no lift moved")
 	return out, {**_root_report(out_doc, out_binary, roots), "keys": len(times), "keys_lifted": sum(1 for x in lifts if x > 0.0),
-		"max_lift_m": round(max(lifts), 4), "support_min_before_m": round(min(lows), 4),
+		"max_lift_m": round(max(lifts), 4), "seated_m": round(max(0.0, -min(lifts)), 4), "support_min_before_m": round(min(lows), 4),
 		"support_min_after_m": round(min(after), 4), "support_max_after_m": round(max(after), 4)}
 
 
@@ -233,11 +267,16 @@ def _source_dir(key_dir: pathlib.Path) -> pathlib.Path:
 	return key_dir / "tailed" if (key_dir / "tailed").is_dir() else key_dir / "repaired"
 
 
+def stands(path: str) -> bool:
+	"""Whether the clip file at `path` stands, and so must touch the ground: all but OFF_THE_GROUND."""
+	return pathlib.Path(path).stem not in OFF_THE_GROUND
+
+
 def _ground_one(job: tuple[str, str, bool]) -> dict:
 	"""Worker: ground one clip file and, unless dry-running, write it."""
 	source, target, dry_run = job
 	data = pathlib.Path(source).read_bytes()
-	out, row = ground_clip(data)
+	out, row = ground_clip(data, stands(source))
 	if not dry_run:
 		pathlib.Path(target).write_bytes(out)
 	path = pathlib.Path(source)

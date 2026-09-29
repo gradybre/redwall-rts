@@ -43,8 +43,9 @@ CHUNK_JSON = 0x4E4F534A
 CHUNK_BIN = 0x004E4942
 UNITS_PER_METRE = 1024
 HEIGHT_TOLERANCE_M = 0.001
+SCALE_TOLERANCE = 0.01     # a scale key further than this from its bone's rest is Meshy's, not motion
 STAMP = "redwall_rig_repair"
-STAMP_VERSION = 2   # 2: the root scale is folded into the hierarchy (decision 0194)
+STAMP_VERSION = 3   # 2: root scale folded (decision 0194); 3: stray scale keys reset (0197)
 DROPPED_EXTENSIONS = ("KHR_materials_specular", "KHR_materials_ior")
 
 
@@ -302,6 +303,32 @@ def _inverse_binds(doc: dict, binary: bytes, skin: dict) -> list:
 	return read_accessor(doc, binary, skin["inverseBindMatrices"])
 
 
+def reset_scale_keys(doc: dict, binary: bytes) -> tuple[bytes, int]:
+	"""Every animated bone scale held at that bone's rest scale. Returns the new BIN and how many
+	channels had strayed.
+
+	Meshy's idle clip (animation action 0) keys the Hips at a constant 1.1765 on every creature
+	-- 10 of 10 idle clips, no other channel in 110 files -- so a resident drawn with it is 17.65%
+	larger while idling and visibly grows and shrinks as it crossfades in and out (decision 0197).
+	No Meshy clip animates scale on purpose, so a stray scale channel is restored to rest."""
+	strayed = 0
+	for anim in doc.get("animations", []):
+		users = [c["sampler"] for c in anim["channels"]]
+		for channel in anim["channels"]:
+			if channel["target"]["path"] != "scale":
+				continue
+			rest = doc["nodes"][channel["target"]["node"]].get("scale", [1.0, 1.0, 1.0])
+			sampler = anim["samplers"][channel["sampler"]]
+			if users.count(channel["sampler"]) != 1 or sampler.get("interpolation", "LINEAR") == "CUBICSPLINE":
+				raise RepairRefused("a scale sampler is shared or cubic; its keys cannot be reset alone")
+			rows = read_accessor(doc, binary, sampler["output"])
+			if all(max(abs(v - r) for v, r in zip(row, rest)) <= SCALE_TOLERANCE for row in rows):
+				continue
+			binary, sampler["output"] = append_accessor(doc, binary, [tuple(rest)] * len(rows), 5126, "VEC3")
+			strayed += 1
+	return binary, strayed
+
+
 def bind_scale(doc: dict, binary: bytes) -> float:
 	"""joint_world * inverse_bind for the first joint: the uniform scale a skinned vertex is drawn at."""
 	import math
@@ -366,9 +393,11 @@ def repair(rigged: bytes, l0: bytes, target_m: float) -> tuple[bytes, dict]:
 	factor = 1.0 if abs(before - target_m) <= HEIGHT_TOLERANCE_M else target_m / before
 	if factor != 1.0:
 		scale_root(doc, factor)
+	binary, strayed = reset_scale_keys(doc, binary)
 	binary, folded = fold_root_scale(doc, binary)
 	doc.setdefault("asset", {}).setdefault("extras", {})[STAMP] = {
 		"version": STAMP_VERSION, "height_scale": factor, "target_height_m": target_m, "root_scale_folded": folded,
+		"scale_channels_reset": strayed,
 		"source_sha256": hashlib.sha256(rigged).hexdigest()}
 	out = write_glb(doc, binary)
 	if not read_glb(out)[1].startswith(original_bin):
@@ -379,7 +408,7 @@ def repair(rigged: bytes, l0: bytes, target_m: float) -> tuple[bytes, dict]:
 	if root_scale(read_glb(out)[0]) != 1.0:
 		raise RepairRefused("the root scale was not folded")
 	return out, {"height_before_m": round(before, 4), "height_after_m": round(after, 4),
-				 "height_scale": factor, "root_scale_folded": folded}
+				 "height_scale": factor, "root_scale_folded": folded, "scale_channels_reset": strayed}
 
 
 def _sha(data: bytes) -> str:

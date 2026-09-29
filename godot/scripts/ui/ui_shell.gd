@@ -1604,16 +1604,21 @@ func layout_for(width: int, height: int) -> bool:
 
 
 func _apply_scale_transform() -> void:
-	"""Draw the logical layout at the user's scale. UI 1.2's second half.
+	"""Draw the logical layout at §1.2's effective scale S. UI 1.2's second half.
 
 	The geometry is computed against W/S by H/S, so at 150% a 1280x720 window lays out as
 	853x480 -- correct, and invisible without this. The engine's own base stretching is
 	DISABLED in project.godot precisely so this transform is the only one: Astra's ruling is
 	"do not apply both engine base stretching and the spec's scale". Scaling the shell rather
 	than the window keeps the 3D render at its own resolution, which is the rest of that rule.
+
+	S IS THE BASE SCALE TIMES THE USER SCALE, and the transform must be the same S the layout
+	divided by. It used to apply the user scale alone: at 1920x1080 the base scale is 1, so
+	nothing showed, but a full-screen 3456x2168 window (base scale 1.8) laid out at 1920x1204
+	logical pixels and drew them at 1x -- the whole HUD bunched into the top-left, the minimap
+	and command strip floating mid-screen.
 	"""
-	var factor: float = float(_user_scale) / 100.0
-	scale = Vector2(factor, factor)
+	scale = Vector2(_geometry.scale, _geometry.scale)
 
 
 func _apply_geometry() -> void:

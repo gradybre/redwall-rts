@@ -198,6 +198,20 @@ func test_the_zones_land_on_section_one_twos_published_rectangles() -> void:
 	assert_almost_equal(time.position.x + time.size.x, TIME_SPAN[1], "right edge")
 
 
+func test_the_shell_is_drawn_at_the_same_scale_the_layout_divided_by() -> void:
+	"""§1.2's S = base scale x user scale, in the transform too: a full-screen 3456x2168 window
+	(base scale min(3456/1920, 2168/1080) = 1.8) used to lay out at 1920x1204 and draw it at 1x, bunching the HUD into
+	the top-left. The drawn right edge of the time cluster must reach the window's right side."""
+	assert_true(_shell.layout_for(3456, 2168), "the full-screen layout computes")
+	var s: float = _shell.geometry().scale
+	assert_almost_equal(s, 1.8, "the base scale is min(W / 1920, H / 1080) = 1.8 here")
+	assert_almost_equal(_shell.scale.x, s, "the shell is drawn at that S")
+	var time: Rect2 = (_shell.control_for(UiShell.ID_TIME_CLUSTER) as Control).get_rect()
+	assert_true((time.position.x + time.size.x) * s > 3456.0 - 64.0 * s, "the time cluster reaches the right edge")
+	assert_true(_shell.layout_for(1920, 1080), "back to the reference size")
+	assert_almost_equal(_shell.scale.x, 1.0, "S is 1 at the reference size")
+
+
 func test_the_narrow_profile_shows_two_counter_cells_and_hides_the_rest() -> void:
 	"""§1.3's narrow resource area holds food-days and population only."""
 	assert_true(_shell.layout_for(1280, 720), "the standard layout shows six cells")

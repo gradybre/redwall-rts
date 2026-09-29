@@ -135,6 +135,7 @@ defects that show on screen. Run these four tools in order, over the whole
 creature library, whenever a creature is rigged, re-rigged or given new clips:
 
 ```bash
+python3 tools/author_water_clips.py --library assets/library/creature
 python3 tools/repair_meshy_rig.py  --library assets/library/creature
 python3 tools/rig_meshy_tail.py    --library assets/library/creature
 python3 tools/ground_meshy_clips.py --library assets/library/creature
@@ -143,9 +144,10 @@ python3 tools/bake_meshy_tail.py   --library assets/library/creature
 
 | Step | Output | Fixes |
 |---|---|---|
+| `author_water_clips.py` | `authored/` | Meshy has no swim: surface swim and tread-water for every creature, the otters' dive (0203) |
 | `repair_meshy_rig.py` | `repaired/` | Glossy self-lit material (0190); rigs 17–19% short (0190); the 0.01 Armature scale (0194); **bone scale keys away from rest (0197)** |
 | `rig_meshy_tail.py` | `tailed/` | No tail chain, tails bound to a thigh (0191) |
-| `ground_meshy_clips.py` | `grounded/` | Feet through the ground (0193); travelling carry walks (0195); **standing clips floating (0197)** |
+| `ground_meshy_clips.py` | `grounded/` | Feet through the ground (0193); travelling carry walks (0195); standing clips floating (0197); idles spinning on the spot (0201); **planted feet sliding (0202)** |
 | `bake_meshy_tail.py` | `baked/` | The crowd tier's tail motion (0192) |
 
 Play `grounded/` clips on the skeletal pool and `baked/` (else `grounded/`) on
@@ -165,9 +167,78 @@ clip whose feet never touch the ground. Only clips listed in `OFF_THE_GROUND`
 (the chair sit) may hover. **A new clip that sits, hangs, swims or flies must
 be added to `OFF_THE_GROUND`**, or it will be pulled down to the ground.
 
+**Creatures that spin when standing still.** Meshy's idle stands turned −43° from
+the walk and swings the whole body through 72–92° of yaw and back (10 of 10). The
+creature appears to turn in a half circle on the spot, and every blend between walk
+and idle turns it about 50°. **An idle must hold the walk's heading.** The grounding step
+therefore **untwists** any in-place clip whose Hips heading swings more than 45°
+and returns within 10° of where it began (decision 0201):
+- the Hips face +Z on every key;
+- the feet are pinned where the first key has them;
+- the legs are re-solved;
+- the head is turned to face +Z at rest.
+
+It leaves alone a clip that travels, or that ends turned: those turn on purpose. It
+refuses a swinging clip it cannot solve: no Head, a missing leg, a foot out of
+reach. Do not "fix" such a refusal by editing the clip by hand; fix the step. The
+manifest's `heading_swing_deg` shows every clip's swing. Anything new near 45° deserves a look.
+
+**Creatures whose planted feet slide.** Meshy lets a foot drift across the ground
+while it is planted: up to 13 cm in its kneels, 3 cm on the moles' chair, 2–9 cm
+in a gait's stance. **A planted foot must stay where it lands.** The grounding step
+therefore **pins** any contact that strays more than 2 cm (decision 0202):
+- A foot is planted when its lowest point is within 2 cm of the ground. In a clip
+  named in `GAIT_CLIPS`, it is planted when it moves with the ground at under half
+  the gait's speed.
+- The pinned foot keeps its height and rotation. The legs are re-solved, with the
+  hips lowered at most 3 cm where a leg cannot reach.
+- A step lifts the foot and starts a new contact, so steps are never undone.
+
+**A new walk, run or other locomotion clip must be added to `GAIT_CLIPS`.** Otherwise
+its scraping swing foot is taken for a planted one. An in-place gait records
+`gait.speed_m_s` on its Hips: move the creature at that speed, or play the clip at
+`ground_speed / gait.speed_m_s`, or the pinned stance slides again.
+
+**How to check it:**
+- The manifest's `contact_slide_before_m` and `contact_slide_after_m` give each
+  clip's worst planted slide. After should be under 2 cm.
+- `unpinned` lists contacts the step left, each with a reason: `"reach"` or
+  `"support"` (a kneeling knee).
+- `ground_scrape_m` shows how far a gait drags its swinging foot. That is not fixed
+  yet; see the asset library README.
+- In Godot, `viewer/dump_bones.gd` measures the feet as played. `viewer/shots_feet.gd`
+  renders them against a disc where each contact began.
+
+As with the untwist, never fix a refusal by editing the clip by hand; fix the step.
+
+**Creatures in water (decision 0203).** Meshy has no swim, so `author_water_clips.py` authors
+`anim_swim`, `anim_tread_water` and, for otters, `anim_dive` into `<key>/authored/`, as keys on a copy of
+the raw `rigged.glb`. The repair picks them up with Meshy's clips, and the chain treats them like any clip.
+- **The waterline is y = 0**, not the ground. Place a swimmer's root at the water surface.
+- Surface clips hold the Head above it and the Hips below it; a dive keeps the whole body under it.
+- **A new clip that swims must be added to `WATER_CLIPS`** in `ground_meshy_clips.py`, with its medium.
+  A water clip is never lifted, seated, pinned or untwisted. It is checked against the waterline instead.
+- The bake gives a water clip no ground (the spring's floor is 100 m down) and pulls the tail back along the
+  body, not down. A dive's tail must stay under the surface (`water_ok`); its `ground_ok` is `null`, which is
+  not a pass. A live swimmer needs `TailRig.set_water(true, back)`.
+- No swim speed is recorded; that is movement's to set.
+
+**Adding a species.** The beaver is the worked example (decision 0203):
+1. **Species table row.** Add it to `SPECIES_KEY`, `SPECIES_HEIGHT_U` and `SPECIES_HEIGHT_MM` in
+   `godot/assets/lookdev/lookdev_dimensions.gd`, appended last, with its status. Add it to
+   `docs/planning/asset_dimensions_and_budgets.{md,json}` too. The repair refuses a creature whose species
+   has no row. Do not invent landmark ratios for `proportion_comparison.gd`: leave the species out of it.
+2. **Tail decision, by measurement.** Measure how far the tail rides into the ground if left on the Hips,
+   across every clip. A tail that sinks or flies is chained: author its centreline and spring in
+   `tail_centrelines.json`. A tail that is not separable from the body goes in `no_chain`, with the reason.
+   A flat tail lying on the ground takes `"section": "flat"`, or its clearance is its half-width.
+3. **The water clips.** Give the species a row in `SPECIES_CLIPS` in `author_water_clips.py`.
+4. **The chain**, then the manifest diff: no other creature's row may change.
+
 **Before calling a creature done**, watch it in Godot blend idle → walk → idle,
-and check that it stays the same size and its feet stay planted. Every automated
-check can pass on a clip that reads wrong.
+and check that it stays the same size, **does not turn**, and its feet stay planted.
+Watch a kneel and a walk too: a planted foot should not creep off its spot.
+Every automated check can pass on a clip that reads wrong.
 
 ## Gotchas, each one confirmed the hard way
 

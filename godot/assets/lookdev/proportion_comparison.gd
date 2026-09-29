@@ -146,8 +146,13 @@ const MM_PER_METRE: float = 1000.0
 
 
 static func species_count() -> int:
-	"""How many species the comparison scene places. Five, per the ruling's named set."""
-	return Dimensions.SPECIES_KEY.size()
+	"""How many species the comparison scene places: the ruling's five, the rows with landmarks.
+
+	`lookdev_dimensions.gd` has a sixth row, the beaver (DEC-041), appended after these five so
+	their indices are unchanged. No reference was read for a beaver's eye, shoulder or hip, so it
+	has no landmark row, and inventing one would put an unsourced number in a review input. It is
+	absent from this scene until its landmarks are read off an authorized reference."""
+	return SKULL_TOP_PERMILLE.size()
 
 
 static func landmark_mm(permille_column: Array[int], row: int, height_mm: int) -> int:

@@ -46,26 +46,33 @@ const CUTAWAY_CUT_HEIGHT_U: int = 1024
 # --- GAP-01/02 species comparison candidates ---------------------------------------------
 
 const SPECIES_KEY: Array[StringName] = [
-	&"mouse", &"mole", &"squirrel", &"otter", &"badger",
+	&"mouse", &"mole", &"squirrel", &"otter", &"badger", &"beaver",
 ]
 
 ## Anatomical comparison heights in 1/1024 m. COMPARISON CANDIDATES -- see the file header.
-const SPECIES_HEIGHT_U: Array[int] = [1024, 922, 1178, 1526, 2611]
+const SPECIES_HEIGHT_U: Array[int] = [1024, 922, 1178, 1526, 2611, 1434]
 
 ## The same heights in the integer millimetre authoring column. DERIVED from `_U`.
-const SPECIES_HEIGHT_MM: Array[int] = [1000, 900, 1150, 1490, 2550]
+const SPECIES_HEIGHT_MM: Array[int] = [1000, 900, 1150, 1490, 2550, 1400]
 
 ## `mouse` inherits crowd §9.1's sourced 1.0 m gameplay anchor. DEC-039 approved the relative
-## proportions of all five on 2026-09-12 against the rendered elevation, which is what decision
+## proportions of the first five on 2026-09-12 against the rendered elevation, which is what decision
 ## 0002 gates -- so these are now production heights, not candidates. The LANDMARK ratios are a
 ## separate axis and remain `PROPOSED_FOR_REVIEW`: DEC-039 ruled on scale between species, not on
 ## eye line, hip or shoulder placement within a body.
+##
+## `beaver` is the sixth row, added by DEC-041 (2026-09-29), which put the beaver on the release
+## roster. Its 1434 u (1400 mm, 1.40x the mouse) is `PROPOSED_FOR_REVIEW`: DEC-041 says it needs
+## Brendan's comparison by eye, as DEC-039's five had, before it is confirmed. It is appended LAST so
+## the five DEC-039 rows keep their indices, which `proportion_comparison.gd`'s landmark columns are
+## aligned to. No landmark ratios exist for it, so it is not in that comparison scene.
 const SPECIES_STATUS: Array[StringName] = [
 	&"ANCHOR_SOURCED_PROPORTION_APPROVED",
 	&"PROPORTION_APPROVED_DEC_039",
 	&"PROPORTION_APPROVED_DEC_039",
 	&"PROPORTION_APPROVED_DEC_039",
 	&"PROPORTION_APPROVED_DEC_039",
+	&"PROPOSED_FOR_REVIEW_DEC_041",
 ]
 
 # --- GAP-03 building exterior vertical envelopes ------------------------------------------

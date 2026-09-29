@@ -98,6 +98,8 @@ func _configure() -> void:
 		printerr("[bake] REFUSED: %s on %s" % [refused, _clips[_clip]])
 		quit(1)
 		return
+	## A water clip's tail is carried, not hung: no gravity (decision 0203).
+	_rig.set_water(bool(_spec.get("water", {}).get(_clips[_clip], false)))
 	if not _skel.skeleton_updated.is_connected(_on_updated):
 		_skel.skeleton_updated.connect(_on_updated)
 	_key = 0

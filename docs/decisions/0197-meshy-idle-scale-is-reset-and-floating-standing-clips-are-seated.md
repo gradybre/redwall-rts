@@ -61,10 +61,14 @@ library, the crowd bake included, playing a 17.65% larger idle.
 - **`tools/test_repair_meshy_rig.py`: 44 checks.** The new fixture is Meshy's idle, literally
   1.1765 on two keys, reset to 1. A 1.005 scale is left alone. A shared or cubic sampler
   refuses (N08).
-  - Mutants: 6 of 7 killed (never reset, keep the keys, no tolerance, zero tolerance, no guard,
-    no count).
-  - The survivor, resetting after the root fold, is equivalent. The fold never touches a
-    descendant's scale, and it refuses an animated root.
+  - Mutants: all 6 non-equivalent mutants are killed (never reset, keep the keys, no tolerance,
+    zero tolerance, no guard, no count).
+  - A seventh, resetting AFTER the root fold instead of before, was **retired as equivalent**. The
+    fold writes only the root's scale, descendants' translations, translation keys and inverse
+    binds. It refuses an animated root, so it never reads or writes a scale channel. Both orders
+    therefore produce the same keys and the same drawn creature, differing only in the order
+    accessors are appended to the BIN. A test that could tell them apart would be asserting
+    buffer layout, not behaviour.
 - **`tools/test_ground_meshy_clips.py`: 47 checks.** New tests cover:
   - a standing clip that floats 0.548 m is lowered by exactly that;
   - the same clip marked off the ground does not move;

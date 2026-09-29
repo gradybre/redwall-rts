@@ -14,7 +14,7 @@ feed the simulation. `scenes/main.tscn` is untouched.
 ## Run it
 
 ```
-python3 tools/stage_demo_assets.py      # copy the library assets in (gitignored, ~1.6 GB)
+python3 tools/stage_demo_assets.py      # copy and make the library assets (gitignored, ~2.8 GB)
 godot --path godot demo/demo_village.tscn
 ```
 
@@ -196,6 +196,66 @@ and roots L0s shatter, so their beds are rebuilt as a bare bed plus alpha-cutout
 from the high-poly sources. Re-run it alone after changing it:
 `python3 tools/make_demo_crop_cards.py`. Without Blender those two beds are placeholders.
 
+## The asset pass: props, plants, icons (2026-09-29)
+
+The library's farm/tunnel and water/bridge/forestry passes bought 56 assets as a concept and a
+textured high-poly each, with **no L0**. `tools/make_demo_props.py` (with `demo_props_blender.py`,
+needs `blender`, ~10 minutes, cached per key) makes the game-budget versions free in Blender, into
+the gitignored `assets/props/`, `assets/plants/` and `assets/icons/`; staging runs it, and
+`python3 tools/stage_demo_assets.py --only props` re-runs just it. Every row in the manifest records
+its source's path and SHA-256, its GAP-04 family and budget, the triangles and texture size
+reached and how it was reduced.
+
+- **Props** (44): decimated to their family's L0 budget -- small props 1,150 of 1,200, furniture
+  (boats, jetty, bridges, rack, trunks) 1,900 of 2,000 -- on a fresh UV unwrap with the high-poly's
+  albedo, roughness and normal baked on (512 px small, 1,024 px furniture); bottom origin, facing
+  +Z as authored. **Facing is not checked by any tool**: the project's convention is -Z forward, so
+  each needs a human look before it leaves the demo.
+- **Plants** (12): alpha cards rendered from the high-poly -- full front, full side, thinned and
+  sparse (a third and two thirds of the leaves gone, by whole UV charts round the crown), and for
+  rosettes the same from above -- cut at the measured soil line (the turnip's and carrot's cut-away
+  roots go); and a 580-triangle close-up mesh -- drawn for the lettuce, a solid head its cards
+  cannot draw from above, once it fills out; the leafy plants' meshes shatter at that budget and
+  are staged only.
+- **Icons** (23): the eighteen items and the five finds and relics, one camera and light rig.
+- The older library props this pass uses (lantern, bed, basket, jars, shelf, tools) are remade the
+  same way: their L0s carry 2,048 px maps, over GAP-04's 1,024 for their families (the basket's also
+  shatters). The two buildings (the root cellar's door, the compost bins) are staged as they are
+  (`DRESSING`). The one table sizing all of them is `props/demo_props.gd` (demo-only sizes, by
+  height for what stands and by length for what lies or is carried).
+- **Memory.** Every staged map imports uncompressed (`compress/mode=0`; the editor's detect-3D
+  switch never fires in a headless import), which is why the default view holds ~6 GB of textures;
+  the pass adds ~0.3 GB of it (measured 5,804 -> 6,088 MB). A plant's atlases are read only when a
+  bed first shows it.
+
+What changed on screen:
+
+- **Every crop its own plant.** Radish, turnip, carrot, beetroot, onion, leek, lettuce, celery, pea,
+  barley and oats grow from their own cards (a filled-out lettuce as its mesh); wheat keeps its grain cards; parsnip the roots bed's
+  carrot cards; cabbage and spinach the roots bed's turnip cards and, ripe, the cabbage heads; broad
+  bean the pea (darkened). A stage shows a subset of the cells (`farm_look.gd stage_cells`): a
+  sprout the sparse card, then sparse and thinned, thinned, all three; ripe the full plant. A
+  WITHERED bed is thinned, slumped, drooping and bleached to straw; a BLIGHTED one stands full but
+  dark and blotched (`crop_card.gdshader bleach` / `spots`).
+- **Icons** in the Pantry's list and the crop picker; an item with no model shows a roundel in its
+  own colour.
+- **Carrying**: a harvest is carried as its own model in the carrier's hands (`farm_carry_view.gd`)
+  and put on the store's shelf -- a pantry shelf with the store's goods on its boards, most first,
+  and a jar per started third of fullness (`props/store_shelf.gd`, `farm_stock_view.gd`); a root
+  cellar's shelf stands in its room below ground.
+- **Tunnels**: braced bores show the library's brace frames, a collapse its rubble, lit bores wall
+  lanterns on alternate walls with a glow in each; finds lie where they were cut (underground view)
+  and sit on the tunnel panel as icons; a digging mole holds its pick; a finished root cellar is the
+  library's cellar on the surface, and rooms are furnished (beds and a basket in a home, baskets in
+  a cellar).
+- **Water**: a jetty off the boathouse with the rowboat alongside and the coracle off its end, a
+  raft on the pond, a rod, a net, an eel trap and a smoking rack by the fisher shelter, a trout and a
+  perch in the creels. The bridge models, and the forestry step's gnawed log and felled trunk, are
+  staged only.
+- **Walking**: the cast walks at the gait speed the grounding tool recorded on each walk clip
+  (`gait.speed_m_s`, decision 0202), not the old toe-slide estimate, and the walk clip always plays at
+  ground speed over that speed -- in a lit bore too.
+
 ## Water
 
 A stream runs down the village's east edge -- narrowing to a neck at the north-east corner, past
@@ -230,7 +290,8 @@ zone thresholds are demo values (`water/water_rules.gd`); decision 0196 records 
 | `burrow/` | Chambers dug off tunnels: burrow homes and root cellars (the cellar API) |
 | `events/` | Seeded threats (a flood, a fire) and evacuation |
 | `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the V overlay |
-| `farm/` | The farm: real FarmPlot rows, the pantry and its storage providers, the crew's jobs, beds, panels, alerts |
+| `farm/` | The farm: real FarmPlot rows, the pantry and its storage providers, the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves |
+| `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |
 | `ui/` | The woodland HUD skin; the HUD date, the news strip and the right column's tabs |
 | `camera/` | The RTS camera |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

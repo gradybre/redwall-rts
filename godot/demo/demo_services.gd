@@ -13,9 +13,12 @@ extends RefCounted
 ##   props      demo/props/demo_props.gd -- THE staged small props (items, finds, tunnel and water
 ##              gear, chamber furniture): each model's mesh loaded once and shared by every placement,
 ##              and the icons. demo_village.gd loads it from the manifest; a fresh set draws boxes.
+##   stores     demo/tunnel/tunnel_stores.gd -- THE demo stores: wood, stone, planks and finds. The woods
+##              (demo/forestry/) put their wood in and saw their planks from it; the tunnel works pay
+##              bracing and lanterns from it. One wood stock for the demo.
 ##
-## A suite that builds a farm or tunnel works without a village passes nothing and gets a fresh set of
-## its own, so no module ever runs without one of the five.
+## A suite that builds a farm, tunnel works or woods without a village passes nothing and gets a fresh
+## set of its own, so no module ever runs without one of the six.
 
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
@@ -23,12 +26,14 @@ const WaterScript := preload("res://demo/village_water.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
+const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 
 var calendar: CalendarScript = CalendarScript.new()
 var weather: WeatherScript = WeatherScript.new()
 var water: WaterScript = null
 var notices: NoticesScript = NoticesScript.new()
 var props: PropsScript = PropsScript.new()
+var stores: StoresScript = StoresScript.new()
 
 
 func _init(water_map: WaterMapScript = null) -> void:

@@ -9,7 +9,7 @@ extends Node
 ##   water     demo/village_water.gd -- THE village water adapter (demo_services.gd), over the real
 ##             water map: the ground's wetness, the flood's reach and the routes' water check
 ##   ground    tunnel_ground.gd -- what the village's ground is made of
-##   stores    tunnel_stores.gd -- the demo's wood, stone and finds
+##   stores    tunnel_stores.gd -- THE demo stores (demo_services.gd): wood, stone, planks and finds
 ##   finds     tunnel_finds.gd -- one seeded roll per metre cut
 ##   crew      tunnel_crew.gd -- crews, the Foremole's rate and experience
 ##   jobs      tunnel_jobs.gd -- upgrades, repairs and chambers
@@ -76,7 +76,7 @@ var weather: WeatherScript = null
 var water: WaterScript = null
 var notices: NoticesScript = null
 var ground: GroundScript = null
-var stores: StoresScript = StoresScript.new()
+var stores: StoresScript = null
 var finds: FindsScript = null
 var crew: CrewScript = CrewScript.new()
 var jobs: JobsScript = null
@@ -126,6 +126,7 @@ func setup(space: CastSpaceScript, brains: Array[BrainScript], species: PackedSt
 	weather = shared.weather
 	water = shared.water
 	notices = shared.notices
+	stores = shared.stores
 	events = EventsScript.new(water)
 	ground = GroundScript.new(bounds_u, water)
 	_network.set_ground(ground)

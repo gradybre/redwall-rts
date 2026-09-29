@@ -1,11 +1,18 @@
 extends RefCounted
-## The demo's own stores for its tunnel works. Decision 0196 (live demo). Presentation only.
+## THE DEMO'S ONE STORES: its wood, stone, planks and finds. Decision 0196 (live demo). Presentation
+## only. Made once by demo_services.gd and shared by the tunnel works and the woods.
 ##
 ## THE HUD'S WOOD AND STONE ARE THE SIMULATION'S (UIManager reads EconomySystem.stock_units), and the
 ## demo never writes into the simulation -- so bracing and lanterns are paid from THIS stock, shown
-## in the tunnel panel and labelled as the demo's. Quantities are integer milli-U (AGENTS.md:
-## quantity_milli). It starts at START_WOOD_MILLI_U and START_STONE_MILLI_U (demo values) and gains
-## stone from rock quanta dug (tunnel_ground.gd).
+## in the tunnel and woods panels and labelled as the demo's. Quantities are integer milli-U
+## (AGENTS.md: quantity_milli). It starts at START_WOOD_MILLI_U and START_STONE_MILLI_U (demo values),
+## gains stone from rock quanta dug (tunnel_ground.gd), and gains WOOD from the woods
+## (demo/forestry/): every log hauled to the log stack and every deadfall pile gathered.
+##
+## PLANKS (the stock the next step's bridges and boats build from): sawn at the sawhorse from this
+## stock's wood (demo/forestry/), `plank_milli_u`. The API: `add_planks`, `can_pay_planks`,
+## `pay_planks` -- all or nothing, like `pay` -- and `units_text` for the panels. `take_wood` is the
+## sawyer's all-or-nothing draw on the wood.
 ##
 ## FINDS. Every find dug up (tunnel_finds.gd) is tallied here by kind; relics also advance the story
 ## notices. A refused spend changes nothing (no partial debit).
@@ -17,6 +24,7 @@ const START_STONE_MILLI_U: int = 20000
 
 var wood_milli_u: int = START_WOOD_MILLI_U
 var stone_milli_u: int = START_STONE_MILLI_U
+var plank_milli_u: int = 0
 ## Per find kind (FindsScript.FIND_*): how many have been dug up.
 var finds: PackedInt32Array = PackedInt32Array()
 ## Bumped on every change, so the panel redraws only when something changed.
@@ -43,6 +51,45 @@ func pay(wood: int, stone: int) -> bool:
 	return true
 
 
+func add_wood(milli_u: int) -> void:
+	"""Wood from the woods comes into the stock (a hauled load, a gathered pile)."""
+	if milli_u <= 0:
+		return
+	wood_milli_u += milli_u
+	revision += 1
+
+
+func take_wood(milli_u: int) -> bool:
+	"""Take this much wood (milli-U) for sawing -- all of it, or (false) none."""
+	if milli_u <= 0 or wood_milli_u < milli_u:
+		return false
+	wood_milli_u -= milli_u
+	revision += 1
+	return true
+
+
+func add_planks(milli_u: int) -> void:
+	"""Sawn planks come into the stock."""
+	if milli_u <= 0:
+		return
+	plank_milli_u += milli_u
+	revision += 1
+
+
+func can_pay_planks(milli_u: int) -> bool:
+	"""Whether the stock holds this many planks (milli-U)."""
+	return milli_u >= 0 and plank_milli_u >= milli_u
+
+
+func pay_planks(milli_u: int) -> bool:
+	"""Take this many planks (milli-U) -- all of them, or (false) none."""
+	if not can_pay_planks(milli_u):
+		return false
+	plank_milli_u -= milli_u
+	revision += 1
+	return true
+
+
 func add_stone(milli_u: int) -> void:
 	"""Stone dug out of rock comes into the stock."""
 	if milli_u <= 0:
@@ -64,7 +111,8 @@ static func units_text(milli_u: int) -> String:
 
 func stock_line() -> String:
 	"""The panel's stores line."""
-	return "Demo stores: wood %s · stone %s" % [units_text(wood_milli_u), units_text(stone_milli_u)]
+	return "Demo stores: wood %s · stone %s · planks %s" % [units_text(wood_milli_u), units_text(stone_milli_u),
+		units_text(plank_milli_u)]
 
 
 func finds_line() -> String:

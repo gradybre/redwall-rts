@@ -21,6 +21,14 @@ extends RefCounted
 ##
 ## Tunnels chain: two tunnels can be linked by a surface edge between their mouths.
 ##
+## WEATHER, LANTERNS AND QUEUES (demo). Costs are compared as WALKING TIME in metres-at-walk-speed:
+## every surface edge is its length times 1000 / `surface_permille` (the weather's surface speed;
+## demo_weather.gd), while a tunnel edge -- dry and sheltered -- is its cost as offered (add_pair:
+## already divided by its own bore speed, faster when lit). So in rain or snow a tunnel wins trips
+## it would lose in the sun. Entering a tunnel at a mouth with a queue also costs that mouth's wait
+## (tunnel_queue.gd). Cached routes keep their plain lengths; the weather is applied as they are
+## read, so a change of weather never invalidates the cache.
+##
 ## MOUTH-TO-MOUTH ROUTES ARE CACHED. Between two mouths the ground does not change until a tunnel
 ## is added or changes phase -- tunnel_network.revision -- so each walker body's mouth-to-mouth
 ## surface routes are planned once per revision, round the obstacles and the mouths only, and kept
@@ -75,6 +83,10 @@ class MouthCache:
 var pair_count: int = 0
 var pair_slot: PackedInt32Array = PackedInt32Array()
 var pair_length_m: PackedFloat32Array = PackedFloat32Array()
+## The wait (m of walking) to enter each offered tunnel at its mouth a and at its mouth b.
+var pair_wait_m: PackedFloat32Array = PackedFloat32Array()
+## Surface walking speed per mille (see WEATHER, LANTERNS AND QUEUES).
+var surface_permille: int = 1000
 ## Surface plans run by the last plan, and mouth-to-mouth routes it took from the cache.
 var last_surface_plans: int = 0
 var last_cache_hits: int = 0
@@ -104,6 +116,7 @@ func _init() -> void:
 	"""Size every column for MAX_NODES once."""
 	pair_slot.resize(Rules.MAX_TUNNELS)
 	pair_length_m.resize(Rules.MAX_TUNNELS)
+	pair_wait_m.resize(2 * Rules.MAX_TUNNELS)
 	_node.resize(MAX_NODES)
 	_mouth_id.resize(MAX_NODES)
 	_weight.resize(MAX_NODES * MAX_NODES)
@@ -124,10 +137,14 @@ func clear_pairs() -> void:
 	pair_count = 0
 
 
-func add_pair(slot: int, mouth_a: Vector2, mouth_b: Vector2, length_m: float) -> void:
-	"""Offer one open tunnel: its slot, its two mouths and its cost. At most MAX_TUNNELS."""
+func add_pair(slot: int, mouth_a: Vector2, mouth_b: Vector2, length_m: float, wait_a_m: float = 0.0,
+		wait_b_m: float = 0.0) -> void:
+	"""Offer one open tunnel: its slot, its two mouths, its cost and the wait to enter it at each
+	mouth (INF: that way in is closed). At most MAX_TUNNELS."""
 	pair_slot[pair_count] = slot
 	pair_length_m[pair_count] = length_m
+	pair_wait_m[2 * pair_count] = wait_a_m
+	pair_wait_m[2 * pair_count + 1] = wait_b_m
 	_node[FIRST_MOUTH + 2 * pair_count] = mouth_a
 	_node[FIRST_MOUTH + 2 * pair_count + 1] = mouth_b
 	_mouth_id[FIRST_MOUTH + 2 * pair_count] = 2 * slot
@@ -198,11 +215,16 @@ func _reset(from: Vector2, to: Vector2) -> void:
 	for u in _count:
 		for v in _count:
 			var edge := u * MAX_NODES + v
-			_weight[edge] = _node[u].distance_to(_node[v])
+			_weight[edge] = _node[u].distance_to(_node[v]) * _surface_scale()
 			_exact[edge] = EDGE_BOUND
 			if u >= FIRST_MOUTH and v >= FIRST_MOUTH and _cache.known[_cache_index(u, v)] == 1:
-				_weight[edge] = _cache.weight[_cache_index(u, v)]
+				_weight[edge] = _cache.weight[_cache_index(u, v)] * _surface_scale()
 				_exact[edge] = EDGE_CACHED
+
+
+func _surface_scale() -> float:
+	"""How much longer a metre on the surface counts than a metre at walk speed (the weather's)."""
+	return float(Rules.PERMILLE) / float(maxi(surface_permille, 1))
 
 
 func _cache_index(u: int, v: int) -> int:
@@ -233,7 +255,7 @@ func _search() -> void:
 			if v != START and v != u and _done[v] == 0:
 				_relax(u, v, _weight[u * MAX_NODES + v], VIA_SURFACE)
 		if u >= FIRST_MOUTH and _done[_partner(u)] == 0:
-			_relax(u, _partner(u), pair_length_m[(u - FIRST_MOUTH) / 2], VIA_TUNNEL)
+			_relax(u, _partner(u), pair_length_m[(u - FIRST_MOUTH) / 2] + pair_wait_m[u - FIRST_MOUTH], VIA_TUNNEL)
 
 
 func _settle_nearest() -> bool:
@@ -288,11 +310,11 @@ func _make_exact(u: int, v: int, edge: int) -> int:
 		_plan_into_cache(u, v)
 	if between_mouths and _cached_route_clear(u, v):
 		_copy_route(_cache.routes[_cache_index(u, v)], _routes[edge])
-		_weight[edge] = _cache.weight[_cache_index(u, v)]
+		_weight[edge] = _cache.weight[_cache_index(u, v)] * _surface_scale()
 		last_cache_hits += 1
 	else:
 		_plan_edge(u, v, _standing_count, _routes[edge])
-		_weight[edge] = _route_length(_node[u], _routes[edge]) if _nav.last_found else INF
+		_weight[edge] = _route_length(_node[u], _routes[edge]) * _surface_scale() if _nav.last_found else INF
 	_exact[edge] = EDGE_EXACT
 	return 1 if _weight[edge] != before else 0
 

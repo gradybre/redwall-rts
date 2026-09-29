@@ -51,6 +51,22 @@ const BORE_HEIGHT_U: int = 1024
 const CROSS_SECTION_QUANTA: int = (BORE_WIDTH_U / QUANTUM_U) * (BORE_HEIGHT_U / QUANTUM_U)
 const SHAFT_QUANTA: int = 1
 const STOOP_PERMILLE: int = 850
+## WIDE BORE (demo, the WIDEN upgrade): two quanta wide and three high -- the smallest lattice bore
+## an otter (1.49 m, stooped 1.27 m) and the badger (2.55 m, stooped 2.17 m; 1.12 m across) fit.
+## Six quanta a metre, so widening re-digs WIDE_EXTRA_QUANTA more of them per metre (and per shaft).
+const BORE_STANDARD: int = 0
+const BORE_WIDE: int = 1
+const BORE_WIDTHS_U: Array[int] = [1024, 2048]
+const BORE_HEIGHTS_U: Array[int] = [1024, 3072]
+const WIDE_QUANTA: int = 6
+const WIDE_EXTRA_QUANTA: int = WIDE_QUANTA - CROSS_SECTION_QUANTA
+## LOADED (demo): a carrier holds its load across its body, hand to hand with an overhang, so its
+## width while carrying is LOAD_WIDTH_PERMILLE of its standing height (never less than its own
+## body). MOVE-REQ-005: the carried-load condition is checked like any other and names the failed
+## dimension. With 850 every body that fits a standard bore fits it loaded (a mouse is 0.85 m wide
+## with its log, a squirrel 0.98 m), an otter hauls only through a wide bore, and the badger -- 2.17 m
+## across with its load -- through none.
+const LOAD_WIDTH_PERMILLE: int = 850
 ## A mouth must not cut into an obstacle: its centre stays half a bore clear of every circle.
 const MOUTH_CLEAR_U: int = BORE_WIDTH_U / 2
 ## Two consecutive points closer than this would make a leg with no direction.
@@ -247,6 +263,21 @@ static func fit_refusal(height_u: int, radius_u: int) -> int:
 static func fits_bore(height_u: int, radius_u: int) -> bool:
 	"""Whether a body of this standing height and radius may use a bore."""
 	return fit_refusal(height_u, radius_u) == FIT_OK
+
+
+static func fit_refusal_in(height_u: int, width_u: int, bore: int) -> int:
+	"""FIT_OK, or the condition a body this tall and this wide (u) fails in a bore of class `bore`
+	(BORE_STANDARD or BORE_WIDE): too wide, or too tall even stooped (MOVE-REQ-005)."""
+	if width_u > BORE_WIDTHS_U[bore]:
+		return FIT_TOO_WIDE
+	if ceil_div(height_u * STOOP_PERMILLE, PERMILLE) > BORE_HEIGHTS_U[bore]:
+		return FIT_TOO_TALL
+	return FIT_OK
+
+
+static func loaded_width_u(height_u: int, radius_u: int) -> int:
+	"""A carrier's width with its load across it: LOAD_WIDTH_PERMILLE of its height, at least its body."""
+	return maxi(2 * radius_u, ceil_div(height_u * LOAD_WIDTH_PERMILLE, PERMILLE))
 
 
 static func is_digger(species: String) -> bool:

@@ -14,6 +14,10 @@ of paid-for art; the ways it must refuse matter more than the way it succeeds:
   N07  a missing SPECIES_HEIGHT_U refuses rather than falling back to a copied number.
   N08  a scale sampler shared with another channel, or cubic, refuses: resetting its keys
        would move the other channel, or turn tangents into scales.
+  N10  an authored clip named like one of Meshy's refuses: both would be written to repaired/<name>.
+  N09  a creature whose species has no SPECIES_HEIGHT_U row refuses, naming the creature and
+       the species, before ANY creature is written -- not a bare KeyError halfway through
+       (the beaver did that before DEC-041, decision 0203).
 
 EXPECTED VALUES ARE LITERALS, NOT RECOMPUTATIONS. The rescaled root is checked against
 0.018, not against `0.01 * factor` -- a test that recomputes the factor agrees with the
@@ -29,6 +33,7 @@ import json
 import pathlib
 import struct
 import sys
+import tempfile
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import repair_meshy_rig as rig  # noqa: E402
@@ -168,6 +173,79 @@ def test_n07_a_missing_height_column_refuses() -> None:
 	"""No authoritative column means no repair, never a remembered number."""
 	_refuses("N07 missing SPECIES_HEIGHT_U refuses",
 		lambda: rig.species_heights_m('const SPECIES_KEY: Array[StringName] = [&"a"]\n'))
+
+
+def _library(root: pathlib.Path, keys: list[str]) -> pathlib.Path:
+	"""A creature library on disk: each key with the fixture l0.glb and rigged.glb."""
+	for key in keys:
+		(root / key).mkdir()
+		(root / key / "l0.glb").write_bytes(_l0())
+		(root / key / "rigged.glb").write_bytes(_rigged())
+	return root
+
+
+def test_n09_an_unknown_species_refuses_before_anything_is_written() -> None:
+	"""A species with no height row refuses by name; the known creature sorted before it is untouched."""
+	with tempfile.TemporaryDirectory() as tmp:
+		library = _library(pathlib.Path(tmp), ["mouse_a", "wolverine_b"])
+		try:
+			rig.repair_library(library, {"mouse": 0.5}, dry_run=False)
+		except rig.RepairRefused as refused:
+			reason = str(refused)
+			check("N09 an unknown species refuses", True)
+			check("N09 the reason names the creature", "wolverine_b" in reason)
+			check("N09 the reason names the species", "species 'wolverine'" in reason)
+			check("N09 the reason says where the row belongs", "SPECIES_HEIGHT_U" in reason)
+		except KeyError:
+			check("N09 an unknown species refuses (raised a bare KeyError)", False)
+		else:
+			check("N09 an unknown species refuses (did not refuse)", False)
+		check("N09 nothing was written for the known creature", not (library / "mouse_a" / "repaired").exists())
+		check("N09 nor for the unknown one", not (library / "wolverine_b" / "repaired").exists())
+
+
+def test_n09_the_target_lookup_refuses_alone() -> None:
+	"""species_target_m on its own: the first underscore splits the key; an unknown prefix refuses."""
+	check("a known species resolves to its height", rig.species_target_m("beaver_bridgewright", {"beaver": 1.4}) == 1.4)
+	_refuses("N09 an unknown species refuses in the lookup", lambda: rig.species_target_m("stoat_scout", {"beaver": 1.4}))
+
+
+def test_n10_an_authored_clip_clashing_with_meshys_refuses() -> None:
+	"""authored/anim_walk.glb beside Meshy's anim_walk.glb."""
+	with tempfile.TemporaryDirectory() as tmp:
+		library = _library(pathlib.Path(tmp), ["mouse_a"])
+		(library / "mouse_a" / "anim_walk.glb").write_bytes(_rigged())
+		(library / "mouse_a" / "authored").mkdir()
+		(library / "mouse_a" / "authored" / "anim_walk.glb").write_bytes(_rigged())
+		try:
+			rig.repair_library(library, {"mouse": 0.5}, dry_run=True)
+		except rig.RepairRefused as refused:
+			check("N10 a clash refuses, naming the clip", "anim_walk.glb" in str(refused))
+		else:
+			check("N10 a clash refuses (did not refuse)", False)
+
+
+def test_authored_clips_are_repaired_with_meshys_and_marked() -> None:
+	"""authored/anim_swim.glb is repaired into repaired/, and its row says where it came from."""
+	with tempfile.TemporaryDirectory() as tmp:
+		library = _library(pathlib.Path(tmp), ["mouse_a"])
+		(library / "mouse_a" / "anim_walk.glb").write_bytes(_rigged())
+		(library / "mouse_a" / "authored").mkdir()
+		(library / "mouse_a" / "authored" / "anim_swim.glb").write_bytes(_rigged())
+		rows = rig.repair_library(library, {"mouse": 0.5}, dry_run=False)
+		check("Meshy's clip, the authored one, then rigged.glb", [r["file"] for r in rows] == ["anim_walk.glb", "anim_swim.glb", "rigged.glb"])
+		check("the authored clip is written to repaired/", (library / "mouse_a" / "repaired" / "anim_swim.glb").exists())
+		check("only its row is marked authored", [r.get("source") for r in rows] == [None, "authored", None])
+
+
+def test_a_known_library_repairs_every_creature() -> None:
+	"""With every species known, both creatures are written, one row per file."""
+	with tempfile.TemporaryDirectory() as tmp:
+		library = _library(pathlib.Path(tmp), ["mouse_a", "mouse_b"])
+		rows = rig.repair_library(library, {"mouse": 0.5}, dry_run=False)
+		check("two creatures, one rigged.glb each", [r["key"] for r in rows] == ["mouse_a", "mouse_b"])
+		check("each written to repaired/", all((library / k / "repaired" / "rigged.glb").exists() for k in ("mouse_a", "mouse_b")))
+		check("each targets its species' height", all(r["target_height_m"] == 0.5 for r in rows))
 
 
 # --- positive tests ---------------------------------------------------------------------
@@ -311,10 +389,12 @@ def test_original_data_survives_and_the_glb_is_well_formed() -> None:
 	check("the source file's hash is stamped", json.dumps(_raw(out)[0]["asset"]["extras"]).count("source_sha256") == 1)
 
 
-def test_the_real_species_table_parses_to_dec_039() -> None:
+def test_the_real_species_table_parses_to_dec_039_and_dec_041() -> None:
 	"""The authoritative 1/1024 m column, read from the file that owns it."""
 	heights = rig.species_heights_m((ROOT / "godot/assets/lookdev/lookdev_dimensions.gd").read_text(encoding="utf-8"))
-	check("five species", sorted(heights) == ["badger", "mole", "mouse", "otter", "squirrel"])
+	check("six species: DEC-039's five and DEC-041's beaver",
+		sorted(heights) == ["badger", "beaver", "mole", "mouse", "otter", "squirrel"])
+	check("beaver is 1434 u", heights["beaver"] == 1434 / 1024)
 	check("mouse is 1024 u", heights["mouse"] == 1024 / 1024)
 	check("mole is 922 u", heights["mole"] == 922 / 1024)
 	check("badger is 2611 u", heights["badger"] == 2611 / 1024)

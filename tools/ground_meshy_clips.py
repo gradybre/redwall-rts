@@ -61,6 +61,12 @@ ROOT_WINDOW_S = 1.0        # one gait cycle: Meshy's walk loop is 1.03 s
 SUPPORT_JOINTS = ("Foot", "Toe", "Leg")
 GROUND_TOLERANCE_M = 0.001
 OFF_THE_GROUND = ("anim_chair_sit_idle",)   # clips whose support may hover: never seated
+## Clips played in water, and where they sit against its surface (decision 0203). The waterline is y = 0.
+## A water clip is never lifted, seated, pinned or untwisted -- it has no ground -- and is checked against
+## the waterline instead: a SURFACE clip holds the Head above it and the Hips below it on every key; a
+## SUBMERGED clip keeps every vertex below it.
+WATER_CLIPS = {"anim_swim": "surface", "anim_tread_water": "surface", "anim_dive": "submerged"}
+WATERLINE_Y_M = 0.0
 
 
 class GroundRefused(RepairRefused):
@@ -1036,15 +1042,75 @@ def _check_pinned(doc: dict, binary: bytes, ground: list, pinned: dict[str, list
 				raise GroundRefused(f"the {side} foot still slides {slide:.4f} m in its contact at keys {a}-{b}")
 
 
-def ground_clip(data: bytes, stands: bool = True, gait: bool = False) -> tuple[bytes, dict]:
+def waterline_report(doc: dict, binary: bytes, medium: str) -> dict:
+	"""Check a water clip against the waterline on every key, and report its margins; refuse a clip that
+	breaks its medium's rule (WATER_CLIPS). Surface: the Head joint above y = 0 and the Hips joint below it.
+	Submerged: every skinned vertex below it, but a chained tail's: the spring moves those, and the bake
+	checks where it takes them (bake_meshy_tail.py, decision 0203)."""
+	if medium not in ("surface", "submerged"):
+		raise GroundRefused(f"unknown water medium {medium!r}")
+	hips, _channel = _hips(doc)
+	head = next((i for i, n in enumerate(doc["nodes"]) if n.get("name") == "Head"), None)
+	if head is None:
+		raise GroundRefused("a water clip needs a Head to hold against the waterline")
+	skin, names, ibm, pos, jnt, wgt = _skinning(doc, binary)
+	body = [v for v in range(len(pos)) if not names[jnt[v][max(range(4), key=lambda q: wgt[v][q])]].startswith("tail_")]
+	times, animated = _channels(doc, binary)
+	head_low, hips_high, top = math.inf, -math.inf, -math.inf
+	for k in range(len(times)):
+		worlds = _worlds_at(doc, animated, k)
+		head_low, hips_high = min(head_low, worlds[head][13]), max(hips_high, worlds[hips][13])
+		if medium == "submerged":
+			mats = [mat_mul(worlds[node], list(ibm[s])) for s, node in enumerate(skin["joints"])]
+			top = max(top, max(_skin_point(mats, jnt[v], wgt[v], pos[v])[1] for v in body))
+	if medium == "surface" and not (head_low > WATERLINE_Y_M and hips_high < WATERLINE_Y_M):
+		raise GroundRefused(f"a surface clip must hold the Head above the waterline and the Hips below it "
+			f"(Head as low as {head_low:+.4f} m, Hips as high as {hips_high:+.4f} m)")
+	if medium == "submerged" and top >= WATERLINE_Y_M:
+		raise GroundRefused(f"a submerged clip breaks the surface: its highest point reaches {top:+.4f} m")
+	report = {"water": medium, "head_min_y_m": round(head_low, 4), "hips_max_y_m": round(hips_high, 4)}
+	return report | ({"body_max_y_m": round(top, 4)} if medium == "submerged" else {})
+
+
+def _water_clip(doc: dict, binary: bytes, data: bytes, medium: str) -> tuple[bytes, dict]:
+	"""A water clip (WATER_CLIPS): nothing about the ground applies -- no lift, seat, pin or untwist. Its
+	travel, if any, is taken out as a walk's is (decision 0195), and it is checked against the waterline."""
+	original = binary
+	headings = hips_headings(doc, binary)
+	times, lows = lowest_support(doc, binary)
+	roots = extract_root(times, root_path(doc, binary)[1])
+	binary = apply_lift(doc, binary, rotation_time_accessor(doc), times, [0.0] * len(times), roots)
+	if roots is not None:
+		_record_root_motion(doc, times, roots)
+	doc["asset"].setdefault("extras", {})[STAMP] = {"version": STAMP_VERSION, "max_lift_m": 0.0, "root_motion": roots is not None,
+		"water": medium, "source_sha256": hashlib.sha256(data).hexdigest()}
+	out = write_glb(doc, binary)
+	out_doc, out_binary = read_glb(out)
+	if not out_binary.startswith(original):
+		raise GroundRefused("original BIN data did not survive intact")
+	_after_times, after = lowest_support(out_doc, out_binary)
+	if roots is None and any(abs(a - b) > 1e-5 for a, b in zip(lows, after)):
+		raise GroundRefused("an in-place water clip moved")
+	return out, {**_root_report(out_doc, out_binary, roots), "keys": len(times), "keys_lifted": 0, "max_lift_m": 0.0,
+		"seated_m": 0.0, "support_min_before_m": round(min(lows), 4), "support_min_after_m": round(min(after), 4),
+		"support_max_after_m": round(max(after), 4), "heading_swing_deg": round(max(headings) - min(headings), 2),
+		"heading_net_deg": round(headings[-1] - headings[0], 2), "untwisted": False, "contacts": 0, "contacts_pinned": 0,
+		"contact_slide_before_m": 0.0, "contact_slide_after_m": 0.0, "unpinned": [],
+		**waterline_report(out_doc, out_binary, medium)}
+
+
+def ground_clip(data: bytes, stands: bool = True, gait: bool = False, water: str | None = None) -> tuple[bytes, dict]:
 	"""Ground one clip -- hold it at the walk's heading if it swings round, pin its planted feet, lift it
-	out of the ground, or seat it if it stands and floats -- and verify by re-skinning the output."""
+	out of the ground, or seat it if it stands and floats -- and verify by re-skinning the output. A water
+	clip (`water` is its medium) is instead checked against the waterline (_water_clip)."""
 	doc, binary = read_glb(data)
 	if STAMP in doc.get("asset", {}).get("extras", {}):
 		raise GroundRefused("already grounded; ground the source, not an output")
 	if not doc.get("animations"):
 		raise GroundRefused("the file has no animation to ground")
 	refuse_stray_scale(doc, binary)
+	if water is not None:
+		return _water_clip(doc, binary, data, water)
 	original = binary
 	binary, twist = untwist(doc, binary)
 	binary, pins = pin_feet(doc, binary, stands, gait)
@@ -1169,8 +1235,13 @@ def _source_dir(key_dir: pathlib.Path) -> pathlib.Path:
 
 
 def stands(path: str) -> bool:
-	"""Whether the clip file at `path` stands, and so must touch the ground: all but OFF_THE_GROUND."""
-	return pathlib.Path(path).stem not in OFF_THE_GROUND
+	"""Whether the clip file at `path` stands, and so must touch the ground: all but OFF_THE_GROUND and WATER_CLIPS."""
+	return pathlib.Path(path).stem not in OFF_THE_GROUND and pathlib.Path(path).stem not in WATER_CLIPS
+
+
+def water_medium(path: str) -> str | None:
+	"""The medium of the clip file at `path` if it is played in water (WATER_CLIPS), else None."""
+	return WATER_CLIPS.get(pathlib.Path(path).stem)
 
 
 def is_gait(path: str) -> bool:
@@ -1182,7 +1253,7 @@ def _ground_one(job: tuple[str, str, bool]) -> dict:
 	"""Worker: ground one clip file and, unless dry-running, write it."""
 	source, target, dry_run = job
 	data = pathlib.Path(source).read_bytes()
-	out, row = ground_clip(data, stands(source), is_gait(source))
+	out, row = ground_clip(data, stands(source), is_gait(source), water_medium(source))
 	if not dry_run:
 		pathlib.Path(target).write_bytes(out)
 	path = pathlib.Path(source)
@@ -1221,6 +1292,9 @@ def main() -> int:
 	for r in (r for r in rows if r["untwisted"]):
 		print(f"  untwisted {r['key']:18} {r['clip']:12} swing {r['heading_swing_deg']:5.1f} deg, turned {r['turned_deg']:+.1f}, "
 			f"gaze {r['gaze_deg']:+.1f}, hips down up to {r['hips_drop_max_m']:.3f} m, feet slide {r['feet_slide_before_m']:.3f} -> {r['feet_slide_after_m']:.3f} m")
+	for r in (r for r in rows if r.get("water")):
+		print(f"  water     {r['key']:18} {r['clip']:30} {r['water']:9} head down to {r['head_min_y_m']:+.3f} m, hips up to "
+			f"{r['hips_max_y_m']:+.3f} m" + (f", body up to {r['body_max_y_m']:+.3f} m" if "body_max_y_m" in r else ""))
 	for r in (r for r in rows if r["contacts_pinned"]):
 		print(f"  pinned    {r['key']:18} {r['clip']:30} {r['contacts_pinned']}/{r['contacts']} contacts, slide "
 			f"{r['contact_slide_before_m']:.3f} -> {r['contact_slide_after_m']:.3f} m, moved up to {r['pin_max_m']:.3f} m")
@@ -1235,6 +1309,7 @@ def main() -> int:
 			"untwist": {"decision": "0201", "swing_deg": TWIST_SWING_DEG, "net_turn_deg": TWIST_NET_DEG, "forward_deg": FORWARD_DEG},
 			"pin": {"decision": "0202", "contact_height_m": CONTACT_HEIGHT_M, "pin_slide_m": PIN_SLIDE_M,
 				"stance_speed_fraction": STANCE_SPEED_FRACTION, "min_stance_keys": MIN_STANCE_KEYS, "gait_clips": list(GAIT_CLIPS)},
+			"water": {"decision": "0203", "waterline_y_m": WATERLINE_Y_M, "clips": WATER_CLIPS},
 			"count": len(rows), "clips": rows}, indent=1) + "\n")
 	return 0
 

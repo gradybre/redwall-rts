@@ -135,6 +135,7 @@ defects that show on screen. Run these four tools in order, over the whole
 creature library, whenever a creature is rigged, re-rigged or given new clips:
 
 ```bash
+python3 tools/author_water_clips.py --library assets/library/creature
 python3 tools/repair_meshy_rig.py  --library assets/library/creature
 python3 tools/rig_meshy_tail.py    --library assets/library/creature
 python3 tools/ground_meshy_clips.py --library assets/library/creature
@@ -143,6 +144,7 @@ python3 tools/bake_meshy_tail.py   --library assets/library/creature
 
 | Step | Output | Fixes |
 |---|---|---|
+| `author_water_clips.py` | `authored/` | Meshy has no swim: surface swim and tread-water for every creature, the otters' dive (0203) |
 | `repair_meshy_rig.py` | `repaired/` | Glossy self-lit material (0190); rigs 17–19% short (0190); the 0.01 Armature scale (0194); **bone scale keys away from rest (0197)** |
 | `rig_meshy_tail.py` | `tailed/` | No tail chain, tails bound to a thigh (0191) |
 | `ground_meshy_clips.py` | `grounded/` | Feet through the ground (0193); travelling carry walks (0195); standing clips floating (0197); idles spinning on the spot (0201); **planted feet sliding (0202)** |
@@ -208,6 +210,30 @@ its scraping swing foot is taken for a planted one. An in-place gait records
   renders them against a disc where each contact began.
 
 As with the untwist, never fix a refusal by editing the clip by hand; fix the step.
+
+**Creatures in water (decision 0203).** Meshy has no swim, so `author_water_clips.py` authors
+`anim_swim`, `anim_tread_water` and, for otters, `anim_dive` into `<key>/authored/`, as keys on a copy of
+the raw `rigged.glb`. The repair picks them up with Meshy's clips, and the chain treats them like any clip.
+- **The waterline is y = 0**, not the ground. Place a swimmer's root at the water surface.
+- Surface clips hold the Head above it and the Hips below it; a dive keeps the whole body under it.
+- **A new clip that swims must be added to `WATER_CLIPS`** in `ground_meshy_clips.py`, with its medium.
+  A water clip is never lifted, seated, pinned or untwisted. It is checked against the waterline instead.
+- The bake gives a water clip no ground (the spring's floor is 100 m down) and pulls the tail back along the
+  body, not down. A dive's tail must stay under the surface (`water_ok`); its `ground_ok` is `null`, which is
+  not a pass. A live swimmer needs `TailRig.set_water(true, back)`.
+- No swim speed is recorded; that is movement's to set.
+
+**Adding a species.** The beaver is the worked example (decision 0203):
+1. **Species table row.** Add it to `SPECIES_KEY`, `SPECIES_HEIGHT_U` and `SPECIES_HEIGHT_MM` in
+   `godot/assets/lookdev/lookdev_dimensions.gd`, appended last, with its status. Add it to
+   `docs/planning/asset_dimensions_and_budgets.{md,json}` too. The repair refuses a creature whose species
+   has no row. Do not invent landmark ratios for `proportion_comparison.gd`: leave the species out of it.
+2. **Tail decision, by measurement.** Measure how far the tail rides into the ground if left on the Hips,
+   across every clip. A tail that sinks or flies is chained: author its centreline and spring in
+   `tail_centrelines.json`. A tail that is not separable from the body goes in `no_chain`, with the reason.
+   A flat tail lying on the ground takes `"section": "flat"`, or its clearance is its half-width.
+3. **The water clips.** Give the species a row in `SPECIES_CLIPS` in `author_water_clips.py`.
+4. **The chain**, then the manifest diff: no other creature's row may change.
 
 **Before calling a creature done**, watch it in Godot blend idle → walk → idle,
 and check that it stays the same size, **does not turn**, and its feet stay planted.

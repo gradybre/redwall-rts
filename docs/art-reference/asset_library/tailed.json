@@ -1,8 +1,411 @@
 {
  "tool": "tools/rig_meshy_tail.py",
  "decision": "0191",
- "count": 66,
+ "count": 93,
  "files": [
+  {
+   "key": "beaver_bridgewright",
+   "file": "anim_carry_heavy_object_walk.glb",
+   "tail_vertices": 1114,
+   "tail_length_m": 0.5546,
+   "joint_radius_m": [
+    0.0944,
+    0.0877,
+    0.0817,
+    0.0767,
+    0.083,
+    0.064,
+    0.0842,
+    0.0853
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1047,
+    0.0907,
+    0.0954,
+    0.0913,
+    0.0689,
+    0.0922,
+    0.0907
+   ],
+   "section": "flat",
+   "joints": 32,
+   "bind_scale": 1.187866,
+   "source_sha256": "9220ccae840618e586a8566c8976cbe99bd4650075c93dde5ff6d5af8854b506",
+   "output_sha256": "b5c243cb45e932d96f4b43e59d0f5dfc2856340d2bde7601b5991d6d149d57ac"
+  },
+  {
+   "key": "beaver_bridgewright",
+   "file": "anim_carry_water_bucket_walk.glb",
+   "tail_vertices": 1114,
+   "tail_length_m": 0.5546,
+   "joint_radius_m": [
+    0.0944,
+    0.0877,
+    0.0817,
+    0.0767,
+    0.083,
+    0.064,
+    0.0842,
+    0.0853
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1047,
+    0.0907,
+    0.0954,
+    0.0913,
+    0.0689,
+    0.0922,
+    0.0907
+   ],
+   "section": "flat",
+   "joints": 32,
+   "bind_scale": 1.187866,
+   "source_sha256": "ba4e1ca629964e7dd147bf810d3395532f0cbe44d75917bd08ca539af24b887c",
+   "output_sha256": "9c7b78e8c0c446ecfb6bce4297dcbfc15b701b180233c01576ee0718261f3705"
+  },
+  {
+   "key": "beaver_bridgewright",
+   "file": "anim_chair_sit_idle.glb",
+   "tail_vertices": 1114,
+   "tail_length_m": 0.5546,
+   "joint_radius_m": [
+    0.0944,
+    0.0877,
+    0.0817,
+    0.0767,
+    0.083,
+    0.064,
+    0.0842,
+    0.0853
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1047,
+    0.0907,
+    0.0954,
+    0.0913,
+    0.0689,
+    0.0922,
+    0.0907
+   ],
+   "section": "flat",
+   "joints": 32,
+   "bind_scale": 1.187866,
+   "source_sha256": "2eec93db62a336af08b57752ace70d640e9b51fbd374b615c24a3c8b4f8b9fbe",
+   "output_sha256": "8cfbd0a5f0d90cd162bd417c38e3ac81e9579368b65f0452a2365ce968621b0a"
+  },
+  {
+   "key": "beaver_bridgewright",
+   "file": "anim_collect_object.glb",
+   "tail_vertices": 1114,
+   "tail_length_m": 0.5546,
+   "joint_radius_m": [
+    0.0944,
+    0.0877,
+    0.0817,
+    0.0767,
+    0.083,
+    0.064,
+    0.0842,
+    0.0853
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1047,
+    0.0907,
+    0.0954,
+    0.0913,
+    0.0689,
+    0.0922,
+    0.0907
+   ],
+   "section": "flat",
+   "joints": 32,
+   "bind_scale": 1.187866,
+   "source_sha256": "2b92c9b30476580f67f9d628eec8e638f2e5638625026f99d04b5855b429e781",
+   "output_sha256": "d59bacae49d3a9610d0dacb25259794138c189b1c64286243f49ff5f9e33c022"
+  },
+  {
+   "key": "beaver_bridgewright",
+   "file": "anim_idle.glb",
+   "tail_vertices": 1114,
+   "tail_length_m": 0.5546,
+   "joint_radius_m": [
+    0.0944,
+    0.0877,
+    0.0817,
+    0.0767,
+    0.083,
+    0.064,
+    0.0842,
+    0.0853
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1047,
+    0.0907,
+    0.0954,
+    0.0913,
+    0.0689,
+    0.0922,
+    0.0907
+   ],
+   "section": "flat",
+   "joints": 32,
+   "bind_scale": 1.187866,
+   "source_sha256": "c5bd55a5a43a98deb803a1a5604c88da1ceaf491c6dd43581325affcdc940f26",
+   "output_sha256": "ac34af634d3ca33857586ee9140758b3dc0d081068543be9dd38d24b5914a0ea"
+  },
+  {
+   "key": "beaver_bridgewright",
+   "file": "anim_pull_radish.glb",
+   "tail_vertices": 1114,
+   "tail_length_m": 0.5546,
+   "joint_radius_m": [
+    0.0944,
+    0.0877,
+    0.0817,
+    0.0767,
+    0.083,
+    0.064,
+    0.0842,
+    0.0853
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1047,
+    0.0907,
+    0.0954,
+    0.0913,
+    0.0689,
+    0.0922,
+    0.0907
+   ],
+   "section": "flat",
+   "joints": 32,
+   "bind_scale": 1.187866,
+   "source_sha256": "d57178b9aa610de4a1996353acf13e177f02926adce92e608108e01cf707d891",
+   "output_sha256": "558263fc33ed76af99975dc436c794c76d24232f4b570396963d9a0aad37c75f"
+  },
+  {
+   "key": "beaver_bridgewright",
+   "file": "anim_run.glb",
+   "tail_vertices": 1114,
+   "tail_length_m": 0.5546,
+   "joint_radius_m": [
+    0.0944,
+    0.0877,
+    0.0817,
+    0.0767,
+    0.083,
+    0.064,
+    0.0842,
+    0.0853
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1047,
+    0.0907,
+    0.0954,
+    0.0913,
+    0.0689,
+    0.0922,
+    0.0907
+   ],
+   "section": "flat",
+   "joints": 32,
+   "bind_scale": 1.187866,
+   "source_sha256": "e69bed9e5187a3fe4642521afa2d1917d6b432b6f0c00ea0ba645b12ccd24bb7",
+   "output_sha256": "99b48fccd91a0c4f5d136962a54d0b2dc9702ac637f7257996ce9a9ae98a10ba"
+  },
+  {
+   "key": "beaver_bridgewright",
+   "file": "anim_stand_and_drink.glb",
+   "tail_vertices": 1114,
+   "tail_length_m": 0.5546,
+   "joint_radius_m": [
+    0.0944,
+    0.0877,
+    0.0817,
+    0.0767,
+    0.083,
+    0.064,
+    0.0842,
+    0.0853
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1047,
+    0.0907,
+    0.0954,
+    0.0913,
+    0.0689,
+    0.0922,
+    0.0907
+   ],
+   "section": "flat",
+   "joints": 32,
+   "bind_scale": 1.187866,
+   "source_sha256": "fe43bf6f0701f1022a338eb735e9a8c7bd1e1bb30fb4953e9379a13b14e74f87",
+   "output_sha256": "9b20638eef39585601938253c8454fde44411a92ca90bf55958b77b9e925c920"
+  },
+  {
+   "key": "beaver_bridgewright",
+   "file": "anim_swim.glb",
+   "tail_vertices": 1114,
+   "tail_length_m": 0.5546,
+   "joint_radius_m": [
+    0.0944,
+    0.0877,
+    0.0817,
+    0.0767,
+    0.083,
+    0.064,
+    0.0842,
+    0.0853
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1047,
+    0.0907,
+    0.0954,
+    0.0913,
+    0.0689,
+    0.0922,
+    0.0907
+   ],
+   "section": "flat",
+   "joints": 32,
+   "bind_scale": 1.187866,
+   "source_sha256": "98104ce67dd6a78a3488bacfead2f034d96e8116f7d3f6bbd6a60590ad14ec56",
+   "output_sha256": "281836cb7d8c649b3332c1d5e0fe262c2cb4b8e9e80e74fe662932f55287b6a4"
+  },
+  {
+   "key": "beaver_bridgewright",
+   "file": "anim_tread_water.glb",
+   "tail_vertices": 1114,
+   "tail_length_m": 0.5546,
+   "joint_radius_m": [
+    0.0944,
+    0.0877,
+    0.0817,
+    0.0767,
+    0.083,
+    0.064,
+    0.0842,
+    0.0853
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1047,
+    0.0907,
+    0.0954,
+    0.0913,
+    0.0689,
+    0.0922,
+    0.0907
+   ],
+   "section": "flat",
+   "joints": 32,
+   "bind_scale": 1.187866,
+   "source_sha256": "d330de5b7f0d47dc6ce1952600774847c059256ea6409f65beb24784405fafff",
+   "output_sha256": "367cf3a619f6446746dca91696b223b2a3bb4069e312a769f5d3f114180b4c72"
+  },
+  {
+   "key": "beaver_bridgewright",
+   "file": "anim_walk.glb",
+   "tail_vertices": 1114,
+   "tail_length_m": 0.5546,
+   "joint_radius_m": [
+    0.0944,
+    0.0877,
+    0.0817,
+    0.0767,
+    0.083,
+    0.064,
+    0.0842,
+    0.0853
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1047,
+    0.0907,
+    0.0954,
+    0.0913,
+    0.0689,
+    0.0922,
+    0.0907
+   ],
+   "section": "flat",
+   "joints": 32,
+   "bind_scale": 1.187866,
+   "source_sha256": "0cfd30e34d26592c7c83ff1fc2a200045f6787b3f62daa05caa9d151d09b835e",
+   "output_sha256": "3c5f896b6fefc0e441f0940b9b226d34948f46458f35c4c2ae1359eaeb9622ef"
+  },
+  {
+   "key": "beaver_bridgewright",
+   "file": "anim_wave_one_hand.glb",
+   "tail_vertices": 1114,
+   "tail_length_m": 0.5546,
+   "joint_radius_m": [
+    0.0944,
+    0.0877,
+    0.0817,
+    0.0767,
+    0.083,
+    0.064,
+    0.0842,
+    0.0853
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1047,
+    0.0907,
+    0.0954,
+    0.0913,
+    0.0689,
+    0.0922,
+    0.0907
+   ],
+   "section": "flat",
+   "joints": 32,
+   "bind_scale": 1.187866,
+   "source_sha256": "0b05beb05c534de04be8add1e728c7ce89cad341a99de90cd43cb68d80320295",
+   "output_sha256": "7036be5381ccc830d4a63ab1b31c695c97d4673ab83882ebdfca0b9f9b5fa133"
+  },
+  {
+   "key": "beaver_bridgewright",
+   "file": "rigged.glb",
+   "tail_vertices": 1114,
+   "tail_length_m": 0.5546,
+   "joint_radius_m": [
+    0.0944,
+    0.0877,
+    0.0817,
+    0.0767,
+    0.083,
+    0.064,
+    0.0842,
+    0.0853
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1047,
+    0.0907,
+    0.0954,
+    0.0913,
+    0.0689,
+    0.0922,
+    0.0907
+   ],
+   "section": "flat",
+   "joints": 32,
+   "bind_scale": 1.187866,
+   "source_sha256": "fa66d7f4bddeef97424b894e93c455022acbd31142b86a59082e1456fec4797d",
+   "output_sha256": "f84ea297fe4b92b4051fb82266bf9f32acd5c7c69feda0b06e08e3833e016c7d"
+  },
   {
    "key": "mouse_fieldworker",
    "file": "anim_carry_heavy_object_walk.glb",
@@ -242,6 +645,66 @@
    "bind_scale": 1.0,
    "source_sha256": "f8c6e73444570796e1d412870b01500d558d792739564c48390641c61179a1a5",
    "output_sha256": "9373224f33b96ec927c32574ae841a56778016f5d4a7c5012bdf20f2c50b4479"
+  },
+  {
+   "key": "mouse_fieldworker",
+   "file": "anim_swim.glb",
+   "tail_vertices": 151,
+   "tail_length_m": 0.296,
+   "joint_radius_m": [
+    0.0116,
+    0.0138,
+    0.0208,
+    0.0147,
+    0.0146,
+    0.0167,
+    0.0154,
+    0.0134
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.0082,
+    0.0188,
+    0.0167,
+    0.0184,
+    0.0181,
+    0.0175,
+    0.0185
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "5df856d3a38e0a8626a88040531f20b1ef069ff39057623f66fe049412d8709d",
+   "output_sha256": "617cb7ac788aef73b3b9fbffe45f393486aa933061aeaf9e321e58a431e1f892"
+  },
+  {
+   "key": "mouse_fieldworker",
+   "file": "anim_tread_water.glb",
+   "tail_vertices": 151,
+   "tail_length_m": 0.296,
+   "joint_radius_m": [
+    0.0116,
+    0.0138,
+    0.0208,
+    0.0147,
+    0.0146,
+    0.0167,
+    0.0154,
+    0.0134
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.0082,
+    0.0188,
+    0.0167,
+    0.0184,
+    0.0181,
+    0.0175,
+    0.0185
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "b1144d83454637af706d23c78ce24378c8a83d5a7bb8990ef9ed35570ee3d91f",
+   "output_sha256": "d80f1cd0509e25ed12ab33cdc1b8ea49095f2ae117ca3f888aba45199a43f9d4"
   },
   {
    "key": "mouse_fieldworker",
@@ -575,6 +1038,66 @@
   },
   {
    "key": "mouse_keeper",
+   "file": "anim_swim.glb",
+   "tail_vertices": 72,
+   "tail_length_m": 0.241,
+   "joint_radius_m": [
+    0.0054,
+    0.0108,
+    0.0054,
+    0.0091,
+    0.0054,
+    0.0054,
+    0.0096,
+    0.0094
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.0143,
+    0.0039,
+    0.0118,
+    0.0136,
+    0.0033,
+    0.0118,
+    0.0173
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "0c0c8a2f1d68848ddc2fc892c1adad4a947677688ccb09d2917a2c7b6240af20",
+   "output_sha256": "6518501d909229e89bdacdb3c4c6c50f3191e154a774a6045ab2b5c8df32f991"
+  },
+  {
+   "key": "mouse_keeper",
+   "file": "anim_tread_water.glb",
+   "tail_vertices": 72,
+   "tail_length_m": 0.241,
+   "joint_radius_m": [
+    0.0054,
+    0.0108,
+    0.0054,
+    0.0091,
+    0.0054,
+    0.0054,
+    0.0096,
+    0.0094
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.0143,
+    0.0039,
+    0.0118,
+    0.0136,
+    0.0033,
+    0.0118,
+    0.0173
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "c883c01e6ad108c632fb0085b24139a7c3f27233060eae0824d2c89b70a310c3",
+   "output_sha256": "73822b0fdcaec3797c2b7cc0f98761de9aa12e28a27cc3d1479f8ce1d4af7d02"
+  },
+  {
+   "key": "mouse_keeper",
    "file": "anim_walk.glb",
    "tail_vertices": 72,
    "tail_length_m": 0.241,
@@ -785,6 +1308,36 @@
   },
   {
    "key": "otter_boatwright",
+   "file": "anim_dive.glb",
+   "tail_vertices": 6096,
+   "tail_length_m": 0.7737,
+   "joint_radius_m": [
+    0.0752,
+    0.1117,
+    0.1585,
+    0.0689,
+    0.0688,
+    0.0657,
+    0.0648,
+    0.0585
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1924,
+    0.1161,
+    0.1848,
+    0.0774,
+    0.083,
+    0.0796,
+    0.0749
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "543a524a2f3fb2c93dec027313b5b88899ef753da8bc7e0801e447a6b4162852",
+   "output_sha256": "62f98de19e67da61af66528fe8e8b9d6bf117822af79c5f64809b5b57fb5baac"
+  },
+  {
+   "key": "otter_boatwright",
    "file": "anim_idle.glb",
    "tail_vertices": 6096,
    "tail_length_m": 0.7737,
@@ -902,6 +1455,66 @@
    "bind_scale": 1.0,
    "source_sha256": "3ec870211c04c248aecb5680ccbd8c670fdf405ecd261db0b1d34b39a8ac52bb",
    "output_sha256": "c5f293191c0012ffd8b138703ea262a25c2dacf4277a9672e0d1f009acb4ab50"
+  },
+  {
+   "key": "otter_boatwright",
+   "file": "anim_swim.glb",
+   "tail_vertices": 6096,
+   "tail_length_m": 0.7737,
+   "joint_radius_m": [
+    0.0752,
+    0.1117,
+    0.1585,
+    0.0689,
+    0.0688,
+    0.0657,
+    0.0648,
+    0.0585
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1924,
+    0.1161,
+    0.1848,
+    0.0774,
+    0.083,
+    0.0796,
+    0.0749
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "8cb9d4c65c6a2ec66393b15cb7bfc627c82d0fba52834626db6fb525dcfcb6da",
+   "output_sha256": "5679a3b4fdefc9d4cd0a4c676cf0dddae7845534d34d40e38347109ad4708dae"
+  },
+  {
+   "key": "otter_boatwright",
+   "file": "anim_tread_water.glb",
+   "tail_vertices": 6096,
+   "tail_length_m": 0.7737,
+   "joint_radius_m": [
+    0.0752,
+    0.1117,
+    0.1585,
+    0.0689,
+    0.0688,
+    0.0657,
+    0.0648,
+    0.0585
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1924,
+    0.1161,
+    0.1848,
+    0.0774,
+    0.083,
+    0.0796,
+    0.0749
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "6e25fbf8ff1aef08369de6376221a30c5466aed2b8f1e826bc54ceaf5ddf5f4b",
+   "output_sha256": "bfa0caef8fc258298f6f1b3adf7ae70cd3db94131add91ed3a372140b03923f1"
   },
   {
    "key": "otter_boatwright",
@@ -1115,6 +1728,36 @@
   },
   {
    "key": "otter_fisher",
+   "file": "anim_dive.glb",
+   "tail_vertices": 1475,
+   "tail_length_m": 0.8096,
+   "joint_radius_m": [
+    0.0695,
+    0.0822,
+    0.0875,
+    0.0706,
+    0.0911,
+    0.0784,
+    0.0738,
+    0.0631
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1113,
+    0.1,
+    0.1104,
+    0.0934,
+    0.1037,
+    0.0947,
+    0.1003
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "868ea14bd0781c39cb8facac699629f05b78c5c9f2bc37481e858663130ecb70",
+   "output_sha256": "fb573ccee27e6e9b9f6d99d1280c22d4d505779ba0b9c97b5e9e7679af268ae1"
+  },
+  {
+   "key": "otter_fisher",
    "file": "anim_idle.glb",
    "tail_vertices": 1475,
    "tail_length_m": 0.8096,
@@ -1232,6 +1875,66 @@
    "bind_scale": 1.0,
    "source_sha256": "e09a7e0ea13269a927973aed5940aefe15668fb9934584f310b24a8a7098e28e",
    "output_sha256": "adcddeec5ba7cbab4e621263564b631a2d0655d5bb1bacb8f505ffaca4b117d6"
+  },
+  {
+   "key": "otter_fisher",
+   "file": "anim_swim.glb",
+   "tail_vertices": 1475,
+   "tail_length_m": 0.8096,
+   "joint_radius_m": [
+    0.0695,
+    0.0822,
+    0.0875,
+    0.0706,
+    0.0911,
+    0.0784,
+    0.0738,
+    0.0631
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1113,
+    0.1,
+    0.1104,
+    0.0934,
+    0.1037,
+    0.0947,
+    0.1003
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "5671b67c5162be28cd9623b8776f5d6168e472edd2a22b5c32ef677be0faad79",
+   "output_sha256": "f31caf835f9674a48f0a51b691168e51a1d2479f4367ca130b654119ef732574"
+  },
+  {
+   "key": "otter_fisher",
+   "file": "anim_tread_water.glb",
+   "tail_vertices": 1475,
+   "tail_length_m": 0.8096,
+   "joint_radius_m": [
+    0.0695,
+    0.0822,
+    0.0875,
+    0.0706,
+    0.0911,
+    0.0784,
+    0.0738,
+    0.0631
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1113,
+    0.1,
+    0.1104,
+    0.0934,
+    0.1037,
+    0.0947,
+    0.1003
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "d9eabbd68a89bb8936ce9cf3471b51dc922319a74546a69f363ad4f08c263dac",
+   "output_sha256": "0c0d38757886fde069dc99bdd0e916194ecc4d74777f9aec33619c38d87f2ae3"
   },
   {
    "key": "otter_fisher",
@@ -1565,6 +2268,66 @@
   },
   {
    "key": "squirrel_forester",
+   "file": "anim_swim.glb",
+   "tail_vertices": 9806,
+   "tail_length_m": 1.43,
+   "joint_radius_m": [
+    0.1919,
+    0.1579,
+    0.1875,
+    0.1855,
+    0.175,
+    0.1789,
+    0.1769,
+    0.1437
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1745,
+    0.1943,
+    0.2057,
+    0.1997,
+    0.1765,
+    0.1931,
+    0.2894
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "32ff4b4793d651585fc14f114aa32c7e03c7eae8d7d8654675a08edcf302265b",
+   "output_sha256": "c3838468cd2c9e4d8e47dc74488c16af91b47b431b27ff501541a93580407b34"
+  },
+  {
+   "key": "squirrel_forester",
+   "file": "anim_tread_water.glb",
+   "tail_vertices": 9806,
+   "tail_length_m": 1.43,
+   "joint_radius_m": [
+    0.1919,
+    0.1579,
+    0.1875,
+    0.1855,
+    0.175,
+    0.1789,
+    0.1769,
+    0.1437
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1745,
+    0.1943,
+    0.2057,
+    0.1997,
+    0.1765,
+    0.1931,
+    0.2894
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "c7f9bdb3b332dc41e728b8c0a5513d54b77bd84a375b4ad26aa08a74a48916ba",
+   "output_sha256": "c40397c0325edc8a9e51333d176c32ca9a48ceeb8fb3fdece1d9ba69ed895dd6"
+  },
+  {
+   "key": "squirrel_forester",
    "file": "anim_walk.glb",
    "tail_vertices": 9806,
    "tail_length_m": 1.43,
@@ -1892,6 +2655,66 @@
    "bind_scale": 1.0,
    "source_sha256": "061c338c9a44031ee6d5846bb17523c4d4c72303e4b7cfe5b5b67ea262254263",
    "output_sha256": "7f1946d39ba65d12ffc11b4a14a35d103fee4caa497fdc6cd0d3f02c813da4e1"
+  },
+  {
+   "key": "squirrel_gatherer",
+   "file": "anim_swim.glb",
+   "tail_vertices": 8385,
+   "tail_length_m": 0.763,
+   "joint_radius_m": [
+    0.0753,
+    0.0821,
+    0.1018,
+    0.108,
+    0.1171,
+    0.111,
+    0.0929,
+    0.0753
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.0797,
+    0.0973,
+    0.1143,
+    0.1192,
+    0.1284,
+    0.118,
+    0.0964
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "8617a437f58c0e02709148e4c4f99011ae721ff8724dc1416628eb7c03c181b4",
+   "output_sha256": "050419d53d8246cda6bd9e3f7eb326694fa5f8954cd4cc6325d855b8b0647db7"
+  },
+  {
+   "key": "squirrel_gatherer",
+   "file": "anim_tread_water.glb",
+   "tail_vertices": 8385,
+   "tail_length_m": 0.763,
+   "joint_radius_m": [
+    0.0753,
+    0.0821,
+    0.1018,
+    0.108,
+    0.1171,
+    0.111,
+    0.0929,
+    0.0753
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.0797,
+    0.0973,
+    0.1143,
+    0.1192,
+    0.1284,
+    0.118,
+    0.0964
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "36d72bad7a25473c960cd3c9936c3c9863c9e6a10a4716a42ad9e64dbd412aa9",
+   "output_sha256": "13d04a308f1fa06bdcfeb6265fcf8d152e918252bc60c79d56e1e4748b230c92"
   },
   {
    "key": "squirrel_gatherer",

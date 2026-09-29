@@ -15,6 +15,8 @@ NEGATIVE TESTS COME FIRST:
   N05  a recorded rotation that is not a unit quaternion refuses.
   N06  a clip with no LINEAR rotation channel has no timeline, and refuses.
   N07  a clip with no vertex weighted to a tail joint refuses the ground check.
+  N08  a dived tail that breaks the surface fails the run (decision 0203); a water clip's ground verdict is
+       None -- it has no ground -- and None is never read as a failure, nor as a pass.
   (A tail joint turning more than MAX_STEP_DEG in one frame is not refused but REPORTED, like the
   ground: the file is written, the manifest row says motion_ok false, and the run exits 1.
   max_step_degrees is what measures it, and is tested below.)
@@ -298,6 +300,76 @@ def test_the_verdict_measures_the_tail_against_what_the_spring_controls() -> Non
 	check("a buried base is reported as the clip's", bake.ground_verdict(0.01, 0.0, -0.134)["clip_below_ground"])
 	check("a grounded clip is not", not bake.ground_verdict(0.01, 0.0, 0.05)["clip_below_ground"])
 	check("feet and base ABOVE the ground do not raise the bar", bake.ground_verdict(-0.004, 0.03, 0.05)["ground_ok"])
+
+
+# --- water clips (decision 0203) ---------------------------------------------------------------
+
+def _stamped_water(data: bytes, medium: str) -> bytes:
+	"""The clip as the grounding step stamps a water clip."""
+	return _edit_doc(data, lambda doc: doc["asset"].setdefault("extras", {}).__setitem__(bake.GROUND_STAMP, {"water": medium}))
+
+
+def test_a_water_clips_spring_has_no_ground() -> None:
+	"""The same clip that buried its base on key 2, stamped as a swim: its floor is -100 m on every key."""
+	import tempfile
+	with tempfile.TemporaryDirectory() as tmp:
+		path = pathlib.Path(tmp) / "clip.glb"
+		path.write_bytes(_stamped_water(_clip(_chained()), "surface"))
+		check("a water clip's floor is WATER_FLOOR_M on all five keys", bake.clip_floor(path) == [-100.0] * 5)
+		check("its medium is read from the grounding stamp", bake.clip_water(path) == "surface")
+		path.write_bytes(_clip(_chained()))
+		check("a land clip has no medium", bake.clip_water(path) is None)
+
+
+def test_the_bake_tells_godot_which_clips_are_in_water() -> None:
+	"""The spec marks the swim as in water and the walk not, and gives the swim no floor."""
+	import tempfile
+	with tempfile.TemporaryDirectory() as tmp:
+		key_dir = pathlib.Path(tmp) / "k"
+		(key_dir / bake.SOURCE).mkdir(parents=True)
+		(key_dir / bake.SOURCE / "anim_walk.glb").write_bytes(_clip(_chained()))
+		(key_dir / bake.SOURCE / "anim_swim.glb").write_bytes(_stamped_water(_clip(_chained()), "surface"))
+		spec = bake.bake_spec(key_dir, ["anim_swim", "anim_walk"])
+		check("the swim is in water, the walk is not", spec["water"] == {"anim_swim": True, "anim_walk": False})
+		check("the swim has no floor", spec["floor"]["anim_swim"] == [-100.0] * 5)
+		check("both clips carry their five key times", len(spec["times"]["anim_walk"]) == 5 and len(spec["times"]["anim_swim"]) == 5)
+
+
+def test_the_ground_report_measures_the_tails_highest_point_too() -> None:
+	"""The strip and its 1.2r fringe ride the hips at 0.5: the fringe vertex, 0.5 + 1.2 x 0.03, is the highest."""
+	report = bake.ground_report(_clip(_chained()))
+	check("the tail's highest point is 0.536", report["tail_max_y_m"] == 0.536)
+
+
+def test_the_ground_check_gives_a_water_clip_its_water_verdict() -> None:
+	"""check_ground on a library of one land and one water clip: the land clip is judged against the ground,
+	the water clip against the waterline -- a swim's verdict is None, and no ground verdict is written."""
+	import tempfile
+	with tempfile.TemporaryDirectory() as tmp:
+		library = pathlib.Path(tmp)
+		for stage in ("grounded", "baked"):
+			(library / "k" / stage).mkdir(parents=True)
+			(library / "k" / stage / "anim_walk.glb").write_bytes(_clip(_chained()))
+			(library / "k" / stage / "anim_dive.glb").write_bytes(_stamped_water(_clip(_chained()), "submerged"))
+		rows = {r["clip"]: r for r in bake.check_ground(library, [{"key": "k", "clip": "anim_walk"}, {"key": "k", "clip": "anim_dive"}])}
+		check("the land clip gets a ground verdict", rows["anim_walk"]["ground_ok"] in (True, False) and "water" not in rows["anim_walk"])
+		check("the dive has no ground verdict", rows["anim_dive"]["ground_ok"] is None and rows["anim_dive"]["water"] == "submerged")
+		check("the dive's tail, riding the hips at 0.536, breaks the surface", rows["anim_dive"]["water_ok"] is False)
+
+
+def test_n08_the_water_verdict() -> None:
+	"""Submerged: the tail must stay below y = 0. Surface: it may break it. Neither has a ground verdict."""
+	check("a dived tail at -0.01 is under", bake.water_verdict("submerged", -0.01)["water_ok"])
+	check("N08 a dived tail at 0.0 breaks the surface", not bake.water_verdict("submerged", 0.0)["water_ok"])
+	check("a swimming tail may break it", bake.water_verdict("surface", 0.3)["water_ok"])
+	check("a water clip has no ground verdict", bake.water_verdict("surface", 0.3)["ground_ok"] is None)
+	check("and buries nothing", not bake.water_verdict("submerged", -0.2)["clip_below_ground"])
+	check("the verdict carries the height", bake.water_verdict("submerged", -0.2)["tail_max_y_baked_m"] == -0.2)
+	row = {"ground_ok": None, "constraint_ok": True, "motion_ok": True, "water_ok": True}
+	check("a water clip's None ground verdict does not fail the run", bake.failing_rows([row]) == [])
+	check("N08 a dived tail breaking the surface fails the run", bake.failing_rows([row | {"water_ok": False}]) != [])
+	check("a land tail below the ground still fails it", bake.failing_rows([row | {"ground_ok": False}]) != [])
+	check("a land clip without a water verdict passes", bake.failing_rows([{"ground_ok": True, "constraint_ok": True}]) == [])
 
 
 def main() -> int:

@@ -12,7 +12,13 @@ extends Node3D
 ## the pointer, on top of everything, so a route laid under a roof stays readable.
 ##
 ## UNDERGROUND (U, tunnel_view.gd): each tunnel's dug length also shows as a lit trough at bore
-## depth, the bore seen from above with its roof cut away.
+## depth, the bore seen from above with its roof cut away -- twice as wide once widened (and as far
+## as a widening has reached, `widen_m`), warmer and brighter when lit, water-blue when flooded,
+## and dark with rubble through a fallen section (tunnel_marks.gd draws the frames, lanterns and
+## the rest).
+##
+## A MOUND also follows a mole at a digging job underground (widening, clearing, a chamber):
+## `job_digger` names it per tunnel (tunnel_works.gd sets it every frame; -1 for none).
 ##
 ## BUILT ONCE, REBUILT RARELY. Every node is built once per slot. The ribbon and the trough are
 ## rebuilt only when the dig face crosses a BORE_STEP_M boundary (or the phase or the view changes)
@@ -45,6 +51,8 @@ const HOLE_RADIUS_M: float = Rules.HOLE_RADIUS_M
 const HEAP_DRAWN_M3_PER_U: float = 0.06
 const HEAP_ASPECT: float = 0.5
 const HEAP_GAP_M: float = 0.12
+## A widened tunnel's mouths are drawn this much larger (a badger goes down them).
+const WIDE_HOLE_SCALE: float = 1.6
 const MOUND_RADIUS_M: float = 0.45
 const MOUND_HEIGHT_M: float = 0.2
 const MOUND_BOB_HZ: float = 1.6
@@ -75,6 +83,13 @@ const PREVIEW: Color = Color(Palette.CREAM, 0.35)
 const TRACE: Color = Color(EARTH, 0.4)
 const BORE_DEEP: Color = Color(0.36, 0.2, 0.09)
 const BORE_RIM: Color = Palette.EMBER
+const LIT_DEEP: Color = Color(0.62, 0.45, 0.22)
+const LIT_RIM: Color = Color(1.0, 0.86, 0.5)
+const WATER_DEEP: Color = Color(0.12, 0.26, 0.42)
+const WATER_RIM: Color = Color(0.38, 0.62, 0.8)
+const RUBBLE: Color = Color(0.16, 0.12, 0.09)
+## A mesh key's tunnel-state part: bore, lit, closed, braced and the widening's step.
+const KEY_STATE: int = 100000000
 
 var _network: NetworkScript = null
 var _space: CastSpaceScript = null
@@ -101,6 +116,9 @@ var _bore_arrays: Array = []
 var _spoil: PackedInt64Array = PackedInt64Array()
 var _underground_view: bool = false
 var _time: float = 0.0
+## Per tunnel: how far a widening has reached (m), and the mole at a digging job there (-1: none).
+var widen_m: PackedFloat32Array = PackedFloat32Array()
+var job_digger: PackedInt32Array = PackedInt32Array()
 ## Trough rebuilds so far (for measurement and the tests).
 var bore_builds: int = 0
 
@@ -117,6 +135,9 @@ func configure(network: NetworkScript, space: CastSpaceScript, clock: DemoClockS
 	_spoil.resize(2)
 	_mesh_key.resize(Rules.MAX_TUNNELS)
 	_mesh_key.fill(-1)
+	widen_m.resize(Rules.MAX_TUNNELS)
+	job_digger.resize(Rules.MAX_TUNNELS)
+	job_digger.fill(-1)
 	_mouth_key.resize(Rules.MAX_TUNNELS)
 	_mouth_key.fill(-1)
 	_bore_arrays.resize(Mesh.ARRAY_MAX)
@@ -402,7 +423,15 @@ func mesh_key(slot: int) -> int:
 		return -1
 	var dug := _network.length_m(slot) if _network.is_open(slot) else _network.face_m(slot)
 	var broken := 2 if _network.done(slot) > 0 else 0
-	return int(phase) * KEY_PHASE + floori(dug / BORE_STEP_M) * 4 + broken + (1 if _underground_view else 0)
+	var base := int(phase) * KEY_PHASE + floori(dug / BORE_STEP_M) * 4 + broken + (1 if _underground_view else 0)
+	return base + _state_key(slot) * KEY_STATE
+
+
+func _state_key(slot: int) -> int:
+	"""What a tunnel's state adds to its mesh key: bore class, lit, closed, braced and the widening."""
+	var bits := int(_network.bore[slot]) + 2 * int(_network.lit[slot]) + 4 * int(_network.closed[slot]) \
+			+ 16 * int(_network.braced[slot])
+	return bits + 32 * floori(widen_m[slot] / BORE_STEP_M)
 
 
 func _sync_slot(slot: int) -> void:
@@ -440,7 +469,8 @@ func _draw_ribbon(slot: int) -> void:
 	mesh.clear_surfaces()
 	var length := _network.length_m(slot)
 	if _network.is_open(slot):
-		_strip_into(HOLE_RADIUS_M, length - HOLE_RADIUS_M, TRACE_WIDTH_M, false)
+		var wide := 2.0 if _network.bore[slot] == Rules.BORE_WIDE else 1.0
+		_strip_into(HOLE_RADIUS_M * wide, length - HOLE_RADIUS_M * wide, TRACE_WIDTH_M * wide, false)
 		_flush(mesh, _flat(TRACE))
 	else:
 		var dug := _network.face_m(slot)
@@ -529,10 +559,12 @@ func _show_mouths(slot: int) -> void:
 	var entrance := _holes[2 * slot]
 	entrance.visible = _network.done(slot) > 0
 	var shaft := clampf(float(_network.done(slot)) / float(Rules.SHAFT_QUANTA * Rules.TICKS_PER_QUANTUM), 0.3, 1.0)
-	entrance.scale = Vector3.ONE * (shaft if stage == Rules.STAGE_ENTRANCE else 1.0)
+	var wide := WIDE_HOLE_SCALE if _network.bore[slot] == Rules.BORE_WIDE else 1.0
+	entrance.scale = Vector3.ONE * (shaft if stage == Rules.STAGE_ENTRANCE else wide)
 	_put_on_ground(entrance, _network.mouth(slot, false))
 	var exit := _holes[2 * slot + 1]
 	exit.visible = stage == Rules.STAGE_OPEN
+	exit.scale = Vector3.ONE * wide
 	_put_on_ground(exit, _network.mouth(slot, true))
 	_network.spoil_into(slot, _spoil)
 	for end in 2:
@@ -580,9 +612,8 @@ func _update_mound(slot: int) -> void:
 	"""Over a digger underground, a mound follows it, bobbing and throwing clods on the demo clock,
 	and grows as the camera pulls back."""
 	var mound_node := _mounds[slot]
-	var digger := _network.digger[slot]
-	var below := _network.phase[slot] == NetworkScript.PHASE_DIGGING and digger >= 0 \
-			and digger < _space.resident_underground.size() and _space.resident_underground[digger] == 1
+	var digger := _network.digger[slot] if _network.phase[slot] == NetworkScript.PHASE_DIGGING else job_digger[slot]
+	var below := digger >= 0 and digger < _space.resident_underground.size() and _space.resident_underground[digger] == 1
 	if mound_node.visible != below:
 		mound_node.visible = below
 		(mound_node.get_child(1) as CPUParticles3D).emitting = below
@@ -661,17 +692,33 @@ func _quad_indices(n: int, a: int, b: int) -> void:
 
 func _bore_ring(slot: int, along: float, first: int) -> void:
 	"""One cross-section of the trough, from vertex `first`: the lower half-circle of the bore, rim to
-	rim."""
-	var radius := Rules.to_m(Rules.BORE_WIDTH_U) * 0.5
+	rim -- as wide as the bore is there, coloured by its state (see UNDERGROUND)."""
+	var wide := _network.bore[slot] == Rules.BORE_WIDE or along < widen_m[slot]
+	var radius := Rules.to_m(Rules.BORE_WIDTHS_U[1 if wide else 0]) * 0.5
 	var centre := _network.point_at(slot, along)
 	var ahead := _network.direction_at(slot, along)
 	var side := Vector2(-ahead.y, ahead.x)
 	var floor_y := _network.floor_y_at(slot, along)
+	var deep := _trough_colour(slot, along, false)
+	var rim := _trough_colour(slot, along, true)
 	for j in BORE_SIDES + 1:
 		var angle := PI + PI * float(j) / float(BORE_SIDES)
 		var across := centre + side * (cos(angle) * radius)
 		_bore_verts[first + j] = Vector3(across.x, minf(floor_y + radius + sin(angle) * radius, -0.02), across.y)
-		_bore_colours[first + j] = BORE_DEEP.lerp(BORE_RIM, absf(cos(angle)))
+		_bore_colours[first + j] = deep.lerp(rim, absf(cos(angle)))
+
+
+func _trough_colour(slot: int, along: float, rim: bool) -> Color:
+	"""The trough's colour at `along`: rubble in a fallen section, water when flooded, warm when lit."""
+	var closed := _network.closed[slot]
+	if closed == NetworkScript.CLOSED_COLLAPSED and Rules.to_u(along) >= _network.closed_from_u[slot] - Rules.QUANTUM_U / 2 \
+			and Rules.to_u(along) <= _network.closed_to_u[slot] + Rules.QUANTUM_U / 2:
+		return RUBBLE
+	if closed == NetworkScript.CLOSED_FLOODED:
+		return WATER_RIM if rim else WATER_DEEP
+	if _network.lit[slot] == 1:
+		return LIT_RIM if rim else LIT_DEEP
+	return BORE_RIM if rim else BORE_DEEP
 
 
 # --- the route being laid -------------------------------------------------------------------

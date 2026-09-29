@@ -13,6 +13,12 @@ extends Node3D
 ## world's walkable bounds and the demo camera; it reads input the HUD did not consume. Its tunnel
 ## tool (demo/tunnel/) also gets the world, which the underground view fades.
 ##
+## TUNNEL WORKS (demo/tunnel/tunnel_ext.gd: weather, hazards, chambers, threats) raise their alerts
+## through UIManager.push_alert -- the transient alert zone the game's own opening line uses -- and
+## show the rest in their own panel. Two of their pieces are for the rest of the demo to read:
+## `weather()`, the demo's one weather source, and `chambers()`, whose `cellars()` lists the root
+## cellars (for the farming demo).
+##
 ## TIME. The game's clock is started by `Game` itself (scripts/main.gd calls start_game()), and
 ## UIManager then holds UI-SET-103's opening inspection pause (PLAYER). The demo releases that one
 ## pause as it opens, so the village is alive and the HUD reads Playing; from then on the HUD's pause
@@ -26,6 +32,8 @@ const DemoCameraScript := preload("res://demo/camera/demo_camera.gd")
 const WoodlandSkinScript := preload("res://demo/ui/woodland_skin.gd")
 const DemoCommandScript := preload("res://demo/control/demo_command.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
+const WeatherScript := preload("res://demo/weather/demo_weather.gd")
+const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -66,6 +74,7 @@ func _ready() -> void:
 	add_child(_command)
 	_command.configure(_cast, _camera.camera(), _game.get_node_or_null(GAME_HUD_ROOT) as Control)
 	_command.set_world(_world as DemoWorldScript)
+	_command.set_alert(UIManager.push_alert)
 	_skin_hud.call_deferred()
 	_open_running()
 
@@ -75,6 +84,17 @@ func _open_running() -> void:
 	the PLAYER reason is released; any other held reason stays."""
 	if UIManager.opening_pause_applied() and not UIManager.player_has_resumed() and GameManager.is_paused():
 		GameManager.resume_game()
+
+
+func weather() -> WeatherScript:
+	"""The demo's one weather source (demo/weather/demo_weather.gd): `surface_speed_permille()`,
+	`condition()`, `temperature_tenths()`, `rain()`. Read-only for everyone but the tunnel works."""
+	return _command.tunnels().ext.works.weather
+
+
+func chambers() -> ChambersScript:
+	"""The demo's chambers (demo/burrow/burrow_chambers.gd): `cellars()` for the root cellars' API."""
+	return _command.tunnels().ext.works.chambers
 
 
 func _process(_delta: float) -> void:

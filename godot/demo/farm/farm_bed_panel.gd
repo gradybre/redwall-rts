@@ -27,6 +27,7 @@ const Palette := preload("res://demo/ui/woodland_palette.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
+const DetailZone := preload("res://demo/ui/demo_detail_zone.gd")
 
 signal verb_requested(kind: int)
 signal crop_picked(item: int)
@@ -34,7 +35,7 @@ signal fallow_toggled
 signal cancel_requested
 signal close_requested
 
-const HINT: String = "Click a crop bed to tend it · right-click it with residents selected to set them to its most pressing work · V: moisture / ripeness map · K: pantry"
+const HINT: String = "Click a crop bed to tend it · right-click it with residents selected to set them to its most pressing work · V: map overlays (moisture, ripeness, water) · K: pantry"
 ## The verbs with a button of their own, in order (sowing is "Plant…").
 const VERB_KINDS: Array[int] = [JobsScript.KIND_WATER, JobsScript.KIND_HARVEST, JobsScript.KIND_CLEAR,
 	JobsScript.KIND_COMPOST, JobsScript.KIND_COVER, JobsScript.KIND_RAISE, JobsScript.KIND_BANK]
@@ -57,6 +58,9 @@ var _news_scratch: PackedStringArray = PackedStringArray()
 var _zone_shown: bool = true
 var _zone_inset: float = 0.0
 var _frame: PanelContainer = null
+## The content scrolls inside the frame when the zone is shorter than it (1280x720).
+var _body: ScrollContainer = null
+var _column: VBoxContainer = null
 var _title: Label = null
 var _clock: Label = null
 var _news: Array[Label] = []
@@ -98,11 +102,7 @@ func _ready() -> void:
 
 func _build() -> void:
 	"""Frame, header, readout lines, message, verbs and the picker."""
-	_frame = FarmUi.frame()
-	add_child(_frame)
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override(&"separation", 5)
-	_frame.add_child(column)
+	var column: VBoxContainer = _build_frame()
 	column.add_child(_header())
 	_clock = FarmUi.label("", FarmUi.SMALL_PX, Palette.UMBER)
 	column.add_child(_clock)
@@ -122,6 +122,20 @@ func _build() -> void:
 	column.add_child(_picker)
 	_hint = FarmUi.label(HINT, FarmUi.SMALL_PX, Palette.UMBER)
 	column.add_child(_hint)
+
+
+func _build_frame() -> VBoxContainer:
+	"""The carved frame, the scroll its content sits in when the zone is short, and the column."""
+	_frame = FarmUi.frame()
+	add_child(_frame)
+	_body = ScrollContainer.new()
+	_body.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_frame.add_child(_body)
+	_column = VBoxContainer.new()
+	_column.add_theme_constant_override(&"separation", 5)
+	_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_body.add_child(_column)
+	return _column
 
 
 func _header() -> HBoxContainer:
@@ -359,10 +373,12 @@ func line_text(k: int) -> String:
 
 func set_zone(shown: bool, top_inset: float) -> void:
 	"""The detail zone's owner (demo_detail_zone.gd): show this panel or not, starting `top_inset`
-	logical pixels below the zone's top."""
+	logical pixels below the zone's top -- and fit it again once its content has laid out (a panel
+	shown for the first time still carries a hidden-state height)."""
 	_zone_shown = shown
 	_zone_inset = top_inset
 	_place()
+	_place.call_deferred()
 
 
 func is_shown() -> bool:
@@ -379,16 +395,17 @@ func _place() -> void:
 		return
 	var rect: Rect2 = placement(get_viewport().get_visible_rect().size, _zone_inset, _layout, _geometry)
 	_scroll.custom_minimum_size.y = clampf(rect.size.y - 140.0, 120.0, PICKER_MAX_H)
+	_body.custom_minimum_size.y = minf(_column.get_combined_minimum_size().y,
+		maxf(rect.size.y - FarmUi.CONTENT_MARGINS[1] - FarmUi.CONTENT_MARGINS[3], 0.0))
 	FarmUi.place(_frame, rect, _geometry.scale)
 
 
 static func placement(viewport_size: Vector2, top_inset: float, layout: UiLayout, geometry: UiLayout.Geometry) -> Rect2:
 	"""The panel's rectangle in the HUD's logical pixels: the detail zone below `top_inset` (the zone's
-	tab strip), inset by the carved frame. Fills `geometry`."""
-	FarmUi.geometry_for(viewport_size, layout, geometry)
-	var zone: Rect2 = geometry.detail
-	return Rect2(zone.position + Vector2(FarmUi.FRAME_EXPAND, FarmUi.FRAME_EXPAND + top_inset),
-		zone.size - Vector2(2.0 * FarmUi.FRAME_EXPAND, 2.0 * FarmUi.FRAME_EXPAND + top_inset))
+	tab strip), inset by the carved frame, above the command strip where they overlap -- the zone's
+	own rule (demo_detail_zone.gd `panel_placement`). Fills `geometry`."""
+	return DetailZone.panel_placement(int(viewport_size.x), int(viewport_size.y), FarmUi.FRAME_EXPAND, top_inset,
+		layout, geometry)
 
 
 func frame_rect() -> Rect2:

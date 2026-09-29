@@ -24,6 +24,7 @@ extends CanvasLayer
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
+const DetailZone := preload("res://demo/ui/demo_detail_zone.gd")
 
 signal action(name: StringName)
 
@@ -54,6 +55,9 @@ const CONTENT_MARGINS: PackedFloat32Array = [14.0, 10.0, 14.0, 12.0]
 const BUTTON_MARGINS: PackedFloat32Array = [10.0, 5.0, 10.0, 6.0]
 
 var _frame: PanelContainer = null
+## The content scrolls inside the frame when the zone is shorter than it (1280x720).
+var _body: ScrollContainer = null
+var _column: VBoxContainer = null
 var _lines: Dictionary = {}
 var _buttons: Dictionary = {}
 var _tunnel_box: VBoxContainer = null
@@ -84,9 +88,13 @@ func build() -> void:
 	_frame.mouse_filter = Control.MOUSE_FILTER_STOP
 	_frame.add_theme_stylebox_override(&"panel", Styles.box(Styles.PIECE_PANEL, CONTENT_MARGINS))
 	add_child(_frame)
+	_body = ScrollContainer.new()
+	_body.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_frame.add_child(_body)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override(&"separation", 5)
-	_frame.add_child(column)
+	_body.add_child(column)
+	_column = column
 	column.add_child(_label(TITLE, TITLE_PX, Palette.INK, Styles.heading_font()))
 	for key: StringName in [&"weather", &"stores", &"housing", &"finds"]:
 		_lines[key] = _label("", BODY_PX, Palette.INK, null)
@@ -215,10 +223,12 @@ func follow_hud() -> void:
 
 func set_zone(shown: bool, top_inset: float) -> void:
 	"""The detail zone's owner (demo_detail_zone.gd): show this panel or not, starting `top_inset`
-	logical pixels below the zone's top."""
+	logical pixels below the zone's top -- and fit it again once its content has laid out (a panel
+	shown for the first time still carries a hidden-state height)."""
 	_zone_shown = shown
 	_zone_inset = top_inset
 	_place()
+	_place.call_deferred()
 
 
 func _place() -> void:
@@ -234,19 +244,17 @@ func _place() -> void:
 	_frame.position = rect.position * _geometry.scale
 	_frame.custom_minimum_size = Vector2(rect.size.x, 0.0)
 	_frame.size = Vector2(rect.size.x, 0.0)
-	_frame.visible = _zone_shown and not _detail_open and _frame.get_combined_minimum_size().y <= rect.size.y
+	_body.custom_minimum_size.y = minf(_column.get_combined_minimum_size().y,
+		maxf(rect.size.y - CONTENT_MARGINS[1] - CONTENT_MARGINS[3], 0.0))
+	_frame.visible = _zone_shown and not _detail_open
 
 
 static func placement(width: int, height: int, layout: UiLayout, geometry: UiLayout.Geometry,
 		top_inset: float = 0.0) -> Rect2:
 	"""The panel's rectangle in the HUD's logical pixels: the detail zone below `top_inset` (the zone's
-	tab strip), inset by the carved frame. Fills `geometry` (scale 1 below the supported floor)."""
-	if not layout.compute_into(maxi(width, UiLayout.SUPPORTED_MIN_WIDTH), maxi(height, UiLayout.SUPPORTED_MIN_HEIGHT),
-			UiLayout.USER_SCALE_100, true, geometry):
-		geometry.scale = 1.0
-	var zone := geometry.detail
-	return Rect2(zone.position.x + FRAME_EXPAND, zone.position.y + FRAME_EXPAND + top_inset,
-		zone.size.x - 2.0 * FRAME_EXPAND, maxf(zone.size.y - 2.0 * FRAME_EXPAND - top_inset, 0.0))
+	tab strip), inset by the carved frame, above the command strip where they overlap -- the zone's
+	own rule (demo_detail_zone.gd `panel_placement`). Fills `geometry`."""
+	return DetailZone.panel_placement(width, height, FRAME_EXPAND, top_inset, layout, geometry)
 
 
 func frame_rect() -> Rect2:

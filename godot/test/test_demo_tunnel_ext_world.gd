@@ -970,11 +970,13 @@ func _panel() -> PanelScript:
 
 
 func test_the_panel_sits_in_the_detail_zone() -> void:
-	"""Inset 10 px inside the HUD's detail zone at 1920x1080 and 1280x720."""
+	"""Inset 10 px inside the HUD's detail zone, ending 8 px above the command strip, which runs under
+	the zone's foot at both sizes (journal closed): 996 - 8 - 10 - 138 = 840 tall at 1080p (the strip
+	reaches x 1552, the zone starts at 1520), 636 - 8 - 10 - 138 = 480 at 720p."""
 	var layout := UiLayout.new()
 	var geometry := UiLayout.Geometry.new()
-	assert_equal(PanelScript.placement(1920, 1080, layout, geometry), Rect2(1530.0, 138.0, 364.0, 916.0), "1080p")
-	assert_equal(PanelScript.placement(1280, 720, layout, geometry), Rect2(938.0, 138.0, 316.0, 556.0), "720p")
+	assert_equal(PanelScript.placement(1920, 1080, layout, geometry), Rect2(1530.0, 138.0, 364.0, 840.0), "1080p")
+	assert_equal(PanelScript.placement(1280, 720, layout, geometry), Rect2(938.0, 138.0, 316.0, 480.0), "720p")
 
 
 func test_the_panel_shows_and_enables_what_it_is_told() -> void:
@@ -1137,6 +1139,7 @@ func test_the_flood_rises_on_the_demo_clock_and_holds_while_paused() -> void:
 	assert_near(view.water_level(), 0.5, 0.0001, "half way")
 	assert_equal(risen.size(), 1, "the stream told once")
 	assert_near(risen[0], 0.5, 0.0001, "half way up its banks")
+	assert_near(view.film_radius_m(), EventsViewScript.FILM_M * 0.5, 0.0001, "the spill's film half spread")
 	clock.speed = 0
 	clock.frame_usec = 0
 	view._process(0.0)

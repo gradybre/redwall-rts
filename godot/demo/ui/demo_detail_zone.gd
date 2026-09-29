@@ -14,7 +14,10 @@ extends CanvasLayer
 ##   * the zone belongs to UI-SET-036, the resident journal, when it opens: then the strip and both
 ##     panels hide, and come back as they were when it closes.
 ## Geometry is the HUD's own (`scripts/ui/ui_layout.gd`, read, never modified) in LOGICAL pixels, drawn
-## at the HUD's scale and recomputed on every resize, so 1280x720 and 1920x1080 line up. It draws on
+## at the HUD's scale and recomputed on every resize, so 1280x720 and 1920x1080 line up. Both panels
+## take their rectangle from `panel_placement`: below the strip, and -- at 1280x720, where UI §1.2's
+## command strip (laid out for a closed journal) runs under the zone's foot -- above that strip, so
+## no demo panel hides under a HUD control; what does not fit scrolls inside the panel. It draws on
 ## the demo panels' layer, below the HUD's, so a true modal covers it. No tab takes focus.
 
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
@@ -31,6 +34,8 @@ const STRIP_H: float = 34.0
 const STRIP_GAP: float = 8.0
 const TAB_PX: int = 14
 const TAB_MARGINS: PackedFloat32Array = [10.0, 4.0, 10.0, 5.0]
+## A panel keeps this far above the command strip where the two would overlap.
+const COMMAND_GAP: float = 8.0
 ## The HUD surface the zone yields to.
 const DETAIL_NAME: String = "UI-SET-036"
 
@@ -169,6 +174,22 @@ static func strip_placement(width: int, height: int, layout: UiLayout, geometry:
 			UiLayout.USER_SCALE_100, false, geometry):
 		geometry.scale = 1.0
 	return Rect2(geometry.detail.position, Vector2(geometry.detail.size.x, STRIP_H))
+
+
+static func panel_placement(width: int, height: int, frame_expand: float, top_inset: float, layout: UiLayout,
+		geometry: UiLayout.Geometry) -> Rect2:
+	"""A zone panel's rectangle in logical pixels: the detail zone `top_inset` below its top (the tab
+	strip's STRIP_H + STRIP_GAP under this zone), inset by the panel's carved frame, ending above the
+	command strip where the two overlap. Fills `geometry` (the HUD's layout with the journal closed,
+	as it is whenever a zone panel shows)."""
+	var zone: Rect2 = Rect2(strip_placement(width, height, layout, geometry).position, geometry.detail.size)
+	var bottom: float = zone.end.y
+	var commands: Rect2 = geometry.commands
+	if commands.position.x < zone.end.x and commands.end.x > zone.position.x:
+		bottom = minf(bottom, commands.position.y - COMMAND_GAP)
+	var top: float = zone.position.y + top_inset + frame_expand
+	return Rect2(zone.position.x + frame_expand, top, zone.size.x - 2.0 * frame_expand,
+		maxf(bottom - frame_expand - top, 0.0))
 
 
 func strip_rect() -> Rect2:

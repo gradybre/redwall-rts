@@ -100,7 +100,7 @@ func _village(with_cellars: bool) -> DemoFarmScript:
 	_nodes.append(farm)
 	var providers: Array[Callable] = []
 	if with_cellars:
-		providers.append(FarmCellars.provider(_works().chambers))
+		providers.append(FarmCellars.provider(_works().chambers, _command.tunnels().network))
 	farm.configure({}, null, cast, _command, camera, null, providers, _services)
 	return farm
 
@@ -265,7 +265,7 @@ func test_a_finished_root_cellar_is_a_pantry_store() -> void:
 	label, its 60 U and the GDD's 350; a planned cellar and a burrow home are not stores."""
 	var chambers := ChambersScript.new()
 	var storage := StorageScript.new(Vector2(14.0, 6.2))
-	storage.add_provider(FarmCellars.provider(chambers))
+	storage.add_provider(FarmCellars.provider(chambers, null))
 	assert_equal(storage.count(), 1, "the covered store only")
 	var ref := PackedInt32Array([-1, 0])
 	chambers.add_into(ChambersScript.KIND_CELLAR, null, 0, 0, Vector2i(-6144, 12288), ref)
@@ -281,7 +281,26 @@ func test_a_finished_root_cellar_is_a_pantry_store() -> void:
 	assert_equal(storage.label_of(1), "Root cellar 1", "its label")
 	assert_equal(storage.capacity_milli_of(1), 60000, "60 U")
 	assert_equal(storage.permille_of(1), 350, "the GDD's cellar factor")
-	assert_equal(storage.position_of(1), Vector2(-6.0, 12.0), "delivered at its centre")
+	assert_equal(storage.position_of(1), Vector2(-6.0, 12.0), "no tunnel: delivered where it lies")
+
+
+func test_a_cellar_is_entered_by_its_tunnel_s_nearer_mouth() -> void:
+	"""A cellar dug 1 m into an open 8 m tunnel is delivered to at the entrance; one 7 m in, at the
+	exit -- the cellar's door, where a carrier can stand."""
+	var chambers := ChambersScript.new()
+	var network := NetworkScript.new()
+	var ref := PackedInt32Array([-1, 0])
+	assert_true(network.add_into(PackedInt32Array([0, 0, 8192, 0]), 2, 0, ref), "a tunnel")
+	network.advance(ref[0], ref[1], 3600 * Rules.USEC_PER_SECOND)
+	assert_true(network.is_open(ref[0]), "open")
+	var room := PackedInt32Array([-1, 0])
+	chambers.add_into(ChambersScript.KIND_CELLAR, network, ref[0], 1024, Vector2i(1024, 2048), room)
+	chambers.set_done(room[0])
+	chambers.add_into(ChambersScript.KIND_CELLAR, network, ref[0], 7168, Vector2i(7168, 2048), room)
+	chambers.set_done(room[0])
+	var entries: Array = FarmCellars.entries(chambers, network)
+	assert_equal(entries[0][StorageScript.KEY_POSITION], Vector3(0.0, 0.0, 0.0), "1 m in: the entrance")
+	assert_equal(entries[1][StorageScript.KEY_POSITION], Vector3(8.0, 0.0, 0.0), "7 m in: the exit")
 
 
 func test_a_harvest_goes_to_the_coldest_store_with_room_nearest_its_bed() -> void:
@@ -291,7 +310,7 @@ func test_a_harvest_goes_to_the_coldest_store_with_room_nearest_its_bed() -> voi
 	var far_cellar := _dig_cellar(chambers, Vector2(8.0, 4.0))
 	var near_cellar := _dig_cellar(chambers, Vector2(-6.0, 12.8))
 	var storage := StorageScript.new(Vector2(14.0, 6.2))
-	storage.add_provider(FarmCellars.provider(chambers))
+	storage.add_provider(FarmCellars.provider(chambers, null))
 	var pantry := PantryScript.new(storage)
 	assert_true(pantry.location_near_into(5100, Catalog.bed_centre_m(BED_CARROTS), _read), "from the carrots")
 	assert_equal(storage.id_of(_read.value), &"root_cellar:%d:0" % near_cellar, "the cellar by the beds")
@@ -564,6 +583,9 @@ func test_the_zone_s_panels_sit_below_its_tabs_and_the_news_clear_of_both_column
 		assert_true(tunnels.position.y >= strip.end.y + DetailZoneScript.STRIP_GAP, "%s: tunnels below the strip" % at)
 		assert_true(detail.encloses(tunnels), "%s: tunnels inside the zone" % at)
 		assert_equal(beds, tunnels, "%s: the bed panel takes the same place" % at)
+		if geometry.commands.intersects(detail):
+			assert_true(tunnels.end.y <= geometry.commands.position.y, "%s: the panels end above the command strip" % at)
+		assert_false(tunnels.intersects(geometry.commands), "%s: never under the command strip" % at)
 		assert_false(band.intersects(detail), "%s: the news clear of the right column" % at)
 		assert_false(band.intersects(geometry.minimap), "%s: and of the minimap" % at)
 		assert_true(band.end.y < geometry.commands.position.y, "%s: above the command strip" % at)

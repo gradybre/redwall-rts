@@ -4,9 +4,11 @@ extends Node3D
 ## A threat's disc is ringed in clay on the ground while it lasts. A FLOOD raises the REAL stream: its
 ## level eases up over RISE_S and back down as it clears, and each change is handed to the water
 ## (`set_flood_rise`, demo/water/demo_water.gd `set_flood_rise`), which lifts the stream's own surface
-## up its carved banks -- the ring marks how far into the village the spill reaches, from the stream's
-## real west bank (village_water.gd). There is no stand-in sheet of water any more. A FIRE burns at the
-## covered store -- flames, smoke and a warm flickering light.
+## up its carved banks; where it spills -- the real west bank at the ford (village_water.gd) -- a film
+## of water spreads FILM_M onto the east road with the level, and the ring marks how far into the
+## village the flood reaches. (The old stand-in sheet, a disc of water over the reed beds far from any
+## water, is gone: everything drawn now stands at the real stream.) A FIRE burns at the covered store
+## -- flames, smoke and a warm flickering light.
 ##
 ## Everything runs on the demo clock: paused, the water stands and the flames hang still. Built once;
 ## per frame it only eases, and hands the water a new level only when it moved.
@@ -17,6 +19,11 @@ const MarksScript := preload("res://demo/control/demo_marks.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 
 const RISE_S: float = 3.0
+## How far the spill's film spreads from the real bank at full flood (demo value), and its look: the
+## stream's own grey-green, a little brighter where it runs thin over the road.
+const FILM_M: float = 3.0
+const FILM_COLOUR: Color = Color(0.38, 0.47, 0.48, 0.72)
+const FILM_Y_M: float = 0.04
 ## Flames go from a hot yellow to red and out; smoke rises in, greys and thins away.
 const FLAME_RAMP: Array[Color] = [Color(1.0, 0.86, 0.45, 0.95), Color(1.0, 0.5, 0.12, 0.8), Color(0.55, 0.12, 0.04, 0.0)]
 const SMOKE_RAMP: Array[Color] = [Color(0.32, 0.3, 0.28, 0.0), Color(0.3, 0.29, 0.28, 0.55), Color(0.26, 0.26, 0.26, 0.0)]
@@ -29,6 +36,7 @@ var _clock: DemoClockScript = null
 ## `(level: float) -> void`: raises the real stream (none: the flood is only ringed).
 var _flood_rise: Callable = Callable()
 var _risen: float = 0.0
+var _film: MeshInstance3D = null
 var _ring: MeshInstance3D = null
 var _flames: CPUParticles3D = null
 var _smoke: CPUParticles3D = null
@@ -42,6 +50,8 @@ func configure(events: EventsScript, clock: DemoClockScript) -> void:
 	name = "EventsView"
 	_events = events
 	_clock = clock
+	_film = _build_film()
+	add_child(_film)
 	_ring = MarksScript.make_ring(Palette.CLAY)
 	_ring.visible = false
 	add_child(_ring)
@@ -129,7 +139,36 @@ func _process(_delta: float) -> void:
 	_ring.position = Vector3(centre.x, MarksScript.LIFT_M, centre.y)
 	_ring.scale = Vector3(radius, 1.0, radius)
 	_raise_stream(_level if flood else 0.0)
+	_film.visible = flood and _level > 0.01
+	_film.position = Vector3(centre.x, FILM_Y_M, centre.y)
+	_film.scale = Vector3(FILM_M * _level, 1.0, FILM_M * _level)
 	_fire(not flood and _events.active, Vector3(centre.x, 0.0, centre.y))
+
+
+static func _build_film() -> MeshInstance3D:
+	"""The spill's film: a unit disc of the stream's colour, scaled with the flood's level."""
+	var disc := CylinderMesh.new()
+	disc.top_radius = 1.0
+	disc.bottom_radius = 1.0
+	disc.height = 0.01
+	disc.radial_segments = 48
+	var material := StandardMaterial3D.new()
+	material.albedo_color = FILM_COLOUR
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.roughness = 0.1
+	material.metallic_specular = 0.7
+	var film := MeshInstance3D.new()
+	film.name = "SpillFilm"
+	film.mesh = disc
+	film.material_override = material
+	film.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	film.visible = false
+	return film
+
+
+func film_radius_m() -> float:
+	"""How far the spill's film spreads now, in metres (checks)."""
+	return _film.scale.x if _film.visible else 0.0
 
 
 func set_flood_rise(rise: Callable) -> void:

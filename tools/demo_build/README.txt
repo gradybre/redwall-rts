@@ -23,8 +23,9 @@ with a console window that keeps the log, which says what went wrong.
 REQUIREMENTS
 ------------
 - Windows 10 or 11, 64-bit.
-- A graphics card with Vulkan (tried first) or DirectX 12 (tried if Vulkan fails) drivers: most
-  NVIDIA, AMD and Intel GPUs from about 2016 on. Keep the graphics driver up to date.
+- A graphics card with Vulkan 1.x drivers (most NVIDIA, AMD and Intel GPUs from about 2016 on), or
+  at least OpenGL 3.3 drivers, which the demo falls back to. If it fails to start, update the
+  graphics driver from NVIDIA, AMD or Intel first.
 - About 2 GB of free video memory, and under 1 GB of disk for the unzipped folder (the game data,
   RedwallDemo.pck, is {pck_mib} MB).
 
@@ -76,11 +77,11 @@ KNOWN ISSUES
 - The first minute can stutter while the graphics driver compiles shaders; it is smooth after.
 - Some props face the wrong way (the asset pass has not checked facing yet), and the walk cycles'
   swinging foot can scrape the ground.
-- If the top of the screen shows "Paused: CRITICAL", the game clock stopped itself after the PC
-  stalled for over a quarter of a second (for example while the first run compiles shaders). The
-  pause button cannot lift that pause yet: close the demo and start it again.
-- If neither Vulkan nor DirectX 12 starts, Godot falls back to its OpenGL renderer: the demo runs,
-  but lighting and some materials look different.
+- If the PC stalls for over a quarter of a second (for example while the first run compiles
+  shaders), the village stops rather than skip time, and a banner says "The simulation paused after
+  a stall". Click Resume, or press Enter or Space. It never resumes by itself.
+- Without Vulkan, the demo falls back to Godot's OpenGL renderer: it runs, but lighting, water and
+  some materials look different.
 
 
 HOW IT WAS BUILT (decision 0196)
@@ -93,6 +94,8 @@ HOW IT WAS BUILT (decision 0196)
   filtered by the normal map). About 6.2 GB of texture memory in the opening view became about
   0.9 GB, with no visible change. The crop card atlases and item icons, and all UI art, stay
   lossless: they are packed as the original PNG files.
-- Renderer: Forward+ on Vulkan, falling back to DirectX 12, then to OpenGL (Godot 4.7's Windows
-  defaults, kept on purpose).
+- Renderer: Forward+ on Vulkan (Godot 4.7's Windows default). If Vulkan fails, Godot tries Direct3D
+  12 through Windows' own runtime, then its OpenGL (Compatibility) renderer. The Direct3D 12 Agility
+  SDK and ANGLE libraries are not shipped (Godot distributes them separately), so OpenGL is the
+  dependable fallback.
 - Rebuild on the Mac with one command: python3 tools/build_demo_windows.py --out <folder>

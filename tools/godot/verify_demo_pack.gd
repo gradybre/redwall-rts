@@ -16,8 +16,10 @@ extends SceneTree
 ## (decision 0203) -- whether its roll modifier is bound, the RESIDUAL roll (how far each paddle bone's
 ## breadth is from the level target the modifier aims at, which must be ~0 once it has run) and, for
 ## information, the breadth's tilt from horizontal (not 0 wherever the tail swings sideways as it
-## rises: "as level as a bone pointing that way allows"); and screenshots of the opening view and
-## the beaver's tail.
+## rises: "as level as a bone pointing that way allows"); the stall Resume -- a deliberate 1.2 s frame
+## at 1x must put the clock into its CRITICAL diagnostic pause, show the stall banner, stay paused, and
+## an Enter press must resume it with ticks advancing again (demo/ui/demo_stall_banner.gd); and
+## screenshots of the opening view, the beaver's tail and the banner.
 
 const TailFlatRollScript := preload("res://scripts/presentation/tail_flat_roll.gd")
 
@@ -28,6 +30,13 @@ const TAIL_FRAMES: int = 240
 const SETTLE_FRAMES: int = 30
 const TAIL_BONES: int = 8
 const BEAVER: String = "beaver_bridgewright"
+const STALL_MSEC: int = 1200
+## Frames after the tail check: release the screenshot hold, stall, look, press Enter, look again.
+const STALL_AT: int = 10
+const LOOK_AT: int = 40
+const PRESS_AT: int = 42
+const AFTER_AT: int = 50
+const DONE_AT: int = 80
 
 var _out: String = ""
 var _shots: String = ""
@@ -38,6 +47,7 @@ var _skeleton: Skeleton3D = null
 var _tail_bones: PackedInt32Array = PackedInt32Array()
 var _rest_breadth: PackedVector3Array = PackedVector3Array()
 var _tilts: PackedFloat64Array = PackedFloat64Array()
+var _tick_after_resume: int = 0
 var _residuals: PackedFloat64Array = PackedFloat64Array()
 var _lengths: PackedVector3Array = PackedVector3Array()
 var _hips_breadth: Vector3 = Vector3.ZERO
@@ -121,9 +131,44 @@ func _process(_delta: float) -> bool:
 	elif _frame == WARM_FRAMES + TAIL_FRAMES + SETTLE_FRAMES:
 		_report["clock_at_end"] = _clock_state()
 		_save("beaver_tail")
+	elif _frame > WARM_FRAMES + TAIL_FRAMES + SETTLE_FRAMES:
+		return _stall_step(_frame - WARM_FRAMES - TAIL_FRAMES - SETTLE_FRAMES)
+	return false
+
+
+func _stall_step(step: int) -> bool:
+	"""The stall Resume check, one step per frame; true when the report is written."""
+	var manager: Node = root.get_node_or_null("GameManager")
+	var banner: Node = _demo.find_child("DemoStallBanner", true, false)
+	if step == 2:
+		_hold_clock(false)
+	elif step == STALL_AT:
+		OS.delay_msec(STALL_MSEC)
+	elif step == LOOK_AT:
+		_report["stall_clock"] = _clock_state()
+		_report["stall_banner_shown"] = banner != null and banner.call("is_shown")
+		_save_now("stall_banner")
+	elif step == PRESS_AT:
+		_press(KEY_ENTER, true)
+		_press(KEY_ENTER, false)
+	elif step == AFTER_AT:
+		_report["after_resume_clock"] = _clock_state()
+		_report["after_resume_banner_shown"] = banner != null and banner.call("is_shown")
+		_tick_after_resume = manager.call("get_completed_tick") if manager != null else 0
+	elif step == DONE_AT:
+		var ticks: int = manager.call("get_completed_tick") if manager != null else 0
+		_report["ticks_after_resume"] = ticks - _tick_after_resume
 		_finish("")
 		return true
 	return false
+
+
+func _press(keycode: Key, pressed: bool) -> void:
+	"""A key event through the engine's own input path, as a player's press arrives."""
+	var event := InputEventKey.new()
+	event.keycode = keycode
+	event.pressed = pressed
+	Input.parse_input_event(event)
 
 
 func _clock_state() -> String:
@@ -198,6 +243,12 @@ func _hold_clock(hold: bool) -> void:
 	var manager: Node = root.get_node_or_null("GameManager")
 	if manager != null:
 		manager.call("pause_game" if hold else "resume_game")
+
+
+func _save_now(name: String) -> void:
+	"""A screenshot without holding the clock (it is already paused)."""
+	if not _shots.is_empty():
+		root.get_texture().get_image().save_png(_shots.path_join(name + ".png"))
 
 
 func _save(name: String) -> void:

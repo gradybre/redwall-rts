@@ -186,6 +186,20 @@ def verify(godot: str, pack: pathlib.Path, logs: pathlib.Path, kept: int) -> dic
 	return found
 
 
+def stall_problems(found: dict) -> list[str]:
+	"""What is wrong with the stall Resume check: a forced stall must pause (CRITICAL) and show the banner,
+	and Enter must resume it, the ticks running again."""
+	problems = []
+	if "CRITICAL" not in str(found.get("stall_clock", "")) or not found.get("stall_banner_shown"):
+		problems.append(f"a stall did not show the Resume banner: {found.get('stall_clock')!r}, "
+			f"shown {found.get('stall_banner_shown')}")
+	if "CRITICAL" in str(found.get("after_resume_clock", "CRITICAL")) or found.get("after_resume_banner_shown"):
+		problems.append(f"Enter did not resume from the stall: {found.get('after_resume_clock')!r}")
+	if found.get("ticks_after_resume", 0) <= 0:
+		problems.append("the clock did not run after Resume")
+	return problems
+
+
 def verification_problems(found: dict, output: str, kept: int = 1) -> list[str]:
 	"""What is wrong with a verification report, or nothing."""
 	problems = []
@@ -204,6 +218,7 @@ def verification_problems(found: dict, output: str, kept: int = 1) -> list[str]:
 		problems.append("the demo booted on placeholders")
 	if "CRITICAL" in str(found.get("clock_at_end", "")):
 		problems.append("the game clock paused itself on an overload (CRITICAL) during the check")
+	problems += stall_problems(found)
 	if "did not load" in output:
 		problems.append("a card atlas or icon did not load from the pack")
 	return problems

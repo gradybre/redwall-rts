@@ -40,8 +40,13 @@ with `RedwallDemo.exe`, its `.pck` and a README, zipped -- that boots straight i
   (importer `keep`) and read through `demo_manifest.gd readable_path` -- the project folder's file in
   the project, the packed file in an export. Any other unrecognised image is refused, not guessed at.
   UI art is not touched.
-- **Renderer.** Forward+, Godot 4.7's Windows defaults: Vulkan, falling back to Direct3D 12, then to
-  OpenGL (Compatibility); the export ships the D3D12 and ANGLE runtimes for the fallbacks.
+- **Renderer.** Forward+ on Vulkan, Godot 4.7's Windows default, falling back to Direct3D 12 (the
+  system runtime) and then native OpenGL (Compatibility). No D3D12 Agility SDK or ANGLE libraries
+  ship: Godot's templates do not carry them, so OpenGL is the dependable fallback.
+- **Stalls.** A frame long enough to put the clock a quarter second behind at 1x makes it hold its
+  REQ-SET-008 diagnostic (CRITICAL) pause; `ui/demo_stall_banner.gd` shows "The simulation paused after
+  a stall" with Resume (Enter or Space), which calls `GameManager.acknowledge_overload()`. It never
+  resumes by itself.
 
 ## Time
 

@@ -65,11 +65,12 @@ python3 tools/build_demo_windows.py --out <folder> --pack-only   # no Windows te
 python3 tools/demo_texture_imports.py --godot godot         # the compression step on its own
 ```
 
-- **It needs Godot's Windows export templates**, which are **not installed here** as of 2026-09-29:
-  `~/Library/Application Support/Godot/export_templates/4.7.2.stable/` holds only `macos.zip`. The
-  official `Godot_v4.7.2-stable_export_templates.tpz` (1,281,349,702 bytes, from the Godot 4.7.2
-  GitHub release) installs them (Godot editor: Editor > Manage Export Templates). Without them the
-  script stops and says so; `--pack-only` still exports and verifies the pack.
+- **It needs Godot's Windows export templates.** Installed 2026-09-29 from the official
+  `Godot_v4.7.2-stable_export_templates.tpz` (1,281,349,702 bytes, SHA-512 checked against the
+  release's `SHA512-SUMS.txt`): the twelve `windows_*` templates now sit beside `macos.zip` in
+  `~/Library/Application Support/Godot/export_templates/4.7.2.stable/`. Without them the script stops
+  and says so; `--pack-only` still exports and verifies the pack. The package carries **no** D3D12
+  Agility SDK or ANGLE libraries, so the preset does not ask for them.
 - **`godot/export_presets.cfg` stays gitignored and local.** The committed preset is
   `tools/demo_build/windows_export_preset.cfg`; the script merges it in by name and keeps every other
   preset there (the macOS benchmark one).
@@ -83,9 +84,10 @@ python3 tools/demo_texture_imports.py --godot godot         # the compression st
 - **Touch a GLB to make Godot re-check it.** `--import` skips files whose modification time is
   unchanged, even with their `.md5` deleted.
 - **A screenshot stalls the clock into a CRITICAL pause.** Reading back and PNG-encoding a HiDPI frame
-  takes longer than the clock's overload limit (a quarter second of debt at 1x); nothing in the HUD
-  acknowledges an overload, so the demo then stays paused. Harness scripts pause (as the player)
-  around a screenshot.
+  takes longer than the clock's overload limit (a quarter second of debt at 1x); nothing in the game HUD
+  acknowledges an overload -- the demo's stall banner does (`demo/ui/demo_stall_banner.gd`). Harness
+  scripts pause (as the player) around a screenshot; `verify_demo_pack.gd` forces one stall on purpose
+  and presses Enter to check the banner.
 
 ## MCP servers
 

@@ -56,7 +56,9 @@ binary_format/architecture="x86_64"
 """
 
 GOOD_REPORT = {"error": "", "main_scene": "res://demo/demo_village.tscn", "feature_demo_build": True,
-	"pack": {"manifest": True, "raw_png": 44, "s3tc_ctex": 337}}
+	"pack": {"manifest": True, "raw_png": 44, "s3tc_ctex": 337}, "stall_clock": 'PAUSED ["CRITICAL"]',
+	"stall_banner_shown": True, "after_resume_clock": "PLAYING []", "after_resume_banner_shown": False,
+	"ticks_after_resume": 30}
 
 
 def check(name: str, condition: bool) -> None:
@@ -108,6 +110,14 @@ def test_n03_every_kept_picture_must_be_packed_and_errors_fail() -> None:
 	check("N03 as many passes", build.verification_problems(GOOD_REPORT, "", kept=44) == [])
 	check("N03 an engine error in the check fails",
 		build.verification_problems(GOOD_REPORT, "ERROR: Failed loading resource: res://x.png") != [])
+
+
+def test_n03_the_stall_resume_must_work() -> None:
+	for key, value in [("stall_clock", "PLAYING []"), ("stall_banner_shown", False),
+			("after_resume_clock", 'PAUSED ["CRITICAL"]'), ("after_resume_banner_shown", True), ("ticks_after_resume", 0)]:
+		check(f"N03 stall check {key}={value} fails", build.verification_problems({**GOOD_REPORT, key: value}, "") != [])
+	missing = {key: value for key, value in GOOD_REPORT.items() if not key.startswith(("stall", "after", "ticks"))}
+	check("N03 a report without the stall check fails", build.verification_problems(missing, "") != [])
 
 
 def test_engine_lines_are_read() -> None:

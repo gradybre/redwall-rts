@@ -40,8 +40,9 @@ const PITCH_MIN_DEGREES: float = 30.0
 const PITCH_MAX_DEGREES: float = 75.0
 const PITCH_STEP_DEGREES: float = 4.0
 
-## Distance from the focus to the eye, in metres. The default frames a 40 m village.
-const DISTANCE_DEFAULT: float = 38.0
+## Distance from the focus to the eye, in metres. 22 m frames the village square with its residents readable: at 38 m (the whole clearing) a
+## 1 m mouse is a few pixels tall at 1080p. Zoom out for the whole village.
+const DISTANCE_DEFAULT: float = 22.0
 const DISTANCE_MIN: float = 7.0
 const DISTANCE_MAX: float = 70.0
 ## Each zoom notch multiplies the distance by (1 - ZOOM_STEP) inward, or divides by it outward.

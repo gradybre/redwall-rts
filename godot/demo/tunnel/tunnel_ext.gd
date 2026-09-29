@@ -22,6 +22,8 @@ extends Node3D
 ##                                               they join the Foremole's dig crew
 ## Residents selected when a tunnel job is ordered become its worker or crew (tunnel_actions.gd).
 ##
+## THE PANEL shares the HUD's right column with the farm's bed panel (demo/ui/demo_detail_zone.gd);
+## `panel_wanted` asks for it when the player selects a tunnel, lays a route or places a chamber.
 ## The weather, the water and the notice feed are the demo's shared ones (demo_services.gd).
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
@@ -45,6 +47,10 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const PickScript := preload("res://demo/control/demo_pick.gd")
 const PlanScript := preload("res://demo/tunnel/tunnel_plan.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
+
+## The player did something on the tunnels (selected one, laid a route, armed a chamber): show the
+## tunnels panel.
+signal panel_wanted
 
 const PANEL_REFRESH_S: float = 0.2
 const JOB_FOR_ACTION: Dictionary = {&"widen": JobsScript.JOB_WIDEN, &"brace": JobsScript.JOB_BRACE,
@@ -225,6 +231,7 @@ func select_at_screen(screen: Vector2) -> bool:
 		return false
 	_mark.call(Vector3(_ground.x, 0.0, _ground.y), true)
 	_refresh_in = 0.0
+	panel_wanted.emit()
 	return true
 
 
@@ -282,8 +289,11 @@ func set_underground_view(on: bool) -> void:
 
 
 func set_planning(on: bool) -> void:
-	"""A route is being laid (or no longer): the ground map tints the village."""
+	"""A route is being laid (or no longer): the ground map tints the village (and the panel's legend
+	shows, so the panel comes forward)."""
 	ground_view.set_planning(on)
+	if on:
+		panel_wanted.emit()
 
 
 func crew_on_dig(slot: int, lead: int) -> int:

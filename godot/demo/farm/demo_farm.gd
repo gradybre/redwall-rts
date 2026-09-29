@@ -62,6 +62,9 @@ const Layout := preload("res://demo/world/world_layout.gd")
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 
+## A bed was opened: the right column should show the farm's panel (demo/ui/demo_detail_zone.gd).
+signal panel_wanted
+
 const STORE_POI: StringName = &"store_front"
 const STORE_ID: StringName = &"store"
 const WELL_ID: StringName = &"well"
@@ -92,6 +95,7 @@ var _events: PackedInt32Array = PackedInt32Array()
 var _spoiled: PackedInt32Array = PackedInt32Array()
 var _lines: PackedStringArray = PackedStringArray()
 var _levels: PackedByteArray = PackedByteArray()
+var _shown_hour: int = 0
 var _water: PackedByteArray = PackedByteArray([0, 0])
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 
@@ -197,10 +201,13 @@ static func _building_at(id: StringName) -> Vector2:
 # --- per frame ------------------------------------------------------------------------------------
 
 func _process(delta: float) -> void:
-	"""Run the farm on this frame's demo time; keep the HUD's Food figure and the panels current."""
+	"""Run the farm on this frame's demo time; keep the HUD's Food figure and the panels current -- at
+	once when the calendar's hour turns, so the panel's date never trails the HUD's."""
 	step(_cast.clock.frame_usec if _cast != null else 0)
 	_refresh_in -= delta
-	if _refresh_in <= 0.0:
+	var hour: int = services.calendar.hour_index()
+	if _refresh_in <= 0.0 or hour != _shown_hour:
+		_shown_hour = hour
 		_refresh_in = PANEL_REFRESH_S
 		bed_panel.refresh()
 		pantry_panel.refresh()
@@ -304,6 +311,7 @@ func select_bed(bed: int) -> void:
 	view.select_bed(bed)
 	if Catalog.is_bed(bed):
 		bed_panel.show_bed(bed)
+		panel_wanted.emit()
 	else:
 		bed_panel.show_nothing()
 

@@ -18,18 +18,21 @@ extends Node3D
 ## farm's pantry stores (see FARM).
 ##
 ## ONE OF EACH (demo_services.gd, made first and handed to the tunnel works and the farm):
-##   * ONE CALENDAR (demo_calendar.gd): farm time and the weather's hour. The farm advances it on the
-##     demo clock; the farm panel and every notice's stamp read its date. The settlement's own clock
-##     runs on apart, unwritten.
+##   * ONE CALENDAR (demo_calendar.gd): farm time, the weather's hour and the date the HUD shows. The
+##     farm advances it on the demo clock; the HUD's date trigger prints it (demo/ui/demo_hud_date.gd,
+##     through the shell's public `set_status_line`), so the HUD, the farm panel and every notice's
+##     stamp read the same date. The settlement's own clock runs on apart, unwritten.
 ##   * ONE WEATHER (demo/weather/demo_weather.gd, `weather()`): the farm's REAL §5.10 row read hour by
 ##     hour on that calendar. Its rain is the rain the beds take; it slows surface walking, soaks the
 ##     tunnels' wet ground and falls on screen.
 ##   * ONE WATER ADAPTER (demo_water.gd, `water()`): the farm's edge query and the tunnels' wet-ground
 ##     and flood queries. The real water module (feat/demo-water) is wired in THERE and nowhere else.
 ##   * ONE NOTICE FEED (demo_notices.gd): every farm, weather, tunnel and threat notice, date-stamped,
-##     shown per source in the two panels. Nothing in the demo raises a HUD alert card: the HUD shows
-##     the two earliest unresolved notices and demo lines, which nothing resolves, would hold both
-##     cards for good (UI §7).
+##     shown bottom centre (demo/ui/demo_news_strip.gd) and, per source, in the two panels. Nothing in
+##     the demo raises a HUD alert card: the HUD shows the two earliest unresolved notices and demo
+##     lines, which nothing resolves, would hold both cards for good (UI §7).
+## The HUD's right column holds ONE demo panel at a time -- the farm's or the tunnels' -- under a tab
+## strip (demo/ui/demo_detail_zone.gd); a click on a bed or a tunnel brings its panel.
 ##
 ## TIME. The game's clock is started by `Game` itself (scripts/main.gd calls start_game()), and
 ## UIManager then holds UI-SET-103's opening inspection pause (PLAYER). The demo releases that one
@@ -58,11 +61,17 @@ const WeatherScript := preload("res://demo/weather/demo_weather.gd")
 const WaterScript := preload("res://demo/demo_water.gd")
 const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
+const HudDateScript := preload("res://demo/ui/demo_hud_date.gd")
+const NewsStripScript := preload("res://demo/ui/demo_news_strip.gd")
+const DetailZoneScript := preload("res://demo/ui/demo_detail_zone.gd")
+const TunnelExtScript := preload("res://demo/tunnel/tunnel_ext.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
 const GAME_CAMERA: NodePath = ^"World/Camera3D"
 const GAME_HUD_ROOT: NodePath = ^"UI/HUD/Root"
+## Process priority: after the farm (priority 0) has advanced the calendar each frame.
+const PROCESS_AFTER_CHILDREN: int = 1
 ## Refit the sun's shadow range when the zoom has moved this far since the last fit.
 const SHADOW_REFIT_M: float = 0.5
 
@@ -74,11 +83,16 @@ var _camera: Node3D = null
 var _command: Node3D = null
 var _farm: DemoFarmScript = null
 var _services: ServicesScript = ServicesScript.new()
+var _hud_date: HudDateScript = HudDateScript.new()
+var _news: NewsStripScript = null
+var _zone: DetailZoneScript = null
 var _shadow_view_m: float = -1.0
 
 
 func _ready() -> void:
-	"""The game has booted (children ready first); build the demo over it."""
+	"""The game has booted (children ready first); build the demo over it. The village processes after
+	its children, so the HUD's date is painted after the farm has advanced the calendar this frame."""
+	process_priority = PROCESS_AFTER_CHILDREN
 	_quiet_game_presentation()
 	var manifest: Dictionary = DemoManifestScript.load_manifest()
 	if not DemoManifestScript.is_staged(manifest):
@@ -101,6 +115,7 @@ func _ready() -> void:
 	_command.configure(_cast, _camera.camera(), _game.get_node_or_null(GAME_HUD_ROOT) as Control, _services)
 	_command.set_world(_world as DemoWorldScript)
 	_build_farm(manifest)
+	_build_shared_ui()
 	_skin_hud.call_deferred()
 	_open_running()
 
@@ -120,6 +135,22 @@ func _build_farm(manifest: Dictionary) -> void:
 	_farm.configure(manifest, _world as DemoWorldScript, _cast as DemoCastScript, _command as DemoCommandScript,
 		_camera.camera(), _shell(), storage_providers(), _services)
 	_command.tunnels().ext.set_weather_skip(_farm.skip_to_next_weather)
+
+
+func _build_shared_ui() -> void:
+	"""The HUD date on the demo calendar, the news strip, and the right column's one-panel zone."""
+	_hud_date.bind(_shell(), _services.calendar, GameManager as GameManagerScript)
+	_news = NewsStripScript.new()
+	add_child(_news)
+	_news.configure(_services.notices)
+	_zone = DetailZoneScript.new()
+	add_child(_zone)
+	_zone.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
+	_zone.add_panel(DetailZoneScript.PANEL_FARM, _farm.bed_panel)
+	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
+	_zone.add_panel(DetailZoneScript.PANEL_TUNNELS, ext.panel)
+	_farm.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_FARM))
+	ext.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_TUNNELS))
 
 
 func _shell() -> UiShell:
@@ -165,7 +196,9 @@ func chambers() -> ChambersScript:
 
 
 func _process(_delta: float) -> void:
-	"""Keep the sun's shadow range fitted to the zoom; only touch it when the zoom moved."""
+	"""Keep the HUD's date on the demo calendar, and the sun's shadow range fitted to the zoom (only
+	touched when the zoom moved)."""
+	_hud_date.sync()
 	var view_m: float = _camera.distance()
 	if absf(view_m - _shadow_view_m) < SHADOW_REFIT_M:
 		return

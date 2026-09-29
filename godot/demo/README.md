@@ -31,6 +31,42 @@ at 2x and 4x they move and dig two and four times as fast. The camera, the HUD, 
 panel and the selection and order marks stay on real time, so the player can still select, order
 and dig while paused -- the orders are carried out on resume.
 
+## One village: one calendar, one weather, one water, one feed
+
+The farm and the tunnel works were built apart; in the demo they are one village, sharing four things
+that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
+
+- **One calendar** (`demo_calendar.gd`). Farm time, the weather's hour and the **date the HUD shows**
+  are one tick counter on the real offset calendar, run on the demo clock at a game hour every 2.5 demo
+  seconds (a day a minute at 1x) -- the one demo compression, applied to all three. The farm's model
+  advances it; the HUD's date trigger prints its day (`ui/demo_hud_date.gd`, through the shell's
+  public `set_status_line`, so the settlement's own clock runs on apart, unwritten) -- "Spring 3": the
+  trigger's 88 px hold no hour, so its tooltip carries the full `Y1 Spring 3, 14:00` -- and the farm
+  panel's clock line and every notice's stamp are that same date, e.g. `Y1 Spring 3, 14:00`.
+- **One weather** (`weather/demo_weather.gd`). The authority is the farm's REAL §5.10 weather row
+  (`scripts/core/weather.gd` in the farm's private `crop_weather.gd` stage): the season baselines, the
+  forced first-spring Ideal spell and one seeded event a season. Each day's rain wets the beds at the
+  day's start, and falls on screen as `rain / 200` whole hours of showers centred on 15:00 (spring's
+  1200 is 12:00-17:59) -- so the rain that slows walkers is the rain that wets the beds. Frost nights
+  (the farm's demo overlay) read as frost. Rain slows surface walking to 80%, snow to 60%, frost to 85%;
+  tunnels are not slowed, so walkers take them in bad weather. Rain and snow fall, the light dims.
+- **One water adapter** (`demo_water.gd`, `demo_village.water()`): the farm's water-edge query
+  (irrigation) and the tunnels' wet-ground and flood queries. Until the real water module
+  (feat/demo-water) is wired in there, it answers from two isolated PLACEHOLDERS: the farm's reed pond
+  (`farm/farm_water.gd`) and the tunnels' stream table and flood sheet (`tunnel/tunnel_water.gd`,
+  `events/events_view.gd`).
+- **One notice feed** (`demo_notices.gd`). Every farm warning, weather change, tunnel happening, threat
+  and crew report is posted there with its date; the newest show bottom centre as **Village news
+  (demo)** (`ui/demo_news_strip.gd`: notes 12 s, warnings 30 s, warnings worded and in clay), and the
+  farm's and the tunnels' own latest stay in their panels. Nothing in the demo raises a HUD alert card
+  any more: the HUD shows the two earliest unresolved notices, and demo lines, which nothing resolves,
+  held both cards for good.
+
+**The right column holds one demo panel at a time** (`ui/demo_detail_zone.gd`): a tab strip, *Farm*
+and *Tunnels & burrows*, over the HUD's detail zone. Clicking a bed brings the farm's panel; selecting a
+tunnel or laying a route brings the tunnels'; the tabs switch by hand; both hide while the resident
+journal is open.
+
 ## Commanding the residents
 
 | Input | Does |
@@ -87,9 +123,10 @@ The six crop beds grow **individual pantry ingredients** -- radish, turnip, carr
 onion, cabbage, lettuce, spinach, leek, celery, pea, broad bean, wheat, barley, oats, each a LEAF of the
 content library's pantry -- by the settlement's **own crop arithmetic** (`scripts/core/farming.gd` and
 `crop_weather.gd`, GDD §5.6): each bed is a real FarmPlot row, and each ingredient grows by the §5.6 row
-it belongs to (roots, cabbage, beans or grain). The farm keeps its own calendar on the demo clock, a
-game hour every 2.5 demo seconds (a day a minute at 1x), so pause and 1x/2x/4x govern it too; the
-HUD's date is the settlement's clock and runs apart. Harvests go into the **pantry**, counted per item;
+it belongs to (roots, cabbage, beans or grain), on the demo's one calendar (above). Harvests go into
+the **pantry**, counted per item, at the slowest-spoiling store with room -- a **root cellar** dug off a
+tunnel (spoilage 350 per mille, the GDD's cellar) before the covered store (1000), and of two cellars
+the one nearer the bed (`farm/farm_cellars.gd` turns `burrow_chambers.cellars()` into pantry stores);
 the HUD's Food cell shows the pantry total, and the Food command (or K) opens the Pantry: stock per
 ingredient, freshness (GDD §5.8 spoilage by where it is stored), and the library dishes each feeds.
 
@@ -112,9 +149,9 @@ water's edge irrigates the beds it runs under. Details and every number's source
 
 ## Weather, upgrades, hazards, finds, chambers, crews and threats
 
-The tunnel extensions (`tunnel/tunnel_ext.gd`) add a **"Tunnels & burrows (demo)"** panel in the HUD's
-right column (it hides while the resident journal is open). Everything runs on the demo clock:
-paused, the weather, hazards, jobs and threats hold; at 2x and 4x they run faster.
+The tunnel extensions (`tunnel/tunnel_ext.gd`) add a **"Tunnels & burrows (demo)"** panel, the right
+column's second tab. Everything runs on the demo clock: paused, the weather, hazards, jobs and threats
+hold; at 2x and 4x they run faster.
 
 | Input | Does |
 |---|---|
@@ -123,13 +160,9 @@ paused, the weather, hazards, jobs and threats hold; at 2x and 4x they run faste
 | Panel: Burrow home / Root cellar, then left click beside the tunnel | Dig a chamber there (Esc or right click: cancel) |
 | T with the mole **and** others selected | The others join the Foremole's dig crew |
 | Right click a tunnel being dug, residents selected | They join its crew |
-| Panel: Next weather (demo) / Test event (demo) | Skip to the next spell / bring the next threat |
+| Panel: Next weather (demo) / Test event (demo) | Run the one calendar -- farm, weather and date together -- on to the next change of weather (at most 48 h) / bring the next threat |
 
-- **Weather** (`weather/demo_weather.gd`, the one weather source): a compressed year of spells, each
-  45 s, whose temperatures and rain are read from the real §5.10 tables (`scripts/core/weather.gd`).
-  Rain slows surface walking to 80%, snow to 60%, frost to 85% (`surface_speed_permille()`); tunnels
-  are not slowed, so walkers take them in bad weather. Rain and snow fall, the light dims, snow and
-  frost whiten the ground.
+- **Weather**: the village's one weather (above). Hazards soak while it rains.
 - **Hauling**: a carrier may take a bore its load fits (a mouse or squirrel a standard bore, an otter a
   widened one, the badger none); only the surface part of its trip counts toward the carry limit.
   A busy mouth has a short **queue**: walkers wait in a line beside it rather than crowding the hole.
@@ -169,10 +202,11 @@ from the high-poly sources. Re-run it alone after changing it:
 | `cast/` | The residents: body, clips, live tail, job routines, orders |
 | `control/` | Selecting and ordering residents, and the demo party panel |
 | `tunnel/` | Player-dug tunnels: rules, the tunnel network and planner, planning, drawing, the underground view; and their extensions -- ground, queues, crews, jobs, hazards, finds, the demo stores, the tunnel panel |
-| `weather/` | The demo's one weather source and its rain, snow and light |
+| `demo_calendar.gd`, `demo_services.gd`, `demo_water.gd`, `demo_notices.gd` | The one calendar, the shared set, the one water adapter, the one notice feed |
+| `weather/` | The demo's one weather (read from the farm's real §5.10 row) and its rain, snow and light |
 | `burrow/` | Chambers dug off tunnels: burrow homes and root cellars (the cellar API) |
 | `events/` | Seeded threats (a flood, a fire) and evacuation |
 | `farm/` | The farm: real FarmPlot rows, the pantry and its storage providers, the crew's jobs, beds, panels, alerts |
-| `ui/` | The woodland HUD skin |
+| `ui/` | The woodland HUD skin; the HUD date, the news strip and the right column's tabs |
 | `camera/` | The RTS camera |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

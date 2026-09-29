@@ -4,8 +4,9 @@ extends CanvasLayer
 ##
 ## ---------------------------------------------------------------------------------------
 ## PLACEMENT. It sits in the HUD's DETAIL ZONE, the right column below the time controls (UI §1.2),
-## which the demo leaves empty: from the zone's top, as tall as its content, never past the zone's
-## bottom. That zone belongs to UI-SET-036, the resident journal, when it opens -- so while it is
+## which it shares with the farm's bed panel ONE AT A TIME: demo/ui/demo_detail_zone.gd shows it or
+## hides it and places it below its tab strip (`set_zone`). From there, as tall as its content, never
+## past the zone's bottom. That zone belongs to UI-SET-036, the resident journal, when it opens -- so while it is
 ## open this panel hides. The zone comes from the HUD's own equations (`scripts/ui/ui_layout.gd`,
 ## read, never modified) in LOGICAL pixels, drawn at the HUD's scale, recomputed on every resize --
 ## so 1280x720, 1920x1080 and a HiDPI screen line up (the party panel does the same on the left).
@@ -62,6 +63,8 @@ var _hud_root: Control = null
 var _detail: Control = null
 var _detail_open: bool = false
 var _width: float = 316.0
+var _zone_shown: bool = true
+var _zone_inset: float = 0.0
 
 
 func _ready() -> void:
@@ -210,28 +213,40 @@ func follow_hud() -> void:
 		_place()
 
 
+func set_zone(shown: bool, top_inset: float) -> void:
+	"""The detail zone's owner (demo_detail_zone.gd): show this panel or not, starting `top_inset`
+	logical pixels below the zone's top."""
+	_zone_shown = shown
+	_zone_inset = top_inset
+	_place()
+
+
 func _place() -> void:
 	"""Lay the frame out in the detail zone at the HUD's scale (see PLACEMENT)."""
-	if not is_inside_tree() or _frame == null:
+	if _frame == null:
+		return
+	if not is_inside_tree():
+		_frame.visible = _zone_shown and not _detail_open
 		return
 	var size_px := get_viewport().get_visible_rect().size
-	var rect := placement(int(size_px.x), int(size_px.y), _layout, _geometry)
+	var rect := placement(int(size_px.x), int(size_px.y), _layout, _geometry, _zone_inset)
 	_frame.scale = Vector2(_geometry.scale, _geometry.scale)
 	_frame.position = rect.position * _geometry.scale
 	_frame.custom_minimum_size = Vector2(rect.size.x, 0.0)
 	_frame.size = Vector2(rect.size.x, 0.0)
-	_frame.visible = not _detail_open and _frame.get_combined_minimum_size().y <= rect.size.y
+	_frame.visible = _zone_shown and not _detail_open and _frame.get_combined_minimum_size().y <= rect.size.y
 
 
-static func placement(width: int, height: int, layout: UiLayout, geometry: UiLayout.Geometry) -> Rect2:
-	"""The panel's rectangle in the HUD's logical pixels: the detail zone, inset by the carved frame.
-	Fills `geometry` (scale 1 below the supported floor)."""
+static func placement(width: int, height: int, layout: UiLayout, geometry: UiLayout.Geometry,
+		top_inset: float = 0.0) -> Rect2:
+	"""The panel's rectangle in the HUD's logical pixels: the detail zone below `top_inset` (the zone's
+	tab strip), inset by the carved frame. Fills `geometry` (scale 1 below the supported floor)."""
 	if not layout.compute_into(maxi(width, UiLayout.SUPPORTED_MIN_WIDTH), maxi(height, UiLayout.SUPPORTED_MIN_HEIGHT),
 			UiLayout.USER_SCALE_100, true, geometry):
 		geometry.scale = 1.0
 	var zone := geometry.detail
-	return Rect2(zone.position.x + FRAME_EXPAND, zone.position.y + FRAME_EXPAND, zone.size.x - 2.0 * FRAME_EXPAND,
-		maxf(zone.size.y - 2.0 * FRAME_EXPAND, 0.0))
+	return Rect2(zone.position.x + FRAME_EXPAND, zone.position.y + FRAME_EXPAND + top_inset,
+		zone.size.x - 2.0 * FRAME_EXPAND, maxf(zone.size.y - 2.0 * FRAME_EXPAND - top_inset, 0.0))
 
 
 func frame_rect() -> Rect2:

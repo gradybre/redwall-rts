@@ -25,11 +25,19 @@ const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
 const WorksScript := preload("res://demo/tunnel/tunnel_works.gd")
 const TaskScript := preload("res://demo/tunnel/tunnel_task.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
+const HudDateScript := preload("res://demo/ui/demo_hud_date.gd")
+const NewsStripScript := preload("res://demo/ui/demo_news_strip.gd")
+const DetailZoneScript := preload("res://demo/ui/demo_detail_zone.gd")
+const TunnelPanelScript := preload("res://demo/tunnel/tunnel_panel.gd")
+const BedPanelScript := preload("res://demo/farm/farm_bed_panel.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const CommandScript := preload("res://demo/control/demo_command.gd")
+const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
+const UiShell := preload("res://scripts/ui/ui_shell.gd")
+const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const VillageScript := preload("res://demo/demo_village.gd")
 
@@ -173,10 +181,50 @@ func test_next_weather_runs_the_one_calendar_to_the_change() -> void:
 
 # --- one calendar ---------------------------------------------------------------------------------
 
-func test_the_frost_warning_names_the_night_on_the_calendar() -> void:
-	"""At 12:00 of spring 3 the farm warns of the night into spring 4, stamped with the calendar's date."""
+func test_the_hud_date_is_the_farm_date() -> void:
+	"""The HUD's date trigger shows the one calendar's day (all that fits its 88 px), its tooltip the
+	full date and hour with the state and speed, and the farm panel's clock line the same date; UIManager
+	writing the settlement's date over it is painted back on the next sync."""
 	var farm := _village(false)
+	var shell := UiShell.new()
+	_nodes.append(shell)
+	shell.build()
+	var manager := GameManagerScript.new()
+	_nodes.append(manager)
+	assert_true(manager.start_game(), "the test's clock")
+	var date := HudDateScript.new()
+	date.bind(shell, _services.calendar, manager)
+	farm.step(8 * HOUR_USEC)
+	assert_true(date.sync(), "painted")
+	assert_equal(shell.status_label().text, "Spring 1", "the HUD shows the demo day")
+	assert_equal(shell.status_label().tooltip_text, HudDateScript.tooltip_text("Y1 Spring 1, 14:00",
+		manager.get_state_name(), manager.get_speed()), "its tooltip the whole date and hour")
+	assert_equal(shell.status_label().get_theme_font_size(&"font_size"), HudDateScript.TEXT_PX, "at the size that fits")
+	assert_true(Text.clock_line(farm.sim).begins_with("Y1 Spring 1, 14:00 · "), "the farm panel shows the same date")
+	assert_false(date.sync(), "nothing to repaint")
+	shell.set_status_line("Playing  x1  Y1 spring 1")
+	assert_true(date.sync(), "UIManager's settlement date is painted over")
+	assert_equal(shell.status_label().text, "Spring 1", "ours again")
+	farm.step(18 * HOUR_USEC)
+	assert_true(date.sync(), "a new day")
+	assert_equal(shell.status_label().text, "Spring 2", "follows the calendar")
+	assert_true(shell.status_label().tooltip_text.begins_with("Y1 Spring 2, 08:00"), "to the hour")
+
+
+func test_the_frost_warning_names_the_night_on_the_hud_s_calendar() -> void:
+	"""At 12:00 of spring 3 the farm warns of the night into spring 4, stamped with the same date the
+	HUD then shows."""
+	var farm := _village(false)
+	var shell := UiShell.new()
+	_nodes.append(shell)
+	shell.build()
+	var manager := GameManagerScript.new()
+	_nodes.append(manager)
+	manager.start_game()
+	var date := HudDateScript.new()
+	date.bind(shell, _services.calendar, manager)
 	farm.step(54 * HOUR_USEC)
+	date.sync()
 	var frost: String = AlertsScript.frost_text(0, 3)
 	assert_true(frost.begins_with("Frost tonight (Spring 4, 02:00–05:59)!"), "names the night")
 	assert_true(_feed_has(frost, NoticesScript.LEVEL_WARNING), "a warning in the feed")
@@ -185,7 +233,8 @@ func test_the_frost_warning_names_the_night_on_the_calendar() -> void:
 		if _services.notices.text(k) == frost:
 			stamp = _services.notices.stamp(k)
 	assert_equal(stamp, "Y1 Spring 3, 12:00", "stamped at noon of spring 3")
-	assert_equal(stamp, _services.calendar.date_text(), "the calendar's date")
+	assert_equal(shell.status_label().text, "Spring 3", "the day the HUD shows")
+	assert_true(shell.status_label().tooltip_text.begins_with(stamp), "and its tooltip's date and hour")
 
 
 func test_the_farm_adopts_the_calendar_only_before_either_runs() -> void:
@@ -348,6 +397,28 @@ func test_the_feed_keeps_date_stamped_entries_newest_first() -> void:
 	assert_equal(feed.latest_of_into(NoticesScript.SOURCE_FARM, 3, out), 0, "the farm's have gone")
 
 
+func test_the_news_strip_shows_fresh_notices_and_warnings_longer() -> void:
+	"""The strip shows the newest fresh entries (warnings worded and kept 30 s, notes 12 s) and hides
+	when none is fresh."""
+	var feed := NoticesScript.new()
+	var strip := NewsStripScript.new()
+	_nodes.append(strip)
+	strip.configure(feed)
+	assert_equal(strip.refresh(Time.get_ticks_msec()), 0, "nothing to say")
+	assert_false(strip.is_shown(), "hidden")
+	feed.post(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_WARNING, "Blight on Bed 3!")
+	feed.post(NoticesScript.SOURCE_CREW, NoticesScript.LEVEL_NOTE, "Sow done: Bed 1")
+	var now: int = Time.get_ticks_msec()
+	assert_equal(strip.refresh(now), 2, "both fresh")
+	assert_true(strip.is_shown(), "shown")
+	assert_equal(strip.line_text(0), "— · Sow done: Bed 1", "newest on top")
+	assert_equal(strip.line_text(1), "— · Warning: Blight on Bed 3!", "the warning worded")
+	assert_equal(strip.refresh(now + NewsStripScript.NOTE_MSEC + 1), 1, "the note has gone")
+	assert_equal(strip.line_text(0), "— · Warning: Blight on Bed 3!", "the warning stays")
+	assert_equal(strip.refresh(now + NewsStripScript.WARNING_MSEC + 1), 0, "then it goes too")
+	assert_false(strip.is_shown(), "hidden again")
+
+
 func test_the_farm_and_the_tunnels_post_to_the_one_feed() -> void:
 	"""The farm's alerts arrive with their levels (ripe a note), the tunnel works' happenings as notes
 	and warnings, and an order's answer (`tell`) stays out of the feed."""
@@ -376,3 +447,58 @@ func test_a_task_speaks_before_the_farm_s_words() -> void:
 	assert_equal(_command.doing_text(1), "on an errand", "the task's own words first")
 	brain.release()
 	assert_equal(_command.doing_text(1), "Sowing bed 2", "the farm's again")
+
+
+# --- one panel in the right column ----------------------------------------------------------------
+
+func test_the_right_column_shows_one_demo_panel_at_a_time() -> void:
+	"""The farm's panel by default; a tunnel intent brings the tunnels' (the farm's hides); a bed click
+	brings the farm's back; the tabs follow."""
+	var farm := _village(false)
+	var zone := DetailZoneScript.new()
+	_nodes.append(zone)
+	zone.build()
+	var ext := _command.tunnels().ext
+	zone.add_panel(DetailZoneScript.PANEL_FARM, farm.bed_panel)
+	zone.add_panel(DetailZoneScript.PANEL_TUNNELS, ext.panel)
+	farm.panel_wanted.connect(zone.show_panel.bind(DetailZoneScript.PANEL_FARM))
+	ext.panel_wanted.connect(zone.show_panel.bind(DetailZoneScript.PANEL_TUNNELS))
+	assert_true(farm.bed_panel.is_shown(), "the farm's by default")
+	assert_false(ext.panel.is_shown(), "the tunnels' hidden")
+	assert_true(zone.tab(DetailZoneScript.PANEL_FARM).button_pressed, "its tab")
+	ext.set_planning(true)
+	assert_false(farm.bed_panel.is_shown(), "laying a route: the farm's hides")
+	assert_true(ext.panel.is_shown(), "the tunnels' shows")
+	assert_true(zone.tab(DetailZoneScript.PANEL_TUNNELS).button_pressed, "its tab")
+	assert_false(zone.tab(DetailZoneScript.PANEL_FARM).button_pressed, "not both")
+	ext.set_planning(false)
+	farm.select_bed(BED_CARROTS)
+	assert_true(farm.bed_panel.is_shown(), "a bed: the farm's again")
+	assert_false(ext.panel.is_shown(), "the tunnels' hides")
+	zone.tab(DetailZoneScript.PANEL_TUNNELS).pressed.emit()
+	assert_true(ext.panel.is_shown(), "the tab switches")
+	assert_false(farm.bed_panel.is_shown(), "one at a time")
+
+
+func test_the_zone_s_panels_sit_below_its_tabs_and_the_news_clear_of_both_columns() -> void:
+	"""At 1280x720 and 1920x1080: the tab strip along the detail zone's top, both panels' rectangle
+	below it and inside the zone (they share it, one shown at a time), and the news band between the
+	minimap and the right column, above the command strip."""
+	var layout := UiLayout.new()
+	var geometry := UiLayout.Geometry.new()
+	for size: Vector2i in [Vector2i(1280, 720), Vector2i(1920, 1080)]:
+		var strip: Rect2 = DetailZoneScript.strip_placement(size.x, size.y, layout, geometry)
+		var detail: Rect2 = geometry.detail
+		var inset: float = DetailZoneScript.STRIP_H + DetailZoneScript.STRIP_GAP
+		var tunnels: Rect2 = TunnelPanelScript.placement(size.x, size.y, layout, geometry, inset)
+		var beds: Rect2 = BedPanelScript.placement(Vector2(size), inset, layout, geometry)
+		var band: Rect2 = NewsStripScript.band_placement(size.x, size.y, layout, geometry)
+		var at := "%dx%d" % [size.x, size.y]
+		assert_true(detail.encloses(strip), "%s: the strip in the zone (%s in %s)" % [at, strip, detail])
+		assert_true(tunnels.position.y >= strip.end.y + DetailZoneScript.STRIP_GAP, "%s: tunnels below the strip" % at)
+		assert_true(detail.encloses(tunnels), "%s: tunnels inside the zone" % at)
+		assert_equal(beds, tunnels, "%s: the bed panel takes the same place" % at)
+		assert_false(band.intersects(detail), "%s: the news clear of the right column" % at)
+		assert_false(band.intersects(geometry.minimap), "%s: and of the minimap" % at)
+		assert_true(band.end.y < geometry.commands.position.y, "%s: above the command strip" % at)
+		assert_true(band.size.x > 400.0 and band.size.x <= NewsStripScript.MAX_W, "%s: a readable width (%s)" % [at, band])

@@ -1,9 +1,12 @@
 extends CanvasLayer
 ## The bed panel: one crop bed's readout and every verb the player has for it, and the crop picker.
 ## Decision 0196. DEMO UI in the woodland skin, in the HUD's right column (UI §1.2's detail zone,
-## "Bottom-right: Context info panel"), drawn below the HUD's own layer so a true modal covers it.
+## "Bottom-right: Context info panel"), drawn below the HUD's own layer so a true modal covers it. It
+## shares that zone with the tunnels panel, ONE AT A TIME: demo/ui/demo_detail_zone.gd shows it or
+## hides it, and places it below its tab strip (`set_zone`).
 ##
-## With no bed selected it shows the demo calendar's date and how to start. Under the date, always, the farm's latest NEWS_LINES notices from the demo's notice feed
+## With no bed selected it shows the demo calendar's date -- the very date the HUD shows -- and how to
+## start. Under the date, always, the farm's latest NEWS_LINES notices from the demo's notice feed
 ## (demo_notices.gd). With a bed: its crop and stage with the hours to ripe or to withering, moisture
 ## against the crop's band, soil fertility and health, what has been done to the ground (drained,
 ## irrigated, raised, banked, covered), the expected yield, and the jobs on it; then the verbs.
@@ -51,6 +54,8 @@ var _crew: CrewScript = null
 var _notices: NoticesScript = null
 var _news_seen: int = -1
 var _news_scratch: PackedStringArray = PackedStringArray()
+var _zone_shown: bool = true
+var _zone_inset: float = 0.0
 var _frame: PanelContainer = null
 var _title: Label = null
 var _clock: Label = null
@@ -352,16 +357,38 @@ func line_text(k: int) -> String:
 
 # --- placement --------------------------------------------------------------------------------
 
+func set_zone(shown: bool, top_inset: float) -> void:
+	"""The detail zone's owner (demo_detail_zone.gd): show this panel or not, starting `top_inset`
+	logical pixels below the zone's top."""
+	_zone_shown = shown
+	_zone_inset = top_inset
+	_place()
+
+
+func is_shown() -> bool:
+	"""Whether the panel is drawn."""
+	return _frame != null and _frame.visible
+
+
 func _place() -> void:
-	"""In the right column (the HUD's detail zone), at the HUD's scale."""
-	if not is_inside_tree() or _frame == null:
+	"""In the right column (the HUD's detail zone, below the zone's tab strip), at the HUD's scale."""
+	if _frame == null:
 		return
-	FarmUi.geometry_for(get_viewport().get_visible_rect().size, _layout, _geometry)
-	var zone: Rect2 = _geometry.detail
-	var rect := Rect2(zone.position + Vector2(FarmUi.FRAME_EXPAND, FarmUi.FRAME_EXPAND),
-		zone.size - Vector2(2.0, 2.0) * FarmUi.FRAME_EXPAND)
+	_frame.visible = _zone_shown
+	if not is_inside_tree():
+		return
+	var rect: Rect2 = placement(get_viewport().get_visible_rect().size, _zone_inset, _layout, _geometry)
 	_scroll.custom_minimum_size.y = clampf(rect.size.y - 140.0, 120.0, PICKER_MAX_H)
 	FarmUi.place(_frame, rect, _geometry.scale)
+
+
+static func placement(viewport_size: Vector2, top_inset: float, layout: UiLayout, geometry: UiLayout.Geometry) -> Rect2:
+	"""The panel's rectangle in the HUD's logical pixels: the detail zone below `top_inset` (the zone's
+	tab strip), inset by the carved frame. Fills `geometry`."""
+	FarmUi.geometry_for(viewport_size, layout, geometry)
+	var zone: Rect2 = geometry.detail
+	return Rect2(zone.position + Vector2(FarmUi.FRAME_EXPAND, FarmUi.FRAME_EXPAND + top_inset),
+		zone.size - Vector2(2.0 * FarmUi.FRAME_EXPAND, 2.0 * FarmUi.FRAME_EXPAND + top_inset))
 
 
 func frame_rect() -> Rect2:

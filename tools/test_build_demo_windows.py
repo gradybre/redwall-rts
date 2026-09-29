@@ -1,0 +1,208 @@
+#!/usr/bin/env python3
+"""Self-test for tools/build_demo_windows.py (decision 0196, the Windows demo build). Runs without Godot,
+templates or staged assets: presets and reports are literal strings.
+
+NEGATIVE TESTS COME FIRST:
+
+  N01  a preset source that is not exactly one preset named "Windows Desktop (demo)" is refused.
+  N02  a developer's other presets in godot/export_presets.cfg are never dropped, and its leading
+       comment is kept.
+  N03  a verification that resolved the main scene to scenes/main.tscn, lacks the demo_build feature,
+       packed no staged assets, booted on placeholders or ended in an overload pause is a failure.
+
+Then: merging replaces the demo preset in place of an older copy, renumbers from 0, and is idempotent;
+the committed preset carries the build's contract (feature, filters, x86_64, separate pck, S3TC,
+unsigned); the README template's placeholders are all filled.
+"""
+
+from __future__ import annotations
+
+import pathlib
+import re
+import sys
+import tempfile
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import build_demo_windows as build  # noqa: E402
+
+FAILURES: list[str] = []
+CASES: list[str] = []
+
+MAC_PRESETS = """; macOS export presets for Redwall RTS.
+; a developer's own comment
+
+[preset.0]
+
+name="macos-benchmark-release"
+platform="macOS"
+custom_features=""
+
+[preset.0.options]
+
+binary_format/architecture="universal"
+"""
+
+OURS = """; header of the source
+
+[preset.0]
+
+name="Windows Desktop (demo)"
+platform="Windows Desktop"
+custom_features="demo_build"
+
+[preset.0.options]
+
+binary_format/architecture="x86_64"
+"""
+
+GOOD_REPORT = {"error": "", "main_scene": "res://demo/demo_village.tscn", "feature_demo_build": True,
+	"pack": {"manifest": True, "raw_png": 44, "s3tc_ctex": 337}}
+
+
+def check(name: str, condition: bool) -> None:
+	"""Record one check."""
+	CASES.append(name)
+	if not condition:
+		FAILURES.append(name)
+
+
+def _raises(call, kind=ValueError) -> bool:
+	"""Whether `call()` raises `kind`."""
+	try:
+		call()
+	except kind:
+		return True
+	return False
+
+
+def test_n01_a_bad_preset_source_is_refused() -> None:
+	check("N01 no preset", _raises(lambda: build.merge_preset(MAC_PRESETS, "; nothing\n")))
+	check("N01 the wrong name", _raises(lambda: build.merge_preset(MAC_PRESETS, MAC_PRESETS)))
+	check("N01 two presets", _raises(lambda: build.merge_preset("", build.merge_preset(MAC_PRESETS, OURS))))
+
+
+def test_n02_other_presets_are_kept() -> None:
+	merged = build.merge_preset(MAC_PRESETS, OURS)
+	_, presets = build.split_presets(merged)
+	check("N02 two presets", [preset["name"] for preset in presets] == ["macos-benchmark-release", "Windows Desktop (demo)"])
+	check("N02 the mac preset's options survive", 'binary_format/architecture="universal"' in merged)
+	check("N02 the leading comment survives", merged.startswith("; macOS export presets for Redwall RTS."))
+	check("N02 the source's own header is not copied in", "header of the source" not in merged)
+
+
+def test_n03_a_bad_verification_fails() -> None:
+	check("N03 a good report passes", build.verification_problems(GOOD_REPORT, "") == [])
+	for key, value in [("main_scene", "res://scenes/main.tscn"), ("feature_demo_build", False),
+			("pack", {"manifest": False, "raw_png": 44, "s3tc_ctex": 337}),
+			("pack", {"manifest": True, "raw_png": 0, "s3tc_ctex": 337}),
+			("pack", {"manifest": True, "raw_png": 44, "s3tc_ctex": 0}), ("error", "boom")]:
+		check(f"N03 {key}={value} fails", build.verification_problems({**GOOD_REPORT, key: value}, "") != [])
+	check("N03 placeholders fail", build.verification_problems(GOOD_REPORT, "demo assets are not staged") != [])
+	check("N03 an overload pause fails",
+		build.verification_problems({**GOOD_REPORT, "clock_at_end": 'PAUSED ["CRITICAL"]'}, "") != [])
+	check("N03 a missing atlas fails", build.verification_problems(GOOD_REPORT, "card atlas x did not load") != [])
+
+
+def test_n03_every_kept_picture_must_be_packed_and_errors_fail() -> None:
+	check("N03 fewer packed pictures than kept fails", build.verification_problems(GOOD_REPORT, "", kept=45) != [])
+	check("N03 as many passes", build.verification_problems(GOOD_REPORT, "", kept=44) == [])
+	check("N03 an engine error in the check fails",
+		build.verification_problems(GOOD_REPORT, "ERROR: Failed loading resource: res://x.png") != [])
+
+
+def test_engine_lines_are_read() -> None:
+	log = "Godot Engine v4.7.2\nWARNING: a\nERROR: b\n   at: c\nSCRIPT ERROR: d\nUSER ERROR: e\nWARNING: a\n"
+	check("error lines", build.error_lines(log) == ["ERROR: b", "SCRIPT ERROR: d", "USER ERROR: e"])
+	check("warnings once each", build.warning_lines(log) == ["WARNING: a"])
+	check("ANSI colour stripped", build.strip_ansi("\x1b[91mERROR:\x1b[0m x") == "ERROR: x")
+
+
+def test_the_templates_folder_name() -> None:
+	check("4.7.2", build.templates_version("4.7.2.stable.official.ed1daf0bf\n") == "4.7.2.stable")
+	check("an x.y.0 release", build.templates_version("4.8.stable.official.abc") == "4.8.stable")
+	check("a release candidate", build.templates_version("4.8.rc2.official.abc") == "4.8.rc2")
+	check("nonsense refused", _raises(lambda: build.templates_version("Godot")))
+
+
+def test_the_zip_holds_the_folder() -> None:
+	with tempfile.TemporaryDirectory() as tmp:
+		folder = pathlib.Path(tmp) / build.FOLDER
+		folder.mkdir()
+		(folder / "RedwallDemo.exe").write_bytes(b"MZ exe")
+		(folder / "RedwallDemo.pck").write_bytes(b"GDPC pack")
+		(folder / "README.txt").write_text("read me")
+		archive = pathlib.Path(tmp) / "out.zip"
+		build.zip_folder(folder, archive)
+		import zipfile
+		with zipfile.ZipFile(archive) as bundle:
+			names = sorted(bundle.namelist())
+			exe = bundle.read(f"{build.FOLDER}/RedwallDemo.exe")
+		check("everything under one top-level folder", names == [f"{build.FOLDER}/README.txt",
+			f"{build.FOLDER}/RedwallDemo.exe", f"{build.FOLDER}/RedwallDemo.pck"])
+		check("byte for byte", exe == b"MZ exe")
+
+
+def test_merging_replaces_renumbers_and_is_idempotent() -> None:
+	once = build.merge_preset(MAC_PRESETS, OURS)
+	twice = build.merge_preset(once, OURS)
+	check("idempotent", once == twice)
+	newer = OURS.replace('custom_features="demo_build"', 'custom_features="demo_build,newer"')
+	replaced = build.merge_preset(once, newer)
+	_, presets = build.split_presets(replaced)
+	check("replaced, not duplicated", len(presets) == 2 and 'demo_build,newer' in replaced)
+	check("numbered 0 and 1", re.findall(r"^\[preset\.(\d+)\]", replaced, re.M) == ["0", "1"])
+	demo_first = build.merge_preset(OURS, OURS)
+	check("into an empty or demo-only file", build.split_presets(demo_first)[1][0]["name"] == build.PRESET_NAME)
+
+
+def test_install_preset_writes_the_projects_file() -> None:
+	with tempfile.TemporaryDirectory() as tmp:
+		project = pathlib.Path(tmp)
+		(project / "export_presets.cfg").write_text(MAC_PRESETS)
+		target = build.install_preset(project, build.PRESET_SOURCE)
+		_, presets = build.split_presets(target.read_text())
+		check("installed beside the mac preset", [p["name"] for p in presets] == ["macos-benchmark-release", build.PRESET_NAME])
+
+
+def test_the_committed_preset_is_the_build_contract() -> None:
+	text = build.PRESET_SOURCE.read_text()
+	_, presets = build.split_presets(text)
+	check("one preset, named as the build calls it", len(presets) == 1 and presets[0]["name"] == build.PRESET_NAME)
+	for line in ['platform="Windows Desktop"', 'custom_features="demo_build"', 'export_filter="all_resources"',
+			'binary_format/architecture="x86_64"', "binary_format/embed_pck=false", "texture_format/s3tc_bptc=true",
+			"codesign/enable=false", 'application/product_name="Redwall Demo"']:
+		check(f"the preset says {line}", line in text)
+	include = re.search(r'^include_filter="(.*)"$', text, re.M).group(1)
+	exclude = re.search(r'^exclude_filter="(.*)"$', text, re.M).group(1)
+	check("the staged assets are included", "demo/assets/*" in include and "*.json" in include)
+	check("tests and tools are excluded", "test/*" in exclude and "tools/*" in exclude)
+
+
+def test_the_readme_template_is_filled() -> None:
+	with tempfile.TemporaryDirectory() as tmp:
+		folder = pathlib.Path(tmp)
+		build.write_readme(folder, {"built": "2026-09-29 18:00 UTC", "commit": "abc1234", "godot": "4.7.2.stable",
+			"pck_mib": "631.3"})
+		text = (folder / "README.txt").read_bytes().decode("utf-8")
+		check("no placeholder left", re.search(r"\{[a-z_]+\}", text) is None)
+		check("Windows line ends", "\r\n" in text and "\n" not in text.replace("\r\n", ""))
+		check("it tells the reader about SmartScreen", "More info" in text and "Run anyway" in text)
+
+
+def main() -> int:
+	"""Run every test and print the summary line."""
+	for name, test in sorted(globals().items()):
+		if name.startswith("test_") and callable(test):
+			try:
+				test()
+			except Exception as error:  # noqa: BLE001 -- a crash is a failure, not a lost run
+				check("%s raised %s: %s" % (name, type(error).__name__, error), False)
+	for failure in FAILURES:
+		print("FAIL %s" % failure)
+	print("test_build_demo_windows: %s -- %d check(s), %d failure(s)"
+		% ("FAIL" if FAILURES else "PASS", len(CASES), len(FAILURES)))
+	return 1 if FAILURES else 0
+
+
+if __name__ == "__main__":
+	sys.exit(main())

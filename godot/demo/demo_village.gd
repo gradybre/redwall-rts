@@ -74,6 +74,7 @@ const TunnelExtScript := preload("res://demo/tunnel/tunnel_ext.gd")
 const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
 const DemoWaterScript := preload("res://demo/water/demo_water.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
+const WindowKeysScript := preload("res://demo/demo_window_keys.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -119,6 +120,7 @@ func _ready() -> void:
 	_build_farm(manifest)
 	_build_shared_ui()
 	_skin_hud.call_deferred()
+	add_child(WindowKeysScript.new())
 	_open_running()
 
 

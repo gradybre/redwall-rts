@@ -24,6 +24,7 @@ extends Node3D
 
 const Layout := preload("res://demo/world/world_layout.gd")
 const Sizes := preload("res://demo/world/world_sizes.gd")
+const DemoManifestScript := preload("res://demo/demo_manifest.gd")
 const Scatter := preload("res://demo/world/world_scatter.gd")
 const Look := preload("res://demo/world/world_look.gd")
 const CropCards := preload("res://demo/world/crop_cards.gd")
@@ -273,11 +274,12 @@ func _card_texture(path: String) -> Texture2D:
 
 	Read as an Image rather than through the importer so the mipmaps are always generated
 	(a PNG's import defaults depend on what the editor guessed it was for) and so a freshly
-	staged atlas works before the editor has imported it.
+	staged atlas works before the editor has imported it. Where it is read from -- the project folder, or
+	an exported pack -- is `DemoManifest.readable_path`.
 	"""
 	if _card_textures.has(path):
 		return _card_textures[path]
-	var image := Image.load_from_file(ProjectSettings.globalize_path(path))
+	var image := Image.load_from_file(DemoManifestScript.readable_path(path))
 	var texture: Texture2D = null
 	if image != null and not image.is_empty():
 		image.generate_mipmaps()

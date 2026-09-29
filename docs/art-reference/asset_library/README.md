@@ -96,8 +96,9 @@ as above: props are a concept plus a meshy-7 high-poly, 36 credits each.
 | Rig at 1.40 m, walk and run included | 5 |
 | 8 clips, with the same action IDs as the otters | 24 |
 
-Its height, 1434 u, is DEC-041's proposed value. It still needs the repair → tail → ground → bake
-chain (SKILL.md §6), and the beaver needs a row in `lookdev_dimensions.gd`'s species tables first.
+Its height, 1434 u, is DEC-041's proposed value. Decision 0203 (PR #196) added its species row
+and put it through the repair → tail → ground → bake chain. See "The beaver and the water clips"
+below.
 
 **`fishing_net` failed once on meshy-7:** `OverDenseInputError`, 77,382 active voxels against a
 limit of 65,536, charged 0. The retry on meshy-6 succeeded, for 30 credits. **Swim and dive clips

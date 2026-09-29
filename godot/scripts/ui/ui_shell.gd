@@ -1546,7 +1546,14 @@ func _on_alert_card_focused(instance: int) -> void:
 
 
 func _show_focus_visuals(control: Control, id: int) -> void:
-	"""Draw UI-SET-073 and UI-SET-074 against one focused control's own rectangle."""
+	"""Draw UI-SET-073 and UI-SET-074 against one focused control's own rectangle -- for KEYBOARD
+	focus only. §2.2's 0 ms description is keyboard focus's; a pointer gets Godot's own 350 ms
+	tooltip. A click also focuses a button, and drawing the description then left a box under
+	every clicked tab until focus moved (decision 0198). Godot marks a click's focus hidden, so
+	`has_focus(true)` is false for it; off-tree nothing has focus, and the visuals are drawn."""
+	_focused_element = id
+	if not draws_focus_visuals(control.has_focus(), control.has_focus(true)):
+		return
 	var tooltip: Panel = _controls[ID_TOOLTIP] as Panel
 	_tooltip_line.text = control.tooltip_text
 	tooltip.visible = not _tooltip_line.text.is_empty()
@@ -1556,8 +1563,13 @@ func _show_focus_visuals(control: Control, id: int) -> void:
 	outline.visible = true
 	_set_rect(tooltip, Rect2(rect.position + Vector2(0.0, rect.size.y + ROW_GAP),
 		Vector2(rect.size.x, MAP_HEADER_BUTTON)))
-	_focused_element = id
 	_focus_visuals_owner = control
+
+
+static func draws_focus_visuals(focused: bool, focus_shown: bool) -> bool:
+	"""Whether focus draws UI-SET-073/074: not when a click took it (focused, but Godot hides that
+	focus). Off-tree a control never holds focus, and a signalled focus draws."""
+	return focus_shown or not focused
 
 
 func _watch_focus_loss(control: Control) -> void:

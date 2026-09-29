@@ -615,6 +615,14 @@ func test_the_description_goes_when_its_panel_closes_around_it() -> void:
 	assert_false(outline.visible, "and so does the outline")
 
 
+func test_a_click_does_not_put_the_description_up() -> void:
+	"""A click focuses a button too, but §2.2's 0 ms description is keyboard focus's. Godot hides a
+	click's focus (checked live: has_focus() true, has_focus(true) false; after Tab, both true)."""
+	assert_false(UiShell.draws_focus_visuals(true, false), "focus a click took: nothing drawn")
+	assert_true(UiShell.draws_focus_visuals(true, true), "keyboard focus: drawn")
+	assert_true(UiShell.draws_focus_visuals(false, false), "a signalled focus off-tree: drawn")
+
+
 func test_the_description_goes_when_focus_leaves() -> void:
 	"""Focus leaving the control takes its description down; another panel closing does not."""
 	var zone: Button = _shell.control_for(UiShell.ID_ZONE) as Button

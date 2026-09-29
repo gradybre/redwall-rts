@@ -28,8 +28,15 @@ extends Node3D
 ## plan the mole could not reach, or dropped before any ground was broken -- so the panel never keeps
 ## saying "Digging" about a tunnel that has stopped. A freed slot's heaps stop being obstacles.
 ##
-## WHO FITS. At setup each resident's fit to the bore is set from its body -- the height the cast
-## draws it at and its body radius, in integer u (tunnel_rules.fits_bore) -- and never changes.
+## WHO FITS. At setup each resident's body is recorded -- the height the cast draws it at and its
+## body radius, in integer u -- and its fit is judged per tunnel from it (tunnel_network.set_body).
+##
+## THE EXTENSIONS (tunnel_ext.gd: weather, hauling, upgrades, hazards, finds, ground, chambers,
+## crews, threats) are built here and handed what this tool does not take: a click that picks no
+## resident may select a tunnel (`select_tunnel_at`), a chamber being placed takes the clicks, the
+## underground view and planning switch their drawings, a laid route's status names its ground,
+## and a dig ordered -- or a right click on a tunnel being dug -- puts the other selected residents on
+## the Foremole's crew.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
@@ -44,6 +51,8 @@ const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const CastNavScript := preload("res://demo/cast/cast_nav.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const PickScript := preload("res://demo/control/demo_pick.gd")
+const ExtScript := preload("res://demo/tunnel/tunnel_ext.gd")
+const CrewScript := preload("res://demo/tunnel/tunnel_crew.gd")
 
 ## A right click this close to a tunnel's entrance is about that tunnel.
 const RESUME_PICK_M: float = 1.1
@@ -55,6 +64,7 @@ const COVER_CLEAR_M: float = 0.6
 const PLAN_FIRST: String = "Tunnel: click where the entrance opens"
 const PLAN_MORE: String = "Tunnel: %s, %s -- click: add · Enter / right-click: dig · Backspace: undo · Esc: cancel"
 const PLAN_CANCELLED: String = "Tunnel plan cancelled"
+## The cut, spoil and time through the tunnel's own ground (at one F1000 worker; a crew is quicker).
 const DIG_STARTED: String = "Digging a %s tunnel: %d m³ to cut, %d U of spoil, about %d s"
 const DIG_RESUMED: String = "Resuming the tunnel at %d%%"
 const DIG_KEPT: String = "Already digging this tunnel (%d%%)"
@@ -70,6 +80,7 @@ var plan: PlanScript = PlanScript.new()
 var network: NetworkScript = null
 var overlay: OverlayScript = null
 var view: ViewScript = null
+var ext: ExtScript = null
 
 var _cast: DemoCastScript = null
 var _camera: Camera3D = null
@@ -120,6 +131,9 @@ func configure(cast: DemoCastScript, camera: Camera3D, selection: Callable, mark
 	view = ViewScript.new()
 	add_child(view)
 	view.configure(null, cast, overlay)
+	ext = ExtScript.new()
+	add_child(ext)
+	ext.configure(cast, camera, overlay, _bounds_u, selection, mark, _say)
 	_seen_phase.resize(Rules.MAX_TUNNELS)
 	_seen_generation.resize(Rules.MAX_TUNNELS)
 	_seen_reason.resize(Rules.MAX_TUNNELS)
@@ -132,6 +146,7 @@ func set_world(world: DemoWorldScript) -> void:
 	_world = world
 	view.set_world(world)
 	_under_u = Rules.circles_to_u(PackedVector3Array(world.building_obstacles()))
+	ext.set_world(world, _under_u)
 
 
 func _describe_cast() -> void:
@@ -139,8 +154,7 @@ func _describe_cast() -> void:
 	_is_digger.resize(_cast.actor_count())
 	for i in _cast.actor_count():
 		var actor := _cast.actor(i) as DemoActorScript
-		var fit := Rules.fits_bore(Rules.to_u(actor.height_m), Rules.to_u(actor.brain.radius))
-		network.set_fit(actor.brain.index, fit)
+		network.set_body(actor.brain.index, Rules.to_u(actor.height_m), Rules.to_u(actor.brain.radius))
 		_is_digger[i] = 1 if Rules.is_digger(actor.species) else 0
 
 
@@ -171,6 +185,8 @@ func handle_input(event: InputEvent) -> bool:
 	"""Apply one event; true when it was a tunnel input (and so consumed)."""
 	if planning:
 		return _plan_input(event)
+	if ext.handle_input(event):
+		return true
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
 		return _on_key(event as InputEventKey)
 	var button := event as InputEventMouseButton
@@ -270,6 +286,7 @@ func toggle_view() -> void:
 		_say(VIEW_ON)
 	elif _last_notice == VIEW_ON:
 		_say(_before_view)
+	ext.set_underground_view(view.on)
 
 
 # --- planning -------------------------------------------------------------------------------
@@ -300,6 +317,7 @@ func begin_plan() -> bool:
 	if is_inside_tree():
 		get_viewport().gui_release_focus()
 	planning = true
+	ext.set_planning(true)
 	plan.clear()
 	_refresh_clearances()
 	_has_cursor = false
@@ -356,7 +374,8 @@ func plan_status() -> String:
 	if plan.count == 0:
 		return PLAN_FIRST
 	var points := "1 point" if plan.count == 1 else "%d points" % plan.count
-	return PLAN_MORE % [points, PlanScript.length_text(plan.length_u())]
+	var status := PLAN_MORE % [points, PlanScript.length_text(plan.length_u())]
+	return status if plan.count < 2 else "%s · %s" % [status, ext.route_ground(plan.points_u, plan.count)]
 
 
 func confirm() -> bool:
@@ -375,13 +394,21 @@ func confirm() -> bool:
 		return false
 	_accept(_ref[0])
 	_brain(_planner).order_dig(_ref[0], _ref[1])
+	ext.works.say(CrewScript.LINE_START)
+	ext.crew_on_dig(_ref[0], _brain(_planner).index)
 	_sync_seen()
 	_mark.call(_mouth3(_ref[0], false), true)
-	var cut := network.quanta[_ref[0]] + 2 * Rules.SHAFT_QUANTA
-	_say(DIG_STARTED % [PlanScript.length_text(network.length_u[_ref[0]]), cut,
-		cut * Rules.SPOIL_PER_QUANTUM_MILLI_U / 1000, Rules.total_ticks(network.quanta[_ref[0]]) / Rules.TICKS_PER_SECOND])
+	_say(DIG_STARTED % [PlanScript.length_text(network.length_u[_ref[0]]), network.timeline_count(_ref[0]),
+		_finished_spoil_u(_ref[0]), network.total_ticks(_ref[0]) / Rules.TICKS_PER_SECOND])
 	_end_plan()
 	return true
+
+
+func _finished_spoil_u(slot: int) -> int:
+	"""The whole units of spoil tunnel `slot` will heap, through its ground (tunnel_ground.gd)."""
+	var spoil := PackedInt64Array([0, 0])
+	network.finished_spoil_into(slot, 0, spoil)
+	return (spoil[0] + spoil[1]) / 1000
 
 
 func _accept(slot: int) -> void:
@@ -442,6 +469,7 @@ func cancel_plan() -> void:
 func _end_plan() -> void:
 	"""Leave planning mode and clear its drawing."""
 	planning = false
+	ext.set_planning(false)
 	overlay.hide_plan()
 
 
@@ -477,15 +505,34 @@ func resume_at(at: Vector2) -> bool:
 	digging, nothing changes; on a paused one's, it goes to resume that. False (the click is an
 	order) anywhere else, or with no mole selected."""
 	if not _find_digger():
-		return false
+		return _join_crew_at(at)
 	var slot := entrance_near(at)
 	if slot < 0:
 		return false
 	if slot == _brain(_planner).dig_tunnel:
 		_mark.call(_mouth3(slot, false), true)
+		ext.crew_on_dig(slot, _brain(_planner).index)
 		_say(DIG_KEPT % network.percent(slot))
 		return true
 	return network.phase[slot] == NetworkScript.PHASE_PAUSED and resume(slot)
+
+
+func _join_crew_at(at: Vector2) -> bool:
+	"""A right click at (x, z) with no mole selected: on the entrance of a tunnel being dug, the
+	selected residents join its crew. False (the click is an order) anywhere else, or when nobody
+	joined."""
+	var slot := entrance_near(at)
+	if slot < 0 or network.phase[slot] != NetworkScript.PHASE_DIGGING:
+		return false
+	if ext.actions.add_crew(slot, _selection.call() as PackedInt32Array, network.digger[slot]) == 0:
+		return false
+	_mark.call(_mouth3(slot, false), true)
+	return true
+
+
+func select_tunnel_at(screen: Vector2) -> bool:
+	"""A left click that picked no resident: select the finished tunnel under it (tunnel_ext.gd)."""
+	return ext.select_at_screen(screen)
 
 
 func entrance_near(at: Vector2) -> int:

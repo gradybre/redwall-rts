@@ -26,10 +26,13 @@ const SPOT_CLEAR_M: float = 0.45
 const REACH_SLACK_M: float = 0.01
 
 
-static func place(network: NetworkScript, space: CastSpaceScript, slot: int) -> void:
-	"""Choose both heaps' spots for tunnel `slot`, keep them in the network and make them obstacles."""
+static func place(network: NetworkScript, space: CastSpaceScript, slot: int, extra_milli_u: int = 0) -> void:
+	"""Choose both heaps' spots for tunnel `slot`, keep them in the network and make them obstacles.
+	`extra_milli_u` is spoil still to come at the entrance (a widening accepted), sized in now."""
 	var finished := PackedInt64Array([0, 0])
-	Rules.spoil_into(Rules.total_ticks(network.quanta[slot]), network.quanta[slot], finished)
+	network.finished_spoil_into(slot, extra_milli_u, finished)
+	network.set_heap(slot, false, Vector2.ZERO, 0.0)
+	network.set_heap(slot, true, Vector2.ZERO, 0.0)
 	var circles := PackedVector3Array([Vector3.ZERO, Vector3.ZERO])
 	for end in 2:
 		var r := OverlayScript.heap_radius_m(finished[end])

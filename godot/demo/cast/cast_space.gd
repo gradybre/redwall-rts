@@ -462,24 +462,34 @@ func _pool_size(pool: PackedInt32Array) -> int:
 # --- planning -------------------------------------------------------------------------------
 
 func plan_path(index: int, from: Vector2, to: Vector2, body_radius: float, out: PackedVector2Array,
-		legs: PackedInt32Array = PackedInt32Array(), allow_tunnels: bool = true) -> void:
+		legs: PackedInt32Array = PackedInt32Array(), allow_tunnels: bool = true, loaded: bool = false) -> void:
 	"""Fill `out` with waypoints from `from` (excluded) to `to` (last), round every obstacle and every
 	standing resident but `index`, and `legs` with each waypoint's leg code (-1 on the surface, or the
 	tunnel crossed to reach it: tunnel_router.gd). Resident `index` is routed through a finished
-	tunnel when `allow_tunnels` (not while carrying), it fits the bore and that is shorter. Falls
-	back to the straight line when no route exists; `nav.last_found` says whether one did, with or
-	without tunnels."""
+	tunnel when `allow_tunnels`, its bore fits it (with its load, when `loaded`) and that is quicker.
+	Falls back to the straight line when no route exists; `nav.last_found` says whether one did, with
+	or without tunnels."""
 	var count := 0
 	for j in resident_position.size():
 		if j != index and resident_walking[j] == 0 and resident_underground[j] == 0:
 			_standing[count] = Vector3(resident_position[j].x, resident_radius[j], resident_position[j].y)
 			count += 1
-	if not allow_tunnels or tunnels.open_count() == 0 or not tunnels.fits(index):
+	if not allow_tunnels or tunnels.open_count() == 0 or not tunnels.fits_any(index, loaded):
 		nav.plan(from, to, body_radius, _standing, count, out)
 		legs.resize(out.size())
 		legs.fill(-1)
 		return
-	nav.last_found = tunnels.plan(nav, from, to, body_radius, _standing, count, out, legs)
+	nav.last_found = tunnels.plan(nav, from, to, body_radius, _standing, count, out, legs, index, loaded)
+
+
+func mouth_clear(index: int, slot: int, exit: bool, hold_m: float) -> bool:
+	"""Whether resident `index` may step into tunnel `slot`'s entrance (or exit): nobody else in its bore
+	within `hold_m` of that mouth, and nobody else on the surface standing on its hole."""
+	var end_m := tunnels.length_m(slot) if exit else 0.0
+	for j in resident_position.size():
+		if j != index and resident_tunnel[j] == slot and absf(resident_along[j] - end_m) < hold_m:
+			return false
+	return not surface_occupied(index, tunnels.mouth(slot, exit), 0.05)
 
 
 func line_clear(index: int, a: Vector2, b: Vector2, body_radius: float, goal: Vector2) -> bool:

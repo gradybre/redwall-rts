@@ -37,6 +37,9 @@ const HINT: String = "Click or drag: select · Shift: add · Right-click: move /
 const DIG_BUTTON: String = "Dig tunnel (T)"
 const DIGGING: String = "Digging tunnel — %d%%"
 const IN_TUNNEL: String = "Using tunnel"
+## The tunnel extensions' states (demo/tunnel/): hauling a load below, waiting in a mouth's line.
+const HAULING: String = "Hauling through tunnel"
+const IN_QUEUE: String = "Waiting at a tunnel mouth"
 const BUTTON_MARGINS: PackedFloat32Array = [12.0, 6.0, 12.0, 7.0]
 const NOBODY: String = "No one selected"
 const WIDTH: float = 320.0
@@ -281,11 +284,16 @@ static func party_lines(entries: Array[Dictionary]) -> PackedStringArray:
 
 static func state_text(activity: int, clip: StringName, place: String, dug_percent: int = 0) -> String:
 	"""What a resident is doing, in words: wandering / walking to X / working: collect / holding /
-	Digging tunnel — 43% (with `dug_percent`) / Using tunnel."""
+	Digging tunnel — 43% (with `dug_percent`) / Using tunnel / Hauling through tunnel / Waiting at a
+	tunnel mouth / a task's own words (`place`)."""
 	if activity == BrainScript.ACTIVITY_DIGGING:
 		return DIGGING % dug_percent
+	if activity == BrainScript.ACTIVITY_TASK:
+		return place
+	if activity == BrainScript.ACTIVITY_QUEUE:
+		return IN_QUEUE
 	if activity == BrainScript.ACTIVITY_TUNNEL:
-		return IN_TUNNEL
+		return HAULING if clip == BrainScript.CLIP_CARRY else IN_TUNNEL
 	if activity == BrainScript.ACTIVITY_HOLDING:
 		return "holding"
 	if activity == BrainScript.ACTIVITY_WALKING:

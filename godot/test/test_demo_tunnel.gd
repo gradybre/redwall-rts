@@ -695,33 +695,46 @@ func _carry_motion() -> Dictionary:
 	return {"period_s": 3.0, "mean_speed_m_s": 0.2, "keys_xz": keys}
 
 
-func test_nobody_carries_a_load_through_a_tunnel() -> void:
-	"""Leaving a stockpile over a short route, a carrier may carry -- but not when the route crosses a
-	tunnel: over twelve seeds every trip goes through the tunnel, and not one carries."""
+func _haul_trip(points: Array[Dictionary], attempt: int) -> Array[bool]:
+	"""One stockpile resident's first trip north through a tunnel under a wall, with seed SEED +
+	`attempt`: [crossed a tunnel, carried, carried while underground]."""
+	var space := CastSpaceScript.new()
+	space.setup(points, _wall())
+	_open_tunnel(space, [Vector2i(0, -2048), Vector2i(0, 2048)])
+	var brain := BrainScript.new()
+	brain.configure(space, WALK_M_S, BODY_M, SEED + attempt, _lengths())
+	brain.set_carry_motion(_carry_motion())
+	space.tunnels.set_fit(brain.index, true)
+	space.reserve(0, 0)
+	brain.start_at(space.slot_position(0, 0), 0.0, 0, 0)
+	var f := 0
+	while brain.poi != 1 and f < 60 * 90:
+		brain.step(DT)
+		f += 1
+	var trip: Array[bool] = [brain.crosses_tunnel(), brain.carrying, false]
+	while brain.state != BrainScript.State.FACE and brain.state != BrainScript.State.ACT and f < 60 * 180:
+		brain.step(DT)
+		trip[2] = trip[2] or (brain.underground and brain.carrying)
+		f += 1
+	return trip
+
+
+func test_a_carrier_hauls_through_a_bore_its_load_fits() -> void:
+	"""Leaving a stockpile, a carrier may carry THROUGH a tunnel whose bore fits it with its load (the
+	demo's hauling; this replaced "nobody carries a load through a tunnel"): over twelve seeds every
+	trip goes through the tunnel, and those that carry carry it underground."""
 	var points: Array[Dictionary] = [
 		{"name": &"stockpile", "position": Vector3(0.0, 0.0, -3.0), "face": Vector3.FORWARD, "activities": [&"collect_object"], "capacity": 1},
 		{"name": &"north", "position": Vector3(0.0, 0.0, 3.0), "face": Vector3.BACK, "activities": [&"idle"], "capacity": 1}]
-	var crossed := 0
-	var carried := 0
+	var counts := PackedInt32Array([0, 0, 0])
 	for attempt in 12:
-		var space := CastSpaceScript.new()
-		space.setup(points, _wall())
-		_open_tunnel(space, [Vector2i(0, -2048), Vector2i(0, 2048)])
-		var brain := BrainScript.new()
-		brain.configure(space, WALK_M_S, BODY_M, SEED + attempt, _lengths())
-		brain.set_carry_motion(_carry_motion())
-		space.tunnels.set_fit(brain.index, true)
-		space.reserve(0, 0)
-		brain.start_at(space.slot_position(0, 0), 0.0, 0, 0)
-		for f in 60 * 90:
-			brain.step(DT)
-			if brain.poi == 1:
-				crossed += 1 if brain.crosses_tunnel() else 0
-				carried += 1 if brain.carrying else 0
-				break
+		var trip := _haul_trip(points, attempt)
+		for k in 3:
+			counts[k] += 1 if trip[k] else 0
 	assert_true(_carries_at_all(), "the fixture's motion makes a carrier")
-	assert_equal(crossed, 12, "every trip through the tunnel")
-	assert_equal(carried, 0, "and none carrying")
+	assert_equal(counts[0], 12, "every trip through the tunnel")
+	assert_equal(counts[1], 4, "four of the twelve seeds carry")
+	assert_equal(counts[2], 4, "and every one of them carries it through the bore")
 
 
 func _carries_at_all() -> bool:
@@ -1613,16 +1626,26 @@ func test_a_tunnel_mouth_is_never_cut_even_in_open_ground() -> void:
 		"went down at the entrance (from %s)" % seen["went_down_from"])
 
 
-func test_a_carrier_s_replan_never_takes_a_tunnel() -> void:
-	"""A carrying walker that replans is planned on the surface, however short a tunnel would be."""
+func test_a_carrier_s_replan_takes_only_a_bore_its_load_fits() -> void:
+	"""A carrier's replan is planned WITH its load: a squirrel's log fits a standard bore, so it still
+	goes through; the badger fits a wide bore unloaded but its load does not, so carrying it goes round
+	(this replaced "a carrier's replan never takes a tunnel")."""
 	var space := _space(_wall())
-	_open_tunnel(space, [Vector2i(0, -2048), Vector2i(0, 2048)])
-	var brain := _brain(space, Vector2(0.0, -4.0), true)
-	brain.order_move(Vector2(0.0, 4.0))
-	assert_true(brain.crosses_tunnel(), "the order goes through the tunnel")
-	brain.carrying = true
-	brain._replan_or_abandon()
-	assert_false(brain.crosses_tunnel(), "carrying, the replan goes round")
+	var slot := _open_tunnel(space, [Vector2i(0, -2048), Vector2i(0, 2048)])
+	var squirrel := _brain(space, Vector2(-1.0, -4.0), true)
+	space.tunnels.set_body(squirrel.index, 1178, 259)
+	squirrel.order_move(Vector2(-1.0, 4.0))
+	squirrel.carrying = true
+	squirrel._replan_or_abandon()
+	assert_true(squirrel.crosses_tunnel(), "a squirrel's load fits the standard bore")
+	space.tunnels.set_bore(slot, Rules.BORE_WIDE)
+	var badger := _brain(space, Vector2(1.0, -4.0), true)
+	space.tunnels.set_body(badger.index, 2611, 574)
+	badger.order_move(Vector2(1.0, 4.0))
+	assert_true(badger.crosses_tunnel(), "unloaded, the badger fits the wide bore")
+	badger.carrying = true
+	badger._replan_or_abandon()
+	assert_false(badger.crosses_tunnel(), "carrying, the replan goes round")
 
 
 func _two_in_a_tunnel(second_from: Vector2, second_to: Vector2) -> Array:

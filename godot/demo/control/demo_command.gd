@@ -13,6 +13,8 @@ extends Node3D
 ##   T / U                        plan a tunnel with the selected mole / underground view -- the
 ##                                tunnel tool (demo/tunnel/tunnel_control.gd) sees every event first
 ##                                and, while a route is being laid, takes the clicks and keys it uses
+##   left click a finished tunnel select it for the "Tunnels & burrows (demo)" panel, keeping any
+##                                selected residents (demo/tunnel/tunnel_ext.gd)
 ## The camera keeps WASD/arrows, wheel, Q/E and Home: nothing here reads them. R is the project's
 ## `placement_rotate`, which nothing in the demo handles (no placement tool is open); Esc is also
 ## `ui_cancel`/`open_menu`, so it is consumed here only while something is selected.
@@ -114,6 +116,12 @@ func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null)
 	add_child(_tunnels)
 	_tunnels.configure(cast, camera, selected, mark, _panel.show_notice)
 	_panel.dig_requested.connect(_on_dig_requested)
+	_tunnels.ext.set_hud(hud_root, Callable())
+
+
+func set_alert(alert: Callable) -> void:
+	"""Where the tunnel works raise alerts: `alert(text)` (UIManager.push_alert in the demo)."""
+	_tunnels.ext.works.set_alert(alert)
 
 
 func set_world(world: DemoWorldScript) -> void:
@@ -282,8 +290,11 @@ func _finish_select(at: Vector2) -> void:
 		_refresh_in = 0.0
 		return
 	if hit < 0:
-		if not _additive:
+		var tunnel_hit := _tunnels != null and _tunnels.select_tunnel_at(at)
+		if not tunnel_hit and not _additive:
 			clear_selection()
+			if _tunnels != null:
+				_tunnels.ext.actions.clear_selection()
 	elif _additive:
 		_selected[hit] = 1 - _selected[hit]
 	else:
@@ -492,6 +503,7 @@ func _refresh_panel() -> void:
 			_signature.append(brain.poi)
 			_signature.append(brain.clip.hash())
 			_signature.append(_dug_percent(brain))
+			_signature.append(brain.task_label().hash())
 			if _task_text.is_valid():
 				_signature.append(String(_task_text.call(i)).hash())
 	if _signature == _shown:
@@ -508,7 +520,9 @@ func party_entries() -> Array[Dictionary]:
 		var actor := _cast.actor(i) as DemoActorScript
 		var brain := actor.brain
 		var place := ""
-		if brain.poi >= 0:
+		if brain.order == BrainScript.ORDER_TASK:
+			place = brain.task_label()
+		elif brain.poi >= 0:
 			place = String(space.poi_names[brain.poi]).replace("_", " ")
 		elif brain.order == BrainScript.ORDER_DIG:
 			place = "dig site"

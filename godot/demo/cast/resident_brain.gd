@@ -51,6 +51,24 @@ extends RefCounted
 ## far mouth it waits below while someone on the surface stands on the hole, for at most
 ## EMERGE_WAIT_S, rather than coming up into them.
 ##
+## WEATHER AND LANTERNS (demo/weather/, demo/tunnel/). On the surface a walker covers ground at its
+## walk speed times the weather's surface speed (tunnel_network.surface_permille), its clip slowed
+## to match so the feet stay planted; in a bore, at walk speed times the bore's own speed (faster
+## when lit), whatever the weather.
+##
+## HAULING (demo/tunnel/). A carrier may take a tunnel whose bore fits it WITH its load
+## (tunnel_network.fits_tunnel, loaded): its trip is planned loaded, it walks the bore at the carry's
+## own pace and clip, and only the surface part of its trip counts toward CARRY_MAX_TRIP_M.
+##
+## QUEUES (tunnel_queue.gd). Heading down a tunnel, a walker within JOIN_M of a busy mouth joins its
+## line (QUEUE) instead of crowding it, stands at its place facing the hole, moves up as the line
+## does, and walks on once it holds the mouth's grant; after QUEUE_GIVE_UP_S it plans a walk instead.
+##
+## TASKS (tunnel_task.gd). `order_task()` hands the resident to a task -- a tunnel job, a dig crew's
+## place, an evacuation: it walks to the task's site, then the task drives it (TASK) through the
+## task_* functions until it is done, and the resident goes back to its routine. A new order or a
+## release cancels the task first; one standing in a bore walks out to the nearest mouth.
+##
 ## Yaw 0 faces +Z, the way the models face: forward is Vector2(sin(yaw), cos(yaw)) in (x, z).
 ## Deterministic: every random choice comes from this resident's own seeded generator.
 
@@ -59,13 +77,16 @@ const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const CastRoutinesScript := preload("res://demo/cast/cast_routines.gd")
 const TunnelRouterScript := preload("res://demo/tunnel/tunnel_router.gd")
 const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
+const TunnelQueueScript := preload("res://demo/tunnel/tunnel_queue.gd")
+const TaskScript := preload("res://demo/tunnel/tunnel_task.gd")
 
-enum State { IDLE, TURN, WALK, FACE, ACT, HOLD, TUNNEL, DIG }
+enum State { IDLE, TURN, WALK, FACE, ACT, HOLD, TUNNEL, DIG, QUEUE, TASK }
 
 const ORDER_NONE: int = 0
 const ORDER_MOVE: int = 1
 const ORDER_WORK: int = 2
 const ORDER_DIG: int = 3
+const ORDER_TASK: int = 4
 
 ## What the command layer shows a resident doing (activity()).
 const ACTIVITY_WANDERING: int = 0
@@ -74,6 +95,8 @@ const ACTIVITY_WORKING: int = 2
 const ACTIVITY_HOLDING: int = 3
 const ACTIVITY_TUNNEL: int = 4
 const ACTIVITY_DIGGING: int = 5
+const ACTIVITY_TASK: int = 6
+const ACTIVITY_QUEUE: int = 7
 
 const CLIP_IDLE: StringName = &"idle"
 const CLIP_WALK: StringName = &"walk"
@@ -93,6 +116,9 @@ const PASS_WINDOW_M: float = 1.6
 const SIDE_STEP_M_S: float = 0.6
 const EMERGE_WAIT_S: float = 6.0
 const EMERGE_CLEAR_M: float = 0.05
+## Waiting in a mouth's line (see QUEUES): give up after this, and shuffle up within this of a place.
+const QUEUE_GIVE_UP_S: float = 25.0
+const QUEUE_PLACE_M: float = 0.06
 
 const WALK_TURN_RATE: float = 1.75          ## rad/s while walking (~100 deg/s)
 const SPOT_TURN_RATE: float = 3.2           ## rad/s turning on the spot (~185 deg/s)
@@ -165,6 +191,8 @@ var ground_y_m: float = 0.0
 ## The tunnel this resident is ordered to dig, as an EntityRef (slot, generation); null (-1, 0).
 var dig_tunnel: int = -1
 var dig_generation: int = 0
+## The task driving this resident under ORDER_TASK (null otherwise).
+var task: TaskScript = null
 
 var _space: CastSpaceScript = null
 var _clip_lengths: Dictionary = {}
@@ -202,6 +230,15 @@ var _idle_on_surface: bool = false
 ## at the far mouth for the hole to clear.
 var _side_m: float = 0.0
 var _emerge_waited: float = 0.0
+## The carry's own pace (m/s at its playback rate), walked in a bore while carrying.
+var _carry_speed: float = 0.0
+## Waiting in a line: which mouth (2 x slot + end) and for how long; whether it holds a grant.
+var _queue_mouth: int = 0
+var _queue_waited: float = 0.0
+var _holds_grant: bool = false
+var _travel_start_m: float = 0.0
+## A task's walk in a bore: at its end the task resumes, still underground.
+var _travel_for_task: bool = false
 
 
 func configure(space: CastSpaceScript, speed_m_s: float, body_radius: float, seed: int, clip_lengths: Dictionary) -> void:
@@ -229,6 +266,7 @@ func set_carry_motion(motion: Dictionary) -> void:
 		_carry_velocity[k] = Vector2(float(b[0]) - float(a[0]), float(b[1]) - float(a[1])) / _carry_key_s
 	var carry_speed := clampf(walk_speed * CARRY_WALK_FRACTION, mean * CARRY_MIN_RATE, mean * CARRY_MAX_RATE)
 	_carry_rate = ClipRootMotionScript.playback_rate(motion, carry_speed)
+	_carry_speed = carry_speed
 
 
 func trip_seconds() -> float:
@@ -282,6 +320,10 @@ func step(delta: float) -> void:
 			_step_tunnel(delta)
 		State.DIG:
 			_step_dig(delta)
+		State.QUEUE:
+			_step_queue(delta)
+		State.TASK:
+			_step_task(delta)
 	if state == State.TURN or state == State.WALK or state == State.TUNNEL:
 		_trip_s += delta
 	_space.set_walking(index, state == State.WALK)
@@ -397,11 +439,26 @@ func _depart() -> void:
 	poi = next
 	slot = next_slot
 	_goal = _space.slot_position(next, next_slot)
-	carrying = leaving_stockpile and can_carry() and _trip_length() <= CARRY_MAX_TRIP_M \
-			and not crosses_tunnel() and rng.randf() < CARRY_CHANCE
+	carrying = leaving_stockpile and can_carry() and _surface_length() <= CARRY_MAX_TRIP_M \
+			and rng.randf() < CARRY_CHANCE
+	if carrying and crosses_tunnel():
+		_plan_loaded()
 	_replans = 0
 	_trip_s = 0.0
 	_begin_leg()
+
+
+func _plan_loaded() -> void:
+	"""A carrier's trip crossing a tunnel: plan it again with the load, so only bores that fit the
+	load are taken (see HAULING). Too long a walk that way, and it goes unloaded on the first plan."""
+	var legs := path_tunnel.duplicate()
+	var route := path.duplicate()
+	_space.plan_path(index, position, _goal, radius, path, path_tunnel, true, true)
+	if _space.nav.last_found and _surface_length() <= CARRY_MAX_TRIP_M:
+		return
+	carrying = false
+	path = route
+	path_tunnel = legs
 
 
 func _choose_next() -> int:
@@ -425,9 +482,21 @@ func _trip_length() -> float:
 	return total
 
 
+func _surface_length() -> float:
+	"""Length of the planned route from here that lies on the surface (tunnel legs excluded)."""
+	var total := 0.0
+	var at := position
+	for k in path.size():
+		if _leg(k) == TunnelRouterScript.SURFACE_LEG:
+			total += at.distance_to(path[k])
+		at = path[k]
+	return total
+
+
 func _begin_leg() -> void:
 	"""Start following `path` from its first waypoint: turn on the spot first -- or, standing at a
 	tunnel's mouth already, go straight down it."""
+	_leave_line()
 	path_index = 0
 	_flips = 0
 	_reset_progress()
@@ -468,7 +537,7 @@ func _step_turn(delta: float) -> void:
 	var error := absf(angle_difference(yaw, target_yaw))
 	if error <= START_WALK_ANGLE or (error <= BLEND_WALK_ANGLE and _clear_ahead()):
 		state = State.WALK
-		_set_clip(_locomotion_clip(), _carry_rate if carrying else 1.0)
+		_set_clip(_locomotion_clip(), _walk_clip_speed())
 
 
 func _face_hold(delta: float) -> void:
@@ -524,6 +593,7 @@ func _step_walk(delta: float) -> void:
 			_enter_turn(yaw_of(desired), _locomotion_clip())
 		return
 	yaw = turn_toward(yaw, yaw + error, WALK_TURN_RATE * delta)
+	clip_speed = _walk_clip_speed()
 	var moved := _space.constrain(index, position, position + step, _goal)
 	var held := moved.distance_to(position) < step.length() * BLOCKED_FRACTION
 	position = moved
@@ -537,6 +607,8 @@ func _leg_handled() -> bool:
 	_advance_waypoint()
 	if _leg(path_index) != TunnelRouterScript.SURFACE_LEG:
 		_enter_tunnel_leg()
+		return true
+	if _nearing_mouth() and _wait_for_mouth():
 		return true
 	if _blocked_by_standing(path[path_index]):
 		_replan_or_abandon()
@@ -571,21 +643,110 @@ func _blocked_by_standing(to: Vector2) -> bool:
 	return _space.standing_blocks(index, position, to, radius, _goal, -STANDING_TOLERANCE_M)
 
 
+# --- queues at mouths -----------------------------------------------------------------------
+
+func _leave_line() -> void:
+	"""Out of any mouth's line, and any grant given up (a new plan or order starts afresh)."""
+	if _holds_grant or state == State.QUEUE:
+		_space.tunnels.queue.leave(index)
+	_holds_grant = false
+
+
+func _nearing_mouth() -> bool:
+	"""Whether the waypoint ahead is a mouth this walk goes down, within JOIN_M, without its grant."""
+	if path_index >= path.size() - 1 or _leg(path_index + 1) == TunnelRouterScript.SURFACE_LEG:
+		return false
+	return not _holds_grant and position.distance_to(path[path_index]) < TunnelQueueScript.JOIN_M
+
+
+func _mouth_clear(mouth: int) -> bool:
+	"""Whether mouth `mouth` (2 x slot + end) is clear for this resident to step into."""
+	return _space.mouth_clear(index, mouth >> 1, mouth & 1 == 1, TunnelQueueScript.HOLD_M)
+
+
+func _wait_for_mouth() -> bool:
+	"""At a mouth ahead: take its grant and walk on, or join its line (true: this frame is spent
+	waiting). A full line sends the walker the long way round, on the surface."""
+	var mouth := _leg(path_index + 1)
+	var queue := _space.tunnels.queue
+	if queue.may_take(mouth, index, _mouth_clear(mouth)):
+		queue.take(mouth, index)
+		_holds_grant = true
+		return false
+	if not queue.join(mouth, index):
+		_space.plan_path(index, position, _goal, radius, path, path_tunnel, false, carrying)
+		_begin_leg()
+		return true
+	state = State.QUEUE
+	_queue_mouth = mouth
+	_queue_waited = 0.0
+	return true
+
+
+func _step_queue(delta: float) -> void:
+	"""Wait in a mouth's line: shuffle to its place, facing the hole; walk on holding the grant once at
+	the head and the mouth is clear; give up after QUEUE_GIVE_UP_S and walk instead."""
+	var queue := _space.tunnels.queue
+	_queue_waited += delta
+	if queue.may_take(_queue_mouth, index, _mouth_clear(_queue_mouth)):
+		queue.take(_queue_mouth, index)
+		_holds_grant = true
+		state = State.WALK
+		_reset_progress()
+		_set_clip(_locomotion_clip(), _walk_clip_speed())
+		return
+	if _queue_waited >= QUEUE_GIVE_UP_S or not queue.is_queued(_queue_mouth, index):
+		queue.leave(index)
+		_space.plan_path(index, position, _goal, radius, path, path_tunnel, false, carrying)
+		_begin_leg()
+		return
+	_shuffle_to(queue.place(_queue_mouth, queue.position_of(_queue_mouth, index)), delta)
+
+
+func _shuffle_to(place: Vector2, delta: float) -> void:
+	"""Step toward a place in a line (never through anyone); there, stand facing the mouth."""
+	var to := place - position
+	if to.length() <= QUEUE_PLACE_M:
+		_set_clip(CLIP_CARRY if carrying else CLIP_IDLE, 0.0 if carrying else 1.0)
+		yaw = turn_toward(yaw, yaw_of(path[path_index] - position), SPOT_TURN_RATE * delta)
+		return
+	yaw = turn_toward(yaw, yaw_of(to), SPOT_TURN_RATE * delta)
+	_set_clip(_locomotion_clip(), _walk_clip_speed())
+	var step := to.limit_length(walk_speed * _surface_factor() * delta)
+	position = _space.constrain(index, position, position + step, place)
+	_space.move_resident(index, position)
+
+
 func ground_step(delta: float) -> Vector2:
 	"""This frame's step on the ground: straight ahead at walk speed, or while carrying the clip's own
 	recorded root velocity at this key (sideways weave included), sped up by the playback rate."""
+	var surface := _surface_factor()
 	if not carrying:
-		return forward() * (walk_speed * delta)
+		return forward() * (walk_speed * delta * surface)
 	var length := float(_clip_lengths.get(CLIP_CARRY, DEFAULT_CLIP_S))
 	var key := mini(int(fposmod(_clip_time, length) / _carry_key_s), _carry_velocity.size() - 1)
-	var local := _carry_velocity[key] * (_carry_rate * delta)
+	var local := _carry_velocity[key] * (_carry_rate * delta * surface)
 	return Vector2(cos(yaw), -sin(yaw)) * local.x + forward() * local.y
+
+
+func _surface_factor() -> float:
+	"""The weather's surface walking speed as a fraction of walk speed (see WEATHER AND LANTERNS)."""
+	return float(_space.tunnels.surface_permille) / float(TunnelRules.PERMILLE)
+
+
+func _walk_clip_speed() -> float:
+	"""The walking (or carrying) clip's playback speed on the surface, slowed with the weather."""
+	return (_carry_rate if carrying else 1.0) * _surface_factor()
 
 
 func _arrive() -> void:
 	"""At the slot: turn to the POI's face direction, and plan one or two bouts of work. At an ordered
 	point with no POI, hold instead, facing the way it came. At a dig site, start digging."""
 	carrying = false
+	if order == ORDER_TASK:
+		state = State.TASK
+		task.arrived(self)
+		return
 	if order == ORDER_DIG:
 		_begin_dig()
 		return
@@ -627,7 +788,7 @@ func _replan_or_abandon() -> void:
 	if _replans > MAX_REPLANS:
 		_abandon_trip()
 		return
-	_space.plan_path(index, position, _goal, radius, path, path_tunnel, not carrying)
+	_space.plan_path(index, position, _goal, radius, path, path_tunnel, true, carrying)
 	_begin_leg()
 
 
@@ -636,6 +797,9 @@ func _abandon_trip() -> void:
 	hold right here. A dig it could not walk to is left paused as a plan (tunnel_network
 	.hold_unreached), never deleted."""
 	_leave_dig(true)
+	_leave_line()
+	if order == ORDER_TASK:
+		_drop_task()
 	_space.release(poi, slot)
 	poi = -1
 	slot = -1
@@ -654,6 +818,7 @@ func order_move(goal: Vector2, face_toward: Vector2 = Vector2.INF) -> void:
 	finite `face_toward`, it turns to face that point on arrival (a queue facing its POI)."""
 	release_slot()
 	_leave_dig()
+	_drop_task()
 	order = ORDER_MOVE
 	_faces_on_hold = face_toward.is_finite()
 	_hold_face = face_toward if _faces_on_hold else Vector2.ZERO
@@ -664,6 +829,7 @@ func order_work(work_poi: int, work_slot: int) -> void:
 	"""Walk to `work_slot` at `work_poi` and work there until released. The caller has checked the
 	slot is free (or is this resident's own); any other slot held is given up first."""
 	_leave_dig()
+	_drop_task()
 	if work_poi != poi or work_slot != slot:
 		release_slot()
 		_space.reserve(work_poi, work_slot)
@@ -685,7 +851,9 @@ func release() -> void:
 	working under an order, it finishes the bout in hand."""
 	if order == ORDER_NONE:
 		return
-	var was_move := order == ORDER_MOVE or state == State.HOLD
+	var was_move := order == ORDER_MOVE or state == State.HOLD or order == ORDER_TASK
+	_drop_task()
+	_leave_line()
 	order = ORDER_NONE
 	_leave_dig()
 	if underground:
@@ -719,6 +887,7 @@ func _start_ordered_trip(goal: Vector2) -> void:
 	the tunnel first and plans from the mouth it comes up at. A new order overrides an earlier
 	release's idling on the surface."""
 	_idle_on_surface = false
+	_leave_line()
 	carrying = false
 	_bouts_left = 0
 	_goal = goal
@@ -771,6 +940,10 @@ func play_in_place(name: StringName) -> bool:
 func activity() -> int:
 	"""ACTIVITY_*: digging, in a tunnel, holding, wandering on its own, walking under an order, or
 	working under one."""
+	if order == ORDER_TASK:
+		return ACTIVITY_TASK
+	if state == State.QUEUE:
+		return ACTIVITY_QUEUE
 	if state == State.DIG or (state == State.TUNNEL and _travel_to_face):
 		return ACTIVITY_DIGGING
 	if state == State.TUNNEL:
@@ -795,6 +968,8 @@ func surface_point() -> Vector2:
 		return position
 	if state == State.DIG or _travel_to_face:
 		return _space.tunnels.mouth(dig_tunnel, false)
+	if order == ORDER_TASK:
+		return _space.tunnels.point_at(_travel_slot, _nearest_end_m(_travel_slot, _travel_m))
 	return _space.tunnels.point_at(_travel_slot, _travel_end_m)
 
 
@@ -823,6 +998,8 @@ func _enter_tunnel_leg() -> void:
 	var code := path_tunnel[path_index]
 	var slot_index := TunnelRouterScript.leg_slot(code)
 	var length := _space.tunnels.length_m(slot_index)
+	_space.tunnels.queue.take(code, index)
+	_holds_grant = true
 	if TunnelRouterScript.leg_reversed(code):
 		_start_travel(slot_index, length, 0.0)
 	else:
@@ -833,13 +1010,14 @@ func _start_travel(slot_index: int, from_m: float, to_m: float) -> void:
 	"""Walk tunnel `slot_index` underground from `from_m` to `to_m` metres along it."""
 	_travel_slot = slot_index
 	_travel_m = from_m
+	_travel_start_m = from_m
 	_travel_end_m = to_m
 	_travel_forward = to_m >= from_m
 	_side_m = 0.0
 	_emerge_waited = 0.0
 	state = State.TUNNEL
 	_set_underground(true)
-	_set_clip(CLIP_WALK, 1.0)
+	_set_clip(CLIP_CARRY if carrying else CLIP_WALK, _carry_rate if carrying else 1.0)
 	_place_in_tunnel()
 
 
@@ -847,17 +1025,27 @@ func _step_tunnel(delta: float) -> void:
 	"""Walk on along the tunnel at walk speed, keeping its distance from anyone ahead and stepping
 	aside for anyone coming (see SHARING A BORE); at the end, come up once the hole is clear (or reach
 	the dig face)."""
-	var step := minf(walk_speed * delta, _space.room_ahead(index, BORE_GAP_M))
+	var step := minf(_bore_speed() * delta, _space.room_ahead(index, BORE_GAP_M))
 	_travel_m = move_toward(_travel_m, _travel_end_m, step)
 	var side_target := PASS_OFFSET_M if _space.oncoming(index, PASS_WINDOW_M) else 0.0
 	_side_m = move_toward(_side_m, side_target, SIDE_STEP_M_S * delta)
 	_place_in_tunnel()
+	if _holds_grant and absf(_travel_m - _travel_start_m) > TunnelQueueScript.HOLD_M:
+		_space.tunnels.queue.release_grant(index)
+		_holds_grant = false
 	if _travel_m != _travel_end_m:
 		return
-	if not _travel_to_face and _emerge_blocked():
+	if not _travel_to_face and not _travel_for_task and _emerge_blocked():
 		_emerge_waited += delta
 		return
 	_end_travel()
+
+
+func _bore_speed() -> float:
+	"""Walking speed in the bore being walked: the carry's own pace with a load, else walk speed, times
+	the bore's speed (faster when lit; see WEATHER AND LANTERNS)."""
+	var base := _carry_speed if carrying and _carry_speed > 0.0 else walk_speed
+	return base * float(_space.tunnels.speed_permille(_travel_slot)) / float(TunnelRules.PERMILLE)
 
 
 func _emerge_blocked() -> bool:
@@ -883,9 +1071,16 @@ func _place_in_tunnel() -> void:
 func _end_travel() -> void:
 	"""At the end of a tunnel walk: start digging at the face, or come up and go on (idle, arrive
 	or replan when the route ended at the mouth)."""
+	if _holds_grant:
+		_space.tunnels.queue.release_grant(index)
+		_holds_grant = false
 	if _travel_to_face:
 		_travel_to_face = false
 		_enter_dig_state()
+		return
+	if _travel_for_task:
+		_travel_for_task = false
+		state = State.TASK
 		return
 	_set_underground(false)
 	if _idle_on_surface:
@@ -900,8 +1095,31 @@ func _end_travel() -> void:
 	elif position.distance_to(_goal) <= ARRIVE_RADIUS_M:
 		_arrive()
 	else:
-		_space.plan_path(index, position, _goal, radius, path, path_tunnel)
+		_space.plan_path(index, position, _goal, radius, path, path_tunnel, true, carrying)
 		_begin_leg()
+
+
+func turn_back(slot_index: int, to_m: float) -> void:
+	"""The tunnel this resident is walking has closed ahead (tunnel_hazards.gd): walk to `to_m` along
+	it instead -- a mouth on its side -- come up there and plan the trip again, round the closure (the
+	route is cut at this leg, so the walk ends at the mouth). Anyone not walking that tunnel is left
+	alone."""
+	if state != State.TUNNEL or _travel_slot != slot_index or _travel_for_task or _travel_to_face:
+		return
+	_travel_end_m = to_m
+	_travel_forward = to_m >= _travel_m
+	path.resize(path_index + 1)
+	path_tunnel.resize(path_index + 1)
+
+
+func is_in_bore(slot_index: int) -> bool:
+	"""Whether this resident is walking or standing in tunnel `slot_index`'s bore."""
+	return underground and _space.resident_tunnel[index] == slot_index
+
+
+func bore_along_m() -> float:
+	"""How far along the bore it is in (meaningful underground)."""
+	return _travel_m
 
 
 func _finish_tunnel_then_stop() -> void:
@@ -918,6 +1136,7 @@ func order_dig(tunnel_slot: int, tunnel_generation: int) -> void:
 	The caller has added (or resumed) the tunnel with this resident as its digger."""
 	release_slot()
 	_leave_dig()
+	_drop_task()
 	dig_tunnel = tunnel_slot
 	dig_generation = tunnel_generation
 	order = ORDER_DIG
@@ -1041,3 +1260,128 @@ func _back_out(slot_index: int, from_m: float) -> void:
 	path_tunnel[0] = TunnelRouterScript.leg_code(slot_index, true)
 	path_index = 0
 	_start_travel(slot_index, from_m, 0.0)
+
+
+# --- tasks ----------------------------------------------------------------------------------
+
+func order_task(new_task: TaskScript) -> void:
+	"""Hand this resident to `new_task` (see TASKS): give up any slot, dig, line or earlier task, walk
+	to the task's site and let it drive from there."""
+	release_slot()
+	_leave_dig()
+	_drop_task()
+	task = new_task
+	order = ORDER_TASK
+	_faces_on_hold = false
+	_start_ordered_trip(new_task.site(self))
+
+
+func task_label() -> String:
+	"""What the task driving this resident is doing, in words ("" with none)."""
+	return task.label() if task != null else ""
+
+
+func _step_task(delta: float) -> void:
+	"""Let the task drive; when it is done, go back to the routine."""
+	if task == null or not task.step(self, delta):
+		_finish_task()
+
+
+func _finish_task() -> void:
+	"""The task is over: back to wandering -- from the nearest mouth, when it ended underground."""
+	var done_task := task
+	task = null
+	order = ORDER_NONE
+	if done_task != null:
+		done_task.finish(self)
+	if underground:
+		_idle_on_surface = true
+		_walk_out()
+	else:
+		_enter_idle(rng.randf_range(IDLE_MIN_S * 0.5, IDLE_MIN_S))
+
+
+func _drop_task() -> void:
+	"""Another order or a release takes this resident from its task: the task is told, and one standing
+	in a bore walks out to the nearest mouth first."""
+	if task == null:
+		return
+	var dropped := task
+	task = null
+	_travel_for_task = false
+	dropped.cancel(self)
+	if underground:
+		_walk_out()
+
+
+func _nearest_end_m(slot_index: int, along_m: float) -> float:
+	"""The distance along tunnel `slot_index` of the mouth nearest `along_m`."""
+	var length := _space.tunnels.length_m(slot_index)
+	return 0.0 if along_m <= length * 0.5 else length
+
+
+func _walk_out() -> void:
+	"""Walk from where it stands in its bore to the nearest mouth: a one-waypoint route whose only leg
+	is that stretch of tunnel."""
+	var slot_index := _space.resident_tunnel[index]
+	var to_m := _nearest_end_m(slot_index, _travel_m)
+	_travel_to_face = false
+	_travel_for_task = false
+	path.resize(1)
+	path[0] = _space.tunnels.point_at(slot_index, to_m)
+	path_tunnel.resize(1)
+	path_tunnel[0] = TunnelRouterScript.leg_code(slot_index, to_m < _travel_m)
+	path_index = 0
+	_start_travel(slot_index, _travel_m, to_m)
+
+
+func task_walk_to(point: Vector2) -> void:
+	"""For a task: walk (on the surface, through tunnels if quicker) to `point`; the task's arrived()
+	is called there."""
+	_goal = point
+	_replans = 0
+	if position.distance_to(point) <= ARRIVE_RADIUS_M:
+		_arrive()
+		return
+	_space.plan_path(index, position, point, radius, path, path_tunnel)
+	_begin_leg()
+
+
+func task_enter_bore(slot_index: int, from_m: float, to_m: float) -> void:
+	"""For a task: go down tunnel `slot_index` at `from_m` and walk to `to_m` in it, where the task
+	takes over again (TASK), still underground."""
+	_travel_for_task = true
+	_start_travel(slot_index, from_m, to_m)
+
+
+func task_stand_in_bore(slot_index: int, along_m: float, facing_forward: bool) -> void:
+	"""For a task: stand in tunnel `slot_index`'s bore `along_m` from its entrance, facing its exit
+	(or its entrance). Standing, it heads neither way in the bore (heading 0), so walkers never queue
+	up behind it: they step aside and pass, as for someone coming the other way."""
+	_travel_slot = slot_index
+	_travel_m = along_m
+	_travel_forward = facing_forward
+	_side_m = 0.0
+	if not underground:
+		_set_underground(true)
+	_place_in_tunnel()
+	_space.set_in_bore(index, slot_index, along_m, 0)
+
+
+func task_surface(slot_index: int, exit: bool) -> void:
+	"""For a task: come up out of tunnel `slot_index` at its entrance (or exit)."""
+	_travel_m = _space.tunnels.length_m(slot_index) if exit else 0.0
+	position = _space.tunnels.mouth(slot_index, exit)
+	_set_underground(false)
+	_space.move_resident(index, position)
+
+
+func task_play(clip_name: StringName) -> void:
+	"""For a task: play this clip (idle when the creature lacks it) at its own speed."""
+	_set_clip(clip_name if has_clip(clip_name) else CLIP_IDLE, 1.0)
+
+
+func task_face(point: Vector2, delta: float) -> void:
+	"""For a task: turn toward `point` at the on-the-spot rate."""
+	if point.distance_to(position) > 1e-3:
+		yaw = turn_toward(yaw, yaw_of(point - position), SPOT_TURN_RATE * delta)

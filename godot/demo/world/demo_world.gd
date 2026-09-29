@@ -101,6 +101,13 @@ static func layout_circle(public: Vector3) -> Vector3:
 	return Vector3(public.x, public.z, public.y)
 
 
+func set_view_distance(camera_distance_m: float) -> void:
+	"""Fit the sun's shadow range to how far the camera is from what it looks at."""
+	for node: Node in _built:
+		if node is DirectionalLight3D:
+			(node as DirectionalLight3D).directional_shadow_max_distance = Look.shadow_distance_for(camera_distance_m)
+
+
 func bounds() -> AABB:
 	"""The walkable area, from the ground up to a badger's head."""
 	return Layout.bounds()

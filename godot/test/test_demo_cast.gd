@@ -12,6 +12,7 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const ClipRootMotionScript := preload("res://scripts/presentation/clip_root_motion.gd")
+const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 
 const DT: float = 1.0 / 60.0
 const BODY_M: float = 0.25
@@ -260,6 +261,7 @@ func test_many_residents_never_overfill_a_poi() -> void:
 		brains.append(_brain(space, i if i < 3 else 1, SEED + i))
 	var over := 0
 	var slot_clash := 0
+	var books_wrong := 0
 	var trips := 0
 	for f in 60 * 120:
 		for b in brains:
@@ -269,9 +271,21 @@ func test_many_residents_never_overfill_a_poi() -> void:
 		for p in points.size():
 			over += 1 if space.occupancy(p) > space.poi_capacity[p] else 0
 		slot_clash += _slot_clashes(brains)
+		books_wrong += 0 if _reservations_match(space, brains) else 1
 	assert_true(trips >= 8, "residents actually moved between POIs (%d trips)" % trips)
-	assert_equal(over, 0, "no POI ever holds more than its capacity")
+	assert_equal(over, 0, "no POI ever holds more reservation bits than its capacity")
 	assert_equal(slot_clash, 0, "no two residents ever hold the same slot")
+	assert_equal(books_wrong, 0, "the reservation bits are exactly the slots residents hold")
+
+
+func _reservations_match(space: CastSpaceScript, brains: Array[BrainScript]) -> bool:
+	"""Whether the set bits in poi_used are exactly the (poi, slot) pairs the brains hold."""
+	var expected := PackedInt32Array()
+	expected.resize(space.poi_used.size())
+	for b in brains:
+		if b.poi >= 0:
+			expected[b.poi] = expected[b.poi] | (1 << b.slot)
+	return expected == space.poi_used
 
 
 func _slot_clashes(brains: Array[BrainScript]) -> int:
@@ -509,3 +523,338 @@ func test_body_radius_scales_with_height_within_bounds() -> void:
 	assert_almost_equal(DemoActorScript.body_radius(1.0), 0.22, "a 1 m mouse")
 	assert_almost_equal(DemoActorScript.body_radius(0.5), DemoActorScript.MIN_RADIUS_M, "clamped below")
 	assert_almost_equal(DemoActorScript.body_radius(5.0), DemoActorScript.MAX_RADIUS_M, "clamped above")
+
+
+# --- review fixes: the constraint -----------------------------------------------------------
+
+func test_a_body_cannot_squeeze_through_a_gap_narrower_than_itself() -> void:
+	"""Two radius-1 circles 0.4 m apart; a 0.3 m body pushing through for ten seconds stays out of both."""
+	var circles: Array[Vector3] = [Vector3(-1.2, 1.0, 0.0), Vector3(1.2, 1.0, 0.0)]
+	var space := _space([], circles)
+	var index := space.add_resident(Vector2(0.0, -2.0), 0.3)
+	var at := Vector2(0.0, -2.0)
+	var worst := INF
+	for f in 600:
+		at = space.constrain(index, at, at + Vector2(0.0, WALK_M_S * DT), Vector2(0.0, 5.0))
+		space.move_resident(index, at)
+		for c in circles:
+			worst = minf(worst, Vector2(c.x, c.z).distance_to(at) - c.y - 0.3)
+	assert_true(worst >= -EPS, "never inside radius + body (worst %.4f m)" % worst)
+	assert_true(at.y < 0.0, "still on the near side of the gap (z %.3f)" % at.y)
+
+
+func test_the_constraint_lets_a_body_right_up_to_a_goal_tucked_against_a_circle() -> void:
+	"""A goal 0.1 m off a circle's edge is reachable: the reach shrinks to leave the goal outside."""
+	var space := _space([], [Vector3(0.0, 1.0, 0.0)])
+	var index := space.add_resident(Vector2(0.0, -3.0), BODY_M)
+	var goal := Vector2(0.0, -1.1)
+	assert_equal(space.constrain(index, Vector2(0.0, -1.3), goal, goal), goal, "stands on the goal")
+	var elsewhere := space.constrain(index, Vector2(0.0, -1.3), goal, Vector2(0.0, 9.0))
+	assert_almost_equal(elsewhere.length(), 1.0 + BODY_M, "but not when the goal is elsewhere")
+
+
+func test_a_step_into_a_resident_stops_at_contact() -> void:
+	"""The resident push: a step into someone ends exactly touching them, not back at the start."""
+	var space := _space([], [])
+	var me := space.add_resident(Vector2(0.0, -2.0), BODY_M)
+	space.add_resident(Vector2.ZERO, BODY_M)
+	var at := space.constrain(me, Vector2(0.0, -2.0), Vector2(0.0, -0.3), Vector2(0.0, 5.0))
+	assert_almost_equal(at.y, -2.0 * BODY_M, "touching, radius + radius from their centre")
+	assert_almost_equal(at.x, 0.0, "straight on")
+
+
+func test_an_obstacle_push_never_shoves_a_body_into_a_resident() -> void:
+	"""A step the obstacle deflects sideways into a neighbour is refused whole."""
+	var space := _space([], [Vector3(0.0, 1.0, 0.0)])
+	var me := space.add_resident(Vector2(0.7, 1.05), BODY_M)
+	var other := Vector2(0.45, 1.55)
+	space.add_resident(other, BODY_M)
+	var from := Vector2(0.7, 1.05)
+	var at := space.constrain(me, from, Vector2(0.48, 1.15), Vector2(0.0, 9.0))
+	var limit := minf(2.0 * BODY_M, other.distance_to(from))
+	assert_true(other.distance_to(at) >= limit - EPS, "not pushed into the neighbour (%.4f m)" % other.distance_to(at))
+	assert_true(at.length() >= minf(1.0 + BODY_M, from.length()) - EPS, "nor into the obstacle")
+
+
+func test_a_circle_without_a_positive_radius_is_refused() -> void:
+	"""setup() drops (and reports) a circle whose radius is not positive: the wrong axis order."""
+	var space := _space([], [Vector3(0.0, -1.0, 0.0), Vector3(3.0, 0.0, 3.0), Vector3(5.0, 1.0, 5.0)])
+	assert_equal(space.obstacles.size(), 1, "only the real circle is kept")
+	assert_equal(space.obstacles[0], Vector3(5.0, 1.0, 5.0), "and it is the positive one")
+
+
+# --- review fixes: planning and replanning --------------------------------------------------
+
+func test_a_plan_reaches_a_goal_tucked_behind_a_wall() -> void:
+	"""The goal sits 0.2 m off a wall of circles; the plan still detours to it rather than giving up."""
+	var wall: Array[Vector3] = []
+	for x in [-3.0, -1.5, 0.0, 1.5, 3.0]:
+		wall.append(Vector3(x, 0.9, 0.0))
+	var space := _space([], wall)
+	var path := PackedVector2Array()
+	space.plan_path(-1, Vector2(0.0, -4.0), Vector2(0.0, 1.1), BODY_M, path)
+	assert_true(space.nav.last_found, "a route exists")
+	assert_true(path.size() >= 2, "round the end of the wall (%d waypoints)" % path.size())
+	assert_equal(path[path.size() - 1], Vector2(0.0, 1.1), "to the goal itself")
+
+
+func test_line_clear_sees_open_ground_and_not_through_a_circle() -> void:
+	"""The per-frame sight test used to skip waypoints."""
+	var space := _space([], [Vector3(0.0, 1.0, 0.0)])
+	var me := space.add_resident(Vector2(-4.0, 0.0), BODY_M)
+	assert_true(space.line_clear(me, Vector2(-4.0, -3.0), Vector2(4.0, -3.0), BODY_M, Vector2(4.0, -3.0)), "open ground")
+	assert_false(space.line_clear(me, Vector2(-4.0, 0.0), Vector2(4.0, 0.0), BODY_M, Vector2(4.0, 0.0)), "through the circle")
+	space.add_resident(Vector2(0.0, -3.0), 0.4)
+	assert_false(space.line_clear(me, Vector2(-4.0, -3.0), Vector2(4.0, -3.0), BODY_M, Vector2(4.0, -3.0)), "through someone standing")
+
+
+func test_a_brain_marks_itself_walking_only_while_it_walks() -> void:
+	"""Standing residents are planned round; the brain tells the space which it is, every step."""
+	var space := _two_ends([])
+	var brain := _brain(space, 0, SEED)
+	var seen := {}
+	var mismatches := 0
+	for f in 60 * 20:
+		brain.step(DT)
+		var flag := space.resident_walking[brain.index]
+		mismatches += 0 if (flag == 1) == (brain.state == BrainScript.State.WALK) else 1
+		seen[brain.state * 2 + flag] = true
+	assert_equal(mismatches, 0, "the flag matches the state after every step")
+	assert_true(seen.has(BrainScript.State.WALK * 2 + 1), "walking was seen, flagged")
+	assert_true(seen.has(BrainScript.State.IDLE * 2), "idling was seen, not flagged")
+
+
+func test_a_walker_asked_to_turn_back_stops_and_turns() -> void:
+	"""Mid-walk, a target behind the walker stops it and turns it on the spot."""
+	var space := _two_ends([])
+	var brain := _brain(space, 0, SEED)
+	for f in 60 * 30:
+		brain.step(DT)
+		if brain.state == BrainScript.State.WALK:
+			break
+	assert_equal(brain.state, BrainScript.State.WALK, "walking")
+	brain.path[brain.path_index] = brain.position - brain.forward() * 3.0
+	var before := brain.position
+	brain.step(DT)
+	assert_equal(brain.state, BrainScript.State.TURN, "stops to turn")
+	assert_equal(brain.position, before, "without stepping")
+
+
+func _corridors() -> CastSpaceScript:
+	"""Two corridors, west (shorter) and east, between a central column and two outer walls, from a
+	POI at z = -6 to one at z = +6."""
+	var circles: Array[Vector3] = []
+	for z in range(-2, 3):
+		circles.append(Vector3(0.3, 1.0, float(z)))
+	for z in range(-4, 5):
+		circles.append(Vector3(-3.2, 1.0, float(z)))
+		circles.append(Vector3(3.8, 1.0, float(z)))
+	var points: Array[Dictionary] = [
+		_poi(&"south", Vector3(0.0, 0.0, -6.0), Vector3(0.0, 0.0, -1.0), [&"idle"], 1),
+		_poi(&"north", Vector3(0.0, 0.0, 6.0), Vector3(0.0, 0.0, 1.0), [&"idle"], 1)]
+	return _space(points, circles)
+
+
+func test_a_walker_blocked_by_someone_who_stops_in_its_way_replans_promptly() -> void:
+	"""After the plan, someone stops in the west corridor; the walker replans as soon as its current
+	leg runs into them -- before it touches them -- and arrives by the east corridor."""
+	var space := _corridors()
+	var brain := _brain(space, 0, SEED)
+	var placed_frame := -1
+	var replan_frame := -1
+	var first_path := PackedVector2Array()
+	var closest_before_replan := INF
+	var gave_up := false
+	for f in 60 * 90:
+		var before := brain.poi
+		brain.step(DT)
+		gave_up = gave_up or (before == 1 and brain.poi != 1)
+		if placed_frame >= 0 and replan_frame < 0:
+			closest_before_replan = minf(closest_before_replan, brain.position.distance_to(Vector2(-1.45, 0.0)))
+		if placed_frame < 0 and brain.state == BrainScript.State.WALK:
+			first_path = brain.path.duplicate()
+			space.add_resident(Vector2(-1.45, 0.0), 0.6)
+			placed_frame = f
+		if placed_frame >= 0 and replan_frame < 0 and brain.path != first_path:
+			replan_frame = f
+		if brain.poi == 1 and brain.state == BrainScript.State.ACT:
+			break
+	assert_true(first_path.size() > 0 and first_path[0].x < 0.0, "the first plan went west")
+	assert_true(replan_frame >= 0, "replanned")
+	assert_true(closest_before_replan > 0.6 + BODY_M + 0.1, "before touching the blocker (closest %.2f m)" % closest_before_replan)
+	assert_true(_goes_east(brain.path) or brain.position.y > 0.0, "the new route goes east")
+	assert_true(brain.poi == 1 and brain.state == BrainScript.State.ACT, "and arrived")
+	assert_false(gave_up, "on the same trip, without giving it up")
+
+
+func _goes_east(path: PackedVector2Array) -> bool:
+	"""Whether a route passes east of the central column."""
+	for point in path:
+		if point.x > 1.3:
+			return true
+	return false
+
+
+func test_a_walker_jammed_in_a_lane_gives_up_within_seconds() -> void:
+	"""A lane just wide enough for one, plugged by someone flagged as walking (so neither the plan nor
+	the standing check sees them): the constraint holds the walker, it notices within BLOCKED_AFTER_S,
+	replans MAX_REPLANS times and gives the trip up in a few seconds rather than tens."""
+	var circles: Array[Vector3] = []
+	for z in range(-3, 4):
+		circles.append(Vector3(-1.1, 0.7, float(z)))
+		circles.append(Vector3(1.1, 0.7, float(z)))
+	var points: Array[Dictionary] = [
+		_poi(&"south", Vector3(0.0, 0.0, -6.0), Vector3(0.0, 0.0, 1.0), [&"idle"], 1),
+		_poi(&"north", Vector3(0.0, 0.0, 6.0), Vector3(0.0, 0.0, 1.0), [&"idle"], 1)]
+	var space := _space(points, circles)
+	var brain := _brain(space, 0, SEED)
+	var plug := space.add_resident(Vector2.ZERO, 0.3)
+	space.set_walking(plug, true)
+	var contact := -1
+	var gave_up := -1
+	for f in 60 * 60:
+		var before := brain.poi
+		brain.step(DT)
+		if contact < 0 and brain.position.distance_to(Vector2.ZERO) < 0.3 + BODY_M + 0.01:
+			contact = f
+		if before == 1 and brain.poi == -1:
+			gave_up = f
+			break
+	assert_true(contact >= 0, "the walker reached the plug")
+	assert_true(gave_up >= 0 and gave_up - contact < 60 * 5, "gave up within 5 s of reaching it (%.1f s)" % (float(gave_up - contact) / 60.0))
+
+
+func test_a_walled_in_walker_gives_up_and_frees_its_slot() -> void:
+	"""No way out of a ring of circles: the walker replans, then abandons the trip and releases the
+	slot it reserved at the destination."""
+	var ring: Array[Vector3] = []
+	for k in 16:
+		var angle := TAU * float(k) / 16.0
+		ring.append(Vector3(cos(angle) * 3.0, 0.8, sin(angle) * 3.0))
+	var points: Array[Dictionary] = [
+		_poi(&"inside", Vector3.ZERO, Vector3(0.0, 0.0, -1.0), [&"idle"], 1),
+		_poi(&"outside", Vector3(0.0, 0.0, 8.0), Vector3(0.0, 0.0, 1.0), [&"idle"], 1)]
+	var space := _space(points, ring)
+	var brain := _brain(space, 0, SEED)
+	var abandoned := false
+	var freed := false
+	for f in 60 * 90:
+		var before := brain.poi
+		brain.step(DT)
+		if before == 1 and brain.poi == -1:
+			abandoned = true
+			freed = space.poi_used[1] == 0
+			break
+	assert_true(abandoned, "the trip was given up")
+	assert_true(freed, "and the destination's slot released")
+	assert_true(brain.position.length() < 3.0 - 0.8, "still inside the ring")
+
+
+func test_the_real_village_is_well_formed_for_the_cast() -> void:
+	"""DemoWorld's published circles and POIs, fed to CastSpace: sane radii, every POI and slot clear of
+	every circle, and a route between every pair of POIs for every body the cast uses."""
+	var world: Node3D = DemoWorldScript.new()
+	var space := _space(world.points_of_interest(), world.obstacles())
+	world.free()
+	assert_equal(space.obstacles.size(), 196, "all 196 circles kept (none refused)")
+	var bad_radius := 0
+	for circle in space.obstacles:
+		bad_radius += 0 if circle.y > 0.0 and circle.y < 3.0 else 1
+	assert_equal(bad_radius, 0, "every radius is positive and under 3 m")
+	var tight := 0
+	for poi in space.poi_position.size():
+		tight += 1 if space.obstacle_clearance(space.poi_position[poi]) < DemoActorScript.MIN_RADIUS_M else 0
+		for slot in space.poi_capacity[poi]:
+			tight += 1 if space.obstacle_clearance(space.slot_position(poi, slot)) < DemoActorScript.MIN_RADIUS_M else 0
+	assert_equal(tight, 0, "every POI and slot stands clear of every circle by the smallest body")
+	assert_equal(_unroutable(space), 0, "every POI reaches every other, for every body")
+
+
+func _unroutable(space: CastSpaceScript) -> int:
+	"""How many (body, from, to) plans between POIs find no route or cross a circle."""
+	var path := PackedVector2Array()
+	var bad := 0
+	for body: float in [0.2, 0.22, 0.253, 0.328, 0.56]:
+		for a in space.poi_position.size():
+			for b in space.poi_position.size():
+				if a != b:
+					var from := space.slot_position(a, 0)
+					space.plan_path(-1, from, space.slot_position(b, 0), body, path)
+					bad += 0 if space.nav.last_found and _route_clear(space, from, path) else 1
+	return bad
+
+
+func _route_clear(space: CastSpaceScript, from: Vector2, path: PackedVector2Array) -> bool:
+	"""Whether no leg of a route passes inside any obstacle circle."""
+	var at := from
+	for point in path:
+		for circle in space.obstacles:
+			if CastSpaceScript.distance_to_segment(Vector2(circle.x, circle.z), at, point) < circle.y:
+				return false
+		at = point
+	return true
+
+
+func test_a_carry_motion_without_a_period_is_refused() -> void:
+	"""period_s <= 0 would index the root path at infinity; no carry instead."""
+	var space := _two_ends([])
+	var brain := _brain(space, 0, SEED)
+	var motion := _carry_motion()
+	motion["period_s"] = 0.0
+	brain.set_carry_motion(motion)
+	assert_false(brain.can_carry(), "a zero period is refused")
+
+
+func _walking_brain(space: CastSpaceScript) -> BrainScript:
+	"""A resident from POI 0 of `space` that has just set off for POI 1."""
+	var brain := _brain(space, 0, SEED)
+	for f in 60 * 30:
+		brain.step(DT)
+		if brain.state == BrainScript.State.WALK:
+			break
+	return brain
+
+
+func test_walk_turn_flips_are_bounded_by_a_replan() -> void:
+	"""A walker whose target keeps jumping just past STOP_TO_TURN_ANGLE flips walk -> turn; the fifth
+	flip on one leg is replaced by a fresh plan. Each forced target is nearer than the last and the
+	walker makes headway in between, so being stuck is never what ends it."""
+	var space := _two_ends([])
+	var brain := _walking_brain(space)
+	var goal := space.slot_position(1, 0)
+	var flips := 0
+	var walked := 0
+	var replanned_at := -1
+	for f in 60 * 60:
+		if brain.state == BrainScript.State.WALK:
+			walked += 1
+			if flips > 0 and brain.path[0] == goal:
+				replanned_at = flips
+				break
+			if flips == 0 or walked >= 20:
+				var aside := brain.forward().rotated(deg_to_rad(80.0))
+				brain.path = PackedVector2Array([brain.position + aside * (4.0 - 0.5 * float(flips))])
+				brain.path_index = 0
+				flips += 1
+				walked = 0
+		brain.step(DT)
+	assert_equal(replanned_at, BrainScript.MAX_FLIPS + 1, "replanned on flip MAX_FLIPS + 1")
+
+
+func test_a_turn_that_never_finishes_counts_as_stuck() -> void:
+	"""Time spent turning counts toward STUCK_AFTER_S, so a turn chasing a target that stays behind is
+	ended by a replan."""
+	var space := _two_ends([])
+	var brain := _walking_brain(space)
+	brain.path = PackedVector2Array([brain.position - brain.forward() * 3.0])
+	brain.path_index = 0
+	brain.step(DT)
+	assert_equal(brain.state, BrainScript.State.TURN, "turning")
+	var goal := space.slot_position(1, 0)
+	var frames := 0
+	while brain.path[0] != goal and frames < 60 * 10:
+		brain.path[0] = brain.position - brain.forward() * 3.0
+		brain.step(DT)
+		frames += 1
+	assert_equal(brain.path[0], goal, "the chase ended in a fresh plan to the goal")
+	assert_true(float(frames) * DT <= BrainScript.STUCK_AFTER_S + 0.1, "after about STUCK_AFTER_S (%.2f s)" % (float(frames) * DT))

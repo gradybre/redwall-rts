@@ -112,7 +112,7 @@ func test_every_point_of_interest_is_inside_bounds() -> void:
 
 func test_every_point_of_interest_is_clear_of_every_obstacle() -> void:
 	"""A resident standing at a point is outside every circle by a real margin."""
-	var circles: Array[Vector3] = _world.obstacles()
+	var circles: Array[Vector3] = _layout_obstacles()
 	for point: Dictionary in _world.points_of_interest():
 		var at: Vector3 = point["position"]
 		var clear: float = Layout.clearance(Vector2(at.x, at.z), circles)
@@ -173,9 +173,31 @@ func test_every_path_capsule_has_a_radius() -> void:
 		assert_true(radius > 0.0, "path radius %.2f is positive" % radius)
 
 
+func _layout_obstacles() -> Array[Vector3]:
+	"""The published obstacles back in world_layout.gd's (x, z, radius) form, for Layout helpers."""
+	var out: Array[Vector3] = []
+	for circle: Vector3 in _world.obstacles():
+		out.append(DemoWorld.layout_circle(circle))
+	return out
+
+
+func test_obstacles_are_published_as_x_radius_z() -> void:
+	"""obstacles() is Vector3(x, radius, z), the documented public form -- not the layout's own."""
+	var structure: Array[Dictionary] = Layout.placements()
+	var well: Dictionary = Layout.find_placement(structure, &"well")
+	var at: Vector2 = well["at"]
+	var nearest := Vector3(INF, INF, INF)
+	for circle: Vector3 in _world.obstacles():
+		if Vector2(circle.x, circle.z).distance_to(at) < Vector2(nearest.x, nearest.z).distance_to(at):
+			nearest = circle
+	assert_true(Vector2(nearest.x, nearest.z).distance_to(at) < 2.0, "a circle is centred near the well at %s" % at)
+	for circle: Vector3 in _world.obstacles():
+		assert_true(circle.y > 0.0 and circle.y < 3.0, "radius %.2f at (%.1f, %.1f) is positive and sane" % [circle.y, circle.x, circle.z])
+
+
 func test_obstacles_have_positive_radii_and_reach_the_play_area() -> void:
 	"""Every reported circle is real and matters to a resident inside the bound."""
-	var circles: Array[Vector3] = _world.obstacles()
+	var circles: Array[Vector3] = _layout_obstacles()
 	assert_true(circles.size() > 0, "the village has obstacles")
 	for circle: Vector3 in circles:
 		assert_true(circle.z > 0.0, "circle at (%.1f, %.1f) has a radius" % [circle.x, circle.y])
@@ -284,7 +306,7 @@ func test_trees_stand_outside_the_clearing_and_off_the_paths() -> void:
 
 func test_ground_cover_stays_out_of_obstacles_and_off_points() -> void:
 	"""Tussocks and mushrooms never sit inside a building or on a resident's spot."""
-	var circles: Array[Vector3] = _world.obstacles()
+	var circles: Array[Vector3] = _layout_obstacles()
 	var spots: Array[Vector2] = []
 	for point: Dictionary in _world.points_of_interest():
 		var at: Vector3 = point["position"]

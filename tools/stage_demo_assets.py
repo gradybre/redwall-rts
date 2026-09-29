@@ -15,7 +15,12 @@ Measured from the files, not assumed, and written to the manifest:
   * every world asset's axis-aligned bounds (metres), for placement;
   * every creature's WALK SPEED: the walk clip plays in place, so the planted foot slides
     backwards at exactly the speed the creature would cover ground. Moving the creature at
-    that speed keeps its feet from sliding.
+    that speed keeps its feet from sliding. A toe counts as planted only within PLANTED_M of the
+    lowest any toe reaches in the whole clip -- measuring against the other toe instead let a
+    lifting foot count, and read the squirrel forester 8% fast.
+
+`--only world|cast` restages one half and MERGES it into an existing manifest.json, so restaging
+the cast keeps the world's entries (and the other way round).
 
     python3 tools/stage_demo_assets.py
 """
@@ -53,7 +58,7 @@ CAST = ["mouse_keeper", "mouse_fieldworker", "squirrel_gatherer", "squirrel_fore
 CLIPS = ["idle", "walk", "collect_object", "stand_and_drink", "wave_one_hand", "carry_heavy_object_walk"]
 SPECIES_HEIGHT_M = {"mouse": 1.00, "mole": 0.90, "squirrel": 1.15, "otter": 1.49, "badger": 2.55}
 FEET = ("LeftToeBase", "RightToeBase")
-PLANTED_M = 0.02       # a toe within this of the lowest toe on its key is the planted one
+PLANTED_M = 0.01       # a toe within this of the clip's lowest toe point is planted
 
 
 def bounds(doc: dict, binary: bytes) -> tuple[list[float], list[float]]:
@@ -73,16 +78,17 @@ def bounds(doc: dict, binary: bytes) -> tuple[list[float], list[float]]:
 
 
 def walk_speed(path: pathlib.Path) -> float:
-	"""Median backward speed of whichever toe is planted, over the in-place walk clip (m/s)."""
+	"""Median horizontal speed of a planted toe over the in-place walk clip (m/s): a toe is planted
+	while it is within PLANTED_M of the lowest point any toe reaches in the whole clip."""
 	doc, binary = read_glb(path.read_bytes())
 	names = {n.get("name"): i for i, n in enumerate(doc["nodes"])}
 	times, animated = _channels(doc, binary)
 	toes = [[_worlds_at(doc, animated, k)[names[f]][12:15] for f in FEET] for k in range(len(times))]
+	ground = min(t[1] for key in toes for t in key)
 	speeds = []
 	for k in range(len(times) - 1):
-		low = min(t[1] for t in toes[k])
 		for f in range(len(FEET)):
-			if toes[k][f][1] - low < PLANTED_M:
+			if toes[k][f][1] - ground < PLANTED_M:
 				dx = toes[k + 1][f][0] - toes[k][f][0]
 				dz = toes[k + 1][f][2] - toes[k][f][2]
 				speeds.append(math.hypot(dx, dz) / (times[k + 1] - times[k]))
@@ -143,6 +149,11 @@ def main() -> int:
 	parser.add_argument("--only", choices=("world", "cast"), help="stage one half")
 	args = parser.parse_args()
 	manifest = {"tool": "tools/stage_demo_assets.py", "decision": "0196", "facing": "+Z", "world": {}, "cast": {}}
+	existing = args.out / "manifest.json"
+	if args.only and existing.is_file():
+		kept = json.loads(existing.read_text())
+		manifest["world"] = kept.get("world", {})
+		manifest["cast"] = kept.get("cast", {})
 	if args.only in (None, "world"):
 		manifest["world"] = stage_world(args.library, args.out)
 	if args.only in (None, "cast"):

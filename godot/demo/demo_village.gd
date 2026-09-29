@@ -26,6 +26,7 @@ const DemoCameraScript := preload("res://demo/camera/demo_camera.gd")
 const WoodlandSkinScript := preload("res://demo/ui/woodland_skin.gd")
 const DemoCommandScript := preload("res://demo/control/demo_command.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
+const DemoWaterScript := preload("res://demo/water/demo_water.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -40,6 +41,7 @@ var _world: Node3D = null
 var _cast: Node3D = null
 var _camera: Node3D = null
 var _command: Node3D = null
+var _water: DemoWaterScript = null
 var _shadow_view_m: float = -1.0
 
 
@@ -53,13 +55,18 @@ func _ready() -> void:
 	_world = DemoWorldScript.new()
 	add_child(_world)
 	_world.build(manifest)
+	_water = DemoWaterScript.new()  # demo/water/: stream, pond, dressing, fishery
+	add_child(_water)
+	_water.build(manifest, _world)
 	_cast = DemoCastScript.new()
 	add_child(_cast)
-	_cast.build(manifest, _world.points_of_interest(), _world.obstacles())
+	_cast.build(manifest, _water.merged_points(_world.points_of_interest()),
+		_water.merged_obstacles(_world.obstacles()))
 	_cast.clock.bind(GameManager as GameManagerScript)
+	_water.bind_clock(_cast.clock, GameManager.get_completed_tick())
 	_camera = DemoCameraScript.new()
 	add_child(_camera)
-	_camera.configure(_world.bounds(), Vector3.ZERO)
+	_camera.configure(DemoWaterScript.view_bounds(_world.bounds()), Vector3.ZERO)
 	_camera.make_current()
 	_cast.set_bounds(_world.bounds())
 	_command = DemoCommandScript.new()

@@ -27,6 +27,7 @@ const Sizes := preload("res://demo/world/world_sizes.gd")
 const Scatter := preload("res://demo/world/world_scatter.gd")
 const Look := preload("res://demo/world/world_look.gd")
 const CropCards := preload("res://demo/world/crop_cards.gd")
+const WaterDressing := preload("res://demo/water/water_dressing.gd")
 
 const GROUND_Y: float = 0.0
 
@@ -186,6 +187,7 @@ func _ensure_layout() -> void:
 		return
 	_structure = Layout.placements()
 	var blockers: Array[Vector3] = Layout.obstacles_for(_structure)
+	blockers.append_array(WaterDressing.woods_blockers())  # demo/water/: no woods in the water
 	_dressing = Scatter.tree_ring(blockers)
 	var with_trees: Array[Vector3] = blockers.duplicate()
 	with_trees.append_array(Layout.obstacles_for(_dressing))

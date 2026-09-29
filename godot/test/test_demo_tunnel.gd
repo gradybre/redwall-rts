@@ -1966,7 +1966,8 @@ func test_the_world_names_only_its_buildings_circles() -> void:
 	var all := world.obstacles()
 	var buildings := world.building_obstacles()
 	assert_equal(buildings.size(), 94, "the nine buildings' 94 circles")
-	assert_equal(all.size(), 196, "of 196 in all")
+	# 192: the water (demo/water/) keeps trees and logs out of the stream and off its banks.
+	assert_equal(all.size(), 192, "of 192 in all")
 	for circle in buildings:
 		assert_true(Vector2(circle.x, circle.z).distance_to(Vector2(2.3529, 0.8968)) > 0.3, "the bucket beside the well is not a building")
 	for circle in buildings:

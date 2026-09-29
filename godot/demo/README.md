@@ -44,6 +44,7 @@ and dig while paused -- the orders are carried out on resume.
 | Esc | Clear the selection |
 | T (or "Dig tunnel") | With the mole selected: lay out a tunnel (below); again: cancel it |
 | U | Underground view: the surface fades, tunnels show as lit bores with anyone inside |
+| V | Water inspection overlay: wade / swim / dive zones, fords, bridge spans, landings, fish stocks |
 
 The "Demo party" panel in the HUD's left column lists the selection. Orders move the demo cast
 only, never the simulation.
@@ -85,6 +86,23 @@ and roots L0s shatter, so their beds are rebuilt as a bare bed plus alpha-cutout
 from the high-poly sources. Re-run it alone after changing it:
 `python3 tools/make_demo_crop_cards.py`. Without Blender those two beds are placeholders.
 
+## Water
+
+A stream runs down the village's east edge -- narrowing to a neck at the north-east corner, past
+the weir and the mill, spreading into a shallow ford where the east road crosses it, then deepening
+by the fisher shelter -- into a pond beyond the south-east corner with a boathouse on its shore.
+All of it lies outside the ±20 m square residents and tunnels are kept in, so nothing in the
+village moved; the spots that serve it (fishing, the weir, the boat landing) stand at the square's
+edge. The ground is carved into banks and beds; the surface flows at the stream's own speed and
+stops when the game pauses. Press V for the zones and the live fishery.
+
+`water/water_map.gd` is the foundation the next phase builds on: integer depth, wade / swim / dive
+zones, ground and bed height, flow, nearest bank, landings, ford and bridge candidates, and
+`segment_crosses_water` for tunnels. `water/fishing_driver.gd` runs the real fishing store
+(`scripts/core/fishing.gd`) on demo time -- the stream is the river habitat, the pond the lake --
+and returns each cycle's catch as species lots without touching any pantry. The depths and the
+zone thresholds are demo values (`water/water_rules.gd`); decision 0196 records them.
+
 ## Layout
 
 | Folder | Owns |
@@ -95,6 +113,7 @@ from the high-poly sources. Re-run it alone after changing it:
 | `cast/` | The residents: body, clips, live tail, job routines, orders |
 | `control/` | Selecting and ordering residents, and the demo party panel |
 | `tunnel/` | Player-dug tunnels: rules, the tunnel network and planner, planning, drawing, the underground view |
+| `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the V overlay |
 | `ui/` | The woodland HUD skin |
 | `camera/` | The RTS camera |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

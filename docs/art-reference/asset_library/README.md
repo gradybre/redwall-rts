@@ -192,18 +192,19 @@ Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceil
 
 | Asset | Problem | Fix |
 |---|---|---|
-| bramble, fern_clump, wildflower_patch, birch_mature, apple_mature, crop_beans_ripe, basket | Leaves, fronds and the woven rim shatter under the automatic remesh at these budgets. **Every high-poly source is good** — see `contact_sheets/foliage_compare.png` | Build the L0 in Blender as leaf cards with alpha, or retopologise by hand. Not a Meshy remesh |
+| bramble, fern_clump, wildflower_patch, birch_mature, apple_mature, crop_beans_ripe, basket, crop_grain_ripe, crop_roots_ripe | Leaves, fronds, wheat stalks, carrot tops and the woven rim shatter under the automatic remesh at these budgets. **Every high-poly source is good** — see `contact_sheets/foliage_compare.png` | Build the L0 in Blender as leaf cards with alpha, or retopologise by hand. Not a Meshy remesh. For the live demo, `tools/make_demo_crop_cards.py` does this for grain and roots (a bare bed plus cards rendered from the high-poly) |
 | badger_steward | The robe hides the legs, so Meshy's auto-rigger refused it (`422 Pose estimation failed`) | Rig in Blender; or use badger_quarryman |
 | mole_digger, mole_mason, badger_cellarer rigs and clips | 17–19% short: the rig scaled their arm span, not their height (see above) | **Fixed** by `tools/repair_meshy_rig.py` (decision 0190): the single scene root is scaled ×1.2269, ×1.1860 and ×1.2020, measured from the files to within 1 mm of `SPECIES_HEIGHT_U`. Repaired copies are in `<key>/repaired/` |
 | *(not a file defect)* | Importing a rigged GLB into **Blender** adds a 2 m `Icosphere`. It is **not in the file** (0 of 110 contain one): Blender's glTF importer creates it as the bones' display shape (`io_scene_gltf2/blender/imp/node.py`) | Import with `disable_bone_shape=True`, or ignore it; it never reaches Godot |
 | **Every rigged and animated GLB (110 files)** | Reads glossy and self-lit. Meshy's rig step rewrote the material: no metallic or roughness value, so glTF's default **metallic 1.0** applies; the colour map is wired in **again as full emission** (`emissiveFactor [1,1,1]`); `KHR_materials_specular` is **2.0**; the L0's roughness and normal maps are **dropped**. Godot's imported material confirms it: metallic 1.00, roughness 1.00, emission on. The high-poly and L0 files (162) are correct: roughness median 0.93, metallic 0 | **Fixed** by `tools/repair_meshy_rig.py` (decision 0190) in all 110 files: metallic 0, roughness from the L0's own map, the L0's normal map, no emission, no specular or ior extension. Before attaching the L0's maps, it proves the atlas is shared: the colour map must be byte-identical to the L0's. Godot reads every repaired material as metallic 0 with a roughness texture and a normal map, and emission off. Output in `<key>/repaired/`; the originals are untouched |
 | `chair_sit_idle` clips | Sits on nothing | Pair it with a seat at play time |
-| crop_cabbage_ripe | Cabbages read cyan-blue | Recolour the texture |
+| crop_cabbage_ripe | *(not a defect)* The concept is deliberately a blue-green savoy and the texture matches it, running slightly bluer (median leaf RGB 62,109,110 against the concept's 81,123,118) | Keep the authored colour. The live demo multiplies the albedo by the measured ratio, normalised on green: (1.16, 1.0, 0.95) |
 | stone_wall | Generated as an L-shaped corner, not a straight modular section | Cut it in Blender |
 | boathouse, weir, fisher_shelter | Water surfaces are baked into the mesh | Strip them; water is the engine's |
 | Most buildings | They sit on a sculpted dirt or grass base | Trim to the footprint, or keep as a decal |
 | mill | The waterwheel the prompt asked for isn't visible from the default view | Inspect it; may need adding |
 | squirrel_gatherer | A basket is attached to the hand, although the prompt said nothing held | Separate it in Blender |
+| crop_grain_ripe | The concept put a small well in the middle of the grain bed, and Meshy modelled it | Leave it out; the demo's cards never include it |
 | Crops | Only RIPE was generated, and the runtime module ceiling is **256** triangles | Author EMPTY, SOWN, GROWING and WITHERED, and a 256-triangle module, in Blender from these sources |
 
 ## Seeing them move

@@ -6,6 +6,10 @@ extends RefCounted
 ##
 ##   * BUILDINGS: model height == the authoritative exterior envelope `BUILDING_MAX_Y_MM` in
 ##     `res://assets/lookdev/lookdev_dimensions.gd` (ART-GAP-R03, decision 0082). Not chosen here.
+##   * CROP BEDS: bed WIDTH == CROP_BED_WIDTH_M (demo-only), so every bed lines up on the same
+##     3 m grid whatever grows in it; the plants keep the source model's own proportion to its
+##     bed. The carded crops (make_demo_crop_cards.py) stage a bed with no plants in it, so a
+##     height rule could not size them anyway.
 ##   * EVERYTHING ELSE: model height == `DEMO_HEIGHT_M` below. THESE ARE DEMO-ONLY CHOICES. Trees,
 ##     props, crops and ground cover have no authoritative size anywhere in the project; the
 ##     numbers are judged against the approved creature heights (mouse 1.00 m, mole 0.90,
@@ -33,9 +37,6 @@ const DEMO_HEIGHT_M: Dictionary = {
 	&"grass_tuft": 0.45,        # tussock to a mouse's hip; reads as ground cover from the camera
 	&"mushroom_cluster": 0.45,  # woodland fungi at a mouse's hip -- storybook, not biological
 	&"reeds": 1.5,              # reeds that rise just above a mouse's ears in the damp corner
-	&"crop_grain_ripe": 0.82,   # chosen so the bed is ~3.0 m square; grain to a mouse's chest
-	&"crop_cabbage_ripe": 0.39, # chosen so the bed is ~3.0 m square
-	&"crop_roots_ripe": 0.63,   # chosen so the bed is ~3.0 m square
 	&"barrel": 0.95,            # a cask a mouse can just see over
 	&"crate": 0.75,             # a crate a mouse can lift one end of
 	&"log_stack": 1.5,          # firewood stacked to a squirrel's head
@@ -46,6 +47,10 @@ const DEMO_HEIGHT_M: Dictionary = {
 	&"cauldron_tripod": 1.6,    # tripod above a badger's elbow; the pot hangs at mouse-chest
 	# table_stools: not here -- its top is the 0.625 m work-surface candidate, read below.
 }
+
+## Crop beds are sized by width: a 3 m bed, about three mice lying end to end. Demo-only.
+const CROP_BED_WIDTH_M: float = 3.0
+const CROP_KEYS: Array[StringName] = [&"crop_grain_ripe", &"crop_cabbage_ripe", &"crop_roots_ripe"]
 
 ## The table model's highest point is its top, so it is scaled to the work-surface candidate.
 const TABLE_KEY: StringName = &"table_stools"
@@ -91,7 +96,7 @@ static func is_building(key: StringName) -> bool:
 
 
 static func target_height_m(key: StringName) -> float:
-	"""The height `key` is drawn at, in metres. 0.0 for a key nothing sizes (a programming error)."""
+	"""The height `key` is drawn at, in metres. 0.0 for a crop (sized by width) or an unknown key."""
 	if is_building(key):
 		var row: int = Dimensions.BUILDING_KEY.find(key)
 		return float(Dimensions.BUILDING_MAX_Y_MM[row]) / MILLIMETRES_PER_METRE
@@ -99,12 +104,20 @@ static func target_height_m(key: StringName) -> float:
 		return float(Dimensions.WORK_SURFACE_TOP_U) / float(Dimensions.UNITS_PER_METRE)
 	if DEMO_HEIGHT_M.has(key):
 		return float(DEMO_HEIGHT_M[key])
+	if CROP_KEYS.has(key):
+		return 0.0
 	push_error("world_sizes: no size for '%s'" % key)
 	return 0.0
 
 
 static func uniform_scale(key: StringName, aabb_min: Vector3, aabb_max: Vector3) -> float:
-	"""The one scale factor that makes a model with this bound exactly `target_height_m` tall."""
+	"""The one scale factor that draws a model with this bound at its size rule (see header)."""
+	if CROP_KEYS.has(key):
+		var width: float = aabb_max.x - aabb_min.x
+		if width <= 0.0:
+			push_error("world_sizes: '%s' has a flat or inverted bound" % key)
+			return 1.0
+		return CROP_BED_WIDTH_M / width
 	var height: float = aabb_max.y - aabb_min.y
 	if height <= 0.0:
 		push_error("world_sizes: '%s' has a flat or inverted bound" % key)

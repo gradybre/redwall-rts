@@ -5,7 +5,9 @@ The asset library lives outside git (decision 0188), so the demo cannot commit i
 copies the chosen ones into the gitignored godot/demo/assets/ and writes manifest.json there,
 which the demo scene reads. Without it the demo still runs, on placeholder shapes.
 
-  world/<key>.glb          buildings, environment and props: their L0, unchanged
+  world/<key>.glb          buildings, environment and props: their L0, unchanged -- except the
+                           crops whose L0 shatters (grain, roots), which make_demo_crop_cards.py
+                           rebuilds as a bare bed plus alpha-cutout cards of the real plants
   cast/<key>/body.glb      the creature's grounded rigged.glb: mesh, textures, skeleton, tail chain
   cast/<key>/<clip>.glb    each clip STRIPPED to its skeleton and animation. Every clip file
                            repeats the whole mesh and its 2K textures (~17 MB); the demo needs
@@ -39,6 +41,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from bake_meshy_tail import _channels, _worlds_at  # noqa: E402
 from repair_meshy_rig import read_accessor, read_glb, write_glb  # noqa: E402
 from rig_meshy_tail import node_worlds, transform_point  # noqa: E402
+import make_demo_crop_cards  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 LIBRARY = ROOT / "assets/library"
@@ -47,9 +50,9 @@ OUT = ROOT / "godot/demo/assets"
 WORLD = {
 	"building": ["residence", "hall", "kitchen", "well", "workbench", "covered_store", "open_stockpile", "fence"],
 	## The README's shattered-foliage L0s (bramble, fern, wildflower, birch, apple) are left out.
+	## crop_grain_ripe and crop_roots_ripe shatter too; they are staged by make_demo_crop_cards.py.
 	"environment": ["oak_mature", "beech_mature", "oak_sapling", "stump_mossy", "mossy_boulder", "rock_cluster",
-		"fallen_log", "grass_tuft", "mushroom_cluster", "reeds", "crop_grain_ripe", "crop_cabbage_ripe",
-		"crop_roots_ripe"],
+		"fallen_log", "grass_tuft", "mushroom_cluster", "reeds", "crop_cabbage_ripe"],
 	"prop": ["barrel", "crate", "log_stack", "handcart", "water_bucket", "sack_pile", "table_stools",
 		"wheelbarrow", "cauldron_tripod"],
 }
@@ -121,6 +124,15 @@ def stage_world(library: pathlib.Path, out: pathlib.Path) -> dict:
 	return rows
 
 
+def stage_crop_cards(library: pathlib.Path, out: pathlib.Path) -> dict:
+	"""The carded crops' rows, or none -- the demo then draws those beds as placeholders."""
+	try:
+		return make_demo_crop_cards.stage(library, out)
+	except RuntimeError as error:
+		print(f"stage_demo_assets: crop cards skipped, beds will be placeholders: {error}")
+		return {}
+
+
 def stage_cast(library: pathlib.Path, out: pathlib.Path) -> dict:
 	"""Copy each creature's grounded body, strip its clips, and measure its walk."""
 	rows = {}
@@ -156,6 +168,7 @@ def main() -> int:
 		manifest["cast"] = kept.get("cast", {})
 	if args.only in (None, "world"):
 		manifest["world"] = stage_world(args.library, args.out)
+		manifest["world"].update(stage_crop_cards(args.library, args.out))
 	if args.only in (None, "cast"):
 		manifest["cast"] = stage_cast(args.library, args.out)
 	args.out.mkdir(parents=True, exist_ok=True)

@@ -22,17 +22,22 @@ const Layout := preload("res://demo/world/world_layout.gd")
 const Sizes := preload("res://demo/world/world_sizes.gd")
 const Scatter := preload("res://demo/world/world_scatter.gd")
 const Look := preload("res://demo/world/world_look.gd")
+const CropCards := preload("res://demo/world/crop_cards.gd")
 
 const GROUND_Y: float = 0.0
 
 ## Ground cover is drawn as one MultiMesh per key rather than one node per tuft.
 const MULTIMESH_KEYS: Array[StringName] = [&"grass_tuft", &"mushroom_cluster"]
 
-## Hue corrections for generated textures that read wrong in the woodland palette, as a multiply on
-## a shared duplicate of the model's own material (the staged texture is untouched). Meshy
-## textured the ripe cabbages saturated cyan; this pulls them back to a leaf green.
+## Albedo corrections for staged textures, as a multiply on a shared duplicate of the model's own
+## material (the staged texture is untouched). Each is MEASURED, never chosen by eye.
+##   crop_cabbage_ripe: the savoy's blue-green is authored (its concept is blue-green) and is kept.
+##   The texture runs a little bluer and more saturated than its own concept: median leaf RGB
+##   (62, 109, 110) against the concept's (81, 123, 118). The ratio, normalised on green so
+##   brightness is unchanged, is (1.16, 1.0, 0.95): it moves the leaves' hue onto the concept's,
+##   and nothing further.
 const MATERIAL_TINT: Dictionary = {
-	&"crop_cabbage_ripe": Color(0.72, 0.9, 0.42),
+	&"crop_cabbage_ripe": Color(1.16, 1.0, 0.95),
 }
 
 const PLACEHOLDER_TREES: Array[StringName] = [&"oak_mature", &"beech_mature", &"oak_sapling"]
@@ -49,6 +54,7 @@ var _obstacles: Array[Vector3] = []
 var _points: Array[Dictionary] = []
 var _scenes: Dictionary = {}
 var _placeholder_meshes: Dictionary = {}
+var _card_textures: Dictionary = {}
 var _tinted_materials: Dictionary = {}
 ## Only what build() made; anything the integrator parents under this node survives a rebuild.
 var _built: Array[Node] = []
@@ -178,11 +184,46 @@ func _make_piece(world: Dictionary, p: Dictionary) -> Node3D:
 		piece = scene.instantiate() as Node3D
 		scale_factor = _staged_scale(world, key)
 		_apply_tint(piece, key)
+		_add_cards(world, key, piece)
 	else:
 		piece = _placeholder(key)
 		scale_factor = Sizes.native_scale(key)
 	piece.transform = _piece_transform(p, scale_factor * float(p["size"]))
 	return piece
+
+
+func _card_texture(path: String) -> Texture2D:
+	"""The staged card atlas, loaded once with mipmaps; null if it is missing or unreadable.
+
+	Read as an Image rather than through the importer so the mipmaps are always generated
+	(a PNG's import defaults depend on what the editor guessed it was for) and so a freshly
+	staged atlas works before the editor has imported it.
+	"""
+	if _card_textures.has(path):
+		return _card_textures[path]
+	var image := Image.load_from_file(ProjectSettings.globalize_path(path))
+	var texture: Texture2D = null
+	if image != null and not image.is_empty():
+		image.generate_mipmaps()
+		texture = ImageTexture.create_from_image(image)
+	else:
+		push_warning("demo world: card atlas %s did not load; the bed is drawn bare" % path)
+	_card_textures[path] = texture
+	return texture
+
+
+func _add_cards(world: Dictionary, key: StringName, piece: Node3D) -> void:
+	"""Plant a staged carded bed (make_demo_crop_cards.py) with its cards."""
+	var entry: Dictionary = world.get(String(key), {})
+	if not entry.has("cards") or not CropCards.has_layout(key):
+		return
+	var cards: Dictionary = entry["cards"]
+	var texture: Texture2D = _card_texture(cards["texture"])
+	var top_texture: Texture2D = null
+	if cards.has("tops"):
+		top_texture = _card_texture((cards["tops"] as Dictionary)["texture"])
+	if texture != null:
+		piece.add_child(CropCards.build(key, cards, texture, top_texture))
 
 
 func _tinted(source: Material, key: StringName) -> Material:

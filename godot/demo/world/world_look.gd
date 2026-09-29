@@ -148,7 +148,7 @@ static func _environment() -> Environment:
 	env.fog_aerial_perspective = 0.25
 	env.fog_sky_affect = 0.2
 	env.adjustment_enabled = true
-	env.adjustment_saturation = 1.1
+	env.adjustment_saturation = 1.0
 	env.adjustment_contrast = 1.04
 	return env
 

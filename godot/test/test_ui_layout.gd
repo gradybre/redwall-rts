@@ -29,7 +29,9 @@ const SPAN_ALERTS: Array[float] = [460.0, 820.0, 16.0, 120.0]
 const SPAN_TIME: Array[float] = [960.0, 1264.0, 16.0, 104.0]
 const SPAN_MINIMAP: Array[float] = [16.0, 224.0, 464.0, 704.0]
 const SPAN_DETAIL: Array[float] = [928.0, 1264.0, 128.0, 704.0]
-const SPAN_COMMANDS: Array[float] = [256.0, 896.0, 568.0, 704.0]
+## Decision 0199's one-row strip: the whole open-detail interval (672 < 912), and 68 tall with its
+## bottom where §1.2's 136-tall strip ended, 704.
+const SPAN_COMMANDS: Array[float] = [240.0, 912.0, 636.0, 704.0]
 
 ## §1.2's minimum tested logical width and the open-detail command width it states.
 const MINIMUM_LOGICAL_WIDTH: float = 853.33

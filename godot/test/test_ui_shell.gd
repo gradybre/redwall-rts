@@ -317,6 +317,33 @@ func test_an_empty_alert_stack_does_not_block_the_world() -> void:
 	assert_false(_shell.hit_test().world_receives(centre), "which then takes its own point")
 
 
+func test_the_pause_label_is_centred_in_the_alert_slot_when_no_alert_shows() -> void:
+	"""Decision 0200: with no alert card, UI-SET-086 takes the card's place at the top centre."""
+	_shell.set_pause_display(true, "PLAYER")
+	_shell.set_alert_display("")
+	assert_true(_shell.layout_for(1280, 720), "the layout computes")
+	var label: Control = _shell.control_for(UiShell.ID_PAUSE_LABEL)
+	var stack: Control = _shell.control_for(UiShell.ID_ALERT_STACK)
+	assert_false(stack.visible, "no alert is showing")
+	assert_almost_equal(label.position.x + label.size.x / 2.0, 640.0, "centred on the screen")
+	assert_almost_equal(label.position.y, stack.position.y, "in the alert card's slot")
+	assert_equal(label.horizontal_alignment, HORIZONTAL_ALIGNMENT_CENTER, "its text centred too")
+
+
+func test_the_pause_label_sits_under_a_showing_alert_card() -> void:
+	"""With a card up, the label moves below it -- still centred -- and back up when it goes."""
+	_shell.set_pause_display(true, "PLAYER")
+	assert_true(_shell.layout_for(1280, 720), "the layout computes")
+	_shell.set_alert_display("Mossflower stirs.")
+	var label: Control = _shell.control_for(UiShell.ID_PAUSE_LABEL)
+	var stack: Control = _shell.control_for(UiShell.ID_ALERT_STACK)
+	assert_true(stack.visible, "the alert is showing")
+	assert_almost_equal(label.position.y, stack.position.y + stack.size.y + 8.0, "just below the card")
+	assert_almost_equal(label.position.x + label.size.x / 2.0, 640.0, "and centred")
+	_shell.set_alert_display("")
+	assert_almost_equal(label.position.y, stack.position.y, "back in the slot once the card hides")
+
+
 func test_the_pause_label_has_no_hit_rectangle_when_the_world_is_running() -> void:
 	"""§4: UI-SET-086 is "not clickable; no empty hit rect"."""
 	_shell.set_pause_display(false, "")
@@ -600,6 +627,52 @@ func test_the_layer_toggle_refuses_when_no_snapshot_is_bound() -> void:
 
 
 # --- keyboard focus shows the description and the outline ---------------------------------------
+
+# --- decision 0199: the seven commands in one row -------------------------------------------------
+
+func _command_rects() -> Array[Rect2]:
+	"""The seven command buttons' rectangles inside the strip, in §4's order."""
+	var rects: Array[Rect2] = []
+	for id: int in UiShell.COMMAND_IDS:
+		var button: Control = _shell.control_for(id)
+		rects.append(Rect2(button.position, button.size) if button.visible else Rect2())
+	return rects
+
+
+func test_at_1920_the_seven_commands_are_one_row_of_full_cells() -> void:
+	"""1920x1080, detail closed: a 912 x 68 strip, seven 120 x 44 cells at x 12, 140 ... 780, y 12."""
+	assert_true(_shell.layout_for(1920, 1080), "the wide layout computes")
+	var strip: Control = _shell.control_for(UiShell.ID_COMMAND_STRIP)
+	assert_equal(strip.size, Vector2(912.0, 68.0), "the strip is one row")
+	assert_equal(strip.position.y + strip.size.y, 1064.0, "its bottom is 16 px above the screen's")
+	var rects: Array[Rect2] = _command_rects()
+	for index: int in rects.size():
+		assert_equal(rects[index], Rect2(12.0 + 128.0 * index, 12.0, 120.0, 44.0), "command %d" % index)
+
+
+func test_a_narrower_strip_shrinks_every_cell_evenly() -> void:
+	"""1280x720 with the detail panel open: the strip is 672 wide, so each cell is 600 / 7 px."""
+	_shell.set_detail_open(true)
+	assert_true(_shell.layout_for(1280, 720), "the standard layout computes")
+	var rects: Array[Rect2] = _command_rects()
+	for index: int in rects.size():
+		assert_almost_equal(rects[index].size.x, 85.714286, "command %d shares the width" % index)
+		assert_equal(rects[index].position.y, 12.0, "command %d is on the one row" % index)
+	assert_almost_equal(rects[6].end.x, 660.0, "the last cell ends at the padding")
+
+
+func test_when_even_the_smallest_cells_do_not_fit_the_excess_is_hidden() -> void:
+	"""1280 px at 150 percent (Lw 853.33), detail open: 309.33 wide, so 44 px cells fit five; Feast and Objectives go
+	to the quick menu rather than outside the strip."""
+	_shell.set_detail_open(true)
+	assert_true(_shell.apply_user_scale(150), "150 percent applies")
+	assert_true(_shell.layout_for(1280, 720), "Lw 853.33 computes")
+	var rects: Array[Rect2] = _command_rects()
+	for index: int in 5:
+		assert_equal(rects[index].size, Vector2(44.0, 44.0), "command %d at the minimum cell" % index)
+	assert_equal(rects[5], Rect2(), "Feast is hidden")
+	assert_equal(rects[6], Rect2(), "Objectives is hidden")
+
 
 func test_focusing_a_control_shows_its_description_and_the_gold_outline() -> void:
 	"""§2.2: tooltips appear at 0 ms on keyboard focus, and the outline follows the focus."""

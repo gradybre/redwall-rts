@@ -218,6 +218,8 @@ const SPEED_VALUES: Array[int] = [1, 2, 4]
 
 ## §1.2's interior spacing, used where §4 gives an element a size but no interior geometry.
 const ROW_GAP: float = 8.0
+## Float slack for "does this command cell still fit the strip": 1/64 px, far below a pixel.
+const COMMAND_FIT_SLACK: float = 0.015625
 ## §1.3's 32 px minimap header, which the layer and zoom controls sit in.
 const MAP_HEADER_BUTTON: float = 32.0
 ## §5.1's authored map, which UI-SET-021 draws and picks tiles out of.
@@ -960,6 +962,7 @@ func _build_alerts() -> void:
 	_build_history()
 	_build_error_panel()
 	var pause_label: Label = _new_label(ID_PAUSE_LABEL, "")
+	pause_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_zones[ID_PAUSE_LABEL] = pause_label
 	add_child(pause_label)
 
@@ -1133,6 +1136,7 @@ func _build_commands() -> void:
 	for index: int in COMMAND_IDS.size():
 		var id: int = COMMAND_IDS[index]
 		var button: Button = _new_button(id, COMMAND_LABELS[index])
+		button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		if id == ID_ZONE:
 			button.pressed.connect(_on_zone_tool_pressed)
 		elif id == ID_RESIDENTS:
@@ -1701,8 +1705,7 @@ func _place_zones() -> void:
 	_place(ID_ALERT_STACK, _geometry.alerts)
 	var below_alerts: Vector2 = _geometry.alerts.position \
 		+ Vector2(0.0, _geometry.alerts.size.y + ROW_GAP)
-	_place(ID_PAUSE_LABEL, Rect2(below_alerts,
-		_preferred_size(ID_PAUSE_LABEL, _geometry.alerts.size.x)))
+	_place_pause_label()
 	var below_pause: Vector2 = below_alerts \
 		+ Vector2(0.0, _minimum_size(ID_PAUSE_LABEL).y + ROW_GAP)
 	var error_rect: Rect2 = _fit_in_viewport(Rect2(below_pause, _error_panel_size()))
@@ -1738,7 +1741,7 @@ func _place_interiors() -> void:
 	_place_history_interior()
 	_place_error_interior()
 	_place_local(ID_MINIMAP_VIEW, UiLayout.minimap_content_rect(_geometry.profile))
-	_wrap_children(ID_COMMAND_STRIP, COMMAND_IDS, _geometry.commands.size)
+	_row_commands(_geometry.commands.size)
 	_place_detail_interior()
 	_flow_workspace()
 	_wrap_children(ID_ZONE_BRUSH, [ID_STEPPER, ID_CONFIRM, ID_CANCEL],
@@ -2128,6 +2131,25 @@ func _place_history_interior() -> void:
 	_set_rect(_history_scroll, Rect2(PANEL_PADDING, top,
 		panel.size.x - 2.0 * PANEL_PADDING, panel.size.y - top - PANEL_PADDING))
 	_history_body.custom_minimum_size = Vector2(_history_scroll.size.x, 0.0)
+
+
+func _row_commands(owner_size: Vector2) -> void:
+	"""Decision 0199: the seven commands in ONE row, sharing the strip's width evenly.
+
+	Each cell is (interior - gaps) / 7, clamped to 44..120 (decision 0199), and the row is
+	centred when the strip is wider than it. When even 44 px cells do not fit, a command that would
+	cross the right edge is hidden: §1.2's "excess commands live in the context quick menu, not
+	outside the viewport"."""
+	var interior: float = owner_size.x - 2.0 * PANEL_PADDING
+	var count: int = COMMAND_IDS.size()
+	var cell: float = clampf((interior - float(count - 1) * ROW_GAP) / float(count),
+		UiLayout.COMMAND_CELL_MIN, UiLayout.COMMAND_CELL_MAX)
+	var x: float = PANEL_PADDING + maxf(0.0, (interior - float(count) * cell - float(count - 1) * ROW_GAP) / 2.0)
+	for id: int in COMMAND_IDS:
+		var child: Control = _controls[id]
+		child.visible = x + cell <= owner_size.x - PANEL_PADDING + COMMAND_FIT_SLACK
+		_set_rect(child, Rect2(Vector2(x, PANEL_PADDING), Vector2(cell, UiLayout.COMMAND_CELL_MIN)))
+		x += cell + ROW_GAP
 
 
 func _wrap_children(owner_id: int, children: Array, owner_size: Vector2) -> void:
@@ -2605,6 +2627,17 @@ func set_speed_selected(speed: int) -> void:
 		toggle.button_pressed = SPEED_VALUES[index] == speed
 
 
+func _place_pause_label() -> void:
+	"""UI-SET-086, "TC, below time/alerts": centred on the alert column, which is the screen's own
+	centre line, and directly under the alert card when one is showing -- in the card's place when
+	none is, rather than hanging a card's height below an empty zone (decision 0200)."""
+	var size: Vector2 = _preferred_size(ID_PAUSE_LABEL, _geometry.alerts.size.x)
+	var top: float = _geometry.alerts.position.y
+	if (_controls[ID_ALERT_STACK] as Control).visible:
+		top += _geometry.alerts.size.y + ROW_GAP
+	_place(ID_PAUSE_LABEL, Rect2(Vector2(_geometry.alerts.get_center().x - size.x / 2.0, top), size))
+
+
 func set_pause_display(paused: bool, reasons: String) -> void:
 	"""UI-SET-014's selected state and UI-SET-086's pause label, from the clock's own reasons."""
 	var pause: Button = _controls[ID_PAUSE] as Button
@@ -2750,6 +2783,7 @@ func _show_alert_card(shown: bool) -> void:
 	"""
 	(_controls[ID_ALERT_STACK] as Control).visible = shown
 	_alert_cards[0].visible = shown
+	_place_pause_label()
 	if not shown:
 		for instance: int in ALERT_CARD_INSTANCES:
 			_alert_cards[instance].visible = false

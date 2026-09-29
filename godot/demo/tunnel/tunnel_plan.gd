@@ -4,8 +4,9 @@ extends RefCounted
 ##
 ## The first point is the entrance, each further one a bend, and the last the exit. A point is
 ## checked as it is laid (tunnel_rules.validate_point: the limit, the bounds, the entrance's
-## clearance) and refused outright if it fails; the whole route is checked again on confirming
-## (validate_route: the exit's clearance and the length too). Points are integer u.
+## clearance; and here, its gap from the last point and whether the new leg runs under a building)
+## and refused outright if it fails; the whole route is checked again on confirming (validate_route:
+## the exit's clearance and the length too). Points are integer u.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 
@@ -24,13 +25,19 @@ func clear() -> void:
 	count = 0
 
 
-func try_add(x_u: int, z_u: int, bounds_u: Rect2i, circles_u: PackedInt32Array) -> int:
-	"""Lay the next point, or refuse it: returns REFUSE_NONE when it was added, else the reason."""
-	var reason := Rules.validate_point(x_u, z_u, count, bounds_u, circles_u)
+func try_add(x_u: int, z_u: int, bounds_u: Rect2i, circles_u: PackedInt32Array,
+		spots_u: PackedInt32Array = PackedInt32Array(), under_u: PackedInt32Array = PackedInt32Array()) -> int:
+	"""Lay the next point, or refuse it: returns REFUSE_NONE when it was added, else the reason. The
+	point is written in place first and only counted once every check passes."""
+	var reason := Rules.validate_point(x_u, z_u, count, bounds_u, circles_u, spots_u)
 	if reason != Rules.REFUSE_NONE:
 		return reason
 	points_u[2 * count] = x_u
 	points_u[2 * count + 1] = z_u
+	if count > 0 and Rules.points_too_close(points_u, count):
+		return Rules.REFUSE_REPEATED_POINT
+	if count > 0 and Rules.leg_under(points_u, count, under_u):
+		return Rules.REFUSE_UNDER_BUILDING
 	count += 1
 	return Rules.REFUSE_NONE
 
@@ -43,9 +50,10 @@ func undo() -> bool:
 	return true
 
 
-func route_reason(bounds_u: Rect2i, circles_u: PackedInt32Array) -> int:
+func route_reason(bounds_u: Rect2i, circles_u: PackedInt32Array, spots_u: PackedInt32Array = PackedInt32Array(),
+		under_u: PackedInt32Array = PackedInt32Array()) -> int:
 	"""REFUSE_NONE when the route as laid may be dug, else why not."""
-	return Rules.validate_route(points_u, count, bounds_u, circles_u)
+	return Rules.validate_route(points_u, count, bounds_u, circles_u, spots_u, under_u)
 
 
 func length_u() -> int:
@@ -68,6 +76,12 @@ func point_m(k: int) -> Vector2:
 
 
 static func length_text(length_u_value: int) -> String:
-	"""A length in u as the panel shows it: metres to one decimal, e.g. "12.4 m"."""
+	"""A length in u as the panel shows it: metres to one decimal, e.g. "12.4 m". Rounded to the
+	nearest tenth -- except that a length the limits refuse is rounded AWAY from the limit, so a
+	refused 1.99 m never reads "2.0 m" and a refused 64.04 m never reads "64.0 m"."""
 	var tenths := (length_u_value * 10 + Rules.UNITS_PER_M / 2) / Rules.UNITS_PER_M
+	if length_u_value < Rules.MIN_LENGTH_U:
+		tenths = length_u_value * 10 / Rules.UNITS_PER_M
+	elif length_u_value > Rules.MAX_LENGTH_U:
+		tenths = Rules.ceil_div(length_u_value * 10, Rules.UNITS_PER_M)
 	return "%d.%d m" % [tenths / 10, tenths % 10]

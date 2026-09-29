@@ -39,8 +39,17 @@ extends RefCounted
 ## entered is always finished (MOVE-REQ-007): an order given underground is carried out from the
 ## mouth it comes up at. `order_dig()` walks a mole to a tunnel's entrance and DIGs: the tunnel's
 ## own integer clock advances while it works (tunnel_network.gd), and the mole follows the dig face
-## underground and comes up at the exit when it opens, holding there. Called away while digging, it
-## leaves the tunnel paused and backs out through what it dug to the entrance first.
+## underground and comes up at the exit when it opens, stepping clear of the hole -- the first of
+## STEP_OUT_TURNS that stays inside the village and clear of obstacles, holes and residents -- and
+## holding there. Called away while digging, it leaves the tunnel paused and backs out through what
+## it dug to the entrance first. A mole that cannot REACH the entrance leaves the tunnel paused as a
+## plan (tunnel_network.hold_unreached), never deleted.
+##
+## SHARING A BORE. Inside a tunnel a walker keeps BORE_GAP_M behind anyone ahead going its way
+## (following, never overlapping), and steps PASS_OFFSET_M to its right while someone comes the
+## other way within PASS_WINDOW_M -- two walkers pass side by side inside the one-metre bore. At the
+## far mouth it waits below while someone on the surface stands on the hole, for at most
+## EMERGE_WAIT_S, rather than coming up into them.
 ##
 ## Yaw 0 faces +Z, the way the models face: forward is Vector2(sin(yaw), cos(yaw)) in (x, z).
 ## Deterministic: every random choice comes from this resident's own seeded generator.
@@ -75,6 +84,15 @@ const DIG_CLIPS: Array[StringName] = [&"pull_radish", &"collect_object"]
 ## ground there keeps this much clear of every obstacle beyond its body.
 const STEP_OUT_M: float = 1.0
 const STEP_OUT_CLEAR_M: float = 0.12
+## The step-out directions tried in order, as turns (radians) from straight on out of the exit.
+const STEP_OUT_TURNS: Array[float] = [0.0, 0.785398, -0.785398, 1.570796, -1.570796, 2.356194, -2.356194]
+## Sharing a bore (see SHARING A BORE); demo values.
+const BORE_GAP_M: float = 0.15
+const PASS_OFFSET_M: float = 0.25
+const PASS_WINDOW_M: float = 1.6
+const SIDE_STEP_M_S: float = 0.6
+const EMERGE_WAIT_S: float = 6.0
+const EMERGE_CLEAR_M: float = 0.05
 
 const WALK_TURN_RATE: float = 1.75          ## rad/s while walking (~100 deg/s)
 const SPOT_TURN_RATE: float = 3.2           ## rad/s turning on the spot (~185 deg/s)
@@ -180,6 +198,10 @@ var _travel_forward: bool = true
 var _travel_to_face: bool = false
 ## Released while underground: idle once up, rather than going on.
 var _idle_on_surface: bool = false
+## Inside a bore: how far it has stepped to its right to let someone pass, and how long it has waited
+## at the far mouth for the hole to clear.
+var _side_m: float = 0.0
+var _emerge_waited: float = 0.0
 
 
 func configure(space: CastSpaceScript, speed_m_s: float, body_radius: float, seed: int, clip_lengths: Dictionary) -> void:
@@ -611,8 +633,9 @@ func _replan_or_abandon() -> void:
 
 func _abandon_trip() -> void:
 	"""Give the slot back and stand a moment before choosing somewhere else -- or, under an order,
-	hold right here. A dig it was walking to is given up."""
-	_leave_dig()
+	hold right here. A dig it could not walk to is left paused as a plan (tunnel_network
+	.hold_unreached), never deleted."""
+	_leave_dig(true)
 	_space.release(poi, slot)
 	poi = -1
 	slot = -1
@@ -666,8 +689,7 @@ func release() -> void:
 	order = ORDER_NONE
 	_leave_dig()
 	if underground:
-		_idle_on_surface = true
-		_finish_tunnel_then_stop()
+		_release_underground(was_move)
 		return
 	if was_move or poi < 0:
 		release_slot()
@@ -679,9 +701,24 @@ func release() -> void:
 		_trip_s = 0.0
 
 
+func _release_underground(was_move: bool) -> void:
+	"""Released inside a tunnel. From a move (or with no POI) it comes up at the far mouth and idles
+	there; from a work order it keeps its slot and carries on to the POI, as on the surface, and
+	works the bout in hand."""
+	if was_move or poi < 0:
+		release_slot()
+		_idle_on_surface = true
+		_finish_tunnel_then_stop()
+		return
+	_bouts_left = mini(_bouts_left, 1)
+	_trip_s = 0.0
+
+
 func _start_ordered_trip(goal: Vector2) -> void:
 	"""Plan to `goal` and set off (turning first); an order never carries. Underground, it finishes
-	the tunnel first and plans from the mouth it comes up at."""
+	the tunnel first and plans from the mouth it comes up at. A new order overrides an earlier
+	release's idling on the surface."""
+	_idle_on_surface = false
 	carrying = false
 	_bouts_left = 0
 	_goal = goal
@@ -779,6 +816,8 @@ func _start_travel(slot_index: int, from_m: float, to_m: float) -> void:
 	_travel_m = from_m
 	_travel_end_m = to_m
 	_travel_forward = to_m >= from_m
+	_side_m = 0.0
+	_emerge_waited = 0.0
 	state = State.TUNNEL
 	_set_underground(true)
 	_set_clip(CLIP_WALK, 1.0)
@@ -786,21 +825,40 @@ func _start_travel(slot_index: int, from_m: float, to_m: float) -> void:
 
 
 func _step_tunnel(delta: float) -> void:
-	"""Walk on along the tunnel at walk speed; at the end, come up (or reach the dig face)."""
-	_travel_m = move_toward(_travel_m, _travel_end_m, walk_speed * delta)
+	"""Walk on along the tunnel at walk speed, keeping its distance from anyone ahead and stepping
+	aside for anyone coming (see SHARING A BORE); at the end, come up once the hole is clear (or reach
+	the dig face)."""
+	var step := minf(walk_speed * delta, _space.room_ahead(index, BORE_GAP_M))
+	_travel_m = move_toward(_travel_m, _travel_end_m, step)
+	var side_target := PASS_OFFSET_M if _space.oncoming(index, PASS_WINDOW_M) else 0.0
+	_side_m = move_toward(_side_m, side_target, SIDE_STEP_M_S * delta)
 	_place_in_tunnel()
-	if _travel_m == _travel_end_m:
-		_end_travel()
+	if _travel_m != _travel_end_m:
+		return
+	if not _travel_to_face and _emerge_blocked():
+		_emerge_waited += delta
+		return
+	_end_travel()
+
+
+func _emerge_blocked() -> bool:
+	"""Whether someone on the surface stands on the mouth this walk comes up at, and the wait for them
+	(EMERGE_WAIT_S) is not yet over."""
+	return _emerge_waited < EMERGE_WAIT_S \
+			and _space.surface_occupied(index, _space.tunnels.point_at(_travel_slot, _travel_end_m), EMERGE_CLEAR_M)
 
 
 func _place_in_tunnel() -> void:
-	"""Stand on the bore floor at the current distance along the tunnel, facing the way it walks."""
+	"""Stand on the bore floor at the current distance along the tunnel, facing the way it walks,
+	stepped `_side_m` to its right; and record its place in the bore."""
 	var tunnels := _space.tunnels
-	position = tunnels.point_at(_travel_slot, _travel_m)
 	var ahead := tunnels.direction_at(_travel_slot, _travel_m)
-	yaw = yaw_of(ahead if _travel_forward else -ahead)
+	var facing := ahead if _travel_forward else -ahead
+	position = tunnels.point_at(_travel_slot, _travel_m) + Vector2(-facing.y, facing.x) * _side_m
+	yaw = yaw_of(facing)
 	ground_y_m = tunnels.floor_y_at(_travel_slot, _travel_m)
 	_space.move_resident(index, position)
+	_space.set_in_bore(index, _travel_slot, _travel_m, 1 if _travel_forward else -1)
 
 
 func _end_travel() -> void:
@@ -908,13 +966,26 @@ func _finish_dig() -> void:
 	_forget_dig()
 	_set_underground(false)
 	_space.move_resident(index, position)
-	var clear := position + outward * STEP_OUT_M
-	if _space.obstacle_clearance(clear) >= radius + STEP_OUT_CLEAR_M:
-		order_move(clear)
-		return
+	for turn in STEP_OUT_TURNS:
+		var clear := position + outward.rotated(turn) * STEP_OUT_M
+		if step_out_ok(clear):
+			order_move(clear)
+			return
 	order = ORDER_MOVE
 	_faces_on_hold = false
 	_enter_hold()
+
+
+func step_out_ok(at: Vector2) -> bool:
+	"""Whether a mole up out of an exit may step to `at`: inside the village by its radius, clear of
+	every obstacle by STEP_OUT_CLEAR_M, off every tunnel's hole and nobody standing there."""
+	if not _space.bounds.grow(-radius).has_point(at):
+		return false
+	if _space.obstacle_clearance(at) < radius + STEP_OUT_CLEAR_M:
+		return false
+	if _space.on_mouth(at, radius):
+		return false
+	return not _space.surface_occupied(index, at, STEP_OUT_CLEAR_M)
 
 
 func _forget_dig() -> void:
@@ -923,13 +994,17 @@ func _forget_dig() -> void:
 	dig_generation = 0
 
 
-func _leave_dig() -> void:
+func _leave_dig(unreached: bool = false) -> void:
 	"""Stop digging, if it was: the tunnel is paused with its progress (or dropped, if nothing was
-	dug). Underground, the mole backs out through what it dug to the entrance."""
+	dug) -- or, `unreached`, kept paused as it stands. Underground, the mole backs out through what
+	it dug to the entrance."""
 	if dig_tunnel < 0:
 		return
 	var slot_index := dig_tunnel
-	_space.tunnels.stop_digging(slot_index, dig_generation)
+	if unreached:
+		_space.tunnels.hold_unreached(slot_index, dig_generation)
+	else:
+		_space.tunnels.stop_digging(slot_index, dig_generation)
 	_forget_dig()
 	if state == State.DIG and underground:
 		_back_out(slot_index, _space.tunnels.face_m(slot_index))

@@ -20,6 +20,17 @@ godot --path godot demo/demo_village.tscn
 
 Without staging it still runs, on placeholder shapes.
 
+## Time
+
+The demo opens running: `Game` starts the real clock and UIManager holds UI-SET-103's opening
+inspection pause, which the demo releases once as it opens. From then on the HUD's pause and
+1x / 2x / 4x buttons (and Space) are the game's own, and the whole village follows them through one
+presentation clock (`demo_clock.gd`): residents' walking, turning and work, digging and walking
+tunnels, the mound over a digger and every resident's clip. Paused, everyone holds their pose;
+at 2x and 4x they move and dig two and four times as fast. The camera, the HUD, the demo party
+panel and the selection and order marks stay on real time, so the player can still select, order
+and dig while paused -- the orders are carried out on resume.
+
 ## Commanding the residents
 
 | Input | Does |
@@ -31,7 +42,7 @@ Without staging it still runs, on placeholder shapes.
 | Right click a work spot | Work there; anyone beyond its free slots holds behind it |
 | R | Release the selection back to its own routine |
 | Esc | Clear the selection |
-| T (or "Dig tunnel") | With the mole selected: lay out a tunnel (below) |
+| T (or "Dig tunnel") | With the mole selected: lay out a tunnel (below); again: cancel it |
 | U | Underground view: the surface fades, tunnels show as lit bores with anyone inside |
 
 The "Demo party" panel in the HUD's left column lists the selection. Orders move the demo cast
@@ -41,16 +52,29 @@ only, never the simulation.
 
 Select the mole and press T (or its panel's "Dig tunnel" button). Left-click where the entrance
 opens, click again for each bend, and the last click is the exit; the route and its length follow
-the pointer. Enter or right-click digs it, Backspace takes back the last point, Esc cancels. A
-point off the map, or an entrance or exit inside a building, is refused with a clay marker and the
-reason in the panel. Only moles dig; T with no mole selected says so.
+the pointer, drawn over roofs so it stays readable. Enter or right-click digs it, Backspace takes
+back the last point, Esc (or T, or the button again) cancels. Refused, with a clay marker and the
+reason in the panel: a point off the map or on top of the last one; an entrance or exit inside an
+obstacle or heap, on a work spot or on another tunnel's mouth; a leg passing under a building or the
+well (bores may pass under trees, props, crops and fences); an entrance someone is standing on, or
+one the mole cannot walk to. Only moles dig; T with no mole selected says so.
 
 The mole walks to the entrance, digs its shaft (the `pull_radish` clip), then goes underground:
-a mound of earth moves along the route, the route fills in, and spoil heaps grow by the entrance
-and, when it breaks through, the exit. The panel reads "Digging tunnel — 43%". Called away, the
-mole backs out and the tunnel waits; right-click its entrance with the mole selected to resume.
+a mound of earth moves along the route (click it to select the mole), the route fills in, and spoil
+heaps grow by the entrance and, when it breaks through, the exit. The heaps are placed when the dig
+is accepted -- off work spots, obstacles and holes -- and are obstacles from then on; the grass is
+cleared from the holes, heaps and route. The panel reads "Digging tunnel — 43%". Called away, the
+mole backs out and the tunnel waits, marked with a clay ring and "Tunnel paused at N%"; right-click
+its entrance with the mole selected to resume it (on the tunnel it is digging, a right-click
+changes nothing; on another paused one, it pauses this one and goes there). A mole that cannot
+reach the entrance leaves the tunnel paused at 0%, and says so. Coming up, the mole steps clear of
+the exit, inside the village, off every hole and resident.
+
 A finished tunnel stays. Mice, moles and squirrels fit its bore and use it whenever it is
-genuinely the shorter way ("Using tunnel"); otters and the badger walk round.
+genuinely the shorter way ("Using tunnel") and nobody is standing on its mouths; otters and the
+badger walk round. Inside, walkers keep their distance behind anyone going their way and step
+aside to pass anyone coming the other way; at the far mouth they wait below (at most 6 s) while
+someone stands on the hole.
 
 Digging runs at the adopted excavation rate (113 ticks and 2 U of spoil per cubic metre,
 `docs/underground_economy_hazard_amendment.md`); the bore size, the stoop that lets a squirrel
@@ -66,6 +90,7 @@ from the high-poly sources. Re-run it alone after changing it:
 | Folder | Owns |
 |---|---|
 | `demo_manifest.gd` | Reads the staged manifest |
+| `demo_clock.gd` | The presentation clock that follows the HUD's pause and speed |
 | `world/` | Terrain, lighting, village layout, points of interest |
 | `cast/` | The residents: body, clips, live tail, job routines, orders |
 | `control/` | Selecting and ordering residents, and the demo party panel |

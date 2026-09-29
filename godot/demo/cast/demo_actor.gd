@@ -22,6 +22,10 @@ extends Node3D
 ## it shows there and residents still on the surface fade to SURFACE_FADE instead. The tail's floor
 ## follows the ground it stands on.
 ##
+## TIME. The cast steps each actor with the demo clock (demo_clock.gd): the brain by the frame's demo
+## time, in sub-steps, and the AnimationPlayer at the clip's speed times the game's -- so a paused
+## game holds every resident in its pose rather than walking in place, and 2x / 4x play faster.
+##
 ## FACING. The models face +Z, so the node's yaw is the brain's yaw: local +Z points along travel.
 ## With no staged cast (CI, a fresh clone), a capsule with a nose stands in, with the same brain.
 
@@ -29,6 +33,7 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const TailRigScript := preload("res://scripts/presentation/tail_rig.gd")
 const ClipRootMotionScript := preload("res://scripts/presentation/clip_root_motion.gd")
+const DemoClockScript := preload("res://demo/demo_clock.gd")
 
 const CROSSFADE_S: float = 0.25
 const LIBRARY: StringName = &"cast"
@@ -157,7 +162,7 @@ func place(at: Vector2, face_yaw: float, poi: int, slot: int) -> void:
 	"""Stand at `at` (x, z) facing `face_yaw`, holding a POI slot (or -1, -1)."""
 	brain.start_at(at, face_yaw, poi, slot)
 	_apply_transform()
-	_apply_clip()
+	_apply_clip(1)
 
 
 func _ready() -> void:
@@ -165,13 +170,15 @@ func _ready() -> void:
 	_attach_tail()
 
 
-func _process(delta: float) -> void:
-	"""Advance the brain and draw where it says."""
+func advance(clock: DemoClockScript) -> void:
+	"""Step the brain through this frame's demo time (none while paused) and draw where it says, the
+	clip playing at the game's speed (see TIME)."""
 	if brain == null:
 		return
-	brain.step(delta)
+	for k in clock.steps():
+		brain.step(clock.step_s(k))
 	_apply_transform()
-	_apply_clip()
+	_apply_clip(clock.speed)
 
 
 func _apply_transform() -> void:
@@ -205,11 +212,12 @@ func _apply_view() -> void:
 		(node as GeometryInstance3D).transparency = fade
 
 
-func _apply_clip() -> void:
-	"""Crossfade to the brain's clip when it changes; follow its playback speed every frame."""
+func _apply_clip(game_speed: int) -> void:
+	"""Crossfade to the brain's clip when it changes; follow its playback speed times the game's every
+	frame (0 while paused: a frozen pose)."""
 	if _player == null:
 		return
-	_player.speed_scale = brain.clip_speed
+	_player.speed_scale = brain.clip_speed * float(game_speed)
 	if brain.clip == _playing:
 		return
 	_playing = brain.clip

@@ -6,10 +6,13 @@ extends RefCounted
 ## A FORMATION IS A SPIRAL OF CANDIDATE SPOTS. The clicked point first, then rings of 6k spots at
 ## k spacings, where the spacing lets the widest body in the group stand beside any other with a
 ## gap. A spot is taken when it is inside the bounds, clear of every obstacle by the body and a
-## margin, clear of every resident standing there already, a spacing from every spot taken, and
-## REACHABLE -- the planner finds a route to it. So a click inside a building or off the map snaps
+## margin, clear of every resident standing there already and every tunnel mouth (nobody is sent
+## to stand in a hole), a spacing from every spot taken, and REACHABLE -- the planner finds a route to it. So a click inside a building or off the map snaps
 ## to the nearest spots that satisfy all of that; a click with none within FORMATION_MAX_M is
 ## refused. Residents are then matched to spots greedily, nearest pair first, so few paths cross.
+##
+## Distances are measured from where each resident STANDS ON THE SURFACE -- for one in a tunnel,
+## the mouth it will come up at (resident_brain.surface_point) -- never from its place underground.
 ##
 ## A WORK ORDER uses the POI's own free slots, nearest resident first; anyone beyond them holds in
 ## a formation behind the POI (away from what it faces). Every order goes through the brain, which
@@ -110,8 +113,9 @@ static func poi_at(space: CastSpaceScript, point: Vector2) -> int:
 
 
 static func standing_except(space: CastSpaceScript, members: Array[BrainScript]) -> PackedVector3Array:
-	"""Circles (x, radius, z) of every resident standing still who is not one of `members`."""
-	var out := PackedVector3Array()
+	"""Circles (x, radius, z) of every resident standing still who is not one of `members`, and of every
+	tunnel mouth."""
+	var out := space.mouth_circles()
 	for j in space.resident_position.size():
 		if space.resident_walking[j] == 0 and space.resident_underground[j] == 0 and not _has_index(members, j):
 			out.append(Vector3(space.resident_position[j].x, space.resident_radius[j], space.resident_position[j].y))
@@ -175,14 +179,15 @@ static func order_work(space: CastSpaceScript, members: Array[BrainScript], poi:
 		var behind := space.poi_position[poi] - space.poi_face[poi] * OVERFLOW_BACK_M
 		if order_move(space, overflow, behind, bounds, space.poi_position[poi]).is_empty():
 			for brain in overflow:
-				brain.order_move(brain.position, space.poi_position[poi])
+				brain.order_move(brain.surface_point(), space.poi_position[poi])
 	return placed
 
 
 static func _nearest_first(members: Array[BrainScript], to: Vector2) -> Array[BrainScript]:
 	"""`members` sorted by distance to `to`, nearest first."""
 	var out: Array[BrainScript] = members.duplicate()
-	out.sort_custom(func(a: BrainScript, b: BrainScript) -> bool: return a.position.distance_to(to) < b.position.distance_to(to))
+	out.sort_custom(func(a: BrainScript, b: BrainScript) -> bool:
+		return a.surface_point().distance_to(to) < b.surface_point().distance_to(to))
 	return out
 
 

@@ -25,7 +25,12 @@ extends RefCounted
 ##   * STOOP: a body may lower itself to STOOP_PERMILLE of its standing height in a bore. Fit is
 ##     2 * radius <= bore width AND ceil(height * stoop) <= bore height (MOVE-REQ-005 names the
 ##     failed condition). That admits mice, moles and squirrels and refuses otters and badgers.
-##   * Route limits (points, length, the hole's clearance) and who digs (moles).
+##   * Route limits (points, length, the hole's clearance, the gap between points) and who digs
+##     (moles).
+##   * A bore passes under open ground, trees and props, but never under a building or the well:
+##     no leg may come within half a bore of a building's footprint circles (UNDER BUILDINGS).
+##   * A mouth keeps SPOT_CLEAR_U clear of every work spot and every other tunnel's mouth, so no one
+##     is sent to stand in a hole and no two holes overlap.
 
 const UNITS_PER_M: int = 1024
 const TICKS_PER_SECOND: int = 30
@@ -48,6 +53,8 @@ const SHAFT_QUANTA: int = 1
 const STOOP_PERMILLE: int = 850
 ## A mouth must not cut into an obstacle: its centre stays half a bore clear of every circle.
 const MOUTH_CLEAR_U: int = BORE_WIDTH_U / 2
+## Two consecutive points closer than this would make a leg with no direction.
+const MIN_POINT_GAP_U: int = 256
 const MIN_LENGTH_U: int = 2 * QUANTUM_U
 const MAX_LENGTH_U: int = 64 * QUANTUM_U
 ## Entrance, up to six bends, exit.
@@ -57,6 +64,9 @@ const DIGGER_SPECIES: String = "mole"
 ## Presentation only: how deep the bore's floor runs, and how long each end's ramp is.
 const BORE_FLOOR_DEPTH_M: float = 1.25
 const SHAFT_RAMP_M: float = 1.5
+## Presentation: a mouth's hole and the earthen rim round it (the rim reaches RIM_FACTOR further).
+const HOLE_RADIUS_M: float = 0.42
+const RIM_FACTOR: float = 1.45
 
 const STAGE_ENTRANCE: int = 0
 const STAGE_BORE: int = 1
@@ -79,6 +89,10 @@ const REFUSE_NO_ROOM: int = 8
 const REFUSE_UNREACHABLE: int = 9
 const REFUSE_NOT_A_DIGGER: int = 10
 const REFUSE_BUSY: int = 11
+const REFUSE_REPEATED_POINT: int = 12
+const REFUSE_UNDER_BUILDING: int = 13
+const REFUSE_ENTRANCE_OCCUPIED: int = 14
+const REFUSE_ON_SPOT: int = 15
 const REASONS: Array[String] = [
 	"",
 	"a tunnel needs an entrance and an exit",
@@ -92,6 +106,10 @@ const REASONS: Array[String] = [
 	"the mole cannot reach that entrance",
 	"only a mole can dig tunnels -- select the mole",
 	"the mole is already digging a tunnel",
+	"each point must be at least 0.25 m from the one before",
+	"a tunnel cannot pass under a building or the well",
+	"someone is standing on that entrance",
+	"a mouth would open on a work spot or another tunnel's mouth",
 ]
 
 
@@ -127,13 +145,33 @@ static func ceil_div(a: int, b: int) -> int:
 	return (a + b - 1) / b
 
 
+static func isqrt_ceil(n: int) -> int:
+	"""The exact ceiling square root of a non-negative integer."""
+	var x := isqrt(n)
+	return x if x * x == n else x + 1
+
+
+static func leg_squared_u(points_u: PackedInt32Array, k: int) -> int:
+	"""The squared length in u^2 of the leg ending at point `k` (k >= 1)."""
+	var dx := points_u[2 * k] - points_u[2 * k - 2]
+	var dz := points_u[2 * k + 1] - points_u[2 * k - 1]
+	return dx * dx + dz * dz
+
+
 static func route_length_u(points_u: PackedInt32Array, count: int) -> int:
 	"""The route's length in u: the sum of each leg's floored integer length. Points are (x, z) pairs."""
 	var total := 0
 	for k in range(1, count):
-		var dx := points_u[2 * k] - points_u[2 * k - 2]
-		var dz := points_u[2 * k + 1] - points_u[2 * k - 1]
-		total += isqrt(dx * dx + dz * dz)
+		total += isqrt(leg_squared_u(points_u, k))
+	return total
+
+
+static func route_cost_u(points_u: PackedInt32Array, count: int) -> int:
+	"""What walking the route costs a planner, in u: each leg's length rounded UP, so a tunnel is never
+	costed below its true length and can never undercut an equally long walk by a floored sliver."""
+	var total := 0
+	for k in range(1, count):
+		total += isqrt_ceil(leg_squared_u(points_u, k))
 	return total
 
 
@@ -248,21 +286,32 @@ static func in_bounds(x_u: int, z_u: int, bounds_u: Rect2i) -> bool:
 			and z_u - half >= bounds_u.position.y and z_u + half <= bounds_u.end.y
 
 
-static func validate_point(x_u: int, z_u: int, index: int, bounds_u: Rect2i, circles_u: PackedInt32Array) -> int:
+static func validate_point(x_u: int, z_u: int, index: int, bounds_u: Rect2i, circles_u: PackedInt32Array,
+		spots_u: PackedInt32Array = PackedInt32Array()) -> int:
 	"""REFUSE_NONE, or why a route cannot take this as its point `index` (checked as it is laid):
-	past the point limit, outside the bounds, or -- for the entrance -- inside an obstacle."""
+	past the point limit, outside the bounds, or -- for the entrance -- inside an obstacle or on a
+	spot (x, radius, z triples kept clear like obstacles; see the header)."""
 	if index >= MAX_POINTS:
 		return REFUSE_TOO_MANY_POINTS
 	if not in_bounds(x_u, z_u, bounds_u):
 		return REFUSE_OUT_OF_BOUNDS
 	if index == 0 and mouth_blocked(x_u, z_u, circles_u):
 		return REFUSE_ENTRANCE_BLOCKED
+	if index == 0 and mouth_blocked(x_u, z_u, spots_u):
+		return REFUSE_ON_SPOT
 	return REFUSE_NONE
 
 
-static func validate_route(points_u: PackedInt32Array, count: int, bounds_u: Rect2i, circles_u: PackedInt32Array) -> int:
+static func points_too_close(points_u: PackedInt32Array, k: int) -> bool:
+	"""Whether point `k` (k >= 1) lies closer than MIN_POINT_GAP_U to point k - 1."""
+	return leg_squared_u(points_u, k) < MIN_POINT_GAP_U * MIN_POINT_GAP_U
+
+
+static func validate_route(points_u: PackedInt32Array, count: int, bounds_u: Rect2i, circles_u: PackedInt32Array,
+		spots_u: PackedInt32Array = PackedInt32Array(), under_u: PackedInt32Array = PackedInt32Array()) -> int:
 	"""REFUSE_NONE, or the first reason the whole route is refused: its point count, a point outside
-	the bounds, a mouth inside an obstacle, or its length. Bends may pass under anything."""
+	the bounds or on top of the last, a mouth inside an obstacle or on a spot, a leg under a
+	building (`under_u`), or its length. Bends may pass under anything else."""
 	if count < 2:
 		return REFUSE_TOO_FEW_POINTS
 	if count > MAX_POINTS:
@@ -270,16 +319,63 @@ static func validate_route(points_u: PackedInt32Array, count: int, bounds_u: Rec
 	for k in count:
 		if not in_bounds(points_u[2 * k], points_u[2 * k + 1], bounds_u):
 			return REFUSE_OUT_OF_BOUNDS
+		if k > 0 and points_too_close(points_u, k):
+			return REFUSE_REPEATED_POINT
+	var mouths := _mouth_reason(points_u, count, circles_u, spots_u)
+	if mouths != REFUSE_NONE:
+		return mouths
+	for k in range(1, count):
+		if leg_under(points_u, k, under_u):
+			return REFUSE_UNDER_BUILDING
+	return _length_reason(route_length_u(points_u, count))
+
+
+static func _mouth_reason(points_u: PackedInt32Array, count: int, circles_u: PackedInt32Array,
+		spots_u: PackedInt32Array) -> int:
+	"""REFUSE_NONE, or why the entrance or exit may not open where it is."""
+	var last := 2 * count - 2
 	if mouth_blocked(points_u[0], points_u[1], circles_u):
 		return REFUSE_ENTRANCE_BLOCKED
-	if mouth_blocked(points_u[2 * count - 2], points_u[2 * count - 1], circles_u):
+	if mouth_blocked(points_u[last], points_u[last + 1], circles_u):
 		return REFUSE_EXIT_BLOCKED
-	var length := route_length_u(points_u, count)
+	if mouth_blocked(points_u[0], points_u[1], spots_u) or mouth_blocked(points_u[last], points_u[last + 1], spots_u):
+		return REFUSE_ON_SPOT
+	return REFUSE_NONE
+
+
+static func _length_reason(length: int) -> int:
+	"""REFUSE_NONE, or why a route of this length (u) is too short or too long."""
 	if length < MIN_LENGTH_U:
 		return REFUSE_TOO_SHORT
 	if length > MAX_LENGTH_U:
 		return REFUSE_TOO_LONG
 	return REFUSE_NONE
+
+
+static func leg_under(points_u: PackedInt32Array, k: int, under_u: PackedInt32Array) -> bool:
+	"""Whether the leg ending at point `k` passes within half a bore of any (x, radius, z) circle in
+	`under_u` -- a building's footprint. Exact integers: beyond either end the distance is to that
+	end (squared); alongside, the leg is refused when |cross| < reach x isqrt(|leg|^2), the
+	perpendicular distance measured against the leg's floored length, so no product overflows."""
+	var ax := points_u[2 * k - 2]
+	var az := points_u[2 * k - 1]
+	var abx := points_u[2 * k] - ax
+	var abz := points_u[2 * k + 1] - az
+	var length_sq := abx * abx + abz * abz
+	for i in under_u.size() / 3:
+		var acx := under_u[3 * i] - ax
+		var acz := under_u[3 * i + 2] - az
+		var reach := under_u[3 * i + 1] + BORE_WIDTH_U / 2
+		var along := abx * acx + abz * acz
+		if along <= 0 and acx * acx + acz * acz < reach * reach:
+			return true
+		var bcx := acx - abx
+		var bcz := acz - abz
+		if along >= length_sq and bcx * bcx + bcz * bcz < reach * reach:
+			return true
+		if along > 0 and along < length_sq and absi(abx * acz - abz * acx) < reach * isqrt(length_sq):
+			return true
+	return false
 
 
 static func floor_y_m(along_m: float, length_m: float) -> float:

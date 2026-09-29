@@ -494,13 +494,12 @@ func test_a_cast_built_twice_moves_identically() -> void:
 
 
 func _soaked_positions() -> PackedVector2Array:
-	"""Build the placeholder cast, step it 40 s through its actors, and return where everyone is."""
+	"""Build the placeholder cast, step it 40 s through the cast's clock, and return where everyone is."""
 	var cast: Node3D = DemoCastScript.new()
 	var circles: Array[Vector3] = [Vector3(0.0, 1.5, 0.0)]
 	cast.build({"world": {}, "cast": {}}, _village(), circles)
 	for f in 60 * 40:
-		for actor in cast.actors():
-			actor._process(DT)
+		cast.advance(DT)
 	var out := PackedVector2Array()
 	for actor in cast.actors():
 		out.append(Vector2(actor.position.x, actor.position.z))

@@ -24,13 +24,24 @@ extends RefCounted
 ## UNDERGROUND. A resident inside a tunnel (demo/tunnel/) is flagged in `resident_underground` and
 ## is not on the surface at all: nobody separates from it, is constrained by it or plans round it,
 ## wherever its x/z lies. `tunnels` holds the finished tunnels, and `plan_path` routes a resident who
-## fits their bore through them when that is genuinely shorter (tunnel_router.gd).
+## fits their bore through them when that is genuinely shorter (tunnel_router.gd). Inside a bore each
+## resident's place is kept too (`resident_tunnel`, `resident_along`, `resident_heading`), so those
+## sharing one keep their distance (`room_ahead`, `oncoming`).
+##
+## TUNNEL MOUTHS AND HEAPS. Nobody is sent to STAND on a planned mouth: a formation keeps off them
+## (`mouth_circles`), a mole stepping out of its exit keeps off them (`on_mouth`), and no mouth may
+## open on a work spot (tunnel_rules). Walks may cross a hole's rim -- planning round every mouth
+## was measured at five times the cost of a plan (16 more circles to ring on every search), for a
+## glance's difference. A spoil heap is a real obstacle: `set_heaps` adds it to the world's
+## circles and drops the navigation graphs, each rebuilt by the next plan of its body class (once
+## per dig accepted, never per frame).
 ##
 ## Per-frame work (`constrain`, `separation`, `line_clear`) allocates nothing.
 
 const CastNavScript := preload("res://demo/cast/cast_nav.gd")
 const CastRoutinesScript := preload("res://demo/cast/cast_routines.gd")
 const TunnelNetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
 
 const PLAN_MARGIN_M: float = CastNavScript.PLAN_MARGIN_M
 const GOAL_EPSILON_M: float = CastNavScript.GOAL_EPSILON_M
@@ -56,11 +67,20 @@ var resident_position: PackedVector2Array = PackedVector2Array()
 var resident_radius: PackedFloat32Array = PackedFloat32Array()
 var resident_walking: PackedByteArray = PackedByteArray()
 var resident_underground: PackedByteArray = PackedByteArray()
+## Inside a bore: which tunnel (-1 on the surface), how far along it (m) and which way (+1 toward the
+## exit, -1 toward the entrance).
+var resident_tunnel: PackedInt32Array = PackedInt32Array()
+var resident_along: PackedFloat32Array = PackedFloat32Array()
+var resident_heading: PackedInt32Array = PackedInt32Array()
+## The walkable area (x, z); unbounded until DemoCast.set_bounds.
+var bounds: Rect2 = Rect2(-1e4, -1e4, 2e4, 2e4)
 var nav: CastNavScript = CastNavScript.new()
 var tunnels: TunnelNetworkScript = TunnelNetworkScript.new()
 
 var _slot_at: PackedVector2Array = PackedVector2Array()
 var _standing: PackedVector3Array = PackedVector3Array()
+var _world_obstacles: PackedVector3Array = PackedVector3Array()
+var _heap_circles: PackedVector3Array = PackedVector3Array()
 
 
 func setup(points: Array[Dictionary], obstacle_list: Array[Vector3]) -> void:
@@ -71,6 +91,9 @@ func setup(points: Array[Dictionary], obstacle_list: Array[Vector3]) -> void:
 			obstacles.append(circle)
 		else:
 			push_error("demo cast: obstacle at (%.2f, %.2f) has radius %.3f; a circle is (x, radius, z) -- ignored" % [circle.x, circle.z, circle.y])
+	_world_obstacles = obstacles.duplicate()
+	_heap_circles.resize(2 * TunnelRules.MAX_TUNNELS)
+	_heap_circles.fill(Vector3.ZERO)
 	nav.setup(obstacles)
 	_clear_pois()
 	for point in points:
@@ -82,7 +105,23 @@ func setup(points: Array[Dictionary], obstacle_list: Array[Vector3]) -> void:
 	resident_radius.clear()
 	resident_walking.clear()
 	resident_underground.clear()
+	resident_tunnel.clear()
+	resident_along.clear()
+	resident_heading.clear()
 	tunnels = TunnelNetworkScript.new()
+
+
+func set_heaps(slot: int, entrance: Vector3, exit: Vector3) -> void:
+	"""Tunnel `slot`'s two heaps now stand as these circles (x, radius, z); radius 0 removes one. The
+	obstacles are rebuilt; each body class's graph is rebuilt by the first plan that needs it, so
+	the cost (about 11 ms a class in the village) is spread over the frames that plan next."""
+	_heap_circles[2 * slot] = entrance
+	_heap_circles[2 * slot + 1] = exit
+	obstacles = _world_obstacles.duplicate()
+	for heap in _heap_circles:
+		if heap.y > 0.0:
+			obstacles.append(heap)
+	nav.setup(obstacles)
 
 
 func _clear_pois() -> void:
@@ -133,6 +172,9 @@ func add_resident(at: Vector2, radius: float) -> int:
 	resident_radius.append(radius)
 	resident_walking.append(0)
 	resident_underground.append(0)
+	resident_tunnel.append(-1)
+	resident_along.append(0.0)
+	resident_heading.append(0)
 	_standing.resize(resident_position.size())
 	nav.ensure_graph(radius)
 	return resident_position.size() - 1
@@ -149,8 +191,77 @@ func set_walking(index: int, walking: bool) -> void:
 
 
 func set_underground(index: int, underground: bool) -> void:
-	"""Whether a resident is inside a tunnel, and so off the surface (see UNDERGROUND)."""
+	"""Whether a resident is inside a tunnel, and so off the surface (see UNDERGROUND). Coming up
+	clears its place in the bore."""
 	resident_underground[index] = 1 if underground else 0
+	if not underground:
+		resident_tunnel[index] = -1
+
+
+func set_in_bore(index: int, slot: int, along_m: float, heading: int) -> void:
+	"""Where a resident is inside tunnel `slot`: `along_m` from its entrance, heading +1 or -1."""
+	resident_tunnel[index] = slot
+	resident_along[index] = along_m
+	resident_heading[index] = heading
+
+
+func room_ahead(index: int, gap: float) -> float:
+	"""How far resident `index` may walk on in its bore before closing to `gap` (between bodies) behind
+	someone ahead going the same way; INF with nobody ahead."""
+	var room := INF
+	var slot := resident_tunnel[index]
+	for j in resident_position.size():
+		if j == index or resident_tunnel[j] != slot or resident_heading[j] != resident_heading[index]:
+			continue
+		var ahead := (resident_along[j] - resident_along[index]) * float(resident_heading[index])
+		if ahead > 0.0:
+			room = minf(room, maxf(ahead - resident_radius[index] - resident_radius[j] - gap, 0.0))
+	return room
+
+
+func oncoming(index: int, window: float) -> bool:
+	"""Whether someone in resident `index`'s bore is coming the other way within `window` metres ahead."""
+	var slot := resident_tunnel[index]
+	for j in resident_position.size():
+		if j == index or resident_tunnel[j] != slot or resident_heading[j] == resident_heading[index]:
+			continue
+		var ahead := (resident_along[j] - resident_along[index]) * float(resident_heading[index])
+		if ahead > -resident_radius[index] and ahead < window:
+			return true
+	return false
+
+
+func on_mouth(at: Vector2, body: float) -> bool:
+	"""Whether a body of radius `body` standing at `at` would overlap any planned tunnel's hole and rim."""
+	var reach := body + TunnelRules.HOLE_RADIUS_M * TunnelRules.RIM_FACTOR
+	for slot in TunnelRules.MAX_TUNNELS:
+		if tunnels.phase[slot] == TunnelNetworkScript.PHASE_FREE:
+			continue
+		for end in 2:
+			if tunnels.mouth(slot, end == 1).distance_squared_to(at) < reach * reach:
+				return true
+	return false
+
+
+func mouth_circles() -> PackedVector3Array:
+	"""Every planned tunnel mouth as a circle (x, rim radius, z), for an order to keep clear of (once
+	per click; allocates)."""
+	var out := PackedVector3Array()
+	out.resize(2 * TunnelRules.MAX_TUNNELS)
+	out.resize(tunnels.mouth_circles_into(out, 0))
+	return out
+
+
+func surface_occupied(index: int, at: Vector2, clearance: float) -> bool:
+	"""Whether anyone on the surface but `index` stands closer to `at` than resident `index`'s radius
+	plus theirs plus `clearance`."""
+	for j in resident_position.size():
+		if j == index or resident_underground[j] != 0:
+			continue
+		var reach := resident_radius[index] + resident_radius[j] + clearance
+		if resident_position[j].distance_squared_to(at) < reach * reach:
+			return true
+	return false
 
 
 func separation(index: int, at: Vector2, forward: Vector2) -> Vector2:

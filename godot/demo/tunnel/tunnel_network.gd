@@ -11,13 +11,21 @@ extends RefCounted
 ## LIFE. DIGGING (its digger is working, or on the way) -> OPEN when the last tick is dug. A digger
 ## called away leaves it PAUSED with every tick and every unit of spoil it earned (ECON-005: pause
 ## retains physical progress and releases workers), or frees the slot when nothing was dug yet --
-## no ground was broken, so there is nothing to keep. An OPEN tunnel is never removed: the demo has
+## no ground was broken, so there is nothing to keep. A digger that could NOT REACH the entrance
+## leaves it PAUSED however little was dug (`hold_unreached`): the player chose that route, so it is
+## kept as a 0% plan to resume, never silently deleted. `pause_reason` says which. An OPEN tunnel is never removed: the demo has
 ## no world edit that could change it (MOVE-REQ-004). Only OPEN tunnels are offered to the planner;
 ## unfinished space is never a through route (MOVE-REQ-002).
 ##
 ## FIT. Each resident's fit to the bore is set once, from its body (tunnel_rules.fits_bore), and a
 ## resident who does not fit is never offered a tunnel.
-
+##
+## PLANNING (`plan`). A tunnel is offered at its COST (tunnel_rules.route_cost_u: legs rounded up),
+## never its floored length, and not at all while someone stands on either mouth -- a walker sent
+## there would only give up. `mouth_circles_into` lists every planned mouth, for orders to keep off.
+##
+## HEAPS. Where each mouth's spoil heap will stand (tunnel_heaps.gd chooses it when the dig is
+## accepted, at its finished size) is kept here as presentation data: heap_at and heap_radius_m.
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const RouterScript := preload("res://demo/tunnel/tunnel_router.gd")
 const CastNavScript := preload("res://demo/cast/cast_nav.gd")
@@ -26,6 +34,9 @@ const PHASE_FREE: int = 0
 const PHASE_DIGGING: int = 1
 const PHASE_PAUSED: int = 2
 const PHASE_OPEN: int = 3
+
+const PAUSED_CALLED_AWAY: int = 1
+const PAUSED_UNREACHED: int = 2
 
 var phase: PackedByteArray = PackedByteArray()
 var generation: PackedInt32Array = PackedInt32Array()
@@ -36,6 +47,14 @@ var points_u: PackedInt32Array = PackedInt32Array()
 ## Distance from the entrance to each point, in u, MAX_POINTS per slot.
 var cumulative_u: PackedInt32Array = PackedInt32Array()
 var length_u: PackedInt32Array = PackedInt32Array()
+## What the route costs a planner (legs rounded up), in u.
+var cost_u: PackedInt32Array = PackedInt32Array()
+## Why a PAUSED tunnel waits (PAUSED_*; 0 otherwise).
+var pause_reason: PackedByteArray = PackedByteArray()
+## Presentation: each mouth's heap centre (x, z) in metres and finished radius, two per slot
+## (entrance, exit); radius 0 until placed.
+var heap_at: PackedVector2Array = PackedVector2Array()
+var heap_radius_m: PackedFloat32Array = PackedFloat32Array()
 var quanta: PackedInt32Array = PackedInt32Array()
 var dig_usec: PackedInt64Array = PackedInt64Array()
 ## Per resident index: 1 when its body fits a bore.
@@ -55,6 +74,10 @@ func _init() -> void:
 	points_u.resize(Rules.MAX_TUNNELS * Rules.MAX_POINTS * 2)
 	cumulative_u.resize(Rules.MAX_TUNNELS * Rules.MAX_POINTS)
 	length_u.resize(Rules.MAX_TUNNELS)
+	cost_u.resize(Rules.MAX_TUNNELS)
+	pause_reason.resize(Rules.MAX_TUNNELS)
+	heap_at.resize(Rules.MAX_TUNNELS * 2)
+	heap_radius_m.resize(Rules.MAX_TUNNELS * 2)
 	quanta.resize(Rules.MAX_TUNNELS)
 	dig_usec.resize(Rules.MAX_TUNNELS)
 
@@ -84,20 +107,30 @@ func add_into(route_u: PackedInt32Array, count: int, digger_index: int, out_ref:
 		points_u[2 * (base + k)] = route_u[2 * k]
 		points_u[2 * (base + k) + 1] = route_u[2 * k + 1]
 		cumulative_u[base + k] = run
-	point_count[slot] = count
-	length_u[slot] = run
-	quanta[slot] = Rules.bore_quanta(run)
-	dig_usec[slot] = 0
+	_store(slot, run, Rules.route_cost_u(route_u, count), count)
 	_set_phase(slot, PHASE_DIGGING, digger_index)
 	out_ref[0] = slot
 	out_ref[1] = generation[slot]
 	return true
 
 
+func _store(slot: int, run: int, cost: int, count: int) -> void:
+	"""A new tunnel's scalars: its point count, length, cost and quanta, nothing dug, no heaps placed."""
+	point_count[slot] = count
+	length_u[slot] = run
+	cost_u[slot] = cost
+	quanta[slot] = Rules.bore_quanta(run)
+	dig_usec[slot] = 0
+	heap_radius_m[2 * slot] = 0.0
+	heap_radius_m[2 * slot + 1] = 0.0
+
+
 func _set_phase(slot: int, to: int, digger_index: int) -> void:
-	"""Change a slot's phase and digger, and note the change."""
+	"""Change a slot's phase and digger, and note the change (a pause reason lasts only while paused)."""
 	phase[slot] = to
 	digger[slot] = digger_index
+	if to != PHASE_PAUSED:
+		pause_reason[slot] = 0
 	revision += 1
 
 
@@ -133,9 +166,19 @@ func stop_digging(slot: int, gen: int) -> void:
 		return
 	if done(slot) > 0:
 		_set_phase(slot, PHASE_PAUSED, -1)
+		pause_reason[slot] = PAUSED_CALLED_AWAY
 		return
 	generation[slot] += 1
 	_set_phase(slot, PHASE_FREE, -1)
+
+
+func hold_unreached(slot: int, gen: int) -> void:
+	"""The digger could not reach the entrance: keep the tunnel PAUSED as it stands (at 0% if nothing
+	was dug), to be resumed, rather than dropping the player's route (see LIFE)."""
+	if not is_ref(slot, gen) or phase[slot] != PHASE_DIGGING:
+		return
+	_set_phase(slot, PHASE_PAUSED, -1)
+	pause_reason[slot] = PAUSED_UNREACHED
 
 
 func resume(slot: int, gen: int, digger_index: int) -> bool:
@@ -174,6 +217,18 @@ func face_m(slot: int) -> float:
 func length_m(slot: int) -> float:
 	"""The tunnel's length in metres (presentation)."""
 	return Rules.to_m(length_u[slot])
+
+
+func cost_m(slot: int) -> float:
+	"""What the tunnel costs a planner, in metres (legs rounded up; see PLANNING)."""
+	return Rules.to_m(cost_u[slot])
+
+
+func set_heap(slot: int, exit: bool, at: Vector2, radius: float) -> void:
+	"""Where a mouth's heap stands, and its finished radius (tunnel_heaps.gd)."""
+	var k := 2 * slot + (1 if exit else 0)
+	heap_at[k] = at
+	heap_radius_m[k] = radius
 
 
 # --- geometry (presentation) ------------------------------------------------------------------
@@ -232,11 +287,39 @@ func fits(index: int) -> bool:
 	return index >= 0 and index < resident_fit.size() and resident_fit[index] == 1
 
 
+func mouth_circles_into(out: PackedVector3Array, first: int) -> int:
+	"""Write every planned tunnel's mouths as circles (x, rim radius, z) into `out` from index `first`
+	(`out` has room for 2 x MAX_TUNNELS more); returns how many."""
+	var count := 0
+	var rim := Rules.HOLE_RADIUS_M * Rules.RIM_FACTOR
+	for slot in Rules.MAX_TUNNELS:
+		if phase[slot] == PHASE_FREE:
+			continue
+		for end in 2:
+			var at := mouth(slot, end == 1)
+			out[first + count] = Vector3(at.x, rim, at.y)
+			count += 1
+	return count
+
+
+func mouth_occupied(slot: int, body: float, standing: PackedVector3Array, residents: int) -> bool:
+	"""Whether a resident stands on either of a tunnel's mouths: closer to it than their radius plus
+	the walker's `body` plus the planning margin (the first `residents` circles of `standing`)."""
+	for end in 2:
+		var at := mouth(slot, end == 1)
+		for s in residents:
+			var reach := standing[s].y + body + CastNavScript.PLAN_MARGIN_M
+			if Vector2(standing[s].x, standing[s].z).distance_squared_to(at) < reach * reach:
+				return true
+	return false
+
+
 func plan(nav: CastNavScript, from: Vector2, to: Vector2, body: float, standing: PackedVector3Array,
 		standing_count: int, out: PackedVector2Array, legs: PackedInt32Array) -> bool:
-	"""Plan from -> to through any OPEN tunnel (tunnel_router.gd). True when a route was found."""
+	"""Plan from -> to through any OPEN tunnel whose mouths are free (tunnel_router.gd), round the
+	first `standing_count` standing residents in `standing`. True when a route was found."""
 	router.clear_pairs()
 	for slot in Rules.MAX_TUNNELS:
-		if phase[slot] == PHASE_OPEN:
-			router.add_pair(slot, mouth(slot, false), mouth(slot, true), length_m(slot))
-	return router.plan(nav, from, to, body, standing, standing_count, out, legs)
+		if phase[slot] == PHASE_OPEN and not mouth_occupied(slot, body, standing, standing_count):
+			router.add_pair(slot, mouth(slot, false), mouth(slot, true), cost_m(slot))
+	return router.plan(nav, from, to, body, standing, standing_count, revision, out, legs)

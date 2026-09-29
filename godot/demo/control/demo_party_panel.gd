@@ -20,8 +20,8 @@ extends CanvasLayer
 ## The panel stops the mouse, so a click on it never selects or orders anything in the world.
 ##
 ## TUNNELS (demo/tunnel/). With a mole in the party a "Dig tunnel" button shows (emits
-## `dig_requested`, the same as T); it never takes focus, so Enter while laying a route digs rather
-## than pressing it again. A NOTICE line under the party carries the tunnel tool's prompts, lengths
+## `dig_requested`, the same as T: pressed while a route is being laid, it cancels it); it never
+## takes focus, so Enter while laying a route digs rather than pressing it again. A NOTICE line under the party carries the tunnel tool's prompts, lengths
 ## and refusals. The wood button's cream text and the notice's ink are checked for contrast
 ## (test_demo_tunnel.gd).
 
@@ -67,13 +67,28 @@ var _ledger_open: bool = false
 
 func _ready() -> void:
 	"""Build the frame, place it, and follow the viewport's size."""
+	build()
+	get_viewport().size_changed.connect(_place)
+	_place()
+
+
+func build() -> void:
+	"""Build the widgets and show what is waiting: nobody, and any notice given before this was built."""
 	layer = 0
 	name = "DemoPartyPanel"
 	_build()
 	show_party([])
 	show_notice(_pending_notice)
-	get_viewport().size_changed.connect(_place)
-	_place()
+
+
+func dig_button() -> Button:
+	"""The "Dig tunnel" button (null before build)."""
+	return _dig
+
+
+func notice_label() -> Label:
+	"""The notice line (null before build)."""
+	return _notice
 
 
 func _build() -> void:
@@ -217,7 +232,10 @@ func follow_hud() -> void:
 
 
 func _place() -> void:
-	"""Lay the frame out in the HUD's logical space and draw it at the HUD's scale."""
+	"""Lay the frame out in the HUD's logical space and draw it at the HUD's scale (in the tree only:
+	built for a check out of it, there is no viewport to fit)."""
+	if not is_inside_tree():
+		return
 	var size_px := get_viewport().get_visible_rect().size
 	var rect := placement(int(size_px.x), int(size_px.y), _layout, _geometry)
 	if _ledger_open:

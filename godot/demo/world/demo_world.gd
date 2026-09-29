@@ -11,6 +11,10 @@ extends Node3D
 ##                         centre, y the radius. (world_layout.gd keeps its own (x, z, radius)
 ##                         form internally; obstacles() converts at this boundary.)
 ##   bounds()              the walkable area.
+##   building_obstacles()  the obstacle circles of the buildings and the well alone -- what no
+##                         player-dug tunnel may pass under (demo/tunnel/).
+##   hide_cover(...)       hide the ground cover over a new tunnel's holes, heaps and route, so no
+##                         grass pokes up through a hole or a mound.
 ## The three queries are pure functions of the authored layout: they answer identically before
 ## or after `build()`, and whether or not assets are staged.
 ##
@@ -45,6 +49,8 @@ const PLACEHOLDER_GREEN: Array[StringName] = [
 	&"grass_tuft", &"reeds", &"crop_cabbage_ripe", &"crop_roots_ripe",
 ]
 const PLACEHOLDER_STONE: Array[StringName] = [&"mossy_boulder", &"rock_cluster"]
+## A ground-cover piece this close to a hidden area is hidden too: its tufts spread about this far.
+const COVER_MARGIN_M: float = 0.45
 
 var _layout_ready: bool = false
 var _structure: Array[Dictionary] = []
@@ -58,6 +64,11 @@ var _card_textures: Dictionary = {}
 var _tinted_materials: Dictionary = {}
 ## Only what build() made; anything the integrator parents under this node survives a rebuild.
 var _built: Array[Node] = []
+var _cover_nodes: Array[MultiMeshInstance3D] = []
+## Per cover node: where each piece stands (x, z), and whether it has been hidden. Kept here rather
+## than read back from the MultiMesh, whose transforms only the renderer holds.
+var _cover_at: Array[PackedVector2Array] = []
+var _cover_hidden: Array[PackedByteArray] = []
 
 
 func build(manifest: Dictionary) -> void:
@@ -72,8 +83,12 @@ func build(manifest: Dictionary) -> void:
 		add_child(node)
 	for p: Dictionary in _placed():
 		village.add_child(_make_piece(world, p))
+	_cover_nodes.clear()
+	_cover_at.clear()
+	_cover_hidden.clear()
 	for key: StringName in MULTIMESH_KEYS:
-		village.add_child(_make_cover(world, key))
+		_cover_nodes.append(_make_cover(world, key))
+		village.add_child(_cover_nodes[-1])
 
 
 func points_of_interest() -> Array[Dictionary]:
@@ -99,6 +114,58 @@ static func public_circle(layout_circle: Vector3) -> Vector3:
 static func layout_circle(public: Vector3) -> Vector3:
 	"""A published circle (x, radius, z) back in world_layout.gd's (x, z, radius) form."""
 	return Vector3(public.x, public.z, public.y)
+
+
+func building_obstacles() -> Array[Vector3]:
+	"""The obstacle circles of the village's buildings and its well only, as Vector3(x, radius, z)."""
+	_ensure_layout()
+	var ids: Array[StringName] = []
+	for entry: Dictionary in Layout.BUILDINGS:
+		ids.append(entry["id"])
+	var buildings: Array[Dictionary] = []
+	for p: Dictionary in _structure:
+		if ids.has(p["id"]):
+			buildings.append(p)
+	var out: Array[Vector3] = []
+	for circle: Vector3 in Layout.obstacles_for(buildings):
+		out.append(public_circle(circle))
+	return out
+
+
+func hide_cover(route: PackedVector2Array, route_radius: float, circles: PackedVector3Array) -> int:
+	"""Hide every ground-cover piece standing within `route_radius` (plus COVER_MARGIN_M) of the polyline
+	`route`, or within any of `circles` (x, radius, z; plus the margin). Returns how many were hidden.
+	Once per tunnel dug, never per frame."""
+	var hidden := 0
+	for k: int in _cover_nodes.size():
+		for i: int in _cover_at[k].size():
+			var at := _cover_at[k][i]
+			if _cover_hidden[k][i] == 0 and _covered(at, route, route_radius, circles):
+				_cover_nodes[k].multimesh.set_instance_transform(i, Transform3D(Basis.from_scale(Vector3.ZERO), Vector3(at.x, GROUND_Y, at.y)))
+				_cover_hidden[k][i] = 1
+				hidden += 1
+	return hidden
+
+
+func cover_positions(k: int) -> PackedVector2Array:
+	"""Where each piece of cover node `k` stands (x, z)."""
+	return _cover_at[k]
+
+
+func cover_hidden(k: int) -> PackedByteArray:
+	"""Which pieces of cover node `k` have been hidden (1)."""
+	return _cover_hidden[k]
+
+
+static func _covered(p: Vector2, route: PackedVector2Array, route_radius: float, circles: PackedVector3Array) -> bool:
+	"""Whether a cover piece at `p` stands on the route or in a circle (see hide_cover)."""
+	for circle: Vector3 in circles:
+		if Vector2(circle.x, circle.z).distance_to(p) < circle.y + COVER_MARGIN_M:
+			return true
+	for k: int in range(1, route.size()):
+		if Geometry2D.get_closest_point_to_segment(p, route[k - 1], route[k]).distance_to(p) < route_radius + COVER_MARGIN_M:
+			return true
+	return false
 
 
 func bounds() -> AABB:
@@ -289,10 +356,16 @@ func _make_cover(world: Dictionary, key: StringName) -> MultiMeshInstance3D:
 	multimesh.mesh = source[0]
 	multimesh.instance_count = pieces.size()
 	var mesh_local: Transform3D = source[1]
+	var at := PackedVector2Array()
 	for i: int in pieces.size():
 		var p: Dictionary = pieces[i]
 		var placed: Transform3D = _piece_transform(p, float(source[2]) * float(p["size"]))
 		multimesh.set_instance_transform(i, placed * mesh_local)
+		at.append(p["at"])
+	_cover_at.append(at)
+	var hidden := PackedByteArray()
+	hidden.resize(pieces.size())
+	_cover_hidden.append(hidden)
 	var instance := MultiMeshInstance3D.new()
 	instance.name = "Cover_%s" % key
 	instance.multimesh = multimesh

@@ -16,12 +16,19 @@ extends Node3D
 ## ORDERS (demo/control/ drives these): `order_move()`, `order_work()` and `release()` take actor
 ## indices (positions in `actors()`); formations and slot assignment are cast_orders.gd. Orders stay
 ## inside `set_bounds()` -- the world's walkable area -- which defaults to unbounded.
+##
+## TIME. The cast owns the demo's one presentation clock (demo_clock.gd). Each frame `advance()`
+## reads the game's effective speed through it and steps every actor by that much demo time -- none
+## while the game is paused -- so the HUD's pause and speed buttons govern the residents, their
+## digging and their clips. It runs before the rest of the demo (process_priority), which reads the
+## same frame's clock.
 
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const CastRoutinesScript := preload("res://demo/cast/cast_routines.gd")
+const DemoClockScript := preload("res://demo/demo_clock.gd")
 
 const PLACEHOLDER_COUNT: int = 6
 const BASE_SEED: int = 196
@@ -31,6 +38,25 @@ const NO_POI_RING_M: float = 1.5
 var _space: CastSpaceScript = null
 var _actors: Array[Node3D] = []
 var _bounds: Rect2 = Rect2(-1e4, -1e4, 2e4, 2e4)
+## The demo's presentation clock (see TIME).
+var clock: DemoClockScript = DemoClockScript.new()
+
+
+func _init() -> void:
+	"""Step before the rest of the demo, so everything reads this frame's clock."""
+	process_priority = -10
+
+
+func _process(delta: float) -> void:
+	"""One frame of the village at the game's speed."""
+	advance(delta)
+
+
+func advance(real_delta: float) -> void:
+	"""Read the clock for a frame of `real_delta` real seconds and step every actor by its demo time."""
+	clock.advance(real_delta)
+	for actor in _actors:
+		(actor as DemoActorScript).advance(clock)
 
 
 func build(manifest: Dictionary, points: Array[Dictionary], obstacles: Array[Vector3]) -> void:
@@ -73,6 +99,8 @@ func actor_count() -> int:
 func set_bounds(bounds: AABB) -> void:
 	"""The walkable area (its x/z extent) that ordered formations must stay inside."""
 	_bounds = Rect2(bounds.position.x, bounds.position.z, bounds.size.x, bounds.size.z)
+	if _space != null:
+		_space.bounds = _bounds
 
 
 func bounds() -> Rect2:

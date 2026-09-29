@@ -21,8 +21,14 @@ extends Node3D
 ## INPUT arrives through `_unhandled_input`, after the GUI: a click the HUD (or the demo party
 ## panel) consumed never selects or orders. The one exception is a drag ALREADY STARTED on the
 ## world: its motion and release are followed in `_input` too, so a box dragged across a HUD panel
-## keeps growing and still closes, instead of being left open by a release the HUD swallowed. PICKING is a camera ray against each resident's
-## capsule proxy (demo_pick.gd) -- no physics bodies. MARKS: a pulsing brass ring under each
+## keeps growing and still closes, instead of being left open by a release the HUD swallowed. The
+## other is Enter while a tunnel route is being laid: it is read in `_input`, before the GUI, so it
+## always digs the route and can never press a HUD button that happens to hold the focus.
+##
+## PICKING is a camera ray against each resident's capsule proxy (demo_pick.gd) -- no physics
+## bodies. A resident underground is picked where it is SEEN: at bore depth in the underground
+## view; in the surface view, a digging mole by the mound over it (a squat capsule the mound's size
+## on the ground), and anyone else below not at all. MARKS: a pulsing brass ring under each
 ## selected resident, a faint ring under the hovered one, and a fading marker where an order
 ## landed (clay when refused). Per-frame work moves existing marks and allocates nothing; the
 ## panel is rebuilt only when what it shows changes.
@@ -35,6 +41,8 @@ const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const TunnelControlScript := preload("res://demo/tunnel/tunnel_control.gd")
+const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
+const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 
 const RING_GAP_M: float = 0.12
 const PULSE_HZ: float = 1.1
@@ -45,6 +53,8 @@ const MARKER_RADIUS_M: float = 0.6
 const MARKER_GROWTH: float = 0.8
 const PANEL_REFRESH_S: float = 0.2
 const BOX_BORDER_PX: int = 2
+## The pick proxy of a mound over a digging mole: this tall, the mound's radius wide (see PICKING).
+const MOUND_PICK_HEIGHT_M: float = 0.6
 
 var _cast: DemoCastScript = null
 var _camera: Camera3D = null
@@ -74,6 +84,7 @@ var _signature: PackedInt32Array = PackedInt32Array()
 var _shown: PackedInt32Array = PackedInt32Array()
 var _time: float = 0.0
 var _refresh_in: float = 0.0
+var _proxy: PackedFloat32Array = PackedFloat32Array([0.0, 0.0, 0.0, 0.0, 0.0])
 
 
 func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null) -> void:
@@ -101,14 +112,14 @@ func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null)
 	_panel.dig_requested.connect(_on_dig_requested)
 
 
-func set_world(world: Node3D) -> void:
-	"""The world the tunnel tool's underground view fades."""
+func set_world(world: DemoWorldScript) -> void:
+	"""The world the tunnel tool's underground view fades and whose buildings it keeps out from under."""
 	_tunnels.set_world(world)
 
 
 func _on_dig_requested() -> void:
-	"""The panel's "Dig tunnel" button: the same as T."""
-	_tunnels.begin_plan()
+	"""The panel's "Dig tunnel" button: the same as T -- a route, or cancelling the one being laid."""
+	_tunnels.toggle_plan()
 
 
 func tunnels() -> TunnelControlScript:
@@ -150,7 +161,11 @@ func _build_box() -> void:
 # --- input ----------------------------------------------------------------------------------
 
 func _input(event: InputEvent) -> void:
-	"""Follow a world drag across the HUD (see INPUT). Nothing else is read here."""
+	"""Follow a world drag across the HUD, and take Enter while a route is being laid (see INPUT).
+	Nothing else is read here."""
+	if take_before_gui(event):
+		get_viewport().set_input_as_handled()
+		return
 	if not _pressing:
 		return
 	if event is InputEventMouseMotion:
@@ -159,6 +174,16 @@ func _input(event: InputEvent) -> void:
 			and not event.is_pressed():
 		_on_button(event as InputEventMouseButton)
 		get_viewport().set_input_as_handled()
+
+
+func take_before_gui(event: InputEvent) -> bool:
+	"""Enter while a route is being laid: dig it, before any HUD control can take the key (see
+	INPUT). True when taken."""
+	if _tunnels == null or not _tunnels.planning or not TunnelControlScript.is_confirm_key(event):
+		return false
+	_tunnels.handle_input(event)
+	_refresh_in = 0.0
+	return true
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -296,12 +321,37 @@ func pick(at: Vector2) -> int:
 
 
 func _update_proxies() -> void:
-	"""Each resident's capsule proxy: foot position, height and body radius."""
+	"""Each resident's capsule proxy: foot position, height and body radius -- where it is seen (see
+	PICKING; a proxy of radius 0 cannot be picked)."""
+	var below_seen := _tunnels != null and _tunnels.view.on
+	var eye := _camera.global_position if _camera.is_inside_tree() else Vector3.ZERO
 	for i in _cast.actor_count():
 		var actor := _cast.actor(i) as DemoActorScript
-		_feet[i] = actor.global_position
-		_heights[i] = actor.height_m
-		_radii[i] = actor.brain.radius
+		var foot := actor.global_position if actor.is_inside_tree() else actor.position
+		proxy_into(actor.brain, foot, actor.height_m, below_seen, eye, _proxy)
+		_feet[i] = Vector3(_proxy[0], _proxy[1], _proxy[2])
+		_heights[i] = _proxy[3]
+		_radii[i] = _proxy[4]
+
+
+static func proxy_into(brain: BrainScript, foot: Vector3, height: float, below_seen: bool, eye: Vector3,
+		out: PackedFloat32Array) -> void:
+	"""One resident's pick proxy where it is seen (see PICKING) into out: foot x, y, z, height, radius.
+	On the surface, or underground in the underground view: its body where it is drawn. Underground
+	otherwise: a digging mole as its mound -- on the ground, the mound's drawn radius from `eye` --
+	and anyone else not at all (radius 0)."""
+	out[0] = foot.x
+	out[1] = foot.y
+	out[2] = foot.z
+	out[3] = height
+	out[4] = brain.radius
+	if not brain.underground or below_seen:
+		return
+	out[1] = 0.0
+	out[3] = MOUND_PICK_HEIGHT_M
+	out[4] = 0.0
+	if brain.activity() == BrainScript.ACTIVITY_DIGGING:
+		out[4] = OverlayScript.MOUND_RADIUS_M * OverlayScript.mound_scale(eye.distance_to(Vector3(foot.x, 0.0, foot.z)))
 
 
 func _update_screen() -> void:
@@ -309,7 +359,7 @@ func _update_screen() -> void:
 	_update_proxies()
 	for i in _feet.size():
 		var mid := _feet[i] + Vector3(0.0, _heights[i] * 0.5, 0.0)
-		_on_screen[i] = 0 if _camera.is_position_behind(mid) else 1
+		_on_screen[i] = 0 if _camera.is_position_behind(mid) or _radii[i] <= 0.0 else 1
 		_screen[i] = _camera.unproject_position(mid)
 
 

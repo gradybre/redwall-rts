@@ -12,6 +12,12 @@ extends Node3D
 ## "Demo party" panel in the HUD's free left column. The controller only needs the cast, the
 ## world's walkable bounds and the demo camera; it reads input the HUD did not consume. Its tunnel
 ## tool (demo/tunnel/) also gets the world, which the underground view fades.
+##
+## TIME. The game's clock is started by `Game` itself (scripts/main.gd calls start_game()), and
+## UIManager then holds UI-SET-103's opening inspection pause (PLAYER). The demo releases that one
+## pause as it opens, so the village is alive and the HUD reads Playing; from then on the HUD's pause
+## and 1x / 2x / 4x buttons are the real GameManager's, and the demo follows them: the cast's clock
+## (demo_clock.gd) reads GameManager.get_effective_speed() every frame.
 
 const DemoManifestScript := preload("res://demo/demo_manifest.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
@@ -19,6 +25,7 @@ const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoCameraScript := preload("res://demo/camera/demo_camera.gd")
 const WoodlandSkinScript := preload("res://demo/ui/woodland_skin.gd")
 const DemoCommandScript := preload("res://demo/control/demo_command.gd")
+const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -45,6 +52,7 @@ func _ready() -> void:
 	_cast = DemoCastScript.new()
 	add_child(_cast)
 	_cast.build(manifest, _world.points_of_interest(), _world.obstacles())
+	_cast.clock.bind(GameManager as GameManagerScript)
 	_camera = DemoCameraScript.new()
 	add_child(_camera)
 	_camera.configure(_world.bounds(), Vector3.ZERO)
@@ -55,6 +63,14 @@ func _ready() -> void:
 	_command.configure(_cast, _camera.camera(), _game.get_node_or_null(GAME_HUD_ROOT) as Control)
 	_command.set_world(_world)
 	_skin_hud.call_deferred()
+	_open_running()
+
+
+func _open_running() -> void:
+	"""Release UI-SET-103's opening inspection pause, once, so the demo opens running (see TIME). Only
+	the PLAYER reason is released; any other held reason stays."""
+	if UIManager.opening_pause_applied() and not UIManager.player_has_resumed() and GameManager.is_paused():
+		GameManager.resume_game()
 
 
 func _quiet_game_presentation() -> void:

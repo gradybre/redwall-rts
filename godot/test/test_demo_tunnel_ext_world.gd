@@ -203,8 +203,9 @@ func test_bad_weather_slows_surface_walking_and_the_walk_clip() -> void:
 	assert_near(rain[1], 0.8, 0.0001, "the clip slowed with it")
 
 
-func _bore_speed(lit: bool, permille: int) -> float:
-	"""Metres a second a walker covers in a 10 m tunnel's bore (lit or not) in weather at `permille`."""
+func _bore_speed(lit: bool, permille: int, clip_out: Array = []) -> float:
+	"""Metres a second a walker covers in a 10 m tunnel's bore (lit or not) in weather at `permille`;
+	its walk clip's speed then is appended to `clip_out`."""
 	var space := _space(_wall())
 	var slot := _open_tunnel(space, [Vector2i(0, -5120), Vector2i(0, 5120)])
 	if lit:
@@ -215,6 +216,7 @@ func _bore_speed(lit: bool, permille: int) -> float:
 	_until(brain, func() -> bool: return brain.underground and brain.bore_along_m() > 1.0, 20.0)
 	var from := brain.bore_along_m()
 	_step([brain], 2.0)
+	clip_out.append(brain.clip_speed)
 	return (brain.bore_along_m() - from) / 2.0
 
 
@@ -222,6 +224,17 @@ func test_tunnel_travel_ignores_the_weather_and_lanterns_quicken_it() -> void:
 	"""1.0 m/s below in snow as in the sun; 1.1 m/s in a lit bore."""
 	assert_near(_bore_speed(false, 600), 1.0, 0.001, "snow above, full pace below")
 	assert_near(_bore_speed(true, 1000), 1.1, 0.001, "lit")
+
+
+func test_the_walk_clip_plays_at_ground_speed_in_a_bore() -> void:
+	"""The walk clip's rate is ground speed over walk speed: 1.0 in an unlit bore in snow (the weather
+	does not reach it), 1.1 in a lit one -- so the pinned feet do not slide (decision 0202)."""
+	var unlit: Array = []
+	var lit: Array = []
+	_bore_speed(false, 600, unlit)
+	_bore_speed(true, 1000, lit)
+	assert_near(unlit[0], 1.0, 0.0001, "unlit, in snow: 1.0")
+	assert_near(lit[0], 1.1, 0.0001, "lit: 1.1, as the ground goes by")
 
 
 func test_a_second_walker_waits_in_line_at_a_busy_mouth_and_both_get_through() -> void:

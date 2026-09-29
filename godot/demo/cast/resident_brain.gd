@@ -8,8 +8,9 @@ extends RefCounted
 ##            shuffle) past SHUFFLE_ANGLE. It hands over to WALK as soon as the route is within
 ##            BLEND_WALK_ANGLE and the ground ahead is clear, so a big turn finishes on a walking
 ##            curve; only a walker boxed in (facing a wall, say) turns all the way on the spot.
-##   * WALK   moves along `yaw` at the creature's measured walk speed with the walk clip at 1.0,
-##            which is what keeps the planted foot from sliding (tools/stage_demo_assets.py). The yaw
+##   * WALK   moves along `yaw` at the creature's walk speed -- the gait speed recorded on its walk
+##            clip (decision 0202, tools/stage_demo_assets.py) -- with the walk clip at 1.0, which is
+##            what keeps the pinned planted foot from sliding. The yaw
 ##            turns toward the route at a limited rate; a demand past STOP_TO_TURN_ANGLE stops the
 ##            walker and hands back to TURN rather than skating round a tight corner.
 ##   * ACT    plays the POI's activities in bouts (BOUTS_MIN..MAX of them, each a different activity
@@ -54,7 +55,8 @@ extends RefCounted
 ## WEATHER AND LANTERNS (demo/weather/, demo/tunnel/). On the surface a walker covers ground at its
 ## walk speed times the weather's surface speed (tunnel_network.surface_permille), its clip slowed
 ## to match so the feet stay planted; in a bore, at walk speed times the bore's own speed (faster
-## when lit), whatever the weather.
+## when lit), whatever the weather, its clip sped to match -- and slowed with it when it has to
+## close up behind someone ahead. The clip's rate is always ground speed over walk speed.
 ##
 ## HAULING (demo/tunnel/). A carrier may take a tunnel whose bore fits it WITH its load
 ## (tunnel_network.fits_tunnel, loaded): its trip is planned loaded, it walks the bore at the carry's
@@ -737,8 +739,17 @@ func _surface_factor() -> float:
 
 
 func _walk_clip_speed() -> float:
-	"""The walking (or carrying) clip's playback speed on the surface, slowed with the weather."""
+	"""The walking (or carrying) clip's playback rate on the surface: its ground speed over the clip's
+	own (clip_root_motion.playback_rate's rule). The walk's own speed IS walk_speed -- the gait speed
+	the grounding tool recorded on it (decision 0202) -- so at walk_speed times the weather's factor
+	the clip plays at that factor, and the pinned feet stay planted."""
 	return (_carry_rate if carrying else 1.0) * _surface_factor()
+
+
+func _bore_clip_speed() -> float:
+	"""The same in a bore, which the weather does not slow but a lantern speeds (see _bore_speed)."""
+	return (_carry_rate if carrying else 1.0) * float(_space.tunnels.speed_permille(_travel_slot)) \
+			/ float(TunnelRules.PERMILLE)
 
 
 func _arrive() -> void:
@@ -1023,7 +1034,7 @@ func _start_travel(slot_index: int, from_m: float, to_m: float) -> void:
 	_emerge_waited = 0.0
 	state = State.TUNNEL
 	_set_underground(true)
-	_set_clip(CLIP_CARRY if carrying else CLIP_WALK, _carry_rate if carrying else 1.0)
+	_set_clip(CLIP_CARRY if carrying else CLIP_WALK, _bore_clip_speed())
 	_place_in_tunnel()
 
 
@@ -1031,7 +1042,9 @@ func _step_tunnel(delta: float) -> void:
 	"""Walk on along the tunnel at walk speed, keeping its distance from anyone ahead and stepping
 	aside for anyone coming (see SHARING A BORE); at the end, come up once the hole is clear (or reach
 	the dig face)."""
-	var step := minf(_bore_speed() * delta, _space.room_ahead(index, BORE_GAP_M))
+	var wanted := _bore_speed() * delta
+	var step := minf(wanted, _space.room_ahead(index, BORE_GAP_M))
+	clip_speed = _bore_clip_speed() * (step / wanted if wanted > 0.0 else 0.0)
 	_travel_m = move_toward(_travel_m, _travel_end_m, step)
 	var side_target := PASS_OFFSET_M if _space.oncoming(index, PASS_WINDOW_M) else 0.0
 	_side_m = move_toward(_side_m, side_target, SIDE_STEP_M_S * delta)

@@ -21,6 +21,9 @@ const HOMES: Dictionary = {
 	&"otter_fisher": [&"well_drink", &"square_east", &"cauldron"],
 	&"mole_digger": [&"crops_cabbage", &"crops_grain"],
 	&"badger_quarryman": [&"stockpile", &"hall_steps", &"cauldron"],
+	# The beaver bridgewright (DEC-041), staged once its grounded clips exist: a timber-and-water trade
+	# with no special gameplay yet -- the weir, the boat landing and the log stack.
+	&"beaver_bridgewright": [&"weir_work", &"boat_landing", &"log_stack"],
 }
 const SOCIAL: Array[StringName] = [&"square_west", &"square_east", &"hall_steps", &"well_drink"]
 const SOCIAL_CHANCE: float = 0.2

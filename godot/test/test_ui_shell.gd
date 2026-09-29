@@ -615,6 +615,35 @@ func test_focusing_a_control_shows_its_description_and_the_gold_outline() -> voi
 	assert_true(outline.size.x > zone.size.x, "and it surrounds the control it follows")
 
 
+func test_the_description_goes_when_its_panel_closes_around_it() -> void:
+	"""Pressing Close focused it, which showed "x" as its description; the detail panel then closed
+	and the "x" stayed floating over the world. Hiding the focused control takes both visuals down."""
+	_shell.set_detail_open(true)
+	var close: Button = _shell.control_for(UiShell.ID_CLOSE) as Button
+	close.emit_signal(&"focus_entered")
+	var tooltip: Control = _shell.control_for(UiShell.ID_TOOLTIP)
+	var outline: Control = _shell.control_for(UiShell.ID_FOCUS_OUTLINE)
+	assert_true(tooltip.visible and outline.visible, "Close's description and outline are up")
+	_shell.set_detail_open(false)
+	assert_false(tooltip.visible, "the description closes with the panel")
+	assert_false(outline.visible, "and so does the outline")
+
+
+func test_the_description_goes_when_focus_leaves() -> void:
+	"""Focus leaving the control takes its description down; another panel closing does not."""
+	var zone: Button = _shell.control_for(UiShell.ID_ZONE) as Button
+	var tooltip: Control = _shell.control_for(UiShell.ID_TOOLTIP)
+	_shell.set_detail_open(true)
+	zone.emit_signal(&"focus_entered")
+	_shell.set_detail_open(false)
+	assert_true(tooltip.visible, "the detail panel closing leaves Zone's description up")
+	(_shell.control_for(UiShell.ID_CLOSE) as Control).emit_signal(&"focus_exited")
+	assert_true(tooltip.visible, "and so does a control that was not focused losing focus")
+	zone.emit_signal(&"focus_exited")
+	assert_false(tooltip.visible, "the focused control losing focus takes it down")
+	assert_false(_shell.control_for(UiShell.ID_FOCUS_OUTLINE).visible, "and the outline")
+
+
 func test_focusing_an_unavailable_control_shows_the_missing_owner() -> void:
 	"""§2.2: "Locked controls explain unlock requirements without requiring hover"."""
 	var build: Button = _shell.control_for(UiShell.ID_BUILD) as Button

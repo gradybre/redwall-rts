@@ -1,7 +1,7 @@
 {
  "root": "assets/library/ (gitignored; binaries are local only)",
- "count": 1105,
- "total_bytes": 13707290471,
+ "count": 1461,
+ "total_bytes": 17527903962,
  "files": [
   {
    "family": "building",
@@ -10047,6 +10047,3046 @@
    "path": "assets/library/prop/wheelbarrow/l0_textures/roughness.png",
    "bytes": 2831525,
    "sha256": "b8453f4240275d3e3b6e10bed6dac77bcda96ae6900fe7e77dafe5638a9062a0"
+  },
+  {
+   "family": "environment",
+   "key": "plant_radish",
+   "stage": "concept",
+   "task_id": "01a0edb0-7e73-77f9-a66b-6a938bdb4703",
+   "path": "assets/library/environment/plant_radish/concept.png",
+   "bytes": 1079502,
+   "sha256": "2cb45f93caa742ba2a65309f17f2d8c1ed0892dbd18fea7387cfd5448aa2146b"
+  },
+  {
+   "family": "environment",
+   "key": "plant_radish",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-60f8-7313-b44d-8d3cc41f8736",
+   "path": "assets/library/environment/plant_radish/highpoly.glb",
+   "bytes": 74469132,
+   "sha256": "4bb2a388b1f1d0e548758316befce1d5abddf6c11995646c9f5cb9190a9fd6df"
+  },
+  {
+   "family": "environment",
+   "key": "plant_radish",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-60f8-7313-b44d-8d3cc41f8736",
+   "path": "assets/library/environment/plant_radish/highpoly_textures/base_color.png",
+   "bytes": 6726829,
+   "sha256": "a7f56d2eaf572fee9e4c3aa7ffb1058826841dd9757323d03de25123355c19a0"
+  },
+  {
+   "family": "environment",
+   "key": "plant_radish",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-60f8-7313-b44d-8d3cc41f8736",
+   "path": "assets/library/environment/plant_radish/highpoly_textures/metallic.png",
+   "bytes": 82145,
+   "sha256": "861d93fdeee7fe83c1fcf7c9b287d162d20fc3f682586cbc319295a7e42401e7"
+  },
+  {
+   "family": "environment",
+   "key": "plant_radish",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-60f8-7313-b44d-8d3cc41f8736",
+   "path": "assets/library/environment/plant_radish/highpoly_textures/normal.png",
+   "bytes": 5407604,
+   "sha256": "8cb32572acba9d49231965f05bb69fe47849b87a6807d8e867496d1a81a0e53b"
+  },
+  {
+   "family": "environment",
+   "key": "plant_radish",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-60f8-7313-b44d-8d3cc41f8736",
+   "path": "assets/library/environment/plant_radish/highpoly_textures/roughness.png",
+   "bytes": 1721533,
+   "sha256": "6f6e78cc02da7ef23764943c97ae141fc14b7758f3e60ecc3274dbf5ed0102bf"
+  },
+  {
+   "family": "environment",
+   "key": "plant_turnip",
+   "stage": "concept",
+   "task_id": "01a0edb0-8651-72e2-809f-b1e16860eb8a",
+   "path": "assets/library/environment/plant_turnip/concept.png",
+   "bytes": 789944,
+   "sha256": "c8995925aefc6d5f053a30d24a2145f924478bec511fbe1e55512877ae565c6a"
+  },
+  {
+   "family": "environment",
+   "key": "plant_turnip",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-691e-7119-a875-c425d6d1e909",
+   "path": "assets/library/environment/plant_turnip/highpoly.glb",
+   "bytes": 45608564,
+   "sha256": "96a121a0a5e805551dbc797c8ed3f21ecb5c7fd715e40691e6569e5e6fb76836"
+  },
+  {
+   "family": "environment",
+   "key": "plant_turnip",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-691e-7119-a875-c425d6d1e909",
+   "path": "assets/library/environment/plant_turnip/highpoly_textures/base_color.png",
+   "bytes": 6994270,
+   "sha256": "0ea5c1856b76caace7b9d86acd3399cd173f5c026114509865fc4e52e69c3f2d"
+  },
+  {
+   "family": "environment",
+   "key": "plant_turnip",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-691e-7119-a875-c425d6d1e909",
+   "path": "assets/library/environment/plant_turnip/highpoly_textures/metallic.png",
+   "bytes": 25012,
+   "sha256": "cdbcde0b707b97d9c4cdb529c7afea0cda154f04c52fe259d3ff96307bee4d44"
+  },
+  {
+   "family": "environment",
+   "key": "plant_turnip",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-691e-7119-a875-c425d6d1e909",
+   "path": "assets/library/environment/plant_turnip/highpoly_textures/normal.png",
+   "bytes": 5435389,
+   "sha256": "786262f371c5915bbc70117873fd5ec46a534dc26cab30b0e0b303d7652cd011"
+  },
+  {
+   "family": "environment",
+   "key": "plant_turnip",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-691e-7119-a875-c425d6d1e909",
+   "path": "assets/library/environment/plant_turnip/highpoly_textures/roughness.png",
+   "bytes": 1421341,
+   "sha256": "debf7b4bb18a50f17309b4c78dbecdd4fcbb7770bc1b6963989a9d866871ebb4"
+  },
+  {
+   "family": "environment",
+   "key": "plant_carrot",
+   "stage": "concept",
+   "task_id": "01a0edb0-8e24-70e5-858a-801833667bed",
+   "path": "assets/library/environment/plant_carrot/concept.png",
+   "bytes": 1172884,
+   "sha256": "5944dfb5379e0b3754008daee4f8f223e92ce17d30bca00b6545c71cf3d202b4"
+  },
+  {
+   "family": "environment",
+   "key": "plant_carrot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-7023-7254-a360-b6094e6935af",
+   "path": "assets/library/environment/plant_carrot/highpoly.glb",
+   "bytes": 62193276,
+   "sha256": "58c24aad4f4abcae83a87ada6caa0abdbf83ee055076dfd3ac42889d68a9a913"
+  },
+  {
+   "family": "environment",
+   "key": "plant_carrot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-7023-7254-a360-b6094e6935af",
+   "path": "assets/library/environment/plant_carrot/highpoly_textures/base_color.png",
+   "bytes": 7063150,
+   "sha256": "94ff278fade8ed3688a013a2da52aca846dd0b979bddf09ca35bd596024c45a0"
+  },
+  {
+   "family": "environment",
+   "key": "plant_carrot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-7023-7254-a360-b6094e6935af",
+   "path": "assets/library/environment/plant_carrot/highpoly_textures/metallic.png",
+   "bytes": 117967,
+   "sha256": "9a084423744f62dc48a54baccc17e4b7f4953057dc77ab560cff8fc4ef8800f2"
+  },
+  {
+   "family": "environment",
+   "key": "plant_carrot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-7023-7254-a360-b6094e6935af",
+   "path": "assets/library/environment/plant_carrot/highpoly_textures/normal.png",
+   "bytes": 5560957,
+   "sha256": "52b7345f32811619d6dfd8a85ca58ae5106c7214a9cc9f8727be984f1e2a763f"
+  },
+  {
+   "family": "environment",
+   "key": "plant_carrot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-7023-7254-a360-b6094e6935af",
+   "path": "assets/library/environment/plant_carrot/highpoly_textures/roughness.png",
+   "bytes": 1764937,
+   "sha256": "79ae051a503ec73b055cc4311e90eb33e001c088f3922befbb91725ea489b74c"
+  },
+  {
+   "family": "environment",
+   "key": "plant_beetroot",
+   "stage": "concept",
+   "task_id": "01a0edb0-965d-704e-87a3-4790672ba6e5",
+   "path": "assets/library/environment/plant_beetroot/concept.png",
+   "bytes": 1090275,
+   "sha256": "2db67c3378ef6571b7e68eee34bc4de4f1774532ea332bb865603d708d1177a4"
+  },
+  {
+   "family": "environment",
+   "key": "plant_beetroot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-77a6-770c-9a3c-51f042949b72",
+   "path": "assets/library/environment/plant_beetroot/highpoly.glb",
+   "bytes": 80753096,
+   "sha256": "296eb6ac03b0ade590c926f8a0f1bc1d59bee7c30371c810154d57e9d114e5b2"
+  },
+  {
+   "family": "environment",
+   "key": "plant_beetroot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-77a6-770c-9a3c-51f042949b72",
+   "path": "assets/library/environment/plant_beetroot/highpoly_textures/base_color.png",
+   "bytes": 5085972,
+   "sha256": "3b7a9cc02f20fe9a4855a339977e5f8e3395c9c26c3571fb7f62fbf18d24fb0e"
+  },
+  {
+   "family": "environment",
+   "key": "plant_beetroot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-77a6-770c-9a3c-51f042949b72",
+   "path": "assets/library/environment/plant_beetroot/highpoly_textures/metallic.png",
+   "bytes": 23615,
+   "sha256": "fd3aded9b5910c848303c5fe7933018f23f4b5e3dee655831212802db2edad3d"
+  },
+  {
+   "family": "environment",
+   "key": "plant_beetroot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-77a6-770c-9a3c-51f042949b72",
+   "path": "assets/library/environment/plant_beetroot/highpoly_textures/normal.png",
+   "bytes": 3821039,
+   "sha256": "09fd6cd664a1371346d51bbe55b6138c98771cec1de33b9bdb2a72b251419004"
+  },
+  {
+   "family": "environment",
+   "key": "plant_beetroot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-77a6-770c-9a3c-51f042949b72",
+   "path": "assets/library/environment/plant_beetroot/highpoly_textures/roughness.png",
+   "bytes": 1524983,
+   "sha256": "6ab957c91914a5ccfd618439e34b4131a0b7c9304d3a77acc1d97fd28d775840"
+  },
+  {
+   "family": "environment",
+   "key": "plant_onion",
+   "stage": "concept",
+   "task_id": "01a0edb0-9dc4-71df-b8c0-819751dec894",
+   "path": "assets/library/environment/plant_onion/concept.png",
+   "bytes": 998563,
+   "sha256": "2cb96a68c3724d27fb88b75ea179435704259d6bab2334ce540cf8118b78dfd9"
+  },
+  {
+   "family": "environment",
+   "key": "plant_onion",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-7f55-74a0-998e-435c82f6c199",
+   "path": "assets/library/environment/plant_onion/highpoly.glb",
+   "bytes": 33377496,
+   "sha256": "0dc9638710b3e03263fb44e6f97a6122bef9e719b780f1c061e884af2e4784f8"
+  },
+  {
+   "family": "environment",
+   "key": "plant_onion",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-7f55-74a0-998e-435c82f6c199",
+   "path": "assets/library/environment/plant_onion/highpoly_textures/base_color.png",
+   "bytes": 6098578,
+   "sha256": "f6657087fd0648241e6fb9bb428a5b2182bb3f2ef0a6437866517fdddeb23520"
+  },
+  {
+   "family": "environment",
+   "key": "plant_onion",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-7f55-74a0-998e-435c82f6c199",
+   "path": "assets/library/environment/plant_onion/highpoly_textures/metallic.png",
+   "bytes": 22141,
+   "sha256": "da90e34a6b6aa2b975df11462bd585930b6c4cc8637f0b7978ec1e559009edf9"
+  },
+  {
+   "family": "environment",
+   "key": "plant_onion",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-7f55-74a0-998e-435c82f6c199",
+   "path": "assets/library/environment/plant_onion/highpoly_textures/normal.png",
+   "bytes": 4674663,
+   "sha256": "02ff5f4b5ba80f464e6e7c2279ad9c5e00a63a4c3dd0ad26acdb13bae0ce5c17"
+  },
+  {
+   "family": "environment",
+   "key": "plant_onion",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-7f55-74a0-998e-435c82f6c199",
+   "path": "assets/library/environment/plant_onion/highpoly_textures/roughness.png",
+   "bytes": 1458581,
+   "sha256": "695b2ef793bf950a4bb55a2e40485105cafeb9a0b3fd4f93a9d305da3455c054"
+  },
+  {
+   "family": "environment",
+   "key": "plant_leek",
+   "stage": "concept",
+   "task_id": "01a0edb0-a5c6-7017-a51d-1b2c94bd5d2e",
+   "path": "assets/library/environment/plant_leek/concept.png",
+   "bytes": 1056519,
+   "sha256": "d2c6a8f184072a52eff5590e076b9390f0ba876bab1696c636187ab356714050"
+  },
+  {
+   "family": "environment",
+   "key": "plant_leek",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-8707-7483-b674-17cba34bc332",
+   "path": "assets/library/environment/plant_leek/highpoly.glb",
+   "bytes": 33429304,
+   "sha256": "bd68f53ef3009925dc6906995d1c53ec554ef67ccf48bb411a80258c3681fa29"
+  },
+  {
+   "family": "environment",
+   "key": "plant_leek",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-8707-7483-b674-17cba34bc332",
+   "path": "assets/library/environment/plant_leek/highpoly_textures/base_color.png",
+   "bytes": 6362568,
+   "sha256": "de569d0e784fdefe3c650ff8502cd79c42eb864c8ede28859096d4e8ba1da368"
+  },
+  {
+   "family": "environment",
+   "key": "plant_leek",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-8707-7483-b674-17cba34bc332",
+   "path": "assets/library/environment/plant_leek/highpoly_textures/metallic.png",
+   "bytes": 35115,
+   "sha256": "8a6b78d1370e251c12bca77791c4469804a46ee5fbc03f9125bd1634e843ee21"
+  },
+  {
+   "family": "environment",
+   "key": "plant_leek",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-8707-7483-b674-17cba34bc332",
+   "path": "assets/library/environment/plant_leek/highpoly_textures/normal.png",
+   "bytes": 5036972,
+   "sha256": "48e236c9ed65c4c6262dc946b9ff1aa427effd45adbd3cc04dd99be7a1b5a96b"
+  },
+  {
+   "family": "environment",
+   "key": "plant_leek",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-8707-7483-b674-17cba34bc332",
+   "path": "assets/library/environment/plant_leek/highpoly_textures/roughness.png",
+   "bytes": 1480456,
+   "sha256": "a98bb2b52d0d638e71aefe5ccbfbb67131f55f3431e8494defd7280056fe0d42"
+  },
+  {
+   "family": "environment",
+   "key": "plant_lettuce",
+   "stage": "concept",
+   "task_id": "01a0edb0-ae54-7045-b058-82186e2c6839",
+   "path": "assets/library/environment/plant_lettuce/concept.png",
+   "bytes": 1193692,
+   "sha256": "db03efbdb76072947eb411ae2f7b06b55e81d6739dda830b7c0783f0b103c1ef"
+  },
+  {
+   "family": "environment",
+   "key": "plant_lettuce",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-8e9c-7631-8393-1991cf34a8be",
+   "path": "assets/library/environment/plant_lettuce/highpoly.glb",
+   "bytes": 64913024,
+   "sha256": "a4674d7d1c34ae8ed059064f462754ce499bf2cea019d05231e37601b820dabc"
+  },
+  {
+   "family": "environment",
+   "key": "plant_lettuce",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-8e9c-7631-8393-1991cf34a8be",
+   "path": "assets/library/environment/plant_lettuce/highpoly_textures/base_color.png",
+   "bytes": 5563493,
+   "sha256": "8861676163759caae3d10fcaf1fe1f462713bcedbee90d2b45525a72bf94f9f1"
+  },
+  {
+   "family": "environment",
+   "key": "plant_lettuce",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-8e9c-7631-8393-1991cf34a8be",
+   "path": "assets/library/environment/plant_lettuce/highpoly_textures/metallic.png",
+   "bytes": 27051,
+   "sha256": "6768a5ce6814ad2d1cf1bdaf83d193b2efe5ddbd0b70f2f00cc3720e8a5c8d11"
+  },
+  {
+   "family": "environment",
+   "key": "plant_lettuce",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-8e9c-7631-8393-1991cf34a8be",
+   "path": "assets/library/environment/plant_lettuce/highpoly_textures/normal.png",
+   "bytes": 4587549,
+   "sha256": "501305541232607ce1693fe4b9af97396ebacb95006c27f0e9c79f511c66ede8"
+  },
+  {
+   "family": "environment",
+   "key": "plant_lettuce",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-8e9c-7631-8393-1991cf34a8be",
+   "path": "assets/library/environment/plant_lettuce/highpoly_textures/roughness.png",
+   "bytes": 1458949,
+   "sha256": "12a27d381b2f3e472be06c752d54aac0c420d59448fe0d0adc8a6716272d9037"
+  },
+  {
+   "family": "environment",
+   "key": "plant_celery",
+   "stage": "concept",
+   "task_id": "01a0edb0-b62f-7693-bf55-decf7e64fec1",
+   "path": "assets/library/environment/plant_celery/concept.png",
+   "bytes": 1069734,
+   "sha256": "65ab410bfe0f4e318a1db036ef531d287d3e5f4095bacfebe435de6a785bc0d4"
+  },
+  {
+   "family": "environment",
+   "key": "plant_celery",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-97a9-7293-b89a-44e739074911",
+   "path": "assets/library/environment/plant_celery/highpoly.glb",
+   "bytes": 64824028,
+   "sha256": "97b82b0f6a70b5f9d99c53abd55fd598181a385ee9fa1838094f20976468853c"
+  },
+  {
+   "family": "environment",
+   "key": "plant_celery",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-97a9-7293-b89a-44e739074911",
+   "path": "assets/library/environment/plant_celery/highpoly_textures/base_color.png",
+   "bytes": 6376476,
+   "sha256": "f2ef0624690389900ee27ca302a15beb36d37cff12f4ff5f50a47737e3f4302f"
+  },
+  {
+   "family": "environment",
+   "key": "plant_celery",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-97a9-7293-b89a-44e739074911",
+   "path": "assets/library/environment/plant_celery/highpoly_textures/metallic.png",
+   "bytes": 56407,
+   "sha256": "2e2a225530741f95d005e51d8621779396a2b1138bce4d308733115685ea911b"
+  },
+  {
+   "family": "environment",
+   "key": "plant_celery",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-97a9-7293-b89a-44e739074911",
+   "path": "assets/library/environment/plant_celery/highpoly_textures/normal.png",
+   "bytes": 5272862,
+   "sha256": "123a4aafdfec11753b0f2e0276d39982f575c88c37bdec1c5225bb4fbb09a245"
+  },
+  {
+   "family": "environment",
+   "key": "plant_celery",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-97a9-7293-b89a-44e739074911",
+   "path": "assets/library/environment/plant_celery/highpoly_textures/roughness.png",
+   "bytes": 1578765,
+   "sha256": "b9203caf8f5d748020ebcc0d9570e3eb70c644f4b250c5237aed06a06ef2e46d"
+  },
+  {
+   "family": "environment",
+   "key": "plant_strawberry",
+   "stage": "concept",
+   "task_id": "01a0edb1-715e-723d-ae6d-ef92973fffa2",
+   "path": "assets/library/environment/plant_strawberry/concept.png",
+   "bytes": 1396371,
+   "sha256": "93fb81f4e581548ad6d2e10f04abcc46e9a4a88f12e9fa719b37a4423b3ed16b"
+  },
+  {
+   "family": "environment",
+   "key": "plant_strawberry",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-ab9a-72c1-a6d8-8d01cc48bc74",
+   "path": "assets/library/environment/plant_strawberry/highpoly.glb",
+   "bytes": 170668148,
+   "sha256": "1cca5ceef7709ca2360b11a0d5f029bd5a6485ab91a9541258d538bf010fdd4d"
+  },
+  {
+   "family": "environment",
+   "key": "plant_strawberry",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-ab9a-72c1-a6d8-8d01cc48bc74",
+   "path": "assets/library/environment/plant_strawberry/highpoly_textures/base_color.png",
+   "bytes": 7109660,
+   "sha256": "04e413a766ca4c355f04390cc763164be96b947ba183468eb9d9ce4a9d8c9050"
+  },
+  {
+   "family": "environment",
+   "key": "plant_strawberry",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-ab9a-72c1-a6d8-8d01cc48bc74",
+   "path": "assets/library/environment/plant_strawberry/highpoly_textures/metallic.png",
+   "bytes": 75544,
+   "sha256": "eb73ffd5e80ec493cbe68f639787217b7747348cfa2be9b4090bcb0efcadff73"
+  },
+  {
+   "family": "environment",
+   "key": "plant_strawberry",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-ab9a-72c1-a6d8-8d01cc48bc74",
+   "path": "assets/library/environment/plant_strawberry/highpoly_textures/normal.png",
+   "bytes": 6509562,
+   "sha256": "5076ea7fc8e112c001f3f969dc2431939c0671d4c1b5bf0020ce507409b5915e"
+  },
+  {
+   "family": "environment",
+   "key": "plant_strawberry",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-ab9a-72c1-a6d8-8d01cc48bc74",
+   "path": "assets/library/environment/plant_strawberry/highpoly_textures/roughness.png",
+   "bytes": 2006484,
+   "sha256": "ecdd885c7ff5bb85f3308d21d29be72b6f74a2374ef988a6fc571741112c73b8"
+  },
+  {
+   "family": "environment",
+   "key": "plant_peas",
+   "stage": "concept",
+   "task_id": "01a0edb1-7955-74d9-ab97-9fe91d9e2fc4",
+   "path": "assets/library/environment/plant_peas/concept.png",
+   "bytes": 1173962,
+   "sha256": "78054989bab6c8d4c589582f4ec406901862309e9f99950a9669379bc6803eef"
+  },
+  {
+   "family": "environment",
+   "key": "plant_peas",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-b340-702a-8b44-3ba606b72439",
+   "path": "assets/library/environment/plant_peas/highpoly.glb",
+   "bytes": 35280168,
+   "sha256": "447e15877411a41ce8ae1a5185be97004a918363c3188cc741e14efb9e57cccf"
+  },
+  {
+   "family": "environment",
+   "key": "plant_peas",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-b340-702a-8b44-3ba606b72439",
+   "path": "assets/library/environment/plant_peas/highpoly_textures/base_color.png",
+   "bytes": 6837426,
+   "sha256": "f9a9dd36010c65b946ad316769fb630ccac0d0ceb2c7a3e90def120467bddc02"
+  },
+  {
+   "family": "environment",
+   "key": "plant_peas",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-b340-702a-8b44-3ba606b72439",
+   "path": "assets/library/environment/plant_peas/highpoly_textures/metallic.png",
+   "bytes": 192388,
+   "sha256": "d1108bc37d880bacf3494beac5af47aa2d180e4d29681c6eebcdbd9b24cdcc44"
+  },
+  {
+   "family": "environment",
+   "key": "plant_peas",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-b340-702a-8b44-3ba606b72439",
+   "path": "assets/library/environment/plant_peas/highpoly_textures/normal.png",
+   "bytes": 5340228,
+   "sha256": "4a3dc137f922a4b72b215a829c9a32a69c169783f8e73f50f5917d15dd8ba603"
+  },
+  {
+   "family": "environment",
+   "key": "plant_peas",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-b340-702a-8b44-3ba606b72439",
+   "path": "assets/library/environment/plant_peas/highpoly_textures/roughness.png",
+   "bytes": 1559101,
+   "sha256": "4f236f587b84f6308b4cdaab9bed367d4aa5ee9e2897c40c91e8fc75c8c9f8ad"
+  },
+  {
+   "family": "environment",
+   "key": "plant_barley",
+   "stage": "concept",
+   "task_id": "01a0edb1-810a-748b-b731-3089837b4036",
+   "path": "assets/library/environment/plant_barley/concept.png",
+   "bytes": 1183216,
+   "sha256": "cfff792a78c7e2576bc4ddfc1355dc7fb4621d60045619961270635c16e17375"
+  },
+  {
+   "family": "environment",
+   "key": "plant_barley",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-baaf-7115-80dd-3a5abb8d8904",
+   "path": "assets/library/environment/plant_barley/highpoly.glb",
+   "bytes": 158008148,
+   "sha256": "df0600a0e19fb207d6fc44f50c3cb1ef447f30d117f2c28264d37c2b30feb890"
+  },
+  {
+   "family": "environment",
+   "key": "plant_barley",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-baaf-7115-80dd-3a5abb8d8904",
+   "path": "assets/library/environment/plant_barley/highpoly_textures/base_color.png",
+   "bytes": 6395986,
+   "sha256": "596a28468ab289974c17bf1302c518aa11897067c4b4ec76cdcef27215d058c3"
+  },
+  {
+   "family": "environment",
+   "key": "plant_barley",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-baaf-7115-80dd-3a5abb8d8904",
+   "path": "assets/library/environment/plant_barley/highpoly_textures/metallic.png",
+   "bytes": 644986,
+   "sha256": "667e50985f7387b0943018066a908377bc3225390e2ab5cd94041b6b2f364d47"
+  },
+  {
+   "family": "environment",
+   "key": "plant_barley",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-baaf-7115-80dd-3a5abb8d8904",
+   "path": "assets/library/environment/plant_barley/highpoly_textures/normal.png",
+   "bytes": 5808856,
+   "sha256": "4594182be4899c3e0562235e5566bd6682a91b6e916e6a4eb5327279c2500cb4"
+  },
+  {
+   "family": "environment",
+   "key": "plant_barley",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-baaf-7115-80dd-3a5abb8d8904",
+   "path": "assets/library/environment/plant_barley/highpoly_textures/roughness.png",
+   "bytes": 1924149,
+   "sha256": "405a4af2d02c24590c8df0aa1f0f1204e91449df800bf6d928f4c416bd242193"
+  },
+  {
+   "family": "environment",
+   "key": "plant_oats",
+   "stage": "concept",
+   "task_id": "01a0edb1-8a86-775b-b1f6-63c27843c647",
+   "path": "assets/library/environment/plant_oats/concept.png",
+   "bytes": 1059809,
+   "sha256": "bf5b30d2cd60948334e8d9050107764a8bd97af8e42783cd0b7ee0fd1a329817"
+  },
+  {
+   "family": "environment",
+   "key": "plant_oats",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-c1d0-73c3-8d7a-e8fd3408ec50",
+   "path": "assets/library/environment/plant_oats/highpoly.glb",
+   "bytes": 45413108,
+   "sha256": "5a4cc013056c6a3038782390b2c31086021e81cd9f7a89bc1d3a8f237f20a9a1"
+  },
+  {
+   "family": "environment",
+   "key": "plant_oats",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-c1d0-73c3-8d7a-e8fd3408ec50",
+   "path": "assets/library/environment/plant_oats/highpoly_textures/base_color.png",
+   "bytes": 6484567,
+   "sha256": "bb7a0537ca1e17063a62f65a55d84364084e47d20549aeba2caa1d61cc0a76e6"
+  },
+  {
+   "family": "environment",
+   "key": "plant_oats",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-c1d0-73c3-8d7a-e8fd3408ec50",
+   "path": "assets/library/environment/plant_oats/highpoly_textures/metallic.png",
+   "bytes": 117153,
+   "sha256": "fa730e0e9c7204e2065d3d8c7d9bf02a05fca37d90c841fee24bb8f6495637a6"
+  },
+  {
+   "family": "environment",
+   "key": "plant_oats",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-c1d0-73c3-8d7a-e8fd3408ec50",
+   "path": "assets/library/environment/plant_oats/highpoly_textures/normal.png",
+   "bytes": 5382981,
+   "sha256": "2dcce825fb919f955bc03270033355fbe63dd78ae649f368e4d3d01c61b3a1c9"
+  },
+  {
+   "family": "environment",
+   "key": "plant_oats",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-c1d0-73c3-8d7a-e8fd3408ec50",
+   "path": "assets/library/environment/plant_oats/highpoly_textures/roughness.png",
+   "bytes": 1589913,
+   "sha256": "8da7cb1bf5d1a40bf633535bf99e822a272b551c8a2f71076f6c70d9fd5d5029"
+  },
+  {
+   "family": "prop",
+   "key": "item_radish",
+   "stage": "concept",
+   "task_id": "01a0edb1-9461-7521-8f35-c3a219e31967",
+   "path": "assets/library/prop/item_radish/concept.png",
+   "bytes": 972623,
+   "sha256": "04a143b5ff4cb0fe2f8bbe1288ef10679b0c51e5eff99d81a9e86e7f678258aa"
+  },
+  {
+   "family": "prop",
+   "key": "item_radish",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-cae9-75a2-969f-ea805e0623af",
+   "path": "assets/library/prop/item_radish/highpoly.glb",
+   "bytes": 35667364,
+   "sha256": "fc67c2a99c6364a97b067d5f4116737f9acc2efc2ef89da23b5b079dd24b1165"
+  },
+  {
+   "family": "prop",
+   "key": "item_radish",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-cae9-75a2-969f-ea805e0623af",
+   "path": "assets/library/prop/item_radish/highpoly_textures/base_color.png",
+   "bytes": 6036468,
+   "sha256": "0e0194f0c937af21a6f86985137183d867bb8e398f8ac1ba207082a71938f967"
+  },
+  {
+   "family": "prop",
+   "key": "item_radish",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-cae9-75a2-969f-ea805e0623af",
+   "path": "assets/library/prop/item_radish/highpoly_textures/metallic.png",
+   "bytes": 33803,
+   "sha256": "4a076e182f2c9af6138c3fe2d0d80a040d6ea369d5fdaa1b46a70a02d2d9dc73"
+  },
+  {
+   "family": "prop",
+   "key": "item_radish",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-cae9-75a2-969f-ea805e0623af",
+   "path": "assets/library/prop/item_radish/highpoly_textures/normal.png",
+   "bytes": 4649442,
+   "sha256": "43802e8044f6cc99a894282e22788ddcf7471178bfd19140d942f374cec7b7b3"
+  },
+  {
+   "family": "prop",
+   "key": "item_radish",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-cae9-75a2-969f-ea805e0623af",
+   "path": "assets/library/prop/item_radish/highpoly_textures/roughness.png",
+   "bytes": 1467831,
+   "sha256": "f71e7ca35c20f117fd2bc73a0440954e332bb281fdbb8b17c1d067ee8167289b"
+  },
+  {
+   "family": "prop",
+   "key": "item_turnip",
+   "stage": "concept",
+   "task_id": "01a0edb1-9bb4-767c-ad02-f3891faf3da5",
+   "path": "assets/library/prop/item_turnip/concept.png",
+   "bytes": 872831,
+   "sha256": "869c2d52b0945d478697f4130884145571f9d6f4d0446c364d19e5efe0609c3d"
+  },
+  {
+   "family": "prop",
+   "key": "item_turnip",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-d2c2-70f1-9c30-99fbd4dd000e",
+   "path": "assets/library/prop/item_turnip/highpoly.glb",
+   "bytes": 32432276,
+   "sha256": "e02c0d51c36e03ce3f76bb85e20a75238cb713adacdf3d43f9c20bc33f3f676b"
+  },
+  {
+   "family": "prop",
+   "key": "item_turnip",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-d2c2-70f1-9c30-99fbd4dd000e",
+   "path": "assets/library/prop/item_turnip/highpoly_textures/base_color.png",
+   "bytes": 6326394,
+   "sha256": "a836b084937ebd560fec4ddab116fac64b5405dee29d43364d717059ae634fdc"
+  },
+  {
+   "family": "prop",
+   "key": "item_turnip",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-d2c2-70f1-9c30-99fbd4dd000e",
+   "path": "assets/library/prop/item_turnip/highpoly_textures/metallic.png",
+   "bytes": 32277,
+   "sha256": "b59f8e98c17b5251a2519c8e31538fc33b88e0fb982563ae66a744cc325c0149"
+  },
+  {
+   "family": "prop",
+   "key": "item_turnip",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-d2c2-70f1-9c30-99fbd4dd000e",
+   "path": "assets/library/prop/item_turnip/highpoly_textures/normal.png",
+   "bytes": 4860935,
+   "sha256": "30eabb496bdb9769e55282409e63ff0113274c7b52f24e8f37895a52d25efd0c"
+  },
+  {
+   "family": "prop",
+   "key": "item_turnip",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-d2c2-70f1-9c30-99fbd4dd000e",
+   "path": "assets/library/prop/item_turnip/highpoly_textures/roughness.png",
+   "bytes": 1446688,
+   "sha256": "9b2bf76f6747bfa21abaf8953a4553b8b0f922c492e4c73054ec63c1dd41f17a"
+  },
+  {
+   "family": "prop",
+   "key": "item_carrot",
+   "stage": "concept",
+   "task_id": "01a0edb1-a349-73d3-853c-254cfc5d7b33",
+   "path": "assets/library/prop/item_carrot/concept.png",
+   "bytes": 1195328,
+   "sha256": "636ec64736f791e4dfd01069bb2065fbfb1c4081b847a101f578b2ab67f02770"
+  },
+  {
+   "family": "prop",
+   "key": "item_carrot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-da3c-7762-93f0-50d85658177d",
+   "path": "assets/library/prop/item_carrot/highpoly.glb",
+   "bytes": 39546912,
+   "sha256": "a0898fe05e08b4d356ccf1d67ee4c4d1a728a39dbd8ebad975c8f200059573a1"
+  },
+  {
+   "family": "prop",
+   "key": "item_carrot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-da3c-7762-93f0-50d85658177d",
+   "path": "assets/library/prop/item_carrot/highpoly_textures/base_color.png",
+   "bytes": 7339739,
+   "sha256": "e1db42e39fccb16c2239fcacda64f55d663b54b13e3b87329b81bc555a1e396b"
+  },
+  {
+   "family": "prop",
+   "key": "item_carrot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-da3c-7762-93f0-50d85658177d",
+   "path": "assets/library/prop/item_carrot/highpoly_textures/metallic.png",
+   "bytes": 179540,
+   "sha256": "5568afd7109a48e9d26ed7022dd7b848ac6ef380a08e3247e0a909796d209a30"
+  },
+  {
+   "family": "prop",
+   "key": "item_carrot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-da3c-7762-93f0-50d85658177d",
+   "path": "assets/library/prop/item_carrot/highpoly_textures/normal.png",
+   "bytes": 5844649,
+   "sha256": "d0f927611c2d3a4a7ed6845170484650b1c451fdb09a5034cbddd9fe1ff22c97"
+  },
+  {
+   "family": "prop",
+   "key": "item_carrot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-da3c-7762-93f0-50d85658177d",
+   "path": "assets/library/prop/item_carrot/highpoly_textures/roughness.png",
+   "bytes": 1638301,
+   "sha256": "23b1257770bbfe1421c15e2fc5d40f2b80e401d08c919d49c912a68dce44ae05"
+  },
+  {
+   "family": "prop",
+   "key": "item_beetroot",
+   "stage": "concept",
+   "task_id": "01a0edb1-ab77-749a-9b77-7a3ed031fb74",
+   "path": "assets/library/prop/item_beetroot/concept.png",
+   "bytes": 1227472,
+   "sha256": "6fe93c25c032c16bc7caa214a1b3d558814ba13efa5fefd20fd0993b20e977c7"
+  },
+  {
+   "family": "prop",
+   "key": "item_beetroot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-e28c-755f-a708-f45d3769744a",
+   "path": "assets/library/prop/item_beetroot/highpoly.glb",
+   "bytes": 42398448,
+   "sha256": "418f0541ddfecf03d18b7ebc2c8a633f26c20c5798d0995e1d72f64c70fd2145"
+  },
+  {
+   "family": "prop",
+   "key": "item_beetroot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-e28c-755f-a708-f45d3769744a",
+   "path": "assets/library/prop/item_beetroot/highpoly_textures/base_color.png",
+   "bytes": 6421665,
+   "sha256": "522658a60147d75cdd50ee11ae4c42aee327b11cdff7dc20b53ed9e7004adcec"
+  },
+  {
+   "family": "prop",
+   "key": "item_beetroot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-e28c-755f-a708-f45d3769744a",
+   "path": "assets/library/prop/item_beetroot/highpoly_textures/metallic.png",
+   "bytes": 24746,
+   "sha256": "42abd876acb4a641a1692f79dd6aad2ed40e8d3e2ad2b9f7230459f02cc09fe5"
+  },
+  {
+   "family": "prop",
+   "key": "item_beetroot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-e28c-755f-a708-f45d3769744a",
+   "path": "assets/library/prop/item_beetroot/highpoly_textures/normal.png",
+   "bytes": 4921556,
+   "sha256": "549eae782e89020fd5a5ecf2de5538ea02ee5576b547e3f77f0ed512553e4d6e"
+  },
+  {
+   "family": "prop",
+   "key": "item_beetroot",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-e28c-755f-a708-f45d3769744a",
+   "path": "assets/library/prop/item_beetroot/highpoly_textures/roughness.png",
+   "bytes": 1530455,
+   "sha256": "180aad15a19e87cdf298b5e96a21030cb172f09de1a524724629e392cf0314f0"
+  },
+  {
+   "family": "prop",
+   "key": "item_onion",
+   "stage": "concept",
+   "task_id": "01a0edb1-bfdc-7722-b55a-7a2cfc340889",
+   "path": "assets/library/prop/item_onion/concept.png",
+   "bytes": 1056028,
+   "sha256": "d29b5b91bddc0c6ad9901b6b720d62b90a626189b0abf525e935ce9418cf1966"
+  },
+  {
+   "family": "prop",
+   "key": "item_onion",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-f4c9-77af-bf61-872be006ab7c",
+   "path": "assets/library/prop/item_onion/highpoly.glb",
+   "bytes": 43289736,
+   "sha256": "47128abbac6caae7e0c9458cc23fb4de97903fb54bba7d500499d2551953b291"
+  },
+  {
+   "family": "prop",
+   "key": "item_onion",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-f4c9-77af-bf61-872be006ab7c",
+   "path": "assets/library/prop/item_onion/highpoly_textures/base_color.png",
+   "bytes": 6780135,
+   "sha256": "c2c2ab224fc9ac0f02d3e49e355f6007a3126ec8584ccc8a257e9267a32c5944"
+  },
+  {
+   "family": "prop",
+   "key": "item_onion",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-f4c9-77af-bf61-872be006ab7c",
+   "path": "assets/library/prop/item_onion/highpoly_textures/metallic.png",
+   "bytes": 21745,
+   "sha256": "527451f60f715799bb73b291622dcd7884d2a169e56bfcda5c920e8e1c0f11f7"
+  },
+  {
+   "family": "prop",
+   "key": "item_onion",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-f4c9-77af-bf61-872be006ab7c",
+   "path": "assets/library/prop/item_onion/highpoly_textures/normal.png",
+   "bytes": 5401415,
+   "sha256": "c5f779fcd146ee3c1a793a7185133c3f03c162c7461f9d9f3296d81fe043d41f"
+  },
+  {
+   "family": "prop",
+   "key": "item_onion",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-f4c9-77af-bf61-872be006ab7c",
+   "path": "assets/library/prop/item_onion/highpoly_textures/roughness.png",
+   "bytes": 1529257,
+   "sha256": "771096f6a1b02c2ce230a369aeaa85a6b02b98bae6326e4841bbb4fe5d28d319"
+  },
+  {
+   "family": "prop",
+   "key": "item_leek",
+   "stage": "concept",
+   "task_id": "01a0edb1-c7ad-771b-b149-93fa88fadb4b",
+   "path": "assets/library/prop/item_leek/concept.png",
+   "bytes": 779850,
+   "sha256": "037c1be378a40619a92d8692f9aaa7690dc7fd849fa3038814214d88766ae426"
+  },
+  {
+   "family": "prop",
+   "key": "item_leek",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-fd80-73d0-842c-44c0e43f203a",
+   "path": "assets/library/prop/item_leek/highpoly.glb",
+   "bytes": 80014692,
+   "sha256": "98145c2107859accd624698bb8d4404fdc977b0b76a2cf35daaecf19a4c962cf"
+  },
+  {
+   "family": "prop",
+   "key": "item_leek",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-fd80-73d0-842c-44c0e43f203a",
+   "path": "assets/library/prop/item_leek/highpoly_textures/base_color.png",
+   "bytes": 5445406,
+   "sha256": "9653b217e865b4d120b06c5c9e1a2dabdca934a1a172fc391475a7f6301972db"
+  },
+  {
+   "family": "prop",
+   "key": "item_leek",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-fd80-73d0-842c-44c0e43f203a",
+   "path": "assets/library/prop/item_leek/highpoly_textures/metallic.png",
+   "bytes": 40761,
+   "sha256": "0e1ae5c3de864bd9ca0d165c57182743ea7324dbc54d72f551a3a7caed64f397"
+  },
+  {
+   "family": "prop",
+   "key": "item_leek",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-fd80-73d0-842c-44c0e43f203a",
+   "path": "assets/library/prop/item_leek/highpoly_textures/normal.png",
+   "bytes": 4371344,
+   "sha256": "b5d95162789b897f8e6af4d8fc853b2861161c84dda53e78caacead3bd1cd90e"
+  },
+  {
+   "family": "prop",
+   "key": "item_leek",
+   "stage": "highpoly",
+   "task_id": "01a0edb3-fd80-73d0-842c-44c0e43f203a",
+   "path": "assets/library/prop/item_leek/highpoly_textures/roughness.png",
+   "bytes": 1319784,
+   "sha256": "aa2c5a2df4912b65169be4ae10218242f81a85d40b985d3ad67f6ad42f2de6fa"
+  },
+  {
+   "family": "prop",
+   "key": "item_lettuce",
+   "stage": "concept",
+   "task_id": "01a0edb1-cf23-763b-896c-9189f1adca51",
+   "path": "assets/library/prop/item_lettuce/concept.png",
+   "bytes": 936333,
+   "sha256": "48618a75a9532ddf932dcfe8de446a7826e32882525cf49154264af501fedfa5"
+  },
+  {
+   "family": "prop",
+   "key": "item_lettuce",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-046a-7651-a571-d2368e4bf79d",
+   "path": "assets/library/prop/item_lettuce/highpoly.glb",
+   "bytes": 52228040,
+   "sha256": "c92a3974fcc0f433c79b47bf159151d36ad601320112dbe25cdb8c7fa5f39c5f"
+  },
+  {
+   "family": "prop",
+   "key": "item_lettuce",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-046a-7651-a571-d2368e4bf79d",
+   "path": "assets/library/prop/item_lettuce/highpoly_textures/base_color.png",
+   "bytes": 4124775,
+   "sha256": "d36fe1c536629cdf40d91be192de6909b4564ffef6bd1d50f3ba2f8baf519f0e"
+  },
+  {
+   "family": "prop",
+   "key": "item_lettuce",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-046a-7651-a571-d2368e4bf79d",
+   "path": "assets/library/prop/item_lettuce/highpoly_textures/metallic.png",
+   "bytes": 18932,
+   "sha256": "cf53df14cc23ac6506f8e7b2562c0bea176254c7888032159cceb035896b7038"
+  },
+  {
+   "family": "prop",
+   "key": "item_lettuce",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-046a-7651-a571-d2368e4bf79d",
+   "path": "assets/library/prop/item_lettuce/highpoly_textures/normal.png",
+   "bytes": 2703606,
+   "sha256": "d17b24c5d8fe7bd92c69579250afa9ea1581c777fb26a301fd487c83b055922f"
+  },
+  {
+   "family": "prop",
+   "key": "item_lettuce",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-046a-7651-a571-d2368e4bf79d",
+   "path": "assets/library/prop/item_lettuce/highpoly_textures/roughness.png",
+   "bytes": 1216782,
+   "sha256": "c5b428f4c9936bfe3ef7afb10b661d4982a9c577c3acd2428e0a540a6a2f7e5f"
+  },
+  {
+   "family": "prop",
+   "key": "item_celery",
+   "stage": "concept",
+   "task_id": "01a0edb1-d760-7478-8f98-8bdbcc07508e",
+   "path": "assets/library/prop/item_celery/concept.png",
+   "bytes": 1082415,
+   "sha256": "306c1050249b0e98acb1650ab7a499f4eeb883d71236ed67669c551220d05d57"
+  },
+  {
+   "family": "prop",
+   "key": "item_celery",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-0b62-7728-aade-430062ee7acf",
+   "path": "assets/library/prop/item_celery/highpoly.glb",
+   "bytes": 43818720,
+   "sha256": "853b5b631ea67ef684b4dee7280b0c075feecb08b9e28f194d0354db4b1ddb52"
+  },
+  {
+   "family": "prop",
+   "key": "item_celery",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-0b62-7728-aade-430062ee7acf",
+   "path": "assets/library/prop/item_celery/highpoly_textures/base_color.png",
+   "bytes": 6031262,
+   "sha256": "c8b098d534a84b50af5ca23b1a2a5aa366087540b887c62e96cc992a9ad540f4"
+  },
+  {
+   "family": "prop",
+   "key": "item_celery",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-0b62-7728-aade-430062ee7acf",
+   "path": "assets/library/prop/item_celery/highpoly_textures/metallic.png",
+   "bytes": 45496,
+   "sha256": "a72701a17b26ebedcd3ab7113013c65110562af0f6290de71ee707eac2a619d4"
+  },
+  {
+   "family": "prop",
+   "key": "item_celery",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-0b62-7728-aade-430062ee7acf",
+   "path": "assets/library/prop/item_celery/highpoly_textures/normal.png",
+   "bytes": 4512863,
+   "sha256": "cbe02e5fed3eff383efd1482d9c5eb9307b47bdc82a974d19d3584c0de8460b0"
+  },
+  {
+   "family": "prop",
+   "key": "item_celery",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-0b62-7728-aade-430062ee7acf",
+   "path": "assets/library/prop/item_celery/highpoly_textures/roughness.png",
+   "bytes": 1314811,
+   "sha256": "4ce688b11c4a2a4aa62d48ff1d5dd5b1675e1bf71a0808b0827304ac98ae23b6"
+  },
+  {
+   "family": "prop",
+   "key": "item_strawberry",
+   "stage": "concept",
+   "task_id": "01a0edb1-df77-769e-8fde-1f61b8694f48",
+   "path": "assets/library/prop/item_strawberry/concept.png",
+   "bytes": 877476,
+   "sha256": "c0e5689c15fb5060ae39e1565fe43c86888fa2811e5303a440c9d81186c35a4b"
+  },
+  {
+   "family": "prop",
+   "key": "item_strawberry",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-124b-764e-8dcd-df331ad459c3",
+   "path": "assets/library/prop/item_strawberry/highpoly.glb",
+   "bytes": 179946228,
+   "sha256": "c72b79d463fe9ac3a43fee581d001c3b78cfaaddffe1e34c3e76d558ac7d579c"
+  },
+  {
+   "family": "prop",
+   "key": "item_strawberry",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-124b-764e-8dcd-df331ad459c3",
+   "path": "assets/library/prop/item_strawberry/highpoly_textures/base_color.png",
+   "bytes": 6116750,
+   "sha256": "5689cfffdaf4d35c61577691f6cfc3a2f7fc2f5dfb42a84b4b636b764972cba9"
+  },
+  {
+   "family": "prop",
+   "key": "item_strawberry",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-124b-764e-8dcd-df331ad459c3",
+   "path": "assets/library/prop/item_strawberry/highpoly_textures/metallic.png",
+   "bytes": 20038,
+   "sha256": "663f060e2ca38f02bd8101201a00bbef275135722d2505ca3e8d6e072e134ca3"
+  },
+  {
+   "family": "prop",
+   "key": "item_strawberry",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-124b-764e-8dcd-df331ad459c3",
+   "path": "assets/library/prop/item_strawberry/highpoly_textures/normal.png",
+   "bytes": 5408017,
+   "sha256": "1431287a93ec129bd4ee53a200e102149ae9a873a9db43e0fe245e7cb50dc267"
+  },
+  {
+   "family": "prop",
+   "key": "item_strawberry",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-124b-764e-8dcd-df331ad459c3",
+   "path": "assets/library/prop/item_strawberry/highpoly_textures/roughness.png",
+   "bytes": 1796996,
+   "sha256": "3975cf18af2fb71d8126afb5508831e486fbde965216562dda12950b2a1c1cfc"
+  },
+  {
+   "family": "prop",
+   "key": "item_peas",
+   "stage": "concept",
+   "task_id": "01a0edb1-e7e3-7175-ac44-66625402556e",
+   "path": "assets/library/prop/item_peas/concept.png",
+   "bytes": 1027028,
+   "sha256": "311d5447c37ed303720124bd4b56d006394b72775bdba0bc5598f377cf8c7e5e"
+  },
+  {
+   "family": "prop",
+   "key": "item_peas",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-19ca-756a-b619-000deb14e75e",
+   "path": "assets/library/prop/item_peas/highpoly.glb",
+   "bytes": 27456968,
+   "sha256": "17f7637dddc5f46ba7ca2469440d74287280598fbe5aec93029a9187820d7049"
+  },
+  {
+   "family": "prop",
+   "key": "item_peas",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-19ca-756a-b619-000deb14e75e",
+   "path": "assets/library/prop/item_peas/highpoly_textures/base_color.png",
+   "bytes": 6075674,
+   "sha256": "b9246b4fb99cffdf9c45409715d69ad60a6f593f25d39a814e2ccc2d0b3a16db"
+  },
+  {
+   "family": "prop",
+   "key": "item_peas",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-19ca-756a-b619-000deb14e75e",
+   "path": "assets/library/prop/item_peas/highpoly_textures/metallic.png",
+   "bytes": 26226,
+   "sha256": "99c650749abdc459e2b0d1776f2cb1f0883a9397da1cc985c64c39145cd0a96a"
+  },
+  {
+   "family": "prop",
+   "key": "item_peas",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-19ca-756a-b619-000deb14e75e",
+   "path": "assets/library/prop/item_peas/highpoly_textures/normal.png",
+   "bytes": 4616284,
+   "sha256": "7fd980ab15c8d23e2f4fb9a6865ebdc4546fcdee6ff121c7be1db2f8c1f4e173"
+  },
+  {
+   "family": "prop",
+   "key": "item_peas",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-19ca-756a-b619-000deb14e75e",
+   "path": "assets/library/prop/item_peas/highpoly_textures/roughness.png",
+   "bytes": 1405323,
+   "sha256": "dc699e674fd246caed56473c448dba0c1ffa9a139cfcf7456ab9fbc93d7449d9"
+  },
+  {
+   "family": "prop",
+   "key": "item_barley",
+   "stage": "concept",
+   "task_id": "01a0edb1-f21f-7658-86ea-3b5448ff5f55",
+   "path": "assets/library/prop/item_barley/concept.png",
+   "bytes": 1159664,
+   "sha256": "94d8db346f5a8d2ebcaf930de6cba98f94973c16c56d00388e71ae824a6400a0"
+  },
+  {
+   "family": "prop",
+   "key": "item_barley",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-210e-7241-ab9f-9b035a689a91",
+   "path": "assets/library/prop/item_barley/highpoly.glb",
+   "bytes": 52430992,
+   "sha256": "d2581846613da1b30a1044f7f255b74eb8b1b5372b5afb0ac56441d60e77639c"
+  },
+  {
+   "family": "prop",
+   "key": "item_barley",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-210e-7241-ab9f-9b035a689a91",
+   "path": "assets/library/prop/item_barley/highpoly_textures/base_color.png",
+   "bytes": 6851680,
+   "sha256": "80de8b12acfe8ee3ae081d0d1de8e9b5396c564f8c401a418c3950bdbef57f6a"
+  },
+  {
+   "family": "prop",
+   "key": "item_barley",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-210e-7241-ab9f-9b035a689a91",
+   "path": "assets/library/prop/item_barley/highpoly_textures/metallic.png",
+   "bytes": 343372,
+   "sha256": "919dd7e61eebc39144a9d4df2cd0a59c4a750275c75a5a6c47baf7d39858629c"
+  },
+  {
+   "family": "prop",
+   "key": "item_barley",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-210e-7241-ab9f-9b035a689a91",
+   "path": "assets/library/prop/item_barley/highpoly_textures/normal.png",
+   "bytes": 6109391,
+   "sha256": "9e6652a401469bab27b7289441f311615acb3d33cd67327f63f765ff899b79af"
+  },
+  {
+   "family": "prop",
+   "key": "item_barley",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-210e-7241-ab9f-9b035a689a91",
+   "path": "assets/library/prop/item_barley/highpoly_textures/roughness.png",
+   "bytes": 1696737,
+   "sha256": "0baa5620a620188283d5320a1f6ed4c34e032c1f4af617b06736988b90d13c91"
+  },
+  {
+   "family": "prop",
+   "key": "item_oats",
+   "stage": "concept",
+   "task_id": "01a0edb1-f9f2-7083-9f58-83e1d5e11c12",
+   "path": "assets/library/prop/item_oats/concept.png",
+   "bytes": 1033743,
+   "sha256": "eea50fad5457046ca7f5bed3261d4f16b781869f9f136a725c199b068e4d3cfc"
+  },
+  {
+   "family": "prop",
+   "key": "item_oats",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-28e6-72c2-86e6-06150ce19d26",
+   "path": "assets/library/prop/item_oats/highpoly.glb",
+   "bytes": 49356600,
+   "sha256": "2f7af7617cf658d3f88897585129a04494f904150d77e942c85e5114e1085e08"
+  },
+  {
+   "family": "prop",
+   "key": "item_oats",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-28e6-72c2-86e6-06150ce19d26",
+   "path": "assets/library/prop/item_oats/highpoly_textures/base_color.png",
+   "bytes": 6759756,
+   "sha256": "47539a2662e4f8a13f870fb9d654e9b515894f967519bae764e31cedcb95c892"
+  },
+  {
+   "family": "prop",
+   "key": "item_oats",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-28e6-72c2-86e6-06150ce19d26",
+   "path": "assets/library/prop/item_oats/highpoly_textures/metallic.png",
+   "bytes": 87833,
+   "sha256": "aa6b23658eb038d9b6c78b46842001ef32a03958b71014e3a8e207800e04e658"
+  },
+  {
+   "family": "prop",
+   "key": "item_oats",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-28e6-72c2-86e6-06150ce19d26",
+   "path": "assets/library/prop/item_oats/highpoly_textures/normal.png",
+   "bytes": 5749026,
+   "sha256": "4cf75ac793bdf669f8c6332d99c41d5aaff11a7e4c62fb4cc7607c317f3bb4fe"
+  },
+  {
+   "family": "prop",
+   "key": "item_oats",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-28e6-72c2-86e6-06150ce19d26",
+   "path": "assets/library/prop/item_oats/highpoly_textures/roughness.png",
+   "bytes": 1590721,
+   "sha256": "346f231f39fcfc34ca9786cc4ac3ad672631daa3589dfcc618fd3038a4faf95b"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_brace",
+   "stage": "concept",
+   "task_id": "01a0edb2-0f75-7771-8477-8f15e49a7bb4",
+   "path": "assets/library/prop/tunnel_brace/concept.png",
+   "bytes": 1106080,
+   "sha256": "0bc1860d4b0d97cb1282ff657b73fa9f1a43b43d3f6dc69e0b5782a257dde5d1"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_brace",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-3c0a-7560-a25b-94b198967c83",
+   "path": "assets/library/prop/tunnel_brace/highpoly.glb",
+   "bytes": 28687100,
+   "sha256": "8e3d6f574356ce4450605bef33f911d9c3e5176ecb52b31cdfee95144a1e3d07"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_brace",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-3c0a-7560-a25b-94b198967c83",
+   "path": "assets/library/prop/tunnel_brace/highpoly_textures/base_color.png",
+   "bytes": 6423829,
+   "sha256": "c1dd93ccb9d461ea618a9ae2082cbdad0c73b8574867102660e6a8bc93780504"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_brace",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-3c0a-7560-a25b-94b198967c83",
+   "path": "assets/library/prop/tunnel_brace/highpoly_textures/metallic.png",
+   "bytes": 46705,
+   "sha256": "cbecc80a4f8ec4bd280adc81c66456a8bbd952332c3cb8e6ef1f0413180af76a"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_brace",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-3c0a-7560-a25b-94b198967c83",
+   "path": "assets/library/prop/tunnel_brace/highpoly_textures/normal.png",
+   "bytes": 5339760,
+   "sha256": "cb22a70fb02c265757635a58fcd3d0720102b16592d694a9254d54fd99211a2e"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_brace",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-3c0a-7560-a25b-94b198967c83",
+   "path": "assets/library/prop/tunnel_brace/highpoly_textures/roughness.png",
+   "bytes": 1467313,
+   "sha256": "5c5061b95adfa955e706fad12e12503de9fbcf074a374f69ea7a6b02bcb25be9"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_rubble",
+   "stage": "concept",
+   "task_id": "01a0edb2-173b-7403-9e81-fc9ddf0a239a",
+   "path": "assets/library/prop/tunnel_rubble/concept.png",
+   "bytes": 1219579,
+   "sha256": "4af53112b3646c48b1aad9de0ddda278d88b5cb9ff721758cb9bc8ac815db8ae"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_rubble",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-447e-74a8-bc37-86f4c66ef9b3",
+   "path": "assets/library/prop/tunnel_rubble/highpoly.glb",
+   "bytes": 56032824,
+   "sha256": "60de84e58734d04da6a8879f232e8388176464a29b910a6716fca0ae1e304855"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_rubble",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-447e-74a8-bc37-86f4c66ef9b3",
+   "path": "assets/library/prop/tunnel_rubble/highpoly_textures/base_color.png",
+   "bytes": 6373951,
+   "sha256": "f762a8aff4c45416688bd79ed34ed474afba017664ebc23e1a0dda3ac7f7507e"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_rubble",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-447e-74a8-bc37-86f4c66ef9b3",
+   "path": "assets/library/prop/tunnel_rubble/highpoly_textures/metallic.png",
+   "bytes": 27315,
+   "sha256": "5b3e4e6c28ecf5305203d6c52b4c35d623f3939de107478a5f5bddfb84eefb17"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_rubble",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-447e-74a8-bc37-86f4c66ef9b3",
+   "path": "assets/library/prop/tunnel_rubble/highpoly_textures/normal.png",
+   "bytes": 5478814,
+   "sha256": "db039179991d08c17bf0967bd3e7ef51f5413fd1b50b1d20c2d84b18660e88c4"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_rubble",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-447e-74a8-bc37-86f4c66ef9b3",
+   "path": "assets/library/prop/tunnel_rubble/highpoly_textures/roughness.png",
+   "bytes": 1613130,
+   "sha256": "7d22f8cf2f7bd6b2d6e975084ecc09f3dadfa53c31ba20ca3ab5f7fbffb06bde"
+  },
+  {
+   "family": "prop",
+   "key": "find_flint",
+   "stage": "concept",
+   "task_id": "01a0edb2-1f0d-7494-8176-697992346633",
+   "path": "assets/library/prop/find_flint/concept.png",
+   "bytes": 842790,
+   "sha256": "7e84c06dec4ea2c0ea62da66cf5e5f3d2ff4fca75b70e37629f2b2d51b06a3f4"
+  },
+  {
+   "family": "prop",
+   "key": "find_flint",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-4ba1-731d-a3a0-f3f06613868c",
+   "path": "assets/library/prop/find_flint/highpoly.glb",
+   "bytes": 27942516,
+   "sha256": "d66815541ae8ee236fb11ff9ddc6388b73a8b9d18126469ccf98e2deb5997d45"
+  },
+  {
+   "family": "prop",
+   "key": "find_flint",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-4ba1-731d-a3a0-f3f06613868c",
+   "path": "assets/library/prop/find_flint/highpoly_textures/base_color.png",
+   "bytes": 6285372,
+   "sha256": "3f6a8127fb7a6ca13eb0da4f5948d57d3d4dacefa8a1d22e02bd171c2b5ebf98"
+  },
+  {
+   "family": "prop",
+   "key": "find_flint",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-4ba1-731d-a3a0-f3f06613868c",
+   "path": "assets/library/prop/find_flint/highpoly_textures/metallic.png",
+   "bytes": 556832,
+   "sha256": "cb1f6c851c63418ca5159714dbbda976d48761704714cb8df53ea17dffa78e24"
+  },
+  {
+   "family": "prop",
+   "key": "find_flint",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-4ba1-731d-a3a0-f3f06613868c",
+   "path": "assets/library/prop/find_flint/highpoly_textures/normal.png",
+   "bytes": 5289402,
+   "sha256": "bf9c33f45243ba16ddaf860a61ea805a6820ea66b737d812c74276953427f8bd"
+  },
+  {
+   "family": "prop",
+   "key": "find_flint",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-4ba1-731d-a3a0-f3f06613868c",
+   "path": "assets/library/prop/find_flint/highpoly_textures/roughness.png",
+   "bytes": 1500055,
+   "sha256": "114b8db309e759ce1ecbec409387c15be946780ce051c9f0f485072e4ed36b35"
+  },
+  {
+   "family": "prop",
+   "key": "find_clay",
+   "stage": "concept",
+   "task_id": "01a0edb2-26b7-7209-834d-1a8bde2f2cc7",
+   "path": "assets/library/prop/find_clay/concept.png",
+   "bytes": 913909,
+   "sha256": "2c74b9c3caf29880345a5e6faeceac074229e409b370c0c21f9fa28dc648aaee"
+  },
+  {
+   "family": "prop",
+   "key": "find_clay",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-52dd-7608-bcba-cb0720eee9f8",
+   "path": "assets/library/prop/find_clay/highpoly.glb",
+   "bytes": 6277792,
+   "sha256": "4ab9e771889ceb430080ed9105639918c46b10c01950905f73d081b65c25523f"
+  },
+  {
+   "family": "prop",
+   "key": "find_clay",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-52dd-7608-bcba-cb0720eee9f8",
+   "path": "assets/library/prop/find_clay/highpoly_textures/base_color.png",
+   "bytes": 3182461,
+   "sha256": "566d17bfd09ef99cce6da79ae939b155cf7fc4b2cb3c1394060d4abee347dd2c"
+  },
+  {
+   "family": "prop",
+   "key": "find_clay",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-52dd-7608-bcba-cb0720eee9f8",
+   "path": "assets/library/prop/find_clay/highpoly_textures/metallic.png",
+   "bytes": 18377,
+   "sha256": "9a05f4ad0dc1046e3731bf19b9c883b9bc0bc514192d02747cb7f205566bb84f"
+  },
+  {
+   "family": "prop",
+   "key": "find_clay",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-52dd-7608-bcba-cb0720eee9f8",
+   "path": "assets/library/prop/find_clay/highpoly_textures/normal.png",
+   "bytes": 1726339,
+   "sha256": "7fc3409e174638a8bd84eb350ef103745501f9f9beeaabc011e6d8a6e0cd3307"
+  },
+  {
+   "family": "prop",
+   "key": "find_clay",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-52dd-7608-bcba-cb0720eee9f8",
+   "path": "assets/library/prop/find_clay/highpoly_textures/roughness.png",
+   "bytes": 1139399,
+   "sha256": "b8b246240cfa89ebd52d95ffe9579a916f7550fbba02250f704bdad807d4109f"
+  },
+  {
+   "family": "prop",
+   "key": "relic_bell",
+   "stage": "concept",
+   "task_id": "01a0edb2-2e9d-768a-9dea-4ced65df0f71",
+   "path": "assets/library/prop/relic_bell/concept.png",
+   "bytes": 1057489,
+   "sha256": "f62fdaa76f9f39185234a93f6eff00a43162d5082bc74e1842c3865cb954cc04"
+  },
+  {
+   "family": "prop",
+   "key": "relic_bell",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-5a75-7659-a425-8c58ceadd822",
+   "path": "assets/library/prop/relic_bell/highpoly.glb",
+   "bytes": 14445188,
+   "sha256": "61b7e6f45af210159a0bcba566b30e280ac1fd1d6cd640e5e3ac7115afe3e315"
+  },
+  {
+   "family": "prop",
+   "key": "relic_bell",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-5a75-7659-a425-8c58ceadd822",
+   "path": "assets/library/prop/relic_bell/highpoly_textures/base_color.png",
+   "bytes": 6190275,
+   "sha256": "9b85e292427de71e02203c45086003f084b7eec27f30b400689ca44b3b1f2c8f"
+  },
+  {
+   "family": "prop",
+   "key": "relic_bell",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-5a75-7659-a425-8c58ceadd822",
+   "path": "assets/library/prop/relic_bell/highpoly_textures/metallic.png",
+   "bytes": 1488496,
+   "sha256": "52bd40c7325d1677c664f3c24ab23c5819fc4ba526bcbfd6fcba7160b5b77ae0"
+  },
+  {
+   "family": "prop",
+   "key": "relic_bell",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-5a75-7659-a425-8c58ceadd822",
+   "path": "assets/library/prop/relic_bell/highpoly_textures/normal.png",
+   "bytes": 4644739,
+   "sha256": "0477301a0cbef721634a6ff58c3d7beaff853ecdcfee376a8a11d53fdce8b1b8"
+  },
+  {
+   "family": "prop",
+   "key": "relic_bell",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-5a75-7659-a425-8c58ceadd822",
+   "path": "assets/library/prop/relic_bell/highpoly_textures/roughness.png",
+   "bytes": 1397036,
+   "sha256": "88b9c56110bb039ed15ebe97dd7ab80b5601d5c73adc4814d6b7df79530213d9"
+  },
+  {
+   "family": "prop",
+   "key": "relic_key",
+   "stage": "concept",
+   "task_id": "01a0edb2-35d9-75ee-809b-b72acb83c5e3",
+   "path": "assets/library/prop/relic_key/concept.png",
+   "bytes": 826988,
+   "sha256": "1f0d09d00c22e35bc8daac9bc2789fcc65fe2ba7a05830500db396d999980d5a"
+  },
+  {
+   "family": "prop",
+   "key": "relic_key",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-61f2-70aa-a105-0c4850209fe5",
+   "path": "assets/library/prop/relic_key/highpoly.glb",
+   "bytes": 23577440,
+   "sha256": "708ee194cc809552964423283623a65a555968290d8adc4af15e69e820b45954"
+  },
+  {
+   "family": "prop",
+   "key": "relic_key",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-61f2-70aa-a105-0c4850209fe5",
+   "path": "assets/library/prop/relic_key/highpoly_textures/base_color.png",
+   "bytes": 5976966,
+   "sha256": "bfe2c992fb0e0de233359655c9f9eeaa9ac91075b4620970add475a783b4230c"
+  },
+  {
+   "family": "prop",
+   "key": "relic_key",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-61f2-70aa-a105-0c4850209fe5",
+   "path": "assets/library/prop/relic_key/highpoly_textures/metallic.png",
+   "bytes": 1511098,
+   "sha256": "550d52279bd1fd8334a77579aaee460853e565dfc90d33b0c08c0877481b8210"
+  },
+  {
+   "family": "prop",
+   "key": "relic_key",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-61f2-70aa-a105-0c4850209fe5",
+   "path": "assets/library/prop/relic_key/highpoly_textures/normal.png",
+   "bytes": 4968895,
+   "sha256": "e093dee204cfb9e94bfb7995f446755b3c7146dfff9852052259273c452293ff"
+  },
+  {
+   "family": "prop",
+   "key": "relic_key",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-61f2-70aa-a105-0c4850209fe5",
+   "path": "assets/library/prop/relic_key/highpoly_textures/roughness.png",
+   "bytes": 1483429,
+   "sha256": "12f327d207aed334d2f1bec5d094d148ddf5f0834d7a26018b2180a9a4a07803"
+  },
+  {
+   "family": "prop",
+   "key": "relic_banner",
+   "stage": "concept",
+   "task_id": "01a0edb2-3d1f-76f2-a51c-c7946ad4b9a0",
+   "path": "assets/library/prop/relic_banner/concept.png",
+   "bytes": 1297314,
+   "sha256": "ce72556670db992d1b004930fc70895d8a2aa2534f289bccb78fad091ea3c147"
+  },
+  {
+   "family": "prop",
+   "key": "relic_banner",
+   "stage": "highpoly",
+   "task_id": "01a0edb5-08f4-772a-bf43-cda9670b03c3",
+   "path": "assets/library/prop/relic_banner/highpoly.glb",
+   "bytes": 68457384,
+   "sha256": "4af85468ad5822fed4eb79b3458d3724ccce981d1def4982bb0abab2c1fb0138"
+  },
+  {
+   "family": "prop",
+   "key": "relic_banner",
+   "stage": "highpoly",
+   "task_id": "01a0edb5-08f4-772a-bf43-cda9670b03c3",
+   "path": "assets/library/prop/relic_banner/highpoly_textures/base_color.png",
+   "bytes": 7593227,
+   "sha256": "4f49a5f06fcd940a8162fa39c3f0af69c12366976e130a6f49096c5e806fb9a5"
+  },
+  {
+   "family": "prop",
+   "key": "relic_banner",
+   "stage": "highpoly",
+   "task_id": "01a0edb5-08f4-772a-bf43-cda9670b03c3",
+   "path": "assets/library/prop/relic_banner/highpoly_textures/metallic.png",
+   "bytes": 77482,
+   "sha256": "15c2229d0503f5bb8e691d29307b91b5bb2e3e71738966f4254272bc871f5b9a"
+  },
+  {
+   "family": "prop",
+   "key": "relic_banner",
+   "stage": "highpoly",
+   "task_id": "01a0edb5-08f4-772a-bf43-cda9670b03c3",
+   "path": "assets/library/prop/relic_banner/highpoly_textures/normal.png",
+   "bytes": 6933144,
+   "sha256": "4ccb633a7aa470c119a0c5438bca78e112e755569f02e19675860c447f897d6e"
+  },
+  {
+   "family": "prop",
+   "key": "relic_banner",
+   "stage": "highpoly",
+   "task_id": "01a0edb5-08f4-772a-bf43-cda9670b03c3",
+   "path": "assets/library/prop/relic_banner/highpoly_textures/roughness.png",
+   "bytes": 1650135,
+   "sha256": "926682a203a8b634ce38736be29c77be9418e37781638a136283cb7fa748cee6"
+  },
+  {
+   "family": "prop",
+   "key": "mole_pick",
+   "stage": "concept",
+   "task_id": "01a0edb2-4480-7738-97b3-a94949dd9803",
+   "path": "assets/library/prop/mole_pick/concept.png",
+   "bytes": 939003,
+   "sha256": "60a3f063c94bf2c76e10c3d39dc4af75541c814ab02d2ea36ce8d47abb6cd44c"
+  },
+  {
+   "family": "prop",
+   "key": "mole_pick",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-cb2a-72b8-abb5-c4a07c7411f0",
+   "path": "assets/library/prop/mole_pick/highpoly.glb",
+   "bytes": 12360064,
+   "sha256": "246c595145e678e84dbb069f5b19b58132786652bd12993ffbeb0b4310edf97b"
+  },
+  {
+   "family": "prop",
+   "key": "mole_pick",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-cb2a-72b8-abb5-c4a07c7411f0",
+   "path": "assets/library/prop/mole_pick/highpoly_textures/base_color.png",
+   "bytes": 6585013,
+   "sha256": "fd5597cf7b09085851913a172998541b2d715f0dbe0778271365d7ef2637f615"
+  },
+  {
+   "family": "prop",
+   "key": "mole_pick",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-cb2a-72b8-abb5-c4a07c7411f0",
+   "path": "assets/library/prop/mole_pick/highpoly_textures/metallic.png",
+   "bytes": 750219,
+   "sha256": "dd3a393d9f213cd7f0199d1a78c619f84e43d03b36208ec6ab32a30f0b53c804"
+  },
+  {
+   "family": "prop",
+   "key": "mole_pick",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-cb2a-72b8-abb5-c4a07c7411f0",
+   "path": "assets/library/prop/mole_pick/highpoly_textures/normal.png",
+   "bytes": 5430361,
+   "sha256": "4f1c0ff3ad686619b4cf19070ea040a1d95355a2451c511dfdbc49e5282823a0"
+  },
+  {
+   "family": "prop",
+   "key": "mole_pick",
+   "stage": "highpoly",
+   "task_id": "01a0edb4-cb2a-72b8-abb5-c4a07c7411f0",
+   "path": "assets/library/prop/mole_pick/highpoly_textures/roughness.png",
+   "bytes": 1390588,
+   "sha256": "4126076056de1084657b1872a4631f2f4b764e082ed267e977506d9586995680"
+  },
+  {
+   "family": "prop",
+   "key": "boat_coracle",
+   "stage": "concept",
+   "path": "assets/library/prop/boat_coracle/concept.png",
+   "bytes": 978433,
+   "sha256": "89c05a377ed765debbd86481cefdc3d02b8649c7e671ef033851265a37dd90fb"
+  },
+  {
+   "family": "prop",
+   "key": "boat_coracle",
+   "stage": "highpoly",
+   "path": "assets/library/prop/boat_coracle/highpoly.glb",
+   "bytes": 68185084,
+   "sha256": "542d1475ed7451d541afe212d309056c39e2e947cb7fda9f7882e289b654b631"
+  },
+  {
+   "family": "prop",
+   "key": "boat_coracle",
+   "stage": "highpoly",
+   "path": "assets/library/prop/boat_coracle/highpoly_textures/base_color.png",
+   "bytes": 5870705,
+   "sha256": "b1db6e0ab7b0202966c73f474400a6352675131af1046ee4cab3dacf9a2aa170"
+  },
+  {
+   "family": "prop",
+   "key": "boat_coracle",
+   "stage": "highpoly",
+   "path": "assets/library/prop/boat_coracle/highpoly_textures/metallic.png",
+   "bytes": 24183,
+   "sha256": "846c69cd09ffdf9d891022d87bf077caae7aad691d250416eb02e48c73a93218"
+  },
+  {
+   "family": "prop",
+   "key": "boat_coracle",
+   "stage": "highpoly",
+   "path": "assets/library/prop/boat_coracle/highpoly_textures/normal.png",
+   "bytes": 4816796,
+   "sha256": "57989e595a42afeee4e7e85466f17928aebf4e6f6f13976a80f2870ec63cd809"
+  },
+  {
+   "family": "prop",
+   "key": "boat_coracle",
+   "stage": "highpoly",
+   "path": "assets/library/prop/boat_coracle/highpoly_textures/roughness.png",
+   "bytes": 1552248,
+   "sha256": "6eae00bfe1294067103eaf19aef3a24dac532933b0234d32aeee57b0bc26d929"
+  },
+  {
+   "family": "prop",
+   "key": "boat_rowboat",
+   "stage": "concept",
+   "path": "assets/library/prop/boat_rowboat/concept.png",
+   "bytes": 966688,
+   "sha256": "c98e734af06874cce8b3e01f5b5d6162e7f1a1f5513db5b0fb4285062182b683"
+  },
+  {
+   "family": "prop",
+   "key": "boat_rowboat",
+   "stage": "highpoly",
+   "path": "assets/library/prop/boat_rowboat/highpoly.glb",
+   "bytes": 31158828,
+   "sha256": "eade585beefff91427f9839910bdc8d6a22eb474e05c4864222ce5ca7b30a0b3"
+  },
+  {
+   "family": "prop",
+   "key": "boat_rowboat",
+   "stage": "highpoly",
+   "path": "assets/library/prop/boat_rowboat/highpoly_textures/base_color.png",
+   "bytes": 6198998,
+   "sha256": "d53a43d3d012400900d216e39b45797e3b827f5446975d6a11b830748e2add5e"
+  },
+  {
+   "family": "prop",
+   "key": "boat_rowboat",
+   "stage": "highpoly",
+   "path": "assets/library/prop/boat_rowboat/highpoly_textures/metallic.png",
+   "bytes": 47809,
+   "sha256": "0bd3c5fe2eb9d55e2177f87a6dd02bb3af228a0823bf9402e0b9e159d7331bca"
+  },
+  {
+   "family": "prop",
+   "key": "boat_rowboat",
+   "stage": "highpoly",
+   "path": "assets/library/prop/boat_rowboat/highpoly_textures/normal.png",
+   "bytes": 5428258,
+   "sha256": "a028e5e215f1f02b3b263de1907564a31d5c4f72946c8a8bc0f181157410ee98"
+  },
+  {
+   "family": "prop",
+   "key": "boat_rowboat",
+   "stage": "highpoly",
+   "path": "assets/library/prop/boat_rowboat/highpoly_textures/roughness.png",
+   "bytes": 1473556,
+   "sha256": "36dd85794b325027b18f25824c8b345a5e940b2a45bda9080ed4a18da4221a59"
+  },
+  {
+   "family": "prop",
+   "key": "boat_raft",
+   "stage": "concept",
+   "path": "assets/library/prop/boat_raft/concept.png",
+   "bytes": 963384,
+   "sha256": "aa9fb202d7e14696af73aa8cd4bd12ea6287adf0a95503088c748f90361793af"
+  },
+  {
+   "family": "prop",
+   "key": "boat_raft",
+   "stage": "highpoly",
+   "path": "assets/library/prop/boat_raft/highpoly.glb",
+   "bytes": 64565184,
+   "sha256": "9fbe23ff98aed246532ff25c33d0e7fdf3e17400021b6c459f58a9f158b395e5"
+  },
+  {
+   "family": "prop",
+   "key": "boat_raft",
+   "stage": "highpoly",
+   "path": "assets/library/prop/boat_raft/highpoly_textures/base_color.png",
+   "bytes": 6336868,
+   "sha256": "6a48249e99d6746ac5800dc46cd3fb551bdb7f29082c50a7ca181a2112554453"
+  },
+  {
+   "family": "prop",
+   "key": "boat_raft",
+   "stage": "highpoly",
+   "path": "assets/library/prop/boat_raft/highpoly_textures/metallic.png",
+   "bytes": 23426,
+   "sha256": "fc0e32aaee2bbe3ba1db9cb7218d8d83cbe48571b231b3ca1cce75464a925f2a"
+  },
+  {
+   "family": "prop",
+   "key": "boat_raft",
+   "stage": "highpoly",
+   "path": "assets/library/prop/boat_raft/highpoly_textures/normal.png",
+   "bytes": 5514582,
+   "sha256": "2ed2b282241154165914b64d3a40b6ef36c57ebce3459ce8ddb0f6418022dd84"
+  },
+  {
+   "family": "prop",
+   "key": "boat_raft",
+   "stage": "highpoly",
+   "path": "assets/library/prop/boat_raft/highpoly_textures/roughness.png",
+   "bytes": 1596947,
+   "sha256": "9c1bdd0e3a72aa0cae2a12114aea7b77ff90c28ec32bf7ca4fe5cf60fad2c4b1"
+  },
+  {
+   "family": "prop",
+   "key": "jetty",
+   "stage": "concept",
+   "path": "assets/library/prop/jetty/concept.png",
+   "bytes": 741872,
+   "sha256": "78b7cc33c94f7d9d651de508bfd9cdb5644658ba1f9da8c48419badd172798ad"
+  },
+  {
+   "family": "prop",
+   "key": "jetty",
+   "stage": "highpoly",
+   "path": "assets/library/prop/jetty/highpoly.glb",
+   "bytes": 32733716,
+   "sha256": "0f1e3d673197bfff9f2b3c5e608536f9233621944d18f55dba21b52b6da59954"
+  },
+  {
+   "family": "prop",
+   "key": "jetty",
+   "stage": "highpoly",
+   "path": "assets/library/prop/jetty/highpoly_textures/base_color.png",
+   "bytes": 6380404,
+   "sha256": "7fed96004cdff9ead829beab06f998527700256e6ace9a1aa363840580ef15d4"
+  },
+  {
+   "family": "prop",
+   "key": "jetty",
+   "stage": "highpoly",
+   "path": "assets/library/prop/jetty/highpoly_textures/metallic.png",
+   "bytes": 30121,
+   "sha256": "b1ce3eea5af3c03a3f8da676690f8900c4e4905225081270e1842f186088fa28"
+  },
+  {
+   "family": "prop",
+   "key": "jetty",
+   "stage": "highpoly",
+   "path": "assets/library/prop/jetty/highpoly_textures/normal.png",
+   "bytes": 5422668,
+   "sha256": "5147702d90038e727413d6136f724edaeb98e030819b409b5a2b8d804fb383d8"
+  },
+  {
+   "family": "prop",
+   "key": "jetty",
+   "stage": "highpoly",
+   "path": "assets/library/prop/jetty/highpoly_textures/roughness.png",
+   "bytes": 1508346,
+   "sha256": "3ccd78c4d363859898bdea7e2f74944fa710f83f7a5a91edbc5c7be398c2ab9b"
+  },
+  {
+   "family": "prop",
+   "key": "fishing_rod",
+   "stage": "concept",
+   "path": "assets/library/prop/fishing_rod/concept.png",
+   "bytes": 704394,
+   "sha256": "399c3f5512afa03d3618e168da1692afd6aa240da5fbbac2a25ab824443ba3fb"
+  },
+  {
+   "family": "prop",
+   "key": "fishing_rod",
+   "stage": "highpoly",
+   "path": "assets/library/prop/fishing_rod/highpoly.glb",
+   "bytes": 17786700,
+   "sha256": "bfdb9b33f725626c91f6b2bda983360aac634e94260a40a63457931a2c55a20a"
+  },
+  {
+   "family": "prop",
+   "key": "fishing_rod",
+   "stage": "highpoly",
+   "path": "assets/library/prop/fishing_rod/highpoly_textures/base_color.png",
+   "bytes": 6596467,
+   "sha256": "bfdcdc96b00f85211b5a8011d6116d1e4216d8c2a5eb8993220634a45ac9a7ab"
+  },
+  {
+   "family": "prop",
+   "key": "fishing_rod",
+   "stage": "highpoly",
+   "path": "assets/library/prop/fishing_rod/highpoly_textures/metallic.png",
+   "bytes": 171071,
+   "sha256": "4bb58e80ff07b217f878d1601ce6da845d329371a56ab1843688817a86bd716c"
+  },
+  {
+   "family": "prop",
+   "key": "fishing_rod",
+   "stage": "highpoly",
+   "path": "assets/library/prop/fishing_rod/highpoly_textures/normal.png",
+   "bytes": 5541881,
+   "sha256": "d9a0a12957ca0cfb9f681f1d264b82a009ea7c6456dee010f5656465b6e3f305"
+  },
+  {
+   "family": "prop",
+   "key": "fishing_rod",
+   "stage": "highpoly",
+   "path": "assets/library/prop/fishing_rod/highpoly_textures/roughness.png",
+   "bytes": 1344220,
+   "sha256": "2ace8ae11a3206c471201231fe364175599559e2d5fa4516b5deef09a46c7774"
+  },
+  {
+   "family": "prop",
+   "key": "fishing_net",
+   "stage": "concept",
+   "path": "assets/library/prop/fishing_net/concept.png",
+   "bytes": 1373780,
+   "sha256": "db1f24caca0a46d21b6dcba05df6264924047824f47025df6cd85b2bdd7c16ff"
+  },
+  {
+   "family": "prop",
+   "key": "fishing_net",
+   "stage": "highpoly",
+   "path": "assets/library/prop/fishing_net/highpoly.glb",
+   "bytes": 56791332,
+   "sha256": "96e53cecc4cac8ef638fb4a95a2db15ec8905f7e80f34729207d075357f5316f"
+  },
+  {
+   "family": "prop",
+   "key": "fishing_net",
+   "stage": "highpoly",
+   "path": "assets/library/prop/fishing_net/highpoly_textures/base_color.png",
+   "bytes": 10351071,
+   "sha256": "c9873bba5b33a9f4e31bb1cff57fe837bca0eefb65eebbe4cf54a4a6806d597a"
+  },
+  {
+   "family": "prop",
+   "key": "fishing_net",
+   "stage": "highpoly",
+   "path": "assets/library/prop/fishing_net/highpoly_textures/emission.png",
+   "bytes": 116985,
+   "sha256": "e0a941c8c31ed101b462f97f1ff396f6d76b8bbea90f3e72c6a5a4eddb79abb2"
+  },
+  {
+   "family": "prop",
+   "key": "fishing_net",
+   "stage": "highpoly",
+   "path": "assets/library/prop/fishing_net/highpoly_textures/metallic.png",
+   "bytes": 19092,
+   "sha256": "a2499d0c192dcaef3fc3b42d0576db2b6c2ccf139c5fbb59ba07350670b79ee8"
+  },
+  {
+   "family": "prop",
+   "key": "fishing_net",
+   "stage": "highpoly",
+   "path": "assets/library/prop/fishing_net/highpoly_textures/normal.png",
+   "bytes": 8702315,
+   "sha256": "9b5ec4e5489c5ce05d2d8c258b5d722d0cb9a8381d589036ec9f009e8b24d500"
+  },
+  {
+   "family": "prop",
+   "key": "fishing_net",
+   "stage": "highpoly",
+   "path": "assets/library/prop/fishing_net/highpoly_textures/roughness.png",
+   "bytes": 1733954,
+   "sha256": "46693fcd6aab1660e3d994fc48a23c68a4d37d4920d4089017977fd011683078"
+  },
+  {
+   "family": "prop",
+   "key": "eel_trap",
+   "stage": "concept",
+   "path": "assets/library/prop/eel_trap/concept.png",
+   "bytes": 1111415,
+   "sha256": "499a3d3a52d136f9ca45f0627baa1a782b60009b1a676a92d5bb599498e149ec"
+  },
+  {
+   "family": "prop",
+   "key": "eel_trap",
+   "stage": "highpoly",
+   "path": "assets/library/prop/eel_trap/highpoly.glb",
+   "bytes": 239202184,
+   "sha256": "fd3b6dbd4bf95f10ee75a9721ad4d96a7d83470efb187fc25653a86e52c66361"
+  },
+  {
+   "family": "prop",
+   "key": "eel_trap",
+   "stage": "highpoly",
+   "path": "assets/library/prop/eel_trap/highpoly_textures/base_color.png",
+   "bytes": 6851930,
+   "sha256": "f1f93a3eaf45caadc57caea8ebe6dfca0a37acfc121733287c621ae6e2e67c7c"
+  },
+  {
+   "family": "prop",
+   "key": "eel_trap",
+   "stage": "highpoly",
+   "path": "assets/library/prop/eel_trap/highpoly_textures/metallic.png",
+   "bytes": 19794,
+   "sha256": "553c9398778d54929d0869c03c5b83a32968985df57e0da77daabafcf5d2af1a"
+  },
+  {
+   "family": "prop",
+   "key": "eel_trap",
+   "stage": "highpoly",
+   "path": "assets/library/prop/eel_trap/highpoly_textures/normal.png",
+   "bytes": 6501461,
+   "sha256": "238aecec55d108ee473b4de6c4b6b4d347392b382207e0c825964d9ba5a05f17"
+  },
+  {
+   "family": "prop",
+   "key": "eel_trap",
+   "stage": "highpoly",
+   "path": "assets/library/prop/eel_trap/highpoly_textures/roughness.png",
+   "bytes": 2035311,
+   "sha256": "314a75efdfe87b606c26dad0f7e7949512b3d3c301ffc2d2b547587a073fdf41"
+  },
+  {
+   "family": "prop",
+   "key": "item_trout",
+   "stage": "concept",
+   "path": "assets/library/prop/item_trout/concept.png",
+   "bytes": 754081,
+   "sha256": "81c4294765369a982a3a3e37186f827b38a8875352d9e5cdf30f191e305e0647"
+  },
+  {
+   "family": "prop",
+   "key": "item_trout",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_trout/highpoly.glb",
+   "bytes": 14302328,
+   "sha256": "66e8e330e6283772debc7a95ec929485aa489c78e38a20e3b02d7717d29aef4b"
+  },
+  {
+   "family": "prop",
+   "key": "item_trout",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_trout/highpoly_textures/base_color.png",
+   "bytes": 6980875,
+   "sha256": "da9d060597a896d3cfbc63f8f2e62ff55512e33e039bdc52bf8a68b32831c36e"
+  },
+  {
+   "family": "prop",
+   "key": "item_trout",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_trout/highpoly_textures/metallic.png",
+   "bytes": 20704,
+   "sha256": "02226e1926bfa36f73fde2debcefe290f89e9890f6fe22b0dd9cc70f0ee3477b"
+  },
+  {
+   "family": "prop",
+   "key": "item_trout",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_trout/highpoly_textures/normal.png",
+   "bytes": 5696073,
+   "sha256": "3ceb3170aec9a4cc5a1664e77809f421a236502b796ee2b2a2f7da352d433938"
+  },
+  {
+   "family": "prop",
+   "key": "item_trout",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_trout/highpoly_textures/roughness.png",
+   "bytes": 1104432,
+   "sha256": "276b6bd0f80cdd8d590dff2f20ea7bd4c9dea971fd38e241cda9a49e6b26a10c"
+  },
+  {
+   "family": "prop",
+   "key": "item_perch",
+   "stage": "concept",
+   "path": "assets/library/prop/item_perch/concept.png",
+   "bytes": 732355,
+   "sha256": "2dbe1bd23ade107a90d8d66b3b2563c510781f63945c847d1ca9a4e338714d5d"
+  },
+  {
+   "family": "prop",
+   "key": "item_perch",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_perch/highpoly.glb",
+   "bytes": 24965648,
+   "sha256": "975ed501096693e601ea52b33bf4fc500979460be19e6191033150afd9ec3c18"
+  },
+  {
+   "family": "prop",
+   "key": "item_perch",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_perch/highpoly_textures/base_color.png",
+   "bytes": 7319036,
+   "sha256": "180aeea9b4a950a125bffecd79bc5d912e6e7755884a40e7c29d7602358886f1"
+  },
+  {
+   "family": "prop",
+   "key": "item_perch",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_perch/highpoly_textures/metallic.png",
+   "bytes": 23770,
+   "sha256": "578ac4318218d54de2d06645890fe8fa70db1143c8d9b21251c2ed79873ccf49"
+  },
+  {
+   "family": "prop",
+   "key": "item_perch",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_perch/highpoly_textures/normal.png",
+   "bytes": 5504330,
+   "sha256": "c2dc3f6d6d3862a4d51c3a4d86c47d7c21ccc422f964c4532e0acb1a36e94265"
+  },
+  {
+   "family": "prop",
+   "key": "item_perch",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_perch/highpoly_textures/roughness.png",
+   "bytes": 1362649,
+   "sha256": "ad0b738dd2fad431fc080b5d64acf1b60f491c67a3d1ff543384c28a413387e3"
+  },
+  {
+   "family": "prop",
+   "key": "item_eel",
+   "stage": "concept",
+   "path": "assets/library/prop/item_eel/concept.png",
+   "bytes": 970337,
+   "sha256": "7d20dd0e9a2ee094fab67ae617916b51564a702f41dfb1214e59369218949c89"
+  },
+  {
+   "family": "prop",
+   "key": "item_eel",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_eel/highpoly.glb",
+   "bytes": 61740868,
+   "sha256": "a1142577af209c4bf4de1e020ad055e59b6f51b3341246c8523b8bd2ff1ff779"
+  },
+  {
+   "family": "prop",
+   "key": "item_eel",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_eel/highpoly_textures/base_color.png",
+   "bytes": 6309173,
+   "sha256": "419406d4d3a65c9726fef999d8cd935accd586d6755d6a61644a2aaace58f838"
+  },
+  {
+   "family": "prop",
+   "key": "item_eel",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_eel/highpoly_textures/metallic.png",
+   "bytes": 38019,
+   "sha256": "f95a668b649e4ac62b69a4d05e7940158de0ab5c8b20eeb9c2801fa673909b32"
+  },
+  {
+   "family": "prop",
+   "key": "item_eel",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_eel/highpoly_textures/normal.png",
+   "bytes": 5056833,
+   "sha256": "9f1ed1262f7203da3b199e4a64b3d3413e38f076ba250da6802351418bfbbf0f"
+  },
+  {
+   "family": "prop",
+   "key": "item_eel",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_eel/highpoly_textures/roughness.png",
+   "bytes": 1624754,
+   "sha256": "4bccfedd27a1292ee47d406d42cd3d11391a31d5a3a8f8c66ceb986668330ba4"
+  },
+  {
+   "family": "prop",
+   "key": "item_shrimp",
+   "stage": "concept",
+   "path": "assets/library/prop/item_shrimp/concept.png",
+   "bytes": 894018,
+   "sha256": "343d48a0d9a13684c0daf65ee79102b3112551287b93faddd54e5187acfdb145"
+  },
+  {
+   "family": "prop",
+   "key": "item_shrimp",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_shrimp/highpoly.glb",
+   "bytes": 41897972,
+   "sha256": "02e137c52bd1d313591a667fba3153e19497ce0a43d1865edeafc64adab6062c"
+  },
+  {
+   "family": "prop",
+   "key": "item_shrimp",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_shrimp/highpoly_textures/base_color.png",
+   "bytes": 5144768,
+   "sha256": "917fe6ed3d310d5eaad81fef3dcb48eb6cd695e4154c322641aca232d3e37be2"
+  },
+  {
+   "family": "prop",
+   "key": "item_shrimp",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_shrimp/highpoly_textures/metallic.png",
+   "bytes": 64940,
+   "sha256": "79cd7d269b308ee2e1fd0bbe31c0663d21512549066d5e5dac5076027d0d9e98"
+  },
+  {
+   "family": "prop",
+   "key": "item_shrimp",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_shrimp/highpoly_textures/normal.png",
+   "bytes": 4237358,
+   "sha256": "62a3fb62b6d8498e5e2a005a99764b5ffbe82c1f6e641bfddb981732c4967033"
+  },
+  {
+   "family": "prop",
+   "key": "item_shrimp",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_shrimp/highpoly_textures/roughness.png",
+   "bytes": 1504697,
+   "sha256": "b2361ce1f4b4cb1762c2336e2935d2d6a293c337de81e436bf540735d52ecc5e"
+  },
+  {
+   "family": "prop",
+   "key": "item_mussels",
+   "stage": "concept",
+   "path": "assets/library/prop/item_mussels/concept.png",
+   "bytes": 878758,
+   "sha256": "7ba91a2a03a0f159a18df4f6cfb8c05ea93607be66b56a84cc6bac82d178f1a2"
+  },
+  {
+   "family": "prop",
+   "key": "item_mussels",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_mussels/highpoly.glb",
+   "bytes": 47417088,
+   "sha256": "b31d5ba2408b3bc762bb42b08b94e86f0382a7e003507aacaebf9e31e3179a43"
+  },
+  {
+   "family": "prop",
+   "key": "item_mussels",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_mussels/highpoly_textures/base_color.png",
+   "bytes": 6624638,
+   "sha256": "1a6ea05092aec23bb688d0941601a0b335dd12bb4b74f375fb39545b3ae42f0e"
+  },
+  {
+   "family": "prop",
+   "key": "item_mussels",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_mussels/highpoly_textures/metallic.png",
+   "bytes": 20165,
+   "sha256": "b6753bbb90713fc83255d80c4013b27a3f274a5da190948bb5dc852022410a74"
+  },
+  {
+   "family": "prop",
+   "key": "item_mussels",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_mussels/highpoly_textures/normal.png",
+   "bytes": 5737520,
+   "sha256": "1fe75bfbcecba1d16b9eef175203cc1e7c5e110fac1c33fc34986c52326903fb"
+  },
+  {
+   "family": "prop",
+   "key": "item_mussels",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_mussels/highpoly_textures/roughness.png",
+   "bytes": 1600296,
+   "sha256": "6e7086d4fd919607f15428333bc24da64b013cad6c8b7600aa1f2b9f2818ca76"
+  },
+  {
+   "family": "prop",
+   "key": "item_hotroot",
+   "stage": "concept",
+   "path": "assets/library/prop/item_hotroot/concept.png",
+   "bytes": 1035869,
+   "sha256": "677b0df5256061a074b5c4f55d81b19937b673e2aecb802c14b466a479a7ff48"
+  },
+  {
+   "family": "prop",
+   "key": "item_hotroot",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_hotroot/highpoly.glb",
+   "bytes": 56154372,
+   "sha256": "4467bf885eaef66d042e51e7f305803d690a9e74310b3693c6929f4db5311f47"
+  },
+  {
+   "family": "prop",
+   "key": "item_hotroot",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_hotroot/highpoly_textures/base_color.png",
+   "bytes": 6527329,
+   "sha256": "67e79b4ac3100058da9539f1c31eed02ee685688b58a94b7eece9da5f0874b2c"
+  },
+  {
+   "family": "prop",
+   "key": "item_hotroot",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_hotroot/highpoly_textures/metallic.png",
+   "bytes": 38162,
+   "sha256": "7879ecbf42ca4b581cea00db999ef850a7552115df1f0fb5fb512afe5e8ea94b"
+  },
+  {
+   "family": "prop",
+   "key": "item_hotroot",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_hotroot/highpoly_textures/normal.png",
+   "bytes": 5094968,
+   "sha256": "c606270505af8475569b7b7961131545f77a44482de7825a80914bd199050bf7"
+  },
+  {
+   "family": "prop",
+   "key": "item_hotroot",
+   "stage": "highpoly",
+   "path": "assets/library/prop/item_hotroot/highpoly_textures/roughness.png",
+   "bytes": 1568187,
+   "sha256": "219cf93d6053c33a3a59daa58bd66141dbf92f915e2b063e19b02004bcfa4e30"
+  },
+  {
+   "family": "prop",
+   "key": "smoking_rack",
+   "stage": "concept",
+   "path": "assets/library/prop/smoking_rack/concept.png",
+   "bytes": 774897,
+   "sha256": "036a0caa6c02d5d4102939e241838cc2eced34dfcba18460309c5bebe7d73aeb"
+  },
+  {
+   "family": "prop",
+   "key": "smoking_rack",
+   "stage": "highpoly",
+   "path": "assets/library/prop/smoking_rack/highpoly.glb",
+   "bytes": 38186124,
+   "sha256": "31bbc21f5cd064261b9aa0d74b0ab318a86ccf41480b1d41755d38c5d444e294"
+  },
+  {
+   "family": "prop",
+   "key": "smoking_rack",
+   "stage": "highpoly",
+   "path": "assets/library/prop/smoking_rack/highpoly_textures/base_color.png",
+   "bytes": 6913402,
+   "sha256": "f0f47d51a90d3e9c9592d2b4eedd7756b505ca2db4165e5cd49060e662b255ee"
+  },
+  {
+   "family": "prop",
+   "key": "smoking_rack",
+   "stage": "highpoly",
+   "path": "assets/library/prop/smoking_rack/highpoly_textures/metallic.png",
+   "bytes": 57870,
+   "sha256": "3593f9445d4e475be97a28139401a3bef15f12490d83eb4d22c518e5afd0d17d"
+  },
+  {
+   "family": "prop",
+   "key": "smoking_rack",
+   "stage": "highpoly",
+   "path": "assets/library/prop/smoking_rack/highpoly_textures/normal.png",
+   "bytes": 5541979,
+   "sha256": "93012db727405117bc6a379c57b9ddaf5a1a633f25a8b9973e1da5fbcef13b73"
+  },
+  {
+   "family": "prop",
+   "key": "smoking_rack",
+   "stage": "highpoly",
+   "path": "assets/library/prop/smoking_rack/highpoly_textures/roughness.png",
+   "bytes": 1551080,
+   "sha256": "dc680c86338cbb546878f5280b6b54cc027f9bd854de42cb733f0a1f3b2d8371"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_plank",
+   "stage": "concept",
+   "path": "assets/library/prop/bridge_plank/concept.png",
+   "bytes": 790180,
+   "sha256": "cf90e97d3be7a3b322f4242f10b529a2f4f5760618ec34770e845cc17b4e0f04"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_plank",
+   "stage": "highpoly",
+   "path": "assets/library/prop/bridge_plank/highpoly.glb",
+   "bytes": 26812804,
+   "sha256": "0d220542a2f60fc6c26598158e42b7ab38aecb36c2b6eab8e536c2a4c3e97e8b"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_plank",
+   "stage": "highpoly",
+   "path": "assets/library/prop/bridge_plank/highpoly_textures/base_color.png",
+   "bytes": 6471326,
+   "sha256": "c4e0dec304e73868eab5e464f054a184b65b123b3e6d835257ea9ec5697f3d7d"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_plank",
+   "stage": "highpoly",
+   "path": "assets/library/prop/bridge_plank/highpoly_textures/metallic.png",
+   "bytes": 49809,
+   "sha256": "9cc8509262a5137c91a3e5ba3f578f4b93085d053cc8b3a773549b23d55048f6"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_plank",
+   "stage": "highpoly",
+   "path": "assets/library/prop/bridge_plank/highpoly_textures/normal.png",
+   "bytes": 5585570,
+   "sha256": "2c89db5fbc83e1019ba1f88a4df12a731db3635c0822b26d82851b79f6d1a5e4"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_plank",
+   "stage": "highpoly",
+   "path": "assets/library/prop/bridge_plank/highpoly_textures/roughness.png",
+   "bytes": 1525228,
+   "sha256": "de9074f0bafb8538404b3c39e36b353acbca4174f815a06766f2987850277bf2"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_log",
+   "stage": "concept",
+   "path": "assets/library/prop/bridge_log/concept.png",
+   "bytes": 821173,
+   "sha256": "15e0307d761d8fd90993ec8c59768f38cc15e6dea7421d54dc033951f0ae0b2a"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_log",
+   "stage": "highpoly",
+   "path": "assets/library/prop/bridge_log/highpoly.glb",
+   "bytes": 15620512,
+   "sha256": "42f320a397383cd9c186d39341c49b833331b1d69e2310b7af0edbd85b8b442e"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_log",
+   "stage": "highpoly",
+   "path": "assets/library/prop/bridge_log/highpoly_textures/base_color.png",
+   "bytes": 5640846,
+   "sha256": "514ea1522ac431bd8f9eddfff236e7342bfabd114c42dcf3451321e0768fab9d"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_log",
+   "stage": "highpoly",
+   "path": "assets/library/prop/bridge_log/highpoly_textures/metallic.png",
+   "bytes": 23422,
+   "sha256": "d83b791fcc31c315eb1f77ecb6c25e249311c05ce8389988b6a2e181e2629b8c"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_log",
+   "stage": "highpoly",
+   "path": "assets/library/prop/bridge_log/highpoly_textures/normal.png",
+   "bytes": 4898225,
+   "sha256": "8df0e73f8c7773b9b305e41409ff175725c48e7c0007271c4f0960c46787ecb4"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_log",
+   "stage": "highpoly",
+   "path": "assets/library/prop/bridge_log/highpoly_textures/roughness.png",
+   "bytes": 1324198,
+   "sha256": "a2c48c28ced94fedf1b64dc5cf68223dcba424a6cd79034de47d44655f6114e4"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_pier",
+   "stage": "concept",
+   "path": "assets/library/prop/bridge_pier/concept.png",
+   "bytes": 725298,
+   "sha256": "9b943ae98f694601eb71f493f8f1b2f56aebdeb3245e6d4a5465cd3a74af1bf2"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_pier",
+   "stage": "highpoly",
+   "path": "assets/library/prop/bridge_pier/highpoly.glb",
+   "bytes": 23178484,
+   "sha256": "62399b9e0e51517ad4f21ae94975b88331e26ed93c5cb77d040bc34c06124d8e"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_pier",
+   "stage": "highpoly",
+   "path": "assets/library/prop/bridge_pier/highpoly_textures/base_color.png",
+   "bytes": 6556766,
+   "sha256": "de8496dcd7b9b318261a3cccade4ce781eda92db662693f8e4cb8e36b621064f"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_pier",
+   "stage": "highpoly",
+   "path": "assets/library/prop/bridge_pier/highpoly_textures/metallic.png",
+   "bytes": 92022,
+   "sha256": "5969893a6fdefb4028833a9a31779b9e156ea2ab8c090c685a4ac5256210d5fa"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_pier",
+   "stage": "highpoly",
+   "path": "assets/library/prop/bridge_pier/highpoly_textures/normal.png",
+   "bytes": 4991775,
+   "sha256": "baa0a194bf6e3aee6ef160d2b7360f695b20107130141441901451e108bff3d5"
+  },
+  {
+   "family": "prop",
+   "key": "bridge_pier",
+   "stage": "highpoly",
+   "path": "assets/library/prop/bridge_pier/highpoly_textures/roughness.png",
+   "bytes": 1371602,
+   "sha256": "dfcc3421d0201f8250034033ac2a2841aa5fa0229755ef724eefc955f5561dcd"
+  },
+  {
+   "family": "prop",
+   "key": "gnawed_log",
+   "stage": "concept",
+   "path": "assets/library/prop/gnawed_log/concept.png",
+   "bytes": 763614,
+   "sha256": "54cbdd08feb0802f3c3061f96187c6bd51454f2817fb769592293a99eb9959eb"
+  },
+  {
+   "family": "prop",
+   "key": "gnawed_log",
+   "stage": "highpoly",
+   "path": "assets/library/prop/gnawed_log/highpoly.glb",
+   "bytes": 24520368,
+   "sha256": "b7b875a8a463cfa15a5c6fb92bc58cc2933c1d455fe1f4852949fa7886185868"
+  },
+  {
+   "family": "prop",
+   "key": "gnawed_log",
+   "stage": "highpoly",
+   "path": "assets/library/prop/gnawed_log/highpoly_textures/base_color.png",
+   "bytes": 6763671,
+   "sha256": "7c51e8b10d01d112906e350dedf54ce68456f1aede341a747de65280449e2c58"
+  },
+  {
+   "family": "prop",
+   "key": "gnawed_log",
+   "stage": "highpoly",
+   "path": "assets/library/prop/gnawed_log/highpoly_textures/metallic.png",
+   "bytes": 37449,
+   "sha256": "19abc60d31d33429a32bf978aba58e15aa387c397c526643aa45053294915b58"
+  },
+  {
+   "family": "prop",
+   "key": "gnawed_log",
+   "stage": "highpoly",
+   "path": "assets/library/prop/gnawed_log/highpoly_textures/normal.png",
+   "bytes": 5543036,
+   "sha256": "7a6e3c0269696cf9311587bb14280fc6d28067577fae5de8f5f92534577a3414"
+  },
+  {
+   "family": "prop",
+   "key": "gnawed_log",
+   "stage": "highpoly",
+   "path": "assets/library/prop/gnawed_log/highpoly_textures/roughness.png",
+   "bytes": 1190214,
+   "sha256": "1447e446903f0346a115096c65196cfc62cced4dcbcbac04126c074d505e4ff3"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "animation",
+   "path": "assets/library/creature/beaver_bridgewright/anim_carry_heavy_object_walk.glb",
+   "bytes": 6286968,
+   "sha256": "2f2ab64c70e69136ee395b5c6671b2c9d9a16dbf818df812bfb85b5679102ddc"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "animation",
+   "path": "assets/library/creature/beaver_bridgewright/anim_carry_water_bucket_walk.glb",
+   "bytes": 6320148,
+   "sha256": "ac6fd061aedf43e018e3c110108f452cc34b4c978eb003bc0027573e88983004"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "animation",
+   "path": "assets/library/creature/beaver_bridgewright/anim_chair_sit_idle.glb",
+   "bytes": 6336940,
+   "sha256": "54f8206da19483802668db1c052a4088d006a8743cccd7c5a4906a4b919a6057"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "animation",
+   "path": "assets/library/creature/beaver_bridgewright/anim_collect_object.glb",
+   "bytes": 6280960,
+   "sha256": "eb568d89778494e176d6f6200268e960297235192aded4c668287d39a1e5973a"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "animation",
+   "path": "assets/library/creature/beaver_bridgewright/anim_idle.glb",
+   "bytes": 6256952,
+   "sha256": "e12158134caf7d59a8243b8bfc5fe88d7192cc50c25b8c3b3e398ccfd9178e30"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "animation",
+   "path": "assets/library/creature/beaver_bridgewright/anim_pull_radish.glb",
+   "bytes": 6265756,
+   "sha256": "f03d055e9be7433f4c83dea78d658a8a32923545d85ac9320b8ad1e997e3bb7d"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "animation",
+   "path": "assets/library/creature/beaver_bridgewright/anim_run.glb",
+   "bytes": 6216180,
+   "sha256": "7f6d03d11e30073c7632e3b6a7bff329067325310fd9cba6c62d16913a56a5db"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "animation",
+   "path": "assets/library/creature/beaver_bridgewright/anim_stand_and_drink.glb",
+   "bytes": 6315752,
+   "sha256": "88a773350b612e90803257922e0ebbd97fa9219ac25132bc16af20b57ddc0468"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "animation",
+   "path": "assets/library/creature/beaver_bridgewright/anim_walk.glb",
+   "bytes": 6220780,
+   "sha256": "6889a449dbe8ef721d04b9fe6c27ab5f7f6e1bf43d213fb880c27299ac9e5480"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "animation",
+   "path": "assets/library/creature/beaver_bridgewright/anim_wave_one_hand.glb",
+   "bytes": 6258144,
+   "sha256": "842eedbc94d7f5a9e8fdc2b955390c165538ff374e44b6633d749d69adccea73"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "concept",
+   "path": "assets/library/creature/beaver_bridgewright/concept_0.png",
+   "bytes": 295402,
+   "sha256": "f1577dd7c55ae9f5f0d03d9b4a75b12dd022ab87fa88c4e1dde8ba83e626c899"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "concept",
+   "path": "assets/library/creature/beaver_bridgewright/concept_1.png",
+   "bytes": 228202,
+   "sha256": "9058e8675b1cee796c9fcd8b5bf2a8e16a22f82bd390b9d996b17bd85b449d37"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "concept",
+   "path": "assets/library/creature/beaver_bridgewright/concept_2.png",
+   "bytes": 291184,
+   "sha256": "c4fa09664f57042332e6def9036933c37c94dbb8dade22e710f10aa3457b959b"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "highpoly",
+   "path": "assets/library/creature/beaver_bridgewright/highpoly.glb",
+   "bytes": 49032580,
+   "sha256": "d57a2940496300eb8ff78bd872f0fcf99230c697bd3e7c40f24f1d3db7051e58"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "highpoly",
+   "path": "assets/library/creature/beaver_bridgewright/highpoly_textures/base_color.png",
+   "bytes": 4896441,
+   "sha256": "d362c19f8d50e7700452d30fe1a8c00b6d4f1d61a608cda464e7ad25b717195b"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "highpoly",
+   "path": "assets/library/creature/beaver_bridgewright/highpoly_textures/metallic.png",
+   "bytes": 177615,
+   "sha256": "cc457c57f5218da270981a4b63dd31cd8e88ada4633a413d2c1922fd06422f03"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "highpoly",
+   "path": "assets/library/creature/beaver_bridgewright/highpoly_textures/normal.png",
+   "bytes": 3198521,
+   "sha256": "6886b8739e81fe3a5a411e4f01fb1c467d8fb6f781d0d91127594b45a2d1abd1"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "highpoly",
+   "path": "assets/library/creature/beaver_bridgewright/highpoly_textures/roughness.png",
+   "bytes": 1877100,
+   "sha256": "24146f4374e3594a836d6932bfa5862cad8aa36b199abfa8ea3923ecaf4a5d5e"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "l0",
+   "path": "assets/library/creature/beaver_bridgewright/l0.glb",
+   "bytes": 18627496,
+   "sha256": "6129a1b445d426f536b248edbaaddd38e4dc38a2a42b16ea22a2cff4a764409a"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "l0",
+   "path": "assets/library/creature/beaver_bridgewright/l0_textures/base_color.png",
+   "bytes": 5394673,
+   "sha256": "a4ce67115987ab03a49d2cbf0f8953683a8d27db58090ad3c14deb0d692b1613"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "l0",
+   "path": "assets/library/creature/beaver_bridgewright/l0_textures/metallic.png",
+   "bytes": 1336975,
+   "sha256": "456442e389cc9412e4de1902142346caefdfa11b26a6a70749e2b28d57e3ea57"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "l0",
+   "path": "assets/library/creature/beaver_bridgewright/l0_textures/metallic_roughness.png",
+   "bytes": 7326560,
+   "sha256": "7d64188e7b3fa0a5c390821836e1be976840a4e518f1df5b1c6bc787aedb6841"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "l0",
+   "path": "assets/library/creature/beaver_bridgewright/l0_textures/normal.png",
+   "bytes": 5396481,
+   "sha256": "b4fc52c7a67108370e1d50059239eaba80639ec1dee1b15980ea8dbaa9712d80"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "l0",
+   "path": "assets/library/creature/beaver_bridgewright/l0_textures/roughness.png",
+   "bytes": 2661854,
+   "sha256": "4bb6a88ec888aa223481a5248ae09756fcb9d6375bd70243d1235c8171acb362"
+  },
+  {
+   "family": "creature",
+   "key": "beaver_bridgewright",
+   "stage": "rig",
+   "path": "assets/library/creature/beaver_bridgewright/rigged.glb",
+   "bytes": 6208000,
+   "sha256": "fd60f63e2917ad77d195643dc71a90eb01c0f5294c35746b65b6189cf91b1438"
+  },
+  {
+   "family": "prop",
+   "key": "felled_trunk",
+   "stage": "concept",
+   "path": "assets/library/prop/felled_trunk/concept.png",
+   "bytes": 944909,
+   "sha256": "22afca15953dc9e3f0ff688e370ad0b755d59d96ad0baeb661338575b13a18df"
+  },
+  {
+   "family": "prop",
+   "key": "felled_trunk",
+   "stage": "highpoly",
+   "path": "assets/library/prop/felled_trunk/highpoly.glb",
+   "bytes": 26068340,
+   "sha256": "d89792134f325dbd3bd912e061635186121bb845a246710a71f9c9162712fb7d"
+  },
+  {
+   "family": "prop",
+   "key": "felled_trunk",
+   "stage": "highpoly",
+   "path": "assets/library/prop/felled_trunk/highpoly_textures/base_color.png",
+   "bytes": 6401133,
+   "sha256": "38b74fca9979ba380cf06e10352dcbf5af917f2c227ed0105cd1a048f0b63fb0"
+  },
+  {
+   "family": "prop",
+   "key": "felled_trunk",
+   "stage": "highpoly",
+   "path": "assets/library/prop/felled_trunk/highpoly_textures/metallic.png",
+   "bytes": 20410,
+   "sha256": "57a349bbc6269dc6caa16b61686f4200201ea9a3ef632eb26f155e203a45cae4"
+  },
+  {
+   "family": "prop",
+   "key": "felled_trunk",
+   "stage": "highpoly",
+   "path": "assets/library/prop/felled_trunk/highpoly_textures/normal.png",
+   "bytes": 5089292,
+   "sha256": "82966e9c4c3a4ac13cb17547ff576c751119a67d4ada94f14fcb0366b0eb466e"
+  },
+  {
+   "family": "prop",
+   "key": "felled_trunk",
+   "stage": "highpoly",
+   "path": "assets/library/prop/felled_trunk/highpoly_textures/roughness.png",
+   "bytes": 1351699,
+   "sha256": "bbbde8ddc5a5766dcad6ad21f3de7a3db0a59499828484f2ab1894f8a2d2155c"
+  },
+  {
+   "family": "prop",
+   "key": "plank_stack",
+   "stage": "concept",
+   "path": "assets/library/prop/plank_stack/concept.png",
+   "bytes": 921618,
+   "sha256": "884fc1f8ca974c9752eaf98d27db91d64e7b39b18e1080fdbd038c8240fd8135"
+  },
+  {
+   "family": "prop",
+   "key": "plank_stack",
+   "stage": "highpoly",
+   "path": "assets/library/prop/plank_stack/highpoly.glb",
+   "bytes": 31075944,
+   "sha256": "c985f405fd8e68316131b4f04ac8e6ea925a40f5ec794b41e8d47610c41748be"
+  },
+  {
+   "family": "prop",
+   "key": "plank_stack",
+   "stage": "highpoly",
+   "path": "assets/library/prop/plank_stack/highpoly_textures/base_color.png",
+   "bytes": 5357580,
+   "sha256": "4b41a2466bdd02bedbecd9e52e36d7daca2a263e4c89de98dd42bd281589b8c9"
+  },
+  {
+   "family": "prop",
+   "key": "plank_stack",
+   "stage": "highpoly",
+   "path": "assets/library/prop/plank_stack/highpoly_textures/metallic.png",
+   "bytes": 18856,
+   "sha256": "c64fb15840e645447aa2e6baa20ba8b7f0805668effa2ceec63fb148c27b5280"
+  },
+  {
+   "family": "prop",
+   "key": "plank_stack",
+   "stage": "highpoly",
+   "path": "assets/library/prop/plank_stack/highpoly_textures/normal.png",
+   "bytes": 4922193,
+   "sha256": "075e900e7123f34c3b00f0de988661d206d1dfe1784e8f9abe38750ea237e2db"
+  },
+  {
+   "family": "prop",
+   "key": "plank_stack",
+   "stage": "highpoly",
+   "path": "assets/library/prop/plank_stack/highpoly_textures/roughness.png",
+   "bytes": 1550926,
+   "sha256": "5d47842cb0e74907cb88db271b1930eea035b75e345a9ff48084d3e95c8e70e7"
+  },
+  {
+   "family": "prop",
+   "key": "sawhorse",
+   "stage": "concept",
+   "path": "assets/library/prop/sawhorse/concept.png",
+   "bytes": 1159742,
+   "sha256": "3027b90f35d426727c1fe364f131de1fd09b20d369e61ba426e8de3140e63d91"
+  },
+  {
+   "family": "prop",
+   "key": "sawhorse",
+   "stage": "highpoly",
+   "path": "assets/library/prop/sawhorse/highpoly.glb",
+   "bytes": 50032436,
+   "sha256": "52ac746b085437d1da2003c000c343d603a88bd6db780acbadf0623273ce0c51"
+  },
+  {
+   "family": "prop",
+   "key": "sawhorse",
+   "stage": "highpoly",
+   "path": "assets/library/prop/sawhorse/highpoly_textures/base_color.png",
+   "bytes": 6908557,
+   "sha256": "d5731621bcdebbc86358a73e880f9c83243094114dcf3434ee5d39c92b9c9331"
+  },
+  {
+   "family": "prop",
+   "key": "sawhorse",
+   "stage": "highpoly",
+   "path": "assets/library/prop/sawhorse/highpoly_textures/metallic.png",
+   "bytes": 136260,
+   "sha256": "17ad7408f9f6830fef47ac79e3975b7a5b4fd5e61c8edc63e43641908b594b61"
+  },
+  {
+   "family": "prop",
+   "key": "sawhorse",
+   "stage": "highpoly",
+   "path": "assets/library/prop/sawhorse/highpoly_textures/normal.png",
+   "bytes": 6084775,
+   "sha256": "f99de2021b5bf89b150fea7e8d45b66e6e9b46734ad57e7dedbf858a48a201da"
+  },
+  {
+   "family": "prop",
+   "key": "sawhorse",
+   "stage": "highpoly",
+   "path": "assets/library/prop/sawhorse/highpoly_textures/roughness.png",
+   "bytes": 1533359,
+   "sha256": "f1a1f14fb928c6a73cfa6b120fe686337c735748eab6ca6f330602220627cb03"
+  },
+  {
+   "family": "prop",
+   "key": "chopping_block",
+   "stage": "concept",
+   "path": "assets/library/prop/chopping_block/concept.png",
+   "bytes": 1035051,
+   "sha256": "b4ed33afffb673f224a88ac9f942206cc0139d250841d7b5d41305166b7a6404"
+  },
+  {
+   "family": "prop",
+   "key": "chopping_block",
+   "stage": "highpoly",
+   "path": "assets/library/prop/chopping_block/highpoly.glb",
+   "bytes": 38047636,
+   "sha256": "707a3e63087a81d673a63c5061545322696ec29c2a8bdaffdb615a276df810fe"
+  },
+  {
+   "family": "prop",
+   "key": "chopping_block",
+   "stage": "highpoly",
+   "path": "assets/library/prop/chopping_block/highpoly_textures/base_color.png",
+   "bytes": 6089973,
+   "sha256": "2dcffb320dd76175e001812fb7accec4ddef18e0becc4be2a885e3b7404b3eae"
+  },
+  {
+   "family": "prop",
+   "key": "chopping_block",
+   "stage": "highpoly",
+   "path": "assets/library/prop/chopping_block/highpoly_textures/metallic.png",
+   "bytes": 75548,
+   "sha256": "cf58df4d9f07fd029c7fb1608edd7844ebb93cf44b0d9e526448161eb8edbdd9"
+  },
+  {
+   "family": "prop",
+   "key": "chopping_block",
+   "stage": "highpoly",
+   "path": "assets/library/prop/chopping_block/highpoly_textures/normal.png",
+   "bytes": 5140790,
+   "sha256": "bf45f7726b1cd498d7c6ed94cea07a8237423eabfc96eda8739fb88982743669"
+  },
+  {
+   "family": "prop",
+   "key": "chopping_block",
+   "stage": "highpoly",
+   "path": "assets/library/prop/chopping_block/highpoly_textures/roughness.png",
+   "bytes": 1424323,
+   "sha256": "787a4d4a2e27e83b8185992c4c8f18f4fb21d5e154ae219c3b782e68ce611e54"
+  },
+  {
+   "family": "prop",
+   "key": "sapling_basket",
+   "stage": "concept",
+   "path": "assets/library/prop/sapling_basket/concept.png",
+   "bytes": 750536,
+   "sha256": "5891bc1769a9eb76642ae9010835fb508f53726e63516596bcb1a43be87205ea"
+  },
+  {
+   "family": "prop",
+   "key": "sapling_basket",
+   "stage": "highpoly",
+   "path": "assets/library/prop/sapling_basket/highpoly.glb",
+   "bytes": 48785344,
+   "sha256": "b3b4dfa2c7f2d443781a0576af83d7f4a1c3535c208663cb7c738764dcef7a5d"
+  },
+  {
+   "family": "prop",
+   "key": "sapling_basket",
+   "stage": "highpoly",
+   "path": "assets/library/prop/sapling_basket/highpoly_textures/base_color.png",
+   "bytes": 7123172,
+   "sha256": "2d9b77147d6cfe5a97996b399818c8da3bf338cdce276e8b2517f7d942a0c831"
+  },
+  {
+   "family": "prop",
+   "key": "sapling_basket",
+   "stage": "highpoly",
+   "path": "assets/library/prop/sapling_basket/highpoly_textures/metallic.png",
+   "bytes": 42234,
+   "sha256": "f3c7372f2432be75c069cda42576479a127e5bd8e928eabbff93efa587b0d056"
+  },
+  {
+   "family": "prop",
+   "key": "sapling_basket",
+   "stage": "highpoly",
+   "path": "assets/library/prop/sapling_basket/highpoly_textures/normal.png",
+   "bytes": 5830386,
+   "sha256": "18eb1dd7461a4799ea309deed526d18fa75cac072efa0595e077188ea45e8bfc"
+  },
+  {
+   "family": "prop",
+   "key": "sapling_basket",
+   "stage": "highpoly",
+   "path": "assets/library/prop/sapling_basket/highpoly_textures/roughness.png",
+   "bytes": 1571643,
+   "sha256": "d2b767384f55c8d76ea38fa031823345804bd5f49c604e1213b56161d001dd89"
   }
  ]
 }

@@ -135,6 +135,7 @@ own "×" (Esc closes it, N toggles it). The Pantry draws above the HUD, so its "
 | H / C in the Dig tool (or "Burrow home (H)" / "Root cellar (C)") | The room tools: place a burrow home or a root cellar as its own structure (see Burrow homes and root cellars) |
 | U | Underground view: a top-down section cut at the tunnels' level (see The underground view) |
 | Left click a finished tunnel | Select it for the "Tunnels & burrows (demo)" panel (see below) |
+| Left click a dug home or cellar | Select it for its fit-out in the same panel (see Fit-out and living) |
 | Right click a tree, trunk, deadfall, stump, cleared spot or the sawhorse | The woods' verb for it (see The woods) |
 | Right click deep water | Swimmers swim out and tread water there; an otter over water deeper than it is tall dives; a non-swimmer is refused by name (see Water gameplay) |
 | Right click / left click a bridge site | Build the planned bridge there with the selection / select the site for the Water panel |
@@ -258,8 +259,8 @@ Mac with a lit tunnel, from 278 ms).
   woods, the water and the spoil heaps are surface things.
 - **Prewarmed**: everything it can draw registers with `tunnel/underground_prewarm.gd` as it is built,
   and a sample of each is drawn for two frames behind the opening pause.
-- Later phases: the switch's crossfade and the second level (P6); the rooms' fit-out and the night
-  routine home (P4); the generated arch, door and crouch-walk clips replace the procedural ones (P7).
+- Later phases: the switch's crossfade and the second level (P6); the generated arch, door, chimney pot, root
+  bin, hanging stores, rug and crouch-walk clips replace the procedural ones (P7).
 
 ## Burrow homes and root cellars
 
@@ -301,10 +302,58 @@ Rooms are their own structures on the network (decision 0209, `burrow/undergroun
   doors. The mound is an obstacle from the moment the room is laid.
 - **Ways in**: the door and the hatch are mouths of the network (`mouth_kind` DOOR, HATCH), so routes go in
   and out by them as by a tunnel's mouth; a room with a passage is a way through, too.
-- **Fit-out places** (`FIXTURES`): beds in the alcoves, a shelf, jars and a basket stand now; the hearth
-  and table places wait for P4.
-- A root cellar is a pantry store at its hatch (`farm/farm_cellars.gd`; the id stays
-  `root_cellar:<slot>:<generation>`); the pantry's stocked shelf stands in its first shelf place.
+- A dug room is **bare** -- only its own lantern by the door. What stands in it is its fit-out (below).
+- A root cellar with racks is a pantry store at its hatch (`farm/farm_cellars.gd`; the id stays
+  `root_cellar:<slot>:<generation>`).
+
+## Fit-out and living (decision 0210)
+
+**Fixtures.** Click a dug burrow home or root cellar (in the U view, or its mound on the surface) and the
+"Tunnels & burrows (demo)" panel shows it: its words, a palette row a kind with **+** and **−**, and the
+**Suggested layout** -- a whole cozy fit-out in one click, then edit it. A fixture goes on its template's
+place for it (`burrow/underground_rooms.gd FIXTURES`), paid from the demo stores all or nothing (refused in
+words: "the demo stores are short: the bed needs 2 planks (they hold ...)"); taking one out gives its cost back.
+
+| Fixture | Cost | Install | Rooms | Does |
+|---|---|---|---|---|
+| Bed | 2 planks | 20 WU | home (three alcoves) | somebeast sleeps in it (up to the otters' 1.49 m) |
+| Hearth | 6 stone | 60 WU | home | comfort; glows and smokes from 17:00 to 07:00; warms cellars near it |
+| Table and stools | 2 planks | 8 WU | home | decoration |
+| Rag rug | 1 wood | 4 WU | home | decoration |
+| Lantern | 1 wood | 4 WU | home | decoration; one of the pooled lights |
+| Hanging stores | 1 wood | 4 WU | home, cellar | decoration in a home; 10 U in a cellar |
+| Shelf | 2 planks | 16 WU | cellar (two) | 20 U |
+| Pantry rack | 2 planks | 16 WU | cellar | 30 U |
+| Root bin | 2 planks | 12 WU | cellar | 25 U |
+
+A planned fixture shows as a chalk ring; a resident **walks in and puts it in** (the work clip, 0.15 s of demo
+time a WU): the residents selected when it was ordered, else the nearest one wandering on its own, three at
+most at once, never at night. One called away (to bed at dusk, say) keeps the place for a game day and comes back
+to it (`burrow/fixture_crew.gd`). The root bin, the hanging stores and the rug are procedural stand-ins, and the
+chimney pot too, until P7's generated props.
+
+**Comfort** (a home's panel and the resident panel): 2000 bare, 4000 with a bed, 6000 with a hearth too (the
+GDD's dormitory target), and 250 a decoration up to 1000 -- the suggested layout reads 7000, "cozy". A readout
+only (`burrow/room_fixtures.gd` COMFORT).
+
+**The night** (`burrow/night_routine.gd`, on the demo calendar): at dusk, 18:00, everybeast not in an emergency or
+the water goes home to bed -- through the round front door or the tunnels, whichever is cheaper -- parking the job in
+hand (it takes it up in the morning), crosses the floor to its bed and lies down in it (the staged
+`sleep_normally` clip, seated on the mattress by its body's lowest point). Beds go by REQ-SET-132 (its own bed,
+else the nearest free one; ties to the lower room, then place). At 06:00 they get up and go back to work; whoever
+is still on the way home turns back. **No bed** (or too big for one: the badger) -- it sleeps on the hall's floor
+(REQ-SET-133; it goes in at the hall's steps and is not drawn), the panel says "No bed", and dusk's news names who.
+A direct order wakes a sleeper; free again, it goes back to bed. Nothing parked is taken up before morning. A threat gets sleepers up by their beds until it
+clears; one in the water or held by its rescue is left be. Paused, nobody moves; at 2x and 4x the night runs faster.
+A home's hearth glows from 17:00 to 07:00 and its chimney smokes (at most 16 puffs a home).
+
+**Cellars**: a cellar's capacity is its racks' (a bare cellar is no store); it is **cool** (the GDD's cellar,
+350 per mille) while it is 1 m or more down, racked, and no hearth is within 3 m of it or in a room its passages
+open onto within 6 m -- else it keeps like a pantry (750). A carrier who can take its load down walks the harvest
+in at the hatch and shelves it; the racks fill in place -- jars on the rack, sacks by the shelves, strings on the
+hanging stores, the bin's roots heaped -- as the stock rises.
+
+**News**: a line said again straight after is counted, not repeated ("Tunnel 10: Good sticky clay... (×4)").
 
 ## Farming
 
@@ -372,9 +421,9 @@ hold; at 2x and 4x they run faster.
   sand faster; rock needs the badger on the crew (a digger alone scratches at a quarter pace).
 - **Finds**: every metre cut rolls once (seeded) for flint, clay, an old root store or a rare relic;
   relics tell a short story. The tally is in the panel.
-- **Rooms** (`burrow/`; above): a dug burrow home has 3 demo beds (counted in the panel, not the HUD's
-  Beds); a root cellar is a cold store (spoilage factor 350 per mille, the GDD's cellar). The farming
-  demo reads cellars through `underground_rooms.cellars()`.
+- **Rooms** (`burrow/`; above): a burrow home has three bed alcoves, its beds put in (counted in the panel, not
+  the HUD's Beds); a racked root cellar is a store, cool or not (see Fit-out and living). The farming demo reads
+  cellars through `underground_rooms.cellars()`.
 - **Crews**: up to three helpers with the Foremole; one worker per quantum's face, so a helper who
   fits finishes behind it (1506 per mille on a standard bore), more faces when widening. The
   Foremole's digging skill raises the crew's rate (1000 + 50 per level, per mille: a mole's 3 is 1150).
@@ -433,11 +482,11 @@ What changed on screen:
 - **Carrying**: a harvest is carried as its own model in the carrier's hands (`farm_carry_view.gd`)
   and put on the store's shelf -- a pantry shelf with the store's goods on its boards, most first,
   and a jar per started third of fullness (`props/store_shelf.gd`, `farm_stock_view.gd`); a root
-  cellar's shelf stands in its first shelf place below ground.
+  cellar's stock shows on its own racks below ground instead (decision 0210).
 - **Tunnels**: braced bores show the library's brace frames, a collapse its rubble, lit bores wall
   lanterns on alternate walls with a glow in each, and real light from the nearest 32 (all drawn in the underground view); finds lie where they were cut
-  and sit on the tunnel panel as icons; a digging mole holds its pick; rooms are furnished (beds in a
-  home's alcoves, a shelf, jars and a basket in a cellar; decision 0209).
+  and sit on the tunnel panel as icons; a digging mole holds its pick; rooms are fitted out by the player (decision
+  0210).
 - **Water**: a jetty off the boathouse with the rowboat alongside and the coracle off its end, a
   raft on the pond, a rod, a net, an eel trap and a smoking rack by the fisher shelter, a trout and a
   perch in the creels. The bridge models are staged only; the gnawed log and felled trunk lie in the
@@ -582,7 +631,7 @@ A heap still growing under a dig is refused. The party panel says who is "Cleari
 | `tunnel/` | Player-dug tunnels: rules, the tunnel network and planner, planning, drawing, the underground view; and their extensions -- ground, queues, crews, jobs, hazards, finds, the demo stores, the tunnel panel |
 | `demo_calendar.gd`, `demo_services.gd`, `village_water.gd`, `demo_notices.gd` | The one calendar, the shared set, the one water adapter (over `water/water_map.gd`), the one notice feed |
 | `weather/` | The demo's one weather (read from the farm's real §5.10 row) and its rain, snow and light |
-| `burrow/` | Rooms as their own structures: the templates, sockets and refusals (`underground_rooms.gd`), placing one and its passage (`room_plan.gd`, `room_tool.gd`), drawing it (`room_view.gd`, `room_mesh.gd`); the cellar API |
+| `burrow/` | Rooms as their own structures: the templates, sockets and refusals (`underground_rooms.gd`), placing one and its passage (`room_plan.gd`, `room_tool.gd`), drawing it (`room_view.gd`, `room_mesh.gd`); the cellar API; the fit-out (`room_fixtures.gd`, `fixture_crew.gd`, `install_task.gd`, `fixture_view.gd`, `fixture_kit.gd`, `room_text.gd`) and the night (`night_routine.gd`, `bed_allocation.gd`, `sleep_task.gd`) |
 | `events/` | Seeded threats (a flood, a fire) and evacuation |
 | `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the V overlay |
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel |

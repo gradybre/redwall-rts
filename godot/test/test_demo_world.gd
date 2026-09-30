@@ -481,3 +481,110 @@ func test_the_sun_takes_the_fitted_shadow_range() -> void:
 	assert_equal(sun.directional_shadow_max_distance, 44.0, "44 m at the default zoom")
 	assert_equal(sun.shadow_blur, 1.0, "a 1.0 blur")
 	world.free()
+
+
+# --- flush with the ground (playtest 2026-09-29 item 15) ---------------------------------------
+
+## The measured sinks (world_sizes.gd SINK_M), pinned so a change to one is a deliberate change here.
+const EXPECTED_SINK_M: Dictionary = {
+	&"oak_mature": 1.2, &"beech_mature": 0.5, &"residence": 0.42, &"covered_store": 0.12,
+	&"kitchen": 0.11, &"workbench": 0.07,
+}
+## Staged models with no baked base to bury: they stand on the ground.
+const UNSUNK_KEYS: Array[StringName] = [
+	&"hall", &"well", &"open_stockpile", &"fence", &"oak_sapling", &"stump_mossy",
+	&"oak_stump_fresh", &"barrel", &"mossy_boulder",
+]
+
+
+func _stage_fake(key: StringName) -> void:
+	"""Stand in for a staged model of `key`: an empty packed scene and the manifest row's measured
+	bound, so the staged branch of make_piece runs with no asset on disk."""
+	var root := Node3D.new()
+	root.name = "Staged_%s" % key
+	var packed := PackedScene.new()
+	packed.pack(root)
+	root.free()
+	var bound: Array = Sizes.NATIVE_AABB[key]
+	var lo: Vector3 = bound[0]
+	var hi: Vector3 = bound[1]
+	_world._scenes[key] = packed
+	_world._world_rows[String(key)] = {"path": "", "aabb_min": [lo.x, lo.y, lo.z], "aabb_max": [hi.x, hi.y, hi.z]}
+
+
+func test_the_measured_sinks_are_pinned() -> void:
+	"""Every sunk key carries its measured sink, and the rest none."""
+	assert_equal(Sizes.SINK_M.size(), EXPECTED_SINK_M.size(), "six keys are sunk")
+	for key: StringName in EXPECTED_SINK_M:
+		assert_almost_equal(Sizes.sink_m(key, 1.0), float(EXPECTED_SINK_M[key]), "%s sink" % key)
+	for key: StringName in UNSUNK_KEYS:
+		assert_equal(Sizes.sink_m(key, 1.0), 0.0, "%s is not sunk" % key)
+
+
+func test_a_sink_scales_with_the_placement_size() -> void:
+	"""A tree at 0.95 of its size has a mound 0.95 as tall, so it goes 0.95 as deep."""
+	assert_almost_equal(Sizes.sink_m(&"oak_mature", 0.95), 1.2 * 0.95, "the oak at 0.95")
+	assert_almost_equal(Sizes.sink_m(&"beech_mature", 1.1), 0.5 * 1.1, "the beech at 1.1")
+
+
+func test_the_piece_transform_lets_a_model_down_by_its_sink() -> void:
+	"""Scaled, turned and let down: the origin is the ground less the sink."""
+	var p: Dictionary = {"at": Vector2(3.0, -4.0), "yaw": 0.5}
+	var placed: Transform3D = DemoWorld.piece_transform(p, 2.0, 0.42)
+	assert_almost_equal(placed.origin.y, DemoWorld.GROUND_Y - 0.42, "let down 0.42 m")
+	assert_almost_equal(placed.origin.x, 3.0, "at x")
+	assert_almost_equal(placed.origin.z, -4.0, "at z")
+	assert_almost_equal(placed.basis.get_scale().y, 2.0, "scaled")
+	assert_almost_equal(DemoWorld.piece_transform(p, 2.0, 0.0).origin.y, DemoWorld.GROUND_Y, "no sink, on the ground")
+
+
+func test_a_staged_model_is_drawn_sunk_by_its_key() -> void:
+	"""Each sunk key, staged, stands its measured sink (times its size) below the ground."""
+	for key: StringName in EXPECTED_SINK_M:
+		_stage_fake(key)
+		var piece: Node3D = _world.make_piece(key, Vector2(1.0, 2.0), 0.3, 0.95)
+		assert_almost_equal(piece.transform.origin.y, DemoWorld.GROUND_Y - float(EXPECTED_SINK_M[key]) * 0.95, "%s sunk" % key)
+		piece.free()
+
+
+func test_a_staged_model_with_no_base_stands_on_the_ground() -> void:
+	"""The hall, the well, the stumps and the sapling are staged but not sunk."""
+	for key: StringName in UNSUNK_KEYS:
+		_stage_fake(key)
+		var piece: Node3D = _world.make_piece(key, Vector2(1.0, 2.0), 0.3, 1.0)
+		assert_almost_equal(piece.transform.origin.y, DemoWorld.GROUND_Y, "%s on the ground" % key)
+		piece.free()
+
+
+func test_a_placeholder_is_never_sunk() -> void:
+	"""With nothing staged, a sunk key's placeholder box stands on the ground (it has no base)."""
+	_world.build(_empty_manifest())
+	for key: StringName in EXPECTED_SINK_M:
+		var piece: Node3D = _world.make_piece(key, Vector2(1.0, 2.0), 0.0, 1.0)
+		assert_true(String(piece.name).begins_with("Placeholder"), "%s is a placeholder" % key)
+		assert_almost_equal(piece.transform.origin.y, DemoWorld.GROUND_Y, "%s placeholder on the ground" % key)
+		piece.free()
+
+
+func test_the_build_draws_the_staged_residences_sunk() -> void:
+	"""build() goes the same way as make_piece: every staged residence is let down by its plinth, and
+	the unstaged hall beside them stands on the ground."""
+	_stage_fake(&"residence")
+	_world.build({"world": _world._world_rows.duplicate(), "cast": {}})
+	var homes: Array[Vector2] = []
+	var hall := Vector2.INF
+	for entry: Dictionary in Layout.BUILDINGS:
+		if entry["key"] == &"residence":
+			homes.append(entry["at"])
+		elif entry["key"] == &"hall":
+			hall = entry["at"]
+	var sunk: int = 0
+	for child: Node in _world.get_node(^"Village").get_children():
+		var piece := child as Node3D
+		var at := Vector2(piece.transform.origin.x, piece.transform.origin.z)
+		if homes.has(at):
+			assert_almost_equal(piece.transform.origin.y, DemoWorld.GROUND_Y - 0.42, "a residence let down")
+			sunk += 1
+		elif at == hall:
+			assert_almost_equal(piece.transform.origin.y, DemoWorld.GROUND_Y, "the hall placeholder on the ground")
+	assert_equal(sunk, 3, "the three residences")

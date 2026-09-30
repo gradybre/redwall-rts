@@ -21,6 +21,8 @@ extends Node3D
 ##   woods_obstacles(r)    the woods' blocking circles standing beyond the play area's report margin
 ##                         but within `r` m of the square: the ground the forestry crew walks.
 ##   make_piece(...)       one more model of a world key, drawn exactly as the world draws it.
+##   piece_transform(...)  where a placed model stands: scaled, turned, and a staged model let down
+##                         into the ground by its baked base (world_sizes.gd SINK_M).
 ## The three queries are pure functions of the authored layout: they answer identically before
 ## or after `build()`, and whether or not assets are staged.
 ##
@@ -272,11 +274,11 @@ func _clear_built() -> void:
 	_built.clear()
 
 
-func _piece_transform(p: Dictionary, scale_factor: float) -> Transform3D:
-	"""Placement transform: uniform scale, yaw about +Y, base on the ground."""
+static func piece_transform(p: Dictionary, scale_factor: float, sink: float) -> Transform3D:
+	"""Placement transform: uniform scale, yaw about +Y, base on the ground let down `sink` m into it."""
 	var at: Vector2 = p["at"]
 	var basis := Basis(Vector3.UP, float(p["yaw"])).scaled(Vector3.ONE * scale_factor)
-	return Transform3D(basis, Vector3(at.x, GROUND_Y, at.y))
+	return Transform3D(basis, Vector3(at.x, GROUND_Y - sink, at.y))
 
 
 func _staged_scene(world: Dictionary, key: StringName) -> PackedScene:
@@ -303,20 +305,24 @@ func _staged_scale(world: Dictionary, key: StringName) -> float:
 
 
 func _make_piece(world: Dictionary, p: Dictionary) -> Node3D:
-	"""One placed model: the staged asset, or a placeholder of the same footprint."""
+	"""One placed model: the staged asset let into the ground by its baked base (world_sizes.gd SINK_M),
+	or a placeholder of the same footprint standing on it. Every construction path comes through here
+	(build(), make_piece()), so a replanted tree sits as deep as the one it replaces."""
 	var key: StringName = p["key"]
 	var scene: PackedScene = _staged_scene(world, key)
 	var piece: Node3D
 	var scale_factor: float
+	var sink: float = 0.0
 	if scene != null:
 		piece = scene.instantiate() as Node3D
 		scale_factor = _staged_scale(world, key)
+		sink = Sizes.sink_m(key, float(p["size"]))
 		_apply_tint(piece, key)
 		_add_cards(world, key, piece)
 	else:
 		piece = _placeholder(key)
 		scale_factor = Sizes.native_scale(key)
-	piece.transform = _piece_transform(p, scale_factor * float(p["size"]))
+	piece.transform = piece_transform(p, scale_factor * float(p["size"]), sink)
 	return piece
 
 
@@ -421,7 +427,7 @@ func _make_cover(world: Dictionary, key: StringName) -> MultiMeshInstance3D:
 	var at := PackedVector2Array()
 	for i: int in pieces.size():
 		var p: Dictionary = pieces[i]
-		var placed: Transform3D = _piece_transform(p, float(source[2]) * float(p["size"]))
+		var placed: Transform3D = piece_transform(p, float(source[2]) * float(p["size"]), 0.0)
 		multimesh.set_instance_transform(i, placed * mesh_local)
 		at.append(p["at"])
 	_cover_at.append(at)

@@ -56,6 +56,40 @@ const CROP_KEYS: Array[StringName] = [&"crop_grain_ripe", &"crop_cabbage_ripe", 
 ## The table model's highest point is its top, so it is scaled to the work-surface candidate.
 const TABLE_KEY: StringName = &"table_stools"
 
+## Demo-only (playtest 2026-09-29, item 15): how far a STAGED model is let down into the flat ground,
+## in metres at its drawn height and size 1.0 (a placement's size scales it). The Meshy models carry
+## their own base -- a tree's mossy root mound, a building's plinth or slab -- and standing that base
+## ON the ground reads as a diorama on a table. Each value was MEASURED from the staged model at
+## drawn scale (the highest triangle surface under each point, sampled on 48 bearings per 0.25 m ring
+## for the trees and on a 0.5 m grid for the buildings, 2026-09-30), never chosen by eye:
+##   oak_mature 1.20: the mound's median surface is 1.39 m at 2.0 m out, 1.26 at 2.5, 1.18 at 2.75
+##     and 1.05 at 3.0; its roots ride 0.3-0.7 m above that. Letting the mound's shoulder (~1.2 m)
+##     into the ground buries the mound's body: the trunk's flare stands at most ~0.2 m proud within
+##     2.5 m of the trunk, and the roots (up to ~0.7 m) run down into the ground by ~3.5 m.
+##   beech_mature 0.50: the mound is a flat top, median 0.44-0.45 m from 1.0 to 2.0 m out (75th
+##     percentile 0.50-0.64); burying it just past its median leaves only the roots and the flare.
+##   residence 0.42: a stone plinth whose flat top is 0.36-0.37 m (9.9 m2 of it) all round the walls,
+##     rising to 0.41 m at its corners; one centimetre over the highest corner, so no sliver of plinth
+##     shows through or fights the ground (at 0.38 the corners did), and the walls rise out of it.
+##   covered_store 0.12: an earth slab under the staddle stones, 0.06-0.11 m (75 m2, 13.9 of them
+##     between 0.10 and 0.11); one centimetre over its top (at 0.10 its high patches showed through).
+##   kitchen 0.11: a slab under the walls, 0.06-0.11 m (14.1 m2, 0.64 of them between 0.10 and 0.11);
+##     let down to the top of that band, as the store is.
+##   workbench 0.07: an earth border 0.04-0.07 m round a flagstone floor at 0.07-0.10 m -- the border
+##     goes under and the paving stays a few centimetres proud (level with the ground it would fight).
+##   Not sunk: the hall (no plinth: its post footings, 0.16-0.18 m, are built to stand on the ground),
+##   the well (its paved apron, 0.04-0.08 m, is the well's own), the open stockpile (a raised deck),
+##   the fence, the stumps (their root flare runs out at the ground by 0.75-1.0 m), the sapling, and
+##   every prop. A placeholder (no staged model) has no base and is never sunk.
+const SINK_M: Dictionary = {
+	&"oak_mature": 1.2,
+	&"beech_mature": 0.5,
+	&"residence": 0.42,
+	&"covered_store": 0.12,
+	&"kitchen": 0.11,
+	&"workbench": 0.07,
+}
+
 ## Measured model bounds [min, max] in metres, from the staging manifest. Y-up, front +Z.
 const NATIVE_AABB: Dictionary = {
 	&"residence": [Vector3(-0.8769, 0.0, -0.776), Vector3(0.8792, 1.9004, 0.7759)],
@@ -125,6 +159,12 @@ static func uniform_scale(key: StringName, aabb_min: Vector3, aabb_max: Vector3)
 		push_error("world_sizes: '%s' has a flat or inverted bound" % key)
 		return 1.0
 	return target_height_m(key) / height
+
+
+static func sink_m(key: StringName, size: float) -> float:
+	"""How far a staged model of `key` placed at `size` is let down into the ground (m); 0.0 for a key
+	with no baked base (SINK_M)."""
+	return float(SINK_M.get(key, 0.0)) * size
 
 
 static func native_scale(key: StringName) -> float:

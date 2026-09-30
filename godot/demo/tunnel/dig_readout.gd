@@ -2,7 +2,8 @@ extends RefCounted
 ## The Dig tool's cost readout at the pointer. Decision 0208 (design docs/design/underground_revamp.md §2
 ## "Planning", §4 "Ghost preview"). Presentation only: it reads the rules and the ground, and writes nothing.
 ##
-## e.g. "14.2 m · 16 quanta · 21.3 h (crew of 3)" over "32 U spoil · clay 4 m (slow), sand 2 m (weak: brace)":
+## e.g. "14.2 m · 16 quanta · 21.3 h (crew of 3)" over "32 U spoil · brace 4.0 wood + 4.0 stone · clay 4 m (slow),
+## sand 2 m (weak: brace)":
 ##   * LENGTH as the panel shows lengths (tunnel_plan.gd `length_text`);
 ##   * QUANTA as the network will cut them (underground_graph.gd THE DIG TIMELINE): a shaft at each end that
 ##     opens a mouth, and every started metre of each segment the piece is cut into (at its ramps' feet and
@@ -11,12 +12,17 @@ extends RefCounted
 ##     75 of the dig's 30 Hz ticks), each quantum at its ground's dig ticks (tunnel_ground.gd), over the crew's
 ##     rate (tunnel_crew.gd: the pipeline for the crew that would work the face, times the digger's skill);
 ##   * SPOIL as each quantum's ground posts it (ECON-002, by ground);
+##   * THE BRACE COST (decision 0211; design §4 "Cost readout": "brace cost (wood 250 + stone 250 milli-U a quantum,
+##     ECON-002)"): what bracing the dug piece would take from the demo stores -- the Brace job's own price
+##     (tunnel_jobs.gd BRACE_WOOD_MILLI_U, BRACE_STONE_MILLI_U) on every quantum it cuts, shafts included, as each
+##     segment's job charges it -- to the tenth of a unit;
 ##   * GROUND: the metres of bore through each ground that matters -- clay (slow), sand (weak: brace), rock
 ##     (needs a breaker), wet ground (seeps: brace) -- loam, the plain case, unnamed.
 ## A ROOM's readout (`room_text`, decision 0209) is the room tool's: its own quanta cell by cell, its door ramp,
 ## and its proposed passage, the room at its crew's three-face rate.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
+const JobsScript := preload("res://demo/tunnel/tunnel_jobs.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const PlanScript := preload("res://demo/tunnel/tunnel_plan.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
@@ -46,11 +52,22 @@ static func text(plan: PlanScript, ground: GroundScript, rate_permille: int, cre
 	var hours_tenths := tally[T_TICKS] * Rules.PERMILLE * 10 / maxi(rate_permille, 1) / TICKS_PER_CALENDAR_HOUR
 	var first := PackedStringArray([PlanScript.length_text(plan.length_u()), "%d quanta" % tally[T_QUANTA],
 		"%d.%d h (%s)" % [hours_tenths / 10, hours_tenths % 10, "crew of %d" % crew if crew > 1 else "one digger"]])
-	var second := PackedStringArray(["%d U spoil" % (tally[T_SPOIL] / 1000)])
+	var second := PackedStringArray(["%d U spoil" % (tally[T_SPOIL] / 1000), brace_text(tally[T_QUANTA])])
 	var ground_words := _ground_words(tally)
 	if not ground_words.is_empty():
 		second.append(ground_words)
 	return "%s\n%s" % [" · ".join(first), " · ".join(second)]
+
+
+static func brace_text(quanta: int) -> String:
+	"""What bracing `quanta` quanta costs, in words (see THE BRACE COST): "brace 4.0 wood + 4.0 stone"."""
+	return "brace %s wood + %s stone" % [tenths(JobsScript.BRACE_WOOD_MILLI_U * quanta),
+		tenths(JobsScript.BRACE_STONE_MILLI_U * quanta)]
+
+
+static func tenths(milli_u: int) -> String:
+	"""A quantity in milli-U as units to the tenth, rounded down ("4.0", "3.7")."""
+	return "%d.%d" % [milli_u / 1000, milli_u % 1000 / 100]
 
 
 static func tally_into(plan: PlanScript, ground: GroundScript, tally: PackedInt64Array) -> void:

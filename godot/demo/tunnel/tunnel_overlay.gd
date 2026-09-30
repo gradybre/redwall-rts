@@ -3,9 +3,10 @@ extends Node3D
 ##
 ## ON THE GROUND, per SEGMENT of the network: its route as a ribbon -- solid earth where the bore is dug,
 ## a cream dashed line where it is still to dig (clay, with a clay ring round where it starts, while it is
-## PAUSED), a faint earth trace once it is open. Per MOUTH: a fieldstone-and-timber gateway over its ramp's
+## PAUSED); once it is open, nothing here -- its turf seam heals over it (warren_signs.gd, decision 0211). Per MOUTH: a fieldstone-and-timber gateway over its ramp's
 ## cutting running down into the dark (tunnel_mouth.gd, decision 0207), and a spoil heap beside it that
-## grows with the spoil heaped there (DEC-040; underground_graph.gd SPOIL). A ribbon stops at a hole's
+## grows with the spoil tipped there (DEC-040; underground_graph.gd SPOIL: a dig crew's baskets tip it load by load,
+## spoil_haul.gd, decision 0211). A ribbon stops at a hole's
 ## edge, and the cutting is drawn over it. While a digger is underground a mound of disturbed earth,
 ## throwing clods, moves along above it, drawn larger as the camera pulls back so it still reads when
 ## zoomed out. THE GHOST of the piece being laid (tunnel_plan.gd) is drawn on top of everything: its drawn
@@ -39,7 +40,8 @@ extends Node3D
 ## tunnel_heaps.gd placed it when the dig was accepted (clear of obstacles, work spots and holes),
 ## or -- for a mouth stored without that -- off to the right of the way out of it.
 ##
-## TIME. The mound's bob and its clods run on the demo clock (demo_clock.gd): paused, they hold.
+## TIME. The mound's bob runs on the demo clock (demo_clock.gd): paused, it holds. Its clods are the warren's pooled
+## particles (warren_particles.gd, decision 0211), thrown over it by dig_theatre.gd.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
@@ -60,7 +62,6 @@ const SpecScript := preload("res://demo/tunnel/piece_spec.gd")
 const LIFT_M: float = 0.045
 const PLAN_WIDTH_M: float = 0.32
 const DUG_WIDTH_M: float = 0.55
-const TRACE_WIDTH_M: float = 0.4
 const DASH_M: float = 0.55
 const GAP_M: float = 0.3
 const HOLE_RADIUS_M: float = Rules.HOLE_RADIUS_M
@@ -97,7 +98,6 @@ const REFUSED_GHOST: Color = Color(Palette.CLAY, 0.75)
 const SNAP_RING_M: float = 0.7
 ## The ghost's drawn curve is sampled this often (m).
 const GHOST_STEP_M: float = 0.25
-const TRACE: Color = Color(EARTH, 0.4)
 ## A mesh key's tunnel-state part: bore, closed and the widening's step.
 const KEY_STATE: int = 100000000
 ## A mouth's children: its cutting, then its gateway (tunnel_mouth.gd).
@@ -310,7 +310,8 @@ func _make_mouth() -> Node3D:
 
 
 func _make_mound() -> Node3D:
-	"""The disturbed earth over a digger underground: a low dome throwing up clods."""
+	"""The disturbed earth over a digger underground: a low dome (its clods are the warren's pooled particles,
+	warren_particles.gd, thrown over it by dig_theatre.gd)."""
 	var mound := Node3D.new()
 	var dome := MeshInstance3D.new()
 	dome.name = "Dome"
@@ -318,20 +319,6 @@ func _make_mound() -> Node3D:
 	dome.material_override = _spoil_material()
 	dome.scale = Vector3(MOUND_RADIUS_M, MOUND_HEIGHT_M, MOUND_RADIUS_M)
 	mound.add_child(dome)
-	var clods := CPUParticles3D.new()
-	clods.amount = 14
-	clods.lifetime = 0.7
-	clods.mesh = BoxMesh.new()
-	(clods.mesh as BoxMesh).size = Vector3(0.06, 0.05, 0.06)
-	(clods.mesh as BoxMesh).material = _earth_material(EARTH)
-	clods.direction = Vector3.UP
-	clods.spread = 40.0
-	clods.initial_velocity_min = 1.0
-	clods.initial_velocity_max = 1.8
-	clods.gravity = Vector3(0.0, -6.0, 0.0)
-	clods.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
-	clods.emission_sphere_radius = MOUND_RADIUS_M * 0.5
-	mound.add_child(clods)
 	mound.visible = false
 	add_child(mound)
 	return mound
@@ -511,25 +498,21 @@ func _route_poly(slot: int) -> void:
 
 
 func _draw_ribbon(slot: int) -> void:
-	"""Dug length solid earth, the rest dashed (cream, or clay while paused); an open segment as a faint
-	trace. Each part stops at the edge of an open hole (only a mouth has one)."""
-	_route_poly(slot)
+	"""Dug length solid earth, the rest dashed (cream, or clay while paused); an open segment none (its seam is
+	warren_signs.gd's). Each part stops at the edge of an open hole (only a mouth has one)."""
 	var mesh := _ribbons[slot].mesh as ImmediateMesh
 	mesh.clear_surfaces()
-	var length := _network.length_m(slot)
-	var start_hole := HOLE_RADIUS_M if _network.mouth_of_end(slot, false) >= 0 else 0.0
-	var end_hole := HOLE_RADIUS_M if _network.mouth_of_end(slot, true) >= 0 else 0.0
 	if _network.is_open(slot):
-		var wide := 2.0 if _network.bore[slot] == Rules.BORE_WIDE else 1.0
-		_strip_into(start_hole * wide, length - end_hole * wide, TRACE_WIDTH_M * wide, false)
-		_flush(mesh, _flat(TRACE))
-	else:
-		var dug := _network.face_m(slot)
-		var from := start_hole if _network.done(slot) > 0 else 0.0
-		_strip_into(from, dug, DUG_WIDTH_M, false)
-		_flush(mesh, _flat(Color(EARTH, 0.85)))
-		_strip_into(maxf(dug, from), length, PLAN_WIDTH_M, true)
-		_flush(mesh, _flat(PAUSED_PLAN if _network.phase[slot] == GraphScript.PHASE_PAUSED else PLAN))
+		_ribbons[slot].visible = false
+		return
+	_route_poly(slot)
+	var start_hole := HOLE_RADIUS_M if _network.mouth_of_end(slot, false) >= 0 else 0.0
+	var dug := _network.face_m(slot)
+	var from := start_hole if _network.done(slot) > 0 else 0.0
+	_strip_into(from, dug, DUG_WIDTH_M, false)
+	_flush(mesh, _flat(Color(EARTH, 0.85)))
+	_strip_into(maxf(dug, from), _network.length_m(slot), PLAN_WIDTH_M, true)
+	_flush(mesh, _flat(PAUSED_PLAN if _network.phase[slot] == GraphScript.PHASE_PAUSED else PLAN))
 	_ribbons[slot].visible = true
 
 
@@ -621,13 +604,14 @@ func _sync_mouth(m: int) -> void:
 			_heaps[m].visible = false
 		return
 	var ramp := _network.mouth_ramp(m)
-	var key := int(_network.phase[ramp]) * KEY_PHASE + _network.done(ramp) + 7 * _network.heaped_milli(m) \
+	var tipped := _network.haul.on_heap_milli(_network, m)
+	var key := int(_network.phase[ramp]) * KEY_PHASE + _network.done(ramp) + 7 * tipped \
 			+ 13 * _network.mouth_gen[m] + 101 * int(_network.bore[ramp]) + 3 * (1 if door_built(m) else 0)
 	if key == _mouth_key[m]:
 		return
 	_mouth_key[m] = key
 	_show_mouth(m, ramp)
-	_place_heap(m, _network.heaped_milli(m))
+	_place_heap(m, tipped)
 
 
 func _show_mouth(m: int, ramp: int) -> void:
@@ -691,16 +675,14 @@ func _place_heap(m: int, spoil_milli_u: int) -> void:
 
 
 func _update_mound(slot: int) -> void:
-	"""Over a digger underground, a mound follows it, bobbing and throwing clods on the demo clock,
-	and grows as the camera pulls back."""
+	"""Over a digger underground, a mound follows it, bobbing on the demo clock (its clods: dig_theatre.gd), and
+	grows as the camera pulls back."""
 	var mound_node := _mounds[slot]
 	if mound_node == null:
 		return
 	var digger := _network.digger[slot] if _network.phase[slot] == GraphScript.PHASE_DIGGING else job_digger[slot]
 	var below := digger >= 0 and digger < _space.resident_underground.size() and _space.resident_underground[digger] == 1
-	if mound_node.visible != below:
-		mound_node.visible = below
-		(mound_node.get_child(1) as CPUParticles3D).emitting = below
+	mound_node.visible = below
 	if not below:
 		return
 	var at := _space.resident_position[digger]
@@ -708,7 +690,6 @@ func _update_mound(slot: int) -> void:
 	mound_node.scale = Vector3.ONE * mound_scale(_camera_distance(mound_node.position))
 	var bob := 1.0 + 0.25 * sin(TAU * MOUND_BOB_HZ * _time)
 	(mound_node.get_child(0) as Node3D).scale.y = MOUND_HEIGHT_M * bob
-	(mound_node.get_child(1) as CPUParticles3D).speed_scale = float(_clock.speed) if _clock != null else 1.0
 
 
 static func mound_scale(camera_distance: float) -> float:

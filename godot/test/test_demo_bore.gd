@@ -140,15 +140,17 @@ func _straight_bore(metres: float, face: bool) -> ArrayMesh:
 
 
 func test_a_swept_bore_holds_its_rings_and_faces_in() -> void:
-	"""2 m at 4 rings a metre: 9 rings of 16 points, 8 bands of quads; the face wall adds its hub and rim
-	and a fan of 16; every triangle is wound to face the way its normals do -- inward."""
+	"""2 m at 4 rings a metre: 9 rings of 16 points, 8 bands of quads; the dig face (decision 0211) adds FACE_RINGS
+	rings drawn in, their bands and a fan of 16 to its middle; every triangle is wound to face the way its normals do --
+	inward."""
 	var mesh := _straight_bore(2.0, true)
 	var arrays := mesh.surface_get_arrays(0)
 	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
 	var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
-	assert_equal(points.size(), 9 * 16 + 17, "9 rings, and the face wall's hub and rim")
-	assert_equal(indices.size(), 8 * 16 * 6 + 16 * 3, "8 bands and the face's fan")
+	var face_rings := BoreMeshScript.FACE_RINGS
+	assert_equal(points.size(), 9 * 16 + face_rings * 16 + 1, "9 rings, and the dig face's rings and middle (decision 0211)")
+	assert_equal(indices.size(), 8 * 16 * 6 + (face_rings - 1) * 16 * 6 + 16 * 3, "8 bands, the face's bands and its fan")
 	assert_equal((arrays[Mesh.ARRAY_TEX_UV2] as PackedVector2Array).size(), points.size(), "a dig day a point")
 	var wrong := 0
 	for t in indices.size() / 3:
@@ -622,9 +624,11 @@ func test_the_lanterns_light_the_nearest_spots_up_to_the_cap() -> void:
 
 
 func test_the_lanterns_flicker_gently_and_hold_while_paused() -> void:
-	"""Each light wavers within 8% of its energy on the demo clock, lights out of step; no time, no change."""
+	"""Each light wavers within 8% of its energy on the demo clock, lights out of step; no time, no change. (Its spots
+	hung long before, so their bloom is over: decision 0211.)"""
 	var lanterns: LanternsScript = _keep(LanternsScript.new())
 	lanterns.configure(DemoClockScript.new())
+	lanterns._time = -10.0
 	lanterns.set_spots(0, PackedVector3Array([Vector3.ZERO, Vector3(2.0, 0.0, 0.0)]))
 	var t := 0.0
 	while t < 3.0:

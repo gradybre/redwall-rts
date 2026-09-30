@@ -46,6 +46,8 @@ extends RefCounted
 ## inside the network -- the network's mouth nearest its start when it was laid. Only a shaft breaking out
 ## at a mouth heaps there. Every cut is posted to its mouth's tally as it completes (`mouth_spoil`), so a
 ## heap is read in O(1); re-digging (a widening, a clearing, a chamber) posts at the segment's spoil mouth.
+## A heap is DRAWN at what a dig crew's haulers have tipped on it (`haul`, spoil_haul.gd, decision 0211): the tally
+## still posts at the cut, and the spoil between the face and the heap is only located there.
 ##
 ## THE JOB LIST. Pieces wait in the order they were laid; a digger works one piece at a time, segment by
 ## segment, and `next_dig_for` says what it takes up next.
@@ -73,6 +75,7 @@ const FixturesScript := preload("res://demo/burrow/room_fixtures.gd")
 const CastNavScript := preload("res://demo/cast/cast_nav.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const QueueScript := preload("res://demo/tunnel/tunnel_queue.gd")
+const HaulScript := preload("res://demo/tunnel/spoil_haul.gd")
 const CrossingHookScript := preload("res://demo/cast/crossing_hook.gd")
 
 const NODE_FREE: int = 0
@@ -223,6 +226,9 @@ var ground: GroundScript = null
 var rooms: RoomsScript = RoomsScript.new()
 ## What stands in each room (decision 0210): its fixtures, their costs, comfort, a cellar's capacity and the cool rule.
 var fit: FixturesScript = FixturesScript.new()
+## Where each mouth's spoil is on its way to its heap (decision 0211, spoil_haul.gd): the pile behind the face, the
+## baskets, the heap drawn. The ledger (`mouth_spoil`) is untouched by it.
+var haul: HaulScript = HaulScript.new()
 
 var _q_kind: PackedByteArray = PackedByteArray()
 var _q_end: PackedInt32Array = PackedInt32Array()

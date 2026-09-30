@@ -3,6 +3,7 @@ extends RefCounted
 ##
 ## LIBRARY PROPS where the library has one (demo/props/demo_props.gd sizes them): the bed, the stone hearth, the
 ## table and stools, the pantry shelf, the wall lantern, and the clay jars and sacks that fill a cellar's racks.
+## THE LARGE BED (decision 0211) is the library's bed stretched to LARGE_BED_M for the big residents.
 ## PROCEDURAL STAND-INS for the four the library does not have yet -- the generated root_bin, hanging_stores and
 ## rag_rug are P7's swap (decision 0204) -- each in a few shared meshes and materials:
 ##   * the PANTRY RACK: a timber frame of four posts and two boards, jars on its top board and sacks on its lower one;
@@ -53,6 +54,8 @@ const STRINGS: int = 4
 const SHELF_SLOTS: int = 2
 ## The chalk ring round a planned fixture's place (m).
 const PLAN_RING_M: float = 0.42
+## A large bed's width and length (m; decision 0211, bed_allocation.gd LARGE_BED_LENGTH_U).
+const LARGE_BED_M: Vector2 = Vector2(1.2, 2.7)
 ## The chimney pot and its smoke: the pot's top over the mound (m), and the puffs (SMOKE_AMOUNT a home, eight homes
 ## at most: 128 live, inside P5's 200).
 const STONE: Color = Color(0.52, 0.5, 0.45)
@@ -164,6 +167,14 @@ static func prop(parent: Node3D, props: PropsScript, key: StringName, at: Transf
 	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(node)
 	return node
+
+
+static func large_bed(parent: Node3D, props: PropsScript) -> MeshInstance3D:
+	"""A LARGE BED (decision 0211): the library's burrow bed drawn LARGE_BED_M long and wide -- the same frame, straw
+	and quilt, made for the badger -- under `parent`, its head to -Z as the bed's."""
+	var bound: AABB = props.drawn_bound(&"bed")
+	var stretch := Vector3(LARGE_BED_M.x / maxf(bound.size.x, 0.01), 1.0, LARGE_BED_M.y / maxf(bound.size.z, 0.01))
+	return prop(parent, props, &"bed", Transform3D(Basis.from_scale(stretch), Vector3.ZERO))
 
 
 static func planned(parent: Node3D) -> void:
@@ -309,7 +320,7 @@ static func smoke() -> CPUParticles3D:
 	puffs.initial_velocity_max = 0.55
 	puffs.scale_amount_min = 0.5
 	puffs.scale_amount_max = 0.8
-	puffs.scale_amount_curve = _grow_curve()
+	puffs.scale_amount_curve = grow_curve()
 	puffs.color_ramp = _fade_ramp()
 	puffs.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	return puffs
@@ -341,7 +352,7 @@ static func _puff_texture() -> ImageTexture:
 	return ImageTexture.create_from_image(image)
 
 
-static func _grow_curve() -> Curve:
+static func grow_curve() -> Curve:
 	"""A puff grows from a third of its size to all of it as it rises."""
 	var curve := Curve.new()
 	curve.add_point(Vector2(0.0, 0.35))
@@ -364,9 +375,9 @@ static func register_ground(parent: Node3D) -> void:
 	`begin_surface_prewarm`)."""
 	chimney(parent)
 	var puffs := smoke()
+	parent.add_child(puffs)
 	puffs.preprocess = SMOKE_LIFE_S
 	puffs.emitting = true
-	parent.add_child(puffs)
 
 
 static func register(prewarm: PrewarmScript, props: PropsScript) -> void:

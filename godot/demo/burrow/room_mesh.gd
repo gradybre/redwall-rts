@@ -10,37 +10,56 @@ extends RefCounted
 ## half-width and crown). Its normals face inward and back faces are culled: from above the far wall and the
 ## floor show.
 ##   ROUND (a burrow home): the horseshoe lathed round the middle, ROUND_SECTORS round, its floor a disc. Its
-##     wall bows out a further share round each BED ALCOVE (`alcove_scale`), a recess a bed stands in.
+##     wall bows out a further share round each BED ALCOVE (`alcove_scale`), a recess a bed stands in -- and much
+##     further round a BED NOOK (decision 0211, underground_rooms.gd THE BED NOOK), a deep lobe flat across
+##     NOOK_FLAT_RAD either side of its axis and easing back to the wall over NOOK_EASE_RAD, a large bed's bay.
 ##   VAULT (a root cellar): the horseshoe across it swept along its length, a ring every VAULT_STEP_M, and a
 ##     straight end wall at each end; its floor a rectangle.
 ## COLOR.b is the stone lining (a cellar's grey-blue walls and flags); UV the profile coordinate (the floor's
 ## worn middle); UV2 (dig day, 1 on a wall / 0 on the floor).
 
 const BoreMeshScript := preload("res://demo/tunnel/bore_mesh.gd")
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 
-const ROUND_SECTORS: int = 48
+const ROUND_SECTORS: int = 96
 const VAULT_STEP_M: float = 0.25
 ## A bed alcove spans this far either side of its angle (rad), easing in and out.
 const ALCOVE_HALF_RAD: float = 0.46
 
 
-static func alcove_scale(angle: float, alcoves: PackedFloat32Array, depth_share: float) -> float:
-	"""How much further out a round room's wall stands at `angle` (atan2(z, x)): 1, and up to 1 +
-	`depth_share` at the middle of a bed alcove (`alcoves`: their angles), eased in over ALCOVE_HALF_RAD."""
+static func alcove_scale(angle: float, alcoves: PackedFloat32Array, depth_share: float,
+		nooks: PackedFloat32Array = PackedFloat32Array(), nook_share: float = 0.0) -> float:
+	"""How much further out a round room's wall stands at `angle` (atan2(z, x)): 1, up to 1 + `depth_share` at the
+	middle of a bed alcove (`alcoves`: their angles), eased in over ALCOVE_HALF_RAD, and 1 + `nook_share` across a bed
+	nook (`nooks`: their angles; see ROUND)."""
 	var bump := 0.0
 	for middle in alcoves:
 		var off := absf(angle_difference(angle, middle))
 		if off < ALCOVE_HALF_RAD:
 			var ease := cos(PI * 0.5 * off / ALCOVE_HALF_RAD)
 			bump = maxf(bump, ease * ease)
-	return 1.0 + depth_share * bump
+	var lobe := 0.0
+	for middle in nooks:
+		lobe = maxf(lobe, nook_bump(absf(angle_difference(angle, middle))))
+	return 1.0 + maxf(depth_share * bump, nook_share * lobe)
+
+
+static func nook_bump(off: float) -> float:
+	"""A bed nook's lobe `off` radians from its axis: 1 across its flat, easing to 0 over NOOK_EASE_RAD (see ROUND)."""
+	if off <= RoomsScript.NOOK_FLAT_RAD:
+		return 1.0
+	if off >= RoomsScript.NOOK_FLAT_RAD + RoomsScript.NOOK_EASE_RAD:
+		return 0.0
+	var ease := cos(PI * 0.5 * (off - RoomsScript.NOOK_FLAT_RAD) / RoomsScript.NOOK_EASE_RAD)
+	return ease * ease
 
 
 static func build_round(mesh: ArrayMesh, centre: Vector3, radius: float, crown: float, openings: PackedFloat32Array,
-		alcoves: PackedFloat32Array, alcove_share: float, lined: float, day: float) -> int:
+		alcoves: PackedFloat32Array, alcove_share: float, lined: float, day: float,
+		nooks: PackedFloat32Array = PackedFloat32Array(), nook_share: float = 0.0) -> int:
 	"""Write a round room's shell as `mesh`'s one surface (see ROUND): its floor centred at `centre`, `radius`
 	across its floor, `crown` high, `openings` as bore_mesh.gd `build_hub` takes them, `alcoves` (angles) bowed
-	out `alcove_share`, lined `lined` (0..1). Returns the vertex count."""
+	out `alcove_share` and `nooks` (angles) `nook_share`, lined `lined` (0..1). Returns the vertex count."""
 	var shell := BoreMeshScript.HubArrays.new()
 	var rows := BoreMeshScript.hub_rows()
 	var normals := BoreMeshScript.row_normals(rows, radius, crown)
@@ -48,7 +67,7 @@ static func build_round(mesh: ArrayMesh, centre: Vector3, radius: float, crown: 
 		for sector in ROUND_SECTORS + 1:
 			var angle := TAU * float(sector) / float(ROUND_SECTORS)
 			var out := Vector3(cos(angle), 0.0, sin(angle))
-			var reach := radius * alcove_scale(angle, alcoves, alcove_share)
+			var reach := radius * alcove_scale(angle, alcoves, alcove_share, nooks, nook_share)
 			shell.add(centre + out * (rows[r].x * reach) + Vector3.UP * (rows[r].y * crown),
 				(out * normals[r].x + Vector3.UP * normals[r].y).normalized(), rows[r], Vector2(day, 1.0))
 	for r in rows.size() - 1:
@@ -56,18 +75,19 @@ static func build_round(mesh: ArrayMesh, centre: Vector3, radius: float, crown: 
 			var a := r * (ROUND_SECTORS + 1) + sector
 			shell.facing_tri(a, a + ROUND_SECTORS + 1, a + 1)
 			shell.facing_tri(a + 1, a + ROUND_SECTORS + 1, a + ROUND_SECTORS + 2)
-	_round_floor(shell, centre, radius, alcoves, alcove_share, day)
+	_round_floor(shell, centre, radius, [alcoves, nooks], Vector2(alcove_share, nook_share), day)
 	return _commit(mesh, shell, Vector3(centre.x, radius, centre.z), crown, openings, lined)
 
 
-static func _round_floor(shell: BoreMeshScript.HubArrays, centre: Vector3, radius: float, alcoves: PackedFloat32Array,
-		alcove_share: float, day: float) -> void:
-	"""A round room's floor: a disc fanned from its middle out to the wall's foot (the alcoves too), facing up."""
+static func _round_floor(shell: BoreMeshScript.HubArrays, centre: Vector3, radius: float, bays: Array,
+		shares: Vector2, day: float) -> void:
+	"""A round room's floor: a disc fanned from its middle out to the wall's foot (the alcoves, `bays[0]`, and nooks,
+	`bays[1]`, bowed `shares` x and y), facing up."""
 	var first := shell.verts.size()
 	shell.add(centre, Vector3.UP, Vector2.ZERO, Vector2(day, 0.0))
 	for sector in ROUND_SECTORS:
 		var angle := TAU * float(sector) / float(ROUND_SECTORS)
-		var reach := radius * alcove_scale(angle, alcoves, alcove_share)
+		var reach := radius * alcove_scale(angle, bays[0], shares.x, bays[1], shares.y)
 		shell.add(centre + Vector3(cos(angle), 0.0, sin(angle)) * reach, Vector3.UP, Vector2(1.0, 0.0), Vector2(day, 0.0))
 	for sector in ROUND_SECTORS:
 		shell.facing_tri(first, first + 1 + sector, first + 1 + (sector + 1) % ROUND_SECTORS)

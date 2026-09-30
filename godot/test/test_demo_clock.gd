@@ -238,7 +238,8 @@ func test_clips_freeze_paused_and_play_faster_at_speed() -> void:
 
 
 func test_the_mound_holds_still_while_paused() -> void:
-	"""Over a digging mole the mound bobs on the demo clock: paused, its bob and its clods stop."""
+	"""Over a digging mole the mound bobs on the demo clock: paused, its bob stops. (Its clods are the warren's pooled
+	particles since decision 0211; that they hold on a paused clock is test_demo_theatre.gd's.)"""
 	var manager := _manager()
 	var site := _dig_cast(manager)
 	var cast: DemoCastScript = site[0]
@@ -260,4 +261,4 @@ func test_the_mound_holds_still_while_paused() -> void:
 		cast.advance(DT)
 		overlay._process(DT)
 	assert_equal((overlay.mound(site[2]).get_child(0) as Node3D).scale.y, bob, "the bob holds")
-	assert_almost_equal((overlay.mound(site[2]).get_child(1) as CPUParticles3D).speed_scale, 0.0, "the clods hold")
+	assert_equal(overlay.mound(site[2]).get_child_count(), 1, "its clods are the warren's pool's (test_demo_theatre.gd)")

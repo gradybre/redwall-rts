@@ -30,6 +30,9 @@ const WALK_M_S: float = 1.0
 const BODY_M: float = 0.25
 const MOUSE_U: int = 1024
 const BADGER_U: int = 2611
+## Bed sizes (bed_allocation.gd): a burrow bed, a large bed.
+const S: int = AllocationScript.SIZE_SMALL
+const B: int = AllocationScript.SIZE_BIG
 const HOME_AT: Vector2i = Vector2i(0, 8192)
 const HALL_AT: Vector2 = Vector2(0.0, -6.0)
 ## Calendar ticks at hours of the first day (tick 0 is 06:00): 17:00, dusk at 18:00, and dawn at 06:00 the next morning.
@@ -152,7 +155,7 @@ func _all_asleep(v: Village, count: int) -> bool:
 func test_a_resident_keeps_its_bed_then_takes_the_nearest_free_one() -> void:
 	"""Beds 3 at x = 0 and 9 at x = 10 m: resident 0 at 1 m takes bed 3; resident 1 at 2 m, nearer bed 3 too, takes
 	bed 9; kept the next time even from beside bed 3 -- its current valid bed first."""
-	var beds := PackedInt32Array([3, 0, 0, 9, 10240, 0])
+	var beds := PackedInt32Array([3, 0, 0, S, 9, 10240, 0, S])
 	var out := PackedInt32Array()
 	AllocationScript.allocate(PackedInt32Array([-1, -1]), PackedInt32Array([1024, 0, 2048, 0]), PackedByteArray([1, 1]), beds, out)
 	assert_equal(out, PackedInt32Array([3, 9]), "nearest free, in resident order")
@@ -164,10 +167,10 @@ func test_a_tie_goes_to_the_lower_room_then_the_lower_place() -> void:
 	"""A resident exactly between two beds takes the lower ID -- room first (ids are room * 8 + place), then place;
 	the squared distance is exact, so a unit nearer wins."""
 	var out := PackedInt32Array()
-	var beds := PackedInt32Array([2, -5120, 0, 9, 5120, 0])
+	var beds := PackedInt32Array([2, -5120, 0, S, 9, 5120, 0, S])
 	AllocationScript.allocate(PackedInt32Array([-1]), PackedInt32Array([0, 0]), PackedByteArray([1]), beds, out)
 	assert_equal(out[0], 2, "room 0's place 2 over room 1's place 1")
-	var places := PackedInt32Array([8, 0, 3072, 10, 0, -3072])
+	var places := PackedInt32Array([8, 0, 3072, S, 10, 0, -3072, S])
 	AllocationScript.allocate(PackedInt32Array([-1]), PackedInt32Array([0, 0]), PackedByteArray([1]), places, out)
 	assert_equal(out[0], 8, "the same room: the lower place")
 	AllocationScript.allocate(PackedInt32Array([-1]), PackedInt32Array([0, -1]), PackedByteArray([1]), places, out)
@@ -178,7 +181,7 @@ func test_a_bed_gone_or_not_permitted_is_no_bed() -> void:
 	"""A current bed no longer standing is not kept (the nearest free one instead); a resident not permitted a bed
 	gets none, though beds are free; more residents than beds leaves the last without."""
 	var out := PackedInt32Array()
-	var one := PackedInt32Array([4, 0, 0])
+	var one := PackedInt32Array([4, 0, 0, S])
 	AllocationScript.allocate(PackedInt32Array([7]), PackedInt32Array([0, 0]), PackedByteArray([1]), one, out)
 	assert_equal(out[0], 4, "bed 7 has gone: bed 4")
 	AllocationScript.allocate(PackedInt32Array([4, -1]), PackedInt32Array([0, 0, 0, 0]), PackedByteArray([0, 1]), one, out)
@@ -189,12 +192,39 @@ func test_a_bed_gone_or_not_permitted_is_no_bed() -> void:
 	assert_equal(out[0], -1, "no beds at all")
 
 
-func test_a_burrow_bed_fits_up_to_the_otters() -> void:
-	"""BED_LENGTH_U exactly fits, a unit more does not: the otters (1.49 m) fit, the badger (2.55 m) does not."""
-	assert_true(AllocationScript.fits(AllocationScript.BED_LENGTH_U), "its length")
-	assert_false(AllocationScript.fits(AllocationScript.BED_LENGTH_U + 1), "a unit more")
-	assert_true(AllocationScript.fits(Rules.to_u(1.49)), "an otter")
-	assert_false(AllocationScript.fits(BADGER_U), "the badger")
+func test_each_body_is_sized_for_its_bed() -> void:
+	"""Decision 0211: up to BIG_BODY_U a body is SMALL (a burrow bed: the moles, mice and squirrels), past it BIG (a large
+	bed: the beaver, the otters, the badger), up to LARGE_BED_LENGTH_U; past that, no bed. The large bed is long enough
+	for the badger, the burrow bed only for the small."""
+	assert_equal(AllocationScript.size_of(AllocationScript.BIG_BODY_U), AllocationScript.SIZE_SMALL, "exactly the limit: small")
+	assert_equal(AllocationScript.size_of(AllocationScript.BIG_BODY_U + 1), AllocationScript.SIZE_BIG, "a unit more: big")
+	assert_equal(AllocationScript.size_of(Rules.to_u(1.15)), AllocationScript.SIZE_SMALL, "a squirrel")
+	assert_equal(AllocationScript.size_of(Rules.to_u(1.40)), AllocationScript.SIZE_BIG, "the beaver")
+	assert_equal(AllocationScript.size_of(Rules.to_u(1.49)), AllocationScript.SIZE_BIG, "an otter")
+	assert_equal(AllocationScript.size_of(BADGER_U), AllocationScript.SIZE_BIG, "the badger")
+	assert_equal(AllocationScript.size_of(AllocationScript.LARGE_BED_LENGTH_U), AllocationScript.SIZE_BIG, "the large bed's length")
+	assert_equal(AllocationScript.size_of(AllocationScript.LARGE_BED_LENGTH_U + 1), AllocationScript.SIZE_NONE, "longer: none")
+	assert_true(BADGER_U <= AllocationScript.LARGE_BED_LENGTH_U, "the badger fits a large bed")
+	assert_true(AllocationScript.BIG_BODY_U < AllocationScript.BED_LENGTH_U, "a small body fits a burrow bed")
+	assert_true(AllocationScript.fits(Rules.to_u(1.0)) and not AllocationScript.fits(Rules.to_u(1.49)), "fits: burrow beds are the small's")
+
+
+func test_big_residents_take_large_beds_and_small_ones_burrow_beds() -> void:
+	"""Decision 0211: a big resident is matched to a large bed and a small one to a burrow bed, still by REQ-SET-132 --
+	the badger, nearer the burrow bed, walks past it to the large one; the mouse is never given the large bed, even
+	with its own taken; a big resident with no large bed free has none, though burrow beds are."""
+	var beds := PackedInt32Array([1, 0, 0, S, 2, 10240, 0, B])
+	var out := PackedInt32Array()
+	AllocationScript.allocate(PackedInt32Array([-1, -1]), PackedInt32Array([0, 0, 1024, 0]), PackedByteArray([B, S]), beds, out)
+	assert_equal(out, PackedInt32Array([2, 1]), "the badger the large bed, the mouse the burrow bed")
+	AllocationScript.allocate(PackedInt32Array([-1, -1]), PackedInt32Array([0, 0, 0, 0]), PackedByteArray([S, S]), beds, out)
+	assert_equal(out, PackedInt32Array([1, -1]), "two mice: the second has none, the large bed stands empty")
+	AllocationScript.allocate(PackedInt32Array([-1, -1]), PackedInt32Array([10240, 0, 10240, 0]), PackedByteArray([B, B]), beds, out)
+	assert_equal(out, PackedInt32Array([2, -1]), "two big: the one large bed to the first")
+	AllocationScript.allocate(PackedInt32Array([1]), PackedInt32Array([0, 0]), PackedByteArray([B]), beds, out)
+	assert_equal(out[0], 2, "a big resident's burrow bed is no valid bed of its: the large one")
+	AllocationScript.allocate(PackedInt32Array([-1]), PackedInt32Array([0, 0]), PackedByteArray([AllocationScript.SIZE_NONE]), beds, out)
+	assert_equal(out[0], -1, "a body too big for any bed: none")
 
 
 func test_the_night_allocates_the_home_s_beds_by_place() -> void:
@@ -369,8 +399,8 @@ func test_emergencies_and_the_water_are_left_alone_at_dusk() -> void:
 
 
 func test_the_bedless_sleep_in_the_hall_and_come_out_in_the_morning() -> void:
-	"""Two mice and the badger, one bed: the nearer mouse has it; the other mouse and the badger (too big for a
-	burrow bed) walk to the hall's door and go in (not drawn); the feed names who has no bed; in the morning they come
+	"""Two mice and the badger, one bed: the nearer mouse has it; the other mouse and the badger (a big resident, with
+	no large bed) walk to the hall's door and go in (not drawn); the feed names who has no bed; in the morning they come
 	out."""
 	var v := _village([MOUSE_U, MOUSE_U, BADGER_U] as Array[int], 1)
 	v.brains[1].start_at(Vector2(6.0, -4.0), 0.0, -1, -1)
@@ -378,13 +408,37 @@ func test_the_bedless_sleep_in_the_hall_and_come_out_in_the_morning() -> void:
 	_run(v, 1)
 	assert_true(v.night.bed_of[0] >= 0 and v.night.bed_of[1] == -1 and v.night.bed_of[2] == -1, "one bed")
 	assert_true(v.notices.has_text(NightScript.NO_BED_WARNING % "resident 1, resident 2"), "the housing deficit said")
-	assert_equal(v.night.home_text(2, true), "No bed (too big for a burrow bed): sleeps on the hall's floor", "the badger")
+	assert_equal(v.night.home_text(2, true), "No large bed (a big resident: fit one in a home's alcove): sleeps on the hall's floor",
+		"the badger: a big resident with no large bed (decision 0211)")
 	_run(v, 2400, func() -> bool: return v.brains[1].indoors and v.brains[2].indoors)
 	assert_true(v.brains[1].indoors and v.brains[2].indoors, "in the hall")
 	assert_equal(v.brains[2].task_label(), "Asleep in the hall (no bed)", "said")
 	v.calendar.tick = TICK_MORNING
 	_run(v, 2)
 	assert_false(v.brains[1].indoors or v.brains[2].indoors, "out in the morning")
+
+
+func test_the_badger_sleeps_in_the_large_bed_in_its_nook() -> void:
+	"""A home with a large bed in its back alcove and a burrow bed beside it: the badger takes the large bed and the
+	mouse the burrow bed, though the badger stands nearer the burrow bed; each walks home and lies down, the badger out
+	in the nook along the large bed; the badger's panel names its bed."""
+	var v := _village([BADGER_U, MOUSE_U] as Array[int], 0)
+	var stores := StoresScript.new()
+	stores.add_planks(6000)
+	assert_equal(v.graph.fit.order(v.graph, v.home, RoomsScript.FIX_BIG_BED, stores), FixturesScript.REFUSE_NONE, "planned")
+	assert_equal(v.graph.fit.order(v.graph, v.home, RoomsScript.FIX_BED, stores), FixturesScript.REFUSE_NONE, "and a bed")
+	for f in 2:
+		v.graph.fit.phase[v.home * FixturesScript.PLACES + f] = FixturesScript.INSTALLED
+	v.graph.fit.revision += 1
+	v.calendar.tick = TICK_1900
+	var took := _run(v, 60 * 120, func() -> bool: return _all_asleep(v, 2))
+	assert_equal(v.night.bed_of[0], v.home * FixturesScript.PLACES, "the badger: the large bed")
+	assert_equal(v.night.bed_of[1], v.home * FixturesScript.PLACES + 1, "the mouse: the burrow bed")
+	assert_true(_all_asleep(v, 2), "both asleep after %d frames" % took)
+	var middle := v.graph.fit.bed_middle_u(v.graph, v.home, 0)
+	var lies := v.brains[0].position.distance_to(Vector2(Rules.to_m(middle.x), Rules.to_m(middle.y)))
+	assert_true(lies < 1.4, "along the large bed in its nook (%.2f m from its middle)" % lies)
+	assert_true(v.night.home_text(0, true).begins_with("Bed: "), "its bed named")
 
 
 func test_without_a_hall_the_bedless_stay_up() -> void:
@@ -453,7 +507,7 @@ func test_the_selected_take_the_fixtures_and_called_away_keep_them() -> void:
 	var crew := CrewScript.new()
 	crew.configure(v.graph, v.brains)
 	var stores := StoresScript.new()
-	stores.add_planks(8000)
+	stores.add_planks(10000)
 	stores.add_wood(3000)
 	assert_equal(v.graph.fit.suggest(v.graph, v.home, stores), FixturesScript.REFUSE_NONE, "planned")
 	assert_equal(crew.give_selected(v.home, PackedInt32Array([1, 0])), 2, "two given")
@@ -614,7 +668,7 @@ func test_the_squared_distance_decides_not_the_steps() -> void:
 	"""From the origin, a bed at (3, 3) m is nearer (18 m² against 25) than one at (0, 5) m, though fewer steps away
 	along the axes."""
 	var out := PackedInt32Array()
-	var beds := PackedInt32Array([1, 3072, 3072, 2, 0, 5120])
+	var beds := PackedInt32Array([1, 3072, 3072, S, 2, 0, 5120, S])
 	AllocationScript.allocate(PackedInt32Array([-1]), PackedInt32Array([0, 0]), PackedByteArray([1]), beds, out)
 	assert_equal(out[0], 1, "the diagonal bed")
 

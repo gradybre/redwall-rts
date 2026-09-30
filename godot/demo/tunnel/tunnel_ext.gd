@@ -18,6 +18,10 @@ extends Node3D
 ## THE FIT-OUT AND THE NIGHT (decision 0210, demo/burrow/): the rooms' fixtures (room_fixtures.gd, on the network as
 ## `fit`), who puts them in (fixture_crew.gd), how they look (fixture_view.gd), and the residents' night at home
 ## (night_routine.gd, on the demo calendar). Residents selected when a fixture is ordered put it in.
+## THE CONSTRUCTION THEATRE (decision 0211): the warren's particle budget (warren_particles.gd), the dig faces' lanterns
+## and clods (dig_theatre.gd), the crews' baskets (haul_view.gd, spoil_haul.gd), the hazards' warnings (hazard_view.gd)
+## and the warren's signs on the surface (warren_signs.gd); tunnel_marks.gd puts braces and lanterns up one at a time
+## and fixture_view.gd raises a fixture out of its chalk ring.
 ##   the panel's "Next weather (demo)" and "Test event (demo)"             run the demo calendar on
 ##                                                                          to the next weather (the
 ##                                                                          whole village: farm, date
@@ -62,11 +66,22 @@ const FixtureCrewScript := preload("res://demo/burrow/fixture_crew.gd")
 const NightScript := preload("res://demo/burrow/night_routine.gd")
 const RoomTextScript := preload("res://demo/burrow/room_text.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
+const ParticlesScript := preload("res://demo/tunnel/warren_particles.gd")
+const DigTheatreScript := preload("res://demo/tunnel/dig_theatre.gd")
+const HazardViewScript := preload("res://demo/tunnel/hazard_view.gd")
+const HaulViewScript := preload("res://demo/tunnel/haul_view.gd")
+const SignsScript := preload("res://demo/tunnel/warren_signs.gd")
+const WarrenKitScript := preload("res://demo/tunnel/warren_kit.gd")
+const MouthScript := preload("res://demo/tunnel/tunnel_mouth.gd")
 
 ## The player did something on the tunnels (selected one, laid a route): show the tunnels panel.
 signal panel_wanted
 
 const PANEL_REFRESH_S: float = 0.2
+## The hazards' warnings and the surface signs change over game minutes and days, so they are redrawn one frame in
+## THEATRE_SLOW_FRAMES each, on different frames -- and at once when the network changes (a tunnel laid, opened or
+## closed) -- (decision 0211: ~50 and ~25 us a pass over every segment).
+const THEATRE_SLOW_FRAMES: int = 6
 const JOB_FOR_ACTION: Dictionary = {&"widen": JobsScript.JOB_WIDEN, &"brace": JobsScript.JOB_BRACE,
 	&"lanterns": JobsScript.JOB_LANTERNS}
 const BORE_NAMES: Array[String] = ["standard bore (1 m)", "wide bore (2 x 3 m)", "room"]
@@ -97,6 +112,18 @@ var weather_view: WeatherViewScript = null
 var fixture_view: FixtureViewScript = null
 var fixture_crew: FixtureCrewScript = FixtureCrewScript.new()
 var night: NightScript = NightScript.new()
+## The construction theatre (see THE CONSTRUCTION THEATRE).
+var particles: ParticlesScript = null
+var dig_theatre: DigTheatreScript = null
+var hazard_view: HazardViewScript = null
+var haul_view: HaulViewScript = null
+var signs: SignsScript = null
+## Which of THEATRE_SLOW_FRAMES this frame is, and the network revision the slow ones last saw (a change redraws
+## them at once: see THEATRE_SLOW_FRAMES).
+var _theatre_frame: int = 0
+var _theatre_seen: int = -1
+## Where a large bed's nook may not reach (room_fixtures.gd `nook_site`): the water, the buildings, the village.
+var nook_site: RoomsScript.Site = RoomsScript.Site.new()
 ## The room selected for its fit-out (-1: none), as (row, generation).
 var selected_room: int = -1
 var selected_room_gen: int = 0
@@ -155,13 +182,17 @@ func configure(cast: DemoCastScript, camera: Camera3D, overlay: OverlayScript, b
 	_props = services.props if services != null else PropsScript.new()
 	_arm_diggers(can_dig)
 	_build_views()
+	_build_theatre()
 	_calendar = services.calendar if services != null else CalendarScript.new()
-	_start_living(brains, names)
+	_start_living(brains, names, bounds_u)
 
 
-func _start_living(brains: Array[BrainScript], names: PackedStringArray) -> void:
+func _start_living(brains: Array[BrainScript], names: PackedStringArray, bounds_u: Rect2i) -> void:
 	"""The fit-out's crew and the night (see THE FIT-OUT AND THE NIGHT): beds by the residents' heights, the bedless to
 	the hall (its steps are its door), the alarm while a threat is under way."""
+	nook_site.bounds_u = bounds_u
+	nook_site.water = works.water.crosses_water
+	_network.fit.nook_site = nook_site
 	var heights := PackedInt32Array()
 	for i in _cast.actor_count():
 		heights.append(Rules.to_u((_cast.actor(i) as DemoActorScript).height_m))
@@ -238,6 +269,46 @@ func _build_views() -> void:
 	panel.action.connect(on_action)
 
 
+func _build_theatre() -> void:
+	"""The construction theatre's pieces (see THE CONSTRUCTION THEATRE), handed what they draw from."""
+	particles = ParticlesScript.new()
+	add_child(particles)
+	particles.configure()
+	dig_theatre = DigTheatreScript.new()
+	add_child(dig_theatre)
+	dig_theatre.configure(_network, _cast.space(), particles, marks.lights, _overlay.mound)
+	hazard_view = HazardViewScript.new()
+	add_child(hazard_view)
+	hazard_view.configure(_network, works.hazards, _overlay.bores, particles)
+	haul_view = HaulViewScript.new()
+	add_child(haul_view)
+	haul_view.configure(_network, _cast, particles)
+	signs = SignsScript.new()
+	add_child(signs)
+	signs.configure(_network, _overlay.bores)
+	marks.set_theatre(works.jobs, particles)
+	fixture_view.set_particles(particles)
+	room_view.add_ground_sampler(ground_samples)
+
+
+func ground_samples(parent: Node3D) -> void:
+	"""One of each piece the theatre draws on the ground, under `parent`, for the rooms' ground prewarm (room_view.gd
+	`begin_surface_prewarm`): a seam and a vent, a mouth's gateway with its lantern, a basket and a loaded one, and the
+	clods and the dust already flying (a particle system draws instanced, its own pipeline)."""
+	signs.sample_into(parent)
+	for mesh: Mesh in [MouthScript.gateway_mesh(), WarrenKitScript.basket(), WarrenKitScript.loaded_basket()]:
+		var sample := MeshInstance3D.new()
+		sample.mesh = mesh
+		parent.add_child(sample)
+	for mesh: Mesh in [ParticlesScript.clod_mesh(), ParticlesScript.dust_mesh()]:
+		var flying := CPUParticles3D.new()
+		flying.mesh = mesh
+		flying.amount = 1
+		parent.add_child(flying)
+		flying.preprocess = 0.5
+		flying.emitting = true
+
+
 func set_view(view: ViewScript) -> void:
 	"""The underground view (decision 0206): its plane for every click, its cap for the rooms dug, and
 	its prewarm registry for everything these drawings show in it."""
@@ -248,12 +319,14 @@ func set_view(view: ViewScript) -> void:
 	room_view.register(view.prewarm)
 	fixture_view.register(view.prewarm)
 	find_props.register(view.prewarm)
+	dig_theatre.register(view.prewarm)
 
 
 func set_world(world: Node, under_u: PackedInt32Array) -> void:
 	"""The world whose sun and haze the weather dims, whose buildings the actions keep, and whose ground the
 	rooms' mounds wear (room_view.gd `set_turf`)."""
 	actions.set_under(under_u)
+	nook_site.under_u = under_u.duplicate()
 	var ground := world.get_node_or_null(^"Ground") as MeshInstance3D
 	if ground != null:
 		room_view.set_turf(ground.get_active_material(0))
@@ -286,11 +359,26 @@ func _process(delta: float) -> void:
 	room_view.refresh()
 	fixture_view.refresh(delta)
 	find_props.refresh()
+	_run_theatre()
 	_refresh_in -= delta
 	if _refresh_in <= 0.0:
 		_refresh_in = PANEL_REFRESH_S
 		refresh_panel()
 		panel.follow_hud()
+
+
+func _run_theatre() -> void:
+	"""One frame of the construction theatre, on the demo clock."""
+	particles.set_speed(float(_cast.clock.speed))
+	dig_theatre.refresh()
+	haul_view.refresh()
+	_theatre_frame = (_theatre_frame + 1) % THEATRE_SLOW_FRAMES
+	var changed := _network.revision != _theatre_seen
+	_theatre_seen = _network.revision
+	if changed or _theatre_frame == 0:
+		hazard_view.refresh()
+	if changed or _theatre_frame == THEATRE_SLOW_FRAMES / 2:
+		signs.refresh()
 
 
 func _selection_changed() -> bool:

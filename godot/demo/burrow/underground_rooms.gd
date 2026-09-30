@@ -89,9 +89,12 @@ const FIX_RACK: int = 5
 const FIX_BIN: int = 6
 const FIX_HANGING: int = 7
 const FIX_LANTERN: int = 8
-const FIXTURE_KINDS: int = 9
+## THE LARGE BED (decision 0211): a bed for the big residents, the otters, the beaver and the badger, which goes in a
+## BED alcove as the burrow bed does (room_fixtures.gd `accepts`) and deepens it into a NOOK (see THE BED NOOK).
+const FIX_BIG_BED: int = 9
+const FIXTURE_KINDS: int = 10
 const FIXTURE_NAMES: Array[String] = ["bed", "hearth", "table and stools", "shelf", "rag rug", "pantry rack", "root bin",
-	"hanging stores", "lantern"]
+	"hanging stores", "lantern", "large bed"]
 const FIXTURE_FIELDS: int = 5
 const MAX_PLACES: int = 8
 const FIXTURES: Array = [[],
@@ -106,6 +109,34 @@ const WALL_LANTERN: Array = [[], [1040, -1800, -512, 887], [-1460, 0, 1024, 0]]
 ## THE BED ALCOVES: a home's wall bows out ALCOVE_U more round each bed (room_view.gd), as recesses the
 ## beds stand in.
 const ALCOVE_U: int = 460
+## THE BED NOOK (decision 0211). A large bed is 2.7 m long (bed_allocation.gd LARGE_BED_LENGTH_U: the badger's 2.55 m
+## and a pillow's room), too long to lie in a 4 m home's alcove without reaching across its middle. So its alcove is
+## dug on into a NOOK: a deep lobe of the room's own wall (room_mesh.gd `alcove_scale`), flat across NOOK_FLAT_RAD
+## either side of the alcove's axis and reaching NOOK_REACH_U from the middle there, so the bed's head stands in it
+## and its foot, LARGE_BED_MIDDLE_U less its half length from the middle, is as clear of the middle as the table. The
+## nook is dug when a large bed is first planned in that alcove and stays (`nooks`, a bit a place). It is the room's
+## own void: for the pillar a room keeps (`gap_of`, `leg_gap_of`, `nooks_gap_of`) it counts as the capsule NOOK_HALF_U
+## round the alcove's axis from NOOK_A_U to NOOK_B_U -- which holds the whole lobe, walls bowed -- and it may be dug
+## only where that keeps a pillar's earth from every void not joined to the room, off the water and the buildings
+## (`nook_refusal`).
+const NOOK_REACH_U: int = 3809
+const NOOK_FLAT_RAD: float = 0.33
+const NOOK_EASE_RAD: float = 0.12
+const NOOK_A_U: int = 2355
+const NOOK_B_U: int = 3379
+const NOOK_HALF_U: int = 1843
+const LARGE_BED_MIDDLE_U: int = 2304
+## underground_graph.gd PHASE_FREE (a segment row holding nothing; the graph preloads this script, not the reverse).
+const FREE_PHASE: int = 0
+const NOOK_OK: int = 0
+const NOOK_NEAR_TUNNEL: int = 1
+const NOOK_NEAR_ROOM: int = 2
+const NOOK_UNDER_WATER: int = 3
+const NOOK_UNDER_BUILDING: int = 4
+const NOOK_OUT_OF_BOUNDS: int = 5
+const NOOK_REASONS: Array[String] = ["", "a tunnel runs within 1 m of where its nook would go",
+	"another room lies within 1 m of where its nook would go", "its nook would reach under the water",
+	"its nook would reach under a building", "its nook would reach past the village's edge"]
 ## The GDD's starter dormitory holds 12 beds in 40 tiles: a home's 12 floor quanta hold 12 x 12 / 40 = 3 (its
 ## three bed alcoves; the beds themselves are fixtures now, room_fixtures.gd).
 const DORMITORY_BEDS: int = 12
@@ -171,6 +202,8 @@ var ramp: PackedInt32Array = PackedInt32Array()
 var body: PackedInt32Array = PackedInt32Array()
 var socket_node: PackedInt32Array = PackedInt32Array()
 var walk: PackedInt32Array = PackedInt32Array()
+## Per room: its bed nooks, a bit per fixture place (see THE BED NOOK).
+var nooks: PackedInt32Array = PackedInt32Array()
 ## Bumped on any change.
 var revision: int = 0
 
@@ -179,7 +212,7 @@ func _init() -> void:
 	"""Size every column once."""
 	for column: PackedByteArray in [template, level, turns]:
 		column.resize(MAX_ROOMS)
-	for column: PackedInt32Array in [generation, piece, mouth, middle, door, ramp, body]:
+	for column: PackedInt32Array in [generation, piece, mouth, middle, door, ramp, body, nooks]:
 		column.resize(MAX_ROOMS)
 	centre_u.resize(2 * MAX_ROOMS)
 	socket_node.resize(MAX_ROOMS * MAX_SOCKETS)
@@ -368,6 +401,7 @@ func take(kind: int, at: Vector2i, quarter_turns: int, room_level: int) -> int:
 	for k in MAX_SOCKETS:
 		socket_node[r * MAX_SOCKETS + k] = -1
 		walk[r * MAX_SOCKETS + k] = -1
+	nooks[r] = 0
 	revision += 1
 	return r
 
@@ -427,13 +461,117 @@ func walk_of(r: int, k: int) -> int:
 
 
 func gap_of(r: int, p: Vector2i) -> int:
-	"""How far `p` lies outside room `r`'s void (u)."""
-	return gap_u(template[r], centre(r), turns[r], p)
+	"""How far `p` lies outside room `r`'s void (u), its bed nooks included."""
+	var gap := gap_u(template[r], centre(r), turns[r], p)
+	for f in MAX_PLACES:
+		if has_nook(r, f):
+			gap = mini(gap, maxi(Rules.point_leg_u(p, nook_a(r, f), nook_b(r, f)) - NOOK_HALF_U, 0))
+	return gap
 
 
 func leg_gap_of(r: int, a: Vector2i, b: Vector2i) -> int:
-	"""How far leg a-b stays outside room `r`'s void (u)."""
-	return leg_gap_u(template[r], centre(r), turns[r], a, b)
+	"""How far leg a-b stays outside room `r`'s void (u), its bed nooks included."""
+	var gap := leg_gap_u(template[r], centre(r), turns[r], a, b)
+	for f in MAX_PLACES:
+		if has_nook(r, f):
+			gap = mini(gap, maxi(legs_gap_u(a, b, nook_a(r, f), nook_b(r, f)) - NOOK_HALF_U, 0))
+	return gap
+
+
+# --- bed nooks (see THE BED NOOK) ------------------------------------------------------------
+
+func has_nook(r: int, f: int) -> bool:
+	"""Whether place `f` of room `r` has been dug into a bed nook."""
+	return nooks[r] & (1 << f) != 0
+
+
+func dig_nook(r: int, f: int) -> void:
+	"""Dig place `f` of room `r` into a bed nook (it stays)."""
+	if not has_nook(r, f):
+		nooks[r] |= 1 << f
+		revision += 1
+
+
+static func along_place_u(kind: int, f: int, reach_u: int) -> Vector2i:
+	"""The point `reach_u` from a room's middle along the axis through its place `f` (its own frame, u)."""
+	var place := Vector2i(fixture_field(kind, f, 1), fixture_field(kind, f, 2))
+	var length := maxi(Rules.isqrt(place.x * place.x + place.y * place.y), 1)
+	return place * reach_u / length
+
+
+func nook_a(r: int, f: int) -> Vector2i:
+	"""The near end of the axis of place `f` of room `r`'s nook's capsule (u; see THE BED NOOK)."""
+	return to_world_u(r, along_place_u(template[r], f, NOOK_A_U))
+
+
+func nook_b(r: int, f: int) -> Vector2i:
+	"""The far end of the axis of place `f` of room `r`'s nook's capsule (u)."""
+	return to_world_u(r, along_place_u(template[r], f, NOOK_B_U))
+
+
+func nook_refusal(graph: RefCounted, r: int, f: int, site: Site) -> int:
+	"""NOOK_OK, or why place `f` of room `r` may not be dug into a bed nook (see THE BED NOOK): the village's edge, a
+	pillar from every tunnel not joined to the room at one of its sockets and from every other room (its nooks too),
+	off the water and the buildings."""
+	var a := nook_a(r, f)
+	var b := nook_b(r, f)
+	var box := Rect2i(a, Vector2i.ZERO).expand(b).grow(NOOK_HALF_U)
+	if not site.bounds_u.encloses(box):
+		return NOOK_OUT_OF_BOUNDS
+	if _nook_near_tunnel(graph, r, a, b):
+		return NOOK_NEAR_TUNNEL
+	for h in MAX_ROOMS:
+		if h != r and is_room(h) and leg_gap_of(h, a, b) < Rules.PILLAR_U + NOOK_HALF_U:
+			return NOOK_NEAR_ROOM
+	if site.water.is_valid() and bool(site.water.call(a, b, NOOK_HALF_U + Rules.BORE_WIDTH_U / 2)):
+		return NOOK_UNDER_WATER
+	for i in site.under_u.size() / 3:
+		var c := Vector2i(site.under_u[3 * i], site.under_u[3 * i + 2])
+		if Rules.point_leg_u(c, a, b) < site.under_u[3 * i + 1] + NOOK_HALF_U:
+			return NOOK_UNDER_BUILDING
+	return NOOK_OK
+
+
+func _nook_near_tunnel(graph: RefCounted, r: int, a: Vector2i, b: Vector2i) -> bool:
+	"""Whether any segment but room `r`'s own and those joined to it at a socket comes within a pillar of the nook a-b
+	(its half-width and the segment's). Another room's body and walks lie in its void, which `nook_refusal` measures
+	as a room (NOOK_NEAR_ROOM); its ramp is a tunnel here."""
+	for slot in Rules.MAX_SEGMENTS:
+		var h: int = graph.seg_room[slot]
+		if graph.phase[slot] == FREE_PHASE or h == r or (h >= 0 and ramp[h] != slot) or _joins_at_socket(graph, r, slot):
+			continue
+		var reach: int = Rules.PILLAR_U + NOOK_HALF_U + Rules.BORE_WIDTHS_U[graph.bore[slot]] / 2
+		var base: int = 2 * slot * Rules.MAX_POINTS
+		for k in range(1, graph.point_count[slot]):
+			var p := Vector2i(graph.points_u[base + 2 * k - 2], graph.points_u[base + 2 * k - 1])
+			var q := Vector2i(graph.points_u[base + 2 * k], graph.points_u[base + 2 * k + 1])
+			if legs_gap_u(p, q, a, b) < reach:
+				return true
+	return false
+
+
+func _joins_at_socket(graph: RefCounted, r: int, slot: int) -> bool:
+	"""Whether segment `slot` ends at one of room `r`'s sockets (a passage joined to it)."""
+	for k in MAX_SOCKETS:
+		var node := socket_node[r * MAX_SOCKETS + k]
+		if node >= 0 and (graph.node_a[slot] == node or graph.node_b[slot] == node):
+			return true
+	return false
+
+
+func large_bed_u(r: int, f: int) -> Vector2i:
+	"""Where a large bed at place `f` of room `r` has its middle (u): out along the alcove's axis into its nook."""
+	return to_world_u(r, along_place_u(template[r], f, LARGE_BED_MIDDLE_U))
+
+
+func nooks_gap_of(r: int, kind: int, at: Vector2i, quarter_turns: int) -> int:
+	"""How much earth stands between room `r`'s nooks and the void of a room of `kind` at `at`, turned so (u; far past
+	any reach when it has none)."""
+	var gap := Rules.MAX_LENGTH_U * 16
+	for f in MAX_PLACES:
+		if has_nook(r, f):
+			gap = mini(gap, maxi(leg_gap_u(kind, at, quarter_turns, nook_a(r, f), nook_b(r, f)) - NOOK_HALF_U, 0))
+	return gap
 
 
 # --- where a room may go ------------------------------------------------------------------
@@ -534,7 +672,8 @@ func _rooms_reason(graph: RefCounted, kind: int, at: Vector2i, quarter_turns: in
 	for r in MAX_ROOMS:
 		if not is_room(r):
 			continue
-		if voids_gap_u(kind, at, quarter_turns, template[r], centre(r), turns[r]) < Rules.PILLAR_U:
+		if voids_gap_u(kind, at, quarter_turns, template[r], centre(r), turns[r]) < Rules.PILLAR_U \
+				or nooks_gap_of(r, kind, at, quarter_turns) < Rules.PILLAR_U:
 			return REFUSE_NEAR_ROOM
 		if leg_gap_of(r, hole, door_foot) < Rules.PILLAR_U + Rules.BORE_WIDTHS_U[Rules.BORE_WIDE] / 2:
 			return REFUSE_NEAR_ROOM

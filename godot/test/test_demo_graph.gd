@@ -809,10 +809,13 @@ func test_the_crew_digs_at_the_lead_s_skill() -> void:
 func test_the_readout_counts_quanta_hours_spoil_and_ground() -> void:
 	"""A 12 m mouth-to-mouth piece through loam: 14 quanta (two shafts and twelve metres), 1582 ticks -- at one
 	F1000 digger 21.0 demo-calendar hours (75 ticks an hour) -- and 28 U of spoil; a crew at 2000 per mille
-	halves the hours."""
+	halves the hours. Bracing it (decision 0211) costs the Brace job's wood 250 and stone 250 milli-U on each of its
+	14 quanta: 3.5 of each."""
 	var plan := _lay(GraphScript.new(), [Vector2i(0, 0), Vector2i(12288, 0)])
-	assert_equal(ReadoutScript.text(plan, null, 1000, 1), "12.0 m · 14 quanta · 21.0 h (one digger)\n28 U spoil", "one digger")
-	assert_equal(ReadoutScript.text(plan, null, 2000, 3), "12.0 m · 14 quanta · 10.5 h (crew of 3)\n28 U spoil", "a crew")
+	assert_equal(ReadoutScript.text(plan, null, 1000, 1),
+		"12.0 m · 14 quanta · 21.0 h (one digger)\n28 U spoil · brace 3.5 wood + 3.5 stone", "one digger")
+	assert_equal(ReadoutScript.text(plan, null, 2000, 3),
+		"12.0 m · 14 quanta · 10.5 h (crew of 3)\n28 U spoil · brace 3.5 wood + 3.5 stone", "a crew")
 	assert_equal(ReadoutScript.text(PlanScript.new(), null, 1000, 1), "", "nothing laid")
 
 

@@ -77,8 +77,9 @@ func test_a_home_and_a_cellar_have_their_places() -> void:
 	order."""
 	assert_equal(RoomsScript.fixture_count(HOME), 8, "a home's places")
 	assert_equal(RoomsScript.fixture_count(CELLAR), 5, "a cellar's")
-	assert_equal(FixturesScript.palette(HOME), PackedInt32Array([RoomsScript.FIX_BED, RoomsScript.FIX_HEARTH,
-		RoomsScript.FIX_TABLE, RoomsScript.FIX_RUG, RoomsScript.FIX_LANTERN, RoomsScript.FIX_HANGING]), "a home's palette")
+	assert_equal(FixturesScript.palette(HOME), PackedInt32Array([RoomsScript.FIX_BED, RoomsScript.FIX_BIG_BED,
+		RoomsScript.FIX_HEARTH, RoomsScript.FIX_TABLE, RoomsScript.FIX_RUG, RoomsScript.FIX_LANTERN, RoomsScript.FIX_HANGING]),
+		"a home's palette: the large bed after the bed (decision 0211)")
 	assert_equal(FixturesScript.palette(CELLAR), PackedInt32Array([RoomsScript.FIX_SHELF, RoomsScript.FIX_RACK,
 		RoomsScript.FIX_BIN, RoomsScript.FIX_HANGING]), "a cellar's")
 	assert_false(FixturesScript.allows(CELLAR, RoomsScript.FIX_HEARTH), "no hearth in a cellar")
@@ -93,8 +94,8 @@ func test_the_costs_are_the_table_s() -> void:
 	var words: Array[String] = []
 	for kind in RoomsScript.FIXTURE_KINDS:
 		words.append(FixturesScript.cost_text(kind))
-	assert_equal(words, ["2 planks", "6 stone", "2 planks", "2 planks", "1 wood", "2 planks", "2 planks", "1 wood", "1 wood"] as Array[String],
-		"bed, hearth, table, shelf, rug, rack, bin, hanging stores, lantern")
+	assert_equal(words, ["2 planks", "6 stone", "2 planks", "2 planks", "1 wood", "2 planks", "2 planks", "1 wood", "1 wood",
+		"4 planks"] as Array[String], "bed, hearth, table, shelf, rug, rack, bin, hanging stores, lantern, large bed")
 	assert_equal(FixturesScript.amounts_text(0, 0, 0), "nothing", "a free thing")
 
 
@@ -162,32 +163,39 @@ func test_the_short_refusal_says_what_is_needed_and_held() -> void:
 		"Can't: the demo stores are short: the bed needs 2 planks (they hold 1 planks, 2 wood, 3 stone)", "in words")
 	code = graph.fit.suggest(graph, r, stores)
 	assert_equal(RoomTextScript.answer(graph, r, PackedStringArray(["fit", "suggest"]), code, stores, Callable()),
-		"Can't: the demo stores are short: the suggested layout needs 8 planks, 3 wood, 6 stone (they hold 1 planks, 2 wood, 3 stone)",
+		"Can't: the demo stores are short: the suggested layout needs 10 planks, 3 wood, 6 stone (they hold 1 planks, 2 wood, 3 stone)",
 		"the layout's")
 
 
 # --- the suggested layout ---------------------------------------------------------------------------
 
 func test_the_suggested_layout_plans_every_empty_place_or_none() -> void:
-	"""A home's layout costs 8 planks (three beds and a table), 3 wood (a rug, a lantern, hanging stores) and 6 stone
-	(the hearth); a plank short, nothing is planned or paid; with enough, all eight places are, paid exactly; again,
-	NOTHING_TO_ADD. With a bed already in, it costs two planks less."""
+	"""A home's layout costs 10 planks (a large bed in its back alcove, two burrow beds and a table: decision 0211), 3 wood
+	(a rug, a lantern, hanging stores) and 6 stone (the hearth); a plank short, nothing is planned or paid; with enough,
+	all eight places are, paid exactly, the large bed in place 0 with its nook dug; again, NOTHING_TO_ADD. With a bed
+	already in (place 0), the large bed goes by the door (place 2), and it costs two planks less."""
 	var graph := GraphScript.new()
 	var r := _room(graph, HOME, Vector2i.ZERO)
-	assert_equal(graph.fit.missing_cost(graph, r), Vector3i(8000, 3000, 6000), "its cost")
-	var stores := _stores(7, 3, 6)
+	assert_equal(graph.fit.missing_cost(graph, r), Vector3i(10000, 3000, 6000), "its cost")
+	var stores := _stores(9, 3, 6)
 	assert_equal(graph.fit.suggest(graph, r, stores), FixturesScript.REFUSE_SHORT, "a plank short")
-	assert_equal(_held(stores), Vector3i(7000, 3000, 6000), "nothing paid")
+	assert_equal(_held(stores), Vector3i(9000, 3000, 6000), "nothing paid")
 	assert_equal(graph.fit.count(graph, r, RoomsScript.FIX_BED, PLANNED), 0, "nothing planned")
 	stores.add_planks(1000)
 	assert_equal(graph.fit.suggest(graph, r, stores), FixturesScript.REFUSE_NONE, "planned")
 	assert_equal(_held(stores), Vector3i.ZERO, "paid exactly")
 	for f in RoomsScript.fixture_count(HOME):
 		assert_equal(graph.fit.phase_of(graph, r, f), PLANNED, "place %d planned" % f)
+	assert_equal([graph.fit.kind_at(graph, r, 0), graph.fit.kind_at(graph, r, 1), graph.fit.kind_at(graph, r, 2)],
+		[RoomsScript.FIX_BIG_BED, RoomsScript.FIX_BED, RoomsScript.FIX_BED], "a large bed in the back alcove, burrow beds in the rest")
+	assert_equal(graph.rooms.nooks[r], 1, "its nook dug")
 	assert_equal(graph.fit.suggest(graph, r, stores), FixturesScript.REFUSE_NOTHING_TO_ADD, "fitted out")
 	var other := _room(graph, HOME, Vector2i(12288, 0))
 	_install(graph, other, RoomsScript.FIX_BED)
-	assert_equal(graph.fit.missing_cost(graph, other), Vector3i(6000, 3000, 6000), "a bed in: two planks less")
+	assert_equal(graph.fit.missing_cost(graph, other), Vector3i(8000, 3000, 6000), "a bed in: two planks less")
+	var layout := PackedInt32Array()
+	graph.fit.layout_into(graph, other, layout)
+	assert_equal(layout[2], RoomsScript.FIX_BIG_BED, "the large bed by the door instead")
 	var cellar := _room(graph, CELLAR, Vector2i(-12288, 0))
 	assert_equal(graph.fit.missing_cost(graph, cellar), Vector3i(8000, 1000, 0), "a cellar's: two shelves, a rack, a bin, hanging stores")
 	assert_equal(graph.fit.suggest(graph, _room(graph, HOME, Vector2i(0, 12288), false), stores), FixturesScript.REFUSE_NOT_DUG,
@@ -387,6 +395,24 @@ func test_a_room_laid_again_starts_bare() -> void:
 	graph.add_room(CELLAR, Vector2i.ZERO, 0, 0, again)
 	assert_equal(again[0], ref[0], "the same row")
 	assert_equal(graph.fit.phase_of(graph, again[0], 0), FixturesScript.EMPTY, "bare again")
+
+
+func test_a_home_laid_again_forgets_its_large_bed() -> void:
+	"""A home row whose place held a large bed, freed and laid again: its bed place is a burrow bed's again, asked
+	first of all."""
+	var graph := GraphScript.new()
+	var ref := PackedInt32Array([0, 0, 0, 0, 0])
+	graph.add_room(HOME, Vector2i.ZERO, 0, 0, ref)
+	graph.fit.phase_of(graph, ref[0], 0)
+	graph.fit.phase[ref[0] * FixturesScript.PLACES] = PLANNED
+	graph.fit.held[ref[0] * FixturesScript.PLACES] = RoomsScript.FIX_BIG_BED + 1
+	assert_equal(graph.fit.kind_at(graph, ref[0], 0), RoomsScript.FIX_BIG_BED, "a large bed")
+	graph.start_dig(ref[3], ref[4], 0)
+	graph.stop_digging(ref[3], ref[4])
+	var again := PackedInt32Array([0, 0, 0, 0, 0])
+	graph.add_room(HOME, Vector2i.ZERO, 0, 0, again)
+	assert_equal(again[0], ref[0], "the same row")
+	assert_equal(graph.fit.kind_at(graph, again[0], 0), RoomsScript.FIX_BED, "a burrow bed's place again")
 
 
 func test_waiting_fixtures_are_listed_in_place_order() -> void:
@@ -669,7 +695,9 @@ func test_the_palette_says_what_is_in_coming_and_can_be_done() -> void:
 	var rows := RoomTextScript.palette_rows(graph, r)
 	assert_equal(rows[0]["text"], "Bed: 1 of 3 in, 1 coming · 2 planks", "the bed row")
 	assert_equal([rows[0]["add"], rows[0]["take"]], [true, true], "add and take")
-	assert_equal([rows[1]["text"], rows[1]["add"], rows[1]["take"]], ["Hearth: 0 of 1 in · 6 stone", true, false], "the hearth row")
+	assert_equal([rows[1]["text"], rows[1]["add"], rows[1]["take"]], ["Large bed: 0 of 3 in · 4 planks", true, false],
+		"the large bed row: the same alcoves")
+	assert_equal([rows[2]["text"], rows[2]["add"], rows[2]["take"]], ["Hearth: 0 of 1 in · 6 stone", true, false], "the hearth row")
 	graph.fit.suggest(graph, r, _stores(20, 20, 20))
 	rows = RoomTextScript.palette_rows(graph, r)
 	assert_false(rows[0]["add"], "every bed place taken")
@@ -677,3 +705,178 @@ func test_the_palette_says_what_is_in_coming_and_can_be_done() -> void:
 	for f in RoomsScript.fixture_count(HOME):
 		graph.fit.phase[r * FixturesScript.PLACES + f] = INSTALLED
 	assert_equal(RoomTextScript.suggest_text(graph, r), "Fitted out", "all in")
+
+
+# --- large beds (decision 0211) -----------------------------------------------------------------------
+
+const AllocationScript := preload("res://demo/burrow/bed_allocation.gd")
+const BIG_BED: int = RoomsScript.FIX_BIG_BED
+
+
+func _nook_axis_u(graph: GraphScript, r: int, f: int, reach_u: int) -> Vector2i:
+	"""The point `reach_u` out from room `r`'s middle along place `f`'s axis (world u)."""
+	return graph.rooms.to_world_u(r, RoomsScript.along_place_u(graph.rooms.template[r], f, reach_u))
+
+
+func test_a_large_bed_digs_its_alcove_into_a_nook_and_costs_four_planks() -> void:
+	"""The first large bed goes in the back alcove (place 0), its nook dug, 4 planks paid; the second by the door
+	(place 2); a third is refused -- its alcoves taken, in words -- and costs nothing; a burrow bed still takes the
+	alcove between; a cellar takes none."""
+	var graph := GraphScript.new()
+	var r := _room(graph, HOME, Vector2i.ZERO)
+	var cellar := _room(graph, CELLAR, Vector2i(0, 12288))
+	var stores := _stores(12, 0, 0)
+	assert_equal(graph.fit.order(graph, r, BIG_BED, stores), FixturesScript.REFUSE_NONE, "the first")
+	assert_equal([graph.fit.kind_at(graph, r, 0), graph.fit.phase_of(graph, r, 0)], [BIG_BED, PLANNED], "in the back alcove")
+	assert_true(graph.rooms.has_nook(r, 0) and not graph.rooms.has_nook(r, 2), "its nook dug, only its")
+	assert_equal(_held(stores), Vector3i(8000, 0, 0), "4 planks")
+	assert_equal(graph.fit.order(graph, r, BIG_BED, stores), FixturesScript.REFUSE_NONE, "the second")
+	assert_equal(graph.fit.kind_at(graph, r, 2), BIG_BED, "by the door")
+	var code := graph.fit.order(graph, r, BIG_BED, stores)
+	assert_equal(code, FixturesScript.REFUSE_NO_NOOK, "a third: no alcove left for a nook")
+	assert_equal(graph.fit.nook_refused, FixturesScript.NOOK_TAKEN, "they are taken")
+	assert_equal(RoomTextScript.answer(graph, r, PackedStringArray(["fit", "add", str(BIG_BED)]), code, stores, Callable()),
+		"Can't: Burrow home %d has no alcove where a large bed's nook can be dug: the alcoves a nook can open from (the back and by the door) are taken" % (r + 1),
+		"in words")
+	assert_equal(_held(stores), Vector3i(4000, 0, 0), "the third paid nothing")
+	assert_equal(graph.fit.order(graph, r, RoomsScript.FIX_BED, stores), FixturesScript.REFUSE_NONE, "a burrow bed")
+	assert_equal(graph.fit.kind_at(graph, r, 1), RoomsScript.FIX_BED, "in the alcove between")
+	assert_equal(graph.fit.order(graph, cellar, BIG_BED, stores), FixturesScript.REFUSE_NOT_HERE, "not in a cellar")
+
+
+func test_a_nook_is_refused_where_it_may_not_go() -> void:
+	"""Place 0's nook, refused past the village's edge, under water or under a building; everywhere so, the large bed
+	is refused with the first reason and costs nothing. A nook already dug is always fine."""
+	var graph := GraphScript.new()
+	var r := _room(graph, HOME, Vector2i.ZERO)
+	var site := RoomsScript.Site.new()
+	graph.fit.nook_site = site
+	assert_equal(graph.fit.nook_reason(graph, r, 0), RoomsScript.NOOK_OK, "open ground: fine")
+	site.bounds_u = Rect2i(-4096, -4096, 8192, 8192)
+	assert_equal(graph.fit.nook_reason(graph, r, 0), RoomsScript.NOOK_OUT_OF_BOUNDS, "past the edge")
+	site.bounds_u = Rect2i(-65536, -65536, 131072, 131072)
+	var tip := _nook_axis_u(graph, r, 0, RoomsScript.NOOK_B_U)
+	site.under_u = PackedInt32Array([tip.x, 512, tip.y])
+	assert_equal(graph.fit.nook_reason(graph, r, 0), RoomsScript.NOOK_UNDER_BUILDING, "under a building")
+	assert_equal(graph.fit.nook_reason(graph, r, 2), RoomsScript.NOOK_OK, "the other alcove is clear of it")
+	site.under_u = PackedInt32Array()
+	site.water = func(_a: Vector2i, _b: Vector2i, _reach: int) -> bool: return true
+	assert_equal(graph.fit.nook_reason(graph, r, 0), RoomsScript.NOOK_UNDER_WATER, "under the water")
+	var stores := _stores(4, 0, 0)
+	var code := graph.fit.order(graph, r, BIG_BED, stores)
+	assert_equal([code, graph.fit.nook_refused], [FixturesScript.REFUSE_NO_NOOK, RoomsScript.NOOK_UNDER_WATER], "refused, why")
+	assert_true(RoomTextScript.answer(graph, r, PackedStringArray(["fit", "add", str(BIG_BED)]), code, stores, Callable())
+		.ends_with(RoomsScript.NOOK_REASONS[RoomsScript.NOOK_UNDER_WATER]), "said")
+	assert_equal(_held(stores), Vector3i(4000, 0, 0), "nothing paid")
+	graph.rooms.dig_nook(r, 0)
+	assert_equal(graph.fit.nook_reason(graph, r, 0), RoomsScript.NOOK_OK, "dug: fine")
+
+
+func test_a_refused_large_bed_names_its_first_alcove_s_reason() -> void:
+	"""The back alcove refused under a building, the door's past the village's edge: the words give the first."""
+	var graph := GraphScript.new()
+	var r := _room(graph, HOME, Vector2i.ZERO)
+	var site := RoomsScript.Site.new()
+	graph.fit.nook_site = site
+	var tip := _nook_axis_u(graph, r, 0, RoomsScript.NOOK_B_U)
+	site.under_u = PackedInt32Array([tip.x, 512, tip.y])
+	site.bounds_u = Rect2i(-4096, -4096, 70000, 70000)
+	assert_equal(graph.fit.nook_reason(graph, r, 2), RoomsScript.NOOK_OUT_OF_BOUNDS, "the door's alcove: past the edge")
+	assert_equal(graph.fit.order(graph, r, BIG_BED, _stores(4, 0, 0)), FixturesScript.REFUSE_NO_NOOK, "refused")
+	assert_equal(graph.fit.nook_refused, RoomsScript.NOOK_UNDER_BUILDING, "the back alcove's reason")
+
+
+func test_a_home_with_a_large_bed_is_not_suggested_another() -> void:
+	"""A large bed planned: the layout fills the other alcoves with burrow beds."""
+	var graph := GraphScript.new()
+	var r := _room(graph, HOME, Vector2i.ZERO)
+	graph.fit.order(graph, r, BIG_BED, _stores(4, 0, 0))
+	var layout := PackedInt32Array()
+	graph.fit.layout_into(graph, r, layout)
+	assert_equal([layout[0], layout[1], layout[2]], [-1, RoomsScript.FIX_BED, RoomsScript.FIX_BED], "burrow beds in the rest")
+
+
+func test_a_place_emptied_of_a_large_bed_is_a_burrow_bed_s_again() -> void:
+	"""A large bed taken out and a burrow bed put in its place: it is a burrow bed, listed small, in its place."""
+	var graph := GraphScript.new()
+	var r := _room(graph, HOME, Vector2i.ZERO)
+	var stores := _stores(4, 0, 0)
+	graph.fit.order(graph, r, BIG_BED, stores)
+	graph.fit.take_out(graph, r, BIG_BED, stores)
+	_install(graph, r, RoomsScript.FIX_BED)
+	assert_equal(graph.fit.kind_at(graph, r, 0), RoomsScript.FIX_BED, "a burrow bed")
+	var out := PackedInt32Array()
+	graph.fit.beds_into(graph, out)
+	assert_equal(out[3], AllocationScript.SIZE_SMALL, "listed small")
+
+
+func test_a_tunnel_by_the_back_alcove_sends_the_large_bed_by_the_door() -> void:
+	"""A tunnel passing a pillar's reach from where place 0's nook would go refuses it; the large bed goes by the door."""
+	var graph := GraphScript.new()
+	var r := _room(graph, HOME, Vector2i.ZERO)
+	var ref := PackedInt32Array([-1, 0, -1])
+	assert_true(graph.add_into(PackedInt32Array([5120, -16384, 5120, 16384]), 2, 0, ref), "a tunnel east of the home")
+	assert_equal(graph.fit.nook_reason(graph, r, 0), RoomsScript.NOOK_NEAR_TUNNEL, "near the back alcove")
+	assert_equal(graph.fit.nook_reason(graph, r, 2), RoomsScript.NOOK_OK, "not the door's")
+	assert_equal(graph.fit.order(graph, r, BIG_BED, _stores(4, 0, 0)), FixturesScript.REFUSE_NONE, "placed")
+	assert_equal(graph.fit.kind_at(graph, r, 2), BIG_BED, "by the door")
+	assert_equal(graph.fit.kind_at(graph, r, 0), RoomsScript.FIX_BED, "the back alcove still a burrow bed's")
+
+
+func test_another_room_by_the_alcove_refuses_its_nook() -> void:
+	"""A second home laid clear of the first but within a pillar of where place 0's nook would go -- its ramp leading
+	away, north -- refuses it as a room."""
+	var graph := GraphScript.new()
+	var r := _room(graph, HOME, Vector2i.ZERO)
+	var ref := PackedInt32Array([0, 0, 0, 0, 0])
+	assert_true(graph.add_room(HOME, Vector2i(5632, 5632), 2, 0, ref), "the second home laid")
+	var near := ref[0]
+	assert_true(graph.rooms.leg_gap_of(near, _nook_axis_u(graph, r, 0, RoomsScript.NOOK_A_U),
+		_nook_axis_u(graph, r, 0, RoomsScript.NOOK_B_U)) < Rules.PILLAR_U + RoomsScript.NOOK_HALF_U, "within a pillar")
+	assert_equal(graph.fit.nook_reason(graph, r, 0), RoomsScript.NOOK_NEAR_ROOM, "refused")
+
+
+func test_a_nook_is_part_of_its_room_s_void() -> void:
+	"""Dug, a nook brings the room's void out along its alcove: a point past the alcove is nearer the void, for the
+	pillar every other dig keeps."""
+	var graph := GraphScript.new()
+	var r := _room(graph, HOME, Vector2i.ZERO)
+	var past := _nook_axis_u(graph, r, 0, RoomsScript.NOOK_B_U + RoomsScript.NOOK_HALF_U + 1024)
+	var before := graph.rooms.gap_of(r, past)
+	graph.rooms.dig_nook(r, 0)
+	var after := graph.rooms.gap_of(r, past)
+	assert_true(after < before, "nearer (%d, was %d)" % [after, before])
+	assert_true(absi(after - 1024) <= 1, "a metre past the capsule's end (%d)" % after)
+	assert_true(graph.rooms.leg_gap_of(r, past, past + Vector2i(0, 1)) <= after, "a leg there too")
+
+
+func test_a_large_bed_taken_out_gives_its_planks_back_and_its_nook_stays() -> void:
+	"""Taken out, 4 planks back; the place a burrow bed's again; the nook dug stays."""
+	var graph := GraphScript.new()
+	var r := _room(graph, HOME, Vector2i.ZERO)
+	var stores := _stores(4, 0, 0)
+	graph.fit.order(graph, r, BIG_BED, stores)
+	assert_equal(graph.fit.take_out(graph, r, BIG_BED, stores), FixturesScript.REFUSE_NONE, "taken out")
+	assert_equal(_held(stores), Vector3i(4000, 0, 0), "4 planks back")
+	assert_equal([graph.fit.phase_of(graph, r, 0), graph.fit.kind_at(graph, r, 0)], [FixturesScript.EMPTY, RoomsScript.FIX_BED],
+		"empty, a burrow bed's place")
+	assert_true(graph.rooms.has_nook(r, 0), "the nook stays")
+
+
+func test_a_large_bed_is_a_big_bed_lying_out_in_its_nook() -> void:
+	"""Installed, a large bed is listed SIZE_BIG with its middle out along its alcove's axis at LARGE_BED_MIDDLE_U, a
+	burrow bed SIZE_SMALL at its place; both count as beds, for the housing and the comfort."""
+	var graph := GraphScript.new()
+	var r := _room(graph, HOME, Vector2i.ZERO)
+	graph.fit.order(graph, r, BIG_BED, _stores(4, 0, 0))
+	graph.fit.phase[r * FixturesScript.PLACES] = INSTALLED
+	_install(graph, r, RoomsScript.FIX_BED)
+	var out := PackedInt32Array()
+	assert_equal(graph.fit.beds_into(graph, out), 2, "two beds")
+	var middle := _nook_axis_u(graph, r, 0, RoomsScript.LARGE_BED_MIDDLE_U)
+	var place := graph.rooms.to_world_u(r, FixturesScript.place_u(HOME, 1))
+	assert_equal(out, PackedInt32Array([r * FixturesScript.PLACES, middle.x, middle.y, AllocationScript.SIZE_BIG,
+		r * FixturesScript.PLACES + 1, place.x, place.y, AllocationScript.SIZE_SMALL]), "sized, placed")
+	assert_equal(graph.fit.bed_middle_u(graph, r, 0), middle, "out in its nook")
+	assert_equal(graph.fit.installed_beds(graph), 2, "housing")
+	assert_equal(graph.fit.comfort(graph, r), FixturesScript.FLOOR_COMFORT + FixturesScript.BED_COMFORT, "a bed's comfort")

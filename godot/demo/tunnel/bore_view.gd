@@ -26,7 +26,10 @@ extends Node3D
 ## of its own radius, so the section opens over it.
 ##
 ## THE DRYING HOOK. Every ring carries the game day its step was dug (the demo calendar), and the earth
-## material the calendar's day now (`tick`): fresh walls are dark and damp and pale over a game day.
+## material the calendar's day now (`tick`): fresh walls are dark and damp and pale over a game day. Finished in P5
+## (decision 0211): a widening re-cuts the walls it passes, so their day is the day it passed; a hub keeps the day it
+## first broke ground whenever it is rebuilt (a branch breaking through does not wet it again); the dig face is
+## fresh-cut (bore_mesh.gd THE FACE).
 ##
 ## THE VOID. Every dug step is stamped into the cap's void mask (underground_cap.gd `stamp_disc`): its floor
 ## half-width, its floor's rise over the level's (a ramp's) and its crown, and at a dig face only the half
@@ -69,6 +72,10 @@ var _chunks: Array[MeshInstance3D] = []
 var _built_m: PackedFloat32Array = PackedFloat32Array()
 var _state: PackedInt64Array = PackedInt64Array()
 var _step_day: PackedFloat32Array = PackedFloat32Array()
+var _widened_m: PackedFloat32Array = PackedFloat32Array()
+## Per node: the day its hub first broke ground, and the node generation that was for.
+var _hub_day: PackedFloat32Array = PackedFloat32Array()
+var _hub_gen: PackedInt32Array = PackedInt32Array()
 var _void_m: PackedFloat32Array = PackedFloat32Array()
 var _void_wide_m: PackedFloat32Array = PackedFloat32Array()
 var _hubs: Array[MeshInstance3D] = []
@@ -97,6 +104,10 @@ func configure(network: GraphScript) -> void:
 	_hubs.resize(Rules.MAX_NODES)
 	_hub_key.resize(Rules.MAX_NODES)
 	_hub_key.fill(-1)
+	_widened_m.resize(Rules.MAX_SEGMENTS)
+	_hub_day.resize(Rules.MAX_NODES)
+	_hub_gen.resize(Rules.MAX_NODES)
+	_hub_gen.fill(-1)
 	dressing = DressingScript.new()
 	add_child(dressing)
 	dressing.configure()
@@ -207,6 +218,20 @@ func built_m(slot: int) -> float:
 	return _built_m[slot]
 
 
+func set_hazard(slot: int, seep: float, seep_span: Vector2, strain: float, strain_span: Vector2) -> void:
+	"""Segment `slot`'s hazards as its earth draws them (decision 0211, hazard_view.gd; bore_surface.gdshaderinc THE
+	HAZARDS): each level 0..1 and the stretch along it (m) it gathers in, on every chunk -- instance uniforms, so no
+	material changes. Nothing before the segment is first dug."""
+	if _chunks[slot * CHUNKS] == null:
+		return
+	for k in CHUNKS:
+		var node := chunk(slot, k)
+		node.set_instance_shader_parameter(&"seep_level", seep)
+		node.set_instance_shader_parameter(&"seep_span", seep_span)
+		node.set_instance_shader_parameter(&"strain_level", strain)
+		node.set_instance_shader_parameter(&"strain_span", strain_span)
+
+
 func hide_slot(slot: int) -> void:
 	"""Draw nothing of segment `slot` (a freed slot)."""
 	if _chunks[slot * CHUNKS] != null:
@@ -215,6 +240,7 @@ func hide_slot(slot: int) -> void:
 	dressing.clear(slot)
 	_state[slot] = -1
 	_built_m[slot] = 0.0
+	_widened_m[slot] = 0.0
 
 
 # --- the dig day ------------------------------------------------------------------------------
@@ -318,6 +344,9 @@ func build(slot: int, dug_m: float, widen_m: float) -> void:
 	var key := state_key(slot, widen_m)
 	var full := key != _state[slot] or dug_m < _built_m[slot]
 	_record_days(slot, _built_m[slot], dug_m)
+	if widen_m > _widened_m[slot]:
+		_record_days(slot, _widened_m[slot], minf(widen_m, dug_m))
+		_widened_m[slot] = widen_m
 	var rings := ring_count(dug_m)
 	var last := last_chunk(rings)
 	var first := 0 if full else mini(last_chunk(ring_count(_built_m[slot])), last)
@@ -374,7 +403,7 @@ func _build_chunk(slot: int, k: int, dug_m: float, widen_m: float) -> void:
 		curve.sample(along, _sample)
 		var centre := Vector3(_sample[0].x, _network.floor_y_at(slot, along), _sample[0].y)
 		_builder.add_ring(ring, centre, _sample[1], bore_class(slot, along, widen_m), _kind(slot, along),
-			dug_day(slot, floori(along / RING_STEP_M)), BoreMeshScript.jitter_at(along, length, clean_a, clean_b))
+			dug_day(slot, floori(along / RING_STEP_M)), BoreMeshScript.jitter_at(along, length, clean_a, clean_b), along)
 	if to == rings - 1 and not _network.is_open(slot):
 		_builder.add_face(Vector3(_sample[0].x, _network.floor_y_at(slot, dug_m), _sample[0].y), _sample[1], bore_class(slot, dug_m, widen_m))
 	var node := chunk(slot, k)
@@ -459,7 +488,10 @@ func _draw_hub(node: int, show: bool) -> void:
 	var at := _network.node_m(node)
 	var radius := BoreMeshScript.FLOOR_HALF_M[widest] * BoreMeshScript.HUB_SCALE
 	var centre := Vector3(at.x, _network.node_floor_y(node), at.y)
-	BoreMeshScript.build_hub(_hubs[node].mesh as ArrayMesh, centre, radius, Rules.crown_m(widest), _openings, today())
+	if _hub_gen[node] != _network.node_gen[node]:
+		_hub_gen[node] = _network.node_gen[node]
+		_hub_day[node] = today()
+	BoreMeshScript.build_hub(_hubs[node].mesh as ArrayMesh, centre, radius, Rules.crown_m(widest), _openings, _hub_day[node])
 	_hubs[node].visible = true
 	hub_builds += 1
 	if _cap != null:

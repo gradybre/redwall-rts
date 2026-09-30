@@ -76,7 +76,9 @@ extends RefCounted
 ## TASKS (tunnel_task.gd). `order_task()` hands the resident to a task -- a tunnel job, a dig crew's
 ## place, an evacuation: it walks to the task's site, then the task drives it (TASK) through the
 ## task_* functions until it is done, and the resident goes back to its routine. A new order or a
-## release cancels the task first; one standing in a bore walks out to the nearest mouth.
+## release cancels the task first; one standing in a bore walks out to the nearest mouth. A dig crew's hauler
+## (decision 0211) carries its basket out with `task_haul_out`: loaded, through the network to its heap's mouth and
+## on to the heap.
 ##
 ## THE WATER (demo/waterplay/). A route may also cross one of the water's crossings -- a finished
 ## bridge, or for a swimmer a link across the stream or the pond (tunnel_router.gd CROSSINGS). The
@@ -178,6 +180,9 @@ const SHUFFLE_ANGLE: float = 0.79           ## ~45 deg: a turn this big steps in
 const SHUFFLE_CLIP_SPEED: float = 0.75
 const WAYPOINT_REACH_M: float = 0.3
 const ARRIVE_RADIUS_M: float = 0.12
+## A task's site on the ground that another resident stands on (two of a dig crew sent to one mouth, decision 0211):
+## stuck within this of it, the walker has arrived -- the dig crew enters from this near (tunnel_crew_task.gd).
+const CROWDED_SITE_M: float = 0.35
 const SEPARATION_WEIGHT: float = 1.2
 const STUCK_AFTER_S: float = 2.5
 const BLOCKED_AFTER_S: float = 0.35         ## held back this long by someone -> plan round them
@@ -912,12 +917,21 @@ func _watch_progress(distance: float, held: bool, delta: float) -> void:
 
 
 func _replan_or_abandon() -> void:
-	"""Plan the trip again from here, or give it up after MAX_REPLANS."""
+	"""Plan the trip again from here, or give it up after MAX_REPLANS -- or at once when no way is found now (boxed in
+	by residents standing across every way: an empty route has no leg to begin). A task's walk stuck within
+	CROWDED_SITE_M of its site on the ground has arrived."""
+	if order == ORDER_TASK and not underground and path_index == path.size() - 1 \
+			and position.distance_to(_goal) <= CROWDED_SITE_M:
+		_arrive()
+		return
 	_replans += 1
 	if _replans > MAX_REPLANS:
 		_abandon_trip()
 		return
 	_plan_trip(true, carrying)
+	if path.is_empty():
+		_abandon_trip()
+		return
 	_begin_leg()
 
 
@@ -2086,6 +2100,37 @@ func task_tunnel_to(from_node: int, to_node: int) -> bool:
 	_goal = tunnels.node_m(to_node)
 	_goal_node = -1
 	_start_leg(path_tunnel[0])
+	return true
+
+
+func task_haul_out(m: int, to: Vector2) -> bool:
+	"""For a task, standing in its bore: carry a load out (the carry clip, when this creature has one) the cheapest way
+	through what it may walk to mouth `m`, up there, and on over the ground to `to`, where the task's arrived() is
+	called (a dig crew's basket to its heap, decision 0211). False, nothing changed, when there is no way to `m`."""
+	var tunnels := _space.tunnels
+	var mouth_node: int = tunnels.mouth_node[m]
+	var slot_index := _travel_slot
+	carrying = can_carry()
+	var end := _end_toward(slot_index, mouth_node)
+	if end < 0:
+		carrying = false
+		return false
+	var node: int = tunnels.end_node(slot_index, end == 1)
+	path.clear()
+	path_tunnel.clear()
+	path.append(tunnels.node_m(node))
+	path_tunnel.append(TunnelRouterScript.leg_code(slot_index, end == 0))
+	if node != mouth_node:
+		_append_walk(m, node, true)
+	path.append(to)
+	path_tunnel.append(TunnelRouterScript.SURFACE_LEG)
+	path_index = 0
+	_route_topology = tunnels.topology
+	_goal = to
+	_goal_node = -1
+	_replans = 0
+	_travel_for_task = false
+	_start_travel(slot_index, _travel_m, tunnels.length_m(slot_index) if end == 1 else 0.0)
 	return true
 
 

@@ -2,7 +2,8 @@ extends RefCounted
 ## A room's fit-out in words, for the "Tunnels & burrows (demo)" panel (tunnel_ext.gd, tunnel_panel.gd `show_room`).
 ## Decision 0210. Presentation only; nothing here decides anything.
 ##
-## A HOME: its comfort (room_fixtures.gd COMFORT) with its word, who sleeps in it and whether its hearth burns. A
+## A HOME: its comfort (room_fixtures.gd COMFORT) with its word, who sleeps in it and whether its hearth burns (a
+## large bed, decision 0211, is a bed the palette offers beside the burrow bed, in the same alcoves). A
 ## CELLAR: what it holds of its racks' capacity, and the cool rule's verdict with its spoilage. Then the palette, a
 ## row a kind -- how many are in, how many are planned, of how many places, and the cost -- and the suggested layout
 ## with what it would cost now. `answer` is what a fit-out button said.
@@ -82,16 +83,16 @@ static func palette_rows(graph: RefCounted, r: int) -> Array[Dictionary]:
 		var text := "%s: %d of %d in" % [_first_up(RoomsScript.FIXTURE_NAMES[kind]), done, places]
 		if planned > done:
 			text += ", %d coming" % (planned - done)
-		rows.append({"kind": kind, "text": "%s · %s" % [text, FixturesScript.cost_text(kind)], "add": planned < places,
-			"take": planned > 0})
+		rows.append({"kind": kind, "text": "%s · %s" % [text, FixturesScript.cost_text(kind)],
+			"add": fit.has_room_for(graph, r, kind), "take": planned > 0})
 	return rows
 
 
 static func _places_of(template: int, kind: int) -> int:
-	"""How many places of `kind` a template has."""
+	"""How many places of a template take a `kind` (a home's bed alcoves take a burrow bed or a large bed)."""
 	var n := 0
 	for f in RoomsScript.fixture_count(template):
-		n += 1 if FixturesScript.place_kind(template, f) == kind else 0
+		n += 1 if FixturesScript.accepts(template, f, kind) else 0
 	return n
 
 
@@ -147,4 +148,13 @@ static func _refusal_words(graph: RefCounted, r: int, parts: PackedStringArray, 
 			return [room, kind_name]
 		FixturesScript.REFUSE_HOLDS_FOOD:
 			return [room, int(stored.call(r)) if stored.is_valid() else 0]
+		FixturesScript.REFUSE_NO_NOOK:
+			return [room, nook_words(graph.fit.nook_refused)]
 	return [room]
+
+
+static func nook_words(reason: int) -> String:
+	"""Why a large bed's nook may not be dug, in words (underground_rooms.gd NOOK_REASONS; NOOK_TAKEN: its alcoves)."""
+	if reason == FixturesScript.NOOK_TAKEN:
+		return "the alcoves a nook can open from (the back and by the door) are taken"
+	return RoomsScript.NOOK_REASONS[reason]

@@ -9,6 +9,11 @@ extends Node3D
 ## hanging stores and the rug). A place's node is built when its phase changes -- never on a view switch -- and a
 ## room's pieces show only while it is dug.
 ##
+## PUT IN (decision 0211; design §4 "each with an install pop"): while a resident works a planned place, the fixture
+## RISES from the floor up through its chalk ring as the work is done (room_fixtures.gd `work_usec` of its install
+## time) -- a lantern or hanging stores swell out on the wall instead, a rug's colours come up through the floor --
+## and once in, the ring goes and a puff of dust (the warren's pooled particles) marks it.
+##
 ## LIT (`lit() -> bool`: the night routine's hearth hours) a home's hearth glows: its embers show and one of the pooled
 ## lights (tunnel_lanterns.gd `set_hearth_spots`) burns deep orange over its firebox; a lantern hung in a room lights too
 ## (`set_fit_spots`). ON THE GROUND a home with a hearth has a chimney pot on its mound over the hearth, SMOKING while
@@ -22,6 +27,7 @@ extends Node3D
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const FixturesScript := preload("res://demo/burrow/room_fixtures.gd")
 const KitScript := preload("res://demo/burrow/fixture_kit.gd")
+const ParticlesScript := preload("res://demo/tunnel/warren_particles.gd")
 const RoomMeshScript := preload("res://demo/burrow/room_mesh.gd")
 const RoomViewScript := preload("res://demo/burrow/room_view.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
@@ -42,6 +48,8 @@ const FIRE_LIGHT: Vector3 = Vector3(0.0, 0.35, 0.2)
 ## A hung lantern hangs this high on the wall, its bracket's reach out from it (the wall lantern's fit).
 const LANTERN_LIFT_M: float = 1.0
 const FILL_EVERY_S: float = 0.25
+## A fixture being put in first shows this share of the way up (so the resident is plainly at work on something).
+const FIRST_RISE: float = 0.08
 
 var _graph: RefCounted = null
 var _props: PropsScript = null
@@ -61,6 +69,11 @@ var _fill_in: float = 0.0
 var _lit_now: PackedByteArray = PackedByteArray()
 ## Place builds so far (the tests: a view switch builds none).
 var builds: int = 0
+## Per place row: the fixture rising while it is put in (null: none; see PUT IN), and how tall it stands (m).
+var _rising: Array[Node3D] = []
+var _rise_tall: PackedFloat32Array = PackedFloat32Array()
+## The warren's particles, for the puff when a fixture is in (none: no puff).
+var _particles: ParticlesScript = null
 
 
 func configure(graph: RefCounted, props: PropsScript, lights: LanternsScript, clock: DemoClockScript) -> void:
@@ -78,7 +91,14 @@ func configure(graph: RefCounted, props: PropsScript, lights: LanternsScript, cl
 		_build_room_row()
 	for k in RoomsScript.MAX_ROOMS * PLACES:
 		_pieces.append(null)
+		_rising.append(null)
 		_slots.append([] as Array[Node3D])
+	_rise_tall.resize(RoomsScript.MAX_ROOMS * PLACES)
+
+
+func set_particles(particles: ParticlesScript) -> void:
+	"""The warren's particles (warren_particles.gd) a fixture's puff comes from (see PUT IN)."""
+	_particles = particles
 
 
 func _build_room_row() -> void:
@@ -141,11 +161,18 @@ func _refresh_places(fit: FixturesScript, r: int) -> void:
 	"""Room `r`'s places: each rebuilt when its key (generation, template, phase) changed."""
 	var template: int = _graph.rooms.template[r]
 	for f in RoomsScript.fixture_count(template):
+		var row := r * PLACES + f
 		var phase := fit.phase_of(_graph, r, f)
-		var key: int = (_graph.rooms.generation[r] * 4 + template) * 4 + phase
-		if key != _keys[r * PLACES + f]:
-			_keys[r * PLACES + f] = key
+		var working := 1 if phase == FixturesScript.PLANNED and fit.work_usec[row] > 0 else 0
+		var key: int = (((_graph.rooms.generation[r] * 4 + template) * 4 + phase) * 2 + working) * 16 + fit.kind_at(_graph, r, f)
+		if key != _keys[row]:
+			var was_rising := _rising[row] != null
+			_keys[row] = key
 			_build_place(r, f, phase)
+			if was_rising and phase == FixturesScript.INSTALLED:
+				_puff_at(r, f)
+		if _rising[row] != null:
+			_rise(row, fit)
 
 
 func _build_place(r: int, f: int, phase: int) -> void:
@@ -165,8 +192,11 @@ func _build_place(r: int, f: int, phase: int) -> void:
 	piece.transform = place_transform(r, f)
 	_below[r].add_child(piece)
 	_pieces[row] = piece
+	_rising[row] = null
 	if phase == FixturesScript.PLANNED:
 		KitScript.planned(piece)
+		if _graph.fit.work_usec[row] > 0:
+			_start_rising(r, f, piece)
 	else:
 		_install(r, f, piece)
 	Layers.set_layers(piece, Layers.UNDERGROUND)
@@ -174,9 +204,61 @@ func _build_place(r: int, f: int, phase: int) -> void:
 	_fit_lights(r)
 
 
+# --- putting it in (see PUT IN) ------------------------------------------------------------------
+
+func _start_rising(r: int, f: int, piece: Node3D) -> void:
+	"""The fixture being put in at place `f` of room `r`, built under `piece` below its floor, to rise as it is worked."""
+	var rising := Node3D.new()
+	piece.add_child(rising)
+	_install(r, f, rising)
+	var row := r * PLACES + f
+	_rising[row] = rising
+	_rise_tall[row] = _tallness(rising)
+
+
+static func _tallness(root: Node3D) -> float:
+	"""How tall what stands under `root` is (m): the highest top of its meshes' boxes, at least 0.1."""
+	var top := 0.1
+	for child in root.get_children():
+		var mesh := child as MeshInstance3D
+		if mesh != null and mesh.mesh != null:
+			var box: AABB = mesh.transform * mesh.mesh.get_aabb()
+			top = maxf(top, box.end.y)
+	return top
+
+
+func _rise(row: int, fit: FixturesScript) -> void:
+	"""The fixture being put in at place row `row` stands as far up as its work is done: a floor fixture risen that
+	share of its height out of the floor, a hung one swollen to that share of its size, a rug that share come up."""
+	var r := row / PLACES
+	var kind := fit.kind_at(_graph, r, row % PLACES)
+	var need := FixturesScript.install_usec(kind)
+	var share := lerpf(FIRST_RISE, 1.0, clampf(float(fit.work_usec[row]) / float(maxi(need, 1)), 0.0, 1.0))
+	var rising := _rising[row]
+	if kind == RoomsScript.FIX_LANTERN or kind == RoomsScript.FIX_HANGING:
+		rising.scale = Vector3.ONE * share
+	elif kind == RoomsScript.FIX_RUG:
+		for child in rising.get_children():
+			if child is Decal:
+				(child as Decal).modulate = Color(1.0, 1.0, 1.0, share)
+	else:
+		rising.position.y = -_rise_tall[row] * (1.0 - share)
+
+
+func _puff_at(r: int, f: int) -> void:
+	"""A puff of dust where place `f` of room `r`'s fixture has just gone in."""
+	if _particles != null:
+		_particles.puff(place_transform(r, f).origin + Vector3(0.0, 0.2, 0.0), Layers.UNDERGROUND)
+
+
+func rising(r: int, f: int) -> Node3D:
+	"""The fixture rising at place `f` of room `r` while it is put in (null: none; checks)."""
+	return _rising[r * PLACES + f]
+
+
 func _install(r: int, f: int, piece: Node3D) -> void:
 	"""The installed fixture at place `f` of room `r` into `piece` (see fixture_kit.gd)."""
-	var kind := FixturesScript.place_kind(_graph.rooms.template[r], f)
+	var kind: int = _graph.fit.kind_at(_graph, r, f)
 	var slots: Array[Node3D] = _slots[r * PLACES + f]
 	match kind:
 		RoomsScript.FIX_RACK:
@@ -190,6 +272,8 @@ func _install(r: int, f: int, piece: Node3D) -> void:
 			(KitScript.rug(piece) as Decal).cull_mask = Layers.UNDERGROUND
 		RoomsScript.FIX_LANTERN:
 			_hang_lantern(piece)
+		RoomsScript.FIX_BIG_BED:
+			KitScript.large_bed(piece, _props)
 		_:
 			_stand_prop(r, f, kind, piece)
 
@@ -215,10 +299,11 @@ func _hang_lantern(piece: Node3D) -> void:
 
 
 func place_transform(r: int, f: int) -> Transform3D:
-	"""Where place `f` of room `r` stands on its floor, turned to face its way (the props face +Z)."""
+	"""Where place `f` of room `r` stands on its floor, turned to face its way (the props face +Z); a large bed out in
+	its nook (room_fixtures.gd `bed_middle_u`)."""
 	var rooms: RoomsScript = _graph.rooms
 	var template: int = rooms.template[r]
-	var at := rooms.to_world_u(r, FixturesScript.place_u(template, f))
+	var at: Vector2i = _graph.fit.bed_middle_u(_graph, r, f)
 	var face := RoomsScript.rotate_u(Vector2i(RoomsScript.fixture_field(template, f, 3), RoomsScript.fixture_field(template, f, 4)),
 		rooms.turns[r])
 	return Transform3D(Basis(Vector3.UP, atan2(float(face.x), float(face.y))),

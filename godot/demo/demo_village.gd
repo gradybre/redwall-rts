@@ -91,6 +91,7 @@ const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const RoomViewScript := preload("res://demo/burrow/room_view.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const HudDateScript := preload("res://demo/ui/demo_hud_date.gd")
+const BedsLabelScript := preload("res://demo/ui/demo_beds_label.gd")
 const NewsStripScript := preload("res://demo/ui/demo_news_strip.gd")
 const DetailZoneScript := preload("res://demo/ui/demo_detail_zone.gd")
 const TunnelExtScript := preload("res://demo/tunnel/tunnel_ext.gd")
@@ -129,6 +130,7 @@ var _command: Node3D = null
 var _farm: DemoFarmScript = null
 var _services: ServicesScript = null
 var _hud_date: HudDateScript = HudDateScript.new()
+var _beds_label: BedsLabelScript = BedsLabelScript.new()
 var _news: NewsStripScript = null
 var _stall_banner: StallBannerScript = null
 var _zone: DetailZoneScript = null
@@ -315,6 +317,7 @@ func _build_shared_ui() -> void:
 	stall banner (the player's Resume from the clock's REQ-SET-008 diagnostic pause, which stands in
 	for and resolves the HUD's overload card)."""
 	_hud_date.bind(_shell(), _services.calendar, GameManager as GameManagerScript)
+	_beds_label.bind(_shell())
 	_stall_banner = StallBannerScript.new()
 	add_child(_stall_banner)
 	_stall_banner.bind(GameManager as GameManagerScript)
@@ -383,9 +386,10 @@ func rooms() -> RoomsScript:
 
 
 func _process(_delta: float) -> void:
-	"""Keep the HUD's date on the demo calendar, and the sun's shadow range fitted to the zoom (only
-	touched when the zoom moved)."""
+	"""Keep the HUD's date on the demo calendar and its Beds cell relabelled (demo_beds_label.gd), and the sun's
+	shadow range fitted to the zoom (only touched when the zoom moved)."""
 	_hud_date.sync()
+	_beds_label.sync()
 	var view_m: float = _camera.distance()
 	if absf(view_m - _shadow_view_m) < SHADOW_REFIT_M:
 		return

@@ -13,6 +13,11 @@ extends Node3D
 ##   * STAGED DIGGING: while its body is dug the shell grows in STAGES from the door -- a home's floor a disc
 ##     tangent at the door, a cellar's vault lengthening from its hatch end -- rebuilt only when a stage is
 ##     reached; the cap's void mask (underground_cap.gd) opens over each stage.
+##   * DRYING (decision 0211: "fresh walls stay dark and damp, then dry to a paler colour over a game day"): each
+##     stage remembers the calendar day it was reached, and every point of the shell carries the day of the stage that
+##     first took it in, so the walls dry from the door outward as they were dug -- and a shell rebuilt later (a socket
+##     broken through) keeps its walls' own days. While the body is dug, the newest stage's walls are FRESH-CUT
+##     (COLOR.a, bore_surface.gdshaderinc THE FACE): the room's dig face.
 ##   * TIMBER: a RING BEAM just inside the wall, under the section plane -- round a home, a rectangle of wall plates
 ##     in a cellar (room_mesh.gd `build_beam`) -- carried by the library's tunnel_brace (tunnel_marks.gd's frame)
 ##     framing the door and every socket, as tall as the beam is high: a few clear posts carrying one ring, read
@@ -58,6 +63,10 @@ const FixtureKitScript := preload("res://demo/burrow/fixture_kit.gd")
 
 ## The shell grows in this many stages while the body is dug.
 const STAGES: int = 6
+## The newest stage's walls while the room is dug read this fresh-cut (1 - COLOR.a; see DRYING).
+const FACE_MARK: float = 0.75
+## A bed nook's floor is opened in the cap by this many discs along its axis.
+const NOOK_DISCS: int = 5
 const OUTLINE_WIDTH_M: float = 0.12
 const LIFT_M: float = 0.05
 const OUTLINE_SEGMENTS: int = 40
@@ -143,10 +152,21 @@ var _rib_material: ShaderMaterial = null
 var _materials: Dictionary = {}
 var _openings: PackedFloat32Array = PackedFloat32Array()
 var _alcoves: PackedFloat32Array = PackedFloat32Array()
+var _nooks: PackedFloat32Array = PackedFloat32Array()
 var _today: Callable = Callable()
 var _turf: Material = null
 ## Shell builds so far (tests: a view switch builds none).
 var shell_builds: int = 0
+## Others' pieces on the ground sampled with the rooms' (`add_ground_sampler`: the construction theatre's).
+var _ground_samplers: Array[Callable] = []
+## Per room row, per stage: the calendar day it was reached; how far the days are recorded and for which room
+## generation (see DRYING).
+var _stage_day: PackedFloat32Array = PackedFloat32Array()
+var _days_to: PackedInt32Array = PackedInt32Array()
+var _days_gen: PackedInt32Array = PackedInt32Array()
+## Per room row, per fixture place: the day its bed nook was dug (a nook is dug later than its room; see DRYING).
+var _nook_day: PackedFloat32Array = PackedFloat32Array()
+var _nooks_seen: PackedInt32Array = PackedInt32Array()
 
 
 func configure(network: GraphScript, props: PropsScript, space: CastSpaceScript, marks: MarksScript) -> void:
@@ -173,8 +193,20 @@ func configure(network: GraphScript, props: PropsScript, space: CastSpaceScript,
 	_percent.resize(RoomsScript.MAX_ROOMS)
 	_percent.fill(-1)
 	_mound_gen.resize(RoomsScript.MAX_ROOMS)
+	_size_day_columns()
 	for r in RoomsScript.MAX_ROOMS:
 		_build_row()
+
+
+func _size_day_columns() -> void:
+	"""The drying's columns (see DRYING), sized once: each room's stage days, how far they are recorded and for which
+	generation, and its nooks' days."""
+	_stage_day.resize(RoomsScript.MAX_ROOMS * (STAGES + 1))
+	_days_to.resize(RoomsScript.MAX_ROOMS)
+	_days_gen.resize(RoomsScript.MAX_ROOMS)
+	_days_gen.fill(-1)
+	_nook_day.resize(RoomsScript.MAX_ROOMS * RoomsScript.MAX_PLACES)
+	_nooks_seen.resize(RoomsScript.MAX_ROOMS)
 
 
 func _build_row() -> void:
@@ -309,8 +341,16 @@ func begin_surface_prewarm() -> void:
 		sample.material_override = pair[1]
 		_surface_samples.add_child(sample)
 	FixtureKitScript.register_ground(_surface_samples)
+	for sampler in _ground_samplers:
+		sampler.call(_surface_samples)
 	Layers.set_layers(_surface_samples, Layers.SURFACE)
 	_surface_samples.position = _under_the_view()
+
+
+func add_ground_sampler(sampler: Callable) -> void:
+	"""`sampler(parent: Node3D)` stands one of each of its pieces on the ground under `parent` with the rooms' (see
+	PREWARM): the construction theatre's seams, vents, baskets and particles (decision 0211)."""
+	_ground_samplers.append(sampler)
 
 
 func end_surface_prewarm() -> void:
@@ -369,14 +409,14 @@ func percent_dug(r: int) -> int:
 
 func room_key(r: int) -> int:
 	"""Everything room `r`'s drawing depends on, as one number (-1: no room): its generation, template, turns,
-	dig stage, whether it is paused, and which sockets have a tunnel broken through."""
+	dig stage, whether it is paused, which sockets have a tunnel broken through, and its bed nooks."""
 	if not _rooms.is_room(r):
 		return -1
 	var paused := 1 if _network.phase[_rooms.body[r]] == GraphScript.PHASE_PAUSED \
 			or _network.phase[_rooms.ramp[r]] == GraphScript.PHASE_PAUSED else 0
 	var key := (_rooms.generation[r] % 65536) * 4 + int(_rooms.turns[r])
 	key = ((key * 4 + int(_rooms.template[r])) * (STAGES + 1) + stage(r)) * 2 + paused
-	return key * 16 + _joined_mask(r)
+	return (key * 16 + _joined_mask(r)) * 256 + _rooms.nooks[r]
 
 
 func stage(r: int) -> int:
@@ -417,7 +457,9 @@ func _draw(r: int, show: bool) -> void:
 	_draw_marks(r, show and not done)
 	_below[r].visible = grown > 0
 	if grown > 0:
+		_record_days(r, grown)
 		_build_shell(r, grown)
+		_restamp(r, grown)
 		_stamp(r, grown)
 	_frames[r].visible = done
 	_beams[r].visible = done
@@ -579,6 +621,81 @@ func _build_shell(r: int, grown: int) -> void:
 	shell_builds += 1
 
 
+func _record_days(r: int, grown: int) -> void:
+	"""The stages room `r` has newly reached, up to `grown`, were reached today (see DRYING); a room row laid again
+	starts afresh."""
+	if _days_gen[r] != _rooms.generation[r]:
+		_days_gen[r] = _rooms.generation[r]
+		_days_to[r] = 0
+		_nooks_seen[r] = 0
+	for s in range(_days_to[r] + 1, grown + 1):
+		_stage_day[r * (STAGES + 1) + s] = _day()
+	_days_to[r] = maxi(_days_to[r], grown)
+	for f in RoomsScript.MAX_PLACES:
+		if _rooms.has_nook(r, f) and _nooks_seen[r] & (1 << f) == 0:
+			_nook_day[r * RoomsScript.MAX_PLACES + f] = _day()
+	_nooks_seen[r] = _rooms.nooks[r]
+
+
+func stage_day(r: int, s: int) -> float:
+	"""The calendar day room `r` reached stage `s` (checks)."""
+	return _stage_day[r * (STAGES + 1) + s]
+
+
+func _restamp(r: int, grown: int) -> void:
+	"""Room `r`'s shell, built at stage `grown`: each vertex its stage's dig day, and the newest stage fresh-cut while
+	the room is dug (see DRYING)."""
+	var mesh := _shells[r].mesh as ArrayMesh
+	if mesh.get_surface_count() == 0:
+		return
+	var arrays := mesh.surface_get_arrays(0)
+	var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var uv2: PackedVector2Array = arrays[Mesh.ARRAY_TEX_UV2]
+	var colours: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+	for i in verts.size():
+		var at := Vector2(verts[i].x, verts[i].z)
+		var s := stage_at(r, at, grown)
+		var nook := nook_at(r, at) if grown == STAGES else -1
+		uv2[i].x = _nook_day[r * RoomsScript.MAX_PLACES + nook] if nook >= 0 else _stage_day[r * (STAGES + 1) + s]
+		colours[i].a = 1.0 - FACE_MARK if s == grown and grown < STAGES else 1.0
+	arrays[Mesh.ARRAY_TEX_UV2] = uv2
+	arrays[Mesh.ARRAY_COLOR] = colours
+	mesh.clear_surfaces()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays, [], {}, BoreMeshScript.HUB_FORMAT)
+
+
+func stage_at(r: int, at: Vector2, grown: int) -> int:
+	"""The first stage (1..`grown`) of room `r`'s shell that takes in the point `at` (x, z m): a home's disc of that
+	stage (walls bowed), a cellar's vault as far as it had lengthened; `grown` for a point none takes in (an alcove)."""
+	for s in range(1, grown):
+		var share := float(s) / float(STAGES)
+		var middle := grown_middle(r, share)
+		if RoomsScript.SHAPE[_rooms.template[r]] == RoomsScript.SHAPE_ROUND:
+			var radius := Rules.to_m(RoomsScript.HALF_X_U[_rooms.template[r]]) * sqrt(share) * BoreMeshScript.BULGE
+			if at.distance_to(middle) <= radius + 0.05:
+				return s
+		else:
+			var door := _m(_rooms.door_u(r))
+			var along := (_rooms.centre_m(r) - door).normalized()
+			if (at - door).dot(along) <= Rules.to_m(RoomsScript.HALF_Z_U[_rooms.template[r]]) * 2.0 * share + 0.05:
+				return s
+	return grown
+
+
+func nook_at(r: int, at: Vector2) -> int:
+	"""The bed nook of room `r` whose lobe the point `at` (x, z m) lies in, past the room's bowed wall (-1: none)."""
+	var centre := _rooms.centre_m(r)
+	if at.distance_to(centre) <= Rules.to_m(RoomsScript.HALF_X_U[_rooms.template[r]]) * BoreMeshScript.BULGE + 0.05:
+		return -1
+	for f in RoomsScript.MAX_PLACES:
+		if _rooms.has_nook(r, f):
+			var axis := _m(_rooms.nook_b(r, f)) - centre
+			var off := absf(angle_difference(atan2(at.y - centre.y, at.x - centre.x), atan2(axis.y, axis.x)))
+			if off < RoomsScript.NOOK_FLAT_RAD + RoomsScript.NOOK_EASE_RAD:
+				return f
+	return -1
+
+
 func grown_middle(r: int, share: float) -> Vector2:
 	"""Where room `r`'s shell is centred with `share` of it dug (m): a home's disc tangent at its door, a
 	cellar's vault lengthening from its hatch end."""
@@ -595,15 +712,29 @@ func _build_round(r: int, mesh: ArrayMesh, share: float) -> void:
 	var middle := grown_middle(r, share)
 	var radius := Rules.to_m(RoomsScript.HALF_X_U[kind]) * sqrt(share)
 	_collect_openings(r, middle, share >= 1.0)
-	_alcoves.clear()
-	if share >= 1.0:
-		for f in RoomsScript.fixture_count(kind):
-			if RoomsScript.fixture_field(kind, f, 0) == RoomsScript.FIX_BED:
-				var bed := _m(_rooms.to_world_u(r, Vector2i(RoomsScript.fixture_field(kind, f, 1), RoomsScript.fixture_field(kind, f, 2)))) - middle
-				_alcoves.append(atan2(bed.y, bed.x))
+	_collect_bays(r, middle, share >= 1.0)
 	var alcove := float(RoomsScript.ALCOVE_U) / float(RoomsScript.HALF_X_U[kind])
+	var nook := float(RoomsScript.NOOK_REACH_U) / float(RoomsScript.HALF_X_U[kind]) - 1.0
 	RoomMeshScript.build_round(mesh, Vector3(middle.x, Layers.FLOOR_Y_M, middle.y), radius, Rules.crown_m(Rules.BORE_ROOM),
-		_openings, _alcoves, alcove, 0.0, _day())
+		_openings, _alcoves, alcove, 0.0, _day(), _nooks, nook)
+
+
+func _collect_bays(r: int, middle: Vector2, done: bool) -> void:
+	"""Room `r`'s bed alcoves and bed nooks (their angles from `middle`), once it is dug: a bed place with a nook is a
+	nook (decision 0211), the others alcoves."""
+	_alcoves.clear()
+	_nooks.clear()
+	if not done:
+		return
+	var kind := _rooms.template[r]
+	for f in RoomsScript.fixture_count(kind):
+		if RoomsScript.fixture_field(kind, f, 0) != RoomsScript.FIX_BED:
+			continue
+		var bed := _m(_rooms.to_world_u(r, Vector2i(RoomsScript.fixture_field(kind, f, 1), RoomsScript.fixture_field(kind, f, 2)))) - middle
+		if _rooms.has_nook(r, f):
+			_nooks.append(atan2(bed.y, bed.x))
+		else:
+			_alcoves.append(atan2(bed.y, bed.x))
 
 
 func _build_vault(r: int, mesh: ArrayMesh, share: float) -> void:
@@ -662,9 +793,20 @@ func _stamp(r: int, grown: int) -> void:
 		for angle in _alcoves:
 			_cap.stamp_disc(middle + Vector2(cos(angle), sin(angle)) * radius, Rules.to_m(RoomsScript.ALCOVE_U) * 1.6,
 				Vector2.ZERO, 0.0, crown)
+		for angle in _nooks:
+			_stamp_nook(middle, Vector2(cos(angle), sin(angle)), crown)
 	else:
 		_stamp_vault(r, middle, share, crown)
 	_cap.commit_void()
+
+
+func _stamp_nook(middle: Vector2, out: Vector2, crown: float) -> void:
+	"""Open the cap over a bed nook (decision 0211) leaving `middle` along `out`: discs along its axis as wide as its
+	lobe is there."""
+	var reach := Rules.to_m(RoomsScript.NOOK_REACH_U)
+	for k in NOOK_DISCS:
+		var along := lerpf(Rules.to_m(RoomsScript.HALF_X_U[RoomsScript.TEMPLATE_HOME]), reach, float(k) / float(NOOK_DISCS - 1))
+		_cap.stamp_disc(middle + out * along, along * sin(RoomsScript.NOOK_FLAT_RAD) + 0.2, Vector2.ZERO, 0.0, crown)
 
 
 func _stamp_vault(r: int, middle: Vector2, share: float, crown: float) -> void:

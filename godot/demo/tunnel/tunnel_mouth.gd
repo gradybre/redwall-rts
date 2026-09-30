@@ -7,7 +7,10 @@ extends RefCounted
 ## In the mouth's own frame +Z runs down the ramp, into the tunnel, and X across it:
 ##   * THE GATEWAY stands on the ground at the mouth, astride the ramp: two jambs of JAMB_COURSES rough
 ##     fieldstones each (jittered sizes and tones, repeatably), OPENING_M apart, and a timber lintel
-##     across their tops at GATE_HEIGHT_M -- a mouse walks under it upright.
+##     across their tops at GATE_HEIGHT_M -- a mouse walks under it upright -- and, since P5 (decision 0211; design
+##     §2 "mouth arches with a lantern"), a LANTERN hung from an iron bracket on the lintel's outer face, beside a
+##     jamb, clear of the way through: an iron cage round a glowing glass (the mesh's second surface, emissive),
+##     so a mouth reads as the warren's door by day and a small light by night.
 ##   * THE CUTTING is a unit strip along +Z (scaled to the ramp's open length: to where the bore goes under
 ##     the ground, tunnel_rules.gd portal_m) laid just over the ground, packed earth at the top shading to
 ##     black where the ramp goes under, with a low earthen bank either side.
@@ -29,6 +32,15 @@ const CUT_TOP: Color = Color(0.25, 0.18, 0.12)
 const CUT_BOTTOM: Color = Color(0.03, 0.025, 0.02)
 const BANK: Color = Color(0.33, 0.25, 0.17)
 const SEED: int = 2073
+## The lantern: its bracket's reach out from the lintel's face, where it hangs across (m from the middle), its chain,
+## its cage and glass, and its glow.
+const LANTERN_X_M: float = 0.4
+const BRACKET_REACH_M: float = 0.2
+const CHAIN_M: float = 0.08
+const CAGE_M: Vector3 = Vector3(0.18, 0.27, 0.18)
+const IRON: Color = Color(0.16, 0.14, 0.12)
+const LANTERN_GLOW: Color = Color(1.0, 0.66, 0.3)
+const GLOW_ENERGY: float = 1.8
 
 static var _gate: ArrayMesh = null
 static var _cut: ArrayMesh = null
@@ -46,9 +58,46 @@ static func gateway_mesh() -> ArrayMesh:
 		_jamb(tool, rng, side * (OPENING_M + JAMB_WIDTH_M) * 0.5)
 	var lintel := Basis.from_euler(Vector3(0.0, 0.0, 0.025)).scaled(LINTEL_M)
 	_box(tool, Transform3D(lintel, Vector3(0.0, GATE_HEIGHT_M + LINTEL_M.y * 0.5, 0.0)), TIMBER)
+	_lantern_iron(tool)
 	_gate = tool.commit()
 	_gate.surface_set_material(0, _material())
+	var glass := SurfaceTool.new()
+	glass.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_box(glass, Transform3D(Basis.from_scale(CAGE_M * Vector3(0.78, 0.7, 0.78)), lantern_at()), LANTERN_GLOW)
+	glass.commit(_gate)
+	_gate.surface_set_material(1, _glow_material())
 	return _gate
+
+
+static func lantern_at() -> Vector3:
+	"""The middle of the mouth's hung lantern, in the gateway's frame (outward is -Z)."""
+	var face := -(LINTEL_M.z * 0.5 + BRACKET_REACH_M)
+	return Vector3(LANTERN_X_M, GATE_HEIGHT_M - CHAIN_M - CAGE_M.y * 0.5, face)
+
+
+static func _lantern_iron(tool: SurfaceTool) -> void:
+	"""The lantern's iron: a bracket out from the lintel's face, a chain down, a cap and a base round the glass."""
+	var at := lantern_at()
+	var face := -LINTEL_M.z * 0.5
+	var arm_mid := Vector3(LANTERN_X_M, GATE_HEIGHT_M + 0.06, (face + at.z) * 0.5)
+	_box(tool, Transform3D(Basis.from_scale(Vector3(0.025, 0.025, BRACKET_REACH_M)), arm_mid), IRON)
+	_box(tool, Transform3D(Basis.from_scale(Vector3(0.015, CHAIN_M + 0.06, 0.015)), Vector3(at.x, GATE_HEIGHT_M - CHAIN_M * 0.5 + 0.03, at.z)), IRON)
+	for y: float in [CAGE_M.y * 0.5, -CAGE_M.y * 0.5]:
+		_box(tool, Transform3D(Basis.from_scale(Vector3(CAGE_M.x, 0.025, CAGE_M.z)), at + Vector3(0.0, y, 0.0)), IRON)
+	for corner: Vector2 in [Vector2(1, 1), Vector2(-1, 1), Vector2(1, -1), Vector2(-1, -1)]:
+		var post := at + Vector3(corner.x * CAGE_M.x * 0.45, 0.0, corner.y * CAGE_M.z * 0.45)
+		_box(tool, Transform3D(Basis.from_scale(Vector3(0.018, CAGE_M.y, 0.018)), post), IRON)
+
+
+static func _glow_material() -> StandardMaterial3D:
+	"""The hung lantern's glass: its glow, lit from within."""
+	var material := StandardMaterial3D.new()
+	material.vertex_color_use_as_albedo = true
+	material.vertex_color_is_srgb = true
+	material.emission_enabled = true
+	material.emission = LANTERN_GLOW
+	material.emission_energy_multiplier = GLOW_ENERGY
+	return material
 
 
 static func _jamb(tool: SurfaceTool, rng: RandomNumberGenerator, x: float) -> void:

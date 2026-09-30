@@ -18,7 +18,9 @@ extends RefCounted
 ##
 ## PER VERTEX: UV holds the profile coordinate (across the floor in half-widths, up the wall in crowns),
 ## which the earth shader (bore_earth.gdshader) uses for the packed floor and its worn path; COLOR the
-## ring's state (R flooded, G rubble; B and A spare for P5's hazards); UV2.x the game day the ring was dug
+## ring's state (R flooded, G rubble; B a room's stone lining; A 1 less how FRESH-CUT it is -- the dig face, decision
+## 0211); UV2.y how far along the segment the ring stands (m: the hazards' spread, decision 0211); UV2.x the game day
+## the ring was dug
 ## (the drying hook: fresh walls are dark and damp, and pale over a day); CUSTOM0 and CUSTOM1 the hubs at
 ## the segment's two ends (decision 0208: x, z, floor radius, crown; 0 radius for none), constant over the
 ## mesh, inside which the shader draws nothing -- the hub (`build_hub`) draws there instead.
@@ -59,6 +61,13 @@ const KIND_COLOURS: Array[Color] = [Color(0.0, 0.0, 0.0, 1.0), Color(1.0, 0.0, 0
 ## The largest ring count one build holds: a 32 m bore and its face ring, with room to spare (bore_view.gd
 ## builds 16 m chunks). `add_ring` refuses more.
 const MAX_RINGS: int = 160
+## THE FACE (decision 0211): its rings drawn in toward its middle, how far its middle is hollowed into the earth
+## ahead (m, for the standard bore; a wider face as much deeper), how rough (m, along the heading), and how
+## fresh-cut its rim reads (0..1; its middle is wholly) -- the earth shader's damp, dark, glossy face (COLOR.a).
+const FACE_RINGS: int = 3
+const FACE_DEPTH_M: float = 0.22
+const FACE_JITTER_M: float = 0.035
+const FACE_RIM_MARK: float = 0.45
 ## Jitter levels for a ring (see THE JOIN), and how near an underground end they apply (m).
 const JITTER_FULL: int = 2
 const JITTER_HALF: int = 1
@@ -89,7 +98,6 @@ var _uv: PackedVector2Array = PackedVector2Array()
 var _uv2: PackedVector2Array = PackedVector2Array()
 var _indices: PackedInt32Array = PackedInt32Array()
 var _day_row: PackedVector2Array = PackedVector2Array()
-var _day_row_value: float = NAN
 var _rings: int = 0
 var _arrays: Array = []
 var _custom_a: PackedFloat32Array = PackedFloat32Array()
@@ -244,10 +252,10 @@ func begin(cut_a: Vector4 = Vector4.ZERO, cut_b: Vector4 = Vector4.ZERO) -> void
 
 
 func add_ring(ring: int, centre: Vector3, heading: Vector2, bore: int, kind: int, day: float,
-		jitter: int = JITTER_FULL) -> void:
+		jitter: int = JITTER_FULL, along_m: float = 0.0) -> void:
 	"""One ring: route ring index `ring` (its jitter), standing at `centre` (x, floor y, z), facing along
 	`heading` (x, z unit), of class `bore`, coloured by `kind`, dug on game day `day`, at jitter level
-	`jitter` (see THE JOIN). Past MAX_RINGS a build holds no more (a warning says so)."""
+	`jitter` (see THE JOIN), `along_m` along its segment. Past MAX_RINGS a build holds no more (a warning says so)."""
 	if _rings >= MAX_RINGS:
 		push_warning("bore_mesh: more than %d rings in one build" % MAX_RINGS)
 		return
@@ -258,39 +266,78 @@ func add_ring(ring: int, centre: Vector3, heading: Vector2, bore: int, kind: int
 	_norms.append_array(Transform3D(Basis(side.normalized(), Vector3.UP, frame.basis.z), Vector3.ZERO) * (_normals[bore] as PackedVector3Array))
 	_colours.append_array(_kind_rows[kind])
 	_uv.append_array(profile_uv())
-	_uv2.append_array(_day_row_of(day))
+	_uv2.append_array(_day_row_of(day, along_m))
 	_rings += 1
 
 
-func _day_row_of(day: float) -> PackedVector2Array:
-	"""A ring's UV2 row for dig day `day` (reused while the day repeats)."""
-	if day != _day_row_value:
-		_day_row_value = day
-		_day_row = PackedVector2Array()
+func _day_row_of(day: float, along_m: float) -> PackedVector2Array:
+	"""A ring's UV2 row: its dig day `day` and how far along it stands (the scratch row, refilled)."""
+	if _day_row.size() != PROFILE_VERTS:
 		_day_row.resize(PROFILE_VERTS)
-		_day_row.fill(Vector2(day, 0.0))
+	_day_row.fill(Vector2(day, along_m))
 	return _day_row
 
 
 func add_face(centre: Vector3, heading: Vector2, bore: int) -> void:
-	"""Close the bore with a face wall at the last ring: its points again, and a hub on the bore's axis
-	half a crown up, all facing back down the bore, fanned hub to rim."""
+	"""Close the bore with THE DIG FACE at the last ring (decision 0211, see THE FACE): FACE_RINGS rings of the
+	profile -- the rim, then each drawn further in toward its middle, hollowed further into the earth ahead and
+	roughened -- and its middle FACE_DEPTH_M in: a rough concave cut, facing back down the bore, marked fresh-cut
+	(COLOR.a)."""
 	var last := (_rings - 1) * PROFILE_VERTS
-	var hub := _verts.size()
-	var back := Vector3(-heading.x, 0.0, -heading.y)
-	_verts.append(centre + Vector3(0.0, Rules.crown_m(bore) * 0.5, 0.0))
-	_verts.append_array(_verts.slice(last, last + PROFILE_VERTS))
-	for k in PROFILE_VERTS + 1:
-		_norms.append(back)
-	_colours.append_array(_kind_rows[PLAIN])
-	_colours.append(KIND_COLOURS[PLAIN])
-	_uv.append(Vector2(0.0, 0.5))
-	_uv.append_array(profile_uv())
-	_uv2.append_array(_uv2.slice(_uv2.size() - PROFILE_VERTS))
-	_uv2.append(_uv2[_uv2.size() - 1])
+	var ahead := Vector3(heading.x, 0.0, heading.y)
+	var middle := centre + Vector3(0.0, Rules.crown_m(bore) * 0.5, 0.0)
+	var depth := FACE_DEPTH_M * FLOOR_HALF_M[bore] / FLOOR_HALF_M[Rules.BORE_STANDARD]
+	var first := _verts.size()
+	for r in FACE_RINGS:
+		var share := 1.0 - float(r) / float(FACE_RINGS)
+		for k in PROFILE_VERTS:
+			var rim := _verts[last + k]
+			var point := middle + (rim - middle) * share + ahead * (depth * (1.0 - share * share))
+			point += ahead * (FACE_JITTER_M * _face_jitter(r, k) * (1.0 if r > 0 else 0.0))
+			_face_vertex(point, rim - middle, ahead, share, depth, _uv2[last + k])
+	_face_vertex(middle + ahead * depth, Vector3.ZERO, ahead, 0.0, depth, _uv2[last])
+	for r in FACE_RINGS - 1:
+		for k in PROFILE_VERTS:
+			var a := first + r * PROFILE_VERTS + k
+			var b := first + r * PROFILE_VERTS + (k + 1) % PROFILE_VERTS
+			_facing_quad(a, b, b + PROFILE_VERTS, a + PROFILE_VERTS)
+	var hub := _verts.size() - 1
+	var inner := first + (FACE_RINGS - 1) * PROFILE_VERTS
 	for k in PROFILE_VERTS:
-		for index: int in [hub, hub + 1 + (k + 1) % PROFILE_VERTS, hub + 1 + k]:
-			_indices.append(index)
+		_facing_tri(hub, inner + k, inner + (k + 1) % PROFILE_VERTS)
+
+
+func _face_vertex(at: Vector3, out: Vector3, ahead: Vector3, share: float, depth: float, day: Vector2) -> void:
+	"""One vertex of the face: at `at`, `share` of the way out from its middle (along `out`), its normal tipped in
+	toward the middle as the hollow's slope there is (see THE FACE), fresh-cut."""
+	var slope := 2.0 * depth * share / maxf(out.length(), 0.05)
+	var normal := (-ahead - out.normalized() * slope).normalized() if out.length() > 1e-4 else -ahead
+	_verts.append(at)
+	_norms.append(normal)
+	_colours.append(Color(0.0, 0.0, 0.0, 1.0 - lerpf(1.0, FACE_RIM_MARK, share)))
+	_uv.append(Vector2(0.0, 0.5))
+	_uv2.append(day)
+
+
+static func _face_jitter(r: int, k: int) -> float:
+	"""A face vertex's roughness, -1..1: the same for the same ring and point, so a rebuilt face does not shimmer."""
+	return sin(float(r * 37 + k * 11) * 1.93) * 0.6 + sin(float(k * 5 + r) * 3.71) * 0.4
+
+
+func _facing_tri(a: int, b: int, c: int) -> void:
+	"""Triangle a, b, c wound so its front faces the way its vertices' normals point (Godot's front face, as the
+	bore's quads are wound)."""
+	var cross := (_verts[b] - _verts[a]).cross(_verts[c] - _verts[a])
+	if cross.dot(_norms[a] + _norms[b] + _norms[c]) > 0.0:
+		_indices.append_array(PackedInt32Array([a, c, b]))
+	else:
+		_indices.append_array(PackedInt32Array([a, b, c]))
+
+
+func _facing_quad(a: int, b: int, c: int, d: int) -> void:
+	"""Quad a, b, c, d as two triangles facing the way their normals point."""
+	_facing_tri(a, b, c)
+	_facing_tri(a, c, d)
 
 
 func commit(mesh: ArrayMesh) -> int:

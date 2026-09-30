@@ -54,8 +54,11 @@ const RESEND_TICKS: int = 375
 const HALL_SPACING_M: float = 0.9
 const DUSK_NOTE: String = "Dusk: the village goes home to bed"
 const NO_BED_WARNING: String = "No bed for %s: they sleep on the hall's floor. Fit beds in a burrow home (a home's panel)"
+## What a bedless resident lacks, by its size (bed_allocation.gd SIZE_*).
+const BED_WORDS: Array[String] = ["bed (too big for any bed)", "bed", "large bed (a big resident: fit one in a home's alcove)"]
 
-## Per resident: its bed (room_fixtures.gd bed id; -1 none), and whether it may have one (bed_allocation.gd).
+## Per resident: its bed (room_fixtures.gd bed id; -1 none), and its size -- the beds it may have (bed_allocation.gd
+## SIZE_*: a burrow bed, a large bed, none).
 var bed_of: PackedInt32Array = PackedInt32Array()
 var permitted: PackedByteArray = PackedByteArray()
 var bed_top_m: float = DEFAULT_BED_TOP_M
@@ -89,7 +92,7 @@ func configure(graph: RefCounted, brains: Array[BrainScript], names: PackedStrin
 	bed_of.fill(AllocationScript.NO_BED)
 	permitted.resize(brains.size())
 	for i in brains.size():
-		permitted[i] = 1 if AllocationScript.fits(heights_u[i]) else 0
+		permitted[i] = AllocationScript.size_of(heights_u[i])
 	_at_u.resize(2 * brains.size())
 	_sent_tick.resize(brains.size())
 	_sent_tick.fill(-RESEND_TICKS)
@@ -231,11 +234,13 @@ func _bed_task(i: int, task: SleepTaskScript) -> bool:
 	var fit_class: int = _graph.walker_class(i, false)
 	if fit_class == PathsScript.CLASS_NONE or _graph.paths.nearest_mouth(_graph, middle, fit_class) < 0:
 		return false
-	var at := rooms.to_world_u(r, FixturesScript.place_u(RoomsScript.TEMPLATE_HOME, f))
+	var at: Vector2i = _graph.fit.bed_middle_u(_graph, r, f)
 	var face := RoomsScript.rotate_u(Vector2i(RoomsScript.fixture_field(RoomsScript.TEMPLATE_HOME, f, 3),
 		RoomsScript.fixture_field(RoomsScript.TEMPLATE_HOME, f, 4)), rooms.turns[r])
+	var large: bool = _graph.fit.kind_at(_graph, r, f) == RoomsScript.FIX_BIG_BED
 	task.to_bed(room_name(r), middle, _graph.node_m(middle), Vector2(Rules.to_m(at.x), Rules.to_m(at.y)),
-		atan2(float(face.x), float(face.y)), Layers.FLOOR_Y_M + bed_top_m)
+		atan2(float(face.x), float(face.y)), Layers.FLOOR_Y_M + bed_top_m,
+		SleepTaskScript.LARGE_FOOT_M if large else SleepTaskScript.FOOT_M)
 	return true
 
 
@@ -286,8 +291,7 @@ func home_text(who: int, alone: bool) -> String:
 	or that it has none -- alone, in full; in a list, only "no bed"."""
 	var bed := bed_of[who]
 	if bed == AllocationScript.NO_BED:
-		var why := "" if permitted[who] == 1 else " (too big for a burrow bed)"
-		return "No bed%s: sleeps on the hall's floor" % why if alone else "no bed"
+		return "No %s: sleeps on the hall's floor" % BED_WORDS[permitted[who]] if alone else "no bed"
 	if not alone:
 		return ""
 	var r := bed / FixturesScript.PLACES

@@ -26,6 +26,8 @@ const STAGE_UP: int = 4
 ## Where a sleeper stands to get into bed and out of it: this far from the bed's middle, off its foot (m) -- the bed
 ## stands in its alcove foot to the room, so its foot is open floor (a 1.6 m bed's half-length and a step).
 const FOOT_M: float = 1.1
+## The same off a large bed's foot (decision 0211): its 2.7 m half-length and the same step.
+const LARGE_FOOT_M: float = 1.65
 
 var stage: int = STAGE_GOING
 
@@ -35,6 +37,7 @@ var _middle: Vector2 = Vector2.ZERO
 var _bed: Vector2 = Vector2.ZERO
 var _bed_yaw: float = 0.0
 var _bed_top_m: float = 0.0
+var _foot_m: float = FOOT_M
 var _hall: Vector2 = Vector2.ZERO
 var _morning: Callable = Callable()
 var _alarm: Callable = Callable()
@@ -46,15 +49,18 @@ func _init(morning: Callable, alarm: Callable) -> void:
 	_alarm = alarm
 
 
-func to_bed(room_name: String, middle_node: int, middle: Vector2, bed: Vector2, bed_yaw: float, bed_top_m: float) -> void:
+func to_bed(room_name: String, middle_node: int, middle: Vector2, bed: Vector2, bed_yaw: float, bed_top_m: float,
+		foot_m: float = FOOT_M) -> void:
 	"""Sleep in a bed: the home `room_name` whose middle is `middle_node` (at `middle`, m), the bed's middle at `bed`
-	(m), turned `bed_yaw` (its pillow toward its -Z), its mattress `bed_top_m` high."""
+	(m), turned `bed_yaw` (its pillow toward its -Z), its mattress `bed_top_m` high, its bedside `foot_m` off its
+	middle (FOOT_M; a large bed's LARGE_FOOT_M)."""
 	_room_name = room_name
 	_middle_node = middle_node
 	_middle = middle
 	_bed = bed
 	_bed_yaw = bed_yaw
 	_bed_top_m = bed_top_m
+	_foot_m = foot_m
 
 
 func to_hall(door: Vector2) -> void:
@@ -69,8 +75,9 @@ func has_bed() -> bool:
 
 
 func bedside() -> Vector2:
-	"""Where the sleeper stands to get into (and out of) bed: FOOT_M off the bed's foot (its +Z), on the open floor."""
-	return _bed + Vector2(sin(_bed_yaw), cos(_bed_yaw)) * FOOT_M
+	"""Where the sleeper stands to get into (and out of) bed: its foot distance off the bed's middle toward its foot
+	(its +Z), on the open floor."""
+	return _bed + Vector2(sin(_bed_yaw), cos(_bed_yaw)) * _foot_m
 
 
 func site(_brain: RefCounted) -> Vector2:

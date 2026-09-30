@@ -120,6 +120,11 @@ map (`ui/demo_command_tips.gd`); an enabled command answers its key. The notific
 own "×" (Esc closes it, N toggles it). The Pantry draws above the HUD, so its "×" is reachable at
 1280x720. The Village news strip is centred on the action bar and follows it.
 
+The top-left **Sim beds** cell is the settlement simulation's bed count, which the demo does not run, so it
+reads "Unavailable" by design; its tooltip says where the demo's beds are counted (a home's panel, a resident's
+panel, the Tunnels panel's "Burrow homes: 1 (3 demo beds)"). The demo relabels it and never writes a value into it
+(`ui/demo_beds_label.gd`, decision 0211).
+
 ## Commanding the residents
 
 | Input | Does |
@@ -316,7 +321,8 @@ words: "the demo stores are short: the bed needs 2 planks (they hold ...)"); tak
 
 | Fixture | Cost | Install | Rooms | Does |
 |---|---|---|---|---|
-| Bed | 2 planks | 20 WU | home (three alcoves) | somebeast sleeps in it (up to the otters' 1.49 m) |
+| Bed | 2 planks | 20 WU | home (three alcoves) | a small resident sleeps in it (up to 1.3 m: the moles, mice and squirrels) |
+| Large bed | 4 planks | 40 WU | home (the back alcove, else the one by the door) | a big resident sleeps in it (the otters, the beaver, the badger; decision 0211) -- its alcove is dug on into a nook |
 | Hearth | 6 stone | 60 WU | home | comfort; glows and smokes from 17:00 to 07:00; warms cellars near it |
 | Table and stools | 2 planks | 8 WU | home | decoration |
 | Rag rug | 1 wood | 4 WU | home | decoration |
@@ -340,8 +346,9 @@ only (`burrow/room_fixtures.gd` COMFORT).
 the water goes home to bed -- through the round front door or the tunnels, whichever is cheaper -- parking the job in
 hand (it takes it up in the morning), crosses the floor to its bed and lies down in it (the staged
 `sleep_normally` clip, seated on the mattress by its body's lowest point). Beds go by REQ-SET-132 (its own bed,
-else the nearest free one; ties to the lower room, then place). At 06:00 they get up and go back to work; whoever
-is still on the way home turns back. **No bed** (or too big for one: the badger) -- it sleeps on the hall's floor
+else the nearest free one of its size -- a large bed for a big resident, a burrow bed for a small one; ties to the
+lower room, then place). At 06:00 they get up and go back to work; whoever
+is still on the way home turns back. **No bed** (or none of its size) -- it sleeps on the hall's floor
 (REQ-SET-133; it goes in at the hall's steps and is not drawn), the panel says "No bed", and dusk's news names who.
 A direct order wakes a sleeper; free again, it goes back to bed. Nothing parked is taken up before morning. A threat gets sleepers up by their beds until it
 clears; one in the water or held by its rescue is left be. Paused, nobody moves; at 2x and 4x the night runs faster.
@@ -354,6 +361,43 @@ in at the hatch and shelves it; the racks fill in place -- jars on the rack, sac
 hanging stores, the bin's roots heaped -- as the stock rises.
 
 **News**: a line said again straight after is counted, not repeated ("Tunnel 10: Good sticky clay... (×4)").
+
+## The construction theatre and the warnings (decision 0211)
+
+All presentation: nothing here changes a dig's rate, a cost, the spoil ledger or a hazard's clock.
+
+**The dig face.** The face is a rough, concave, damp cut, darker than the walls behind it; the Foremole's hand lantern
+stands on the floor behind and beside it, one of the pooled lights, and clods burst off the face with each quantum
+cut (`tunnel/dig_theatre.gd`, `tunnel/warren_kit.gd`). Fresh walls are dark and damp and dry paler over a game day;
+a room dries from its door outward as it was dug, and a widening re-cuts the walls it passes.
+
+**Baskets** (`tunnel/spoil_haul.gd`, `tunnel/haul_view.gd`). A crew member at its post fills a basket from the spoil
+piled behind the face (1.4 s), carries it out stooped -- up the ramp and to the heap -- tips it (0.9 s) with a puff of
+dust, and walks back down. The heap grows by that load when it is tipped. The spoil ledger is still posted at the cut;
+the baskets only say where each milli-U of it is -- piled behind the face, in a basket, or on the heap -- and the three
+always add up to the ledger. The farm and the spoil clearers take only what is on the heap. A dig with no crew heaps
+as before. The member still counts as at its post while it hauls, so the dig's rate is unchanged.
+
+**Braces and lanterns** go up one at a time as the job's work reaches them: each frame rises from the floor with a
+small dust puff, each lantern's glow swells on and its light blooms (0.8 s to a peak, settling). **Fixtures** rise out of
+their chalk rings as they are put in, with a puff when in; beds, the hearth, the table and the racks are heaved (the
+`pull_radish` clip), lanterns, hanging stores and rugs placed by hand (`collect_object`).
+
+**Warnings before the strike** (`tunnel/hazard_look.gd`, `tunnel/hazard_view.gd`). A seep or a strain shows from half
+the warning's pressure (250 per mille), growing to the strike: a seep darkens and wets its stretch of bore, glossy, a
+puddle spreading, drips from the crown; a strain cracks the walls over its weak section, sand stains and a spill
+on the floor, sand trickling from a sagging crown. Past the warning the news says so and the tunnel's ends are ringed
+in clay, above and in the U view. Braced, the signs go. The two worst seeps drip and the two worst strains trickle.
+
+**On the surface** (`tunnel/warren_signs.gd`, `tunnel/tunnel_mouth.gd`). A young tunnel's turf seam -- cut and relaid
+over its dug stretch, growing behind a dig's face -- heals over three game days; a tunnel at least 6 m long has an air
+vent every 5 m; every mouth arch hangs a lit lantern.
+
+**Particles: at most 200 live**, by construction (`tunnel/warren_particles.gd`): chimney smoke 8 homes x 16, face clods
+3 x 6 and mound clods 3 x 4, dust 2 x 8, drips 2 x 6 and sand 2 x 6 -- 198. A fourth dig, a third seep or a third puff at
+once is not drawn. The weather's rain and snow, the woods' chips and leaves and the swimmers' bubbles are their own.
+
+**The Dig tool's readout** adds what bracing the route would cost: "brace 4.0 wood + 4.0 stone".
 
 ## Farming
 
@@ -628,7 +672,7 @@ A heap still growing under a dig is refused. The party panel says who is "Cleari
 | `world/` | Terrain, lighting, village layout, points of interest |
 | `cast/` | The residents: body, clips, live tail, job routines, orders |
 | `control/` | Selecting and ordering residents, and the demo party panel |
-| `tunnel/` | Player-dug tunnels: rules, the tunnel network and planner, planning, drawing, the underground view; and their extensions -- ground, queues, crews, jobs, hazards, finds, the demo stores, the tunnel panel |
+| `tunnel/` | Player-dug tunnels: rules, the tunnel network and planner, planning, drawing, the underground view; and their extensions -- ground, queues, crews, jobs, hazards, finds, the demo stores, the tunnel panel; the construction theatre -- the warren's particle budget, the dig face, the baskets, the hazards' warnings, the surface signs |
 | `demo_calendar.gd`, `demo_services.gd`, `village_water.gd`, `demo_notices.gd` | The one calendar, the shared set, the one water adapter (over `water/water_map.gd`), the one notice feed |
 | `weather/` | The demo's one weather (read from the farm's real §5.10 row) and its rain, snow and light |
 | `burrow/` | Rooms as their own structures: the templates, sockets and refusals (`underground_rooms.gd`), placing one and its passage (`room_plan.gd`, `room_tool.gd`), drawing it (`room_view.gd`, `room_mesh.gd`); the cellar API; the fit-out (`room_fixtures.gd`, `fixture_crew.gd`, `install_task.gd`, `fixture_view.gd`, `fixture_kit.gd`, `room_text.gd`) and the night (`night_routine.gd`, `bed_allocation.gd`, `sleep_task.gd`) |
@@ -641,6 +685,6 @@ A heap still growing under a dig is refused. The party panel says who is "Cleari
 | `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens; then the underground view drawn once |
 | `demo_layers.gd` | The four render layers every drawn node is on, and the plane each view picks on (decision 0206) |
 | `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |
-| `ui/` | The woodland HUD skin; the HUD date, the news strip and the right column's tabs |
+| `ui/` | The woodland HUD skin; the HUD date, the news strip and the right column's tabs; the Sim beds relabel |
 | `camera/` | The RTS camera |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

@@ -11,7 +11,8 @@ extends RefCounted
 ## A heap tries the spots beside its mouth in CANDIDATE_TURNS order -- to the right of the way out (the old
 ## fixed spot), then the left, then the diagonals and straight on -- and takes the first that is inside the
 ## village, HEAP_CLEAR_M clear of every obstacle, SPOT_CLEAR_M clear of every work spot, and clear of every
-## mouth's hole and rim. With none clear it takes the candidate with the most room, so a heap is always
+## mouth's hole and rim and of its ramp's open cutting (decision 0211: a heap grown load by load in the player's view
+## must not spill over the way down). With none clear it takes the candidate with the most room, so a heap is always
 ## somewhere. A heap already placed that must grow (a later dig spoiling at the same mouth, a widening)
 ## grows where it is: on the same side, pushed out so its rim still clears the hole.
 
@@ -19,6 +20,7 @@ const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
+const MouthScript := preload("res://demo/tunnel/tunnel_mouth.gd")
 
 ## Turns from "right of the way out", in radians: right, left, the four diagonals, straight on.
 const CANDIDATE_TURNS: Array[float] = [0.0, PI, 0.785398, -0.785398, 2.356194, -2.356194, -1.570796]
@@ -26,6 +28,8 @@ const HEAP_CLEAR_M: float = 0.15
 const SPOT_CLEAR_M: float = 0.45
 ## A candidate stands this much beyond HEAP_CLEAR_M from its own mouth's rim.
 const REACH_SLACK_M: float = 0.01
+## A ramp's cutting's half-width with its banks (tunnel_mouth.gd).
+const CUT_HALF_M: float = MouthScript.CUT_WIDTH_M * 0.5 + MouthScript.BANK_WIDTH_M
 
 
 static func place(network: GraphScript, space: CastSpaceScript, m: int, extra_milli_u: int = 0) -> void:
@@ -48,8 +52,8 @@ static func clear(network: GraphScript, space: CastSpaceScript, m: int) -> void:
 
 
 static func _reach(r: float) -> float:
-	"""How far from its mouth a heap of radius `r` stands: clear of the hole's rim."""
-	return Rules.HOLE_RADIUS_M * Rules.RIM_FACTOR + HEAP_CLEAR_M + REACH_SLACK_M + r
+	"""How far from its mouth a heap of radius `r` stands: clear of the hole's rim and of the ramp's cutting beside it."""
+	return maxf(Rules.HOLE_RADIUS_M * Rules.RIM_FACTOR, CUT_HALF_M) + HEAP_CLEAR_M + REACH_SLACK_M + r
 
 
 static func _choose(network: GraphScript, space: CastSpaceScript, m: int, out: Vector2, r: float) -> Vector2:
@@ -82,4 +86,16 @@ static func room_at(network: GraphScript, space: CastSpaceScript, at: Vector2, r
 	for m in Rules.MAX_MOUTHS:
 		if network.is_mouth(m):
 			room = minf(room, network.mouth_at(m).distance_to(at) - r - rim)
+			room = minf(room, cutting_gap(network, m, at) - r)
 	return room
+
+
+static func cutting_gap(network: GraphScript, m: int, at: Vector2) -> float:
+	"""How far `at` stands outside mouth `m`'s ramp cutting (its open length down the ramp, and its banks; tunnel_mouth.gd)
+	(m)."""
+	var ramp := network.mouth_ramp(m)
+	var run := minf(Rules.portal_m(int(network.bore[ramp])), network.length_m(ramp))
+	var from := network.mouth_at(m)
+	var to := from + network.mouth_inward(m) * run
+	var half := CUT_HALF_M * (OverlayScript.WIDE_HOLE_SCALE if network.bore[ramp] == Rules.BORE_WIDE else 1.0)
+	return Geometry2D.get_closest_point_to_segment(at, from, to).distance_to(at) - half

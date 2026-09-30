@@ -2055,9 +2055,11 @@ func test_a_digging_mole_is_picked_by_its_mound() -> void:
 
 func test_heaps_are_placed_off_work_spots_and_become_obstacles() -> void:
 	"""A work spot exactly where the entrance heap would first go (right of the way out): the heap goes
-	to the left instead, and both mouths' heaps become obstacles; freed, they are gone again."""
+	to the left instead -- as far out as clears the ramp's cutting beside the hole (decision 0211) -- and both mouths'
+	heaps become obstacles; freed, they are gone again."""
 	var r := OverlayScript.heap_radius_m(18000)
-	var reach := Rules.HOLE_RADIUS_M * Rules.RIM_FACTOR + HeapsScript.HEAP_CLEAR_M + HeapsScript.REACH_SLACK_M + r
+	var reach := maxf(Rules.HOLE_RADIUS_M * Rules.RIM_FACTOR, HeapsScript.CUT_HALF_M) + HeapsScript.HEAP_CLEAR_M \
+			+ HeapsScript.REACH_SLACK_M + r
 	var points: Array[Dictionary] = [{"name": &"spot", "position": Vector3(0.0, 0.0, -reach), "face": Vector3.BACK,
 		"activities": [&"idle"], "capacity": 1}]
 	var space := CastSpaceScript.new()
@@ -2199,73 +2201,51 @@ func _until_open(space: CastSpaceScript, mole: BrainScript, slot: int) -> void:
 
 
 func _check_face_wall(overlay: OverlayScript, network: GraphScript, slot: int) -> void:
-	"""Part way through the dig: the bore's rings stand on the lattice and at the face, and its face wall's
-	hub (the vertex after the rings) lies on the bore's axis at the face, facing back down it."""
+	"""Part way through the dig: the bore's rings stand on the lattice and at the face, and its dig face (decision 0211,
+	bore_mesh.gd THE FACE: FACE_RINGS rings drawn in and its middle) has its middle on the bore's axis, hollowed
+	FACE_DEPTH_M into the earth ahead of the face, facing back down it."""
 	var dug: float = overlay.bores.built_m(slot)
 	var arrays := (overlay.bore(slot).mesh as ArrayMesh).surface_get_arrays(0)
 	var rings: int = BoreViewScript.ring_count(dug)
 	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
-	assert_equal(points.size(), rings * BoreMeshScript.PROFILE_VERTS + BoreMeshScript.PROFILE_VERTS + 1, "the rings, and the face wall's hub and rim")
-	var hub: Vector3 = points[rings * BoreMeshScript.PROFILE_VERTS]
-	assert_true(Vector2(hub.x, hub.z).distance_to(network.point_at(slot, dug)) < 1e-3, "the face wall's hub on the axis at the face")
-	var normal: Vector3 = (arrays[Mesh.ARRAY_NORMAL] as PackedVector3Array)[rings * BoreMeshScript.PROFILE_VERTS]
-	assert_true(Vector2(normal.x, normal.z).distance_to(-network.direction_at(slot, dug)) < 1e-3, "facing back down the bore")
+	var face := BoreMeshScript.FACE_RINGS * BoreMeshScript.PROFILE_VERTS + 1
+	assert_equal(points.size(), rings * BoreMeshScript.PROFILE_VERTS + face, "the rings, and the face's rings and middle")
+	var middle: Vector3 = points[points.size() - 1]
+	var ahead: Vector2 = network.direction_at(slot, dug)
+	var expected: Vector2 = network.point_at(slot, dug) + ahead * BoreMeshScript.FACE_DEPTH_M
+	assert_true(Vector2(middle.x, middle.z).distance_to(expected) < 0.02, "the face's middle hollowed into the earth ahead")
+	var normal: Vector3 = (arrays[Mesh.ARRAY_NORMAL] as PackedVector3Array)[points.size() - 1]
+	assert_true(Vector2(normal.x, normal.z).distance_to(-ahead) < 1e-3, "facing back down the bore")
+	var colours: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+	assert_almost_equal(colours[colours.size() - 1].a, 0.0, "its middle wholly fresh-cut")
 
 
-func test_the_ribbon_is_rebuilt_only_as_the_face_moves_a_step() -> void:
-	"""The ribbon's key moves when the face crosses 0.25 m (or the phase changes) and not on a tick
-	within a step -- nor when the view switches (decision 0206: a switch rebuilds nothing)."""
-	var site := _dig_site()
-	var space: CastSpaceScript = site[0]
-	var overlay := _overlay_on(space)
-	var tunnels := space.tunnels
-	tunnels.advance(site[2], site[3], 5000000)
-	var key := overlay.mesh_key(site[2])
-	tunnels.advance(site[2], site[3], 33334)
-	assert_equal(overlay.mesh_key(site[2]), key, "a tick within the step")
-	tunnels.advance(site[2], site[3], 1000000)
-	assert_true(overlay.mesh_key(site[2]) != key, "the face moved on a step")
-	key = overlay.mesh_key(site[2])
-	tunnels.stop_digging(site[2], site[3])
-	assert_true(overlay.mesh_key(site[2]) != key, "paused")
-
-
-func test_heaps_stand_where_they_were_placed() -> void:
-	"""A tunnel whose heaps were placed draws them there, at their current size."""
-	var space := _space([])
-	var ref := PackedInt32Array([-1, 0, -1])
-	space.tunnels.add_into(_route([Vector2i(0, 0), Vector2i(8192, 0)]), 2, 0, ref)
-	HeapsScript.place(space.tunnels, space, 0)
-	HeapsScript.place(space.tunnels, space, 1)
-	_dig_piece(space.tunnels, ref[2])
-	var overlay := _overlay_on(space)
-	overlay.refresh()
-	for m in 2:
-		var at := space.tunnels.heap_at[m]
-		assert_equal(overlay.heap(m).position, Vector3(at.x, 0.0, at.y), "mouth %d's heap where placed" % m)
-	assert_almost_equal(overlay.heap(0).scale.x, OverlayScript.heap_radius_m(18000), "the finished entrance heap")
-	assert_almost_equal(overlay.heap(0).scale.x, space.tunnels.heap_radius_m[0], "its placed size")
-
-
-func test_the_ribbon_stops_at_each_hole() -> void:
-	"""An open tunnel's trace -- a ribbon per segment -- starts and ends at the holes' edges: no part of it
-	lies in a hole, and the two ramps' ribbons meet at their foot."""
+func test_an_open_tunnel_leaves_the_ground_to_its_seam() -> void:
+	"""Decision 0211: an open tunnel draws no ribbon on the ground -- its turf seam, healing, is warren_signs.gd's -- while
+	one being dug still shows its dug earth, from the entrance hole's edge."""
 	var space := _space([])
 	var slot := _open_tunnel(space, [Vector2i(0, 0), Vector2i(8192, 0)])
 	var overlay := _overlay_on(space)
 	overlay.refresh()
-	var spans: Array[Vector2] = []
 	for s in [slot, slot + 1]:
-		var vertices := (overlay.ribbon(s).mesh as ImmediateMesh).surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array
-		assert_true(vertices.size() > 0, "a trace on segment %d" % s)
-		var span := Vector2(INF, -INF)
-		for v in vertices:
-			span = Vector2(minf(span.x, v.x), maxf(span.y, v.x))
-		spans.append(span)
-	assert_almost_equal(spans[0].x, OverlayScript.HOLE_RADIUS_M, "it starts at the entrance hole's edge")
-	assert_almost_equal(spans[0].y, 4.0, "the first ramp's runs to the foot")
-	assert_almost_equal(spans[1].x, 4.0, "the second's from it")
-	assert_almost_equal(spans[1].y, 8.0 - OverlayScript.HOLE_RADIUS_M, "and ends at the exit hole's edge")
+		assert_false(overlay.ribbon(s).visible, "no ribbon on open segment %d" % s)
+	var site := _dig_site()
+	var digging: CastSpaceScript = site[0]
+	var dig_overlay := _overlay_on(digging)
+	var mole: BrainScript = site[1]
+	mole.order_dig(site[2], site[3])
+	for f in 3000:
+		mole.step(DT)
+		if digging.tunnels.face_m(site[2]) > 1.0:
+			break
+	dig_overlay.refresh()
+	var vertices := (dig_overlay.ribbon(site[2]).mesh as ImmediateMesh).surface_get_arrays(0)[Mesh.ARRAY_VERTEX] as PackedVector3Array
+	assert_true(dig_overlay.ribbon(site[2]).visible and vertices.size() > 0, "a dig's ribbon")
+	var start: Vector2 = digging.tunnels.end_at(site[2], false)
+	var nearest := INF
+	for v in vertices:
+		nearest = minf(nearest, Vector2(v.x, v.z).distance_to(start))
+	assert_true(nearest >= OverlayScript.HOLE_RADIUS_M - 0.3, "none of it in the entrance hole (%.2f)" % nearest)
 
 
 func test_a_paused_tunnel_is_marked_at_its_entrance() -> void:

@@ -1,11 +1,14 @@
 extends "res://demo/tunnel/tunnel_task.gd"
-## One resident putting one fixture in (fixture_crew.gd). Decision 0210 (the underground revamp's P4; install
-## animations are P5's). Presentation only.
+## One resident putting one fixture in (fixture_crew.gd). Decisions 0210 (the underground revamp's P4) and 0211 (P5:
+## the install's motion). Presentation only.
 ##
 ## It walks to the room's middle node through the network, strolls across the floor to stand before the fixture's
 ## place, facing it, and works there -- the work clip -- for the fixture's install time (room_fixtures.gd INSTALL_WU),
 ## counted on the fixtures' own row, so work done is kept if it is called away. Done, it strolls back to the middle and
-## the task ends: the brain walks it out and it takes up whatever it parked (RESUMING). Called away, the fixture waits
+## the task ends: the brain walks it out and it takes up whatever it parked (RESUMING). THE MOTION (decision 0211): the
+## fixture rises out of its chalk ring as the work is done (fixture_view.gd PUT IN) while the installer heaves at it --
+## the heavy pull (`pull_radish`) for the big pieces, a bed, a large bed, the hearth, a table, a shelf, a rack or a bin;
+## the hand clip (`collect_object`) for what is hung or laid, a lantern, the hanging stores, a rug. Called away, the fixture waits
 ## for whoever comes next, and this resident keeps it on its resume queue. A fixture taken out while it works (or
 ## put in by another) sends it back to the middle and out, with nothing to come back to.
 
@@ -20,8 +23,12 @@ const STAGE_TO_PLACE: int = 1
 const STAGE_WORKING: int = 2
 const STAGE_BACK: int = 3
 const WORK_CLIP: StringName = &"collect_object"
-## The installer stands this far from the place toward the room's middle (m).
+const HEAVY_CLIP: StringName = &"pull_radish"
+## What is hung or laid rather than heaved into place (see THE MOTION).
+const LIGHT_KINDS: Array[int] = [RoomsScript.FIX_LANTERN, RoomsScript.FIX_HANGING, RoomsScript.FIX_RUG]
+## The installer stands this far from the place toward the room's middle (m); at a large bed, off its foot.
 const STAND_OFF_M: float = 0.7
+const LARGE_STAND_OFF_M: float = 1.65
 
 var stage: int = STAGE_GOING
 var room: int = -1
@@ -40,14 +47,26 @@ func _init(graph: RefCounted, r: int, f: int, who: int) -> void:
 	place = f
 	_who = who
 	var rooms: RoomsScript = graph.rooms
-	var at := rooms.to_world_u(r, FixturesScript.place_u(rooms.template[r], f))
+	var at: Vector2i = graph.fit.bed_middle_u(graph, r, f)
 	_at = Vector2(Rules.to_m(at.x), Rules.to_m(at.y))
 	_middle = graph.node_m(rooms.middle[r])
 
 
 func stand_at() -> Vector2:
-	"""Where the installer stands: STAND_OFF_M from the place toward the room's middle."""
-	return _at + (_middle - _at).normalized() * STAND_OFF_M
+	"""Where the installer stands: STAND_OFF_M from the place toward the room's middle (a large bed's LARGE_STAND_OFF_M,
+	off its foot)."""
+	var off := LARGE_STAND_OFF_M if _kind() == RoomsScript.FIX_BIG_BED else STAND_OFF_M
+	return _at + (_middle - _at).normalized() * off
+
+
+func _kind() -> int:
+	"""The kind of fixture being put in."""
+	return _graph.fit.kind_at(_graph, room, place)
+
+
+static func clip_for(kind: int) -> StringName:
+	"""The installer's clip for a fixture of `kind` (see THE MOTION)."""
+	return WORK_CLIP if LIGHT_KINDS.has(kind) else HEAVY_CLIP
 
 
 func site_node(_brain: RefCounted) -> int:
@@ -81,7 +100,7 @@ func _work(walker: BrainScript, delta: float) -> void:
 		stage = STAGE_BACK
 		return
 	walker.task_face(_at, delta)
-	walker.task_play(WORK_CLIP)
+	walker.task_play(clip_for(_kind()))
 	if fit.work(_graph, room, place, _who, int(delta * 1000000.0)):
 		stage = STAGE_BACK
 
@@ -112,7 +131,7 @@ func take_back(brain: RefCounted) -> bool:
 
 func kind_name() -> String:
 	"""The fixture's kind, in words."""
-	return RoomsScript.FIXTURE_NAMES[FixturesScript.place_kind(_graph.rooms.template[room], place)]
+	return RoomsScript.FIXTURE_NAMES[_kind()]
 
 
 func holds_when_lost() -> bool:

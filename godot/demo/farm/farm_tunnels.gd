@@ -14,8 +14,9 @@ extends RefCounted
 ##
 ## SPOIL AS SOIL. Each mouth's heap holds the spoil dug out there so far (`heaped_milli`, milli-U, the
 ## adopted 2 U per cubic metre); a heap is a mouth row of the network. The farm takes spoil from a heap
-## -- to raise a bed, bank it, or dig it in as compost -- and the heap is what is LEFT: heaped minus
-## taken. What was taken is kept here per heap and per mouth generation, so a freed and reused mouth
+## -- to raise a bed, bank it, or dig it in as compost -- and the heap is what is LEFT: what has been
+## tipped on it (a dig crew's baskets still on the way are not on it yet: underground_graph.gd `haul`,
+## decision 0211) minus taken. What was taken is kept here per heap and per mouth generation, so a freed and reused mouth
 ## row starts a fresh heap.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
@@ -131,9 +132,9 @@ func heaped_milli(network: GraphScript, heap: int) -> int:
 
 
 func spoil_left(network: GraphScript, heap: int) -> int:
-	"""The spoil still on heap `heap`, milli-U: heaped minus taken."""
+	"""The spoil still on heap `heap`, milli-U: tipped on it minus taken (see SPOIL AS SOIL)."""
 	_sync_heap(network, heap)
-	return heaped_milli(network, heap) - _taken[heap]
+	return network.haul.on_heap_milli(network, heap) - _taken[heap]
 
 
 func taken_milli(network: GraphScript, heap: int) -> int:

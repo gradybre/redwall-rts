@@ -17,9 +17,17 @@ extends Node3D
 ## orange), and the lantern a player hangs in it (`set_fit_spots`, the lanterns' own colour). They share the pool, so
 ## the U view still lights at most MAX_LIGHTS.
 ##
+## THE DIG FACES (decision 0211) light one more row each: the digger's hand lantern, set down beside it at the face
+## (`set_face_spot`, dig_theatre.gd), a candle's warm white. Still the one pool of MAX_LIGHTS.
+##
 ## FLICKER. Each light's energy wavers FLICKER either side of ENERGY, two slow waves at its own phase, on
 ## the demo clock's time: paused, it holds still. It runs only while the U view is on (the surface culls
 ## these lights by their layer anyway).
+##
+## BLOOM (decision 0211: "Lanterns are hung and each light pool blooms on"). Every spot remembers when it was first
+## hung (on the demo clock), and its light's energy swells up from nothing over BLOOM_S -- a little past full, then
+## settling -- so a lantern hung, a hearth lit or a room dug blooms on rather than switching on. A spot handed in
+## again unchanged keeps its age.
 
 const Layers := preload("res://demo/demo_layers.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
@@ -40,10 +48,23 @@ const ROW_FIT: int = ROW_HEARTHS + RoomsScript.MAX_ROOMS
 const ROWS: int = ROW_FIT + RoomsScript.MAX_ROOMS
 const REASSIGN_M: float = 1.5
 const WAVE_HZ: Vector2 = Vector2(1.7, 4.3)
+## The dig faces' hand lanterns: a row each after the fit-out's (dig_theatre.gd), their candle colour.
+const FACE_ROWS: int = 3
+const ROW_FACES: int = ROWS
+const ALL_ROWS: int = ROWS + FACE_ROWS
+const CANDLE_COLOUR: Color = Color(1.0, 0.82, 0.6)
+## A spot's light swells on over BLOOM_S (demo seconds), peaking at BLOOM_PEAK of its energy, and settles to it over
+## as long again.
+const BLOOM_S: float = 0.8
+const BLOOM_PEAK: float = 1.3
+## A spot handed in again within this of where it was is the same spot (it keeps its age).
+const SAME_SPOT_M: float = 0.02
 
 var _lights: Array[OmniLight3D] = []
-## Per tunnel, then per room, its lanterns' light spots (world metres), and the colour of their light.
+## Per tunnel, then per room, its lanterns' light spots (world metres), when each was hung (demo seconds), and the
+## colour of their light.
 var _spots: Array[PackedVector3Array] = []
+var _born: Array[PackedFloat32Array] = []
 var _tints: PackedColorArray = PackedColorArray()
 var _dirty: bool = true
 var _focus: Vector3 = Vector3(INF, INF, INF)
@@ -58,6 +79,9 @@ var assignments: int = 0
 ## choosing never allocates (a toggle or a pan allocates nothing).
 var _best: PackedVector3Array = PackedVector3Array()
 var _best_tint: PackedColorArray = PackedColorArray()
+var _best_born: PackedFloat32Array = PackedFloat32Array()
+## Per pooled light: when the spot it lights was hung.
+var _light_born: PackedFloat32Array = PackedFloat32Array()
 var _gaps: PackedFloat32Array = PackedFloat32Array()
 var _found: int = 0
 
@@ -78,12 +102,22 @@ func configure(clock: DemoClockScript = null) -> void:
 		light.visible = false
 		add_child(light)
 		_lights.append(light)
-	for row in ROWS:
+	for row in ALL_ROWS:
 		_spots.append(PackedVector3Array())
-		_tints.append(HEARTH_COLOUR if row >= ROW_HEARTHS and row < ROW_FIT else COLOUR)
+		_born.append(PackedFloat32Array())
+		_tints.append(_row_tint(row))
 	_best.resize(MAX_LIGHTS)
 	_best_tint.resize(MAX_LIGHTS)
+	_best_born.resize(MAX_LIGHTS)
+	_light_born.resize(MAX_LIGHTS)
 	_gaps.resize(MAX_LIGHTS)
+
+
+static func _row_tint(row: int) -> Color:
+	"""The colour a row's light starts with: a hearth's deep orange, a face's candle, else the lanterns'."""
+	if row >= ROW_HEARTHS and row < ROW_FIT:
+		return HEARTH_COLOUR
+	return CANDLE_COLOUR if row >= ROW_FACES else COLOUR
 
 
 func follow(showing: Callable, looking_at: Callable) -> void:
@@ -93,10 +127,36 @@ func follow(showing: Callable, looking_at: Callable) -> void:
 
 
 func set_spots(slot: int, spots: PackedVector3Array) -> void:
-	"""Segment `slot`'s lanterns now hang here (empty: unlit; decision 0208: keyed by segment)."""
+	"""Segment `slot`'s lanterns now hang here (empty: unlit; decision 0208: keyed by segment). A spot new to the row
+	is hung now (see BLOOM); one already there keeps its age."""
+	_born[slot] = births(_spots[slot], _born[slot], spots, _time)
 	_spots[slot] = spots
 	_dirty = true
 	update(_focus if _focus.x != INF else Vector3.ZERO)
+
+
+static func births(old: PackedVector3Array, old_born: PackedFloat32Array, spots: PackedVector3Array,
+		now: float) -> PackedFloat32Array:
+	"""When each of `spots` was hung: the age of the same spot in `old` (within SAME_SPOT_M), else `now`."""
+	var out := PackedFloat32Array()
+	out.resize(spots.size())
+	for k in spots.size():
+		out[k] = now
+		for j in old.size():
+			if old[j].distance_to(spots[k]) <= SAME_SPOT_M:
+				out[k] = old_born[j]
+				break
+	return out
+
+
+func set_face_spot(k: int, at: Vector3, on: bool) -> void:
+	"""Dig face `k`'s hand lantern lights at `at` (off: none; see THE DIG FACES). Moved less than SAME_SPOT_M, nothing
+	is written."""
+	var row := ROW_FACES + k
+	var had := _spots[row].size() == 1
+	if had == on and (not on or _spots[row][0].distance_to(at) <= SAME_SPOT_M):
+		return
+	set_spots(row, PackedVector3Array([at]) if on else PackedVector3Array())
 
 
 func set_room_spots(r: int, spots: PackedVector3Array, tint: Color) -> void:
@@ -160,6 +220,7 @@ func update(focus: Vector3) -> void:
 		if k < _found:
 			_lights[k].position = _best[k]
 			_lights[k].light_color = _best_tint[k]
+			_light_born[k] = _best_born[k]
 	assignments += 1
 
 
@@ -168,14 +229,15 @@ func find_nearest(focus: Vector3) -> int:
 	returns how many. An insertion into a fixed row: nothing allocated."""
 	_found = 0
 	for row in _spots.size():
-		for spot: Vector3 in _spots[row]:
-			_keep_if_near(spot, spot.distance_squared_to(focus), _tints[row])
+		var spots := _spots[row]
+		for k in spots.size():
+			_keep_if_near(spots[k], spots[k].distance_squared_to(focus), _tints[row], _born[row][k])
 	return _found
 
 
-func _keep_if_near(spot: Vector3, gap: float, tint: Color) -> void:
-	"""Slot `spot` (lighting `tint`) into the nearest-first row if it is nearer than its last (or the row is not
-	full)."""
+func _keep_if_near(spot: Vector3, gap: float, tint: Color, born: float) -> void:
+	"""Slot `spot` (lighting `tint`, hung at `born`) into the nearest-first row if it is nearer than its last (or the
+	row is not full)."""
 	var at := _found if _found < MAX_LIGHTS else MAX_LIGHTS - 1
 	if _found == MAX_LIGHTS and gap >= _gaps[at]:
 		return
@@ -183,10 +245,12 @@ func _keep_if_near(spot: Vector3, gap: float, tint: Color) -> void:
 		_gaps[at] = _gaps[at - 1]
 		_best[at] = _best[at - 1]
 		_best_tint[at] = _best_tint[at - 1]
+		_best_born[at] = _best_born[at - 1]
 		at -= 1
 	_gaps[at] = gap
 	_best[at] = spot
 	_best_tint[at] = tint
+	_best_born[at] = born
 	_found = mini(_found + 1, MAX_LIGHTS)
 
 
@@ -199,7 +263,23 @@ func flicker() -> void:
 	"""Each lit light's energy on the demo clock's time (see FLICKER)."""
 	for k in MAX_LIGHTS:
 		if _lights[k].visible:
-			_lights[k].light_energy = ENERGY * (1.0 + FLICKER * wave(_time, k))
+			_lights[k].light_energy = ENERGY * bloom(_time - _light_born[k]) * (1.0 + FLICKER * wave(_time, k))
+
+
+static func bloom(age: float) -> float:
+	"""A light's share of its energy `age` demo seconds after its spot was hung (see BLOOM): 0 before, swelling to
+	BLOOM_PEAK at BLOOM_S, settling to 1 by twice that."""
+	if age <= 0.0:
+		return 0.0
+	if age < BLOOM_S:
+		var up := sin(age / BLOOM_S * PI * 0.5)
+		return BLOOM_PEAK * up * up
+	return lerpf(BLOOM_PEAK, 1.0, minf((age - BLOOM_S) / BLOOM_S, 1.0))
+
+
+func time_now() -> float:
+	"""The lights' demo clock time (seconds; the bloom's reference)."""
+	return _time
 
 
 static func wave(time: float, k: int) -> float:

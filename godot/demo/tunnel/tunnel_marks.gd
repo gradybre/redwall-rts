@@ -8,7 +8,7 @@ extends Node3D
 ##   * FLOODED: water lying along its route and a blue ring at each end.
 ##   * COLLAPSED: the fall's rubble (the library's tunnel_rubble) over the section and a clay ring round it.
 ##   * UNDER A WARNING (seep or strain past half): its ends ringed in clay, so the tunnel the alert names is
-##     plain on the map.
+##     plain on the map -- in the U view too (decision 0211: the rings are drawn on the level's floor as well).
 ## The selection line is drawn twice, a node per view (decision 0206): on the ground, and on the level's
 ## floor for the U view, sharing one mesh.
 ## UNDERGROUND (the U view's layer; decisions 0206 and 0207), per tunnel: a timber brace frame every
@@ -25,6 +25,12 @@ extends Node3D
 ## switch) and placed when the segment is braced or lit, whatever the view; `refresh()` rebuilds a slot only
 ## when its state key changes, and otherwise moves nothing -- no per-frame allocation. A view switch
 ## changes nothing here.
+##
+## PUT UP ONE AT A TIME (decision 0211; design §4 "Frames placed per metre and lanterns hung one at a time, each with
+## an install pop"). While a BRACE job is at work its frames stand only as far as the work has reached
+## (tunnel_jobs.gd `along_m`), and each new one RISES from the floor over RISE_S with a puff of dust (the warren's
+## pooled particles); while a LANTERNS job is at work its lanterns hang only as far as the work has reached, each new
+## one's glow swelling on over RISE_S as its light blooms (tunnel_lanterns.gd BLOOM). The job done, all stand.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
@@ -41,6 +47,7 @@ const BoreCurveScript := preload("res://demo/tunnel/bore_curve.gd")
 const LanternsScript := preload("res://demo/tunnel/tunnel_lanterns.gd")
 const DemoClockScript := preload("res://demo/demo_clock.gd")
 const CUTAWAY_SHADER := preload("res://demo/tunnel/cutaway.gdshader")
+const ParticlesScript := preload("res://demo/tunnel/warren_particles.gd")
 
 const LINE_WIDTH_M: float = 0.22
 const LINE_LIFT_M: float = 0.06
@@ -75,6 +82,11 @@ const GLOW_IN_CAGE: Vector2 = Vector2(-0.28, 0.45)
 const GLOW_RADIUS_M: float = 0.045
 ## The fall's rubble sinks this far into the ground over the collapse.
 const RUBBLE_SINK_M: float = 0.06
+## A frame rises, and a lantern's glow swells, over this much demo time (see PUT UP ONE AT A TIME).
+const RISE_S: float = 0.6
+const RISE_NONE: int = 0
+const RISE_FRAME: int = 1
+const RISE_GLOW: int = 2
 
 var _network: GraphScript = null
 var _hazards: HazardsScript = null
@@ -86,6 +98,8 @@ var _lines: Array[MeshInstance3D] = []
 var _lines_below: Array[MeshInstance3D] = []
 var _waters: Array[MeshInstance3D] = []
 var _rings: Array[MeshInstance3D] = []
+## The same rings as the U view draws them, on the level's floor (decision 0211: a warning reads in both views).
+var _rings_below: Array[MeshInstance3D] = []
 var _falls: Array[MeshInstance3D] = []
 var _fall_rings: Array[MeshInstance3D] = []
 var _frames: Array[MultiMeshInstance3D] = []
@@ -109,6 +123,16 @@ var _ribbon_materials: Dictionary = {}
 var _spots: PackedVector3Array = PackedVector3Array()
 ## Scratch for a sample of a bore's drawn centreline (point, heading).
 var _sample: PackedVector2Array = PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
+## The jobs whose frames and lanterns go up one at a time, and the dust they raise (none: all at once).
+var _jobs: JobsScript = null
+var _particles: ParticlesScript = null
+## Per segment slot: how many frames and lanterns stand (see PUT UP ONE AT A TIME), and the one rising -- its kind
+## (RISE_*), its index and when it began (the lights' demo clock).
+var _frames_up: PackedInt32Array = PackedInt32Array()
+var _lanterns_up: PackedInt32Array = PackedInt32Array()
+var _rise_kind: PackedByteArray = PackedByteArray()
+var _rise_index: PackedInt32Array = PackedInt32Array()
+var _rise_from: PackedFloat32Array = PackedFloat32Array()
 
 
 func configure(network: GraphScript, hazards: HazardsScript, props: PropsScript = null, clock: DemoClockScript = null) -> void:
@@ -132,7 +156,17 @@ func configure(network: GraphScript, hazards: HazardsScript, props: PropsScript 
 	for column: Array in [_lines, _lines_below, _waters, _falls, _fall_rings, _frames, _lanterns, _glows]:
 		column.resize(Rules.MAX_SEGMENTS)
 	_rings.resize(2 * Rules.MAX_SEGMENTS)
+	_rings_below.resize(2 * Rules.MAX_SEGMENTS)
+	for column: Variant in [_frames_up, _lanterns_up, _rise_index, _rise_from, _rise_kind]:
+		column.resize(Rules.MAX_SEGMENTS)
 	_ensure(0)
+
+
+func set_theatre(jobs: JobsScript, particles: ParticlesScript) -> void:
+	"""The jobs whose frames and lanterns go up one at a time, and the warren's particles their dust comes from
+	(warren_particles.gd; see PUT UP ONE AT A TIME)."""
+	_jobs = jobs
+	_particles = particles
 
 
 func _ensure(slot: int) -> void:
@@ -149,6 +183,12 @@ func _ensure(slot: int) -> void:
 		ring.visible = false
 		add_child(ring)
 		_rings[2 * slot + end] = ring
+		var below := MarksScript.make_ring(Palette.BRASS)
+		below.material_override = _ring_below_material(Palette.BRASS)
+		below.layers = Layers.UNDERGROUND_MARKS
+		below.visible = false
+		add_child(below)
+		_rings_below[2 * slot + end] = below
 	_falls[slot] = _fall_node()
 	var fall_ring := MarksScript.make_ring(Palette.CLAY)
 	fall_ring.visible = false
@@ -209,6 +249,22 @@ func _ribbon_material(colour: Color, on_top: bool) -> StandardMaterial3D:
 	material.render_priority = 3 if on_top else 1
 	_ribbon_materials[key] = material
 	return material
+
+
+func _ring_below_material(colour: Color) -> StandardMaterial3D:
+	"""The U view's ring of `colour`, drawn over the cap (no depth test), one material a colour, shared (the prewarm
+	registers each: `register`)."""
+	var key := "below/%s" % colour.to_html()
+	if not _ribbon_materials.has(key):
+		var material := StandardMaterial3D.new()
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		material.cull_mode = BaseMaterial3D.CULL_DISABLED
+		material.no_depth_test = true
+		material.render_priority = 3
+		material.albedo_color = colour
+		_ribbon_materials[key] = material
+	return _ribbon_materials[key]
 
 
 static func _plain(colour: Color) -> StandardMaterial3D:
@@ -302,17 +358,21 @@ func register(prewarm: PrewarmScript) -> void:
 	selection line through the cap -- for its prewarm (decision 0206)."""
 	for node: MultiMeshInstance3D in [_frames[0], _lanterns[0], _glows[0]]:
 		prewarm.add_multimesh(node.multimesh.mesh, node.material_override)
+	for colour: Color in [Palette.BRASS, Palette.CLAY, WATER]:
+		prewarm.add_mesh(MarksScript.ring_mesh(), _ring_below_material(colour))
 	prewarm.add_mesh(OverlayScript.immediate_sample(), _lines_below[0].material_override)
 
 
 func refresh() -> void:
-	"""Redraw each segment whose state changed."""
+	"""Redraw each segment whose state changed, and raise what is rising (see PUT UP ONE AT A TIME)."""
 	for slot in Rules.MAX_SEGMENTS:
 		var key := _state_key(slot)
 		if key != _key[slot]:
 			_key[slot] = key
 			_ensure(slot)
 			_draw_slot(slot)
+		if _rise_kind[slot] != RISE_NONE:
+			_raise(slot)
 
 
 func _state_key(slot: int) -> int:
@@ -322,8 +382,26 @@ func _state_key(slot: int) -> int:
 		return -1
 	var warned := 1 if _warned(slot) else 0
 	var bits := int(_network.closed[slot]) + 4 * int(_network.braced[slot]) + 8 * int(_network.lit[slot]) + 16 * warned
+	var going_up := _going_up(slot, JobsScript.JOB_BRACE) + 64 * _going_up(slot, JobsScript.JOB_LANTERNS)
 	return bits + 32 * (1 if slot == _selected else 0) + 128 * int(_network.bore[slot]) + 256 * _network.generation[slot] \
-			+ 65536 * _network.length_u[slot]
+			+ 65536 * _network.length_u[slot] + (going_up << 40)
+
+
+func _going_up(slot: int, job: int) -> int:
+	"""How many of segment `slot`'s frames (a BRACE job) or lanterns (LANTERNS) stand while that job is at work --
+	as far as the work has reached, and 1 more than that (a key never 0 while it works) -- else 0."""
+	if _jobs == null or not _jobs.has_job(slot) or _jobs.kind[slot] != job or _jobs.paid[slot] == 0:
+		return 0
+	var reached := _jobs.along_m(slot)
+	var count := 0
+	if job == JobsScript.JOB_BRACE:
+		for k in range(_first_frame(slot), mini(floori(_network.length_m(slot)) + 1, MAX_FRAMES)):
+			count += 1 if float(k) <= reached and _deep_enough(slot, float(k)) else 0
+	else:
+		var total := _lantern_count(slot)
+		for k in total:
+			count += 1 if lantern_along(slot, k, total) <= reached else 0
+	return count + 1
 
 
 func _warned(slot: int) -> bool:
@@ -341,8 +419,8 @@ func _draw_slot(slot: int) -> void:
 	_draw_line(_waters[slot], slot, WATER_WIDTH_M, closed == GraphScript.CLOSED_FLOODED)
 	_place_rings(slot, open)
 	_place_fall(slot, closed == GraphScript.CLOSED_COLLAPSED)
-	_place_frames(slot, open and _network.braced[slot] == 1)
-	_place_lanterns(slot, open and _network.lit[slot] == 1)
+	_place_frames(slot, open and _network.braced[slot] == 1, _going_up(slot, JobsScript.JOB_BRACE) - 1)
+	_place_lanterns(slot, open and _network.lit[slot] == 1, _going_up(slot, JobsScript.JOB_LANTERNS) - 1)
 
 
 func _draw_line(node: MeshInstance3D, slot: int, width: float, show: bool) -> void:
@@ -374,13 +452,18 @@ func _place_rings(slot: int, open: bool) -> void:
 		colour = Palette.CLAY
 		show = true
 	for end in 2:
+		var at := _network.end_at(slot, end == 1)
 		var ring := _rings[2 * slot + end]
+		var below := _rings_below[2 * slot + end]
 		ring.visible = show
+		below.visible = show
 		if show:
-			var at := _network.end_at(slot, end == 1)
 			ring.position = Vector3(at.x, MarksScript.LIFT_M, at.y)
 			ring.scale = Vector3(RING_M, 1.0, RING_M)
 			MarksScript.set_alpha(ring, colour, 1.0)
+			below.position = Vector3(at.x, Layers.FLOOR_Y_M + Layers.MARK_LIFT_M, at.y)
+			below.scale = ring.scale
+			below.material_override = _ring_below_material(colour)
 
 
 func _place_fall(slot: int, show: bool) -> void:
@@ -420,33 +503,60 @@ func _deep_enough(slot: int, along: float) -> bool:
 	return _network.floor_y_at(slot, along) + Rules.crown_m(int(_network.bore[slot])) <= 0.0
 
 
-func _place_frames(slot: int, show: bool) -> void:
+func _place_frames(slot: int, braced: bool, going_up: int) -> void:
 	"""A timber frame every metre of a braced bore -- but none at its start inside the network (a ramp's foot,
-	a junction): the segment arriving there frames that metre, so a frame is never doubled."""
+	a junction): the segment arriving there frames that metre, so a frame is never doubled. While it is being braced,
+	the first `going_up` of them, the newest rising with a puff (see PUT UP ONE AT A TIME)."""
 	var node := _frames[slot]
-	node.visible = show
+	var limit := MAX_FRAMES if braced else maxi(going_up, 0)
+	node.visible = limit > 0
 	var count := 0
-	var first := 0 if _network.node_mouth[_network.node_a[slot]] >= 0 else 1
-	if show:
-		for k in range(first, mini(floori(_network.length_m(slot)) + 1, MAX_FRAMES)):
-			if _deep_enough(slot, float(k)):
-				node.multimesh.set_instance_transform(count, _bore_transform(slot, float(k), 0.0) * _frame_fit)
-				count += 1
+	for k in range(_first_frame(slot), mini(floori(_network.length_m(slot)) + 1, MAX_FRAMES)):
+		if count < limit and _deep_enough(slot, float(k)):
+			node.multimesh.set_instance_transform(count, _bore_transform(slot, float(k), 0.0) * _frame_fit)
+			count += 1
 	node.multimesh.visible_instance_count = count
+	var grew := not braced and count > _frames_up[slot]
+	_frames_up[slot] = count
+	if grew:
+		_start_rise(slot, RISE_FRAME, count - 1)
+		_puff(_bore_transform(slot, _frame_along(slot, count - 1), 0.3).origin)
 
 
-func _place_lanterns(slot: int, show: bool) -> void:
+func _first_frame(slot: int) -> int:
+	"""The metre segment `slot`'s first frame stands at: 0 at a mouth, else 1 (see `_place_frames`)."""
+	return 0 if _network.node_mouth[_network.node_a[slot]] >= 0 else 1
+
+
+func _frame_along(slot: int, index: int) -> float:
+	"""Where segment `slot`'s frame `index` stands (m along it; frames stand every metre under the ground)."""
+	var n := -1
+	for k in range(_first_frame(slot), mini(floori(_network.length_m(slot)) + 1, MAX_FRAMES)):
+		if _deep_enough(slot, float(k)):
+			n += 1
+			if n == index:
+				return float(k)
+	return 0.0
+
+
+func _lantern_count(slot: int) -> int:
+	"""How many lanterns light segment `slot` once lit: one for every started LANTERN_SPACING_M (the job's count)."""
+	return mini(ceili(_network.length_m(slot) / float(JobsScript.LANTERN_SPACING_M)), MAX_LANTERNS)
+
+
+func _place_lanterns(slot: int, lit: bool, going_up: int) -> void:
 	"""A wall lantern for every LANTERN_SPACING_M of a lit bore (the job's count), spread evenly over the
-	stretch under the ground, on alternate walls, a glow in each and its light handed to the pool."""
+	stretch under the ground, on alternate walls, a glow in each and its light handed to the pool. While they are
+	being hung, the first `going_up` of them, the newest's glow swelling on (see PUT UP ONE AT A TIME)."""
 	var node := _lanterns[slot]
-	node.visible = show
-	_glows[slot].visible = show
-	var count := 0
+	var total := _lantern_count(slot)
+	var count := total if lit else clampi(going_up, 0, total)
+	node.visible = count > 0
+	_glows[slot].visible = count > 0
 	_spots.resize(0)
-	if show:
-		count = mini(ceili(_network.length_m(slot) / float(JobsScript.LANTERN_SPACING_M)), MAX_LANTERNS)
+	if count > 0:
 		for k in count:
-			var hung := lantern_transform(slot, lantern_along(slot, k, count), k % 2 == 0)
+			var hung := lantern_transform(slot, lantern_along(slot, k, total), k % 2 == 0)
 			node.multimesh.set_instance_transform(k, hung * _lantern_fit)
 			var size: Vector3 = _props.drawn_bound(LANTERN_KEY).size
 			var glow_at: Vector3 = hung * Vector3(size.x * GLOW_IN_CAGE.x, size.y * GLOW_IN_CAGE.y, 0.0)
@@ -455,6 +565,60 @@ func _place_lanterns(slot: int, show: bool) -> void:
 	node.multimesh.visible_instance_count = count
 	_glows[slot].multimesh.visible_instance_count = count
 	lights.set_spots(slot, _spots.duplicate())
+	if not lit and count > _lanterns_up[slot]:
+		_start_rise(slot, RISE_GLOW, count - 1)
+	_lanterns_up[slot] = count
+
+
+# --- going up (see PUT UP ONE AT A TIME) ---------------------------------------------------------------
+
+func _start_rise(slot: int, kind: int, index: int) -> void:
+	"""Segment `slot`'s `index`th frame (or glow) starts rising now."""
+	_rise_kind[slot] = kind
+	_rise_index[slot] = index
+	_rise_from[slot] = lights.time_now()
+	_raise(slot)
+
+
+func _raise(slot: int) -> void:
+	"""The rising frame of segment `slot` stands `rise_share` of its height, or its rising glow swells; done, it stands
+	whole."""
+	var t := clampf((lights.time_now() - _rise_from[slot]) / RISE_S, 0.0, 1.0)
+	var index := _rise_index[slot]
+	if _rise_kind[slot] == RISE_FRAME and index < _frames[slot].multimesh.visible_instance_count:
+		var grow := Transform3D(Basis.from_scale(Vector3(1.0, maxf(rise_share(t), 0.02), 1.0)), Vector3.ZERO)
+		_frames[slot].multimesh.set_instance_transform(index, _bore_transform(slot, _frame_along(slot, index), 0.0) * grow * _frame_fit)
+	elif _rise_kind[slot] == RISE_GLOW and index < _glows[slot].multimesh.visible_instance_count:
+		var glow := _glows[slot].multimesh.get_instance_transform(index)
+		_glows[slot].multimesh.set_instance_transform(index, Transform3D(Basis.from_scale(Vector3.ONE * maxf(swell_share(t), 0.02)), glow.origin))
+	if t >= 1.0:
+		_rise_kind[slot] = RISE_NONE
+
+
+static func rise_share(t: float) -> float:
+	"""A rising frame's height share at `t` (0..1 of RISE_S): up quickly, a little past, and settling."""
+	return 1.0 + 0.08 * sin(t * PI) - pow(1.0 - t, 3.0)
+
+
+static func swell_share(t: float) -> float:
+	"""A new lantern's glow's size at `t` (0..1 of RISE_S): swelling past full and settling, as its light blooms."""
+	return sin(t * PI * 0.5) + 0.35 * sin(t * PI)
+
+
+func _puff(at: Vector3) -> void:
+	"""A puff of dust at `at`, below (none without the theatre)."""
+	if _particles != null:
+		_particles.puff(at, Layers.UNDERGROUND)
+
+
+func frames_up(slot: int) -> int:
+	"""How many of segment `slot`'s frames were last drawn standing (checks)."""
+	return _frames_up[slot]
+
+
+func lanterns_up(slot: int) -> int:
+	"""How many of segment `slot`'s lanterns were last drawn hanging (checks)."""
+	return _lanterns_up[slot]
 
 
 func lantern_along(slot: int, k: int, count: int) -> float:

@@ -97,9 +97,10 @@ and finds. The woods put their wood in and saw their planks from it; the tunnels
 are paid from it. The HUD's Wood and Stone are the settlement's and are never written.
 
 **The right column holds one demo panel at a time** (`ui/demo_detail_zone.gd`): a tab strip, *Farm*,
-*Tunnels & burrows* and *Woods*, over the HUD's detail zone. Clicking a bed brings the farm's panel;
-selecting a tunnel or laying a route brings the tunnels'; clicking a tree, a zone or giving a woods
-order brings the woods'; the tabs switch by hand; all hide while the resident journal is open.
+*Tunnels & burrows*, *Woods* and *Water*, over the HUD's detail zone. Clicking a bed brings the farm's
+panel; selecting a tunnel or laying a route brings the tunnels'; clicking a tree, a zone or giving a woods
+order brings the woods'; a swim, dive or bridge order, or clicking a bridge site, brings the water's; the
+tabs switch by hand; all hide while the resident journal is open.
 
 ## Commanding the residents
 
@@ -116,6 +117,8 @@ order brings the woods'; the tabs switch by hand; all hide while the resident jo
 | U | Underground view: the surface fades, tunnels show as lit bores with anyone inside |
 | Left click a finished tunnel | Select it for the "Tunnels & burrows (demo)" panel (see below) |
 | Right click a tree, trunk, deadfall, stump, cleared spot or the sawhorse | The woods' verb for it (see The woods) |
+| Right click deep water | Swimmers swim out and tread water there; an otter over water deeper than it is tall dives; a non-swimmer is refused by name (see Water gameplay) |
+| Right click / left click a bridge site | Build the planned bridge there with the selection / select the site for the Water panel |
 | V | The one map-overlay cycle: the farm's moisture, its ripeness, the water's zones and fishery (wade / swim / dive, fords, bridge spans, landings, fish stocks), the woods' zones and trees, off |
 
 The "Demo party" panel in the HUD's left column lists the selection. Orders move the demo cast
@@ -342,9 +345,8 @@ mounds' measured profiles in `forest_roots.gd`).
 A stream runs down the village's east edge -- narrowing to a neck at the north-east corner, past
 the weir and the mill, spreading into a shallow ford where the east road crosses it, then deepening
 by the fisher shelter -- into a pond beyond the south-east corner with a boathouse on its shore.
-All of it lies outside the ±20 m square residents and tunnels are kept in, so nothing in the
-village moved; the spots that serve it (fishing, the weir, the boat landing) stand at the square's
-edge. The ground is carved into banks and beds; the surface flows at the stream's own speed and
+It lies east of the ±20 m square; the walking area is widened over it (see Water gameplay), and
+nothing in the village moved. The ground is carved into banks and beds; the surface flows at the stream's own speed and
 stops when the game pauses. V's overlay cycle ends on the zones and the live fishery. The fishery
 runs on the demo's one calendar (its days are the farm's and the HUD's). A flood (the tunnels' threat)
 raises the stream up its banks at the ford.
@@ -355,6 +357,46 @@ zones, ground and bed height, flow, nearest bank, landings, ford and bridge cand
 (`scripts/core/fishing.gd`) on demo time -- the stream is the river habitat, the pond the lake --
 and returns each cycle's catch as species lots without touching any pantry. The depths and the
 zone thresholds are demo values (`water/water_rules.gd`); decision 0196 records them.
+
+## Water gameplay
+
+Wading, swimming, diving, rescue and beaver bridges (`waterplay/`, part A; decision 0196). Every number
+is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo value.
+
+- **Reaching the water.** Orders, formations, routines and tunnels use x -20..36 m, z -34..42 m (the
+  stream from above the neck, both banks and round the pond); tunnels are still refused under water.
+  Water deeper than a mouse wades is a band no walker enters; the ford is open ground. Nothing is sent
+  to stand, idle or work in the water: every spot chooser keeps a body clear of the waterline.
+- **Wading.** In water shallower than its own wade depth a resident walks on the bed at 55% pace; a
+  route through the ford costs that pace, so a longer dry way can win.
+- **Swimming** (per resident, seeded by species -- mouse 0.60, squirrel 0.55, mole 0.50, otter 1.10,
+  beaver 0.90 m/s; the badger wades only). Routes offer swimmers the swim links across the run and the
+  pond's chords at twice their length; a loaded resident never swims. At the surface with the swim clip,
+  treading water when it stops, angling into the flow and swept by what it cannot hold; the tail floats.
+  Stamina (HAZ-001/003): no routine swim under 40%, turn for the bank at 15%, in difficulty at 0; cold
+  water (below 10.0 °C) doubles the drain; a flood doubles the flow.
+- **Diving** (otters): a planned dive needs the descent, 8 s of search, the ascent and a 300-tick reserve
+  in air (HAZ-002: 1200, 1 a tick below, 4 back); it turns for the surface when the air says so. Each
+  dive's find is drawn from the dive's number (a stone, a hook, silt, a relic, ...); a relic joins the
+  stores' finds, a stone 0.25 U of stone. Bubbles rise from a diver; the party panel shows breath and
+  stamina.
+- **Rescue** (REQ-SET-054): a resident in difficulty is warned in the feed and drifts, treading hard.
+  The nearest free swimmer goes in and tows it (60% of its speed) to a landing it can reach against the
+  flow; with none free, anyone throws a line (8 m) from the nearest landing and hauls it in. Nobody
+  drowns: with nobody coming after 90 s (or a rescuer on the way but not there after 240 s, who then
+  stands down) it washes ashore at a landing. It then rests 20 s, recovering three times
+  as fast. Cramp (demo) in the Water panel starts one on demand.
+- **Bridges.** The Water panel steps through the map's three bridge candidates or spans any two banks
+  you click. A plank footbridge costs 1.0 U of planks a metre of deck (and 1.0 U of wood a pier, one per
+  started 2.5 m of span over 3.5 m); a log bridge costs one 6.0 U log -- a felled trunk lying ready, else
+  the log stack -- and spans at most 5.5 m of deck. Paid all or nothing from the one stores; refusals say
+  why. The builder fetches and carries the material, then works piers, beams and deck (WU at the woods'
+  rate, §5.3's skill factor); the beaver bridgewright starts at level 6 and gnaws its log. Anyone who
+  selects nothing leaves it for the bridgewright. Finished bridges are walked by everyone, loaded or not,
+  the badger included.
+- **Water tab** (right column): conditions, alerts, who is swimming, the chosen site and its costs,
+  bridges, stores and the water's news. **V** paints the zones for the first selected resident's own
+  height, the bridge candidates, the swim links and the landings.
 
 ## Layout
 
@@ -371,6 +413,7 @@ zone thresholds are demo values (`water/water_rules.gd`); decision 0196 records 
 | `burrow/` | Chambers dug off tunnels: burrow homes and root cellars (the cellar API) |
 | `events/` | Seeded threats (a flood, a fire) and evacuation |
 | `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the V overlay |
+| `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel |
 | `farm/` | The farm: real FarmPlot rows, the pantry and its storage providers, the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |

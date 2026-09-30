@@ -30,6 +30,13 @@ extends Node3D
 ## time, in sub-steps, and the AnimationPlayer at the clip's speed times the game's -- so a paused
 ## game holds every resident in its pose rather than walking in place, and 2x / 4x play faster.
 ##
+## IN THE WATER (demo/waterplay/). The water clips -- swim, tread_water and, for the otters, dive --
+## are authored against a waterline at the root (decision 0203), so a swimmer stands at the water's
+## surface (the brain's `ground_y_m`). While the brain is `in_water` the tail is in water mode
+## (`TailRig.set_water(true, back)`: pulled back along the body, not down) with its floor far below,
+## and back on land it is pulled down again onto the ground it stands on. The back direction is
+## refreshed only when the heading has turned WATER_TAIL_TURN_RAD.
+##
 ## FACING. The models face +Z, so the node's yaw is the brain's yaw: local +Z points along travel.
 ## With no staged cast (CI, a fresh clone), a capsule with a nose stands in, with the same brain.
 
@@ -42,7 +49,7 @@ const DemoClockScript := preload("res://demo/demo_clock.gd")
 const CROSSFADE_S: float = 0.25
 const LIBRARY: StringName = &"cast"
 const CLIPS: Array[StringName] = [&"idle", &"walk", &"collect_object", &"stand_and_drink", &"wave_one_hand",
-	&"carry_heavy_object_walk", &"pull_radish"]
+	&"carry_heavy_object_walk", &"pull_radish", &"swim", &"tread_water", &"dive"]
 const RADIUS_PER_HEIGHT: float = 0.22
 const MIN_RADIUS_M: float = 0.2
 const MAX_RADIUS_M: float = 0.6
@@ -55,6 +62,10 @@ const LOAD_COLOUR: Color = Color(0.36, 0.25, 0.16)
 ## A held harvest sits this far (per metre of height) before the hands' midpoint, out of the chest:
 ## the carry clip holds its hands wide, as round a log.
 const HOLD_FORWARD_PER_HEIGHT: float = 0.07
+## In the water, the tail's floor lies this far below the body, and its pull is re-aimed after a turn
+## of this much.
+const WATER_FLOOR_BELOW_M: float = 4.0
+const WATER_TAIL_TURN_RAD: float = 0.15
 ## How far a resident still on the surface fades while the underground view is on.
 const SURFACE_FADE: float = 0.7
 const PLACEHOLDER_COLOURS: Array[Color] = [Color(0.72, 0.52, 0.36), Color(0.55, 0.62, 0.38),
@@ -101,6 +112,9 @@ var _underground_view: bool = false
 ## What the view last drew: bit 0 underground, bit 1 the underground view (-1: not yet drawn).
 var _view_key: int = -1
 var _floor_y: float = 0.0
+## The tail's water mode as last set, and the heading its pull was last aimed along.
+var _tail_in_water: bool = false
+var _tail_yaw: float = 0.0
 
 
 func setup_creature(index: int, key: StringName, row: Dictionary, space: CastSpaceScript, seed: int) -> bool:
@@ -208,9 +222,26 @@ func _apply_transform() -> void:
 	position.z = brain.position.y
 	rotation.y = brain.yaw
 	_apply_view()
-	if _tail != null and brain.ground_y_m != _floor_y:
-		_floor_y = brain.ground_y_m
+	if _tail == null:
+		return
+	if brain.in_water != _tail_in_water or (brain.in_water and absf(angle_difference(_tail_yaw, brain.yaw)) > WATER_TAIL_TURN_RAD):
+		_apply_tail_water()
+	var floor_y: float = brain.ground_y_m - (WATER_FLOOR_BELOW_M if brain.in_water else 0.0)
+	if floor_y != _floor_y:
+		_floor_y = floor_y
 		_tail.set_floor(_floor_y)
+
+
+func _apply_tail_water() -> void:
+	"""The tail in or out of water mode, pulled back along the body's heading (see IN THE WATER)."""
+	_tail_in_water = brain.in_water
+	_tail_yaw = brain.yaw
+	_tail.set_water(_tail_in_water, Vector3(-sin(brain.yaw), 0.0, -cos(brain.yaw)))
+
+
+func tail_in_water() -> bool:
+	"""Whether the live tail is in water mode now (checks)."""
+	return _tail_in_water
 
 
 func set_underground_view(on: bool) -> void:

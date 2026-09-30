@@ -71,6 +71,17 @@ extends RefCounted
 ## task_* functions until it is done, and the resident goes back to its routine. A new order or a
 ## release cancels the task first; one standing in a bore walks out to the nearest mouth.
 ##
+## THE WATER (demo/waterplay/). A route may also cross one of the water's crossings -- a finished
+## bridge, or for a swimmer a link across the stream or the pond (tunnel_router.gd CROSSINGS). The
+## walker must reach the crossing's end itself, as a tunnel's mouth; then CROSS hands its movement to
+## the space's crossing hook (cast/crossing_hook.gd `step_leg`) until it stands at the far end, and it
+## goes on. A crossing entered is always finished (MOVE-REQ-007): an order given on it is carried out
+## from the far end. On the ground the hook also gives the height of the carved banks and wading beds
+## (`ground_y_m`) and slows the pace in wading water, the clip slowed to match. `interrupt_to_task`
+## is the one exception to MOVE-REQ-007, for the water's emergencies only: a swimmer in difficulty is
+## taken off its leg where it is, by the rescue (HAZ-002: "retain location/air, mark DISTRESS and
+## dispatch rescue"). `in_water` tells the actor to draw it swimming (tail streaming back).
+##
 ## Yaw 0 faces +Z, the way the models face: forward is Vector2(sin(yaw), cos(yaw)) in (x, z).
 ## Deterministic: every random choice comes from this resident's own seeded generator.
 
@@ -82,7 +93,7 @@ const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
 const TunnelQueueScript := preload("res://demo/tunnel/tunnel_queue.gd")
 const TaskScript := preload("res://demo/tunnel/tunnel_task.gd")
 
-enum State { IDLE, TURN, WALK, FACE, ACT, HOLD, TUNNEL, DIG, QUEUE, TASK }
+enum State { IDLE, TURN, WALK, FACE, ACT, HOLD, TUNNEL, DIG, QUEUE, TASK, CROSS }
 
 const ORDER_NONE: int = 0
 const ORDER_MOVE: int = 1
@@ -99,6 +110,7 @@ const ACTIVITY_TUNNEL: int = 4
 const ACTIVITY_DIGGING: int = 5
 const ACTIVITY_TASK: int = 6
 const ACTIVITY_QUEUE: int = 7
+const ACTIVITY_CROSSING: int = 8
 
 const CLIP_IDLE: StringName = &"idle"
 const CLIP_WALK: StringName = &"walk"
@@ -195,6 +207,10 @@ var dig_tunnel: int = -1
 var dig_generation: int = 0
 ## The task driving this resident under ORDER_TASK (null otherwise).
 var task: TaskScript = null
+## In the water (swimming, diving, towed) -- presentation: the actor draws the tail streaming back.
+var in_water: bool = false
+## Held by the water's rescue (in difficulty, or being towed): orders and releases are not taken.
+var water_hold: bool = false
 
 var _space: CastSpaceScript = null
 var _clip_lengths: Dictionary = {}
@@ -326,7 +342,9 @@ func step(delta: float) -> void:
 			_step_queue(delta)
 		State.TASK:
 			_step_task(delta)
-	if state == State.TURN or state == State.WALK or state == State.TUNNEL:
+		State.CROSS:
+			_step_cross(delta)
+	if state == State.TURN or state == State.WALK or state == State.TUNNEL or state == State.CROSS:
 		_trip_s += delta
 	_space.set_walking(index, state == State.WALK)
 
@@ -601,6 +619,7 @@ func _step_walk(delta: float) -> void:
 	var moved := _space.constrain(index, position, position + step, _goal)
 	var held := moved.distance_to(position) < step.length() * BLOCKED_FRACTION
 	position = moved
+	ground_y_m = _space.crossings.ground_y_m(position)
 	_space.move_resident(index, moved)
 	_watch_progress(distance, held, delta)
 
@@ -657,8 +676,11 @@ func _leave_line() -> void:
 
 
 func _nearing_mouth() -> bool:
-	"""Whether the waypoint ahead is a mouth this walk goes down, within JOIN_M, without its grant."""
+	"""Whether the waypoint ahead is a mouth this walk goes down, within JOIN_M, without its grant (a
+	crossing's end has no line)."""
 	if path_index >= path.size() - 1 or _leg(path_index + 1) == TunnelRouterScript.SURFACE_LEG:
+		return false
+	if TunnelRouterScript.is_crossing_code(_leg(path_index + 1)):
 		return false
 	return not _holds_grant and position.distance_to(path[path_index]) < TunnelQueueScript.JOIN_M
 
@@ -734,8 +756,10 @@ func ground_step(delta: float) -> Vector2:
 
 
 func _surface_factor() -> float:
-	"""The weather's surface walking speed as a fraction of walk speed (see WEATHER AND LANTERNS)."""
-	return float(_space.tunnels.surface_permille) / float(TunnelRules.PERMILLE)
+	"""The weather's surface walking speed as a fraction of walk speed (see WEATHER AND LANTERNS), and
+	slower still wading (see THE WATER)."""
+	var wade: int = _space.crossings.wade_permille(index, position)
+	return float(_space.tunnels.surface_permille) * float(wade) / float(TunnelRules.PERMILLE * TunnelRules.PERMILLE)
 
 
 func _walk_clip_speed() -> float:
@@ -828,7 +852,10 @@ func _abandon_trip() -> void:
 
 func order_move(goal: Vector2, face_toward: Vector2 = Vector2.INF) -> void:
 	"""Give up any POI slot, walk to `goal` and hold there until ordered again or released. Given a
-	finite `face_toward`, it turns to face that point on arrival (a queue facing its POI)."""
+	finite `face_toward`, it turns to face that point on arrival (a queue facing its POI). Not taken
+	while the water's rescue holds it (`water_hold`)."""
+	if water_hold:
+		return
 	release_slot()
 	_leave_dig()
 	_drop_task()
@@ -840,7 +867,10 @@ func order_move(goal: Vector2, face_toward: Vector2 = Vector2.INF) -> void:
 
 func order_work(work_poi: int, work_slot: int) -> void:
 	"""Walk to `work_slot` at `work_poi` and work there until released. The caller has checked the
-	slot is free (or is this resident's own); any other slot held is given up first."""
+	slot is free (or is this resident's own); any other slot held is given up first. Not taken while
+	the water's rescue holds it."""
+	if water_hold:
+		return
 	_leave_dig()
 	_drop_task()
 	if work_poi != poi or work_slot != slot:
@@ -861,16 +891,21 @@ func release_slot() -> void:
 
 func release() -> void:
 	"""Back to wandering. Holding or walking under a move order, it stops and idles a moment first;
-	working under an order, it finishes the bout in hand."""
-	if order == ORDER_NONE:
+	working under an order, it finishes the bout in hand. Not while the water's rescue holds it."""
+	if order == ORDER_NONE or water_hold:
 		return
 	var was_move := order == ORDER_MOVE or state == State.HOLD or order == ORDER_TASK
 	_drop_task()
 	_leave_line()
 	order = ORDER_NONE
 	_leave_dig()
-	if underground:
+	if underground or state == State.CROSS:
 		_release_underground(was_move)
+		return
+	if in_water:
+		release_slot()
+		_idle_on_surface = true
+		_space.crossings.swim_ashore(self)
 		return
 	if was_move or poi < 0:
 		release_slot()
@@ -905,8 +940,11 @@ func _start_ordered_trip(goal: Vector2) -> void:
 	_bouts_left = 0
 	_goal = goal
 	_replans = 0
-	if underground:
+	if underground or state == State.CROSS:
 		_finish_tunnel_then_stop()
+		return
+	if in_water:
+		_space.crossings.swim_ashore(self)
 		return
 	if position.distance_to(goal) <= ARRIVE_RADIUS_M:
 		_arrive()
@@ -965,6 +1003,8 @@ func activity() -> int:
 		return ACTIVITY_DIGGING
 	if state == State.TUNNEL:
 		return ACTIVITY_TUNNEL
+	if state == State.CROSS:
+		return ACTIVITY_CROSSING
 	if state == State.HOLD or (order == ORDER_MOVE and state == State.FACE):
 		return ACTIVITY_HOLDING
 	if order == ORDER_NONE:
@@ -981,6 +1021,8 @@ func goal() -> Vector2:
 
 func surface_point() -> Vector2:
 	"""Where this resident stands on the surface -- or, underground, the mouth it will come up at."""
+	if state == State.CROSS:
+		return path[path_index]
 	if not underground:
 		return position
 	if state == State.DIG or _travel_to_face:
@@ -1011,8 +1053,12 @@ func _set_underground(below: bool) -> void:
 
 
 func _enter_tunnel_leg() -> void:
-	"""At a mouth: go down and cross the tunnel the leg into path[path_index] names."""
+	"""At a mouth: go down and cross the tunnel the leg into path[path_index] names -- or, at a
+	crossing's end, start across it (see THE WATER)."""
 	var code := path_tunnel[path_index]
+	if TunnelRouterScript.is_crossing_code(code):
+		_enter_crossing(code)
+		return
 	var slot_index := TunnelRouterScript.leg_slot(code)
 	var length := _space.tunnels.length_m(slot_index)
 	_space.tunnels.queue.take(code, index)
@@ -1102,6 +1148,12 @@ func _end_travel() -> void:
 		state = State.TASK
 		return
 	_set_underground(false)
+	_go_on_from_mouth()
+
+
+func _go_on_from_mouth() -> void:
+	"""Up at a tunnel's far mouth, or off a crossing: idle (released on the way), go on along the route,
+	arrive, or plan again when the route ended here short of the goal."""
 	if _idle_on_surface:
 		_idle_on_surface = false
 		_enter_idle(rng.randf_range(IDLE_MIN_S * 0.5, IDLE_MIN_S))
@@ -1152,7 +1204,10 @@ func _finish_tunnel_then_stop() -> void:
 
 func order_dig(tunnel_slot: int, tunnel_generation: int) -> void:
 	"""Walk to tunnel (slot, generation)'s entrance and dig until it opens, then hold at its exit.
-	The caller has added (or resumed) the tunnel with this resident as its digger."""
+	The caller has added (or resumed) the tunnel with this resident as its digger. Not taken while the
+	water's rescue holds it."""
+	if water_hold:
+		return
 	release_slot()
 	_leave_dig()
 	_drop_task()
@@ -1285,7 +1340,9 @@ func _back_out(slot_index: int, from_m: float) -> void:
 
 func order_task(new_task: TaskScript) -> void:
 	"""Hand this resident to `new_task` (see TASKS): give up any slot, dig, line or earlier task, walk
-	to the task's site and let it drive from there."""
+	to the task's site and let it drive from there. Not taken while the water's rescue holds it."""
+	if water_hold:
+		return
 	release_slot()
 	_leave_dig()
 	_drop_task()
@@ -1404,3 +1461,92 @@ func task_face(point: Vector2, delta: float) -> void:
 	"""For a task: turn toward `point` at the on-the-spot rate."""
 	if point.distance_to(position) > 1e-3:
 		yaw = turn_toward(yaw, yaw_of(point - position), SPOT_TURN_RATE * delta)
+
+
+# --- the water's crossings (see THE WATER) --------------------------------------------------------
+
+func _enter_crossing(code: int) -> void:
+	"""At a crossing's end: hand the walk to the water's hook until it stands at the far end."""
+	state = State.CROSS
+	_space.crossings.begin_leg(self, TunnelRouterScript.crossing_row(code), TunnelRouterScript.leg_reversed(code))
+
+
+func _step_cross(delta: float) -> void:
+	"""One step across the crossing; at its far end, go on as from a tunnel's mouth."""
+	if _space.crossings.step_leg(self, delta):
+		_end_cross()
+
+
+func _end_cross() -> void:
+	"""Off the crossing, standing on its far end: out of the water, and on along the route."""
+	water_out()
+	state = State.WALK
+	_go_on_from_mouth()
+
+
+func interrupt_to_task(new_task: TaskScript) -> void:
+	"""THE WATER'S EMERGENCY ONLY (see THE WATER): take this resident off whatever it is doing -- a
+	crossing leg included, where it stands -- and hand it to `new_task` at once, with no walk first.
+	Any earlier task is cancelled and any slot or line given up; the route is dropped."""
+	if state == State.CROSS:
+		_space.crossings.abandon_leg(self)
+	release_slot()
+	_leave_dig()
+	_leave_line()
+	_drop_task()
+	_idle_on_surface = false
+	carrying = false
+	path.clear()
+	path_tunnel.clear()
+	path_index = 0
+	task = new_task
+	order = ORDER_TASK
+	_goal = position
+	state = State.TASK
+	new_task.arrived(self)
+
+
+func leg_speed() -> float:
+	"""The pace a crossing is walked at on land or a deck: the carry's own with a load, else the walk's,
+	times the weather's surface speed (m/s)."""
+	var base := _carry_speed if carrying and _carry_speed > 0.0 else walk_speed
+	return base * float(_space.tunnels.surface_permille) / float(TunnelRules.PERMILLE)
+
+
+func leg_clip() -> StringName:
+	"""The clip a crossing is walked with (the carry, with a load)."""
+	return _locomotion_clip()
+
+
+func leg_clip_rate() -> float:
+	"""The walking clip's rate for `leg_speed()`: the feet stay planted (see WEATHER AND LANTERNS)."""
+	return (_carry_rate if carrying else 1.0) * float(_space.tunnels.surface_permille) / float(TunnelRules.PERMILLE)
+
+
+func water_clip(name: StringName, speed: float) -> void:
+	"""For the water: play clip `name` (idle when this creature lacks it) at `speed`."""
+	_set_clip(name if has_clip(name) else CLIP_IDLE, speed)
+
+
+func water_place(at: Vector2, y_m: float, face_yaw: float) -> void:
+	"""For the water: stand (or swim) at `at`, `y_m` from the ground datum, facing `face_yaw`."""
+	position = at
+	ground_y_m = y_m
+	yaw = face_yaw
+	_space.move_resident(index, at)
+
+
+func water_in() -> void:
+	"""Into the water: off the walking surface (CastSpace.set_in_water), drawn swimming."""
+	if in_water:
+		return
+	in_water = true
+	_space.set_in_water(index, true)
+
+
+func water_out() -> void:
+	"""Out of the water, back on the walking surface."""
+	if not in_water:
+		return
+	in_water = false
+	_space.set_in_water(index, false)

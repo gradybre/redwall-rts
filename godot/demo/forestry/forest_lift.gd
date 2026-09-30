@@ -81,17 +81,20 @@ func _cell_height(cell: int, at: Vector2) -> float:
 
 
 func apply() -> void:
-	"""Lift every resident on the surface onto the mound under it (or let it down)."""
+	"""Lift every resident on the surface onto the mound under it, or let it down onto the ground there
+	(the carved bank's height, demo/waterplay/); a resident in a tunnel or in the water is left alone."""
 	if not enabled or _cast == null:
 		return
 	for i: int in _cast.actor_count():
 		var actor := _cast.actor(i) as DemoActorScript
-		if actor.brain.underground:
+		if actor.brain.underground or actor.brain.in_water:
 			_lifted[i] = 0
 			continue
 		var y: float = height_at(actor.brain.position)
 		if y <= 0.0 and _lifted[i] == 0:
 			continue
 		_lifted[i] = 1 if y > 0.0 else 0
+		if y <= 0.0:
+			y = _cast.space().crossings.ground_y_m(actor.brain.position)
 		actor.brain.ground_y_m = y
 		actor.position.y = y

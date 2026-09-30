@@ -265,7 +265,7 @@ static func placement(width: int, height: int, layout: UiLayout, geometry: UiLay
 
 static func party_lines(entries: Array[Dictionary]) -> PackedStringArray:
 	"""The panel's body lines: nobody; one resident's name, species, state and -- when it has any
-	(an entry's "skills", demo/forestry/) -- its skills; or a count and a line per resident, its short
+	(an entry's "skills", demo/forestry/ and demo/waterplay/) -- its skills, a line for each line of them; or a count and a line per resident, its short
 	skills after its state (at most MAX_ROWS, then "+ n more")."""
 	var lines := PackedStringArray()
 	if entries.is_empty():
@@ -274,8 +274,8 @@ static func party_lines(entries: Array[Dictionary]) -> PackedStringArray:
 		lines.append(String(entries[0]["name"]))
 		lines.append(String(entries[0]["species"]))
 		lines.append(String(entries[0]["state"]))
-		if not String(entries[0].get("skills", "")).is_empty():
-			lines.append(String(entries[0]["skills"]))
+		for skill: String in String(entries[0].get("skills", "")).split("\n", false):
+			lines.append(skill)
 	else:
 		lines.append("%d residents" % entries.size())
 		for i in mini(entries.size(), MAX_ROWS):
@@ -298,6 +298,8 @@ static func state_text(activity: int, clip: StringName, place: String, dug_perce
 		return IN_QUEUE
 	if activity == BrainScript.ACTIVITY_TUNNEL:
 		return HAULING if clip == BrainScript.CLIP_CARRY else IN_TUNNEL
+	if activity == BrainScript.ACTIVITY_CROSSING:
+		return "crossing the water"
 	if activity == BrainScript.ACTIVITY_HOLDING:
 		return "holding"
 	if activity == BrainScript.ACTIVITY_WALKING:

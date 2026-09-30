@@ -31,6 +31,8 @@ const CastRoutinesScript := preload("res://demo/cast/cast_routines.gd")
 const DemoClockScript := preload("res://demo/demo_clock.gd")
 
 const PLACEHOLDER_COUNT: int = 6
+## No planning area: routes may go anywhere (cast_nav.gd THE PLANNING AREA).
+const UNBOUNDED: Rect2 = Rect2(-1e6, -1e6, 2e6, 2e6)
 const BASE_SEED: int = 196
 const SEED_STRIDE: int = 7919
 const NO_POI_RING_M: float = 1.5
@@ -59,10 +61,13 @@ func advance(real_delta: float) -> void:
 		(actor as DemoActorScript).advance(clock)
 
 
-func build(manifest: Dictionary, points: Array[Dictionary], obstacles: Array[Vector3]) -> void:
-	"""Spawn the cast: one actor per manifest creature (or placeholders), at distinct starting POIs."""
+func build(manifest: Dictionary, points: Array[Dictionary], obstacles: Array[Vector3],
+		plan_area: Rect2 = UNBOUNDED) -> void:
+	"""Spawn the cast: one actor per manifest creature (or placeholders), at distinct starting POIs.
+	Routes stay inside `plan_area` (the water's bands reach past it; demo/waterplay/water_links.gd)."""
 	_clear()
 	_space = CastSpaceScript.new()
+	_space.nav.area = plan_area
 	_space.setup(points, obstacles)
 	var cast: Dictionary = manifest.get("cast", {})
 	var keys: Array = cast.keys()

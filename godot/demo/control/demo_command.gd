@@ -98,7 +98,7 @@ var _ground_clicks: Array[Callable] = []
 var _ground_orders: Array[Callable] = []
 var _task_texts: Array[Callable] = []
 var _input_hooks: Array[Callable] = []
-var _skill_text: Callable = Callable()
+var _skill_texts: Array[Callable] = []
 
 
 func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null,
@@ -178,8 +178,15 @@ func add_input_hook(hook: Callable) -> void:
 
 func set_skill_text(provider: Callable) -> void:
 	"""`provider(actor_index: int, alone: bool) -> String`: a resident's skills for the panel -- the
-	long form when it is selected alone, the short one in a list (demo/forestry/forest_skills.gd)."""
-	_skill_text = provider
+	long form when it is selected alone, the short one in a list (demo/forestry/forest_skills.gd).
+	Replaces any others."""
+	_skill_texts = [provider]
+
+
+func add_skill_text(provider: Callable) -> void:
+	"""Another owner's skills or meters (the water's: bridge building, breath and stamina), shown after
+	those added before it."""
+	_skill_texts.append(provider)
 
 
 func doing_text(actor_index: int) -> String:
@@ -590,11 +597,15 @@ func party_entries() -> Array[Dictionary]:
 
 
 func skills_text(actor_index: int) -> String:
-	"""A resident's skills for the panel ("" with no provider): the long form when it is selected
-	alone, the short form in a list."""
-	if not _skill_text.is_valid():
-		return ""
-	return String(_skill_text.call(actor_index, selection_count() <= 1))
+	"""A resident's skills for the panel ("" with no provider): every provider's words, the long form a
+	line each (the panel shows a line apiece) when it is selected alone, the short forms joined in a list."""
+	var alone: bool = selection_count() <= 1
+	var parts := PackedStringArray()
+	for provider: Callable in _skill_texts:
+		var said: String = String(provider.call(actor_index, alone))
+		if not said.is_empty():
+			parts.append(said)
+	return ("\n" if alone else " · ").join(parts)
 
 
 func _dug_percent(brain: BrainScript) -> int:

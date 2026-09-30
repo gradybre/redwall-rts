@@ -28,6 +28,12 @@ extends RefCounted
 ## resident's place is kept too (`resident_tunnel`, `resident_along`, `resident_heading`), so those
 ## sharing one keep their distance (`room_ahead`, `oncoming`).
 ##
+## IN THE WATER (demo/waterplay/). A resident swimming, diving or wading out on a crossing is off the
+## walking surface the same way: `set_in_water` flags it in `resident_underground` (nobody separates
+## from it or plans round it) and in `resident_in_water`, but it stays drawn. `crossings` is the water's
+## crossing hook (cast/crossing_hook.gd): `plan_path` also routes a resident over a finished bridge or,
+## a swimmer, across the water when that is quicker; the base hook offers nothing.
+##
 ## TUNNEL MOUTHS AND HEAPS. Nobody is sent to STAND on a planned mouth: a formation keeps off them
 ## (`mouth_circles`), a mole stepping out of its exit keeps off them (`on_mouth`), and no mouth may
 ## open on a work spot (tunnel_rules). Walks may cross a hole's rim -- planning round every mouth
@@ -42,6 +48,7 @@ const CastNavScript := preload("res://demo/cast/cast_nav.gd")
 const CastRoutinesScript := preload("res://demo/cast/cast_routines.gd")
 const TunnelNetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
 const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
+const CrossingHookScript := preload("res://demo/cast/crossing_hook.gd")
 
 const PLAN_MARGIN_M: float = CastNavScript.PLAN_MARGIN_M
 const GOAL_EPSILON_M: float = CastNavScript.GOAL_EPSILON_M
@@ -66,7 +73,10 @@ var poi_activities: Array[Array] = []
 var resident_position: PackedVector2Array = PackedVector2Array()
 var resident_radius: PackedFloat32Array = PackedFloat32Array()
 var resident_walking: PackedByteArray = PackedByteArray()
+## Off the walking surface: in a tunnel, or in the water (see UNDERGROUND and IN THE WATER).
 var resident_underground: PackedByteArray = PackedByteArray()
+## In the water (swimming, diving, towed): off the surface, but drawn.
+var resident_in_water: PackedByteArray = PackedByteArray()
 ## Inside a bore: which tunnel (-1 on the surface), how far along it (m) and which way (+1 toward the
 ## exit, -1 toward the entrance).
 var resident_tunnel: PackedInt32Array = PackedInt32Array()
@@ -76,6 +86,8 @@ var resident_heading: PackedInt32Array = PackedInt32Array()
 var bounds: Rect2 = Rect2(-1e4, -1e4, 2e4, 2e4)
 var nav: CastNavScript = CastNavScript.new()
 var tunnels: TunnelNetworkScript = TunnelNetworkScript.new()
+## The water's crossings (see IN THE WATER); the base offers none.
+var crossings: CrossingHookScript = CrossingHookScript.new()
 
 var _slot_at: PackedVector2Array = PackedVector2Array()
 var _standing: PackedVector3Array = PackedVector3Array()
@@ -105,6 +117,7 @@ func setup(points: Array[Dictionary], obstacle_list: Array[Vector3]) -> void:
 	resident_radius.clear()
 	resident_walking.clear()
 	resident_underground.clear()
+	resident_in_water.clear()
 	resident_tunnel.clear()
 	resident_along.clear()
 	resident_heading.clear()
@@ -172,6 +185,7 @@ func add_resident(at: Vector2, radius: float) -> int:
 	resident_radius.append(radius)
 	resident_walking.append(0)
 	resident_underground.append(0)
+	resident_in_water.append(0)
 	resident_tunnel.append(-1)
 	resident_along.append(0.0)
 	resident_heading.append(0)
@@ -196,6 +210,13 @@ func set_underground(index: int, underground: bool) -> void:
 	resident_underground[index] = 1 if underground else 0
 	if not underground:
 		resident_tunnel[index] = -1
+
+
+func set_in_water(index: int, in_water: bool) -> void:
+	"""Whether a resident is in the water (see IN THE WATER): off the walking surface, but not in a bore."""
+	resident_in_water[index] = 1 if in_water else 0
+	resident_underground[index] = 1 if in_water else 0
+	resident_tunnel[index] = -1
 
 
 func set_in_bore(index: int, slot: int, along_m: float, heading: int) -> void:
@@ -405,10 +426,11 @@ func _place_slots() -> void:
 
 
 func obstacle_clearance(at: Vector2) -> float:
-	"""Distance from `at` to the nearest obstacle edge (negative inside one; INF with none near)."""
+	"""Distance from `at` to the nearest obstacle edge -- or the water's edge (crossing_hook.gd STANDING):
+	negative inside one; INF with none near. Every spot a resident is sent to stand at asks this."""
 	var pad := nav.max_radius + SLOT_SPACING_M * 4.0
 	var count := nav.circles_near(at - Vector2(pad, pad), at + Vector2(pad, pad))
-	var best := INF
+	var best := crossings.water_clearance_m(at)
 	for k in count:
 		var o := obstacles[nav.hit(k)]
 		best = minf(best, Vector2(o.x, o.z).distance_to(at) - o.y)
@@ -465,21 +487,24 @@ func plan_path(index: int, from: Vector2, to: Vector2, body_radius: float, out: 
 		legs: PackedInt32Array = PackedInt32Array(), allow_tunnels: bool = true, loaded: bool = false) -> void:
 	"""Fill `out` with waypoints from `from` (excluded) to `to` (last), round every obstacle and every
 	standing resident but `index`, and `legs` with each waypoint's leg code (-1 on the surface, or the
-	tunnel crossed to reach it: tunnel_router.gd). Resident `index` is routed through a finished
-	tunnel when `allow_tunnels`, its bore fits it (with its load, when `loaded`) and that is quicker.
-	Falls back to the straight line when no route exists; `nav.last_found` says whether one did, with
-	or without tunnels."""
+	tunnel or crossing crossed to reach it: tunnel_router.gd). Resident `index` is routed through a
+	finished tunnel when `allow_tunnels`, its bore fits it (with its load, when `loaded`) and that is
+	quicker -- and over whatever crossing `crossings` offers it (see IN THE WATER). Falls back to the
+	straight line when no route exists; `nav.last_found` says whether one did."""
 	var count := 0
 	for j in resident_position.size():
 		if j != index and resident_walking[j] == 0 and resident_underground[j] == 0:
 			_standing[count] = Vector3(resident_position[j].x, resident_radius[j], resident_position[j].y)
 			count += 1
-	if not allow_tunnels or tunnels.open_count() == 0 or not tunnels.fits_any(index, loaded):
+	var use_tunnels := allow_tunnels and tunnels.open_count() > 0 and tunnels.fits_any(index, loaded)
+	var use_crossings := crossings.offers_for(index, from, to, loaded)
+	if not use_tunnels and not use_crossings:
 		nav.plan(from, to, body_radius, _standing, count, out)
 		legs.resize(out.size())
 		legs.fill(-1)
 		return
-	nav.last_found = tunnels.plan(nav, from, to, body_radius, _standing, count, out, legs, index, loaded)
+	nav.last_found = tunnels.plan(nav, from, to, body_radius, _standing, count, out, legs, index, loaded,
+		crossings if use_crossings else null, use_tunnels)
 
 
 func mouth_clear(index: int, slot: int, exit: bool, hold_m: float) -> bool:

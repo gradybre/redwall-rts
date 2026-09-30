@@ -45,6 +45,7 @@ const RouterScript := preload("res://demo/tunnel/tunnel_router.gd")
 const CastNavScript := preload("res://demo/cast/cast_nav.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const QueueScript := preload("res://demo/tunnel/tunnel_queue.gd")
+const CrossingHookScript := preload("res://demo/cast/crossing_hook.gd")
 
 const PHASE_FREE: int = 0
 const PHASE_DIGGING: int = 1
@@ -62,6 +63,8 @@ const CLOSED_COLLAPSED: int = 2
 const MAX_TIMELINE: int = Rules.MAX_LENGTH_U / Rules.QUANTUM_U + 2 * Rules.SHAFT_QUANTA
 ## Demo: a lit bore is walked at this per mille of walk speed (tunnel_jobs.gd LANTERNS).
 const LIT_SPEED_PERMILLE: int = 1100
+## The router's cache revision: the network's in the low bits, the crossings' above them.
+const REVISION_SHIFT: int = 32
 
 ## progress_into() writes these slots.
 const P_CUTS: int = 0
@@ -672,12 +675,25 @@ func mouth_occupied(slot: int, body: float, standing: PackedVector3Array, reside
 
 func plan(nav: CastNavScript, from: Vector2, to: Vector2, body: float, standing: PackedVector3Array,
 		standing_count: int, out: PackedVector2Array, legs: PackedInt32Array, walker: int = -1,
-		loaded: bool = false) -> bool:
+		loaded: bool = false, crossings: CrossingHookScript = null, use_tunnels: bool = true) -> bool:
 	"""Plan from -> to through any usable tunnel whose mouths are free and whose bore resident `walker`
-	(carrying, when `loaded`) fits -- every usable tunnel when `walker` is -1 -- round the first
+	(carrying, when `loaded`) fits -- every usable tunnel when `walker` is -1; none unless `use_tunnels`
+	-- and through whatever `crossings` offers this trip (demo/waterplay/), round the first
 	`standing_count` standing residents in `standing` (tunnel_router.gd). True when a route was found."""
 	router.clear_pairs()
 	router.surface_permille = surface_permille
+	if use_tunnels:
+		_offer_tunnels(body, standing, standing_count, walker, loaded)
+	var key: int = revision
+	if crossings != null:
+		crossings.offer_into(router, walker, from, to, loaded)
+		key = revision | (crossings.revision() << REVISION_SHIFT)
+	return router.plan(nav, from, to, body, standing, standing_count, key, out, legs)
+
+
+func _offer_tunnels(body: float, standing: PackedVector3Array, standing_count: int, walker: int,
+		loaded: bool) -> void:
+	"""Offer the router every usable tunnel whose mouths are free and whose bore `walker` fits."""
 	for slot in Rules.MAX_TUNNELS:
 		if not is_usable(slot) or mouth_occupied(slot, body, standing, standing_count):
 			continue
@@ -685,4 +701,3 @@ func plan(nav: CastNavScript, from: Vector2, to: Vector2, body: float, standing:
 			continue
 		router.add_pair(slot, mouth(slot, false), mouth(slot, true), cost_m(slot) * float(Rules.PERMILLE)
 			/ float(speed_permille(slot)), queue.wait_m(2 * slot), queue.wait_m(2 * slot + 1))
-	return router.plan(nav, from, to, body, standing, standing_count, revision, out, legs)

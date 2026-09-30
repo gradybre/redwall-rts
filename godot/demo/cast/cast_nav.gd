@@ -20,6 +20,10 @@ extends RefCounted
 ## padded graph never enters, the circles within LOCAL_RING_M of the start and the goal get their
 ## own ring of plan nodes at that tighter inflation, to find the way out.
 ##
+## THE PLANNING AREA (`area`). No node of a graph or a plan's own rings is placed outside it, so no
+## route leaves it: the water's bands (demo/waterplay/) reach past its edge, and a band whose far end
+## lay inside it could be walked round. Unbounded by default. Set it before the first graph is built.
+##
 ## Nothing here allocates during a plan beyond the heap's first growth; the grid queries write into
 ## member arrays sized at setup.
 
@@ -41,6 +45,8 @@ const LOCAL_RING_M: float = 1.5
 
 var circles: PackedVector3Array = PackedVector3Array()
 var max_radius: float = 0.0
+## The planning area (see THE PLANNING AREA); nodes outside it are not placed.
+var area: Rect2 = Rect2(-1e6, -1e6, 2e6, 2e6)
 ## Plan statistics, for measurement: nodes expanded and whether a route was found.
 var last_expanded: int = 0
 var last_found: bool = false
@@ -140,7 +146,10 @@ func segment_hits_obstacle(a: Vector2, b: Vector2, body: float, margin: float, k
 
 
 func point_open(p: Vector2, body: float, margin: float = PLAN_MARGIN_M) -> bool:
-	"""Whether `p` lies outside every obstacle circle inflated for `body` and `margin`."""
+	"""Whether `p` lies inside the planning area and outside every obstacle circle inflated for `body`
+	and `margin`."""
+	if not area.has_point(p):
+		return false
 	var pad := max_radius + body + margin
 	var count := _grid.query(p - Vector2(pad, pad), p + Vector2(pad, pad), _hits)
 	for k in count:

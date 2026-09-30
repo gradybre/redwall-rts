@@ -21,6 +21,11 @@ extends RefCounted
 ##
 ## Tunnels chain: two tunnels can be linked by a surface edge between their mouths.
 ##
+## CROSSINGS (demo/waterplay/). The same graph carries the water's crossings -- a finished bridge, or a
+## swimmer's link across the stream -- offered as further pairs (`add_crossing`) at their own cost in
+## metres-at-walk-speed. A crossing's slot is MAX_TUNNELS + its row in the crossing table, so its leg
+## codes never meet a tunnel's (`is_crossing_code`); at most MAX_CROSSING_PAIRS are offered to one plan.
+##
 ## WEATHER, LANTERNS AND QUEUES (demo). Costs are compared as WALKING TIME in metres-at-walk-speed:
 ## every surface edge is its length times 1000 / `surface_permille` (the weather's surface speed;
 ## demo_weather.gd), while a tunnel edge -- dry and sheltered -- is its cost as offered (add_pair:
@@ -47,8 +52,12 @@ const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const START: int = 0
 const GOAL: int = 1
 const FIRST_MOUTH: int = 2
-const MAX_NODES: int = FIRST_MOUTH + 2 * Rules.MAX_TUNNELS
-const MOUTHS: int = 2 * Rules.MAX_TUNNELS
+## Crossings offered to one plan (see CROSSINGS), and every pair a plan can hold.
+const MAX_CROSSING_PAIRS: int = 8
+const MAX_PAIRS: int = Rules.MAX_TUNNELS + MAX_CROSSING_PAIRS
+const MAX_NODES: int = FIRST_MOUTH + 2 * MAX_PAIRS
+## Cache keys: a mouth id (2 x slot + end) times this plus the other's. Crossing rows stay below it.
+const MOUTH_KEY: int = 1 << 16
 const VIA_SURFACE: int = 0
 const VIA_TUNNEL: int = 1
 ## Leg code for a waypoint reached on the surface (see `leg_code`).
@@ -62,27 +71,30 @@ const EDGE_CACHED: int = 2
 const SAME_POINT_M: float = 1e-4
 
 
-## One body radius's mouth-to-mouth routes for one network revision.
+## One body radius's mouth-to-mouth routes for one network revision, keyed by `_cache_index` (a
+## tunnel's and a crossing's mouths share it, so the table is keyed rather than dense).
 class MouthCache:
 	extends RefCounted
 	var revision: int = -1
-	var known: PackedByteArray = PackedByteArray()
-	var weight: PackedFloat32Array = PackedFloat32Array()
-	var routes: Array[PackedVector2Array] = []
+	var weight: Dictionary = {}
+	var routes: Dictionary = {}
 
-	func _init() -> void:
-		"""Size the columns for every ordered pair of mouths once."""
-		known.resize(MOUTHS * MOUTHS)
-		weight.resize(MOUTHS * MOUTHS)
-		routes.resize(MOUTHS * MOUTHS)
-		for i in routes.size():
-			routes[i] = PackedVector2Array()
+	func knows(key: int) -> bool:
+		"""Whether the route under `key` was planned for this revision."""
+		return weight.has(key)
+
+	func forget() -> void:
+		"""Drop every route (a new revision)."""
+		weight.clear()
+		routes.clear()
 
 
 ## The open tunnels this plan may use: slot, the mouths, and the cost underground.
 var pair_count: int = 0
 var pair_slot: PackedInt32Array = PackedInt32Array()
 var pair_length_m: PackedFloat32Array = PackedFloat32Array()
+## How many of the offered pairs are crossings (at most MAX_CROSSING_PAIRS).
+var crossing_count: int = 0
 ## The wait (m of walking) to enter each offered tunnel at its mouth a and at its mouth b.
 var pair_wait_m: PackedFloat32Array = PackedFloat32Array()
 ## Surface walking speed per mille (see WEATHER, LANTERNS AND QUEUES).
@@ -114,9 +126,9 @@ var _standing_count: int = 0
 
 func _init() -> void:
 	"""Size every column for MAX_NODES once."""
-	pair_slot.resize(Rules.MAX_TUNNELS)
-	pair_length_m.resize(Rules.MAX_TUNNELS)
-	pair_wait_m.resize(2 * Rules.MAX_TUNNELS)
+	pair_slot.resize(MAX_PAIRS)
+	pair_length_m.resize(MAX_PAIRS)
+	pair_wait_m.resize(2 * MAX_PAIRS)
 	_node.resize(MAX_NODES)
 	_mouth_id.resize(MAX_NODES)
 	_weight.resize(MAX_NODES * MAX_NODES)
@@ -133,14 +145,42 @@ func _init() -> void:
 
 
 func clear_pairs() -> void:
-	"""Forget the tunnels offered to the next plan."""
+	"""Forget the tunnels and crossings offered to the next plan."""
 	pair_count = 0
+	crossing_count = 0
 
 
 func add_pair(slot: int, mouth_a: Vector2, mouth_b: Vector2, length_m: float, wait_a_m: float = 0.0,
 		wait_b_m: float = 0.0) -> void:
 	"""Offer one open tunnel: its slot, its two mouths, its cost and the wait to enter it at each
 	mouth (INF: that way in is closed). At most MAX_TUNNELS."""
+	_put_pair(slot, mouth_a, mouth_b, length_m, wait_a_m, wait_b_m)
+
+
+func add_crossing(row: int, end_a: Vector2, end_b: Vector2, cost_m: float) -> bool:
+	"""Offer crossing `row` of the water's table (0 <= row < MOUTH_KEY / 2 - MAX_TUNNELS) between its two
+	land ends at `cost_m` metres-at-walk-speed, either way. False (nothing offered) once
+	MAX_CROSSING_PAIRS are offered to this plan."""
+	if crossing_count >= MAX_CROSSING_PAIRS or row < 0:
+		return false
+	crossing_count += 1
+	_put_pair(Rules.MAX_TUNNELS + row, end_a, end_b, cost_m, 0.0, 0.0)
+	return true
+
+
+static func is_crossing_code(code: int) -> bool:
+	"""Whether a leg code crosses one of the water's crossings rather than a tunnel."""
+	return code >= 0 and leg_slot(code) >= Rules.MAX_TUNNELS
+
+
+static func crossing_row(code: int) -> int:
+	"""The crossing-table row a crossing leg code crosses."""
+	return leg_slot(code) - Rules.MAX_TUNNELS
+
+
+func _put_pair(slot: int, mouth_a: Vector2, mouth_b: Vector2, length_m: float, wait_a_m: float,
+		wait_b_m: float) -> void:
+	"""Write one offered pair's columns."""
 	pair_slot[pair_count] = slot
 	pair_length_m[pair_count] = length_m
 	pair_wait_m[2 * pair_count] = wait_a_m
@@ -201,7 +241,7 @@ func _begin(nav: CastNavScript, body: float, standing: PackedVector3Array, stand
 	_cache = _caches[key]
 	if _cache.revision != revision:
 		_cache.revision = revision
-		_cache.known.fill(0)
+		_cache.forget()
 	last_surface_plans = 0
 	last_cache_hits = 0
 
@@ -217,7 +257,7 @@ func _reset(from: Vector2, to: Vector2) -> void:
 			var edge := u * MAX_NODES + v
 			_weight[edge] = _node[u].distance_to(_node[v]) * _surface_scale()
 			_exact[edge] = EDGE_BOUND
-			if u >= FIRST_MOUTH and v >= FIRST_MOUTH and _cache.known[_cache_index(u, v)] == 1:
+			if u >= FIRST_MOUTH and v >= FIRST_MOUTH and _cache.knows(_cache_index(u, v)):
 				_weight[edge] = _cache.weight[_cache_index(u, v)] * _surface_scale()
 				_exact[edge] = EDGE_CACHED
 
@@ -229,7 +269,7 @@ func _surface_scale() -> float:
 
 func _cache_index(u: int, v: int) -> int:
 	"""Where the route from mouth node u to mouth node v lives in the cache."""
-	return _mouth_id[u] * MOUTHS + _mouth_id[v]
+	return _mouth_id[u] * MOUTH_KEY + _mouth_id[v]
 
 
 static func _partner(mouth: int) -> int:
@@ -322,9 +362,10 @@ func _make_exact(u: int, v: int, edge: int) -> int:
 func _plan_into_cache(u: int, v: int) -> void:
 	"""Plan mouth u -> mouth v round the obstacles alone, and keep it for this revision."""
 	var k := _cache_index(u, v)
-	_plan_edge(u, v, 0, _cache.routes[k])
-	_cache.weight[k] = _route_length(_node[u], _cache.routes[k]) if _nav.last_found else INF
-	_cache.known[k] = 1
+	var route := PackedVector2Array()
+	_plan_edge(u, v, 0, route)
+	_cache.routes[k] = route
+	_cache.weight[k] = _route_length(_node[u], route) if _nav.last_found else INF
 
 
 func _plan_edge(u: int, v: int, count: int, route: PackedVector2Array) -> void:

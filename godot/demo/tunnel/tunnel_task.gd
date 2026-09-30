@@ -50,3 +50,16 @@ func unfinished() -> RefCounted:
 func label() -> String:
 	"""What the resident is doing, in words, for the panel."""
 	return "on an errand"
+
+
+func holds_when_lost() -> bool:
+	"""Whether a resident whose walk to this task's site is given up holds where it stands, as under an order (the
+	base: yes). A routine task -- a night's sleep, a fixture to put in (decision 0210) -- answers no: the resident goes
+	back to its own routine instead, which sends it again."""
+	return true
+
+
+func urgent() -> bool:
+	"""Whether this is an emergency the night routine never interrupts (an evacuation, the water's rescue; decision
+	0210). The base: no -- dusk parks it."""
+	return false

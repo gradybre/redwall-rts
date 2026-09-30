@@ -94,8 +94,8 @@ func _dig(v: Dictionary) -> int:
 	"""Brendan's playtest scene, dug: a braced, lit tunnel by the beds (its entry ramp, its level bore round
 	the bend and its exit ramp, every segment braced and lit) with a find in the bore, a burrow home and a
 	root cellar east of it -- real rooms (decision 0209), each placed where the room rules allow, with its
-	passage to the bore, all dug; the cellar a pantry store -- a resident walking in the bore, and a route being
-	laid by the mole. Returns the bore's slot (segment 1: the ramps are 0 and 2)."""
+	passage to the bore, all dug, and fitted out (decision 0210); the cellar a pantry store -- a resident walking in
+	the bore, and a route being laid by the mole. Returns the bore's slot (segment 1: the ramps are 0 and 2)."""
 	var tool: ControlScript = v["tool"]
 	var network: GraphScript = tool.network
 	var ref := PackedInt32Array([-1, 0, -1])
@@ -107,6 +107,8 @@ func _dig(v: Dictionary) -> int:
 		network.set_braced(slot)
 		network.set_lit(slot)
 	lay_playtest_rooms(self, tool)
+	for r: int in 2:
+		furnish(network, r)
 	tool.ext.works.stores.add_find(FindsScript.FIND_FLINT)
 	tool.ext.works._record_find(bore, Vector2i(-6758, 15000), FindsScript.FIND_FLINT)
 	_send_below(v["cast"], network, bore)
@@ -122,6 +124,14 @@ func _dig(v: Dictionary) -> int:
 ## spots and mouths.
 const PLAYTEST_ROOMS: Array = [[RoomsScript.TEMPLATE_HOME, Vector2i(-1024, 10240), 1, true],
 	[RoomsScript.TEMPLATE_CELLAR, Vector2i(-7168, 4096), 1, true]]
+
+
+static func furnish(network: GraphScript, r: int) -> void:
+	"""Every fixture place of dug room `r` installed (the fit-out, decision 0210)."""
+	for f in RoomsScript.fixture_count(network.rooms.template[r]):
+		network.fit.phase_of(network, r, f)
+		network.fit.phase[r * RoomsScript.MAX_PLACES + f] = 2
+	network.fit.revision += 1
 
 
 static func lay_playtest_rooms(test: RefCounted, tool: ControlScript) -> void:
@@ -250,7 +260,7 @@ func test_set_layers_walks_the_tree_and_skips_one_branch() -> void:
 func test_every_drawn_node_is_on_exactly_one_view_and_the_surface_stays_up() -> void:
 	"""Over the dug village: every drawn node is in exactly one view; the world, the water, the woods and
 	the farm's beds, crops and labels are surface; every Label3D is on a marks layer; the cap, troughs,
-	rooms, frames, lanterns, finds, the cellar's shelf and the resident below are underground."""
+	rooms, frames, lanterns, finds, the rooms' fit-out and the resident below are underground."""
 	var v := _village()
 	var slot := _dig(v)
 	for node: VisualInstance3D in _drawn(v):
@@ -284,10 +294,20 @@ func _check_underground(v: Dictionary, slot: int) -> void:
 	assert_false(below.marker().visible, "no marker while below")
 	var above := v["cast"].actor(1) as DemoActorScript
 	assert_true(above.marker().visible and above.marker().get_child(0).layers == Layers.UNDERGROUND_MARKS, "a marker for one above")
-	var shelf: Node3D = (v["farm"] as DemoFarmScript).view.stock.shelf(1)
-	assert_true(shelf.visible, "the cellar's shelf stands")
-	for node: Node in shelf.find_children("*", "VisualInstance3D", true, false):
-		assert_equal((node as VisualInstance3D).layers, Layers.UNDERGROUND, "the shelf's %s below" % node.name)
+	_check_fit_out(tool)
+
+
+func _check_fit_out(tool: ControlScript) -> void:
+	"""Both rooms' fixtures stand below (decision 0210), and the home's chimney on the ground."""
+	var network: GraphScript = tool.network
+	for r: int in 2:
+		for f in RoomsScript.fixture_count(network.rooms.template[r]):
+			var piece: Node3D = tool.ext.fixture_view.piece(r, f)
+			assert_true(piece != null, "room %d's place %d fitted" % [r, f])
+			for node: Node in piece.find_children("*", "VisualInstance3D", true, false):
+				assert_equal((node as VisualInstance3D).layers, Layers.UNDERGROUND, "room %d's %s below" % [r, node.name])
+	for node: Node in tool.ext.fixture_view.chimney(0).find_children("*", "VisualInstance3D", true, false):
+		assert_equal((node as VisualInstance3D).layers, Layers.SURFACE, "the chimney's %s on the ground" % node.name)
 
 
 # --- a switch writes nothing ---------------------------------------------------------------------

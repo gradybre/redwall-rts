@@ -14,6 +14,9 @@ extends RefCounted
 ## `pay_planks` -- all or nothing, like `pay` -- and `units_text` for the panels. `take_wood` is the
 ## sawyer's all-or-nothing draw on the wood.
 ##
+## THE FIT-OUT (demo/burrow/room_fixtures.gd, decision 0210) pays its fixtures with `pay_all` (wood, stone and planks,
+## all or nothing) and takes a fixture's cost back with `refund`.
+##
 ## FINDS. Every find dug up (tunnel_finds.gd) is tallied here by kind; relics also advance the story
 ## notices. A refused spend changes nothing (no partial debit).
 
@@ -49,6 +52,30 @@ func pay(wood: int, stone: int) -> bool:
 	stone_milli_u -= stone
 	revision += 1
 	return true
+
+
+func pay_all(wood: int, stone: int, planks: int) -> bool:
+	"""Take this much wood, stone and planks (milli-U) -- all of it, or (false) none (the rooms' fit-out, decision
+	0210)."""
+	if not can_pay(wood, stone) or not can_pay_planks(planks):
+		return false
+	wood_milli_u -= wood
+	stone_milli_u -= stone
+	plank_milli_u -= planks
+	revision += 1
+	return true
+
+
+func refund(wood: int, stone: int, planks: int) -> void:
+	"""Give wood, stone and planks (milli-U) back to the stock: a fixture taken out (decision 0210)."""
+	add_wood(wood)
+	add_stone(stone)
+	add_planks(planks)
+
+
+func holdings_text() -> String:
+	"""What the stock holds, in whole units, for a refusal: "0 planks, 40 wood, 20 stone"."""
+	return "%d planks, %d wood, %d stone" % [plank_milli_u / 1000, wood_milli_u / 1000, stone_milli_u / 1000]
 
 
 func add_wood(milli_u: int) -> void:

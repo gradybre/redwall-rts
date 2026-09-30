@@ -29,6 +29,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import make_demo_props as props  # noqa: E402
 import stage_demo_assets as stage  # noqa: E402
 from repair_meshy_rig import write_glb  # noqa: E402
+from rig_meshy_tail import append_accessor  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 LOOKDEV = ROOT / "godot/assets/lookdev/lookdev_dimensions.gd"
@@ -172,9 +173,11 @@ def test_every_budget_is_under_its_gap04_ceiling() -> None:
 
 
 def test_the_pass_has_its_56_assets_and_eight_rebuilt() -> None:
-	"""52 props -- the pass's 44 (18 items, 5 finds, 21 others) and the 8 older props rebuilt (basket,
-	lantern, bed, jars, shelf and four tools) -- and 12 plants; icons for the items, finds and relics."""
-	check("52 props", len(props.PROPS) == 52)
+	"""53 props -- the pass's 44 (18 items, 5 finds, 21 others), the 8 older props rebuilt (basket,
+	lantern, bed, jars, shelf and four tools) and the burrow home's hearth (decision 0210: its L0's maps are
+	2,048 px) -- and 12 plants; icons for the items, finds and relics."""
+	check("53 props", len(props.PROPS) == 53)
+	check("the hearth is furniture", props.PROPS["hearth"] == "furniture")
 	rebuilt = {"basket", "wall_lantern", "bed", "clay_jars", "pantry_shelf", "spade", "hoe", "sickle", "axe"}
 	check("the older props rebuilt", rebuilt <= set(props.PROPS))
 	check("the bed and shelf are furniture", props.PROPS["bed"] == props.PROPS["pantry_shelf"] == "furniture")
@@ -255,6 +258,46 @@ def test_the_recorded_gait_speed_wins_and_the_estimate_is_kept() -> None:
 		check("the old estimate kept beside it", row["walk_speed_estimate_m_s"] == 0.8279)
 		check("no record: the estimate", fallback["walk_speed_m_s"] == 0.8279 and fallback["walk_speed_source"] == "toe_slide_estimate")
 		check("gait_speed of a bare clip is None", stage.gait_speed(bare) is None)
+
+
+def _sleeper() -> bytes:
+	"""A tiny lying clip: joints Hips (at the origin), Head (0.8 m toward -Z) and tail_00; four body vertices on
+	Hips -- the lowest at y = -0.12, every third measured (vertices 0 and 3) -- and one tail vertex far lower at
+	y = -0.5; a two-key rotation on Hips."""
+	doc = {"asset": {"version": "2.0"}, "scene": 0, "scenes": [{"nodes": [0, 3]}],
+		"nodes": [{"name": "Hips", "children": [1, 2]}, {"name": "Head", "translation": [0.0, 0.0, -0.8]},
+			{"name": "tail_00", "translation": [0.0, 0.0, 0.5]}, {"name": "Body", "mesh": 0, "skin": 0}],
+		"buffers": [{"byteLength": 0}], "bufferViews": [], "accessors": [], "skins": [], "meshes": [],
+		"animations": [{"channels": [{"sampler": 0, "target": {"node": 0, "path": "rotation"}}], "samplers": []}]}
+	binary = b""
+	identity = [(1.0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 1.0, 0, 0, 0, 0, 1.0)] * 3
+	binary, ibm = append_accessor(doc, binary, identity, 5126, "MAT4")
+	doc["skins"].append({"joints": [0, 1, 2], "inverseBindMatrices": ibm})
+	positions = [(0.1, -0.12, 0.3), (0.0, 0.3, 0.0), (0.0, 0.2, 0.0), (-0.1, -0.05, -0.5), (0.0, -0.5, 0.6)]
+	binary, pos = append_accessor(doc, binary, positions, 5126, "VEC3")
+	binary, jnt = append_accessor(doc, binary, [(0, 0, 0, 0)] * 4 + [(2, 0, 0, 0)], 5121, "VEC4")
+	binary, wgt = append_accessor(doc, binary, [(1.0, 0.0, 0.0, 0.0)] * 5, 5126, "VEC4")
+	doc["meshes"].append({"primitives": [{"attributes": {"POSITION": pos, "JOINTS_0": jnt, "WEIGHTS_0": wgt}}]})
+	binary, times = append_accessor(doc, binary, [(0.0,), (1.0,)], 5126, "SCALAR")
+	binary, turns = append_accessor(doc, binary, [(0.0, 0.0, 0.0, 1.0)] * 2, 5126, "VEC4")
+	doc["animations"][0]["samplers"].append({"input": times, "output": turns, "interpolation": "LINEAR"})
+	doc["buffers"][0]["byteLength"] = len(binary)
+	return write_glb(doc, binary)
+
+
+def test_a_sleep_clip_is_measured_by_its_body_s_lowest_point() -> None:
+	"""sleep_row (decision 0210): the lowest measured body vertex (-0.12: the tail's -0.5 left out), the middle of the
+	measured footprint, the way from the hips to the head (unit, toward -Z) and the footprint's length; staged as an
+	optional clip where the grounded output has it."""
+	with tempfile.TemporaryDirectory() as folder:
+		clip = pathlib.Path(folder) / "anim_sleep_normally.glb"
+		clip.write_bytes(_sleeper())
+		row = stage.sleep_row(clip)
+		check("the body's lowest point", row["floor_y_m"] == -0.12)
+		check("the footprint's middle", row["centre_m"] == [0.0, -0.1])
+		check("the head toward -Z", row["head"] == [0.0, -1.0])
+		check("its length", row["length_m"] == 0.8)
+	check("sleep is an optional clip", "sleep_normally" in stage.OPTIONAL_CLIPS and stage.SLEEP_CLIP == "sleep_normally")
 
 
 def test_the_beaver_is_staged_only_once_grounded() -> None:

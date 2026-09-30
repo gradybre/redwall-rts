@@ -81,3 +81,8 @@ func label() -> String:
 	if stage == STAGE_SHELTERING:
 		return "Sheltering from the %s" % _threat_name
 	return "Evacuating — %s" % _threat_name
+
+
+func urgent() -> bool:
+	"""An evacuation is never interrupted by bedtime (decision 0210)."""
+	return true

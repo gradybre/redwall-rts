@@ -69,6 +69,10 @@ class VictimTask extends "res://demo/tunnel/tunnel_task.gd":
 		_motion.drift(brain, delta)
 		return true
 
+	func urgent() -> bool:
+		"""The water's rescue is never interrupted by bedtime (decision 0210)."""
+		return true
+
 	func label() -> String:
 		"""In words."""
 		if towed:
@@ -204,6 +208,10 @@ class SwimRescue extends "res://demo/tunnel/tunnel_task.gd":
 			victim_task.engaged = false
 			victim_task.towed = false
 
+	func urgent() -> bool:
+		"""The water's rescue is never interrupted by bedtime (decision 0210)."""
+		return true
+
 	func label() -> String:
 		"""In words."""
 		return WORDS[phase]
@@ -306,6 +314,10 @@ class LineRescue extends "res://demo/tunnel/tunnel_task.gd":
 		"""Whether the line is out to the victim (drawn by the view)."""
 		return phase == PHASE_HAUL
 
+	func urgent() -> bool:
+		"""The water's rescue is never interrupted by bedtime (decision 0210)."""
+		return true
+
 	func label() -> String:
 		"""In words."""
 		return WORDS[phase]
@@ -348,6 +360,10 @@ class RestTask extends "res://demo/tunnel/tunnel_task.gd":
 	func cancel(brain: RefCounted) -> void:
 		"""Ordered on before the rest was over."""
 		finish(brain)
+
+	func urgent() -> bool:
+		"""The water's rescue is never interrupted by bedtime (decision 0210)."""
+		return true
 
 	func label() -> String:
 		"""In words."""

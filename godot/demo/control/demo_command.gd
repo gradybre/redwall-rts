@@ -439,6 +439,8 @@ func _on_key(event: InputEventKey) -> bool:
 		return false
 	if event.is_action_pressed(&"selection_clear"):
 		clear_selection()
+		if _tunnels != null:
+			_tunnels.ext.deselect_room()
 		return true
 	if event.physical_keycode == KEY_R and not (event.shift_pressed or event.ctrl_pressed or event.alt_pressed or event.meta_pressed):
 		release_selection()
@@ -464,6 +466,7 @@ func _finish_select(at: Vector2) -> void:
 			clear_selection()
 			if _tunnels != null:
 				_tunnels.ext.actions.clear_selection()
+				_tunnels.ext.deselect_room()
 	elif _additive:
 		_selected[hit] = 1 - _selected[hit]
 	else:
@@ -549,12 +552,14 @@ static func proxy_into(brain: BrainScript, foot: Vector3, height: float, below_s
 	On the surface, or underground in the underground view: its body where it is drawn -- except a
 	resident on the surface in the underground view, which is its marker on the level's floor.
 	Underground otherwise: a digging mole as its mound -- on the ground, the mound's drawn radius from
-	`eye` -- and anyone else not at all (radius 0)."""
+	`eye` -- and anyone else not at all (radius 0). Asleep inside the hall (not drawn), not at all."""
 	out[0] = foot.x
 	out[1] = foot.y
 	out[2] = foot.z
 	out[3] = height
-	out[4] = brain.radius
+	out[4] = brain.radius if not brain.indoors else 0.0
+	if brain.indoors:
+		return
 	if below_seen and not brain.underground:
 		out[1] = Layers.FLOOR_Y_M
 		out[3] = MARKER_PICK_HEIGHT_M

@@ -61,6 +61,10 @@ extends Node3D
 ## inside the woods' reach. `_build_waterplay()` wires it after the woods (a log bridge's log may be a
 ## felled trunk); its "Water (demo)" panel is the right column's fourth tab.
 ##
+## LIVING (decision 0210, demo/burrow/): the rooms' fit-out -- fixtures ordered on a selected room, paid from the one
+## stores, put in by residents -- and the night: at dusk everyone goes home to bed (the party panel says whose bed, or
+## that it has none), and the farm's pantry tells a cellar's racks how full it is (`cellar_fill`).
+##
 ## SPOIL (demo/spoil/): a tunnel's spoil heaps can be selected and cleared -- dug out and hauled into the
 ## farm's compost store (Clear: right-click a heap with residents selected). `_build_spoil()` wires it.
 ##
@@ -156,6 +160,7 @@ func _ready() -> void:
 	_build_spoil()
 	_build_forestry()
 	_command.add_skill_text(_command.tunnels().ext.skill_text)
+	_command.add_skill_text(_command.tunnels().ext.night.home_text)
 	_build_waterplay()
 	_build_shared_ui()
 	_skin_hud.call_deferred()
@@ -229,6 +234,8 @@ func _build_farm(manifest: Dictionary) -> void:
 	_farm.configure(manifest, _world as DemoWorldScript, _cast as DemoCastScript, _command as DemoCommandScript,
 		_camera.camera(), _shell(), storage_providers(), _services)
 	_farm.follow_rooms(rooms())
+	_command.tunnels().ext.fixture_view.set_fill(_farm.cellar_fill)
+	_command.tunnels().ext.set_stored(_farm.cellar_stored_u)
 	_command.tunnels().ext.set_weather_skip(_farm.skip_to_next_weather)
 	_command.tunnels().ext.events_view.set_flood_rise(_water.set_flood_rise)
 	_farm.add_overlay(WATER_OVERLAY_NAME, _water.set_overlay_shown)

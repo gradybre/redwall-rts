@@ -34,9 +34,11 @@ extends RefCounted
 ##   NEAR_TUNNEL 1 m of earth from every tunnel (join one at a socket instead); SURFACE_BLOCKED the mound, the
 ##   hood and the door clear of trees, heaps, props, work spots and mouths.
 ##
-## THE CELLAR API (the pantry: demo/farm/farm_cellars.gd): `cellars(graph)` lists every dug root cellar as
-## {"id": Vector2i(slot, generation), "position": Vector3 (its hatch, on the ground), "capacity_u": int,
-## "spoilage_permille": int} -- the shape burrow_chambers.gd published -- and `revision` bumps on any change.
+## THE CELLAR API (the pantry: demo/farm/farm_cellars.gd): `cellars(graph)` lists every dug root cellar with a store
+## in it as {"id": Vector2i(slot, generation), "position": Vector3 (its hatch, on the ground), "capacity_u": int,
+## "spoilage_permille": int} -- the shape burrow_chambers.gd published -- and `revision` bumps on any change. Since
+## the fit-out (decision 0210) the capacity is the cellar's racks' and the spoilage follows the cool rule
+## (room_fixtures.gd); the shape is unchanged.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 
@@ -73,33 +75,46 @@ const CELLS_LOCAL: Array = [[],
 	[Vector2i(-1024, -1536), Vector2i(0, -1536), Vector2i(1024, -1536), Vector2i(-1024, -512), Vector2i(0, -512),
 		Vector2i(1024, -512), Vector2i(-1024, 512), Vector2i(0, 512), Vector2i(1024, 512), Vector2i(-1024, 1536),
 		Vector2i(0, 1536), Vector2i(1024, 1536)]]
-## FIXTURES: the fit-out's places (P4 fills them; beds and shelves stand in them now), per template, as
-## (kind, x, z, facing x, facing z) in the room's frame: where it stands and the way its front faces.
+## FIXTURES: the fit-out's PLACES (decision 0210, P4; the places P3 left, decision 0209), per template, as
+## (kind, x, z, facing x, facing z) in the room's frame: where a fixture of that kind stands and the way its front
+## faces. A place holds only its own kind, so the palette's fixtures go on these places as on sockets
+## (room_fixtures.gd; design §4 "Fit-out"): a home's three bed alcoves, its hearth, table, rag rug, lantern and
+## hanging stores; a cellar's two shelves, pantry rack, root bin and hanging stores.
 const FIX_BED: int = 0
 const FIX_HEARTH: int = 1
 const FIX_TABLE: int = 2
 const FIX_SHELF: int = 3
-const FIX_JARS: int = 4
-const FIX_LANTERN: int = 5
-const FIX_BASKET: int = 6
-const FIXTURE_NAMES: Array[String] = ["bed", "hearth", "table", "shelf", "jars", "lantern", "basket"]
+const FIX_RUG: int = 4
+const FIX_RACK: int = 5
+const FIX_BIN: int = 6
+const FIX_HANGING: int = 7
+const FIX_LANTERN: int = 8
+const FIXTURE_KINDS: int = 9
+const FIXTURE_NAMES: Array[String] = ["bed", "hearth", "table and stools", "shelf", "rag rug", "pantry rack", "root bin",
+	"hanging stores", "lantern"]
 const FIXTURE_FIELDS: int = 5
+const MAX_PLACES: int = 8
 const FIXTURES: Array = [[],
 	[FIX_BED, 1273, 1273, -724, -724, FIX_BED, -1273, 1273, 724, -724, FIX_BED, -1273, -1273, 724, 724,
-		FIX_HEARTH, 1160, -1160, -724, 724, FIX_TABLE, 640, 640, -724, -724, FIX_LANTERN, 1040, -1800, -512, 887,
-		FIX_BASKET, 560, -1380, -383, 925],
-	[FIX_SHELF, -1080, -900, 1024, 0, FIX_SHELF, -1080, 900, 1024, 0, FIX_JARS, 980, -1300, -1024, 0,
-		FIX_BASKET, 1000, 1300, -1024, 0, FIX_LANTERN, -1460, 0, 1024, 0]]
+		FIX_HEARTH, 1250, -1250, -724, 724, FIX_TABLE, 640, -640, 724, 724, FIX_RUG, 300, -300, 724, 724,
+		FIX_LANTERN, -700, 1925, 342, -962, FIX_HANGING, 1560, -330, -1024, 0],
+	[FIX_SHELF, -1080, -900, 1024, 0, FIX_SHELF, -1080, 900, 1024, 0, FIX_RACK, 1000, -1300, -1024, 0,
+		FIX_BIN, 1000, 1300, -1024, 0, FIX_HANGING, -520, 0, 1024, 0]]
+## THE WALL LANTERN each room is dug with (P3's, decision 0209): not a fixture -- the room's own light by its
+## door, one of the pooled lights -- as (x, z, facing x, facing z) in the room's frame.
+const WALL_LANTERN: Array = [[], [1040, -1800, -512, 887], [-1460, 0, 1024, 0]]
 ## THE BED ALCOVES: a home's wall bows out ALCOVE_U more round each bed (room_view.gd), as recesses the
 ## beds stand in.
 const ALCOVE_U: int = 460
-## The GDD's starter dormitory holds 12 beds in 40 tiles: a home's 12 floor quanta hold 12 x 12 / 40 = 3.
+## The GDD's starter dormitory holds 12 beds in 40 tiles: a home's 12 floor quanta hold 12 x 12 / 40 = 3 (its
+## three bed alcoves; the beds themselves are fixtures now, room_fixtures.gd).
 const DORMITORY_BEDS: int = 12
 const DORMITORY_TILES: int = 40
 const BEDS_PER_HOME: int = 12 * DORMITORY_BEDS / DORMITORY_TILES
-## A root cellar: the GDD's cellar store factor (cited); its capacity a demo value (unchanged from the chambers).
+## A root cellar: the GDD's cellar store factor when it is COOL, the pantry's when it is not (§5.8; the cool rule
+## is room_fixtures.gd's). Its capacity is its racks' (room_fixtures.gd CAPACITY_U), not a flat figure any more.
 const CELLAR_SPOILAGE_PERMILLE: int = 350
-const CELLAR_CAPACITY_U: int = 60
+const WARM_CELLAR_SPOILAGE_PERMILLE: int = 750
 
 const REFUSE_NONE: int = 0
 const REFUSE_FULL: int = 1
@@ -614,8 +629,8 @@ func count_done(graph: RefCounted, kind: int) -> int:
 
 
 func beds(graph: RefCounted) -> int:
-	"""Demo beds in every dug burrow home."""
-	return count_done(graph, TEMPLATE_HOME) * BEDS_PER_HOME
+	"""Demo beds installed in every dug burrow home (the fit-out's, decision 0210)."""
+	return graph.fit.installed_beds(graph)
 
 
 func cellar_count(graph: RefCounted) -> int:
@@ -624,14 +639,18 @@ func cellar_count(graph: RefCounted) -> int:
 
 
 func cellars(graph: RefCounted) -> Array[Dictionary]:
-	"""Every dug root cellar (see THE CELLAR API), at its hatch. Allocates; call on change, not per frame."""
+	"""Every dug root cellar with a store in it (see THE CELLAR API), at its hatch: its capacity its racks' and its
+	spoilage the GDD's cellar factor while it is cool, the pantry's while it is not (room_fixtures.gd, decision 0210).
+	A bare cellar holds nothing and is left out. Allocates; call on change, not per frame."""
 	var out: Array[Dictionary] = []
 	for r in MAX_ROOMS:
-		if template[r] != TEMPLATE_CELLAR or not is_done(graph, r):
+		if template[r] != TEMPLATE_CELLAR or not is_done(graph, r) or graph.fit.capacity_u(graph, r) <= 0:
 			continue
 		var hatch := mouth_u(r)
+		var cool: bool = graph.fit.is_cool(graph, r)
 		out.append({"id": Vector2i(r, generation[r]), "position": Vector3(Rules.to_m(hatch.x), 0.0, Rules.to_m(hatch.y)),
-			"capacity_u": CELLAR_CAPACITY_U, "spoilage_permille": CELLAR_SPOILAGE_PERMILLE})
+			"capacity_u": graph.fit.capacity_u(graph, r),
+			"spoilage_permille": CELLAR_SPOILAGE_PERMILLE if cool else WARM_CELLAR_SPOILAGE_PERMILLE})
 	return out
 
 

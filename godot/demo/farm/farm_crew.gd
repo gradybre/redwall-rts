@@ -31,6 +31,7 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
+const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
 
 ## The residents whose routine includes farm work.
 const CREW_KEYS: Array[StringName] = [&"mouse_fieldworker", &"squirrel_gatherer"]
@@ -191,7 +192,7 @@ func _hand_out() -> void:
 		_idle.clear()
 		for who: int in _crew:
 			var brain: BrainScript = _brain(who)
-			if brain.order == BrainScript.ORDER_NONE and not brain.underground:
+			if brain.order == BrainScript.ORDER_NONE and not brain.underground and not brain.resting:
 				_idle.append(who)
 		if _nearest_free_into(_idle, Catalog.bed_centre_m(jobs.bed[row]), _read):
 			_take_over(row, _read.value)
@@ -227,7 +228,10 @@ func _step_walk(row: int, code: int) -> void:
 
 
 func _issue_walk(row: int, code: int, brain: BrainScript) -> void:
-	"""Send the worker to a spot beside this step's target, carrying on a carry step."""
+	"""Send the worker to a spot beside this step's target, carrying on a carry step -- into a root cellar, down to its
+	middle to shelve the harvest (farm_cellars.gd CARRIED IN)."""
+	if code == JobsScript.STEP_CARRY_STORE and _carry_into_cellar(row, brain):
+		return
 	if not _target_into(row, code):
 		_finish(row, "%s: nothing to fetch it from" % JobsScript.KIND_NAMES[jobs.kind[row]])
 		return
@@ -241,6 +245,22 @@ func _issue_walk(row: int, code: int, brain: BrainScript) -> void:
 		brain.order_carry(_found, target)
 	else:
 		brain.order_move(_found, target)
+
+
+func _carry_into_cellar(row: int, brain: BrainScript) -> bool:
+	"""A harvest bound for a root cellar the worker can carry it down into: walked in at the hatch to the cellar's
+	middle, facing its racks (the drop work then shelves it there). False when the store is not such a cellar (a
+	cellar is a store only once dug)."""
+	var ref := FarmCellars.room_of(_pantry.storage.id_of(jobs.location[row]))
+	if not _network.rooms.is_ref(ref.x, ref.y):
+		return false
+	var node: int = _network.rooms.middle[ref.x]
+	if not brain.can_haul_below(node):
+		return false
+	jobs.goal[row] = _network.node_m(node)
+	jobs.issued[row] = 1
+	brain.order_carry_below(node, FarmCellars.rack_at(_network, ref.x))
+	return true
 
 
 func _target_into(row: int, code: int) -> bool:

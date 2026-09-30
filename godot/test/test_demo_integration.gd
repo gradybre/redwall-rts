@@ -111,13 +111,22 @@ func _works() -> WorksScript:
 
 
 func _dig_cellar(network: GraphScript, at_m: Vector2) -> int:
-	"""A dug root cellar centred at `at_m` (x, z metres), its hatch 6 m south (decision 0209: a room of its own);
-	returns its room row."""
+	"""A dug root cellar centred at `at_m` (x, z metres), its hatch 6 m south (decision 0209: a room of its own), fitted
+	out with every rack (decision 0210: 105 U, cool); returns its room row."""
 	var ref := PackedInt32Array([0, 0, 0, 0, 0])
 	assert_true(network.add_room(RoomsScript.TEMPLATE_CELLAR, Vector2i(Rules.to_u(at_m.x), Rules.to_u(at_m.y)), 0, 0, ref),
 		"a cellar laid")
 	_dig_room(network, ref[2])
+	_furnish(network, ref[0])
 	return ref[0]
+
+
+static func _furnish(network: GraphScript, r: int) -> void:
+	"""Every fixture place of dug room `r` installed (the fit-out, decision 0210)."""
+	for f in RoomsScript.fixture_count(network.rooms.template[r]):
+		network.fit.phase_of(network, r, f)
+		network.fit.phase[r * RoomsScript.MAX_PLACES + f] = 2
+	network.fit.revision += 1
 
 
 static func _dig_room(network: GraphScript, piece: int) -> void:
@@ -286,8 +295,8 @@ func test_the_farm_adopts_the_calendar_only_before_either_runs() -> void:
 
 func test_a_finished_root_cellar_is_a_pantry_store() -> void:
 	"""A root cellar room (decision 0209), through farm_cellars.gd: a StringName id the provider API accepts, its
-	label, its 60 U and the GDD's 350, delivered at its hatch; a planned cellar and a burrow home are not
-	stores."""
+	label, its racks' 105 U and the GDD's 350 (cool: decision 0210), delivered at its hatch; a planned cellar, a bare
+	one and a burrow home are not stores."""
 	var network := GraphScript.new()
 	var storage := StorageScript.new(Vector2(14.0, 6.2))
 	storage.add_provider(FarmCellars.provider(network))
@@ -301,11 +310,14 @@ func test_a_finished_root_cellar_is_a_pantry_store() -> void:
 	assert_equal(storage.count(), 1, "planned cellars and homes are not stores")
 	_dig_room(network, cellar[2])
 	storage.refresh()
-	assert_equal(storage.count(), 2, "the cellar is")
+	assert_equal(storage.count(), 1, "nor a bare cellar")
+	_furnish(network, cellar[0])
+	storage.refresh()
+	assert_equal(storage.count(), 2, "the cellar is, racked")
 	assert_equal(storage.refused_entries(), 0, "nothing refused")
 	assert_equal(storage.id_of(1), &"root_cellar:0:0", "its id")
 	assert_equal(storage.label_of(1), "Root cellar 1", "its label")
-	assert_equal(storage.capacity_milli_of(1), 60000, "60 U")
+	assert_equal(storage.capacity_milli_of(1), 105000, "its racks' 105 U")
 	assert_equal(storage.permille_of(1), 350, "the GDD's cellar factor")
 	assert_equal(storage.position_of(1), Vector2(-6.0, 6.0), "delivered at its hatch, 6 m south")
 
@@ -317,8 +329,10 @@ func test_a_cellar_is_entered_at_its_own_hatch() -> void:
 	var ref := PackedInt32Array([0, 0, 0, 0, 0])
 	assert_true(network.add_room(RoomsScript.TEMPLATE_CELLAR, Vector2i.ZERO, 1, 0, ref), "turned once")
 	_dig_room(network, ref[2])
+	_furnish(network, ref[0])
 	assert_true(network.add_room(RoomsScript.TEMPLATE_CELLAR, Vector2i(0, 12288), 2, 0, ref), "turned twice")
 	_dig_room(network, ref[2])
+	_furnish(network, ref[0])
 	var entries: Array = FarmCellars.entries(network)
 	assert_equal(entries[0][StorageScript.KEY_POSITION], Vector3(6.0, 0.0, 0.0), "its hatch 6 m east")
 	assert_equal(entries[1][StorageScript.KEY_POSITION], Vector3(0.0, 0.0, 18.0), "its hatch 6 m north")
@@ -337,10 +351,10 @@ func test_a_harvest_goes_to_the_coldest_store_with_room_nearest_its_bed() -> voi
 	assert_equal(storage.id_of(_read.value), &"root_cellar:%d:0" % near_cellar, "the cellar by the beds")
 	assert_true(pantry.location_near_into(5100, Vector2(10.0, 4.0), _read), "from by the store")
 	assert_equal(storage.id_of(_read.value), &"root_cellar:%d:0" % far_cellar, "the cellar by the store")
-	assert_true(pantry.add_into(CARROT, 60000, 2, _read), "fill the near cellar")
+	assert_true(pantry.add_into(CARROT, 105000, 2, _read), "fill the near cellar")
 	assert_true(pantry.location_near_into(5100, Catalog.bed_centre_m(BED_CARROTS), _read), "again")
 	assert_equal(storage.id_of(_read.value), &"root_cellar:%d:0" % far_cellar, "the other cellar")
-	assert_true(pantry.location_near_into(61000, Catalog.bed_centre_m(BED_CARROTS), _read), "too big")
+	assert_true(pantry.location_near_into(106000, Catalog.bed_centre_m(BED_CARROTS), _read), "too big")
 	assert_equal(_read.value, 0, "the covered store")
 
 
@@ -356,13 +370,16 @@ func test_the_village_s_cellars_take_the_farm_s_harvest() -> void:
 	farm.crew.order(JobsScript.KIND_HARVEST, BED_CARROTS, PackedInt32Array([3]), JobsScript.ORIGIN_PLAYER)
 	var cast: DemoCastScript = farm._cast
 	var stored: bool = false
+	var below: bool = false
 	for frame: int in roundi(120.0 / DT):
 		cast.advance(DT)
 		farm.crew.update(cast.clock.frame_usec)
+		below = below or (cast.actor(3) as DemoActorScript).brain.underground
 		if farm.pantry.total_units() > 0:
 			stored = true
 			break
 	assert_true(stored, "delivered")
+	assert_false(below, "a placeholder has no carry: it leaves the harvest at the hatch, never below")
 	assert_true(farm.storage.index_of_id_into(&"root_cellar:%d:0" % by_beds, _read), "the cellar by the beds")
 	assert_equal(farm.pantry.milli_at(CARROT, _read.value), 5100, "holds the carrots")
 	assert_equal(farm.pantry.milli_at(CARROT, 0), 0, "not the covered store")
@@ -370,6 +387,48 @@ func test_the_village_s_cellars_take_the_farm_s_harvest() -> void:
 	assert_equal(farm.pantry.milli_at(CARROT, _read.value), 0, "is passed over")
 	assert_true(_feed_has("Harvested 5.1 U of carrot into the root cellar %d" % (by_beds + 1), NoticesScript.LEVEL_NOTE),
 		"the crew's report is in the feed")
+
+
+func test_the_farm_tells_a_cellar_how_full_it_is() -> void:
+	"""demo_farm.gd: a fitted cellar's fill (per mille of its racks' 105 U) and the food it holds, rounded up, for its
+	racks (decision 0210); a room row that is no store is empty."""
+	var farm := _village(true)
+	var r := _dig_cellar(_command.tunnels().network, Vector2(-6.0, 12.8))
+	farm.pantry.refresh_locations()
+	assert_equal(farm.cellar_fill(r), 0, "the farm does not follow the rooms yet: none")
+	farm.follow_rooms(_command.tunnels().network.rooms)
+	assert_equal([farm.cellar_fill(r), farm.cellar_stored_u(r)], [0, 0], "empty")
+	var location: int = farm._cellar_location(r)
+	assert_true(location > 0, "a pantry store")
+	assert_true(farm.pantry.add_into(CARROT, 52501, location, _read), "half of it filled, and a little")
+	assert_equal(farm.cellar_fill(r), 500, "half full")
+	assert_equal(farm.cellar_stored_u(r), 53, "53 U, rounded up")
+	assert_equal([farm.cellar_fill(5), farm.cellar_stored_u(5)], [0, 0], "no such cellar")
+	assert_equal(farm.cellar_fill(99), 0, "no such room row")
+	assert_true(farm.pantry.add_into(CARROT, 100000, 0, _read), "the covered store stocked")
+	assert_equal([farm.cellar_fill(5), farm.cellar_stored_u(5)], [0, 0], "no cellar is not the covered store")
+
+
+func test_a_carrier_walks_the_harvest_down_into_the_cellar() -> void:
+	"""A resident with a carry harvests the carrots and carries them down the cellar's hatch to its middle, where the
+	drop shelves them in the cellar (decision 0210: carried in)."""
+	var farm := _village(true)
+	var by_beds := _dig_cellar(_command.tunnels().network, Vector2(-6.0, 12.8))
+	farm.step(24 * HOUR_USEC)
+	var cast: DemoCastScript = farm._cast
+	var brain: BrainScript = (cast.actor(3) as DemoActorScript).brain
+	brain.set_carry_motion({"keys_xz": [[0.0, 0.0], [0.0, 0.4], [0.0, 0.8]], "mean_speed_m_s": 0.4, "period_s": 2.0})
+	farm.crew.order(JobsScript.KIND_HARVEST, BED_CARROTS, PackedInt32Array([3]), JobsScript.ORIGIN_PLAYER)
+	var held_below: bool = false
+	for frame: int in roundi(240.0 / DT):
+		cast.advance(DT)
+		farm.crew.update(cast.clock.frame_usec)
+		held_below = held_below or (brain.underground and brain.state == BrainScript.State.HOLD)
+		if farm.pantry.total_units() > 0:
+			break
+	assert_true(held_below, "shelving it below, in the cellar")
+	assert_true(farm.storage.index_of_id_into(&"root_cellar:%d:0" % by_beds, _read), "the cellar")
+	assert_equal(farm.pantry.milli_at(CARROT, _read.value), 5100, "holds the carrots")
 
 
 func test_the_village_hands_the_tunnels_cellars_to_the_farm() -> void:
@@ -510,6 +569,47 @@ func test_the_feed_keeps_date_stamped_entries_newest_first() -> void:
 	assert_equal(out[0], "Y1 Spring 1, 14:00 · n%d" % (NoticesScript.CAPACITY + 2), "newest first")
 	out.clear()
 	assert_equal(feed.latest_of_into(NoticesScript.SOURCE_FARM, 3, out), 0, "the farm's have gone")
+
+
+func test_a_notice_said_again_straight_after_is_counted_not_repeated() -> void:
+	"""The playtest's "Tunnel 10: Good sticky clay..." three times in a row (decision 0210): one entry said three times,
+	"(×3)" on its line and its short line, dated when last said. Anything between keeps them apart; another level,
+	source or summary is another notice."""
+	var feed := NoticesScript.new()
+	var calendar := CalendarScript.new()
+	feed.bind_calendar(calendar)
+	var clay := "Tunnel 10: Good sticky clay, this 'un. Fit for pots an' patchin', burr aye."
+	for k in 3:
+		calendar.tick = 750 * k
+		assert_true(feed.post(NoticesScript.SOURCE_TUNNELS, NoticesScript.LEVEL_NOTE, clay), "said %d" % k)
+	assert_equal(feed.count(), 1, "one entry")
+	assert_equal(feed.repeats(0), 3, "said three times")
+	assert_equal(feed.line(0), "Y1 Spring 1, 08:00 · %s (×3)" % clay, "counted, dated when last said")
+	assert_equal(feed.short_line(0), "Y1 Spring 1, 08:00 · %s (×3)" % clay, "its short line too")
+	assert_equal(feed.revision, 3, "each said moves the feed")
+	feed.post(NoticesScript.SOURCE_TUNNELS, NoticesScript.LEVEL_NOTE, "Tunnel 10: a flint")
+	feed.post(NoticesScript.SOURCE_TUNNELS, NoticesScript.LEVEL_NOTE, clay)
+	assert_equal(feed.count(), 3, "a flint between: said again, a new entry")
+	assert_equal(feed.repeats(0), 1, "once")
+	assert_equal(feed.line(0), "Y1 Spring 1, 08:00 · " + clay, "no count on a line said once")
+	feed.post(NoticesScript.SOURCE_TUNNELS, NoticesScript.LEVEL_WARNING, clay)
+	feed.post(NoticesScript.SOURCE_CREW, NoticesScript.LEVEL_WARNING, clay)
+	feed.post(NoticesScript.SOURCE_CREW, NoticesScript.LEVEL_WARNING, clay, "clay")
+	assert_equal(feed.count(), 6, "another level, source or summary is another notice")
+
+
+func test_the_tunnel_panel_s_log_counts_a_line_said_again() -> void:
+	"""The works say the clay line three times: the panel's log shows it once, "(×3)"; a line between starts afresh."""
+	_village(false)
+	var clay := "Tunnel 10: Good sticky clay"
+	var before: int = _works().log_lines.size()
+	for k in 3:
+		_works().say(clay)
+	assert_equal(_works().log_lines.size(), before + 1, "one line")
+	assert_equal(_works().log_lines[-1], clay + " (×3)", "counted")
+	_works().say("Tunnel 10: a flint")
+	_works().say(clay)
+	assert_equal(_works().log_lines[-1], clay, "said again after another: a line of its own")
 
 
 func test_the_news_strip_shows_fresh_notices_and_warnings_longer() -> void:
@@ -667,3 +767,16 @@ func test_the_news_strip_follows_the_command_strip_when_the_journal_opens() -> v
 	var zone := DetailZoneScript.new()
 	_nodes.append(zone)
 	assert_false(zone.journal_open(), "the zone's own answer, as demo_village hands it over, starts closed")
+
+func test_a_cellar_racked_is_a_store_at_once() -> void:
+	"""The pantry reads a cellar's racks as they change, not at the next hour."""
+	var farm := _village(true)
+	var network: GraphScript = _command.tunnels().network
+	var ref := PackedInt32Array([0, 0, 0, 0, 0])
+	network.add_room(RoomsScript.TEMPLATE_CELLAR, Vector2i(Rules.to_u(-6.0), Rules.to_u(12.8)), 0, 0, ref)
+	_dig_room(network, ref[2])
+	farm._process(0.0)
+	var before: int = farm.storage.count()
+	_furnish(network, ref[0])
+	farm._process(0.0)
+	assert_equal(farm.storage.count(), before + 1, "a store at once")

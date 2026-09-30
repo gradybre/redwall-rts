@@ -45,6 +45,7 @@ const ServicesScript := preload("res://demo/demo_services.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const CoreWeather := preload("res://scripts/core/weather.gd")
 const Layers := preload("res://demo/demo_layers.gd")
+const DemoCommandScript := preload("res://demo/control/demo_command.gd")
 
 const DT: float = 1.0 / 60.0
 const SEED: int = 9091
@@ -1503,15 +1504,16 @@ func test_a_room_whose_passage_fails_once_laid_stands_alone_and_says_why() -> vo
 
 
 func test_the_rooms_pieces_on_the_ground_are_sampled_for_the_prewarm() -> void:
-	"""Three samples on the surface layer -- the mound in the ground's material, its earth face, a board in the
-	doors' timber -- under the ground, and gone after."""
+	"""Eight samples on the surface layer -- the mound in the ground's material, its earth face, a board in the
+	doors' timber, and the fit-out's chimney (its stone collar, clay pot and rim, its soot) and a puff of its smoke
+	(decision 0210) -- under the ground, and gone after."""
 	var space := _space([])
 	var view := _room_view(space)
 	var turf := StandardMaterial3D.new()
 	view.set_turf(turf)
 	view.begin_surface_prewarm()
 	var samples := view.surface_samples()
-	assert_equal(samples.get_child_count(), 3, "three samples")
+	assert_equal(samples.get_child_count(), 8, "eight samples")
 	assert_true(samples.position.y < -2.0, "under the ground")
 	for sample: Node in samples.get_children():
 		assert_equal((sample as VisualInstance3D).layers, Layers.SURFACE, "%s on the surface" % sample.name)
@@ -1542,7 +1544,7 @@ func _check_dug_cellar(view: RoomViewScript, space: CastSpaceScript, obstacles: 
 	assert_equal(view.label(0).text, "Root cellar 1", "dug")
 	assert_equal(view.shell_builds, 2, "built again, whole")
 	assert_false(view.outline_below(0).visible, "no outline once dug")
-	assert_true(view.furniture(0).get_child_count() >= 5, "a shelf, jars, a basket, the lantern and its glow")
+	assert_equal(view.furniture(0).get_child_count(), 2, "bare (decision 0210): its own lantern and its glow")
 	for piece: Node in view.furniture(0).get_children():
 		assert_equal((piece as VisualInstance3D).layers, Layers.UNDERGROUND, "%s below" % piece.name)
 	assert_equal(view.frames(0).multimesh.visible_instance_count, 3, "frames at its door and two sockets")
@@ -1675,3 +1677,107 @@ func test_a_job_taken_back_after_work_that_ended_underground_starts_from_the_sur
 	assert_true(back_on_it[0], "back on the lanterns")
 	assert_false(back_on_it[1], "taken up on the surface, not inside a bore")
 	assert_equal(works.jobs.paid[0], 1, "it walked to them and paid on arrival")
+
+
+# --- the fit-out from the panel (decision 0210) -------------------------------------------------------
+
+func test_a_room_is_selected_and_fitted_out_from_the_panel() -> void:
+	"""A dug home under a point is found and selected (a tunnel let go); the panel shows it bare with its palette; a
+	bed ordered with a resident selected is paid, said and handed to that resident; one taken out is refunded; the
+	suggested layout a plank short is refused in words; nowhere near a room, nothing is found."""
+	var tool := _tool(PackedInt32Array([1]))
+	var ext := tool.ext
+	var network := tool.network
+	var ref := PackedInt32Array([0, 0, 0, 0, 0])
+	assert_true(network.add_room(RoomsScript.TEMPLATE_HOME, Vector2i(-8192, 8192), 0, 0, ref), "a home")
+	var chain := PackedInt32Array()
+	network.piece_segments_into(ref[2], chain)
+	for slot in chain:
+		network.start_dig(slot, network.generation[slot], 0)
+		network.advance(slot, network.generation[slot], 1000000000)
+	assert_equal(ext.room_at(Vector2(-8.5, 8.5)), ref[0], "found under a point in it")
+	assert_equal(ext.room_at(Vector2(4.0, 4.0)), -1, "nothing elsewhere")
+	ext.select_room(ref[0])
+	assert_true(ext.has_room_selected() and not ext.actions.has_selection(), "the room selected")
+	ext.works.stores.plank_milli_u = 2000
+	ext.refresh_panel()
+	assert_true(ext.panel.room_shown(), "the panel shows the room")
+	assert_equal(ext.panel.line(&"room_title"), "Burrow home %d — bare" % (ref[0] + 1), "bare")
+	var name := "Burrow home %d" % (ref[0] + 1)
+	assert_equal(ext.fit_action(&"fit:add:0", PackedInt32Array([1])), 0, "a bed ordered")
+	assert_equal(ext.works.log_lines[-1], "%s: a bed planned (2 planks paid) -- a resident will put it in" % name, "said")
+	assert_equal(ext.works.brain(1).task_label(), "Fitting out %s: the bed" % name, "resident 1 puts it in")
+	assert_equal(ext.fit_action(&"fit:suggest", PackedInt32Array()), 4, "the layout: the stores are short")
+	assert_true(ext.works.log_lines[-1].begins_with("Can't: the demo stores are short: the suggested layout needs"), "said")
+	assert_equal(ext.fit_action(&"fit:take:0", PackedInt32Array()), 0, "the bed taken out")
+	assert_equal(ext.works.stores.plank_milli_u, 2000, "its planks back")
+	assert_equal(ext.fit_action(&"fit:take:0", PackedInt32Array()), 6, "none left to take")
+	assert_equal(ext.works.log_lines[-1], "Can't: %s has no bed to take out" % name, "said")
+	ext.set_stored(func(_room_row: int) -> int: return 3)
+	ext.fit_action(&"fit:add:0", PackedInt32Array())
+	network.fit.phase[ref[0] * RoomsScript.MAX_PLACES] = 2
+	assert_equal(ext.fit_action(&"fit:take:0", PackedInt32Array()), 0, "a home's bed holds no food")
+	ext.actions.select(1)
+	ext.refresh_panel()
+	assert_false(ext.panel.room_shown(), "a tunnel selected: the room gives way")
+	ext.select_room(ref[0])
+	network.rooms.release(ref[0])
+	assert_false(ext.has_room_selected(), "its row gone: no room selected")
+
+
+func test_a_cellar_s_racks_are_not_taken_out_below_its_food_from_the_panel() -> void:
+	"""The panel asks the farm how much a cellar holds (set_stored): a rack holding it stays, said in words."""
+	var tool := _tool(PackedInt32Array())
+	var ext := tool.ext
+	var network := tool.network
+	var ref := PackedInt32Array([0, 0, 0, 0, 0])
+	network.add_room(RoomsScript.TEMPLATE_CELLAR, Vector2i(-8192, 8192), 0, 0, ref)
+	var chain := PackedInt32Array()
+	network.piece_segments_into(ref[2], chain)
+	for slot in chain:
+		network.start_dig(slot, network.generation[slot], 0)
+		network.advance(slot, network.generation[slot], 1000000000)
+	network.fit.phase_of(network, ref[0], 2)
+	network.fit.phase[ref[0] * RoomsScript.MAX_PLACES + 2] = 2
+	ext.select_room(ref[0])
+	ext.set_stored(func(_room_row: int) -> int: return 12)
+	assert_equal(ext.fit_action(&"fit:take:5", PackedInt32Array()), 7, "refused")
+	assert_equal(ext.works.log_lines[-1], "Can't: Root cellar %d holds 12 U of food: its racks cannot drop below that" % (ref[0] + 1),
+		"said")
+
+
+func test_a_room_is_let_go_and_a_take_out_hands_nothing_to_the_selected() -> void:
+	"""Taking a fixture out with residents selected gives them nothing to do; deselecting the room hides it."""
+	var tool := _tool(PackedInt32Array([1]))
+	var ext := tool.ext
+	var network := tool.network
+	var ref := PackedInt32Array([0, 0, 0, 0, 0])
+	network.add_room(RoomsScript.TEMPLATE_HOME, Vector2i(-8192, 8192), 0, 0, ref)
+	var chain := PackedInt32Array()
+	network.piece_segments_into(ref[2], chain)
+	for slot in chain:
+		network.start_dig(slot, network.generation[slot], 0)
+		network.advance(slot, network.generation[slot], 1000000000)
+	ext.select_room(ref[0])
+	ext.works.stores.plank_milli_u = 4000
+	ext.fit_action(&"fit:add:0", PackedInt32Array())
+	ext.fit_action(&"fit:add:0", PackedInt32Array())
+	assert_equal(ext.fit_action(&"fit:take:0", PackedInt32Array([1])), 0, "one taken out")
+	assert_equal(ext.works.brain(1).task_label(), "", "the selected given nothing")
+	ext.deselect_room()
+	ext.refresh_panel()
+	assert_false(ext.has_room_selected() or ext.panel.room_shown(), "let go")
+
+
+func test_a_resident_asleep_in_the_hall_cannot_be_picked() -> void:
+	"""Not drawn indoors, so no pick proxy either."""
+	var space := _space([])
+	var brain := BrainScript.new()
+	brain.configure(space, 1.0, 0.25, 1, {})
+	brain.start_at(Vector2.ZERO, 0.0, -1, -1)
+	var out := PackedFloat32Array([0, 0, 0, 0, 0])
+	DemoCommandScript.proxy_into(brain, Vector3.ZERO, 1.0, false, Vector3(0, 10, 10), out)
+	assert_true(out[4] > 0.0, "outdoors: pickable")
+	brain.task_go_indoors(true)
+	DemoCommandScript.proxy_into(brain, Vector3.ZERO, 1.0, false, Vector3(0, 10, 10), out)
+	assert_equal(out[4], 0.0, "indoors: not")

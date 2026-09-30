@@ -96,6 +96,15 @@ extends RefCounted
 ## done, cancelled or taken by someone else meanwhile is dropped. The player's R (`release`) forgets
 ## them all: released means back to its own routine.
 ##
+## THE NIGHT (decision 0210, demo/burrow/night_routine.gd). At dusk the night routine hands each resident a sleep
+## task (sleep_task.gd): home through the network to its own bed, lie down, sleep, and in the morning up and back to
+## the job it parked (RESUMING). While it is night `resting` is set, so the crews' routine pick-ups pass it by; a task
+## lays the body down with `task_lie` (`lying`, `lie_top_y_m`: the actor seats it there by its lowest point) and
+## stands it up with `task_rise`, strolls it about a room's floor with `task_stroll_to`, and puts it inside a
+## building with `task_go_indoors` (the actor is not drawn). A carrier may also be ordered DOWN to a node
+## (`order_carry_below`, a root cellar's middle): it walks in loaded, holds there below, and walks out when
+## released or ordered on.
+##
 ## RAMPS (decision 0207). A mouth's ramp falls at up to 1:2.5 (tunnel_rules.gd). Walking it, the pace
 ## is measured along the SLOPE -- the route's flat distance is stepped at walk speed times its cosine --
 ## so the clip, playing at the stride rate, keeps the feet on it; and `pitch` tilts the body with the
@@ -137,6 +146,8 @@ const ACTIVITY_CROSSING: int = 8
 const CLIP_IDLE: StringName = &"idle"
 const CLIP_WALK: StringName = &"walk"
 const CLIP_CARRY: StringName = &"carry_heavy_object_walk"
+## Asleep in bed (Meshy's Sleep_Normally, decision 0204; staged as sleep_normally, decision 0210).
+const CLIP_SLEEP: StringName = &"sleep_normally"
 ## Digging plays the first of these the creature has: pulling up from the ground, else collecting.
 const DIG_CLIPS: Array[StringName] = [&"pull_radish", &"collect_object"]
 ## Out of a finished tunnel, the digger steps this far on (demo) so the exit is left clear, when the
@@ -243,6 +254,14 @@ var task: TaskScript = null
 var in_water: bool = false
 ## Held by the water's rescue (in difficulty, or being towed): orders and releases are not taken.
 var water_hold: bool = false
+## THE NIGHT (see above): night, and its routine is to sleep; lying down, on what (the top of a mattress, or a floor,
+## m); indoors (not drawn); and where the lying body's middle is from its root, in its own frame (x, z m; the staged
+## sleep clip's measure, set by the actor).
+var resting: bool = false
+var lying: bool = false
+var lie_top_y_m: float = 0.0
+var indoors: bool = false
+var lie_middle_m: Vector2 = Vector2.ZERO
 ## The unfinished jobs it will come back to, oldest first (see RESUMING).
 var _unfinished: Array[UnfinishedScript] = []
 
@@ -315,6 +334,11 @@ func configure(space: CastSpaceScript, speed_m_s: float, body_radius: float, see
 	rng.seed = seed
 	_clip_lengths = clip_lengths
 	index = space.add_resident(position, radius)
+
+
+func space() -> CastSpaceScript:
+	"""The space this resident walks in (its POIs, obstacles and the network)."""
+	return _space
 
 
 func set_gait_speed(speed_m_s: float) -> void:
@@ -854,6 +878,8 @@ func _arrive() -> void:
 		_begin_dig()
 		return
 	if poi < 0:
+		if underground:
+			task_hold_below()
 		_hold_here()
 		return
 	_bouts_left = rng.randi_range(BOUTS_MIN, BOUTS_MAX)
@@ -897,10 +923,12 @@ func _replan_or_abandon() -> void:
 
 func _abandon_trip() -> void:
 	"""Give the slot back and stand a moment before choosing somewhere else -- or, under an order,
-	hold right here. Underground it never stands: it walks out to the nearest mouth. A dig it could not
+	hold right here (a routine task lost on the way -- its bed, a fixture -- is no order: it goes back to its own
+	routine). Underground it never stands: it walks out to the nearest mouth. A dig it could not
 	walk to is left paused as a plan (underground_graph.hold_unreached), never deleted."""
 	_leave_dig(true)
 	_leave_line()
+	var routine := order == ORDER_TASK and task != null and not task.holds_when_lost()
 	if order == ORDER_TASK:
 		_drop_task()
 	_space.release(poi, slot)
@@ -908,7 +936,7 @@ func _abandon_trip() -> void:
 	slot = -1
 	carrying = false
 	if order != ORDER_NONE:
-		order = ORDER_MOVE
+		order = ORDER_NONE if routine else ORDER_MOVE
 	if underground and not in_water:
 		_walk_out()
 	elif order != ORDER_NONE:
@@ -1012,10 +1040,19 @@ func _release_underground(was_move: bool) -> void:
 	if was_move or poi < 0:
 		release_slot()
 		_idle_on_surface = true
-		_finish_tunnel_then_stop()
+		_leave_below()
 		return
 	_bouts_left = mini(_bouts_left, 1)
 	_trip_s = 0.0
+
+
+func _leave_below() -> void:
+	"""Underground under a new order or a release: holding at a node below (a carrier in a cellar), walk out to the
+	nearest mouth; walking, finish the stretch to the mouth it comes up at (see `_finish_tunnel_then_stop`)."""
+	if state == State.HOLD or state == State.FACE:
+		_walk_out()
+	else:
+		_finish_tunnel_then_stop()
 
 
 func _start_ordered_trip(goal: Vector2) -> void:
@@ -1031,7 +1068,7 @@ func _start_ordered_trip(goal: Vector2) -> void:
 	_goal_node = -1
 	_replans = 0
 	if underground or state == State.CROSS:
-		_finish_tunnel_then_stop()
+		_leave_below()
 		return
 	if in_water:
 		_space.crossings.swim_ashore(self)
@@ -1071,6 +1108,33 @@ func order_carry(goal: Vector2, face_toward: Vector2 = Vector2.INF) -> void:
 	if carrying and crosses_tunnel():
 		_plan_loaded(INF)
 		_begin_leg()
+
+
+func order_carry_below(node: int, face_toward: Vector2) -> void:
+	"""order_carry() DOWN to `node` underground (a root cellar's middle: the carrier walks in, decision 0210): the trip
+	is planned LOADED, so the load goes below only through bores it fits (HAULING); with no such way it walks down
+	empty-handed. Arriving, it turns to `face_toward` and holds there, below, until released or ordered on (then it
+	walks out). Not taken while the water's rescue holds it."""
+	if water_hold:
+		return
+	release_slot()
+	_leave_dig()
+	_drop_task()
+	order = ORDER_MOVE
+	_faces_on_hold = true
+	_hold_face = face_toward
+	_start_trip_below(node)
+	carrying = can_carry() and not underground and (state == State.TURN or state == State.WALK)
+	if carrying:
+		_plan_loaded(INF)
+		_begin_leg()
+
+
+func can_haul_below(node: int) -> bool:
+	"""Whether this resident could carry a load down to `node` through bores the load fits (HAULING; a load that fits
+	no bore reaches no mouth)."""
+	var tunnels := _space.tunnels
+	return can_carry() and tunnels.paths.nearest_mouth(tunnels, node, tunnels.walker_class(index, true)) >= 0
 
 
 func play_in_place(name: StringName) -> bool:
@@ -1352,7 +1416,7 @@ func _reroute_below(node: int, target: int) -> void:
 func _arrive_below(node: int) -> void:
 	"""The route ended at a node underground: the goal of a dig or a task, else (cut short) out to the nearest
 	mouth."""
-	if node == _goal_node and (order == ORDER_DIG or order == ORDER_TASK):
+	if node == _goal_node and (order == ORDER_DIG or order == ORDER_TASK or order == ORDER_MOVE):
 		_goal_node = -1
 		_arrive()
 		return
@@ -1867,7 +1931,10 @@ func remember_unfinished(job: UnfinishedScript) -> void:
 
 func take_up_unfinished() -> bool:
 	"""Take up the latest unfinished job that still waits for this resident, dropping stale ones on the way.
-	True when one was taken up."""
+	True when one was taken up. Not at night (`resting`): the jobs stay kept for the morning, and the night routine
+	sends it to bed (decision 0210)."""
+	if resting:
+		return false
 	while not _unfinished.is_empty():
 		var job: UnfinishedScript = _unfinished.pop_back()
 		if job.resume(self):
@@ -2031,6 +2098,59 @@ func task_face(point: Vector2, delta: float) -> void:
 	"""For a task: turn toward `point` at the on-the-spot rate."""
 	if point.distance_to(position) > 1e-3:
 		yaw = turn_toward(yaw, yaw_of(point - position), SPOT_TURN_RATE * delta)
+
+
+# --- the night (see THE NIGHT) --------------------------------------------------------------------
+
+func task_stroll_to(point: Vector2, delta: float) -> bool:
+	"""For a task, on a room's floor: turn toward `point` and walk straight to it at walk speed, the walk clip at its
+	stride (a turn past STOP_TO_TURN_ANGLE on the spot first, stepping in place). True once there."""
+	var to := point - position
+	var gap := to.length()
+	if gap <= ARRIVE_RADIUS_M:
+		_set_clip(CLIP_IDLE, 1.0)
+		return true
+	yaw = turn_toward(yaw, yaw_of(to), SPOT_TURN_RATE * delta)
+	if absf(angle_difference(yaw, yaw_of(to))) > STOP_TO_TURN_ANGLE:
+		_set_clip(CLIP_WALK, SHUFFLE_CLIP_SPEED)
+		return false
+	position += to / gap * minf(walk_speed * delta, gap)
+	_set_clip(CLIP_WALK, gait_rate())
+	_space.move_resident(index, position)
+	return false
+
+
+func task_hold_below() -> void:
+	"""For a task, underground: stand where it is in its bore heading neither way, so walkers step aside and pass
+	(see `task_stand_in_bore`), however the task moves it about a room's floor."""
+	var slot_index: int = _space.resident_tunnel[index]
+	_space.set_in_bore(index, slot_index if slot_index >= 0 else _travel_slot, _travel_m, 0)
+
+
+func task_lie(middle: Vector2, face_yaw: float, top_y: float) -> void:
+	"""For a task: lie down with the body's middle at `middle`, facing `face_yaw` (head toward -Z of that frame, as the
+	sleep clip lies), on a surface `top_y` high -- a mattress, or a floor. Asleep: the sleep clip when it has one."""
+	yaw = face_yaw
+	position = middle - lie_middle_m.rotated(-face_yaw)
+	lying = true
+	lie_top_y_m = top_y
+	_set_clip(CLIP_SLEEP if has_clip(CLIP_SLEEP) else CLIP_IDLE, 1.0)
+	_space.move_resident(index, position)
+
+
+func task_rise(stand_at: Vector2) -> void:
+	"""For a task: get up, and stand at `stand_at`, idle."""
+	lying = false
+	position = stand_at
+	_set_clip(CLIP_IDLE, 1.0)
+	_space.move_resident(index, position)
+
+
+func task_go_indoors(inside: bool) -> void:
+	"""For a task: into a building (not drawn, and off the walking surface, so it stands in nobody's way) or back out
+	of it."""
+	indoors = inside
+	_space.set_underground(index, inside or underground)
 
 
 # --- the water's crossings (see THE WATER) --------------------------------------------------------

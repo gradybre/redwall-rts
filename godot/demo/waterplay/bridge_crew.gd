@@ -188,7 +188,8 @@ func _hand_out() -> void:
 			continue
 		var idle := PackedInt32Array()
 		for who: int in _crew:
-			if brain_of(who).order == BrainScript.ORDER_NONE and not brain_of(who).underground and not _busy(who):
+			if brain_of(who).order == BrainScript.ORDER_NONE and not brain_of(who).underground and not brain_of(who).resting \
+					and not _busy(who):
 				idle.append(who)
 		if _nearest_into(idle, source_at[row], _pick):
 			_assign(row, _pick.value)

@@ -48,9 +48,9 @@ import statistics
 import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from bake_meshy_tail import _channels, _worlds_at  # noqa: E402
+from bake_meshy_tail import _channels, _skinning, _worlds_at  # noqa: E402
 from repair_meshy_rig import read_accessor, read_glb, write_glb  # noqa: E402
-from rig_meshy_tail import node_worlds, transform_point  # noqa: E402
+from rig_meshy_tail import mat_mul, node_worlds, transform_point  # noqa: E402
 import make_demo_crop_cards  # noqa: E402
 import make_demo_props  # noqa: E402
 import demo_texture_imports  # noqa: E402
@@ -84,8 +84,14 @@ CAST = ["mouse_keeper", "mouse_fieldworker", "squirrel_gatherer", "squirrel_fore
 ## (decision 0203); the demo's actors do not play them yet (godot/demo/cast/demo_actor.gd CLIPS).
 CLIPS = ["idle", "walk", "collect_object", "stand_and_drink", "wave_one_hand", "carry_heavy_object_walk",
 	"pull_radish", "swim", "tread_water"]
-## Staged where the creature's grounded/ output has it.
-OPTIONAL_CLIPS = ["dive"]
+## Staged where the creature's grounded/ output has it. sleep_normally (Meshy 267 `Sleep_Normally`, decision
+## 0204) is the eight cast creatures' sleep in bed (decision 0210); the beaver has none and lies down procedurally.
+OPTIONAL_CLIPS = ["dive", "sleep_normally"]
+SLEEP_CLIP = "sleep_normally"
+## The lying body is measured on every SLEEP_KEY_STEP-th key and every SLEEP_VERTEX_STEP-th body vertex (the tail's
+## are left out: the demo's live tail spring places it). Enough to find the lowest point to the millimetre.
+SLEEP_KEY_STEP = 4
+SLEEP_VERTEX_STEP = 3
 ## Staged only once its grounded clips exist (the beaver bridgewright, DEC-041, is still going through
 ## repair -> tail -> ground -> bake): a resident with no special gameplay yet.
 OPTIONAL_CAST = ["beaver_bridgewright"]
@@ -147,6 +153,51 @@ def walk_row(path: pathlib.Path) -> dict:
 	return {"walk_speed_m_s": recorded if recorded is not None else estimate,
 		"walk_speed_source": "gait" if recorded is not None else "toe_slide_estimate",
 		"walk_speed_estimate_m_s": estimate}
+
+
+def _skin_point(mats: list, joints: tuple, weights: tuple, v: tuple) -> tuple[float, float, float]:
+	"""One vertex skinned by its influences (column-major 4x4 matrices), in the clip's frame."""
+	x = y = z = 0.0
+	for j, w in zip(joints, weights):
+		if w > 0.0:
+			m = mats[j]
+			x += w * (m[0] * v[0] + m[4] * v[1] + m[8] * v[2] + m[12])
+			y += w * (m[1] * v[0] + m[5] * v[1] + m[9] * v[2] + m[13])
+			z += w * (m[2] * v[0] + m[6] * v[1] + m[10] * v[2] + m[14])
+	return x, y, z
+
+
+def _body_vertices(names: list, jnt: list, wgt: list) -> list[int]:
+	"""Every SLEEP_VERTEX_STEP-th vertex whose strongest influence is not a tail joint."""
+	tail = {s for s, n in enumerate(names) if n.startswith("tail_")}
+	return [v for v in range(len(jnt)) if jnt[v][max(range(4), key=lambda q: wgt[v][q])] not in tail][::SLEEP_VERTEX_STEP]
+
+
+def sleep_row(path: pathlib.Path) -> dict:
+	"""How the lying body of a sleep clip sits (decision 0210), measured from its skinned vertices: the LOWEST
+	point it reaches over the clip (grounding seats a clip by its legs, so a lying torso sinks below 0 -- decision
+	0204 found up to 19.5 cm), the middle of its footprint (x, z) and the way from its hips to its head (x, z,
+	unit) at the middle key -- so the demo can lay it on a mattress, head to the pillow."""
+	doc, binary = read_glb(path.read_bytes())
+	skin, names, ibm, pos, jnt, wgt = _skinning(doc, binary)
+	body = _body_vertices(names, jnt, wgt)
+	times, animated = _channels(doc, binary)
+	low = math.inf
+	middle = len(times) // 2
+	footprint: list[tuple[float, float, float]] = []
+	for k in sorted(set(range(0, len(times), SLEEP_KEY_STEP)) | {middle}):
+		worlds = _worlds_at(doc, animated, k)
+		mats = [mat_mul(worlds[node], list(ibm[i])) for i, node in enumerate(skin["joints"])]
+		points = [_skin_point(mats, jnt[v], wgt[v], pos[v]) for v in body]
+		low = min(low, min(p[1] for p in points))
+		if k == middle:
+			footprint = points
+			joint = {doc["nodes"][n].get("name"): worlds[n] for n in skin["joints"]}
+	xs, zs = [p[0] for p in footprint], [p[2] for p in footprint]
+	head = (joint["Head"][12] - joint["Hips"][12], joint["Head"][14] - joint["Hips"][14])
+	length = math.hypot(*head) or 1.0
+	return {"floor_y_m": round(low, 4), "centre_m": [round((min(xs) + max(xs)) / 2, 4), round((min(zs) + max(zs)) / 2, 4)],
+		"head": [round(head[0] / length, 4), round(head[1] / length, 4)], "length_m": round(max(max(xs) - min(xs), max(zs) - min(zs)), 4)}
 
 
 def strip_to_animation(data: bytes) -> bytes:
@@ -216,6 +267,8 @@ def stage_cast(library: pathlib.Path, out: pathlib.Path) -> dict:
 			"tailed": (library / "creature" / key / "tailed").is_dir(),
 			"body": f"res://demo/assets/cast/{key}/body.glb", "clips": clips,
 			**walk_row(grounded / "anim_walk.glb")}
+		if SLEEP_CLIP in clips:
+			rows[key]["sleep"] = sleep_row(grounded / f"anim_{SLEEP_CLIP}.glb")
 	return rows
 
 

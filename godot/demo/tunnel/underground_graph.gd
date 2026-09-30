@@ -69,6 +69,7 @@ const RouterScript := preload("res://demo/tunnel/tunnel_router.gd")
 const PathsScript := preload("res://demo/tunnel/graph_paths.gd")
 const SpecScript := preload("res://demo/tunnel/piece_spec.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
+const FixturesScript := preload("res://demo/burrow/room_fixtures.gd")
 const CastNavScript := preload("res://demo/cast/cast_nav.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const QueueScript := preload("res://demo/tunnel/tunnel_queue.gd")
@@ -220,6 +221,8 @@ var queue: QueueScript = QueueScript.new()
 var ground: GroundScript = null
 ## The rooms (see ROOMS).
 var rooms: RoomsScript = RoomsScript.new()
+## What stands in each room (decision 0210): its fixtures, their costs, comfort, a cellar's capacity and the cool rule.
+var fit: FixturesScript = FixturesScript.new()
 
 var _q_kind: PackedByteArray = PackedByteArray()
 var _q_end: PackedInt32Array = PackedInt32Array()

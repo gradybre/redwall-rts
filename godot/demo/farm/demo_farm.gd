@@ -54,6 +54,7 @@ const PantryPanelScript := preload("res://demo/farm/farm_pantry_panel.gd")
 const GoodsScript := preload("res://demo/farm/farm_goods.gd")
 const CarryViewScript := preload("res://demo/farm/farm_carry_view.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
+const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
 const Weather := preload("res://demo/farm/farm_weather.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
@@ -112,6 +113,9 @@ var _overlay_step: int = 0
 var _shown_hour: int = 0
 var _water: PackedByteArray = PackedByteArray([0, 0])
 var _read: IntMath.IntResult = IntMath.IntResult.new()
+var _rooms: RoomsScript = null
+## The fit-out's revision the pantry's stores were last read at.
+var _seen_fit: int = -1
 
 
 func configure(manifest: Dictionary, world: DemoWorldScript, cast: DemoCastScript, command: DemoCommandScript,
@@ -211,8 +215,30 @@ static func _building_at(id: StringName) -> Vector2:
 
 
 func follow_rooms(rooms: RoomsScript) -> void:
-	"""Stock the root cellars below ground too (their shelves; demo_village.gd wires it)."""
-	view.stock.follow_rooms(rooms)
+	"""Know the root cellars' rooms, for how full each is (demo_village.gd wires it; `cellar_fill`)."""
+	_rooms = rooms
+
+
+func cellar_fill(r: int) -> int:
+	"""How full root cellar row `r` is, per mille of its capacity (0 when it is no store): its racks fill with it
+	(demo/burrow/fixture_view.gd, decision 0210)."""
+	var location := _cellar_location(r)
+	return view.stock.fill_permille(location) if location > 0 else 0
+
+
+func cellar_stored_u(r: int) -> int:
+	"""How much food root cellar row `r` holds, in whole units rounded up (0 when it is no store): its racks cannot be
+	taken out below it (room_fixtures.gd `take_out`)."""
+	var location := _cellar_location(r)
+	return (pantry.used_milli_of(location) + StorageScript.MILLI_PER_U - 1) / StorageScript.MILLI_PER_U if location > 0 else 0
+
+
+func _cellar_location(r: int) -> int:
+	"""The pantry location of root cellar row `r` (0: none -- the covered store is location 0)."""
+	if _rooms == null or not _rooms.is_room(r):
+		return 0
+	var id := StringName(FarmCellars.ID_FORMAT % [r, _rooms.generation[r]])
+	return _read.value if storage.index_of_id_into(id, _read) else 0
 
 
 # --- per frame ------------------------------------------------------------------------------------
@@ -223,6 +249,7 @@ func _process(delta: float) -> void:
 	step(_cast.clock.frame_usec if _cast != null else 0)
 	if _cast != null:
 		carry_view.refresh()
+		_follow_fit_out()
 	_refresh_in -= delta
 	var hour: int = services.calendar.hour_index()
 	if _refresh_in <= 0.0 or hour != _shown_hour:
@@ -231,6 +258,14 @@ func _process(delta: float) -> void:
 		bed_panel.refresh()
 		pantry_panel.refresh()
 		view.stock.refresh()
+
+
+func _follow_fit_out() -> void:
+	"""A cellar's racks put in or taken out change its store at once, not at the next hour (decision 0210)."""
+	var fit: RefCounted = _cast.space().tunnels.fit
+	if fit.revision != _seen_fit:
+		_seen_fit = fit.revision
+		pantry.refresh_locations()
 
 
 func step(usec: int) -> void:

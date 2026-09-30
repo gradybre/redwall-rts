@@ -12,6 +12,12 @@ extends Node3D
 ##   the panel's buttons on the selected tunnel   Widen · Brace · Hang lanterns · Repair (Pump out /
 ##                                               Clear the fall)
 ## (Burrow homes and root cellars are placed with the Dig tool's room tool, room_tool.gd.)
+##   left click a dug burrow home or root cellar (below, or its mound)  select it: its fit-out in the panel
+##   the panel's fit-out buttons on the selected room   + / − a fixture of each kind · Suggested layout
+##
+## THE FIT-OUT AND THE NIGHT (decision 0210, demo/burrow/): the rooms' fixtures (room_fixtures.gd, on the network as
+## `fit`), who puts them in (fixture_crew.gd), how they look (fixture_view.gd), and the residents' night at home
+## (night_routine.gd, on the demo calendar). Residents selected when a fixture is ordered put it in.
 ##   the panel's "Next weather (demo)" and "Test event (demo)"             run the demo calendar on
 ##                                                                          to the next weather (the
 ##                                                                          whole village: farm, date
@@ -50,6 +56,12 @@ const FindPropsScript := preload("res://demo/tunnel/tunnel_find_props.gd")
 const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
 const ViewScript := preload("res://demo/tunnel/tunnel_view.gd")
 const Layers := preload("res://demo/demo_layers.gd")
+const FixturesScript := preload("res://demo/burrow/room_fixtures.gd")
+const FixtureViewScript := preload("res://demo/burrow/fixture_view.gd")
+const FixtureCrewScript := preload("res://demo/burrow/fixture_crew.gd")
+const NightScript := preload("res://demo/burrow/night_routine.gd")
+const RoomTextScript := preload("res://demo/burrow/room_text.gd")
+const CalendarScript := preload("res://demo/demo_calendar.gd")
 
 ## The player did something on the tunnels (selected one, laid a route): show the tunnels panel.
 signal panel_wanted
@@ -82,6 +94,12 @@ var room_view: RoomViewScript = null
 var events_view: EventsViewScript = null
 var find_props: FindPropsScript = null
 var weather_view: WeatherViewScript = null
+var fixture_view: FixtureViewScript = null
+var fixture_crew: FixtureCrewScript = FixtureCrewScript.new()
+var night: NightScript = NightScript.new()
+## The room selected for its fit-out (-1: none), as (row, generation).
+var selected_room: int = -1
+var selected_room_gen: int = 0
 
 var _cast: DemoCastScript = null
 ## The demo's shared props (demo_services.gd): brace, rubble, lanterns, finds, room furniture.
@@ -104,6 +122,9 @@ var _finds_seen: int = -1
 var placing_room: int = RoomsScript.TEMPLATE_NONE
 ## The tunnel the marks last drew as selected (-1: none; -2: not drawn yet).
 var _marked: int = -2
+var _calendar: CalendarScript = null
+## `stored(r) -> int`: how much food root cellar row `r` holds, whole units (demo_farm.gd `cellar_stored_u`).
+var _stored: Callable = Callable()
 
 
 func configure(cast: DemoCastScript, camera: Camera3D, overlay: OverlayScript, bounds_u: Rect2i,
@@ -134,6 +155,33 @@ func configure(cast: DemoCastScript, camera: Camera3D, overlay: OverlayScript, b
 	_props = services.props if services != null else PropsScript.new()
 	_arm_diggers(can_dig)
 	_build_views()
+	_calendar = services.calendar if services != null else CalendarScript.new()
+	_start_living(brains, names)
+
+
+func _start_living(brains: Array[BrainScript], names: PackedStringArray) -> void:
+	"""The fit-out's crew and the night (see THE FIT-OUT AND THE NIGHT): beds by the residents' heights, the bedless to
+	the hall (its steps are its door), the alarm while a threat is under way."""
+	var heights := PackedInt32Array()
+	for i in _cast.actor_count():
+		heights.append(Rules.to_u((_cast.actor(i) as DemoActorScript).height_m))
+	fixture_crew.configure(_network, brains)
+	night.configure(_network, brains, names, heights, _calendar, works.notices)
+	night.set_alarm(func() -> bool: return works.events.active)
+	var hall: int = _cast.space().poi_names.find(NightScript.HALL_POI)
+	if hall >= 0:
+		night.set_hall(_cast.space().poi_position[hall])
+	fixture_view.set_lit(hearth_lit)
+
+
+func hearth_lit() -> bool:
+	"""Whether it is the hearths' hours on the calendar (night_routine.gd HEARTH_FROM_HOUR..HEARTH_TO_HOUR)."""
+	return NightScript.is_hearth_hour(_calendar.now().hour)
+
+
+func set_stored(stored: Callable) -> void:
+	"""`stored(r) -> int`: how much food root cellar row `r` holds (its racks cannot be taken out below it)."""
+	_stored = stored
 
 
 func skill_text(who: int, alone: bool) -> String:
@@ -172,6 +220,9 @@ func _build_views() -> void:
 	add_child(room_view)
 	room_view.configure(_network, _props, _cast.space(), marks)
 	room_view.set_today(_overlay.bores.today)
+	fixture_view = FixtureViewScript.new()
+	add_child(fixture_view)
+	fixture_view.configure(_network, _props, marks.lights, _cast.clock)
 	find_props = FindPropsScript.new()
 	add_child(find_props)
 	find_props.configure(works, _network, _props)
@@ -195,6 +246,7 @@ func set_view(view: ViewScript) -> void:
 	marks.register(view.prewarm)
 	marks.lights.follow(func() -> bool: return view.on, view.focus)
 	room_view.register(view.prewarm)
+	fixture_view.register(view.prewarm)
 	find_props.register(view.prewarm)
 
 
@@ -225,11 +277,14 @@ func _process(delta: float) -> void:
 	"""Run the works on this frame's demo time, keep the drawings in step, and refresh the panel a few
 	times a second (real time: the panel works while paused)."""
 	works.step(_cast.clock.frame_usec)
+	night.step()
+	fixture_crew.update(_cast.clock.frame_usec)
 	_feed_overlay()
 	if _selection_changed():
 		marks.select(_marked)
 	marks.refresh()
 	room_view.refresh()
+	fixture_view.refresh(delta)
 	find_props.refresh()
 	_refresh_in -= delta
 	if _refresh_in <= 0.0:
@@ -274,8 +329,16 @@ func _ground_at(screen: Vector2) -> bool:
 
 
 func select_at_screen(screen: Vector2) -> bool:
-	"""A left click that picked no resident: select the finished tunnel under it, if any."""
-	if not _ground_at(screen) or not actions.select_at(_ground):
+	"""A left click that picked no resident: select the dug room under it (below, or its mound), else the finished
+	tunnel under it, if any."""
+	if not _ground_at(screen):
+		return false
+	var r := room_at(_ground)
+	if r >= 0:
+		select_room(r)
+	elif actions.select_at(_ground):
+		selected_room = -1
+	else:
 		return false
 	_mark.call(Vector3(_ground.x, 0.0, _ground.y), true)
 	_refresh_in = 0.0
@@ -283,9 +346,41 @@ func select_at_screen(screen: Vector2) -> bool:
 	return true
 
 
+func room_at(at: Vector2) -> int:
+	"""The dug room whose void lies under `at` (m; -1: none)."""
+	var rooms: RoomsScript = _network.rooms
+	for r in RoomsScript.MAX_ROOMS:
+		if rooms.is_done(_network, r) and rooms.gap_of(r, Vector2i(Rules.to_u(at.x), Rules.to_u(at.y))) == 0:
+			return r
+	return -1
+
+
+func select_room(r: int) -> void:
+	"""Select room `r` for its fit-out (a tunnel selected before is let go)."""
+	actions.clear_selection()
+	selected_room = r
+	selected_room_gen = _network.rooms.generation[r]
+	_refresh_in = 0.0
+
+
+func deselect_room() -> void:
+	"""Select no room (an empty click, Esc)."""
+	selected_room = -1
+	_refresh_in = 0.0
+
+
+func has_room_selected() -> bool:
+	"""Whether a room that still stands is selected."""
+	return selected_room >= 0 and _network.rooms.is_ref(selected_room, selected_room_gen)
+
+
 func on_action(name: StringName) -> void:
 	"""A panel button (tunnel_panel.gd ACTION_*)."""
 	var selection := _selection.call() as PackedInt32Array
+	if String(name).begins_with(RoomTextScript.FIT_PREFIX):
+		fit_action(name, selection)
+		_refresh_in = 0.0
+		return
 	match name:
 		PanelScript.ACTION_NEXT_WEATHER:
 			_skip_weather()
@@ -297,6 +392,27 @@ func on_action(name: StringName) -> void:
 		_:
 			actions.order(JOB_FOR_ACTION[name], selection)
 	_refresh_in = 0.0
+
+
+func fit_action(name: StringName, selection: PackedInt32Array) -> int:
+	"""A fit-out button on the selected room (room_text.gd FIT_*): add or take out one fixture of a kind, or the
+	suggested layout; the selected residents put what was ordered in. REFUSE_NONE, or why not (said in the log)."""
+	if not has_room_selected():
+		return FixturesScript.REFUSE_NOT_DUG
+	var r := selected_room
+	var parts := String(name).split(":")
+	var code := FixturesScript.REFUSE_NONE
+	if parts[1] == RoomTextScript.FIT_SUGGEST:
+		code = _network.fit.suggest(_network, r, works.stores)
+	elif parts[1] == RoomTextScript.FIT_ADD:
+		code = _network.fit.order(_network, r, int(parts[2]), works.stores)
+	else:
+		var stored: int = int(_stored.call(r)) if _stored.is_valid() else 0
+		code = _network.fit.take_out(_network, r, int(parts[2]), works.stores, stored)
+	works.tell(RoomTextScript.answer(_network, r, parts, code, works.stores, _stored))
+	if code == FixturesScript.REFUSE_NONE and parts[1] != RoomTextScript.FIT_TAKE and not selection.is_empty():
+		fixture_crew.give_selected(r, selection)
+	return code
 
 
 func _skip_weather() -> void:
@@ -390,8 +506,16 @@ func refresh_panel() -> void:
 		_finds_seen = works.stores.revision
 		_show_finds()
 	if ground_view.planning:
+		panel.show_room("", "", [], "", false)
 		panel.show_tunnel(_planning_heading(), GroundViewScript.LEGEND, "", {})
 		return
+	if has_room_selected() and not actions.has_selection():
+		panel.show_room(RoomTextScript.title(_network, selected_room), RoomTextScript.body(_network, selected_room, night,
+			_stored), RoomTextScript.palette_rows(_network, selected_room), RoomTextScript.suggest_text(_network, selected_room),
+			_network.fit.missing_cost(_network, selected_room) != Vector3i.ZERO)
+		panel.show_tunnel("", "", "", {})
+		return
+	panel.show_room("", "", [], "", false)
 	if not actions.has_selection():
 		panel.show_tunnel("", "", "", {})
 		return

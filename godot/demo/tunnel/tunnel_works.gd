@@ -76,8 +76,8 @@ const JOB_DONE: Array[String] = ["", "Tunnel %d widened: otters and the badger f
 	"Tunnel %d lit: walkers go a little quicker below.", "Tunnel %d pumped out and open again.",
 	"Tunnel %d cleared and open again."]
 ## A room dug out (decision 0209): what it is for, and its summary.
-const ROOM_DUG: Array[String] = ["", "Burrow home %d dug: %d beds for the burrow folk, in at its round door or a tunnel.",
-	"Root cellar %d dug: the pantry stores harvests in it, carried in at its hatch."]
+const ROOM_DUG: Array[String] = ["", "Burrow home %d dug: room for %d beds in its alcoves -- click it to fit it out.",
+	"Root cellar %d dug: give it racks (click it) and the pantry stores harvests in it."]
 const ALERT_ROOM_DUG: String = "%s %d dug"
 
 var weather: WeatherScript = null
@@ -94,6 +94,10 @@ var events: EventsScript = null
 var log_lines: PackedStringArray = PackedStringArray()
 ## Bumped whenever something is said, so the panel redraws on change.
 var log_revision: int = 0
+## The newest log line as said, and how many times in a row (a repeat folds into it as "... (×3)": decision
+## 0210, the notice feed's REPEATS FOLD).
+var _log_said: String = ""
+var _log_times: int = 0
 ## Where the latest finds were cut, for the dig-face drawing (tunnel_find_props.gd): a ring of
 ## FOUND_RING entries -- the cut's point (u), the find (FindsScript.FIND_*), its relic number (0: not
 ## a relic) and its tunnel -- written at found_count % FOUND_RING. found_count counts every find.
@@ -239,11 +243,18 @@ func tell(text: String) -> void:
 
 
 func _log(text: String) -> void:
-	"""Keep `text` among the panel's last LOG_LINES lines."""
+	"""Keep `text` among the panel's last LOG_LINES lines; said again straight after, it is counted on the newest
+	line instead ("... (×2)")."""
+	log_revision += 1
+	if text == _log_said and not log_lines.is_empty():
+		_log_times += 1
+		log_lines[-1] = "%s (×%d)" % [text, _log_times]
+		return
+	_log_said = text
+	_log_times = 1
 	if log_lines.size() >= LOG_LINES:
 		log_lines.remove_at(0)
 	log_lines.append(text)
-	log_revision += 1
 
 
 # --- each frame ---------------------------------------------------------------------------

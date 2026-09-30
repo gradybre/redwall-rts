@@ -19,6 +19,11 @@ extends RefCounted
 ##
 ## Real time, not demo time, decides freshness (`posted_msec`): a paused village still shows what was
 ## just said, and a warning does not vanish faster at 4x.
+##
+## REPEATS FOLD (decision 0210). A post that says exactly what the newest entry says -- the same source,
+## level, text and summary -- is not a new row: the newest entry counts it (`repeats`), takes the new
+## date and time, and reads "... (×3)". A clay seam gave "Tunnel 10: Good sticky clay..." three times in a
+## row, one per metre cut; the strip showed nothing else. Anything said in between keeps them apart.
 
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 
@@ -47,6 +52,8 @@ var _summary: PackedStringArray = PackedStringArray()
 var _source: PackedByteArray = PackedByteArray()
 var _level: PackedByteArray = PackedByteArray()
 var _posted_msec: PackedInt64Array = PackedInt64Array()
+## How many times each entry was said in a row (1: once; see REPEATS FOLD).
+var _repeats: PackedInt32Array = PackedInt32Array()
 var _count: int = 0
 ## The row the next post writes.
 var _head: int = 0
@@ -59,6 +66,7 @@ func _init() -> void:
 	_source.resize(CAPACITY)
 	_level.resize(CAPACITY)
 	_posted_msec.resize(CAPACITY)
+	_repeats.resize(CAPACITY)
 
 
 func bind_calendar(calendar: CalendarScript) -> void:
@@ -67,21 +75,36 @@ func bind_calendar(calendar: CalendarScript) -> void:
 
 
 func post(source: int, level: int, text: String, summary: String = "") -> bool:
-	"""Add one notice, stamped with the demo date now. Refuses (false, nothing kept) empty text, or a
-	source or level outside SOURCE_* / LEVEL_*."""
+	"""Add one notice, stamped with the demo date now -- or, when it repeats the newest entry, count it there
+	(see REPEATS FOLD). Refuses (false, nothing kept) empty text, or a source or level outside SOURCE_* /
+	LEVEL_*."""
 	if text.is_empty() or source < 0 or source >= SOURCE_NAMES.size() or level < LEVEL_NOTE \
 			or level > LEVEL_WARNING:
 		return false
-	_stamp[_head] = _calendar.date_text() if _calendar != null else UNDATED
-	_text[_head] = text
-	_summary[_head] = summary
-	_source[_head] = source
-	_level[_head] = level
-	_posted_msec[_head] = Time.get_ticks_msec()
-	_head = (_head + 1) % CAPACITY
-	_count = mini(_count + 1, CAPACITY)
+	var row := _head
+	if repeats_newest(source, level, text, summary):
+		row = _row(0)
+		_repeats[row] += 1
+	else:
+		_text[row] = text
+		_summary[row] = summary
+		_source[row] = source
+		_level[row] = level
+		_repeats[row] = 1
+		_head = (_head + 1) % CAPACITY
+		_count = mini(_count + 1, CAPACITY)
+	_stamp[row] = _calendar.date_text() if _calendar != null else UNDATED
+	_posted_msec[row] = Time.get_ticks_msec()
 	revision += 1
 	return true
+
+
+func repeats_newest(source: int, level: int, text: String, summary: String) -> bool:
+	"""Whether a post says exactly what the newest entry says (see REPEATS FOLD). An empty feed's rows hold no text,
+	and no post is empty, so the first post never matches."""
+	var newest := _row(0)
+	return _source[newest] == source and _level[newest] == level and _text[newest] == text \
+			and _summary[newest] == summary
 
 
 func poster(source: int, level: int) -> Callable:
@@ -124,6 +147,16 @@ func level(k: int) -> int:
 	return _level[_row(k)]
 
 
+func repeats(k: int) -> int:
+	"""How many times entry `k` was said in a row (1: once)."""
+	return _repeats[_row(k)]
+
+
+func _times(k: int) -> String:
+	"""" (×3)" after an entry said three times in a row; "" after one said once."""
+	return " (×%d)" % repeats(k) if repeats(k) > 1 else ""
+
+
 func age_msec(k: int, now_msec: int) -> int:
 	"""How long ago entry `k` was posted, in real milliseconds."""
 	return now_msec - _posted_msec[_row(k)]
@@ -131,13 +164,13 @@ func age_msec(k: int, now_msec: int) -> int:
 
 func line(k: int) -> String:
 	"""Entry `k` as one readable line: 'Y1 Spring 3, 14:00 · Warning: Frost tonight! …'."""
-	return "%s · %s%s" % [stamp(k), LEVEL_WORDS[level(k)], text(k)]
+	return "%s · %s%s%s" % [stamp(k), LEVEL_WORDS[level(k)], text(k), _times(k)]
 
 
 func short_line(k: int) -> String:
 	"""Entry `k` in its short form: its summary when one was authored, else its text."""
 	var shown: String = summary(k) if not summary(k).is_empty() else text(k)
-	return "%s · %s%s" % [stamp(k), LEVEL_WORDS[level(k)], shown]
+	return "%s · %s%s%s" % [stamp(k), LEVEL_WORDS[level(k)], shown, _times(k)]
 
 
 func latest_of_into(wanted_source: int, most: int, out: PackedStringArray) -> int:

@@ -78,7 +78,8 @@ FINDS = ["find_flint", "find_clay", "relic_bell", "relic_key", "relic_banner"]
 ## library L0 shatters (the README's "Known problems"); the older props this pass puts to use (the
 ## lantern, the chamber's bed, jars and shelf, the tools) are rebuilt too, because their library L0s
 ## carry 2,048 px maps -- over GAP-04's 1,024 px ceiling for their families -- and the demo imports
-## every map uncompressed (~67 MB of video memory each).
+## every map uncompressed (~67 MB of video memory each). The hearth is the burrow home's (decision 0210): it has an
+## L0, but its maps are the same 2,048 px.
 PROPS = {
 	**{key: "small_prop" for key in ITEMS},
 	**{key: "small_prop" for key in FINDS},
@@ -86,7 +87,7 @@ PROPS = {
 		"eel_trap", "gnawed_log", "chopping_block", "sapling_basket", "sawhorse", "basket",
 		"wall_lantern", "clay_jars", "spade", "hoe", "sickle", "axe"]},
 	**{key: "furniture" for key in ["boat_coracle", "boat_rowboat", "boat_raft", "jetty", "smoking_rack",
-		"bridge_plank", "bridge_log", "bridge_pier", "felled_trunk", "plank_stack", "bed", "pantry_shelf"]},
+		"bridge_plank", "bridge_log", "bridge_pier", "felled_trunk", "plank_stack", "bed", "pantry_shelf", "hearth"]},
 }
 ICONS = set(ITEMS) | set(FINDS)
 

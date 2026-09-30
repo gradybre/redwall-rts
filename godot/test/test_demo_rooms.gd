@@ -73,6 +73,13 @@ func _home(graph: GraphScript, at: Vector2i = HOME_AT, turns: int = HOME_TURNS, 
 	return ref
 
 
+static func _furnish(graph: GraphScript, r: int) -> void:
+	"""Every fixture place of dug room `r` installed (the fit-out, decision 0210; its own tests are test_demo_fitout.gd)."""
+	for f in RoomsScript.fixture_count(graph.rooms.template[r]):
+		graph.fit.phase_of(graph, r, f)
+		graph.fit.phase[r * RoomsScript.MAX_PLACES + f] = 2
+
+
 static func _site() -> RoomsScript.Site:
 	"""An open site: the bounds, nothing else."""
 	var site := RoomsScript.Site.new()
@@ -858,20 +865,23 @@ func test_everybeast_stands_upright_in_a_room() -> void:
 # --- the cellar API -------------------------------------------------------------------------
 
 func test_the_cellar_api_keeps_its_shape_served_from_rooms() -> void:
-	"""No cellar until dug; then one entry {"id": Vector2i(slot, generation), "position": its hatch on the ground,
-	"capacity_u": 60, "spoilage_permille": 350} -- the chambers' old shape -- and the pantry's provider entry
-	&"root_cellar:<slot>:<generation>", labelled, at the hatch."""
+	"""No cellar until dug, nor while it is bare (decision 0210: no racks, no store); fitted out, one entry {"id":
+	Vector2i(slot, generation), "position": its hatch on the ground, "capacity_u": its racks' 105, "spoilage_permille":
+	350, cool} -- the chambers' old shape -- and the pantry's provider entry &"root_cellar:<slot>:<generation>",
+	labelled, at the hatch."""
 	var graph := GraphScript.new()
 	var ref := _home(graph, Vector2i(-6144, 6144), 0, RoomsScript.TEMPLATE_CELLAR)
 	assert_equal(graph.rooms.cellars(graph).size(), 0, "none until dug")
 	_dig(graph, ref[2])
+	assert_equal(graph.rooms.cellars(graph).size(), 0, "none while it is bare")
+	_furnish(graph, ref[0])
 	var cellars := graph.rooms.cellars(graph)
 	assert_equal(cellars.size(), 1, "one")
 	var hatch := RoomsScript.mouth_at(RoomsScript.TEMPLATE_CELLAR, Vector2i(-6144, 6144), 0)
 	assert_equal(cellars[0].keys(), ["id", "position", "capacity_u", "spoilage_permille"], "the keys")
 	assert_equal(cellars[0]["id"], Vector2i(ref[0], ref[1]), "its (slot, generation)")
 	assert_equal(cellars[0]["position"], Vector3(Rules.to_m(hatch.x), 0.0, Rules.to_m(hatch.y)), "at its hatch")
-	assert_equal([cellars[0]["capacity_u"], cellars[0]["spoilage_permille"]], [60, 350], "its store")
+	assert_equal([cellars[0]["capacity_u"], cellars[0]["spoilage_permille"]], [105, 350], "its store")
 	var entries := FarmCellars.entries(graph)
 	assert_equal(entries[0][StorageScript.KEY_ID], StringName("root_cellar:%d:%d" % [ref[0], ref[1]]), "the provider's id")
 	assert_equal(entries[0][StorageScript.KEY_LABEL], "Root cellar %d" % (ref[0] + 1), "labelled")
@@ -884,8 +894,9 @@ func test_a_home_is_no_cellar_and_a_relaid_row_is_a_new_store() -> void:
 	var graph := GraphScript.new()
 	var home := _home(graph)
 	_dig(graph, home[2])
+	_furnish(graph, home[0])
 	assert_equal(graph.rooms.cellars(graph).size(), 0, "a home is no cellar")
-	assert_equal(graph.rooms.beds(graph), 3, "its three beds")
+	assert_equal(graph.rooms.beds(graph), 3, "its three beds, put in")
 	var cellar := _home(graph, Vector2i(-8192, -8192), 0, RoomsScript.TEMPLATE_CELLAR)
 	graph.start_dig(cellar[3], cellar[4], 0)
 	graph.stop_digging(cellar[3], cellar[4])
@@ -893,6 +904,7 @@ func test_a_home_is_no_cellar_and_a_relaid_row_is_a_new_store() -> void:
 	assert_equal(again[0], cellar[0], "the same row")
 	assert_equal(again[1], cellar[1] + 1, "a new generation")
 	_dig(graph, again[2])
+	_furnish(graph, again[0])
 	assert_equal(graph.rooms.cellars(graph)[0]["id"], Vector2i(again[0], again[1]), "published as the new store")
 	assert_equal(FarmCellars.entries(graph)[0][StorageScript.KEY_ID], StringName("root_cellar:%d:%d" % [again[0], again[1]]),
 		"under a new pantry id")

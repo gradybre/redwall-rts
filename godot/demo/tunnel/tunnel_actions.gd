@@ -218,7 +218,7 @@ func _can_work(i: int, below: bool, free_only: bool) -> bool:
 	var b := _works.brain(i)
 	if b.order == BrainScript.ORDER_DIG or b.underground:
 		return false
-	if free_only and b.order != BrainScript.ORDER_NONE:
+	if free_only and (b.order != BrainScript.ORDER_NONE or b.resting):
 		return false
 	return not below or _network.fits_tunnel(i, selected, false)
 

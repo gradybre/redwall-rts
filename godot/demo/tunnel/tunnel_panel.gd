@@ -18,6 +18,10 @@ extends CanvasLayer
 ## its state and the jobs that can be ordered on it; and the last few things said. Its buttons emit
 ## `action` with a name (ACTION_*); nothing here decides anything.
 ##
+## A SELECTED ROOM (decision 0210) shows in the tunnel's stead: its heading, its lines (demo/burrow/room_text.gd), a
+## palette row for each kind of fixture its places take -- its words, a "+" and a "−" -- and the suggested layout's
+## button. Those buttons emit "fit:add:<kind>", "fit:take:<kind>" and "fit:suggest" (room_text.gd FIT_*).
+##
 ## STYLE: the woodland skin's carved-wood frame with a parchment face, ink and umber text, wood
 ## buttons with cream text -- the party panel's pieces. The frame stops the mouse; no button takes
 ## focus (Enter while laying a tunnel must never press one).
@@ -26,6 +30,8 @@ const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const DetailZone := preload("res://demo/ui/demo_detail_zone.gd")
+const RoomTextScript := preload("res://demo/burrow/room_text.gd")
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 
 signal action(name: StringName)
 
@@ -41,6 +47,7 @@ const BUTTON_TEXT: Dictionary = {
 	&"lanterns": "Hang lanterns", &"repair": "Repair", &"event": "Test event (demo)",
 }
 const TUNNEL_ACTIONS: Array[StringName] = [&"widen", &"brace", &"lanterns", &"repair"]
+
 const NO_TUNNEL: String = "Click a finished tunnel's mouth or route to select it."
 const PLANNING: String = "Laying a tunnel"
 ## The heading while the room tool is out, with the template's name ("Placing a burrow home").
@@ -64,6 +71,14 @@ var _column: VBoxContainer = null
 var _lines: Dictionary = {}
 var _buttons: Dictionary = {}
 var _tunnel_box: VBoxContainer = null
+var _room_box: VBoxContainer = null
+## Per fixture kind (underground_rooms.gd FIX_*): its palette row, its words, its "+" and its "−".
+var _fit_rows: Array[HBoxContainer] = []
+var _fit_words: Array[Label] = []
+## The fit-out buttons' first words, by action (see A SELECTED ROOM; filled as they are built).
+var _button_words: Dictionary = {}
+## How many palette rows the room box shows (a change re-places the frame).
+var _shown_rows: int = -1
 var _find_icons: Array[TextureRect] = []
 var _find_counts: Array[Label] = []
 var _layout: UiLayout = UiLayout.new()
@@ -107,6 +122,7 @@ func build() -> void:
 	column.add_child(_build_finds_row())
 	column.add_child(_button(ACTION_NEXT_WEATHER))
 	_build_tunnel_box(column)
+	_build_room_box(column)
 	_lines[&"log"] = _label("", SMALL_PX, Palette.UMBER, null)
 	column.add_child(_lines[&"log"])
 	column.add_child(_button(ACTION_EVENT))
@@ -171,6 +187,83 @@ func _build_tunnel_box(column: VBoxContainer) -> void:
 		grid.add_child(_button(key))
 
 
+func _build_room_box(column: VBoxContainer) -> void:
+	"""The selected room (see A SELECTED ROOM): its heading, its lines, a palette row a kind, the suggested layout."""
+	_room_box = VBoxContainer.new()
+	_room_box.add_theme_constant_override(&"separation", 4)
+	_room_box.visible = false
+	column.add_child(_room_box)
+	_lines[&"room_title"] = _label("", BODY_PX + 2, Palette.INK, Styles.heading_font())
+	_room_box.add_child(_lines[&"room_title"])
+	_lines[&"room"] = _label("", BODY_PX, Palette.UMBER, null)
+	_room_box.add_child(_lines[&"room"])
+	for kind in RoomsScript.FIXTURE_KINDS:
+		_room_box.add_child(_fit_row(kind))
+	_room_box.add_child(_fit_button(StringName(RoomTextScript.FIT_PREFIX + RoomTextScript.FIT_SUGGEST), "Suggested layout",
+		"Plan a fixture in every empty place at once (paid all together, or not at all)"))
+
+
+func _fit_row(kind: int) -> HBoxContainer:
+	"""One palette row: the kind's words, then its "+" and "−" (see A SELECTED ROOM)."""
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(&"separation", 4)
+	var words := _label("", SMALL_PX, Palette.INK, null)
+	words.custom_minimum_size.x = 0.0
+	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(words)
+	var what: String = RoomsScript.FIXTURE_NAMES[kind]
+	for verb: String in [RoomTextScript.FIT_ADD, RoomTextScript.FIT_TAKE]:
+		var sign := "+" if verb == RoomTextScript.FIT_ADD else "−"
+		var tip := "Plan a %s (a resident puts it in)" % what if verb == RoomTextScript.FIT_ADD else "Take a %s out" % what
+		var b := _fit_button(StringName("%s%s:%d" % [RoomTextScript.FIT_PREFIX, verb, kind]), sign, tip)
+		b.size_flags_horizontal = Control.SIZE_SHRINK_END
+		b.custom_minimum_size.x = 30.0
+		row.add_child(b)
+	_fit_rows.append(row)
+	_fit_words.append(words)
+	return row
+
+
+func _fit_button(key: StringName, text: String, tip: String) -> Button:
+	"""A fit-out button: a wood button emitting `action(key)`, its words `text`, its tooltip `tip`."""
+	_button_words[key] = text
+	var b := _button(key)
+	b.tooltip_text = tip
+	return b
+
+
+func show_room(title: String, text: String, rows: Array[Dictionary], suggest: String, suggest_enabled: bool) -> void:
+	"""The selected room ("" title: none -- the box hides): its lines, its palette rows ({"kind", "text", "add",
+	"take"}: only those kinds shown) and the suggested layout's button. The frame is placed again only when what
+	shows changed (a line's text does it itself)."""
+	var shown := not title.is_empty()
+	if not shown and not _room_box.visible:
+		return
+	var moved := shown != _room_box.visible or _shown_rows != rows.size()
+	_room_box.visible = shown
+	_shown_rows = rows.size()
+	_set_line(&"room_title", title)
+	_set_line(&"room", text)
+	for row: HBoxContainer in _fit_rows:
+		row.visible = false
+	for row: Dictionary in rows:
+		var kind: int = row["kind"]
+		_fit_rows[kind].visible = true
+		_fit_words[kind].text = row["text"]
+		(_buttons[StringName("%s%s:%d" % [RoomTextScript.FIT_PREFIX, RoomTextScript.FIT_ADD, kind])] as Button).disabled = not row["add"]
+		(_buttons[StringName("%s%s:%d" % [RoomTextScript.FIT_PREFIX, RoomTextScript.FIT_TAKE, kind])] as Button).disabled = not row["take"]
+	var suggest_button := _buttons[StringName(RoomTextScript.FIT_PREFIX + RoomTextScript.FIT_SUGGEST)] as Button
+	suggest_button.text = suggest
+	suggest_button.disabled = not suggest_enabled
+	if moved:
+		_place.call_deferred()
+
+
+func room_shown() -> bool:
+	"""Whether a room is shown (checks)."""
+	return _room_box != null and _room_box.visible
+
+
 func _label(text: String, px: int, colour: Color, font: Font) -> Label:
 	"""One wrapped label in the panel's type."""
 	var label := Label.new()
@@ -188,7 +281,7 @@ func _label(text: String, px: int, colour: Color, font: Font) -> Label:
 func _button(key: StringName) -> Button:
 	"""A wood button that emits `action(key)` and never takes focus."""
 	var button := Button.new()
-	button.text = BUTTON_TEXT[key]
+	button.text = BUTTON_TEXT[key] if BUTTON_TEXT.has(key) else _button_words[key]
 	button.focus_mode = Control.FOCUS_NONE
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.add_theme_font_size_override(&"font_size", BODY_PX)
@@ -227,7 +320,8 @@ func show_status(weather: String, stores: String, housing: String, finds: String
 func show_tunnel(title: String, text: String, repair: String, enabled: Dictionary) -> void:
 	"""The selected tunnel ("" title: none selected) -- its state, the repair button's words, and which
 	actions are enabled ({action: bool}; empty: no actions shown)."""
-	_set_line(&"tunnel_title", title if not title.is_empty() else NO_TUNNEL)
+	_set_line(&"tunnel_title", title if not title.is_empty() or room_shown() else NO_TUNNEL)
+	(_lines[&"tunnel_title"] as Label).visible = not room_shown() or not title.is_empty()
 	_set_line(&"tunnel", text)
 	(_lines[&"tunnel"] as Label).visible = not text.is_empty()
 	(_buttons[ACTION_REPAIR] as Button).text = repair if not repair.is_empty() else BUTTON_TEXT[ACTION_REPAIR]

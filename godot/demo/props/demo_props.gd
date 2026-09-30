@@ -44,8 +44,13 @@ const SIZES: Dictionary = {
 	# The brace is fitted to each bore (tunnel_marks.gd); this is only its standalone size.
 	&"tunnel_brace": [RULE_HEIGHT, 0.9],
 	# Lanterns hung at a mole's head height; room furniture at mole scale (a 0.9 m mole).
-	&"wall_lantern": [RULE_HEIGHT, 0.36], &"bed": [RULE_LONGEST, 1.25], &"basket": [RULE_HEIGHT, 0.34],
+	&"wall_lantern": [RULE_HEIGHT, 0.36], &"basket": [RULE_HEIGHT, 0.34],
 	&"clay_jars": [RULE_HEIGHT, 0.55], &"pantry_shelf": [RULE_HEIGHT, 1.35],
+	# The fit-out (decision 0210): a bed long enough for the otters (1.49 m; bed_allocation.gd BED_LENGTH_U), a stone
+	# hearth whose mantel stands at a mole's head, a table and stools for a burrow's corner, and sacks, a barrel and a
+	# crate a size that stands on a cellar's rack.
+	&"bed": [RULE_LONGEST, 1.6], &"hearth": [RULE_HEIGHT, 1.15], &"table_stools": [RULE_LONGEST, 1.1],
+	&"sack_pile": [RULE_LONGEST, 0.55], &"barrel": [RULE_HEIGHT, 0.5], &"crate": [RULE_HEIGHT, 0.4],
 	# Farm tools lying by the beds and an axe at the woodpile, mouse-sized (a 1.00 m mouse).
 	&"spade": [RULE_LONGEST, 0.8], &"hoe": [RULE_LONGEST, 0.9], &"sickle": [RULE_LONGEST, 0.45],
 	&"axe": [RULE_LONGEST, 0.6],

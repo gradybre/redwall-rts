@@ -17,10 +17,9 @@ extends Node3D
 ##     in a cellar (room_mesh.gd `build_beam`) -- carried by the library's tunnel_brace (tunnel_marks.gd's frame)
 ##     framing the door and every socket, as tall as the beam is high: a few clear posts carrying one ring, read
 ##     from above, not a row of stumps cut off by the section.
-##   * FIT-OUT (underground_rooms.gd FIXTURES): beds in the alcoves, the cellar's shelf, jars and a basket; the
-##     hearth and table places left empty for P4; and a wall lantern whose light is one of the pooled lights
-##     (tunnel_lanterns.gd `set_room_spots`) -- a home's warm, a cellar's cooler. The pantry stands its own
-##     stocked shelf in a cellar's first shelf place (farm/farm_stock_view.gd).
+##   * ITS LANTERN (underground_rooms.gd WALL_LANTERN): a wall lantern by the door whose light is one of the pooled
+##     lights (tunnel_lanterns.gd `set_room_spots`) -- a home's warm, a cellar's cooler. What else stands in a room
+##     is its fit-out, the player's (decision 0210: room_fixtures.gd, drawn by fixture_view.gd); a dug room is bare.
 ##   * Its outline and name, over the cap, while it is laid and being dug.
 ## ON THE GROUND (the surface layers): while laid and dug, a cream outline and its name; dug, its turfed MOUND --
 ## the room itself rising 1.5 m over the ground under its turf (underground_rooms.gd HEADROOM), a low round bank
@@ -55,6 +54,7 @@ const BoreMeshScript := preload("res://demo/tunnel/bore_mesh.gd")
 const MarksScript := preload("res://demo/tunnel/tunnel_marks.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
+const FixtureKitScript := preload("res://demo/burrow/fixture_kit.gd")
 
 ## The shell grows in this many stages while the body is dug.
 const STAGES: int = 6
@@ -107,7 +107,6 @@ const BEAM_WIDTH_M: float = 0.16
 const BEAM_DEPTH_M: float = 0.14
 const BEAM_INSET_M: float = 0.14
 const MAX_FRAMES: int = 16
-const FIXTURE_KEYS: Array[StringName] = [&"bed", &"", &"", &"pantry_shelf", &"clay_jars", &"wall_lantern", &"basket"]
 const LANTERN_KEY: StringName = &"wall_lantern"
 
 var _network: GraphScript = null
@@ -287,9 +286,7 @@ func register(prewarm: PrewarmScript) -> void:
 	prewarm.add_mesh(sample, BoreViewScript.hub_material())
 	prewarm.add_multimesh(_marks.brace_mesh(), _rib_material)
 	prewarm.add_mesh(_beam_mesh(RoomsScript.TEMPLATE_HOME), _beam_material)
-	for key: StringName in FIXTURE_KEYS:
-		if not key.is_empty():
-			prewarm.add_mesh(_props.mesh_of(key))
+	prewarm.add_mesh(_props.mesh_of(LANTERN_KEY))
 	prewarm.add_mesh(_marks.glow_mesh())
 	prewarm.add_mesh(OverlayScript.immediate_sample(), _outline_below_material)
 	prewarm.add_label(_labels_below[0])
@@ -297,7 +294,8 @@ func register(prewarm: PrewarmScript) -> void:
 
 func begin_surface_prewarm() -> void:
 	"""Stand one of each kind of the rooms' pieces on the ground -- the mound in the ground's grass, its earth
-	face, a board in the doors' timber -- 3 m under the ground where the camera looks, so
+	face, a board in the doors' timber, a chimney and a puff of its smoke (decision 0210) -- 3 m under the ground
+	where the camera looks, so
 	their pipelines compile while the opening pause holds (see PREWARM)."""
 	end_surface_prewarm()
 	_surface_samples = Node3D.new()
@@ -310,6 +308,7 @@ func begin_surface_prewarm() -> void:
 		sample.mesh = pair[0]
 		sample.material_override = pair[1]
 		_surface_samples.add_child(sample)
+	FixtureKitScript.register_ground(_surface_samples)
 	Layers.set_layers(_surface_samples, Layers.SURFACE)
 	_surface_samples.position = _under_the_view()
 
@@ -685,17 +684,7 @@ func _stamp_vault(r: int, middle: Vector2, share: float, crown: float) -> void:
 # --- the fit-out ----------------------------------------------------------------------------
 
 func _fit_out(r: int) -> void:
-	"""Room `r`'s fit-out (see BELOW): its fixtures' props -- all but the hearth and table, left for P4, and a
-	cellar's first shelf place, where the pantry stands its own -- its lantern and glow, and its ribs."""
-	var kind := _rooms.template[r]
-	var first_shelf := true
-	for f in RoomsScript.fixture_count(kind):
-		var fixture := RoomsScript.fixture_field(kind, f, 0)
-		if fixture == RoomsScript.FIX_SHELF and first_shelf:
-			first_shelf = false
-			continue
-		if not FIXTURE_KEYS[fixture].is_empty() and fixture != RoomsScript.FIX_LANTERN:
-			_furniture[r].add_child(_piece(FIXTURE_KEYS[fixture], fixture_transform(r, f)))
+	"""Room `r`'s own lantern by its door (see ITS LANTERN) and its glow, and its ribs."""
 	var lantern := lantern_transform(r)
 	_furniture[r].add_child(_piece(LANTERN_KEY, lantern))
 	var glow := MeshInstance3D.new()
@@ -714,29 +703,18 @@ func _piece(key: StringName, at: Transform3D) -> MeshInstance3D:
 	return piece
 
 
-func fixture_transform(r: int, f: int) -> Transform3D:
-	"""Where fixture place `f` of room `r` stands on its floor, turned to face its way (underground_rooms.gd
-	FIXTURES; the props face +Z)."""
-	var kind := _rooms.template[r]
-	var at := _m(_rooms.to_world_u(r, Vector2i(RoomsScript.fixture_field(kind, f, 1), RoomsScript.fixture_field(kind, f, 2))))
-	var face := _dir(RoomsScript.rotate_u(Vector2i(RoomsScript.fixture_field(kind, f, 3), RoomsScript.fixture_field(kind, f, 4)),
-		_rooms.turns[r]))
+func wall_lantern_transform(r: int) -> Transform3D:
+	"""Where room `r`'s own lantern's place is on its floor, turned to face into the room (WALL_LANTERN)."""
+	var place: Array = RoomsScript.WALL_LANTERN[_rooms.template[r]]
+	var at := _m(_rooms.to_world_u(r, Vector2i(place[0], place[1])))
+	var face := _dir(RoomsScript.rotate_u(Vector2i(place[2], place[3]), _rooms.turns[r]))
 	return Transform3D(Basis(Vector3.UP, atan2(face.x, face.y)), Vector3(at.x, Layers.FLOOR_Y_M + 0.02, at.y))
-
-
-func _lantern_place(r: int) -> int:
-	"""Room `r`'s lantern's fixture place (-1: none)."""
-	var kind := _rooms.template[r]
-	for f in RoomsScript.fixture_count(kind):
-		if RoomsScript.fixture_field(kind, f, 0) == RoomsScript.FIX_LANTERN:
-			return f
-	return -1
 
 
 func lantern_transform(r: int) -> Transform3D:
 	"""Room `r`'s wall lantern: its bracket on the wall at its place, its cage out over the room, LANTERN_LIFT_M
 	up (the library's wall_lantern has its wall plate at +X, turned to the wall; tunnel_marks.gd)."""
-	var placed := fixture_transform(r, _lantern_place(r))
+	var placed := wall_lantern_transform(r)
 	var inward := Vector2(placed.basis.z.x, placed.basis.z.z).normalized()
 	var reach: float = _props.drawn_bound(LANTERN_KEY).size.x * 0.5
 	var origin := Vector2(placed.origin.x, placed.origin.z) + inward * reach

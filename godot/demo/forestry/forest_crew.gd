@@ -360,7 +360,7 @@ func _hand_out() -> void:
 		_idle.clear()
 		for who: int in _crew:
 			var brain: BrainScript = brain_of(who)
-			if brain.order == BrainScript.ORDER_NONE and not brain.underground:
+			if brain.order == BrainScript.ORDER_NONE and not brain.underground and not brain.resting:
 				_idle.append(who)
 		if _nearest_free_into(_idle, target_point(row), _read):
 			jobs.assign(row, _read.value)

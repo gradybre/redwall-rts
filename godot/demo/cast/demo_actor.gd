@@ -44,6 +44,14 @@ extends Node3D
 ## holds the pose. On a ramp the node pitches with the slope (the brain's `pitch`), so the feet meet it,
 ## and the spine leans half of that back into the slope.
 ##
+## ASLEEP (decision 0210). While the brain is `lying` the body is laid on the surface it names (`lie_top_y_m`: a
+## mattress, a floor): with the staged sleep clip (Meshy's Sleep_Normally, staged as sleep_normally) the body is lifted
+## so its LOWEST point -- the clip's own measure, tools/stage_demo_assets.py `sleep_row`, taken from its skinned
+## vertices -- rests on it. Grounding seats a clip by its legs, so a lying torso would sink up to 19.5 cm into the
+## mattress (decision 0204); this seats it by its body instead. With no sleep clip (the beaver, a placeholder) the body
+## is laid back procedurally: tipped onto its back, head toward -Z, lifted by LIE_BACK_LIFT of its height. The tail's
+## floor is the mattress. While the brain is `indoors` (asleep in the hall) nothing is drawn.
+##
 ## FACING. The models face +Z, so the node's yaw is the brain's yaw: local +Z points along travel.
 ## With no staged cast (CI, a fresh clone), a capsule with a nose stands in, with the same brain.
 
@@ -60,7 +68,11 @@ const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
 const CROSSFADE_S: float = 0.25
 const LIBRARY: StringName = &"cast"
 const CLIPS: Array[StringName] = [&"idle", &"walk", &"collect_object", &"stand_and_drink", &"wave_one_hand",
-	&"carry_heavy_object_walk", &"pull_radish", &"swim", &"tread_water", &"dive"]
+	&"carry_heavy_object_walk", &"pull_radish", &"swim", &"tread_water", &"dive", &"sleep_normally"]
+## The procedural lie-down (see ASLEEP): the body tipped back this far about its X axis (on its back, head toward
+## -Z) and lifted by this share of its height (half a lying body's depth).
+const LIE_BACK_RAD: float = -PI * 0.5
+const LIE_BACK_LIFT: float = 0.14
 const RADIUS_PER_HEIGHT: float = 0.22
 const MIN_RADIUS_M: float = 0.2
 const MAX_RADIUS_M: float = 0.6
@@ -144,6 +156,10 @@ var _tail_yaw: float = 0.0
 var _stoop: StoopScript = null
 var _stoop_ease: float = 0.0
 var _stoop_drop: float = 0.0
+## The sleep clip's lowest body point over the clip, from the ground it was seated on (m; negative: it sinks), and
+## whether this creature lies by the clip or procedurally (see ASLEEP).
+var _sleep_floor_m: float = 0.0
+var _lies_by_clip: bool = false
 
 
 func setup_creature(index: int, key: StringName, row: Dictionary, space: CastSpaceScript, seed: int) -> bool:
@@ -173,9 +189,22 @@ func setup_creature(index: int, key: StringName, row: Dictionary, space: CastSpa
 	_build_stoop(height)
 	_make_brain(space, float(row.get("walk_speed_m_s", PLACEHOLDER_WALK_SPEED_M_S)), body_radius(height), seed, lengths)
 	brain.set_carry_motion(motion)
+	_read_sleep(row.get("sleep", {}), height)
 	if brain.can_carry() and _skeleton != null:
 		_build_load(height)
 	return true
+
+
+func _read_sleep(sleep: Dictionary, height: float) -> void:
+	"""How this creature lies (see ASLEEP): the staged sleep clip's measure -- its lowest body point and the middle of
+	its lying body -- or, with none, the procedural lie-down's (its middle half its height toward -Z)."""
+	var centre: Array = sleep.get("centre_m", [])
+	_lies_by_clip = brain.has_clip(BrainScript.CLIP_SLEEP) and centre.size() == 2
+	if _lies_by_clip:
+		_sleep_floor_m = float(sleep.get("floor_y_m", 0.0))
+		brain.lie_middle_m = Vector2(float(centre[0]), float(centre[1]))
+	else:
+		brain.lie_middle_m = Vector2(0.0, -height * 0.5)
 
 
 func _make_brain(space: CastSpaceScript, gait: float, radius: float, seed: int, lengths: Dictionary) -> void:
@@ -204,8 +233,10 @@ func setup_placeholder(index: int, space: CastSpaceScript, seed: int) -> void:
 	_add_shape(nose, material, Vector3(0.0, PLACEHOLDER_HEIGHT_M * 0.75, radius))
 	var lengths := {}
 	for clip in CLIPS:
-		lengths[clip] = PLACEHOLDER_CLIP_S
+		if clip != BrainScript.CLIP_SLEEP:
+			lengths[clip] = PLACEHOLDER_CLIP_S
 	_make_brain(space, PLACEHOLDER_WALK_SPEED_M_S, radius, seed, lengths)
+	_read_sleep({}, PLACEHOLDER_HEIGHT_M)
 
 
 func _describe(index: int, key: StringName, kind: String, height: float) -> void:
@@ -254,21 +285,36 @@ func advance(clock: DemoClockScript) -> void:
 
 
 func _apply_transform() -> void:
-	"""Stand on the ground -- or a bore's floor -- at the brain's position; local +Z along its yaw."""
+	"""Stand on the ground -- or a bore's floor -- at the brain's position; local +Z along its yaw. Lying, laid on
+	what it lies on (see ASLEEP)."""
 	position.x = brain.position.x
-	position.y = brain.ground_y_m
+	position.y = lie_y() if brain.lying else brain.ground_y_m
 	position.z = brain.position.y
 	rotation.y = brain.yaw
-	rotation.x = brain.pitch
+	rotation.x = LIE_BACK_RAD if brain.lying and not _lies_by_clip else brain.pitch
+	visible = not brain.indoors
 	_apply_view()
 	if _tail == null:
 		return
 	if brain.in_water != _tail_in_water or (brain.in_water and absf(angle_difference(_tail_yaw, brain.yaw)) > WATER_TAIL_TURN_RAD):
 		_apply_tail_water()
-	var floor_y: float = brain.ground_y_m - (WATER_FLOOR_BELOW_M if brain.in_water else 0.0)
+	var floor_y: float = brain.lie_top_y_m if brain.lying else brain.ground_y_m - (WATER_FLOOR_BELOW_M if brain.in_water else 0.0)
 	if floor_y != _floor_y:
 		_floor_y = floor_y
 		_tail.set_floor(_floor_y)
+
+
+func lie_y() -> float:
+	"""Where the body's root stands while it lies (see ASLEEP): its lowest point on the mattress by the clip's measure,
+	or the procedural lie-down's lift."""
+	if _lies_by_clip:
+		return brain.lie_top_y_m - _sleep_floor_m
+	return brain.lie_top_y_m + height_m * LIE_BACK_LIFT
+
+
+func lies_by_clip() -> bool:
+	"""Whether this creature lies down by its staged sleep clip (else procedurally; checks)."""
+	return _lies_by_clip
 
 
 # --- the stoop ------------------------------------------------------------------------------
@@ -338,8 +384,8 @@ func _apply_view() -> void:
 		_below = below
 		_layers = Layers.UNDERGROUND if brain.underground else Layers.SURFACE
 		Layers.set_layers(self, _layers, _marker)
-		if _marker != null:
-			_marker.visible = not brain.underground
+	if _marker != null:
+		_marker.visible = not brain.underground and not brain.indoors
 	if _marker != null and below == 0:
 		_marker.position = Vector3(brain.position.x, Layers.FLOOR_Y_M + Layers.MARK_LIFT_M, brain.position.y)
 

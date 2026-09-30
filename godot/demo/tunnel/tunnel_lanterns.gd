@@ -13,6 +13,10 @@ extends Node3D
 ## each row with its own light colour -- a home's warm, a cellar's cooler -- that the light takes when given to
 ## one of its spots.
 ##
+## THE FIT-OUT (decision 0210) lights two more rows a room: its HEARTH while it is lit (`set_hearth_spots`, a deep
+## orange), and the lantern a player hangs in it (`set_fit_spots`, the lanterns' own colour). They share the pool, so
+## the U view still lights at most MAX_LIGHTS.
+##
 ## FLICKER. Each light's energy wavers FLICKER either side of ENERGY, two slow waves at its own phase, on
 ## the demo clock's time: paused, it holds still. It runs only while the U view is on (the surface culls
 ## these lights by their layer anyway).
@@ -28,6 +32,12 @@ const ENERGY: float = 0.9
 const ATTENUATION: float = 1.8
 const FLICKER: float = 0.08
 const COLOUR: Color = Color(1.0, 0.72, 0.4)
+const HEARTH_COLOUR: Color = Color(1.0, 0.5, 0.2)
+## The rows after the tunnels': each room's lanterns, its hearth, its hung lantern.
+const ROW_ROOMS: int = Rules.MAX_SEGMENTS
+const ROW_HEARTHS: int = ROW_ROOMS + RoomsScript.MAX_ROOMS
+const ROW_FIT: int = ROW_HEARTHS + RoomsScript.MAX_ROOMS
+const ROWS: int = ROW_FIT + RoomsScript.MAX_ROOMS
 const REASSIGN_M: float = 1.5
 const WAVE_HZ: Vector2 = Vector2(1.7, 4.3)
 
@@ -68,9 +78,9 @@ func configure(clock: DemoClockScript = null) -> void:
 		light.visible = false
 		add_child(light)
 		_lights.append(light)
-	for row in Rules.MAX_SEGMENTS + RoomsScript.MAX_ROOMS:
+	for row in ROWS:
 		_spots.append(PackedVector3Array())
-		_tints.append(COLOUR)
+		_tints.append(HEARTH_COLOUR if row >= ROW_HEARTHS and row < ROW_FIT else COLOUR)
 	_best.resize(MAX_LIGHTS)
 	_best_tint.resize(MAX_LIGHTS)
 	_gaps.resize(MAX_LIGHTS)
@@ -91,8 +101,20 @@ func set_spots(slot: int, spots: PackedVector3Array) -> void:
 
 func set_room_spots(r: int, spots: PackedVector3Array, tint: Color) -> void:
 	"""Room `r`'s lanterns now hang here, lighting `tint` (empty: none; see ROOMS)."""
-	_tints[Rules.MAX_SEGMENTS + r] = tint
-	set_spots(Rules.MAX_SEGMENTS + r, spots)
+	_tints[ROW_ROOMS + r] = tint
+	set_spots(ROW_ROOMS + r, spots)
+
+
+func set_hearth_spots(r: int, spots: PackedVector3Array) -> void:
+	"""Room `r`'s hearth glows here while it is lit (empty: cold; see THE FIT-OUT)."""
+	if spots != _spots[ROW_HEARTHS + r]:
+		set_spots(ROW_HEARTHS + r, spots)
+
+
+func set_fit_spots(r: int, spots: PackedVector3Array) -> void:
+	"""Room `r`'s hung lantern lights here (empty: none; see THE FIT-OUT)."""
+	if spots != _spots[ROW_FIT + r]:
+		set_spots(ROW_FIT + r, spots)
 
 
 func light(k: int) -> OmniLight3D:

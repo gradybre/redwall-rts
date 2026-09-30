@@ -30,6 +30,7 @@ const DemoWorld := preload("res://demo/world/demo_world.gd")
 const Layout := preload("res://demo/world/world_layout.gd")
 const Dimensions := preload("res://assets/lookdev/lookdev_dimensions.gd")
 const Scatter := preload("res://demo/world/world_scatter.gd")
+const DemoCamera := preload("res://demo/camera/demo_camera.gd")
 
 ## Fixture numbers, in u.
 const DROP: int = 184
@@ -1064,13 +1065,14 @@ func test_a_flood_raises_the_stream_up_its_banks() -> void:
 
 
 func test_overlay_site_text_reads_the_fishery() -> void:
-	"""The run's label names its habitat, day, each species' stock and state, and the quota."""
+	"""The run's label is two short lines (decision 0205: five lines stacked over each other): the site, the
+	river quota left and free slots; then each species' stock and state -- salmon shut until s2 d1."""
 	var driver := _driver()
 	var text: String = Overlay.site_text(driver, Driver.SITE_RUN, Driver.Preview.new())
-	assert_true(text.begins_with("stream_run  (river habitat)  -  season 0 day 1"), text)
-	assert_true(text.contains("trout 480.0 / 600 U  open  net 6.4 U"), "trout line")
-	assert_true(text.contains("salmon 480.0 / 600 U  species_unavailable (reopens s2 d1)"), "salmon line")
-	assert_true(text.contains("quota left 52.5 / 52.5 U   slots 4 / 4 free"), "quota line")
+	assert_equal(text.split("\n").size(), 2, "two lines: %s" % text)
+	assert_equal(text.split("\n")[0], "stream_run  quota 52.5 / 52.5 U  slots 4 / 4", "site line")
+	assert_true(text.split("\n")[1].begins_with("trout 480 open   "), "trout first: %s" % text)
+	assert_true(text.split("\n")[1].ends_with("   salmon 480 shut to s2 d1"), "salmon shut: %s" % text)
 
 
 # --- boundary cases the fixtures above cannot tell apart -------------------------------------------
@@ -1234,3 +1236,175 @@ func test_a_closure_ending_tonight_reopens_tomorrow() -> void:
 	var preview := _preview(driver, Driver.SITE_RUN, 0, Fishing.GEAR_HAND_NET)
 	assert_true(preview.closed, "still closed")
 	assert_equal([preview.reopen_season, preview.reopen_day], [0, 8], "tomorrow")
+
+
+# --- the overlay's labels on screen (playtest 2026-09-29, decision 0205) -------------------------
+
+func _shown_overlay() -> Overlay:
+	"""The village water's overlay with its fishery bound and its labels texted, shown."""
+	var water: DemoWater = _built()[1]
+	var overlay: Overlay = water.overlay()
+	overlay.set_driver(_driver(), water.map())
+	overlay.toggle()
+	overlay.refresh_text()
+	return overlay
+
+
+## The viewports the demo supports, smallest and project default (ui_ux_controls.md: 1280x720 up).
+const VIEWPORTS: Array[Vector2] = [Vector2(1920.0, 1080.0), Vector2(1280.0, 720.0)]
+
+
+func _eye_at(focus: Vector3, yaw_deg: float, distance: float) -> Transform3D:
+	"""Where the demo's own camera rig puts its camera for this pose at its default pitch (the rig's
+	transform times its camera's, out of the tree: the suite runs before the tree is live)."""
+	var rig: DemoCamera = DemoCamera.new()
+	_nodes.append(rig)
+	rig.configure(AABB(Vector3(-60.0, 0.0, -60.0), Vector3(120.0, 1.0, 120.0)), focus)
+	rig._target_yaw = deg_to_rad(yaw_deg)
+	rig._target_distance = distance
+	rig.snap()
+	return rig.transform * rig.camera().transform
+
+
+func _lay(overlay: Overlay, eye: Transform3D, view: Vector2) -> void:
+	"""Lay the overlay out for the demo camera at `eye` over a `view`-sized viewport (the Camera3D's own
+	projection: keep-height perspective at the rig's FOV and planes)."""
+	var lens := Projection.create_perspective(DemoCamera.FOV_DEGREES, view.x / view.y, DemoCamera.NEAR_PLANE, DemoCamera.FAR_PLANE)
+	overlay.lay_out_view(eye, lens, view, DemoCamera.FOV_DEGREES)
+
+
+func _overlaps(overlay: Overlay, eye: Transform3D, view: Vector2) -> PackedStringArray:
+	"""Every pair of laid-out labels whose screen rectangles overlap, after laying out for `eye`."""
+	_lay(overlay, eye, view)
+	var out := PackedStringArray()
+	for a: int in overlay.laid_count():
+		for b: int in range(a + 1, overlay.laid_count()):
+			if overlay.label_shown(a) and overlay.label_shown(b) and overlay.screen_rect(a).intersects(overlay.screen_rect(b)):
+				out.append("%d/%d %s %s" % [a, b, overlay.screen_rect(a), overlay.screen_rect(b)])
+	return out
+
+
+func _on_screen(overlay: Overlay, view: Vector2) -> int:
+	"""How many laid-out labels have their rectangle's centre inside the viewport."""
+	var count: int = 0
+	for k: int in overlay.laid_count():
+		count += 1 if overlay.label_shown(k) and Rect2(Vector2.ZERO, view).has_point(overlay.screen_rect(k).get_center()) else 0
+	return count
+
+
+func test_the_overlays_labels_never_overlap_on_screen() -> void:
+	"""With the demo's real camera (Camera3D.unproject_position at the viewport's size): at the default
+	pose, over the landings at the default zoom, zoomed right out, and zoomed out turned side-on (the
+	landings then spread across the screen), no two labels' rectangles overlap -- and the three sites
+	and the legend are all on screen zoomed out."""
+	var overlay := _shown_overlay()
+	var poses: Array[Array] = [[Vector3.ZERO, 0.0, DemoCamera.DISTANCE_DEFAULT],
+		[Vector3(21.0, 0.0, 10.0), 0.0, DemoCamera.DISTANCE_DEFAULT], [Vector3.ZERO, 0.0, DemoCamera.DISTANCE_MAX],
+		[Vector3(20.0, 0.0, 0.0), 90.0, DemoCamera.DISTANCE_MAX]]
+	var lifted: float = 0.0
+	for view: Vector2 in VIEWPORTS:
+		for pose: Array in poses:
+			var eye := _eye_at(pose[0], pose[1], pose[2])
+			assert_equal(_overlaps(overlay, eye, view), PackedStringArray(), "overlaps at %s on %s" % [pose, view])
+			for k: int in overlay.laid_count():
+				lifted = maxf(lifted, overlay.lift_px(k))
+		_lay(overlay, _eye_at(Vector3.ZERO, 0.0, DemoCamera.DISTANCE_MAX), view)
+		assert_equal(_on_screen(overlay, view), 4, "the sites and the legend zoomed out on %s" % view)
+		for k: int in overlay.laid_count():
+			var rect: Rect2 = overlay.screen_rect(k)
+			assert_true(rect.position.x >= 0.0 and rect.end.x <= view.x, "row %d kept inside %s: %s" % [k, view, rect])
+	assert_true(lifted > 0.0, "side-on, a label had to rise to clear another")
+
+
+func test_stacked_labels_rise_clear_of_each_other_lowest_first() -> void:
+	"""stack_lifts_into on three 100 x 20 px rectangles at one spot and a hidden one there too: the lowest
+	(largest y) stays, the next rises 20 + 6, the next 2 x 26; the hidden one is left at 0 and ignored;
+	one far to the side never moves."""
+	var centres := PackedVector2Array([Vector2(500, 300), Vector2(500, 298), Vector2(500, 296), Vector2(500, 300), Vector2(900, 300)])
+	var sizes := PackedVector2Array([Vector2(100, 20), Vector2(100, 20), Vector2(100, 20), Vector2(100, 20), Vector2(100, 20)])
+	var shown := PackedByteArray([1, 1, 1, 0, 1])
+	var order := PackedInt32Array([0, 0, 0, 0, 0])
+	var lifts := PackedFloat32Array([9.0, 9.0, 9.0, 9.0, 9.0])
+	Overlay.stack_lifts_into(centres, sizes, shown, 6.0, order, lifts)
+	assert_almost_equal(lifts[0], 0.0, "the lowest stays over its anchor")
+	assert_almost_equal(300.0 - (298.0 - lifts[1]), 26.0, "the next sits 20 + 6 above it")
+	assert_almost_equal(300.0 - (296.0 - lifts[2]), 52.0, "and the next above that")
+	assert_almost_equal(lifts[3], 0.0, "a hidden one is not moved")
+	assert_almost_equal(lifts[4], 0.0, "one clear to the side is not moved")
+
+
+func test_a_site_whose_landing_the_map_lacks_is_not_labelled() -> void:
+	"""A map with no landings: every site's label stays hidden and out of the layout -- none falls to the
+	world origin (over the well) as it used to. On the village's map all three sit over their landings."""
+	var overlay := Overlay.new()
+	_nodes.append(overlay)
+	overlay.set_driver(_driver(), _straight_stream())
+	assert_equal(overlay.laid_count(), Driver.SITE_COUNT, "a row per site")
+	for site: int in Driver.SITE_COUNT:
+		assert_false(overlay.label_shown(overlay.site_row(site)), "site %d not laid out" % site)
+		assert_false(overlay._labels[site].visible, "site %d hidden" % site)
+	var village := _shown_overlay()
+	for site: int in Driver.SITE_COUNT:
+		assert_true(village.label_shown(village.site_row(site)), "village site %d laid out" % site)
+		assert_true(village._labels[site].position.x > 20.0, "over the east bank: %s" % village._labels[site].position)
+
+
+func test_a_label_is_drawn_from_its_anchor_and_over_the_zone_paint() -> void:
+	"""A left-aligned Label3D starts its text at its anchor, so the layout's rectangle starts there too (a
+	centred rectangle would test the wrong half of the screen); and every label draws after the zone
+	paint, its outline first, so the translucent paint no longer washes the text out."""
+	var overlay := _shown_overlay()
+	var view := Vector2(1920.0, 1080.0)
+	var eye := _eye_at(Vector3.ZERO, 0.0, DemoCamera.DISTANCE_MAX)
+	_lay(overlay, eye, view)
+	var lens := Projection.create_perspective(DemoCamera.FOV_DEGREES, view.x / view.y, DemoCamera.NEAR_PLANE, DemoCamera.FAR_PLANE)
+	for k: int in overlay.laid_count():
+		var anchor: Vector2 = Overlay.project_px(lens, eye.affine_inverse() * overlay._anchor[k], view)
+		var width: float = overlay.screen_rect(k).size.x
+		var nudge: float = Overlay.inside_nudge_px(anchor.x, width, view.x)
+		assert_almost_equal(overlay.screen_rect(k).position.x, anchor.x + nudge, "row %d starts at its anchor, nudged %.1f" % [k, nudge])
+		assert_almost_equal(overlay.screen_rect(k).get_center().y, anchor.y - overlay.lift_px(k), "row %d centred on it, lifted" % k)
+	var scale: float = Overlay.screen_px_per_label_px(view.y, DemoCamera.FOV_DEGREES)
+	for site: int in Driver.SITE_COUNT:
+		var label: Label3D = overlay._labels[site]
+		var row: int = overlay.site_row(site)
+		assert_true(label.outline_render_priority > Overlay.RENDER_PRIORITY, "outline after the paint")
+		assert_true(label.render_priority > label.outline_render_priority, "text after its outline")
+		assert_true(overlay.screen_rect(row).size.is_equal_approx(Overlay.label_size_px(label) * scale), "site %d measured as texted" % site)
+	_lay(overlay, _eye_at(Vector3(20.0, 0.0, 0.0), 90.0, DemoCamera.DISTANCE_MAX), view)
+	var lifted: int = 0
+	for k: int in overlay.laid_count():
+		assert_almost_equal(overlay._laid[k].offset.y * scale, overlay.lift_px(k), "row %d drawn raised by its lift (offset +y is up)" % k)
+		lifted += 1 if overlay.lift_px(k) > 1.0 else 0
+	assert_true(lifted > 0, "side-on, some row is lifted (%d)" % lifted)
+
+
+func test_a_label_pixel_covers_the_fixed_size_screen_share() -> void:
+	"""A fixed-size Label3D pixel covers LABEL_PIXEL_SIZE x (height / 2) / tan(fov / 2) screen pixels: 0.6677
+	at 1080 px and the demo's 40 degrees (restated: 0.00045 x 540 / tan 20); a label's block is its
+	font's text size plus the outline on each side; and a new body re-measures the legend."""
+	assert_almost_equal(Overlay.screen_px_per_label_px(1080.0, 40.0), 0.00045 * 540.0 / tan(deg_to_rad(20.0)), "pixel share")
+	var label := Label3D.new()
+	label.font_size = 26
+	label.outline_size = 8
+	label.text = "trout 480 open"
+	var bare: Vector2 = ThemeDB.fallback_font.get_multiline_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 26)
+	assert_true(Overlay.label_size_px(label).is_equal_approx(bare + Vector2(16.0, 16.0)), "text plus 8 px of outline a side")
+	label.free()
+	var overlay := _shown_overlay()
+	var legend: int = overlay._laid.find(overlay._legend)
+	var before: float = overlay._size_label_px[legend].x
+	overlay.set_body("Badger quarryman %s (2.55 m)" % "x".repeat(120), 2611)
+	assert_true(overlay._size_label_px[legend].x > before, "the legend re-measured for its first line, now its longest")
+	assert_true(overlay._size_label_px[legend].is_equal_approx(Overlay.label_size_px(overlay._legend)), "as texted")
+
+
+func test_a_label_is_nudged_inside_the_view_only_when_its_landing_is_on_screen() -> void:
+	"""inside_nudge_px on a 1000 px view with a 6 px gap: a 300 px label starting at 800 slides 106 px left;
+	one that fits is left; one whose anchor is off screen (either side) is left off it; one wider than the
+	view keeps its left edge at the gap."""
+	assert_almost_equal(Overlay.inside_nudge_px(800.0, 300.0, 1000.0), -106.0, "slid back inside")
+	assert_almost_equal(Overlay.inside_nudge_px(100.0, 300.0, 1000.0), 0.0, "fits already")
+	assert_almost_equal(Overlay.inside_nudge_px(1200.0, 300.0, 1000.0), 0.0, "anchor off to the right")
+	assert_almost_equal(Overlay.inside_nudge_px(-50.0, 300.0, 1000.0), 0.0, "anchor off to the left")
+	assert_almost_equal(Overlay.inside_nudge_px(200.0, 1200.0, 1000.0), -194.0, "too wide: left edge at the gap")

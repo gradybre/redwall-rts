@@ -119,7 +119,13 @@ const POINTS: Array[Dictionary] = [
 		"activities": [&"collect_object", &"idle"], "capacity": 1},
 	{"name": &"log_stack", "anchor": &"log_stack", "side": &"front", "gap": 0.35, "along": 0.0,
 		"activities": [&"collect_object"], "capacity": 1},
-	{"name": &"stockpile", "anchor": &"stockpile", "side": &"front", "gap": 0.35, "along": 0.0,
+	# along 0.75 (was 0.0; decision 0205): centred on the yard front, the west slot sat in a pocket
+	# between the wheelbarrow, the pile and the east slot -- with anyone in the east slot, the gap left
+	# to reach it (0.81 m) was narrower than the badger (1.12 m across), so a badger sent there gave its
+	# order up. Slid 0.75 m toward the kitchen, both slots stay reachable from every other spot with the
+	# other slot taken, by an otter or by a second badger (0.6 to 0.85 clears the otter case; only 0.75
+	# also clears two badgers). test_demo_cast.gd pins it.
+	{"name": &"stockpile", "anchor": &"stockpile", "side": &"front", "gap": 0.35, "along": 0.75,
 		"activities": [&"collect_object"], "capacity": 2},
 	{"name": &"store_front", "anchor": &"store", "side": &"front", "gap": 0.35, "along": 0.0,
 		"activities": [&"collect_object", &"idle"], "capacity": 1},

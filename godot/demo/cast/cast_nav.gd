@@ -113,6 +113,18 @@ static func distance_to_segment(p: Vector2, a: Vector2, b: Vector2) -> float:
 	return p.distance_to(a + ab * t)
 
 
+static func path_length(from: Vector2, path: PackedVector2Array) -> float:
+	"""How long a planned route is: from `from` through each waypoint of `path` in turn (a plan's `out`,
+	which excludes its start), metres. Never shorter than the straight line to its last point, so that
+	line is a lower bound on it. Allocates nothing."""
+	var total := 0.0
+	var at := from
+	for point in path:
+		total += at.distance_to(point)
+		at = point
+	return total
+
+
 static func inflated(circle: Vector3, body: float, margin: float, keep_a: Vector2, keep_b: Vector2, shrink: bool) -> float:
 	"""A circle's radius plus body and margin; with `shrink`, cut to leave keep_a and keep_b outside."""
 	var reach := circle.y + body + margin

@@ -14,6 +14,10 @@ const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const ClipRootMotionScript := preload("res://scripts/presentation/clip_root_motion.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const CastRoutinesScript := preload("res://demo/cast/cast_routines.gd")
+const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
+const WaterDressingScript := preload("res://demo/water/water_dressing.gd")
+const WaterLayoutScript := preload("res://demo/water/water_layout.gd")
+const WaterplayScript := preload("res://demo/waterplay/demo_waterplay.gd")
 
 const DT: float = 1.0 / 60.0
 const BODY_M: float = 0.25
@@ -1143,3 +1147,204 @@ func test_a_resident_boxed_in_waits_for_the_way_out_instead_of_walking_into_it()
 		brain.step(DT)
 		left = left or (brain.poi == 1 and brain.state == BrainScript.State.WALK)
 	assert_true(left, "sets off once the gap is clear")
+
+
+# --- room for the body (playtest 2026-09-29, decision 0205) ------------------------------------------
+
+## The staged cast's standing heights (m), restated from the staged manifest (decision 0202): two mice,
+## two squirrels, two otters, the mole, the badger and the beaver. Their bodies are body_radius() of each.
+const CAST_HEIGHTS_M: Array[float] = [1.0, 1.0, 1.15, 1.15, 1.49, 1.49, 0.9, 2.55, 1.40]
+## The badger's standing height (m), and the otter's -- the widest body that shares its homes.
+const BADGER_HEIGHT_M: float = 2.55
+const OTTER_HEIGHT_M: float = 1.49
+
+
+func _cast_bodies() -> PackedFloat32Array:
+	"""Every staged creature's body radius, widest last."""
+	var out := PackedFloat32Array()
+	for height: float in CAST_HEIGHTS_M:
+		out.append(DemoActorScript.body_radius(height))
+	out.sort()
+	return out
+
+
+func _real_village_space() -> CastSpaceScript:
+	"""The village as demo_village.gd lays it for the cast: the world's and the water's spots, the world's,
+	the water's and the bank's circles and the band round deep water, inside the widened area."""
+	var world: Node3D = DemoWorldScript.new()
+	var circles: Array[Vector3] = world.obstacles()
+	var points: Array[Dictionary] = world.points_of_interest()
+	world.free()
+	circles.append_array(WaterDressingScript.obstacles())
+	circles.append_array(WaterplayScript.land_obstacles())
+	var links := WaterplayScript.make_links(WaterLayoutScript.make_map(), circles)
+	circles.append_array(links.band)
+	points.append_array(WaterDressingScript.points_of_interest())
+	var space := CastSpaceScript.new()
+	space.nav.area = links.area
+	space.setup(points, circles)
+	return space
+
+
+func test_the_slot_margin_is_the_ordered_spots_margin() -> void:
+	"""A slot keeps the margin an ordered spot keeps (cast_orders.gd), so no spot the crew rule would
+	refuse is ever a slot; the cast_space constant cannot preload cast_orders, so this pins the two."""
+	assert_equal(CastSpaceScript.SLOT_BODY_MARGIN_M, CastOrdersScript.CLEAR_MARGIN_M, "one margin")
+	assert_almost_equal(CastSpaceScript.SLOT_BODY_MARGIN_M, 0.12, "0.12 m")
+
+
+func test_a_wider_body_walks_a_tight_slot_out_until_it_fits() -> void:
+	"""A slot 0.35 m off a 1 m circle: with nobody registered it stays put (0.35 >= 0.3); a 0.22 m
+	body needs 0.34 and it stays; a 0.56 m body walks it straight out to 0.68 m clear, away from the
+	circle's centre, and a narrower body after that moves nothing back."""
+	var space := _tight_slot_space()
+	var start := space.slot_position(0, 0)
+	assert_equal(start, Vector2(0.0, -1.35), "authored spot")
+	space.add_resident(Vector2(5.0, 5.0), 0.22)
+	assert_equal(space.slot_position(0, 0), start, "0.35 m is room for 0.22 + 0.12")
+	space.add_resident(Vector2(-5.0, 5.0), 0.56)
+	var moved := space.slot_position(0, 0)
+	assert_almost_equal(space.obstacle_clearance(moved), 0.56 + 0.12, "walked out to 0.68 m clear")
+	assert_almost_equal(moved.x, 0.0, "straight out from the circle's centre")
+	assert_true(moved.y < start.y, "away from it")
+	space.add_resident(Vector2(5.0, -5.0), 0.3)
+	assert_equal(space.slot_position(0, 0), moved, "the widest body keeps its room")
+	space.setup([_poi(&"bench", Vector3(0.0, 0.0, -1.35), Vector3(0.0, 0.0, 1.0), [&"idle"], 1)],
+		[Vector3(0.0, 1.0, 0.0)])
+	assert_equal(space.slot_position(0, 0), start, "a new setup forgets the old cast")
+
+
+## A shore everywhere 0.1 m off: only the water holds a spot short of room.
+class ShoreHook extends "res://demo/cast/crossing_hook.gd":
+	func water_clearance_m(_at: Vector2) -> float:
+		"""Every spot stands 0.1 m from the water's edge."""
+		return 0.1
+
+
+func test_a_slot_held_short_only_by_the_water_stays_put() -> void:
+	"""Circles push a slot; the water's edge does not: with no circle in reach, or only one already far
+	enough, room_for leaves a spot 0.1 m from the water where it is (never pushed off the origin)."""
+	var space := _space([_poi(&"open", Vector3(3.0, 0.0, 4.0), Vector3.FORWARD, [&"idle"], 2)], [])
+	space.crossings = ShoreHook.new()
+	space.add_resident(Vector2.ZERO, 0.56)
+	assert_almost_equal(space.slot_room_m(), 0.56 + CastSpaceScript.SLOT_BODY_MARGIN_M, "the widest body and the margin")
+	assert_equal(space.room_for(Vector2(3.0, 4.0), 0.68), Vector2(3.0, 4.0), "no circle to walk out from")
+	assert_equal(space.room_for(Vector2(0.1, 0.1), 0.68), Vector2(0.1, 0.1), "not even beside the origin")
+	var far := _space([_poi(&"open", Vector3(3.0, 0.0, 4.0), Vector3.FORWARD, [&"idle"], 1)], [Vector3(6.0, 0.5, 4.0)])
+	far.crossings = ShoreHook.new()
+	assert_equal(far.room_for(Vector2(3.0, 4.0), 0.68), Vector2(3.0, 4.0), "the circle is 2.5 m off already")
+
+
+func test_every_slot_in_the_village_clears_every_cast_body() -> void:
+	"""On the real village with the staged cast registered, every slot of every POI -- a routine may send
+	a creature to its homes and an order anyone anywhere -- clears the widest body by the crew rule's
+	margin (cast_orders.gd spot_ok: body + CLEAR_MARGIN_M), with the water band included."""
+	var space := _real_village_space()
+	var bodies := _cast_bodies()
+	for body: float in bodies:
+		space.add_resident(Vector2(0.0, 0.0), body)
+	var widest: float = bodies[bodies.size() - 1]
+	var short := PackedStringArray()
+	for poi in space.poi_position.size():
+		for slot in space.poi_capacity[poi]:
+			var clear := space.obstacle_clearance(space.slot_position(poi, slot))
+			if clear < widest + CastOrdersScript.CLEAR_MARGIN_M - 1e-4:
+				short.append("%s[%d] %.3f" % [space.poi_names[poi], slot, clear])
+	assert_almost_equal(widest, DemoActorScript.body_radius(BADGER_HEIGHT_M), "the badger is the widest")
+	assert_equal(short, PackedStringArray(), "slots short of room for %.3f m" % widest)
+
+
+func _unreachable_shared_slots(space: CastSpaceScript, body: float, neighbour: float) -> PackedStringArray:
+	"""Every slot of a shared POI a `body` cannot plan to from some other POI's slot 0 while each other
+	slot there holds a `neighbour`-wide resident."""
+	var out := PackedStringArray()
+	var route := PackedVector2Array()
+	var others := PackedVector3Array()
+	for poi in space.poi_position.size():
+		for slot in space.poi_capacity[poi]:
+			others.clear()
+			for k in space.poi_capacity[poi]:
+				if k != slot:
+					others.append(Vector3(space.slot_position(poi, k).x, neighbour, space.slot_position(poi, k).y))
+			if others.is_empty():
+				continue
+			for from_poi in space.poi_position.size():
+				if from_poi == poi:
+					continue
+				space.nav.plan(space.slot_position(from_poi, 0), space.slot_position(poi, slot), body, others, others.size(), route)
+				if not space.nav.last_found:
+					out.append("%s[%d] from %s" % [space.poi_names[poi], slot, space.poi_names[from_poi]])
+	return out
+
+
+func test_a_shared_slot_stays_reachable_with_its_neighbour_standing() -> void:
+	"""Every body in the cast can plan to every slot of a shared POI from every other spot while the POI's
+	other slots are taken by the widest of the rest of the cast -- the badger beside anyone, the otter
+	beside the badger -- and a second badger beside the first. The stockpile's west slot failed this for
+	the badger (a pocket 0.81 m wide between the wheelbarrow and its neighbour) until the stockpile spot
+	moved along (world_layout.gd)."""
+	var space := _real_village_space()
+	var bodies := _cast_bodies()
+	for body: float in bodies:
+		space.add_resident(Vector2(0.0, 0.0), body)
+	var widest: float = bodies[bodies.size() - 1]
+	var next: float = bodies[bodies.size() - 2]
+	var bad := PackedStringArray()
+	for k in bodies.size():
+		if k == 0 or bodies[k] != bodies[k - 1]:
+			var neighbour: float = next if bodies[k] == widest else widest
+			for miss in _unreachable_shared_slots(space, bodies[k], neighbour):
+				bad.append("body %.3f: %s" % [bodies[k], miss])
+	assert_almost_equal(next, DemoActorScript.body_radius(OTTER_HEIGHT_M), "the otter is next widest")
+	assert_equal(bad, PackedStringArray(), "unreachable shared slots")
+	assert_equal(_unreachable_shared_slots(space, widest, widest), PackedStringArray(),
+		"and a second badger beside the first (the stockpile's along 0.75: 0.6 and 0.85 fail this)")
+
+
+func _badger_at_home(space: CastSpaceScript, poi: int, slot: int) -> BrainScript:
+	"""An otter working the POI's other slot (or, alone there, standing beside its one slot), and a
+	badger ordered from the square to `slot`, stepped up to 60 s. Returns the badger."""
+	var otter := BrainScript.new()
+	otter.configure(space, WALK_M_S, DemoActorScript.body_radius(OTTER_HEIGHT_M), SEED, _lengths())
+	var badger := BrainScript.new()
+	badger.configure(space, WALK_M_S, DemoActorScript.body_radius(BADGER_HEIGHT_M), SEED + 1, _lengths())
+	var at := space.slot_position(poi, slot)
+	if space.poi_capacity[poi] > 1:
+		var other := 1 - slot
+		space.reserve(poi, other)
+		otter.start_at(space.slot_position(poi, other), 0.0, poi, other)
+		otter.order_work(poi, other)
+	else:
+		var face := space.poi_face[poi]
+		var beside := at + Vector2(-face.y, face.x) * (badger.radius + otter.radius + CastOrdersScript.FORMATION_GAP_M)
+		otter.start_at(beside, 0.0, -1, -1)
+		otter.order_move(beside)
+	badger.start_at(space.slot_position(space.poi_names.find(&"square_east"), 0), 0.0, -1, -1)
+	space.reserve(poi, slot)
+	badger.order_work(poi, slot)
+	for f in 60 * 60:
+		otter.step(DT)
+		badger.step(DT)
+		if badger.order != BrainScript.ORDER_WORK or badger.state == BrainScript.State.ACT:
+			break
+	return badger
+
+
+func test_the_badger_works_its_homes_beside_a_neighbour() -> void:
+	"""The playtest's badger: ordered to each slot of each of its homes (stockpile, hall steps, cauldron)
+	with an otter standing in the next slot or beside the one slot, it arrives and works -- it never
+	gives the order up."""
+	var homes: Array = CastRoutinesScript.HOMES[&"badger_quarryman"]
+	for home: StringName in homes:
+		var poi_count := 0
+		for slot in 2:
+			var space := _real_village_space()
+			var poi := space.poi_names.find(home)
+			if slot >= space.poi_capacity[poi]:
+				continue
+			var badger := _badger_at_home(space, poi, slot)
+			assert_equal(badger.order, BrainScript.ORDER_WORK, "%s[%d]: kept the order" % [home, slot])
+			assert_equal(badger.state, BrainScript.State.ACT, "%s[%d]: working" % [home, slot])
+			assert_true(badger.position.distance_to(space.slot_position(poi, slot)) < 0.2, "%s[%d]: on its slot" % [home, slot])
+			poi_count += 1
+		assert_true(poi_count >= 1, "%s is in the village" % home)

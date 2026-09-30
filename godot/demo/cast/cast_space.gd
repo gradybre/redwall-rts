@@ -55,6 +55,18 @@ const GOAL_EPSILON_M: float = CastNavScript.GOAL_EPSILON_M
 const SLOT_SPACING_M: float = 1.2
 ## A slot must stand this far clear of every obstacle edge, or another spot is tried.
 const SLOT_CLEARANCE_M: float = 0.3
+## ROOM FOR THE BODY (playtest 2026-09-29, decision 0205). Every slot then keeps the widest body
+## registered here plus this margin clear of every obstacle edge -- the margin an ordered spot keeps
+## (cast_orders.gd CLEAR_MARGIN_M; a preload there would be a cycle, so the suite pins the two equal).
+## Before this the slots kept only SLOT_CLEARANCE_M whatever the body: the stockpile's stood 0.37 m
+## off its building (0.42 m where the badger came to rest), the cauldron's 0.40 m, for the badger's
+## 0.56 m body, which then stopped short of them. (Its giving an order up with a neighbour beside it
+## was the stockpile's pocket: world_layout.gd POINTS.)
+const SLOT_BODY_MARGIN_M: float = 0.12
+## A slot short of that room is walked straight out from the nearest edge, at most this many times: a
+## push can land it near the next circle of a building's ring, and one pass leaves a village slot short
+## (the suite's every-slot test fails at 1); six is headroom, run once per wider body at build.
+const SLOT_PUSH_PASSES: int = 6
 const SEPARATION_MARGIN_M: float = 0.55
 const MAX_SLOTS: int = 16
 const CONSTRAIN_PASSES: int = 2
@@ -88,6 +100,8 @@ var nav: CastNavScript = CastNavScript.new()
 var tunnels: TunnelNetworkScript = TunnelNetworkScript.new()
 ## The water's crossings (see IN THE WATER); the base offers none.
 var crossings: CrossingHookScript = CrossingHookScript.new()
+## The widest body registered so far (m): every slot is placed with room for it (see ROOM FOR THE BODY).
+var slot_body_m: float = 0.0
 
 var _slot_at: PackedVector2Array = PackedVector2Array()
 var _standing: PackedVector3Array = PackedVector3Array()
@@ -112,6 +126,7 @@ func setup(points: Array[Dictionary], obstacle_list: Array[Vector3]) -> void:
 		_add_poi(point)
 	poi_used.resize(poi_position.size())
 	poi_used.fill(0)
+	slot_body_m = 0.0
 	_place_slots()
 	resident_position.clear()
 	resident_radius.clear()
@@ -180,7 +195,8 @@ static func is_stockpile_name(name: StringName) -> bool:
 # --- residents ------------------------------------------------------------------------------
 
 func add_resident(at: Vector2, radius: float) -> int:
-	"""Register a resident standing at `at`; returns its index."""
+	"""Register a resident standing at `at`; returns its index. A body wider than any before re-places
+	the slots with room for it (ROOM FOR THE BODY) -- at build, before anyone is sent to one."""
 	resident_position.append(at)
 	resident_radius.append(radius)
 	resident_walking.append(0)
@@ -191,6 +207,9 @@ func add_resident(at: Vector2, radius: float) -> int:
 	resident_heading.append(0)
 	_standing.resize(resident_position.size())
 	nav.ensure_graph(radius)
+	if radius > slot_body_m:
+		slot_body_m = radius
+		_place_slots()
 	return resident_position.size() - 1
 
 
@@ -412,8 +431,10 @@ func slot_position(poi: int, slot: int) -> Vector2:
 
 func _place_slots() -> void:
 	"""Slots line up side by side across each POI's face direction. A slot that would stand within
-	SLOT_CLEARANCE_M of an obstacle edge goes behind the POI instead, away from what it faces."""
+	SLOT_CLEARANCE_M of an obstacle edge goes behind the POI instead, away from what it faces; then
+	any slot short of room for the widest body is walked out until it has it (ROOM FOR THE BODY)."""
 	_slot_at.resize(poi_position.size() * MAX_SLOTS)
+	var need := slot_room_m()
 	for poi in poi_position.size():
 		var face := poi_face[poi] if poi_face[poi] != Vector2.ZERO else Vector2(0.0, 1.0)
 		var across := Vector2(-face.y, face.x)
@@ -422,7 +443,48 @@ func _place_slots() -> void:
 			var at := poi_position[poi] + across * offset
 			if obstacle_clearance(at) < SLOT_CLEARANCE_M:
 				at = poi_position[poi] - face * SLOT_SPACING_M * float(slot)
-			_slot_at[poi * MAX_SLOTS + slot] = at
+			_slot_at[poi * MAX_SLOTS + slot] = room_for(at, need)
+
+
+func slot_room_m() -> float:
+	"""How far clear of every obstacle edge each slot stands: the widest registered body and
+	SLOT_BODY_MARGIN_M (never below SLOT_CLEARANCE_M)."""
+	return maxf(SLOT_CLEARANCE_M, slot_body_m + SLOT_BODY_MARGIN_M)
+
+
+func room_for(at: Vector2, need: float) -> Vector2:
+	"""`at`, or the spot it reaches walking straight out from its nearest obstacle edge (at most
+	SLOT_PUSH_PASSES times) until it stands `need` clear of every edge. A spot boxed in so that no
+	pass clears it keeps the last one tried: the plan's goal shrink still reaches it (see the header).
+	Only circles push: a spot held short by the water's edge alone stays put."""
+	for pass_index in SLOT_PUSH_PASSES:
+		if obstacle_clearance(at) >= need:
+			return at
+		var o := _nearest_circle(at)
+		var centre := Vector2(o.x, o.z)
+		if o.y <= 0.0 or centre.distance_to(at) - o.y >= need:
+			return at
+		var out := at - centre
+		if out.length_squared() < 1e-12:
+			out = Vector2(0.0, 1.0)
+		at = centre + out.normalized() * (o.y + need)
+	return at
+
+
+func _nearest_circle(at: Vector2) -> Vector3:
+	"""The obstacle circle whose edge is nearest `at` (x, radius, z), or Vector3.ZERO (radius 0) with
+	none in reach."""
+	var pad := nav.max_radius + SLOT_SPACING_M * 4.0
+	var count := nav.circles_near(at - Vector2(pad, pad), at + Vector2(pad, pad))
+	var best := Vector3.ZERO
+	var best_edge := INF
+	for k in count:
+		var o := obstacles[nav.hit(k)]
+		var edge := Vector2(o.x, o.z).distance_to(at) - o.y
+		if edge < best_edge:
+			best_edge = edge
+			best = o
+	return best
 
 
 func obstacle_clearance(at: Vector2) -> float:

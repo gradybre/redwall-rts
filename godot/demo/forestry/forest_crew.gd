@@ -397,7 +397,7 @@ func _step_walk(row: int, code: int) -> void:
 func _issue_walk(row: int, code: int, brain: BrainScript) -> void:
 	"""Send the worker to a spot beside this step's target, on the carry walk when it carries."""
 	var target: Vector2 = _walk_target(row, code)
-	if not _spot_near(target, _stand_of(row, code, brain), brain):
+	if not _spot_near(target, _stand_of(row, code, brain), brain, _prefer(row, code, brain)):
 		finish(row, "%s: no way through to it" % JobsScript.KIND_NAMES[jobs.kind[row]])
 		return
 	jobs.goal[row] = _found
@@ -452,8 +452,17 @@ func _stand_of(row: int, code: int, brain: BrainScript) -> float:
 	return at_tree + retry
 
 
-func _spot_near(target: Vector2, first_ring: float, brain: BrainScript) -> bool:
-	"""The standable, reachable spot nearest the worker on rings round `target`, clear of anyone
+func _prefer(row: int, code: int, brain: BrainScript) -> Vector2:
+	"""Which side of its target a walk should end on: a load is taken up on the log stack's side of the
+	trunk or pile, so the carry walk sets off away from it rather than through it; anything else ends
+	on the walker's own side."""
+	var loads: bool = code == JobsScript.STEP_GO_PILE or (code == JobsScript.STEP_GO_TREE and jobs.kind[row] == JobsScript.KIND_HAUL
+		and _stand.trunk_milli[jobs.target[row]] > 0)
+	return Yard.log_stack_at() if loads else brain.surface_point()
+
+
+func _spot_near(target: Vector2, first_ring: float, brain: BrainScript, prefer: Vector2) -> bool:
+	"""The standable, reachable spot nearest `prefer` on rings round `target`, clear of anyone
 	standing, into `_found`. False when no ring has one. The rings may reach into the woods: the
 	forestry reach and its margin, not the village square, bound them."""
 	var from: Vector2 = brain.surface_point()
@@ -464,7 +473,7 @@ func _spot_near(target: Vector2, first_ring: float, brain: BrainScript) -> bool:
 		var found: bool = false
 		for k: int in RING_SPOTS:
 			var spot: Vector2 = target + Vector2.from_angle(TAU * k / RING_SPOTS) * radius
-			if found and spot.distance_squared_to(from) >= _found.distance_squared_to(from):
+			if found and spot.distance_squared_to(prefer) >= _found.distance_squared_to(prefer):
 				continue
 			if CastOrdersScript.spot_ok(_cast.space(), spot, brain.radius, _walk, avoid, _no_taken, from):
 				_found = spot

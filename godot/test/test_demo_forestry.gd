@@ -21,6 +21,7 @@ const PickScript := preload("res://demo/forestry/forest_pick.gd")
 const ZoneToolScript := preload("res://demo/forestry/forest_zone_tool.gd")
 const PanelScript := preload("res://demo/forestry/forest_panel.gd")
 const Yard := preload("res://demo/forestry/forest_yard.gd")
+const Roots := preload("res://demo/forestry/forest_roots.gd")
 const ForestryScript := preload("res://demo/forestry/demo_forestry.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
@@ -592,6 +593,20 @@ func test_a_right_click_on_a_tree_being_felled_joins_the_haul() -> void:
 	forestry.order_on(PickScript.KIND_TREE, WEST_OAK, PackedInt32Array([0]))
 	assert_equal(forestry.order_on(PickScript.KIND_TREE, WEST_OAK, PackedInt32Array([1])), "Haul logs: 1 on it", "joins the haul")
 	assert_equal(forestry.crew.jobs.on_target(JobsScript.KIND_FELL, WEST_OAK), 1, "still one fell")
+
+
+func test_a_hauler_loads_on_the_log_stacks_side_of_the_trunk() -> void:
+	"""The load is taken up on the side facing the log stack -- even by a hauler standing on the far
+	side -- so the carry sets off away from the trunk, not through it."""
+	var forestry := _forestry()
+	forestry.stand.fell_into(WEST_OAK, 1, Vector2(-1.0, 0.0), false, _read)
+	var middle: Vector2 = Roots.trunk_middle(forestry.stand, WEST_OAK)
+	var actor := forestry._cast.actor(5) as DemoActorScript
+	actor.place(middle + Vector2(0.0, -4.0), 0.0, -1, -1)
+	forestry.order_on(PickScript.KIND_TRUNK, WEST_OAK, PackedInt32Array([5]))
+	assert_true(forestry.crew.jobs.issued[0] == 1 or _run(forestry, func() -> bool: return forestry.crew.jobs.issued[0] == 1), "the walk issued")
+	var stack: Vector2 = Yard.log_stack_at()
+	assert_true(forestry.crew.jobs.goal[0].distance_to(stack) < middle.distance_to(stack) - 1.0, "on the stack's side")
 
 
 func test_a_resident_ordered_away_drops_the_job_where_it_had_got_to() -> void:

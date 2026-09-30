@@ -318,12 +318,12 @@ static func void_centre(x: int, y: int) -> Vector2:
 
 
 func stamp_disc(centre: Vector2, radius: float, cut: Vector2 = Vector2.ZERO, rise_m: float = 0.0,
-		crown_m: float = 1.0) -> void:
+		crown_m: float = 1.0, cut_ahead_m: float = 0.0) -> void:
 	"""Mark a bore's cross-section dug (one step along it; see VOIDS): a disc of floor half-width `radius`
 	whose floor lies `rise_m` over the level's and whose crown is `crown_m`. Each pixel out to RHO_REACH
 	keeps the nearest disc's distance (and that disc's rise and crown), never a farther one. A non-zero
-	unit `cut` keeps only the half behind the line through the centre across it (a dig face). Uploaded by
-	`commit_void`."""
+	unit `cut` keeps only what lies behind the line across it `cut_ahead_m` ahead of the centre (a dig face:
+	at the centre for the face's own disc, further on for a disc behind it). Uploaded by `commit_void`."""
 	var reach: int = ceili(radius * RHO_REACH * VOID_PX_PER_M) + 1
 	var middle: Vector2i = void_pixel(centre)
 	var rise: int = roundi(clampf(rise_m / RISE_RANGE_M, 0.0, 1.0) * 255.0)
@@ -331,7 +331,7 @@ func stamp_disc(centre: Vector2, radius: float, cut: Vector2 = Vector2.ZERO, ris
 	for y: int in range(maxi(middle.y - reach, 0), mini(middle.y + reach + 1, _void_side)):
 		for x: int in range(maxi(middle.x - reach, 0), mini(middle.x + reach + 1, _void_side)):
 			var offset: Vector2 = void_centre(x, y) - centre
-			if cut != Vector2.ZERO and offset.dot(cut) > 0.0:
+			if cut != Vector2.ZERO and offset.dot(cut) > cut_ahead_m:
 				continue
 			var rho: float = offset.length() / radius
 			if rho <= RHO_REACH:

@@ -8,7 +8,7 @@ extends "res://test/framework/test_case.gd"
 ## freed after each test.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
 const WeatherViewScript := preload("res://demo/weather/weather_view.gd")
@@ -96,16 +96,21 @@ func _space(obstacles: Array[Vector3]) -> CastSpaceScript:
 	return space
 
 
-func _open_tunnel(space: CastSpaceScript, points: Array[Vector2i]) -> int:
-	"""Add a tunnel along these points and dig it to the end; returns its slot."""
+func _open_tunnel(space: CastSpaceScript, points: Array[Vector2i]) -> PackedInt32Array:
+	"""Add a mouth-to-mouth tunnel along these points and dig every segment of it to the end; returns its
+	segments in dig order (underground_graph.gd PIECES: a 4 m ramp from each mouth, the bore between)."""
 	var flat := PackedInt32Array()
 	for p in points:
 		flat.append(p.x)
 		flat.append(p.y)
-	var ref := PackedInt32Array([-1, 0])
+	var ref := PackedInt32Array([-1, 0, -1])
 	assert_true(space.tunnels.add_into(flat, points.size(), 0, ref), "fixture tunnel stored")
-	space.tunnels.advance(ref[0], ref[1], 1000000000)
-	return ref[0]
+	var chain := PackedInt32Array()
+	space.tunnels.piece_segments_into(ref[2], chain)
+	for slot in chain:
+		space.tunnels.start_dig(slot, space.tunnels.generation[slot], 0)
+		space.tunnels.advance(slot, space.tunnels.generation[slot], 1000000000)
+	return chain
 
 
 func _brain(space: CastSpaceScript, at: Vector2, fits: bool) -> BrainScript:
@@ -205,18 +210,21 @@ func test_bad_weather_slows_surface_walking_and_the_walk_clip() -> void:
 
 
 func _bore_speed(lit: bool, permille: int, clip_out: Array = []) -> float:
-	"""Metres a second a walker covers along a 16 m tunnel's level bore, past its entrance ramp (lit or
-	not), in weather at `permille`; its walk clip's speed then is appended to `clip_out`."""
+	"""Metres a second a walker covers along the level bore (8 m, slot 1) of a 16 m tunnel, past its
+	entrance ramp (the bore lit or not), in weather at `permille`; its walk clip's speed then is appended
+	to `clip_out`."""
 	var space := _space(_wall())
-	var slot := _open_tunnel(space, [Vector2i(0, -8192), Vector2i(0, 8192)])
+	var chain := _open_tunnel(space, [Vector2i(0, -8192), Vector2i(0, 8192)])
+	var bore := chain[1]
 	if lit:
-		space.tunnels.set_lit(slot)
+		space.tunnels.set_lit(bore)
 	space.tunnels.surface_permille = permille
 	var brain := _brain(space, Vector2(0.0, -9.0), true)
 	brain.order_move(Vector2(0.0, 10.0))
-	_until(brain, func() -> bool: return brain.underground and brain.bore_along_m() > Rules.to_m(Rules.RAMP_RUN_U) + 0.1, 30.0)
+	_until(brain, func() -> bool: return brain.is_in_bore(bore) and brain.bore_along_m() > 0.5, 30.0)
 	var from := brain.bore_along_m()
 	_step([brain], 2.0)
+	assert_true(brain.is_in_bore(bore), "still in the level bore")
 	clip_out.append(brain.clip_speed)
 	return (brain.bore_along_m() - from) / 2.0
 
@@ -239,14 +247,14 @@ func test_the_walk_clip_plays_at_ground_speed_in_a_bore() -> void:
 
 
 func test_a_second_walker_waits_in_line_at_a_busy_mouth_and_both_get_through() -> void:
-	"""Two ordered through one tunnel together: the one behind waits in the mouth's line (QUEUE,
-	shown as waiting) instead of crowding the hole, then follows; both come out."""
+	"""Two ordered through one 8 m tunnel under the wall together: the one behind waits in the mouth's line
+	(QUEUE, shown as waiting) instead of crowding the hole, then follows; both come out."""
 	var space := _space(_wall())
-	_open_tunnel(space, [Vector2i(0, -2048), Vector2i(0, 2048)])
-	var a := _brain(space, Vector2(0.0, -3.4), true)
-	var b := _brain(space, Vector2(-1.2, -4.6), true)
-	a.order_move(Vector2(0.0, 4.0))
-	b.order_move(Vector2(-1.0, 4.0))
+	_open_tunnel(space, [Vector2i(0, -4096), Vector2i(0, 4096)])
+	var a := _brain(space, Vector2(0.0, -5.4), true)
+	var b := _brain(space, Vector2(-1.2, -6.6), true)
+	a.order_move(Vector2(0.0, 6.0))
+	b.order_move(Vector2(-1.0, 6.0))
 	var queued := false
 	var shown := false
 	for f in 60 * 30:
@@ -256,51 +264,56 @@ func test_a_second_walker_waits_in_line_at_a_busy_mouth_and_both_get_through() -
 		shown = shown or b.activity() == BrainScript.ACTIVITY_QUEUE
 	assert_true(queued, "B waited in line")
 	assert_true(shown, "and was shown waiting")
-	assert_true(a.position.distance_to(Vector2(0.0, 4.0)) < 0.2, "A through (%s)" % a.position)
-	assert_true(b.position.distance_to(Vector2(-1.0, 4.0)) < 0.2, "B through (%s)" % b.position)
+	assert_true(a.position.distance_to(Vector2(0.0, 6.0)) < 0.2, "A through (%s)" % a.position)
+	assert_true(b.position.distance_to(Vector2(-1.0, 6.0)) < 0.2, "B through (%s)" % b.position)
 	assert_equal(space.tunnels.queue.count[0], 0, "the line is empty")
 	assert_equal(space.tunnels.queue.grant[0], -1, "no grant held")
 
 
 func test_a_mouth_is_clear_only_with_nobody_near_it_below_or_on_it() -> void:
-	"""Someone in the bore within 1.2 m of the entrance, or standing on its hole, blocks it."""
+	"""A 10 m tunnel (mouth row 0 at (0, -5), row 1 at (0, 5)): someone in a mouth's ramp within the hold of
+	its hole -- measured from the mouth's end of that ramp -- or standing on the hole, blocks it."""
 	var space := _space(_wall())
-	var slot := _open_tunnel(space, [Vector2i(0, -5120), Vector2i(0, 5120)])
+	var chain := _open_tunnel(space, [Vector2i(0, -5120), Vector2i(0, 5120)])
 	var walker := space.add_resident(Vector2(0.0, -8.0), BODY_M)
 	var other := space.add_resident(Vector2(0.0, -4.5), BODY_M)
 	space.set_underground(other, true)
-	space.set_in_bore(other, slot, 0.5, 1)
-	assert_false(space.mouth_clear(walker, slot, false, 1.2), "someone just below")
-	space.set_in_bore(other, slot, 2.0, 1)
-	assert_true(space.mouth_clear(walker, slot, false, 1.2), "further down")
-	assert_false(space.mouth_clear(walker, slot, true, 9.0), "near the exit, measured from it")
+	space.set_in_bore(other, chain[0], 0.5, 1)
+	assert_false(space.mouth_clear(walker, 0, 1.2), "someone just below")
+	assert_true(space.mouth_clear(walker, 1, 1.2), "the other mouth is clear")
+	space.set_in_bore(other, chain[0], 2.0, 1)
+	assert_true(space.mouth_clear(walker, 0, 1.2), "further down")
+	space.set_in_bore(other, chain[2], 3.5, 1)
+	assert_false(space.mouth_clear(walker, 1, 1.2), "0.5 m below the exit, its ramp measured from its mouth end (4 m)")
+	assert_true(space.mouth_clear(walker, 0, 1.2), "and not the entrance")
 	space.set_underground(other, false)
 	space.move_resident(other, Vector2(0.0, -5.0))
-	assert_false(space.mouth_clear(walker, slot, false, 1.2), "someone standing on the hole")
+	assert_false(space.mouth_clear(walker, 0, 1.2), "someone standing on the hole")
 
 
 func test_a_walker_is_routed_only_through_a_bore_it_fits() -> void:
-	"""Two tunnels under the wall -- a standard one straight ahead and a wide one 3 m aside: the badger
-	takes the wide one; a mouse the straight one."""
+	"""Two 8 m tunnels under the wall -- a standard one straight ahead (slots 0, 1: legs 0, 2) and one
+	widened end to end 3 m aside (slots 2, 3: legs 4, 6): the badger takes the wide one; a mouse the
+	straight one."""
 	var space := _space(_wall())
-	_open_tunnel(space, [Vector2i(0, -2048), Vector2i(0, 2048)])
-	var wide := _open_tunnel(space, [Vector2i(3072, -2048), Vector2i(3072, 2048)])
-	space.tunnels.set_bore(wide, Rules.BORE_WIDE)
-	var badger := _brain(space, Vector2(0.0, -4.0), true)
+	_open_tunnel(space, [Vector2i(0, -4096), Vector2i(0, 4096)])
+	for slot in _open_tunnel(space, [Vector2i(3072, -4096), Vector2i(3072, 4096)]):
+		space.tunnels.set_bore(slot, Rules.BORE_WIDE)
+	var badger := _brain(space, Vector2(0.0, -5.0), true)
 	space.tunnels.set_body(badger.index, 2611, 574)
-	var mouse := _brain(space, Vector2(0.5, -4.0), true)
-	badger.order_move(Vector2(0.0, 4.0))
-	mouse.order_move(Vector2(0.5, 4.0))
-	assert_true(badger.path_tunnel.has(2), "the badger through the wide tunnel (slot 1, a to b)")
+	var mouse := _brain(space, Vector2(0.5, -5.0), true)
+	badger.order_move(Vector2(0.0, 5.0))
+	mouse.order_move(Vector2(0.5, 5.0))
+	assert_true(badger.path_tunnel.has(4) and badger.path_tunnel.has(6), "the badger through the wide tunnel (%s)" % badger.path_tunnel)
 	assert_false(badger.path_tunnel.has(0), "not the standard one")
-	assert_true(mouse.path_tunnel.has(0), "the mouse the straight one")
+	assert_true(mouse.path_tunnel.has(0) and mouse.path_tunnel.has(2), "the mouse the straight one (%s)" % mouse.path_tunnel)
 
 
 func test_a_carrier_never_hauls_through_a_bore_its_load_does_not_fit() -> void:
 	"""The badger fits a wide bore but not with a load: leaving the stockpile it never carries below."""
 	var points: Array[Dictionary] = [
-		{"name": &"stockpile", "position": Vector3(0.0, 0.0, -3.0), "face": Vector3.FORWARD, "activities": [&"collect_object"], "capacity": 1},
-		{"name": &"north", "position": Vector3(0.0, 0.0, 3.0), "face": Vector3.BACK, "activities": [&"idle"], "capacity": 1}]
+		{"name": &"stockpile", "position": Vector3(0.0, 0.0, -5.0), "face": Vector3.FORWARD, "activities": [&"collect_object"], "capacity": 1},
+		{"name": &"north", "position": Vector3(0.0, 0.0, 5.0), "face": Vector3.BACK, "activities": [&"idle"], "capacity": 1}]
 	var keys: Array = []
 	for k in 31:
 		keys.append([0.0, 0.02 * float(k)])
@@ -309,8 +322,8 @@ func test_a_carrier_never_hauls_through_a_bore_its_load_does_not_fit() -> void:
 	for attempt in 12:
 		var space := CastSpaceScript.new()
 		space.setup(points, _wall())
-		var slot := _open_tunnel(space, [Vector2i(0, -2048), Vector2i(0, 2048)])
-		space.tunnels.set_bore(slot, Rules.BORE_WIDE)
+		for slot in _open_tunnel(space, [Vector2i(0, -4096), Vector2i(0, 4096)]):
+			space.tunnels.set_bore(slot, Rules.BORE_WIDE)
 		var brain := BrainScript.new()
 		brain.configure(space, WALK_M_S, BODY_M, SEED + attempt, _lengths())
 		brain.set_carry_motion({"period_s": 3.0, "mean_speed_m_s": 0.2, "keys_xz": keys})
@@ -327,12 +340,12 @@ func test_a_carrier_never_hauls_through_a_bore_its_load_does_not_fit() -> void:
 
 
 func test_a_worker_standing_in_a_bore_is_passed_not_queued_behind() -> void:
-	"""A task's worker standing in the bore heads neither way: a walker coming up behind steps aside
-	and passes it, and comes out."""
+	"""A task's worker standing in a 10 m tunnel's bore (slot 1, 1 m in: 5 m along the tunnel) heads neither
+	way: a walker coming up behind steps aside and passes it, and comes out."""
 	var space := _space(_wall())
-	var slot := _open_tunnel(space, [Vector2i(0, -5120), Vector2i(0, 5120)])
+	var chain := _open_tunnel(space, [Vector2i(0, -5120), Vector2i(0, 5120)])
 	var worker := _brain(space, Vector2(3.0, -8.0), true)
-	worker.task_stand_in_bore(slot, 5.0, true)
+	worker.task_stand_in_bore(chain[1], 1.0, true)
 	assert_equal(space.resident_heading[worker.index], 0, "heading neither way")
 	var walker := _brain(space, Vector2(0.0, -6.0), true)
 	walker.order_move(Vector2(0.0, 7.0))
@@ -344,10 +357,10 @@ func test_a_worker_standing_in_a_bore_is_passed_not_queued_behind() -> void:
 func test_a_walker_gives_up_a_line_that_does_not_move() -> void:
 	"""Held in line behind a grant nobody gives up, a walker waits 25 s and then walks round instead."""
 	var space := _space(_wall())
-	_open_tunnel(space, [Vector2i(0, -2048), Vector2i(0, 2048)])
-	var b := _brain(space, Vector2(-1.2, -4.6), true)
+	_open_tunnel(space, [Vector2i(0, -4096), Vector2i(0, 4096)])
+	var b := _brain(space, Vector2(-1.2, -6.6), true)
 	space.tunnels.queue.grant[0] = 99
-	b.order_move(Vector2(-1.0, 4.0))
+	b.order_move(Vector2(-1.0, 6.0))
 	assert_true(_until(b, func() -> bool: return b.state == BrainScript.State.QUEUE, 10.0), "in line")
 	_step([b], 24.0)
 	assert_equal(b.state, BrainScript.State.QUEUE, "still waiting at 24 s")
@@ -359,10 +372,10 @@ func test_a_walker_gives_up_a_line_that_does_not_move() -> void:
 func test_a_released_walker_leaves_the_line() -> void:
 	"""Released while waiting in line, a walker's place is given up."""
 	var space := _space(_wall())
-	_open_tunnel(space, [Vector2i(0, -2048), Vector2i(0, 2048)])
-	var b := _brain(space, Vector2(-1.2, -4.6), true)
+	_open_tunnel(space, [Vector2i(0, -4096), Vector2i(0, 4096)])
+	var b := _brain(space, Vector2(-1.2, -6.6), true)
 	space.tunnels.queue.grant[0] = 99
-	b.order_move(Vector2(-1.0, 4.0))
+	b.order_move(Vector2(-1.0, 6.0))
 	assert_true(_until(b, func() -> bool: return b.state == BrainScript.State.QUEUE, 10.0), "in line behind a held grant")
 	assert_true(space.tunnels.queue.is_queued(0, b.index), "queued")
 	b.release()
@@ -382,14 +395,16 @@ func test_a_bare_task_ends_at_once_and_the_resident_goes_back_to_its_routine() -
 
 
 func test_a_walker_in_a_tunnel_that_closes_turns_back_to_its_mouth() -> void:
-	"""Half way down, the tunnel closes: the walker walks back and comes up at the entrance."""
+	"""A 10 m tunnel: half way along it (1 m into its 2 m bore), the bore closes: the walker walks back and
+	comes up at the entrance, and plans no more through the closed bore."""
 	var space := _space(_wall())
-	var slot := _open_tunnel(space, [Vector2i(0, -5120), Vector2i(0, 5120)])
+	var chain := _open_tunnel(space, [Vector2i(0, -5120), Vector2i(0, 5120)])
 	var brain := _brain(space, Vector2(0.0, -6.0), true)
 	brain.order_move(Vector2(0.0, 7.0))
-	_until(brain, func() -> bool: return brain.underground and brain.bore_along_m() > 3.0, 20.0)
-	space.tunnels.close(slot, NetworkScript.CLOSED_FLOODED, 0, 10240)
-	brain.turn_back(slot, 0.0)
+	_until(brain, func() -> bool: return brain.is_in_bore(chain[1]) and brain.bore_along_m() > 1.0, 20.0)
+	assert_true(brain.is_in_bore(chain[1]), "in the bore")
+	space.tunnels.close(chain[1], GraphScript.CLOSED_FLOODED, 0, 2048)
+	brain.turn_back(chain[1], 0.0)
 	assert_true(_until(brain, func() -> bool: return not brain.underground, 10.0), "came up")
 	assert_true(brain.position.distance_to(Vector2(0.0, -5.0)) < 0.01, "at the entrance (%s)" % brain.position)
 	assert_false(brain.crosses_tunnel(), "and does not plan through the closed tunnel")
@@ -440,66 +455,84 @@ func test_nothing_moves_while_paused_and_speed_scales_exactly() -> void:
 
 
 func test_a_crew_member_at_the_face_sets_the_dig_rate() -> void:
-	"""With the Foremole alone the dig runs at 1000; with a member below at its post, at 1506."""
+	"""The mole leads at its level 3 skill factor, 1150 (dig_skills.gd): alone the dig runs at 1150; with a
+	member below at its post, at 1506 x 1150 / 1000 = 1731. The entrance ramp (x 0..4 m on row 20) is
+	loam."""
 	var space := _space([])
 	var species := PackedStringArray(["Mole", "Mouse"])
 	var brains := _cast_of(space, [Vector2(-3.0, 0.0), Vector2(-3.0, 2.0)], species)
 	var works := _works(space, brains, species)
-	var ref := PackedInt32Array([-1, 0])
-	space.tunnels.add_into(PackedInt32Array([0, 0, 4096, 0]), 2, 0, ref)
+	var ref := PackedInt32Array([-1, 0, -1])
+	space.tunnels.add_into(PackedInt32Array([0, 0, 12288, 0]), 2, 0, ref)
 	works.step(1)
-	assert_equal(space.tunnels.rate_permille[0], 1000, "alone")
+	assert_equal(space.tunnels.rate_permille[0], 1150, "alone")
 	works.crew.join(1, 0)
 	works.crew.set_present(1, true)
 	works.step(1)
-	assert_equal(space.tunnels.rate_permille[0], 1506, "a finisher behind")
+	assert_equal(space.tunnels.rate_permille[0], 1731, "a finisher behind")
+
+
+## The village's T1 route through the rock pocket and on into the clay (the dig tool's test lays it too):
+## (3.0, 2.8) -> (9.6, -2.48) m, 8654 u (8.45 m). Its entrance ramp cuts cells (23, 22) twice (loam),
+## (24, 21) twice and (25, 20) (rock); its 0.45 m bore (26, 20) (rock); its exit ramp runs through clay
+## from (26, 19) to (29, 17), where its exit shaft breaks out. Each cell is rolled once in the bore layer:
+## flints in (23, 22), (24, 21) and (26, 20), the relic in (25, 20), clay in (29, 17) (tunnel_finds.gd
+## rolls 192, 1351, 742, 2545 and 491; the exit ramp's other clay cells roll nothing).
+const T1_ROUTE: Array[int] = [3072, 2867, 9830, -2540]
 
 
 func test_digging_through_the_rock_pocket_finds_a_relic_and_yields_stone() -> void:
-	"""The village's T1 route through the rock pocket: three flints and the relic in cell (25, 20), 3.2 U
-	of stone from four rock quanta, and the relic's alert."""
+	"""The village's T1 route dug through: three flints, the relic in cell (25, 20) and a clay find, 3.2 U of
+	stone from four rock quanta, and the relic's alert."""
 	var space := _space([])
 	var species := PackedStringArray(["Mole"])
 	var works := _works(space, _cast_of(space, [Vector2(0.0, 0.0)], species), species)
-	var ref := PackedInt32Array([-1, 0])
-	space.tunnels.add_into(PackedInt32Array([3072, 2867, 8192, -1229]), 2, 0, ref)
-	space.tunnels.advance(ref[0], ref[1], 1000000000)
+	var ref := PackedInt32Array([-1, 0, -1])
+	assert_true(space.tunnels.add_into(PackedInt32Array(T1_ROUTE), 2, 0, ref), "T1 laid")
+	var chain := PackedInt32Array()
+	space.tunnels.piece_segments_into(ref[2], chain)
+	for slot in chain:
+		space.tunnels.start_dig(slot, space.tunnels.generation[slot], 0)
+		space.tunnels.advance(slot, space.tunnels.generation[slot], 1000000000)
 	works.step(1)
 	assert_equal(works.stores.finds[FindsScript.FIND_FLINT], 3, "flints")
 	assert_equal(works.stores.finds[FindsScript.FIND_RELIC], 1, "the relic")
+	assert_equal(works.stores.finds[FindsScript.FIND_CLAY], 1, "clay")
 	assert_equal(works.stores.stone_milli_u, 23200, "20 U and four rock quanta's 800")
 	assert_true(_noted("A relic dug up — see the tunnel panel"), "posted")
-	assert_true(Array(works.log_lines).has(FindsScript.relic_story(1)), "its story told")
+	assert_true(_services.notices.has_text(FindsScript.relic_story(1)), "its story told")
 
 
-func _wet_tunnel(works: WorksScript, space: CastSpaceScript) -> int:
-	"""An open 4 m tunnel whose middle two metres are wet sand (the works' ground overwritten)."""
+func _wet_tunnel(works: WorksScript, space: CastSpaceScript) -> PackedInt32Array:
+	"""An open 12 m tunnel along z = 0.5 m from x = 0.5 m whose bore's (slot 1, 4.5..8.5 m) middle two metres
+	(cells 26, 27 of row 20) are wet sand (the works' ground overwritten); its segments."""
 	works.ground.cells.fill(GroundScript.LOAM)
-	for c in [22, 23]:
+	for c in [26, 27]:
 		works.ground.cells[20 * works.ground.columns + c] = GroundScript.SAND | GroundScript.WET_BIT
-	var slot := _open_tunnel(space, [Vector2i(512, 512), Vector2i(4608, 512)])
+	var chain := _open_tunnel(space, [Vector2i(512, 512), Vector2i(12800, 512)])
 	works.step(1)
-	return slot
+	return chain
 
 
 func test_rain_floods_an_unbraced_wet_tunnel_with_warning_and_everyone_turns_back() -> void:
-	"""In rain: a warning at 20 s, a flood at 40 s -- alerted; a walker in the bore turns back; the
-	flooded tunnel is marked closed until pumped."""
+	"""In rain: a warning at 20 s, a flood at 40 s -- alerted, naming the bore (tunnel 2); a walker in the
+	bore turns back; the flooded bore is marked closed until pumped, its ramps are not."""
 	var space := _space([])
 	var species := PackedStringArray(["Mouse"])
 	var brains := _cast_of(space, [Vector2(-1.0, 0.5)], species)
 	var works := _works(space, brains, species)
-	var slot := _wet_tunnel(works, space)
+	var bore := _wet_tunnel(works, space)[1]
 	_rain(works)
 	works.step(1)
-	brains[0].order_move(Vector2(6.0, 0.5))
-	assert_true(brains[0].crosses_tunnel(), "in the rain the tunnel is quicker (7.75 against 8.75)")
-	_until(brains[0], func() -> bool: return brains[0].underground and brains[0].bore_along_m() > 1.0, 10.0)
+	brains[0].order_move(Vector2(14.0, 0.5))
+	assert_true(brains[0].crosses_tunnel(), "in the rain the tunnel is quicker (3.75 + 12 = 15.75 against 18.75)")
+	_until(brains[0], func() -> bool: return brains[0].is_in_bore(bore) and brains[0].bore_along_m() > 1.0, 20.0)
 	works.step(20000000)
-	assert_true(_warned("Tunnel 1 is seeping — brace it"), "warned")
+	assert_true(_warned("Tunnel 2 is seeping — brace it"), "warned")
 	works.step(20000000)
-	assert_true(_warned("Tunnel 1 flooded — pump it out"), "flooded")
-	assert_equal(space.tunnels.closed[slot], NetworkScript.CLOSED_FLOODED, "closed")
+	assert_true(_warned("Tunnel 2 flooded — pump it out"), "flooded")
+	assert_equal(space.tunnels.closed[bore], GraphScript.CLOSED_FLOODED, "closed")
+	assert_equal(space.tunnels.closed[bore - 1], GraphScript.CLOSED_NONE, "the dry ramp is not")
 	var surfaced := Vector2.INF
 	for f in 60 * 10:
 		brains[0].step(DT)
@@ -510,42 +543,47 @@ func test_rain_floods_an_unbraced_wet_tunnel_with_warning_and_everyone_turns_bac
 
 
 func test_a_roof_holds_while_someone_is_under_it() -> void:
-	"""A collapse falls due while a walker stands under the sand: the roof creaks and holds; once
+	"""A collapse falls due while a walker stands under the bore's sand: the roof creaks and holds; once
 	nobody is under it, it falls."""
 	var space := _space([])
 	var species := PackedStringArray(["Mouse"])
 	var brains := _cast_of(space, [Vector2(-1.0, 0.5)], species)
 	var works := _works(space, brains, species)
 	works.ground.cells.fill(GroundScript.LOAM)
-	for c in [22, 23]:
+	for c in [26, 27]:
 		works.ground.cells[20 * works.ground.columns + c] = GroundScript.SAND
-	var slot := _open_tunnel(space, [Vector2i(512, 512), Vector2i(4608, 512)])
+	var bore := _open_tunnel(space, [Vector2i(512, 512), Vector2i(12800, 512)])[1]
 	works.step(1)
-	brains[0].task_stand_in_bore(slot, 2.0, true)
-	works.hazards.strain_usec[slot] = HazardsScript.STRAIN_FULL_USEC - 1
-	works._act_on(slot, works.hazards.add_crossing(slot))
-	assert_equal(space.tunnels.closed[slot], NetworkScript.CLOSED_NONE, "holds")
-	assert_true(_warned("Tunnel 1 holds while someone is under"), "creaks")
-	space.set_in_bore(brains[0].index, slot, 0.2, 0)
-	brains[0].task_surface(slot, false)
-	works._act_on(slot, HazardsScript.EVENT_COLLAPSE_DUE)
-	assert_equal(space.tunnels.closed[slot], NetworkScript.CLOSED_COLLAPSED, "falls once clear")
+	brains[0].task_stand_in_bore(bore, 2.0, true)
+	works.hazards.strain_usec[bore] = HazardsScript.STRAIN_FULL_USEC - 1
+	works._act_on(bore, works.hazards.add_crossing(bore))
+	assert_equal(space.tunnels.closed[bore], GraphScript.CLOSED_NONE, "holds")
+	assert_true(_warned("Tunnel 2 holds while someone is under"), "creaks")
+	brains[0].task_surface_at(space.tunnels.mouth_node[0])
+	assert_false(brains[0].underground, "up at the entrance")
+	works._act_on(bore, HazardsScript.EVENT_COLLAPSE_DUE)
+	assert_equal(space.tunnels.closed[bore], GraphScript.CLOSED_COLLAPSED, "falls once clear")
 
 
 func test_a_crew_follows_the_foremole_s_work() -> void:
-	"""While a tunnel is dug the crew's work goes on, at the entrance during the shaft and at the face
-	after; a mole job's crew follows the worker below; with nothing going on, it ends."""
+	"""While a segment is dug the crew's work goes on, at the entrance during the entry shaft and at the face
+	after; the next segment of the piece taken up, the work goes on there, from its start (no shaft); a
+	mole job's crew follows the worker below; with nothing going on, it ends."""
 	var space := _space([])
 	var species := PackedStringArray(["Mole"])
 	var works := _works(space, _cast_of(space, [Vector2(-3.0, 0.0)], species), species)
-	var ref := PackedInt32Array([-1, 0])
-	space.tunnels.add_into(PackedInt32Array([0, 0, 4096, 0]), 2, 0, ref)
+	var ref := PackedInt32Array([-1, 0, -1])
+	space.tunnels.add_into(PackedInt32Array([0, 0, 12288, 0]), 2, 0, ref)
 	assert_true(works.crew_active(0), "digging")
 	assert_equal(works.crew_along(0), 0.0, "the entrance shaft: at the surface")
 	space.tunnels.dig_usec[0] = 200 * 1000000 / 30
-	assert_true(works.crew_along(0) > 0.0, "the bore: at the face (%.3f)" % works.crew_along(0))
+	assert_true(works.crew_along(0) > 0.0, "the ramp: at the face (%.3f)" % works.crew_along(0))
 	space.tunnels.advance(0, ref[1], 1000000000)
-	assert_false(works.crew_active(0), "open: nothing going on")
+	assert_false(works.crew_active(0), "open: nothing going on there")
+	assert_false(works.crew_active(1), "the bore not taken up yet")
+	space.tunnels.start_dig(1, space.tunnels.generation[1], 0)
+	assert_true(works.crew_active(1), "the bore is dug on")
+	assert_equal(works.crew_along(1), 0.0, "from its start")
 	works.jobs.post(0, JobsScript.JOB_WIDEN, 0, 0, 4096)
 	assert_true(works.crew_active(0), "a widening")
 	assert_equal(works.crew_along(0), 0.0, "its worker not yet below")
@@ -554,117 +592,128 @@ func test_a_crew_follows_the_foremole_s_work() -> void:
 
 
 func test_a_walker_under_a_fall_s_far_side_turns_to_the_exit() -> void:
-	"""A collapse closes the sand (1.5..2.5 m along an 8 m bore): a walker already past it -- though
-	nearer the entrance than the exit -- walks on to the exit; one short of it turns back."""
+	"""A collapse closes the sand (1.5..2.5 m along the 8 m bore of a 16 m tunnel): a walker already past it
+	-- though nearer the bore's start than its end -- walks on and out at the exit; one short of it turns
+	back to the entrance."""
 	var space := _space([])
 	var species := PackedStringArray(["Mouse", "Mouse"])
 	var brains := _cast_of(space, [Vector2(-3.0, 0.5), Vector2(-3.0, 1.5)], species)
 	var works := _works(space, brains, species)
 	works.ground.cells.fill(GroundScript.LOAM)
-	for c in [22, 23]:
+	for c in [26, 27]:
 		works.ground.cells[20 * works.ground.columns + c] = GroundScript.SAND
-	var slot := _open_tunnel(space, [Vector2i(512, 512), Vector2i(8704, 512)])
+	var bore := _open_tunnel(space, [Vector2i(512, 512), Vector2i(16896, 512)])[1]
 	_rain(works)
 	works.step(1)
-	brains[0].order_move(Vector2(10.0, 0.5))
-	brains[1].order_move(Vector2(10.0, 1.5))
-	_until(brains[0], func() -> bool: return brains[0].underground and brains[0].bore_along_m() > 3.3, 20.0)
+	brains[0].order_move(Vector2(18.0, 0.5))
+	brains[1].order_move(Vector2(18.0, 1.5))
+	_until(brains[0], func() -> bool: return brains[0].is_in_bore(bore) and brains[0].bore_along_m() > 3.3, 30.0)
 	assert_true(brains[0].bore_along_m() < 4.0, "past the fall and its half-metre margin (1.0..3.0 m), short of the middle (%.3f)" % brains[0].bore_along_m())
-	assert_false(works.hazards.in_fall(slot, brains[1].bore_along_m()), "the other short of it (%.3f)" % brains[1].bore_along_m())
-	_until(brains[1], func() -> bool: return brains[1].underground and brains[1].bore_along_m() > 0.3, 20.0)
-	works._act_on(slot, HazardsScript.EVENT_COLLAPSE_DUE)
-	assert_equal(space.tunnels.closed[slot], NetworkScript.CLOSED_COLLAPSED, "fallen")
+	_until(brains[1], func() -> bool: return brains[1].is_in_bore(bore) and brains[1].bore_along_m() > 0.3, 30.0)
+	assert_false(works.hazards.in_fall(bore, brains[1].bore_along_m()), "the other short of it (%.3f)" % brains[1].bore_along_m())
+	works._act_on(bore, HazardsScript.EVENT_COLLAPSE_DUE)
+	assert_equal(space.tunnels.closed[bore], GraphScript.CLOSED_COLLAPSED, "fallen")
 	var up := [Vector2.INF, Vector2.INF]
-	for f in 60 * 12:
+	for f in 60 * 15:
 		for k in 2:
 			brains[k].step(DT)
 			if not brains[k].underground and up[k] == Vector2.INF:
 				up[k] = brains[k].position
-	assert_true((up[0] as Vector2).distance_to(Vector2(8.5, 0.5)) < 0.01, "past it: out at the exit (%s)" % up[0])
+	assert_true((up[0] as Vector2).distance_to(Vector2(16.5, 0.5)) < 0.01, "past it: out at the exit (%s)" % up[0])
 	assert_true((up[1] as Vector2).distance_to(Vector2(0.5, 0.5)) < 0.01, "short of it: back to the entrance (%s)" % up[1])
 
 
 func test_walking_into_a_weak_bore_strains_it() -> void:
-	"""The works count a walker going down an unbraced sand bore as a crossing: 8 s of strain."""
+	"""The works count a walker going down an unbraced sand bore as a crossing: 8 s of strain -- once, on
+	the bore; its loam ramps take none."""
 	var space := _space([])
 	var species := PackedStringArray(["Mouse"])
 	var brains := _cast_of(space, [Vector2(-1.0, 0.5)], species)
 	var works := _works(space, brains, species)
 	works.ground.cells.fill(GroundScript.LOAM)
-	for c in [22, 23]:
+	for c in [26, 27]:
 		works.ground.cells[20 * works.ground.columns + c] = GroundScript.SAND
-	var slot := _open_tunnel(space, [Vector2i(512, 512), Vector2i(4608, 512)])
+	var chain := _open_tunnel(space, [Vector2i(512, 512), Vector2i(12800, 512)])
 	_rain(works)
 	works.step(1)
-	var strain := works.hazards.strain_usec[slot]
-	brains[0].order_move(Vector2(6.0, 0.5))
-	for f in 60 * 3:
+	var strain := works.hazards.strain_usec[chain[1]]
+	brains[0].order_move(Vector2(14.0, 0.5))
+	assert_true(brains[0].crosses_tunnel(), "through the tunnel")
+	for f in 60 * 8:
 		brains[0].step(DT)
 		works.step(0)
-	assert_true(brains[0].crosses_tunnel(), "through the tunnel")
-	assert_equal(works.hazards.strain_usec[slot] - strain, HazardsScript.CROSSING_STRAIN_USEC, "one crossing")
+	assert_true(brains[0].is_in_bore(chain[1]), "in the bore by now")
+	assert_equal(works.hazards.strain_usec[chain[1]] - strain, HazardsScript.CROSSING_STRAIN_USEC, "one crossing")
+	assert_equal(works.hazards.strain_usec[chain[0]], 0, "the ramp takes none")
 
 
 func test_the_foremole_speaks_up_at_rock() -> void:
-	"""A dig whose face reaches rock with no badger on the crew: the Foremole says so, as a warning in the
-	demo's notice feed carrying the short line."""
+	"""A dig whose face reaches rock with no badger on the crew -- T1's ramp, its third quantum in cell
+	(24, 21), from 226 ticks: the Foremole says so, as a warning in the demo's notice feed carrying the
+	short line."""
 	var space := _space([])
 	var species := PackedStringArray(["Mole"])
 	var works := _works(space, _cast_of(space, [Vector2(0.0, 0.0)], species), species)
-	var ref := PackedInt32Array([-1, 0])
-	space.tunnels.add_into(PackedInt32Array([3072, 2867, 8192, -1229]), 2, 0, ref)
-	for k in 12:
+	var ref := PackedInt32Array([-1, 0, -1])
+	space.tunnels.add_into(PackedInt32Array(T1_ROUTE), 2, 0, ref)
+	for k in 3:
 		space.tunnels.dig_usec[0] = k * 100 * 1000000 / 30
 		works.step(1)
+	assert_false(_services.notices.has_text(CrewScript.LINE_ROCK_ALONE), "not in loam (200 ticks)")
+	space.tunnels.dig_usec[0] = 300 * 1000000 / 30
+	works.step(1)
 	assert_true(_services.notices.has_text(CrewScript.LINE_ROCK_ALONE), "said, in the notice feed")
 	assert_true(_warned("Rock! The Foremole needs the badger"), "a warning, with its short line")
+	assert_equal(space.tunnels.rate_permille[0], 287, "and it crawls: 1150 x 250 / 1000")
 
 
 func test_a_widening_crew_works_side_by_side() -> void:
-	"""A widening offers five faces: the Foremole and one member below dig at 2000; a chamber's crew
-	of four (three faces and a finisher) at 3506."""
+	"""A widening offers five faces: the Foremole (the mole, factor 1150) and one member below dig at
+	2000 x 1150 / 1000 = 2300; a chamber's crew of four (three faces and a finisher, 3506) at 4031."""
 	var space := _space([])
 	var species := PackedStringArray(["Mole", "Mouse", "Mouse", "Mouse"])
 	var works := _works(space, _cast_of(space, [Vector2.ZERO, Vector2(1, 0), Vector2(2, 0), Vector2(3, 0)], species), species)
-	var slot := _open_tunnel(space, [Vector2i(0, 0), Vector2i(2048, 0)])
-	works.jobs.post(slot, JobsScript.JOB_WIDEN, 0, 0, 2048)
+	works.ground.cells.fill(GroundScript.LOAM)
+	var slot := _open_tunnel(space, [Vector2i(0, 0), Vector2i(12288, 0)])[1]
+	works.jobs.post(slot, JobsScript.JOB_WIDEN, 0, 0, 4096)
 	works.crew.join(1, slot)
 	works.crew.set_present(1, true)
 	works.step(1)
-	assert_equal(works.jobs.rate_permille[slot], 2000, "two faces")
+	assert_equal(works.jobs.rate_permille[slot], 2300, "two faces")
 	works.jobs.clear(slot)
 	works.jobs.post_chamber(slot, 0, 0, 1024, GroundScript.LOAM)
 	for i in [2, 3]:
 		works.crew.join(i, slot)
 		works.crew.set_present(i, true)
 	works.step(1)
-	assert_equal(works.jobs.rate_permille[slot], 3506, "a chamber's four")
+	assert_equal(works.jobs.rate_permille[slot], 4031, "a chamber's four")
 
 
 func test_a_job_done_takes_effect_and_is_announced() -> void:
-	"""A brace worked to its end: the works finish it -- braced -- and raise its short alert."""
+	"""A brace on a bore (tunnel 2: 4 quanta) worked to its end: the works finish it -- braced -- and raise
+	its short alert."""
 	var space := _space([])
 	var species := PackedStringArray(["Mouse"])
 	var works := _works(space, _cast_of(space, [Vector2.ZERO], species), species)
-	var slot := _open_tunnel(space, [Vector2i(0, 0), Vector2i(2048, 0)])
-	works.jobs.post(slot, JobsScript.JOB_BRACE, 0, 0, 2048)
+	var slot := _open_tunnel(space, [Vector2i(0, 0), Vector2i(12288, 0)])[1]
+	works.jobs.post(slot, JobsScript.JOB_BRACE, 0, 0, 4096)
 	works.jobs.start(slot)
 	works.jobs.work(slot, 5000000)
 	works.step(1)
 	assert_equal(space.tunnels.braced[slot], 1, "braced")
-	assert_true(_noted("Tunnel 1 braced"), "announced")
-	assert_equal(works.stores.wood_milli_u, 39000, "paid for")
+	assert_true(_noted("Tunnel 2 braced"), "announced")
+	assert_equal(works.stores.wood_milli_u, 39000, "paid for: 4 x 250")
 
 
 func test_a_flood_by_the_stream_sends_residents_through_a_tunnel_and_home_again() -> void:
 	"""The test event (a flood of the real stream at the ford) sends the resident on the east road down
-	the tunnel out of the disc; the one on the square stays put; when the water goes down the
-	evacuee's task ends."""
+	the 8 m tunnel out of the disc (in at mouth row 0, up at row 1); the one on the square stays put; when
+	the water goes down the evacuee's task ends."""
 	var space := _space([])
 	var species := PackedStringArray(["Mouse", "Mouse"])
 	var brains := _cast_of(space, [Vector2(16.0, -0.9), Vector2(0.0, -1.0)], species)
 	var works := _works(space, brains, species)
-	_open_tunnel(space, [Vector2i(17408, -922), Vector2i(11264, -922)])
+	_open_tunnel(space, [Vector2i(17408, -922), Vector2i(9216, -922)])
 	assert_true(works.start_test_event(), "the flood comes")
 	assert_false(works.start_test_event(), "one at a time")
 	assert_true(brains[0].task is EvacuateTaskScript, "the east-road mouse evacuates")
@@ -672,11 +721,11 @@ func test_a_flood_by_the_stream_sends_residents_through_a_tunnel_and_home_again(
 	assert_true(brains[1].task == null, "the square mouse does not")
 	assert_true(_warned("Flood by the stream — evacuating"), "alerted")
 	var below := false
-	for f in 60 * 15:
+	for f in 60 * 18:
 		brains[0].step(DT)
 		below = below or brains[0].underground
 	assert_true(below, "went through the tunnel")
-	assert_true(brains[0].position.x < 11.0, "came out beyond it (%s)" % brains[0].position)
+	assert_true(brains[0].position.x < 9.0, "came out beyond it (%s)" % brains[0].position)
 	assert_false(brains[0].underground, "and is on the surface, not walking the ground from below")
 	works.step(EventsScript.DURATION_USEC)
 	assert_true(_noted("The flood has gone down"), "the all-clear")
@@ -685,14 +734,14 @@ func test_a_flood_by_the_stream_sends_residents_through_a_tunnel_and_home_again(
 
 
 func test_a_job_the_stores_cannot_pay_for_sends_its_worker_home() -> void:
-	"""Arriving at a brace with the stores emptied meanwhile: nothing is paid, no work is done, and the
-	worker goes back to its routine."""
+	"""Arriving at a brace on the entrance ramp (its node A the mouth, on the surface) with the stores emptied
+	meanwhile: nothing is paid, no work is done, and the worker goes back to its routine."""
 	var space := _space([])
 	var species := PackedStringArray(["Mouse"])
 	var brains := _cast_of(space, [Vector2(-1.0, 0.0)], species)
 	var works := _works(space, brains, species)
-	var slot := _open_tunnel(space, [Vector2i(0, 0), Vector2i(2048, 0)])
-	works.jobs.post(slot, JobsScript.JOB_BRACE, 0, 0, 2048)
+	var slot := _open_tunnel(space, [Vector2i(0, 0), Vector2i(12288, 0)])[0]
+	works.jobs.post(slot, JobsScript.JOB_BRACE, 0, 0, 4096)
 	brains[0].order_task(JobTaskScript.new(works.jobs, space.tunnels, slot))
 	works.stores.wood_milli_u = 0
 	_step([brains[0]], 5.0)
@@ -702,32 +751,50 @@ func test_a_job_the_stores_cannot_pay_for_sends_its_worker_home() -> void:
 	assert_false(brains[0].underground, "never went down")
 
 
-func test_a_crew_member_works_a_gap_behind_the_foremole() -> void:
-	"""The first member below stands 0.9 m behind the Foremole's place, the second 1.8 m."""
-	var space := _space([])
-	var slot := _open_tunnel(space, [Vector2i(0, 0), Vector2i(8192, 0)])
+func _crew_of_two(space: CastSpaceScript, slot: int) -> Array:
+	"""Two mice on segment `slot`'s crew, each standing 0.2 m into it: [crew, member, second]."""
 	var crew := CrewScript.new()
 	crew.set_resident(0, "Mouse")
 	crew.set_resident(1, "Mouse")
 	var member := _brain(space, Vector2(0.0, 0.0), true)
 	var second := _brain(space, Vector2(0.0, 1.0), true)
-	crew.join(0, slot)
-	crew.join(1, slot)
-	member.task_stand_in_bore(slot, 0.2, true)
-	second.task_stand_in_bore(slot, 0.2, true)
-	var task := CrewTaskScript.new(crew, space.tunnels, slot, true, Vector2(-1.0, 0.0),
-		func(_s: int) -> bool: return true, func(_s: int) -> float: return 3.0)
-	assert_true(task.step(member, DT), "working")
-	assert_true(task.step(second, DT), "working")
+	for b: BrainScript in [member, second]:
+		crew.join(b.index, slot)
+		b.task_stand_in_bore(slot, 0.2, true)
+	return [crew, member, second]
+
+
+func test_a_crew_member_works_a_gap_behind_the_foremole() -> void:
+	"""The first member below stands 0.9 m behind the Foremole's place along the piece, the second 1.8 m:
+	with the Foremole 3.0 m into the entrance ramp, at 2.1 and 1.2 m in it (the first step takes each in);
+	with it 0.5 m into the bore (4.5 m along the piece), both still in the ramp, at 3.6 and 2.7 m."""
+	var space := _space([])
+	var chain := _open_tunnel(space, [Vector2i(0, 0), Vector2i(12288, 0)])
+	var site := _crew_of_two(space, chain[0])
+	var crew: CrewScript = site[0]
+	var member: BrainScript = site[1]
+	var second: BrainScript = site[2]
+	var lead := [chain[0], 3.0]
+	var task := CrewTaskScript.new(crew, space.tunnels, chain[0], true, Vector2(-1.0, 0.0),
+		func(_s: int) -> bool: return true, func(s: int) -> float: return lead[1] if s == lead[0] else 0.0)
+	for k in 2:
+		assert_true(task.step(member, DT) and task.step(second, DT), "working")
 	assert_near(member.bore_along_m(), 2.1, 0.0001, "0.9 m behind")
 	assert_near(second.bore_along_m(), 1.2, 0.0001, "1.8 m behind")
 	assert_equal(crew.member_present[0], 1, "at its post")
+	crew.move_site(chain[0], chain[1])
+	lead[0] = chain[1]
+	lead[1] = 0.5
+	assert_true(task.step(member, DT) and task.step(second, DT), "working on")
+	assert_true(member.is_in_bore(chain[0]) and second.is_in_bore(chain[0]), "still in the ramp")
+	assert_near(member.bore_along_m(), 3.6, 0.0001, "4.5 - 0.9 along the piece")
+	assert_near(second.bore_along_m(), 2.7, 0.0001, "4.5 - 1.8")
 
 
 func test_a_crew_member_stands_down_when_the_work_stops() -> void:
 	"""Once the Foremole's work is over, the member's place ends (and it leaves the crew)."""
 	var space := _space([])
-	var slot := _open_tunnel(space, [Vector2i(0, 0), Vector2i(4096, 0)])
+	var slot := _open_tunnel(space, [Vector2i(0, 0), Vector2i(12288, 0)])[0]
 	var crew := CrewScript.new()
 	crew.set_resident(0, "Mouse")
 	var member := _brain(space, Vector2(-1.0, 0.0), true)
@@ -747,14 +814,16 @@ func test_a_crew_member_stands_down_when_the_work_stops() -> void:
 # --- the player's orders ----------------------------------------------------------------------
 
 func _order_site() -> Array:
-	"""A mole, two mice and a badger by an open 2 m tunnel: [space, brains, works, actions]."""
+	"""A mole, two mice and a badger by an open 12 m tunnel along x from the origin (tunnel 1 its entrance
+	ramp, slot 0; 2 its bore; 3 its exit ramp): [space, brains, works, actions]. Who can dig is who fits a
+	standard bore (tunnel_ext.gd diggers_of, decision 0208): the mole and the mice, not the badger."""
 	var space := _space([])
 	var species := PackedStringArray(["Mole", "Mouse", "Mouse", "Badger"])
 	var brains := _cast_of(space, [Vector2(-3.0, 0.0), Vector2(-1.0, 1.0), Vector2(6.0, 6.0), Vector2(-2.0, -2.0)], species)
 	var works := _works(space, brains, species)
-	_open_tunnel(space, [Vector2i(0, 0), Vector2i(2048, 0)])
+	_open_tunnel(space, [Vector2i(0, 0), Vector2i(12288, 0)])
 	works.step(1)
-	var actions := ActionsScript.new(works, space, PackedByteArray([1, 0, 0, 0]),
+	var actions := ActionsScript.new(works, space, PackedByteArray([1, 1, 1, 0]),
 		PackedStringArray(["Mole digger", "Mouse keeper", "Mouse fieldworker", "Badger"]), BOUNDS_U)
 	return [space, brains, works, actions]
 
@@ -768,10 +837,11 @@ func test_orders_are_refused_with_their_reasons() -> void:
 	assert_false(actions.order(JobsScript.JOB_BRACE, PackedInt32Array()), "nothing selected")
 	assert_equal(works.log_lines[-1], "Can't: select a finished tunnel first (click its mouth or route)", "said")
 	assert_true(actions.select_at(Vector2(1.0, 0.3)), "picked by its route")
+	assert_equal(actions.selected, 0, "the entrance ramp")
 	space.tunnels.set_braced(0)
 	assert_false(actions.order(JobsScript.JOB_BRACE, PackedInt32Array()), "already braced")
 	assert_equal(works.log_lines[-1], "Can't: tunnel 1 is already braced", "said")
-	space.tunnels.close(0, NetworkScript.CLOSED_FLOODED, 0, 2048)
+	space.tunnels.close(0, GraphScript.CLOSED_FLOODED, 0, 4096)
 	assert_false(actions.order(JobsScript.JOB_LANTERNS, PackedInt32Array()), "closed")
 	assert_equal(works.log_lines[-1], "Can't: tunnel 1 is closed — repair it first", "said")
 	space.tunnels.reopen(0)
@@ -781,8 +851,8 @@ func test_orders_are_refused_with_their_reasons() -> void:
 
 
 func test_a_job_goes_to_the_selected_resident_else_the_nearest_free_one() -> void:
-	"""Brace with a mouse selected: that mouse; with nobody selected: the nearest free mouse (never the
-	mole, never the badger, who does not fit the bore)."""
+	"""Brace with a mouse selected: that mouse; with nobody selected: the nearest free mouse to the tunnel's
+	way in (never the mole, a skilled digger kept for digging; never the badger, who does not fit)."""
 	var site := _order_site()
 	var brains: Array[BrainScript] = site[1]
 	var works: WorksScript = site[2]
@@ -825,44 +895,79 @@ func test_nobody_digging_joins_a_crew() -> void:
 	assert_equal(works.crew.member_site[2], 0, "the other")
 
 
-func test_mole_work_takes_the_foremole_and_the_rest_as_crew() -> void:
-	"""Widen with a mouse and the badger selected: the mole works it and both join its crew; with the
-	mole digging a tunnel, it is refused."""
+func _stand_down(site: Array) -> void:
+	"""Everyone on the order site back to their routine, and tunnel 1's job cleared."""
+	for b: BrainScript in site[1]:
+		b.release()
+	(site[2] as WorksScript).jobs.clear(0)
+
+
+func test_dig_work_takes_a_foremole_and_the_rest_as_crew() -> void:
+	"""Widen with the mole, a mouse and the badger selected: the first selected who can dig (the mole)
+	works it and both others join its crew, the badger (too big for the bore) at the surface. With a mouse
+	and the badger selected, the mouse leads (anybeast who fits a bore digs, decision 0208)."""
 	var site := _order_site()
 	var brains: Array[BrainScript] = site[1]
 	var works: WorksScript = site[2]
 	var actions: ActionsScript = site[3]
 	actions.select_at(Vector2(1.0, 0.3))
-	assert_true(actions.order(JobsScript.JOB_WIDEN, PackedInt32Array([1, 3])), "ordered")
-	assert_equal(works.jobs.worker[0], 0, "the Foremole")
+	assert_true(actions.order(JobsScript.JOB_WIDEN, PackedInt32Array([0, 1, 3])), "ordered")
+	assert_equal(works.jobs.worker[0], 0, "the mole leads")
 	assert_equal(works.crew.count_of(0), 2, "a crew of two")
 	assert_equal(brains[3].task_label(), "Dig crew — surface hand", "the badger works the surface")
-	works.jobs.clear(0)
+	_stand_down(site)
+	assert_true(actions.order(JobsScript.JOB_WIDEN, PackedInt32Array([2, 3])), "ordered again")
+	assert_equal(works.jobs.worker[0], 2, "the selected mouse leads")
+	assert_equal(works.crew.count_of(0), 1, "the badger its crew")
+
+
+func test_dig_work_unasked_goes_to_the_most_skilled_free_digger() -> void:
+	"""With nobody selected, the village's most skilled free digger leads: the mole (level 3); with the mole
+	digging a tunnel, a mouse (level 0, the lower index on the tie); with every digger digging, refused."""
+	var site := _order_site()
+	var brains: Array[BrainScript] = site[1]
+	var works: WorksScript = site[2]
+	var actions: ActionsScript = site[3]
+	actions.select_at(Vector2(1.0, 0.3))
+	assert_true(actions.order(JobsScript.JOB_WIDEN, PackedInt32Array()), "ordered")
+	assert_equal(works.jobs.worker[0], 0, "the mole")
+	_stand_down(site)
 	brains[0].order = BrainScript.ORDER_DIG
-	assert_false(actions.order(JobsScript.JOB_WIDEN, PackedInt32Array()), "the Foremole is digging")
-	assert_equal(works.log_lines[-1], "Can't: the Foremole is busy digging", "said")
+	assert_true(actions.order(JobsScript.JOB_WIDEN, PackedInt32Array()), "ordered again")
+	assert_equal(works.jobs.worker[0], 1, "mouse 1")
+	_stand_down(site)
+	for i in 3:
+		brains[i].order = BrainScript.ORDER_DIG
+	assert_false(actions.order(JobsScript.JOB_WIDEN, PackedInt32Array()), "every digger is digging")
+	assert_equal(works.log_lines[-1], "Can't: nobody free who fits a bore can dig it", "said")
 
 
-func test_a_chamber_is_placed_beside_the_tunnel_clicked() -> void:
-	"""Armed, a click 1.5 m south of the tunnel plans a burrow home on that side for the Foremole; a
-	click far away is refused and placement stays armed."""
+func test_a_chamber_is_placed_beside_the_bore_clicked() -> void:
+	"""A second 12 m tunnel along z = 8 m from x = -12 m (slots 3, 4, 5; its bore tunnel 5 runs x -8..-4 m).
+	Armed, a click 1.5 m south of the bore plans a burrow home on that side, 2 m off the route at the
+	clicked point, for the village's most skilled digger (the mole); a click far away is refused and
+	placement stays armed; a ramp is refused -- rooms open off a level bore."""
 	var site := _order_site()
 	var space: CastSpaceScript = site[0]
 	var works: WorksScript = site[2]
 	var actions: ActionsScript = site[3]
-	var ref := PackedInt32Array([-1, 0])
-	space.tunnels.add_into(PackedInt32Array([-8192, 8192, 0, 8192]), 2, 0, ref)
-	space.tunnels.advance(ref[0], ref[1], 1000000000)
+	var chain := _open_tunnel(space, [Vector2i(-12288, 8192), Vector2i(0, 8192)])
 	works.step(1)
-	actions.select_at(Vector2(-4.0, 8.2))
+	actions.select(chain[0])
+	assert_true(actions.begin_chamber(ChambersScript.KIND_HOME, PackedInt32Array()), "armed on the ramp")
+	assert_false(actions.place_chamber(Vector2(-10.0, 9.5), PackedInt32Array()), "a ramp")
+	assert_equal(works.log_lines[-1], "Can't: tunnel 4 is a mouth's ramp: dig a room off a level bore", "said")
+	actions.cancel_chamber()
+	assert_true(actions.select_at(Vector2(-6.0, 8.2)), "the bore picked")
+	assert_equal(actions.selected, chain[1], "tunnel 5")
 	assert_true(actions.begin_chamber(ChambersScript.KIND_HOME, PackedInt32Array()), "armed")
-	assert_equal(works.log_lines[-1], "Click along tunnel 2 where the burrow home should open (Esc: cancel)", "prompted")
-	assert_false(actions.place_chamber(Vector2(-4.0, 16.0), PackedInt32Array()), "too far")
+	assert_equal(works.log_lines[-1], "Click along tunnel 5 where the burrow home should open (Esc: cancel)", "prompted")
+	assert_false(actions.place_chamber(Vector2(-6.0, 16.0), PackedInt32Array()), "too far")
 	assert_equal(actions.placing, ChambersScript.KIND_HOME, "still armed")
-	assert_true(actions.place_chamber(Vector2(-4.0, 9.5), PackedInt32Array()), "placed")
-	assert_equal(works.chambers.chamber_point_u(0), Vector2i(-4096, 10240), "2 m to the clicked side")
-	assert_equal(works.jobs.kind[ref[0]], JobsScript.JOB_CHAMBER, "a chamber job")
-	assert_equal(works.jobs.worker[ref[0]], 0, "for the Foremole")
+	assert_true(actions.place_chamber(Vector2(-6.0, 9.5), PackedInt32Array()), "placed")
+	assert_equal(works.chambers.chamber_point_u(0), Vector2i(-6144, 10240), "2 m to the clicked side, 2 m into the bore")
+	assert_equal(works.jobs.kind[chain[1]], JobsScript.JOB_CHAMBER, "a chamber job")
+	assert_equal(works.jobs.worker[chain[1]], 0, "for the mole")
 	assert_equal(actions.placing, ChambersScript.KIND_NONE, "disarmed")
 
 
@@ -901,9 +1006,12 @@ func test_a_laid_route_names_its_ground() -> void:
 
 
 func test_a_dig_s_cost_is_told_through_its_ground() -> void:
-	"""T1 through the rock pocket and on into the clay, 8.5 m (long enough for its ramps, decision 0207):
-	11 quanta, two of loam, five of clay (147 ticks) and four of rock -- 1413 ticks, 47 s -- and
-	2 x 2000 + 5 x 2400 + 4 x 1200 = 20.8 U of spoil."""
+	"""T1 through the rock pocket and on into the clay, 8654 u (8.5 m; long enough for its ramps, decision
+	0207), laid as a piece: an entrance ramp of RAMP_RUN_U (4096 u: its shaft and 4 quanta), a 0.45 m bore
+	(1) and an exit ramp of RAMP_RUN_U (4 and its shaft) -- 11 quanta, as the uniform rule's shaft + 9 +
+	shaft: two of loam, five of clay (147 ticks) and four of rock -- 1413 ticks, 47 s -- and
+	2 x 2000 + 5 x 2400 + 4 x 1200 = 20.8 U of spoil. (Fails while underground_graph.gd rounds the exit
+	ramp's foot so the ramp is stored 4097 u long and cuts a fifth bore quantum: 12 m³, 23 U, 52 s.)"""
 	var tool := _tool(PackedInt32Array([0]))
 	tool.begin_plan()
 	assert_true(tool.lay_ground(Vector2(3.0, 2.8)), "entrance")
@@ -913,18 +1021,20 @@ func test_a_dig_s_cost_is_told_through_its_ground() -> void:
 
 
 func test_the_panel_shows_the_selected_tunnel_and_its_repair() -> void:
-	"""A selected open tunnel: its length, bore, fit and hazard lines; flooded, the repair button reads
+	"""A selected open segment (the entrance ramp of a 12 m tunnel: tunnel 1, 4 m): its length, bore, fit and
+	hazard lines; flooded, the repair button reads
 	"Pump out" and is the only one enabled; the panel's Repair orders the pump."""
 	var tool := _tool(PackedInt32Array())
-	var slot := _open_tunnel(_space_of(tool), [Vector2i(0, 5120), Vector2i(2048, 5120)])
+	var slot := _open_tunnel(_space_of(tool), [Vector2i(0, 5120), Vector2i(12288, 5120)])[0]
 	tool.ext.works.step(1)
 	assert_true(tool.ext.actions.select_at(Vector2(1.0, 5.2)), "selected by its route")
+	assert_equal(tool.ext.actions.selected, slot, "the entrance ramp")
 	tool.ext.refresh_panel()
 	assert_true(tool.ext.panel.button(PanelScript.ACTION_REPAIR).disabled, "nothing to repair")
 	assert_false(tool.ext.panel.button(PanelScript.ACTION_BRACE).disabled, "brace enabled")
-	assert_equal(tool.ext.panel.line(&"tunnel_title"), "Tunnel 1 — 2.0 m", "title")
+	assert_equal(tool.ext.panel.line(&"tunnel_title"), "Tunnel 1 — ramp, 4.0 m", "title")
 	assert_equal(tool.ext.panel.line(&"tunnel"), "standard bore (1 m) · unbraced · unlit\nFits: mice, moles, squirrels, hauling too (otters and the badger need it widened)\nSafe ground (no wet or sandy stretch)", "state")
-	tool.network.close(slot, NetworkScript.CLOSED_FLOODED, 0, 2048)
+	tool.network.close(slot, GraphScript.CLOSED_FLOODED, 0, 4096)
 	tool.ext.refresh_panel()
 	assert_equal(tool.ext.panel.button(PanelScript.ACTION_REPAIR).text, "Pump out", "the repair")
 	assert_false(tool.ext.panel.button(PanelScript.ACTION_REPAIR).disabled, "enabled")
@@ -961,9 +1071,9 @@ func test_the_panel_s_demo_buttons() -> void:
 func test_placing_a_chamber_takes_clicks_and_esc_cancels() -> void:
 	"""Armed, the tool hands the extension the events: Esc disarms and says so."""
 	var tool := _tool(PackedInt32Array([0]))
-	_open_tunnel(_space_of(tool), [Vector2i(0, 5120), Vector2i(4096, 5120)])
+	_open_tunnel(_space_of(tool), [Vector2i(0, 5120), Vector2i(12288, 5120)])
 	tool.ext.works.step(1)
-	tool.ext.actions.select_at(Vector2(2.0, 5.1))
+	assert_true(tool.ext.actions.select_at(Vector2(6.0, 5.1)), "the bore selected")
 	tool.ext.on_action(PanelScript.ACTION_HOME)
 	assert_equal(tool.ext.actions.placing, ChambersScript.KIND_HOME, "armed")
 	var esc := InputEventKey.new()
@@ -1068,13 +1178,16 @@ func test_the_ground_view_shows_where_it_should() -> void:
 
 
 func _marked_tunnel() -> Array:
-	"""An open 8 m tunnel, its hazards and its marks: [network, marks]."""
-	var network := NetworkScript.new()
-	var ref := PackedInt32Array([-1, 0])
-	network.add_into(PackedInt32Array([0, 0, 8192, 0]), 2, 0, ref)
-	network.advance(0, ref[1], 1000000000)
+	"""An open 16 m tunnel along x from the origin -- ramp 0..4 m (slot 0), level bore 4..12 m (slot 1),
+	ramp 12..16 m (slot 2) -- its hazards and its marks: [network, marks]."""
+	var network := GraphScript.new()
+	var ref := PackedInt32Array([-1, 0, -1])
+	assert_true(network.add_into(PackedInt32Array([0, 0, 16384, 0]), 2, 0, ref), "stored")
 	var hazards := HazardsScript.new(network)
-	hazards.survey(0)
+	for slot in 3:
+		network.start_dig(slot, network.generation[slot], 0)
+		network.advance(slot, network.generation[slot], 1000000000)
+		hazards.survey(slot)
 	var marks := MarksScript.new()
 	_nodes.append(marks)
 	marks.configure(network, hazards)
@@ -1082,43 +1195,54 @@ func _marked_tunnel() -> Array:
 
 
 func test_the_marks_follow_the_tunnel_s_state() -> void:
-	"""Selected: a brass line; flooded: water; collapsed: fallen earth; nothing on a plain tunnel."""
+	"""Per segment: selected, a brass line; flooded, water; collapsed, fallen earth over the section's
+	middle (the bore's 3072..5120 u: 4096 u in, x 8 m); nothing on a plain one."""
 	var site := _marked_tunnel()
-	var network: NetworkScript = site[0]
+	var network: GraphScript = site[0]
 	var marks: MarksScript = site[1]
 	marks.refresh()
-	assert_false(marks.line(0).visible or marks.water(0).visible or marks.fall(0).visible, "plain")
-	marks.select(0)
+	assert_false(marks.line(1).visible or marks.water(1).visible or marks.fall(1).visible, "plain")
+	marks.select(1)
 	marks.refresh()
-	assert_true(marks.line(0).visible, "selected")
-	assert_true(marks.line_below(0).visible and marks.line_below(0).mesh == marks.line(0).mesh, "in the U view too, the same line")
-	assert_almost_equal(marks.line_below(0).position.y, Layers.FLOOR_Y_M, "on the level's floor")
-	network.close(0, NetworkScript.CLOSED_FLOODED, 0, 8192)
+	assert_true(marks.line(1).visible, "selected")
+	assert_false(marks.line(0).visible, "only the selected segment")
+	assert_true(marks.line_below(1).visible and marks.line_below(1).mesh == marks.line(1).mesh, "in the U view too, the same line")
+	assert_almost_equal(marks.line_below(1).position.y, Layers.FLOOR_Y_M, "on the level's floor")
+	network.close(1, GraphScript.CLOSED_FLOODED, 0, 8192)
 	marks.refresh()
-	assert_true(marks.water(0).visible, "water")
-	network.close(0, NetworkScript.CLOSED_COLLAPSED, 3072, 5120)
+	assert_true(marks.water(1).visible, "water")
+	assert_false(marks.water(0).visible, "not in the ramp")
+	network.close(1, GraphScript.CLOSED_COLLAPSED, 3072, 5120)
 	marks.refresh()
-	assert_false(marks.water(0).visible, "no water now")
-	assert_true(marks.fall(0).visible, "fallen earth")
-	assert_true(marks.fall(0).position.is_equal_approx(Vector3(4.0, -0.02, 0.0)), "over the section's middle")
+	assert_false(marks.water(1).visible, "no water now")
+	assert_true(marks.fall(1).visible, "fallen earth")
+	assert_true(marks.fall(1).position.is_equal_approx(Vector3(8.0, -0.02, 0.0)), "over the section's middle (%s)" % marks.fall(1).position)
 
 
 func test_braces_and_lanterns_show_underground() -> void:
-	"""Braced and lit: a frame every metre where the bore is wholly under the ground (3..5 of 0..8: each
-	mouth's ramp is an open cutting for its first 2.94 m) and two lanterns, placed when it is braced and
-	lit and drawn on the underground layer only (decisions 0206, 0207)."""
+	"""Braced and lit, a frame every metre where a segment is wholly under the ground and a lantern every
+	started 4 m, placed when it is braced and lit and drawn on the underground layer only (decisions 0206,
+	0207): the level bore's metres 0..8 (nine frames, two lanterns); a ramp only past its open cutting (its
+	first 2.94 m from the mouth): the entrance ramp's metres 3 and 4, the exit ramp's 0 and 1, and one
+	lantern each."""
 	var site := _marked_tunnel()
-	var network: NetworkScript = site[0]
+	var network: GraphScript = site[0]
 	var marks: MarksScript = site[1]
 	marks.refresh()
-	assert_false(marks.frames(0).visible, "none before it is braced")
-	network.set_braced(0)
-	network.set_lit(0)
+	assert_false(marks.frames(1).visible, "none before it is braced")
+	for slot in 3:
+		network.set_braced(slot)
+		network.set_lit(slot)
 	marks.refresh()
-	assert_true(marks.frames(0).visible, "frames below")
-	assert_equal(marks.frames(0).layers, Layers.UNDERGROUND, "on the underground layer")
-	assert_equal(marks.frames(0).multimesh.visible_instance_count, 3, "metres 3..5: the rest is the ramps' open cutting (decision 0207)")
-	assert_equal(marks.lanterns(0).multimesh.visible_instance_count, 2, "8 m: two lanterns")
+	assert_true(marks.frames(1).visible, "frames below")
+	assert_equal(marks.frames(1).layers, Layers.UNDERGROUND, "on the underground layer")
+	var frames: Array[int] = []
+	var lanterns: Array[int] = []
+	for slot in 3:
+		frames.append(marks.frames(slot).multimesh.visible_instance_count)
+		lanterns.append(marks.lanterns(slot).multimesh.visible_instance_count)
+	assert_equal(frames, [2, 8, 1] as Array[int], "ramps past their cutting, the bore every metre, none doubled at a foot")
+	assert_equal(lanterns, [1, 2, 1] as Array[int], "one per started 4 m")
 
 
 func _check_planned_below(view: BurrowViewScript) -> void:
@@ -1146,7 +1270,7 @@ func test_the_chamber_drawings() -> void:
 	_nodes.append(view)
 	view.configure(chambers)
 	var ref := PackedInt32Array([0, 0])
-	chambers.add_into(ChambersScript.KIND_CELLAR, NetworkScript.new(), 0, 0, Vector2i(2048, 4096), ref)
+	chambers.add_into(ChambersScript.KIND_CELLAR, GraphScript.new(), 0, 0, Vector2i(2048, 4096), ref)
 	view.refresh()
 	assert_equal(view.label(0).text, "Root cellar (digging)", "planned")
 	assert_true(view.label(0).position.is_equal_approx(Vector3(2.0, 0.6, 4.0)), "over it")
@@ -1159,7 +1283,7 @@ func test_the_chamber_drawings() -> void:
 	assert_false(view.outline_below(0).visible, "no outline once dug")
 	view.refresh()
 	assert_equal(view.room_builds, 1, "and not again")
-	chambers.add_into(ChambersScript.KIND_HOME, NetworkScript.new(), 0, 0, Vector2i(-8192, 4096), ref)
+	chambers.add_into(ChambersScript.KIND_HOME, GraphScript.new(), 0, 0, Vector2i(-8192, 4096), ref)
 	view.refresh()
 	assert_equal(view.room_builds, 1, "another chamber planned rebuilds no room")
 	assert_true(view.cellar_door(0).visible, "the done root cellar is the library's cellar on the surface")
@@ -1256,23 +1380,22 @@ func test_a_tunnel_job_called_away_is_taken_back_when_the_other_work_is_done() -
 
 
 func test_a_job_taken_back_after_work_that_ended_underground_starts_from_the_surface() -> void:
-	"""Review H1 (decision 0205): lanterns on tunnel 1, called away to brace tunnel 2. When the brace
-	ends in its bore the worker walks out first and only then takes the lanterns back up -- walking to
-	them and paying for them on arrival, never appearing in their bore."""
+	"""Review H1 (decision 0205): lanterns on tunnel 1, called away to brace tunnel 4 (another tunnel's
+	entrance ramp). When the brace ends in its bore the worker walks out first and only then takes the
+	lanterns back up -- walking to them and paying for them on arrival, never appearing in their bore."""
 	var site := _order_site()
 	var space: CastSpaceScript = site[0]
 	var brains: Array[BrainScript] = site[1]
 	var works: WorksScript = site[2]
 	var actions: ActionsScript = site[3]
-	_open_tunnel(space, [Vector2i(0, 4096), Vector2i(2048, 4096)])
+	var second := _open_tunnel(space, [Vector2i(0, 4096), Vector2i(12288, 4096)])
 	works.step(1)
 	actions.select_at(Vector2(1.0, 0.3))
 	assert_true(actions.order(JobsScript.JOB_LANTERNS, PackedInt32Array([2])), "lanterns on tunnel 1")
-	assert_true(actions.select_at(Vector2(1.0, 4.0)), "tunnel 2 picked")
-	assert_true(actions.order(JobsScript.JOB_BRACE, PackedInt32Array([2])), "then a brace on tunnel 2")
+	assert_true(actions.select_at(Vector2(1.0, 4.0)) and actions.selected == second[0], "tunnel 4, its entrance ramp, picked")
+	assert_true(actions.order(JobsScript.JOB_BRACE, PackedInt32Array([2])), "then a brace on tunnel 4")
 	assert_equal(brains[2].unfinished_labels(), PackedStringArray(["Hang lanterns, tunnel 1"]), "the lanterns kept")
-	var taken_up_below: Array[bool] = [false]
-	var back_on_it: Array[bool] = [false]
+	var back_on_it: Array[bool] = [false, false]
 	for frame: int in 60 * 240:
 		for brain: BrainScript in brains:
 			brain.step(DT)
@@ -1280,10 +1403,10 @@ func test_a_job_taken_back_after_work_that_ended_underground_starts_from_the_sur
 		var on_lanterns: bool = brains[2].task is JobTaskScript and (brains[2].task as JobTaskScript).slot == 0
 		if on_lanterns and not back_on_it[0]:
 			back_on_it[0] = true
-			taken_up_below[0] = brains[2].underground
+			back_on_it[1] = brains[2].underground
 		if back_on_it[0] and works.jobs.paid[0] == 1:
 			break
-	assert_true(works.jobs.is_done(1) or works.jobs.kind[1] == JobsScript.JOB_NONE, "the brace was done")
+	assert_true(works.jobs.is_done(second[0]) or works.jobs.kind[second[0]] == JobsScript.JOB_NONE, "the brace was done")
 	assert_true(back_on_it[0], "back on the lanterns")
-	assert_false(taken_up_below[0], "taken up on the surface, not inside a bore")
+	assert_false(back_on_it[1], "taken up on the surface, not inside a bore")
 	assert_equal(works.jobs.paid[0], 1, "it walked to them and paid on arrival")

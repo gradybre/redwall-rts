@@ -9,12 +9,13 @@ extends "res://test/framework/test_case.gd"
 ## real ground map with its cells overwritten, so a test controls exactly what each quantum cuts.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const FarmWeatherScript := preload("res://demo/farm/farm_weather.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
 const QueueScript := preload("res://demo/tunnel/tunnel_queue.gd")
 const CrewScript := preload("res://demo/tunnel/tunnel_crew.gd")
+const SkillsScript := preload("res://demo/tunnel/dig_skills.gd")
 const JobsScript := preload("res://demo/tunnel/tunnel_jobs.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
@@ -26,8 +27,15 @@ const WaterMapScript := preload("res://demo/water/water_map.gd")
 const VillageWaterScript := preload("res://demo/village_water.gd")
 const CoreWeather := preload("res://scripts/core/weather.gd")
 
-## A 4 m route along z = 0.5 m from x = 0.5 m: its six timeline quanta lie in cells 20..24 of row 20.
+## The standard fixture: a 12 m mouth-to-mouth route along z = 0.5 m from x = 0.5 m, laid as a piece of
+## three segments (underground_graph.gd PIECES): slot 0 the entrance RAMP (0.5..4.5 m: an entry shaft in
+## cell 20 of ROW and bore quanta in cells 21..24), slot 1 the level BORE (4.5..8.5 m: quanta in cells
+## 25..28, no shafts) and slot 2 the exit RAMP (8.5..12.5 m: quanta in 29..32, the exit shaft in 32).
+## Mouth row 0 is the entrance at (0.5, 0.5) m, row 1 the exit at (12.5, 0.5) m.
 const ROW: int = 20
+const RAMP: int = 0
+const BORE: int = 1
+const EXIT_RAMP: int = 2
 
 
 func _yes(_index: int) -> bool:
@@ -53,28 +61,44 @@ func _mark(ground: GroundScript, columns: Array[int], value: int) -> void:
 		ground.cells[ROW * ground.columns + c] = value
 
 
-func _network_on(ground: GroundScript, route: Array[Vector2i]) -> NetworkScript:
-	"""A network over `ground` with one tunnel along `route` (u), dug to the end unless the route is
-	left DIGGING by the caller (slot 0)."""
-	var network := NetworkScript.new()
+func _network_on(ground: GroundScript, route: Array[Vector2i]) -> GraphScript:
+	"""A network over `ground` with one piece along `route` (u), its first segment (slot 0) DIGGING and the
+	rest PLANNED (add_into)."""
+	var network := GraphScript.new()
 	network.set_ground(ground)
 	var flat := PackedInt32Array()
 	for p in route:
 		flat.append(p.x)
 		flat.append(p.y)
-	var ref := PackedInt32Array([-1, 0])
+	var ref := PackedInt32Array([-1, 0, -1])
 	assert_true(network.add_into(flat, route.size(), 0, ref), "fixture tunnel stored")
 	return network
 
 
-func _four_metres(ground: GroundScript) -> NetworkScript:
-	"""The 4 m route of ROW (0.5, 0.5) -> (4.5, 0.5) m, still being dug."""
-	return _network_on(ground, [Vector2i(512, 512), Vector2i(4608, 512)])
+func _twelve_metres(ground: GroundScript) -> GraphScript:
+	"""The standard 12 m route (0.5, 0.5) -> (12.5, 0.5) m, still being dug (see ROW)."""
+	return _network_on(ground, [Vector2i(512, 512), Vector2i(12800, 512)])
 
 
-func _open(network: NetworkScript, slot: int) -> void:
-	"""Dig tunnel `slot` to the end."""
+func _open(network: GraphScript, slot: int) -> void:
+	"""Dig segment `slot` to the end (taking it up first when it is PLANNED or PAUSED)."""
+	network.start_dig(slot, network.generation[slot], 0)
 	network.advance(slot, network.generation[slot], 1000000000)
+
+
+func _open_piece(network: GraphScript, p: int) -> void:
+	"""Dig every segment of piece `p`, in dig order."""
+	var chain := PackedInt32Array()
+	network.piece_segments_into(p, chain)
+	for slot in chain:
+		_open(network, slot)
+
+
+func _dig_to(network: GraphScript, slot: int, ticks: int) -> void:
+	"""Advance DIGGING segment `slot` at its rate 1000 until exactly `ticks` are dug (the fewest whole
+	microseconds that reach them: ceil(ticks x 10^6 / 30), which never reaches the next tick)."""
+	var target := Rules.ceil_div(ticks * Rules.USEC_PER_SECOND, Rules.TICKS_PER_SECOND)
+	network.advance(slot, network.generation[slot], target - network.dig_usec[slot])
 
 
 # --- weather ----------------------------------------------------------------------------------
@@ -315,120 +339,191 @@ func test_each_ground_s_dig_work_and_spoil() -> void:
 # --- the ground-aware dig timeline ----------------------------------------------------------
 
 func test_the_timeline_follows_the_ground() -> void:
-	"""Two clay metres in a 4 m loam route: 113, 113, 147, 147, 113, 113 ticks; 746 in all."""
+	"""Each segment's timeline follows the ground under it. Clay in cells 22, 23 (the entrance ramp's middle
+	two metres) and 26 (the bore's second): the ramp is an entry shaft and four bore quanta, 113, 113, 147,
+	147, 113 = 633 ticks; the bore four quanta and no shaft, 113 + 147 + 113 + 113 = 486; the exit ramp
+	four bore quanta and its exit shaft, all loam, 5 x 113 = 565."""
 	var ground := _loam_ground()
-	_mark(ground, [22, 23], GroundScript.CLAY)
-	var network := _four_metres(ground)
-	assert_equal(network.timeline_count(0), 6, "two shafts and four bore quanta")
+	_mark(ground, [22, 23, 26], GroundScript.CLAY)
+	var network := _twelve_metres(ground)
+	assert_equal([network.timeline_count(RAMP), network.timeline_count(BORE), network.timeline_count(EXIT_RAMP)],
+		[5, 4, 5] as Array[int], "a shaft only where a segment meets a mouth")
 	var kinds: Array[int] = []
-	for k in 6:
-		kinds.append(network.quantum_kind(0, k))
-	assert_equal(kinds, [0, 0, 1, 1, 0, 0] as Array[int], "clay in the middle two")
-	assert_equal(network.total_ticks(0), 746, "total ticks")
+	for k in 5:
+		kinds.append(network.quantum_kind(RAMP, k))
+	assert_equal(kinds, [0, 0, 1, 1, 0] as Array[int], "clay in the ramp's middle two")
+	kinds.clear()
+	for k in 4:
+		kinds.append(network.quantum_kind(BORE, k))
+	assert_equal(kinds, [0, 1, 0, 0] as Array[int], "clay in the bore's second metre")
+	assert_equal(network.total_ticks(RAMP), 633, "the ramp's ticks")
+	assert_equal(network.total_ticks(BORE), 486, "the bore's ticks")
+	assert_equal(network.total_ticks(EXIT_RAMP), 565, "the exit ramp's ticks")
 
 
 func test_stage_spoil_and_face_on_a_mixed_timeline() -> void:
-	"""The stage turns at 113, 633 and 746; spoil posts as each ground's cut completes; the face
-	moves through a clay quantum at its own pace."""
+	"""The entrance ramp (clay in its middle two metres; end ticks 113, 226, 373, 520, 633): the stage turns
+	at 113 and the ramp opens at 633 (a ramp dug from its mouth breaks out nowhere: no exit stage); spoil
+	posts at mouth 0 as each ground's cut completes; the face moves through a clay quantum at its own pace."""
 	var ground := _loam_ground()
 	_mark(ground, [22, 23], GroundScript.CLAY)
-	var network := _four_metres(ground)
-	var spoil := PackedInt64Array([0, 0])
-	network.dig_usec[0] = 300 * 1000000 / 30
-	assert_equal(network.stage(0), Rules.STAGE_BORE, "300 ticks: the bore")
-	network.spoil_into(0, spoil)
-	assert_equal(spoil[0], 4000, "two loam cuts, the clay one not yet (74 < 98)")
-	assert_equal(network.face_u(0), 1539, "(147 + 74) x 4096 / 588, floored")
-	network.dig_usec[0] = 324 * 1000000 / 30
-	network.spoil_into(0, spoil)
-	assert_equal(spoil[0], 6400, "the clay cut posts 2400 at 98 ticks in")
-	assert_equal(network.cut_count(0), 3, "three cuts")
-	network.dig_usec[0] = 633 * 1000000 / 30
-	assert_equal(network.stage(0), Rules.STAGE_EXIT, "633: the exit shaft")
-	_open(network, 0)
-	network.spoil_into(0, spoil)
-	assert_equal(spoil[0], 10800, "entrance heap: 2000 + 2000 + 2400 + 2400 + 2000")
-	assert_equal(spoil[1], 2000, "exit heap: the exit shaft")
+	var network := _twelve_metres(ground)
+	_dig_to(network, RAMP, 112)
+	assert_equal(network.stage(RAMP), Rules.STAGE_ENTRANCE, "112 ticks: still the entry shaft")
+	_dig_to(network, RAMP, 300)
+	assert_equal(network.stage(RAMP), Rules.STAGE_BORE, "300 ticks: the bore")
+	assert_equal(network.heaped_milli(0), 4000, "two loam cuts, the clay one not yet (300 - 226 = 74 < 98)")
+	assert_equal(network.face_u(RAMP), 1539, "(147 + 74) x 4096 / 588, floored")
+	_dig_to(network, RAMP, 324)
+	assert_equal(network.heaped_milli(0), 6400, "the clay cut posts 2400 at 98 ticks in")
+	assert_equal(network.cut_count(RAMP), 3, "three cuts")
+	_dig_to(network, RAMP, 632)
+	assert_equal(network.stage(RAMP), Rules.STAGE_BORE, "632: still the bore")
+	_dig_to(network, RAMP, 633)
+	assert_equal(network.stage(RAMP), Rules.STAGE_OPEN, "633: open")
+	assert_equal(network.heaped_milli(0), 10800, "the ramp's heap: 2000 + 2000 + 2400 + 2400 + 2000")
+
+
+func test_the_exit_ramp_breaks_out_at_its_mouth() -> void:
+	"""The exit ramp (four loam bore quanta, then its exit shaft) turns to STAGE_EXIT at 452; the shaft's cut
+	heaps at mouth 1, everything before it at the piece's spoil mouth 0: 13 x 2000 there, 2000 at the exit."""
+	var network := _twelve_metres(_loam_ground())
+	_open(network, RAMP)
+	_open(network, BORE)
+	network.start_dig(EXIT_RAMP, network.generation[EXIT_RAMP], 0)
+	_dig_to(network, EXIT_RAMP, 451)
+	assert_equal(network.stage(EXIT_RAMP), Rules.STAGE_BORE, "451: the exit ramp's bore")
+	_dig_to(network, EXIT_RAMP, 452)
+	assert_equal(network.stage(EXIT_RAMP), Rules.STAGE_EXIT, "452: its exit shaft")
+	assert_equal(network.heaped_milli(1), 0, "the exit shaft's cut completes 75 ticks in")
+	_dig_to(network, EXIT_RAMP, 527)
+	assert_equal(network.heaped_milli(1), 2000, "527: cut")
+	_open(network, EXIT_RAMP)
+	assert_equal(network.heaped_milli(0), 26000, "the entrance heap: the ramp's 5, the bore's 4, the exit ramp's 4")
+	assert_equal(network.heaped_milli(1), 2000, "the exit heap: the exit shaft")
+
+
+func _dig_piece_to(network: GraphScript, chain: PackedInt32Array, ticks: int) -> void:
+	"""Dig the piece whose segments are `chain` (in dig order) until `ticks` of it are dug, segment by
+	segment, each taken up once the one before it is open."""
+	var before := 0
+	for slot in chain:
+		var want := clampi(ticks - before, 0, network.total_ticks(slot))
+		if want > network.done(slot):
+			network.start_dig(slot, network.generation[slot], 0)
+			_dig_to(network, slot, want)
+		before += network.total_ticks(slot)
+
+
+func _piece_stage_and_face(network: GraphScript, chain: PackedInt32Array) -> Vector2i:
+	"""The piece's stage (the first unopened segment's, or STAGE_OPEN) and its face along the whole piece
+	(the open segments' lengths and that segment's face), in u."""
+	var along := 0
+	for slot in chain:
+		if not network.is_open(slot):
+			return Vector2i(network.stage(slot), along + network.face_u(slot))
+		along += network.length_u[slot]
+	return Vector2i(Rules.STAGE_OPEN, along)
 
 
 func test_a_loam_tunnel_keeps_the_uniform_rule_exactly() -> void:
-	"""With no ground, every done count gives the same stage, face and spoil as tunnel_rules."""
-	var network := NetworkScript.new()
-	var ref := PackedInt32Array([-1, 0])
-	network.add_into(PackedInt32Array([0, 0, 5000, 0]), 2, 0, ref)
-	var spoil := PackedInt64Array([0, 0])
+	"""With no ground, a 12 m piece dug end to end -- ramp, bore, ramp: 5 + 4 + 5 = 14 quanta, as the uniform
+	rule's shaft + 12 + shaft -- gives, at every tick dug, the uniform rule's stage, face and spoil at each
+	end (tunnel_rules.gd stage_of, face_u, spoil_into over 12 quanta and 12288 u)."""
+	var network := GraphScript.new()
+	var ref := PackedInt32Array([-1, 0, -1])
+	assert_true(network.add_into(PackedInt32Array([0, 0, 12288, 0]), 2, 0, ref), "stored")
+	var chain := PackedInt32Array()
+	network.piece_segments_into(ref[2], chain)
+	assert_equal(chain, PackedInt32Array([0, 1, 2]), "three segments in dig order")
 	var uniform := PackedInt64Array([0, 0])
-	for d in range(0, Rules.total_ticks(network.quanta[0]) + 1, 7):
-		network.dig_usec[0] = d * 1000000 / 30 + 1
-		assert_equal(network.face_u(0), Rules.face_u(d, network.quanta[0], 5000), "face at %d" % d)
-		assert_equal(network.stage(0), Rules.stage_of(d, network.quanta[0]), "stage at %d" % d)
-		network.spoil_into(0, spoil)
-		Rules.spoil_into(d, network.quanta[0], uniform)
-		assert_equal(spoil, uniform, "spoil at %d" % d)
+	for d in range(0, Rules.total_ticks(12) + 1, 7):
+		_dig_piece_to(network, chain, d)
+		var sf := _piece_stage_and_face(network, chain)
+		assert_equal(sf.x, Rules.stage_of(d, 12), "stage at %d" % d)
+		assert_equal(sf.y, Rules.face_u(d, 12, 12288), "face at %d" % d)
+		Rules.spoil_into(d, 12, uniform)
+		assert_equal(PackedInt64Array([network.heaped_milli(0), network.heaped_milli(1)]), uniform, "spoil at %d" % d)
 
 
 func test_rock_yields_stone() -> void:
-	"""Two rock metres yield 1600 milli-U of stone and 1200 milli-U of earth each."""
+	"""Two rock metres in the bore (cells 26, 27) yield 1600 milli-U of stone and 1200 milli-U of earth
+	each: the bore posts 2000 x 2 + 1200 x 2 at the entrance, which heaps 10000 + 6400 + 8000 in all."""
 	var ground := _loam_ground()
-	_mark(ground, [22, 23], GroundScript.ROCK)
-	var network := _four_metres(ground)
-	_open(network, 0)
-	assert_equal(network.stone_milli_u(0), 1600, "two rock quanta")
-	var spoil := PackedInt64Array([0, 0])
-	network.spoil_into(0, spoil)
-	assert_equal(spoil[0], 8400, "2000 x 3 + 1200 x 2 at the entrance")
+	_mark(ground, [26, 27], GroundScript.ROCK)
+	var network := _twelve_metres(ground)
+	_open_piece(network, 0)
+	assert_equal(network.stone_milli_u(BORE), 1600, "two rock quanta")
+	assert_equal(network.stone_milli_u(RAMP), 0, "the ramps are loam")
+	assert_equal(network.posted_in[BORE], 6400, "the bore's spoil")
+	assert_equal(network.heaped_milli(0), 24400, "the entrance heap")
 
 
 func test_a_crew_rate_credits_work_exactly() -> void:
 	"""At 1506 per mille, 1 s credits 1,506,000 usec; 7 usec twice credits 21 with 84 left over."""
-	var network := _four_metres(_loam_ground())
-	network.set_rate(0, 1506)
-	network.advance(0, network.generation[0], 1000000)
-	assert_equal(network.dig_usec[0], 1506000, "one second at 1506")
-	assert_equal(network.done(0), 45, "45 ticks")
-	network.dig_usec[0] = 0
-	network.advance(0, network.generation[0], 7)
-	assert_equal(network.dig_usec[0], 10, "10 of 10.542")
-	assert_equal(network.dig_rem[0], 542, "remainder kept")
-	network.advance(0, network.generation[0], 7)
-	assert_equal(network.dig_usec[0], 21, "21 of 21.084")
-	assert_equal(network.dig_rem[0], 84, "remainder")
+	var network := _twelve_metres(_loam_ground())
+	network.set_rate(RAMP, 1506)
+	network.advance(RAMP, network.generation[RAMP], 1000000)
+	assert_equal(network.dig_usec[RAMP], 1506000, "one second at 1506")
+	assert_equal(network.done(RAMP), 45, "45 ticks")
+	network.dig_usec[RAMP] = 0
+	network.advance(RAMP, network.generation[RAMP], 7)
+	assert_equal(network.dig_usec[RAMP], 10, "10 of 10.542")
+	assert_equal(network.dig_rem[RAMP], 542, "remainder kept")
+	network.advance(RAMP, network.generation[RAMP], 7)
+	assert_equal(network.dig_usec[RAMP], 21, "21 of 21.084")
+	assert_equal(network.dig_rem[RAMP], 84, "remainder")
 
 
-func test_a_route_longer_than_64_m_is_refused_whole() -> void:
-	"""A route over MAX_LENGTH_U is not stored (its timeline would not fit)."""
-	var network := NetworkScript.new()
-	var ref := PackedInt32Array([-1, 0])
-	assert_false(network.add_into(PackedInt32Array([0, 0, 65537, 0]), 2, 0, ref), "65537 u refused")
+func test_a_route_out_of_its_lengths_is_refused_whole() -> void:
+	"""A route over MAX_LENGTH_U (its timeline would not fit) or under two ramps' run (8192 u) is not stored.
+	At 65536 u: a 4 m ramp, a 56 m bore and a 4 m ramp -- 5 + 56 + 5 = 66 quanta, the old 64 and two
+	shafts; at exactly 8192 u, two ramps sharing a foot, 5 quanta each."""
+	var ref := PackedInt32Array([-1, 0, -1])
+	assert_false(GraphScript.new().add_into(PackedInt32Array([0, 0, 65537, 0]), 2, 0, ref), "65537 u refused")
+	assert_false(GraphScript.new().add_into(PackedInt32Array([0, 0, 8191, 0]), 2, 0, ref), "8191 u refused")
+	var network := GraphScript.new()
 	assert_true(network.add_into(PackedInt32Array([0, 0, 65536, 0]), 2, 0, ref), "65536 u stored")
-	assert_equal(network.timeline_count(0), 66, "64 bore quanta and two shafts")
+	var chain := PackedInt32Array()
+	network.piece_segments_into(ref[2], chain)
+	var counts: Array[int] = []
+	for slot in chain:
+		counts.append(network.timeline_count(slot))
+	assert_equal(counts, [5, 56, 5] as Array[int], "ramp, 56 m bore, ramp")
+	var short := GraphScript.new()
+	assert_true(short.add_into(PackedInt32Array([0, 0, 8192, 0]), 2, 0, ref), "8192 u stored")
+	short.piece_segments_into(ref[2], chain)
+	assert_equal(chain.size(), 2, "two ramps")
+	assert_equal([short.seg_kind[chain[0]], short.seg_kind[chain[1]]], [GraphScript.SEG_RAMP, GraphScript.SEG_RAMP], "both ramps")
+	assert_equal(short.node_b[chain[0]], short.node_a[chain[1]], "sharing a foot")
+	assert_equal(short.timeline_count(chain[0]) + short.timeline_count(chain[1]), 10, "5 quanta each")
 
 
 func test_progress_of_a_widening_pass() -> void:
-	"""A widening digs each quantum five times over: after 565 ticks of a 2 m loam tunnel, five cuts
+	"""A widening digs each quantum five times over: after 565 ticks of the 4 m loam bore, five cuts
 	(10000 milli-U) and the second quantum starting; 75 more, a sixth cut."""
-	var network := _network_on(_loam_ground(), [Vector2i(0, 0), Vector2i(2048, 0)])
-	_open(network, 0)
+	var network := _twelve_metres(_loam_ground())
+	_open_piece(network, 0)
 	var out := PackedInt64Array()
-	out.resize(NetworkScript.P_SIZE)
-	assert_equal(network.pass_ticks(0, 5), 2260, "4 quanta x 113 x 5")
-	network.progress_into(0, 565, 5, out)
-	assert_equal(out[NetworkScript.P_CUTS], 5, "five cuts")
-	assert_equal(out[NetworkScript.P_SPOIL], 10000, "their spoil")
-	assert_equal(out[NetworkScript.P_QUANTUM], 1, "the second quantum")
-	assert_equal(out[NetworkScript.P_INTO], 0, "just begun")
-	network.progress_into(0, 640, 5, out)
-	assert_equal(out[NetworkScript.P_CUTS], 6, "a sixth cut at 75 in")
-	network.progress_into(0, 639, 5, out)
-	assert_equal(out[NetworkScript.P_CUTS], 5, "not at 74 in")
+	out.resize(GraphScript.P_SIZE)
+	assert_equal(network.pass_ticks(BORE, 5), 2260, "4 quanta x 113 x 5")
+	network.progress_into(BORE, 565, 5, out)
+	assert_equal(out[GraphScript.P_CUTS], 5, "five cuts")
+	assert_equal(out[GraphScript.P_SPOIL], 10000, "their spoil")
+	assert_equal(out[GraphScript.P_QUANTUM], 1, "the second quantum")
+	assert_equal(out[GraphScript.P_INTO], 0, "just begun")
+	network.progress_into(BORE, 640, 5, out)
+	assert_equal(out[GraphScript.P_CUTS], 6, "a sixth cut at 75 in")
+	network.progress_into(BORE, 639, 5, out)
+	assert_equal(out[GraphScript.P_CUTS], 5, "not at 74 in")
 
 
 # --- bore classes and loaded fit --------------------------------------------------------------
 
 func test_who_fits_which_bore_loaded_or_not() -> void:
 	"""A mouse fits a standard bore loaded; an otter only a wide one; the badger a wide one unloaded,
-	and none loaded (MOVE-REQ-005 names the failed dimension)."""
-	var network := _four_metres(_loam_ground())
+	and none loaded (MOVE-REQ-005 names the failed dimension). Fit is judged per segment's bore class."""
+	var network := _twelve_metres(_loam_ground())
 	network.set_body(0, 1024, 225)
 	network.set_body(1, 1526, 336)
 	network.set_body(2, 2611, 574)
@@ -439,6 +534,7 @@ func test_who_fits_which_bore_loaded_or_not() -> void:
 	assert_equal(network.fit_refusal(1, 0, true), Rules.FIT_OK, "otter hauling, wide")
 	assert_equal(network.fit_refusal(2, 0, false), Rules.FIT_OK, "badger, wide")
 	assert_equal(network.fit_refusal(2, 0, true), Rules.FIT_TOO_WIDE, "badger hauling, wide")
+	assert_equal(network.fit_refusal(2, BORE, false), Rules.FIT_TOO_WIDE, "the next segment is still standard")
 	assert_equal(network.fit_refusal(9, 0, false), Rules.FIT_TOO_WIDE, "an unknown resident fits nothing")
 
 
@@ -453,32 +549,35 @@ func test_loaded_width_boundaries() -> void:
 
 
 func test_closing_and_reopening() -> void:
-	"""A closed tunnel is open but not usable; reopened, it is usable again; each change bumps the
-	revision."""
-	var network := _four_metres(_loam_ground())
-	_open(network, 0)
+	"""A closed segment is open but not usable; reopened, it is usable again; each change bumps the
+	revision. Closing one segment leaves the rest of its piece usable."""
+	var network := _twelve_metres(_loam_ground())
+	_open_piece(network, 0)
 	var before := network.revision
-	assert_true(network.is_usable(0), "open and whole")
-	network.close(0, NetworkScript.CLOSED_COLLAPSED, 1024, 2048)
-	assert_true(network.is_open(0), "still a finished tunnel")
-	assert_false(network.is_usable(0), "but closed")
-	assert_equal(network.closed_from_u[0], 1024, "section from")
-	network.reopen(0)
-	assert_true(network.is_usable(0), "reopened")
+	assert_true(network.is_usable(BORE), "open and whole")
+	network.close(BORE, GraphScript.CLOSED_COLLAPSED, 1024, 2048)
+	assert_true(network.is_open(BORE), "still a finished segment")
+	assert_false(network.is_usable(BORE), "but closed")
+	assert_true(network.is_usable(RAMP) and network.is_usable(EXIT_RAMP), "its ramps are not")
+	assert_equal(network.closed_from_u[BORE], 1024, "section from")
+	network.reopen(BORE)
+	assert_true(network.is_usable(BORE), "reopened")
 	assert_equal(network.revision, before + 2, "two changes")
-	network.set_lit(0)
-	assert_equal(network.speed_permille(0), 1100, "a lit bore is quicker")
+	network.set_lit(BORE)
+	assert_equal(network.speed_permille(BORE), 1100, "a lit bore is quicker")
+	assert_equal(network.speed_permille(RAMP), 1000, "only where the lanterns hang")
 
 
 # --- planning: weather, lanterns, queues ------------------------------------------------------
 
 func _field() -> CastSpaceScript:
-	"""An open field with one 8 m tunnel from (-4, 0) to (4, 0) and one walker who fits it."""
+	"""An open field with one 8 m tunnel from (-4, 0) to (4, 0) -- two 4 m ramps sharing a foot at the
+	origin: slots 0 and 1, mouth rows 0 (west) and 1 (east) -- and one walker who fits it."""
 	var space := CastSpaceScript.new()
 	space.setup([], [])
-	var ref := PackedInt32Array([-1, 0])
-	space.tunnels.add_into(PackedInt32Array([-4096, 0, 4096, 0]), 2, 99, ref)
-	_open(space.tunnels, 0)
+	var ref := PackedInt32Array([-1, 0, -1])
+	assert_true(space.tunnels.add_into(PackedInt32Array([-4096, 0, 4096, 0]), 2, 99, ref), "fixture tunnel stored")
+	_open_piece(space.tunnels, ref[2])
 	space.add_resident(Vector2(-5.0, 0.0), 0.25)
 	space.tunnels.set_fit(0, true)
 	return space
@@ -494,7 +593,7 @@ func _crosses(space: CastSpaceScript) -> bool:
 
 func test_rain_sends_a_walker_through_a_tunnel_the_sun_does_not() -> void:
 	"""10 m on foot against 1 + 8 + 1 through the tunnel: a tie keeps the surface; at 800 per mille
-	the surface costs 12.5 against 10.5 below."""
+	the surface costs 12.5 against 1.25 + 8 + 1.25 = 10.5 below."""
 	var space := _field()
 	assert_false(_crosses(space), "sun: a tie keeps the surface")
 	space.tunnels.surface_permille = 800
@@ -502,15 +601,17 @@ func test_rain_sends_a_walker_through_a_tunnel_the_sun_does_not() -> void:
 
 
 func test_lanterns_and_queues_weigh_on_the_plan() -> void:
-	"""Lit, the tunnel costs 8 x 1000 / 1100 and wins in the sun; one walker queued at its entrance
-	adds 3 m and it loses again; a full line closes that way in."""
+	"""Lit through (both ramps), the tunnel costs 8 x 1000 / 1100 and wins in the sun (9.27 < 10); one
+	walker queued at its entrance adds 3 m and it loses again; a full line closes that way in."""
 	var space := _field()
 	space.tunnels.set_lit(0)
+	assert_true(_crosses(space), "one ramp lit is enough already: 4 / 1.1 + 4 + 2 = 9.64 < 10")
+	space.tunnels.set_lit(1)
 	assert_true(_crosses(space), "lit: 9.27 < 10")
 	assert_true(space.tunnels.queue.join(0, 5), "someone queues at the entrance")
 	assert_false(_crosses(space), "queued: 12.27 > 10")
 	space.tunnels.surface_permille = 600
-	assert_true(_crosses(space), "snow: 16.7 on foot > 12.27")
+	assert_true(_crosses(space), "snow: 16.7 on foot > 3.33 + 7.27 + 3")
 	for k in range(6, 9):
 		space.tunnels.queue.join(0, k)
 	assert_false(_crosses(space), "a full line: no way in there")
@@ -551,9 +652,11 @@ func test_a_full_line_refuses_and_prices_itself_out() -> void:
 		queue.join(5, k)
 	assert_false(queue.join(5, 7), "the fifth is refused")
 	assert_equal(queue.wait_m(5), INF, "full")
-	queue.clear_mouths_of(2)
-	assert_equal(queue.count[5], 0, "tunnel 2's lines cleared")
+	queue.join(6, 8)
+	queue.clear_mouth(5)
+	assert_equal(queue.count[5], 0, "mouth 5's line cleared")
 	assert_equal(queue.grant[5], -1, "and its grant")
+	assert_equal(queue.count[6], 1, "another mouth's line kept")
 
 
 func test_the_line_turns_off_an_obstacle() -> void:
@@ -579,41 +682,67 @@ func test_the_crew_rate_follows_one_worker_per_face() -> void:
 	assert_equal(CrewScript.pipeline_permille(4, 3), 3506, "a chamber: three faces and a finisher")
 
 
-func test_experience_raises_the_rate_a_little() -> void:
-	"""20 per mille per 8 quanta, capped at 100."""
-	assert_equal(CrewScript.xp_bonus_permille(7), 0, "7 quanta")
-	assert_equal(CrewScript.xp_bonus_permille(8), 20, "8")
-	assert_equal(CrewScript.xp_bonus_permille(39), 80, "39")
-	assert_equal(CrewScript.xp_bonus_permille(40), 100, "40")
-	assert_equal(CrewScript.xp_bonus_permille(4000), 100, "capped")
+func test_the_digging_skill_s_arithmetic() -> void:
+	"""dig_skills.gd, the GDD's §5.3 arithmetic: a quantum's dig ticks earn ticks x 10 x 60 / 750 XP (loam's
+	113: 90, floored from 90.4; clay's 147: 117; an hour's 750 ticks: 600). Moles start at level 3 (45000
+	XP, factor 1000 + 50 x 3 = 1150); everyone else at 0 (factor 1000), and learns: a mouse reaches level 1
+	(5000 XP) on its 56th loam quantum (55 x 90 = 4950)."""
+	assert_equal(SkillsScript.xp_of_ticks(113), 90, "a loam quantum")
+	assert_equal(SkillsScript.xp_of_ticks(147), 117, "a clay quantum")
+	assert_equal(SkillsScript.xp_of_ticks(750), 600, "an hour at the face: 60 WU x 10")
+	var skills := SkillsScript.new()
+	skills.set_resident(0, "Mole")
+	skills.set_resident(1, "Mouse")
+	skills.set_resident(2, "Badger")
+	assert_equal(skills.xp[0], 45000, "the mole starts skilled")
+	assert_equal([skills.level_of(0), skills.level_of(1), skills.level_of(2)], [3, 0, 0], "levels")
+	assert_equal([skills.factor_permille(0), skills.factor_permille(1)], [1150, 1000], "skill factors")
+	assert_equal(skills.factor_permille(9), 1000, "no such resident: level 0")
+	assert_equal(skills.line_of(0), "Digging 3 · XP 45000/80000", "the party panel's line")
+	assert_equal(skills.short_of(0), "dig 3", "and its short form")
+	for k in 55:
+		assert_false(skills.add_ticks(1, 113), "quantum %d: no level yet" % (k + 1))
+	assert_equal(skills.xp[1], 4950, "55 x 90")
+	assert_true(skills.add_ticks(1, 113), "the 56th: level 1")
+	assert_equal(skills.factor_permille(1), 1050, "1000 + 50")
+	assert_false(skills.add_ticks(1, 0), "no work, nothing learnt")
 
 
 func test_rock_needs_a_breaker() -> void:
-	"""The mole alone in rock crawls at 250 per mille; a badger at its post restores the rate."""
+	"""The mole alone in rock crawls at 250 per mille of its rate -- 1150 (its level 3) x 250 / 1000 = 287;
+	a badger at its post restores it: 1150 alone, 1506 x 1150 / 1000 = 1731 with a finisher behind."""
 	var crew := CrewScript.new()
 	crew.set_resident(0, "Mole")
 	crew.set_resident(1, "Badger")
-	assert_equal(crew.rate_permille(0, 0, 1, GroundScript.ROCK, _yes), 250, "alone in rock")
-	assert_equal(crew.rate_permille(0, 0, 1, GroundScript.LOAM, _yes), 1000, "alone in loam")
+	assert_equal(crew.rate_permille(0, 0, 1, GroundScript.ROCK, _yes), 287, "alone in rock")
+	assert_equal(crew.rate_permille(0, 0, 1, GroundScript.LOAM, _yes), 1150, "alone in loam")
 	assert_true(crew.join(1, 0), "the badger joins")
-	assert_equal(crew.rate_permille(0, 0, 1, GroundScript.ROCK, _no), 250, "not at its post yet")
+	assert_equal(crew.rate_permille(0, 0, 1, GroundScript.ROCK, _no), 287, "not at its post yet")
 	crew.set_present(1, true)
-	assert_equal(crew.rate_permille(0, 0, 1, GroundScript.ROCK, _no), 1000, "cracking rock; a surface hand adds no face")
-	assert_equal(crew.rate_permille(0, 0, 1, GroundScript.ROCK, _yes), 1506, "one who fits finishes behind")
+	assert_equal(crew.rate_permille(0, 0, 1, GroundScript.ROCK, _no), 1150, "cracking rock; a surface hand adds no face")
+	assert_equal(crew.rate_permille(0, 0, 1, GroundScript.ROCK, _yes), 1731, "one who fits finishes behind")
 
 
-func test_the_foremole_s_experience_quickens_the_crew() -> void:
-	"""40 quanta of experience: the Foremole alone digs loam at 1100 per mille, and rock with a breaker
-	at 1100 too; without one, a quarter of that."""
+func test_the_foremole_s_skill_quickens_the_crew() -> void:
+	"""The Foremole's skill factor scales the crew (1000 + 50 x level): a mouse leading (level 0) digs loam
+	at 1000, a mole (level 3) at 1150, a mole at level 4 (80000 XP) at 1200 -- and rock alone at a quarter,
+	1200 x 250 / 1000 = 300; with a finisher behind, 1506 x 1200 / 1000 = 1807."""
 	var crew := CrewScript.new()
 	crew.set_resident(0, "Mole")
-	crew.xp_quanta[0] = 40
-	assert_equal(crew.rate_permille(0, 0, 1, GroundScript.LOAM, _yes), 1100, "loam")
-	assert_equal(crew.rate_permille(0, 0, 1, GroundScript.ROCK, _yes), 275, "rock alone: 1100 x 250 / 1000")
+	crew.set_resident(1, "Mouse")
+	assert_equal(crew.rate_permille(0, 1, 1, GroundScript.LOAM, _yes), 1000, "a mouse leads at 1000")
+	assert_equal(crew.rate_permille(0, 0, 1, GroundScript.LOAM, _yes), 1150, "a mole at 1150")
+	crew.skills.xp[0] = 80000
+	assert_equal(crew.rate_permille(0, 0, 1, GroundScript.LOAM, _yes), 1200, "level 4")
+	assert_equal(crew.rate_permille(0, 0, 1, GroundScript.ROCK, _yes), 300, "rock alone: 1200 x 250 / 1000")
+	crew.join(1, 0)
+	crew.set_present(1, true)
+	assert_equal(crew.rate_permille(0, 0, 1, GroundScript.LOAM, _yes), 1807, "with a finisher")
 
 
 func test_a_crew_holds_three_besides_the_foremole() -> void:
-	"""Joins in order, refuses a fourth, and moves up on leaving."""
+	"""Joins in order, refuses a fourth, and moves up on leaving; the crew follows its dig on into the next
+	segment."""
 	var crew := CrewScript.new()
 	for i in 6:
 		crew.set_resident(i, "Mouse")
@@ -626,23 +755,31 @@ func test_a_crew_holds_three_besides_the_foremole() -> void:
 	crew.leave(1)
 	assert_equal(crew.member_rank[3], 1, "moved up")
 	assert_equal(crew.count_of(2), 2, "two left")
-	crew.disband(2)
-	assert_equal(crew.count_of(2), 0, "disbanded")
+	crew.move_site(2, 3)
+	assert_equal(crew.count_of(3), 2, "moved on with the dig")
+	assert_equal(crew.member_rank[3], 1, "each in its place")
+	crew.disband(3)
+	assert_equal(crew.count_of(3), 0, "disbanded")
 
 
-func test_experience_is_credited_to_the_face() -> void:
-	"""Cuts credit the Foremole and members at the face; a step in the Foremole's rate is reported."""
+func test_skill_is_credited_to_the_face() -> void:
+	"""A quantum's ticks credit the Foremole and each member at the face who fits (113 ticks: 90 XP each);
+	a member away from its post, or one who does not fit, learns nothing; a new level of the Foremole's is
+	reported."""
 	var crew := CrewScript.new()
 	for i in 3:
 		crew.set_resident(i, "Mouse")
 	crew.join(1, 0)
 	crew.set_present(1, true)
 	crew.join(2, 0)
-	assert_false(crew.credit_quanta(0, 0, 7, _yes), "7: no step yet")
-	assert_true(crew.credit_quanta(0, 0, 1, _yes), "8: a step")
-	assert_equal(crew.xp_quanta[1], 8, "the member at the face")
-	assert_equal(crew.xp_quanta[2], 0, "not one away from its post")
-	assert_false(crew.credit_quanta(0, 0, 0, _yes), "no cuts")
+	assert_false(crew.credit_ticks(0, 0, 113, _yes), "90 XP: no level yet")
+	assert_equal([crew.skills.xp[0], crew.skills.xp[1], crew.skills.xp[2]], [90, 90, 0], "the lead and the member at the face")
+	assert_false(crew.credit_ticks(0, 0, 113, _no), "a member who does not fit learns nothing")
+	assert_equal(crew.skills.xp[1], 90, "unchanged")
+	crew.skills.xp[0] = 4910
+	assert_true(crew.credit_ticks(0, 0, 113, _yes), "4910 + 90 = 5000: level 1")
+	assert_false(crew.credit_ticks(0, 0, 0, _yes), "no work")
+	assert_false(crew.credit_ticks(0, 9, 113, _yes), "no such Foremole")
 
 
 # --- stores and finds -------------------------------------------------------------------------
@@ -710,31 +847,36 @@ func test_the_village_s_rock_pocket_holds_a_relic() -> void:
 # --- jobs -------------------------------------------------------------------------------------
 
 func _job_site() -> Array:
-	"""An open 2 m loam tunnel, its jobs and stores: [network, jobs, stores]."""
-	var network := _network_on(_loam_ground(), [Vector2i(0, 0), Vector2i(2048, 0)])
-	_open(network, 0)
+	"""The standard 12 m loam tunnel dug open, its jobs and stores: [network, jobs, stores]. The jobs
+	below work its level BORE (slot 1): 4 m, four quanta and no shaft."""
+	var network := _twelve_metres(_loam_ground())
+	_open_piece(network, 0)
 	var stores := StoresScript.new()
 	return [network, JobsScript.new(network, stores), stores]
 
 
 func test_what_each_job_costs_and_takes() -> void:
-	"""On a 2 m tunnel (4 quanta): brace 1000 wood + 1000 stone and 100 ticks; one lantern 500 wood
-	and 60; pumping 120; widening 2260; a loam chamber 1017."""
+	"""On the 4 m bore (4 quanta): brace 1000 wood + 1000 stone and 100 ticks; one lantern 500 wood
+	and 60; pumping 120; widening 2260; a loam chamber 1017. The entrance ramp (5 quanta, its shaft
+	counted) braces for 1250 + 1250 in 125 ticks."""
 	var site := _job_site()
 	var jobs: JobsScript = site[1]
 	var cost := PackedInt32Array([0, 0])
-	jobs.cost_into(0, JobsScript.JOB_BRACE, cost)
+	jobs.cost_into(BORE, JobsScript.JOB_BRACE, cost)
 	assert_equal(cost, PackedInt32Array([1000, 1000]), "brace")
-	jobs.cost_into(0, JobsScript.JOB_LANTERNS, cost)
+	jobs.cost_into(RAMP, JobsScript.JOB_BRACE, cost)
+	assert_equal(cost, PackedInt32Array([1250, 1250]), "brace the ramp")
+	jobs.cost_into(BORE, JobsScript.JOB_LANTERNS, cost)
 	assert_equal(cost, PackedInt32Array([500, 0]), "lanterns")
-	jobs.cost_into(0, JobsScript.JOB_WIDEN, cost)
+	jobs.cost_into(BORE, JobsScript.JOB_WIDEN, cost)
 	assert_equal(cost, PackedInt32Array([0, 0]), "widening costs only work")
-	assert_equal(jobs.ticks_for(0, JobsScript.JOB_BRACE), 100, "brace work")
-	assert_equal(jobs.ticks_for(0, JobsScript.JOB_LANTERNS), 60, "lantern work")
-	assert_equal(jobs.ticks_for(0, JobsScript.JOB_PUMP), 120, "pumping")
-	assert_equal(jobs.ticks_for(0, JobsScript.JOB_WIDEN), 2260, "widening")
-	jobs.post_chamber(0, 3, 0, 1024, GroundScript.LOAM)
-	assert_equal(jobs.total[0], 1017, "a loam chamber")
+	assert_equal(jobs.ticks_for(BORE, JobsScript.JOB_BRACE), 100, "brace work")
+	assert_equal(jobs.ticks_for(RAMP, JobsScript.JOB_BRACE), 125, "the ramp's brace work")
+	assert_equal(jobs.ticks_for(BORE, JobsScript.JOB_LANTERNS), 60, "lantern work")
+	assert_equal(jobs.ticks_for(BORE, JobsScript.JOB_PUMP), 120, "pumping")
+	assert_equal(jobs.ticks_for(BORE, JobsScript.JOB_WIDEN), 2260, "widening")
+	jobs.post_chamber(BORE, 3, 0, 1024, GroundScript.LOAM)
+	assert_equal(jobs.total[BORE], 1017, "a loam chamber")
 
 
 func test_inputs_are_paid_once_at_the_start() -> void:
@@ -742,136 +884,152 @@ func test_inputs_are_paid_once_at_the_start() -> void:
 	var site := _job_site()
 	var jobs: JobsScript = site[1]
 	var stores: StoresScript = site[2]
-	jobs.post(0, JobsScript.JOB_BRACE, 4, 0, 2048)
-	jobs.work(0, 1000000)
-	assert_equal(jobs.done_ticks(0), 0, "no work before the start is paid")
-	assert_true(jobs.start(0), "paid")
-	assert_true(jobs.start(0), "again: already paid")
+	jobs.post(BORE, JobsScript.JOB_BRACE, 4, 0, 4096)
+	jobs.work(BORE, 1000000)
+	assert_equal(jobs.done_ticks(BORE), 0, "no work before the start is paid")
+	assert_true(jobs.start(BORE), "paid")
+	assert_true(jobs.start(BORE), "again: already paid")
 	assert_equal(stores.wood_milli_u, 39000, "wood once")
 	var other := _job_site()
 	var poor: StoresScript = other[2]
 	poor.wood_milli_u = 999
-	(other[1] as JobsScript).post(0, JobsScript.JOB_BRACE, 4, 0, 2048)
-	assert_false((other[1] as JobsScript).start(0), "short")
+	(other[1] as JobsScript).post(BORE, JobsScript.JOB_BRACE, 4, 0, 4096)
+	assert_false((other[1] as JobsScript).start(BORE), "short")
 	assert_equal(poor.wood_milli_u, 999, "nothing taken")
 	assert_equal(poor.stone_milli_u, 20000, "nothing taken")
 
 
 func test_work_moves_along_and_finishes() -> void:
-	"""30 of 100 brace ticks: 30%, 614 u along; done, the tunnel is braced and the job cleared."""
+	"""30 of 100 brace ticks: 30%, 1228 u along (4096 x 30 / 100, floored); done, the segment is braced
+	and the job cleared -- and only that segment."""
 	var site := _job_site()
-	var network: NetworkScript = site[0]
+	var network: GraphScript = site[0]
 	var jobs: JobsScript = site[1]
-	jobs.post(0, JobsScript.JOB_BRACE, 4, 0, 2048)
-	jobs.start(0)
-	jobs.work(0, 1000000)
-	assert_equal(jobs.percent(0), 30, "30%")
-	assert_equal(Rules.to_u(jobs.along_m(0)), 614, "2048 x 30 / 100")
-	assert_equal(jobs.label(0), "Brace — 30%", "label")
-	jobs.pause(0)
-	assert_equal(jobs.label(0), "Brace — paused at 30%", "paused, progress kept")
-	jobs.post(0, JobsScript.JOB_BRACE, 5, 0, 2048)
-	assert_equal(jobs.percent(0), 30, "resumed with its progress")
-	jobs.work(0, 3000000)
-	assert_true(jobs.is_done(0), "done")
-	assert_equal(jobs.finish(0), JobsScript.JOB_BRACE, "finished a brace")
-	assert_equal(network.braced[0], 1, "braced")
-	assert_false(jobs.has_job(0), "cleared")
+	jobs.post(BORE, JobsScript.JOB_BRACE, 4, 0, 4096)
+	jobs.start(BORE)
+	jobs.work(BORE, 1000000)
+	assert_equal(jobs.percent(BORE), 30, "30%")
+	assert_equal(Rules.to_u(jobs.along_m(BORE)), 1228, "4096 x 30 / 100")
+	assert_equal(jobs.label(BORE), "Brace — 30%", "label")
+	jobs.pause(BORE)
+	assert_equal(jobs.label(BORE), "Brace — paused at 30%", "paused, progress kept")
+	jobs.post(BORE, JobsScript.JOB_BRACE, 5, 0, 4096)
+	assert_equal(jobs.percent(BORE), 30, "resumed with its progress")
+	jobs.work(BORE, 3000000)
+	assert_true(jobs.is_done(BORE), "done")
+	assert_equal(jobs.finish(BORE), JobsScript.JOB_BRACE, "finished a brace")
+	assert_equal(network.braced[BORE], 1, "braced")
+	assert_equal(network.braced[RAMP] + network.braced[EXIT_RAMP], 0, "its ramps are not")
+	assert_false(jobs.has_job(BORE), "cleared")
 
 
 func test_a_pump_or_a_clearing_reopens_the_tunnel() -> void:
-	"""Pumped out, a flooded tunnel is open to walkers again; cleared, a fallen one is too."""
+	"""Pumped out, a flooded segment is open to walkers again; cleared, a fallen one is too."""
 	var site := _job_site()
-	var network: NetworkScript = site[0]
+	var network: GraphScript = site[0]
 	var jobs: JobsScript = site[1]
-	network.close(0, NetworkScript.CLOSED_FLOODED, 0, 2048)
-	jobs.post(0, JobsScript.JOB_PUMP, 1, 0, 0)
-	jobs.start(0)
-	jobs.work(0, 100000000)
-	assert_equal(jobs.finish(0), JobsScript.JOB_PUMP, "pumped")
-	assert_true(network.is_usable(0), "open again")
-	network.close(0, NetworkScript.CLOSED_COLLAPSED, 1024, 1024)
-	jobs.post(0, JobsScript.JOB_CLEAR, 2, 1024, 1024)
-	jobs.start(0)
-	jobs.work(0, 100000000)
-	assert_equal(jobs.finish(0), JobsScript.JOB_CLEAR, "cleared")
-	assert_true(network.is_usable(0), "open again")
+	network.close(BORE, GraphScript.CLOSED_FLOODED, 0, 4096)
+	jobs.post(BORE, JobsScript.JOB_PUMP, 1, 0, 0)
+	jobs.start(BORE)
+	jobs.work(BORE, 100000000)
+	assert_equal(jobs.finish(BORE), JobsScript.JOB_PUMP, "pumped")
+	assert_true(network.is_usable(BORE), "open again")
+	network.close(BORE, GraphScript.CLOSED_COLLAPSED, 1536, 2560)
+	jobs.post(BORE, JobsScript.JOB_CLEAR, 2, 1536, 2560)
+	assert_equal(jobs.total[BORE], 226, "the fallen quanta (1536 and 2560 along): 2 x 113")
+	jobs.start(BORE)
+	jobs.work(BORE, 100000000)
+	assert_equal(jobs.finish(BORE), JobsScript.JOB_CLEAR, "cleared")
+	assert_true(network.is_usable(BORE), "open again")
 
 
 func test_a_widening_posts_its_spoil_as_it_cuts_and_widens_the_bore() -> void:
-	"""565 ticks: five cuts, 10000 milli-U heaped at the entrance, posted once; done: a wide bore."""
+	"""565 ticks: five cuts, 10000 milli-U heaped at the piece's spoil mouth (the entrance, which the dig
+	left at 26000), posted once; done: a wide bore, 20 quanta of loam spoil in all."""
 	var site := _job_site()
-	var network: NetworkScript = site[0]
+	var network: GraphScript = site[0]
 	var jobs: JobsScript = site[1]
-	jobs.post(0, JobsScript.JOB_WIDEN, 6, 0, 2048)
-	jobs.start(0)
-	jobs.work(0, 18833334)
-	assert_equal(jobs.done_ticks(0), 565, "565 ticks")
-	assert_equal(jobs.post_cuts(0), 5, "five new cuts")
-	assert_equal(network.extra_spoil[0], 10000, "their spoil")
-	assert_equal(jobs.post_cuts(0), 0, "posted once")
-	jobs.work(0, 100000000)
-	assert_equal(jobs.finish(0), JobsScript.JOB_WIDEN, "finished")
-	assert_equal(network.bore[0], Rules.BORE_WIDE, "wide")
-	assert_equal(network.extra_spoil[0], 40000, "20 quanta of loam spoil in all")
+	assert_equal(network.heaped_milli(0), 26000, "the dig's entrance heap: 13 quanta")
+	jobs.post(BORE, JobsScript.JOB_WIDEN, 6, 0, 4096)
+	jobs.start(BORE)
+	jobs.work(BORE, 18833334)
+	assert_equal(jobs.done_ticks(BORE), 565, "565 ticks")
+	assert_equal(jobs.post_cuts(BORE), 5, "five new cuts")
+	assert_equal(network.extra_spoil[BORE], 10000, "their spoil")
+	assert_equal(network.heaped_milli(0), 36000, "heaped at the entrance")
+	assert_equal(jobs.post_cuts(BORE), 0, "posted once")
+	jobs.work(BORE, 100000000)
+	assert_equal(jobs.finish(BORE), JobsScript.JOB_WIDEN, "finished")
+	assert_equal(network.bore[BORE], Rules.BORE_WIDE, "wide")
+	assert_equal(network.bore[RAMP], Rules.BORE_STANDARD, "its ramps not")
+	assert_equal(network.extra_spoil[BORE], 40000, "20 quanta of loam spoil in all")
+	assert_equal(network.heaped_milli(0), 66000, "26000 + 40000")
 
 
 func test_jobs_on_a_freed_tunnel_are_void() -> void:
-	"""A job whose tunnel slot was freed and reused is no longer that tunnel's."""
-	var network := NetworkScript.new()
-	var ref := PackedInt32Array([-1, 0])
-	network.add_into(PackedInt32Array([0, 0, 2048, 0]), 2, 0, ref)
+	"""A job whose segment was freed -- its piece dropped with not one tick dug -- is no longer that
+	segment's, and the whole piece's segments go."""
+	var network := GraphScript.new()
+	var ref := PackedInt32Array([-1, 0, -1])
+	network.add_into(PackedInt32Array([0, 0, 12288, 0]), 2, 0, ref)
 	var jobs := JobsScript.new(network, StoresScript.new())
 	jobs.post(0, JobsScript.JOB_PUMP, 1, 0, 0)
-	assert_true(jobs.has_job(0), "posted")
+	jobs.post(2, JobsScript.JOB_PUMP, 1, 0, 0)
+	assert_true(jobs.has_job(0) and jobs.has_job(2), "posted")
 	network.stop_digging(0, ref[1])
 	assert_false(jobs.has_job(0), "void once the slot is freed")
+	assert_false(jobs.has_job(2), "and on the rest of the piece")
+	assert_equal(network.phase[1], GraphScript.PHASE_FREE, "the piece dropped")
 
 
 # --- hazards ----------------------------------------------------------------------------------
 
 func _hazard_site() -> Array:
-	"""An open 4 m tunnel whose middle two metres are wet sand: [network, hazards]."""
+	"""The standard 12 m tunnel dug open, its bore's middle two metres (cells 26, 27) wet sand:
+	[network, hazards]. The hazards below strike the BORE (slot 1)."""
 	var ground := _loam_ground()
-	_mark(ground, [22, 23], GroundScript.SAND | GroundScript.WET_BIT)
-	var network := _four_metres(ground)
-	_open(network, 0)
+	_mark(ground, [26, 27], GroundScript.SAND | GroundScript.WET_BIT)
+	var network := _twelve_metres(ground)
+	_open_piece(network, 0)
 	var hazards := HazardsScript.new(network)
-	hazards.survey(0)
+	for slot in 3:
+		hazards.survey(slot)
 	return [network, hazards]
 
 
 func test_a_survey_counts_wet_and_weak_quanta_and_places_the_fall() -> void:
-	"""Two wet, two weak; the fall covers the sand run, 1536..2560 u along."""
+	"""The bore: two wet, two weak; the fall covers the sand run, 1536..2560 u along (its second and third
+	quanta's middles). The loam ramps: nothing to fear."""
 	var site := _hazard_site()
 	var hazards: HazardsScript = site[1]
-	assert_equal(hazards.wet_quanta[0], 2, "wet")
-	assert_equal(hazards.weak_quanta[0], 2, "weak")
-	assert_equal(hazards.fall_from_u[0], 1536, "fall from")
-	assert_equal(hazards.fall_to_u[0], 2560, "fall to")
-	assert_true(hazards.in_fall(0, 1.5), "under it")
-	assert_false(hazards.in_fall(0, 0.9), "short of it")
-	assert_false(hazards.in_fall(0, 3.2), "past it")
+	assert_equal(hazards.wet_quanta[BORE], 2, "wet")
+	assert_equal(hazards.weak_quanta[BORE], 2, "weak")
+	assert_equal(hazards.fall_from_u[BORE], 1536, "fall from")
+	assert_equal(hazards.fall_to_u[BORE], 2560, "fall to")
+	assert_true(hazards.in_fall(BORE, 1.5), "under it")
+	assert_false(hazards.in_fall(BORE, 0.9), "short of it")
+	assert_false(hazards.in_fall(BORE, 3.2), "past it")
+	assert_false(hazards.exposed(RAMP) or hazards.exposed(EXIT_RAMP), "the ramps are dry loam")
 
 
 func test_rain_seeps_in_warns_at_half_and_floods_at_forty_seconds() -> void:
 	"""20 s of rain warns (once); 40 s floods; nothing builds while paused."""
 	var site := _hazard_site()
 	var hazards: HazardsScript = site[1]
-	assert_equal(hazards.update(0, 0, true, false, false), HazardsScript.EVENT_NONE, "paused")
-	assert_equal(hazards.update(0, 19999999, true, false, false), HazardsScript.EVENT_NONE, "just short")
-	assert_equal(hazards.update(0, 1, true, false, false), HazardsScript.EVENT_SEEP_WARNING, "half")
-	assert_equal(hazards.update(0, 1, true, false, false), HazardsScript.EVENT_NONE, "warned once")
-	assert_equal(hazards.update(0, 19999999, true, false, false), HazardsScript.EVENT_FLOODED, "flooded")
-	assert_equal(hazards.seep_permille(0), 1000, "full")
+	assert_equal(hazards.update(BORE, 0, true, false, false), HazardsScript.EVENT_NONE, "paused")
+	assert_equal(hazards.update(BORE, 19999999, true, false, false), HazardsScript.EVENT_NONE, "just short")
+	assert_equal(hazards.update(BORE, 1, true, false, false), HazardsScript.EVENT_SEEP_WARNING, "half")
+	assert_equal(hazards.update(BORE, 1, true, false, false), HazardsScript.EVENT_NONE, "warned once")
+	assert_equal(hazards.update(BORE, 19999999, true, false, false), HazardsScript.EVENT_FLOODED, "flooded")
+	assert_equal(hazards.seep_permille(BORE), 1000, "full")
 
 
 func test_a_flood_by_the_stream_seeps_four_times_as_fast() -> void:
 	"""5 s of a covering flood, no rain, counts as 20."""
 	var site := _hazard_site()
 	var hazards: HazardsScript = site[1]
-	assert_equal(hazards.update(0, 5000000, false, true, false), HazardsScript.EVENT_SEEP_WARNING, "20 s worth")
-	assert_equal(hazards.strain_usec[0], 0, "no rain, no strain")
+	assert_equal(hazards.update(BORE, 5000000, false, true, false), HazardsScript.EVENT_SEEP_WARNING, "20 s worth")
+	assert_equal(hazards.strain_usec[BORE], 0, "no rain, no strain")
 
 
 func test_crossings_strain_a_weak_bore_until_it_falls() -> void:
@@ -880,97 +1038,102 @@ func test_crossings_strain_a_weak_bore_until_it_falls() -> void:
 	var hazards: HazardsScript = site[1]
 	var events: Array[int] = []
 	for k in 10:
-		events.append(hazards.add_crossing(0))
+		events.append(hazards.add_crossing(BORE))
 	assert_equal(events, [0, 0, 0, 0, 3, 0, 0, 0, 0, 4] as Array[int], "warn at 5, due at 10")
 
 
 func test_only_weak_ground_takes_a_crossing_s_strain() -> void:
-	"""A tunnel through wet loam (no sand) seeps in rain but takes no strain from walkers."""
+	"""A bore through wet loam (no sand) seeps in rain but takes no strain from walkers."""
 	var ground := _loam_ground()
-	_mark(ground, [22, 23], GroundScript.LOAM | GroundScript.WET_BIT)
-	var network := _four_metres(ground)
-	_open(network, 0)
+	_mark(ground, [26, 27], GroundScript.LOAM | GroundScript.WET_BIT)
+	var network := _twelve_metres(ground)
+	_open_piece(network, 0)
 	var hazards := HazardsScript.new(network)
-	hazards.survey(0)
-	assert_equal(hazards.weak_quanta[0], 0, "no sand")
-	assert_true(hazards.exposed(0), "but wet")
-	assert_equal(hazards.add_crossing(0), HazardsScript.EVENT_NONE, "a crossing")
-	assert_equal(hazards.strain_usec[0], 0, "no strain")
+	hazards.survey(BORE)
+	assert_equal(hazards.weak_quanta[BORE], 0, "no sand")
+	assert_true(hazards.exposed(BORE), "but wet")
+	assert_equal(hazards.add_crossing(BORE), HazardsScript.EVENT_NONE, "a crossing")
+	assert_equal(hazards.strain_usec[BORE], 0, "no strain")
 
 
 func test_a_long_sand_run_falls_in_its_middle_three_metres() -> void:
-	"""Five sand quanta in an 8 m tunnel (timeline 2..6): the fall is the middle three, 2560..4608 u."""
+	"""Five sand quanta in the 8 m bore of a 16 m tunnel (its quanta 1..5, cells 26..30): the fall is the
+	middle three, the third to the fifth quantum's middles, 2560..4608 u."""
 	var ground := _loam_ground()
-	_mark(ground, [22, 23, 24, 25, 26], GroundScript.SAND)
-	var network := _network_on(ground, [Vector2i(512, 512), Vector2i(8704, 512)])
-	_open(network, 0)
+	_mark(ground, [26, 27, 28, 29, 30], GroundScript.SAND)
+	var network := _network_on(ground, [Vector2i(512, 512), Vector2i(16896, 512)])
+	_open_piece(network, 0)
+	assert_equal(network.length_u[BORE], 8192, "an 8 m bore")
 	var hazards := HazardsScript.new(network)
-	hazards.survey(0)
-	assert_equal(hazards.weak_quanta[0], 5, "five weak quanta")
-	assert_equal(hazards.fall_from_u[0], 2560, "from the fourth quantum's middle")
-	assert_equal(hazards.fall_to_u[0], 4608, "to the sixth's")
+	hazards.survey(BORE)
+	assert_equal(hazards.weak_quanta[BORE], 5, "five weak quanta")
+	assert_equal(hazards.fall_from_u[BORE], 2560, "from the third quantum's middle")
+	assert_equal(hazards.fall_to_u[BORE], 4608, "to the fifth's")
 
 
 func test_bracing_prevents_both_and_work_pauses_them() -> void:
-	"""Braced, nothing builds and what had built is gone; a job in the tunnel holds both still."""
+	"""Braced, nothing builds and what had built is gone; a job in the segment holds both still."""
 	var site := _hazard_site()
-	var network: NetworkScript = site[0]
+	var network: GraphScript = site[0]
 	var hazards: HazardsScript = site[1]
-	hazards.update(0, 10000000, true, false, false)
-	assert_equal(hazards.update(0, 30000000, true, false, true), HazardsScript.EVENT_NONE, "working")
-	assert_equal(hazards.seep_usec[0], 10000000, "held while working")
-	network.set_braced(0)
-	assert_equal(hazards.update(0, 30000000, true, false, false), HazardsScript.EVENT_NONE, "braced")
-	assert_equal(hazards.seep_usec[0], 0, "cleared")
-	assert_equal(hazards.add_crossing(0), HazardsScript.EVENT_NONE, "no strain either")
-	assert_false(hazards.exposed(0), "not exposed")
+	hazards.update(BORE, 10000000, true, false, false)
+	assert_equal(hazards.update(BORE, 30000000, true, false, true), HazardsScript.EVENT_NONE, "working")
+	assert_equal(hazards.seep_usec[BORE], 10000000, "held while working")
+	network.set_braced(BORE)
+	assert_equal(hazards.update(BORE, 30000000, true, false, false), HazardsScript.EVENT_NONE, "braced")
+	assert_equal(hazards.seep_usec[BORE], 0, "cleared")
+	assert_equal(hazards.add_crossing(BORE), HazardsScript.EVENT_NONE, "no strain either")
+	assert_false(hazards.exposed(BORE), "not exposed")
 
 
 func test_a_flood_and_a_fall_close_the_tunnel_and_a_repair_resets() -> void:
-	"""Flooded end to end; fallen over the sand; each repair resets only the pressure that struck."""
+	"""Flooded end to end (the bore's 4096 u); fallen over the sand; each repair resets only the pressure
+	that struck."""
 	var site := _hazard_site()
-	var network: NetworkScript = site[0]
+	var network: GraphScript = site[0]
 	var hazards: HazardsScript = site[1]
-	hazards.flood(0)
-	assert_equal(network.closed[0], NetworkScript.CLOSED_FLOODED, "flooded")
-	assert_equal(network.closed_to_u[0], 4096, "end to end")
-	assert_equal(hazards.update(0, 60000000, true, false, false), HazardsScript.EVENT_NONE, "a closed tunnel builds nothing")
-	network.reopen(0)
-	hazards.collapse(0)
-	assert_equal(network.closed[0], NetworkScript.CLOSED_COLLAPSED, "fallen")
-	assert_equal(network.closed_from_u[0], 1536, "over the sand")
-	hazards.seep_usec[0] = 5
-	hazards.strain_usec[0] = 7
-	hazards.warned[0] = HazardsScript.WARNED_SEEP | HazardsScript.WARNED_STRAIN
-	hazards.repaired(0, true)
-	assert_equal(hazards.seep_usec[0], 0, "pumped: the seep is gone")
-	assert_equal(hazards.strain_usec[0], 7, "the strain kept")
-	assert_equal(hazards.warned[0], HazardsScript.WARNED_STRAIN, "may be warned of seeping again")
-	hazards.repaired(0, false)
-	assert_equal(hazards.strain_usec[0], 0, "cleared: the strain is gone")
-	assert_equal(hazards.warned[0], 0, "no warnings stand")
+	hazards.flood(BORE)
+	assert_equal(network.closed[BORE], GraphScript.CLOSED_FLOODED, "flooded")
+	assert_equal(network.closed_to_u[BORE], 4096, "end to end")
+	assert_equal(network.closed[RAMP], GraphScript.CLOSED_NONE, "the ramp stays open")
+	assert_equal(hazards.update(BORE, 60000000, true, false, false), HazardsScript.EVENT_NONE, "a closed segment builds nothing")
+	network.reopen(BORE)
+	hazards.collapse(BORE)
+	assert_equal(network.closed[BORE], GraphScript.CLOSED_COLLAPSED, "fallen")
+	assert_equal(network.closed_from_u[BORE], 1536, "over the sand")
+	hazards.seep_usec[BORE] = 5
+	hazards.strain_usec[BORE] = 7
+	hazards.warned[BORE] = HazardsScript.WARNED_SEEP | HazardsScript.WARNED_STRAIN
+	hazards.repaired(BORE, true)
+	assert_equal(hazards.seep_usec[BORE], 0, "pumped: the seep is gone")
+	assert_equal(hazards.strain_usec[BORE], 7, "the strain kept")
+	assert_equal(hazards.warned[BORE], HazardsScript.WARNED_STRAIN, "may be warned of seeping again")
+	hazards.repaired(BORE, false)
+	assert_equal(hazards.strain_usec[BORE], 0, "cleared: the strain is gone")
+	assert_equal(hazards.warned[BORE], 0, "no warnings stand")
 
 
 # --- chambers ---------------------------------------------------------------------------------
 
 func _chamber_site() -> Array:
-	"""An open 8 m tunnel along x from (0, 0): [network, chambers, bounds]."""
-	var network := _network_on(_loam_ground(), [Vector2i(0, 0), Vector2i(8192, 0)])
-	_open(network, 0)
+	"""An open 12 m tunnel along x from (0, 0): ramp 0..4 m, bore 4..8 m (slot 1), ramp 8..12 m, mouths at
+	(0, 0) and (12, 0): [network, chambers, bounds]."""
+	var network := _network_on(_loam_ground(), [Vector2i(0, 0), Vector2i(12288, 0)])
+	_open_piece(network, 0)
 	return [network, ChambersScript.new(), Rect2i(-20480, -20480, 40960, 40960)]
 
 
 func test_a_chamber_opens_two_metres_off_the_route() -> void:
-	"""At 4096 u along, side +1 stands at (4096, 2048), side -1 at (4096, -2048)."""
-	var network: NetworkScript = _chamber_site()[0]
-	assert_equal(ChambersScript.centre_for(network, 0, 4096, 1), Vector2i(4096, 2048), "one side")
-	assert_equal(ChambersScript.centre_for(network, 0, 4096, -1), Vector2i(4096, -2048), "the other")
+	"""2048 u into the bore (6144 u along x), side +1 stands at (6144, 2048), side -1 at (6144, -2048)."""
+	var network: GraphScript = _chamber_site()[0]
+	assert_equal(ChambersScript.centre_for(network, BORE, 2048, 1), Vector2i(6144, 2048), "one side")
+	assert_equal(ChambersScript.centre_for(network, BORE, 2048, -1), Vector2i(6144, -2048), "the other")
 
 
 func test_where_a_chamber_may_not_go() -> void:
-	"""Every refusal, at its boundary."""
+	"""Every refusal, at its boundary; the mouths and routes of every segment count."""
 	var site := _chamber_site()
-	var network: NetworkScript = site[0]
+	var network: GraphScript = site[0]
 	var chambers: ChambersScript = site[1]
 	var bounds: Rect2i = site[2]
 	var none := PackedInt32Array()
@@ -981,22 +1144,24 @@ func test_where_a_chamber_may_not_go() -> void:
 	assert_equal(chambers.refusal(network, Vector2i(4096, 2048), bounds, house), ChambersScript.REFUSE_UNDER_BUILDING, "3196 < 3197")
 	house[2] = 5245
 	assert_equal(chambers.refusal(network, Vector2i(4096, 2048), bounds, house), ChambersScript.REFUSE_NONE, "3197 clear")
-	assert_equal(chambers.refusal(network, Vector2i(0, 2000), bounds, none), ChambersScript.REFUSE_NEAR_MOUTH, "by the entrance")
-	assert_equal(chambers.refusal(network, Vector2i(4096, 1024), bounds, none), ChambersScript.REFUSE_OVER_TUNNEL, "on the bore")
+	assert_equal(chambers.refusal(network, Vector2i(0, 2047), bounds, none), ChambersScript.REFUSE_NEAR_MOUTH, "by the entrance")
+	assert_equal(chambers.refusal(network, Vector2i(12288, -2047), bounds, none), ChambersScript.REFUSE_NEAR_MOUTH, "by the exit")
+	assert_equal(chambers.refusal(network, Vector2i(6144, 1024), bounds, none), ChambersScript.REFUSE_OVER_TUNNEL, "on the bore")
+	assert_equal(chambers.refusal(network, Vector2i(10240, -1024), bounds, none), ChambersScript.REFUSE_OVER_TUNNEL, "on the exit ramp")
 	var ref := PackedInt32Array([0, 0])
-	chambers.add_into(ChambersScript.KIND_HOME, network, 0, 4096, Vector2i(4096, 2048), ref)
+	chambers.add_into(ChambersScript.KIND_HOME, network, BORE, 0, Vector2i(4096, 2048), ref)
 	assert_equal(chambers.refusal(network, Vector2i(7679, 2048), bounds, none), ChambersScript.REFUSE_NEAR_CHAMBER, "3583 from it")
 
 
 func test_homes_count_demo_beds_and_cellars_publish_their_api() -> void:
 	"""Two beds a home (9 m^2 x 12 / 40); a finished cellar lists its id, position, 60 U and 350."""
 	var site := _chamber_site()
-	var network: NetworkScript = site[0]
+	var network: GraphScript = site[0]
 	var chambers: ChambersScript = site[1]
 	assert_equal(ChambersScript.BEDS_PER_HOME, 2, "floor(9 x 12 / 40)")
 	var ref := PackedInt32Array([0, 0])
-	chambers.add_into(ChambersScript.KIND_HOME, network, 0, 2048, Vector2i(2048, 2048), ref)
-	chambers.add_into(ChambersScript.KIND_CELLAR, network, 0, 6144, Vector2i(6144, -2048), ref)
+	chambers.add_into(ChambersScript.KIND_HOME, network, BORE, 0, Vector2i(4096, 2048), ref)
+	chambers.add_into(ChambersScript.KIND_CELLAR, network, BORE, 2048, Vector2i(6144, -2048), ref)
 	assert_equal(chambers.beds(), 0, "planned homes have no beds")
 	assert_equal(chambers.cellars().size(), 0, "nor planned cellars stores")
 	chambers.set_done(0)
@@ -1013,12 +1178,12 @@ func test_homes_count_demo_beds_and_cellars_publish_their_api() -> void:
 func test_chamber_slots_run_out() -> void:
 	"""Eight chambers fill every slot; a ninth is refused."""
 	var site := _chamber_site()
-	var network: NetworkScript = site[0]
+	var network: GraphScript = site[0]
 	var chambers: ChambersScript = site[1]
 	var ref := PackedInt32Array([0, 0])
 	for c in 8:
-		assert_true(chambers.add_into(ChambersScript.KIND_HOME, network, 0, 0, Vector2i(c * 4000, 9000), ref), "chamber %d" % c)
-	assert_false(chambers.add_into(ChambersScript.KIND_HOME, network, 0, 0, Vector2i(0, -9000), ref), "no slot")
+		assert_true(chambers.add_into(ChambersScript.KIND_HOME, network, BORE, 0, Vector2i(c * 4000, 9000), ref), "chamber %d" % c)
+	assert_false(chambers.add_into(ChambersScript.KIND_HOME, network, BORE, 0, Vector2i(0, -9000), ref), "no slot")
 	assert_equal(chambers.refusal(network, Vector2i(0, -9000), site[2], PackedInt32Array()), ChambersScript.REFUSE_FULL, "said so")
 
 
@@ -1060,37 +1225,40 @@ func test_the_flood_s_disc_and_shelters() -> void:
 
 
 func test_nobody_walks_past_a_tunnel_s_way_out_to_its_far_mouth() -> void:
-	"""A tunnel from inside the flood (1.8 m from its spill point) to just outside it (9.8 m): a resident
-	standing nearer its outer mouth walks out on foot rather than going round to the inner mouth."""
+	"""An 8 m tunnel from inside the flood (1.8 m from its spill point; mouth row 0) to just outside it
+	(9.8 m; row 1): a resident standing nearer its outer mouth walks out on foot rather than going round
+	to the inner mouth (the near mouth must be the nearer of the two)."""
 	var events := EventsScript.new()
 	events.trigger()
-	var network := NetworkScript.new()
-	var ref := PackedInt32Array([-1, 0])
-	network.add_into(PackedInt32Array([20582, -922, 12390, -922]), 2, 0, ref)
-	_open(network, 0)
+	var network := GraphScript.new()
+	var ref := PackedInt32Array([-1, 0, -1])
+	assert_true(network.add_into(PackedInt32Array([20582, -922, 12390, -922]), 2, 0, ref), "stored")
+	_open_piece(network, ref[2])
 	network.set_fit(0, true)
-	assert_false(events.covers(Vector2(12.1, -0.9)), "the outer mouth is dry")
+	assert_false(events.covers(network.mouth_at(1)), "the outer mouth is dry")
+	assert_true(events.covers(network.mouth_at(0)), "the inner one under water")
 	var out := PackedFloat32Array([0.0, 0.0, 0.0, 0.0])
 	assert_false(events.plan_escape(network, 0, Vector2(15.1, -0.9), out), "no escape by that tunnel")
 
 
 func test_an_escape_goes_through_the_nearest_tunnel_out_of_the_disc() -> void:
-	"""From the east road by the ford, the tunnel whose near mouth is inside and far mouth outside;
-	none when both mouths are inside."""
+	"""From the east road by the ford, in at the near mouth (row 0) of the tunnel whose far mouth (row 1,
+	8 m west) is outside the disc, and on to a shelter beyond that far mouth; never down the tunnel whose
+	mouths (rows 2 and 3) are both under water, even from nearer it; nobody who fits no bore."""
 	var events := EventsScript.new()
 	events.trigger()
-	var network := NetworkScript.new()
-	var ref := PackedInt32Array([-1, 0])
-	network.add_into(PackedInt32Array([17408, -922, 11264, -922]), 2, 0, ref)
-	network.add_into(PackedInt32Array([19968, -3072, 19456, 1536]), 2, 0, ref)
-	_open(network, 0)
-	_open(network, 1)
+	var network := GraphScript.new()
+	var ref := PackedInt32Array([-1, 0, -1])
+	assert_true(network.add_into(PackedInt32Array([17408, -922, 9216, -922]), 2, 0, ref), "the tunnel to the square")
+	_open_piece(network, ref[2])
+	assert_true(network.add_into(PackedInt32Array([18432, -4096, 18432, 4096]), 2, 0, ref), "the drowned one")
+	_open_piece(network, ref[2])
+	assert_true(events.covers(network.mouth_at(2)) and events.covers(network.mouth_at(3)), "both its mouths under water")
 	network.set_fit(0, true)
 	var out := PackedFloat32Array([0.0, 0.0, 0.0, 0.0])
 	assert_true(events.plan_escape(network, 0, Vector2(16.0, -0.9), out), "an escape")
-	assert_equal(int(out[0]), 0, "the tunnel to the square")
-	assert_equal(int(out[1]), 0, "in at its entrance")
-	assert_true(Vector2(out[2], out[3]).x < 11.0, "a shelter beyond its far mouth")
-	assert_false(events.plan_escape(network, 0, Vector2(19.5, -1.0), out) and int(out[0]) == 1,
-		"never the tunnel with both mouths under water")
+	assert_equal(Vector2i(int(out[0]), int(out[1])), Vector2i(0, 1), "in at the tunnel's east mouth, out at its west")
+	assert_true(Vector2(out[2], out[3]).x < 7.1, "a shelter 2 m beyond its far mouth (x 9.0)")
+	assert_true(events.plan_escape(network, 0, Vector2(19.0, -2.5), out), "from nearer the drowned tunnel")
+	assert_equal(Vector2i(int(out[0]), int(out[1])), Vector2i(0, 1), "still the tunnel out of the disc")
 	assert_false(events.plan_escape(network, 5, Vector2(16.0, -0.9), out), "nobody who does not fit")

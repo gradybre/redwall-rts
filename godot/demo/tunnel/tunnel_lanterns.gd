@@ -61,7 +61,7 @@ func configure(clock: DemoClockScript = null) -> void:
 		light.visible = false
 		add_child(light)
 		_lights.append(light)
-	for slot in Rules.MAX_TUNNELS:
+	for slot in Rules.MAX_SEGMENTS:
 		_spots.append(PackedVector3Array())
 	_best.resize(MAX_LIGHTS)
 	_gaps.resize(MAX_LIGHTS)
@@ -74,7 +74,7 @@ func follow(showing: Callable, looking_at: Callable) -> void:
 
 
 func set_spots(slot: int, spots: PackedVector3Array) -> void:
-	"""Tunnel `slot`'s lanterns now hang here (empty: unlit)."""
+	"""Segment `slot`'s lanterns now hang here (empty: unlit; decision 0208: keyed by segment)."""
 	_spots[slot] = spots
 	_dirty = true
 	update(_focus if _focus.x != INF else Vector3.ZERO)

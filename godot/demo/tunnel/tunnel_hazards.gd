@@ -1,6 +1,10 @@
 extends RefCounted
 ## Warned, preventable tunnel hazards. Decision 0196 (live demo). Presentation only.
 ##
+## Per SEGMENT of the network (underground_graph.gd, decision 0208): each is surveyed when it opens, a
+## segment split by a new junction keeps its pressures on both halves (`split`), and a flood or a fall
+## closes the one segment it strikes.
+##
 ## ---------------------------------------------------------------------------------------
 ## DETERMINISTIC, WARNED AND PREVENTABLE (DEC-040: "warned, preventable hazards ... rather than
 ## surprise death rolls"; HAZ-001 adds no random disaster roll). Nothing here is rolled. An
@@ -25,7 +29,7 @@ extends RefCounted
 ## cut at all. Nobody is ever hurt: residents in a closing tunnel walk back out (tunnel_works.gd).
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 
 const SEEP_FULL_USEC: int = 40000000
@@ -44,7 +48,7 @@ const EVENT_COLLAPSE_DUE: int = 4
 const WARNED_SEEP: int = 1
 const WARNED_STRAIN: int = 2
 
-## Per tunnel slot: seep and strain built up (demo microseconds), warnings given (bits), how many of
+## Per segment: seep and strain built up (demo microseconds), warnings given (bits), how many of
 ## its quanta lie in wet and in weak ground, and where its collapse would fall (u along it).
 var seep_usec: PackedInt64Array = PackedInt64Array()
 var strain_usec: PackedInt64Array = PackedInt64Array()
@@ -54,19 +58,19 @@ var weak_quanta: PackedInt32Array = PackedInt32Array()
 var fall_from_u: PackedInt32Array = PackedInt32Array()
 var fall_to_u: PackedInt32Array = PackedInt32Array()
 
-var _network: NetworkScript = null
+var _network: GraphScript = null
 
 
-func _init(network: NetworkScript) -> void:
+func _init(network: GraphScript) -> void:
 	"""Hazards on this network's tunnels. Columns sized once."""
 	_network = network
-	seep_usec.resize(Rules.MAX_TUNNELS)
-	strain_usec.resize(Rules.MAX_TUNNELS)
-	warned.resize(Rules.MAX_TUNNELS)
-	wet_quanta.resize(Rules.MAX_TUNNELS)
-	weak_quanta.resize(Rules.MAX_TUNNELS)
-	fall_from_u.resize(Rules.MAX_TUNNELS)
-	fall_to_u.resize(Rules.MAX_TUNNELS)
+	seep_usec.resize(Rules.MAX_SEGMENTS)
+	strain_usec.resize(Rules.MAX_SEGMENTS)
+	warned.resize(Rules.MAX_SEGMENTS)
+	wet_quanta.resize(Rules.MAX_SEGMENTS)
+	weak_quanta.resize(Rules.MAX_SEGMENTS)
+	fall_from_u.resize(Rules.MAX_SEGMENTS)
+	fall_to_u.resize(Rules.MAX_SEGMENTS)
 
 
 func survey(slot: int) -> void:
@@ -101,6 +105,19 @@ func _place_fall(slot: int, start: int, run: int) -> void:
 	fall_to_u[slot] = _network.quantum_along_u(slot, maxi(first + take - 1, first))
 
 
+func split(old: int, tail: int) -> void:
+	"""Segment `old` was split, its far half now `tail`: survey both halves, and give each the pressures and
+	warnings `old` had built (the ground did not change)."""
+	var seep := seep_usec[old]
+	var strain := strain_usec[old]
+	var warnings := warned[old]
+	for slot: int in [old, tail]:
+		survey(slot)
+		seep_usec[slot] = seep
+		strain_usec[slot] = strain
+		warned[slot] = warnings
+
+
 func exposed(slot: int) -> bool:
 	"""Whether the tunnel can come to harm at all: open, unbraced, through wet or weak ground."""
 	return _network.is_open(slot) and _network.braced[slot] == 0 \
@@ -114,7 +131,7 @@ func update(slot: int, usec: int, raining: bool, flooding: bool, working: bool) 
 		seep_usec[slot] = 0
 		strain_usec[slot] = 0
 		return EVENT_NONE
-	if not exposed(slot) or _network.closed[slot] != NetworkScript.CLOSED_NONE or working or usec <= 0:
+	if not exposed(slot) or _network.closed[slot] != GraphScript.CLOSED_NONE or working or usec <= 0:
 		return EVENT_NONE
 	if wet_quanta[slot] > 0 and (raining or flooding):
 		seep_usec[slot] += usec * (FLOOD_EVENT_FACTOR if flooding else 1)
@@ -125,7 +142,7 @@ func update(slot: int, usec: int, raining: bool, flooding: bool, working: bool) 
 
 func add_crossing(slot: int) -> int:
 	"""Someone walked into tunnel `slot`: a weak unbraced bore takes the strain. Returns what came of it."""
-	if not exposed(slot) or weak_quanta[slot] == 0 or _network.closed[slot] != NetworkScript.CLOSED_NONE:
+	if not exposed(slot) or weak_quanta[slot] == 0 or _network.closed[slot] != GraphScript.CLOSED_NONE:
 		return EVENT_NONE
 	strain_usec[slot] += CROSSING_STRAIN_USEC
 	return _verdict(slot)
@@ -158,12 +175,12 @@ func strain_permille(slot: int) -> int:
 
 func flood(slot: int) -> void:
 	"""Tunnel `slot` floods from end to end."""
-	_network.close(slot, NetworkScript.CLOSED_FLOODED, 0, _network.length_u[slot])
+	_network.close(slot, GraphScript.CLOSED_FLOODED, 0, _network.length_u[slot])
 
 
 func collapse(slot: int) -> void:
 	"""Tunnel `slot`'s weak section falls in."""
-	_network.close(slot, NetworkScript.CLOSED_COLLAPSED, fall_from_u[slot], fall_to_u[slot])
+	_network.close(slot, GraphScript.CLOSED_COLLAPSED, fall_from_u[slot], fall_to_u[slot])
 
 
 func repaired(slot: int, pumped: bool) -> void:

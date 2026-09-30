@@ -1,11 +1,14 @@
 extends RefCounted
-## Dig crews, the Foremole and digging experience. Decision 0196 (live demo). Presentation only.
+## Dig crews, the Foremole and the digging skill. Decisions 0196 (live demo) and 0208 (the network).
+## Presentation only.
 ##
 ## ---------------------------------------------------------------------------------------
-## A CREW belongs to a tunnel: the Foremole (the mole digging it, or doing its mole-work -- widening,
-## clearing a collapse, digging a chamber) leads, and up to MAX_BUILDERS - 1 more residents join
-## (ECON-002: "a project has at most 4 builders"). Those who fit the bore work underground behind
-## the Foremole; those who do not -- an otter, the badger -- work the entrance as surface hands.
+## A CREW belongs to a segment being worked (its SITE): the Foremole (whoever is digging it -- anybeast who
+## fits a bore, decision 0208 -- or doing its digging work: widening, clearing a collapse, a chamber) leads,
+## and up to MAX_BUILDERS - 1 more residents join (ECON-002: "a project has at most 4 builders"). Those who
+## fit the bore work underground behind the Foremole; those who do not -- an otter, the badger -- work the
+## way in as surface hands. When the dig goes on into the next segment of its piece the crew goes with it
+## (`move_site`).
 ##
 ## THE CREW'S RATE follows ECON-002/003 exactly as far as they go: at most ONE worker at each
 ## quantum's work face, and shared progress never inflated. A bore's cross-section offers FACES
@@ -20,20 +23,18 @@ extends RefCounted
 ## ROCK needs a breaker: while the face is in rock (tunnel_ground.gd), the rate is multiplied by
 ## ROCK_ALONE_PERMILLE (the mole scratches at it) unless a badger in the crew is at its post (demo).
 ##
-## EXPERIENCE (demo): every quantum cut while a resident works the face adds one to its tally; the
-## Foremole's tally raises the crew's rate by XP_STEP_PERMILLE per XP_QUANTA_PER_STEP quanta, up to
-## XP_MAX_PERMILLE -- "a little", and never past a tenth.
+## THE DIGGING SKILL (dig_skills.gd, decision 0208) replaces the old demo "experience": every quantum cut
+## earns each worker at the face its §5.3 XP, and the Foremole's skill factor (1000 + 50 x level) scales
+## the crew's rate.
 ##
 ## THE FOREMOLE'S LINES are original light mole dialect (DEC-017), not quoted from any book.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
+const SkillsScript := preload("res://demo/tunnel/dig_skills.gd")
 
 const MAX_BUILDERS: int = 4
 const FACE_CYCLE_TICKS: int = Rules.BRACE_TICKS + Rules.CUT_TICKS
-const XP_QUANTA_PER_STEP: int = 8
-const XP_STEP_PERMILLE: int = 20
-const XP_MAX_PERMILLE: int = 100
 const BREAKER_SPECIES: String = "badger"
 
 const LINE_START: String = "Foremole: \"Hurr, a gurt job this. Oi'll 'ave 'er dugged afore supper, burr aye.\""
@@ -44,26 +45,28 @@ const LINE_OPEN: String = "Foremole: \"Thurr she be — a foine tunnel, clear th
 const LINE_SKILL: String = "Foremole: \"Moi paws be gettin' the knack o' this diggin'. Quicker now, burr.\""
 const LINE_WIDENED: String = "Foremole: \"Wide enough fer a badger now, an' 'is supper basket too, burr aye.\""
 
-## Per resident index: the tunnel slot it crews (-1: none), whether it is at its post, whether it
-## is a rock breaker, and its digging experience in quanta cut.
+## Per resident index: the segment it crews (-1: none), whether it is at its post, and whether it is a
+## rock breaker.
 var member_site: PackedInt32Array = PackedInt32Array()
 var member_present: PackedByteArray = PackedByteArray()
 var breaker: PackedByteArray = PackedByteArray()
-var xp_quanta: PackedInt32Array = PackedInt32Array()
+## Everyone's digging skill (dig_skills.gd).
+var skills: SkillsScript = SkillsScript.new()
 ## Per resident index: the order it joined in (0 first), which sets its place behind the face.
 var member_rank: PackedInt32Array = PackedInt32Array()
 
 
 func set_resident(index: int, species: String) -> void:
-	"""Know resident `index` (setup only: the columns grow here); a badger breaks rock."""
+	"""Know resident `index` (setup only: the columns grow here); a badger breaks rock, a mole starts a
+	skilled digger."""
 	if member_site.size() <= index:
 		member_site.resize(index + 1)
 		member_present.resize(index + 1)
 		breaker.resize(index + 1)
-		xp_quanta.resize(index + 1)
 		member_rank.resize(index + 1)
 	member_site[index] = -1
 	breaker[index] = 1 if species.to_lower() == BREAKER_SPECIES else 0
+	skills.set_resident(index, species)
 
 
 static func pipeline_permille(workers: int, faces: int) -> int:
@@ -74,11 +77,6 @@ static func pipeline_permille(workers: int, faces: int) -> int:
 		return n * Rules.PERMILLE
 	var finished := mini(n - faces, faces)
 	return (faces - finished) * Rules.PERMILLE + finished * Rules.PERMILLE * Rules.TICKS_PER_QUANTUM / FACE_CYCLE_TICKS
-
-
-static func xp_bonus_permille(quanta_cut: int) -> int:
-	"""How much faster (per mille) a Foremole with this much experience digs."""
-	return mini(XP_MAX_PERMILLE, quanta_cut / XP_QUANTA_PER_STEP * XP_STEP_PERMILLE)
 
 
 func join(index: int, slot: int) -> bool:
@@ -102,6 +100,14 @@ func leave(index: int) -> void:
 			member_rank[j] -= 1
 	member_site[index] = -1
 	member_present[index] = 0
+
+
+func move_site(from_slot: int, to_slot: int) -> void:
+	"""The work goes on in another segment (a dig into the next of its piece): the crew follows, each at its
+	post as before."""
+	for j in member_site.size():
+		if member_site[j] == from_slot:
+			member_site[j] = to_slot
 
 
 func disband(slot: int) -> void:
@@ -142,24 +148,21 @@ func breaker_present(slot: int, lead: int) -> bool:
 
 
 func rate_permille(slot: int, lead: int, faces: int, face_ground: int, fits: Callable) -> int:
-	"""The rate tunnel `slot`'s crew digs at, per mille of one F1000 worker: the pipeline rate, raised
-	by the Foremole's experience, slowed in rock with no breaker at work."""
+	"""The rate segment `slot`'s crew digs at, per mille of one F1000 worker: the pipeline rate, scaled by
+	the Foremole's skill factor (THE DIGGING SKILL), slowed in rock with no breaker at work."""
 	var rate := pipeline_permille(face_workers(slot, fits), faces)
-	var xp := xp_quanta[lead] if lead >= 0 and lead < xp_quanta.size() else 0
-	rate = rate * (Rules.PERMILLE + xp_bonus_permille(xp)) / Rules.PERMILLE
+	rate = rate * skills.factor_permille(lead) / Rules.PERMILLE
 	if face_ground == GroundScript.ROCK and not breaker_present(slot, lead):
 		rate = rate * GroundScript.ROCK_ALONE_PERMILLE / Rules.PERMILLE
 	return rate
 
 
-func credit_quanta(slot: int, lead: int, cut: int, fits: Callable) -> bool:
-	"""`cut` more quanta were cut on tunnel `slot`: each worker at its face gains that much experience.
-	True when the Foremole's rate went up a step."""
-	if cut <= 0 or lead < 0 or lead >= xp_quanta.size():
+func credit_ticks(slot: int, lead: int, ticks: int, fits: Callable) -> bool:
+	"""`ticks` of face work were cut on segment `slot` (a quantum's dig ticks): the Foremole and each member
+	at its post who `fits` earn their XP (THE DIGGING SKILL). True when the Foremole reached a new level."""
+	if ticks <= 0 or not skills.is_resident(lead):
 		return false
-	var before := xp_bonus_permille(xp_quanta[lead])
-	xp_quanta[lead] += cut
 	for j in member_site.size():
-		if member_site[j] == slot and member_present[j] == 1 and bool(fits.call(j)):
-			xp_quanta[j] += cut
-	return xp_bonus_permille(xp_quanta[lead]) > before
+		if member_site[j] == slot and member_present[j] == 1 and j != lead and bool(fits.call(j)):
+			skills.add_ticks(j, ticks)
+	return skills.add_ticks(lead, ticks)

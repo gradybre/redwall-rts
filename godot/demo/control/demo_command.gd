@@ -10,9 +10,9 @@ extends Node3D
 ##   right click a POI's spot     work there (its free slots; the rest hold behind it)
 ##   R                            release the selection back to wandering
 ##   Esc (`selection_clear`)      clear the selection
-##   T / U                        plan a tunnel with the selected mole / underground view -- the
-##                                tunnel tool (demo/tunnel/tunnel_control.gd) sees every event first
-##                                and, while a route is being laid, takes the clicks and keys it uses
+##   B (or T) / U                 the Dig tool (the cutaway, drag a tunnel) / underground view -- the
+##                                tool (demo/tunnel/tunnel_control.gd) sees every event first and,
+##                                while it is open, takes the clicks and keys it uses
 ##   left click a finished tunnel select it for the "Tunnels & burrows (demo)" panel, keeping any
 ##                                selected residents (demo/tunnel/tunnel_ext.gd)
 ##   left / right click a bed, a tree, a trunk, deadfall or the sawhorse: the farm's and the woods'
@@ -28,8 +28,9 @@ extends Node3D
 ## panel) consumed never selects or orders. The one exception is a drag ALREADY STARTED on the
 ## world: its motion and release are followed in `_input` too, so a box dragged across a HUD panel
 ## keeps growing and still closes, instead of being left open by a release the HUD swallowed. The
-## other is Enter while a tunnel route is being laid: it is read in `_input`, before the GUI, so it
-## always digs the route and can never press a HUD button that happens to hold the focus.
+## other is the Dig tool's (tunnel_control.gd, decision 0208): Enter, and a drag's motion and release,
+## are read in `_input`, before the GUI, so Enter always digs the piece laid and never presses a HUD button
+## that happens to hold the focus, and a drag ending over the HUD still ends in the tool.
 ##
 ## PICKING is a camera ray against each resident's capsule proxy (demo_pick.gd) -- no physics
 ## bodies. A resident underground is picked where it is SEEN: at bore depth in the underground
@@ -163,7 +164,7 @@ func set_world(world: DemoWorldScript) -> void:
 
 
 func _on_dig_requested() -> void:
-	"""The panel's "Dig tunnel" button: the same as T -- a route, or cancelling the one being laid."""
+	"""The panel's "Dig tunnel" button: the same as B -- the Dig tool opened, or closed."""
 	_tunnels.toggle_plan()
 
 
@@ -342,7 +343,7 @@ func _build_box() -> void:
 # --- input ----------------------------------------------------------------------------------
 
 func _input(event: InputEvent) -> void:
-	"""Follow a world drag across the HUD, and take Enter while a route is being laid (see INPUT).
+	"""Follow a world drag across the HUD, and take the Dig tool's Enter and drags first (see INPUT).
 	Nothing else is read here."""
 	if take_before_gui(event):
 		get_viewport().set_input_as_handled()
@@ -358,9 +359,9 @@ func _input(event: InputEvent) -> void:
 
 
 func take_before_gui(event: InputEvent) -> bool:
-	"""Enter while a route is being laid: dig it, before any HUD control can take the key (see
-	INPUT). True when taken."""
-	if _tunnels == null or not _tunnels.planning or not TunnelControlScript.is_confirm_key(event):
+	"""In the Dig tool, Enter (dig the piece laid) and a drag's motion and release, before any HUD control
+	can take them (see INPUT). True when taken."""
+	if _tunnels == null or not _tunnels.takes_before_gui(event):
 		return false
 	_tunnels.handle_input(event)
 	_refresh_in = 0.0
@@ -762,8 +763,9 @@ func skills_text(actor_index: int) -> String:
 
 
 func _dug_percent(brain: BrainScript) -> int:
-	"""How much of the tunnel this resident is digging is dug (0 when it digs none)."""
-	return _cast.space().tunnels.percent(brain.dig_tunnel) if brain.dig_tunnel >= 0 else 0
+	"""How much of the piece this resident is digging is dug (0 when it digs none)."""
+	var network := _cast.space().tunnels
+	return network.piece_percent(network.piece[brain.dig_tunnel]) if brain.dig_tunnel >= 0 else 0
 
 
 func panel() -> PanelScript:

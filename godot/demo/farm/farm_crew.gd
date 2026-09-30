@@ -30,7 +30,7 @@ const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 
 ## The residents whose routine includes farm work.
 const CREW_KEYS: Array[StringName] = [&"mouse_fieldworker", &"squirrel_gatherer"]
@@ -54,7 +54,7 @@ var _cast: DemoCastScript = null
 var _sim: SimScript = null
 var _pantry: PantryScript = null
 var _tunnels: TunnelsScript = null
-var _network: NetworkScript = null
+var _network: GraphScript = null
 var _well_at: Vector2 = Vector2.ZERO
 var _notice: Callable = Callable()
 var _crew: PackedInt32Array = PackedInt32Array()

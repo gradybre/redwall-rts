@@ -89,7 +89,7 @@ const HudDateScript := preload("res://demo/ui/demo_hud_date.gd")
 const NewsStripScript := preload("res://demo/ui/demo_news_strip.gd")
 const DetailZoneScript := preload("res://demo/ui/demo_detail_zone.gd")
 const TunnelExtScript := preload("res://demo/tunnel/tunnel_ext.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const DemoWaterScript := preload("res://demo/water/demo_water.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 const ForestryScript := preload("res://demo/forestry/demo_forestry.gd")
@@ -154,6 +154,7 @@ func _ready() -> void:
 	_build_farm(manifest)
 	_build_spoil()
 	_build_forestry()
+	_command.add_skill_text(_command.tunnels().ext.skill_text)
 	_build_waterplay()
 	_build_shared_ui()
 	_skin_hud.call_deferred()
@@ -336,7 +337,7 @@ func storage_providers() -> Array[Callable]:
 	"""Food stores beyond the covered store, for the farm's pantry (farm_storage.gd's provider API): the
 	tunnels' finished root cellars (demo/farm/farm_cellars.gd over burrow_chambers `cellars()`),
 	delivered at their tunnels' mouths."""
-	var network: NetworkScript = (_command as DemoCommandScript).tunnels().network
+	var network: GraphScript = (_command as DemoCommandScript).tunnels().network
 	var providers: Array[Callable] = [FarmCellars.provider(chambers(), network)]
 	return providers
 

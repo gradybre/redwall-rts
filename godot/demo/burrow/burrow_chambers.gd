@@ -5,13 +5,15 @@ extends RefCounted
 ##
 ## ---------------------------------------------------------------------------------------
 ## A CHAMBER is a room CHAMBER_SIDE_Q x CHAMBER_SIDE_Q quanta across and one high (moles' height),
-## dug beside a finished tunnel at a point along it, its centre OFFSET_M off the route to one side.
+## dug beside a finished level bore -- a segment of the network (decision 0208; P3 makes rooms their own
+## structures) -- at a point along it, its centre OFFSET_M off the route to one side. When that segment is
+## split by a new junction the chamber follows onto the half it lies off (`repoint_split`).
 ## It is a slot in fixed columns (MAX_CHAMBERS, sized once) referred to as (slot, generation). It is
 ## PLANNED when placed, and DONE when the mole has dug its quanta (tunnel_jobs.gd CHAMBER).
 ##
 ## WHERE ONE MAY GO (`refusal`): inside the village by half its size; clear of every building's
 ## footprint circle by its half-diagonal (no room under a house or the well); CHAMBER_GAP_M from
-## every other chamber; MOUTH_GAP_M from every tunnel mouth; and not over another tunnel's route.
+## every other chamber; MOUTH_GAP_M from every mouth; and not over any segment's route.
 ##
 ## BURROW HOME: BEDS_PER_HOME beds for moles. The figure is derived, not invented: the GDD's starter
 ## dormitory holds 12 beds in 40 tiles (§ interior fixture), so a 9 m^2 floor holds floor(9 x 12 / 40)
@@ -28,7 +30,7 @@ extends RefCounted
 ## "spoilage_permille": int}; `cellar_count()` counts them; `revision` bumps on any change.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 
 const KIND_NONE: int = 0
 const KIND_HOME: int = 1
@@ -95,7 +97,7 @@ static func reason_text(code: int) -> String:
 	return REASONS[code]
 
 
-static func centre_for(network: NetworkScript, slot: int, along: int, side: int) -> Vector2i:
+static func centre_for(network: GraphScript, slot: int, along: int, side: int) -> Vector2i:
 	"""Where a chamber `along` u into tunnel `slot` stands, on `side` (+1 right, -1 left of the way to
 	the exit), in u."""
 	var at := network.point_at_u(slot, along)
@@ -107,7 +109,7 @@ static func centre_for(network: NetworkScript, slot: int, along: int, side: int)
 	return Vector2i(at.x - dz * OFFSET_U * side / length, at.y + dx * OFFSET_U * side / length)
 
 
-func refusal(network: NetworkScript, centre: Vector2i, bounds_u: Rect2i, under_u: PackedInt32Array) -> int:
+func refusal(network: GraphScript, centre: Vector2i, bounds_u: Rect2i, under_u: PackedInt32Array) -> int:
 	"""REFUSE_NONE, or why no chamber may be centred at `centre` (see WHERE ONE MAY GO)."""
 	if not phase.has(PHASE_FREE):
 		return REFUSE_FULL
@@ -124,16 +126,16 @@ func refusal(network: NetworkScript, centre: Vector2i, bounds_u: Rect2i, under_u
 	return _tunnel_refusal(network, centre, half)
 
 
-func _tunnel_refusal(network: NetworkScript, centre: Vector2i, half: int) -> int:
-	"""REFUSE_NEAR_MOUTH, REFUSE_OVER_TUNNEL or REFUSE_NONE, from every planned tunnel."""
+func _tunnel_refusal(network: GraphScript, centre: Vector2i, half: int) -> int:
+	"""REFUSE_NEAR_MOUTH, REFUSE_OVER_TUNNEL or REFUSE_NONE, from every mouth and every planned or dug
+	segment of the network."""
 	var at := Vector2(Rules.to_m(centre.x), Rules.to_m(centre.y))
-	for slot in Rules.MAX_TUNNELS:
-		if network.phase[slot] == NetworkScript.PHASE_FREE:
+	for m in Rules.MAX_MOUTHS:
+		if network.is_mouth(m) and _closer(centre, network.node_at(network.mouth_node[m]), MOUTH_GAP_U):
+			return REFUSE_NEAR_MOUTH
+	for slot in Rules.MAX_SEGMENTS:
+		if network.phase[slot] == GraphScript.PHASE_FREE:
 			continue
-		for end in 2:
-			var mouth := network.mouth(slot, end == 1)
-			if _closer(centre, Vector2i(Rules.to_u(mouth.x), Rules.to_u(mouth.y)), MOUTH_GAP_U):
-				return REFUSE_NEAR_MOUTH
 		if network.distance_to_route(slot, at) < Rules.to_m(half + Rules.BORE_WIDTH_U / 2) - 0.01:
 			return REFUSE_OVER_TUNNEL
 	return REFUSE_NONE
@@ -146,7 +148,7 @@ static func _closer(a: Vector2i, b: Vector2i, reach: int) -> bool:
 	return dx * dx + dz * dz < reach * reach
 
 
-func add_into(chamber_kind: int, network: NetworkScript, slot: int, along: int, centre: Vector2i,
+func add_into(chamber_kind: int, network: GraphScript, slot: int, along: int, centre: Vector2i,
 		out_ref: PackedInt32Array) -> bool:
 	"""Plan a chamber of `chamber_kind` off tunnel `slot`, `along` u in, centred at `centre` (already
 	checked by `refusal`); write its (slot, generation) into out_ref. False with no free slot."""
@@ -163,6 +165,16 @@ func add_into(chamber_kind: int, network: NetworkScript, slot: int, along: int, 
 	out_ref[0] = c
 	out_ref[1] = generation[c]
 	return true
+
+
+func repoint_split(old: int, tail: int, split_u: int) -> void:
+	"""Segment `old` was split at `split_u` along it (underground_graph.gd): a chamber off it past the split
+	is off `tail` now, as far past the split. (Its cellar id is the chamber's own and does not change.)"""
+	for c in MAX_CHAMBERS:
+		if phase[c] != PHASE_FREE and tunnel[c] == old and along_u[c] > split_u:
+			tunnel[c] = tail
+			along_u[c] -= split_u
+			revision += 1
 
 
 func set_done(c: int) -> void:

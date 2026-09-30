@@ -38,7 +38,7 @@ const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const CommandScript := preload("res://demo/control/demo_command.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
 const DemoClockScript := preload("res://demo/demo_clock.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
@@ -348,23 +348,36 @@ func test_a_harvest_is_hauled_with_the_carry_walk() -> void:
 	assert_equal(crew.task_text(3), "Carrying the carrot harvest to store", "says so")
 
 
+func _dig_tunnel(network: GraphScript, from_m: Vector2, to_m: Vector2) -> PackedInt32Array:
+	"""Lay a straight mouth-to-mouth tunnel (at least 8 m: two 4 m ramps) as a piece and dig every segment
+	of it to the end; returns [entrance mouth row, exit mouth row] -- its two heaps."""
+	var route := PackedInt32Array([Rules.to_u(from_m.x), Rules.to_u(from_m.y), Rules.to_u(to_m.x), Rules.to_u(to_m.y)])
+	var ref := PackedInt32Array([-1, 0, -1])
+	assert_true(network.add_into(route, 2, 0, ref), "a tunnel")
+	var chain := PackedInt32Array()
+	network.piece_segments_into(ref[2], chain)
+	for slot: int in chain:
+		network.start_dig(slot, network.generation[slot], 0)
+		network.advance(slot, network.generation[slot], 3600 * Rules.USEC_PER_SECOND)
+	assert_true(network.piece_done(ref[2]), "dug")
+	return PackedInt32Array([network.mouth_of_end(chain[0], false), network.mouth_of_end(chain[chain.size() - 1], true)])
+
+
 func test_spoil_from_a_heap_raises_a_bed_and_the_heap_shrinks() -> void:
-	"""A finished tunnel's entrance heap (16 U): raising the loam bed takes 2 U off it."""
+	"""A finished 8 m tunnel's entrance heap: two 4 m ramps, every cut but the exit shaft heaped at the
+	entrance -- 9 x 2 U = 18 U. Raising the loam bed takes 2 U off it."""
 	var cast := _cast()
 	var sim := SimScript.new()
 	var crew := _crew(cast, sim, _pantry(cast))
-	var network: NetworkScript = cast.space().tunnels
-	var route := PackedInt32Array([Rules.to_u(2.0), Rules.to_u(8.0), Rules.to_u(9.0), Rules.to_u(8.0)])
-	var ref := PackedInt32Array([-1, 0])
-	assert_true(network.add_into(route, 2, 0, ref), "a tunnel")
-	network.advance(ref[0], ref[1], 3600 * Rules.USEC_PER_SECOND)
-	network.set_heap(ref[0], false, Vector2(2.0, 9.4), 0.7)
-	network.set_heap(ref[0], true, Vector2(9.0, 9.4), 0.3)
-	assert_equal(crew.max_heap_spoil(), 16000, "16 U at the entrance")
+	var network: GraphScript = cast.space().tunnels
+	var heaps: PackedInt32Array = _dig_tunnel(network, Vector2(2.0, 8.0), Vector2(10.0, 8.0))
+	network.set_heap(heaps[0], Vector2(2.0, 9.4), 0.7, Vector2(0.0, 1.0))
+	network.set_heap(heaps[1], Vector2(10.0, 9.4), 0.3, Vector2(0.0, 1.0))
+	assert_equal(crew.max_heap_spoil(), 18000, "18 U at the entrance")
 	crew.order(JobsScript.KIND_RAISE, BED_LOAM, PackedInt32Array([1]), JobsScript.ORIGIN_PLAYER)
 	var raised := func() -> bool: return sim.is_raised(BED_LOAM)
 	assert_true(_run(cast, crew, 120.0, raised), "raised")
-	assert_equal(crew.max_heap_spoil(), 14000, "2 U taken")
+	assert_equal(crew.max_heap_spoil(), 16000, "2 U taken")
 
 
 func test_cancelling_a_bed_stores_a_harvest_in_hand() -> void:
@@ -739,14 +752,11 @@ func test_the_view_s_key_covers_the_ditch_alone() -> void:
 
 
 func test_heaps_are_drawn_at_what_is_left_after_spoil_is_taken() -> void:
-	"""The tunnel overlay draws the entrance heap for 16 U; with 2 U taken the farm view redraws it for
-	14 U; emptied, it is hidden; the untouched exit heap is left as the overlay drew it."""
+	"""The tunnel overlay draws the 8 m tunnel's entrance heap for 18 U; with 2 U taken the farm view
+	redraws it for 16 U; emptied, it is hidden; the untouched exit heap is left as the overlay drew it."""
 	var cast := _cast()
-	var network: NetworkScript = cast.space().tunnels
-	var route := PackedInt32Array([Rules.to_u(2.0), Rules.to_u(8.0), Rules.to_u(9.0), Rules.to_u(8.0)])
-	var ref := PackedInt32Array([-1, 0])
-	network.add_into(route, 2, 0, ref)
-	network.advance(ref[0], ref[1], 3600 * Rules.USEC_PER_SECOND)
+	var network: GraphScript = cast.space().tunnels
+	var heaps: PackedInt32Array = _dig_tunnel(network, Vector2(2.0, 8.0), Vector2(10.0, 8.0))
 	var overlay := OverlayScript.new()
 	_nodes.append(overlay)
 	overlay.configure(network, cast.space(), DemoClockScript.new())
@@ -756,16 +766,18 @@ func test_heaps_are_drawn_at_what_is_left_after_spoil_is_taken() -> void:
 	_nodes.append(view)
 	view.build({}, SimScript.new())
 	view.follow_tunnels(tunnels, network, overlay)
-	var exit_scale: Vector3 = overlay.heap(ref[0], true).scale
-	tunnels.take_spoil_into(network, 2 * ref[0], 2000, _read)
+	var r0: float = OverlayScript.heap_radius_m(18000)
+	assert_almost_equal(overlay.heap(heaps[0]).scale.x, r0, "drawn for 18 U")
+	var exit_scale: Vector3 = overlay.heap(heaps[1]).scale
+	assert_true(tunnels.take_spoil_into(network, heaps[0], 2000, _read), "2 U taken")
 	view._process(0.0)
-	var r: float = OverlayScript.heap_radius_m(14000)
-	assert_almost_equal(overlay.heap(ref[0], false).scale.x, r, "14 U wide")
-	assert_almost_equal(overlay.heap(ref[0], false).scale.y, r * OverlayScript.HEAP_ASPECT, "and tall")
-	assert_equal(overlay.heap(ref[0], true).scale, exit_scale, "the exit heap untouched")
-	tunnels.take_spoil_into(network, 2 * ref[0], 14000, _read)
+	var r: float = OverlayScript.heap_radius_m(16000)
+	assert_almost_equal(overlay.heap(heaps[0]).scale.x, r, "16 U wide")
+	assert_almost_equal(overlay.heap(heaps[0]).scale.y, r * OverlayScript.HEAP_ASPECT, "and tall")
+	assert_equal(overlay.heap(heaps[1]).scale, exit_scale, "the exit heap untouched")
+	assert_true(tunnels.take_spoil_into(network, heaps[0], 16000, _read), "the rest taken")
 	view._process(0.0)
-	assert_false(overlay.heap(ref[0], false).visible, "emptied: gone")
+	assert_false(overlay.heap(heaps[0]).visible, "emptied: gone")
 
 
 func test_the_bed_panel_offers_only_what_the_bed_can_take() -> void:
@@ -1045,11 +1057,9 @@ func test_a_farm_hour_ages_the_pantry_and_reads_the_tunnels() -> void:
 	under as drained."""
 	var farm := _farm()
 	farm.pantry.add_into(CARROT, 1000, 0, _read)
-	var network: NetworkScript = farm._cast.space().tunnels
-	var route := PackedInt32Array([Rules.to_u(-6.9), Rules.to_u(12.8), Rules.to_u(-14.0), Rules.to_u(12.8)])
-	var ref := PackedInt32Array([-1, 0])
-	network.add_into(route, 2, 0, ref)
-	network.advance(ref[0], ref[1], 3600 * Rules.USEC_PER_SECOND)
+	var network: GraphScript = farm._cast.space().tunnels
+	# 8 m along z 12.8 (the shortest tunnel: two 4 m ramps), under both roots beds (x -12.6 and -9.4).
+	_dig_tunnel(network, Vector2(-6.9, 12.8), Vector2(-14.9, 12.8))
 	farm.step(HOUR_USEC)
 	assert_equal(farm.pantry.lot_age(0), 1000, "an hour older")
 	assert_true(farm.sim.is_drained(BED_CARROTS), "drained")

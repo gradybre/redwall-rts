@@ -59,7 +59,7 @@ const CatalogBinding := preload("res://scripts/core/resource_catalog_binding.gd"
 const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 const ResourceNodes := preload("res://scripts/core/resource_nodes.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 
 ## The player did something in the woods: show the Woods panel (demo/ui/demo_detail_zone.gd).
 signal panel_wanted
@@ -319,7 +319,7 @@ func _occupied(at: Vector2) -> bool:
 	standing on the spot (the village's buildings stand clear of the woods)."""
 	if _cast == null:
 		return false
-	var network: NetworkScript = _cast.space().tunnels
+	var network: GraphScript = _cast.space().tunnels
 	if _cast.space().on_mouth(at, OCCUPIED_M):
 		return true
 	for heap: int in network.heap_at.size():

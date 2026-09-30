@@ -27,7 +27,7 @@ const FindPropsScript := preload("res://demo/tunnel/tunnel_find_props.gd")
 const WorksScript := preload("res://demo/tunnel/tunnel_works.gd")
 const MarksScript := preload("res://demo/tunnel/tunnel_marks.gd")
 const PanelScript := preload("res://demo/tunnel/tunnel_panel.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
@@ -501,45 +501,63 @@ func test_the_panel_shows_a_finds_shelf() -> void:
 
 # --- the tunnel's brace, lanterns and rubble ------------------------------------------------------
 
-func _dug_network() -> NetworkScript:
-	"""A network with one finished 8 m standard bore along +X from (0, 0)."""
-	var network := NetworkScript.new()
-	var ref := PackedInt32Array([-1, 0])
-	network.add_into(PackedInt32Array([0, 0, 8192, 0]), 2, 0, ref)
-	network.advance(0, ref[1], 1000000000)
+func _dug_network() -> GraphScript:
+	"""A network with one finished 16 m tunnel along +X from (0, 0), every segment dug: its entry ramp is
+	segment 0 (0..4 m), its 8 m standard level bore segment 1 (from (4, 0) to (12, 0)), its exit ramp
+	segment 2 (12..16 m)."""
+	var network := GraphScript.new()
+	var ref := PackedInt32Array([-1, 0, -1])
+	network.add_into(PackedInt32Array([0, 0, 16384, 0]), 2, 0, ref)
+	var chain := PackedInt32Array()
+	network.piece_segments_into(ref[2], chain)
+	for slot in chain:
+		network.start_dig(slot, network.generation[slot], 0)
+		network.advance(slot, network.generation[slot], 1000000000)
 	return network
 
 
 func test_lanterns_hang_on_alternate_walls_facing_into_the_bore() -> void:
-	"""A lantern hung on the left wall stands left of the centre line with its +X (its bracket's wall
-	plate) turned to that wall, LANTERN_LIFT_M above the floor; the next one is on the right wall."""
+	"""A lantern hung on the left wall of the level bore stands left of the centre line with its +X (its
+	bracket's wall plate) turned to that wall, LANTERN_LIFT_M above the floor; the next one is on the right
+	wall."""
 	var network := _dug_network()
 	var marks: MarksScript = _keep(MarksScript.new())
 	marks.configure(network, null, PropsScript.new())
-	var left: Transform3D = marks.lantern_transform(0, 4.0, true)
-	var right: Transform3D = marks.lantern_transform(0, 4.0, false)
+	var left: Transform3D = marks.lantern_transform(1, 4.0, true)
+	var right: Transform3D = marks.lantern_transform(1, 4.0, false)
 	assert_true(left.origin.z > 0.0 and right.origin.z < 0.0, "opposite walls (bore along +X)")
 	assert_true(left.basis.x.dot(Vector3(0.0, 0.0, 1.0)) > 0.99, "the left one's bracket to the left wall")
 	assert_true(right.basis.x.dot(Vector3(0.0, 0.0, -1.0)) > 0.99, "the right one's to the right wall")
-	assert_almost_equal(left.origin.y, network.floor_y_at(0, 4.0) + MarksScript.LANTERN_LIFT_M, "hung up the wall")
+	assert_almost_equal(left.origin.x, 8.0, "4 m into the bore, which starts at the entry ramp's foot (4, 0)")
+	assert_almost_equal(left.origin.y, network.floor_y_at(1, 4.0) + MarksScript.LANTERN_LIFT_M, "hung up the wall")
 	assert_true(marks.frame_mesh_fit().is_equal_approx(Transform3D.IDENTITY), "unstaged: the box frame as it was")
 
 
 func test_a_lit_braced_tunnel_shows_frames_lanterns_and_glows_below() -> void:
-	"""Braced and lit: a frame a metre, two lanterns and their two glows, on the underground layer (the
-	U view draws them; decision 0206), their light lighting only that layer."""
+	"""Braced and lit, per segment: the 8 m level bore a frame a metre (1 to 8 m: eight, all under the
+	ground; the one at its start, the entry ramp's foot, is the ramp's), two lanterns (one per started 4 m)
+	and their two glows, on the underground layer (the U view draws them; decision 0206), their light
+	lighting only that layer. Each 4 m ramp is framed only where it is wholly under the ground -- past its
+	portal, 2.94 m from its mouth: the entry ramp at 3 and 4 m from its node A mouth, the exit ramp at 1 m
+	from its node A foot (the bore frames the foot) -- and hangs one lantern."""
 	var network := _dug_network()
-	network.set_braced(0)
-	network.set_lit(0)
+	for slot in 3:
+		network.set_braced(slot)
+		network.set_lit(slot)
 	var marks: MarksScript = _keep(MarksScript.new())
 	marks.configure(network, null, PropsScript.new())
 	marks.refresh()
-	for node: VisualInstance3D in [marks.frames(0), marks.lanterns(0), marks.glows(0)]:
+	for node: VisualInstance3D in [marks.frames(1), marks.lanterns(1), marks.glows(1)]:
 		assert_equal(node.layers, Layers.UNDERGROUND, "%s below" % node.name)
-	assert_equal(marks.lanterns(0).multimesh.visible_instance_count, 2, "two lanterns")
-	assert_equal(marks.glows(0).multimesh.visible_instance_count, 2, "two glows")
-	assert_true(marks.glows(0).visible and marks.lanterns(0).visible, "shown")
-	assert_true(marks.frames(0).multimesh.visible_instance_count > 0, "frames")
+	assert_equal(marks.lanterns(1).multimesh.visible_instance_count, 2, "two lanterns")
+	assert_equal(marks.glows(1).multimesh.visible_instance_count, 2, "two glows")
+	assert_true(marks.glows(1).visible and marks.lanterns(1).visible, "shown")
+	assert_equal(marks.frames(1).multimesh.visible_instance_count, 8, "a frame a metre, none doubled at the foot")
+	assert_equal(marks.frames(0).multimesh.visible_instance_count, 2, "the entry ramp: framed past its portal only")
+	assert_equal(marks.frames(2).multimesh.visible_instance_count, 1, "the exit ramp: past its foot, short of its portal")
+	for ramp: int in [0, 2]:
+		assert_equal(marks.lanterns(ramp).multimesh.visible_instance_count, 1, "ramp %d: one lantern" % ramp)
+	assert_equal(marks.lights.spot_count(), 4, "four lights to give: two in the bore, one a ramp")
 
 
 # --- the water's props ---------------------------------------------------------------------------

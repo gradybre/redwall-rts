@@ -23,7 +23,7 @@ const JobsScript := preload("res://demo/farm/farm_jobs.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 
 ## Demo microseconds per farm hour (demo_calendar.HOUR_USEC), written out.
 const HOUR_USEC: int = 2500000
@@ -764,17 +764,22 @@ func test_a_full_lot_table_merges_keeping_the_older_age() -> void:
 
 # --- the tunnel integration -----------------------------------------------------------------------
 
-func _open(network: NetworkScript, points_m: Array[Vector2]) -> int:
-	"""Add a route (metres) to the network and dig it to the end; returns its slot."""
+func _open(network: GraphScript, points_m: Array[Vector2]) -> PackedInt32Array:
+	"""Add a mouth-to-mouth route (metres, at least 8 m: two 4 m ramps) to the network as a piece and dig
+	every segment of it to the end; returns [entrance mouth row, exit mouth row] -- its two heaps."""
 	var route := PackedInt32Array()
 	for p: Vector2 in points_m:
 		route.append(Rules.to_u(p.x))
 		route.append(Rules.to_u(p.y))
-	var ref := PackedInt32Array([-1, 0])
+	var ref := PackedInt32Array([-1, 0, -1])
 	assert_true(network.add_into(route, points_m.size(), 0, ref), "the fixture tunnel is stored")
-	network.advance(ref[0], ref[1], 3600 * Rules.USEC_PER_SECOND)
-	assert_true(network.is_open(ref[0]), "and dug")
-	return ref[0]
+	var chain := PackedInt32Array()
+	network.piece_segments_into(ref[2], chain)
+	for slot: int in chain:
+		network.start_dig(slot, network.generation[slot], 0)
+		network.advance(slot, network.generation[slot], 3600 * Rules.USEC_PER_SECOND)
+	assert_true(network.piece_done(ref[2]), "and dug")
+	return PackedInt32Array([network.mouth_of_end(chain[0], false), network.mouth_of_end(chain[chain.size() - 1], true)])
 
 
 func test_the_farm_s_water_edge_is_the_real_stream_s_bank() -> void:
@@ -803,12 +808,13 @@ func test_segment_nearness_is_exact_in_integers() -> void:
 
 
 func test_a_pond_tunnel_irrigates_and_another_drains() -> void:
-	"""From the real stream's edge by the ford west along z 12.8: irrigates both roots beds; along z 16.4
-	from inland: drains both grain beds; the cabbage beds are untouched."""
-	var network := NetworkScript.new()
+	"""From the real stream's edge by the ford west along z 12.8: irrigates both roots beds (every open
+	segment joined to that mouth carries its water); along z 16.4 from inland (8 m, x -15 to -7): drains
+	both grain beds; the cabbage beds are untouched."""
+	var network := GraphScript.new()
 	var tunnels := TunnelsScript.new()
 	_open(network, [Vector2(19.5, -0.8), Vector2(-7.0, 12.8), Vector2(-14.0, 12.8)])
-	_open(network, [Vector2(-14.0, 16.4), Vector2(-7.0, 16.4)])
+	_open(network, [Vector2(-15.0, 16.4), Vector2(-7.0, 16.4)])
 	var water := PackedByteArray([0, 0])
 	for case: Array in [[BED_CARROTS, 0, 1], [BED_RADISH, 0, 1], [BED_WHEAT, 1, 0], [BED_EMPTY_CLAY_2, 1, 0],
 			[BED_EMPTY_LOAM, 0, 0], [BED_EMPTY_CLAY, 0, 0]]:
@@ -819,7 +825,7 @@ func test_a_pond_tunnel_irrigates_and_another_drains() -> void:
 func test_the_water_query_is_pluggable() -> void:
 	"""With a fixture query that calls everything east of x = 0 water, a tunnel with its mouth there
 	irrigates; with one that calls nothing water, the same tunnel drains."""
-	var network := NetworkScript.new()
+	var network := GraphScript.new()
 	var tunnels := TunnelsScript.new()
 	_open(network, [Vector2(1.0, 12.8), Vector2(-14.0, 12.8)])
 	var water := PackedByteArray([0, 0])
@@ -832,49 +838,54 @@ func test_the_water_query_is_pluggable() -> void:
 
 
 func test_an_unfinished_tunnel_does_nothing_for_the_beds() -> void:
-	"""Only a finished tunnel drains."""
-	var network := NetworkScript.new()
+	"""Only a finished tunnel drains: laid, its first segment digging, it drains nothing."""
+	var network := GraphScript.new()
 	var tunnels := TunnelsScript.new()
-	var route := PackedInt32Array([Rules.to_u(-14.0), Rules.to_u(16.4), Rules.to_u(-7.0), Rules.to_u(16.4)])
-	var ref := PackedInt32Array([-1, 0])
-	network.add_into(route, 2, 0, ref)
+	var route := PackedInt32Array([Rules.to_u(-15.0), Rules.to_u(16.4), Rules.to_u(-7.0), Rules.to_u(16.4)])
+	var ref := PackedInt32Array([-1, 0, -1])
+	assert_true(network.add_into(route, 2, 0, ref), "laid")
+	assert_equal(network.phase[ref[0]], GraphScript.PHASE_DIGGING, "being dug")
 	var water := PackedByteArray([0, 0])
 	tunnels.water_of_into(network, BED_WHEAT, water)
 	assert_equal(water, PackedByteArray([0, 0]), "digging: nothing")
 
 
 func test_spoil_is_taken_off_a_heap_and_the_heap_shrinks() -> void:
-	"""A 7 m bore is 7 quanta plus a shaft at each end: 16 U at the entrance, 2 U at the exit. Taking
-	2 U leaves 14; more than is left is refused; a freed slot starts clean."""
-	var network := NetworkScript.new()
+	"""An 8 m tunnel is two 4 m ramps sharing a foot: a shaft and 4 quanta, then 4 quanta and a shaft.
+	Every cut but the exit shaft heaps at the entrance mouth: 9 x 2 U = 18 U there, 2 U at the exit.
+	Taking 2 U leaves 16; more than is left is refused; a reused mouth row starts clean."""
+	var network := GraphScript.new()
 	var tunnels := TunnelsScript.new()
-	var slot: int = _open(network, [Vector2(-14.0, 16.4), Vector2(-7.0, 16.4)])
-	var entrance: int = 2 * slot
-	assert_equal(tunnels.spoil_left(network, entrance), 16000, "entrance heap")
-	assert_equal(tunnels.spoil_left(network, entrance + 1), 2000, "exit heap")
+	var heaps: PackedInt32Array = _open(network, [Vector2(-15.0, 16.4), Vector2(-7.0, 16.4)])
+	var entrance: int = heaps[0]
+	var exit: int = heaps[1]
+	assert_equal(tunnels.spoil_left(network, entrance), 18000, "entrance heap")
+	assert_equal(tunnels.spoil_left(network, exit), 2000, "exit heap")
 	assert_true(tunnels.take_spoil_into(network, entrance, 2000, _read), "taken")
-	assert_equal(_read.value, 14000, "left")
+	assert_equal(_read.value, 16000, "left")
 	assert_equal(tunnels.taken_milli(network, entrance), 2000, "recorded")
-	assert_false(tunnels.take_spoil_into(network, entrance + 1, 2001, _read), "not more than is there")
+	assert_false(tunnels.take_spoil_into(network, exit, 2001, _read), "not more than is there")
 	assert_equal(_read.error, TunnelsScript.REFUSE_NO_SPOIL, "says so")
 	assert_false(tunnels.take_spoil_into(network, 99, 1000, _read), "no such heap")
-	assert_equal(tunnels.total_spoil(network), 16000, "14 + 2")
-	network.generation[slot] += 1
-	assert_equal(tunnels.spoil_left(network, entrance), 16000, "a reused slot's heap starts clean")
+	assert_equal(tunnels.total_spoil(network), 18000, "16 + 2")
+	network.mouth_gen[entrance] += 1
+	assert_equal(tunnels.spoil_left(network, entrance), 18000, "a reused mouth row's heap starts clean")
 
 
 func test_the_nearest_heap_with_enough_spoil_is_chosen() -> void:
-	"""Nearest to the exit end, but the exit heap holds only 2 U: 3 U comes from the entrance."""
-	var network := NetworkScript.new()
+	"""Nearest to the exit end, but the exit heap holds only 2 U: 3 U comes from the entrance (18 U, the
+	8 m tunnel's); nothing holds 19 U."""
+	var network := GraphScript.new()
 	var tunnels := TunnelsScript.new()
-	var slot: int = _open(network, [Vector2(-14.0, 16.4), Vector2(-7.0, 16.4)])
-	network.set_heap(slot, false, Vector2(-14.0, 17.4), 0.8)
-	network.set_heap(slot, true, Vector2(-7.0, 17.4), 0.3)
+	var heaps: PackedInt32Array = _open(network, [Vector2(-15.0, 16.4), Vector2(-7.0, 16.4)])
+	network.set_heap(heaps[0], Vector2(-15.0, 17.4), 0.8, Vector2(0.0, 1.0))
+	network.set_heap(heaps[1], Vector2(-7.0, 17.4), 0.3, Vector2(0.0, 1.0))
 	assert_true(tunnels.nearest_heap_into(network, Vector2(-6.0, 17.0), 2000, _read), "2 U")
-	assert_equal(_read.value, 2 * slot + 1, "the exit heap")
+	assert_equal(_read.value, heaps[1], "the exit heap")
 	assert_true(tunnels.nearest_heap_into(network, Vector2(-6.0, 17.0), 3000, _read), "3 U")
-	assert_equal(_read.value, 2 * slot, "the entrance heap")
-	assert_false(tunnels.nearest_heap_into(network, Vector2.ZERO, 17000, _read), "none that big")
+	assert_equal(_read.value, heaps[0], "the entrance heap")
+	assert_true(tunnels.nearest_heap_into(network, Vector2.ZERO, 18000, _read), "18 U: the entrance heap")
+	assert_false(tunnels.nearest_heap_into(network, Vector2.ZERO, 18001, _read), "none that big")
 
 
 # --- the job board ----------------------------------------------------------------------------

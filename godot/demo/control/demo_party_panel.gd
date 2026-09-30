@@ -19,9 +19,9 @@ extends CanvasLayer
 ## Serif title, ink and umber text -- both >= 4.5:1 on the parchment (test_demo_command.gd checks).
 ## The panel stops the mouse, so a click on it never selects or orders anything in the world.
 ##
-## TUNNELS (demo/tunnel/). With a mole in the party a "Dig tunnel" button shows (emits
-## `dig_requested`, the same as T: pressed while a route is being laid, it cancels it); it never
-## takes focus, so Enter while laying a route digs rather than pressing it again. A NOTICE line under the party carries the tunnel tool's prompts, lengths
+## TUNNELS (demo/tunnel/). With a digger in the party -- anybeast who fits a bore (decision 0208) -- a "Dig
+## tunnel" button shows (emits `dig_requested`, the same as B: it opens the Dig tool, and pressed while it is
+## open, closes it); it never takes focus, so Enter while laying a piece digs rather than pressing it again. A NOTICE line under the party carries the tunnel tool's prompts, lengths
 ## and refusals. The wood button's cream text and the notice's ink are checked for contrast
 ## (test_demo_tunnel.gd).
 ##
@@ -39,10 +39,10 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 signal dig_requested
 
 const TITLE: String = "Demo party"
-const HINT: String = "Click or drag: select · Shift: add · Right-click: move / work · R: release · Esc: clear · T: dig tunnel (mole) · U: underground"
-const DIG_BUTTON: String = "Dig tunnel (T)"
+const HINT: String = "Click or drag: select · Shift: add · Right-click: move / work · R: release · Esc: clear · B: dig tool · U: underground"
+const DIG_BUTTON: String = "Dig tunnel (B)"
 ## The Dig button's hover tip (decision 0205: every action button says what it does and its key).
-const DIG_TIP: String = "Dig tunnel (T) — the selected mole lays out a tunnel: click points on the ground, Enter digs it, Esc cancels"
+const DIG_TIP: String = "Dig tunnel (B) — the Dig tool: drag a tunnel from where it starts to where it ends (start on a tunnel to branch off it), or click its points and press Enter; Esc drops it, B closes the tool"
 const DIGGING: String = "Digging tunnel — %d%%"
 const IN_TUNNEL: String = "Using tunnel"
 ## The tunnel extensions' states (demo/tunnel/): hauling a load below, waiting in a mouth's line.

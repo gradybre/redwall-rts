@@ -25,7 +25,6 @@ extends "res://demo/cast/crossing_hook.gd"
 
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const RouterScript := preload("res://demo/tunnel/tunnel_router.gd")
-const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
 const Rules := preload("res://demo/waterplay/swim_rules.gd")
 const WaterRules := preload("res://demo/water/water_rules.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
@@ -308,7 +307,7 @@ func swim_ashore(brain: RefCounted) -> void:
 	brain.path.resize(1)
 	brain.path[0] = _ashore_land[who]
 	brain.path_tunnel.resize(1)
-	brain.path_tunnel[0] = RouterScript.leg_code(TunnelRules.MAX_TUNNELS + ASHORE_ROW, false)
+	brain.path_tunnel[0] = RouterScript.crossing_code(ASHORE_ROW, false)
 	brain.path_index = 0
 	brain.state = BrainScript.State.CROSS
 

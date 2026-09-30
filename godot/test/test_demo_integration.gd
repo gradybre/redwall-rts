@@ -11,7 +11,7 @@ const NoticesScript := preload("res://demo/demo_notices.gd")
 const VillageWaterScript := preload("res://demo/village_water.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
 const TunnelPlanScript := preload("res://demo/tunnel/tunnel_plan.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
 const CoreWeather := preload("res://scripts/core/weather.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
@@ -299,22 +299,30 @@ func test_a_finished_root_cellar_is_a_pantry_store() -> void:
 
 
 func test_a_cellar_is_entered_by_its_tunnel_s_nearer_mouth() -> void:
-	"""A cellar dug 1 m into an open 8 m tunnel is delivered to at the entrance; one 7 m in, at the
-	exit -- the cellar's door, where a carrier can stand."""
+	"""An open 12 m tunnel along +X is its entry ramp (0..4 m), its 4 m level bore and its exit ramp
+	(8..12 m). A cellar dug 1 m into the bore is delivered to at the entrance (a 5 m walk: 1 m back to the
+	ramp's foot and 4 m up it, against 3 + 4 m to the exit); one 3 m in, at the exit (1 + 4 m against
+	3 + 4) -- the cellar's door, where a carrier can stand."""
 	var chambers := ChambersScript.new()
-	var network := NetworkScript.new()
-	var ref := PackedInt32Array([-1, 0])
-	assert_true(network.add_into(PackedInt32Array([0, 0, 8192, 0]), 2, 0, ref), "a tunnel")
-	network.advance(ref[0], ref[1], 3600 * Rules.USEC_PER_SECOND)
-	assert_true(network.is_open(ref[0]), "open")
+	var network := GraphScript.new()
+	var ref := PackedInt32Array([-1, 0, -1])
+	assert_true(network.add_into(PackedInt32Array([0, 0, 12288, 0]), 2, 0, ref), "a tunnel")
+	var chain := PackedInt32Array()
+	network.piece_segments_into(ref[2], chain)
+	for slot in chain:
+		network.start_dig(slot, network.generation[slot], 0)
+		network.advance(slot, network.generation[slot], 3600 * Rules.USEC_PER_SECOND)
+	assert_true(network.piece_done(ref[2]), "open")
+	var bore := chain[1]
+	assert_equal(network.seg_kind[bore], GraphScript.SEG_BORE, "the bore from (4, 0) to (8, 0)")
 	var room := PackedInt32Array([-1, 0])
-	chambers.add_into(ChambersScript.KIND_CELLAR, network, ref[0], 1024, Vector2i(1024, 2048), room)
+	chambers.add_into(ChambersScript.KIND_CELLAR, network, bore, 1024, Vector2i(5120, 2048), room)
 	chambers.set_done(room[0])
-	chambers.add_into(ChambersScript.KIND_CELLAR, network, ref[0], 7168, Vector2i(7168, 2048), room)
+	chambers.add_into(ChambersScript.KIND_CELLAR, network, bore, 3072, Vector2i(7168, 2048), room)
 	chambers.set_done(room[0])
 	var entries: Array = FarmCellars.entries(chambers, network)
 	assert_equal(entries[0][StorageScript.KEY_POSITION], Vector3(0.0, 0.0, 0.0), "1 m in: the entrance")
-	assert_equal(entries[1][StorageScript.KEY_POSITION], Vector3(8.0, 0.0, 0.0), "7 m in: the exit")
+	assert_equal(entries[1][StorageScript.KEY_POSITION], Vector3(12.0, 0.0, 0.0), "3 m in: the exit")
 
 
 func test_a_harvest_goes_to_the_coldest_store_with_room_nearest_its_bed() -> void:
@@ -405,24 +413,33 @@ func test_a_tunnel_from_the_stream_s_edge_irrigates_the_beds_it_runs_under() -> 
 	"""A finished tunnel with its east mouth by the ford (at the real stream's edge) running under the
 	radish bed irrigates it; the same route from the run's bank (just too far) only drains it."""
 	var farm := _village(false)
-	var network: NetworkScript = farm._cast.space().tunnels
-	var ref := PackedInt32Array([-1, 0])
+	var network: GraphScript = farm._cast.space().tunnels
+	var ref := PackedInt32Array([-1, 0, -1])
 	var route := PackedInt32Array([Rules.to_u(19.5), Rules.to_u(-0.8), Rules.to_u(-6.0), Rules.to_u(12.8),
 		Rules.to_u(-12.0), Rules.to_u(12.8)])
 	assert_true(network.add_into(route, 3, 0, ref), "the ford tunnel")
-	network.advance(ref[0], ref[1], 3600 * Rules.USEC_PER_SECOND)
+	_dig_piece(network, ref[2])
 	farm.step(HOUR_USEC)
 	assert_true(farm.sim.is_irrigated(BED_RADISH), "irrigated from the stream")
 	_services = ServicesScript.new()
 	var other := _village(false)
-	var other_network: NetworkScript = other._cast.space().tunnels
+	var other_network: GraphScript = other._cast.space().tunnels
 	var dry := PackedInt32Array([Rules.to_u(19.5), Rules.to_u(9.0), Rules.to_u(-6.0), Rules.to_u(12.8),
 		Rules.to_u(-12.0), Rules.to_u(12.8)])
 	assert_true(other_network.add_into(dry, 3, 0, ref), "the run tunnel")
-	other_network.advance(ref[0], ref[1], 3600 * Rules.USEC_PER_SECOND)
+	_dig_piece(other_network, ref[2])
 	other.step(HOUR_USEC)
 	assert_false(other.sim.is_irrigated(BED_RADISH), "not from 2567 u away")
 	assert_true(other.sim.is_drained(BED_RADISH), "it drains instead")
+
+
+static func _dig_piece(network: GraphScript, piece: int) -> void:
+	"""Dig every segment of piece `piece` open, in dig order (start_dig turns each PLANNED one to DIGGING)."""
+	var chain := PackedInt32Array()
+	network.piece_segments_into(piece, chain)
+	for slot in chain:
+		network.start_dig(slot, network.generation[slot], 0)
+		network.advance(slot, network.generation[slot], 3600 * Rules.USEC_PER_SECOND)
 
 
 func test_the_services_answer_from_the_map_they_are_given() -> void:

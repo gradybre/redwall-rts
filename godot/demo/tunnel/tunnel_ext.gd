@@ -18,8 +18,8 @@ extends Node3D
 ##                                                                          whole village: farm, date
 ##                                                                          and weather together) /
 ##                                                                          bring the next threat
-##   T with the mole AND others selected, or right click a tunnel being dug with residents selected:
-##                                               they join the Foremole's dig crew
+##   a dig started (the Dig tool, B) with a digger AND others selected, or right click where a tunnel
+##   being dug starts with residents selected:   they join the Foremole's dig crew
 ## Residents selected when a tunnel job is ordered become its worker or crew (tunnel_actions.gd).
 ##
 ## THE PANEL shares the HUD's right column with the farm's bed panel (demo/ui/demo_detail_zone.gd);
@@ -27,7 +27,7 @@ extends Node3D
 ## The weather, the water and the notice feed are the demo's shared ones (demo_services.gd).
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const WorksScript := preload("res://demo/tunnel/tunnel_works.gd")
 const ActionsScript := preload("res://demo/tunnel/tunnel_actions.gd")
 const PanelScript := preload("res://demo/tunnel/tunnel_panel.gd")
@@ -74,6 +74,8 @@ const ROOT_STORE_SWATCH: Color = Color(0.45, 0.33, 0.22)
 const RELIC_SWATCH: Color = Color(0.62, 0.52, 0.3)
 
 var works: WorksScript = null
+## Who can dig, by actor index (see `diggers_of`).
+var can_dig: PackedByteArray = PackedByteArray()
 var actions: ActionsScript = null
 var panel: PanelScript = null
 var marks: MarksScript = null
@@ -86,7 +88,7 @@ var weather_view: WeatherViewScript = null
 var _cast: DemoCastScript = null
 ## The demo's shared props (demo_services.gd): brace, rubble, lanterns, finds, chamber furniture.
 var _props: PropsScript = null
-var _network: NetworkScript = null
+var _network: GraphScript = null
 var _overlay: OverlayScript = null
 var _camera: Camera3D = null
 ## The underground view: its plane is where a click lands, its cap what rooms open (none: the ground).
@@ -119,25 +121,41 @@ func configure(cast: DemoCastScript, camera: Camera3D, overlay: OverlayScript, b
 	add_child(works)
 	var names := PackedStringArray()
 	var species := PackedStringArray()
-	var moles := PackedByteArray()
 	var brains: Array[BrainScript] = []
 	for i in cast.actor_count():
 		var actor := cast.actor(i) as DemoActorScript
 		brains.append(actor.brain)
 		names.append(actor.display_name)
 		species.append(actor.species)
-		moles.append(1 if Rules.is_digger(actor.species) else 0)
 	works.setup(cast.space(), brains, species, bounds_u, notice, services)
-	actions = ActionsScript.new(works, cast.space(), moles, names, bounds_u)
+	can_dig = diggers_of(cast)
+	actions = ActionsScript.new(works, cast.space(), can_dig, names, bounds_u)
 	_props = services.props if services != null else PropsScript.new()
-	_arm_diggers(moles)
+	_arm_diggers(can_dig)
 	_build_views()
 
 
-func _arm_diggers(moles: PackedByteArray) -> void:
+func skill_text(who: int, alone: bool) -> String:
+	"""The party panel's digging words for resident `who` (demo_command.gd `add_skill_text`): the long form
+	alone ("Digging 3 · XP 45000/80000"), the short one in a list ("dig 3")."""
+	var skills := works.crew.skills
+	return skills.line_of(who) if alone else skills.short_of(who)
+
+
+static func diggers_of(cast: DemoCastScript) -> PackedByteArray:
+	"""Who can dig, by actor index: every body that fits a standard bore (dig_skills.gd, decision 0208: the
+	body decides, not the species)."""
+	var out := PackedByteArray()
+	for i in cast.actor_count():
+		var actor := cast.actor(i) as DemoActorScript
+		out.append(1 if Rules.fits_bore(Rules.to_u(actor.height_m), Rules.to_u(actor.brain.radius)) else 0)
+	return out
+
+
+func _arm_diggers(diggers: PackedByteArray) -> void:
 	"""Every digger holds the pick while it digs (demo_actor.gd set_tool)."""
-	for i in moles.size():
-		if moles[i] == 1:
+	for i in diggers.size():
+		if diggers[i] == 1:
 			(_cast.actor(i) as DemoActorScript).set_tool(_props.mesh_of(PICK_KEY), pick_fit(_props))
 
 
@@ -227,7 +245,7 @@ func _feed_overlay() -> void:
 	"""Tell the overlay where each widening has reached and which mole is digging at each job (only
 	while it is at the work below -- not while it walks there)."""
 	var jobs := works.jobs
-	for slot in Rules.MAX_TUNNELS:
+	for slot in Rules.MAX_SEGMENTS:
 		var job := jobs.kind[slot] if jobs.has_job(slot) else JobsScript.JOB_NONE
 		var digs := job == JobsScript.JOB_WIDEN or job == JobsScript.JOB_CLEAR or job == JobsScript.JOB_CHAMBER
 		var worker := jobs.worker[slot]
@@ -318,7 +336,7 @@ func _skip_weather() -> void:
 
 func _repair_job() -> int:
 	"""The repair the selected tunnel needs: pumping out a flood, else clearing a fall."""
-	var flooded := actions.has_selection() and _network.closed[actions.selected] == NetworkScript.CLOSED_FLOODED
+	var flooded := actions.has_selection() and _network.closed[actions.selected] == GraphScript.CLOSED_FLOODED
 	return JobsScript.JOB_PUMP if flooded else JobsScript.JOB_CLEAR
 
 
@@ -397,7 +415,8 @@ func refresh_panel() -> void:
 		panel.show_tunnel("", "", "", {})
 		return
 	var slot := actions.selected
-	panel.show_tunnel("Tunnel %d — %s" % [slot + 1, PlanScript.length_text(_network.length_u[slot])],
+	var kind := "ramp, " if _network.seg_kind[slot] == GraphScript.SEG_RAMP else ""
+	panel.show_tunnel("Tunnel %d — %s%s" % [slot + 1, kind, PlanScript.length_text(_network.length_u[slot])],
 		tunnel_text(slot), _repair_label(slot), _enabled_actions(slot))
 
 
@@ -411,7 +430,26 @@ func tunnel_text(slot: int) -> String:
 	var job := works.jobs.label(slot)
 	if not job.is_empty():
 		lines.append("Job: " + job)
+	var pending := job_list_text()
+	if not pending.is_empty():
+		lines.append(pending)
 	return "\n".join(lines)
+
+
+func job_list_text() -> String:
+	"""THE JOB LIST (underground_graph.gd): every dig with work left, in order, by its first tunnel -- e.g.
+	"Digs: Tunnel 4 40%, Tunnel 7 waiting 0%" ("" with none)."""
+	var list := PackedInt32Array()
+	_network.job_list_into(list)
+	if list.is_empty():
+		return ""
+	var parts := PackedStringArray()
+	for p in list:
+		var first := _network.first_of_piece(p)
+		var who := _network.piece_digger[p]
+		var digging := who >= 0 and who < works.resident_count() and works.brain(who).dig_tunnel >= 0
+		parts.append("Tunnel %d %s%d%%" % [first + 1, "" if digging else "waiting ", _network.piece_percent(p)])
+	return "Digs: " + ", ".join(parts)
 
 
 func _fits_text(slot: int) -> String:
@@ -425,9 +463,9 @@ func _hazard_text(slot: int) -> String:
 	"""The tunnel's hazard state in words."""
 	var hazards := works.hazards
 	match _network.closed[slot]:
-		NetworkScript.CLOSED_FLOODED:
+		GraphScript.CLOSED_FLOODED:
 			return "FLOODED — closed until pumped out"
-		NetworkScript.CLOSED_COLLAPSED:
+		GraphScript.CLOSED_COLLAPSED:
 			return "ROOF FALLEN — closed until the fall is cleared"
 	if _network.braced[slot] == 1:
 		return "Safe: braced"
@@ -440,21 +478,22 @@ func _hazard_text(slot: int) -> String:
 func _repair_label(slot: int) -> String:
 	"""The repair button's words for the tunnel's state."""
 	match _network.closed[slot]:
-		NetworkScript.CLOSED_FLOODED:
+		GraphScript.CLOSED_FLOODED:
 			return "Pump out"
-		NetworkScript.CLOSED_COLLAPSED:
+		GraphScript.CLOSED_COLLAPSED:
 			return "Clear the fall"
 	return "Repair"
 
 
 func _enabled_actions(slot: int) -> Dictionary:
 	"""Which of the panel's tunnel actions can be pressed now (a pressed one still says why not)."""
-	var closed := _network.closed[slot] != NetworkScript.CLOSED_NONE
+	var closed := _network.closed[slot] != GraphScript.CLOSED_NONE
 	var busy := works.jobs.has_job(slot)
 	_enabled[PanelScript.ACTION_WIDEN] = not closed and _network.bore[slot] == Rules.BORE_STANDARD
 	_enabled[PanelScript.ACTION_BRACE] = not closed and _network.braced[slot] == 0
 	_enabled[PanelScript.ACTION_LANTERNS] = not closed and _network.lit[slot] == 0
 	_enabled[PanelScript.ACTION_REPAIR] = closed
-	_enabled[PanelScript.ACTION_HOME] = not closed and not busy
-	_enabled[PanelScript.ACTION_CELLAR] = not closed and not busy
+	var ramp := _network.seg_kind[slot] == GraphScript.SEG_RAMP
+	_enabled[PanelScript.ACTION_HOME] = not closed and not busy and not ramp
+	_enabled[PanelScript.ACTION_CELLAR] = not closed and not busy and not ramp
 	return _enabled

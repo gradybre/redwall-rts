@@ -62,7 +62,7 @@ const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoCommandScript := preload("res://demo/control/demo_command.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const TunnelControlScript := preload("res://demo/tunnel/tunnel_control.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const PickScript := preload("res://demo/control/demo_pick.gd")
 const Layout := preload("res://demo/world/world_layout.gd")
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
@@ -271,7 +271,7 @@ func skip_to_next_weather() -> int:
 func _hourly() -> void:
 	"""Once per farm hour: storage providers, tunnel water, the routine jobs, and the alerts."""
 	pantry.refresh_locations()
-	var network: NetworkScript = _cast.space().tunnels
+	var network: GraphScript = _cast.space().tunnels
 	for bed: int in Catalog.BED_COUNT:
 		tunnels.water_of_into(network, bed, _water)
 		sim.set_tunnel_water(bed, _water[0] == 1, _water[1] == 1)

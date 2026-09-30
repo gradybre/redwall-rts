@@ -4,24 +4,26 @@ extends Node
 ##
 ## It owns the pieces the tunnel extensions add, and joins them up:
 ##   weather   demo/weather/demo_weather.gd -- THE demo weather (demo_services.gd), which this only
-##             reads: its surface speed is handed to the tunnel planner (tunnel_network.surface_permille)
-##             every frame, and its rain soaks the wet ground (hazards)
+##             reads: its surface speed is handed to the network's planner (underground_graph
+##             .surface_permille) every frame, and its rain soaks the wet ground (hazards)
 ##   water     demo/village_water.gd -- THE village water adapter (demo_services.gd), over the real
 ##             water map: the ground's wetness, the flood's reach and the routes' water check
 ##   ground    tunnel_ground.gd -- what the village's ground is made of
 ##   stores    tunnel_stores.gd -- THE demo stores (demo_services.gd): wood, stone, planks and finds
 ##   finds     tunnel_finds.gd -- one seeded roll per metre cut
-##   crew      tunnel_crew.gd -- crews, the Foremole's rate and experience
+##   crew      tunnel_crew.gd -- crews, the Foremole's rate, and the digging skill (dig_skills.gd)
 ##   jobs      tunnel_jobs.gd -- upgrades, repairs and chambers
 ##   hazards   tunnel_hazards.gd -- seep and strain, floods and collapses
 ##   chambers  demo/burrow/burrow_chambers.gd -- burrow homes and root cellars
 ##   events    demo/events/demo_events.gd -- floods and fires, and who shelters from them
 ## The player's orders on them are tunnel_actions.gd.
 ##
-## EACH FRAME (`step`, with the frame's demo microseconds -- none while paused): every dig and mole job
-## gets its crew's rate for the next frame; new cuts post their finds, stone and experience; finished
-## jobs take effect; hazards build and strike; walkers entering weak bores strain them; threats come
-## and go. What HAPPENS is said in the tunnel panel's log and posted to the demo's one notice feed
+## EACH FRAME (`step`, with the frame's demo microseconds -- none while paused), for every SEGMENT of the
+## network (underground_graph.gd, decision 0208): every dig and digging job gets its crew's rate for the
+## next frame; new cuts post their finds, stone and skill; finished jobs take effect; hazards build and
+## strike; walkers entering weak bores strain them; threats come and go. A dig that goes on into the next
+## segment of its piece takes its crew along. After the tool adds a piece that SPLITS open segments
+## (`after_splits`), the walkers, chambers, hazards and finds in them follow onto the halves. What HAPPENS is said in the tunnel panel's log and posted to the demo's one notice feed
 ## (demo_notices.gd): a NOTE (`say`), or a WARNING (`warn`) when it asks for a response. What the player's own
 ## ORDERS answer (`tell`: a refusal, a prompt, who is on the job) goes to the log and the party panel's
 ## notice line, beside the selection, not to the feed. Nothing here raises a HUD alert card.
@@ -29,7 +31,7 @@ extends Node
 ## Nothing here allocates per frame: callables are made once, and every column is sized at setup.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const WaterScript := preload("res://demo/village_water.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
@@ -39,6 +41,7 @@ const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
 const CrewScript := preload("res://demo/tunnel/tunnel_crew.gd")
 const JobsScript := preload("res://demo/tunnel/tunnel_jobs.gd")
+const SkillsScript := preload("res://demo/tunnel/dig_skills.gd")
 const HazardsScript := preload("res://demo/tunnel/tunnel_hazards.gd")
 const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
 const EventsScript := preload("res://demo/events/demo_events.gd")
@@ -98,13 +101,14 @@ var found_slot: PackedInt32Array = PackedInt32Array()
 var found_count: int = 0
 
 var _space: CastSpaceScript = null
-var _network: NetworkScript = null
+var _network: GraphScript = null
 var _brains: Array[BrainScript] = []
 var _notice: Callable = Callable()
 var _fits: Array[Callable] = []
 var _seen_cuts: PackedInt32Array = PackedInt32Array()
 var _seen_stone: PackedInt64Array = PackedInt64Array()
 var _seen_open: PackedByteArray = PackedByteArray()
+var _seen_gen: PackedInt32Array = PackedInt32Array()
 var _rock_note: PackedByteArray = PackedByteArray()
 var _creaked: PackedByteArray = PackedByteArray()
 var _prev_bore: PackedInt32Array = PackedInt32Array()
@@ -137,7 +141,7 @@ func setup(space: CastSpaceScript, brains: Array[BrainScript], species: PackedSt
 	hazards = HazardsScript.new(_network)
 	for i in brains.size():
 		crew.set_resident(i, species[i])
-	for slot in Rules.MAX_TUNNELS:
+	for slot in Rules.MAX_SEGMENTS:
 		_fits.append(_fits_bore.bind(slot))
 	_size_columns(brains.size())
 	_network.surface_permille = weather.surface_speed_permille()
@@ -145,14 +149,15 @@ func setup(space: CastSpaceScript, brains: Array[BrainScript], species: PackedSt
 
 func _size_columns(residents: int) -> void:
 	"""Size the per-frame scratch once."""
-	_seen_cuts.resize(Rules.MAX_TUNNELS)
-	_seen_stone.resize(Rules.MAX_TUNNELS)
-	_seen_open.resize(Rules.MAX_TUNNELS)
-	_rock_note.resize(Rules.MAX_TUNNELS)
-	_creaked.resize(Rules.MAX_TUNNELS)
+	_seen_cuts.resize(Rules.MAX_SEGMENTS)
+	_seen_stone.resize(Rules.MAX_SEGMENTS)
+	_seen_open.resize(Rules.MAX_SEGMENTS)
+	_seen_gen.resize(Rules.MAX_SEGMENTS)
+	_rock_note.resize(Rules.MAX_SEGMENTS)
+	_creaked.resize(Rules.MAX_SEGMENTS)
 	_prev_bore.resize(residents)
 	_prev_bore.fill(-1)
-	_progress.resize(NetworkScript.P_SIZE)
+	_progress.resize(GraphScript.P_SIZE)
 	_escape.resize(4)
 
 
@@ -177,9 +182,9 @@ func resident_count() -> int:
 
 
 func crew_active(slot: int) -> bool:
-	"""Whether the Foremole's work on tunnel `slot` goes on: a dig (a DIGGING tunnel always has its
-	digger; one called away is PAUSED), or a mole job with its worker."""
-	if _network.phase[slot] == NetworkScript.PHASE_DIGGING:
+	"""Whether the Foremole's work on segment `slot` goes on: a dig (a DIGGING segment always has its digger;
+	one called away is PAUSED), or a digging job with its worker."""
+	if _network.phase[slot] == GraphScript.PHASE_DIGGING:
 		return true
 	var job := jobs.kind[slot]
 	var mole_work := job == JobsScript.JOB_WIDEN or job == JobsScript.JOB_CLEAR or job == JobsScript.JOB_CHAMBER
@@ -187,10 +192,9 @@ func crew_active(slot: int) -> bool:
 
 
 func crew_along(slot: int) -> float:
-	"""Where the Foremole stands in tunnel `slot`'s bore, in metres: a dig's face (0 through the
-	entrance shaft, which it digs from the surface), or a job's worker's place below (0 until it is
-	down)."""
-	if _network.phase[slot] == NetworkScript.PHASE_DIGGING:
+	"""Where the Foremole stands in segment `slot`'s bore, in metres: a dig's face (0 through an entry
+	shaft, which it digs from the surface), or a job's worker's place below (0 until it is down)."""
+	if _network.phase[slot] == GraphScript.PHASE_DIGGING:
 		return _network.face_m(slot)
 	var lead := jobs.worker[slot]
 	if lead < 0 or not _brains[lead].is_in_bore(slot):
@@ -244,7 +248,7 @@ func step(usec: int) -> void:
 	"""One frame of the works, `usec` demo microseconds long (see EACH FRAME). The weather is not run
 	here: its owner keeps it on the calendar; this only reads it."""
 	_network.surface_permille = weather.surface_speed_permille()
-	for slot in Rules.MAX_TUNNELS:
+	for slot in Rules.MAX_SEGMENTS:
 		_watch_opening(slot)
 		_run_dig(slot)
 		_run_job(slot)
@@ -254,20 +258,27 @@ func step(usec: int) -> void:
 
 
 func _watch_opening(slot: int) -> void:
-	"""A tunnel just opened: survey its hazards, lay out its mouths' lines, and the Foremole says so. A
-	freed slot is forgotten."""
+	"""A segment just opened: survey its hazards, lay out the line at a mouth it opens, take the crew on into
+	the next segment of its piece, and -- the piece done -- the Foremole says so. A freed slot is
+	forgotten; a split half (open when first seen) is surveyed quietly."""
 	var open := _network.is_open(slot)
-	if open == (_seen_open[slot] == 1):
+	var fresh := _network.generation[slot] != _seen_gen[slot]
+	if open == (_seen_open[slot] == 1) and not fresh:
 		return
 	_seen_open[slot] = 1 if open else 0
+	_seen_gen[slot] = _network.generation[slot]
 	if not open:
 		return
 	hazards.survey(slot)
 	for end in 2:
-		var at := _network.mouth(slot, end == 1)
-		var outward := -_network.direction_at(slot, 0.0) if end == 0 else _network.direction_at(slot, _network.length_m(slot))
-		_network.queue.lay_out(2 * slot + end, at, outward, _queue_place_clear)
-	say(CrewScript.LINE_OPEN)
+		var m := _network.mouth_of_end(slot, end == 1)
+		if m >= 0:
+			_network.queue.lay_out(m, _network.mouth_at(m), -_network.mouth_inward(m), _queue_place_clear)
+	var next := _network.next_in_piece(slot)
+	if next >= 0 and _network.phase[next] == GraphScript.PHASE_DIGGING:
+		crew.move_site(slot, next)
+	elif _network.piece_done(_network.piece[slot]) and not fresh:
+		say(CrewScript.LINE_OPEN)
 
 
 func _queue_place_clear(at: Vector2) -> bool:
@@ -280,29 +291,34 @@ func _queue_place_clear(at: Vector2) -> bool:
 func _run_dig(slot: int) -> void:
 	"""A tunnel being dug: its crew's rate for the next frame, the Foremole's word on rock, and the
 	finds, stone and experience of every new cut."""
-	if _network.phase[slot] == NetworkScript.PHASE_FREE:
+	if _network.phase[slot] == GraphScript.PHASE_FREE:
 		_seen_cuts[slot] = 0
 		_seen_stone[slot] = 0
 		return
+	if _network.phase[slot] == GraphScript.PHASE_OPEN and _seen_cuts[slot] >= _network.timeline_count(slot):
+		return
 	var cuts := _network.cut_count(slot)
-	if _network.phase[slot] == NetworkScript.PHASE_DIGGING:
-		var lead := _network.digger[slot]
+	var lead := _network.digger[slot]
+	if _network.phase[slot] == GraphScript.PHASE_DIGGING:
 		var face := _network.quantum_kind(slot, _network.face_quantum(slot))
 		_network.set_rate(slot, crew.rate_permille(slot, lead, 1, face, _fits[slot]))
 		_note_rock(slot, lead, face)
+	var ticks := 0
 	for c in range(_seen_cuts[slot], cuts):
-		_on_cut(slot, c, FindsScript.LAYER_BORE, _network.quantum_kind(slot, c), _network.quantum_point_u(slot, c))
+		var kind := _network.quantum_kind(slot, c)
+		_on_cut(slot, c, FindsScript.LAYER_BORE, kind, _network.quantum_point_u(slot, c))
+		ticks += GroundScript.dig_ticks(kind)
 	if cuts > _seen_cuts[slot]:
-		_stone_and_skill(slot, _network.digger[slot], cuts - _seen_cuts[slot])
+		_stone_and_skill(slot, lead, ticks)
 		_seen_cuts[slot] = cuts
 
 
-func _stone_and_skill(slot: int, lead: int, fresh: int) -> void:
-	"""Stone from the dig's new cuts goes to the stores; the crew gains experience."""
+func _stone_and_skill(slot: int, lead: int, ticks: int) -> void:
+	"""Stone from the dig's new cuts goes to the stores; the crew at the face learns (dig_skills.gd)."""
 	var stone := _network.stone_milli_u(slot)
 	stores.add_stone(stone - _seen_stone[slot])
 	_seen_stone[slot] = stone
-	if crew.credit_quanta(slot, lead, fresh, _fits[slot]):
+	if crew.credit_ticks(slot, lead, ticks, _fits[slot]):
 		say(CrewScript.LINE_SKILL)
 
 
@@ -355,10 +371,11 @@ func _run_job(slot: int) -> void:
 	jobs.rate_permille[slot] = _job_rate(slot, job) if mole_work and jobs.worker[slot] >= 0 else Rules.PERMILLE
 	var before := jobs.posted_cuts[slot]
 	var fresh := jobs.post_cuts(slot)
+	var ticks := 0
 	for c in range(before, before + fresh):
-		_on_job_cut(slot, job, c)
+		ticks += _on_job_cut(slot, job, c)
 	if fresh > 0 and mole_work:
-		crew.credit_quanta(slot, jobs.worker[slot], fresh, _fits[slot])
+		crew.credit_ticks(slot, jobs.worker[slot], ticks, _fits[slot])
 	if jobs.is_done(slot) and jobs.paid[slot] == 1:
 		_finish_job(slot)
 
@@ -373,18 +390,23 @@ func _job_rate(slot: int, job: int) -> int:
 func _widen_face_ground(slot: int) -> int:
 	"""The ground a widening (or clearing) is working through now."""
 	_network.progress_into(slot, jobs.done_ticks(slot), Rules.WIDE_EXTRA_QUANTA, _progress)
-	return _network.quantum_kind(slot, int(_progress[NetworkScript.P_QUANTUM]))
+	return _network.quantum_kind(slot, int(_progress[GraphScript.P_QUANTUM]))
 
 
-func _on_job_cut(slot: int, job: int, c: int) -> void:
-	"""The `c`-th cut of a job: a widening rolls the metre it widens, a chamber the cell it cuts."""
+func _on_job_cut(slot: int, job: int, c: int) -> int:
+	"""The `c`-th cut of a job: a widening rolls the metre it widens, a chamber the cell it cuts. Returns the
+	cut's dig ticks (0 for a job that cuts nothing: a clearing's are counted as dug)."""
 	if job == JobsScript.JOB_WIDEN:
 		var k := c / Rules.WIDE_EXTRA_QUANTA
-		_on_cut(slot, c, FindsScript.LAYER_WIDEN, _network.quantum_kind(slot, k), _network.quantum_point_u(slot, k))
-	elif job == JobsScript.JOB_CHAMBER:
+		var kind := _network.quantum_kind(slot, k)
+		_on_cut(slot, c, FindsScript.LAYER_WIDEN, kind, _network.quantum_point_u(slot, k))
+		return GroundScript.dig_ticks(kind)
+	if job == JobsScript.JOB_CHAMBER:
 		var centre := chambers.chamber_point_u(jobs.chamber[slot])
 		var at := centre + Vector2i((c % 3 - 1) * Rules.QUANTUM_U, (c / 3 - 1) * Rules.QUANTUM_U)
 		_on_cut(slot, c, FindsScript.LAYER_CHAMBER, jobs.chamber_ground[slot], at)
+		return GroundScript.dig_ticks(jobs.chamber_ground[slot])
+	return GroundScript.dig_ticks(GroundScript.LOAM) if job == JobsScript.JOB_CLEAR else 0
 
 
 func _finish_job(slot: int) -> void:
@@ -413,11 +435,12 @@ func _void_job(slot: int) -> void:
 # --- hazards --------------------------------------------------------------------------------
 
 func _run_hazard(slot: int, usec: int) -> void:
-	"""Build tunnel `slot`'s pressures this frame and act on what comes of them."""
+	"""Build segment `slot`'s pressures this frame and act on what comes of them. A stream flood soaks a
+	segment it lies under at either end."""
 	if not _network.is_open(slot):
 		return
 	var flooding := events.active and events.kind == EventsScript.KIND_FLOOD \
-			and (events.covers(_network.mouth(slot, false)) or events.covers(_network.mouth(slot, true)))
+			and (events.covers(_network.end_at(slot, false)) or events.covers(_network.end_at(slot, true)))
 	_act_on(slot, hazards.update(slot, usec, weather.is_wet(), flooding, jobs.has_job(slot)))
 
 
@@ -451,17 +474,62 @@ func _try_collapse(slot: int) -> void:
 
 
 func _empty_bore(slot: int) -> void:
-	"""A tunnel just closed: everyone walking it turns back to the mouth on their side of the closure,
-	and nobody waits in its lines."""
+	"""A segment just closed: everyone walking it turns back to the end on their side of the closure (and on
+	out by another way), and nobody waits in the line at a mouth it opens."""
 	var from_m := Rules.to_m(_network.closed_from_u[slot])
-	var flooded := _network.closed[slot] == NetworkScript.CLOSED_FLOODED
+	var flooded := _network.closed[slot] == GraphScript.CLOSED_FLOODED
 	for b in _brains:
 		if not b.is_in_bore(slot):
 			continue
 		var along := b.bore_along_m()
 		var to_end := along > _network.length_m(slot) * 0.5 if flooded else along > from_m
 		b.turn_back(slot, _network.length_m(slot) if to_end else 0.0)
-	_network.queue.clear_mouths_of(slot)
+	for end in 2:
+		if _network.mouth_of_end(slot, end == 1) >= 0:
+			_network.queue.clear_mouth(_network.mouth_of_end(slot, end == 1))
+
+
+func after_splits() -> void:
+	"""The tool just added a piece that split open segments (underground_graph.gd `last_splits`): the walkers
+	in them, the chambers off them, their hazards and their finds follow onto the halves; and each half's
+	dig is taken as seen as it stands, so a new half's cuts are not counted again (its stone, its finds)."""
+	var splits := _network.last_splits
+	for i in splits.size() / 3:
+		var old := splits[3 * i]
+		var tail := splits[3 * i + 1]
+		var split_u := splits[3 * i + 2]
+		for b in _brains:
+			b.repoint_split(old, tail, Rules.to_m(split_u))
+		chambers.repoint_split(old, tail, split_u)
+		hazards.split(old, tail)
+		_rebaseline(old)
+		_rebaseline(tail)
+	_repoint_finds(splits)
+
+
+func _rebaseline(slot: int) -> void:
+	"""Take segment `slot`'s dig as seen as it stands: its cuts and their stone already counted."""
+	_seen_cuts[slot] = _network.cut_count(slot)
+	_seen_stone[slot] = _network.stone_milli_u(slot)
+
+
+func _repoint_finds(splits: PackedInt32Array) -> void:
+	"""Each find cut in a segment these splits cut (`last_splits` triples) now lies in whichever of its
+	halves passes nearest its place -- however many times one piece split the same segment."""
+	var halves := PackedInt32Array()
+	for i in splits.size() / 3:
+		for k in 2:
+			if not halves.has(splits[3 * i + k]):
+				halves.append(splits[3 * i + k])
+	for k in mini(found_count, FOUND_RING):
+		if not halves.has(found_slot[k]):
+			continue
+		var at := Vector2(Rules.to_m(found_x_u[k]), Rules.to_m(found_z_u[k]))
+		var best := found_slot[k]
+		for half in halves:
+			if _network.distance_to_route(half, at) < _network.distance_to_route(best, at):
+				best = half
+		found_slot[k] = best
 
 
 func _watch_crossings() -> void:

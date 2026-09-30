@@ -25,8 +25,9 @@ extends RefCounted
 ##   * STOOP: a body may lower itself to STOOP_PERMILLE of its standing height in a bore. Fit is
 ##     2 * radius <= bore width AND ceil(height * stoop) <= bore height (MOVE-REQ-005 names the
 ##     failed condition). That admits mice, moles and squirrels and refuses otters and badgers.
-##   * Route limits (points, length, the hole's clearance, the gap between points) and who digs
-##     (moles).
+##   * Route limits (points, length, the hole's clearance, the gap between points). Who digs is the
+##     digging SKILL now (dig_skills.gd, decision 0208: anybeast who fits a bore; moles start skilled);
+##     `is_digger` names the species that starts with it.
 ##   * A bore passes under open ground, trees and props, but never under a building or the well:
 ##     no leg may come within half a bore of a building's footprint circles (UNDER BUILDINGS).
 ##   * A mouth keeps SPOT_CLEAR_U clear of every work spot and every other tunnel's mouth, so no one
@@ -86,7 +87,8 @@ const MIN_LENGTH_U: int = 2 * QUANTUM_U
 const MAX_LENGTH_U: int = 64 * QUANTUM_U
 ## Entrance, up to six bends, exit.
 const MAX_POINTS: int = 8
-const MAX_TUNNELS: int = 8
+## The species that starts with the digging skill (dig_skills.gd; `is_digger`, a name kept for the verbatim
+## rules tests): anybeast who fits a bore may dig (decision 0208).
 const DIGGER_SPECIES: String = "mole"
 ## Presentation only: how deep the bore's floor runs (BORE_FLOOR_DEPTH_U in metres).
 const BORE_FLOOR_DEPTH_M: float = 1.25
@@ -143,7 +145,7 @@ const REASONS: Array[String] = [
 	"a tunnel can be at most 64 m long",
 	"no more tunnels can be dug in this demo (8 at most)",
 	"the mole cannot reach that entrance",
-	"only a mole can dig tunnels -- select the mole",
+	"nobody selected can dig -- select someone who fits a bore (moles dig best)",
 	"the mole is already digging a tunnel",
 	"each point must be at least 0.25 m from the one before",
 	"a tunnel cannot pass under a building or the well",
@@ -306,7 +308,7 @@ static func loaded_width_u(height_u: int, radius_u: int) -> int:
 
 
 static func is_digger(species: String) -> bool:
-	"""Whether residents of this species dig tunnels (demo: moles)."""
+	"""Whether residents of this species start with the digging skill (demo: moles; dig_skills.gd)."""
 	return species.to_lower() == DIGGER_SPECIES
 
 
@@ -368,6 +370,13 @@ static func validate_route(points_u: PackedInt32Array, count: int, bounds_u: Rec
 	"""REFUSE_NONE, or the first reason the whole route is refused: its point count, a point outside
 	the bounds or on top of the last, a mouth inside an obstacle or on a spot, a leg under a
 	building (`under_u`), or its length. Bends may pass under anything else."""
+	return validate_piece_route(points_u, count, bounds_u, circles_u, spots_u, under_u, true, true)
+
+
+static func validate_piece_route(points_u: PackedInt32Array, count: int, bounds_u: Rect2i, circles_u: PackedInt32Array,
+		spots_u: PackedInt32Array, under_u: PackedInt32Array, start_mouth: bool, end_mouth: bool) -> int:
+	"""`validate_route` for a piece of the network (decision 0208), whose start or end may join the network
+	instead of opening a mouth: the mouth checks are made only at an end that opens one."""
 	if count < 2:
 		return REFUSE_TOO_FEW_POINTS
 	if count > MAX_POINTS:
@@ -377,7 +386,7 @@ static func validate_route(points_u: PackedInt32Array, count: int, bounds_u: Rec
 			return REFUSE_OUT_OF_BOUNDS
 		if k > 0 and points_too_close(points_u, k):
 			return REFUSE_REPEATED_POINT
-	var mouths := _mouth_reason(points_u, count, circles_u, spots_u)
+	var mouths := _mouth_reason(points_u, count, circles_u, spots_u, start_mouth, end_mouth)
 	if mouths != REFUSE_NONE:
 		return mouths
 	for k in range(1, count):
@@ -387,14 +396,15 @@ static func validate_route(points_u: PackedInt32Array, count: int, bounds_u: Rec
 
 
 static func _mouth_reason(points_u: PackedInt32Array, count: int, circles_u: PackedInt32Array,
-		spots_u: PackedInt32Array) -> int:
-	"""REFUSE_NONE, or why the entrance or exit may not open where it is."""
+		spots_u: PackedInt32Array, start_mouth: bool, end_mouth: bool) -> int:
+	"""REFUSE_NONE, or why the entrance or exit (where the route opens one) may not open where it is."""
 	var last := 2 * count - 2
-	if mouth_blocked(points_u[0], points_u[1], circles_u):
+	if start_mouth and mouth_blocked(points_u[0], points_u[1], circles_u):
 		return REFUSE_ENTRANCE_BLOCKED
-	if mouth_blocked(points_u[last], points_u[last + 1], circles_u):
+	if end_mouth and mouth_blocked(points_u[last], points_u[last + 1], circles_u):
 		return REFUSE_EXIT_BLOCKED
-	if mouth_blocked(points_u[0], points_u[1], spots_u) or mouth_blocked(points_u[last], points_u[last + 1], spots_u):
+	if (start_mouth and mouth_blocked(points_u[0], points_u[1], spots_u)) \
+			or (end_mouth and mouth_blocked(points_u[last], points_u[last + 1], spots_u)):
 		return REFUSE_ON_SPOT
 	return REFUSE_NONE
 
@@ -517,3 +527,181 @@ static func stoop_drop_u(height_u: int, crown_u: int) -> int:
 	STOOP_CLEAR_U under it, but at most STOOP_MAX_PERMILLE of its height (see the header)."""
 	var need := height_u - (crown_u - STOOP_CLEAR_U)
 	return clampi(need, 0, height_u * STOOP_MAX_PERMILLE / PERMILLE)
+
+
+# --- the network's connection rules (decision 0208) -------------------------------------------
+##
+## THE NETWORK (underground_graph.gd) joins bores at JUNCTIONS. Its connection rules are DEMO VALUES
+## (design docs/design/underground_revamp.md §3 "Connection rules"), checked in integers on the route
+## polylines -- the drawn curve (bore_curve.gd) only rounds their corners:
+##   * JUNCTION_GAP_U: a junction stands at least 1.5 m from every other node (a junction, a ramp's foot,
+##     a mouth), so no two hubs overlap.
+##   * MEETING: a branch meets its host, and a crossing crosses it, at 40 degrees or more either way; at an
+##     existing junction a new branch keeps 40 degrees from every branch already there. Compared on unit
+##     directions DIR_SCALE long: |sin| >= MEET_SIN_PERMILLE, and cos <= MEET_COS_PERMILLE.
+##   * PILLAR_U: voids that are not joined keep 1 m of solid earth between them in plan -- centreline to
+##     centreline, at least both half-widths and the pillar (`pillar_gap_u`). Within JOIN_ZONE_U of a node
+##     two bores share they are joined there, and exempt. Checked every PILLAR_STEP_U of the new route.
+##   * BEND_RADIUS_U: the drawn centreline turns no tighter than 1 m. A corner's fillet reaches
+##     `fillet_reach_u` along each leg, and must fit in FILLET_SHARE_PERMILLE of the shorter one.
+##   * A mouth's RAMP runs straight for RAMP_RUN_U: the first bend stands beyond it.
+##   * JUNCTION_DEGREE: at most four bores meet at one junction (its hub has four openings).
+##   * LEVELS: level 1's floor is BORE_FLOOR_DEPTH_U down; every piece the tool lays is dug on it
+##     (BUILDABLE_LEVEL). Level 2 (P6) would lie LEVEL_2_FLOOR_DEPTH_U down -- DEC-040's candidate 4 m
+##     spacing, a demo value -- and is named for the network's level column, not yet dug.
+## Their refusals are LINK_BASE + k, worded in LINK_REASONS (MOVE-REQ-018: in text, not colour alone); a
+## "%s" in one is the tunnel it names (`link_text`).
+
+## The network's capacity (design §3's demo caps): nodes, bores (segments), surface mouths, pieces.
+const MAX_NODES: int = 96
+const MAX_SEGMENTS: int = 96
+const MAX_MOUTHS: int = 16
+## A piece has at least one segment, so a piece row per segment row: the pieces never run out first (a
+## finished piece keeps its row -- its segments still name it).
+const MAX_PIECES: int = MAX_SEGMENTS
+const JUNCTION_GAP_U: int = 1536
+const DIR_SCALE: int = 1024
+const MEET_SIN_PERMILLE: int = 642
+const MEET_COS_PERMILLE: int = 766
+const PILLAR_U: int = 1024
+const JOIN_ZONE_U: int = 3200
+const PILLAR_STEP_U: int = 256
+const BEND_RADIUS_U: int = 1024
+const FILLET_SHARE_PERMILLE: int = 450
+const JUNCTION_DEGREE: int = 4
+const LEVEL_SURFACE: int = 0
+const LEVEL_1: int = 1
+const LEVEL_2: int = 2
+const BUILDABLE_LEVEL: int = LEVEL_1
+const LEVEL_2_FLOOR_DEPTH_U: int = 5376
+## A turn this near straight back has no fillet that fits anywhere.
+const TURN_BACK_SLACK: int = 64
+
+const LINK_BASE: int = 100
+const REFUSE_NEAR_NODE: int = 100
+const REFUSE_SHALLOW_MEETING: int = 101
+const REFUSE_PILLAR: int = 102
+const REFUSE_SHALLOW_CROSSING: int = 103
+const REFUSE_TIGHT_BEND: int = 104
+const REFUSE_RAMP_BEND: int = 105
+const REFUSE_JOIN_RAMP: int = 106
+const REFUSE_JUNCTION_FULL: int = 107
+const REFUSE_HOST_BUSY: int = 108
+const REFUSE_NETWORK_FULL: int = 109
+const REFUSE_SELF_PILLAR: int = 110
+const REFUSE_SAME_NODE: int = 111
+const LINK_REASONS: Array[String] = [
+	"too near a junction, a ramp's foot or a mouth: keep 1.5 m from it",
+	"tunnels meet at 40° or more: come at it more squarely",
+	"it would break into %s: join it instead, or keep 1 m of earth between them",
+	"it would cross %s at under 40°: cross it more squarely",
+	"too sharp a bend: a tunnel turns no tighter than a 1 m radius",
+	"a mouth's ramp runs straight for 4 m: put the first bend further in",
+	"a ramp cannot be joined: join the tunnel below it",
+	"four tunnels meet there already",
+	"%s is being dug, worked on or is closed: join it once it is open and quiet",
+	"the tunnel network is full in this demo (96 bores, 96 nodes, 16 mouths)",
+	"it would run into itself: keep 1 m of earth between its turns",
+	"a tunnel cannot start and end at the same place",
+]
+
+
+static func link_text(code: int, name: String) -> String:
+	"""The words for any refusal code: a route's (REFUSE_*) or the network's (LINK_BASE and up), with
+	`name` -- the tunnel it concerns -- where the words name one."""
+	if code < LINK_BASE:
+		return reason_text(code)
+	var words := LINK_REASONS[code - LINK_BASE]
+	return words % name if words.contains("%s") else words
+
+
+static func unit_of(dx: int, dz: int) -> Vector2i:
+	"""The direction (dx, dz) as an integer vector DIR_SCALE long (truncated); zero stays zero."""
+	var length := isqrt(dx * dx + dz * dz)
+	if length == 0:
+		return Vector2i.ZERO
+	return Vector2i(dx * DIR_SCALE / length, dz * DIR_SCALE / length)
+
+
+static func meets_squarely(a: Vector2i, b: Vector2i) -> bool:
+	"""Whether two directions (any length) cross at the MEETING angle or more, either way round."""
+	var ua := unit_of(a.x, a.y)
+	var ub := unit_of(b.x, b.y)
+	var cross := absi(ua.x * ub.y - ua.y * ub.x)
+	return cross * PERMILLE >= MEET_SIN_PERMILLE * DIR_SCALE * DIR_SCALE
+
+
+static func branches_apart(a: Vector2i, b: Vector2i) -> bool:
+	"""Whether two branches leaving one junction (directions away from it) keep the MEETING angle apart."""
+	var ua := unit_of(a.x, a.y)
+	var ub := unit_of(b.x, b.y)
+	return (ua.x * ub.x + ua.y * ub.y) * PERMILLE <= MEET_COS_PERMILLE * DIR_SCALE * DIR_SCALE
+
+
+static func fillet_reach_u(into: Vector2i, onward: Vector2i) -> int:
+	"""How far along each leg a corner's fillet reaches (u) for its tightest radius to be BEND_RADIUS_U,
+	turning from `into` to `onward`: R tan(t/2) / cos(t/2) = R sqrt(2 (1 - cos t)) / (1 + cos t), the
+	fillet bore_curve.gd draws. 0 straight on; MAX_LENGTH_U when it turns (almost) straight back."""
+	var ua := unit_of(into.x, into.y)
+	var ub := unit_of(onward.x, onward.y)
+	var scale := DIR_SCALE * DIR_SCALE
+	var c := ua.x * ub.x + ua.y * ub.y
+	if c <= -scale + TURN_BACK_SLACK * DIR_SCALE:
+		return MAX_LENGTH_U
+	return BEND_RADIUS_U * isqrt(2 * (scale - c) * scale) / (scale + c)
+
+
+static func bend_ok(points_u: PackedInt32Array, k: int) -> bool:
+	"""Whether corner `k` (0 < k < last) of a route bends no tighter than BEND_RADIUS_U: its fillet's reach
+	fits in FILLET_SHARE_PERMILLE of the shorter leg beside it."""
+	var into := Vector2i(points_u[2 * k] - points_u[2 * k - 2], points_u[2 * k + 1] - points_u[2 * k - 1])
+	var onward := Vector2i(points_u[2 * k + 2] - points_u[2 * k], points_u[2 * k + 3] - points_u[2 * k + 1])
+	var shorter := mini(isqrt(leg_squared_u(points_u, k)), isqrt(leg_squared_u(points_u, k + 1)))
+	return fillet_reach_u(into, onward) * PERMILLE <= FILLET_SHARE_PERMILLE * shorter
+
+
+static func point_leg_u(p: Vector2i, a: Vector2i, b: Vector2i) -> int:
+	"""The distance (u) from P to leg A-B: to the nearer end beyond either, else across it (the cross
+	product over the leg's floored length, so no product leaves int64)."""
+	var ab := b - a
+	var ap := p - a
+	var length_sq := ab.x * ab.x + ab.y * ab.y
+	var along := ab.x * ap.x + ab.y * ap.y
+	if length_sq == 0 or along <= 0:
+		return isqrt(ap.x * ap.x + ap.y * ap.y)
+	if along >= length_sq:
+		var bp := p - b
+		return isqrt(bp.x * bp.x + bp.y * bp.y)
+	return absi(ab.x * ap.y - ab.y * ap.x) / isqrt(length_sq)
+
+
+static func _turn_sign(a: Vector2i, b: Vector2i, p: Vector2i) -> int:
+	"""Which side of the line A->B point P lies: 1 left, -1 right, 0 on it."""
+	return signi((b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x))
+
+
+static func legs_cross(a: Vector2i, b: Vector2i, c: Vector2i, d: Vector2i) -> bool:
+	"""Whether legs A-B and C-D cross properly: each one's ends on opposite sides of the other's line
+	(touching at an end is not a crossing)."""
+	return _turn_sign(a, b, c) * _turn_sign(a, b, d) < 0 and _turn_sign(c, d, a) * _turn_sign(c, d, b) < 0
+
+
+static func crossing_point(a: Vector2i, b: Vector2i, c: Vector2i, d: Vector2i) -> Vector2i:
+	"""Where legs A-B and C-D cross (u, truncated), for legs `legs_cross` says do."""
+	var r := b - a
+	var s := d - c
+	var den := r.x * s.y - r.y * s.x
+	var num := (c.x - a.x) * s.y - (c.y - a.y) * s.x
+	return Vector2i(a.x + r.x * num / den, a.y + r.y * num / den)
+
+
+static func pillar_gap_u(bore_a: int, bore_b: int) -> int:
+	"""The least centreline gap (u) between two unjoined bores of these classes: both half-widths and the
+	pillar of earth between them."""
+	return BORE_WIDTHS_U[bore_a] / 2 + BORE_WIDTHS_U[bore_b] / 2 + PILLAR_U
+
+
+static func level_floor_depth_u(level: int) -> int:
+	"""How far below the ground a level's floor lies (u): the surface 0, level 1 the bores' depth, level 2
+	the candidate (see LEVELS)."""
+	return [0, BORE_FLOOR_DEPTH_U, LEVEL_2_FLOOR_DEPTH_U][clampi(level, LEVEL_SURFACE, LEVEL_2)]

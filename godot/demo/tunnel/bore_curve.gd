@@ -2,17 +2,22 @@ extends RefCounted
 ## The drawn centreline of a swept bore (decision 0207; design docs/design/underground_revamp.md §6
 ## "Bores"). Presentation only.
 ##
-## A tunnel's route is a polyline (tunnel_network.gd). A tube swept round a sharp corner would fold its
+## A segment's route is a polyline (underground_graph.gd). A tube swept round a sharp corner would fold its
 ## inner wall over itself, so the DRAWN centreline rounds each corner with a symmetric quadratic fillet.
 ## Such a fillet is tightest at its middle, where its radius of curvature is r * cos(turn / 2) for a
 ## tangent length r * tan(turn / 2); so r is chosen as `bend_radius` / cos(turn / 2), which keeps the
-## tightest radius at the bore's widest reach (jitter included) and the inner wall unfolded. A fillet
-## never takes more than FILLET_LEG_SHARE of either leg: a corner too sharp for its short legs is rounded
-## as far as they allow, and may still fold (P2's curve rules own bend radii).
+## tightest radius at the bore's widest reach (jitter included) -- and at least the network's 1 m
+## (tunnel_rules.gd BEND_RADIUS_U, decision 0208) -- and the inner wall unfolded. A fillet never takes more
+## than FILLET_LEG_SHARE of either leg; the dig tool refuses a corner whose 1 m fillet would not fit
+## (tunnel_rules.gd `bend_ok`), so only a widened bore's wider fillet can still be cut short.
 ##
-## ONE CURVE PER TUNNEL (`of`): the bore's rings, its stones and roots, the walkers in it, its braces and
+## Segments meet at nodes: a ramp's foot joins two straight legs in line, and a junction is covered by its
+## hub (bore_view.gd), so a curve is filleted only at its own corners and runs straight into its ends.
+##
+## ONE CURVE PER SEGMENT (`of`): the bore's rings, its stones and roots, the walkers in it, its braces and
 ## lanterns all stand on the same drawn centreline, so nobody walks in a wall at a corner. It is cached per
-## network and slot, rebuilt when the tunnel's generation, class or route changes.
+## network and segment, rebuilt when the segment's generation, class or route changes (a split changes its
+## route).
 ##
 ## `along` is the ROUTE's distance (the one walkers, dig faces and lanterns are placed by), so ring k of
 ## a bore sits at the same `along` as a walker there. Sampling keeps a cursor on the legs: forward samples
@@ -25,8 +30,8 @@ const BoreMeshScript := preload("res://demo/tunnel/bore_mesh.gd")
 const FILLET_LEG_SHARE: float = 0.45
 ## Clearance past the bore's widest jittered reach at the fillet's tightest point.
 const BEND_MARGIN_M: float = 0.05
-## Curves kept per network (a slot each).
-const SLOTS: int = Rules.MAX_TUNNELS
+## Curves kept per network (a segment each).
+const SLOTS: int = Rules.MAX_SEGMENTS
 
 static var _shared: Dictionary = {}
 
@@ -41,14 +46,14 @@ var _stamp: PackedInt64Array = PackedInt64Array([-1, -1, -1, -1])
 
 static func bend_radius(bore: int) -> float:
 	"""The tightest a fillet may bend a bore of class `bore` (m): its widest jittered half-width and a
-	margin (bore_mesh.gd)."""
+	margin (bore_mesh.gd), and never under the network's bend radius (tunnel_rules.gd BEND_RADIUS_U)."""
 	var widest := BoreMeshScript.FLOOR_HALF_M[bore] * BoreMeshScript.BULGE * (1.0 + BoreMeshScript.RING_WIDTH_JITTER)
-	return widest + BoreMeshScript.WALL_JITTER_M + BEND_MARGIN_M
+	return maxf(widest + BoreMeshScript.WALL_JITTER_M + BEND_MARGIN_M, Rules.to_m(Rules.BEND_RADIUS_U))
 
 
 static func of(network: RefCounted, slot: int) -> RefCounted:
-	"""The drawn centreline of tunnel `slot` in `network` (tunnel_network.gd), shared and kept up to date
-	(see ONE CURVE PER TUNNEL)."""
+	"""The drawn centreline of segment `slot` in `network` (underground_graph.gd), shared and kept up to date
+	(see ONE CURVE PER SEGMENT)."""
 	var key := network.get_instance_id() * SLOTS + slot
 	var curve: RefCounted = _shared.get(key)
 	if curve == null:
@@ -61,7 +66,7 @@ static func of(network: RefCounted, slot: int) -> RefCounted:
 
 
 func follow(network: RefCounted, slot: int) -> void:
-	"""Rebuild from tunnel `slot`'s route when it changed since the last build (see ONE CURVE PER TUNNEL)."""
+	"""Rebuild from segment `slot`'s route when it changed since the last build (see ONE CURVE PER SEGMENT)."""
 	var generation: int = network.generation[slot]
 	var bore: int = network.bore[slot]
 	var count: int = network.point_count[slot]

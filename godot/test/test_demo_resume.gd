@@ -9,7 +9,7 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const TaskScript := preload("res://demo/tunnel/tunnel_task.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 
 const DT: float = 1.0 / 60.0
 const BODY_M: float = 0.25
@@ -157,28 +157,31 @@ func test_work_done_with_nothing_kept_is_a_release() -> void:
 
 
 func test_a_dig_called_away_is_resumed() -> void:
-	"""A mole called away from a dig with progress leaves the tunnel paused and keeps it; its next work
+	"""A mole called away from a dig with progress leaves the segment paused and keeps it; its next work
 	done sends it back to dig the same tunnel. One called away before a tick was dug keeps nothing."""
 	var space := _space()
 	var mole := _brain(space)
-	var ref := PackedInt32Array([-1, 0])
-	assert_true(space.tunnels.add_into(PackedInt32Array([0, 4096, 6144, 4096]), 2, mole.index, ref), "a tunnel")
+	var ref := PackedInt32Array([-1, 0, -1])
+	# A 12 m mouth-to-mouth tunnel (the shortest is 8 m: two 4 m ramps); its first segment, the entrance
+	# ramp, is the one dug, left and resumed.
+	assert_true(space.tunnels.add_into(PackedInt32Array([0, 4096, 12288, 4096]), 2, mole.index, ref), "a tunnel")
 	mole.order_dig(ref[0], ref[1])
 	space.tunnels.advance(ref[0], ref[1], 2000000)
 	mole.order_move(Vector2(-2.0, -2.0))
-	assert_equal(space.tunnels.phase[ref[0]], NetworkScript.PHASE_PAUSED, "paused with its progress")
+	assert_equal(space.tunnels.phase[ref[0]], GraphScript.PHASE_PAUSED, "paused with its progress")
 	assert_equal(mole.unfinished_labels(), PackedStringArray(["Dig tunnel %d" % (ref[0] + 1)]), "kept")
 	mole.work_done()
 	assert_equal(mole.order, BrainScript.ORDER_DIG, "digging again")
 	assert_equal(mole.dig_tunnel, ref[0], "the same tunnel")
-	assert_equal(space.tunnels.phase[ref[0]], NetworkScript.PHASE_DIGGING, "resumed")
-	var fresh := PackedInt32Array([-1, 0])
-	assert_true(space.tunnels.add_into(PackedInt32Array([-8192, -4096, -4096, -4096]), 2, mole.index, fresh), "another")
+	assert_equal(space.tunnels.phase[ref[0]], GraphScript.PHASE_DIGGING, "resumed")
+	var fresh := PackedInt32Array([-1, 0, -1])
+	assert_true(space.tunnels.add_into(PackedInt32Array([-16384, -4096, -4096, -4096]), 2, mole.index, fresh), "another")
 	mole.order_dig(fresh[0], fresh[1])
 	assert_equal(mole.unfinished_labels(), PackedStringArray(["Dig tunnel %d" % (ref[0] + 1)]),
 		"leaving the first dig for the second keeps the first")
 	mole.order_move(Vector2(-2.0, -2.0))
-	assert_equal(mole.unfinished_labels().size(), 1, "the second had nothing dug: not kept (its slot was freed)")
+	assert_equal(mole.unfinished_labels().size(), 1, "the second had nothing dug: not kept (its piece was dropped)")
+	assert_equal(space.tunnels.phase[fresh[0]], GraphScript.PHASE_FREE, "the second piece's first segment freed")
 
 
 func test_no_job_is_taken_up_in_the_water() -> void:
@@ -199,8 +202,8 @@ func test_a_kept_dig_does_not_keep_its_brain_alive() -> void:
 	kept is freed once nothing else holds it."""
 	var space := _space()
 	var mole := _brain(space)
-	var ref := PackedInt32Array([-1, 0])
-	space.tunnels.add_into(PackedInt32Array([0, 4096, 6144, 4096]), 2, mole.index, ref)
+	var ref := PackedInt32Array([-1, 0, -1])
+	space.tunnels.add_into(PackedInt32Array([0, 4096, 12288, 4096]), 2, mole.index, ref)
 	mole.order_dig(ref[0], ref[1])
 	space.tunnels.advance(ref[0], ref[1], 2000000)
 	mole.order_move(Vector2(-2.0, -2.0))

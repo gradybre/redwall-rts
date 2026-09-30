@@ -379,11 +379,14 @@ func test_the_notice_line_is_each_resident_s_own() -> void:
 
 
 func test_one_resident_s_orders_are_listed_with_the_gated_ones_explained() -> void:
-	"""Everybeast moves, farms, clears spoil and works the woods; only moles dig; only otters dive; the
-	badger wades only, breaks rock and needs a widened bore; the beaver gnaws; each gate says why."""
+	"""Everybeast moves, farms, clears spoil and works the woods; anybeast who fits a standard bore digs,
+	moles as skilled diggers (decision 0208); only otters dive; the badger wades only, breaks rock and
+	needs a widened bore; the beaver gnaws; each gate says why. A standard bore fits a body at most 1 m
+	wide (2 x radius) and 1 m tall stooped to 85% (tunnel_rules.gd fit_refusal): up to ~1.176 m tall."""
 	var mole: PackedStringArray = AbilitiesScript.lines_for("Mole", 0.9, 0.2, true)
 	assert_equal(mole[0], AbilitiesScript.HEADING, "a heading")
-	assert_true(mole.has(AbilitiesScript.CAN + AbilitiesScript.DIG_LINE), "the mole digs")
+	assert_true(mole.has(AbilitiesScript.CAN + AbilitiesScript.SKILLED_DIG_LINE), "the mole digs, skilled")
+	assert_false(mole.has(AbilitiesScript.CAN + AbilitiesScript.DIG_LINE), "not the unskilled line as well")
 	assert_false(mole.has(AbilitiesScript.CANNOT + AbilitiesScript.NO_DIG_LINE), "and is not told it can't")
 	assert_true(mole.has(AbilitiesScript.CAN + AbilitiesScript.SWIM_LINE), "and swims")
 	var badger: PackedStringArray = AbilitiesScript.lines_for("Badger", 2.55, 0.56, true)
@@ -396,8 +399,12 @@ func test_one_resident_s_orders_are_listed_with_the_gated_ones_explained() -> vo
 	assert_true(otter.has(AbilitiesScript.CANNOT + AbilitiesScript.NO_BORE_LINE), "too tall for a standard bore")
 	var mouse: PackedStringArray = AbilitiesScript.lines_for("Mouse", 1.0, 0.22, false)
 	assert_true(mouse.has(AbilitiesScript.CAN + AbilitiesScript.BORE_LINE), "a mouse fits a bore")
+	assert_true(mouse.has(AbilitiesScript.CAN + AbilitiesScript.DIG_LINE), "so a mouse (1.0 m) digs, unskilled")
+	assert_false(mouse.has(AbilitiesScript.CANNOT + AbilitiesScript.NO_DIG_LINE), "and is not told it can't")
+	assert_true(otter.has(AbilitiesScript.CANNOT + AbilitiesScript.NO_DIG_LINE), "the otter (1.49 m) cannot dig")
 	assert_true(mouse.has(AbilitiesScript.CANNOT + AbilitiesScript.NO_CARRY_LINE), "no carry walk: said")
 	var beaver: PackedStringArray = AbilitiesScript.lines_for("Beaver", 1.4, 0.31, true)
+	assert_true(beaver.has(AbilitiesScript.CANNOT + AbilitiesScript.NO_DIG_LINE), "the beaver (1.4 m) cannot dig")
 	assert_true(beaver.has(AbilitiesScript.CAN + AbilitiesScript.GNAW_LINE), "the beaver gnaws")
 	assert_false(beaver.has(AbilitiesScript.CAN + AbilitiesScript.DIVE_LINE), "but does not dive (a fast swimmer)")
 	assert_true(beaver.has(AbilitiesScript.CAN + AbilitiesScript.SWIM_LINE), "it swims")
@@ -414,7 +421,7 @@ func test_the_panel_lists_one_resident_s_orders_and_makes_room() -> void:
 	var panel := PanelScript.new()
 	panel.build()
 	var lines := PackedStringArray(["Orders (right-click):", "• Move or work — the ground, a work spot",
-		"× Digging: only moles dig", "• Water: swim, dive — deep water"])
+		"× Digging: too big for a bore", "• Water: swim, dive — deep water"])
 	var one: Array[Dictionary] = [{"name": "Otter fisher", "species": "Otter", "state": "holding",
 		"skills": "Felling 0\nSwims fast, dives", "abilities": lines}]
 	panel.show_party(one)
@@ -449,9 +456,9 @@ func test_the_orders_fold_into_one_paragraph() -> void:
 	"""Folded: the heading, then each line without what to right-click, the bullets dropped and the
 	gates kept."""
 	var lines := PackedStringArray(["Orders (right-click):", "• Move or work — the ground, a work spot",
-		"× Digging: only moles dig", "• Water: swim, dive — deep water"])
+		"× Digging: too big for a bore", "• Water: swim, dive — deep water"])
 	assert_equal(PanelScript.compact_orders(lines),
-		"Orders (right-click): Move or work · × Digging: only moles dig · Water: swim, dive", "folded")
+		"Orders (right-click): Move or work · × Digging: too big for a bore · Water: swim, dive", "folded")
 	assert_equal(PanelScript.compact_orders(PackedStringArray(["Orders (right-click):"])), "", "nothing to fold")
 
 
@@ -467,7 +474,9 @@ func test_the_dig_button_says_what_it_does_and_its_key() -> void:
 	var panel := PanelScript.new()
 	panel.build()
 	assert_equal(panel.dig_button().tooltip_text, PanelScript.DIG_TIP, "the tip")
-	assert_true(PanelScript.DIG_TIP.begins_with("Dig tunnel (T)"), "names the key")
+	assert_true(PanelScript.DIG_TIP.begins_with("Dig tunnel (B)"), "names the key (B opens the Dig tool)")
+	assert_equal(panel.dig_button().text, PanelScript.DIG_BUTTON, "the button's words")
+	assert_equal(PanelScript.DIG_BUTTON, "Dig tunnel (B)", "with the key")
 	panel.free()
 
 

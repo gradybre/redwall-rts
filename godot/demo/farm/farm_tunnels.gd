@@ -1,30 +1,33 @@
 extends RefCounted
 ## What the moles' tunnels do for the farm. Decision 0196. Reads the tunnel network
-## (demo/tunnel/tunnel_network.gd) through its public columns and never writes to it.
+## (demo/tunnel/underground_graph.gd) through its public columns and never writes to it.
 ##
-## DRAINAGE AND IRRIGATION. A FINISHED tunnel whose bore passes under a bed drains it -- farm_sim.gd
-## pulls its moisture toward its crop's low side each farm day. A finished tunnel with a mouth at a
-## water edge carries water instead, and IRRIGATES every bed it passes under: moisture is pulled
-## toward the band's middle, up or down. "At a water edge" is `water_edge`, the one water query
+## DRAINAGE AND IRRIGATION. A FINISHED segment of the network whose bore passes under a bed drains it --
+## farm_sim.gd pulls its moisture toward its crop's low side each farm day. Water let in at a mouth at a
+## water edge runs on through the open bores joined to it (decision 0208: the network is one), so a
+## segment reached through usable bores from such a mouth carries water instead, and IRRIGATES every bed
+## it passes under: moisture is pulled toward the band's middle, up or down. "At a water edge" is `water_edge`, the one water query
 ## (demo/village_water.gd `edge_query()`, the village's one water adapter: dry ground near the real
 ## stream's or pond's waterline). "Passes under" is an INTEGER test
 ## in the network's own units (u, 1/1024 m): some leg of the route comes within UNDER_REACH_U of the
 ## bed's centre. The beds' centres are imported from the layout once (float is import only).
 ##
-## SPOIL AS SOIL. Each mouth's heap holds the spoil dug so far (`spoil_into`, milli-U, the adopted
-## 2 U per cubic metre); the farm takes spoil from a heap -- to raise a bed, bank it, or dig it in
-## as compost -- and the heap is what is LEFT: heaped minus taken. What was taken is kept here per
-## heap and per tunnel generation, so a freed and reused slot starts a fresh heap.
+## SPOIL AS SOIL. Each mouth's heap holds the spoil dug out there so far (`heaped_milli`, milli-U, the
+## adopted 2 U per cubic metre); a heap is a mouth row of the network. The farm takes spoil from a heap
+## -- to raise a bed, bank it, or dig it in as compost -- and the heap is what is LEFT: heaped minus
+## taken. What was taken is kept here per heap and per mouth generation, so a freed and reused mouth
+## row starts a fresh heap.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
+const PathsScript := preload("res://demo/tunnel/graph_paths.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const WaterScript := preload("res://demo/village_water.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 
 ## A bore within this of a bed's centre runs under the bed: the bed's half-width (1.5 m).
 const UNDER_REACH_U: int = 1536
-const HEAPS: int = Rules.MAX_TUNNELS * 2
+const HEAPS: int = Rules.MAX_MOUTHS
 const REFUSE_NO_SPOIL: String = "NOT_ENOUGH_SPOIL"
 const REFUSE_BAD_HEAP: String = "NO_SUCH_HEAP"
 
@@ -37,7 +40,6 @@ var _bed_x: PackedInt32Array = PackedInt32Array()
 var _bed_z: PackedInt32Array = PackedInt32Array()
 var _taken: PackedInt64Array = PackedInt64Array()
 var _taken_generation: PackedInt32Array = PackedInt32Array()
-var _heaped: PackedInt64Array = PackedInt64Array([0, 0])
 
 
 func _init() -> void:
@@ -74,8 +76,8 @@ static func segment_near(px: int, pz: int, ax: int, az: int, bx: int, bz: int, r
 	return cross * cross <= reach * reach * length2
 
 
-func passes_under(network: NetworkScript, slot: int, bed: int) -> bool:
-	"""Whether tunnel `slot`'s route runs under bed `bed`."""
+func passes_under(network: GraphScript, slot: int, bed: int) -> bool:
+	"""Whether segment `slot`'s route runs under bed `bed`."""
 	var base: int = slot * Rules.MAX_POINTS
 	for k: int in range(1, network.point_count[slot]):
 		var a: int = 2 * (base + k - 1)
@@ -86,19 +88,26 @@ func passes_under(network: NetworkScript, slot: int, bed: int) -> bool:
 	return false
 
 
-func feeds_from_water(network: NetworkScript, slot: int) -> bool:
-	"""Whether either mouth of tunnel `slot` opens at a water edge."""
-	var last: int = 2 * (slot * Rules.MAX_POINTS + network.point_count[slot] - 1)
-	var first: int = 2 * slot * Rules.MAX_POINTS
-	return bool(water_edge.call(network.points_u[first], network.points_u[first + 1])) \
-		or bool(water_edge.call(network.points_u[last], network.points_u[last + 1]))
+func feeds_from_water(network: GraphScript, slot: int) -> bool:
+	"""Whether water reaches segment `slot`: some mouth at a water edge leads to it through usable segments
+	(it included; see DRAINAGE AND IRRIGATION)."""
+	if not network.is_usable(slot):
+		return false
+	for m: int in Rules.MAX_MOUTHS:
+		if not network.is_mouth(m):
+			continue
+		var at: Vector2i = network.node_at(network.mouth_node[m])
+		if bool(water_edge.call(at.x, at.y)) \
+				and network.paths.dist_u(network, PathsScript.CLASS_ANY, m, network.node_a[slot]) < PathsScript.UNREACHED:
+			return true
+	return false
 
 
-func water_of_into(network: NetworkScript, bed: int, out: PackedByteArray) -> void:
-	"""Whether finished tunnels drain (out[0]) or irrigate (out[1]) bed `bed`."""
+func water_of_into(network: GraphScript, bed: int, out: PackedByteArray) -> void:
+	"""Whether finished segments drain (out[0]) or irrigate (out[1]) bed `bed`."""
 	out[0] = 0
 	out[1] = 0
-	for slot: int in Rules.MAX_TUNNELS:
+	for slot: int in Rules.MAX_SEGMENTS:
 		if not network.is_open(slot) or not passes_under(network, slot, bed):
 			continue
 		if feeds_from_water(network, slot):
@@ -109,36 +118,31 @@ func water_of_into(network: NetworkScript, bed: int, out: PackedByteArray) -> vo
 
 # --- spoil ----------------------------------------------------------------------------------
 
-func _sync_heap(network: NetworkScript, heap: int) -> void:
-	"""Forget what was taken from a heap whose tunnel slot was freed or reused."""
-	var slot: int = heap / 2
-	if network.phase[slot] == NetworkScript.PHASE_FREE or network.generation[slot] != _taken_generation[heap]:
+func _sync_heap(network: GraphScript, heap: int) -> void:
+	"""Forget what was taken from a heap whose mouth row was freed or reused."""
+	if not network.is_mouth(heap) or network.mouth_gen[heap] != _taken_generation[heap]:
 		_taken[heap] = 0
-		_taken_generation[heap] = network.generation[slot]
+		_taken_generation[heap] = network.mouth_gen[heap]
 
 
-func heaped_milli(network: NetworkScript, heap: int) -> int:
-	"""All the spoil heap `heap` (2 x slot + end) has received, milli-U."""
-	var slot: int = heap / 2
-	if network.phase[slot] == NetworkScript.PHASE_FREE:
-		return 0
-	network.spoil_into(slot, _heaped)
-	return _heaped[heap % 2]
+func heaped_milli(network: GraphScript, heap: int) -> int:
+	"""All the spoil heap `heap` (a mouth row) has received, milli-U."""
+	return network.heaped_milli(heap)
 
 
-func spoil_left(network: NetworkScript, heap: int) -> int:
+func spoil_left(network: GraphScript, heap: int) -> int:
 	"""The spoil still on heap `heap`, milli-U: heaped minus taken."""
 	_sync_heap(network, heap)
 	return heaped_milli(network, heap) - _taken[heap]
 
 
-func taken_milli(network: NetworkScript, heap: int) -> int:
+func taken_milli(network: GraphScript, heap: int) -> int:
 	"""How much has been taken from heap `heap`, milli-U."""
 	_sync_heap(network, heap)
 	return _taken[heap]
 
 
-func take_spoil_into(network: NetworkScript, heap: int, milli: int, out: IntMath.IntResult) -> bool:
+func take_spoil_into(network: GraphScript, heap: int, milli: int, out: IntMath.IntResult) -> bool:
 	"""Take `milli` of spoil off heap `heap`; refuses a bad heap or one holding less."""
 	if heap < 0 or heap >= HEAPS or milli <= 0:
 		return out.refuse(REFUSE_BAD_HEAP)
@@ -148,7 +152,7 @@ func take_spoil_into(network: NetworkScript, heap: int, milli: int, out: IntMath
 	return out.succeed(spoil_left(network, heap))
 
 
-func nearest_heap_into(network: NetworkScript, from: Vector2, milli: int, out: IntMath.IntResult) -> bool:
+func nearest_heap_into(network: GraphScript, from: Vector2, milli: int, out: IntMath.IntResult) -> bool:
 	"""The heap holding at least `milli` whose spot is nearest `from` (presentation choice of which
 	heap to walk to); refuses NOT_ENOUGH_SPOIL when none does."""
 	var found: bool = false
@@ -165,7 +169,7 @@ func nearest_heap_into(network: NetworkScript, from: Vector2, milli: int, out: I
 	return true
 
 
-func total_spoil(network: NetworkScript) -> int:
+func total_spoil(network: GraphScript) -> int:
 	"""All the spoil left on every heap, milli-U."""
 	var total: int = 0
 	for heap: int in HEAPS:

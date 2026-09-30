@@ -22,7 +22,7 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const FarmTunnels := preload("res://demo/farm/farm_tunnels.gd")
 const FarmJobs := preload("res://demo/farm/farm_jobs.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
@@ -65,7 +65,7 @@ var retired_heaps: int = 0
 var revision: int = 0
 
 var _cast: DemoCastScript = null
-var _network: NetworkScript = null
+var _network: GraphScript = null
 var _tunnels: FarmTunnels = null
 var _props: PropsScript = null
 var _deliver: Callable = Callable()
@@ -91,7 +91,7 @@ func _init() -> void:
 	_retired.resize(FarmTunnels.HEAPS)
 
 
-func configure(cast: DemoCastScript, network: NetworkScript, tunnels: FarmTunnels, props: PropsScript,
+func configure(cast: DemoCastScript, network: GraphScript, tunnels: FarmTunnels, props: PropsScript,
 		deliver: Callable, drop_at: Vector2) -> void:
 	"""Work this cast on this network's heaps, taking spoil through the farm's books (`tunnels`) and
 	delivering it by `deliver(milli: int)` at `drop_at` (metres, x z)."""
@@ -106,7 +106,7 @@ func configure(cast: DemoCastScript, network: NetworkScript, tunnels: FarmTunnel
 # --- the heaps ----------------------------------------------------------------------------------
 
 func spoil_left(h: int) -> int:
-	"""The spoil still on heap `h` (2 x slot + end), milli-U (0 for none or a bad heap)."""
+	"""The spoil still on heap `h` (a mouth row of the network), milli-U (0 for none or a bad heap)."""
 	if h < 0 or h >= FarmTunnels.HEAPS or _network.heap_radius_m[h] <= 0.0:
 		return 0
 	return _tunnels.spoil_left(_network, h)
@@ -116,7 +116,7 @@ func refusal(h: int) -> String:
 	"""Why heap `h` cannot be cleared now, in words ("" when it can)."""
 	if spoil_left(h) <= 0:
 		return "there is no spoil there"
-	if not _network.is_open(h / 2):
+	if _network.mouth_growing(h):
 		return "its tunnel is still being dug"
 	return ""
 
@@ -332,7 +332,7 @@ func _close(row: int) -> void:
 func _retire(h: int) -> void:
 	"""An emptied heap is no longer an obstacle (the farm's view already stops drawing a heap with nothing
 	left, farm_view.gd `_shrink_heaps`). Its spot stays in the network, where a widening re-heaps."""
-	_set_circles(h / 2)
+	_set_circle(h)
 	_retired[h] = 1
 	retired_heaps += 1
 
@@ -343,18 +343,13 @@ func _restore_regrown() -> void:
 	for h: int in FarmTunnels.HEAPS:
 		if _retired[h] == 1 and spoil_left(h) > 0:
 			_retired[h] = 0
-			_set_circles(h / 2)
+			_set_circle(h)
 
 
-func _set_circles(slot: int) -> void:
-	"""Tunnel `slot`'s heaps as obstacles: each at its placed radius while it holds spoil, none when it
-	is empty."""
-	var circles: Array[Vector3] = []
-	for end: int in 2:
-		var k: int = 2 * slot + end
-		var r: float = _network.heap_radius_m[k] if spoil_left(k) > 0 else 0.0
-		circles.append(Vector3(_network.heap_at[k].x, r, _network.heap_at[k].y) if r > 0.0 else Vector3.ZERO)
-	_cast.space().set_heaps(slot, circles[0], circles[1])
+func _set_circle(h: int) -> void:
+	"""Heap `h` as an obstacle: at its placed radius while it holds spoil, none when it is empty."""
+	var r: float = _network.heap_radius_m[h] if spoil_left(h) > 0 else 0.0
+	_cast.space().set_heap(h, Vector3(_network.heap_at[h].x, r, _network.heap_at[h].y) if r > 0.0 else Vector3.ZERO)
 
 
 # --- helpers ------------------------------------------------------------------------------------

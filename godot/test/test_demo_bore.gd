@@ -6,7 +6,8 @@ extends "res://test/framework/test_case.gd"
 ## over placeholders and skeletons built in code: nothing here needs staged assets.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
+const SpecScript := preload("res://demo/tunnel/piece_spec.gd")
 const PlanScript := preload("res://demo/tunnel/tunnel_plan.gd")
 const BoreMeshScript := preload("res://demo/tunnel/bore_mesh.gd")
 const BoreCurveScript := preload("res://demo/tunnel/bore_curve.gd")
@@ -52,13 +53,34 @@ func _keep(node: Node) -> Node:
 	return node
 
 
-static func _open_network(points: PackedInt32Array) -> NetworkScript:
-	"""A network with one open tunnel along these (x, z) u points, in slot 0."""
-	var network := NetworkScript.new()
-	var ref := PackedInt32Array([-1, 0])
+static func _open_network(points: PackedInt32Array) -> GraphScript:
+	"""A network with one open mouth-to-mouth tunnel along these (x, z) u points: on an empty graph its
+	entry ramp is segment 0 (mouth row 0 at node A), its bore segment 1 and its exit ramp segment 2 (mouth
+	row 1 at node B) -- or, at exactly 8 m, two ramps (0 and 1) sharing a foot."""
+	var network := GraphScript.new()
+	var ref := PackedInt32Array([-1, 0, -1])
 	network.add_into(points, points.size() / 2, 0, ref)
-	network.advance(ref[0], ref[1], 1000000000)
+	_dig_piece(network, ref[2])
 	return network
+
+
+static func _open_space(points: PackedInt32Array) -> CastSpaceScript:
+	"""A cast space whose graph holds one open tunnel along these points (segments as `_open_network`)."""
+	var space := CastSpaceScript.new()
+	space.setup([], [])
+	var ref := PackedInt32Array([-1, 0, -1])
+	space.tunnels.add_into(points, points.size() / 2, 0, ref)
+	_dig_piece(space.tunnels, ref[2])
+	return space
+
+
+static func _dig_piece(network: GraphScript, piece: int) -> void:
+	"""Dig every segment of piece `piece` open, in dig order (start_dig turns each PLANNED one to DIGGING)."""
+	var chain := PackedInt32Array()
+	network.piece_segments_into(piece, chain)
+	for slot in chain:
+		network.start_dig(slot, network.generation[slot], 0)
+		network.advance(slot, network.generation[slot], 1000000000)
 
 
 # --- the profile ------------------------------------------------------------------------------
@@ -353,15 +375,12 @@ func test_a_lean_tilts_the_spine_alone() -> void:
 
 
 func test_a_resident_on_a_ramp_leans_its_spine_back_by_half_its_pitch() -> void:
-	"""The actor hands its stoop half the ramp's pitch back: going down (nose down), a lean back."""
-	var space := CastSpaceScript.new()
-	space.setup([], [])
-	var ref := PackedInt32Array([-1, 0])
-	space.tunnels.add_into(PackedInt32Array([0, 0, 10240, 0]), 2, 0, ref)
-	space.tunnels.advance(ref[0], ref[1], 1000000000)
+	"""The actor hands its stoop half the ramp's pitch back: going down the entry ramp (segment 0; 2 m from
+	its mouth is on its 1:2.5 straight), nose down, a lean back."""
+	var space := _open_space(PackedInt32Array([0, 0, 10240, 0]))
 	var actor: DemoActorScript = _keep(DemoActorScript.new())
 	actor.setup_placeholder(0, space, 3)
-	actor.brain._start_travel(ref[0], 2.0, 9.0)
+	actor.brain._start_travel(0, 2.0, 4.0)
 	var rig: Skeleton3D = _keep(_rig())
 	var stoop := StoopScript.new()
 	rig.add_child(stoop)
@@ -389,16 +408,12 @@ func test_a_deeper_stoop_bends_further_and_is_capped() -> void:
 
 
 func test_a_resident_below_eases_into_its_stoop_on_the_demo_clock() -> void:
-	"""A 1 m resident walking a bore eases to its 0.1 m stoop over 0.3 s of demo time, holds it while no
-	time passes, and straightens on the surface."""
-	var space := CastSpaceScript.new()
-	space.setup([], [])
-	var ref := PackedInt32Array([-1, 0])
-	space.tunnels.add_into(PackedInt32Array([0, 0, 10240, 0]), 2, 0, ref)
-	space.tunnels.advance(ref[0], ref[1], 1000000000)
+	"""A 1 m resident walking a bore (segment 1, the level bore between the ramps' feet) eases to its 0.1 m
+	stoop over 0.3 s of demo time, holds it while no time passes, and straightens on the surface."""
+	var space := _open_space(PackedInt32Array([0, 0, 10240, 0]))
 	var actor: DemoActorScript = _keep(DemoActorScript.new())
 	actor.setup_placeholder(0, space, 7)
-	actor.brain._start_travel(ref[0], 5.0, 6.0)
+	actor.brain._start_travel(1, 0.5, 1.5)
 	assert_almost_equal(actor.stoop_target_m(), Rules.to_m(102), "a mouse's drop below")
 	actor.ease_stoop(0.15)
 	assert_true(actor.stoop_now_m() > 0.0 and actor.stoop_now_m() < actor.stoop_target_m(), "half way through the ease")
@@ -420,18 +435,11 @@ func test_a_resident_below_eases_into_its_stoop_on_the_demo_clock() -> void:
 func test_a_ramp_is_walked_along_its_slope_and_the_body_tilts_with_it() -> void:
 	"""On the 1:2.5 straight the flat step is walk speed times the slope's cosine (so the 3D pace is the
 	walk's and the clip's stride matches it) and the body pitches nose down going down, nose up coming
-	up; on the level neither."""
-	var space := CastSpaceScript.new()
-	space.setup([], [])
-	var ref := PackedInt32Array([-1, 0])
-	space.tunnels.add_into(PackedInt32Array([0, 0, 10240, 0]), 2, 0, ref)
-	space.tunnels.advance(ref[0], ref[1], 1000000000)
-	var actor: DemoActorScript = _keep(DemoActorScript.new())
-	actor.setup_placeholder(0, space, 3)
+	up; on the level neither. A 10 m tunnel: the entry ramp (0) falls from its mouth at node A, the bore
+	(1) is flat, the exit ramp (2) rises to its mouth at node B -- walked forward (A to B), it goes up."""
+	var actor := _walker_in(_open_space(PackedInt32Array([0, 0, 10240, 0])))
 	var brain := actor.brain
-	space.tunnels.set_fit(brain.index, true)
-	brain.start_at(Vector2.ZERO, 0.0, -1, -1)
-	brain._start_travel(ref[0], 2.0, 9.0)
+	brain._start_travel(0, 2.0, 4.0)
 	assert_almost_equal(brain.slope_share(), 1.0 / sqrt(1.16), "the cosine of 1:2.5")
 	assert_almost_equal(brain.pitch, atan(0.4), "nose down going down")
 	actor._apply_transform()
@@ -439,13 +447,25 @@ func test_a_ramp_is_walked_along_its_slope_and_the_body_tilts_with_it() -> void:
 	var from := brain.bore_along_m()
 	brain.step(0.1)
 	assert_true(absf(brain.bore_along_m() - from - 0.1 * brain.walk_speed / sqrt(1.16)) < 1e-4, "0.1 s at walk speed along the slope")
-	brain._start_travel(ref[0], 5.0, 0.0)
-	assert_almost_equal(brain.slope_share(), 1.0, "level in the middle")
+	brain._start_travel(1, 1.0, 0.0)
+	assert_almost_equal(brain.slope_share(), 1.0, "level in the bore")
 	assert_almost_equal(brain.pitch, 0.0, "upright")
-	brain._start_travel(ref[0], 2.0, 0.0)
-	assert_almost_equal(brain.pitch, -atan(0.4), "nose up coming up")
+	brain._start_travel(0, 2.0, 0.0)
+	assert_almost_equal(brain.pitch, -atan(0.4), "nose up coming back up the entry ramp")
+	brain._start_travel(2, 2.0, 4.0)
+	assert_almost_equal(brain.slope_share(), 1.0 / sqrt(1.16), "the exit ramp's straight, 2 m from its mouth")
+	assert_almost_equal(brain.pitch, -atan(0.4), "nose up walking the exit ramp forward, to its mouth at B")
 	brain._set_underground(false)
 	assert_almost_equal(brain.pitch, 0.0, "level again on the surface")
+
+
+func _walker_in(space: CastSpaceScript) -> DemoActorScript:
+	"""A placeholder resident of `space` who fits a bore, standing at the origin."""
+	var actor: DemoActorScript = _keep(DemoActorScript.new())
+	actor.setup_placeholder(0, space, 3)
+	space.tunnels.set_fit(actor.brain.index, true)
+	actor.brain.start_at(Vector2.ZERO, 0.0, -1, -1)
+	return actor
 
 
 # --- the cap's void field ------------------------------------------------------------------------
@@ -471,40 +491,51 @@ func test_the_void_keeps_the_nearest_bore_its_rise_and_crown() -> void:
 
 
 func test_a_dug_tunnel_is_stamped_down_its_ramps_too() -> void:
-	"""An open 10 m tunnel: the level stretch is the level's floor; the ramps are stamped with their
-	floor's rise (the cap's walk down the view ray opens them where they pass under it)."""
+	"""An open 10 m tunnel, each of its three segments built: the level bore (segment 1, 4..6 m) is the
+	level's floor; the ramps are stamped with their floor's rise (the cap's walk down the view ray opens
+	them where they pass under it) -- the entry ramp's falling from its mouth at node A, the exit ramp's
+	from its mouth at node B."""
 	var network := _open_network(PackedInt32Array([0, 0, 10240, 0]))
 	var bores: BoreViewScript = _keep(BoreViewScript.new())
 	bores.configure(network)
 	var cap: CapScript = _keep(CapScript.new())
 	cap.configure(GroundScript.new(), WaterScript.new())
 	bores.set_view(cap, PrewarmScript.new())
-	bores.build(0, 10.0, 0.0)
+	for slot in 3:
+		bores.build(slot, network.length_m(slot), 0.0)
 	assert_true(cap.is_dug(Vector2(5.0, 0.0)), "the middle")
-	assert_false(cap.is_dug(Vector2(1.0, 0.0)), "not 1 m down the ramp: it is higher")
-	var rise := cap.void_at(Vector2(1.0, 0.0), CapScript.VOID_RISE) * CapScript.RISE_RANGE_M
-	assert_true(absf(rise - (1.25 + Rules.floor_y_m(1.0, 10.0))) < 0.05, "stamped with its rise (%.3f m)" % rise)
+	assert_false(cap.is_dug(Vector2(1.0, 0.0)), "not 1 m down the entry ramp: it is higher")
+	assert_false(cap.is_dug(Vector2(9.0, 0.0)), "nor 1 m down the exit ramp")
+	for probe: Array in [[0, 1.0, 1.0], [2, 3.0, 9.0]]:
+		var rise := cap.void_at(Vector2(probe[2], 0.0), CapScript.VOID_RISE) * CapScript.RISE_RANGE_M
+		var floor_rise: float = Rules.BORE_FLOOR_DEPTH_M + network.floor_y_at(probe[0], probe[1])
+		assert_true(absf(rise - floor_rise) < 0.05, "x = %.0f m stamped with its rise (%.3f m of %.3f)" % [probe[2], rise, floor_rise])
+	assert_almost_equal(network.floor_y_at(2, 3.0), -Rules.ramp_depth_m(1.0), "the exit ramp 1 m from its mouth")
 
 
 # --- the bore view: chunks and the drying hook ----------------------------------------------------
 
 func test_only_the_chunk_at_the_face_is_rebuilt() -> void:
-	"""A 40 m tunnel dug a step at a time: each rebuild sweeps the chunk the face is in (and, once, the one
-	it left), never the whole bore; a change of state sweeps every chunk."""
-	var network := NetworkScript.new()
-	var ref := PackedInt32Array([-1, 0])
-	network.add_into(PackedInt32Array([0, 0, 40960, 0]), 2, 0, ref)
+	"""A 36 m bore (the middle segment of a 44 m tunnel, between its two 4 m ramps) dug a step at a time:
+	each rebuild sweeps the chunk the face is in (and, once, the one it left), never the whole bore; a
+	change of state sweeps every chunk. Its chunks are made only when it is first built."""
+	var network := GraphScript.new()
+	var ref := PackedInt32Array([-1, 0, -1])
+	network.add_into(PackedInt32Array([0, 0, 45056, 0]), 2, 0, ref)
+	assert_almost_equal(network.length_m(1), 36.0, "segment 1: the bore, 44 m less two 4 m ramps")
 	var bores: BoreViewScript = _keep(BoreViewScript.new())
 	bores.configure(network)
-	bores.build(0, 20.0, 0.0)
+	assert_null(bores.chunk(1, 0), "no chunk before it is first dug")
+	bores.build(1, 20.0, 0.0)
 	assert_equal(bores.chunk_builds, 2, "20 m: two chunks built")
-	bores.build(0, 20.25, 0.0)
+	bores.build(1, 20.25, 0.0)
 	assert_equal(bores.chunk_builds, 3, "a step: only the face's chunk")
-	bores.build(0, 32.5, 0.0)
+	bores.build(1, 32.5, 0.0)
 	assert_equal(bores.chunk_builds, 5, "into the third chunk: the second (its face gone) and the third")
-	assert_true(bores.chunk(0, 2).visible and not bores.chunk(0, 3).visible, "three chunks drawn")
-	network.close(0, NetworkScript.CLOSED_FLOODED, 0, 4096)
-	bores.build(0, 32.5, 0.0)
+	assert_true(bores.chunk(1, 2).visible and not bores.chunk(1, 3).visible, "three chunks drawn")
+	assert_null(bores.chunk(0, 0), "the ramps, never built, have none")
+	network.close(1, GraphScript.CLOSED_FLOODED, 0, 4096)
+	bores.build(1, 32.5, 0.0)
 	assert_equal(bores.chunk_builds, 8, "flooded: all three again")
 	assert_equal(BoreViewScript.ring_count(2.0), 9, "2 m: 9 rings on the lattice")
 	assert_equal(BoreViewScript.ring_count(2.1), 10, "and one at a face off it")
@@ -513,8 +544,9 @@ func test_only_the_chunk_at_the_face_is_rebuilt() -> void:
 
 func test_each_ring_carries_the_day_it_was_dug() -> void:
 	"""The drying hook: steps dug on day 0 carry day 0, steps dug a day later carry day 1, and the earth
-	is told the calendar's day."""
-	var network := NetworkScript.new()
+	is told the calendar's day. (Segment 0, a 10 m tunnel's 4 m entry ramp, dug to 2 m and then to its
+	foot.)"""
+	var network := GraphScript.new()
 	var ref := PackedInt32Array([-1, 0])
 	network.add_into(PackedInt32Array([0, 0, 10240, 0]), 2, 0, ref)
 	var bores: BoreViewScript = _keep(BoreViewScript.new())
@@ -536,23 +568,25 @@ func test_each_ring_carries_the_day_it_was_dug() -> void:
 # --- dressing --------------------------------------------------------------------------------------
 
 func test_stones_bed_in_the_walls_and_roots_come_only_near_trees() -> void:
-	"""A 16 m tunnel: stones along its walls, the same on a rebuild; no roots with no tree; a mature oak
-	beside it puts roots in the bore near its trunk."""
+	"""A 16 m tunnel's level bore (segment 1, 4..12 m along +X): stones along its walls, the same on a
+	rebuild; no roots with no tree; a mature oak beside its middle puts roots in the bore near its trunk.
+	A segment is dressed in its own MultiMeshes, made when it is first dressed."""
 	var network := _open_network(PackedInt32Array([0, 0, 16384, 0]))
 	var dressing: DressingScript = _keep(DressingScript.new())
 	dressing.configure()
-	var route := PackedVector2Array([Vector2.ZERO, Vector2(16.0, 0.0)])
-	dressing.place(0, network, 0.0, 16.0, 0.0)
-	var stones := dressing.stones(0).multimesh.visible_instance_count
+	assert_null(dressing.stones(1), "nothing made before it is dressed")
+	dressing.place(1, network, 0.0, 8.0, 0.0)
+	var stones := dressing.stones(1).multimesh.visible_instance_count
 	assert_true(stones > 3, "stones in the walls (%d)" % stones)
-	assert_equal(dressing.roots(0).multimesh.visible_instance_count, 0, "no tree, no roots")
-	dressing.place(0, network, 0.0, 16.0, 0.0)
-	assert_equal(dressing.stones(0).multimesh.visible_instance_count, stones, "the same stones again")
+	assert_equal(dressing.roots(1).multimesh.visible_instance_count, 0, "no tree, no roots")
+	assert_null(dressing.stones(0), "the ramps, not dressed, have none")
+	dressing.place(1, network, 0.0, 8.0, 0.0)
+	assert_equal(dressing.stones(1).multimesh.visible_instance_count, stones, "the same stones again")
 	assert_equal(dressing.set_trees([{"key": &"oak_mature", "at": Vector2(8.0, 1.5), "size": 1.0}] as Array[Dictionary]), 1, "an oak")
-	dressing.place(0, network, 0.0, 16.0, 0.0)
-	assert_true(dressing.roots(0).multimesh.visible_instance_count > 0, "roots near it")
+	dressing.place(1, network, 0.0, 8.0, 0.0)
+	assert_true(dressing.roots(1).multimesh.visible_instance_count > 0, "roots near it")
 	assert_true(dressing.root_chance(Vector2(8.0, 1.5)) > 0.99 and dressing.root_chance(Vector2(-30.0, 0.0)) == 0.0, "likeliest at the trunk")
-	assert_equal(dressing.stones(0).layers, Layers.UNDERGROUND, "below")
+	assert_equal(dressing.stones(1).layers, Layers.UNDERGROUND, "below")
 
 
 # --- lanterns --------------------------------------------------------------------------------------
@@ -612,56 +646,84 @@ func test_the_lanterns_flicker_gently_and_hold_while_paused() -> void:
 
 
 func test_a_lit_tunnel_hangs_its_lanterns_under_the_ground_and_lights_them() -> void:
-	"""A lit 12 m tunnel: three lanterns spread between its ramps' portals, each a light spot; braces are
-	drawn with the cutaway, which cuts under their cap beam."""
+	"""A lit 12 m tunnel is three 4 m segments (entry ramp 0, bore 1, exit ramp 2), each lit and hung on
+	its own: one lantern per started LANTERN_SPACING_M (4 m) of each, so three, each past its ramp's
+	portal (the entry ramp's from its mouth at A, the exit ramp's from its mouth at B; the bore's all under
+	the ground), each a light spot; braces are drawn with the cutaway, which cuts under their cap beam."""
 	var network := _open_network(PackedInt32Array([0, 0, 12288, 0]))
-	network.set_lit(0)
-	network.set_braced(0)
+	for slot in 3:
+		network.set_lit(slot)
+		network.set_braced(slot)
 	var marks: MarksScript = _keep(MarksScript.new())
 	marks.configure(network, null)
 	marks.refresh()
-	assert_equal(marks.lanterns(0).multimesh.visible_instance_count, 3, "three lanterns")
-	for k in 3:
-		var along := marks.lantern_along(0, k, 3)
-		assert_true(along > Rules.portal_m(Rules.BORE_STANDARD) and along < 12.0 - Rules.portal_m(Rules.BORE_STANDARD), "lantern %d under the ground" % k)
+	_check_one_lantern_a_segment(marks)
 	assert_equal(marks.lights.spot_count(), 3, "three lights to give")
 	assert_equal(marks.lights.lit_count(), 3, "and lit")
 	var cut: ShaderMaterial = marks.frames(0).material_override
 	assert_almost_equal(float(cut.get_shader_parameter(&"cut_y")), Layers.FLOOR_Y_M + MarksScript.BRACE_CUT_M, "cut over the floor")
 	assert_true(MarksScript.BRACE_CUT_M < Rules.crown_m(Rules.BORE_STANDARD) * MarksScript.FRAME_CROWN_SHARE, "under the cap beam")
-	network.lit[0] = 0
+	for slot in 3:
+		network.lit[slot] = 0
 	network.revision += 1
 	marks.refresh()
 	assert_equal(marks.lights.lit_count(), 0, "unlit: dark")
 
 
+func _check_one_lantern_a_segment(marks: MarksScript) -> void:
+	"""Each 4 m segment of a lit 12 m tunnel hangs one lantern: the entry ramp's mid-way from its portal to
+	its foot, the bore's at its middle, the exit ramp's mid-way from its foot to its portal -- both ramps'
+	past their portals, under the ground."""
+	var portal := Rules.portal_m(Rules.BORE_STANDARD)
+	for slot in 3:
+		assert_equal(marks.lanterns(slot).multimesh.visible_instance_count, 1, "segment %d: one lantern" % slot)
+	var entry := marks.lantern_along(0, 0, 1)
+	assert_almost_equal(entry, portal + 0.5 * (4.0 - portal), "the entry ramp's")
+	assert_almost_equal(marks.lantern_along(1, 0, 1), 2.0, "the bore's")
+	var exit := marks.lantern_along(2, 0, 1)
+	assert_almost_equal(exit, 0.5 * (4.0 - portal), "the exit ramp's")
+	assert_true(entry > portal and 4.0 - exit > portal, "both ramps' lanterns under the ground")
+
+
 # --- mouths ----------------------------------------------------------------------------------------
 
 func test_a_mouth_is_a_gateway_over_its_ramp_s_cutting() -> void:
-	"""An open tunnel's entrance: a cutting down the ramp as far as it is open (to the portal) and the
-	gateway over it, on the surface, facing down the route; while the shaft is dug, only part of the
-	cutting and no gateway."""
+	"""A mouth (per mouth row: the entrance row 0, the exit row 1): a cutting down its ramp as far as it is
+	open (to the portal) and the gateway over it, on the surface, facing down the ramp; while the entry
+	shaft is dug, only part of the cutting and no gateway. The exit mouth opens only when its ramp breaks
+	out at it, facing back into the tunnel."""
 	var space := CastSpaceScript.new()
 	space.setup([], [])
-	var ref := PackedInt32Array([-1, 0])
+	var ref := PackedInt32Array([-1, 0, -1])
 	space.tunnels.add_into(PackedInt32Array([0, 0, 0, 10240]), 2, 0, ref)
 	var overlay: OverlayScript = _keep(OverlayScript.new())
 	overlay.configure(space.tunnels, space)
 	space.tunnels.advance(ref[0], ref[1], 1500000)
 	overlay.refresh()
-	var mouth := overlay.hole(0, false)
+	var mouth := overlay.hole(0)
 	assert_true(mouth.visible, "opening")
 	assert_false((mouth.get_child(OverlayScript.MOUTH_GATEWAY) as Node3D).visible, "no gateway while the shaft is dug")
-	assert_true(overlay.mouth_open_m(0, false) < Rules.portal_m(Rules.BORE_STANDARD), "part of the cutting")
+	assert_true(overlay.mouth_open_m(0) < Rules.portal_m(Rules.BORE_STANDARD), "part of the cutting")
 	space.tunnels.advance(ref[0], ref[1], 1000000000)
 	overlay.refresh()
-	assert_almost_equal(overlay.mouth_open_m(0, false), Rules.portal_m(Rules.BORE_STANDARD), "down to the portal")
+	assert_false(overlay.hole(1).visible, "the entry ramp open, the exit not yet broken out")
+	_dig_piece(space.tunnels, ref[2])
+	overlay.refresh()
+	_check_open_mouths(overlay)
+	assert_true(MouthScript.GATE_HEIGHT_M > 1.15 + 0.1, "a squirrel walks under the lintel")
+
+
+func _check_open_mouths(overlay: OverlayScript) -> void:
+	"""A tunnel dug along +Z, all open: its entrance (row 0) cut down to the portal under its gateway,
+	facing down the route; its exit (row 1) broken out and facing back into it; both on the surface."""
+	var mouth := overlay.hole(0)
+	assert_almost_equal(overlay.mouth_open_m(0), Rules.portal_m(Rules.BORE_STANDARD), "down to the portal")
 	assert_true((mouth.get_child(OverlayScript.MOUTH_GATEWAY) as Node3D).visible, "the gateway up")
 	assert_almost_equal(mouth.rotation.y, 0.0, "facing +Z, down the route")
-	assert_almost_equal(absf(overlay.hole(0, true).rotation.y), PI, "the exit faces back into it")
-	for part: Node in mouth.get_children():
+	assert_true(overlay.hole(1).visible, "broken out at the exit")
+	assert_almost_equal(absf(overlay.hole(1).rotation.y), PI, "the exit faces back into it")
+	for part: Node in mouth.get_children() + overlay.hole(1).get_children():
 		assert_equal((part as VisualInstance3D).layers, Layers.SURFACE, "%s on the surface" % part.name)
-	assert_true(MouthScript.GATE_HEIGHT_M > 1.15 + 0.1, "a squirrel walks under the lintel")
 
 
 # --- the U view's environment and the prewarm ------------------------------------------------------
@@ -689,8 +751,8 @@ func test_the_u_view_has_its_own_environment_and_the_surface_keeps_its() -> void
 
 
 func test_every_new_underground_material_is_registered_for_the_prewarm() -> void:
-	"""The bores' earth, the stone and root, the brace's cutaway with its mesh, the lantern and its glow:
-	all in the registry once the overlay and the marks are handed the view."""
+	"""The bores' earth, the hubs' earth, the stone and root, the brace's cutaway with its mesh, the lantern
+	and its glow: all in the registry once the overlay and the marks are handed the view."""
 	var network := _open_network(PackedInt32Array([0, 0, 12288, 0]))
 	var space := CastSpaceScript.new()
 	space.setup([], [])
@@ -704,6 +766,7 @@ func test_every_new_underground_material_is_registered_for_the_prewarm() -> void
 	overlay.set_view(cap, prewarm)
 	marks.register(prewarm)
 	assert_true(prewarm.has_material(BoreViewScript.earth_material()), "the earth")
+	assert_true(prewarm.has_material(BoreViewScript.hub_material()), "the hubs' earth")
 	assert_true(prewarm.has_material(DressingScript.stone_mesh().surface_get_material(0)), "the stone")
 	assert_true(prewarm.has_material(DressingScript.root_mesh().surface_get_material(0)), "the root")
 	assert_true(prewarm.has_material(marks.frames(0).material_override), "the brace's cutaway")
@@ -752,43 +815,53 @@ func test_a_fillet_never_takes_more_than_its_share_of_a_short_leg() -> void:
 
 func test_chunks_hold_whole_bands_and_the_widened_and_flooded_rings_show() -> void:
 	"""65 lattice rings are one chunk's 64 bands; a widening draws its reach twice as wide; a flooded
-	bore's rings carry the flood in their colour."""
+	bore's rings carry the flood in their colour. (The 10 m level bore of an 18 m tunnel, segment 1,
+	along +X: a ring's floor edge, profile point 2, lies across it in z.)"""
 	assert_equal(BoreViewScript.last_chunk(65), 0, "64 bands: one chunk")
 	assert_equal(BoreViewScript.last_chunk(2), 0, "one band")
-	var network := _open_network(PackedInt32Array([0, 0, 10240, 0]))
+	var network := _open_network(PackedInt32Array([0, 0, 18432, 0]))
+	assert_almost_equal(network.length_m(1), 10.0, "a 10 m bore")
 	var bores: BoreViewScript = _keep(BoreViewScript.new())
 	bores.configure(network)
-	bores.build(0, 10.0, 3.0)
-	var points: PackedVector3Array = (bores.chunk(0, 0).mesh as ArrayMesh).surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	bores.build(1, 10.0, 3.0)
+	var points: PackedVector3Array = (bores.chunk(1, 0).mesh as ArrayMesh).surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
 	assert_true(absf(points[4 * 16 + 2].z) > 0.9, "1 m in, widened: a 2 m floor (%.3f)" % points[4 * 16 + 2].z)
 	assert_true(absf(points[20 * 16 + 2].z) < 0.6, "5 m in, not yet: a 1 m floor")
-	network.close(0, NetworkScript.CLOSED_FLOODED, 0, 10240)
-	bores.build(0, 10.0, 3.0)
-	var colours: PackedColorArray = (bores.chunk(0, 0).mesh as ArrayMesh).surface_get_arrays(0)[Mesh.ARRAY_COLOR]
+	network.close(1, GraphScript.CLOSED_FLOODED, 0, 10240)
+	bores.build(1, 10.0, 3.0)
+	var colours: PackedColorArray = (bores.chunk(1, 0).mesh as ArrayMesh).surface_get_arrays(0)[Mesh.ARRAY_COLOR]
 	assert_almost_equal(colours[20 * 16].r, 1.0, "flooded")
 
 
 func test_stones_bed_only_where_the_bore_is_under_the_ground() -> void:
-	"""No stone sits on a mouth's ramp where the bore is an open cutting: an 8 m tunnel is under the ground
-	only between its portals (2.1 m, 9 steps), so it holds at most two stones a step there, far fewer
-	than its 33 steps would give. (Instance transforms do not read back headless; the count does.)"""
+	"""No stone sits on a mouth's ramp where the bore is an open cutting. An 8 m tunnel is two 4 m ramps
+	sharing a foot (segments 0 and 1): each is deep enough only near that foot -- the entry ramp at its
+	far end from its mouth (node A), the exit ramp at its near end (its mouth is node B) -- so each holds at
+	most two stones a step there, far fewer than its 17 steps would give. (Instance transforms do not read
+	back headless; the count does.)"""
 	var network := _open_network(PackedInt32Array([0, 0, 8192, 0]))
 	var dressing: DressingScript = _keep(DressingScript.new())
 	dressing.configure()
-	dressing.place(0, network, 0.0, 8.0, 0.0)
 	var deep_steps := 0
-	for step in 33:
-		deep_steps += 1 if DressingScript.dressed_at(Rules.floor_y_m(float(step) * 0.25, 8.0), Rules.BORE_STANDARD) else 0
-	assert_true(deep_steps > 4 and deep_steps < 13, "only the middle steps are deep enough (%d)" % deep_steps)
-	var expected := 0
-	for step in 33:
-		if DressingScript.dressed_at(Rules.floor_y_m(float(step) * 0.25, 8.0), Rules.BORE_STANDARD):
+	for slot in 2:
+		dressing.place(slot, network, 0.0, 4.0, 0.0)
+		var deep := PackedInt32Array()
+		for step in 17:
+			if DressingScript.dressed_at(network.floor_y_at(slot, float(step) * 0.25), Rules.BORE_STANDARD):
+				deep.append(step)
+		assert_true(deep.size() > 0 and deep.size() < 9, "ramp %d: only its deep half is (%d steps)" % [slot, deep.size()])
+		assert_equal(deep.has(16), slot == 0, "ramp %d: its node B end deep only when that is the foot" % slot)
+		assert_equal(deep.has(0), slot == 1, "ramp %d: its node A end deep only when that is the foot" % slot)
+		var expected := 0
+		for step: int in deep:
 			for salt: int in [0, 2]:
-				expected += 1 if DressingScript.unit(network.generation[0] * 7919 + step, salt) < DressingScript.STONE_CHANCE else 0
-	assert_equal(dressing.stones(0).multimesh.visible_instance_count, expected, "the dice of those steps only")
+				expected += 1 if DressingScript.unit(network.generation[slot] * 7919 + step, salt) < DressingScript.STONE_CHANCE else 0
+		assert_equal(dressing.stones(slot).multimesh.visible_instance_count, expected, "ramp %d: the dice of those steps only" % slot)
+		deep_steps += deep.size()
 	var long := _open_network(PackedInt32Array([0, 0, 32768, 0]))
-	dressing.place(0, long, 0.0, 32.0, 0.0)
-	assert_true(dressing.stones(0).multimesh.visible_instance_count > 2 * deep_steps, "a long bore holds more")
+	assert_equal(long.seg_kind[1], GraphScript.SEG_BORE, "a 32 m tunnel's segment 1: a 24 m level bore")
+	dressing.place(1, long, 0.0, long.length_m(1), 0.0)
+	assert_true(dressing.stones(1).multimesh.visible_instance_count > 2 * deep_steps, "a long bore holds more")
 
 
 func test_an_instanced_sample_is_drawn_with_its_override() -> void:
@@ -806,13 +879,13 @@ func test_an_instanced_sample_is_drawn_with_its_override() -> void:
 	assert_equal((samples[0] as MultiMeshInstance3D).material_override, cut, "with its override")
 
 
-func _turned_floor_triangles(network: NetworkScript) -> Vector2i:
-	"""Sweep tunnel 0 of `network` and count its level floor's triangles, and those turned over (facing
-	down: culled away)."""
+func _turned_floor_triangles(network: GraphScript, slot: int) -> Vector2i:
+	"""Sweep segment `slot` of `network` and count its level floor's triangles, and those turned over
+	(facing down: culled away)."""
 	var bores: BoreViewScript = _keep(BoreViewScript.new())
 	bores.configure(network)
-	bores.build(0, network.length_m(0), 0.0)
-	var arrays := (bores.chunk(0, 0).mesh as ArrayMesh).surface_get_arrays(0)
+	bores.build(slot, network.length_m(slot), 0.0)
+	var arrays := (bores.chunk(slot, 0).mesh as ArrayMesh).surface_get_arrays(0)
 	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
 	var counts := Vector2i.ZERO
@@ -828,58 +901,64 @@ func _turned_floor_triangles(network: NetworkScript) -> Vector2i:
 
 
 func test_a_right_angled_corner_folds_nothing_and_walkers_follow_the_bore() -> void:
-	"""An L tunnel with long legs, standard and widened: every triangle of the swept level floor keeps its
-	winding round the corner (none turned over, so none culled away), and a walker and a lantern at the
-	corner stand on the bore's own drawn centreline -- the lantern as far out from it as on a leg."""
+	"""An L tunnel, (0, 0) to (8, 0) to (8, 8): its level bore (segment 1, from the entry ramp's foot at
+	(4, 0) round the corner to the exit ramp's foot at (8, 4), 8 m with the corner 4 m in), standard and
+	widened: every triangle of the swept level floor keeps its winding round the corner (none turned over,
+	so none culled away), and a walker and a lantern at the corner stand on the bore's own drawn centreline
+	-- the lantern as far out from it as on a leg."""
 	for bore: int in [Rules.BORE_STANDARD, Rules.BORE_WIDE]:
 		var network := _open_network(PackedInt32Array([0, 0, 8192, 0, 8192, 8192]))
-		network.set_bore(0, bore)
-		var counts := _turned_floor_triangles(network)
+		assert_equal(network.point_count[1], 3, "class %d: the corner lies in the bore" % bore)
+		network.set_bore(1, bore)
+		var counts := _turned_floor_triangles(network, 1)
 		assert_true(counts.x > 100, "class %d: the level floor's triangles (%d)" % [bore, counts.x])
 		assert_equal(counts.y, 0, "class %d: no floor triangle turned over" % bore)
 		var out := PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
-		var curve := BoreCurveScript.of(network, 0)
-		curve.sample(8.0, out)
+		var curve := BoreCurveScript.of(network, 1)
+		curve.sample(4.0, out)
 		var space := CastSpaceScript.new()
 		space.setup([], [])
 		space.tunnels = network
 		var brain := BrainScript.new()
 		brain.configure(space, 1.0, 0.25, 3, {&"walk": 2.0})
-		brain.stand_in_bore(0, 8.0, true)
+		brain.stand_in_bore(1, 4.0, true)
 		assert_true(brain.position.is_equal_approx(out[0]), "class %d: the walker on the drawn centreline" % bore)
 		assert_true(out[0].distance_to(Vector2(8.0, 0.0)) > 0.1, "which cuts inside the corner")
 		_check_lantern_on_curve(network, curve, bore)
 
 
-func _check_lantern_on_curve(network: NetworkScript, curve: BoreCurveScript, bore: int) -> void:
-	"""A lantern at the corner hangs as far out from the drawn centre as one on a straight leg."""
+func _check_lantern_on_curve(network: GraphScript, curve: BoreCurveScript, bore: int) -> void:
+	"""A lantern at the bore's corner (4 m in) hangs as far out from the drawn centre as one on a straight
+	leg (7 m in: past the widest fillet, which reaches 1.74 m either side of the corner)."""
 	var marks: MarksScript = _keep(MarksScript.new())
 	marks.configure(network, null)
 	var out := PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
-	var straight := marks.lantern_transform(0, 12.0, true).origin
-	curve.sample(12.0, out)
+	var straight := marks.lantern_transform(1, 7.0, true).origin
+	curve.sample(7.0, out)
 	var on_leg := Vector2(straight.x, straight.z).distance_to(out[0])
-	var hung := marks.lantern_transform(0, 8.0, true).origin
-	curve.sample(8.0, out)
+	var hung := marks.lantern_transform(1, 4.0, true).origin
+	curve.sample(4.0, out)
 	var across := Vector2(hung.x, hung.z).distance_to(out[0])
 	assert_true(absf(across - on_leg) < 0.01, "class %d: the lantern as far out as on a leg (%.3f, %.3f)" % [bore, across, on_leg])
 
 
 func test_the_shared_curve_follows_its_tunnel_and_samples_back_and_forth() -> void:
-	"""One curve a tunnel: sampled forward then back without a rewind it still finds the right leg, and a
-	widening rebuilds it with the wider bend."""
+	"""One curve a segment: the L tunnel's bore (segment 1, from (4, 0) round (8, 0) to (8, 4)) sampled
+	forward then back without a rewind still finds the right leg, and a widening rebuilds it with the wider
+	bend (its fillet's middle 0.25 x its tangent x sqrt 2 from the corner: 0.5 m standard, 0.61 m wide)."""
 	var network := _open_network(PackedInt32Array([0, 0, 8192, 0, 8192, 8192]))
-	var curve := BoreCurveScript.of(network, 0)
+	var curve := BoreCurveScript.of(network, 1)
 	var out := PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
-	curve.sample(12.0, out)
+	curve.sample(7.0, out)
 	curve.sample(1.0, out)
-	assert_true(out[0].is_equal_approx(Vector2(1.0, 0.0)), "back on the first leg (%s)" % out[0])
-	curve.sample(8.0, out)
+	assert_true(out[0].is_equal_approx(Vector2(5.0, 0.0)), "back on the first leg (%s)" % out[0])
+	curve.sample(4.0, out)
 	var standard := out[0]
-	network.set_bore(0, Rules.BORE_WIDE)
-	BoreCurveScript.of(network, 0).sample(8.0, out)
+	network.set_bore(1, Rules.BORE_WIDE)
+	BoreCurveScript.of(network, 1).sample(4.0, out)
 	assert_true(out[0].distance_to(Vector2(8.0, 0.0)) > standard.distance_to(Vector2(8.0, 0.0)) + 0.1, "widened: a wider bend")
-	assert_equal(BoreCurveScript.of(network, 0), curve, "the same curve, kept")
+	assert_equal(BoreCurveScript.of(network, 1), curve, "the same curve, kept")
+	assert_true(BoreCurveScript.of(network, 0) != curve, "each segment its own")
 
 
 func test_only_steps_whose_roots_stay_under_the_cut_are_dressed() -> void:
@@ -909,3 +988,108 @@ func test_the_u_view_s_focus_is_where_the_camera_looks_on_the_floor() -> void:
 	assert_almost_equal(focus.y, Layers.FLOOR_Y_M, "on the floor")
 	assert_true(absf(focus.z + Rules.BORE_FLOOR_DEPTH_M) < 1e-3, "past the ground point by the floor's depth (%.3f)" % focus.z)
 	assert_true(ViewScript.floor_focus(Vector3(0.0, 10.0, 10.0), Vector3.UP).is_equal_approx(Vector3(0.0, Layers.FLOOR_Y_M, 0.0)), "looking up")
+
+
+func test_the_hub_cuts_a_bore_s_floor_however_its_jitter_falls() -> void:
+	"""A bore's floor is jittered up to FLOOR_JITTER_M either side of the level's floor, and a hub must drop
+	every bit of it inside its circle, or patches of the bore's floor (in another dig day's shade) show
+	through the hub's. The shared surface counts a point down to FLOOR_SLACK_M below the floor as on it; that
+	slack must cover the jitter."""
+	var source := FileAccess.get_file_as_string("res://demo/tunnel/bore_surface.gdshaderinc")
+	var at := source.find("const float FLOOR_SLACK_M = ")
+	assert_true(at >= 0, "the slack is named")
+	var slack := source.substr(at + "const float FLOOR_SLACK_M = ".length(), 8).to_float()
+	assert_true(slack >= BoreMeshScript.FLOOR_JITTER_M, "slack %.3f m covers the floor's %.3f m jitter" % [slack, BoreMeshScript.FLOOR_JITTER_M])
+	assert_true(slack < 0.1 * Rules.crown_m(Rules.BORE_STANDARD), "and stays a sliver of the crown")
+	assert_true(source.find("if (up < 0.0 && up > -FLOOR_SLACK_M)") >= 0, "in_hub lifts a point that little below onto the floor")
+
+
+func test_a_branch_breaking_ground_cuts_the_bores_it_joins() -> void:
+	"""Drawn while it is dug (a frame at a time, as in the demo): the host's halves were split and drawn before
+	the branch broke ground, with no hub at the junction. The moment the branch digs its first tick a hub
+	stands there, and both halves are rebuilt to drop what lies inside it -- else their floors show through
+	the hub's in patches."""
+	var space := CastSpaceScript.new()
+	space.setup([], [])
+	var network: GraphScript = space.tunnels
+	var ref := PackedInt32Array([-1, 0, -1])
+	network.add_into(PackedInt32Array([0, 0, 12288, 0]), 2, 0, ref)
+	var chain := PackedInt32Array()
+	network.piece_segments_into(ref[2], chain)
+	for s in chain:
+		network.start_dig(s, network.generation[s], 0)
+		network.advance(s, network.generation[s], 1000000000)
+	var overlay: OverlayScript = _keep(OverlayScript.new())
+	overlay.configure(network, space)
+	overlay.refresh()
+	var spec := SpecScript.new()
+	spec.set_route(PackedInt32Array([6144, 0, 6144, 8192]), 2)
+	spec.start_kind = SpecScript.END_ON_SEGMENT
+	spec.start_ref = 1
+	assert_true(network.add_piece(spec, ref), "a branch off the bore's middle")
+	overlay.refresh()
+	assert_equal(_hub_radius(overlay, 1, 1), 0.0, "split, but no hub yet: nothing has broken ground there")
+	network.start_dig(ref[0], ref[1], 0)
+	network.advance(ref[0], ref[1], 1000000)
+	overlay.refresh()
+	var radius := BoreMeshScript.FLOOR_HALF_M[Rules.BORE_STANDARD] * BoreMeshScript.HUB_SCALE
+	assert_almost_equal(_hub_radius(overlay, 1, 1), radius, "the first half cut at its node B, the junction")
+	assert_almost_equal(_hub_radius(overlay, 3, 0), radius, "the far half at its node A")
+
+
+func _hub_radius(overlay: OverlayScript, slot: int, end: int) -> float:
+	"""The hub radius segment `slot`'s drawn bore is cut at, at its node A (end 0) or B (1): its first vertex's
+	CUSTOM0 or CUSTOM1 z."""
+	var arrays := (overlay.bores.chunk(slot, 0).mesh as ArrayMesh).surface_get_arrays(0)
+	return (arrays[Mesh.ARRAY_CUSTOM0 + end] as PackedFloat32Array)[2]
+
+
+func test_a_hub_is_rebuilt_only_when_what_it_depends_on_changes() -> void:
+	"""Review C4: the hubs are checked every frame, on a key folded from integers. A hundred frames with
+	nothing new build nothing; a fourth bore breaking ground at the junction rebuilds the hub once, with a
+	fourth opening."""
+	var space := CastSpaceScript.new()
+	space.setup([], [])
+	var network: GraphScript = space.tunnels
+	var ref := PackedInt32Array([-1, 0, -1])
+	network.add_into(PackedInt32Array([0, 0, 12288, 0]), 2, 0, ref)
+	var chain := PackedInt32Array()
+	network.piece_segments_into(ref[2], chain)
+	for s in chain:
+		network.start_dig(s, network.generation[s], 0)
+		network.advance(s, network.generation[s], 1000000000)
+	var branch := SpecScript.new()
+	branch.set_route(PackedInt32Array([6144, 0, 6144, 8192]), 2)
+	branch.start_kind = SpecScript.END_ON_SEGMENT
+	branch.start_ref = 1
+	network.add_piece(branch, ref)
+	network.start_dig(ref[0], ref[1], 0)
+	network.advance(ref[0], ref[1], 1000000)
+	var overlay: OverlayScript = _keep(OverlayScript.new())
+	overlay.configure(network, space)
+	overlay.refresh()
+	var builds := overlay.bores.hub_builds
+	assert_equal(builds, 1, "the tee's hub")
+	for f in 100:
+		overlay.bores.refresh_hubs()
+	assert_equal(overlay.bores.hub_builds, builds, "nothing new: nothing rebuilt")
+	var j := network.node_b[1]
+	var cross := SpecScript.new()
+	cross.set_route(PackedInt32Array([6144, -8192, 6144, 0]), 2)
+	cross.end_kind = SpecScript.END_NODE
+	cross.end_ref = j
+	network.add_piece(cross, ref)
+	overlay.bores.refresh_hubs()
+	assert_equal(overlay.bores.hub_builds, builds, "laid but not dug to it: still three openings")
+	var four := PackedInt32Array()
+	network.piece_segments_into(ref[2], four)
+	for s in four:
+		network.start_dig(s, network.generation[s], 0)
+		network.advance(s, network.generation[s], 1000000000)
+	overlay.bores.refresh_hubs()
+	assert_equal(overlay.bores.hub_builds, builds + 1, "broken through: rebuilt once")
+	var custom := (overlay.bores.hub(j).mesh as ArrayMesh).surface_get_arrays(0)[Mesh.ARRAY_CUSTOM2] as PackedFloat32Array
+	assert_true(custom[3] > 0.0, "with a fourth opening")
+	network.set_bore(1, Rules.BORE_WIDE)
+	overlay.bores.refresh_hubs()
+	assert_equal(overlay.bores.hub_builds, builds + 2, "a bore there widened: rebuilt, wider")

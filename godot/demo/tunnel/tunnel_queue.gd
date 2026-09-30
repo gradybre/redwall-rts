@@ -17,7 +17,8 @@ extends RefCounted
 ## PLANNING: entering at a mouth costs WAIT_PER_QUEUED_M of walking for each walker in its queue
 ## (and for a held grant), so a crowded mouth loses to a walk it would otherwise beat.
 ##
-## All demo values. Columns are sized once (2 x MAX_TUNNELS mouths); nothing allocates per frame.
+## All demo values. Columns are sized once (one row per network mouth, Rules.MAX_MOUTHS; decision 0208);
+## nothing allocates per frame.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 
@@ -28,9 +29,9 @@ const QUEUE_FIRST_M: float = 1.4
 const QUEUE_GAP_M: float = 0.8
 const WAIT_PER_QUEUED_M: float = 3.0
 const LINE_TURNS: Array[float] = [0.0, 0.5236, -0.5236, 1.0472, -1.0472, 1.5708, -1.5708]
-const MOUTHS: int = 2 * Rules.MAX_TUNNELS
+const MOUTHS: int = Rules.MAX_MOUTHS
 
-## Per mouth (2 x slot + end): who is queued (QUEUE_MAX places, -1 empty), how many, who holds the
+## Per mouth row: who is queued (QUEUE_MAX places, -1 empty), how many, who holds the
 ## grant (-1: nobody), and the line's unit direction.
 var member: PackedInt32Array = PackedInt32Array()
 var count: PackedInt32Array = PackedInt32Array()
@@ -146,11 +147,9 @@ func wait_m(mouth: int) -> float:
 	return WAIT_PER_QUEUED_M * float(ahead)
 
 
-func clear_mouths_of(slot: int) -> void:
-	"""Empty both of tunnel `slot`'s lines and grants (it closed: nobody waits for it)."""
-	for end in 2:
-		var mouth := 2 * slot + end
-		for k in QUEUE_MAX:
-			member[mouth * QUEUE_MAX + k] = -1
-		count[mouth] = 0
-		grant[mouth] = -1
+func clear_mouth(mouth: int) -> void:
+	"""Empty mouth `mouth`'s line and grant (what it leads to closed: nobody waits for it)."""
+	for k in QUEUE_MAX:
+		member[mouth * QUEUE_MAX + k] = -1
+	count[mouth] = 0
+	grant[mouth] = -1

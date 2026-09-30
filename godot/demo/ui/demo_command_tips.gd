@@ -9,7 +9,11 @@ extends RefCounted
 ##
 ##     Zone (Z) — Paint a work zone on the map with the zone brush
 ##     Build (B) — Place and upgrade the settlement's buildings
+##     In the demo, B opens the Dig tool instead: lay tunnels underground
 ##     Not in the demo yet: no Building, Furniture or Room store exists; task 06 owns those contracts
+##
+## Build's key is the demo's Dig tool while Build is locked (decision 0208: the shell passes a locked
+## command's key on, and the tunnel tool takes it), so its tip says so (DEMO_BUILD_KEY).
 ##
 ## THE KEY IS READ FROM THE INPUT MAP (`UiShell.COMMAND_ACTIONS`, the project's `open_*` actions), never
 ## written here, so a rebinding in project.godot cannot leave a tooltip naming the old key. The shell
@@ -31,6 +35,8 @@ const WHAT: Array[String] = [
 	"Plan a feast for the settlement",
 	"The settlement's goals and how far along they are",
 ]
+## What Build's key does in the demo while Build is locked (see the header).
+const DEMO_BUILD_KEY: String = "In the demo, B opens the Dig tool instead: lay tunnels underground"
 ## Between the command's name-and-key and what it does.
 const DASH: String = " — "
 ## The second line of a command the demo does not have yet, before the shell's own reason.
@@ -71,7 +77,10 @@ static func apply(shell: UiShell) -> int:
 		var button := shell.control_for(id) as Button
 		if button == null or (id == UiShell.ID_FOOD_ORDERS and not button.disabled):
 			continue
-		button.tooltip_text = tooltip(UiShell.COMMAND_LABELS[index], UiShell.COMMAND_ACTIONS[index], WHAT[index],
+		var what := WHAT[index]
+		if id == UiShell.ID_BUILD and button.disabled:
+			what += "\n" + DEMO_BUILD_KEY
+		button.tooltip_text = tooltip(UiShell.COMMAND_LABELS[index], UiShell.COMMAND_ACTIONS[index], what,
 			missing_of(shell, id) if button.disabled else "")
 		written += 1
 	return written

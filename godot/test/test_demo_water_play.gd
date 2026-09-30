@@ -560,16 +560,23 @@ func test_a_deck_stands_on_its_footings_and_a_plank_deck_arches() -> void:
 # --- the router, the planning area and the hook ---------------------------------------------------
 
 func test_crossings_have_their_own_leg_codes_and_a_cap() -> void:
-	"""A crossing's slot is MAX_TUNNELS + its row: code 52 is slot 26, row 18; a tunnel's code never is
-	one. At most MAX_CROSSING_PAIRS crossings are offered to a plan."""
-	assert_true(RouterScript.is_crossing_code(52) and RouterScript.crossing_row(52) == 18, "row 18")
-	assert_false(RouterScript.is_crossing_code(RouterScript.leg_code(TunnelRules.MAX_TUNNELS - 1, true)), "a tunnel")
+	"""A crossing's leg slot is MAX_SEGMENTS + its row: row 18 walked a to b is code (96 + 18) x 2 = 228,
+	b to a 229; a segment's code, even the last segment's reversed, never is one. At most
+	MAX_CROSSING_PAIRS crossings are offered to a plan (`crossing_count`), no mouth among them."""
+	assert_equal(RouterScript.crossing_code(18, false), (TunnelRules.MAX_SEGMENTS + 18) * 2, "a to b")
+	assert_equal(RouterScript.crossing_code(18, true), (TunnelRules.MAX_SEGMENTS + 18) * 2 + 1, "b to a")
+	for reversed: bool in [false, true]:
+		var code := RouterScript.crossing_code(18, reversed)
+		assert_true(RouterScript.is_crossing_code(code) and RouterScript.crossing_row(code) == 18, "row 18 (%d)" % code)
+		assert_equal(RouterScript.leg_reversed(code), reversed, "its way across")
+	assert_false(RouterScript.is_crossing_code(RouterScript.leg_code(TunnelRules.MAX_SEGMENTS - 1, true)), "a segment")
 	assert_false(RouterScript.is_crossing_code(-1), "the surface")
 	var router := RouterScript.new()
 	for k: int in RouterScript.MAX_CROSSING_PAIRS:
 		assert_true(router.add_crossing(k, Vector2(0.0, float(k)), Vector2(1.0, float(k)), 1.0), "crossing %d" % k)
 	assert_false(router.add_crossing(99, Vector2.ZERO, Vector2.ONE, 1.0), "one too many")
-	assert_equal(router.pair_count, RouterScript.MAX_CROSSING_PAIRS, "the cap")
+	assert_equal(router.crossing_count, RouterScript.MAX_CROSSING_PAIRS, "the cap")
+	assert_equal(router.mouth_count, 0, "and no mouth offered")
 	router.clear_pairs()
 	assert_equal(router.crossing_count, 0, "cleared")
 
@@ -932,7 +939,7 @@ func test_tiring_on_a_link_turns_back_to_the_nearer_bank() -> void:
 	var brain := _brain(rig, 0)
 	var k: int = 0
 	brain.path = PackedVector2Array([rig.play.links.link_land_b[k]])
-	brain.path_tunnel = PackedInt32Array([RouterScript.leg_code(TunnelRules.MAX_TUNNELS + CrossingsScript.LINK_ROW0 + k, false)])
+	brain.path_tunnel = PackedInt32Array([RouterScript.crossing_code(CrossingsScript.LINK_ROW0 + k, false)])
 	brain.path_index = 0
 	crossings.begin_leg(brain, CrossingsScript.LINK_ROW0 + k, false)
 	brain.water_place(rig.play.links.link_water_a[k].lerp(rig.play.links.link_water_b[k], 0.2), -0.18, 0.0)

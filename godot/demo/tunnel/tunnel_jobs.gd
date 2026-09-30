@@ -1,9 +1,10 @@
 extends RefCounted
 ## Work on finished tunnels: upgrades, repairs and chambers. Decision 0196 (live demo). Presentation
-## only: the jobs change the demo's tunnels (tunnel_network.gd) and its own stores, never the
+## only: the jobs change the demo's tunnels (underground_graph.gd) and its own stores, never the
 ## simulation.
 ##
-## ONE JOB PER TUNNEL, held in that tunnel's slot of fixed columns (sized once). A job has a kind,
+## ONE JOB PER SEGMENT (underground_graph.gd, decision 0208: a segment is what a tunnel slot was), held in
+## that segment's slot of fixed columns (sized once). A job has a kind,
 ## the tunnel's generation (a job on a freed and reused slot is void), the resident working it, its
 ## TOTAL in F1000 ticks and the F1000-equivalent microseconds credited so far at the crew's rate
 ## (with the remainder kept, as the dig keeps it), and the stretch of tunnel it works along.
@@ -25,10 +26,10 @@ extends RefCounted
 ## inputs (ECON-005: pause retains progress), and resumes when ordered again.
 ##
 ## SPOIL from re-digging (WIDEN, CLEAR, CHAMBER) posts as each quantum's cut completes and heaps at
-## the entrance (tunnel_network.add_spoil); rock quanta also yield stone to the demo stores.
+## the segment's spoil mouth (underground_graph.add_spoil); rock quanta also yield stone to the demo stores.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 
@@ -74,40 +75,40 @@ var posted_stone: PackedInt64Array = PackedInt64Array()
 ## Bumped when a job is posted, starts, pauses or ends.
 var revision: int = 0
 
-var _network: NetworkScript = null
+var _network: GraphScript = null
 var _stores: StoresScript = null
 var _progress: PackedInt64Array = PackedInt64Array()
 var _cost: PackedInt32Array = PackedInt32Array()
 
 
-func _init(network: NetworkScript, stores: StoresScript) -> void:
+func _init(network: GraphScript, stores: StoresScript) -> void:
 	"""Jobs on this network's tunnels, paid from these stores. Columns sized once."""
 	_network = network
 	_stores = stores
-	kind.resize(Rules.MAX_TUNNELS)
-	paid.resize(Rules.MAX_TUNNELS)
-	chamber_ground.resize(Rules.MAX_TUNNELS)
+	kind.resize(Rules.MAX_SEGMENTS)
+	paid.resize(Rules.MAX_SEGMENTS)
+	chamber_ground.resize(Rules.MAX_SEGMENTS)
 	_size_ints()
-	work_usec.resize(Rules.MAX_TUNNELS)
-	work_rem.resize(Rules.MAX_TUNNELS)
-	posted_spoil.resize(Rules.MAX_TUNNELS)
-	posted_stone.resize(Rules.MAX_TUNNELS)
-	_progress.resize(NetworkScript.P_SIZE)
+	work_usec.resize(Rules.MAX_SEGMENTS)
+	work_rem.resize(Rules.MAX_SEGMENTS)
+	posted_spoil.resize(Rules.MAX_SEGMENTS)
+	posted_stone.resize(Rules.MAX_SEGMENTS)
+	_progress.resize(GraphScript.P_SIZE)
 	_cost.resize(2)
 
 
 func _size_ints() -> void:
 	"""Size the per-slot integer columns."""
-	tunnel_gen.resize(Rules.MAX_TUNNELS)
-	worker.resize(Rules.MAX_TUNNELS)
+	tunnel_gen.resize(Rules.MAX_SEGMENTS)
+	worker.resize(Rules.MAX_SEGMENTS)
 	worker.fill(-1)
-	total.resize(Rules.MAX_TUNNELS)
-	rate_permille.resize(Rules.MAX_TUNNELS)
+	total.resize(Rules.MAX_SEGMENTS)
+	rate_permille.resize(Rules.MAX_SEGMENTS)
 	rate_permille.fill(Rules.PERMILLE)
-	from_u.resize(Rules.MAX_TUNNELS)
-	to_u.resize(Rules.MAX_TUNNELS)
-	chamber.resize(Rules.MAX_TUNNELS)
-	posted_cuts.resize(Rules.MAX_TUNNELS)
+	from_u.resize(Rules.MAX_SEGMENTS)
+	to_u.resize(Rules.MAX_SEGMENTS)
+	chamber.resize(Rules.MAX_SEGMENTS)
+	posted_cuts.resize(Rules.MAX_SEGMENTS)
 
 
 func has_job(slot: int) -> bool:
@@ -234,7 +235,7 @@ func along_m(slot: int) -> float:
 
 
 func cut_progress_into(slot: int, out: PackedInt64Array) -> void:
-	"""The job's re-dig progress so far (tunnel_network P_* slots): cuts, spoil and stone. Only WIDEN,
+	"""The job's re-dig progress so far (underground_graph.gd P_* slots): cuts, spoil and stone. Only WIDEN,
 	CLEAR and CHAMBER cut; the others leave `out` empty."""
 	out.fill(0)
 	var job := kind[slot]
@@ -242,9 +243,9 @@ func cut_progress_into(slot: int, out: PackedInt64Array) -> void:
 		_network.progress_into(slot, done_ticks(slot), Rules.WIDE_EXTRA_QUANTA, out)
 	elif job == JOB_CHAMBER:
 		var ground := chamber_ground[slot]
-		out[NetworkScript.P_CUTS] = done_ticks(slot) / GroundScript.dig_ticks(ground)
-		out[NetworkScript.P_SPOIL] = out[NetworkScript.P_CUTS] * GroundScript.spoil_of(ground)
-		out[NetworkScript.P_STONE] = out[NetworkScript.P_CUTS] * GroundScript.stone_of(ground)
+		out[GraphScript.P_CUTS] = done_ticks(slot) / GroundScript.dig_ticks(ground)
+		out[GraphScript.P_SPOIL] = out[GraphScript.P_CUTS] * GroundScript.spoil_of(ground)
+		out[GraphScript.P_STONE] = out[GraphScript.P_CUTS] * GroundScript.stone_of(ground)
 	elif job == JOB_CLEAR:
 		_clear_progress_into(slot, out)
 
@@ -259,22 +260,22 @@ func _clear_progress_into(slot: int, out: PackedInt64Array) -> void:
 		if left < GroundScript.dig_ticks(ground):
 			return
 		left -= GroundScript.dig_ticks(ground)
-		out[NetworkScript.P_CUTS] += 1
-		out[NetworkScript.P_SPOIL] += GroundScript.spoil_of(ground)
-		out[NetworkScript.P_STONE] += GroundScript.stone_of(ground)
+		out[GraphScript.P_CUTS] += 1
+		out[GraphScript.P_SPOIL] += GroundScript.spoil_of(ground)
+		out[GraphScript.P_STONE] += GroundScript.stone_of(ground)
 
 
 func post_cuts(slot: int) -> int:
 	"""Post the job's new cuts: their spoil to the entrance heap and their stone to the stores. Returns
 	how many cuts were new (each is posted once)."""
 	cut_progress_into(slot, _progress)
-	var fresh := int(_progress[NetworkScript.P_CUTS]) - posted_cuts[slot]
+	var fresh := int(_progress[GraphScript.P_CUTS]) - posted_cuts[slot]
 	if fresh <= 0:
 		return 0
-	_network.add_spoil(slot, _progress[NetworkScript.P_SPOIL] - posted_spoil[slot])
-	_stores.add_stone(_progress[NetworkScript.P_STONE] - posted_stone[slot])
-	posted_spoil[slot] = _progress[NetworkScript.P_SPOIL]
-	posted_stone[slot] = _progress[NetworkScript.P_STONE]
+	_network.add_spoil(slot, _progress[GraphScript.P_SPOIL] - posted_spoil[slot])
+	_stores.add_stone(_progress[GraphScript.P_STONE] - posted_stone[slot])
+	posted_spoil[slot] = _progress[GraphScript.P_SPOIL]
+	posted_stone[slot] = _progress[GraphScript.P_STONE]
 	posted_cuts[slot] += fresh
 	return fresh
 

@@ -1,29 +1,33 @@
 extends Node3D
-## What the tunnel extensions add to the map. Decision 0196 (live demo). Presentation only.
+## What the tunnel extensions add to the map. Decisions 0196 (live demo) and 0208 (per SEGMENT of the
+## network). Presentation only.
 ##
-## ON THE GROUND, per tunnel:
-##   * SELECTED: a brass line along its route and a brass ring at each mouth, drawn over roofs.
-##   * FLOODED: water lying along its route and a blue ring at each mouth.
+## ON THE GROUND, per segment:
+##   * SELECTED: a brass line along its route and a brass ring at each end (a mouth, or a junction below),
+##     drawn over roofs.
+##   * FLOODED: water lying along its route and a blue ring at each end.
 ##   * COLLAPSED: the fall's rubble (the library's tunnel_rubble) over the section and a clay ring round it.
-##   * UNDER A WARNING (seep or strain past half): its mouths ringed in clay, so the tunnel the alert
-##     names is plain on the map.
+##   * UNDER A WARNING (seep or strain past half): its ends ringed in clay, so the tunnel the alert names is
+##     plain on the map.
 ## The selection line is drawn twice, a node per view (decision 0206): on the ground, and on the level's
 ## floor for the U view, sharing one mesh.
 ## UNDERGROUND (the U view's layer; decisions 0206 and 0207), per tunnel: a timber brace frame every
 ## metre where the bore is wholly underground, once BRACED (the library's tunnel_brace, fitted inside the
 ## swept bore's horseshoe and drawn with the cutaway shader, cutaway.gdshader: its posts stand, its cap
 ## beam over a walker's head is cut away), and once LIT (tunnel_jobs.gd) its lanterns spread over the
-## stretch under the ground: the library's wall_lantern hung on the bore's wall, a warm glow in it that
+## stretch under the ground (a ramp's from its portal on; a level bore's whole length): the library's
+## wall_lantern hung on the bore's wall, a warm glow in it that
 ## blooms in the U view's environment, and a real light (tunnel_lanterns.gd: pooled, capped, flickering).
 ## With nothing staged (demo/props/demo_props.gd) the frame is three timber boxes, the rubble a heap and
 ## the lantern a box.
 ##
-## Built once per slot (MultiMesh for frames and lanterns) and placed when the tunnel is braced or lit,
-## whatever the view; `refresh()` rebuilds a slot only when its state key changes, and otherwise only
-## moves nothing -- no per-frame allocation. A view switch changes nothing here.
+## Built once per segment slot the first time it opens (MultiMesh for frames and lanterns; never on a view
+## switch) and placed when the segment is braced or lit, whatever the view; `refresh()` rebuilds a slot only
+## when its state key changes, and otherwise moves nothing -- no per-frame allocation. A view switch
+## changes nothing here.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const HazardsScript := preload("res://demo/tunnel/tunnel_hazards.gd")
 const JobsScript := preload("res://demo/tunnel/tunnel_jobs.gd")
 const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
@@ -72,10 +76,11 @@ const GLOW_RADIUS_M: float = 0.045
 ## The fall's rubble sinks this far into the ground over the collapse.
 const RUBBLE_SINK_M: float = 0.06
 
-var _network: NetworkScript = null
+var _network: GraphScript = null
 var _hazards: HazardsScript = null
 var _selected: int = -1
 var _key: PackedInt64Array = PackedInt64Array()
+## Per segment slot (built when it first opens; see the header).
 var _lines: Array[MeshInstance3D] = []
 ## The selection lines as the U view draws them, on the level's floor (sharing each line's mesh).
 var _lines_below: Array[MeshInstance3D] = []
@@ -98,12 +103,15 @@ var _verts: PackedVector3Array = PackedVector3Array()
 var _brace_mesh: Mesh = null
 var _brace_material: ShaderMaterial = null
 var _glow: Mesh = null
+## The ribbons' materials by colour and depth test, shared by every slot (so the prewarm's one line
+## material is every selection line's).
+var _ribbon_materials: Dictionary = {}
 var _spots: PackedVector3Array = PackedVector3Array()
 ## Scratch for a sample of a bore's drawn centreline (point, heading).
 var _sample: PackedVector2Array = PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
 
 
-func configure(network: NetworkScript, hazards: HazardsScript, props: PropsScript = null, clock: DemoClockScript = null) -> void:
+func configure(network: GraphScript, hazards: HazardsScript, props: PropsScript = null, clock: DemoClockScript = null) -> void:
 	"""Mark this network's tunnels, reading their hazards, with these props (none: boxes), the lanterns
 	flickering on `clock`. Builds every node once."""
 	name = "TunnelMarks"
@@ -119,23 +127,41 @@ func configure(network: NetworkScript, hazards: HazardsScript, props: PropsScrip
 	lights = LanternsScript.new()
 	add_child(lights)
 	lights.configure(clock)
-	_key.resize(Rules.MAX_TUNNELS)
+	_key.resize(Rules.MAX_SEGMENTS)
 	_key.fill(-1)
-	for slot in Rules.MAX_TUNNELS:
-		_build_slot()
+	for column: Array in [_lines, _lines_below, _waters, _falls, _fall_rings, _frames, _lanterns, _glows]:
+		column.resize(Rules.MAX_SEGMENTS)
+	_rings.resize(2 * Rules.MAX_SEGMENTS)
+	_ensure(0)
 
 
-func _build_slot() -> void:
-	"""One slot's marks, hidden."""
-	_lines.append(_ribbon_node(Color(Palette.BRASS, 0.9), true))
-	_lines[-1].layers = Layers.SURFACE_MARKS
-	_lines_below.append(_line_below(_lines[-1]))
-	_waters.append(_ribbon_node(WATER, false))
+func _ensure(slot: int) -> void:
+	"""Build segment slot `slot`'s marks the first time it needs them, hidden (slot 0's at setup, so the
+	prewarm has one of each)."""
+	if _lines[slot] != null:
+		return
+	_lines[slot] = _ribbon_node(Color(Palette.BRASS, 0.9), true)
+	_lines[slot].layers = Layers.SURFACE_MARKS
+	_lines_below[slot] = _line_below(_lines[slot])
+	_waters[slot] = _ribbon_node(WATER, false)
 	for end in 2:
 		var ring := MarksScript.make_ring(Palette.BRASS)
 		ring.visible = false
 		add_child(ring)
-		_rings.append(ring)
+		_rings[2 * slot + end] = ring
+	_falls[slot] = _fall_node()
+	var fall_ring := MarksScript.make_ring(Palette.CLAY)
+	fall_ring.visible = false
+	add_child(fall_ring)
+	_fall_rings[slot] = fall_ring
+	_frames[slot] = _multi(_brace_mesh, MAX_FRAMES)
+	_frames[slot].material_override = _brace_material
+	_lanterns[slot] = _multi(_props.mesh_of(LANTERN_KEY), MAX_LANTERNS)
+	_glows[slot] = _multi(_glow, MAX_LANTERNS)
+
+
+func _fall_node() -> MeshInstance3D:
+	"""A fall's rubble (the library's, else a dark heap), hidden."""
 	var fall := MeshInstance3D.new()
 	fall.mesh = _props.mesh_of(RUBBLE_KEY)
 	if not _props.is_staged(RUBBLE_KEY):
@@ -143,15 +169,7 @@ func _build_slot() -> void:
 		fall.material_override = _plain(FALL_COLOUR)
 	fall.visible = false
 	add_child(fall)
-	_falls.append(fall)
-	var fall_ring := MarksScript.make_ring(Palette.CLAY)
-	fall_ring.visible = false
-	add_child(fall_ring)
-	_fall_rings.append(fall_ring)
-	_frames.append(_multi(_brace_mesh, MAX_FRAMES))
-	_frames[-1].material_override = _brace_material
-	_lanterns.append(_multi(_props.mesh_of(LANTERN_KEY), MAX_LANTERNS))
-	_glows.append(_multi(_glow, MAX_LANTERNS))
+	return fall
 
 
 func _line_below(line: MeshInstance3D) -> MeshInstance3D:
@@ -168,20 +186,29 @@ func _line_below(line: MeshInstance3D) -> MeshInstance3D:
 
 
 func _ribbon_node(colour: Color, on_top: bool) -> MeshInstance3D:
-	"""A ribbon along a route, hidden."""
+	"""A ribbon along a route, hidden, wearing the one shared material of its colour."""
+	var node := MeshInstance3D.new()
+	node.mesh = ImmediateMesh.new()
+	node.material_override = _ribbon_material(colour, on_top)
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	node.visible = false
+	add_child(node)
+	return node
+
+
+func _ribbon_material(colour: Color, on_top: bool) -> StandardMaterial3D:
+	"""The ribbons' shared material of this colour, drawn over everything or not (made once)."""
+	var key := "%s/%s" % [colour.to_html(), on_top]
+	if _ribbon_materials.has(key):
+		return _ribbon_materials[key]
 	var material := _plain(colour)
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	material.no_depth_test = on_top
 	material.render_priority = 3 if on_top else 1
-	var node := MeshInstance3D.new()
-	node.mesh = ImmediateMesh.new()
-	node.material_override = material
-	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	node.visible = false
-	add_child(node)
-	return node
+	_ribbon_materials[key] = material
+	return material
 
 
 static func _plain(colour: Color) -> StandardMaterial3D:
@@ -275,16 +302,16 @@ func register(prewarm: PrewarmScript) -> void:
 	selection line through the cap -- for its prewarm (decision 0206)."""
 	for node: MultiMeshInstance3D in [_frames[0], _lanterns[0], _glows[0]]:
 		prewarm.add_multimesh(node.multimesh.mesh, node.material_override)
-	for line: MeshInstance3D in _lines_below:
-		prewarm.add_mesh(OverlayScript.immediate_sample(), line.material_override)
+	prewarm.add_mesh(OverlayScript.immediate_sample(), _lines_below[0].material_override)
 
 
 func refresh() -> void:
-	"""Redraw each slot whose state changed."""
-	for slot in Rules.MAX_TUNNELS:
+	"""Redraw each segment whose state changed."""
+	for slot in Rules.MAX_SEGMENTS:
 		var key := _state_key(slot)
 		if key != _key[slot]:
 			_key[slot] = key
+			_ensure(slot)
 			_draw_slot(slot)
 
 
@@ -294,24 +321,25 @@ func _state_key(slot: int) -> int:
 		return -1
 	var warned := 1 if _warned(slot) else 0
 	var bits := int(_network.closed[slot]) + 4 * int(_network.braced[slot]) + 8 * int(_network.lit[slot]) + 16 * warned
-	return bits + 32 * (1 if slot == _selected else 0) + 128 * int(_network.bore[slot]) + 256 * _network.generation[slot]
+	return bits + 32 * (1 if slot == _selected else 0) + 128 * int(_network.bore[slot]) + 256 * _network.generation[slot] \
+			+ 65536 * _network.length_u[slot]
 
 
 func _warned(slot: int) -> bool:
 	"""Whether a seep or strain warning stands on tunnel `slot` (past half, not yet struck)."""
-	return _hazards != null and _network.closed[slot] == NetworkScript.CLOSED_NONE \
+	return _hazards != null and _network.closed[slot] == GraphScript.CLOSED_NONE \
 			and (_hazards.seep_permille(slot) >= HazardsScript.WARN_PERMILLE or _hazards.strain_permille(slot) >= HazardsScript.WARN_PERMILLE)
 
 
 func _draw_slot(slot: int) -> void:
 	"""Every mark of one slot, from its state."""
 	var open := _network.is_open(slot)
-	var closed := _network.closed[slot] if open else NetworkScript.CLOSED_NONE
+	var closed := _network.closed[slot] if open else GraphScript.CLOSED_NONE
 	_draw_line(_lines[slot], slot, LINE_WIDTH_M, open and slot == _selected)
 	_lines_below[slot].visible = _lines[slot].visible
-	_draw_line(_waters[slot], slot, WATER_WIDTH_M, closed == NetworkScript.CLOSED_FLOODED)
+	_draw_line(_waters[slot], slot, WATER_WIDTH_M, closed == GraphScript.CLOSED_FLOODED)
 	_place_rings(slot, open)
-	_place_fall(slot, closed == NetworkScript.CLOSED_COLLAPSED)
+	_place_fall(slot, closed == GraphScript.CLOSED_COLLAPSED)
 	_place_frames(slot, open and _network.braced[slot] == 1)
 	_place_lanterns(slot, open and _network.lit[slot] == 1)
 
@@ -338,7 +366,7 @@ func _place_rings(slot: int, open: bool) -> void:
 	"""Rings at the mouths: brass when selected, blue when flooded, clay under a warning."""
 	var colour := Palette.BRASS
 	var show := open and slot == _selected
-	if open and _network.closed[slot] == NetworkScript.CLOSED_FLOODED:
+	if open and _network.closed[slot] == GraphScript.CLOSED_FLOODED:
 		colour = WATER
 		show = true
 	elif open and _warned(slot):
@@ -348,7 +376,7 @@ func _place_rings(slot: int, open: bool) -> void:
 		var ring := _rings[2 * slot + end]
 		ring.visible = show
 		if show:
-			var at := _network.mouth(slot, end == 1)
+			var at := _network.end_at(slot, end == 1)
 			ring.position = Vector3(at.x, MarksScript.LIFT_M, at.y)
 			ring.scale = Vector3(RING_M, 1.0, RING_M)
 			MarksScript.set_alpha(ring, colour, 1.0)
@@ -392,12 +420,14 @@ func _deep_enough(slot: int, along: float) -> bool:
 
 
 func _place_frames(slot: int, show: bool) -> void:
-	"""A timber frame every metre of a braced bore."""
+	"""A timber frame every metre of a braced bore -- but none at its start inside the network (a ramp's foot,
+	a junction): the segment arriving there frames that metre, so a frame is never doubled."""
 	var node := _frames[slot]
 	node.visible = show
 	var count := 0
+	var first := 0 if _network.node_mouth[_network.node_a[slot]] >= 0 else 1
 	if show:
-		for k in mini(floori(_network.length_m(slot)) + 1, MAX_FRAMES):
+		for k in range(first, mini(floori(_network.length_m(slot)) + 1, MAX_FRAMES)):
 			if _deep_enough(slot, float(k)):
 				node.multimesh.set_instance_transform(count, _bore_transform(slot, float(k), 0.0) * _frame_fit)
 				count += 1
@@ -427,11 +457,18 @@ func _place_lanterns(slot: int, show: bool) -> void:
 
 
 func lantern_along(slot: int, k: int, count: int) -> float:
-	"""Where lantern `k` of `count` hangs along tunnel `slot` (m): evenly over the stretch between its
-	ramps' portals, where the bore is under the ground (the whole length's middle if that is none)."""
+	"""Where lantern `k` of `count` hangs along segment `slot` (m): evenly over the stretch under the ground --
+	a ramp's from its portal (where the bore goes under) to its foot, a level bore's whole length."""
 	var length := _network.length_m(slot)
-	var portal := minf(Rules.portal_m(int(_network.bore[slot])), length * 0.5)
-	return portal + (float(k) + 0.5) * (length - 2.0 * portal) / float(count)
+	var from := 0.0
+	var to := length
+	if _network.seg_kind[slot] == GraphScript.SEG_RAMP:
+		var portal := minf(Rules.portal_m(int(_network.bore[slot])), length)
+		if _network.mouth_end_at_b(slot):
+			to = length - portal
+		else:
+			from = portal
+	return from + (float(k) + 0.5) * (to - from) / float(count)
 
 
 func lantern_transform(slot: int, along: float, left: bool) -> Transform3D:

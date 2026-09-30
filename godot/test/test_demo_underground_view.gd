@@ -18,7 +18,7 @@ const CommandScript := preload("res://demo/control/demo_command.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
 const ForestryScript := preload("res://demo/forestry/demo_forestry.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
 const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
@@ -89,32 +89,45 @@ func _village() -> Dictionary:
 
 
 func _dig(v: Dictionary) -> int:
-	"""Brendan's playtest scene, dug: a braced, lit tunnel by the beds with a find in it, a burrow home
-	and a root cellar off it (both done, the cellar a pantry store), a resident walking in the bore, and
-	a route being laid by the mole. Returns the tunnel's slot."""
+	"""Brendan's playtest scene, dug: a braced, lit tunnel by the beds (its entry ramp, its level bore round
+	the bend and its exit ramp, every segment braced and lit) with a find in the bore, a burrow home and a
+	root cellar off the bore (both done, the cellar a pantry store), a resident walking in the bore, and a
+	route being laid by the mole. Returns the bore's slot (segment 1: the ramps are 0 and 2)."""
 	var tool: ControlScript = v["tool"]
-	var network: NetworkScript = tool.network
-	var ref := PackedInt32Array([-1, 0])
+	var network: GraphScript = tool.network
+	var ref := PackedInt32Array([-1, 0, -1])
 	assert_true(network.add_into(PackedInt32Array([-6758, 19456, -6758, 12288, -4096, 7168]), 3, 0, ref), "a tunnel")
-	network.advance(ref[0], ref[1], 1000000000)
-	network.set_braced(ref[0])
-	network.set_lit(ref[0])
+	_dig_piece(network, ref[2])
+	var bore := network.next_in_piece(ref[0])
+	assert_equal(network.seg_kind[bore], GraphScript.SEG_BORE, "its level bore")
+	for slot: int in [ref[0], bore, network.next_in_piece(bore)]:
+		network.set_braced(slot)
+		network.set_lit(slot)
 	var chambers: ChambersScript = tool.ext.works.chambers
 	for spec: Array in [[ChambersScript.KIND_HOME, 1], [ChambersScript.KIND_CELLAR, -1]]:
-		var along: int = network.length_u[ref[0]] * (2 + spec[1]) / 4
+		var along: int = network.length_u[bore] * (2 + spec[1]) / 4
 		var room := PackedInt32Array([0, 0])
-		assert_true(chambers.add_into(spec[0], network, ref[0], along, ChambersScript.centre_for(network, ref[0], along, spec[1]), room), "a room")
+		assert_true(chambers.add_into(spec[0], network, bore, along, ChambersScript.centre_for(network, bore, along, spec[1]), room), "a room")
 		chambers.set_done(room[0])
 	tool.ext.works.stores.add_find(FindsScript.FIND_FLINT)
-	tool.ext.works._record_find(ref[0], Vector2i(-6758, 15000), FindsScript.FIND_FLINT)
-	_send_below(v["cast"], network, ref[0])
+	tool.ext.works._record_find(bore, Vector2i(-6758, 15000), FindsScript.FIND_FLINT)
+	_send_below(v["cast"], network, bore)
 	_plan_route(v)
 	(v["farm"] as DemoFarmScript).storage.refresh()
 	_frame(v)
-	return ref[0]
+	return bore
 
 
-func _send_below(cast: DemoCastScript, network: NetworkScript, slot: int) -> void:
+static func _dig_piece(network: GraphScript, piece: int) -> void:
+	"""Dig every segment of piece `piece` open, in dig order (start_dig turns each PLANNED one to DIGGING)."""
+	var chain := PackedInt32Array()
+	network.piece_segments_into(piece, chain)
+	for slot in chain:
+		network.start_dig(slot, network.generation[slot], 0)
+		network.advance(slot, network.generation[slot], 1000000000)
+
+
+func _send_below(cast: DemoCastScript, network: GraphScript, slot: int) -> void:
 	"""Put resident 2 walking in the bore, part way along it."""
 	var below := (cast.actor(2) as DemoActorScript).brain
 	var mid: Vector2 = network.point_at(slot, network.length_m(slot) * 0.5)
@@ -260,10 +273,13 @@ func test_no_transparency_or_material_is_written_by_twenty_switches() -> void:
 	var before := _snapshot(v)
 	var rooms: int = tool.ext.burrow_view.room_builds
 	var troughs: int = tool.overlay.bore_builds
+	var on: bool = tool.view.on
+	assert_true(on, "the dig tool, open for the route being laid, turned the view underground")
 	for press: int in 20:
 		assert_true(tool.handle_input(_key(KEY_U)), "U")
 		_frame(v)
-		assert_equal((v["camera"] as Camera3D).cull_mask, Layers.view_mask(press % 2 == 0), "the mask")
+		on = not on
+		assert_equal((v["camera"] as Camera3D).cull_mask, Layers.view_mask(on), "the mask")
 		assert_true(_snapshot(v) == before, "nothing else moved after press %d" % press)
 	assert_equal(tool.ext.burrow_view.room_builds, rooms, "no room built by a switch")
 	assert_equal(tool.overlay.bore_builds, troughs, "no trough built by a switch")
@@ -335,7 +351,7 @@ func test_the_prewarm_registry_covers_every_underground_material() -> void:
 		if geometry == null or node.layers & Layers.UNDERGROUND_VIEW == 0 or _is_body(cast, node):
 			continue
 		checked += 1
-		assert_true(prewarm.covers(geometry), "%s (%s) is registered" % [node.name, node.get_class()])
+		assert_true(prewarm.covers(geometry), "%s (%s under %s, override %s) is registered" % [node.name, node.get_class(), node.get_parent().name, geometry.material_override])
 	assert_true(checked > 20, "the U view's drawings were walked (%d)" % checked)
 	assert_true(prewarm.mesh_count() > 20 and prewarm.label_count() >= 1, "meshes and a label style registered")
 
@@ -406,20 +422,28 @@ func test_the_prewarm_draws_a_sample_of_everything_then_gives_the_view_back() ->
 # --- the cap ---------------------------------------------------------------------------------------
 
 func test_the_cap_opens_over_a_dug_bore_and_room_only() -> void:
-	"""A dug tunnel stamps its width into the void mask wherever its floor is at full depth -- not its
-	mouths' ramps, which rise through the cap -- and a done room its floor; the ground beside them, and
-	ground not yet dug, stays solid."""
+	"""A dug tunnel stamps its width into the void mask wherever its floor is at full depth -- its level
+	bore, from one ramp's foot to the other's, not its mouths' ramps, which rise through the cap -- and a
+	done room its floor; the ground beside them (0.75 m out from the bore, on the side away from each room:
+	the bore is 4.6 m, the rooms a quarter and three quarters along it on opposite sides), and ground not
+	yet dug, stays solid."""
 	var v := _village()
 	var slot := _dig(v)
 	var tool: ControlScript = v["tool"]
 	var cap: CapScript = tool.view.cap
-	var network: NetworkScript = tool.network
-	assert_false(cap.is_dug(network.mouth(slot, false)), "not the entrance's ramp")
-	for share: float in [0.25, 0.5, 0.75]:
+	var network: GraphScript = tool.network
+	var entry := network.mouth_of_end(network.first_of_piece(network.piece[slot]), false)
+	assert_equal(entry, 0, "the entrance: mouth row 0")
+	assert_false(cap.is_dug(network.mouth_at(entry)), "not the entrance's ramp")
+	assert_false(cap.is_dug(network.mouth_at(1)), "nor the exit's")
+	for share: float in [0.0, 0.25, 0.5, 0.75, 1.0]:
 		assert_true(cap.is_dug(network.point_at(slot, network.length_m(slot) * share)), "the bore at %s" % share)
-	var middle: Vector2 = network.point_at(slot, network.length_m(slot) * 0.5)
-	var across: Vector2 = network.direction_at(slot, network.length_m(slot) * 0.5).orthogonal() * 0.75
-	assert_false(cap.is_dug(middle + across) or cap.is_dug(middle - across), "solid either side, between the rooms")
+	var chambers: ChambersScript = tool.ext.works.chambers
+	for c: int in 2:
+		var along: float = Rules.to_m(chambers.along_u[c])
+		var beside: Vector2 = network.point_at(slot, along)
+		var away: Vector2 = (beside - chambers.centre_m(c)).normalized() * 0.75
+		assert_false(cap.is_dug(beside + away), "solid beside the bore, across it from room %d" % c)
 	assert_true(cap.is_dug(tool.ext.works.chambers.centre_m(0)), "the home's floor")
 	assert_false(cap.is_dug(Vector2(0.0, -15.0)), "undug ground")
 
@@ -485,18 +509,24 @@ func test_the_void_disc_is_the_bore_width() -> void:
 
 func test_a_tunnel_being_dug_opens_the_cap_up_to_its_face_only() -> void:
 	"""Part way through a dig the void reaches the face wall and stops there -- nothing opens past it --
-	and a tunnel dug before the cap was handed over is stamped once it is."""
+	and a tunnel dug before the cap was handed over is stamped once it is. A 10.2 m tunnel: its entry ramp
+	(segment 0) dug open, its 2.21 m level bore (segment 1) dug half through -- the face at 1.1 m, clear of
+	the ramp foot's last disc (0.5 m) by more than the probe past the face (0.3 m)."""
 	var v := _village()
 	var tool: ControlScript = v["tool"]
-	var network: NetworkScript = tool.network
-	var ref := PackedInt32Array([-1, 0])
-	network.add_into(PackedInt32Array([-6758, 19456, -6758, 9000]), 2, 0, ref)
-	network.advance(ref[0], ref[1], 24000000)
+	var network: GraphScript = tool.network
+	var ref := PackedInt32Array([-1, 0, -1])
+	assert_true(network.add_into(PackedInt32Array([-6758, 19456, -6758, 9000]), 2, 0, ref), "a tunnel")
+	network.advance(ref[0], ref[1], 1000000000)
+	var bore := network.next_in_piece(ref[0])
+	assert_true(network.start_dig(bore, network.generation[bore], 0), "its bore taken up")
+	var half_usec := network.total_ticks(bore) / 2 * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND
+	network.advance(bore, network.generation[bore], half_usec)
 	tool.overlay.refresh()
-	var face: float = tool.overlay.dug_m(ref[0])
-	assert_true(face > 3.0 and not network.is_open(ref[0]), "part dug, past the ramp (%.2f m)" % face)
-	assert_true(tool.view.cap.is_dug(network.point_at(ref[0], face - 0.2)), "open behind the face")
-	assert_false(tool.view.cap.is_dug(network.point_at(ref[0], face + 0.3)), "solid past it")
+	var face: float = tool.overlay.dug_m(bore)
+	assert_true(face > 0.9 and face < 1.3 and not network.is_open(bore), "half dug, past the ramp's foot (%.2f m)" % face)
+	assert_true(tool.view.cap.is_dug(network.point_at(bore, face - 0.2)), "open behind the face")
+	assert_false(tool.view.cap.is_dug(network.point_at(bore, face + 0.3)), "solid past it")
 	var late: OverlayScript = _keep(OverlayScript.new())
 	late.configure(network, v["cast"].space())
 	late.refresh()
@@ -504,7 +534,8 @@ func test_a_tunnel_being_dug_opens_the_cap_up_to_its_face_only() -> void:
 	cap.configure(GroundScript.new(), WaterScript.new())
 	late.set_view(cap, PrewarmScript.new())
 	late.refresh()
-	assert_true(cap.is_dug(network.point_at(ref[0], face - 0.2)), "stamped when the cap arrives")
+	assert_true(cap.is_dug(network.point_at(bore, face - 0.2)), "stamped when the cap arrives")
+	assert_false(cap.is_dug(network.point_at(bore, face + 0.3)), "and only to the face")
 
 
 func test_a_dig_face_opens_only_the_half_behind_it() -> void:
@@ -654,12 +685,12 @@ func test_a_resident_changes_layer_going_down_and_up_and_its_parts_follow() -> v
 	joins that layer; back up: the surface layer and its marker again, placed on the floor under it."""
 	var v := _village()
 	var tool: ControlScript = v["tool"]
-	var network: NetworkScript = tool.network
-	var ref := PackedInt32Array([-1, 0])
-	network.add_into(PackedInt32Array([-6758, 19456, -6758, 12288]), 2, 0, ref)
-	network.advance(ref[0], ref[1], 1000000000)
+	var network: GraphScript = tool.network
+	var ref := PackedInt32Array([-1, 0, -1])
+	assert_true(network.add_into(PackedInt32Array([-6758, 19456, -6758, 9000]), 2, 0, ref), "a 10.2 m tunnel")
+	_dig_piece(network, ref[2])
 	var actor := v["cast"].actor(2) as DemoActorScript
-	_send_below(v["cast"], network, ref[0])
+	_send_below(v["cast"], network, network.next_in_piece(ref[0]))
 	v["cast"].advance(DT)
 	assert_equal(actor.layers_now(), Layers.UNDERGROUND, "below")
 	assert_false(actor.marker().visible, "no marker")

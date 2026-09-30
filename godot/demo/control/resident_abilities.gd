@@ -4,7 +4,8 @@ extends RefCounted
 ##
 ## One short line per kind of work (one line each in the panel's column), each saying what to
 ## right-click; the skill-gated work says why this body cannot ("× ..."), with the rule that gates it. The answers are read from the rules that decide them,
-## never restated: digging (tunnel_rules.gd `is_digger`), fitting a standard bore (`fits_bore`),
+## never restated: digging and fitting a standard bore -- one rule since decision 0208, the body's
+## (tunnel_rules.gd `fits_bore`; the digging SKILL, dig_skills.gd, only sets how fast),
 ## swimming and diving (waterplay/swim_rules.gd), gnawing (forestry/forest_skills.gd), breaking rock
 ## (tunnel/tunnel_crew.gd) and carrying (a carry clip with recorded root motion). Everything else --
 ## moving, the farm's verbs, the woods' felling and sawing, clearing spoil -- anybeast does (LORE-P12).
@@ -25,8 +26,9 @@ const FELL_LINE: String = "Woods: fell, gather, saw — a tree"
 const GNAW_LINE: String = "Woods: gnaw, gather, saw — a tree"
 const CARRY_LINE: String = "Carry: logs, harvests, spoil, planks"
 const NO_CARRY_LINE: String = "Carry: has no carrying walk"
-const DIG_LINE: String = "Dig tunnels (T), widen, dig rooms"
-const NO_DIG_LINE: String = "Digging: only moles dig"
+const DIG_LINE: String = "Dig tunnels (B): drag one, branch off one; widen, dig rooms"
+const SKILLED_DIG_LINE: String = "Dig tunnels (B), a skilled digger: drag one, branch off one; widen, dig rooms"
+const NO_DIG_LINE: String = "Digging: too big for a bore -- a surface hand on a dig crew"
 const BORE_LINE: String = "Tunnels: brace, lanterns — a tunnel"
 const NO_BORE_LINE: String = "Tunnels: too big until widened"
 const ROCK_LINE: String = "Rock: breaks it for a dig crew"
@@ -48,17 +50,18 @@ static func lines_for(species: String, height_m: float, radius_m: float, can_car
 
 
 static func tunnel_lines(species: String, height_m: float, radius_m: float) -> PackedStringArray:
-	"""Digging (moles only), fitting a standard bore, and breaking rock (the badger)."""
+	"""Digging (anybeast who fits a bore; moles start skilled: decision 0208), fitting a standard bore, and
+	breaking rock (the badger)."""
 	var lines := PackedStringArray()
-	if TunnelRules.is_digger(species):
-		lines.append(CAN + DIG_LINE)
-	if TunnelRules.fits_bore(TunnelRules.to_u(height_m), TunnelRules.to_u(radius_m)):
+	var fits := TunnelRules.fits_bore(TunnelRules.to_u(height_m), TunnelRules.to_u(radius_m))
+	if fits:
+		lines.append(CAN + (SKILLED_DIG_LINE if TunnelRules.is_digger(species) else DIG_LINE))
 		lines.append(CAN + BORE_LINE)
 	else:
 		lines.append(CANNOT + NO_BORE_LINE)
 	if species.to_lower() == TunnelCrew.BREAKER_SPECIES:
 		lines.append(CAN + ROCK_LINE)
-	if not TunnelRules.is_digger(species):
+	if not fits:
 		lines.append(CANNOT + NO_DIG_LINE)
 	return lines
 

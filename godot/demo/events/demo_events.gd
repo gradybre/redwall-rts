@@ -12,16 +12,18 @@ extends RefCounted
 ## schedule (FIRST_AUTO_USEC, then every AUTO_EVERY_USEC plus a seeded jitter), and the tunnel
 ## panel's "Test event (demo)" brings the next one at once.
 ##
-## EVACUATION (`plan_escape`). Everyone on the surface inside the disc is sent away: through the
-## nearest usable tunnel they fit whose near mouth is closer to them than its far mouth and whose far
-## mouth lies outside the disc (by SAFE_MARGIN_M) -- down, through, up, and on to a spot beyond the far
-## mouth, away from the threat -- or, with no such tunnel, straight out of the disc on foot. They
-## shelter there until it clears, then go back to their own routines (evacuate_task.gd).
+## EVACUATION (`plan_escape`). Everyone on the surface inside the disc is sent away: in at the nearest
+## usable mouth of the tunnel network (decision 0208) from which a walk they fit leads to a far mouth
+## that is farther from them than the near one and lies outside the disc (by SAFE_MARGIN_M) -- the far
+## mouth cheapest to walk to -- down, through, up, and on to a spot beyond the far mouth, away from the
+## threat; or, with no such way, straight out of the disc on foot. They shelter there until it clears,
+## then go back to their own routines (evacuate_task.gd).
 ##
 ## All the numbers here are demo values.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
+const PathsScript := preload("res://demo/tunnel/graph_paths.gd")
 const WaterScript := preload("res://demo/village_water.gd")
 
 const KIND_FLOOD: int = 0
@@ -137,23 +139,42 @@ func shelter_from(at: Vector2) -> Vector2:
 	return centre_m() + away * (radius_m() + SHELTER_M)
 
 
-func plan_escape(network: NetworkScript, index: int, at: Vector2, out: PackedFloat32Array) -> bool:
-	"""The tunnel resident `index` standing at `at` escapes through (see EVACUATION): out[0] slot,
-	out[1] 1 when it goes in at the exit, out[2..3] the shelter beyond the far mouth. False when no
-	tunnel serves, and it walks out instead."""
+func plan_escape(network: GraphScript, index: int, at: Vector2, out: PackedFloat32Array) -> bool:
+	"""The way resident `index` standing at `at` escapes through the network (see EVACUATION): out[0] the
+	mouth row it goes in at, out[1] the one it comes up at, out[2..3] the shelter beyond. False when no way
+	serves, and it walks out instead."""
+	var fit_class := network.walker_class(index, false)
 	var best := INF
-	for slot in Rules.MAX_TUNNELS:
-		if not network.is_usable(slot) or not network.fits_tunnel(index, slot, false):
+	for near in Rules.MAX_MOUTHS:
+		if not network.mouth_usable(near) or network.mouth_at(near).distance_to(at) >= best:
 			continue
-		for end in 2:
-			var near := network.mouth(slot, end == 1)
-			var far := network.mouth(slot, end == 0)
-			var d := near.distance_to(at)
-			if d < best and d < far.distance_to(at) and far.distance_to(centre_m()) > radius_m() + SAFE_MARGIN_M:
-				best = d
-				var beyond := far + (far - centre_m()).normalized() * SHELTER_M
-				out[0] = slot
-				out[1] = end
-				out[2] = beyond.x
-				out[3] = beyond.y
+		var far := _safe_far_mouth(network, fit_class, near, at)
+		if far < 0:
+			continue
+		best = network.mouth_at(near).distance_to(at)
+		var far_at := network.mouth_at(far)
+		var beyond := far_at + (far_at - centre_m()).normalized() * SHELTER_M
+		out[0] = near
+		out[1] = far
+		out[2] = beyond.x
+		out[3] = beyond.y
 	return best < INF
+
+
+func _safe_far_mouth(network: GraphScript, fit_class: int, near: int, at: Vector2) -> int:
+	"""The mouth outside the disc, farther from `at` than mouth `near`, cheapest to walk to from `near`
+	(-1: none)."""
+	var near_d := network.mouth_at(near).distance_to(at)
+	var best := -1
+	var best_walk := PathsScript.UNREACHED
+	for far in Rules.MAX_MOUTHS:
+		if far == near or not network.mouth_usable(far):
+			continue
+		var far_at := network.mouth_at(far)
+		if far_at.distance_to(at) <= near_d or far_at.distance_to(centre_m()) <= radius_m() + SAFE_MARGIN_M:
+			continue
+		var walk := network.paths.dist_u(network, fit_class, near, network.mouth_node[far])
+		if walk < best_walk:
+			best_walk = walk
+			best = far
+	return best

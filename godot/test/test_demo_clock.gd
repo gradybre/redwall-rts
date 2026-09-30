@@ -13,7 +13,7 @@ const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 
 const DT: float = 1.0 / 60.0
 ## One 60 Hz frame, rounded to whole microseconds once.
@@ -176,14 +176,14 @@ func test_resuming_continues_exactly_where_it_paused() -> void:
 
 
 func _dig_cast(manager: GameManagerScript) -> Array:
-	"""The placeholder cast with resident 0 a mole digging a 3 m tunnel from right beside it, already
+	"""The placeholder cast with resident 0 a mole digging a 12 m tunnel (the shortest is 8 m: two 4 m ramps) from right beside it, already
 	in the ground: [cast, network, slot]."""
 	var cast := _cast(manager)
 	var mole := (cast.actor(0) as DemoActorScript).brain
 	var network := cast.space().tunnels
 	var ref := PackedInt32Array([-1, 0])
 	var at := mole.position
-	var route := PackedInt32Array([roundi(at.x * 1024.0), roundi(at.y * 1024.0), roundi(at.x * 1024.0) + 3072,
+	var route := PackedInt32Array([roundi(at.x * 1024.0), roundi(at.y * 1024.0), roundi(at.x * 1024.0) + 12288,
 		roundi(at.y * 1024.0)])
 	assert_true(network.add_into(route, 2, mole.index, ref), "planned")
 	mole.order_dig(ref[0], ref[1])
@@ -200,7 +200,7 @@ func test_digging_stops_while_paused_and_runs_twice_as_fast_at_2x() -> void:
 	var manager := _manager()
 	var site := _dig_cast(manager)
 	var cast: DemoCastScript = site[0]
-	var network: NetworkScript = site[1]
+	var network: GraphScript = site[1]
 	var slot: int = site[2]
 	manager.pause_game()
 	var held := network.dig_usec[slot]
@@ -213,6 +213,7 @@ func test_digging_stops_while_paused_and_runs_twice_as_fast_at_2x() -> void:
 	manager.set_speed(2)
 	start = network.dig_usec[slot]
 	_frames(cast, 60)
+	# No tunnel crew here, so the segment's rate stays Rules.PERMILLE (no skill factor): one F1000 worker.
 	assert_equal(at_one, 60 * FRAME_USEC, "60 frames at 1x")
 	assert_equal(network.dig_usec[slot] - start, 2 * at_one, "60 frames at 2x: exactly twice")
 
@@ -241,7 +242,7 @@ func test_the_mound_holds_still_while_paused() -> void:
 	var manager := _manager()
 	var site := _dig_cast(manager)
 	var cast: DemoCastScript = site[0]
-	var network: NetworkScript = site[1]
+	var network: GraphScript = site[1]
 	var overlay := OverlayScript.new()
 	_nodes.append(overlay)
 	overlay.configure(network, cast.space(), cast.clock)

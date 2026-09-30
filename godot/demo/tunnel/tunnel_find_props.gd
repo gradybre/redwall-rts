@@ -9,7 +9,7 @@ extends Node3D
 
 const WorksScript := preload("res://demo/tunnel/tunnel_works.gd")
 const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 const Layers := preload("res://demo/demo_layers.gd")
@@ -19,13 +19,13 @@ const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 const TURN_PER_FIND: float = 2.3
 
 var _works: WorksScript = null
-var _network: NetworkScript = null
+var _network: GraphScript = null
 var _props: PropsScript = null
 var _pieces: Array[MeshInstance3D] = []
 var _seen: int = -1
 
 
-func configure(works: WorksScript, network: NetworkScript, props: PropsScript) -> void:
+func configure(works: WorksScript, network: GraphScript, props: PropsScript) -> void:
 	"""Draw these works' finds in this network with these props. Builds the pool once."""
 	name = "TunnelFindProps"
 	_works = works

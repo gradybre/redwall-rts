@@ -1,23 +1,25 @@
 extends Node3D
-## What the demo's tunnels look like. Decision 0196. Presentation only.
+## What the demo's tunnels look like. Decisions 0196 and 0208 (the network graph). Presentation only.
 ##
-## ON THE GROUND, per tunnel: its route as a ribbon -- solid earth where the bore is dug, a cream
-## dashed line where it is still to dig (clay, with a clay ring round the entrance, while the tunnel
-## is PAUSED), a faint earth trace once it is open -- the entrance and exit as MOUTHS (tunnel_mouth.gd,
-## decision 0207: a fieldstone-and-timber gateway over the ramp's cutting running down into the dark),
-## and a spoil heap beside each mouth that grows with the spoil heaped there (DEC-040;
-## tunnel_rules.spoil_into). The ribbon stops at a hole's edge, and the cutting is drawn over it. While the digger is underground a mound of disturbed earth, throwing clods, moves along
-## above it, drawn larger as the camera pulls back so it still reads when zoomed out. The route
-## being laid (tunnel_plan.gd) is drawn the same way with a ring at each point and its length beside
-## the pointer, on top of everything, so a route laid under a roof stays readable.
+## ON THE GROUND, per SEGMENT of the network: its route as a ribbon -- solid earth where the bore is dug,
+## a cream dashed line where it is still to dig (clay, with a clay ring round where it starts, while it is
+## PAUSED), a faint earth trace once it is open. Per MOUTH: a fieldstone-and-timber gateway over its ramp's
+## cutting running down into the dark (tunnel_mouth.gd, decision 0207), and a spoil heap beside it that
+## grows with the spoil heaped there (DEC-040; underground_graph.gd SPOIL). A ribbon stops at a hole's
+## edge, and the cutting is drawn over it. While a digger is underground a mound of disturbed earth,
+## throwing clods, moves along above it, drawn larger as the camera pulls back so it still reads when
+## zoomed out. THE GHOST of the piece being laid (tunnel_plan.gd) is drawn on top of everything: its drawn
+## curve (bore_curve.gd's fillets) with a ring at each point, dashed on to the pointer, chalk-cream while it
+## may be dug and clay when not, a brass ring where it snaps onto the network, and beside the pointer the
+## cost readout or the reason it may not be dug (tunnel_control.gd SNAPPING AND THE GHOST).
 ##
-## UNDERGROUND (the U view, tunnel_view.gd; decisions 0206 and 0207): each tunnel's dug length is a
-## SWEPT BORE on the UNDERGROUND layer (bore_view.gd: a hand-dug horseshoe tube in the underground's
-## earth, stones and roots in its walls) with a face wall where the dig has reached -- wider once widened
-## (and as far as a widening has reached, `widen_m`), wet when flooded, dark with rubble through a fallen
-## section (tunnel_marks.gd draws the frames, lanterns and their light). It is built as the bore is dug,
-## whatever the view, and each dug step is stamped into the cap's void mask (underground_cap.gd) so the
-## cap opens over it. It replaced decision 0206's interim trough.
+## UNDERGROUND (the U view, tunnel_view.gd; decisions 0206 to 0208): each segment's dug length is a SWEPT
+## BORE on the UNDERGROUND layer (bore_view.gd: a hand-dug horseshoe tube in the underground's earth,
+## stones and roots in its walls) with a face wall where the dig has reached -- wider once widened (and as
+## far as a widening has reached, `widen_m`), wet when flooded, dark with rubble through a fallen section
+## (tunnel_marks.gd draws the frames, lanterns and their light) -- and each junction where three or more
+## have broken through a HUB (bore_view.gd HUBS). It is built as the bore is dug, whatever the view, and
+## each dug step is stamped into the cap's void mask (underground_cap.gd) so the cap opens over it.
 ##
 ## THE ROUTE BEING LAID is drawn twice, a node per view (demo_layers.gd): on the ground, and on the
 ## level's floor in the U view -- where a click there lands.
@@ -25,21 +27,22 @@ extends Node3D
 ## A MOUND also follows a mole at a digging job underground (widening, clearing, a chamber):
 ## `job_digger` names it per tunnel (tunnel_works.gd sets it every frame; -1 for none).
 ##
-## BUILT ONCE, REBUILT RARELY. Every node is built once per slot. The ribbon and the bore are
-## rebuilt only when the dig face crosses a BORE_STEP_M boundary (or the phase or the tunnel's state changes)
-## -- at most a few times a second while digging, never every tick -- into scratch arrays that are
+## BUILT WHEN FIRST NEEDED, REBUILT RARELY. A segment's nodes are built the first time its slot holds a
+## segment (when a piece is laid -- never on a view switch), a mouth's at boot. The ribbon and the bore are
+## rebuilt only when the dig face crosses a BORE_STEP_M boundary (or the phase or the segment's state
+## changes) -- at most a few times a second while digging, never every tick -- into scratch arrays that are
 ## grown, never shrunk, with no temporary per quad. Mouths and heaps only move and scale, per tick.
 ##
 ## HEAP SIZE is a DEMO value: ECON-002's mass is a haul cost, "not physical soil density", so how
 ## large a unit of spoil looks is not specified. A heap is drawn as a dome holding
 ## HEAP_DRAWN_M3_PER_U cubic metres per unit, HEAP_ASPECT times as tall as it is wide. It stands where
 ## tunnel_heaps.gd placed it when the dig was accepted (clear of obstacles, work spots and holes),
-## or -- for a tunnel stored without that -- off to the right of the way out of its mouth.
+## or -- for a mouth stored without that -- off to the right of the way out of it.
 ##
 ## TIME. The mound's bob and its clods run on the demo clock (demo_clock.gd): paused, they hold.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const PlanScript := preload("res://demo/tunnel/tunnel_plan.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const MarksScript := preload("res://demo/control/demo_marks.gd")
@@ -51,6 +54,8 @@ const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 const BoreViewScript := preload("res://demo/tunnel/bore_view.gd")
 const MouthScript := preload("res://demo/tunnel/tunnel_mouth.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
+const BoreCurveScript := preload("res://demo/tunnel/bore_curve.gd")
+const SpecScript := preload("res://demo/tunnel/piece_spec.gd")
 
 const LIFT_M: float = 0.045
 const PLAN_WIDTH_M: float = 0.32
@@ -76,6 +81,8 @@ const PAUSE_RING_M: float = 0.8
 const BORE_STEP_M: float = 0.25
 const LABEL_PX: int = 40
 const LABEL_PIXEL: float = 0.0006
+## The ghost's words start this far right of the pointer (px), so a long readout runs off no edge of it.
+const LABEL_OFFSET_PX: Vector2 = Vector2(60.0, 0.0)
 const HEAP_RINGS: int = 7
 const HEAP_SECTORS: int = 28
 ## A ribbon rebuild's key: phase, then the face's BORE_STEP_M steps and whether ground is broken.
@@ -86,6 +93,10 @@ const EARTH_LIGHT: Color = Color(0.43, 0.32, 0.22)
 const PLAN: Color = Color(Palette.CREAM, 0.6)
 const PAUSED_PLAN: Color = Color(Palette.CLAY, 0.8)
 const PREVIEW: Color = Color(Palette.CREAM, 0.35)
+const REFUSED_GHOST: Color = Color(Palette.CLAY, 0.75)
+const SNAP_RING_M: float = 0.7
+## The ghost's drawn curve is sampled this often (m).
+const GHOST_STEP_M: float = 0.25
 const TRACE: Color = Color(EARTH, 0.4)
 ## A mesh key's tunnel-state part: bore, closed and the widening's step.
 const KEY_STATE: int = 100000000
@@ -93,33 +104,39 @@ const KEY_STATE: int = 100000000
 const MOUTH_CUTTING: int = 0
 const MOUTH_GATEWAY: int = 1
 
-var _network: NetworkScript = null
+var _network: GraphScript = null
 var _space: CastSpaceScript = null
 var _clock: DemoClockScript = null
+## Per segment (built when first needed; see BUILT WHEN FIRST NEEDED): ribbon, mound, pause ring.
 var _ribbons: Array[MeshInstance3D] = []
-## The swept bores, their stones and roots (bore_view.gd).
-var bores: BoreViewScript = null
-var _holes: Array[Node3D] = []
-var _heaps: Array[MeshInstance3D] = []
 var _mounds: Array[Node3D] = []
 var _pause_rings: Array[MeshInstance3D] = []
+## The swept bores, their stones and roots, and the junctions' hubs (bore_view.gd).
+var bores: BoreViewScript = null
+## Per mouth row: its gateway and cutting, and its heap.
+var _holes: Array[Node3D] = []
+var _heaps: Array[MeshInstance3D] = []
 var _mesh_key: PackedInt64Array = PackedInt64Array()
 var _mouth_key: PackedInt64Array = PackedInt64Array()
 var _plan_ribbon: MeshInstance3D = null
 var _plan_rings: Array[MeshInstance3D] = []
 var _label: Label3D = null
-## The route being laid as the U view draws it, on the level's floor (a node per view; decision 0206).
+var _snap_ring: MeshInstance3D = null
+## The piece being laid as the U view draws it, on the level's floor (a node per view; decision 0206).
 var _plan_below: Node3D = null
 var _plan_ribbon_below: MeshInstance3D = null
 var _plan_rings_below: Array[MeshInstance3D] = []
 var _label_below: Label3D = null
+var _snap_ring_below: MeshInstance3D = null
+var _ghost_curve: BoreCurveScript = BoreCurveScript.new()
+var _ghost_points: PackedVector2Array = PackedVector2Array()
+var _sample: PackedVector2Array = PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
 var _materials: Dictionary = {}
 var _poly: PackedVector2Array = PackedVector2Array()
 var _verts: PackedVector3Array = PackedVector3Array()
 var _vert_count: int = 0
-var _spoil: PackedInt64Array = PackedInt64Array()
 var _time: float = 0.0
-## Per tunnel: how far a widening has reached (m), and the mole at a digging job there (-1: none).
+## Per segment: how far a widening has reached (m), and the digger at a digging job there (-1: none).
 var widen_m: PackedFloat32Array = PackedFloat32Array()
 var job_digger: PackedInt32Array = PackedInt32Array()
 ## Bore rebuilds so far (for measurement and the tests).
@@ -128,42 +145,43 @@ var bore_builds: int = 0
 static var _heap: ArrayMesh = null
 
 
-func configure(network: NetworkScript, space: CastSpaceScript, clock: DemoClockScript = null) -> void:
-	"""Draw this network's tunnels, finding each digger in `space`, on `clock`'s time (none: the
-	mound holds still). Builds every node once."""
+func configure(network: GraphScript, space: CastSpaceScript, clock: DemoClockScript = null) -> void:
+	"""Draw this network, finding each digger in `space`, on `clock`'s time (none: the mound holds still).
+	Builds every mouth's nodes and the ghost's once; a segment's when it is first laid."""
 	name = "TunnelOverlay"
 	_network = network
 	_space = space
 	_clock = clock
-	_spoil.resize(2)
-	_mesh_key.resize(Rules.MAX_TUNNELS)
+	_mesh_key.resize(Rules.MAX_SEGMENTS)
 	_mesh_key.fill(-1)
-	widen_m.resize(Rules.MAX_TUNNELS)
-	job_digger.resize(Rules.MAX_TUNNELS)
+	widen_m.resize(Rules.MAX_SEGMENTS)
+	job_digger.resize(Rules.MAX_SEGMENTS)
 	job_digger.fill(-1)
-	_mouth_key.resize(Rules.MAX_TUNNELS)
+	_mouth_key.resize(Rules.MAX_MOUTHS)
 	_mouth_key.fill(-1)
+	_ribbons.resize(Rules.MAX_SEGMENTS)
+	_mounds.resize(Rules.MAX_SEGMENTS)
+	_pause_rings.resize(Rules.MAX_SEGMENTS)
 	bores = BoreViewScript.new()
 	add_child(bores)
 	bores.configure(network)
-	for slot in Rules.MAX_TUNNELS:
-		_build_slot()
-	_build_plan_marks()
-	_hide_all()
-
-
-func _build_slot() -> void:
-	"""One slot's nodes: ribbon, mound, pause ring, and a mouth and heap at each end (its bore is
-	bore_view.gd's)."""
-	_ribbons.append(_mesh_node(ImmediateMesh.new(), null))
-	_mounds.append(_make_mound())
-	var ring := MarksScript.make_ring(Palette.CLAY)
-	ring.scale = Vector3(PAUSE_RING_M, 1.0, PAUSE_RING_M)
-	add_child(ring)
-	_pause_rings.append(ring)
-	for end in 2:
+	for m in Rules.MAX_MOUTHS:
 		_holes.append(_make_mouth())
 		_heaps.append(_mesh_node(heap_mesh(), _spoil_material()))
+	_build_plan_marks()
+
+
+func _ensure_segment(slot: int) -> void:
+	"""Build segment `slot`'s nodes the first time it is laid: ribbon, mound and pause ring, hidden."""
+	if _ribbons[slot] != null:
+		return
+	_ribbons[slot] = _mesh_node(ImmediateMesh.new(), null)
+	_mounds[slot] = _make_mound()
+	var ring := MarksScript.make_ring(Palette.CLAY)
+	ring.scale = Vector3(PAUSE_RING_M, 1.0, PAUSE_RING_M)
+	ring.visible = false
+	add_child(ring)
+	_pause_rings[slot] = ring
 
 
 func _mesh_node(mesh: Mesh, material: Material) -> MeshInstance3D:
@@ -320,8 +338,8 @@ func _make_mound() -> Node3D:
 
 
 func _build_plan_marks() -> void:
-	"""The route being laid, a set per view (see THE ROUTE BEING LAID): its ribbon, a ring per point and
-	a length label, all drawn on top -- on the ground, and on the level's floor, sharing one ribbon mesh."""
+	"""The ghost, a set per view (see THE GHOST): its ribbon, a ring per point, the snap ring and the words,
+	all drawn on top -- on the ground, and on the level's floor, sharing one ribbon mesh."""
 	_plan_ribbon = _mesh_node(ImmediateMesh.new(), null)
 	_plan_ribbon.layers = Layers.SURFACE_MARKS
 	_label = _plan_label(self, Layers.SURFACE_MARKS)
@@ -339,6 +357,10 @@ func _build_plan_marks() -> void:
 	for k in Rules.MAX_POINTS:
 		_plan_rings.append(_plan_ring(self, Layers.SURFACE_MARKS))
 		_plan_rings_below.append(_plan_ring(_plan_below, Layers.UNDERGROUND_MARKS))
+	_snap_ring = _plan_ring(self, Layers.SURFACE_MARKS)
+	_snap_ring_below = _plan_ring(_plan_below, Layers.UNDERGROUND_MARKS)
+	for ring: MeshInstance3D in [_snap_ring, _snap_ring_below]:
+		ring.scale = Vector3(SNAP_RING_M, 1.0, SNAP_RING_M)
 
 
 static func _plan_ring(parent: Node3D, layer: int) -> MeshInstance3D:
@@ -348,12 +370,13 @@ static func _plan_ring(parent: Node3D, layer: int) -> MeshInstance3D:
 	(ring.material_override as StandardMaterial3D).no_depth_test = true
 	(ring.material_override as StandardMaterial3D).render_priority = 3
 	ring.layers = layer
+	ring.visible = false
 	parent.add_child(ring)
 	return ring
 
 
 static func _plan_label(parent: Node3D, layer: int) -> Label3D:
-	"""The route's length label, drawn on top, on `layer`, under `parent`, hidden."""
+	"""The ghost's words, drawn on top, on `layer`, under `parent`, hidden."""
 	var label := Label3D.new()
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.no_depth_test = true
@@ -363,27 +386,22 @@ static func _plan_label(parent: Node3D, layer: int) -> Label3D:
 	label.outline_size = 10
 	label.modulate = Palette.CREAM
 	label.outline_modulate = Palette.DEEP_SHADE
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	label.offset = LABEL_OFFSET_PX
 	label.layers = layer
 	label.visible = false
 	parent.add_child(label)
 	return label
 
 
-func _hide_all() -> void:
-	"""Nothing is drawn until there is something to draw."""
-	for slot in Rules.MAX_TUNNELS:
-		_hide_slot(slot)
-
-
 func _hide_slot(slot: int) -> void:
-	"""Hide everything one slot draws."""
+	"""Hide everything one segment draws."""
+	if _ribbons[slot] == null:
+		return
 	_ribbons[slot].visible = false
 	bores.hide_slot(slot)
 	_mounds[slot].visible = false
 	_pause_rings[slot].visible = false
-	for end in 2:
-		_holes[2 * slot + end].visible = false
-		_heaps[2 * slot + end].visible = false
 
 
 # --- per frame ------------------------------------------------------------------------------
@@ -397,49 +415,55 @@ func _process(_delta: float) -> void:
 
 
 func refresh() -> void:
-	"""Redraw each tunnel whose progress changed; move each mound with its digger."""
+	"""Redraw each segment whose progress changed and move each mound with its digger; show each mouth as its
+	hole opens and its heap grows; redraw the hubs when the network changed."""
 	if _network == null:
 		return
-	for slot in Rules.MAX_TUNNELS:
+	for slot in Rules.MAX_SEGMENTS:
+		if _network.phase[slot] == GraphScript.PHASE_FREE and _ribbons[slot] == null:
+			continue
 		_sync_slot(slot)
 		_update_mound(slot)
+	for m in Rules.MAX_MOUTHS:
+		_sync_mouth(m)
+	bores.refresh_hubs()
 
 
-func heap(slot: int, exit: bool) -> MeshInstance3D:
-	"""The spoil heap by a tunnel's entrance (or exit)."""
-	return _heaps[2 * slot + (1 if exit else 0)]
+func heap(m: int) -> MeshInstance3D:
+	"""The spoil heap by mouth row `m`."""
+	return _heaps[m]
 
 
-func hole(slot: int, exit: bool) -> Node3D:
-	"""A tunnel's entrance (or exit) hole."""
-	return _holes[2 * slot + (1 if exit else 0)]
+func hole(m: int) -> Node3D:
+	"""Mouth row `m`'s gateway and cutting."""
+	return _holes[m]
 
 
 func mound(slot: int) -> Node3D:
-	"""The mound over a tunnel's digger."""
+	"""The mound over segment `slot`'s digger (null until the segment is first laid)."""
 	return _mounds[slot]
 
 
 func bore(slot: int) -> MeshInstance3D:
-	"""A tunnel's swept bore (its first chunk; bore_view.gd has them all)."""
+	"""A segment's swept bore (its first chunk; bore_view.gd has them all)."""
 	return bores.chunk(slot, 0)
 
 
 func pause_ring(slot: int) -> MeshInstance3D:
-	"""The clay ring round a paused tunnel's entrance."""
+	"""The clay ring round where a paused segment starts."""
 	return _pause_rings[slot]
 
 
 func ribbon(slot: int) -> MeshInstance3D:
-	"""A tunnel's ribbon on the ground."""
+	"""A segment's ribbon on the ground."""
 	return _ribbons[slot]
 
 
 func mesh_key(slot: int) -> int:
-	"""What a slot's ribbon and bore were last built for (see BUILT ONCE, REBUILT RARELY; -1: hidden).
+	"""What a segment's ribbon and bore were last built for (see BUILT WHEN FIRST NEEDED; -1: hidden).
 	Nothing about the view: a view switch rebuilds nothing (decision 0206)."""
 	var phase := _network.phase[slot]
-	if phase == NetworkScript.PHASE_FREE:
+	if phase == GraphScript.PHASE_FREE:
 		return -1
 	var broken := 2 if _network.done(slot) > 0 else 0
 	var base := int(phase) * KEY_PHASE + floori(dug_m(slot) / BORE_STEP_M) * 4 + broken
@@ -447,63 +471,73 @@ func mesh_key(slot: int) -> int:
 
 
 func dug_m(slot: int) -> float:
-	"""How much of tunnel `slot`'s bore is dug (all of it once open), m."""
+	"""How much of segment `slot`'s bore is dug (all of it once open), m."""
 	return _network.length_m(slot) if _network.is_open(slot) else _network.face_m(slot)
 
 
 func _state_key(slot: int) -> int:
-	"""What a tunnel's state adds to its mesh key: bore class, closed and the widening (lanterns and
-	braces are tunnel_marks.gd's, and light the bore as it is)."""
+	"""What a segment's state adds to its mesh key: bore class, closed, the widening, its generation, its
+	route's length (a split changes both ends' routes) and whether a hub stands at either end (a branch
+	breaking ground at a junction makes one, and the bores meeting there must drop what lies inside it);
+	lanterns and braces are tunnel_marks.gd's."""
 	var bits := int(_network.bore[slot]) + 4 * int(_network.closed[slot])
-	return bits + 32 * floori(widen_m[slot] / BORE_STEP_M)
+	return bits + 32 * floori(widen_m[slot] / BORE_STEP_M) + 32768 * (_network.generation[slot] % 256) \
+			+ 8388608 * (_network.length_u[slot] % 64) + 536870912 * bores.hub_bits(slot)
 
 
 func _sync_slot(slot: int) -> void:
-	"""Rebuild one slot's ribbon and bore when its face crossed a step (or its phase or state
-	changed); move its mouths and heaps when a tick was dug."""
+	"""Rebuild one segment's ribbon and bore when its face crossed a step (or its phase or state changed)."""
 	var key := mesh_key(slot)
-	if key != _mesh_key[slot]:
-		_mesh_key[slot] = key
-		_mouth_key[slot] = -1
-		if key < 0:
-			_hide_slot(slot)
-			return
-		_draw_ribbon(slot)
-		if _network.done(slot) > 0:
-			bores.build(slot, dug_m(slot), widen_m[slot])
-			bore_builds += 1
-	var ticks := int(_network.phase[slot]) * KEY_PHASE + _network.done(slot)
-	if key >= 0 and ticks != _mouth_key[slot]:
-		_mouth_key[slot] = ticks
-		_show_mouths(slot)
+	if key == _mesh_key[slot]:
+		return
+	_mesh_key[slot] = key
+	if key < 0:
+		_hide_slot(slot)
+		return
+	_ensure_segment(slot)
+	_draw_ribbon(slot)
+	_show_pause_ring(slot)
+	if _network.done(slot) > 0:
+		bores.build(slot, dug_m(slot), widen_m[slot])
+		bore_builds += 1
 
 
 func _route_poly(slot: int) -> void:
-	"""The slot's route points, in metres, into _poly."""
+	"""The segment's route points, in metres, into _poly."""
 	_poly.resize(_network.point_count[slot])
 	for k in _poly.size():
 		_poly[k] = _network.point(slot, k)
 
 
 func _draw_ribbon(slot: int) -> void:
-	"""Dug length solid earth, the rest dashed (cream, or clay while paused); an open tunnel as a faint
-	trace. Each part stops at the edge of an open hole."""
+	"""Dug length solid earth, the rest dashed (cream, or clay while paused); an open segment as a faint
+	trace. Each part stops at the edge of an open hole (only a mouth has one)."""
 	_route_poly(slot)
 	var mesh := _ribbons[slot].mesh as ImmediateMesh
 	mesh.clear_surfaces()
 	var length := _network.length_m(slot)
+	var start_hole := HOLE_RADIUS_M if _network.mouth_of_end(slot, false) >= 0 else 0.0
+	var end_hole := HOLE_RADIUS_M if _network.mouth_of_end(slot, true) >= 0 else 0.0
 	if _network.is_open(slot):
 		var wide := 2.0 if _network.bore[slot] == Rules.BORE_WIDE else 1.0
-		_strip_into(HOLE_RADIUS_M * wide, length - HOLE_RADIUS_M * wide, TRACE_WIDTH_M * wide, false)
+		_strip_into(start_hole * wide, length - end_hole * wide, TRACE_WIDTH_M * wide, false)
 		_flush(mesh, _flat(TRACE))
 	else:
 		var dug := _network.face_m(slot)
-		var from := HOLE_RADIUS_M if _network.done(slot) > 0 else 0.0
+		var from := start_hole if _network.done(slot) > 0 else 0.0
 		_strip_into(from, dug, DUG_WIDTH_M, false)
 		_flush(mesh, _flat(Color(EARTH, 0.85)))
 		_strip_into(maxf(dug, from), length, PLAN_WIDTH_M, true)
-		_flush(mesh, _flat(PAUSED_PLAN if _network.phase[slot] == NetworkScript.PHASE_PAUSED else PLAN))
+		_flush(mesh, _flat(PAUSED_PLAN if _network.phase[slot] == GraphScript.PHASE_PAUSED else PLAN))
 	_ribbons[slot].visible = true
+
+
+func _show_pause_ring(slot: int) -> void:
+	"""A clay ring round where a paused segment starts."""
+	var ring := _pause_rings[slot]
+	ring.visible = _network.phase[slot] == GraphScript.PHASE_PAUSED
+	var at := _network.end_at(slot, false)
+	ring.position = Vector3(at.x, MarksScript.LIFT_M, at.y)
 
 
 func _strip_into(from_m: float, to_m: float, width: float, dashed: bool) -> void:
@@ -576,45 +610,49 @@ func _flush(mesh: ImmediateMesh, material: Material) -> void:
 
 # --- mouths, heaps and mound ----------------------------------------------------------------
 
-func _show_mouths(slot: int) -> void:
-	"""The entrance opens as its shaft is dug, the exit when the tunnel opens; heaps beside them; a
-	clay ring round a paused tunnel's entrance."""
-	var stage := _network.stage(slot)
-	var shaft := clampf(float(_network.done(slot)) / float(Rules.SHAFT_QUANTA * Rules.TICKS_PER_QUANTUM), 0.3, 1.0)
-	_holes[2 * slot].visible = _network.done(slot) > 0
-	_place_mouth(slot, false, shaft if stage == Rules.STAGE_ENTRANCE else 1.0)
-	_holes[2 * slot + 1].visible = stage == Rules.STAGE_OPEN
-	_place_mouth(slot, true, 1.0)
-	_network.spoil_into(slot, _spoil)
-	for end in 2:
-		_place_heap(slot, end, _spoil[end])
-	var ring := _pause_rings[slot]
-	ring.visible = _network.phase[slot] == NetworkScript.PHASE_PAUSED
-	var at := _network.mouth(slot, false)
-	ring.position = Vector3(at.x, MarksScript.LIFT_M, at.y)
+func _sync_mouth(m: int) -> void:
+	"""Show mouth row `m` as it stands: its hole open (as its entry shaft is dug, or once its ramp breaks out
+	at it), its cutting and gateway, and its heap at its size; hidden when the row is free."""
+	if not _network.is_mouth(m):
+		if _mouth_key[m] != -1:
+			_mouth_key[m] = -1
+			_holes[m].visible = false
+			_heaps[m].visible = false
+		return
+	var ramp := _network.mouth_ramp(m)
+	var key := int(_network.phase[ramp]) * KEY_PHASE + _network.done(ramp) + 7 * _network.heaped_milli(m) \
+			+ 13 * _network.mouth_gen[m] + 101 * int(_network.bore[ramp])
+	if key == _mouth_key[m]:
+		return
+	_mouth_key[m] = key
+	_show_mouth(m, ramp)
+	_place_heap(m, _network.heaped_milli(m))
 
 
-func _place_mouth(slot: int, exit: bool, opened: float) -> void:
-	"""A mouth on the ground, facing down its ramp: its cutting as long as the ramp is open (to where the
-	bore goes under, on the first or last leg), `opened` of that while the shaft is dug, and its gateway
-	once it is (see tunnel_mouth.gd); larger for a widened bore."""
-	var node := _holes[2 * slot + (1 if exit else 0)]
-	var at := _network.mouth(slot, exit)
-	var into := -_network.direction_at(slot, _network.length_m(slot)) if exit else _network.direction_at(slot, 0.0)
+func _show_mouth(m: int, ramp: int) -> void:
+	"""A mouth on the ground, facing down its ramp: its cutting as long as the ramp is open to where the bore
+	goes under, `opened` of that while its entry shaft is dug, and its gateway once it is; larger for a
+	widened bore."""
+	var node := _holes[m]
+	node.visible = _network.mouth_opened(m)
+	var opened := 1.0
+	if not _network.mouth_end_at_b(ramp) and _network.stage(ramp) == Rules.STAGE_ENTRANCE:
+		opened = clampf(float(_network.done(ramp)) / float(Rules.SHAFT_QUANTA * Rules.TICKS_PER_QUANTUM), 0.3, 1.0)
+	var at := _network.mouth_at(m)
+	var into := _network.mouth_inward(m)
 	node.position = Vector3(at.x, 0.0, at.y)
 	node.rotation = Vector3(0.0, atan2(into.x, into.y), 0.0)
-	var wide := WIDE_HOLE_SCALE if _network.bore[slot] == Rules.BORE_WIDE else 1.0
-	var leg := _network.point(slot, 1).distance_to(at) if not exit else _network.point(slot, _network.point_count[slot] - 2).distance_to(at)
-	var open_m := minf(Rules.portal_m(int(_network.bore[slot])), leg) * opened
+	var wide := WIDE_HOLE_SCALE if _network.bore[ramp] == Rules.BORE_WIDE else 1.0
+	var open_m := minf(Rules.portal_m(int(_network.bore[ramp])), _network.length_m(ramp)) * opened
 	(node.get_child(MOUTH_CUTTING) as Node3D).scale = Vector3(wide, 1.0, open_m)
 	var gateway := node.get_child(MOUTH_GATEWAY) as Node3D
 	gateway.visible = opened >= 1.0
 	gateway.scale = Vector3.ONE * wide
 
 
-func mouth_open_m(slot: int, exit: bool) -> float:
-	"""How far a mouth's cutting runs down its ramp (m; checks)."""
-	return (_holes[2 * slot + (1 if exit else 0)].get_child(MOUTH_CUTTING) as Node3D).scale.z
+func mouth_open_m(m: int) -> float:
+	"""How far mouth row `m`'s cutting runs down its ramp (m; checks)."""
+	return (_holes[m].get_child(MOUTH_CUTTING) as Node3D).scale.z
 
 
 static func heap_radius_m(spoil_milli_u: int) -> float:
@@ -630,17 +668,16 @@ static func default_heap_at(mouth: Vector2, outward: Vector2, radius: float) -> 
 	return mouth + right * (HOLE_RADIUS_M * Rules.RIM_FACTOR + HEAP_GAP_M + radius) + outward * (radius * 0.25)
 
 
-func _place_heap(slot: int, end: int, spoil_milli_u: int) -> void:
-	"""A mouth's heap at its current size, where tunnel_heaps.gd placed it (see HEAP SIZE)."""
-	var heap_node := _heaps[2 * slot + end]
+func _place_heap(m: int, spoil_milli_u: int) -> void:
+	"""Mouth `m`'s heap at its current size, where tunnel_heaps.gd placed it (see HEAP SIZE)."""
+	var heap_node := _heaps[m]
 	heap_node.visible = spoil_milli_u > 0
 	if not heap_node.visible:
 		return
 	var r := heap_radius_m(spoil_milli_u)
-	var at := _network.heap_at[2 * slot + end]
-	if _network.heap_radius_m[2 * slot + end] <= 0.0:
-		var outward := -_network.direction_at(slot, 0.0) if end == 0 else _network.direction_at(slot, _network.length_m(slot))
-		at = default_heap_at(_network.mouth(slot, end == 1), outward, r)
+	var at := _network.heap_at[m]
+	if _network.heap_radius_m[m] <= 0.0:
+		at = default_heap_at(_network.mouth_at(m), -_network.mouth_inward(m), r)
 	heap_node.position = Vector3(at.x, 0.0, at.y)
 	heap_node.scale = Vector3(r, r * HEAP_ASPECT, r)
 
@@ -649,7 +686,9 @@ func _update_mound(slot: int) -> void:
 	"""Over a digger underground, a mound follows it, bobbing and throwing clods on the demo clock,
 	and grows as the camera pulls back."""
 	var mound_node := _mounds[slot]
-	var digger := _network.digger[slot] if _network.phase[slot] == NetworkScript.PHASE_DIGGING else job_digger[slot]
+	if mound_node == null:
+		return
+	var digger := _network.digger[slot] if _network.phase[slot] == GraphScript.PHASE_DIGGING else job_digger[slot]
 	var below := digger >= 0 and digger < _space.resident_underground.size() and _space.resident_underground[digger] == 1
 	if mound_node.visible != below:
 		mound_node.visible = below
@@ -683,10 +722,11 @@ func set_view(cap: CapScript, prewarm: PrewarmScript) -> void:
 	learns everything this overlay draws in the U view (decision 0206)."""
 	_mesh_key.fill(-1)
 	bores.set_view(cap, prewarm)
-	for colour: Color in [PLAN, PREVIEW]:
+	for colour: Color in [PLAN, PREVIEW, REFUSED_GHOST]:
 		prewarm.add_mesh(immediate_sample(), _on_top(colour))
 	for ring: MeshInstance3D in _plan_rings_below:
 		prewarm.add_mesh(ring.mesh, ring.material_override)
+	prewarm.add_mesh(_snap_ring_below.mesh, _snap_ring_below.material_override)
 	prewarm.add_label(_label_below)
 
 
@@ -706,35 +746,71 @@ static func immediate_sample() -> ImmediateMesh:
 	return mesh
 
 
-# --- the route being laid -------------------------------------------------------------------
+# --- the ghost ------------------------------------------------------------------------------
 
-func show_plan(plan: PlanScript, cursor: Vector2, has_cursor: bool) -> void:
-	"""Draw the route being laid, on top of everything: rings at its points (brass entrance, ember
-	latest), the laid route, a dashed preview to the pointer and the length there."""
-	_poly.resize(plan.count)
-	for k in plan.count:
-		_poly[k] = plan.point_m(k)
+func show_ghost(plan: PlanScript, cursor: Vector2, has_cursor: bool, snap: int, refused: bool, words: String) -> void:
+	"""Draw the ghost of the piece being laid, on top of everything (see THE GHOST): its drawn curve through
+	its points and on to the pointer (dashed from the last point), chalk-cream -- clay when `refused` -- rings
+	at its points (brass start, ember latest), a brass ring where the pointer snaps onto the network (`snap`,
+	piece_spec.gd END_*), and `words` beside the pointer (else the piece's length)."""
 	var mesh := _plan_ribbon.mesh as ImmediateMesh
 	mesh.clear_surfaces()
+	_ghost_route(plan, cursor, false)
 	_strip_into(0.0, INF, PLAN_WIDTH_M, false)
-	_flush(mesh, _on_top(PLAN))
+	_flush(mesh, _on_top(REFUSED_GHOST if refused and not has_cursor else PLAN))
 	if has_cursor and plan.count > 0:
-		_poly.resize(2)
-		_poly[0] = plan.point_m(plan.count - 1)
-		_poly[1] = cursor
-		_strip_into(0.0, INF, PLAN_WIDTH_M, true)
-		_flush(mesh, _on_top(PREVIEW))
+		_ghost_route(plan, cursor, true)
+		var laid := _laid_length(plan)
+		_strip_into(laid, INF, PLAN_WIDTH_M, true)
+		_flush(mesh, _on_top(REFUSED_GHOST if refused else PREVIEW))
 	_plan_ribbon.visible = true
 	_plan_ribbon_below.visible = true
 	for k in _plan_rings.size():
 		_show_plan_ring(_plan_rings[k], plan, k)
 		_show_plan_ring(_plan_rings_below[k], plan, k)
-	_show_plan_label(_label, plan, cursor, has_cursor)
-	_show_plan_label(_label_below, plan, cursor, has_cursor)
+	_show_snap_ring(_snap_ring, has_cursor and snap != SpecScript.END_NEW_MOUTH, cursor)
+	_show_snap_ring(_snap_ring_below, has_cursor and snap != SpecScript.END_NEW_MOUTH, cursor)
+	_show_plan_label(_label, plan, cursor, has_cursor, words, refused)
+	_show_plan_label(_label_below, plan, cursor, has_cursor, words, refused)
+
+
+static func _show_snap_ring(ring: MeshInstance3D, show: bool, cursor: Vector2) -> void:
+	"""The brass ring round a snap target (one view's), at the pointer."""
+	ring.visible = show
+	ring.position = Vector3(cursor.x, MarksScript.LIFT_M, cursor.y)
+	MarksScript.set_alpha(ring, Palette.BRASS, 1.0)
+
+
+func _ghost_route(plan: PlanScript, cursor: Vector2, with_cursor: bool) -> void:
+	"""The ghost's drawn curve (bore_curve.gd's fillets, as the bore will be drawn) through the points laid --
+	and on to the pointer -- sampled every GHOST_STEP_M into _poly."""
+	_ghost_points.resize(plan.count)
+	for k in plan.count:
+		_ghost_points[k] = plan.point_m(k)
+	if with_cursor:
+		_ghost_points.append(cursor)
+	_poly.clear()
+	if _ghost_points.size() < 2:
+		_poly.append_array(_ghost_points)
+		return
+	_ghost_curve.set_route(_ghost_points, BoreCurveScript.bend_radius(Rules.BORE_STANDARD))
+	var length := _ghost_curve.length_m()
+	var along := 0.0
+	while true:
+		_ghost_curve.sample(minf(along, length), _sample)
+		_poly.append(_sample[0])
+		if along >= length:
+			return
+		along += GHOST_STEP_M
+
+
+static func _laid_length(plan: PlanScript) -> float:
+	"""How long the points laid run (m, along their legs)."""
+	return Rules.to_m(plan.length_u())
 
 
 static func _show_plan_ring(ring: MeshInstance3D, plan: PlanScript, k: int) -> void:
-	"""The ring on laid point `k` (brass entrance, ember latest), or hidden past the last."""
+	"""The ring on laid point `k` (brass start, ember latest), or hidden past the last."""
 	ring.visible = k < plan.count
 	if not ring.visible:
 		return
@@ -744,38 +820,47 @@ static func _show_plan_ring(ring: MeshInstance3D, plan: PlanScript, k: int) -> v
 	MarksScript.set_alpha(ring, colour, 1.0)
 
 
-static func _show_plan_label(label: Label3D, plan: PlanScript, cursor: Vector2, has_cursor: bool) -> void:
-	"""The route's length (to the pointer, while it is over the plane) beside its end."""
+static func _show_plan_label(label: Label3D, plan: PlanScript, cursor: Vector2, has_cursor: bool, words: String,
+		refused: bool) -> void:
+	"""The ghost's words beside the pointer (clay when refused): the readout or the reason, else the length."""
 	label.visible = plan.count > 0
 	if not label.visible:
 		return
 	var at := cursor if has_cursor else plan.point_m(plan.count - 1)
 	var length := plan.length_to_u(Rules.to_u(at.x), Rules.to_u(at.y)) if has_cursor else plan.length_u()
-	label.text = PlanScript.length_text(length)
+	label.text = words if not words.is_empty() else PlanScript.length_text(length)
+	label.modulate = Palette.CLAY if refused else Palette.CREAM
 	label.position = Vector3(at.x, 0.6, at.y)
 
 
 func plan_label() -> Label3D:
-	"""The length label beside the route being laid."""
+	"""The words beside the ghost."""
 	return _label
 
 
 func plan_ribbon() -> MeshInstance3D:
-	"""The route being laid."""
+	"""The ghost's ribbon."""
 	return _plan_ribbon
 
 
 func plan_below() -> Node3D:
-	"""The route being laid as the U view draws it, on the level's floor (its ribbon, rings and label)."""
+	"""The ghost as the U view draws it, on the level's floor (its ribbon, rings, snap ring and words)."""
 	return _plan_below
 
 
+func snap_ring() -> MeshInstance3D:
+	"""The brass ring where the pointer snaps onto the network."""
+	return _snap_ring
+
+
 func hide_plan() -> void:
-	"""Stop drawing the route being laid, in both views."""
+	"""Stop drawing the ghost, in both views."""
 	_plan_ribbon.visible = false
 	_plan_ribbon_below.visible = false
 	_label.visible = false
 	_label_below.visible = false
+	_snap_ring.visible = false
+	_snap_ring_below.visible = false
 	for k in _plan_rings.size():
 		_plan_rings[k].visible = false
 		_plan_rings_below[k].visible = false

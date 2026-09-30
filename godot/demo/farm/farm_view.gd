@@ -23,7 +23,7 @@ const AssetsScript := preload("res://demo/farm/farm_assets.gd")
 const BedVisualScript := preload("res://demo/farm/farm_bed_visual.gd")
 const TunnelsScript := preload("res://demo/farm/farm_tunnels.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const StockViewScript := preload("res://demo/farm/farm_stock_view.gd")
@@ -43,7 +43,7 @@ var stock: StockViewScript = StockViewScript.new()
 
 var _sim: SimScript = null
 var _tunnels: TunnelsScript = null
-var _network: NetworkScript = null
+var _network: GraphScript = null
 var _heap_overlay: OverlayScript = null
 var _shown: PackedInt64Array = PackedInt64Array()
 var _selected: int = -1
@@ -74,7 +74,7 @@ func build(manifest: Dictionary, sim: SimScript) -> void:
 	refresh()
 
 
-func follow_tunnels(tunnels: TunnelsScript, network: NetworkScript, heap_overlay: OverlayScript) -> void:
+func follow_tunnels(tunnels: TunnelsScript, network: GraphScript, heap_overlay: OverlayScript) -> void:
 	"""Shrink heaps drawn by `heap_overlay`."""
 	_tunnels = tunnels
 	_network = network
@@ -186,7 +186,7 @@ func _shrink_heaps() -> void:
 	for heap: int in TunnelsScript.HEAPS:
 		if _tunnels.taken_milli(_network, heap) <= 0:
 			continue
-		var node: MeshInstance3D = _heap_overlay.heap(heap / 2, heap % 2 == 1)
+		var node: MeshInstance3D = _heap_overlay.heap(heap)
 		var left: int = _tunnels.spoil_left(_network, heap)
 		node.visible = left > 0
 		if left > 0:

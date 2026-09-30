@@ -3,10 +3,10 @@ extends Node3D
 ## 0207 (the underground revamp's P1; design docs/design/underground_revamp.md §6 "Materials": embedded
 ## stones, roots under trees). Presentation only.
 ##
-## Per tunnel, two MultiMeshes on the UNDERGROUND layer: STONES (a lumpy stone, MAX_STONES of them) and
+## Per segment of the network (decision 0208), two MultiMeshes on the UNDERGROUND layer: STONES (a lumpy stone, MAX_STONES of them) and
 ## ROOTS (a tapering root with a rootlet, MAX_ROOTS), placed on the bore's own drawn centreline
 ## (bore_curve.gd `of`). Each dug step (bore_view.gd's ring lattice) deep enough that its highest root
-## stays under the section plane (`dressed_at`) rolls its own dice -- a hash of the tunnel's generation and
+## stays under the section plane (`dressed_at`) rolls its own dice -- a hash of the segment's generation and
 ## the step, so a step always gets the same stones -- for a stone bedded into a wall (STONE_CHANCE a side), and,
 ## within a mature tree's root reach (forest_roots.gd, the reach the cap's root tangles are drawn to),
 ## up to ROOTS_PER_STEP roots out of the upper walls, likelier the nearer the trunk. Only new steps are
@@ -16,7 +16,7 @@ extends Node3D
 ## the pieces that stand proud of the wall.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const Layers := preload("res://demo/demo_layers.gd")
 const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 const BoreMeshScript := preload("res://demo/tunnel/bore_mesh.gd")
@@ -59,11 +59,18 @@ var _sample: PackedVector2Array = PackedVector2Array([Vector2.ZERO, Vector2.ZERO
 
 
 func configure() -> void:
-	"""Every slot's two MultiMeshes, empty and hidden."""
+	"""Room for every segment's two MultiMeshes, built the first time the segment is dressed."""
 	name = "Dressing"
-	for slot in Rules.MAX_TUNNELS:
-		_stones.append(_multi(stone_mesh(), MAX_STONES))
-		_roots.append(_multi(root_mesh(), MAX_ROOTS))
+	_stones.resize(Rules.MAX_SEGMENTS)
+	_roots.resize(Rules.MAX_SEGMENTS)
+
+
+func _ensure(slot: int) -> void:
+	"""Segment `slot`'s two MultiMeshes, empty and hidden, built once."""
+	if _stones[slot] != null:
+		return
+	_stones[slot] = _multi(stone_mesh(), MAX_STONES)
+	_roots[slot] = _multi(root_mesh(), MAX_ROOTS)
 
 
 func _multi(mesh: Mesh, count: int) -> MultiMeshInstance3D:
@@ -103,17 +110,19 @@ func set_trees(trees: Array[Dictionary]) -> int:
 
 
 func stones(slot: int) -> MultiMeshInstance3D:
-	"""Tunnel `slot`'s stones (checks)."""
+	"""Segment `slot`'s stones (checks; null before it is first dressed)."""
 	return _stones[slot]
 
 
 func roots(slot: int) -> MultiMeshInstance3D:
-	"""Tunnel `slot`'s roots (checks)."""
+	"""Segment `slot`'s roots (checks; null before it is first dressed)."""
 	return _roots[slot]
 
 
 func clear(slot: int) -> void:
-	"""No stones or roots in tunnel `slot`."""
+	"""No stones or roots in segment `slot`."""
+	if _stones[slot] == null:
+		return
 	for node: MultiMeshInstance3D in [_stones[slot], _roots[slot]]:
 		node.multimesh.visible_instance_count = 0
 		node.visible = false
@@ -121,8 +130,11 @@ func clear(slot: int) -> void:
 
 # --- placing ----------------------------------------------------------------------------------
 
-func place(slot: int, network: NetworkScript, from_m: float, to_m: float, widen_m: float) -> void:
-	"""Dress tunnel `slot`'s steps dug between `from_m` and `to_m` (from 0: all of them again)."""
+func place(slot: int, network: GraphScript, from_m: float, to_m: float, widen_m: float, clear_a_m: float = 0.0,
+		clear_b_m: float = 0.0) -> void:
+	"""Dress segment `slot`'s steps dug between `from_m` and `to_m` (from 0: all of them again), none within
+	`clear_a_m` of its node A or `clear_b_m` of its node B (a junction's hub is there: bore_view.gd HUBS)."""
+	_ensure(slot)
 	if from_m <= 0.0:
 		clear(slot)
 	var curve: BoreCurveScript = BoreCurveScript.of(network, slot)
@@ -131,9 +143,10 @@ func place(slot: int, network: NetworkScript, from_m: float, to_m: float, widen_
 	while float(step) * STEP_M <= to_m:
 		var along := float(step) * STEP_M
 		var bore := Rules.BORE_WIDE if network.bore[slot] == Rules.BORE_WIDE or along < widen_m else Rules.BORE_STANDARD
-		if dressed_at(Rules.floor_y_m(along, length), bore):
+		var floor_y := network.floor_y_at(slot, along)
+		if dressed_at(floor_y, bore) and along >= clear_a_m and along <= length - clear_b_m:
 			curve.sample(along, _sample)
-			_dress_step(slot, network.generation[slot] * 7919 + step, Vector3(_sample[0].x, Rules.floor_y_m(along, length), _sample[0].y), _sample[1], bore)
+			_dress_step(slot, network.generation[slot] * 7919 + step, Vector3(_sample[0].x, floor_y, _sample[0].y), _sample[1], bore)
 		step += 1
 	for node: MultiMeshInstance3D in [_stones[slot], _roots[slot]]:
 		node.visible = node.multimesh.visible_instance_count > 0

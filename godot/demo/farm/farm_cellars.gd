@@ -11,10 +11,10 @@ extends RefCounted
 ##     becomes &"root_cellar:<slot>:<generation>" -- still stable while the cellar exists, and a dug-
 ##     over slot's new cellar is a new store;
 ##   * a LABEL, "Root cellar <slot + 1>", for the Pantry view;
-##   * the POSITION a carrier delivers to: the cellar's DOOR -- the mouth of its tunnel nearer the
-##     chamber (a cellar is a room off a bore; the way in is down the tunnel) -- rather than the
-##     chamber's centre, which can lie under a bed or between beds where nobody can stand. A cellar
-##     whose tunnel is gone is reached where it lies (its centre).
+##   * the POSITION a carrier delivers to: the cellar's DOOR -- the network's mouth nearest the chamber
+##     by the walk through the tunnels (a cellar is a room off a bore; the way in is down the tunnels;
+##     decision 0208) -- rather than the chamber's centre, which can lie under a bed or between beds where
+##     nobody can stand. A cellar whose bore is not open, or leads to no mouth, is reached where it lies.
 ## The capacity (a demo value, burrow_chambers CELLAR_CAPACITY_U) and the spoilage (the GDD's cellar
 ## store factor 350 per mille) are the chambers' own. Harvests are carried to the door, so a cellar
 ## dug near the beds shortens the haul -- and the pantry sends each harvest to the slowest-spoiling
@@ -22,13 +22,14 @@ extends RefCounted
 
 const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
+const PathsScript := preload("res://demo/tunnel/graph_paths.gd")
 
 const ID_FORMAT: String = "root_cellar:%d:%d"
 const LABEL_FORMAT: String = "Root cellar %d"
 
 
-static func entries(chambers: ChambersScript, network: NetworkScript) -> Array:
+static func entries(chambers: ChambersScript, network: GraphScript) -> Array:
 	"""Every finished root cellar as a storage-provider entry (allocates: the pantry asks hourly)."""
 	var out: Array = []
 	for cellar: Dictionary in chambers.cellars():
@@ -43,16 +44,28 @@ static func entries(chambers: ChambersScript, network: NetworkScript) -> Array:
 	return out
 
 
-static func door_of(chambers: ChambersScript, network: NetworkScript, c: int, centre: Vector3) -> Vector3:
-	"""Where chamber `c` is entered: its tunnel's mouth nearer it, on the ground; `centre` when that
-	tunnel is no longer open."""
+static func door_of(chambers: ChambersScript, network: GraphScript, c: int, centre: Vector3) -> Vector3:
+	"""Where chamber `c` is entered: the mouth nearest it by the walk through the network, on the ground;
+	`centre` when its bore is not open or no mouth is reached from it."""
 	var slot: int = chambers.tunnel[c]
 	if network == null or slot < 0 or slot >= network.phase.size() or not network.is_open(slot):
 		return centre
-	var at: Vector2 = network.mouth(slot, chambers.along_u[c] * 2 > network.length_u[slot])
+	var best := -1
+	var best_cost := PathsScript.UNREACHED
+	for end in 2:
+		var node: int = network.end_node(slot, end == 1)
+		var run: int = network.length_u[slot] - chambers.along_u[c] if end == 1 else chambers.along_u[c]
+		var m: int = network.paths.nearest_mouth(network, node, PathsScript.CLASS_ANY)
+		var cost: int = run + network.paths.dist_u(network, PathsScript.CLASS_ANY, m, node) if m >= 0 else PathsScript.UNREACHED
+		if cost < best_cost:
+			best_cost = cost
+			best = m
+	if best < 0:
+		return centre
+	var at: Vector2 = network.mouth_at(best)
 	return Vector3(at.x, 0.0, at.y)
 
 
-static func provider(chambers: ChambersScript, network: NetworkScript) -> Callable:
+static func provider(chambers: ChambersScript, network: GraphScript) -> Callable:
 	"""The storage provider over these chambers and their tunnels: `() -> Array` of entries."""
 	return func() -> Array: return entries(chambers, network)

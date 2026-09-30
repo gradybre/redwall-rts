@@ -4,7 +4,8 @@ extends RefCounted
 ## evacuation (demo/events/) are each one of these: the brain walks its resident to `site()`, calls
 ## `arrived()` there, then `step()` every frame while it answers true; when it answers false the
 ## task is over and `finish()` is called, or `cancel()` when another order takes the resident first.
-## A task moves its resident only through the brain's task_* functions.
+## A task moves its resident only through the brain's task_* functions. A task whose site is underground
+## (a job on a segment deep in the network) names its node (`site_node`) and is walked there through it.
 ##
 ## The base does nothing and ends at once, so a bare task is harmless.
 
@@ -12,6 +13,12 @@ extends RefCounted
 func site(brain: RefCounted) -> Vector2:
 	"""Where the resident walks first (the brain's own position for the base: no walk)."""
 	return brain.position
+
+
+func site_node(_brain: RefCounted) -> int:
+	"""The network node underground the resident walks to first instead of `site` (-1: `site`, on the
+	surface; the base)."""
+	return -1
 
 
 func arrived(_brain: RefCounted) -> void:

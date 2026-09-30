@@ -13,7 +13,7 @@ extends Node3D
 const CrewScript := preload("res://demo/spoil/spoil_crew.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoCommandScript := preload("res://demo/control/demo_command.gd")
-const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const FarmTunnels := preload("res://demo/farm/farm_tunnels.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 const MarksScript := preload("res://demo/control/demo_marks.gd")
@@ -31,18 +31,18 @@ const CLEARING_TEXT: String = "Clearing a spoil heap"
 const HAULING_TEXT: String = "Hauling spoil to the compost"
 
 var crew: CrewScript = CrewScript.new()
-## The selected heap (2 x tunnel slot + end), or NOTHING.
+## The selected heap (a mouth row of the network), or NOTHING.
 var selected_heap: int = NOTHING
 
 var _cast: DemoCastScript = null
 var _command: DemoCommandScript = null
 var _camera: Camera3D = null
-var _network: NetworkScript = null
+var _network: GraphScript = null
 var _tunnels: FarmTunnels = null
 var _ring: MeshInstance3D = null
 
 
-func configure(cast: DemoCastScript, command: DemoCommandScript, camera: Camera3D, network: NetworkScript,
+func configure(cast: DemoCastScript, command: DemoCommandScript, camera: Camera3D, network: GraphScript,
 		tunnels: FarmTunnels, props: PropsScript, deliver: Callable) -> void:
 	"""Clear heaps with this cast, through the command layer's ground handlers; spoil goes by `deliver`."""
 	name = "DemoSpoil"

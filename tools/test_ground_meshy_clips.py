@@ -993,10 +993,18 @@ def test_a_ground_scrape_is_the_longest_drag_outside_contacts() -> None:
 
 
 def test_the_gait_clips_are_named() -> None:
-	"""The walk, the run and the two carry walks are gaits; the idle and the chair are not."""
+	"""The walk, the run, the two carry walks and the crouch walk are gaits; the idle, the chair, the sleep
+	and the pick swing are not."""
 	check("gaits", all(ground.is_gait(f"/lib/k/tailed/{c}.glb") for c in ("anim_walk", "anim_run", "anim_carry_heavy_object_walk",
-		"anim_carry_water_bucket_walk")))
-	check("not gaits", not ground.is_gait("/lib/k/tailed/anim_idle.glb") and not ground.is_gait("/lib/k/tailed/anim_collect_object.glb"))
+		"anim_carry_water_bucket_walk", "anim_cautious_crouch_walk_forward")))
+	check("not gaits", not any(ground.is_gait(f"/lib/k/tailed/{c}.glb") for c in ("anim_idle", "anim_collect_object",
+		"anim_sleep_normally", "anim_heavy_hammer_swing")))
+
+
+def test_the_sleep_lies_on_the_ground() -> None:
+	"""Lying down is not hovering: the sleep is seated onto the ground like any standing clip, not OFF_THE_GROUND."""
+	check("sleep stands", ground.stands("/lib/k/tailed/anim_sleep_normally.glb"))
+	check("the chair still hovers", not ground.stands("/lib/k/tailed/anim_chair_sit_idle.glb"))
 
 
 def test_anchors_prefer_the_landing_and_keep_the_seam() -> None:

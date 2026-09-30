@@ -34,3 +34,12 @@ static func load_manifest() -> Dictionary:
 static func is_staged(manifest: Dictionary) -> bool:
 	"""Whether real assets were staged (otherwise the demo runs on placeholders)."""
 	return not (manifest["world"] as Dictionary).is_empty() or not (manifest["cast"] as Dictionary).is_empty()
+
+
+static func readable_path(path: String) -> String:
+	"""Where `Image.load_from_file` should read a staged picture (a card atlas, tops, an icon) the demo
+	loads itself. In the project, beside its `.import`, the project folder's file: its res:// path would
+	make Godot warn "will not work on export" on every load. In an exported pack there is no `.import`
+	and no project folder, only the file itself (packed as-is, importer `keep`,
+	tools/demo_texture_imports.py), so its res:// path. Decision 0196, the Windows demo build."""
+	return ProjectSettings.globalize_path(path) if FileAccess.file_exists(path + ".import") else path

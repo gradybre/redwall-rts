@@ -21,6 +21,7 @@ extends RefCounted
 
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const Sizes := preload("res://demo/world/world_sizes.gd")
+const DemoManifestScript := preload("res://demo/demo_manifest.gd")
 
 const RULE_HEIGHT: int = 0
 const RULE_LONGEST: int = 1
@@ -207,11 +208,12 @@ func has_icon(key: StringName) -> bool:
 
 
 func icon_of(key: StringName, swatch: Color) -> Texture2D:
-	"""`key`'s staged icon, or -- when it has none, or none is staged -- a roundel in `swatch`."""
+	"""`key`'s staged icon, or -- when it has none, or none is staged -- a roundel in `swatch`. Read from
+	`DemoManifest.readable_path`, so an exported build finds it in its pack."""
 	if not has_icon(key):
 		return roundel(swatch)
 	if not _icons.has(key):
-		var image := Image.load_from_file(ProjectSettings.globalize_path(String(_rows[key]["icon"])))
+		var image := Image.load_from_file(DemoManifestScript.readable_path(String(_rows[key]["icon"])))
 		_icons[key] = ImageTexture.create_from_image(image) if image != null and not image.is_empty() else roundel(swatch)
 	return _icons[key]
 

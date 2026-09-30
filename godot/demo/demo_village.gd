@@ -83,6 +83,8 @@ const DemoWaterScript := preload("res://demo/water/demo_water.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 const ForestryScript := preload("res://demo/forestry/demo_forestry.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const WindowKeysScript := preload("res://demo/demo_window_keys.gd")
+const StallBannerScript := preload("res://demo/ui/demo_stall_banner.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -105,6 +107,7 @@ var _farm: DemoFarmScript = null
 var _services: ServicesScript = null
 var _hud_date: HudDateScript = HudDateScript.new()
 var _news: NewsStripScript = null
+var _stall_banner: StallBannerScript = null
 var _zone: DetailZoneScript = null
 var _water: DemoWaterScript = null
 var _forestry: ForestryScript = null
@@ -130,6 +133,7 @@ func _ready() -> void:
 	_build_forestry()
 	_build_shared_ui()
 	_skin_hud.call_deferred()
+	add_child(WindowKeysScript.new())
 	_open_running()
 
 
@@ -212,8 +216,12 @@ func forestry() -> ForestryScript:
 
 
 func _build_shared_ui() -> void:
-	"""The HUD date on the demo calendar, the news strip, and the right column's one-panel zone."""
+	"""The HUD date on the demo calendar, the news strip, the right column's one-panel zone, and the
+	stall banner (the player's Resume from the clock's REQ-SET-008 diagnostic pause)."""
 	_hud_date.bind(_shell(), _services.calendar, GameManager as GameManagerScript)
+	_stall_banner = StallBannerScript.new()
+	add_child(_stall_banner)
+	_stall_banner.bind(GameManager as GameManagerScript)
 	_news = NewsStripScript.new()
 	add_child(_news)
 	_news.configure(_services.notices)

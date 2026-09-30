@@ -17,6 +17,7 @@ extends RefCounted
 ## and plain green cards.
 
 const Sizes := preload("res://demo/world/world_sizes.gd")
+const DemoManifestScript := preload("res://demo/demo_manifest.gd")
 const CropCards := preload("res://demo/world/crop_cards.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
@@ -209,10 +210,10 @@ static func _scale(key: StringName, entry: Dictionary) -> float:
 
 
 static func _texture(path: String) -> Texture2D:
-	"""A staged atlas with mipmaps (as demo_world loads it), or null."""
+	"""A staged atlas with mipmaps (as demo_world loads it, from `DemoManifest.readable_path`), or null."""
 	if path.is_empty():
 		return null
-	var image := Image.load_from_file(ProjectSettings.globalize_path(path))
+	var image := Image.load_from_file(DemoManifestScript.readable_path(path))
 	if image == null or image.is_empty():
 		return null
 	image.generate_mipmaps()

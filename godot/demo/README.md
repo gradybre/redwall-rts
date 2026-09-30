@@ -20,6 +20,34 @@ godot --path godot demo/demo_village.tscn
 
 Without staging it still runs, on placeholder shapes.
 
+## Windows build
+
+`python3 tools/build_demo_windows.py --out <folder>` makes a standalone Windows copy -- a folder
+with `RedwallDemo.exe`, its `.pck` and a README, zipped -- that boots straight into this scene
+(`docs/ENVIRONMENT.md` has the details and what it needs). Decision 0196 records the choices:
+
+- **Boot.** The export preset (`tools/demo_build/windows_export_preset.cfg`) sets the custom feature
+  `demo_build`; `godot/project.godot` overrides the main scene to this one, the window to maximized and
+  the title to "Redwall Demo" for that feature only. The editor and every other run still open
+  `scenes/main.tscn`. F11 toggles full screen (`demo_window_keys.gd`; Alt+Enter is `brush_erase`).
+- **Textures** (`tools/demo_texture_imports.py`, run by staging and by the build): every map a staged
+  GLB carries is VRAM-compressed -- S3TC: DXT1 colour and roughness, BC5 normal maps (flagged as
+  normal maps), the roughness map capped at its colour map's size with its mipmaps filtered by the
+  material's normal map (glTF's green channel) -- the role read from the GLB's material, never the
+  file name. Measured at 1920x1080 on the Mac: texture memory 6,216 -> 926 MB, video memory 6,502 ->
+  1,115 MB, no visible change in close-ups of a resident, the beds, bark, water and props. The card
+  atlases and item icons, which the demo reads itself, stay lossless and are packed as files
+  (importer `keep`) and read through `demo_manifest.gd readable_path` -- the project folder's file in
+  the project, the packed file in an export. Any other unrecognised image is refused, not guessed at.
+  UI art is not touched.
+- **Renderer.** Forward+ on Vulkan, Godot 4.7's Windows default, falling back to Direct3D 12 (the
+  system runtime) and then native OpenGL (Compatibility). No D3D12 Agility SDK or ANGLE libraries
+  ship: Godot's templates do not carry them, so OpenGL is the dependable fallback.
+- **Stalls.** A frame long enough to put the clock a quarter second behind at 1x makes it hold its
+  REQ-SET-008 diagnostic (CRITICAL) pause; `ui/demo_stall_banner.gd` shows "The simulation paused after
+  a stall" with Resume (Enter or Space), which calls `GameManager.acknowledge_overload()`. It never
+  resumes by itself.
+
 ## Time
 
 The demo opens running: `Game` starts the real clock and UIManager holds UI-SET-103's opening
@@ -229,10 +257,10 @@ reached and how it was reduced.
   shatters). The two buildings (the root cellar's door, the compost bins) are staged as they are
   (`DRESSING`). The one table sizing all of them is `props/demo_props.gd` (demo-only sizes, by
   height for what stands and by length for what lies or is carried).
-- **Memory.** Every staged map imports uncompressed (`compress/mode=0`; the editor's detect-3D
-  switch never fires in a headless import), which is why the default view holds ~6 GB of textures;
-  the pass adds ~0.3 GB of it (measured 5,804 -> 6,088 MB). A plant's atlases are read only when a
-  bed first shows it.
+- **Memory.** Godot extracts every staged model's maps uncompressed (`compress/mode=0`; the editor's
+  detect-3D switch never fires in a headless import), which held ~6 GB of textures in the default view;
+  the pass added ~0.3 GB of it (measured 5,804 -> 6,088 MB). A plant's atlases are read only when a
+  bed first shows it. `tools/demo_texture_imports.py` now VRAM-compresses them (see *Windows build*).
 
 What changed on screen:
 

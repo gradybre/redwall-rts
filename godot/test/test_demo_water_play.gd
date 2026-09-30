@@ -792,11 +792,12 @@ func test_a_swimmer_in_difficulty_is_rescued_at_a_landing_and_rests() -> void:
 
 
 func test_with_no_swimmer_free_a_line_is_thrown_from_the_landing() -> void:
-	"""Nobody else swims: the nearest resident on land throws a line and hauls the victim in."""
+	"""Nobody else swims: the nearest resident on land runs to the pond's west landing, throws a line to
+	the victim 1.7 m out in the still pond and hauls it in; it rests there."""
 	var rig := _rig()
 	_swimmer(rig, 0, 600)
 	var victim := _brain(rig, 0)
-	victim.water_place(Vector2(23.0, 8.0), -0.18, 0.0)
+	victim.water_place(Vector2(22.5, 29.8), -0.18, 0.0)
 	victim.water_in()
 	rig.play.rescue.start_difficulty(0)
 	var thrower: int = -1
@@ -804,7 +805,12 @@ func test_with_no_swimmer_free_a_line_is_thrown_from_the_landing() -> void:
 		if _brain(rig, who).task is Tasks.LineRescue:
 			thrower = who
 	assert_true(thrower > 0, "a thrower")
-	assert_true(_run(rig, func() -> bool: return victim.task is Tasks.RestTask), "hauled in")
+	var line: Array[bool] = [false]
+	assert_true(_run(rig, func() -> bool:
+		line[0] = line[0] or rig.play.rescue.line_of(_brain(rig, thrower)) != null
+		return victim.task is Tasks.RestTask), "hauled in")
+	assert_true(line[0], "on the line")
+	assert_true(victim.position.distance_to(Vector2(20.8, 29.8)) < 2.0, "at the pond's west landing: %s" % victim.position)
 
 
 func test_a_victim_nobody_reaches_washes_ashore_unhurt() -> void:
@@ -1249,7 +1255,8 @@ func test_a_resident_let_down_off_a_root_mound_stands_on_the_carved_bank() -> vo
 
 func test_a_bridge_is_drawn_stage_by_stage() -> void:
 	"""Planned: nothing but its holder; piers rise with the piers stage; beams with the beams; loose
-	planks while the deck is laid; finished, the model's segments and no beams (unstaged: boxes)."""
+	planks while the deck is laid; finished, the model's segments -- one between each pair of piers --
+	and no beams (unstaged: boxes)."""
 	var rig := _rig()
 	var view: BridgeViewScript = rig.play.bridge_view
 	var bridges: BridgesScript = rig.play.bridges
@@ -1270,7 +1277,10 @@ func test_a_bridge_is_drawn_stage_by_stage() -> void:
 	assert_true(_live_children(holder) > 10, "loose planks laid: %d" % _live_children(holder))
 	bridges.add_work(0, 1000)
 	view.refresh()
-	assert_equal(_live_children(holder), 4, "two piers and two deck segments (7.6 m of deck in 3.4 m pieces)")
+	assert_equal(_live_children(holder), 5, "two piers and three deck segments, a joint on each pier")
+	var piers: PackedVector2Array = bridges.pier_points(0)
+	for pier: Vector2 in piers:
+		assert_true(_map().is_water(MotionScript.u_of(pier)), "a pier in the water at %s" % pier)
 
 
 func _live_children(node: Node) -> int:
@@ -1282,7 +1292,7 @@ func _live_children(node: Node) -> int:
 
 
 func test_swimmers_show_ripples_divers_bubbles_and_a_thrower_its_line() -> void:
-	"""At the surface a ripple ring; below it bubbles and no ring; on land neither."""
+	"""At the surface a ripple ring; below it bubbles and a ring over it; on land neither."""
 	var rig := _rig()
 	var view: SwimViewScript = rig.play.swim_view
 	var actor := rig.cast.actor(0) as DemoActorScript
@@ -1295,5 +1305,291 @@ func test_swimmers_show_ripples_divers_bubbles_and_a_thrower_its_line() -> void:
 	assert_true(view.ripple_shown(0) and not view.bubbles_shown(0), "swimming: a ripple")
 	rig.play.state.set_mode(0, StateScript.MODE_DIVE)
 	view._place(0, actor, 1.0)
-	assert_true(view.bubbles_shown(0) and not view.ripple_shown(0), "diving: bubbles")
+	assert_true(view.bubbles_shown(0) and view.ripple_shown(0), "diving: bubbles, and a ring over it")
 	assert_false(view.line_shown(0), "no line out")
+
+
+func test_a_route_through_the_ford_costs_its_wading() -> void:
+	"""A leg across the ford costs its wet stretch again at 1000 / 550 - 1 of its length -- about 6.4 m of
+	water, so 5.2 m more; a dry leg costs nothing more; the router adds it to a route's length."""
+	var rig := _rig()
+	var crossings: CrossingsScript = rig.play.crossings
+	var extra: float = crossings.wade_extra_m(Vector2(19.0, -0.8), Vector2(31.0, -0.8))
+	assert_true(extra > 4.8 and extra < 5.8, "the ford: %.2f m more" % extra)
+	assert_equal(crossings.wade_extra_m(Vector2(0.0, 0.0), Vector2(10.0, 0.0)), 0.0, "dry: nothing")
+	var router := RouterScript.new()
+	var route := PackedVector2Array([Vector2(31.0, -0.8)])
+	assert_almost_equal(router._route_cost(Vector2(19.0, -0.8), route), 12.0, "no hook: its length")
+	router.wade_cost = crossings.wade_extra_m
+	assert_almost_equal(router._route_cost(Vector2(19.0, -0.8), route), 12.0 + extra, "with the ford's wading")
+
+
+func test_a_tow_goes_to_a_landing_it_can_reach_against_the_flow() -> void:
+	"""From the run, a slow tow (a squirrel's 0.33 m/s) cannot make headway up the 0.4 m/s stream to the
+	ford's west landing, so it goes down to the pond's west landing; a strong one (an otter's 0.66 m/s)
+	takes the nearer landing upstream. (The fisher shelter's and the boathouse's landings stand in their
+	buildings' footprints on the widened ground and are not used.)"""
+	var rig := _rig()
+	var map := _map()
+	var weak: PackedVector2Array = rig.play.rescue.tow_landing(RUN_MID, 330)
+	var strong: PackedVector2Array = rig.play.rescue.tow_landing(RUN_MID, 660)
+	assert_true(map.landing_index_into(&"pond_west", _read), "the pond's west landing")
+	var pond: Vector2 = Vector2(WaterRules.to_m(map.landing_land(_read.value).x), WaterRules.to_m(map.landing_land(_read.value).y))
+	assert_true(map.landing_index_into(&"ford_west", _read), "the ford's west landing")
+	var ford: Vector2 = Vector2(WaterRules.to_m(map.landing_land(_read.value).x), WaterRules.to_m(map.landing_land(_read.value).y))
+	assert_true(weak[0].distance_to(pond) < 0.01, "slow: downstream to the pond (%s)" % weak[0])
+	assert_true(strong[0].distance_to(ford) < 0.01, "strong: up to the ford (%s)" % strong[0])
+	assert_equal(rig.play.links.landing_ok, PackedByteArray([0, 1, 1, 1, 0, 1]), "shelter and boathouse landings unused")
+
+
+func test_a_site_is_surveyed_again_when_it_or_the_bridges_change() -> void:
+	"""The panel's surveys are kept between refreshes: the same site answers alike, another site answers
+	for itself, and a bridge planned at the site makes it too close to build again."""
+	var rig := _rig()
+	rig.play.select_candidate(0)
+	var neck: int = rig.play.survey_site(Rules.KIND_PLANK).span_u
+	assert_true(rig.play.survey_site(Rules.KIND_PLANK).ok, "the neck takes a plank footbridge")
+	rig.play.select_candidate(1)
+	assert_true(rig.play.survey_site(Rules.KIND_PLANK).span_u > neck, "the upper site is its own, wider span")
+	rig.play.select_candidate(0)
+	assert_equal(rig.play.survey_site(Rules.KIND_PLANK).span_u, neck, "the neck again")
+	_services.stores.add_planks(6000)
+	rig.play.build(Rules.KIND_PLANK, PackedInt32Array())
+	var after: BridgesScript.Survey = rig.play.survey_site(Rules.KIND_LOG)
+	assert_false(after.ok, "a bridge stands there now")
+	assert_equal(after.reason, "too close to the neck bridge", after.reason)
+
+
+func test_the_water_panel_is_filled_only_while_it_is_shown() -> void:
+	"""Its surveys cost milliseconds, so a hidden panel is left alone; shown, it fills in its first frame
+	(not a refresh beat later: never an empty or stale panel)."""
+	var rig := _rig()
+	rig.play.panel.set_zone(false, 0.0)
+	var first: String = rig.play.panel.line(&"site_title")
+	rig.play.select_candidate(1)
+	rig.play._process(1.0)
+	assert_equal(rig.play.panel.line(&"site_title"), first, "hidden: left as it was")
+	rig.play.panel.set_zone(true, 0.0)
+	rig.play._process(0.01)
+	assert_true(rig.play.panel.line(&"site_title").begins_with("Bridge site 2 of 3"), rig.play.panel.line(&"site_title"))
+	rig.play.rescue.rescued = 5
+	rig.play._process(0.01)
+	assert_equal(rig.play.panel.line(&"swimmers_title"), "Swimmers — 0 in the water", "then on its beat, not every frame")
+	rig.play._process(WaterplayScript.PANEL_REFRESH_S)
+	assert_equal(rig.play.panel.line(&"swimmers_title"), "Swimmers — 0 in the water · 5 rescues so far", "the next beat")
+
+
+func test_lookups_refuse_when_there_is_nothing_to_find() -> void:
+	"""No bridge, no trunk, no free rescuer and no listed species are refusals, never a -1 index."""
+	var rig := _rig()
+	rig.play.select_candidate(0)
+	assert_false(rig.play.bridge_at_into(Vector2.ZERO, _read), "no bridge here")
+	assert_equal(_read.error, "NO_BRIDGE_HERE", _read.error)
+	assert_false(rig.play.bridge_on_site_into(_read), "none on the site")
+	assert_false(rig.play.ready_trunk_into(Vector2.ZERO, _read), "no woods bound")
+	assert_equal(_read.error, "NO_WOODS", _read.error)
+	_services.stores.add_planks(6000)
+	rig.play.build(Rules.KIND_PLANK, PackedInt32Array())
+	assert_true(rig.play.bridge_on_site_into(_read) and _read.value == 0, "row 0 on the site")
+	var mid: Vector2 = (rig.play.bridges.shore_a[0] + rig.play.bridges.shore_b[0]) * 0.5
+	assert_true(rig.play.bridge_at_into(mid, _read) and _read.value == 0, "row 0 under the pointer")
+	for who: int in rig.cast.actor_count():
+		_brain(rig, who).water_hold = true
+	assert_false(rig.play.rescue.nearest_free_into(Vector2.ZERO, -1, false, _read), "everyone held")
+	assert_equal(_read.error, "NO_FREE_RESCUER", _read.error)
+	_brain(rig, 4).water_hold = false
+	assert_true(rig.play.rescue.nearest_free_into(Vector2.ZERO, -1, false, _read) and _read.value == 4, "the one free")
+	assert_false(rig.play.rescue.nearest_free_into(Vector2.ZERO, -1, true, _read), "and it does not swim")
+	assert_equal([Rules.has_species("Dragon"), Rules.swim_mm_s_of("Dragon"), Rules.swim_words("Dragon")],
+		[false, 0, "wades only"], "an unlisted species wades only")
+
+
+func test_a_rescuer_stands_down_once_its_victim_is_ashore() -> void:
+	"""A victim a swimmer is on its way to is given WASH_ASHORE_ENGAGED_S, not WASH_ASHORE_S, and then
+	still washes ashore (the rescuer never got there); the swimmer then gives up, never entering the
+	water, and the rescue is counted once."""
+	var rig := _rig()
+	_swimmer(rig, 0, 600)
+	_swimmer(rig, 2, 1100)
+	var victim := _brain(rig, 0)
+	victim.water_place(RUN_MID, -0.18, 0.0)
+	victim.water_in()
+	rig.play.rescue.start_difficulty(0)
+	var rescuer := _brain(rig, 2)
+	assert_true(rescuer.task is Tasks.SwimRescue and rig.play.rescue.victim_task(0).engaged, "engaged")
+	rig.play.rescue.victim_task(0).waited_s = RescueScript.WASH_ASHORE_S
+	rig.play.rescue.update(RescueScript.DISPATCH_S)
+	assert_true(victim.task is Tasks.VictimTask, "a rescuer is coming: not yet")
+	rig.play.rescue.victim_task(0).waited_s = RescueScript.WASH_ASHORE_ENGAGED_S
+	rig.play.rescue.update(RescueScript.DISPATCH_S)
+	assert_true(victim.task is Tasks.RestTask, "washed ashore though a rescuer was coming")
+	var wet: Array[bool] = [false]
+	assert_true(_run(rig, func() -> bool:
+		wet[0] = wet[0] or rescuer.in_water
+		return not (rescuer.task is Tasks.SwimRescue), 50), "stood down")
+	assert_false(wet[0], "never went in")
+	assert_equal(rig.play.rescue.rescued, 1, "counted once")
+
+
+func test_a_line_thrower_stands_down_once_its_victim_is_ashore() -> void:
+	"""The thrower running to the landing arrives to find the victim washed ashore: it throws nothing and
+	hauls nobody (the resting victim is never towed again)."""
+	var rig := _rig()
+	_swimmer(rig, 0, 600)
+	var victim := _brain(rig, 0)
+	victim.water_place(Vector2(22.5, 29.8), -0.18, 0.0)
+	victim.water_in()
+	rig.play.rescue.start_difficulty(0)
+	rig.play.rescue.victim_task(0).waited_s = RescueScript.WASH_ASHORE_ENGAGED_S
+	rig.play.rescue.update(RescueScript.DISPATCH_S)
+	assert_true(victim.task is Tasks.RestTask, "washed ashore")
+	var towed: Array[bool] = [false]
+	assert_true(_run(rig, func() -> bool:
+		towed[0] = towed[0] or rig.play.state.mode[0] == StateScript.MODE_TOWED
+		for who: int in range(1, 6):
+			if _brain(rig, who).task is Tasks.LineRescue:
+				return false
+		return true, 1200), "every thrower stood down")
+	assert_false(towed[0], "the resting victim was not hauled")
+	assert_equal(rig.play.rescue.rescued, 1, "counted once")
+
+
+func test_a_tow_names_its_landing_at_the_tow_speed() -> void:
+	"""The landing is asked for from where the victim is taken in hand, at TOW_PERMILLE of the rescuer's
+	own speed (an otter's 1100 mm/s: 660)."""
+	var rig := _rig()
+	_swimmer(rig, 2, 1100)
+	var asked: Array[int] = []
+	var landing_for := func(_at: Vector2, mm_s: int) -> PackedVector2Array:
+		asked.append(mm_s)
+		return PackedVector2Array([Vector2(20.0, 11.0), Vector2(22.0, 11.0)])
+	var task := Tasks.SwimRescue.new(rig.play.motion, _brain(rig, 0), Tasks.VictimTask.new(rig.play.motion, 0.0),
+		PackedVector2Array([WEST_BANK, RUN_MID]), Callable(), landing_for)
+	task._start_tow(_brain(rig, 2))
+	assert_equal(asked, [660] as Array[int], "asked at the tow's speed")
+	assert_equal([task.landing_land, task.landing_water, task.phase],
+		[Vector2(20.0, 11.0), Vector2(22.0, 11.0), Tasks.SwimRescue.PHASE_TOW], "towing there")
+
+
+func test_the_nearest_landing_is_one_that_can_be_stood_on() -> void:
+	"""From the fisher shelter's own landing (in the shelter's footprint: unused) the nearest landing is
+	another, one whose land point is clear."""
+	var rig := _rig()
+	var map := _map()
+	var shelter_water: Vector2 = Vector2(WaterRules.to_m(map.landing_water(0).x), WaterRules.to_m(map.landing_water(0).y))
+	var shelter_land: Vector2 = Vector2(WaterRules.to_m(map.landing_land(0).x), WaterRules.to_m(map.landing_land(0).y))
+	var got: PackedVector2Array = rig.play.rescue.nearest_landing(shelter_water)
+	assert_true(got[0].distance_to(shelter_land) > 1.0, "not the shelter's: %s" % got[0])
+	var usable: bool = false
+	for k: int in map.landing_count():
+		var land: Vector2 = Vector2(WaterRules.to_m(map.landing_land(k).x), WaterRules.to_m(map.landing_land(k).y))
+		usable = usable or (land.distance_to(got[0]) < 0.01 and rig.play.links.landing_ok[k] == 1)
+	assert_true(usable, "a landing clear to stand on")
+
+
+func test_the_router_is_handed_the_wading_cost_when_it_plans_with_the_water() -> void:
+	"""A plan the water's crossings join gives the router the ford's wading cost."""
+	var rig := _rig()
+	_swimmer(rig, 0, 600)
+	var out := PackedVector2Array()
+	var legs := PackedInt32Array()
+	var space: CastSpaceScript = rig.cast.space()
+	space.plan_path(0, WEST_BANK, EAST_BANK, 0.3, out, legs)
+	assert_true(space.tunnels.router.wade_cost.is_valid(), "handed a cost")
+	assert_equal(space.tunnels.router.wade_cost, Callable(rig.play.crossings, &"wade_extra_m"), "the water's")
+
+
+func test_a_selection_ring_sits_on_the_ground_and_never_below_the_surface() -> void:
+	"""On a bank's rise, over a wading bed, on a deck; a swimmer's and a diver's ring at the surface; an
+	underground resident's at the datum."""
+	var lift: float = 0.035
+	assert_almost_equal(CommandScript.ring_y_m(false, 0.3), 0.3 + lift, "on a bank")
+	assert_almost_equal(CommandScript.ring_y_m(false, -0.1), -0.1 + lift, "a wading bed")
+	assert_almost_equal(CommandScript.ring_y_m(false, -1.5), -0.2 + lift, "a diver: the surface")
+	assert_almost_equal(CommandScript.ring_y_m(true, -2.0), lift, "underground: the datum")
+
+
+func test_piers_stand_evenly_along_the_deck() -> void:
+	"""A 6.4 m span takes two piers; they split the 7.6 m deck (0.6 m past each waterline) into three
+	equal bays, each pier under a joint of the deck."""
+	var bridges := _bridges()
+	var survey := BridgesScript.Survey.new()
+	survey.ok = true
+	survey.shore_a = Vector2(-10.0, 0.0)
+	survey.shore_b = Vector2(-3.6, 0.0)
+	survey.span_u = 6554
+	survey.deck_u = Rules.deck_u(6554)
+	survey.piers = Rules.piers_for(Rules.KIND_PLANK, 6554)
+	assert_equal(survey.piers, 2, "two piers")
+	assert_true(bridges.plan_into(survey, "test bridge", _read), "planned")
+	var at: PackedVector2Array = bridges.pier_points(_read.value)
+	var a: Vector2 = bridges.deck_end(_read.value, false)
+	var b: Vector2 = bridges.deck_end(_read.value, true)
+	var bays: Array[float] = [a.distance_to(at[0]), at[0].distance_to(at[1]), at[1].distance_to(b)]
+	for bay: float in bays:
+		assert_almost_equal(bay, a.distance_to(b) / 3.0, "an equal bay: %s" % str(bays))
+
+
+func test_a_rescue_task_whose_victim_is_no_longer_held_ends_where_it_is() -> void:
+	"""Stepped after its victim left the water's hold (the victim's task is another), a swim rescue ends
+	without a stroke and a line rescue without a throw."""
+	var rig := _rig()
+	_swimmer(rig, 2, 1100)
+	var victim := _brain(rig, 0)
+	var held := Tasks.VictimTask.new(rig.play.motion, 0.0)
+	var rescuer := _brain(rig, 2)
+	var from: Vector2 = rescuer.position
+	var swim := Tasks.SwimRescue.new(rig.play.motion, victim, held, PackedVector2Array([WEST_BANK, RUN_MID]),
+		Callable(), rig.play.rescue.tow_landing)
+	assert_false(swim.step(rescuer, 0.1), "the swim is over")
+	assert_equal(rescuer.position, from, "not a step taken")
+	var line := Tasks.LineRescue.new(rig.play.motion, victim, held, PackedVector2Array([WEST_BANK, RUN_MID]),
+		Callable(), rig.play.rescue.nearest_landing)
+	line.arrived(rescuer)
+	assert_false(line.step(rescuer, 0.1), "the line is over")
+	assert_equal(line.phase, Tasks.LineRescue.PHASE_THROW, "nothing thrown or hauled")
+
+
+func test_a_selection_ring_is_put_at_its_residents_ground() -> void:
+	"""The command lays a resident's ring by `ring_y_m`: a diver's at the surface, a wader's on the bed."""
+	var rig := _rig()
+	var command := _keep(CommandScript.new()) as CommandScript
+	var ring := _keep(MeshInstance3D.new()) as MeshInstance3D
+	var brain := _brain(rig, 0)
+	brain.water_place(RUN_MID, -1.5, 0.0)
+	command._put_ring(ring, Vector3(RUN_MID.x, -1.5, RUN_MID.y), brain, 1.0)
+	assert_almost_equal(ring.position.y, CommandScript.ring_y_m(false, -1.5), "a diver's: at the surface")
+	assert_almost_equal(ring.position.x, RUN_MID.x, "over it")
+	brain.water_place(FORD_MID, -0.12, 0.0)
+	command._put_ring(ring, Vector3(FORD_MID.x, -0.12, FORD_MID.y), brain, 1.0)
+	assert_almost_equal(ring.position.y, -0.12 + 0.035, "a wader's: on the bed")
+
+
+func test_the_rescue_tally_is_a_heading_note_and_not_an_alert() -> void:
+	"""With nobody in difficulty the alert line is empty; the swimmers' heading counts the rescues."""
+	var rig := _rig()
+	assert_equal(rig.play.text.swimmers_title(), "Swimmers — 0 in the water", "none yet")
+	rig.play.rescue.rescued = 1
+	assert_equal(rig.play.text.swimmers_title(), "Swimmers — 0 in the water · 1 rescue so far", "one")
+	rig.play.rescue.rescued = 2
+	assert_equal(rig.play.text.alert_line(), "", "no alert")
+	assert_equal(rig.play.text.swimmers_title(), "Swimmers — 0 in the water · 2 rescues so far", "the tally")
+
+
+func test_the_site_text_names_the_piers_once() -> void:
+	"""A plank footbridge's cost names its piers and their wood once; a span with none says so."""
+	var plank := BridgesScript.Survey.new()
+	plank.ok = true
+	plank.span_u = 5222
+	plank.deck_u = Rules.deck_u(5222)
+	plank.piers = 2
+	plank.planks_milli = 6400
+	plank.wood_milli = 2000
+	var log := BridgesScript.Survey.new()
+	log.kind = Rules.KIND_LOG
+	log.reason = "too long"
+	assert_equal(TextScript.site_text(plank, log, false),
+		"5.1 m of water · 6.3 m of deck\nPlank footbridge: 6.4 U planks and 2.0 U wood for 2 piers\nLog bridge: can't — too long", "two piers")
+	plank.piers = 0
+	plank.wood_milli = 0
+	assert_true(TextScript.site_text(plank, log, false).contains("Plank footbridge: 6.4 U planks, no piers"), "none")

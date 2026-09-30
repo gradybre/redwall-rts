@@ -142,9 +142,9 @@ func _state_key(bed: int) -> int:
 	var ripe: int = _ripe_hours(bed) / 24
 	var marks: int = (1 if _selected == bed else 0) + 2 * overlay_mode
 	var works: int = (1 if _sim.is_covered(bed) else 0) + (2 if _sim.is_raised(bed) else 0) \
-		+ (4 if _sim.is_banked(bed) else 0)
+		+ (4 if _sim.is_banked(bed) else 0) + (8 if _sim.is_ditched(bed) else 0)
 	var key: int = (((((stage * 32 + item) * 32 + chosen) * 64 + growth) * 8 + _sim.band_of(bed)) * 16 + ripe)
-	return (key * 8 + works) * 8 + marks
+	return (key * 16 + works) * 8 + marks
 
 
 func _draw(bed: int) -> void:
@@ -158,7 +158,7 @@ func _draw(bed: int) -> void:
 	visual.show_state(stage, item, growth, band, ripe_hours, Look.title(item, _sim.chosen_of(bed), stage),
 		Look.status(stage, _sim.chosen_of(bed), growth, band, ripe_hours))
 	visual.set_selected(_selected == bed)
-	visual.show_works(_sim.is_covered(bed), _sim.is_raised(bed), _sim.is_banked(bed))
+	visual.show_works(_sim.is_covered(bed), _sim.is_raised(bed), _sim.is_banked(bed), _sim.is_ditched(bed))
 	visual.show_overlay(_overlay_colour(stage, band, ripe_hours))
 
 

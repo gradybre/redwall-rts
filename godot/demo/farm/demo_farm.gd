@@ -6,10 +6,12 @@ extends Node3D
 ## PLAYER VERBS (all by mouse, with the demo's selection):
 ##   left click a bed                 open its panel (the resident selection is kept)
 ##   right click a bed, residents     the nearest selected resident does the bed's most pressing work
-##     selected                       (clear > harvest > water a dry bed > cover before frost > sow)
-##   bed panel buttons                Plant… (the crop picker), Water, Harvest, Clear, Compost, Cover,
-##                                    Raise and Bank (tunnel spoil), Rest (fallow), Cancel jobs --
-##                                    given to the selected residents, or queued for the field crew
+##     selected                       (clear > harvest > drain a waterlogged bed > water a dry bed >
+##                                    cover before frost > sow)
+##   bed panel buttons                Plant… (the crop picker), Water, Drain (a ditch round a wet bed),
+##                                    Harvest, Clear, Compost, Cover, Raise and Bank (tunnel spoil),
+##                                    Rest (fallow), Cancel jobs -- given to the selected residents, or
+##                                    queued for the field crew
 ##   V                                map overlays: off -> moisture -> ripeness -> any added by the
 ##                                    village (the water's zones, add_overlay) -> off
 ##   K, or the HUD's Food command     the Pantry: stock per ingredient, freshness, dishes it feeds
@@ -25,9 +27,10 @@ extends Node3D
 ## a change of weather is posted to the notice feed.
 ##
 ## WHAT IT SAYS goes to the demo's ONE notice feed (demo_notices.gd): the farm's warnings (farm_alerts.gd,
-## WARNING or NOTE) and the crew's reports; the bed panel shows the farm's latest from there. Only the
-## answer to a click or key (an order, the overlay) is shown where the player looks -- the bed panel's
-## message line, or the party panel's notice. No HUD alert card is raised.
+## WARNING or NOTE) and the crew's reports, which the HUD's news strip shows; the bed panel shows only
+## its own bed (its Needs line, farm_text.gd). Only the answer to a click or key (an order, the
+## overlay) is shown where the player looks -- the bed panel's message line, or the party panel's
+## notice. No HUD alert card is raised.
 ##
 ## Wiring (demo_village.gd `_build_farm`): the world, the cast, the command layer (for the selection,
 ## order marks, click hooks and the tunnel tool), the HUD shell, the storage providers (root cellars,
@@ -165,7 +168,7 @@ func _build_view(manifest: Dictionary, world: DemoWorldScript, command: DemoComm
 func _build_panels() -> void:
 	"""The bed panel and the Pantry, wired to the farm's verbs."""
 	bed_panel = BedPanelScript.new()
-	bed_panel.configure(sim, crew, services.notices)
+	bed_panel.configure(sim, crew)
 	add_child(bed_panel)
 	bed_panel.verb_requested.connect(func(kind: int) -> void: order(kind, selected_bed))
 	bed_panel.crop_picked.connect(plant)
@@ -304,12 +307,17 @@ func plant(item: int) -> String:
 
 
 func pressing_kind_into(bed: int, out: IntMath.IntResult) -> bool:
-	"""The bed's most pressing verb into `out` (clear, harvest, water when dry, cover before frost,
-	sow the chosen crop, else water a growing crop); refuses NOTHING_TO_DO."""
+	"""The bed's most pressing verb into `out` (clear, harvest, drain when waterlogged, water when dry,
+	cover when a frost is due on a bed not raised above it -- farm_weather.gd `frost_due` -- sow the
+	chosen crop, else water a growing crop); refuses NOTHING_TO_DO. The bed panel's Needs line names
+	the same (farm_text.gd)."""
 	var spoil: int = crew.max_heap_spoil()
-	var frost: bool = Weather.frost_tonight(sim.season(), sim.season_day())
+	var hour: int = sim.calendar.calendar_at(sim.calendar.tick).hour
+	var frost: bool = Weather.frost_due(sim.season(), sim.season_day(), hour) and not sim.is_raised(bed)
 	var dry: bool = sim.band_of(bed) <= SimScript.BAND_LOW
 	var candidates: Array[int] = [JobsScript.KIND_CLEAR, JobsScript.KIND_HARVEST]
+	if sim.band_of(bed) == SimScript.BAND_WATERLOGGED:
+		candidates.append(JobsScript.KIND_DRAIN)
 	if dry:
 		candidates.append(JobsScript.KIND_WATER)
 	if frost:
@@ -432,4 +440,4 @@ func _say(text: String) -> void:
 	An order's own answer shows in the bed panel (order()); the crew's reports and the farm's warnings
 	go to the notice feed (configure, _hourly)."""
 	if _command != null and _command.panel() != null:
-		_command.panel().show_notice(text)
+		_command.say(text)

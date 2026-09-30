@@ -6,7 +6,8 @@ extends RefCounted
 ## THE VERBS and their work. §5.6 states four of them -- "4 WU sowing, 1 WU tending/day while growing,
 ## and 6 WU harvest", compost "for 8 WU" -- and REQ-SET-085 a 10-WU clearing job; those WU are used
 ## as written. Covering, raising and banking a bed, fetching water, digging spoil off a heap and
-## putting a harvest down in store have no stated work and take the DEMO WU below. A WU is "one game
+## putting a harvest down in store have no stated work and take the DEMO WU below. DRAINING a wet
+## bed is digging a ditch round it (farm_sim.gd `drain_bed()`), demo spade-work like raising one. A WU is "one game
 ## minute of base-speed productive labor" (GDD §4.1); the demo shows it as DEMO_USEC_PER_WU of the
 ## cast's own time (not the farm calendar's), so the work reads on screen.
 ##
@@ -26,10 +27,12 @@ const KIND_COMPOST: int = 4
 const KIND_COVER: int = 5
 const KIND_RAISE: int = 6
 const KIND_BANK: int = 7
-const KIND_COUNT: int = 8
-const KIND_NAMES: Array[String] = ["Sow", "Water", "Harvest", "Clear", "Compost", "Cover", "Raise", "Bank"]
+const KIND_DRAIN: int = 8
+const KIND_COUNT: int = 9
+const KIND_NAMES: Array[String] = ["Sow", "Water", "Harvest", "Clear", "Compost", "Cover", "Raise", "Bank",
+	"Drain"]
 const KIND_DOING: Array[String] = ["Sowing", "Watering", "Harvesting", "Clearing", "Composting",
-	"Covering", "Raising", "Banking"]
+	"Covering", "Raising", "Banking", "Draining"]
 
 ## Steps: walks (< STEP_WORK) and works (STEP_WORK + a WORK_* kind).
 const STEP_GO_BED: int = 0
@@ -49,9 +52,10 @@ const WORK_BANK: int = 7
 const WORK_FETCH: int = 8
 const WORK_DIG: int = 9
 const WORK_DROP: int = 10
+const WORK_DRAIN: int = 11
 ## WU per work kind: §5.6 / REQ-SET-085 for sow 4, tend 1, harvest 6, clear 10, compost 8; the rest
-## are demo values.
-const WORK_WU: Array[int] = [4, 1, 6, 10, 8, 2, 6, 6, 1, 2, 1]
+## are demo values -- a ditch (drain) is 6, the same spade-work as raising or banking a bed.
+const WORK_WU: Array[int] = [4, 1, 6, 10, 8, 2, 6, 6, 1, 2, 1, 6]
 const DEMO_USEC_PER_WU: int = 1500000
 
 const PLANS: Array[Array] = [
@@ -63,6 +67,7 @@ const PLANS: Array[Array] = [
 	[STEP_GO_BED, STEP_WORK + WORK_COVER],
 	[STEP_GO_HEAP, STEP_WORK + WORK_DIG, STEP_CARRY_BED, STEP_WORK + WORK_RAISE],
 	[STEP_GO_HEAP, STEP_WORK + WORK_DIG, STEP_CARRY_BED, STEP_WORK + WORK_BANK],
+	[STEP_GO_BED, STEP_WORK + WORK_DRAIN],
 ]
 const COMPOST_FROM_SPOIL_PLAN: Array[int] = [STEP_GO_HEAP, STEP_WORK + WORK_DIG, STEP_CARRY_BED,
 	STEP_WORK + WORK_COMPOST]
@@ -269,6 +274,8 @@ static func refusal_for(sim: SimScript, job_kind: int, job_bed: int, spoil_milli
 			if sim.is_covered(job_bed):
 				return SimScript.REFUSE_ALREADY
 			return &"" if stage != SimScript.STAGE_EMPTY else SimScript.REFUSE_NO_CROP
+		KIND_DRAIN:
+			return sim.drain_refusal(job_bed)
 	if (job_kind == KIND_RAISE and sim.is_raised(job_bed)) or (job_kind == KIND_BANK and sim.is_banked(job_bed)):
 		return SimScript.REFUSE_ALREADY
 	return &"" if spoil_milli >= SPOIL_PER_JOB_MILLI else StringName(REFUSE_NO_SPOIL)

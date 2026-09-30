@@ -8,7 +8,7 @@ extends RefCounted
 ##   * BLIGHT: an outbreak or its spread -- clear the bed before midnight, when it spreads.
 ##   * WITHERED: frost, blight or neglect killed a crop -- clear it for compost.
 ##   * DRY / WATERLOGGED: a growing bed out of its band far enough to stop growth (the moisture factor's
-##     0) -- water it, or drain it with a tunnel.
+##     0) -- water it, or Drain it (the Drain job digs a ditch round it).
 ##   * WORN OUT: an empty bed below LOW_FERTILITY -- compost it or rest it fallow.
 ##   * SPOILED: food in store went off.
 ##   * The real weather's own three-day FORECAST (§5.10), when it discloses one.
@@ -113,7 +113,7 @@ func _bed_lines(sim: SimScript, bed: int, day: int, out: PackedStringArray) -> v
 		_once(out, "dry:%d:%d" % [bed, season], "%s is too dry to grow — water it" % what, WARNING)
 	if growing and band == SimScript.BAND_WATERLOGGED:
 		_once(out, "wet:%d:%d" % [bed, season],
-			"%s is waterlogged and has stopped growing — drain it with a tunnel or raise it" % what, WARNING)
+			"%s is waterlogged and has stopped growing — Drain it" % what, WARNING)
 	if stage == SimScript.STAGE_EMPTY and sim.fertility_of(bed) < LOW_FERTILITY:
 		_once(out, "worn:%d:%d" % [bed, season], "Bed %d is worn out (fertility %d%%) — compost it or rest it fallow"
 			% [bed + 1, sim.fertility_of(bed) / 100], NOTE)

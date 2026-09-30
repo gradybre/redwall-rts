@@ -13,8 +13,10 @@ extends RefCounted
 ## SUBSET of them (stage_cells): a sprout its sparse cell only, a young plant sparse and thinned,
 ## then thinned, then all three views as it fills out; ripe the two full views; withered the thinned
 ## and sparse (it has lost leaves); blighted the full plant. The old atlases (wheat, the roots bed's
-## turnips and carrots) have no such cells and show all of theirs at every stage. The soil sheen tells moisture at a glance: pale and dry,
-## dark and wet, standing water when waterlogged. Colours are blends of the demo's ART-LOCK-001
+## turnips and carrots) have no such cells and show all of theirs at every stage. The soil sheen tells
+## moisture at a glance: pale and dry; wet soil DARKENED and glossier, not tinted; waterlogged darker
+## still, with small standing puddles of dark blue-grey water on it (playtest 2026-09-29: the old
+## grey-teal film read as a flat bright blue slab). Colours are blends of the demo's ART-LOCK-001
 ## pigments (world/world_look.gd), tuned by eye on the staged atlases.
 
 const SimScript := preload("res://demo/farm/farm_sim.gd")
@@ -49,15 +51,24 @@ const CELLS_WITHERED: Array[int] = [CELL_THINNED, CELL_SPARSE]
 ## Growth (permille) at which a growing plant moves from young to filling to full.
 const YOUNG_UNTIL: int = 350
 const FILLING_UNTIL: int = 700
-## Soil sheen per moisture band (dry, low, good, wet, waterlogged); alpha 0 draws nothing.
+## Soil sheen per moisture band (dry, low, good, wet, waterlogged); alpha 0 draws nothing. Wet and
+## waterlogged are a near-black umber film over the soil (a milder one when merely wet), not a tint.
 const SHEEN: Array[Color] = [
 	Color(0.86, 0.74, 0.5, 0.42), Color(0.86, 0.76, 0.56, 0.18), Color(0.0, 0.0, 0.0, 0.0),
-	Color(0.13, 0.17, 0.2, 0.32), Color(0.32, 0.46, 0.5, 0.62),
+	Color(0.06, 0.045, 0.035, 0.3), Color(0.045, 0.035, 0.03, 0.58),
 ]
-## Overlay disc colours: moisture bands, then ripeness (growing -> ripe -> past its grace).
+## How glossy each band's film is: dry dust is matte, wet soil shines, waterlogged soil most.
+const SHEEN_ROUGHNESS: Array[float] = [0.95, 0.9, 0.9, 0.38, 0.14]
+## A waterlogged bed's standing puddles: dark blue-grey, a little see-through and glossy -- water
+## over dark soil reflecting a pale sky, never bright.
+const PUDDLE_COLOR: Color = Color(0.15, 0.17, 0.19, 0.86)
+const PUDDLE_ROUGHNESS: float = 0.05
+const PUDDLE_SPECULAR: float = 0.9
+## Overlay disc colours: moisture bands, then ripeness (growing -> ripe -> past its grace). Wet and
+## waterlogged are muted slate blues at a lower alpha -- a map tint over the bed, not a blue slab.
 const BAND_OVERLAY: Array[Color] = [
 	Color(0.85, 0.45, 0.2, 0.55), Color(0.9, 0.72, 0.3, 0.5), Color(0.3, 0.62, 0.32, 0.45),
-	Color(0.25, 0.45, 0.7, 0.5), Color(0.15, 0.3, 0.75, 0.6),
+	Color(0.36, 0.47, 0.58, 0.38), Color(0.24, 0.32, 0.47, 0.46),
 ]
 const UNRIPE_OVERLAY: Color = Color(0.32, 0.6, 0.3, 0.45)
 const RIPE_OVERLAY: Color = Color(0.93, 0.74, 0.25, 0.6)
@@ -153,6 +164,16 @@ static func shows_heads(stage: int, item: int) -> bool:
 static func sheen(band: int) -> Color:
 	"""The soil sheen for a moisture band."""
 	return SHEEN[band]
+
+
+static func sheen_roughness(band: int) -> float:
+	"""How glossy the soil sheen is for a moisture band."""
+	return SHEEN_ROUGHNESS[band]
+
+
+static func shows_puddles(band: int) -> bool:
+	"""Whether a bed shows standing puddles (waterlogged only)."""
+	return band == SimScript.BAND_WATERLOGGED
 
 
 static func ripeness_overlay(stage: int, ripe_hours: int) -> Color:

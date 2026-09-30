@@ -6,10 +6,12 @@ extends CanvasLayer
 ## hides it, and places it below its tab strip (`set_zone`).
 ##
 ## With no bed selected it shows the demo calendar's date -- the very date the HUD shows -- and how to
-## start. Under the date, always, the farm's latest NEWS_LINES notices from the demo's notice feed
-## (demo_notices.gd). With a bed: its crop and stage with the hours to ripe or to withering, moisture
-## against the crop's band, soil fertility and health, what has been done to the ground (drained,
-## irrigated, raised, banked, covered), the expected yield, and the jobs on it; then the verbs.
+## start, nothing else: the farm's notices are the HUD news strip's (demo/ui/demo_news_strip.gd), not
+## repeated here (playtest 2026-09-29). With a bed, ONLY that bed: its title; one NEEDS line naming
+## its most pressing condition and the verb that answers it (farm_text.gd -- hidden when nothing
+## presses, clay only for a warning); its crop and stage with the hours to ripe or to withering,
+## moisture against the crop's band, soil fertility and health, what has been done to the ground, the
+## expected yield, and the jobs on it; then the verbs.
 ## A verb that cannot be done now is disabled, its reason in its tooltip. "Plant…" opens the PICKER:
 ## every ingredient, those sowable now first, each with its row's growth hours, yield, family and its
 ## rotation effect IN THIS BED (the same family again shows the penalty; legumes say they feed the
@@ -26,7 +28,6 @@ const CrewScript := preload("res://demo/farm/farm_crew.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
-const NoticesScript := preload("res://demo/demo_notices.gd")
 const DetailZone := preload("res://demo/ui/demo_detail_zone.gd")
 const GoodsScript := preload("res://demo/farm/farm_goods.gd")
 
@@ -37,13 +38,13 @@ signal cancel_requested
 signal close_requested
 
 const HINT: String = "Click a crop bed to tend it · right-click it with residents selected to set them to its most pressing work · V: map overlays (moisture, ripeness, water) · K: pantry"
-## The verbs with a button of their own, in order (sowing is "Plant…").
-const VERB_KINDS: Array[int] = [JobsScript.KIND_WATER, JobsScript.KIND_HARVEST, JobsScript.KIND_CLEAR,
-	JobsScript.KIND_COMPOST, JobsScript.KIND_COVER, JobsScript.KIND_RAISE, JobsScript.KIND_BANK]
-const VERB_LABELS: Array[String] = ["Water", "Harvest", "Clear", "Compost", "Cover", "Raise", "Bank"]
+## The verbs with a button of their own, in order (sowing is "Plant…"): with Plant… and the two
+## moisture verbs on the first row, four rows of three.
+const VERB_KINDS: Array[int] = [JobsScript.KIND_WATER, JobsScript.KIND_DRAIN, JobsScript.KIND_HARVEST,
+	JobsScript.KIND_CLEAR, JobsScript.KIND_COMPOST, JobsScript.KIND_COVER, JobsScript.KIND_RAISE,
+	JobsScript.KIND_BANK]
+const VERB_LABELS: Array[String] = ["Water", "Drain", "Harvest", "Clear", "Compost", "Cover", "Raise", "Bank"]
 const PICKER_MAX_H: float = 520.0
-## The farm's latest notices from the feed, newest first, always shown under the date.
-const NEWS_LINES: int = 3
 ## An order's answer stays under the readout this long (real time), then goes.
 const MESSAGE_MSEC: int = 8000
 const COLUMNS: int = 3
@@ -53,9 +54,6 @@ var picking: bool = false
 
 var _sim: SimScript = null
 var _crew: CrewScript = null
-var _notices: NoticesScript = null
-var _news_seen: int = -1
-var _news_scratch: PackedStringArray = PackedStringArray()
 var _zone_shown: bool = true
 var _zone_inset: float = 0.0
 var _frame: PanelContainer = null
@@ -64,7 +62,7 @@ var _body: ScrollContainer = null
 var _column: VBoxContainer = null
 var _title: Label = null
 var _clock: Label = null
-var _news: Array[Label] = []
+var _needs: Label = null
 var _lines: Array[Label] = []
 var _message: Label = null
 var _hint: Label = null
@@ -85,11 +83,10 @@ var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _goods: GoodsScript = null
 
 
-func configure(sim: SimScript, crew: CrewScript, notices: NoticesScript) -> void:
-	"""Read this farm and this notice feed, and build."""
+func configure(sim: SimScript, crew: CrewScript) -> void:
+	"""Read this farm and its crew, and build."""
 	_sim = sim
 	_crew = crew
-	_notices = notices
 	layer = 0
 	name = "FarmBedPanel"
 	_build()
@@ -108,15 +105,14 @@ func _ready() -> void:
 
 
 func _build() -> void:
-	"""Frame, header, readout lines, message, verbs and the picker."""
+	"""Frame, header, the date (no bed), the Needs line, readout lines, message, verbs, the picker."""
 	var column: VBoxContainer = _build_frame()
 	column.add_child(_header())
 	_clock = FarmUi.label("", FarmUi.SMALL_PX, Palette.UMBER)
 	column.add_child(_clock)
-	for k: int in NEWS_LINES:
-		_news.append(FarmUi.label("", FarmUi.SMALL_PX, Palette.CLAY))
-		_news[k].visible = false
-		column.add_child(_news[k])
+	_needs = FarmUi.label("", FarmUi.BODY_PX, Palette.CLAY)
+	_needs.visible = false
+	column.add_child(_needs)
 	for k: int in 6:
 		_lines.append(FarmUi.label("", FarmUi.BODY_PX, Palette.INK))
 		column.add_child(_lines[k])
@@ -221,24 +217,6 @@ func show_bed(p_bed: int) -> void:
 	refresh()
 
 
-func _refresh_news() -> void:
-	"""The farm's latest notices from the feed (only when the feed changed)."""
-	if _notices == null or _notices.revision == _news_seen:
-		return
-	_news_seen = _notices.revision
-	_news_scratch.clear()
-	_notices.latest_of_into(NoticesScript.SOURCE_FARM, NEWS_LINES, _news_scratch)
-	for k: int in NEWS_LINES:
-		_news[k].visible = k < _news_scratch.size()
-		_news[k].text = "• " + _news_scratch[k] if k < _news_scratch.size() else ""
-	_place.call_deferred()
-
-
-func news_text(k: int) -> String:
-	"""News line `k`, newest first (tests)."""
-	return _news[k].text if _news[k].visible else ""
-
-
 func show_message(text: String) -> void:
 	"""One line under the readout: what an order did, or why it could not."""
 	_message.text = text
@@ -250,18 +228,20 @@ func refresh() -> void:
 	"""Rewrite every line and button state from the sim."""
 	if _sim == null:
 		return
-	_clock.text = Text.clock_line(_sim)
-	_refresh_news()
 	if _message.visible and Time.get_ticks_msec() - _message_since > MESSAGE_MSEC:
 		_message.visible = false
 	var has_bed: bool = Catalog.is_bed(bed)
 	_title.text = _bed_title() if has_bed else "Farm"
+	_clock.text = Text.clock_line(_sim)
+	_clock.visible = not has_bed
 	for label: Label in _lines:
 		label.visible = has_bed and not picking
+	_needs.visible = false
 	_actions.visible = has_bed and not picking
 	_picker.visible = has_bed and picking
 	_hint.visible = not has_bed
 	if has_bed and not picking:
+		_fill_needs()
 		_fill_lines()
 		_fill_buttons()
 	_place.call_deferred()
@@ -272,6 +252,48 @@ func _bed_title() -> String:
 	var item: int = _sim.item_of(bed)
 	var what: String = Catalog.ITEM_LABELS[item] if Catalog.is_item(item) else "empty"
 	return "Bed %d · %s" % [bed + 1, what]
+
+
+func _fill_needs() -> void:
+	"""The Needs line: the bed's most pressing condition and its verb, clay for a warning, else ink;
+	hidden when nothing presses."""
+	if not Text.need_of_into(_sim, bed, _read):
+		return
+	var need: int = _read.value
+	_needs.text = Text.need_text(_sim, bed, need, _read)
+	_needs.add_theme_color_override(&"font_color", Palette.CLAY if Text.need_is_warning(need) else Palette.INK)
+	_needs.visible = true
+
+
+func needs_text() -> String:
+	"""The Needs line as shown ('' when hidden; tests)."""
+	return _needs.text if _needs.visible else ""
+
+
+func needs_colour() -> Color:
+	"""The Needs line's colour (tests)."""
+	return _needs.get_theme_color(&"font_color")
+
+
+func shown_texts() -> PackedStringArray:
+	"""Every line of words the panel draws now, in order (tests: what the player reads)."""
+	var out := PackedStringArray()
+	for node: Node in _column.find_children("*", "Label", true, false):
+		var label := node as Label
+		if _shown_in_column(label):
+			out.append(label.text)
+	return out
+
+
+func _shown_in_column(control: Control) -> bool:
+	"""Whether `control` and every parent up to the column is visible (works off-tree too, where
+	is_visible_in_tree is always false)."""
+	var node: Node = control
+	while node != null and node != _column:
+		if node is CanvasItem and not (node as CanvasItem).visible:
+			return false
+		node = node.get_parent()
+	return true
 
 
 func _fill_lines() -> void:

@@ -29,7 +29,11 @@ extends RefCounted
 ##     (a tunnel under it) sheds up to DRAIN_PER_DAY toward its crop's low side, an IRRIGATED bed (a
 ##     tunnel from the pond under it) is pulled up to IRRIGATE_PER_DAY toward its band's middle, a
 ##     RAISED bed (tunnel spoil) sheds RAISED_DRAIN_PER_DAY and is warmer at night, a BANKED bed
-##     keeps half of each day's weather loss;
+##     keeps half of each day's weather loss, a DITCHED bed (the Drain job) sheds up to
+##     DITCH_DRAIN_PER_DAY toward its crop's low side as a tunnel drain does; and EVERY bed above its
+##     crop's high side sheds up to NATURAL_DRAIN_PER_DAY back toward it (the village loam drains);
+##   * DRAINING a Wet or Waterlogged bed (`drain_bed()`, the Drain job): its moisture drops at once
+##     to the top of its crop's band, and the ditch dug round it keeps shedding (above) for good;
 ##   * CLEARING a blighted, still-growing crop is uprooting it: `apply_health_loss()` of its whole
 ##     health withers it and `clear_withered()` clears it, returning REQ-SET-085's 0.5 U compost.
 ## Seed is not stocked (the demo has unlimited seed); REQ-SET-071's 250 milli-U is reported only.
@@ -74,6 +78,14 @@ const DRAIN_PER_DAY: int = 1500
 const DRAIN_MARGIN: int = 500
 const IRRIGATE_PER_DAY: int = 1500
 const RAISED_DRAIN_PER_DAY: int = 800
+## A ditch round a bed sheds less than a tunnel under it (1500) and more than spoil lifting it (800):
+## a round demo value between the two.
+const DITCH_DRAIN_PER_DAY: int = 1000
+## What any bed sheds above its crop's high side, per day (well-drained village loam). Spring's +600
+## a day then only creeps a bed past its band (+100 a day net) and only the first spring's Ideal
+## spell (+1200 a day, days 6-8) waterlogs the opening radish -- at the midnight opening spring 8,
+## not spring 6 as with none (playtest 2026-09-29; farm_weather.gd spaces the threats round it).
+const NATURAL_DRAIN_PER_DAY: int = 500
 ## The band an empty bed with nothing chosen is judged against (demo: the beans/cabbage span).
 const EMPTY_BAND_MIN: int = 4000
 const EMPTY_BAND_MAX: int = 8000
@@ -99,6 +111,7 @@ const REFUSE_ALREADY: StringName = &"ALREADY_DONE"
 const REFUSE_NO_CROP: StringName = &"NO_CROP_STANDING"
 const REFUSE_STALLED: StringName = &"GROWTH_STALLED"
 const REFUSE_CALENDAR_STARTED: StringName = &"CALENDAR_ALREADY_RUNNING"
+const REFUSE_NOT_TOO_WET: StringName = &"NOT_TOO_WET"
 
 var calendar: CalendarScript = CalendarScript.new()
 var compost_milli: int = START_COMPOST_MILLI
@@ -123,6 +136,7 @@ var _fallow: PackedByteArray = PackedByteArray()
 var _blighted: PackedByteArray = PackedByteArray()
 var _drained: PackedByteArray = PackedByteArray()
 var _irrigated: PackedByteArray = PackedByteArray()
+var _ditched: PackedByteArray = PackedByteArray()
 var _blight_days: PackedInt32Array = PackedInt32Array()
 var _neighbours: Array[PackedInt32Array] = []
 var _events: PackedInt32Array = PackedInt32Array()
@@ -151,7 +165,7 @@ func _allocate() -> void:
 	"""Size every per-bed column once."""
 	for column: PackedInt32Array in [_slot, _tile, _item, _chosen, _blight_days]:
 		column.resize(Catalog.BED_COUNT)
-	for column: PackedByteArray in [_covered, _raised, _banked, _fallow, _blighted, _drained, _irrigated]:
+	for column: PackedByteArray in [_covered, _raised, _banked, _fallow, _blighted, _drained, _irrigated, _ditched]:
 		column.resize(Catalog.BED_COUNT)
 	_item.fill(NO_ITEM)
 	_chosen.fill(NO_ITEM)
@@ -264,7 +278,8 @@ func run_day(boundary_tick: int) -> void:
 # --- moisture -------------------------------------------------------------------------------
 
 func _moisture_day(bed: int, weather_delta: int) -> void:
-	"""A bed's own moisture change after the weather's: banked, irrigated, drained, raised."""
+	"""A bed's own moisture change after the weather's: banked, irrigated, drained, raised, ditched,
+	then the natural drainage of a bed above its band."""
 	var moisture: int = moisture_of(bed)
 	var delta: int = 0
 	if _banked[bed] == 1 and weather_delta < 0:
@@ -277,6 +292,9 @@ func _moisture_day(bed: int, weather_delta: int) -> void:
 		delta -= clampi(moisture + delta - (low + DRAIN_MARGIN), 0, DRAIN_PER_DAY)
 	if _raised[bed] == 1 and _irrigated[bed] == 0:
 		delta -= clampi(moisture + delta - (low + DRAIN_MARGIN), 0, RAISED_DRAIN_PER_DAY)
+	if _ditched[bed] == 1 and _irrigated[bed] == 0:
+		delta -= clampi(moisture + delta - (low + DRAIN_MARGIN), 0, DITCH_DRAIN_PER_DAY)
+	delta -= clampi(moisture + delta - high, 0, NATURAL_DRAIN_PER_DAY)
 	if delta != 0:
 		_farming.apply_moisture_delta(_slot[bed], delta)
 
@@ -518,6 +536,29 @@ func bank_bed(bed: int) -> FarmingScript.OpResult:
 	return _set_flag(_banked, bed)
 
 
+func drain_refusal(bed: int) -> StringName:
+	"""Why a bed needs no draining (its moisture at or under its band's top), or REFUSE_NONE."""
+	if not Catalog.is_bed(bed):
+		return REFUSE_NOT_A_BED
+	return REFUSE_NONE if band_of(bed) >= BAND_WET else REFUSE_NOT_TOO_WET
+
+
+func drain_bed(bed: int) -> FarmingScript.OpResult:
+	"""The Drain job done: a ditch dug round a Wet or Waterlogged bed. Its moisture drops at once to
+	its band's top (`apply_moisture_delta()`), and the bed is ditched for good (_moisture_day). The
+	value is the moisture shed."""
+	var code: StringName = drain_refusal(bed)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	var shed: int = moisture_of(bed) - band_max_of(bed)
+	var applied: FarmingScript.OpResult = _farming.apply_moisture_delta(_slot[bed], -shed)
+	if not applied.ok:
+		return applied
+	_ditched[bed] = 1
+	revision += 1
+	return _succeed(shed)
+
+
 func set_fallow(bed: int, resting: bool) -> FarmingScript.OpResult:
 	"""Rest a bed (no sowing while fallow; an empty bed regains fertility daily either way)."""
 	if not Catalog.is_bed(bed):
@@ -685,6 +726,11 @@ func is_drained(bed: int) -> bool:
 func is_irrigated(bed: int) -> bool:
 	"""Whether a tunnel from the pond waters the bed."""
 	return _irrigated[bed] == 1
+
+
+func is_ditched(bed: int) -> bool:
+	"""Whether a drainage ditch has been dug round the bed (the Drain job)."""
+	return _ditched[bed] == 1
 
 
 func is_tended_today(bed: int) -> bool:

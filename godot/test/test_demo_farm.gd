@@ -14,6 +14,7 @@ const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const VillageWaterScript := preload("res://demo/village_water.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const Weather := preload("res://demo/farm/farm_weather.gd")
+const AlertsScript := preload("res://demo/farm/farm_alerts.gd")
 const SimScript := preload("res://demo/farm/farm_sim.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
@@ -47,6 +48,17 @@ var _read: IntMath.IntResult = IntMath.IntResult.new()
 func _hours(sim: SimScript, hours: int) -> void:
 	"""Run the farm `hours` game hours of demo time."""
 	sim.advance_usec(hours * HOUR_USEC)
+
+
+func _sow(sim: SimScript, bed: int, item: int) -> void:
+	"""Choose and sow `item` in `bed` now (both halves of the sowing)."""
+	sim.choose(bed, item)
+	assert_true(sim.sow_start(bed).ok and sim.sow_finish(bed).ok, "sown in bed %d" % bed)
+
+
+func _set_moisture(sim: SimScript, bed: int, value: int) -> void:
+	"""Put a bed's moisture at `value` (a fixture)."""
+	sim.farming().apply_moisture_delta(sim.slot_of(bed), value - sim.moisture_of(bed))
 
 
 func _json(path: String) -> Variant:
@@ -139,15 +151,21 @@ func test_hour_crossings_follow_the_offset_calendar() -> void:
 
 
 func test_frost_nights_and_outbreaks_are_on_their_days() -> void:
-	"""Spring 4 and 9, autumn 3 and 8 are frost nights; outbreaks on spring 7, summer 4 and 10,
-	autumn 6; winter needs neither."""
-	assert_true(Weather.is_frost_night(0, 4), "spring 4")
-	assert_true(Weather.is_frost_night(0, 9), "spring 9")
-	assert_false(Weather.is_frost_night(0, 5), "spring 5")
+	"""Spring's one frost night is the night into spring 11 (no longer 4 and 9), autumn's 3 and 8; the
+	outbreaks open spring 12 (no longer 7), summer 4 and 10, autumn 6; winter needs neither."""
+	assert_true(Weather.is_frost_night(0, 11), "spring 11")
+	assert_false(Weather.is_frost_night(0, 4), "not spring 4")
+	assert_false(Weather.is_frost_night(0, 9), "not spring 9")
+	assert_false(Weather.is_frost_night(0, 10), "spring 10")
+	assert_false(Weather.is_frost_night(0, 12), "spring 12")
 	assert_true(Weather.is_frost_night(2, 3), "autumn 3")
+	assert_true(Weather.is_frost_night(2, 8), "autumn 8")
 	assert_false(Weather.is_frost_night(1, 4), "never summer")
 	assert_false(Weather.is_frost_night(0, 13), "no day 13")
-	assert_true(Weather.is_blight_outbreak(0, 7), "spring 7")
+	assert_true(Weather.is_blight_outbreak(0, 12), "spring 12")
+	assert_false(Weather.is_blight_outbreak(0, 7), "not spring 7")
+	assert_false(Weather.is_blight_outbreak(0, 11), "not spring 11")
+	assert_true(Weather.is_blight_outbreak(1, 4), "summer 4")
 	assert_true(Weather.is_blight_outbreak(1, 10), "summer 10")
 	assert_true(Weather.is_blight_outbreak(2, 6), "autumn 6")
 	assert_false(Weather.is_blight_outbreak(3, 6), "not winter")
@@ -155,16 +173,31 @@ func test_frost_nights_and_outbreaks_are_on_their_days() -> void:
 
 func test_a_frost_night_is_the_early_hours() -> void:
 	"""Hours 2-5 of a frost day freeze; 1 and 6 do not; tonight means tomorrow's early hours."""
-	assert_false(Weather.is_frost_hour(0, 4, 1), "01:00")
-	assert_true(Weather.is_frost_hour(0, 4, 2), "02:00")
-	assert_true(Weather.is_frost_hour(0, 4, 5), "05:00")
-	assert_false(Weather.is_frost_hour(0, 4, 6), "06:00")
-	assert_true(Weather.frost_tonight(0, 3), "the evening before")
+	assert_false(Weather.is_frost_hour(0, 11, 1), "01:00")
+	assert_true(Weather.is_frost_hour(0, 11, 2), "02:00")
+	assert_true(Weather.is_frost_hour(0, 11, 5), "05:00")
+	assert_false(Weather.is_frost_hour(0, 11, 6), "06:00")
+	assert_false(Weather.is_frost_hour(0, 10, 3), "not the night before")
+	assert_true(Weather.frost_tonight(0, 10), "the evening before")
+	assert_false(Weather.frost_tonight(0, 3), "spring 3 -> 4 is no longer a frost night")
 	assert_false(Weather.frost_tonight(0, 12), "spring 12 -> summer 1")
 	assert_true(Weather.frost_tonight(2, 2), "autumn 2 -> 3")
 	assert_equal(Weather.next_day(0, 12), Vector2i(1, 1), "spring 12 -> summer 1")
 	assert_equal(Weather.next_day(3, 12), Vector2i(0, 1), "winter 12 -> spring 1")
 	assert_equal(Weather.next_day(1, 5), Vector2i(1, 6), "summer 5 -> 6")
+
+
+func test_a_frost_is_due_from_its_warning_to_its_last_hour() -> void:
+	"""Straw still helps from ALERT_HOUR (12:00) the day before a frost night until 05:59 of it."""
+	assert_false(Weather.frost_due(0, 10, 11), "spring 10, 11:00: not yet announced")
+	assert_true(Weather.frost_due(0, 10, 12), "12:00: announced")
+	assert_true(Weather.frost_due(0, 10, 23), "23:00")
+	assert_true(Weather.frost_due(0, 11, 0), "midnight into the frost night")
+	assert_true(Weather.frost_due(0, 11, 5), "05:00, the last frost hour")
+	assert_false(Weather.frost_due(0, 11, 6), "06:00: over")
+	assert_false(Weather.frost_due(0, 11, 12), "noon after: no frost the next night")
+	assert_false(Weather.frost_due(0, 9, 12), "two days before")
+	assert_true(Weather.frost_due(2, 2, 12), "autumn 2 noon")
 
 
 func test_bed_temperature_takes_frost_cover_and_raising() -> void:
@@ -276,28 +309,34 @@ func test_sowing_starts_and_finishes() -> void:
 
 
 func test_a_frost_night_hurts_growing_crops_unless_covered() -> void:
-	"""Spring 4, 02:00-05:59, -3 C: wheat loses 4 x 1000; covered radish nothing; ripe carrots are
-	past frost. The straw is gone at 06:00."""
+	"""Spring 11, 02:00-05:59, -3 C: wheat sown on spring 1 loses 4 x 1000; the same wheat covered on
+	the evening of spring 10 loses nothing; the opening wheat, ripe since spring 8, is past frost. The
+	straw is gone at 06:00."""
 	var sim := SimScript.new()
-	_hours(sim, 48)
-	assert_true(sim.cover(BED_RADISH).ok, "covered on the evening of spring 3")
-	assert_false(sim.cover(BED_RADISH).ok, "once")
-	_hours(sim, 24)
-	assert_equal(sim.calendar.tick, 54000, "06:00 of spring 4")
-	assert_equal(sim.health_of(BED_WHEAT), 6000, "wheat lost 4000")
-	assert_equal(sim.health_of(BED_RADISH), 10000, "the covered radish lost nothing")
-	assert_equal(sim.health_of(BED_CARROTS), 10000, "ripe carrots are past frost")
-	assert_false(sim.is_covered(BED_RADISH), "the straw came off at 06:00")
+	_sow(sim, BED_EMPTY_CLAY, WHEAT)
+	_sow(sim, BED_EMPTY_CLAY_2, WHEAT)
+	_hours(sim, 24 * 9 + 12)
+	assert_true(sim.cover(BED_EMPTY_CLAY_2).ok, "covered on the evening of spring 10")
+	assert_false(sim.cover(BED_EMPTY_CLAY_2).ok, "once")
+	_hours(sim, 12)
+	assert_equal(sim.calendar.tick, 180000, "06:00 of spring 11")
+	assert_equal(sim.health_of(BED_EMPTY_CLAY), 6000, "wheat lost 4000")
+	assert_equal(sim.health_of(BED_EMPTY_CLAY_2), 10000, "the covered wheat lost nothing")
+	assert_equal(sim.stage_of(BED_WHEAT), SimScript.STAGE_RIPE, "the opening wheat is ripe")
+	assert_equal(sim.health_of(BED_WHEAT), 10000, "and past frost")
+	assert_false(sim.is_covered(BED_EMPTY_CLAY_2), "the straw came off at 06:00")
 
 
 func test_a_raised_bed_is_frost_free_at_minus_three() -> void:
-	"""Raised: -3 C + 3 C = 0 C, not below freezing: no damage. An uncovered radish loses 4 x 300."""
+	"""Raised: -3 C + 3 C = 0 C, not below freezing: no damage. The wheat beside it loses 4 x 1000."""
 	var sim := SimScript.new()
-	assert_true(sim.raise_bed(BED_WHEAT).ok, "raised")
-	assert_false(sim.raise_bed(BED_WHEAT).ok, "once")
-	_hours(sim, 72)
-	assert_equal(sim.health_of(BED_WHEAT), 10000, "no frost damage")
-	assert_equal(sim.health_of(BED_RADISH), 8800, "radish lost 1200")
+	_sow(sim, BED_EMPTY_CLAY, WHEAT)
+	_sow(sim, BED_EMPTY_CLAY_2, WHEAT)
+	assert_true(sim.raise_bed(BED_EMPTY_CLAY_2).ok, "raised")
+	assert_false(sim.raise_bed(BED_EMPTY_CLAY_2).ok, "once")
+	_hours(sim, 24 * 10)
+	assert_equal(sim.health_of(BED_EMPTY_CLAY_2), 10000, "no frost damage")
+	assert_equal(sim.health_of(BED_EMPTY_CLAY), 6000, "the unraised wheat lost 4000")
 
 
 func test_blight_damages_daily_halves_when_tended_and_spreads() -> void:
@@ -429,6 +468,64 @@ func test_a_banked_bed_keeps_half_of_a_dry_day() -> void:
 	assert_equal(before_banked + delta - delta / 2, sim.moisture_of(BED_EMPTY_LOAM), "banked: half back")
 
 
+func test_every_bed_sheds_down_toward_its_band_s_top() -> void:
+	"""At midnight (+600): a radish bed at 9800 goes to 10000 (the clamp) and sheds the full 500 to
+	9500; one at 6800 goes to 7400 and sheds only the 400 above 7000; the carrots at 6000 shed none."""
+	var sim := SimScript.new()
+	_set_moisture(sim, BED_RADISH, 9800)
+	_set_moisture(sim, BED_WHEAT, 6800)
+	sim.choose(BED_EMPTY_LOAM, RADISH)
+	_set_moisture(sim, BED_EMPTY_LOAM, 6800)
+	_hours(sim, 18)
+	assert_equal(sim.moisture_of(BED_RADISH), 9500, "clamped, then 500 shed")
+	assert_equal(sim.moisture_of(BED_EMPTY_LOAM), 7000, "only down to the band's top (roots 7000)")
+	assert_equal(sim.moisture_of(BED_WHEAT), 7400, "wheat's band runs to 7500: nothing shed")
+	assert_equal(sim.moisture_of(BED_CARROTS), 6600, "inside the band: the weather's +600 only")
+
+
+func test_draining_drops_a_wet_bed_to_its_band_s_top_and_ditches_it() -> void:
+	"""A good bed refuses (NOT_TOO_WET); a wet radish at 7500 drops to 7000 (500 shed); a waterlogged
+	one at 9800 drops to 7000 too; the bed is ditched for good and the revision moves."""
+	var sim := SimScript.new()
+	assert_equal(sim.drain_refusal(BED_RADISH), SimScript.REFUSE_NOT_TOO_WET, "6000 is good")
+	assert_false(sim.drain_bed(BED_RADISH).ok, "refused")
+	assert_false(sim.is_ditched(BED_RADISH), "no ditch")
+	assert_equal(sim.drain_refusal(6), SimScript.REFUSE_NOT_A_BED, "not a bed")
+	_set_moisture(sim, BED_RADISH, 7001)
+	assert_equal(sim.drain_refusal(BED_RADISH), SimScript.REFUSE_NONE, "7001 is wet")
+	_set_moisture(sim, BED_RADISH, 7500)
+	var seen: int = sim.revision
+	var drained: FarmingScript.OpResult = sim.drain_bed(BED_RADISH)
+	assert_true(drained.ok, "drained")
+	assert_equal(drained.value, 500, "500 shed")
+	assert_equal(sim.moisture_of(BED_RADISH), 7000, "the band's top")
+	assert_true(sim.is_ditched(BED_RADISH), "ditched")
+	assert_true(sim.revision > seen, "a visible change")
+	_set_moisture(sim, BED_RADISH, 9800)
+	assert_true(sim.drain_bed(BED_RADISH).ok, "a ditched bed that floods again drains again")
+	assert_equal(sim.moisture_of(BED_RADISH), 7000, "to 7000")
+	assert_equal(sim.band_of(BED_RADISH), SimScript.BAND_GOOD, "good")
+
+
+func test_a_ditched_bed_sheds_toward_its_low_side_at_midnight() -> void:
+	"""Two roots beds at 7000: the ditched radish +600 -> 7600 - 1000 = 6600, then 6200; the plain
+	carrots +600 -> 7600 - 500 natural = 7100. A ditched wheat bed a pond tunnel irrigates is pulled
+	toward grain's 5500 middle by irrigation's 1500 only: 7500 + 600 - 1500 = 6600, not 1000 more."""
+	var sim := SimScript.new()
+	_set_moisture(sim, BED_RADISH, 7500)
+	sim.drain_bed(BED_RADISH)
+	_set_moisture(sim, BED_CARROTS, 7000)
+	_set_moisture(sim, BED_WHEAT, 7600)
+	sim.drain_bed(BED_WHEAT)
+	sim.set_tunnel_water(BED_WHEAT, false, true)
+	_hours(sim, 18)
+	assert_equal(sim.moisture_of(BED_RADISH), 6600, "ditched: 1000 shed")
+	assert_equal(sim.moisture_of(BED_CARROTS), 7100, "plain: the natural 500")
+	assert_equal(sim.moisture_of(BED_WHEAT), 6600, "irrigated: the ditch does not drain it too")
+	_hours(sim, 24)
+	assert_equal(sim.moisture_of(BED_RADISH), 6200, "the next midnight")
+
+
 func test_waterlogging_is_read_from_the_bands() -> void:
 	"""Radish (2500-7000): 7000 good, 7001 wet, 9001 waterlogged; 2499 low, 499 dry."""
 	var sim := SimScript.new()
@@ -441,17 +538,71 @@ func test_waterlogging_is_read_from_the_bands() -> void:
 		assert_equal(sim.band_of(BED_RADISH), int(case[1]), "moisture %d" % case[0])
 
 
-func test_an_outbreak_takes_a_growing_bed_on_spring_7() -> void:
-	"""By the midnight opening spring 7 a growing bed has blight, logged as an outbreak."""
+func test_an_outbreak_takes_a_growing_bed_on_spring_12() -> void:
+	"""No outbreak through spring 11; by the midnight opening spring 12 a growing bed (the wheat sown
+	on spring 1 -- the opening crops have ripened) has blight, logged as an outbreak."""
 	var sim := SimScript.new()
-	_hours(sim, 18 + 24 * 5)
-	assert_equal(sim.season_day(), 7, "spring 7")
+	_sow(sim, BED_EMPTY_CLAY, WHEAT)
 	var events := PackedInt32Array()
+	_hours(sim, 18 + 24 * 9)
+	assert_equal(sim.season_day(), 11, "spring 11")
 	sim.take_events_into(events)
-	var found: bool = false
+	assert_false(_has_event(events, SimScript.EVENT_BLIGHT), "no outbreak yet")
+	_hours(sim, 24)
+	assert_equal(sim.season_day(), 12, "spring 12")
+	events.clear()
+	sim.take_events_into(events)
+	assert_true(_has_event(events, SimScript.EVENT_BLIGHT), "an outbreak")
+	assert_true(sim.is_blighted(BED_EMPTY_CLAY), "on the growing wheat")
+
+
+func _has_event(events: PackedInt32Array, kind: int) -> bool:
+	"""Whether the (kind, bed) pairs hold an event of `kind`."""
 	for k: int in range(0, events.size(), 2):
-		found = found or events[k] == SimScript.EVENT_BLIGHT
-	assert_true(found, "an outbreak")
+		if events[k] == kind:
+			return true
+	return false
+
+
+func test_the_first_spring_spaces_waterlogging_frost_and_blight() -> void:
+	"""The first spring walked hour by hour with the real sim and its alerts, as a player might play it
+	(wheat sown in the clay bed on spring 1; the carrots harvested and radish sown in their place on
+	spring 2): the first waterlogging warning is on spring 8 (the Ideal spell's last day, not spring
+	6), the frost warning on spring 10, the outbreak on spring 12 -- distinct days, two apart."""
+	var sim := SimScript.new()
+	var alerts := AlertsScript.new()
+	_sow(sim, BED_EMPTY_CLAY, WHEAT)
+	var first := PackedInt32Array([0, 0, 0])
+	var lines := PackedStringArray()
+	var events := PackedInt32Array()
+	for hour: int in 18 + 24 * 11:
+		_hours(sim, 1)
+		if hour == 23:
+			assert_true(sim.harvest(BED_CARROTS).ok, "the carrots harvested on spring 2")
+			_sow(sim, BED_CARROTS, RADISH)
+		lines.clear()
+		events.clear()
+		sim.take_events_into(events)
+		alerts.collect_into(sim, events, PackedInt32Array(), lines)
+		for line: String in lines:
+			for k: int in 3:
+				if first[k] == 0 and line.contains(["waterlogged", "Frost tonight", "Blight on"][k]):
+					first[k] = sim.season_day()
+	assert_equal(first, PackedInt32Array([8, 10, 12]), "waterlogging, frost warning, blight")
+	assert_true(first[1] - first[0] >= 2 and first[2] - first[1] >= 2, "two days apart at least")
+
+
+func test_the_opening_radish_waterlogs_only_with_the_ideal_spell() -> void:
+	"""Idle, the opening radish bed (roots, 2500-7000) creeps past its band on +600 days against the
+	500 natural drainage, and only the Ideal spell's +1200 days waterlog it: wet from spring 4, 9300
+	and waterlogged at the midnight opening spring 8 -- the wheat (grain, to 7500) never passes 9500."""
+	var sim := SimScript.new()
+	var expected: Array[int] = [6600, 7000, 7100, 7200, 7900, 8600, 9300, 9400]
+	for day: int in expected.size():
+		_hours(sim, 18 if day == 0 else 24)
+		assert_equal(sim.moisture_of(BED_RADISH), expected[day], "radish, spring %d" % (day + 2))
+		assert_equal(sim.band_of(BED_RADISH) == SimScript.BAND_WATERLOGGED, day + 2 >= 8, "waterlogged? spring %d" % (day + 2))
+		assert_true(sim.moisture_of(BED_WHEAT) <= 9500, "the wheat never waterlogs, spring %d" % (day + 2))
 
 
 # --- storage and the pantry -------------------------------------------------------------------
@@ -742,7 +893,12 @@ func test_jobs_open_once_per_kind_and_bed() -> void:
 	assert_equal(jobs.live_count(), 24, "full")
 	assert_false(jobs.open_into(JobsScript.KIND_COVER, 5, JobsScript.ORIGIN_PLAYER, 0, _read), "full")
 	assert_equal(_read.error, JobsScript.REFUSE_BOARD_FULL, "says so")
-	assert_false(jobs.open_into(8, 0, JobsScript.ORIGIN_PLAYER, 0, _read), "no such kind")
+	assert_equal(JobsScript.KIND_COUNT, 9, "nine kinds: Drain is the ninth")
+	assert_equal(JobsScript.KIND_NAMES.size(), JobsScript.KIND_COUNT, "a name each")
+	assert_equal(JobsScript.KIND_DOING.size(), JobsScript.KIND_COUNT, "a doing each")
+	assert_equal(JobsScript.PLANS.size(), JobsScript.KIND_COUNT, "a plan each")
+	assert_false(jobs.open_into(JobsScript.KIND_COUNT, 0, JobsScript.ORIGIN_PLAYER, 0, _read), "no such kind")
+	assert_equal(_read.error, JobsScript.REFUSE_BAD_KIND, "says so")
 
 
 func test_a_watering_job_walks_its_plan_and_keeps_work_on_rewind() -> void:
@@ -772,6 +928,19 @@ func test_a_watering_job_walks_its_plan_and_keeps_work_on_rewind() -> void:
 	assert_equal(jobs.begun[row], 1, "its start kept")
 	assert_equal(jobs.work_usec(JobsScript.WORK_TEND), 1500000, "1 WU at 1.5 s")
 	assert_equal(jobs.work_usec(JobsScript.WORK_CLEAR), 15000000, "10 WU")
+
+
+func test_a_drain_job_walks_to_the_bed_and_digs() -> void:
+	"""Drain: to the bed, then 6 WU of digging (9 s of the cast's time)."""
+	var jobs := JobsScript.new()
+	assert_true(jobs.open_into(JobsScript.KIND_DRAIN, 3, JobsScript.ORIGIN_PLAYER, 0, _read), "opened")
+	var row: int = _read.value
+	assert_equal(jobs.current_step(row), JobsScript.STEP_GO_BED, "to the bed")
+	assert_true(jobs.advance(row), "then")
+	assert_equal(jobs.current_step(row), JobsScript.STEP_WORK + JobsScript.WORK_DRAIN, "dig the ditch")
+	assert_false(jobs.advance(row), "and done")
+	assert_equal(jobs.work_usec(JobsScript.WORK_DRAIN), 9000000, "6 WU at 1.5 s")
+	assert_equal(JobsScript.KIND_NAMES[JobsScript.KIND_DRAIN], "Drain", "named")
 
 
 func test_compost_from_spoil_goes_to_a_heap_first() -> void:
@@ -804,6 +973,9 @@ func test_verbs_are_offered_by_the_bed_state() -> void:
 	sim.cover(BED_WHEAT)
 	assert_equal(JobsScript.refusal_for(sim, JobsScript.KIND_COVER, BED_WHEAT, 0), SimScript.REFUSE_ALREADY, "covered already")
 	assert_equal(JobsScript.refusal_for(sim, JobsScript.KIND_CLEAR, BED_WHEAT, 0), SimScript.REFUSE_NOTHING_TO_CLEAR, "healthy")
+	assert_equal(JobsScript.refusal_for(sim, JobsScript.KIND_DRAIN, BED_RADISH, 0), SimScript.REFUSE_NOT_TOO_WET, "not wet")
+	_set_moisture(sim, BED_RADISH, 9800)
+	assert_equal(JobsScript.refusal_for(sim, JobsScript.KIND_DRAIN, BED_RADISH, 0), &"", "waterlogged: drain it")
 
 
 func test_compost_source_prefers_the_store() -> void:

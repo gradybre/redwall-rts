@@ -1,8 +1,15 @@
 extends RefCounted
 ## The farm's words: what the bed panel, the crop picker and the pantry say. Decision 0196. Pure
 ## functions of the sim's readouts, so test_demo_farm_ui.gd reads them without a scene.
+##
+## THE NEEDS LINE (the bed panel's second line): a bed's own most pressing condition and the verb that
+## answers it, in the order the right-click's most pressing work takes them (demo_farm.gd
+## `pressing_kind_into`): clear a withered or blighted crop, harvest a ripe one, drain a waterlogged
+## growing bed, water a parched one, cover one before a frost. Nothing pressing, no line. Every need
+## is a warning but a ripe crop still in its grace (need_is_warning; the alerts call that a NOTE).
 
 const SimScript := preload("res://demo/farm/farm_sim.gd")
+const Weather := preload("res://demo/farm/farm_weather.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
@@ -10,6 +17,14 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const SEASONS: Array[String] = ["Spring", "Summer", "Autumn", "Winter"]
 const SOILS: Array[String] = ["loam", "clay", "sand"]
 const ROWS: Array[String] = ["beans", "cabbage", "flax", "grain", "roots"]
+const NEED_CLEAR_WITHERED: int = 0
+const NEED_CLEAR_BLIGHT: int = 1
+const NEED_HARVEST: int = 2
+const NEED_HARVEST_LATE: int = 3
+const NEED_DRAIN: int = 4
+const NEED_WATER: int = 5
+const NEED_COVER: int = 6
+const REFUSE_NOTHING_PRESSING: String = "NOTHING_PRESSING"
 
 
 static func clock_line(sim: SimScript) -> String:
@@ -101,8 +116,18 @@ static func stage_line(sim: SimScript, bed: int, read: IntMath.IntResult) -> Str
 		var what: String = "Blighted, growing" if stage == SimScript.STAGE_BLIGHTED else "Growing"
 		if sim.hours_to_ripe_into(bed, read):
 			return "%s %d%% — ripe in about %d h" % [what, growth, read.value]
-		return "%s %d%% — growth stopped (too cold, dry or wet)" % [what, growth]
+		return "%s %d%% — stalled, %s" % [what, growth, _stall_reason(sim.band_of(bed))]
 	return ["Empty", "Being sown", "", "", "", "Withered — clear it", ""][stage]
+
+
+static func _stall_reason(band: int) -> String:
+	"""Why a growing crop has stopped: §5.6's moisture factor is 0 only when parched or waterlogged,
+	so otherwise it is the temperature's."""
+	if band == SimScript.BAND_DRY:
+		return "too dry"
+	if band == SimScript.BAND_WATERLOGGED:
+		return "waterlogged"
+	return "too cold"
 
 
 static func moisture_line(sim: SimScript, bed: int) -> String:
@@ -127,20 +152,23 @@ static func _permille(value: int) -> String:
 
 
 static func works_line(sim: SimScript, bed: int) -> String:
-	"""What has been done to the bed and its ground: drained, irrigated, raised, banked, covered."""
+	"""What has been done to the bed and its ground: drained or irrigated by a tunnel, ditched (the
+	Drain job), raised, banked, covered, resting, watered."""
 	var parts := PackedStringArray()
 	if sim.is_irrigated(bed):
-		parts.append("irrigated by a tunnel from the water")
+		parts.append("tunnel-irrigated")
 	elif sim.is_drained(bed):
-		parts.append("drained by a tunnel")
+		parts.append("tunnel-drained")
+	if sim.is_ditched(bed):
+		parts.append("ditched")
 	if sim.is_raised(bed):
-		parts.append("raised with spoil")
+		parts.append("raised")
 	if sim.is_banked(bed):
-		parts.append("banked with spoil")
+		parts.append("banked")
 	if sim.is_covered(bed):
 		parts.append("covered tonight")
 	if sim.is_fallow(bed):
-		parts.append("resting fallow")
+		parts.append("resting")
 	if sim.is_tended_today(bed):
 		parts.append("watered today")
 	return ("Ground: " + ", ".join(parts)) if not parts.is_empty() else "Ground: as dug"
@@ -156,3 +184,79 @@ static func yield_line(sim: SimScript, bed: int, read: IntMath.IntResult) -> Str
 		return ""
 	var what: String = "Harvest now" if sim.stage_of(bed) == SimScript.STAGE_RIPE else "Expected yield"
 	return "%s: %d.%d U of %s" % [what, read.value / 1000, (read.value % 1000) / 100, Catalog.ITEM_LABELS[item].to_lower()]
+
+
+# --- the needs line ------------------------------------------------------------------------------
+
+static func need_of_into(sim: SimScript, bed: int, out: IntMath.IntResult) -> bool:
+	"""The bed's most pressing NEED_* into `out` (see the header); refuses NOTHING_PRESSING."""
+	match sim.stage_of(bed):
+		SimScript.STAGE_WITHERED:
+			return out.succeed(NEED_CLEAR_WITHERED)
+		SimScript.STAGE_BLIGHTED:
+			return out.succeed(NEED_CLEAR_BLIGHT)
+		SimScript.STAGE_RIPE:
+			if sim.ripe_hours_into(bed, out) and out.value >= FarmingScript.RIPE_GRACE_HOURS:
+				return out.succeed(NEED_HARVEST_LATE)
+			return out.succeed(NEED_HARVEST)
+		SimScript.STAGE_SPROUTING, SimScript.STAGE_GROWING:
+			return _growing_need_into(sim, bed, out)
+	return out.refuse(REFUSE_NOTHING_PRESSING)
+
+
+static func _growing_need_into(sim: SimScript, bed: int, out: IntMath.IntResult) -> bool:
+	"""A growing bed's need: out of its band far enough to stop growing, or a frost due uncovered."""
+	var band: int = sim.band_of(bed)
+	if band == SimScript.BAND_WATERLOGGED:
+		return out.succeed(NEED_DRAIN)
+	if band == SimScript.BAND_DRY:
+		return out.succeed(NEED_WATER)
+	var hour: int = sim.calendar.calendar_at(sim.calendar.tick).hour
+	if Weather.frost_due(sim.season(), sim.season_day(), hour) and not sim.is_covered(bed) \
+			and not sim.is_raised(bed):
+		return out.succeed(NEED_COVER)
+	return out.refuse(REFUSE_NOTHING_PRESSING)
+
+
+static func need_text(sim: SimScript, bed: int, need: int, read: IntMath.IntResult) -> String:
+	"""'Needs: Drain — waterlogged, not growing' for a NEED_* on this bed."""
+	match need:
+		NEED_CLEAR_WITHERED:
+			return "Needs: Clear — withered, gives compost"
+		NEED_CLEAR_BLIGHT:
+			return "Needs: Clear — blighted, spreads at midnight"
+		NEED_HARVEST, NEED_HARVEST_LATE:
+			return _harvest_need_text(sim, bed, read)
+		NEED_DRAIN:
+			return "Needs: Drain — waterlogged, not growing"
+		NEED_WATER:
+			return "Needs: Water — too dry to grow"
+	return "Needs: Cover — frost tonight"
+
+
+static func _harvest_need_text(sim: SimScript, bed: int, read: IntMath.IntResult) -> String:
+	"""A ripe bed's need, with the time left: before it spoils, or before it withers."""
+	if not sim.ripe_hours_into(bed, read):
+		return "Needs: Harvest — ripe"
+	if read.value < FarmingScript.RIPE_GRACE_HOURS:
+		return "Needs: Harvest — ripe, %s before it spoils" % span_text(FarmingScript.RIPE_GRACE_HOURS - read.value)
+	return "Needs: Harvest — spoiling, withers in %s" % span_text(FarmingScript.RIPE_WITHER_HOURS - read.value)
+
+
+static func needs_line(sim: SimScript, bed: int, read: IntMath.IntResult) -> String:
+	"""The bed's Needs line ('' when nothing is pressing)."""
+	if not need_of_into(sim, bed, read):
+		return ""
+	return need_text(sim, bed, read.value, read)
+
+
+static func need_is_warning(need: int) -> bool:
+	"""Whether a need is a warning (clay in the panel): all but a ripe crop still in its grace."""
+	return need != NEED_HARVEST
+
+
+static func span_text(hours: int) -> String:
+	"""Game hours as the player reads them: whole days as days ('2 days'), else hours ('47 h')."""
+	if hours >= 24 and hours % 24 == 0:
+		return "1 day" if hours == 24 else "%d days" % (hours / 24)
+	return "%d h" % hours

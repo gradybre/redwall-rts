@@ -21,8 +21,13 @@ extends RefCounted
 
 ## Frost nights and blight outbreaks, as a bit per season-local day (bit d = day d), by season
 ## (spring, summer, autumn, winter). Winter needs no frost night: its baseline is already -5 °C.
-const FROST_NIGHT_MASK: Array[int] = [(1 << 4) | (1 << 9), 0, (1 << 3) | (1 << 8), 0]
-const BLIGHT_MASK: Array[int] = [1 << 7, (1 << 4) | (1 << 10), 1 << 6, 0]
+## THE FIRST SPRING IS SPACED OUT (playtest 2026-09-29: by spring 6 it had waterlogged beds, blight
+## and a frost warning at once). The opening radish first waterlogs at the midnight opening spring 8
+## (the Ideal spell of days 6-8 against farm_sim NATURAL_DRAIN_PER_DAY); spring's one frost night is
+## the night into spring 11, warned at noon on spring 10; its outbreak opens spring 12 -- one threat
+## every two days (test_demo_farm.gd walks it). Was spring 4 and 9 frost, spring 7 blight.
+const FROST_NIGHT_MASK: Array[int] = [1 << 11, 0, (1 << 3) | (1 << 8), 0]
+const BLIGHT_MASK: Array[int] = [1 << 12, (1 << 4) | (1 << 10), 1 << 6, 0]
 ## The frost-night temperature, in tenths (§5.10's Early frost figure), and its hours.
 const FROST_NIGHT_TENTHS: int = -30
 const FROST_FIRST_HOUR: int = 2
@@ -86,3 +91,11 @@ static func frost_tonight(season: int, season_day: int) -> bool:
 	"""Whether the coming night (the early hours of tomorrow) is a frost night."""
 	var tomorrow: Vector2i = next_day(season, season_day)
 	return is_frost_night(tomorrow.x, tomorrow.y)
+
+
+static func frost_due(season: int, season_day: int, hour: int) -> bool:
+	"""Whether a frost is due that straw would still help against: announced (from ALERT_HOUR the day
+	before a frost night) or under way (a frost night's early hours, until FROST_LAST_HOUR)."""
+	if hour >= ALERT_HOUR and frost_tonight(season, season_day):
+		return true
+	return is_frost_night(season, season_day) and hour <= FROST_LAST_HOUR

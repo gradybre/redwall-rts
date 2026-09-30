@@ -11,6 +11,14 @@ extends Node3D
 ## Scale, the cells a stage shows, tint, bleach, blotches, droop and slump come from farm_look.gd. A
 ## head plant (the lettuce) is drawn filled out and ripe as its close-up mesh instead, in one more
 ## MultiMesh laid out the same, tinted by one material per bed.
+##
+## THE GROUND WORKS, each built once per bed and hidden until done (show_works): straw over a covered
+## bed; a RAISED bed lifted RAISE_LIFT_M on its spoil inside a frame of planks -- RAISE_BOARDS a side,
+## each a little off in tone and height, grained -- with a corner post standing a little proud at each
+## corner (was one brown slab); a BANKED bed's rounded soil berm (was four boxes); a DITCHED bed's
+## narrow dark trench with its spoil in a low lip outside it (the Drain job). A WATERLOGGED bed shows
+## small standing puddles (one MultiMesh of flat ellipses, laid out once per bed) over its darkened
+## soil (farm_look.gd).
 
 const Look := preload("res://demo/farm/farm_look.gd")
 const SimScript := preload("res://demo/farm/farm_sim.gd")
@@ -34,12 +42,63 @@ const LABEL_PIXEL: float = 0.0042
 const LABEL_FONT_PX: int = 44
 ## The overlay square over a bed, a little inside its 3 m frame.
 const OVERLAY_SIZE_M: float = 2.8
-## Tunnel spoil under a raised bed lifts it this far; a bank is an earth rim round a bed.
+## Tunnel spoil under a raised bed lifts it this far.
 const RAISE_LIFT_M: float = 0.14
-const RAISE_BASE: Vector3 = Vector3(3.15, 0.14, 3.15)
-const BANK_BAR: Vector3 = Vector3(3.6, 0.22, 0.34)
+## The raised frame's boards: their centre line this far out from the bed's centre (just outside the
+## staged bed's 1.5 m frame), each board RAISE_BOARD long x high x thick before its own length and
+## height; RAISE_BOARDS stacked a side with a thin dark gap between them (so they read as two planks),
+## the stack (0.162 m) just covering the lift.
+const RAISE_FRAME_HALF_M: float = 1.53
+const RAISE_BOARD: Vector3 = Vector3(3.06, 0.075, 0.05)
+const RAISE_BOARDS: int = 2
+const RAISE_BOARD_GAP_M: float = 0.012
+## Each board is up to this much taller or shorter than RAISE_BOARD's height (by bed, side, board).
+const RAISE_BOARD_JITTER_M: float = 0.008
+## Corner posts: square, standing a little proud of the boards (0.25 m against 0.162 m).
+const RAISE_POST: Vector3 = Vector3(0.1, 0.25, 0.1)
+## Weathered plank tones (grey-brown, to sit with the staged bed's own frame); the last is the posts'.
+const WOOD_TONES: Array[Color] = [Color(0.56, 0.47, 0.37), Color(0.5, 0.41, 0.32), Color(0.61, 0.52, 0.41),
+	Color(0.42, 0.34, 0.26)]
+const WOOD_POST: int = 3
+const WOOD_ROUGHNESS: float = 0.85
+## The planks' grain: a GRAIN_PX texture of GRAIN_PX.y streaks, scaled onto each board along its length.
+const GRAIN_PX: Vector2i = Vector2i(64, 32)
+const GRAIN_SEED: int = 4471
+const WOOD_GRAIN_SCALE: Vector3 = Vector3(0.35, 2.4, 0.35)
+## A bank is a rounded soil berm on each side of the bed: a capsule lying along the side, squashed.
+const BANK_LENGTH_M: float = 3.6
+const BANK_RADIUS_M: float = 0.22
+const BANK_SQUASH: float = 0.6
 const BANK_HALF_M: float = 1.72
-const EARTH_COLOR: Color = Color(0.36, 0.27, 0.19)
+## Dug earth (the berm, the ditch's lip): a dark loam near the bed's own soil, speckled with clods
+## (EARTH_PX of seeded speckle, laid over it in world space every EARTH_TILE_M).
+const EARTH_COLOR: Color = Color(0.3, 0.23, 0.17)
+const EARTH_PX: int = 32
+const EARTH_SEED: int = 5113
+const EARTH_TILE_M: float = 0.35
+## A ditch (the Drain job): a dark wet trench strip just outside the bed frame, and its spoil in a low
+## rounded lip outside that -- narrow, as beds stand only 0.2 m apart across the rows.
+const DITCH_HALF_M: float = 1.6
+const DITCH_STRIP: Vector3 = Vector3(3.34, 0.012, 0.11)
+const DITCH_COLOR: Color = Color(0.11, 0.085, 0.065)
+## Matte: a glossy strip catches the low sky and reads as a white line, not a trench.
+const DITCH_ROUGHNESS: float = 0.9
+const DITCH_LIP_HALF_M: float = 1.73
+const DITCH_LIP_LENGTH_M: float = 3.5
+const DITCH_LIP_RADIUS_M: float = 0.06
+const DITCH_LIP_SQUASH: float = 0.7
+const DITCH_LIP_COLOR: Color = Color(0.34, 0.26, 0.19)
+## A waterlogged bed's puddles, in bed units: PUDDLES patches of PUDDLE_BLOBS overlapping quads, each
+## showing one soft-edged, lobed blob (PUDDLE_PX, made once) turned and stretched its own way, so no
+## two read alike and none has a hard round rim; each PUDDLE_RADIUS (min, max) of the soil's inner half
+## across, within PUDDLE_SPREAD of it from the centre; seeded by bed.
+const PUDDLES: int = 7
+const PUDDLE_BLOBS: int = 2
+const PUDDLE_RADIUS: Vector2 = Vector2(0.08, 0.18)
+const PUDDLE_SPREAD: float = 0.68
+const PUDDLE_PX: int = 64
+const PUDDLE_SEED: int = 3307
+const PUDDLE_LIFT: float = 0.012
 ## Straw laid over a covered bed for a frost night.
 const STRAW_SIZE: Vector3 = Vector3(2.85, 0.04, 2.85)
 const STRAW_COLOR: Color = Color(0.83, 0.7, 0.42, 0.88)
@@ -58,8 +117,14 @@ var label: Label3D = null
 var ring: Node3D = null
 var overlay: MeshInstance3D = null
 var straw: MeshInstance3D = null
-var raised_base: MeshInstance3D = null
+var raised_frame: Node3D = null
 var bank: Node3D = null
+var ditch: Node3D = null
+
+## The wood materials (WOOD_TONES) and the earth speckle, made once for every bed.
+static var _wood_cache: Array[StandardMaterial3D] = []
+static var _earth_texture: Texture2D = null
+static var _puddle_texture: Texture2D = null
 
 var _assets: AssetsScript = null
 var _units: Node3D = null
@@ -70,6 +135,7 @@ var _tops: MultiMeshInstance3D = null
 var _heads_mm: MultiMeshInstance3D = null
 var _furrows: MultiMeshInstance3D = null
 var _sheen: MeshInstance3D = null
+var _puddles: MultiMeshInstance3D = null
 var _card_material: Material = null
 var _top_material: Material = null
 var _kind: int = -1
@@ -97,28 +163,167 @@ func build(p_bed: int, assets: AssetsScript) -> void:
 	_units.add_child(_furrows)
 	_sheen = _make_sheen()
 	_units.add_child(_sheen)
+	_puddles = _make_puddles()
+	_units.add_child(_puddles)
 	label = _make_label()
 	add_child(label)
 	_build_works()
 
 
 func _build_works() -> void:
-	"""What the player can do to the ground, each hidden until done: straw, a raised base, a bank."""
+	"""What the player can do to the ground, each hidden until done: straw, a raised frame, a bank, a
+	ditch (see the header)."""
 	straw = _box(STRAW_SIZE, STRAW_COLOR, STRAW_Y_M)
 	straw.material_override = _flat_material(STRAW_COLOR)
 	(straw.material_override as StandardMaterial3D).shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
 	add_child(straw)
-	raised_base = _box(RAISE_BASE, EARTH_COLOR, RAISE_BASE.y * 0.5)
-	add_child(raised_base)
-	bank = Node3D.new()
-	bank.visible = false
-	add_child(bank)
+	raised_frame = _make_raised_frame()
+	add_child(raised_frame)
+	bank = _hidden_node("Bank")
+	var berm: CapsuleMesh = _berm_mesh(BANK_LENGTH_M, BANK_RADIUS_M, _earth(EARTH_COLOR))
 	for side: int in 4:
-		var bar: MeshInstance3D = _box(BANK_BAR, EARTH_COLOR, BANK_BAR.y * 0.5)
-		bar.visible = true
-		var yaw: float = PI * 0.5 * side
-		bar.transform = Transform3D(Basis(Vector3.UP, yaw), Vector3(sin(yaw), 0.0, cos(yaw)) * BANK_HALF_M + bar.position)
-		bank.add_child(bar)
+		bank.add_child(_side_piece(berm, side, BANK_HALF_M, 0.0, _lying(BANK_SQUASH)))
+	add_child(bank)
+	ditch = _make_ditch()
+	add_child(ditch)
+
+
+func _make_raised_frame() -> Node3D:
+	"""RAISE_BOARDS stacked planks a side and a post at each corner (hidden)."""
+	var frame: Node3D = _hidden_node("RaisedFrame")
+	for side: int in 4:
+		for k: int in RAISE_BOARDS:
+			frame.add_child(_board(side, k))
+	var post := _box_mesh(Vector3(RAISE_POST.y, RAISE_POST.x, RAISE_POST.z), _wood_material(WOOD_POST))
+	for corner: int in 4:
+		var piece := MeshInstance3D.new()
+		piece.mesh = post
+		var x: float = RAISE_FRAME_HALF_M if corner % 2 == 1 else -RAISE_FRAME_HALF_M
+		var z: float = RAISE_FRAME_HALF_M if corner >= 2 else -RAISE_FRAME_HALF_M
+		piece.transform = Transform3D(Basis(Vector3.BACK, PI * 0.5), Vector3(x, RAISE_POST.y * 0.5, z))
+		frame.add_child(piece)
+	return frame
+
+
+func _board(side: int, k: int) -> MeshInstance3D:
+	"""Board `k` (from the ground up) of side `side`: the x-running sides overlap the corners, the
+	z-running ones butt into them; its height and tone vary a little by bed, side and board."""
+	var along_x: bool = side % 2 == 0
+	var length: float = RAISE_BOARD.x + (RAISE_BOARD.z if along_x else -RAISE_BOARD.z)
+	var height: float = RAISE_BOARD.y + RAISE_BOARD_JITTER_M * float((bed + side * 3 + k * 5) % 3 - 1)
+	var y: float = k * (RAISE_BOARD.y + RAISE_BOARD_GAP_M) + height * 0.5
+	var tone: int = (bed + side * 2 + k) % WOOD_POST
+	var mesh := _box_mesh(Vector3(length, height, RAISE_BOARD.z), _wood_material(tone))
+	return _side_piece(mesh, side, RAISE_FRAME_HALF_M, y, Basis.IDENTITY)
+
+
+func _make_ditch() -> Node3D:
+	"""The Drain job's ditch: a dark trench strip on each side and its spoil lip outside (hidden)."""
+	var ring: Node3D = _hidden_node("Ditch")
+	var trench := _box_mesh(DITCH_STRIP, _matte(DITCH_COLOR, DITCH_ROUGHNESS))
+	var lip: CapsuleMesh = _berm_mesh(DITCH_LIP_LENGTH_M, DITCH_LIP_RADIUS_M, _earth(DITCH_LIP_COLOR))
+	for side: int in 4:
+		ring.add_child(_side_piece(trench, side, DITCH_HALF_M, DITCH_STRIP.y * 0.5, Basis.IDENTITY))
+		ring.add_child(_side_piece(lip, side, DITCH_LIP_HALF_M, 0.0, _lying(DITCH_LIP_SQUASH)))
+	return ring
+
+
+static func _hidden_node(node_name: String) -> Node3D:
+	"""An empty, hidden group node."""
+	var node := Node3D.new()
+	node.name = node_name
+	node.visible = false
+	return node
+
+
+static func _side_piece(mesh: Mesh, side: int, half_m: float, y: float, own: Basis) -> MeshInstance3D:
+	"""`mesh` along side `side` of the bed (0: +z, then round by quarter turns), `half_m` out from the
+	centre at height `y`, turned by `own` first."""
+	var yaw: float = PI * 0.5 * side
+	var piece := MeshInstance3D.new()
+	piece.mesh = mesh
+	piece.transform = Transform3D(Basis(Vector3.UP, yaw) * own, Vector3(sin(yaw) * half_m, y, cos(yaw) * half_m))
+	return piece
+
+
+static func _lying(squash: float) -> Basis:
+	"""A capsule (its axis up) laid along x, flattened to `squash` of its height: a rounded berm."""
+	return Basis.from_scale(Vector3(1.0, squash, 1.0)) * Basis(Vector3.BACK, PI * 0.5)
+
+
+static func _berm_mesh(length: float, radius: float, material: Material) -> CapsuleMesh:
+	"""A capsule `length` long overall and `radius` round, for a berm (see _lying)."""
+	var mesh := CapsuleMesh.new()
+	mesh.radius = radius
+	mesh.height = length
+	mesh.radial_segments = 12
+	mesh.rings = 3
+	mesh.material = material
+	return mesh
+
+
+static func _box_mesh(size: Vector3, material: Material) -> BoxMesh:
+	"""A box of `size` in `material`."""
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	mesh.material = material
+	return mesh
+
+
+static func _matte(colour: Color, roughness: float) -> StandardMaterial3D:
+	"""A plain lit material."""
+	var material := StandardMaterial3D.new()
+	material.albedo_color = colour
+	material.roughness = roughness
+	return material
+
+
+static func _wood_material(tone: int) -> StandardMaterial3D:
+	"""Tone `tone` of WOOD_TONES, grained along each board's length (local triplanar: a board's
+	length is its local x); made once for every bed."""
+	if _wood_cache.is_empty():
+		var grain: Texture2D = _grain_texture()
+		for colour: Color in WOOD_TONES:
+			var material: StandardMaterial3D = _matte(colour, WOOD_ROUGHNESS)
+			material.albedo_texture = grain
+			material.uv1_triplanar = true
+			material.uv1_scale = WOOD_GRAIN_SCALE
+			_wood_cache.append(material)
+	return _wood_cache[tone]
+
+
+static func _earth(colour: Color) -> StandardMaterial3D:
+	"""Dug earth in `colour`, speckled with clods in world space (the speckle made once)."""
+	if _earth_texture == null:
+		var image := Image.create(EARTH_PX, EARTH_PX, false, Image.FORMAT_RGB8)
+		var rng := RandomNumberGenerator.new()
+		rng.seed = EARTH_SEED
+		for y: int in EARTH_PX:
+			for x: int in EARTH_PX:
+				var v: float = rng.randf_range(0.8, 1.0) if rng.randf() > 0.12 else rng.randf_range(0.45, 0.65)
+				image.set_pixel(x, y, Color(v, v, v))
+		image.generate_mipmaps()
+		_earth_texture = ImageTexture.create_from_image(image)
+	var material: StandardMaterial3D = _matte(colour, 1.0)
+	material.albedo_texture = _earth_texture
+	material.uv1_triplanar = true
+	material.uv1_world_triplanar = true
+	material.uv1_scale = Vector3.ONE / EARTH_TILE_M
+	return material
+
+
+static func _grain_texture() -> Texture2D:
+	"""GRAIN_PX.y streaks of seeded tone, each speckled a little along its length (made once)."""
+	var image := Image.create(GRAIN_PX.x, GRAIN_PX.y, false, Image.FORMAT_RGB8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = GRAIN_SEED
+	for y: int in GRAIN_PX.y:
+		var streak: float = rng.randf_range(0.62, 1.0)
+		for x: int in GRAIN_PX.x:
+			var v: float = streak * rng.randf_range(0.9, 1.0)
+			image.set_pixel(x, y, Color(v, v, v))
+	image.generate_mipmaps()
+	return ImageTexture.create_from_image(image)
 
 
 static func _box(size: Vector3, colour: Color, y: float) -> MeshInstance3D:
@@ -136,13 +341,15 @@ static func _box(size: Vector3, colour: Color, y: float) -> MeshInstance3D:
 	return instance
 
 
-func show_works(covered: bool, raised: bool, banked: bool) -> void:
-	"""Straw over a covered bed; a raised bed lifted onto its spoil; an earth bank round a banked one."""
+func show_works(covered: bool, raised: bool, banked: bool, ditched: bool) -> void:
+	"""Straw over a covered bed; a raised bed lifted onto its spoil in its plank frame; a soil berm
+	round a banked one; a ditch round a ditched one."""
 	straw.visible = covered
-	raised_base.visible = raised
+	raised_frame.visible = raised
 	_units.position.y = RAISE_LIFT_M if raised else 0.0
 	straw.position.y = STRAW_Y_M + _units.position.y
 	bank.visible = banked
+	ditch.visible = ditched
 
 
 func _build_marks() -> void:
@@ -243,6 +450,67 @@ func _make_sheen() -> MeshInstance3D:
 	return instance
 
 
+func _make_puddles() -> MultiMeshInstance3D:
+	"""A waterlogged bed's standing puddles over the soil (bed units; hidden): see the constants."""
+	var disc := PlaneMesh.new()
+	disc.size = Vector2(2.0, 2.0)
+	var material: StandardMaterial3D = _matte(Look.PUDDLE_COLOR, Look.PUDDLE_ROUGHNESS)
+	material.albedo_texture = _puddle_blob()
+	material.metallic_specular = Look.PUDDLE_SPECULAR
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.render_priority = 1
+	disc.material = material
+	var multimesh := MultiMesh.new()
+	multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	multimesh.mesh = disc
+	multimesh.instance_count = PUDDLES * PUDDLE_BLOBS
+	_lay_puddles(multimesh)
+	var instance := MultiMeshInstance3D.new()
+	instance.name = "Puddles"
+	instance.multimesh = multimesh
+	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	instance.visible = false
+	return instance
+
+
+static func _puddle_blob() -> Texture2D:
+	"""One puddle's shape: white, its alpha a lobed disc (three seeded waves round its rim) fading out
+	over its outer edge (made once)."""
+	if _puddle_texture != null:
+		return _puddle_texture
+	var rng := RandomNumberGenerator.new()
+	rng.seed = PUDDLE_SEED
+	var phase := Vector3(rng.randf_range(0.0, TAU), rng.randf_range(0.0, TAU), rng.randf_range(0.0, TAU))
+	var image := Image.create(PUDDLE_PX, PUDDLE_PX, false, Image.FORMAT_RGBA8)
+	var half: float = PUDDLE_PX * 0.5
+	for y: int in PUDDLE_PX:
+		for x: int in PUDDLE_PX:
+			var at := Vector2(x + 0.5 - half, y + 0.5 - half) / half
+			var angle: float = at.angle()
+			var rim: float = 0.72 + 0.12 * sin(2.0 * angle + phase.x) + 0.08 * sin(3.0 * angle + phase.y) \
+				+ 0.05 * sin(5.0 * angle + phase.z)
+			image.set_pixel(x, y, Color(1.0, 1.0, 1.0, smoothstep(rim, rim - 0.18, at.length())))
+	image.generate_mipmaps()
+	_puddle_texture = ImageTexture.create_from_image(image)
+	return _puddle_texture
+
+
+func _lay_puddles(multimesh: MultiMesh) -> void:
+	"""Each patch a few ellipses round a seeded point, each its own size and turn."""
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 9100 + bed * 17
+	var inner: float = _assets.inner_half
+	var y: float = _assets.soil_y + PUDDLE_LIFT
+	for patch: int in PUDDLES:
+		var centre := Vector2(rng.randf_range(-1.0, 1.0), rng.randf_range(-1.0, 1.0)) * PUDDLE_SPREAD * inner
+		for blob: int in PUDDLE_BLOBS:
+			var rx: float = rng.randf_range(PUDDLE_RADIUS.x, PUDDLE_RADIUS.y) * inner
+			var rz: float = rng.randf_range(PUDDLE_RADIUS.x, PUDDLE_RADIUS.y) * inner
+			var at: Vector2 = centre + Vector2(rng.randf_range(-1.0, 1.0), rng.randf_range(-1.0, 1.0)) * rx
+			var basis := Basis(Vector3.UP, rng.randf_range(-PI, PI)) * Basis.from_scale(Vector3(rx, 1.0, rz))
+			multimesh.set_instance_transform(patch * PUDDLE_BLOBS + blob, Transform3D(basis, Vector3(at.x, y, at.y)))
+
+
 # --- the state --------------------------------------------------------------------------------
 
 func show_state(stage: int, item: int, growth: int, band: int, ripe_hours: int, title: String, status: String) -> void:
@@ -251,8 +519,11 @@ func show_state(stage: int, item: int, growth: int, band: int, ripe_hours: int, 
 	_show_heads(heads, item)
 	_furrows.visible = stage == SimScript.STAGE_SOWN
 	var sheen_colour: Color = Look.sheen(band)
-	(_sheen.material_override as StandardMaterial3D).albedo_color = sheen_colour
+	var sheen_material := _sheen.material_override as StandardMaterial3D
+	sheen_material.albedo_color = sheen_colour
+	sheen_material.roughness = Look.sheen_roughness(band)
 	_sheen.visible = sheen_colour.a > 0.0 and not heads
+	_puddles.visible = Look.shows_puddles(band) and not heads
 	_show_plants(stage, item, growth, heads)
 	label.text = "%s\n%s" % [title, status]
 	label.modulate = Look.urgency(stage, band, ripe_hours)
@@ -291,6 +562,16 @@ func _show_parts(on: bool, heads: bool) -> void:
 func showing_cards() -> bool:
 	"""Whether the bed draws its plants as cards now (tests)."""
 	return _plants != null and _plants.visible
+
+
+func showing_puddles() -> bool:
+	"""Whether the bed shows standing puddles now (tests)."""
+	return _puddles.visible
+
+
+func sheen_colour() -> Color:
+	"""The soil sheen's colour now (tests)."""
+	return (_sheen.material_override as StandardMaterial3D).albedo_color
 
 
 func showing_head_meshes() -> bool:

@@ -23,8 +23,8 @@ extends RefCounted
 ## or near an obstacle (the weir, the mill, the boathouse, a tree) or whose bank walk would pass
 ## through one is not published. Each link records the flow at its middle, split along and across it.
 ##
-## CONNECTIONS are every link end and every authored landing: where a swimmer may enter or leave the
-## water. `nearest_connection_into` finds the one nearest a point in a body (to swim ashore, or to set
+## CONNECTIONS are every link end and every authored landing whose land point is clear (`landing_ok`):
+## where a swimmer may enter or leave the water. `nearest_connection_into` finds the one nearest a point in a body (to swim ashore, or to set
 ## off from towards a spot in the water).
 ##
 ## Floats here are presentation (the cast walks in float metres); every input is the map's integers.
@@ -44,6 +44,9 @@ const LINK_STRIDE: int = 6
 const LAND_SETBACK_M: float = 1.3
 const WATER_INSET_M: float = 0.05
 const LAND_CLEAR_M: float = 0.5
+## An authored landing's land point needs only a mouse's body clear (the landings stand by the shelter
+## and the boathouse on purpose).
+const LANDING_CLEAR_M: float = 0.25
 const CHORDS: int = 4
 const DRY_STEP_M: float = 0.1
 const DRY_STEPS: int = 200
@@ -65,6 +68,8 @@ var link_kind: PackedByteArray = PackedByteArray()
 ## The flow at a link's middle, mm/s, along it (a -> b) and across it (either sign).
 var link_flow_along: PackedInt32Array = PackedInt32Array()
 var link_flow_across: PackedInt32Array = PackedInt32Array()
+## Per authored landing (water_map.gd): whether its land point is clear to stand on.
+var landing_ok: PackedByteArray = PackedByteArray()
 var conn_land: PackedVector2Array = PackedVector2Array()
 var conn_water: PackedVector2Array = PackedVector2Array()
 var conn_body: PackedInt32Array = PackedInt32Array()
@@ -253,28 +258,32 @@ func _try_link(a: Vector2, b: Vector2, body: int, kind: int) -> void:
 	link_count += 1
 
 
-func land_clear(land: Vector2, shore: Vector2) -> bool:
-	"""Whether a link's land end is dry, inside the area, clear of every obstacle by LAND_CLEAR_M, and
-	its walk down to the shore passes through none."""
+func land_clear(land: Vector2, shore: Vector2, clear_m: float = LAND_CLEAR_M) -> bool:
+	"""Whether a link's (or a landing's) land end is dry, inside the area, clear of every obstacle by
+	`clear_m`, and its walk down to the shore passes through none."""
 	if not area.has_point(land) or _map.is_water(_u(land)):
 		return false
 	for o: Vector3 in _obstacles:
 		var centre := Vector2(o.x, o.z)
-		if centre.distance_to(land) < o.y + LAND_CLEAR_M:
+		if centre.distance_to(land) < o.y + clear_m:
 			return false
-		if _segment_distance(centre, land, shore) < o.y + LAND_CLEAR_M * 0.5:
+		if _segment_distance(centre, land, shore) < o.y + clear_m * 0.5:
 			return false
 	return true
 
 
 func _add_landings() -> void:
-	"""Every authored landing is a connection too."""
+	"""Every authored landing whose land point is clear is a connection too (`landing_ok`); one standing
+	in a building's footprint (the boathouse's, on the widened ground) is not walked to."""
+	landing_ok.resize(_map.landing_count())
 	for k: int in _map.landing_count():
 		var water: Vector2i = _map.landing_water(k)
 		var land: Vector2i = _map.landing_land(k)
 		var land_m := Vector2(Rules.to_m(land.x), Rules.to_m(land.y))
 		var water_m := Vector2(Rules.to_m(water.x), Rules.to_m(water.y))
-		_add_connection(land_m, water_m + (water_m - land_m).normalized() * WATER_INSET_M, _map.landing_body(k))
+		landing_ok[k] = 1 if land_clear(land_m, water_m, LANDING_CLEAR_M) else 0
+		if landing_ok[k] == 1:
+			_add_connection(land_m, water_m + (water_m - land_m).normalized() * WATER_INSET_M, _map.landing_body(k))
 
 
 func _add_connection(land: Vector2, water: Vector2, body: int) -> void:

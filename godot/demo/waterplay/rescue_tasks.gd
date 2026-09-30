@@ -8,7 +8,8 @@ extends RefCounted
 ##                its depth spending air (HAZ-003: "underwater distress continues consuming air") until
 ##                a diver fetches it or its air runs out, when it floats up (demo: no one drowns).
 ##   SwimRescue   a capable swimmer: in at the connection nearest the victim, out to it (a diver fetches
-##                one below), and tows it at TOW_PERMILLE of its swim to the landing nearest it.
+##                one below), and tows it at TOW_PERMILLE of its swim to the landing nearest where it
+##                took hold that a tow can reach against the flow (rescue.gd `tow_landing`).
 ##   LineRescue   anyone on the bank when no swimmer is free: from the landing nearest the victim, a
 ##                thrown line that reaches LINE_REACH_M hauls it in at LINE_PULL_M_S; out of reach, the
 ##                thrower waits, and every RESITE_S walks on to the landing nearest the drifting victim.
@@ -96,20 +97,21 @@ class SwimRescue extends "res://demo/tunnel/tunnel_task.gd":
 	var _in_land: Vector2 = Vector2.ZERO
 	var _in_water: Vector2 = Vector2.ZERO
 	var _on_ashore: Callable = Callable()
+	var _tow_landing: Callable = Callable()
 	var _down_m: float = 0.0
 
 	func _init(motion: MotionScript, the_victim: RefCounted, task: VictimTask, entry: PackedVector2Array,
-			landing: PackedVector2Array, on_ashore: Callable) -> void:
-		"""Rescue `the_victim` (held by `task`): in at `entry` [land, water], ashore at `landing` [land,
-		water]; `on_ashore(victim, landing)` takes it over there."""
+			on_ashore: Callable, tow_landing: Callable) -> void:
+		"""Rescue `the_victim` (held by `task`): in at `entry` [land, water]; `tow_landing(at, swim_mm_s)
+		-> [land, water]` names the landing to tow it to from where it is reached; `on_ashore(victim,
+		landing)` takes it over there."""
 		_motion = motion
 		victim = the_victim
 		victim_task = task
 		_in_land = entry[0]
 		_in_water = entry[1]
-		landing_land = landing[0]
-		landing_water = landing[1]
 		_on_ashore = on_ashore
+		_tow_landing = tow_landing
 
 	func site(_brain: RefCounted) -> Vector2:
 		"""The connection nearest the victim."""
@@ -120,7 +122,12 @@ class SwimRescue extends "res://demo/tunnel/tunnel_task.gd":
 		phase = PHASE_DOWN
 
 	func step(brain: RefCounted, delta: float) -> bool:
-		"""One frame of the rescue."""
+		"""One frame of the rescue -- given up, swimming ashore, when the victim came ashore another way."""
+		if phase < PHASE_TOW and victim.task != victim_task:
+			if brain.in_water:
+				brain.release()
+				return true
+			return false
 		match phase:
 			PHASE_DOWN:
 				if _motion.walk_bank(brain, _in_water, delta):
@@ -145,8 +152,7 @@ class SwimRescue extends "res://demo/tunnel/tunnel_task.gd":
 		if not reached:
 			return
 		if victim_task.down_m <= 0.0:
-			victim_task.towed = true
-			phase = PHASE_TOW
+			_start_tow(brain)
 		elif _motion.state.can_dive(brain.index):
 			phase = PHASE_FETCH
 		else:
@@ -166,7 +172,17 @@ class SwimRescue extends "res://demo/tunnel/tunnel_task.gd":
 		_motion.dive_to(brain, brain.position, _down_m)
 		_motion.dive_to(victim, victim.position, _down_m)
 		if _down_m <= 0.0:
-			phase = PHASE_TOW
+			_start_tow(brain)
+
+	func _start_tow(brain: RefCounted) -> void:
+		"""The victim in hand at the surface: tow it to the landing named from here (one the tow can reach
+		against the flow), trailing behind."""
+		var landing: PackedVector2Array = _tow_landing.call(brain.position,
+			_motion.state.swim_mm_s[brain.index] * Rules.TOW_PERMILLE / Rules.PERMILLE)
+		landing_land = landing[0]
+		landing_water = landing[1]
+		victim_task.towed = true
+		phase = PHASE_TOW
 
 	func _step_tow(brain: RefCounted, delta: float) -> void:
 		"""Tow the victim to the landing's water point, it trailing behind; hand it over there."""
@@ -233,7 +249,10 @@ class LineRescue extends "res://demo/tunnel/tunnel_task.gd":
 		_timer = 0.0
 
 	func step(brain: RefCounted, delta: float) -> bool:
-		"""Throw, then haul in -- or wait for the victim to come within reach."""
+		"""Throw, then haul in -- or wait for the victim to come within reach (over once it came ashore
+		another way)."""
+		if victim.task != victim_task:
+			return false
 		brain.task_face(victim.position, delta)
 		_timer += delta
 		match phase:

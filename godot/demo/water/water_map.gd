@@ -456,6 +456,11 @@ func body_flow_speed_u_s(body: int) -> int:
 	return _body_speed[body]
 
 
+func body_ramp_u(body: int) -> int:
+	"""How far in from its waterline a valid body reaches its full bed depth, in u."""
+	return _body_ramp[body]
+
+
 func body_segment_range(body: int) -> Vector2i:
 	"""(first primitive, primitive count) of a valid body."""
 	return Vector2i(_body_first[body], _body_segments[body])
@@ -909,6 +914,31 @@ func crossing_body(c: int) -> int:
 func crossing_along_u(c: int) -> int:
 	"""How far downstream from its stream's first vertex crossing `c` lies, in u."""
 	return _st_along[_cr_station[c]]
+
+
+func station_count() -> int:
+	"""How many spans were measured across the streams (every CROSSING_STEP_U; 0 before finalize)."""
+	return _station_count
+
+
+func station_a(s: int) -> Vector2i:
+	"""One dry bank end of measured span `s`, in u (1 u past the waterline)."""
+	return Vector2i(_st_ax[s], _st_az[s])
+
+
+func station_b(s: int) -> Vector2i:
+	"""The other dry bank end of measured span `s`, in u."""
+	return Vector2i(_st_bx[s], _st_bz[s])
+
+
+func station_depth_u(s: int) -> int:
+	"""The water depth on the axis of measured span `s`, in u."""
+	return _st_depth[s]
+
+
+func station_body(s: int) -> int:
+	"""The stream measured span `s` crosses."""
+	return _st_body[s]
 
 
 # --- landings ----------------------------------------------------------------------------------

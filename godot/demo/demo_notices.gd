@@ -28,7 +28,8 @@ const SOURCE_WEATHER: int = 2
 const SOURCE_EVENTS: int = 3
 const SOURCE_CREW: int = 4
 const SOURCE_WOODS: int = 5
-const SOURCE_NAMES: Array[String] = ["Farm", "Tunnels", "Weather", "Threat", "Crew", "Woods"]
+const SOURCE_WATER: int = 6
+const SOURCE_NAMES: Array[String] = ["Farm", "Tunnels", "Weather", "Threat", "Crew", "Woods", "Water"]
 const LEVEL_NOTE: int = 0
 const LEVEL_WARNING: int = 1
 ## §7: "severity word+icon" -- the word, so colour never states the level alone.

@@ -7,6 +7,11 @@ extends Node3D
 ##
 ## Built once on `configure()`. The zone paint, spans and posts never change; the site labels are
 ## re-texted only when the driver's `revision` moves (a day, a catch), never per frame.
+##
+## PER RESIDENT (demo/waterplay/). The bands are a body's zones, so `set_body` repaints them for the
+## first selected resident's own height (a badger wades where a mouse must swim) -- two shader
+## parameters and the legend, only when the selection changes. `show_links` adds the swimmers' links
+## across the water (validated bank connections) as thin blue bars.
 
 const Rules := preload("res://demo/water/water_rules.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
@@ -37,6 +42,7 @@ const DIVE_COLOUR: Color = Color(0.45, 0.25, 0.9, 0.55)
 const FORD_COLOUR: Color = Color(0.4, 0.95, 0.4)
 const BRIDGE_COLOUR: Color = Color(1.0, 0.55, 0.2)
 const LANDING_COLOUR: Color = Color(1.0, 1.0, 1.0)
+const LINK_COLOUR: Color = Color(0.35, 0.6, 1.0)
 const LIFT_M: float = 0.04
 const LABEL_HEIGHT_M: float = 3.2
 const LABEL_FONT_SIZE: int = 26
@@ -47,6 +53,11 @@ var _driver: FishingDriverScript = null
 var _labels: Array[Label3D] = []
 var _shown_revision: int = -1
 var _preview: FishingDriverScript.Preview = FishingDriverScript.Preview.new()
+var _zone_material: ShaderMaterial = null
+var _legend: Label3D = null
+## Whose zones are painted (for the legend), and the body height they are for, in u.
+var body_label: String = "a 1.0 m mouse"
+var body_height_u: int = Rules.MOUSE_HEIGHT_U
 
 
 func configure(map: WaterMapScript, grid: WaterGridScript) -> void:
@@ -140,12 +151,13 @@ func _zone_paint(map: WaterMapScript, grid: WaterGridScript) -> MeshInstance3D:
 	var node := MeshInstance3D.new()
 	node.name = "ZonePaint"
 	node.mesh = mesh
-	node.material_override = _zone_material()
+	_zone_material = _make_zone_material()
+	node.material_override = _zone_material
 	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	return node
 
 
-static func _zone_material() -> ShaderMaterial:
+static func _make_zone_material() -> ShaderMaterial:
 	"""The zone bands at the demo thresholds for the 1.0 m mouse (water_rules.gd)."""
 	var shader := Shader.new()
 	shader.code = ZONE_SHADER_CODE
@@ -247,5 +259,29 @@ func _add_legend(map: WaterMapScript) -> void:
 			var mid: Vector2i = (map.crossing_a(c) + map.crossing_b(c)) / 2
 			at = Vector3(Rules.to_m(mid.x), LABEL_HEIGHT_M, Rules.to_m(mid.y))
 			break
-	_label(at, "WATER (V)  zones for a 1.0 m mouse:\nyellow WADE <= %.2f m   blue SWIM <= %.2f m   violet DIVE deeper\ngreen span = ford   orange span = bridge candidate   white = bank landing" % [
-		Rules.to_m(Rules.wade_max_u(Rules.MOUSE_HEIGHT_U)), Rules.to_m(Rules.dive_min_u(Rules.MOUSE_HEIGHT_U))])
+	_legend = _label(at, legend_text(body_label, body_height_u))
+
+
+static func legend_text(who: String, height_u: int) -> String:
+	"""The zone key for a body `height_u` tall."""
+	return "WATER (V)  zones for %s:\nyellow WADE <= %.2f m   blue SWIM <= %.2f m   violet DIVE deeper\ngreen span = ford   orange span = bridge candidate   blue bars = swim links   white = bank landing" % [
+		who, Rules.to_m(Rules.wade_max_u(height_u)), Rules.to_m(Rules.dive_min_u(height_u))]
+
+
+func set_body(label: String, height_u: int) -> void:
+	"""Paint the zones for a body `height_u` tall (> 0), named `label` in the legend."""
+	if height_u <= 0 or (label == body_label and height_u == body_height_u):
+		return
+	body_label = label
+	body_height_u = height_u
+	_zone_material.set_shader_parameter(&"wade_max_m", Rules.to_m(Rules.wade_max_u(height_u)))
+	_zone_material.set_shader_parameter(&"dive_min_m", Rules.to_m(Rules.dive_min_u(height_u)))
+	if _legend != null:
+		_legend.text = legend_text(label, height_u)
+
+
+func show_links(water_a: PackedVector2Array, water_b: PackedVector2Array) -> void:
+	"""Draw every swim link's water part a -> b, metres (demo/waterplay/water_links.gd), once."""
+	for k: int in mini(water_a.size(), water_b.size()):
+		add_child(_bar(Vector2i(Rules.to_u(water_a[k].x), Rules.to_u(water_a[k].y)),
+			Vector2i(Rules.to_u(water_b[k].x), Rules.to_u(water_b[k].y)), 0.05, LINK_COLOUR))

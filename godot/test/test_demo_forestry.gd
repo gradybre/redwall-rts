@@ -946,18 +946,20 @@ func test_the_woods_panel_says_what_the_selected_tree_can_take() -> void:
 
 
 func test_the_right_column_has_a_woods_tab() -> void:
-	"""Three tabs: Farm, Tunnels & burrows, Woods; showing the woods hides the other two."""
+	"""Four tabs since the water's (decision 0196, water part A): Farm, Tunnels & burrows, Woods, Water;
+	showing the woods hides the other three."""
 	var zone: DetailZoneScript = _keep(DetailZoneScript.new()) as DetailZoneScript
 	zone.build()
 	var panels: Array[PanelScript] = []
-	for k: int in 3:
+	for k: int in 4:
 		var panel: PanelScript = _keep(PanelScript.new()) as PanelScript
 		panel.build()
 		zone.add_panel(k, panel)
 		panels.append(panel)
-	assert_equal(DetailZoneScript.TAB_TEXT, ["Farm", "Tunnels & burrows", "Woods"] as Array[String], "three tabs")
+	assert_equal(DetailZoneScript.TAB_TEXT, ["Farm", "Tunnels & burrows", "Woods", "Water"] as Array[String], "four tabs")
 	zone.show_panel(DetailZoneScript.PANEL_WOODS)
-	assert_true(panels[2].is_shown() and not panels[0].is_shown() and not panels[1].is_shown(), "the woods alone")
+	assert_true(panels[2].is_shown() and not panels[0].is_shown() and not panels[1].is_shown()
+		and not panels[3].is_shown(), "the woods alone")
 	assert_true(zone.tab(DetailZoneScript.PANEL_WOODS).button_pressed, "its tab in brass")
 
 

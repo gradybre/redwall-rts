@@ -139,6 +139,11 @@ func flood_rise_m() -> float:
 	return _stream_surface.position.y if _stream_surface != null else 0.0
 
 
+func flood_rise_full_m() -> float:
+	"""How high a full flood raises the stream's surface, in metres (demo/waterplay/: a flood's share)."""
+	return _flood_rise_m
+
+
 func weir_width_u() -> int:
 	"""The stream's bank-to-bank width at the weir, in u (0 if the stream was never measured)."""
 	var weir: Vector2 = Layout.find_placement(WaterDressing.placements(), &"weir")["at"]

@@ -53,6 +53,12 @@ extends Node3D
 ## root cellars (demo/farm/farm_cellars.gd over burrow_chambers `cellars()`), so a harvest goes to the
 ## slowest-spoiling store with room, the nearest to its bed among equals -- see farm_storage.gd.
 ##
+## WATER GAMEPLAY (demo/waterplay/, part A): wading, swimming, diving, rescue and bridges. The residents'
+## walking area is widened over the stream, its far bank and round the pond (`walk_bounds`), the water
+## too deep to wade joins the cast's obstacles as a band of circles (water_links.gd), and the cast plans
+## inside the woods' reach. `_build_waterplay()` wires it after the woods (a log bridge's log may be a
+## felled trunk); its "Water (demo)" panel is the right column's fourth tab.
+##
 ## WOODS (demo/forestry/): every tree is a real ResourceNode row -- felled, hauled, regrown, blown down,
 ## replanted -- worked by the residents, with forestry and conservation zones, deadfall, a sawhorse and
 ## the "Woods (demo)" panel, the right column's third tab. Its wood goes into the demo's ONE stores
@@ -85,6 +91,8 @@ const ForestryScript := preload("res://demo/forestry/demo_forestry.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const WindowKeysScript := preload("res://demo/demo_window_keys.gd")
 const StallBannerScript := preload("res://demo/ui/demo_stall_banner.gd")
+const WaterplayScript := preload("res://demo/waterplay/demo_waterplay.gd")
+const LinksScript := preload("res://demo/waterplay/water_links.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -111,6 +119,8 @@ var _stall_banner: StallBannerScript = null
 var _zone: DetailZoneScript = null
 var _water: DemoWaterScript = null
 var _forestry: ForestryScript = null
+var _waterplay: WaterplayScript = null
+var _links: LinksScript = null
 var _shadow_view_m: float = -1.0
 
 
@@ -131,6 +141,7 @@ func _ready() -> void:
 	_command.set_world(_world as DemoWorldScript)
 	_build_farm(manifest)
 	_build_forestry()
+	_build_waterplay()
 	_build_shared_ui()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
@@ -159,15 +170,19 @@ func _build_cast(manifest: Dictionary) -> void:
 	add_child(_cast)
 	var obstacles: Array[Vector3] = _water.merged_obstacles(_world.obstacles())
 	obstacles.append_array(ForestryScript.extra_obstacles(_world as DemoWorldScript))
-	_cast.build(manifest, _water.merged_points(_world.points_of_interest()), obstacles)
+	obstacles.append_array(WaterplayScript.land_obstacles())
+	_links = WaterplayScript.make_links(_water.map(), obstacles)
+	obstacles.append_array(_links.band)
+	_cast.build(manifest, _water.merged_points(_world.points_of_interest()), obstacles, _links.area)
 	_cast.clock.bind(GameManager as GameManagerScript)
 	_water.bind_clock(_cast.clock, _services.calendar.tick)
 	_water.bind_calendar(_services.calendar)
 	_camera = DemoCameraScript.new()
 	add_child(_camera)
-	_camera.configure(DemoWaterScript.view_bounds(_world.bounds()), Vector3.ZERO)
+	var walk: AABB = WaterplayScript.walk_bounds(_world.bounds())
+	_camera.configure(DemoWaterScript.view_bounds(walk), Vector3.ZERO)
 	_camera.make_current()
-	_cast.set_bounds(_world.bounds())
+	_cast.set_bounds(walk)
 
 
 func _build_farm(manifest: Dictionary) -> void:
@@ -210,6 +225,21 @@ func take_compost(milli: int) -> bool:
 	return true
 
 
+func _build_waterplay() -> void:
+	"""The water's gameplay (demo/waterplay/), after the woods: swimming, diving, rescue and bridges on
+	the cast already built round the water's band."""
+	_waterplay = WaterplayScript.new()
+	add_child(_waterplay)
+	_waterplay.configure(_cast as DemoCastScript, _command as DemoCommandScript, _camera.camera(), _services,
+		_water.map(), _links, _water, _forestry.stand)
+	_waterplay.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
+
+
+func waterplay() -> WaterplayScript:
+	"""The water's gameplay (demo/waterplay/demo_waterplay.gd)."""
+	return _waterplay
+
+
 func forestry() -> ForestryScript:
 	"""The woods (demo/forestry/demo_forestry.gd)."""
 	return _forestry
@@ -232,9 +262,11 @@ func _build_shared_ui() -> void:
 	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
 	_zone.add_panel(DetailZoneScript.PANEL_TUNNELS, ext.panel)
 	_zone.add_panel(DetailZoneScript.PANEL_WOODS, _forestry.panel)
+	_zone.add_panel(DetailZoneScript.PANEL_WATER, _waterplay.panel)
 	_farm.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_FARM))
 	ext.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_TUNNELS))
 	_forestry.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_WOODS))
+	_waterplay.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_WATER))
 
 
 func _shell() -> UiShell:

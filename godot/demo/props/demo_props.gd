@@ -60,6 +60,9 @@ const SIZES: Dictionary = {
 	&"felled_trunk": [RULE_LONGEST, 5.5], &"gnawed_log": [RULE_LONGEST, 5.0], &"sawhorse": [RULE_HEIGHT, 1.3],
 	&"plank_stack": [RULE_HEIGHT, 0.9], &"chopping_block": [RULE_HEIGHT, 0.8], &"sapling_basket": [RULE_HEIGHT, 0.95],
 	&"bridge_log": [RULE_LONGEST, 1.8], &"bridge_plank": [RULE_LONGEST, 1.6],
+	# The bridges' piers (demo/waterplay/): a post standing from the stream's bed to a deck, its standalone
+	# size; a bridge draws each to its own depth (bridge_view.gd).
+	&"bridge_pier": [RULE_HEIGHT, 1.6],
 }
 ## Library BUILDINGS this pass draws as props: drawn at their authoritative envelope height
 ## (world_sizes.gd, lookdev_dimensions.gd BUILDING_MAX_Y_MM) -- the root cellar's door-in-a-mound

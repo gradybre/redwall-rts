@@ -1,17 +1,20 @@
 extends CanvasLayer
 ## Who holds the HUD's right column: ONE demo panel at a time. Decision 0196 (live demo). DEMO UI.
 ##
-## Three demo panels want UI §1.2's DETAIL ZONE (the right column below the time controls): the farm's
+## Four demo panels want UI §1.2's DETAIL ZONE (the right column below the time controls): the farm's
 ## bed panel (demo/farm/farm_bed_panel.gd), the "Tunnels & burrows (demo)" panel
-## (demo/tunnel/tunnel_panel.gd) and the "Woods (demo)" panel (demo/forestry/forest_panel.gd). Drawn
-## together they overlapped. So this owns the zone:
-##   * a TAB STRIP along its top -- "Farm", "Tunnels & burrows" and "Woods", the shown one in brass --
+## (demo/tunnel/tunnel_panel.gd), the "Woods (demo)" panel (demo/forestry/forest_panel.gd) and the
+## "Water (demo)" panel (demo/waterplay/water_panel.gd). Drawn together they overlapped. So this owns
+## the zone:
+##   * a TAB STRIP along its top -- "Farm", "Tunnels & burrows", "Woods" and "Water", the shown one in
+##     brass --
 ##     that switches by click;
 ##   * below it, exactly one panel, placed by the panel itself in the zone minus the strip
 ##     (`set_zone(shown, top_inset)`), so each keeps its own layout and scale;
 ##   * SWITCHING ON INTENT: clicking a crop bed brings the farm panel; selecting a tunnel, laying a
 ##     route or placing a chamber brings the tunnels panel; clicking a tree, a zone or a woods order
-##     brings the woods panel (demo_village.gd connects the panels' owners to `show_panel`);
+##     brings the woods panel; a swim, dive, rescue or bridge order brings the water panel
+##     (demo_village.gd connects the panels' owners to `show_panel`);
 ##   * the zone belongs to UI-SET-036, the resident journal, when it opens: then the strip and both
 ##     panels hide, and come back as they were when it closes.
 ## Geometry is the HUD's own (`scripts/ui/ui_layout.gd`, read, never modified) in LOGICAL pixels, drawn
@@ -28,10 +31,12 @@ const Palette := preload("res://demo/ui/woodland_palette.gd")
 const PANEL_FARM: int = 0
 const PANEL_TUNNELS: int = 1
 const PANEL_WOODS: int = 2
-const TAB_TEXT: Array[String] = ["Farm", "Tunnels & burrows", "Woods"]
+const PANEL_WATER: int = 3
+const TAB_TEXT: Array[String] = ["Farm", "Tunnels & burrows", "Woods", "Water"]
 const TAB_TIPS: Array[String] = ["The farm: the calendar, a clicked bed and its work",
 	"Tunnels & burrows (demo): the weather, the demo stores, a clicked tunnel and its jobs",
-	"Woods (demo): trees, zones, the wood and plank stock, and the woods' jobs"]
+	"Woods (demo): trees, zones, the wood and plank stock, and the woods' jobs",
+	"Water (demo): swimmers' breath and stamina, dives, rescues, and bridges to build"]
 ## The strip's height, and the gap under it, in logical pixels (the panels start below both).
 const STRIP_H: float = 34.0
 const STRIP_GAP: float = 8.0
@@ -45,7 +50,7 @@ const DETAIL_NAME: String = "UI-SET-036"
 ## The panel shown (PANEL_*).
 var shown: int = PANEL_FARM
 
-var _panels: Array[Object] = [null, null, null]
+var _panels: Array[Object] = [null, null, null, null]
 var _tabs: Array[Button] = []
 var _strip: HBoxContainer = null
 var _layout: UiLayout = UiLayout.new()
@@ -106,7 +111,7 @@ func add_panel(key: int, panel: Object) -> void:
 
 func show_panel(key: int) -> void:
 	"""Show panel `key` in the zone (the other hides)."""
-	if key < PANEL_FARM or key > PANEL_WOODS:
+	if key < PANEL_FARM or key > PANEL_WATER:
 		return
 	shown = key
 	_apply()

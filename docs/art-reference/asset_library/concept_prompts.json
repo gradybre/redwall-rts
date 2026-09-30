@@ -1519,6 +1519,83 @@
         "assets/library/_reference/style_right_panel_rts.png"
       ],
       "prompt": "A young oak SAPLING with its root ball wrapped in a small woven basket, ready for planting, a few green leaves. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "burrow_door",
+      "task_id": "01a0f007-c204-74d7-9b67-d812630413d7",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A ROUND BURROW DOOR for a woodland creature's home: a circular door of oak planks with iron strap hinges and a ring pull, set in a sturdy frame of two timber posts and a curved timber lintel with a fieldstone surround, a fringe of turf along the top. Upright, facing forward. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood, iron and stone materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "tunnel_arch",
+      "task_id": "01a0f007-cc8f-74d4-a859-17b402b476b3",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A TUNNEL MOUTH ARCH for a mole's underground passage: a thick rough-hewn timber lintel resting on two jambs of stacked fieldstone, the doorway between them open and empty, a few roots and clods of earth on top. Upright, facing forward. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood and stone materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "hand_lantern",
+      "task_id": "01a0f007-d839-7334-9c92-418843db7751",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small HAND CANDLE LANTERN carried by diggers: a squat square wooden frame with pale horn panes, a lit beeswax candle inside, a wire bail handle on top. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood, horn and iron materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "hanging_stores",
+      "task_id": "01a0f007-e1b9-735e-956e-f75f649f9c6e",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "HANGING STORES from a cellar beam: a short rough wooden beam with plaited strings of golden onions and white garlic bulbs and bundles of dried herbs tied with twine hanging down from it. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood, cord and plant materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "root_bin",
+      "task_id": "01a0f007-ec7a-7232-b394-a82a6e1928df",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A SLATTED WOODEN ROOT BIN: an open-topped box of spaced pine slats on short corner posts, half full of turnips, carrots and beetroots. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "chimney_pot",
+      "task_id": "01a0f007-fadc-77a9-bab6-73a7a946ed5b",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A CLAY CHIMNEY POT: a tall round terracotta pot, slightly flared at the rim, soot-darkened at the top, standing on a short square cap of fieldstone. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and clay and stone materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "rag_rug",
+      "task_id": "01a0f008-02ae-7271-876e-69e4612726bc",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A round BRAIDED RAG RUG lying flat on the floor, coiled from braided strips of faded red, ochre, moss-green and oatmeal cloth. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and cloth materials as the reference."
     }
   ]
 }

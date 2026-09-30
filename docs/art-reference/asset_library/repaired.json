@@ -1,7 +1,7 @@
 {
  "tool": "tools/repair_meshy_rig.py",
  "decision": "0190",
- "count": 145,
+ "count": 164,
  "files": [
   {
    "key": "badger_cellarer",
@@ -202,6 +202,19 @@
   },
   {
    "key": "badger_quarryman",
+   "file": "anim_cautious_crouch_walk_forward.glb",
+   "target_height_m": 2.5498,
+   "height_before_m": 2.55,
+   "height_after_m": 2.55,
+   "height_scale": 1.0,
+   "root_scale_folded": 0.009999999776482582,
+   "scale_channels_reset": 0,
+   "source_sha256": "b03c0525f0b8dba2a280ff71cbdb815474cacae61cb72ca726ea1f161c090099",
+   "output_sha256": "2c57add9f2df315c8ebf004253eba8b3da01b693a5bd35ee8b2c573f90927202",
+   "output_bytes": 20490776
+  },
+  {
+   "key": "badger_quarryman",
    "file": "anim_chair_sit_idle.glb",
    "target_height_m": 2.5498,
    "height_before_m": 2.55,
@@ -225,6 +238,19 @@
    "source_sha256": "fb6196f0e6649e0fc9e978b5cf065aefb40a0cd94cd8b0af0afba60a2b425f32",
    "output_sha256": "b5902a6499ed919d1c4ffea35d3bead67c9790bd941ff09009a9e3abfb88fa58",
    "output_bytes": 20557284
+  },
+  {
+   "key": "badger_quarryman",
+   "file": "anim_heavy_hammer_swing.glb",
+   "target_height_m": 2.5498,
+   "height_before_m": 2.55,
+   "height_after_m": 2.55,
+   "height_scale": 1.0,
+   "root_scale_folded": 0.009999999776482582,
+   "scale_channels_reset": 0,
+   "source_sha256": "e96f3e77542f4f81079cb04d5f6f3a62ec01cbf750b4d3cc0c52ea2f43018e33",
+   "output_sha256": "518d026b378f19f775009e0f598f1d8adc764c7c293d1856f9ba7d64a38dd20f",
+   "output_bytes": 20495276
   },
   {
    "key": "badger_quarryman",
@@ -264,6 +290,19 @@
    "source_sha256": "1a3aac729444a21a8f46b53c1d3ae8e7d15ef86116ae8cbf9d5f6160da8bd0ba",
    "output_sha256": "8391c4fb165d35f0f503c37360430c3e531be4ccfb2a8da04749dd93e67ef83f",
    "output_bytes": 20480564
+  },
+  {
+   "key": "badger_quarryman",
+   "file": "anim_sleep_normally.glb",
+   "target_height_m": 2.5498,
+   "height_before_m": 2.55,
+   "height_after_m": 2.55,
+   "height_scale": 1.0,
+   "root_scale_folded": 0.009999999776482582,
+   "scale_channels_reset": 0,
+   "source_sha256": "db43edddb49e0f19e55a0199d35443307456c98e5f8078d22b759635fa46f90a",
+   "output_sha256": "d0e92fc668280b56234d66edf8e839cf54cb86ea1407d9383641c25a0054b5b3",
+   "output_bytes": 20492824
   },
   {
    "key": "badger_quarryman",
@@ -544,6 +583,19 @@
   },
   {
    "key": "mole_digger",
+   "file": "anim_cautious_crouch_walk_forward.glb",
+   "target_height_m": 0.9004,
+   "height_before_m": 0.7339,
+   "height_after_m": 0.9004,
+   "height_scale": 1.2268872498463304,
+   "root_scale_folded": 0.012268872224232633,
+   "scale_channels_reset": 0,
+   "source_sha256": "8be57f5af966dc15924ad08730ecfd4cfb3bc9fe2975828c1fe895e0fd5745c5",
+   "output_sha256": "30a45de568bee38d1d125d923a11ebeb3f137bdb22ecf3537c0ecdf8c78a4b28",
+   "output_bytes": 20790976
+  },
+  {
+   "key": "mole_digger",
    "file": "anim_chair_sit_idle.glb",
    "target_height_m": 0.9004,
    "height_before_m": 0.7339,
@@ -567,6 +619,19 @@
    "source_sha256": "701168ae0151f01d89fb8843159b0c564892c3691196a914b0e21252f4deea9b",
    "output_sha256": "3c8b9b3a5abb6f4b7a8c720ce624a9f3f5b1abb4d1c78f66520c28c69cf2904a",
    "output_bytes": 20852212
+  },
+  {
+   "key": "mole_digger",
+   "file": "anim_heavy_hammer_swing.glb",
+   "target_height_m": 0.9004,
+   "height_before_m": 0.7339,
+   "height_after_m": 0.9004,
+   "height_scale": 1.2268872498463304,
+   "root_scale_folded": 0.012268872224232633,
+   "scale_channels_reset": 0,
+   "source_sha256": "c548f954d611ad5a02092474a0a43696908931c069ec838405d989efe318b3a7",
+   "output_sha256": "c73009bf096daeb327c4551b207ffbe730370f373f04e19f3f46ac74e000d95d",
+   "output_bytes": 20800692
   },
   {
    "key": "mole_digger",
@@ -606,6 +671,19 @@
    "source_sha256": "e79ae98a132d06b87692fb0434ef8c42f6481cab710542482022b526e079305c",
    "output_sha256": "740d75a75ab3609e4517b4fd54817967a3ca9d38cfdb26c45e6565617529aa09",
    "output_bytes": 20785544
+  },
+  {
+   "key": "mole_digger",
+   "file": "anim_sleep_normally.glb",
+   "target_height_m": 0.9004,
+   "height_before_m": 0.7339,
+   "height_after_m": 0.9004,
+   "height_scale": 1.2268872498463304,
+   "root_scale_folded": 0.012268872224232633,
+   "scale_channels_reset": 0,
+   "source_sha256": "7da64dc8b5f66b622e1494a8a59335927872cab27e129271c31ccdfeada440f6",
+   "output_sha256": "070d4850fbe72770530f179ad8e4ccaf5053b843b0ab458ee5d3af67f69bf81e",
+   "output_bytes": 20797800
   },
   {
    "key": "mole_digger",
@@ -738,6 +816,19 @@
    "source_sha256": "9fe1f400bcfc8fc44fab8ad739f3d588f8fa12d6b0ea51fbe555e8a162d24a51",
    "output_sha256": "161b00a1074c65bce8ea4a155e3096be6534de2486c7d55700305ad0e728e80b",
    "output_bytes": 19769732
+  },
+  {
+   "key": "mole_mason",
+   "file": "anim_heavy_hammer_swing.glb",
+   "target_height_m": 0.9004,
+   "height_before_m": 0.7592,
+   "height_after_m": 0.9004,
+   "height_scale": 1.18595852503342,
+   "root_scale_folded": 0.011859584985251812,
+   "scale_channels_reset": 0,
+   "source_sha256": "433a6f97a069f44eb0a7f32d33cd857822c16bac245a676d9c6b4062ec9f3148",
+   "output_sha256": "178d6d149d1d8d02c18f29df6c45fbdde51a402efc92784489d42d7297622fb7",
+   "output_bytes": 19718200
   },
   {
    "key": "mole_mason",
@@ -886,6 +977,19 @@
   },
   {
    "key": "mouse_fieldworker",
+   "file": "anim_cautious_crouch_walk_forward.glb",
+   "target_height_m": 1.0,
+   "height_before_m": 1.0,
+   "height_after_m": 1.0,
+   "height_scale": 1.0,
+   "root_scale_folded": 0.009999999776482582,
+   "scale_channels_reset": 0,
+   "source_sha256": "edccbc3ee2efa62caf510c9d337ec6c09ad52b07a8ec7731a9bc4f274e4ba846",
+   "output_sha256": "e8edd4d3d2a606e18c367245a5af6329be6bcdda5553c8b63f446f216cfb9ceb",
+   "output_bytes": 17511756
+  },
+  {
+   "key": "mouse_fieldworker",
    "file": "anim_chair_sit_idle.glb",
    "target_height_m": 1.0,
    "height_before_m": 1.0,
@@ -948,6 +1052,19 @@
    "source_sha256": "26a25d02d3570cb250de898cda68fc562a3c467bf0f0bd838506dfe4af8c2141",
    "output_sha256": "8063d7bb6177cca56ce7bbab19368bf35db1a7f146fa605ab72ea4a8f661d21b",
    "output_bytes": 17506340
+  },
+  {
+   "key": "mouse_fieldworker",
+   "file": "anim_sleep_normally.glb",
+   "target_height_m": 1.0,
+   "height_before_m": 1.0,
+   "height_after_m": 1.0,
+   "height_scale": 1.0,
+   "root_scale_folded": 0.009999999776482582,
+   "scale_channels_reset": 0,
+   "source_sha256": "e83c8fcfefb7b53e64488caf544004dfb17a9f0ccd8821e30874e9b5fd8949ad",
+   "output_sha256": "148b9567e2cd2276e474b803bcdc77892a2495c07384667e82853517ba716a86",
+   "output_bytes": 17518588
   },
   {
    "key": "mouse_fieldworker",
@@ -1057,6 +1174,19 @@
   },
   {
    "key": "mouse_keeper",
+   "file": "anim_cautious_crouch_walk_forward.glb",
+   "target_height_m": 1.0,
+   "height_before_m": 1.0,
+   "height_after_m": 1.0,
+   "height_scale": 1.0,
+   "root_scale_folded": 0.009999999776482582,
+   "scale_channels_reset": 0,
+   "source_sha256": "c1a606d5ea1a4e7ebdbd8809699ee1751c7279744bdc4b7b3ae595fc9d216767",
+   "output_sha256": "e65a810376114d3e3fadb18afdc12b2fa74eff064017bd5470640076c918225a",
+   "output_bytes": 17733764
+  },
+  {
+   "key": "mouse_keeper",
    "file": "anim_chair_sit_idle.glb",
    "target_height_m": 1.0,
    "height_before_m": 1.0,
@@ -1119,6 +1249,19 @@
    "source_sha256": "d7d743f7a3c0ee8e8004d52e14b39d47d33ca6b8f8e6d5df802f2772310caf70",
    "output_sha256": "88dfc2e348c8f3f3d83d19799d13ef38f26d60487d1206665d5bdac5f478a6f4",
    "output_bytes": 17728324
+  },
+  {
+   "key": "mouse_keeper",
+   "file": "anim_sleep_normally.glb",
+   "target_height_m": 1.0,
+   "height_before_m": 1.0,
+   "height_after_m": 1.0,
+   "height_scale": 1.0,
+   "root_scale_folded": 0.009999999776482582,
+   "scale_channels_reset": 0,
+   "source_sha256": "d534185c4bb38a58388459301615b7e4f12f809fbb6292abf16a1286796673f5",
+   "output_sha256": "ba1ace0358ea1defffb16f0f2061ae5418373ff2fcad402d6f78e0e5045aacfc",
+   "output_bytes": 17740588
   },
   {
    "key": "mouse_keeper",
@@ -1228,6 +1371,19 @@
   },
   {
    "key": "otter_boatwright",
+   "file": "anim_cautious_crouch_walk_forward.glb",
+   "target_height_m": 1.4902,
+   "height_before_m": 1.49,
+   "height_after_m": 1.49,
+   "height_scale": 1.0,
+   "root_scale_folded": 0.009999999776482582,
+   "scale_channels_reset": 0,
+   "source_sha256": "21f6cfc97a8bd468f23cf7c995a3ef24bcc50c0882063e6c1133d18acf501036",
+   "output_sha256": "517b6ea9ce7de2dda4761b457d1aa98a855b5bf15523da7ca33a6df3e0b6424a",
+   "output_bytes": 19891056
+  },
+  {
+   "key": "otter_boatwright",
    "file": "anim_chair_sit_idle.glb",
    "target_height_m": 1.4902,
    "height_before_m": 1.49,
@@ -1290,6 +1446,19 @@
    "source_sha256": "fcc8093f05cf8d789cb3d53f5e1f242beccc690ef143360aec0440d577ddf450",
    "output_sha256": "33d2802f7ae45617656d001f1a8572c2696b22fbd0ac7158ccaf8e24514a7571",
    "output_bytes": 19885616
+  },
+  {
+   "key": "otter_boatwright",
+   "file": "anim_sleep_normally.glb",
+   "target_height_m": 1.4902,
+   "height_before_m": 1.49,
+   "height_after_m": 1.49,
+   "height_scale": 1.0,
+   "root_scale_folded": 0.009999999776482582,
+   "scale_channels_reset": 0,
+   "source_sha256": "3467efe2e747d4cd721d2f338f7bccb19116df30546d6a1c9de7f5d18ca4bfb6",
+   "output_sha256": "bd8dfa918360a5f6f4c4b51c21e923440692b3a4b0d89f83b08a103bf36c9695",
+   "output_bytes": 19897892
   },
   {
    "key": "otter_boatwright",
@@ -1413,6 +1582,19 @@
   },
   {
    "key": "otter_fisher",
+   "file": "anim_cautious_crouch_walk_forward.glb",
+   "target_height_m": 1.4902,
+   "height_before_m": 1.49,
+   "height_after_m": 1.49,
+   "height_scale": 1.0,
+   "root_scale_folded": 0.009999999776482582,
+   "scale_channels_reset": 0,
+   "source_sha256": "84eb439ecffb0e664dbf7ee2f46f25678f77dd77ed6fd208ba10bfaca3730966",
+   "output_sha256": "ebf43cd80172e3dd104ea5610115aa3767a69e0698593765d2a88fb3149ef5bd",
+   "output_bytes": 17175788
+  },
+  {
+   "key": "otter_fisher",
    "file": "anim_chair_sit_idle.glb",
    "target_height_m": 1.4902,
    "height_before_m": 1.49,
@@ -1475,6 +1657,19 @@
    "source_sha256": "c5709f532935b524877b1098d6aa9224bafb289e6a06c82fd4de9938e8bbf599",
    "output_sha256": "e128d6538c6f0bb707cf84309669df24560c34141b2f216389da78156751732c",
    "output_bytes": 17170356
+  },
+  {
+   "key": "otter_fisher",
+   "file": "anim_sleep_normally.glb",
+   "target_height_m": 1.4902,
+   "height_before_m": 1.49,
+   "height_after_m": 1.49,
+   "height_scale": 1.0,
+   "root_scale_folded": 0.009999999776482582,
+   "scale_channels_reset": 0,
+   "source_sha256": "d0898a8d3d1a652c56d10ec91320337389ce627bc6ea9ed14acfeae1f0cbe482",
+   "output_sha256": "e20b61b1ac508bde484be448c757974bae514f243e078cf8072c593e0b2b1aab",
+   "output_bytes": 17182616
   },
   {
    "key": "otter_fisher",
@@ -1598,6 +1793,19 @@
   },
   {
    "key": "squirrel_forester",
+   "file": "anim_cautious_crouch_walk_forward.glb",
+   "target_height_m": 1.1504,
+   "height_before_m": 1.15,
+   "height_after_m": 1.15,
+   "height_scale": 1.0,
+   "root_scale_folded": 0.009999999776482582,
+   "scale_channels_reset": 0,
+   "source_sha256": "9ce5188179b57a1712b9b6a09069dbafec3a61cfdb6cf0fd56ac0e18c2dca460",
+   "output_sha256": "8685879627bb0c8447e0dda3b6eacc86eb70041c865a6f270d4d9026a5f841f8",
+   "output_bytes": 20102732
+  },
+  {
+   "key": "squirrel_forester",
    "file": "anim_chair_sit_idle.glb",
    "target_height_m": 1.1504,
    "height_before_m": 1.15,
@@ -1660,6 +1868,19 @@
    "source_sha256": "3c72328034629671882a4576de9ab3a644c4b0d3c6d0b280198f73753a5fbf8b",
    "output_sha256": "7f7bdb823937446c34f8a65ff4f750bb3dfb242a74dc2668e4f33566e1ef1c08",
    "output_bytes": 20097304
+  },
+  {
+   "key": "squirrel_forester",
+   "file": "anim_sleep_normally.glb",
+   "target_height_m": 1.1504,
+   "height_before_m": 1.15,
+   "height_after_m": 1.15,
+   "height_scale": 1.0,
+   "root_scale_folded": 0.009999999776482582,
+   "scale_channels_reset": 0,
+   "source_sha256": "da184d5f7d18f5d184f1a8b78be9cbf5d18e74df2e4d0254192ac795b1f67e6c",
+   "output_sha256": "8010852f7b721edaf3b70a78ef8444e9f3640a8600f91375659404ead8cf5b20",
+   "output_bytes": 20109568
   },
   {
    "key": "squirrel_forester",
@@ -1769,6 +1990,19 @@
   },
   {
    "key": "squirrel_gatherer",
+   "file": "anim_cautious_crouch_walk_forward.glb",
+   "target_height_m": 1.1504,
+   "height_before_m": 1.15,
+   "height_after_m": 1.15,
+   "height_scale": 1.0,
+   "root_scale_folded": 0.009999999776482582,
+   "scale_channels_reset": 0,
+   "source_sha256": "f4c47b7f6c529194bcf6c454568984d654010ff93f49e22a9b611a807a50f6fa",
+   "output_sha256": "b995c7047f60f885e7684e855581b31c0dd1f18a437bf58c57817cd2812de3e5",
+   "output_bytes": 20838444
+  },
+  {
+   "key": "squirrel_gatherer",
    "file": "anim_chair_sit_idle.glb",
    "target_height_m": 1.1504,
    "height_before_m": 1.15,
@@ -1831,6 +2065,19 @@
    "source_sha256": "4c5ca5e2b784974021578ff356aa106a5232e0eac8b116cb770ee1bdb059d4a1",
    "output_sha256": "b81bc979cd06dd07da6e57b5d9b92c84114d28e4d81e301d9371502637cb4ec5",
    "output_bytes": 20833004
+  },
+  {
+   "key": "squirrel_gatherer",
+   "file": "anim_sleep_normally.glb",
+   "target_height_m": 1.1504,
+   "height_before_m": 1.15,
+   "height_after_m": 1.15,
+   "height_scale": 1.0,
+   "root_scale_folded": 0.009999999776482582,
+   "scale_channels_reset": 0,
+   "source_sha256": "09dc6c8564a6f2051ef49407fae67de8f1c6d7e86f6e116d53db112e2514aa84",
+   "output_sha256": "f9d94b3cffd4fdbd9f2c4373bcdd88a4e92e9f77b6a5ff85538e889da48c4569",
+   "output_bytes": 20845260
   },
   {
    "key": "squirrel_gatherer",

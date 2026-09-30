@@ -23,7 +23,8 @@
    "anim_walk",
    "anim_run",
    "anim_carry_heavy_object_walk",
-   "anim_carry_water_bucket_walk"
+   "anim_carry_water_bucket_walk",
+   "anim_cautious_crouch_walk_forward"
   ]
  },
  "water": {
@@ -35,7 +36,7 @@
    "anim_dive": "submerged"
   }
  },
- "count": 134,
+ "count": 153,
  "clips": [
   {
    "key": "badger_cellarer",
@@ -764,6 +765,52 @@
   },
   {
    "key": "badger_quarryman",
+   "clip": "anim_cautious_crouch_walk_forward",
+   "source": "repaired",
+   "output_sha256": "d7bd1e8f923a1626865148052401700932d14c1b90d19fe1dc6be95cc68cc639",
+   "root_travel_m": 2.7437,
+   "loop_gap_m": 0.0,
+   "keys": 35,
+   "keys_lifted": 0,
+   "max_lift_m": -0.0303,
+   "seated_m": 0.0303,
+   "support_min_before_m": 0.0303,
+   "support_min_after_m": -0.0,
+   "support_max_after_m": 0.0337,
+   "heading_swing_deg": 23.66,
+   "heading_net_deg": 0.33,
+   "untwisted": false,
+   "gait": true,
+   "contacts": 3,
+   "contacts_pinned": 3,
+   "contact_slide_before_m": 0.1666,
+   "pin_max_m": 0.1666,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [
+     [
+      9,
+      26
+     ]
+    ],
+    "Right": [
+     [
+      0,
+      9
+     ],
+     [
+      27,
+      34
+     ]
+    ]
+   },
+   "contact_slide_after_m": 0.0001,
+   "ground_scrape_m": 0.0591
+  },
+  {
+   "key": "badger_quarryman",
    "clip": "anim_chair_sit_idle",
    "source": "repaired",
    "output_sha256": "b59b7403c88eb7f25948e6fe8e2cc436e4d2bfd972a76fa78c91a3b4feb85d6c",
@@ -837,6 +884,51 @@
     ]
    },
    "contact_slide_after_m": 0.0117
+  },
+  {
+   "key": "badger_quarryman",
+   "clip": "anim_heavy_hammer_swing",
+   "source": "repaired",
+   "output_sha256": "f6a88ae1f74b551207403f719ffe55c0c8ceff2dff716653a5635fc6ac6be22f",
+   "root_travel_m": 0.1997,
+   "loop_gap_m": 0.0,
+   "keys": 56,
+   "keys_lifted": 0,
+   "max_lift_m": -0.0721,
+   "seated_m": 0.0721,
+   "support_min_before_m": 0.0721,
+   "support_min_after_m": -0.0,
+   "support_max_after_m": 0.0281,
+   "heading_swing_deg": 114.49,
+   "heading_net_deg": 80.6,
+   "untwisted": false,
+   "gait": false,
+   "contacts": 3,
+   "contacts_pinned": 2,
+   "contact_slide_before_m": 0.0461,
+   "pin_max_m": 0.0461,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [
+     [
+      39,
+      49
+     ]
+    ],
+    "Right": [
+     [
+      0,
+      30
+     ],
+     [
+      33,
+      34
+     ]
+    ]
+   },
+   "contact_slide_after_m": 0.0024
   },
   {
    "key": "badger_quarryman",
@@ -958,6 +1050,47 @@
    "gait_speed_m_s": 6.3769,
    "contact_slide_after_m": 0.0001,
    "ground_scrape_m": 0.1766
+  },
+  {
+   "key": "badger_quarryman",
+   "clip": "anim_sleep_normally",
+   "source": "repaired",
+   "output_sha256": "6d132518caf92c8bae9a68bd8cd51c9be7ddfeee202ec6ab38ac88136a2974c3",
+   "root_travel_m": 0.0,
+   "loop_gap_m": 0.0,
+   "keys": 53,
+   "keys_lifted": 0,
+   "max_lift_m": -1.2264,
+   "seated_m": 1.2264,
+   "support_min_before_m": 1.2264,
+   "support_min_after_m": 0.0,
+   "support_max_after_m": 0.002,
+   "heading_swing_deg": 0.28,
+   "heading_net_deg": -0.04,
+   "untwisted": false,
+   "gait": false,
+   "contacts": 2,
+   "contacts_pinned": 0,
+   "contact_slide_before_m": 0.0056,
+   "pin_max_m": 0.0,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0001,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [
+     [
+      0,
+      52
+     ]
+    ],
+    "Right": [
+     [
+      0,
+      52
+     ]
+    ]
+   },
+   "contact_slide_after_m": 0.0056
   },
   {
    "key": "badger_quarryman",
@@ -1920,6 +2053,52 @@
   },
   {
    "key": "mole_digger",
+   "clip": "anim_cautious_crouch_walk_forward",
+   "source": "repaired",
+   "output_sha256": "87dc469f9cb084433875de2d63f36a9508cb79e13a6196aec8d7fa78693649c3",
+   "root_travel_m": 0.6797,
+   "loop_gap_m": 0.0,
+   "keys": 35,
+   "keys_lifted": 29,
+   "max_lift_m": 0.0434,
+   "seated_m": 0.0,
+   "support_min_before_m": -0.0434,
+   "support_min_after_m": -0.0,
+   "support_max_after_m": 0.0055,
+   "heading_swing_deg": 22.9,
+   "heading_net_deg": 0.44,
+   "untwisted": false,
+   "gait": true,
+   "contacts": 3,
+   "contacts_pinned": 3,
+   "contact_slide_before_m": 0.0357,
+   "pin_max_m": 0.0357,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [
+     [
+      9,
+      25
+     ]
+    ],
+    "Right": [
+     [
+      0,
+      9
+     ],
+     [
+      26,
+      34
+     ]
+    ]
+   },
+   "contact_slide_after_m": 0.0002,
+   "ground_scrape_m": 0.427
+  },
+  {
+   "key": "mole_digger",
    "clip": "anim_chair_sit_idle",
    "source": "repaired",
    "output_sha256": "2bd7e68d20169028f303cdc8d6bc564d649d9a8543626dac958b71d871f04caf",
@@ -1999,6 +2178,55 @@
     ]
    },
    "contact_slide_after_m": 0.0111
+  },
+  {
+   "key": "mole_digger",
+   "clip": "anim_heavy_hammer_swing",
+   "source": "repaired",
+   "output_sha256": "72286f1631c65b5f06cb10829386bcdc3806dc8bff412c7abafc331472495276",
+   "root_travel_m": 0.0625,
+   "loop_gap_m": 0.0,
+   "keys": 56,
+   "keys_lifted": 17,
+   "max_lift_m": 0.0282,
+   "seated_m": 0.0,
+   "support_min_before_m": -0.0282,
+   "support_min_after_m": -0.0,
+   "support_max_after_m": 0.0161,
+   "heading_swing_deg": 98.39,
+   "heading_net_deg": 68.39,
+   "untwisted": false,
+   "gait": false,
+   "contacts": 4,
+   "contacts_pinned": 2,
+   "contact_slide_before_m": 0.1094,
+   "pin_max_m": 0.1094,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [
+     [
+      0,
+      15
+     ],
+     [
+      22,
+      33
+     ],
+     [
+      38,
+      55
+     ]
+    ],
+    "Right": [
+     [
+      0,
+      42
+     ]
+    ]
+   },
+   "contact_slide_after_m": 0.0197
   },
   {
    "key": "mole_digger",
@@ -2134,6 +2362,37 @@
    "gait_speed_m_s": 1.5157,
    "contact_slide_after_m": 0.018,
    "ground_scrape_m": 0.3498
+  },
+  {
+   "key": "mole_digger",
+   "clip": "anim_sleep_normally",
+   "source": "repaired",
+   "output_sha256": "8f80d9b5dc3b42a35a1641d429fbe9d42e0bf12074b3a27cd05a6f3fc1dfa220",
+   "root_travel_m": 0.0,
+   "loop_gap_m": 0.0,
+   "keys": 53,
+   "keys_lifted": 0,
+   "max_lift_m": -0.1563,
+   "seated_m": 0.1563,
+   "support_min_before_m": 0.1563,
+   "support_min_after_m": 0.0,
+   "support_max_after_m": 0.0008,
+   "heading_swing_deg": 0.25,
+   "heading_net_deg": -0.0,
+   "untwisted": false,
+   "gait": false,
+   "contacts": 0,
+   "contacts_pinned": 0,
+   "contact_slide_before_m": 0.0,
+   "pin_max_m": 0.0,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [],
+    "Right": []
+   },
+   "contact_slide_after_m": 0.0
   },
   {
    "key": "mole_digger",
@@ -2581,6 +2840,55 @@
     ]
    },
    "contact_slide_after_m": 0.0109
+  },
+  {
+   "key": "mole_mason",
+   "clip": "anim_heavy_hammer_swing",
+   "source": "repaired",
+   "output_sha256": "4f66de8c02c0596a0ff4124aa7a13060b6b7d13b949e08bca9531dbdb83f2c96",
+   "root_travel_m": 0.0417,
+   "loop_gap_m": 0.0,
+   "keys": 56,
+   "keys_lifted": 11,
+   "max_lift_m": 0.0092,
+   "seated_m": 0.0,
+   "support_min_before_m": -0.0092,
+   "support_min_after_m": -0.0,
+   "support_max_after_m": 0.0148,
+   "heading_swing_deg": 103.31,
+   "heading_net_deg": 73.76,
+   "untwisted": false,
+   "gait": false,
+   "contacts": 4,
+   "contacts_pinned": 2,
+   "contact_slide_before_m": 0.0745,
+   "pin_max_m": 0.0745,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [
+     [
+      0,
+      3
+     ],
+     [
+      30,
+      32
+     ],
+     [
+      36,
+      55
+     ]
+    ],
+    "Right": [
+     [
+      0,
+      41
+     ]
+    ]
+   },
+   "contact_slide_after_m": 0.0133
   },
   {
    "key": "mole_mason",
@@ -3060,6 +3368,52 @@
   },
   {
    "key": "mouse_fieldworker",
+   "clip": "anim_cautious_crouch_walk_forward",
+   "source": "tailed",
+   "output_sha256": "54f9083fb3e8609a0ac63b8f5989963f9a98553ae59eaad5192f39a6adc9bcd4",
+   "root_travel_m": 0.8771,
+   "loop_gap_m": 0.0,
+   "keys": 35,
+   "keys_lifted": 35,
+   "max_lift_m": 0.0387,
+   "seated_m": 0.0,
+   "support_min_before_m": -0.0387,
+   "support_min_after_m": -0.0,
+   "support_max_after_m": 0.0,
+   "heading_swing_deg": 22.93,
+   "heading_net_deg": 0.33,
+   "untwisted": false,
+   "gait": true,
+   "contacts": 3,
+   "contacts_pinned": 3,
+   "contact_slide_before_m": 0.0456,
+   "pin_max_m": 0.0456,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [
+     [
+      9,
+      26
+     ]
+    ],
+    "Right": [
+     [
+      0,
+      9
+     ],
+     [
+      27,
+      34
+     ]
+    ]
+   },
+   "contact_slide_after_m": 0.0002,
+   "ground_scrape_m": 0.5503
+  },
+  {
+   "key": "mouse_fieldworker",
    "clip": "anim_chair_sit_idle",
    "source": "tailed",
    "output_sha256": "57700e89b932f1d5759da9c031ca3094c4d0d17d4f8a0e3d91da119cb3308a35",
@@ -3280,6 +3634,37 @@
    "gait_speed_m_s": 2.1681,
    "contact_slide_after_m": 0.0198,
    "ground_scrape_m": 0.4376
+  },
+  {
+   "key": "mouse_fieldworker",
+   "clip": "anim_sleep_normally",
+   "source": "tailed",
+   "output_sha256": "9afa5b10eddadf8e77eac021403992aa74b5ec0ed7d6a6a26cd688c22198a1d7",
+   "root_travel_m": 0.0,
+   "loop_gap_m": 0.0,
+   "keys": 53,
+   "keys_lifted": 0,
+   "max_lift_m": -0.3962,
+   "seated_m": 0.3962,
+   "support_min_before_m": 0.3962,
+   "support_min_after_m": -0.0,
+   "support_max_after_m": 0.0009,
+   "heading_swing_deg": 0.24,
+   "heading_net_deg": -0.01,
+   "untwisted": false,
+   "gait": false,
+   "contacts": 0,
+   "contacts_pinned": 0,
+   "contact_slide_before_m": 0.0,
+   "pin_max_m": 0.0,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [],
+    "Right": []
+   },
+   "contact_slide_after_m": 0.0
   },
   {
    "key": "mouse_fieldworker",
@@ -3628,6 +4013,71 @@
   },
   {
    "key": "mouse_keeper",
+   "clip": "anim_cautious_crouch_walk_forward",
+   "source": "tailed",
+   "output_sha256": "14df834ad4aea61e32e7db65ec7bc07b23284f3bd52b931d1121b06dde4f7ed5",
+   "root_travel_m": 0.9948,
+   "loop_gap_m": 0.0,
+   "keys": 35,
+   "keys_lifted": 35,
+   "max_lift_m": 0.0536,
+   "seated_m": 0.0,
+   "support_min_before_m": -0.0536,
+   "support_min_after_m": -0.0,
+   "support_max_after_m": 0.0,
+   "heading_swing_deg": 23.53,
+   "heading_net_deg": 0.34,
+   "untwisted": false,
+   "gait": true,
+   "contacts": 3,
+   "contacts_pinned": 1,
+   "contact_slide_before_m": 0.0878,
+   "pin_max_m": 0.0405,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0,
+   "unpinned": [
+    {
+     "side": "Left",
+     "keys": [
+      9,
+      26
+     ],
+     "slide_m": 0.0878,
+     "reason": "support"
+    },
+    {
+     "side": "Right",
+     "keys": [
+      0,
+      9
+     ],
+     "slide_m": 0.0409,
+     "reason": "support"
+    }
+   ],
+   "contact_keys": {
+    "Left": [
+     [
+      9,
+      26
+     ]
+    ],
+    "Right": [
+     [
+      0,
+      9
+     ],
+     [
+      28,
+      34
+     ]
+    ]
+   },
+   "contact_slide_after_m": 0.0878,
+   "ground_scrape_m": 0.3747
+  },
+  {
+   "key": "mouse_keeper",
    "clip": "anim_chair_sit_idle",
    "source": "tailed",
    "output_sha256": "e514bae30b821cac40305f587a2056c5d895ab2bcf9647877045ec0fb4d7c693",
@@ -3826,6 +4276,37 @@
    "gait_speed_m_s": 2.2345,
    "contact_slide_after_m": 0.0,
    "ground_scrape_m": 0.1817
+  },
+  {
+   "key": "mouse_keeper",
+   "clip": "anim_sleep_normally",
+   "source": "tailed",
+   "output_sha256": "f834e14068754e64578a5a30c3995fdc35087ed8fc3e2ab72ea6fb345c78af60",
+   "root_travel_m": 0.0,
+   "loop_gap_m": 0.0001,
+   "keys": 53,
+   "keys_lifted": 0,
+   "max_lift_m": -0.4615,
+   "seated_m": 0.4615,
+   "support_min_before_m": 0.4615,
+   "support_min_after_m": -0.0,
+   "support_max_after_m": 0.005,
+   "heading_swing_deg": 0.23,
+   "heading_net_deg": -0.01,
+   "untwisted": false,
+   "gait": false,
+   "contacts": 0,
+   "contacts_pinned": 0,
+   "contact_slide_before_m": 0.0,
+   "pin_max_m": 0.0,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [],
+    "Right": []
+   },
+   "contact_slide_after_m": 0.0
   },
   {
    "key": "mouse_keeper",
@@ -4170,6 +4651,52 @@
   },
   {
    "key": "otter_boatwright",
+   "clip": "anim_cautious_crouch_walk_forward",
+   "source": "tailed",
+   "output_sha256": "13bcc178d01debaa9a1cee09584a781f5bfd18a2f92ff552ccfb5b547e9e205a",
+   "root_travel_m": 1.2648,
+   "loop_gap_m": 0.0,
+   "keys": 35,
+   "keys_lifted": 35,
+   "max_lift_m": 0.1701,
+   "seated_m": 0.0,
+   "support_min_before_m": -0.1701,
+   "support_min_after_m": -0.0,
+   "support_max_after_m": 0.0,
+   "heading_swing_deg": 19.42,
+   "heading_net_deg": 0.29,
+   "untwisted": false,
+   "gait": true,
+   "contacts": 3,
+   "contacts_pinned": 3,
+   "contact_slide_before_m": 0.051,
+   "pin_max_m": 0.051,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [
+     [
+      9,
+      26
+     ]
+    ],
+    "Right": [
+     [
+      0,
+      9
+     ],
+     [
+      27,
+      34
+     ]
+    ]
+   },
+   "contact_slide_after_m": 0.0003,
+   "ground_scrape_m": 0.8073
+  },
+  {
+   "key": "otter_boatwright",
    "clip": "anim_chair_sit_idle",
    "source": "tailed",
    "output_sha256": "7b2dfe842669dcae9c6e411a329e9f4240d3fedd1850b038ff276c703dfa745e",
@@ -4400,6 +4927,37 @@
    "gait_speed_m_s": 2.852,
    "contact_slide_after_m": 0.0003,
    "ground_scrape_m": 0.6189
+  },
+  {
+   "key": "otter_boatwright",
+   "clip": "anim_sleep_normally",
+   "source": "tailed",
+   "output_sha256": "662c7764777943860683e19d300ed56682bcf090d701d591a239e3bc4272e214",
+   "root_travel_m": 0.0,
+   "loop_gap_m": 0.0001,
+   "keys": 53,
+   "keys_lifted": 0,
+   "max_lift_m": -0.725,
+   "seated_m": 0.725,
+   "support_min_before_m": 0.725,
+   "support_min_after_m": -0.0,
+   "support_max_after_m": 0.0006,
+   "heading_swing_deg": 0.3,
+   "heading_net_deg": -0.0,
+   "untwisted": false,
+   "gait": false,
+   "contacts": 0,
+   "contacts_pinned": 0,
+   "contact_slide_before_m": 0.0,
+   "pin_max_m": 0.0,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [],
+    "Right": []
+   },
+   "contact_slide_after_m": 0.0
   },
   {
    "key": "otter_boatwright",
@@ -4744,6 +5302,52 @@
   },
   {
    "key": "otter_fisher",
+   "clip": "anim_cautious_crouch_walk_forward",
+   "source": "tailed",
+   "output_sha256": "f3128b007cae22d9df8c392b0e28b6ea4d1bf562408fff8922f1eb3a7ae644fa",
+   "root_travel_m": 1.5513,
+   "loop_gap_m": 0.0,
+   "keys": 35,
+   "keys_lifted": 23,
+   "max_lift_m": 0.0174,
+   "seated_m": 0.0,
+   "support_min_before_m": -0.0174,
+   "support_min_after_m": -0.0,
+   "support_max_after_m": 0.0133,
+   "heading_swing_deg": 22.53,
+   "heading_net_deg": 0.27,
+   "untwisted": false,
+   "gait": true,
+   "contacts": 3,
+   "contacts_pinned": 3,
+   "contact_slide_before_m": 0.0816,
+   "pin_max_m": 0.0816,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [
+     [
+      9,
+      26
+     ]
+    ],
+    "Right": [
+     [
+      0,
+      9
+     ],
+     [
+      27,
+      34
+     ]
+    ]
+   },
+   "contact_slide_after_m": 0.0004,
+   "ground_scrape_m": 0.7095
+  },
+  {
+   "key": "otter_fisher",
    "clip": "anim_chair_sit_idle",
    "source": "tailed",
    "output_sha256": "cdb2a4579b6d7f245c3e8d1a4b7f824976e4c601af310099ad1134c0db2f6fa0",
@@ -4981,6 +5585,37 @@
    "gait_speed_m_s": 3.6613,
    "contact_slide_after_m": 0.0,
    "ground_scrape_m": 0.0787
+  },
+  {
+   "key": "otter_fisher",
+   "clip": "anim_sleep_normally",
+   "source": "tailed",
+   "output_sha256": "e5d054ccbbb513fb2aa422aa700c774766d9028f677db87e2608301481bff4e3",
+   "root_travel_m": 0.0,
+   "loop_gap_m": 0.0,
+   "keys": 53,
+   "keys_lifted": 0,
+   "max_lift_m": -0.6887,
+   "seated_m": 0.6887,
+   "support_min_before_m": 0.6887,
+   "support_min_after_m": 0.0,
+   "support_max_after_m": 0.0028,
+   "heading_swing_deg": 0.23,
+   "heading_net_deg": -0.01,
+   "untwisted": false,
+   "gait": false,
+   "contacts": 0,
+   "contacts_pinned": 0,
+   "contact_slide_before_m": 0.0,
+   "pin_max_m": 0.0,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [],
+    "Right": []
+   },
+   "contact_slide_after_m": 0.0
   },
   {
    "key": "otter_fisher",
@@ -5329,6 +5964,52 @@
   },
   {
    "key": "squirrel_forester",
+   "clip": "anim_cautious_crouch_walk_forward",
+   "source": "tailed",
+   "output_sha256": "0c4e03bc505935fedfb482179cc19183d3c2450ca01b45169a9ce42fe8d99705",
+   "root_travel_m": 0.8687,
+   "loop_gap_m": 0.0,
+   "keys": 35,
+   "keys_lifted": 35,
+   "max_lift_m": 0.2317,
+   "seated_m": 0.0,
+   "support_min_before_m": -0.2317,
+   "support_min_after_m": -0.0,
+   "support_max_after_m": 0.0,
+   "heading_swing_deg": 26.59,
+   "heading_net_deg": 0.66,
+   "untwisted": false,
+   "gait": true,
+   "contacts": 3,
+   "contacts_pinned": 2,
+   "contact_slide_before_m": 0.0807,
+   "pin_max_m": 0.0807,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [
+     [
+      10,
+      24
+     ]
+    ],
+    "Right": [
+     [
+      0,
+      9
+     ],
+     [
+      28,
+      32
+     ]
+    ]
+   },
+   "contact_slide_after_m": 0.0183,
+   "ground_scrape_m": 0.5061
+  },
+  {
+   "key": "squirrel_forester",
    "clip": "anim_chair_sit_idle",
    "source": "tailed",
    "output_sha256": "12c16ca7fbd8ac8432d8a471d03cf3812992c2ccd72e664ff1ff6d4db499923e",
@@ -5524,6 +6205,42 @@
    "gait_speed_m_s": 1.9647,
    "contact_slide_after_m": 0.0016,
    "ground_scrape_m": 1.1089
+  },
+  {
+   "key": "squirrel_forester",
+   "clip": "anim_sleep_normally",
+   "source": "tailed",
+   "output_sha256": "2e691f1f1e3a13440b5a17d03185959fd0946130437083d9c74c79e428cc9a43",
+   "root_travel_m": 0.0,
+   "loop_gap_m": 0.0001,
+   "keys": 53,
+   "keys_lifted": 0,
+   "max_lift_m": -0.5948,
+   "seated_m": 0.5948,
+   "support_min_before_m": 0.5948,
+   "support_min_after_m": 0.0,
+   "support_max_after_m": 0.0014,
+   "heading_swing_deg": 0.26,
+   "heading_net_deg": 0.01,
+   "untwisted": false,
+   "gait": false,
+   "contacts": 1,
+   "contacts_pinned": 0,
+   "contact_slide_before_m": 0.0005,
+   "pin_max_m": 0.0,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0001,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [],
+    "Right": [
+     [
+      0,
+      52
+     ]
+    ]
+   },
+   "contact_slide_after_m": 0.0005
   },
   {
    "key": "squirrel_forester",
@@ -5896,6 +6613,52 @@
   },
   {
    "key": "squirrel_gatherer",
+   "clip": "anim_cautious_crouch_walk_forward",
+   "source": "tailed",
+   "output_sha256": "09026db55adddcf5aa2dcec7a09bb2399a9a73c54ab20ef9b8d193d524b28a08",
+   "root_travel_m": 1.0562,
+   "loop_gap_m": 0.0,
+   "keys": 35,
+   "keys_lifted": 35,
+   "max_lift_m": 0.2122,
+   "seated_m": 0.0,
+   "support_min_before_m": -0.2122,
+   "support_min_after_m": -0.0,
+   "support_max_after_m": 0.0,
+   "heading_swing_deg": 18.27,
+   "heading_net_deg": 0.25,
+   "untwisted": false,
+   "gait": true,
+   "contacts": 3,
+   "contacts_pinned": 3,
+   "contact_slide_before_m": 0.048,
+   "pin_max_m": 0.048,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [
+     [
+      9,
+      26
+     ]
+    ],
+    "Right": [
+     [
+      0,
+      9
+     ],
+     [
+      27,
+      34
+     ]
+    ]
+   },
+   "contact_slide_after_m": 0.0,
+   "ground_scrape_m": 0.7678
+  },
+  {
+   "key": "squirrel_gatherer",
    "clip": "anim_chair_sit_idle",
    "source": "tailed",
    "output_sha256": "0d8e9d157ccc30f9577683e09affabd3c738b385ac0dcf92c75942e77e53c343",
@@ -6131,6 +6894,37 @@
    "gait_speed_m_s": 2.0932,
    "contact_slide_after_m": 0.0,
    "ground_scrape_m": 0.8349
+  },
+  {
+   "key": "squirrel_gatherer",
+   "clip": "anim_sleep_normally",
+   "source": "tailed",
+   "output_sha256": "757a3adbfc582d9aeb18938f37a2612e8265f66fa265b2bf8c866802c7f04c83",
+   "root_travel_m": 0.0,
+   "loop_gap_m": 0.0002,
+   "keys": 53,
+   "keys_lifted": 0,
+   "max_lift_m": -0.7168,
+   "seated_m": 0.7168,
+   "support_min_before_m": 0.7168,
+   "support_min_after_m": -0.0,
+   "support_max_after_m": 0.002,
+   "heading_swing_deg": 0.3,
+   "heading_net_deg": -0.0,
+   "untwisted": false,
+   "gait": false,
+   "contacts": 0,
+   "contacts_pinned": 0,
+   "contact_slide_before_m": 0.0,
+   "pin_max_m": 0.0,
+   "pin_hips_drop_m": 0.0,
+   "loop_ramp_m": 0.0,
+   "unpinned": [],
+   "contact_keys": {
+    "Left": [],
+    "Right": []
+   },
+   "contact_slide_after_m": 0.0
   },
   {
    "key": "squirrel_gatherer",

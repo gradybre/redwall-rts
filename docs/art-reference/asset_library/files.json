@@ -1,7 +1,7 @@
 {
  "root": "assets/library/ (gitignored; binaries are local only)",
- "count": 1461,
- "total_bytes": 17527903962,
+ "count": 1522,
+ "total_bytes": 18320911905,
  "files": [
   {
    "family": "building",
@@ -13087,6 +13087,555 @@
    "path": "assets/library/prop/sapling_basket/highpoly_textures/roughness.png",
    "bytes": 1571643,
    "sha256": "d2b767384f55c8d76ea38fa031823345804bd5f49c604e1213b56161d001dd89"
+  },
+  {
+   "family": "prop",
+   "key": "burrow_door",
+   "stage": "concept",
+   "task_id": "01a0f007-c204-74d7-9b67-d812630413d7",
+   "path": "assets/library/prop/burrow_door/concept.png",
+   "bytes": 1126512,
+   "sha256": "8e9e89ff7e8823e0e985c80bdf0e9af07b4c3d5cf9ec3b38c9293db5575d5219"
+  },
+  {
+   "family": "prop",
+   "key": "burrow_door",
+   "stage": "highpoly",
+   "task_id": "01a0f008-c332-74c4-b420-641363ea18c7",
+   "path": "assets/library/prop/burrow_door/highpoly.glb",
+   "bytes": 68566988,
+   "sha256": "2de1ea40966dfb9b7717d99eb2732e07b36c67d917b5a7bcb8b85ba36e2c596c"
+  },
+  {
+   "family": "prop",
+   "key": "burrow_door",
+   "stage": "highpoly",
+   "task_id": "01a0f008-c332-74c4-b420-641363ea18c7",
+   "path": "assets/library/prop/burrow_door/highpoly_textures/base_color.png",
+   "bytes": 6835681,
+   "sha256": "2027c8e4714eee63c725ad74e5087ff4bff234403c4ad74e3985b1a8d01162e4"
+  },
+  {
+   "family": "prop",
+   "key": "burrow_door",
+   "stage": "highpoly",
+   "task_id": "01a0f008-c332-74c4-b420-641363ea18c7",
+   "path": "assets/library/prop/burrow_door/highpoly_textures/metallic.png",
+   "bytes": 116883,
+   "sha256": "7cab3830d8497eed7bd6204aace763691ae8f88694b77e5984592cad4f5f65a9"
+  },
+  {
+   "family": "prop",
+   "key": "burrow_door",
+   "stage": "highpoly",
+   "task_id": "01a0f008-c332-74c4-b420-641363ea18c7",
+   "path": "assets/library/prop/burrow_door/highpoly_textures/normal.png",
+   "bytes": 5712860,
+   "sha256": "97c851a8dfcbf087ca8922e9387dce0b7a1b32502584c950b1e8769cf7873468"
+  },
+  {
+   "family": "prop",
+   "key": "burrow_door",
+   "stage": "highpoly",
+   "task_id": "01a0f008-c332-74c4-b420-641363ea18c7",
+   "path": "assets/library/prop/burrow_door/highpoly_textures/roughness.png",
+   "bytes": 1742856,
+   "sha256": "9324c350599a17f55f27422a90f7032519480385023914edea7b7ead63edf6db"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_arch",
+   "stage": "concept",
+   "task_id": "01a0f007-cc8f-74d4-a859-17b402b476b3",
+   "path": "assets/library/prop/tunnel_arch/concept.png",
+   "bytes": 911551,
+   "sha256": "d3e960a0963f66d8e2043dc1b8e173cd0a16e97a60d4225af15c80c8d1a1ba96"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_arch",
+   "stage": "highpoly",
+   "task_id": "01a0f008-ccd1-72a7-bf7d-bc26d13554df",
+   "path": "assets/library/prop/tunnel_arch/highpoly.glb",
+   "bytes": 38242500,
+   "sha256": "f685f3e1b6ab257cf5b6103bb493caa0de295ef744d87cce30962062bf877b56"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_arch",
+   "stage": "highpoly",
+   "task_id": "01a0f008-ccd1-72a7-bf7d-bc26d13554df",
+   "path": "assets/library/prop/tunnel_arch/highpoly_textures/base_color.png",
+   "bytes": 6301177,
+   "sha256": "6470e72090e40de7f4bcd7ce23efd5d609416808ff43cfbb34f10a348e470edd"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_arch",
+   "stage": "highpoly",
+   "task_id": "01a0f008-ccd1-72a7-bf7d-bc26d13554df",
+   "path": "assets/library/prop/tunnel_arch/highpoly_textures/metallic.png",
+   "bytes": 43937,
+   "sha256": "91cc5b82c9b45ef0b4348970634e8a2d96afe5caa8ce989a126d2df61842d636"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_arch",
+   "stage": "highpoly",
+   "task_id": "01a0f008-ccd1-72a7-bf7d-bc26d13554df",
+   "path": "assets/library/prop/tunnel_arch/highpoly_textures/normal.png",
+   "bytes": 5257073,
+   "sha256": "cbbce9c78e781553e7f62775bc95eab02e18e7d66c6ce7cb19233d5766d799c4"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_arch",
+   "stage": "highpoly",
+   "task_id": "01a0f008-ccd1-72a7-bf7d-bc26d13554df",
+   "path": "assets/library/prop/tunnel_arch/highpoly_textures/roughness.png",
+   "bytes": 1569826,
+   "sha256": "a968496db8c7165a23d4ef09ed06183f8aa76db3df8fe0b9f2bf595b4c853320"
+  },
+  {
+   "family": "prop",
+   "key": "hand_lantern",
+   "stage": "concept",
+   "task_id": "01a0f007-d839-7334-9c92-418843db7751",
+   "path": "assets/library/prop/hand_lantern/concept.png",
+   "bytes": 921894,
+   "sha256": "dcaedb4ac8374903b6a0e9cb9db0ea8a2dae61475e476b0fa7e636935dcc3224"
+  },
+  {
+   "family": "prop",
+   "key": "hand_lantern",
+   "stage": "highpoly",
+   "task_id": "01a0f008-d4fb-74e8-83b6-23f6186586f1",
+   "path": "assets/library/prop/hand_lantern/highpoly.glb",
+   "bytes": 28526120,
+   "sha256": "26476ac1720cd68d55e1812d4e93fd9564bca260f6462cc42e48a8aef0134351"
+  },
+  {
+   "family": "prop",
+   "key": "hand_lantern",
+   "stage": "highpoly",
+   "task_id": "01a0f008-d4fb-74e8-83b6-23f6186586f1",
+   "path": "assets/library/prop/hand_lantern/highpoly_textures/base_color.png",
+   "bytes": 5972916,
+   "sha256": "106ee52a71e6f589d4833da5790b8890dad23f1957006627ed9576dfd27b7f46"
+  },
+  {
+   "family": "prop",
+   "key": "hand_lantern",
+   "stage": "highpoly",
+   "task_id": "01a0f008-d4fb-74e8-83b6-23f6186586f1",
+   "path": "assets/library/prop/hand_lantern/highpoly_textures/metallic.png",
+   "bytes": 471485,
+   "sha256": "f1273ba8990bec54c58fac49843bd0e0ba8315c68ed5dc0199c6cf265058c6f2"
+  },
+  {
+   "family": "prop",
+   "key": "hand_lantern",
+   "stage": "highpoly",
+   "task_id": "01a0f008-d4fb-74e8-83b6-23f6186586f1",
+   "path": "assets/library/prop/hand_lantern/highpoly_textures/normal.png",
+   "bytes": 5112243,
+   "sha256": "14a3cda764c6daa48675df528228c1b69e14f0d7fbb5be3e3bae726e831f08d0"
+  },
+  {
+   "family": "prop",
+   "key": "hand_lantern",
+   "stage": "highpoly",
+   "task_id": "01a0f008-d4fb-74e8-83b6-23f6186586f1",
+   "path": "assets/library/prop/hand_lantern/highpoly_textures/roughness.png",
+   "bytes": 1594175,
+   "sha256": "cf7e843fe765466e0681d27e5c0e45eece2caab8576cf9b1875c866726b6dc58"
+  },
+  {
+   "family": "prop",
+   "key": "hanging_stores",
+   "stage": "concept",
+   "task_id": "01a0f007-e1b9-735e-956e-f75f649f9c6e",
+   "path": "assets/library/prop/hanging_stores/concept.png",
+   "bytes": 847062,
+   "sha256": "757a70538997c68a4c0c09ed9fa6836c6f1b7c4218ef3609f28ba5f2d39b1938"
+  },
+  {
+   "family": "prop",
+   "key": "hanging_stores",
+   "stage": "highpoly",
+   "task_id": "01a0f008-dc7f-7301-8461-8a3f5ab80b40",
+   "path": "assets/library/prop/hanging_stores/highpoly.glb",
+   "bytes": 176234956,
+   "sha256": "7940c13a0215fcb901d721f932eb5fc469bca54272fc47cc92719c0a33437217"
+  },
+  {
+   "family": "prop",
+   "key": "hanging_stores",
+   "stage": "highpoly",
+   "task_id": "01a0f008-dc7f-7301-8461-8a3f5ab80b40",
+   "path": "assets/library/prop/hanging_stores/highpoly_textures/base_color.png",
+   "bytes": 7107743,
+   "sha256": "451a33bf40892298593b086e04f9040820a1a3662b618e63887950ed1c4172be"
+  },
+  {
+   "family": "prop",
+   "key": "hanging_stores",
+   "stage": "highpoly",
+   "task_id": "01a0f008-dc7f-7301-8461-8a3f5ab80b40",
+   "path": "assets/library/prop/hanging_stores/highpoly_textures/metallic.png",
+   "bytes": 86862,
+   "sha256": "96a99c6f294c988bb9dff748498bd2b8a8f5d9dce949cc983d596788b455d946"
+  },
+  {
+   "family": "prop",
+   "key": "hanging_stores",
+   "stage": "highpoly",
+   "task_id": "01a0f008-dc7f-7301-8461-8a3f5ab80b40",
+   "path": "assets/library/prop/hanging_stores/highpoly_textures/normal.png",
+   "bytes": 6129473,
+   "sha256": "9add0ef51d1bf63c38c699565b9c401aba35da4ba0b3622dcd34591c7d761cca"
+  },
+  {
+   "family": "prop",
+   "key": "hanging_stores",
+   "stage": "highpoly",
+   "task_id": "01a0f008-dc7f-7301-8461-8a3f5ab80b40",
+   "path": "assets/library/prop/hanging_stores/highpoly_textures/roughness.png",
+   "bytes": 1904035,
+   "sha256": "e7987c4d365435fea70d1a1d6c7bafd63671753f07872c6e33c66ee524d68fe0"
+  },
+  {
+   "family": "prop",
+   "key": "root_bin",
+   "stage": "concept",
+   "task_id": "01a0f007-ec7a-7232-b394-a82a6e1928df",
+   "path": "assets/library/prop/root_bin/concept.png",
+   "bytes": 1074386,
+   "sha256": "57635e6cb4b1430ffbeedb7713616a01ac3f78908cba6aae54124cde8a0cbfee"
+  },
+  {
+   "family": "prop",
+   "key": "root_bin",
+   "stage": "highpoly",
+   "task_id": "01a0f008-e5ac-7536-9b0d-b2fe7538a4c5",
+   "path": "assets/library/prop/root_bin/highpoly.glb",
+   "bytes": 165293412,
+   "sha256": "d528c1370a1b0ee6ec4c01b1ed4fdaa32fef0a981251b3d3090710dba0e4457b"
+  },
+  {
+   "family": "prop",
+   "key": "root_bin",
+   "stage": "highpoly",
+   "task_id": "01a0f008-e5ac-7536-9b0d-b2fe7538a4c5",
+   "path": "assets/library/prop/root_bin/highpoly_textures/base_color.png",
+   "bytes": 6627563,
+   "sha256": "76d1aea859bb5a2827f728826e09043511ca59d6570f32f10f2ca38512deb376"
+  },
+  {
+   "family": "prop",
+   "key": "root_bin",
+   "stage": "highpoly",
+   "task_id": "01a0f008-e5ac-7536-9b0d-b2fe7538a4c5",
+   "path": "assets/library/prop/root_bin/highpoly_textures/metallic.png",
+   "bytes": 20502,
+   "sha256": "2b85082abb4dd22c8b569e30be56d5c9576e0cef1b31d0ca324e70bcdf5f95dd"
+  },
+  {
+   "family": "prop",
+   "key": "root_bin",
+   "stage": "highpoly",
+   "task_id": "01a0f008-e5ac-7536-9b0d-b2fe7538a4c5",
+   "path": "assets/library/prop/root_bin/highpoly_textures/normal.png",
+   "bytes": 5681652,
+   "sha256": "5c7b6d45cca0fb1509a9feea5caa6899e887b4c7ff8f8003a829040f697d25c2"
+  },
+  {
+   "family": "prop",
+   "key": "root_bin",
+   "stage": "highpoly",
+   "task_id": "01a0f008-e5ac-7536-9b0d-b2fe7538a4c5",
+   "path": "assets/library/prop/root_bin/highpoly_textures/roughness.png",
+   "bytes": 1797714,
+   "sha256": "1775e9b05f04d09f7aa4c188458f05cb4020985f791f8348182450a81f0caa83"
+  },
+  {
+   "family": "prop",
+   "key": "chimney_pot",
+   "stage": "concept",
+   "task_id": "01a0f007-fadc-77a9-bab6-73a7a946ed5b",
+   "path": "assets/library/prop/chimney_pot/concept.png",
+   "bytes": 923872,
+   "sha256": "08633d46301295800a6fb0d8f3aed3f6e42a0d19a23b79139e052fc9a39bc132"
+  },
+  {
+   "family": "prop",
+   "key": "chimney_pot",
+   "stage": "highpoly",
+   "task_id": "01a0f008-ee15-7049-aa2d-b73b73cc5e23",
+   "path": "assets/library/prop/chimney_pot/highpoly.glb",
+   "bytes": 26786720,
+   "sha256": "05d5fa6174c4381467a129dfe6b3f7bace0eb118a637c6105608fa1cef794c9e"
+  },
+  {
+   "family": "prop",
+   "key": "chimney_pot",
+   "stage": "highpoly",
+   "task_id": "01a0f008-ee15-7049-aa2d-b73b73cc5e23",
+   "path": "assets/library/prop/chimney_pot/highpoly_textures/base_color.png",
+   "bytes": 6114219,
+   "sha256": "7b2d883fd2fa3be30fd1dc0e4325353e6eabf9c223a6a08eb6e654d564d61df1"
+  },
+  {
+   "family": "prop",
+   "key": "chimney_pot",
+   "stage": "highpoly",
+   "task_id": "01a0f008-ee15-7049-aa2d-b73b73cc5e23",
+   "path": "assets/library/prop/chimney_pot/highpoly_textures/metallic.png",
+   "bytes": 22596,
+   "sha256": "961fb9af5ffde5a4d4a7ad5950e6a86182f1ca6d14f41a90e9290c89be4e57aa"
+  },
+  {
+   "family": "prop",
+   "key": "chimney_pot",
+   "stage": "highpoly",
+   "task_id": "01a0f008-ee15-7049-aa2d-b73b73cc5e23",
+   "path": "assets/library/prop/chimney_pot/highpoly_textures/normal.png",
+   "bytes": 4941766,
+   "sha256": "280a67521155ff23c736e50285c7245239c287b1797a2dc304f238b440e1e874"
+  },
+  {
+   "family": "prop",
+   "key": "chimney_pot",
+   "stage": "highpoly",
+   "task_id": "01a0f008-ee15-7049-aa2d-b73b73cc5e23",
+   "path": "assets/library/prop/chimney_pot/highpoly_textures/roughness.png",
+   "bytes": 1347768,
+   "sha256": "70aeb1471b6aa29d90dacc9c9d4ed34c62cc65e682028566634180d854fff1dc"
+  },
+  {
+   "family": "prop",
+   "key": "rag_rug",
+   "stage": "concept",
+   "task_id": "01a0f008-02ae-7271-876e-69e4612726bc",
+   "path": "assets/library/prop/rag_rug/concept.png",
+   "bytes": 1342338,
+   "sha256": "758a6ebab2647d8939dc862d0afbbfb49dae1a02593e2643ff33260422ae5fb0"
+  },
+  {
+   "family": "prop",
+   "key": "rag_rug",
+   "stage": "highpoly",
+   "task_id": "01a0f008-f5f9-7187-9ccd-d8b85e14b326",
+   "path": "assets/library/prop/rag_rug/highpoly.glb",
+   "bytes": 61074172,
+   "sha256": "a36b659ad339ffd0f91e48e7ab40689b22f8e67f13bcc5f51b121affebe3d7bf"
+  },
+  {
+   "family": "prop",
+   "key": "rag_rug",
+   "stage": "highpoly",
+   "task_id": "01a0f008-f5f9-7187-9ccd-d8b85e14b326",
+   "path": "assets/library/prop/rag_rug/highpoly_textures/base_color.png",
+   "bytes": 7767439,
+   "sha256": "9810ab29f9c2bf7d3c564402ce51f16f5ebfcef06eceb8564717b10119aa2204"
+  },
+  {
+   "family": "prop",
+   "key": "rag_rug",
+   "stage": "highpoly",
+   "task_id": "01a0f008-f5f9-7187-9ccd-d8b85e14b326",
+   "path": "assets/library/prop/rag_rug/highpoly_textures/metallic.png",
+   "bytes": 31625,
+   "sha256": "760fd4e48aa88c6e26ad2ab1a632799cb4a5d7bbd58a5328660b93af7126b1ae"
+  },
+  {
+   "family": "prop",
+   "key": "rag_rug",
+   "stage": "highpoly",
+   "task_id": "01a0f008-f5f9-7187-9ccd-d8b85e14b326",
+   "path": "assets/library/prop/rag_rug/highpoly_textures/normal.png",
+   "bytes": 7024150,
+   "sha256": "3b07d11ea56a756cda5c6e58c2ee4960884222083483b7c018394ab35ef65b74"
+  },
+  {
+   "family": "prop",
+   "key": "rag_rug",
+   "stage": "highpoly",
+   "task_id": "01a0f008-f5f9-7187-9ccd-d8b85e14b326",
+   "path": "assets/library/prop/rag_rug/highpoly_textures/roughness.png",
+   "bytes": 1857553,
+   "sha256": "f2e09a12e96a5ec2b91b23a306d653697e3dae5fb9716b1f68b2bd946fd94a77"
+  },
+  {
+   "family": "creature",
+   "key": "mole_digger",
+   "stage": "animation",
+   "task_id": "01a0f009-3ec2-7391-ab8f-80d300b11b8e",
+   "path": "assets/library/creature/mole_digger/anim_sleep_normally.glb",
+   "bytes": 6898044,
+   "sha256": "7da64dc8b5f66b622e1494a8a59335927872cab27e129271c31ccdfeada440f6"
+  },
+  {
+   "family": "creature",
+   "key": "mole_digger",
+   "stage": "animation",
+   "task_id": "01a0f009-45b5-7560-9082-65c59b507a77",
+   "path": "assets/library/creature/mole_digger/anim_heavy_hammer_swing.glb",
+   "bytes": 6900900,
+   "sha256": "c548f954d611ad5a02092474a0a43696908931c069ec838405d989efe318b3a7"
+  },
+  {
+   "family": "creature",
+   "key": "mole_digger",
+   "stage": "animation",
+   "task_id": "01a0f009-4c18-7713-b883-40358b52023a",
+   "path": "assets/library/creature/mole_digger/anim_cautious_crouch_walk_forward.glb",
+   "bytes": 6891436,
+   "sha256": "8be57f5af966dc15924ad08730ecfd4cfb3bc9fe2975828c1fe895e0fd5745c5"
+  },
+  {
+   "family": "creature",
+   "key": "mouse_keeper",
+   "stage": "animation",
+   "task_id": "01a0f00b-7955-7013-98c7-9d4928a0f717",
+   "path": "assets/library/creature/mouse_keeper/anim_sleep_normally.glb",
+   "bytes": 6252252,
+   "sha256": "d534185c4bb38a58388459301615b7e4f12f809fbb6292abf16a1286796673f5"
+  },
+  {
+   "family": "creature",
+   "key": "mouse_fieldworker",
+   "stage": "animation",
+   "task_id": "01a0f00b-8266-77ac-9d57-5c6dd3f0db4f",
+   "path": "assets/library/creature/mouse_fieldworker/anim_sleep_normally.glb",
+   "bytes": 5916880,
+   "sha256": "e83c8fcfefb7b53e64488caf544004dfb17a9f0ccd8821e30874e9b5fd8949ad"
+  },
+  {
+   "family": "creature",
+   "key": "squirrel_gatherer",
+   "stage": "animation",
+   "task_id": "01a0f00b-8c08-7231-a194-1f1e14e7e94c",
+   "path": "assets/library/creature/squirrel_gatherer/anim_sleep_normally.glb",
+   "bytes": 6176704,
+   "sha256": "09dc6c8564a6f2051ef49407fae67de8f1c6d7e86f6e116d53db112e2514aa84"
+  },
+  {
+   "family": "creature",
+   "key": "squirrel_forester",
+   "stage": "animation",
+   "task_id": "01a0f00b-947e-71f4-a41d-a4e209fdc4df",
+   "path": "assets/library/creature/squirrel_forester/anim_sleep_normally.glb",
+   "bytes": 6264812,
+   "sha256": "da184d5f7d18f5d184f1a8b78be9cbf5d18e74df2e4d0254192ac795b1f67e6c"
+  },
+  {
+   "family": "creature",
+   "key": "otter_boatwright",
+   "stage": "animation",
+   "task_id": "01a0f00b-9d94-7730-a277-97425feb82fe",
+   "path": "assets/library/creature/otter_boatwright/anim_sleep_normally.glb",
+   "bytes": 6239940,
+   "sha256": "3467efe2e747d4cd721d2f338f7bccb19116df30546d6a1c9de7f5d18ca4bfb6"
+  },
+  {
+   "family": "creature",
+   "key": "otter_fisher",
+   "stage": "animation",
+   "task_id": "01a0f00b-a648-7670-8f82-e6b134507310",
+   "path": "assets/library/creature/otter_fisher/anim_sleep_normally.glb",
+   "bytes": 5834272,
+   "sha256": "d0898a8d3d1a652c56d10ec91320337389ce627bc6ea9ed14acfeae1f0cbe482"
+  },
+  {
+   "family": "creature",
+   "key": "badger_quarryman",
+   "stage": "animation",
+   "task_id": "01a0f00b-aec1-7672-9272-e16cb9a201a0",
+   "path": "assets/library/creature/badger_quarryman/anim_sleep_normally.glb",
+   "bytes": 7023916,
+   "sha256": "db43edddb49e0f19e55a0199d35443307456c98e5f8078d22b759635fa46f90a"
+  },
+  {
+   "family": "creature",
+   "key": "mole_mason",
+   "stage": "animation",
+   "task_id": "01a0f00b-b936-730b-b9a1-650f584c071d",
+   "path": "assets/library/creature/mole_mason/anim_heavy_hammer_swing.glb",
+   "bytes": 6851972,
+   "sha256": "433a6f97a069f44eb0a7f32d33cd857822c16bac245a676d9c6b4062ec9f3148"
+  },
+  {
+   "family": "creature",
+   "key": "badger_quarryman",
+   "stage": "animation",
+   "task_id": "01a0f00b-c252-778d-a866-2cb46b97b137",
+   "path": "assets/library/creature/badger_quarryman/anim_heavy_hammer_swing.glb",
+   "bytes": 7025680,
+   "sha256": "e96f3e77542f4f81079cb04d5f6f3a62ec01cbf750b4d3cc0c52ea2f43018e33"
+  },
+  {
+   "family": "creature",
+   "key": "mouse_keeper",
+   "stage": "animation",
+   "task_id": "01a0f00b-cb94-7569-9748-d94c79e5f8f5",
+   "path": "assets/library/creature/mouse_keeper/anim_cautious_crouch_walk_forward.glb",
+   "bytes": 6245644,
+   "sha256": "c1a606d5ea1a4e7ebdbd8809699ee1751c7279744bdc4b7b3ae595fc9d216767"
+  },
+  {
+   "family": "creature",
+   "key": "mouse_fieldworker",
+   "stage": "animation",
+   "task_id": "01a0f00b-d4e3-7371-bdac-fe7139d0505e",
+   "path": "assets/library/creature/mouse_fieldworker/anim_cautious_crouch_walk_forward.glb",
+   "bytes": 5910268,
+   "sha256": "edccbc3ee2efa62caf510c9d337ec6c09ad52b07a8ec7731a9bc4f274e4ba846"
+  },
+  {
+   "family": "creature",
+   "key": "squirrel_gatherer",
+   "stage": "animation",
+   "task_id": "01a0f00b-ddf1-76ed-bedd-0bfd09b1d3ba",
+   "path": "assets/library/creature/squirrel_gatherer/anim_cautious_crouch_walk_forward.glb",
+   "bytes": 6170104,
+   "sha256": "f4c47b7f6c529194bcf6c454568984d654010ff93f49e22a9b611a807a50f6fa"
+  },
+  {
+   "family": "creature",
+   "key": "squirrel_forester",
+   "stage": "animation",
+   "task_id": "01a0f00b-e554-7035-a2de-e1818c879ef6",
+   "path": "assets/library/creature/squirrel_forester/anim_cautious_crouch_walk_forward.glb",
+   "bytes": 6258188,
+   "sha256": "9ce5188179b57a1712b9b6a09069dbafec3a61cfdb6cf0fd56ac0e18c2dca460"
+  },
+  {
+   "family": "creature",
+   "key": "otter_boatwright",
+   "stage": "animation",
+   "task_id": "01a0f00b-edcd-716d-8ad8-903a7d8b26f1",
+   "path": "assets/library/creature/otter_boatwright/anim_cautious_crouch_walk_forward.glb",
+   "bytes": 6233324,
+   "sha256": "21f6cfc97a8bd468f23cf7c995a3ef24bcc50c0882063e6c1133d18acf501036"
+  },
+  {
+   "family": "creature",
+   "key": "otter_fisher",
+   "stage": "animation",
+   "task_id": "01a0f00b-f6d7-744c-bf1f-d4bb03a3a15b",
+   "path": "assets/library/creature/otter_fisher/anim_cautious_crouch_walk_forward.glb",
+   "bytes": 5827660,
+   "sha256": "84eb439ecffb0e664dbf7ee2f46f25678f77dd77ed6fd208ba10bfaca3730966"
+  },
+  {
+   "family": "creature",
+   "key": "badger_quarryman",
+   "stage": "animation",
+   "task_id": "01a0f00c-004f-776d-b01b-fb036f90c354",
+   "path": "assets/library/creature/badger_quarryman/anim_cautious_crouch_walk_forward.glb",
+   "bytes": 7019692,
+   "sha256": "b03c0525f0b8dba2a280ff71cbdb815474cacae61cb72ca726ea1f161c090099"
   }
  ]
 }

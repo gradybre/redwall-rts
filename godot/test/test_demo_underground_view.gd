@@ -182,7 +182,8 @@ func test_the_layer_masks() -> void:
 	assert_false(Layers.is_one_view(0), "neither is refused")
 	assert_almost_equal(Layers.pick_y(false), 0.0, "the ground")
 	assert_almost_equal(Layers.pick_y(true), -Rules.BORE_FLOOR_DEPTH_M, "the bore floor")
-	assert_almost_equal(Layers.CAP_Y_M, -0.75, "the cap: half a bore over the floor")
+	assert_true(absf(Layers.CAP_Y_M + 0.15) < 0.001, "the cap: the section plane at the widened bore's crown (decision 0207)")
+	assert_true(Layers.CAP_Y_M >= Layers.FLOOR_Y_M + Rules.crown_m(Rules.BORE_WIDE) - 0.001, "no drawn crown rises above it")
 
 
 func test_set_layers_walks_the_tree_and_skips_one_branch() -> void:

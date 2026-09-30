@@ -2,9 +2,11 @@ extends Node3D
 ## The underground view's section cap, its backstop and its light. Decision 0206 (the underground
 ## revamp's P0; design docs/design/underground_revamp.md §5 "The section cap"). Presentation only.
 ##
-## THE CAP is one plane at Layers.CAP_Y_M on the UNDERGROUND layer, drawn with underground_cap.gdshader:
-## solid earth cut through at the level, which the troughs and rooms are seen in. It shows, read where the
-## view ray meets the FLOOR (so it lies under the floor point a click lands on):
+## THE CAP is one plane at Layers.CAP_Y_M -- the section plane, at the widened bore's crown (decision
+## 0207; P0's was half a bore up) -- on the UNDERGROUND layer, drawn with underground_cap.gdshader: solid
+## earth cut through at the level, which the bores and rooms are seen in. It shows, read where the view
+## ray meets the FLOOR (so it lies under the floor point a click lands on), in the one earth the bores'
+## walls are drawn in (underground_earth.gdshaderinc):
 ##   * THE STRATA: the ground map (tunnel_ground.gd) -- loam, clay, sand and rock pockets, wet ground
 ##     tinted -- exactly where they slow or weaken a dig, with a grain;
 ##   * THE NO-DIG BAND: a blue hatch wherever a bore is refused for water -- within half a bore of it,
@@ -14,14 +16,21 @@ extends Node3D
 ##     distance in the marks, so the outline is smooth at 4 px a metre);
 ##   * ROOTS: a tangle of roots under each mature tree, out to its root skirt (forest_roots.gd reach_m) --
 ##     the sunk root balls themselves are on the surface layer and never show here;
-##   * VOIDS: every dug metre of bore at full depth and every dug room is stamped into a mask as it is
-##     dug (`stamp_disc`, `stamp_rect`; a disc's rim anti-aliased, so the cut edge is smooth at 8 px a
-##     metre); the cap is discarded over them, with a dark cut band at the edge.
-## THE BACKSTOP is a dark plane DEEP_Y_M down, so a sliver seen past a trough's wall is deep earth.
-## THE LIGHT is a directional fill on the UNDERGROUND layer only; the sun is on the surface layer, so each
-## view is lit by its own and the U view casts no sun shadows (demo_layers.gd).
+##   * VOIDS (decision 0207): every dug step of a bore is stamped into a mask as it is dug
+##     (`stamp_disc`): G holds each pixel's distance from the nearest bore disc over that disc's floor
+##     half-width, B that disc's floor rise over the level's floor (a ramp's is higher), A its crown -- a
+##     distance field, so the rim is smooth at any angle. The shader walks each view ray down from the cap
+##     to the floor and cuts the cap away where the ray enters a bore's horseshoe at any height: the walls
+##     rise to the crown under the section and the far wall shows through it (P0 read the floor point
+##     only). A dug room's floor is R (`stamp_rect`), opened where the floor point is dug, as in P0. The
+##     cut is edged with a dark band.
+## THE BACKSTOP is a dark plane DEEP_Y_M down, so a sliver seen past a bore's wall is deep earth.
+## THE LIGHT is a faint directional fill on the UNDERGROUND layer only -- the lanterns are the light below
+## (tunnel_lanterns.gd); the sun is on the surface layer, so each view is lit by its own and the U view
+## casts no sun shadows (demo_layers.gd).
 ##
-## Built once, at boot; the masks are sized once and only their pixels change.
+## Built once, at boot; the masks are sized once and only their pixels change. The maps are shared with
+## the bores' earth (`share_earth`).
 
 const Layers := preload("res://demo/demo_layers.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
@@ -32,6 +41,7 @@ const RootsScript := preload("res://demo/forestry/forest_roots.gd")
 const StandScript := preload("res://demo/forestry/forest_stand.gd")
 const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 const CAP_SHADER := preload("res://demo/tunnel/underground_cap.gdshader")
+const BoreMeshScript := preload("res://demo/tunnel/bore_mesh.gd")
 
 ## The mapped square: MAP_HALF_M either side of the village's centre (the play square, the stream and
 ## the pond; beyond it the edge texels carry on).
@@ -54,13 +64,27 @@ const ROOTS_PER_TREE: int = 7
 const ROOT_START_SHARE: float = 0.08
 const ROOT_BEND_RAD: float = 0.35
 const ROOT_BALL_SHARE: float = 0.22
-const LIGHT_COLOUR: Color = Color(1.0, 0.9, 0.76)
-const LIGHT_ENERGY: float = 0.85
+const LIGHT_COLOUR: Color = Color(0.86, 0.8, 0.74)
+const LIGHT_ENERGY: float = 0.5
+## The void mask's channels (see VOIDS): a pixel is written out to RHO_REACH floor half-widths from a
+## disc, its rise and crown coded over these ranges.
+const VOID_ROOM: int = 0
+const VOID_RHO: int = 1
+const VOID_RISE: int = 2
+const VOID_CROWN: int = 3
+const RHO_RANGE: float = 2.0
+const RHO_REACH: float = 1.5
+const RISE_RANGE_M: float = 1.25
+const CROWN_RANGE_M: float = 2.0
+## A floor within this of the level's counts as the level's floor (`is_dug`).
+const FLOOR_SLACK_M: float = 0.25
 const LIGHT_EULER_DEG: Vector3 = Vector3(-62.0, 35.0, 0.0)
 
 var _ground_image: Image = null
 var _marks: PackedByteArray = PackedByteArray()
 var _marks_texture: ImageTexture = null
+var _void: PackedByteArray = PackedByteArray()
+var _void_side: int = 0
 var _void_image: Image = null
 var _void_texture: ImageTexture = null
 var _void_dirty: bool = false
@@ -77,8 +101,9 @@ func configure(ground: GroundScript, water: WaterScript) -> void:
 	var side: int = MAP_SIDE_M * MARKS_PX_PER_M
 	_marks.resize(side * side * 4)
 	_marks_texture = ImageTexture.create_from_image(Image.create_from_data(side, side, false, Image.FORMAT_RGBA8, _marks))
-	var void_side: int = MAP_SIDE_M * VOID_PX_PER_M
-	_void_image = Image.create(void_side, void_side, false, Image.FORMAT_R8)
+	_void_side = MAP_SIDE_M * VOID_PX_PER_M
+	_void.resize(_void_side * _void_side * 4)
+	_void_image = Image.create_from_data(_void_side, _void_side, false, Image.FORMAT_RGBA8, _void)
 	_void_texture = ImageTexture.create_from_image(_void_image)
 	_material = _cap_material()
 	_cap = _plane(Layers.CAP_Y_M, _material)
@@ -96,8 +121,19 @@ func _cap_material() -> ShaderMaterial:
 	material.set_shader_parameter(&"grain", _grain())
 	material.set_shader_parameter(&"map_rect", Vector3(-MAP_HALF_M, -MAP_HALF_M, 1.0 / float(MAP_SIDE_M)))
 	material.set_shader_parameter(&"floor_y", Layers.FLOOR_Y_M)
+	material.set_shader_parameter(&"rise_range", RISE_RANGE_M)
+	material.set_shader_parameter(&"crown_range", CROWN_RANGE_M)
+	material.set_shader_parameter(&"bulge", BoreMeshScript.BULGE)
+	material.set_shader_parameter(&"spring_share", BoreMeshScript.SPRING_SHARE)
 	material.set_shader_parameter(&"water_line", 0.5 + WATER_CLEARANCE_M / (2.0 * WATER_RANGE_M))
 	return material
+
+
+func share_earth(material: ShaderMaterial) -> void:
+	"""Give another earth material (the bores', bore_earth.gdshader) the cap's maps, so a wall and the cut
+	it meets are the same soil (underground_earth.gdshaderinc)."""
+	for name: StringName in [&"ground_map", &"marks_map", &"grain", &"map_rect"]:
+		material.set_shader_parameter(name, _material.get_shader_parameter(name))
 
 
 static func _grain() -> NoiseTexture2D:
@@ -276,41 +312,50 @@ static func void_pixel(at: Vector2) -> Vector2i:
 	return Vector2i(floori((at.x + MAP_HALF_M) * VOID_PX_PER_M), floori((at.y + MAP_HALF_M) * VOID_PX_PER_M))
 
 
-func stamp_disc(centre: Vector2, radius: float, cut: Vector2 = Vector2.ZERO) -> void:
-	"""Mark a disc of floor dug (a bore's cross-section at a step along it): each void pixel by how much
-	of it the disc covers (its centre's distance inside the rim, in pixels, clamped to 0..1), raised,
-	never lowered -- so the mask's 0.5 is the rim to a fraction of a pixel. A non-zero unit `cut` keeps
-	only the half behind the line through the centre across it (a dig face). Uploaded by `commit_void`."""
-	var reach: int = ceili(radius * VOID_PX_PER_M) + 1
+static func void_centre(x: int, y: int) -> Vector2:
+	"""The centre of void pixel (x, y), (x, z) metres."""
+	return Vector2((float(x) + 0.5) / VOID_PX_PER_M - MAP_HALF_M, (float(y) + 0.5) / VOID_PX_PER_M - MAP_HALF_M)
+
+
+func stamp_disc(centre: Vector2, radius: float, cut: Vector2 = Vector2.ZERO, rise_m: float = 0.0,
+		crown_m: float = 1.0) -> void:
+	"""Mark a bore's cross-section dug (one step along it; see VOIDS): a disc of floor half-width `radius`
+	whose floor lies `rise_m` over the level's and whose crown is `crown_m`. Each pixel out to RHO_REACH
+	keeps the nearest disc's distance (and that disc's rise and crown), never a farther one. A non-zero
+	unit `cut` keeps only the half behind the line through the centre across it (a dig face). Uploaded by
+	`commit_void`."""
+	var reach: int = ceili(radius * RHO_REACH * VOID_PX_PER_M) + 1
 	var middle: Vector2i = void_pixel(centre)
-	var side: int = _void_image.get_width()
-	for y: int in range(maxi(middle.y - reach, 0), mini(middle.y + reach + 1, side)):
-		for x: int in range(maxi(middle.x - reach, 0), mini(middle.x + reach + 1, side)):
-			var at := Vector2((float(x) + 0.5) / VOID_PX_PER_M - MAP_HALF_M, (float(y) + 0.5) / VOID_PX_PER_M - MAP_HALF_M)
-			var inside: float = minf(radius - at.distance_to(centre), -(at - centre).dot(cut) if cut != Vector2.ZERO else radius)
-			var cover: float = clampf(inside * VOID_PX_PER_M + 0.5, 0.0, 1.0)
-			if cover > _void_image.get_pixel(x, y).r:
-				_void_image.set_pixel(x, y, Color(cover, 0.0, 0.0))
-				_void_dirty = true
+	var rise: int = roundi(clampf(rise_m / RISE_RANGE_M, 0.0, 1.0) * 255.0)
+	var crown: int = roundi(clampf(crown_m / CROWN_RANGE_M, 0.0, 1.0) * 255.0)
+	for y: int in range(maxi(middle.y - reach, 0), mini(middle.y + reach + 1, _void_side)):
+		for x: int in range(maxi(middle.x - reach, 0), mini(middle.x + reach + 1, _void_side)):
+			var offset: Vector2 = void_centre(x, y) - centre
+			if cut != Vector2.ZERO and offset.dot(cut) > 0.0:
+				continue
+			var rho: float = offset.length() / radius
+			if rho <= RHO_REACH:
+				_raise_rho((y * _void_side + x) * 4, roundi((1.0 - rho / RHO_RANGE) * 255.0), rise, crown)
+
+
+func _raise_rho(i: int, code: int, rise: int, crown: int) -> void:
+	"""Keep a nearer disc's distance code at byte `i`, with its rise and crown."""
+	if code <= _void[i + VOID_RHO]:
+		return
+	_void[i + VOID_RHO] = code
+	_void[i + VOID_RISE] = rise
+	_void[i + VOID_CROWN] = crown
+	_void_dirty = true
 
 
 func stamp_rect(centre: Vector2, half_m: float) -> void:
 	"""Mark a square room's floor dug. Uploaded by `commit_void`."""
 	var lo: Vector2i = void_pixel(centre - Vector2(half_m, half_m))
 	var hi: Vector2i = void_pixel(centre + Vector2(half_m, half_m))
-	for y: int in range(lo.y, hi.y):
-		_fill_row(lo.x, hi.x - 1, y)
-
-
-func _fill_row(x0: int, x1: int, y: int) -> void:
-	"""Fill void pixels x0..x1 of row y (clipped to the mask)."""
-	var side: int = _void_image.get_width()
-	var a: int = maxi(x0, 0)
-	var b: int = mini(x1, side - 1)
-	if y < 0 or y >= side or b < a:
-		return
-	_void_image.fill_rect(Rect2i(a, y, b - a + 1, 1), Color(1.0, 0.0, 0.0))
-	_void_dirty = true
+	for y: int in range(maxi(lo.y, 0), mini(hi.y, _void_side)):
+		for x: int in range(maxi(lo.x, 0), mini(hi.x, _void_side)):
+			_void[(y * _void_side + x) * 4 + VOID_ROOM] = 255
+			_void_dirty = true
 
 
 func commit_void() -> bool:
@@ -318,15 +363,25 @@ func commit_void() -> bool:
 	if not _void_dirty:
 		return false
 	_void_dirty = false
+	_void_image.set_data(_void_side, _void_side, false, Image.FORMAT_RGBA8, _void)
 	_void_texture.update(_void_image)
 	return true
 
 
-func is_dug(at: Vector2) -> bool:
-	"""Whether the floor at `at` (x, z metres) is stamped dug (tests and checks)."""
+func void_at(at: Vector2, channel: int) -> float:
+	"""One channel (VOID_*) of the void mask's pixel holding `at` (x, z metres), 0..1; 0 off the map."""
 	var p: Vector2i = void_pixel(at)
-	var side: int = _void_image.get_width()
-	return p.x >= 0 and p.y >= 0 and p.x < side and p.y < side and _void_image.get_pixel(p.x, p.y).r > 0.5
+	if p.x < 0 or p.y < 0 or p.x >= _void_side or p.y >= _void_side:
+		return 0.0
+	return float(_void[(p.y * _void_side + p.x) * 4 + channel]) / 255.0
+
+
+func is_dug(at: Vector2) -> bool:
+	"""Whether the floor at `at` (x, z metres) is dug at the level's floor: a room's, or inside a bore's
+	floor whose floor there is within FLOOR_SLACK_M of the level's (a ramp's higher end is not; checks)."""
+	if void_at(at, VOID_ROOM) > 0.5:
+		return true
+	return void_at(at, VOID_RHO) > 1.0 - 1.0 / RHO_RANGE and void_at(at, VOID_RISE) * RISE_RANGE_M <= FLOOR_SLACK_M
 
 
 # --- registry and checks ----------------------------------------------------------------------

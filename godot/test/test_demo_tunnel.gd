@@ -12,6 +12,8 @@ const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
 const RouterScript := preload("res://demo/tunnel/tunnel_router.gd")
 const PlanScript := preload("res://demo/tunnel/tunnel_plan.gd")
 const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
+const BoreMeshScript := preload("res://demo/tunnel/bore_mesh.gd")
+const BoreViewScript := preload("res://demo/tunnel/bore_view.gd")
 const ControlScript := preload("res://demo/tunnel/tunnel_control.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
@@ -132,6 +134,19 @@ func _step(brain: BrainScript, seconds: float) -> void:
 	"""Step one brain for `seconds`."""
 	for f in roundi(seconds / DT):
 		brain.step(DT)
+
+
+static func _slope_m(from_m: float, to_m: float, length_m: float) -> float:
+	"""How far a walker goes along a tunnel's floor between two route distances: the floor's length over
+	its ramps (decision 0207), summed in millimetre steps."""
+	var total := 0.0
+	var at := from_m
+	while at < to_m:
+		var step := minf(0.001, to_m - at)
+		var grade := Rules.floor_grade(at + step * 0.5, length_m)
+		total += step * sqrt(1.0 + grade * grade)
+		at += step
+	return total
 
 
 # --- rules: units and integer maths ---------------------------------------------------------
@@ -314,11 +329,11 @@ func test_each_point_is_checked_as_it_is_laid() -> void:
 
 func test_every_refusal_has_words() -> void:
 	"""A reason per REFUSE_* code, and none for REFUSE_NONE."""
-	assert_equal(Rules.REASONS.size(), 17, "seventeen codes (the last: under water)")
+	assert_equal(Rules.REASONS.size(), 18, "eighteen codes (the last: a ramp too steep, decision 0207)")
 	assert_equal(Rules.reason_text(Rules.REFUSE_NONE), "", "no reason")
 	assert_equal(Rules.reason_text(Rules.REFUSE_NOT_A_DIGGER), "only a mole can dig tunnels -- select the mole", "not a mole")
 	assert_equal(Rules.reason_text(Rules.REFUSE_UNDER_BUILDING), "a tunnel cannot pass under a building or the well", "under")
-	for code in range(1, 17):
+	for code in range(1, 18):
 		assert_false(Rules.reason_text(code).is_empty(), "code %d has words" % code)
 
 
@@ -344,10 +359,14 @@ func test_a_plan_lays_undoes_and_refuses_points() -> void:
 
 func test_lengths_read_to_a_tenth_of_a_metre() -> void:
 	"""Rounded to the nearest tenth within the limits; a refused length is rounded away from the limit
-	it breaks, so it never reads as an allowed one. (Changed with the review: 1.99 m read "2.0 m".)"""
+	it breaks, so it never reads as an allowed one. (Changed with the review: 1.99 m read "2.0 m"; and
+	with decision 0207: a route under 8 m is too short for its ramps, so it is floored too.)"""
 	assert_equal(PlanScript.length_text(12698), "12.4 m", "12.400 m")
-	assert_equal(PlanScript.length_text(3123), "3.0 m", "3.0498 m rounds down")
-	assert_equal(PlanScript.length_text(3124), "3.1 m", "3.0508 m rounds up")
+	assert_equal(PlanScript.length_text(9267), "9.0 m", "9.0498 m rounds down")
+	assert_equal(PlanScript.length_text(9268), "9.1 m", "9.0508 m rounds up")
+	assert_equal(PlanScript.length_text(3124), "3.0 m", "a refused 3.0508 m is floored")
+	assert_equal(PlanScript.length_text(8191), "7.9 m", "a refused 7.999 m never reads 8.0")
+	assert_equal(PlanScript.length_text(8192), "8.0 m", "exactly the shortest a ramp allows")
 	assert_equal(PlanScript.length_text(0), "0.0 m", "nothing")
 	assert_equal(PlanScript.length_text(1076), "1.0 m", "a short 1.0508 m is floored")
 	assert_equal(PlanScript.length_text(2047), "1.9 m", "a refused 1.999 m never reads 2.0")
@@ -447,7 +466,7 @@ func test_stopping_keeps_progress_or_frees_an_untouched_slot() -> void:
 
 
 func test_tunnel_geometry_for_drawing() -> void:
-	"""Points along an L route, its leg directions, and a floor ramping 1.25 m down over 1.5 m."""
+	"""Points along an L route, its leg directions, and a floor ramping 1.25 m down over 4 m."""
 	var network := NetworkScript.new()
 	var ref := PackedInt32Array([-1, 0])
 	network.add_into(_route([Vector2i(0, 0), Vector2i(4096, 0), Vector2i(4096, 4096)]), 3, 0, ref)
@@ -459,7 +478,8 @@ func test_tunnel_geometry_for_drawing() -> void:
 	assert_equal(network.direction_at(0, 1.0), Vector2(1.0, 0.0), "first leg heads +x")
 	assert_equal(network.direction_at(0, 5.0), Vector2(0.0, 1.0), "second heads +z")
 	assert_almost_equal(network.floor_y_at(0, 0.0), 0.0, "level with the ground at the entrance")
-	assert_almost_equal(network.floor_y_at(0, 0.75), -0.625, "half way down the ramp")
+	assert_almost_equal(network.floor_y_at(0, 0.75), -0.4 * 0.75 * 0.75 / 1.75, "easing into the ramp (decision 0207)")
+	assert_almost_equal(network.floor_y_at(0, 2.0), -0.4 * (2.0 - 0.4375), "the straight of the ramp, 1:2.5")
 	assert_almost_equal(network.floor_y_at(0, 4.0), -1.25, "bore depth")
 	assert_almost_equal(network.floor_y_at(0, 8.0), 0.0, "level at the exit")
 
@@ -628,24 +648,26 @@ func _watch_crossing(space: CastSpaceScript, brain: BrainScript, frames: int) ->
 
 
 func test_a_resident_walks_through_a_tunnel_off_the_surface() -> void:
-	"""Ordered past a wall, a fitting resident walks to the entrance, goes down for 4 m at 1 m/s --
-	underground, off the surface, below the ground -- comes up at the exit and holds at the goal."""
+	"""Ordered past a wall, a fitting resident walks to the entrance, goes down an 8 m tunnel at 1 m/s
+	along its floor -- down one ramp and up the other, 8.4 m of slope (decision 0207) -- underground,
+	off the surface, below the ground, comes up at the exit and holds at the goal."""
 	var space := _space(_wall())
-	_open_tunnel(space, [Vector2i(0, -2048), Vector2i(0, 2048)])
-	var brain := _brain(space, Vector2(0.0, -4.0), true)
-	brain.order_move(Vector2(0.0, 4.0))
-	var seen := _watch_crossing(space, brain, 60 * 20)
-	assert_true(seen["below"] >= 239 and seen["below"] <= 241, "4 m at 1 m/s is 240 frames (%d)" % seen["below"])
+	_open_tunnel(space, [Vector2i(0, -4096), Vector2i(0, 4096)])
+	var brain := _brain(space, Vector2(0.0, -6.0), true)
+	brain.order_move(Vector2(0.0, 6.0))
+	var seen := _watch_crossing(space, brain, 60 * 30)
+	var frames := roundi(_slope_m(0.0, 8.0, 8.0) * 60.0)
+	assert_true(absi(seen["below"] - frames) <= 2, "8.4 m of floor at 1 m/s is %d frames (%d)" % [frames, seen["below"]])
 	assert_true(seen["flagged"], "flagged underground on every frame below")
 	assert_true(seen["in_tunnel"], "'Using tunnel' on every frame below")
 	assert_almost_equal(seen["deepest"], -1.25, "down to the bore floor")
-	assert_equal(seen["surfaced"], Vector2(0.0, 2.0), "up at the exit")
-	assert_true((seen["went_down_from"] as Vector2).distance_to(Vector2(0.0, -2.0)) < BrainScript.WAYPOINT_REACH_M,
+	assert_equal(seen["surfaced"], Vector2(0.0, 4.0), "up at the exit")
+	assert_true((seen["went_down_from"] as Vector2).distance_to(Vector2(0.0, -4.0)) < BrainScript.WAYPOINT_REACH_M,
 		"went down only once at the entrance (from %s)" % seen["went_down_from"])
 	assert_equal(seen["index_up"], 2, "came up and carried on along its own route, to the goal waypoint")
-	assert_true(brain.trip_seconds() > 7.5, "the 4 s underground count as travel (%.2f s)" % brain.trip_seconds())
+	assert_true(brain.trip_seconds() > 11.5, "the 8.4 s underground count as travel (%.2f s)" % brain.trip_seconds())
 	assert_equal(brain.state, BrainScript.State.HOLD, "holding")
-	assert_true(brain.position.distance_to(Vector2(0.0, 4.0)) <= BrainScript.ARRIVE_RADIUS_M + 0.02, "at the goal")
+	assert_true(brain.position.distance_to(Vector2(0.0, 6.0)) <= BrainScript.ARRIVE_RADIUS_M + 0.02, "at the goal (%s)" % brain.position)
 	assert_equal(space.resident_underground[brain.index], 0, "back on the surface")
 
 
@@ -814,7 +836,7 @@ func test_a_mole_digs_a_tunnel_through_and_comes_up_at_the_exit() -> void:
 
 
 func test_the_mole_follows_the_face_underground() -> void:
-	"""Half way through the bore (113 + 113 ticks) the mole is 1 m in, on the bore floor's ramp."""
+	"""Half way through the bore (113 + 113 ticks) the mole is 1 m in, on the ramp's 1:2.5 straight."""
 	var site := _dig_site()
 	var space: CastSpaceScript = site[0]
 	var mole: BrainScript = site[1]
@@ -823,7 +845,7 @@ func test_the_mole_follows_the_face_underground() -> void:
 	assert_equal(space.tunnels.done(site[2]), 226, "half way through the bore")
 	assert_true(mole.underground, "underground")
 	assert_equal(mole.position, Vector2(1.0, 0.0), "at the face, 1 m in")
-	assert_almost_equal(mole.ground_y_m, -0.8333333, "two thirds of the way down the 1.5 m ramp")
+	assert_almost_equal(mole.ground_y_m, -0.4 * (1.0 - 0.4375), "past the ramp's easing, 1:2.5 (decision 0207)")
 	assert_equal(mole.surface_point(), Vector2(0.0, 0.0), "would come up at the entrance")
 
 
@@ -1101,8 +1123,8 @@ func test_the_command_layer_hands_t_to_the_tool_and_shows_digging() -> void:
 	command.select(PackedInt32Array([0]))
 	assert_true(command.handle_input(_key(KEY_T)), "T taken")
 	assert_true(command.tunnels().planning, "planning")
-	command.tunnels().lay_ground(Vector2(-3.0, 3.0))
-	command.tunnels().lay_ground(Vector2(3.0, 3.0))
+	command.tunnels().lay_ground(Vector2(-4.0, 3.0))
+	command.tunnels().lay_ground(Vector2(4.0, 3.0))
 	assert_true(command.handle_input(_key(KEY_ENTER)), "Enter taken")
 	var entries := command.party_entries()
 	assert_true(bool(entries[0]["digger"]), "a digger")
@@ -1114,7 +1136,7 @@ func test_the_command_layer_hands_t_to_the_tool_and_shows_digging() -> void:
 		guard += 1
 	_step(mole, 5.0)
 	assert_equal(command.tunnels().network.done(0), 150, "5 s of digging is 150 ticks")
-	assert_equal(command.party_entries()[0]["state"], "Digging tunnel — 16%", "150 of (6 + 2) x 113 = 904 ticks")
+	assert_equal(command.party_entries()[0]["state"], "Digging tunnel — 13%", "150 of (8 + 2) x 113 = 1130 ticks")
 
 
 # --- the panel ------------------------------------------------------------------------------
@@ -1154,8 +1176,9 @@ func test_a_notice_waits_for_the_panel_to_be_built() -> void:
 # --- orders around digging ------------------------------------------------------------------
 
 func test_resumed_the_mole_walks_down_to_the_face_digging() -> void:
-	"""Resumed at 226 ticks, the mole walks down 1 m to the face (reading as digging all the way)
-	before it digs again -- it does not start over at the entrance."""
+	"""Resumed at 226 ticks, the mole walks down 1 m to the face -- 1.03 m of ramp at 1 m/s along it
+	(decision 0207) -- reading as digging all the way, before it digs again: it does not start over at
+	the entrance."""
 	var site := _dig_site()
 	var space: CastSpaceScript = site[0]
 	var mole: BrainScript = site[1]
@@ -1174,7 +1197,8 @@ func test_resumed_the_mole_walks_down_to_the_face_digging() -> void:
 			reads_digging = reads_digging and mole.activity() == BrainScript.ACTIVITY_DIGGING
 		if mole.state == BrainScript.State.DIG and mole.underground:
 			break
-	assert_true(descending >= 59 and descending <= 61, "1 m down at 1 m/s is 60 frames (%d)" % descending)
+	var frames := roundi(_slope_m(0.0, 1.0, 2.0) * 60.0)
+	assert_true(absi(descending - frames) <= 1, "1 m down its ramp at 1 m/s is %d frames (%d)" % [frames, descending])
 	assert_true(reads_digging, "'Digging tunnel' on the way down")
 	assert_equal(space.tunnels.done(site[2]), 226, "no digging on the way down")
 
@@ -1791,7 +1815,7 @@ func test_right_clicking_a_paused_entrance_while_digging_switches_tunnels() -> v
 	assert_equal(tool.network.phase[a], NetworkScript.PHASE_PAUSED, "A paused")
 	_step(mole, 12.0)
 	assert_true(tool.begin_plan(), "planning B")
-	tool.lay_ground(Vector2(-8.0, -9.0))
+	tool.lay_ground(Vector2(-11.0, -9.0))
 	tool.lay_ground(Vector2(-3.0, -9.0))
 	assert_true(tool.confirm(), "digging B")
 	var b := mole.dig_tunnel
@@ -1930,8 +1954,8 @@ func test_enter_while_planning_is_taken_before_the_hud() -> void:
 	command.select(PackedInt32Array([0]))
 	assert_false(command.take_before_gui(_key(KEY_ENTER)), "not planning: the GUI's")
 	command.tunnels().begin_plan()
-	command.tunnels().lay_ground(Vector2(-3.0, 3.0))
-	command.tunnels().lay_ground(Vector2(3.0, 3.0))
+	command.tunnels().lay_ground(Vector2(-4.0, 3.0))
+	command.tunnels().lay_ground(Vector2(4.0, 3.0))
 	assert_false(command.take_before_gui(_key(KEY_A)), "another key: the GUI's")
 	assert_true(command.take_before_gui(_key(KEY_KP_ENTER)), "Enter: taken")
 	assert_false(command.tunnels().planning, "and dug")
@@ -2067,10 +2091,11 @@ func _overlay_on(space: CastSpaceScript) -> OverlayScript:
 	return overlay
 
 
-func test_the_trough_is_rebuilt_per_quarter_metre_not_per_tick() -> void:
-	"""Digging the 2 m bore tick by tick (226 ticks) rebuilds the trough once per 0.25 m the face
-	crosses -- 9 times, not 226 -- and each build holds the dug length: 9 rings of the half-round and
-	its face wall (a fan from the bore's axis)."""
+func test_the_bore_is_rebuilt_per_quarter_metre_not_per_tick() -> void:
+	"""Digging the 2 m bore tick by tick (226 ticks) rebuilds the swept bore once per 0.25 m the face
+	crosses -- not 226 times -- and each build holds the dug length (decision 0207): part way, its rings
+	on the 0.25 m lattice and one at the face, closed by a face wall; once open, 9 rings of the profile and
+	no face wall."""
 	var site := _dig_site()
 	var space: CastSpaceScript = site[0]
 	var mole: BrainScript = site[1]
@@ -2080,27 +2105,42 @@ func test_the_trough_is_rebuilt_per_quarter_metre_not_per_tick() -> void:
 	overlay.refresh()
 	var builds := overlay.bore_builds
 	var ticks := 0
+	var checked_face := false
 	while space.tunnels.done(site[2]) < 339 and ticks < 60 * 30:
 		mole.step(DT)
 		overlay.refresh()
 		ticks += 1
-	assert_true(ticks > 200, "stepped through the bore (%d frames)" % ticks)
+		if not checked_face and overlay.dug_m(site[2]) > 1.1:
+			checked_face = true
+			_check_face_wall(overlay, space.tunnels, site[2])
+	assert_true(ticks > 200 and checked_face, "stepped through the bore (%d frames)" % ticks)
 	assert_equal(overlay.bore_builds - builds, 8, "8 rebuilds over the 2 m bore, one per 0.25 m")
+	_until_open(space, mole, site[2])
+	overlay.refresh()
 	var arrays := (overlay.bore(site[2]).mesh as ArrayMesh).surface_get_arrays(0)
-	assert_equal((arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size(), 9 * (OverlayScript.BORE_SIDES + 1)
-		+ OverlayScript.BORE_SIDES + 2, "2 m in 8 steps: 9 rings, and the face wall's axis and rim")
-	assert_equal((arrays[Mesh.ARRAY_INDEX] as PackedInt32Array).size(), 8 * OverlayScript.BORE_SIDES * 6
-		+ OverlayScript.BORE_SIDES * 3, "8 steps of quads, and the face wall's fan")
-	assert_equal((arrays[Mesh.ARRAY_NORMAL] as PackedVector3Array).size(), (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size(),
-		"lit: a normal a vertex")
-	_check_face_wall(arrays, 9 * (OverlayScript.BORE_SIDES + 1), space.tunnels, site[2], overlay.dug_m(site[2]))
+	assert_equal((arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size(), 9 * BoreMeshScript.PROFILE_VERTS, "open: 9 rings, no face wall")
+	assert_equal((arrays[Mesh.ARRAY_INDEX] as PackedInt32Array).size(), 8 * BoreMeshScript.PROFILE_VERTS * 6, "8 bands of quads")
 
 
-func _check_face_wall(arrays: Array, face: int, network: NetworkScript, slot: int, dug: float) -> void:
-	"""The trough's face wall: its hub (vertex `face`) on the bore's axis at the face, facing back."""
-	var hub: Vector3 = (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array)[face]
+func _until_open(space: CastSpaceScript, mole: BrainScript, slot: int) -> void:
+	"""Step the mole until tunnel `slot` is open (at most 30 s)."""
+	var guard := 0
+	while not space.tunnels.is_open(slot) and guard < 60 * 30:
+		mole.step(DT)
+		guard += 1
+
+
+func _check_face_wall(overlay: OverlayScript, network: NetworkScript, slot: int) -> void:
+	"""Part way through the dig: the bore's rings stand on the lattice and at the face, and its face wall's
+	hub (the vertex after the rings) lies on the bore's axis at the face, facing back down it."""
+	var dug: float = overlay.bores.built_m(slot)
+	var arrays := (overlay.bore(slot).mesh as ArrayMesh).surface_get_arrays(0)
+	var rings: int = BoreViewScript.ring_count(dug)
+	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	assert_equal(points.size(), rings * BoreMeshScript.PROFILE_VERTS + BoreMeshScript.PROFILE_VERTS + 1, "the rings, and the face wall's hub and rim")
+	var hub: Vector3 = points[rings * BoreMeshScript.PROFILE_VERTS]
 	assert_true(Vector2(hub.x, hub.z).distance_to(network.point_at(slot, dug)) < 1e-3, "the face wall's hub on the axis at the face")
-	var normal: Vector3 = (arrays[Mesh.ARRAY_NORMAL] as PackedVector3Array)[face]
+	var normal: Vector3 = (arrays[Mesh.ARRAY_NORMAL] as PackedVector3Array)[rings * BoreMeshScript.PROFILE_VERTS]
 	assert_true(Vector2(normal.x, normal.z).distance_to(-network.direction_at(slot, dug)) < 1e-3, "facing back down the bore")
 
 
@@ -2398,7 +2438,8 @@ func test_the_wait_below_an_occupied_exit_is_bounded() -> void:
 		brain.step(DT)
 		below += 1 if brain.underground else 0
 	assert_false(brain.underground, "up in the end")
-	assert_true(below >= 4 * 60 + 6 * 60 - 5 and below <= 4 * 60 + 6 * 60 + 5, "4 s walking and 6 s waiting below (%d frames)" % below)
+	var walking := roundi(_slope_m(0.0, 4.0, 4.0) * 60.0)
+	assert_true(absi(below - walking - 6 * 60) <= 5, "4.1 s walking its floor and 6 s waiting below (%d frames)" % below)
 
 
 func test_an_entrance_blocked_by_someone_standing_is_unreachable() -> void:
@@ -2419,7 +2460,7 @@ func test_an_entrance_blocked_by_someone_standing_is_unreachable() -> void:
 	blocker.start_at(Vector2(0.0, 5.3), 0.0, -1, -1)
 	tool.begin_plan()
 	tool.lay_ground(Vector2(0.0, 8.0))
-	tool.lay_ground(Vector2(0.0, 14.0))
+	tool.lay_ground(Vector2(0.0, 16.0))
 	assert_false(tool.confirm(), "someone in the gap: refused")
 	assert_equal(notices[-1], "Can't dig: the mole cannot reach that entrance", "why")
 	assert_equal(marks[-1], [Vector3(0.0, 0.0, 8.0), false], "marked at the entrance")

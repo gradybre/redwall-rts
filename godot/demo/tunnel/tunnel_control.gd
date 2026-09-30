@@ -153,6 +153,7 @@ func _build_parts(cast: DemoCastScript, camera: Camera3D, selection: Callable, m
 	add_child(view)
 	view.configure(camera, ext.works.ground, ext.works.water)
 	overlay.set_view(view.cap, view.prewarm)
+	overlay.set_calendar(services.calendar if services != null else null)
 	ext.set_view(view)
 	DemoActorScript.register_marker(view.prewarm)
 
@@ -162,6 +163,7 @@ func set_world(world: DemoWorldScript) -> void:
 	the underground view's cap) and whose grass a new tunnel clears."""
 	_world = world
 	view.set_world(world, world.building_obstacles(), world.trees())
+	overlay.bores.set_trees(world.trees())
 	_under_u = Rules.circles_to_u(PackedVector3Array(world.building_obstacles()))
 	ext.set_world(world, _under_u)
 

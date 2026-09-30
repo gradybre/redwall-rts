@@ -205,16 +205,16 @@ func test_bad_weather_slows_surface_walking_and_the_walk_clip() -> void:
 
 
 func _bore_speed(lit: bool, permille: int, clip_out: Array = []) -> float:
-	"""Metres a second a walker covers in a 10 m tunnel's bore (lit or not) in weather at `permille`;
-	its walk clip's speed then is appended to `clip_out`."""
+	"""Metres a second a walker covers along a 16 m tunnel's level bore, past its entrance ramp (lit or
+	not), in weather at `permille`; its walk clip's speed then is appended to `clip_out`."""
 	var space := _space(_wall())
-	var slot := _open_tunnel(space, [Vector2i(0, -5120), Vector2i(0, 5120)])
+	var slot := _open_tunnel(space, [Vector2i(0, -8192), Vector2i(0, 8192)])
 	if lit:
 		space.tunnels.set_lit(slot)
 	space.tunnels.surface_permille = permille
-	var brain := _brain(space, Vector2(0.0, -6.0), true)
-	brain.order_move(Vector2(0.0, 7.0))
-	_until(brain, func() -> bool: return brain.underground and brain.bore_along_m() > 1.0, 20.0)
+	var brain := _brain(space, Vector2(0.0, -9.0), true)
+	brain.order_move(Vector2(0.0, 10.0))
+	_until(brain, func() -> bool: return brain.underground and brain.bore_along_m() > Rules.to_m(Rules.RAMP_RUN_U) + 0.1, 30.0)
 	var from := brain.bore_along_m()
 	_step([brain], 2.0)
 	clip_out.append(brain.clip_speed)
@@ -901,14 +901,15 @@ func test_a_laid_route_names_its_ground() -> void:
 
 
 func test_a_dig_s_cost_is_told_through_its_ground() -> void:
-	"""T1 through the rock pocket: 9 quanta, three of clay (147 ticks) and four of rock -- 1119 ticks,
-	37 s -- and 2 x 2000 + 3 x 2400 + 4 x 1200 = 16 U of spoil."""
+	"""T1 through the rock pocket and on into the clay, 8.5 m (long enough for its ramps, decision 0207):
+	11 quanta, two of loam, five of clay (147 ticks) and four of rock -- 1413 ticks, 47 s -- and
+	2 x 2000 + 5 x 2400 + 4 x 1200 = 20.8 U of spoil."""
 	var tool := _tool(PackedInt32Array([0]))
 	tool.begin_plan()
 	assert_true(tool.lay_ground(Vector2(3.0, 2.8)), "entrance")
-	assert_true(tool.lay_ground(Vector2(8.0, -1.2)), "exit")
+	assert_true(tool.lay_ground(Vector2(9.6, -2.48)), "exit")
 	assert_true(tool.confirm(), "dug")
-	assert_equal(_notices[-1], "Digging a 6.4 m tunnel: 9 m³ to cut, 16 U of spoil, about 37 s", "told")
+	assert_equal(_notices[-1], "Digging a 8.5 m tunnel: 11 m³ to cut, 20 U of spoil, about 47 s", "told")
 
 
 func test_the_panel_shows_the_selected_tunnel_and_its_repair() -> void:
@@ -1103,8 +1104,9 @@ func test_the_marks_follow_the_tunnel_s_state() -> void:
 
 
 func test_braces_and_lanterns_show_underground() -> void:
-	"""Braced and lit: a frame every metre where the floor is a trough deep (1..7 of 0..8) and two
-	lanterns, placed when it is braced and lit and drawn on the underground layer only (decision 0206)."""
+	"""Braced and lit: a frame every metre where the bore is wholly under the ground (3..5 of 0..8: each
+	mouth's ramp is an open cutting for its first 2.94 m) and two lanterns, placed when it is braced and
+	lit and drawn on the underground layer only (decisions 0206, 0207)."""
 	var site := _marked_tunnel()
 	var network: NetworkScript = site[0]
 	var marks: MarksScript = site[1]
@@ -1115,7 +1117,7 @@ func test_braces_and_lanterns_show_underground() -> void:
 	marks.refresh()
 	assert_true(marks.frames(0).visible, "frames below")
 	assert_equal(marks.frames(0).layers, Layers.UNDERGROUND, "on the underground layer")
-	assert_equal(marks.frames(0).multimesh.visible_instance_count, 7, "metres 1..7")
+	assert_equal(marks.frames(0).multimesh.visible_instance_count, 3, "metres 3..5: the rest is the ramps' open cutting (decision 0207)")
 	assert_equal(marks.lanterns(0).multimesh.visible_instance_count, 2, "8 m: two lanterns")
 
 

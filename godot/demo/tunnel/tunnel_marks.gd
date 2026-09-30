@@ -9,11 +9,14 @@ extends Node3D
 ##     names is plain on the map.
 ## The selection line is drawn twice, a node per view (decision 0206): on the ground, and on the level's
 ## floor for the U view, sharing one mesh.
-## UNDERGROUND (the U view's layer; decision 0206), per tunnel: a timber brace frame every metre once BRACED (the library's
-## tunnel_brace, fitted to the bore's width and depth), and a wall lantern every LANTERN_SPACING_M once
-## LIT (tunnel_jobs.gd): the library's wall_lantern hung on the bore's wall, a small warm glow in it
-## and a faint light along the bore. With nothing staged (demo/props/demo_props.gd) the frame is three
-## timber boxes, the rubble a heap and the lantern a box.
+## UNDERGROUND (the U view's layer; decisions 0206 and 0207), per tunnel: a timber brace frame every
+## metre where the bore is wholly underground, once BRACED (the library's tunnel_brace, fitted inside the
+## swept bore's horseshoe and drawn with the cutaway shader, cutaway.gdshader: its posts stand, its cap
+## beam over a walker's head is cut away), and once LIT (tunnel_jobs.gd) its lanterns spread over the
+## stretch under the ground: the library's wall_lantern hung on the bore's wall, a warm glow in it that
+## blooms in the U view's environment, and a real light (tunnel_lanterns.gd: pooled, capped, flickering).
+## With nothing staged (demo/props/demo_props.gd) the frame is three timber boxes, the rubble a heap and
+## the lantern a box.
 ##
 ## Built once per slot (MultiMesh for frames and lanterns) and placed when the tunnel is braced or lit,
 ## whatever the view; `refresh()` rebuilds a slot only when its state key changes, and otherwise only
@@ -29,6 +32,11 @@ const PropsScript := preload("res://demo/props/demo_props.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const Layers := preload("res://demo/demo_layers.gd")
 const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
+const BoreMeshScript := preload("res://demo/tunnel/bore_mesh.gd")
+const BoreCurveScript := preload("res://demo/tunnel/bore_curve.gd")
+const LanternsScript := preload("res://demo/tunnel/tunnel_lanterns.gd")
+const DemoClockScript := preload("res://demo/demo_clock.gd")
+const CUTAWAY_SHADER := preload("res://demo/tunnel/cutaway.gdshader")
 
 const LINE_WIDTH_M: float = 0.22
 const LINE_LIFT_M: float = 0.06
@@ -41,19 +49,24 @@ const FRAME_WOOD: Color = Color(0.45, 0.3, 0.17)
 ## The frame mesh's posts are this tall before scaling.
 const FRAME_POST_M: float = 0.7
 const LANTERN_GLOW: Color = Color(1.0, 0.78, 0.38)
+## The glow blooms in the U view's environment (tunnel_view.gd): emission over 1.
+const GLOW_ENERGY: float = 3.0
 const MAX_FRAMES: int = Rules.MAX_LENGTH_U / Rules.QUANTUM_U + 1
 const MAX_LANTERNS: int = Rules.MAX_LENGTH_U / (JobsScript.LANTERN_SPACING_M * Rules.QUANTUM_U) + 1
-const LIGHT_RANGE_M: float = 4.0
-const LIGHT_ENERGY: float = 2.2
+## A frame stands as tall as this share of the crown (inside the horseshoe's arch), and is cut away above
+## BRACE_CUT_M over the level's floor (a fixed height: on a ramp's deep end less of a post shows) -- under
+## its cap beam (see UNDERGROUND).
+const FRAME_CROWN_SHARE: float = 0.72
+const BRACE_CUT_M: float = 0.62
 const BRACE_KEY: StringName = &"tunnel_brace"
 const RUBBLE_KEY: StringName = &"tunnel_rubble"
 const LANTERN_KEY: StringName = &"wall_lantern"
 ## A lantern hangs this far up the wall (from the bore floor), its bracket on the wall this share of
-## the bore's half-width out from the centre line. The library's wall_lantern has its bracket's wall
+## the swept bore's half-width there out from the centre line. The library's wall_lantern has its bracket's wall
 ## plate at +X and its cage out at -X (read off a top render), so +X is turned to the wall. Its glow
 ## sits in the cage: GLOW_IN_CAGE of the lantern's drawn width and height from its origin.
 const LANTERN_LIFT_M: float = 0.42
-const LANTERN_WALL_SHARE: float = 0.78
+const LANTERN_WALL_SHARE: float = 0.9
 const GLOW_IN_CAGE: Vector2 = Vector2(-0.28, 0.45)
 const GLOW_RADIUS_M: float = 0.045
 ## The fall's rubble sinks this far into the ground over the collapse.
@@ -78,16 +91,21 @@ var _props: PropsScript = null
 var _frame_fit: Transform3D = Transform3D.IDENTITY
 var _lantern_fit: Transform3D = Transform3D.IDENTITY
 var _rubble_fit: Transform3D = Transform3D.IDENTITY
-var _lights: Array[OmniLight3D] = []
+## The lanterns' light (pooled; tunnel_lanterns.gd).
+var lights: LanternsScript = null
 var _verts: PackedVector3Array = PackedVector3Array()
 ## The frame and glow meshes, built once and shared by every slot (one material each to prewarm).
 var _brace_mesh: Mesh = null
+var _brace_material: ShaderMaterial = null
 var _glow: Mesh = null
+var _spots: PackedVector3Array = PackedVector3Array()
+## Scratch for a sample of a bore's drawn centreline (point, heading).
+var _sample: PackedVector2Array = PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
 
 
-func configure(network: NetworkScript, hazards: HazardsScript, props: PropsScript = null) -> void:
-	"""Mark this network's tunnels, reading their hazards, with these props (none: boxes). Builds every
-	node once."""
+func configure(network: NetworkScript, hazards: HazardsScript, props: PropsScript = null, clock: DemoClockScript = null) -> void:
+	"""Mark this network's tunnels, reading their hazards, with these props (none: boxes), the lanterns
+	flickering on `clock`. Builds every node once."""
 	name = "TunnelMarks"
 	_network = network
 	_hazards = hazards
@@ -96,7 +114,11 @@ func configure(network: NetworkScript, hazards: HazardsScript, props: PropsScrip
 	_lantern_fit = _props.fit_of(LANTERN_KEY)
 	_rubble_fit = _props.fit_of(RUBBLE_KEY)
 	_brace_mesh = _props.mesh_of(BRACE_KEY) if _props.is_staged(BRACE_KEY) else _frame_mesh()
+	_brace_material = cutaway_of(_brace_mesh.surface_get_material(0))
 	_glow = _glow_mesh()
+	lights = LanternsScript.new()
+	add_child(lights)
+	lights.configure(clock)
 	_key.resize(Rules.MAX_TUNNELS)
 	_key.fill(-1)
 	for slot in Rules.MAX_TUNNELS:
@@ -127,9 +149,9 @@ func _build_slot() -> void:
 	add_child(fall_ring)
 	_fall_rings.append(fall_ring)
 	_frames.append(_multi(_brace_mesh, MAX_FRAMES))
+	_frames[-1].material_override = _brace_material
 	_lanterns.append(_multi(_props.mesh_of(LANTERN_KEY), MAX_LANTERNS))
 	_glows.append(_multi(_glow, MAX_LANTERNS))
-	_lights.append(_light())
 
 
 func _line_below(line: MeshInstance3D) -> MeshInstance3D:
@@ -201,6 +223,21 @@ func _frame_mesh() -> Mesh:
 	return mesh
 
 
+static func cutaway_of(source: Material) -> ShaderMaterial:
+	"""The cutaway material (cutaway.gdshader) for a prop drawn with `source`: its albedo map, tint and
+	roughness, cut BRACE_CUT_M over the level's floor."""
+	var material := ShaderMaterial.new()
+	material.shader = CUTAWAY_SHADER
+	material.set_shader_parameter(&"cut_y", Layers.FLOOR_Y_M + BRACE_CUT_M)
+	var standard := source as BaseMaterial3D
+	if standard != null:
+		material.set_shader_parameter(&"albedo_colour", standard.albedo_color)
+		material.set_shader_parameter(&"roughness", standard.roughness)
+		if standard.albedo_texture != null:
+			material.set_shader_parameter(&"albedo_texture", standard.albedo_texture)
+	return material
+
+
 static func frame_fit(props: PropsScript) -> Transform3D:
 	"""How the brace model fits the unit frame _bore_transform scales (1 m wide, FRAME_POST_M tall,
 	centred, its base at 0); the box frame already is that."""
@@ -222,22 +259,9 @@ func _glow_mesh() -> Mesh:
 	material.albedo_color = LANTERN_GLOW
 	material.emission_enabled = true
 	material.emission = LANTERN_GLOW
+	material.emission_energy_multiplier = GLOW_ENERGY
 	sphere.material = material
 	return sphere
-
-
-func _light() -> OmniLight3D:
-	"""A faint warm light along a lit bore, off until lit."""
-	var light := OmniLight3D.new()
-	light.light_color = LANTERN_GLOW
-	light.light_energy = LIGHT_ENERGY
-	light.omni_range = LIGHT_RANGE_M
-	light.shadow_enabled = false
-	light.layers = Layers.UNDERGROUND
-	light.light_cull_mask = Layers.UNDERGROUND
-	light.visible = false
-	add_child(light)
-	return light
 
 
 func select(slot: int) -> void:
@@ -247,10 +271,10 @@ func select(slot: int) -> void:
 
 
 func register(prewarm: PrewarmScript) -> void:
-	"""What these marks draw in the U view -- frames, lanterns, their glows, the selection line through
-	the cap -- for its prewarm (decision 0206)."""
+	"""What these marks draw in the U view -- frames (with their cutaway), lanterns, their glows, the
+	selection line through the cap -- for its prewarm (decision 0206)."""
 	for node: MultiMeshInstance3D in [_frames[0], _lanterns[0], _glows[0]]:
-		prewarm.add_multimesh(node.multimesh.mesh)
+		prewarm.add_multimesh(node.multimesh.mesh, node.material_override)
 	for line: MeshInstance3D in _lines_below:
 		prewarm.add_mesh(OverlayScript.immediate_sample(), line.material_override)
 
@@ -348,20 +372,23 @@ func _place_fall(slot: int, show: bool) -> void:
 
 
 func _bore_transform(slot: int, along: float, lift: float) -> Transform3D:
-	"""A frame across tunnel `slot` `along` metres in, `lift` above its floor, as wide as its bore and
-	as tall as its drawn trough is deep (half its width), so it never stands above the ground."""
-	var at := _network.point_at(slot, along)
-	var ahead := _network.direction_at(slot, along)
-	var width := Rules.to_m(Rules.BORE_WIDTHS_U[_network.bore[slot]])
-	var basis := Basis(Vector3.UP, atan2(ahead.x, ahead.y)).scaled(Vector3(width, width * 0.5 / FRAME_POST_M, 1.0))
+	"""A frame across tunnel `slot` `along` metres in on its drawn centreline (bore_curve.gd), `lift` above
+	its floor, as wide as its bore's floor and FRAME_CROWN_SHARE of its crown tall -- inside the swept
+	horseshoe's arch."""
+	BoreCurveScript.of(_network, slot).sample(along, _sample)
+	var at := _sample[0]
+	var ahead := _sample[1]
+	var bore := int(_network.bore[slot])
+	var width := BoreMeshScript.FLOOR_HALF_M[bore] * 2.0
+	var tall := Rules.crown_m(bore) * FRAME_CROWN_SHARE
+	var basis := Basis(Vector3.UP, atan2(ahead.x, ahead.y)).scaled(Vector3(width, tall / FRAME_POST_M, 1.0))
 	return Transform3D(basis, Vector3(at.x, _network.floor_y_at(slot, along) + lift, at.y))
 
 
 func _deep_enough(slot: int, along: float) -> bool:
-	"""Whether the bore floor `along` metres in lies a full trough below the ground (a frame there
-	stays under it)."""
-	var half := Rules.to_m(Rules.BORE_WIDTHS_U[_network.bore[slot]]) * 0.5
-	return _network.floor_y_at(slot, along) <= -half - 0.05
+	"""Whether the bore `along` metres in lies wholly under the ground (a frame there stays under it):
+	past the ramp's open cutting."""
+	return _network.floor_y_at(slot, along) + Rules.crown_m(int(_network.bore[slot])) <= 0.0
 
 
 func _place_frames(slot: int, show: bool) -> void:
@@ -378,36 +405,44 @@ func _place_frames(slot: int, show: bool) -> void:
 
 
 func _place_lanterns(slot: int, show: bool) -> void:
-	"""A wall lantern every LANTERN_SPACING_M of a lit bore, on alternate walls, a glow in each, and a
-	faint light at the bore's middle."""
+	"""A wall lantern for every LANTERN_SPACING_M of a lit bore (the job's count), spread evenly over the
+	stretch under the ground, on alternate walls, a glow in each and its light handed to the pool."""
 	var node := _lanterns[slot]
 	node.visible = show
 	_glows[slot].visible = show
-	_lights[slot].visible = show
 	var count := 0
+	_spots.resize(0)
 	if show:
-		var spacing := float(JobsScript.LANTERN_SPACING_M)
-		count = mini(ceili(_network.length_m(slot) / spacing), MAX_LANTERNS)
+		count = mini(ceili(_network.length_m(slot) / float(JobsScript.LANTERN_SPACING_M)), MAX_LANTERNS)
 		for k in count:
-			var hung := lantern_transform(slot, (float(k) + 0.5) * _network.length_m(slot) / float(count), k % 2 == 0)
+			var hung := lantern_transform(slot, lantern_along(slot, k, count), k % 2 == 0)
 			node.multimesh.set_instance_transform(k, hung * _lantern_fit)
 			var size: Vector3 = _props.drawn_bound(LANTERN_KEY).size
 			var glow_at: Vector3 = hung * Vector3(size.x * GLOW_IN_CAGE.x, size.y * GLOW_IN_CAGE.y, 0.0)
 			_glows[slot].multimesh.set_instance_transform(k, Transform3D(Basis.IDENTITY, glow_at))
-		var mid := _network.point_at(slot, _network.length_m(slot) * 0.5)
-		_lights[slot].position = Vector3(mid.x, _network.floor_y_at(slot, _network.length_m(slot) * 0.5) + 0.6, mid.y)
-		_lights[slot].omni_range = maxf(LIGHT_RANGE_M, _network.length_m(slot) * 0.6)
+			_spots.append(glow_at)
 	node.multimesh.visible_instance_count = count
 	_glows[slot].multimesh.visible_instance_count = count
+	lights.set_spots(slot, _spots.duplicate())
+
+
+func lantern_along(slot: int, k: int, count: int) -> float:
+	"""Where lantern `k` of `count` hangs along tunnel `slot` (m): evenly over the stretch between its
+	ramps' portals, where the bore is under the ground (the whole length's middle if that is none)."""
+	var length := _network.length_m(slot)
+	var portal := minf(Rules.portal_m(int(_network.bore[slot])), length * 0.5)
+	return portal + (float(k) + 0.5) * (length - 2.0 * portal) / float(count)
 
 
 func lantern_transform(slot: int, along: float, left: bool) -> Transform3D:
 	"""A lantern `along` metres into tunnel `slot`, its bracket on its left (or right) wall and its cage
 	out over the bore, LANTERN_LIFT_M up from the floor: the model's +X turned to the wall."""
-	var at := _network.point_at(slot, along)
-	var ahead := _network.direction_at(slot, along)
+	BoreCurveScript.of(_network, slot).sample(along, _sample)
+	var at := _sample[0]
+	var ahead := _sample[1]
 	var across := Vector2(-ahead.y, ahead.x) * (1.0 if left else -1.0)
-	var half := Rules.to_m(Rules.BORE_WIDTHS_U[_network.bore[slot]]) * 0.5 * LANTERN_WALL_SHARE
+	var bore := int(_network.bore[slot])
+	var half := BoreMeshScript.FLOOR_HALF_M[bore] * BoreMeshScript.width_share(LANTERN_LIFT_M / Rules.crown_m(bore)) * LANTERN_WALL_SHARE
 	var inward := -across
 	var reach: float = _props.drawn_bound(LANTERN_KEY).size.x * 0.5
 	var origin := at + across * half + inward * reach

@@ -163,7 +163,8 @@ back the last point, Esc (or T, or the button again) cancels. Refused, with a cl
 reason in the panel: a point off the map or on top of the last one; an entrance or exit inside an
 obstacle or heap, on a work spot or on another tunnel's mouth; a leg passing under a building or the
 well (bores may pass under trees, props, crops and fences); an entrance someone is standing on, or
-one the mole cannot walk to. Only moles dig; T with no mole selected says so.
+one the mole cannot walk to; a route under 8 m, too short for its ramps (each mouth's ramp goes 1.25 m
+down over 4 m, never steeper than 1:2.5; decision 0207). Only moles dig; T with no mole selected says so.
 
 The mole walks to the entrance, digs its shaft (the `pull_radish` clip), then goes underground:
 a mound of earth moves along the route (click it to select the mole), the route fills in, and spoil
@@ -175,6 +176,11 @@ its entrance with the mole selected to resume it (on the tunnel it is digging, a
 changes nothing; on another paused one, it pauses this one and goes there). A mole that cannot
 reach the entrance leaves the tunnel paused at 0%, and says so. Coming up, the mole steps clear of
 the exit, inside the village, off every hole and resident.
+
+A finished tunnel's mouths are fieldstone-and-timber gateways over the ramps' cuttings
+(`tunnel/tunnel_mouth.gd`). Below, walkers take a ramp at their own pace along its slope, the body tilted
+with it so the feet plant, and stoop to clear the bore's crown (`cast/stoop_modifier.gd`): moles upright,
+mice a little, squirrels more, otters, the beaver and the badger as far as they go (decision 0207).
 
 A finished tunnel stays. Mice, moles and squirrels fit its bore and use it whenever it is
 genuinely the quicker way ("Using tunnel") and nobody is standing on its mouths; otters and the
@@ -188,26 +194,34 @@ through, the depth and the drawn size of a heap are demo values (`tunnel/tunnel_
 
 ## The underground view
 
-U shows the village cut through at the tunnels' level, seen from above (decision 0206; the design is
-`docs/design/underground_revamp.md`, whose P0 this is). It is a **layer cutaway**: everything the demo
-draws is on one of four render layers (`demo_layers.gd`), and U only changes the camera's cull mask --
-the surface, its labels, crops, buildings, trees and water are simply not drawn, and nothing is faded,
-built or re-materialed, so the switch costs nothing (the first press measured under 11 ms on the Mac, from 278 ms).
+U shows the village cut through at the tunnels' level, seen from above (decisions 0206 and 0207; the
+design is `docs/design/underground_revamp.md`, whose P0 and P1 these are). It is a **layer cutaway**: everything the demo
+draws is on one of four render layers (`demo_layers.gd`), and U only changes the camera's cull mask and
+environment -- the surface, its labels, crops, buildings, trees and water are simply not drawn, and nothing
+is faded, built or re-materialed, so the switch costs nothing (the first press measured under 12 ms on the
+Mac with a lit tunnel, from 278 ms).
 
 - **The cap** (`tunnel/underground_cap.gd`): solid earth at the level, with the ground types as strata
   (rust clay, pale sand, grey rock, blue-tinted wet ground), a blue hatch wherever a bore is refused for
   water, stone footings where the buildings and the well stand, and roots under the trees. It opens over
   every dug bore and room, which are stamped into it as they are dug.
-- **Below**: the bores as lit troughs with a face wall where the dig has reached, braces, lanterns and
-  their light, finds, the rooms with their furniture and the cellar's shelf, and anyone walking in a
-  bore. A resident up on the surface shows as a small cream marker.
+- **Below** (decision 0207): each bore a hand-dug horseshoe swept along its route (`tunnel/bore_view.gd`,
+  `bore_mesh.gd`), in the cap's own earth -- strata, a packed floor with a worn path, stones and roots in
+  the walls near trees, fresh walls dark and damp, drying over a game day -- its walls rising to the cut,
+  which is a clean section: the cap walks each view ray down and opens wherever it enters a bore. Braces
+  stand to under their cap beam (the cutaway shader); lanterns are real lights, at most 32 of them pooled
+  where you are looking, flickering gently (`tunnel/tunnel_lanterns.gd`). Finds, the rooms with their
+  furniture and the cellar's shelf, and anyone walking in a bore. A resident up on the surface shows as a
+  small cream marker.
+- **Its own light**: the U view sets its own environment on the camera -- dark earth, a low cool-brown
+  ambient, SSAO, glow for the lanterns and a faint haze -- and the surface keeps the world's.
 - **Clicks land on the tunnels' floor** in the U view -- where the cap shows it -- so a route, a chamber or
   an order goes where you point. Only the tunnel tool and the residents answer there; the farm, the
   woods, the water and the spoil heaps are surface things.
 - **Prewarmed**: everything it can draw registers with `tunnel/underground_prewarm.gd` as it is built,
   and a sample of each is drawn for two frames behind the opening pause.
-- Interim: the troughs are P1's to replace with swept bores; the underground's own lighting environment,
-  the switch's crossfade and the second level are later phases.
+- Later phases: the switch's crossfade and the second level; rooms are still P0's slabs (P3); the
+  generated arch and crouch-walk clips replace the procedural ones (P7).
 
 ## Farming
 
@@ -338,7 +352,7 @@ What changed on screen:
   and a jar per started third of fullness (`props/store_shelf.gd`, `farm_stock_view.gd`); a root
   cellar's shelf stands in its room below ground.
 - **Tunnels**: braced bores show the library's brace frames, a collapse its rubble, lit bores wall
-  lanterns on alternate walls with a glow in each (all drawn in the underground view); finds lie where they were cut
+  lanterns on alternate walls with a glow in each, and real light from the nearest 32 (all drawn in the underground view); finds lie where they were cut
   and sit on the tunnel panel as icons; a digging mole holds its pick; a finished root cellar is the
   library's cellar on the surface, and rooms are furnished (beds and a basket in a home, baskets in
   a cellar).

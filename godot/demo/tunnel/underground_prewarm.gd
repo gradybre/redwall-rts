@@ -30,9 +30,10 @@ const LABEL_FLAGS: Array[StringName] = [&"billboard", &"no_depth_test", &"shaded
 
 var _meshes: Array[Mesh] = []
 var _overrides: Array[Material] = []
-## Meshes drawn instanced (a MultiMesh's): sampled as a one-instance MultiMeshInstance3D, since an
-## instanced draw is its own pipeline.
+## Meshes drawn instanced (a MultiMesh's), and the override each is drawn with (null: its own): sampled as
+## a one-instance MultiMeshInstance3D, since an instanced draw is its own pipeline.
 var _instanced: Array[Mesh] = []
+var _instanced_overrides: Array[Material] = []
 var _materials: Dictionary = {}
 ## Label styles: key -> the flags a sample is built with (LABEL_FLAGS).
 var _label_keys: Dictionary = {}
@@ -61,11 +62,19 @@ func _add_surfaces(mesh: Mesh) -> void:
 			_materials[own] = true
 
 
-func add_multimesh(mesh: Mesh) -> void:
-	"""Register `mesh` drawn through a MultiMesh, with its own surface materials. Once per mesh."""
-	if mesh == null or _instanced.has(mesh):
+func add_multimesh(mesh: Mesh, override: Material = null) -> void:
+	"""Register `mesh` drawn through a MultiMesh with `override` (null: its own surface materials). Once
+	per pair."""
+	if mesh == null:
 		return
+	for k: int in _instanced.size():
+		if _instanced[k] == mesh and _instanced_overrides[k] == override:
+			return
 	_instanced.append(mesh)
+	_instanced_overrides.append(override)
+	if override != null:
+		_materials[override] = true
+		return
 	_add_surfaces(mesh)
 
 
@@ -152,8 +161,10 @@ func build_samples(parent: Node3D, at: Vector3) -> int:
 		label.layers = Layers.UNDERGROUND_MARKS
 		label.position = at
 		parent.add_child(label)
-	for mesh: Mesh in _instanced:
-		parent.add_child(_instanced_sample(mesh, at))
+	for k: int in _instanced.size():
+		var sample := _instanced_sample(_instanced[k], at)
+		sample.material_override = _instanced_overrides[k]
+		parent.add_child(sample)
 	var light := OmniLight3D.new()
 	light.layers = Layers.UNDERGROUND
 	light.light_cull_mask = Layers.UNDERGROUND

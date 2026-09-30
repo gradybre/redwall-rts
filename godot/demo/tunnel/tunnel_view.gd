@@ -3,12 +3,19 @@ extends Node3D
 ## underground revamp's P0; design docs/design/underground_revamp.md §5), replacing decision 0196's
 ## fading view. Presentation only: it changes what is drawn, never where anyone is (MOVE-REQ-015).
 ##
-## A SWITCH IS ONE WRITE: the camera's `cull_mask` (demo_layers.gd view_mask). Everything either view
-## draws already exists on its own layer -- the village, its labels and crops on the surface layers; the
-## cap (underground_cap.gd), the troughs, rooms, frames, lanterns, finds and residents below on the
-## underground ones, built as they are dug -- so switching allocates nothing, builds nothing, fades
-## nothing and changes no material: no pipeline is compiled by a toggle. What the U view draws the
-## first time is drawn once at boot instead (`begin_prewarm`, behind the opening pause).
+## A SWITCH IS TWO WRITES: the camera's `cull_mask` (demo_layers.gd view_mask) and its `environment`.
+## Everything either view draws already exists on its own layer -- the village, its labels and crops on
+## the surface layers; the cap (underground_cap.gd), the bores, rooms, frames, lanterns, finds and
+## residents below on the underground ones, built as they are dug -- so switching allocates nothing,
+## builds nothing, fades nothing and changes no material: no pipeline is compiled by a toggle. What the U
+## view draws the first time is drawn once at boot instead (`begin_prewarm`, behind the opening pause),
+## in its own environment.
+##
+## THE UNDERGROUND'S ENVIRONMENT (decision 0207; design §5 "Lighting"): its own Environment, set on the
+## camera only while the U view is on (null gives the surface's WorldEnvironment back, untouched, so the
+## weather's haze and the sky never reach below and nothing below reaches the surface): dark earth behind,
+## a low cool-brown ambient, SSAO in the bores' corners, glow so the lantern glows bloom, and a faint warm
+## depth haze -- warm lantern pools in dark earth.
 ##
 ## PICKING. `ground_at` meets the view's own plane: the ground in the surface view, the level's floor in
 ## the U view (demo_layers.gd pick_y) -- where the cap shows the floor under the pointer.
@@ -24,6 +31,15 @@ const WaterScript := preload("res://demo/village_water.gd")
 const SAMPLE_DEPTH_M: float = 2.0
 ## The world's sun, found by name (world_look.gd make_sun).
 const SUN_NODE: String = "Sun"
+## THE UNDERGROUND'S ENVIRONMENT (see the header).
+const BACKGROUND: Color = Color(0.035, 0.028, 0.022)
+const AMBIENT: Color = Color(0.42, 0.38, 0.36)
+const AMBIENT_ENERGY: float = 0.55
+const HAZE: Color = Color(0.16, 0.11, 0.07)
+const HAZE_DENSITY: float = 0.006
+const GLOW_INTENSITY: float = 0.7
+const GLOW_BLOOM: float = 0.04
+const GLOW_THRESHOLD: float = 1.0
 ## The prewarm's cover: a canvas layer over the 3D view (and under the stall banner's), in deep shade.
 const COVER_LAYER: int = 1
 const COVER_COLOUR: Color = Color(0.12, 0.1, 0.08)
@@ -32,6 +48,8 @@ var on: bool = false
 ## Every material and mesh the U view draws (underground_prewarm.gd): owners register as they build.
 var prewarm: PrewarmScript = PrewarmScript.new()
 var cap: CapScript = null
+## The U view's own environment (see THE UNDERGROUND'S ENVIRONMENT).
+var environment: Environment = underground_environment()
 
 var _camera: Camera3D = null
 var _samples: Node3D = null
@@ -69,10 +87,39 @@ func toggle() -> bool:
 
 
 func set_on(value: bool) -> void:
-	"""Underground view on or off: the camera's cull mask, and nothing else (see the header)."""
+	"""Underground view on or off: the camera's cull mask and environment, and nothing else (see the
+	header)."""
 	on = value
 	if _camera != null:
 		_camera.cull_mask = Layers.view_mask(on)
+		_camera.environment = environment if on else null
+
+
+static func underground_environment() -> Environment:
+	"""The U view's environment (see THE UNDERGROUND'S ENVIRONMENT)."""
+	var env := Environment.new()
+	env.background_mode = Environment.BG_COLOR
+	env.background_color = BACKGROUND
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = AMBIENT
+	env.ambient_light_energy = AMBIENT_ENERGY
+	env.reflected_light_source = Environment.REFLECTION_SOURCE_DISABLED
+	env.tonemap_mode = Environment.TONE_MAPPER_ACES
+	env.tonemap_white = 6.0
+	env.ssao_enabled = true
+	env.ssao_radius = 0.7
+	env.ssao_intensity = 2.2
+	env.ssao_power = 1.5
+	env.glow_enabled = true
+	env.glow_intensity = GLOW_INTENSITY
+	env.glow_bloom = GLOW_BLOOM
+	env.glow_hdr_threshold = GLOW_THRESHOLD
+	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
+	env.fog_enabled = true
+	env.fog_light_color = HAZE
+	env.fog_density = HAZE_DENSITY
+	env.fog_sky_affect = 0.0
+	return env
 
 
 func pick_y() -> float:
@@ -107,6 +154,7 @@ func begin_prewarm() -> void:
 	add_child(_cover)
 	if _camera != null:
 		_camera.cull_mask = Layers.UNDERGROUND_VIEW
+		_camera.environment = environment
 
 
 func end_prewarm() -> void:
@@ -139,6 +187,21 @@ func _focus() -> Vector3:
 		return Vector3.ZERO
 	var at: Vector2 = Layers.pick_ground(_camera.global_position, -_camera.global_basis.z, 0.0)
 	return Vector3.ZERO if at == Vector2.INF else Vector3(at.x, 0.0, at.y)
+
+
+func focus() -> Vector3:
+	"""Where the U view looks: where the camera's forward ray meets the level's floor (the origin without a
+	camera)."""
+	if _camera == null or not _camera.is_inside_tree():
+		return Vector3(0.0, Layers.FLOOR_Y_M, 0.0)
+	return floor_focus(_camera.global_position, -_camera.global_basis.z)
+
+
+static func floor_focus(origin: Vector3, forward: Vector3) -> Vector3:
+	"""Where a camera at `origin` looking along unit `forward` meets the level's floor (the origin below
+	when it looks level or up)."""
+	var at: Vector2 = Layers.pick_ground(origin, forward, Layers.FLOOR_Y_M)
+	return Vector3(at.x if at != Vector2.INF else 0.0, Layers.FLOOR_Y_M, at.y if at != Vector2.INF else 0.0)
 
 
 func is_prewarming() -> bool:

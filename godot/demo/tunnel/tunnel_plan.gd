@@ -74,14 +74,15 @@ func undo() -> bool:
 
 func route_reason(bounds_u: Rect2i, circles_u: PackedInt32Array, spots_u: PackedInt32Array = PackedInt32Array(),
 		under_u: PackedInt32Array = PackedInt32Array()) -> int:
-	"""REFUSE_NONE when the route as laid may be dug, else why not (the rules', then water)."""
+	"""REFUSE_NONE when the route as laid may be dug, else why not (the rules', then water, then its
+	ramps: decision 0207)."""
 	var reason := Rules.validate_route(points_u, count, bounds_u, circles_u, spots_u, under_u)
 	if reason != Rules.REFUSE_NONE:
 		return reason
 	for k in range(1, count):
 		if _leg_meets_water(k):
 			return Rules.REFUSE_UNDER_WATER
-	return Rules.REFUSE_NONE
+	return Rules.ramp_refusal(length_u())
 
 
 func length_u() -> int:
@@ -106,9 +107,10 @@ func point_m(k: int) -> Vector2:
 static func length_text(length_u_value: int) -> String:
 	"""A length in u as the panel shows it: metres to one decimal, e.g. "12.4 m". Rounded to the
 	nearest tenth -- except that a length the limits refuse is rounded AWAY from the limit, so a
-	refused 1.99 m never reads "2.0 m" and a refused 64.04 m never reads "64.0 m"."""
+	refused 7.99 m (too short for its ramps) never reads "8.0 m" and a refused 64.04 m never reads
+	"64.0 m"."""
 	var tenths := (length_u_value * 10 + Rules.UNITS_PER_M / 2) / Rules.UNITS_PER_M
-	if length_u_value < Rules.MIN_LENGTH_U:
+	if length_u_value < 2 * Rules.RAMP_RUN_U:
 		tenths = length_u_value * 10 / Rules.UNITS_PER_M
 	elif length_u_value > Rules.MAX_LENGTH_U:
 		tenths = Rules.ceil_div(length_u_value * 10, Rules.UNITS_PER_M)

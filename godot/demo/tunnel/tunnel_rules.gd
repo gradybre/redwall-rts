@@ -31,6 +31,17 @@ extends RefCounted
 ##     no leg may come within half a bore of a building's footprint circles (UNDER BUILDINGS).
 ##   * A mouth keeps SPOT_CLEAR_U clear of every work spot and every other tunnel's mouth, so no one
 ##     is sent to stand in a hole and no two holes overlap.
+##   * RAMPS (decision 0207; design docs/design/underground_revamp.md §3 rule 6): each mouth's ramp goes
+##     BORE_FLOOR_DEPTH_U down at no steeper than RAMP_GRADE_RISE:RAMP_GRADE_RUN (1:2.5), its ends eased
+##     over RAMP_FILLET_U so the grade never jumps under a walker's feet -- RAMP_RUN_U (4 m) a ramp. A
+##     route too short for both ramps to reach the tunnels' depth would need them steeper, and is refused
+##     (REFUSE_RAMP_TOO_STEEP).
+##   * DRAWN BORE AND STOOP (decision 0207; design §3 "Geometry"): the swept bore's drawn crown,
+##     BORE_CROWNS_U per class -- the standard 1.0 m; the widened 1.1 m, since level 1's floor lies only
+##     1.25 m down (a taller bore would break the surface; P3/P4 own it). Presentation only: a walker in
+##     a bore lowers its head to STOOP_CLEAR_U under the crown, by at most STOOP_MAX_PERMILLE of its height
+##     (`stoop_drop_u`). Moles walk upright, mice stoop a little, squirrels more; otters, the beaver and
+##     the badger stoop as far as they can.
 
 const UNITS_PER_M: int = 1024
 const TICKS_PER_SECOND: int = 30
@@ -77,9 +88,19 @@ const MAX_LENGTH_U: int = 64 * QUANTUM_U
 const MAX_POINTS: int = 8
 const MAX_TUNNELS: int = 8
 const DIGGER_SPECIES: String = "mole"
-## Presentation only: how deep the bore's floor runs, and how long each end's ramp is.
+## Presentation only: how deep the bore's floor runs (BORE_FLOOR_DEPTH_U in metres).
 const BORE_FLOOR_DEPTH_M: float = 1.25
-const SHAFT_RAMP_M: float = 1.5
+const BORE_FLOOR_DEPTH_U: int = 1280
+## RAMPS (see the header): the steepest grade, rise to run, and each end's easing.
+const RAMP_GRADE_RISE: int = 2
+const RAMP_GRADE_RUN: int = 5
+const RAMP_FILLET_U: int = 896
+## A ramp's whole run: the depth at the steepest grade, plus the easing (4096u, 4 m).
+const RAMP_RUN_U: int = BORE_FLOOR_DEPTH_U * RAMP_GRADE_RUN / RAMP_GRADE_RISE + RAMP_FILLET_U
+## THE DRAWN BORE AND THE STOOP (see the header), per bore class.
+const BORE_CROWNS_U: Array[int] = [1024, 1126]
+const STOOP_CLEAR_U: int = 102
+const STOOP_MAX_PERMILLE: int = 350
 ## Presentation: a mouth's hole and the earthen rim round it (the rim reaches RIM_FACTOR further).
 const HOLE_RADIUS_M: float = 0.42
 const RIM_FACTOR: float = 1.45
@@ -110,6 +131,7 @@ const REFUSE_UNDER_BUILDING: int = 13
 const REFUSE_ENTRANCE_OCCUPIED: int = 14
 const REFUSE_ON_SPOT: int = 15
 const REFUSE_UNDER_WATER: int = 16
+const REFUSE_RAMP_TOO_STEEP: int = 17
 const REASONS: Array[String] = [
 	"",
 	"a tunnel needs an entrance and an exit",
@@ -128,6 +150,7 @@ const REASONS: Array[String] = [
 	"someone is standing on that entrance",
 	"a mouth would open on a work spot or another tunnel's mouth",
 	"a tunnel cannot pass under the stream or the pond",
+	"too short for its ramps: going 1.25 m down and back up at no steeper than 1:2.5 takes 8 m",
 ]
 
 
@@ -411,8 +434,86 @@ static func leg_under(points_u: PackedInt32Array, k: int, under_u: PackedInt32Ar
 	return false
 
 
+# --- ramps and the drawn bore (presentation; see the header) ----------------------------------
+
+static func ramp_grade_ok(depth_u: int, run_u: int, fillet_u: int) -> bool:
+	"""Whether a ramp going `depth_u` down over `run_u`, eased over `fillet_u` at each end, is nowhere
+	steeper than RAMP_GRADE_RISE:RAMP_GRADE_RUN: its straight middle, the steepest part, falls
+	depth over (run - fillet)."""
+	return depth_u * RAMP_GRADE_RUN <= (run_u - fillet_u) * RAMP_GRADE_RISE
+
+
+static func ramp_refusal(length_u: int) -> int:
+	"""REFUSE_RAMP_TOO_STEEP when a route this long (u) is too short for a ramp at each mouth to reach
+	the tunnels' depth at the ramps' grade; REFUSE_NONE otherwise. The planner asks it last, once the
+	route is otherwise sound (tunnel_plan.gd route_reason), so a route under water says so first."""
+	return REFUSE_RAMP_TOO_STEEP if length_u < 2 * RAMP_RUN_U else REFUSE_NONE
+
+
+static func ramp_depth_m(from_mouth_m: float) -> float:
+	"""How far below the ground a ramp's floor lies this far from its mouth (m): eased in over the
+	fillet, straight at the steepest grade, eased out to the full depth at RAMP_RUN_U."""
+	var grade := float(RAMP_GRADE_RISE) / float(RAMP_GRADE_RUN)
+	var fillet := to_m(RAMP_FILLET_U)
+	var run := to_m(RAMP_RUN_U)
+	var x := clampf(from_mouth_m, 0.0, run)
+	if x <= fillet:
+		return grade * x * x / (2.0 * fillet)
+	if x >= run - fillet:
+		return BORE_FLOOR_DEPTH_M - grade * (run - x) * (run - x) / (2.0 * fillet)
+	return grade * (x - fillet * 0.5)
+
+
+static func ramp_slope(from_mouth_m: float) -> float:
+	"""How steeply the ramp falls this far from its mouth (m of depth per m along; 0 past the run)."""
+	var grade := float(RAMP_GRADE_RISE) / float(RAMP_GRADE_RUN)
+	var fillet := to_m(RAMP_FILLET_U)
+	var run := to_m(RAMP_RUN_U)
+	if from_mouth_m <= 0.0 or from_mouth_m >= run:
+		return 0.0
+	if from_mouth_m <= fillet:
+		return grade * from_mouth_m / fillet
+	if from_mouth_m >= run - fillet:
+		return grade * (run - from_mouth_m) / fillet
+	return grade
+
+
 static func floor_y_m(along_m: float, length_m: float) -> float:
-	"""Presentation: the bore floor's height (negative, below ground) this far along a tunnel, ramping
-	down from each mouth over SHAFT_RAMP_M."""
-	var from_mouth := minf(along_m, length_m - along_m)
-	return -BORE_FLOOR_DEPTH_M * clampf(from_mouth / SHAFT_RAMP_M, 0.0, 1.0)
+	"""Presentation: the bore floor's height (negative, below ground) this far along a tunnel, down each
+	mouth's ramp (`ramp_depth_m`; a tunnel too short for both stays shallower in the middle)."""
+	return -ramp_depth_m(minf(along_m, length_m - along_m))
+
+
+static func floor_grade(along_m: float, length_m: float) -> float:
+	"""Presentation: how the floor's height changes per metre along, entrance to exit (negative going
+	down the entrance's ramp, positive coming up the exit's)."""
+	if along_m <= length_m - along_m:
+		return -ramp_slope(along_m)
+	return ramp_slope(length_m - along_m)
+
+
+static func crown_m(bore: int) -> float:
+	"""The drawn crown of a bore of class `bore` over its floor (m)."""
+	return to_m(BORE_CROWNS_U[bore])
+
+
+static func portal_m(bore: int) -> float:
+	"""How far down its ramp a bore of class `bore` goes under the ground: where the ramp is as deep as
+	the crown is high (m from the mouth). Before it the ramp is an open cutting."""
+	var crown := crown_m(bore)
+	var lo := 0.0
+	var hi := to_m(RAMP_RUN_U)
+	for i in 30:
+		var mid := (lo + hi) * 0.5
+		if ramp_depth_m(mid) < crown:
+			lo = mid
+		else:
+			hi = mid
+	return hi
+
+
+static func stoop_drop_u(height_u: int, crown_u: int) -> int:
+	"""How far (u) a walker `height_u` tall lowers its head in a bore with this drawn crown: to
+	STOOP_CLEAR_U under it, but at most STOOP_MAX_PERMILLE of its height (see the header)."""
+	var need := height_u - (crown_u - STOOP_CLEAR_U)
+	return clampi(need, 0, height_u * STOOP_MAX_PERMILLE / PERMILLE)

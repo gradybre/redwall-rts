@@ -38,6 +38,12 @@ extends Node3D
 ## and back on land it is pulled down again onto the ground it stands on. The back direction is
 ## refreshed only when the heading has turned WATER_TAIL_TURN_RAD.
 ##
+## IN A BORE (decision 0207). A resident below stoops to clear its bore's drawn crown (cast/stoop_modifier.gd,
+## tunnel_rules.gd `stoop_drop_u`): moles upright, mice a little, squirrels more, otters, the beaver and
+## the badger as far as they can -- eased in and out over STOOP_EASE_S of demo time, so a paused game
+## holds the pose. On a ramp the node pitches with the slope (the brain's `pitch`), so the feet meet it,
+## and the spine leans half of that back into the slope.
+##
 ## FACING. The models face +Z, so the node's yaw is the brain's yaw: local +Z points along travel.
 ## With no staged cast (CI, a fresh clone), a capsule with a nose stands in, with the same brain.
 
@@ -48,6 +54,8 @@ const ClipRootMotionScript := preload("res://scripts/presentation/clip_root_moti
 const DemoClockScript := preload("res://demo/demo_clock.gd")
 const Layers := preload("res://demo/demo_layers.gd")
 const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
+const StoopScript := preload("res://demo/cast/stoop_modifier.gd")
+const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
 
 const CROSSFADE_S: float = 0.25
 const LIBRARY: StringName = &"cast"
@@ -72,6 +80,10 @@ const HOLD_FORWARD_PER_HEIGHT: float = 0.07
 ## of this much.
 const WATER_FLOOR_BELOW_M: float = 4.0
 const WATER_TAIL_TURN_RAD: float = 0.15
+## The stoop eases in (and out) over this much demo time (design §6: 0.3 s).
+const STOOP_EASE_S: float = 0.3
+## The spine takes back this share of a ramp's pitch (the body leans into the slope by the rest).
+const LEAN_BACK_SHARE: float = 0.5
 ## The U view's marker for a resident on the surface: a cream disc in a dark edge, on the level's floor,
 ## drawn over the cap (no depth test), MARKER_RADIUS_M across.
 const MARKER_RADIUS_M: float = 0.24
@@ -127,6 +139,11 @@ var _floor_y: float = 0.0
 ## The tail's water mode as last set, and the heading its pull was last aimed along.
 var _tail_in_water: bool = false
 var _tail_yaw: float = 0.0
+## The stoop (null for a placeholder or another rig), how far into it the ease is (0..1) and the drop it
+## eases toward (m).
+var _stoop: StoopScript = null
+var _stoop_ease: float = 0.0
+var _stoop_drop: float = 0.0
 
 
 func setup_creature(index: int, key: StringName, row: Dictionary, space: CastSpaceScript, seed: int) -> bool:
@@ -153,6 +170,7 @@ func setup_creature(index: int, key: StringName, row: Dictionary, space: CastSpa
 	var lengths := _build_library(row.get("clips", {}), motion)
 	var height := float(row.get("height_m", PLACEHOLDER_HEIGHT_M))
 	_describe(index, key, String(row.get("species", key.split("_")[0])), height)
+	_build_stoop(height)
 	_make_brain(space, float(row.get("walk_speed_m_s", PLACEHOLDER_WALK_SPEED_M_S)), body_radius(height), seed, lengths)
 	brain.set_carry_motion(motion)
 	if brain.can_carry() and _skeleton != null:
@@ -229,6 +247,7 @@ func advance(clock: DemoClockScript) -> void:
 	for k in clock.steps():
 		brain.step(clock.step_s(k))
 	_apply_transform()
+	ease_stoop(clock.delta_s())
 	_apply_clip(clock.speed)
 	if _skeleton == null and (_held != null or _tool != null or _work_tool != null):
 		_place_load()
@@ -240,6 +259,7 @@ func _apply_transform() -> void:
 	position.y = brain.ground_y_m
 	position.z = brain.position.y
 	rotation.y = brain.yaw
+	rotation.x = brain.pitch
 	_apply_view()
 	if _tail == null:
 		return
@@ -249,6 +269,52 @@ func _apply_transform() -> void:
 	if floor_y != _floor_y:
 		_floor_y = floor_y
 		_tail.set_floor(_floor_y)
+
+
+# --- the stoop ------------------------------------------------------------------------------
+
+func _build_stoop(height: float) -> void:
+	"""The stoop modifier, first on the skeleton (after the clip, before the tail's spring); none when the
+	rig lacks the bones it bends."""
+	if _skeleton == null:
+		return
+	var stoop := StoopScript.new()
+	stoop.name = &"Stoop"
+	if not stoop.setup(_skeleton, _relative_transform(_skeleton).basis, height):
+		stoop.free()
+		return
+	_skeleton.add_child(stoop)
+	_skeleton.move_child(stoop, 0)
+	_stoop = stoop
+
+
+func stoop_target_m() -> float:
+	"""How far this resident lowers its head where it is now (m): its drop in the bore it is in, none on
+	the surface (see IN A BORE)."""
+	var bore := brain.bore_class() if brain != null else -1
+	if bore < 0:
+		return 0.0
+	return TunnelRules.to_m(TunnelRules.stoop_drop_u(TunnelRules.to_u(height_m), TunnelRules.BORE_CROWNS_U[bore]))
+
+
+func ease_stoop(delta_s: float) -> void:
+	"""Ease the stoop toward where the resident is, over STOOP_EASE_S of demo time, and lean into a ramp."""
+	var target := stoop_target_m()
+	if target > 0.0:
+		_stoop_drop = target
+	_stoop_ease = move_toward(_stoop_ease, 1.0 if target > 0.0 else 0.0, delta_s / STOOP_EASE_S)
+	if _stoop != null:
+		_stoop.set_pose(_stoop_drop * smoothstep(0.0, 1.0, _stoop_ease), -brain.pitch * LEAN_BACK_SHARE)
+
+
+func stoop_now_m() -> float:
+	"""How far the head is lowered now (m; checks)."""
+	return _stoop_drop * smoothstep(0.0, 1.0, _stoop_ease)
+
+
+func stoop() -> StoopScript:
+	"""The stoop modifier (null when the rig has none; checks)."""
+	return _stoop
 
 
 func _apply_tail_water() -> void:

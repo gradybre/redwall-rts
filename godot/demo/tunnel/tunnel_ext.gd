@@ -145,7 +145,7 @@ func _build_views() -> void:
 	"""The drawings and the panel."""
 	marks = MarksScript.new()
 	add_child(marks)
-	marks.configure(_network, works.hazards, _props)
+	marks.configure(_network, works.hazards, _props, _cast.clock)
 	ground_view = GroundViewScript.new()
 	add_child(ground_view)
 	ground_view.configure(works.ground)
@@ -173,6 +173,7 @@ func set_view(view: ViewScript) -> void:
 	_view = view
 	burrow_view.set_cap(view.cap)
 	marks.register(view.prewarm)
+	marks.lights.follow(func() -> bool: return view.on, view.focus)
 	burrow_view.register(view.prewarm)
 	find_props.register(view.prewarm)
 

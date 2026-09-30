@@ -90,6 +90,11 @@ extends RefCounted
 ## done, cancelled or taken by someone else meanwhile is dropped. The player's R (`release`) forgets
 ## them all: released means back to its own routine.
 ##
+## RAMPS (decision 0207). A mouth's ramp falls at up to 1:2.5 (tunnel_rules.gd). Walking it, the pace
+## is measured along the SLOPE -- the route's flat distance is stepped at walk speed times its cosine --
+## so the clip, playing at the stride rate, keeps the feet on it; and `pitch` tilts the body with the
+## slope (the actor leans the spine half of it back).
+##
 ## Yaw 0 faces +Z, the way the models face: forward is Vector2(sin(yaw), cos(yaw)) in (x, z).
 ## Deterministic: every random choice comes from this resident's own seeded generator.
 
@@ -101,6 +106,7 @@ const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
 const TunnelQueueScript := preload("res://demo/tunnel/tunnel_queue.gd")
 const TaskScript := preload("res://demo/tunnel/tunnel_task.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
+const BoreCurveScript := preload("res://demo/tunnel/bore_curve.gd")
 
 enum State { IDLE, TURN, WALK, FACE, ACT, HOLD, TUNNEL, DIG, QUEUE, TASK, CROSS }
 
@@ -219,6 +225,8 @@ var path_tunnel: PackedInt32Array = PackedInt32Array()
 ## Inside a tunnel, and how far below the ground its feet are (presentation: 0 on the surface).
 var underground: bool = false
 var ground_y_m: float = 0.0
+## Presentation: the body's tilt with a ramp's slope (radians, positive nose down; see RAMPS).
+var pitch: float = 0.0
 ## The tunnel this resident is ordered to dig, as an EntityRef (slot, generation); null (-1, 0).
 var dig_tunnel: int = -1
 var dig_generation: int = 0
@@ -260,6 +268,8 @@ var _travel_slot: int = 0
 var _travel_m: float = 0.0
 var _travel_end_m: float = 0.0
 var _travel_forward: bool = true
+## Scratch for a sample of a bore's drawn centreline (point, heading).
+var _curve_sample: PackedVector2Array = PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
 var _travel_to_face: bool = false
 ## Released while underground: idle once up, rather than going on.
 var _idle_on_surface: bool = false
@@ -1107,6 +1117,7 @@ func _set_underground(below: bool) -> void:
 	_space.set_underground(index, below)
 	if not below:
 		ground_y_m = 0.0
+		pitch = 0.0
 
 
 func _enter_tunnel_leg() -> void:
@@ -1145,7 +1156,7 @@ func _step_tunnel(delta: float) -> void:
 	"""Walk on along the tunnel at walk speed, keeping its distance from anyone ahead and stepping
 	aside for anyone coming (see SHARING A BORE); at the end, come up once the hole is clear (or reach
 	the dig face)."""
-	var wanted := _bore_speed() * delta
+	var wanted := _bore_speed() * delta * slope_share()
 	var step := minf(wanted, _space.room_ahead(index, BORE_GAP_M))
 	clip_speed = _bore_clip_speed() * (step / wanted if wanted > 0.0 else 0.0)
 	_travel_m = move_toward(_travel_m, _travel_end_m, step)
@@ -1161,6 +1172,19 @@ func _step_tunnel(delta: float) -> void:
 		_emerge_waited += delta
 		return
 	_end_travel()
+
+
+func slope_share() -> float:
+	"""How much of a step along the floor here is flat route distance: the cosine of its slope (see
+	RAMPS; 1 on the level)."""
+	var grade := TunnelRules.floor_grade(_travel_m, _space.tunnels.length_m(_travel_slot))
+	return 1.0 / sqrt(1.0 + grade * grade)
+
+
+func bore_class() -> int:
+	"""The bore class of the tunnel it is in (TunnelRules.BORE_*), or -1 on the surface."""
+	var slot := _space.resident_tunnel[index] if underground else -1
+	return int(_space.tunnels.bore[slot]) if slot >= 0 else -1
 
 
 func _bore_speed() -> float:
@@ -1181,13 +1205,24 @@ func _place_in_tunnel() -> void:
 	"""Stand on the bore floor at the current distance along the tunnel, facing the way it walks,
 	stepped `_side_m` to its right; and record its place in the bore."""
 	var tunnels := _space.tunnels
-	var ahead := tunnels.direction_at(_travel_slot, _travel_m)
-	var facing := ahead if _travel_forward else -ahead
-	position = tunnels.point_at(_travel_slot, _travel_m) + Vector2(-facing.y, facing.x) * _side_m
-	yaw = yaw_of(facing)
-	ground_y_m = tunnels.floor_y_at(_travel_slot, _travel_m)
+	stand_in_bore(_travel_slot, _travel_m, _travel_forward)
+	var facing := forward()
+	position += Vector2(-facing.y, facing.x) * _side_m
 	_space.move_resident(index, position)
 	_space.set_in_bore(index, _travel_slot, _travel_m, 1 if _travel_forward else -1)
+
+
+func stand_in_bore(slot_index: int, along_m: float, forward: bool) -> void:
+	"""Stand on tunnel `slot_index`'s floor `along_m` in, on its drawn centreline (bore_curve.gd, the one the
+	bore is swept along), facing along it (or back), tilted with its ramp (see RAMPS)."""
+	var tunnels := _space.tunnels
+	BoreCurveScript.of(tunnels, slot_index).sample(along_m, _curve_sample)
+	var facing: Vector2 = _curve_sample[1] if forward else -_curve_sample[1]
+	position = _curve_sample[0]
+	yaw = yaw_of(facing)
+	ground_y_m = tunnels.floor_y_at(slot_index, along_m)
+	var grade := TunnelRules.floor_grade(along_m, tunnels.length_m(slot_index))
+	pitch = atan(-grade if forward else grade)
 
 
 func _end_travel() -> void:
@@ -1320,10 +1355,7 @@ func _step_dig(delta: float) -> void:
 		return
 	if not underground:
 		_set_underground(true)
-	var face := tunnels.face_m(dig_tunnel)
-	position = tunnels.point_at(dig_tunnel, face)
-	yaw = yaw_of(tunnels.direction_at(dig_tunnel, face))
-	ground_y_m = tunnels.floor_y_at(dig_tunnel, face)
+	stand_in_bore(dig_tunnel, tunnels.face_m(dig_tunnel), true)
 	_space.move_resident(index, position)
 
 

@@ -9,7 +9,7 @@ extends RefCounted
 ##   |-------|----------------|-------------------------------------------------------------------|
 ##   | 1     | SURFACE        | the village: ground, buildings, trees, crops, water, residents up |
 ##   | 2     | SURFACE_MARKS  | labels and marks over the surface (Label3D, rings, plan ribbons)  |
-##   | 3     | UNDERGROUND    | the cap, the troughs, rooms, frames, lanterns, residents below    |
+##   | 3     | UNDERGROUND    | the cap, the bores, rooms, frames, lanterns, residents below      |
 ##   | 4     | UNDERGROUND_MARKS | marks and labels drawn in the U view (resident markers, rings) |
 ##
 ## A node never changes material, transparency or visibility when the view switches: nothing is faded,
@@ -35,9 +35,10 @@ const SURFACE_VIEW: int = SURFACE | SURFACE_MARKS
 const UNDERGROUND_VIEW: int = UNDERGROUND | UNDERGROUND_MARKS
 ## Level 1's floor: the bore floor depth (tunnel_rules.gd BORE_FLOOR_DEPTH_M).
 const FLOOR_Y_M: float = -Rules.BORE_FLOOR_DEPTH_M
-## The cap: half a standard bore above the floor -- the interim trough's rim (tunnel_overlay.gd), so a
-## resident in a bore shows whole and the cap still reads as solid earth round it.
-const CAP_Y_M: float = FLOOR_Y_M + 0.5
+## The cap: the section plane, at the crown (decision 0207; the design's -0.15 m for level 1) -- the
+## widened bore's drawn crown (tunnel_rules.gd BORE_CROWNS_U), 0.1 m over the standard one's -- so the
+## bores' walls rise to it under the cut and a stooped resident shows whole below it.
+const CAP_Y_M: float = FLOOR_Y_M + float(Rules.BORE_CROWNS_U[Rules.BORE_WIDE]) / float(Rules.UNITS_PER_M)
 ## Marks in the U view float this far above the floor.
 const MARK_LIFT_M: float = 0.035
 

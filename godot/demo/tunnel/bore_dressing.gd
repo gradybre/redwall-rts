@@ -1,0 +1,274 @@
+extends Node3D
+## What a bore's walls hold: stones bedded in them, and roots poking through them near trees. Decision
+## 0207 (the underground revamp's P1; design docs/design/underground_revamp.md §6 "Materials": embedded
+## stones, roots under trees). Presentation only.
+##
+## Per tunnel, two MultiMeshes on the UNDERGROUND layer: STONES (a lumpy stone, MAX_STONES of them) and
+## ROOTS (a tapering root with a rootlet, MAX_ROOTS), placed on the bore's own drawn centreline
+## (bore_curve.gd `of`). Each dug step (bore_view.gd's ring lattice) deep enough that its highest root
+## stays under the section plane (`dressed_at`) rolls its own dice -- a hash of the tunnel's generation and
+## the step, so a step always gets the same stones -- for a stone bedded into a wall (STONE_CHANCE a side), and,
+## within a mature tree's root reach (forest_roots.gd, the reach the cap's root tangles are drawn to),
+## up to ROOTS_PER_STEP roots out of the upper walls, likelier the nearer the trunk. Only new steps are
+## dressed as the face moves; a rebuild of the whole bore re-rolls the same dice.
+##
+## The earth shader's bedded stones and root streaks (bore_earth.gdshader) are the fine grain; these are
+## the pieces that stand proud of the wall.
+
+const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
+const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
+const Layers := preload("res://demo/demo_layers.gd")
+const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
+const BoreMeshScript := preload("res://demo/tunnel/bore_mesh.gd")
+const BoreCurveScript := preload("res://demo/tunnel/bore_curve.gd")
+const RootsScript := preload("res://demo/forestry/forest_roots.gd")
+const StandScript := preload("res://demo/forestry/forest_stand.gd")
+
+const MAX_STONES: int = 192
+const MAX_ROOTS: int = 96
+const STEP_M: float = BoreMeshScript.RING_STEP_M
+## A step's chance of a stone on each wall, and a stone's drawn radius range (m).
+const STONE_CHANCE: float = 0.22
+const STONE_MIN_M: float = 0.035
+const STONE_MAX_M: float = 0.09
+const STONE_COLOUR: Color = Color(0.36, 0.33, 0.29)
+## A stone's middle lies this share of its size into the wall: bedded, not stuck on.
+const STONE_BEDDED: float = 0.4
+## Roots: at most this many a step, near a trunk; drawn this long (m); how high up the wall they come out
+## (shares of the crown).
+const ROOTS_PER_STEP: int = 2
+const ROOT_CHANCE: float = 0.75
+const ROOT_MIN_M: float = 0.22
+const ROOT_MAX_M: float = 0.55
+const ROOT_FROM_T: float = 0.55
+const ROOT_TO_T: float = 0.95
+## A root's base keeps this far under the section plane.
+const ROOT_CAP_CLEAR_M: float = 0.05
+const ROOT_COLOUR: Color = Color(0.24, 0.16, 0.1)
+const ROOT_SIDES: int = 5
+const ROOT_BENDS: int = 6
+
+static var _stone: ArrayMesh = null
+static var _root: ArrayMesh = null
+
+var _stones: Array[MultiMeshInstance3D] = []
+var _roots: Array[MultiMeshInstance3D] = []
+## Mature trees as (x, root reach, z) metres.
+var _trees: PackedVector3Array = PackedVector3Array()
+var _sample: PackedVector2Array = PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
+
+
+func configure() -> void:
+	"""Every slot's two MultiMeshes, empty and hidden."""
+	name = "Dressing"
+	for slot in Rules.MAX_TUNNELS:
+		_stones.append(_multi(stone_mesh(), MAX_STONES))
+		_roots.append(_multi(root_mesh(), MAX_ROOTS))
+
+
+func _multi(mesh: Mesh, count: int) -> MultiMeshInstance3D:
+	"""A MultiMesh node for up to `count` of `mesh` (instance colours on), none shown, on the
+	UNDERGROUND layer."""
+	var multimesh := MultiMesh.new()
+	multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	multimesh.use_colors = true
+	multimesh.mesh = mesh
+	multimesh.instance_count = count
+	multimesh.visible_instance_count = 0
+	var node := MultiMeshInstance3D.new()
+	node.multimesh = multimesh
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	node.layers = Layers.UNDERGROUND
+	node.visible = false
+	add_child(node)
+	return node
+
+
+func register(prewarm: PrewarmScript) -> void:
+	"""The stone and the root, drawn instanced, for the U view's prewarm."""
+	prewarm.add_multimesh(stone_mesh())
+	prewarm.add_multimesh(root_mesh())
+
+
+func set_trees(trees: Array[Dictionary]) -> int:
+	"""The mature trees ({key, at, size}; saplings have no roots here) whose roots reach the bores.
+	Returns how many."""
+	_trees.resize(0)
+	for tree: Dictionary in trees:
+		var look: int = StandScript.LOOK_KEYS.find(tree["key"])
+		if look >= 0:
+			var at: Vector2 = tree["at"]
+			_trees.append(Vector3(at.x, RootsScript.reach_m(look, float(tree.get("size", 1.0))), at.y))
+	return _trees.size()
+
+
+func stones(slot: int) -> MultiMeshInstance3D:
+	"""Tunnel `slot`'s stones (checks)."""
+	return _stones[slot]
+
+
+func roots(slot: int) -> MultiMeshInstance3D:
+	"""Tunnel `slot`'s roots (checks)."""
+	return _roots[slot]
+
+
+func clear(slot: int) -> void:
+	"""No stones or roots in tunnel `slot`."""
+	for node: MultiMeshInstance3D in [_stones[slot], _roots[slot]]:
+		node.multimesh.visible_instance_count = 0
+		node.visible = false
+
+
+# --- placing ----------------------------------------------------------------------------------
+
+func place(slot: int, network: NetworkScript, from_m: float, to_m: float, widen_m: float) -> void:
+	"""Dress tunnel `slot`'s steps dug between `from_m` and `to_m` (from 0: all of them again)."""
+	if from_m <= 0.0:
+		clear(slot)
+	var curve: BoreCurveScript = BoreCurveScript.of(network, slot)
+	var length := network.length_m(slot)
+	var step := 0 if from_m <= 0.0 else floori(from_m / STEP_M) + 1
+	while float(step) * STEP_M <= to_m:
+		var along := float(step) * STEP_M
+		var bore := Rules.BORE_WIDE if network.bore[slot] == Rules.BORE_WIDE or along < widen_m else Rules.BORE_STANDARD
+		if dressed_at(Rules.floor_y_m(along, length), bore):
+			curve.sample(along, _sample)
+			_dress_step(slot, network.generation[slot] * 7919 + step, Vector3(_sample[0].x, Rules.floor_y_m(along, length), _sample[0].y), _sample[1], bore)
+		step += 1
+	for node: MultiMeshInstance3D in [_stones[slot], _roots[slot]]:
+		node.visible = node.multimesh.visible_instance_count > 0
+
+
+static func dressed_at(floor_y: float, bore: int) -> bool:
+	"""Whether a step whose floor lies at `floor_y` is dressed: its highest root stays under the section
+	plane (demo_layers.gd CAP_Y_M), so nothing stands through the cut."""
+	return floor_y + Rules.crown_m(bore) * ROOT_TO_T + ROOT_CAP_CLEAR_M <= Layers.CAP_Y_M
+
+
+func _dress_step(slot: int, seed: int, centre: Vector3, heading: Vector2, bore: int) -> void:
+	"""One step's stones and roots (see the header)."""
+	var side := Vector3(-heading.y, 0.0, heading.x)
+	for wall: float in [-1.0, 1.0]:
+		if unit(seed, 1 + int(wall)) < STONE_CHANCE:
+			_add_stone(slot, seed + int(wall) * 31, centre, side * wall, bore)
+	var near := root_chance(Vector2(centre.x, centre.z))
+	for k in ROOTS_PER_STEP:
+		if unit(seed, 10 + k) < near * ROOT_CHANCE:
+			_add_root(slot, seed + k * 57, centre, side * (1.0 if unit(seed, 20 + k) < 0.5 else -1.0), bore)
+
+
+func root_chance(at: Vector2) -> float:
+	"""How likely roots are at `at`: 1 at a trunk, falling to 0 at its root reach (the nearest tree's)."""
+	var best := 0.0
+	for tree: Vector3 in _trees:
+		var reach := maxf(tree.y, 0.01)
+		best = maxf(best, 1.0 - Vector2(tree.x, tree.z).distance_to(at) / reach)
+	return clampf(best, 0.0, 1.0)
+
+
+static func unit(seed: int, salt: int) -> float:
+	"""A repeatable number in [0, 1) from a seed and a salt (an integer hash)."""
+	var h := (seed * 73856093) ^ (salt * 19349663) ^ 0x5bd1e995
+	h = (h ^ (h >> 13)) * 1274126177
+	h = h ^ (h >> 16)
+	return float(h & 0xFFFFFF) / float(0x1000000)
+
+
+func _add_stone(slot: int, seed: int, centre: Vector3, out: Vector3, bore: int) -> void:
+	"""A stone bedded half into the wall on the `out` side, part way up it."""
+	var node := _stones[slot]
+	var count := node.multimesh.visible_instance_count
+	if count >= MAX_STONES:
+		return
+	var t := lerpf(0.08, 0.7, unit(seed, 3))
+	var reach := BoreMeshScript.FLOOR_HALF_M[bore] * BoreMeshScript.width_share(t)
+	var size := lerpf(STONE_MIN_M, STONE_MAX_M, unit(seed, 4))
+	var basis := Basis(Vector3(unit(seed, 5), unit(seed, 6), unit(seed, 7)).normalized(), unit(seed, 8) * TAU).scaled(Vector3(size, size * 0.8, size))
+	node.multimesh.set_instance_transform(count, Transform3D(basis, centre + out * (reach + size * STONE_BEDDED) + Vector3.UP * (t * Rules.crown_m(bore))))
+	node.multimesh.set_instance_color(count, STONE_COLOUR * lerpf(0.8, 1.15, unit(seed, 9)))
+	node.multimesh.visible_instance_count = count + 1
+
+
+func _add_root(slot: int, seed: int, centre: Vector3, out: Vector3, bore: int) -> void:
+	"""A root out of the upper wall on the `out` side, reaching into the bore and hanging down."""
+	var node := _roots[slot]
+	var count := node.multimesh.visible_instance_count
+	if count >= MAX_ROOTS:
+		return
+	var t := lerpf(ROOT_FROM_T, ROOT_TO_T, unit(seed, 11))
+	var reach := BoreMeshScript.FLOOR_HALF_M[bore] * BoreMeshScript.width_share(t)
+	var length := lerpf(ROOT_MIN_M, ROOT_MAX_M, unit(seed, 12))
+	var inward := -out
+	var along := Vector3(-out.z, 0.0, out.x) * (unit(seed, 13) - 0.5)
+	var basis := Basis(inward, Vector3.UP, inward.cross(Vector3.UP)).rotated(Vector3.UP, (unit(seed, 14) - 0.5) * 0.8)
+	var at := centre + out * (reach + 0.02) + Vector3.UP * (t * Rules.crown_m(bore)) + along * 0.2
+	node.multimesh.set_instance_transform(count, Transform3D(basis.scaled(Vector3.ONE * length), at))
+	node.multimesh.set_instance_color(count, ROOT_COLOUR * lerpf(0.85, 1.2, unit(seed, 15)))
+	node.multimesh.visible_instance_count = count + 1
+
+
+# --- the pieces -------------------------------------------------------------------------------
+
+static func stone_mesh() -> ArrayMesh:
+	"""A unit lumpy stone (radius about 1), shared: a low sphere with every point pushed in or out."""
+	if _stone != null:
+		return _stone
+	var sphere := SphereMesh.new()
+	sphere.radial_segments = 9
+	sphere.rings = 5
+	var arrays := sphere.get_mesh_arrays()
+	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	for k in points.size():
+		var p := points[k] * 2.0
+		points[k] = p * (1.0 + 0.22 * sin(p.x * 5.1 + p.y * 3.3) * cos(p.z * 4.7 - p.y * 1.9))
+	arrays[Mesh.ARRAY_VERTEX] = points
+	var tool := SurfaceTool.new()
+	tool.create_from_arrays(arrays)
+	tool.generate_normals()
+	_stone = tool.commit()
+	_stone.surface_set_material(0, _material(0.9, BaseMaterial3D.CULL_BACK))
+	return _stone
+
+
+static func root_mesh() -> ArrayMesh:
+	"""A unit root (about 1 long), shared: a tapering tube out along +X that curls down, and a rootlet."""
+	if _root != null:
+		return _root
+	var tool := SurfaceTool.new()
+	tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+	_tube(tool, 0, func(u: float) -> Vector3: return Vector3(u * 0.75, -0.55 * u * u, 0.08 * sin(u * 4.0)), 0.05, 0.008)
+	_tube(tool, (ROOT_BENDS + 1) * ROOT_SIDES, func(u: float) -> Vector3: return Vector3(0.3 + u * 0.25, -0.05 - 0.35 * u, 0.12 * u), 0.022, 0.004)
+	tool.generate_normals()
+	_root = tool.commit()
+	_root.surface_set_material(0, _material(0.95, BaseMaterial3D.CULL_DISABLED))
+	return _root
+
+
+static func _tube(tool: SurfaceTool, base: int, path: Callable, from_radius: float, to_radius: float) -> void:
+	"""A tapering ROOT_SIDES-sided tube along `path(u)`, u in 0..1, in ROOT_BENDS bands, its first vertex
+	the tool's `base`th."""
+	for i in ROOT_BENDS + 1:
+		var u := float(i) / float(ROOT_BENDS)
+		var at: Vector3 = path.call(u)
+		var ahead: Vector3 = (path.call(minf(u + 0.01, 1.0)) as Vector3) - (path.call(maxf(u - 0.01, 0.0)) as Vector3)
+		var across := ahead.cross(Vector3.FORWARD).normalized()
+		var up := across.cross(ahead).normalized()
+		for k in ROOT_SIDES:
+			var angle := TAU * float(k) / float(ROOT_SIDES)
+			tool.add_vertex(at + (across * cos(angle) + up * sin(angle)) * lerpf(from_radius, to_radius, u))
+	for i in ROOT_BENDS:
+		for k in ROOT_SIDES:
+			var a := base + i * ROOT_SIDES + k
+			var b := base + i * ROOT_SIDES + (k + 1) % ROOT_SIDES
+			for index: int in [a, b, a + ROOT_SIDES, b, b + ROOT_SIDES, a + ROOT_SIDES]:
+				tool.add_index(index)
+
+
+static func _material(roughness: float, cull: BaseMaterial3D.CullMode) -> StandardMaterial3D:
+	"""A rough material coloured per instance (the MultiMesh's colours)."""
+	var material := StandardMaterial3D.new()
+	material.vertex_color_use_as_albedo = true
+	material.vertex_color_is_srgb = true
+	material.roughness = roughness
+	material.cull_mode = cull
+	return material

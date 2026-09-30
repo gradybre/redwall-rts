@@ -2442,3 +2442,274 @@ func test_a_narrowed_workspace_narrows_its_content_column_with_it() -> void:
 		"below §4.2's fixed 64 px header")
 	assert_almost_equal(_shell.workspace_body().size.y,
 		frame.size.y - 64.0 - 60.0, "and above its fixed 60 px footer")
+
+
+# --- playtest 2026-09-29: the overload notice ends, shows once, fits; the history closes ----------
+
+## The clock's own 1x diagnostic sentence (sim_clock.gd `note_overload_step`) at the widest owed count
+## an int32 prints -- the longest overload sentence the game can raise -- and its 4x step-down form.
+const OVERLOAD_AT_1X: String = "Simulation overloaded at 1x: 2147483647 whole tick(s) owed; paused rather than skipping."
+const OVERLOAD_STEP_DOWN: String = "Simulation overloaded: speed reduced to 2x; 2147483647 whole tick(s) owed."
+const OVERLOAD_CODE: String = "CLOCK_OVERLOADED"
+const CLOCK_SOURCE: String = "Simulation clock"
+
+
+func _raise_overload(message: String) -> void:
+	"""Raise the clock's overload notice as UIManager does (its category, code and source)."""
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_CLOCK_OVERLOAD, message, CLOCK_SOURCE, OVERLOAD_CODE,
+		"Lower the game speed, or let the simulation catch up."), "the overload notice is raised")
+
+
+func _overload_row() -> UiNotices.Notice:
+	"""The retained overload row, expanded (the only CLOCK_OVERLOADED row there may be)."""
+	var row := UiNotices.Notice.new()
+	for index: int in _shell.notices().count():
+		_shell.notices().notice_into(index, 0, row)
+		if row.code == OVERLOAD_CODE:
+			return row
+	row.reset()
+	return row
+
+
+func test_resolving_the_overload_code_takes_its_card_down_and_keeps_its_row() -> void:
+	"""Resume's resolve: the card goes, the history keeps the row; a second stall raises it again,
+	regrouped onto the same row."""
+	_raise_overload(OVERLOAD_AT_1X)
+	assert_equal(_shell.wanted_alert_cards(), 1, "the overload card is up")
+	assert_equal(_shell.resolve_notices_with_code(OVERLOAD_CODE), 1, "one active row resolved")
+	assert_equal(_shell.notices().active_count(), 0, "nothing active")
+	assert_equal(_shell.wanted_alert_cards(), 0, "the card is gone")
+	assert_false(_shell.alert_card_at(0).visible, "and not drawn")
+	assert_equal(_shell.notices().count(), 1, "the history keeps the row")
+	assert_true(_overload_row().resolved, "marked resolved")
+	_raise_overload(OVERLOAD_AT_1X)
+	assert_equal(_shell.notices().count(), 1, "a second stall adds no row")
+	assert_false(_overload_row().resolved, "it is active again")
+	assert_equal(_overload_row().occurrences, 2, "seen twice")
+	assert_equal(_shell.wanted_alert_cards(), 1, "and its card is back")
+
+
+func test_resolving_a_code_leaves_every_other_notice() -> void:
+	"""Only the named code: a different condition keeps its card; an empty or unknown code resolves
+	nothing; resolving again finds nothing active."""
+	_raise_overload(OVERLOAD_AT_1X)
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "a second condition")
+	_shell.set_alert_display("An uncategorised line with no code")
+	assert_equal(_shell.resolve_notices_with_code(""), 0, "an empty code names nothing, not the code-less notice")
+	assert_equal(_shell.resolve_notices_with_code("NO_SUCH_CODE"), 0, "an unknown code resolves nothing")
+	assert_equal(_shell.notices().active_count(), 3, "all three still active")
+	assert_equal(_shell.resolve_notices_with_code(OVERLOAD_CODE), 1, "the overload resolved")
+	assert_equal(_shell.resolve_notices_with_code(OVERLOAD_CODE), 0, "and not twice")
+	assert_equal(_shell.notices().active_count(), 2, "the refusal and the code-less line are still active")
+	var card := UiNotices.Notice.new()
+	assert_true(_shell.card_notice_into(card), "a card is up")
+	assert_equal(card.code, LONG_CODE, "and it is the refusal's")
+
+
+func test_resolving_refreshes_an_open_history() -> void:
+	"""An open expanded view reprints its header's active count at once."""
+	_raise_overload(OVERLOAD_AT_1X)
+	assert_true(_shell.open_notice_history(), "the history opens")
+	assert_true(_shell.history_header().text.contains("1 active"), "one active before")
+	_shell.resolve_notices_with_code(OVERLOAD_CODE)
+	assert_true(_shell.history_header().text.contains("0 active"), "none after (%s)" % _shell.history_header().text)
+
+
+func test_a_withheld_code_takes_no_card_but_stays_active() -> void:
+	"""While another surface shows the overload (the demo's stall banner), its card is withheld; the
+	notice stays active and counted; releasing the code gives it its card back."""
+	_raise_overload(OVERLOAD_AT_1X)
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "a second condition")
+	_shell.withhold_cards_with_code(OVERLOAD_CODE)
+	assert_equal(_shell.wanted_alert_cards(), 1, "one card: the overload's is withheld")
+	var card := UiNotices.Notice.new()
+	assert_true(_shell.card_notice_into(card), "the first card shows a notice")
+	assert_equal(card.code, LONG_CODE, "the refusal, not the withheld overload")
+	assert_equal(_shell.notices().active_count(), 2, "the overload is still active")
+	_shell.withhold_cards_with_code("")
+	assert_equal(_shell.wanted_alert_cards(), 2, "released: both conditions ask for a card")
+
+
+func test_withholding_the_only_notice_leaves_no_card() -> void:
+	"""With nothing else active the stack is empty while the code is withheld."""
+	_raise_overload(OVERLOAD_AT_1X)
+	_shell.withhold_cards_with_code(OVERLOAD_CODE)
+	assert_equal(_shell.wanted_alert_cards(), 0, "no card")
+	assert_false(_shell.alert_card_at(0).visible, "none drawn")
+	_raise_overload(OVERLOAD_AT_1X)
+	assert_equal(_shell.wanted_alert_cards(), 0, "a repeat raised while withheld stays off the cards")
+
+
+func _paragraph_height(label: Label, text: String, width: float) -> float:
+	"""How tall a WORD_SMART Label draws `text` wrapped to `width`: the engine's own paragraph shaper
+	(TextParagraph, with the break flags Label::_shape uses for that mode) summed line by line, plus
+	the theme's line spacing between lines -- a reference independent of the shell's measurement
+	(off-tree a Label reports one line whatever its text, so it cannot be asked itself)."""
+	var paragraph := TextParagraph.new()
+	paragraph.width = width
+	paragraph.break_flags = TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND \
+		| TextServer.BREAK_GRAPHEME_BOUND | TextServer.BREAK_TRIM_EDGE_SPACES
+	paragraph.add_string(text, label.get_theme_font(&"font"), label.get_theme_font_size(&"font_size"))
+	var height: float = 0.0
+	for line: int in paragraph.get_line_count():
+		height += paragraph.get_line_size(line).y
+	return height + float((paragraph.get_line_count() - 1) * label.get_theme_constant(&"line_spacing"))
+
+
+func _fits(label: Label, interior: Vector2, what: String) -> void:
+	"""The label's text, drawn wrapped to `interior`'s width, is no taller than `interior`."""
+	var drawn: float = _paragraph_height(label, label.text, interior.x)
+	assert_true(drawn > 0.0, "%s: measured" % what)
+	assert_true(drawn <= interior.y + 0.5, "%s: %.1f px of text inside %.1f" % [what, drawn, interior.y])
+
+
+func test_the_longest_overload_sentence_fits_its_card_at_both_desktop_sizes() -> void:
+	"""The card is measured as its Label draws -- break flags and line spacing -- so the text it
+	prints (the whole sentence, or the authored summary) fits the card's interior."""
+	for size: Vector2i in [Vector2i(1280, 720), Vector2i(1920, 1080)]:
+		for message: String in [OVERLOAD_AT_1X, OVERLOAD_STEP_DOWN]:
+			_shell.notices().clear()
+			_raise_overload(message)
+			assert_true(_shell.layout_for(size.x, size.y), "%s lays out" % size)
+			var card: Control = _shell.alert_card_at(0)
+			var label: Label = _shell.alert_label_at(0)
+			assert_true(card.visible, "%s: the card is placed" % size)
+			var interior := Vector2(card.size.x - label.offset_left + label.offset_right,
+				card.size.y - label.offset_top + label.offset_bottom)
+			_fits(label, interior, "%s card '%s'" % [size, label.text])
+
+
+func test_a_focused_cards_description_box_is_as_tall_as_its_text() -> void:
+	"""UI-SET-073 under a keyboard-focused card carries "Warning. <the whole sentence> Open alert
+	details." It was a fixed box and the text spilled out under it; it now fits, at both sizes, and
+	stays inside the viewport."""
+	for size: Vector2i in [Vector2i(1280, 720), Vector2i(1920, 1080)]:
+		_shell.notices().clear()
+		_raise_overload(OVERLOAD_AT_1X)
+		assert_true(_shell.layout_for(size.x, size.y), "%s lays out" % size)
+		_shell.alert_card_at(0).emit_signal(&"focus_entered")
+		var box: Control = _shell.control_for(UiShell.ID_TOOLTIP)
+		var label: Label = _shell.tooltip_label()
+		assert_true(box.visible, "%s: the description is up" % size)
+		assert_true(label.text.ends_with(UiNotices.OPEN_DETAILS_ACTION), "%s: it names the action" % size)
+		_fits(label, box.size - Vector2(2.0 * UiShell.PANEL_PADDING, 2.0 * UiShell.PANEL_PADDING), "%s description" % size)
+		var view := Rect2(Vector2.ZERO, Vector2(size))
+		assert_true(view.encloses(Rect2(box.position, box.size)), "%s: inside the viewport (%s)" % [size, Rect2(box.position, box.size)])
+		assert_true(box.size.x >= 160.0 and box.size.x <= 360.0, "%s: within §4's 160..360 width (%.1f)" % [size, box.size.x])
+
+
+func test_a_bottom_rows_description_goes_above_it() -> void:
+	"""A command's description would run off the bottom under the last row; it sits above instead,
+	clear of the control it describes."""
+	var zone: Button = _shell.control_for(UiShell.ID_ZONE) as Button
+	zone.tooltip_text = "Zone (Z) — Paint a work zone on the map with the zone brush"
+	zone.emit_signal(&"focus_entered")
+	var box: Control = _shell.control_for(UiShell.ID_TOOLTIP)
+	var strip: Control = _shell.control_for(UiShell.ID_COMMAND_STRIP)
+	assert_true(box.position.y + box.size.y <= _shell.geometry().logical_height - UiLayout.SAFE_INSET,
+		"inside the safe inset (%s)" % Rect2(box.position, box.size))
+	assert_true(box.position.y + box.size.y <= strip.position.y + zone.position.y, "above the command it describes")
+
+
+func test_the_history_has_its_own_close_in_its_header() -> void:
+	"""UI-SET-012's "×": in the header row's right end, clear of the header text; pressing it closes
+	the view, resolves nothing, and hands focus back to the trigger that opened it."""
+	_raise_overload(OVERLOAD_AT_1X)
+	(_shell.control_for(UiShell.ID_HISTORY_TRIGGER) as Button).pressed.emit()
+	assert_true(_shell.notice_details_open(), "open")
+	var panel: Control = _shell.control_for(UiShell.ID_HISTORY)
+	var close: Button = _shell.history_close()
+	assert_true(close.get_parent() == panel and close.visible, "a Close inside the history")
+	assert_true(Rect2(Vector2.ZERO, panel.size).encloses(Rect2(close.position, close.size)), "within the panel")
+	assert_almost_equal(close.position.x + close.size.x, panel.size.x - UiShell.PANEL_PADDING, "at the right padding")
+	assert_true(panel.size.x + _shell.history_header().offset_right <= close.position.x, "the header text stops short of it")
+	close.pressed.emit()
+	assert_false(_shell.notice_details_open(), "the Close closed it")
+	assert_equal(_shell.notices().active_count(), 1, "and resolved nothing")
+	assert_equal(_shell.focus_order().focused_element().value, UiShell.ID_HISTORY_TRIGGER, "focus back on the trigger")
+
+
+func test_esc_closes_the_history_and_n_toggles_it() -> void:
+	"""Esc belongs to the history only while it is open; N (`open_history`) opens and closes it."""
+	_raise_overload(OVERLOAD_AT_1X)
+	assert_false(_shell.handle_history_key(_key_event(KEY_ESCAPE)), "Esc with nothing open is not the history's")
+	assert_true(_shell.handle_history_key(_key_event(KEY_N)), "N opens it")
+	assert_true(_shell.notice_details_open(), "open")
+	assert_true(_shell.handle_history_key(_key_event(KEY_ESCAPE)), "Esc is the history's")
+	assert_false(_shell.notice_details_open(), "closed")
+	assert_true(_shell.handle_history_key(_key_event(KEY_N)), "N again")
+	assert_true(_shell.handle_history_key(_key_event(KEY_N)), "and again")
+	assert_false(_shell.notice_details_open(), "N closes it too")
+	var released: InputEventKey = _key_event(KEY_N)
+	released.pressed = false
+	assert_false(_shell.handle_history_key(released), "a release does nothing")
+
+
+func test_a_commands_key_presses_it_only_when_it_is_enabled() -> void:
+	"""Z presses Zone (its brush opens), exactly -- Ctrl+Z is undo, not Zone; B does nothing while
+	Build is locked; an unbound key is not a command's."""
+	var brush: Control = _shell.control_for(UiShell.ID_ZONE_BRUSH)
+	assert_false(brush.visible, "the brush starts closed")
+	assert_true(_shell.handle_command_key(_key_event(KEY_Z)), "Z is Zone's")
+	assert_true(brush.visible, "the zone brush opened")
+	var undo: InputEventKey = _key_event(KEY_Z)
+	undo.ctrl_pressed = true
+	assert_false(_shell.handle_command_key(undo), "Ctrl+Z is not Zone")
+	assert_true(brush.visible, "the brush is untouched")
+	assert_true((_shell.control_for(UiShell.ID_BUILD) as Button).disabled, "Build is locked")
+	assert_false(_shell.handle_command_key(_key_event(KEY_B)), "so B does nothing")
+	assert_false(_shell.handle_command_key(_key_event(KEY_Q)), "Q is no command's")
+
+
+func test_every_command_has_its_own_action_in_the_input_map() -> void:
+	"""COMMAND_ACTIONS lines up with the strip and every action exists with a key."""
+	assert_equal(UiShell.COMMAND_ACTIONS.size(), UiShell.COMMAND_IDS.size(), "one action per command")
+	for action: StringName in UiShell.COMMAND_ACTIONS:
+		assert_true(InputMap.has_action(action), "%s is in the input map" % action)
+		var keyed: bool = false
+		for event: InputEvent in InputMap.action_get_events(action):
+			keyed = keyed or event is InputEventKey
+		assert_true(keyed, "%s has a key" % action)
+
+
+func test_n_does_not_open_the_history_over_a_modal_workspace() -> void:
+	"""While a workspace holds the input (its scrim: the compact variant at 150 percent), N is not the
+	history's, as the trigger is out of reach then too; the command keys likewise."""
+	assert_true(_shell.open_workspace_page(UiRegistry.ROSTER_ID), "the roster opens")
+	assert_true(_shell.apply_user_scale(UiLayout.USER_SCALE_150), "150 percent applies")
+	assert_true(_shell.layout_for(1280, 720), "the narrow layout computes")
+	assert_true(_shell.hit_test().scrim_is_up(), "the compact variant holds the input")
+	assert_false(_shell.handle_history_key(_key_event(KEY_N)), "N is not the history's")
+	assert_false(_shell.notice_details_open(), "nothing opened")
+	assert_false(_shell.handle_command_key(_key_event(KEY_Z)), "nor is Z Zone's")
+
+
+func test_a_description_with_an_unbroken_code_still_fits() -> void:
+	"""A refusal naming its validation code carries one very long word; the Label breaks it inside
+	(WORD_SMART), and the box is measured with that same breaking, so it still holds the text."""
+	var message: String = "Generation refused (%s): the settlement already has living residents." % LONG_CODE
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, message, LONG_SOURCE, LONG_CODE,
+		RECOVERY), "the refusal is raised")
+	assert_true(_shell.layout_for(1280, 720), "lays out")
+	_shell.alert_card_at(0).emit_signal(&"focus_entered")
+	var box: Control = _shell.control_for(UiShell.ID_TOOLTIP)
+	_fits(_shell.tooltip_label(), box.size - Vector2(2.0 * UiShell.PANEL_PADDING, 2.0 * UiShell.PANEL_PADDING),
+		"the description with a %d-letter word" % LONG_CODE.length())
+
+
+func test_a_summarised_card_stays_summarised_on_the_next_layout() -> void:
+	"""The card is sized from the notice's own message, never from the summary the Label now prints,
+	so a second layout of the same notice takes the same decision (it does not flip to the full text
+	and overflow)."""
+	assert_true(_shell.raise_notice(UiNotices.CATEGORY_GENERATION_FAILED, THREE_LINE_REFUSAL,
+		LONG_SOURCE, LONG_CODE, RECOVERY), "a refusal too long for the standard card")
+	assert_true(_shell.layout_for(1280, 720), "the standard layout")
+	assert_true(_shell.card_is_summarised(), "the authored summary")
+	assert_true(_shell.layout_for(1280, 720), "laid out again")
+	assert_true(_shell.card_is_summarised(), "still the summary")
+	var card: Control = _shell.alert_card_at(0)
+	var label: Label = _shell.alert_label_at(0)
+	_fits(label, Vector2(card.size.x - label.offset_left + label.offset_right,
+		card.size.y - label.offset_top + label.offset_bottom), "the summary in its card")

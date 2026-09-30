@@ -18,9 +18,12 @@ extends RefCounted
 ## (demo_notices.gd), which explains why.
 
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
+const CommandTips := preload("res://demo/ui/demo_command_tips.gd")
 
 const FOOD_ICON: String = "res://ui/painted/res_food_ready.svg"
-const FOOD_TOOLTIP: String = "Pantry: the farm's ingredients in store, and the dishes they feed (K)"
+## What the unlocked Food command does. Its tooltip is "Food (K) — " and this, in the command strip's
+## one form (demo_command_tips.gd), the key read from the input map's `open_food`, never written here.
+const FOOD_TOOLTIP: String = "Pantry: the farm's ingredients in store, and the dishes they feed"
 
 var _shell: UiShell = null
 var _painted_units: int = -1
@@ -66,8 +69,13 @@ func unlock_food_command(open_pantry: Callable) -> bool:
 		return false
 	food.disabled = false
 	food.icon = load(FOOD_ICON) as Texture2D
-	food.tooltip_text = FOOD_TOOLTIP
+	food.tooltip_text = food_tooltip()
 	food.accessibility_description = FOOD_TOOLTIP
 	food.pressed.connect(open_pantry)
 	return true
 
+
+static func food_tooltip() -> String:
+	"""The unlocked Food command's tooltip: "Food (K) — Pantry: ...", the key from the input map."""
+	var index: int = UiShell.COMMAND_IDS.find(UiShell.ID_FOOD_ORDERS)
+	return CommandTips.tooltip(UiShell.COMMAND_LABELS[index], UiShell.COMMAND_ACTIONS[index], FOOD_TOOLTIP, "")

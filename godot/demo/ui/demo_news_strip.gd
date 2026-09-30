@@ -8,10 +8,15 @@ extends CanvasLayer
 ## with the date the HUD shows, warnings in clay AND worded (colour never says it alone). An entry's
 ## authored short summary is shown when it has one. Nothing fresh: the strip hides.
 ##
-## WHERE: bottom centre, over the world, between the minimap and the right column and just above the
-## command strip -- the one band UI §1.2 leaves free at every profile -- no wider than MAX_W. Geometry
-## is the HUD's own (`scripts/ui/ui_layout.gd`, read, never modified) in LOGICAL pixels at the HUD's
-## scale. It ignores the mouse, so a click through it still reaches the world; it draws below the HUD.
+## WHERE: bottom centre, over the world, just above the command strip and CENTRED ON IT (playtest
+## 2026-09-29: "center the news bar with the action bar" -- it was centred on the gap between the
+## minimap and the right column, 176 px left of the commands at 1280x720 and 200 px at 1920x1080). It
+## stays clear of the minimap and the right column -- the one band UI §1.2 leaves free at every
+## profile -- so it is as wide as it can be about that centre, no wider than MAX_W; at 1280x720, where
+## the commands run under the right column, that is narrower. The command strip moves left when the
+## resident journal takes the right column; the strip follows it (`follow_journal`). Geometry is the
+## HUD's own (`scripts/ui/ui_layout.gd`, read, never modified) in LOGICAL pixels at the HUD's scale.
+## It ignores the mouse, so a click through it still reaches the world; it draws below the HUD.
 ##
 ## Refreshed a few times a second on real time (it must read while the village is paused); it
 ## rebuilds nothing, only rewrites LINES labels.
@@ -40,12 +45,32 @@ var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 var _refresh_in: float = 0.0
 var _seen_revision: int = -1
 var _shown: int = 0
+## Answers whether the resident journal holds the right column (demo_detail_zone.gd `journal_open`).
+var _journal_query: Callable = Callable()
+var _journal_open: bool = false
 
 
 func configure(notices: NoticesScript) -> void:
 	"""Show this feed, and build."""
 	_notices = notices
 	build()
+
+
+func follow_journal(journal_open: Callable) -> void:
+	"""Follow the command strip when the right column yields to the resident journal (the HUD lays
+	its commands out for an open journal then): `journal_open` answers whether it does."""
+	_journal_query = journal_open
+	_place()
+
+
+func _journal_is_open() -> bool:
+	"""Whether the resident journal holds the right column now (false while nothing is followed)."""
+	return _journal_query.is_valid() and bool(_journal_query.call())
+
+
+func journal_followed() -> bool:
+	"""The journal state the strip last laid itself out for (checks)."""
+	return _journal_open
 
 
 func _ready() -> void:
@@ -102,6 +127,9 @@ func refresh(now_msec: int) -> int:
 	"""Show the fresh entries as of `now_msec` (real milliseconds); returns how many are shown."""
 	if _notices == null or _frame == null:
 		return 0
+	if _journal_is_open() != _journal_open:
+		_journal_open = not _journal_open
+		_place.call_deferred()
 	var shown: int = 0
 	for k: int in _notices.count():
 		if shown >= LINES:
@@ -146,8 +174,7 @@ func _place() -> void:
 	"""Bottom centre, between the minimap and the right column, above the command strip (see WHERE)."""
 	if not is_inside_tree() or _frame == null:
 		return
-	var size_px: Vector2 = get_viewport().get_visible_rect().size
-	var band: Rect2 = band_placement(int(size_px.x), int(size_px.y), _layout, _geometry)
+	var band: Rect2 = band_in(get_viewport().get_visible_rect().size)
 	for label: Label in _lines:
 		label.custom_minimum_size.x = band.size.x - CONTENT_MARGINS[0] - CONTENT_MARGINS[2]
 	var height: float = _frame.get_combined_minimum_size().y
@@ -157,18 +184,28 @@ func _place() -> void:
 	_frame.position = Vector2(band.position.x, band.end.y - height) * _geometry.scale
 
 
-static func band_placement(width: int, height: int, layout: UiLayout, geometry: UiLayout.Geometry) -> Rect2:
-	"""The band the strip may fill, in the HUD's logical pixels: between the minimap and the right
-	column, no wider than MAX_W and centred, from the top of the minimap down to just above the command
-	strip (the strip sits on its bottom edge, as tall as its lines). Fills `geometry`."""
+func band_in(viewport_size: Vector2) -> Rect2:
+	"""The band for this viewport, in logical pixels, laid out for the journal as it is now (fills the
+	strip's own geometry, whose scale the frame is drawn at)."""
+	_journal_open = _journal_is_open()
+	return band_placement(int(viewport_size.x), int(viewport_size.y), _layout, _geometry, _journal_open)
+
+
+static func band_placement(width: int, height: int, layout: UiLayout, geometry: UiLayout.Geometry,
+		journal_open: bool = false) -> Rect2:
+	"""The band the strip may fill, in the HUD's logical pixels: centred on the command strip (as the
+	HUD lays it out with the journal open or closed), as wide as it can be about that centre while
+	clear of the minimap and the right column, no wider than MAX_W, from the top of the minimap down to
+	just above the command strip (the strip sits on its bottom edge, as tall as its lines). Fills
+	`geometry`."""
 	if not layout.compute_into(maxi(width, UiLayout.SUPPORTED_MIN_WIDTH), maxi(height, UiLayout.SUPPORTED_MIN_HEIGHT),
-			UiLayout.USER_SCALE_100, false, geometry):
+			UiLayout.USER_SCALE_100, journal_open, geometry):
 		geometry.scale = 1.0
-	var left: float = geometry.minimap.end.x + GAP
-	var right: float = geometry.detail.position.x - GAP
-	var band_w: float = minf(MAX_W, right - left)
+	var centre: float = geometry.commands.get_center().x
+	var half: float = minf(centre - (geometry.minimap.end.x + GAP), geometry.detail.position.x - GAP - centre)
+	var band_w: float = minf(MAX_W, 2.0 * maxf(half, 0.0))
 	var top: float = geometry.minimap.position.y
-	return Rect2((left + right - band_w) / 2.0, top, band_w, geometry.commands.position.y - GAP - top)
+	return Rect2(centre - band_w / 2.0, top, band_w, geometry.commands.position.y - GAP - top)
 
 
 func frame_rect() -> Rect2:

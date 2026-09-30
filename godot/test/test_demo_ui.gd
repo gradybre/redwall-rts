@@ -655,3 +655,193 @@ func _sizing_of(control: Control) -> Array:
 		out.append(label.get_theme_font(&"font").get_string_size(label.text,
 			HORIZONTAL_ALIGNMENT_LEFT, -1.0, label.get_theme_font_size(&"font_size")))
 	return out
+
+
+# --- playtest 2026-09-29: the right column closes; the commands say what they do ------------------
+
+const DetailZoneScript := preload("res://demo/ui/demo_detail_zone.gd")
+const CommandTips := preload("res://demo/ui/demo_command_tips.gd")
+const UiShellScript := preload("res://scripts/ui/ui_shell.gd")
+const UiAvailabilityScript := preload("res://scripts/ui/ui_availability.gd")
+const FarmHud := preload("res://demo/farm/farm_hud.gd")
+const BedPanelScript := preload("res://demo/farm/farm_bed_panel.gd")
+const FarmSimScript := preload("res://demo/farm/farm_sim.gd")
+const UiLayoutScript := preload("res://scripts/ui/ui_layout.gd")
+const THEME_PATH: String = "res://ui/theme/woodland_theme.tres"
+## Each command's key in project.godot's input map, in the strip's order (B, Z, J, K, L, F, O).
+const COMMAND_KEYS: Array[String] = ["B", "Z", "J", "K", "L", "F", "O"]
+
+
+class FakePanel extends RefCounted:
+	"""A zone panel: records what the zone told it; has its own close, as the bed panel does."""
+	signal close_requested
+	var shown: bool = false
+
+	func set_zone(value: bool, _top_inset: float) -> void:
+		"""The zone's call."""
+		shown = value
+
+
+func _zone_with_panels() -> Array:
+	"""A built zone holding four fake panels: [zone, panels]."""
+	var zone := DetailZoneScript.new()
+	_nodes.append(zone)
+	zone.build()
+	var panels: Array[FakePanel] = []
+	for key: int in 4:
+		panels.append(FakePanel.new())
+		zone.add_panel(key, panels[key])
+	return [zone, panels]
+
+
+func _shown_count(panels: Array[FakePanel]) -> int:
+	"""How many panels the zone has shown."""
+	var shown: int = 0
+	for panel: FakePanel in panels:
+		shown += 1 if panel.shown else 0
+	return shown
+
+
+func test_the_zone_s_close_collapses_it_and_a_tab_opens_it_again() -> void:
+	"""The strip's × hides the shown panel and lights no tab; the strip stays; a tab reopens."""
+	var built: Array = _zone_with_panels()
+	var zone: DetailZoneScript = built[0]
+	var panels: Array[FakePanel] = built[1]
+	assert_true(panels[DetailZoneScript.PANEL_FARM].shown, "the farm's shows first")
+	zone.close_button().pressed.emit()
+	assert_true(zone.is_collapsed(), "collapsed")
+	assert_equal(_shown_count(panels), 0, "no panel shows")
+	for key: int in 4:
+		assert_false(zone.tab(key).button_pressed, "tab %d unlit" % key)
+	assert_true(zone.tab(DetailZoneScript.PANEL_FARM).visible, "the tabs stay")
+	zone.tab(DetailZoneScript.PANEL_WOODS).pressed.emit()
+	assert_false(zone.is_collapsed(), "a tab reopens it")
+	assert_true(panels[DetailZoneScript.PANEL_WOODS].shown, "on that tab's panel")
+	assert_equal(_shown_count(panels), 1, "one panel")
+	assert_true(zone.tab(DetailZoneScript.PANEL_WOODS).button_pressed, "its tab lit")
+
+
+func test_a_panel_s_own_close_collapses_the_zone_and_an_intent_reopens_it() -> void:
+	"""A panel's close_requested (the bed panel's ×) collapses the zone; a click on a bed or a
+	tunnel (show_panel) opens it again."""
+	var built: Array = _zone_with_panels()
+	var zone: DetailZoneScript = built[0]
+	var panels: Array[FakePanel] = built[1]
+	panels[DetailZoneScript.PANEL_FARM].close_requested.emit()
+	assert_true(zone.is_collapsed(), "collapsed")
+	assert_equal(_shown_count(panels), 0, "hidden")
+	zone.show_panel(DetailZoneScript.PANEL_TUNNELS)
+	assert_false(zone.is_collapsed(), "the intent reopens it")
+	assert_true(panels[DetailZoneScript.PANEL_TUNNELS].shown, "on its panel")
+
+
+func test_the_bed_panel_s_close_button_collapses_the_zone() -> void:
+	"""The real bed panel's "×", pressed, closes the right column (it used to clear the bed only)."""
+	var zone := DetailZoneScript.new()
+	_nodes.append(zone)
+	zone.build()
+	var bed := BedPanelScript.new()
+	_nodes.append(bed)
+	bed.configure(FarmSimScript.new(), null)
+	zone.add_panel(DetailZoneScript.PANEL_FARM, bed)
+	assert_true(bed.is_shown(), "the bed panel shows")
+	var close: Button = null
+	for button: Node in bed.find_children("*", "Button", true, false):
+		if (button as Button).text == "×":
+			close = button as Button
+	assert_not_null(close, "the bed panel has its ×")
+	close.pressed.emit()
+	assert_true(zone.is_collapsed(), "the zone collapsed")
+	assert_false(bed.is_shown(), "the bed panel is hidden")
+
+
+func test_the_zone_close_sits_on_the_strip_after_the_tabs() -> void:
+	"""The × is the strip's last child and never takes focus, as the tabs."""
+	var zone := DetailZoneScript.new()
+	_nodes.append(zone)
+	zone.build()
+	var close: Button = zone.close_button()
+	assert_equal(close.get_index(), close.get_parent().get_child_count() - 1, "after the four tabs")
+	assert_true(close.get_parent() == zone.tab(0).get_parent(), "on the strip")
+	assert_equal(close.focus_mode, Control.FOCUS_NONE, "no focus")
+	assert_equal(close.text, DetailZoneScript.CLOSE_TEXT, "×")
+
+
+func _tipped_shell() -> UiShellScript:
+	"""A built HUD shell with the demo's command tooltips written."""
+	var shell := UiShellScript.new()
+	_nodes.append(shell)
+	shell.build()
+	return shell
+
+
+func test_every_command_tooltip_says_what_it_does_and_its_key() -> void:
+	"""All seven: "Name (Key) — what it does"; a locked one adds the shell's own missing owner."""
+	var shell := _tipped_shell()
+	assert_equal(CommandTips.apply(shell), 7, "seven tips written")
+	for index: int in UiShellScript.COMMAND_IDS.size():
+		var id: int = UiShellScript.COMMAND_IDS[index]
+		var button := shell.control_for(id) as Button
+		var head: String = "%s (%s) — %s" % [UiShellScript.COMMAND_LABELS[index], COMMAND_KEYS[index], CommandTips.WHAT[index]]
+		assert_true(button.tooltip_text.begins_with(head), "%s: '%s'" % [id, button.tooltip_text])
+		if button.disabled:
+			var reason: String = UiAvailabilityScript.REASON_TEXTS[shell.availability().reason_of(id).value]
+			assert_true(button.tooltip_text.ends_with("\nNot in the demo yet: " + reason), "%s says why it is locked" % id)
+		else:
+			assert_equal(button.tooltip_text, head, "%s: an enabled one says only what it does" % id)
+	assert_true((shell.control_for(UiShellScript.ID_BUILD) as Button).disabled, "Build is locked")
+	assert_false((shell.control_for(UiShellScript.ID_ZONE) as Button).disabled, "Zone is not")
+
+
+func test_a_command_tooltip_reads_its_key_from_the_input_map() -> void:
+	"""Rebind Build's action and its tooltip names the new key; restored afterwards."""
+	var saved: Array[InputEvent] = InputMap.action_get_events(&"open_build")
+	InputMap.action_erase_events(&"open_build")
+	var key := InputEventKey.new()
+	key.keycode = KEY_X
+	InputMap.action_add_event(&"open_build", key)
+	var tip: String = CommandTips.tooltip("Build", &"open_build", "what", "")
+	InputMap.action_erase_events(&"open_build")
+	for event: InputEvent in saved:
+		InputMap.action_add_event(&"open_build", event)
+	assert_equal(tip, "Build (X) — what", "the rebound key")
+	assert_equal(CommandTips.key_text(&"open_build"), "B", "and B again once restored")
+	assert_equal(CommandTips.tooltip("Build", &"no_such_action", "what", ""), "Build — what", "no key: none named")
+
+
+func test_the_unlocked_food_command_keeps_the_pantry_tip_with_its_key() -> void:
+	"""The farm unlocks Food as the Pantry; its tip is in the same form, and apply() leaves it."""
+	var shell := _tipped_shell()
+	var hud := FarmHud.new()
+	hud.bind(shell)
+	assert_true(hud.unlock_food_command(func() -> void: pass), "unlocked")
+	assert_equal(CommandTips.apply(shell), 6, "the other six")
+	var food := shell.control_for(UiShellScript.ID_FOOD_ORDERS) as Button
+	assert_equal(food.tooltip_text, "Food (K) — " + FarmHud.FOOD_TOOLTIP, "the pantry's own tip, with K")
+
+
+func test_hover_tooltips_are_styled_legibly_by_the_skin() -> void:
+	"""Godot's hover tooltip draws a TooltipPanel and a TooltipLabel from the owner's theme: the
+	skinned HUD theme gives both -- map paper, and ink that clears body contrast on it."""
+	var skinned: Theme = ThemePatch.skinned(load(THEME_PATH) as Theme)
+	assert_true(skinned.has_stylebox(&"panel", &"TooltipPanel"), "a tooltip panel style")
+	assert_true(skinned.get_stylebox(&"panel", &"TooltipPanel") is StyleBoxTexture, "the woodland piece")
+	var ink: Color = skinned.get_color(&"font_color", &"TooltipLabel")
+	var tones := PackedColorArray([Palette.face_dark(Palette.SURFACE_MAP), Palette.face_light(Palette.SURFACE_MAP)])
+	assert_true(Contrast.worst_ratio(ink, tones) >= Contrast.BODY_MINIMUM, "legible ink (%.2f:1)" % Contrast.worst_ratio(ink, tones))
+
+
+func test_the_tabs_and_the_close_fit_the_right_column_at_1280x720() -> void:
+	"""The four tabs, the "×" and the gaps between them need no more than the detail zone's width at
+	the smallest supported size (the "×" ran off the screen's edge at the old margins)."""
+	var zone := DetailZoneScript.new()
+	_nodes.append(zone)
+	zone.build()
+	var strip := zone.close_button().get_parent() as HBoxContainer
+	var needed: float = 0.0
+	for child: Node in strip.get_children():
+		needed += (child as Control).get_combined_minimum_size().x
+	needed += float(DetailZoneScript.TAB_GAP * (strip.get_child_count() - 1))
+	var rect: Rect2 = DetailZoneScript.strip_placement(1280, 720, UiLayoutScript.new(), UiLayoutScript.Geometry.new())
+	assert_true(needed > 200.0, "measured (%.1f px)" % needed)
+	assert_true(needed <= rect.size.x, "%.1f px of tabs and × in a %.1f px column" % [needed, rect.size.x])

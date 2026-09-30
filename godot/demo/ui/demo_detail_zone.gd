@@ -6,7 +6,7 @@ extends CanvasLayer
 ## (demo/tunnel/tunnel_panel.gd), the "Woods (demo)" panel (demo/forestry/forest_panel.gd) and the
 ## "Water (demo)" panel (demo/waterplay/water_panel.gd). Drawn together they overlapped. So this owns
 ## the zone:
-##   * a TAB STRIP along its top -- "Farm", "Tunnels & burrows", "Woods" and "Water", the shown one in
+##   * a TAB STRIP along its top -- "Farm", "Tunnels", "Woods" and "Water", the shown one in
 ##     brass --
 ##     that switches by click;
 ##   * below it, exactly one panel, placed by the panel itself in the zone minus the strip
@@ -16,7 +16,13 @@ extends CanvasLayer
 ##     brings the woods panel; a swim, dive, rescue or bridge order brings the water panel
 ##     (demo_village.gd connects the panels' owners to `show_panel`);
 ##   * the zone belongs to UI-SET-036, the resident journal, when it opens: then the strip and both
-##     panels hide, and come back as they were when it closes.
+##     panels hide, and come back as they were when it closes;
+##   * it CLOSES: a "×" at the strip's end -- or a panel's own close (any panel with a
+##     `close_requested` signal: the farm bed panel's ×) -- COLLAPSES the zone: its panel hides and
+##     the tab strip stays, no tab lit.
+##     Clicking a tab, or any intent above (a bed, a tunnel, a tree, a water order), opens it again.
+##     Before this the bed panel's × only cleared the bed, and nothing else in the column closed
+##     (playtest 2026-09-29: "Close button does nothing on UI pop ups").
 ## Geometry is the HUD's own (`scripts/ui/ui_layout.gd`, read, never modified) in LOGICAL pixels, drawn
 ## at the HUD's scale and recomputed on every resize, so 1280x720 and 1920x1080 line up. Both panels
 ## take their rectangle from `panel_placement`: below the strip, and -- at 1280x720, where UI §1.2's
@@ -32,7 +38,10 @@ const PANEL_FARM: int = 0
 const PANEL_TUNNELS: int = 1
 const PANEL_WOODS: int = 2
 const PANEL_WATER: int = 3
-const TAB_TEXT: Array[String] = ["Farm", "Tunnels & burrows", "Woods", "Water"]
+## "Tunnels" (was "Tunnels & burrows"): with the strip's "×" the four tabs must fit the 336 px detail
+## zone at 1280x720, and the long label alone took 154 px -- the "×" ran off the screen's edge. The
+## tab's tooltip and the panel's own title still say "Tunnels & burrows".
+const TAB_TEXT: Array[String] = ["Farm", "Tunnels", "Woods", "Water"]
 const TAB_TIPS: Array[String] = ["The farm: the calendar, a clicked bed and its work",
 	"Tunnels & burrows (demo): the weather, the demo stores, a clicked tunnel and its jobs",
 	"Woods (demo): trees, zones, the wood and plank stock, and the woods' jobs",
@@ -42,10 +51,15 @@ const STRIP_H: float = 34.0
 const STRIP_GAP: float = 8.0
 const TAB_PX: int = 14
 const TAB_MARGINS: PackedFloat32Array = [10.0, 4.0, 10.0, 5.0]
+const TAB_GAP: int = 6
 ## A panel keeps this far above the command strip where the two would overlap.
 const COMMAND_GAP: float = 8.0
 ## The HUD surface the zone yields to.
 const DETAIL_NAME: String = "UI-SET-036"
+## The strip's own close, after the four tabs: as wide as the panels' own "×" buttons (28 px).
+const CLOSE_TEXT: String = "×"
+const CLOSE_TIP: String = "Close the side panel (click a tab to open it again)"
+const CLOSE_W: float = 28.0
 
 ## The panel shown (PANEL_*).
 var shown: int = PANEL_FARM
@@ -58,6 +72,8 @@ var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 var _hud_root: Control = null
 var _journal: Control = null
 var _journal_open: bool = false
+var _collapsed: bool = false
+var _close: Button = null
 
 
 func _ready() -> void:
@@ -74,12 +90,32 @@ func build() -> void:
 	layer = 0
 	name = "DemoDetailZone"
 	_strip = HBoxContainer.new()
-	_strip.add_theme_constant_override(&"separation", 6)
+	_strip.add_theme_constant_override(&"separation", TAB_GAP)
 	add_child(_strip)
 	for k: int in TAB_TEXT.size():
 		_tabs.append(_tab(k))
 		_strip.add_child(_tabs[k])
+	_close = _close_button()
+	_strip.add_child(_close)
 	_paint_tabs()
+
+
+func _close_button() -> Button:
+	"""The strip's "×": collapses the zone (`collapse`); never takes focus, as the tabs."""
+	var close := Button.new()
+	close.name = "Close"
+	close.text = CLOSE_TEXT
+	close.tooltip_text = CLOSE_TIP
+	close.focus_mode = Control.FOCUS_NONE
+	close.custom_minimum_size = Vector2(CLOSE_W, 0.0)
+	close.add_theme_font_size_override(&"font_size", TAB_PX)
+	close.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, TAB_MARGINS))
+	close.add_theme_stylebox_override(&"hover", Styles.box(Styles.PIECE_WOOD_HOVER, TAB_MARGINS))
+	close.add_theme_stylebox_override(&"pressed", Styles.box(Styles.PIECE_BRASS, TAB_MARGINS))
+	for item: StringName in [&"font_color", &"font_hover_color", &"font_pressed_color"]:
+		close.add_theme_color_override(item, Palette.text_on(Palette.SURFACE_WOOD))
+	close.pressed.connect(collapse)
+	return close
 
 
 func _tab(k: int) -> Button:
@@ -104,8 +140,11 @@ func _tab(k: int) -> Button:
 
 
 func add_panel(key: int, panel: Object) -> void:
-	"""Hand the zone a panel (PANEL_*): anything with `set_zone(shown: bool, top_inset: float)`."""
+	"""Hand the zone a panel (PANEL_*): anything with `set_zone(shown: bool, top_inset: float)`. A
+	panel that has its own close (a `close_requested` signal) collapses the zone with it."""
 	_panels[key] = panel
+	if panel.has_signal(&"close_requested") and not panel.is_connected(&"close_requested", collapse):
+		panel.connect(&"close_requested", collapse)
 	_apply()
 
 
@@ -114,7 +153,25 @@ func show_panel(key: int) -> void:
 	if key < PANEL_FARM or key > PANEL_WATER:
 		return
 	shown = key
+	_collapsed = false
 	_apply()
+
+
+func collapse() -> void:
+	"""Close the zone's panel: it hides, the tab strip stays with no tab lit, and any tab or intent
+	(`show_panel`) opens it again."""
+	_collapsed = true
+	_apply()
+
+
+func is_collapsed() -> bool:
+	"""Whether the zone's panel is closed."""
+	return _collapsed
+
+
+func close_button() -> Button:
+	"""The strip's "×" (checks and the scripted run)."""
+	return _close
 
 
 func tab(key: int) -> Button:
@@ -151,16 +208,16 @@ func _apply() -> void:
 	"""Show exactly one panel (none while the journal is open), and paint the tabs."""
 	for key: int in _panels.size():
 		if _panels[key] != null:
-			_panels[key].call(&"set_zone", key == shown and not _journal_open, top_inset())
+			_panels[key].call(&"set_zone", key == shown and not _journal_open and not _collapsed, top_inset())
 	_paint_tabs()
 	if _strip != null:
 		_strip.visible = not _journal_open
 
 
 func _paint_tabs() -> void:
-	"""The shown panel's tab in brass."""
+	"""The shown panel's tab in brass (none while the zone is collapsed)."""
 	for k: int in _tabs.size():
-		_tabs[k].set_pressed_no_signal(k == shown)
+		_tabs[k].set_pressed_no_signal(k == shown and not _collapsed)
 
 
 func _place() -> void:

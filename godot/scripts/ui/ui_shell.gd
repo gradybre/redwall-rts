@@ -208,6 +208,11 @@ const TIME_IDS: Array[int] = [ID_PAUSE, ID_SPEED_1, ID_SPEED_2, ID_SPEED_4, ID_D
 ## The command strip's buttons in §4's listed order.
 const COMMAND_IDS: Array[int] = [ID_BUILD, ID_ZONE, ID_JOBS, ID_FOOD_ORDERS, ID_RESIDENTS,
 	ID_FEAST, ID_OBJECTIVES]
+## UI §5's keyboard column for those buttons, in the same order: the project's input actions (B, Z, J,
+## K, L, F, O in `project.godot`). `handle_command_key()` presses an enabled command on its key, so a
+## tooltip that names the key names one that works.
+const COMMAND_ACTIONS: Array[StringName] = [&"open_build", &"open_zones", &"open_jobs", &"open_food",
+	&"open_residents", &"open_feast", &"open_objectives"]
 ## §4's stable action key for the UI-SET-066 instance inside UI-SET-103. §4 allows repeated
 ## rows as "instances of a definition with stable runtime IDs"; this is one of them, which is
 ## why it does not take UI-SET-066's single entry in the control table.
@@ -276,6 +281,12 @@ const SECOND_CARD_KEY: String = "alert_card_2"
 const HISTORY_ROWS: int = 20
 ## Room the expanded view leaves below its header line for the scrolling body.
 const HISTORY_HEADER_HEIGHT: float = 28.0
+## UI-SET-012's own Close, square in its header row (the header's height, so the row does not grow).
+## The expanded view had no close of its own: only the 32 px trigger toggled it, and a player looking
+## for the panel's "x" found nothing (playtest 2026-09-29). Esc and the `open_history` key (N) close it
+## too -- see `handle_history_key()`.
+const HISTORY_CLOSE_TEXT: String = "×"
+const HISTORY_CLOSE_TIP: String = "Close the notification history (Esc or N)"
 
 ## Displayed for a counter nobody has supplied a value for. Shared with `hud.gd`.
 const UNPOPULATED: String = "--"
@@ -376,6 +387,11 @@ var _card_notice_id: int = 0
 var _announcements: int = 0
 ## True while the player has hidden the card without resolving anything (hud.gd's hold expiry).
 var _card_hidden: bool = true
+## A validation code whose notices are kept off the cards while another surface shows that condition
+## (`withhold_cards_with_code()`); empty: every code may take a card.
+var _withheld_code: String = ""
+## UI-SET-012's Close button (built with the history).
+var _history_close: Button = null
 ## Which notice the expanded view has selected, and which control opened it.
 var _details_index: int = -1
 var _details_opener: int = ID_HISTORY_TRIGGER
@@ -1064,6 +1080,8 @@ func _build_history() -> void:
 	history.focus_mode = Control.FOCUS_ALL
 	_history_line = _new_text(history, &"Line", "")
 	_history_header = _history_line
+	_history_close = _new_history_close()
+	history.add_child(_history_close)
 	_history_scroll = ScrollContainer.new()
 	_history_scroll.name = "Body"
 	_history_scroll.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -1075,6 +1093,22 @@ func _build_history() -> void:
 	_history_scroll.add_child(_history_body)
 	for index: int in HISTORY_ROWS:
 		_history_rows.append(_new_history_row(index))
+
+
+func _new_history_close() -> Button:
+	"""UI-SET-012's Close: a square button in the header row that closes the view exactly as the
+	trigger does -- focus goes back to whatever opened it. It takes no focus of its own (the panel
+	keeps its tab path to the trigger) and is styled as the journal's Close (UI-SET-093)."""
+	var close: Button = Button.new()
+	close.name = "Close"
+	close.text = HISTORY_CLOSE_TEXT
+	close.tooltip_text = HISTORY_CLOSE_TIP
+	close.accessibility_name = HISTORY_CLOSE_TIP
+	close.focus_mode = Control.FOCUS_NONE
+	close.mouse_filter = Control.MOUSE_FILTER_STOP
+	close.theme_type_variation = PROFILE_VARIATION[_registry.profile_of(ID_CLOSE).value]
+	close.pressed.connect(_on_history_close_pressed)
+	return close
 
 
 func _new_history_row(index: int) -> Label:
@@ -1571,9 +1605,44 @@ func _show_focus_visuals(control: Control, id: int) -> void:
 	var outline: Label = _controls[ID_FOCUS_OUTLINE] as Label
 	_set_rect(outline, rect)
 	outline.visible = true
-	_set_rect(tooltip, Rect2(rect.position + Vector2(0.0, rect.size.y + ROW_GAP),
-		Vector2(rect.size.x, MAP_HEADER_BUTTON)))
+	_set_rect(tooltip, focus_description_rect(rect))
 	_focus_visuals_owner = control
+
+
+func focus_description_rect(outline: Rect2) -> Rect2:
+	"""Where UI-SET-073's description box goes under a focus ring `outline` (shell-local, logical px).
+
+	§4 sizes it 160x48 -> 360x240 and says "clamp inside viewport". The box is the ring's width held
+	to that band, and AS TALL AS ITS WRAPPED TEXT -- measured with the shell's own `_wrapped_height`
+	(the Label's real break flags) plus the text's padding and line spacing -- never under 48. It was a
+	fixed 32 (48 after the minimum) and a focused alert card's three-line description ("... Open
+	alert details.") spilled out under it (playtest 2026-09-29). It is never capped below its text:
+	nothing here clips. Where it would run off the bottom -- the command strip is the last row -- it
+	sits above the ring instead; it is kept inside the safe inset on both axes."""
+	var band: UiRegistry.Size = UiRegistry.Size.new()
+	_registry.size_into(ID_TOOLTIP, band)
+	var width: float = clampf(outline.size.x, float(band.min_width), float(band.max_width))
+	var height: float = maxf(float(band.min_height), _text_block_height(_tooltip_line, _tooltip_line.text,
+		width - 2.0 * PANEL_PADDING) + 2.0 * PANEL_PADDING)
+	var top: float = outline.end.y + ROW_GAP
+	if top + height > _geometry.logical_height - UiLayout.SAFE_INSET:
+		top = outline.position.y - ROW_GAP - height
+	var left: float = minf(outline.position.x, _geometry.logical_width - UiLayout.SAFE_INSET - width)
+	return Rect2(maxf(left, UiLayout.SAFE_INSET), maxf(top, UiLayout.SAFE_INSET), width, height)
+
+
+func _text_block_height(label: Label, text: String, interior: float) -> float:
+	"""How tall `text` draws in `label` wrapped to `interior`: measured in the Label's own font with
+	its own break flags (`_break_flags`, as `_wrapped_height` does), plus the theme's `line_spacing`
+	between lines, which a font measurement leaves out and a Label adds."""
+	var font: Font = label.get_theme_font(&"font")
+	if font == null or text.is_empty() or interior <= 0.0:
+		return 0.0
+	var font_px: int = label.get_theme_font_size(&"font_size")
+	var height: float = font.get_multiline_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, interior, font_px,
+		-1, _break_flags(label)).y
+	var lines: int = maxi(int(roundf(height / font.get_height(font_px))), 1)
+	return height + float(lines - 1) * float(label.get_theme_constant(&"line_spacing"))
 
 
 static func draws_focus_visuals(focused: bool, focus_shown: bool) -> bool:
@@ -2127,6 +2196,9 @@ func _place_history_interior() -> void:
 	"""
 	var panel: Control = _zones[ID_HISTORY]
 	_history_header.offset_bottom = -(panel.size.y - PANEL_PADDING - HISTORY_HEADER_HEIGHT)
+	_history_header.offset_right = -(PANEL_PADDING + HISTORY_HEADER_HEIGHT + ROW_GAP)
+	_set_rect(_history_close, Rect2(panel.size.x - PANEL_PADDING - HISTORY_HEADER_HEIGHT, PANEL_PADDING,
+		HISTORY_HEADER_HEIGHT, HISTORY_HEADER_HEIGHT))
 	var top: float = PANEL_PADDING + HISTORY_HEADER_HEIGHT + ROW_GAP
 	_set_rect(_history_scroll, Rect2(PANEL_PADDING, top,
 		panel.size.x - 2.0 * PANEL_PADDING, panel.size.y - top - PANEL_PADDING))
@@ -2350,14 +2422,14 @@ func _measured_full_height(instance: int) -> float:
 	if notice.message.is_empty() or interior <= 0.0:
 		return 0.0
 	var label: Label = _alert_messages[instance]
-	var font: Font = label.get_theme_font(&"font")
-	if font == null:
+	if label.get_theme_font(&"font") == null:
 		return 0.0
 	## The NOTICE's own message, not the Label's text: once `_print_card_text()` has written the
 	## authored summary the Label no longer holds the thing being measured, and measuring the
 	## summary would let the card oscillate between the two presentations on successive passes.
-	return font.get_multiline_string_size(notice.message, HORIZONTAL_ALIGNMENT_LEFT,
-		interior, label.get_theme_font_size(&"font_size")).y + 2.0 * PANEL_PADDING
+	## Measured as the Label draws it -- its own break flags and line spacing (`_text_block_height`)
+	## -- so a wrapped message is never taller than the card it was sized for.
+	return _text_block_height(label, notice.message, interior) + 2.0 * PANEL_PADDING
 
 
 func _place_local(id: int, rect: Rect2) -> void:
@@ -2720,6 +2792,7 @@ func _resolve_card_notices() -> void:
 	the leading two is ALERT-R02's "preserving established priority" without inventing a second
 	ordering rule that could disagree with the expanded view's. It is O(retained^2) and runs
 	when the notice set changes, never per frame: a relayout reads the indices cached here.
+	A notice whose code `withhold_cards_with_code()` names is passed over: it stays active.
 	"""
 	for instance: int in ALERT_CARD_INSTANCES:
 		_card_indices[instance] = -1
@@ -2728,11 +2801,16 @@ func _resolve_card_notices() -> void:
 	if _card_hidden or active <= 0:
 		return
 	_notices.order_into(_history_order)
-	_cards_wanted = mini(active, ALERT_CARD_INSTANCES)
-	for instance: int in _cards_wanted:
-		_card_indices[instance] = _history_order[instance]
-		_notices.notice_into(_card_indices[instance], active - 1, _card_notices[instance])
-	if _card_notices[0].id != _card_notice_id:
+	for position: int in active:
+		if _cards_wanted >= ALERT_CARD_INSTANCES:
+			break
+		var notice: UiNotices.Notice = _card_notices[_cards_wanted]
+		if not _notices.notice_into(_history_order[position], active - 1, notice) \
+				or (not _withheld_code.is_empty() and notice.code == _withheld_code):
+			continue
+		_card_indices[_cards_wanted] = _history_order[position]
+		_cards_wanted += 1
+	if _cards_wanted > 0 and _card_notices[0].id != _card_notice_id:
 		_card_notice_id = _card_notices[0].id
 		_announcements += 1
 
@@ -3035,6 +3113,98 @@ func _on_history_pressed() -> void:
 	else:
 		open_notice_history()
 	shell_action.emit(ID_HISTORY_TRIGGER)
+
+
+func _on_history_close_pressed() -> void:
+	"""UI-SET-012's own Close: the same close the trigger performs, focus back to the opener."""
+	close_notice_details()
+	shell_action.emit(ID_HISTORY_TRIGGER)
+
+
+func handle_history_key(event: InputEvent) -> bool:
+	"""Esc closes UI-SET-012 while it is open; N (`open_history`, §4's shortcut for 102) opens or
+	closes it exactly as the trigger does. True when the key was the history's. N does nothing while
+	a workspace's scrim holds the input, where the trigger is out of reach too."""
+	var key: InputEventKey = event as InputEventKey
+	if not _built or key == null or not key.pressed or key.echo:
+		return false
+	if key.is_action_pressed(&"ui_cancel") and notice_details_open():
+		close_notice_details()
+		return true
+	if key.is_action_pressed(&"open_history") and not _workspace_owns_input():
+		_on_history_pressed()
+		return true
+	return false
+
+
+func _input(event: InputEvent) -> void:
+	"""Esc on an open UI-SET-012 is the history's before any world handler reads it: the open
+	expansion is the top of UI §5's dismissal ladder. Only that one key is read here."""
+	if event is InputEventKey and _built and notice_details_open() and event.is_action_pressed(&"ui_cancel") \
+			and handle_history_key(event):
+		get_viewport().set_input_as_handled()
+
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	"""N (`open_history`, the trigger's shortcut) and the command strip's keys, once no focused text
+	field or world handler has taken the key."""
+	if (event.is_action_pressed(&"open_history") and handle_history_key(event)) or handle_command_key(event):
+		get_viewport().set_input_as_handled()
+
+
+func handle_command_key(event: InputEvent) -> bool:
+	"""A command's key (COMMAND_ACTIONS, matched exactly, so Ctrl+Z is not Zone) presses that command
+	when it is enabled and on screen -- the same `pressed` a click sends. A locked or hidden command's
+	key does nothing, as its button does, and nothing while a workspace's scrim holds the input. True
+	when the key pressed a command."""
+	var key: InputEventKey = event as InputEventKey
+	if not _built or key == null or not key.pressed or key.echo or _workspace_owns_input():
+		return false
+	for index: int in COMMAND_ACTIONS.size():
+		if not key.is_action_pressed(COMMAND_ACTIONS[index], false, true):
+			continue
+		var button: Button = _controls[COMMAND_IDS[index]] as Button
+		if button.disabled or not button.visible or not _is_visible_chain(button):
+			return false
+		button.pressed.emit()
+		return true
+	return false
+
+
+func resolve_notices_with_code(code: String) -> int:
+	"""Mark every ACTIVE notice carrying validation code `code` resolved, and repaint the cards and an
+	open history. Returns how many were active (0: nothing carried it). The condition's owner calls
+	this when the condition ends -- the demo's stall banner does when the player resumes from the
+	clock's diagnostic pause. The rows stay in the history; a later raise regroups onto the same row
+	and makes it active again (ui_notices.gd `_regroup`). An empty code names no condition."""
+	var resolved: int = 0
+	if code.is_empty():
+		return resolved
+	for index: int in _notices.count():
+		if _notices.notice_into(index, 0, _row_notice) and not _row_notice.resolved and _row_notice.code == code:
+			_notices.resolve(index)
+			resolved += 1
+	if resolved > 0:
+		_refresh_card()
+		if notice_details_open():
+			_refresh_history()
+	return resolved
+
+
+func withhold_cards_with_code(code: String) -> void:
+	"""Keep the notices carrying validation code `code` off the alert cards while another surface
+	shows that same condition ("" gives every code its card again). Nothing is resolved: the notice
+	stays active, counted and in the history; only its card is not drawn, so one condition is shown
+	once. The demo's stall banner withholds CLOCK_OVERLOADED while it is up."""
+	if code == _withheld_code:
+		return
+	_withheld_code = code
+	_refresh_card()
+
+
+func history_close() -> Button:
+	"""UI-SET-012's Close button (checks and the scripted run)."""
+	return _history_close
 
 
 func _on_alert_card_input(event: InputEvent, instance: int) -> void:

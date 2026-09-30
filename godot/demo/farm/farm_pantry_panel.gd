@@ -9,6 +9,12 @@ extends CanvasLayer
 ## library's dishes it feeds (farm_recipes.gd) -- candidates for a kitchen that does not exist yet.
 ## Above: each storage place, its load and how fast it spoils food (the cellar providers' permille);
 ## below: spoiled food, which can be sent to compost at §5.7's 4 : 2.
+##
+## LAYER. It is the Food command's pop-up and is drawn ABOVE the HUD (LAYER), as UI §3 draws a modal
+## workspace over the permanent HUD. Below it, at 1280x720 the HUD's time cluster (top right, which
+## takes the mouse) lay over the header's "×" and ate every click on it (playtest 2026-09-29: "Close
+## button does nothing"), and the resource counters and command strip covered its corners too. While
+## it is open K, Esc and its "×" close it; the stall banner is drawn above it still.
 
 const FarmUi := preload("res://demo/farm/farm_ui.gd")
 const Text := preload("res://demo/farm/farm_text.gd")
@@ -30,6 +36,8 @@ const LIST_WIDTH: float = 400.0
 const MIN_BODY_H: float = 200.0
 ## The panel's height that is not the two lists: header, stores line, spoiled row, margins.
 const BODY_RESERVE_H: float = 150.0
+## Above the HUD's CanvasLayer (scenes/ui/hud.tscn, layer 1); the stall banner draws at 3, above this.
+const LAYER: int = 2
 
 var selected_item: int = 0
 
@@ -50,6 +58,7 @@ var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _goods: GoodsScript = null
+var _close: Button = null
 
 
 func configure(sim: SimScript, pantry: PantryScript, recipes: RecipesScript) -> void:
@@ -57,7 +66,7 @@ func configure(sim: SimScript, pantry: PantryScript, recipes: RecipesScript) -> 
 	_sim = sim
 	_pantry = pantry
 	_recipes = recipes
-	layer = 0
+	layer = LAYER
 	name = "FarmPantryPanel"
 	_build()
 	visible = false
@@ -105,10 +114,10 @@ func _header() -> HBoxContainer:
 	_total = FarmUi.label("", FarmUi.BODY_PX, Palette.INK)
 	_total.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(_total)
-	var close := FarmUi.button("×")
-	close.tooltip_text = "Close the pantry (K)"
-	close.pressed.connect(func() -> void: close_requested.emit())
-	row.add_child(close)
+	_close = FarmUi.button("×")
+	_close.tooltip_text = "Close the pantry (K or Esc)"
+	_close.pressed.connect(func() -> void: close_requested.emit())
+	row.add_child(_close)
 	return row
 
 
@@ -246,6 +255,11 @@ func total_text() -> String:
 func item_button(item: int) -> Button:
 	"""An ingredient's row button (tests and the scripted check)."""
 	return _item_buttons[item]
+
+
+func close_button() -> Button:
+	"""The header's "×" (tests and the scripted check)."""
+	return _close
 
 
 # --- placement --------------------------------------------------------------------------------

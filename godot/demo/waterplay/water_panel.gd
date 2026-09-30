@@ -31,7 +31,7 @@ const ACTION_CONSENT: StringName = &"consent"
 const ACTION_CRAMP: StringName = &"cramp"
 const BUTTON_TEXT: Dictionary = {
 	&"prev_site": "◀ Site", &"next_site": "Site ▶", &"span_tool": "Span two banks…",
-	&"build_plank": "Build plank footbridge", &"build_log": "Build log bridge",
+	&"build_plank": "Build footbridge", &"build_log": "Build log bridge",
 	&"dive": "Dive in the pond", &"consent": "Swim shortcuts: on", &"cramp": "Cramp (demo)",
 }
 const SITE_ACTIONS: Array[StringName] = [&"prev_site", &"next_site", &"span_tool", &"build_plank", &"build_log"]
@@ -192,7 +192,7 @@ func set_swim_buttons(consent_on: bool, enabled: Dictionary) -> void:
 
 func set_tool_armed(on: bool) -> void:
 	"""Show the span tool armed (its button says how to finish)."""
-	(_buttons[ACTION_SPAN_TOOL] as Button).text = "Click the far bank… (Esc)" if on else BUTTON_TEXT[ACTION_SPAN_TOOL]
+	(_buttons[ACTION_SPAN_TOOL] as Button).text = "Other bank… (Esc)" if on else BUTTON_TEXT[ACTION_SPAN_TOOL]
 
 
 func _set_line(key: StringName, text: String) -> void:

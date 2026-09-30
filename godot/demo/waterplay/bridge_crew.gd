@@ -50,6 +50,8 @@ const RINGS: int = 4
 const RING_SPOTS: int = 12
 const SOURCE_STAND_M: float = 1.3
 const SITE_STAND_M: float = 0.4
+## By a trunk the builder stands on its work point (beside the trunk) or as near it as it can.
+const TRUNK_STAND_M: float = 0.0
 const CLIP_WORK: StringName = &"collect_object"
 const CLIP_HEAVY: StringName = &"pull_radish"
 const PLANK_KEY: StringName = &"bridge_plank"
@@ -80,6 +82,7 @@ var _say: Callable = Callable()
 var _crew: PackedInt32Array = PackedInt32Array()
 var _pickup_usec: int = 0
 var _found: Vector2 = Vector2.ZERO
+var _pick: IntMath.IntResult = IntMath.IntResult.new()
 var _no_taken: PackedVector2Array = PackedVector2Array()
 
 
@@ -128,16 +131,16 @@ func start(row: int, from_source: int, at: Vector2, members: PackedInt32Array) -
 	step[row] = STEP_WAITING
 	builder[row] = NOBODY
 	revision += 1
-	var who: int = _nearest(members, at)
-	if who == NOBODY:
+	if not _nearest_into(members, at, _pick):
 		return "%s planned: waiting for the bridgewright" % _title(row)
+	var who: int = _pick.value
 	_assign(row, who)
 	return "%s: %s goes for %s" % [_title(row), name_of(who), SOURCE_WORDS[from_source]]
 
 
-func _nearest(members: PackedInt32Array, to: Vector2) -> int:
-	"""The member standing nearest `to` who is on land and free of the water's rescue (NOBODY: none)."""
-	var best: int = NOBODY
+func _nearest_into(members: PackedInt32Array, to: Vector2, out: IntMath.IntResult) -> bool:
+	"""The member standing nearest `to` who is on land and free of the water's rescue, into `out`;
+	refuses when none is."""
 	var best_d: float = INF
 	for who: int in members:
 		var brain: BrainScript = brain_of(who)
@@ -145,8 +148,10 @@ func _nearest(members: PackedInt32Array, to: Vector2) -> int:
 			continue
 		if brain.surface_point().distance_to(to) < best_d:
 			best_d = brain.surface_point().distance_to(to)
-			best = who
-	return best
+			out.value = who
+	if best_d == INF:
+		return out.refuse("NO_FREE_BUILDER")
+	return out.succeed(out.value)
 
 
 func _assign(row: int, who: int) -> void:
@@ -185,10 +190,9 @@ func _hand_out() -> void:
 		for who: int in _crew:
 			if brain_of(who).order == BrainScript.ORDER_NONE and not brain_of(who).underground and not _busy(who):
 				idle.append(who)
-		var who: int = _nearest(idle, source_at[row])
-		if who != NOBODY:
-			_assign(row, who)
-			_note("%s takes up the %s" % [name_of(who), _bridges.names[row]])
+		if _nearest_into(idle, source_at[row], _pick):
+			_assign(row, _pick.value)
+			_note("%s takes up the %s" % [name_of(_pick.value), _bridges.names[row]])
 
 
 func _busy(who: int) -> bool:
@@ -223,7 +227,9 @@ func _step_row(row: int, usec: int) -> void:
 func _issue(row: int, brain: BrainScript) -> void:
 	"""Send the builder to its step's spot (on the carry walk with the material)."""
 	var target: Vector2 = source_at[row] if step[row] == STEP_GO_SOURCE or step[row] == STEP_LOAD else site_point(row)
-	var first: float = SOURCE_STAND_M if target == source_at[row] else SITE_STAND_M
+	var first: float = SITE_STAND_M
+	if target == source_at[row]:
+		first = TRUNK_STAND_M if source[row] == SOURCE_TRUNK else SOURCE_STAND_M
 	if not _spot_near(target, first, brain):
 		_drop(row)
 		_note("%s: %s can't get to %s" % [_title(row), name_of(builder[row]), "the material" if target == source_at[row] else "the site"])

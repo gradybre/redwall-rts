@@ -17,7 +17,7 @@ extends Node3D
 ##   right click a bridge site    the selected build it (a planned bridge waiting for hands)
 ##   left click a bridge site     select it (a candidate span, or a bridge planned or built)
 ##   Water panel                  ◀ / ▶ step through the map's bridge candidates; "Span two banks…" then
-##                                click one bank and the other; Build plank footbridge / Build log bridge
+##                                click one bank and the other; Build footbridge (plank) / Build log bridge
 ##                                (paid from the one stores, built by the selection or queued for the
 ##                                bridgewright); Dive in the pond (selected otters); Swim shortcuts on/off
 ##                                (HAZ-001 consent, for the selection); Cramp (demo): a selected swimmer in
@@ -86,6 +86,9 @@ const FIND_BANDS: Array[int] = [300, 550, 730, 870, 960, 1000]
 const FIND_RELIC: int = 5
 const FIND_STONE: int = 1
 const STONE_FIND_MILLI: int = 250
+## A builder works a log off a lying trunk this far out from its middle (m, demo: beside a felled
+## trunk's 1.1 m girth).
+const TRUNK_SIDE_M: float = 1.6
 ## A span of two banks is named for the landing nearest it.
 const SITE_NAMES: Dictionary = {&"fisher_shelter": "fisher's bridge", &"ford_west": "ford bridge",
 	&"ford_east": "ford bridge", &"weir_bank": "weir bridge", &"boathouse": "boathouse bridge", &"pond_west": "pond bridge"}
@@ -120,9 +123,16 @@ var _camera: Camera3D = null
 var _water: DemoWaterScript = null
 var _map: WaterMapScript = null
 var _stand: StandScript = null
-var _survey: BridgesScript.Survey = BridgesScript.Survey.new()
+## The chosen site's surveys by kind, and the site and layout they were taken for (`survey_site`).
+var _surveys: Array[BridgesScript.Survey] = [BridgesScript.Survey.new(), BridgesScript.Survey.new()]
+var _surveyed_site: Vector4 = Vector4.ZERO
+var _surveyed_on: Vector3i = Vector3i(0, 0, -1)
 var _read: IntMath.IntResult = IntMath.IntResult.new()
+## The answer of a lookup (`ready_trunk_into`, `bridge_at_into`, `bridge_on_site_into`), kept apart from
+## `_read` so a lookup never overwrites a store's answer in flight.
+var _found: IntMath.IntResult = IntMath.IntResult.new()
 var _refresh_in: float = 0.0
+var _panel_was_shown: bool = false
 var _cold_said: int = -1
 var _overlay_who: int = -2
 var _point: Vector2 = Vector2.ZERO
@@ -233,14 +243,20 @@ func _hook_command() -> void:
 # --- per frame -------------------------------------------------------------------------------------
 
 func _process(delta: float) -> void:
-	"""Run the water on this frame's demo time; the panel and overlay on real time (they work paused)."""
+	"""Run the water on this frame's demo time; the panel and overlay on real time (they work paused).
+	The panel is filled only while shown, and at once when it comes forward (never shown stale)."""
 	step(_cast.clock.frame_usec if _cast != null else 0)
 	bridge_view.refresh()
 	_follow_selection()
+	var shown: bool = panel.is_shown()
+	if shown and not _panel_was_shown:
+		_refresh_in = 0.0
+	_panel_was_shown = shown
 	_refresh_in -= delta
 	if _refresh_in <= 0.0:
 		_refresh_in = PANEL_REFRESH_S
-		refresh_panel()
+		if panel.is_shown():
+			refresh_panel()
 		panel.follow_hud()
 
 
@@ -410,13 +426,19 @@ func consent_shown(targets: PackedInt32Array) -> bool:
 # --- bridges ---------------------------------------------------------------------------------------
 
 func survey_site(kind: int) -> BridgesScript.Survey:
-	"""The chosen site surveyed for `kind` (a fresh answer)."""
-	var out := BridgesScript.Survey.new()
-	if site_custom:
-		bridges.survey_into(custom_a, custom_b, kind, out)
-	else:
-		bridges.survey_candidate_into(site_candidate, kind, out)
-	return out
+	"""The chosen site surveyed for `kind`. A survey walks every obstacle (about 2 ms), so both kinds are
+	surveyed again only when the site or the bridges' layout has changed; callers read, never write."""
+	var site: Vector4 = Vector4(custom_a.x, custom_a.y, custom_b.x, custom_b.y) if site_custom else Vector4.ZERO
+	var on: Vector3i = Vector3i(int(site_custom), site_candidate, bridges.layout)
+	if site != _surveyed_site or on != _surveyed_on:
+		_surveyed_site = site
+		_surveyed_on = on
+		for k: int in _surveys.size():
+			if site_custom:
+				bridges.survey_into(custom_a, custom_b, k, _surveys[k])
+			else:
+				bridges.survey_candidate_into(site_candidate, k, _surveys[k])
+	return _surveys[kind]
 
 
 func build(kind: int, members: PackedInt32Array) -> String:
@@ -426,7 +448,7 @@ func build(kind: int, members: PackedInt32Array) -> String:
 	if not survey.ok:
 		return "Can't build a %s here: %s" % [Rules.KIND_NAMES[kind], survey.reason]
 	var source: PackedVector2Array = PackedVector2Array()
-	var paid: String = _pay(survey, source)
+	var paid: String = _pay(survey, source, brain_of(members[0]).surface_point() if not members.is_empty() else survey.shore_a)
 	if not paid.is_empty():
 		return paid
 	if not bridges.plan_into(survey, site_name(), _read):
@@ -439,9 +461,10 @@ func build(kind: int, members: PackedInt32Array) -> String:
 	return crew.start(row, int(source[0].x), source[1], members)
 
 
-func _pay(survey: BridgesScript.Survey, source: PackedVector2Array) -> String:
-	"""Take the bridge's material from the one stores (a log: from a felled trunk if one lies ready) --
-	all of it, or (a refusal in words) none. `source` gets [(SOURCE_*, 0), where it is]."""
+func _pay(survey: BridgesScript.Survey, source: PackedVector2Array, near: Vector2) -> String:
+	"""Take the bridge's material from the one stores (a log: from the felled trunk lying ready nearest
+	`near` -- the builder, else the site) -- all of it, or (a refusal in words) none. `source` gets
+	[(SOURCE_*, 0), where it is]."""
 	var stores: StoresScript = services.stores
 	if survey.kind == Rules.KIND_PLANK:
 		if not stores.can_pay_planks(survey.planks_milli) or stores.wood_milli_u < survey.wood_milli:
@@ -450,9 +473,8 @@ func _pay(survey: BridgesScript.Survey, source: PackedVector2Array) -> String:
 		stores.take_wood(survey.wood_milli)
 		source.append_array([Vector2(CrewScript.SOURCE_PLANKS, 0.0), Yard.at(Yard.PLANK_STACK)])
 		return ""
-	var trunk: int = ready_trunk(survey.shore_a)
-	if trunk >= 0 and _stand.take_trunk_into(trunk, Rules.LOG_WOOD_MILLI, _read):
-		source.append_array([Vector2(CrewScript.SOURCE_TRUNK, 0.0), Roots.trunk_middle(_stand, trunk)])
+	if ready_trunk_into(near, _found) and _stand.take_trunk_into(_found.value, Rules.LOG_WOOD_MILLI, _read):
+		source.append_array([Vector2(CrewScript.SOURCE_TRUNK, 0.0), beside_trunk(_found.value, near)])
 		return ""
 	if not stores.take_wood(Rules.LOG_WOOD_MILLI):
 		return TextScript.short_line(survey, stores)
@@ -469,12 +491,20 @@ func _refund(survey: BridgesScript.Survey, source: PackedVector2Array) -> void:
 		services.stores.add_wood(Rules.LOG_WOOD_MILLI)
 
 
-func ready_trunk(near: Vector2) -> int:
-	"""The felled trunk lying nearest `near` with a log's worth of wood in it, within the woods' reach
-	(-1: none)."""
+func beside_trunk(trunk: int, near: Vector2) -> Vector2:
+	"""Where a builder stands to work a log off a lying trunk: beside its middle, TRUNK_SIDE_M out across
+	it on the side nearer `near` (not along it, where the trunk lies)."""
+	var middle: Vector2 = Roots.trunk_middle(_stand, trunk)
+	var across: Vector2 = _stand.fall_dir[trunk].orthogonal()
+	var side: float = 1.0 if across.dot(near - middle) >= 0.0 else -1.0
+	return middle + across * side * TRUNK_SIDE_M
+
+
+func ready_trunk_into(near: Vector2, out: IntMath.IntResult) -> bool:
+	"""The felled trunk lying nearest `near` with a log's worth of wood in it, into `out`; refuses when
+	no trunk (or no woods) has one."""
 	if _stand == null:
-		return -1
-	var best: int = -1
+		return out.refuse("NO_WOODS")
 	var best_d: float = INF
 	for t: int in _stand.count():
 		if _stand.trunk_milli[t] < Rules.LOG_WOOD_MILLI:
@@ -482,8 +512,10 @@ func ready_trunk(near: Vector2) -> int:
 		var d: float = Roots.trunk_middle(_stand, t).distance_to(near)
 		if d < best_d:
 			best_d = d
-			best = t
-	return best
+			out.value = t
+	if best_d == INF:
+		return out.refuse("NO_READY_TRUNK")
+	return out.succeed(out.value)
 
 
 func site_name() -> String:
@@ -531,8 +563,8 @@ func on_ground_order(screen: Vector2) -> bool:
 	if not _point_at(screen, SURFACE_Y_M):
 		return false
 	var members: PackedInt32Array = _command.selected()
-	var row: int = bridge_at(_point)
-	if row >= 0 and bridges.is_planned(row):
+	if bridge_at_into(_point, _found) and bridges.is_planned(_found.value):
+		var row: int = _found.value
 		_answer(crew.start(row, crew.source[row], crew.source_at[row], members))
 		_command.mark(Vector3(_point.x, 0.0, _point.y), true)
 		return true
@@ -563,9 +595,8 @@ func on_ground_click(screen: Vector2) -> bool:
 	"""A left click on no resident: a bridge candidate's span or a bridge selects it for the panel."""
 	if tool_armed or not _point_at(screen, 0.0):
 		return false
-	var row: int = bridge_at(_point)
-	if row >= 0:
-		_select_row(row)
+	if bridge_at_into(_point, _found):
+		_select_row(_found.value)
 		return true
 	for k: int in bridges.candidate_count():
 		var ends: PackedVector2Array = bridges.candidate_ends(k)
@@ -575,26 +606,27 @@ func on_ground_click(screen: Vector2) -> bool:
 	return false
 
 
-func bridge_on_site() -> int:
+func bridge_on_site_into(out: IntMath.IntResult) -> bool:
 	"""The planned or open bridge standing at the chosen site (its middle within BRIDGE_GAP_M of the
-	site's line; -1: none)."""
+	site's line), into `out`; refuses when none does."""
 	var ends: PackedVector2Array = PackedVector2Array([custom_a, custom_b]) if site_custom else bridges.candidate_ends(site_candidate)
 	if ends.size() < 2:
-		return -1
+		return out.refuse("NO_SITE")
 	for row: int in BridgesScript.MAX_BRIDGES:
 		if bridges.phase[row] != BridgesScript.PHASE_FREE and CrossingsScript._segment_distance(
 				(bridges.shore_a[row] + bridges.shore_b[row]) * 0.5, ends[0], ends[1]) < BridgesScript.BRIDGE_GAP_M:
-			return row
-	return -1
+			return out.succeed(row)
+	return out.refuse("NO_BRIDGE_ON_SITE")
 
 
-func bridge_at(at: Vector2) -> int:
-	"""The planned or open bridge whose deck line passes within PICK_SITE_M of `at` (-1: none)."""
+func bridge_at_into(at: Vector2, out: IntMath.IntResult) -> bool:
+	"""The planned or open bridge whose deck line passes within PICK_SITE_M of `at`, into `out`; refuses
+	when none does."""
 	for row: int in BridgesScript.MAX_BRIDGES:
 		if bridges.phase[row] != BridgesScript.PHASE_FREE and \
 				CrossingsScript._segment_distance(at, bridges.approach(row, false), bridges.approach(row, true)) <= PICK_SITE_M:
-			return row
-	return -1
+			return out.succeed(row)
+	return out.refuse("NO_BRIDGE_HERE")
 
 
 func _select_row(row: int) -> void:
@@ -613,7 +645,7 @@ func select_candidate(k: int) -> void:
 	site_candidate = posmod(k, n)
 	site_custom = false
 	var ends: PackedVector2Array = bridges.candidate_ends(site_candidate)
-	if ends.size() == 2 and bridge_on_site() < 0:
+	if ends.size() == 2 and not bridge_on_site_into(_found):
 		bridge_view.show_survey(ends[0], ends[1], survey_site(Rules.KIND_PLANK).ok or survey_site(Rules.KIND_LOG).ok)
 	else:
 		bridge_view.hide_survey()
@@ -719,8 +751,8 @@ func refresh_panel() -> void:
 		{PanelScript.ACTION_DIVE: text.any_diver(members), PanelScript.ACTION_CRAMP: text.any_in_water(members)})
 	var plank: BridgesScript.Survey = survey_site(Rules.KIND_PLANK)
 	var log: BridgesScript.Survey = survey_site(Rules.KIND_LOG)
-	var standing: int = bridge_on_site()
-	var about: String = TextScript.site_text(plank, log, ready_trunk(log.shore_a) >= 0) if standing < 0 else text.standing_text(standing)
+	var about: String = text.standing_text(_found.value) if bridge_on_site_into(_found) \
+		else TextScript.site_text(plank, log, ready_trunk_into(log.shore_a, _found))
 	panel.show_site(text.site_title(site_custom, site_candidate), about,
 		{PanelScript.ACTION_BUILD_PLANK: plank.ok, PanelScript.ACTION_BUILD_LOG: log.ok})
 	panel.show_status(text.bridges_text(), services.stores.stock_line(), text.log_text())

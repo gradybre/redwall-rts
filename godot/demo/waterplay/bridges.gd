@@ -78,6 +78,8 @@ var footing_y_b: PackedFloat32Array = PackedFloat32Array()
 var names: PackedStringArray = PackedStringArray()
 ## Bumped whenever a bridge is planned, advances or opens.
 var revision: int = 0
+## Bumped only when a bridge is planned: what a survey reads of the rows (their decks) has changed.
+var layout: int = 0
 
 var _map: WaterMapScript = null
 var _obstacles: Array[Vector3] = []
@@ -281,6 +283,7 @@ func _write(row: int, survey: Survey, label: String) -> void:
 	footing_y_a[row] = _ground_m(deck_end(row, false))
 	footing_y_b[row] = _ground_m(deck_end(row, true))
 	revision += 1
+	layout += 1
 
 
 func is_open(row: int) -> bool:
@@ -371,10 +374,11 @@ func walk_length_m(row: int) -> float:
 
 
 func pier_points(row: int) -> PackedVector2Array:
-	"""Where bridge `row`'s piers stand: evenly across its water span (presentation, allocates)."""
+	"""Where bridge `row`'s piers stand: evenly along its deck, so each carries a joint of the deck's
+	segments (bridge_view.gd); every one in the water (presentation, allocates)."""
 	var out := PackedVector2Array()
 	for k: int in piers[row]:
-		out.append(shore_a[row].lerp(shore_b[row], float(k + 1) / float(piers[row] + 1)))
+		out.append(deck_end(row, false).lerp(deck_end(row, true), float(k + 1) / float(piers[row] + 1)))
 	return out
 
 

@@ -136,27 +136,31 @@ const REFUSE_AIR: StringName = &"AIR_BUDGET"
 const REFUSE_TOO_SHALLOW: StringName = &"TOO_SHALLOW_TO_DIVE"
 
 
+static func has_species(species: String) -> bool:
+	"""Whether the table lists a species ("Otter" or "otter"); the lookups below answer for an unlisted
+	one as a non-swimmer rather than index with a missing row."""
+	return SPECIES.has(species.to_lower())
+
+
 static func species_row(species: String) -> int:
-	"""The row of a species name ("Otter" or "otter"), or -1 for one the table does not list."""
+	"""The row of a species the table lists (`has_species` first: an unlisted one is refused)."""
+	assert(has_species(species), "species_row of an unlisted species")
 	return SPECIES.find(species.to_lower())
 
 
 static func swim_mm_s_of(species: String) -> int:
 	"""A species' demo swim speed, mm/s (0: it does not swim; an unlisted species does not)."""
-	var row: int = species_row(species)
-	return SWIM_MM_S[row] if row >= 0 else 0
+	return SWIM_MM_S[species_row(species)] if has_species(species) else 0
 
 
 static func dives_of(species: String) -> bool:
 	"""Whether a species dives (demo: the otters)."""
-	var row: int = species_row(species)
-	return row >= 0 and DIVES[row]
+	return has_species(species) and DIVES[species_row(species)]
 
 
 static func swim_words(species: String) -> String:
 	"""The capability in words for the panels."""
-	var row: int = species_row(species)
-	return SWIM_WORDS[row] if row >= 0 else "wades only"
+	return SWIM_WORDS[species_row(species)] if has_species(species) else "wades only"
 
 
 static func ticks_for_usec(usec: int, carry: PackedInt64Array) -> int:

@@ -155,17 +155,17 @@ func alert_line() -> String:
 	for who: int in _rescue.victims:
 		var task: Tasks.VictimTask = _rescue.victim_task(who)
 		parts.append("%s — %s" % [name_of(who), task.label() if task != null else "in difficulty"])
-	if parts.is_empty():
-		return "" if _rescue.rescued == 0 else "Rescues so far: %d" % _rescue.rescued
-	return "In difficulty: %s" % "; ".join(parts)
+	return "" if parts.is_empty() else "In difficulty: %s" % "; ".join(parts)
 
 
 func swimmers_title() -> String:
-	"""The swimmers' heading, with how many are in the water."""
+	"""The swimmers' heading, with how many are in the water and the rescues so far (a tally, not an
+	alert: the alert line is for a resident in difficulty now)."""
 	var n: int = 0
 	for who: int in _state.count:
 		n += 1 if _brain(who).in_water else 0
-	return "Swimmers — %d in the water" % n
+	var tally: String = "" if _rescue.rescued == 0 else " · %d rescue%s so far" % [_rescue.rescued, "" if _rescue.rescued == 1 else "s"]
+	return "Swimmers — %d in the water%s" % [n, tally]
 
 
 func swimmers_text() -> String:
@@ -222,7 +222,7 @@ static func site_text(plank: BridgesScript.Survey, log: BridgesScript.Survey, tr
 	var lines := PackedStringArray()
 	if shown.span_u > 0:
 		lines.append("%.1f m of water · %.1f m of deck" % [WaterRules.to_m(shown.span_u), WaterRules.to_m(shown.deck_u)])
-	var piers: String = ", no piers" if plank.piers == 0 else ", %d pier%s" % [plank.piers, "" if plank.piers == 1 else "s"]
+	var piers: String = ", no piers" if plank.piers == 0 else ""
 	lines.append("Plank footbridge: %s" % (cost_words(plank) + piers if plank.ok else "can't — " + plank.reason))
 	var source: String = " (a felled trunk lies ready)" if trunk_ready else " (from the log stack)"
 	lines.append("Log bridge: %s" % (cost_words(log) + source if log.ok else "can't — " + log.reason))

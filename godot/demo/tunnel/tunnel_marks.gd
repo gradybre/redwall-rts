@@ -316,8 +316,9 @@ func refresh() -> void:
 
 
 func _state_key(slot: int) -> int:
-	"""Everything a slot's marks depend on, as one number (-1: nothing to draw)."""
-	if not _network.is_open(slot):
+	"""Everything a slot's marks depend on, as one number (-1: nothing to draw: not open, or a room's own
+	segment -- room_view.gd draws a room's ribs and lantern)."""
+	if not _network.is_open(slot) or _network.seg_kind[slot] == GraphScript.SEG_ROOM:
 		return -1
 	var warned := 1 if _warned(slot) else 0
 	var bits := int(_network.closed[slot]) + 4 * int(_network.braced[slot]) + 8 * int(_network.lit[slot]) + 16 * warned
@@ -520,6 +521,17 @@ func glows(slot: int) -> MultiMeshInstance3D:
 func line_below(slot: int) -> MeshInstance3D:
 	"""The selection line of tunnel `slot` as the U view draws it (for checks)."""
 	return _lines_below[slot]
+
+
+func brace_mesh() -> Mesh:
+	"""The brace frame mesh every frame is drawn with (the library's tunnel_brace, else a box frame): the rooms'
+	timber ribs too (room_view.gd)."""
+	return _brace_mesh
+
+
+func glow_mesh() -> Mesh:
+	"""The warm glow inside a lantern (the rooms' lanterns too)."""
+	return _glow
 
 
 func frame_mesh_fit() -> Transform3D:

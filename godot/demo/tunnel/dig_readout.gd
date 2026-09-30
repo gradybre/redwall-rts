@@ -13,12 +13,15 @@ extends RefCounted
 ##   * SPOIL as each quantum's ground posts it (ECON-002, by ground);
 ##   * GROUND: the metres of bore through each ground that matters -- clay (slow), sand (weak: brace), rock
 ##     (needs a breaker), wet ground (seeps: brace) -- loam, the plain case, unnamed.
+## A ROOM's readout (`room_text`, decision 0209) is the room tool's: its own quanta cell by cell, its door ramp,
+## and its proposed passage, the room at its crew's three-face rate.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const PlanScript := preload("res://demo/tunnel/tunnel_plan.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 
 ## Ticks of the dig's 30 Hz clock in a demo-calendar hour.
 const TICKS_PER_CALENDAR_HOUR: int = CalendarScript.HOUR_USEC * Rules.TICKS_PER_SECOND / Rules.USEC_PER_SECOND
@@ -107,3 +110,48 @@ static func _ground_words(tally: PackedInt64Array) -> String:
 	if tally[T_WET] > 0:
 		words.append(WET_WORDS % tally[T_WET])
 	return ", ".join(words)
+
+
+# --- a room (decision 0209) -------------------------------------------------------------------
+
+static func room_text(kind: int, centre: Vector2i, turns: int, passage: PlanScript, ground: GroundScript,
+		rate_one: int, rate_room: int, crew: int, passage_to: String) -> String:
+	"""The room tool's readout (room_tool.gd): the room's name, all its quanta -- its cells, its door ramp and
+	shaft, and its proposed passage -- the hours its crew takes (the room at its ROOM_FACES faces' rate
+	`rate_room`, the rest at `rate_one`), its spoil, and its passage (or that it stands alone). e.g.
+	"Burrow home · 33 quanta · 7.9 h (crew of 3)" over "66 U spoil · passage 3.2 m to Tunnel 4"."""
+	var cells := _tally()
+	var rest := _tally()
+	var way := _tally()
+	room_tally_into(kind, centre, turns, ground, cells, rest)
+	if passage.count >= 2:
+		tally_into(passage, ground, way)
+	var quanta := cells[T_QUANTA] + rest[T_QUANTA] + way[T_QUANTA]
+	var hours_tenths := (cells[T_TICKS] * Rules.PERMILLE * 10 / maxi(rate_room, 1)
+		+ (rest[T_TICKS] + way[T_TICKS]) * Rules.PERMILLE * 10 / maxi(rate_one, 1)) / TICKS_PER_CALENDAR_HOUR
+	var first := "%s · %d quanta · %d.%d h (%s)" % [RoomsScript.NAMES[kind], quanta, hours_tenths / 10, hours_tenths % 10,
+		"crew of %d" % crew if crew > 1 else "one digger"]
+	var joined := "passage %s to %s" % [PlanScript.length_text(passage.length_u()), passage_to] if passage.count >= 2 \
+			else "standalone: dig a tunnel to one of its sockets later"
+	return "%s\n%d U spoil · %s" % [first, (cells[T_SPOIL] + rest[T_SPOIL] + way[T_SPOIL]) / 1000, joined]
+
+
+static func _tally() -> PackedInt64Array:
+	"""An empty tally (T_* slots)."""
+	var tally := PackedInt64Array()
+	tally.resize(T_SIZE)
+	return tally
+
+
+static func room_tally_into(kind: int, centre: Vector2i, turns: int, ground: GroundScript, cells: PackedInt64Array,
+		ramp: PackedInt64Array) -> void:
+	"""A room's own quanta cell by cell into `cells` (underground_rooms.gd `cell_local`), and its door ramp's --
+	the shaft at its mouth and each metre down -- into `ramp`."""
+	for k in RoomsScript.total_quanta(kind):
+		_count(ground, centre + RoomsScript.rotate_u(RoomsScript.cell_local(kind, k), turns), cells, false)
+	var hole := RoomsScript.mouth_at(kind, centre, turns)
+	var door := RoomsScript.door_at(kind, centre, turns)
+	_count(ground, hole, ramp, false)
+	var metres := Rules.bore_quanta(Rules.RAMP_RUN_U)
+	for k in metres:
+		_count(ground, hole + (door - hole) * (2 * k + 1) / (2 * metres), ramp, true)

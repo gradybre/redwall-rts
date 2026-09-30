@@ -24,6 +24,14 @@ extends RefCounted
 ## route leaves it: the water's bands (demo/waterplay/) reach past its edge, and a band whose far end
 ## lay inside it could be walked round. Unbounded by default. Set it before the first graph is built.
 ##
+## REBUILT IN SLICES (decision 0209). New circles (`setup`: a spoil heap or a room's mound came, grew or went)
+## leave each body class's graph in use while its replacement is built a slice a frame (`advance_builds`, from
+## the cast's frame, BUILD_BUDGET_USEC) and swapped in when it is done: a class's graph costs tens of
+## milliseconds in the village, which the frame that first planned for that class used to pay whole. Meanwhile
+## a plan routes over the graph as it was, but no route passes a circle added since: the plan's own start, goal
+## and rings test every circle, and its graph's edges and nodes are tested against the few circles new since that
+## graph was built (`_fresh`, found once a setup). A class's first graph is still built at once.
+##
 ## Nothing here allocates during a plan beyond the heap's first growth; the grid queries write into
 ## member arrays sized at setup.
 
@@ -42,6 +50,8 @@ const LINK_M: float = 9.0
 const LOCAL_LINK_M: float = 4.0
 const STANDING_RING: int = 6
 const LOCAL_RING_M: float = 1.5
+## How long the rebuilds may take a frame (see REBUILT IN SLICES).
+const BUILD_BUDGET_USEC: int = 1500
 
 var circles: PackedVector3Array = PackedVector3Array()
 var max_radius: float = 0.0
@@ -54,6 +64,13 @@ var last_found: bool = false
 var _grid: CastGridScript = CastGridScript.new()
 var _hits: PackedInt32Array = PackedInt32Array()
 var _graphs: Dictionary = {}
+## The graphs being rebuilt (class key -> graph) and their keys, in the order they are carried on.
+var _building: Dictionary = {}
+var _build_keys: PackedInt32Array = PackedInt32Array()
+## Per class being rebuilt, the circles its graph in use was not built from (see REBUILT IN SLICES); and those
+## of the graph this plan uses.
+var _fresh_by_class: Dictionary = {}
+var _fresh: PackedVector3Array = PackedVector3Array()
 var _graph: GraphScript = null
 var _body: float = 0.0
 var _link_body: float = 0.0
@@ -76,7 +93,8 @@ var _plan_id: int = 0
 
 
 func setup(obstacles: PackedVector3Array) -> void:
-	"""Take the circles (x, radius, z) and bucket them. Graphs are dropped and rebuilt on demand."""
+	"""Take the circles (x, radius, z) and bucket them. Each class's graph is rebuilt in slices (see REBUILT IN
+	SLICES); a class never planned for gets its graph when it first does."""
 	circles = obstacles
 	max_radius = 0.0
 	var centres := PackedVector2Array()
@@ -85,7 +103,14 @@ func setup(obstacles: PackedVector3Array) -> void:
 		centres.append(Vector2(circle.x, circle.z))
 	_grid.build(centres, CIRCLE_CELL_M)
 	_hits.resize(circles.size())
-	_graphs.clear()
+	_building.clear()
+	_build_keys.clear()
+	_fresh_by_class.clear()
+	for key: int in _graphs:
+		var graph := GraphScript.new()
+		graph.begin(self, float(key) * CLASS_STEP_M, PLAN_MARGIN_M)
+		_building[key] = graph
+		_build_keys.append(key)
 
 
 static func body_class(body_radius: float) -> float:
@@ -101,6 +126,60 @@ func ensure_graph(body_radius: float) -> GraphScript:
 		graph.build(self, body_class(body_radius), PLAN_MARGIN_M)
 		_graphs[key] = graph
 	return _graphs[key]
+
+
+func advance_builds(budget_usec: int) -> void:
+	"""Carry the graphs being rebuilt on for about `budget_usec` microseconds in all, swapping each in when it is
+	done (see REBUILT IN SLICES)."""
+	var until := Time.get_ticks_usec() + budget_usec
+	while not _build_keys.is_empty() and Time.get_ticks_usec() < until:
+		var key := _build_keys[0]
+		var graph: GraphScript = _building[key]
+		if graph.step(self, until - Time.get_ticks_usec()):
+			_graphs[key] = graph
+			_drop_build(key)
+			_fresh_by_class.erase(key)
+
+
+func _fresh_of(key: int) -> PackedVector3Array:
+	"""The circles class `key`'s graph in use was not built from: none unless it is being rebuilt; found once a
+	setup (a pass over the circles), then kept until it is swapped in."""
+	if not _building.has(key):
+		return PackedVector3Array()
+	if not _fresh_by_class.has(key):
+		var old := {}
+		for circle in (_graphs[key] as GraphScript).built_from:
+			old[circle] = true
+		var fresh := PackedVector3Array()
+		for circle in circles:
+			if not old.has(circle):
+				fresh.append(circle)
+		_fresh_by_class[key] = fresh
+	return _fresh_by_class[key]
+
+
+func fresh_count(body_radius: float) -> int:
+	"""How many circles the graph in use for this body's class was not built from (0: it is up to date)."""
+	return _fresh_of(roundi(body_class(body_radius) / CLASS_STEP_M)).size()
+
+
+func _fresh_hit(a: Vector2, b: Vector2) -> bool:
+	"""Whether a graph edge a-b comes into a circle its graph was not built from (at the graph's inflation)."""
+	for circle in _fresh:
+		if distance_to_segment(Vector2(circle.x, circle.z), a, b) < circle.y + _body + PLAN_MARGIN_M - 1e-4:
+			return true
+	return false
+
+
+func builds_pending() -> int:
+	"""How many classes' graphs are being rebuilt."""
+	return _build_keys.size()
+
+
+func _drop_build(key: int) -> void:
+	"""Stop rebuilding class `key`'s graph: its replacement is built."""
+	if _building.erase(key):
+		_build_keys.remove_at(_build_keys.find(key))
 
 
 # --- geometry -------------------------------------------------------------------------------
@@ -208,6 +287,7 @@ func plan(from: Vector2, to: Vector2, body: float, standing: PackedVector3Array,
 func _begin(from: Vector2, to: Vector2, body: float, standing: PackedVector3Array, standing_count: int) -> void:
 	"""Hold this plan's inputs."""
 	_graph = ensure_graph(body)
+	_fresh = _fresh_of(roundi(body_class(body) / CLASS_STEP_M))
 	_body = _graph.body_radius
 	_link_body = body
 	_start = from
@@ -331,7 +411,8 @@ func _expand_static(u: int) -> void:
 	for e in range(_graph.adj_first[u], _graph.adj_first[u + 1]):
 		var v := _graph.adj_to[e]
 		if _closed[v] == 0 and _cost[u] + at.distance_to(_graph.nodes[v]) < _cost[v]:
-			if not (near_standing or _graph.near_stamp[v] == _plan_id) or not _standing_hit(at, _graph.nodes[v]):
+			if (not (near_standing or _graph.near_stamp[v] == _plan_id) or not _standing_hit(at, _graph.nodes[v])) \
+					and not _fresh_hit(at, _graph.nodes[v]):
 				_relax(u, v)
 	_link_dynamic(u, at)
 

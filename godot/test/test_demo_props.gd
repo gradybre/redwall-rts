@@ -2,7 +2,7 @@ extends "res://test/framework/test_case.gd"
 ## The live demo's asset pass (decision 0196): the staged props table and its placeholders and icons,
 ## the farm's goods (models, icons, hand fit), harvests carried as themselves, the stores' shelves,
 ## finds lying where they were dug and on the tunnel panel, the tunnel's brace, lantern and rubble
-## swaps, and the chambers' furniture. Nothing here needs staged assets: CI has none, so every model
+## swaps, and the rooms' furniture. Nothing here needs staged assets: CI has none, so every model
 ## is its placeholder box and every icon a roundel -- the same code the staged demo runs.
 
 const PropsScript := preload("res://demo/props/demo_props.gd")
@@ -411,7 +411,7 @@ func test_a_shelf_shows_a_jar_per_started_third_and_its_goods_in_order() -> void
 
 func test_the_store_shelf_lists_its_goods_most_first_and_cellars_wait_for_their_room() -> void:
 	"""Onions 3 U and carrots 7 U in the covered store: carrots, then onions; fill 25 per mille of
-	400 U. A cellar location with no chambers to find it in shows no shelf."""
+	400 U. A cellar location with no rooms to find it in shows no shelf."""
 	var storage := StorageScript.new(Vector2.ZERO)
 	storage.add_provider(func() -> Array: return [{"id": &"root_cellar:0:1", "position": Vector2(1, 1),
 		"capacity_u": 60, "spoilage_permille": 350}])

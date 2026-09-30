@@ -1,7 +1,8 @@
 extends "res://test/framework/test_case.gd"
 ## The live demo's tunnel extensions (decision 0196), as pure integer logic: the weather source, the
 ## ground map, the ground-aware dig timeline and crew rate, bore classes and loaded fit, the planner's
-## weather, lantern and queue costs, mouth queues, jobs, hazards, finds, stores, chambers and threats.
+## weather, lantern and queue costs, mouth queues, jobs, hazards, finds, stores and threats. (The rooms that
+## replaced the chambers are test_demo_rooms.gd's.)
 ##
 ## No scene tree and no staged assets. Every expected value is a literal worked out by hand from the
 ## cited constants (113 ticks and 2000 milli-U a quantum; weather.gd's §5.10 tables; the GDD's
@@ -20,7 +21,6 @@ const JobsScript := preload("res://demo/tunnel/tunnel_jobs.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
 const HazardsScript := preload("res://demo/tunnel/tunnel_hazards.gd")
-const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
 const EventsScript := preload("res://demo/events/demo_events.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
@@ -679,7 +679,7 @@ func test_the_crew_rate_follows_one_worker_per_face() -> void:
 	assert_equal(CrewScript.pipeline_permille(4, 1), 1506, "no more faces")
 	assert_equal(CrewScript.pipeline_permille(9, 1), 1506, "capped at four builders")
 	assert_equal(CrewScript.pipeline_permille(4, 5), 4000, "widening: four faces")
-	assert_equal(CrewScript.pipeline_permille(4, 3), 3506, "a chamber: three faces and a finisher")
+	assert_equal(CrewScript.pipeline_permille(4, 3), 3506, "a room: three faces and a finisher")
 
 
 func test_the_digging_skill_s_arithmetic() -> void:
@@ -857,8 +857,8 @@ func _job_site() -> Array:
 
 func test_what_each_job_costs_and_takes() -> void:
 	"""On the 4 m bore (4 quanta): brace 1000 wood + 1000 stone and 100 ticks; one lantern 500 wood
-	and 60; pumping 120; widening 2260; a loam chamber 1017. The entrance ramp (5 quanta, its shaft
-	counted) braces for 1250 + 1250 in 125 ticks."""
+	and 60; pumping 120; widening 2260. The entrance ramp (5 quanta, its shaft counted) braces for 1250 +
+	1250 in 125 ticks."""
 	var site := _job_site()
 	var jobs: JobsScript = site[1]
 	var cost := PackedInt32Array([0, 0])
@@ -875,8 +875,6 @@ func test_what_each_job_costs_and_takes() -> void:
 	assert_equal(jobs.ticks_for(BORE, JobsScript.JOB_LANTERNS), 60, "lantern work")
 	assert_equal(jobs.ticks_for(BORE, JobsScript.JOB_PUMP), 120, "pumping")
 	assert_equal(jobs.ticks_for(BORE, JobsScript.JOB_WIDEN), 2260, "widening")
-	jobs.post_chamber(BORE, 3, 0, 1024, GroundScript.LOAM)
-	assert_equal(jobs.total[BORE], 1017, "a loam chamber")
 
 
 func test_inputs_are_paid_once_at_the_start() -> void:
@@ -1111,80 +1109,6 @@ func test_a_flood_and_a_fall_close_the_tunnel_and_a_repair_resets() -> void:
 	hazards.repaired(BORE, false)
 	assert_equal(hazards.strain_usec[BORE], 0, "cleared: the strain is gone")
 	assert_equal(hazards.warned[BORE], 0, "no warnings stand")
-
-
-# --- chambers ---------------------------------------------------------------------------------
-
-func _chamber_site() -> Array:
-	"""An open 12 m tunnel along x from (0, 0): ramp 0..4 m, bore 4..8 m (slot 1), ramp 8..12 m, mouths at
-	(0, 0) and (12, 0): [network, chambers, bounds]."""
-	var network := _network_on(_loam_ground(), [Vector2i(0, 0), Vector2i(12288, 0)])
-	_open_piece(network, 0)
-	return [network, ChambersScript.new(), Rect2i(-20480, -20480, 40960, 40960)]
-
-
-func test_a_chamber_opens_two_metres_off_the_route() -> void:
-	"""2048 u into the bore (6144 u along x), side +1 stands at (6144, 2048), side -1 at (6144, -2048)."""
-	var network: GraphScript = _chamber_site()[0]
-	assert_equal(ChambersScript.centre_for(network, BORE, 2048, 1), Vector2i(6144, 2048), "one side")
-	assert_equal(ChambersScript.centre_for(network, BORE, 2048, -1), Vector2i(6144, -2048), "the other")
-
-
-func test_where_a_chamber_may_not_go() -> void:
-	"""Every refusal, at its boundary; the mouths and routes of every segment count."""
-	var site := _chamber_site()
-	var network: GraphScript = site[0]
-	var chambers: ChambersScript = site[1]
-	var bounds: Rect2i = site[2]
-	var none := PackedInt32Array()
-	assert_equal(chambers.refusal(network, Vector2i(4096, 2048), bounds, none), ChambersScript.REFUSE_NONE, "fine")
-	assert_equal(chambers.refusal(network, Vector2i(18944, 2048), bounds, none), ChambersScript.REFUSE_OUT_OF_BOUNDS, "edge")
-	assert_equal(chambers.refusal(network, Vector2i(18943, 2048), bounds, none), ChambersScript.REFUSE_NONE, "just inside")
-	var house := PackedInt32Array([4096, 1024, 5244])
-	assert_equal(chambers.refusal(network, Vector2i(4096, 2048), bounds, house), ChambersScript.REFUSE_UNDER_BUILDING, "3196 < 3197")
-	house[2] = 5245
-	assert_equal(chambers.refusal(network, Vector2i(4096, 2048), bounds, house), ChambersScript.REFUSE_NONE, "3197 clear")
-	assert_equal(chambers.refusal(network, Vector2i(0, 2047), bounds, none), ChambersScript.REFUSE_NEAR_MOUTH, "by the entrance")
-	assert_equal(chambers.refusal(network, Vector2i(12288, -2047), bounds, none), ChambersScript.REFUSE_NEAR_MOUTH, "by the exit")
-	assert_equal(chambers.refusal(network, Vector2i(6144, 1024), bounds, none), ChambersScript.REFUSE_OVER_TUNNEL, "on the bore")
-	assert_equal(chambers.refusal(network, Vector2i(10240, -1024), bounds, none), ChambersScript.REFUSE_OVER_TUNNEL, "on the exit ramp")
-	var ref := PackedInt32Array([0, 0])
-	chambers.add_into(ChambersScript.KIND_HOME, network, BORE, 0, Vector2i(4096, 2048), ref)
-	assert_equal(chambers.refusal(network, Vector2i(7679, 2048), bounds, none), ChambersScript.REFUSE_NEAR_CHAMBER, "3583 from it")
-
-
-func test_homes_count_demo_beds_and_cellars_publish_their_api() -> void:
-	"""Two beds a home (9 m^2 x 12 / 40); a finished cellar lists its id, position, 60 U and 350."""
-	var site := _chamber_site()
-	var network: GraphScript = site[0]
-	var chambers: ChambersScript = site[1]
-	assert_equal(ChambersScript.BEDS_PER_HOME, 2, "floor(9 x 12 / 40)")
-	var ref := PackedInt32Array([0, 0])
-	chambers.add_into(ChambersScript.KIND_HOME, network, BORE, 0, Vector2i(4096, 2048), ref)
-	chambers.add_into(ChambersScript.KIND_CELLAR, network, BORE, 2048, Vector2i(6144, -2048), ref)
-	assert_equal(chambers.beds(), 0, "planned homes have no beds")
-	assert_equal(chambers.cellars().size(), 0, "nor planned cellars stores")
-	chambers.set_done(0)
-	chambers.set_done(1)
-	assert_equal(chambers.beds(), 2, "one home")
-	assert_equal(chambers.cellar_count(), 1, "one cellar")
-	assert_equal(chambers.cellars(), [{"id": Vector2i(1, 0), "position": Vector3(6.0, 0.0, -2.0),
-		"capacity_u": 60, "spoilage_permille": 350}], "the cellar API")
-	assert_equal(chambers.housing_line(), "Burrow homes: 1 (2 demo beds for moles) · Root cellars: 1", "readout")
-	chambers.forget(1)
-	assert_equal(chambers.generation[1], 1, "a forgotten chamber retires its generation")
-
-
-func test_chamber_slots_run_out() -> void:
-	"""Eight chambers fill every slot; a ninth is refused."""
-	var site := _chamber_site()
-	var network: GraphScript = site[0]
-	var chambers: ChambersScript = site[1]
-	var ref := PackedInt32Array([0, 0])
-	for c in 8:
-		assert_true(chambers.add_into(ChambersScript.KIND_HOME, network, BORE, 0, Vector2i(c * 4000, 9000), ref), "chamber %d" % c)
-	assert_false(chambers.add_into(ChambersScript.KIND_HOME, network, BORE, 0, Vector2i(0, -9000), ref), "no slot")
-	assert_equal(chambers.refusal(network, Vector2i(0, -9000), site[2], PackedInt32Array()), ChambersScript.REFUSE_FULL, "said so")
 
 
 # --- threats ----------------------------------------------------------------------------------

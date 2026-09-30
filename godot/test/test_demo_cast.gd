@@ -8,6 +8,8 @@ extends "res://test/framework/test_case.gd"
 ## invariant is checked on every frame of it, not just at the end.
 
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
+const CastNavScript := preload("res://demo/cast/cast_nav.gd")
+const NavGraphScript := preload("res://demo/cast/cast_nav_graph.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
@@ -1348,3 +1350,112 @@ func test_the_badger_works_its_homes_beside_a_neighbour() -> void:
 			assert_true(badger.position.distance_to(space.slot_position(poi, slot)) < 0.2, "%s[%d]: on its slot" % [home, slot])
 			poi_count += 1
 		assert_true(poi_count >= 1, "%s is in the village" % home)
+
+
+# --- the navigation rebuilt in slices (decision 0209) ------------------------------------------
+
+static func _ring_of_circles(count: int) -> PackedVector3Array:
+	"""`count` circles 0.6 m across in a ring 8 m out (x, radius, z)."""
+	var out := PackedVector3Array()
+	for k in count:
+		var angle := TAU * float(k) / float(count)
+		out.append(Vector3(cos(angle) * 8.0, 0.3, sin(angle) * 8.0))
+	return out
+
+
+func test_a_graph_built_in_slices_is_the_graph_built_at_once() -> void:
+	"""Stepped 50 microseconds at a time, a class's graph comes out node for node and edge for edge the graph
+	built in one go."""
+	var nav := CastNavScript.new()
+	nav.setup(_ring_of_circles(40))
+	var whole := NavGraphScript.new()
+	whole.build(nav, 0.3, CastNavScript.PLAN_MARGIN_M)
+	var sliced := NavGraphScript.new()
+	sliced.begin(nav, 0.3, CastNavScript.PLAN_MARGIN_M)
+	var steps := 1
+	while not sliced.step(nav, 50):
+		steps += 1
+	assert_true(steps > 1, "more than one slice (%d)" % steps)
+	assert_true(sliced.ready and whole.ready, "both built")
+	var thin := NavGraphScript.new()
+	thin.begin(nav, 0.3, CastNavScript.PLAN_MARGIN_M)
+	var calls := 1
+	while not thin.step(nav, 0):
+		calls += 1
+	assert_equal(calls, 40 + 1 + whole.nodes.size() + 1, "with no time to spare: one circle a slice, the bucketing, one node a slice, then done")
+	assert_equal([sliced.nodes, sliced.adj_first, sliced.adj_to], [whole.nodes, whole.adj_first, whole.adj_to], "the same graph")
+
+
+func test_new_circles_rebuild_a_class_s_graph_a_slice_a_frame() -> void:
+	"""With a graph for its class, new circles leave it in use while its replacement is built in slices; once
+	done the new one -- the graph of the new circles -- is swapped in. A class never planned for is built at
+	once."""
+	var nav := CastNavScript.new()
+	nav.setup(_ring_of_circles(40))
+	var before := nav.ensure_graph(0.25)
+	nav.setup(_ring_of_circles(41))
+	assert_equal(nav.builds_pending(), 1, "its rebuild pending")
+	assert_true(nav.ensure_graph(0.25) == before, "the graph in use meanwhile")
+	var frames := 0
+	while nav.builds_pending() > 0 and frames < 1000:
+		nav.advance_builds(50)
+		frames += 1
+	assert_true(frames > 1 and nav.builds_pending() == 0, "rebuilt over %d frames" % frames)
+	var after := nav.ensure_graph(0.25)
+	var fresh := NavGraphScript.new()
+	fresh.build(nav, CastNavScript.body_class(0.25), CastNavScript.PLAN_MARGIN_M)
+	assert_true(after != before and after.nodes == fresh.nodes and after.adj_to == fresh.adj_to, "the new circles' graph swapped in")
+	var other := nav.ensure_graph(0.9)
+	assert_true(other.ready and nav.builds_pending() == 0, "a new class built at once")
+
+
+func test_the_cast_s_frames_carry_the_rebuilds_on() -> void:
+	"""A heap set on the cast's ground sets its residents' graphs rebuilding; the cast's own frames carry them
+	through, a slice each."""
+	_cast = DemoCastScript.new()
+	var circles: Array[Vector3] = [Vector3(0.0, 1.5, 0.0)]
+	_cast.build({"world": {}, "cast": {}}, _village(), circles)
+	var space: CastSpaceScript = _cast.space()
+	space.set_heap(0, Vector3(9.0, 1.0, 9.0))
+	assert_true(space.nav.builds_pending() > 0, "rebuilding")
+	var frames := 0
+	while space.nav.builds_pending() > 0 and frames < 600:
+		_cast.advance(DT)
+		frames += 1
+	assert_equal(space.nav.builds_pending(), 0, "done in %d frames" % frames)
+
+
+func test_a_plan_made_while_its_graph_is_rebuilt_keeps_off_the_new_circles() -> void:
+	"""A wall along x 0 with a gap at z 0: the route goes through the gap. A heap plugging the gap: while the
+	graph is rebuilt, the plan still finds a way -- round the wall's end, never through the heap -- as it does
+	once the new graph is in."""
+	var wall := PackedVector3Array()
+	for z in [-6.0, -4.5, -3.0, -1.5, 1.5, 3.0, 4.5, 6.0]:
+		wall.append(Vector3(0.0, 0.6, z))
+	var nav := CastNavScript.new()
+	nav.setup(wall)
+	var route := PackedVector2Array()
+	nav.plan(Vector2(-6.0, 3.0), Vector2(6.0, -3.0), 0.25, PackedVector3Array(), 0, route)
+	assert_true(_passes_near(Vector2(-6.0, 3.0), route, Vector2.ZERO, 0.8), "through the gap at first")
+	var plugged := wall.duplicate()
+	plugged.append(Vector3(0.0, 1.2, 0.0))
+	nav.setup(plugged)
+	assert_equal(nav.builds_pending(), 1, "rebuilding")
+	assert_equal(nav.fresh_count(0.25), 1, "one circle new to the graph in use: the heap")
+	nav.plan(Vector2(-6.0, 3.0), Vector2(6.0, -3.0), 0.25, PackedVector3Array(), 0, route)
+	assert_true(nav.last_found, "a way found meanwhile")
+	assert_false(_passes_near(Vector2(-6.0, 3.0), route, Vector2.ZERO, 1.2 + 0.25), "not through the heap: %s" % route)
+	while nav.builds_pending() > 0:
+		nav.advance_builds(5000)
+	assert_equal(nav.fresh_count(0.25), 0, "rebuilt: nothing new to it")
+
+
+static func _passes_near(from: Vector2, route: PackedVector2Array, at: Vector2, reach: float) -> bool:
+	"""Whether the route from `from` through `route` comes within `reach` of `at`."""
+	var a := from
+	for b in route:
+		if CastNavScript.distance_to_segment(at, a, b) < reach:
+			return true
+		a = b
+	return false
+

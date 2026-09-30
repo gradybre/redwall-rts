@@ -7,7 +7,7 @@ extends RefCounted
 ## crew can be chosen first and a tunnel second.
 ##
 ## JOBS (tunnel_jobs.gd), from the tunnel panel's buttons, on the selected segment:
-##   Widen, Clear the fall, Burrow home / Root cellar   the Foremole -- the first selected resident who
+##   Widen, Clear the fall   the Foremole -- the first selected resident who
 ##       can dig (anybeast who fits a bore; dig_skills.gd), else the village's most skilled free digger --
 ##       with every other selected resident as its crew (tunnel_crew.gd).
 ##   Brace, Hang lanterns    the first selected resident who fits the bore, else the nearest one who
@@ -17,10 +17,8 @@ extends RefCounted
 ## said: nothing selected; the tunnel unfinished, closed (for all but its repair), or busy with
 ## another job; the upgrade already done; no worker free; the demo stores short.
 ##
-## CHAMBERS: "Burrow home" / "Root cellar" arm placement; the next left click on (or beside) the
-## selected tunnel marks the room -- on the side of the tunnel clicked, or the other side when that
-## one is refused (burrow_chambers.gd says why) -- and the Foremole goes to dig it. A ramp is refused: a
-## room opens off a level bore. Esc disarms. (P3 makes rooms their own structures.)
+## ROOMS are not a tunnel's job (decision 0209): burrow homes and root cellars are placed with the Dig tool's
+## room tool (room_tool.gd) as their own structures, and a room's segments are never selected as a tunnel.
 ##
 ## CREWS: a dig confirmed with other residents selected besides the mole, or a right click on the
 ## entrance of a tunnel being dug with residents selected, puts them on its crew.
@@ -28,7 +26,6 @@ extends RefCounted
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const JobsScript := preload("res://demo/tunnel/tunnel_jobs.gd")
-const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
 const WorksScript := preload("res://demo/tunnel/tunnel_works.gd")
 const JobTaskScript := preload("res://demo/tunnel/tunnel_job_task.gd")
 const CrewTaskScript := preload("res://demo/tunnel/tunnel_crew_task.gd")
@@ -41,8 +38,6 @@ const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 
 const PICK_M: float = 0.9
 const MOUTH_PICK_M: float = 1.2
-## A chamber click must land this near the tunnel's route.
-const CHAMBER_PICK_M: float = 3.5
 ## A crew's surface hands stand this far from the entrance, round it.
 const HAND_M: float = 1.8
 const HAND_TURNS: Array[float] = [0.7, -0.7, 1.4, -1.4, 2.1, -2.1, 0.0, 2.8]
@@ -53,22 +48,16 @@ const NOT_OPEN: String = "tunnel %d is not finished"
 const CLOSED: String = "tunnel %d is closed — repair it first"
 const BUSY: String = "tunnel %d already has a job: %s"
 const DONE_ALREADY: Array[String] = ["", "tunnel %d is already wide", "tunnel %d is already braced",
-	"tunnel %d is already lit", "tunnel %d is not flooded", "tunnel %d has no fall to clear", ""]
+	"tunnel %d is already lit", "tunnel %d is not flooded", "tunnel %d has no fall to clear"]
 const NOTHING_TO_REPAIR: String = "tunnel %d needs no repair"
 const NO_MOLE: String = "nobody free who fits a bore can dig it"
 const NO_WORKER: String = "nobody who fits tunnel %d's bore is free"
 const SHORT: String = "the demo stores are short (need wood %s, stone %s)"
 const POSTED: String = "%s: %s is on the way to tunnel %d"
 const CREW_JOINED: String = "%d joined the Foremole's crew on tunnel %d"
-const PLACE_PROMPT: String = "Click along tunnel %d where the %s should open (Esc: cancel)"
-const PLACE_FAR: String = "click on or beside tunnel %d"
-const PLACE_RAMP: String = "tunnel %d is a mouth's ramp: dig a room off a level bore"
-const PLACE_CANCELLED: String = "Chamber placement cancelled"
 
 var selected: int = -1
 var selected_gen: int = 0
-## The chamber kind being placed (ChambersScript.KIND_NONE while not placing).
-var placing: int = ChambersScript.KIND_NONE
 
 var _works: WorksScript = null
 var _network: GraphScript = null
@@ -94,7 +83,7 @@ func _init(works: WorksScript, space: CastSpaceScript, can_dig: PackedByteArray,
 
 
 func set_under(under_u: PackedInt32Array) -> void:
-	"""The buildings' footprint circles (x, radius, z in u) no chamber may be dug under."""
+	"""The buildings' footprint circles (x, radius, z in u)."""
 	_under_u = under_u
 
 
@@ -106,7 +95,7 @@ func pick_into(at: Vector2, out: PackedInt32Array) -> bool:
 	var best_d := PICK_M
 	var found := false
 	for slot in Rules.MAX_SEGMENTS:
-		if not _network.is_open(slot):
+		if not _network.is_open(slot) or _network.seg_room[slot] >= 0:
 			continue
 		var d := _network.distance_to_route(slot, at)
 		for end in 2:
@@ -136,7 +125,6 @@ func select(slot: int) -> void:
 func clear_selection() -> void:
 	"""Select no tunnel."""
 	selected = -1
-	placing = ChambersScript.KIND_NONE
 
 
 func has_selection() -> bool:
@@ -162,7 +150,7 @@ func order(job: int, selection: PackedInt32Array) -> bool:
 
 static func _mole_job(job: int) -> bool:
 	"""Whether the Foremole works this job (with a crew)."""
-	return job == JobsScript.JOB_WIDEN or job == JobsScript.JOB_CLEAR or job == JobsScript.JOB_CHAMBER
+	return job == JobsScript.JOB_WIDEN or job == JobsScript.JOB_CLEAR
 
 
 func _job_refusal(job: int) -> String:
@@ -352,76 +340,4 @@ func _hand_spot_clear(spot: Vector2, body: float, taken: PackedVector2Array) -> 
 	for other in taken:
 		if other.distance_to(spot) < 2.0 * body + 0.3:
 			return false
-	return true
-
-
-# --- chambers -------------------------------------------------------------------------------
-
-func begin_chamber(kind: int, selection: PackedInt32Array) -> bool:
-	"""Arm placement of a chamber of `kind` on the selected tunnel (see CHAMBERS). False, said, when
-	refused."""
-	var reason := _job_refusal(JobsScript.JOB_CHAMBER)
-	if reason.is_empty() and not mole_into(selection, _pick):
-		reason = NO_MOLE
-	if not reason.is_empty():
-		_works.tell(REFUSED % reason)
-		return false
-	placing = kind
-	_works.tell(PLACE_PROMPT % [selected + 1, ChambersScript.KIND_NAMES[kind].to_lower()])
-	return true
-
-
-func cancel_chamber() -> void:
-	"""Stop placing a chamber."""
-	if placing == ChambersScript.KIND_NONE:
-		return
-	placing = ChambersScript.KIND_NONE
-	_works.tell(PLACE_CANCELLED)
-
-
-func place_chamber(at: Vector2, selection: PackedInt32Array) -> bool:
-	"""Place the armed chamber where the tunnel passes nearest `at`, and send the Foremole to dig it.
-	False, said, when refused (placement stays armed)."""
-	var slot := selected
-	if not has_selection() or _network.distance_to_route(slot, at) > CHAMBER_PICK_M:
-		_works.tell(REFUSED % (PLACE_FAR % (selected + 1)))
-		return false
-	if _network.seg_kind[slot] == GraphScript.SEG_RAMP:
-		_works.tell(REFUSED % (PLACE_RAMP % (selected + 1)))
-		return false
-	var along := clampi(Rules.to_u(_network.along_of(slot, at)), Rules.QUANTUM_U, _network.length_u[slot] - Rules.QUANTUM_U)
-	var centre := Vector2i.ZERO
-	var reason := ChambersScript.REFUSE_NONE
-	for side in _sides(slot, along, at):
-		centre = ChambersScript.centre_for(_network, slot, along, side)
-		reason = _works.chambers.refusal(_network, centre, _bounds_u, _under_u)
-		if reason == ChambersScript.REFUSE_NONE:
-			break
-	if reason != ChambersScript.REFUSE_NONE:
-		_works.tell(REFUSED % ChambersScript.reason_text(reason))
-		return false
-	return _dig_chamber(slot, along, centre, selection)
-
-
-func _sides(slot: int, along: int, at: Vector2) -> PackedInt32Array:
-	"""The side of the tunnel clicked first (+1 right, -1 left of the way to the exit), then the other."""
-	var on := _network.point_at(slot, Rules.to_m(along))
-	var ahead := _network.direction_at(slot, Rules.to_m(along))
-	var cross := ahead.x * (at.y - on.y) - ahead.y * (at.x - on.x)
-	return PackedInt32Array([1, -1]) if cross >= 0.0 else PackedInt32Array([-1, 1])
-
-
-func _dig_chamber(slot: int, along: int, centre: Vector2i, selection: PackedInt32Array) -> bool:
-	"""Plan the chamber and post its job for the Foremole (with the rest of the selection as crew)."""
-	var ref := PackedInt32Array([0, 0])
-	if not mole_into(selection, _pick) or not _works.chambers.add_into(placing, _network, slot, along, centre, ref):
-		_works.tell(REFUSED % ChambersScript.reason_text(ChambersScript.REFUSE_FULL))
-		return false
-	var kind := _works.ground.type_at(centre.x, centre.y)
-	_works.jobs.post_chamber(slot, _pick[0], ref[0], along, kind)
-	placing = ChambersScript.KIND_NONE
-	var mole := _works.brain(_pick[0])
-	mole.order_task(JobTaskScript.new(_works.jobs, _network, slot))
-	_works.tell(POSTED % [ChambersScript.KIND_NAMES[_works.chambers.kind[ref[0]]], _names[mole.index], slot + 1])
-	add_crew(slot, selection, mole.index)
 	return true

@@ -23,8 +23,9 @@ const MarksScript := preload("res://demo/tunnel/tunnel_marks.gd")
 const GroundViewScript := preload("res://demo/tunnel/tunnel_ground_view.gd")
 const HazardsScript := preload("res://demo/tunnel/tunnel_hazards.gd")
 const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
-const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
-const BurrowViewScript := preload("res://demo/burrow/burrow_view.gd")
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
+const RoomViewScript := preload("res://demo/burrow/room_view.gd")
+const PropsScript := preload("res://demo/props/demo_props.gd")
 const EventsScript := preload("res://demo/events/demo_events.gd")
 const EventsViewScript := preload("res://demo/events/events_view.gd")
 const EvacuateTaskScript := preload("res://demo/events/evacuate_task.gd")
@@ -669,7 +670,8 @@ func test_the_foremole_speaks_up_at_rock() -> void:
 
 func test_a_widening_crew_works_side_by_side() -> void:
 	"""A widening offers five faces: the Foremole (the mole, factor 1150) and one member below dig at
-	2000 x 1150 / 1000 = 2300; a chamber's crew of four (three faces and a finisher, 3506) at 4031."""
+	2000 x 1150 / 1000 = 2300; a room's crew of four (three faces and a finisher, 3506) digs its body at 4031
+	(decision 0209: a room is a piece whose body is worked at ROOM_FACES faces)."""
 	var space := _space([])
 	var species := PackedStringArray(["Mole", "Mouse", "Mouse", "Mouse"])
 	var works := _works(space, _cast_of(space, [Vector2.ZERO, Vector2(1, 0), Vector2(2, 0), Vector2(3, 0)], species), species)
@@ -681,12 +683,16 @@ func test_a_widening_crew_works_side_by_side() -> void:
 	works.step(1)
 	assert_equal(works.jobs.rate_permille[slot], 2300, "two faces")
 	works.jobs.clear(slot)
-	works.jobs.post_chamber(slot, 0, 0, 1024, GroundScript.LOAM)
-	for i in [2, 3]:
-		works.crew.join(i, slot)
+	works.crew.disband(slot)
+	var room := PackedInt32Array([0, 0, 0, 0, 0])
+	assert_true(space.tunnels.add_room(RoomsScript.TEMPLATE_HOME, Vector2i(6144, 8192), 2, 0, room), "a home")
+	var body: int = space.tunnels.rooms.body[room[0]]
+	space.tunnels.start_dig(body, space.tunnels.generation[body], 0)
+	for i in [1, 2, 3]:
+		works.crew.join(i, body)
 		works.crew.set_present(i, true)
 	works.step(1)
-	assert_equal(works.jobs.rate_permille[slot], 4031, "a chamber's four")
+	assert_equal(space.tunnels.rate_permille[body], 4031, "a room's four")
 
 
 func test_a_job_done_takes_effect_and_is_announced() -> void:
@@ -942,35 +948,6 @@ func test_dig_work_unasked_goes_to_the_most_skilled_free_digger() -> void:
 	assert_equal(works.log_lines[-1], "Can't: nobody free who fits a bore can dig it", "said")
 
 
-func test_a_chamber_is_placed_beside_the_bore_clicked() -> void:
-	"""A second 12 m tunnel along z = 8 m from x = -12 m (slots 3, 4, 5; its bore tunnel 5 runs x -8..-4 m).
-	Armed, a click 1.5 m south of the bore plans a burrow home on that side, 2 m off the route at the
-	clicked point, for the village's most skilled digger (the mole); a click far away is refused and
-	placement stays armed; a ramp is refused -- rooms open off a level bore."""
-	var site := _order_site()
-	var space: CastSpaceScript = site[0]
-	var works: WorksScript = site[2]
-	var actions: ActionsScript = site[3]
-	var chain := _open_tunnel(space, [Vector2i(-12288, 8192), Vector2i(0, 8192)])
-	works.step(1)
-	actions.select(chain[0])
-	assert_true(actions.begin_chamber(ChambersScript.KIND_HOME, PackedInt32Array()), "armed on the ramp")
-	assert_false(actions.place_chamber(Vector2(-10.0, 9.5), PackedInt32Array()), "a ramp")
-	assert_equal(works.log_lines[-1], "Can't: tunnel 4 is a mouth's ramp: dig a room off a level bore", "said")
-	actions.cancel_chamber()
-	assert_true(actions.select_at(Vector2(-6.0, 8.2)), "the bore picked")
-	assert_equal(actions.selected, chain[1], "tunnel 5")
-	assert_true(actions.begin_chamber(ChambersScript.KIND_HOME, PackedInt32Array()), "armed")
-	assert_equal(works.log_lines[-1], "Click along tunnel 5 where the burrow home should open (Esc: cancel)", "prompted")
-	assert_false(actions.place_chamber(Vector2(-6.0, 16.0), PackedInt32Array()), "too far")
-	assert_equal(actions.placing, ChambersScript.KIND_HOME, "still armed")
-	assert_true(actions.place_chamber(Vector2(-6.0, 9.5), PackedInt32Array()), "placed")
-	assert_equal(works.chambers.chamber_point_u(0), Vector2i(-6144, 10240), "2 m to the clicked side, 2 m into the bore")
-	assert_equal(works.jobs.kind[chain[1]], JobsScript.JOB_CHAMBER, "a chamber job")
-	assert_equal(works.jobs.worker[chain[1]], 0, "for the mole")
-	assert_equal(actions.placing, ChambersScript.KIND_NONE, "disarmed")
-
-
 # --- the extensions, wired into the tunnel tool -------------------------------------------------
 
 func _tool(selection: PackedInt32Array) -> ControlScript:
@@ -1068,20 +1045,82 @@ func test_the_panel_s_demo_buttons() -> void:
 	assert_equal(_notices[-1], "A demo event is already under way", "one at a time")
 
 
-func test_placing_a_chamber_takes_clicks_and_esc_cancels() -> void:
-	"""Armed, the tool hands the extension the events: Esc disarms and says so."""
+func _key_event(code: Key, shift: bool = false) -> InputEventKey:
+	"""A key press."""
+	var key := InputEventKey.new()
+	key.keycode = code
+	key.physical_keycode = code
+	key.shift_pressed = shift
+	key.pressed = true
+	return key
+
+
+func test_the_room_tool_lays_a_home_with_its_passage() -> void:
+	"""In the Dig tool, H opens the home tool; R turns the ghost; north of a tunnel's bore (z 5 m) the ghost
+	offers its passage to its south socket; a click lays the room and the passage -- the room first in the
+	mole's job list -- and the mole goes to dig; Esc goes back to laying tunnels (decision 0209)."""
+	var tool := _tool(PackedInt32Array([0]))
+	var chain := _open_tunnel(_space_of(tool), [Vector2i(0, 5120), Vector2i(12288, 5120)])
+	tool.ext.works.step(1)
+	assert_true(tool.begin_plan(), "the Dig tool")
+	assert_true(tool.handle_input(_key_event(KEY_H)), "H")
+	assert_true(tool.room.active and tool.room.plan.kind == RoomsScript.TEMPLATE_HOME, "the home tool")
+	tool.room.move_to(Vector2(6.0, 10.0))
+	for k in 2:
+		assert_true(tool.handle_input(_key_event(KEY_R)), "R")
+	assert_equal(tool.room.plan.turns, 2, "turned twice: its door north")
+	assert_equal(tool.room.plan.refusal, RoomsScript.REFUSE_NONE, "may be dug")
+	assert_true(tool.room.words().contains("passage 3.0 m to Tunnel %d" % (chain[1] + 1)), "its passage: %s" % tool.room.words())
+	assert_true(tool.room.place(false), "laid")
+	var network: GraphScript = tool.network
+	assert_true(network.rooms.is_room(0), "room 0")
+	var list := PackedInt32Array()
+	network.job_list_into(list)
+	assert_equal(list.size(), 2, "the room and its passage")
+	assert_equal(network.piece_room[list[0]], 0, "the room first")
+	assert_equal(tool._brain(0).dig_tunnel, network.rooms.ramp[0], "the mole goes to dig its door ramp")
+	assert_true(_notices[-1].begins_with("Burrow home 1 laid:") and _notices[-1].contains("then its passage"), "said: %s" % _notices[-1])
+	assert_true(tool.handle_input(_key_event(KEY_ESCAPE)), "Esc")
+	assert_false(tool.room.active, "back to tunnels")
+	assert_true(tool.planning, "the Dig tool still open")
+
+
+func test_the_panel_names_the_room_being_placed() -> void:
+	"""While the room tool is out the panel's heading names its template; back to tunnels, or the Dig tool
+	closed, it says tunnels again."""
+	var tool := _tool(PackedInt32Array([0]))
+	assert_true(tool.begin_room(RoomsScript.TEMPLATE_HOME), "the home tool")
+	assert_equal(tool.ext._planning_heading(), "Placing a burrow home", "named")
+	tool.end_room()
+	assert_equal(tool.ext._planning_heading(), "Laying a tunnel", "back to tunnels")
+	assert_true(tool.begin_room(RoomsScript.TEMPLATE_CELLAR), "the cellar tool")
+	assert_equal(tool.ext._planning_heading(), "Placing a root cellar", "named")
+	tool.cancel_plan()
+	assert_equal(tool.ext.placing_room, RoomsScript.TEMPLATE_NONE, "closing the Dig tool forgets the room")
+
+
+func test_the_room_tool_says_why_a_room_may_not_go() -> void:
+	"""Over a tunnel's bore the ghost is refused in words, and a click lays nothing and says why; Shift+click
+	lays a standalone room; C switches to the cellar tool and C again goes back to tunnels."""
 	var tool := _tool(PackedInt32Array([0]))
 	_open_tunnel(_space_of(tool), [Vector2i(0, 5120), Vector2i(12288, 5120)])
 	tool.ext.works.step(1)
-	assert_true(tool.ext.actions.select_at(Vector2(6.0, 5.1)), "the bore selected")
-	tool.ext.on_action(PanelScript.ACTION_HOME)
-	assert_equal(tool.ext.actions.placing, ChambersScript.KIND_HOME, "armed")
-	var esc := InputEventKey.new()
-	esc.keycode = KEY_ESCAPE
-	esc.pressed = true
-	assert_true(tool.handle_input(esc), "taken")
-	assert_equal(tool.ext.actions.placing, ChambersScript.KIND_NONE, "disarmed")
-	assert_equal(_notices[-1], "Chamber placement cancelled", "said")
+	assert_true(tool.begin_room(RoomsScript.TEMPLATE_HOME), "the home tool, opening the Dig tool")
+	tool.room.move_to(Vector2(6.0, 6.0))
+	assert_equal(tool.room.plan.refusal, RoomsScript.REFUSE_NEAR_TUNNEL, "too near the tunnel")
+	assert_equal(tool.room.words(), RoomsScript.reason_text(RoomsScript.REFUSE_NEAR_TUNNEL), "said beside the pointer")
+	assert_false(tool.room.place(false), "refused")
+	assert_equal(_notices[-1], "Can't dig a room there: " + RoomsScript.reason_text(RoomsScript.REFUSE_NEAR_TUNNEL), "and said")
+	assert_false(tool.network.rooms.is_room(0), "nothing laid")
+	tool.room.move_to(Vector2(-10.0, -10.0))
+	assert_true(tool.room.place(true), "a standalone home")
+	var list := PackedInt32Array()
+	tool.network.job_list_into(list)
+	assert_equal(list.size(), 1, "no passage")
+	assert_true(tool.handle_input(_key_event(KEY_C)), "C")
+	assert_equal(tool.room.plan.kind, RoomsScript.TEMPLATE_CELLAR, "the cellar tool")
+	assert_true(tool.handle_input(_key_event(KEY_C)), "C again")
+	assert_false(tool.room.active, "back to tunnels")
 
 
 # --- the panel --------------------------------------------------------------------------------
@@ -1245,49 +1284,275 @@ func test_braces_and_lanterns_show_underground() -> void:
 	assert_equal(lanterns, [1, 2, 1] as Array[int], "one per started 4 m")
 
 
-func _check_planned_below(view: BurrowViewScript) -> void:
-	"""Chamber 0, planned, as the U view draws it: named and outlined on its marks layer."""
-	assert_equal(view.label_below(0).text, "Root cellar (digging)", "named in the U view too")
-	assert_equal(view.label_below(0).layers, Layers.UNDERGROUND_MARKS, "on its marks layer")
-	assert_true(view.outline_below(0).visible and view.outline_below(0).layers == Layers.UNDERGROUND_MARKS, "outlined in the U view")
-
-
-func _check_room_below(view: BurrowViewScript) -> void:
-	"""Chamber 0's room, just dug: built once, a floor and two baskets, all on the underground layer."""
-	assert_true(view.room(0).visible, "the room below")
-	assert_equal(view.room(0).get_child_count(), 3, "a floor and two baskets by the door (the farm stocks its shelf)")
-	for piece: Node in view.room(0).get_children():
-		assert_equal((piece as VisualInstance3D).layers, Layers.UNDERGROUND, "%s below" % piece.name)
-	assert_equal(view.room_builds, 1, "built once, when dug")
-
-
-func test_the_chamber_drawings() -> void:
-	"""A planned chamber is outlined and named "(digging)" in both views; a done one names itself, its
-	room is built then -- once, on the underground layer -- and the library's cellar stands on the
-	surface, whatever the view (decision 0206)."""
-	var chambers := ChambersScript.new()
-	var view := BurrowViewScript.new()
+func _room_view(space: CastSpaceScript) -> RoomViewScript:
+	"""The rooms' drawing over `space`'s network, with its own marks (out of the tree)."""
+	var marks := MarksScript.new()
+	_nodes.append(marks)
+	marks.configure(space.tunnels, null, PropsScript.new())
+	var view := RoomViewScript.new()
 	_nodes.append(view)
-	view.configure(chambers)
-	var ref := PackedInt32Array([0, 0])
-	chambers.add_into(ChambersScript.KIND_CELLAR, GraphScript.new(), 0, 0, Vector2i(2048, 4096), ref)
+	view.configure(space.tunnels, PropsScript.new(), space, marks)
+	return view
+
+
+func test_the_room_drawings() -> void:
+	"""A laid root cellar is outlined and named "(planned)" in both views, with no shell; dug part way its
+	shell is built at a stage; dug, it names itself, its shell is built once more with its fit-out, its frames
+	(its door and two sockets) under a ring beam and its lantern below, its mound, earth face and hatch
+	above. Its mound stands as obstacles from the moment it is laid, and wears the village ground's material.
+	Another room laid rebuilds nothing of it; neither does a second refresh."""
+	var space := _space([])
+	var view := _room_view(space)
+	var turf := StandardMaterial3D.new()
+	view.set_turf(turf)
+	var network := space.tunnels
+	var ref := PackedInt32Array([0, 0, 0, 0, 0])
+	var obstacles := space.obstacles.size()
+	assert_true(network.add_room(RoomsScript.TEMPLATE_CELLAR, Vector2i(2048, 4096), 0, 0, ref), "a cellar")
 	view.refresh()
-	assert_equal(view.label(0).text, "Root cellar (digging)", "planned")
-	assert_true(view.label(0).position.is_equal_approx(Vector3(2.0, 0.6, 4.0)), "over it")
-	_check_planned_below(view)
-	assert_equal(view.room_builds, 0, "no room yet")
-	chambers.set_done(0)
+	_check_planned_cellar(view, space, obstacles + 3)
+	var body: int = network.rooms.body[ref[0]]
+	_dig_ramp_and_half_the_body(network, ref, body)
 	view.refresh()
-	assert_equal(view.label(0).text, "Root cellar", "done")
-	_check_room_below(view)
+	assert_equal(view.shell_builds, 1, "a stage built")
+	assert_equal(view.furniture(0).get_child_count(), 0, "no fit-out while it is dug")
+	assert_false(view.above(0).visible, "nor a mound yet")
+	assert_true(view.below(0).visible and view.label(0).text.contains("digging"), "digging: %s" % view.label(0).text)
+	network.advance(body, network.generation[body], 1000000000)
+	view.refresh()
+	_check_dug_cellar(view, space, obstacles + 3, turf)
+	var other := PackedInt32Array([0, 0, 0, 0, 0])
+	network.add_room(RoomsScript.TEMPLATE_HOME, Vector2i(-8192, 4096), 0, 0, other)
+	view.refresh()
+	view.refresh()
+	assert_equal(view.shell_builds, 2, "nothing rebuilt")
+
+
+func test_a_room_s_mound_stands_as_obstacles_from_laying_to_release() -> void:
+	"""A laid cellar's mound is two circles along its length and its hood a third, set once (one rebuild of the
+	obstacles); another room laid rebuilds them once more for its own mound only, and a dig begun and paused none; the
+	cellar's row released takes its circles away."""
+	var space := _space([])
+	var view := _room_view(space)
+	var network := space.tunnels
+	var obstacles := space.obstacles.size()
+	var builds := space.obstacle_builds
+	var ref := PackedInt32Array([0, 0, 0, 0, 0])
+	network.add_room(RoomsScript.TEMPLATE_CELLAR, Vector2i(2048, 4096), 0, 0, ref)
+	view.refresh()
+	assert_equal(space.obstacle_builds, builds + 1, "set once")
+	var circles := view.mound_circles(0)
+	var half := RoomViewScript.mound_half(RoomsScript.TEMPLATE_CELLAR, 0)
+	assert_almost_equal(absf(circles[1].z - circles[0].z), 2.0 * (half.y - half.x), "two circles along its 4 m")
+	network.add_room(RoomsScript.TEMPLATE_HOME, Vector2i(-8192, 4096), 0, 0, PackedInt32Array([0, 0, 0, 0, 0]))
+	view.refresh()
+	assert_equal(space.obstacle_builds, builds + 2, "the other's mound only")
+	network.start_dig(ref[3], ref[4], 0)
+	network.advance(ref[3], ref[4], 2000000)
+	network.stop_digging(ref[3], ref[4])
+	view.refresh()
+	assert_true(view.room_key(0) != -1 and network.phase[ref[3]] == GraphScript.PHASE_PAUSED, "paused: redrawn")
+	assert_equal(space.obstacle_builds, builds + 2, "its dig begun and paused moves no obstacle")
+	network.rooms.release(0)
+	view.refresh()
+	assert_equal(space.obstacles.size(), obstacles + 2, "released, only the home's mound and hood stand")
+
+
+func test_a_room_s_shell_grows_while_it_is_dug() -> void:
+	"""Its body dug a hundredth of the way, a room is at its first stage (not none) and built once; dug on to half
+	way with no other change to the network it is built again at its third stage, its name counting."""
+	var space := _space([])
+	var view := _room_view(space)
+	var network := space.tunnels
+	var ref := PackedInt32Array([0, 0, 0, 0, 0])
+	network.add_room(RoomsScript.TEMPLATE_HOME, Vector2i(2048, 4096), 0, 0, ref)
+	var body: int = network.rooms.body[ref[0]]
+	network.start_dig(ref[3], ref[4], 0)
+	network.advance(ref[3], ref[4], 1000000000)
+	network.start_dig(body, network.generation[body], 0)
+	network.advance(body, network.generation[body], network.total_ticks(body) * Rules.USEC_PER_SECOND / 3000)
+	view.refresh()
+	assert_true(network.rooms.dug_permille(network, ref[0]) in range(1, 50), "a little dug")
+	assert_equal([view.stage(0), view.shell_builds], [1, 1], "its first stage, built")
+	var revision := network.revision
+	network.advance(body, network.generation[body], network.total_ticks(body) * Rules.USEC_PER_SECOND / 60)
+	view.refresh()
+	assert_equal(network.revision, revision, "digging moved no revision")
+	assert_equal([view.stage(0), view.shell_builds], [3, 2], "half dug: built again at its third stage")
+	var ramp_ticks := network.total_ticks(ref[3])
+	var percent := (ramp_ticks + network.done(body)) * 100 / (ramp_ticks + network.total_ticks(body))
+	assert_equal(view.percent_dug(0), percent, "its ramp and body dug, of both")
+	assert_equal(view.label(0).text, "Burrow home 1 (digging %d%%)" % percent, "counting")
+
+
+func test_the_ghost_names_a_ramp_s_foot_and_sits_its_words_over_its_middle() -> void:
+	"""Over an 8 m tunnel (two ramps, no bore) the home's passage joins the ramps' foot, and the ghost says so;
+	its words stand over the ghost's middle, not the pointer's side."""
+	var tool := _tool(PackedInt32Array([0]))
+	_open_tunnel(_space_of(tool), [Vector2i(0, 5120), Vector2i(8192, 5120)])
+	tool.ext.works.step(1)
+	assert_true(tool.begin_room(RoomsScript.TEMPLATE_HOME), "the home tool")
+	tool.room.turn(2)
+	tool.room.move_to(Vector2(4.0, 10.0))
+	assert_true(tool.room.words().contains("passage 3.0 m to a ramp's foot"), "said: %s" % tool.room.words())
+	var at := tool.room.label().position
+	assert_equal(Vector2(at.x, at.z), Vector2(4.0, 10.0), "over its middle")
+
+
+func test_the_ghost_is_drawn_only_when_it_moves_turns_or_its_site_changes() -> void:
+	"""Hovering on within one lattice point draws nothing new; a step to the next, a turn, or a heap set on the
+	ground (the site taken afresh, with the heap in it) draws it again."""
+	var tool := _tool(PackedInt32Array([0]))
+	assert_true(tool.begin_room(RoomsScript.TEMPLATE_HOME), "the home tool")
+	tool.room.move_to(Vector2(6.0, 10.0))
+	var drawn := tool.room.ghost_draws
+	tool.room.move_to(Vector2(6.05, 10.05))
+	assert_equal(tool.room.ghost_draws, drawn, "the same lattice point: not drawn again")
+	tool.room.move_to(Vector2(6.25, 10.0))
+	tool.room.turn(1)
+	assert_equal(tool.room.ghost_draws, drawn + 2, "moved, then turned")
+	var circles := tool.room.site().circles_u.size()
+	_space_of(tool).set_heap(0, Vector3(-9.0, 1.0, -9.0))
+	tool.room.move_to(Vector2(6.25, 10.0))
+	assert_equal(tool.room.ghost_draws, drawn + 3, "a heap set: drawn again")
+	assert_equal(tool.room.site().circles_u.size(), circles + 3, "against a site holding the heap")
+
+
+func test_a_mound_faces_its_door_and_the_prewarm_stands_under_the_view() -> void:
+	"""A home turned once has its door east: its mound's way out (-Z) points east. The prewarm's samples stand
+	3 m under the ground 12 m ahead of the camera."""
+	var space := _space([])
+	var view := _room_view(space)
+	var network := space.tunnels
+	var ref := PackedInt32Array([0, 0, 0, 0, 0])
+	network.add_room(RoomsScript.TEMPLATE_HOME, Vector2i(2048, 4096), 1, 0, ref)
+	for slot: int in [ref[3], network.rooms.body[ref[0]]]:
+		network.start_dig(slot, network.generation[slot], 0)
+		network.advance(slot, network.generation[slot], 1000000000)
+	view.refresh()
+	var out := -(view.above(0).get_child(0) as Node3D).transform.basis.z
+	assert_true(out.is_equal_approx(Vector3.RIGHT), "its way out east: %s" % out)
+	var camera := Transform3D(Basis(Vector3.UP, PI * 0.5), Vector3(1.0, 20.0, 2.0))
+	assert_true(RoomViewScript.under_view(camera).is_equal_approx(Vector3(-11.0, -3.0, 2.0)), "under the view")
+
+
+func test_a_room_dug_out_says_so_once_and_its_walks_say_nothing() -> void:
+	"""A home and a cellar laid and dug through: each says once that it is dug -- the room's own words, not a
+	tunnel's -- and its walks, opened with its body, add nothing."""
+	var tool := _tool(PackedInt32Array([0]))
+	var network: GraphScript = tool.network
+	for spec: Array in [[RoomsScript.TEMPLATE_HOME, Vector2i(2048, 8192)], [RoomsScript.TEMPLATE_CELLAR, Vector2i(-8192, 8192)]]:
+		var ref := PackedInt32Array([0, 0, 0, 0, 0])
+		assert_true(network.add_room(spec[0], spec[1], 0, 0, ref), "laid")
+		tool._process(0.016)
+		var before := _notices.size()
+		for slot: int in [ref[3], network.rooms.body[ref[0]]]:
+			network.start_dig(slot, network.generation[slot], 0)
+			network.advance(slot, network.generation[slot], 1000000000)
+		tool._process(0.016)
+		assert_equal(Array(_notices.slice(before)), [ControlScript.ROOM_OPEN[spec[0]]], "%s: said once, in its words" % RoomsScript.NAMES[spec[0]])
+
+
+func test_a_room_is_checked_against_a_heap_set_under_a_still_pointer() -> void:
+	"""The ghost may go; a heap set on its mound without the pointer moving: the click refuses it."""
+	var tool := _tool(PackedInt32Array([0]))
+	assert_true(tool.begin_room(RoomsScript.TEMPLATE_HOME), "the home tool")
+	tool.room.move_to(Vector2(6.0, 10.0))
+	assert_equal(tool.room.plan.refusal, RoomsScript.REFUSE_NONE, "may go")
+	_space_of(tool).set_heap(0, Vector3(6.0, 1.0, 10.0))
+	assert_false(tool.room.place(true), "refused at the click")
+	assert_equal(tool.room.plan.refusal, RoomsScript.REFUSE_SURFACE_BLOCKED, "on the heap")
+
+
+func test_the_room_tool_takes_its_site_afresh_after_a_room_is_laid() -> void:
+	"""With the home tool open, a home laid standalone: the next check is against a site holding its door (a
+	mouth to keep clear), not the one the tool opened with."""
+	var tool := _tool(PackedInt32Array([0]))
+	assert_true(tool.begin_room(RoomsScript.TEMPLATE_HOME), "the home tool")
+	tool.room.move_to(Vector2(6.0, 10.0))
+	var before := tool.room.site().spots_u.size()
+	assert_true(tool.room.place(true), "laid standalone")
+	tool.room.move_to(Vector2(-6.0, 10.0))
+	var hole := tool.network.rooms.mouth_u(0)
+	var spots := tool.room.site().spots_u
+	assert_true(spots.size() > before, "more to keep clear")
+	var found := false
+	for i in spots.size() / 3:
+		found = found or (spots[3 * i] == hole.x and spots[3 * i + 2] == hole.y)
+	assert_true(found, "its door among them")
+
+
+func test_a_room_whose_passage_fails_once_laid_stands_alone_and_says_why() -> void:
+	"""Six node rows free: the home and its proposed passage each fit alone, but once the home takes them the
+	passage has no row for its junction -- the home is laid standalone and the notice says so."""
+	var tool := _tool(PackedInt32Array([0]))
+	_open_tunnel(_space_of(tool), [Vector2i(0, 5120), Vector2i(12288, 5120)])
+	tool.ext.works.step(1)
+	var network: GraphScript = tool.network
+	var free := network.node_kind.count(GraphScript.NODE_FREE)
+	for n in network.node_kind.size():
+		if network.node_kind[n] == GraphScript.NODE_FREE and free > 6:
+			network.node_kind[n] = GraphScript.NODE_JUNCTION
+			free -= 1
+	assert_true(tool.begin_room(RoomsScript.TEMPLATE_HOME), "the home tool")
+	tool.room.move_to(Vector2(6.0, 10.0))
+	tool.room.turn(2)
+	assert_true(tool.room.plan.passage.count == 2, "a passage proposed: %s" % tool.room.words())
+	assert_true(tool.room.place(false), "laid")
+	assert_true(_notices[-1].contains("standalone: its passage may not be dug"), "said: %s" % _notices[-1])
+
+
+func test_the_rooms_pieces_on_the_ground_are_sampled_for_the_prewarm() -> void:
+	"""Three samples on the surface layer -- the mound in the ground's material, its earth face, a board in the
+	doors' timber -- under the ground, and gone after."""
+	var space := _space([])
+	var view := _room_view(space)
+	var turf := StandardMaterial3D.new()
+	view.set_turf(turf)
+	view.begin_surface_prewarm()
+	var samples := view.surface_samples()
+	assert_equal(samples.get_child_count(), 3, "three samples")
+	assert_true(samples.position.y < -2.0, "under the ground")
+	for sample: Node in samples.get_children():
+		assert_equal((sample as VisualInstance3D).layers, Layers.SURFACE, "%s on the surface" % sample.name)
+	assert_true((samples.get_child(0) as GeometryInstance3D).material_override == turf, "the mound in the ground's material")
+	view.end_surface_prewarm()
+	assert_true(view.surface_samples() == null and samples.is_queued_for_deletion(), "gone, and freed")
+
+
+static func _dig_ramp_and_half_the_body(network: GraphScript, ref: PackedInt32Array, body: int) -> void:
+	"""Dig a room's ramp open and half its body."""
+	network.start_dig(ref[3], ref[4], 0)
+	network.advance(ref[3], ref[4], 1000000000)
+	network.start_dig(body, network.generation[body], 0)
+	network.advance(body, network.generation[body], network.total_ticks(body) * Rules.USEC_PER_SECOND / 60)
+
+
+func _check_planned_cellar(view: RoomViewScript, space: CastSpaceScript, obstacles: int) -> void:
+	"""Room 0, a root cellar just laid (see `test_the_room_drawings`)."""
+	assert_equal(space.obstacles.size(), obstacles, "its mound (two circles) and its hood, as soon as it is laid")
+	assert_equal(view.label(0).text, "Root cellar 1 (planned)", "planned")
+	assert_equal(view.label_below(0).layers, Layers.UNDERGROUND_MARKS, "named in the U view on its marks layer")
+	assert_true(view.outline_below(0).visible and view.outline_below(0).layers == Layers.UNDERGROUND_MARKS, "outlined below")
+	assert_equal(view.shell_builds, 0, "no shell yet")
+
+
+func _check_dug_cellar(view: RoomViewScript, space: CastSpaceScript, obstacles: int, turf: Material) -> void:
+	"""Room 0, a root cellar just dug (see `test_the_room_drawings`), its mound and hood in `turf`."""
+	assert_equal(view.label(0).text, "Root cellar 1", "dug")
+	assert_equal(view.shell_builds, 2, "built again, whole")
 	assert_false(view.outline_below(0).visible, "no outline once dug")
-	view.refresh()
-	assert_equal(view.room_builds, 1, "and not again")
-	chambers.add_into(ChambersScript.KIND_HOME, GraphScript.new(), 0, 0, Vector2i(-8192, 4096), ref)
-	view.refresh()
-	assert_equal(view.room_builds, 1, "another chamber planned rebuilds no room")
-	assert_true(view.cellar_door(0).visible, "the done root cellar is the library's cellar on the surface")
-	assert_true(view.cellar_door(0).position.is_equal_approx(Vector3(2.0, 0.0, 4.0)), "over the room")
+	assert_true(view.furniture(0).get_child_count() >= 5, "a shelf, jars, a basket, the lantern and its glow")
+	for piece: Node in view.furniture(0).get_children():
+		assert_equal((piece as VisualInstance3D).layers, Layers.UNDERGROUND, "%s below" % piece.name)
+	assert_equal(view.frames(0).multimesh.visible_instance_count, 3, "frames at its door and two sockets")
+	assert_true(view.beam(0).visible and view.beam(0).mesh.get_surface_count() == 1, "and its ring beam over them")
+	assert_equal(view.shell(0).layers, Layers.UNDERGROUND, "the shell below")
+	assert_true(view.above(0).visible and view.above(0).get_child_count() == 3, "its mound, earth face and hatch above")
+	for piece: Node in view.above(0).find_children("*", "VisualInstance3D", true, false):
+		assert_equal((piece as VisualInstance3D).layers, Layers.SURFACE, "%s on the surface" % piece.name)
+	assert_equal(space.obstacles.size(), obstacles, "its mound's obstacles still, not doubled")
+	assert_true((view.above(0).get_child(0) as GeometryInstance3D).material_override == turf, "its mound in the ground's turf")
 
 
 func test_the_flood_rises_on_the_demo_clock_and_holds_while_paused() -> void:

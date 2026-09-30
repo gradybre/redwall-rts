@@ -1,5 +1,5 @@
 extends RefCounted
-## Work on finished tunnels: upgrades, repairs and chambers. Decision 0196 (live demo). Presentation
+## Work on finished tunnels: upgrades and repairs. Decision 0196 (live demo). Presentation
 ## only: the jobs change the demo's tunnels (underground_graph.gd) and its own stores, never the
 ## simulation.
 ##
@@ -19,13 +19,14 @@ extends RefCounted
 ##                                 LANTERN_SPACING_M (demo)             a lantern (demo)
 ##   PUMP     anyone              PUMP_TICKS a quantum (demo)           --                    reopened
 ##   CLEAR    the mole (+ crew)   the collapsed quanta's dig ticks      --                    reopened
-##   CHAMBER  the mole (+ crew)   CHAMBER_QUANTA quanta of its ground   --                    chamber done
+## (Burrow homes and root cellars are no longer a job on a tunnel: each is a room dug as its own piece of the
+## network, decision 0209 -- underground_graph.gd ROOMS.)
 ##
 ## MATERIALS are paid once, when the work STARTS (ECON-003: "consume material inputs once at WORK
 ## start"), from the demo stores; a job whose worker is called away keeps its progress and its paid
 ## inputs (ECON-005: pause retains progress), and resumes when ordered again.
 ##
-## SPOIL from re-digging (WIDEN, CLEAR, CHAMBER) posts as each quantum's cut completes and heaps at
+## SPOIL from re-digging (WIDEN, CLEAR) posts as each quantum's cut completes and heaps at
 ## the segment's spoil mouth (underground_graph.add_spoil); rock quanta also yield stone to the demo stores.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
@@ -39,10 +40,9 @@ const JOB_BRACE: int = 2
 const JOB_LANTERNS: int = 3
 const JOB_PUMP: int = 4
 const JOB_CLEAR: int = 5
-const JOB_CHAMBER: int = 6
-const NAMES: Array[String] = ["", "Widen", "Brace", "Hang lanterns", "Pump out", "Clear the fall", "Dig chamber"]
+const NAMES: Array[String] = ["", "Widen", "Brace", "Hang lanterns", "Pump out", "Clear the fall"]
 const ACTIVITY: Array[String] = ["", "widening the tunnel", "bracing the tunnel", "hanging lanterns",
-	"pumping out the tunnel", "clearing the fall", "digging a chamber"]
+	"pumping out the tunnel", "clearing the fall"]
 
 const BRACE_WOOD_MILLI_U: int = 250
 const BRACE_STONE_MILLI_U: int = 250
@@ -50,10 +50,8 @@ const LANTERN_SPACING_M: int = 4
 const LANTERN_TICKS: int = 60
 const LANTERN_WOOD_MILLI_U: int = 500
 const PUMP_TICKS: int = 30
-const CHAMBER_QUANTA: int = 9
-## Faces a crew can work side by side: widening re-digs five quanta a metre, a chamber three.
+## Faces a crew can work side by side: widening re-digs five quanta a metre.
 const WIDEN_FACES: int = Rules.WIDE_EXTRA_QUANTA
-const CHAMBER_FACES: int = 3
 
 ## Per tunnel slot (see ONE JOB PER TUNNEL).
 var kind: PackedByteArray = PackedByteArray()
@@ -66,8 +64,6 @@ var rate_permille: PackedInt32Array = PackedInt32Array()
 var paid: PackedByteArray = PackedByteArray()
 var from_u: PackedInt32Array = PackedInt32Array()
 var to_u: PackedInt32Array = PackedInt32Array()
-var chamber: PackedInt32Array = PackedInt32Array()
-var chamber_ground: PackedByteArray = PackedByteArray()
 ## Cuts, spoil and stone already posted by the job (so each posts once).
 var posted_cuts: PackedInt32Array = PackedInt32Array()
 var posted_spoil: PackedInt64Array = PackedInt64Array()
@@ -87,7 +83,6 @@ func _init(network: GraphScript, stores: StoresScript) -> void:
 	_stores = stores
 	kind.resize(Rules.MAX_SEGMENTS)
 	paid.resize(Rules.MAX_SEGMENTS)
-	chamber_ground.resize(Rules.MAX_SEGMENTS)
 	_size_ints()
 	work_usec.resize(Rules.MAX_SEGMENTS)
 	work_rem.resize(Rules.MAX_SEGMENTS)
@@ -107,7 +102,6 @@ func _size_ints() -> void:
 	rate_permille.fill(Rules.PERMILLE)
 	from_u.resize(Rules.MAX_SEGMENTS)
 	to_u.resize(Rules.MAX_SEGMENTS)
-	chamber.resize(Rules.MAX_SEGMENTS)
 	posted_cuts.resize(Rules.MAX_SEGMENTS)
 
 
@@ -143,9 +137,7 @@ func ticks_for(slot: int, job: int) -> int:
 			return LANTERN_TICKS * lantern_count(slot)
 		JOB_PUMP:
 			return PUMP_TICKS * _network.timeline_count(slot)
-		JOB_CLEAR:
-			return _clear_ticks(slot)
-	return CHAMBER_QUANTA * GroundScript.dig_ticks(chamber_ground[slot])
+	return _clear_ticks(slot)
 
 
 func _clear_ticks(slot: int) -> int:
@@ -182,13 +174,6 @@ func post(slot: int, job: int, resident: int, span_from_u: int, span_to_u: int) 
 	to_u[slot] = span_to_u
 	total[slot] = ticks_for(slot, job)
 	revision += 1
-
-
-func post_chamber(slot: int, resident: int, chamber_index: int, along: int, ground: int) -> void:
-	"""Post a CHAMBER job: dig chamber `chamber_index` off tunnel `slot`, `along` u in, in `ground`."""
-	chamber[slot] = chamber_index
-	chamber_ground[slot] = ground
-	post(slot, JOB_CHAMBER, resident, along, along)
 
 
 func start(slot: int) -> bool:
@@ -235,17 +220,12 @@ func along_m(slot: int) -> float:
 
 
 func cut_progress_into(slot: int, out: PackedInt64Array) -> void:
-	"""The job's re-dig progress so far (underground_graph.gd P_* slots): cuts, spoil and stone. Only WIDEN,
-	CLEAR and CHAMBER cut; the others leave `out` empty."""
+	"""The job's re-dig progress so far (underground_graph.gd P_* slots): cuts, spoil and stone. Only WIDEN and
+	CLEAR cut; the others leave `out` empty."""
 	out.fill(0)
 	var job := kind[slot]
 	if job == JOB_WIDEN:
 		_network.progress_into(slot, done_ticks(slot), Rules.WIDE_EXTRA_QUANTA, out)
-	elif job == JOB_CHAMBER:
-		var ground := chamber_ground[slot]
-		out[GraphScript.P_CUTS] = done_ticks(slot) / GroundScript.dig_ticks(ground)
-		out[GraphScript.P_SPOIL] = out[GraphScript.P_CUTS] * GroundScript.spoil_of(ground)
-		out[GraphScript.P_STONE] = out[GraphScript.P_CUTS] * GroundScript.stone_of(ground)
 	elif job == JOB_CLEAR:
 		_clear_progress_into(slot, out)
 

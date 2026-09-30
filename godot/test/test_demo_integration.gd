@@ -22,7 +22,7 @@ const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const JobsScript := preload("res://demo/farm/farm_jobs.gd")
 const Text := preload("res://demo/farm/farm_text.gd")
 const AlertsScript := preload("res://demo/farm/farm_alerts.gd")
-const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const WorksScript := preload("res://demo/tunnel/tunnel_works.gd")
 const TaskScript := preload("res://demo/tunnel/tunnel_task.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
@@ -100,7 +100,7 @@ func _village(with_cellars: bool) -> DemoFarmScript:
 	_nodes.append(farm)
 	var providers: Array[Callable] = []
 	if with_cellars:
-		providers.append(FarmCellars.provider(_works().chambers, _command.tunnels().network))
+		providers.append(FarmCellars.provider(_command.tunnels().network))
 	farm.configure({}, null, cast, _command, camera, null, providers, _services)
 	return farm
 
@@ -110,14 +110,24 @@ func _works() -> WorksScript:
 	return _command.tunnels().ext.works
 
 
-func _dig_cellar(chambers: ChambersScript, at_m: Vector2) -> int:
-	"""A finished root cellar centred at `at_m` (x, z metres); returns its chamber slot."""
-	var ref := PackedInt32Array([-1, 0])
-	var added: bool = chambers.add_into(ChambersScript.KIND_CELLAR, null, 0, 0,
-		Vector2i(Rules.to_u(at_m.x), Rules.to_u(at_m.y)), ref)
-	assert_true(added, "a cellar slot")
-	chambers.set_done(ref[0])
+func _dig_cellar(network: GraphScript, at_m: Vector2) -> int:
+	"""A dug root cellar centred at `at_m` (x, z metres), its hatch 6 m south (decision 0209: a room of its own);
+	returns its room row."""
+	var ref := PackedInt32Array([0, 0, 0, 0, 0])
+	assert_true(network.add_room(RoomsScript.TEMPLATE_CELLAR, Vector2i(Rules.to_u(at_m.x), Rules.to_u(at_m.y)), 0, 0, ref),
+		"a cellar laid")
+	_dig_room(network, ref[2])
 	return ref[0]
+
+
+static func _dig_room(network: GraphScript, piece: int) -> void:
+	"""Dig a room's piece open, in its order."""
+	var chain := PackedInt32Array()
+	network.piece_segments_into(piece, chain)
+	for slot in chain:
+		if not network.is_open(slot):
+			network.start_dig(slot, network.generation[slot], 0)
+			network.advance(slot, network.generation[slot], 3600 * Rules.USEC_PER_SECOND)
 
 
 func _feed_has(text: String, level: int) -> bool:
@@ -275,19 +285,21 @@ func test_the_farm_adopts_the_calendar_only_before_either_runs() -> void:
 # --- cellars -> pantry ------------------------------------------------------------------------------
 
 func test_a_finished_root_cellar_is_a_pantry_store() -> void:
-	"""burrow_chambers' cellar, through farm_cellars.gd: a StringName id the provider API accepts, its
-	label, its 60 U and the GDD's 350; a planned cellar and a burrow home are not stores."""
-	var chambers := ChambersScript.new()
+	"""A root cellar room (decision 0209), through farm_cellars.gd: a StringName id the provider API accepts, its
+	label, its 60 U and the GDD's 350, delivered at its hatch; a planned cellar and a burrow home are not
+	stores."""
+	var network := GraphScript.new()
 	var storage := StorageScript.new(Vector2(14.0, 6.2))
-	storage.add_provider(FarmCellars.provider(chambers, null))
+	storage.add_provider(FarmCellars.provider(network))
 	assert_equal(storage.count(), 1, "the covered store only")
-	var ref := PackedInt32Array([-1, 0])
-	chambers.add_into(ChambersScript.KIND_CELLAR, null, 0, 0, Vector2i(-6144, 12288), ref)
-	chambers.add_into(ChambersScript.KIND_HOME, null, 0, 0, Vector2i(0, 0), ref)
-	chambers.set_done(ref[0])
+	var cellar := PackedInt32Array([0, 0, 0, 0, 0])
+	var home := PackedInt32Array([0, 0, 0, 0, 0])
+	network.add_room(RoomsScript.TEMPLATE_CELLAR, Vector2i(-6144, 12288), 0, 0, cellar)
+	network.add_room(RoomsScript.TEMPLATE_HOME, Vector2i(6144, 0), 0, 0, home)
+	_dig_room(network, home[2])
 	storage.refresh()
 	assert_equal(storage.count(), 1, "planned cellars and homes are not stores")
-	chambers.set_done(0)
+	_dig_room(network, cellar[2])
 	storage.refresh()
 	assert_equal(storage.count(), 2, "the cellar is")
 	assert_equal(storage.refused_entries(), 0, "nothing refused")
@@ -295,44 +307,31 @@ func test_a_finished_root_cellar_is_a_pantry_store() -> void:
 	assert_equal(storage.label_of(1), "Root cellar 1", "its label")
 	assert_equal(storage.capacity_milli_of(1), 60000, "60 U")
 	assert_equal(storage.permille_of(1), 350, "the GDD's cellar factor")
-	assert_equal(storage.position_of(1), Vector2(-6.0, 12.0), "no tunnel: delivered where it lies")
+	assert_equal(storage.position_of(1), Vector2(-6.0, 6.0), "delivered at its hatch, 6 m south")
 
 
-func test_a_cellar_is_entered_by_its_tunnel_s_nearer_mouth() -> void:
-	"""An open 12 m tunnel along +X is its entry ramp (0..4 m), its 4 m level bore and its exit ramp
-	(8..12 m). A cellar dug 1 m into the bore is delivered to at the entrance (a 5 m walk: 1 m back to the
-	ramp's foot and 4 m up it, against 3 + 4 m to the exit); one 3 m in, at the exit (1 + 4 m against
-	3 + 4) -- the cellar's door, where a carrier can stand."""
-	var chambers := ChambersScript.new()
+func test_a_cellar_is_entered_at_its_own_hatch() -> void:
+	"""A cellar is its own room with its own hatch (decision 0209): carriers deliver there, a ramp's run beyond
+	its hatch end, whichever way it is turned -- whether or not a tunnel reaches it."""
 	var network := GraphScript.new()
-	var ref := PackedInt32Array([-1, 0, -1])
-	assert_true(network.add_into(PackedInt32Array([0, 0, 12288, 0]), 2, 0, ref), "a tunnel")
-	var chain := PackedInt32Array()
-	network.piece_segments_into(ref[2], chain)
-	for slot in chain:
-		network.start_dig(slot, network.generation[slot], 0)
-		network.advance(slot, network.generation[slot], 3600 * Rules.USEC_PER_SECOND)
-	assert_true(network.piece_done(ref[2]), "open")
-	var bore := chain[1]
-	assert_equal(network.seg_kind[bore], GraphScript.SEG_BORE, "the bore from (4, 0) to (8, 0)")
-	var room := PackedInt32Array([-1, 0])
-	chambers.add_into(ChambersScript.KIND_CELLAR, network, bore, 1024, Vector2i(5120, 2048), room)
-	chambers.set_done(room[0])
-	chambers.add_into(ChambersScript.KIND_CELLAR, network, bore, 3072, Vector2i(7168, 2048), room)
-	chambers.set_done(room[0])
-	var entries: Array = FarmCellars.entries(chambers, network)
-	assert_equal(entries[0][StorageScript.KEY_POSITION], Vector3(0.0, 0.0, 0.0), "1 m in: the entrance")
-	assert_equal(entries[1][StorageScript.KEY_POSITION], Vector3(12.0, 0.0, 0.0), "3 m in: the exit")
+	var ref := PackedInt32Array([0, 0, 0, 0, 0])
+	assert_true(network.add_room(RoomsScript.TEMPLATE_CELLAR, Vector2i.ZERO, 1, 0, ref), "turned once")
+	_dig_room(network, ref[2])
+	assert_true(network.add_room(RoomsScript.TEMPLATE_CELLAR, Vector2i(0, 12288), 2, 0, ref), "turned twice")
+	_dig_room(network, ref[2])
+	var entries: Array = FarmCellars.entries(network)
+	assert_equal(entries[0][StorageScript.KEY_POSITION], Vector3(6.0, 0.0, 0.0), "its hatch 6 m east")
+	assert_equal(entries[1][StorageScript.KEY_POSITION], Vector3(0.0, 0.0, 18.0), "its hatch 6 m north")
 
 
 func test_a_harvest_goes_to_the_coldest_store_with_room_nearest_its_bed() -> void:
 	"""Two cellars (350) beat the covered store (1000); between them the one nearer the bed wins, each
 	way round; a full cellar passes to the other, and a load no cellar holds goes to the store."""
-	var chambers := ChambersScript.new()
-	var far_cellar := _dig_cellar(chambers, Vector2(8.0, 4.0))
-	var near_cellar := _dig_cellar(chambers, Vector2(-6.0, 12.8))
+	var network := GraphScript.new()
+	var far_cellar := _dig_cellar(network, Vector2(8.0, 4.0))
+	var near_cellar := _dig_cellar(network, Vector2(-6.0, 12.8))
 	var storage := StorageScript.new(Vector2(14.0, 6.2))
-	storage.add_provider(FarmCellars.provider(chambers, null))
+	storage.add_provider(FarmCellars.provider(network))
 	var pantry := PantryScript.new(storage)
 	assert_true(pantry.location_near_into(5100, Catalog.bed_centre_m(BED_CARROTS), _read), "from the carrots")
 	assert_equal(storage.id_of(_read.value), &"root_cellar:%d:0" % near_cellar, "the cellar by the beds")
@@ -350,8 +349,8 @@ func test_the_village_s_cellars_take_the_farm_s_harvest() -> void:
 	store -- become stores at the next farm hour, and the ripe carrots are carried to the one by their
 	bed, not across the village."""
 	var farm := _village(true)
-	var by_store := _dig_cellar(_works().chambers, Vector2(10.0, 3.6))
-	var by_beds := _dig_cellar(_works().chambers, Vector2(-6.0, 12.8))
+	var by_store := _dig_cellar(_command.tunnels().network, Vector2(10.0, 3.6))
+	var by_beds := _dig_cellar(_command.tunnels().network, Vector2(-6.0, 12.8))
 	farm.step(24 * HOUR_USEC)
 	assert_equal(farm.storage.count(), 3, "both cellars are stores")
 	farm.crew.order(JobsScript.KIND_HARVEST, BED_CARROTS, PackedInt32Array([3]), JobsScript.ORIGIN_PLAYER)
@@ -374,7 +373,7 @@ func test_the_village_s_cellars_take_the_farm_s_harvest() -> void:
 
 
 func test_the_village_hands_the_tunnels_cellars_to_the_farm() -> void:
-	"""demo_village.storage_providers() is the tunnel works' finished cellars, as pantry stores."""
+	"""demo_village.storage_providers() is the network's dug root cellars, as pantry stores."""
 	_village(false)
 	var village := VillageScript.new()
 	_nodes.append(village)
@@ -382,7 +381,7 @@ func test_the_village_hands_the_tunnels_cellars_to_the_farm() -> void:
 	var providers: Array[Callable] = village.storage_providers()
 	assert_equal(providers.size(), 1, "one provider")
 	assert_equal((providers[0].call() as Array).size(), 0, "no cellar yet")
-	_dig_cellar(_works().chambers, Vector2(-6.0, 12.8))
+	_dig_cellar(_command.tunnels().network, Vector2(-6.0, 12.8))
 	var entries: Array = providers[0].call()
 	assert_equal(entries.size(), 1, "the cellar")
 	assert_equal(entries[0][StorageScript.KEY_ID], &"root_cellar:0:0", "as a pantry store")

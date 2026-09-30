@@ -3,16 +3,15 @@ extends Node3D
 ##
 ## The tunnel tool (tunnel_control.gd) builds this once and hands it the events it does not take
 ## itself. It owns the works (tunnel_works.gd: weather, ground, stores, crews, jobs, hazards,
-## chambers, threats), the player's orders on them (tunnel_actions.gd), their drawings (the ground
-## map, the tunnel marks, the chambers, the threats, the weather) and the "Tunnels & burrows (demo)"
-## panel (tunnel_panel.gd), and runs the works every frame on the demo clock.
+## threats), the player's orders on them (tunnel_actions.gd), their drawings (the ground map, the tunnel
+## marks, the rooms -- demo/burrow/room_view.gd, decision 0209 -- the threats, the weather) and the
+## "Tunnels & burrows (demo)" panel (tunnel_panel.gd), and runs the works every frame on the demo clock.
 ##
 ## CONTROLS it adds (everything through the one command layer, demo/control/demo_command.gd):
 ##   left click a finished tunnel's mouth or route (no resident under the pointer)   select it
 ##   the panel's buttons on the selected tunnel   Widen · Brace · Hang lanterns · Repair (Pump out /
-##                                               Clear the fall) · Burrow home · Root cellar
-##   after Burrow home / Root cellar: left click on or beside the tunnel   place the chamber there
-##                                   Esc or right click                    cancel the placement
+##                                               Clear the fall)
+## (Burrow homes and root cellars are placed with the Dig tool's room tool, room_tool.gd.)
 ##   the panel's "Next weather (demo)" and "Test event (demo)"             run the demo calendar on
 ##                                                                          to the next weather (the
 ##                                                                          whole village: farm, date
@@ -23,7 +22,7 @@ extends Node3D
 ## Residents selected when a tunnel job is ordered become its worker or crew (tunnel_actions.gd).
 ##
 ## THE PANEL shares the HUD's right column with the farm's bed panel (demo/ui/demo_detail_zone.gd);
-## `panel_wanted` asks for it when the player selects a tunnel, lays a route or places a chamber.
+## `panel_wanted` asks for it when the player selects a tunnel or lays a route.
 ## The weather, the water and the notice feed are the demo's shared ones (demo_services.gd).
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
@@ -37,8 +36,8 @@ const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
 const JobsScript := preload("res://demo/tunnel/tunnel_jobs.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const HazardsScript := preload("res://demo/tunnel/tunnel_hazards.gd")
-const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
-const BurrowViewScript := preload("res://demo/burrow/burrow_view.gd")
+const RoomViewScript := preload("res://demo/burrow/room_view.gd")
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const EventsViewScript := preload("res://demo/events/events_view.gd")
 const WeatherViewScript := preload("res://demo/weather/weather_view.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
@@ -52,14 +51,13 @@ const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
 const ViewScript := preload("res://demo/tunnel/tunnel_view.gd")
 const Layers := preload("res://demo/demo_layers.gd")
 
-## The player did something on the tunnels (selected one, laid a route, armed a chamber): show the
-## tunnels panel.
+## The player did something on the tunnels (selected one, laid a route): show the tunnels panel.
 signal panel_wanted
 
 const PANEL_REFRESH_S: float = 0.2
 const JOB_FOR_ACTION: Dictionary = {&"widen": JobsScript.JOB_WIDEN, &"brace": JobsScript.JOB_BRACE,
 	&"lanterns": JobsScript.JOB_LANTERNS}
-const BORE_NAMES: Array[String] = ["standard bore (1 m)", "wide bore (2 x 3 m)"]
+const BORE_NAMES: Array[String] = ["standard bore (1 m)", "wide bore (2 x 3 m)", "room"]
 const SKIPPED: String = "Skipped %d h ahead on the demo calendar: %s"
 const NO_SKIP: String = "The weather follows the farm's calendar, which is not running here"
 
@@ -80,13 +78,13 @@ var actions: ActionsScript = null
 var panel: PanelScript = null
 var marks: MarksScript = null
 var ground_view: GroundViewScript = null
-var burrow_view: BurrowViewScript = null
+var room_view: RoomViewScript = null
 var events_view: EventsViewScript = null
 var find_props: FindPropsScript = null
 var weather_view: WeatherViewScript = null
 
 var _cast: DemoCastScript = null
-## The demo's shared props (demo_services.gd): brace, rubble, lanterns, finds, chamber furniture.
+## The demo's shared props (demo_services.gd): brace, rubble, lanterns, finds, room furniture.
 var _props: PropsScript = null
 var _network: GraphScript = null
 var _overlay: OverlayScript = null
@@ -101,6 +99,9 @@ var _enabled: Dictionary = {}
 var _ground: Vector2 = Vector2.ZERO
 ## The stores' revision the finds shelf was last drawn for.
 var _finds_seen: int = -1
+## The room template the room tool is placing (underground_rooms.gd TEMPLATE_*), or TEMPLATE_NONE: the panel's
+## heading names it (tunnel_control.gd begin_room / end_room keep it).
+var placing_room: int = RoomsScript.TEMPLATE_NONE
 ## The tunnel the marks last drew as selected (-1: none; -2: not drawn yet).
 var _marked: int = -2
 
@@ -167,9 +168,10 @@ func _build_views() -> void:
 	ground_view = GroundViewScript.new()
 	add_child(ground_view)
 	ground_view.configure(works.ground)
-	burrow_view = BurrowViewScript.new()
-	add_child(burrow_view)
-	burrow_view.configure(works.chambers, _props)
+	room_view = RoomViewScript.new()
+	add_child(room_view)
+	room_view.configure(_network, _props, _cast.space(), marks)
+	room_view.set_today(_overlay.bores.today)
 	find_props = FindPropsScript.new()
 	add_child(find_props)
 	find_props.configure(works, _network, _props)
@@ -189,16 +191,20 @@ func set_view(view: ViewScript) -> void:
 	"""The underground view (decision 0206): its plane for every click, its cap for the rooms dug, and
 	its prewarm registry for everything these drawings show in it."""
 	_view = view
-	burrow_view.set_cap(view.cap)
+	room_view.set_cap(view.cap)
 	marks.register(view.prewarm)
 	marks.lights.follow(func() -> bool: return view.on, view.focus)
-	burrow_view.register(view.prewarm)
+	room_view.register(view.prewarm)
 	find_props.register(view.prewarm)
 
 
 func set_world(world: Node, under_u: PackedInt32Array) -> void:
-	"""The world whose sun and haze the weather dims, and whose buildings no chamber is dug under."""
+	"""The world whose sun and haze the weather dims, whose buildings the actions keep, and whose ground the
+	rooms' mounds wear (room_view.gd `set_turf`)."""
 	actions.set_under(under_u)
+	var ground := world.get_node_or_null(^"Ground") as MeshInstance3D
+	if ground != null:
+		room_view.set_turf(ground.get_active_material(0))
 	weather_view.configure(works.weather, _cast.clock, world)
 
 
@@ -223,7 +229,7 @@ func _process(delta: float) -> void:
 	if _selection_changed():
 		marks.select(_marked)
 	marks.refresh()
-	burrow_view.refresh()
+	room_view.refresh()
 	find_props.refresh()
 	_refresh_in -= delta
 	if _refresh_in <= 0.0:
@@ -247,7 +253,7 @@ func _feed_overlay() -> void:
 	var jobs := works.jobs
 	for slot in Rules.MAX_SEGMENTS:
 		var job := jobs.kind[slot] if jobs.has_job(slot) else JobsScript.JOB_NONE
-		var digs := job == JobsScript.JOB_WIDEN or job == JobsScript.JOB_CLEAR or job == JobsScript.JOB_CHAMBER
+		var digs := job == JobsScript.JOB_WIDEN or job == JobsScript.JOB_CLEAR
 		var worker := jobs.worker[slot]
 		var at_work := digs and worker >= 0 and works.brain(worker).state == BrainScript.State.TASK
 		_overlay.job_digger[slot] = worker if at_work else -1
@@ -255,26 +261,6 @@ func _feed_overlay() -> void:
 
 
 # --- input ----------------------------------------------------------------------------------
-
-func handle_input(event: InputEvent) -> bool:
-	"""While a chamber is being placed: a left click places it, Esc or a right click cancels. True when
-	the event was taken."""
-	if actions.placing == ChambersScript.KIND_NONE:
-		return false
-	var button := event as InputEventMouseButton
-	if button != null and button.pressed and button.button_index == MOUSE_BUTTON_LEFT:
-		if _ground_at(button.position):
-			place_chamber_at(_ground)
-		return true
-	if button != null and button.pressed and button.button_index == MOUSE_BUTTON_RIGHT:
-		actions.cancel_chamber()
-		return true
-	var key := event as InputEventKey
-	if key != null and key.pressed and not key.echo and key.keycode == KEY_ESCAPE:
-		actions.cancel_chamber()
-		return true
-	return false
-
 
 func _ground_at(screen: Vector2) -> bool:
 	"""The point under a screen point on the view's plane (the ground, or the level's floor in the U
@@ -297,14 +283,6 @@ func select_at_screen(screen: Vector2) -> bool:
 	return true
 
 
-func place_chamber_at(at: Vector2) -> bool:
-	"""Place the armed chamber near `at` (see tunnel_actions.gd CHAMBERS)."""
-	var placed := actions.place_chamber(at, _selection.call() as PackedInt32Array)
-	_mark.call(Vector3(at.x, 0.0, at.y), placed)
-	_refresh_in = 0.0
-	return placed
-
-
 func on_action(name: StringName) -> void:
 	"""A panel button (tunnel_panel.gd ACTION_*)."""
 	var selection := _selection.call() as PackedInt32Array
@@ -316,10 +294,6 @@ func on_action(name: StringName) -> void:
 				works.tell("A demo event is already under way")
 		PanelScript.ACTION_REPAIR:
 			actions.order(_repair_job(), selection)
-		PanelScript.ACTION_HOME:
-			actions.begin_chamber(ChambersScript.KIND_HOME, selection)
-		PanelScript.ACTION_CELLAR:
-			actions.begin_chamber(ChambersScript.KIND_CELLAR, selection)
 		_:
 			actions.order(JOB_FOR_ACTION[name], selection)
 	_refresh_in = 0.0
@@ -401,15 +375,22 @@ func _show_finds() -> void:
 		counts.append(0)
 	panel.show_finds(icons, counts)
 
+func _planning_heading() -> String:
+	"""The panel's heading while the Dig tool is out: laying a tunnel, or placing the room being placed."""
+	if placing_room == RoomsScript.TEMPLATE_NONE:
+		return PanelScript.PLANNING
+	return PanelScript.PLACING_ROOM % RoomsScript.NAMES[placing_room].to_lower()
+
+
 func refresh_panel() -> void:
 	"""Fill the panel from the works and the selected tunnel."""
 	panel.show_status(works.weather.readout(), works.stores.stock_line() + " — the HUD's Wood and Stone are the settlement's",
-		works.chambers.housing_line() + " — demo beds, not the HUD's Beds", works.stores.finds_line(), "\n".join(works.log_lines))
+		_network.rooms.housing_line(_network) + " — demo beds, not the HUD's Beds", works.stores.finds_line(), "\n".join(works.log_lines))
 	if works.stores.revision != _finds_seen:
 		_finds_seen = works.stores.revision
 		_show_finds()
 	if ground_view.planning:
-		panel.show_tunnel(PanelScript.PLANNING, GroundViewScript.LEGEND, "", {})
+		panel.show_tunnel(_planning_heading(), GroundViewScript.LEGEND, "", {})
 		return
 	if not actions.has_selection():
 		panel.show_tunnel("", "", "", {})
@@ -437,8 +418,8 @@ func tunnel_text(slot: int) -> String:
 
 
 func job_list_text() -> String:
-	"""THE JOB LIST (underground_graph.gd): every dig with work left, in order, by its first tunnel -- e.g.
-	"Digs: Tunnel 4 40%, Tunnel 7 waiting 0%" ("" with none)."""
+	"""THE JOB LIST (underground_graph.gd): every dig with work left, in order, by its first tunnel or its room
+	-- e.g. "Digs: Tunnel 4 40%, Burrow home 1 waiting 0%" ("" with none)."""
 	var list := PackedInt32Array()
 	_network.job_list_into(list)
 	if list.is_empty():
@@ -448,8 +429,16 @@ func job_list_text() -> String:
 		var first := _network.first_of_piece(p)
 		var who := _network.piece_digger[p]
 		var digging := who >= 0 and who < works.resident_count() and works.brain(who).dig_tunnel >= 0
-		parts.append("Tunnel %d %s%d%%" % [first + 1, "" if digging else "waiting ", _network.piece_percent(p)])
+		parts.append("%s %s%d%%" % [piece_name(p, first), "" if digging else "waiting ", _network.piece_percent(p)])
 	return "Digs: " + ", ".join(parts)
+
+
+func piece_name(p: int, first: int) -> String:
+	"""How the job list names a dig: its room ("Burrow home 1"), else its first tunnel ("Tunnel 4")."""
+	var r: int = _network.piece_room[p]
+	if r >= 0:
+		return "%s %d" % [RoomsScript.NAMES[_network.rooms.template[r]], r + 1]
+	return "Tunnel %d" % (first + 1)
 
 
 func _fits_text(slot: int) -> String:
@@ -488,12 +477,8 @@ func _repair_label(slot: int) -> String:
 func _enabled_actions(slot: int) -> Dictionary:
 	"""Which of the panel's tunnel actions can be pressed now (a pressed one still says why not)."""
 	var closed := _network.closed[slot] != GraphScript.CLOSED_NONE
-	var busy := works.jobs.has_job(slot)
 	_enabled[PanelScript.ACTION_WIDEN] = not closed and _network.bore[slot] == Rules.BORE_STANDARD
 	_enabled[PanelScript.ACTION_BRACE] = not closed and _network.braced[slot] == 0
 	_enabled[PanelScript.ACTION_LANTERNS] = not closed and _network.lit[slot] == 0
 	_enabled[PanelScript.ACTION_REPAIR] = closed
-	var ramp := _network.seg_kind[slot] == GraphScript.SEG_RAMP
-	_enabled[PanelScript.ACTION_HOME] = not closed and not busy and not ramp
-	_enabled[PanelScript.ACTION_CELLAR] = not closed and not busy and not ramp
 	return _enabled

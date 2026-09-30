@@ -12,7 +12,7 @@ extends CanvasLayer
 ##   * below it, exactly one panel, placed by the panel itself in the zone minus the strip
 ##     (`set_zone(shown, top_inset)`), so each keeps its own layout and scale;
 ##   * SWITCHING ON INTENT: clicking a crop bed brings the farm panel; selecting a tunnel, laying a
-##     route or placing a chamber brings the tunnels panel; clicking a tree, a zone or a woods order
+##     route brings the tunnels panel; clicking a tree, a zone or a woods order
 ##     brings the woods panel; a swim, dive, rescue or bridge order brings the water panel
 ##     (demo_village.gd connects the panels' owners to `show_panel`);
 ##   * the zone belongs to UI-SET-036, the resident journal, when it opens: then the strip and both

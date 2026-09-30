@@ -39,7 +39,8 @@ extends RefCounted
 ##     (REFUSE_RAMP_TOO_STEEP).
 ##   * DRAWN BORE AND STOOP (decision 0207; design §3 "Geometry"): the swept bore's drawn crown,
 ##     BORE_CROWNS_U per class -- the standard 1.0 m; the widened 1.1 m, since level 1's floor lies only
-##     1.25 m down (a taller bore would break the surface; P3/P4 own it). Presentation only: a walker in
+##     1.25 m down (a taller bore would break the surface); a room's 2.75 m (decision 0209: HEADROOM -- the
+##     room rises into its own turfed mound, so everybeast stands upright in it). Presentation only: a walker in
 ##     a bore lowers its head to STOOP_CLEAR_U under the crown, by at most STOOP_MAX_PERMILLE of its height
 ##     (`stoop_drop_u`). Moles walk upright, mice stoop a little, squirrels more; otters, the beaver and
 ##     the badger stoop as far as they can.
@@ -66,10 +67,14 @@ const STOOP_PERMILLE: int = 850
 ## WIDE BORE (demo, the WIDEN upgrade): two quanta wide and three high -- the smallest lattice bore
 ## an otter (1.49 m, stooped 1.27 m) and the badger (2.55 m, stooped 2.17 m; 1.12 m across) fit.
 ## Six quanta a metre, so widening re-digs WIDE_EXTRA_QUANTA more of them per metre (and per shaft).
+## ROOM (decision 0209, the underground revamp's P3): the class of a room's own segments -- the walk from
+## its door's foot or a socket to its middle -- as wide as a room and ROOM_CROWN_U high, so everybeast,
+## the badger too, fits and stands upright in it. No bore is widened to it; only rooms are.
 const BORE_STANDARD: int = 0
 const BORE_WIDE: int = 1
-const BORE_WIDTHS_U: Array[int] = [1024, 2048]
-const BORE_HEIGHTS_U: Array[int] = [1024, 3072]
+const BORE_ROOM: int = 2
+const BORE_WIDTHS_U: Array[int] = [1024, 2048, 4096]
+const BORE_HEIGHTS_U: Array[int] = [1024, 3072, 2816]
 const WIDE_QUANTA: int = 6
 const WIDE_EXTRA_QUANTA: int = WIDE_QUANTA - CROSS_SECTION_QUANTA
 ## LOADED (demo): a carrier holds its load across its body, hand to hand with an overhang, so its
@@ -100,7 +105,11 @@ const RAMP_FILLET_U: int = 896
 ## A ramp's whole run: the depth at the steepest grade, plus the easing (4096u, 4 m).
 const RAMP_RUN_U: int = BORE_FLOOR_DEPTH_U * RAMP_GRADE_RUN / RAMP_GRADE_RISE + RAMP_FILLET_U
 ## THE DRAWN BORE AND THE STOOP (see the header), per bore class.
-const BORE_CROWNS_U: Array[int] = [1024, 1126]
+const BORE_CROWNS_U: Array[int] = [1024, 1126, 2816]
+## HEADROOM (decision 0209): a room's drawn crown over its floor -- the badger (2.55 m) plus STOOP_CLEAR_U,
+## rounded up to the quarter metre: 2.75 m. Rooms keep level 1's floor, so the crown rises 1.5 m over the
+## ground, and the turfed mound over it on the surface IS the room (design §3).
+const ROOM_CROWN_U: int = 2816
 const STOOP_CLEAR_U: int = 102
 const STOOP_MAX_PERMILLE: int = 350
 ## Presentation: a mouth's hole and the earthen rim round it (the rim reaches RIM_FACTOR further).
@@ -555,7 +564,9 @@ static func stoop_drop_u(height_u: int, crown_u: int) -> int:
 ## The network's capacity (design §3's demo caps): nodes, bores (segments), surface mouths, pieces.
 const MAX_NODES: int = 96
 const MAX_SEGMENTS: int = 96
-const MAX_MOUTHS: int = 16
+## Mouths: 16 for tunnels as before, and one more for each room's own door or hatch (decision 0209:
+## underground_rooms.gd MAX_ROOMS).
+const MAX_MOUTHS: int = 24
 ## A piece has at least one segment, so a piece row per segment row: the pieces never run out first (a
 ## finished piece keeps its row -- its segments still name it).
 const MAX_PIECES: int = MAX_SEGMENTS
@@ -590,6 +601,14 @@ const REFUSE_HOST_BUSY: int = 108
 const REFUSE_NETWORK_FULL: int = 109
 const REFUSE_SELF_PILLAR: int = 110
 const REFUSE_SAME_NODE: int = 111
+## A room's (decision 0209): a tunnel may not break into a room but at a free socket, and leaves one straight
+## out through its wall.
+const REFUSE_INTO_ROOM: int = 112
+const REFUSE_SOCKET_ANGLE: int = 113
+const REFUSE_SOCKET_TAKEN: int = 114
+## A socket's passage runs straight out of the wall this far (u) before it may bend, within the MEETING angle
+## of straight out (design §3 rule 5: "a passage leaves a socket straight for >= 1 m").
+const SOCKET_STRAIGHT_U: int = 1024
 const LINK_REASONS: Array[String] = [
 	"too near a junction, a ramp's foot or a mouth: keep 1.5 m from it",
 	"tunnels meet at 40° or more: come at it more squarely",
@@ -600,9 +619,12 @@ const LINK_REASONS: Array[String] = [
 	"a ramp cannot be joined: join the tunnel below it",
 	"four tunnels meet there already",
 	"%s is being dug, worked on or is closed: join it once it is open and quiet",
-	"the tunnel network is full in this demo (96 bores, 96 nodes, 16 mouths)",
+	"the tunnel network is full in this demo (96 bores, 96 nodes, 24 mouths)",
 	"it would run into itself: keep 1 m of earth between its turns",
 	"a tunnel cannot start and end at the same place",
+	"it would break into %s: join it at one of its sockets, or keep 1 m of earth from it",
+	"a tunnel leaves a room's socket straight out through its wall for 1 m",
+	"that socket already has a tunnel",
 ]
 
 
@@ -629,6 +651,14 @@ static func meets_squarely(a: Vector2i, b: Vector2i) -> bool:
 	var ub := unit_of(b.x, b.y)
 	var cross := absi(ua.x * ub.y - ua.y * ub.x)
 	return cross * PERMILLE >= MEET_SIN_PERMILLE * DIR_SCALE * DIR_SCALE
+
+
+static func leaves_straight(leaving: Vector2i, outward: Vector2i) -> bool:
+	"""Whether a passage leaving a socket along `leaving` runs within the MEETING angle of straight out
+	(`outward`, the socket's own direction out of its room): cos >= MEET_COS_PERMILLE."""
+	var ua := unit_of(leaving.x, leaving.y)
+	var ub := unit_of(outward.x, outward.y)
+	return (ua.x * ub.x + ua.y * ub.y) * PERMILLE >= MEET_COS_PERMILLE * DIR_SCALE * DIR_SCALE
 
 
 static func branches_apart(a: Vector2i, b: Vector2i) -> bool:

@@ -263,8 +263,11 @@ func state_key(slot: int, widen_m: float) -> int:
 
 func hub_cut(slot: int, at_b: bool) -> Vector4:
 	"""The hub at segment `slot`'s node A (or B) its bore drops what lies inside (x, z, floor radius, crown);
-	zero when no hub is drawn there (see HUBS)."""
+	zero when no hub is drawn there (see HUBS) -- or, at a room's door or socket, the room's wall as a PLANE
+	(`room_cut`)."""
 	var node := _network.end_node(slot, at_b)
+	if _network.node_room[node] >= 0 and _network.node_mouth[node] < 0:
+		return room_cut(node)
 	if _network.node_mouth[node] >= 0 or _network.dug_degree(node) < 3:
 		return Vector4.ZERO
 	var widest := _widest_at(node)
@@ -272,14 +275,29 @@ func hub_cut(slot: int, at_b: bool) -> Vector4:
 	return Vector4(at.x, at.y, BoreMeshScript.FLOOR_HALF_M[widest] * BoreMeshScript.HUB_SCALE, Rules.crown_m(widest))
 
 
+func room_cut(node: int) -> Vector4:
+	"""A bore ending at a room's door (once the room breaks ground) or a socket (once the room is dug) is cut by
+	a plane through the room's wall there (bore_surface.gdshaderinc: x, z the node, a radius of -1, the angle
+	into the room); zero before (decision 0209)."""
+	var r: int = _network.node_room[node]
+	var rooms := _network.rooms
+	var kind := _network.node_kind[node]
+	var open := rooms.is_done(_network, r) if kind == GraphScript.NODE_SOCKET else rooms.dug_permille(_network, r) > 0
+	if not open or (kind != GraphScript.NODE_SOCKET and kind != GraphScript.NODE_DOOR):
+		return Vector4.ZERO
+	var at := _network.node_m(node)
+	var into := rooms.centre_m(r) - at
+	return Vector4(at.x, at.y, -1.0, atan2(into.y, into.x))
+
+
 func hub_bits(slot: int) -> int:
-	"""Which ends of segment `slot` have a hub its bore is cut at, and how wide: 0..8 (a base-3 digit an end:
-	none, standard, wide)."""
+	"""Which ends of segment `slot` have a hub its bore is cut at, and how: 0..15 (a base-4 digit an end: none,
+	standard, wide, a room's wall)."""
 	var bits := 0
 	for at_b: bool in [false, true]:
 		var cut := hub_cut(slot, at_b)
-		var digit := 0 if cut.z <= 0.0 else 1 + _widest_at(_network.end_node(slot, at_b))
-		bits = bits * 3 + digit
+		var digit := 0 if cut.z == 0.0 else (3 if cut.z < 0.0 else 1 + _widest_at(_network.end_node(slot, at_b)))
+		bits = bits * 4 + digit
 	return bits
 
 
@@ -318,6 +336,8 @@ func build(slot: int, dug_m: float, widen_m: float) -> void:
 func _dress_clear(slot: int, at_b: bool) -> float:
 	"""How far from its node A (B) a segment is left undressed: a hub's radius and a margin, else nothing."""
 	var cut := hub_cut(slot, at_b)
+	if cut.z < 0.0:
+		return HUB_DRESS_CLEAR_M
 	return cut.z * BoreMeshScript.BULGE + HUB_DRESS_CLEAR_M if cut.z > 0.0 else 0.0
 
 
@@ -398,7 +418,8 @@ func _hub_state(node: int) -> int:
 	"""Everything a node's hub depends on, as one number (-1: no hub): its generation, the segments that
 	have broken ground there, their ways out and classes -- folded from integers, as it is checked every
 	frame."""
-	if not _network.is_node(node) or _network.node_mouth[node] >= 0 or _network.dug_degree(node) < 3:
+	if not _network.is_node(node) or _network.node_mouth[node] >= 0 or _network.node_room[node] >= 0 \
+			or _network.dug_degree(node) < 3:
 		return -1
 	var key := _network.node_gen[node]
 	for k in GraphScript.DEGREE:

@@ -132,6 +132,7 @@ own "×" (Esc closes it, N toggles it). The Pantry draws above the HUD, so its "
 | R | Release the selection back to its own routine |
 | Esc | Clear the selection |
 | B (or T, or "Dig tunnel (B)") | The Dig tool: lay out tunnels and branches (below); again: close it. (B is the HUD's Build key, locked in the demo, so the demo takes it; the command strip says so) |
+| H / C in the Dig tool (or "Burrow home (H)" / "Root cellar (C)") | The room tools: place a burrow home or a root cellar as its own structure (see Burrow homes and root cellars) |
 | U | Underground view: a top-down section cut at the tunnels' level (see The underground view) |
 | Left click a finished tunnel | Select it for the "Tunnels & burrows (demo)" panel (see below) |
 | Right click a tree, trunk, deadfall, stump, cleared spot or the sawhorse | The woods' verb for it (see The woods) |
@@ -197,7 +198,7 @@ clip), then down the ramp, along the bore and up the far ramp. A mound of earth 
 (click it to select the digger), the route fills in, and each mouth's spoil heap grows. The heaps are
 placed when the dig is accepted -- off work spots, obstacles and holes -- and are obstacles from then on;
 the grass is cleared from the holes, heaps and route. A branch cut into a tunnel's side splits that
-tunnel in two at the junction, and anyone walking it, its rooms, hazards and finds go with the half they
+tunnel in two at the junction, and anyone walking it, its hazards and finds go with the half they
 stand on. The panel reads "Digging tunnel — 43%" of the piece. Called away, the digger backs out and the
 piece waits, marked with a clay ring and "Tunnel paused at N%"; right-click where it starts with a digger
 selected to resume it (on the one it is digging, a right-click changes nothing; on another, it pauses this
@@ -220,6 +221,10 @@ Inside, walkers keep their distance behind anyone going their way -- past a ramp
 too -- and step aside to pass anyone coming the other way; at the far mouth they wait below (at most
 6 s) while someone stands on the hole. Where three or four bores meet, the junction is a round chamber
 (a hub) with clean openings, drawn and cut into the cap like the bores.
+
+A tunnel may end (or start) at a **room's socket** -- lay a point on or near a free socket and it snaps
+there -- leaving the room straight out through its wall; it may not pass within a metre of earth of any
+room's void anywhere else (decision 0209).
 
 Digging runs at the adopted excavation rate (113 ticks and 2 U of spoil per cubic metre,
 `docs/underground_economy_hazard_amendment.md`); the bore size, the stoop that lets a squirrel
@@ -248,13 +253,58 @@ Mac with a lit tunnel, from 278 ms).
   small cream marker.
 - **Its own light**: the U view sets its own environment on the camera -- dark earth, a low cool-brown
   ambient, SSAO, glow for the lanterns and a faint haze -- and the surface keeps the world's.
-- **Clicks land on the tunnels' floor** in the U view -- where the cap shows it -- so a route, a chamber or
+- **Clicks land on the tunnels' floor** in the U view -- where the cap shows it -- so a route, a room or
   an order goes where you point. Only the tunnel tool and the residents answer there; the farm, the
   woods, the water and the spoil heaps are surface things.
 - **Prewarmed**: everything it can draw registers with `tunnel/underground_prewarm.gd` as it is built,
   and a sample of each is drawn for two frames behind the opening pause.
-- Later phases: the switch's crossfade and the second level; rooms are still P0's slabs (P3); the
-  generated arch and crouch-walk clips replace the procedural ones (P7).
+- Later phases: the switch's crossfade and the second level (P6); the rooms' fit-out and the night
+  routine home (P4); the generated arch, door and crouch-walk clips replace the procedural ones (P7).
+
+## Burrow homes and root cellars
+
+Rooms are their own structures on the network (decision 0209, `burrow/underground_rooms.gd`; design
+`docs/design/underground_revamp.md` §3 and §8 P3), not chambers bolted onto a tunnel:
+
+| Template | Shape | Quanta | Sockets | Way in |
+|---|---|---|---|---|
+| Burrow home | round, 4 m across | 24 (12 floor quanta, two high) | 3 | its own round **front door** in a turfed mound |
+| Root cellar | a 3 x 4 m barrel vault, stone-lined | 24 | 2 | a **hatch** over its steps |
+
+- **Placing one**: in the Dig tool press **H** (home) or **C** (cellar), or the party panel's buttons. A
+  ghost room follows the pointer -- its outline, its door ramp out to its door, a tick at each socket --
+  **R** turns it (Shift+R back; the HUD's placement keys; the wheel stays the camera's zoom), and a click
+  digs it. Within 6 m of the network the ghost **proposes its passage**: the shortest straight tunnel from
+  an open bore or junction to one of its sockets that the Dig tool's rules accept, drawn in brass and dug
+  after the room. **Shift+click** places it standalone; connect it later by digging a tunnel to a socket.
+  Esc (or right click) goes back to laying tunnels; the same key again does too. The tunnel panel's
+  heading says which room is being placed.
+- **Refused in words** over the ghost (wrapped, so they stay clear of the side panels; the ghost turns clay): over the stream, the pond or their no-dig
+  band; over the crop beds; under a building or the well; within 1 m of earth of another room; within 1 m
+  of a tunnel, or its door ramp within a pillar of another's (join a tunnel at a socket instead); its mound,
+  cutting or door on a tree, a heap, a prop, a work spot or a mouth;
+  off the village; and the second level (P6).
+- **Digging**: a room is one piece in the digger's job list, dug by the same diggers and crews as a
+  tunnel: its door ramp and shaft, then its 24 quanta cell by cell out from the door, a crew at three
+  faces; spoil heaps by its door. The shell grows in stages from the door as it is dug, and its name
+  counts the percent. (The door ramp is paid as a standard bore though walked as a wide one: decision 0209.)
+- **Headroom**: a room is drawn 2.75 m to its crown (the badger's 2.55 m and a little), so everybeast
+  stands upright in it; the floor is the tunnels' (1.25 m down), so the room rises 1.5 m above the ground
+  -- that is the turfed mound. Its door ramp is a widened bore, so the badger comes in by the front door.
+- **Its look**: below, the bores' own earth grown into a dome (a home, with an alcove bowed out round each
+  of its three beds) or a vault (a cellar, cool grey-blue and stone-lined), a packed floor worn down the
+  middle, a timber ring beam round the wall (a cellar's a rectangle of wall plates) carried by frames at the
+  door and the sockets, a wall lantern (warm in a home, cooler in a cellar) as one of the pooled lights; cut
+  clean at the section. On the surface a low turfed mound in the village's own grass, cut back to a bank of
+  bare earth where the ramp comes in: a home's round front door in a timber ring on a fieldstone sill at the
+  foot of its cutting, a cellar's two-leaf hatch leaning against its bank -- procedural until P7's generated
+  doors. The mound is an obstacle from the moment the room is laid.
+- **Ways in**: the door and the hatch are mouths of the network (`mouth_kind` DOOR, HATCH), so routes go in
+  and out by them as by a tunnel's mouth; a room with a passage is a way through, too.
+- **Fit-out places** (`FIXTURES`): beds in the alcoves, a shelf, jars and a basket stand now; the hearth
+  and table places wait for P4.
+- A root cellar is a pantry store at its hatch (`farm/farm_cellars.gd`; the id stays
+  `root_cellar:<slot>:<generation>`); the pantry's stocked shelf stands in its first shelf place.
 
 ## Farming
 
@@ -263,9 +313,9 @@ onion, cabbage, lettuce, spinach, leek, celery, pea, broad bean, wheat, barley, 
 content library's pantry -- by the settlement's **own crop arithmetic** (`scripts/core/farming.gd` and
 `crop_weather.gd`, GDD §5.6): each bed is a real FarmPlot row, and each ingredient grows by the §5.6 row
 it belongs to (roots, cabbage, beans or grain), on the demo's one calendar (above). Harvests go into
-the **pantry**, counted per item, at the slowest-spoiling store with room -- a **root cellar** dug off a
-tunnel (spoilage 350 per mille, the GDD's cellar) before the covered store (1000), and of two cellars
-the one nearer the bed (`farm/farm_cellars.gd` turns `burrow_chambers.cellars()` into pantry stores);
+the **pantry**, counted per item, at the slowest-spoiling store with room -- a **root cellar**, delivered
+at its hatch (spoilage 350 per mille, the GDD's cellar) before the covered store (1000), and of two cellars
+the one nearer the bed (`farm/farm_cellars.gd` turns `underground_rooms.cellars()` into pantry stores);
 the HUD's Food cell shows the pantry total, and the Food command (or K) opens the Pantry: stock per
 ingredient, freshness (GDD §5.8 spoilage by where it is stored), and the library dishes each feeds.
 
@@ -291,7 +341,7 @@ the next beds at midnight unless the blighted bed is cleared, and a ripe crop st
 real stream's edge (dry ground within 2.5 m of its waterline -- inside the square, by the ford or at
 x 19.5 m, z 4) irrigates the beds it runs under. Details and every number's source: `farm/*.gd` headers.
 
-## Weather, upgrades, hazards, finds, chambers, crews and threats
+## Weather, upgrades, hazards, finds, crews and threats
 
 The tunnel extensions (`tunnel/tunnel_ext.gd`) add a **"Tunnels & burrows (demo)"** panel, the right
 column's second tab. Everything runs on the demo clock: paused, the weather, hazards, jobs and threats
@@ -301,7 +351,6 @@ hold; at 2x and 4x they run faster.
 |---|---|
 | Left click a finished tunnel's mouth or route | Select it (selected residents stay selected) |
 | Panel: Widen / Brace / Hang lanterns / Repair | A job on the selected tunnel (see below) |
-| Panel: Burrow home / Root cellar, then left click beside the tunnel | Dig a chamber there (Esc or right click: cancel) |
 | B, with a digger **and** others selected, then a dig | The others join the Foremole's dig crew |
 | Right click a tunnel being dug, residents selected | They join its crew |
 | Panel: Next weather (demo) / Test event (demo) | Run the one calendar -- farm, weather and date together -- on to the next change of weather (at most 48 h) / bring the next threat |
@@ -323,9 +372,9 @@ hold; at 2x and 4x they run faster.
   sand faster; rock needs the badger on the crew (a digger alone scratches at a quarter pace).
 - **Finds**: every metre cut rolls once (seeded) for flint, clay, an old root store or a rare relic;
   relics tell a short story. The tally is in the panel.
-- **Chambers** (`burrow/`): a burrow home has 2 demo beds for moles (counted in the panel, not the
-  HUD's Beds); a root cellar is a cold store (spoilage factor 350 per mille, the GDD's cellar). The
-  farming demo reads cellars through `burrow_chambers.cellars()`.
+- **Rooms** (`burrow/`; above): a dug burrow home has 3 demo beds (counted in the panel, not the HUD's
+  Beds); a root cellar is a cold store (spoilage factor 350 per mille, the GDD's cellar). The farming
+  demo reads cellars through `underground_rooms.cellars()`.
 - **Crews**: up to three helpers with the Foremole; one worker per quantum's face, so a helper who
   fits finishes behind it (1506 per mille on a standard bore), more faces when widening. The
   Foremole's digging skill raises the crew's rate (1000 + 50 per level, per mille: a mole's 3 is 1150).
@@ -384,12 +433,11 @@ What changed on screen:
 - **Carrying**: a harvest is carried as its own model in the carrier's hands (`farm_carry_view.gd`)
   and put on the store's shelf -- a pantry shelf with the store's goods on its boards, most first,
   and a jar per started third of fullness (`props/store_shelf.gd`, `farm_stock_view.gd`); a root
-  cellar's shelf stands in its room below ground.
+  cellar's shelf stands in its first shelf place below ground.
 - **Tunnels**: braced bores show the library's brace frames, a collapse its rubble, lit bores wall
   lanterns on alternate walls with a glow in each, and real light from the nearest 32 (all drawn in the underground view); finds lie where they were cut
-  and sit on the tunnel panel as icons; a digging mole holds its pick; a finished root cellar is the
-  library's cellar on the surface, and rooms are furnished (beds and a basket in a home, baskets in
-  a cellar).
+  and sit on the tunnel panel as icons; a digging mole holds its pick; rooms are furnished (beds in a
+  home's alcoves, a shelf, jars and a basket in a cellar; decision 0209).
 - **Water**: a jetty off the boathouse with the rowboat alongside and the coracle off its end, a
   raft on the pond, a rod, a net, an eel trap and a smoking rack by the fisher shelter, a trout and a
   perch in the creels. The bridge models are staged only; the gnawed log and felled trunk lie in the
@@ -534,7 +582,7 @@ A heap still growing under a dig is refused. The party panel says who is "Cleari
 | `tunnel/` | Player-dug tunnels: rules, the tunnel network and planner, planning, drawing, the underground view; and their extensions -- ground, queues, crews, jobs, hazards, finds, the demo stores, the tunnel panel |
 | `demo_calendar.gd`, `demo_services.gd`, `village_water.gd`, `demo_notices.gd` | The one calendar, the shared set, the one water adapter (over `water/water_map.gd`), the one notice feed |
 | `weather/` | The demo's one weather (read from the farm's real §5.10 row) and its rain, snow and light |
-| `burrow/` | Chambers dug off tunnels: burrow homes and root cellars (the cellar API) |
+| `burrow/` | Rooms as their own structures: the templates, sockets and refusals (`underground_rooms.gd`), placing one and its passage (`room_plan.gd`, `room_tool.gd`), drawing it (`room_view.gd`, `room_mesh.gd`); the cellar API |
 | `events/` | Seeded threats (a flood, a fire) and evacuation |
 | `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the V overlay |
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel |

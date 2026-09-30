@@ -2,7 +2,7 @@ extends RefCounted
 ## The shortest ways through the tunnel network, per kind of walker. Decision 0208 (design
 ## docs/design/underground_revamp.md §3 "Routing"). Presentation only.
 ##
-## MOUTH TABLES. For each fit CLASS -- every bore, or widened bores only (an otter; the badger unloaded) --
+## MOUTH TABLES. For each fit CLASS -- every bore, or widened bores and rooms only (an otter; the badger unloaded) --
 ## and each network revision, a DIJKSTRA (h = 0: SET-MOVE-001 §4's reference solver) runs from every live
 ## mouth over the usable segments that class fits. A segment costs its planner cost (legs rounded up, u)
 ## over its walking speed (a lit bore is quicker): an integer, "u at walk speed", so equal routes tie
@@ -55,11 +55,11 @@ func _init() -> void:
 
 
 static func admits(graph: GraphScript, slot: int, fit_class: int) -> bool:
-	"""Whether a walker of `fit_class` may be routed through segment `slot`: usable, and wide when only
-	wide bores fit it."""
+	"""Whether a walker of `fit_class` may be routed through segment `slot`: usable, and wide (a widened
+	bore, or a room's own segment: decision 0209) when only wide bores fit it."""
 	if fit_class == CLASS_NONE or not graph.is_usable(slot):
 		return false
-	return fit_class == CLASS_ANY or graph.bore[slot] == Rules.BORE_WIDE
+	return fit_class == CLASS_ANY or graph.bore[slot] != Rules.BORE_STANDARD
 
 
 static func edge_cost_u(graph: GraphScript, slot: int) -> int:

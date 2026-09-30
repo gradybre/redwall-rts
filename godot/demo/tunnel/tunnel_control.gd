@@ -41,7 +41,7 @@ extends Node3D
 ## WHAT A PIECE MUST CLEAR is the plan's (tunnel_plan.gd THE WHOLE PIECE) -- and, on digging, nobody
 ## standing on a new entrance, and a way for the digger to its start (on the surface, or through the
 ## network). Accepted, its heaps are placed (tunnel_heaps.gd), the world's grass is cleared from its holes,
-## heaps and route, and every segment it split hands its walkers, chambers and hazards to the halves
+## heaps and route, and every segment it split hands its walkers and hazards to the halves
 ## (tunnel_works.gd `after_splits`).
 ##
 ## THE NOTICE FOLLOWS THE TUNNELS. Every frame the tool compares the network's revision with the one it
@@ -52,8 +52,14 @@ extends Node3D
 ## WHO FITS. At setup each resident's body is recorded -- the height the cast draws it at and its body
 ## radius, in integer u -- and its fit is judged per segment from it (underground_graph.set_body).
 ##
-## THE EXTENSIONS (tunnel_ext.gd: weather, hauling, upgrades, hazards, finds, ground, chambers, crews,
-## threats) are built here and handed what this tool does not take.
+## ROOMS (decision 0209). In the tool, H or C (or the party panel's "Burrow home (H)" / "Root cellar (C)")
+## opens the ROOM TOOL for a burrow home or a root cellar (demo/burrow/room_tool.gd): a ghost room follows the
+## pointer, R turns it, a click lays it with a passage to the network proposed (Shift+click: standalone), and
+## Esc goes back to laying tunnels. A room is dug by the same diggers, crews and job list as a tunnel. A tunnel
+## laid to a room's socket joins it there (tunnel_plan.gd ROOMS).
+##
+## THE EXTENSIONS (tunnel_ext.gd: weather, hauling, upgrades, hazards, finds, ground, crews, threats) are
+## built here and handed what this tool does not take.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
@@ -72,6 +78,9 @@ const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const ExtScript := preload("res://demo/tunnel/tunnel_ext.gd")
 const CrewScript := preload("res://demo/tunnel/tunnel_crew.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
+const RoomToolScript := preload("res://demo/burrow/room_tool.gd")
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
+const FarmCatalog := preload("res://demo/farm/farm_catalog.gd")
 
 ## A right click this close to a dig's start is about that dig.
 const RESUME_PICK_M: float = 1.1
@@ -92,19 +101,27 @@ const DIG_STARTED: String = "Digging a %s tunnel: %d m³ to cut, %d U of spoil, 
 const DIG_QUEUED: String = "Queued a %s tunnel: %s digs it after its present dig"
 const DIG_RESUMED: String = "Resuming the tunnel at %d%%"
 const DIG_KEPT: String = "Already digging this tunnel (%d%%)"
-const DIG_OPEN: String = "Tunnel open: mice, moles and squirrels may use it; otters and badgers are too big"
+## A tunnel's bore fits the small; a room and its front door or hatch fit everybeast (decision 0209), and the
+## words say which is which.
+const DIG_OPEN: String = "Tunnel open: mice, moles and squirrels walk its bore; otters and badgers need it widened -- rooms and their doors take everybeast"
 const DIG_PAUSED: String = "Tunnel paused at %d%% — right-click where it starts with a digger to resume"
 const DIG_UNREACHED: String = "The digger couldn't reach the start — tunnel paused at %d%%; right-click where it starts with a digger to resume"
 const DIG_DROPPED: String = "Dig called off before any ground was broken"
 const REFUSED: String = "Can't dig: %s"
 const VIEW_ON: String = "Underground view (U to return)"
+const ROOM_OPEN: Array[String] = ["", "Burrow home dug: everybeast fits and stands upright in it -- in at its round door or a tunnel",
+	"Root cellar dug: the pantry stores harvests in it; everybeast stands in it, in at its hatch"]
 
 var planning: bool = false
+## The pieces said to be dug through in this look at the network (so each is said once).
+var _opened: PackedInt32Array = PackedInt32Array()
 var plan: PlanScript = PlanScript.new()
 var network: GraphScript = null
 var overlay: OverlayScript = null
 var view: ViewScript = null
 var ext: ExtScript = null
+## The room tools (see ROOMS).
+var room: RoomToolScript = null
 
 var _cast: DemoCastScript = null
 var _camera: Camera3D = null
@@ -189,6 +206,10 @@ func _build_parts(cast: DemoCastScript, camera: Camera3D, selection: Callable, m
 	overlay.set_calendar(services.calendar if services != null else null)
 	ext.set_view(view)
 	DemoActorScript.register_marker(view.prewarm)
+	room = RoomToolScript.new()
+	add_child(room)
+	room.configure(self)
+	room.register(view.prewarm)
 
 
 func set_world(world: DemoWorldScript) -> void:
@@ -251,8 +272,6 @@ func handle_input(event: InputEvent) -> bool:
 	"""Apply one event; true when it was a tunnel input (and so consumed)."""
 	if planning:
 		return _plan_input(event)
-	if ext.handle_input(event):
-		return true
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
 		return _on_key(event as InputEventKey)
 	var button := event as InputEventMouseButton
@@ -305,7 +324,10 @@ func _on_key(event: InputEventKey) -> bool:
 
 
 func _plan_input(event: InputEvent) -> bool:
-	"""In the tool: presses, drags and releases, confirm, undo, drop and close (see CONTROLS)."""
+	"""In the tool: presses, drags and releases, confirm, undo, drop and close (see CONTROLS); with a room tool
+	open, its own input first (see ROOMS)."""
+	if room.active:
+		return room.handle_input(event) or _room_key(event)
 	if event is InputEventMouseMotion:
 		_hover((event as InputEventMouseMotion).position)
 		return _pressing
@@ -339,11 +361,80 @@ func _plan_key(event: InputEventKey) -> bool:
 			cancel_plan()
 		KEY_U:
 			toggle_view()
+		KEY_H:
+			begin_room(RoomsScript.TEMPLATE_HOME)
+		KEY_C:
+			begin_room(RoomsScript.TEMPLATE_CELLAR)
 		KEY_SHIFT:
 			return _bend_here()
 		_:
 			return false
 	return true
+
+
+func _room_key(event: InputEvent) -> bool:
+	"""With a room tool open: B or T closes the Dig tool, U switches the view, H or C switches the room tool
+	(the same one again: back to tunnels)."""
+	var key := event as InputEventKey
+	if key == null or not key.is_pressed() or key.is_echo() or _modified(key):
+		return false
+	match key_of(key):
+		KEY_B, KEY_T:
+			cancel_plan()
+		KEY_U:
+			toggle_view()
+		KEY_H:
+			begin_room(RoomsScript.TEMPLATE_HOME)
+		KEY_C:
+			begin_room(RoomsScript.TEMPLATE_CELLAR)
+		_:
+			return false
+	return true
+
+
+func begin_room(kind: int) -> bool:
+	"""Open the room tool for template `kind` (see ROOMS), opening the Dig tool first when it is closed; the
+	tool already open for `kind` goes back to laying tunnels. Returns whether a room tool is open now."""
+	if not planning and not begin_plan():
+		return false
+	if room.active and room.plan.kind == kind:
+		end_room()
+		return false
+	plan.clear()
+	overlay.hide_plan()
+	room.begin(kind, room_site())
+	ext.placing_room = kind
+	return true
+
+
+func end_room() -> void:
+	"""Close the room tool: back to laying tunnels."""
+	room.end()
+	ext.placing_room = RoomsScript.TEMPLATE_NONE
+	_say(PLAN_FIRST)
+	_redraw()
+
+
+func site_key() -> Vector2i:
+	"""What a room's site depends on, as it stands: the network's revision (its mouths) and how often the ground's
+	obstacles (heaps, mounds) have been rebuilt. The room tool takes its site afresh when this changes."""
+	return Vector2i(network.revision, _space.obstacle_builds)
+
+
+func room_site() -> RoomsScript.Site:
+	"""What a room must keep clear of now (underground_rooms.gd Site): the village, the obstacles, work spots and
+	mouths, the buildings, the crop beds and the water."""
+	_refresh_clearances()
+	var site := RoomsScript.Site.new()
+	site.bounds_u = _bounds_u
+	site.circles_u = _circles_u
+	site.spots_u = _spots_u.duplicate()
+	site.under_u = _under_u.duplicate()
+	for bed in FarmCatalog.BED_COUNT:
+		var at: Vector2 = FarmCatalog.bed_centre_m(bed)
+		site.beds_u.append_array(PackedInt32Array([Rules.to_u(at.x), Rules.to_u(FarmCatalog.BED_HALF_M), Rules.to_u(at.y)]))
+	site.water = ext.works.water.crosses_water
+	return site
 
 
 func _escape() -> void:
@@ -525,6 +616,8 @@ func _end_plan() -> void:
 	_pressing = false
 	_dragging = false
 	plan.clear()
+	room.end()
+	ext.placing_room = RoomsScript.TEMPLATE_NONE
 	ext.set_planning(false)
 	overlay.hide_plan()
 	if view.on != _view_before_tool:
@@ -534,7 +627,7 @@ func _end_plan() -> void:
 func _refuse(reason: int) -> void:
 	"""Say why (naming the tunnel it concerns), and drop a clay marker where it went wrong (the end for an end
 	refusal, the start for one about the start, otherwise the last point laid)."""
-	_say(REFUSED % Rules.link_text(reason, tunnel_name(plan.refused_slot)))
+	_say(REFUSED % Rules.link_text(reason, plan.refused_name(network)))
 	if plan.count == 0 or not planning:
 		return
 	var k := plan.count - 1
@@ -554,8 +647,8 @@ static func tunnel_name(slot: int) -> String:
 
 func _redraw() -> void:
 	"""Draw the piece laid and, to the pointer, the ghost: its snap, whether it may be dug and why not, and
-	the cost readout (see SNAPPING AND THE GHOST)."""
-	if not planning:
+	the cost readout (see SNAPPING AND THE GHOST). A room tool draws its own."""
+	if not planning or room.active:
 		return
 	var snap := SpecScript.END_NEW_MOUTH
 	var cursor := _cursor
@@ -580,8 +673,8 @@ func _check_ghost(cursor: Vector2, snap: int) -> void:
 	if _ghost_refusal == Rules.REFUSE_NONE:
 		_ghost_refusal = plan.piece_reason(network, _bounds_u, _circles_u, _spots_u, _under_u)
 		var digger := choose_digger()
-		_ghost_words = ReadoutScript.text(plan, ext.works.ground, _crew_rate(digger), _crew_size(digger)) \
-				if _ghost_refusal == Rules.REFUSE_NONE else Rules.link_text(_ghost_refusal, tunnel_name(plan.refused_slot))
+		_ghost_words = ReadoutScript.text(plan, ext.works.ground, crew_rate(digger), crew_size(digger)) \
+				if _ghost_refusal == Rules.REFUSE_NONE else Rules.link_text(_ghost_refusal, plan.refused_name(network))
 		plan.undo()
 	else:
 		_ghost_words = Rules.link_text(_ghost_refusal, "")
@@ -597,7 +690,7 @@ func ghost_refused() -> bool:
 	return _ghost_refusal != Rules.REFUSE_NONE
 
 
-func _crew_size(digger: int) -> int:
+func crew_size(digger: int) -> int:
 	"""How many would dig: the digger and the rest of the selection it can take on (at most a full crew)."""
 	var n := 1
 	for i in _selection.call() as PackedInt32Array:
@@ -606,15 +699,15 @@ func _crew_size(digger: int) -> int:
 	return n
 
 
-func _crew_rate(digger: int) -> int:
-	"""The rate (per mille) the crew would dig at: the pipeline for those at the face (the digger and those
-	selected who fit), times the digger's skill (tunnel_crew.gd)."""
-	var faces := 1
+func crew_rate(digger: int, faces: int = 1) -> int:
+	"""The rate (per mille) the crew would dig at, on `faces` quanta side by side (a room: three): the pipeline
+	for those at the work (the digger and those selected who fit), times the digger's skill (tunnel_crew.gd)."""
+	var workers := 1
 	for i in _selection.call() as PackedInt32Array:
-		if i != digger and faces < CrewScript.MAX_BUILDERS and network.fits(i):
-			faces += 1
+		if i != digger and workers < CrewScript.MAX_BUILDERS and network.fits(i):
+			workers += 1
 	var skill := ext.works.crew.skills.factor_permille(digger) if digger >= 0 else Rules.PERMILLE
-	return CrewScript.pipeline_permille(faces, 1) * skill / Rules.PERMILLE
+	return CrewScript.pipeline_permille(workers, faces) * skill / Rules.PERMILLE
 
 
 # --- digging a piece ------------------------------------------------------------------------
@@ -661,7 +754,7 @@ func confirm() -> bool:
 	if reason != Rules.REFUSE_NONE:
 		_refuse(reason)
 		return false
-	_accept(_ref[2])
+	accept_piece(_ref[2])
 	_send(digger, now)
 	plan.clear()
 	_ghost_at = Vector2.INF
@@ -722,7 +815,7 @@ func _finished_spoil_u(p: int) -> int:
 	return total / 1000
 
 
-func _accept(p: int) -> void:
+func accept_piece(p: int) -> void:
 	"""A piece just stored: place the heaps of the mouths it spoils at (obstacles from now on), clear the
 	grass from its holes, heaps and route, and hand what it split to the halves."""
 	var chain := PackedInt32Array()
@@ -758,9 +851,13 @@ func _clear_cover(chain: PackedInt32Array, mouths: PackedInt32Array) -> void:
 
 
 func _entrance_occupied(digger: int) -> bool:
-	"""Whether someone other than the digger stands on the new entrance: closer than their radius plus the
+	"""Whether someone other than the digger stands on the new entrance (see `occupied_at`)."""
+	return occupied_at(digger, plan.point_m(0))
+
+
+func occupied_at(digger: int, at: Vector2) -> bool:
+	"""Whether someone other than the digger stands on a new entrance at `at`: closer than their radius plus the
 	digger's plus the planning margin (so the digger could never step into the hole to dig)."""
-	var at := plan.point_m(0)
 	var radius := _brain(digger).radius if digger >= 0 else 0.3
 	for j in _space.resident_position.size():
 		if j == digger or _space.resident_underground[j] != 0 or _space.resident_walking[j] != 0:
@@ -772,10 +869,67 @@ func _entrance_occupied(digger: int) -> bool:
 
 
 func _entrance_reachable(digger: int) -> bool:
-	"""Whether the digger can walk from where it will stand to the new entrance, round everyone standing."""
+	"""Whether the digger can walk to the new entrance (see `reachable`)."""
+	return reachable(digger, plan.point_m(0))
+
+
+func reachable(digger: int, at: Vector2) -> bool:
+	"""Whether the digger can walk from where it will stand to `at`, round everyone standing."""
 	var brain := _brain(digger)
-	_space.plan_path(brain.index, brain.surface_point(), plan.point_m(0), brain.radius, _route)
+	_space.plan_path(brain.index, brain.surface_point(), at, brain.radius, _route)
 	return _space.nav.last_found
+
+
+# --- the room tool's hooks (demo/burrow/room_tool.gd) ---------------------------------------
+
+func entrance_refusal(digger: int, at: Vector2) -> int:
+	"""Why a room's door at `at` may not be dug by `digger` (a tunnel's entrance's rules), or REFUSE_NONE:
+	nobody can dig, someone stands on it, or -- the digger free to start now -- it cannot reach it."""
+	if digger < 0:
+		return Rules.REFUSE_NOT_A_DIGGER
+	if occupied_at(digger, at):
+		return Rules.REFUSE_ENTRANCE_OCCUPIED
+	if _brain(digger).dig_tunnel < 0 and not reachable(digger, at):
+		return Rules.REFUSE_UNREACHABLE
+	return Rules.REFUSE_NONE
+
+
+func room_laid(p: int, passage: int) -> void:
+	"""A room just laid as piece `p`, and its passage as piece `passage` (-1: none): its mound stands as an
+	obstacle, then each piece's heaps are placed and its grass cleared (`accept_piece`)."""
+	ext.room_view.refresh()
+	accept_piece(p)
+	if passage >= 0:
+		accept_piece(passage)
+
+
+func start_room(first: int, gen: int, digger: int) -> bool:
+	"""Send `digger` to dig a room just laid (its first segment `first`, generation `gen`), the rest of the
+	selection its crew -- or, busy digging, leave it in its job list. Returns whether it starts now."""
+	var now := _brain(digger).dig_tunnel < 0
+	if now:
+		network.start_dig(first, gen, digger)
+		_brain(digger).order_dig(first, gen)
+		ext.works.say(CrewScript.LINE_START)
+		ext.crew_on_dig(first, digger)
+		_mark.call(_start3(first), true)
+	_sync_seen()
+	return now
+
+
+func digger_name(i: int) -> String:
+	"""Resident `i`'s name."""
+	return (_cast.actor(i) as DemoActorScript).display_name
+
+
+func say(text: String) -> void:
+	"""Show a line in the party panel (the room tool's words)."""
+	_say(text)
+
+
+func mark_at(at: Vector2, accepted: bool) -> void:
+	"""Drop an order marker at `at` on the ground."""
+	_mark.call(Vector3(at.x, 0.0, at.y), accepted)
 
 
 func _start3(slot: int) -> Vector3:
@@ -876,6 +1030,7 @@ func _process(_delta: float) -> void:
 	if network == null or network.revision == _seen_revision:
 		return
 	_seen_revision = network.revision
+	_opened.clear()
 	for slot in Rules.MAX_SEGMENTS:
 		var phase := network.phase[slot]
 		if phase == _seen_phase[slot] and network.generation[slot] == _seen_generation[slot] \
@@ -889,10 +1044,15 @@ func _process(_delta: float) -> void:
 
 
 func _announce(slot: int, was: int, now: int) -> void:
-	"""The notice for segment `slot` going from phase `was` to `now`: its piece dug through, paused, or
-	dropped."""
+	"""The notice for segment `slot` going from phase `was` to `now`: its piece dug through (a room: dug out) --
+	once, however many of its segments opened since the last look (a room's walks open with its body) -- paused,
+	or dropped."""
+	if now == GraphScript.PHASE_OPEN and _opened.has(network.piece[slot]):
+		return
 	if now == GraphScript.PHASE_OPEN and was != GraphScript.PHASE_FREE and network.piece_done(network.piece[slot]):
-		_say_about(DIG_OPEN, slot)
+		_opened.append(network.piece[slot])
+		var r: int = network.seg_room[slot]
+		_say_about(ROOM_OPEN[network.rooms.template[r]] if r >= 0 else DIG_OPEN, slot)
 	elif now == GraphScript.PHASE_PAUSED and network.pause_reason[slot] == GraphScript.PAUSED_UNREACHED:
 		_say_about(DIG_UNREACHED % network.piece_percent(network.piece[slot]), slot)
 	elif now == GraphScript.PHASE_PAUSED:

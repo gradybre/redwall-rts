@@ -111,17 +111,19 @@ func test_add_into_refuses_what_the_rules_refuse() -> void:
 
 
 func test_the_network_refuses_a_piece_it_has_no_room_for() -> void:
-	"""Sixteen mouths is the cap: eight tunnels fill it, and a ninth is refused whole."""
+	"""Twenty-four mouths is the cap (16 for tunnels and 8 for rooms' doors: decision 0209): twelve tunnels fill
+	it, and a thirteenth is refused whole."""
 	var graph := GraphScript.new()
 	var ref := PackedInt32Array([-1, 0, -1])
-	for k in 8:
-		assert_true(graph.add_into(_route([Vector2i(-10000, 2000 * k - 8000), Vector2i(0, 2000 * k - 8000)]), 2, k, ref), "tunnel %d" % k)
+	assert_equal(Rules.MAX_MOUTHS, 24, "the cap")
+	for k in Rules.MAX_MOUTHS / 2:
+		assert_true(graph.add_into(_route([Vector2i(-10000, 1500 * k - 8000), Vector2i(0, 1500 * k - 8000)]), 2, k, ref), "tunnel %d" % k)
 	assert_equal(graph.mouth_node.count(-1), 0, "every mouth row taken")
 	var spec := SpecScript.new()
 	spec.set_route(_route([Vector2i(5000, 0), Vector2i(15000, 0)]), 2)
 	assert_false(graph.room_for(spec), "no room for two more mouths")
-	assert_false(graph.add_into(_route([Vector2i(5000, 0), Vector2i(15000, 0)]), 2, 0, ref), "a ninth refused")
-	assert_equal(graph.phase.count(GraphScript.PHASE_FREE), Rules.MAX_SEGMENTS - 24, "nothing more stored")
+	assert_false(graph.add_into(_route([Vector2i(5000, 0), Vector2i(15000, 0)]), 2, 0, ref), "a thirteenth refused")
+	assert_equal(graph.phase.count(GraphScript.PHASE_FREE), Rules.MAX_SEGMENTS - 36, "nothing more stored")
 	assert_false(graph.has_room(), "has_room says so")
 
 
@@ -760,8 +762,8 @@ func test_a_full_network_refuses_in_words() -> void:
 	"""Every mouth row taken: a sound piece far from the rest is refused for room."""
 	var graph := GraphScript.new()
 	var ref := PackedInt32Array([-1, 0, -1])
-	for k in 8:
-		graph.add_into(_route([Vector2i(-18000, 2500 * k - 18000), Vector2i(-8000, 2500 * k - 18000)]), 2, k, ref)
+	for k in Rules.MAX_MOUTHS / 2:
+		graph.add_into(_route([Vector2i(-18000, 1500 * k - 18000), Vector2i(-8000, 1500 * k - 18000)]), 2, k, ref)
 	assert_equal(_reason(graph, [Vector2i(5000, 15000), Vector2i(15000, 15000)]), Rules.REFUSE_NETWORK_FULL, "no room")
 
 

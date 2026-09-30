@@ -27,8 +27,18 @@ extends RefCounted
 ##   * the PILLAR: every PILLAR_STEP_U of the piece keeps 1 m of earth from every other bore -- but within
 ##     JOIN_ZONE_U of where it joins that bore (or a bore next to it: they are one void there) -- and from
 ##     its own legs but the ones beside;
+##   * ROOMS (decision 0209): a piece joins a room only at a free SOCKET, leaving it straight out through its
+##     wall -- its leg there runs at least SOCKET_STRAIGHT_U before any bend's fillet, within the MEETING
+##     angle of straight out -- and keeps 1 m of earth and half a bore from every room's void (sampled every
+##     PILLAR_STEP_U, but within ROOM_JOIN_U of a socket it joins of that room); it never crosses a room's own
+##     segments;
 ##   * the network has room.
-## A refusal names its reason; one about another segment names it too (`refused_slot`).
+## A refusal names its reason; one about another segment names it too (`refused_slot`), one about a room names
+## the room (`refused_room`; `refused_name`).
+##
+## THE ROOM BEING PLACED (the room tool's auto-passage, room_tool.gd). A point snapped END_NODE onto node -1 is
+## a socket of a room not laid yet, at that point, whose way straight out is `pending_outward`: it is checked
+## as a free socket of a planned room.
 ##
 ## WATER. No bore may pass under water: every point and every leg is asked `water_crossing(a, b,
 ## clearance_u)` -- the village's water adapter (demo/village_water.gd `crosses_water`) -- with half a bore
@@ -41,6 +51,10 @@ const SpecScript := preload("res://demo/tunnel/piece_spec.gd")
 ## How near a point must be laid to a node, or to a segment's route, to join it (u; demo values).
 const SNAP_NODE_U: int = Rules.JUNCTION_GAP_U
 const SNAP_U: int = 1229
+## Near a socket it joins, a piece is exempt from the room's pillar this far (u): leaving straight out at the
+## meeting angle it has cleared the pillar by then.
+const ROOM_JOIN_U: int = 2048
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 
 ## (x, z) pairs in u; sized once for MAX_POINTS.
 var points_u: PackedInt32Array = PackedInt32Array()
@@ -53,6 +67,10 @@ var snap_ref: PackedInt32Array = PackedInt32Array()
 var water_crossing: Callable = Callable()
 ## The segment the last refusal concerns (-1: none), for its words.
 var refused_slot: int = -1
+## The room the last refusal concerns (-1: none), for its words.
+var refused_room: int = -1
+## A socket of the room being placed: its way straight out (see THE ROOM BEING PLACED).
+var pending_outward: Vector2i = Vector2i.ZERO
 ## The crossings `piece_reason` found: (host segment, x_u, z_u) per crossing, in route order.
 var crossings: PackedInt32Array = PackedInt32Array()
 ## `(slot: int) -> bool`: whether a job is at work on a segment, so it may not be joined now (tunnel_jobs.gd;
@@ -77,6 +95,7 @@ func clear() -> void:
 	"""Start a new route."""
 	count = 0
 	refused_slot = -1
+	refused_room = -1
 	crossings.clear()
 
 
@@ -235,7 +254,7 @@ static func _nearest_node(graph: GraphScript, at: Vector2i) -> int:
 	var best := -1
 	var best_d := SNAP_NODE_U * SNAP_NODE_U
 	for node in Rules.MAX_NODES:
-		if not graph.is_node(node) or graph.node_kind[node] == GraphScript.NODE_MOUTH:
+		if not _snaps_to_node(graph, node):
 			continue
 		var d := graph.node_at(node) - at
 		if d.x * d.x + d.y * d.y < best_d:
@@ -244,12 +263,23 @@ static func _nearest_node(graph: GraphScript, at: Vector2i) -> int:
 	return best
 
 
+static func _snaps_to_node(graph: GraphScript, node: int) -> bool:
+	"""Whether a point may snap onto node `node`: a junction or a ramp's foot, or a room's free socket (never a
+	mouth, a room's middle or its door's foot)."""
+	if not graph.is_node(node):
+		return false
+	var kind := graph.node_kind[node]
+	if kind == GraphScript.NODE_SOCKET:
+		return graph.is_free_socket(node)
+	return kind == GraphScript.NODE_JUNCTION or kind == GraphScript.NODE_RAMP_END
+
+
 static func _nearest_segment(graph: GraphScript, at: Vector2i) -> int:
 	"""The planned or dug segment whose route passes nearest `at` within SNAP_U (-1: none)."""
 	var best := -1
 	var best_d := SNAP_U + 1
 	for slot in Rules.MAX_SEGMENTS:
-		if graph.phase[slot] == GraphScript.PHASE_FREE:
+		if graph.phase[slot] == GraphScript.PHASE_FREE or graph.seg_kind[slot] == GraphScript.SEG_ROOM:
 			continue
 		var d := _route_gap_u(graph, slot, at)
 		if d < best_d:
@@ -286,6 +316,7 @@ func piece_reason(graph: GraphScript, bounds_u: Rect2i, circles_u: PackedInt32Ar
 	"""REFUSE_NONE when the piece as laid may be dug into the network, else why not (see THE WHOLE PIECE);
 	`refused_slot` names the segment a refusal concerns."""
 	refused_slot = -1
+	refused_room = -1
 	crossings.clear()
 	var reason := Rules.validate_piece_route(points_u, count, bounds_u, circles_u, spots_u, under_u,
 		starts_at_mouth(), ends_at_mouth())
@@ -293,7 +324,7 @@ func piece_reason(graph: GraphScript, bounds_u: Rect2i, circles_u: PackedInt32Ar
 		if reason == Rules.REFUSE_NONE and _leg_meets_water(k):
 			reason = Rules.REFUSE_UNDER_WATER
 	for check: Callable in [_ramp_reason, _snap_reason.bind(graph), _crossing_reason.bind(graph),
-			_bend_reason, _pillar_reason.bind(graph), _room_reason.bind(graph)]:
+			_bend_reason, _room_void_reason.bind(graph), _pillar_reason.bind(graph), _rows_reason.bind(graph)]:
 		if reason != Rules.REFUSE_NONE:
 			return reason
 		reason = int(check.call())
@@ -332,6 +363,8 @@ func _snap_reason(graph: GraphScript) -> int:
 func _end_reason(graph: GraphScript, k: int, inner: int) -> int:
 	"""Whether end point `k` (its leg running to point `inner`) may join the network where it snapped."""
 	var leaving := point_u(inner) - point_u(k)
+	if snap_kind[k] == SpecScript.END_NODE and (snap_ref[k] < 0 or graph.node_kind[snap_ref[k]] == GraphScript.NODE_SOCKET):
+		return _socket_reason(graph, snap_ref[k], k, inner)
 	if snap_kind[k] == SpecScript.END_NODE:
 		return _node_reason(graph, snap_ref[k], leaving)
 	if snap_kind[k] == SpecScript.END_ON_SEGMENT:
@@ -359,10 +392,38 @@ func _node_reason(graph: GraphScript, node: int, leaving: Vector2i) -> int:
 	return Rules.REFUSE_NONE
 
 
+func _socket_reason(graph: GraphScript, node: int, k: int, inner: int) -> int:
+	"""Joining a room at socket `node` (-1: a socket of the room being placed) from end point `k`, its leg
+	running to point `inner`: a free socket, left straight out -- the leg's straight part at least
+	SOCKET_STRAIGHT_U, within the meeting angle of the socket's way out. The room need not be dug yet."""
+	if node >= 0 and not graph.is_free_socket(node):
+		return Rules.REFUSE_SOCKET_TAKEN
+	var outward := pending_outward
+	if node >= 0:
+		outward = graph.node_at(node) - graph.node_at(graph.rooms.middle[graph.node_room[node]])
+	var leaving := point_u(inner) - point_u(k)
+	if not Rules.leaves_straight(leaving, outward) or _straight_from(k, inner) < Rules.SOCKET_STRAIGHT_U:
+		return Rules.REFUSE_SOCKET_ANGLE
+	return Rules.REFUSE_NONE
+
+
+func _straight_from(k: int, inner: int) -> int:
+	"""How far the leg from end point `k` to point `inner` runs straight (u): its length, less the fillet of the
+	bend at `inner` when there is one."""
+	var leg := Rules.isqrt(Rules.leg_squared_u(points_u, maxi(k, inner)))
+	if inner == 0 or inner == count - 1:
+		return leg
+	var beyond := inner + (inner - k)
+	return leg - Rules.fillet_reach_u(point_u(inner) - point_u(k), point_u(beyond) - point_u(inner))
+
+
 func _host_reason(graph: GraphScript, slot: int, at: Vector2i, leaving: Vector2i) -> int:
 	"""Joining segment `slot` at `at`: an open, quiet level bore, the junction clear of every node, met at
 	the meeting angle."""
 	refused_slot = slot
+	if graph.seg_room[slot] >= 0:
+		refused_room = graph.seg_room[slot]
+		return Rules.REFUSE_INTO_ROOM
 	if graph.seg_kind[slot] == GraphScript.SEG_RAMP:
 		return Rules.REFUSE_JOIN_RAMP
 	if not _quiet(graph, slot):
@@ -399,7 +460,7 @@ func _crossing_reason(graph: GraphScript) -> int:
 	PIECE), gathered into `crossings` and put in route order."""
 	for k in range(1, count):
 		for slot in Rules.MAX_SEGMENTS:
-			if graph.phase[slot] == GraphScript.PHASE_FREE or _is_end_host(slot):
+			if graph.phase[slot] == GraphScript.PHASE_FREE or _is_end_host(slot) or graph.seg_kind[slot] == GraphScript.SEG_ROOM:
 				continue
 			var reason := _leg_crossings(graph, k, slot)
 			if reason != Rules.REFUSE_NONE:
@@ -455,7 +516,10 @@ func _leg_crossings(graph: GraphScript, k: int, slot: int) -> int:
 
 func _crossing_at(graph: GraphScript, slot: int, at: Vector2i, along_piece: Vector2i, along_host: Vector2i) -> int:
 	"""Whether the piece may cross segment `slot` at `at`: an open quiet level bore, crossed squarely, clear
-	of every node and of the piece's own ramps and ends."""
+	of every node and of the piece's own ramps and ends -- and no room's (its ramp is the room's way in)."""
+	if graph.seg_room[slot] >= 0:
+		refused_room = graph.seg_room[slot]
+		return Rules.REFUSE_INTO_ROOM
 	if graph.seg_kind[slot] == GraphScript.SEG_RAMP:
 		return Rules.REFUSE_JOIN_RAMP
 	if not _quiet(graph, slot):
@@ -560,7 +624,7 @@ func _near_segments(graph: GraphScript) -> void:
 	_near.clear()
 	_near_box.clear()
 	for slot in Rules.MAX_SEGMENTS:
-		if graph.phase[slot] == GraphScript.PHASE_FREE:
+		if graph.phase[slot] == GraphScript.PHASE_FREE or graph.seg_kind[slot] == GraphScript.SEG_ROOM:
 			continue
 		var route_box := _route_box(graph, slot)
 		if box.intersects(route_box):
@@ -588,7 +652,8 @@ func _pillar_at(graph: GraphScript, at: Vector2i, leg: int) -> int:
 		if _route_gap_u(graph, slot, at) < Rules.pillar_gap_u(Rules.BORE_STANDARD, graph.bore[slot]) \
 				and not _shares_near(graph, slot, at):
 			refused_slot = slot
-			return Rules.REFUSE_PILLAR
+			refused_room = graph.seg_room[slot]
+			return Rules.REFUSE_INTO_ROOM if refused_room >= 0 else Rules.REFUSE_PILLAR
 	return _self_gap(at, leg)
 
 
@@ -634,9 +699,70 @@ func _self_gap(at: Vector2i, leg: int) -> int:
 	return Rules.REFUSE_NONE
 
 
-func _room_reason(graph: GraphScript) -> int:
+func _room_void_reason(graph: GraphScript) -> int:
+	"""ROOMS (see THE WHOLE PIECE): 1 m of earth and half a bore from every room's void, but near a socket of
+	that room the piece joins."""
+	var reach := Rules.PILLAR_U + Rules.BORE_WIDTH_U / 2
+	var box := Rect2i(point_u(0), Vector2i.ONE)
+	for k in count:
+		box = box.expand(point_u(k))
+	var rooms: RoomsScript = graph.rooms
+	for r in RoomsScript.MAX_ROOMS:
+		if not rooms.is_room(r) or not box.grow(reach).intersects(RoomsScript.world_box(rooms.template[r], rooms.centre(r), rooms.turns[r], 0)):
+			continue
+		var joins := _joins_room(graph, r)
+		for k in range(1, count):
+			if rooms.leg_gap_of(r, point_u(k - 1), point_u(k)) < reach and (not joins or _leg_breaks_into(graph, r, k, reach)):
+				refused_room = r
+				return Rules.REFUSE_INTO_ROOM
+	return Rules.REFUSE_NONE
+
+
+func _joins_room(graph: GraphScript, r: int) -> bool:
+	"""Whether an end of the piece joins room `r` at one of its sockets."""
+	for k: int in [0, count - 1]:
+		if snap_kind[k] == SpecScript.END_NODE and snap_ref[k] >= 0 and graph.node_room[snap_ref[k]] == r:
+			return true
+	return false
+
+
+func _leg_breaks_into(graph: GraphScript, r: int, k: int, reach: int) -> bool:
+	"""Whether leg `k` of the piece -- which joins room `r` at a socket -- comes within `reach` of the room's void
+	anywhere but within ROOM_JOIN_U of that socket (sampled every PILLAR_STEP_U, and at the leg's far end)."""
+	var a := point_u(k - 1)
+	var b := point_u(k)
+	var leg := Rules.isqrt(Rules.leg_squared_u(points_u, k))
+	var along := 0
+	while true:
+		var at := a + (b - a) * mini(along, leg) / maxi(leg, 1)
+		if graph.rooms.gap_of(r, at) < reach and not _near_own_socket(graph, r, at):
+			return true
+		if along >= leg:
+			return false
+		along += Rules.PILLAR_STEP_U
+	return false
+
+
+func _near_own_socket(graph: GraphScript, r: int, at: Vector2i) -> bool:
+	"""Whether `at` lies within ROOM_JOIN_U of an end of the piece that joins room `r` at a socket."""
+	for k: int in [0, count - 1]:
+		var node := snap_ref[k]
+		if snap_kind[k] == SpecScript.END_NODE and node >= 0 and graph.node_room[node] == r and _within(point_u(k), at, ROOM_JOIN_U):
+			return true
+	return false
+
+
+func _rows_reason(graph: GraphScript) -> int:
 	"""Whether the network has the rows the piece needs."""
 	return Rules.REFUSE_NONE if graph.room_for(spec_of(-1)) else Rules.REFUSE_NETWORK_FULL
+
+
+func refused_name(graph: GraphScript) -> String:
+	"""How the words name what the last refusal concerns: a room ("Burrow home 2"), a segment ("Tunnel 4"), or
+	"a tunnel"."""
+	if refused_room >= 0 and graph.rooms.is_room(refused_room):
+		return "%s %d" % [RoomsScript.NAMES[graph.rooms.template[refused_room]], refused_room + 1]
+	return "Tunnel %d" % (refused_slot + 1) if refused_slot >= 0 else "a tunnel"
 
 
 func spec_of(digger_index: int) -> SpecScript:

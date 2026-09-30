@@ -109,8 +109,8 @@ func step(brain: RefCounted, delta: float) -> bool:
 
 
 func _digs() -> bool:
-	"""Whether this job digs (widening, clearing a fall, a chamber) rather than fitting things."""
-	return _kind == JobsScript.JOB_WIDEN or _kind == JobsScript.JOB_CLEAR or _kind == JobsScript.JOB_CHAMBER
+	"""Whether this job digs (widening, clearing a fall) rather than fitting things."""
+	return _kind == JobsScript.JOB_WIDEN or _kind == JobsScript.JOB_CLEAR
 
 
 func cancel(brain: RefCounted) -> void:

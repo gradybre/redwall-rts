@@ -9,12 +9,17 @@ extends Node3D
 ## change or the focus has moved REASSIGN_M, never per frame otherwise. So however many lanterns hang, the
 ## U view lights at most MAX_LIGHTS pools, where the player is looking.
 ##
+## ROOMS (decision 0209) hang their own lanterns: a row of spots per room after the tunnels' (`set_room_spots`),
+## each row with its own light colour -- a home's warm, a cellar's cooler -- that the light takes when given to
+## one of its spots.
+##
 ## FLICKER. Each light's energy wavers FLICKER either side of ENERGY, two slow waves at its own phase, on
 ## the demo clock's time: paused, it holds still. It runs only while the U view is on (the surface culls
 ## these lights by their layer anyway).
 
 const Layers := preload("res://demo/demo_layers.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const DemoClockScript := preload("res://demo/demo_clock.gd")
 
 const MAX_LIGHTS: int = 32
@@ -27,8 +32,9 @@ const REASSIGN_M: float = 1.5
 const WAVE_HZ: Vector2 = Vector2(1.7, 4.3)
 
 var _lights: Array[OmniLight3D] = []
-## Per tunnel, its lanterns' light spots (world metres).
+## Per tunnel, then per room, its lanterns' light spots (world metres), and the colour of their light.
 var _spots: Array[PackedVector3Array] = []
+var _tints: PackedColorArray = PackedColorArray()
 var _dirty: bool = true
 var _focus: Vector3 = Vector3(INF, INF, INF)
 var _time: float = 0.0
@@ -41,6 +47,7 @@ var assignments: int = 0
 ## The nearest spots found by the last `find_nearest`, nearest first, and how many: sized once, so
 ## choosing never allocates (a toggle or a pan allocates nothing).
 var _best: PackedVector3Array = PackedVector3Array()
+var _best_tint: PackedColorArray = PackedColorArray()
 var _gaps: PackedFloat32Array = PackedFloat32Array()
 var _found: int = 0
 
@@ -61,9 +68,11 @@ func configure(clock: DemoClockScript = null) -> void:
 		light.visible = false
 		add_child(light)
 		_lights.append(light)
-	for slot in Rules.MAX_SEGMENTS:
+	for row in Rules.MAX_SEGMENTS + RoomsScript.MAX_ROOMS:
 		_spots.append(PackedVector3Array())
+		_tints.append(COLOUR)
 	_best.resize(MAX_LIGHTS)
+	_best_tint.resize(MAX_LIGHTS)
 	_gaps.resize(MAX_LIGHTS)
 
 
@@ -78,6 +87,12 @@ func set_spots(slot: int, spots: PackedVector3Array) -> void:
 	_spots[slot] = spots
 	_dirty = true
 	update(_focus if _focus.x != INF else Vector3.ZERO)
+
+
+func set_room_spots(r: int, spots: PackedVector3Array, tint: Color) -> void:
+	"""Room `r`'s lanterns now hang here, lighting `tint` (empty: none; see ROOMS)."""
+	_tints[Rules.MAX_SEGMENTS + r] = tint
+	set_spots(Rules.MAX_SEGMENTS + r, spots)
 
 
 func light(k: int) -> OmniLight3D:
@@ -122,6 +137,7 @@ func update(focus: Vector3) -> void:
 		_lights[k].visible = k < _found
 		if k < _found:
 			_lights[k].position = _best[k]
+			_lights[k].light_color = _best_tint[k]
 	assignments += 1
 
 
@@ -129,23 +145,26 @@ func find_nearest(focus: Vector3) -> int:
 	"""Keep the MAX_LIGHTS spots nearest `focus`, nearest first, in the scratch (all of them when fewer);
 	returns how many. An insertion into a fixed row: nothing allocated."""
 	_found = 0
-	for spots: PackedVector3Array in _spots:
-		for spot: Vector3 in spots:
-			_keep_if_near(spot, spot.distance_squared_to(focus))
+	for row in _spots.size():
+		for spot: Vector3 in _spots[row]:
+			_keep_if_near(spot, spot.distance_squared_to(focus), _tints[row])
 	return _found
 
 
-func _keep_if_near(spot: Vector3, gap: float) -> void:
-	"""Slot `spot` into the nearest-first row if it is nearer than its last (or the row is not full)."""
+func _keep_if_near(spot: Vector3, gap: float, tint: Color) -> void:
+	"""Slot `spot` (lighting `tint`) into the nearest-first row if it is nearer than its last (or the row is not
+	full)."""
 	var at := _found if _found < MAX_LIGHTS else MAX_LIGHTS - 1
 	if _found == MAX_LIGHTS and gap >= _gaps[at]:
 		return
 	while at > 0 and _gaps[at - 1] > gap:
 		_gaps[at] = _gaps[at - 1]
 		_best[at] = _best[at - 1]
+		_best_tint[at] = _best_tint[at - 1]
 		at -= 1
 	_gaps[at] = gap
 	_best[at] = spot
+	_best_tint[at] = tint
 	_found = mini(_found + 1, MAX_LIGHTS)
 
 

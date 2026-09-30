@@ -53,7 +53,7 @@ const BedPanelScript := preload("res://demo/farm/farm_bed_panel.gd")
 const PantryPanelScript := preload("res://demo/farm/farm_pantry_panel.gd")
 const GoodsScript := preload("res://demo/farm/farm_goods.gd")
 const CarryViewScript := preload("res://demo/farm/farm_carry_view.gd")
-const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const Weather := preload("res://demo/farm/farm_weather.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
@@ -210,9 +210,9 @@ static func _building_at(id: StringName) -> Vector2:
 	return Vector2.INF
 
 
-func follow_chambers(chambers: ChambersScript) -> void:
-	"""Stock the root cellars' rooms below ground too (their shelves; demo_village.gd wires it)."""
-	view.stock.follow_chambers(chambers)
+func follow_rooms(rooms: RoomsScript) -> void:
+	"""Stock the root cellars below ground too (their shelves; demo_village.gd wires it)."""
+	view.stock.follow_rooms(rooms)
 
 
 # --- per frame ------------------------------------------------------------------------------------

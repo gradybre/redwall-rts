@@ -40,8 +40,11 @@ extends RefCounted
 ## open on a work spot (tunnel_rules). Walks may cross a hole's rim -- planning round every mouth
 ## was measured at five times the cost of a plan (16 more circles to ring on every search), for a
 ## glance's difference. A spoil heap is a real obstacle: `set_heap` adds it to the world's
-## circles and drops the navigation graphs, each rebuilt by the next plan of its body class (once
-## per dig accepted, never per frame). Heaps stand one per mouth (`set_heap`, by mouth row).
+## circles, and each body class's navigation graph is rebuilt in slices over the next frames (cast_nav.gd
+## REBUILT IN SLICES; once per dig accepted, never per frame). Heaps stand one per mouth (`set_heap`, by
+## mouth row). A room's turfed MOUND and its door ramp are obstacles too, from the moment it is laid
+## (`set_mound`, MOUND_CIRCLES by room row; decision 0209): nobody walks over a burrow home or its dig -- in
+## at its door, round it otherwise.
 ##
 ## Per-frame work (`constrain`, `separation`, `line_clear`) allocates nothing.
 
@@ -49,6 +52,7 @@ const CastNavScript := preload("res://demo/cast/cast_nav.gd")
 const CastRoutinesScript := preload("res://demo/cast/cast_routines.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const CrossingHookScript := preload("res://demo/cast/crossing_hook.gd")
 
 const PLAN_MARGIN_M: float = CastNavScript.PLAN_MARGIN_M
@@ -71,11 +75,16 @@ const SLOT_PUSH_PASSES: int = 6
 const SEPARATION_MARGIN_M: float = 0.55
 const MAX_SLOTS: int = 16
 const CONSTRAIN_PASSES: int = 2
+## A room's mound as obstacle circles: up to this many a room (see TUNNEL MOUTHS AND HEAPS).
+const MOUND_CIRCLES: int = 4
 const STOCKPILE_WORDS: PackedStringArray = ["stockpile", "store", "storage", "pile", "crate", "sack", "log"]
 const CARRY_CLIP: StringName = &"carry_heavy_object_walk"
 const LOCOMOTION_CLIPS: Array[StringName] = [&"walk", &"carry_heavy_object_walk"]
 
 var obstacles: PackedVector3Array = PackedVector3Array()
+## How many times the obstacles (and so the navigation) have been rebuilt: by a heap's or a room's mound's change,
+## never per frame (a count for the tests and the probes).
+var obstacle_builds: int = 0
 var poi_names: Array[StringName] = []
 var poi_position: PackedVector2Array = PackedVector2Array()
 var poi_face: PackedVector2Array = PackedVector2Array()
@@ -108,6 +117,7 @@ var _slot_at: PackedVector2Array = PackedVector2Array()
 var _standing: PackedVector3Array = PackedVector3Array()
 var _world_obstacles: PackedVector3Array = PackedVector3Array()
 var _heap_circles: PackedVector3Array = PackedVector3Array()
+var _mound_circles: PackedVector3Array = PackedVector3Array()
 
 
 func setup(points: Array[Dictionary], obstacle_list: Array[Vector3]) -> void:
@@ -121,6 +131,8 @@ func setup(points: Array[Dictionary], obstacle_list: Array[Vector3]) -> void:
 	_world_obstacles = obstacles.duplicate()
 	_heap_circles.resize(TunnelRules.MAX_MOUTHS)
 	_heap_circles.fill(Vector3.ZERO)
+	_mound_circles.resize(RoomsScript.MAX_ROOMS * MOUND_CIRCLES)
+	_mound_circles.fill(Vector3.ZERO)
 	nav.setup(obstacles)
 	_clear_pois()
 	for point in points:
@@ -142,13 +154,30 @@ func setup(points: Array[Dictionary], obstacle_list: Array[Vector3]) -> void:
 
 func set_heap(m: int, circle: Vector3) -> void:
 	"""Mouth `m`'s heap now stands as this circle (x, radius, z); radius 0 removes it. The obstacles are
-	rebuilt; each body class's graph is rebuilt by the first plan that needs it, so the cost (about 11 ms a
-	class in the village) is spread over the frames that plan next."""
+	rebuilt, and each body class's graph with them, in slices (cast_nav.gd REBUILT IN SLICES)."""
 	_heap_circles[m] = circle
+	_rebuild_obstacles()
+
+
+func set_mound(r: int, circles: PackedVector3Array) -> void:
+	"""Room `r`'s mound and door ramp now stand as these circles (x, radius, z; at most MOUND_CIRCLES; empty:
+	none). The obstacles are rebuilt as a heap's are."""
+	assert(circles.size() <= MOUND_CIRCLES, "a room's mound stands as at most MOUND_CIRCLES circles")
+	for k in MOUND_CIRCLES:
+		_mound_circles[r * MOUND_CIRCLES + k] = circles[k] if k < circles.size() else Vector3.ZERO
+	_rebuild_obstacles()
+
+
+func _rebuild_obstacles() -> void:
+	"""The world's circles, every heap and every room's mound: the obstacles, and the navigation over them."""
+	obstacle_builds += 1
 	obstacles = _world_obstacles.duplicate()
-	for heap in _heap_circles:
-		if heap.y > 0.0:
-			obstacles.append(heap)
+	for circle in _heap_circles:
+		if circle.y > 0.0:
+			obstacles.append(circle)
+	for circle in _mound_circles:
+		if circle.y > 0.0:
+			obstacles.append(circle)
 	nav.setup(obstacles)
 
 

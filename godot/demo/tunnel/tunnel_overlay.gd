@@ -24,7 +24,7 @@ extends Node3D
 ## THE ROUTE BEING LAID is drawn twice, a node per view (demo_layers.gd): on the ground, and on the
 ## level's floor in the U view -- where a click there lands.
 ##
-## A MOUND also follows a mole at a digging job underground (widening, clearing, a chamber):
+## A MOUND also follows a mole at a digging job underground (widening, clearing; a room's dig is a piece's):
 ## `job_digger` names it per tunnel (tunnel_works.gd sets it every frame; -1 for none).
 ##
 ## BUILT WHEN FIRST NEEDED, REBUILT RARELY. A segment's nodes are built the first time its slot holds a
@@ -460,10 +460,11 @@ func ribbon(slot: int) -> MeshInstance3D:
 
 
 func mesh_key(slot: int) -> int:
-	"""What a segment's ribbon and bore were last built for (see BUILT WHEN FIRST NEEDED; -1: hidden).
-	Nothing about the view: a view switch rebuilds nothing (decision 0206)."""
+	"""What a segment's ribbon and bore were last built for (see BUILT WHEN FIRST NEEDED; -1: hidden -- a room's
+	own segments too: room_view.gd draws the room). Nothing about the view: a view switch rebuilds nothing
+	(decision 0206)."""
 	var phase := _network.phase[slot]
-	if phase == GraphScript.PHASE_FREE:
+	if phase == GraphScript.PHASE_FREE or _network.seg_kind[slot] == GraphScript.SEG_ROOM:
 		return -1
 	var broken := 2 if _network.done(slot) > 0 else 0
 	var base := int(phase) * KEY_PHASE + floori(dug_m(slot) / BORE_STEP_M) * 4 + broken
@@ -621,7 +622,7 @@ func _sync_mouth(m: int) -> void:
 		return
 	var ramp := _network.mouth_ramp(m)
 	var key := int(_network.phase[ramp]) * KEY_PHASE + _network.done(ramp) + 7 * _network.heaped_milli(m) \
-			+ 13 * _network.mouth_gen[m] + 101 * int(_network.bore[ramp])
+			+ 13 * _network.mouth_gen[m] + 101 * int(_network.bore[ramp]) + 3 * (1 if door_built(m) else 0)
 	if key == _mouth_key[m]:
 		return
 	_mouth_key[m] = key
@@ -634,7 +635,7 @@ func _show_mouth(m: int, ramp: int) -> void:
 	goes under, `opened` of that while its entry shaft is dug, and its gateway once it is; larger for a
 	widened bore."""
 	var node := _holes[m]
-	node.visible = _network.mouth_opened(m)
+	node.visible = _network.mouth_opened(m) and not door_built(m)
 	var opened := 1.0
 	if not _network.mouth_end_at_b(ramp) and _network.stage(ramp) == Rules.STAGE_ENTRANCE:
 		opened = clampf(float(_network.done(ramp)) / float(Rules.SHAFT_QUANTA * Rules.TICKS_PER_QUANTUM), 0.3, 1.0)
@@ -648,6 +649,13 @@ func _show_mouth(m: int, ramp: int) -> void:
 	var gateway := node.get_child(MOUTH_GATEWAY) as Node3D
 	gateway.visible = opened >= 1.0
 	gateway.scale = Vector3.ONE * wide
+
+
+func door_built(m: int) -> bool:
+	"""Whether mouth row `m` is a room's door or hatch whose room is dug: room_view.gd draws its door (or hatch)
+	there, not a tunnel's gateway (decision 0209). While the room is dug its ramp opens as a tunnel's does."""
+	var r: int = _network.node_room[_network.mouth_node[m]]
+	return _network.mouth_kind[m] != GraphScript.MOUTH_TUNNEL and r >= 0 and _network.rooms.is_done(_network, r)
 
 
 func mouth_open_m(m: int) -> float:

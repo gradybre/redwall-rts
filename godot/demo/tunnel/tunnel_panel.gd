@@ -13,7 +13,8 @@ extends CanvasLayer
 ##
 ## WHAT IT SHOWS: the weather and what it does to walking; the demo stores (the HUD's Wood and Stone
 ## are the simulation's, and the demo never spends them); the demo's burrow homes, their beds and
-## root cellars (the HUD's Beds counter is the simulation's); the finds tally; the selected tunnel,
+## root cellars (the HUD's Beds counter is the simulation's; the rooms are placed with the Dig tool's
+## room tool, decision 0209, not from here); the finds tally; the selected tunnel,
 ## its state and the jobs that can be ordered on it; and the last few things said. Its buttons emit
 ## `action` with a name (ACTION_*); nothing here decides anything.
 ##
@@ -34,17 +35,16 @@ const ACTION_WIDEN: StringName = &"widen"
 const ACTION_BRACE: StringName = &"brace"
 const ACTION_LANTERNS: StringName = &"lanterns"
 const ACTION_REPAIR: StringName = &"repair"
-const ACTION_HOME: StringName = &"home"
-const ACTION_CELLAR: StringName = &"cellar"
 const ACTION_EVENT: StringName = &"event"
 const BUTTON_TEXT: Dictionary = {
 	&"next_weather": "Next weather (demo)", &"widen": "Widen", &"brace": "Brace",
-	&"lanterns": "Hang lanterns", &"repair": "Repair", &"home": "Burrow home",
-	&"cellar": "Root cellar", &"event": "Test event (demo)",
+	&"lanterns": "Hang lanterns", &"repair": "Repair", &"event": "Test event (demo)",
 }
-const TUNNEL_ACTIONS: Array[StringName] = [&"widen", &"brace", &"lanterns", &"repair", &"home", &"cellar"]
+const TUNNEL_ACTIONS: Array[StringName] = [&"widen", &"brace", &"lanterns", &"repair"]
 const NO_TUNNEL: String = "Click a finished tunnel's mouth or route to select it."
 const PLANNING: String = "Laying a tunnel"
+## The heading while the room tool is out, with the template's name ("Placing a burrow home").
+const PLACING_ROOM: String = "Placing a %s"
 ## The HUD surface this panel yields to (see PLACEMENT).
 const DETAIL_NAME: String = "UI-SET-036"
 const FRAME_EXPAND: float = 10.0

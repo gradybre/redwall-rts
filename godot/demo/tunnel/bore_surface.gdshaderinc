@@ -6,10 +6,15 @@
 //   * DAMP: dug on game day UV2.x, dark and glossy, paling to dry earth over `dry_days`;
 //   * its state from COLOR: flooded (R) a wet blue-grey, a fall (G) dark rubble;
 //   * a faint emission floor, so an unlit bore reads as dark earth, never black;
-//   * THE CUTAWAY: nothing above the section plane (`cut_y`) is drawn.
+//   * THE CUTAWAY: nothing above the section plane (`cut_y`) is drawn;
+//   * a room's STONE LINING (COLOR.b, decision 0209: a root cellar's walls and floor): cool grey-blue blocks
+//     in world space, courses on the walls and flags on the floor.
 // THE JOIN (P2): a hub is a lathe of the bores' own horseshoe round its junction (bore_view.gd HUBS). A bore
 // drops what lies inside a hub it ends at (`in_hub`), and a hub drops the wall where a bore opens into it
 // (`in_opening`) -- one shape test on each side of one surface, so the two meet with no seam and no gap.
+// A ROOM (P3, decision 0209) cuts a bore that joins it at a socket or its door with a PLANE through the wall
+// there (a hub with a negative radius: x, z the socket, w the angle into the room): its walls bow out past the
+// floor, and a plane at the floor's edge meets the room's opening, whose sides are the bore's own profile.
 
 #include "res://demo/tunnel/underground_earth.gdshaderinc"
 
@@ -25,6 +30,8 @@ uniform vec3 stone_colour : source_color = vec3(0.43, 0.41, 0.37);
 uniform vec3 water_colour : source_color = vec3(0.17, 0.22, 0.25);
 uniform vec3 rubble_colour : source_color = vec3(0.13, 0.1, 0.075);
 uniform float emission_floor = 0.04;
+uniform vec3 lining_colour : source_color = vec3(0.45, 0.49, 0.53);
+uniform vec3 mortar_colour : source_color = vec3(0.24, 0.25, 0.26);
 // The level's floor (hubs stand on it) and the horseshoe's shape (bore_mesh.gd BULGE, SPRING_SHARE).
 uniform float level_floor_y = -1.25;
 uniform float bulge = 1.1;
@@ -49,7 +56,10 @@ const float FLOOR_SLACK_M = 0.02;
 // bore's floor jittered a few millimetres BELOW the level's floor counts as on it -- otherwise those patches
 // of the bore's floor would stay drawn through the hub's floor, showing as triangles of another shade.
 bool in_hub(vec4 hub, vec3 p) {
-	if (hub.z <= 0.0) {
+	if (hub.z < 0.0) {
+		return dot(p.xz - hub.xy, vec2(cos(hub.w), sin(hub.w))) > 0.0;
+	}
+	if (hub.z == 0.0) {
 		return false;
 	}
 	float up = p.y - level_floor_y;
@@ -84,6 +94,17 @@ vec3 floor_colour(vec3 earth, float across, float grain_value) {
 	return mix(packed, path_colour, worn * 0.6) * mix(0.9, 1.06, grain_value);
 }
 
+// A stone lining at a fragment (see the header): courses of blocks along a wall (a room's walls stand on the
+// world's axes or round it), flags on a floor, each block's shade from the grain, the mortar dark.
+vec3 stone_lining(vec3 p, float wall, float grain_value) {
+	vec2 q = wall > 0.5 ? vec2(p.x + p.z, p.y) : p.xz;
+	vec2 size = wall > 0.5 ? vec2(0.46, 0.27) : vec2(0.62, 0.48);
+	float row = floor(q.y / size.y);
+	vec2 cell = fract(vec2(q.x / size.x + 0.5 * mod(row, 2.0), q.y / size.y));
+	float mortar = 1.0 - step(0.06, cell.x) * step(0.08, cell.y);
+	return mix(lining_colour * mix(0.78, 1.1, grain_value), mortar_colour, mortar);
+}
+
 // The surface's colour, roughness and emission at a fragment (see the header).
 void bore_shade(vec3 p, vec3 n, vec2 uv, vec2 uv2, vec4 state, out vec3 albedo, out float rough, out vec3 emission) {
 	float grain_value = triplanar(grain, p, n, grain_scale);
@@ -97,6 +118,8 @@ void bore_shade(vec3 p, vec3 n, vec2 uv, vec2 uv2, vec4 state, out vec3 albedo, 
 	float dry = clamp((now_days - uv2.x) / dry_days, 0.0, 1.0);
 	colour *= mix(0.58, 1.0, dry);
 	rough = mix(0.62, 0.96, dry);
+	colour = mix(colour, stone_lining(p, wall, grain_value), state.b);
+	rough = mix(rough, 0.82, state.b);
 	colour = mix(colour, water_colour, state.r * 0.7);
 	colour = mix(colour, rubble_colour * mix(0.7, 1.3, grain_value), state.g);
 	rough = mix(mix(rough, 0.3, state.r), 0.85, stone * wall);

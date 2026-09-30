@@ -43,7 +43,7 @@ const SIZES: Dictionary = {
 	&"mole_pick": [RULE_LONGEST, 0.55], &"tunnel_rubble": [RULE_LONGEST, 1.6],
 	# The brace is fitted to each bore (tunnel_marks.gd); this is only its standalone size.
 	&"tunnel_brace": [RULE_HEIGHT, 0.9],
-	# Lanterns hung at a mole's head height; chamber furniture at mole scale (a 0.9 m mole).
+	# Lanterns hung at a mole's head height; room furniture at mole scale (a 0.9 m mole).
 	&"wall_lantern": [RULE_HEIGHT, 0.36], &"bed": [RULE_LONGEST, 1.25], &"basket": [RULE_HEIGHT, 0.34],
 	&"clay_jars": [RULE_HEIGHT, 0.55], &"pantry_shelf": [RULE_HEIGHT, 1.35],
 	# Farm tools lying by the beds and an axe at the woodpile, mouse-sized (a 1.00 m mouse).

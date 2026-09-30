@@ -50,6 +50,16 @@ extends RefCounted
 ## THE JOB LIST. Pieces wait in the order they were laid; a digger works one piece at a time, segment by
 ## segment, and `next_dig_for` says what it takes up next.
 ##
+## ROOMS (decision 0209, the revamp's P3): a burrow home or root cellar is its own structure on the graph,
+## held in `rooms` (demo/burrow/underground_rooms.gd) and laid by `add_room` as ONE PIECE: a MOUTH of kind
+## DOOR or HATCH on the surface and its RAMP down to the DOOR node in the room's wall; the BODY, a ROOM
+## segment from the door node to the room's MIDDLE node, whose timeline is the room's own quanta cell by cell
+## (`quantum_point_u`); and a WALK, a ROOM segment from the middle to each SOCKET node in its wall, opened with
+## the body -- never dug, and not counted in the piece's ticks. Room segments are BORE_ROOM (everybeast fits
+## and stands upright in them), the ramp WIDE (the badger comes in by the front door). A passage joins a room
+## only at a free socket (tunnel_plan.gd). A room piece dropped before any ground was broken frees its room
+## row; a socket a passage still reaches stays as a plain junction.
+##
 ## FIT and PLANNING are the old network's, per segment: each resident's body is recorded once (`set_body`),
 ## fit is judged against a segment's bore class and a load's width, and `plan` asks the router
 ## (tunnel_router.gd) with every usable mouth nobody stands on, costed through the paths (graph_paths.gd:
@@ -58,6 +68,7 @@ const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const RouterScript := preload("res://demo/tunnel/tunnel_router.gd")
 const PathsScript := preload("res://demo/tunnel/graph_paths.gd")
 const SpecScript := preload("res://demo/tunnel/piece_spec.gd")
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const CastNavScript := preload("res://demo/cast/cast_nav.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const QueueScript := preload("res://demo/tunnel/tunnel_queue.gd")
@@ -67,8 +78,18 @@ const NODE_FREE: int = 0
 const NODE_MOUTH: int = 1
 const NODE_JUNCTION: int = 2
 const NODE_RAMP_END: int = 3
+## A room's (decision 0209): its middle, a socket in its wall, and its door ramp's foot in its wall.
+const NODE_ROOM: int = 4
+const NODE_SOCKET: int = 5
+const NODE_DOOR: int = 6
 const SEG_BORE: int = 0
 const SEG_RAMP: int = 1
+## A walk inside a room: its door's foot or a socket to its middle (decision 0209).
+const SEG_ROOM: int = 2
+## A mouth's kind (design §3 "surface kind"): a tunnel's ramp, a home's front door, a cellar's hatch.
+const MOUTH_TUNNEL: int = 0
+const MOUTH_DOOR: int = 1
+const MOUTH_HATCH: int = 2
 
 const PHASE_FREE: int = 0
 const PHASE_DIGGING: int = 1
@@ -111,6 +132,8 @@ var node_z_u: PackedInt32Array = PackedInt32Array()
 var node_seg: PackedInt32Array = PackedInt32Array()
 ## The mouth row of a MOUTH node (-1 otherwise).
 var node_mouth: PackedInt32Array = PackedInt32Array()
+## The room row of a room's MIDDLE, SOCKET, DOOR or MOUTH node (-1 otherwise).
+var node_room: PackedInt32Array = PackedInt32Array()
 
 # --- segments -------------------------------------------------------------------------------
 var phase: PackedByteArray = PackedByteArray()
@@ -123,6 +146,8 @@ var piece: PackedInt32Array = PackedInt32Array()
 var piece_rank: PackedInt32Array = PackedInt32Array()
 ## The mouth row a segment's entry shaft and bore spoil at.
 var spoil_mouth: PackedInt32Array = PackedInt32Array()
+## The room row a room's ramp, body or walk belongs to (-1: a tunnel's).
+var seg_room: PackedInt32Array = PackedInt32Array()
 var digger: PackedInt32Array = PackedInt32Array()
 var point_count: PackedInt32Array = PackedInt32Array()
 ## (x, z) pairs in u, Rules.MAX_POINTS per segment.
@@ -157,6 +182,8 @@ var posted_out: PackedInt64Array = PackedInt64Array()
 ## placed) and way out (the heap's side), and all the spoil posted there (milli-U).
 var mouth_node: PackedInt32Array = PackedInt32Array()
 var mouth_gen: PackedInt32Array = PackedInt32Array()
+## MOUTH_TUNNEL, MOUTH_DOOR or MOUTH_HATCH.
+var mouth_kind: PackedByteArray = PackedByteArray()
 var heap_at: PackedVector2Array = PackedVector2Array()
 var heap_radius_m: PackedFloat32Array = PackedFloat32Array()
 var heap_dir: PackedVector2Array = PackedVector2Array()
@@ -169,6 +196,8 @@ var piece_gen: PackedInt32Array = PackedInt32Array()
 var piece_order: PackedInt32Array = PackedInt32Array()
 var piece_digger: PackedInt32Array = PackedInt32Array()
 var piece_mouth: PackedInt32Array = PackedInt32Array()
+## The room row a room's piece lays (-1: a tunnel).
+var piece_room: PackedInt32Array = PackedInt32Array()
 
 # --- residents ------------------------------------------------------------------------------
 ## Per resident index: 1 when its body fits a standard bore; its height and radius in u (0: unknown).
@@ -189,6 +218,8 @@ var router: RouterScript = RouterScript.new()
 var paths: PathsScript = PathsScript.new()
 var queue: QueueScript = QueueScript.new()
 var ground: GroundScript = null
+## The rooms (see ROOMS).
+var rooms: RoomsScript = RoomsScript.new()
 
 var _q_kind: PackedByteArray = PackedByteArray()
 var _q_end: PackedInt32Array = PackedInt32Array()
@@ -224,6 +255,8 @@ func _size_nodes() -> void:
 	node_seg.fill(-1)
 	node_mouth.resize(Rules.MAX_NODES)
 	node_mouth.fill(-1)
+	node_room.resize(Rules.MAX_NODES)
+	node_room.fill(-1)
 
 
 func _size_segment_bytes() -> void:
@@ -235,9 +268,10 @@ func _size_segment_bytes() -> void:
 func _size_segment_ints() -> void:
 	"""Size the per-segment integer columns."""
 	for column: PackedInt32Array in [generation, node_a, node_b, piece, piece_rank, spoil_mouth, digger,
-			point_count, length_u, cost_u, quanta, rate_permille, closed_from_u, closed_to_u]:
+			point_count, length_u, cost_u, quanta, rate_permille, closed_from_u, closed_to_u, seg_room]:
 		column.resize(Rules.MAX_SEGMENTS)
 	digger.fill(-1)
+	seg_room.fill(-1)
 	rate_permille.fill(Rules.PERMILLE)
 	for column: PackedInt64Array in [dig_usec, dig_rem, extra_spoil, posted_in, posted_out]:
 		column.resize(Rules.MAX_SEGMENTS)
@@ -248,6 +282,7 @@ func _size_mouths() -> void:
 	mouth_node.resize(Rules.MAX_MOUTHS)
 	mouth_node.fill(-1)
 	mouth_gen.resize(Rules.MAX_MOUTHS)
+	mouth_kind.resize(Rules.MAX_MOUTHS)
 	heap_at.resize(Rules.MAX_MOUTHS)
 	heap_radius_m.resize(Rules.MAX_MOUTHS)
 	heap_dir.resize(Rules.MAX_MOUTHS)
@@ -257,9 +292,10 @@ func _size_mouths() -> void:
 func _size_pieces() -> void:
 	"""Size the piece columns."""
 	piece_live.resize(Rules.MAX_PIECES)
-	for column: PackedInt32Array in [piece_gen, piece_order, piece_digger, piece_mouth]:
+	for column: PackedInt32Array in [piece_gen, piece_order, piece_digger, piece_mouth, piece_room]:
 		column.resize(Rules.MAX_PIECES)
 	piece_digger.fill(-1)
+	piece_room.fill(-1)
 
 
 func set_ground(value: GroundScript) -> void:
@@ -398,6 +434,7 @@ func _free_node(node: int) -> void:
 		mouth_spoil[m] = 0
 		node_mouth[node] = -1
 	node_kind[node] = NODE_FREE
+	node_room[node] = -1
 	node_gen[node] += 1
 
 
@@ -425,6 +462,7 @@ func _new_mouth(node: int) -> void:
 	var m := mouth_node.find(-1)
 	mouth_node[m] = node
 	node_mouth[node] = m
+	mouth_kind[m] = MOUTH_TUNNEL
 	heap_radius_m[m] = 0.0
 	heap_at[m] = Vector2.ZERO
 	heap_dir[m] = Vector2.ZERO
@@ -589,6 +627,7 @@ func _new_piece(digger_index: int) -> int:
 	var p := piece_live.find(0)
 	piece_live[p] = 1
 	piece_digger[p] = digger_index
+	piece_room[p] = -1
 	piece_order[p] = _piece_count
 	_piece_count += 1
 	return p
@@ -666,6 +705,7 @@ func _new_segment(kind: int, a: int, b: int, p: int, rank: int) -> int:
 	piece[slot] = p
 	piece_rank[slot] = rank
 	spoil_mouth[slot] = piece_mouth[p] if p >= 0 else -1
+	seg_room[slot] = piece_room[p] if p >= 0 else -1
 	phase[slot] = PHASE_PLANNED
 	digger[slot] = -1
 	pause_reason[slot] = 0
@@ -815,6 +855,7 @@ func _copy_state(from: int, to: int) -> void:
 	piece[to] = piece[from]
 	piece_rank[to] = piece_rank[from]
 	spoil_mouth[to] = spoil_mouth[from]
+	seg_room[to] = seg_room[from]
 	digger[to] = -1
 	pause_reason[to] = 0
 	rate_permille[to] = Rules.PERMILLE
@@ -925,7 +966,7 @@ func piece_ticks_into(p: int, out: PackedInt32Array) -> void:
 	out[0] = 0
 	out[1] = 0
 	for slot in Rules.MAX_SEGMENTS:
-		if phase[slot] != PHASE_FREE and piece[slot] == p:
+		if phase[slot] != PHASE_FREE and piece[slot] == p and not is_room_walk(slot):
 			out[0] += done(slot)
 			out[1] += total_ticks(slot)
 
@@ -979,11 +1020,140 @@ func _drop_piece(p: int) -> void:
 		_detach(a, slot)
 		if b != a:
 			_detach(b, slot)
+	if piece_room[p] >= 0:
+		_forget_room(piece_room[p])
 	piece_live[p] = 0
 	piece_gen[p] += 1
 	piece_digger[p] = -1
+	piece_room[p] = -1
 	revision += 1
 	topology += 1
+
+
+# --- rooms (decision 0209) -----------------------------------------------------------------
+
+func has_rows_for_room(sockets: int) -> bool:
+	"""Whether the network has the rows a room with `sockets` sockets takes (see ROOMS): its mouth, door, middle
+	and socket nodes, its ramp, body and walks, a mouth row and a piece."""
+	return node_kind.count(NODE_FREE) >= 3 + sockets and phase.count(PHASE_FREE) >= 2 + sockets \
+			and mouth_node.count(-1) >= 1 and piece_live.count(0) >= 1
+
+
+func add_room(kind: int, at: Vector2i, quarter_turns: int, digger_index: int, out_ref: PackedInt32Array) -> bool:
+	"""Lay a room of template `kind` (underground_rooms.gd) centred at `at`, turned so, on the buildable level,
+	for `digger_index` to dig -- already checked by `rooms.refusal` -- as one PLANNED piece (see ROOMS). Writes
+	(room row, its generation, the piece, the ramp's slot, its generation) into out_ref[0..4]. False, nothing
+	stored, when the rooms or the network have no rows for it."""
+	if kind == RoomsScript.TEMPLATE_NONE or not rooms.has_free_row() \
+			or not has_rows_for_room(RoomsScript.socket_count(kind)):
+		return false
+	last_splits.clear()
+	var r := rooms.take(kind, at, quarter_turns, Rules.BUILDABLE_LEVEL)
+	var p := _new_piece(digger_index)
+	piece_room[p] = r
+	rooms.piece[r] = p
+	_room_nodes(r, kind)
+	piece_mouth[p] = rooms.mouth[r]
+	_room_segments(r, p)
+	out_ref[0] = r
+	out_ref[1] = rooms.generation[r]
+	out_ref[2] = p
+	out_ref[3] = rooms.ramp[r]
+	out_ref[4] = generation[rooms.ramp[r]]
+	revision += 1
+	topology += 1
+	return true
+
+
+func _room_nodes(r: int, kind: int) -> void:
+	"""Room `r`'s nodes: its mouth (a door or a hatch) on the surface, its door's foot, its middle and its
+	sockets, on its level."""
+	var hole := _new_node(NODE_MOUTH, rooms.mouth_u(r), Rules.LEVEL_SURFACE)
+	node_room[hole] = r
+	rooms.mouth[r] = node_mouth[hole]
+	mouth_kind[node_mouth[hole]] = MOUTH_DOOR if kind == RoomsScript.TEMPLATE_HOME else MOUTH_HATCH
+	rooms.door[r] = _room_node(r, NODE_DOOR, rooms.door_u(r))
+	rooms.middle[r] = _room_node(r, NODE_ROOM, rooms.centre(r))
+	for k in RoomsScript.socket_count(kind):
+		rooms.socket_node[r * RoomsScript.MAX_SOCKETS + k] = _room_node(r, NODE_SOCKET, rooms.socket_u(r, k))
+
+
+func _room_node(r: int, kind: int, at: Vector2i) -> int:
+	"""A node of `kind` at `at` belonging to room `r`, on its level."""
+	var node := _new_node(kind, at, rooms.level[r])
+	node_room[node] = r
+	return node
+
+
+func _room_segments(r: int, p: int) -> void:
+	"""Room `r`'s segments in piece `p`: its ramp (a wide bore; rank 0), its body (rank 1; the room's own
+	quanta, cell by cell) and a walk from its middle to each socket (rank 2)."""
+	rooms.ramp[r] = _room_segment(SEG_RAMP, mouth_node[rooms.mouth[r]], rooms.door[r], p, 0, Rules.BORE_WIDE)
+	var body: int = _room_segment(SEG_ROOM, rooms.door[r], rooms.middle[r], p, 1, Rules.BORE_ROOM)
+	rooms.body[r] = body
+	quanta[body] = RoomsScript.total_quanta(rooms.template[r])
+	_lay_timeline(body)
+	for k in RoomsScript.socket_count(rooms.template[r]):
+		rooms.walk[r * RoomsScript.MAX_SOCKETS + k] = _room_segment(SEG_ROOM, rooms.middle[r], rooms.socket_of(r, k), p, 2,
+			Rules.BORE_ROOM)
+
+
+func _room_segment(kind: int, a: int, b: int, p: int, rank: int, bore_class: int) -> int:
+	"""A straight PLANNED segment of `kind` from node `a` to node `b` in piece `p`, of `bore_class`."""
+	var slot := _new_segment(kind, a, b, p, rank)
+	_set_route(slot, PackedInt32Array([node_x_u[a], node_z_u[a], node_x_u[b], node_z_u[b]]))
+	_store(slot)
+	bore[slot] = bore_class
+	return slot
+
+
+func _open_walks(r: int) -> void:
+	"""Room `r`'s body is dug: its walks to its sockets open with it (they are the room's own floor)."""
+	for k in RoomsScript.socket_count(rooms.template[r]):
+		var w := rooms.walk_of(r, k)
+		dig_usec[w] = (total_ticks(w) * Rules.USEC_PER_SECOND + Rules.TICKS_PER_SECOND - 1) / Rules.TICKS_PER_SECOND
+		_set_phase(w, PHASE_OPEN, -1)
+	rooms.revision += 1
+
+
+func _forget_room(r: int) -> void:
+	"""Room `r`'s piece was dropped (no ground broken): a socket a passage still reaches stays as a plain
+	junction, and the room's row is freed."""
+	for k in RoomsScript.socket_count(rooms.template[r]):
+		var node := rooms.socket_of(r, k)
+		if is_node(node):
+			node_kind[node] = NODE_JUNCTION
+			node_room[node] = -1
+	rooms.release(r)
+
+
+func is_room_body(slot: int) -> bool:
+	"""Whether segment `slot` is a room's body (its dig is the room's own quanta)."""
+	return seg_room[slot] >= 0 and rooms.body[seg_room[slot]] == slot
+
+
+func is_room_walk(slot: int) -> bool:
+	"""Whether segment `slot` is a walk inside a room to a socket (opened with its body, never dug)."""
+	return seg_kind[slot] == SEG_ROOM and not is_room_body(slot)
+
+
+func is_tunnel(slot: int) -> bool:
+	"""Whether segment `slot` is a tunnel's (laid, and no room's ramp, body or walk)."""
+	return phase[slot] != PHASE_FREE and seg_room[slot] < 0
+
+
+func is_free_socket(node: int) -> bool:
+	"""Whether `node` is a room's socket no passage has joined yet (its walk its only segment)."""
+	return is_node(node) and node_kind[node] == NODE_SOCKET and degree(node) == 1
+
+
+func route_box(slot: int) -> Rect2i:
+	"""Segment `slot`'s route's bounding box (u; one unit larger, so a straight route has an area)."""
+	var base := 2 * slot * Rules.MAX_POINTS
+	var box := Rect2i(Vector2i(points_u[base], points_u[base + 1]), Vector2i.ONE)
+	for k in range(1, point_count[slot]):
+		box = box.expand(Vector2i(points_u[base + 2 * k], points_u[base + 2 * k + 1]))
+	return box.grow(1)
 
 
 # --- the dig timeline -----------------------------------------------------------------------
@@ -1032,7 +1202,10 @@ func quantum_along_u(slot: int, k: int) -> int:
 
 
 func quantum_point_u(slot: int, k: int) -> Vector2i:
-	"""Where quantum `k` of the timeline lies, (x, z) in u."""
+	"""Where quantum `k` of the timeline lies, (x, z) in u: along the route -- or, a room's body, in the room's
+	floor cell it cuts (see ROOMS)."""
+	if is_room_body(slot):
+		return rooms.cell_point_u(seg_room[slot], k)
 	return point_at_u(slot, quantum_along_u(slot, k))
 
 
@@ -1185,6 +1358,8 @@ func advance(slot: int, gen: int, usec: int) -> void:
 	_post_spoil(slot)
 	if done(slot) >= total_ticks(slot):
 		_set_phase(slot, PHASE_OPEN, -1)
+		if is_room_body(slot):
+			_open_walks(seg_room[slot])
 
 
 func _post_spoil(slot: int) -> void:
@@ -1497,7 +1672,7 @@ func plan(nav: CastNavScript, from: Vector2, to: Vector2, body: float, standing:
 	router.surface_permille = surface_permille
 	var key: int = revision
 	if use_tunnels:
-		_offer_mouths(body, standing, standing_count, walker_class(walker, loaded))
+		_offer_mouths(body, standing, standing_count, walker_class(walker, loaded), goal_node)
 	router.wade_cost = crossings.wade_extra_m if crossings != null else Callable()
 	if crossings != null:
 		crossings.offer_into(router, walker, from, to, loaded)
@@ -1505,15 +1680,28 @@ func plan(nav: CastNavScript, from: Vector2, to: Vector2, body: float, standing:
 	return router.plan(nav, from, to, body, standing, standing_count, key, out, legs, goal_node)
 
 
-func _offer_mouths(body: float, standing: PackedVector3Array, standing_count: int, fit_class: int) -> void:
-	"""Offer the router every usable mouth nobody stands on, with the paths for this walker's class."""
+func _offer_mouths(body: float, standing: PackedVector3Array, standing_count: int, fit_class: int, goal_node: int) -> void:
+	"""Offer the router every usable mouth nobody stands on that leads somewhere (`leads_on`), with the paths for
+	this walker's class."""
 	router.use_paths(self, fit_class)
 	if fit_class == PathsScript.CLASS_NONE:
 		return
 	for m in Rules.MAX_MOUTHS:
-		if mouth_usable(m) and paths.admits(self, mouth_ramp(m), fit_class) \
+		if mouth_usable(m) and paths.admits(self, mouth_ramp(m), fit_class) and leads_on(m, fit_class, goal_node) \
 				and not mouth_occupied(m, body, standing, standing_count):
 			router.add_mouth(m, mouth_at(m), queue.wait_m(m))
+
+
+func leads_on(m: int, fit_class: int, goal_node: int) -> bool:
+	"""Whether mouth `m` is a way anywhere for `fit_class`: another usable mouth, or `goal_node` (a trip's goal
+	underground), is reached from it through the network. A standalone room's door leads only into its room
+	(decision 0209): offered for a trip bound there, never as a way through -- the router need not weigh it."""
+	if goal_node >= 0 and paths.dist_u(self, fit_class, m, goal_node) < PathsScript.UNREACHED:
+		return true
+	for n in Rules.MAX_MOUTHS:
+		if n != m and mouth_usable(n) and paths.dist_u(self, fit_class, m, mouth_node[n]) < PathsScript.UNREACHED:
+			return true
+	return false
 
 
 # --- places along a piece (the crews, presentation) -----------------------------------------

@@ -48,6 +48,7 @@ extends Node3D
 const PickScript := preload("res://demo/control/demo_pick.gd")
 const MarksScript := preload("res://demo/control/demo_marks.gd")
 const PanelScript := preload("res://demo/control/demo_party_panel.gd")
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
@@ -155,6 +156,7 @@ func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null,
 	_tunnels.set_notice_about(say_about)
 	register_below(_tunnels.view.prewarm)
 	_panel.dig_requested.connect(_on_dig_requested)
+	_panel.room_requested.connect(_on_room_requested)
 	_tunnels.ext.set_hud(hud_root)
 
 
@@ -166,6 +168,12 @@ func set_world(world: DemoWorldScript) -> void:
 func _on_dig_requested() -> void:
 	"""The panel's "Dig tunnel" button: the same as B -- the Dig tool opened, or closed."""
 	_tunnels.toggle_plan()
+
+
+func _on_room_requested(kind: int) -> void:
+	"""The panel's "Burrow home" / "Root cellar" buttons: the Dig tool's room tool for that template (H / C in
+	the tool; decision 0209)."""
+	_tunnels.begin_room(kind)
 
 
 func tunnels() -> TunnelControlScript:
@@ -740,7 +748,7 @@ func party_entries() -> Array[Dictionary]:
 		if brain.poi >= 0:
 			place = String(space.poi_names[brain.poi]).replace("_", " ")
 		elif brain.order == BrainScript.ORDER_DIG:
-			place = "dig site"
+			place = _dig_place(brain)
 		var doing := doing_text(i)
 		var state := PanelScript.state_text(brain.activity(), brain.clip, place, _dug_percent(brain))
 		entries.append({"name": actor.display_name, "species": actor.species, "colour": actor.chip_colour,
@@ -760,6 +768,15 @@ func skills_text(actor_index: int) -> String:
 		if not said.is_empty():
 			parts.append(said)
 	return ("\n" if alone else " · ").join(parts)
+
+
+func _dig_place(brain: BrainScript) -> String:
+	"""Where a digger is digging, in words: its room's name ("Burrow home 1"; decision 0209), else the dig site."""
+	var network := _cast.space().tunnels
+	var r: int = network.seg_room[brain.dig_tunnel] if brain.dig_tunnel >= 0 else -1
+	if r < 0 or not network.rooms.is_room(r):
+		return PanelScript.DIG_SITE
+	return "%s %d" % [RoomsScript.NAMES[network.rooms.template[r]], r + 1]
 
 
 func _dug_percent(brain: BrainScript) -> int:

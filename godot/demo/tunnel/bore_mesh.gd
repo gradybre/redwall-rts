@@ -40,8 +40,9 @@ const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 
 const PROFILE_VERTS: int = 16
 const RING_STEP_M: float = 0.25
-## The floor's half-width per bore class (m), the walls' bow and where it is widest (share of the crown).
-const FLOOR_HALF_M: Array[float] = [0.5, 1.0]
+## The floor's half-width per bore class (m) -- standard, wide, and a room's own segments (decision 0209: never
+## swept; room_view.gd draws the room) -- the walls' bow and where it is widest (share of the crown).
+const FLOOR_HALF_M: Array[float] = [0.5, 1.0, 2.0]
 const BULGE: float = 1.1
 const SPRING_SHARE: float = 0.45
 ## The hand-dug roughness: along each wall vertex's normal, on the floor, and each ring's width.
@@ -308,15 +309,15 @@ func commit(mesh: ArrayMesh) -> int:
 	_arrays[Mesh.ARRAY_TEX_UV] = _uv
 	_arrays[Mesh.ARRAY_TEX_UV2] = _uv2
 	_arrays[Mesh.ARRAY_INDEX] = band
-	_fill_custom(_custom_a, _cut_a, _verts.size())
-	_fill_custom(_custom_b, _cut_b, _verts.size())
+	fill_custom(_custom_a, _cut_a, _verts.size())
+	fill_custom(_custom_b, _cut_b, _verts.size())
 	_arrays[Mesh.ARRAY_CUSTOM0] = _custom_a
 	_arrays[Mesh.ARRAY_CUSTOM1] = _custom_b
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, _arrays, [], {}, CUSTOM_FORMAT)
 	return _verts.size()
 
 
-static func _fill_custom(column: PackedFloat32Array, value: Vector4, count: int) -> void:
+static func fill_custom(column: PackedFloat32Array, value: Vector4, count: int) -> void:
 	"""A custom channel holding `value` at each of `count` vertices."""
 	column.resize(count * 4)
 	for i in count:
@@ -373,7 +374,7 @@ static func build_hub(mesh: ArrayMesh, centre: Vector3, floor_radius: float, cro
 	arrays[Mesh.ARRAY_TEX_UV2] = hub.uv2
 	arrays[Mesh.ARRAY_COLOR] = _plain_colours(hub.verts.size())
 	arrays[Mesh.ARRAY_INDEX] = hub.indices
-	_hub_custom(arrays, Vector3(centre.x, floor_radius, centre.z), crown, openings, hub.verts.size())
+	hub_custom(arrays, Vector3(centre.x, floor_radius, centre.z), crown, openings, hub.verts.size())
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays, [], {}, HUB_FORMAT)
 	return hub.verts.size()
 
@@ -407,7 +408,7 @@ static func _hub_wall(hub: HubArrays, centre: Vector3, floor_radius: float, crow
 	"""The hub's wall: every profile row round HUB_SECTORS angles (a seam column repeated to close it), its
 	normals inward, its triangles wound to face in."""
 	var rows := hub_rows()
-	var row_normals := _row_normals(rows, floor_radius, crown)
+	var row_normals := row_normals(rows, floor_radius, crown)
 	for r in rows.size():
 		for sector in HUB_SECTORS + 1:
 			var angle := TAU * float(sector) / float(HUB_SECTORS)
@@ -421,7 +422,7 @@ static func _hub_wall(hub: HubArrays, centre: Vector3, floor_radius: float, crow
 			hub.facing_tri(a + 1, a + HUB_SECTORS + 1, a + HUB_SECTORS + 2)
 
 
-static func _row_normals(rows: PackedVector2Array, floor_radius: float, crown: float) -> PackedVector2Array:
+static func row_normals(rows: PackedVector2Array, floor_radius: float, crown: float) -> PackedVector2Array:
 	"""Each wall row's inward normal in (out, up) at the hub's own size: its neighbours' chord, going up the
 	wall, turned a quarter toward the axis."""
 	var out := PackedVector2Array()
@@ -451,7 +452,7 @@ static func _plain_colours(count: int) -> PackedColorArray:
 	return out
 
 
-static func _hub_custom(arrays: Array, centre_radius: Vector3, crown: float, openings: PackedFloat32Array, count: int) -> void:
+static func hub_custom(arrays: Array, centre_radius: Vector3, crown: float, openings: PackedFloat32Array, count: int) -> void:
 	"""The hub's custom channels (see HUBS): centre and crown; the openings' angles, half-widths and crowns."""
 	var channels: Array[Vector4] = [Vector4(centre_radius.x, centre_radius.z, centre_radius.y, crown), Vector4.ZERO,
 		Vector4.ZERO, Vector4.ZERO]
@@ -460,7 +461,7 @@ static func _hub_custom(arrays: Array, centre_radius: Vector3, crown: float, ope
 			channels[1 + c][k] = openings[3 * k + c]
 	for c in 4:
 		var column := PackedFloat32Array()
-		_fill_custom(column, channels[c], count)
+		fill_custom(column, channels[c], count)
 		arrays[Mesh.ARRAY_CUSTOM0 + c] = column
 
 

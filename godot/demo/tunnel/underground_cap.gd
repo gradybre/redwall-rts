@@ -350,8 +350,14 @@ func _raise_rho(i: int, code: int, rise: int, crown: int) -> void:
 
 func stamp_rect(centre: Vector2, half_m: float) -> void:
 	"""Mark a square room's floor dug. Uploaded by `commit_void`."""
-	var lo: Vector2i = void_pixel(centre - Vector2(half_m, half_m))
-	var hi: Vector2i = void_pixel(centre + Vector2(half_m, half_m))
+	stamp_box(centre, Vector2(half_m, half_m))
+
+
+func stamp_box(centre: Vector2, half_m: Vector2) -> void:
+	"""Mark a room's floor dug over a box on the world's axes, `half_m` (x, z) either side of `centre` (a vault's
+	floor, decision 0209). Uploaded by `commit_void`."""
+	var lo: Vector2i = void_pixel(centre - half_m)
+	var hi: Vector2i = void_pixel(centre + half_m)
 	for y: int in range(maxi(lo.y, 0), mini(hi.y, _void_side)):
 		for x: int in range(maxi(lo.x, 0), mini(hi.x, _void_side)):
 			_void[(y * _void_side + x) * 4 + VOID_ROOM] = 255

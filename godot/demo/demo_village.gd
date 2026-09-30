@@ -13,8 +13,8 @@ extends Node3D
 ## world's walkable bounds and the demo camera; it reads input the HUD did not consume. Its tunnel
 ## tool (demo/tunnel/) also gets the world, whose footings and roots the underground view's cap shows.
 ##
-## TUNNEL WORKS (demo/tunnel/tunnel_ext.gd: hazards, upgrades, chambers, threats) show themselves in the
-## "Tunnels & burrows (demo)" panel; `chambers()` lists their chambers, whose root cellars are the
+## TUNNEL WORKS (demo/tunnel/tunnel_ext.gd: hazards, upgrades, rooms, threats) show themselves in the
+## "Tunnels & burrows (demo)" panel; `rooms()` lists the network's rooms (decision 0209), whose root cellars are the
 ## farm's pantry stores (see FARM).
 ##
 ## ONE OF EACH (demo_services.gd, made first and handed to the tunnel works and the farm):
@@ -52,7 +52,7 @@ extends Node3D
 ## FARM (demo/farm/): the six crop beds grow individual pantry ingredients by the settlement's own
 ## crop arithmetic, worked by the residents; the HUD's Food cell shows the pantry total and its Food
 ## command opens the Pantry. `_build_farm()` wires it; `storage_providers()` hands it the tunnels'
-## root cellars (demo/farm/farm_cellars.gd over burrow_chambers `cellars()`), so a harvest goes to the
+## root cellars (demo/farm/farm_cellars.gd over underground_rooms `cellars()`), so a harvest goes to the
 ## slowest-spoiling store with room, the nearest to its bed among equals -- see farm_storage.gd.
 ##
 ## WATER GAMEPLAY (demo/waterplay/, part A): wading, swimming, diving, rescue and bridges. The residents'
@@ -83,7 +83,8 @@ const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
 const WaterScript := preload("res://demo/village_water.gd")
-const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
+const RoomViewScript := preload("res://demo/burrow/room_view.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const HudDateScript := preload("res://demo/ui/demo_hud_date.gd")
 const NewsStripScript := preload("res://demo/ui/demo_news_strip.gd")
@@ -164,13 +165,16 @@ func _ready() -> void:
 
 func _warm_and_open() -> void:
 	"""Load now what would first load mid-game, and start the clock only once the first frames are drawn
-	(demo_prewarm.gd, decision 0205) -- and the underground view has been drawn once with a sample of
-	everything it can show (decision 0206)."""
+	(demo_prewarm.gd, decision 0205) -- the rooms' pieces on the ground sampled (decision 0209), and the
+	underground view drawn once with a sample of everything it can show (decision 0206)."""
 	add_child(_prewarm)
 	_prewarm.add_step("props and icons", _services.props.warm_all)
 	_prewarm.add_step("plant atlases", _farm.view.assets.ensure_all_loaded)
 	_prewarm.add_step("woods: stumps, saplings, splits", _forestry.view.prewarm)
 	var view: TunnelViewScript = (_command as DemoCommandScript).tunnels().view
+	var rooms: RoomViewScript = (_command as DemoCommandScript).tunnels().ext.room_view
+	_prewarm.add_frame_step("rooms on the ground", UndergroundPrewarmScript.FRAMES, rooms.begin_surface_prewarm,
+		rooms.end_surface_prewarm)
 	_prewarm.add_frame_step("underground view", UndergroundPrewarmScript.FRAMES, view.begin_prewarm, view.end_prewarm)
 	_prewarm.warm()
 	_prewarm.release_after_frames(_open_running)
@@ -224,7 +228,7 @@ func _build_farm(manifest: Dictionary) -> void:
 	add_child(_farm)
 	_farm.configure(manifest, _world as DemoWorldScript, _cast as DemoCastScript, _command as DemoCommandScript,
 		_camera.camera(), _shell(), storage_providers(), _services)
-	_farm.follow_chambers(chambers())
+	_farm.follow_rooms(rooms())
 	_command.tunnels().ext.set_weather_skip(_farm.skip_to_next_weather)
 	_command.tunnels().ext.events_view.set_flood_rise(_water.set_flood_rise)
 	_farm.add_overlay(WATER_OVERLAY_NAME, _water.set_overlay_shown)
@@ -335,10 +339,10 @@ func _shell() -> UiShell:
 
 func storage_providers() -> Array[Callable]:
 	"""Food stores beyond the covered store, for the farm's pantry (farm_storage.gd's provider API): the
-	tunnels' finished root cellars (demo/farm/farm_cellars.gd over burrow_chambers `cellars()`),
-	delivered at their tunnels' mouths."""
+	network's dug root cellars (demo/farm/farm_cellars.gd over underground_rooms `cellars()`), delivered at
+	their hatches."""
 	var network: GraphScript = (_command as DemoCommandScript).tunnels().network
-	var providers: Array[Callable] = [FarmCellars.provider(chambers(), network)]
+	var providers: Array[Callable] = [FarmCellars.provider(network)]
 	return providers
 
 
@@ -366,9 +370,9 @@ func weather() -> WeatherScript:
 	return _services.weather
 
 
-func chambers() -> ChambersScript:
-	"""The demo's chambers (demo/burrow/burrow_chambers.gd): `cellars()` for the root cellars' API."""
-	return _command.tunnels().ext.works.chambers
+func rooms() -> RoomsScript:
+	"""The network's rooms (demo/burrow/underground_rooms.gd): `cellars(graph)` for the root cellars' API."""
+	return _command.tunnels().network.rooms
 
 
 func _process(_delta: float) -> void:

@@ -3,11 +3,11 @@ extends Node3D
 ##
 ## Each storage location the pantry has (farm_storage.gd) gets a shelf (demo/props/store_shelf.gd):
 ## the covered store's stands outside it against its side wall -- the store is a closed barn, and its
-## front is its work spot -- facing the camera's usual side; a root cellar's stands at
-## the back of its room below ground, on the underground layer the U view draws (decision 0206: put
-## there when the cellar is stocked, never when the view switches). Each shows the store's fullness
-## as jars and its most-stocked goods on its boards. A cellar is found from its storage id
-## (farm_cellars.gd: "root_cellar:<slot>:<generation>") in the chambers it names.
+## front is its work spot -- facing the camera's usual side; a root cellar's stands in the cellar's first
+## shelf place below ground (decision 0209: underground_rooms.gd FIXTURES; room_view.gd leaves it for this),
+## on the underground layer the U view draws (decision 0206: put there when the cellar is stocked, never when
+## the view switches). Each shows the store's fullness as jars and its most-stocked goods on its boards. A
+## cellar is found from its storage id (farm_cellars.gd: "root_cellar:<slot>:<generation>") in the rooms.
 ##
 ## Refreshed at the panels' cadence (demo_farm.gd), not per frame: each shelf reads its location's
 ## load and the items there, into columns allocated once.
@@ -16,8 +16,8 @@ const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const GoodsScript := preload("res://demo/farm/farm_goods.gd")
 const ShelfScript := preload("res://demo/props/store_shelf.gd")
-const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
-const BurrowViewScript := preload("res://demo/burrow/burrow_view.gd")
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
+const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const Layout := preload("res://demo/world/world_layout.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const Layers := preload("res://demo/demo_layers.gd")
@@ -30,14 +30,13 @@ const STORE_ID: StringName = &"store"
 ## camera's usual side.
 const STORE_SHELF_LOCAL: Vector3 = Vector3(3.95, 0.0, 0.9)
 const STORE_SHELF_TURN: float = PI * 0.5
-## A cellar's shelf stands this far back from its room's centre, on its floor.
-const CELLAR_SHELF_BACK_M: float = 1.05
+## A cellar's shelf stands this far over its floor.
 const CELLAR_FLOOR_LIFT_M: float = 0.04
 const CELLAR_PREFIX: String = "root_cellar:"
 
 var _pantry: PantryScript = null
 var _goods: GoodsScript = null
-var _chambers: ChambersScript = null
+var _rooms: RoomsScript = null
 var _shelves: Array[ShelfScript] = []
 ## Per shelf, the layer it was last put on (0: not yet).
 var _shelf_layer: PackedInt32Array = PackedInt32Array()
@@ -56,9 +55,9 @@ func configure(pantry: PantryScript, goods: GoodsScript) -> void:
 	_shelf(0).transform = store_shelf_transform()
 
 
-func follow_chambers(chambers: ChambersScript) -> void:
-	"""Find root cellars' rooms in these chambers."""
-	_chambers = chambers
+func follow_rooms(rooms: RoomsScript) -> void:
+	"""Find root cellars in these rooms."""
+	_rooms = rooms
 
 
 func register(prewarm: PrewarmScript) -> void:
@@ -114,16 +113,29 @@ func _place(shelf: ShelfScript, location: int, storage: StorageScript) -> bool:
 	if location == 0:
 		return true
 	var id: String = String(storage.id_of(location))
-	if _chambers == null or not id.begins_with(CELLAR_PREFIX):
+	if _rooms == null or not id.begins_with(CELLAR_PREFIX):
 		return false
 	var parts: PackedStringArray = id.trim_prefix(CELLAR_PREFIX).split(":")
 	var slot: int = int(parts[0])
-	if slot < 0 or slot >= ChambersScript.MAX_CHAMBERS or _chambers.generation[slot] != int(parts[1]):
+	if not _rooms.is_ref(slot, int(parts[1])):
 		return false
-	var centre: Vector2 = _chambers.centre_m(slot)
-	shelf.position = Vector3(centre.x, BurrowViewScript.ROOM_FLOOR_Y_M + CELLAR_FLOOR_LIFT_M,
-		centre.y - CELLAR_SHELF_BACK_M)
+	shelf.transform = cellar_shelf_transform(_rooms, slot)
 	return true
+
+
+static func cellar_shelf_transform(rooms: RoomsScript, r: int) -> Transform3D:
+	"""Where the pantry's shelf stands in cellar `r`: its first shelf place, on its floor, facing into the
+	cellar (underground_rooms.gd FIXTURES)."""
+	var kind: int = rooms.template[r]
+	for f in RoomsScript.fixture_count(kind):
+		if RoomsScript.fixture_field(kind, f, 0) != RoomsScript.FIX_SHELF:
+			continue
+		var at := rooms.to_world_u(r, Vector2i(RoomsScript.fixture_field(kind, f, 1), RoomsScript.fixture_field(kind, f, 2)))
+		var face := RoomsScript.rotate_u(Vector2i(RoomsScript.fixture_field(kind, f, 3), RoomsScript.fixture_field(kind, f, 4)), rooms.turns[r])
+		return Transform3D(Basis(Vector3.UP, atan2(float(face.x), float(face.y))),
+			Vector3(Rules.to_m(at.x), Layers.FLOOR_Y_M + CELLAR_FLOOR_LIFT_M, Rules.to_m(at.y)))
+	var middle := rooms.centre_m(r)
+	return Transform3D(Basis.IDENTITY, Vector3(middle.x, Layers.FLOOR_Y_M, middle.y))
 
 
 func _layer(location: int, layer: int) -> void:

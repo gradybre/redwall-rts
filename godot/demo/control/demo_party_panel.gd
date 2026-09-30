@@ -21,7 +21,8 @@ extends CanvasLayer
 ##
 ## TUNNELS (demo/tunnel/). With a digger in the party -- anybeast who fits a bore (decision 0208) -- a "Dig
 ## tunnel" button shows (emits `dig_requested`, the same as B: it opens the Dig tool, and pressed while it is
-## open, closes it); it never takes focus, so Enter while laying a piece digs rather than pressing it again. A NOTICE line under the party carries the tunnel tool's prompts, lengths
+## open, closes it), and beside it "Burrow home (H)" and "Root cellar (C)" (emit `room_requested` with the
+## room's template: the Dig tool's room tools, decision 0209); none takes focus, so Enter while laying a piece digs rather than pressing it again. A NOTICE line under the party carries the tunnel tool's prompts, lengths
 ## and refusals. The wood button's cream text and the notice's ink are checked for contrast
 ## (test_demo_tunnel.gd).
 ##
@@ -35,15 +36,26 @@ const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 
 signal dig_requested
+signal room_requested(kind: int)
 
 const TITLE: String = "Demo party"
 const HINT: String = "Click or drag: select · Shift: add · Right-click: move / work · R: release · Esc: clear · B: dig tool · U: underground"
 const DIG_BUTTON: String = "Dig tunnel (B)"
 ## The Dig button's hover tip (decision 0205: every action button says what it does and its key).
 const DIG_TIP: String = "Dig tunnel (B) — the Dig tool: drag a tunnel from where it starts to where it ends (start on a tunnel to branch off it), or click its points and press Enter; Esc drops it, B closes the tool"
+## The room tools' buttons (decision 0209): text, tip, and the template each asks for (underground_rooms.gd).
+const ROOM_BUTTONS: Array[String] = ["Burrow home (H)", "Root cellar (C)"]
+const ROOM_TIPS: Array[String] = [
+	"Burrow home (H) — a round home with its own front door, dug beside the tunnels: move it, R turns it, click to dig it with a passage to the nearest tunnel (Shift+click: none)",
+	"Root cellar (C) — a stone-lined cellar with a hatch, where the pantry stores harvests: move it, R turns it, click to dig it with a passage to the nearest tunnel (Shift+click: none)"]
+const ROOM_TEMPLATES: Array[int] = [RoomsScript.TEMPLATE_HOME, RoomsScript.TEMPLATE_CELLAR]
 const DIGGING: String = "Digging tunnel — %d%%"
+## A room being dug names itself (decision 0209), e.g. "Digging Burrow home 1 — 43%".
+const DIGGING_ROOM: String = "Digging %s — %d%%"
+const DIG_SITE: String = "dig site"
 const IN_TUNNEL: String = "Using tunnel"
 ## The tunnel extensions' states (demo/tunnel/): hauling a load below, waiting in a mouth's line.
 const HAULING: String = "Hauling through tunnel"
@@ -83,6 +95,7 @@ var _abilities_compact: String = ""
 var _skill_rows: Array[Control] = []
 var _hint: Label = null
 var _dig: Button = null
+var _room_row: HFlowContainer = null
 var _pending_notice: String = ""
 var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
@@ -140,6 +153,8 @@ func _build() -> void:
 	column.add_child(_notice)
 	_dig = _build_dig_button()
 	column.add_child(_dig)
+	_room_row = _build_room_row()
+	column.add_child(_room_row)
 	_hint = _label(HINT, HINT_PX, Palette.UMBER, null)
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(_hint)
@@ -147,11 +162,32 @@ func _build() -> void:
 
 func _build_dig_button() -> Button:
 	"""The wood "Dig tunnel" button: cream on wood, brass when pressed; never takes focus."""
-	var button := Button.new()
-	button.text = DIG_BUTTON
-	button.tooltip_text = DIG_TIP
-	button.focus_mode = Control.FOCUS_NONE
+	var button := _wood_button(DIG_BUTTON, DIG_TIP, func() -> void: dig_requested.emit())
 	button.visible = false
+	return button
+
+
+func _build_room_row() -> HFlowContainer:
+	"""The room tools' wood buttons in a row, hidden until a digger is in the party."""
+	var row := HFlowContainer.new()
+	row.add_theme_constant_override(&"h_separation", 6)
+	row.visible = false
+	for k in ROOM_BUTTONS.size():
+		row.add_child(_wood_button(ROOM_BUTTONS[k], ROOM_TIPS[k], room_requested.emit.bind(ROOM_TEMPLATES[k])))
+	return row
+
+
+func room_button(k: int) -> Button:
+	"""The room tool's button `k` (0 Burrow home, 1 Root cellar; null before build)."""
+	return _room_row.get_child(k) as Button if _room_row != null else null
+
+
+func _wood_button(text: String, tip: String, pressed: Callable) -> Button:
+	"""A wood button: cream on wood, brass when pressed; never takes focus."""
+	var button := Button.new()
+	button.text = text
+	button.tooltip_text = tip
+	button.focus_mode = Control.FOCUS_NONE
 	button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	button.add_theme_font_size_override(&"font_size", BODY_PX)
 	button.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, BUTTON_MARGINS))
@@ -160,7 +196,7 @@ func _build_dig_button() -> Button:
 	for item: StringName in [&"font_color", &"font_hover_color"]:
 		button.add_theme_color_override(item, Palette.text_on(Palette.SURFACE_WOOD))
 	button.add_theme_color_override(&"font_pressed_color", Palette.text_on(Palette.SURFACE_BRASS))
-	button.pressed.connect(func() -> void: dig_requested.emit())
+	button.pressed.connect(pressed)
 	return button
 
 
@@ -181,6 +217,7 @@ func show_party(entries: Array[Dictionary]) -> void:
 	"""Show these residents: [{"name", "species", "state", "colour", "skills", "then", "abilities"}]."""
 	_fill_rows(entries)
 	_dig.visible = has_digger(entries)
+	_room_row.visible = _dig.visible
 	var abilities: PackedStringArray = entries[0].get("abilities", PackedStringArray()) if entries.size() == 1 \
 			else PackedStringArray()
 	_abilities_full = "\n".join(abilities)
@@ -405,10 +442,10 @@ static func party_lines(entries: Array[Dictionary]) -> PackedStringArray:
 
 static func state_text(activity: int, clip: StringName, place: String, dug_percent: int = 0) -> String:
 	"""What a resident is doing, in words: wandering / walking to X / working: collect / holding /
-	Digging tunnel — 43% (with `dug_percent`) / Using tunnel / Hauling through tunnel / Waiting at a
-	tunnel mouth / a task's own words (`place`)."""
+	Digging tunnel — 43% (with `dug_percent`; a room's `place` names it: Digging Burrow home 1 — 43%) / Using
+	tunnel / Hauling through tunnel / Waiting at a tunnel mouth / a task's own words (`place`)."""
 	if activity == BrainScript.ACTIVITY_DIGGING:
-		return DIGGING % dug_percent
+		return DIGGING % dug_percent if place.is_empty() or place == DIG_SITE else DIGGING_ROOM % [place, dug_percent]
 	if activity == BrainScript.ACTIVITY_TASK:
 		return place
 	if activity == BrainScript.ACTIVITY_QUEUE:

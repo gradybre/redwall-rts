@@ -19,7 +19,9 @@ const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
 const ForestryScript := preload("res://demo/forestry/demo_forestry.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
-const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
+const RoomPlanScript := preload("res://demo/burrow/room_plan.gd")
+const RoomViewScript := preload("res://demo/burrow/room_view.gd")
 const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const ViewScript := preload("res://demo/tunnel/tunnel_view.gd")
@@ -77,9 +79,9 @@ func _village() -> Dictionary:
 	command.configure(cast, camera, null, services)
 	command.set_world(world)
 	var farm: DemoFarmScript = _keep(DemoFarmScript.new())
-	var providers: Array[Callable] = [FarmCellars.provider(command.tunnels().ext.works.chambers, command.tunnels().network)]
+	var providers: Array[Callable] = [FarmCellars.provider(command.tunnels().network)]
 	farm.configure({}, world, cast, command, camera, null, providers, services)
-	farm.follow_chambers(command.tunnels().ext.works.chambers)
+	farm.follow_rooms(command.tunnels().network.rooms)
 	var woods: ForestryScript = _keep(ForestryScript.new())
 	var wood := IntMath.IntResult.new()
 	ForestryScript.resolve_wood_id_into(wood)
@@ -91,8 +93,9 @@ func _village() -> Dictionary:
 func _dig(v: Dictionary) -> int:
 	"""Brendan's playtest scene, dug: a braced, lit tunnel by the beds (its entry ramp, its level bore round
 	the bend and its exit ramp, every segment braced and lit) with a find in the bore, a burrow home and a
-	root cellar off the bore (both done, the cellar a pantry store), a resident walking in the bore, and a
-	route being laid by the mole. Returns the bore's slot (segment 1: the ramps are 0 and 2)."""
+	root cellar east of it -- real rooms (decision 0209), each placed where the room rules allow, with its
+	passage to the bore, all dug; the cellar a pantry store -- a resident walking in the bore, and a route being
+	laid by the mole. Returns the bore's slot (segment 1: the ramps are 0 and 2)."""
 	var tool: ControlScript = v["tool"]
 	var network: GraphScript = tool.network
 	var ref := PackedInt32Array([-1, 0, -1])
@@ -103,12 +106,7 @@ func _dig(v: Dictionary) -> int:
 	for slot: int in [ref[0], bore, network.next_in_piece(bore)]:
 		network.set_braced(slot)
 		network.set_lit(slot)
-	var chambers: ChambersScript = tool.ext.works.chambers
-	for spec: Array in [[ChambersScript.KIND_HOME, 1], [ChambersScript.KIND_CELLAR, -1]]:
-		var along: int = network.length_u[bore] * (2 + spec[1]) / 4
-		var room := PackedInt32Array([0, 0])
-		assert_true(chambers.add_into(spec[0], network, bore, along, ChambersScript.centre_for(network, bore, along, spec[1]), room), "a room")
-		chambers.set_done(room[0])
+	lay_playtest_rooms(self, tool)
 	tool.ext.works.stores.add_find(FindsScript.FIND_FLINT)
 	tool.ext.works._record_find(bore, Vector2i(-6758, 15000), FindsScript.FIND_FLINT)
 	_send_below(v["cast"], network, bore)
@@ -116,6 +114,37 @@ func _dig(v: Dictionary) -> int:
 	(v["farm"] as DemoFarmScript).storage.refresh()
 	_frame(v)
 	return bore
+
+
+## Brendan's playtest rooms by the tunnel (the probe's too): a home at (-1, 10) m turned once, its door east,
+## joined to the bore by its proposed passage; and a root cellar at (-7, 4) m turned once, its hatch east,
+## joined by its own passage (5.3 m) -- west of the tunnel, where its mound is clear of the village's work
+## spots and mouths.
+const PLAYTEST_ROOMS: Array = [[RoomsScript.TEMPLATE_HOME, Vector2i(-1024, 10240), 1, true],
+	[RoomsScript.TEMPLATE_CELLAR, Vector2i(-7168, 4096), 1, true]]
+
+
+static func lay_playtest_rooms(test: RefCounted, tool: ControlScript) -> void:
+	"""Lay and dig PLAYTEST_ROOMS as the room tool would (their rules checked, a passage proposed where one
+	is wanted)."""
+	var network: GraphScript = tool.network
+	for spec: Array in PLAYTEST_ROOMS:
+		var plan := RoomPlanScript.new()
+		plan.kind = spec[0]
+		plan.centre_u = spec[1]
+		plan.turns = spec[2]
+		plan.standalone = not spec[3]
+		test.assert_equal(plan.check(network, tool.room_site()), RoomsScript.REFUSE_NONE, "%s may go" % RoomsScript.NAMES[plan.kind])
+		test.assert_equal(plan.passage_socket >= 0, spec[3], "with its passage, or standing alone")
+		var room := PackedInt32Array([0, 0, 0, 0, 0])
+		test.assert_true(network.add_room(plan.kind, plan.centre_u, plan.turns, 0, room), "laid")
+		_dig_piece(network, room[2])
+		if spec[3]:
+			plan.passage.snap_ref[1] = network.rooms.socket_of(room[0], plan.passage_socket)
+			var piece := PackedInt32Array([-1, 0, -1])
+			test.assert_true(network.add_piece(plan.passage.spec_of(0), piece), "its passage")
+			tool.ext.works.after_splits()
+			_dig_piece(network, piece[2])
 
 
 static func _dig_piece(network: GraphScript, piece: int) -> void:
@@ -246,10 +275,10 @@ func _check_underground(v: Dictionary, slot: int) -> void:
 			tool.ext.marks.frames(slot), tool.ext.marks.lanterns(slot)]:
 		assert_equal(node.layers, Layers.UNDERGROUND, "%s below" % node.name)
 		assert_true(node.visible, "%s shown" % node.name)
-	for c: int in 2:
-		assert_equal(tool.ext.burrow_view.room(c).get_child_count() > 0, true, "room %d built" % c)
-		for piece: Node in tool.ext.burrow_view.room(c).get_children():
-			assert_equal((piece as VisualInstance3D).layers, Layers.UNDERGROUND, "room %d's %s below" % [c, piece.name])
+	for r: int in 2:
+		assert_true(tool.ext.room_view.furniture(r).get_child_count() > 0 and tool.ext.room_view.shell(r).visible, "room %d built" % r)
+		for piece: Node in tool.ext.room_view.below(r).find_children("*", "VisualInstance3D", true, false):
+			assert_equal((piece as VisualInstance3D).layers, Layers.UNDERGROUND, "room %d's %s below" % [r, piece.name])
 	assert_true(tool.ext.find_props.shown_count() >= 1, "the find lies in the bore")
 	assert_equal(below.layers_now(), Layers.UNDERGROUND, "the resident below")
 	assert_false(below.marker().visible, "no marker while below")
@@ -271,7 +300,7 @@ func test_no_transparency_or_material_is_written_by_twenty_switches() -> void:
 	_dig(v)
 	var tool: ControlScript = v["tool"]
 	var before := _snapshot(v)
-	var rooms: int = tool.ext.burrow_view.room_builds
+	var rooms: int = tool.ext.room_view.shell_builds
 	var troughs: int = tool.overlay.bore_builds
 	var on: bool = tool.view.on
 	assert_true(on, "the dig tool, open for the route being laid, turned the view underground")
@@ -281,7 +310,7 @@ func test_no_transparency_or_material_is_written_by_twenty_switches() -> void:
 		on = not on
 		assert_equal((v["camera"] as Camera3D).cull_mask, Layers.view_mask(on), "the mask")
 		assert_true(_snapshot(v) == before, "nothing else moved after press %d" % press)
-	assert_equal(tool.ext.burrow_view.room_builds, rooms, "no room built by a switch")
+	assert_equal(tool.ext.room_view.shell_builds, rooms, "no room built by a switch")
 	assert_equal(tool.overlay.bore_builds, troughs, "no trough built by a switch")
 
 
@@ -424,9 +453,8 @@ func test_the_prewarm_draws_a_sample_of_everything_then_gives_the_view_back() ->
 func test_the_cap_opens_over_a_dug_bore_and_room_only() -> void:
 	"""A dug tunnel stamps its width into the void mask wherever its floor is at full depth -- its level
 	bore, from one ramp's foot to the other's, not its mouths' ramps, which rise through the cap -- and a
-	done room its floor; the ground beside them (0.75 m out from the bore, on the side away from each room:
-	the bore is 4.6 m, the rooms a quarter and three quarters along it on opposite sides), and ground not
-	yet dug, stays solid."""
+	dug room its floor; the ground beside the bore (0.75 m out from its wall, on the side away from the rooms,
+	which lie east of it: decision 0209), and ground not yet dug, stays solid."""
 	var v := _village()
 	var slot := _dig(v)
 	var tool: ControlScript = v["tool"]
@@ -438,14 +466,35 @@ func test_the_cap_opens_over_a_dug_bore_and_room_only() -> void:
 	assert_false(cap.is_dug(network.mouth_at(1)), "nor the exit's")
 	for share: float in [0.0, 0.25, 0.5, 0.75, 1.0]:
 		assert_true(cap.is_dug(network.point_at(slot, network.length_m(slot) * share)), "the bore at %s" % share)
-	var chambers: ChambersScript = tool.ext.works.chambers
-	for c: int in 2:
-		var along: float = Rules.to_m(chambers.along_u[c])
-		var beside: Vector2 = network.point_at(slot, along)
-		var away: Vector2 = (beside - chambers.centre_m(c)).normalized() * 0.75
-		assert_false(cap.is_dug(beside + away), "solid beside the bore, across it from room %d" % c)
-	assert_true(cap.is_dug(tool.ext.works.chambers.centre_m(0)), "the home's floor")
+	for share: float in [0.25, 0.75]:
+		var beside: Vector2 = network.point_at(slot, network.length_m(slot) * share) + Vector2(-1.25, 0.0)
+		assert_false(cap.is_dug(beside), "solid beside the bore, across it from the rooms, at %s" % share)
+	for r: int in 2:
+		assert_true(cap.is_dug(network.rooms.centre_m(r)), "room %d's floor" % r)
 	assert_false(cap.is_dug(Vector2(0.0, -15.0)), "undug ground")
+
+
+func test_a_room_s_mound_wears_the_village_ground() -> void:
+	"""The playtest scene's dug home and cellar: each mound is drawn in the world's Ground shader (its grass and
+	earth sampled in world x, z) with the worn paths left off, handed over by the world. Handed a cap, the view
+	draws its rooms again to stamp it."""
+	var v := _village()
+	_dig(v)
+	var ground := (v["world"] as Node).get_node(^"Ground") as MeshInstance3D
+	var turf := ground.get_active_material(0) as ShaderMaterial
+	var view: RoomViewScript = (v["tool"] as ControlScript).ext.room_view
+	assert_true(turf != null, "the world has its ground")
+	view.refresh()
+	for r in 2:
+		var mound := (view.above(r).get_child(0) as GeometryInstance3D).material_override as ShaderMaterial
+		assert_true(mound != null and mound.shader == turf.shader, "room %d's mound in the ground's shader" % r)
+		assert_equal(mound.get_shader_parameter(&"path_count"), 0, "no worn path over it")
+		assert_true(mound != turf, "a copy of the ground's material")
+	assert_true(int(turf.get_shader_parameter(&"path_count")) > 0, "the village keeps its worn paths")
+	var builds := view.shell_builds
+	view.set_cap((v["tool"] as ControlScript).view.cap)
+	view.refresh()
+	assert_equal(view.shell_builds, builds + 2, "a new cap: both rooms drawn again, to stamp it")
 
 
 func test_the_cap_marks_water_footings_and_roots() -> void:

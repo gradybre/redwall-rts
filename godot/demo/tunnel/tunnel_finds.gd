@@ -4,7 +4,7 @@ extends RefCounted
 ##
 ## ONE ROLL PER PHYSICAL CUBIC METRE, SEEDED AND DETERMINISTIC. When a quantum's cut completes, the
 ## metre it lies in -- its whole-metre cell (tunnel_ground.gd) and the LAYER it was cut in (the bore,
-## the widening round it, a chamber) -- is rolled once: an integer hash of (cell, layer, SEED) taken
+## the widening round it, a room's cell) -- is rolled once: an integer hash of (cell, layer, SEED) taken
 ## mod 10000 against the ground's table below. The same metre always yields the same find, and a
 ## metre already rolled (dug again after a collapse, or crossed by a second tunnel) yields nothing
 ## more (`claim`). This is not a hazard roll: it decides only a keepsake.

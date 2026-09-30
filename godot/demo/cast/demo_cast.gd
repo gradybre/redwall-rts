@@ -25,6 +25,7 @@ extends Node3D
 
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
+const CastNavScript := preload("res://demo/cast/cast_nav.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const CastRoutinesScript := preload("res://demo/cast/cast_routines.gd")
@@ -55,10 +56,13 @@ func _process(delta: float) -> void:
 
 
 func advance(real_delta: float) -> void:
-	"""Read the clock for a frame of `real_delta` real seconds and step every actor by its demo time."""
+	"""Read the clock for a frame of `real_delta` real seconds and step every actor by its demo time; then carry
+	the navigation's rebuilds on a slice (cast_nav.gd REBUILT IN SLICES)."""
 	clock.advance(real_delta)
 	for actor in _actors:
 		(actor as DemoActorScript).advance(clock)
+	if _space != null:
+		_space.nav.advance_builds(CastNavScript.BUILD_BUDGET_USEC)
 
 
 func build(manifest: Dictionary, points: Array[Dictionary], obstacles: Array[Vector3],

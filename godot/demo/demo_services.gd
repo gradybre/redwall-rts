@@ -11,7 +11,7 @@ extends RefCounted
 ##              flood and route queries, answered from the real water map (demo/water/water_map.gd).
 ##   notices    demo_notices.gd -- THE notice feed: every demo warning and report, date-stamped.
 ##   props      demo/props/demo_props.gd -- THE staged small props (items, finds, tunnel and water
-##              gear, chamber furniture): each model's mesh loaded once and shared by every placement,
+##              gear, room furniture): each model's mesh loaded once and shared by every placement,
 ##              and the icons. demo_village.gd loads it from the manifest; a fresh set draws boxes.
 ##   stores     demo/tunnel/tunnel_stores.gd -- THE demo stores: wood, stone, planks and finds. The woods
 ##              (demo/forestry/) put their wood in and saw their planks from it; the tunnel works pay

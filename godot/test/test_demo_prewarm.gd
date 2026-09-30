@@ -77,3 +77,47 @@ func test_the_plant_atlases_warm_every_deferred_kind() -> void:
 	assert_equal(assets.ensure_all_loaded(), 1, "the waiting kind read")
 	assert_false(assets._deferred.has(kind), "and no longer waiting")
 	assert_equal(assets.ensure_all_loaded(), 0, "none the second time")
+
+
+func test_frame_steps_run_after_the_warm_frames_in_order_before_the_release() -> void:
+	"""Decision 0206: a frame step begins once the warm frames are drawn, its frames are drawn, it
+	finishes (timed in the report, its frames as `loaded`), the next begins -- and only then is the
+	pause released, once."""
+	var prewarm := PrewarmScript.new()
+	var log: Array[String] = []
+	var released: Array[int] = [0]
+	prewarm.add_frame_step("under", 2, func() -> void: log.append("under+"), func() -> void: log.append("under-"))
+	prewarm.add_frame_step("more", 1, func() -> void: log.append("more+"), func() -> void: log.append("more-"))
+	prewarm.release_after_frames(func() -> void: released[0] += 1, 1)
+	prewarm._process(0.016)
+	assert_equal(log, [] as Array[String], "the warm frame first")
+	prewarm._process(0.016)
+	assert_equal(log, ["under+"] as Array[String], "then the first step begins")
+	prewarm._process(0.016)
+	prewarm._process(0.016)
+	assert_equal(log, ["under+"] as Array[String], "while its two frames are drawn")
+	prewarm._process(0.016)
+	assert_equal(log, ["under+", "under-", "more+"] as Array[String], "finished, and the next begun")
+	assert_equal(released[0], 0, "not released yet")
+	prewarm._process(0.016)
+	prewarm._process(0.016)
+	assert_equal(log, ["under+", "under-", "more+", "more-"] as Array[String], "all finished")
+	assert_equal(released[0], 1, "then released")
+	assert_equal([String(prewarm.report[0]["step"]), int(prewarm.report[0]["loaded"])], ["under", 2], "reported, its frames")
+	for frame: int in 5:
+		prewarm._process(0.016)
+	assert_equal([released[0], log.size()], [1, 4], "released once, each step once")
+	prewarm.free()
+
+
+func test_no_frames_with_frame_steps_still_draws_them() -> void:
+	"""Released after 0 frames with a frame step registered: not at once -- the step's frames first."""
+	var prewarm := PrewarmScript.new()
+	var released: Array[int] = [0]
+	prewarm.add_frame_step("under", 1, func() -> void: pass, func() -> void: pass)
+	prewarm.release_after_frames(func() -> void: released[0] += 1, 0)
+	assert_equal(released[0], 0, "not at once")
+	for frame: int in 3:
+		prewarm._process(0.016)
+	assert_equal(released[0], 1, "after the step's frame")
+	prewarm.free()

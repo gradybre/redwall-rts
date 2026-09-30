@@ -12,8 +12,10 @@ extends Node3D
 ##                    the tunnel it is digging    nothing changes: it keeps digging (and says so)
 ##                    a paused tunnel             it resumes that one -- pausing the one it was
 ##                                                digging, if any, with all its progress kept
-##   U                                            underground view (tunnel_view.gd); U again puts back
-##                                                the notice the view replaced
+##   U                                            underground view (tunnel_view.gd: a layer cutaway,
+##                                                decision 0206); U again puts back the notice the view
+##                                                replaced. In it, every click lands on the level's floor
+##                                                (the plane the cutaway shows), not on the ground above
 ## A refused point or route leaves a clay marker and the reason in the panel. Only a mole digs; T
 ## with no mole selected says so. The camera's own keys and the wheel are never taken.
 ##
@@ -51,7 +53,6 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const CastNavScript := preload("res://demo/cast/cast_nav.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
-const PickScript := preload("res://demo/control/demo_pick.gd")
 const ExtScript := preload("res://demo/tunnel/tunnel_ext.gd")
 const CrewScript := preload("res://demo/tunnel/tunnel_crew.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
@@ -139,24 +140,28 @@ func configure(cast: DemoCastScript, camera: Camera3D, selection: Callable, mark
 
 func _build_parts(cast: DemoCastScript, camera: Camera3D, selection: Callable, mark: Callable,
 		services: ServicesScript) -> void:
-	"""The overlay, the underground view and the extensions."""
+	"""The overlay, the extensions and the underground view over their ground and water; everything the
+	view draws registers for its prewarm (decision 0206)."""
 	overlay = OverlayScript.new()
 	add_child(overlay)
 	overlay.configure(network, _space, cast.clock)
-	view = ViewScript.new()
-	add_child(view)
-	view.configure(null, cast, overlay)
 	ext = ExtScript.new()
 	add_child(ext)
 	ext.configure(cast, camera, overlay, _bounds_u, selection, mark, _say, services)
 	plan.water_crossing = ext.works.water.crosses_water
+	view = ViewScript.new()
+	add_child(view)
+	view.configure(camera, ext.works.ground, ext.works.water)
+	overlay.set_view(view.cap, view.prewarm)
+	ext.set_view(view)
+	DemoActorScript.register_marker(view.prewarm)
 
 
 func set_world(world: DemoWorldScript) -> void:
-	"""The world the underground view fades, whose buildings no tunnel may pass under and whose grass
-	a new tunnel clears."""
+	"""The world whose buildings no tunnel may pass under (their footings and its trees' roots drawn on
+	the underground view's cap) and whose grass a new tunnel clears."""
 	_world = world
-	view.set_world(world)
+	view.set_world(world, world.building_obstacles(), world.trees())
 	_under_u = Rules.circles_to_u(PackedVector3Array(world.building_obstacles()))
 	ext.set_world(world, _under_u)
 
@@ -289,14 +294,12 @@ func _plan_key(event: InputEventKey) -> bool:
 
 
 func _ground_at(screen: Vector2) -> bool:
-	"""The ground point under a screen point, into _ground. False when the ray misses the ground."""
-	var origin := _camera.project_ray_origin(screen)
-	var direction := _camera.project_ray_normal(screen)
-	var t := PickScript.ray_ground(origin, direction, 0.0)
-	if t < 0.0:
+	"""The point under a screen point on the view's plane (the ground, or the level's floor in the U
+	view), into _ground. False when the ray misses it."""
+	var at: Vector2 = view.ground_at(screen)
+	if at == Vector2.INF:
 		return false
-	var at := origin + direction * t
-	_ground = Vector2(at.x, at.z)
+	_ground = at
 	return true
 
 
@@ -308,13 +311,13 @@ func _hover(screen: Vector2) -> void:
 
 
 func toggle_view() -> void:
-	"""Switch the underground view; switched back, the notice it replaced returns."""
+	"""Switch the underground view (one cull-mask write, tunnel_view.gd); switched back, the notice it
+	replaced returns."""
 	if view.toggle():
 		_before_view = _last_notice
 		_say(VIEW_ON)
 	elif _last_notice == VIEW_ON:
 		_say(_before_view)
-	ext.set_underground_view(view.on)
 
 
 # --- planning -------------------------------------------------------------------------------

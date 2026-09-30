@@ -34,10 +34,15 @@ extends Node3D
 ## PICKING is a camera ray against each resident's capsule proxy (demo_pick.gd) -- no physics
 ## bodies. A resident underground is picked where it is SEEN: at bore depth in the underground
 ## view; in the surface view, a digging mole by the mound over it (a squat capsule the mound's size
-## on the ground), and anyone else below not at all. MARKS: a pulsing brass ring under each
-## selected resident, a faint ring under the hovered one, and a fading marker where an order
-## landed (clay when refused). Per-frame work moves existing marks and allocates nothing; the
-## panel is rebuilt only when what it shows changes.
+## on the ground), and anyone else below not at all. In the U view a resident on the surface is its
+## marker on the level's floor, and a click on the ground lands on that floor (decision 0206: the
+## cutaway shows the floor), where only the tunnel tool and the residents answer -- the farm's, the
+## woods', the water's and the spoil heaps' handlers are surface things the U view does not draw.
+## MARKS: a pulsing brass ring under each selected resident, a faint ring under the hovered one, and a
+## fading marker where an order landed (clay when refused) -- each a PAIR, one on the surface's marks
+## layer and one drawn through the cap on the floor for the U view (demo_layers.gd), so switching the
+## view touches none of them. Per-frame work moves existing marks and allocates nothing; the panel is
+## rebuilt only when what it shows changes.
 
 const PickScript := preload("res://demo/control/demo_pick.gd")
 const MarksScript := preload("res://demo/control/demo_marks.gd")
@@ -51,6 +56,8 @@ const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const AbilitiesScript := preload("res://demo/control/resident_abilities.gd")
+const Layers := preload("res://demo/demo_layers.gd")
+const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 
 const RING_GAP_M: float = 0.12
 const PULSE_HZ: float = 1.1
@@ -66,6 +73,10 @@ const BOX_BORDER_PX: int = 2
 const SWIM_RING_FLOOR_M: float = -0.2
 ## The pick proxy of a mound over a digging mole: this tall, the mound's radius wide (see PICKING).
 const MOUND_PICK_HEIGHT_M: float = 0.6
+## The pick proxy of a surface resident's marker in the U view: this tall, the marker's radius wide.
+const MARKER_PICK_HEIGHT_M: float = 0.3
+## The U view's marks are drawn over the cap, after its markers (demo_actor.gd).
+const BELOW_PRIORITY: int = 7
 
 var _cast: DemoCastScript = null
 var _camera: Camera3D = null
@@ -80,6 +91,10 @@ var _press_at: Vector2 = Vector2.ZERO
 var _rings: Array[MeshInstance3D] = []
 var _hover_ring: MeshInstance3D = null
 var _markers: Array[MeshInstance3D] = []
+## The same marks as the U view draws them, on the level's floor (see MARKS).
+var _rings_below: Array[MeshInstance3D] = []
+var _hover_below: MeshInstance3D = null
+var _markers_below: Array[MeshInstance3D] = []
 var _marker_age: PackedFloat32Array = PackedFloat32Array()
 var _marker_colour: PackedColorArray = PackedColorArray()
 var _marker_next: int = 0
@@ -137,6 +152,7 @@ func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null,
 	add_child(_tunnels)
 	_tunnels.configure(cast, camera, selected, mark, say, services)
 	_tunnels.set_notice_about(say_about)
+	register_below(_tunnels.view.prewarm)
 	_panel.dig_requested.connect(_on_dig_requested)
 	_tunnels.ext.set_hud(hud_root)
 
@@ -258,18 +274,46 @@ func doing_text(actor_index: int) -> String:
 
 
 func _build_marks(count: int) -> void:
-	"""One selection ring per resident, a hover ring and a small pool of order markers."""
+	"""One selection ring per resident, a hover ring and a small pool of order markers -- each twice,
+	for the surface and for the U view (see MARKS); the U view's selection rings share one material."""
+	var selected_below: MeshInstance3D = null
 	for i in count:
-		_rings.append(MarksScript.make_ring(MarksScript.SELECTED))
-		add_child(_rings[i])
-	_hover_ring = MarksScript.make_ring(MarksScript.HOVER)
-	add_child(_hover_ring)
+		_rings.append(_mark_node(MarksScript.SELECTED, false))
+		_rings_below.append(_mark_node(MarksScript.SELECTED, true))
+		if selected_below == null:
+			selected_below = _rings_below[i]
+		_rings_below[i].material_override = selected_below.material_override
+	_hover_ring = _mark_node(MarksScript.HOVER, false)
+	_hover_below = _mark_node(MarksScript.HOVER, true)
 	for i in MARKER_POOL:
-		_markers.append(MarksScript.make_ring(MarksScript.ORDERED))
-		add_child(_markers[i])
+		_markers.append(_mark_node(MarksScript.ORDERED, false))
+		_markers_below.append(_mark_node(MarksScript.ORDERED, true))
 	_marker_age.resize(MARKER_POOL)
 	_marker_age.fill(MARKER_S)
 	_marker_colour.resize(MARKER_POOL)
+
+
+func _mark_node(colour: Color, below: bool) -> MeshInstance3D:
+	"""One ring mark on the surface's marks layer -- or, `below`, the U view's, drawn over the cap."""
+	var ring := MarksScript.make_ring(colour)
+	ring.layers = Layers.UNDERGROUND_MARKS if below else Layers.SURFACE_MARKS
+	if below:
+		var material := ring.material_override as StandardMaterial3D
+		material.no_depth_test = true
+		material.render_priority = BELOW_PRIORITY
+	add_child(ring)
+	return ring
+
+
+func register_below(prewarm: PrewarmScript) -> void:
+	"""What the U view's marks draw, for its prewarm (decision 0206)."""
+	for ring: MeshInstance3D in _rings_below + _markers_below + [_hover_below]:
+		prewarm.add_mesh(ring.mesh, ring.material_override)
+
+
+func underground_view() -> bool:
+	"""Whether the tunnel tool's underground view is on."""
+	return _tunnels != null and _tunnels.view.on
 
 
 func _build_box() -> void:
@@ -327,7 +371,7 @@ func handle_input(event: InputEvent) -> bool:
 	if _tunnels != null and _tunnels.handle_input(event):
 		_refresh_in = 0.0
 		return true
-	for hook: Callable in _input_hooks:
+	for hook: Callable in _input_hooks if not underground_view() else []:
 		if bool(hook.call(event)):
 			_refresh_in = 0.0
 			return true
@@ -394,7 +438,7 @@ func _finish_select(at: Vector2) -> void:
 		select_box(_press_at, at, _additive)
 		return
 	var hit := pick(at)
-	if hit < 0 and _ground_clicked(at):
+	if hit < 0 and not underground_view() and _ground_clicked(at):
 		_refresh_in = 0.0
 		return
 	if hit < 0:
@@ -471,7 +515,7 @@ func pick(at: Vector2) -> int:
 func _update_proxies() -> void:
 	"""Each resident's capsule proxy: foot position, height and body radius -- where it is seen (see
 	PICKING; a proxy of radius 0 cannot be picked)."""
-	var below_seen := _tunnels != null and _tunnels.view.on
+	var below_seen := underground_view()
 	var eye := _camera.global_position if _camera.is_inside_tree() else Vector3.ZERO
 	for i in _cast.actor_count():
 		var actor := _cast.actor(i) as DemoActorScript
@@ -485,14 +529,20 @@ func _update_proxies() -> void:
 static func proxy_into(brain: BrainScript, foot: Vector3, height: float, below_seen: bool, eye: Vector3,
 		out: PackedFloat32Array) -> void:
 	"""One resident's pick proxy where it is seen (see PICKING) into out: foot x, y, z, height, radius.
-	On the surface, or underground in the underground view: its body where it is drawn. Underground
-	otherwise: a digging mole as its mound -- on the ground, the mound's drawn radius from `eye` --
-	and anyone else not at all (radius 0)."""
+	On the surface, or underground in the underground view: its body where it is drawn -- except a
+	resident on the surface in the underground view, which is its marker on the level's floor.
+	Underground otherwise: a digging mole as its mound -- on the ground, the mound's drawn radius from
+	`eye` -- and anyone else not at all (radius 0)."""
 	out[0] = foot.x
 	out[1] = foot.y
 	out[2] = foot.z
 	out[3] = height
 	out[4] = brain.radius
+	if below_seen and not brain.underground:
+		out[1] = Layers.FLOOR_Y_M
+		out[3] = MARKER_PICK_HEIGHT_M
+		out[4] = DemoActorScript.MARKER_RADIUS_M + DemoActorScript.MARKER_EDGE_M
+		return
 	if not brain.underground or below_seen:
 		return
 	out[1] = 0.0
@@ -516,15 +566,15 @@ func _update_screen() -> void:
 func order_at(at: Vector2) -> bool:
 	"""Order the selection to the ground under a screen point: work at a POI's spot, otherwise move.
 	Marks where the order landed, or a refusal. True when accepted."""
-	for handler: Callable in _ground_orders:
+	for handler: Callable in _ground_orders if not underground_view() else []:
 		if bool(handler.call(at)):
 			_refresh_in = 0.0
 			return true
-	var t := PickScript.ray_ground(_camera.project_ray_origin(at), _camera.project_ray_normal(at), 0.0)
-	if t < 0.0:
+	var plane_y: float = Layers.pick_y(underground_view())
+	var ground: Vector2 = Layers.pick_ground(_camera.project_ray_origin(at), _camera.project_ray_normal(at), plane_y)
+	if ground == Vector2.INF:
 		return false
-	var point := _camera.project_ray_origin(at) + _camera.project_ray_normal(at) * t
-	return order_to(point)
+	return order_to(Vector3(ground.x, 0.0, ground.y))
 
 
 func order_to(point: Vector3) -> bool:
@@ -551,6 +601,8 @@ func mark(at: Vector3, accepted: bool) -> void:
 	_marker_colour[i] = MarksScript.ORDERED if accepted else MarksScript.REFUSED
 	_markers[i].position = Vector3(at.x, MarksScript.LIFT_M, at.z)
 	_markers[i].visible = true
+	_markers_below[i].position = Vector3(at.x, Layers.FLOOR_Y_M + Layers.MARK_LIFT_M, at.z)
+	_markers_below[i].visible = true
 
 
 # --- per frame ------------------------------------------------------------------------------
@@ -573,15 +625,18 @@ func _place_rings() -> void:
 	"""Selection rings (pulsing) at the selected residents' feet; the hover ring at the hovered one."""
 	var pulse := 1.0 + PULSE_SCALE * sin(TAU * PULSE_HZ * _time)
 	for i in _rings.size():
-		var ring := _rings[i]
-		ring.visible = _selected[i] != 0
-		if ring.visible:
+		_rings[i].visible = _selected[i] != 0
+		_rings_below[i].visible = _rings[i].visible
+		if _rings[i].visible:
 			var actor := _cast.actor(i) as DemoActorScript
-			_put_ring(ring, actor.global_position, actor.brain, pulse)
+			_put_ring(_rings[i], actor.global_position, actor.brain, pulse)
+			_put_ring_below(_rings_below[i], actor.brain, pulse)
 	_hover_ring.visible = _hover >= 0 and _hover < _cast.actor_count() and _selected[_hover] == 0
+	_hover_below.visible = _hover_ring.visible
 	if _hover_ring.visible:
 		var hovered := _cast.actor(_hover) as DemoActorScript
 		_put_ring(_hover_ring, hovered.global_position, hovered.brain, 1.0)
+		_put_ring_below(_hover_below, hovered.brain, 1.0)
 
 
 static func ring_y_m(underground: bool, ground_y_m: float) -> float:
@@ -603,6 +658,15 @@ func _put_ring(ring: MeshInstance3D, at: Vector3, brain: BrainScript, pulse: flo
 	ring.scale.z = r
 
 
+static func _put_ring_below(ring: MeshInstance3D, brain: BrainScript, pulse: float) -> void:
+	"""The U view's ring under a resident: on the bore floor it stands on, or -- on the surface -- round
+	its marker on the level's floor (see MARKS)."""
+	var r := (brain.radius + RING_GAP_M) * pulse
+	var floor_y: float = brain.ground_y_m if brain.underground else Layers.FLOOR_Y_M
+	ring.position = Vector3(brain.position.x, floor_y + Layers.MARK_LIFT_M, brain.position.y)
+	ring.scale = Vector3(r, 1.0, r)
+
+
 func _age_markers(delta: float) -> void:
 	"""Order markers grow a little and fade out over MARKER_S."""
 	for i in MARKER_POOL:
@@ -612,11 +676,18 @@ func _age_markers(delta: float) -> void:
 		var f := _marker_age[i] / MARKER_S
 		if f >= 1.0:
 			_markers[i].visible = false
+			_markers_below[i].visible = false
 			continue
 		var r := MARKER_RADIUS_M * (1.0 + MARKER_GROWTH * f)
-		_markers[i].scale.x = r
-		_markers[i].scale.z = r
-		MarksScript.set_alpha(_markers[i], _marker_colour[i], 1.0 - f * f)
+		_fade_marker(_markers[i], r, _marker_colour[i], 1.0 - f * f)
+		_fade_marker(_markers_below[i], r, _marker_colour[i], 1.0 - f * f)
+
+
+static func _fade_marker(marker: MeshInstance3D, radius: float, colour: Color, alpha: float) -> void:
+	"""One order marker at this radius and fade."""
+	marker.scale.x = radius
+	marker.scale.z = radius
+	MarksScript.set_alpha(marker, colour, alpha)
 
 
 func _refresh_panel() -> void:

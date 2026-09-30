@@ -11,7 +11,7 @@ extends Node3D
 ## DEMO COMMAND (demo/control/): residents can be selected and ordered to move or work, with a
 ## "Demo party" panel in the HUD's free left column. The controller only needs the cast, the
 ## world's walkable bounds and the demo camera; it reads input the HUD did not consume. Its tunnel
-## tool (demo/tunnel/) also gets the world, which the underground view fades.
+## tool (demo/tunnel/) also gets the world, whose footings and roots the underground view's cap shows.
 ##
 ## TUNNEL WORKS (demo/tunnel/tunnel_ext.gd: hazards, upgrades, chambers, threats) show themselves in the
 ## "Tunnels & burrows (demo)" panel; `chambers()` lists their chambers, whose root cellars are the
@@ -101,6 +101,8 @@ const WaterplayScript := preload("res://demo/waterplay/demo_waterplay.gd")
 const LinksScript := preload("res://demo/waterplay/water_links.gd")
 const SpoilScript := preload("res://demo/spoil/demo_spoil.gd")
 const PrewarmScript := preload("res://demo/demo_prewarm.gd")
+const TunnelViewScript := preload("res://demo/tunnel/tunnel_view.gd")
+const UndergroundPrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -161,11 +163,14 @@ func _ready() -> void:
 
 func _warm_and_open() -> void:
 	"""Load now what would first load mid-game, and start the clock only once the first frames are drawn
-	(demo_prewarm.gd, decision 0205)."""
+	(demo_prewarm.gd, decision 0205) -- and the underground view has been drawn once with a sample of
+	everything it can show (decision 0206)."""
 	add_child(_prewarm)
 	_prewarm.add_step("props and icons", _services.props.warm_all)
 	_prewarm.add_step("plant atlases", _farm.view.assets.ensure_all_loaded)
 	_prewarm.add_step("woods: stumps, saplings, splits", _forestry.view.prewarm)
+	var view: TunnelViewScript = (_command as DemoCommandScript).tunnels().view
+	_prewarm.add_frame_step("underground view", UndergroundPrewarmScript.FRAMES, view.begin_prewarm, view.end_prewarm)
 	_prewarm.warm()
 	_prewarm.release_after_frames(_open_running)
 

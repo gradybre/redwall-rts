@@ -2,16 +2,18 @@ extends Node3D
 ## Finds lying where they were dug. Decision 0196 (live demo). Presentation only.
 ##
 ## tunnel_works.gd keeps a ring of the latest FOUND_RING finds -- where each was cut, what it was, and
-## for a relic which one. In the underground view each lies on the bore floor at its cut as its own
-## library model (tunnel_finds.gd model_of: a flint, a lump of clay, an old basket for a root store, a
-## bell, a key or a banner); a relic with no model of its own lies there unseen (the panel shows its
-## roundel). Redrawn only when a new find is cut or the view changes.
+## for a relic which one. Each lies on the bore floor at its cut as its own library model, on the
+## underground layer, so the U view shows it (tunnel_finds.gd model_of: a flint, a lump of clay, an old
+## basket for a root store, a bell, a key or a banner); a relic with no model of its own lies there unseen
+## (the panel shows its roundel). Redrawn only when a new find is cut -- never for the view (decision 0206).
 
 const WorksScript := preload("res://demo/tunnel/tunnel_works.gd")
 const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
 const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
+const Layers := preload("res://demo/demo_layers.gd")
+const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 
 ## Each find turns by this much from the last, so a row of them does not line up.
 const TURN_PER_FIND: float = 2.3
@@ -20,7 +22,6 @@ var _works: WorksScript = null
 var _network: NetworkScript = null
 var _props: PropsScript = null
 var _pieces: Array[MeshInstance3D] = []
-var _underground: bool = false
 var _seen: int = -1
 
 
@@ -32,23 +33,24 @@ func configure(works: WorksScript, network: NetworkScript, props: PropsScript) -
 	_props = props
 	for k: int in WorksScript.FOUND_RING:
 		var piece := MeshInstance3D.new()
+		piece.layers = Layers.UNDERGROUND
 		piece.visible = false
 		add_child(piece)
 		_pieces.append(piece)
 
 
-func set_underground_view(on: bool) -> void:
-	"""Finds show in the underground view only."""
-	_underground = on
-	_seen = -1
+func register(prewarm: PrewarmScript) -> void:
+	"""Every find's model, for the underground view's prewarm (decision 0206)."""
+	for model: StringName in FindsScript.FIND_MODEL + FindsScript.RELIC_MODEL:
+		if model != &"":
+			prewarm.add_mesh(_props.mesh_of(model))
 
 
 func refresh() -> void:
-	"""Redraw when a find was cut or the view changed."""
-	var key: int = _works.found_count * 2 + (1 if _underground else 0)
-	if key == _seen:
+	"""Redraw when a find was cut."""
+	if _works.found_count == _seen:
 		return
-	_seen = key
+	_seen = _works.found_count
 	for k: int in WorksScript.FOUND_RING:
 		_draw(k)
 
@@ -59,7 +61,7 @@ func _draw(k: int) -> void:
 	var model: StringName = &""
 	if k < _works.found_count:
 		model = FindsScript.model_of(_works.found_kind[k], _works.found_relic[k])
-	piece.visible = _underground and model != &""
+	piece.visible = model != &""
 	if not piece.visible:
 		return
 	var at := Vector2(Rules.to_m(_works.found_x_u[k]), Rules.to_m(_works.found_z_u[k]))

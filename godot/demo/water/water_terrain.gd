@@ -5,7 +5,7 @@ extends RefCounted
 ## XZ (demo_ground.gdshader: `world_xz` from MODEL_MATRIX * VERTEX), so ANY mesh can wear its
 ## material. `carve_ground()` swaps the Ground node's mesh for the same 400 m plane built on the
 ## water grid, with every vertex at `WaterMap.ground_height_at` -- banks falling to the waterline
-## and the bed below it -- keeping the node, its name (the underground view hides it by name) and its
+## and the bed below it -- keeping the node, its name (others find it by name) and its
 ## material. Flat vertices are exactly y = 0, so the village is untouched.
 ##
 ## THE BANK SKIRT is a thin film over the carved bank and bed in its own material: damp mud at the

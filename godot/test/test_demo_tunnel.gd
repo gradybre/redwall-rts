@@ -22,11 +22,11 @@ const PanelScript := preload("res://demo/control/demo_party_panel.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const Contrast := preload("res://demo/ui/woodland_contrast.gd")
 const HeapsScript := preload("res://demo/tunnel/tunnel_heaps.gd")
-const ViewScript := preload("res://demo/tunnel/tunnel_view.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoClockScript := preload("res://demo/demo_clock.gd")
 const MarksScript := preload("res://demo/control/demo_marks.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
+const Layers := preload("res://demo/demo_layers.gd")
 
 const DT: float = 1.0 / 60.0
 const SEED: int = 9091
@@ -921,15 +921,15 @@ func test_the_overlay_shows_mouths_heaps_and_the_mound_as_digging_goes() -> void
 
 
 func _check_open_overlay(overlay: OverlayScript, slot: int) -> void:
-	"""An open tunnel's overlay: both mouths and heaps, no mound; its trough only underground."""
+	"""An open tunnel's overlay: both mouths and heaps, no mound; its trough built, on the underground
+	layer only (decision 0206: the U view is a cull mask, so the trough never waits for it)."""
 	overlay.refresh()
 	assert_true(overlay.hole(slot, true).visible, "exit open")
 	assert_true(overlay.heap(slot, true).visible, "exit heap")
 	assert_false(overlay.mound(slot).visible, "the mole is up")
-	assert_false(overlay.bore(slot).visible, "no trough in the surface view")
-	overlay.set_underground_view(true)
-	overlay.refresh()
-	assert_true(overlay.bore(slot).visible, "the trough in the underground view")
+	assert_true(overlay.bore(slot).visible, "the trough is built as the bore is dug")
+	assert_equal(overlay.bore(slot).layers, Layers.UNDERGROUND, "on the underground layer: only the U view draws it")
+	assert_equal(overlay.hole(slot, true).get_child(0).layers, Layers.SURFACE, "the mouth stays on the surface")
 
 
 # --- the tunnel tool ------------------------------------------------------------------------
@@ -2067,13 +2067,13 @@ func _overlay_on(space: CastSpaceScript) -> OverlayScript:
 
 
 func test_the_trough_is_rebuilt_per_quarter_metre_not_per_tick() -> void:
-	"""Digging the 2 m bore tick by tick (226 ticks) in the underground view rebuilds the trough once
-	per 0.25 m the face crosses -- 9 times, not 226 -- and each build holds the dug length."""
+	"""Digging the 2 m bore tick by tick (226 ticks) rebuilds the trough once per 0.25 m the face
+	crosses -- 9 times, not 226 -- and each build holds the dug length: 9 rings of the half-round and
+	its face wall (a fan from the bore's axis)."""
 	var site := _dig_site()
 	var space: CastSpaceScript = site[0]
 	var mole: BrainScript = site[1]
 	var overlay := _overlay_on(space)
-	overlay.set_underground_view(true)
 	mole.order_dig(site[2], site[3])
 	_dig_to(space, mole, site[2], 113)
 	overlay.refresh()
@@ -2086,13 +2086,17 @@ func test_the_trough_is_rebuilt_per_quarter_metre_not_per_tick() -> void:
 	assert_true(ticks > 200, "stepped through the bore (%d frames)" % ticks)
 	assert_equal(overlay.bore_builds - builds, 8, "8 rebuilds over the 2 m bore, one per 0.25 m")
 	var arrays := (overlay.bore(site[2]).mesh as ArrayMesh).surface_get_arrays(0)
-	assert_equal((arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size(), 9 * (OverlayScript.BORE_SIDES + 1), "2 m in 8 steps: 9 rings")
-	assert_equal((arrays[Mesh.ARRAY_INDEX] as PackedInt32Array).size(), 8 * OverlayScript.BORE_SIDES * 6, "8 steps of quads")
+	assert_equal((arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size(), 9 * (OverlayScript.BORE_SIDES + 1)
+		+ OverlayScript.BORE_SIDES + 2, "2 m in 8 steps: 9 rings, and the face wall's axis and rim")
+	assert_equal((arrays[Mesh.ARRAY_INDEX] as PackedInt32Array).size(), 8 * OverlayScript.BORE_SIDES * 6
+		+ OverlayScript.BORE_SIDES * 3, "8 steps of quads, and the face wall's fan")
+	assert_equal((arrays[Mesh.ARRAY_NORMAL] as PackedVector3Array).size(), (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size(),
+		"lit: a normal a vertex")
 
 
 func test_the_ribbon_is_rebuilt_only_as_the_face_moves_a_step() -> void:
-	"""The ribbon's key moves when the face crosses 0.25 m (or the phase or the view changes) and not
-	on a tick within a step."""
+	"""The ribbon's key moves when the face crosses 0.25 m (or the phase changes) and not on a tick
+	within a step -- nor when the view switches (decision 0206: a switch rebuilds nothing)."""
 	var site := _dig_site()
 	var space: CastSpaceScript = site[0]
 	var overlay := _overlay_on(space)
@@ -2106,8 +2110,6 @@ func test_the_ribbon_is_rebuilt_only_as_the_face_moves_a_step() -> void:
 	key = overlay.mesh_key(site[2])
 	tunnels.stop_digging(site[2], site[3])
 	assert_true(overlay.mesh_key(site[2]) != key, "paused")
-	overlay.set_underground_view(true)
-	assert_true(overlay.mesh_key(site[2]) != key, "the view")
 
 
 func test_heaps_stand_where_they_were_placed() -> void:
@@ -2186,52 +2188,57 @@ func test_the_mound_grows_as_the_camera_pulls_back() -> void:
 	assert_almost_equal(OverlayScript.mound_scale(70.0), 2.5, "zoomed right out")
 
 
-func test_the_underground_view_puts_everything_back() -> void:
-	"""Built WITH a world: on, the ground hides, the village and everyone above ground fade, the veil and
-	deep earth show, a resident below shows; off, every one of those is exactly as it was."""
+func test_a_view_switch_writes_nothing_but_the_camera_mask() -> void:
+	"""Decision 0206: with a world, a tool, an open tunnel and a resident in it, U on and U off -- and a
+	frame of every drawing's own work after each -- leave every drawn node's transparency, material,
+	visibility and layers, and every material's transparency, exactly as they were; only the camera's
+	cull mask moves. The resident below is on the underground layer, the one above on the surface."""
 	var world := DemoWorldScript.new()
 	_nodes.append(world)
 	world.build({"world": {}, "cast": {}})
 	var cast := _cast_with_mole()
 	var space := cast.space()
-	_open_tunnel(space, [Vector2i(-4096, 8192), Vector2i(4096, 8192)])
+	var slot := _open_tunnel(space, [Vector2i(-4096, 8192), Vector2i(4096, 8192)])
 	var below := cast.actor(2) as DemoActorScript
 	below.brain.order_move(Vector2(0.0, 8.0))
 	below.brain._start_travel(0, 0.0, 8.0)
-	var overlay := _overlay_on(space)
-	overlay.refresh()
-	var view := ViewScript.new()
-	_nodes.append(view)
-	view.configure(world, cast, overlay)
+	var tool := _tool(cast, [PackedInt32Array()], [], [])
+	tool.set_world(world)
+	var camera := tool.view._camera
+	_frame_of(cast, tool)
+	assert_true(below.brain.underground and tool.overlay.bore(slot).visible, "a resident in a dug bore")
+	assert_equal(below.layers_now(), Layers.UNDERGROUND, "the resident below on the underground layer")
+	assert_equal((cast.actor(1) as DemoActorScript).layers_now(), Layers.SURFACE, "one above on the surface")
+	var before := _snapshot([world, cast, tool])
+	assert_true(before.size() > 100, "a village's worth of drawn nodes (%d)" % before.size())
+	for on: bool in [true, false]:
+		assert_true(tool.handle_input(_key(KEY_U)), "U")
+		_frame_of(cast, tool)
+		assert_equal(camera.cull_mask, Layers.view_mask(on), "the mask moved")
+		assert_equal(_snapshot([world, cast, tool]), before, "nothing else did (view %s)" % on)
+
+
+func _frame_of(cast: DemoCastScript, tool: ControlScript) -> void:
+	"""One frame of the cast's, the overlay's and the tunnel works' own per-frame work (out of the tree)."""
 	cast.advance(DT)
-	view.set_on(true)
-	var village := world.get_node("Village").find_children("*", "GeometryInstance3D", true, false)
-	assert_false((world.get_node("Ground") as Node3D).visible, "on: the ground hidden")
-	assert_almost_equal((village[0] as GeometryInstance3D).transparency, ViewScript.SURFACE_FADE, "on: the village faded")
-	assert_true(below.visible, "on: the resident below shows")
-	view.set_on(false)
-	_check_view_off(world, cast, overlay, view, below)
+	tool.overlay.refresh()
+	tool.ext._process(DT)
+	tool._process(DT)
 
 
-func _check_view_off(world: DemoWorldScript, cast: DemoCastScript, overlay: OverlayScript, view: ViewScript,
-		below: DemoActorScript) -> void:
-	"""Everything the underground view touched, back as it was."""
-	assert_true((world.get_node("Ground") as Node3D).visible, "the ground")
-	var faded := 0
-	for node in world.get_node("Village").find_children("*", "GeometryInstance3D", true, false):
-		faded += 1 if (node as GeometryInstance3D).transparency != 0.0 else 0
-	assert_equal(faded, 0, "no village mesh still faded")
-	assert_false(below.visible, "the resident below hidden again")
-	var above := cast.actor(1) as DemoActorScript
-	assert_true(above.visible, "a resident above shows")
-	for node in above.find_children("*", "GeometryInstance3D", true, false):
-		assert_almost_equal((node as GeometryInstance3D).transparency, 0.0, "and is not faded")
-	for end in 2:
-		assert_almost_equal(overlay.heap(0, end == 1).transparency, 0.0, "heap %d unfaded" % end)
-		for node in overlay.hole(0, end == 1).find_children("*", "GeometryInstance3D", true, false):
-			assert_almost_equal((node as GeometryInstance3D).transparency, 0.0, "hole %d unfaded" % end)
-	for node in view.get_children():
-		assert_false((node as Node3D).visible, "%s hidden" % node.name)
+func _snapshot(roots: Array) -> Dictionary:
+	"""Every drawn node under `roots`: its path, transparency, material, visibility and layers, and its
+	materials' transparency (what a fade or a swap would change)."""
+	var out := {}
+	for root: Node in roots:
+		for node: Node in [root] + root.find_children("*", "GeometryInstance3D", true, false):
+			var geometry := node as GeometryInstance3D
+			if geometry == null:
+				continue
+			var material := geometry.material_override as BaseMaterial3D
+			out[geometry.get_instance_id()] = [geometry.transparency, geometry.material_override, geometry.visible,
+				geometry.layers, material.transparency if material != null else -1]
+	return out
 
 
 # --- review and playtest fixes: the panel ---------------------------------------------------

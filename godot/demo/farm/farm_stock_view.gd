@@ -4,7 +4,8 @@ extends Node3D
 ## Each storage location the pantry has (farm_storage.gd) gets a shelf (demo/props/store_shelf.gd):
 ## the covered store's stands outside it against its side wall -- the store is a closed barn, and its
 ## front is its work spot -- facing the camera's usual side; a root cellar's stands at
-## the back of its room below ground, seen in the underground view. Each shows the store's fullness
+## the back of its room below ground, on the underground layer the U view draws (decision 0206: put
+## there when the cellar is stocked, never when the view switches). Each shows the store's fullness
 ## as jars and its most-stocked goods on its boards. A cellar is found from its storage id
 ## (farm_cellars.gd: "root_cellar:<slot>:<generation>") in the chambers it names.
 ##
@@ -19,6 +20,8 @@ const ChambersScript := preload("res://demo/burrow/burrow_chambers.gd")
 const BurrowViewScript := preload("res://demo/burrow/burrow_view.gd")
 const Layout := preload("res://demo/world/world_layout.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
+const Layers := preload("res://demo/demo_layers.gd")
+const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 
 const STORE_ID: StringName = &"store"
 ## The covered store's shelf, in the store's own frame (+Z its front, toward the square): just past
@@ -35,8 +38,9 @@ const CELLAR_PREFIX: String = "root_cellar:"
 var _pantry: PantryScript = null
 var _goods: GoodsScript = null
 var _chambers: ChambersScript = null
-var _underground: bool = false
 var _shelves: Array[ShelfScript] = []
+## Per shelf, the layer it was last put on (0: not yet).
+var _shelf_layer: PackedInt32Array = PackedInt32Array()
 var _order: PackedInt32Array = PackedInt32Array()
 var _milli: PackedInt64Array = PackedInt64Array()
 var _keys: Array[StringName] = []
@@ -57,10 +61,14 @@ func follow_chambers(chambers: ChambersScript) -> void:
 	_chambers = chambers
 
 
-func set_underground_view(on: bool) -> void:
-	"""Cellar shelves show in the underground view only."""
-	_underground = on
-	refresh()
+func register(prewarm: PrewarmScript) -> void:
+	"""What a cellar's shelf draws -- the shelf, its jars and every good a shelf can set out -- for the
+	underground view's prewarm (decision 0206)."""
+	prewarm.add_mesh(_goods.props.mesh_of(ShelfScript.SHELF_KEY))
+	prewarm.add_mesh(_goods.props.mesh_of(ShelfScript.JARS_KEY))
+	for item: int in Catalog.ITEM_COUNT:
+		if _goods.has_model(item):
+			prewarm.add_mesh(_goods.props.mesh_of(Catalog.ITEM_PROP[item]))
 
 
 static func store_shelf_transform() -> Transform3D:
@@ -84,6 +92,7 @@ func _shelf(location: int) -> ShelfScript:
 		shelf.visible = false
 		add_child(shelf)
 		_shelves.append(shelf)
+		_shelf_layer.append(0)
 	return _shelves[location]
 
 
@@ -94,6 +103,7 @@ func refresh() -> void:
 		var shelf: ShelfScript = _shelf(location)
 		shelf.visible = _place(shelf, location, storage)
 		if shelf.visible:
+			_layer(location, Layers.SURFACE if location == 0 else Layers.UNDERGROUND)
 			shelf.show_stock(fill_permille(location), _stock_keys(location))
 	for gone: int in range(storage.count(), _shelves.size()):
 		_shelves[gone].visible = false
@@ -113,7 +123,14 @@ func _place(shelf: ShelfScript, location: int, storage: StorageScript) -> bool:
 	var centre: Vector2 = _chambers.centre_m(slot)
 	shelf.position = Vector3(centre.x, BurrowViewScript.ROOM_FLOOR_Y_M + CELLAR_FLOOR_LIFT_M,
 		centre.y - CELLAR_SHELF_BACK_M)
-	return _underground
+	return true
+
+
+func _layer(location: int, layer: int) -> void:
+	"""Put a location's shelf -- the shelf, its jars and every good's place -- on `layer`, once."""
+	if _shelf_layer[location] != layer:
+		_shelf_layer[location] = layer
+		Layers.set_layers(_shelves[location], layer)
 
 
 func fill_permille(location: int) -> int:

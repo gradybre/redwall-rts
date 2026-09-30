@@ -22,6 +22,7 @@ extends Node3D
 ## across the water (validated bank connections) as thin blue bars.
 
 const Rules := preload("res://demo/water/water_rules.gd")
+const Layers := preload("res://demo/demo_layers.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
 const WaterGridScript := preload("res://demo/water/water_grid.gd")
 const FishingDriverScript := preload("res://demo/water/fishing_driver.gd")
@@ -260,6 +261,7 @@ func _label(at: Vector3, text: String) -> Label3D:
 	var label := Label3D.new()
 	label.text = text
 	label.position = at
+	label.layers = Layers.SURFACE_MARKS
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.no_depth_test = true
 	label.fixed_size = true

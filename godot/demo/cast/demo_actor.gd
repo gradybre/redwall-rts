@@ -21,10 +21,11 @@ extends Node3D
 ## woods' axe there (`set_work_tool()`, demo/forestry/) for as long as the work lasts. Presentation
 ## only; the brain decides when a trip carries, and the farm and the woods what.
 ##
-## UNDERGROUND (demo/tunnel/). In a tunnel the actor stands on the bore floor (the brain's
-## `ground_y_m`) and is hidden -- unless the underground view is on (`set_underground_view`), when
-## it shows there and residents still on the surface fade to SURFACE_FADE instead. The tail's floor
-## follows the ground it stands on.
+## UNDERGROUND (demo/tunnel/; decision 0206). In a tunnel the actor stands on the bore floor (the brain's
+## `ground_y_m`) on the UNDERGROUND render layer, so only the U view draws it; on the surface it is on
+## the SURFACE layer, and a small cream MARKER on the level's floor (UNDERGROUND_MARKS) shows the U view
+## where it stands. Going down or coming up rewrites its meshes' layers once (demo_layers.gd); a view
+## switch touches nothing here -- no fade, no material. The tail's floor follows the ground it stands on.
 ##
 ## TIME. The cast steps each actor with the demo clock (demo_clock.gd): the brain by the frame's demo
 ## time, in sub-steps, and the AnimationPlayer at the clip's speed times the game's -- so a paused
@@ -45,6 +46,8 @@ const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const TailRigScript := preload("res://scripts/presentation/tail_rig.gd")
 const ClipRootMotionScript := preload("res://scripts/presentation/clip_root_motion.gd")
 const DemoClockScript := preload("res://demo/demo_clock.gd")
+const Layers := preload("res://demo/demo_layers.gd")
+const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 
 const CROSSFADE_S: float = 0.25
 const LIBRARY: StringName = &"cast"
@@ -69,8 +72,12 @@ const HOLD_FORWARD_PER_HEIGHT: float = 0.07
 ## of this much.
 const WATER_FLOOR_BELOW_M: float = 4.0
 const WATER_TAIL_TURN_RAD: float = 0.15
-## How far a resident still on the surface fades while the underground view is on.
-const SURFACE_FADE: float = 0.7
+## The U view's marker for a resident on the surface: a cream disc in a dark edge, on the level's floor,
+## drawn over the cap (no depth test), MARKER_RADIUS_M across.
+const MARKER_RADIUS_M: float = 0.24
+const MARKER_EDGE_M: float = 0.05
+const MARKER_COLOUR: Color = Color(0.96, 0.91, 0.78)
+const MARKER_EDGE_COLOUR: Color = Color(0.16, 0.12, 0.09)
 const PLACEHOLDER_COLOURS: Array[Color] = [Color(0.72, 0.52, 0.36), Color(0.55, 0.62, 0.38),
 	Color(0.47, 0.55, 0.7), Color(0.75, 0.66, 0.42), Color(0.62, 0.45, 0.58), Color(0.5, 0.5, 0.5)]
 
@@ -111,9 +118,11 @@ var _hand_bone: int = -1
 var _hand_left: int = -1
 var _hand_right: int = -1
 var _skeleton_to_actor: Transform3D = Transform3D.IDENTITY
-var _underground_view: bool = false
-## What the view last drew: bit 0 underground, bit 1 the underground view (-1: not yet drawn).
-var _view_key: int = -1
+## Whether the meshes were last put below (1) or above (0) ground (-1: not yet), and on which layer.
+var _below: int = -1
+var _layers: int = Layers.SURFACE
+## The U view's marker for this resident while it is on the surface (top level: placed in the world).
+var _marker: Node3D = null
 var _floor_y: float = 0.0
 ## The tail's water mode as last set, and the heading its pull was last aimed along.
 var _tail_in_water: bool = false
@@ -156,6 +165,8 @@ func _make_brain(space: CastSpaceScript, gait: float, radius: float, seed: int, 
 	brain = BrainScript.new()
 	brain.configure(space, gait * WALK_PACE, radius, seed, lengths)
 	brain.set_gait_speed(gait)
+	if _marker == null:
+		_build_marker()
 
 
 func setup_placeholder(index: int, space: CastSpaceScript, seed: int) -> void:
@@ -252,23 +263,88 @@ func tail_in_water() -> bool:
 	return _tail_in_water
 
 
-func set_underground_view(on: bool) -> void:
-	"""Show residents in tunnels (and fade those on the surface), or the ordinary view."""
-	_underground_view = on
-	_apply_view()
-
-
 func _apply_view() -> void:
-	"""Hidden underground in the ordinary view; faded on the surface in the underground view. Only
-	touches the meshes when that changes."""
-	var key := (1 if brain.underground else 0) | (2 if _underground_view else 0)
-	if key == _view_key:
-		return
-	_view_key = key
-	visible = _underground_view or not brain.underground
-	var fade := SURFACE_FADE if _underground_view and not brain.underground else 0.0
-	for node in find_children("*", "GeometryInstance3D", true, false):
-		(node as GeometryInstance3D).transparency = fade
+	"""On the surface layer above ground, the underground layer in a bore (see UNDERGROUND): rewritten
+	only when that changes -- a layers write, never a fade or a material. The marker follows a resident
+	on the surface."""
+	var below := 1 if brain.underground else 0
+	if below != _below:
+		_below = below
+		_layers = Layers.UNDERGROUND if brain.underground else Layers.SURFACE
+		Layers.set_layers(self, _layers, _marker)
+		if _marker != null:
+			_marker.visible = not brain.underground
+	if _marker != null and below == 0:
+		_marker.position = Vector3(brain.position.x, Layers.FLOOR_Y_M + Layers.MARK_LIFT_M, brain.position.y)
+
+
+func layers_now() -> int:
+	"""The render layer this resident's body is on (checks)."""
+	return _layers
+
+
+func marker() -> Node3D:
+	"""The U view's marker for this resident (null before setup; checks)."""
+	return _marker
+
+
+# --- the U view's marker ----------------------------------------------------------------------
+
+static var _marker_mesh: CylinderMesh = null
+static var _marker_materials: Array[StandardMaterial3D] = []
+
+
+static func marker_mesh() -> CylinderMesh:
+	"""The marker's unit disc (radius 1, flat), shared."""
+	if _marker_mesh == null:
+		_marker_mesh = CylinderMesh.new()
+		_marker_mesh.top_radius = 1.0
+		_marker_mesh.bottom_radius = 1.0
+		_marker_mesh.height = 0.01
+		_marker_mesh.radial_segments = 24
+		_marker_mesh.rings = 1
+	return _marker_mesh
+
+
+static func marker_materials() -> Array[StandardMaterial3D]:
+	"""The marker's two materials, shared: its dark edge, then its cream face drawn over it."""
+	if _marker_materials.is_empty():
+		for k: int in 2:
+			var material := StandardMaterial3D.new()
+			material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			material.albedo_color = MARKER_EDGE_COLOUR if k == 0 else MARKER_COLOUR
+			material.no_depth_test = true
+			material.render_priority = 5 + k
+			_marker_materials.append(material)
+	return _marker_materials
+
+
+static func register_marker(prewarm: PrewarmScript) -> void:
+	"""What the marker draws, for the underground view's prewarm."""
+	for material: StandardMaterial3D in marker_materials():
+		prewarm.add_mesh(marker_mesh(), material)
+
+
+func _build_marker() -> void:
+	"""The marker: an edge disc and a face disc over it, on UNDERGROUND_MARKS, placed in the world."""
+	_marker = Node3D.new()
+	_marker.name = &"Marker"
+	_marker.top_level = true
+	for k: int in 2:
+		var disc := MeshInstance3D.new()
+		disc.mesh = marker_mesh()
+		disc.material_override = marker_materials()[k]
+		disc.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		disc.layers = Layers.UNDERGROUND_MARKS
+		var radius: float = MARKER_RADIUS_M + (MARKER_EDGE_M if k == 0 else 0.0)
+		disc.scale = Vector3(radius, 1.0, radius)
+		_marker.add_child(disc)
+	add_child(_marker)
+
+
+func _adopt(part: VisualInstance3D) -> void:
+	"""A part made after setup (a held good, a tool) goes on the layer the body is on now."""
+	part.layers = _layers
 
 
 func _apply_clip(game_speed: int) -> void:
@@ -316,6 +392,7 @@ func _build_load(height: float) -> void:
 	_load.mesh = trunk
 	_load.material_override = material
 	_load.visible = false
+	_adopt(_load)
 	add_child(_load)
 	_load_length = height * LOAD_OVERHANG_PER_HEIGHT
 	_skeleton_to_actor = _relative_transform(_skeleton)
@@ -367,6 +444,7 @@ func hold(mesh: Mesh, fit: Transform3D) -> void:
 	if _held == null:
 		_held = MeshInstance3D.new()
 		_held.name = &"Held"
+		_adopt(_held)
 		add_child(_held)
 		_listen_to_pose()
 	_held.mesh = mesh
@@ -400,6 +478,7 @@ func set_tool(mesh: Mesh, fit: Transform3D) -> void:
 		_tool = MeshInstance3D.new()
 		_tool.name = &"Tool"
 		_tool.visible = false
+		_adopt(_tool)
 		add_child(_tool)
 		_listen_to_pose()
 	_tool.mesh = mesh
@@ -414,6 +493,7 @@ func set_work_tool(mesh: Mesh, fit: Transform3D) -> void:
 	if _work_tool == null:
 		_work_tool = MeshInstance3D.new()
 		_work_tool.name = &"WorkTool"
+		_adopt(_work_tool)
 		add_child(_work_tool)
 		_listen_to_pose()
 	_work_tool.mesh = mesh

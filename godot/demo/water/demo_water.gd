@@ -24,10 +24,9 @@ extends Node3D
 ##                               water's zones are its last step.
 ##   set_flood_rise(level)       raise the stream to `level` (0..1) of its bank: a flood (demo/events/).
 ##
-## UNDERGROUND VIEW (U, demo/tunnel/tunnel_view.gd) hides the world's Ground node by name and fades
-## the Village. The water follows the Ground's own visibility -- its bank film hides with it and the
-## surface fades to a faint sheet -- so nothing floats oddly over the deep-earth plane; the dressing
-## is parented under the Village and fades with the rest of it. MOVE-REQ-015: presentation only.
+## UNDERGROUND VIEW (U, demo/tunnel/tunnel_view.gd; decision 0206): the water, its bank film and its
+## dressing are on the surface layer, which the U view does not draw; the view's cap shows the water as a
+## hatched no-dig band instead. Nothing here hides or fades for it. MOVE-REQ-015: presentation only.
 ##
 ## Everything here is presentation except the map's integers and the fishing store, and nothing
 ## writes into the simulation, a pantry or an inventory.
@@ -69,7 +68,6 @@ var _overlay: WaterOverlayScript = null
 var _driver: FishingDriverScript = null
 var _clock: DemoClockScript = null
 var _species_ids: PackedInt32Array = PackedInt32Array()
-var _underground: bool = false
 var _calendar: DemoCalendarScript = null
 var _stream_surface: Node3D = null
 var _flood_rise_m: float = 0.0
@@ -208,11 +206,6 @@ func surface() -> WaterSurfaceScript:
 	return _surface
 
 
-func is_underground_view() -> bool:
-	"""Whether the water is currently drawn for the underground view."""
-	return _underground
-
-
 func _process(_delta: float) -> void:
 	"""Advance the flow by this frame's demo time (0 while paused), and the fishery to the demo
 	calendar's tick -- or by the frame's microseconds with no calendar bound. No allocation."""
@@ -227,25 +220,11 @@ func _process(_delta: float) -> void:
 		_driver.advance_usec(_clock.frame_usec)
 
 
-func set_underground_view(on: bool) -> void:
-	"""Draw the water for the underground view (bank film hidden, surface faint) or normally."""
-	_underground = on
-	_skirt.visible = not on
-	_surface.set_underground_view(on)
-
-
 func _attach_ground(world: Node3D) -> void:
-	"""Carve the world's ground and follow its visibility (the underground view hides it)."""
+	"""Carve the world's ground (water_terrain.gd)."""
 	var ground := world.get_node_or_null(GROUND_NODE) as MeshInstance3D
-	if ground == null:
-		return
-	WaterTerrain.carve_ground(ground, _grid)
-	ground.visibility_changed.connect(_on_ground_visibility.bind(ground))
-
-
-func _on_ground_visibility(ground: MeshInstance3D) -> void:
-	"""The ground was hidden or shown: the underground view went on or off."""
-	set_underground_view(not ground.visible)
+	if ground != null:
+		WaterTerrain.carve_ground(ground, _grid)
 
 
 func _clear_cover(world: Node3D) -> void:

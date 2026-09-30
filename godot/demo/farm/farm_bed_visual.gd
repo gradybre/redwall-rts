@@ -23,6 +23,7 @@ extends Node3D
 const Look := preload("res://demo/farm/farm_look.gd")
 const SimScript := preload("res://demo/farm/farm_sim.gd")
 const AssetsScript := preload("res://demo/farm/farm_assets.gd")
+const Layers := preload("res://demo/demo_layers.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const CropCards := preload("res://demo/world/crop_cards.gd")
 const MarksScript := preload("res://demo/control/demo_marks.gd")
@@ -408,6 +409,7 @@ func _make_label() -> Label3D:
 	text.outline_modulate = Color(0.08, 0.1, 0.08, 0.85)
 	text.position.y = LABEL_HEIGHT_M
 	text.render_priority = 3
+	text.layers = Layers.SURFACE_MARKS
 	text.outline_render_priority = 2
 	return text
 
@@ -756,12 +758,6 @@ func show_overlay(colour: Color) -> void:
 	"""Show the map-overlay disc in `colour` (alpha 0 hides it)."""
 	overlay.visible = colour.a > 0.0
 	(overlay.material_override as StandardMaterial3D).albedo_color = colour
-
-
-func set_faded(alpha: float) -> void:
-	"""Fade every drawn part (the tunnel tool's underground view)."""
-	for node: Node in find_children("*", "GeometryInstance3D", true, false):
-		(node as GeometryInstance3D).transparency = alpha
 
 
 func plant_count() -> int:

@@ -43,6 +43,7 @@ const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const CoreWeather := preload("res://scripts/core/weather.gd")
+const Layers := preload("res://demo/demo_layers.gd")
 
 const DT: float = 1.0 / 60.0
 const SEED: int = 9091
@@ -1052,16 +1053,17 @@ func test_the_ground_map_image() -> void:
 
 
 func test_the_ground_view_shows_where_it_should() -> void:
-	"""The tint while planning above ground; the strata underground; neither otherwise."""
+	"""The tint while planning, on the surface's marks layer (the U view shows the ground as its cap's
+	strata instead: decision 0206); nothing otherwise."""
 	var view := GroundViewScript.new()
 	_nodes.append(view)
 	view.configure(GroundScript.new())
-	assert_false(view.plan_tint().visible or view.strata().visible, "nothing to start")
+	assert_false(view.plan_tint().visible, "nothing to start")
 	view.set_planning(true)
 	assert_true(view.plan_tint().visible, "tint while planning")
-	view.set_underground_view(true)
-	assert_false(view.plan_tint().visible, "no tint underground")
-	assert_true(view.strata().visible, "strata underground")
+	assert_equal(view.plan_tint().layers, Layers.SURFACE_MARKS, "a surface mark: the U view never draws it")
+	view.set_planning(false)
+	assert_false(view.plan_tint().visible, "and not after")
 
 
 func _marked_tunnel() -> Array:
@@ -1099,25 +1101,26 @@ func test_the_marks_follow_the_tunnel_s_state() -> void:
 
 
 func test_braces_and_lanterns_show_underground() -> void:
-	"""Braced and lit, underground: a frame every metre where the floor is a trough deep (1..7 of 0..8)
-	and two lanterns; above ground, none."""
+	"""Braced and lit: a frame every metre where the floor is a trough deep (1..7 of 0..8) and two
+	lanterns, placed when it is braced and lit and drawn on the underground layer only (decision 0206)."""
 	var site := _marked_tunnel()
 	var network: NetworkScript = site[0]
 	var marks: MarksScript = site[1]
+	marks.refresh()
+	assert_false(marks.frames(0).visible, "none before it is braced")
 	network.set_braced(0)
 	network.set_lit(0)
 	marks.refresh()
-	assert_false(marks.frames(0).visible, "not above ground")
-	marks.set_underground_view(true)
-	marks.refresh()
 	assert_true(marks.frames(0).visible, "frames below")
+	assert_equal(marks.frames(0).layers, Layers.UNDERGROUND, "on the underground layer")
 	assert_equal(marks.frames(0).multimesh.visible_instance_count, 7, "metres 1..7")
 	assert_equal(marks.lanterns(0).multimesh.visible_instance_count, 2, "8 m: two lanterns")
 
 
 func test_the_chamber_drawings() -> void:
-	"""A planned chamber is outlined and named "(digging)"; a done one names itself and, underground,
-	shows its room."""
+	"""A planned chamber is outlined and named "(digging)" in both views; a done one names itself, its
+	room is built then -- once, on the underground layer -- and the library's cellar stands on the
+	surface, whatever the view (decision 0206)."""
 	var chambers := ChambersScript.new()
 	var view := BurrowViewScript.new()
 	_nodes.append(view)
@@ -1127,15 +1130,19 @@ func test_the_chamber_drawings() -> void:
 	view.refresh()
 	assert_equal(view.label(0).text, "Root cellar (digging)", "planned")
 	assert_true(view.label(0).position.is_equal_approx(Vector3(2.0, 0.6, 4.0)), "over it")
+	assert_equal(view.label_below(0).text, "Root cellar (digging)", "named in the U view too")
+	assert_equal(view.label_below(0).layers, Layers.UNDERGROUND_MARKS, "on its marks layer")
+	assert_equal(view.room_builds, 0, "no room yet")
 	chambers.set_done(0)
-	view.set_underground_view(true)
 	view.refresh()
 	assert_equal(view.label(0).text, "Root cellar", "done")
 	assert_true(view.room(0).visible, "the room below")
 	assert_equal(view.room(0).get_child_count(), 3, "a floor and two baskets by the door (the farm stocks its shelf)")
-	assert_false(view.cellar_door(0).visible, "no cellar on the surface while looking below")
-	view.set_underground_view(false)
+	for piece: Node in view.room(0).get_children():
+		assert_equal((piece as VisualInstance3D).layers, Layers.UNDERGROUND, "%s below" % piece.name)
+	assert_equal(view.room_builds, 1, "built once, when dug")
 	view.refresh()
+	assert_equal(view.room_builds, 1, "and not again")
 	assert_true(view.cellar_door(0).visible, "the done root cellar is the library's cellar on the surface")
 	assert_true(view.cellar_door(0).position.is_equal_approx(Vector3(2.0, 0.0, 4.0)), "over the room")
 

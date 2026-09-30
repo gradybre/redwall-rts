@@ -12,6 +12,9 @@ extends Node3D
 ## all the spoil ever heaped there; for a heap spoil has been taken from, this redraws it every
 ## frame, after the tunnel overlay (process_priority), at the size of what is LEFT, and hides it
 ## when it is empty.
+##
+## THE UNDERGROUND VIEW does not draw the beds, their labels or their plants: they are on the surface
+## layers (decision 0206). Nothing here fades or hides for it.
 
 const SimScript := preload("res://demo/farm/farm_sim.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
@@ -31,8 +34,6 @@ const OVERLAY_RIPENESS: int = 2
 const OVERLAY_NAMES: Array[String] = ["off", "moisture", "ripeness"]
 ## The world pieces this close to a bed centre are the bed (hidden).
 const WORLD_PIECE_MATCH_M: float = 0.05
-## Faded like the rest of the surface in the underground view (tunnel_view.gd SURFACE_FADE).
-const UNDERGROUND_FADE: float = 0.82
 
 var assets: AssetsScript = AssetsScript.new()
 var beds: Array[BedVisualScript] = []
@@ -44,13 +45,11 @@ var _sim: SimScript = null
 var _tunnels: TunnelsScript = null
 var _network: NetworkScript = null
 var _heap_overlay: OverlayScript = null
-var _underground: Callable = Callable()
 var _shown: PackedInt64Array = PackedInt64Array()
 var _selected: int = -1
 ## What the beds were last drawn for: the sim's revision and the marks (selection, overlay).
 var _seen_revision: int = -1
 var _seen_marks: int = -1
-var _faded: bool = false
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 
 
@@ -75,13 +74,11 @@ func build(manifest: Dictionary, sim: SimScript) -> void:
 	refresh()
 
 
-func follow_tunnels(tunnels: TunnelsScript, network: NetworkScript, heap_overlay: OverlayScript,
-		underground: Callable) -> void:
-	"""Shrink heaps drawn by `heap_overlay`; fade with the underground view (`underground() -> bool`)."""
+func follow_tunnels(tunnels: TunnelsScript, network: NetworkScript, heap_overlay: OverlayScript) -> void:
+	"""Shrink heaps drawn by `heap_overlay`."""
 	_tunnels = tunnels
 	_network = network
 	_heap_overlay = heap_overlay
-	_underground = underground
 
 
 static func hide_world_beds(village: Node) -> int:
@@ -100,15 +97,9 @@ static func hide_world_beds(village: Node) -> int:
 
 
 func _process(_delta: float) -> void:
-	"""Redraw beds that changed, shrink the heaps, follow the underground view."""
+	"""Redraw beds that changed, and shrink the heaps."""
 	refresh()
 	_shrink_heaps()
-	var under: bool = _underground.is_valid() and bool(_underground.call())
-	if under != _faded:
-		_faded = under
-		for visual: BedVisualScript in beds:
-			visual.set_faded(UNDERGROUND_FADE if under else 0.0)
-		stock.set_underground_view(under)
 
 
 func refresh() -> void:

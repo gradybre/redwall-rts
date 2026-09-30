@@ -11,17 +11,23 @@ extends Node3D
 ## being laid (tunnel_plan.gd) is drawn the same way with a ring at each point and its length beside
 ## the pointer, on top of everything, so a route laid under a roof stays readable.
 ##
-## UNDERGROUND (U, tunnel_view.gd): each tunnel's dug length also shows as a lit trough at bore
-## depth, the bore seen from above with its roof cut away -- twice as wide once widened (and as far
-## as a widening has reached, `widen_m`), warmer and brighter when lit, water-blue when flooded,
-## and dark with rubble through a fallen section (tunnel_marks.gd draws the frames, lanterns and
-## the rest).
+## UNDERGROUND (the U view, tunnel_view.gd; decision 0206): each tunnel's dug length is a TROUGH at
+## bore depth on the UNDERGROUND layer -- the bore seen from above with its roof cut away, a textured,
+## lit half-round channel (packed earth on its floor, darker damp walls) with a face wall where the dig
+## has reached -- twice as wide once widened (and as far as a widening has reached, `widen_m`), warmer
+## when lit, water-blue when flooded, dark with rubble through a fallen section (tunnel_marks.gd draws
+## the frames, lanterns and the rest). It is built as the bore is dug, whatever the view, and each dug
+## step is stamped into the cap's void mask (underground_cap.gd) so the cap opens over it. The interim
+## look until P1's swept bores; it replaced an unshaded, see-through vertex-coloured ribbon.
+##
+## THE ROUTE BEING LAID is drawn twice, a node per view (demo_layers.gd): on the ground, and on the
+## level's floor in the U view -- where a click there lands.
 ##
 ## A MOUND also follows a mole at a digging job underground (widening, clearing, a chamber):
 ## `job_digger` names it per tunnel (tunnel_works.gd sets it every frame; -1 for none).
 ##
 ## BUILT ONCE, REBUILT RARELY. Every node is built once per slot. The ribbon and the trough are
-## rebuilt only when the dig face crosses a BORE_STEP_M boundary (or the phase or the view changes)
+## rebuilt only when the dig face crosses a BORE_STEP_M boundary (or the phase or the tunnel's state changes)
 ## -- at most a few times a second while digging, never every tick -- into scratch arrays that are
 ## grown, never shrunk, with no temporary per quad. Mouths and heaps only move and scale, per tick.
 ##
@@ -40,6 +46,9 @@ const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const MarksScript := preload("res://demo/control/demo_marks.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const DemoClockScript := preload("res://demo/demo_clock.gd")
+const Layers := preload("res://demo/demo_layers.gd")
+const CapScript := preload("res://demo/tunnel/underground_cap.gd")
+const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 
 const LIFT_M: float = 0.045
 const PLAN_WIDTH_M: float = 0.32
@@ -68,10 +77,7 @@ const LABEL_PX: int = 40
 const LABEL_PIXEL: float = 0.0006
 const HEAP_RINGS: int = 7
 const HEAP_SECTORS: int = 28
-## In the underground view, things on the surface -- mouths, heaps, the mound -- fade this far.
-const SURFACE_FADE: float = 0.55
-## A ribbon rebuild's key: phase, then the face's BORE_STEP_M steps, whether ground is broken, and
-## the view.
+## A ribbon rebuild's key: phase, then the face's BORE_STEP_M steps and whether ground is broken.
 const KEY_PHASE: int = 1000000
 
 const EARTH: Color = Color(0.302, 0.224, 0.165)
@@ -81,13 +87,20 @@ const PLAN: Color = Color(Palette.CREAM, 0.6)
 const PAUSED_PLAN: Color = Color(Palette.CLAY, 0.8)
 const PREVIEW: Color = Color(Palette.CREAM, 0.35)
 const TRACE: Color = Color(EARTH, 0.4)
-const BORE_DEEP: Color = Color(0.36, 0.2, 0.09)
-const BORE_RIM: Color = Palette.EMBER
-const LIT_DEEP: Color = Color(0.62, 0.45, 0.22)
-const LIT_RIM: Color = Color(1.0, 0.86, 0.5)
-const WATER_DEEP: Color = Color(0.12, 0.26, 0.42)
-const WATER_RIM: Color = Color(0.38, 0.62, 0.8)
+## The trough's vertex colours (the earth texture is multiplied by them): its packed floor, and its
+## walls at the rim -- plain, lit, flooded; rubble through a fall.
+const BORE_FLOOR: Color = Color(0.5, 0.39, 0.27)
+const BORE_WALL: Color = Color(0.3, 0.21, 0.14)
+const LIT_FLOOR: Color = Color(0.72, 0.55, 0.34)
+const LIT_WALL: Color = Color(0.52, 0.36, 0.2)
+const WATER_FLOOR: Color = Color(0.14, 0.27, 0.4)
+const WATER_WALL: Color = Color(0.22, 0.3, 0.36)
 const RUBBLE: Color = Color(0.16, 0.12, 0.09)
+## A bore's floor within this of the level's floor counts as full depth (its void is stamped).
+const FULL_DEPTH_SLACK_M: float = 0.01
+## The trough's earth: a grain from EARTH_GRAIN_LOW to white, world-triplanar at EARTH_GRAIN_SCALE.
+const EARTH_GRAIN_LOW: Color = Color(0.7, 0.68, 0.66)
+const EARTH_GRAIN_SCALE: float = 0.9
 ## A mesh key's tunnel-state part: bore, lit, closed, braced and the widening's step.
 const KEY_STATE: int = 100000000
 
@@ -105,17 +118,29 @@ var _mouth_key: PackedInt64Array = PackedInt64Array()
 var _plan_ribbon: MeshInstance3D = null
 var _plan_rings: Array[MeshInstance3D] = []
 var _label: Label3D = null
+## The route being laid as the U view draws it, on the level's floor (a node per view; decision 0206).
+var _plan_below: Node3D = null
+var _plan_ribbon_below: MeshInstance3D = null
+var _plan_rings_below: Array[MeshInstance3D] = []
+var _label_below: Label3D = null
 var _materials: Dictionary = {}
 var _poly: PackedVector2Array = PackedVector2Array()
 var _verts: PackedVector3Array = PackedVector3Array()
 var _vert_count: int = 0
 var _bore_verts: PackedVector3Array = PackedVector3Array()
+var _bore_normals: PackedVector3Array = PackedVector3Array()
 var _bore_colours: PackedColorArray = PackedColorArray()
 var _bore_indices: PackedInt32Array = PackedInt32Array()
 var _bore_arrays: Array = []
 var _spoil: PackedInt64Array = PackedInt64Array()
-var _underground_view: bool = false
 var _time: float = 0.0
+## The underground view's cap, whose void mask each dug step is stamped into (none: not stamped).
+var _cap: CapScript = null
+## Per tunnel: how far along its void is stamped (m), and the widening's reach stamped (m); what the
+## stamps were made for (its generation; -1: none yet).
+var _void_m: PackedFloat32Array = PackedFloat32Array()
+var _void_wide_m: PackedFloat32Array = PackedFloat32Array()
+var _void_generation: PackedInt32Array = PackedInt32Array()
 ## Per tunnel: how far a widening has reached (m), and the mole at a digging job there (-1: none).
 var widen_m: PackedFloat32Array = PackedFloat32Array()
 var job_digger: PackedInt32Array = PackedInt32Array()
@@ -123,6 +148,7 @@ var job_digger: PackedInt32Array = PackedInt32Array()
 var bore_builds: int = 0
 
 static var _heap: ArrayMesh = null
+static var _trough: StandardMaterial3D = null
 
 
 func configure(network: NetworkScript, space: CastSpaceScript, clock: DemoClockScript = null) -> void:
@@ -140,6 +166,10 @@ func configure(network: NetworkScript, space: CastSpaceScript, clock: DemoClockS
 	job_digger.fill(-1)
 	_mouth_key.resize(Rules.MAX_TUNNELS)
 	_mouth_key.fill(-1)
+	_void_m.resize(Rules.MAX_TUNNELS)
+	_void_wide_m.resize(Rules.MAX_TUNNELS)
+	_void_generation.resize(Rules.MAX_TUNNELS)
+	_void_generation.fill(-1)
 	_bore_arrays.resize(Mesh.ARRAY_MAX)
 	for slot in Rules.MAX_TUNNELS:
 		_build_slot()
@@ -150,9 +180,9 @@ func configure(network: NetworkScript, space: CastSpaceScript, clock: DemoClockS
 func _build_slot() -> void:
 	"""One slot's nodes: ribbon, trough, mound, pause ring, and a hole and heap at each end."""
 	_ribbons.append(_mesh_node(ImmediateMesh.new(), null))
-	var trough := _unshaded(Color.WHITE, true)
-	trough.vertex_color_is_srgb = true
-	_bores.append(_mesh_node(ArrayMesh.new(), trough))
+	var bore := _mesh_node(ArrayMesh.new(), trough_material())
+	bore.layers = Layers.UNDERGROUND
+	_bores.append(bore)
 	_mounds.append(_make_mound())
 	var ring := MarksScript.make_ring(Palette.CLAY)
 	ring.scale = Vector3(PAUSE_RING_M, 1.0, PAUSE_RING_M)
@@ -329,26 +359,53 @@ func _make_mound() -> Node3D:
 
 
 func _build_plan_marks() -> void:
-	"""The route being laid: its ribbon, a ring per point and a length label, all drawn on top."""
+	"""The route being laid, a set per view (see THE ROUTE BEING LAID): its ribbon, a ring per point and
+	a length label, all drawn on top -- on the ground, and on the level's floor, sharing one ribbon mesh."""
 	_plan_ribbon = _mesh_node(ImmediateMesh.new(), null)
+	_plan_ribbon.layers = Layers.SURFACE_MARKS
+	_label = _plan_label(self, Layers.SURFACE_MARKS)
+	_plan_below = Node3D.new()
+	_plan_below.name = "PlanBelow"
+	_plan_below.position.y = Layers.FLOOR_Y_M
+	add_child(_plan_below)
+	_plan_ribbon_below = MeshInstance3D.new()
+	_plan_ribbon_below.mesh = _plan_ribbon.mesh
+	_plan_ribbon_below.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_plan_ribbon_below.layers = Layers.UNDERGROUND_MARKS
+	_plan_ribbon_below.visible = false
+	_plan_below.add_child(_plan_ribbon_below)
+	_label_below = _plan_label(_plan_below, Layers.UNDERGROUND_MARKS)
 	for k in Rules.MAX_POINTS:
-		var ring := MarksScript.make_ring(Palette.CREAM)
-		ring.scale = Vector3(RING_RADIUS_M, 1.0, RING_RADIUS_M)
-		(ring.material_override as StandardMaterial3D).no_depth_test = true
-		(ring.material_override as StandardMaterial3D).render_priority = 3
-		add_child(ring)
-		_plan_rings.append(ring)
-	_label = Label3D.new()
-	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_label.no_depth_test = true
-	_label.fixed_size = true
-	_label.pixel_size = LABEL_PIXEL
-	_label.font_size = LABEL_PX
-	_label.outline_size = 10
-	_label.modulate = Palette.CREAM
-	_label.outline_modulate = Palette.DEEP_SHADE
-	_label.visible = false
-	add_child(_label)
+		_plan_rings.append(_plan_ring(self, Layers.SURFACE_MARKS))
+		_plan_rings_below.append(_plan_ring(_plan_below, Layers.UNDERGROUND_MARKS))
+
+
+static func _plan_ring(parent: Node3D, layer: int) -> MeshInstance3D:
+	"""A ring for a laid point, drawn on top, on `layer`, under `parent`, hidden."""
+	var ring := MarksScript.make_ring(Palette.CREAM)
+	ring.scale = Vector3(RING_RADIUS_M, 1.0, RING_RADIUS_M)
+	(ring.material_override as StandardMaterial3D).no_depth_test = true
+	(ring.material_override as StandardMaterial3D).render_priority = 3
+	ring.layers = layer
+	parent.add_child(ring)
+	return ring
+
+
+static func _plan_label(parent: Node3D, layer: int) -> Label3D:
+	"""The route's length label, drawn on top, on `layer`, under `parent`, hidden."""
+	var label := Label3D.new()
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	label.fixed_size = true
+	label.pixel_size = LABEL_PIXEL
+	label.font_size = LABEL_PX
+	label.outline_size = 10
+	label.modulate = Palette.CREAM
+	label.outline_modulate = Palette.DEEP_SHADE
+	label.layers = layer
+	label.visible = false
+	parent.add_child(label)
+	return label
 
 
 func _hide_all() -> void:
@@ -417,14 +474,19 @@ func ribbon(slot: int) -> MeshInstance3D:
 
 
 func mesh_key(slot: int) -> int:
-	"""What a slot's ribbon and trough were last built for (see BUILT ONCE, REBUILT RARELY; -1: hidden)."""
+	"""What a slot's ribbon and trough were last built for (see BUILT ONCE, REBUILT RARELY; -1: hidden).
+	Nothing about the view: a view switch rebuilds nothing (decision 0206)."""
 	var phase := _network.phase[slot]
 	if phase == NetworkScript.PHASE_FREE:
 		return -1
-	var dug := _network.length_m(slot) if _network.is_open(slot) else _network.face_m(slot)
 	var broken := 2 if _network.done(slot) > 0 else 0
-	var base := int(phase) * KEY_PHASE + floori(dug / BORE_STEP_M) * 4 + broken + (1 if _underground_view else 0)
+	var base := int(phase) * KEY_PHASE + floori(dug_m(slot) / BORE_STEP_M) * 4 + broken
 	return base + _state_key(slot) * KEY_STATE
+
+
+func dug_m(slot: int) -> float:
+	"""How much of tunnel `slot`'s bore is dug (all of it once open), m."""
+	return _network.length_m(slot) if _network.is_open(slot) else _network.face_m(slot)
 
 
 func _state_key(slot: int) -> int:
@@ -445,8 +507,8 @@ func _sync_slot(slot: int) -> void:
 			_hide_slot(slot)
 			return
 		_draw_ribbon(slot)
-		_bores[slot].visible = _underground_view
-		if _underground_view:
+		_bores[slot].visible = _network.done(slot) > 0
+		if _bores[slot].visible:
 			_build_bore(slot)
 	var ticks := int(_network.phase[slot]) * KEY_PHASE + _network.done(slot)
 	if key >= 0 and ticks != _mouth_key[slot]:
@@ -641,37 +703,106 @@ func _camera_distance(at: Vector3) -> float:
 
 # --- underground ----------------------------------------------------------------------------
 
-func set_underground_view(on: bool) -> void:
-	"""Show (or hide) each tunnel's dug trough at bore depth, and fade what lies on the surface."""
-	_underground_view = on
-	_mesh_key.fill(-1)
-	var fade := SURFACE_FADE if on else 0.0
-	for heap_node in _heaps:
-		heap_node.transparency = fade
-	for node in _holes + _mounds:
-		for geometry in node.find_children("*", "GeometryInstance3D", true, false):
-			(geometry as GeometryInstance3D).transparency = fade
+func set_view(cap: CapScript, prewarm: PrewarmScript) -> void:
+	"""The underground view's cap (whose void mask the dug bores open) and its prewarm registry, which
+	learns everything this overlay draws in the U view (decision 0206)."""
+	_cap = cap
+	prewarm.add_mesh(sample_trough(), trough_material())
+	for colour: Color in [PLAN, PREVIEW]:
+		prewarm.add_mesh(_immediate_sample(), _on_top(colour))
+	for ring: MeshInstance3D in _plan_rings_below:
+		prewarm.add_mesh(ring.mesh, ring.material_override)
+	prewarm.add_label(_label_below)
+
+
+static func _immediate_sample() -> ImmediateMesh:
+	"""One upward triangle in the plan ribbon's vertex format (position and normal)."""
+	var mesh := ImmediateMesh.new()
+	mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	mesh.surface_set_normal(Vector3.UP)
+	for v: Vector3 in [Vector3.ZERO, Vector3(0.1, 0.0, 0.0), Vector3(0.0, 0.0, 0.1)]:
+		mesh.surface_add_vertex(v)
+	mesh.surface_end()
+	return mesh
+
+
+static func trough_material() -> StandardMaterial3D:
+	"""THE trough material, shared by every bore: lit, rough, a world-triplanar earth grain multiplied by
+	the vertex colours, both faces drawn (the near wall is seen from behind through the cap)."""
+	if _trough != null:
+		return _trough
+	var noise := FastNoiseLite.new()
+	noise.seed = 1206
+	noise.frequency = 0.08
+	noise.fractal_octaves = 3
+	var ramp := Gradient.new()
+	ramp.set_color(0, EARTH_GRAIN_LOW)
+	ramp.set_color(1, Color.WHITE)
+	var texture := NoiseTexture2D.new()
+	texture.width = 128
+	texture.height = 128
+	texture.seamless = true
+	texture.noise = noise
+	texture.color_ramp = ramp
+	_trough = StandardMaterial3D.new()
+	_trough.albedo_texture = texture
+	_trough.uv1_triplanar = true
+	_trough.uv1_world_triplanar = true
+	_trough.uv1_scale = Vector3.ONE * EARTH_GRAIN_SCALE
+	_trough.vertex_color_use_as_albedo = true
+	_trough.vertex_color_is_srgb = true
+	_trough.roughness = 1.0
+	_trough.cull_mode = BaseMaterial3D.CULL_DISABLED
+	return _trough
+
+
+static func sample_trough() -> ArrayMesh:
+	"""A one-step trough in the bores' vertex format (vertex, normal, colour, index), for the prewarm."""
+	var arrays: Array = []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = PackedVector3Array([Vector3.ZERO, Vector3(1.0, 0.0, 0.0), Vector3(0.0, 0.0, 1.0)])
+	arrays[Mesh.ARRAY_NORMAL] = PackedVector3Array([Vector3.UP, Vector3.UP, Vector3.UP])
+	arrays[Mesh.ARRAY_COLOR] = PackedColorArray([BORE_FLOOR, BORE_WALL, BORE_FLOOR])
+	arrays[Mesh.ARRAY_INDEX] = PackedInt32Array([0, 2, 1])
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	return mesh
 
 
 func _build_bore(slot: int) -> void:
-	"""The dug length of a tunnel as an open trough on the bore floor: a half-round channel, deep and
-	dark at the bottom, glowing ember at its cut rims (never above the ground). Written into the
-	slot's own mesh from scratch arrays sized to fit, with no temporaries."""
-	var dug := _network.length_m(slot) if _network.is_open(slot) else _network.face_m(slot)
+	"""The dug length of a tunnel as an open trough on the bore floor: a half-round channel from rim to
+	rim, packed earth below and darker walls, closed by a face wall where the dig has reached. Written
+	into the slot's own mesh from scratch arrays sized to fit, with no temporaries; the newly dug steps
+	are stamped into the cap's void mask."""
+	var dug := dug_m(slot)
 	var steps := maxi(1, ceili(dug / BORE_STEP_M))
-	_bore_verts.resize((steps + 1) * (BORE_SIDES + 1))
-	_bore_colours.resize(_bore_verts.size())
+	var ring_verts := (steps + 1) * (BORE_SIDES + 1)
+	_size_bore_arrays(ring_verts + BORE_SIDES + 2, steps * BORE_SIDES * 6 + BORE_SIDES * 3)
 	for i in steps + 1:
 		_bore_ring(slot, dug * float(i) / float(steps), i * (BORE_SIDES + 1))
-	_bore_indices.resize(steps * BORE_SIDES * 6)
 	var n := 0
 	for i in steps:
 		for j in BORE_SIDES:
 			var a := i * (BORE_SIDES + 1) + j
-			var b := a + BORE_SIDES + 1
-			_quad_indices(n, a, b)
+			_quad_indices(n, a, a + BORE_SIDES + 1)
 			n += 6
+	_face_wall(slot, dug, ring_verts, steps * (BORE_SIDES + 1), n)
+	_commit_bore(slot)
+	_stamp_void(slot, dug)
+
+
+func _size_bore_arrays(vertices: int, indices: int) -> void:
+	"""The scratch arrays at exactly this size (resized only when the size changes)."""
+	_bore_verts.resize(vertices)
+	_bore_normals.resize(vertices)
+	_bore_colours.resize(vertices)
+	_bore_indices.resize(indices)
+
+
+func _commit_bore(slot: int) -> void:
+	"""Write the scratch arrays as the slot's trough mesh."""
 	_bore_arrays[Mesh.ARRAY_VERTEX] = _bore_verts
+	_bore_arrays[Mesh.ARRAY_NORMAL] = _bore_normals
 	_bore_arrays[Mesh.ARRAY_COLOR] = _bore_colours
 	_bore_arrays[Mesh.ARRAY_INDEX] = _bore_indices
 	var mesh := _bores[slot].mesh as ArrayMesh
@@ -692,33 +823,97 @@ func _quad_indices(n: int, a: int, b: int) -> void:
 
 func _bore_ring(slot: int, along: float, first: int) -> void:
 	"""One cross-section of the trough, from vertex `first`: the lower half-circle of the bore, rim to
-	rim -- as wide as the bore is there, coloured by its state (see UNDERGROUND)."""
-	var wide := _network.bore[slot] == Rules.BORE_WIDE or along < widen_m[slot]
-	var radius := Rules.to_m(Rules.BORE_WIDTHS_U[1 if wide else 0]) * 0.5
+	rim, normals toward its axis -- as wide as the bore is there, coloured by its state (see
+	UNDERGROUND)."""
+	var radius := bore_radius_m(slot, along)
 	var centre := _network.point_at(slot, along)
 	var ahead := _network.direction_at(slot, along)
 	var side := Vector2(-ahead.y, ahead.x)
 	var floor_y := _network.floor_y_at(slot, along)
-	var deep := _trough_colour(slot, along, false)
-	var rim := _trough_colour(slot, along, true)
+	var ground := _trough_colour(slot, along, false)
+	var wall := _trough_colour(slot, along, true)
 	for j in BORE_SIDES + 1:
 		var angle := PI + PI * float(j) / float(BORE_SIDES)
 		var across := centre + side * (cos(angle) * radius)
 		_bore_verts[first + j] = Vector3(across.x, minf(floor_y + radius + sin(angle) * radius, -0.02), across.y)
-		_bore_colours[first + j] = deep.lerp(rim, absf(cos(angle)))
+		_bore_normals[first + j] = Vector3(-cos(angle) * side.x, -sin(angle), -cos(angle) * side.y)
+		_bore_colours[first + j] = ground.lerp(wall, absf(cos(angle)))
 
 
-func _trough_colour(slot: int, along: float, rim: bool) -> Color:
-	"""The trough's colour at `along`: rubble in a fallen section, water when flooded, warm when lit."""
+func bore_radius_m(slot: int, along: float) -> float:
+	"""The trough's half-width `along` metres in: the wide bore's where it is widened."""
+	var wide := _network.bore[slot] == Rules.BORE_WIDE or along < widen_m[slot]
+	return Rules.to_m(Rules.BORE_WIDTHS_U[1 if wide else 0]) * 0.5
+
+
+func _face_wall(slot: int, dug: float, first: int, last_ring: int, n: int) -> void:
+	"""The half-disc wall closing the trough where the dig has reached: a fan from the bore's axis to
+	the last ring, facing back down the bore, from vertex `first` and index `n`."""
+	var ahead := _network.direction_at(slot, dug)
+	var centre := _network.point_at(slot, dug)
+	var axis_y := _network.floor_y_at(slot, dug) + bore_radius_m(slot, dug)
+	_bore_verts[first] = Vector3(centre.x, minf(axis_y, -0.02), centre.y)
+	var facing := Vector3(-ahead.x, 0.0, -ahead.y)
+	var colour := _trough_colour(slot, dug, true)
+	for j in BORE_SIDES + 1:
+		_bore_verts[first + 1 + j] = _bore_verts[last_ring + j]
+	for k in BORE_SIDES + 2:
+		_bore_normals[first + k] = facing
+		_bore_colours[first + k] = colour
+	for j in BORE_SIDES:
+		_bore_indices[n + 3 * j] = first
+		_bore_indices[n + 3 * j + 1] = first + 2 + j
+		_bore_indices[n + 3 * j + 2] = first + 1 + j
+
+
+func _trough_colour(slot: int, along: float, wall: bool) -> Color:
+	"""The trough's colour at `along`, its floor or its wall: rubble in a fallen section, water when
+	flooded, warm when lit."""
 	var closed := _network.closed[slot]
 	if closed == NetworkScript.CLOSED_COLLAPSED and Rules.to_u(along) >= _network.closed_from_u[slot] - Rules.QUANTUM_U / 2 \
 			and Rules.to_u(along) <= _network.closed_to_u[slot] + Rules.QUANTUM_U / 2:
 		return RUBBLE
 	if closed == NetworkScript.CLOSED_FLOODED:
-		return WATER_RIM if rim else WATER_DEEP
+		return WATER_WALL if wall else WATER_FLOOR
 	if _network.lit[slot] == 1:
-		return LIT_RIM if rim else LIT_DEEP
-	return BORE_RIM if rim else BORE_DEEP
+		return LIT_WALL if wall else LIT_FLOOR
+	return BORE_WALL if wall else BORE_FLOOR
+
+
+func _stamp_void(slot: int, dug: float) -> void:
+	"""Open the cap over what is newly dug of tunnel `slot`: a disc of its width every BORE_STEP_M from
+	where the stamps reached, and the face; the widened reach again at the wide width (see
+	underground_cap.gd). A reused slot starts again."""
+	if _cap == null:
+		return
+	if _void_generation[slot] != _network.generation[slot]:
+		_void_generation[slot] = _network.generation[slot]
+		_void_m[slot] = 0.0
+		_void_wide_m[slot] = 0.0
+	var wide := dug if _network.bore[slot] == Rules.BORE_WIDE else minf(widen_m[slot], dug)
+	_void_wide_m[slot] = _stamp_run(slot, _void_wide_m[slot], wide, Rules.to_m(Rules.BORE_WIDTHS_U[1]) * 0.5)
+	_void_m[slot] = _stamp_run(slot, _void_m[slot], dug, Rules.to_m(Rules.BORE_WIDTHS_U[0]) * 0.5)
+	_cap.commit_void()
+
+
+func _stamp_run(slot: int, from_m: float, to_m: float, radius: float) -> float:
+	"""Stamp discs of `radius` along tunnel `slot` from `from_m` to `to_m` (each step, and `to_m`
+	itself) where its floor is at full depth -- a mouth's ramp rises through the cap and is not a void
+	in it; returns how far the stamps now reach."""
+	if to_m <= from_m:
+		return from_m
+	var along := from_m
+	while along < to_m:
+		_stamp_deep(slot, along, radius)
+		along += BORE_STEP_M
+	_stamp_deep(slot, to_m, radius)
+	return to_m
+
+
+func _stamp_deep(slot: int, along: float, radius: float) -> void:
+	"""One disc of the void at `along`, if the floor there is at the level's depth."""
+	if _network.floor_y_at(slot, along) <= Layers.FLOOR_Y_M + FULL_DEPTH_SLACK_M:
+		_cap.stamp_disc(_network.point_at(slot, along), radius)
 
 
 # --- the route being laid -------------------------------------------------------------------
@@ -740,32 +935,34 @@ func show_plan(plan: PlanScript, cursor: Vector2, has_cursor: bool) -> void:
 		_strip_into(0.0, INF, PLAN_WIDTH_M, true)
 		_flush(mesh, _on_top(PREVIEW))
 	_plan_ribbon.visible = true
-	_show_plan_rings(plan)
-	_show_plan_label(plan, cursor, has_cursor)
-
-
-func _show_plan_rings(plan: PlanScript) -> void:
-	"""A ring on each laid point."""
+	_plan_ribbon_below.visible = true
 	for k in _plan_rings.size():
-		var ring := _plan_rings[k]
-		ring.visible = k < plan.count
-		if not ring.visible:
-			continue
-		var at := plan.point_m(k)
-		ring.position = Vector3(at.x, MarksScript.LIFT_M, at.y)
-		var colour := Palette.BRASS if k == 0 else (Palette.EMBER if k == plan.count - 1 else Palette.CREAM)
-		MarksScript.set_alpha(ring, colour, 1.0)
+		_show_plan_ring(_plan_rings[k], plan, k)
+		_show_plan_ring(_plan_rings_below[k], plan, k)
+	_show_plan_label(_label, plan, cursor, has_cursor)
+	_show_plan_label(_label_below, plan, cursor, has_cursor)
 
 
-func _show_plan_label(plan: PlanScript, cursor: Vector2, has_cursor: bool) -> void:
-	"""The route's length (to the pointer, while it is over the ground) beside its end."""
-	_label.visible = plan.count > 0
-	if not _label.visible:
+static func _show_plan_ring(ring: MeshInstance3D, plan: PlanScript, k: int) -> void:
+	"""The ring on laid point `k` (brass entrance, ember latest), or hidden past the last."""
+	ring.visible = k < plan.count
+	if not ring.visible:
+		return
+	var at := plan.point_m(k)
+	ring.position = Vector3(at.x, MarksScript.LIFT_M, at.y)
+	var colour := Palette.BRASS if k == 0 else (Palette.EMBER if k == plan.count - 1 else Palette.CREAM)
+	MarksScript.set_alpha(ring, colour, 1.0)
+
+
+static func _show_plan_label(label: Label3D, plan: PlanScript, cursor: Vector2, has_cursor: bool) -> void:
+	"""The route's length (to the pointer, while it is over the plane) beside its end."""
+	label.visible = plan.count > 0
+	if not label.visible:
 		return
 	var at := cursor if has_cursor else plan.point_m(plan.count - 1)
 	var length := plan.length_to_u(Rules.to_u(at.x), Rules.to_u(at.y)) if has_cursor else plan.length_u()
-	_label.text = PlanScript.length_text(length)
-	_label.position = Vector3(at.x, 0.6, at.y)
+	label.text = PlanScript.length_text(length)
+	label.position = Vector3(at.x, 0.6, at.y)
 
 
 func plan_label() -> Label3D:
@@ -778,9 +975,17 @@ func plan_ribbon() -> MeshInstance3D:
 	return _plan_ribbon
 
 
+func plan_below() -> Node3D:
+	"""The route being laid as the U view draws it, on the level's floor (its ribbon, rings and label)."""
+	return _plan_below
+
+
 func hide_plan() -> void:
-	"""Stop drawing the route being laid."""
+	"""Stop drawing the route being laid, in both views."""
 	_plan_ribbon.visible = false
+	_plan_ribbon_below.visible = false
 	_label.visible = false
-	for ring in _plan_rings:
-		ring.visible = false
+	_label_below.visible = false
+	for k in _plan_rings.size():
+		_plan_rings[k].visible = false
+		_plan_rings_below[k].visible = false

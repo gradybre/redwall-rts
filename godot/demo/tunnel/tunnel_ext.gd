@@ -50,6 +50,7 @@ const ServicesScript := preload("res://demo/demo_services.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 const FindPropsScript := preload("res://demo/tunnel/tunnel_find_props.gd")
 const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
+const ViewScript := preload("res://demo/tunnel/tunnel_view.gd")
 
 ## The player did something on the tunnels (selected one, laid a route, armed a chamber): show the
 ## tunnels panel.
@@ -88,6 +89,8 @@ var _props: PropsScript = null
 var _network: NetworkScript = null
 var _overlay: OverlayScript = null
 var _camera: Camera3D = null
+## The underground view: its plane is where a click lands, its cap what rooms open (none: the ground).
+var _view: ViewScript = null
 var _selection: Callable = Callable()
 var _mark: Callable = Callable()
 var _refresh_in: float = 0.0
@@ -162,6 +165,16 @@ func _build_views() -> void:
 	add_child(panel)
 	panel.build()
 	panel.action.connect(on_action)
+
+
+func set_view(view: ViewScript) -> void:
+	"""The underground view (decision 0206): its plane for every click, its cap for the rooms dug, and
+	its prewarm registry for everything these drawings show in it."""
+	_view = view
+	burrow_view.set_cap(view.cap)
+	marks.register(view.prewarm)
+	burrow_view.register(view.prewarm)
+	find_props.register(view.prewarm)
 
 
 func set_world(world: Node, under_u: PackedInt32Array) -> void:
@@ -245,14 +258,19 @@ func handle_input(event: InputEvent) -> bool:
 
 
 func _ground_at(screen: Vector2) -> bool:
-	"""The ground point under a screen point, into _ground. False when the ray misses the ground."""
-	var origin := _camera.project_ray_origin(screen)
-	var direction := _camera.project_ray_normal(screen)
-	var t := PickScript.ray_ground(origin, direction, 0.0)
-	if t < 0.0:
+	"""The point under a screen point on the view's plane (the ground, or the level's floor in the U
+	view), into _ground. False when the ray misses it."""
+	var at: Vector2 = Vector2.INF
+	if _view != null:
+		at = _view.ground_at(screen)
+	else:
+		var t := PickScript.ray_ground(_camera.project_ray_origin(screen), _camera.project_ray_normal(screen), 0.0)
+		if t >= 0.0:
+			var hit := _camera.project_ray_origin(screen) + _camera.project_ray_normal(screen) * t
+			at = Vector2(hit.x, hit.z)
+	if at == Vector2.INF:
 		return false
-	var at := origin + direction * t
-	_ground = Vector2(at.x, at.z)
+	_ground = at
 	return true
 
 
@@ -310,15 +328,6 @@ func _repair_job() -> int:
 
 
 # --- the tunnel tool's hooks ------------------------------------------------------------------
-
-func set_underground_view(on: bool) -> void:
-	"""The underground view: strata, frames and lanterns, rooms; the weather's ground veil hides."""
-	ground_view.set_underground_view(on)
-	marks.set_underground_view(on)
-	burrow_view.set_underground_view(on)
-	find_props.set_underground_view(on)
-	weather_view.set_underground_view(on)
-
 
 func set_planning(on: bool) -> void:
 	"""A route is being laid (or no longer): the ground map tints the village (and the panel's legend

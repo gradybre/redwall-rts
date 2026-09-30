@@ -162,7 +162,8 @@ func _build_view(manifest: Dictionary, world: DemoWorldScript, command: DemoComm
 		ViewScript.hide_world_beds(village)
 	var tool: TunnelControlScript = command.tunnels() if command != null else null
 	if tool != null:
-		view.follow_tunnels(tunnels, _cast.space().tunnels, tool.overlay, func() -> bool: return tool.view != null and tool.view.on)
+		view.follow_tunnels(tunnels, _cast.space().tunnels, tool.overlay)
+		view.stock.register(tool.view.prewarm)
 
 
 func _build_panels() -> void:

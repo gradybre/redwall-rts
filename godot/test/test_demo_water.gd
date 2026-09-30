@@ -31,6 +31,7 @@ const Layout := preload("res://demo/world/world_layout.gd")
 const Dimensions := preload("res://assets/lookdev/lookdev_dimensions.gd")
 const Scatter := preload("res://demo/world/world_scatter.gd")
 const DemoCamera := preload("res://demo/camera/demo_camera.gd")
+const Layers := preload("res://demo/demo_layers.gd")
 
 ## Fixture numbers, in u.
 const DROP: int = 184
@@ -964,17 +965,23 @@ func test_the_water_follows_the_demo_clock() -> void:
 	assert_equal(water.fishing().completed_tick(), 3, "paused")
 
 
-func test_the_underground_view_hides_the_bank_and_fades_the_water() -> void:
-	"""On: bank film hidden, surfaces at 0.2 opacity; off: both restored."""
-	var water: DemoWater = _built()[1]
-	water.set_underground_view(true)
-	assert_true(water.is_underground_view(), "on")
-	assert_false((water.get_node(^"WaterBank") as Node3D).visible, "bank hidden")
-	for material: ShaderMaterial in water.surface().materials:
-		assert_almost_equal(material.get_shader_parameter(&"fade"), 0.2, "faded")
-	water.set_underground_view(false)
-	assert_true((water.get_node(^"WaterBank") as Node3D).visible, "bank back")
-	assert_almost_equal(water.surface().materials[0].get_shader_parameter(&"fade"), 1.0, "restored")
+func test_the_water_is_all_on_the_surface_layers() -> void:
+	"""Decision 0206: the water has no underground hook -- its surfaces, bank film, dressing and labels
+	are on the surface layers (the U view's cap draws the water as its no-dig band), each unfaded, and
+	hiding the world's ground no longer touches it."""
+	var built: Array = _built()
+	var water: DemoWater = built[1]
+	var drawn: Array[Node] = water.find_children("*", "GeometryInstance3D", true, false)
+	assert_true(drawn.size() > 3, "surfaces, bank and overlay")
+	for node: Node in drawn:
+		var geometry := node as GeometryInstance3D
+		assert_equal(geometry.layers & Layers.UNDERGROUND_VIEW, 0, "%s never in the U view" % geometry.name)
+		assert_almost_equal(geometry.transparency, 0.0, "%s unfaded" % geometry.name)
+	var ground := (built[0] as DemoWorld).get_node(^"Ground") as Node3D
+	ground.visible = false
+	assert_true((water.get_node(^"WaterBank") as Node3D).visible, "the bank does not follow the ground")
+	assert_false(water.has_method(&"set_underground_view"), "no fade hook")
+	ground.visible = true
 
 
 func test_ground_cover_is_cleared_from_the_water_and_banks() -> void:

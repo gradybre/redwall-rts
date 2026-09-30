@@ -755,7 +755,7 @@ func test_heaps_are_drawn_at_what_is_left_after_spoil_is_taken() -> void:
 	var view := ViewScript.new()
 	_nodes.append(view)
 	view.build({}, SimScript.new())
-	view.follow_tunnels(tunnels, network, overlay, Callable())
+	view.follow_tunnels(tunnels, network, overlay)
 	var exit_scale: Vector3 = overlay.heap(ref[0], true).scale
 	tunnels.take_spoil_into(network, 2 * ref[0], 2000, _read)
 	view._process(0.0)

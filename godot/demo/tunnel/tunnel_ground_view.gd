@@ -1,15 +1,16 @@
 extends Node3D
 ## The ground map, drawn. Decision 0196 (live demo). Presentation only.
 ##
-## One texture, a pixel per ground cell (tunnel_ground.gd), drawn two ways:
-##   * PLANNING: while a tunnel route is being laid, a see-through tint over the village's ground, so
-##     the player sees the clay, sand, rock and wet ground a route would cross before digging it
-##     (plain dry loam is left clear).
-##   * UNDERGROUND (U): opaque, as the strata below the bores -- the tunnels are seen cut through it.
-## Built once from the grid; showing and hiding it changes nothing else.
+## One texture, a pixel per ground cell (tunnel_ground.gd): while a tunnel route is being laid, a
+## see-through tint over the village's ground (on the surface's marks layer), so the player sees the
+## clay, sand, rock and wet ground a route would cross before digging it (plain dry loam is left clear).
+## The U view shows the same ground as the strata of its cap (underground_cap.gd, decision 0206), which
+## replaced this node's own strata plane. Built once from the grid; showing and hiding it changes nothing
+## else.
 
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
+const Layers := preload("res://demo/demo_layers.gd")
 
 ## Per ground type (LOAM, CLAY, SAND, ROCK), muted earth colours, and the tint wet ground takes.
 const COLOURS: Array[Color] = [Color(0.33, 0.24, 0.16), Color(0.55, 0.31, 0.21), Color(0.74, 0.64, 0.42),
@@ -20,24 +21,20 @@ const WET_MIX: float = 0.45
 const LEGEND: String = "Ground: rust is clay (slow), pale is sand (weak), grey is rock (needs the badger), blue is wet (floods)"
 const PLAN_ALPHA: float = 0.72
 const PLAN_LIFT_M: float = 0.03
-const STRATA_Y_M: float = -1.9
 
 var planning: bool = false
-var underground: bool = false
 
 var _plan: MeshInstance3D = null
-var _strata: MeshInstance3D = null
 
 
 func configure(ground: GroundScript) -> void:
-	"""Build both drawings of `ground`, hidden."""
+	"""Build the planning tint of `ground`, hidden."""
 	name = "GroundView"
 	var size := Vector2(Rules.to_m(ground.columns * GroundScript.CELL_U), Rules.to_m(ground.rows * GroundScript.CELL_U))
 	var centre := Vector2(Rules.to_m(ground.origin_u.x), Rules.to_m(ground.origin_u.y)) + size * 0.5
 	_plan = _plane(ImageTexture.create_from_image(image_of(ground, 0.0)), size, Vector3(centre.x, PLAN_LIFT_M, centre.y),
 		PLAN_ALPHA)
-	_strata = _plane(ImageTexture.create_from_image(image_of(ground, 1.0)), size, Vector3(centre.x, STRATA_Y_M, centre.y),
-		1.0)
+	_plan.layers = Layers.SURFACE_MARKS
 
 
 static func colour_of(cell: int) -> Color:
@@ -82,28 +79,11 @@ func _plane(texture: Texture2D, size: Vector2, at: Vector3, alpha: float) -> Mes
 
 
 func set_planning(on: bool) -> void:
-	"""Show the tint over the ground while a route is being laid."""
+	"""Show the tint over the ground while a route is being laid (the surface view draws it)."""
 	planning = on
-	_refresh()
-
-
-func set_underground_view(on: bool) -> void:
-	"""Show the strata below the bores in the underground view."""
-	underground = on
-	_refresh()
-
-
-func _refresh() -> void:
-	"""The planning tint shows only above ground; the strata only below."""
-	_plan.visible = planning and not underground
-	_strata.visible = underground
+	_plan.visible = on
 
 
 func plan_tint() -> MeshInstance3D:
 	"""The planning tint (for checks)."""
 	return _plan
-
-
-func strata() -> MeshInstance3D:
-	"""The strata below the bores (for checks)."""
-	return _strata

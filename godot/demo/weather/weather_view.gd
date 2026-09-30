@@ -6,8 +6,8 @@ extends Node3D
 ## view of the ground, so the village is always under it at any zoom; FROST and SNOW lay a thin white
 ## veil over the ground. The sun dims and the haze thickens toward each condition's LOOK (demo
 ## values) -- a grey rainy day, a bright cold one -- and the change eases in over EASE_S of demo time.
-## Particles run at the game's speed (paused: they hang in the air); the falls and the veil hide in
-## the underground view so the tunnels read.
+## Particles run at the game's speed (paused: they hang in the air). The falls and the veil are on the
+## surface layer, which the underground view does not draw (decision 0206) -- nothing here hides for it.
 ##
 ## Everything is built once; per frame it only moves the sky box and eases a few numbers.
 
@@ -48,7 +48,6 @@ var _veil_material: StandardMaterial3D = null
 var _share: float = 1.0
 var _fog_add: float = 0.0
 var _veil_alpha: float = 0.0
-var _underground: bool = false
 
 
 func configure(weather: WeatherScript, clock: DemoClockScript, world: Node) -> void:
@@ -132,15 +131,6 @@ func _build_veil() -> void:
 	add_child(_veil)
 
 
-func set_underground_view(on: bool) -> void:
-	"""Hide the ground veil and the falling rain and snow in the underground view (the tunnels must
-	read; nothing falls below)."""
-	_underground = on
-	_veil.visible = not on and _veil_alpha > 0.01
-	_rain.visible = not on and _rain.emitting
-	_snow.visible = not on and _snow.emitting
-
-
 func _process(_delta: float) -> void:
 	"""Follow the view, run the particles at the game's speed, and ease toward the weather's look."""
 	if _weather == null:
@@ -161,7 +151,7 @@ func _set_emitting(particles: CPUParticles3D, on: bool) -> void:
 	if particles.emitting != on:
 		particles.emitting = on
 		if on:
-			particles.visible = not _underground
+			particles.visible = true
 
 
 func _apply_targets(weight: float) -> void:
@@ -175,7 +165,7 @@ func _apply_targets(weight: float) -> void:
 	if _environment != null:
 		_environment.fog_density = _fog + _fog_add
 	_veil_material.albedo_color.a = _veil_alpha
-	_veil.visible = not _underground and _veil_alpha > 0.01
+	_veil.visible = _veil_alpha > 0.01
 
 
 func _follow_view() -> void:

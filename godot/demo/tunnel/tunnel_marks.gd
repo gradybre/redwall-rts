@@ -7,14 +7,17 @@ extends Node3D
 ##   * COLLAPSED: the fall's rubble (the library's tunnel_rubble) over the section and a clay ring round it.
 ##   * UNDER A WARNING (seep or strain past half): its mouths ringed in clay, so the tunnel the alert
 ##     names is plain on the map.
-## UNDERGROUND (U), per tunnel: a timber brace frame every metre once BRACED (the library's
+## The selection line is drawn twice, a node per view (decision 0206): on the ground, and on the level's
+## floor for the U view, sharing one mesh.
+## UNDERGROUND (the U view's layer; decision 0206), per tunnel: a timber brace frame every metre once BRACED (the library's
 ## tunnel_brace, fitted to the bore's width and depth), and a wall lantern every LANTERN_SPACING_M once
 ## LIT (tunnel_jobs.gd): the library's wall_lantern hung on the bore's wall, a small warm glow in it
 ## and a faint light along the bore. With nothing staged (demo/props/demo_props.gd) the frame is three
 ## timber boxes, the rubble a heap and the lantern a box.
 ##
-## Built once per slot (MultiMesh for frames and lanterns); `refresh()` rebuilds a slot only when its
-## state key changes, and otherwise only moves nothing -- no per-frame allocation.
+## Built once per slot (MultiMesh for frames and lanterns) and placed when the tunnel is braced or lit,
+## whatever the view; `refresh()` rebuilds a slot only when its state key changes, and otherwise only
+## moves nothing -- no per-frame allocation. A view switch changes nothing here.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
@@ -24,6 +27,8 @@ const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
 const MarksScript := preload("res://demo/control/demo_marks.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
+const Layers := preload("res://demo/demo_layers.gd")
+const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 
 const LINE_WIDTH_M: float = 0.22
 const LINE_LIFT_M: float = 0.06
@@ -57,9 +62,10 @@ const RUBBLE_SINK_M: float = 0.06
 var _network: NetworkScript = null
 var _hazards: HazardsScript = null
 var _selected: int = -1
-var _underground: bool = false
 var _key: PackedInt64Array = PackedInt64Array()
 var _lines: Array[MeshInstance3D] = []
+## The selection lines as the U view draws them, on the level's floor (sharing each line's mesh).
+var _lines_below: Array[MeshInstance3D] = []
 var _waters: Array[MeshInstance3D] = []
 var _rings: Array[MeshInstance3D] = []
 var _falls: Array[MeshInstance3D] = []
@@ -74,6 +80,9 @@ var _lantern_fit: Transform3D = Transform3D.IDENTITY
 var _rubble_fit: Transform3D = Transform3D.IDENTITY
 var _lights: Array[OmniLight3D] = []
 var _verts: PackedVector3Array = PackedVector3Array()
+## The frame and glow meshes, built once and shared by every slot (one material each to prewarm).
+var _brace_mesh: Mesh = null
+var _glow: Mesh = null
 
 
 func configure(network: NetworkScript, hazards: HazardsScript, props: PropsScript = null) -> void:
@@ -86,6 +95,8 @@ func configure(network: NetworkScript, hazards: HazardsScript, props: PropsScrip
 	_frame_fit = frame_fit(_props)
 	_lantern_fit = _props.fit_of(LANTERN_KEY)
 	_rubble_fit = _props.fit_of(RUBBLE_KEY)
+	_brace_mesh = _props.mesh_of(BRACE_KEY) if _props.is_staged(BRACE_KEY) else _frame_mesh()
+	_glow = _glow_mesh()
 	_key.resize(Rules.MAX_TUNNELS)
 	_key.fill(-1)
 	for slot in Rules.MAX_TUNNELS:
@@ -95,6 +106,8 @@ func configure(network: NetworkScript, hazards: HazardsScript, props: PropsScrip
 func _build_slot() -> void:
 	"""One slot's marks, hidden."""
 	_lines.append(_ribbon_node(Color(Palette.BRASS, 0.9), true))
+	_lines[-1].layers = Layers.SURFACE_MARKS
+	_lines_below.append(_line_below(_lines[-1]))
 	_waters.append(_ribbon_node(WATER, false))
 	for end in 2:
 		var ring := MarksScript.make_ring(Palette.BRASS)
@@ -113,10 +126,23 @@ func _build_slot() -> void:
 	fall_ring.visible = false
 	add_child(fall_ring)
 	_fall_rings.append(fall_ring)
-	_frames.append(_multi(_props.mesh_of(BRACE_KEY) if _props.is_staged(BRACE_KEY) else _frame_mesh(), MAX_FRAMES))
+	_frames.append(_multi(_brace_mesh, MAX_FRAMES))
 	_lanterns.append(_multi(_props.mesh_of(LANTERN_KEY), MAX_LANTERNS))
-	_glows.append(_multi(_glow_mesh(), MAX_LANTERNS))
+	_glows.append(_multi(_glow, MAX_LANTERNS))
 	_lights.append(_light())
+
+
+func _line_below(line: MeshInstance3D) -> MeshInstance3D:
+	"""The U view's copy of a selection line: its mesh and material, on the level's floor, hidden."""
+	var below := MeshInstance3D.new()
+	below.mesh = line.mesh
+	below.material_override = line.material_override
+	below.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	below.layers = Layers.UNDERGROUND_MARKS
+	below.position.y = Layers.FLOOR_Y_M
+	below.visible = false
+	add_child(below)
+	return below
 
 
 func _ribbon_node(colour: Color, on_top: bool) -> MeshInstance3D:
@@ -154,6 +180,7 @@ func _multi(mesh: Mesh, count: int) -> MultiMeshInstance3D:
 	var node := MultiMeshInstance3D.new()
 	node.multimesh = multimesh
 	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	node.layers = Layers.UNDERGROUND
 	node.visible = false
 	add_child(node)
 	return node
@@ -206,6 +233,8 @@ func _light() -> OmniLight3D:
 	light.light_energy = LIGHT_ENERGY
 	light.omni_range = LIGHT_RANGE_M
 	light.shadow_enabled = false
+	light.layers = Layers.UNDERGROUND
+	light.light_cull_mask = Layers.UNDERGROUND
 	light.visible = false
 	add_child(light)
 	return light
@@ -217,10 +246,13 @@ func select(slot: int) -> void:
 	_key.fill(-1)
 
 
-func set_underground_view(on: bool) -> void:
-	"""Frames and lanterns show in the underground view only."""
-	_underground = on
-	_key.fill(-1)
+func register(prewarm: PrewarmScript) -> void:
+	"""What these marks draw in the U view -- frames, lanterns, their glows, the selection line through
+	the cap -- for its prewarm (decision 0206)."""
+	for node: MultiMeshInstance3D in [_frames[0], _lanterns[0], _glows[0]]:
+		prewarm.add_mesh(node.multimesh.mesh)
+	for line: MeshInstance3D in _lines_below:
+		prewarm.add_mesh(line.mesh, line.material_override)
 
 
 func refresh() -> void:
@@ -238,8 +270,7 @@ func _state_key(slot: int) -> int:
 		return -1
 	var warned := 1 if _warned(slot) else 0
 	var bits := int(_network.closed[slot]) + 4 * int(_network.braced[slot]) + 8 * int(_network.lit[slot]) + 16 * warned
-	return bits + 32 * (1 if slot == _selected else 0) + 64 * (1 if _underground else 0) + 128 * int(_network.bore[slot]) \
-			+ 256 * _network.generation[slot]
+	return bits + 32 * (1 if slot == _selected else 0) + 128 * int(_network.bore[slot]) + 256 * _network.generation[slot]
 
 
 func _warned(slot: int) -> bool:
@@ -253,11 +284,12 @@ func _draw_slot(slot: int) -> void:
 	var open := _network.is_open(slot)
 	var closed := _network.closed[slot] if open else NetworkScript.CLOSED_NONE
 	_draw_line(_lines[slot], slot, LINE_WIDTH_M, open and slot == _selected)
+	_lines_below[slot].visible = _lines[slot].visible
 	_draw_line(_waters[slot], slot, WATER_WIDTH_M, closed == NetworkScript.CLOSED_FLOODED)
 	_place_rings(slot, open)
 	_place_fall(slot, closed == NetworkScript.CLOSED_COLLAPSED)
-	_place_frames(slot, open and _underground and _network.braced[slot] == 1)
-	_place_lanterns(slot, open and _underground and _network.lit[slot] == 1)
+	_place_frames(slot, open and _network.braced[slot] == 1)
+	_place_lanterns(slot, open and _network.lit[slot] == 1)
 
 
 func _draw_line(node: MeshInstance3D, slot: int, width: float, show: bool) -> void:

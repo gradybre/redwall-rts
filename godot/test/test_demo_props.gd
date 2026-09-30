@@ -38,6 +38,7 @@ const WaterDressing := preload("res://demo/water/water_dressing.gd")
 const WaterLayout := preload("res://demo/water/water_layout.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
 const CastRoutinesScript := preload("res://demo/cast/cast_routines.gd")
+const Layers := preload("res://demo/demo_layers.gd")
 
 const DT: float = 1.0 / 60.0
 const HOUR_USEC: int = 2500000
@@ -458,19 +459,17 @@ func _works_with_finds() -> WorksScript:
 
 
 func test_finds_lie_where_they_were_cut_in_the_underground_view() -> void:
-	"""Two finds recorded: none drawn on the surface; underground, both, at their cuts on the bore
-	floor, the relic as the bell."""
+	"""Two finds recorded: both drawn at their cuts on the bore floor, the relic as the bell -- on the
+	underground layer, which only the U view draws (decision 0206)."""
 	var works := _works_with_finds()
 	assert_equal(works.found_count, 2, "two recorded")
 	assert_equal(works.found_relic[1], 1, "the first relic")
 	var view: FindPropsScript = _keep(FindPropsScript.new())
 	view.configure(works, works._network, PropsScript.new())
 	view.refresh()
-	assert_equal(view.shown_count(), 0, "not on the surface")
-	view.set_underground_view(true)
-	view.refresh()
 	assert_equal(view.shown_count(), 2, "both below")
 	var bell := view.get_child(1) as MeshInstance3D
+	assert_equal(bell.layers, Layers.UNDERGROUND, "on the underground layer")
 	assert_true(bell.mesh is BoxMesh, "the bell's placeholder")
 	assert_almost_equal(bell.position.x, 4.0, "at its cut (x)")
 	assert_almost_equal(bell.position.y, -Rules.BORE_FLOOR_DEPTH_M + PropsScript.placeholder_size(&"relic_bell").y * 0.5,
@@ -527,14 +526,16 @@ func test_lanterns_hang_on_alternate_walls_facing_into_the_bore() -> void:
 
 
 func test_a_lit_braced_tunnel_shows_frames_lanterns_and_glows_below() -> void:
-	"""Braced and lit, underground: a frame a metre, two lanterns and their two glows."""
+	"""Braced and lit: a frame a metre, two lanterns and their two glows, on the underground layer (the
+	U view draws them; decision 0206), their light lighting only that layer."""
 	var network := _dug_network()
 	network.set_braced(0)
 	network.set_lit(0)
 	var marks: MarksScript = _keep(MarksScript.new())
 	marks.configure(network, null, PropsScript.new())
-	marks.set_underground_view(true)
 	marks.refresh()
+	for node: VisualInstance3D in [marks.frames(0), marks.lanterns(0), marks.glows(0)]:
+		assert_equal(node.layers, Layers.UNDERGROUND, "%s below" % node.name)
 	assert_equal(marks.lanterns(0).multimesh.visible_instance_count, 2, "two lanterns")
 	assert_equal(marks.glows(0).multimesh.visible_instance_count, 2, "two glows")
 	assert_true(marks.glows(0).visible and marks.lanterns(0).visible, "shown")

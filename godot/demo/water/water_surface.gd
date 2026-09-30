@@ -33,8 +33,6 @@ const USEC_PER_SECOND: int = 1000000
 const POND_DRIFT: Vector2 = Vector2(0.045, 0.03)
 ## The sky's top colour when no world sky is given (world_look.gd's `_sky()` sky_top_color).
 const DEFAULT_SKY: Color = Color(0.36, 0.52, 0.7)
-## Opacity multiplier in the underground view, matching the surface's faded buildings.
-const UNDERGROUND_FADE: float = 0.2
 ## Transparent draw order: the bank film (0) first, then the water over it, then the overlay (2).
 const RENDER_PRIORITY: int = 1
 const RIPPLE_SEED: int = 23
@@ -73,12 +71,6 @@ func advance(frame_usec: int) -> void:
 func phase_usec() -> int:
 	"""Where in its cycle the flow is, in demo microseconds (0 .. CYCLE_USEC - 1)."""
 	return _usec
-
-
-func set_underground_view(on: bool) -> void:
-	"""Fade the water to a faint sheet while the underground view is on; restore it after."""
-	for material: ShaderMaterial in materials:
-		material.set_shader_parameter(PARAM_FADE, UNDERGROUND_FADE if on else 1.0)
 
 
 func _material(ripple: Texture2D, foam: Texture2D, sky: Color) -> ShaderMaterial:

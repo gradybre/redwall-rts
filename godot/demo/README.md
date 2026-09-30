@@ -46,12 +46,17 @@ with `RedwallDemo.exe`, its `.pck` and a README, zipped -- that boots straight i
 - **Stalls.** A frame long enough to put the clock a quarter second behind at 1x makes it hold its
   REQ-SET-008 diagnostic (CRITICAL) pause; `ui/demo_stall_banner.gd` shows "The simulation paused after
   a stall" with Resume (Enter or Space), which calls `GameManager.acknowledge_overload()`. It never
-  resumes by itself.
+  resumes by itself. To keep such frames away (the playtest's recurring overloads, decision 0205),
+  `demo_prewarm.gd` loads at boot what would first load mid-game -- every staged prop and icon, every
+  plant's card atlases, the woods' stumps, saplings and tree splits (about 0.13 s on the Mac, timed in
+  its `report`) -- and the clock starts only once the first three frames are drawn. While the banner
+  is up it is the one overload surface (the HUD's CLOCK_OVERLOADED card is withheld); Resume resolves
+  the notice, and a 2x/4x step-down warning (no pause) is resolved once the clock has run 10 s quiet.
 
 ## Time
 
 The demo opens running: `Game` starts the real clock and UIManager holds UI-SET-103's opening
-inspection pause, which the demo releases once as it opens. From then on the HUD's pause and
+inspection pause, which the demo releases once, after its first three frames are drawn (the prewarm). From then on the HUD's pause and
 1x / 2x / 4x buttons (and Space) are the game's own, and the whole village follows them through one
 presentation clock (`demo_clock.gd`): residents' walking, turning and work, digging and walking
 tunnels, the mound over a digger and every resident's clip. Paused, everyone holds their pose;
@@ -74,10 +79,14 @@ that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
 - **One weather** (`weather/demo_weather.gd`). The authority is the farm's REAL §5.10 weather row
   (`scripts/core/weather.gd` in the farm's private `crop_weather.gd` stage): the season baselines, the
   forced first-spring Ideal spell and one seeded event a season. Each day's rain wets the beds at the
-  day's start, and falls on screen as `rain / 200` whole hours of showers centred on 15:00 (spring's
-  1200 is 12:00-17:59) -- so the rain that slows walkers is the rain that wets the beds. Frost nights
-  (the farm's demo overlay) read as frost. Rain slows surface walking to 80%, snow to 60%, frost to 85%;
-  tunnels are not slowed, so walkers take them in bad weather. Rain and snow fall, the light dims.
+  day's start. On screen, ordinary rain comes in **spells** of three days (decision 0205: fewer, longer
+  spells): a spell's rain all falls on its wet day -- spring 2, 5, 8 and 11 (every season the same) --
+  as `rain / 200` whole hours centred on 15:00 (spring's 3 x 1200 is 06:00-23:59), and its other two
+  days are dry; a downpour (a day's figure of 2000 or more, §5.10's heavy rain) falls on its own day.
+  So over a spell the rain that slows walkers is the rain that wets the beds. Frost nights (the farm's
+  demo overlay) read as frost. Rain slows surface walking to 80%, snow to 60%, frost to 85%; tunnels
+  are not slowed, so walkers take them in bad weather. Rain and snow fall; a shower dims the light by
+  a quarter and adds a little haze (the streaks say it rains -- no grey fog).
 - **One water adapter** (`village_water.gd`, `demo_village.water()`) over the real water map
   (`water/water_map.gd`, see Water): the farm's water-edge query (irrigation: dry ground within 2.5 m
   of the waterline), the tunnels' wet ground (within 4.5 m), their flood (the stream spills over the
@@ -88,7 +97,7 @@ that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
 - **One notice feed** (`demo_notices.gd`). Every farm warning, weather change, tunnel happening, threat
   and crew report is posted there with its date; the newest show bottom centre as **Village news
   (demo)** (`ui/demo_news_strip.gd`: notes 12 s, warnings 30 s, warnings worded and in clay), and the
-  farm's and the tunnels' own latest stay in their panels. Nothing in the demo raises a HUD alert card
+  tunnels' own latest stay in their panel (the farm's bed panel shows only its bed: decision 0205). Nothing in the demo raises a HUD alert card
   any more: the HUD shows the two earliest unresolved notices, and demo lines, which nothing resolves,
   held both cards for good.
 
@@ -97,10 +106,18 @@ and finds. The woods put their wood in and saw their planks from it; the tunnels
 are paid from it. The HUD's Wood and Stone are the settlement's and are never written.
 
 **The right column holds one demo panel at a time** (`ui/demo_detail_zone.gd`): a tab strip, *Farm*,
-*Tunnels & burrows*, *Woods* and *Water*, over the HUD's detail zone. Clicking a bed brings the farm's
+*Tunnels* (& burrows), *Woods* and *Water*, and a "×" that folds the column away (a panel's own "×"
+does too; a tab, or clicking a bed, a tunnel or a tree, opens it again), over the HUD's detail zone. Clicking a bed brings the farm's
 panel; selecting a tunnel or laying a route brings the tunnels'; clicking a tree, a zone or giving a woods
 order brings the woods'; a swim, dive or bridge order, or clicking a bridge site, brings the water's; the
 tabs switch by hand; all hide while the resident journal is open.
+
+## The HUD
+
+The action bar's commands each have a hover tooltip -- what it does and its key, read from the input
+map (`ui/demo_command_tips.gd`); an enabled command answers its key. The notification history has its
+own "×" (Esc closes it, N toggles it). The Pantry draws above the HUD, so its "×" is reachable at
+1280x720. The Village news strip is centred on the action bar and follows it.
 
 ## Commanding the residents
 
@@ -119,10 +136,22 @@ tabs switch by hand; all hide while the resident journal is open.
 | Right click a tree, trunk, deadfall, stump, cleared spot or the sawhorse | The woods' verb for it (see The woods) |
 | Right click deep water | Swimmers swim out and tread water there; an otter over water deeper than it is tall dives; a non-swimmer is refused by name (see Water gameplay) |
 | Right click / left click a bridge site | Build the planned bridge there with the selection / select the site for the Water panel |
+| Middle-button drag | Turn the camera: across turns it (right turns right, as E), up and down tilt it |
+| Left click a spoil heap | Select it: a brass ring, and the party panel says how much spoil it holds |
+| Right click a spoil heap (or C with it selected) | The selected residents who can carry dig it out and haul it to the farm's compost store (Clear; see Spoil heaps) |
 | V | The one map-overlay cycle: the farm's moisture, its ripeness, the water's zones and fishery (wade / swim / dive, fords, bridge spans, landings, fish stocks), the woods' zones and trees, off |
 
-The "Demo party" panel in the HUD's left column lists the selection. Orders move the demo cast
-only, never the simulation.
+The "Demo party" panel in the HUD's left column lists the selection. With one resident selected it
+also lists **what that resident can be ordered to do** (`control/resident_abilities.gd`): a short line
+a kind of work with what to right-click, the gated ones marked × with the rule -- only moles dig, the
+otters and the badger are too big for a bore until it is widened, only otters dive, the badger wades
+only and breaks rock, the beaver gnaws. At 1280x720 the list is folded into one paragraph (the hint,
+skills and species line go first). Its **notice line is each resident's own**: a prompt or answer is
+kept for whoever was selected when it was said, so selecting someone else shows theirs. A resident
+called away from a job it had not finished (a tunnel job, a dig, a farm or a woods job, a spoil heap)
+**comes back to it** when the work that took it is done -- the latest three are kept, the panel says
+"Then back to: ...", and R (release) forgets them. Orders move the demo cast only, never the
+simulation.
 
 ## Digging tunnels
 
@@ -171,17 +200,21 @@ ingredient, freshness (GDD §5.8 spoilage by where it is stored), and the librar
 
 | Input | Does |
 |---|---|
-| Left click a bed | Its panel: crop, stage, hours to ripe or withering, moisture band, fertility, health, what was done to the ground, expected yield, jobs, and the verbs |
-| Right click a bed (residents selected) | The nearest selected resident does its most pressing work: clear, harvest, water a dry bed, cover before frost, sow |
+| Left click a bed | Its panel -- that bed only: a "Needs:" line naming its most pressing work and why (clay when urgent), crop, stage (and why growth stalled), moisture band, soil, what was done to the ground, expected yield, jobs, and the verbs |
+| Right click a bed (residents selected) | The nearest selected resident does its most pressing work: clear, harvest, drain a waterlogged bed, water a dry bed, cover once a frost is announced, sow |
 | Plant… (bed panel) | The crop picker: every ingredient, sowable ones first, with growth hours, yield, family and its rotation effect in this bed; the rest say why not (soil, planting window) |
 | Water / Harvest / Clear / Compost / Cover | Given to the selected residents, or queued for the field crew (the fieldworker and gatherer take queued work while wandering) |
+| Drain | A wet or waterlogged bed: a resident digs a ditch round it (6 WU); its moisture drops at once to the top of its crop's band, and the ditch sheds up to 1000 a day for good (decision 0205) |
 | Raise / Bank | A resident fetches 2 U of tunnel spoil from a heap: a raised bed drains and is warmer at night; a banked bed keeps half of each dry day's loss |
 | Rest | Rest the bed fallow (it regains fertility; nothing is sown) |
 | V | Map overlay: moisture, then ripeness, then the water's zones, then the woods, then off (one key for every overlay) |
 | K / Food | The Pantry |
 
-Threats: spring is wet (beds waterlog and stop growing -- drain them with a tunnel, or raise them),
-summer dry (water), frost nights are announced the day before (cover or raise), blight spreads to
+Threats: spring is wet (beds waterlog and stop growing -- Drain them, run a tunnel under them, or raise
+them; every bed sheds up to 500 a day above its band's top, so in the first spring only the Ideal spell
+waterlogs a roots bed, around spring 8), summer dry (water), frost nights are announced at noon the day
+before (cover or raise; the first spring's is the night into spring 11), blight (first outbreak at the
+midnight opening spring 12 -- the first threats now fall about two days apart) spreads to
 the next beds at midnight unless the blighted bed is cleared, and a ripe crop starts losing yield after
 48 hours and withers at 120. A finished tunnel under a bed drains it; a tunnel with a mouth at the
 real stream's edge (dry ground within 2.5 m of its waterline -- inside the square, by the ford or at
@@ -289,9 +322,11 @@ What changed on screen:
   raft on the pond, a rod, a net, an eel trap and a smoking rack by the fisher shelter, a trout and a
   perch in the creels. The bridge models are staged only; the gnawed log and felled trunk lie in the
   woods (below).
-- **Walking**: the cast walks at the gait speed the grounding tool recorded on each walk clip
-  (`gait.speed_m_s`, decision 0202), not the old toe-slide estimate, and the walk clip always plays at
-  ground speed over that speed -- in a lit bore too.
+- **Walking**: the cast walks at 1.4 times the gait speed the grounding tool recorded on each walk clip
+  (`gait.speed_m_s`, decision 0202; the pace is `cast/demo_actor.gd WALK_PACE`, decision 0205), and the
+  walk clip always plays at ground speed over that gait speed -- so 1.4 on open ground, less in rain
+  or wading, more in a lit bore. A carrier walks at 65% of its walk, its carry clip sped to match (was
+  about 37%: the playtest's mole was "way too slow with a log").
 
 ## The woods
 
@@ -330,8 +365,11 @@ Residents work trees within 30 m of the square (`forestry/forest_rules.gd` REACH
 - **Drawing** (`forestry/forest_view.gd`): a felled tree is cut above its root mound -- its model split
   once per kind (`forest_split.gd`) -- and the trunk and crown topple away from the feller, land in a
   burst of leaves and dust and give way to the felled trunk (the beaver's: the gnawed log); the stump
-  wears the fresh-cut oak stump for a season, then the mossy one, and grows a shoot. Residents walking
-  over a mature tree's root mound are lifted onto it (`forest_lift.gd`). The yard by the workbench holds
+  wears the fresh-cut oak stump for a season, then the mossy one, and grows a shoot. The staged trees
+  and the plinth buildings are let down into the ground by their own measured base (decision 0205,
+  `world/world_sizes.gd SINK_M`: oak 1.2 m, beech 0.5, residence 0.42, store 0.12, kitchen 0.11,
+  workbench 0.07), so roots run into the ground and walls rise out of it; residents walking over what
+  stands of a root flare are lifted onto it (`forest_lift.gd`). The yard by the workbench holds
   the sawhorse, the plank stack (as tall as the planks), a second woodpile (as tall as the wood), the
   chopping block and the sapling baskets.
 - **For bridges and boats next**: the planks are `tunnel_stores.gd` `plank_milli_u` with
@@ -394,9 +432,23 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
   rate, §5.3's skill factor); the beaver bridgewright starts at level 6 and gnaws its log. Anyone who
   selects nothing leaves it for the bridgewright. Finished bridges are walked by everyone, loaded or not,
   the badger included.
+- **Who goes in to rescue** is the nearest by route to where it goes in, not in a straight line (decision
+  0205): a swimmer across the stream with a long way round loses to one a little farther on the near bank.
 - **Water tab** (right column): conditions, alerts, who is swimming, the chosen site and its costs,
   bridges, stores and the water's news. **V** paints the zones for the first selected resident's own
-  height, the bridge candidates, the swim links and the landings.
+  height, the bridge candidates, the swim links and the landings; the fishery's site labels are two
+  lines each (quota and slots; each species' stock and state), laid out so they never overlap.
+
+## Spoil heaps
+
+A finished tunnel's spoil heaps can be cleared (`spoil/`, decision 0205). Left click a heap to select
+it; right click it (or press C) with residents selected, and those who can carry dig it out a basketful
+(2 U, the farm's own load off a heap) at a time and haul it to the farm's compost store, tipped by the
+open stockpile -- the demo's one use for spoil is compost (the farm's Compost job digs it off a heap too).
+Every milli-U goes through the farm's spoil books, the ones Raise and Bank take from: taken, carried,
+delivered, nothing made or lost. At most four work one heap; the emptied heap stops being an obstacle.
+A heap still growing under a dig is refused. The party panel says who is "Clearing a spoil heap" or
+"Hauling spoil to the compost".
 
 ## Layout
 
@@ -416,6 +468,8 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel |
 | `farm/` | The farm: real FarmPlot rows, the pantry and its storage providers, the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
+| `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |
+| `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens |
 | `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |
 | `ui/` | The woodland HUD skin; the HUD date, the news strip and the right column's tabs |
 | `camera/` | The RTS camera |

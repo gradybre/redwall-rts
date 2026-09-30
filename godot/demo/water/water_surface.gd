@@ -39,7 +39,6 @@ const RIPPLE_SEED: int = 23
 const FOAM_SEED: int = 29
 
 const PARAM_PHASE: StringName = &"flow_phase"
-const PARAM_FADE: StringName = &"fade"
 
 var nodes: Array[MeshInstance3D] = []
 var materials: Array[ShaderMaterial] = []
@@ -87,7 +86,6 @@ func _material(ripple: Texture2D, foam: Texture2D, sky: Color) -> ShaderMaterial
 	material.set_shader_parameter(&"foam_noise", foam)
 	material.set_shader_parameter(&"cycle_seconds", float(CYCLE_USEC) / float(USEC_PER_SECOND))
 	material.set_shader_parameter(PARAM_PHASE, 0.0)
-	material.set_shader_parameter(PARAM_FADE, 1.0)
 	return material
 
 

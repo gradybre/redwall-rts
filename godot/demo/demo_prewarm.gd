@@ -24,8 +24,9 @@ extends Node
 ## FRAME STEPS (`add_frame_step`, decision 0206): a warm-up that needs frames DRAWN a certain way -- the
 ## underground view, drawn for a couple of frames with a sample of everything it can show
 ## (demo/tunnel/tunnel_view.gd `begin_prewarm`) -- runs after the warm frames, one after another: its
-## `begin` is called, its frames are drawn, its `finish` is called, and only then is the pause
-## released. Each is timed in `report` like a step (`loaded`: the frames it drew).
+## `begin` is called (in a process, so that frame is its first), its frames are drawn, its `finish` is
+## called, and only then is the pause released. Each is timed in `report` like a step (`loaded`: the
+## frames it drew).
 
 ## Frames drawn before the clock is started (demo value: the village's first frame compiles its
 ## pipelines; two more cover the ones that settle in after the first shadow and light pass).
@@ -114,7 +115,7 @@ func _next_frame_step() -> bool:
 		return false
 	_frame_started = Time.get_ticks_usec()
 	_frame_begins[_frame_step].call()
-	frames_left = _frame_counts[_frame_step]
+	frames_left = _frame_counts[_frame_step] - 1
 	return true
 
 

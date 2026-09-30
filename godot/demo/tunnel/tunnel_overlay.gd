@@ -96,8 +96,10 @@ const LIT_WALL: Color = Color(0.52, 0.36, 0.2)
 const WATER_FLOOR: Color = Color(0.14, 0.27, 0.4)
 const WATER_WALL: Color = Color(0.22, 0.3, 0.36)
 const RUBBLE: Color = Color(0.16, 0.12, 0.09)
-## A bore's floor within this of the level's floor counts as full depth (its void is stamped).
-const FULL_DEPTH_SLACK_M: float = 0.01
+## A bore's floor within this of the level's floor is deep enough for its void to be stamped: the full
+## depth, and the lower end of each mouth's ramp, so a walker there still shows (the rest of the ramp
+## rises through the cap and is drawn over it).
+const FULL_DEPTH_SLACK_M: float = 0.25
 ## The trough's earth: a grain from EARTH_GRAIN_LOW to white, world-triplanar at EARTH_GRAIN_SCALE.
 const EARTH_GRAIN_LOW: Color = Color(0.7, 0.68, 0.66)
 const EARTH_GRAIN_SCALE: float = 0.9
@@ -136,11 +138,10 @@ var _spoil: PackedInt64Array = PackedInt64Array()
 var _time: float = 0.0
 ## The underground view's cap, whose void mask each dug step is stamped into (none: not stamped).
 var _cap: CapScript = null
-## Per tunnel: how far along its void is stamped (m), and the widening's reach stamped (m); what the
-## stamps were made for (its generation; -1: none yet).
+## Per tunnel: how far along its void is stamped (m), and the widening's reach stamped (m). They only
+## grow: a slot is freed only while no ground is broken (0196 items 27 and 29), before any stamp.
 var _void_m: PackedFloat32Array = PackedFloat32Array()
 var _void_wide_m: PackedFloat32Array = PackedFloat32Array()
-var _void_generation: PackedInt32Array = PackedInt32Array()
 ## Per tunnel: how far a widening has reached (m), and the mole at a digging job there (-1: none).
 var widen_m: PackedFloat32Array = PackedFloat32Array()
 var job_digger: PackedInt32Array = PackedInt32Array()
@@ -168,8 +169,6 @@ func configure(network: NetworkScript, space: CastSpaceScript, clock: DemoClockS
 	_mouth_key.fill(-1)
 	_void_m.resize(Rules.MAX_TUNNELS)
 	_void_wide_m.resize(Rules.MAX_TUNNELS)
-	_void_generation.resize(Rules.MAX_TUNNELS)
-	_void_generation.fill(-1)
 	_bore_arrays.resize(Mesh.ARRAY_MAX)
 	for slot in Rules.MAX_TUNNELS:
 		_build_slot()
@@ -707,15 +706,16 @@ func set_view(cap: CapScript, prewarm: PrewarmScript) -> void:
 	"""The underground view's cap (whose void mask the dug bores open) and its prewarm registry, which
 	learns everything this overlay draws in the U view (decision 0206)."""
 	_cap = cap
+	_mesh_key.fill(-1)
 	prewarm.add_mesh(sample_trough(), trough_material())
 	for colour: Color in [PLAN, PREVIEW]:
-		prewarm.add_mesh(_immediate_sample(), _on_top(colour))
+		prewarm.add_mesh(immediate_sample(), _on_top(colour))
 	for ring: MeshInstance3D in _plan_rings_below:
 		prewarm.add_mesh(ring.mesh, ring.material_override)
 	prewarm.add_label(_label_below)
 
 
-static func _immediate_sample() -> ImmediateMesh:
+static func immediate_sample() -> ImmediateMesh:
 	"""One upward triangle in the plan ribbon's vertex format (position and normal)."""
 	var mesh := ImmediateMesh.new()
 	mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -882,14 +882,10 @@ func _trough_colour(slot: int, along: float, wall: bool) -> Color:
 
 func _stamp_void(slot: int, dug: float) -> void:
 	"""Open the cap over what is newly dug of tunnel `slot`: a disc of its width every BORE_STEP_M from
-	where the stamps reached, and the face; the widened reach again at the wide width (see
-	underground_cap.gd). A reused slot starts again."""
+	where the stamps reached, and a half disc at the face; the widened reach again at the wide width (see
+	underground_cap.gd)."""
 	if _cap == null:
 		return
-	if _void_generation[slot] != _network.generation[slot]:
-		_void_generation[slot] = _network.generation[slot]
-		_void_m[slot] = 0.0
-		_void_wide_m[slot] = 0.0
 	var wide := dug if _network.bore[slot] == Rules.BORE_WIDE else minf(widen_m[slot], dug)
 	_void_wide_m[slot] = _stamp_run(slot, _void_wide_m[slot], wide, Rules.to_m(Rules.BORE_WIDTHS_U[1]) * 0.5)
 	_void_m[slot] = _stamp_run(slot, _void_m[slot], dug, Rules.to_m(Rules.BORE_WIDTHS_U[0]) * 0.5)
@@ -904,16 +900,18 @@ func _stamp_run(slot: int, from_m: float, to_m: float, radius: float) -> float:
 		return from_m
 	var along := from_m
 	while along < to_m:
-		_stamp_deep(slot, along, radius)
+		_stamp_deep(slot, along, radius, Vector2.ZERO)
 		along += BORE_STEP_M
-	_stamp_deep(slot, to_m, radius)
+	var face := Vector2.ZERO if _network.is_open(slot) else _network.direction_at(slot, to_m)
+	_stamp_deep(slot, to_m, radius, face)
 	return to_m
 
 
-func _stamp_deep(slot: int, along: float, radius: float) -> void:
-	"""One disc of the void at `along`, if the floor there is at the level's depth."""
+func _stamp_deep(slot: int, along: float, radius: float, face: Vector2) -> void:
+	"""One disc of the void at `along`, if the floor there is deep enough (see FULL_DEPTH_SLACK_M); at a
+	dig face (`face`: the way it digs), only the half behind it -- no hole opens past the face wall."""
 	if _network.floor_y_at(slot, along) <= Layers.FLOOR_Y_M + FULL_DEPTH_SLACK_M:
-		_cap.stamp_disc(_network.point_at(slot, along), radius)
+		_cap.stamp_disc(_network.point_at(slot, along), radius, face)
 
 
 # --- the route being laid -------------------------------------------------------------------

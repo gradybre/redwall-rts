@@ -30,7 +30,7 @@ const OUTLINE_WIDTH_M: float = 0.12
 const LIFT_M: float = 0.05
 const MOUND_RADIUS_M: float = 1.35
 const MOUND_HEIGHT_M: float = 0.45
-const ROOM_FLOOR_Y_M: float = -1.25
+const ROOM_FLOOR_Y_M: float = Layers.FLOOR_Y_M
 const HOME_FLOOR: Color = Color(0.46, 0.33, 0.21)
 const CELLAR_FLOOR: Color = Color(0.34, 0.37, 0.4)
 const MOUND_COLOUR: Color = Color(0.36, 0.42, 0.25)
@@ -302,6 +302,11 @@ func label(c: int) -> Label3D:
 func label_below(c: int) -> Label3D:
 	"""Chamber `c`'s name as the U view draws it (for checks)."""
 	return _labels_below[c]
+
+
+func outline_below(c: int) -> MeshInstance3D:
+	"""Chamber `c`'s planned outline as the U view draws it (for checks)."""
+	return _outlines_below[c]
 
 
 func room(c: int) -> Node3D:

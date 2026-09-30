@@ -27,6 +27,7 @@ const DemoClockScript := preload("res://demo/demo_clock.gd")
 const MarksScript := preload("res://demo/control/demo_marks.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const Layers := preload("res://demo/demo_layers.gd")
+const UndergroundViewTest := preload("res://test/test_demo_underground_view.gd")
 
 const DT: float = 1.0 / 60.0
 const SEED: int = 9091
@@ -2092,6 +2093,15 @@ func test_the_trough_is_rebuilt_per_quarter_metre_not_per_tick() -> void:
 		+ OverlayScript.BORE_SIDES * 3, "8 steps of quads, and the face wall's fan")
 	assert_equal((arrays[Mesh.ARRAY_NORMAL] as PackedVector3Array).size(), (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array).size(),
 		"lit: a normal a vertex")
+	_check_face_wall(arrays, 9 * (OverlayScript.BORE_SIDES + 1), space.tunnels, site[2], overlay.dug_m(site[2]))
+
+
+func _check_face_wall(arrays: Array, face: int, network: NetworkScript, slot: int, dug: float) -> void:
+	"""The trough's face wall: its hub (vertex `face`) on the bore's axis at the face, facing back."""
+	var hub: Vector3 = (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array)[face]
+	assert_true(Vector2(hub.x, hub.z).distance_to(network.point_at(slot, dug)) < 1e-3, "the face wall's hub on the axis at the face")
+	var normal: Vector3 = (arrays[Mesh.ARRAY_NORMAL] as PackedVector3Array)[face]
+	assert_true(Vector2(normal.x, normal.z).distance_to(-network.direction_at(slot, dug)) < 1e-3, "facing back down the bore")
 
 
 func test_the_ribbon_is_rebuilt_only_as_the_face_moves_a_step() -> void:
@@ -2227,18 +2237,8 @@ func _frame_of(cast: DemoCastScript, tool: ControlScript) -> void:
 
 
 func _snapshot(roots: Array) -> Dictionary:
-	"""Every drawn node under `roots`: its path, transparency, material, visibility and layers, and its
-	materials' transparency (what a fade or a swap would change)."""
-	var out := {}
-	for root: Node in roots:
-		for node: Node in [root] + root.find_children("*", "GeometryInstance3D", true, false):
-			var geometry := node as GeometryInstance3D
-			if geometry == null:
-				continue
-			var material := geometry.material_override as BaseMaterial3D
-			out[geometry.get_instance_id()] = [geometry.transparency, geometry.material_override, geometry.visible,
-				geometry.layers, material.transparency if material != null else -1]
-	return out
+	"""The drawn state a fade or a hide would change (test_demo_underground_view.gd `snapshot_of`)."""
+	return UndergroundViewTest.snapshot_of(roots)
 
 
 # --- review and playtest fixes: the panel ---------------------------------------------------

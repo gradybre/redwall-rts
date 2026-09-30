@@ -316,6 +316,13 @@ func underground_view() -> bool:
 	return _tunnels != null and _tunnels.view.on
 
 
+func _is_surface_click(event: InputEvent) -> bool:
+	"""Whether `event` is a mouse press the surface tools must not see: any press in the U view (see
+	PICKING). Releases, motion and keys still reach them, so a drag or an armed tool can end."""
+	var button := event as InputEventMouseButton
+	return underground_view() and button != null and button.pressed
+
+
 func _build_box() -> void:
 	"""The drag box: a brass-edged, faintly washed rectangle over the world, ignoring the mouse."""
 	_box_layer = CanvasLayer.new()
@@ -371,10 +378,11 @@ func handle_input(event: InputEvent) -> bool:
 	if _tunnels != null and _tunnels.handle_input(event):
 		_refresh_in = 0.0
 		return true
-	for hook: Callable in _input_hooks if not underground_view() else []:
-		if bool(hook.call(event)):
-			_refresh_in = 0.0
-			return true
+	if not _is_surface_click(event):
+		for hook: Callable in _input_hooks:
+			if bool(hook.call(event)):
+				_refresh_in = 0.0
+				return true
 	if event is InputEventMouseButton:
 		return _on_button(event as InputEventMouseButton)
 	if event is InputEventMouseMotion:
@@ -566,12 +574,18 @@ func _update_screen() -> void:
 func order_at(at: Vector2) -> bool:
 	"""Order the selection to the ground under a screen point: work at a POI's spot, otherwise move.
 	Marks where the order landed, or a refusal. True when accepted."""
-	for handler: Callable in _ground_orders if not underground_view() else []:
-		if bool(handler.call(at)):
-			_refresh_in = 0.0
-			return true
-	var plane_y: float = Layers.pick_y(underground_view())
-	var ground: Vector2 = Layers.pick_ground(_camera.project_ray_origin(at), _camera.project_ray_normal(at), plane_y)
+	if not underground_view():
+		for handler: Callable in _ground_orders:
+			if bool(handler.call(at)):
+				_refresh_in = 0.0
+				return true
+	return order_along(_camera.project_ray_origin(at), _camera.project_ray_normal(at))
+
+
+func order_along(origin: Vector3, direction: Vector3) -> bool:
+	"""Order the selection to where a unit ray meets the view's plane -- the ground, or the level's floor
+	in the underground view (see PICKING). False when it misses the plane."""
+	var ground: Vector2 = Layers.pick_ground(origin, direction, Layers.pick_y(underground_view()))
 	if ground == Vector2.INF:
 		return false
 	return order_to(Vector3(ground.x, 0.0, ground.y))

@@ -263,27 +263,50 @@ func test_no_transparency_or_material_is_written_by_twenty_switches() -> void:
 		assert_true(tool.handle_input(_key(KEY_U)), "U")
 		_frame(v)
 		assert_equal((v["camera"] as Camera3D).cull_mask, Layers.view_mask(press % 2 == 0), "the mask")
-	assert_equal(_snapshot(v), before, "nothing else moved")
+		assert_true(_snapshot(v) == before, "nothing else moved after press %d" % press)
 	assert_equal(tool.ext.burrow_view.room_builds, rooms, "no room built by a switch")
 	assert_equal(tool.overlay.bore_builds, troughs, "no trough built by a switch")
 
 
 func _snapshot(v: Dictionary) -> Dictionary:
-	"""Every drawn node: transparency, material, visibility, layers and its material's transparency; and
-	the number of nodes."""
+	"""The village's drawn state (see `snapshot_of`)."""
+	return snapshot_of(_roots(v))
+
+
+static func snapshot_of(roots: Array) -> Dictionary:
+	"""Everything a fade, a hide or a swap would change under `roots`: every Node3D's visibility, every
+	VisualInstance3D's layers, every GeometryInstance3D's transparency and material, and each material it
+	draws with -- a BaseMaterial3D's transparency and albedo alpha, a ShaderMaterial's every parameter --
+	and the number of nodes. Shared by the tunnel suite's switch test."""
 	var out := {}
 	var count: int = 0
-	for root: Node in _roots(v):
-		for node: Node in root.find_children("*", "", true, false):
+	for root: Node in roots:
+		for node: Node in [root] + root.find_children("*", "", true, false):
 			count += 1
+			if node is Node3D:
+				out[node.get_instance_id()] = [(node as Node3D).visible, (node as VisualInstance3D).layers if node is VisualInstance3D else 0]
 			var geometry := node as GeometryInstance3D
-			if geometry == null:
-				continue
-			var material := geometry.material_override as BaseMaterial3D
-			out[geometry.get_instance_id()] = [geometry.transparency, geometry.material_override, geometry.visible,
-				geometry.layers, material.transparency if material != null else -1]
+			if geometry != null:
+				out[-geometry.get_instance_id()] = [geometry.transparency, geometry.material_override, _material_state(geometry)]
 	out[&"nodes"] = count
 	return out
+
+
+static func _material_state(geometry: GeometryInstance3D) -> Array:
+	"""What each material `geometry` draws with would show of a fade: see `snapshot_of`."""
+	var materials: Array[Material] = [geometry.material_override]
+	var mesh: Mesh = PrewarmScript._mesh_of(geometry)
+	for surface: int in mesh.get_surface_count() if mesh != null else 0:
+		materials.append(mesh.surface_get_material(surface))
+	var state: Array = []
+	for material: Material in materials:
+		if material is BaseMaterial3D:
+			state.append([(material as BaseMaterial3D).transparency, (material as BaseMaterial3D).albedo_color.a])
+		elif material is ShaderMaterial:
+			var shader: Shader = (material as ShaderMaterial).shader
+			for uniform: Dictionary in shader.get_shader_uniform_list() if shader != null else []:
+				state.append((material as ShaderMaterial).get_shader_parameter(uniform["name"]))
+	return state
 
 
 static func _key(code: Key) -> InputEventKey:
@@ -343,6 +366,11 @@ func test_the_registry_answers_by_material_and_label_style() -> void:
 	assert_true(prewarm.covers(node), "the override")
 	node.material_override = StandardMaterial3D.new()
 	assert_false(prewarm.covers(node), "another material")
+	var other := BoxMesh.new()
+	other.material = StandardMaterial3D.new()
+	node.mesh = other
+	node.material_override = null
+	assert_false(prewarm.covers(node), "a mesh whose own material is not registered")
 	var label: Label3D = _keep(Label3D.new())
 	label.no_depth_test = true
 	assert_false(prewarm.covers(label), "an unregistered style")
@@ -361,12 +389,16 @@ func test_the_prewarm_draws_a_sample_of_everything_then_gives_the_view_back() ->
 	assert_true(view.is_prewarming(), "samples up")
 	var samples: Node = view.get_node(^"PrewarmSamples")
 	assert_equal(samples.get_child_count(), view.prewarm.mesh_count() + view.prewarm.label_count() + 1, "one of each")
+	assert_true(samples.find_children("*", "MultiMeshInstance3D", false, false).size() >= 3, "instanced ones instanced")
+	assert_not_null(view.get_node_or_null(^"PrewarmCover"), "a cover over the screen meanwhile")
 	for sample: Node in samples.get_children():
 		assert_true((sample as VisualInstance3D).layers & Layers.UNDERGROUND_VIEW != 0, "%s in the U view" % sample.name)
 		assert_true((sample as Node3D).position.y < Layers.CAP_Y_M, "under the cap")
 	assert_equal(camera.cull_mask, Layers.UNDERGROUND_VIEW, "drawing the U view")
 	view.end_prewarm()
 	assert_false(view.is_prewarming(), "samples gone")
+	assert_null(view.get_node_or_null(^"PrewarmSamples"), "the samples taken out")
+	assert_null(view.get_node_or_null(^"PrewarmCover"), "and the cover")
 	assert_equal(camera.cull_mask, Layers.SURFACE_VIEW, "the surface again")
 
 
@@ -428,6 +460,17 @@ static func _mature_tree(world: DemoWorldScript) -> Dictionary:
 	return {}
 
 
+func test_a_footing_is_its_circle_and_a_half_bore() -> void:
+	"""One circle of 1 m: the marks hold its signed distance out to 1.5 m (the half bore a route keeps
+	off it), to the byte's precision, measured at pixel centres."""
+	var cap: CapScript = _keep(CapScript.new())
+	cap.configure(GroundScript.new(), WaterScript.new())
+	cap.add_footprints([Vector3(0.0, 1.0, 0.0)] as Array[Vector3])
+	for at: Vector2 in [Vector2(1.4, 0.1), Vector2(0.2, -1.1), Vector2(1.6, 0.4), Vector2(-0.4, 0.3)]:
+		var centre: Vector2 = CapScript.marks_centre(CapScript.marks_pixel(at))
+		assert_true(absf(cap.footing_m(centre) - clampf(1.5 - centre.length(), -1.0, 1.0)) < 0.02, "at %s" % centre)
+
+
 func test_the_void_disc_is_the_bore_width() -> void:
 	"""A disc stamps every mask pixel whose centre lies within its radius, and none beyond."""
 	var cap: CapScript = _keep(CapScript.new())
@@ -437,6 +480,39 @@ func test_the_void_disc_is_the_bore_width() -> void:
 	assert_false(cap.commit_void(), "once")
 	assert_true(cap.is_dug(Vector2(1.0, 2.0)) and cap.is_dug(Vector2(1.43, 2.0)), "inside")
 	assert_false(cap.is_dug(Vector2(1.57, 2.0)) or cap.is_dug(Vector2(1.0, 2.57)), "outside")
+
+
+func test_a_tunnel_being_dug_opens_the_cap_up_to_its_face_only() -> void:
+	"""Part way through a dig the void reaches the face wall and stops there -- nothing opens past it --
+	and a tunnel dug before the cap was handed over is stamped once it is."""
+	var v := _village()
+	var tool: ControlScript = v["tool"]
+	var network: NetworkScript = tool.network
+	var ref := PackedInt32Array([-1, 0])
+	network.add_into(PackedInt32Array([-6758, 19456, -6758, 9000]), 2, 0, ref)
+	network.advance(ref[0], ref[1], 24000000)
+	tool.overlay.refresh()
+	var face: float = tool.overlay.dug_m(ref[0])
+	assert_true(face > 3.0 and not network.is_open(ref[0]), "part dug, past the ramp (%.2f m)" % face)
+	assert_true(tool.view.cap.is_dug(network.point_at(ref[0], face - 0.2)), "open behind the face")
+	assert_false(tool.view.cap.is_dug(network.point_at(ref[0], face + 0.3)), "solid past it")
+	var late: OverlayScript = _keep(OverlayScript.new())
+	late.configure(network, v["cast"].space())
+	late.refresh()
+	var cap: CapScript = _keep(CapScript.new())
+	cap.configure(GroundScript.new(), WaterScript.new())
+	late.set_view(cap, PrewarmScript.new())
+	late.refresh()
+	assert_true(cap.is_dug(network.point_at(ref[0], face - 0.2)), "stamped when the cap arrives")
+
+
+func test_a_dig_face_opens_only_the_half_behind_it() -> void:
+	"""A disc cut at a face keeps the half behind the face line and opens nothing past it."""
+	var cap: CapScript = _keep(CapScript.new())
+	cap.configure(GroundScript.new(), WaterScript.new())
+	cap.stamp_disc(Vector2(0.0, 0.0), 0.5, Vector2(1.0, 0.0))
+	assert_true(cap.is_dug(Vector2(-0.3, 0.0)) and cap.is_dug(Vector2(-0.1, 0.3)), "behind the face")
+	assert_false(cap.is_dug(Vector2(0.2, 0.0)) or cap.is_dug(Vector2(0.3, 0.2)), "nothing past it")
 
 
 # --- picking -------------------------------------------------------------------------------------
@@ -476,6 +552,77 @@ func test_in_the_u_view_a_surface_resident_is_picked_at_its_marker() -> void:
 	assert_almost_equal(out[4], brain.radius, "its body")
 
 
+func test_the_u_views_marks_are_drawn_over_the_cap_on_its_own_layer() -> void:
+	"""Each mark is a pair: the surface's on its marks layer and depth-tested, the U view's on its own
+	marks layer and drawn without a depth test (over the cap), on the floor."""
+	var v := _village()
+	var command: CommandScript = v["command"]
+	command.select(PackedInt32Array([1]))
+	command._place_rings()
+	command.mark(Vector3(2.0, 0.0, 3.0), true)
+	for pair: Array in [[command._rings[1], command._rings_below[1]], [command._markers[0], command._markers_below[0]]]:
+		var above: MeshInstance3D = pair[0]
+		var below: MeshInstance3D = pair[1]
+		assert_equal([above.layers, below.layers], [Layers.SURFACE_MARKS, Layers.UNDERGROUND_MARKS], "one per view")
+		assert_false((above.material_override as BaseMaterial3D).no_depth_test, "the surface's is depth-tested")
+		assert_true((below.material_override as BaseMaterial3D).no_depth_test, "the U view's is drawn over the cap")
+		assert_true(below.visible and absf(below.position.y - Layers.FLOOR_Y_M) < 0.1, "on the floor")
+
+
+func test_the_u_view_keeps_releases_and_keys_for_the_surface_tools() -> void:
+	"""In the U view a tool hook (the woods' zone marking) is not offered a mouse press, but a release, a
+	motion and a key still reach it -- so a drag or an armed tool started before U can end."""
+	var v := _village()
+	var command: CommandScript = v["command"]
+	var seen: Array[String] = []
+	command.add_input_hook(func(event: InputEvent) -> bool:
+		seen.append(event.get_class())
+		return true)
+	v["tool"].view.set_on(true)
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	command.handle_input(press)
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	assert_true(command.handle_input(release), "a release taken by the hook")
+	assert_true(command.handle_input(InputEventMouseMotion.new()), "a motion too")
+	assert_true(command.handle_input(_key(KEY_ESCAPE)), "and a key")
+	assert_equal(seen.size(), 3, "all but the press")
+
+
+func test_the_views_plane_is_where_a_ray_lands() -> void:
+	"""The tunnel view's own plane: a ray through a floor point lands on it in the U view, and on the
+	ground (about a metre nearer the camera) in the surface view; a move order follows the same plane."""
+	var v := _village()
+	var view: ViewScript = v["tool"].view
+	var command: CommandScript = v["command"]
+	var floor_point := Vector3(3.0, Layers.FLOOR_Y_M, -4.0)
+	var eye := Vector3(3.0, 16.9, 10.1)
+	var ray: Vector3 = (floor_point - eye).normalized()
+	view.set_on(true)
+	assert_true(view.ground_along(eye, ray).distance_to(Vector2(3.0, -4.0)) < 1e-4, "U view: the floor point")
+	command.select(PackedInt32Array([1]))
+	command.order_along(eye, ray)
+	var below_at: Vector3 = command._markers[(command._marker_next + 3) % 4].position
+	view.set_on(false)
+	assert_true(view.ground_along(eye, ray).distance_to(Vector2(3.0, -4.0)) > 0.9, "surface: the ground, nearer")
+	command.order_to(floor_point)
+	var direct: Vector3 = command._markers[(command._marker_next + 3) % 4].position
+	assert_true(Vector2(below_at.x, below_at.z).distance_to(Vector2(direct.x, direct.z)) < 1e-3, "the order went where the floor point is")
+
+
+func test_the_sun_lights_only_the_surface_and_the_fill_light_only_below() -> void:
+	"""The world's sun is on the surface layer and lights the surface's; the cap's light is on the
+	underground layer and lights only it (each culled with its view)."""
+	var v := _village()
+	var sun := (v["world"] as Node).find_child("Sun", true, false) as DirectionalLight3D
+	assert_equal([sun.layers, sun.light_cull_mask, sun.shadow_caster_mask], [Layers.SURFACE, Layers.SURFACE_VIEW, Layers.SURFACE_VIEW],
+		"the sun: lighting and shadowing the surface only")
+	var fill: DirectionalLight3D = v["tool"].view.cap.light()
+	assert_equal([fill.layers, fill.light_cull_mask], [Layers.UNDERGROUND, Layers.UNDERGROUND], "the fill")
+
+
 func test_the_u_view_does_not_hand_clicks_to_surface_handlers() -> void:
 	"""With the U view on, a left click on no resident and a right-click order skip the farm's, woods',
 	water's and spoil heaps' handlers (surface things it does not draw) -- and reach them again after."""
@@ -487,12 +634,16 @@ func test_the_u_view_does_not_hand_clicks_to_surface_handlers() -> void:
 		return true, func(_at: Vector2) -> bool:
 		asked[0] += 1
 		return true)
+	command.select(PackedInt32Array([1]))
 	v["tool"].view.set_on(true)
 	command._finish_select(Vector2(-10000.0, -10000.0))
-	assert_equal(asked[0], 0, "not asked in the U view")
+	command.select(PackedInt32Array([1]))
+	command.order_at(Vector2(-10000.0, -10000.0))
+	assert_equal(asked[0], 0, "neither asked in the U view")
 	v["tool"].view.set_on(false)
+	command.order_at(Vector2(-10000.0, -10000.0))
 	command._finish_select(Vector2(-10000.0, -10000.0))
-	assert_equal(asked[0], 1, "asked on the surface")
+	assert_equal(asked[0], 2, "both asked on the surface")
 
 
 # --- residents -----------------------------------------------------------------------------------
@@ -513,6 +664,8 @@ func test_a_resident_changes_layer_going_down_and_up_and_its_parts_follow() -> v
 	assert_false(actor.marker().visible, "no marker")
 	actor.set_work_tool(BoxMesh.new(), Transform3D.IDENTITY)
 	assert_equal((actor.get_node(^"WorkTool") as VisualInstance3D).layers, Layers.UNDERGROUND, "the tool joins it")
+	actor.hold(BoxMesh.new(), Transform3D.IDENTITY)
+	assert_equal((actor.get_node(^"Held") as VisualInstance3D).layers, Layers.UNDERGROUND, "and a good it takes up")
 	actor.brain._set_underground(false)
 	actor.brain.state = BrainScript.State.IDLE
 	v["cast"].advance(DT)

@@ -30,6 +30,9 @@ const LABEL_FLAGS: Array[StringName] = [&"billboard", &"no_depth_test", &"shaded
 
 var _meshes: Array[Mesh] = []
 var _overrides: Array[Material] = []
+## Meshes drawn instanced (a MultiMesh's): sampled as a one-instance MultiMeshInstance3D, since an
+## instanced draw is its own pipeline.
+var _instanced: Array[Mesh] = []
 var _materials: Dictionary = {}
 ## Label styles: key -> the flags a sample is built with (LABEL_FLAGS).
 var _label_keys: Dictionary = {}
@@ -47,21 +50,32 @@ func add_mesh(mesh: Mesh, override: Material = null) -> void:
 	if override != null:
 		_materials[override] = true
 		return
+	_add_surfaces(mesh)
+
+
+func _add_surfaces(mesh: Mesh) -> void:
+	"""Every surface material `mesh` carries, as registered."""
 	for surface: int in mesh.get_surface_count():
 		var own: Material = mesh.surface_get_material(surface)
 		if own != null:
 			_materials[own] = true
 
 
-func add_label(template: Label3D) -> void:
-	"""Register a label style (a label drawn in the U view builds its material from its flags)."""
-	var key: String = label_key(template)
-	if _label_keys.has(key):
+func add_multimesh(mesh: Mesh) -> void:
+	"""Register `mesh` drawn through a MultiMesh, with its own surface materials. Once per mesh."""
+	if mesh == null or _instanced.has(mesh):
 		return
+	_instanced.append(mesh)
+	_add_surfaces(mesh)
+
+
+func add_label(template: Label3D) -> void:
+	"""Register a label style (a label drawn in the U view builds its material from its flags); one
+	style, one entry, however often it is registered."""
 	var flags: Dictionary = {}
 	for property: StringName in LABEL_FLAGS:
 		flags[property] = template.get(property)
-	_label_keys[key] = flags
+	_label_keys[label_key(template)] = flags
 
 
 static func label_key(label: Label3D) -> String:
@@ -73,8 +87,8 @@ static func label_key(label: Label3D) -> String:
 
 
 func mesh_count() -> int:
-	"""How many mesh-and-material pairs are registered."""
-	return _meshes.size()
+	"""How many mesh-and-material pairs, and instanced meshes, are registered."""
+	return _meshes.size() + _instanced.size()
 
 
 func label_count() -> int:
@@ -138,10 +152,25 @@ func build_samples(parent: Node3D, at: Vector3) -> int:
 		label.layers = Layers.UNDERGROUND_MARKS
 		label.position = at
 		parent.add_child(label)
+	for mesh: Mesh in _instanced:
+		parent.add_child(_instanced_sample(mesh, at))
 	var light := OmniLight3D.new()
 	light.layers = Layers.UNDERGROUND
 	light.light_cull_mask = Layers.UNDERGROUND
 	light.omni_range = 1.0
 	light.position = at
 	parent.add_child(light)
-	return _meshes.size() + _label_keys.size() + 1
+	return mesh_count() + _label_keys.size() + 1
+
+
+static func _instanced_sample(mesh: Mesh, at: Vector3) -> MultiMeshInstance3D:
+	"""A one-instance MultiMesh of `mesh` at `at`, on the underground layer."""
+	var multimesh := MultiMesh.new()
+	multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	multimesh.mesh = mesh
+	multimesh.instance_count = 1
+	var sample := MultiMeshInstance3D.new()
+	sample.multimesh = multimesh
+	sample.layers = Layers.UNDERGROUND
+	sample.position = at
+	return sample

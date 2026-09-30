@@ -36,7 +36,6 @@ uniform float deep_alpha = 0.92;
 uniform float deep_at = 0.3;
 uniform float riffle_depth = 0.14;
 uniform float riffle_speed = 0.3;
-uniform float fade = 1.0;
 
 varying vec2 world_xz;
 varying float v_depth;
@@ -94,5 +93,5 @@ void fragment() {
 	SPECULAR = 0.55;
 	METALLIC = 0.0;
 	float edge = smoothstep(0.0, 0.1, shore_m);
-	ALPHA = mix(shallow_alpha, deep_alpha, depth_t) * edge * fade;
+	ALPHA = mix(shallow_alpha, deep_alpha, depth_t) * edge;
 }

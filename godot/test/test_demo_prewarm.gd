@@ -80,9 +80,9 @@ func test_the_plant_atlases_warm_every_deferred_kind() -> void:
 
 
 func test_frame_steps_run_after_the_warm_frames_in_order_before_the_release() -> void:
-	"""Decision 0206: a frame step begins once the warm frames are drawn, its frames are drawn, it
-	finishes (timed in the report, its frames as `loaded`), the next begins -- and only then is the
-	pause released, once."""
+	"""Decision 0206: a frame step begins once the warm frames are drawn (the frame it begins in is its
+	first), exactly its frames are drawn, it finishes (timed, its frames as `loaded`), the next begins --
+	and only then is the pause released, once."""
 	var prewarm := PrewarmScript.new()
 	var log: Array[String] = []
 	var released: Array[int] = [0]
@@ -92,16 +92,14 @@ func test_frame_steps_run_after_the_warm_frames_in_order_before_the_release() ->
 	prewarm._process(0.016)
 	assert_equal(log, [] as Array[String], "the warm frame first")
 	prewarm._process(0.016)
-	assert_equal(log, ["under+"] as Array[String], "then the first step begins")
+	assert_equal(log, ["under+"] as Array[String], "then the first step begins: its first frame")
 	prewarm._process(0.016)
+	assert_equal(log, ["under+"] as Array[String], "its second frame")
 	prewarm._process(0.016)
-	assert_equal(log, ["under+"] as Array[String], "while its two frames are drawn")
-	prewarm._process(0.016)
-	assert_equal(log, ["under+", "under-", "more+"] as Array[String], "finished, and the next begun")
+	assert_equal(log, ["under+", "under-", "more+"] as Array[String], "two drawn: finished, and the next begun")
 	assert_equal(released[0], 0, "not released yet")
 	prewarm._process(0.016)
-	prewarm._process(0.016)
-	assert_equal(log, ["under+", "under-", "more+", "more-"] as Array[String], "all finished")
+	assert_equal(log, ["under+", "under-", "more+", "more-"] as Array[String], "one drawn: all finished")
 	assert_equal(released[0], 1, "then released")
 	assert_equal([String(prewarm.report[0]["step"]), int(prewarm.report[0]["loaded"])], ["under", 2], "reported, its frames")
 	for frame: int in 5:

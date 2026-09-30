@@ -49,7 +49,8 @@ with `RedwallDemo.exe`, its `.pck` and a README, zipped -- that boots straight i
   resumes by itself. To keep such frames away (the playtest's recurring overloads, decision 0205),
   `demo_prewarm.gd` loads at boot what would first load mid-game -- every staged prop and icon, every
   plant's card atlases, the woods' stumps, saplings and tree splits (about 0.13 s on the Mac, timed in
-  its `report`) -- and the clock starts only once the first three frames are drawn. While the banner
+  its `report`) -- and the clock starts only once the first three frames are drawn, and then two frames
+  of the underground view with a sample of everything it can show (decision 0206). While the banner
   is up it is the one overload surface (the HUD's CLOCK_OVERLOADED card is withheld); Resume resolves
   the notice, and a 2x/4x step-down warning (no pause) is resolved once the clock has run 10 s quiet.
 
@@ -131,7 +132,7 @@ own "×" (Esc closes it, N toggles it). The Pantry draws above the HUD, so its "
 | R | Release the selection back to its own routine |
 | Esc | Clear the selection |
 | T (or "Dig tunnel") | With the mole selected: lay out a tunnel (below); again: cancel it |
-| U | Underground view: the surface fades, tunnels show as lit bores with anyone inside |
+| U | Underground view: a top-down section cut at the tunnels' level (see The underground view) |
 | Left click a finished tunnel | Select it for the "Tunnels & burrows (demo)" panel (see below) |
 | Right click a tree, trunk, deadfall, stump, cleared spot or the sawhorse | The woods' verb for it (see The woods) |
 | Right click deep water | Swimmers swim out and tread water there; an otter over water deeper than it is tall dives; a non-swimmer is refused by name (see Water gameplay) |
@@ -184,6 +185,29 @@ someone stands on the hole.
 Digging runs at the adopted excavation rate (113 ticks and 2 U of spoil per cubic metre,
 `docs/underground_economy_hazard_amendment.md`); the bore size, the stoop that lets a squirrel
 through, the depth and the drawn size of a heap are demo values (`tunnel/tunnel_rules.gd`).
+
+## The underground view
+
+U shows the village cut through at the tunnels' level, seen from above (decision 0206; the design is
+`docs/design/underground_revamp.md`, whose P0 this is). It is a **layer cutaway**: everything the demo
+draws is on one of four render layers (`demo_layers.gd`), and U only changes the camera's cull mask --
+the surface, its labels, crops, buildings, trees and water are simply not drawn, and nothing is faded,
+built or re-materialed, so the switch costs nothing (the first press measured under 11 ms on the Mac, from 278 ms).
+
+- **The cap** (`tunnel/underground_cap.gd`): solid earth at the level, with the ground types as strata
+  (rust clay, pale sand, grey rock, blue-tinted wet ground), a blue hatch wherever a bore is refused for
+  water, stone footings where the buildings and the well stand, and roots under the trees. It opens over
+  every dug bore and room, which are stamped into it as they are dug.
+- **Below**: the bores as lit troughs with a face wall where the dig has reached, braces, lanterns and
+  their light, finds, the rooms with their furniture and the cellar's shelf, and anyone walking in a
+  bore. A resident up on the surface shows as a small cream marker.
+- **Clicks land on the tunnels' floor** in the U view -- where the cap shows it -- so a route, a chamber or
+  an order goes where you point. Only the tunnel tool and the residents answer there; the farm, the
+  woods, the water and the spoil heaps are surface things.
+- **Prewarmed**: everything it can draw registers with `tunnel/underground_prewarm.gd` as it is built,
+  and a sample of each is drawn for two frames behind the opening pause.
+- Interim: the troughs are P1's to replace with swept bores; the underground's own lighting environment,
+  the switch's crossfade and the second level are later phases.
 
 ## Farming
 
@@ -248,7 +272,7 @@ hold; at 2x and 4x they run faster.
   at half). The tunnel closes, walkers inside turn back, and Pump out / Clear the fall reopens it.
   Bracing prevents both.
 - **Ground** (`tunnel/tunnel_ground.gd`): loam, clay, sand and rock pockets, and the wet stream edge,
-  tinted over the village while laying a route and shown as strata underground. Clay digs slower,
+  tinted over the village while laying a route and shown as the strata of the underground view's cap. Clay digs slower,
   sand faster; rock needs the badger on the crew (the mole alone scratches at a quarter pace).
 - **Finds**: every metre cut rolls once (seeded) for flint, clay, an old root store or a rare relic;
   relics tell a short story. The tally is in the panel.
@@ -314,7 +338,7 @@ What changed on screen:
   and a jar per started third of fullness (`props/store_shelf.gd`, `farm_stock_view.gd`); a root
   cellar's shelf stands in its room below ground.
 - **Tunnels**: braced bores show the library's brace frames, a collapse its rubble, lit bores wall
-  lanterns on alternate walls with a glow in each; finds lie where they were cut (underground view)
+  lanterns on alternate walls with a glow in each (all drawn in the underground view); finds lie where they were cut
   and sit on the tunnel panel as icons; a digging mole holds its pick; a finished root cellar is the
   library's cellar on the surface, and rooms are furnished (beds and a basket in a home, baskets in
   a cellar).
@@ -469,7 +493,8 @@ A heap still growing under a dig is refused. The party panel says who is "Cleari
 | `farm/` | The farm: real FarmPlot rows, the pantry and its storage providers, the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |
-| `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens |
+| `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens; then the underground view drawn once |
+| `demo_layers.gd` | The four render layers every drawn node is on, and the plane each view picks on (decision 0206) |
 | `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |
 | `ui/` | The woodland HUD skin; the HUD date, the news strip and the right column's tabs |
 | `camera/` | The RTS camera |

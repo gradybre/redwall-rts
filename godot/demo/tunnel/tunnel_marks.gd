@@ -250,9 +250,9 @@ func register(prewarm: PrewarmScript) -> void:
 	"""What these marks draw in the U view -- frames, lanterns, their glows, the selection line through
 	the cap -- for its prewarm (decision 0206)."""
 	for node: MultiMeshInstance3D in [_frames[0], _lanterns[0], _glows[0]]:
-		prewarm.add_mesh(node.multimesh.mesh)
+		prewarm.add_multimesh(node.multimesh.mesh)
 	for line: MeshInstance3D in _lines_below:
-		prewarm.add_mesh(line.mesh, line.material_override)
+		prewarm.add_mesh(OverlayScript.immediate_sample(), line.material_override)
 
 
 func refresh() -> void:
@@ -443,6 +443,11 @@ func lanterns(slot: int) -> MultiMeshInstance3D:
 func glows(slot: int) -> MultiMeshInstance3D:
 	"""The glows in tunnel `slot`'s lanterns (for checks)."""
 	return _glows[slot]
+
+
+func line_below(slot: int) -> MeshInstance3D:
+	"""The selection line of tunnel `slot` as the U view draws it (for checks)."""
+	return _lines_below[slot]
 
 
 func frame_mesh_fit() -> Transform3D:

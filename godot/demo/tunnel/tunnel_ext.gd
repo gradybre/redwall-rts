@@ -44,13 +44,13 @@ const WeatherViewScript := preload("res://demo/weather/weather_view.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
-const PickScript := preload("res://demo/control/demo_pick.gd")
 const PlanScript := preload("res://demo/tunnel/tunnel_plan.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 const FindPropsScript := preload("res://demo/tunnel/tunnel_find_props.gd")
 const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
 const ViewScript := preload("res://demo/tunnel/tunnel_view.gd")
+const Layers := preload("res://demo/demo_layers.gd")
 
 ## The player did something on the tunnels (selected one, laid a route, armed a chamber): show the
 ## tunnels panel.
@@ -260,14 +260,8 @@ func handle_input(event: InputEvent) -> bool:
 func _ground_at(screen: Vector2) -> bool:
 	"""The point under a screen point on the view's plane (the ground, or the level's floor in the U
 	view), into _ground. False when the ray misses it."""
-	var at: Vector2 = Vector2.INF
-	if _view != null:
-		at = _view.ground_at(screen)
-	else:
-		var t := PickScript.ray_ground(_camera.project_ray_origin(screen), _camera.project_ray_normal(screen), 0.0)
-		if t >= 0.0:
-			var hit := _camera.project_ray_origin(screen) + _camera.project_ray_normal(screen) * t
-			at = Vector2(hit.x, hit.z)
+	var at: Vector2 = _view.ground_at(screen) if _view != null \
+			else Layers.pick_ground(_camera.project_ray_origin(screen), _camera.project_ray_normal(screen), 0.0)
 	if at == Vector2.INF:
 		return false
 	_ground = at

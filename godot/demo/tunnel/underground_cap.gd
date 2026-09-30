@@ -276,17 +276,19 @@ static func void_pixel(at: Vector2) -> Vector2i:
 	return Vector2i(floori((at.x + MAP_HALF_M) * VOID_PX_PER_M), floori((at.y + MAP_HALF_M) * VOID_PX_PER_M))
 
 
-func stamp_disc(centre: Vector2, radius: float) -> void:
+func stamp_disc(centre: Vector2, radius: float, cut: Vector2 = Vector2.ZERO) -> void:
 	"""Mark a disc of floor dug (a bore's cross-section at a step along it): each void pixel by how much
 	of it the disc covers (its centre's distance inside the rim, in pixels, clamped to 0..1), raised,
-	never lowered -- so the mask's 0.5 is the rim to a fraction of a pixel. Uploaded by `commit_void`."""
+	never lowered -- so the mask's 0.5 is the rim to a fraction of a pixel. A non-zero unit `cut` keeps
+	only the half behind the line through the centre across it (a dig face). Uploaded by `commit_void`."""
 	var reach: int = ceili(radius * VOID_PX_PER_M) + 1
 	var middle: Vector2i = void_pixel(centre)
 	var side: int = _void_image.get_width()
 	for y: int in range(maxi(middle.y - reach, 0), mini(middle.y + reach + 1, side)):
 		for x: int in range(maxi(middle.x - reach, 0), mini(middle.x + reach + 1, side)):
 			var at := Vector2((float(x) + 0.5) / VOID_PX_PER_M - MAP_HALF_M, (float(y) + 0.5) / VOID_PX_PER_M - MAP_HALF_M)
-			var cover: float = clampf((radius - at.distance_to(centre)) * VOID_PX_PER_M + 0.5, 0.0, 1.0)
+			var inside: float = minf(radius - at.distance_to(centre), -(at - centre).dot(cut) if cut != Vector2.ZERO else radius)
+			var cover: float = clampf(inside * VOID_PX_PER_M + 0.5, 0.0, 1.0)
 			if cover > _void_image.get_pixel(x, y).r:
 				_void_image.set_pixel(x, y, Color(cover, 0.0, 0.0))
 				_void_dirty = true

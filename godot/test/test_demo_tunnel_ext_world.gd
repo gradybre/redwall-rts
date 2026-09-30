@@ -1090,6 +1090,8 @@ func test_the_marks_follow_the_tunnel_s_state() -> void:
 	marks.select(0)
 	marks.refresh()
 	assert_true(marks.line(0).visible, "selected")
+	assert_true(marks.line_below(0).visible and marks.line_below(0).mesh == marks.line(0).mesh, "in the U view too, the same line")
+	assert_almost_equal(marks.line_below(0).position.y, Layers.FLOOR_Y_M, "on the level's floor")
 	network.close(0, NetworkScript.CLOSED_FLOODED, 0, 8192)
 	marks.refresh()
 	assert_true(marks.water(0).visible, "water")
@@ -1117,6 +1119,22 @@ func test_braces_and_lanterns_show_underground() -> void:
 	assert_equal(marks.lanterns(0).multimesh.visible_instance_count, 2, "8 m: two lanterns")
 
 
+func _check_planned_below(view: BurrowViewScript) -> void:
+	"""Chamber 0, planned, as the U view draws it: named and outlined on its marks layer."""
+	assert_equal(view.label_below(0).text, "Root cellar (digging)", "named in the U view too")
+	assert_equal(view.label_below(0).layers, Layers.UNDERGROUND_MARKS, "on its marks layer")
+	assert_true(view.outline_below(0).visible and view.outline_below(0).layers == Layers.UNDERGROUND_MARKS, "outlined in the U view")
+
+
+func _check_room_below(view: BurrowViewScript) -> void:
+	"""Chamber 0's room, just dug: built once, a floor and two baskets, all on the underground layer."""
+	assert_true(view.room(0).visible, "the room below")
+	assert_equal(view.room(0).get_child_count(), 3, "a floor and two baskets by the door (the farm stocks its shelf)")
+	for piece: Node in view.room(0).get_children():
+		assert_equal((piece as VisualInstance3D).layers, Layers.UNDERGROUND, "%s below" % piece.name)
+	assert_equal(view.room_builds, 1, "built once, when dug")
+
+
 func test_the_chamber_drawings() -> void:
 	"""A planned chamber is outlined and named "(digging)" in both views; a done one names itself, its
 	room is built then -- once, on the underground layer -- and the library's cellar stands on the
@@ -1130,19 +1148,18 @@ func test_the_chamber_drawings() -> void:
 	view.refresh()
 	assert_equal(view.label(0).text, "Root cellar (digging)", "planned")
 	assert_true(view.label(0).position.is_equal_approx(Vector3(2.0, 0.6, 4.0)), "over it")
-	assert_equal(view.label_below(0).text, "Root cellar (digging)", "named in the U view too")
-	assert_equal(view.label_below(0).layers, Layers.UNDERGROUND_MARKS, "on its marks layer")
+	_check_planned_below(view)
 	assert_equal(view.room_builds, 0, "no room yet")
 	chambers.set_done(0)
 	view.refresh()
 	assert_equal(view.label(0).text, "Root cellar", "done")
-	assert_true(view.room(0).visible, "the room below")
-	assert_equal(view.room(0).get_child_count(), 3, "a floor and two baskets by the door (the farm stocks its shelf)")
-	for piece: Node in view.room(0).get_children():
-		assert_equal((piece as VisualInstance3D).layers, Layers.UNDERGROUND, "%s below" % piece.name)
-	assert_equal(view.room_builds, 1, "built once, when dug")
+	_check_room_below(view)
+	assert_false(view.outline_below(0).visible, "no outline once dug")
 	view.refresh()
 	assert_equal(view.room_builds, 1, "and not again")
+	chambers.add_into(ChambersScript.KIND_HOME, NetworkScript.new(), 0, 0, Vector2i(-8192, 4096), ref)
+	view.refresh()
+	assert_equal(view.room_builds, 1, "another chamber planned rebuilds no room")
 	assert_true(view.cellar_door(0).visible, "the done root cellar is the library's cellar on the surface")
 	assert_true(view.cellar_door(0).position.is_equal_approx(Vector3(2.0, 0.0, 4.0)), "over the room")
 

@@ -131,7 +131,7 @@ own "×" (Esc closes it, N toggles it). The Pantry draws above the HUD, so its "
 | Right click a work spot | Work there; anyone beyond its free slots holds behind it |
 | R | Release the selection back to its own routine |
 | Esc | Clear the selection |
-| T (or "Dig tunnel") | With the mole selected: lay out a tunnel (below); again: cancel it |
+| B (or T, or "Dig tunnel (B)") | The Dig tool: lay out tunnels and branches (below); again: close it. (B is the HUD's Build key, locked in the demo, so the demo takes it; the command strip says so) |
 | U | Underground view: a top-down section cut at the tunnels' level (see The underground view) |
 | Left click a finished tunnel | Select it for the "Tunnels & burrows (demo)" panel (see below) |
 | Right click a tree, trunk, deadfall, stump, cleared spot or the sawhorse | The woods' verb for it (see The woods) |
@@ -144,8 +144,8 @@ own "×" (Esc closes it, N toggles it). The Pantry draws above the HUD, so its "
 
 The "Demo party" panel in the HUD's left column lists the selection. With one resident selected it
 also lists **what that resident can be ordered to do** (`control/resident_abilities.gd`): a short line
-a kind of work with what to right-click, the gated ones marked × with the rule -- only moles dig, the
-otters and the badger are too big for a bore until it is widened, only otters dive, the badger wades
+a kind of work with what to right-click, the gated ones marked × with the rule -- anybeast who fits a
+bore digs (moles start skilled), the otters and the badger are too big for a bore until it is widened, only otters dive, the badger wades
 only and breaks rock, the beaver gnaws. At 1280x720 the list is folded into one paragraph (the hint,
 skills and species line go first). Its **notice line is each resident's own**: a prompt or answer is
 kept for whoever was selected when it was said, so selecting someone else shows theirs. A resident
@@ -156,26 +156,54 @@ simulation.
 
 ## Digging tunnels
 
-Select the mole and press T (or its panel's "Dig tunnel" button). Left-click where the entrance
-opens, click again for each bend, and the last click is the exit; the route and its length follow
-the pointer, drawn over roofs so it stays readable. Enter or right-click digs it, Backspace takes
-back the last point, Esc (or T, or the button again) cancels. Refused, with a clay marker and the
-reason in the panel: a point off the map or on top of the last one; an entrance or exit inside an
-obstacle or heap, on a work spot or on another tunnel's mouth; a leg passing under a building or the
-well (bores may pass under trees, props, crops and fences); an entrance someone is standing on, or
-one the mole cannot walk to; a route under 8 m, too short for its ramps (each mouth's ramp goes 1.25 m
-down over 4 m, never steeper than 1:2.5; decision 0207). Only moles dig; T with no mole selected says so.
+The tunnels are one **network** (decision 0208, `tunnel/underground_graph.gd`): bores meeting at
+junctions, reached from the surface by mouths. Press **B** (or T, or the party panel's "Dig tunnel (B)"):
+the Dig tool opens in the underground view (and puts the view back when it closes). **Drag** from where a
+piece starts to where it ends -- it is dug as you release, if it may be (Shift while dragging drops a bend
+at the pointer) -- or click its points one by one and press Enter or right-click. Backspace takes back a
+point; Esc drops the piece laid, and with none closes the tool; B closes it. The tool stays open after a
+dig, for the next piece.
 
-The mole walks to the entrance, digs its shaft (the `pull_radish` clip), then goes underground:
-a mound of earth moves along the route (click it to select the mole), the route fills in, and spoil
-heaps grow by the entrance and, when it breaks through, the exit. The heaps are placed when the dig
-is accepted -- off work spots, obstacles and holes -- and are obstacles from then on; the grass is
-cleared from the holes, heaps and route. The panel reads "Digging tunnel — 43%". Called away, the
-mole backs out and the tunnel waits, marked with a clay ring and "Tunnel paused at N%"; right-click
-its entrance with the mole selected to resume it (on the tunnel it is digging, a right-click
-changes nothing; on another paused one, it pauses this one and goes there). A mole that cannot
-reach the entrance leaves the tunnel paused at 0%, and says so. Coming up, the mole steps clear of
-the exit, inside the village, off every hole and resident.
+- **Where it starts and ends.** Anywhere on open ground a new **mouth** opens, its ramp running 4 m straight
+  down at 1:2.5 to the bore (decision 0207). A start or end laid on or near the network **snaps** to it --
+  to an existing junction (within 1.5 m), or to a point on a bore's side (within 1.2 m) where a new
+  **junction** is cut -- the snap target glowing brass. So a branch dragged out of a finished tunnel joins
+  it in a T.
+- **The ghost.** While laying, the piece is drawn to the pointer as its bore will curve: chalk-cream while it
+  may be dug, clay with the reason beside the pointer when it may not. Beside it, the **cost readout**
+  (`tunnel/dig_readout.gd`): e.g. "14.0 m · 14 quanta · 5.2 h (crew of 3)" over "28 U spoil · clay 4 m
+  (slow), sand 2 m (weak: brace)" -- length, the metres the network will cut, hours of the demo calendar for
+  the crew that would dig it, the spoil, and the ground that slows or weakens it.
+- **Refused, in words** (demo values, `tunnel/tunnel_rules.gd`): a point off the map or on top of the last;
+  a new mouth inside an obstacle or heap, on a work spot or another mouth, or with someone standing on it
+  or no way for the digger to reach it; a leg under a building or the well, or under the water; a piece
+  under 8 m from mouth to mouth (two ramps) or over 64 m; a junction within 1.5 m of another node, or
+  a meeting at under 40°; four bores at a junction already; a ramp joined (join the bore below it); a host
+  being dug, worked or closed; a crossing at under 40° (a steeper one becomes a four-way junction); a bore
+  passing within 1 m of earth of another it does not join ("it would break into Tunnel 3: join it
+  instead"); a bend tighter than a 1 m radius, or one on a mouth's 4 m ramp; the network full (96 bores,
+  96 nodes, 16 mouths).
+- **Who digs** (`tunnel/dig_skills.gd`): anybeast whose body fits a bore -- mice, moles and squirrels.
+  The digger is the first selected resident who can dig, else the village's most skilled free digger; the
+  rest of the selection joins its crew. Moles start at **Digging 3**; everyone learns as they dig (the
+  GDD's XP per work unit), and the skill speeds the crew. The party panel shows "Digging 3 · XP
+  45000/80000" (or "dig 3" in a list).
+- **The job list.** A piece laid for a digger already digging waits behind its present dig ("Queued a ...
+  tunnel: ... digs it after its present dig"); when a piece opens its digger takes the next one it is given.
+
+The digger walks to where the piece starts -- a mouth on the surface, or through the network to a
+junction below -- and digs it segment by segment: a new mouth's shaft on the surface (the `pull_radish`
+clip), then down the ramp, along the bore and up the far ramp. A mound of earth moves along the route
+(click it to select the digger), the route fills in, and each mouth's spoil heap grows. The heaps are
+placed when the dig is accepted -- off work spots, obstacles and holes -- and are obstacles from then on;
+the grass is cleared from the holes, heaps and route. A branch cut into a tunnel's side splits that
+tunnel in two at the junction, and anyone walking it, its rooms, hazards and finds go with the half they
+stand on. The panel reads "Digging tunnel — 43%" of the piece. Called away, the digger backs out and the
+piece waits, marked with a clay ring and "Tunnel paused at N%"; right-click where it starts with a digger
+selected to resume it (on the one it is digging, a right-click changes nothing; on another, it pauses this
+one and goes there). A digger that cannot reach the start leaves the piece paused, and says so. Coming
+up, the digger steps clear of the mouth, inside the village, off every hole and resident; a piece that
+ends underground (at a junction) is walked out of to the nearest mouth.
 
 A finished tunnel's mouths are fieldstone-and-timber gateways over the ramps' cuttings
 (`tunnel/tunnel_mouth.gd`). Below, walkers take a ramp at their own pace along its slope, the body tilted
@@ -183,10 +211,15 @@ with it so the feet plant, and stoop to clear the bore's crown (`cast/stoop_modi
 mice a little, squirrels more, otters, the beaver and the badger as far as they go (decision 0207).
 
 A finished tunnel stays. Mice, moles and squirrels fit its bore and use it whenever it is
-genuinely the quicker way ("Using tunnel") and nobody is standing on its mouths; otters and the
-badger walk round until it is widened. Inside, walkers keep their distance behind anyone going their way and step
-aside to pass anyone coming the other way; at the far mouth they wait below (at most 6 s) while
-someone stands on the hole.
+genuinely the quicker way ("Using tunnel") and nobody is standing on the mouth they would go in at;
+otters and the badger walk round until it is widened. A trip is planned over the whole network
+(`tunnel/graph_paths.gd`: the cheapest walk between every pair of mouths, per fit, the MOVE §4 Dijkstra
+reference; `tunnel/tunnel_router.gd` weighs it against the surface) and walked bore by bore, through
+junctions and on out of whichever mouth is best; a bore closed ahead is walked round below, or out of.
+Inside, walkers keep their distance behind anyone going their way -- past a ramp's foot or a junction
+too -- and step aside to pass anyone coming the other way; at the far mouth they wait below (at most
+6 s) while someone stands on the hole. Where three or four bores meet, the junction is a round chamber
+(a hub) with clean openings, drawn and cut into the cap like the bores.
 
 Digging runs at the adopted excavation rate (113 ticks and 2 U of spoil per cubic metre,
 `docs/underground_economy_hazard_amendment.md`); the bore size, the stoop that lets a squirrel
@@ -269,7 +302,7 @@ hold; at 2x and 4x they run faster.
 | Left click a finished tunnel's mouth or route | Select it (selected residents stay selected) |
 | Panel: Widen / Brace / Hang lanterns / Repair | A job on the selected tunnel (see below) |
 | Panel: Burrow home / Root cellar, then left click beside the tunnel | Dig a chamber there (Esc or right click: cancel) |
-| T with the mole **and** others selected | The others join the Foremole's dig crew |
+| B, with a digger **and** others selected, then a dig | The others join the Foremole's dig crew |
 | Right click a tunnel being dug, residents selected | They join its crew |
 | Panel: Next weather (demo) / Test event (demo) | Run the one calendar -- farm, weather and date together -- on to the next change of weather (at most 48 h) / bring the next threat |
 
@@ -277,7 +310,7 @@ hold; at 2x and 4x they run faster.
 - **Hauling**: a carrier may take a bore its load fits (a mouse or squirrel a standard bore, an otter a
   widened one, the badger none); only the surface part of its trip counts toward the carry limit.
   A busy mouth has a short **queue**: walkers wait in a line beside it rather than crowding the hole.
-- **Upgrades**: Widen (the mole re-digs five more quanta a metre; otters and the badger then fit),
+- **Upgrades**, each on one bore (a stretch between junctions, ramps' feet or mouths): Widen (a digger re-digs five more quanta a metre; otters and the badger then fit),
   Brace (ECON-002's wood 250 + stone 250 milli-U and 25 ticks a quantum, from the demo's one stores --
   the wood the woods bring in; the HUD's Wood and Stone are the settlement's), Hang lanterns (a lit
   bore, walked 10% faster).
@@ -287,7 +320,7 @@ hold; at 2x and 4x they run faster.
   Bracing prevents both.
 - **Ground** (`tunnel/tunnel_ground.gd`): loam, clay, sand and rock pockets, and the wet stream edge,
   tinted over the village while laying a route and shown as the strata of the underground view's cap. Clay digs slower,
-  sand faster; rock needs the badger on the crew (the mole alone scratches at a quarter pace).
+  sand faster; rock needs the badger on the crew (a digger alone scratches at a quarter pace).
 - **Finds**: every metre cut rolls once (seeded) for flint, clay, an old root store or a rare relic;
   relics tell a short story. The tally is in the panel.
 - **Chambers** (`burrow/`): a burrow home has 2 demo beds for moles (counted in the panel, not the
@@ -295,9 +328,10 @@ hold; at 2x and 4x they run faster.
   farming demo reads cellars through `burrow_chambers.cellars()`.
 - **Crews**: up to three helpers with the Foremole; one worker per quantum's face, so a helper who
   fits finishes behind it (1506 per mille on a standard bore), more faces when widening. The
-  Foremole's experience raises its rate a little.
+  Foremole's digging skill raises the crew's rate (1000 + 50 per level, per mille: a mole's 3 is 1150).
 - **Threats** (`events/`): a seeded flood at the stream edge or a fire at the covered store. Residents
-  in it take the nearest tunnel out (or walk out), shelter, and go home when it clears.
+  in it take the network out -- in at the nearest mouth, up at the one furthest from the danger --
+  (or walk out), shelter, and go home when it clears.
 
 Staging also runs `tools/make_demo_crop_cards.py` (needs `blender` on PATH, ~2 minutes): the grain
 and roots L0s shatter, so their beds are rebuilt as a bare bed plus alpha-cutout cards rendered

@@ -11,7 +11,8 @@ extends Node3D
 ## the deck stage. Unstaged, the props draw as boxes of the same size. Facing is not checked by any
 ## tool: the models are laid along their +X length, either way round, so they need no facing. While
 ## the deck stage is under way the deck is drawn as loose planks laid across the beams, PLANK_PITCH_M
-## apart, as far as it has reached; the finished deck is the model (its own frame replaces the beams).
+## apart, as far as it has reached; the finished deck is the model (its own frame replaces the beams),
+## a segment between each pair of piers, so every joint stands on one.
 ##
 ## THE SURVEY. While the player picks a span (a candidate, or two banks), a flat line shows it: sage
 ## when it may be built, clay when not.
@@ -36,6 +37,8 @@ const PLANK_BOARD: Vector3 = Vector3(0.22, 0.05, 1.2)
 const SURVEY_LIFT_M: float = 0.3
 const SURVEY_WIDTH_M: float = 0.18
 const SURVEY_OK: Color = Color(0.55, 0.72, 0.45, 0.85)
+## Loose boards and beams: the weathered grey-brown of the staged bridge models.
+const BOARD_COLOUR: Color = Color(0.4, 0.33, 0.26)
 const SURVEY_NO: Color = Color(0.75, 0.35, 0.25, 0.85)
 
 var _bridges: BridgesScript = null
@@ -62,7 +65,7 @@ func configure(bridges: BridgesScript, props: PropsScript) -> void:
 		add_child(holder)
 		_rows.append(holder)
 	_beam_material = StandardMaterial3D.new()
-	_beam_material.albedo_color = Look.UMBER.lerp(Look.TIMBER, 0.45)
+	_beam_material.albedo_color = BOARD_COLOUR
 	_beam_material.roughness = 0.9
 	_plank_mesh = BoxMesh.new()
 	_plank_mesh.size = PLANK_BOARD
@@ -143,7 +146,7 @@ func _draw_deck(row: int, holder: Node3D) -> void:
 	if permille < Rules.PERMILLE:
 		_draw_planks(row, holder, length, float(permille) / 1000.0)
 		return
-	var count: int = maxi(1, roundi(length / SEGMENT_M))
+	var count: int = _bridges.piers[row] + 1 if _bridges.piers[row] > 0 else maxi(1, roundi(length / SEGMENT_M))
 	for k: int in count:
 		holder.add_child(_segment(row, PLANK_KEY, float(k) / float(count), float(k + 1) / float(count), PLANK_WIDTH_M, BridgesScript.PLANK_HEIGHT_M))
 

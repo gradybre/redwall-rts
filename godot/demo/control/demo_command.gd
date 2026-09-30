@@ -60,6 +60,9 @@ const MARKER_RADIUS_M: float = 0.6
 const MARKER_GROWTH: float = 0.8
 const PANEL_REFRESH_S: float = 0.2
 const BOX_BORDER_PX: int = 2
+## A selection ring follows its resident's ground down no further than this (the water's surface: a
+## diver's ring stays on top of the water, over it).
+const SWIM_RING_FLOOR_M: float = -0.2
 ## The pick proxy of a mound over a digging mole: this tall, the mound's radius wide (see PICKING).
 const MOUND_PICK_HEIGHT_M: float = 0.6
 
@@ -525,18 +528,28 @@ func _place_rings() -> void:
 		var ring := _rings[i]
 		ring.visible = _selected[i] != 0
 		if ring.visible:
-			_put_ring(ring, _cast.actor(i) as DemoActorScript, pulse)
+			var actor := _cast.actor(i) as DemoActorScript
+			_put_ring(ring, actor.global_position, actor.brain, pulse)
 	_hover_ring.visible = _hover >= 0 and _hover < _cast.actor_count() and _selected[_hover] == 0
 	if _hover_ring.visible:
-		_put_ring(_hover_ring, _cast.actor(_hover) as DemoActorScript, 1.0)
+		var hovered := _cast.actor(_hover) as DemoActorScript
+		_put_ring(_hover_ring, hovered.global_position, hovered.brain, 1.0)
 
 
-func _put_ring(ring: MeshInstance3D, actor: DemoActorScript, pulse: float) -> void:
-	"""A ring on the ground under `actor`, sized to its body radius."""
-	var r := (actor.brain.radius + RING_GAP_M) * pulse
-	ring.position.x = actor.global_position.x
-	ring.position.y = MarksScript.LIFT_M
-	ring.position.z = actor.global_position.z
+static func ring_y_m(underground: bool, ground_y_m: float) -> float:
+	"""A selection ring's height: just above the ground its resident stands on, never below the water's
+	surface (SWIM_RING_FLOOR_M), and at the datum over a resident underground (the surface marks it)."""
+	return MarksScript.LIFT_M + (0.0 if underground else maxf(ground_y_m, SWIM_RING_FLOOR_M))
+
+
+func _put_ring(ring: MeshInstance3D, at: Vector3, brain: BrainScript, pulse: float) -> void:
+	"""A ring under a resident at `at` (its actor's position) -- on the ground its `brain` stands on: a
+	bank's slope, a wading bed, a bridge's deck, the water's surface for a swimmer (not a diver's depth,
+	nor a bore's) -- sized to its body radius."""
+	var r := (brain.radius + RING_GAP_M) * pulse
+	ring.position.x = at.x
+	ring.position.y = ring_y_m(brain.underground, brain.ground_y_m)
+	ring.position.z = at.z
 	ring.scale.x = r
 	ring.scale.y = 1.0
 	ring.scale.z = r

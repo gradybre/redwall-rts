@@ -1,6 +1,7 @@
 extends Node3D
-## What the water shows of its swimmers: a ripple ring round every head at the surface, a stream of
-## bubbles over anyone below it, and a rescuer's thrown line. Decision 0196 (live demo). Presentation
+## What the water shows of its swimmers: a ripple ring round every head at the surface (clay for one
+## in difficulty; a fainter blue one over a diver, marking where it went down), a stream of bubbles
+## over anyone below the surface, and a rescuer's thrown line. Decision 0196 (live demo). Presentation
 ## only: it reads swim_state.gd and the brains, one node of each per resident made once; per frame it
 ## only moves and shows them (no allocation).
 
@@ -14,7 +15,9 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 
 const RIPPLE_COLOUR: Color = Color(0.92, 0.96, 1.0, 0.55)
 const DISTRESS_COLOUR: Color = Color(0.9, 0.45, 0.3, 0.75)
-const BUBBLE_COLOUR: Color = Color(0.85, 0.95, 1.0, 0.8)
+const BUBBLE_COLOUR: Color = Color(0.92, 0.98, 1.0, 0.95)
+## A diver's ring on the surface over it, fainter and bluer than a swimmer's.
+const DIVE_COLOUR: Color = Color(0.7, 0.88, 1.0, 0.45)
 const LINE_COLOUR: Color = Color(0.72, 0.6, 0.4)
 const RIPPLE_LIFT_M: float = 0.02
 const RIPPLE_PULSE_HZ: float = 0.9
@@ -32,6 +35,7 @@ var _bubbles: Array[CPUParticles3D] = []
 var _lines: Array[MeshInstance3D] = []
 var _ripple_ok: StandardMaterial3D = null
 var _ripple_bad: StandardMaterial3D = null
+var _ripple_dive: StandardMaterial3D = null
 var _time: float = 0.0
 
 
@@ -44,6 +48,7 @@ func configure(cast: DemoCastScript, state: StateScript, motion: MotionScript, r
 	_rescue = rescue
 	_ripple_ok = _flat(RIPPLE_COLOUR)
 	_ripple_bad = _flat(DISTRESS_COLOUR)
+	_ripple_dive = _flat(DIVE_COLOUR)
 	for who: int in cast.actor_count():
 		_ripples.append(_make_ripple())
 		_bubbles.append(_make_bubbles())
@@ -64,14 +69,13 @@ func _place(who: int, actor: DemoActorScript, pulse: float) -> void:
 	var brain: BrainScript = actor.brain
 	var m: int = _state.mode[who]
 	var below: bool = m == StateScript.MODE_DIVE or m == StateScript.MODE_DISTRESS_UNDER
-	var at_surface: bool = brain.in_water and not below
 	var ripple: MeshInstance3D = _ripples[who]
-	ripple.visible = at_surface
-	if at_surface:
-		var r: float = (brain.radius + 0.25) * pulse
+	ripple.visible = brain.in_water
+	if brain.in_water:
+		var r: float = (brain.radius + 0.25) * (pulse if not below else 2.0 - pulse)
 		ripple.position = Vector3(brain.position.x, _motion.surface_y_m(brain.position) + RIPPLE_LIFT_M, brain.position.y)
 		ripple.scale = Vector3(r, 1.0, r)
-		ripple.material_override = _ripple_bad if _state.in_difficulty(who) else _ripple_ok
+		ripple.material_override = _ripple_bad if _state.in_difficulty(who) else (_ripple_dive if below else _ripple_ok)
 	var bubbles: CPUParticles3D = _bubbles[who]
 	bubbles.emitting = below
 	bubbles.visible = below
@@ -132,13 +136,13 @@ func _make_bubbles() -> CPUParticles3D:
 	"""A small stream of rising bubbles."""
 	var particles := CPUParticles3D.new()
 	var sphere := SphereMesh.new()
-	sphere.radius = 0.035
-	sphere.height = 0.07
+	sphere.radius = 0.06
+	sphere.height = 0.12
 	sphere.radial_segments = 6
 	sphere.rings = 3
 	sphere.material = _flat(BUBBLE_COLOUR)
 	particles.mesh = sphere
-	particles.amount = 14
+	particles.amount = 22
 	particles.lifetime = 1.5
 	particles.direction = Vector3.UP
 	particles.spread = 12.0

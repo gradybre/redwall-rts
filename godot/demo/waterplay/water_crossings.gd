@@ -44,6 +44,8 @@ const ASHORE_ROW: int = 4000
 const SWIM_OFFERS: int = 3
 ## Climbing in and out of the water costs this much walking on top of the bank walks (m, demo).
 const ENTRY_EXIT_M: float = 1.0
+## A route's legs are sampled this often for wading water (m).
+const WADE_SAMPLE_M: float = 0.5
 ## Beyond every body's bank: as far from the water as the answer needs to be (m).
 const FAR_M: float = 64.0
 ## Leg phases: onto the crossing, across it, off it.
@@ -345,6 +347,21 @@ func leg_text(brain: RefCounted) -> String:
 func ground_y_m(at: Vector2) -> float:
 	"""The carved banks and the ford's bed under a walker (see crossing_hook.gd)."""
 	return motion.ground_y_m(at)
+
+
+func wade_extra_m(a: Vector2, b: Vector2) -> float:
+	"""The walk a -> b's extra time in wading water, as metres at walk speed: its wet share (sampled
+	every WADE_SAMPLE_M) walked at WADE_PERMILLE instead of full pace. Nothing for a leg that meets no
+	water (the map's segment test first, so a dry leg costs one pass over the primitives)."""
+	if not map.segment_crosses_water(MotionScript.u_of(a), MotionScript.u_of(b), 0):
+		return 0.0
+	var length: float = a.distance_to(b)
+	var steps: int = maxi(1, ceili(length / WADE_SAMPLE_M))
+	var wet: int = 0
+	for k: int in steps:
+		if map.depth_at(MotionScript.u_of(a.lerp(b, (float(k) + 0.5) / float(steps)))) > 0:
+			wet += 1
+	return length * float(wet) / float(steps) * (float(Rules.PERMILLE) / float(Rules.WADE_PERMILLE) - 1.0)
 
 
 func water_clearance_m(at: Vector2) -> float:

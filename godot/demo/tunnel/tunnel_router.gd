@@ -30,7 +30,8 @@ extends RefCounted
 ## every surface edge is its length times 1000 / `surface_permille` (the weather's surface speed;
 ## demo_weather.gd), while a tunnel edge -- dry and sheltered -- is its cost as offered (add_pair:
 ## already divided by its own bore speed, faster when lit). So in rain or snow a tunnel wins trips
-## it would lose in the sun. Entering a tunnel at a mouth with a queue also costs that mouth's wait
+## it would lose in the sun. A surface leg through wading water (the ford) costs its wet stretch at the
+## wading pace (`wade_cost`, the water's). Entering a tunnel at a mouth with a queue also costs that mouth's wait
 ## (tunnel_queue.gd). Cached routes keep their plain lengths; the weather is applied as they are
 ## read, so a change of weather never invalidates the cache.
 ##
@@ -99,6 +100,9 @@ var crossing_count: int = 0
 var pair_wait_m: PackedFloat32Array = PackedFloat32Array()
 ## Surface walking speed per mille (see WEATHER, LANTERNS AND QUEUES).
 var surface_permille: int = 1000
+## `(a: Vector2, b: Vector2) -> float`: a surface leg's extra metres for wading water on it (the water's
+## crossing hook; none: no water). A ford is walked at wading pace, so a route through it costs that.
+var wade_cost: Callable = Callable()
 ## Surface plans run by the last plan, and mouth-to-mouth routes it took from the cache.
 var last_surface_plans: int = 0
 var last_cache_hits: int = 0
@@ -354,7 +358,7 @@ func _make_exact(u: int, v: int, edge: int) -> int:
 		last_cache_hits += 1
 	else:
 		_plan_edge(u, v, _standing_count, _routes[edge])
-		_weight[edge] = _route_length(_node[u], _routes[edge]) * _surface_scale() if _nav.last_found else INF
+		_weight[edge] = _route_cost(_node[u], _routes[edge]) * _surface_scale() if _nav.last_found else INF
 	_exact[edge] = EDGE_EXACT
 	return 1 if _weight[edge] != before else 0
 
@@ -365,7 +369,7 @@ func _plan_into_cache(u: int, v: int) -> void:
 	var route := PackedVector2Array()
 	_plan_edge(u, v, 0, route)
 	_cache.routes[k] = route
-	_cache.weight[k] = _route_length(_node[u], route) if _nav.last_found else INF
+	_cache.weight[k] = _route_cost(_node[u], route) if _nav.last_found else INF
 
 
 func _plan_edge(u: int, v: int, count: int, route: PackedVector2Array) -> void:
@@ -398,12 +402,15 @@ static func _copy_route(from: PackedVector2Array, into: PackedVector2Array) -> v
 		into[i] = from[i]
 
 
-static func _route_length(from: Vector2, route: PackedVector2Array) -> float:
-	"""Length of a waypoint route starting at `from`."""
+func _route_cost(from: Vector2, route: PackedVector2Array) -> float:
+	"""A waypoint route's walking cost from `from`: its length, and more for any wading water on it
+	(`wade_cost`)."""
 	var total := 0.0
 	var at := from
 	for point in route:
 		total += at.distance_to(point)
+		if wade_cost.is_valid():
+			total += float(wade_cost.call(at, point))
 		at = point
 	return total
 

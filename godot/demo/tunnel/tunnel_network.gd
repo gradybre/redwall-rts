@@ -685,6 +685,7 @@ func plan(nav: CastNavScript, from: Vector2, to: Vector2, body: float, standing:
 	if use_tunnels:
 		_offer_tunnels(body, standing, standing_count, walker, loaded)
 	var key: int = revision
+	router.wade_cost = crossings.wade_extra_m if crossings != null else Callable()
 	if crossings != null:
 		crossings.offer_into(router, walker, from, to, loaded)
 		key = revision | (crossings.revision() << REVISION_SHIFT)

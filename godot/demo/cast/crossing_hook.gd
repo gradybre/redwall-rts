@@ -68,6 +68,12 @@ func ground_y_m(_at: Vector2) -> float:
 	return 0.0
 
 
+func wade_extra_m(_a: Vector2, _b: Vector2) -> float:
+	"""How much longer, in metres at walk speed, the walk a -> b takes for the wading water on it (a
+	route's cost is its walking time: tunnel_router.gd). The base has no water."""
+	return 0.0
+
+
 func water_clearance_m(_at: Vector2) -> float:
 	"""How far `_at` stands from the water's edge, metres (negative in the water). Every spot a resident
 	is sent to stand, work or idle at keeps its body clear of it (CastSpace.obstacle_clearance). The base

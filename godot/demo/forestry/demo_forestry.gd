@@ -439,7 +439,7 @@ func _answer(said: String) -> void:
 	"""An order's answer: beside the selection (the party panel's notice), and the Woods panel comes
 	forward."""
 	if _command != null and _command.panel() != null:
-		_command.panel().show_notice(said)
+		_command.say(said)
 	text.remember(said)
 	_refresh_in = 0.0
 	panel_wanted.emit()

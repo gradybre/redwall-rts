@@ -162,6 +162,15 @@ func ensure_loaded(kind: int) -> void:
 		top_texture[kind] = _texture(String((cards["tops"] as Dictionary).get("texture", "")))
 
 
+func ensure_all_loaded() -> int:
+	"""Read every staged plant's atlases now (demo_prewarm.gd, decision 0205): a bed first showing a plant
+	mid-game otherwise decodes its atlases and builds their mipmaps in that frame. Returns how many."""
+	var kinds: Array = _deferred.keys()
+	for kind: int in kinds:
+		ensure_loaded(kind)
+	return kinds.size()
+
+
 func _take_head(kind: int, row: Dictionary) -> void:
 	"""A head plant's close-up mesh (its row's model), in bed units at the plant's demo height: the
 	model's soil line is at its origin, as the cards'."""

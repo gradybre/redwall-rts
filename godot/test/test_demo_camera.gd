@@ -246,3 +246,69 @@ func test_the_rig_reports_its_distance_for_the_shadow_fit() -> void:
 	for i: int in int(SETTLE_SECONDS / FRAME):
 		_rig.step(FRAME)
 	assert_true(_rig.distance() < 22.0, "zooming in shortens it")
+
+
+# --- the middle-button drag (decision 0205) -------------------------------------------------------
+
+func _middle(pressed: bool) -> InputEventMouseButton:
+	"""A middle-button press or release."""
+	var event := InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_MIDDLE
+	event.pressed = pressed
+	return event
+
+
+func _drag(relative: Vector2, held: bool) -> InputEventMouseMotion:
+	"""A pointer move by `relative` pixels, with the middle button held or not."""
+	var event := InputEventMouseMotion.new()
+	event.relative = relative
+	event.button_mask = MOUSE_BUTTON_MASK_MIDDLE if held else 0
+	return event
+
+
+func test_a_middle_drag_turns_the_view() -> void:
+	"""Held, a drag across turns the heading (right turns it right, as E) and up and down pitch it (up
+	toward the horizon), by the rig's per-pixel rates; the pitch stays within its limits."""
+	assert_true(_rig.handle_input(_middle(true)), "the press is the camera's")
+	assert_true(_rig.is_drag_turning(), "turning")
+	assert_true(_rig.handle_input(_drag(Vector2(100.0, 0.0), true)), "the drag is the camera's")
+	_rig.step(SETTLE_SECONDS)
+	assert_almost_equal(_rig.yaw_degrees(), -100.0 * DemoCamera.DRAG_YAW_DEGREES_PER_PX, "turned right")
+	_rig.handle_input(_drag(Vector2(0.0, -50.0), true))
+	_rig.step(SETTLE_SECONDS)
+	assert_almost_equal(_rig.pitch_degrees(),
+		DemoCamera.PITCH_DEFAULT_DEGREES - 50.0 * DemoCamera.DRAG_PITCH_DEGREES_PER_PX, "up: toward the horizon")
+	_rig.handle_input(_drag(Vector2(0.0, 5000.0), true))
+	_rig.step(SETTLE_SECONDS)
+	assert_almost_equal(_rig.pitch_degrees(), DemoCamera.PITCH_MAX_DEGREES, "held at the limit")
+
+
+func test_the_drag_ends_on_release_or_a_lost_button() -> void:
+	"""A release ends the drag; so does a move that arrives with the button no longer held (a release
+	the rig never saw); a move without a drag is not the camera's."""
+	_rig.handle_input(_middle(true))
+	assert_true(_rig.handle_input(_middle(false)), "the release is the camera's")
+	assert_false(_rig.is_drag_turning(), "stopped")
+	assert_false(_rig.handle_input(_drag(Vector2(100.0, 0.0), true)), "no drag: not the camera's")
+	_rig.handle_input(_middle(true))
+	assert_false(_rig.handle_input(_drag(Vector2(100.0, 0.0), false)), "button gone: not turned")
+	assert_false(_rig.is_drag_turning(), "stopped")
+	_rig.step(SETTLE_SECONDS)
+	assert_almost_equal(_rig.yaw_degrees(), 0.0, "nothing turned")
+
+
+func test_focus_loss_ends_the_drag() -> void:
+	"""Losing the window's focus mid-drag ends it."""
+	_rig.handle_input(_middle(true))
+	_rig.notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+	assert_false(_rig.is_drag_turning(), "stopped")
+
+
+func test_other_buttons_do_not_start_a_drag() -> void:
+	"""The left and right buttons are the command layer's, never the camera's."""
+	for index: MouseButton in [MOUSE_BUTTON_LEFT, MOUSE_BUTTON_RIGHT]:
+		var event := InputEventMouseButton.new()
+		event.button_index = index
+		event.pressed = true
+		assert_false(_rig.handle_input(event), "button %d is not the camera's" % index)
+	assert_false(_rig.is_drag_turning(), "no drag")

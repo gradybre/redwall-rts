@@ -35,6 +35,7 @@ const PropsScript := preload("res://demo/props/demo_props.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
+const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 
 const CREW_KEYS: Array[StringName] = SkillsScript.SKILLED_KEYS
@@ -745,6 +746,10 @@ func _drop(row: int) -> void:
 	(_cast.actor(who) as DemoActorScript).clear_work_tool()
 	jobs.unassign(row)
 	jobs.rewind_to_walk(row)
+	if brain_of(who).order != BrainScript.ORDER_NONE:
+		brain_of(who).remember_unfinished(UnfinishedScript.new(
+			take_back.bind(row, jobs.kind[row], jobs.target[row], jobs.target_gen[row]),
+			"%s (woods)" % JobsScript.KIND_NAMES[jobs.kind[row]]))
 	_say("%s left the %s job" % [name_of(who), JobsScript.KIND_NAMES[jobs.kind[row]].to_lower()])
 
 
@@ -760,9 +765,21 @@ func finish(row: int, text: String) -> void:
 		if actor.holding():
 			actor.drop_held()
 		actor.brain.play_in_place(BrainScript.CLIP_IDLE)
-		actor.brain.release()
+		actor.brain.work_done()
 	if not text.is_empty():
 		_say(text)
+
+
+func take_back(brain: RefCounted, row: int, kind: int, target: int, gen: int) -> bool:
+	"""Give woods job `row` back to the resident it was taken from (resident_brain.gd RESUMING), if it is
+	still the same job on the same target, waiting for someone."""
+	var who: int = int(brain.get(&"index"))
+	if not jobs.is_live(row) or jobs.kind[row] != kind or jobs.target[row] != target:
+		return false
+	if jobs.target_gen[row] != gen or jobs.worker[row] != JobsScript.NOBODY or jobs.of_worker_into(who, _probe):
+		return false
+	jobs.assign(row, who)
+	return true
 
 
 func _deliver_load(row: int) -> void:

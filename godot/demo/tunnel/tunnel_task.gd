@@ -34,6 +34,12 @@ func cancel(_brain: RefCounted) -> void:
 	pass
 
 
+func unfinished() -> RefCounted:
+	"""Called away before it was done: the job to come back to (cast/unfinished_job.gd), or null when
+	there is nothing to come back to (the base, an evacuation, a crew place)."""
+	return null
+
+
 func label() -> String:
 	"""What the resident is doing, in words, for the panel."""
 	return "on an errand"

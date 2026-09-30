@@ -22,8 +22,13 @@ extends Node3D
 ##   camera_zoom_in/out                   wheel, PgUp/PgDn -- one step per notch or repeat
 ##   camera_pitch_up/down                 Alt+PgUp/PgDn    -- one step per press or repeat
 ##   camera_home                          Home             -- back to the configured view
+## and one mouse gesture no action names (the playtest of 2026-09-29, decision 0205):
+##   middle-button drag                   turns the view: across is yaw (right turns it right, as E),
+##                                        up and down is pitch (up looks toward the horizon)
 ## Everything arrives through `_unhandled_input`, so a click or key the HUD consumed never moves
-## the camera. Held keys are tracked from their own press and release events rather than polled,
+## the camera; the middle button's PRESS arrives the same way (a press on the HUD starts nothing), and
+## while it is held its drag is read in `_input`, before anything else can take the motion (the
+## tunnel tool follows the pointer). Held keys are tracked from their own press and release events rather than polled,
 ## for the same reason. Zoom is matched EXACTLY (no extra modifiers), because Alt+PgUp is pitch
 ## and would otherwise also zoom.
 ##
@@ -51,6 +56,9 @@ const ZOOM_STEP: float = 0.12
 ## Pan speed in metres per second per metre of distance, so a zoomed-out pan covers more ground.
 const PAN_SPEED_PER_METRE: float = 0.75
 const ROTATE_SPEED_DEGREES: float = 90.0
+## Middle-button drag: degrees of yaw and of pitch per pixel the pointer moves (demo values, 0205).
+const DRAG_YAW_DEGREES_PER_PX: float = 0.3
+const DRAG_PITCH_DEGREES_PER_PX: float = 0.2
 ## Exponential damping rate, per second: higher settles faster.
 const DAMPING: float = 9.0
 
@@ -93,6 +101,8 @@ var _target_distance: float = DISTANCE_DEFAULT
 var _distance: float = DISTANCE_DEFAULT
 ## 1 while the matching HELD_ACTIONS entry is down, from its own press/release events.
 var _held: PackedByteArray = PackedByteArray()
+## True while a middle-button drag is turning the view.
+var _drag_turning: bool = false
 ## Scratch for the eye's local position, reused every frame.
 var _eye: Vector3 = Vector3.ZERO
 
@@ -151,9 +161,17 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+func _input(event: InputEvent) -> void:
+	"""While a middle-button drag turns the view, its motion and its release are the camera's."""
+	if _drag_turning and drag_input(event) and is_inside_tree():
+		get_viewport().set_input_as_handled()
+
+
 func handle_input(event: InputEvent) -> bool:
 	"""Apply one input event to the targets. Returns true when the event was a camera action."""
 	if _track_held(event):
+		return true
+	if drag_input(event):
 		return true
 	if event.is_action_pressed(ACTION_PITCH_UP, true):
 		return _pitch_by(PITCH_STEP_DEGREES)
@@ -169,6 +187,29 @@ func handle_input(event: InputEvent) -> bool:
 	return false
 
 
+func drag_input(event: InputEvent) -> bool:
+	"""The middle-button drag: its press starts turning, its release (or motion with the button no
+	longer held) stops, and motion between turns the target yaw and pitch. True when used."""
+	var button := event as InputEventMouseButton
+	if button != null and button.button_index == MOUSE_BUTTON_MIDDLE:
+		_drag_turning = button.pressed
+		return true
+	var motion := event as InputEventMouseMotion
+	if motion == null or not _drag_turning:
+		return false
+	if (motion.button_mask & MOUSE_BUTTON_MASK_MIDDLE) == 0:
+		_drag_turning = false
+		return false
+	_target_yaw -= deg_to_rad(DRAG_YAW_DEGREES_PER_PX) * motion.relative.x
+	_target_pitch = clamp_pitch(_target_pitch + deg_to_rad(DRAG_PITCH_DEGREES_PER_PX) * motion.relative.y)
+	return true
+
+
+func is_drag_turning() -> bool:
+	"""Whether a middle-button drag is turning the view."""
+	return _drag_turning
+
+
 func _track_held(event: InputEvent) -> bool:
 	"""Record a press, repeat or release of one of the held actions."""
 	for index: int in HELD_ACTIONS.size():
@@ -182,6 +223,7 @@ func _notification(what: int) -> void:
 	"""Drop every held key when the window loses focus, so no release is missed."""
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		_held.fill(0)
+		_drag_turning = false
 
 
 func _zoom_by(notches: int) -> bool:

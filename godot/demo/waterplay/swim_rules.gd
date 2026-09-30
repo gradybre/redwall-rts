@@ -66,7 +66,13 @@ const UNITS_PER_M: int = 1024
 # --- demo: who swims -----------------------------------------------------------------------------
 
 const SPECIES: Array[String] = ["mouse", "squirrel", "mole", "otter", "beaver", "badger"]
-const SWIM_MM_S: Array[int] = [600, 550, 500, 1100, 900, 0]
+## Raised with the walking pace in the playtest fix pass (decision 0205): the part A table (600, 550,
+## 500, 1100, 900) times 1.4, the otter and the beaver a little more, so an otter swims about as fast as
+## the quicker otter walks and a mouse still swims slower than it walks.
+const SWIM_MM_S: Array[int] = [840, 770, 700, 1900, 1400, 0]
+## The swim speed at which each species' stroke clip reads right at rate 1.0 (part A's table, where it
+## was looked at); the stroke plays at its swim speed over this (swim_motion.gd stroke_rate).
+const STROKE_MM_S: Array[int] = [600, 550, 500, 1100, 900, 0]
 const DIVES: Array[bool] = [false, false, false, true, false, false]
 const SWIM_WORDS: Array[String] = ["swims", "swims", "swims", "swims fast, dives", "swims strongly", "wades only"]
 
@@ -151,6 +157,19 @@ static func species_row(species: String) -> int:
 static func swim_mm_s_of(species: String) -> int:
 	"""A species' demo swim speed, mm/s (0: it does not swim; an unlisted species does not)."""
 	return SWIM_MM_S[species_row(species)] if has_species(species) else 0
+
+
+static func stroke_mm_s_of(species: String) -> int:
+	"""The swim speed a species' stroke clip reads right at rate 1.0, mm/s (0 for a non-swimmer)."""
+	return STROKE_MM_S[species_row(species)] if has_species(species) else 0
+
+
+static func stroke_rate(swim_now_mm_s: int, stroke_mm_s: int) -> float:
+	"""The stroke clip's rate swimming at `swim_now_mm_s`: that over the stroke's own speed (1 when the
+	species has none), so a faster swimmer strokes faster rather than gliding."""
+	if stroke_mm_s <= 0:
+		return 1.0
+	return float(swim_now_mm_s) / float(stroke_mm_s)
 
 
 static func dives_of(species: String) -> bool:

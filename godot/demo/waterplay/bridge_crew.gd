@@ -320,7 +320,7 @@ func _finish(row: int) -> void:
 	revision += 1
 	var brain: BrainScript = brain_of(who)
 	brain.play_in_place(BrainScript.CLIP_IDLE)
-	brain.release()
+	brain.work_done()
 	_note("The %s is open: %s built it; anyone may cross it now, carrying or not" % [_bridges.names[row], name_of(who)])
 
 

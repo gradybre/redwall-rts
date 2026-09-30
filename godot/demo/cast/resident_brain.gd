@@ -9,8 +9,9 @@ extends RefCounted
 ##            BLEND_WALK_ANGLE and the ground ahead is clear, so a big turn finishes on a walking
 ##            curve; only a walker boxed in (facing a wall, say) turns all the way on the spot.
 ##   * WALK   moves along `yaw` at the creature's walk speed -- the gait speed recorded on its walk
-##            clip (decision 0202, tools/stage_demo_assets.py) -- with the walk clip at 1.0, which is
-##            what keeps the pinned planted foot from sliding. The yaw
+##            clip (decision 0202, tools/stage_demo_assets.py) times the demo's walking pace (decision
+##            0205, demo_actor.gd WALK_PACE) -- with the walk clip at walk speed over that gait speed,
+##            which is what keeps the pinned planted foot from sliding. The yaw
 ##            turns toward the route at a limited rate; a demand past STOP_TO_TURN_ANGLE stops the
 ##            walker and hands back to TURN rather than skating round a tight corner.
 ##   * ACT    plays the POI's activities in bouts (BOUTS_MIN..MAX of them, each a different activity
@@ -82,6 +83,13 @@ extends RefCounted
 ## taken off its leg where it is, by the rescue (HAZ-002: "retain location/air, mark DISTRESS and
 ## dispatch rescue"). `in_water` tells the actor to draw it swimming (tail streaming back).
 ##
+## RESUMING (decision 0205). A resident called away from a job it had not finished -- a tunnel job, a
+## dig, a farm or a woods job -- keeps it (`remember_unfinished`, cast/unfinished_job.gd), the latest
+## RESUME_MAX of them. When the work that took it is done -- a task ends on its own, or a crew's job
+## is done (`work_done`) -- it takes up the latest one that still waits for it, and so on back; a job
+## done, cancelled or taken by someone else meanwhile is dropped. The player's R (`release`) forgets
+## them all: released means back to its own routine.
+##
 ## Yaw 0 faces +Z, the way the models face: forward is Vector2(sin(yaw), cos(yaw)) in (x, z).
 ## Deterministic: every random choice comes from this resident's own seeded generator.
 
@@ -92,6 +100,7 @@ const TunnelRouterScript := preload("res://demo/tunnel/tunnel_router.gd")
 const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
 const TunnelQueueScript := preload("res://demo/tunnel/tunnel_queue.gd")
 const TaskScript := preload("res://demo/tunnel/tunnel_task.gd")
+const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 
 enum State { IDLE, TURN, WALK, FACE, ACT, HOLD, TUNNEL, DIG, QUEUE, TASK, CROSS }
 
@@ -169,13 +178,19 @@ const BOUTS_MAX: int = 3
 const WORK_PER_WALK: float = 2.0
 const RETRY_S: float = 1.5
 const CARRY_CHANCE: float = 0.5
-## A carry walks at the clip's own (slow) pace -- a squirrel forester covers 0.25 m/s -- so only
-## short trips carry; a long one would read as a resident crawling across the village.
+## A carry walks at CARRY_WALK_FRACTION of walk speed (decision 0205: the playtest's mole was "way too
+## slow with a log" at the old 0.37), its clip sped to that pace over the clip's own recorded root speed
+## -- the carry clips' strides are about half a walk's, so at 0.65 they step a little quicker than a
+## walk, short and hurried under the load. The rate stays within [CARRY_MIN_RATE, CARRY_MAX_RATE] of the
+## clip's own pace; every staged creature's lands inside it (3.0 to 4.0). Routine carries stay short
+## trips; an ordered one goes as far as it must.
 const CARRY_MAX_TRIP_M: float = 8.0
-const CARRY_WALK_FRACTION: float = 0.5
+const CARRY_WALK_FRACTION: float = 0.65
 const CARRY_MIN_RATE: float = 1.0
-const CARRY_MAX_RATE: float = 1.6
+const CARRY_MAX_RATE: float = 4.2
 const DEFAULT_CLIP_S: float = 3.0
+## How many unfinished jobs a resident keeps to come back to (see RESUMING; demo value, 0205).
+const RESUME_MAX: int = 3
 
 var index: int = -1
 var position: Vector2 = Vector2.ZERO
@@ -184,6 +199,8 @@ var state: State = State.IDLE
 var clip: StringName = CLIP_IDLE
 var clip_speed: float = 1.0
 var walk_speed: float = 0.8
+## The walk clip's own recorded gait speed (decision 0202), m/s; 0 when it is walk_speed itself.
+var gait_speed: float = 0.0
 var radius: float = 0.25
 var poi: int = -1
 var slot: int = -1
@@ -211,6 +228,8 @@ var task: TaskScript = null
 var in_water: bool = false
 ## Held by the water's rescue (in difficulty, or being towed): orders and releases are not taken.
 var water_hold: bool = false
+## The unfinished jobs it will come back to, oldest first (see RESUMING).
+var _unfinished: Array[UnfinishedScript] = []
 
 var _space: CastSpaceScript = null
 var _clip_lengths: Dictionary = {}
@@ -244,6 +263,8 @@ var _travel_forward: bool = true
 var _travel_to_face: bool = false
 ## Released while underground: idle once up, rather than going on.
 var _idle_on_surface: bool = false
+## A task ended underground: take up the latest unfinished job once up (see RESUMING).
+var _resume_on_surface: bool = false
 ## Inside a bore: how far it has stepped to its right to let someone pass, and how long it has waited
 ## at the far mouth for the hole to clear.
 var _side_m: float = 0.0
@@ -267,6 +288,23 @@ func configure(space: CastSpaceScript, speed_m_s: float, body_radius: float, see
 	rng.seed = seed
 	_clip_lengths = clip_lengths
 	index = space.add_resident(position, radius)
+
+
+func set_gait_speed(speed_m_s: float) -> void:
+	"""The walk clip's recorded gait speed, when this resident walks faster (or slower) than it: the walk
+	clip then plays at walk_speed over it, so the pinned feet keep their ground (decision 0205)."""
+	gait_speed = maxf(speed_m_s, 0.0)
+
+
+func gait_rate() -> float:
+	"""The walk clip's rate at walk speed: walk_speed over the clip's gait speed (1 without one)."""
+	return walk_speed / gait_speed if gait_speed > ClipRootMotionScript.MIN_SPEED_M_S else 1.0
+
+
+func stride_rate() -> float:
+	"""The locomotion clip's rate at this resident's own pace, before weather, bore or wading: the carry's
+	with a load, else the walk's (gait_rate)."""
+	return _carry_rate if carrying else gait_rate()
 
 
 func set_carry_motion(motion: Dictionary) -> void:
@@ -764,16 +802,15 @@ func _surface_factor() -> float:
 
 func _walk_clip_speed() -> float:
 	"""The walking (or carrying) clip's playback rate on the surface: its ground speed over the clip's
-	own (clip_root_motion.playback_rate's rule). The walk's own speed IS walk_speed -- the gait speed
-	the grounding tool recorded on it (decision 0202) -- so at walk_speed times the weather's factor
-	the clip plays at that factor, and the pinned feet stay planted."""
-	return (_carry_rate if carrying else 1.0) * _surface_factor()
+	own (clip_root_motion.playback_rate's rule). The walk's own speed is the gait speed the grounding
+	tool recorded on it (decision 0202), so at walk_speed times the weather's factor the clip plays at
+	walk_speed over that gait speed times the factor (stride_rate), and the pinned feet stay planted."""
+	return stride_rate() * _surface_factor()
 
 
 func _bore_clip_speed() -> float:
 	"""The same in a bore, which the weather does not slow but a lantern speeds (see _bore_speed)."""
-	return (_carry_rate if carrying else 1.0) * float(_space.tunnels.speed_permille(_travel_slot)) \
-			/ float(TunnelRules.PERMILLE)
+	return stride_rate() * float(_space.tunnels.speed_permille(_travel_slot)) / float(TunnelRules.PERMILLE)
 
 
 func _arrive() -> void:
@@ -890,9 +927,28 @@ func release_slot() -> void:
 
 
 func release() -> void:
+	"""The player's release: back to wandering, forgetting every unfinished job (see RESUMING)."""
+	if water_hold:
+		return
+	_let_go()
+	_unfinished.clear()
+
+
+func work_done() -> void:
+	"""A crew's job for this resident is done: take up the latest unfinished job that still waits (see
+	RESUMING), else back to wandering as `release` does -- keeping the rest for later. In the water it
+	swims ashore first (as `release`), and takes them up when its next work is done."""
+	if water_hold:
+		return
+	if in_water or underground or not take_up_unfinished():
+		_let_go()
+		_resume_on_surface = underground
+
+
+func _let_go() -> void:
 	"""Back to wandering. Holding or walking under a move order, it stops and idles a moment first;
-	working under an order, it finishes the bout in hand. Not while the water's rescue holds it."""
-	if order == ORDER_NONE or water_hold:
+	working under an order, it finishes the bout in hand."""
+	if order == ORDER_NONE:
 		return
 	var was_move := order == ORDER_MOVE or state == State.HOLD or order == ORDER_TASK
 	_drop_task()
@@ -935,6 +991,7 @@ func _start_ordered_trip(goal: Vector2) -> void:
 	the tunnel first and plans from the mouth it comes up at. A new order overrides an earlier
 	release's idling on the surface."""
 	_idle_on_surface = false
+	_resume_on_surface = false
 	_leave_line()
 	carrying = false
 	_bouts_left = 0
@@ -1156,6 +1213,8 @@ func _go_on_from_mouth() -> void:
 	arrive, or plan again when the route ended here short of the goal."""
 	if _idle_on_surface:
 		_idle_on_surface = false
+		if _take_up_on_surface():
+			return
 		_enter_idle(rng.randf_range(IDLE_MIN_S * 0.5, IDLE_MIN_S))
 		return
 	if path_index < path.size() - 1:
@@ -1317,11 +1376,82 @@ func _leave_dig(unreached: bool = false) -> void:
 		_space.tunnels.hold_unreached(slot_index, dig_generation)
 	else:
 		_space.tunnels.stop_digging(slot_index, dig_generation)
+		_remember_dig(slot_index, dig_generation)
 	_forget_dig()
 	if state == State.DIG and underground:
 		_back_out(slot_index, _space.tunnels.face_m(slot_index))
 	elif state == State.TUNNEL and _travel_to_face:
 		_back_out(slot_index, _travel_m)
+
+
+func _take_up_on_surface() -> bool:
+	"""Up from a task that ended underground: take up the latest unfinished job, if one waits."""
+	var wanted: bool = _resume_on_surface
+	_resume_on_surface = false
+	return wanted and order == ORDER_NONE and not water_hold and not in_water and take_up_unfinished()
+
+
+func _remember_dig(slot_index: int, generation: int) -> void:
+	"""A dig left paused with its progress (not freed: something was dug) is an unfinished job. It is
+	held by a DigBack, never by a Callable on this brain: the brain holds its jobs, so a job holding
+	the brain would be a reference cycle that is never freed."""
+	if _space.tunnels.is_ref(slot_index, generation):
+		remember_unfinished(UnfinishedScript.new(DigBack.new(slot_index, generation).take_back,
+			"Dig tunnel %d" % (slot_index + 1)))
+
+
+func resume_dig(slot_index: int, generation: int) -> bool:
+	"""Dig tunnel (slot, generation) again, if it is still paused waiting for a digger."""
+	if not _space.tunnels.resume(slot_index, generation, index):
+		return false
+	order_dig(slot_index, generation)
+	return true
+
+
+## A paused dig to come back to (see _remember_dig).
+class DigBack extends RefCounted:
+	var slot_index: int = -1
+	var generation: int = 0
+
+	func _init(p_slot: int, p_generation: int) -> void:
+		"""Tunnel (slot, generation)."""
+		slot_index = p_slot
+		generation = p_generation
+
+	func take_back(brain: RefCounted) -> bool:
+		"""Send `brain` back to dig it."""
+		return bool(brain.call(&"resume_dig", slot_index, generation))
+
+
+func remember_unfinished(job: UnfinishedScript) -> void:
+	"""Keep an unfinished job to come back to (see RESUMING): the latest RESUME_MAX are kept, and one
+	kept again (the same words: the same job) moves to the latest place rather than twice."""
+	if job == null:
+		return
+	for k: int in range(_unfinished.size() - 1, -1, -1):
+		if _unfinished[k].label() == job.label():
+			_unfinished.remove_at(k)
+	_unfinished.append(job)
+	if _unfinished.size() > RESUME_MAX:
+		_unfinished.remove_at(0)
+
+
+func take_up_unfinished() -> bool:
+	"""Take up the latest unfinished job that still waits for this resident, dropping stale ones on the
+	way. True when one was taken up."""
+	while not _unfinished.is_empty():
+		var job: UnfinishedScript = _unfinished.pop_back()
+		if job.resume(self):
+			return true
+	return false
+
+
+func unfinished_labels() -> PackedStringArray:
+	"""The unfinished jobs it will come back to, latest first, in words (for the panel)."""
+	var words := PackedStringArray()
+	for k: int in range(_unfinished.size() - 1, -1, -1):
+		words.append(_unfinished[k].label())
+	return words
 
 
 func _back_out(slot_index: int, from_m: float) -> void:
@@ -1364,7 +1494,9 @@ func _step_task(delta: float) -> void:
 
 
 func _finish_task() -> void:
-	"""The task is over: back to wandering -- from the nearest mouth, when it ended underground."""
+	"""The task is over: back to the latest unfinished job (see RESUMING), else to wandering. Ended
+	underground, it walks out to the nearest mouth first and takes the job up there (a job is never
+	started from inside a bore)."""
 	var done_task := task
 	task = null
 	order = ORDER_NONE
@@ -1372,20 +1504,25 @@ func _finish_task() -> void:
 		done_task.finish(self)
 	if underground:
 		_idle_on_surface = true
+		_resume_on_surface = true
 		_walk_out()
-	else:
-		_enter_idle(rng.randf_range(IDLE_MIN_S * 0.5, IDLE_MIN_S))
+		return
+	if not water_hold and not in_water and take_up_unfinished():
+		return
+	_enter_idle(rng.randf_range(IDLE_MIN_S * 0.5, IDLE_MIN_S))
 
 
 func _drop_task() -> void:
-	"""Another order or a release takes this resident from its task: the task is told, and one standing
-	in a bore walks out to the nearest mouth first."""
+	"""Another order or a release takes this resident from its task: the task is told, the job is kept to
+	come back to when it can be (see RESUMING), and one standing in a bore walks out to the nearest
+	mouth first."""
 	if task == null:
 		return
 	var dropped := task
 	task = null
 	_travel_for_task = false
 	dropped.cancel(self)
+	remember_unfinished(dropped.unfinished())
 	if underground:
 		_walk_out()
 
@@ -1520,7 +1657,7 @@ func leg_clip() -> StringName:
 
 func leg_clip_rate() -> float:
 	"""The walking clip's rate for `leg_speed()`: the feet stay planted (see WEATHER AND LANTERNS)."""
-	return (_carry_rate if carrying else 1.0) * float(_space.tunnels.surface_permille) / float(TunnelRules.PERMILLE)
+	return stride_rate() * float(_space.tunnels.surface_permille) / float(TunnelRules.PERMILLE)
 
 
 func water_clip(name: StringName, speed: float) -> void:

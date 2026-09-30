@@ -50,6 +50,7 @@ const TunnelControlScript := preload("res://demo/tunnel/tunnel_control.gd")
 const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
+const AbilitiesScript := preload("res://demo/control/resident_abilities.gd")
 
 const RING_GAP_M: float = 0.12
 const PULSE_HZ: float = 1.1
@@ -102,6 +103,11 @@ var _ground_orders: Array[Callable] = []
 var _task_texts: Array[Callable] = []
 var _input_hooks: Array[Callable] = []
 var _skill_texts: Array[Callable] = []
+## The party panel's notice line, per resident (see say): its text, and when it was said (0: never).
+var _notice_of: PackedStringArray = PackedStringArray()
+var _notice_order: PackedInt32Array = PackedInt32Array()
+var _notice_general: String = ""
+var _notices_said: int = 0
 
 
 func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null,
@@ -120,6 +126,8 @@ func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null,
 	_radii.resize(count)
 	_screen.resize(count)
 	_hits.resize(count)
+	_notice_of.resize(count)
+	_notice_order.resize(count)
 	_build_marks(count)
 	_build_box()
 	_panel = PanelScript.new()
@@ -127,7 +135,8 @@ func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null,
 	_panel.watch_hud(hud_root)
 	_tunnels = TunnelControlScript.new()
 	add_child(_tunnels)
-	_tunnels.configure(cast, camera, selected, mark, _panel.show_notice, services)
+	_tunnels.configure(cast, camera, selected, mark, say, services)
+	_tunnels.set_notice_about(say_about)
 	_panel.dig_requested.connect(_on_dig_requested)
 	_tunnels.ext.set_hud(hud_root)
 
@@ -190,6 +199,45 @@ func add_skill_text(provider: Callable) -> void:
 	"""Another owner's skills or meters (the water's: bridge building, breath and stamina), shown after
 	those added before it."""
 	_skill_texts.append(provider)
+
+
+func say(text: String) -> void:
+	"""THE PARTY PANEL'S NOTICE LINE (decision 0205): a prompt, an answer or a refusal ("" clears it), for
+	whoever is selected now. It is kept per resident -- each selected one's own -- so selecting someone
+	else shows theirs, not this (the playtest's otter showed the mole's "Resuming the tunnel at 44%").
+	Said with nobody selected, it is the panel's general line, shown while nobody is."""
+	_notices_said += 1
+	var members := selected()
+	if members.is_empty():
+		_notice_general = text
+	for i: int in members:
+		_notice_of[i] = text
+		_notice_order[i] = _notices_said
+	_panel.show_notice(notice_for_selection())
+
+
+func say_about(text: String, who: int) -> void:
+	"""A notice about one resident, said whoever is selected (a tunnel opening or pausing on its own):
+	kept for that resident, shown now only if it is selected (see say)."""
+	if who < 0 or who >= _notice_of.size():
+		return
+	_notices_said += 1
+	_notice_of[who] = text
+	_notice_order[who] = _notices_said
+	_panel.show_notice(notice_for_selection())
+
+
+func notice_for_selection() -> String:
+	"""The notice line for the selection: the latest said to any selected resident ("" for none said),
+	or with nobody selected the general line."""
+	var members := selected()
+	if members.is_empty():
+		return _notice_general
+	var latest: int = -1
+	for i: int in members:
+		if _notice_order[i] > 0 and (latest < 0 or _notice_order[i] > _notice_order[latest]):
+			latest = i
+	return _notice_of[latest] if latest >= 0 else ""
 
 
 func doing_text(actor_index: int) -> String:
@@ -572,7 +620,11 @@ func _age_markers(delta: float) -> void:
 
 
 func _refresh_panel() -> void:
-	"""Rebuild the panel only when the selection or what a selected resident is doing changed."""
+	"""Rebuild the panel only when the selection or what a selected resident is doing changed; the notice
+	line follows the selection (see say)."""
+	var line: String = notice_for_selection()
+	if line != _panel.notice():
+		_panel.show_notice(line)
 	_signature.clear()
 	for i in _selected.size():
 		if _selected[i] != 0:
@@ -584,6 +636,7 @@ func _refresh_panel() -> void:
 			_signature.append(_dug_percent(brain))
 			_signature.append(doing_text(i).hash())
 			_signature.append(skills_text(i).hash())
+			_signature.append(brain.unfinished_labels().size())
 	if _signature == _shown:
 		return
 	_shown = _signature.duplicate()
@@ -605,7 +658,9 @@ func party_entries() -> Array[Dictionary]:
 		var doing := doing_text(i)
 		var state := PanelScript.state_text(brain.activity(), brain.clip, place, _dug_percent(brain))
 		entries.append({"name": actor.display_name, "species": actor.species, "colour": actor.chip_colour,
-			"digger": _tunnels.is_digger(i), "state": doing if doing != "" else state, "skills": skills_text(i)})
+			"digger": _tunnels.is_digger(i), "state": doing if doing != "" else state, "skills": skills_text(i),
+			"abilities": AbilitiesScript.lines_for(actor.species, actor.height_m, brain.radius, brain.can_carry()),
+			"then": brain.unfinished_labels()})
 	return entries
 
 

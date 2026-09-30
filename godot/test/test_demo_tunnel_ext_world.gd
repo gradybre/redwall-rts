@@ -945,11 +945,11 @@ func test_the_panel_s_demo_buttons() -> void:
 	var skips: Array[int] = []
 	tool.ext.set_weather_skip(func() -> int:
 		skips.append(1)
-		tool.ext.works.weather.observe(0, 1, 12, 120, 1200, CoreWeather.EVENT_NONE)
-		return 6)
+		tool.ext.works.weather.observe(0, 2, 12, 120, 1200, CoreWeather.EVENT_NONE)
+		return 30)
 	tool.ext.on_action(PanelScript.ACTION_NEXT_WEATHER)
 	assert_equal(skips.size(), 1, "the hook ran once")
-	assert_equal(_notices[-1], "Skipped 6 h ahead on the demo calendar: Rain — Spring 1, 12.0 °C · rain 12:00–17:59 · walking outdoors at 80%, tunnels unaffected", "said")
+	assert_equal(_notices[-1], "Skipped 30 h ahead on the demo calendar: Rain — Spring 2, 12.0 °C · rain 06:00–23:59 · walking outdoors at 80%, tunnels unaffected", "said")
 	tool.ext.on_action(PanelScript.ACTION_EVENT)
 	assert_true(tool.ext.works.events.active, "a threat")
 	tool.ext.on_action(PanelScript.ACTION_EVENT)
@@ -1166,7 +1166,8 @@ func test_the_flood_rises_on_the_demo_clock_and_holds_while_paused() -> void:
 
 
 func test_the_weather_view_falls_and_dims_on_the_demo_clock() -> void:
-	"""Rain falls while it rains; the sun eases toward 45% over 3 s of demo time, not while paused."""
+	"""Rain falls while it rains; the sun eases toward 75% (a light shower, decision 0205) over 3 s of demo
+	time, not while paused."""
 	var weather := WeatherScript.new()
 	var clock := DemoClockScript.new()
 	var view := WeatherViewScript.new()
@@ -1180,8 +1181,83 @@ func test_the_weather_view_falls_and_dims_on_the_demo_clock() -> void:
 	assert_near(view.sun_share(), 1.0, 0.0001, "paused: the light holds")
 	clock.advance(1.5)
 	view._process(0.0)
-	assert_near(view.sun_share(), 0.725, 0.0001, "half way to 0.45")
-	weather.observe(2, 10, 15, -30, 700, CoreWeather.EVENT_EARLY_FROST)
+	assert_near(view.sun_share(), 0.875, 0.0001, "half way to 0.75")
+	weather.observe(2, 11, 15, -30, 700, CoreWeather.EVENT_EARLY_FROST)
 	view._process(0.0)
 	assert_true(view.snowing(), "snow falls")
 	assert_false(view.raining(), "rain stops")
+
+
+func test_a_tunnel_job_called_away_is_taken_back_when_the_other_work_is_done() -> void:
+	"""The playtest's mole (decision 0205): given Hang lanterns, then called to other work (the farm's
+	walks are move orders like this one), it leaves the job paused and keeps it; when that work is done
+	(work_done, as the farm's and the woods' crews end a job) it takes the same job back up, progress and
+	paid inputs kept. Given to someone else meanwhile, it is not taken back; the player's R forgets it."""
+	var site := _order_site()
+	var brains: Array[BrainScript] = site[1]
+	var works: WorksScript = site[2]
+	var actions: ActionsScript = site[3]
+	actions.select_at(Vector2(1.0, 0.3))
+	assert_true(actions.order(JobsScript.JOB_LANTERNS, PackedInt32Array([2])), "lanterns ordered")
+	assert_true(works.jobs.start(0), "paid")
+	works.jobs.work(0, 200000)
+	var done_before: int = works.jobs.done_ticks(0)
+	assert_true(done_before > 0 and not works.jobs.is_done(0), "part done: %d of %d" % [done_before, works.jobs.total[0]])
+	brains[2].order_move(Vector2(6.0, 6.0))
+	assert_equal(works.jobs.worker[0], -1, "the job waits, paused")
+	assert_equal(brains[2].unfinished_labels(), PackedStringArray(["Hang lanterns, tunnel 1"]), "kept")
+	brains[2].work_done()
+	assert_true(brains[2].task is JobTaskScript, "back on the lanterns")
+	assert_equal(works.jobs.worker[0], 2, "the job is its again")
+	assert_equal(works.jobs.kind[0], JobsScript.JOB_LANTERNS, "the same job")
+	assert_equal(works.jobs.done_ticks(0), done_before, "its progress kept")
+	assert_equal(works.jobs.paid[0], 1, "paid once, not again")
+	brains[2].order_move(Vector2(6.0, 6.0))
+	works.jobs.post(0, JobsScript.JOB_LANTERNS, 1, 0, 0)
+	brains[1].order_task(JobTaskScript.new(works.jobs, (site[0] as CastSpaceScript).tunnels, 0))
+	brains[2].work_done()
+	assert_equal(works.jobs.worker[0], 1, "someone else has it: not taken back")
+	assert_equal(brains[2].order, BrainScript.ORDER_NONE, "so it goes back to its routine")
+	brains[1].order_move(Vector2(-1.0, 1.0))
+	assert_equal(brains[1].unfinished_labels().size(), 1, "the keeper kept it")
+	brains[1].release()
+	assert_equal(brains[1].unfinished_labels().size(), 0, "R forgets it")
+	works.jobs.work(0, 1000000000)
+	assert_true(works.jobs.is_done(0), "the job's work all done")
+	brains[1].order_task(JobTaskScript.new(works.jobs, (site[0] as CastSpaceScript).tunnels, 0))
+	brains[1].order_move(Vector2(-1.0, 1.0))
+	assert_equal(brains[1].unfinished_labels().size(), 0, "a job with its work all done is not kept")
+
+
+func test_a_job_taken_back_after_work_that_ended_underground_starts_from_the_surface() -> void:
+	"""Review H1 (decision 0205): lanterns on tunnel 1, called away to brace tunnel 2. When the brace
+	ends in its bore the worker walks out first and only then takes the lanterns back up -- walking to
+	them and paying for them on arrival, never appearing in their bore."""
+	var site := _order_site()
+	var space: CastSpaceScript = site[0]
+	var brains: Array[BrainScript] = site[1]
+	var works: WorksScript = site[2]
+	var actions: ActionsScript = site[3]
+	_open_tunnel(space, [Vector2i(0, 4096), Vector2i(2048, 4096)])
+	works.step(1)
+	actions.select_at(Vector2(1.0, 0.3))
+	assert_true(actions.order(JobsScript.JOB_LANTERNS, PackedInt32Array([2])), "lanterns on tunnel 1")
+	assert_true(actions.select_at(Vector2(1.0, 4.0)), "tunnel 2 picked")
+	assert_true(actions.order(JobsScript.JOB_BRACE, PackedInt32Array([2])), "then a brace on tunnel 2")
+	assert_equal(brains[2].unfinished_labels(), PackedStringArray(["Hang lanterns, tunnel 1"]), "the lanterns kept")
+	var taken_up_below: Array[bool] = [false]
+	var back_on_it: Array[bool] = [false]
+	for frame: int in 60 * 240:
+		for brain: BrainScript in brains:
+			brain.step(DT)
+		works.step(roundi(DT * 1000000.0))
+		var on_lanterns: bool = brains[2].task is JobTaskScript and (brains[2].task as JobTaskScript).slot == 0
+		if on_lanterns and not back_on_it[0]:
+			back_on_it[0] = true
+			taken_up_below[0] = brains[2].underground
+		if back_on_it[0] and works.jobs.paid[0] == 1:
+			break
+	assert_true(works.jobs.is_done(1) or works.jobs.kind[1] == JobsScript.JOB_NONE, "the brace was done")
+	assert_true(back_on_it[0], "back on the lanterns")
+	assert_false(taken_up_below[0], "taken up on the surface, not inside a bore")
+	assert_equal(works.jobs.paid[0], 1, "it walked to them and paid on arrival")

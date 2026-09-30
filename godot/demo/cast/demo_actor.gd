@@ -55,6 +55,9 @@ const MIN_RADIUS_M: float = 0.2
 const MAX_RADIUS_M: float = 0.6
 const PLACEHOLDER_HEIGHT_M: float = 1.0
 const PLACEHOLDER_WALK_SPEED_M_S: float = 0.8
+## Every creature walks at WALK_PACE times the gait speed recorded on its walk clip, the clip played that
+## much faster so the feet keep their ground (decision 0205: the playtest found everyone too slow).
+const WALK_PACE: float = 1.4
 const PLACEHOLDER_CLIP_S: float = 3.0
 const LOAD_RADIUS_PER_HEIGHT: float = 0.055
 const LOAD_OVERHANG_PER_HEIGHT: float = 0.12
@@ -141,12 +144,18 @@ func setup_creature(index: int, key: StringName, row: Dictionary, space: CastSpa
 	var lengths := _build_library(row.get("clips", {}), motion)
 	var height := float(row.get("height_m", PLACEHOLDER_HEIGHT_M))
 	_describe(index, key, String(row.get("species", key.split("_")[0])), height)
-	brain = BrainScript.new()
-	brain.configure(space, float(row.get("walk_speed_m_s", PLACEHOLDER_WALK_SPEED_M_S)), body_radius(height), seed, lengths)
+	_make_brain(space, float(row.get("walk_speed_m_s", PLACEHOLDER_WALK_SPEED_M_S)), body_radius(height), seed, lengths)
 	brain.set_carry_motion(motion)
 	if brain.can_carry() and _skeleton != null:
 		_build_load(height)
 	return true
+
+
+func _make_brain(space: CastSpaceScript, gait: float, radius: float, seed: int, lengths: Dictionary) -> void:
+	"""The brain, walking at WALK_PACE times its walk clip's gait speed, the clip sped to match."""
+	brain = BrainScript.new()
+	brain.configure(space, gait * WALK_PACE, radius, seed, lengths)
+	brain.set_gait_speed(gait)
 
 
 func setup_placeholder(index: int, space: CastSpaceScript, seed: int) -> void:
@@ -167,8 +176,7 @@ func setup_placeholder(index: int, space: CastSpaceScript, seed: int) -> void:
 	var lengths := {}
 	for clip in CLIPS:
 		lengths[clip] = PLACEHOLDER_CLIP_S
-	brain = BrainScript.new()
-	brain.configure(space, PLACEHOLDER_WALK_SPEED_M_S, radius, seed, lengths)
+	_make_brain(space, PLACEHOLDER_WALK_SPEED_M_S, radius, seed, lengths)
 
 
 func _describe(index: int, key: StringName, kind: String, height: float) -> void:

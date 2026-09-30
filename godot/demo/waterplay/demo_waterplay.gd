@@ -307,7 +307,7 @@ func _say(line: String, warning: bool) -> void:
 func _answer(said: String) -> void:
 	"""An order's answer: beside the selection, and the Water panel comes forward."""
 	if _command != null and _command.panel() != null:
-		_command.panel().show_notice(said)
+		_command.say(said)
 	text.remember(said)
 	_refresh_in = 0.0
 	panel_wanted.emit()

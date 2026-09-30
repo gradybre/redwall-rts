@@ -203,6 +203,34 @@ static func first_mesh(node: Node, parent: Transform3D) -> Array:
 	return []
 
 
+func warm_all() -> int:
+	"""Load now every staged model and icon this table knows, which would otherwise load the first time
+	one is shown -- mid-game, a hitch (demo_prewarm.gd, decision 0205). Returns how many were loaded."""
+	var loaded: int = 0
+	for key: StringName in _rows.keys():
+		if not _meshes.has(key):
+			_entry(key)
+			loaded += 1
+		if has_icon(key) and not _icons.has(key) and _warm_icon(key):
+			loaded += 1
+	return loaded
+
+
+func _warm_icon(key: StringName) -> bool:
+	"""Read `key`'s staged icon into the cache; false (nothing cached) when it will not load, so a later
+	`icon_of` still falls back to its roundel."""
+	var image := Image.load_from_file(DemoManifestScript.readable_path(String(_rows[key]["icon"])))
+	if image == null or image.is_empty():
+		return false
+	_icons[key] = ImageTexture.create_from_image(image)
+	return true
+
+
+func loaded_count() -> int:
+	"""How many models are loaded (checks)."""
+	return _meshes.size()
+
+
 # --- icons -----------------------------------------------------------------------------------
 
 func has_icon(key: StringName) -> bool:

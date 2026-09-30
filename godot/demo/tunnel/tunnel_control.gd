@@ -92,6 +92,7 @@ var _selection: Callable = Callable()
 var _mark: Callable = Callable()
 var _notice: Callable = Callable()
 var _planner: int = 0
+var _notice_about: Callable = Callable()
 var _bounds_u: Rect2i = Rect2i()
 var _circles_u: PackedInt32Array = PackedInt32Array()
 var _spots_u: PackedInt32Array = PackedInt32Array()
@@ -183,6 +184,22 @@ func _say(text: String) -> void:
 	"""Show a line in the party panel, and remember it (the underground view puts it back)."""
 	_last_notice = text
 	_notice.call(text)
+
+
+func set_notice_about(notice_about: Callable) -> void:
+	"""`notice_about(text: String, who: int)`: a line about one resident -- a tunnel's own news, said
+	whoever is selected when it happens (demo_command.gd `say_about`; decision 0205)."""
+	_notice_about = notice_about
+
+
+func _say_about(text: String, slot: int) -> void:
+	"""A tunnel's own news, kept for the mole it concerns: its digger, else the last planning mole."""
+	var who: int = network.digger[slot] if network.digger[slot] >= 0 else _planner
+	if not _notice_about.is_valid():
+		_say(text)
+		return
+	_last_notice = text
+	_notice_about.call(text, who)
 
 
 func notice() -> String:
@@ -592,11 +609,11 @@ func _process(_delta: float) -> void:
 func _announce(slot: int, was: int, now: int) -> void:
 	"""The notice for tunnel `slot` going from phase `was` to `now`; a freed slot's heaps are cleared."""
 	if now == NetworkScript.PHASE_OPEN:
-		_say(DIG_OPEN)
+		_say_about(DIG_OPEN, slot)
 	elif now == NetworkScript.PHASE_PAUSED and network.pause_reason[slot] == NetworkScript.PAUSED_UNREACHED:
-		_say(DIG_UNREACHED % network.percent(slot))
+		_say_about(DIG_UNREACHED % network.percent(slot), slot)
 	elif now == NetworkScript.PHASE_PAUSED:
-		_say(DIG_PAUSED % network.percent(slot))
+		_say_about(DIG_PAUSED % network.percent(slot), slot)
 	elif now == NetworkScript.PHASE_FREE:
 		HeapsScript.clear(network, _space, slot)
 		_circles_u = Rules.circles_to_u(_space.obstacles)

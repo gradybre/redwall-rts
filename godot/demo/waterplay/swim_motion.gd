@@ -29,7 +29,7 @@ const CLIP_DIVE: StringName = &"dive"
 const REACH_M: float = 0.08
 ## Treading hard in difficulty.
 const DRIFT_CLIP_RATE: float = 1.6
-## A swimmer's clip rate at its own speed, and the least it plays at.
+## A swimmer's clip rate at its stroke's own speed (times swim_rules.stroke_rate), and the least it plays at.
 const SWIM_CLIP_RATE: float = 1.0
 const MIN_CLIP_RATE: float = 0.4
 
@@ -109,19 +109,21 @@ func swim(brain: RefCounted, target: Vector2, delta: float, speed_permille: int 
 	var at: Vector2 = brain.position
 	if zone_for(who, at) <= WaterRules.ZONE_WADE:
 		return walk_bank(brain, target, delta)
-	var s: float = float(state.swim_mm_s[who] * speed_permille / Rules.PERMILLE) / 1000.0
+	var s_mm: int = state.swim_mm_s[who] * speed_permille / Rules.PERMILLE
+	var s: float = float(s_mm) / 1000.0
+	var rate: float = maxf(SWIM_CLIP_RATE * Rules.stroke_rate(s_mm, state.stroke_mm_s[who]), MIN_CLIP_RATE)
 	var flow: Vector2 = flow_m_s(at)
 	var to: Vector2 = target - at
 	var distance: float = to.length()
 	if distance <= REACH_M:
-		_float_at(brain, at, brain.yaw, CLIP_SWIM, SWIM_CLIP_RATE)
+		_float_at(brain, at, brain.yaw, CLIP_SWIM, rate)
 		return true
 	var dir: Vector2 = to / distance
 	var heading: Vector2 = ferry_heading(dir, flow, s)
 	var ground: Vector2 = heading * s + flow
 	var along: float = ground.dot(dir)
 	var next: Vector2 = target if along * delta >= distance else _keep_wet(at, at + ground * delta)
-	_float_at(brain, next, atan2(heading.x, heading.y), CLIP_SWIM, SWIM_CLIP_RATE)
+	_float_at(brain, next, atan2(heading.x, heading.y), CLIP_SWIM, rate)
 	_set_drain(who, flow)
 	state.set_mode(who, StateScript.MODE_SWIM)
 	return along * delta >= distance

@@ -323,3 +323,164 @@ func test_friendly_names() -> void:
 	"""Manifest keys read as names."""
 	assert_equal(DemoActorScript.friendly_name(&"otter_boatwright"), "Otter boatwright", "a creature")
 	assert_equal(DemoActorScript.friendly_name(&"placeholder_3"), "Placeholder 3", "a placeholder")
+
+
+# --- the notice line is per resident; the orders list (decision 0205) ---------------------------------
+
+const CommandScript := preload("res://demo/control/demo_command.gd")
+const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
+const AbilitiesScript := preload("res://demo/control/resident_abilities.gd")
+
+
+func _command() -> Array:
+	"""A command layer over the placeholder cast (out of the tree): [command, cast, camera]."""
+	var cast := DemoCastScript.new()
+	cast.build({}, [] as Array[Dictionary], [] as Array[Vector3])
+	cast.set_bounds(AABB(Vector3(-20.0, 0.0, -20.0), Vector3(40.0, 4.0, 40.0)))
+	var camera := Camera3D.new()
+	var command := CommandScript.new()
+	command.configure(cast, camera)
+	command.panel().build()
+	return [command, cast, camera]
+
+
+func _free_all(parts: Array) -> void:
+	"""Free a _command() set."""
+	for node: Node in parts:
+		node.free()
+
+
+func test_the_notice_line_is_each_resident_s_own() -> void:
+	"""The playtest's otter showed the mole's "Resuming the tunnel at 44%": a notice is now kept for whoever
+	was selected when it was said, so selecting someone else shows theirs; a group shows its latest;
+	nobody selected shows the general line."""
+	var parts := _command()
+	var command: CommandScript = parts[0]
+	command.select(PackedInt32Array([0]))
+	command.say("Resuming the tunnel at 44%")
+	assert_equal(command.panel().notice(), "Resuming the tunnel at 44%", "the mole's")
+	command.select(PackedInt32Array([1]))
+	command._refresh_panel()
+	assert_equal(command.panel().notice(), "", "the otter has none")
+	command.say("1 diving")
+	command.select(PackedInt32Array([0]))
+	command._refresh_panel()
+	assert_equal(command.panel().notice(), "Resuming the tunnel at 44%", "back to the mole: its own")
+	command.select(PackedInt32Array([0, 1]))
+	assert_equal(command.notice_for_selection(), "1 diving", "a group: the latest said to any of it")
+	command.clear_selection()
+	assert_equal(command.notice_for_selection(), "", "nobody: the general line, empty")
+	command.say("Map overlay: moisture")
+	command._refresh_panel()
+	assert_equal(command.panel().notice(), "Map overlay: moisture", "said to nobody: shown to nobody")
+	command.select(PackedInt32Array([1]))
+	assert_equal(command.notice_for_selection(), "1 diving", "not to the otter")
+	_free_all(parts)
+
+
+func test_one_resident_s_orders_are_listed_with_the_gated_ones_explained() -> void:
+	"""Everybeast moves, farms, clears spoil and works the woods; only moles dig; only otters dive; the
+	badger wades only, breaks rock and needs a widened bore; the beaver gnaws; each gate says why."""
+	var mole: PackedStringArray = AbilitiesScript.lines_for("Mole", 0.9, 0.2, true)
+	assert_equal(mole[0], AbilitiesScript.HEADING, "a heading")
+	assert_true(mole.has(AbilitiesScript.CAN + AbilitiesScript.DIG_LINE), "the mole digs")
+	assert_false(mole.has(AbilitiesScript.CANNOT + AbilitiesScript.NO_DIG_LINE), "and is not told it can't")
+	assert_true(mole.has(AbilitiesScript.CAN + AbilitiesScript.SWIM_LINE), "and swims")
+	var badger: PackedStringArray = AbilitiesScript.lines_for("Badger", 2.55, 0.56, true)
+	for line: String in [AbilitiesScript.CANNOT + AbilitiesScript.NO_DIG_LINE, AbilitiesScript.CANNOT + AbilitiesScript.NO_BORE_LINE,
+			AbilitiesScript.CAN + AbilitiesScript.ROCK_LINE, AbilitiesScript.CANNOT + AbilitiesScript.NO_SWIM_LINE]:
+		assert_true(badger.has(line), "the badger: %s" % line)
+	assert_false(badger.has(AbilitiesScript.CAN + AbilitiesScript.DIG_LINE), "the badger is not told it digs")
+	var otter: PackedStringArray = AbilitiesScript.lines_for("Otter", 1.49, 0.33, true)
+	assert_true(otter.has(AbilitiesScript.CAN + AbilitiesScript.DIVE_LINE), "the otter dives")
+	assert_true(otter.has(AbilitiesScript.CANNOT + AbilitiesScript.NO_BORE_LINE), "too tall for a standard bore")
+	var mouse: PackedStringArray = AbilitiesScript.lines_for("Mouse", 1.0, 0.22, false)
+	assert_true(mouse.has(AbilitiesScript.CAN + AbilitiesScript.BORE_LINE), "a mouse fits a bore")
+	assert_true(mouse.has(AbilitiesScript.CANNOT + AbilitiesScript.NO_CARRY_LINE), "no carry walk: said")
+	var beaver: PackedStringArray = AbilitiesScript.lines_for("Beaver", 1.4, 0.31, true)
+	assert_true(beaver.has(AbilitiesScript.CAN + AbilitiesScript.GNAW_LINE), "the beaver gnaws")
+	assert_false(beaver.has(AbilitiesScript.CAN + AbilitiesScript.DIVE_LINE), "but does not dive (a fast swimmer)")
+	assert_true(beaver.has(AbilitiesScript.CAN + AbilitiesScript.SWIM_LINE), "it swims")
+	assert_true(mouse.has(AbilitiesScript.CANNOT + AbilitiesScript.NO_SPOIL_LINE), "no carry walk: no spoil hauling")
+	for common: String in [AbilitiesScript.MOVE_LINE, AbilitiesScript.FARM_LINE]:
+		assert_true(mouse.has(AbilitiesScript.CAN + common), "everybeast: %s" % common)
+	assert_true(mole.has(AbilitiesScript.CAN + AbilitiesScript.SPOIL_LINE), "a carrier hauls spoil")
+
+
+func test_the_panel_lists_one_resident_s_orders_and_makes_room() -> void:
+	"""Selected alone, a resident's orders are listed; in a group they are not. Where the column is too
+	short (1280x720) the panel gives up the least useful first: the hint, then the skill and species
+	lines, then it folds the orders into one paragraph, then drops them, before it would hide."""
+	var panel := PanelScript.new()
+	panel.build()
+	var lines := PackedStringArray(["Orders (right-click):", "• Move or work — the ground, a work spot",
+		"× Digging: only moles dig", "• Water: swim, dive — deep water"])
+	var one: Array[Dictionary] = [{"name": "Otter fisher", "species": "Otter", "state": "holding",
+		"skills": "Felling 0\nSwims fast, dives", "abilities": lines}]
+	panel.show_party(one)
+	assert_equal(panel.abilities_text(), "\n".join(lines), "listed")
+	var two: Array[Dictionary] = [one[0], {"name": "Mole digger", "species": "Mole", "state": "holding", "abilities": lines}]
+	panel.show_party(two)
+	assert_equal(panel.abilities_text(), "", "a group: not listed")
+	panel.show_party(one)
+	var heights: Array[float] = []
+	for level: int in range(PanelScript.FIT_LEVELS - 1, -1, -1):
+		panel._show_extras(level)
+		heights.append(panel.needed_height())
+	for k: int in range(1, heights.size()):
+		assert_true(heights[k] < heights[k - 1], "level %d is shorter than the one before: %s" % [k, heights])
+	assert_true(panel.fit(heights[0] + 1.0), "room for everything")
+	assert_true(panel._hint.visible and panel._skill_rows[0].visible, "all shown")
+	assert_true(panel.fit(heights[1] + 1.0), "room once the hint goes")
+	assert_false(panel._hint.visible, "the hint went")
+	assert_true(panel._skill_rows[0].visible, "the skills stayed")
+	assert_true(panel.fit(heights[2] + 1.0), "room once the skills and species go")
+	assert_equal(panel._skill_rows.size(), 3, "two skill lines and the species line fold")
+	assert_false(panel._skill_rows[0].visible, "folded")
+	assert_equal(panel.abilities_text(), "\n".join(lines), "the orders still listed in full")
+	assert_true(panel.fit(heights[3] + 1.0), "room for the folded orders")
+	assert_equal(panel.abilities_text(), PanelScript.compact_orders(lines), "folded into a paragraph")
+	assert_false(panel.fit(1.0), "no room at all")
+	assert_equal(panel.abilities_text(), "", "the orders went too")
+	panel.free()
+
+
+func test_the_orders_fold_into_one_paragraph() -> void:
+	"""Folded: the heading, then each line without what to right-click, the bullets dropped and the
+	gates kept."""
+	var lines := PackedStringArray(["Orders (right-click):", "• Move or work — the ground, a work spot",
+		"× Digging: only moles dig", "• Water: swim, dive — deep water"])
+	assert_equal(PanelScript.compact_orders(lines),
+		"Orders (right-click): Move or work · × Digging: only moles dig · Water: swim, dive", "folded")
+	assert_equal(PanelScript.compact_orders(PackedStringArray(["Orders (right-click):"])), "", "nothing to fold")
+
+
+func test_the_panel_says_what_a_resident_will_go_back_to() -> void:
+	"""One resident with unfinished jobs: a "Then back to:" line, latest first."""
+	var one: Array[Dictionary] = [{"name": "Mole digger", "species": "Mole", "state": "raising bed 3",
+		"then": PackedStringArray(["Hang lanterns, tunnel 1"])}]
+	assert_equal(PanelScript.party_lines(one)[3], PanelScript.THEN % "Hang lanterns, tunnel 1", "the line")
+
+
+func test_the_dig_button_says_what_it_does_and_its_key() -> void:
+	"""The party panel's one action button has a hover tip naming its key (decision 0205)."""
+	var panel := PanelScript.new()
+	panel.build()
+	assert_equal(panel.dig_button().tooltip_text, PanelScript.DIG_TIP, "the tip")
+	assert_true(PanelScript.DIG_TIP.begins_with("Dig tunnel (T)"), "names the key")
+	panel.free()
+
+
+func test_a_tunnel_s_own_news_is_kept_for_its_mole() -> void:
+	"""Review M3 (decision 0205): a tunnel opening or pausing on its own is kept for its mole, whoever is
+	selected then -- the otter selected does not get the mole's "Tunnel paused at 44%"."""
+	var parts := _command()
+	var command: CommandScript = parts[0]
+	command.select(PackedInt32Array([1]))
+	command.say_about("Tunnel paused at 44%", 0)
+	assert_equal(command.notice_for_selection(), "", "the otter selected: nothing of the mole's")
+	command.select(PackedInt32Array([0]))
+	assert_equal(command.notice_for_selection(), "Tunnel paused at 44%", "the mole's own")
+	command.say_about("ignored", 99)
+	assert_equal(command.notice_for_selection(), "Tunnel paused at 44%", "nobody by that index: nothing kept")
+	_free_all(parts)

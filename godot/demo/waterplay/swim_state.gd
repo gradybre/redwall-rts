@@ -43,6 +43,8 @@ const EVENT_AIR_OUT: int = 8
 
 var count: int = 0
 var swim_mm_s: PackedInt32Array = PackedInt32Array()
+## The speed each swimmer's stroke clip reads right at rate 1.0 (swim_rules.gd STROKE_MM_S).
+var stroke_mm_s: PackedInt32Array = PackedInt32Array()
 var dives: PackedByteArray = PackedByteArray()
 var consent: PackedByteArray = PackedByteArray()
 var height_u: PackedInt32Array = PackedInt32Array()
@@ -65,6 +67,7 @@ func setup(species: PackedStringArray, heights_u: PackedInt32Array) -> void:
 	"""One row per resident by actor index, seeded from each one's species (swim_rules.gd)."""
 	count = species.size()
 	swim_mm_s.resize(count)
+	stroke_mm_s.resize(count)
 	height_u.resize(count)
 	air.resize(count)
 	rest.resize(count)
@@ -83,6 +86,7 @@ func setup(species: PackedStringArray, heights_u: PackedInt32Array) -> void:
 func _seed(who: int, kind: String, h_u: int) -> void:
 	"""A fresh row: the species' capability, full air and rest, on land, consenting."""
 	swim_mm_s[who] = Rules.swim_mm_s_of(kind)
+	stroke_mm_s[who] = Rules.stroke_mm_s_of(kind)
 	dives[who] = 1 if Rules.dives_of(kind) else 0
 	consent[who] = 1
 	height_u[who] = h_u

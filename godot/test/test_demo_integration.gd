@@ -132,8 +132,9 @@ func _feed_has(text: String, level: int) -> bool:
 
 func test_one_weather_slows_the_walkers_and_wets_the_beds() -> void:
 	"""The farm, the tunnel works and the village share ONE weather, read from the farm's real §5.10
-	row: dry at 11:00; at 12:00 spring's showers begin and the planner's surface speed drops to 800;
-	at midnight the empty loam bed takes exactly that same rain less spring's evaporation."""
+	row: dry all of spring 1 (a spell's dry day, decision 0205); at 06:00 on spring 2, the spell's wet
+	day, the showers begin and the planner's surface speed drops to 800; at midnight the empty loam bed
+	takes exactly that day's rain less spring's evaporation -- every day's own, wet day or dry."""
 	var farm := _village(false)
 	var weather: WeatherScript = _services.weather
 	assert_true(_works().weather == weather, "the tunnel works read the shared weather")
@@ -143,14 +144,17 @@ func test_one_weather_slows_the_walkers_and_wets_the_beds() -> void:
 	assert_equal(_works()._network.surface_permille, 1000, "11:00: dry, full pace")
 	farm.step(HOUR_USEC)
 	_works().step(0)
-	assert_equal(weather.condition(), WeatherScript.COND_RAIN, "12:00: the showers begin")
+	assert_equal(weather.condition(), WeatherScript.COND_CLEAR, "12:00 of a dry day: still dry")
+	farm.step(18 * HOUR_USEC)
+	_works().step(0)
+	assert_equal(weather.condition(), WeatherScript.COND_RAIN, "06:00 of the wet day: the showers begin")
 	assert_equal(_works()._network.surface_permille, 800, "walkers slowed")
 	var row: CoreWeather = farm.sim.crop_weather().weather()
 	assert_equal(weather.rain(), row.rain(), "the weather's rain is the row's")
 	assert_equal(weather.rain(), 1200, "spring's baseline")
 	var before: int = farm.sim.moisture_of(BED_LOAM)
-	farm.step(12 * HOUR_USEC)
-	assert_equal(farm.sim.days_run, 1, "a midnight passed")
+	farm.step(18 * HOUR_USEC)
+	assert_equal(farm.sim.days_run, 2, "two midnights passed")
 	assert_equal(farm.sim.last_weather_delta(), weather.rain() - SPRING_EVAPORATION, "the day's rain less evaporation")
 	assert_equal(farm.sim.moisture_of(BED_LOAM), before + weather.rain() - SPRING_EVAPORATION,
 		"the bed took the rain the walkers walk in")
@@ -159,24 +163,34 @@ func test_one_weather_slows_the_walkers_and_wets_the_beds() -> void:
 
 
 func test_a_change_of_weather_is_posted_once_with_the_date() -> void:
-	"""The showers starting at 12:00 are one WEATHER note in the feed, stamped with the demo date; the
-	next rainy hour posts nothing."""
+	"""The spell's showers starting at 06:00 on spring 2 are one WEATHER note in the feed, stamped with the
+	demo date; the next rainy hour posts nothing (the farm's own notes are not counted here)."""
 	var farm := _village(false)
-	farm.step(6 * HOUR_USEC)
-	assert_equal(_services.notices.count(), 1, "one notice")
-	assert_equal(_services.notices.source(0), NoticesScript.SOURCE_WEATHER, "from the weather")
-	assert_equal(_services.notices.stamp(0), "Y1 Spring 1, 12:00", "stamped with the demo date")
-	assert_equal(_services.notices.summary(0), "Weather: Rain, walking 80%", "its short line")
+	farm.step(24 * HOUR_USEC)
+	var posted: PackedInt32Array = _weather_notices()
+	assert_equal(posted.size(), 1, "one weather notice")
+	assert_equal(_services.notices.stamp(posted[0]), "Y1 Spring 2, 06:00", "stamped with the demo date")
+	assert_equal(_services.notices.summary(posted[0]), "Weather: Rain, walking 80%", "its short line")
 	farm.step(HOUR_USEC)
-	assert_equal(_services.notices.count(), 1, "still raining: nothing new")
+	assert_equal(_weather_notices().size(), 1, "still raining: nothing new")
+
+
+func _weather_notices() -> PackedInt32Array:
+	"""The feed's weather notices, oldest first."""
+	var found := PackedInt32Array()
+	for k: int in _services.notices.count():
+		if _services.notices.source(k) == NoticesScript.SOURCE_WEATHER:
+			found.append(k)
+	return found
 
 
 func test_next_weather_runs_the_one_calendar_to_the_change() -> void:
-	"""From 06:00 the next change is the 12:00 showers: six hours run -- farm, weather and date together."""
+	"""From 06:00 of spring 1 the next change is the spell's showers at 06:00 of spring 2: a day runs --
+	farm, weather and date together."""
 	var farm := _village(false)
-	assert_equal(farm.skip_to_next_weather(), 6, "six hours")
-	assert_equal(_services.calendar.date_text(), "Y1 Spring 1, 12:00", "the calendar moved")
-	assert_equal(farm.sim.hours_run, 6, "the farm ran them")
+	assert_equal(farm.skip_to_next_weather(), 24, "a day")
+	assert_equal(_services.calendar.date_text(), "Y1 Spring 2, 06:00", "the calendar moved")
+	assert_equal(farm.sim.hours_run, 24, "the farm ran them")
 	assert_equal(_services.weather.condition(), WeatherScript.COND_RAIN, "and it rains")
 
 
@@ -213,8 +227,8 @@ func test_the_hud_date_is_the_farm_date() -> void:
 
 
 func test_the_frost_warning_names_the_night_on_the_hud_s_calendar() -> void:
-	"""At 12:00 of spring 3 the farm warns of the night into spring 4, stamped with the same date the
-	HUD then shows."""
+	"""At 12:00 of spring 10 the farm warns of the night into spring 11 (spring's one frost night,
+	farm_weather.gd), stamped with the same date the HUD then shows."""
 	var farm := _village(false)
 	var shell := UiShell.new()
 	_nodes.append(shell)
@@ -224,17 +238,17 @@ func test_the_frost_warning_names_the_night_on_the_hud_s_calendar() -> void:
 	manager.start_game()
 	var date := HudDateScript.new()
 	date.bind(shell, _services.calendar, manager)
-	farm.step(54 * HOUR_USEC)
+	farm.step((24 * 9 + 6) * HOUR_USEC)
 	date.sync()
-	var frost: String = AlertsScript.frost_text(0, 3)
-	assert_true(frost.begins_with("Frost tonight (Spring 4, 02:00–05:59)!"), "names the night")
+	var frost: String = AlertsScript.frost_text(0, 10)
+	assert_true(frost.begins_with("Frost tonight (Spring 11, 02:00–05:59)!"), "names the night")
 	assert_true(_feed_has(frost, NoticesScript.LEVEL_WARNING), "a warning in the feed")
 	var stamp: String = ""
 	for k: int in _services.notices.count():
 		if _services.notices.text(k) == frost:
 			stamp = _services.notices.stamp(k)
-	assert_equal(stamp, "Y1 Spring 3, 12:00", "stamped at noon of spring 3")
-	assert_equal(shell.status_label().text, "Spring 3", "the day the HUD shows")
+	assert_equal(stamp, "Y1 Spring 10, 12:00", "stamped at noon of spring 10")
+	assert_equal(shell.status_label().text, "Spring 10", "the day the HUD shows")
 	assert_true(shell.status_label().tooltip_text.begins_with(stamp), "and its tooltip's date and hour")
 
 
@@ -589,4 +603,51 @@ func test_the_zone_s_panels_sit_below_its_tabs_and_the_news_clear_of_both_column
 		assert_false(band.intersects(detail), "%s: the news clear of the right column" % at)
 		assert_false(band.intersects(geometry.minimap), "%s: and of the minimap" % at)
 		assert_true(band.end.y < geometry.commands.position.y, "%s: above the command strip" % at)
-		assert_true(band.size.x > 400.0 and band.size.x <= NewsStripScript.MAX_W, "%s: a readable width (%s)" % [at, band])
+		## Centred on the command strip now (playtest 2026-09-29), so at 1280x720, where the commands
+		## run under the right column, the band is narrower than the old 400+ (328 px): still a
+		## readable column of 14 px text, never under the right column or the minimap.
+		assert_true(band.size.x >= 320.0 and band.size.x <= NewsStripScript.MAX_W, "%s: a readable width (%s)" % [at, band])
+
+
+func test_the_news_band_is_centred_on_the_command_strip() -> void:
+	"""Playtest 2026-09-29: "center the news bar with the action bar". At every supported size, with
+	the resident journal closed or open (the command strip moves left for it), the band's centre is
+	the command strip's centre (±1 px), clear of the minimap and the right column."""
+	var layout := UiLayout.new()
+	var geometry := UiLayout.Geometry.new()
+	for size: Vector2i in [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(3840, 2160)]:
+		for journal: bool in [false, true]:
+			var band: Rect2 = NewsStripScript.band_placement(size.x, size.y, layout, geometry, journal)
+			var at := "%dx%d journal %s" % [size.x, size.y, journal]
+			var hud := UiLayout.Geometry.new()
+			assert_true(UiLayout.new().compute_into(size.x, size.y, UiLayout.USER_SCALE_100, journal, hud), "%s: the HUD's layout" % at)
+			assert_true(absf(band.get_center().x - hud.commands.get_center().x) <= 1.0,
+				"%s: centred on the HUD's commands (%.1f vs %.1f)" % [at, band.get_center().x, hud.commands.get_center().x])
+			assert_false(band.intersects(geometry.detail), "%s: clear of the right column" % at)
+			assert_false(band.intersects(geometry.minimap), "%s: and of the minimap" % at)
+			assert_true(band.size.x >= 320.0 and band.size.x <= NewsStripScript.MAX_W, "%s: readable (%s)" % [at, band])
+			assert_true(band.end.y < geometry.commands.position.y, "%s: above the commands" % at)
+
+
+func test_the_news_strip_follows_the_command_strip_when_the_journal_opens() -> void:
+	"""The strip asks the right column whether the journal holds it (demo_village hands it the zone's
+	`journal_open`) and lays its band out for that answer: centred on the command strip as the HUD
+	lays it out with the journal closed, then open; its refresh notices the change."""
+	var open: Array[bool] = [false]
+	var news := NewsStripScript.new()
+	_nodes.append(news)
+	news.configure(_services.notices)
+	news.follow_journal(func() -> bool: return open[0])
+	var layout := UiLayout.new()
+	var geometry := UiLayout.Geometry.new()
+	for state: bool in [false, true]:
+		open[0] = state
+		news.refresh(0)
+		assert_equal(news.journal_followed(), state, "the refresh follows the journal (%s)" % state)
+		var band: Rect2 = news.band_in(Vector2(1920.0, 1080.0))
+		assert_true(layout.compute_into(1920, 1080, UiLayout.USER_SCALE_100, state, geometry), "the HUD's layout")
+		assert_true(absf(band.get_center().x - geometry.commands.get_center().x) <= 1.0,
+			"journal %s: centred on the HUD's commands (%.1f vs %.1f)" % [state, band.get_center().x, geometry.commands.get_center().x])
+	var zone := DetailZoneScript.new()
+	_nodes.append(zone)
+	assert_false(zone.journal_open(), "the zone's own answer, as demo_village hands it over, starts closed")

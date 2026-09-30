@@ -125,7 +125,7 @@ class SwimRescue extends "res://demo/tunnel/tunnel_task.gd":
 		"""One frame of the rescue -- given up, swimming ashore, when the victim came ashore another way."""
 		if phase < PHASE_TOW and victim.task != victim_task:
 			if brain.in_water:
-				brain.release()
+				brain.work_done()
 				return true
 			return false
 		match phase:

@@ -43,9 +43,11 @@ extends Node3D
 ##
 ## TIME. The game's clock is started by `Game` itself (scripts/main.gd calls start_game()), and
 ## UIManager then holds UI-SET-103's opening inspection pause (PLAYER). The demo releases that one
-## pause as it opens, so the village is alive and the HUD reads Playing; from then on the HUD's pause
-## and 1x / 2x / 4x buttons are the real GameManager's, and the demo follows them: the cast's clock
-## (demo_clock.gd) reads GameManager.get_effective_speed() every frame.
+## pause once its first frames are drawn (demo_prewarm.gd: what would first load mid-game is loaded
+## first, and the first frames' pipeline compiles are paid while paused -- decision 0205), so the
+## village is alive and the HUD reads Playing; from then on the HUD's pause and 1x / 2x / 4x buttons
+## are the real GameManager's, and the demo follows them: the cast's clock (demo_clock.gd) reads
+## GameManager.get_effective_speed() every frame.
 ##
 ## FARM (demo/farm/): the six crop beds grow individual pantry ingredients by the settlement's own
 ## crop arithmetic, worked by the residents; the HUD's Food cell shows the pantry total and its Food
@@ -58,6 +60,9 @@ extends Node3D
 ## too deep to wade joins the cast's obstacles as a band of circles (water_links.gd), and the cast plans
 ## inside the woods' reach. `_build_waterplay()` wires it after the woods (a log bridge's log may be a
 ## felled trunk); its "Water (demo)" panel is the right column's fourth tab.
+##
+## SPOIL (demo/spoil/): a tunnel's spoil heaps can be selected and cleared -- dug out and hauled into the
+## farm's compost store (Clear: right-click a heap with residents selected). `_build_spoil()` wires it.
 ##
 ## WOODS (demo/forestry/): every tree is a real ResourceNode row -- felled, hauled, regrown, blown down,
 ## replanted -- worked by the residents, with forestry and conservation zones, deadfall, a sawhorse and
@@ -91,8 +96,11 @@ const ForestryScript := preload("res://demo/forestry/demo_forestry.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const WindowKeysScript := preload("res://demo/demo_window_keys.gd")
 const StallBannerScript := preload("res://demo/ui/demo_stall_banner.gd")
+const CommandTipsScript := preload("res://demo/ui/demo_command_tips.gd")
 const WaterplayScript := preload("res://demo/waterplay/demo_waterplay.gd")
 const LinksScript := preload("res://demo/waterplay/water_links.gd")
+const SpoilScript := preload("res://demo/spoil/demo_spoil.gd")
+const PrewarmScript := preload("res://demo/demo_prewarm.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -121,6 +129,8 @@ var _water: DemoWaterScript = null
 var _forestry: ForestryScript = null
 var _waterplay: WaterplayScript = null
 var _links: LinksScript = null
+var _spoil: SpoilScript = null
+var _prewarm: PrewarmScript = PrewarmScript.new()
 var _shadow_view_m: float = -1.0
 
 
@@ -140,12 +150,29 @@ func _ready() -> void:
 	_command.configure(_cast, _camera.camera(), _game.get_node_or_null(GAME_HUD_ROOT) as Control, _services)
 	_command.set_world(_world as DemoWorldScript)
 	_build_farm(manifest)
+	_build_spoil()
 	_build_forestry()
 	_build_waterplay()
 	_build_shared_ui()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
-	_open_running()
+	_warm_and_open()
+
+
+func _warm_and_open() -> void:
+	"""Load now what would first load mid-game, and start the clock only once the first frames are drawn
+	(demo_prewarm.gd, decision 0205)."""
+	add_child(_prewarm)
+	_prewarm.add_step("props and icons", _services.props.warm_all)
+	_prewarm.add_step("plant atlases", _farm.view.assets.ensure_all_loaded)
+	_prewarm.add_step("woods: stumps, saplings, splits", _forestry.view.prewarm)
+	_prewarm.warm()
+	_prewarm.release_after_frames(_open_running)
+
+
+func prewarm() -> PrewarmScript:
+	"""The boot prewarm and its report (demo_prewarm.gd)."""
+	return _prewarm
 
 
 func _build_world(manifest: Dictionary) -> void:
@@ -197,6 +224,26 @@ func _build_farm(manifest: Dictionary) -> void:
 	_farm.add_overlay(WATER_OVERLAY_NAME, _water.set_overlay_shown)
 
 
+func _build_spoil() -> void:
+	"""Spoil heaps to select and clear (demo/spoil/), after the farm, whose spoil books and compost store
+	they use, and before the woods, so a click on a heap in a forestry zone is the heap's."""
+	_spoil = SpoilScript.new()
+	add_child(_spoil)
+	_spoil.configure(_cast as DemoCastScript, _command as DemoCommandScript, _camera.camera(), _cast.space().tunnels,
+		_farm.tunnels, _services.props, give_compost)
+
+
+func give_compost(milli: int) -> void:
+	"""Put `milli` into the farm's compost store: a cleared heap's spoil (demo/spoil/spoil_crew.gd)."""
+	if milli > 0:
+		_farm.sim.compost_milli += milli
+
+
+func spoil() -> SpoilScript:
+	"""The spoil heaps' selection and clearing (demo/spoil/demo_spoil.gd)."""
+	return _spoil
+
+
 func _build_forestry() -> void:
 	"""The woods, after the farm (the calendar's owner): the world's trees bound to real rows with the
 	compiled `wood` item, the crew on the cast, planting's compost from the farm's store, and the woods'
@@ -246,17 +293,22 @@ func forestry() -> ForestryScript:
 
 
 func _build_shared_ui() -> void:
-	"""The HUD date on the demo calendar, the news strip, the right column's one-panel zone, and the
-	stall banner (the player's Resume from the clock's REQ-SET-008 diagnostic pause)."""
+	"""The HUD date on the demo calendar, the news strip (centred on the command strip), the right
+	column's one-panel zone (a panel's own × collapses it), the command strip's tooltips, and the
+	stall banner (the player's Resume from the clock's REQ-SET-008 diagnostic pause, which stands in
+	for and resolves the HUD's overload card)."""
 	_hud_date.bind(_shell(), _services.calendar, GameManager as GameManagerScript)
 	_stall_banner = StallBannerScript.new()
 	add_child(_stall_banner)
 	_stall_banner.bind(GameManager as GameManagerScript)
+	_stall_banner.bind_shell(_shell())
+	CommandTipsScript.apply(_shell())
 	_news = NewsStripScript.new()
 	add_child(_news)
 	_news.configure(_services.notices)
 	_zone = DetailZoneScript.new()
 	add_child(_zone)
+	_news.follow_journal(_zone.journal_open)
 	_zone.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
 	_zone.add_panel(DetailZoneScript.PANEL_FARM, _farm.bed_panel)
 	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext

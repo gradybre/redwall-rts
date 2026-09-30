@@ -5,6 +5,7 @@ extends "res://test/framework/test_case.gd"
 ## the drawings, the pick, the zone tool, the panel's tab and the command layer's hooks. Built over
 ## the placeholder cast in the real village layout -- no staged assets.
 
+const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const ResourceNodes := preload("res://scripts/core/resource_nodes.gd")
 const WeatherCore := preload("res://scripts/core/weather.gd")
@@ -35,6 +36,8 @@ const PartyPanelScript := preload("res://demo/control/demo_party_panel.gd")
 const DetailZoneScript := preload("res://demo/ui/demo_detail_zone.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 const WorksScript := preload("res://demo/tunnel/tunnel_works.gd")
+const LiftScript := preload("res://demo/forestry/forest_lift.gd")
+const Sizes := preload("res://demo/world/world_sizes.gd")
 
 ## The compiled `wood` id the catalog boundary resolves (checked below; a fixture passes it).
 const WOOD: int = 60
@@ -956,7 +959,7 @@ func test_the_right_column_has_a_woods_tab() -> void:
 		panel.build()
 		zone.add_panel(k, panel)
 		panels.append(panel)
-	assert_equal(DetailZoneScript.TAB_TEXT, ["Farm", "Tunnels & burrows", "Woods", "Water"] as Array[String], "four tabs")
+	assert_equal(DetailZoneScript.TAB_TEXT, ["Farm", "Tunnels", "Woods", "Water"] as Array[String], "four tabs")
 	zone.show_panel(DetailZoneScript.PANEL_WOODS)
 	assert_true(panels[2].is_shown() and not panels[0].is_shown() and not panels[1].is_shown()
 		and not panels[3].is_shown(), "the woods alone")
@@ -1002,3 +1005,164 @@ func test_a_zone_tool_hook_takes_input_before_selection() -> void:
 	escape.pressed = true
 	assert_true(forestry.handle_tool_input(escape), "Esc taken")
 	assert_false(forestry.tool.is_armed(), "and put away")
+
+
+# --- trees let into the ground (playtest 2026-09-29 item 15) -----------------------------------
+
+## Model-unit height of the fake staged tree's column, and how many horizontal bands it is cut into
+## (so a split lands within one band of the cut).
+const FAKE_TREE_HEIGHT: float = 1.9
+const FAKE_TREE_BANDS: int = 95
+
+
+func _fake_tree_scene(key: StringName) -> PackedScene:
+	"""A stand-in staged tree: one banded column mesh standing on the model's base, as a packed scene."""
+	var box := BoxMesh.new()
+	box.size = Vector3(1.0, FAKE_TREE_HEIGHT, 1.0)
+	box.subdivide_height = FAKE_TREE_BANDS
+	var arrays: Array = box.get_mesh_arrays()
+	var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	for i: int in verts.size():
+		verts[i].y += FAKE_TREE_HEIGHT * 0.5
+	arrays[Mesh.ARRAY_VERTEX] = verts
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	var root := Node3D.new()
+	root.name = "Staged_%s" % key
+	var column := MeshInstance3D.new()
+	column.mesh = mesh
+	root.add_child(column)
+	column.owner = root
+	var packed := PackedScene.new()
+	packed.pack(root)
+	root.free()
+	return packed
+
+
+func _staged_world() -> DemoWorldScript:
+	"""A world whose oak and beech are 'staged' (the fake column, with the manifest's bound)."""
+	var world := _world()
+	for key: StringName in StandScript.LOOK_KEYS:
+		world._scenes[key] = _fake_tree_scene(key)
+		world._world_rows[String(key)] = {"path": "", "aabb_min": [0.0, 0.0, 0.0], "aabb_max": [1.0, FAKE_TREE_HEIGHT, 1.0]}
+	return world
+
+
+func _staged_view(stand: StandScript) -> ViewScript:
+	"""The woods' drawing over `stand`, its trees made the staged world's way (sunk)."""
+	var world := _staged_world()
+	var view: ViewScript = _keep(ViewScript.new()) as ViewScript
+	view.configure(stand, func(_placement: int) -> Node3D: return null, world.make_piece, _services.props)
+	view.staged = true
+	view.sync(1, 7)
+	return view
+
+
+static func _world_y_range(part: MeshInstance3D) -> Vector2:
+	"""The lowest and highest world y of the vertices `part` draws (its index list only)."""
+	var arrays: Array = part.mesh.surface_get_arrays(0)
+	var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var index: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+	var out := Vector2(INF, -INF)
+	for k: int in index:
+		var y: float = (part.transform * verts[k]).y
+		out = Vector2(minf(out.x, y), maxf(out.y, y))
+	return out
+
+
+func test_the_mound_heights_are_above_the_ground_after_the_sink() -> void:
+	"""What stands of a mound once the tree is let down by its sink: the profile less the sink, never
+	below the ground, scaled by the size."""
+	assert_almost_equal(Roots.height_at(StandScript.LOOK_OAK, 1.0, 2.0), 1.4 - 1.2, "the oak's flare at 2 m")
+	assert_almost_equal(Roots.height_at(StandScript.LOOK_OAK, 1.0, 3.0), 0.0, "the oak's mound is buried at 3 m")
+	assert_almost_equal(Roots.height_at(StandScript.LOOK_OAK, 0.95, 1.9), (1.4 - 1.2) * 0.95, "scaled by the size")
+	assert_almost_equal(Roots.height_at(StandScript.LOOK_BEECH, 1.0, 1.0), 0.61 - 0.5, "the beech's flare at 1 m")
+	assert_almost_equal(Roots.height_at(StandScript.LOOK_BEECH, 1.1, 2.75), 0.0, "the beech's mound is buried")
+	for look: int in StandScript.LOOK_KEYS.size():
+		for step: int in 60:
+			assert_true(Roots.height_at(look, 1.0, float(step) * 0.1) >= 0.0, "never below the ground")
+
+
+func test_the_sink_is_the_worlds_and_the_cut_is_measured_from_the_ground() -> void:
+	"""forest_roots takes each look's sink from world_sizes.gd, and the cut above the ground is the
+	cut in the model less the sink."""
+	for look: int in StandScript.LOOK_KEYS.size():
+		var key: StringName = StandScript.LOOK_KEYS[look]
+		assert_almost_equal(Roots.sink_m(look, 1.1), Sizes.sink_m(key, 1.1), "%s: the world's sink" % key)
+		assert_almost_equal(Roots.model_cut_m(look, 1.1), Roots.CUT_M[look] * 1.1, "%s: the cut in the model" % key)
+		assert_almost_equal(Roots.cut_m(look, 1.1) + Roots.sink_m(look, 1.1), Roots.model_cut_m(look, 1.1), "%s: the cut above the ground" % key)
+	assert_almost_equal(Roots.cut_m(StandScript.LOOK_OAK, 1.0), 2.3 - 1.2, "the oak is cut 1.1 m up")
+	assert_almost_equal(Roots.cut_m(StandScript.LOOK_BEECH, 1.0), 0.95 - 0.5, "the beech 0.45 m up")
+
+
+func test_the_walkers_are_lifted_only_onto_what_stands_of_the_mound() -> void:
+	"""forest_lift.gd reads the sunk mound: onto the oak's flare near the trunk, the bare ground at 3 m
+	where the mound used to lift a walker 1.07 m."""
+	var stand := _stand_of(_three())
+	var lift := LiftScript.new()
+	lift.configure(stand, null)
+	var oak: Vector2 = stand.at[0]
+	assert_almost_equal(lift.height_at(oak + Vector2(2.0, 0.0)), 1.4 - 1.2, "on the flare")
+	assert_almost_equal(lift.height_at(oak + Vector2(0.0, 3.0)), 0.0, "on the ground over the buried mound")
+
+
+func test_a_staged_tree_is_drawn_let_down_by_its_sink() -> void:
+	"""The view's mature trees come from the world's make_piece: let down by the look's sink."""
+	var stand := _stand_of(_three())
+	var view := _staged_view(stand)
+	for t: int in 2:
+		assert_true(view.tree_visible(t), "tree %d stands" % t)
+		assert_almost_equal(view._tree_nodes[t].transform.origin.y, -Roots.sink_m(stand.look[t], stand.size[t]), "tree %d let down" % t)
+
+
+func test_a_sunk_tree_is_split_and_turned_at_its_cut_above_the_ground() -> void:
+	"""Felled, the model is split at the cut in the MODEL (where the flare ends), which the sink puts
+	at the cut above the ground; the fall turns about that height and the stump caps it there."""
+	var stand := _stand_of(_three())
+	var view := _staged_view(stand)
+	## One band of the column at the tallest drawn tree here (the beech at 1.1).
+	var band: float = Sizes.target_height_m(&"beech_mature") * 1.1 / float(FAKE_TREE_BANDS)
+	for t: int in 2:
+		assert_true(stand.fell_into(t, 1, Vector2(1.0, 0.0), false, _read), "felled %d" % t)
+	view.sync(1, 8)
+	for t: int in 2:
+		var cut: float = Roots.cut_m(stand.look[t], stand.size[t])
+		assert_true(view._upper_nodes[t] != null and view._lower_nodes[t] != null, "tree %d split" % t)
+		assert_almost_equal(view._cut_height(t), cut, "tree %d turns at its cut" % t)
+		assert_true(absf(_world_y_range(view._upper_nodes[t]).x - cut) <= band, "tree %d: the upper part starts at the cut (%.3f)" % [t, _world_y_range(view._upper_nodes[t]).x])
+		assert_true(absf(_world_y_range(view._lower_nodes[t]).x + Roots.sink_m(stand.look[t], stand.size[t])) < 0.001, "tree %d: the stub's foot is under the ground" % t)
+		var key: StringName = view.stump_key(t)
+		var height: float = Sizes.target_height_m(key) * view._stump_size(t)
+		assert_almost_equal(view._stump_nodes[t].position.y, cut - height * (1.0 - ViewScript.STUMP_ABOVE_CUT), "tree %d: the stump caps the cut" % t)
+
+
+func test_a_woods_job_called_away_is_taken_back_when_the_other_work_is_done() -> void:
+	"""Decision 0205 (resident_brain.gd RESUMING): a feller ordered away mid-walk leaves the fell on the
+	board and keeps it; its next work done gives the same job back to it."""
+	var forestry := _forestry()
+	var tree: int = NORTH_TREES[0]
+	assert_true(forestry.crew.order(JobsScript.KIND_FELL, tree, 0, PackedInt32Array([1]), JobsScript.ORIGIN_PLAYER)
+		.contains("Placeholder 1"), "given to the resident")
+	var brain := (forestry._cast.actor(1) as DemoActorScript).brain
+	assert_true(_run(forestry, func() -> bool: return brain.order == BrainScript.ORDER_MOVE), "walking to the tree")
+	brain.order_move(Vector2(-6.0, -6.0))
+	assert_true(_run(forestry, func() -> bool: return not brain.unfinished_labels().is_empty()), "the crew saw it go")
+	assert_equal(brain.unfinished_labels(), PackedStringArray(["Fell (woods)"]), "kept")
+	var row: int = forestry.crew.jobs.on_target(JobsScript.KIND_FELL, tree)
+	assert_true(forestry.crew.jobs.find_into(JobsScript.KIND_FELL, tree, _read), "still on the board")
+	assert_equal(forestry.crew.jobs.worker[_read.value], JobsScript.NOBODY, "nobody on it")
+	forestry.crew.jobs.assign(_read.value, 2)
+	brain.work_done()
+	assert_equal(forestry.crew.jobs.worker[_read.value], 2, "someone else has it: not taken back")
+	forestry.crew.jobs.unassign(_read.value)
+	brain.remember_unfinished(UnfinishedScript.new(forestry.crew.take_back.bind(_read.value, JobsScript.KIND_FELL,
+		tree, forestry.crew.jobs.target_gen[_read.value]), "Fell (woods)"))
+	brain.work_done()
+	assert_equal(forestry.crew.jobs.worker[_read.value], 1, "given back to it")
+	assert_true(row > 0, "one fell on that tree")
+	var resumed: Array[int] = [0]
+	brain.remember_unfinished(UnfinishedScript.new(func(_b: RefCounted) -> bool:
+		resumed[0] += 1
+		return true, "lanterns"))
+	forestry.crew.finish(_read.value, "")
+	assert_equal(resumed[0], 1, "the woods ending its job sends it back to what the woods took it from")

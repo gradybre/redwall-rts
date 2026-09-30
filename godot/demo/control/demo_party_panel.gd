@@ -24,6 +24,12 @@ extends CanvasLayer
 ## takes focus, so Enter while laying a route digs rather than pressing it again. A NOTICE line under the party carries the tunnel tool's prompts, lengths
 ## and refusals. The wood button's cream text and the notice's ink are checked for contrast
 ## (test_demo_tunnel.gd).
+##
+## ORDERS (decision 0205, the playtest of 2026-09-29). With one resident selected, the panel lists what
+## it can be ordered to do (control/resident_abilities.gd, an entry's "abilities"): a line a kind of
+## work, the skill-gated ones saying why not. The notice line is the SELECTED residents' own (the
+## command layer keeps one per resident, demo_command.gd `say`). Where the column is too short for all
+## of it (1280x720), the hint goes first and then the orders, before the panel itself would.
 
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
@@ -35,6 +41,8 @@ signal dig_requested
 const TITLE: String = "Demo party"
 const HINT: String = "Click or drag: select · Shift: add · Right-click: move / work · R: release · Esc: clear · T: dig tunnel (mole) · U: underground"
 const DIG_BUTTON: String = "Dig tunnel (T)"
+## The Dig button's hover tip (decision 0205: every action button says what it does and its key).
+const DIG_TIP: String = "Dig tunnel (T) — the selected mole lays out a tunnel: click points on the ground, Enter digs it, Esc cancels"
 const DIGGING: String = "Digging tunnel — %d%%"
 const IN_TUNNEL: String = "Using tunnel"
 ## The tunnel extensions' states (demo/tunnel/): hauling a load below, waiting in a mouth's line.
@@ -42,6 +50,15 @@ const HAULING: String = "Hauling through tunnel"
 const IN_QUEUE: String = "Waiting at a tunnel mouth"
 const BUTTON_MARGINS: PackedFloat32Array = [12.0, 6.0, 12.0, 7.0]
 const NOBODY: String = "No one selected"
+## fit's levels, fullest first (see fit).
+const FIT_LEVELS: int = 4
+## The unfinished jobs a resident will go back to (resident_brain.gd RESUMING), latest first.
+const THEN: String = "Then back to: %s"
+## The orders list folded for a short column (fit), e.g. at 1280x720.
+const COMPACT: String = "Orders (right-click): %s"
+const BULLET: String = "• "
+## One resident's species line: folded with the skills (its name already says it, "Mole digger").
+const SPECIES_ROW: int = 1
 const WIDTH: float = 320.0
 ## The carved frame draws this far outside the panel rectangle (woodland_styles PIECE_PANEL).
 const FRAME_EXPAND: float = 10.0
@@ -59,6 +76,12 @@ const LEDGER_GAP: float = 8.0
 var _frame: PanelContainer = null
 var _rows: VBoxContainer = null
 var _notice: Label = null
+var _abilities: Label = null
+var _abilities_wanted: bool = false
+var _abilities_full: String = ""
+var _abilities_compact: String = ""
+var _skill_rows: Array[Control] = []
+var _hint: Label = null
 var _dig: Button = null
 var _pending_notice: String = ""
 var _layout: UiLayout = UiLayout.new()
@@ -107,21 +130,26 @@ func _build() -> void:
 	_rows = VBoxContainer.new()
 	_rows.add_theme_constant_override(&"separation", 3)
 	column.add_child(_rows)
+	_abilities = _label("", HINT_PX, Palette.UMBER, null)
+	_abilities.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_abilities.visible = false
+	column.add_child(_abilities)
 	_notice = _label("", BODY_PX, Palette.INK, null)
 	_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_notice.visible = false
 	column.add_child(_notice)
 	_dig = _build_dig_button()
 	column.add_child(_dig)
-	var hint := _label(HINT, HINT_PX, Palette.UMBER, null)
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(hint)
+	_hint = _label(HINT, HINT_PX, Palette.UMBER, null)
+	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(_hint)
 
 
 func _build_dig_button() -> Button:
 	"""The wood "Dig tunnel" button: cream on wood, brass when pressed; never takes focus."""
 	var button := Button.new()
 	button.text = DIG_BUTTON
+	button.tooltip_text = DIG_TIP
 	button.focus_mode = Control.FOCUS_NONE
 	button.visible = false
 	button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
@@ -150,23 +178,54 @@ func _label(text: String, px: int, colour: Color, font: Font) -> Label:
 
 
 func show_party(entries: Array[Dictionary]) -> void:
-	"""Show these residents: [{"name", "species", "state", "colour"}]."""
+	"""Show these residents: [{"name", "species", "state", "colour", "skills", "then", "abilities"}]."""
+	_fill_rows(entries)
+	_dig.visible = has_digger(entries)
+	var abilities: PackedStringArray = entries[0].get("abilities", PackedStringArray()) if entries.size() == 1 \
+			else PackedStringArray()
+	_abilities_full = "\n".join(abilities)
+	_abilities_compact = compact_orders(abilities)
+	_abilities.text = _abilities_full
+	_abilities_wanted = not abilities.is_empty()
+	_abilities.visible = _abilities_wanted
+	_place.call_deferred()
+
+
+func _fill_rows(entries: Array[Dictionary]) -> void:
+	"""The party's lines, a chip on each resident's; one resident's skill lines and species line are kept
+	apart (fit may fold them away first)."""
 	for child in _rows.get_children():
 		_rows.remove_child(child)
 		child.queue_free()
+	_skill_rows.clear()
 	var lines := party_lines(entries)
-	var colours: Array[Color] = []
-	for entry in entries:
-		colours.append(entry.get("colour", Palette.SAGE))
+	var skills: int = String(entries[0].get("skills", "")).split("\n", false).size() if entries.size() == 1 else 0
 	for i in lines.size():
 		var chip: Color = Color(0, 0, 0, 0)
 		if entries.size() == 1 and i == 0:
-			chip = colours[0]
-		elif entries.size() > 1 and i > 0 and i - 1 < colours.size():
-			chip = colours[i - 1]
-		_rows.add_child(_row(lines[i], chip, i == 0))
-	_dig.visible = has_digger(entries)
-	_place.call_deferred()
+			chip = entries[0].get("colour", Palette.SAGE)
+		elif entries.size() > 1 and i > 0 and i - 1 < entries.size():
+			chip = entries[i - 1].get("colour", Palette.SAGE)
+		var row: Control = _row(lines[i], chip, i == 0)
+		_rows.add_child(row)
+		if i >= lines.size() - skills or (skills > 0 and i == SPECIES_ROW):
+			_skill_rows.append(row)
+
+
+static func compact_orders(lines: PackedStringArray) -> String:
+	"""The orders list folded into one wrapped paragraph for a short column: its lines after the heading,
+	each without what to right-click, joined ("Orders (right-click): • Move or work · • Farm: sow, ...")."""
+	if lines.size() <= 1:
+		return ""
+	var parts := PackedStringArray()
+	for k: int in range(1, lines.size()):
+		parts.append(lines[k].get_slice(" —", 0).trim_prefix(BULLET))
+	return COMPACT % " · ".join(parts)
+
+
+func abilities_text() -> String:
+	"""The orders list as shown ("" when hidden: nobody, a group, or no room)."""
+	return _abilities.text if _abilities != null and _abilities.visible else ""
 
 
 static func has_digger(entries: Array[Dictionary]) -> bool:
@@ -247,8 +306,63 @@ func _place() -> void:
 	_frame.scale = Vector2(_geometry.scale, _geometry.scale)
 	_frame.position = rect.position * _geometry.scale
 	_frame.custom_minimum_size = Vector2(rect.size.x, 0.0)
+	_frame.visible = fit(rect.size.y)
 	_frame.size = Vector2(rect.size.x, 0.0)
-	_frame.visible = _frame.get_combined_minimum_size().y <= rect.size.y
+	_shrink.call_deferred(rect.size.x)
+
+
+func _shrink(width: float) -> void:
+	"""Once the column has measured what `fit` left shown (a frame later), take the frame down to it."""
+	if _frame != null:
+		_frame.size = Vector2(width, 0.0)
+
+
+func fit(height: float) -> bool:
+	"""Make the frame fit `height` logical pixels, giving up the least useful first: everything; else no
+	hint; else no skill lines either; else the orders folded into one paragraph; else no orders. False
+	when even that is too tall (the panel then hides)."""
+	for level: int in range(FIT_LEVELS - 1, -1, -1):
+		_show_extras(level)
+		if needed_height() <= height:
+			return true
+	_abilities.visible = false
+	return needed_height() <= height
+
+
+func _show_extras(level: int) -> void:
+	"""What `fit` shows at `level` (see fit): 3 all, 2 no hint, 1 no skills, 0 folded orders."""
+	_hint.visible = level >= 3
+	for row: Control in _skill_rows:
+		row.visible = level >= 2
+	_abilities.visible = _abilities_wanted
+	_abilities.text = _abilities_full if level >= 1 else _abilities_compact
+
+
+func needed_height() -> float:
+	"""The frame's height with what is shown now, summed from its column's visible children (the
+	containers' cached minimum sizes follow a visibility change only a frame later)."""
+	var box: StyleBox = _frame.get_theme_stylebox(&"panel")
+	return stack_height(_hint.get_parent() as VBoxContainer) + (box.get_minimum_size().y if box != null else 0.0)
+
+
+static func _own_height(control: Control) -> float:
+	"""A control's height from its own measure now (a label re-shapes on a text change at once; its cached
+	combined size may not have caught up)."""
+	return maxf(control.get_minimum_size().y, control.custom_minimum_size.y)
+
+
+static func stack_height(stack: VBoxContainer) -> float:
+	"""A column's height from its visible children, each measured by itself now, and its separation
+	between them."""
+	var total: float = 0.0
+	var shown: int = 0
+	for child: Node in stack.get_children():
+		var control := child as Control
+		if control == null or not control.visible:
+			continue
+		total += _own_height(control)
+		shown += 1
+	return total + float(stack.get_theme_constant(&"separation") * maxi(shown - 1, 0))
 
 
 static func placement(width: int, height: int, layout: UiLayout, geometry: UiLayout.Geometry) -> Rect2:
@@ -274,6 +388,9 @@ static func party_lines(entries: Array[Dictionary]) -> PackedStringArray:
 		lines.append(String(entries[0]["name"]))
 		lines.append(String(entries[0]["species"]))
 		lines.append(String(entries[0]["state"]))
+		var then: PackedStringArray = entries[0].get("then", PackedStringArray())
+		if not then.is_empty():
+			lines.append(THEN % ", ".join(then))
 		for skill: String in String(entries[0].get("skills", "")).split("\n", false):
 			lines.append(skill)
 	else:

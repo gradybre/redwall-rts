@@ -10,6 +10,7 @@ extends "res://test/framework/test_case.gd"
 ## (plus the farm's pond), stepped at a fixed 60 Hz; the shell is the real HUD shell built off-tree.
 ## Expected values are literals from the cited constants (§5.6 yields, the demo WU and walk values).
 
+const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const SimScript := preload("res://demo/farm/farm_sim.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
@@ -42,6 +43,7 @@ const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
 const DemoClockScript := preload("res://demo/demo_clock.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
+const Palette := preload("res://demo/ui/woodland_palette.gd")
 
 const DT: float = 1.0 / 60.0
 const HOUR_USEC: int = 2500000
@@ -49,12 +51,15 @@ const CARROT: int = 2
 const RADISH: int = 0
 const PEA: int = 11
 const WHEAT: int = 13
-## The frost warning for the night into spring day 4 (02:00-05:59), named by its calendar date.
-const FROST_SPRING_4: String = "Frost tonight (Spring 4, 02:00–05:59)! Cover growing beds (or raise them with spoil) and harvest what is ripe"
+## The frost warning for the night into spring day 11 (02:00-05:59), named by its calendar date.
+const FROST_SPRING_11: String = "Frost tonight (Spring 11, 02:00–05:59)! Cover growing beds (or raise them with spoil) and harvest what is ripe"
+## Spring 10, 12:00 -- when that frost is announced -- in farm hours from the opening 06:00.
+const SPRING_10_NOON_H: int = 24 * 9 + 6
 const BED_LOAM: int = 0
 const BED_CLAY: int = 1
 const BED_CARROTS: int = 2
 const BED_RADISH: int = 3
+const BED_CLAY_2: int = 4
 const BED_WHEAT: int = 5
 
 var _nodes: Array[Node] = []
@@ -114,6 +119,17 @@ func _run(cast: DemoCastScript, crew: CrewScript, seconds: float, done: Callable
 		if done.call():
 			return true
 	return false
+
+
+func _sow(sim: SimScript, bed: int, item: int) -> void:
+	"""Choose and sow `item` in `bed` now (both halves of the sowing)."""
+	sim.choose(bed, item)
+	assert_true(sim.sow_start(bed).ok and sim.sow_finish(bed).ok, "sown in bed %d" % bed)
+
+
+func _set_moisture(sim: SimScript, bed: int, value: int) -> void:
+	"""Put a bed's moisture at `value` (a fixture)."""
+	sim.farming().apply_moisture_delta(sim.slot_of(bed), value - sim.moisture_of(bed))
 
 
 func _brain(cast: DemoCastScript, i: int) -> BrainScript:
@@ -177,6 +193,39 @@ func test_watering_fetches_water_at_the_well_first() -> void:
 	var tended := func() -> bool: return sim.is_tended_today(BED_RADISH)
 	assert_true(_run(cast, crew, 90.0, tended), "watered")
 	assert_equal(sim.moisture_of(BED_RADISH), 1900, "900 + 1000")
+
+
+func test_a_resident_drains_a_waterlogged_bed() -> void:
+	"""The radish waterlogged (9800): the worker walks there and digs 6 WU; the bed drops to its band's
+	top (7000), is ditched, and the job says so."""
+	var cast := _cast()
+	var sim := SimScript.new()
+	var crew := _crew(cast, sim, _pantry(cast))
+	_set_moisture(sim, BED_RADISH, 9800)
+	assert_equal(crew.order(JobsScript.KIND_DRAIN, BED_RADISH, PackedInt32Array([1]), JobsScript.ORIGIN_PLAYER),
+		"Drain: Placeholder 1 is on it", "who took it")
+	assert_equal(crew.task_text(1), "Draining the radish bed", "what the panel says")
+	var ditched := func() -> bool: return sim.is_ditched(BED_RADISH)
+	assert_true(_run(cast, crew, 90.0, ditched), "ditched")
+	assert_equal(sim.moisture_of(BED_RADISH), 7000, "down to the band's top")
+	assert_equal(crew.jobs.live_count(), 0, "the job closed")
+	assert_true(_notices.has("Drain done: the radish bed"), "said so")
+	assert_equal(crew.order(JobsScript.KIND_DRAIN, BED_RADISH, PackedInt32Array([1]), JobsScript.ORIGIN_PLAYER),
+		"Can't drain: not too wet", "a drained bed refuses")
+
+
+func test_a_drain_ends_if_the_bed_dried_on_the_way() -> void:
+	"""The bed was wet when ordered and good when the worker got there: the job ends saying why."""
+	var cast := _cast()
+	var sim := SimScript.new()
+	var crew := _crew(cast, sim, _pantry(cast))
+	_set_moisture(sim, BED_RADISH, 7500)
+	crew.order(JobsScript.KIND_DRAIN, BED_RADISH, PackedInt32Array([1]), JobsScript.ORIGIN_PLAYER)
+	_set_moisture(sim, BED_RADISH, 6000)
+	var ended := func() -> bool: return crew.jobs.live_count() == 0
+	assert_true(_run(cast, crew, 90.0, ended), "ended")
+	assert_false(sim.is_ditched(BED_RADISH), "no ditch dug")
+	assert_true(_notices.has("Can't drain: not too wet"), "said why")
 
 
 func test_a_worker_called_away_keeps_the_work_done_for_the_next() -> void:
@@ -440,9 +489,11 @@ func test_the_panel_words_come_from_the_rules() -> void:
 # --- alerts, recipes, HUD --------------------------------------------------------------------------
 
 func test_alerts_warn_once_with_the_response() -> void:
-	"""Frost is announced from 12:00 the day before (spring 3), once; a ripening is a harvest call;
-	a waterlogged growing bed says drain or raise."""
+	"""Frost is announced from 12:00 the day before (spring 10), once; a ripening is a harvest call;
+	the answers to a bed out of its band follow."""
 	var sim := SimScript.new()
+	_sow(sim, BED_CLAY, WHEAT)
+	_sow(sim, BED_CLAY_2, WHEAT)
 	var alerts := AlertsScript.new()
 	var lines := PackedStringArray()
 	sim.advance_usec(24 * HOUR_USEC)
@@ -451,22 +502,32 @@ func test_alerts_warn_once_with_the_response() -> void:
 	alerts.collect_into(sim, events, PackedInt32Array(), lines)
 	assert_true(lines.has("Bed 3 (carrot) is ripe — harvest it within 2 days"), "ripe")
 	lines.clear()
-	sim.advance_usec(26 * HOUR_USEC)
+	sim.advance_usec((SPRING_10_NOON_H - 24 - 1) * HOUR_USEC)
 	alerts.collect_into(sim, PackedInt32Array(), PackedInt32Array(), lines)
-	assert_false(lines.has(FROST_SPRING_4), "not at 08:00")
-	sim.advance_usec(4 * HOUR_USEC)
+	assert_false(lines.has(FROST_SPRING_11), "not at 11:00")
+	sim.advance_usec(HOUR_USEC)
 	alerts.collect_into(sim, PackedInt32Array(), PackedInt32Array(), lines)
-	assert_true(lines.has(FROST_SPRING_4), "frost")
+	assert_true(lines.has(FROST_SPRING_11), "frost")
 	lines.clear()
 	alerts.collect_into(sim, PackedInt32Array(), PackedInt32Array(), lines)
-	assert_false(lines.has(FROST_SPRING_4), "once")
-	sim.farming().apply_moisture_delta(sim.slot_of(BED_RADISH), 10000)
+	assert_false(lines.has(FROST_SPRING_11), "once")
+
+
+func test_alerts_name_the_answer_to_a_bed_out_of_its_band() -> void:
+	"""A waterlogged growing bed: Drain it; a parched one: water it; a worn-out empty one: compost or
+	rest it."""
+	var sim := SimScript.new()
+	_sow(sim, BED_CLAY, WHEAT)
+	_sow(sim, BED_CLAY_2, WHEAT)
+	var alerts := AlertsScript.new()
+	var lines := PackedStringArray()
+	_set_moisture(sim, BED_CLAY, 10000)
 	alerts.collect_into(sim, PackedInt32Array(), PackedInt32Array(), lines)
-	assert_true(lines.has("Bed 4 (radish) is waterlogged and has stopped growing — drain it with a tunnel or raise it"), "wet")
-	sim.farming().apply_moisture_delta(sim.slot_of(BED_WHEAT), -10000)
+	assert_true(lines.has("Bed 2 (wheat) is waterlogged and has stopped growing — Drain it"), "wet: names Drain")
+	_set_moisture(sim, BED_CLAY_2, 0)
 	sim.farming()._set_tile_fertility(sim.farming().tile_of(sim.slot_of(BED_LOAM)).value, 3900)
 	alerts.collect_into(sim, PackedInt32Array(), PackedInt32Array(), lines)
-	assert_true(lines.has("Bed 6 (wheat) is too dry to grow — water it"), "dry")
+	assert_true(lines.has("Bed 5 (wheat) is too dry to grow — water it"), "dry")
 	assert_true(lines.has("Bed 1 is worn out (fertility 39%) — compost it or rest it fallow"), "worn out")
 
 
@@ -545,7 +606,7 @@ func test_the_food_command_opens_the_pantry() -> void:
 	assert_false(food.disabled, "enabled")
 	food.pressed.emit()
 	assert_equal(opened[0], 1, "opened the pantry")
-	assert_equal(food.tooltip_text, HudScript.FOOD_TOOLTIP, "says what it is")
+	assert_equal(food.tooltip_text, "Food (K) — " + HudScript.FOOD_TOOLTIP, "says what it is, and its key")
 
 
 # --- the visuals and panels -----------------------------------------------------------------------
@@ -572,9 +633,64 @@ func test_a_bed_visual_draws_each_stage() -> void:
 	visual.show_state(SimScript.STAGE_SOWN, WHEAT, 0, SimScript.BAND_GOOD, 0, "Wheat", "sowing")
 	assert_equal(visual.plant_count(), 0, "sown: furrows only")
 	visual.set_selected(true)
-	visual.show_works(true, true, true)
-	assert_true(visual.ring.visible and visual.straw.visible and visual.raised_base.visible and visual.bank.visible, "all shown")
+	visual.show_works(true, true, true, true)
+	assert_true(visual.ring.visible and visual.straw.visible and visual.raised_frame.visible and visual.bank.visible
+		and visual.ditch.visible, "all shown")
 	assert_equal(visual.position, Vector3(-12.6, 0.0, 9.2), "at its bed")
+
+
+func test_wet_soil_darkens_and_a_waterlogged_bed_shows_puddles() -> void:
+	"""Good soil: no film, no puddles. Wet: a dark, glossy film, no puddles. Waterlogged: a darker,
+	glossier film and the puddles. Neither is blue (blue under red and green would be a tint)."""
+	var visual := BedVisualScript.new()
+	_nodes.append(visual)
+	visual.build(BED_RADISH, AssetsScript.new())
+	visual.show_state(SimScript.STAGE_GROWING, RADISH, 500, SimScript.BAND_GOOD, 0, "Radish", "50%")
+	assert_false(visual.showing_puddles(), "good: no puddles")
+	assert_equal(visual.sheen_colour().a, 0.0, "good: no film")
+	visual.show_state(SimScript.STAGE_GROWING, RADISH, 500, SimScript.BAND_WET, 0, "Radish", "50%")
+	assert_false(visual.showing_puddles(), "wet: no puddles")
+	var wet: Color = visual.sheen_colour()
+	visual.show_state(SimScript.STAGE_GROWING, RADISH, 500, SimScript.BAND_WATERLOGGED, 0, "Radish", "50%")
+	assert_true(visual.showing_puddles(), "waterlogged: puddles")
+	var logged: Color = visual.sheen_colour()
+	assert_true(logged.a > wet.a and wet.a > 0.0, "waterlogged darkens more than wet")
+	for film: Color in [wet, logged]:
+		assert_true(film.get_luminance() < 0.1, "a dark film, not a pale one")
+		assert_true(film.b <= film.r, "not blue")
+	assert_true(Look.sheen_roughness(SimScript.BAND_WATERLOGGED) < Look.sheen_roughness(SimScript.BAND_WET),
+		"glossier the wetter")
+	assert_true(Look.PUDDLE_COLOR.get_luminance() < 0.3, "the puddles are dark water, not bright")
+	var tint: Color = Look.BAND_OVERLAY[SimScript.BAND_WATERLOGGED]
+	assert_true(tint.a < 0.5 and tint.b - tint.r < 0.3, "the overlay's waterlogged tint is calm")
+
+
+func test_the_ground_works_are_built_once_and_shown_when_done() -> void:
+	"""Raised: 2 planks a side and 4 posts round the lifted soil (no slab), the posts standing proud of
+	the planks; banked: 4 rounded berms; ditched: 4 trench strips and 4 lips. None shown until done."""
+	var visual := BedVisualScript.new()
+	_nodes.append(visual)
+	visual.build(BED_LOAM, AssetsScript.new())
+	visual.show_works(false, false, false, false)
+	assert_false(visual.raised_frame.visible or visual.bank.visible or visual.ditch.visible, "nothing yet")
+	assert_equal(visual.raised_frame.get_child_count(), 12, "8 planks and 4 posts")
+	var tallest_board: float = 0.0
+	var tones := {}
+	for k: int in 8:
+		var board := visual.raised_frame.get_child(k) as MeshInstance3D
+		var box := board.mesh as BoxMesh
+		tallest_board = maxf(tallest_board, board.position.y + box.size.y * 0.5)
+		tones[box.material] = true
+	var post := visual.raised_frame.get_child(8) as MeshInstance3D
+	assert_true(post.get_aabb().size.y > 0.0 and post.position.y * 2.0 > tallest_board, "posts stand proud")
+	assert_true(tones.size() >= 2, "the planks vary in tone")
+	assert_true(tallest_board > BedVisualScript.RAISE_LIFT_M, "the planks cover the lift")
+	assert_true(visual.bank.get_child(0) is MeshInstance3D and (visual.bank.get_child(0) as MeshInstance3D).mesh is CapsuleMesh,
+		"a rounded berm")
+	assert_equal(visual.ditch.get_child_count(), 8, "four trench strips, four lips")
+	visual.show_works(false, true, false, true)
+	assert_true(visual.raised_frame.visible and visual.ditch.visible, "raised and ditched")
+	assert_false(visual.bank.visible or visual.straw.visible, "not banked or covered")
 
 
 func test_the_view_hides_the_world_beds_and_redraws_on_change() -> void:
@@ -600,6 +716,26 @@ func test_the_view_hides_the_world_beds_and_redraws_on_change() -> void:
 	assert_true(view.beds[BED_LOAM].overlay.visible, "overlay shown")
 	assert_equal(view.cycle_overlay(), ViewScript.OVERLAY_RIPENESS, "ripeness")
 	assert_equal(view.cycle_overlay(), ViewScript.OVERLAY_OFF, "off")
+	_set_moisture(sim, BED_LOAM, 9000)
+	assert_true(sim.drain_bed(BED_LOAM).ok, "the loam bed drained")
+	view.refresh()
+	assert_true(view.beds[BED_LOAM].ditch.visible, "its ditch drawn")
+	assert_false(view.beds[BED_CLAY].ditch.visible, "not the others'")
+
+
+func test_the_view_s_key_covers_the_ditch_alone() -> void:
+	"""A bed redraws when only its ditch changes (the view's state key carries it, not just the band a
+	drain also moves): the ditch flag set with the moisture untouched still draws the ditch."""
+	var sim := SimScript.new()
+	var view := ViewScript.new()
+	_nodes.append(view)
+	view.build({}, sim)
+	var band: int = sim.band_of(BED_CLAY)
+	sim._ditched[BED_CLAY] = 1
+	sim.revision += 1
+	view.refresh()
+	assert_equal(sim.band_of(BED_CLAY), band, "the band did not move")
+	assert_true(view.beds[BED_CLAY].ditch.visible, "the ditch is drawn")
 
 
 func test_heaps_are_drawn_at_what_is_left_after_spoil_is_taken() -> void:
@@ -640,7 +776,7 @@ func test_the_bed_panel_offers_only_what_the_bed_can_take() -> void:
 	var crew := _crew(cast, sim, _pantry(cast))
 	var panel := BedPanelScript.new()
 	_nodes.append(panel)
-	panel.configure(sim, crew, NoticesScript.new())
+	panel.configure(sim, crew)
 	panel.show_bed(BED_LOAM)
 	assert_false(panel.verb_button(JobsScript.KIND_SOW).disabled, "plant")
 	assert_true(panel.verb_button(JobsScript.KIND_WATER).disabled, "water")
@@ -663,22 +799,150 @@ func test_the_bed_panel_offers_only_what_the_bed_can_take() -> void:
 	assert_equal(picked, [WHEAT], "wheat picked")
 
 
-func test_the_bed_panel_shows_the_farm_s_news_from_the_feed() -> void:
-	"""Under the date, the farm's latest notices from the demo's one feed, newest first; another
-	source's are not the farm's."""
+func test_the_bed_panel_shows_only_its_bed_not_the_feed() -> void:
+	"""The farm's notices are the news strip's: posted to the feed, none of them shows in the bed panel,
+	with a bed or without; without one it shows the title, the date and the hint only."""
 	var cast := _cast()
 	var sim := SimScript.new()
 	var panel := BedPanelScript.new()
 	_nodes.append(panel)
 	var notices := NoticesScript.new()
-	panel.configure(sim, _crew(cast, sim, _pantry(cast)), notices)
+	panel.configure(sim, _crew(cast, sim, _pantry(cast)))
 	notices.post(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_NOTE, "Bed 3 (carrot) is ripe")
 	notices.post(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_WARNING, "Frost tonight!")
-	notices.post(NoticesScript.SOURCE_TUNNELS, NoticesScript.LEVEL_NOTE, "Tunnel 1 widened.")
 	panel.refresh()
-	assert_equal(panel.news_text(0), "• — · Warning: Frost tonight!", "the newest farm notice first")
-	assert_equal(panel.news_text(1), "• — · Bed 3 (carrot) is ripe", "then the older")
-	assert_equal(panel.news_text(2), "", "the tunnels' news is not the farm's")
+	assert_equal(panel.shown_texts(), PackedStringArray(["Farm", Text.clock_line(sim), BedPanelScript.HINT]),
+		"no bed: the title, the date and the hint")
+	panel.show_bed(BED_CARROTS)
+	var shown: String = "\n".join(panel.shown_texts())
+	assert_false(shown.contains("Frost tonight!") or shown.contains("is ripe"), "no feed lines with a bed")
+	assert_false(shown.contains(Text.clock_line(sim)), "the date is the HUD's once a bed is open")
+	assert_true(shown.begins_with("Bed 3 · Carrot\nGrowing 80%"), "the title, then (nothing pressing) the stage")
+
+
+func _panel_on(sim: SimScript) -> BedPanelScript:
+	"""A bed panel over this farm (placeholder cast and crew)."""
+	var cast := _cast()
+	var panel := BedPanelScript.new()
+	_nodes.append(panel)
+	panel.configure(sim, _crew(cast, sim, _pantry(cast)))
+	return panel
+
+
+func test_the_needs_line_names_each_bed_s_most_pressing_verb() -> void:
+	"""Nothing pressing (or merely low): hidden. Waterlogged: Drain, in clay; parched: Water; blighted:
+	Clear. The stage line says why growth stopped."""
+	var sim := SimScript.new()
+	var panel := _panel_on(sim)
+	panel.show_bed(BED_RADISH)
+	assert_equal(panel.needs_text(), "", "a good growing bed: nothing")
+	_set_moisture(sim, BED_RADISH, 9800)
+	panel.refresh()
+	assert_equal(panel.needs_text(), "Needs: Drain — waterlogged, not growing", "waterlogged")
+	assert_equal(panel.needs_colour(), Palette.CLAY, "a warning")
+	assert_equal(panel.line_text(0), "Growing 30% — stalled, waterlogged", "the stage says why it stopped")
+	_set_moisture(sim, BED_RADISH, 100)
+	panel.refresh()
+	assert_equal(panel.needs_text(), "Needs: Water — too dry to grow", "parched")
+	assert_equal(panel.line_text(0), "Growing 30% — stalled, too dry", "stalled dry")
+	_set_moisture(sim, BED_RADISH, 1000)
+	panel.refresh()
+	assert_equal(panel.needs_text(), "", "merely low: not pressing")
+	sim.infect_for_test(BED_RADISH)
+	panel.refresh()
+	assert_equal(panel.needs_text(), "Needs: Clear — blighted, spreads at midnight", "blighted")
+
+
+func test_the_needs_line_times_a_ripe_bed() -> void:
+	"""Ripe: Harvest with the time before it spoils (ink, not a warning), then before it withers
+	(clay); withered: Clear."""
+	var sim := SimScript.new()
+	var panel := _panel_on(sim)
+	sim.advance_usec(24 * HOUR_USEC)
+	panel.show_bed(BED_CARROTS)
+	assert_equal(panel.needs_text(), "Needs: Harvest — ripe, 2 days before it spoils", "just ripe")
+	assert_equal(panel.needs_colour(), Palette.INK, "in its grace: not a warning")
+	sim.advance_usec(50 * HOUR_USEC)
+	panel.refresh()
+	assert_equal(panel.needs_text(), "Needs: Harvest — spoiling, withers in 70 h", "past the grace")
+	assert_equal(panel.needs_colour(), Palette.CLAY, "a warning")
+	sim.farming().apply_health_loss(sim.slot_of(BED_WHEAT), 10000)
+	panel.show_bed(BED_WHEAT)
+	assert_equal(panel.needs_text(), "Needs: Clear — withered, gives compost", "withered")
+
+
+func test_the_needs_line_calls_for_straw_when_a_frost_is_announced() -> void:
+	"""Wheat sown on spring 1: at 11:00 of spring 10 nothing; at 12:00 Cover; covered, or raised,
+	nothing; the panel without a bed shows no Needs line at all."""
+	var sim := SimScript.new()
+	_sow(sim, BED_CLAY, WHEAT)
+	_sow(sim, BED_CLAY_2, WHEAT)
+	var panel := _panel_on(sim)
+	sim.advance_usec((SPRING_10_NOON_H - 1) * HOUR_USEC)
+	panel.show_bed(BED_CLAY)
+	assert_equal(panel.needs_text(), "", "not announced yet")
+	sim.advance_usec(HOUR_USEC)
+	panel.refresh()
+	assert_equal(panel.needs_text(), "Needs: Cover — frost tonight", "frost tonight")
+	sim.cover(BED_CLAY)
+	panel.refresh()
+	assert_equal(panel.needs_text(), "", "covered")
+	sim.raise_bed(BED_CLAY_2)
+	panel.show_bed(BED_CLAY_2)
+	assert_equal(panel.needs_text(), "", "raised: frost-free")
+	panel.show_nothing()
+	assert_equal(panel.needs_text(), "", "no bed, no needs")
+
+
+func test_the_bed_panel_s_drain_button() -> void:
+	"""Disabled on a good bed with the reason in words; enabled on a waterlogged one, and pressing it
+	asks for the Drain job."""
+	var sim := SimScript.new()
+	var panel := _panel_on(sim)
+	panel.show_bed(BED_RADISH)
+	var drain: Button = panel.verb_button(JobsScript.KIND_DRAIN)
+	assert_equal(drain.text, "Drain", "labelled")
+	assert_true(drain.disabled, "a good bed")
+	assert_equal(drain.tooltip_text, "not too wet", "why")
+	_set_moisture(sim, BED_RADISH, 9800)
+	panel.refresh()
+	assert_false(drain.disabled, "waterlogged: drain it")
+	var asked: Array = []
+	panel.verb_requested.connect(func(kind: int) -> void: asked.append(kind))
+	drain.pressed.emit()
+	assert_equal(asked, [JobsScript.KIND_DRAIN], "the Drain job asked for")
+
+
+func test_the_bed_panel_s_close_clears_the_farm_s_bed() -> void:
+	"""The × emits close_requested; the farm answers it by clearing the selected bed."""
+	var farm := _farm()
+	farm.select_bed(BED_RADISH)
+	var closed: Array = [0]
+	farm.bed_panel.close_requested.connect(func() -> void: closed[0] += 1)
+	var close: Button = null
+	for node: Node in farm.bed_panel.find_children("*", "Button", true, false):
+		if (node as Button).text == "×":
+			close = node as Button
+	close.pressed.emit()
+	assert_equal(closed[0], 1, "close_requested")
+	assert_equal(farm.selected_bed, DemoFarmScript.NO_BED, "no bed selected")
+	assert_equal(farm.bed_panel.bed, -1, "the panel shows no bed")
+
+
+func test_the_words_for_a_ditch_and_a_span_of_hours() -> void:
+	"""A ditched bed's ground says so; hours read as whole days when whole."""
+	var sim := SimScript.new()
+	_set_moisture(sim, BED_RADISH, 9800)
+	sim.drain_bed(BED_RADISH)
+	assert_equal(Text.works_line(sim, BED_RADISH), "Ground: ditched", "ditched")
+	sim.raise_bed(BED_RADISH)
+	assert_equal(Text.works_line(sim, BED_RADISH), "Ground: ditched, raised", "and raised")
+	assert_equal(Text.span_text(48), "2 days", "two days")
+	assert_equal(Text.span_text(24), "1 day", "one day")
+	assert_equal(Text.span_text(47), "47 h", "hours")
+	assert_equal(Text.span_text(70), "70 h", "not whole days")
+	assert_equal(Text._stall_reason(SimScript.BAND_GOOD), "too cold", "moisture fine: the cold stopped it")
+	assert_equal(Text.needs_line(sim, BED_LOAM, _read), "", "an empty bed needs nothing")
 
 
 func test_the_pantry_panel_breaks_the_food_out_by_item() -> void:
@@ -740,14 +1004,40 @@ func test_the_most_pressing_work_on_a_bed() -> void:
 
 
 func test_before_a_frost_night_cover_comes_first_unless_the_bed_is_dry() -> void:
-	"""Spring 3 12:00, frost tonight: the growing wheat gets covered; a dry growing radish is watered."""
+	"""Wheat sown on spring 1: at 11:00 of spring 10 nothing is announced and it is watered; from 12:00
+	(frost tonight) it is covered; a parched one is watered first; a raised one needs no straw."""
 	var farm := _farm()
-	farm.sim.advance_usec(54 * HOUR_USEC)
-	farm.sim.farming().apply_moisture_delta(farm.sim.slot_of(BED_RADISH), -10000)
-	assert_true(farm.pressing_kind_into(BED_WHEAT, _read), "wheat")
+	_sow(farm.sim, BED_CLAY, WHEAT)
+	_sow(farm.sim, BED_CLAY_2, WHEAT)
+	farm.sim.advance_usec((SPRING_10_NOON_H - 1) * HOUR_USEC)
+	assert_true(farm.pressing_kind_into(BED_CLAY, _read), "11:00")
+	assert_equal(_read.value, JobsScript.KIND_WATER, "not announced yet: tend it")
+	farm.sim.advance_usec(HOUR_USEC)
+	_set_moisture(farm.sim, BED_CLAY_2, 0)
+	assert_true(farm.pressing_kind_into(BED_CLAY, _read), "wheat")
 	assert_equal(_read.value, JobsScript.KIND_COVER, "cover")
-	assert_true(farm.pressing_kind_into(BED_RADISH, _read), "radish")
+	assert_true(farm.pressing_kind_into(BED_CLAY_2, _read), "parched wheat")
 	assert_equal(_read.value, JobsScript.KIND_WATER, "water first")
+	farm.sim.raise_bed(BED_CLAY)
+	assert_true(farm.pressing_kind_into(BED_CLAY, _read), "raised wheat")
+	assert_equal(_read.value, JobsScript.KIND_WATER, "a raised bed is frost-free: no straw")
+
+
+func test_a_waterlogged_bed_s_most_pressing_work_is_drain() -> void:
+	"""The growing radish waterlogged: Drain (before watering); a waterlogged ripe bed is harvested
+	first; a blighted waterlogged one cleared first."""
+	var farm := _farm()
+	_set_moisture(farm.sim, BED_RADISH, 9800)
+	assert_true(farm.pressing_kind_into(BED_RADISH, _read), "radish")
+	assert_equal(_read.value, JobsScript.KIND_DRAIN, "drain it")
+	farm.sim.advance_usec(24 * HOUR_USEC)
+	_set_moisture(farm.sim, BED_CARROTS, 10000)
+	assert_true(farm.pressing_kind_into(BED_CARROTS, _read), "ripe carrots")
+	assert_equal(_read.value, JobsScript.KIND_HARVEST, "harvest first")
+	farm.sim.infect_for_test(BED_RADISH)
+	_set_moisture(farm.sim, BED_RADISH, 9800)
+	assert_true(farm.pressing_kind_into(BED_RADISH, _read), "blighted radish")
+	assert_equal(_read.value, JobsScript.KIND_CLEAR, "clear the blight first")
 
 
 func test_a_farm_hour_ages_the_pantry_and_reads_the_tunnels() -> void:
@@ -810,3 +1100,88 @@ func test_planting_from_the_picker_orders_the_sowing() -> void:
 	assert_equal(farm.plant(WHEAT), "Sow queued: the field crew will see to it", "queued")
 	assert_equal(farm.sim.chosen_of(BED_LOAM), WHEAT, "chosen")
 	assert_true(farm.crew.jobs.job_on_bed_into(JobsScript.KIND_SOW, BED_LOAM, _read), "on the board")
+
+
+func test_the_pantry_close_button_closes_it_and_is_drawn_above_the_hud() -> void:
+	"""Playtest 2026-09-29: at 1280x720 the HUD's time cluster lay over the pantry's "×" and ate the
+	click. The pantry is drawn above the HUD's layer now, and its "×", pressed, closes it."""
+	var farm := _farm()
+	farm.toggle_pantry()
+	assert_true(farm.pantry_panel.visible, "open")
+	var close: Button = farm.pantry_panel.close_button()
+	assert_equal(close.text, "×", "the header's ×")
+	close.pressed.emit()
+	assert_false(farm.pantry_panel.visible, "the × closed it")
+	var hud: CanvasLayer = (load("res://scenes/ui/hud.tscn") as PackedScene).instantiate() as CanvasLayer
+	var hud_layer: int = hud.layer
+	hud.free()
+	assert_true(farm.pantry_panel.layer > hud_layer, "drawn (and clicked) above the HUD's layer %d" % hud_layer)
+
+
+func test_a_farm_job_called_away_is_taken_back_when_the_other_work_is_done() -> void:
+	"""Decision 0205 (resident_brain.gd RESUMING): a worker ordered away mid-job leaves it on the board
+	and keeps it; its next work done gives the same job back to it, not to the crew. A job someone else
+	took meanwhile, or one closed, is not taken back."""
+	var cast := _cast()
+	var sim := SimScript.new()
+	var crew := _crew(cast, sim, _pantry(cast))
+	_set_moisture(sim, BED_RADISH, 9800)
+	crew.order(JobsScript.KIND_DRAIN, BED_RADISH, PackedInt32Array([1]), JobsScript.ORIGIN_PLAYER)
+	var walking := func() -> bool: return _brain(cast, 1).order == BrainScript.ORDER_MOVE
+	assert_true(_run(cast, crew, 5.0, walking), "on its way")
+	_brain(cast, 1).order_move(Vector2(-6.0, -6.0))
+	_run(cast, crew, 0.1, func() -> bool: return false)
+	assert_true(_notices.has("Placeholder 1 left the drain job"), "left it")
+	assert_equal(_brain(cast, 1).unfinished_labels(), PackedStringArray(["Drain, bed %d" % (BED_RADISH + 1)]), "kept")
+	_brain(cast, 1).work_done()
+	assert_equal(crew.task_text(1), "Draining the radish bed", "back on the drain")
+	var ditched := func() -> bool: return sim.is_ditched(BED_RADISH)
+	assert_true(_run(cast, crew, 90.0, ditched), "and it finished it")
+	_set_moisture(sim, BED_RADISH, 1500)
+	assert_equal(crew.order(JobsScript.KIND_WATER, BED_RADISH, PackedInt32Array([2]), JobsScript.ORIGIN_PLAYER),
+		"Water: Placeholder 2 is on it", "a second job")
+	_run(cast, crew, 1.0, func() -> bool: return false)
+	_brain(cast, 2).order_move(Vector2(6.0, -6.0))
+	_run(cast, crew, 0.1, func() -> bool: return false)
+	crew.cancel_bed(BED_RADISH)
+	_brain(cast, 2).work_done()
+	assert_equal(crew.task_text(2), "", "a cancelled job is not taken back")
+	assert_equal(_brain(cast, 2).order, BrainScript.ORDER_NONE, "so it goes back to its routine")
+
+
+func test_a_farm_job_given_to_another_is_not_taken_back_and_r_forgets() -> void:
+	"""Decision 0205 with review H2: a job someone else took meanwhile is theirs; and a worker the player
+	releases (R) mid-job keeps nothing -- the crew notices a frame later and must not keep it for it."""
+	var cast := _cast()
+	var sim := SimScript.new()
+	var crew := _crew(cast, sim, _pantry(cast))
+	_set_moisture(sim, BED_RADISH, 9800)
+	crew.order(JobsScript.KIND_DRAIN, BED_RADISH, PackedInt32Array([1]), JobsScript.ORIGIN_PLAYER)
+	_run(cast, crew, 1.0, func() -> bool: return false)
+	_brain(cast, 1).order_move(Vector2(-6.0, -6.0))
+	_run(cast, crew, 0.1, func() -> bool: return false)
+	crew.order(JobsScript.KIND_DRAIN, BED_RADISH, PackedInt32Array([2]), JobsScript.ORIGIN_PLAYER)
+	assert_equal(crew.task_text(2), "Draining the radish bed", "given to another")
+	_brain(cast, 1).work_done()
+	assert_equal(crew.task_text(1), "", "not taken back from it")
+	assert_equal(crew.task_text(2), "Draining the radish bed", "it keeps it")
+	assert_true(_run(cast, crew, 5.0, func() -> bool: return _brain(cast, 2).order == BrainScript.ORDER_MOVE), "walking to it")
+	_brain(cast, 2).release()
+	_run(cast, crew, 0.1, func() -> bool: return false)
+	assert_equal(crew.task_text(2), "", "the crew saw it go")
+	assert_equal(_brain(cast, 2).unfinished_labels().size(), 0, "released: nothing kept")
+
+
+func test_a_farm_job_done_takes_up_the_job_it_interrupted() -> void:
+	"""A crew ending its job calls work_done: the worker goes back to the job the farm took it from."""
+	var cast := _cast()
+	var sim := SimScript.new()
+	var crew := _crew(cast, sim, _pantry(cast))
+	var resumed: Array[int] = [0]
+	_brain(cast, 1).remember_unfinished(UnfinishedScript.new(func(_b: RefCounted) -> bool:
+		resumed[0] += 1
+		return true, "lanterns"))
+	_set_moisture(sim, BED_RADISH, 9800)
+	crew.order(JobsScript.KIND_DRAIN, BED_RADISH, PackedInt32Array([1]), JobsScript.ORIGIN_PLAYER)
+	assert_true(_run(cast, crew, 90.0, func() -> bool: return sim.is_ditched(BED_RADISH)), "drained")
+	assert_equal(resumed[0], 1, "then back to the lanterns")

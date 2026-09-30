@@ -239,7 +239,8 @@ func _stump_size(t: int) -> float:
 
 
 func _stump_lift(t: int, key: StringName) -> float:
-	"""How high the stump model stands: its face just above the cut on a split tree, else the ground."""
+	"""How high the stump model stands: its face just above the cut on a split tree (the cut above the
+	ground, after the tree's sink), else the ground."""
 	if _lower_nodes[t] == null:
 		return 0.0
 	var height: float = Sizes.target_height_m(key) * _stump_size(t)
@@ -276,6 +277,33 @@ func _make_trunk(t: int, key: StringName) -> void:
 	_trunk_nodes[t] = pivot
 
 
+func prewarm() -> int:
+	"""Load now what the woods would first load mid-game (demo_prewarm.gd, decision 0205): the stump and
+	sapling models (made once and let go; the world keeps their scenes) and each tree kind's split for
+	its fall (forest_split.gd keeps one per kind). Returns how many were loaded."""
+	var loaded: int = 0
+	for key: StringName in [FRESH_STUMP_KEY, MOSSY_STUMP_KEY, StandScript.SAPLING_KEY]:
+		var node: Node3D = _make.call(key, Vector2.ZERO, 0.0, 1.0) as Node3D if _make.is_valid() else null
+		if node != null:
+			node.free()
+			loaded += 1
+	for t: int in _stand.count():
+		loaded += _prewarm_split(t)
+	return loaded
+
+
+func _prewarm_split(t: int) -> int:
+	"""Split tree `t`'s kind as its fall would, if no tree of that kind has been split yet (1: split)."""
+	var node: Node3D = _tree_nodes[t]
+	if node == null:
+		return 0
+	var key: StringName = StandScript.LOOK_KEYS[_stand.look[t]]
+	if _split.has_parts(key):
+		return 0
+	var scale_y: float = maxf(node.transform.basis.get_scale().y, 0.0001)
+	return 1 if _split.parts_into(key, node, Roots.model_cut_m(_stand.look[t], _stand.size[t]) / scale_y, _parts) else 0
+
+
 # --- falling -----------------------------------------------------------------------------------
 
 func _start_fall(t: int) -> void:
@@ -287,7 +315,7 @@ func _start_fall(t: int) -> void:
 	_rest[t] = node.transform
 	var key: StringName = StandScript.LOOK_KEYS[_stand.look[t]]
 	var scale_y: float = maxf(node.transform.basis.get_scale().y, 0.0001)
-	if _split.parts_into(key, node, Roots.cut_m(_stand.look[t], _stand.size[t]) / scale_y, _parts):
+	if _split.parts_into(key, node, Roots.model_cut_m(_stand.look[t], _stand.size[t]) / scale_y, _parts):
 		_lower_nodes[t] = _part_node(_parts[0], node.transform * (_parts[2] as Transform3D))
 		_upper_nodes[t] = _part_node(_parts[1], node.transform * (_parts[2] as Transform3D))
 		_rest[t] = _upper_nodes[t].transform
@@ -335,7 +363,8 @@ func _pose_fall(t: int) -> void:
 
 
 func _cut_height(t: int) -> float:
-	"""Where the tree turns: its cut when it was split, its foot when it falls whole."""
+	"""Where the tree turns, above the ground: its cut when it was split (the sunk tree's, forest_roots.gd),
+	its foot when it falls whole (a placeholder, never sunk)."""
 	return Roots.cut_m(_stand.look[t], _stand.size[t]) if _upper_nodes[t] != null else 0.0
 
 

@@ -12,6 +12,7 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const JobsScript := preload("res://demo/tunnel/tunnel_jobs.gd")
 const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
+const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 
 ## A pump stands this far out from the entrance's centre, off the hole.
 const PUMP_STAND_M: float = 1.1
@@ -93,6 +94,25 @@ func cancel(brain: RefCounted) -> void:
 	"""Called away: the job waits, paused with its progress."""
 	if is_valid() and _jobs.worker[slot] == (brain as BrainScript).index:
 		_jobs.pause(slot)
+
+
+func unfinished() -> RefCounted:
+	"""Called away with the job paused and not done: the job to come back to (resident_brain.gd
+	RESUMING) -- this same job, taken back while it still waits for a worker."""
+	if not is_valid() or _jobs.is_done(slot):
+		return null
+	return UnfinishedScript.new(take_back, "%s, tunnel %d" % [JobsScript.NAMES[_kind], slot + 1])
+
+
+func take_back(brain: RefCounted) -> bool:
+	"""Give the paused job back to this resident (its spans, progress and paid inputs kept) and send it,
+	if the job is still this one, not done and nobody is on it."""
+	if not is_valid() or _jobs.is_done(slot) or _jobs.worker[slot] >= 0:
+		return false
+	var worker := brain as BrainScript
+	_jobs.post(slot, _kind, worker.index, 0, 0)
+	worker.order_task((get_script() as GDScript).new(_jobs, _network, slot))
+	return true
 
 
 func label() -> String:

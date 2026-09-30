@@ -175,11 +175,17 @@ func _band_blocks(from: Vector2, to: Vector2) -> bool:
 # --- the rules ----------------------------------------------------------------------------------
 
 func test_who_swims_is_the_demo_table_by_species() -> void:
-	"""Otters 1.10 m/s and dive; the beaver 0.90; mice 0.60, squirrels 0.55, moles 0.50; the badger and
-	anything unlisted do not swim; only otters dive."""
-	var cases: Dictionary = {"Otter": 1100, "beaver": 900, "Mouse": 600, "squirrel": 550, "Mole": 500, "Badger": 0, "dragon": 0}
+	"""Otters 1.90 m/s and dive; the beaver 1.40; mice 0.84, squirrels 0.77, moles 0.70 (decision 0205's
+	pace); the badger and anything unlisted do not swim; only otters dive. Each stroke clip reads right at
+	part A's speeds (1.10, 0.90, 0.60, 0.55, 0.50) and plays at the swim speed over them."""
+	var cases: Dictionary = {"Otter": 1900, "beaver": 1400, "Mouse": 840, "squirrel": 770, "Mole": 700, "Badger": 0, "dragon": 0}
+	var strokes: Dictionary = {"Otter": 1100, "beaver": 900, "Mouse": 600, "squirrel": 550, "Mole": 500, "Badger": 0, "dragon": 0}
 	for species: String in cases:
 		assert_equal(Rules.swim_mm_s_of(species), cases[species], "%s swims" % species)
+		assert_equal(Rules.stroke_mm_s_of(species), strokes[species], "%s strokes" % species)
+	assert_almost_equal(Rules.stroke_rate(1900, 1100), 1900.0 / 1100.0, "an otter strokes faster than part A's")
+	assert_almost_equal(Rules.stroke_rate(550, 1100), 0.5, "half speed, half the stroke")
+	assert_almost_equal(Rules.stroke_rate(700, 0), 1.0, "no stroke speed: the clip as it is")
 	assert_true(Rules.dives_of("otter") and not Rules.dives_of("beaver") and not Rules.dives_of("dragon"), "otters dive")
 	assert_equal(Rules.swim_words("Badger"), "wades only", "the badger wades only")
 	assert_equal(Rules.swim_words("dragon"), "wades only", "unlisted: wades")
@@ -276,7 +282,8 @@ func _state() -> StateScript:
 func test_swim_rows_are_seeded_by_species_full_and_on_land() -> void:
 	"""Capability from the table; full air (1200) and rest (10000); on land; consenting."""
 	var state := _state()
-	assert_equal(state.swim_mm_s, PackedInt32Array([600, 1100, 0]), "speeds")
+	assert_equal(state.swim_mm_s, PackedInt32Array([840, 1900, 0]), "speeds")
+	assert_equal(state.stroke_mm_s, PackedInt32Array([600, 1100, 0]), "the strokes' own speeds")
 	assert_true(state.can_dive(1) and not state.can_dive(0) and not state.can_swim(2), "who dives, who wades")
 	assert_equal(state.air, PackedInt32Array([1200, 1200, 1200]), "full air")
 	assert_equal(state.rest, PackedInt32Array([10000, 10000, 10000]), "full rest")
@@ -813,6 +820,81 @@ func test_with_no_swimmer_free_a_line_is_thrown_from_the_landing() -> void:
 	assert_true(victim.position.distance_to(Vector2(20.8, 29.8)) < 2.0, "at the pond's west landing: %s" % victim.position)
 
 
+func test_the_rescuer_is_the_nearest_by_route_not_by_straight_line() -> void:
+	"""NEAREST BY ROUTE: in the pond 1.8 m off its west landing, a swimmer 16.5 m away in a straight line
+	but east of the stream (its way in is the pond's west bank, across the stream: a 28.7 m route and
+	swim) loses to one 17.5 m away on the west side (a 17.6 m route and swim). The east swimmer's bound
+	(21.5 m) already exceeds that, so only one route is planned."""
+	var rig := _rig()
+	_swimmer(rig, 0, 600)
+	var victim := _brain(rig, 0)
+	var at := Vector2(22.5, 29.8)
+	victim.water_place(at, -0.18, 0.0)
+	victim.water_in()
+	_swimmer(rig, 1, 1100)
+	_place(rig, 1, Vector2(34.0, 18.0))
+	_swimmer(rig, 2, 1100)
+	_place(rig, 2, Vector2(5.0, 29.0))
+	assert_true(Vector2(34.0, 18.0).distance_to(at) < Vector2(5.0, 29.0).distance_to(at), "east is nearer by line")
+	assert_true(rig.play.rescue.nearest_free_into(at, 0, true, _read), "a swimmer is free")
+	assert_equal(_read.value, 2, "the west swimmer, nearer by route")
+	assert_equal(rig.play.rescue.last_plans, 1, "the east one's bound spared its plan")
+	var west_in: PackedVector2Array = rig.play.rescue._entry_for(at, Vector2(5.0, 29.0))
+	assert_almost_equal(rig.play.rescue.last_cost_m, rig.play.rescue.route_cost_m(2, west_in[0]) + 2.0 * west_in[1].distance_to(at),
+		"its way: the route to where it goes in and twice the swim on (water_links.gd SWIM_WEIGHT 2)")
+	var east_in: PackedVector2Array = rig.play.rescue._entry_for(at, Vector2(34.0, 18.0))
+	assert_true(rig.play.rescue.route_cost_m(1, east_in[0]) > Vector2(34.0, 18.0).distance_to(east_in[0]) + 5.0,
+		"the east swimmer's way in is a long way round")
+	rig.play.rescue.start_difficulty(0)
+	assert_true(_brain(rig, 2).task is Tasks.SwimRescue, "and it is the one sent")
+	assert_false(_brain(rig, 1).task is Tasks.SwimRescue, "not the east one")
+
+
+func test_a_rescuer_the_straight_bound_favours_still_loses_on_its_route() -> void:
+	"""The bound only prunes, it never ranks: the east swimmer's bound (21.5 m) is below a west swimmer's
+	whole way (24.9 m, 24.5 m by line from its spot at (0, 20)), so the east one is planned too -- and
+	its 28.7 m route loses. Two plans."""
+	var rig := _rig()
+	_swimmer(rig, 0, 600)
+	var victim := _brain(rig, 0)
+	var at := Vector2(22.5, 29.8)
+	victim.water_place(at, -0.18, 0.0)
+	victim.water_in()
+	_swimmer(rig, 1, 1100)
+	_place(rig, 1, Vector2(34.0, 18.0))
+	_swimmer(rig, 2, 1100)
+	_place(rig, 2, Vector2(0.0, 20.0))
+	assert_true(rig.play.rescue.nearest_free_into(at, 0, true, _read), "a swimmer is free")
+	assert_equal(_read.value, 2, "the west swimmer: 24.9 m against 28.7 m")
+	assert_equal(rig.play.rescue.last_plans, 2, "both planned: the east bound did not beat the west route")
+
+
+func test_a_thrower_is_ranked_by_its_route_to_the_landing_and_the_boxed_in_lose() -> void:
+	"""With no swimmer, throwers are ranked by their route to the landing the line is thrown from (not a
+	swimmer's way in). One standing inside the hall's footprint has the least straight walk there but no
+	route at all: it is planned first, and loses to one farther off who can walk it."""
+	var rig := _rig()
+	for who: int in rig.cast.actor_count():
+		_brain(rig, who).water_hold = who == 0 or who >= 3
+	_place(rig, 1, Vector2(0.0, -13.0))
+	_place(rig, 2, Vector2(-11.0, 0.0))
+	var landing: Vector2 = rig.play.rescue.nearest_landing(RUN_MID)[0]
+	assert_true(Vector2(0.0, -13.0).distance_to(landing) < Vector2(-11.0, 0.0).distance_to(landing), "the boxed-in one is nearer by line")
+	assert_equal(rig.play.rescue.route_cost_m(1, landing), INF, "and has no route")
+	assert_true(rig.play.rescue.nearest_free_into(RUN_MID, 0, false, _read), "a thrower is free")
+	assert_equal(_read.value, 2, "the one who can walk there")
+	assert_equal(rig.play.rescue.last_plans, 2, "both planned")
+	assert_almost_equal(rig.play.rescue.last_cost_m, rig.play.rescue.route_cost_m(2, landing), "its route to the landing")
+	assert_true(rig.play.rescue._entry_for(RUN_MID, Vector2(-11.0, 0.0))[0].distance_to(landing) > 1.0, "a swimmer's way in would differ")
+
+
+func test_route_length_sums_the_legs_from_the_start() -> void:
+	"""cast_nav.gd path_length: from the start through each waypoint (the plan's out excludes its start);
+	an empty route is 0 long."""
+	assert_almost_equal(CastNavScript.path_length(Vector2.ZERO, PackedVector2Array([Vector2(3, 0), Vector2(3, 4)])), 7.0, "3 + 4")
+	assert_almost_equal(CastNavScript.path_length(Vector2(1, 1), PackedVector2Array()), 0.0, "no legs")
+
+
 func test_a_victim_nobody_reaches_washes_ashore_unhurt() -> void:
 	"""Past WASH_ASHORE_S with no one coming, the water carries it to the nearest landing."""
 	var rig := _rig()
@@ -1055,7 +1137,8 @@ func test_an_emergency_takes_a_resident_off_its_crossing_where_it_is() -> void:
 
 func test_a_walker_wades_the_ford_on_its_bed_at_its_wading_pace() -> void:
 	"""Walking across the ford, a resident's feet go down onto the bed (under the 0.18 m surface) and it
-	covers ground at 55% of its walk, the clip slowed to match; it is marked wading, never swimming."""
+	covers ground at 55% of its walk, the clip slowed to match (55% of its walk's own rate over its gait,
+	decision 0205); it is marked wading, never swimming."""
 	var rig := _rig()
 	_place(rig, 1, Vector2(19.5, -0.8))
 	var brain := _brain(rig, 1)
@@ -1064,7 +1147,7 @@ func test_a_walker_wades_the_ford_on_its_bed_at_its_wading_pace() -> void:
 	var done: bool = _run(rig, func() -> bool:
 		if absf(brain.position.x - FORD_MID.x) < 1.0:
 			seen["bed"] = seen["bed"] or brain.ground_y_m < -0.3
-			seen["pace"] = seen["pace"] or (brain.state == BrainScript.State.WALK and absf(brain.clip_speed - 0.55) < 0.01)
+			seen["pace"] = seen["pace"] or (brain.state == BrainScript.State.WALK and absf(brain.clip_speed - 0.55 * brain.gait_rate()) < 0.01)
 			seen["wading"] = seen["wading"] or rig.play.state.mode[1] == StateScript.MODE_WADE
 		seen["swam"] = seen["swam"] or brain.in_water
 		return brain.state == BrainScript.State.HOLD and brain.position.distance_to(Vector2(30.5, -0.8)) < 0.5)
@@ -1593,3 +1676,17 @@ func test_the_site_text_names_the_piers_once() -> void:
 	plank.piers = 0
 	plank.wood_milli = 0
 	assert_true(TextScript.site_text(plank, log, false).contains("Plank footbridge: 6.4 U planks, no piers"), "none")
+
+
+func test_a_ranking_with_nobody_routable_plans_at_most_its_cap() -> void:
+	"""Review M5 (decision 0205): with every thrower boxed in (no route), the ranking plans at most
+	MAX_PLANS routes, not the whole cast, and still names the least bound."""
+	var rig := _rig()
+	_brain(rig, 0).water_hold = true
+	for who: int in range(1, rig.cast.actor_count()):
+		_place(rig, who, Vector2(0.0, -13.0) + Vector2(0.05 * who, 0.0))
+	var landing: Vector2 = rig.play.rescue.nearest_landing(RUN_MID)[0]
+	assert_equal(rig.play.rescue.route_cost_m(1, landing), INF, "boxed in")
+	assert_true(rig.cast.actor_count() - 1 > RescueScript.MAX_PLANS, "more candidates than the cap")
+	assert_true(rig.play.rescue.nearest_free_into(RUN_MID, 0, false, _read), "someone is named")
+	assert_equal(rig.play.rescue.last_plans, RescueScript.MAX_PLANS, "no more plans than the cap")

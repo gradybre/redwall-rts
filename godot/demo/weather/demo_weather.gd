@@ -13,9 +13,15 @@ extends RefCounted
 ## rain that wets the beds, on the same day of the same calendar the HUD shows.
 ##
 ## HOW A DAY READS HOUR BY HOUR (demo values; §5.10 states rain per DAY, not "it is raining now"):
-##   * SHOWERS: a day's rain figure falls as `rain / RAIN_PER_SHOWER_HOUR` whole hours of rain (at most
-##     24), centred on SHOWER_CENTRE_HOUR -- spring's baseline 1200 is 6 hours (12:00-17:59), the Ideal
-##     spell's 1800 is 9, spring heavy rain's 3200 is 16, summer's 300 one, winter's 0 none.
+##   * SPELLS (decision 0205: the playtest found the weather changing too often -- a shower every day,
+##     two changes a game minute). Ordinary rain comes in spells of SPELL_DAYS days: the rain of a
+##     spell's days all falls on its one wet day (the SPELL_WET_DAY-th of each three in the year, spring
+##     2, 5, 8, 11), and the others are dry. A downpour -- a day whose own figure is DOWNPOUR_RAIN or
+##     more, §5.10's heavy rain -- falls on its own day as ever. The beds are not moved: each still
+##     takes its own day's rain at midnight, and over a spell the rain on screen is the rain they took.
+##   * SHOWERS: the day's falling figure (above) comes down as `figure / RAIN_PER_SHOWER_HOUR` whole
+##     hours of rain (at most 24), centred on SHOWER_CENTRE_HOUR -- spring's wet day (3 x 1200) is 18
+##     hours (06:00-23:59), heavy rain's 3200 is 16 (07:00-22:59), summer's wet day 4, winter's none.
 ##   * THE HOUR'S AIR is the row's temperature, pulled down to the farm's demo frost-night figure in
 ##     a frost night's hours (farm_weather.gd, the same overlay the beds freeze by).
 ##   * CONDITION: at or below freezing, a rain hour is SNOW and any other FROST; above it, RAIN or CLEAR.
@@ -45,6 +51,11 @@ const FULL_SPEED_PERMILLE: int = 1000
 ## Demo: how a day's rain figure falls as whole hours of showers (see HOW A DAY READS).
 const RAIN_PER_SHOWER_HOUR: int = 200
 const SHOWER_CENTRE_HOUR: int = 15
+## Demo: ordinary rain in spells (see SPELLS); a day at DOWNPOUR_RAIN or more falls on its own day.
+const SPELL_DAYS: int = 3
+const SPELL_WET_DAY: int = 2
+const DOWNPOUR_RAIN: int = 2000
+const DAYS_PER_SEASON: int = 12
 const HOURS_PER_DAY: int = 24
 const FREEZING_TENTHS: int = 0
 const OPENING_SEASON: int = WeatherScript.SEASON_SPRING
@@ -119,12 +130,27 @@ func observe(season: int, season_day: int, hour: int, day_tenths: int, rain_figu
 	_rain = rain_figure
 	_event = event
 	_air_tenths = FarmWeather.air_tenths(day_tenths, FarmWeather.is_frost_hour(season, season_day, hour))
-	var now: int = classify(_air_tenths, is_rain_hour(rain_figure, hour))
+	var now: int = classify(_air_tenths, is_rain_hour(falling_rain(rain_figure, season, season_day), hour))
 	if now == _condition:
 		return false
 	_condition = now
 	revision += 1
 	return true
+
+
+static func is_wet_day(season: int, season_day: int) -> bool:
+	"""Whether this day is its spell's wet day (see SPELLS): the SPELL_WET_DAY-th of every SPELL_DAYS
+	days of the year (48 days, whole spells, so every year runs the same)."""
+	var day_of_year: int = season * DAYS_PER_SEASON + season_day
+	return day_of_year % SPELL_DAYS == SPELL_WET_DAY % SPELL_DAYS
+
+
+static func falling_rain(rain_figure: int, season: int, season_day: int) -> int:
+	"""The rain figure that falls on screen this day (see SPELLS): a downpour's own, a wet day's spell
+	of SPELL_DAYS days' worth, else none."""
+	if rain_figure >= DOWNPOUR_RAIN:
+		return rain_figure
+	return rain_figure * SPELL_DAYS if is_wet_day(season, season_day) else 0
 
 
 static func shower_hours(rain_figure: int) -> int:
@@ -215,11 +241,12 @@ func label() -> String:
 
 
 func showers_text() -> String:
-	"""The day's rain as hours: "rain 12:00–17:59", or "a dry day"."""
-	var hours: int = shower_hours(_rain)
+	"""The day's rain on screen as hours: "rain 06:00–23:59", or "a dry day"."""
+	var falling: int = falling_rain(_rain, _season, _season_day)
+	var hours: int = shower_hours(falling)
 	if hours == 0:
 		return "a dry day"
-	var first: int = first_shower_hour(_rain)
+	var first: int = first_shower_hour(falling)
 	return "rain %02d:00–%02d:59" % [first, first + hours - 1]
 
 

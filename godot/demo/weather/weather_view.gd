@@ -16,8 +16,11 @@ const DemoClockScript := preload("res://demo/demo_clock.gd")
 
 ## Per condition (CLEAR, RAIN, SNOW, FROST): the sun's energy as a share of the world's, the haze
 ## density added, and the ground veil's opacity.
-const SUN_SHARE: Array[float] = [1.0, 0.45, 0.7, 0.85]
-const FOG_ADD: Array[float] = [0.0, 0.012, 0.008, 0.002]
+## Rain's were 0.45 and 0.012 until the playtest (decision 0205): about six and a half times the clear
+## haze read as a heavy grey fog over the village. Now a shower dims the light by a quarter and adds
+## about the clear day's haze again; the streaks are what say it rains.
+const SUN_SHARE: Array[float] = [1.0, 0.75, 0.7, 0.85]
+const FOG_ADD: Array[float] = [0.0, 0.0024, 0.008, 0.002]
 const VEIL_ALPHA: Array[float] = [0.0, 0.0, 0.42, 0.22]
 const EASE_S: float = 3.0
 const SKY_HALF_M: float = 18.0
@@ -28,7 +31,7 @@ const RAIN_COUNT: int = 2600
 const SNOW_COUNT: int = 2200
 const VEIL_SIZE_M: float = 60.0
 const VEIL_LIFT_M: float = 0.02
-const RAIN_COLOUR: Color = Color(0.8, 0.86, 0.94, 0.38)
+const RAIN_COLOUR: Color = Color(0.8, 0.86, 0.94, 0.3)
 const SNOW_COLOUR: Color = Color(0.97, 0.98, 1.0, 0.95)
 const VEIL_COLOUR: Color = Color(0.93, 0.95, 0.98)
 

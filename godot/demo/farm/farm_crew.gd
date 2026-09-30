@@ -28,6 +28,7 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
+const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const NetworkScript := preload("res://demo/tunnel/tunnel_network.gd")
 
@@ -361,6 +362,8 @@ func _end_work(row: int, work: int) -> String:
 			return _said(_sim.raise_bed(bed), "Raise")
 		JobsScript.WORK_BANK:
 			return _said(_sim.bank_bed(bed), "Bank")
+		JobsScript.WORK_DRAIN:
+			return _said(_sim.drain_bed(bed), "Drain")
 		JobsScript.WORK_DIG:
 			return _end_dig(row)
 		JobsScript.WORK_DROP:
@@ -415,10 +418,14 @@ func _deliver_load(row: int) -> bool:
 
 
 func _drop(row: int) -> void:
-	"""The worker was ordered away: the job waits on the board where it had got to."""
+	"""The worker was ordered away: the job waits on the board where it had got to, and the worker keeps
+	it to come back to (resident_brain.gd RESUMING) -- unless the player released it (R), which forgets."""
 	var who: int = jobs.worker[row]
 	jobs.unassign(row)
 	jobs.rewind_to_walk(row)
+	if who >= 0 and who < _cast.actor_count() and _brain(who).order != BrainScript.ORDER_NONE:
+		_brain(who).remember_unfinished(UnfinishedScript.new(take_back.bind(row, jobs.kind[row], jobs.bed[row]),
+			"%s, bed %d" % [JobsScript.KIND_NAMES[jobs.kind[row]], jobs.bed[row] + 1]))
 	_say("%s left the %s job" % [_name_of(who), JobsScript.KIND_NAMES[jobs.kind[row]].to_lower()])
 
 
@@ -431,9 +438,21 @@ func _finish(row: int, text: String) -> void:
 	if who >= 0 and who < _cast.actor_count():
 		var brain: BrainScript = _brain(who)
 		brain.play_in_place(BrainScript.CLIP_IDLE)
-		brain.release()
+		brain.work_done()
 	if text != "":
 		_say(text)
+
+
+func take_back(brain: RefCounted, row: int, kind: int, bed: int) -> bool:
+	"""Give job `row` back to the resident it was taken from (resident_brain.gd RESUMING), if it is still
+	the same job, waiting for someone."""
+	var who: int = int(brain.get(&"index"))
+	if not jobs.is_live(row) or jobs.kind[row] != kind or jobs.bed[row] != bed:
+		return false
+	if jobs.worker[row] != JobsScript.NOBODY or jobs.job_of_worker_into(who, _busy):
+		return false
+	_take_over(row, who)
+	return true
 
 
 func _done_text(row: int) -> String:

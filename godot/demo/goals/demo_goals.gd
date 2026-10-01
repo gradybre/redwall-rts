@@ -8,8 +8,8 @@ extends RefCounted
 ## NOTE) -- the news strip shows it while fresh and the history keeps it: that is the goal's whole reward. Nothing is
 ## granted: no resource, no unlock, no mood (decision 0781).
 ##
-## AFTER THE GUIDE. Once the first-village guide is complete (`guide_done`), one note -- at the next game hour, after the
-## guide's own completion line -- points the player at the Goals tab, so play has something to aim for when the guide's
+## AFTER THE GUIDE. Once the first-village guide is complete (`guide_done`), one note -- at a game hour after the one the
+## guide completed in, so never beside the guide's own completion line -- points the player at the Goals tab, so play has something to aim for when the guide's
 ## four objectives are done. The guide itself is not changed.
 ##
 ## LATER FEATURES add their own goals through `book` (goal_book.gd THE REGISTRATION API; godot/demo/README.md).
@@ -22,6 +22,7 @@ const RecordScript := preload("res://demo/farm/farm_record.gd")
 
 const REACHED: String = "Goal reached: %s -- %s"
 const MILESTONE_MET: String = "Milestone conditions met: %s -- %s"
+const NOT_SEEN: int = -1
 const AFTER_GUIDE: String = "What next: the village guide's Goals tab (O) holds goals to aim for now the first village stands."
 
 var book: BookScript = BookScript.new()
@@ -33,6 +34,8 @@ var post: Callable = Callable()
 var guide_done: Callable = Callable()
 ## Whether the after-the-guide note has been said.
 var pointed: bool = false
+## The hour index the guide was first seen complete at (NOT_SEEN before).
+var guide_done_hour: int = NOT_SEEN
 
 var _world: WorldScript = null
 
@@ -48,16 +51,23 @@ func configure(world: WorldScript, record: RecordScript = null) -> void:
 
 func update() -> bool:
 	"""Each frame: on a new game hour, the ledger's look and the book's evaluation (returns whether it evaluated); and,
-	the guide complete, the one note pointing at the goals -- at the hour too, so the guide's own completion line has
-	the news strip to itself first."""
+	the guide complete, the one note pointing at the goals -- at a LATER hour than the one the guide completed in, so
+	the guide's own completion line always has the news strip to itself first."""
 	var hour: int = hour_index()
+	_note_guide(hour)
 	if hour == book.hour_seen():
 		return false
 	if village != null:
 		village.observe()
 	var evaluated: bool = book.update(hour)
-	_point()
+	_point(hour)
 	return evaluated
+
+
+func _note_guide(hour: int) -> void:
+	"""Latch the hour the guide is first seen complete (a Callable call a frame until then)."""
+	if guide_done_hour == NOT_SEEN and guide_done.is_valid() and bool(guide_done.call()):
+		guide_done_hour = hour
 
 
 func hour_index() -> int:
@@ -65,9 +75,9 @@ func hour_index() -> int:
 	return _world.calendar.hour_index() if _world != null and _world.calendar != null else 0
 
 
-func _point() -> void:
-	"""Say AFTER_GUIDE once, when the guide is complete."""
-	if pointed or not guide_done.is_valid() or not bool(guide_done.call()):
+func _point(hour: int) -> void:
+	"""Say AFTER_GUIDE once, at an hour after the one the guide completed in."""
+	if pointed or guide_done_hour == NOT_SEEN or hour <= guide_done_hour:
 		return
 	pointed = true
 	_say(AFTER_GUIDE)

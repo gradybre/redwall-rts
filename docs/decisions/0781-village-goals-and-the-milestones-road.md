@@ -1,6 +1,6 @@
 # 0781 — Village goals and the milestones' road: a data-driven goal book on the game hour
-Date: 2026-10-01 · Status: Accepted (feature approved by Brendan 2026-10-01, #57). The village goals, their targets and
-the presentation choices below are PROPOSALS awaiting his ruling (see "For Brendan").
+Date: 2026-10-01 · Status: Accepted (feature approved by Brendan 2026-10-01, #57). Brendan approved all seven
+proposals below **as built** on 2026-10-01 (see "Brendan's rulings").
 
 Numbered 0781: no record numbered 078x exists on any branch; 0781-0789 was the band the brief gave. Code:
 `godot/demo/goals/`.
@@ -37,16 +37,16 @@ frame. A reached goal is said **once** as a Village news note (the notice and th
 - **UI**: UI-SET-033 (Objectives command, O) "opens progress"; UI-SET-071 asks for a keyboard-readable table, not an
   image -- the page is text rows. UI §7 files a milestone as INFO with its history retained: the demo's Village NOTE.
 - **The guide is not changed**: its four objectives, their completion and its card are as decision 0481 left them. The
-  goals' owner watches `steps.is_complete()` and, once, at the next game hour (so the guide's own completion line has
-  the news strip first, and the guide's "chronicled once" check still holds), posts "What next: the village guide's
+  goals' owner latches the hour it first sees `steps.is_complete()` and, once, at a LATER game hour (so the note never
+  shares a frame with the guide's own completion line, and the guide's "chronicled once" check holds), posts "What next: the village guide's
   Goals tab (O) holds goals to aim for now the first village stands."
 
 ## Why this shape
 
 - **Hourly, not per frame**: the brief's rule, and the cost: `demo_goals.gd update()` is an integer compare of the
   calendar's hour index until it changes; then the ledger reads the logs and every measure is read once. The suite
-  checks no object is retained across 200 frames and 24 hours of updates.
-- **A ledger of its own** (`goals_ledger.gd`) for the three counts no model keeps for a whole session: portions prepared
+  checks no object is retained across 200 frames and a whole season (289 game hours) of updates, a season closing in the record.
+- **A ledger of its own** (`goals_ledger.gd`) for the four counts no model keeps for a whole session: portions prepared
   (the kitchen's batch log is trimmed to 256, so each new batch is read from its tail by `batches_cooked`), the dishes
   ever cooked, the suppers at which every resident ate cooked (the meal log read by its keys, which only grow, and a
   supper judged only once its day has ended -- the kitchen takes a diner off the tally if a held portion is given back,
@@ -76,8 +76,19 @@ portion could be given back (MEDIUM; judged at the day's end); a local shadowing
 three tests that could not fail (MEDIUM; the milestone wording, the bridges/tunnels/Ready-food measures and the season
 path under the allocation check are now driven); the harvest line's wording and a public `evaluate()` (LOW; fixed).
 Mutation testing of the goal logic: every mutant killed (see the branch's report).
+A second review of the fixes found nothing CRITICAL or HIGH; its MEDIUM and LOW findings are fixed too: the
+deferred-supper fix now has its positive test (a full supper counted at its midnight), two over-long tests are split,
+the pointer note latches the guide's completion hour (it could still share that frame when the hour turned in it), the
+live check asserts the last goal is in view after the scroll, and a magic default became `GROUP_VILLAGE`.
 
-## For Brendan (PROPOSALS)
+## Brendan's rulings (2026-10-01)
+
+All seven proposals below were approved **as built**: the nine village goals and their targets; M1-M4 shown with "not
+in this demo yet" parts; the village goals drawn before the milestones; goals measured and announced from the first
+hour, guide or no guide; "survive the first winter" as year 2 with anyone living; M3's food-days read from the HUD's
+Ready food and M4's winter-demand food left unmeasured; the Goals tab second. They are rulings now, not proposals.
+
+## The proposals as put to Brendan
 
 1. **The village goals and their targets** (demo values; the documents are silent). Harvest home 40.0 U into store;
    Every dish on the table (each of the kitchen's dishes, today 3 -- the target follows `DISH_COUNT` as dishes are

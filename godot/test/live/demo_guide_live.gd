@@ -60,7 +60,7 @@ func _initialize() -> void:
 		_o_opens_the_village_guide, _open_the_help_tab, _type_into_the_help, _the_help_found_it, _open_the_field_guide_tab, _search_the_field_guide,
 		_open_a_field_guide_entry, _open_the_practice_tab, _start_a_story, _choose_in_the_story,
 		_practice_left_the_village_alone, _open_the_projects_tab, _name_and_pin_a_project, _open_the_goals_tab, _the_goals_tab_shows_the_book,
-		_the_last_goal_scrolls_into_view, _esc_closes_the_guide,
+		_scroll_to_the_last_goal, _the_last_goal_is_in_view, _esc_closes_the_guide,
 		_the_card_clears_the_side_columns, _scale_up_with_a_legend, _the_card_keeps_above_the_picker, _back_to_100,
 		_dig_tool_then_the_guide, _enter_in_the_search_never_digs, _close_both, _the_lab_s_practice_stories,
 		_the_practice_window_is_on_top, _the_card_s_help_focuses_the_search, _the_search_has_the_focus]
@@ -436,11 +436,20 @@ func _the_goals_tab_shows_the_book() -> void:
 	_capture("guide_goals")
 
 
-func _the_last_goal_scrolls_into_view() -> void:
-	"""The page scrolls to its last goal, inside the window."""
+func _scroll_to_the_last_goal() -> void:
+	"""The page is longer than the window: scroll to its end."""
 	var scroll: ScrollContainer = _window().get("_scroll")
 	scroll.scroll_vertical = int(scroll.get_v_scroll_bar().max_value)
 	_check("the goals scroll", scroll.get_v_scroll_bar().max_value > scroll.size.y, str(scroll.get_v_scroll_bar().max_value))
+
+
+func _the_last_goal_is_in_view() -> void:
+	"""After the scroll, the page's last line (the last goal's parts) is inside the scrolling area."""
+	var scroll: ScrollContainer = _window().get("_scroll")
+	var page: Control = _window().get("goals")
+	var last: Control = page.get_child(page.get_child_count() - 1) as Control
+	var shown: Rect2 = scroll.get_global_rect()
+	_check("the last goal is in view", shown.intersects(last.get_global_rect()), "%s / %s" % [last.get_global_rect(), shown])
 	_capture("guide_goals_end")
 
 

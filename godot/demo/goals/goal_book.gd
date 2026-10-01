@@ -72,7 +72,7 @@ class Goal extends RefCounted:
 	var id: StringName = &""
 	var title: String = ""
 	var why: String = ""
-	var group: int = 1
+	var group: int = GROUP_VILLAGE
 	var parts: Array[Part] = []
 	## What the news says when it is reached (after "Goal reached: <title> -- ").
 	var said: String = ""

@@ -566,7 +566,7 @@ line) points at the tab.
 - **Evaluated on the game hour**, never per frame: `demo_goals.gd update()` costs an integer compare until the calendar's
   hour index changes; then the ledger reads the kitchen's and the planner record's logs (a supper's tally once its day is over) and every measure
   is read once.
-- **Village goals** (all PROPOSALS, decision 0781): Harvest home (40.0 U into store), Every dish on the table (each of the
+- **Village goals** (approved by Brendan as built, 2026-10-01; decision 0781): Harvest home (40.0 U into store), Every dish on the table (each of the
   kitchen's dishes cooked), A table for everyone (a supper where every resident ate cooked), A full larder (4.0 days of
   Ready food), Wood for the cold (60.0 U), Over the water (a bridge open), A way below (3 tunnel stretches), A clean
   season (a whole season in the planner's record with food harvested and no crop lost), The first winter weathered.

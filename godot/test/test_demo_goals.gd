@@ -244,16 +244,14 @@ func test_the_milestones_cannot_be_reached_in_the_nine_resident_demo() -> void:
 	assert_false(book.goal(&"m2_abundance").done, "M2's mastery is not modelled")
 
 
-func test_the_evaluator_reads_the_village() -> void:
-	"""Each measure kind over the village's own figures: the calendar's day and year and winters come through, residents,
-	ready food, the harvest in store, wood, bridges and tunnels (none bound: 0), the ledger's counts."""
+func test_the_evaluator_reads_the_calendar_and_the_winters() -> void:
+	"""The calendar's day and year; winters come through counted from the first spring after them, while anyone lives."""
 	var world := _world(9)
-	var ledger := LedgerScript.new()
-	var village := VillageScript.new(world, ledger, null)
+	var village := VillageScript.new(world, LedgerScript.new(), null)
 	world.calendar.tick = SimClock.DAYS_PER_YEAR * DAY_TICKS - SimClock.CALENDAR_OFFSET_TICKS
 	assert_equal([village.value(VillageScript.M_DAY), village.value(VillageScript.M_YEAR),
 		village.value(VillageScript.M_WINTERS)], [SimClock.DAYS_PER_YEAR + 1, 2, 1], "a year on: one winter through")
-	world.calendar.tick = SimClock.DAYS_PER_YEAR * DAY_TICKS - SimClock.CALENDAR_OFFSET_TICKS - 1
+	world.calendar.tick -= 1
 	assert_equal(village.value(VillageScript.M_WINTERS), 0, "the last tick of winter: not yet")
 	assert_equal(village.value(VillageScript.M_RESIDENTS), 9, "residents")
 	world.calendar.tick = 2 * SimClock.DAYS_PER_YEAR * DAY_TICKS
@@ -261,9 +259,14 @@ func test_the_evaluator_reads_the_village() -> void:
 	assert_equal(village.value(VillageScript.M_WINTERS), 0, "nobody living has come through a winter")
 	world.brains.append(BrainScript.new())
 	assert_equal(village.value(VillageScript.M_WINTERS), 2, "two winters on")
-	for i: int in 8:
-		world.brains.append(BrainScript.new())
-	world.calendar.tick = SimClock.DAYS_PER_YEAR * DAY_TICKS - SimClock.CALENDAR_OFFSET_TICKS - 1
+
+
+func test_the_evaluator_reads_the_stores_and_the_ledger() -> void:
+	"""Wood, the harvest in store, unbound bridges and tunnels (0), the HUD's Ready food, the ledger's counts; with
+	nothing bound, nothing."""
+	var world := _world(9)
+	var ledger := LedgerScript.new()
+	var village := VillageScript.new(world, ledger, null)
 	world.stores.add_wood(5000)
 	assert_equal(village.value(VillageScript.M_WOOD), world.stores.wood_milli_u, "wood")
 	world.pantry.delivered_milli = 7000
@@ -274,14 +277,18 @@ func test_the_evaluator_reads_the_village() -> void:
 	ledger.clean_seasons = 1
 	assert_equal([village.value(VillageScript.M_FULL_TABLES), village.value(VillageScript.M_CLEAN_SEASONS)], [2, 1],
 		"the ledger's")
-	var counted := CountedWorld.new()
-	counted.kitchen = StockedKitchen.new()
-	var stocked := VillageScript.new(counted, ledger, null)
-	assert_equal([stocked.value(VillageScript.M_BRIDGES), stocked.value(VillageScript.M_TUNNELS),
-		stocked.value(VillageScript.M_FOOD_DAYS)], [2, 3, 2500], "the bridges, tunnels and Ready food counted")
 	var empty := VillageScript.new()
 	assert_equal([empty.value(VillageScript.M_RESIDENTS), empty.value(VillageScript.M_WINTERS),
 		empty.value(VillageScript.M_DAY), empty.value(VillageScript.M_PORTIONS_PREPARED)], [0, 0, 1, 0], "nothing bound")
+
+
+func test_the_evaluator_counts_bridges_tunnels_and_ready_food() -> void:
+	"""The world's own counts of open bridges and tunnel stretches, and the kitchen's Ready food, as they stand."""
+	var counted := CountedWorld.new()
+	counted.kitchen = StockedKitchen.new()
+	var stocked := VillageScript.new(counted, LedgerScript.new(), null)
+	assert_equal([stocked.value(VillageScript.M_BRIDGES), stocked.value(VillageScript.M_TUNNELS),
+		stocked.value(VillageScript.M_FOOD_DAYS)], [2, 3, 2500], "the bridges, tunnels and Ready food counted")
 
 
 # --- the ledger --------------------------------------------------------------------------------------------------------
@@ -353,6 +360,18 @@ func test_the_ledger_counts_suppers_where_everyone_ate_cooked() -> void:
 	assert_equal(ledger.full_tables, 2, "judged at the day's end, as the tally then stands")
 
 
+func test_a_full_supper_is_counted_once_its_day_is_over() -> void:
+	"""Looked at every hour of its evening, a full supper waits; at midnight it counts."""
+	var kitchen := KitchenScript.new()
+	var ledger := LedgerScript.new()
+	_tally(kitchen, Rules.meal_key(6, Rules.MEAL_SUPPER), 9)
+	for hour: int in range(19, 24):
+		ledger.observe(kitchen, 9, null, 6 * SimClock.HOURS_PER_DAY + hour)
+	assert_equal(ledger.full_tables, 0, "its evening: not yet")
+	ledger.observe(kitchen, 9, null, 7 * SimClock.HOURS_PER_DAY)
+	assert_equal(ledger.full_tables, 1, "its day over: counted")
+
+
 func _record_days(record: RecordScript, pantry: PantryScript, days: int, lost_on: int = -1) -> void:
 	"""Close the next `days` days from the record's open day, food stored on each, a crop withered on day `lost_on`."""
 	var read := IntMath.IntResult.new()
@@ -363,13 +382,18 @@ func _record_days(record: RecordScript, pantry: PantryScript, days: int, lost_on
 		record.close_through((day + 1) * SimClock.HOURS_PER_DAY)
 
 
-func test_the_ledger_counts_clean_seasons_from_the_planners_record() -> void:
-	"""A whole season with food stored and no crop lost is clean, judged once its days are all closed; a season with a
-	crop withered is not; a season the record did not see whole is not."""
-	var pantry := PantryScript.new(StorageScript.new(Vector2.ZERO))
+func _started_record(pantry: PantryScript, hour_index: int = 0) -> RecordScript:
+	"""A record over `pantry`, opened at `hour_index`."""
 	var record := RecordScript.new()
 	record.bind(pantry, null)
-	record.start(0)
+	record.start(hour_index)
+	return record
+
+
+func test_a_clean_season_is_judged_once_its_days_are_closed() -> void:
+	"""Eleven days: not over; twelve, with food stored each day and nothing lost: clean, counted once."""
+	var pantry := PantryScript.new(StorageScript.new(Vector2.ZERO))
+	var record := _started_record(pantry)
 	var ledger := LedgerScript.new()
 	_record_days(record, pantry, SimClock.DAYS_PER_SEASON - 1)
 	ledger.observe(null, 9, record, LATE)
@@ -378,26 +402,27 @@ func test_the_ledger_counts_clean_seasons_from_the_planners_record() -> void:
 	ledger.observe(null, 9, record, LATE)
 	ledger.observe(null, 9, record, LATE)
 	assert_equal(ledger.clean_seasons, 1, "twelve: clean, once")
-	var spoiled := RecordScript.new()
-	spoiled.bind(pantry, null)
-	spoiled.start(0)
+	assert_false(LedgerScript.is_clean(record, 5), "a season never seen")
+
+
+func test_a_season_with_a_crop_lost_or_partly_seen_is_not_clean() -> void:
+	"""A crop withered on day 5; a record opened on day 4: neither season is clean."""
+	var pantry := PantryScript.new(StorageScript.new(Vector2.ZERO))
+	var spoiled := _started_record(pantry)
 	var other := LedgerScript.new()
 	_record_days(spoiled, pantry, SimClock.DAYS_PER_SEASON, 4)
 	other.observe(null, 9, spoiled, LATE)
 	assert_equal(other.clean_seasons, 0, "a crop lost")
-	var late := RecordScript.new()
-	late.bind(pantry, null)
-	late.start(3 * SimClock.HOURS_PER_DAY)
+	var late := _started_record(pantry, 3 * SimClock.HOURS_PER_DAY)
 	var third := LedgerScript.new()
-	for day: int in range(3, SimClock.DAYS_PER_SEASON):
-		pantry.add_into(0, 100, 0, IntMath.IntResult.new())
-		late.close_through((day + 1) * SimClock.HOURS_PER_DAY)
+	_record_days(late, pantry, SimClock.DAYS_PER_SEASON - 3)
 	third.observe(null, 9, late, LATE)
 	assert_equal(third.clean_seasons, 0, "nine days of twelve seen")
-	assert_false(LedgerScript.is_clean(record, 5), "a season never seen")
-	var bare := RecordScript.new()
-	bare.bind(PantryScript.new(StorageScript.new(Vector2.ZERO)), null)
-	bare.start(0)
+
+
+func test_a_season_with_nothing_harvested_is_not_clean() -> void:
+	"""A whole season kept with no food stored: nothing lost, but not a well-kept farm."""
+	var bare := _started_record(PantryScript.new(StorageScript.new(Vector2.ZERO)))
 	bare.close_through(SimClock.DAYS_PER_SEASON * SimClock.HOURS_PER_DAY)
 	assert_equal(bare.season_days(0), SimClock.DAYS_PER_SEASON, "a whole season kept")
 	assert_false(LedgerScript.is_clean(bare, 0), "nothing harvested: not clean, however little was lost")
@@ -461,6 +486,24 @@ func test_after_the_guide_one_note_points_at_the_goals() -> void:
 	_world_of(goals).calendar.tick += HOUR_TICKS
 	goals.update()
 	assert_equal(said, [GoalsScript.AFTER_GUIDE] as Array[String], "the pointer at the hour, once")
+
+
+func test_the_pointer_never_shares_the_guides_completion_hour() -> void:
+	"""The guide completing in the very frame the hour turns: no pointer that hour; at the next, one."""
+	var said: Array[String] = []
+	var goals := GoalsScript.new()
+	goals.post = func(text: String) -> void: said.append(text)
+	var complete: Array[bool] = [false]
+	goals.guide_done = func() -> bool: return complete[0]
+	goals.configure(_world(), null)
+	goals.update()
+	complete[0] = true
+	_world_of(goals).calendar.tick += HOUR_TICKS
+	assert_true(goals.update(), "the hour turned in the same frame")
+	assert_equal(said.size(), 0, "not beside the guide's own line")
+	_world_of(goals).calendar.tick += HOUR_TICKS
+	goals.update()
+	assert_equal(said, [GoalsScript.AFTER_GUIDE] as Array[String], "at the next hour")
 
 
 func test_the_kitchens_log_is_read_on_the_hour_only() -> void:

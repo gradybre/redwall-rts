@@ -9,7 +9,7 @@ extends RefCounted
 ## milestone is reachable in it: they show the road ahead. Reaching one would award NOTHING here -- the GDD's unlocks
 ## (REQ-SET-154) and its milestone memory belong to a progression system the demo does not run.
 ##
-## Then the VILLAGE GOALS, every one a PROPOSAL (decision 0781 lists them for Brendan's ruling): small aims over systems
+## Then the VILLAGE GOALS (approved as built by Brendan, 2026-10-01; decision 0781): small aims over systems
 ## the demo has today -- the pantry, the kitchen, the stores, the bridges, the tunnels, the seasonal planner's record and
 ## the calendar.
 ##

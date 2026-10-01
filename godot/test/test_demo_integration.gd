@@ -108,13 +108,15 @@ func _village(with_cellars: bool) -> DemoFarmScript:
 func _keep_detached_members(node: Node) -> void:
 	"""Free after the test every node `node` holds in a script member with no parent. demo_village.gd makes its child
 	nodes in member initialisers and adds them in _ready(), which a village that never enters the tree never runs:
-	freeing it alone leaked them all (decision 0501)."""
+	freeing it alone leaked them all (decision 0501). Followed into those members too: the Run-until menu makes its
+	button's own layer, which the village parents beside the menu (demo_village.gd), so the menu holds it detached."""
 	for property: Dictionary in node.get_property_list():
 		if int(property["usage"]) & PROPERTY_USAGE_SCRIPT_VARIABLE == 0:
 			continue
 		var held: Variant = node.get(property["name"])
 		if held is Node and (held as Node).get_parent() == null and not _nodes.has(held):
 			_nodes.append(held)
+			_keep_detached_members(held as Node)
 
 
 func _works() -> WorksScript:

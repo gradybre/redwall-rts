@@ -13,6 +13,14 @@ extends Node3D
 ##   STUMP    the mound and stub, capped by a fresh-cut oak stump for a season, then a mossy one; from
 ##            the mound a shoot grows as the row's 48 days run, and at the end the tree stands again.
 ##   YOUNG    the sapling (the demo's, or a planted one), growing from a third of its size.
+## GROWING (decision 0301, review F52): a stump's shoot and a sapling grow on ONE height ramp over the
+## row's 48 days, from GROW_FROM of the sapling to the mature tree's own height. While the ramp is below
+## the sapling's full size (GROW_TO of it) the sapling or shoot is drawn; past it the tree's own MATURE
+## model is drawn scaled down to the ramp's height -- about a third at the swap, where the two heights
+## are equal -- let down by the same share of its sink, at the tree's centre, and the stump, stub and
+## shoot are hidden. At the midnight it matures it stands at full size: the swap is seamless. The
+## model's unscaled transform is kept (`_tree_rest`) and restored when mature, because a fall reads it.
+## A spot the woods call occupied (`set_occupied`) keeps its shoot: the stump cannot regrow there.
 ##   CLEARED  nothing: uprooted by a storm or grubbed out -- until someone plants it.
 ## A storm's blow-down topples the same way, and its mound goes with it.
 ##
@@ -27,6 +35,8 @@ const SplitScript := preload("res://demo/forestry/forest_split.gd")
 const FxScript := preload("res://demo/forestry/forest_fx.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 const Sizes := preload("res://demo/world/world_sizes.gd")
+const Layout := preload("res://demo/world/world_layout.gd")
+const FieldScript := preload("res://demo/forestry/forest_root_field.gd")
 
 const FALL_S: float = 2.4
 const LIE_S: float = 1.4
@@ -75,6 +85,15 @@ var _stump_nodes: Array[Node3D] = []
 var _stump_keys: Array[StringName] = []
 var _trunk_nodes: Array[Node3D] = []
 var _rest: Array[Transform3D] = []
+## Each tree node's own full-size standing transform (see GROWING): `_rest` is the falling part's.
+var _tree_rest: Array[Transform3D] = []
+## The size the sapling node is drawn at (a world sapling's placement size; 1 for one made here).
+var _young_size: PackedFloat32Array = PackedFloat32Array()
+## The share of its mature model a young tree is drawn at now (0: sapling or shoot, or none).
+var _young_share: PackedFloat32Array = PackedFloat32Array()
+## Per StandScript.LOOK_*: the model's root field (forest_root_field.gd; null before it is baked).
+var _fields: Array[FieldScript] = []
+var _occupied: Callable = Callable()
 var _seen: int = -1
 var _day: int = 1
 var _hour: int = 0
@@ -99,6 +118,11 @@ func configure(stand: StandScript, world_node: Callable, make: Callable, props: 
 	_tree_look.resize(n)
 	_tree_look.fill(-1)
 	_young_base.resize(n)
+	_young_size.resize(n)
+	_young_size.fill(1.0)
+	_young_share.resize(n)
+	_tree_rest.resize(n)
+	_fields.resize(StandScript.LOOK_KEYS.size())
 	for list: Array in [_tree_nodes, _lower_nodes, _upper_nodes, _young_nodes, _stump_nodes, _trunk_nodes]:
 		list.resize(n)
 	_stump_keys.resize(n)
@@ -116,10 +140,12 @@ func _adopt_world_node(t: int) -> void:
 	if _stand.state_of(t) == StandScript.STATE_YOUNG:
 		_young_nodes[t] = node
 		_young_base[t] = node.transform.basis.get_scale().x
+		_young_size[t] = _stand.size[t]
 		return
 	_tree_nodes[t] = node
 	_tree_look[t] = _stand.look[t]
 	_rest[t] = node.transform
+	_tree_rest[t] = node.transform
 	staged = staged or not String(node.name).begins_with("Placeholder")
 
 
@@ -144,25 +170,37 @@ func _apply(t: int, state: int) -> void:
 	if _shown[t] == StandScript.STATE_MATURE and state != StandScript.STATE_MATURE and _stand.trunk_milli[t] > 0:
 		_start_fall(t)
 	_shown[t] = state
-	_draw_tree(t, state)
 	_draw_young(t, state)
+	_draw_tree(t, state)
 	_draw_stump(t, state)
 	_draw_trunk(t)
 
 
 func _draw_tree(t: int, state: int) -> void:
-	"""The whole tree while it stands; its mound and stub while it is a stump (or falling from one);
-	nothing once cleared (the upper part is the fall's)."""
+	"""The whole tree while it stands (at full size) or grows past its sapling (scaled, see GROWING);
+	its mound and stub while it is a stump (or falling from one); nothing once cleared (the upper part
+	is the fall's)."""
 	var standing: bool = state == StandScript.STATE_MATURE
-	if standing and _tree_look[t] != _stand.look[t]:
+	var young: bool = _young_share[t] > 0.0
+	if (standing or young) and _tree_look[t] != _stand.look[t]:
 		_replace_tree_node(t)
 	var whole_falls: bool = _falling_s[t] >= 0.0 and _upper_nodes[t] == null
 	if _tree_nodes[t] != null:
-		_tree_nodes[t].visible = standing or whole_falls
+		_tree_nodes[t].visible = standing or whole_falls or young
+		if standing and not whole_falls:
+			_tree_nodes[t].transform = _tree_rest[t]
+		elif young:
+			_tree_nodes[t].transform = young_transform(_tree_rest[t], _young_share[t])
 	if _lower_nodes[t] != null:
-		_lower_nodes[t].visible = state == StandScript.STATE_STUMP
+		_lower_nodes[t].visible = state == StandScript.STATE_STUMP and not young
 	if _upper_nodes[t] != null:
 		_upper_nodes[t].visible = _falling_s[t] >= 0.0
+
+
+static func young_transform(rest: Transform3D, share: float) -> Transform3D:
+	"""A tree's full-size standing transform drawn at `share` of its size about its foot: the basis
+	scaled, and the sink (its let-down below the ground) scaled by the same share."""
+	return Transform3D(rest.basis.scaled(Vector3.ONE * share), Vector3(rest.origin.x, rest.origin.y * share, rest.origin.z))
 
 
 func _replace_tree_node(t: int) -> void:
@@ -178,6 +216,7 @@ func _replace_tree_node(t: int) -> void:
 	_tree_nodes[t] = node
 	_tree_look[t] = _stand.look[t]
 	_rest[t] = node.transform
+	_tree_rest[t] = node.transform
 	_forget_parts(t)
 
 
@@ -190,9 +229,11 @@ func _forget_parts(t: int) -> void:
 
 
 func _draw_young(t: int, state: int) -> void:
-	"""A sapling growing on its own, or a shoot on a stump's mound, scaled by the row's growth."""
+	"""A sapling growing on its own, or a shoot on a stump's mound, on the growth ramp (see GROWING);
+	neither once the ramp has passed the sapling and the young tree is drawn instead."""
 	var growing: bool = state == StandScript.STATE_YOUNG or state == StandScript.STATE_STUMP
-	if not growing:
+	_young_share[t] = young_share(t) if growing else 0.0
+	if not growing or _young_share[t] > 0.0:
 		if _young_nodes[t] != null:
 			_young_nodes[t].visible = false
 		return
@@ -201,12 +242,48 @@ func _draw_young(t: int, state: int) -> void:
 	if state == StandScript.STATE_STUMP:
 		var out: float = Roots.cut_radius_m(_stand.look[t], _stand.size[t]) + SHOOT_OUT_M
 		at += Vector2.from_angle(_stand.yaw[t]) * out
-		y = Roots.height_at(_stand.look[t], _stand.size[t], out) if staged else 0.0
+		y = root_height(t, at, 1.0)
 	var node: Node3D = _young_node(t)
-	var share: float = lerpf(GROW_FROM, GROW_TO, float(_stand.growth_permille(t, _day, _hour)) / 1000.0)
+	var share: float = minf(_ramp_height(t) / _sapling_height(t), GROW_TO)
 	var base: Basis = Basis(Vector3.UP, _stand.yaw[t]).scaled(Vector3.ONE * _young_base[t] * share)
 	node.transform = Transform3D(base, Vector3(at.x, y, at.y))
 	node.visible = true
+
+
+func young_share(t: int) -> float:
+	"""The share of its mature model tree `t` is drawn at on the growth ramp: 0 while the ramp is below
+	the sapling's full size (or the spot is occupied: the shoot waits), else ramp height / mature height."""
+	var swap: float = GROW_TO * _sapling_height(t)
+	var height: float = _ramp_height(t)
+	var mature: float = _mature_height(t)
+	if height < swap or mature <= swap:
+		return 0.0
+	if _occupied.is_valid() and bool(_occupied.call(_stand.at[t])):
+		return 0.0
+	return minf(height / mature, 1.0)
+
+
+func _ramp_height(t: int) -> float:
+	"""Tree `t`'s drawn height on its growth ramp: GROW_FROM of the sapling to the mature tree's height
+	over the row's growth (see GROWING)."""
+	var p: float = float(_stand.growth_permille(t, _day, _hour)) / 1000.0
+	return lerpf(GROW_FROM * _sapling_height(t), _mature_height(t), p)
+
+
+func _sapling_height(t: int) -> float:
+	"""The sapling's drawn height at its own size (m)."""
+	return Sizes.target_height_m(StandScript.SAPLING_KEY) * _young_size[t]
+
+
+func _mature_height(t: int) -> float:
+	"""The mature tree's drawn height (m)."""
+	return Sizes.target_height_m(StandScript.LOOK_KEYS[_stand.look[t]]) * _stand.size[t]
+
+
+func set_occupied(occupied: Callable) -> void:
+	"""`occupied(at: Vector2) -> bool`: whether something stands on a spot, so its stump cannot regrow
+	(demo_forestry.gd's §5.9 test) -- its shoot is kept rather than a young tree drawn over it."""
+	_occupied = occupied
 
 
 func _young_node(t: int) -> Node3D:
@@ -218,9 +295,52 @@ func _young_node(t: int) -> Node3D:
 	return _young_nodes[t]
 
 
+# --- the roots (decision 0301, review F40) --------------------------------------------------------
+
+func root_field(look: int) -> FieldScript:
+	"""The look's root field (forest_root_field.gd), baked from its first full-size model the first time
+	it is wanted; null while the trees are placeholders (they have no roots) or none of that look stands."""
+	if _fields[look] != null or not staged:
+		return _fields[look]
+	var key: StringName = StandScript.LOOK_KEYS[look]
+	for t: int in _stand.count():
+		if _tree_look[t] == look and _tree_nodes[t] != null:
+			_fields[look] = FieldScript.baked(_tree_nodes[t], _tree_rest[t], _stand.yaw[t], _stand.size[t],
+				Roots.reach_m(look, 1.0), float(Layout.TRUNK_RADIUS_M[key]))
+			break
+	return _fields[look]
+
+
+func root_fields() -> Array[FieldScript]:
+	"""Every look's root field (see `root_field`), for forest_lift.gd."""
+	for look: int in StandScript.LOOK_KEYS.size():
+		root_field(look)
+	return _fields
+
+
+func root_height(t: int, at: Vector2, share: float) -> float:
+	"""The height of tree `t`'s roots (m above the ground) at `at`, its model drawn at `share` of its size."""
+	var field: FieldScript = root_field(_stand.look[t])
+	if field == null:
+		return 0.0
+	return field.height_at(at, _stand.at[t], _stand.yaw[t], _stand.size[t] * share)
+
+
+func mound_scale(t: int) -> float:
+	"""How large tree `t`'s roots are drawn now, for the walkers' lift: 1 standing or a stump's mound, the
+	young tree's share while one grows, 0 for a sapling and a cleared spot."""
+	var state: int = _stand.state_of(t)
+	if state == StandScript.STATE_MATURE:
+		return 1.0
+	if state == StandScript.STATE_STUMP:
+		return _young_share[t] if _young_share[t] > 0.0 else 1.0
+	return _young_share[t] if state == StandScript.STATE_YOUNG else 0.0
+
+
 func _draw_stump(t: int, state: int) -> void:
-	"""A fresh stump for a season, then a mossy one, capping the cut; none unless the row is a stump."""
-	if state != StandScript.STATE_STUMP:
+	"""A fresh stump for a season, then a mossy one, capping the cut; none unless the row is a stump
+	still showing its shoot (a young tree stands in its place, see GROWING)."""
+	if state != StandScript.STATE_STUMP or _young_share[t] > 0.0:
 		if _stump_nodes[t] != null:
 			_stump_nodes[t].visible = false
 		return
@@ -431,3 +551,18 @@ func young_visible(t: int) -> bool:
 func young_node(t: int) -> Node3D:
 	"""Tree `t`'s sapling node (null before it was wanted; checks)."""
 	return _young_nodes[t]
+
+
+func tree_node(t: int) -> Node3D:
+	"""The node drawing tree `t`'s whole tree (standing, or young and scaled; null before one is made)."""
+	return _tree_nodes[t]
+
+
+func crown_scale(t: int) -> float:
+	"""How large tree `t`'s crown is drawn now (demo/camera/canopy_clear.gd): 1 standing, the young tree's
+	share while one grows, 0 for a sapling, a shoot, a stump or a spot (and while it falls)."""
+	if _falling_s[t] >= 0.0:
+		return 0.0
+	if _stand.state_of(t) == StandScript.STATE_MATURE:
+		return 1.0
+	return _young_share[t]

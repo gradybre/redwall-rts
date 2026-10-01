@@ -7,8 +7,10 @@ extends RefCounted
 ## (world_sizes.gd SINK_M: oak 1.2 m, beech 0.5 m), so its roots run into the ground rather than the
 ## tree sitting on a plinth; what stays above the ground is the trunk's flare and the roots. Every
 ## height here is above the ground AFTER that sink, and is 0 where the mound is buried:
-##   * a walker on the surface over what stands of a mound is lifted onto it (`height_at`,
-##     forest_lift.gd) -- every resident, not only the woods' crew;
+##   * where a walker stands on a root is NOT read from here any more: the radial profile below is a
+##     median of rings, and the staged roots are lobes (review F40). forest_root_field.gd bakes each
+##     model's own support heightfield, read with the tree's yaw (decision 0301). The profile's length
+##     still gives the root skirt's reach (`reach_m`), which bounds that field;
 ##   * a feller stands where it can reach the trunk's flare (`stand_m`);
 ##   * a felled tree's cut is made above its flare (`cut_m`, above the ground); forest_split.gd splits
 ##     the MODEL there, which it measures from the model's own base (`model_cut_m`);
@@ -21,7 +23,7 @@ const StandScript := preload("res://demo/forestry/forest_stand.gd")
 const Sizes := preload("res://demo/world/world_sizes.gd")
 
 ## Mound height (m) above the MODEL's base at each RING_M step out from the trunk's centre, per
-## StandScript.LOOK_* (the sink is taken off in `height_at`).
+## StandScript.LOOK_* (measured before the sink; only its length is read now, as the reach).
 const RING_M: float = 0.5
 const PROFILE_M: Array[Array] = [
 	[2.0, 2.0, 2.0, 2.0, 1.4, 1.19, 1.07, 0.59, 0.08, 0.0],
@@ -39,18 +41,6 @@ const TRUNK_LENGTH_M: float = 5.5
 static func sink_m(look: int, size: float) -> float:
 	"""How far the world lets a staged tree of this look down into the ground (world_sizes.gd SINK_M)."""
 	return Sizes.sink_m(StandScript.LOOK_KEYS[look], size)
-
-
-static func height_at(look: int, size: float, distance_m: float) -> float:
-	"""The mound's surface above the ground this far from a tree's centre, after the sink: linearly
-	between rings, and 0 where the mound is buried or beyond it."""
-	var profile: Array = PROFILE_M[look]
-	var r: float = distance_m / maxf(size, 0.01) / RING_M
-	if r >= float(profile.size() - 1):
-		return 0.0
-	var k: int = int(r)
-	var model: float = lerpf(float(profile[k]), float(profile[k + 1]), r - float(k))
-	return maxf(model - sink_m(look, 1.0), 0.0) * size
 
 
 static func reach_m(look: int, size: float) -> float:

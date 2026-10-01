@@ -24,7 +24,8 @@ extends CanvasLayer
 ##   * the INSPECTOR, a vertical scroll filling the rest of the column: first the notice line (the
 ##     selection's own prompts and refusals, demo_command.gd `say`; a new one scrolls back to it), then for
 ##     one resident its species,
-##     what it is doing now, the progress or the step of that (the words after " — "), what it will go
+##     what it is doing now, the progress or the step of that (the words after " — "), how fed it is (decision
+##     0381: next to what it is doing, so a long skills list never pushes it down), what it will go
 ##     back to -- a row a job -- its skills, its orders IN FULL (each with what to right-click: never
 ##     folded away) and the hint; for a group, one row per member (every member: no "+ n more"), each a
 ##     button that selects that resident alone and centres the camera on it (`member_picked`).
@@ -347,7 +348,7 @@ static func inner_width() -> float:
 # --- what it shows ----------------------------------------------------------------------------------
 
 func show_party(entries: Array[Dictionary]) -> void:
-	"""Show these residents: [{"index", "name", "species", "state", "colour", "skills", "then", "abilities",
+	"""Show these residents: [{"index", "name", "species", "state", "colour", "fed", "skills", "then", "abilities",
 	"digger"}] ("index" is the cast index a member's row selects)."""
 	_count.text = count_text(entries.size())
 	_summary.text = summary_text(entries)
@@ -531,9 +532,10 @@ static func first_up(words: String) -> String:
 
 static func party_lines(entries: Array[Dictionary]) -> PackedStringArray:
 	"""What the panel says, in reading order. Nobody: NOBODY. One resident: its name (the summary's lead),
-	species, what it is doing, the progress or step of that (when its state has one), "Then back to:" and a
-	row per unfinished job, then its skills, a line for each line of them. A group: "n residents", then a line
-	per member -- every member -- with its short skills after its state."""
+	species, what it is doing, the progress or step of that (when its state has one), how fed it is (the kitchen's
+	rows, decision 0381), "Then back to:" and a row per unfinished job, then its skills, a line for each line of them.
+	A group: "n residents", then a line per member -- every member -- with its fed word and short skills after its
+	state."""
 	var lines := PackedStringArray()
 	if entries.is_empty():
 		lines.append(NOBODY)
@@ -543,7 +545,9 @@ static func party_lines(entries: Array[Dictionary]) -> PackedStringArray:
 		lines.append(GROUP % entries.size())
 		for entry: Dictionary in entries:
 			var skills: String = String(entry.get("skills", ""))
-			lines.append("%s — %s%s" % [entry["name"], entry["state"], "" if skills.is_empty() else " · " + skills])
+			var fed: String = String(entry.get("fed", ""))
+			lines.append("%s — %s%s%s" % [entry["name"], entry["state"], "" if fed.is_empty() else " · " + fed,
+				"" if skills.is_empty() else " · " + skills])
 	return lines
 
 
@@ -555,6 +559,8 @@ static func _one_lines(entry: Dictionary, lines: PackedStringArray) -> void:
 	lines.append(command_of(state))
 	if not step_of(state).is_empty():
 		lines.append(step_line(step_of(state)))
+	for fed: String in String(entry.get("fed", "")).split("\n", false):
+		lines.append(fed)
 	var then: PackedStringArray = entry.get("then", PackedStringArray())
 	if not then.is_empty():
 		lines.append(THEN_HEAD)

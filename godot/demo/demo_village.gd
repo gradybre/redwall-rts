@@ -250,7 +250,7 @@ func _ready() -> void:
 	_build_canopy()
 	_command.add_skill_text(_command.tunnels().ext.skill_text)
 	_command.add_skill_text(_command.tunnels().ext.night.home_text)
-	_command.add_skill_text(_kitchen.kitchen.fed_text)
+	_command.set_fed_text(_kitchen.kitchen.fed_text)
 	_build_waterplay()
 	_build_shared_ui()
 	_build_sound()
@@ -344,8 +344,8 @@ func _build_farm(manifest: Dictionary) -> void:
 
 func _build_kitchen() -> void:
 	"""The kitchen (demo/kitchen/, decision 0381): the meal loop over the farm's pantry and the village's stores, its
-	cook the night's early riser; its tab in the Pantry. (Each resident's fed line joins the party panel in `_ready`,
-	after the woods' skills have replaced the panel's list.)"""
+	cook the night's early riser; its tab in the Pantry. (Each resident's fed rows join the party panel in `_ready`,
+	`set_fed_text`: their own rows after what it is doing, decision 0391.)"""
 	_kitchen = KitchenNodeScript.new()
 	add_child(_kitchen)
 	var command := _command as DemoCommandScript

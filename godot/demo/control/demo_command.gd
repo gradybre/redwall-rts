@@ -126,6 +126,8 @@ var _ground_orders: Array[Callable] = []
 var _task_texts: Array[Callable] = []
 var _input_hooks: Array[Callable] = []
 var _skill_texts: Array[Callable] = []
+## `fed(actor_index, alone) -> String`: how fed a resident is (the kitchen's, decision 0381; see set_fed_text).
+var _fed_text: Callable = Callable()
 ## The job owners' resume rules (work_interrupt.gd; see add_resume_rule).
 var _resume_rules: Array[Callable] = []
 ## The camera's "look at this point" (set_centre), for pick_member.
@@ -244,6 +246,18 @@ func add_skill_text(provider: Callable) -> void:
 	"""Another owner's skills or meters (the water's: bridge building, breath and stamina), shown after
 	those added before it."""
 	_skill_texts.append(provider)
+
+
+func set_fed_text(provider: Callable) -> void:
+	"""`provider(actor_index: int, alone: bool) -> String`: how fed a resident is (demo/kitchen/kitchen.gd `fed_text`),
+	the party panel's own rows right after what it is doing -- never after the skills, where a long list would push it
+	down the inspector (decision 0381's note, with 0391)."""
+	_fed_text = provider
+
+
+func fed_text(actor_index: int) -> String:
+	"""A resident's fed rows for the panel ("" with no kitchen): the long form alone, its word in a list."""
+	return String(_fed_text.call(actor_index, selection_count() <= 1)) if _fed_text.is_valid() else ""
 
 
 func say(text: String) -> void:
@@ -806,6 +820,7 @@ func _refresh_panel() -> void:
 			_signature.append(_dug_percent(brain))
 			_signature.append(doing_text(i).hash())
 			_signature.append(skills_text(i).hash())
+			_signature.append(fed_text(i).hash())
 			_signature.append(brain.unfinished_labels().size())
 	if _signature == _shown:
 		return
@@ -820,7 +835,7 @@ func party_entries() -> Array[Dictionary]:
 		var actor := _cast.actor(i) as DemoActorScript
 		var brain := actor.brain
 		entries.append({"index": i, "name": actor.display_name, "species": actor.species, "colour": actor.chip_colour,
-			"digger": _tunnels.is_digger(i), "state": activity_text(i), "skills": skills_text(i),
+			"digger": _tunnels.is_digger(i), "state": activity_text(i), "skills": skills_text(i), "fed": fed_text(i),
 			"abilities": AbilitiesScript.lines_for(actor.species, actor.height_m, brain.radius, brain.can_carry()),
 			"then": brain.unfinished_labels()})
 	return entries

@@ -464,6 +464,30 @@ func test_a_refusal_step_reads_as_why_not_progress() -> void:
 	assert_equal(PanelScript.step_line("43%"), PanelScript.PROGRESS % "43%", "progress keeps its label")
 
 
+func test_the_fed_rows_follow_what_a_resident_is_doing() -> void:
+	"""N's fed line (decision 0381) in F's rows (0391): alone, its rows right after the command and its progress --
+	before the order list and the skills, so a long list never pushes it down; in a group, the word after the state."""
+	var one: Array[Dictionary] = [{"name": "Mole digger", "species": "Mole", "state": "Digging tunnel — 43%",
+		"fed": "Fed · 100% full\nLast meal: breakfast, porridge", "then": PackedStringArray(["Brace tunnel 2"]),
+		"skills": "Felling 0\nDigging 3"}]
+	assert_equal(PanelScript.party_lines(one), PackedStringArray(["Mole digger", "Mole", "Digging tunnel",
+		PanelScript.PROGRESS % "43%", "Fed · 100% full", "Last meal: breakfast, porridge", PanelScript.THEN_HEAD,
+		PanelScript.BULLET + "Brace tunnel 2", "Felling 0", "Digging 3"]), "fed after what it is doing")
+	var two: Array[Dictionary] = [{"name": "A", "state": "holding", "fed": "peckish", "skills": "fell 0"},
+		{"name": "B", "state": "holding"}]
+	assert_equal(PanelScript.party_lines(two), PackedStringArray(["2 residents", "A — holding · peckish · fell 0",
+		"B — holding"]), "the word in a group row")
+	var panel := PanelScript.new()
+	panel.build()
+	panel.show_party(one)
+	var shown := PackedStringArray()
+	for label: Node in panel.find_children("*", "Label", true, false):
+		if (label as Label).visible:
+			shown.append((label as Label).text)
+	assert_true(shown.has("Fed · 100% full"), "a shown row")
+	panel.free()
+
+
 func test_a_group_summary_tallies_its_activities_most_first() -> void:
 	"""The group's common activity: each command and how many, most first, ties in selection order; one resident's
 	summary is its name and state; nobody's says so; the count reads "n selected"."""

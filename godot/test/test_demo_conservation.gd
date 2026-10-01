@@ -33,6 +33,7 @@ const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const ActionCard := preload("res://demo/ui/action_card.gd")
 
 const DT: float = 1.0 / 60.0
 const HOUR_USEC: int = 2500000
@@ -532,6 +533,61 @@ func test_planting_with_only_its_own_compost_can_be_resumed() -> void:
 	assert_true(_woods_run(forestry, func() -> bool: return forestry.crew.jobs.live_count() == 0), "planted")
 	assert_equal(forestry.stand.state_of(WEST_OAK), StandScript.STATE_YOUNG, "one sapling")
 	assert_equal(compost[0], 0, "no second payment")
+
+
+func test_a_harvest_card_waits_for_room_as_its_order_does() -> void:
+	"""The harvest's action card (decision 0332) reads the order's own room test (decision 0222): with no store room
+	it names nobody and says the harvest waits and how much has nowhere to go -- the order's words; the order then
+	queues it waiting; once there is room the card names the resident the order sends."""
+	var cast := _cast()
+	var sim := _ripe_carrots()
+	var pantry := _pantry(cast)
+	var crew := _crew(cast, sim, pantry, PackedInt32Array([0]))
+	assert_true(pantry.add_into(WHEAT, 399000, 0, _read), "the store nearly full")
+	var card := ActionCard.new()
+	crew.preview_into(card, FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array([3]))
+	assert_true(card.is_ok(), "not refused: the order queues it")
+	assert_equal(card.worker, ActionCard.NOBODY, "nobody is sent")
+	assert_true(card.who.contains("no store has room for 5.1 U of carrot"), "it waits for room: " + card.who)
+	var said: String = crew.order(FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array([3]), FarmJobs.ORIGIN_PLAYER)
+	assert_true(said.contains(FarmCrewScript.room_words(CARROT_YIELD, CARROT)), "the order's words are the card's: " + said)
+	assert_equal(crew.jobs.worker[0], FarmJobs.NOBODY, "the order sent nobody either")
+	crew.preview_into(card, FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array([3]))
+	assert_true(card.who.contains("no store has room"), "queued, still waiting: " + card.who)
+	assert_true(crew.order(FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array([3]),
+		FarmJobs.ORIGIN_PLAYER).begins_with("Harvest waits: no store has room"), "ordered again: it waits")
+	_cellar_u[0] = 10
+	pantry.refresh_locations()
+	crew.preview_into(card, FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array([3]))
+	assert_equal(card.worker, 3, "room now: the card names the resident")
+	assert_equal(crew.order(FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array([3]), FarmJobs.ORIGIN_PLAYER),
+		"Harvest: %s is on it" % crew.worker_name(0), "and the order sends it")
+	assert_equal(crew.jobs.worker[0], 3, "resident 3")
+
+
+func test_a_paid_plantings_card_needs_no_compost() -> void:
+	"""Joining a planting that has paid its compost (decision 0222) takes none: its card's compost row needs 0."""
+	var forestry := _forestry()
+	forestry.stand.blow_down_into(WEST_OAK, 1, Vector2.UP, _read)
+	forestry.stand.take_trunk_into(WEST_OAK, 12000, _read)
+	var compost := PackedInt64Array([250])
+	forestry.crew.set_compost(func() -> int: return compost[0], func(milli: int) -> bool:
+		if compost[0] < milli:
+			return false
+		compost[0] -= milli
+		return true)
+	var card := ActionCard.new()
+	forestry.crew.preview_into(card, ForestJobs.KIND_PLANT, WEST_OAK, 0, PackedInt32Array([0]))
+	assert_equal([card.cost_have[0], card.cost_need[0]], [250, Rules.PLANT_COMPOST_MILLI], "unpaid: 0.25 U needed")
+	forestry.order_on(PickScript.KIND_TREE, WEST_OAK, PackedInt32Array([0]))
+	assert_true(_woods_run(forestry, func() -> bool: return compost[0] == 0 and _planting(forestry)), "paid, planting")
+	var brain: BrainScript = forestry.crew.brain_of(0)
+	brain.order_move(brain.position + Vector2(-3.0, 0.0))
+	assert_true(_woods_run(forestry, func() -> bool: return forestry.crew.jobs.worker[0] == ForestJobs.NOBODY), "left")
+	forestry.crew.preview_into(card, ForestJobs.KIND_PLANT, WEST_OAK, 0, PackedInt32Array([1]))
+	assert_true(card.is_ok(), "joinable")
+	assert_equal([card.cost_have[0], card.cost_need[0]], [0, 0], "paid already: nothing needed")
+	assert_true(card.result.contains("paid already"), card.result)
 
 
 func _planting(forestry: ForestryScript) -> bool:

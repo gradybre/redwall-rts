@@ -35,6 +35,11 @@ extends RefCounted
 ## batch taking its ingredients, a hungry resident's raw emergency meal. A lot row is reused once freed, so every
 ## opening gives the row a new SERIAL (`lot_serial`): a reservation made against (row, serial) can never draw on
 ## another lot that happens to take the same row later (demo/kitchen/ingredient_takes.gd).
+##
+## THE LEDGER (decision 0451, the seasonal planner's after-action record). Per item, never reset: every milli-U that
+## came IN (a delivery stored: `_lot_into`, the one place a lot grows), went OUT (`withdraw_into`) and SPOILED (`_spoil`).
+## Committed outcomes only -- a reservation, a load in hand or a composting moves none of them -- so for every item
+## `milli_of == stored_total_milli - withdrawn_total_milli - spoiled_total_milli` (test_demo_planner.gd checks it).
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
@@ -77,6 +82,10 @@ var _lot_age: PackedInt64Array = PackedInt64Array()
 var _lot_remainder: PackedInt32Array = PackedInt32Array()
 var _item_milli: PackedInt64Array = PackedInt64Array()
 var _spoiled_items: PackedInt32Array = PackedInt32Array()
+## THE LEDGER (see the header): per item, cumulative milli-U stored, withdrawn and spoiled.
+var _in_milli: PackedInt64Array = PackedInt64Array()
+var _out_milli: PackedInt64Array = PackedInt64Array()
+var _spoiled_by_item: PackedInt64Array = PackedInt64Array()
 var _ids: Array = []
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _hold_live: PackedByteArray = PackedByteArray()
@@ -101,6 +110,8 @@ func _init(p_storage: StorageScript) -> void:
 		column.resize(MAX_LOTS)
 	_lot_item.fill(FREE)
 	_item_milli.resize(Catalog.ITEM_COUNT)
+	for column: PackedInt64Array in [_in_milli, _out_milli, _spoiled_by_item]:
+		column.resize(Catalog.ITEM_COUNT)
 	_ids.resize(MAX_LOTS)
 	_hold_live.resize(MAX_HOLDS)
 	_hold_location.resize(MAX_HOLDS)
@@ -137,6 +148,7 @@ func _lot_into(item: int, milli: int, location: int, out: IntMath.IntResult) -> 
 		return out.refuse(REFUSE_NO_ROOM)
 	_lot_milli[lot] += milli
 	_item_milli[item] += milli
+	_in_milli[item] += milli
 	return out.succeed(lot)
 
 
@@ -398,6 +410,7 @@ func _spoil(lot: int) -> void:
 	var item: int = _lot_item[lot]
 	_item_milli[item] -= _lot_milli[lot]
 	spoiled_milli += _lot_milli[lot]
+	_spoiled_by_item[item] += _lot_milli[lot]
 	_spoiled_items.append(item)
 	_lot_item[lot] = FREE
 	_lot_milli[lot] = 0
@@ -424,6 +437,21 @@ func take_spoiled_items_into(out: PackedInt32Array) -> int:
 func milli_of(item: int) -> int:
 	"""How much of an item the pantry holds, milli-U."""
 	return _item_milli[item]
+
+
+func stored_total_milli(item: int) -> int:
+	"""THE LEDGER: every milli-U of `item` ever stored here (deliveries), never reset."""
+	return _in_milli[item]
+
+
+func withdrawn_total_milli(item: int) -> int:
+	"""THE LEDGER: every milli-U of `item` ever withdrawn (the kitchen's batches and raw meals), never reset."""
+	return _out_milli[item]
+
+
+func spoiled_total_milli(item: int) -> int:
+	"""THE LEDGER: every milli-U of `item` that ever spoiled in store, never reset (composting does not touch it)."""
+	return _spoiled_by_item[item]
 
 
 func units_of(item: int) -> int:
@@ -574,6 +602,7 @@ func withdraw_into(lot: int, serial: int, milli: int, out: IntMath.IntResult) ->
 		return out.refuse(REFUSE_NO_STOCK)
 	_lot_milli[lot] -= milli
 	_item_milli[_lot_item[lot]] -= milli
+	_out_milli[_lot_item[lot]] += milli
 	if _lot_milli[lot] == 0:
 		_lot_item[lot] = FREE
 	return out.succeed(milli)

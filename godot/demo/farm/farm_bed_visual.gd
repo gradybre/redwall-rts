@@ -108,6 +108,10 @@ const STRAW_Y_M: float = 0.5
 const OUTLINE_HALF_M: float = 1.6
 const OUTLINE_BAR: Vector3 = Vector3(3.3, 0.05, 0.08)
 const OUTLINE_Y_M: float = 0.32
+## The Compare view's ring (decision 0451, UX-008's map highlight): cream, just outside the selection's brass one, so a
+## compared bed that is also the open one shows both.
+const COMPARE_COLOUR: Color = Color(0.96, 0.94, 0.87, 0.9)
+const COMPARE_HALF_M: float = 1.74
 ## A growth change smaller than this (permille) keeps the plants as they stand.
 const GROWTH_STEP: int = 25
 
@@ -116,6 +120,8 @@ var bed: int = 0
 var shown_scale: float = 0.0
 var label: Label3D = null
 var ring: Node3D = null
+## The Compare view's ring (built the first time a compare shows the bed).
+var compare_ring: Node3D = null
 var overlay: MeshInstance3D = null
 var straw: MeshInstance3D = null
 var raised_frame: Node3D = null
@@ -370,12 +376,17 @@ func _build_marks() -> void:
 
 static func _make_outline() -> Node3D:
 	"""Four brass bars round the bed (hidden)."""
+	return _outline("Selected", MarksScript.SELECTED, OUTLINE_HALF_M)
+
+
+static func _outline(node_name: String, colour: Color, half_m: float) -> Node3D:
+	"""Four bars of `colour` round the bed, `half_m` from its centre (hidden)."""
 	var outline := Node3D.new()
-	outline.name = "Selected"
+	outline.name = node_name
 	outline.visible = false
 	var bar := BoxMesh.new()
-	bar.size = OUTLINE_BAR
-	var material := _flat_material(MarksScript.SELECTED)
+	bar.size = Vector3(OUTLINE_BAR.x * half_m / OUTLINE_HALF_M, OUTLINE_BAR.y, OUTLINE_BAR.z)
+	var material := _flat_material(colour)
 	for side: int in 4:
 		var piece := MeshInstance3D.new()
 		piece.mesh = bar
@@ -383,7 +394,7 @@ static func _make_outline() -> Node3D:
 		piece.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		var yaw: float = PI * 0.5 * side
 		piece.transform = Transform3D(Basis(Vector3.UP, yaw),
-			Vector3(sin(yaw), 0.0, cos(yaw)) * OUTLINE_HALF_M + Vector3(0.0, OUTLINE_Y_M, 0.0))
+			Vector3(sin(yaw), 0.0, cos(yaw)) * half_m + Vector3(0.0, OUTLINE_Y_M, 0.0))
 		outline.add_child(piece)
 	return outline
 
@@ -752,6 +763,15 @@ func _tint_heads(tint: Color) -> void:
 func set_selected(on: bool) -> void:
 	"""Show the brass outline round a selected bed."""
 	ring.visible = on
+
+
+func set_compared(on: bool) -> void:
+	"""Show the Compare view's cream ring round the bed (decision 0451)."""
+	if on and compare_ring == null:
+		compare_ring = _outline("Compared", COMPARE_COLOUR, COMPARE_HALF_M)
+		add_child(compare_ring)
+	if compare_ring != null:
+		compare_ring.visible = on
 
 
 func show_overlay(colour: Color) -> void:

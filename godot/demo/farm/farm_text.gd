@@ -59,6 +59,11 @@ static func clock_line(sim: SimScript) -> String:
 	return "%s · %s °C" % [sim.calendar.date_text(), _tenths(sim.air_tenths())]
 
 
+static func degrees_text(tenths: int) -> String:
+	"""A temperature in tenths of a degree as the clock line says it: '12', '-3', '0.5' (no unit)."""
+	return _tenths(tenths)
+
+
 static func _tenths(tenths: int) -> String:
 	"""Tenths of a degree as whole degrees when whole, else one decimal."""
 	if tenths % 10 == 0:

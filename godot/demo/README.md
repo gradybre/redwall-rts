@@ -147,7 +147,7 @@ that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
 
 - **The history** (`ui/demo_news_history.gd`): every kept entry, newest first, "date · place · Warning: text",
   filtered by place (*All*, *Farm*, *Woods*, *Tunnels*, *Water*, *Village* -- weather, threats, the crew's
-  reports and the village's chronicle, a finished guide or project (decision 0481); the first place picked shows it alone, more add to it) and by severity (*All*, *Warnings*, *Notes*).
+  reports and the village's chronicle, a finished guide or project (decision 0481); the first place picked shows it alone, more add to it) and by tier (*All*, *Urgent*, *Normal*, *Info*; decision 0591, below).
   An entry about a bed, tree, tunnel, resident or bridge has **Go to**: it selects the target as a click would,
   brings its panel and eases the camera over it (`ui/demo_news_jump.gd`), closing the window. Above the
   history, **Needs attention** lists every open or pinned incident ("No active problems" erases nothing below).
@@ -172,6 +172,66 @@ that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
   CONDITIONS); back within those 2 hours it is the same occurrence, said once. Dry and worn out alike.
 - **The sound hook**: `demo_incidents.gd` emits `incident_cue(cue, serial, severity)` when a critical
   incident is raised or recurs and when any incident resolves, never for a merged repeat.
+
+## Better notices: tiers, kinds, grouping, snooze and the toast budget (decision 0591)
+
+Feature #39 (`demo_notices.gd`, `demo_notice_snoozes.gd`, `ui/demo_news_strip.gd`, `ui/demo_news_history.gd`).
+
+- **Tiers.** Each notice is *urgent*, *normal* or *info*.
+  - Urgent: the heading face, clay, "Urgent:", 60 s on the strip, and two chimes.
+  - Normal: clay, "Warning:", 30 s, and one chime.
+  - Info: ink, unworded, 12 s, and silent.
+  - A tier never pauses. A *critical incident* pauses through the ledger, as before.
+- **Grouping.** A notice that names its kind joins the same kind about the same subject said within a game day.
+  "Crows at the barley (×3)" moves to the top, and does not chime again.
+- **Strip.** Each line has a Go to (the centre-view crosshair: it selects the subject and centres the camera) and a ×
+  (dismiss that one).
+  - The title counts the lines held back: "· 6 more (N)".
+  - Where the lines would not fit the band (1280×720), it draws fewer, keeping the most urgent.
+- **Village news (N).** The severity filter is a tier filter: All, Urgent, Normal, Info.
+  - Each row has Go to, *Snooze 6 h* (quiet that kind for six game hours: kept, not toasted or chimed) or *Wake*, and
+    *Dismiss*.
+  - A line names the snoozed kinds, with *Wake all*.
+  - Urgent notices are never snoozed or held back.
+- **No spam at 4x.** New toasts are budgeted: 4 at once, +1 per 2.5 s of unpaused real time, info and normal apart.
+  The rest are kept in the history and counted on the strip.
+
+### The notice API (for other features)
+
+Every existing call is unchanged. To add a new kind of notice, use `notify`:
+
+```gdscript
+# notify(source, tier, kind, text, subject = "", summary = "", to_kind = TARGET_NONE, to_id = -1) -> bool
+services.notices.notify(NoticesScript.SOURCE_CREW, NoticesScript.TIER_NORMAL, &"cold_home",
+	"The east burrow is cold — light a fire", "home:%d" % home, "Cold home")
+services.notices.notify(NoticesScript.SOURCE_CREW, NoticesScript.TIER_URGENT, &"out_of_fuel", "The village is out of fuel")
+services.notices.notify(NoticesScript.SOURCE_CREW, NoticesScript.TIER_INFO, &"chilled", "A resident came in Chilled", "",
+	"", NoticesScript.TARGET_RESIDENT, who)
+```
+
+- **`kind`** (a StringName) is what sort of notice it is: the GDD's notice `code`. Repeats of a named kind about the
+  same **`subject`** group. The subject defaults to the target ("resident:4"), else none.
+  - Snooze works by kind, so use one kind per sort of notice, not one per resident.
+- **`tier`**: `TIER_URGENT` | `TIER_NORMAL` | `TIER_INFO`. `notify` posts urgent and normal as WARNING and info as NOTE.
+- **`to_kind` / `to_id`**: the jump target, `TARGET_*`. Go to shows when the village's jump can find it.
+- **`post`** is unchanged, with three optional parameters added last:
+  `post(source, level, text, summary = "", to_kind = TARGET_NONE, to_id = -1, serial = NO_INCIDENT, tier = TIER_AUTO,
+  kind = NO_KIND, subject = "")`. `TIER_AUTO` infers the tier (warning -> normal, note -> info). Without a kind, a line
+  folds only with an identical line said just before it (decision 0210), and its kind is "<source>:<its words>".
+- **Incidents** (`incidents.report(key, ...)`): the line's tier is the severity's (critical -> urgent), and its kind and
+  subject come from the key. "farm:wet:3" gives kind `farm:wet` and subject `3`, so key a new incident
+  "<area>:<what>:<ids>". Only a critical incident pauses (and the ledger decides whether it does).
+- **Reading the history** (the chronicle):
+  - `count()` and per entry `k` (0 newest): `text`, `summary`, `stamp`, `tier`, `kind`, `subject`, `repeats`,
+    `first_tick`, `said_tick`, `entry_id`, `is_dismissed`, `is_announced`.
+  - `entry_id` is stable and never reused; `index_of(id)` finds it again.
+  - A grouped repeat keeps its id and moves to the top. Read new rows with `is_new_since(k, seen_rows_posted)`, never
+    as "the newest N".
+  - `tiers_into(group_mask, tier_mask, out)` filters.
+- **Breadcrumbs** (the crash log): `notices.notice_posted.connect(func(entry_id: int, tier: int, kind: StringName, text:
+  String) -> void: ...)`. It fires for every accepted post, folds and grouped repeats included.
+- **Snooze and dismiss from code**: `snooze_kind(kind, hours)`, `wake_kind(kind)`, `wake_all()`,
+  `is_kind_snoozed(kind)`, `dismiss(k)` and `dismiss_id(entry_id)`.
 
 **One stores** (`demo_services.gd` `stores`, `tunnel/tunnel_stores.gd`): the village's wood, stone, planks,
 finds and water (the kitchen's butt by the well, 40 U at most; decision 0381). The woods put their wood in and saw
@@ -1526,8 +1586,10 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
   beginning or ending (pickup, drop), entering or leaving the water, starting to swim or dive (splash), each
   stride by the ground underfoot (grass, a worn path's dirt, a bridge leg's wood, a tunnel, wading), each whole
   beat of a felling, grubbing or sawing step that has begun, a tree coming down, each dig quantum cut, a tunnel,
-  room or bridge opening (complete), a *new* warning in the notice feed (a folded repeat does not chime again)
-  or a critical incident raised or come back (decision 0331's `incident_cue`; one chime a frame at most),
+  room or bridge opening (complete), a *new* announced warning in the notice feed (a folded or grouped repeat,
+  a held-back or a snoozed one does not chime) or a critical incident raised or come back (decision 0331's
+  `incident_cue`; one chime a frame at most) -- an URGENT one chimes twice, 1.6 s apart, and info is silent
+  (decision 0591),
   and every button press. A tree blown down falls too. It reads the models and writes nothing: no sound, and no
   animation, awards anything.
 - **Every cue has a text or picture match** (the table refuses a cue without one): chips and the task line for a
@@ -1552,7 +1614,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `control/` | Selecting and ordering residents, and the demo party panel |
 | `people/` | The cast's names and interests (`demo_people.json`, `people_book.gd`), the committed deeds, curation and affinity (`people_ledger.gd`, written by `people_taps.gd`), the spotlight, reflection, evening lines and inspector info (`demo_people.gd`), the inspector's person section and the offer card (decision 0491) |
 | `tunnel/` | Player-dug tunnels: rules, the tunnel network and planner, planning, drawing, the underground view; and their extensions -- ground, queues, crews, jobs, hazards, finds, the demo stores, the tunnel panel; the construction theatre -- the warren's particle budget, the dig face, the baskets, the hazards' warnings, the surface signs |
-| `demo_calendar.gd`, `demo_services.gd`, `village_water.gd`, `demo_notices.gd` | The one calendar, the shared set, the one water adapter (over `water/water_map.gd`), the one notice feed |
+| `demo_calendar.gd`, `demo_services.gd`, `village_water.gd`, `demo_notices.gd`, `demo_notice_snoozes.gd` | The one calendar, the shared set, the one water adapter (over `water/water_map.gd`), the one notice feed and its snoozed kinds (decision 0591) |
 | `demo_incidents.gd`, `demo_news_clock.gd` | The incidents (open conditions, the card queue, the sound hook) and the news clock that stands still while paused |
 | `weather/` | The demo's one weather (read from the farm's real §5.10 row) and its rain, snow and light |
 | `burrow/` | Rooms as their own structures: the templates, sockets and refusals (`underground_rooms.gd`), placing one and its passage (`room_plan.gd`, `room_tool.gd`), drawing it (`room_view.gd`, `room_mesh.gd`); the cellar API; the fit-out (`room_fixtures.gd`, `fixture_crew.gd`, `install_task.gd`, `fixture_view.gd`, `fixture_kit.gd`, `room_text.gd`) and the night (`night_routine.gd`, `bed_allocation.gd`, `sleep_task.gd`) |

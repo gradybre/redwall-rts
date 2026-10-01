@@ -18,11 +18,15 @@ extends RefCounted
 ##                     forest_stand.gd `blow_down_into`)
 ##   dig               each dig quantum CUT (underground_graph.gd `cut_count`), at the digger, below
 ##   complete          a tunnel or room segment opening (DIGGING -> OPEN), a bridge opening (PLANNED -> OPEN)
-##   warning           a NEW warning row in the notice feed (demo_notices.gd `rows_posted`); a repeat it folds
-##                     into an existing row (×2) is not new, so it does not chime again (UI §7) -- or a CRITICAL
-##                     incident raised or come back (demo_incidents.gd `incident_cue`, CUE_CRITICAL_RAISED;
-##                     decision 0331's sound hook), which a merged repeat never sends. One chime a frame at most,
-##                     so an incident that also posts its warning row is heard once.
+##   warning           a NEW announced row in the notice feed of the NORMAL or URGENT tier (demo_notices.gd: a new
+##                     entry id, `is_new_since`); a repeat it folds or groups into an existing row (×2) is not new,
+##                     so it does not chime again (UI §7), and a row the toast budget or a snooze kept quiet does not
+##                     chime -- or a CRITICAL incident raised or come back (demo_incidents.gd `incident_cue`,
+##                     CUE_CRITICAL_RAISED; decision 0331's sound hook), which a merged repeat never sends. One chime a
+##                     frame at most, so an incident that also posts its warning row is heard once. THE TIERS SOUND
+##                     APART (decision 0591), from the cues the table has: INFO is silent (UI §7's chime is optional),
+##                     NORMAL chimes once, URGENT -- a critical incident, or an urgent row -- chimes and chimes again
+##                     URGENT_ECHO_MSEC later (just past the cue's own gap, so the voice takes it).
 ## Ambience is a level, not an edge: wind and rain from the weather's condition, the stream from the nearest
 ## bank to the listener; read every AMBIENCE_MS.
 ##
@@ -69,6 +73,8 @@ const C_WARNING: int = 15
 const C_COMPLETE: int = 16
 
 const MAX_EVENTS: int = 64
+## An urgent notice's second chime, this long (real milliseconds) after its first (see warning).
+const URGENT_ECHO_MSEC: int = 1600
 ## A footstep every this many metres walked (demo: a mouse's stride at the walk clip).
 const STRIDE_M: float = 0.45
 ## A move longer than this in one frame is a placement, not a walk: no footsteps for it.
@@ -142,6 +148,8 @@ var _bridge_generation: PackedInt32Array = PackedInt32Array()
 var _notice_rows: int = 0
 ## A critical incident was raised since the last poll (`_on_incident_cue`).
 var _incident_alarm: bool = false
+## When an urgent notice's second chime is due (real milliseconds; -1: none).
+var _echo_at_msec: int = -1
 var _ambience_msec: int = -1000000
 var _at: Vector3 = Vector3.ZERO
 var _bank: WaterMapScript.Bank = WaterMapScript.Bank.new()
@@ -191,7 +199,7 @@ func poll(now_msec: int, listener_ground: Vector2) -> int:
 	_poll_trees()
 	_poll_segments()
 	_poll_bridges()
-	_poll_notices()
+	_poll_notices(now_msec)
 	_poll_fishery()
 	if now_msec - _ambience_msec >= AMBIENCE_MS:
 		_ambience_msec = now_msec
@@ -521,25 +529,37 @@ func _poll_bridges() -> void:
 
 # --- notices and ambience --------------------------------------------------------------------------
 
-func _poll_notices() -> void:
-	"""warning when a new row posted since the last poll is a warning -- not for a repeat the feed folded into a
-	row it already had (×2), which writes no new row -- or a critical incident was raised; once a frame."""
-	var warn: bool = _incident_alarm
+func _poll_notices(now_msec: int) -> void:
+	"""warning for the loudest new announced row since the last poll, or a critical incident raised -- once a frame;
+	an urgent one's second chime when it is due (see warning)."""
+	var loudest: int = maxi(_new_tier(), NoticesScript.TIER_URGENT if _incident_alarm else -1)
 	_incident_alarm = false
-	if notices != null and notices.rows_posted != _notice_rows:
-		var fresh: int = mini(notices.rows_posted - _notice_rows, notices.count())
-		_notice_rows = notices.rows_posted
-		for k: int in fresh:
-			if notices.level(k) == NoticesScript.LEVEL_WARNING:
-				warn = true
-				break
-	if warn:
+	var chime: bool = loudest >= NoticesScript.TIER_NORMAL
+	if _echo_at_msec >= 0 and now_msec >= _echo_at_msec:
+		_echo_at_msec = -1
+		chime = true
+	if loudest == NoticesScript.TIER_URGENT:
+		_echo_at_msec = now_msec + URGENT_ECHO_MSEC
+	if chime:
 		_emit_flat(C_WARNING)
 
 
+func _new_tier() -> int:
+	"""The highest tier among the rows the feed wrote since the last poll and announced (-1: none)."""
+	if notices == null or notices.rows_posted == _notice_rows:
+		return -1
+	var loudest: int = -1
+	for k: int in notices.count():
+		if notices.is_new_since(k, _notice_rows) and notices.is_announced(k):
+			loudest = maxi(loudest, notices.tier(k))
+	_notice_rows = notices.rows_posted
+	return loudest
+
+
 func _watch_incidents() -> void:
-	"""Hear the incidents' sound hook (none already raised sounds)."""
+	"""Hear the incidents' sound hook (none already raised sounds, and no second chime is owed)."""
 	_incident_alarm = false
+	_echo_at_msec = -1
 	if incidents != null and not incidents.incident_cue.is_connected(_on_incident_cue):
 		incidents.incident_cue.connect(_on_incident_cue)
 

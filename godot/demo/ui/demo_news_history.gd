@@ -12,7 +12,7 @@ extends CanvasLayer
 ##   * the title, "Settlement notices" (the shell's own history, for the HUD's settlement conditions) and ×;
 ##   * the FILTERS: by place (All, or any of Farm, Woods, Tunnels, Water, Village -- demo_notices.gd GROUP_*;
 ##     the first place chosen from All shows that place alone, later ones add to it, the last one taken off
-##     shows All again) and by severity (All, Warnings, Notes);
+##     shows All again) and by tier (All, Urgent, Normal, Info: see TIERS, SNOOZE AND DISMISS);
 ##   * NEEDS ATTENTION: every unresolved or pinned incident (filtered by place), most urgent first, each with
 ##     its severity word, state, count and date, its text, and Go to / Pin / Snooze / Dismiss. "No active
 ##     problems" when there are none -- which erases nothing below;
@@ -20,6 +20,13 @@ extends CanvasLayer
 ##     with Go to where the entry names a target. "Still open" marks an entry whose incident is unresolved.
 ## Go to (demo_news_jump.gd) selects the target and centres the camera on it, and closes this window so the
 ## target is not under it. Nothing here expires: it is the place where nothing actionable is lost.
+##
+## TIERS, SNOOZE AND DISMISS (decision 0591, feature #39). The severity filter is the TIER filter: All, or any of
+## Urgent, Normal and Info (demo_notices.gd TIERS; picked like the places). Each history row is drawn at its tier's
+## weight (the news strip's `paint_tier`) and has, beside Go to, SNOOZE -- quiet that kind of notice for
+## demo_notices.gd SNOOZE_HOURS game hours, "Wake" while it is quiet; never on an urgent one -- and DISMISS (that one
+## notice off the strip; the row stays, "— dismissed"). While any kind is snoozed a line under the filters names them
+## with the hours left, and "Wake all".
 ##
 ## WHERE: top centre, below the HUD's alert zone, centred on it (UI §1: "Notification history expands from
 ## top-center"), as wide as MAX_W allows, down to just above the command strip; its body scrolls. It is not
@@ -34,6 +41,8 @@ const JumpScript := preload("res://demo/ui/demo_news_jump.gd")
 const FarmUi := preload("res://demo/farm/farm_ui.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
+const StripScript := preload("res://demo/ui/demo_news_strip.gd")
+const SimClock := preload("res://scripts/core/sim_clock.gd")
 
 const LAYER: int = 1
 const TITLE: String = "Village news"
@@ -48,6 +57,13 @@ const REFRESH_S: float = 0.25
 const NO_PROBLEMS: String = "No active problems."
 const NO_MATCHES: String = "No notices match these filters."
 const STILL_OPEN: String = " — still open"
+const DISMISSED: String = " — dismissed"
+const SNOOZE: String = "Snooze %d h"
+const WAKE: String = "Wake"
+const DISMISS: String = "Dismiss"
+const SNOOZED_WORDS: String = "Snoozed: %s"
+## An urgent history row's size (the rest are ROW_PX).
+const URGENT_PX: int = 15
 ## History rows drawn at first, and added by each "Show older" (a redraw rewrites only rows that changed).
 const PAGE: int = 40
 const UNDRAWN: int = 255
@@ -61,6 +77,8 @@ var _defer_to: Array[Callable] = []
 ## drawn (PAGE more each "Show older").
 var _history_target: PackedInt32Array = PackedInt32Array()
 var _history_level: PackedByteArray = PackedByteArray()
+## The entry id each history row shows (its Snooze and Dismiss act on it).
+var _history_id: PackedInt32Array = PackedInt32Array()
 var _history_limit: int = PAGE
 var _older: Button = null
 var _frame: PanelContainer = null
@@ -78,8 +96,14 @@ var _attention_serial: PackedInt32Array = PackedInt32Array()
 var _attention_list: PackedInt32Array = PackedInt32Array()
 var _history_list: PackedInt32Array = PackedInt32Array()
 var _group_mask: int = NoticesScript.ALL_GROUPS
-var _show: int = NoticesScript.SHOW_ALL
+var _tier_mask: int = NoticesScript.ALL_TIERS
 var _drawn_key: Vector3i = Vector3i(-1, -1, -1)
+## The game hour the snoozed line was drawn in (its hours left change with it; -1: none drawn).
+var _drawn_hour: int = -1
+var _snoozed_row: HBoxContainer = null
+var _snoozed_label: Label = null
+var _snoozed_kinds: PackedStringArray = PackedStringArray()
+var _snoozed_words: PackedStringArray = PackedStringArray()
 var _refresh_in: float = 0.0
 var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
@@ -153,7 +177,8 @@ func _build_header(column: VBoxContainer) -> void:
 
 
 func _build_filters(column: VBoxContainer) -> void:
-	"""The place filter (All + GROUP_NAMES) and the severity filter (SHOW_NAMES), as toggle buttons."""
+	"""The place filter (All + GROUP_NAMES), the tier filter (All + TIER_NAMES, urgent first) as toggle buttons, and the
+	snoozed line."""
 	var places := HBoxContainer.new()
 	places.add_theme_constant_override(&"separation", 4)
 	column.add_child(places)
@@ -164,10 +189,29 @@ func _build_filters(column: VBoxContainer) -> void:
 	var levels := HBoxContainer.new()
 	levels.add_theme_constant_override(&"separation", 4)
 	column.add_child(levels)
-	levels.add_child(_caption("Severity:"))
-	for wanted: int in NoticesScript.SHOW_NAMES.size():
-		_show_buttons.append(_toggle(levels, NoticesScript.SHOW_NAMES[wanted], set_severity_filter.bind(wanted)))
+	levels.add_child(_caption("Tier:"))
+	for tier: int in [-1, NoticesScript.TIER_URGENT, NoticesScript.TIER_NORMAL, NoticesScript.TIER_INFO]:
+		var words: String = "All" if tier < 0 else NoticesScript.TIER_NAMES[tier]
+		_show_buttons.append(_toggle(levels, words, set_tier_filter.bind(tier)))
 	_sync_filter_buttons()
+	_build_snoozed(column)
+
+
+func _build_snoozed(column: VBoxContainer) -> void:
+	"""The snoozed kinds' line and its Wake all, hidden until a kind is snoozed."""
+	_snoozed_row = HBoxContainer.new()
+	_snoozed_row.add_theme_constant_override(&"separation", 6)
+	_snoozed_row.visible = false
+	column.add_child(_snoozed_row)
+	_snoozed_label = FarmUi.label("", ROW_PX, Palette.UMBER)
+	_snoozed_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_snoozed_row.add_child(_snoozed_label)
+	var wake: Button = FarmUi.button("Wake all", BUTTON_PX)
+	wake.name = "WakeAll"
+	wake.tooltip_text = "Let every snoozed kind of notice show and chime again"
+	wake.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	wake.pressed.connect(wake_all)
+	_snoozed_row.add_child(wake)
 
 
 func _caption(words: String) -> Label:
@@ -304,9 +348,28 @@ func set_group_filter(group: int) -> void:
 
 
 func set_severity_filter(wanted: int) -> void:
-	"""Press a severity filter (SHOW_*)."""
-	_show = clampi(wanted, NoticesScript.SHOW_ALL, NoticesScript.SHOW_NOTES)
+	"""Set the tier filter from a severity filter (SHOW_*: all; warnings -- urgent and normal; notes -- info)."""
+	_tier_mask = NoticesScript.tier_mask_of(clampi(wanted, NoticesScript.SHOW_ALL, NoticesScript.SHOW_NOTES))
 	_filters_changed()
+
+
+func set_tier_filter(tier: int) -> void:
+	"""Press a tier filter (-1: All), picked as the places are: from All a tier shows that tier alone, later ones are
+	added or taken off, the last one taken off shows All again."""
+	if tier < NoticesScript.TIER_INFO or tier > NoticesScript.TIER_URGENT:
+		_tier_mask = NoticesScript.ALL_TIERS
+	elif _tier_mask == NoticesScript.ALL_TIERS:
+		_tier_mask = 1 << tier
+	else:
+		_tier_mask ^= 1 << tier
+		if _tier_mask == 0:
+			_tier_mask = NoticesScript.ALL_TIERS
+	_filters_changed()
+
+
+func tier_mask() -> int:
+	"""The tier filter as a bit mask of TIER_* (checks)."""
+	return _tier_mask
 
 
 func group_mask() -> int:
@@ -328,8 +391,10 @@ func _sync_filter_buttons() -> void:
 	for group: int in NoticesScript.GROUP_NAMES.size():
 		_group_buttons[group + 1].set_pressed_no_signal(_group_mask != NoticesScript.ALL_GROUPS
 			and _group_mask & (1 << group) != 0)
-	for wanted: int in _show_buttons.size():
-		_show_buttons[wanted].set_pressed_no_signal(wanted == _show)
+	_show_buttons[0].set_pressed_no_signal(_tier_mask == NoticesScript.ALL_TIERS)
+	for slot: int in range(1, _show_buttons.size()):
+		var tier: int = NoticesScript.TIER_URGENT + 1 - slot
+		_show_buttons[slot].set_pressed_no_signal(_tier_mask != NoticesScript.ALL_TIERS and _tier_mask & (1 << tier) != 0)
 
 
 # --- drawing ------------------------------------------------------------------------------------------
@@ -349,13 +414,50 @@ func refresh() -> bool:
 	"""Rewrite both sections when the feed, the incidents or the filters changed. Returns whether it redrew."""
 	if _notices == null or _incidents == null or _frame == null:
 		return false
-	var key := Vector3i(_notices.revision, _incidents.revision, _group_mask * 4 + _show)
-	if key == _drawn_key:
+	var key := Vector3i(_notices.revision, _incidents.revision, _group_mask * 8 + _tier_mask)
+	var hour: int = _snooze_hour()
+	if key == _drawn_key and hour == _drawn_hour:
 		return false
 	_drawn_key = key
+	_drawn_hour = hour
 	_draw_attention()
 	_draw_history()
+	_draw_snoozed()
 	return true
+
+
+@warning_ignore("integer_division")
+func _snooze_hour() -> int:
+	"""The game hour now while any kind is snoozed (the snoozed line's hours left change with it), else -1. Integer
+	division: whole hours, by intent."""
+	if _notices.snoozes.count(_notices.now_tick()) == 0:
+		return -1
+	return _notices.now_tick() / SimClock.TICKS_PER_HOUR
+
+
+func _draw_snoozed() -> void:
+	"""The snoozed kinds in words with their hours left, waking soonest first; hidden while none is."""
+	var n: int = _notices.snoozes.kinds_into(_notices.now_tick(), _snoozed_kinds)
+	_snoozed_row.visible = n > 0
+	if n == 0:
+		return
+	_snoozed_words.clear()
+	for kind: String in _snoozed_kinds:
+		_snoozed_words.append("%s (%d h)" % [_notices.kind_title(StringName(kind)),
+			_notices.snooze_hours_left(StringName(kind))])
+	_snoozed_label.text = SNOOZED_WORDS % "; ".join(_snoozed_words)
+
+
+func wake_all() -> int:
+	"""Wake every snoozed kind (the snoozed line's button); returns how many were snoozed."""
+	var woken: int = _notices.wake_all()
+	refresh()
+	return woken
+
+
+func snoozed_text() -> String:
+	"""The snoozed line's words ("" while hidden; checks)."""
+	return _snoozed_label.text if _snoozed_row.visible else ""
 
 
 func _draw_attention() -> void:
@@ -427,7 +529,7 @@ func _on_attention_verb(slot: int, verb: String) -> void:
 
 func _draw_history() -> void:
 	"""The history rows: the kept entries passing the filters, newest first, the first `_history_limit` of them."""
-	var total: int = _notices.filtered_into(_group_mask, _show, _history_list)
+	var total: int = _notices.tiers_into(_group_mask, _tier_mask, _history_list)
 	var drawn: int = mini(total, _history_limit)
 	for slot: int in drawn:
 		_history_row(slot, _history_list[slot])
@@ -446,19 +548,31 @@ func _history_row(slot: int, k: int) -> void:
 		_history_rows.append(_new_history_row(_history_rows.size()))
 		_history_target.append_array([NoticesScript.TARGET_NONE, -1])
 		_history_level.append(UNDRAWN)
+		_history_id.append(0)
 	var row: HBoxContainer = _history_rows[slot]
 	var line := row.get_child(0) as Label
 	var words: String = entry_text(k)
 	if line.text != words:
 		line.text = words
-	if _history_level[slot] != _notices.level(k):
-		_history_level[slot] = _notices.level(k)
-		var warning: bool = _notices.level(k) == NoticesScript.LEVEL_WARNING
-		line.add_theme_color_override(&"font_color", Palette.CLAY if warning else Palette.INK)
+	if _history_level[slot] != _notices.tier(k):
+		_history_level[slot] = _notices.tier(k)
+		StripScript.paint_tier(line, _notices.tier(k), ROW_PX, URGENT_PX)
 	_history_target[2 * slot] = _notices.target_kind(k)
 	_history_target[2 * slot + 1] = _notices.target_id(k)
+	_history_id[slot] = _notices.entry_id(k)
 	(row.get_child(1) as Button).visible = _can_jump(_notices.target_kind(k), _notices.target_id(k))
+	_history_verbs(row, k)
 	row.visible = true
+
+
+func _history_verbs(row: HBoxContainer, k: int) -> void:
+	"""A history row's Snooze (Wake while its kind sleeps; none on an urgent entry) and Dismiss (none once dismissed)."""
+	var snooze := row.get_child(2) as Button
+	snooze.visible = _notices.tier(k) != NoticesScript.TIER_URGENT
+	var words: String = WAKE if _notices.is_kind_snoozed(_notices.kind(k)) else SNOOZE % NoticesScript.SNOOZE_HOURS
+	if snooze.text != words:
+		snooze.text = words
+	(row.get_child(3) as Button).visible = not _notices.is_dismissed(k)
 
 
 func _new_history_row(slot: int) -> HBoxContainer:
@@ -471,6 +585,17 @@ func _new_history_row(slot: int) -> HBoxContainer:
 	go.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	go.pressed.connect(_on_history_go.bind(slot))
 	row.add_child(go)
+	var snooze: Button = FarmUi.button(SNOOZE % NoticesScript.SNOOZE_HOURS, BUTTON_PX)
+	snooze.tooltip_text = "Quiet this kind of notice for %d game hours: kept here, not shown or chimed" \
+		% NoticesScript.SNOOZE_HOURS
+	snooze.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	snooze.pressed.connect(snooze_row.bind(slot))
+	row.add_child(snooze)
+	var dismiss: Button = FarmUi.button(DISMISS, BUTTON_PX)
+	dismiss.tooltip_text = "Take this notice off the news strip (it stays here)"
+	dismiss.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	dismiss.pressed.connect(dismiss_row.bind(slot))
+	row.add_child(dismiss)
 	_body.add_child(row)
 	_body.move_child(_older, -1)
 	return row
@@ -479,6 +604,25 @@ func _new_history_row(slot: int) -> HBoxContainer:
 func _on_history_go(slot: int) -> void:
 	"""A history row's Go to: the target the row was drawn with."""
 	go_to(_history_target[2 * slot], _history_target[2 * slot + 1])
+
+
+func snooze_row(slot: int) -> bool:
+	"""History row `slot`'s Snooze: quiet its entry's kind for SNOOZE_HOURS game hours -- or, while it is quiet,
+	wake it. False when its entry is gone or urgent."""
+	var k: int = _notices.index_of(_history_id[slot])
+	if k < 0:
+		return false
+	var done: bool = _notices.wake_kind(_notices.kind(k)) if _notices.is_kind_snoozed(_notices.kind(k)) \
+		else _notices.snooze_entry(k)
+	refresh()
+	return done
+
+
+func dismiss_row(slot: int) -> bool:
+	"""History row `slot`'s Dismiss: its entry off the strip, kept here."""
+	var done: bool = _notices.dismiss_id(_history_id[slot])
+	refresh()
+	return done
 
 
 func show_older() -> void:
@@ -492,6 +636,7 @@ func entry_text(k: int) -> String:
 	"""Feed entry `k` as a history line: '<date> · <place> · Warning: <text> (×2)', and STILL_OPEN while the
 	incident it reports is unresolved."""
 	var still: String = STILL_OPEN if _incidents.is_unresolved(_notices.incident(k)) else ""
+	still += DISMISSED if _notices.is_dismissed(k) else ""
 	var place: String = NoticesScript.GROUP_NAMES[_notices.group(k)]
 	var line: String = _notices.line(k)
 	var cut: int = line.find(" · ")
@@ -552,6 +697,16 @@ func history_text(slot: int) -> String:
 func history_can_go(slot: int) -> bool:
 	"""Whether history row `slot` offers Go to."""
 	return (_history_rows[slot].get_child(1) as Button).visible
+
+
+func history_verb(slot: int, verb: int) -> Button:
+	"""History row `slot`'s button `verb`: 1 Go to, 2 Snooze, 3 Dismiss (checks)."""
+	return _history_rows[slot].get_child(verb) as Button
+
+
+func history_tier(slot: int) -> int:
+	"""The tier history row `slot` is drawn at (checks)."""
+	return _history_level[slot]
 
 
 func press_history_go(slot: int) -> void:

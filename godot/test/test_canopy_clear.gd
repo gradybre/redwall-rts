@@ -229,7 +229,8 @@ func test_only_the_crowns_in_the_way_are_thinned() -> void:
 
 
 func test_a_fade_eases_in_and_out_and_hands_back_the_material() -> void:
-	"""FADE_RATE per second each way; back at 0 the tree has its own material again."""
+	"""FADE_RATE per second each way; back at 0 the tree has its own material again, and its `fade` back at 0 (the
+	seasons draw every tree in the same shader, decision 0551: a stale fade would leave a dither)."""
 	var made: Array = _canopy([_oak_at(Vector2(0.0, 10.0), 1.0)])
 	var canopy: CanopyScript = made[0]
 	var view: ViewScript = made[3]
@@ -245,6 +246,8 @@ func test_a_fade_eases_in_and_out_and_hands_back_the_material() -> void:
 		canopy.update(away, Vector3(60.0, 0.0, 0.0), 0.1)
 	assert_equal(canopy.faded_count(), 0, "no fade live")
 	assert_null(CanopyScript._first_mesh(view.tree_node(0)).material_override, "its own material back")
+	assert_equal(float(CanopyScript._first_mesh(view.tree_node(0)).get_instance_shader_parameter(CanopyScript.PARAM_FADE)),
+		0.0, "its fade back at 0")
 
 
 func test_the_selected_residents_sight_lines_thin_their_crowns() -> void:

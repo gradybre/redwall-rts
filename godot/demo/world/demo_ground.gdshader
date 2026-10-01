@@ -9,6 +9,11 @@
 // `frost_cover` (how much of it is frost). It lies on the ground itself, in world space -- so it has no
 // edge anywhere -- on what faces up, thinner on the worn paths (trodden), and never at or below the water
 // line (`water_level_y`): the carved bank's wet foot and the bed under the water stay as they are.
+//
+// FALLEN LEAVES (decision 0551, demo/seasons/season_view.gd): `leaf_fall` (0..1) lays drifts of fallen leaves in
+// `leaf_fall_color` over the grass and the woods' litter through autumn and into winter -- thickest toward the
+// woods, in drifts at the scale of a few leaves, fewest on the worn paths (trodden) and under any snow. The
+// season view also moves `grass_color`, `grass_sun_color` and `litter_color` with the season.
 shader_type spatial;
 render_mode diffuse_burley, specular_schlick_ggx;
 
@@ -31,6 +36,8 @@ uniform float clearing_radius = 23.0;
 uniform float clearing_wobble = 2.5;
 uniform float south_opening = 15.0;
 uniform float forest_blend = 9.0;
+uniform float leaf_fall = 0.0;
+uniform vec3 leaf_fall_color : source_color = vec3(0.55, 0.32, 0.13);
 
 #include "res://demo/weather/cover.gdshaderinc"
 
@@ -52,6 +59,15 @@ float lying(float path, float fine, float mid) {
 	float patchy = smoothstep(0.25, 0.7, fine * 0.55 + mid * 0.55 + snow_cover * 0.35 - frost_cover * 0.2);
 	float amount = snow_cover * dry * flat_ * mix(1.0, 0.45, path);
 	return clamp(amount * mix(patchy, 1.0, (1.0 - frost_cover) * 0.6), 0.0, 1.0);
+}
+
+// Fallen leaves over `ground` (see FALLEN LEAVES): drifts from the mid noise, broken at leaf scale.
+vec3 fallen_leaves(vec3 ground, float forest, float fine, float detail) {
+	float speck = texture(detail_noise, world_xz * 3.1 + vec2(0.41, 0.83)).r;
+	float drift = fine * 0.5 + detail * 0.3 + forest * 0.45 + leaf_fall * 0.25;
+	float lying_leaves = smoothstep(0.6, 0.88, drift) * smoothstep(0.35, 0.65, speck + leaf_fall * 0.2);
+	vec3 leaves = leaf_fall_color * mix(0.8, 1.15, speck);
+	return mix(ground, leaves, clamp(lying_leaves * leaf_fall * 1.3, 0.0, 0.8));
 }
 
 float segment_distance(vec2 p, vec4 seg) {
@@ -95,6 +111,9 @@ void fragment() {
 	float r = length(world_xz) + (macro - 0.5) * 10.0;
 	float forest = smoothstep(clearing_edge(world_xz) - 3.0, clearing_edge(world_xz) + forest_blend, r);
 	grass = mix(grass, litter_color * mix(0.88, 1.08, fine), forest * 0.8);
+	if (leaf_fall > 0.0) {
+		grass = fallen_leaves(grass, forest, fine, detail);
+	}
 
 	float ragged = (mid - 0.5) * 0.9 + (fine - 0.5) * 0.5;
 	float d = path_distance(world_xz) + ragged;

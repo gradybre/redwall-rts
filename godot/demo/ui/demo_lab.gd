@@ -33,6 +33,8 @@ var _panels: PackedStringArray = PackedStringArray()
 var _actions: Array[Callable] = []
 var _available: Array[Callable] = []
 var _why: PackedStringArray = PackedStringArray()
+## Per trigger: what the status line says once it is sent ("": DONE, naming its panel).
+var _done: PackedStringArray = PackedStringArray()
 var _status: Label = null
 var _close: Button = null
 var _layout: UiLayout = UiLayout.new()
@@ -73,9 +75,10 @@ func _ready() -> void:
 
 
 func add_trigger(label: String, tip: String, panel_name: String, action: Callable,
-		available: Callable = Callable(), why: String = "") -> Button:
+		available: Callable = Callable(), why: String = "", done: String = "") -> Button:
 	"""One trigger: its button `label` (tooltip `tip`), the panel whose news it makes, what it does, and
-	optionally when it can act (`available() -> bool`, else disabled with `why`)."""
+	optionally when it can act (`available() -> bool`, else disabled with `why`) and what the status line says
+	once it is sent (`done`; else DONE, naming the panel -- a trigger that makes no news says its own)."""
 	var button: Button = FarmUi.button(label)
 	button.tooltip_text = tip
 	button.pressed.connect(trigger.bind(_buttons.size()))
@@ -87,6 +90,7 @@ func add_trigger(label: String, tip: String, panel_name: String, action: Callabl
 	_actions.append(action)
 	_available.append(available)
 	_why.append(why)
+	_done.append(done)
 	return button
 
 
@@ -95,7 +99,7 @@ func trigger(index: int) -> void:
 	if index < 0 or index >= _actions.size() or not can_fire(index):
 		return
 	_actions[index].call()
-	_status.text = DONE % [_labels[index], _panels[index]]
+	_status.text = _done[index] if not _done[index].is_empty() else DONE % [_labels[index], _panels[index]]
 	refresh()
 
 

@@ -259,6 +259,50 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
   news strip left). It is clear of the minimap, the news strip, the command strip and the party panel (which
   at 1280x720 fills its column with anyone selected).
 
+## Action cards: what a button will do, and who will do it (decision 0332)
+
+Every demo action's button carries an **action card** as its tooltip (`ui/action_card.gd`, review group H,
+findings F33 and F44), enabled or not: the farm's Plant…, crop rows, Water, Drain, Harvest, Clear,
+Compost, Cover, Raise and Bank; the woods' Fell, Haul logs, Grub out, Plant sapling, Gather deadfall and
+Saw planks; the tunnels' Widen, Brace, Hang lanterns and Repair; Dig tunnel and the room tools; each
+fixture's "+" and "−" and the Suggested layout; the Water panel's Build footbridge, Build log bridge and
+Dive. A card reads, top down:
+
+```text
+Build a plank footbridge
+Can't now: it needs 4.7 U planks; the stores hold 0.0 U planks and 76.0 U wood
+To fix: Woods ▸ Saw planks (2.0 U wood makes 2.0 U planks)
+3.4 m of water bridged (neck bridge): anyone may cross, carrying or not
+Planks: have 0.0 U · need 4.7 U
+Work: about 6.7 game hours, plus the walk
+Who: Assign selected: Squirrel forester (nearest of 2)
+Interrupts: Felling the oak — goes back to it after
+Needs: a site both banks take; planks (sawn at the sawhorse) and wood for any piers
+```
+
+- **The card is the order's own decision.** Each system's order and its card run the same function:
+  `farm_crew.gd decide`, `forest_crew.gd decide`, `tunnel_actions.gd refusal`, `room_fixtures.gd
+  order_refusal` / `suggest_refusal` / `take_refusal`, `demo_waterplay.gd build_refusal`, the dive loop's
+  `dive_spot` and `dive_refusal`, and the Dig tool's `choose_digger`. So a card's refusal is the order's
+  (code and words), its resident is the one sent, its cost is what is spent, and a button is pressable
+  exactly when its card allows it. The bridge, tunnel and fixture buttons now refuse a short store before
+  they are pressed, not after.
+- **Costs** are have / need from the stores the HUD reads (wood, stone, planks), the farm's compost store,
+  and the fullest spoil heap. **Work** is in game hours of the demo calendar (2.5 demo seconds a game
+  hour); the walk is not counted, and a mole job's card says a crew is quicker.
+- **Who**, in one grammar everywhere: "Assign selected: X (nearest of 3)" (farm, woods, bridges);
+  "Assign selected: X (first of 3 who fits the bore)" and "Assign X (the nearest free resident who fits
+  the bore)" (tunnels); "Lead: X (nearest of 3) + 2 waiting to haul" (felling); "Queue for the field crew:
+  …" / "Queue for the forestry crew: …"; "Queue for the bridgewright: Beaver bridgewright (specialist)";
+  "Already under way: X is on it".
+- **Interrupts** says what the named resident stops and whether it goes back to it (the brain's resuming
+  rule, `control/work_interrupt.gd`; `demo_command.gd interrupt_text`): a farm, woods, spoil or tunnel job
+  resumes; a dig with nothing dug drops its route; a bridge waits for a builder; a sleeper goes back to bed.
+- **A harvest with no store room** (decision 0222) is not refused: its card says it waits on the board, uncut,
+  and how much has nowhere to go -- what the order then does.
+- The cards wear the HUD skin's tooltip (the map piece, ink text) and break their lines to stay inside
+  UI-SET-073's 360 × 240.
+
 ## Commanding the residents
 
 | Input | Does |

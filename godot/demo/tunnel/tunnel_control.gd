@@ -92,6 +92,7 @@ const ServicesScript := preload("res://demo/demo_services.gd")
 const RoomToolScript := preload("res://demo/burrow/room_tool.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const FarmCatalog := preload("res://demo/farm/farm_catalog.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
 
 ## A right click this close to a dig's start is about that dig.
 const RESUME_PICK_M: float = 1.1
@@ -121,6 +122,11 @@ const DIG_PAUSED: String = "Tunnel paused at %d%% — right-click where it start
 const DIG_UNREACHED: String = "The digger couldn't reach the start — tunnel paused at %d%%; right-click where it starts with a digger to resume"
 const DIG_DROPPED: String = "Dig called off before any ground was broken"
 const REFUSED: String = "Can't dig: %s"
+## The tools' action cards (tool_card_into).
+const TOOL_NEEDS: String = "a resident who fits a bore (a mole, a mouse or a squirrel); no stores (the pointer's readout shows the work, spoil and brace cost)"
+const TOOL_NOBODY: String = "nobody can dig: select a mole, a mouse or a squirrel"
+const TOOL_FREE: String = "the village's most skilled free digger"
+const TOOL_BUSY: String = "the most skilled digger: it digs this after its present dig"
 const VIEW_ON: String = "Underground view (U to return)"
 const LEVEL_SHOWN: String = "Underground view: level %d of 2 -- PgUp / PgDn to switch, U to return"
 const LINK_FIRST: String = "Dig %s down: press on the first level's network where it starts and release where its foot lands on the second -- L: %s · Esc: back to tunnels"
@@ -1222,3 +1228,29 @@ func _sync_seen() -> void:
 		_seen_reason[slot] = network.pause_reason[slot]
 	for m in Rules.MAX_MOUTHS:
 		_seen_mouth[m] = network.mouth_gen[m] if network.is_mouth(m) else -1
+
+
+# --- the tools' action cards (decision 0332, review F33/F44) ----------------------------------------
+
+func tool_card_into(card: CardScript, verb: String, what: String) -> void:
+	"""The Dig tool's (or a room tool's) action card: what it lays, that it spends nothing from the stores (the
+	pointer's readout gives the time, the spoil and the brace cost of the piece laid), and who digs -- `choose_digger`,
+	the rule `confirm` sends, with the crew the selection makes (`crew_size`)."""
+	card.reset(verb)
+	card.result = what
+	card.prerequisites.append(TOOL_NEEDS)
+	card.work_note = ""
+	var digger := choose_digger()
+	if digger < 0:
+		card.who = TOOL_NOBODY
+		return
+	var selection := _selection.call() as PackedInt32Array
+	var name: String = (_cast.actor(digger) as DemoActorScript).display_name
+	card.worker = digger
+	if selection.has(digger):
+		card.who = CardScript.assign_first(name, selection.size(), "who can dig")
+	else:
+		card.who = CardScript.assign_village(name, TOOL_FREE if _brain(digger).dig_tunnel < 0 else TOOL_BUSY)
+	var crew := crew_size(digger) - 1
+	if crew > 0:
+		card.who += " + %d on the crew" % crew

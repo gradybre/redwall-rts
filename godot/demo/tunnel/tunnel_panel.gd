@@ -22,6 +22,10 @@ extends CanvasLayer
 ## palette row for each kind of fixture its places take -- its words, a "+" and a "−" -- and the suggested layout's
 ## button. Those buttons emit "fit:add:<kind>", "fit:take:<kind>" and "fit:suggest" (room_text.gd FIT_*).
 ##
+## ACTION CARDS (decision 0332): each tunnel job's and fit-out button's tooltip is its action card -- result, cost as
+## have / need, work, who goes and what they stop, and, disabled, the order's own refusal with its fix (`set_tip`;
+## tunnel_ext.gd fills them from the orders' own checks, and enables the buttons by the same answer).
+##
 ## STYLE: the woodland skin's carved-wood frame with a parchment face, ink and umber text, wood
 ## buttons with cream text -- the party panel's pieces. The frame stops the mouse. The buttons take
 ## keyboard focus (decision 0261); Enter presses one only while it holds the KEYBOARD's focus -- a
@@ -34,6 +38,7 @@ const Palette := preload("res://demo/ui/woodland_palette.gd")
 const DetailZone := preload("res://demo/ui/demo_detail_zone.gd")
 const RoomTextScript := preload("res://demo/burrow/room_text.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
 
 signal action(name: StringName)
 
@@ -245,11 +250,15 @@ func show_room(title: String, text: String, rows: Array[Dictionary], suggest: St
 	_shown_rows = rows.size()
 	_set_line(&"room_title", title)
 	_set_line(&"room", text)
-	for row: HBoxContainer in _fit_rows:
-		row.visible = false
+	var shown_kinds: int = 0
+	for row: Dictionary in rows:
+		shown_kinds |= 1 << int(row["kind"])
+	for kind: int in _fit_rows.size():
+		# Each row is set to its final visibility once: hiding a row and showing it again in the same refresh drops
+		# the pointer's hover, closing a "+"/"−" button's tooltip (its action card, decision 0332) every refresh.
+		_fit_rows[kind].visible = (shown_kinds & (1 << kind)) != 0
 	for row: Dictionary in rows:
 		var kind: int = row["kind"]
-		_fit_rows[kind].visible = true
 		_fit_words[kind].text = row["text"]
 		(_buttons[StringName("%s%s:%d" % [RoomTextScript.FIT_PREFIX, RoomTextScript.FIT_ADD, kind])] as Button).disabled = not row["add"]
 		(_buttons[StringName("%s%s:%d" % [RoomTextScript.FIT_PREFIX, RoomTextScript.FIT_TAKE, kind])] as Button).disabled = not row["take"]
@@ -335,6 +344,14 @@ func show_tunnel(title: String, text: String, repair: String, enabled: Dictionar
 		var b := _buttons[key] as Button
 		b.visible = not enabled.is_empty()
 		b.disabled = not bool(enabled.get(key, false))
+
+
+func set_tip(key: StringName, tip: String) -> void:
+	"""A button's tooltip: its action card (decision 0332, demo/ui/action_card.gd)."""
+	var b := _buttons[key] as Button
+	CardScript.dress(b)
+	if b.tooltip_text != tip:
+		b.tooltip_text = tip
 
 
 func _set_line(key: StringName, text: String) -> void:

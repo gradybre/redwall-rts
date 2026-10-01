@@ -60,6 +60,8 @@ const ServicesScript := preload("res://demo/demo_services.gd")
 const AbilitiesScript := preload("res://demo/control/resident_abilities.gd")
 const Layers := preload("res://demo/demo_layers.gd")
 const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
+const InterruptScript := preload("res://demo/control/work_interrupt.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
 
 const RING_GAP_M: float = 0.12
 const PULSE_HZ: float = 1.1
@@ -120,6 +122,10 @@ var _ground_orders: Array[Callable] = []
 var _task_texts: Array[Callable] = []
 var _input_hooks: Array[Callable] = []
 var _skill_texts: Array[Callable] = []
+## The job owners' resume rules (work_interrupt.gd; see add_resume_rule).
+var _resume_rules: Array[Callable] = []
+## The tool buttons' action card (reused; _refresh_tool_cards).
+var _tool_card_data: CardScript = CardScript.new()
 ## The party panel's notice line, per resident (see say): its text, and when it was said (0: never).
 var _notice_of: PackedStringArray = PackedStringArray()
 var _notice_order: PackedInt32Array = PackedInt32Array()
@@ -158,6 +164,7 @@ func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null,
 	_panel.dig_requested.connect(_on_dig_requested)
 	_panel.room_requested.connect(_on_room_requested)
 	_tunnels.ext.set_hud(hud_root)
+	_tunnels.ext.set_interrupt(interrupt_text)
 
 
 func set_world(world: DemoWorldScript) -> void:
@@ -651,6 +658,7 @@ func _process(delta: float) -> void:
 	if _refresh_in <= 0.0:
 		_refresh_in = PANEL_REFRESH_S
 		_refresh_panel()
+		_refresh_tool_cards()
 		_panel.follow_hud()
 
 
@@ -806,3 +814,45 @@ func _dug_percent(brain: BrainScript) -> int:
 func panel() -> PanelScript:
 	"""The demo party panel."""
 	return _panel
+
+
+# --- what an order interrupts (decision 0332, review F44) -----------------------------------------
+
+func add_resume_rule(rule: Callable) -> void:
+	"""`rule(actor_index: int) -> int`: a job owner's answer to "if an order takes this resident from your job, does
+	it go back to it?" (work_interrupt.gd's codes, NOT_MINE for a resident it has no job for)."""
+	_resume_rules.append(rule)
+
+
+func interrupt_text(actor_index: int) -> String:
+	"""What an order given to this resident now interrupts, and whether it goes back to it after -- the action
+	cards' line (demo/ui/action_card.gd): the party panel's own activity words, the brain's RESUMING rule."""
+	if actor_index < 0 or actor_index >= _cast.actor_count():
+		return ""
+	var brain := (_cast.actor(actor_index) as DemoActorScript).brain
+	return InterruptScript.text(activity_text(actor_index), InterruptScript.resume_of(brain, _resume_rules, actor_index))
+
+
+func _refresh_tool_cards() -> void:
+	"""The party panel's Dig tunnel and room tool buttons, each with its action card (tunnel_control.gd
+	`tool_card_into`) and what its digger would stop doing -- while they show."""
+	var dig := _panel.dig_button()
+	if dig == null or not dig.visible or _tunnels == null:
+		return
+	_tool_card(dig, PanelScript.DIG_TIP)
+	for k: int in PanelScript.ROOM_TIPS.size():
+		var room := _panel.room_button(k)
+		if room != null:
+			_tool_card(room, PanelScript.ROOM_TIPS[k])
+
+
+func _tool_card(button: Button, tip: String) -> void:
+	"""One tool button's card: its own words (`tip`: "Name (key) — what it does") as verb and result."""
+	var cut := tip.find(" — ")
+	_tunnels.tool_card_into(_tool_card_data, tip.left(cut), tip.substr(cut + 3))
+	if _tool_card_data.worker >= 0:
+		_tool_card_data.interrupts = interrupt_text(_tool_card_data.worker)
+	var said := _tool_card_data.text()
+	CardScript.dress(button)
+	if button.tooltip_text != said:
+		button.tooltip_text = said

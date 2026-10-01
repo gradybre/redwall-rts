@@ -17,7 +17,11 @@ extends CanvasLayer
 ## verbs, each enabled one's tooltip saying its effect in points (Rest: "+0.5 fertility points a day").
 ## A harvest waiting for store room (farm_crew.gd CONSERVATION, decision 0222) adds a clay line saying
 ## how much has nowhere to go and a "Make room…" button that opens the Pantry.
-## A verb that cannot be done now is disabled, its reason in its tooltip. "Plant…" opens the PICKER:
+## EVERY VERB'S TOOLTIP IS ITS ACTION CARD (decision 0332, review F33/F44; demo/ui/action_card.gd): the result, the
+## cost as have / need, the work in game hours, who will do it (the crew's own `decide`: the nearest free selected
+## resident, else the field crew's queue), what that resident stops and whether it goes back to it, what the verb
+## needs -- and, disabled, the exact refusal the order would give and how to put it right. The same `decide` runs
+## the order, so the card and the answer to pressing agree. "Plant…" opens the PICKER:
 ## every ingredient, those sowable now first, each with its row's growth hours, yield, family and its
 ## rotation effect IN THIS BED (the same family again shows the penalty; legumes say they feed the
 ## soil), the rest disabled with the reason -- soil or planting window.
@@ -36,7 +40,9 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const DetailZone := preload("res://demo/ui/demo_detail_zone.gd")
 const GoodsScript := preload("res://demo/farm/farm_goods.gd")
 const MeterScript := preload("res://demo/farm/farm_moisture_meter.gd")
+const FarmCard := preload("res://demo/farm/farm_card.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
 
 signal verb_requested(kind: int)
 signal crop_picked(item: int)
@@ -61,6 +67,8 @@ const LINE_COUNT: int = 10
 const LINE_MOISTURE: int = 1
 const DETAILS_SHOW: String = "Details ▸"
 const DETAILS_HIDE: String = "Details ▾"
+const CANCEL_TIP: String = "Cancel every job on this bed only (a harvest in hand goes into store)"
+const NO_JOBS_TIP: String = "no jobs"
 
 var bed: int = -1
 var picking: bool = false
@@ -100,6 +108,11 @@ var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _goods: GoodsScript = null
+## The action cards' inputs (set_preview): who is selected, and what an order would interrupt.
+var _members: Callable = Callable()
+var _interrupt: Callable = Callable()
+var _card: CardScript = CardScript.new()
+var _no_members: PackedInt32Array = PackedInt32Array()
 
 
 func configure(sim: SimScript, crew: CrewScript) -> void:
@@ -115,6 +128,13 @@ func configure(sim: SimScript, crew: CrewScript) -> void:
 func set_goods(goods: GoodsScript) -> void:
 	"""Show each ingredient's icon in the crop picker (farm_goods.gd)."""
 	_goods = goods
+
+
+func set_preview(members: Callable, interrupt: Callable) -> void:
+	"""The action cards' inputs: `members() -> PackedInt32Array` the selected residents (demo_command.gd `selected`),
+	`interrupt(who) -> String` what an order would interrupt (demo_command.gd `interrupt_text`)."""
+	_members = members
+	_interrupt = interrupt
 
 
 func _ready() -> void:
@@ -395,17 +415,56 @@ func _jobs_line() -> String:
 
 
 func _fill_buttons() -> void:
-	"""Enable each verb that can be done now; a disabled one says why in its tooltip."""
-	var spoil: int = _crew.max_heap_spoil()
+	"""Each verb enabled when its card allows it, its card as its tooltip either way (see EVERY VERB'S TOOLTIP)."""
+	var members: PackedInt32Array = _selected()
 	for k: int in VERB_KINDS.size():
-		_set_state(_verb_buttons[k], JobsScript.refusal_for(_sim, VERB_KINDS[k], bed, spoil))
-		if not _verb_buttons[k].disabled:
-			_verb_buttons[k].tooltip_text = Text.verb_tip(_sim, bed, VERB_KINDS[k])
-	var empty: bool = _sim.stage_of(bed) == SimScript.STAGE_EMPTY
-	_set_state(_plant, &"" if empty and not _sim.is_fallow(bed) else &"BED_NOT_EMPTY_OR_RESTING")
+		_crew.preview_into(_card, VERB_KINDS[k], bed, members)
+		_show_card(_verb_buttons[k])
+	_fill_plant(members)
 	_fallow.text = "Unrest" if _sim.is_fallow(bed) else "Rest"
 	_fallow.tooltip_text = Text.rest_tip()
-	_set_state(_cancel, &"" if _jobs_line() != "" else &"NO_JOBS")
+	var jobs: bool = _jobs_line() != ""
+	FarmUi.set_card(_cancel, jobs, CANCEL_TIP if jobs else NO_JOBS_TIP)
+
+
+func _fill_plant(members: PackedInt32Array) -> void:
+	"""Plant…'s card: sowing as the first crop sowable here now would be ordered (who, work); refused for a bed that
+	is not empty or is resting -- the picker then shows each crop's own card."""
+	var first: int = Catalog.NO_ITEM
+	for item: int in Catalog.ITEM_COUNT:
+		if _sim.sow_refusal(bed, item) == &"":
+			first = item
+			break
+	_crew.preview_into(_card, JobsScript.KIND_SOW, bed, members, first)
+	_card.verb = "Plant… " + _crew.bed_label(bed)
+	_card.result = "Choose a crop from the list; then it is sown" if first != Catalog.NO_ITEM \
+		else "No crop can be sown here now: the list says why for each"
+	var code: StringName = SimScript.REFUSE_FALLOW if _sim.is_fallow(bed) else &""
+	if code == &"" and _sim.stage_of(bed) != SimScript.STAGE_EMPTY:
+		code = FarmingScript.REFUSE_NOT_EMPTY
+	if code != &"":
+		_card.refuse(String(code), CrewScript.reason_text(code), FarmCard.fix_for(code))
+	elif first == Catalog.NO_ITEM:
+		_card.clear_refusal()
+		_card.who = ""
+	_show_card(_plant)
+
+
+func _show_card(button: Button) -> void:
+	"""Enable `button` as the card allows, with the card -- and what its resident would stop -- as its tooltip."""
+	if _card.worker >= 0 and _interrupt.is_valid():
+		_card.interrupts = String(_interrupt.call(_card.worker))
+	FarmUi.set_card(button, _card.is_ok(), _card.text())
+
+
+func _selected() -> PackedInt32Array:
+	"""The selected residents (none without a command layer)."""
+	return _members.call() as PackedInt32Array if _members.is_valid() else _no_members
+
+
+func card() -> CardScript:
+	"""The last card filled (tests)."""
+	return _card
 
 
 static func _set_state(button: Button, refusal: StringName) -> void:
@@ -434,14 +493,18 @@ func open_picker() -> void:
 
 
 func _pick_row(item: int, reason: String) -> Control:
-	"""One ingredient: a button (disabled with a reason) over its rotation / soil effect."""
+	"""One ingredient: a button with its sowing card (disabled with the picker's reason: its sow_refusal, the code the
+	card and the order share) over its rotation / soil effect."""
 	var row := VBoxContainer.new()
 	row.add_theme_constant_override(&"separation", 1)
 	var pick: Button = FarmUi.button(Catalog.ITEM_LABELS[item], FarmUi.BODY_PX)
 	pick.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	if _goods != null:
 		FarmUi.set_icon(pick, _goods.icon_of(item))
-	FarmUi.set_enabled(pick, reason == "", reason)
+	_crew.preview_into(_card, JobsScript.KIND_SOW, bed, _selected(), item)
+	if not _card.is_ok() and reason != "":
+		_card.reason = reason
+	_show_card(pick)
 	pick.pressed.connect(func() -> void: crop_picked.emit(item))
 	row.add_child(pick)
 	_pick_buttons[item] = pick

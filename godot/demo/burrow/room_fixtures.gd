@@ -292,18 +292,34 @@ func _last_taken(graph: RefCounted, r: int, kind: int) -> int:
 
 func order(graph: RefCounted, r: int, kind: int, stores: RefCounted) -> int:
 	"""Plan a fixture of `kind` in room `r`'s first empty place that takes it (a large bed: the first alcove whose nook
-	may be dug), paying its cost from `stores` all or nothing. REFUSE_NONE, or why not (see REASONS)."""
-	var refused := _order_refusal(graph, r, kind)
+	may be dug), paying its cost from `stores` all or nothing. REFUSE_NONE, or why not (see REASONS) -- the refusal
+	`order_refusal` gives, which the action cards show (decision 0332)."""
+	var refused := order_refusal(graph, r, kind, stores)
 	if refused != REFUSE_NONE:
 		return refused
-	var f := _place_of(graph, r, kind, EMPTY, false)
-	if kind == RoomsScript.FIX_BIG_BED:
-		f = nook_place(graph, r)
-		if f < 0:
-			return REFUSE_NO_NOOK
+	var f := place_for(graph, r, kind)
 	if not stores.pay_all(COST_WOOD_MILLI[kind], COST_STONE_MILLI[kind], COST_PLANKS_MILLI[kind]):
 		return REFUSE_SHORT
 	_plan(graph, r, f, kind)
+	return REFUSE_NONE
+
+
+func place_for(graph: RefCounted, r: int, kind: int) -> int:
+	"""The place an order of `kind` in room `r` fills: its first empty place that takes it, a large bed's first alcove
+	whose nook may be dug (-1: none)."""
+	return nook_place(graph, r) if kind == RoomsScript.FIX_BIG_BED else _place_of(graph, r, kind, EMPTY, false)
+
+
+func order_refusal(graph: RefCounted, r: int, kind: int, stores: RefCounted) -> int:
+	"""Why a fixture of `kind` may not be ordered in room `r` now, cost included (REFUSE_NONE: it may) -- `order`'s
+	own checks, in its order, changing nothing (a large bed's `nook_refused` says why its nook may not go)."""
+	var refused := _order_refusal(graph, r, kind)
+	if refused != REFUSE_NONE:
+		return refused
+	if kind == RoomsScript.FIX_BIG_BED and nook_place(graph, r) < 0:
+		return REFUSE_NO_NOOK
+	if not stores.can_pay(COST_WOOD_MILLI[kind], COST_STONE_MILLI[kind]) or not stores.can_pay_planks(COST_PLANKS_MILLI[kind]):
+		return REFUSE_SHORT
 	return REFUSE_NONE
 
 
@@ -359,18 +375,30 @@ func suggest(graph: RefCounted, r: int, stores: RefCounted) -> int:
 	"""THE SUGGESTED LAYOUT: plan a fixture in every empty place of room `r` at once -- a large bed in the first alcove
 	that may take one if the home has none (see LARGE BEDS) -- paying for all of them or none. REFUSE_NONE, or why
 	not."""
-	if not graph.rooms.is_done(graph, r):
-		return REFUSE_NOT_DUG
+	var refused := suggest_refusal(graph, r, stores)
+	if refused != REFUSE_NONE:
+		return refused
 	var layout := PackedInt32Array()
 	layout_into(graph, r, layout)
 	var cost := layout_cost(layout)
-	if cost == Vector3i.ZERO:
-		return REFUSE_NOTHING_TO_ADD
 	if not stores.pay_all(cost.y, cost.z, cost.x):
 		return REFUSE_SHORT
 	for f in layout.size():
 		if layout[f] >= 0:
 			_plan(graph, r, f, layout[f])
+	return REFUSE_NONE
+
+
+func suggest_refusal(graph: RefCounted, r: int, stores: RefCounted) -> int:
+	"""Why the suggested layout may not be ordered in room `r` now (REFUSE_NONE: it may) -- `suggest`'s own checks,
+	changing nothing."""
+	if not graph.rooms.is_done(graph, r):
+		return REFUSE_NOT_DUG
+	var cost := missing_cost(graph, r)
+	if cost == Vector3i.ZERO:
+		return REFUSE_NOTHING_TO_ADD
+	if not stores.can_pay(cost.y, cost.z) or not stores.can_pay_planks(cost.x):
+		return REFUSE_SHORT
 	return REFUSE_NONE
 
 
@@ -411,15 +439,24 @@ func has_room_for(graph: RefCounted, r: int, kind: int) -> bool:
 func take_out(graph: RefCounted, r: int, kind: int, stores: RefCounted, stored_u: int = 0) -> int:
 	"""Take room `r`'s last fixture of `kind` out (a planned one before an installed one), its cost back into
 	`stores`. A cellar holding `stored_u` of food keeps racks for at least that. REFUSE_NONE, or why not."""
+	var refused := take_refusal(graph, r, kind, stored_u)
+	if refused != REFUSE_NONE:
+		return refused
+	var row := r * PLACES + _last_taken(graph, r, kind)
+	stores.refund(COST_WOOD_MILLI[kind], COST_STONE_MILLI[kind], COST_PLANKS_MILLI[kind])
+	_clear(row)
+	revision += 1
+	return REFUSE_NONE
+
+
+func take_refusal(graph: RefCounted, r: int, kind: int, stored_u: int = 0) -> int:
+	"""Why room `r`'s last `kind` may not be taken out now (REFUSE_NONE: it may) -- `take_out`'s own checks."""
 	var f := _last_taken(graph, r, kind)
 	if f < 0:
 		return REFUSE_NONE_TO_TAKE
 	var row := r * PLACES + f
 	if phase[row] == INSTALLED and is_storage(kind) and capacity_u(graph, r) - CAPACITY_U[kind] < stored_u:
 		return REFUSE_HOLDS_FOOD
-	stores.refund(COST_WOOD_MILLI[kind], COST_STONE_MILLI[kind], COST_PLANKS_MILLI[kind])
-	_clear(row)
-	revision += 1
 	return REFUSE_NONE
 
 

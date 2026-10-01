@@ -64,11 +64,19 @@ const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 const ResourceNodes := preload("res://scripts/core/resource_nodes.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
+const ForestCard := preload("res://demo/forestry/forest_card.gd")
 
 ## The player did something in the woods: show the Woods panel (demo/ui/demo_detail_zone.gd).
 signal panel_wanted
 
 const PANEL_REFRESH_S: float = 0.25
+## The panel's job verbs and the job each orders (see `action_card`).
+const ACTION_KINDS: Dictionary = {&"fell": JobsScript.KIND_FELL, &"haul": JobsScript.KIND_HAUL,
+	&"gather": JobsScript.KIND_GATHER, &"saw": JobsScript.KIND_SAW, &"plant": JobsScript.KIND_PLANT, &"grub": JobsScript.KIND_GRUB}
+const NO_DEADFALL: String = "Can't gather deadfall: none is lying in the woods"
+const NO_TREE: String = "Select a tree first"
+const CANCEL_TIP: String = "Cancel ALL woods jobs (%d on the board), not just the selected tree's; loads in hand go into store"
 ## The demo's two zones at the start (demo values): the north stand to work, the old grove to keep.
 const SEED_ZONES: Array[Array] = [
 	[ZonesScript.KIND_FORESTRY, Vector2(-16.0, -30.0), Vector2(14.0, -18.0), "North stand"],
@@ -117,6 +125,10 @@ var _sources: PackedVector2Array = PackedVector2Array()
 var _chip_trees: PackedInt32Array = PackedInt32Array()
 var _chip_at: PackedVector3Array = PackedVector3Array()
 var _ground: Vector2 = Vector2.ZERO
+## The Woods panel's action cards (decision 0332): the one card filled per button, and a job's target.
+var _card: CardScript = CardScript.new()
+var _target: Vector2i = Vector2i.ZERO
+var _allowed: Dictionary = {}
 
 
 static func extra_obstacles(world: DemoWorldScript) -> Array[Vector3]:
@@ -213,6 +225,7 @@ func _hook_command() -> void:
 		return
 	_command.add_ground_handlers(on_ground_click, on_ground_order)
 	_command.add_task_text(crew.task_text)
+	_command.add_resume_rule(crew.resume_rule)
 	_command.add_input_hook(handle_tool_input)
 	_command.set_skill_text(skill_text)
 
@@ -561,28 +574,65 @@ func _arm_zone_tool(action_name: StringName) -> void:
 
 
 func _panel_verb(action_name: StringName, members: PackedInt32Array) -> String:
-	"""The selected tree's verb, deadfall gathering or sawing, given to the selection or queued."""
-	match action_name:
-		PanelScript.ACTION_GATHER:
-			var from: Vector2 = Yard.log_stack_at()
-			if not deadfall.nearest_into(from, 2.0 * Rules.REACH_M, _read):
-				return "Can't gather deadfall: none is lying in the woods"
-			return crew.order(JobsScript.KIND_GATHER, _read.value, deadfall.generation[_read.value], members, JobsScript.ORIGIN_PLAYER)
-		PanelScript.ACTION_SAW:
-			return crew.order(JobsScript.KIND_SAW, JobsScript.NO_TARGET, 0, members, JobsScript.ORIGIN_PLAYER)
-		PanelScript.ACTION_HAUL:
-			return crew.order_haul(selected_tree, members)
-	if selected_tree < 0:
-		return "Select a tree first"
-	var kinds: Dictionary = {PanelScript.ACTION_FELL: JobsScript.KIND_FELL, PanelScript.ACTION_GRUB: JobsScript.KIND_GRUB,
-		PanelScript.ACTION_PLANT: JobsScript.KIND_PLANT}
-	return crew.order(int(kinds[action_name]), selected_tree, 0, members, JobsScript.ORIGIN_PLAYER)
+	"""The selected tree's verb, deadfall gathering or sawing, given to the selection or queued -- on the target its
+	card was shown for (`_target_into`)."""
+	var refused: String = _target_into(action_name)
+	if not refused.is_empty():
+		return refused
+	var kind: int = ACTION_KINDS[action_name]
+	if kind == JobsScript.KIND_HAUL:
+		return crew.order_haul(_target.x, members)
+	return crew.order(kind, _target.x, _target.y, members, JobsScript.ORIGIN_PLAYER)
+
+
+func _target_into(action_name: StringName) -> String:
+	"""The target a panel verb acts on, into `_target` (index, generation): the nearest deadfall to the log stack, no
+	target for sawing, else the selected tree. '' when there is one, else the refusal in words."""
+	_target = Vector2i(JobsScript.NO_TARGET, 0)
+	if action_name == PanelScript.ACTION_GATHER:
+		if not deadfall.nearest_into(Yard.log_stack_at(), 2.0 * Rules.REACH_M, _read):
+			return NO_DEADFALL
+		_target = Vector2i(_read.value, deadfall.generation[_read.value])
+	elif action_name != PanelScript.ACTION_SAW:
+		if selected_tree < 0:
+			return NO_TREE
+		_target = Vector2i(selected_tree, 0)
+	return ""
+
+
+func action_card(action_name: StringName, members: PackedInt32Array) -> CardScript:
+	"""A panel verb's action card (decision 0332): the crew's own preview on the target the order would take, and
+	what the named resident would stop doing. Reused: read it before the next call."""
+	var kind: int = ACTION_KINDS[action_name]
+	var refused: String = _target_into(action_name)
+	if not refused.is_empty():
+		_card.reset(ForestCard.verb_text(kind, ""))
+		_card.refuse(DeadfallScript.REFUSE_NO_PILE if kind == JobsScript.KIND_GATHER else "NO_TREE",
+			refused.substr(refused.find(": ") + 2) if refused.contains(": ") else refused,
+			ForestCard.fix_for(DeadfallScript.REFUSE_NO_PILE) if kind == JobsScript.KIND_GATHER else "")
+		return _card
+	crew.preview_into(_card, kind, _target.x, _target.y, members)
+	if _card.worker >= 0 and _command != null:
+		_card.interrupts = _command.interrupt_text(_card.worker)
+	return _card
+
+
+func _show_cards() -> Dictionary:
+	"""Every verb's card on its button: its tooltip, pressable only when the card allows it. Returns which may be
+	pressed ({action: bool}), for the tree section's own enabling (the same answer, so nothing flips)."""
+	var members: PackedInt32Array = _command.selected() if _command != null else PackedInt32Array()
+	for action_name: StringName in ACTION_KINDS:
+		var card: CardScript = action_card(action_name, members)
+		_allowed[action_name] = card.is_ok()
+		panel.set_card(action_name, card.text(), card.is_ok())
+	panel.set_card(PanelScript.ACTION_CANCEL, CANCEL_TIP % crew.jobs.live_count(), crew.jobs.live_count() > 0)
+	return _allowed
 
 
 func refresh_panel() -> void:
 	"""Fill the Woods panel from the stand, the zones, the stores, the board and the feed."""
 	panel.show_status(text.stores_line(), text.counts_line(), text.season_line(), text.queue_text(), text.log_text())
-	panel.show_tree(text.tree_title(selected_tree, _day), text.tree_text(selected_tree), text.tree_actions(selected_tree))
+	panel.show_tree(text.tree_title(selected_tree, _day), text.tree_text(selected_tree), _show_cards())
 	var z: int = marks.selected_zone
 	panel.show_zone(text.zone_title(z), text.zone_text(z), text.zone_actions(z),
 		zones.is_zone(z) and zones.intensive[z] == 1, zones.is_zone(z) and zones.auto_fell[z] == 1)

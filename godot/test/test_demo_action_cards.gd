@@ -51,6 +51,12 @@ const FixturesScript := preload("res://demo/burrow/room_fixtures.gd")
 const FixtureCard := preload("res://demo/burrow/fixture_card.gd")
 const RoomTextScript := preload("res://demo/burrow/room_text.gd")
 const ControlScript := preload("res://demo/tunnel/tunnel_control.gd")
+const ExtScript := preload("res://demo/tunnel/tunnel_ext.gd")
+const TunnelPanelScript := preload("res://demo/tunnel/tunnel_panel.gd")
+const StandScript := preload("res://demo/forestry/forest_stand.gd")
+const Yard := preload("res://demo/forestry/forest_yard.gd")
+const BridgeCrew := preload("res://demo/waterplay/bridge_crew.gd")
+const InstallTaskScript := preload("res://demo/burrow/install_task.gd")
 # the water
 const SwimRules := preload("res://demo/waterplay/swim_rules.gd")
 const WaterplayScript := preload("res://demo/waterplay/demo_waterplay.gd")
@@ -411,6 +417,10 @@ func test_the_farm_assignment_preview_is_who_the_order_sends() -> void:
 	crew.update(FarmCrew.PICKUP_USEC)
 	assert_true(crew.jobs.job_on_bed_into(FarmJobs.KIND_COVER, BED_CARROTS, _read), "on the board")
 	assert_equal(crew.jobs.worker[_read.value], crew.crew()[0], "and the crew took it")
+	crew.set_crew(PackedInt32Array([0, 5]))
+	crew.preview_into(card, FarmJobs.KIND_COMPOST, BED_CARROTS, PackedInt32Array())
+	assert_equal(card.who, CardScript.queue_for("the field crew", PackedStringArray([crew._name_of(0), crew._name_of(5)]), 0),
+		"a new crew, named anew")
 
 
 func test_the_bed_panel_shows_each_verbs_card_and_its_interruption() -> void:
@@ -557,11 +567,20 @@ func test_the_woods_assignment_preview_is_who_the_order_sends() -> void:
 	assert_equal(jobs.on_target(ForestJobs.KIND_HAUL, WEST_OAK), 2, "two haulers, as the card said")
 	card = forestry.action_card(ForestPanel.ACTION_FELL, members)
 	assert_equal(card.who, CardScript.under_way(forestry.crew.name_of(lead)), "under way")
+	card = forestry.action_card(ForestPanel.ACTION_SAW, PackedInt32Array())
+	assert_true(card.who.ends_with("nobody is on it — select residents to do it"), "no crew: " + card.who)
 	forestry.crew.set_crew(PackedInt32Array([4, 5]))
 	card = forestry.action_card(ForestPanel.ACTION_SAW, PackedInt32Array())
 	assert_equal(card.who, CardScript.queue_for("the forestry crew",
 		PackedStringArray([forestry.crew.name_of(4), forestry.crew.name_of(5)]), 0), card.who)
 	assert_equal(card.worker, CardScript.NOBODY, "nobody named")
+	forestry.crew.set_crew(PackedInt32Array([5]))
+	card = forestry.action_card(ForestPanel.ACTION_SAW, PackedInt32Array())
+	assert_equal(card.who, CardScript.queue_for("the forestry crew", PackedStringArray([forestry.crew.name_of(5)]), 0),
+		"the crew changed: named anew")
+	assert_equal(forestry.crew.point_of(ForestJobs.KIND_SAW, ForestJobs.NO_TARGET), Yard.log_stack_at(),
+		"a sawing is at the log stack (its nearest is measured from there)")
+	assert_equal(Array(card.prerequisites), ["2.0 U of wood in the stores"], "a saw batch's wood")
 
 
 # --- the tunnels and the fit-out -------------------------------------------------------------------
@@ -745,7 +764,7 @@ func _dug_home(graph: GraphScript) -> int:
 
 # --- the water ------------------------------------------------------------------------------------
 
-func _rig() -> WaterplayScript:
+func _rig(stand: StandScript = null) -> WaterplayScript:
 	"""The placeholder cast on the real layout with the water gameplay wired over it (the water suite's rig)."""
 	if _map_cache == null:
 		_map_cache = WaterLayout.make_map()
@@ -759,7 +778,7 @@ func _rig() -> WaterplayScript:
 	cast.build({}, world.points_of_interest(), circles, links.area)
 	cast.set_bounds(WaterplayScript.walk_bounds(world.bounds()))
 	var play: WaterplayScript = _keep(WaterplayScript.new()) as WaterplayScript
-	play.configure(cast, null, null, _services, _map_cache, links)
+	play.configure(cast, null, null, _services, _map_cache, links, null, stand)
 	return play
 
 
@@ -774,7 +793,8 @@ func test_a_bridge_card_costs_what_the_build_pays() -> void:
 	var said: String = play.build(SwimRules.KIND_PLANK, PackedInt32Array())
 	assert_true(said.begins_with("Can't build a plank footbridge: " + card.reason + " -- "), "the build's words: " + said)
 	assert_false(card.reason.contains(" -- "), "its fix on its own line, not twice")
-	assert_equal(card.fix, WaterplayScript.BUILD_FIXES[SwimRules.KIND_PLANK], "saw planks")
+	assert_equal(card.fix, WaterplayScript.build_fix(SwimRules.KIND_PLANK), "saw planks")
+	assert_true(card.fix.ends_with("(2.0 U wood makes 2.0 U planks)"), "the saw's batch: " + card.fix)
 	assert_true(card.text().contains("Planks: have 0.0 U · need 4."), card.text())
 	_services.stores.add_planks(6000)
 	card = play.build_card(SwimRules.KIND_PLANK, PackedInt32Array())
@@ -957,7 +977,7 @@ func test_the_tunnels_panel_buttons_are_their_cards() -> void:
 	"+", "−" and the Suggested layout carry their fit-out cards and are pressable exactly as those allow."""
 	var parts := _tool_with_tunnel()
 	var tool: ControlScript = parts[0]
-	var ext = tool.ext
+	var ext: ExtScript = tool.ext
 	var card := CardScript.new()
 	ext.actions.select(0)
 	ext.refresh_panel()
@@ -1010,7 +1030,7 @@ func test_the_party_panels_tool_buttons_carry_their_cards() -> void:
 	assert_equal(dig.tooltip_text, before, "hidden: left alone")
 	dig.visible = true
 	command._refresh_tool_cards()
-	var tool = command.tunnels()
+	var tool: ControlScript = command.tunnels()
 	var card := CardScript.new()
 	var tip: String = dig.tooltip_text
 	assert_true(tip.begins_with("Dig tunnel (B)\n"), tip)
@@ -1018,3 +1038,510 @@ func test_the_party_panels_tool_buttons_carry_their_cards() -> void:
 	assert_true(tip.contains("Who: " + card.who.left(20)), "its digger")
 	assert_true(tip.contains(command.interrupt_text(card.worker).left(12)), "and what it stops")
 	assert_true(command.panel().room_button(0).tooltip_text.begins_with("Burrow home (H)\n"), "the room tools too")
+
+
+
+# --- the edges (mutation-tested, decision 0331) ---------------------------------------------------
+
+func test_a_cards_edges() -> void:
+	"""Have equal to need is enough; zero work is still said; a requirement is stated exactly (hundredths when it has
+	them); a long line keeps every continuation indented; a refusal can be cleared."""
+	var card := CardScript.new()
+	card.reset("v")
+	card.add_cost("X", 2000, 2000)
+	assert_equal(card.short_row(), -1, "have == need: not short")
+	card.add_cost("Compost", 100, 250)
+	assert_equal(card.cost_line(1), "Compost: have 0.1 U · need 0.25 U", "a quarter unit, exactly")
+	assert_equal(CardScript.need_text(4700), "4.7 U", "tenths as the HUD prints them")
+	card.work_usec = 0
+	assert_true(card.text().contains("Work: about 0.0 game hours"), "no work is still work said")
+	var words := PackedStringArray()
+	for k: int in 30:
+		words.append("word")
+	var lines := CardScript.wrap_lines(PackedStringArray([" ".join(words)])).split("\n")
+	assert_true(lines.size() >= 3, "three lines and more")
+	for k: int in range(1, lines.size()):
+		assert_true(lines[k].begins_with("  ") and not lines[k].begins_with("   "), "line %d indented" % k)
+	assert_true(CardScript.queue_for("the crew", PackedStringArray(["A"]), 1).contains("(no selected resident is free"),
+		"one selected, busy")
+	card.refuse("X", "no", "fix")
+	card.clear_refusal()
+	assert_true(card.is_ok() and card.code == "" and card.fix == "", "cleared")
+
+
+func test_a_free_resident_at_night_goes_back_to_bed_and_a_lost_rule_is_skipped() -> void:
+	"""Resting with nothing to do: back to bed after. A rule whose owner is gone is passed over."""
+	var brain := _lone_brain()
+	brain.resting = true
+	var rules: Array[Callable] = [Callable(), func(_w: int) -> int: return InterruptScript.NOT_MINE]
+	assert_equal(InterruptScript.resume_of(brain, rules, 0), InterruptScript.BACK_TO_BED, "night, free")
+
+
+func test_the_farm_plans_work_steps_only() -> void:
+	"""A plan's work is its work steps' WU (sowing's first step too), the spoil plan's dig included, from a step on."""
+	assert_equal(FarmJobs.plan_work_usec(FarmJobs.KIND_SOW, 0, 0), FarmJobs.work_usec_of(FarmJobs.WORK_SOW), "sowing")
+	assert_equal(FarmJobs.plan_work_usec(FarmJobs.KIND_COMPOST, FarmJobs.SOURCE_SPOIL, 0),
+		FarmJobs.work_usec_of(FarmJobs.WORK_DIG) + FarmJobs.work_usec_of(FarmJobs.WORK_COMPOST), "dig, then compost")
+	assert_equal(FarmJobs.plan_work_usec(FarmJobs.KIND_WATER, 0, 2), FarmJobs.work_usec_of(FarmJobs.WORK_TEND),
+		"from the carry on: the watering")
+
+
+func test_a_farm_card_counts_the_work_already_done_and_the_step_reached() -> void:
+	"""A job called away keeps its work: its card shows what is left -- the compost's dose less the work done, or a
+	watering past its fetch only the watering. The resident called away resumes it (the farm's rule)."""
+	var cast := _cast()
+	var sim := FarmSim.new()
+	var crew := _farm_crew(cast, sim)
+	crew.order(FarmJobs.KIND_COMPOST, BED_CARROTS, PackedInt32Array([2]), FarmJobs.ORIGIN_PLAYER)
+	assert_true(_run_farm(cast, crew, 60.0, func() -> bool: return crew.jobs.elapsed_usec[0] >= 3000000), "half done")
+	assert_equal(crew.resume_rule(2), InterruptScript.RESUMES, "its worker would come back to it")
+	assert_equal(crew.resume_rule(3), InterruptScript.NOT_MINE, "not a farm worker")
+	(cast.actor(2) as DemoActorScript).brain.order_move(Vector2(-6.0, -6.0))
+	crew.update(1)
+	var kept: int = crew.jobs.elapsed_usec[0]
+	assert_true(kept >= 3000000 and crew.jobs.worker[0] == FarmJobs.NOBODY, "on the board with its work")
+	var card := CardScript.new()
+	crew.preview_into(card, FarmJobs.KIND_COMPOST, BED_CARROTS, PackedInt32Array())
+	assert_equal(card.work_usec, FarmJobs.work_usec_of(FarmJobs.WORK_COMPOST) - kept, "what is left")
+	crew.order(FarmJobs.KIND_WATER, BED_LOAM + 3, PackedInt32Array([4]), FarmJobs.ORIGIN_PLAYER)
+	assert_true(crew.jobs.job_on_bed_into(FarmJobs.KIND_WATER, BED_LOAM + 3, _read), "watering")
+	var row: int = _read.value
+	assert_true(_run_farm(cast, crew, 120.0, func() -> bool: return crew.jobs.current_step(row) == FarmJobs.STEP_CARRY_BED),
+		"carrying the water")
+	(cast.actor(4) as DemoActorScript).brain.order_move(Vector2(6.0, -6.0))
+	crew.update(1)
+	crew.preview_into(card, FarmJobs.KIND_WATER, BED_LOAM + 3, PackedInt32Array())
+	assert_equal(card.work_usec, FarmJobs.work_usec_of(FarmJobs.WORK_TEND), "only the watering is left")
+
+
+func test_a_raise_card_shows_the_heap_it_needs() -> void:
+	"""Raise and Bank take spoil off one heap: the card's row is the fullest heap against the job's dose."""
+	var cast := _cast()
+	var crew := _farm_crew(cast, FarmSim.new())
+	var card := CardScript.new()
+	for kind: int in [FarmJobs.KIND_RAISE, FarmJobs.KIND_BANK]:
+		crew.preview_into(card, kind, BED_LOAM, PackedInt32Array())
+		assert_equal(Array(card.cost_names), [FarmCard.SPOIL_HEAP], "spoil")
+		assert_equal([int(card.cost_have[0]), int(card.cost_need[0])], [crew.max_heap_spoil(), FarmJobs.SPOIL_PER_JOB_MILLI],
+			"the fullest heap against a dose")
+		assert_true(card.prerequisites[0].begins_with("2.0 U of tunnel spoil"), "needs, from the dose")
+	assert_equal(card.reason, "no spoil heap holds 2.0 U", "the dose in the refusal")
+
+
+func test_the_bed_panels_buttons_dim_name_resident_0_and_scope_cancel() -> void:
+	"""A disabled verb is dimmed, an enabled one not; resident 0 can be the one named; Cancel says its scope only
+	while there are jobs."""
+	var cast := _cast()
+	var sim := FarmSim.new()
+	var crew := _farm_crew(cast, sim)
+	var panel: BedPanelScript = _keep(BedPanelScript.new()) as BedPanelScript
+	panel.configure(sim, crew)
+	panel.set_preview(func() -> PackedInt32Array: return PackedInt32Array([0]),
+		func(w: int) -> String: return "Interrupts: resident %d" % w)
+	panel.show_bed(BED_CARROTS)
+	var water: Button = panel.verb_button(FarmJobs.KIND_WATER)
+	var harvest: Button = panel.verb_button(FarmJobs.KIND_HARVEST)
+	assert_true(water.tooltip_text.contains("Interrupts: resident 0"), "resident 0 named")
+	assert_equal([water.modulate.a, harvest.modulate.a], [1.0, 0.5], "enabled bright, disabled dim")
+	assert_true(panel._cancel.disabled and panel._cancel.tooltip_text == BedPanelScript.NO_JOBS_TIP, "no jobs")
+	crew.order(FarmJobs.KIND_WATER, BED_CARROTS, PackedInt32Array(), FarmJobs.ORIGIN_PLAYER)
+	panel.refresh()
+	assert_false(panel._cancel.disabled, "a job to cancel")
+	assert_equal(panel._cancel.tooltip_text, BedPanelScript.CANCEL_TIP, "this bed's jobs only")
+
+
+func test_a_picker_row_refused_by_the_board_keeps_the_boards_words() -> void:
+	"""A crop the bed can take, with the farm's board full: the row is disabled with the board's refusal, not left
+	enabled for an order that will refuse."""
+	var cast := _cast()
+	var sim := FarmSim.new()
+	var crew := _farm_crew(cast, sim)
+	var opened: int = 0
+	for bed: int in Catalog.BED_COUNT:
+		for kind: int in FarmJobs.KIND_COUNT:
+			if bed != BED_LOAM and opened < FarmJobs.MAX_JOBS:
+				opened += 1 if crew.jobs.open_into(kind, bed, FarmJobs.ORIGIN_ROUTINE, 0, _read) else 0
+	var panel: BedPanelScript = _keep(BedPanelScript.new()) as BedPanelScript
+	panel.configure(sim, crew)
+	panel.show_bed(BED_LOAM)
+	panel.open_picker()
+	var checked: int = 0
+	for item: int in Catalog.ITEM_COUNT:
+		if sim.sow_refusal(BED_LOAM, item) == &"":
+			checked += 1
+			assert_true(panel.picker_button(item).disabled, "disabled")
+			assert_true(panel.picker_button(item).tooltip_text.contains("Can't now: the farm's job board is full"), "why")
+	assert_true(checked > 0, "some crop could be sown")
+
+
+# --- the woods' edges ------------------------------------------------------------------------------
+
+func _fill_woods_board(forestry: ForestryScript) -> void:
+	"""Every row of the woods' board taken (sawings: any number may queue)."""
+	while forestry.crew.jobs.live_count() < ForestJobs.MAX_JOBS:
+		forestry.crew.jobs.open_into(ForestJobs.KIND_SAW, ForestJobs.NO_TARGET, 0, ForestJobs.ORIGIN_ROUTINE, _read)
+
+
+func test_the_woods_board_and_the_trunks_hands_refuse_as_the_orders_do() -> void:
+	"""A full board refuses a new sawing; a trunk with three hands on it refuses another hauler; a selected haul with
+	everyone selected busy is refused -- each card in its order's words."""
+	var forestry := _forestry()
+	var crew = forestry.crew
+	crew.order(ForestJobs.KIND_FELL, WEST_OAK, 0, PackedInt32Array([1, 2, 3]), ForestJobs.ORIGIN_PLAYER)
+	assert_equal(crew.jobs.on_target(ForestJobs.KIND_HAUL, WEST_OAK), 2, "a feller and two haulers")
+	forestry.select_tree(WEST_OAK)
+	var card: CardScript = forestry.action_card(ForestPanel.ACTION_HAUL, PackedInt32Array())
+	assert_equal(card.code, ForestJobs.REFUSE_ENOUGH_HANDS, "three hands: enough")
+	assert_equal(crew.order_haul(WEST_OAK, PackedInt32Array()), "Can't haul logs: " + card.reason, card.reason)
+	card = forestry.action_card(ForestPanel.ACTION_HAUL, PackedInt32Array([1, 2]))
+	assert_equal(card.code, ForestJobs.REFUSE_ENOUGH_HANDS, "the trunk is full before anyone is asked")
+	_fill_woods_board(forestry)
+	card = forestry.action_card(ForestPanel.ACTION_SAW, PackedInt32Array([4]))
+	assert_equal(card.code, ForestJobs.REFUSE_FULL, "the board")
+	assert_equal(forestry.order_on(PickScript.KIND_SAW, -1, PackedInt32Array([4])), "Can't saw planks: " + card.reason, "said")
+	assert_equal(card.fix, ForestCard.fix_for(ForestJobs.REFUSE_FULL), "cancel some")
+
+
+func test_a_selected_haul_counts_its_hands_and_refuses_when_all_are_busy() -> void:
+	"""Fell with two: one waits to haul. Then three more selected for the haul: the trunk takes one more, the card
+	says the lead and one more, and the order puts two on it. Everyone selected busy: refused."""
+	var forestry := _forestry()
+	var crew = forestry.crew
+	forestry.select_tree(WEST_OAK)
+	var card: CardScript = forestry.action_card(ForestPanel.ACTION_FELL, PackedInt32Array([1, 2]))
+	assert_true(card.who.ends_with("+ 1 waiting to haul"), card.who)
+	forestry._panel_verb(ForestPanel.ACTION_FELL, PackedInt32Array([1]))
+	card = forestry.action_card(ForestPanel.ACTION_HAUL, PackedInt32Array([3, 4, 5]))
+	assert_true(card.is_ok(), card.text())
+	assert_equal(card.who, CardScript.lead_with(crew.name_of(card.worker), 3, 3, 1, "more hauling"), card.who)
+	assert_equal(crew.order_haul(WEST_OAK, PackedInt32Array([3, 4, 5])), "Haul logs: 2 on it", "two, as the card said")
+	card = forestry.action_card(ForestPanel.ACTION_HAUL, PackedInt32Array([1, 3]))
+	assert_equal(card.code, ForestJobs.REFUSE_ENOUGH_HANDS, "three hands now")
+	crew.cancel_all()
+	crew.order(ForestJobs.KIND_SAW, ForestJobs.NO_TARGET, 0, PackedInt32Array([1]), ForestJobs.ORIGIN_PLAYER)
+	crew.order(ForestJobs.KIND_SAW, ForestJobs.NO_TARGET, 0, PackedInt32Array([2]), ForestJobs.ORIGIN_PLAYER)
+	crew.order(ForestJobs.KIND_FELL, WEST_OAK, 0, PackedInt32Array([3]), ForestJobs.ORIGIN_PLAYER)
+	card = forestry.action_card(ForestPanel.ACTION_HAUL, PackedInt32Array([1, 2]))
+	assert_equal(card.code, "EVERYONE_SELECTED_BUSY", "both sawing")
+	assert_equal(crew.order_haul(WEST_OAK, PackedInt32Array([1, 2])), "Can't haul logs: " + card.reason, card.reason)
+	assert_equal(card.fix, ForestCard.fix_for("EVERYONE_SELECTED_BUSY"), "its fix")
+
+
+func test_a_woods_card_works_at_the_named_residents_skill_and_hauls_by_the_trip() -> void:
+	"""A skilled sawyer saws faster than base, and the card says so; a haul's work is every trip's loading and
+	stacking (a 12 U trunk: two trips); the sawing goes to the selected resident nearest the log stack."""
+	var forestry := _forestry()
+	var crew = forestry.crew
+	crew.skills.xp[3 * ForestRules.SKILL_COUNT + ForestRules.SKILL_SAWING] = ForestRules.xp_of_level(2)
+	var card: CardScript = forestry.action_card(ForestPanel.ACTION_SAW, PackedInt32Array([3]))
+	assert_true(card.work_usec < crew.plan_usec(ForestJobs.KIND_SAW, ForestJobs.NO_TARGET, -1), "quicker than base")
+	assert_equal(card.work_usec, crew.plan_usec(ForestJobs.KIND_SAW, ForestJobs.NO_TARGET, 3), "at its level")
+	assert_equal([ForestCard.trips(6000), ForestCard.trips(6001), ForestCard.trips(12000)], [1, 2, 2], "trips")
+	assert_true(forestry.stand.blow_down_into(WEST_OAK, 1, Vector2.UP, _read), "a trunk lies")
+	forestry.select_tree(WEST_OAK)
+	card = forestry.action_card(ForestPanel.ACTION_HAUL, PackedInt32Array())
+	var trip: int = crew.step_usec(ForestJobs.WORK_LOAD, WEST_OAK, -1) + crew.step_usec(ForestJobs.WORK_DROP, WEST_OAK, -1)
+	assert_equal(card.work_usec, ForestCard.trips(forestry.stand.trunk_milli[WEST_OAK]) * trip, "every trip")
+	assert_true(card.text().replace("\n  ", " ").contains(ForestCard.HAUL_NOTE.trim_prefix(", ")), "shared by its haulers")
+	var members := PackedInt32Array([1, 2, 3, 4, 5])
+	var nearest: int = -1
+	for who: int in members:
+		var d: float = crew.brain_of(who).surface_point().distance_to(Yard.log_stack_at())
+		if nearest < 0 or d < crew.brain_of(nearest).surface_point().distance_to(Yard.log_stack_at()):
+			nearest = who
+	card = forestry.action_card(ForestPanel.ACTION_SAW, members)
+	assert_equal(card.worker, nearest, "nearest the log stack")
+	assert_equal(crew.resume_rule(nearest), InterruptScript.NOT_MINE, "no woods job yet")
+	forestry._panel_verb(ForestPanel.ACTION_SAW, members)
+	assert_equal(crew.resume_rule(nearest), InterruptScript.RESUMES, "sawing: it would come back to it")
+
+
+func test_gathering_aims_at_the_piles_generation_and_names_resident_0() -> void:
+	"""Gather deadfall's card is for the nearest pile as it is now (its generation), and with a command layer the
+	resident named -- resident 0 too -- has what it stops said."""
+	var world: DemoWorldScript = _keep(DemoWorldScript.new()) as DemoWorldScript
+	var circles: Array[Vector3] = world.obstacles()
+	circles.append_array(ForestryScript.extra_obstacles(world))
+	var cast: DemoCastScript = _keep(DemoCastScript.new()) as DemoCastScript
+	cast.build({}, world.points_of_interest(), circles)
+	cast.set_bounds(world.bounds())
+	var command: CommandScript = _keep(CommandScript.new()) as CommandScript
+	command.configure(cast, _keep(Camera3D.new()) as Camera3D)
+	var forestry: ForestryScript = _keep(ForestryScript.new()) as ForestryScript
+	forestry.configure(world, cast, command, null, _services, IntMath.IntResult.new(true, WOOD, ""))
+	assert_true(forestry.deadfall.nearest_into(Yard.log_stack_at(), 2.0 * ForestRules.REACH_M, _read), "a pile")
+	forestry.deadfall.generation[_read.value] = 7
+	var card: CardScript = forestry.action_card(ForestPanel.ACTION_GATHER, PackedInt32Array([0]))
+	assert_true(card.is_ok(), card.text())
+	assert_equal(forestry._target.y, 7, "its generation")
+	assert_equal(card.worker, 0, "resident 0")
+	assert_equal(card.interrupts, command.interrupt_text(0), "what it stops")
+
+
+# --- the tunnels' edges ----------------------------------------------------------------------------
+
+func test_a_tunnel_card_counts_work_done_and_its_crew() -> void:
+	"""A brace half worked: its card's work is what is left. A mole job's card counts the crew as add_crew will: not
+	the lead, nobody digging, nobody on it already, no more than its room; and says a crew is quicker."""
+	var site := _tunnel_site()
+	var brains: Array[BrainScript] = site[1]
+	var works: WorksScript = site[2]
+	var actions: ActionsScript = site[3]
+	actions.select_at(Vector2(1.0, 0.3))
+	works.jobs.post(0, TunnelJobs.JOB_BRACE, 2, 0, 4096)
+	assert_true(works.jobs.start(0), "paid")
+	works.jobs.work(0, 1000000)
+	var done: int = works.jobs.done_ticks(0)
+	assert_true(done > 0, "some done")
+	var card := CardScript.new()
+	actions.preview_into(card, TunnelJobs.JOB_BRACE, PackedInt32Array([2]))
+	assert_equal(card.work_usec, (works.jobs.ticks_for(0, TunnelJobs.JOB_BRACE) - done) * 1000000 / TunnelRules.TICKS_PER_SECOND,
+		"what is left")
+	actions.select(1)
+	actions.preview_into(card, TunnelJobs.JOB_WIDEN, PackedInt32Array([0, 2, 3]))
+	assert_equal(card.work_note, ActionsScript.MOLE_NOTE, "a crew is quicker")
+	brains[2].order = BrainScript.ORDER_DIG
+	assert_equal(actions.crew_joining(1, PackedInt32Array([0, 2, 3]), 0), 1, "the digger left off")
+	brains[2].order = BrainScript.ORDER_NONE
+	for i: int in [1, 2, 3]:
+		works.crew.join(i, 1)
+	assert_equal(actions.crew_joining(1, PackedInt32Array([0, 2, 3, 1]), 0), 0, "the crew is full")
+
+
+func test_the_tunnel_panel_names_what_the_mole_stops() -> void:
+	"""With the interrupt line wired, a mole job's card names what its lead -- resident 0, the mole -- would stop."""
+	var parts := _tool_with_tunnel()
+	var tool: ControlScript = parts[0]
+	var ext: ExtScript = tool.ext
+	ext.set_interrupt(func(w: int) -> String: return "Interrupts: resident %d" % w)
+	ext.actions.select(1)
+	ext.refresh_panel()
+	assert_true(ext.panel.button(&"widen").tooltip_text.contains("Interrupts: resident 0"), ext.panel.button(&"widen").tooltip_text)
+
+
+func test_the_dig_tool_sends_the_digger_its_card_names() -> void:
+	"""A piece laid and confirmed with two selected: the card's digger is the one digging it, with the other on its
+	crew as the card counted."""
+	var parts := _tool_with_tunnel()
+	var tool: ControlScript = parts[0]
+	var cast: DemoCastScript = parts[1]
+	var selected := PackedInt32Array([2, 3])
+	tool._selection = func() -> PackedInt32Array: return selected
+	var card := CardScript.new()
+	tool.tool_card_into(card, "Dig tunnel (B)", "x")
+	assert_equal(card.worker, 2, "the first selected who can dig")
+	assert_true(card.who.ends_with("+ 1 on the crew"), card.who)
+	assert_true(tool.begin_plan(), "planning")
+	tool.lay_ground(Vector2(-12.0, 12.0))
+	tool.lay_ground(Vector2(-4.0, 12.0))
+	assert_true(tool.confirm(), "dug: " + tool.notice())
+	var digging: int = -1
+	for i: int in cast.actor_count():
+		if (cast.actor(i) as DemoActorScript).brain.dig_tunnel >= 0 or (cast.actor(i) as DemoActorScript).brain.order == BrainScript.ORDER_DIG:
+			digging = i
+	assert_equal(digging, card.worker, "the digger the card named")
+	tool.cancel_plan()
+
+
+# --- the fit-out's edges ---------------------------------------------------------------------------
+
+func test_a_fitout_card_names_the_first_selected_who_can_reach_and_what_it_puts_in_first() -> void:
+	"""Selected [0, 1]: resident 0 is named and given the bed. A bed already waiting: the next "+" card says the
+	resident puts that in first. The suggested layout's work is every fixture's."""
+	var parts := _tool_with_tunnel()
+	var tool: ControlScript = parts[0]
+	var ext: ExtScript = tool.ext
+	var r: int = parts[2]
+	var graph: GraphScript = tool.network
+	var stores: StoresScript = ext.works.stores
+	stores.add_planks(100000)
+	stores.add_wood(100000)
+	stores.add_stone(100000)
+	var names := PackedStringArray()
+	for i: int in (parts[1] as DemoCastScript).actor_count():
+		names.append(((parts[1] as DemoCastScript).actor(i) as DemoActorScript).display_name)
+	var card := CardScript.new()
+	FixtureCard.add_into(card, graph, r, RoomsScript.FIX_BED, stores, PackedInt32Array([0, 1]), ext.fixture_crew, names)
+	assert_equal(card.worker, 0, "resident 0 can reach it")
+	assert_equal(card.who, CardScript.assign_first(names[0], 2, FixtureCard.WHO_CAN), card.who)
+	ext.select_room(r)
+	ext.fit_action(StringName("fit:add:%d" % RoomsScript.FIX_BED), PackedInt32Array([0, 1]))
+	assert_true((parts[1].actor(0) as DemoActorScript).brain.task is InstallTaskScript, "and is given it")
+	assert_equal(graph.fit.order(graph, r, RoomsScript.FIX_BED, stores), FixturesScript.REFUSE_NONE, "another bed, waiting")
+	var later: int = RoomsScript.FIX_HEARTH
+	FixtureCard.add_into(card, graph, r, later, stores, PackedInt32Array([1]), ext.fixture_crew, names)
+	if graph.fit.place_for(graph, r, later) > graph.fit.place_for(graph, r, RoomsScript.FIX_BED):
+		assert_true(card.who.ends_with(FixtureCard.FIRST_WAITING % "bed"), card.who)
+	else:
+		assert_false(card.who.contains("already waiting"), card.who)
+	FixtureCard.suggest_into(card, graph, r, stores, PackedInt32Array(), ext.fixture_crew, names)
+	var layout := PackedInt32Array()
+	graph.fit.layout_into(graph, r, layout)
+	var usec: int = 0
+	var count: int = 0
+	for kind: int in layout:
+		if kind >= 0:
+			usec += FixturesScript.install_usec(kind)
+			count += 1
+	assert_true(count >= 2, "a layout of several")
+	assert_equal(card.work_usec, usec, "every fixture's work")
+
+
+# --- the bridges' edges ----------------------------------------------------------------------------
+
+func test_a_bridge_card_works_at_its_builders_skill_and_counts_who_is_able() -> void:
+	"""The bridgewright's card works at its level, loading planks included; a selected resident in the water is not
+	able, so the one on land is the nearest free of two."""
+	var play := _rig()
+	_services.stores.add_planks(12000)
+	play.select_candidate(0)
+	play.crew.set_crew(PackedInt32Array([4]))
+	play.crew.xp[4] = SwimRules.BRIDGEWRIGHT_XP
+	var survey = play.survey_site(SwimRules.KIND_PLANK)
+	var wu: int = BridgeCrew.LOAD_WU
+	for stage: int in SwimRules.STAGE_COUNT:
+		wu += SwimRules.stage_wu(SwimRules.KIND_PLANK, stage, survey.deck_u, survey.piers)
+	var card: CardScript = play.build_card(SwimRules.KIND_PLANK, PackedInt32Array())
+	assert_true(play.crew.level_of(4) > 0, "skilled")
+	assert_equal(card.work_usec, wu * play.crew._usec_per_wu(play.crew.level_of(4)), "at its level, the load too")
+	assert_true(card.work_usec < wu * play.crew._usec_per_wu(0), "quicker than base")
+	play.brain_of(1).in_water = true
+	card = play.build_card(SwimRules.KIND_PLANK, PackedInt32Array([1, 2]))
+	assert_equal(card.worker, 2, "the one on land")
+	assert_equal(card.who, CardScript.assign_selected(play.name_of(2), 1, 2), card.who)
+	play.brain_of(1).in_water = false
+
+
+func test_a_bridge_card_refuses_short_pier_wood_and_no_free_row() -> void:
+	"""A span with piers and no wood: refused on the material. Every bridge row taken: refused on the rows, with no
+	saw to send the player to."""
+	var play := _rig()
+	_services.stores.add_planks(30000)
+	play.site_custom = true
+	play.custom_a = Vector2(19.0, -0.8)
+	play.custom_b = Vector2(31.0, -0.8)
+	var survey = play.survey_site(SwimRules.KIND_PLANK)
+	assert_true(survey.ok and survey.piers > 0, "a ford span with piers")
+	_services.stores.wood_milli_u = 0
+	var card: CardScript = play.build_card(SwimRules.KIND_PLANK, PackedInt32Array())
+	assert_equal(card.code, "MATERIAL", "the pier wood")
+	assert_equal(card.short_row(), 1, "the wood row")
+	_services.stores.wood_milli_u = 40000
+	play.site_custom = false
+	play.select_candidate(1)
+	var far = BridgesScript.Survey.new()
+	play.bridges.survey_candidate_into(2, SwimRules.KIND_PLANK, far)
+	assert_true(far.ok, "a site to fill the rows with")
+	while play.bridges.has_free_row():
+		assert_true(play.bridges.plan_into(far, "x", _read), "a row taken")
+	card = play.build_card(SwimRules.KIND_PLANK, PackedInt32Array())
+	assert_equal(card.code, "NO_FREE_ROW", card.text())
+	assert_equal(card.fix, "", "no saw for a full set of rows")
+	assert_equal(play.build(SwimRules.KIND_PLANK, PackedInt32Array()), "Can't build: " + card.reason, "the build's words")
+
+
+func test_a_log_card_off_a_ready_trunk_says_so() -> void:
+	"""With a felled trunk lying ready, the log bridge's card says its log comes off it -- no stores spent."""
+	var stand := StandScript.new()
+	var placements: Array[Dictionary] = [{"key": &"oak_mature", "at": Vector2(10.0, 4.0), "yaw": 0.0, "size": 1.0}]
+	assert_true(stand.bind_into(placements, WOOD, 1, _read), "a tree")
+	assert_true(stand.blow_down_into(0, 1, Vector2.UP, _read), "felled by the wind")
+	var play := _rig(stand)
+	play.select_candidate(0)
+	var card: CardScript = play.build_card(SwimRules.KIND_LOG, PackedInt32Array())
+	assert_true(card.is_ok(), card.text())
+	assert_true(card.result.ends_with(WaterplayScript.TRUNK_NOTE), card.result)
+	assert_true(card.cost_names.is_empty(), "no stores row")
+
+
+func test_the_dive_card_names_the_first_diver() -> void:
+	"""Two divers: the first selected is named (its spread spot judged as the order judges it: `dive_spot`)."""
+	var play := _rig()
+	var spot: Vector2 = play.pond_dive_spot()
+	for who: int in [0, 1]:
+		play.state.swim_mm_s[who] = 1100
+		play.state.dives[who] = 1
+		play.state.height_u[who] = 1526
+	var card: CardScript = play.dive_card(PackedInt32Array([0, 1]), spot)
+	assert_equal(card.worker, 0, "the first")
+
+
+
+func test_a_crew_joins_only_as_far_as_its_room() -> void:
+	"""Six residents: with one on the crew already, a mole job's crew takes two more of four candidates (4 builders)."""
+	var parts := _tool_with_tunnel()
+	var tool: ControlScript = parts[0]
+	var ext: ExtScript = tool.ext
+	ext.works.crew.join(1, 1)
+	assert_equal(ext.actions.crew_joining(1, PackedInt32Array([0, 2, 3, 4, 5]), 0), 2, "the crew's room")
+
+
+func test_a_planting_card_needs_a_quarter_unit_of_compost() -> void:
+	"""Planting's need is stated exactly: 0.25 U of compost, not the floored 0.2."""
+	var forestry := _forestry()
+	assert_true(forestry.stand.blow_down_into(WEST_OAK, 1, Vector2.UP, _read), "felled")
+	forestry.select_tree(WEST_OAK)
+	var card: CardScript = forestry.action_card(ForestPanel.ACTION_PLANT, PackedInt32Array())
+	assert_equal(Array(card.prerequisites), ["a cleared spot within reach; 0.25 U of compost"], "its need")
+
+
+func test_a_fixture_card_skips_who_cannot_reach_and_names_a_later_waiting_fixture_only_if_first() -> void:
+	"""One selected resident too big for any bore cannot reach the room: the next is named. A lantern already waiting
+	(a later place) is not what a hearth's installer puts in first; a bed waiting earlier is -- for resident 0 too."""
+	var parts := _tool_with_tunnel()
+	var tool: ControlScript = parts[0]
+	var ext: ExtScript = tool.ext
+	var cast: DemoCastScript = parts[1]
+	var graph: GraphScript = tool.network
+	var r: int = parts[2]
+	var stores: StoresScript = ext.works.stores
+	stores.add_planks(100000)
+	stores.add_wood(100000)
+	stores.add_stone(100000)
+	var names := PackedStringArray()
+	for i: int in cast.actor_count():
+		names.append((cast.actor(i) as DemoActorScript).display_name)
+	graph.set_body((cast.actor(1) as DemoActorScript).brain.index, 6000, 2500)
+	assert_false(ext.fixture_crew.can_reach(1, r), "too big for any bore")
+	var card := CardScript.new()
+	FixtureCard.add_into(card, graph, r, RoomsScript.FIX_HEARTH, stores, PackedInt32Array([1, 2]), ext.fixture_crew, names)
+	assert_equal(card.worker, 2, "the one who can")
+	assert_equal(graph.fit.order(graph, r, RoomsScript.FIX_LANTERN, stores), FixturesScript.REFUSE_NONE, "a lantern waits")
+	FixtureCard.add_into(card, graph, r, RoomsScript.FIX_HEARTH, stores, PackedInt32Array([0]), ext.fixture_crew, names)
+	var lantern_later: bool = graph.fit.place_for(graph, r, RoomsScript.FIX_HEARTH) < _place_of_kind(graph, r, RoomsScript.FIX_LANTERN)
+	assert_equal(card.who.contains("already waiting"), not lantern_later, card.who)
+	assert_equal(graph.fit.order(graph, r, RoomsScript.FIX_BED, stores), FixturesScript.REFUSE_NONE, "a bed waits")
+	FixtureCard.add_into(card, graph, r, RoomsScript.FIX_HEARTH, stores, PackedInt32Array([0]), ext.fixture_crew, names)
+	assert_equal(card.worker, 0, "resident 0")
+	assert_true(card.who.ends_with(FixtureCard.FIRST_WAITING % "bed"), "the bed first: " + card.who)
+
+
+func _place_of_kind(graph: GraphScript, r: int, kind: int) -> int:
+	"""The place a planned fixture of `kind` stands in (-1: none)."""
+	for f: int in RoomsScript.fixture_count(graph.rooms.template[r]):
+		if graph.fit.phase_of(graph, r, f) == FixturesScript.PLANNED and graph.fit.kind_at(graph, r, f) == kind:
+			return f
+	return -1
+
+
+
+func test_a_refresh_leaves_the_room_rows_shown_as_they_were() -> void:
+	"""Showing the same room again changes no row's visibility (a hide-and-show would drop the pointer's hover and
+	close a "+" card's tooltip every refresh); a kind that leaves the palette is hidden."""
+	var panel := TunnelPanelScript.new()
+	_keep(panel)
+	panel.build()
+	var rows: Array[Dictionary] = [{"kind": RoomsScript.FIX_BED, "text": "Bed", "add": true, "take": false},
+		{"kind": RoomsScript.FIX_HEARTH, "text": "Hearth", "add": true, "take": false}]
+	panel.show_room("Burrow home 1", "", rows, "Suggested layout", true)
+	var flips: Array = [0]
+	for row: HBoxContainer in panel._fit_rows:
+		row.visibility_changed.connect(func() -> void: flips[0] = int(flips[0]) + 1)
+	panel.show_room("Burrow home 1", "", rows, "Suggested layout", true)
+	assert_equal(int(flips[0]), 0, "nothing hidden and shown again")
+	assert_true(panel._fit_rows[RoomsScript.FIX_BED].visible and panel._fit_rows[RoomsScript.FIX_HEARTH].visible, "both shown")
+	assert_false(panel._fit_rows[RoomsScript.FIX_LANTERN].visible, "a kind not in the palette: hidden")
+	rows.pop_back()
+	panel.show_room("Burrow home 1", "", rows, "Suggested layout", true)
+	assert_false(panel._fit_rows[RoomsScript.FIX_HEARTH].visible, "a kind gone: hidden")
+	assert_equal(int(flips[0]), 1, "only that one changed")

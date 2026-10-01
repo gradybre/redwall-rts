@@ -94,8 +94,14 @@ const TRUNK_SIDE_M: float = 1.6
 const BUILD_ACTIONS: Array[StringName] = [&"build_plank", &"build_log"]
 const BUILD_NEEDS: Array[String] = ["a site both banks take; planks (sawn at the sawhorse) and wood for any piers",
 	"a site both banks take; a 6.0 U log: a felled trunk lying ready, or wood at the log stack"]
-const BUILD_FIXES: Array[String] = ["Woods ▸ Saw planks (2.0 U wood makes 2.0 U planks)",
+const BUILD_FIXES: Array[String] = ["Woods ▸ Saw planks (%s wood makes %s planks)",
 	"Woods ▸ Fell a tree (its trunk gives the log), or Haul logs to the log stack"]
+## build_refusal's checks, and the codes a Build card gives them.
+const BUILD_OK: int = 0
+const BUILD_SITE: int = 1
+const BUILD_MATERIAL: int = 2
+const BUILD_ROWS: int = 3
+const BUILD_CODES: Array[String] = ["", "SITE", "MATERIAL", "NO_FREE_ROW"]
 const SITE_FIX: String = "◀ Site / Site ▶ for another, or Span two banks…"
 const BUILT: String = "%.1f m of water bridged (%s): anyone may cross, carrying or not"
 const TRUNK_NOTE: String = "; its log comes off a felled trunk lying ready (no stores spent)"
@@ -150,6 +156,8 @@ var _source_kind: int = CrewScript.SOURCE_PLANKS
 var _source_at: Vector2 = Vector2.ZERO
 var _source_trunk: int = -1
 var _card: CardScript = CardScript.new()
+## Which check the last `build_refusal` stopped at (BUILD_*).
+var build_refused_by: int = 0
 var _refresh_in: float = 0.0
 var _panel_was_shown: bool = false
 var _cold_said: int = -1
@@ -518,14 +526,18 @@ func build_refusal(kind: int, members: PackedInt32Array) -> String:
 	it may) -- the site's survey, then the material (`_material_refusal`: where it would come from), then a free
 	row. `build` and the action card (`build_card`) both run it. Changes nothing."""
 	var survey: BridgesScript.Survey = survey_site(kind)
+	build_refused_by = BUILD_SITE
 	if not survey.ok:
 		return "Can't build a %s here: %s" % [Rules.KIND_NAMES[kind], survey.reason]
 	var near: Vector2 = brain_of(members[0]).surface_point() if not members.is_empty() else survey.shore_a
+	build_refused_by = BUILD_MATERIAL
 	var short: String = _material_refusal(survey, near)
 	if not short.is_empty():
 		return short
+	build_refused_by = BUILD_ROWS
 	if not bridges.has_free_row():
 		return "Can't build: every bridge row is taken (%d)" % BridgesScript.MAX_BRIDGES
+	build_refused_by = BUILD_OK
 	return ""
 
 
@@ -576,14 +588,21 @@ func build_card(kind: int, members: PackedInt32Array) -> CardScript:
 	_card.reset("Build a %s" % Rules.KIND_NAMES[kind])
 	_card.prerequisites.append(BUILD_NEEDS[kind])
 	var refused: String = build_refusal(kind, members)
-	_bridge_costs(survey)
 	if survey.ok:
 		_card.result = BUILT % [WaterRules.to_m(survey.span_u), site_name()]
+	_bridge_costs(survey)
 	if not refused.is_empty():
-		_card.refuse("SITE" if not survey.ok else "MATERIAL", _reason_of(refused), BUILD_FIXES[kind] if survey.ok else SITE_FIX)
+		var fix: String = build_fix(kind) if build_refused_by == BUILD_MATERIAL else (SITE_FIX if build_refused_by == BUILD_SITE else "")
+		_card.refuse(BUILD_CODES[build_refused_by], _reason_of(refused), fix)
 		return _card
 	_build_who(survey, members)
 	return _card
+
+
+static func build_fix(kind: int) -> String:
+	"""How to find a `kind` bridge's material: the saw (its batch stated from the woods' own figure), or a log."""
+	var batch: String = Rules.units_text(ForestRules.SAW_BATCH_MILLI)
+	return BUILD_FIXES[kind] % [batch, batch] if kind == Rules.KIND_PLANK else BUILD_FIXES[kind]
 
 
 static func _reason_of(refused: String) -> String:

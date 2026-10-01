@@ -64,6 +64,8 @@ const LINE_COUNT: int = 10
 const LINE_MOISTURE: int = 1
 const DETAILS_SHOW: String = "Details ▸"
 const DETAILS_HIDE: String = "Details ▾"
+const CANCEL_TIP: String = "Cancel every job on this bed only (a harvest in hand goes into store)"
+const NO_JOBS_TIP: String = "no jobs"
 
 var bed: int = -1
 var picking: bool = false
@@ -401,9 +403,8 @@ func _fill_buttons() -> void:
 	_fill_plant(members)
 	_fallow.text = "Unrest" if _sim.is_fallow(bed) else "Rest"
 	_fallow.tooltip_text = Text.rest_tip()
-	_set_state(_cancel, &"" if _jobs_line() != "" else &"NO_JOBS")
-	if not _cancel.disabled:
-		_cancel.tooltip_text = "Cancel every job on this bed only (a harvest in hand goes into store)"
+	var jobs: bool = _jobs_line() != ""
+	FarmUi.set_card(_cancel, jobs, CANCEL_TIP if jobs else NO_JOBS_TIP)
 
 
 func _fill_plant(members: PackedInt32Array) -> void:
@@ -411,7 +412,7 @@ func _fill_plant(members: PackedInt32Array) -> void:
 	is not empty or is resting -- the picker then shows each crop's own card."""
 	var first: int = Catalog.NO_ITEM
 	for item: int in Catalog.ITEM_COUNT:
-		if Text.pick_reason(_sim, bed, item) == "":
+		if _sim.sow_refusal(bed, item) == &"":
 			first = item
 			break
 	_crew.preview_into(_card, JobsScript.KIND_SOW, bed, members, first)
@@ -424,7 +425,7 @@ func _fill_plant(members: PackedInt32Array) -> void:
 	if code != &"":
 		_card.refuse(String(code), CrewScript.reason_text(code), FarmCard.fix_for(code))
 	elif first == Catalog.NO_ITEM:
-		_card.refuse("", "", "")
+		_card.clear_refusal()
 		_card.who = ""
 	_show_card(_plant)
 
@@ -481,7 +482,7 @@ func _pick_row(item: int, reason: String) -> Control:
 	if _goods != null:
 		FarmUi.set_icon(pick, _goods.icon_of(item))
 	_crew.preview_into(_card, JobsScript.KIND_SOW, bed, _selected(), item)
-	if not _card.is_ok():
+	if not _card.is_ok() and reason != "":
 		_card.reason = reason
 	_show_card(pick)
 	pick.pressed.connect(func() -> void: crop_picked.emit(item))

@@ -10,16 +10,21 @@ const FixtureCrewScript := preload("res://demo/burrow/fixture_crew.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const RoomTextScript := preload("res://demo/burrow/room_text.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 
 const CODES: Array[String] = ["", "NOT_DUG", "NOT_HERE", "FULL", "STORES_SHORT", "NOTHING_TO_ADD", "NONE_TO_TAKE",
 	"HOLDS_FOOD", "NO_NOOK"]
 ## How to put a refusal right (by room_fixtures.gd REFUSE_*; '' where nothing will).
 const FIXES: Array[String] = ["", "wait for the room to be dug out", "", "take one out (−) first",
-	"Woods ▸ Saw planks (2.0 U wood makes 2.0 U planks); Fell and Haul logs for wood", "", "",
+	"Woods ▸ Saw planks (%s wood makes %s planks); Fell and Haul logs for wood", "", "",
 	"let the cellar's food be eaten or moved first", ""]
 const WHO_CAN: String = "who can reach the room"
 const QUEUE: String = "the nearest free resident who can reach the room, by day (up to %d at once)"
 const NOBODY_ABLE: String = " (no selected resident can reach the room)"
+## A selected resident puts the room's first waiting fixture in first (`_first_waiting`).
+const FIRST_WAITING: String = "; first it puts in the %s already waiting"
+## `_first_waiting`'s scratch.
+static var _waiting: PackedInt32Array = PackedInt32Array()
 
 
 static func add_into(card: CardScript, graph: RefCounted, r: int, kind: int, stores: RefCounted, members: PackedInt32Array,
@@ -37,6 +42,8 @@ static func add_into(card: CardScript, graph: RefCounted, r: int, kind: int, sto
 		return
 	card.work_usec = FixturesScript.install_usec(kind)
 	_who(card, r, members, crew, names)
+	if card.worker >= 0:
+		card.who += _first_waiting(graph, r, fit.place_for(graph, r, kind))
 
 
 static func suggest_into(card: CardScript, graph: RefCounted, r: int, stores: RefCounted, members: PackedInt32Array,
@@ -54,7 +61,7 @@ static func suggest_into(card: CardScript, graph: RefCounted, r: int, stores: Re
 	var layout := PackedInt32Array()
 	fit.layout_into(graph, r, layout)
 	var usec := 0
-	for kind in layout:
+	for kind: int in layout:
 		usec += FixturesScript.install_usec(kind) if kind >= 0 else 0
 	card.work_usec = usec
 	card.work_note = ", shared by up to %d at once" % FixtureCrewScript.MAX_INSTALLERS
@@ -72,6 +79,16 @@ static func take_into(card: CardScript, graph: RefCounted, r: int, kind: int, st
 		_refuse(card, graph, r, PackedStringArray(["fit", RoomTextScript.FIT_TAKE, str(kind)]), code, stores, stored)
 
 
+static func _first_waiting(graph: RefCounted, r: int, f_new: int) -> String:
+	"""`give_selected` hands a selected resident the room's FIRST waiting fixture in place order: when one waits
+	before the new one's place `f_new`, the resident puts that in first -- said so (empty when the new one is first)."""
+	graph.fit.waiting_into(graph, _waiting)
+	for row: int in _waiting:
+		if row / FixturesScript.PLACES == r and row % FixturesScript.PLACES < f_new:
+			return FIRST_WAITING % RoomsScript.FIXTURE_NAMES[graph.fit.kind_at(graph, r, row % FixturesScript.PLACES)]
+	return ""
+
+
 static func _costs(card: CardScript, stores: RefCounted, cost: Vector3i) -> void:
 	"""Cost rows (planks, wood, stone) for the parts that are not nothing."""
 	if cost.x > 0:
@@ -86,7 +103,8 @@ static func _refuse(card: CardScript, graph: RefCounted, r: int, parts: PackedSt
 		stored: Callable) -> void:
 	"""The refusal in the order's own words (room_text.gd `answer`, without its "Can't: ") and its fix."""
 	var words := RoomTextScript.answer(graph, r, parts, code, stores, stored)
-	card.refuse(CODES[code], words.trim_prefix("Can't: "), FIXES[code])
+	var batch := CardScript.amount_text(ForestRules.SAW_BATCH_MILLI)
+	card.refuse(CODES[code], words.trim_prefix("Can't: "), FIXES[code] % [batch, batch] if FIXES[code].contains("%s") else FIXES[code])
 
 
 static func _who(card: CardScript, r: int, members: PackedInt32Array, crew: FixtureCrewScript, names: PackedStringArray) -> void:

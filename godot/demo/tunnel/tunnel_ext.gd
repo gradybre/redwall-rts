@@ -149,6 +149,7 @@ var _card: CardScript = CardScript.new()
 var _tips: Dictionary = {}
 var _interrupt: Callable = Callable()
 var _names: PackedStringArray = PackedStringArray()
+var _fit_keys: Array[StringName] = []
 var _ground: Vector2 = Vector2.ZERO
 ## The stores' revision the finds shelf was last drawn for.
 var _finds_seen: int = -1
@@ -185,7 +186,6 @@ func configure(cast: DemoCastScript, camera: Camera3D, overlay: OverlayScript, b
 		names.append(actor.display_name)
 		species.append(actor.species)
 	works.setup(cast.space(), brains, species, bounds_u, notice, services)
-	_names = names
 	can_dig = diggers_of(cast)
 	actions = ActionsScript.new(works, cast.space(), can_dig, names, bounds_u)
 	_props = services.props if services != null else PropsScript.new()
@@ -198,7 +198,8 @@ func configure(cast: DemoCastScript, camera: Camera3D, overlay: OverlayScript, b
 
 func _start_living(brains: Array[BrainScript], names: PackedStringArray, bounds_u: Rect2i) -> void:
 	"""The fit-out's crew and the night (see THE FIT-OUT AND THE NIGHT): beds by the residents' heights, the bedless to
-	the hall (its steps are its door), the alarm while a threat is under way."""
+	the hall (its steps are its door), the alarm while a threat is under way. The names are kept for the cards."""
+	_names = names
 	nook_site.bounds_u = bounds_u
 	nook_site.water = works.water.crosses_water
 	_network.fit.nook_site = nook_site
@@ -731,14 +732,25 @@ func _fit_cards(r: int, rows: Array[Dictionary]) -> bool:
 	when the fit-out's own refusal allows it (written into `rows`, which the panel enables them by). Returns whether
 	the suggested layout may be ordered."""
 	var selection := _selection.call() as PackedInt32Array
+	if _fit_keys.is_empty():
+		_build_fit_keys()
 	for row: Dictionary in rows:
 		var kind: int = row["kind"]
 		FixtureCardScript.add_into(_card, _network, r, kind, works.stores, selection, fixture_crew, _names)
 		row["add"] = _card.is_ok()
-		_tips[StringName("%s%s:%d" % [RoomTextScript.FIT_PREFIX, RoomTextScript.FIT_ADD, kind])] = _card_text()
+		_tips[_fit_keys[2 * kind]] = _card_text()
 		FixtureCardScript.take_into(_card, _network, r, kind, works.stores, _stored)
 		row["take"] = _card.is_ok()
-		_tips[StringName("%s%s:%d" % [RoomTextScript.FIT_PREFIX, RoomTextScript.FIT_TAKE, kind])] = _card_text()
+		_tips[_fit_keys[2 * kind + 1]] = _card_text()
 	FixtureCardScript.suggest_into(_card, _network, r, works.stores, selection, fixture_crew, _names)
-	_tips[StringName(RoomTextScript.FIT_PREFIX + RoomTextScript.FIT_SUGGEST)] = _card_text()
+	_tips[_fit_keys[_fit_keys.size() - 1]] = _card_text()
 	return _card.is_ok()
+
+
+func _build_fit_keys() -> void:
+	"""The fit-out buttons' action names, made once: each kind's "+" and "−" (2 kind, 2 kind + 1), then the
+	suggested layout's (tunnel_panel.gd's own keys)."""
+	for kind: int in RoomsScript.FIXTURE_NAMES.size():
+		_fit_keys.append(StringName("%s%s:%d" % [RoomTextScript.FIT_PREFIX, RoomTextScript.FIT_ADD, kind]))
+		_fit_keys.append(StringName("%s%s:%d" % [RoomTextScript.FIT_PREFIX, RoomTextScript.FIT_TAKE, kind]))
+	_fit_keys.append(StringName(RoomTextScript.FIT_PREFIX + RoomTextScript.FIT_SUGGEST))

@@ -40,6 +40,9 @@ const WORDS: Array[String] = ["nothing to interrupt", "goes back to it after", "
 const FREE_HEAD: String = "Free now: "
 const BUSY_HEAD: String = "Interrupts: "
 
+## `_dug_any`'s scratch (dug ticks, ticks in all), never allocated per call.
+static var _ticks: PackedInt32Array = PackedInt32Array([0, 0])
+
 
 static func resume_of(brain: BrainScript, rules: Array[Callable], who: int) -> int:
 	"""What happens to resident `who`'s present work when an order takes it (one of the codes above)."""
@@ -50,6 +53,8 @@ static func resume_of(brain: BrainScript, rules: Array[Callable], who: int) -> i
 	if brain.order == BrainScript.ORDER_DIG:
 		return RESUMES if _dug_any(brain) else DROPS_EMPTY_DIG
 	for rule: Callable in rules:
+		if not rule.is_valid():
+			continue
 		var said: int = int(rule.call(who))
 		if said != NOT_MINE:
 			return said
@@ -63,9 +68,8 @@ static func _dug_any(brain: BrainScript) -> bool:
 	var network: RefCounted = brain.space().tunnels if brain.space() != null else null
 	if network == null or brain.dig_tunnel < 0:
 		return false
-	var ticks := PackedInt32Array([0, 0])
-	network.piece_ticks_into(network.piece[brain.dig_tunnel], ticks)
-	return ticks[0] > 0
+	network.piece_ticks_into(network.piece[brain.dig_tunnel], _ticks)
+	return _ticks[0] > 0
 
 
 static func text(activity: String, resume: int) -> String:

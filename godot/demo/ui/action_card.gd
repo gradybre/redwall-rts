@@ -109,6 +109,13 @@ func refuse(p_code: String, words: String, how: String = "") -> void:
 	fix = how
 
 
+func clear_refusal() -> void:
+	"""The action may be done after all (a caller that knows better than the decision it read: Plant… opens a list)."""
+	code = ""
+	reason = ""
+	fix = ""
+
+
 func is_ok() -> bool:
 	"""Whether the action may be ordered now."""
 	return reason.is_empty()
@@ -146,7 +153,7 @@ func text() -> String:
 
 func cost_line(k: int) -> String:
 	"""Cost row `k`: "Planks: have 0.0 U · need 4.7 U"."""
-	return "%s: have %s · need %s" % [cost_names[k], amount_text(cost_have[k]), amount_text(cost_need[k])]
+	return "%s: have %s · need %s" % [cost_names[k], amount_text(cost_have[k]), need_text(cost_need[k])]
 
 
 # --- THE COMMAND GRAMMAR (F44): one way, in every panel, of saying who an order goes to -------------------
@@ -228,6 +235,14 @@ static func tooltip_theme() -> Theme:
 static func amount_text(milli: int) -> String:
 	"""A quantity as the HUD and the stores' panels print it ("4.7 U")."""
 	return StoresScript.units_text(milli)
+
+
+static func need_text(milli: int) -> String:
+	"""A requirement, stated exactly: the HUD's tenths, or hundredths when it has them ("0.25 U" -- the floored tenth
+	would understate what is needed)."""
+	if milli % 100 == 0:
+		return amount_text(milli)
+	return "%d.%02d U" % [milli / 1000, (milli % 1000) / 10]
 
 
 static func hours_text(usec: int) -> String:

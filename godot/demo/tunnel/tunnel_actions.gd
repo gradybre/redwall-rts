@@ -247,7 +247,7 @@ func crew_joining(slot: int, members: PackedInt32Array, lead: int) -> int:
 	digging and anyone on it already, up to the crew's room (tunnel_crew.gd `join`)."""
 	var room := CrewScript.MAX_BUILDERS - 1 - _works.crew.count_of(slot)
 	var n := 0
-	for i in members:
+	for i: int in members:
 		if i != lead and _works.brain(i).order != BrainScript.ORDER_DIG and _works.crew.member_site[i] != slot:
 			n += 1
 	return clampi(n, 0, maxi(room, 0))

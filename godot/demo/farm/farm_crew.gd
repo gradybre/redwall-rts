@@ -85,6 +85,9 @@ var _busy: IntMath.IntResult = IntMath.IntResult.new()
 ## `decide`'s own scratch and answer (reused; read before the next call).
 var _probe: IntMath.IntResult = IntMath.IntResult.new()
 var _decision: Decision = Decision.new()
+## The crew whose names `_crew_names` holds (crew_names).
+var _named_crew: PackedInt32Array = PackedInt32Array()
+var _crew_names: PackedStringArray = PackedStringArray()
 var _no_taken: PackedVector2Array = PackedVector2Array()
 var _idle: PackedInt32Array = PackedInt32Array()
 ## Where the last target/spot search landed (presentation positions).
@@ -211,11 +214,13 @@ func _preview_who(card: CardScript, d: Decision) -> void:
 
 
 func crew_names() -> PackedStringArray:
-	"""The routine crew's names, in crew order."""
-	var names := PackedStringArray()
-	for who: int in _crew:
-		names.append(_name_of(who))
-	return names
+	"""The routine crew's names, in crew order (made again only when the crew changed; read, never kept)."""
+	if _named_crew != _crew:
+		_named_crew = _crew.duplicate()
+		_crew_names.clear()
+		for who: int in _crew:
+			_crew_names.append(_name_of(who))
+	return _crew_names
 
 
 func resume_rule(who: int) -> int:

@@ -22,8 +22,8 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const WORDS: Dictionary = {
 	&"NOT_RIPE": "the crop is not ripe yet",
 	&"NOTHING_GROWING": "nothing is growing to water",
-	&"NO_TUNNEL_SPOIL": "no spoil heap holds 2.0 U",
-	&"NOT_ENOUGH_COMPOST": "not enough compost: 2.0 U from the store or a spoil heap",
+	&"NO_TUNNEL_SPOIL": "no spoil heap holds %s",
+	&"NOT_ENOUGH_COMPOST": "not enough compost: %s from the store or a spoil heap",
 	&"COMPOST_NOT_ELIGIBLE": "this bed has had its compost this season",
 	&"ALREADY_DONE": "it is done on this bed already",
 	&"NO_CROP_STANDING": "there is no crop to cover",
@@ -53,18 +53,24 @@ const FIXES: Dictionary = {
 }
 ## What each verb needs (by farm_jobs.gd KIND_*).
 const NEEDS: Array[String] = ["an empty bed, not resting; the crop's soil and sowing season",
-	"a growing crop", "a ripe crop", "a withered or blighted crop", "once a season a bed; 2.0 U of compost or spoil",
-	"a crop standing, not yet covered", "2.0 U of tunnel spoil on one heap", "2.0 U of tunnel spoil on one heap",
+	"a growing crop", "a ripe crop", "a withered or blighted crop", "once a season a bed; %s of compost or spoil",
+	"a crop standing, not yet covered", "%s of tunnel spoil on one heap", "%s of tunnel spoil on one heap",
 	"a wet or waterlogged bed"]
 const COMPOST_STORE: String = "Compost (store)"
 const SPOIL_HEAP: String = "Tunnel spoil (one heap)"
 
 
 static func reason_words(code: StringName) -> String:
-	"""A refusal code in the player's words (see WORDS)."""
+	"""A refusal code in the player's words (see WORDS), a dose stated from its own constant."""
 	if WORDS.has(code):
-		return WORDS[code]
+		var words: String = WORDS[code]
+		return words % CardScript.amount_text(dose_milli(code == &"NOT_ENOUGH_COMPOST")) if words.contains("%s") else words
 	return String(code).to_lower().replace("_", " ")
+
+
+static func dose_milli(compost: bool) -> int:
+	"""The dose a verb takes: compost's REQ-SET-076 dose, or the spoil a raise, bank or spoil compost takes off a heap."""
+	return FarmingScript.COMPOST_MILLI_PER_TILE if compost else JobsScript.SPOIL_PER_JOB_MILLI
 
 
 static func fix_for(code: StringName) -> String:
@@ -77,7 +83,8 @@ static func fill(card: CardScript, sim: SimScript, kind: int, bed: int, spoil_mi
 	"""The card's result, costs and needs for `kind` on `bed` (spoil_milli: the fullest heap, as `refusal_for`;
 	sow_item: a picker row's crop, else the chosen one)."""
 	card.result = result_text(sim, kind, bed, read, sow_item)
-	card.prerequisites.append(NEEDS[kind])
+	var needs: String = NEEDS[kind]
+	card.prerequisites.append(needs % CardScript.amount_text(dose_milli(kind == JobsScript.KIND_COMPOST)) if needs.contains("%s") else needs)
 	match kind:
 		JobsScript.KIND_COMPOST:
 			var need: int = sim.farming().compost_milli_per_tile()

@@ -121,6 +121,9 @@ var _found: Vector2 = Vector2.ZERO
 ## `decide`'s answer and scratch (reused).
 var _decision: Decision = Decision.new()
 var _pick: IntMath.IntResult = IntMath.IntResult.new()
+## The crew whose names `_names_of_crew` holds (_crew_names).
+var _named_crew: PackedInt32Array = PackedInt32Array()
+var _names_of_crew: PackedStringArray = PackedStringArray()
 
 
 func configure(cast: DemoCastScript, stand: StandScript, zones: ZonesScript, deadfall: DeadfallScript,
@@ -856,6 +859,8 @@ func preview_into(card: CardScript, kind: int, target: int, gen: int, members: P
 	card.work_usec = plan_usec(kind, target, d.worker if not d.busy else -1)
 	if kind == JobsScript.KIND_FELL:
 		card.work_note = ForestCard.FELL_NOTE % ForestCard.trips(Rules.TREE_WOOD_MILLI)
+	elif kind == JobsScript.KIND_HAUL:
+		card.work_note = ForestCard.HAUL_NOTE
 	_preview_who(card, kind, d)
 
 
@@ -923,11 +928,13 @@ func _compost() -> int:
 
 
 func _crew_names() -> PackedStringArray:
-	"""The routine forestry crew's names."""
-	var names := PackedStringArray()
-	for who: int in _crew:
-		names.append(name_of(who))
-	return names
+	"""The routine forestry crew's names (made again only when the crew changed; read, never kept)."""
+	if _named_crew != _crew:
+		_named_crew = _crew.duplicate()
+		_names_of_crew.clear()
+		for who: int in _crew:
+			_names_of_crew.append(name_of(who))
+	return _names_of_crew
 
 
 func resume_rule(who: int) -> int:

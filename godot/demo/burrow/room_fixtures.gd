@@ -291,11 +291,17 @@ func order(graph: RefCounted, r: int, kind: int, stores: RefCounted) -> int:
 	var refused := order_refusal(graph, r, kind, stores)
 	if refused != REFUSE_NONE:
 		return refused
-	var f := nook_place(graph, r) if kind == RoomsScript.FIX_BIG_BED else _place_of(graph, r, kind, EMPTY, false)
+	var f := place_for(graph, r, kind)
 	if not stores.pay_all(COST_WOOD_MILLI[kind], COST_STONE_MILLI[kind], COST_PLANKS_MILLI[kind]):
 		return REFUSE_SHORT
 	_plan(graph, r, f, kind)
 	return REFUSE_NONE
+
+
+func place_for(graph: RefCounted, r: int, kind: int) -> int:
+	"""The place an order of `kind` in room `r` fills: its first empty place that takes it, a large bed's first alcove
+	whose nook may be dug (-1: none)."""
+	return nook_place(graph, r) if kind == RoomsScript.FIX_BIG_BED else _place_of(graph, r, kind, EMPTY, false)
 
 
 func order_refusal(graph: RefCounted, r: int, kind: int, stores: RefCounted) -> int:

@@ -249,11 +249,15 @@ func show_room(title: String, text: String, rows: Array[Dictionary], suggest: St
 	_shown_rows = rows.size()
 	_set_line(&"room_title", title)
 	_set_line(&"room", text)
-	for row: HBoxContainer in _fit_rows:
-		row.visible = false
+	var shown_kinds: int = 0
+	for row: Dictionary in rows:
+		shown_kinds |= 1 << int(row["kind"])
+	for kind: int in _fit_rows.size():
+		# Each row is set to its final visibility once: hiding a row and showing it again in the same refresh drops
+		# the pointer's hover, closing a "+"/"−" button's tooltip (its action card, decision 0331) every refresh.
+		_fit_rows[kind].visible = (shown_kinds & (1 << kind)) != 0
 	for row: Dictionary in rows:
 		var kind: int = row["kind"]
-		_fit_rows[kind].visible = true
 		_fit_words[kind].text = row["text"]
 		(_buttons[StringName("%s%s:%d" % [RoomTextScript.FIT_PREFIX, RoomTextScript.FIT_ADD, kind])] as Button).disabled = not row["add"]
 		(_buttons[StringName("%s%s:%d" % [RoomTextScript.FIT_PREFIX, RoomTextScript.FIT_TAKE, kind])] as Button).disabled = not row["take"]

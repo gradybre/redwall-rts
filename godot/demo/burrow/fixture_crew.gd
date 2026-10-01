@@ -129,7 +129,7 @@ func first_able(r: int, members: PackedInt32Array) -> int:
 	"""The first of `members` `give` would accept for room `r` -- one the water's rescue does not hold, who can reach the
 	room (-1: none). `give_selected` hands the room's first waiting fixture to this resident (an action card's
 	assignment, decision 0331)."""
-	for who in members:
+	for who: int in members:
 		if who >= 0 and who < _brains.size() and not _brains[who].water_hold and can_reach(who, r):
 			return who
 	return -1

@@ -16,10 +16,12 @@ const CardScript := preload("res://demo/ui/action_card.gd")
 const VERBS: Array[String] = ["Fell %s", "Haul logs from %s", "Gather deadfall", "Saw planks", "Plant a sapling at %s",
 	"Grub out %s"]
 const NEEDS: Array[String] = ["a mature tree within the village's reach; its zone's floor kept",
-	"a felled trunk, or a tree being felled", "deadfall lying in the woods", "2.0 U of wood in the stores",
-	"a cleared spot within reach; 0.25 U of compost", "a stump"]
+	"a felled trunk, or a tree being felled", "deadfall lying in the woods", "%s of wood in the stores",
+	"a cleared spot within reach; %s of compost", "a stump"]
 ## Felling's work is the felling; the feller then hauls the trunk in, `%d` trips.
 const FELL_NOTE: String = ", plus the walk; then it is hauled in (%d trips)"
+## A haul's work is every trip's loading and stacking, shared by its haulers.
+const HAUL_NOTE: String = ", plus the walks; shared by its haulers"
 const WOOD: String = "Wood (stores)"
 const COMPOST: String = "Compost (farm store)"
 const FIXES: Dictionary = {
@@ -55,7 +57,10 @@ static func trips(milli: int) -> int:
 
 static func fill(card: CardScript, kind: int, amount_milli: int, wood_milli: int, compost_milli: int) -> void:
 	"""The card's result, cost (have / need) and needs for a woods job bringing in `amount_milli`."""
-	card.prerequisites.append(NEEDS[kind])
+	var needs: String = NEEDS[kind]
+	if needs.contains("%s"):
+		needs = needs % CardScript.need_text(Rules.SAW_BATCH_MILLI if kind == JobsScript.KIND_SAW else Rules.PLANT_COMPOST_MILLI)
+	card.prerequisites.append(needs)
 	var amount: String = CardScript.amount_text(amount_milli)
 	match kind:
 		JobsScript.KIND_FELL:

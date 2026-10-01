@@ -15,8 +15,9 @@ extends RefCounted
 ## A HAULER (a dig crew's member at its post below, tunnel_crew_task.gd) JOINS its dig's spoil mouth, FILLS its basket
 ## from the pile (the whole pile: one basketful of however much is waiting), carries it out and DUMPS it on the heap,
 ## and LEAVES when its place on the crew ends -- whatever its basket holds is tipped on the heap then (a hauler called
-## away drops its load there), and the last hauler to leave a mouth takes its pile with it. A mouth row freed or reused
-## starts clean.
+## away drops its load there), and the last hauler to leave a mouth takes its pile with it. A hauler whose walk out was
+## given up RETURNS its basket to the pile instead (`return_basket`; decision 0361): nothing is tipped from afar. A
+## mouth row freed or reused starts clean.
 ##
 ## Per resident it also keeps what the drawing needs (haul_view.gd): its STAGE and how far through the fill it is.
 
@@ -160,6 +161,21 @@ func tip(network: RefCounted, i: int) -> int:
 	dumped_milli[m] += held
 	if held > 0:
 		revision += 1
+	return held
+
+
+func return_basket(network: RefCounted, i: int) -> int:
+	"""Resident `i`'s basket goes back to its mouth's pile behind the face, never tipped: a haul whose walk out was given
+	up delivers nothing from where it stands (decision 0361). Returns how much (milli-U)."""
+	if mouth_of.size() <= i or mouth_of[i] < 0:
+		return 0
+	var m := mouth_of[i]
+	_sync(network, m)
+	if mouth_of[i] != m:
+		return 0
+	var held := basket_milli[i]
+	basket_milli[i] = 0
+	carried_milli[m] -= held
 	return held
 
 

@@ -15,8 +15,19 @@ extends RefCounted
 ## CARRY (the carry walk, a basket in hand) -> DROP (DROP_USEC) -> GO, until the heap is empty; the
 ## last load out retires the heap: it stops being an obstacle and is no longer drawn. A worker taken
 ## off by another order leaves its load where the row keeps it (delivered when the row is ended) and
-## keeps the job to come back to (resident_brain.gd RESUMING). Only a finished tunnel's heaps are
+## keeps the job to come back to (resident_brain.gd RESUMING; its basket goes back on the heap: see ARRIVING IS
+## EXPLICIT). Only a finished tunnel's heaps are
 ## cleared: a heap still growing under a dig is refused.
+##
+## ARRIVING IS EXPLICIT (decision 0361, the review's F05). A worker holding is not a worker arrived: one whose walk was
+## given up holds too, its goal unchanged. A walk step ends only when the brain's trip ARRIVED and the worker stands
+## within ARRIVE_M of its spot (resident_brain.gd `arrived_near`), and the dig and the drop recheck that every frame. A
+## walk that failed PAUSES the row -- nothing dug, nothing delivered, a basket kept in hand -- and it is tried again
+## after RETRY_USEC (`blocked`: the party panel says the worker can't reach it), at most MAX_TRIES times, then the row
+## ends; a worker found off its spot while working walks back to it before any more work is done. A basket is
+## delivered only by tipping it at the drop spot: a row ended anywhere else -- called away, given up, re-ordered --
+## puts its basket back on its heap (farm_tunnels.gd `return_spoil_into`), so nothing is credited from afar and nothing
+## is lost. (Before 0361 a worker called away tipped its basket into the store wherever it stood.)
 
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
@@ -48,6 +59,10 @@ const RING_GAP_M: float = 0.45
 const RINGS: int = 4
 const RING_SPOTS: int = 12
 const ARRIVE_M: float = 0.4
+## A row whose walk failed waits this long before it tries again (see ARRIVING IS EXPLICIT; demo value).
+const RETRY_USEC: int = 3000000
+## A row whose walk fails this many times running ends (see ARRIVING IS EXPLICIT; demo value).
+const MAX_TRIES: int = 3
 const BASKET_KEY: StringName = &"basket"
 const DIG_CLIP_FALLBACK: StringName = &"collect_object"
 
@@ -58,6 +73,10 @@ var load_milli: PackedInt64Array = PackedInt64Array()
 var work_usec: PackedInt64Array = PackedInt64Array()
 var issued: PackedByteArray = PackedByteArray()
 var goal: PackedVector2Array = PackedVector2Array()
+## Per row: 1 while its walk failed and it waits to try again, and how much longer (see ARRIVING IS EXPLICIT).
+var blocked: PackedByteArray = PackedByteArray()
+var wait_usec: PackedInt64Array = PackedInt64Array()
+var tries: PackedInt32Array = PackedInt32Array()
 ## Spoil delivered to the compost store by clearing, milli-U (the books' other side).
 var delivered_milli: int = 0
 ## Heaps emptied and taken off the obstacles (checks).
@@ -86,6 +105,9 @@ func _init() -> void:
 	work_usec.resize(MAX_ROWS)
 	issued.resize(MAX_ROWS)
 	goal.resize(MAX_ROWS)
+	blocked.resize(MAX_ROWS)
+	wait_usec.resize(MAX_ROWS)
+	tries.resize(MAX_ROWS)
 	worker.fill(NOBODY)
 	heap.fill(-1)
 	_retired.resize(FarmTunnels.HEAPS)
@@ -172,7 +194,7 @@ func _take(h: int, who: int) -> bool:
 		return false
 	var had: int = row_of(who)
 	if had >= 0:
-		_deliver_load(had)
+		_settle_load(had, _brain(who))
 		_hold_basket(who, false)
 		_close(had)
 	for row: int in MAX_ROWS:
@@ -190,6 +212,8 @@ func _open_row(row: int, h: int, who: int) -> void:
 	load_milli[row] = 0
 	work_usec[row] = 0
 	issued[row] = 0
+	blocked[row] = 0
+	tries[row] = 0
 	revision += 1
 
 
@@ -210,14 +234,14 @@ func update(usec: int) -> void:
 		if worker[row] == NOBODY:
 			continue
 		if step[row] == STEP_GO or step[row] == STEP_CARRY:
-			_step_walk(row)
+			_step_walk(row, usec)
 		else:
 			_step_work(row, usec)
 
 
-func _step_walk(row: int) -> void:
-	"""Issue the walk, then wait for the worker to hold at its spot; taken off by another order, the row
-	ends and the worker keeps the job to come back to."""
+func _step_walk(row: int, usec: int) -> void:
+	"""Issue the walk, then wait for the worker to ARRIVE at its spot; a walk given up pauses the row (see ARRIVING IS
+	EXPLICIT). Taken off by another order, the row ends and the worker keeps the job to come back to."""
 	var brain: BrainScript = _brain(worker[row])
 	if issued[row] == 0:
 		_issue_walk(row, brain)
@@ -225,10 +249,42 @@ func _step_walk(row: int) -> void:
 	if brain.order != BrainScript.ORDER_MOVE or brain.goal() != goal[row]:
 		_called_away(row, brain)
 		return
-	if brain.state == BrainScript.State.HOLD:
+	if blocked[row] == 1:
+		_wait_to_retry(row, usec)
+		return
+	if brain.state != BrainScript.State.HOLD:
+		return
+	if brain.arrived_near(goal[row], ARRIVE_M):
 		step[row] += 1
 		issued[row] = 0
 		work_usec[row] = 0
+		tries[row] = 0
+		return
+	_pause(row, brain)
+
+
+func _pause(row: int, brain: BrainScript) -> void:
+	"""The walk failed: wait RETRY_USEC where it stands (its basket kept), then try again -- or, MAX_TRIES failed, end the
+	row (see ARRIVING IS EXPLICIT)."""
+	tries[row] += 1
+	if tries[row] >= MAX_TRIES:
+		_end_row(row)
+		return
+	blocked[row] = 1
+	wait_usec[row] = RETRY_USEC
+	issued[row] = 1
+	goal[row] = brain.goal()
+	revision += 1
+
+
+func _wait_to_retry(row: int, usec: int) -> void:
+	"""Count a paused row down; then issue its walk afresh."""
+	wait_usec[row] -= usec
+	if wait_usec[row] > 0:
+		return
+	blocked[row] = 0
+	issued[row] = 0
+	revision += 1
 
 
 func _issue_walk(row: int, brain: BrainScript) -> void:
@@ -237,7 +293,10 @@ func _issue_walk(row: int, brain: BrainScript) -> void:
 	var target: Vector2 = _drop_at if carry else _network.heap_at[heap[row]]
 	var first: float = 0.0 if carry else _network.heap_radius_m[heap[row]] + HEAP_STAND_M
 	if not _spot_near(target, first, brain):
-		_end_row(row)
+		if carry:
+			_pause(row, brain)  # nowhere reachable to tip: the basket is kept, never delivered from here
+		else:
+			_end_row(row)
 		return
 	goal[row] = _found
 	issued[row] = 1
@@ -253,6 +312,11 @@ func _step_work(row: int, usec: int) -> void:
 	var brain: BrainScript = _brain(worker[row])
 	if brain.state != BrainScript.State.HOLD or brain.order != BrainScript.ORDER_MOVE:
 		_called_away(row, brain)
+		return
+	if not brain.arrived_near(goal[row], ARRIVE_M):
+		step[row] -= 1  # off its spot: back to it before any more work (see ARRIVING IS EXPLICIT)
+		issued[row] = 0
+		work_usec[row] = 0
 		return
 	brain.play_in_place(_dig_clip(brain) if step[row] == STEP_DIG else BrainScript.CLIP_IDLE)
 	work_usec[row] += usec
@@ -299,11 +363,25 @@ func _deliver_load(row: int) -> void:
 	revision += 1
 
 
+func _settle_load(row: int, brain: BrainScript) -> void:
+	"""A row ending with a basket: tipped into the store when its worker stands at the drop spot about to tip it, else put
+	back on its heap -- never delivered from afar, never lost (see ARRIVING IS EXPLICIT)."""
+	if load_milli[row] <= 0:
+		return
+	if step[row] == STEP_DROP and brain.arrived_near(goal[row], ARRIVE_M):
+		_deliver_load(row)
+		return
+	_tunnels.return_spoil_into(_network, heap[row], int(load_milli[row]), _read)
+	load_milli[row] = 0
+	revision += 1
+
+
 func _called_away(row: int, brain: BrainScript) -> void:
-	"""The worker was ordered away: its basket goes into the store (nothing is lost), the row ends, and
-	it keeps the heap to come back to while there is spoil on it -- unless the player released it (R)."""
+	"""The worker was ordered away: its basket goes back on the heap -- or into the store, had it reached the drop spot
+	(see ARRIVING IS EXPLICIT) -- the row ends, and it keeps the heap to come back to while there is spoil on it --
+	unless the player released it (R)."""
 	var h: int = heap[row]
-	_deliver_load(row)
+	_settle_load(row, brain)
 	_hold_basket(worker[row], false)
 	_close(row)
 	if spoil_left(h) > 0 and brain.order != BrainScript.ORDER_NONE:
@@ -311,12 +389,12 @@ func _called_away(row: int, brain: BrainScript) -> void:
 
 
 func _end_row(row: int) -> void:
-	"""The row is done: deliver any basket, and send the worker back to what it was doing before."""
+	"""The row is done: any basket settled (see `_settle_load`), and the worker sent back to what it was doing before."""
 	var who: int = worker[row]
-	_deliver_load(row)
+	var brain: BrainScript = _brain(who)
+	_settle_load(row, brain)
 	_hold_basket(who, false)
 	_close(row)
-	var brain: BrainScript = _brain(who)
 	brain.play_in_place(BrainScript.CLIP_IDLE)
 	brain.work_done()
 

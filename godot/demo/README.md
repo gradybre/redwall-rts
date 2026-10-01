@@ -283,7 +283,8 @@ Needs: a site both banks take; planks (sawn at the sawhorse) and wood for any pi
 - **The card is the order's own decision.** Each system's order and its card run the same function:
   `farm_crew.gd decide`, `forest_crew.gd decide`, `tunnel_actions.gd refusal`, `room_fixtures.gd
   order_refusal` / `suggest_refusal` / `take_refusal`, `demo_waterplay.gd build_refusal`, the dive loop's
-  `dive_spot` and `dive_refusal`, and the Dig tool's `choose_digger`. So a card's refusal is the order's
+  `dive_spot` and `dive_refusal`, and the Dig tool's `choose_digger` with its capacity gate
+  (`underground_graph.gd any_piece_refusal`, decision 0361). So a card's refusal is the order's
   (code and words), its resident is the one sent, its cost is what is spent, and a button is pressable
   exactly when its card allows it. The bridge, tunnel and fixture buttons now refuse a short store before
   they are pressed, not after.
@@ -341,8 +342,16 @@ skills and species line go first). Its **notice line is each resident's own**: a
 kept for whoever was selected when it was said, so selecting someone else shows theirs. A resident
 called away from a job it had not finished (a tunnel job, a dig, a farm or a woods job, a spoil heap)
 **comes back to it** when the work that took it is done -- the latest three are kept, the panel says
-"Then back to: ...", and R (release) forgets them. Orders move the demo cast only, never the
-simulation.
+"Then back to: ...", and R (release) forgets them -- a finished dig takes its saved job back up once the
+digger has stepped clear of the hole (at night it keeps it for the morning). Orders move the demo cast only,
+never the simulation.
+
+**Finding a route, and giving one up** (decision 0361). Route planning is spread over frames: a group order
+picks its formation at once, and its residents' routes are planned a few a frame -- one waiting for its turn
+says **"finding a route"** in the panel (paused too; it sets off once planned). A resident whose way is gone
+-- no route at all, or one that stayed blocked -- gives the trip up and holds, and the panel says why
+("holding — can't find a way there", "holding — gave up: the way there stayed blocked"); a job it was walking
+to is kept to come back to. Nobody is credited work, a load or a delivery for a walk it did not finish.
 
 ## The camera and the trees
 
@@ -390,8 +399,10 @@ dig, for the next piece.
   a meeting at under 40°; four bores at a junction already; a ramp joined (join the bore below it); a host
   being dug, worked or closed; a crossing at under 40° (a steeper one becomes a four-way junction); a bore
   passing within 1 m of earth of another it does not join ("it would break into Tunnel 3: join it
-  instead"); a bend tighter than a 1 m radius, or one on a mouth's 4 m ramp; the network full (96 bores,
-  96 nodes, 16 mouths).
+  instead"); a bend tighter than a 1 m radius, or one on a mouth's 4 m ramp; and the network's capacity,
+  named for what the piece would exhaust -- all 24 mouths open ("join the tunnels you have instead"), all 96
+  junctions and ends used, or all 96 bores laid. The tool itself opens while any piece could still fit: with
+  every mouth taken, a connection between existing bores is still dug (decision 0361).
 - **Who digs** (`tunnel/dig_skills.gd`): anybeast whose body fits a bore -- mice, moles and squirrels.
   The digger is the first selected resident who can dig, else the village's most skilled free digger; the
   rest of the selection joins its crew. Moles start at **Digging 3**; everyone learns as they dig (the
@@ -964,7 +975,9 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
   why. The builder fetches and carries the material, then works piers, beams and deck (WU at the woods'
   rate, §5.3's skill factor); the beaver bridgewright starts at level 6 and gnaws its log. Anyone who
   selects nothing leaves it for the bridgewright. Finished bridges are walked by everyone, loaded or not,
-  the badger included.
+  the badger included. A builder loads and builds only standing at its spot: one who could not get to the
+  material or the site leaves the bridge waiting and goes back to its own work, the feed names who could not get
+  where, and the bridgewright leaves that bridge alone for 10 s before trying again (decision 0361).
 - **Who goes in to rescue** is the nearest by route to where it goes in, not in a straight line (decision
   0205): a swimmer across the stream with a long way round loses to one a little farther on the near bank.
 - **Water tab** (right column): conditions, alerts, who is swimming, the chosen site and its costs,
@@ -984,14 +997,20 @@ open stockpile -- the demo's one use for spoil is compost (the farm's Compost jo
 Every milli-U goes through the farm's spoil books, the ones Raise and Bank take from: taken, carried,
 delivered, nothing made or lost. At most four work one heap; the emptied heap stops being an obstacle.
 A heap still growing under a dig is refused. The party panel says who is "Clearing a spoil heap" or
-"Hauling spoil to the compost".
+"Hauling spoil to the compost". A worker digs or tips only standing at its own spot: one whose walk failed
+waits a few seconds -- "... — can't reach it, trying again" -- and tries again, at most three times, keeping
+any basket in hand. A basket reaches the store only by being tipped at the drop spot: a worker called away, or
+one that gives up, puts its basket back on the heap -- nothing is delivered from afar, nothing is lost
+(decision 0361).
 
 ## Sound (decision 0351)
 
-The first sound pass (`sound/`; review F43, UX-029, UX-031). **No sound files are staged yet**, so the demo is
-silent: every cue is wired, takes its voice and keeps its limits, and plays nothing until its file is dropped in
-at the path the table names (`sound/sound_table.json`; each missing cue warns once at boot). The sourcing plan
-waits on Brendan's approval of each download.
+The first sound pass (`sound/`; review F43, UX-029, UX-031). **The files are staged, not committed**:
+`python3 tools/stage_demo_audio.py` (also run by `tools/stage_demo_assets.py`) copies or renders 56 files for the
+21 cues from nine CC0 packs in the gitignored audio library, then `godot --headless --path godot --import` imports
+them. Where each file came from, its licence and hash: `docs/art-reference/audio_library/`. Without them (CI)
+every cue is still wired, takes its voice and keeps its limits, and plays nothing (each missing cue warns once at
+boot). First volumes were set by measured loudness, not by ear: they wait on Brendan's listen.
 
 - **One owner, not an autoload** (`sound/sound_director.gd`, a child of the village). Everything it hears is the
   demo's -- cast, woods, tunnels, water, notices, camera -- so it is made and freed with the scene, and the sixth
@@ -1023,7 +1042,7 @@ waits on Brendan's approval of each download.
 - **Cost**: twenty residents at 4x -- all walking, twelve felling, one digging, loads changing hands, with the
   trees, bridges, notices, weather and water read too: p50 37 µs, p95 71–76 µs, p99 106–123 µs, max ≤ 230 µs a
   frame (`test/test_demo_sound_cost.gd`, headless, Apple Silicon). The boot prewarm step (streams and the
-  worn-path grid) takes about 16 ms.
+  worn-path grid) took about 16 ms with nothing staged and 22 ms loading all 56 files.
 
 ## Layout
 

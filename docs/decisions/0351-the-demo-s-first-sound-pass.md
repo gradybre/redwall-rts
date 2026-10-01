@@ -172,3 +172,133 @@ where I's feed appends a row, not where it folds a repeat.
   slider ignores the wheel, the scroll follows the keyboard focus, a paused dig's progress is taken as the
   baseline, `stop_bus` counts only voices still sounding, the unused `cue_id` removed, the stream heard from 45 m
   (the listener rises to 28 m zoomed out).
+
+## Phase 2 — the approved files (2026-09-30)
+
+Brendan approved nine downloads on 2026-09-30, and nothing else: P1–P8 of the sourcing plan and the optional
+Shovel Sound. The plan is now [`docs/art-reference/audio_library/sound_sourcing.md`](../art-reference/audio_library/sound_sourcing.md),
+moved out of a scratch folder because AGENTS.md wants docs from outside sources in `docs/`. Its ledger is
+[`docs/art-reference/audio_library/README.md`](../art-reference/audio_library/README.md) and `files.json`.
+
+### 9. How the packs were taken
+
+Each page was read again just before downloading. All nine still said CC0, and none needed a login. Only each
+page's own file link was fetched, after a HEAD check of its size. The total is 11.6 MB, the largest file 3.5 MB,
+and every size matched its HEAD. Each archive was listed before it was unzipped. The packs held 356 Ogg files,
+Kenney's three `License.txt` files and six Windows `.url` shortcuts. The shortcuts were deleted by exact path,
+and nothing was run. The binaries live in `assets/library/audio/<pack>/`, which is gitignored, as decision 0188
+lays the library out. The download is kept under `download/`, next to what it unzipped to. An OpenGameArt pack
+with no licence file has a `LICENCE_AS_STATED.txt` that records what its page said. `files.json` lists all 374
+files in the library: each one's pack, source, licence as stated, date, bytes, SHA-256, and the cue variants
+that use it.
+
+### 10. Staging copies where it can, and renders WAV where it must
+
+`tools/stage_demo_audio.py` (called by `stage_demo_assets.py`, or `--only sound`) holds `CHOICES`, the cue →
+variants map. It writes `godot/demo/assets/sound/<cue>_NN.ogg|wav`, and `sound_table.json` lists exactly those
+files, which `tools/test_stage_demo_audio.py` checks in CI. A file that plays as it is gets **copied**, byte
+for byte (38 files). A file that needs a cut, a level change or a loop fix gets **rendered** to 16-bit WAV
+(18 files).
+
+The reason for WAV: this Mac has no ffmpeg, and macOS `afconvert` decodes Vorbis but cannot encode it.
+Rejected options:
+- Installing ffmpeg: the brief said to use it only if it was already there.
+- Dropping the cuts: the saw is a single loop, and the tree's recording opens with a chop that the chop cue
+  already plays.
+- Per-file volume in the table: that would be a code change for something the data can carry.
+
+Staging checks each source's SHA-256 against `files.json`. A file that is missing, unlisted or changed is
+skipped and reported, and any earlier copy of it is removed, with its `.import`. A staged file that no choice
+names any more is removed too, so the Windows build never exports a sound the latest run refused. Without
+`afconvert`, the rendered files are skipped the same way. A copy must be an Ogg Vorbis file. `--ledger` refuses
+to re-record a file whose SHA-256 changed unless it is given `--rehash`. In `stage_demo_assets.py` the sound runs
+last, so a sound problem cannot stop the models.
+
+### 11. First volumes by measurement
+
+Nothing was heard, so the levels are measured. The tool measures ITU-R BS.1770 K-weighted loudness in pure
+Python (`--measure`), checked against a 1 kHz sine (-3.0 LUFS at full scale in one channel). It is measured
+as Godot plays the file, so a mono file counts in both speakers (+3.01 dB). The level of a one-shot is its
+loudest 400 ms; the level of a loop is its gated integrated loudness. Each cue has a target
+before its bus (`TARGET_LUFS`):
+
+| Cue | Target (LUFS) |
+|---|---:|
+| Tree fall | -16 |
+| Chop, splash | -20 |
+| Dig | -22 |
+| Saw | -23 |
+| Gnaw, drop | -24 |
+| Footsteps | -28 to -31 |
+| Warning | -18 |
+| Completion | -20 |
+| UI click | -28 |
+| Ambience | -26 to -30 |
+
+`volume_db` is set to the target minus the measured level, clamped to -60..+6. Variants were chosen, or
+levelled by render, to within about 4 LU of each other. One file was dropped rather than levelled: Impact's
+`footstep_wood_004` is 17 LU louder than its siblings. Gnaw and the wood steps are raised in their render, so
+that they reach their targets. Three cues sit at +6 (chop, pickup, step_wood), within 0.4 LU of their targets.
+No cue is more than 0.6 LU from its target. The numbers are in the ledger's README.
+
+### 12. The wind loop clicked; it is cross-faded
+
+None of the three loops has silence at either end, so none was trimmed for that. Their joins were then compared
+with each file's ordinary sample-to-sample steps:
+
+| Loop | Jump at the join | Ordinary step, 99th percentile | Result |
+|---|---:|---:|---|
+| Stream | 514 | 847 | Clean |
+| Rain | 105 | 755 | Clean |
+| Wind (P8) | 1,140 | 141 | A click every 6 s |
+
+The wind's recording fades to about 0 in its last samples but starts at -1,137. Its last 500 ms are now
+cross-faded (equal power) into its first, and dropped from the end. The WAV carries a `smpl` loop marker, which
+Godot's default import ("Detect From WAV") reads: the engine imports the file as loop forward, 0 to 262,046.
+After the fix, the jump at the join is 75. `sound_table.gd`'s rule that "a WAV keeps the loop authored in the
+file" therefore holds, with no code change. **The wind may still be too "whooshy"**, as the plan warned. It
+stays until Brendan has heard it.
+
+### 13. Tests pass staged or not
+
+CI stages nothing, so two phase-1 tests that assumed nothing was staged now hold either way:
+- The missing-files test uses the shipped table with its files moved to a folder that does not exist.
+- The prewarm test expects as many streams as are staged.
+
+A new test checks that the table is staged whole or not at all. A partial set means a file was skipped or not
+imported. When staged, every file loads with a length, each loop cue loops (an Ogg set to loop, or a WAV whose
+marker was imported), and no one-shot is longer than 2 s. The player-facing note for no sound files now says
+"This copy of the demo has no sound files" instead of "not in yet".
+
+### Evidence (phase 2)
+
+- `./tools/run_tests.sh`, with the files staged and imported: `6471 test(s), 549758 assertion(s), 0 failure(s)`.
+  `test_demo_sound.gd` and `test_demo_sound_cost.gd` were also run alone. With the sound folder moved away (as in
+  CI): 0 failed, 507 and 19 assertions. Staged: 0 failed, 621 and 19.
+- `python3 tools/test_stage_demo_audio.py`: 206 checks. The negative cases come first:
+  - a source that is missing, changed, not in the ledger, or a copy that is not an Ogg is skipped;
+  - a later refusal removes the earlier staged copy, and an unchosen file is removed;
+  - cuts and seams that do not fit refuse;
+  - a WAV that is not 16-bit refuses;
+  - the ledger will not re-record a changed hash.
+
+  Then it checks the render arithmetic, the seam's join and equal-power blend, the forward loop marker,
+  BS.1770 on known sines (mono as played, one channel of two, the gates, the high pass), `measure`, and that the
+  table and the ledger match `CHOICES`.
+- **Independent review** (the `code-reviewer` agent) found nothing CRITICAL or HIGH. It confirmed, by running
+  them, the WAV and `smpl` layout, the seam, the cuts (afconvert's decoded lengths match Godot's), the
+  K-weighting and the ledger. It raised four MEDIUM findings, all fixed:
+  - stale or orphaned staged files outlived a refusal;
+  - mono was measured 3 dB under how Godot plays it, which put the completion above the warning;
+  - ten mutants of the self-test survived; there are now tests for each;
+  - an audio crash could stop the model staging.
+
+  Its LOW findings were fixed too: dot-files are kept out of the ledger, only an Ogg is copied, writes are
+  atomic, `--measure` survives an unreadable file, `--ledger` needs `--rehash` to accept a changed hash, the
+  "silent cue" test is made silent, and the ceiling wording is corrected.
+- **Headless boot of the demo** (`demo_village.tscn`, 240 frames, three runs after the fixes): the
+  `sound streams` step loaded 56 files in 21.7–22.5 ms. In phase 1, with nothing staged, it took about 16 ms.
+  There were 0 missing-file warnings and 0 table errors, and the whole prewarm took 144–148 ms.
+- The live harness at 1280x720: `LIVE-SUMMARY 126 0`. That includes the chop played, the rain loop playing
+  while it rains, and a button's click.
+- **Still not heard by anyone.** What to listen for is listed in the ledger's README.

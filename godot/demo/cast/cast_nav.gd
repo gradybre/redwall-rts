@@ -32,6 +32,23 @@ extends RefCounted
 ## and rings test every circle, and its graph's edges and nodes are tested against the few circles new since that
 ## graph was built (`_fresh`, found once a setup). A class's first graph is still built at once.
 ##
+## REACHABILITY BY ONE SWEEP (decision 0361, the review's F06). A formation, or a crew looking for a spot beside its
+## work, asks of a dozen candidate spots whether a route reaches each from one start (cast_orders.gd `spot_ok`): one A*
+## a spot cost a click up to 17 ms, and one that no route reaches cost a whole graph's search (5 ms). `reaches()`
+## instead sweeps everything a route from that start reaches -- once, kept for that start, body class and set of
+## circles -- and answers a spot by a link from it to a node the sweep reached, or through the plan's own nodes round
+## the circles by it (its pocket), each tested exactly as the plan tests its goal's links. A yes is never wrong (the plan
+## would find that very route). A no can differ from the plan's answer in two rare corners: the plan shrinks the circles
+## by its goal for its start's links too, so a start link the spot's own nearness clears is not tried; and the plan's
+## own nodes round the goal are followed only among themselves and from what the sweep reached, so a route that leaves
+## the goal's pocket into ground the sweep never reached and comes back is not found. Such a spot is refused, as an
+## unreachable one is. The sweep is kept for one start, one body (its links use the body's own radius) and one graph.
+##
+## The sweep itself reads the static graph's CONNECTED PARTS (labelled once per graph, `_label_parts`): what a route
+## from the start reaches is every part one of the start's own links reaches, and through the plan's nodes round the
+## start, the parts they link to in turn -- the same links, closed over, as the plan's search would make. While a
+## graph is being rebuilt round new circles its parts may be cut by them, so it then sweeps by the search itself.
+##
 ## Nothing here allocates during a plan beyond the heap's first growth; the grid queries write into
 ## member arrays sized at setup.
 
@@ -90,12 +107,33 @@ var _chain: PackedInt32Array = PackedInt32Array()
 var _local: PackedInt32Array = PackedInt32Array()
 var _dynamic_reach: PackedFloat32Array = PackedFloat32Array()
 var _plan_id: int = 0
+## The last reachability sweep (see REACHABILITY BY ONE SWEEP): whether one stands, its start, the graph it swept, the
+## static nodes it reached and the plan's own nodes (round the start) it reached.
+var _swept: bool = false
+var _swept_from: Vector2 = Vector2.INF
+var _swept_graph: GraphScript = null
+var _swept_body: float = -1.0
+var _pocket_queue: PackedInt32Array = PackedInt32Array()
+var _swept_static: PackedByteArray = PackedByteArray()
+var _swept_points: PackedVector2Array = PackedVector2Array()
+var _no_standing: PackedVector3Array = PackedVector3Array()
+## The connected parts of a graph's static edges (see REACHABILITY BY ONE SWEEP): per node its part, how many parts,
+## the graph they were labelled for; and the sweep's scratch -- parts reached, and the plan's own nodes reached and
+## linked from.
+var _part: PackedInt32Array = PackedInt32Array()
+var _part_count: int = 0
+var _part_graph: GraphScript = null
+var _part_reached: PackedByteArray = PackedByteArray()
+var _own_reached: PackedByteArray = PackedByteArray()
+var _own_done: PackedByteArray = PackedByteArray()
+var _part_queue: PackedInt32Array = PackedInt32Array()
 
 
 func setup(obstacles: PackedVector3Array) -> void:
 	"""Take the circles (x, radius, z) and bucket them. Each class's graph is rebuilt in slices (see REBUILT IN
 	SLICES); a class never planned for gets its graph when it first does."""
 	circles = obstacles
+	_swept = false
 	max_radius = 0.0
 	var centres := PackedVector2Array()
 	for circle in circles:
@@ -137,6 +175,7 @@ func advance_builds(budget_usec: int) -> void:
 		var graph: GraphScript = _building[key]
 		if graph.step(self, until - Time.get_ticks_usec()):
 			_graphs[key] = graph
+			_swept = false
 			_drop_build(key)
 			_fresh_by_class.erase(key)
 
@@ -284,6 +323,208 @@ func plan(from: Vector2, to: Vector2, body: float, standing: PackedVector3Array,
 	_emit_route(out)
 
 
+func reaches(from: Vector2, spot: Vector2, body: float) -> bool:
+	"""Whether a plan from `from` to `spot` round the obstacles alone (nobody standing) is sure to find a route, by one
+	sweep from `from` kept for later questions (see REACHABILITY BY ONE SWEEP). True only when it would; false when the
+	sweep cannot tell -- plan then."""
+	_sweep_from(from, body)
+	_begin(from, spot, body, _no_standing, 0)
+	if _dynamic_edge_clear(from, spot):
+		return true
+	var count := _graph.nodes_near(spot, LINK_M, _hits_for_graph())
+	for k in count:
+		var v := _node_hits[k]
+		if _swept_static[v] == 1 and spot.distance_to(_graph.nodes[v]) <= LINK_M and _dynamic_edge_clear(_graph.nodes[v], spot):
+			return true
+	for k in _swept_points.size():
+		if _swept_points[k].distance_to(spot) <= LINK_M and _dynamic_edge_clear(_swept_points[k], spot):
+			return true
+	return _pocket_reached(spot)
+
+
+func _pocket_reached(spot: Vector2) -> bool:
+	"""Whether the plan's own nodes round the circles by `spot` (its pocket: `_ring_locals`) carry a route from what the
+	sweep reached to `spot`: a ring node linked from a reached node, on through the rings, and on to the spot -- each
+	link as the plan makes it."""
+	_dynamic.clear()
+	_dynamic_reach.clear()
+	_ring_locals(spot)
+	var count := _dynamic.size()
+	_closed.resize(count)
+	_closed.fill(0)
+	_pocket_queue.resize(count)
+	var tail := 0
+	for k in count:
+		if _ring_linked_from_sweep(k):
+			_closed[k] = 1
+			_pocket_queue[tail] = k
+			tail += 1
+	var head := 0
+	while head < tail:
+		var a := _pocket_queue[head]
+		head += 1
+		for b in count:
+			if _closed[b] == 0 and _dynamic[a].distance_to(_dynamic[b]) <= LOCAL_LINK_M and _dynamic_edge_clear(_dynamic[a], _dynamic[b]):
+				_closed[b] = 1
+				_pocket_queue[tail] = b
+				tail += 1
+	for k in count:
+		if _closed[k] == 1 and _dynamic[k].distance_to(spot) <= LINK_M and _dynamic_edge_clear(_dynamic[k], spot):
+			return true
+	return false
+
+
+func _ring_linked_from_sweep(k: int) -> bool:
+	"""Whether pocket node `k` is linked from a node the sweep reached (within its LOCAL_LINK_M, clear)."""
+	var at := _dynamic[k]
+	var count := _graph.nodes_near(at, LOCAL_LINK_M, _hits_for_graph())
+	for i in count:
+		var v := _node_hits[i]
+		if _swept_static[v] == 1 and at.distance_to(_graph.nodes[v]) <= LOCAL_LINK_M and _dynamic_edge_clear(_graph.nodes[v], at):
+			return true
+	for point in _swept_points:
+		if point.distance_to(at) <= LOCAL_LINK_M and _dynamic_edge_clear(point, at):
+			return true
+	return false
+
+
+func _sweep_from(from: Vector2, body: float) -> void:
+	"""Mark what a route from `from` reaches on this body's graph, unless the last sweep did (see REACHABILITY BY ONE
+	SWEEP): the plan's own search with no goal to stop at, round the obstacles alone."""
+	var graph := ensure_graph(body)
+	if _swept and _swept_from == from and _swept_graph == graph and _swept_body == body:
+		return
+	_begin(from, from, body, _no_standing, 0)
+	_prepare_search(false)
+	if _fresh.is_empty():
+		_sweep_by_parts()
+	else:
+		_sweep_by_search()
+	_keep_sweep(from, graph)
+
+
+func _sweep_by_search() -> void:
+	"""The plan's own search from the start, with no goal to stop at: every node it reaches is closed."""
+	var statics := _graph.nodes.size()
+	_cost[statics] = 0.0
+	_push(statics, 0.0)
+	while _heap_size > 0:
+		var u := _pop()
+		if _closed[u] != 0:
+			continue
+		_closed[u] = 1
+		if u < statics:
+			_expand_static(u)
+		else:
+			_expand_dynamic(u)
+
+
+func _sweep_by_parts() -> void:
+	"""The same reach from the graph's connected parts (see REACHABILITY BY ONE SWEEP): close over the plan's own nodes
+	(the start and its rings) and the parts they link to, then close every node of a part reached."""
+	_label_parts()
+	var own := _dynamic.size()
+	_part_reached.resize(_part_count)
+	_part_reached.fill(0)
+	_own_reached.resize(own)
+	_own_reached.fill(0)
+	_own_done.resize(own)
+	_own_done.fill(0)
+	_own_reached[0] = 1
+	var changed := true
+	while changed:
+		changed = false
+		for k in own:
+			if _own_reached[k] == 1 and _own_done[k] == 0:
+				_own_done[k] = 1
+				_reach_parts_from(k)
+				changed = true
+			elif _own_reached[k] == 0 and _own_linked(k):
+				_own_reached[k] = 1
+				changed = true
+	var statics := _graph.nodes.size()
+	for v in statics:
+		_closed[v] = _part_reached[_part[v]]
+	for k in own:
+		_closed[statics + k] = _own_reached[k]
+
+
+func _reach_parts_from(k: int) -> void:
+	"""Mark the part of every static node the plan's own node `k` links to (within its reach, clear)."""
+	var at := _dynamic[k]
+	var count := _graph.nodes_near(at, _dynamic_reach[k], _hits_for_graph())
+	for i in count:
+		var v := _node_hits[i]
+		if _part_reached[_part[v]] == 0 and at.distance_to(_graph.nodes[v]) <= _dynamic_reach[k] \
+				and _dynamic_edge_clear(at, _graph.nodes[v]):
+			_part_reached[_part[v]] = 1
+
+
+func _own_linked(k: int) -> bool:
+	"""Whether the plan's own node `k` is linked from one reached already: another of its own, or a static node of a
+	part reached (within `k`'s reach, clear -- as the plan's search links it)."""
+	var at := _dynamic[k]
+	for j in _dynamic.size():
+		if _own_reached[j] == 1 and _dynamic[j].distance_to(at) <= _dynamic_reach[k] and _dynamic_edge_clear(_dynamic[j], at):
+			return true
+	var count := _graph.nodes_near(at, _dynamic_reach[k], _hits_for_graph())
+	for i in count:
+		var v := _node_hits[i]
+		if _part_reached[_part[v]] == 1 and at.distance_to(_graph.nodes[v]) <= _dynamic_reach[k] \
+				and _dynamic_edge_clear(_graph.nodes[v], at):
+			return true
+	return false
+
+
+func _label_parts() -> void:
+	"""Label the connected parts of the current graph's static edges, once per graph (a rebuilt graph is a new one)."""
+	if _part_graph == _graph:
+		return
+	_part_graph = _graph
+	var statics := _graph.nodes.size()
+	_part.resize(statics)
+	_part.fill(-1)
+	_part_queue.resize(statics)
+	_part_count = 0
+	for seed in statics:
+		if _part[seed] < 0:
+			_flood_part(seed)
+			_part_count += 1
+
+
+func _flood_part(seed: int) -> void:
+	"""Give part `_part_count` to every static node joined to `seed`."""
+	var head := 0
+	var tail := 1
+	_part_queue[0] = seed
+	_part[seed] = _part_count
+	while head < tail:
+		var u := _part_queue[head]
+		head += 1
+		for e in range(_graph.adj_first[u], _graph.adj_first[u + 1]):
+			var v := _graph.adj_to[e]
+			if _part[v] < 0:
+				_part[v] = _part_count
+				_part_queue[tail] = v
+				tail += 1
+
+
+func _keep_sweep(from: Vector2, graph: GraphScript) -> void:
+	"""Keep what the sweep just made reached, for `reaches`."""
+	var statics := _graph.nodes.size()
+	_swept_static.resize(statics)
+	for v in statics:
+		_swept_static[v] = _closed[v]
+	_swept_points.clear()
+	for k in _dynamic.size():
+		if _closed[statics + k] == 1:
+			_swept_points.append(_dynamic[k])
+	_swept = true
+	_swept_from = from
+	_swept_graph = graph
+	_swept_body = _link_body
+
+
 func _begin(from: Vector2, to: Vector2, body: float, standing: PackedVector3Array, standing_count: int) -> void:
 	"""Hold this plan's inputs."""
 	_graph = ensure_graph(body)
@@ -296,8 +537,9 @@ func _begin(from: Vector2, to: Vector2, body: float, standing: PackedVector3Arra
 	_standing_count = standing_count
 
 
-func _prepare_search() -> void:
-	"""The plan's own nodes, the standing-resident flags on static nodes, and fresh search arrays."""
+func _prepare_search(rings_at_goal: bool = true) -> void:
+	"""The plan's own nodes, the standing-resident flags on static nodes, and fresh search arrays. A sweep, whose goal is
+	its start, rings it once (`rings_at_goal` false)."""
 	_plan_id += 1
 	_dynamic.clear()
 	_dynamic_reach.clear()
@@ -306,7 +548,8 @@ func _prepare_search() -> void:
 	for s in _standing_count:
 		_ring_standing(_standing[s])
 	_ring_locals(_start)
-	_ring_locals(_goal)
+	if rings_at_goal:
+		_ring_locals(_goal)
 	var total := _graph.nodes.size() + _dynamic.size()
 	_cost.resize(total)
 	_cost.fill(INF)

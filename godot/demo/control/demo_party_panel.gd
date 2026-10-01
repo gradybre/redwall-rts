@@ -67,6 +67,10 @@ const NOBODY: String = "No one selected"
 const FIT_LEVELS: int = 4
 ## The unfinished jobs a resident will go back to (resident_brain.gd RESUMING), latest first.
 const THEN: String = "Then back to: %s"
+## A resident waiting for its route to be planned (resident_brain.gd ROUTING), and one holding where a trip it could not
+## finish left it, with why (ARRIVAL AND REFUSAL; decision 0361).
+const FINDING_ROUTE: String = "finding a route"
+const HOLDING_REFUSED: String = "holding — %s"
 ## The orders list folded for a short column (fit), e.g. at 1280x720.
 const COMPACT: String = "Orders (right-click): %s"
 const BULLET: String = "• "
@@ -455,6 +459,8 @@ static func state_text(activity: int, clip: StringName, place: String, dug_perce
 		return HAULING if clip == BrainScript.CLIP_CARRY else IN_TUNNEL
 	if activity == BrainScript.ACTIVITY_CROSSING:
 		return "crossing the water"
+	if activity == BrainScript.ACTIVITY_ROUTING:
+		return FINDING_ROUTE
 	if activity == BrainScript.ACTIVITY_HOLDING:
 		return "holding"
 	if activity == BrainScript.ACTIVITY_WALKING:

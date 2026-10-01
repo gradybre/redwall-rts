@@ -127,6 +127,8 @@ const TOOL_NEEDS: String = "a resident who fits a bore (a mole, a mouse or a squ
 const TOOL_NOBODY: String = "nobody can dig: select a mole, a mouse or a squirrel"
 const TOOL_FREE: String = "the village's most skilled free digger"
 const TOOL_BUSY: String = "the most skilled digger: it digs this after its present dig"
+## The card's code when no piece at all could fit (`begin_plan`'s capacity gate, decision 0361's F08).
+const TOOL_FULL_CODE: String = "NETWORK_FULL"
 const VIEW_ON: String = "Underground view (U to return)"
 const LEVEL_SHOWN: String = "Underground view: level %d of 2 -- PgUp / PgDn to switch, U to return"
 const LINK_FIRST: String = "Dig %s down: press on the first level's network where it starts and release where its foot lands on the second -- L: %s · Esc: back to tunnels"
@@ -654,13 +656,15 @@ func toggle_plan() -> bool:
 
 func begin_plan() -> bool:
 	"""Open the Dig tool (see CONTROLS), showing the cutaway -- turned on before the plan takes its level, so it lays
-	on the level shown -- or refuse, saying why: nobody in the village can dig, or the network is full. Any HUD button's focus is released, so nothing but the tool hears the
-	Enter that digs."""
+	on the level shown -- or refuse, saying why: nobody in the village can dig, or no piece at all could fit (decision 0361:
+	a network with no mouth left still takes a connection; the piece as laid is refused for the capacity it would
+	exhaust). Any HUD button's focus is released, so nothing but the tool hears the Enter that digs."""
 	if not _any_digger():
 		_refuse(Rules.REFUSE_NOT_A_DIGGER)
 		return false
-	if not network.has_room():
-		_refuse(Rules.REFUSE_NETWORK_FULL)
+	var full: int = network.any_piece_refusal()
+	if full != Rules.REFUSE_NONE:
+		_refuse(full)
 		return false
 	if is_inside_tree():
 		get_viewport().gui_release_focus()
@@ -886,7 +890,8 @@ func confirm() -> bool:
 	if reason == Rules.REFUSE_NONE and now and plan.starts_at_mouth() and not _entrance_reachable(digger):
 		reason = Rules.REFUSE_UNREACHABLE
 	if reason == Rules.REFUSE_NONE and not network.add_piece(plan.spec_of(digger), _ref):
-		reason = Rules.REFUSE_NETWORK_FULL
+		reason = network.rows_refusal(plan.spec_of(digger))
+		reason = Rules.REFUSE_NETWORK_FULL if reason == Rules.REFUSE_NONE else reason
 	if reason != Rules.REFUSE_NONE:
 		_refuse(reason)
 		return false
@@ -1235,11 +1240,15 @@ func _sync_seen() -> void:
 func tool_card_into(card: CardScript, verb: String, what: String) -> void:
 	"""The Dig tool's (or a room tool's) action card: what it lays, that it spends nothing from the stores (the
 	pointer's readout gives the time, the spoil and the brace cost of the piece laid), and who digs -- `choose_digger`,
-	the rule `confirm` sends, with the crew the selection makes (`crew_size`)."""
+	the rule `confirm` sends, with the crew the selection makes (`crew_size`). Refused, naming the capacity that ran
+	out, when `begin_plan` would refuse to open for it (decision 0361, the review's F08)."""
 	card.reset(verb)
 	card.result = what
 	card.prerequisites.append(TOOL_NEEDS)
 	card.work_note = ""
+	var full: int = network.any_piece_refusal()
+	if full != Rules.REFUSE_NONE:
+		card.refuse(TOOL_FULL_CODE, Rules.link_text(full, ""))
 	var digger := choose_digger()
 	if digger < 0:
 		card.who = TOOL_NOBODY

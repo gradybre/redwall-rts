@@ -35,7 +35,7 @@ const SCROLLBAR_W: float = 18.0
 const TITLE: String = "Village guide"
 const CLOSE_TEXT: String = "× Close (O)"
 const PAUSED_LINE: String = "The village waits while the guide is open."
-const CHARTER_LINE: String = "The Hearth Charter -- the village's long-term goal, written by its own residents -- is beyond this demo; these first objectives are the demo's."
+const CHARTER_LINE: String = "The Hearth Charter -- the village's long-term goal, set by its own community -- is beyond this demo; these first objectives are the demo's."
 
 var help: HelpPageScript = HelpPageScript.new()
 var field_guide: FieldPageScript = FieldPageScript.new()

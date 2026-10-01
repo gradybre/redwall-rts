@@ -58,7 +58,7 @@ func _initialize() -> void:
 		_o_opens_the_village_guide, _open_the_help_tab, _type_into_the_help, _the_help_found_it, _open_the_field_guide_tab, _search_the_field_guide,
 		_open_a_field_guide_entry, _open_the_practice_tab, _start_a_story, _choose_in_the_story,
 		_practice_left_the_village_alone, _open_the_projects_tab, _name_and_pin_a_project, _esc_closes_the_guide,
-		_the_card_clears_the_side_columns, _scale_up_with_a_legend, _the_card_keeps_above_the_picker]
+		_the_card_clears_the_side_columns, _scale_up_with_a_legend, _the_card_keeps_above_the_picker, _back_to_100]
 
 
 func _process(_delta: float) -> bool:
@@ -452,5 +452,10 @@ func _the_card_keeps_above_the_picker() -> void:
 		"%s density %d: %s / %s" % ["shown" if shown else "waiting", density, card, picker])
 	_check("hidden only for room", shown or bool(_card().get("_cramped")))
 	_capture("guide_card_125_legend")
+
+
+func _back_to_100() -> void:
+	"""The layer off and 100 % again (after the frame above is saved)."""
 	_village.get("_lens_picker").call(&"choose", 0)
 	_village.call(&"set_ui_scale", 100)
+	_check("back to 100 %", true)

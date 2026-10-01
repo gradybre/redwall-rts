@@ -27,6 +27,11 @@ extends RefCounted
 ##
 ## THE ALARM: while a threat is under way (the works' events) sleepers stand up by their beds (sleep_task.gd).
 ##
+## AN EARLY RISER (decision 0381, the kitchen): `set_early_riser(up_early)` -- `up_early(i: int) -> bool` -- names a
+## resident who is up before dawn: the cook, from 01:00, to have breakfast on the table by morning. Its night ends when
+## that says so (its sleep task's morning; one still on its way to bed turns back, as at dawn), and while it does the
+## night does not send it back to bed.
+##
 ## THE HEARTHS burn from HEARTH_FROM_HOUR to HEARTH_TO_HOUR -- evenings and nights (fixture_view.gd: their glow, their
 ## chimneys' smoke).
 
@@ -77,6 +82,7 @@ var _calendar: CalendarScript = null
 var _notices: NoticesScript = null
 var _incidents: IncidentsScript = null
 var _alarm: Callable = Callable()
+var _early: Callable = Callable()
 var _hall: Vector2 = Vector2.INF
 var _night: bool = false
 var _seen: Vector2i = Vector2i(-1, -1)
@@ -124,6 +130,29 @@ func first_bedless() -> int:
 func set_hall(door: Vector2) -> void:
 	"""Where the hall's door is (m): the bedless sleep inside (see WITHOUT A BED)."""
 	_hall = door
+
+
+func set_early_riser(up_early: Callable) -> void:
+	"""`up_early(i: int) -> bool`: whether resident `i` is up before dawn (see AN EARLY RISER)."""
+	_early = up_early
+
+
+func up_early(i: int) -> bool:
+	"""Whether resident `i` is up before dawn now (see AN EARLY RISER)."""
+	return _early.is_valid() and bool(_early.call(i))
+
+
+func _morning_of(i: int) -> Callable:
+	"""The morning resident `i`'s night ends at: the village's, or its own early one."""
+	if not _early.is_valid():
+		return is_morning
+	return _morning_for.bind(i)
+
+
+func _morning_for(i: int) -> bool:
+	"""Resident `i`'s morning: the village's, or its own early one (a bound method, not a lambda: a lambda would hold
+	this routine strongly from the sleep task its brains keep -- a cycle)."""
+	return is_morning() or up_early(i)
 
 
 func set_alarm(alarm: Callable) -> void:
@@ -175,13 +204,25 @@ func step() -> void:
 		_at_dawn()
 	elif night:
 		_send_the_free()
+		_turn_back_early_risers()
 
 
 func _send_the_free() -> void:
 	"""At night, anyone wandering on its own and not sent in the last RESEND_TICKS goes to bed."""
 	for i in _brains.size():
-		if _brains[i].order == BrainScript.ORDER_NONE and _calendar.tick - _sent_tick[i] >= RESEND_TICKS and may_send(i):
+		if _brains[i].order == BrainScript.ORDER_NONE and _calendar.tick - _sent_tick[i] >= RESEND_TICKS and may_send(i) \
+				and not up_early(i):
 			send(i)
+
+
+func _turn_back_early_risers() -> void:
+	"""An early riser still on its way to bed when its night ends turns back (see AN EARLY RISER)."""
+	if not _early.is_valid():
+		return
+	for i in _brains.size():
+		var task := _brains[i].task as SleepTaskScript
+		if task != null and task.stage == SleepTaskScript.STAGE_GOING and up_early(i):
+			_brains[i].work_done()
 
 
 func _at_dusk() -> void:
@@ -239,7 +280,7 @@ func send(i: int) -> bool:
 	if bed_of[i] == AllocationScript.NO_BED and not _hall.is_finite():
 		return false
 	var b := _brains[i]
-	var task := SleepTaskScript.new(is_morning, alarm)
+	var task := SleepTaskScript.new(_morning_of(i), alarm)
 	if not _bed_task(i, task):
 		if not _hall.is_finite():
 			return false

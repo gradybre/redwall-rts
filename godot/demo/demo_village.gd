@@ -113,6 +113,7 @@ const WoodlandSkinScript := preload("res://demo/ui/woodland_skin.gd")
 const DemoCommandScript := preload("res://demo/control/demo_command.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
+const KitchenNodeScript := preload("res://demo/kitchen/demo_kitchen.gd")
 const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
@@ -188,6 +189,7 @@ var _cast: Node3D = null
 var _camera: Node3D = null
 var _command: Node3D = null
 var _farm: DemoFarmScript = null
+var _kitchen: KitchenNodeScript = null
 var _services: ServicesScript = null
 var _hud_date: HudDateScript = HudDateScript.new()
 var _counters: HudCountersScript = HudCountersScript.new()
@@ -235,11 +237,13 @@ func _ready() -> void:
 	_command.configure(_cast, _camera.camera(), _game.get_node_or_null(GAME_HUD_ROOT) as Control, _services)
 	_command.set_world(_world as DemoWorldScript)
 	_build_farm(manifest)
+	_build_kitchen()
 	_build_spoil()
 	_build_forestry()
 	_build_canopy()
 	_command.add_skill_text(_command.tunnels().ext.skill_text)
 	_command.add_skill_text(_command.tunnels().ext.night.home_text)
+	_command.add_skill_text(_kitchen.kitchen.fed_text)
 	_build_waterplay()
 	_build_shared_ui()
 	_build_sound()
@@ -329,6 +333,24 @@ func _build_farm(manifest: Dictionary) -> void:
 		WaterOverlayScript.DIVE_COLOUR, WaterOverlayScript.FORD_COLOUR, WaterOverlayScript.BRIDGE_COLOUR,
 		WaterOverlayScript.LINK_COLOUR, WaterOverlayScript.LANDING_COLOUR]), PackedStringArray(["wade", "swim",
 		"dive", "ford", "bridge site", "swim link", "landing"]))
+
+
+func _build_kitchen() -> void:
+	"""The kitchen (demo/kitchen/, decision 0381): the meal loop over the farm's pantry and the village's stores, its
+	cook the night's early riser; its tab in the Pantry. (Each resident's fed line joins the party panel in `_ready`,
+	after the woods' skills have replaced the panel's list.)"""
+	_kitchen = KitchenNodeScript.new()
+	add_child(_kitchen)
+	var command := _command as DemoCommandScript
+	_kitchen.configure(_cast as DemoCastScript, _farm.pantry, _services, _farm.goods, command.tunnels().ext.night)
+	var tab := _kitchen.build_tab(command.selected, command.interrupt_text)
+	tab.said.connect(command.say)
+	_farm.pantry_panel.set_kitchen(_kitchen.kitchen, tab)
+
+
+func kitchen() -> KitchenNodeScript:
+	"""The village's kitchen (demo/kitchen/demo_kitchen.gd)."""
+	return _kitchen
 
 
 func _build_spoil() -> void:
@@ -546,10 +568,12 @@ func _build_village_hud() -> void:
 	cast and homes; the Residents command's roster from the cast; the minimap drawing the village."""
 	var network: GraphScript = (_command as DemoCommandScript).tunnels().network
 	_counters.model.bind_village(_services.stores, _farm.pantry, _cast as DemoCastScript, network)
+	_counters.model.bind_meals(_kitchen.kitchen)
 	_counters.bind(_shell())
 	_roster = RosterScript.new()
 	add_child(_roster)
 	_roster.configure(_shell(), _cast as DemoCastScript, _command as DemoCommandScript, _camera as DemoCameraScript)
+	_roster.set_fed_text(_kitchen.kitchen.fed_word)
 	var view: Control = _shell().control_for(UiShell.ID_MINIMAP_VIEW) if _shell() != null else null
 	if view == null:
 		return
@@ -609,9 +633,9 @@ func _shell() -> UiShell:
 func storage_providers() -> Array[Callable]:
 	"""Food stores beyond the covered store, for the farm's pantry (farm_storage.gd's provider API): the
 	network's dug root cellars (demo/farm/farm_cellars.gd over underground_rooms `cellars()`), delivered at
-	their hatches."""
+	their hatches, and the kitchen's pantry at its door (demo/kitchen/demo_kitchen.gd, decision 0381)."""
 	var network: GraphScript = (_command as DemoCommandScript).tunnels().network
-	var providers: Array[Callable] = [FarmCellars.provider(network)]
+	var providers: Array[Callable] = [FarmCellars.provider(network), KitchenNodeScript.pantry_provider()]
 	return providers
 
 

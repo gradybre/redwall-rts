@@ -24,6 +24,13 @@ extends RefCounted
 ## UNAVAILABLE IS NOT ZERO. A figure whose owner is absent (a suite that builds no farm; `food` unset) is
 ## UNKNOWN, reported by `known()` and worded UNAVAILABLE -- never 0, which would read as an empty store.
 ##
+## READY FOOD IS DAYS OF MEALS (decision 0381, review F21/UX-027). With the village's kitchen bound (`bind_meals`), the
+## Ready food cell is the kitchen's `days_of_meals_milli`: the portions held plus the portions the stores' grain and
+## roots would cook, over the portions the village eats a day (a portion a meal, two meals, every resident) -- "4.5
+## days" -- and the ledger's food line shows the raw stock behind it on one more line (the kitchen's `ledger_lines`: the
+## portions, the grain and the roots; the shell's ledger is a fixed size). Without a kitchen it is the pantry's total, as
+## before.
+##
 ## THE SAME WORDS AS THE PANELS. Food is `FarmHud.food_text` of the pantry's own milli-U total (the Pantry
 ## headline's figure, in the farm's one units form: farm_text.gd UNITS, decision 0222); materials are `StoresScript.units_text`, the formatter the stores' panels print. Nothing here
 ## re-rounds a figure its panel shows differently.
@@ -34,6 +41,7 @@ const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
+const KitchenWords := preload("res://demo/kitchen/kitchen_text.gd")
 
 const CELL_FOOD: int = 0
 const CELL_PLANKS: int = 1
@@ -49,12 +57,19 @@ const WHERE: Array[String] = ["in the Pantry (K)", "in the village stores", "in 
 	"in the village stores", "living in the village", "in the burrow homes"]
 const UNAVAILABLE: String = "Unavailable"
 const LEDGER_TITLE: String = "Village stores and residents"
+## Ready food in days (see READY FOOD IS DAYS OF MEALS): tenths, floored (kitchen_text.gd `days_value`).
+const DAYS_WHERE: String = "of meals"
+const DAYS_TIP: String = "of meals (portions held and cookable, over a day's portions)"
 
 ## The village's one stores (wood, stone, planks); null: those three are unknown.
 var stores: StoresScript = null
 ## () -> int: the pantry's total in milli-U, summed before any rounding (the Pantry's headline figure). Unset:
 ## unknown.
 var food: Callable = Callable()
+## Whether `food` is days of meals in thousandths (see READY FOOD IS DAYS OF MEALS), and () -> PackedStringArray:
+## the lines behind it for the ledger.
+var food_days: bool = false
+var food_detail: Callable = Callable()
 ## () -> int: how many residents live in the village (the cast). Unset: unknown.
 var residents: Callable = Callable()
 ## () -> int: beds installed in the dug homes. Unset: unknown.
@@ -71,6 +86,13 @@ func bind_village(village_stores: StoresScript, pantry: PantryScript, cast: Demo
 	residents = cast.actor_count
 	beds = network.rooms.beds.bind(network)
 	homes = network.rooms.count_done.bind(network, RoomsScript.TEMPLATE_HOME)
+
+
+func bind_meals(kitchen: RefCounted) -> void:
+	"""The Ready food cell reads the kitchen (see READY FOOD IS DAYS OF MEALS)."""
+	food = Callable(kitchen, &"days_of_meals_milli")
+	food_detail = Callable(kitchen, &"ledger_lines")
+	food_days = true
 
 
 func known(cell: int) -> bool:
@@ -102,6 +124,13 @@ func value_text(cell: int, figure: int) -> String:
 	"""A cell's value as the top bar and the ledger print it: the panels' own formatter, or UNAVAILABLE."""
 	if not known(cell):
 		return UNAVAILABLE
+	return _text(cell, figure)
+
+
+func _text(cell: int, figure: int) -> String:
+	"""A known figure in its panel's words -- Ready food in days when it is days of meals."""
+	if cell == CELL_FOOD and food_days:
+		return KitchenWords.days_value(figure)
 	return figure_text(cell, figure)
 
 
@@ -119,7 +148,13 @@ func tooltip(cell: int, figure: int) -> String:
 	"""A cell's hover and accessible text: "Wood: 40.0 U in the village stores. Click for the ledger."."""
 	if not known(cell):
 		return "%s: %s" % [CAPTIONS[cell], UNAVAILABLE]
-	return "%s: %s %s. Click for the ledger." % [CAPTIONS[cell], figure_text(cell, figure), WHERE[cell]]
+	var where: String = DAYS_TIP if cell == CELL_FOOD and food_days else WHERE[cell]
+	return "%s: %s %s. Click for the ledger." % [CAPTIONS[cell], _text(cell, figure), where]
+
+
+func _where(cell: int) -> String:
+	"""Where a cell's figure is, in words."""
+	return DAYS_WHERE if cell == CELL_FOOD and food_days else WHERE[cell]
 
 
 func ledger_text(figures: PackedInt64Array) -> String:
@@ -135,8 +170,11 @@ func ledger_line(cell: int, figure: int) -> String:
 	"""One ledger line: "Wood: 40.0 U in the village stores", "Beds: 3 in 1 burrow home", or "...: Unavailable"."""
 	if not known(cell):
 		return "%s: %s" % [CAPTIONS[cell], UNAVAILABLE]
-	var where: String = WHERE[cell]
+	var where: String = _where(cell)
 	if cell == CELL_BEDS and homes.is_valid():
 		var count: int = int(homes.call())
 		where = "in %d burrow %s" % [count, "home" if count == 1 else "homes"]
-	return "%s: %s %s" % [CAPTIONS[cell], figure_text(cell, figure), where]
+	var line: String = "%s: %s %s" % [CAPTIONS[cell], _text(cell, figure), where]
+	if cell == CELL_FOOD and food_detail.is_valid():
+		line += "\n" + "\n".join(PackedStringArray(food_detail.call()))
+	return line

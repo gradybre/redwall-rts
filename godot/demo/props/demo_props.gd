@@ -15,6 +15,11 @@ extends RefCounted
 ## its HEIGHT; one that lies or is carried (a fish, a bunch of carrots, a boat) by its LONGEST side,
 ## because its height says nothing about how big it looks. NOT a sizing policy.
 ##
+## PARTS. A model make_demo_derived_props.py made in parts (decision 0371: the burrow door's frame and leaf, the
+## hanging stores' bar and five strings) has a row with `parts` {name: {path, ...}}, every part rebased together, and
+## the row's bound the whole model's: `part_mesh(key, part)` with `fit_of(key)` (`part_fit`) puts each where it
+## belongs. It is staged only when every part's file is.
+##
 ## NOTHING STAGED (CI, a fresh clone): every key still draws, as a plain box of its drawn size
 ## standing on y = 0, and every icon is a fallback roundel in the swatch colour asked for -- so the
 ## demo, and the tests, run the same code either way.
@@ -68,6 +73,19 @@ const SIZES: Dictionary = {
 	# The bridges' piers (demo/waterplay/): a post standing from the stream's bed to a deck, its standalone
 	# size; a bridge draws each to its own depth (bridge_view.gd).
 	&"bridge_pier": [RULE_HEIGHT, 1.6],
+	# The underground pass (decisions 0204, 0371). The burrow door's stone face spans a home's 2.2 m wide door cutting,
+	# its round door then 1.13 m across (a mouse walks in upright); the tunnel arch's doorway is 1.1 m wide, a standard
+	# bore's floor and a little more (tunnel_mouth.gd scales it up for a widened bore); the hand lantern a Foremole's,
+	# handle and all; the hanging stores a mouse's arm-span of strings; the root bin a mole's chest high; the chimney
+	# pot a mole's knee over its mound; the rag rug before the hearth; the large bed (decision 0211) 2.7 m long, the
+	# badger's 2.55 m and a pillow's room. The `_open`, `_strung` and `_lit` keys are make_demo_derived_props.py's
+	# fixed versions of the plain L0s, drawn at the same size.
+	&"burrow_door": [RULE_LONGEST, 2.4], &"burrow_door_open": [RULE_LONGEST, 2.4],
+	&"tunnel_arch": [RULE_LONGEST, 2.85], &"tunnel_arch_open": [RULE_LONGEST, 2.85],
+	&"hand_lantern": [RULE_HEIGHT, 0.3], &"hand_lantern_lit": [RULE_HEIGHT, 0.3],
+	&"hanging_stores": [RULE_LONGEST, 0.8], &"hanging_stores_strung": [RULE_LONGEST, 0.8],
+	&"root_bin": [RULE_LONGEST, 0.85], &"chimney_pot": [RULE_HEIGHT, 0.62], &"rag_rug": [RULE_LONGEST, 1.5],
+	&"large_bed": [RULE_LONGEST, 2.7],
 }
 ## Library BUILDINGS this pass draws as props: drawn at their authoritative envelope height
 ## (world_sizes.gd, lookdev_dimensions.gd BUILDING_MAX_Y_MM) -- the root cellar's door-in-a-mound
@@ -85,6 +103,13 @@ const ROUNDEL_RING_PX: float = 4.0
 var _rows: Dictionary = {}
 ## key -> [Mesh, Transform3D]: the model's mesh and the transform that draws it at its size.
 var _meshes: Dictionary = {}
+## "key/part" -> [Mesh, Transform3D] for a model made in PARTS (see PARTS).
+var _parts: Dictionary = {}
+## "key/part" -> ArrayMesh: a staged model (or part) fitted into one mesh (`fitted`).
+var _fitted: Dictionary = {}
+## What other scripts derive from this table's models (a lit lantern, a sized basket, a lintel's depth), by id: kept with
+## the table so a new table (a restart) starts clean and the old one's meshes go with it (decision 0371).
+var _derived: Dictionary = {}
 var _icons: Dictionary = {}
 var _roundels: Dictionary = {}
 
@@ -94,8 +119,17 @@ func load_from(manifest: Dictionary) -> void:
 	var world: Dictionary = manifest.get("world", {})
 	for key: StringName in SIZES.keys() + BUILDINGS:
 		var row: Dictionary = world.get(String(key), {})
-		if not row.is_empty() and ResourceLoader.exists(String(row.get("path", ""))):
+		if not row.is_empty() and ResourceLoader.exists(String(row.get("path", ""))) and _parts_exist(row):
 			_rows[key] = row
+
+
+static func _parts_exist(row: Dictionary) -> bool:
+	"""Whether every part a row names has its file (a row without parts: yes)."""
+	var parts: Dictionary = row.get("parts", {})
+	for part: String in parts:
+		if not ResourceLoader.exists(String((parts[part] as Dictionary).get("path", ""))):
+			return false
+	return true
 
 
 func is_staged(key: StringName) -> bool:
@@ -147,7 +181,12 @@ func fit_of(key: StringName) -> Transform3D:
 
 
 func drawn_bound(key: StringName) -> AABB:
-	"""`key`'s bound as drawn (metres, in its own frame)."""
+	"""`key`'s bound as drawn (metres, in its own frame): a model in parts, the whole's (its row's bound)."""
+	if has_parts(key):
+		var row: Dictionary = _rows[key]
+		var lo := Vector3(row["aabb_min"][0], row["aabb_min"][1], row["aabb_min"][2])
+		var hi := Vector3(row["aabb_max"][0], row["aabb_max"][1], row["aabb_max"][2])
+		return base_fit(key, row) * AABB(lo, hi - lo)
 	return fit_of(key) * mesh_of(key).get_aabb()
 
 
@@ -176,12 +215,108 @@ func _staged_entry(key: StringName) -> Array:
 	if found.is_empty():
 		push_warning("demo_props: '%s' is staged with no mesh; drawing a placeholder" % key)
 		return _placeholder_entry(key)
+	return [found[0], base_fit(key, row) * (found[1] as Transform3D)]
+
+
+static func base_fit(key: StringName, row: Dictionary) -> Transform3D:
+	"""The scale and recentring that draw a model with `row`'s measured bound at `key`'s size, its base on y = 0 and
+	centred on X/Z -- shared by every part of a model made in parts (see PARTS)."""
 	var lo: Array = row["aabb_min"]
 	var hi: Array = row["aabb_max"]
 	var s: float = scale_for(key, Vector3(lo[0], lo[1], lo[2]), Vector3(hi[0], hi[1], hi[2]))
 	var centre := Vector3((float(lo[0]) + float(hi[0])) * 0.5, float(lo[1]), (float(lo[2]) + float(hi[2])) * 0.5)
-	var fit := Transform3D(Basis.from_scale(Vector3.ONE * s), -centre * s) * (found[1] as Transform3D)
-	return [found[0], fit]
+	return Transform3D(Basis.from_scale(Vector3.ONE * s), -centre * s)
+
+
+# --- parts ----------------------------------------------------------------------------------------
+
+func has_parts(key: StringName) -> bool:
+	"""Whether `key` is staged in parts (see PARTS)."""
+	return _rows.has(key) and (_rows[key] as Dictionary).has("parts")
+
+
+func part_names(key: StringName) -> PackedStringArray:
+	"""The parts `key` is staged in, in the manifest's order (none unstaged or whole)."""
+	return PackedStringArray((_rows[key]["parts"] as Dictionary).keys()) if has_parts(key) else PackedStringArray()
+
+
+func part_mesh(key: StringName, part: String) -> Mesh:
+	"""Part `part` of `key`'s staged model (see PARTS); null when it is not staged in that part."""
+	var entry := _part_entry(key, part)
+	return entry[0] if not entry.is_empty() else null
+
+
+func part_fit(key: StringName, part: String) -> Transform3D:
+	"""The transform that draws part `part` where it belongs in `key` at its demo size (`fit_of` for the whole)."""
+	var entry := _part_entry(key, part)
+	return entry[1] if not entry.is_empty() else fit_of(key)
+
+
+func part_instance(key: StringName, part: String) -> MeshInstance3D:
+	"""A new node drawing part `part` of `key` in place at its size (null: not staged in that part)."""
+	var mesh := part_mesh(key, part)
+	if mesh == null:
+		return null
+	var node := MeshInstance3D.new()
+	node.name = "%s_%s" % [key, part]
+	node.mesh = mesh
+	node.transform = part_fit(key, part)
+	return node
+
+
+func _part_entry(key: StringName, part: String) -> Array:
+	"""[mesh, fit] of part `part` of `key`, made once; [] when it has no such staged part."""
+	if not has_parts(key) or not (_rows[key]["parts"] as Dictionary).has(part):
+		return []
+	var id := "%s/%s" % [key, part]
+	if not _parts.has(id):
+		var root: Node = (load(String(_rows[key]["parts"][part]["path"])) as PackedScene).instantiate()
+		var found: Array = first_mesh(root, Transform3D.IDENTITY)
+		root.free()
+		_parts[id] = [] if found.is_empty() else [found[0], base_fit(key, _rows[key]) * (found[1] as Transform3D)]
+	return _parts[id]
+
+
+func derived(id: StringName) -> Variant:
+	"""What was kept under `id` by `keep` (null: nothing yet)."""
+	return _derived.get(id)
+
+
+func keep(id: StringName, value: Variant) -> Variant:
+	"""Keep `value` -- something derived from this table's models -- under `id`, for this table's life; returns it."""
+	_derived[id] = value
+	return value
+
+
+func fitted(key: StringName, part: String = "") -> ArrayMesh:
+	"""`key`'s staged model -- or its part `part` (see PARTS) -- as ONE mesh already at its demo size, its base on
+	y = 0 and centred on X/Z, every surface and its material kept: for a kit that builds with meshes, not placed nodes
+	(fixture_kit.gd, warren_kit.gd). Null when it is not staged so (the kit draws its own stand-in). Made once."""
+	var id := "%s/%s" % [key, part]
+	if _fitted.has(id):
+		return _fitted[id]
+	var mesh: Mesh = null
+	var fit := Transform3D.IDENTITY
+	if part.is_empty() and _rows.has(key):
+		mesh = mesh_of(key)
+		fit = fit_of(key)
+	elif not part.is_empty():
+		mesh = part_mesh(key, part)
+		fit = part_fit(key, part)
+	_fitted[id] = transformed(mesh, fit) if mesh != null else null
+	return _fitted[id]
+
+
+static func transformed(mesh: Mesh, at: Transform3D) -> ArrayMesh:
+	"""A copy of `mesh` moved by `at` (vertices, normals and tangents), its surfaces' materials kept (setup only)."""
+	var out := ArrayMesh.new()
+	for surface: int in mesh.get_surface_count():
+		var tool := SurfaceTool.new()
+		tool.begin(Mesh.PRIMITIVE_TRIANGLES)
+		tool.append_from(mesh, surface, at)
+		tool.commit(out)
+		out.surface_set_material(out.get_surface_count() - 1, mesh.surface_get_material(surface))
+	return out
 
 
 func _placeholder_entry(key: StringName) -> Array:
@@ -216,6 +351,10 @@ func warm_all() -> int:
 		if not _meshes.has(key):
 			_entry(key)
 			loaded += 1
+		for part: String in part_names(key):
+			if not _parts.has("%s/%s" % [key, part]):
+				_part_entry(key, part)
+				loaded += 1
 		if has_icon(key) and not _icons.has(key) and _warm_icon(key):
 			loaded += 1
 	return loaded

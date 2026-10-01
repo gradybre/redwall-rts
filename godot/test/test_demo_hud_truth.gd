@@ -284,12 +284,12 @@ func test_a_row_says_who_where_what_and_what_next() -> void:
 		+ doing.substr(1), "a placeholder has no trade; its line 2 is the party panel's words")
 	assert_equal(doing, "wandering", "a placeholder left to its routine")
 	assert_equal(RosterScript.row_words("Mole digger", "Mole", "digger", "Underground, level 1", "digging tunnel — 43%",
-		PackedStringArray(["Burrow home 1"])), "Mole digger — Mole, digger · Underground, level 1\n"
-		+ "Digging tunnel — 43% · Then back to: Burrow home 1", "the whole row")
+		PackedStringArray(["back to Burrow home 1"])), "Mole digger — Mole, digger · Underground, level 1\n"
+		+ "Digging tunnel — 43% · Next: back to Burrow home 1", "the whole row (its order list, decision 0411)")
 	assert_equal(RosterScript.row_words("A", "B", "", "On the surface", "", PackedStringArray()), "A — B · On the surface",
 		"nothing doing, nothing saved: one line")
 	assert_equal(RosterScript.row_words("A", "B", "c", "In the water", "", PackedStringArray(["x", "y"])),
-		"A — B, c · In the water\nThen back to: x, y", "saved work alone")
+		"A — B, c · In the water\nNext: x → y", "saved work alone")
 	assert_equal(RosterScript.trade_of(&"otter_boatwright"), "boatwright", "a trade")
 	assert_equal(RosterScript.trade_of(&"badger_quarryman"), "quarryman", "another")
 	assert_equal(RosterScript.trade_of(&"placeholder_3"), "", "a placeholder's")

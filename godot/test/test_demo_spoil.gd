@@ -1,6 +1,6 @@
 extends "res://test/framework/test_case.gd"
 ## Clearing spoil heaps (demo/spoil/, decision 0205): a finished tunnel's heap is dug out a basketful
-## at a time and hauled into the farm's compost store, through the farm's own spoil books, every milli-U
+## at a time and hauled into the village stores as earth (decision 0401), through the farm's own earth books, every milli-U
 ## accounted for; the emptied heap stops being an obstacle; a worker called away puts its basket back and keeps the heap to come
 ## back to. On the placeholder cast, stepped at 60 Hz, out of the tree.
 
@@ -14,6 +14,7 @@ const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const HeapsScript := preload("res://demo/tunnel/tunnel_heaps.gd")
 const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
 const FarmTunnels := preload("res://demo/farm/farm_tunnels.gd")
+const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const InterruptScript := preload("res://demo/control/work_interrupt.gd")
@@ -109,7 +110,7 @@ func test_a_heap_is_refused_while_its_tunnel_is_dug_or_when_empty() -> void:
 	assert_equal(crew.refusal(-1), "there is no spoil there", "no heap")
 
 
-func test_a_heap_is_cleared_into_the_compost_store_with_nothing_lost() -> void:
+func test_a_heap_is_cleared_into_the_stores_with_nothing_lost() -> void:
 	"""Two residents dig the entrance heap out a basketful (2 U) at a time and tip it at the drop spot; at
 	every frame what is left, in baskets and delivered add up to what was heaped; at the end the heap is
 	empty, all of it delivered, the heap no longer an obstacle, and both residents back to their routine."""
@@ -202,7 +203,7 @@ func test_a_heap_is_picked_under_the_pointer_and_selected() -> void:
 	var command := CommandScript.new()
 	command.configure(_cast, camera)
 	var spoil := SpoilScript.new()
-	spoil.configure(_cast, command, camera, _cast.space().tunnels, tunnels, null, func(_m: int) -> void: pass)
+	spoil.configure(_cast, command, camera, _cast.space().tunnels, tunnels, null, StoresScript.new())
 	var at: Vector2 = _cast.space().tunnels.heap_at[site[0]]
 	var rim: float = SpoilScript.drawn_radius_m(spoil.crew.spoil_left(site[0]))
 	assert_equal(spoil.heap_at_point(at), site[0], "on it")

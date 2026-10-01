@@ -345,17 +345,19 @@ func test_a_farm_card_costs_what_the_order_spends_and_works_as_long() -> void:
 		"worked as long as the card said: its last frame ends it (%d against %d)" % [longest[0], card.work_usec])
 
 
-func test_compost_from_spoil_shows_the_heap_and_short_both() -> void:
-	"""With the compost store short the card shows the spoil heap it would draw on; with both short, both rows and
-	the refusal the order gives."""
+func test_a_short_compost_store_is_the_only_compost_cost_and_earth_never_stands_in() -> void:
+	"""Decision 0401: compost comes only from the compost store. With it short the card shows that one row, short --
+	no spoil heap row (test_demo_earth.gd has heaps full of earth beside it) -- and the refusal the order gives."""
 	var cast := _cast()
 	var sim := FarmSim.new()
 	var crew := _farm_crew(cast, sim)
 	sim.compost_milli = 1000
 	var card := CardScript.new()
 	crew.preview_into(card, FarmJobs.KIND_COMPOST, BED_CARROTS, PackedInt32Array())
-	assert_equal(Array(card.cost_names), [FarmCard.COMPOST_STORE, FarmCard.SPOIL_HEAP], "both, both short")
+	assert_equal(Array(card.cost_names), [FarmCard.COMPOST_STORE], "the compost store only")
+	assert_equal([int(card.cost_have[0]), int(card.cost_need[0])], [1000, 2000], "have / need")
 	assert_equal(card.short_row(), 0, "the store is short")
+	assert_equal(card.reason, "not enough compost: 2.0 U from the compost store", "no heap offered")
 	assert_equal(card.code, "NOT_ENOUGH_COMPOST", "the order's code")
 	assert_equal(crew.order(FarmJobs.KIND_COMPOST, BED_CARROTS, PackedInt32Array(), FarmJobs.ORIGIN_PLAYER),
 		"Can't compost: " + card.reason, "the order's words")
@@ -373,7 +375,7 @@ func test_every_farm_refusal_is_the_orders() -> void:
 	for kind: int in [FarmJobs.KIND_WATER, FarmJobs.KIND_HARVEST, FarmJobs.KIND_CLEAR, FarmJobs.KIND_COVER,
 			FarmJobs.KIND_RAISE, FarmJobs.KIND_BANK, FarmJobs.KIND_DRAIN, FarmJobs.KIND_SOW]:
 		crew.preview_into(card, kind, BED_LOAM, PackedInt32Array([1]))
-		var code: StringName = FarmJobs.refusal_for(sim, kind, BED_LOAM, crew.max_heap_spoil())
+		var code: StringName = FarmJobs.refusal_for(sim, kind, BED_LOAM, crew.most_earth())
 		assert_equal(card.code, String(code), "code of %s" % FarmJobs.KIND_NAMES[kind])
 		if code == &"":
 			continue
@@ -918,7 +920,7 @@ func test_a_full_farm_board_refuses_a_new_job_but_joins_a_queued_one() -> void:
 	for bed: int in Catalog.BED_COUNT:
 		for kind: int in FarmJobs.KIND_COUNT:
 			if kind != FarmJobs.KIND_WATER and opened < FarmJobs.MAX_JOBS:
-				opened += 1 if crew.jobs.open_into(kind, bed, FarmJobs.ORIGIN_ROUTINE, 0, _read) else 0
+				opened += 1 if crew.jobs.open_into(kind, bed, FarmJobs.ORIGIN_ROUTINE, _read) else 0
 	assert_equal(crew.jobs.live_count(), FarmJobs.MAX_JOBS, "full")
 	var card := CardScript.new()
 	crew.preview_into(card, FarmJobs.KIND_WATER, BED_CARROTS, PackedInt32Array([1]))
@@ -1078,11 +1080,13 @@ func test_a_free_resident_at_night_goes_back_to_bed_and_a_lost_rule_is_skipped()
 
 
 func test_the_farm_plans_work_steps_only() -> void:
-	"""A plan's work is its work steps' WU (sowing's first step too), the spoil plan's dig included, from a step on."""
-	assert_equal(FarmJobs.plan_work_usec(FarmJobs.KIND_SOW, 0, 0), FarmJobs.work_usec_of(FarmJobs.WORK_SOW), "sowing")
-	assert_equal(FarmJobs.plan_work_usec(FarmJobs.KIND_COMPOST, FarmJobs.SOURCE_SPOIL, 0),
-		FarmJobs.work_usec_of(FarmJobs.WORK_DIG) + FarmJobs.work_usec_of(FarmJobs.WORK_COMPOST), "dig, then compost")
-	assert_equal(FarmJobs.plan_work_usec(FarmJobs.KIND_WATER, 0, 2), FarmJobs.work_usec_of(FarmJobs.WORK_TEND),
+	"""A plan's work is its work steps' WU (sowing's first step too), a raise's dig included, from a step on."""
+	assert_equal(FarmJobs.plan_work_usec(FarmJobs.KIND_SOW, 0), FarmJobs.work_usec_of(FarmJobs.WORK_SOW), "sowing")
+	assert_equal(FarmJobs.plan_work_usec(FarmJobs.KIND_COMPOST, 0), FarmJobs.work_usec_of(FarmJobs.WORK_COMPOST),
+		"compost: the work at the bed, no dig (decision 0401)")
+	assert_equal(FarmJobs.plan_work_usec(FarmJobs.KIND_RAISE, 0),
+		FarmJobs.work_usec_of(FarmJobs.WORK_DIG) + FarmJobs.work_usec_of(FarmJobs.WORK_RAISE), "dig, then raise")
+	assert_equal(FarmJobs.plan_work_usec(FarmJobs.KIND_WATER, 2), FarmJobs.work_usec_of(FarmJobs.WORK_TEND),
 		"from the carry on: the watering")
 
 
@@ -1115,17 +1119,19 @@ func test_a_farm_card_counts_the_work_already_done_and_the_step_reached() -> voi
 
 
 func test_a_raise_card_shows_the_heap_it_needs() -> void:
-	"""Raise and Bank take spoil off one heap: the card's row is the fullest heap against the job's dose."""
+	"""Raise and Bank take earth from one heap or the stores: the card's row is the fullest source against the job's
+	dose (decision 0332's have / need), and it says earth adds no fertility (decision 0401)."""
 	var cast := _cast()
 	var crew := _farm_crew(cast, FarmSim.new())
 	var card := CardScript.new()
 	for kind: int in [FarmJobs.KIND_RAISE, FarmJobs.KIND_BANK]:
 		crew.preview_into(card, kind, BED_LOAM, PackedInt32Array())
-		assert_equal(Array(card.cost_names), [FarmCard.SPOIL_HEAP], "spoil")
-		assert_equal([int(card.cost_have[0]), int(card.cost_need[0])], [crew.max_heap_spoil(), FarmJobs.SPOIL_PER_JOB_MILLI],
-			"the fullest heap against a dose")
-		assert_true(card.prerequisites[0].begins_with("2.0 U of tunnel spoil"), "needs, from the dose")
-	assert_equal(card.reason, "no spoil heap holds 2.0 U", "the dose in the refusal")
+		assert_equal(Array(card.cost_names), [FarmCard.EARTH], "earth")
+		assert_equal([int(card.cost_have[0]), int(card.cost_need[0])], [crew.most_earth(), FarmJobs.EARTH_PER_JOB_MILLI],
+			"the fullest source against a dose")
+		assert_true(card.prerequisites[0].begins_with("2.0 U of earth on one heap or in the stores"), "needs, from the dose")
+		assert_true(card.result.contains("earth adds no fertility"), card.result)
+	assert_equal(card.reason, "no spoil heap or store holds 2.0 U of earth", "the dose in the refusal")
 
 
 func test_the_bed_panels_buttons_dim_name_resident_0_and_scope_cancel() -> void:
@@ -1148,6 +1154,7 @@ func test_the_bed_panels_buttons_dim_name_resident_0_and_scope_cancel() -> void:
 	panel.refresh()
 	assert_false(panel._cancel.disabled, "a job to cancel")
 	assert_equal(panel._cancel.tooltip_text, BedPanelScript.CANCEL_TIP, "this bed's jobs only")
+	assert_true(BedPanelScript.CANCEL_TIP.contains("earth in hand goes back to its heap"), "and earth goes back (0401)")
 
 
 func test_a_picker_row_refused_by_the_board_keeps_the_boards_words() -> void:
@@ -1160,7 +1167,7 @@ func test_a_picker_row_refused_by_the_board_keeps_the_boards_words() -> void:
 	for bed: int in Catalog.BED_COUNT:
 		for kind: int in FarmJobs.KIND_COUNT:
 			if bed != BED_LOAM and opened < FarmJobs.MAX_JOBS:
-				opened += 1 if crew.jobs.open_into(kind, bed, FarmJobs.ORIGIN_ROUTINE, 0, _read) else 0
+				opened += 1 if crew.jobs.open_into(kind, bed, FarmJobs.ORIGIN_ROUTINE, _read) else 0
 	var panel: BedPanelScript = _keep(BedPanelScript.new()) as BedPanelScript
 	panel.configure(sim, crew)
 	panel.show_bed(BED_LOAM)

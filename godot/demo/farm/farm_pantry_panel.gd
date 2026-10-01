@@ -17,6 +17,14 @@ extends CanvasLayer
 ##   Recipe ideas (not cookable yet): the content library's dishes each ingredient feeds
 ##     (farm_recipes.gd), plainly labelled as candidates for a kitchen that does not exist.
 ## There is no Orders tab: nothing in the demo cooks, processes or orders food yet (decision 0292).
+##
+## THE KITCHEN (decision 0381). With the village's kitchen bound (`set_kitchen`), the Pantry gains a third tab,
+## KITCHEN (demo/kitchen/kitchen_tab.gd: the cook, the next meals, the pot and the table, the water butt, how the
+## village is fed, and the Cook and Draw water orders with their action cards); the Stocks table ends with the
+## kitchen's own stock -- each dish's cooked portions as ready food, and the water -- and a store's row says how much
+## of it the kitchen has reserved ("6.0 U · 2.0 U for the kitchen"); the second tab is RECIPES, marking the two dishes
+## the kitchen cooks as cookable (active) above the library's ideas. Without a kitchen (a suite that builds a farm
+## alone) it is as before.
 ## Every quantity is the farm's one units form (farm_text.gd UNITS).
 ##
 ## LAYER. It is the Food command's pop-up and is drawn ABOVE the HUD (LAYER), as UI §3 draws a modal
@@ -60,6 +68,12 @@ const TARGET_PX: float = 32.0
 const LIST_WIDTH: float = 300.0
 const STOCK_COLUMN_W: PackedFloat32Array = [210.0, 96.0, 96.0, 170.0, 0.0]
 const MIN_BODY_H: float = 160.0
+## With the kitchen bound (see THE KITCHEN).
+const TAB_KITCHEN: int = 2
+const RECIPES_TAB_COOKING: String = "Recipes"
+const KITCHEN_TAB: String = "Kitchen"
+const RECIPE_HEADING_COOKING: String = "Recipes — two are cookable"
+const RECIPE_NOTE_COOKING: String = "The kitchen cooks two dishes, in turn: they are marked cookable. The rest are dishes from the Redwall content library that use the ingredient — ideas, not cookable yet."
 ## The panel's height that is not a tab's page: header, tab strip, gaps and margins.
 const BODY_RESERVE_H: float = 110.0
 ## `_scrolls[STOCK_SCROLL]` is the stock table's; the rest are the Recipes tab's.
@@ -97,6 +111,11 @@ var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 var _goods: GoodsScript = null
 var _close: Button = null
+## The village's kitchen (demo/kitchen/kitchen.gd; untyped: the farm does not depend on it) and its tab's page.
+var _kitchen: RefCounted = null
+var _kitchen_page: Control = null
+var _recipe_note: Label = null
+var _cookable: Label = null
 
 
 func configure(sim: SimScript, pantry: PantryScript, recipes: RecipesScript) -> void:
@@ -316,7 +335,11 @@ func _build_dishes() -> ScrollContainer:
 	scroll.add_child(box)
 	_recipe_heading = FarmUi.label(RECIPE_HEADING, FarmUi.TITLE_PX, Palette.INK, true)
 	box.add_child(_recipe_heading)
-	box.add_child(FarmUi.label(RECIPE_NOTE, NOTE_PX, Palette.UMBER))
+	_recipe_note = FarmUi.label(RECIPE_NOTE, NOTE_PX, Palette.UMBER)
+	box.add_child(_recipe_note)
+	_cookable = FarmUi.label("", FarmUi.BODY_PX, Palette.LEAF)
+	_cookable.visible = false
+	box.add_child(_cookable)
 	_dish_title = FarmUi.label("", FarmUi.BODY_PX, Palette.INK, true)
 	box.add_child(_dish_title)
 	_dishes = FarmUi.label("", FarmUi.BODY_PX, Palette.INK)
@@ -336,7 +359,7 @@ func toggle() -> bool:
 
 func show_tab(which: int) -> void:
 	"""Show tab `which` (TAB_*); Stocks re-orders its rows (soonest to spoil first) as it opens."""
-	tab = which if which == TAB_RECIPES else TAB_STOCKS
+	tab = which if which == TAB_RECIPES or (which == TAB_KITCHEN and _kitchen != null) else TAB_STOCKS
 	if tab == TAB_STOCKS and _pantry != null:
 		_rows.rebuild(_pantry, _sim.calendar.hour_index())
 	_show_page()
@@ -361,8 +384,12 @@ func refresh() -> void:
 	if _pantry == null or not visible:
 		return
 	_total.text = "%s of food in store · %s" % [Text.units_text(_pantry.total_milli()), Text.clock_line(_sim)]
+	if _kitchen != null:
+		_total.text += " · %s" % _kitchen.call(&"days_text")
 	if tab == TAB_STOCKS:
 		_fill_stocks()
+	elif tab == TAB_KITCHEN:
+		_kitchen_page.call(&"refresh")
 	else:
 		_fill_recipes()
 	_place.call_deferred()
@@ -372,12 +399,15 @@ func _fill_stocks() -> void:
 	"""The stock rows (refigured in place, new ones at the end), the empty state, the stores and the
 	spoiled row."""
 	_rows.update(_pantry, _sim.calendar.hour_index())
-	_ensure_stock_rows(_rows.count())
+	var extra: Array = _kitchen.call(&"stock_rows") if _kitchen != null else []
+	_ensure_stock_rows(_rows.count() + extra.size())
 	for row: int in _stock_icons.size():
 		_fill_stock_row(row)
+	for k: int in extra.size():
+		_fill_kitchen_row(_rows.count() + k, extra[k])
 	var empty: bool = _rows.count() == 0
 	_empty.visible = empty
-	_stock_grid.visible = not empty
+	_stock_grid.visible = not empty or not extra.is_empty()
 	if empty:
 		_fill_empty()
 	_fill_stores()
@@ -395,12 +425,27 @@ func _fill_stock_row(row: int) -> void:
 	if not shown:
 		return
 	var cells: PackedStringArray = stock_row_cells(row)
+	if _kitchen != null:
+		var held: String = String(_kitchen.call(&"reserved_text", _rows.item[row], _rows.location[row]))
+		if not held.is_empty():
+			cells[1] += " · " + held
 	for column: int in cells.size():
 		_stock_cells[base + column].text = cells[column]
 	var soon: bool = _rows.is_soon(row)
 	_stock_cells[base + 4].add_theme_color_override(&"font_color", Palette.CLAY if soon else Palette.INK)
 	if _goods != null:
 		_stock_icons[row].texture = _goods.icon_of(_rows.item[row])
+
+
+func _fill_kitchen_row(row: int, cells: PackedStringArray) -> void:
+	"""A kitchen stock row (see THE KITCHEN): its cells, no icon."""
+	var base: int = row * STOCK_HEADINGS.size()
+	_stock_icons[row].get_parent().visible = true
+	_stock_icons[row].texture = null
+	for column: int in STOCK_HEADINGS.size():
+		_stock_cells[base + column].visible = true
+		_stock_cells[base + column].text = cells[column]
+	_stock_cells[base + 4].add_theme_color_override(&"font_color", Palette.INK)
 
 
 func _fill_empty() -> void:
@@ -431,6 +476,9 @@ func _fill_recipes() -> void:
 		_item_buttons[item].text = "%s · %s" % [Catalog.ITEM_LABELS[item],
 			"%s in store" % Text.units_text(held) if held > 0 else "none in store"]
 	var label: String = Catalog.ITEM_LABELS[selected_item]
+	if _kitchen != null:
+		_cookable.text = String(_kitchen.call(&"cookable_text", selected_item))
+		_cookable.visible = not _cookable.text.is_empty()
 	if _recipes == null or not _recipes.is_loaded():
 		_dish_title.text = label
 		_dishes.text = "(the recipe index is missing)"
@@ -438,6 +486,45 @@ func _fill_recipes() -> void:
 	_dish_title.text = "%s feeds %d dishes (and %d more through prepared parts)" % [label,
 		_recipes.direct_count(selected_item), _recipes.component_count(selected_item)]
 	_dishes.text = "\n".join(_recipes.dishes_of(selected_item))
+
+
+func set_kitchen(kitchen: RefCounted, page: Control) -> void:
+	"""Bind the village's kitchen (see THE KITCHEN): its Kitchen tab's `page` (a refresh()-able Control) as the third
+	tab, its stock in the Stocks table, its dishes marked cookable on the Recipes tab."""
+	_kitchen = kitchen
+	_kitchen_page = page
+	_tabs[TAB_RECIPES].text = RECIPES_TAB_COOKING
+	_recipe_heading.text = RECIPE_HEADING_COOKING
+	_recipe_note.text = RECIPE_NOTE_COOKING
+	var made: Button = FarmUi.button(KITCHEN_TAB)
+	made.custom_minimum_size.y = TARGET_PX
+	made.toggle_mode = true
+	made.button_group = _tabs[TAB_STOCKS].button_group
+	made.pressed.connect(show_tab.bind(TAB_KITCHEN))
+	_tabs[TAB_STOCKS].get_parent().add_child(made)
+	_tabs.append(made)
+	var scroll := _scroll()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(page)
+	_pages[TAB_RECIPES].get_parent().add_child(scroll)
+	_pages.append(scroll)
+	_show_page()
+
+
+func kitchen_page() -> Control:
+	"""The Kitchen tab's page (null with no kitchen)."""
+	return _kitchen_page
+
+
+func cookable_text() -> String:
+	"""The Recipes tab's cookable line as shown ("" when none)."""
+	return _cookable.text if _cookable != null and _cookable.visible else ""
+
+
+func recipe_note() -> String:
+	"""The Recipes tab's note."""
+	return _recipe_note.text
 
 
 # --- readouts (tests and the scripted check) ---------------------------------------------------------

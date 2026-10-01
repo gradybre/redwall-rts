@@ -372,7 +372,7 @@ func test_a_harvest_in_hand_is_read_from_the_job_board() -> void:
 	var jobs := JobsScript.new()
 	assert_false(CarryViewScript.harvest_in_hand_into(jobs, 0, _read), "no job")
 	assert_equal(_read.error, CarryViewScript.REFUSE_NO_JOB, "said so")
-	assert_true(jobs.open_into(JobsScript.KIND_HARVEST, BED_CARROTS, JobsScript.ORIGIN_PLAYER, 0, _read), "opened")
+	assert_true(jobs.open_into(JobsScript.KIND_HARVEST, BED_CARROTS, JobsScript.ORIGIN_PLAYER, _read), "opened")
 	var row: int = _read.value
 	jobs.assign(row, 0)
 	assert_false(CarryViewScript.harvest_in_hand_into(jobs, 0, _read), "nothing cut yet")

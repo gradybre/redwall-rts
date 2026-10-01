@@ -302,3 +302,11 @@ marker was imported), and no one-shot is longer than 2 s. The player-facing note
 - The live harness at 1280x720: `LIVE-SUMMARY 126 0`. That includes the chop played, the rain loop playing
   while it rains, and a button's click.
 - **Still not heard by anyone.** What to listen for is listed in the ledger's README.
+
+## Integration with review batch 4: nothing left playing at quit
+
+Batch 3's 600-frame boot reported "3 resources still in use" and "6 ObjectDB instances leaked" at the headless quit:
+the ambience loops (and any one-shot still sounding) were playing when their players were freed, and the audio
+server kept their playbacks. `sound_director.gd _exit_tree` now calls `silence()` -- every one-shot voice
+(`sound_voices.gd silence`, the Cues' too) and every loop stopped, the loops' levels back to 0 -- and the boot exits
+with no leak lines.

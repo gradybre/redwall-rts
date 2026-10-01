@@ -53,7 +53,7 @@ const TITLE_PX: int = 17
 const BODY_PX: int = 14
 ## The clock's own sentence ("Simulation overloaded at 1x: 29 whole tick(s) owed; ..."), the words the
 ## withheld card would have shown, a step smaller than the body so it reads as the detail.
-const DIAGNOSTIC_PX: int = 13
+const DIAGNOSTIC_PX: int = 14
 const REFRESH_S: float = 0.1
 ## How long a reported diagnostic pause may take to land before the banner stops standing in for the
 ## card: the rung lands at the scheduler's next barrier, one frame later, so a quarter second -- well

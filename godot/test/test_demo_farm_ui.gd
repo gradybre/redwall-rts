@@ -52,7 +52,7 @@ const RADISH: int = 0
 const PEA: int = 11
 const WHEAT: int = 13
 ## The frost warning for the night into spring day 11 (02:00-05:59), named by its calendar date.
-const FROST_SPRING_11: String = "Frost tonight (Spring 11, 02:00–05:59)! Cover growing beds (or raise them with spoil) and harvest what is ripe"
+const FROST_SPRING_11: String = "Frost tonight (Spring 11, 02:00–05:59)! Cover growing beds (or raise them with earth) and harvest what is ripe"
 ## Spring 10, 12:00 -- when that frost is announced -- in farm hours from the opening 06:00.
 const SPRING_10_NOON_H: int = 24 * 9 + 6
 const BED_LOAM: int = 0
@@ -373,11 +373,11 @@ func test_spoil_from_a_heap_raises_a_bed_and_the_heap_shrinks() -> void:
 	var heaps: PackedInt32Array = _dig_tunnel(network, Vector2(2.0, 8.0), Vector2(10.0, 8.0))
 	network.set_heap(heaps[0], Vector2(2.0, 9.4), 0.7, Vector2(0.0, 1.0))
 	network.set_heap(heaps[1], Vector2(10.0, 9.4), 0.3, Vector2(0.0, 1.0))
-	assert_equal(crew.max_heap_spoil(), 18000, "18 U at the entrance")
+	assert_equal(crew.most_earth(), 18000, "18 U at the entrance")
 	crew.order(JobsScript.KIND_RAISE, BED_LOAM, PackedInt32Array([1]), JobsScript.ORIGIN_PLAYER)
 	var raised := func() -> bool: return sim.is_raised(BED_LOAM)
 	assert_true(_run(cast, crew, 120.0, raised), "raised")
-	assert_equal(crew.max_heap_spoil(), 16000, "2 U taken")
+	assert_equal(crew.most_earth(), 16000, "2 U taken")
 
 
 func test_cancelling_a_bed_lets_a_harvest_in_hand_finish_its_delivery() -> void:
@@ -744,7 +744,8 @@ func test_the_view_s_key_covers_the_ditch_alone() -> void:
 
 func test_heaps_are_drawn_at_what_is_left_after_spoil_is_taken() -> void:
 	"""The tunnel overlay draws the 8 m tunnel's entrance heap for 18 U; with 2 U taken the farm view
-	redraws it for 16 U; emptied, it is hidden; the untouched exit heap is left as the overlay drew it."""
+	redraws it for 16 U; emptied, it is hidden; the untouched exit heap is left as the overlay drew it. Earth carried
+	back is drawn again, up to the whole heap once nothing is taken (decision 0401)."""
 	var cast := _cast()
 	var network: GraphScript = cast.space().tunnels
 	var heaps: PackedInt32Array = _dig_tunnel(network, Vector2(2.0, 8.0), Vector2(10.0, 8.0))
@@ -766,9 +767,21 @@ func test_heaps_are_drawn_at_what_is_left_after_spoil_is_taken() -> void:
 	assert_almost_equal(overlay.heap(heaps[0]).scale.x, r, "16 U wide")
 	assert_almost_equal(overlay.heap(heaps[0]).scale.y, r * OverlayScript.HEAP_ASPECT, "and tall")
 	assert_equal(overlay.heap(heaps[1]).scale, exit_scale, "the exit heap untouched")
+	overlay.heap(heaps[0]).scale = Vector3.ONE * r0
+	view._process(0.0)
+	assert_almost_equal(overlay.heap(heaps[0]).scale.x, r, "redrawn for what is left every frame something is taken")
 	assert_true(tunnels.take_spoil_into(network, heaps[0], 16000, _read), "the rest taken")
 	view._process(0.0)
 	assert_false(overlay.heap(heaps[0]).visible, "emptied: gone")
+	assert_true(tunnels.return_spoil_into(network, heaps[0], 2000, _read), "2 U carried back (decision 0401)")
+	view._process(0.0)
+	assert_true(overlay.heap(heaps[0]).visible, "drawn again")
+	assert_almost_equal(overlay.heap(heaps[0]).scale.x, OverlayScript.heap_radius_m(2000), "for the 2 U back on it")
+	assert_true(tunnels.return_spoil_into(network, heaps[0], 16000, _read), "the rest carried back: nothing taken now")
+	view._process(0.0)
+	assert_true(overlay.heap(heaps[0]).visible, "whole")
+	assert_almost_equal(overlay.heap(heaps[0]).scale.x, r0, "drawn at its full 18 U again")
+	assert_almost_equal(overlay.heap(heaps[0]).scale.y, r0 * OverlayScript.HEAP_ASPECT, "and tall")
 
 
 func test_the_bed_panel_offers_only_what_the_bed_can_take() -> void:

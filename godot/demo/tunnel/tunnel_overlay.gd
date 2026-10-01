@@ -3,8 +3,10 @@ extends Node3D
 ##
 ## ON THE GROUND, per SEGMENT of the network: its route as a ribbon -- solid earth where the bore is dug,
 ## a cream dashed line where it is still to dig (clay, with a clay ring round where it starts, while it is
-## PAUSED); once it is open, nothing here -- its turf seam heals over it (warren_signs.gd, decision 0211). Per MOUTH: a fieldstone-and-timber gateway over its ramp's
-## cutting running down into the dark (tunnel_mouth.gd, decision 0207), and a spoil heap beside it that
+## PAUSED); once it is open, nothing here -- its turf seam heals over it (warren_signs.gd, decision 0211). Per MOUTH: its
+## ramp's OPEN CUTTING down to where the bore goes under, the ground cut away over it (world/ground_cut.gd), and the tunnel
+## ARCH framing the bore there with its lantern (tunnel_mouth.gd, decisions 0207 and 0371) -- or, at a burrow home's door
+## (decision 0209), the cutting down to its door, which room_view.gd stands -- and a spoil heap beside it that
 ## grows with the spoil tipped there (DEC-040; underground_graph.gd SPOIL: a dig crew's baskets tip it load by load,
 ## spoil_haul.gd, decision 0211). A ribbon stops at a hole's
 ## edge, and the cutting is drawn over it. While a digger is underground a mound of disturbed earth,
@@ -58,6 +60,9 @@ const MouthScript := preload("res://demo/tunnel/tunnel_mouth.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const BoreCurveScript := preload("res://demo/tunnel/bore_curve.gd")
 const SpecScript := preload("res://demo/tunnel/piece_spec.gd")
+const PropsScript := preload("res://demo/props/demo_props.gd")
+const GroundCutScript := preload("res://demo/world/ground_cut.gd")
+const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 
 const LIFT_M: float = 0.045
 const PLAN_WIDTH_M: float = 0.32
@@ -68,8 +73,6 @@ const HOLE_RADIUS_M: float = Rules.HOLE_RADIUS_M
 const HEAP_DRAWN_M3_PER_U: float = 0.06
 const HEAP_ASPECT: float = 0.5
 const HEAP_GAP_M: float = 0.12
-## A widened tunnel's mouths are drawn this much larger (a badger goes down them).
-const WIDE_HOLE_SCALE: float = 1.6
 const MOUND_RADIUS_M: float = 0.45
 const MOUND_HEIGHT_M: float = 0.2
 const MOUND_BOB_HZ: float = 1.6
@@ -100,9 +103,11 @@ const SNAP_RING_M: float = 0.7
 const GHOST_STEP_M: float = 0.25
 ## A mesh key's tunnel-state part: bore, closed and the widening's step.
 const KEY_STATE: int = 100000000
-## A mouth's children: its cutting, then its gateway (tunnel_mouth.gd).
+## A mouth's children: its cutting, its arch (or gateway), the arch's lantern and its glow (tunnel_mouth.gd).
 const MOUTH_CUTTING: int = 0
 const MOUTH_GATEWAY: int = 1
+const MOUTH_LANTERN: int = 2
+const MOUTH_GLOW: int = 3
 
 var _network: GraphScript = null
 var _space: CastSpaceScript = null
@@ -118,6 +123,14 @@ var _holes: Array[Node3D] = []
 var _heaps: Array[MeshInstance3D] = []
 var _mesh_key: PackedInt64Array = PackedInt64Array()
 var _mouth_key: PackedInt64Array = PackedInt64Array()
+## Per mouth row: how far its cutting is open down its ramp (m; 0 while it shows none).
+var _open_m: PackedFloat32Array = PackedFloat32Array()
+## Per mouth row: how wide either side its cutting's forecourt opens before the arch (m; 0: none).
+var _court_m: PackedFloat32Array = PackedFloat32Array()
+## The demo's props (the arch and its lantern; null or unstaged: the procedural gateway), and the cut in the ground over
+## the cuttings (null: no ground to cut, a test's).
+var _props: PropsScript = null
+var ground_cut: GroundCutScript = null
 var _plan_ribbon: MeshInstance3D = null
 var _plan_rings: Array[MeshInstance3D] = []
 var _label: Label3D = null
@@ -159,6 +172,8 @@ func configure(network: GraphScript, space: CastSpaceScript, clock: DemoClockScr
 	job_digger.fill(-1)
 	_mouth_key.resize(Rules.MAX_MOUTHS)
 	_mouth_key.fill(-1)
+	_open_m.resize(Rules.MAX_MOUTHS)
+	_court_m.resize(Rules.MAX_MOUTHS)
 	_ribbons.resize(Rules.MAX_SEGMENTS)
 	_mounds.resize(Rules.MAX_SEGMENTS)
 	_pause_rings.resize(Rules.MAX_SEGMENTS)
@@ -297,16 +312,31 @@ static func _heap_indices(tool: SurfaceTool) -> void:
 
 
 func _make_mouth() -> Node3D:
-	"""A mouth (tunnel_mouth.gd): the ramp's cutting and the gateway over its top, on the surface,
-	hidden. +Z runs down the ramp."""
+	"""A mouth (tunnel_mouth.gd): its cutting, its arch or gateway, the arch's lantern and glow, on the surface, hidden.
+	+Z runs down the ramp."""
 	var mouth := Node3D.new()
-	for mesh: Mesh in [MouthScript.cutting_mesh(), MouthScript.gateway_mesh()]:
+	for k in 4:
 		var part := MeshInstance3D.new()
-		part.mesh = mesh
+		part.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if k == MOUTH_GATEWAY \
+				else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		mouth.add_child(part)
 	mouth.visible = false
 	add_child(mouth)
 	return mouth
+
+
+func set_props(props: PropsScript) -> void:
+	"""The demo's props: the staged arch and its lantern stand at the mouths (none staged: the procedural gateway)."""
+	_props = props
+	_mouth_key.fill(-1)
+
+
+func set_ground(ground: MeshInstance3D) -> void:
+	"""The village ground to cut open over the cuttings (world/ground_cut.gd)."""
+	if ground_cut == null:
+		ground_cut = GroundCutScript.new()
+	ground_cut.set_ground(ground)
+	_mouth_key.fill(-1)
 
 
 func _make_mound() -> Node3D:
@@ -423,6 +453,8 @@ func refresh() -> void:
 		_update_mound(slot)
 	for m in Rules.MAX_MOUTHS:
 		_sync_mouth(m)
+	if ground_cut != null:
+		ground_cut.apply()
 	bores.refresh_hubs()
 
 
@@ -607,12 +639,14 @@ func _flush(mesh: ImmediateMesh, material: Material) -> void:
 
 func _sync_mouth(m: int) -> void:
 	"""Show mouth row `m` as it stands: its hole open (as its entry shaft is dug, or once its ramp breaks out
-	at it), its cutting and gateway, and its heap at its size; hidden when the row is free."""
+	at it), its cutting and arch, and its heap at its size; hidden when the row is free."""
 	if not _network.is_mouth(m):
 		if _mouth_key[m] != -1:
 			_mouth_key[m] = -1
 			_holes[m].visible = false
 			_heaps[m].visible = false
+			_open_m[m] = 0.0
+			_cut_hole(m, false)
 		return
 	var ramp := _network.mouth_ramp(m)
 	var tipped := _network.haul.on_heap_milli(_network, m)
@@ -626,24 +660,70 @@ func _sync_mouth(m: int) -> void:
 
 
 func _show_mouth(m: int, ramp: int) -> void:
-	"""A mouth on the ground, facing down its ramp: its cutting as long as the ramp is open to where the bore
-	goes under, `opened` of that while its entry shaft is dug, and its gateway once it is; larger for a
-	widened bore."""
+	"""A mouth on the ground, facing down its ramp (see the header): its cutting as long as the ramp is open to where
+	the bore goes under, `opened` of that while its entry shaft is dug, ending at the earth face there; dug, at the
+	portal, under its arch -- or, a burrow home's door, all the way down to the door. A cellar's hatch covers its ramp
+	(room_view.gd): nothing is drawn or cut. The ground is cut open over the cutting."""
 	var node := _holes[m]
-	node.visible = _network.mouth_opened(m) and not door_built(m)
+	var bore := int(_network.bore[ramp])
+	var home_door := MouthScript.door_template(_network, m) == RoomsScript.TEMPLATE_HOME
+	var run := MouthScript.cutting_run_m(_network, m)
+	node.visible = _network.mouth_opened(m) and run > 0.0
 	var opened := 1.0
 	if not _network.mouth_end_at_b(ramp) and _network.stage(ramp) == Rules.STAGE_ENTRANCE:
-		opened = clampf(float(_network.done(ramp)) / float(Rules.SHAFT_QUANTA * Rules.TICKS_PER_QUANTUM), 0.3, 1.0)
+		opened = MouthScript.opened_share(clampf(float(_network.done(ramp)) / float(Rules.SHAFT_QUANTA * Rules.TICKS_PER_QUANTUM),
+			0.3, 1.0))
 	var at := _network.mouth_at(m)
 	var into := _network.mouth_inward(m)
 	node.position = Vector3(at.x, 0.0, at.y)
 	node.rotation = Vector3(0.0, atan2(into.x, into.y), 0.0)
-	var wide := WIDE_HOLE_SCALE if _network.bore[ramp] == Rules.BORE_WIDE else 1.0
-	var open_m := minf(Rules.portal_m(int(_network.bore[ramp])), _network.length_m(ramp)) * opened
-	(node.get_child(MOUTH_CUTTING) as Node3D).scale = Vector3(wide, 1.0, open_m)
-	var gateway := node.get_child(MOUTH_GATEWAY) as Node3D
-	gateway.visible = opened >= 1.0
-	gateway.scale = Vector3.ONE * wide
+	_open_m[m] = run * opened if node.visible else 0.0
+	var end := MouthScript.END_DOOR if home_door else (MouthScript.END_THROAT if opened >= 1.0 else MouthScript.END_FACE)
+	_court_m[m] = MouthScript.court_half_m(_props, bore) if end == MouthScript.END_THROAT else 0.0
+	(node.get_child(MOUTH_CUTTING) as MeshInstance3D).mesh = MouthScript.cutting_mesh(bore, run * opened, end, _court_m[m])
+	_stand_gateway(node, bore, _open_m[m], opened >= 1.0 and not home_door)
+	_cut_hole(m, node.visible)
+
+
+func _stand_gateway(node: Node3D, bore: int, portal: float, standing: bool) -> void:
+	"""Mouth `node`'s arch -- the staged one with its lantern and glow, else the procedural gateway -- at the portal,
+	`standing` once its cutting is open there."""
+	var gateway := node.get_child(MOUTH_GATEWAY) as MeshInstance3D
+	var lantern := node.get_child(MOUTH_LANTERN) as MeshInstance3D
+	var glow := node.get_child(MOUTH_GLOW) as MeshInstance3D
+	var staged := _props != null and _props.is_staged(MouthScript.ARCH_KEY)
+	gateway.visible = standing
+	lantern.visible = standing and staged
+	glow.visible = standing and staged
+	if not standing:
+		return
+	if not staged:
+		gateway.mesh = MouthScript.gateway_mesh()
+		gateway.transform = MouthScript.gateway_at(bore, portal)
+		return
+	gateway.mesh = _props.fitted(MouthScript.ARCH_KEY)
+	gateway.transform = MouthScript.arch_at(_props, bore, portal)
+	lantern.mesh = _props.fitted(MouthScript.LANTERN_KEY)
+	lantern.transform = MouthScript.lantern_on_arch(_props, bore, portal)
+	glow.mesh = MouthScript.glow_mesh()
+	glow.position = MouthScript.glow_at(_props, bore, portal)
+
+
+func _cut_hole(m: int, open: bool) -> void:
+	"""Mouth `m`'s holes in the ground over its cutting and its forecourt (world/ground_cut.gd: holes 2m and 2m + 1),
+	or none."""
+	if ground_cut == null:
+		return
+	if not open:
+		ground_cut.set_hole(2 * m, PackedVector2Array())
+		ground_cut.set_hole(2 * m + 1, PackedVector2Array())
+		return
+	var ramp := _network.mouth_ramp(m)
+	var at := _network.mouth_at(m)
+	var into := _network.mouth_inward(m)
+	ground_cut.set_hole(2 * m, MouthScript.footprint(at, into, int(_network.bore[ramp]), _open_m[m]))
+	ground_cut.set_hole(2 * m + 1, MouthScript.court_footprint(at, into, _court_m[m], _open_m[m]) if _court_m[m] > 0.0
+		else PackedVector2Array())
 
 
 func door_built(m: int) -> bool:
@@ -655,7 +735,7 @@ func door_built(m: int) -> bool:
 
 func mouth_open_m(m: int) -> float:
 	"""How far mouth row `m`'s cutting runs down its ramp (m; checks)."""
-	return (_holes[m].get_child(MOUTH_CUTTING) as Node3D).scale.z
+	return _open_m[m]
 
 
 static func heap_radius_m(spoil_milli_u: int) -> float:

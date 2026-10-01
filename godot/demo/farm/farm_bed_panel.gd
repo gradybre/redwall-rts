@@ -28,6 +28,7 @@ extends CanvasLayer
 ##
 ## The panel only shows and asks: pressing emits a signal and demo_farm.gd orders the work.
 
+const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
 const FarmUi := preload("res://demo/farm/farm_ui.gd")
 const Text := preload("res://demo/farm/farm_text.gd")
 const SimScript := preload("res://demo/farm/farm_sim.gd")
@@ -58,7 +59,6 @@ const VERB_KINDS: Array[int] = [JobsScript.KIND_WATER, JobsScript.KIND_DRAIN, Jo
 	JobsScript.KIND_CLEAR, JobsScript.KIND_COMPOST, JobsScript.KIND_COVER, JobsScript.KIND_RAISE,
 	JobsScript.KIND_BANK]
 const VERB_LABELS: Array[String] = ["Water", "Drain", "Harvest", "Clear", "Compost", "Cover", "Raise", "Bank"]
-const PICKER_MAX_H: float = 520.0
 ## An order's answer stays under the readout this long (real time), then goes.
 const MESSAGE_MSEC: int = 8000
 const COLUMNS: int = 3
@@ -67,7 +67,7 @@ const LINE_COUNT: int = 10
 const LINE_MOISTURE: int = 1
 const DETAILS_SHOW: String = "Details ▸"
 const DETAILS_HIDE: String = "Details ▾"
-const CANCEL_TIP: String = "Cancel every job on this bed only (a harvest in hand goes into store)"
+const CANCEL_TIP: String = "Cancel every job on this bed only (a harvest in hand goes into store; earth in hand goes back to its heap)"
 const NO_JOBS_TIP: String = "no jobs"
 
 var bed: int = -1
@@ -78,8 +78,13 @@ var _crew: CrewScript = null
 var _zone_shown: bool = true
 var _zone_inset: float = 0.0
 var _frame: PanelContainer = null
+## The frame's three parts: the fixed head (title, ×, the picker's title), the ONE scrolling body, the fixed foot
+## (the picker's Back) -- decision 0391, review F12's crop-picker overflow.
+var _outer: VBoxContainer = null
+var _head: VBoxContainer = null
+var _foot: VBoxContainer = null
 ## The content scrolls inside the frame when the zone is shorter than it (1280x720).
-var _body: ScrollContainer = null
+var _body: DemoScroll = null
 var _column: VBoxContainer = null
 var _title: Label = null
 var _clock: Label = null
@@ -102,8 +107,10 @@ var _cancel: Button = null
 var _picker: VBoxContainer = null
 var _picker_rows: VBoxContainer = null
 var _picker_title: Label = null
-var _scroll: ScrollContainer = null
+var _back: Button = null
 var _pick_buttons: Array[Button] = []
+## Each crop's line under its button in the open picker (by item), re-worded in place (refresh_picker).
+var _pick_details: Array[Label] = []
 var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 var _read: IntMath.IntResult = IntMath.IntResult.new()
@@ -113,6 +120,7 @@ var _members: Callable = Callable()
 var _interrupt: Callable = Callable()
 var _card: CardScript = CardScript.new()
 var _no_members: PackedInt32Array = PackedInt32Array()
+var _place_queued: bool = false
 
 
 func configure(sim: SimScript, crew: CrewScript) -> void:
@@ -146,7 +154,7 @@ func _ready() -> void:
 func _build() -> void:
 	"""Frame, header, the date (no bed), the Needs line, readout lines, message, verbs, the picker."""
 	var column: VBoxContainer = _build_frame()
-	column.add_child(_header())
+	_head.add_child(_header())
 	_clock = FarmUi.label("", FarmUi.SMALL_PX, Palette.UMBER)
 	column.add_child(_clock)
 	_needs = FarmUi.label("", FarmUi.BODY_PX, Palette.CLAY)
@@ -209,16 +217,27 @@ func meter() -> MeterScript:
 
 
 func _build_frame() -> VBoxContainer:
-	"""The carved frame, the scroll its content sits in when the zone is short, and the column."""
+	"""The carved frame: its fixed head, the ONE scroll its content sits in when the zone is short, and its fixed
+	foot. Returns the scroll's column."""
 	_frame = FarmUi.frame()
 	add_child(_frame)
-	_body = ScrollContainer.new()
-	_body.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_frame.add_child(_body)
+	_outer = VBoxContainer.new()
+	_outer.add_theme_constant_override(&"separation", 5)
+	_frame.add_child(_outer)
+	_head = VBoxContainer.new()
+	_head.add_theme_constant_override(&"separation", 3)
+	_outer.add_child(_head)
+	_body = DemoScroll.new()
+	_outer.add_child(_body)
 	_column = VBoxContainer.new()
 	_column.add_theme_constant_override(&"separation", 5)
 	_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_body.add_child(_column)
+	_foot = VBoxContainer.new()
+	_foot.visible = false
+	_outer.add_child(_foot)
+	for part: Control in [_head, _column, _foot] as Array[Control]:
+		part.minimum_size_changed.connect(_queue_place)
 	return _column
 
 
@@ -262,22 +281,21 @@ func _build_actions() -> GridContainer:
 
 
 func _build_picker() -> VBoxContainer:
-	"""The crop picker: a title, a scrolling list of every ingredient, and Back."""
+	"""The crop picker's list of every ingredient, in the panel's one scroll (its title is in the head, Back in the
+	foot: neither scrolls away)."""
 	var box := VBoxContainer.new()
 	box.visible = false
 	_picker_title = FarmUi.label("", FarmUi.BODY_PX, Palette.INK, true)
-	box.add_child(_picker_title)
-	_scroll = ScrollContainer.new()
-	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_scroll.custom_minimum_size.y = PICKER_MAX_H
-	box.add_child(_scroll)
+	_picker_title.visible = false
+	_head.add_child(_picker_title)
+	_back = FarmUi.button("Back")
+	_back.tooltip_text = "Back to the bed's verbs"
+	_back.pressed.connect(close_picker)
+	_foot.add_child(_back)
 	_picker_rows = VBoxContainer.new()
 	_picker_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_picker_rows.add_theme_constant_override(&"separation", 4)
-	_scroll.add_child(_picker_rows)
-	var back := FarmUi.button("Back")
-	back.pressed.connect(close_picker)
-	box.add_child(back)
+	box.add_child(_picker_rows)
 	return box
 
 
@@ -325,12 +343,16 @@ func refresh() -> void:
 	_make_room.visible = false
 	_actions.visible = has_bed and not picking
 	_picker.visible = has_bed and picking
+	_picker_title.visible = _picker.visible
+	_foot.visible = _picker.visible
 	_hint.visible = not has_bed
 	if has_bed and not picking:
 		_fill_needs()
 		_fill_lines()
 		_fill_buttons()
-	_place.call_deferred()
+	elif has_bed:
+		refresh_picker()
+	_queue_place()
 
 
 func _bed_title() -> String:
@@ -364,18 +386,18 @@ func needs_colour() -> Color:
 func shown_texts() -> PackedStringArray:
 	"""Every line of words the panel draws now, in order (tests: what the player reads)."""
 	var out := PackedStringArray()
-	for node: Node in _column.find_children("*", "Label", true, false):
+	for node: Node in _outer.find_children("*", "Label", true, false):
 		var label := node as Label
-		if _shown_in_column(label):
+		if _shown_in_frame(label):
 			out.append(label.text)
 	return out
 
 
-func _shown_in_column(control: Control) -> bool:
-	"""Whether `control` and every parent up to the column is visible (works off-tree too, where
-	is_visible_in_tree is always false)."""
+func _shown_in_frame(control: Control) -> bool:
+	"""Whether `control` and every parent up to the frame's head, scroll and foot is visible (works off-tree too,
+	where is_visible_in_tree is always false)."""
 	var node: Node = control
-	while node != null and node != _column:
+	while node != null and node != _outer:
 		if node is CanvasItem and not (node as CanvasItem).visible:
 			return false
 		node = node.get_parent()
@@ -475,44 +497,84 @@ static func _set_state(button: Button, refusal: StringName) -> void:
 # --- the picker ---------------------------------------------------------------------------------
 
 func open_picker() -> void:
-	"""List every ingredient for this bed (see the header)."""
+	"""List every ingredient for this bed (see the header), those sowable now first. The order is set here only: a
+	crop that becomes sowable while the picker is open is enabled where it stands (refresh_picker)."""
 	if not Catalog.is_bed(bed):
 		return
 	picking = true
-	_picker_title.text = "Plant bed %d (%s) — %s" % [bed + 1, Text.SOILS[Catalog.BED_SOILS[bed]], Text.clock_line(_sim)]
 	for child: Node in _picker_rows.get_children():
 		_picker_rows.remove_child(child)
 		child.queue_free()
 	_pick_buttons.resize(Catalog.ITEM_COUNT)
+	_pick_details.resize(Catalog.ITEM_COUNT)
 	for pass_index: int in 2:
 		for item: int in Catalog.ITEM_COUNT:
-			var reason: String = Text.pick_reason(_sim, bed, item)
-			if (reason == "") == (pass_index == 0):
-				_picker_rows.add_child(_pick_row(item, reason))
+			if (Text.pick_reason(_sim, bed, item) == "") == (pass_index == 0):
+				_picker_rows.add_child(_pick_row(item))
+	_body.scroll_vertical = 0
 	refresh()
 
 
-func _pick_row(item: int, reason: String) -> Control:
-	"""One ingredient: a button with its sowing card (disabled with the picker's reason: its sow_refusal, the code the
-	card and the order share) over its rotation / soil effect."""
+func _pick_row(item: int) -> Control:
+	"""One ingredient: a button over its rotation / soil effect line, both filled by refresh_picker."""
 	var row := VBoxContainer.new()
 	row.add_theme_constant_override(&"separation", 1)
 	var pick: Button = FarmUi.button(Catalog.ITEM_LABELS[item], FarmUi.BODY_PX)
 	pick.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	if _goods != null:
 		FarmUi.set_icon(pick, _goods.icon_of(item))
-	_crew.preview_into(_card, JobsScript.KIND_SOW, bed, _selected(), item)
-	if not _card.is_ok() and reason != "":
-		_card.reason = reason
-	_show_card(pick)
 	pick.pressed.connect(func() -> void: crop_picked.emit(item))
 	row.add_child(pick)
 	_pick_buttons[item] = pick
-	var detail: String = Text.pick_row(_sim, bed, item)
-	if reason != "":
-		detail = "%s — can't: %s" % [detail, reason]
-	row.add_child(FarmUi.label(detail, FarmUi.SMALL_PX, Palette.UMBER if reason != "" else Palette.INK))
+	_pick_details[item] = FarmUi.label("", FarmUi.SMALL_PX, Palette.INK)
+	row.add_child(_pick_details[item])
 	return row
+
+
+func refresh_picker() -> void:
+	"""The open picker as the calendar and the bed stand NOW (review F36): its title's date, and each crop's
+	button -- enabled by its sowing card, disabled with the picker's reason (its sow_refusal, the code the card and
+	the order share) -- and line, re-worded IN PLACE: no row is rebuilt or moved, so the focused crop and the scroll
+	stay where they are."""
+	if _picker_rows.get_child_count() == 0:
+		return
+	_picker_title.text = picker_title()
+	var members: PackedInt32Array = _selected()
+	for item: int in Catalog.ITEM_COUNT:
+		var reason: String = Text.pick_reason(_sim, bed, item)
+		_crew.preview_into(_card, JobsScript.KIND_SOW, bed, members, item)
+		if not _card.is_ok() and reason != "":
+			_card.reason = reason
+		_show_card(_pick_buttons[item])
+		var detail: String = Text.pick_row(_sim, bed, item)
+		if reason != "":
+			detail = "%s — can't: %s" % [detail, reason]
+		var line: Label = _pick_details[item]
+		if line.text != detail:
+			line.text = detail
+		var colour: Color = Palette.UMBER if reason != "" else Palette.INK
+		if line.get_theme_color(&"font_color") != colour:
+			line.add_theme_color_override(&"font_color", colour)
+
+
+func picker_title() -> String:
+	"""The picker's title: the bed, its soil and the date now ("Plant bed 1 (Loam) — Y1 Spring 5, 06:00 · 12 °C")."""
+	return "Plant bed %d (%s) — %s" % [bed + 1, Text.SOILS[Catalog.BED_SOILS[bed]], Text.clock_line(_sim)]
+
+
+func picker_title_text() -> String:
+	"""The picker's title as shown ('' while it is closed; tests)."""
+	return _picker_title.text if _picker_title.visible else ""
+
+
+func picker_detail(item: int) -> String:
+	"""A crop's line in the open picker (tests)."""
+	return _pick_details[item].text
+
+
+func back_button() -> Button:
+	"""The picker's Back (tests and the scripted check)."""
+	return _back
 
 
 func close_picker() -> void:
@@ -562,7 +624,7 @@ func set_zone(shown: bool, top_inset: float) -> void:
 	_zone_shown = shown
 	_zone_inset = top_inset
 	_place()
-	_place.call_deferred()
+	_queue_place()
 
 
 func is_shown() -> bool:
@@ -570,18 +632,34 @@ func is_shown() -> bool:
 	return _frame != null and _frame.visible
 
 
+func _queue_place() -> void:
+	"""Place the frame again at the end of this frame, once (a content change re-measures its parts)."""
+	if not _place_queued:
+		_place_queued = true
+		_place.call_deferred()
+
+
 func _place() -> void:
-	"""In the right column (the HUD's detail zone, below the zone's tab strip), at the HUD's scale."""
+	"""In the right column (the HUD's detail zone, below the zone's tab strip), at the HUD's scale: the head and
+	foot as tall as they are, the one scroll in what is left."""
+	_place_queued = false
 	if _frame == null:
 		return
 	_frame.visible = _zone_shown
 	if not is_inside_tree():
 		return
 	var rect: Rect2 = placement(get_viewport().get_visible_rect().size, _zone_inset, _layout, _geometry)
-	_scroll.custom_minimum_size.y = clampf(rect.size.y - 140.0, 120.0, PICKER_MAX_H)
+	var fixed: float = _head.get_combined_minimum_size().y + _outer.get_theme_constant(&"separation")
+	if _foot.visible:
+		fixed += _foot.get_combined_minimum_size().y + _outer.get_theme_constant(&"separation")
 	_body.custom_minimum_size.y = minf(_column.get_combined_minimum_size().y,
-		maxf(rect.size.y - FarmUi.CONTENT_MARGINS[1] - FarmUi.CONTENT_MARGINS[3], 0.0))
+		maxf(rect.size.y - FarmUi.CONTENT_MARGINS[1] - FarmUi.CONTENT_MARGINS[3] - fixed, 0.0))
 	FarmUi.place(_frame, rect, _geometry.scale)
+
+
+func body() -> ScrollContainer:
+	"""The panel's one scroll (checks)."""
+	return _body
 
 
 static func placement(viewport_size: Vector2, top_inset: float, layout: UiLayout, geometry: UiLayout.Geometry) -> Rect2:

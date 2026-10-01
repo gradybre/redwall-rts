@@ -8,6 +8,9 @@ extends Node3D
 ##   left click empty ground      clear the selection
 ##   right click ground           move the selection there, spread into a formation, then hold
 ##   right click a POI's spot     work there (its free slots; the rest hold behind it)
+##   shift + right click          APPEND the order to the selection's order lists instead (decision 0411, UI §3's
+##                                `command_queue`): a bed, a tree or the like queues its job, open ground a walk --
+##                                the work board's `queue_at` (demo/work/work_orders.gd); not in the underground view
 ##   R                            release the selection back to wandering
 ##   Esc (`selection_clear`)      clear the selection
 ##   B (or T) / U                 the Dig tool (the cutaway, drag a tunnel) / underground view -- the
@@ -62,6 +65,8 @@ const Layers := preload("res://demo/demo_layers.gd")
 const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 const InterruptScript := preload("res://demo/control/work_interrupt.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const OrderList := preload("res://demo/work/order_list.gd")
+const QueueAnswer := preload("res://demo/work/queue_answer.gd")
 
 const RING_GAP_M: float = 0.12
 const PULSE_HZ: float = 1.1
@@ -126,8 +131,14 @@ var _ground_orders: Array[Callable] = []
 var _task_texts: Array[Callable] = []
 var _input_hooks: Array[Callable] = []
 var _skill_texts: Array[Callable] = []
+## `fed(actor_index, alone) -> String`: how fed a resident is (the kitchen's, decision 0381; see set_fed_text).
+var _fed_text: Callable = Callable()
 ## The job owners' resume rules (work_interrupt.gd; see add_resume_rule).
 var _resume_rules: Array[Callable] = []
+## The camera's "look at this point" (set_centre), for pick_member.
+var _centre: Callable = Callable()
+## Shift+right-click's handler (`queue(screen, ground, members) -> QueueAnswer`; see set_queue_handler).
+var _queue: Callable = Callable()
 ## The tool buttons' action card (reused; _refresh_tool_cards).
 var _tool_card_data: CardScript = CardScript.new()
 ## The party panel's notice line, per resident (see say): its text, and when it was said (0: never).
@@ -165,10 +176,17 @@ func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null,
 	_tunnels.configure(cast, camera, selected, mark, say, services)
 	_tunnels.set_notice_about(say_about)
 	register_below(_tunnels.view.prewarm)
-	_panel.dig_requested.connect(_on_dig_requested)
-	_panel.room_requested.connect(_on_room_requested)
+	_connect_panel()
 	_tunnels.ext.set_hud(hud_root)
 	_tunnels.ext.set_interrupt(interrupt_text)
+
+
+func _connect_panel() -> void:
+	"""The party panel's buttons: the Dig and room tools, a member's row (pick_member), Release (R)."""
+	_panel.dig_requested.connect(_on_dig_requested)
+	_panel.room_requested.connect(_on_room_requested)
+	_panel.member_picked.connect(pick_member)
+	_panel.release_requested.connect(release_selection)
 
 
 func set_world(world: DemoWorldScript) -> void:
@@ -235,6 +253,18 @@ func add_skill_text(provider: Callable) -> void:
 	"""Another owner's skills or meters (the water's: bridge building, breath and stamina), shown after
 	those added before it."""
 	_skill_texts.append(provider)
+
+
+func set_fed_text(provider: Callable) -> void:
+	"""`provider(actor_index: int, alone: bool) -> String`: how fed a resident is (demo/kitchen/kitchen.gd `fed_text`),
+	the party panel's own rows right after what it is doing -- never after the skills, where a long list would push it
+	down the inspector (decision 0381's note, with 0391)."""
+	_fed_text = provider
+
+
+func fed_text(actor_index: int) -> String:
+	"""A resident's fed rows for the panel ("" with no kitchen): the long form alone, its word in a list."""
+	return String(_fed_text.call(actor_index, selection_count() <= 1)) if _fed_text.is_valid() else ""
 
 
 func say(text: String) -> void:
@@ -426,9 +456,31 @@ func _on_button(event: InputEventMouseButton) -> bool:
 			_finish_select(event.position)
 		return true
 	if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed and selection_count() > 0:
-		order_at(event.position)
+		if event.shift_pressed and _queue.is_valid() and not underground_view():
+			queue_at(event.position)
+		else:
+			order_at(event.position)
 		return true
 	return false
+
+
+func set_queue_handler(queue: Callable) -> void:
+	"""`queue(screen: Vector2, ground: Vector2, members: PackedInt32Array) -> QueueAnswer`: Shift+right-click appends
+	the order to the selection's order lists (the work board, decision 0411): whether it did, and what to say."""
+	_queue = queue
+
+
+func queue_at(at: Vector2) -> bool:
+	"""Shift+right-click at screen point `at`: the order appended to the selection's lists (see set_queue_handler),
+	marked where it landed and said in the party panel. True when something was queued."""
+	var ground: Vector2 = Layers.pick_ground(_camera.project_ray_origin(at), _camera.project_ray_normal(at),
+		Layers.pick_y(false, Layers.active_level))
+	var answer: QueueAnswer = _queue.call(at, ground, selected())
+	if ground.is_finite():
+		mark(Vector3(ground.x, 0.0, ground.y), answer.ok)
+	say(answer.words)
+	_refresh_in = 0.0
+	return answer.ok
 
 
 func _on_motion(at: Vector2) -> bool:
@@ -660,6 +712,22 @@ func order_to(point: Vector3) -> bool:
 	return bool(result["ok"])
 
 
+func set_centre(centre: Callable) -> void:
+	"""`centre(point: Vector3)`: ease the camera to look at a point (demo_camera.gd `centre_on`), for `pick_member`."""
+	_centre = centre
+
+
+func pick_member(actor_index: int) -> void:
+	"""A listed resident was picked (the party panel's member row, the Water panel's roster row): select it alone
+	and centre the camera on it (decision 0391)."""
+	if _cast == null or actor_index < 0 or actor_index >= _cast.actor_count():
+		return
+	select(PackedInt32Array([actor_index]))
+	if _centre.is_valid():
+		var at: Vector2 = (_cast.actor(actor_index) as DemoActorScript).brain.position
+		_centre.call(Vector3(at.x, 0.0, at.y))
+
+
 func release_selection() -> void:
 	"""Hand the selection back to wandering (it stays selected)."""
 	_cast.release(selected())
@@ -781,7 +849,8 @@ func _refresh_panel() -> void:
 			_signature.append(_dug_percent(brain))
 			_signature.append(doing_text(i).hash())
 			_signature.append(skills_text(i).hash())
-			_signature.append(brain.unfinished_labels().size())
+			_signature.append(fed_text(i).hash())
+			_signature.append(brain.queue_revision)
 	if _signature == _shown:
 		return
 	_shown = _signature.duplicate()
@@ -794,10 +863,10 @@ func party_entries() -> Array[Dictionary]:
 	for i in selected():
 		var actor := _cast.actor(i) as DemoActorScript
 		var brain := actor.brain
-		entries.append({"name": actor.display_name, "species": actor.species, "colour": actor.chip_colour,
-			"digger": _tunnels.is_digger(i), "state": activity_text(i), "skills": skills_text(i),
+		entries.append({"index": i, "name": actor.display_name, "species": actor.species, "colour": actor.chip_colour,
+			"digger": _tunnels.is_digger(i), "state": activity_text(i), "skills": skills_text(i), "fed": fed_text(i),
 			"abilities": AbilitiesScript.lines_for(actor.species, actor.height_m, brain.radius, brain.can_carry()),
-			"then": brain.unfinished_labels()})
+			"then": OrderList.items_into(brain, PackedStringArray())})
 	return entries
 
 

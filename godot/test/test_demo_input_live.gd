@@ -47,5 +47,5 @@ func test_the_real_scene_routes_input_menu_and_focus_at_1280x720() -> void:
 
 
 func test_the_real_scene_routes_input_menu_focus_and_scale_at_1920x1080() -> void:
-	"""The same at 1920x1080, where the harness also picks 125 %, restarts at it and shrinks the window."""
+	"""The same at 1920x1080, where the harness also picks 150 %, restarts at it and shrinks the window."""
 	_assert_run("1920x1080")

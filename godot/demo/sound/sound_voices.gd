@@ -193,6 +193,20 @@ func stop_bus(bus: int, now_msec: int) -> int:
 	return stopped
 
 
+func silence() -> int:
+	"""Stop every voice now, whatever its bus (the owner leaving the tree: sound_director.gd `_exit_tree`), so no
+	playback outlives its player. Returns how many players were still playing."""
+	var stopped: int = 0
+	for voice: int in _player_bus.size():
+		_voice_cue[voice] = -1
+		_voice_until[voice] = 0
+		var player: Node = _placed[voice] if _placed[voice] != null else _flat[voice]
+		if bool(player.get(&"playing")):
+			stopped += 1
+		player.call(&"stop")
+	return stopped
+
+
 func pitch_of(voice: int) -> float:
 	"""Voice `voice`'s pitch scale (checks: always 1.0)."""
 	return _placed[voice].pitch_scale if _placed[voice] != null else _flat[voice].pitch_scale

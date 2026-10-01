@@ -910,7 +910,7 @@ func test_a_job_handed_to_someone_tries_its_walk_afresh() -> void:
 	"""The farm board: a job given (back) to a resident starts its walk's tries at nothing, so a delivery
 	tried again after a wait stands where a fresh one would."""
 	var jobs := FarmJobs.new()
-	assert_true(jobs.open_into(FarmJobs.KIND_HARVEST, BED_CARROTS, FarmJobs.ORIGIN_PLAYER, 0, _read), "a job")
+	assert_true(jobs.open_into(FarmJobs.KIND_HARVEST, BED_CARROTS, FarmJobs.ORIGIN_PLAYER, _read), "a job")
 	jobs.tries[_read.value] = 2
 	jobs.assign(_read.value, 1)
 	assert_equal(jobs.tries[_read.value], 0, "tries reset")

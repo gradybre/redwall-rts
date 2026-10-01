@@ -1,15 +1,15 @@
 extends RefCounted
-## Clearing a spoil heap: residents dig it out a basketful at a time and haul it to the farm's compost
-## store. Decision 0205 (the playtest of 2026-09-29: "Ability to select dirt piles, and have workers dig
-## and remove the dirt piles"). Presentation over the farm's real spoil accounting; nothing here
+## Clearing a spoil heap: residents dig it out a basketful at a time and haul it to the village stores by the open
+## stockpile. Decision 0205 (the playtest of 2026-09-29: "Ability to select dirt piles, and have workers dig
+## and remove the dirt piles"). Presentation over the farm's real earth accounting; nothing here
 ## feeds the simulation.
 ##
-## WHERE IT GOES. The spoil has one use in the demo already: the farm's Compost job digs it off a heap
-## as a bed's compost (farm_jobs.gd COMPOST_FROM_SPOIL_PLAN), and planting a sapling spends the farm's
-## compost store. So a cleared heap's spoil goes into that store (`deliver(milli)`, the farm's
-## compost_milli), carried to the drop spot by the open stockpile. Every milli-U taken off the heap
-## (farm_tunnels.gd `take_spoil_into`, the same books Raise and Bank take from) is delivered, or is in a
-## worker's basket: `in_hand_milli()`. Nothing is made or lost.
+## WHERE IT GOES (decision 0401). A heap is EARTH (the adopted `excavated_earth`): never compost, never fertility. A
+## cleared heap's earth is KEPT in the village stores (`deliver(milli)`: tunnel_stores.gd `add_earth`), tipped at the
+## drop spot by the open stockpile, where Raise and Bank can fetch it again (farm_tunnels.gd SOURCES). (Before 0401 it
+## went into the farm's compost store.) Every milli-U taken off the heap (farm_tunnels.gd `take_spoil_into`, the same
+## books Raise and Bank take from) is delivered, or is in a worker's basket: `in_hand_milli()`. Nothing is made or
+## lost.
 ##
 ## ONE ROW PER WORKER, cycling GO (to a spot beside the heap) -> DIG (DIG_USEC a load, the dig clip) ->
 ## CARRY (the carry walk, a basket in hand) -> DROP (DROP_USEC) -> GO, until the heap is empty; the
@@ -40,8 +40,8 @@ const PropsScript := preload("res://demo/props/demo_props.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 
-## A basketful: the farm's own load off a heap (farm_jobs.gd SPOIL_PER_JOB_MILLI, the §5.6 compost dose).
-const LOAD_MILLI: int = FarmJobs.SPOIL_PER_JOB_MILLI
+## A basketful: the farm's own load of earth off a heap (farm_jobs.gd EARTH_PER_JOB_MILLI).
+const LOAD_MILLI: int = FarmJobs.EARTH_PER_JOB_MILLI
 ## Digging a load out and tipping it: the farm's dig and drop work (WU) at its demo rate.
 const DIG_USEC: int = FarmJobs.WORK_WU[FarmJobs.WORK_DIG] * FarmJobs.DEMO_USEC_PER_WU
 const DROP_USEC: int = FarmJobs.WORK_WU[FarmJobs.WORK_DROP] * FarmJobs.DEMO_USEC_PER_WU
@@ -77,7 +77,7 @@ var goal: PackedVector2Array = PackedVector2Array()
 var blocked: PackedByteArray = PackedByteArray()
 var wait_usec: PackedInt64Array = PackedInt64Array()
 var tries: PackedInt32Array = PackedInt32Array()
-## Spoil delivered to the compost store by clearing, milli-U (the books' other side).
+## Earth delivered to the stores by clearing, milli-U (the books' other side).
 var delivered_milli: int = 0
 ## Heaps emptied and taken off the obstacles (checks).
 var retired_heaps: int = 0
@@ -115,8 +115,8 @@ func _init() -> void:
 
 func configure(cast: DemoCastScript, network: GraphScript, tunnels: FarmTunnels, props: PropsScript,
 		deliver: Callable, drop_at: Vector2) -> void:
-	"""Work this cast on this network's heaps, taking spoil through the farm's books (`tunnels`) and
-	delivering it by `deliver(milli: int)` at `drop_at` (metres, x z)."""
+	"""Work this cast on this network's heaps, taking earth through the farm's books (`tunnels`) and
+	delivering it by `deliver(milli: int)` (the stores' `add_earth`) at `drop_at` (metres, x z)."""
 	_cast = cast
 	_network = network
 	_tunnels = tunnels
@@ -342,7 +342,7 @@ func _dig_load(row: int) -> void:
 
 
 func _tip_load(row: int) -> void:
-	"""Deliver the basket into the compost store; back for more while the heap has any."""
+	"""Deliver the basket into the stores; back for more while the heap has any."""
 	_deliver_load(row)
 	_hold_basket(worker[row], false)
 	if spoil_left(heap[row]) > 0:
@@ -365,13 +365,16 @@ func _deliver_load(row: int) -> void:
 
 func _settle_load(row: int, brain: BrainScript) -> void:
 	"""A row ending with a basket: tipped into the store when its worker stands at the drop spot about to tip it, else put
-	back on its heap -- never delivered from afar, never lost (see ARRIVING IS EXPLICIT)."""
+	back on its heap -- never lost (see ARRIVING IS EXPLICIT). A heap that will not take it back (its mouth row freed
+	meanwhile) passes it to the stores, as the farm crew's earth return does (decision 0401)."""
 	if load_milli[row] <= 0:
 		return
 	if step[row] == STEP_DROP and brain.arrived_near(goal[row], ARRIVE_M):
 		_deliver_load(row)
 		return
-	_tunnels.return_spoil_into(_network, heap[row], int(load_milli[row]), _read)
+	if not _tunnels.return_spoil_into(_network, heap[row], int(load_milli[row]), _read):
+		_deliver_load(row)
+		return
 	load_milli[row] = 0
 	revision += 1
 

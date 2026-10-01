@@ -13,6 +13,9 @@ which the demo scene reads. Without it the demo still runs, on placeholder shape
   props/, plants/, icons/  the 2026-09-29 passes' props and plants, which have no L0: made by
                            make_demo_props.py from their high-poly sources (budget meshes, plant
                            cards, item icons)
+  props/<key>__<part>.glb  the underground pass's props with their defects fixed (the burrow door's leaf split
+                           from its frame, the arch's slab cut out, ...): make_demo_derived_props.py,
+                           decision 0371
   cast/<key>/body.glb      the creature's grounded rigged.glb: mesh, textures, skeleton, tail chain
   cast/<key>/<clip>.glb    each clip STRIPPED to its skeleton and animation. Every clip file
                            repeats the whole mesh and its 2K textures (~17 MB); the demo needs
@@ -57,9 +60,11 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from bake_meshy_tail import _channels, _skinning, _worlds_at  # noqa: E402
 from repair_meshy_rig import read_accessor, read_glb, write_glb  # noqa: E402
 from rig_meshy_tail import mat_mul, node_worlds, transform_point  # noqa: E402
+import ground_meshy_clips  # noqa: E402
 import make_demo_crop_cards  # noqa: E402
 import make_demo_props  # noqa: E402
 import make_demo_weir  # noqa: E402
+import make_demo_derived_props  # noqa: E402
 import demo_texture_imports  # noqa: E402
 import stage_demo_audio  # noqa: E402
 
@@ -94,8 +99,18 @@ CLIPS = ["idle", "walk", "collect_object", "stand_and_drink", "wave_one_hand", "
 	"pull_radish", "swim", "tread_water"]
 ## Staged where the creature's grounded/ output has it. sleep_normally (Meshy 267 `Sleep_Normally`, decision
 ## 0204) is the eight cast creatures' sleep in bed (decision 0210); the beaver has none and lies down procedurally.
-OPTIONAL_CLIPS = ["dive", "sleep_normally"]
+## cautious_crouch_walk_forward (524) is the eight's walk in a bore they stoop in, and heavy_hammer_swing (128) the
+## diggers' strike at the face (mole digger, mole mason, badger quarryman), both decision 0371.
+OPTIONAL_CLIPS = ["dive", "sleep_normally", "cautious_crouch_walk_forward", "heavy_hammer_swing"]
 SLEEP_CLIP = "sleep_normally"
+CROUCH_CLIP = "cautious_crouch_walk_forward"
+DIG_CLIP = "heavy_hammer_swing"
+HANDS = ("LeftHand", "RightHand")
+## Clips pinned again as they are staged, with the grounding step's support tolerance raised to this (m): the mouse
+## keeper's crouch walk, whose two contacts the library's grounding left unpinned as "support" (decision 0204: 8.8 cm
+## of slide). At 2 cm both pin. The library's grounded clip is untouched; the staged copy is the pinned one, and its
+## cast row says so (`repinned`). Decision 0371.
+REPIN = {("mouse_keeper", CROUCH_CLIP): 0.02}
 ## The lying body is measured on every SLEEP_KEY_STEP-th key and every SLEEP_VERTEX_STEP-th body vertex (the tail's
 ## are left out: the demo's live tail spring places it). Enough to find the lowest point to the millimetre.
 SLEEP_KEY_STEP = 4
@@ -208,6 +223,64 @@ def sleep_row(path: pathlib.Path) -> dict:
 		"head": [round(head[0] / length, 4), round(head[1] / length, 4)], "length_m": round(max(max(xs) - min(xs), max(zs) - min(zs)), 4)}
 
 
+def _joint_track(clip: pathlib.Path | bytes, joint: str) -> tuple[list[float], list[list[float]]]:
+	"""A clip's (a file's, or its bytes') key times and a joint's world position at each key."""
+	times, tracks = _joint_tracks(clip, [joint])
+	return times, tracks[0]
+
+
+def _joint_tracks(clip: pathlib.Path | bytes, joints: list[str]) -> tuple[list[float], list[list[list[float]]]]:
+	"""A clip's key times and each of `joints`' world positions at each key, the clip read once."""
+	doc, binary = read_glb(clip if isinstance(clip, bytes) else clip.read_bytes())
+	indices = [next(i for i, n in enumerate(doc["nodes"]) if n.get("name") == joint) for joint in joints]
+	times, animated = _channels(doc, binary)
+	worlds = [_worlds_at(doc, animated, k) for k in range(len(times))]
+	return times, [[w[index][12:15] for w in worlds] for index in indices]
+
+
+def crouch_row(crouch: pathlib.Path, walk: pathlib.Path, staged: bytes | None = None) -> dict:
+	"""How the crouch walk moves (decision 0371): the speed its planted feet move at -- the grounding step's own measure
+	of a gait's ground speed (decision 0202: play it at ground speed over this, or a planted foot slides); the root
+	motion it took out (decision 0195) is kept beside it, which is not always the same (the mouse keeper's feet move at
+	0.76 m/s, its hips travelled 0.88) -- and how much lower its head goes than the walk's (the median Head height of
+	each), so the procedural stoop adds only what is still needed. Measured off `staged` -- the clip as staged, repinned
+	when it is (REPIN) -- when given, else off the library's."""
+	data = staged if staged is not None else crouch.read_bytes()
+	doc, binary = read_glb(data)
+	hips = next(n for n in doc["nodes"] if n.get("name") == "Hips")
+	root = float(hips.get("extras", {}).get("root_motion", {}).get("mean_speed_m_s", 0.0))
+	feet = ground_meshy_clips._foot_contacts(doc, binary, True, True)["speed"] if "skins" in doc else None
+	low = statistics.median(p[1] for p in _joint_track(data, "Head")[1])
+	high = statistics.median(p[1] for p in _joint_track(walk, "Head")[1])
+	return {"speed_m_s": round(feet if feet else root, 4), "root_speed_m_s": round(root, 4),
+		"head_drop_m": round(max(high - low, 0.0), 4)}
+
+
+def repin(data: bytes, tolerance: float) -> tuple[bytes, dict]:
+	"""A grounded gait pinned again by the grounding step with its support tolerance raised to `tolerance` (see REPIN):
+	the new clip and the pin's report."""
+	doc, binary = read_glb(data)
+	saved = ground_meshy_clips.PIN_SUPPORT_TOLERANCE_M
+	ground_meshy_clips.PIN_SUPPORT_TOLERANCE_M = tolerance
+	try:
+		binary, report = ground_meshy_clips.pin_feet(doc, binary, True, True)
+	finally:
+		ground_meshy_clips.PIN_SUPPORT_TOLERANCE_M = saved
+	return write_glb(doc, binary), {"support_tolerance_m": tolerance, "contacts": report["contacts"],
+		"contacts_pinned": report["contacts_pinned"], "contact_slide_before_m": report["contact_slide_before_m"],
+		"unpinned": report["unpinned"]}
+
+
+def dig_row(path: pathlib.Path) -> dict:
+	"""When the dig swing strikes (decision 0371): its length, and the moment its hands come lowest after they were
+	highest -- the blow -- so the demo can start a swing that lands as a quantum's cut does."""
+	times, (left, right) = _joint_tracks(path, list(HANDS))
+	hands = [(a[1] + b[1]) * 0.5 for a, b in zip(left, right)]
+	top = max(range(len(hands)), key=lambda k: hands[k])
+	blow = min(range(top, len(hands)), key=lambda k: hands[k])
+	return {"length_s": round(times[-1], 4), "impact_s": round(times[blow], 4)}
+
+
 def strip_to_animation(data: bytes) -> bytes:
 	"""The clip without its mesh, materials and images: skeleton and animation only."""
 	doc, binary = read_glb(data)
@@ -263,6 +336,16 @@ def stage_weir(library: pathlib.Path, out: pathlib.Path) -> dict:
 		return {}
 
 
+def stage_derived(library: pathlib.Path, out: pathlib.Path) -> dict:
+	"""The fixed props' rows (make_demo_derived_props.py), or none without Blender -- the demo then draws each one's
+	stand-in. A key that failed is left out and reported."""
+	try:
+		return make_demo_derived_props.stage(library, out)["rows"]
+	except RuntimeError as error:
+		print(f"stage_demo_assets: derived props skipped, they will be stand-ins: {error}")
+		return {}
+
+
 def cast_keys(library: pathlib.Path) -> list[str]:
 	"""The creatures to stage: the CAST, and each OPTIONAL_CAST creature whose grounded clips exist."""
 	return [*CAST, *(key for key in OPTIONAL_CAST if (library / "creature" / key / "grounded").is_dir())]
@@ -277,8 +360,14 @@ def stage_cast(library: pathlib.Path, out: pathlib.Path) -> dict:
 		folder.mkdir(parents=True, exist_ok=True)
 		shutil.copyfile(grounded / "rigged.glb", folder / "body.glb")
 		clips = {}
+		staged = {}
+		repinned = {}
 		for clip in [*CLIPS, *(c for c in OPTIONAL_CLIPS if (grounded / f"anim_{c}.glb").is_file())]:
-			(folder / f"{clip}.glb").write_bytes(strip_to_animation((grounded / f"anim_{clip}.glb").read_bytes()))
+			data = (grounded / f"anim_{clip}.glb").read_bytes()
+			if (key, clip) in REPIN:
+				data, repinned[clip] = repin(data, REPIN[(key, clip)])
+			staged[clip] = data
+			(folder / f"{clip}.glb").write_bytes(strip_to_animation(data))
 			clips[clip] = f"res://demo/assets/cast/{key}/{clip}.glb"
 		species = key.split("_")[0]
 		rows[key] = {"species": species, "height_m": SPECIES_HEIGHT_M[species],
@@ -287,6 +376,13 @@ def stage_cast(library: pathlib.Path, out: pathlib.Path) -> dict:
 			**walk_row(grounded / "anim_walk.glb")}
 		if SLEEP_CLIP in clips:
 			rows[key]["sleep"] = sleep_row(grounded / f"anim_{SLEEP_CLIP}.glb")
+		if CROUCH_CLIP in clips:
+			rows[key]["crouch"] = crouch_row(grounded / f"anim_{CROUCH_CLIP}.glb", grounded / "anim_walk.glb",
+				staged[CROUCH_CLIP])
+		if repinned:
+			rows[key]["repinned"] = repinned
+		if DIG_CLIP in clips:
+			rows[key]["dig"] = dig_row(grounded / f"anim_{DIG_CLIP}.glb")
 	return rows
 
 
@@ -312,6 +408,7 @@ def main() -> int:
 		manifest["world"].update(stage_weir(args.library, args.out))
 	if args.only in (None, "world", "props"):
 		manifest["world"].update(stage_props(args.library, args.out))
+		manifest["world"].update(stage_derived(args.library, args.out))
 	if args.only in (None, "cast"):
 		manifest["cast"] = stage_cast(args.library, args.out)
 	args.out.mkdir(parents=True, exist_ok=True)

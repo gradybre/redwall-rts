@@ -9,7 +9,7 @@ extends Node3D
 ##     selected                       (clear > harvest > drain a waterlogged bed > water a dry bed >
 ##                                    cover before frost > sow)
 ##   bed panel buttons                Plant… (the crop picker), Water, Drain (a ditch round a wet bed),
-##                                    Harvest, Clear, Compost, Cover, Raise and Bank (tunnel spoil),
+##                                    Harvest, Clear, Compost, Cover, Raise and Bank (tunnel earth),
 ##                                    Rest (fallow), Cancel jobs -- given to the selected residents, or
 ##                                    queued for the field crew
 ##   V                                the map layers (map_lenses.gd, decision 0292): off -> Growing:
@@ -370,7 +370,7 @@ func pressing_kind_into(bed: int, out: IntMath.IntResult) -> bool:
 	cover when a frost is due on a bed not raised above it -- farm_weather.gd `frost_due` -- sow the
 	chosen crop, else water a growing crop); refuses NOTHING_TO_DO. The bed panel's Needs line names
 	the same (farm_text.gd)."""
-	var spoil: int = crew.max_heap_spoil()
+	var earth: int = crew.most_earth()
 	var hour: int = sim.calendar.calendar_at(sim.calendar.tick).hour
 	var frost: bool = Weather.frost_due(sim.season(), sim.season_day(), hour) and not sim.is_raised(bed)
 	var dry: bool = sim.band_of(bed) <= SimScript.BAND_LOW
@@ -383,7 +383,7 @@ func pressing_kind_into(bed: int, out: IntMath.IntResult) -> bool:
 		candidates.append(JobsScript.KIND_COVER)
 	candidates.append_array([JobsScript.KIND_SOW, JobsScript.KIND_WATER])
 	for kind: int in candidates:
-		if JobsScript.refusal_for(sim, kind, bed, spoil) == &"":
+		if JobsScript.refusal_for(sim, kind, bed, earth) == &"":
 			return out.succeed(kind)
 	return out.refuse("NOTHING_TO_DO")
 
@@ -424,6 +424,12 @@ func compost_spoiled() -> void:
 
 
 # --- input ------------------------------------------------------------------------------------------
+
+func bed_at_into(screen: Vector2, out: IntMath.IntResult) -> bool:
+	"""The bed under a screen point, into `out` (the work board's Shift+right-click queue, decision 0411); refuses when
+	the ray misses every bed."""
+	return _bed_under_into(screen, out)
+
 
 func _bed_under_into(screen: Vector2, out: IntMath.IntResult) -> bool:
 	"""The bed under a screen point, into `out`; refuses when the ray misses every bed."""

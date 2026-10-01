@@ -30,10 +30,14 @@ extends Node3D
 ## the room itself rising 1.5 m over the ground under its turf (underground_rooms.gd HEADROOM), a low round bank
 ## flaring into a skirt (room_mesh.gd `build_mound`) in the village ground's grass (`set_turf`: the ground's own
 ## material, its worn paths left off, sampled in world x, z so it is the grass round it). It is CUT where the door
-## ramp comes in: a bank of bare earth at the room's wall (`build_face`), and in it a home's round front DOOR in a
-## timber ring on a fieldstone sill, its ramp an open cutting down to it; or against it a cellar's HATCH, two
-## plank leaves sloping down over the top of its steps in a timber frame (a root cellar's bulkhead). Procedural stand-ins until P7's props. The
-## mound and the ramp are obstacles on the ground (cast_space.gd `set_mound`) from the moment the room is laid.
+## ramp comes in: a bank of bare earth at the room's wall (`build_face`). A home's ramp is an open cutting down to its
+## round front DOOR (tunnel_overlay.gd draws the cutting, tunnel_mouth.gd END_DOOR): since P7 (decision 0371) the
+## library's burrow door -- its stone face, timber ring and lintel standing on the cutting's floor, its round LEAF
+## split from it (make_demo_derived_props.py `burrow_door_open`) and hung from a hinge that SWINGS IT OPEN when a
+## resident comes through and shut behind it (door_swing.gd); unstaged, a wooden leaf in a timber ring on a fieldstone
+## sill that swings the same. A cellar has a HATCH against its face, two plank leaves sloping down over the top of its
+## steps in a timber frame (a root cellar's bulkhead). The mound and the ramp are obstacles on the ground (cast_space.gd
+## `set_mound`) from the moment the room is laid.
 ##
 ## BUILT WHEN DUG. A room's nodes are built once per room row; its shell, ribs, fit-out and mound are built when
 ## its dig reaches a stage or finishes (or its openings change), never when the view switches -- a switch
@@ -66,6 +70,7 @@ const MarksScript := preload("res://demo/tunnel/tunnel_marks.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
 const FixtureKitScript := preload("res://demo/burrow/fixture_kit.gd")
+const DoorSwingScript := preload("res://demo/burrow/door_swing.gd")
 
 ## The shell grows in this many stages while the body is dug.
 const STAGES: int = 6
@@ -123,6 +128,11 @@ const BEAM_DEPTH_M: float = 0.14
 const BEAM_INSET_M: float = 0.14
 const MAX_FRAMES: int = 16
 const LANTERN_KEY: StringName = &"wall_lantern"
+## The staged burrow door, in parts (see ON THE GROUND): its frame and its leaf, hung by the leaf's left edge (its iron
+## straps' end) -- the hinge, seen from the cutting.
+const DOOR_KEY: StringName = &"burrow_door_open"
+const DOOR_FRAME: String = "frame"
+const DOOR_LEAF: String = "leaf"
 
 var _network: GraphScript = null
 var _rooms: RoomsScript = null
@@ -167,6 +177,8 @@ var _alcoves: PackedFloat32Array = PackedFloat32Array()
 var _nooks: PackedFloat32Array = PackedFloat32Array()
 var _today: Callable = Callable()
 var _turf: Material = null
+## The homes' front doors swinging (see ON THE GROUND).
+var door_swing: DoorSwingScript = DoorSwingScript.new()
 ## Shell builds so far (tests: a view switch builds none).
 var shell_builds: int = 0
 ## Others' pieces on the ground sampled with the rooms' (`add_ground_sampler`: the construction theatre's).
@@ -190,6 +202,7 @@ func configure(network: GraphScript, props: PropsScript, space: CastSpaceScript,
 	_props = props if props != null else PropsScript.new()
 	_space = space
 	_marks = marks
+	door_swing.configure(RoomsScript.MAX_ROOMS)
 	_outline_material = _flat(Palette.CREAM)
 	_outline_below_material = _flat(Palette.CREAM)
 	_outline_below_material.no_depth_test = true
@@ -365,7 +378,7 @@ func begin_surface_prewarm() -> void:
 		sample.mesh = pair[0]
 		sample.material_override = pair[1]
 		_surface_samples.add_child(sample)
-	FixtureKitScript.register_ground(_surface_samples)
+	FixtureKitScript.register_ground(_surface_samples, _props)
 	for sampler in _ground_samplers:
 		sampler.call(_surface_samples)
 	Layers.set_layers(_surface_samples, Layers.SURFACE)
@@ -493,6 +506,7 @@ func _draw(r: int, show: bool) -> void:
 	_clear(_furniture[r])
 	_above[r].visible = done and top
 	_clear(_above[r])
+	door_swing.clear(r)
 	if done:
 		_fit_out(r)
 	if done and top:
@@ -984,7 +998,7 @@ func _build_mound(r: int) -> void:
 		node.transform = frame
 		_above[r].add_child(node)
 	if kind == RoomsScript.TEMPLATE_HOME:
-		_above[r].add_child(_door(frame))
+		_above[r].add_child(_door(frame, r))
 	else:
 		_above[r].add_child(_hatch(frame))
 	Layers.set_layers(_above[r], Layers.SURFACE)
@@ -1032,18 +1046,65 @@ static func _face_mesh(kind: int) -> ArrayMesh:
 	return _shared[key]
 
 
-func _door(frame: Transform3D) -> Node3D:
-	"""A home's round front door in its mound's earth face (`frame`: the room's, see `_mound_frame`): a wooden
-	leaf in a timber ring on a fieldstone sill, with a brass knob, facing out."""
+func _door(frame: Transform3D, r: int) -> Node3D:
+	"""A home's round front door at the foot of its cutting, in its mound's face (`frame`: the room's, see `_mound_frame`),
+	facing out, its leaf on a hinge `door_swing` swings (see ON THE GROUND)."""
 	var door := Node3D.new()
-	door.transform = frame * Transform3D(Basis.IDENTITY, Vector3(0.0, 0.0, -face_m(RoomsScript.TEMPLATE_HOME)))
+	door.transform = frame * Transform3D(Basis.IDENTITY, Vector3(0.0, Layers.floor_y(_rooms.level[r]),
+		-face_m(RoomsScript.TEMPLATE_HOME)))
+	var hinge := _staged_door(door)
+	if hinge == null:
+		hinge = _stand_in_door(door)
+	var at := (frame * Vector3(0.0, 0.0, -face_m(RoomsScript.TEMPLATE_HOME)))
+	door_swing.set_door(r, Vector2(at.x, at.z), hinge)
+	return door
+
+
+func _staged_door(door: Node3D) -> Node3D:
+	"""The library's burrow door under `door`, turned to face out (the model faces +Z): its frame, and its leaf hung from
+	a hinge up through the leaf's left edge (seen from the cutting), opening inward. Returns the hinge (null: not staged
+	in its two parts, so the stand-in is drawn)."""
+	var frame := _props.part_instance(DOOR_KEY, DOOR_FRAME) if _props.has_parts(DOOR_KEY) else null
+	var leaf := _props.part_instance(DOOR_KEY, DOOR_LEAF) if frame != null else null
+	if leaf == null:
+		if frame != null:
+			frame.free()
+		return null
+	var turned := Node3D.new()
+	turned.rotation.y = PI
+	door.add_child(turned)
+	turned.add_child(frame)
+	var bound: AABB = leaf.transform * leaf.mesh.get_aabb()
+	var hinge := Node3D.new()
+	hinge.name = "Hinge"
+	hinge.position = Vector3(bound.position.x, 0.0, bound.get_center().z)
+	turned.add_child(hinge)
+	leaf.transform = Transform3D(Basis.IDENTITY, -hinge.position) * leaf.transform
+	hinge.add_child(leaf)
+	return hinge
+
+
+func _stand_in_door(door: Node3D) -> Node3D:
+	"""The stand-in door under `door`: a wooden leaf with a brass knob on a hinge at its left edge (seen from the
+	cutting), in a timber ring on a fieldstone sill, facing out. Returns the hinge."""
 	var upright := Basis(Vector3.RIGHT, PI * 0.5)
 	var middle := DOOR_RADIUS_M + 0.08
-	door.add_child(_part(_door_mesh(SHARED_LEAF), DOOR_WOOD, Transform3D(upright, Vector3(0.0, middle, -0.03))))
+	var hinge := Node3D.new()
+	hinge.name = "Hinge"
+	hinge.position = Vector3(DOOR_RADIUS_M, 0.0, -0.03)
+	hinge.rotation.y = 0.0
+	door.add_child(hinge)
+	hinge.add_child(_part(_door_mesh(SHARED_LEAF), DOOR_WOOD, Transform3D(upright, Vector3(-DOOR_RADIUS_M, middle, 0.0))))
+	hinge.add_child(_part(_door_mesh(SHARED_KNOB), KNOB, Transform3D(Basis.IDENTITY, Vector3(-DOOR_RADIUS_M * 1.55, middle, -0.07))))
 	door.add_child(_part(_door_mesh(SHARED_RING), TIMBER_RING, Transform3D(upright, Vector3(0.0, middle, -0.06))))
 	door.add_child(_part(_door_mesh(SHARED_SILL), DOOR_STONE, Transform3D(Basis.IDENTITY, Vector3(0.0, 0.03, -0.25))))
-	door.add_child(_part(_door_mesh(SHARED_KNOB), KNOB, Transform3D(Basis.IDENTITY, Vector3(DOOR_RADIUS_M * 0.55, middle, -0.1))))
-	return door
+	return hinge
+
+
+func swing_doors(delta_s: float) -> void:
+	"""Every home's door toward open while a resident comes through it, else shut (door_swing.gd), by `delta_s` of
+	demo time."""
+	door_swing.step(_space.resident_position, _space.resident_underground, delta_s)
 
 
 static func _door_mesh(key: int) -> Mesh:

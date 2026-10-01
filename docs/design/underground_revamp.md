@@ -457,6 +457,8 @@ Effort is in agent sessions (one build session plus review).
 
 **P7 — Asset upgrades** (1–2 sessions plus credits, in parallel after approval)
 - Swap the new props and clips in; boxes and the procedural stoop remain as fallbacks.
+- **Done:** decision [0371](../decisions/0371-the-generated-underground-props-and-clips-swapped-in.md) (no credits spent;
+  the defects fixed in Blender or code; review F16 and F17 closed).
 
 **Kept or rewritten.**
 

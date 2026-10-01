@@ -1,6 +1,7 @@
 extends RefCounted
 ## The demo's interface scale: UI §8.1's `ui_scale` (100, 125 or 150 %), chosen in the game menu's
-## Settings (demo_menu.gd). Decision 0261. DEMO UI.
+## Settings (demo_menu.gd). Decision 0261; every demo panel, the level indicator and the action cards' tooltips
+## follow it since decision 0391. DEMO UI.
 ##
 ## The HUD shell takes it through its own `apply_user_scale`; every demo panel lays itself out on the
 ## HUD's layout (`UiLayout.compute_into`) and reads the percent from here, so the demo's panels grow with
@@ -13,15 +14,23 @@ const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 static var percent: int = UiLayout.USER_SCALE_100
 
 
-static func fits(width: int, height: int, user_percent: int, minimum_logical_height: float) -> bool:
-	"""Whether `user_percent` leaves the HUD's layout at least `minimum_logical_height` logical pixels tall
-	in a `width` x `height` window (the demo's panels need that much to be read)."""
+static func fits(width: int, height: int, user_percent: int, minimum_logical_height: float,
+		minimum_logical_width: float = 0.0) -> bool:
+	"""Whether `user_percent` leaves the HUD's layout at least `minimum_logical_height` logical pixels tall and
+	`minimum_logical_width` wide in a `width` x `height` window (the demo's panels need that much to be read)."""
 	var layout := UiLayout.new()
 	var geometry := UiLayout.Geometry.new()
 	if not layout.compute_into(maxi(width, UiLayout.SUPPORTED_MIN_WIDTH), maxi(height, UiLayout.SUPPORTED_MIN_HEIGHT),
 			user_percent, false, geometry):
 		return false
-	return geometry.logical_height >= minimum_logical_height
+	return geometry.logical_height >= minimum_logical_height and geometry.logical_width >= minimum_logical_width
+
+
+static func effective_scale(size_px: Vector2) -> float:
+	"""The HUD's effective scale S for a window of `size_px` at `percent` (UI §1.2: base scale x user scale; a
+	window below the supported floor is laid out as the floor, as every demo panel does)."""
+	return UiLayout.effective_scale(maxi(int(size_px.x), UiLayout.SUPPORTED_MIN_WIDTH),
+		maxi(int(size_px.y), UiLayout.SUPPORTED_MIN_HEIGHT), percent)
 
 
 static func apply(user_percent: int, viewport: Viewport) -> bool:

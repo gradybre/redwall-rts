@@ -52,6 +52,8 @@ const TIP_PX: int = 15
 const TIP_MARGINS: PackedFloat32Array = [12.0, 9.0, 12.0, 10.0]
 
 static var _tip_theme: Theme = null
+## The HUD's effective scale S the tooltips are drawn at (scale_tooltips; decision 0391).
+static var _tip_scale: float = 1.0
 
 ## The verb and its object ("Brace tunnel 3").
 var verb: String = ""
@@ -67,6 +69,8 @@ var work_note: String = WALK_NOTE
 ## The assignment preview ("Assign selected: Mouse keeper (nearest of 3)"), and the resident named in it.
 var who: String = ""
 var worker: int = NOBODY
+## A group order's preview, member by member (`each_member`; decision 0411, review UX-001); "" for one selected.
+var members: String = ""
 ## What that resident will stop doing, and whether it goes back to it (demo_command.gd `interrupt_text`).
 var interrupts: String = ""
 var prerequisites: PackedStringArray = PackedStringArray()
@@ -87,6 +91,7 @@ func reset(p_verb: String) -> RefCounted:
 	work_note = WALK_NOTE
 	who = ""
 	worker = NOBODY
+	members = ""
 	interrupts = ""
 	prerequisites.clear()
 	code = ""
@@ -144,6 +149,8 @@ func text() -> String:
 		lines.append(WORK + hours_text(work_usec) + work_note)
 	if not who.is_empty():
 		lines.append(WHO + who)
+	if not members.is_empty():
+		lines.append(members)
 	if not interrupts.is_empty():
 		lines.append(interrupts)
 	if not prerequisites.is_empty():
@@ -211,6 +218,24 @@ static func specialist(role: String, name: String, selected: int) -> String:
 	return "%s: %s (specialist)" % [head, name]
 
 
+static func each_member(names: PackedStringArray, refusals: PackedStringArray) -> String:
+	"""A group order's preview, member by member (decision 0411, review UX-001): "Of 3 selected: Mouse keeper, Mole
+	digger can; Badger quarryman can't (does not fit the bore)" -- `refusals[k]` is member k's reason ("" when it can).
+	"" for one selected or none."""
+	if names.size() <= 1:
+		return ""
+	var can := PackedStringArray()
+	var parts := PackedStringArray()
+	for k: int in names.size():
+		if refusals[k].is_empty():
+			can.append(names[k])
+		else:
+			parts.append("%s can't (%s)" % [names[k], refusals[k]])
+	if not can.is_empty():
+		parts.insert(0, "%s can" % ", ".join(can))
+	return "Of %d selected: %s" % [names.size(), "; ".join(parts)]
+
+
 static func under_way(name: String) -> String:
 	"""The same job is under way already: "Already under way: Mouse fieldworker is on it"."""
 	return "Already under way: %s is on it" % name
@@ -223,13 +248,37 @@ static func dress(button: Control) -> void:
 
 
 static func tooltip_theme() -> Theme:
-	"""The one theme holding the HUD skin's tooltip items (made once)."""
+	"""The one theme holding the HUD skin's tooltip items (made once), at the tooltips' scale."""
 	if _tip_theme == null:
 		_tip_theme = Theme.new()
-		_tip_theme.set_stylebox(&"panel", &"TooltipPanel", Styles.box(Styles.PIECE_MAP, TIP_MARGINS))
 		_tip_theme.set_color(&"font_color", &"TooltipLabel", Palette.INK)
-		_tip_theme.set_font_size(&"font_size", &"TooltipLabel", TIP_PX)
+		_apply_tip_scale()
 	return _tip_theme
+
+
+static func scale_tooltips(scale: float) -> void:
+	"""Draw every card's tooltip at the HUD's effective scale S (the interface scale included: demo_ui_scale.gd). A
+	tooltip is a pop-up of the viewport, not a child of its panel's scaled frame, so it does not grow with the panel:
+	its type and margins are scaled here instead (decision 0391, review F35)."""
+	if is_equal_approx(scale, _tip_scale):
+		return
+	_tip_scale = scale
+	if _tip_theme != null:
+		_apply_tip_scale()
+
+
+static func tip_px() -> int:
+	"""The tooltips' type size now: TIP_PX at the HUD's scale."""
+	return roundi(float(TIP_PX) * _tip_scale)
+
+
+static func _apply_tip_scale() -> void:
+	"""The theme's type size and panel margins at the current scale."""
+	var margins := PackedFloat32Array()
+	for margin: float in TIP_MARGINS:
+		margins.append(margin * _tip_scale)
+	_tip_theme.set_stylebox(&"panel", &"TooltipPanel", Styles.box(Styles.PIECE_MAP, margins))
+	_tip_theme.set_font_size(&"font_size", &"TooltipLabel", tip_px())
 
 
 static func amount_text(milli: int) -> String:

@@ -18,7 +18,9 @@ extends CanvasLayer
 ##
 ## WHERE: the top centre, just under the HUD's alert zone, centred on it, as the stall banner (which it
 ## yields to: one surface for the most urgent thing) -- `hide_while` names what it yields to (the banner,
-## the open history, which lists every card). It takes the mouse only on itself; the HUD is not modified.
+## the open history, which lists every card) -- and narrowed to the gap between the party panel's column and the
+## right column where it would cover one (`card_span`, decision 0391). It takes the mouse only on itself; the HUD
+## is not modified.
 ##
 ## It refreshes a few times a second on real time (paused too), and sweeps the incidents' watches first, so
 ## an incident's state is current wherever it is read.
@@ -30,6 +32,7 @@ const FarmUi := preload("res://demo/farm/farm_ui.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
+const PartyScript := preload("res://demo/control/demo_party_panel.gd")
 
 ## The card's History button was pressed.
 signal history_wanted
@@ -40,7 +43,7 @@ const WIDTH: float = 460.0
 const GAP: float = 10.0
 const TITLE_PX: int = 14
 const BODY_PX: int = 14
-const BUTTON_PX: int = 13
+const BUTTON_PX: int = 14
 const REFRESH_S: float = 0.25
 const MARGINS: PackedFloat32Array = [16.0, 10.0, 16.0, 12.0]
 const GO_TO: String = "Go to"
@@ -120,9 +123,10 @@ func build() -> void:
 
 
 func _build_verbs(column: VBoxContainer) -> void:
-	"""The card's five buttons in one row."""
-	var verbs := HBoxContainer.new()
-	verbs.add_theme_constant_override(&"separation", 6)
+	"""The card's five buttons in a row, a button that does not fit the card going to the next line."""
+	var verbs := HFlowContainer.new()
+	verbs.add_theme_constant_override(&"h_separation", 6)
+	verbs.add_theme_constant_override(&"v_separation", 6)
 	column.add_child(verbs)
 	_go = _verb(verbs, GO_TO, go_to)
 	_pin = _verb(verbs, PIN, toggle_pin)
@@ -131,7 +135,7 @@ func _build_verbs(column: VBoxContainer) -> void:
 	_history = _verb(verbs, HISTORY, func() -> void: history_wanted.emit())
 
 
-func _verb(row: HBoxContainer, words: String, act: Callable) -> Button:
+func _verb(row: HFlowContainer, words: String, act: Callable) -> Button:
 	"""One wood button that calls `act`."""
 	var button: Button = FarmUi.button(words, BUTTON_PX)
 	button.pressed.connect(act)
@@ -250,10 +254,23 @@ func _place() -> void:
 	if not is_inside_tree() or _frame == null:
 		return
 	FarmUi.geometry_for(get_viewport().get_visible_rect().size, _layout, _geometry)
-	var alerts: Rect2 = _geometry.alerts
-	var width: float = minf(WIDTH, _geometry.logical_width - 2.0 * GAP)
-	var x: float = clampf(alerts.get_center().x - width / 2.0, GAP, _geometry.logical_width - GAP - width)
-	FarmUi.place(_frame, Rect2(x, alerts.end.y + GAP, width, 0.0), _geometry.scale)
+	var span: Rect2 = card_span(_geometry)
+	_body.custom_minimum_size.x = span.size.x - MARGINS[0] - MARGINS[2]
+	FarmUi.place(_frame, Rect2(span.position.x, _geometry.alerts.end.y + GAP, span.size.x, 0.0), _geometry.scale)
+
+
+static func card_span(geometry: UiLayout.Geometry) -> Rect2:
+	"""The card's x and width, logical px: WIDTH centred on the alert zone -- narrowed, where it would reach them,
+	to the gap between the party panel's column and the right column (the narrow profile, 125 % on 1280x720:
+	decision 0391), so the card never covers either."""
+	var left_limit: float = UiLayout.SAFE_INSET + 2.0 * PartyScript.FRAME_EXPAND + PartyScript.WIDTH + GAP
+	var right_limit: float = geometry.detail.position.x - GAP
+	var width: float = minf(WIDTH, geometry.logical_width - 2.0 * GAP)
+	var x: float = clampf(geometry.alerts.get_center().x - width / 2.0, GAP, geometry.logical_width - GAP - width)
+	if x < left_limit or x + width > right_limit:
+		width = minf(width, maxf(right_limit - left_limit, 0.0))
+		x = clampf(geometry.alerts.get_center().x - width / 2.0, left_limit, right_limit - width)
+	return Rect2(x, 0.0, width, 0.0)
 
 
 func frame_rect() -> Rect2:

@@ -13,7 +13,8 @@ NEGATIVE TESTS COME FIRST:
 Then: every family's budget is under its GAP-04 ceiling as lookdev_dimensions.gd states it; the
 jobs ask for icons and tops exactly where they should; a manifest row carries its provenance (the
 source path and SHA-256), res:// paths and cards; the recorded gait speed wins over the estimate,
-which is kept; the beaver is staged only once its grounded clips exist.
+which is kept; the crouch walk and the dig swing are measured (decision 0371); the beaver is staged only once its
+grounded clips exist.
 """
 
 from __future__ import annotations
@@ -173,10 +174,15 @@ def test_every_budget_is_under_its_gap04_ceiling() -> None:
 
 
 def test_the_pass_has_its_56_assets_and_eight_rebuilt() -> None:
-	"""53 props -- the pass's 44 (18 items, 5 finds, 21 others), the 8 older props rebuilt (basket,
-	lantern, bed, jars, shelf and four tools) and the burrow home's hearth (decision 0210: its L0's maps are
-	2,048 px) -- and 12 plants; icons for the items, finds and relics."""
-	check("53 props", len(props.PROPS) == 53)
+	"""60 props -- the pass's 44 (18 items, 5 finds, 21 others), the 8 older props rebuilt (basket,
+	lantern, bed, jars, shelf and four tools), the burrow home's hearth (decision 0210: its L0's maps are
+	2,048 px) and the underground pass's seven (decisions 0204, 0371) -- and 12 plants; icons for the items,
+	finds and relics."""
+	check("60 props", len(props.PROPS) == 60)
+	check("the underground pass's seven", set(props.UNDERGROUND_PROPS) == {"burrow_door", "tunnel_arch", "hand_lantern",
+		"hanging_stores", "root_bin", "chimney_pot", "rag_rug"} and all(props.PROPS[k] == f for k, f in props.UNDERGROUND_PROPS.items()))
+	check("the root bin, door and arch at the furniture budget (0204)",
+		{k for k, f in props.UNDERGROUND_PROPS.items() if f == "furniture"} == {"burrow_door", "tunnel_arch", "root_bin"})
 	check("the hearth is furniture", props.PROPS["hearth"] == "furniture")
 	rebuilt = {"basket", "wall_lantern", "bed", "clay_jars", "pantry_shelf", "spade", "hoe", "sickle", "axe"}
 	check("the older props rebuilt", rebuilt <= set(props.PROPS))
@@ -298,6 +304,94 @@ def test_a_sleep_clip_is_measured_by_its_body_s_lowest_point() -> None:
 		check("the head toward -Z", row["head"] == [0.0, -1.0])
 		check("its length", row["length_m"] == 0.8)
 	check("sleep is an optional clip", "sleep_normally" in stage.OPTIONAL_CLIPS and stage.SLEEP_CLIP == "sleep_normally")
+
+
+def _joint_clip(tracks: dict[str, list[float]], times: list[float], extras: dict | None = None, skins: bool = False) -> bytes:
+	"""A tiny clip: a Hips root (its height keyed per `tracks["Hips"]`, carrying `extras`) with Head, LeftHand and
+	RightHand under it at fixed offsets, the hands' height keyed too when `tracks` names them."""
+	hips = {"name": "Hips", "children": [1, 2, 3]}
+	if extras is not None:
+		hips["extras"] = extras
+	doc = {"asset": {"version": "2.0"}, "scene": 0, "scenes": [{"nodes": [0]}],
+		"nodes": [hips, {"name": "Head", "translation": [0.0, 0.5, 0.0]}, {"name": "LeftHand", "translation": [-0.2, 0.0, 0.1]},
+			{"name": "RightHand", "translation": [0.2, 0.0, 0.1]}],
+		"buffers": [{"byteLength": 0}], "bufferViews": [], "accessors": [], "animations": [{"channels": [], "samplers": []}]}
+	binary = b""
+	binary, keys = append_accessor(doc, binary, [(t,) for t in times], 5126, "SCALAR")
+	binary, turns = append_accessor(doc, binary, [(0.0, 0.0, 0.0, 1.0)] * len(times), 5126, "VEC4")
+	doc["animations"][0]["samplers"].append({"input": keys, "output": turns, "interpolation": "LINEAR"})
+	doc["animations"][0]["channels"].append({"sampler": 0, "target": {"node": 0, "path": "rotation"}})
+	for node, name in enumerate(["Hips", "Head", "LeftHand", "RightHand"]):
+		if name in tracks:
+			base = doc["nodes"][node].get("translation", [0.0, 0.0, 0.0])
+			values = [(base[0], y, base[2]) for y in tracks[name]]
+			binary, out = append_accessor(doc, binary, values, 5126, "VEC3")
+			doc["animations"][0]["samplers"].append({"input": keys, "output": out, "interpolation": "LINEAR"})
+			doc["animations"][0]["channels"].append({"sampler": len(doc["animations"][0]["samplers"]) - 1,
+				"target": {"node": node, "path": "translation"}})
+	if skins:
+		doc["skins"] = []
+	doc["buffers"][0]["byteLength"] = len(binary)
+	return write_glb(doc, binary)
+
+
+def test_staging_props_stages_the_derived_props_too() -> None:
+	"""`--only props` merges the plain props' rows and the derived props' (make_demo_derived_props.py) into the
+	manifest."""
+	with tempfile.TemporaryDirectory() as folder:
+		out = pathlib.Path(folder)
+		saved = (stage.stage_props, stage.stage_derived, stage.stage_texture_imports, sys.argv)
+		stage.stage_props = lambda library, out: {"axe": {"path": "a"}}
+		stage.stage_derived = lambda library, out: {"large_bed": {"path": "b"}}
+		stage.stage_texture_imports = lambda out: None
+		sys.argv = ["stage_demo_assets.py", "--only", "props", "--out", str(out), "--library", str(out)]
+		try:
+			stage.main()
+		finally:
+			stage.stage_props, stage.stage_derived, stage.stage_texture_imports, sys.argv = saved
+		world = json.loads((out / "manifest.json").read_text())["world"]
+		check("both staged", world == {"axe": {"path": "a"}, "large_bed": {"path": "b"}})
+
+
+def test_the_crouch_is_measured_by_its_speed_and_how_low_it_goes() -> None:
+	"""crouch_row (decision 0371): the speed the crouch's planted feet move at (the grounding step's measure; a clip with
+	no skin falls back on its recorded root motion), and its head's median height under the walk's -- the Hips at 0.6 /
+	0.4 against the walk's 0.8, the Head 0.5 over them: 0.3 m lower. The mouse keeper's crouch is pinned again."""
+	with tempfile.TemporaryDirectory() as folder:
+		crouch = pathlib.Path(folder) / "anim_cautious_crouch_walk_forward.glb"
+		crouch.write_bytes(_joint_clip({"Hips": [0.6, 0.4, 0.5]}, [0.0, 0.5, 1.0], {"root_motion": {"mean_speed_m_s": 0.87779}}))
+		walk = pathlib.Path(folder) / "anim_walk.glb"
+		walk.write_bytes(_joint_clip({"Hips": [0.8, 0.8, 0.8]}, [0.0, 0.5, 1.0]))
+		row = stage.crouch_row(crouch, walk)
+		check("no skin to find its feet by: the root motion's speed", row["speed_m_s"] == 0.8778 and row["root_speed_m_s"] == 0.8778)
+		check("its head 0.3 m lower", row["head_drop_m"] == 0.3)
+		flat = stage.crouch_row(walk, walk)
+		check("no record, no speed; no lower, no drop", flat == {"speed_m_s": 0.0, "root_speed_m_s": 0.0, "head_drop_m": 0.0})
+		check("a crouch higher than the walk drops nothing", stage.crouch_row(walk, crouch)["head_drop_m"] == 0.0)
+		check("measured off the clip as staged (repinned) when given, not the library's",
+			stage.crouch_row(crouch, walk, walk.read_bytes()) == flat)
+		skinned = pathlib.Path(folder) / "skinned.glb"
+		skinned.write_bytes(_joint_clip({"Hips": [0.6, 0.4, 0.5]}, [0.0, 0.5, 1.0], {"root_motion": {"mean_speed_m_s": 0.8778}}, True))
+		real = stage.ground_meshy_clips._foot_contacts
+		stage.ground_meshy_clips._foot_contacts = lambda doc, binary, stands, gait: {"speed": 0.75966}
+		try:
+			feet = stage.crouch_row(skinned, walk)
+		finally:
+			stage.ground_meshy_clips._foot_contacts = real
+		check("a skinned clip: its planted feet's speed, the root's beside it", feet["speed_m_s"] == 0.7597 and feet["root_speed_m_s"] == 0.8778)
+	check("the mouse keeper's crouch is pinned again at 2 cm", stage.REPIN == {("mouse_keeper", stage.CROUCH_CLIP): 0.02})
+
+
+def test_the_dig_swing_is_timed_by_its_blow() -> None:
+	"""dig_row (decision 0371): the swing's length, and the moment its hands come lowest after their highest -- the
+	blow -- not the lowest before it."""
+	with tempfile.TemporaryDirectory() as folder:
+		clip = pathlib.Path(folder) / "anim_heavy_hammer_swing.glb"
+		clip.write_bytes(_joint_clip({"Hips": [0.05, 0.2, 1.2, 0.6, 0.1, 0.3]}, [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]))
+		row = stage.dig_row(clip)
+		check("its length", row["length_s"] == 1.0)
+		check("the blow after the top", row["impact_s"] == 0.8)
+	check("both are optional clips", {"cautious_crouch_walk_forward", "heavy_hammer_swing"} <= set(stage.OPTIONAL_CLIPS))
 
 
 def test_the_beaver_is_staged_only_once_grounded() -> None:

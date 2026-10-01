@@ -79,8 +79,9 @@ extends Node3D
 ## stores, put in by residents -- and the night: at dusk everyone goes home to bed (the party panel says whose bed, or
 ## that it has none), and the farm's pantry tells a cellar's racks how full it is (`cellar_fill`).
 ##
-## SPOIL (demo/spoil/): a tunnel's spoil heaps can be selected and cleared -- dug out and hauled into the
-## farm's compost store (Clear: right-click a heap with residents selected). `_build_spoil()` wires it.
+## SPOIL (demo/spoil/): a tunnel's spoil heaps can be selected and cleared -- their earth dug out and hauled into the
+## village stores by the stockpile (Clear: right-click a heap with residents selected), where Raise and Bank fetch it
+## again. Earth is never compost (decision 0401). `_build_spoil()` wires it.
 ##
 ## CANOPY (demo/camera/canopy_clear.gd, decision 0301): the camera's eye is held out of tree crowns, the
 ## crowns between the eye and the focus or a selected resident thin out, and a selected resident shows as
@@ -100,6 +101,13 @@ extends Node3D
 ## context). The HUD's Menu button, and Esc once nothing else takes it (`_unhandled_input`, which runs
 ## after every child's), open the game menu; F8 opens the Lab, which holds the demo's test triggers.
 ##
+## WORK (decision 0411, demo/work/): ONE WORK BOARD over every job owner -- the farm, the woods, the bridges, the
+## tunnels' jobs, the rooms' fit-out, the spoil heaps -- claims their waiting work for idle eligible residents (the
+## named, editable crews first: Field, Woods, Diggers, Haulers, Builders), in place of the old hidden fixed crews;
+## the HUD's Jobs command (J) opens its Work screen (tasks, residents and crews, projects); Shift+right-click appends to
+## the selection's order lists. `_build_work()` wires it once every owner is built -- the kitchen's cook and water
+## drawers listed too, and no work handed out to a resident at its meal (`add_kitchen`, decision 0381 with 0411).
+##
 ## SOUND (decision 0351, demo/sound/): ONE SOUND OWNER (sound_director.gd), scene-scoped rather than an autoload,
 ## hears the village's committed events (its event map, sound_taps.gd) and plays them through five buses with a
 ## bounded voice pool; its volumes and mixes are the game menu's Settings. No sound files are staged yet, so it
@@ -113,6 +121,7 @@ const WoodlandSkinScript := preload("res://demo/ui/woodland_skin.gd")
 const DemoCommandScript := preload("res://demo/control/demo_command.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
+const KitchenNodeScript := preload("res://demo/kitchen/demo_kitchen.gd")
 const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
@@ -142,6 +151,7 @@ const PrewarmScript := preload("res://demo/demo_prewarm.gd")
 const TunnelViewScript := preload("res://demo/tunnel/tunnel_view.gd")
 const UndergroundPrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 const InputGateScript := preload("res://demo/ui/demo_input_gate.gd")
+const ActionCardScript := preload("res://demo/ui/action_card.gd")
 const MenuScript := preload("res://demo/ui/demo_menu.gd")
 const LabScript := preload("res://demo/ui/demo_lab.gd")
 const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
@@ -160,6 +170,7 @@ const IncidentCardsScript := preload("res://demo/ui/demo_incident_cards.gd")
 const NewsJumpScript := preload("res://demo/ui/demo_news_jump.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const SoundScript := preload("res://demo/sound/sound_director.gd")
+const DemoWorkScript := preload("res://demo/work/demo_work.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -173,9 +184,14 @@ const UNDERGROUND_LENS_QUESTION: String = "What lies under the village?"
 const PROCESS_AFTER_CHILDREN: int = 1
 ## Refit the sun's shadow range when the zoom has moved this far since the last fit.
 const SHADOW_REFIT_M: float = 0.5
-## An interface scale is offered only where it leaves the HUD this many logical pixels tall: the demo's
-## panels are laid out for 1280x720 at 100 %.
-const MIN_LOGICAL_HEIGHT: float = 720.0
+## An interface scale is offered only where it leaves the HUD this many logical pixels tall: 1280x720 at 125 %
+## (decision 0391). Every demo panel reflows or scrolls there, and the bottom band's news strip and Map layer picker
+## each keep a place clear of the right column; at 150 % on 1280x720 (480 rows) those two have no room apart, so
+## that size stays refused. It was 720 -- 1280x720 at 100 % only -- under decision 0261.
+const MIN_LOGICAL_HEIGHT: float = 576.0
+## ... and this many wide (1280x720 at 125 %): narrower, the Map layer picker no longer fits between the party column
+## and the right column and would share the news strip's gap (a 1440x900 or 1280x1024 window at 150 %; decision 0391).
+const MIN_LOGICAL_WIDTH: float = 1024.0
 ## Frames the canopy's fade and silhouette samples, and the frost and snow overlay, are drawn for at boot
 ## (as the U view's, decision 0206).
 const CANOPY_PREWARM_FRAMES: int = 2
@@ -188,6 +204,7 @@ var _cast: Node3D = null
 var _camera: Node3D = null
 var _command: Node3D = null
 var _farm: DemoFarmScript = null
+var _kitchen: KitchenNodeScript = null
 var _services: ServicesScript = null
 var _hud_date: HudDateScript = HudDateScript.new()
 var _counters: HudCountersScript = HudCountersScript.new()
@@ -217,6 +234,7 @@ var _water_lens: int = 0
 var _history: NewsHistoryScript = null
 var _cards: IncidentCardsScript = null
 var _jump: NewsJumpScript = NewsJumpScript.new()
+var _work: DemoWorkScript = null
 
 
 func _ready() -> void:
@@ -234,14 +252,18 @@ func _ready() -> void:
 	add_child(_command)
 	_command.configure(_cast, _camera.camera(), _game.get_node_or_null(GAME_HUD_ROOT) as Control, _services)
 	_command.set_world(_world as DemoWorldScript)
+	(_command as DemoCommandScript).set_centre((_camera as DemoCameraScript).centre_on)
 	_build_farm(manifest)
+	_build_kitchen()
 	_build_spoil()
 	_build_forestry()
 	_build_canopy()
 	_command.add_skill_text(_command.tunnels().ext.skill_text)
 	_command.add_skill_text(_command.tunnels().ext.night.home_text)
+	_command.set_fed_text(_kitchen.kitchen.fed_text)
 	_build_waterplay()
 	_build_shared_ui()
+	_build_work()
 	_build_sound()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
@@ -331,19 +353,31 @@ func _build_farm(manifest: Dictionary) -> void:
 		"dive", "ford", "bridge site", "swim link", "landing"]))
 
 
+func _build_kitchen() -> void:
+	"""The kitchen (demo/kitchen/, decision 0381): the meal loop over the farm's pantry and the village's stores, its
+	cook the night's early riser; its tab in the Pantry. (Each resident's fed rows join the party panel in `_ready`,
+	`set_fed_text`: their own rows after what it is doing, decision 0391.)"""
+	_kitchen = KitchenNodeScript.new()
+	add_child(_kitchen)
+	var command := _command as DemoCommandScript
+	_kitchen.configure(_cast as DemoCastScript, _farm.pantry, _services, _farm.goods, command.tunnels().ext.night)
+	var tab := _kitchen.build_tab(command.selected, command.interrupt_text)
+	tab.said.connect(command.say)
+	_farm.pantry_panel.set_kitchen(_kitchen.kitchen, tab)
+
+
+func kitchen() -> KitchenNodeScript:
+	"""The village's kitchen (demo/kitchen/demo_kitchen.gd)."""
+	return _kitchen
+
+
 func _build_spoil() -> void:
-	"""Spoil heaps to select and clear (demo/spoil/), after the farm, whose spoil books and compost store
-	they use, and before the woods, so a click on a heap in a forestry zone is the heap's."""
+	"""Spoil heaps to select and clear (demo/spoil/), after the farm, whose earth books they use, into the village
+	stores, and before the woods, so a click on a heap in a forestry zone is the heap's."""
 	_spoil = SpoilScript.new()
 	add_child(_spoil)
 	_spoil.configure(_cast as DemoCastScript, _command as DemoCommandScript, _camera.camera(), _cast.space().tunnels,
-		_farm.tunnels, _services.props, give_compost)
-
-
-func give_compost(milli: int) -> void:
-	"""Put `milli` into the farm's compost store: a cleared heap's spoil (demo/spoil/spoil_crew.gd)."""
-	if milli > 0:
-		_farm.sim.compost_milli += milli
+		_farm.tunnels, _services.props, _services.stores)
 
 
 func spoil() -> SpoilScript:
@@ -405,6 +439,35 @@ func _build_waterplay() -> void:
 		_water.map(), _links, _water, _forestry.stand)
 	_waterplay.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
 	_farm.lenses.set_subject(_water_lens, _waterplay.water_range)
+
+
+func _build_work() -> void:
+	"""The village's work (see WORK): the board over every owner built so far, its screen behind the HUD's Jobs command,
+	and Shift+right-click's queue -- after the shared UI, whose "Go to" its screen uses."""
+	_work = DemoWorkScript.new()
+	add_child(_work)
+	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
+	_work.configure(_cast as DemoCastScript, _farm, _forestry, _waterplay, _spoil, tool.ext, tool.is_digger)
+	_work.add_kitchen(_kitchen.kitchen)
+	var command: DemoCommandScript = _command as DemoCommandScript
+	_work.set_readouts(command.activity_text, (GameManager as GameManagerScript).is_paused, work_jump, command.selected)
+	command.set_queue_handler(_work.queue_at)
+	_work.unlock_jobs_command(_shell())
+	_work.screen.close_requested.connect(_work.screen.close)
+
+
+func work_jump(kind: int, id: int, point: Vector2) -> bool:
+	"""The Work screen's "Go to": the news's own jump for a target it knows (selected, the camera eased over it), else
+	the camera eased over the task's place."""
+	if _jump.can_jump(kind, id):
+		return _jump.jump(kind, id)
+	(_camera as DemoCameraScript).centre_on(Vector3(point.x, 0.0, point.y))
+	return true
+
+
+func work() -> DemoWorkScript:
+	"""The village's work board and Work screen (demo/work/demo_work.gd)."""
+	return _work
 
 
 func waterplay() -> WaterplayScript:
@@ -546,10 +609,12 @@ func _build_village_hud() -> void:
 	cast and homes; the Residents command's roster from the cast; the minimap drawing the village."""
 	var network: GraphScript = (_command as DemoCommandScript).tunnels().network
 	_counters.model.bind_village(_services.stores, _farm.pantry, _cast as DemoCastScript, network)
+	_counters.model.bind_meals(_kitchen.kitchen)
 	_counters.bind(_shell())
 	_roster = RosterScript.new()
 	add_child(_roster)
 	_roster.configure(_shell(), _cast as DemoCastScript, _command as DemoCommandScript, _camera as DemoCameraScript)
+	_roster.set_fed_text(_kitchen.kitchen.fed_word)
 	var view: Control = _shell().control_for(UiShell.ID_MINIMAP_VIEW) if _shell() != null else null
 	if view == null:
 		return
@@ -609,9 +674,9 @@ func _shell() -> UiShell:
 func storage_providers() -> Array[Callable]:
 	"""Food stores beyond the covered store, for the farm's pantry (farm_storage.gd's provider API): the
 	network's dug root cellars (demo/farm/farm_cellars.gd over underground_rooms `cellars()`), delivered at
-	their hatches."""
+	their hatches, and the kitchen's pantry at its door (demo/kitchen/demo_kitchen.gd, decision 0381)."""
 	var network: GraphScript = (_command as DemoCommandScript).tunnels().network
-	var providers: Array[Callable] = [FarmCellars.provider(network)]
+	var providers: Array[Callable] = [FarmCellars.provider(network), KitchenNodeScript.pantry_provider()]
 	return providers
 
 
@@ -679,15 +744,35 @@ func _build_input() -> void:
 	var shell: UiShell = _shell()
 	if shell != null:
 		_gate.defer_to(shell.workspace_owns_input)
+		_gate.occlude_with(_workspace_rect.bind(shell))
 	get_viewport().size_changed.connect(_refit_ui_scale)
+	get_viewport().size_changed.connect(_scale_tooltips)
+	_scale_tooltips()
 	_gate.watch_modal(_farm.pantry_panel, _farm.pantry_panel, _farm.toggle_pantry, [&"open_food"] as Array[StringName])
 	_gate.set_modal_close(_farm.pantry_panel, _farm.pantry_panel.close_button())
 	_gate.watch_modal(_menu, _menu, _menu.back_or_close)
 	_gate.watch_modal(_lab, _lab, _lab.close, [] as Array[StringName], [LabScript.KEY] as Array[Key])
+	_gate.watch_modal(_work.screen, _work.screen, _work.screen.close, [&"open_jobs"] as Array[StringName])
+	_gate.set_modal_close(_work.screen, _work.screen.close_button())
 	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
 	_gate.add_region("right column", [_zone, _farm.bed_panel, ext.panel, _forestry.panel, _waterplay.panel] as Array[Node])
 	_gate.add_region("left column", [(_command as DemoCommandScript).panel()] as Array[Node])
+	_gate.add_region("map layers", [_lens_picker] as Array[Node])
 	_sound.watch_buttons.call_deferred(get_tree().root)
+
+
+func _workspace_rect(shell: UiShell) -> Rect2:
+	"""Where the HUD's workspace (the Residents roster and its kin) is drawn now, in viewport pixels; empty when it is
+	closed. It draws over the right column at 1280x720, and the input gate skips what it covers (decision 0391)."""
+	var workspace: Control = shell.control_for(UiShell.ID_WORKSPACE)
+	if workspace == null or not workspace.is_visible_in_tree():
+		return Rect2()
+	return InputGateScript.screen_rect(workspace)
+
+
+func _scale_tooltips() -> void:
+	"""The action cards' tooltips at the HUD's effective scale for this window (decision 0391)."""
+	ActionCardScript.scale_tooltips(DemoUiScale.effective_scale(get_viewport().get_visible_rect().size))
 
 
 func _build_menu() -> void:
@@ -737,7 +822,8 @@ func restart() -> void:
 
 
 func set_ui_scale(percent: int) -> void:
-	"""The menu's interface scale: the HUD's (`apply_user_scale`) and every demo panel's."""
+	"""The menu's interface scale: the HUD's (`apply_user_scale`) and every demo panel's (they re-place on the
+	viewport's `size_changed`, which `apply` raises -- the tooltips' scale too)."""
 	var shell: UiShell = _shell()
 	if shell != null:
 		shell.apply_user_scale(percent)
@@ -758,9 +844,9 @@ func _refit_ui_scale() -> void:
 
 
 func ui_scale_fits(percent: int) -> bool:
-	"""Whether this window can show the demo at `percent` (MIN_LOGICAL_HEIGHT)."""
+	"""Whether this window can show the demo at `percent` (MIN_LOGICAL_HEIGHT, MIN_LOGICAL_WIDTH)."""
 	var size_px: Vector2 = get_viewport().get_visible_rect().size
-	return DemoUiScale.fits(int(size_px.x), int(size_px.y), percent, MIN_LOGICAL_HEIGHT)
+	return DemoUiScale.fits(int(size_px.x), int(size_px.y), percent, MIN_LOGICAL_HEIGHT, MIN_LOGICAL_WIDTH)
 
 
 func input_gate() -> InputGateScript:

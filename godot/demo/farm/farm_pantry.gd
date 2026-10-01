@@ -30,6 +30,11 @@ extends RefCounted
 ## aging it at its store's factor and at the season of that crossing -- the very sum `age_hour` will make,
 ## season changes included. The first lot to spoil is found across stores (`first_to_spoil_into`), not the
 ## oldest by effective age.
+##
+## WITHDRAWALS (decision 0381, the kitchen). Food leaves a lot only by spoiling or by `withdraw_into` -- the cook's
+## batch taking its ingredients, a hungry resident's raw emergency meal. A lot row is reused once freed, so every
+## opening gives the row a new SERIAL (`lot_serial`): a reservation made against (row, serial) can never draw on
+## another lot that happens to take the same row later (demo/kitchen/ingredient_takes.gd).
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
@@ -58,6 +63,7 @@ const REFUSE_NO_ROOM: String = "NO_STORAGE_ROOM"
 const REFUSE_NO_STOCK: String = "NO_STOCK"
 const REFUSE_NO_HOLD: String = "NO_RESERVATION_ROW"
 const REFUSE_GONE: String = "STORAGE_LOCATION_GONE"
+const REFUSE_STALE_LOT: String = "LOT_NOT_THE_SAME"
 ## A hold's location once its store has gone (never a location index).
 const GONE: int = -2
 
@@ -81,12 +87,15 @@ var _hold_item: PackedInt32Array = PackedInt32Array()
 var _hold_ids: Array = []
 ## `_lot_row_for`'s own scratch (its callers' `out` may be any other).
 var _lot_probe: IntMath.IntResult = IntMath.IntResult.new()
+## Each lot row's serial, new every time the row opens (see WITHDRAWALS); 0 on a row never opened.
+var _lot_serial: PackedInt32Array = PackedInt32Array()
+var _next_serial: int = 1
 
 
 func _init(p_storage: StorageScript) -> void:
 	"""An empty pantry over these storage locations."""
 	storage = p_storage
-	for column: PackedInt32Array in [_lot_item, _lot_location, _lot_remainder]:
+	for column: PackedInt32Array in [_lot_item, _lot_location, _lot_remainder, _lot_serial]:
 		column.resize(MAX_LOTS)
 	for column: PackedInt64Array in [_lot_milli, _lot_age]:
 		column.resize(MAX_LOTS)
@@ -138,6 +147,8 @@ func _open_lot(lot: int, item: int, location: int) -> void:
 	_lot_milli[lot] = 0
 	_lot_age[lot] = 0
 	_lot_remainder[lot] = 0
+	_lot_serial[lot] = _next_serial
+	_next_serial += 1
 
 
 func _oldest_lot_into(item: int, location: int, out: IntMath.IntResult) -> bool:
@@ -544,3 +555,25 @@ func lot_item(lot: int) -> int:
 func lot_location(lot: int) -> int:
 	"""A lot's location index (tests)."""
 	return _lot_location[lot]
+
+
+func lot_serial(lot: int) -> int:
+	"""The serial lot row `lot` was opened with (see WITHDRAWALS); 0 for a free row."""
+	return _lot_serial[lot] if _lot_item[lot] != FREE else 0
+
+
+func withdraw_into(lot: int, serial: int, milli: int, out: IntMath.IntResult) -> bool:
+	"""Take `milli` out of lot `lot`, which must still be the lot opened with `serial` (see WITHDRAWALS): its item's
+	count falls by exactly that much and an emptied row is freed. How much was taken into `out`; refuses a stale or
+	free row (LOT_NOT_THE_SAME), a bad quantity or more than the lot holds (NO_STOCK), changing nothing."""
+	if lot < 0 or lot >= MAX_LOTS or _lot_item[lot] == FREE or _lot_serial[lot] != serial:
+		return out.refuse(REFUSE_STALE_LOT)
+	if milli <= 0:
+		return out.refuse(REFUSE_BAD_QUANTITY)
+	if milli > _lot_milli[lot]:
+		return out.refuse(REFUSE_NO_STOCK)
+	_lot_milli[lot] -= milli
+	_item_milli[_lot_item[lot]] -= milli
+	if _lot_milli[lot] == 0:
+		_lot_item[lot] = FREE
+	return out.succeed(milli)

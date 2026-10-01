@@ -5,15 +5,15 @@ extends RefCounted
 ##
 ## THE VERBS and their work. §5.6 states four of them -- "4 WU sowing, 1 WU tending/day while growing,
 ## and 6 WU harvest", compost "for 8 WU" -- and REQ-SET-085 a 10-WU clearing job; those WU are used
-## as written. Covering, raising and banking a bed, fetching water, digging spoil off a heap and
-## putting a harvest down in store have no stated work and take the DEMO WU below. DRAINING a wet
+## as written. Covering, raising and banking a bed, fetching water, digging earth off a heap and
+## putting a load down have no stated work and take the DEMO WU below. DRAINING a wet
 ## bed is digging a ditch round it (farm_sim.gd `drain_bed()`), demo spade-work like raising one. A WU is "one game
 ## minute of base-speed productive labor" (GDD §4.1); the demo shows it as DEMO_USEC_PER_WU of the
 ## cast's own time (not the farm calendar's), so the work reads on screen.
 ##
-## A job is a PLAN of steps: walk somewhere (a bed, the well, a spoil heap) or carry something there
-## (the carry walk), then work there for the step's WU. Each kind's plan is in PLANS; composting from
-## tunnel spoil instead of the compost store follows the spoil plan.
+## A job is a PLAN of steps: walk somewhere (a bed, the well, an earth source: farm_tunnels.gd SOURCES) or carry
+## something there (the carry walk), then work there for the step's WU. Each kind's plan is in PLANS. Compost comes
+## only from the farm's compost store, which only plant waste fills (decision 0401: earth is never compost).
 ##
 ## A DELIVERY (KIND_DELIVER, decision 0222) is what a harvest becomes when its production is cancelled
 ## with the crop already cut: the carrier finishes the carry walk and the drop, and the store is credited
@@ -22,6 +22,11 @@ extends RefCounted
 ## Each job keeps a SERIAL for its whole life -- through rewinds, reassignment and becoming a delivery --
 ## so a resident's resume (resident_brain.gd RESUMING) comes back to the very job it left; its HOLD is the
 ## pantry reservation its harvest keeps (farm_pantry.gd RESERVATIONS), and BLOCKED says why it waits.
+##
+## AN EARTH RETURN (KIND_RETURN_EARTH, decision 0401) is what a Raise or a Bank becomes when it ends with earth in
+## hand -- cancelled, or unable to reach or work its bed: the carrier walks the earth back to the heap (or the stores)
+## it came from and tips it there, as a cancelled sawing carries its logs back (0222). Like a delivery it is not an
+## order, and it no longer stands on its bed's Raise or Bank.
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const SimScript := preload("res://demo/farm/farm_sim.gd")
@@ -39,10 +44,11 @@ const KIND_DRAIN: int = 8
 ## The kinds the player (or the farm's routine) orders; KIND_DELIVER comes after them.
 const KIND_COUNT: int = 9
 const KIND_DELIVER: int = 9
+const KIND_RETURN_EARTH: int = 10
 const KIND_NAMES: Array[String] = ["Sow", "Water", "Harvest", "Clear", "Compost", "Cover", "Raise", "Bank",
-	"Drain", "Carry harvest"]
+	"Drain", "Carry harvest", "Carry earth back"]
 const KIND_DOING: Array[String] = ["Sowing", "Watering", "Harvesting", "Clearing", "Composting",
-	"Covering", "Raising", "Banking", "Draining", "Carrying the harvest from"]
+	"Covering", "Raising", "Banking", "Draining", "Carrying the harvest from", "Carrying earth back from"]
 
 ## Steps: walks (< STEP_WORK) and works (STEP_WORK + a WORK_* kind).
 const STEP_GO_BED: int = 0
@@ -50,6 +56,7 @@ const STEP_GO_WELL: int = 1
 const STEP_GO_HEAP: int = 2
 const STEP_CARRY_BED: int = 3
 const STEP_CARRY_STORE: int = 4
+const STEP_CARRY_HEAP: int = 5
 const STEP_WORK: int = 10
 const WORK_SOW: int = 0
 const WORK_TEND: int = 1
@@ -79,17 +86,14 @@ const PLANS: Array[Array] = [
 	[STEP_GO_HEAP, STEP_WORK + WORK_DIG, STEP_CARRY_BED, STEP_WORK + WORK_BANK],
 	[STEP_GO_BED, STEP_WORK + WORK_DRAIN],
 	[STEP_CARRY_STORE, STEP_WORK + WORK_DROP],
+	[STEP_CARRY_HEAP, STEP_WORK + WORK_DROP],
 ]
-const COMPOST_FROM_SPOIL_PLAN: Array[int] = [STEP_GO_HEAP, STEP_WORK + WORK_DIG, STEP_CARRY_BED,
-	STEP_WORK + WORK_COMPOST]
-## Spoil a raise, a bank or a spoil compost takes off a heap: the §5.6 compost dose (2 U), demo-used
-## for all three.
-const SPOIL_PER_JOB_MILLI: int = 2000
+## Earth a raise or a bank takes from a heap or the stores (demo value, 2 U; it was §5.6's compost dose while spoil
+## could be dug in as compost -- decision 0401 retired that, the amount stays).
+const EARTH_PER_JOB_MILLI: int = 2000
 
 const ORIGIN_PLAYER: int = 0
 const ORIGIN_ROUTINE: int = 1
-const SOURCE_STORE: int = 0
-const SOURCE_SPOIL: int = 1
 const FREE: int = -1
 const NOBODY: int = -1
 const MAX_JOBS: int = 24
@@ -103,7 +107,7 @@ const BLOCK_WAY: int = 2
 const REFUSE_BOARD_FULL: String = "JOB_BOARD_FULL"
 const REFUSE_DUPLICATE: String = "JOB_ALREADY_QUEUED"
 const REFUSE_BAD_KIND: String = "NOT_A_JOB_KIND"
-const REFUSE_NO_SPOIL: String = "NO_TUNNEL_SPOIL"
+const REFUSE_NO_EARTH: String = "NO_EARTH"
 const REFUSE_NOT_GROWING: String = "NOTHING_GROWING"
 const REFUSE_NOT_RIPE: String = "NOT_RIPE"
 const REFUSE_NO_JOB: String = "NO_SUCH_JOB"
@@ -114,7 +118,7 @@ var worker: PackedInt32Array = PackedInt32Array()
 var step: PackedInt32Array = PackedInt32Array()
 var elapsed_usec: PackedInt64Array = PackedInt64Array()
 var origin: PackedInt32Array = PackedInt32Array()
-var source: PackedInt32Array = PackedInt32Array()
+## The earth source (farm_tunnels.gd SOURCES) a raise or a bank took its earth from, and an earth return goes back to.
 var heap: PackedInt32Array = PackedInt32Array()
 var load_item: PackedInt32Array = PackedInt32Array()
 var load_milli: PackedInt64Array = PackedInt64Array()
@@ -137,7 +141,7 @@ var _next_serial: int = 0
 
 func _init() -> void:
 	"""Size every column once; every row free."""
-	for column: PackedInt32Array in [kind, bed, worker, step, origin, source, heap, load_item, location, hold]:
+	for column: PackedInt32Array in [kind, bed, worker, step, origin, heap, load_item, location, hold]:
 		column.resize(MAX_JOBS)
 	for column: PackedInt64Array in [elapsed_usec, load_milli, serial]:
 		column.resize(MAX_JOBS)
@@ -151,7 +155,7 @@ func _init() -> void:
 	hold.fill(FREE)
 
 
-func open_into(job_kind: int, job_bed: int, job_origin: int, job_source: int, out: IntMath.IntResult) -> bool:
+func open_into(job_kind: int, job_bed: int, job_origin: int, out: IntMath.IntResult) -> bool:
 	"""Queue a job; writes its row into `out`. Refuses a bad kind or bed, a second job of the same
 	kind already on that bed, or a full board."""
 	if job_kind < 0 or job_kind >= KIND_COUNT or not Catalog.is_bed(job_bed):
@@ -166,7 +170,6 @@ func open_into(job_kind: int, job_bed: int, job_origin: int, job_source: int, ou
 	bed[row] = job_bed
 	worker[row] = NOBODY
 	origin[row] = job_origin
-	source[row] = job_source
 	heap[row] = FREE
 	load_item[row] = Catalog.NO_ITEM
 	load_milli[row] = 0
@@ -181,21 +184,13 @@ func open_into(job_kind: int, job_bed: int, job_origin: int, job_source: int, ou
 
 func _plan(row: int) -> Array:
 	"""The step list job `row` runs through (a constant table; nothing is copied)."""
-	return plan_of(kind[row], source[row])
+	return PLANS[kind[row]]
 
 
-static func plan_of(job_kind: int, job_source: int) -> Array:
-	"""The step list a job of `job_kind` from `job_source` runs through: composting from tunnel spoil walks to a
-	heap first (COMPOST_FROM_SPOIL_PLAN), every other its PLANS row."""
-	if job_kind == KIND_COMPOST and job_source == SOURCE_SPOIL:
-		return COMPOST_FROM_SPOIL_PLAN
-	return PLANS[job_kind]
-
-
-static func plan_work_usec(job_kind: int, job_source: int, from_step: int) -> int:
+static func plan_work_usec(job_kind: int, from_step: int) -> int:
 	"""The work left in a job's plan from step `from_step` on, in the cast's demo microseconds -- every work step's
 	`work_usec_of`, the walks not counted (the action card's work, decision 0332)."""
-	var plan: Array = plan_of(job_kind, job_source)
+	var plan: Array = PLANS[job_kind]
 	var usec: int = 0
 	for k: int in range(maxi(from_step, 0), plan.size()):
 		if int(plan[k]) >= STEP_WORK:
@@ -251,6 +246,13 @@ func become_delivery(row: int) -> void:
 	var code: int = current_step(row)
 	kind[row] = KIND_DELIVER
 	step[row] = 1 if code == STEP_WORK + WORK_DROP else 0
+
+
+func become_earth_return(row: int) -> void:
+	"""A raise or a bank ends with its earth in hand (see AN EARTH RETURN): job `row` is now only that earth's walk
+	back to its source and the tip there, from the start of the walk (nothing issued, no work done)."""
+	kind[row] = KIND_RETURN_EARTH
+	_start_step(row, 0)
 
 
 func back_to_carry(row: int) -> void:
@@ -324,9 +326,9 @@ func live_count() -> int:
 
 # --- which verbs a bed can take ---------------------------------------------------------------
 
-static func refusal_for(sim: SimScript, job_kind: int, job_bed: int, spoil_milli: int) -> StringName:
-	"""Why `job_kind` cannot be ordered on `job_bed` now (empty when it can). `spoil_milli` is the
-	most spoil any one heap holds."""
+static func refusal_for(sim: SimScript, job_kind: int, job_bed: int, earth_milli: int) -> StringName:
+	"""Why `job_kind` cannot be ordered on `job_bed` now (empty when it can). `earth_milli` is the
+	most earth any one source holds (farm_tunnels.gd `most_earth`): Raise and Bank need it, nothing else does."""
 	if not Catalog.is_bed(job_bed) or job_kind < 0 or job_kind >= KIND_COUNT:
 		return StringName(REFUSE_BAD_KIND)
 	var stage: int = sim.stage_of(job_bed)
@@ -342,7 +344,7 @@ static func refusal_for(sim: SimScript, job_kind: int, job_bed: int, spoil_milli
 		KIND_CLEAR:
 			return sim.clear_refusal(job_bed)
 		KIND_COMPOST:
-			return _compost_refusal(sim, job_bed, spoil_milli)
+			return sim.compost_refusal(job_bed)
 		KIND_COVER:
 			if sim.is_covered(job_bed):
 				return SimScript.REFUSE_ALREADY
@@ -351,25 +353,10 @@ static func refusal_for(sim: SimScript, job_kind: int, job_bed: int, spoil_milli
 			return sim.drain_refusal(job_bed)
 	if (job_kind == KIND_RAISE and sim.is_raised(job_bed)) or (job_kind == KIND_BANK and sim.is_banked(job_bed)):
 		return SimScript.REFUSE_ALREADY
-	return &"" if spoil_milli >= SPOIL_PER_JOB_MILLI else StringName(REFUSE_NO_SPOIL)
+	return &"" if earth_milli >= EARTH_PER_JOB_MILLI else StringName(REFUSE_NO_EARTH)
 
 
 static func _is_growing_stage(stage: int) -> bool:
 	"""Whether a stage is a growing crop (what tending acts on)."""
 	return stage == SimScript.STAGE_SPROUTING or stage == SimScript.STAGE_GROWING \
 		or stage == SimScript.STAGE_BLIGHTED
-
-
-static func _compost_refusal(sim: SimScript, job_bed: int, spoil_milli: int) -> StringName:
-	"""Compost needs an eligible tile, and 2 U from the store or from a spoil heap."""
-	var code: StringName = sim.compost_refusal(job_bed, false)
-	if code != &"":
-		return code
-	if sim.compost_refusal(job_bed, true) == &"" or spoil_milli >= SPOIL_PER_JOB_MILLI:
-		return &""
-	return SimScript.REFUSE_NO_COMPOST
-
-
-static func compost_source(sim: SimScript, job_bed: int) -> int:
-	"""Where a compost job takes its 2 U: the store when it holds enough, else tunnel spoil."""
-	return SOURCE_STORE if sim.compost_refusal(job_bed, true) == &"" else SOURCE_SPOIL

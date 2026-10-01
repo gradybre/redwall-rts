@@ -23,6 +23,9 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 
 ## The water's own latest lines shown in its panel.
 const LOG_LINES: int = 3
+## How each kind's cost line in `site_text` starts: the Water panel puts each beside its Build button (decision 0391).
+const PLANK_LINE: String = "Plank footbridge: "
+const LOG_LINE: String = "Log bridge: "
 
 var _cast: DemoCastScript = null
 var _state: StateScript = null
@@ -261,9 +264,9 @@ static func site_text(plank: BridgesScript.Survey, log: BridgesScript.Survey, tr
 	if shown.span_u > 0:
 		lines.append("%.1f m of water · %.1f m of deck" % [WaterRules.to_m(shown.span_u), WaterRules.to_m(shown.deck_u)])
 	var piers: String = ", no piers" if plank.piers == 0 else ""
-	lines.append("Plank footbridge: %s" % (cost_words(plank) + piers if plank.ok else "can't — " + plank.reason))
+	lines.append(PLANK_LINE + (cost_words(plank) + piers if plank.ok else "can't — " + plank.reason))
 	var source: String = " (a felled trunk lies ready)" if trunk_ready else " (from the log stack)"
-	lines.append("Log bridge: %s" % (cost_words(log) + source if log.ok else "can't — " + log.reason))
+	lines.append(LOG_LINE + (cost_words(log) + source if log.ok else "can't — " + log.reason))
 	return "\n".join(lines)
 
 

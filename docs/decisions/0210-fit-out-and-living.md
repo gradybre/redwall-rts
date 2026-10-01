@@ -1,6 +1,11 @@
 # 0210 — Fit-out and living: fixtures, comfort, beds, the night at home, cellars that fill
 Date: 2026-09-30 · Status: Accepted
 
+> **Superseded in part by [0421](0421-a-game-day-lasts-ten-minutes.md) (2026-10-01):** a game day is now ten minutes
+> at 1x and a walk home takes under a game hour, so the night runs 20:00-05:59 (dusk was 18:00), the hearths burn from
+> 19:00 (was 17:00), the resend interval is 38 ticks (1.27 s; was 375), and a kept fixture place waits a game day of
+> `CalendarScript.DAY_USEC` (was 60 s). The install rate (0.15 s a WU) is kept in real seconds.
+
 Phase P4 ("Fit-out and living") of the approved underground revamp
 ([`docs/design/underground_revamp.md`](../design/underground_revamp.md) §2 "Living", §4 "Fit-out", §8 P4; Brendan's
 rulings in its §10, and his ruling for this phase: **residents sleep at home at night**, furniture priced in demo

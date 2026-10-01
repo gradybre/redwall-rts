@@ -1,6 +1,12 @@
 # 0381 — The first meal loop: a cook, two dishes, breakfast and supper
 Date: 2026-10-01 · Status: Accepted
 
+> **Superseded in part by [0421](0421-a-game-day-lasts-ten-minutes.md) (2026-10-01):** with a game day of ten minutes
+> walking fits the day, so breakfast is 07:00-08:59 and supper 17:00-18:59 (were 06:00-12:59 and 13:00-16:59), the
+> cook rises at 05:00 (was 01:00) and supper is cooked from 15:00 (was 09:00); the hand-out interval is 15 ticks and
+> the re-call 38 (the real seconds they were). The "Open" notes on slow walking, late suppers and slow harvests are
+> answered there.
+
 Review group N (findings F21 and UX-027, with the minimal versions of ECO-029 and SOC-007): in the live demo a harvest
 could not end in anyone being fed. Now the village keeps a kitchen. A cook fetches the food, cooks it and puts the
 portions out on the hall's table. The residents eat breakfast and supper there, and each carries an integer

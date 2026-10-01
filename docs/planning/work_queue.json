@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-09-20",
+  "updated": "2026-10-01",
   "note": "The dispatchable graph. tools/dispatch_plan.py reads this and emits the largest conflict-free set of ready tasks. Status values: blocked, ready, in_flight, review, done. A task is dispatchable only when every dependency is done, its gate is cleared, and no file it owns is owned by a task already in flight.",
   "gates": {
     "none": "No human decision required. Fully automatic.",
@@ -580,11 +580,12 @@
     {
       "id": "CONSTRUCTION-EVACUATION-INTEGRATION",
       "title": "Complete affected endpoint coverage and real hauling before demolition",
-      "status": "ready",
+      "status": "blocked",
       "depends_on": [
         "BASELINE-INTEGRATION",
         "CONSTRUCTION-GOODS",
-        "PLAN-RELEASE-COVERAGE"
+        "PLAN-RELEASE-COVERAGE",
+        "DEMOLITION-D9"
       ],
       "owns": [
         "docs/planning/destructive_edit_endpoint_contract.md",
@@ -593,7 +594,9 @@
       ],
       "agent": "self",
       "gate": "none",
-      "acceptance": "Map all building/room/furniture/project/ground-pile endpoints and surviving/removed contacts. Assign concrete coordinator/jobs/hauling/movement files and dependent tasks through integration lead before edits. Real jobs move goods before a final no-yield revalidation; exact stranded claims/lots/residents; no teleports. Done only after composed runtime acceptance, not a planning file."
+      "acceptance": "Map all building/room/furniture/project/ground-pile endpoints and surviving/removed contacts. Assign concrete coordinator/jobs/hauling/movement files and dependent tasks through integration lead before edits. Real jobs move goods before a final no-yield revalidation; exact stranded claims/lots/residents; no teleports. Done only after composed runtime acceptance, not a planning file.",
+      "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
+      "note": "DEMO-CONTAIN-R01 (Brendan, 2026-10-01, DEC-043) closes the missing containment-contract question and approves the full path; the endpoint contract this task named now exists. Runtime closure is the DEMOLITION-D1..D9 chain, so this umbrella waits on D9."
     },
     {
       "id": "MOVE-ENVELOPE-TOOLING",
@@ -2371,6 +2374,180 @@
       "gate": "none",
       "acceptance": "GROUND-CLEARANCE-R01v1 / ADR0185: qualified profile and exact descriptor class required before attachment; prior traveller preserved on refusal; actual focused/full, three valid mutation witnesses, independent source review, committed identity and CI.",
       "note": "Source-proven gap selected from corrected ground architecture review; all production profiles remain unqualified, existing positive motion suites use explicit test-only fixture."
+    },
+    {
+      "id": "DEMOLITION-D1",
+      "title": "Record DEMO-CONTAIN-R01; add the Inventory container anchor column, section 7 v5 and its memory row",
+      "status": "review",
+      "depends_on": [
+        "CONSTRUCTION-GOODS"
+      ],
+      "owns": [
+        "godot/scripts/core/inventory.gd",
+        "godot/scripts/core/save_section_inventories.gd",
+        "godot/scripts/core/canonical_state_hash.gd",
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/test/test_inventory_anchor.gd",
+        "godot/test/test_save_section_inventories.gd",
+        "godot/test/test_canonical_state_hash.gd",
+        "docs/rulings/2026-10-01_demolition_containment.md",
+        "docs/decisions/0531-demolition-containment-is-adopted-and-containers-carry-an-anchor-tile.md",
+        "docs/tasks/lanes/06/2026-10-01-demolition-d1-anchor-column.md",
+        "docs/planning/canonical_state_registry.json",
+        "docs/planning/registry_capacity_audit.json",
+        "docs/systems_architecture.md",
+        "docs/persistence_state_registry.md",
+        "docs/setting_decisions.md",
+        "docs/rulings/requests/open_items.json",
+        "docs/validation/ready07_arithmetic.py",
+        "docs/validation/validate_save_registry_handoff.py",
+        "docs/validation/validate_cycle02_handoff.py",
+        "tools/audit_registry_capacities.py",
+        "tools/test_registry_capacity_audit.py"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
+      "acceptance": "Answers #1/#2/#4/#8: `_c_anchor_tile` I32 (unplaced -1), optional anchor on create_container, set_container_anchor refusing domain/liveness, bounded cold anchored-in query; section 7 inventory owner 3->4, section 4->5, hashed, older refused; ARCH \u00a72 row 405504 B with honest transactional-peak effect. Stage 5 still refuses (D4).",
+      "note": "Branch feat/demolition-d1. destructive_edit_endpoint_contract.md stays owned by CONSTRUCTION-EVACUATION-INTEGRATION; D1 wrote its first version."
+    },
+    {
+      "id": "DEMOLITION-D2",
+      "title": "Ground-pile contract: Inventory's single create_ground_pile(tile) door",
+      "status": "blocked",
+      "depends_on": [
+        "DEMOLITION-D1"
+      ],
+      "owns": [
+        "godot/scripts/core/inventory.gd",
+        "godot/test/test_inventory.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
+      "acceptance": "Answer #9 exactly: World owner, GROUND_PILE policy, 400000 g, storage class 1500, one pile per tile, in-bounds and passable, N/E/S/W breadth-first spill capped at 16384 tiles, never on a DEMOLISHING/destroyed/inaccessible footprint, empty-pile reclaim at commit, refund placement from the door's outside access tile. Ledger the optional derived tile->pile map if built."
+    },
+    {
+      "id": "DEMOLITION-D3",
+      "title": "INIT-C live apply and starter container rebind",
+      "status": "blocked",
+      "depends_on": [
+        "DEMOLITION-D1",
+        "INIT-C-PREP"
+      ],
+      "owns": [
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/scripts/systems/economy_system.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
+      "acceptance": "Answers #3a/#3b/#7, blocker 6: materialise the 7 buildings, 4 rooms and 31 furniture; rebind the pantry to the hall and the material store to the four stockpiles (400000 g each), anchored at their origin tiles; then create_container refuses a NULL_REF owner."
+    },
+    {
+      "id": "DEMOLITION-D4",
+      "title": "Demolition gate success path, preview/admit split and the BUILD-C4-R01 paid ledger",
+      "status": "blocked",
+      "depends_on": [
+        "DEMOLITION-D2",
+        "DEMOLITION-D3"
+      ],
+      "owns": [
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/scripts/core/construction.gd",
+        "godot/test/test_settlement_system.gd",
+        "godot/test/test_construction.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
+      "acceptance": "Stage 5 reads the anchor query; owner and tile scans must agree; anchored NULL_REF or off-footprint building-owned containers refuse. Admit snapshots tier/paid packages, reserves output capacity, calls open_demolition and advances the destination revision before any write. Tier-2 basis per BUILD-C4-R01."
+    },
+    {
+      "id": "DEMOLITION-D5",
+      "title": "Composed demolition completion, furniture 50% return and pantry capacity recompute",
+      "status": "blocked",
+      "depends_on": [
+        "DEMOLITION-D4"
+      ],
+      "owns": [
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/scripts/core/buildings.gd",
+        "godot/test/test_settlement_system.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
+      "acceptance": "Answer #6's one no-yield commit (containers, furniture, rooms, building, 50% return, retire project); furniture returns 50% of its own materials, not the intact item (DEC-043); #3b shelf capacity removal refusal; refusals byte-identical across stores."
+    },
+    {
+      "id": "DEMOLITION-D6",
+      "title": "Evacuation hauling, demolition work under BUILD, and the admit retry coordinator",
+      "status": "blocked",
+      "depends_on": [
+        "DEMOLITION-D5"
+      ],
+      "owns": [
+        "godot/scripts/core/jobs.gd",
+        "godot/scripts/core/work.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
+      "acceptance": "Blocker 4: persisted evacuate-then-demolish intent, real HAUL jobs, no teleports, retry admit once sources are empty. Depends on task 06.4 physical hauling."
+    },
+    {
+      "id": "DEMOLITION-D7",
+      "title": "DEMOLISH command dispatch, stranded-goods notice, UI and pre-demolition quicksave",
+      "status": "blocked",
+      "depends_on": [
+        "DEMOLITION-D4"
+      ],
+      "owns": [
+        "godot/scripts/core/command_dispatch.gd",
+        "godot/scripts/ui/ui_availability.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
+      "acceptance": "Blocker 5: dispatch arm with the building ref payload, UI row 034, REQ-SET-128 exact lots and occupants, REQ-SET-158 pre-major-demolition quicksave."
+    },
+    {
+      "id": "DEMOLITION-D8",
+      "title": "Movement invalidation on demolition admit and removal",
+      "status": "blocked",
+      "depends_on": [
+        "DEMOLITION-D5"
+      ],
+      "owns": [
+        "godot/scripts/core/movement.gd",
+        "godot/test/test_movement.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
+      "acceptance": "Blocker 7: topology revision and destination_revision advance, footprint cleared, routes re-checked (MOVE-REQ-006/019); retest MOVE-TEST-05/10."
+    },
+    {
+      "id": "DEMOLITION-D9",
+      "title": "Independent QA, review and a visible Mac run of the composed demolition path",
+      "status": "blocked",
+      "depends_on": [
+        "DEMOLITION-D2",
+        "DEMOLITION-D3",
+        "DEMOLITION-D4",
+        "DEMOLITION-D5",
+        "DEMOLITION-D6",
+        "DEMOLITION-D7",
+        "DEMOLITION-D8"
+      ],
+      "owns": [
+        "docs/tasks/lanes/06/2026-10-01-demolition-d9-acceptance.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
+      "acceptance": "INV-GOODS-R01's full-gate list plus DEMO-CONTAIN-R01's additions; closes REQ-SET-127/128 and CONSTRUCTION-EVACUATION-INTEGRATION only if all pass."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

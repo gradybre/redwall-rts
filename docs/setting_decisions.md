@@ -1080,6 +1080,26 @@ Scope: the refuge scenario's Warden office (DEC-003/DEC-008). It creates no univ
 no Warden office for other scenarios. Implementation: decision 0511 and
 `residents.gd::appoint_warden()`.
 
+### DEC-043 — Demolition containment, ground piles and furniture returns
+
+2026-10-01 · State: `USER_CONFIRMED`.
+
+Brendan ruled on the demolition-containment proposal, relayed through the settlement coordinator
+on 2026-10-01:
+
+- **Answers 1-9 are approved as recommended**, including the new ground-pile rules in answer 9.
+  Containers carry an Inventory-owned anchor tile; ground piles are created only through
+  Inventory's single ground-pile door, one per tile, 400000 g, storage class 1500, spilling
+  N/E/S/W breadth-first.
+- **Furniture removal returns 50% of its materials** (the same rule as buildings), **not the
+  intact item**.
+- **Scope is the full path**: INIT-C live apply, evacuation hauling, rooms and furniture teardown,
+  tier-2 refunds (BUILD-C4-R01), dispatch and UI, and movement invalidation.
+
+The verbatim answers and the D1-D9 plan are in
+[DEMO-CONTAIN-R01](rulings/2026-10-01_demolition_containment.md); engineering adoption is
+decision 0531.
+
 ### DEC-040 engineering follow-through
 
 Brendan subsequently requested: “let's plan those as well, then give me what to send back to claude”. [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) records the resulting Astra-authored numeric economy/hazard choices. This is delegated engineering authoring, not a claim the user supplied every value. DEC-040's four-level candidate status remains unchanged. [Decision0092](decisions/0092-underground-economy-and-hazard-parameters.md) records adoption and its limits.

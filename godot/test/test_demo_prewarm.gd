@@ -62,7 +62,10 @@ func test_the_props_warm_every_staged_model_once() -> void:
 	props.load_from({})
 	assert_equal(props.warm_all(), 0, "nothing staged")
 	assert_equal(props.loaded_count(), 0, "nothing loaded")
-	props._rows[&"basket"] = {"path": "res://demo/demo_village.tscn", "aabb_min": [0, 0, 0], "aabb_max": [1, 1, 1]}
+	# A committed model, not demo_village.tscn: the village makes its child nodes in member initialisers and parents
+	# them in _ready(), so instancing it outside the tree and freeing it leaked every one (decision 0501).
+	props._rows[&"basket"] = {"path": "res://assets/units/species_mouse_body_a_lod0.glb", "aabb_min": [0, 0, 0],
+		"aabb_max": [1, 1, 1]}
 	assert_equal(props.warm_all(), 1, "the staged row loaded")
 	assert_equal(props.loaded_count(), 1, "one model")
 	assert_equal(props.warm_all(), 0, "not twice")

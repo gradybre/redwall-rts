@@ -71,6 +71,19 @@ class Village extends RefCounted:
 	var places: PlacesScript = PlacesScript.new()
 
 
+## Every village a test built. A resident's unfinished kitchen job holds the kitchen (cast/unfinished_job.gd keeps a
+## reference-counted owner alive) and the kitchen holds the residents: after_each breaks that cycle (decision 0501).
+var _villages: Array[Village] = []
+
+
+func after_each() -> void:
+	"""Let go of every village the test built."""
+	for v: Village in _villages:
+		for brain: BrainScript in v.brains:
+			brain.drop_jobs()
+	_villages.clear()
+
+
 static func tick_at(day: int, hour: int) -> int:
 	"""The calendar tick at `hour`:00 of `day` (day 0 is spring 1; tick 0 is 06:00 of it)."""
 	return (day * SimClock.HOURS_PER_DAY + hour) * SimClock.TICKS_PER_HOUR - SimClock.CALENDAR_OFFSET_TICKS
@@ -87,6 +100,7 @@ func _lengths() -> Dictionary:
 func _village(count: int, tick: int, species: String = "mouse") -> Village:
 	"""A village of `count` residents standing in a row at the square, on the calendar at `tick`."""
 	var v := Village.new()
+	_villages.append(v)
 	v.space = CastSpaceScript.new()
 	var points: Array[Dictionary] = [{"name": NightScript.HALL_POI, "position": Vector3(HALL.x, 0.0, HALL.y),
 		"capacity": 4}]

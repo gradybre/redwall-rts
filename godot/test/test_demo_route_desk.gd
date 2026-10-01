@@ -24,6 +24,8 @@ const BIG_USEC: int = 1000000
 
 var _nodes: Array[Node] = []
 var _turns: PackedInt32Array = PackedInt32Array()
+## Desks whose turns are lambdas holding the desk itself (and this suite): a cycle after_each breaks (decision 0501).
+var _desks: Array[DeskScript] = []
 
 
 func after_each() -> void:
@@ -33,6 +35,9 @@ func after_each() -> void:
 			node.free()
 	_nodes.clear()
 	_turns.clear()
+	for desk: DeskScript in _desks:
+		desk._turns.clear()
+	_desks.clear()
 
 
 func _brain(space: CastSpaceScript, at: Vector2) -> BrainScript:
@@ -97,6 +102,7 @@ func test_the_budget_looks_ahead_and_waiters_go_first_come_first_served() -> voi
 func test_a_turn_that_plans_ends_its_wait_and_charges_the_window() -> void:
 	"""Serving stops once the window can take no typical plan more."""
 	var desk := DeskScript.new()
+	_desks.append(desk)
 	desk.budget_usec = 1000
 	desk.estimate_usec = 400
 	for i in 3:
@@ -125,6 +131,7 @@ func _spent_space() -> Array:
 func test_a_turn_that_plans_and_waits_again_keeps_its_place() -> void:
 	"""A resident whose turn plans and then starts a second trip that has to wait is not dropped from the queue."""
 	var desk := DeskScript.new()
+	_desks.append(desk)
 	desk.budget_usec = 1000
 	desk.register(0, func() -> void:
 		desk.charge(0, 2000)

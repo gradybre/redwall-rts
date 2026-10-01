@@ -90,6 +90,9 @@ func after_each() -> void:
 			node.free()
 	_nodes.clear()
 	_notices.clear()
+	# The crew holds a notice lambda that holds this suite: drop it, or the suite and its books outlive the run.
+	_crew = null
+	_spoil = null
 
 
 # --- fixtures -----------------------------------------------------------------------------------

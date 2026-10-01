@@ -146,7 +146,8 @@ func test_the_warren_s_particles_fit_their_budget() -> void:
 	assert_equal(ParticlesScript.allocated(), 198, "198 allocated")
 	assert_true(ParticlesScript.allocated() <= ParticlesScript.TOTAL, "within the 200")
 	assert_equal(ParticlesScript.SMOKE_EMITTERS * ParticlesScript.SMOKE_AMOUNT, 128, "the smoke's 128 (P4)")
-	assert_equal(ParticlesScript.SMOKE_AMOUNT, FixtureKitScript.smoke().amount, "the chimneys' own amount")
+	assert_equal(ParticlesScript.SMOKE_AMOUNT, (_keep(FixtureKitScript.smoke()) as CPUParticles3D).amount,
+		"the chimneys' own amount")
 	var pools: ParticlesScript = _keep(ParticlesScript.new())
 	pools.configure()
 	assert_equal(ParticlesScript.capacity_under(pools), 70, "the pools: the budget less the smoke")

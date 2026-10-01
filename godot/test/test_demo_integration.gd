@@ -105,6 +105,18 @@ func _village(with_cellars: bool) -> DemoFarmScript:
 	return farm
 
 
+func _keep_detached_members(node: Node) -> void:
+	"""Free after the test every node `node` holds in a script member with no parent. demo_village.gd makes its child
+	nodes in member initialisers and adds them in _ready(), which a village that never enters the tree never runs:
+	freeing it alone leaked them all (decision 0501)."""
+	for property: Dictionary in node.get_property_list():
+		if int(property["usage"]) & PROPERTY_USAGE_SCRIPT_VARIABLE == 0:
+			continue
+		var held: Variant = node.get(property["name"])
+		if held is Node and (held as Node).get_parent() == null and not _nodes.has(held):
+			_nodes.append(held)
+
+
 func _works() -> WorksScript:
 	"""The tunnel works the command layer's tunnel tool built."""
 	return _command.tunnels().ext.works
@@ -467,6 +479,7 @@ func test_the_village_hands_the_tunnels_cellars_to_the_farm() -> void:
 	_village(false)
 	var village := VillageScript.new()
 	_nodes.append(village)
+	_keep_detached_members(village)
 	village._command = _command
 	var providers: Array[Callable] = village.storage_providers()
 	assert_equal(providers.size(), 2, "the cellars and the kitchen pantry")

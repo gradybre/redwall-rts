@@ -134,6 +134,12 @@ extends Node3D
 ## (the button in the time cluster, G) runs the village to dawn, dusk, the next meal, a project, a harvest or a warning
 ## and pauses saying so. `_build_session()` wires it; the game menu holds its pause through the ledger.
 ##
+## THE HALL (decision 0771, demo/hall/): the community hall grows in Brendan's adopted two stages -- the hall the village
+## starts with, then its one tier-2 upgrade (REQ-SET-136) -- and up to four banners, each carried in and built by the
+## residents through the work board; clicking the hall opens its panel, and from it the village tapestry, whose
+## add-entry API (`tapestry()`, demo/hall/tapestry.gd THE API) the chronicle and milestones may weave into; `hall()`
+## answers the feasts' gathering query. `_build_hall()` wires it once the work board and the guide are built.
+##
 ## ACCESSIBILITY (decision 0471, review UX-023, demo/access/): the four presets and their settings in the menu's
 ## Settings, applied live (`_on_access_changed`, access_effects.gd); the OBJECT LIST (F6) of every resident, bed, tree,
 ## bridge, tunnel mouth and room, and the rings that show them (village_targets.gd); the focus hints.
@@ -224,6 +230,7 @@ const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 const ForestSkills := preload("res://demo/forestry/forest_skills.gd")
 const DigSkills := preload("res://demo/tunnel/dig_skills.gd")
 const BridgeCrew := preload("res://demo/waterplay/bridge_crew.gd")
+const HallScript := preload("res://demo/hall/demo_hall.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -306,6 +313,7 @@ var _people: PeopleScript = null
 var _people_card: PeopleCardScript = null
 ## Water part B (decision 0431): fishing trips, boats, gear, ice, the drying rack and the mill.
 var _fishery: FisheryNodeScript = null
+var _hall: HallScript = null
 
 
 func _ready() -> void:
@@ -340,6 +348,7 @@ func _ready() -> void:
 	_build_people()
 	_build_sound()
 	_build_guide()
+	_build_hall()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
 	_hold_restart_open()
@@ -570,6 +579,36 @@ func _build_work() -> void:
 	command.set_queue_handler(_work.queue_at)
 	_work.unlock_jobs_command(_shell())
 	_work.screen.close_requested.connect(_work.screen.close)
+
+
+func _build_hall() -> void:
+	"""The hall (see THE HALL), once the work board, the guide and the people are built: its projects on the work board,
+	its click and right-click after every other ground handler, the farm's harvest log for the tapestry, the night's
+	bedless for its panel; the top-centre cards yield to its panel, which stands where they do."""
+	_hall = HallScript.new()
+	add_child(_hall)
+	var command: DemoCommandScript = _command as DemoCommandScript
+	_hall.configure(_cast as DemoCastScript, _services, _world, _camera.camera())
+	_hall.bind_board(_work.board)
+	_hall.bind_farm(_farm.crew)
+	_hall.set_selection(command.selected)
+	_hall.set_bedless(command.tunnels().ext.night.bedless_names)
+	command.add_ground_handlers(_hall.on_click, _hall.on_order)
+	_cards.hide_while(_hall.is_open)
+	if _guide != null:
+		_guide.card.hide_while(_hall.is_open)
+	if _people_card != null:
+		_people_card.hide_while(_hall.is_open)
+
+
+func hall() -> HallScript:
+	"""The village's hall (demo/hall/demo_hall.gd): its stages, banners and the gathering query."""
+	return _hall
+
+
+func tapestry() -> RefCounted:
+	"""The village tapestry (demo/hall/tapestry.gd; see its THE API), or null before the hall is built."""
+	return _hall.tapestry if _hall != null else null
 
 
 func _build_routes() -> void:
@@ -1180,6 +1219,7 @@ func _add_planning() -> void:
 	_time.add_planning("the object list", func() -> bool: return _objects.visible)
 	_time.add_planning("the Dig tool", func() -> bool: return tool.planning)
 	_time.add_planning("the Residents list", _workspace_open)
+	_time.add_planning("the hall", _hall.is_open)
 
 
 func _workspace_open() -> bool:

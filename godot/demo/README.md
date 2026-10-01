@@ -467,8 +467,8 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
 - **The work board** (`work/work_board.gd`) is the one common owner of who does what. Each job owner keeps its own
   board -- the farm's, the woods', the bridges', the tunnels' jobs, the rooms' fit-out, the spoil heaps' -- read
   through one adapter each (`farm_work.gd`, `woods_work.gd`, `bridge_work.gd`, `tunnel_work.gd`, `fit_out_work.gd`,
-  `spoil_work.gd`, and water part B's `fishery_work.gd`: trips' seats, traps, the rack, the mill and the gear, decision
-  0431); every command goes to the owner's own function, so its conservation rules hold (decision 0222:
+  `spoil_work.gd`, water part B's `fishery_work.gd`: trips' seats, traps, the rack, the mill and the gear, decision
+  0431; and the hall's `hall_work.gd`, decision 0771); every command goes to the owner's own function, so its conservation rules hold (decision 0222:
   a load in hand is carried on, never paused or handed over from afar -- earth too: a farm job carrying earth back
   to its heap reads "Carry earth back", a delivery, and Cancel refuses it; decision 0401). The kitchen's cook and
   water drawers are listed as well (`kitchen_work.gd`; the kitchen hands them out itself), and the board hands no
@@ -1541,6 +1541,46 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
   frame (`test/test_demo_sound_cost.gd`, headless, Apple Silicon). The boot prewarm step (streams and the
   worn-path grid) took about 16 ms with nothing staged and 22 ms loading all 56 files.
 
+## The hall and the village tapestry (decision 0771)
+
+`hall/`. Brendan's ruling of 2026-10-01: **the adopted version**. The GDD gives the hall exactly two stages, so it
+grows by two and no more:
+
+| Stage | What it is | Its rule |
+|---|---|---|
+| 1 · Community hall | the hall the village starts with | GDD §5.9's refuge/community hall |
+| 2 · Great hall | its one tier-2 upgrade: stone 40 · wood 20 · cloth 8 · 1200 WU; a hearth here burns fuel ×0.75, the common room's comfort target +1000; no new floor or beds | REQ-SET-136; BAL-SAFE-013 refuses a second ("tier 3 is absent") |
+| Banners (dressing, not a stage) | up to four of §5.9's Decoration row: wood 1 · 12 WU each (the demo has no wax: decision 0210's substitution), +250 comfort each, at most +1000 | §5.9 |
+
+- **Building.** Each is a project of materials and work through the **work board** (`work/hall_work.gd`, the board's
+  "The hall" source): builders -- up to four on the upgrade (§5.9), one a banner; anybeast on land; the Builders crew
+  first -- walk to the stockpile, lift one material a load (their §5.2 carry capacity at §5.7's masses: a mouse 2.4 U
+  of stone, 48 U of cloth), carry it to the site pile by the hall's east end and set it down; once everything is
+  delivered they build before the hall (REQ-SET-124/125). Nothing leaves the stores until it is lifted; a carrier called
+  away puts its load back whole and keeps the project to come back to. **Cancel** (the hall's panel) gives back
+  REQ-SET-126's share: all of it before work begins, 80% rounded down after.
+- **Unlock (Brendan's ruling).** The GDD names none for the upgrade, and the adopted milestones need 12 residents; so one data
+  constant, `hall_rules.gd UNLOCK_CONDITION`, opens it once **the first harvest is gathered into store**.
+- **The cloth.** Nothing else in the demo keeps cloth; the hall model keeps the village's opening 24 U (GDD §5.1), at the
+  stockpile with the stores.
+- **What it gives** (the panel's first section): 12 seats for meals, songs and feasts -- a feast seats up to 36 (seats
+  >= ceil(E / 3), §5.7); floor sleep for anyone without a bed (REQ-SET-133); the comfort target; a hearth's fuel.
+- **Seen.** Clicking the hall opens its panel (no key). While the upgrade is carried in, a stone heap, a timber stack
+  and the cloth grow by the hall's east end; while it is built, a work rail of fence lengths stands before it; the great
+  hall has a second chimney pot and two woven roundels in its outer bays; each banner is a cloth hung in a bay, dyed in
+  the woodland palette. All composed from library models (`hall_view.gd`): the hall itself is never moved or scaled.
+- **The village tapestry** (`tapestry.gd`, `tapestry_panel.gd`; The tapestry, in the hall's panel): the village's
+  history as a woven timeline -- oldest first, each entry a knot in its kind's colour on one thread -- with stage 1 at
+  the start, the first harvest, the first winter, stage 2 and each banner, each woven once. An **original** community
+  tapestry (setting bible LORE-R07): never Martin's.
+- **The API for other features** (`demo_village.gd`):
+  - `tapestry()` -> `tapestry.gd`: `add_entry(kind, title, text = "", once_key = &"") -> int` (its index, or a
+    `REFUSED_*` code: no title, unknown kind, full at 128, or the once-only key woven already), `add_entry_at(tick, ...)`,
+    and the readers (`count`, `title_of`, `text_of`, `date_of`, `kind_of`, `has_key`, `revision`). Kinds for the
+    chronicle (#10) and milestones (#57): `KIND_CHRONICLE`, `KIND_MILESTONE`.
+  - `hall()` -> `demo_hall.gd`: `gathering_seats()` (12), `seats_needed(E)`, `can_gather(E)`, `gathering_capacity()`
+    (36) for the feasts (#9); `tier()`, `comfort_target()`, `fuel_permille()` (750 at tier 2, for a hearth lit here).
+
 ## Layout
 
 | Folder | Owns |
@@ -1568,6 +1608,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `routes/` | Route and infrastructure previews (decision 0461): the estimate on copies of the network through the routing desk, the proposal's crossing, the stretches and hold-ups, the work places, a dig's stages, a bridge's project words, the Routes map layer and its subject, the rescue card's details, and the controller over the Water and Tunnels panels |
 | `guide/` | The first-village guide (decision 0481): the outcome ledger, the objectives' progress and words, the card and its world marker, the village guide window and its pages -- help, field guide, practice stories, projects |
 | `work/` | The work board over every job owner (one adapter each), the claim, the named crews and presets, the order lists' entries, Shift+right-click's queue and the Work screen (decision 0411) |
+| `hall/` | The hall's two stages and banners (`hall_rules.gd`, `hall_projects.gd`), the builders' rounds (`hall_crew.gd`, `hall_task.gd`, `hall_resume.gd`), its drawing (`hall_view.gd`), its panel, the village tapestry and its panel, and the node with the gathering query (`demo_hall.gd`) (decision 0771) |
 | `session/` | The time controls: the pause ledger (the kinds, their words, the one Resume), "Run until…" (its targets read from the calendar, the kitchen, the projects, the beds and the news) and the frame-by-frame control (Space, G, the HUD's pause button, the planning surfaces, the critical incidents) (decision 0471) |
 | `access/` | Accessibility: the settings and presets, their effects on the village, reduced motion, the world's interactive targets (the object list, F6, and their rings), the focus hint, the Settings section (decision 0471) |
 | `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens; then the underground view drawn once |

@@ -35,6 +35,8 @@ const OverlayScript := preload("res://demo/routes/route_overlay.gd")
 const CardsScript := preload("res://demo/ui/demo_incident_cards.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const LevelsTest := preload("res://test/test_demo_levels.gd")
+const SafetyTest := preload("res://test/test_demo_water_safety.gd")
+const DiveTaskScript := preload("res://demo/waterplay/dive_task.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const TasksScript := preload("res://demo/waterplay/rescue_tasks.gd")
@@ -186,8 +188,8 @@ func test_a_tunnel_s_after_estimate_is_the_router_s_cost_once_it_is_dug() -> voi
 
 
 func test_a_before_estimate_over_the_live_network_is_the_router_s_cost_in_the_rain() -> void:
-	"""With the branch dug and the surface at 80% for rain, a trip the tunnel shortens: the estimate's before (no
-	proposal) is the live router's cost, and a planned extra piece the copy takes changes nothing live."""
+	"""With the branch dug and the surface at 80% for rain, two trips (one the tunnel shortens): the estimate's before
+	(no proposal) is planned by the live router itself -- its cost exactly the router's -- and changes nothing live."""
 	var space := _penned_tee(true)
 	space.tunnels.surface_permille = 800
 	var brain := _walker(space, Vector2(-9.5, 4.5))
@@ -197,16 +199,16 @@ func test_a_before_estimate_over_the_live_network_is_the_router_s_cost_in_the_ra
 	estimate.add_trip(Vector2(9.0, 3.0), Vector2(-9.0, 5.0), "along the tunnel")
 	estimate.propose_nothing()
 	var revision := space.tunnels.revision
-	var cache_hits := space.tunnels.paths.rebuilds
+	space.tunnels.router.last_surface_plans = -1
 	estimate.start(7)
 	estimate.run_all()
+	assert_true(space.tunnels.router.last_surface_plans >= 0, "planned by the live router itself, its cache shared")
 	var live := PackedVector2Array()
 	var legs := PackedInt32Array()
 	for k: int in 2:
 		var cost := _live_cost(space, brain.index, estimate.trip_from[k], estimate.trip_to[k], false, live, legs)
 		assert_almost_equal(estimate.before_m[k], cost, "trip %d: the router's own cost" % k)
 	assert_equal(space.tunnels.revision, revision, "the live network untouched")
-	assert_true(space.tunnels.paths.rebuilds >= cache_hits, "the live paths are the live network's own")
 
 
 func test_a_bridge_s_after_estimate_is_the_router_s_cost_once_it_is_built() -> void:
@@ -235,6 +237,23 @@ func test_a_bridge_s_after_estimate_is_the_router_s_cost_once_it_is_built() -> v
 	assert_true(absf(estimate.after_m[0] - after) < COST_EPS, "after: the router's cost over the bridge (%f vs %f)" % [estimate.after_m[0], after])
 	assert_true(_has_crossing(legs) and _has_crossing(estimate.after_legs[0]), "both over a crossing")
 	assert_true(after < before * 0.6, "measurably quicker: %.1f m -> %.1f m" % [before, after])
+	var other := BridgesScript.Survey.new()
+	assert_true(rig.play.bridges.survey_candidate_into(1, SwimRules.KIND_PLANK, other), "a second site upstream")
+	var second := _scratch_bridge(rig, other)
+	var both := EstimatorScript.new()
+	both.configure(space.nav, space.tunnels, space.crossings, _crosses(rig))
+	both.set_walker(1, 0.22, true)
+	both.add_trip(NECK_WEST, NECK_EAST, "across the neck")
+	both.add_trip(Vector2(0.0, 2.0), Vector2(8.0, 4.0), "a dry walk in the village")
+	both.propose_bridge(second.approach(0, false), second.approach(0, true), second.walk_length_m(0))
+	both.start(6)
+	both.run_all()
+	assert_true(absf(both.after_m[0] - after) < COST_EPS, "a second bridge proposed: the built one is still offered")
+	var hook := PreviewScript.new()
+	hook.configure(space.crossings, _crosses(rig))
+	hook.propose(second.approach(0, false), second.approach(0, true), 5.0, 1000)
+	assert_false(hook.offers_for(1, Vector2(0.0, 2.0), Vector2(8.0, 4.0), true), "a dry trip is offered no crossing")
+	assert_true(hook.offers_for(1, NECK_WEST, NECK_EAST, true), "one over the water is")
 	var now := EstimatorScript.new()
 	now.configure(space.nav, space.tunnels, space.crossings, _crosses(rig))
 	now.set_walker(1, 0.22, true)
@@ -649,6 +668,13 @@ func test_a_stage_s_benefit_opens_only_the_segments_to_it() -> void:
 		estimate.run_all()
 		costs.append_array([estimate.before_m[0], estimate.after_m[0]])
 	assert_almost_equal(costs[1], costs[0], "to the junction: no quicker (%.1f m)" % costs[1])
+	var short := _estimator(space)
+	short.set_walker(brain.index, BODY_M, false)
+	short.add_trip(Vector2(6.5, -9.5), Vector2(6.5, 9.5), "south to north")
+	short.propose_open(1, stages.chain.size() - 1)
+	short.start(22)
+	short.run_all()
+	assert_almost_equal(short.after_m[0], short.before_m[0], "all but the last ramp open: still no way out north")
 	assert_true(costs[3] < costs[2] * 0.5, "the whole piece: %.1f m against %.1f m round the wall" % [costs[3], costs[2]])
 
 
@@ -679,10 +705,12 @@ func test_a_piece_laid_but_not_dug_is_estimated_as_the_router_will_cost_it_once_
 	estimate.add_trip(Vector2(6.5, -9.5), Vector2(6.5, 9.5), "south to north")
 	estimate.propose_piece(plan.spec_of(0))
 	var revision := graph.revision
+	var phases := graph.phase.duplicate()
+	var opened := graph.open_count()
 	estimate.start(5)
 	estimate.run_all()
 	assert_true(estimate.proposal_ok, "the copy took the piece")
-	assert_equal(graph.revision, revision, "the live network untouched")
+	assert_equal([graph.revision, graph.phase, graph.open_count()], [revision, phases, opened], "the live network untouched")
 	assert_true(graph.add_piece(plan.spec_of(0), ref), "laid for real")
 	_dig(graph, ref[2])
 	var live := PackedVector2Array()
@@ -729,7 +757,13 @@ func test_the_village_s_work_places_stand_on_land_and_the_far_banks_lie_across_t
 	var crosses := _crosses(rig)
 	for far: int in [TripsScript.FAR_FORD, TripsScript.FAR_MILL]:
 		assert_true(bool(crosses.call(trips.points[TripsScript.SQUARE], trips.points[far])), "%s across the water" % TripsScript.NAMES[far])
+	var poi: int = space.poi_names.find(&"store_front")
+	assert_equal(trips.points[TripsScript.STORE], space.slot_position(poi, 0), "the store is the store front's own slot")
 	var out := PackedInt32Array()
+	var crossing := 0
+	for t: int in TripsScript.TRIPS.size():
+		crossing += 1 if bool(crosses.call(trips.trip_from(t), trips.trip_to(t))) else 0
+	assert_equal(trips.water_trips_into(Vector2(23.3, -25.0), crosses, 99, out), crossing, "every trip over the water, no other")
 	assert_equal(trips.water_trips_into(Vector2(23.3, -25.0), crosses, 2, out), 2, "two")
 	for t: int in out:
 		assert_true(bool(crosses.call(trips.trip_from(t), trips.trip_to(t))), "%s crosses" % trips.trip_name(t))
@@ -786,6 +820,7 @@ func test_the_rescue_card_names_victim_responder_landing_and_a_time_the_same_whi
 	card.details_into("water:rescue:0", again)
 	assert_equal([again.phase, again.time], [details.phase, details.time], "paused: the same")
 	assert_false(card.details_into("threat", details), "not a rescue's key")
+	assert_false(card.details_into("water:rescue:x", details), "nor one naming nobody")
 
 
 func test_with_its_rescuer_called_away_the_card_says_the_blockage_and_the_safety_net() -> void:
@@ -830,12 +865,14 @@ func test_the_overlay_draws_each_member_and_redraws_only_on_change() -> void:
 	overlay.follow(PackedInt32Array([0, 1]))
 	overlay.set_shown(true)
 	overlay._process(0.0)
-	overlay._process(0.0)
-	assert_equal(overlay.rebuilds, 1, "drawn once")
+	overlay._process(OverlayScript.REDRAW_S)
+	assert_equal(overlay.rebuilds, 1, "drawn once: nothing changed")
 	assert_equal(overlay.label_texts(), PackedStringArray(["Placeholder 0: finding a route"]), "the waiting one's words")
 	space.routes.end_window()
 	space.routes.serve()
 	overlay._process(0.0)
+	assert_equal(overlay.rebuilds, 1, "not looked at again within a refresh")
+	overlay._process(OverlayScript.REDRAW_S)
 	assert_equal(overlay.rebuilds, 2, "redrawn on the change")
 	assert_true(overlay.label_texts().is_empty(), "both under way now")
 
@@ -903,3 +940,85 @@ func test_after_a_step_longer_than_the_budget_the_estimate_rests_as_many_windows
 	assert_equal(steps, estimate.steps_total(), "every step taken")
 	assert_true(windows > 2 * steps, "with rests between: %d windows for %d steps" % [windows, steps])
 	assert_true(estimate.steps_refused >= windows - steps, "each rest a refused window")
+
+
+func test_a_discarded_copy_of_the_network_is_freed() -> void:
+	"""A copy's router keeps the graph it planned through (`use_paths`): the estimate lets go of it after each plan and
+	before making the next copy, so a copy no estimate holds is freed -- never two RefCounted holding each other."""
+	var space := _penned_tee(false)
+	var brain := _walker(space, Vector2(-9.5, 4.5))
+	var estimate := _estimator(space)
+	estimate.set_walker(brain.index, BODY_M, false)
+	estimate.add_trip(Vector2(-9.5, 4.5), Vector2(0.6, 12.4), "into the pen")
+	estimate.propose_open(1)
+	estimate.start(1)
+	estimate.run_all()
+	var first: WeakRef = weakref(estimate._after)
+	assert_not_null(first.get_ref(), "a copy made")
+	estimate.propose_open(1, 2)
+	estimate.start(2)
+	estimate.run_all()
+	assert_null(first.get_ref(), "the old copy freed")
+	var second: WeakRef = weakref(estimate._after)
+	estimate.stop()
+	assert_null(second.get_ref(), "stopped: the copy freed")
+	var dropped := _estimator(space)
+	dropped.set_walker(brain.index, BODY_M, false)
+	dropped.add_trip(Vector2(-9.5, 4.5), Vector2(0.6, 12.4), "into the pen")
+	dropped.propose_open(1)
+	dropped.start(3)
+	dropped.run_all()
+	var third: WeakRef = weakref(dropped._after)
+	dropped = null
+	assert_null(third.get_ref(), "an estimate dropped whole: its copy freed with it")
+
+
+func test_a_route_read_from_a_waypoint_on_is_that_stretch_of_it() -> void:
+	"""The overlay and the notes read a resident's route from the waypoint it is heading to, without slicing it: the
+	same runs as the slice."""
+	var space := _penned_tee(true)
+	var brain := _walker(space, Vector2(-9.5, 4.5))
+	var path := PackedVector2Array()
+	var legs := PackedInt32Array()
+	space.plan_path(brain.index, Vector2(-9.5, 4.5), Vector2(0.6, 12.4), BODY_M, path, legs)
+	var kinds := KindsScript.new()
+	for first: int in [1, 2, path.size() - 1]:
+		assert_equal(kinds.runs_text(space.tunnels, path[first - 1], path, legs, first),
+			kinds.runs_text(space.tunnels, path[first - 1], path.slice(first), legs.slice(first)), "from waypoint %d" % first)
+	var rig: Fixture.Rig = _water._rig()
+	var wet: CastSpaceScript = rig.cast.space()
+	var water := KindsScript.new()
+	water.configure(wet.crossings, CrossingsScript.LINK_ROW0, rig.play.links.link_count)
+	wet.plan_path(1, NECK_WEST, NECK_EAST, 0.22, path, legs, true, true)
+	var wading := 0
+	for first: int in range(1, path.size()):
+		var whole: String = water.runs_text(wet.tunnels, path[first - 1], path, legs, first)
+		assert_equal(whole, water.runs_text(wet.tunnels, path[first - 1], path.slice(first), legs.slice(first)),
+			"round by the ford, from waypoint %d" % first)
+		wading += 1 if whole.contains("wading") else 0
+	assert_true(wading > 0, "some of them wade")
+
+
+func test_a_swimmer_treading_above_one_it_cannot_fetch_is_a_blockage_on_the_card() -> void:
+	"""No diver at all: the mouse is sent to tread above the otter held below; out there, the card says the blockage --
+	no diver with the air free -- and when it will float up, not a time to safety."""
+	var safety: SafetyTest = SafetyTest.new()
+	safety.before_each()
+	var fx: Fixture = safety._fx
+	var rig: Fixture.Rig = fx._rig()
+	fx._swimmer(rig, 1, 840)
+	fx._place(rig, 1, SafetyTest.MOUSE_BY_POND)
+	var task: DiveTaskScript = safety._diver_at_the_pond(rig, 0, SafetyTest.POND_WEST)
+	assert_true(fx._run(rig, func() -> bool: return task.phase == DiveTaskScript.PHASE_SEARCH), "on the bed")
+	rig.play.cramp(PackedInt32Array([0]))
+	var held: TasksScript.VictimTask = rig.play.rescue.victim_task(0)
+	assert_equal([held.responder, held.response], [1, TasksScript.RESPONSE_WATCH], "the mouse, to watch")
+	var mouse: BrainScript = fx._brain(rig, 1)
+	var above := func() -> bool: return mouse.state == BrainScript.State.TASK and (mouse.task as TasksScript.SwimRescue).is_above()
+	assert_true(fx._run(rig, above, 600), "treading above")
+	var card := RescueCardScript.new()
+	card.configure(rig.play.rescue, rig.play.state, rig.cast)
+	var details := RescueCardScript.Details.new()
+	assert_true(card.details_into("water:rescue:0", details), "a rescue")
+	assert_true(details.time.begins_with("Blocked: no diver with the air free"), details.time)
+	safety.after_each()

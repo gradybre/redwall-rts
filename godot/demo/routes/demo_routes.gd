@@ -28,7 +28,11 @@ extends Node
 ##
 ## THE BUDGET. The estimates are worked here, ONE step a frame across all of them, only for what is on screen (the
 ## Water panel shown, the Tunnels panel shown, the Routes layer on with nobody selected), through the cast's routing
-## desk (route_estimator.gd THE BUDGET). The panels' words are refreshed a few times a second on real time.
+## desk (route_estimator.gd THE BUDGET) -- at the END of the frame's routing window (demo_cast.gd `window_tail`), so
+## the residents plan first and a preview takes only what they left. The panels' words are refreshed a few times a
+## second on real time. An estimate is begun again when what it is for changes: the trips, the walker, the proposal,
+## and (through route_estimator.gd STALE) the network, the water's crossings or the weather; a bridge planned or opened
+## changes `_bridge_state` -- never its work in progress, which moves ten times a second.
 
 const EstimatorScript := preload("res://demo/routes/route_estimator.gd")
 const KindsScript := preload("res://demo/routes/route_kinds.gd")
@@ -144,6 +148,7 @@ func configure(cast: DemoCastScript, command: CommandScript, water: WaterplayScr
 	rescue_card.configure(water.rescue, water.state, cast)
 	_build_overlay()
 	water.site_extras = fill_site
+	cast.window_tail = step_one
 	water.panel.action.connect(_on_water_action)
 	tool.ext.project_text = project_text
 	tool.ext.project_link = open_work_projects
@@ -185,7 +190,6 @@ func show_lens(on: bool) -> void:
 
 func _process(delta: float) -> void:
 	"""One estimate step for what is on screen; the layer follows the selection; words a few times a second."""
-	_step_one()
 	if overlay.is_shown() and _command != null and _command.selection_revision() != _selection_seen:
 		_selection_seen = _command.selection_revision()
 		overlay.follow(_command.selected())
@@ -198,14 +202,15 @@ func _process(delta: float) -> void:
 		refresh_lens()
 
 
-func _step_one() -> void:
-	"""ONE step of one estimate a frame (see THE BUDGET), taking turns among those wanted now."""
+func step_one() -> void:
+	"""ONE step of one estimate a frame (see THE BUDGET), taking turns among those wanted now -- one refused (resting,
+	or no room) leaves the frame's step to the next. Run as the cast's `window_tail`: after the residents' plans, in
+	the window they leave."""
 	for n: int in _estimates.size():
 		var k: int = (_turn + n) % _estimates.size()
-		if _wanted(k) and _estimates[k].is_calculating():
+		if _wanted(k) and _estimates[k].is_calculating() and _estimates[k].step(_cast.space().routes):
 			_turn = k + 1
-			if _estimates[k].step(_cast.space().routes):
-				steps += 1
+			steps += 1
 			return
 
 
@@ -263,7 +268,7 @@ func _bridge_benefit(kind: int, members: PackedInt32Array) -> PackedStringArray:
 	_set_bridge_trips(a, b)
 	bridge_estimate.set_walker(who, brain_of(who).radius, true)
 	bridge_estimate.propose_bridge(a, b, scratch.walk_length_m(0))
-	bridge_estimate.start(hash([a, b, kind, who, _trip_ids, _water.bridges.revision]))
+	bridge_estimate.start(hash([a, b, kind, who, _trip_ids, _bridge_state()]))
 	var lines := TextScript.benefit_lines(bridge_estimate, pace_of(who), "carrying, for %s" % name_of(who))
 	lines.insert(lines.size() - 1, TextScript.BRIDGE_WHO + _members_note(members))
 	lines.insert(lines.size() - 1, _cost_line(kind, members))
@@ -329,6 +334,11 @@ func _fill_standing(row: int, members: PackedInt32Array) -> void:
 	_water.panel.set_source(SOURCE_CAPTIONS[_source], SOURCE_TIPS[_source], _source != SOURCE_NONE)
 
 
+func _bridge_state() -> int:
+	"""What of the bridges changes a route (see THE BUDGET): one planned (`layout`), one opened -- not the work."""
+	return _water.bridges.layout * 64 + _water.bridges.phase.count(BridgesScript.PHASE_OPEN)
+
+
 func _open_lines(row: int, members: PackedInt32Array) -> String:
 	"""An open bridge: its route and condition -- who may cross, the walk across, and a work trip's route now."""
 	var bridges: BridgesScript = _water.bridges
@@ -338,7 +348,7 @@ func _open_lines(row: int, members: PackedInt32Array) -> String:
 	_set_bridge_trips(bridges.approach(row, false), bridges.approach(row, true))
 	bridge_estimate.set_walker(who, brain_of(who).radius, true)
 	bridge_estimate.propose_nothing()
-	bridge_estimate.start(hash([row, who, _trip_ids, _water.bridges.revision, -1]))
+	bridge_estimate.start(hash([row, who, _trip_ids, _bridge_state(), -1]))
 	if bridge_estimate.trip_count > 0:
 		var route: String = TextScript.CALCULATING
 		if bridge_estimate.trip_known(0):
@@ -378,7 +388,8 @@ func saw_task_row() -> int:
 
 
 func open_work_task(task_source: int, row: int) -> bool:
-	"""Open the Work screen's task list with that task's row focused (its Go to button). False without a Work screen."""
+	"""Open the Work screen's task list with that task's row focused (its Go to button); whether the row was found and
+	focused (the screen opens either way, unless there is none)."""
 	if _work == null:
 		return false
 	var screen: WorkScreenScript = _work.screen
@@ -388,7 +399,7 @@ func open_work_task(task_source: int, row: int) -> bool:
 		if task_row.task_source == task_source and task_row.task_row == row and task_row.is_inside_tree():
 			task_row.button_of(&"go").grab_focus()
 			return true
-	return true
+	return false
 
 
 func open_work_projects() -> void:
@@ -415,12 +426,16 @@ func project_text() -> String:
 		return _laid_text()
 	var list := PackedInt32Array()
 	_tool.network.job_list_into(list)
-	return "" if list.is_empty() else _dig_text(list[0], list.size())
+	if list.is_empty():
+		dig_estimate.stop()
+		return ""
+	return _dig_text(list[0], list.size())
 
 
 func _laid_text() -> String:
 	"""The piece as laid: its benefit if dug as it is, once the whole-piece check passes (else what the panel says)."""
-	var key: int = hash([_tool.plan.points_u.slice(0, 2 * _tool.plan.count), _tool.plan.level, _tool.plan.link_kind])
+	var key: int = hash([_tool.plan.points_u.slice(0, 2 * _tool.plan.count), _tool.plan.level, _tool.plan.link_kind,
+		_tool.network.revision])
 	if key != _piece_key:
 		_piece_key = key
 		_piece_ok = _tool.laid_piece_reason() == Rules.REFUSE_NONE
@@ -430,7 +445,7 @@ func _laid_text() -> String:
 	dig_estimate.propose_piece(_laid)
 	var a: Vector2 = _tool.plan.point_m(0)
 	var b: Vector2 = _tool.plan.point_m(_tool.plan.count - 1)
-	_set_dig_trips(a, b, key)
+	_set_dig_trips(a, b, key, _tool.plan.starts_at_mouth() and _tool.plan.ends_at_mouth())
 	var lines := PackedStringArray(["If this piece is dug as laid:"])
 	lines.append_array(_dig_benefit())
 	lines.append(_bore_words(Rules.BORE_STANDARD))
@@ -438,43 +453,55 @@ func _laid_text() -> String:
 
 
 func _dig_text(p: int, digs: int) -> String:
-	"""A dig under way: its stages and heading, the next payoff's benefit, who fits it, and its materials."""
+	"""A dig under way: its work left, stages and heading, the next payoff's benefit, who fits it, its materials."""
 	var graph: GraphScript = _tool.network
 	stages.read(graph, p)
-	var lines := PackedStringArray()
-	lines.append("Project: %s — %d%% dug%s" % [_tool.ext.piece_name(p, graph.first_of_piece(p)), graph.piece_percent(p),
-		"" if digs < 2 else " (1 of %d digs)" % digs])
 	var ticks := PackedInt32Array([0, 0])
 	graph.piece_ticks_into(p, ticks)
-	lines.append("Work left: %s at one digger's pace (a crew is quicker)" % CardScript.hours_text(
-		(ticks[1] - ticks[0]) * TICK_USEC))
+	var lines := PackedStringArray([
+		"Project: %s — %d%% dug%s" % [_tool.ext.piece_name(p, graph.first_of_piece(p)), graph.piece_percent(p),
+			"" if digs < 2 else " (1 of %d digs)" % digs],
+		"Work left: %s at one digger's pace (a crew is quicker)" % CardScript.hours_text((ticks[1] - ticks[0]) * TICK_USEC)])
 	for k: int in stages.count():
 		lines.append(stages.stage_line(k))
 	if not stages.heading_line().is_empty():
 		lines.append(stages.heading_line())
-	var next: int = stages.next_milestone()
-	if next >= 0:
-		lines.append("Next payoff: %s — %d%% of the way there" % [StagesScript.GIVES[stages.kinds[next]],
-			stages.percent_to_next(graph)])
-		var start: Vector2 = graph.node_m(graph.node_a[stages.chain[0]])
-		dig_estimate.propose_open(p, stages.upto[next])
-		_set_dig_trips(start, graph.node_m(stages.nodes[next]), hash([p, next, graph.revision]))
-		lines.append_array(_dig_benefit())
+	lines.append_array(_payoff_lines(graph, p))
 	lines.append(_bore_words(graph.bore[stages.chain[0]]))
 	lines.append(DIG_MATERIALS)
 	return "\n".join(lines)
 
 
-func _set_dig_trips(a: Vector2, b: Vector2, key: int) -> void:
-	"""Estimate the dig for one end to the other and the work trips that might use it (work_trips.gd RELEVANT)."""
+func _payoff_lines(graph: GraphScript, p: int) -> PackedStringArray:
+	"""The next stage (`stages`, read): what it opens, how far the dig to it is, and its benefit -- the piece open to it,
+	for one end to the other when both are on the surface, and the work trips near its ends."""
+	var next: int = stages.next_milestone()
+	if next < 0:
+		dig_estimate.stop()
+		return PackedStringArray()
+	var lines := PackedStringArray(["Next payoff: %s — %d%% of the way there" % [StagesScript.GIVES[stages.kinds[next]],
+		stages.percent_to_next(graph)]])
+	var start: int = graph.node_a[stages.chain[0]]
+	var end: int = stages.nodes[next]
+	dig_estimate.propose_open(p, stages.upto[next])
+	_set_dig_trips(graph.node_m(start), graph.node_m(end), hash([p, next, graph.revision]),
+		graph.node_mouth[start] >= 0 and graph.node_mouth[end] >= 0)
+	lines.append_array(_dig_benefit())
+	return lines
+
+
+func _set_dig_trips(a: Vector2, b: Vector2, key: int, ends_on_surface: bool) -> void:
+	"""Estimate the dig for one end to the other -- only when both ends are mouths: an end below has no surface place to
+	walk to -- and the work trips that might use it (work_trips.gd RELEVANT)."""
 	var who: int = _dig_walker()
 	dig_estimate.set_walker(who, brain_of(who).radius, _fits(who, true))
 	dig_estimate.clear_trips()
-	dig_estimate.add_trip(a, b, "one end to the other")
+	if ends_on_surface:
+		dig_estimate.add_trip(a, b, "one end to the other")
 	trips.near_trips_into(a, b, PREVIEW_TRIPS, _trip_ids)
 	for t: int in _trip_ids:
 		dig_estimate.add_trip(trips.trip_from(t), trips.trip_to(t), trips.trip_name(t))
-	dig_estimate.start(hash([key, who, _trip_ids, _water.bridges.revision]))
+	dig_estimate.start(hash([key, who, _trip_ids, _bridge_state()]))
 
 
 func _dig_benefit() -> PackedStringArray:
@@ -540,8 +567,8 @@ func member_note(who: int) -> String:
 		return "%s: %s" % [name_of(who), ReasonsScript.WORDS[why]]
 	if brain.trip_outcome != BrainScript.TRIP_UNDERWAY or brain.path_index >= brain.path.size():
 		return "%s: not on a trip" % name_of(who)
-	return "%s: %s" % [name_of(who), kinds.runs_text(_cast.space().tunnels, brain.position,
-		brain.path.slice(brain.path_index), brain.path_tunnel.slice(brain.path_index))]
+	return "%s: %s" % [name_of(who), kinds.runs_text(_cast.space().tunnels, brain.position, brain.path,
+		brain.path_tunnel, brain.path_index)]
 
 
 func _request_public() -> void:
@@ -557,8 +584,8 @@ func _request_public() -> void:
 		estimate.propose_nothing()
 	public_estimate.set_walker(walker, brain_of(walker).radius, true)
 	shortcut_estimate.set_walker(quick, brain_of(quick).radius, true)
-	public_estimate.start(hash([walker, trips.points, _water.bridges.revision]))
-	shortcut_estimate.start(hash([quick, trips.points, _water.bridges.revision, 1]))
+	public_estimate.start(hash([walker, trips.points, _bridge_state()]))
+	shortcut_estimate.start(hash([quick, trips.points, _bridge_state(), 1]))
 
 
 func public_walker() -> int:

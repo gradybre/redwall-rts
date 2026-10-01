@@ -277,11 +277,13 @@ Review group P (packet P5, ECO-039, ECO-045). `routes/`, wired by `demo_village.
   planner prices without the water has its wading priced as the router would, so before and after are on one footing.
   Nobody is standing about; times are walking only, at the walker's pace (a carrier slower), on the demo calendar; every
   estimate says so and that the movement rules are not final (MOVE-G01–05).
-- **Through the routing desk** (decision 0361): ONE step a frame across all estimates -- the copies, or one trip's one
-  plan -- only when no resident waits and the window can take it, charged to the window; only for what is on screen.
+- **Through the routing desk** (decision 0361): ONE step a frame across all estimates -- the copy, or one trip's one
+  plan -- at the end of the frame's routing window (`cast/demo_cast.gd window_tail`, after the residents' plans), only
+  when no resident waits and the window can take it, charged to the window; only for what is on screen.
   "Before" is the live router's own plan (its warm cache shared); "after" is planned on a copy. After a step longer
   than the budget (one plan is never cut in two), the estimate rests that many windows.
-  The panels say "calculating…" until it is done; a change to the network, the crossings or the weather starts it again.
+  The panels say "calculating…" until it is done; a change to the network, the crossings, the weather, or a bridge
+  planned or opened starts it again (a bridge's work in progress does not).
 - **The Water panel's site**: Build shows only for a kind that can be built now. A kind the stores cannot pay for says
   what is missing ("Plank footbridge: missing 4.7 U planks") with **Saw planks ▸** (the Work screen's saw task when one is
   queued, else the Woods panel -- nothing is ordered) or **Woods: fell or haul logs ▸**. Under it the **benefit**: up to

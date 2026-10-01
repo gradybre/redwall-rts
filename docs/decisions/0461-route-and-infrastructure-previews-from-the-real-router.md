@@ -33,10 +33,14 @@ is in use on any branch or worktree).
    resident waits at the desk and its window can take a plan, and charges its time to the window (`charge(-1, ...)`).
    A plan cannot be cut in two (0361), so after a step longer than the desk's budget the estimate RESTS that many
    windows: its average stays within the budget however long one plan is.
-   The controller (`demo_routes.gd`) steps ONE estimate a frame across all of them, and only those on screen (the Water
-   panel's, the Tunnels panel's, the Routes layer's with nobody selected). A whole estimate is 1 + 2 × trips steps; the
-   panels say "calculating…" until it is done. Stale (the network's revision, the water's crossings or the weather
-   moved): it is worked again from new copies.
+   The controller (`demo_routes.gd`) steps ONE estimate a frame across all of them, only those on screen (the Water
+   panel's, the Tunnels panel's, the Routes layer's with nobody selected), at the END of the frame's routing window
+   (`demo_cast.gd window_tail`, after the residents' serve): residents plan first, a preview takes what they left.
+   A whole estimate is 1 + 2 × trips steps; the panels say "calculating…" until it is done. Stale (the network's revision, the water's crossings or the weather
+   moved): it is worked again from a new copy. A bridge planned or OPENED starts the estimates again (the crew's
+   finish bumps no crossings revision, so the controller keys on the bridges' layout and open count) — never the
+   bridges' `revision`, which a crew's work moves ten times a second. A copy's router keeps the graph it planned
+   through; the estimate lets it go after each plan and before the next copy, or the two would never be freed.
 4. **Bridges as projects** (`bridge_project.gd`, the Water panel). A Build button shows only when its action card
    allows it — "Build appears only when it can commit"; a kind the stores cannot pay for is said ("Plank footbridge:
    missing 4.7 U planks", from the card's own have / need) with a SOURCE button: the saw task on the Work screen when one
@@ -89,7 +93,8 @@ is in use on any branch or worktree).
 
 ## Consequences
 
-- `tunnel_router.gd last_cost_m` and `resident_brain.gd is_stranded` are reads; any change to how the router settles
+- `tunnel_router.gd last_cost_m`, `resident_brain.gd is_stranded` and `rescue_tasks.gd SwimRescue.is_above` are reads,
+  `demo_cast.gd window_tail` a hook at the end of the routing window; any change to how the router settles
   its goal must keep `last_cost_m` its cost. A new crossing row kind (water B1's boats) reads "by water" in the overlay
   until `route_kinds.gd` is told its rows.
 - `underground_graph.gd` columns are copied by reflection (every script variable but objects); a new helper OBJECT the
@@ -103,17 +108,38 @@ is in use on any branch or worktree).
   far bank — and 13.1 ms for a resident's own plan of the same trip). The rest that follows keeps the average within
   the desk's 3.5 ms.
 
+## Review
+
+An independent review (code-reviewer) of the first commit found one CRITICAL, one HIGH and six MEDIUM:
+- CRITICAL: every discarded "after" copy leaked (its router held it: `use_paths` keeps the graph). Fixed:
+  `clear_pairs` on the copy's router after each plan and before a new copy (`_drop_copy`, `stop`); a weakref test.
+- HIGH: the estimate keys included `bridges.revision`, which a crew's work moves ten times a second, so every estimate
+  restarted at every refresh while a bridge was built. Fixed: the layout and open count; live checks run unpaused at
+  4x with the work moving, and that opening restarts it.
+- MEDIUM, all fixed: the overlay allocated per vertex and sliced routes, redrawing on every estimate step (now direct
+  vertices, a start index, a 0.25 s look); a junction's or spur's "one end to the other" walked to a point above a node
+  below (now only when both ends are mouths); the laid piece's validity was cached by its points alone (now with the
+  network's revision); the desk's check could never refuse in the live scene (now the window's tail); a test that could
+  not fail (now the live router's own plan count and the live phases); the note said "no queues" though the mouths'
+  lines are counted (now said). The LOWs: `SwimRescue.is_above` replaces reading the label; the Work link says
+  whether it found the row; a resting estimate leaves the frame's step to the next; posts have their own pool count.
+
 ## Verification
 
-- `test_demo_routes.gd` (26 tests, no scene tree, no staged assets): the estimate equals the live router's cost —
+- `test_demo_routes.gd` (32 tests, no scene tree, no staged assets): the estimate equals the live router's cost —
   a tunnel dug, a Dig-tool plan laid and dug, a bridge built — route leg for leg; the live network untouched; the loaded
   haul walked before and after the bridge (53.9 s against 49.2 s estimated; 8.5 s against 8.1 s); the desk's budget
   (refused when spent or a resident waits, one piece a step, charged, five windows for two trips); restarted when stale;
   a group member by member; the stretch kinds; every hold-up from its real cause; the stages, the heading, the payoff and
-  a stage's own benefit; the trip words; the work places; a bridge's materials; the rescue card, paused and blocked; the
-  overlay redrawn only on change.
-- `test_demo_routes_live.gd` runs `test/live/demo_routes_live.gd` on the real scene at 1280x720 and 1920x1080 (30
-  checks each). The layout and input harnesses pass with the hidden Builds.
+  a stage's own benefit; the trip words; the work places; a bridge's materials; the rescue card, paused and blocked
+  (nobody answering; a swimmer treading above); the overlay redrawn only on change; a discarded copy freed; the rest
+  after a long step.
+- `test_demo_routes_live.gd` runs `test/live/demo_routes_live.gd` on the real scene at 1280x720 and 1920x1080 (35
+  checks each; on placeholders without staged assets too). The layout and input harnesses pass with the hidden Builds.
+- Mutation: 70 mutants, one at a time, each file restored and its hash checked. 67 killed; three survive and are
+  equivalent (a loaded walker that does not fit unloaded is offered no mouths either way; a carrying-free member that
+  fails unloaded fails the same second check; a junction with another piece's planned-only segment cannot be laid — the
+  plan joins only open bores). The first pass's ten survivors each got a test that kills them.
 
 ## Source
 

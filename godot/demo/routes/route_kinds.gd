@@ -71,16 +71,18 @@ static func level_of(graph: GraphScript, code: int) -> int:
 
 
 func kinds_into(graph: GraphScript, from: Vector2, path: PackedVector2Array, legs: PackedInt32Array,
-		kinds: PackedInt32Array, levels: PackedInt32Array) -> void:
-	"""Each waypoint's kind and level (see the header), starting from `from`."""
-	kinds.resize(path.size())
-	levels.resize(path.size())
+		kinds: PackedInt32Array, levels: PackedInt32Array, first: int = 0) -> void:
+	"""Each waypoint's kind and level (see the header) from waypoint `first` on, reached from `from`: entry k is
+	waypoint first + k (no slice of the route is made)."""
+	var count: int = maxi(path.size() - first, 0)
+	kinds.resize(count)
+	levels.resize(count)
 	var at := from
-	for k: int in path.size():
-		var code: int = legs[k] if k < legs.size() else RouterScript.SURFACE_LEG
-		kinds[k] = kind_of(code, at, path[k])
+	for k: int in count:
+		var code: int = legs[first + k] if first + k < legs.size() else RouterScript.SURFACE_LEG
+		kinds[k] = kind_of(code, at, path[first + k])
 		levels[k] = level_of(graph, code)
-		at = path[k]
+		at = path[first + k]
 
 
 static func run_word(kind: int, level: int) -> String:
@@ -90,18 +92,19 @@ static func run_word(kind: int, level: int) -> String:
 	return "underground, between levels" if level == BETWEEN_LEVELS else "underground, level %d" % level
 
 
-func runs_text(graph: GraphScript, from: Vector2, path: PackedVector2Array, legs: PackedInt32Array) -> String:
-	"""The route as its runs: "surface 18 m · wading 6 m · surface 12 m" ("" for no route)."""
+func runs_text(graph: GraphScript, from: Vector2, path: PackedVector2Array, legs: PackedInt32Array,
+		first: int = 0) -> String:
+	"""The route from waypoint `first` on as its runs: "surface 18 m · wading 6 m · surface 12 m" ("" for no route)."""
 	var kinds := PackedInt32Array()
 	var levels := PackedInt32Array()
-	kinds_into(graph, from, path, legs, kinds, levels)
+	kinds_into(graph, from, path, legs, kinds, levels, first)
 	var parts := PackedStringArray()
 	var at := from
 	var run_m: float = 0.0
-	for k: int in path.size():
-		run_m += at.distance_to(path[k])
-		at = path[k]
-		var last: bool = k == path.size() - 1
+	for k: int in kinds.size():
+		run_m += at.distance_to(path[first + k])
+		at = path[first + k]
+		var last: bool = k == kinds.size() - 1
 		if last or kinds[k + 1] != kinds[k] or levels[k + 1] != levels[k]:
 			parts.append("%s %d m" % [run_word(kinds[k], levels[k]), maxi(roundi(run_m), 1)])
 			run_m = 0.0

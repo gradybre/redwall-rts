@@ -274,6 +274,7 @@ func _make_copies() -> void:
 	"""The after network (see BEFORE AND AFTER) with the proposal in it; none without a proposal."""
 	_seen = _now()
 	_copied = true
+	_drop_copy()
 	_after = copy_network(_live) if proposal != PROPOSE_NONE else null
 	_after_hook.withdraw()
 	proposal_ok = true
@@ -288,6 +289,21 @@ func _make_copies() -> void:
 			proposal_ok = _piece >= 0 and _piece < _after.piece_live.size() and _after.piece_live[_piece] == 1
 			if proposal_ok:
 				_open_piece(_after, _piece, _upto)
+
+
+func _drop_copy() -> void:
+	"""Let the old copy go: its router holds it back (`use_paths` keeps the graph it planned on), and two RefCounted
+	holding each other are never freed -- so the router lets go first."""
+	if _after != null:
+		_after.router.clear_pairs()
+	_after = null
+
+
+func stop() -> void:
+	"""Nothing to estimate any more (what it was for is gone): no more steps, and the copy let go."""
+	_next = IDLE
+	_has_job = false
+	_drop_copy()
 
 
 func _open_piece(graph: GraphScript, p: int, upto: int) -> void:
@@ -333,9 +349,12 @@ func plan_cost(graph: GraphScript, hook: CrossingHookScript, from: Vector2, to: 
 	var found: bool = graph.plan(_nav, from, to, body_m, _no_standing, 0, _path, _legs, walker, loaded,
 		hook if use_crossings else null, use_tunnels)
 	_nav.last_found = found_before
-	if not found:
-		return INF
-	return graph.router.last_cost_m() + (0.0 if use_crossings else unpriced_wading_m(graph, hook, from, _path, _legs))
+	var cost: float = INF
+	if found:
+		cost = graph.router.last_cost_m() + (0.0 if use_crossings else unpriced_wading_m(graph, hook, from, _path, _legs))
+	if graph != _live:
+		graph.router.clear_pairs()
+	return cost
 
 
 static func unpriced_wading_m(graph: GraphScript, hook: CrossingHookScript, from: Vector2, path: PackedVector2Array,

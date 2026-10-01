@@ -14,8 +14,10 @@ extends Node3D
 ## not, as a second, fainter ribbon marked optional; and the SWIM LINKS (water_links.gd) as dashed blue bars, labelled
 ## once as optional crossings for swimmers. Nobody is ever sent to swim by it.
 ##
-## REDRAWN ONLY ON CHANGE: each frame a cheap signature of what is drawn (per member its state, waypoint, route size
-## and reason; the public estimate's progress) is compared, and the ribbons are rebuilt only when it moved.
+## REDRAWN ONLY ON CHANGE, AT MOST A FEW TIMES A SECOND: every REDRAW_S (at once after a new subject or switch) a
+## cheap signature of what is drawn (per member its state, waypoint, route size and reason; whether the public estimate
+## is done) is compared, and the ribbons are rebuilt only when it moved -- without slicing a route or making an array
+## per vertex.
 
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
@@ -43,6 +45,8 @@ const LABEL_FONT_SIZE: int = 24
 const LABEL_PIXEL_SIZE: float = 0.00045
 const LABEL_OUTLINE: int = 8
 const LABEL_RENDER_PRIORITY: int = 40
+## How often the signature is looked at (see REDRAWN ONLY ON CHANGE).
+const REDRAW_S: float = 0.25
 const SWIM_LABEL: String = "Swim links: optional shortcuts for swimmers — nobody is made to swim"
 
 var kinds: KindsScript = KindsScript.new()
@@ -73,6 +77,8 @@ var _kinds: PackedInt32Array = PackedInt32Array()
 var _levels: PackedInt32Array = PackedInt32Array()
 var _where: ReasonsScript.Where = ReasonsScript.Where.new()
 var _used_labels: int = 0
+var _used_posts: int = 0
+var _since: float = 0.0
 
 
 func configure(cast: DemoCastScript, graph: GraphScript, route_kinds: KindsScript) -> void:
@@ -166,10 +172,14 @@ func follow(selected: PackedInt32Array) -> void:
 		_signature = 0
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	"""Rebuild the ribbons when what they show moved (see REDRAWN ONLY ON CHANGE)."""
 	if not _shown or _cast == null:
 		return
+	_since += delta
+	if _signature != 0 and _since < REDRAW_S:
+		return
+	_since = 0.0
 	var now: int = signature()
 	if now == _signature:
 		return
@@ -186,9 +196,9 @@ func signature() -> int:
 		h = h * 31 + brain.state * 7 + brain.path_index * 131 + brain.path.size() * 8191 + why * 524287
 		h = h * 31 + roundi(_where.at.x * 10.0) * 3 + roundi(_where.at.y * 10.0) * 5 + brain.trip_outcome
 	if members.is_empty() and public_estimate != null:
-		h = h * 31 + public_estimate.plans_run + public_estimate.restarts * 1009
+		h = h * 31 + int(public_estimate.is_done()) + public_estimate.restarts * 1009
 		if shortcut_estimate != null:
-			h = h * 31 + shortcut_estimate.plans_run + shortcut_estimate.restarts * 1009
+			h = h * 31 + int(shortcut_estimate.is_done()) + shortcut_estimate.restarts * 1009
 	return h if h != 0 else 1
 
 
@@ -197,6 +207,7 @@ func redraw() -> void:
 	rebuilds += 1
 	_mesh.clear_surfaces()
 	_used_labels = 0
+	_used_posts = 0
 	for post: MeshInstance3D in _posts:
 		post.visible = false
 	_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -219,9 +230,7 @@ func _draw_member(who: int, k: int) -> bool:
 	var why: int = ReasonsScript.diagnose(brain, _graph, _where)
 	var drew: bool = false
 	if brain.trip_outcome == BrainScript.TRIP_UNDERWAY and brain.path_index < brain.path.size():
-		var rest := brain.path.slice(brain.path_index)
-		var legs := brain.path_tunnel.slice(brain.path_index)
-		_ribbon_route(brain.position, rest, legs, ROUTE_WIDTH_M, 1.0)
+		_ribbon_route(brain.position, brain.path, brain.path_tunnel, brain.path_index, ROUTE_WIDTH_M, 1.0)
 		drew = true
 	if why != ReasonsScript.NONE and k < MAX_MARKS:
 		_mark(_where.at, "%s: %s" % [name_of(who), ReasonsScript.WORDS[why]], ReasonsScript.WAITS[why])
@@ -237,14 +246,14 @@ func _draw_public() -> bool:
 	for k: int in public_estimate.trip_count:
 		if public_estimate.before_known[k] == 0 or public_estimate.before_paths[k].is_empty():
 			continue
-		_ribbon_route(public_estimate.trip_from[k], public_estimate.before_paths[k], public_estimate.before_legs[k],
+		_ribbon_route(public_estimate.trip_from[k], public_estimate.before_paths[k], public_estimate.before_legs[k], 0,
 			PUBLIC_WIDTH_M, 0.85)
 		drew = true
 		if public_label.is_valid() and _used_labels < _labels.size():
 			_place_label(public_estimate.trip_to[k], String(public_label.call(k)), PUBLIC_COLOUR)
 		if shortcut_estimate != null and public_shortcut.is_valid() and bool(public_shortcut.call(k)):
 			_ribbon_route(shortcut_estimate.trip_from[k], shortcut_estimate.before_paths[k],
-				shortcut_estimate.before_legs[k], PUBLIC_WIDTH_M * 0.7, 0.6)
+				shortcut_estimate.before_legs[k], 0, PUBLIC_WIDTH_M * 0.7, 0.6)
 	return _draw_swim_links() or drew
 
 
@@ -260,20 +269,23 @@ func _draw_swim_links() -> bool:
 	return true
 
 
-func _ribbon_route(from: Vector2, path: PackedVector2Array, legs: PackedInt32Array, width: float, alpha: float) -> void:
-	"""A route's stretches as ribbons coloured by kind; underground dashed, its level labelled where it goes below."""
-	kinds.kinds_into(_graph, from, path, legs, _kinds, _levels)
+func _ribbon_route(from: Vector2, path: PackedVector2Array, legs: PackedInt32Array, first: int, width: float,
+		alpha: float) -> void:
+	"""A route's stretches from waypoint `first` on as ribbons coloured by kind; underground dashed, its level labelled
+	where it goes below."""
+	kinds.kinds_into(_graph, from, path, legs, _kinds, _levels, first)
 	var at := from
-	for k: int in path.size():
+	for k: int in _kinds.size():
+		var to: Vector2 = path[first + k]
 		var colour: Color = KIND_COLOURS[_kinds[k]]
 		colour.a = alpha
 		if _kinds[k] == KindsScript.KIND_UNDERGROUND:
-			_dashed(at, path[k], width, colour)
+			_dashed(at, to, width, colour)
 			if (k == 0 or _kinds[k - 1] != KindsScript.KIND_UNDERGROUND) and _used_labels < _labels.size():
 				_place_label(at, "below, %s" % KindsScript.run_word(_kinds[k], _levels[k]).trim_prefix("underground, "), colour)
 		else:
-			_strip(at, path[k], width, colour)
-		at = path[k]
+			_strip(at, to, width, colour)
+		at = to
 
 
 func _strip(a: Vector2, b: Vector2, width: float, colour: Color) -> void:
@@ -298,16 +310,28 @@ func _dashed(a: Vector2, b: Vector2, width: float, colour: Color) -> void:
 
 
 func _quad(p0: Vector3, p1: Vector3, p2: Vector3, p3: Vector3, colour: Color) -> void:
-	"""Two triangles."""
-	for p: Vector3 in [p0, p1, p2, p0, p2, p3]:
-		_mesh.surface_set_color(colour)
-		_mesh.surface_add_vertex(p)
+	"""Two triangles (p0 p1 p2, p0 p2 p3), each vertex written as it is."""
+	_vertex(p0, colour)
+	_vertex(p1, colour)
+	_vertex(p2, colour)
+	_vertex(p0, colour)
+	_vertex(p2, colour)
+	_vertex(p3, colour)
+
+
+func _vertex(p: Vector3, colour: Color) -> void:
+	"""One coloured vertex."""
+	_mesh.surface_set_color(colour)
+	_mesh.surface_add_vertex(p)
 
 
 func _mark(at: Vector2, words: String, waits: bool) -> void:
 	"""A post and its words where a route is held up."""
 	var colour: Color = WAIT_COLOUR if waits else BLOCK_COLOUR
-	var post: MeshInstance3D = _posts[mini(_used_labels, _posts.size() - 1)]
+	if _used_posts >= _posts.size():
+		return
+	var post: MeshInstance3D = _posts[_used_posts]
+	_used_posts += 1
 	post.position = Vector3(at.x, ground_y(at) + 0.7, at.y)
 	(post.material_override as StandardMaterial3D).albedo_color = colour
 	post.visible = true

@@ -19,8 +19,9 @@ const CalendarScript := preload("res://demo/demo_calendar.gd")
 
 const CALCULATING: String = "calculating…"
 const NO_WAY: String = "no way"
-const ESTIMATE_NOTE: String = ("Estimate: the demo's routing at today's weather — walking time only, no queues, "
-	+ "turns or anyone in the way. Movement rules are not final (MOVE-G01–05).")
+const NO_TRIPS: String = "no work trip passes near it yet"
+const ESTIMATE_NOTE: String = ("Estimate: the demo's routing at today's weather and today's lines at the tunnel mouths — "
+	+ "walking time only, no turns or anyone in the way. Movement rules are not final (MOVE-G01–05).")
 const BRIDGE_WHO: String = "Who can use it: anyone, carrying or not — a deck needs no swimming"
 const FITS: String = "fits, carrying too"
 const FITS_UNLOADED: String = "fits, but not with a load (load too wide)"
@@ -75,6 +76,8 @@ static func benefit_lines(estimate: EstimatorScript, pace_m_s: float, who: Strin
 	lines.append("Benefit (estimate, %s)%s" % [who, "" if state.is_empty() else ": " + state])
 	for k: int in estimate.trip_count:
 		lines.append("  " + trip_line(estimate, k, pace_m_s))
+	if estimate.trip_count == 0:
+		lines.append("  " + NO_TRIPS)
 	if estimate.proposal != EstimatorScript.PROPOSE_NONE and not estimate.proposal_ok:
 		lines.append("  The network has no room to take this piece as laid")
 	lines.append(ESTIMATE_NOTE)

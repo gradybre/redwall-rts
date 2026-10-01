@@ -133,7 +133,7 @@ func _swim_into(rescuer: BrainScript, swim: Tasks.SwimRescue, task: Tasks.Victim
 	var victim: Vector2 = swim.victim.position
 	var towing: bool = rescuer.state == BrainScript.State.TASK and swim.phase >= Tasks.SwimRescue.PHASE_TOW
 	out.landing = swim.landing_land if towing else _rescue.tow_landing(victim, roundi(tow * 1000.0))[0]
-	if rescuer.state == BrainScript.State.TASK and swim.label() != Tasks.SwimRescue.WORDS[swim.phase]:
+	if rescuer.state == BrainScript.State.TASK and swim.is_above():
 		out.time = WATCH_BLOCK % ceili(_air_s(swim))
 		return
 	if towing:

@@ -193,11 +193,7 @@ func _bridge_lifecycle() -> void:
 	_check("bridge: the Work screen opened on its tasks", screen.visible)
 	await _capture("routes_bridge_task")
 	screen.call(&"close")
-	var bridges: Object = water.get("bridges")
-	var row: int = _bridge_row(bridges)
-	for stage: int in 3:
-		bridges.call(&"add_work", row, int(bridges.call(&"stage_left_wu", row, stage)))
-	water.get("crossings").call(&"bump")
+	await _estimate_while_building(water, panel)
 	water.call(&"refresh_panel")
 	await _frames(SETTLE_FRAMES)
 	project = panel.call(&"line", &"project")
@@ -218,6 +214,42 @@ func _wide_view(at: Vector3, distance: float) -> void:
 	rig.set("_target_distance", distance)
 	rig.call(&"centre_on", at)
 	rig.call(&"snap")
+
+
+func _estimate_while_building(water: Node, panel: CanvasLayer) -> void:
+	"""Unpaused at 4x while the bridge is built: the third site's benefit (the second's footings are blocked) still
+	finishes; the bridge's work (which moves the bridges' revision ten times a second) does not start it again, its
+	opening does -- the crew's finish bumps no crossings revision, so the controller's own key must (review H1). Leaves
+	the bridge open."""
+	water.call(&"select_candidate", 2)
+	water.call(&"refresh_panel")
+	_manager().call(&"resume_game")
+	_manager().call(&"set_speed", 4)
+	var took: int = await _until(func() -> bool:
+		water.call(&"refresh_panel")
+		return not String(panel.call(&"line", &"routes")).contains(TextScript.CALCULATING), 2 * ESTIMATE_FRAMES)
+	_manager().call(&"set_speed", 1)
+	_manager().call(&"pause_game")
+	var benefit: String = panel.call(&"line", &"routes")
+	_check("bridge: estimates finish while a bridge is built", took >= 0 and benefit.contains("far bank"), "%d frames: %s" % [took, benefit])
+	var estimate: Object = _routes().get("bridge_estimate")
+	var bridges: Object = water.get("bridges")
+	var row: int = _bridge_row(bridges)
+	var restarts: int = int(estimate.get("restarts"))
+	for k: int in 6:
+		bridges.call(&"add_work", row, 1)
+		water.call(&"refresh_panel")
+		await _frames(1)
+	_check("bridge: its work does not start an estimate again", int(estimate.get("restarts")) == restarts,
+		"%d restarts" % (int(estimate.get("restarts")) - restarts))
+	for stage: int in 3:
+		bridges.call(&"add_work", row, int(bridges.call(&"stage_left_wu", row, stage)))
+	water.call(&"refresh_panel")
+	_check("bridge: its opening does", int(estimate.get("restarts")) == restarts + 1 and bool(bridges.call(&"is_open", row)),
+		"%d restarts" % (int(estimate.get("restarts")) - restarts))
+	water.call(&"select_candidate", 0)
+	water.call(&"refresh_panel")
+	await _frames(SETTLE_FRAMES)
 
 
 func _reveal(panel: CanvasLayer, control: Control) -> void:
@@ -251,7 +283,7 @@ func _routes_public() -> void:
 	var steps: int = int(routes.get("steps"))
 	var took: int = await _until(func() -> bool: return routes.public_estimate.is_done() and routes.shortcut_estimate.is_done(), 4 * ESTIMATE_FRAMES)
 	var stepped: int = int(routes.get("steps")) - steps
-	await _frames(SETTLE_FRAMES)
+	await _until(func() -> bool: return routes.overlay.label_texts().size() >= 6, 60)
 	var labels: PackedStringArray = routes.overlay.label_texts()
 	_check("layer: the public ways worked", took >= 0, "%d frames" % took)
 	_check("layer: one estimate step a frame across both", stepped <= took + 1, "%d steps in %d frames" % [stepped, took])
@@ -335,7 +367,7 @@ func _rescue_card() -> void:
 	same while paused."""
 	var water: Node = _water()
 	var who: int = _swimmer()
-	_check("rescue: a swimmer in the village", who >= 0)
+	_check("rescue: a swimmer to cramp (made one on placeholders)", who >= 0)
 	if who < 0:
 		return
 	var brain: Object = water.call(&"brain_of", who)
@@ -358,17 +390,26 @@ func _rescue_card() -> void:
 	_check("rescue: the card's phase and time or blockage", details.split(" · ").size() >= 2, details)
 	_check("rescue: Victim, Responder or Landing to go to", targets.size() >= 2 and targets[0].begins_with("Victim"), str(targets))
 	await _capture("routes_rescue_card")
+	_command().call(&"clear_selection")
 	_check("rescue: Victim selects the victim", bool(cards.call(&"go_to_target", 0)) and _command().call(&"selected") == PackedInt32Array([who]))
+	var responder: int = int(water.get("rescue").call(&"victim_task", who).get("responder"))
+	_check("rescue: Responder selects the responder", bool(cards.call(&"go_to_target", 1)) and _command().call(&"selected") == PackedInt32Array([responder]),
+		"responder %d" % responder)
 	await _frames(30)
 	cards.call(&"refresh")
 	_check("rescue: the same while paused", cards.call(&"details_text") == details, cards.call(&"details_text"))
 
 
 func _swimmer() -> int:
-	"""The village's first resident who swims (-1: none)."""
+	"""The village's first resident who swims -- on placeholders (no staged assets, nobody swims) resident 0 is made a
+	0.60 m/s swimmer, as the water suite's rig does (-1: no resident at all)."""
 	var state: Object = _water().get("state")
-	var count: int = int(_village.get("_cast").call(&"actor_count"))
-	for who: int in count:
-		if int((state.get("swim_mm_s") as PackedInt32Array)[who]) > 0:
+	var speeds: PackedInt32Array = state.get("swim_mm_s")
+	for who: int in speeds.size():
+		if speeds[who] > 0:
 			return who
-	return -1
+	if speeds.is_empty():
+		return -1
+	speeds[0] = 600
+	state.set("swim_mm_s", speeds)
+	return 0

@@ -173,6 +173,8 @@ const SoundScript := preload("res://demo/sound/sound_director.gd")
 const DemoWorkScript := preload("res://demo/work/demo_work.gd")
 const WeirViewScript := preload("res://demo/water/weir_gate_view.gd")
 const SongsScript := preload("res://demo/songs/demo_songs.gd")
+const RoutesScript := preload("res://demo/routes/demo_routes.gd")
+const RescueCardScript := preload("res://demo/routes/rescue_card.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -239,6 +241,9 @@ var _jump: NewsJumpScript = NewsJumpScript.new()
 var _work: DemoWorkScript = null
 var _weir_view: WeirViewScript = null
 var _songs: SongsScript = null
+## The route and infrastructure previews (decision 0461) and their map layer's row.
+var _routes: RoutesScript = null
+var _routes_lens: int = -1
 
 
 func _ready() -> void:
@@ -268,6 +273,7 @@ func _ready() -> void:
 	_build_waterplay()
 	_build_shared_ui()
 	_build_work()
+	_build_routes()
 	_build_sound()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
@@ -359,6 +365,9 @@ func _build_farm(manifest: Dictionary) -> void:
 		WaterOverlayScript.DIVE_COLOUR, WaterOverlayScript.FORD_COLOUR, WaterOverlayScript.BRIDGE_COLOUR,
 		WaterOverlayScript.LINK_COLOUR, WaterOverlayScript.LANDING_COLOUR]), PackedStringArray(["wade", "swim",
 		"dive", "ford", "bridge site", "swim link", "landing"]))
+	# The Routes layer beside the water's, both "Getting there" (the previews it shows are built later: _show_routes).
+	_routes_lens = _farm.add_overlay("Getting there", "Routes", RoutesScript.QUESTION, _show_routes)
+	_farm.lenses.set_legend(_routes_lens, RoutesScript.legend_swatches(), RoutesScript.legend_words())
 
 
 func _build_weir_view() -> void:
@@ -479,6 +488,30 @@ func _build_work() -> void:
 	command.set_queue_handler(_work.queue_at)
 	_work.unlock_jobs_command(_shell())
 	_work.screen.close_requested.connect(_work.screen.close)
+
+
+func _build_routes() -> void:
+	"""The route and infrastructure previews (demo/routes/, decision 0461): the Water panel's bridge benefit and project
+	lines, the Tunnels panel's project, the Routes layer, and the rescue's details on the incident card."""
+	_routes = RoutesScript.new()
+	add_child(_routes)
+	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
+	_routes.configure(_cast as DemoCastScript, _command as DemoCommandScript, _waterplay, tool, _work, _forestry.crew.jobs,
+		_zone.show_panel.bind(DetailZoneScript.PANEL_WOODS))
+	_farm.lenses.set_subject(_routes_lens, _routes.subject)
+	_cards.add_details(RescueCardScript.KEY_PREFIX, _routes.rescue_card.card_into)
+	_cards.set_centre((_camera as DemoCameraScript).centre_on)
+
+
+func routes() -> RoutesScript:
+	"""The route and infrastructure previews (demo/routes/demo_routes.gd)."""
+	return _routes
+
+
+func _show_routes(on: bool) -> void:
+	"""The Routes layer's switch (built before the previews it shows: the picker lists it beside the water's)."""
+	if _routes != null:
+		_routes.show_lens(on)
 
 
 func work_jump(kind: int, id: int, point: Vector2) -> bool:

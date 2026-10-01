@@ -242,6 +242,7 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
 | Growing: Ripeness | Which beds are ready to harvest? | growing, ripe, past its best or lost, empty |
 | Growing: Water service | Which beds does the weir's garden leat water? | not served, dry (leat empty), normal, wet (decision 0441) |
 | Getting there: Water range | Where can they wade, swim, dive or cross? | wade, swim, dive, ford, bridge site, swim link, landing |
+| Getting there: Routes | How do they get there, and what holds them up? | surface, wading, underground, bridge, swimming (optional), the posts (waiting, blocked); public ways never swim (decision 0461) |
 | Woods: Zones and trees | Which trees may be felled, which must stay? | forestry and conservation zones; mature, young, stump, cleared |
 | Underground: Tunnels | What lies under the village? | the U view's cut (U switches it too) |
 
@@ -249,7 +250,7 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
   there: Water range ▾", or "Map layer: off ▾"); the button unfolds the list of layers, one button each, its
   question as the tooltip. A pick shows that layer alone and folds the list; picking the shown one again, or
   **Off**, shows none. Under the header: the question, the subject, what they can do there, and the legend.
-- **V** steps the same layer: off, moisture, ripeness, water service, water range, woods, off. **U** switches the underground
+- **V** steps the same layer: off, moisture, ripeness, water service, water range, routes, woods, off. **U** switches the underground
   view, and the picker follows it: the Underground layer is then the shown one (the others switch off); V from
   it goes to moisture and back to the surface.
 - **Whose water range** (`waterplay/water_range.gd`): nobody selected, the 1.0 m mouse anchor ("Water range
@@ -265,6 +266,52 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
   pushes the news strip left), else right of the minimap. It is clear of the minimap, the news strip, the
   command strip, the party panel and the right column; where its slot is short, its list and card scroll under
   its header (decision 0391).
+
+## Routes and infrastructure previews (decision 0461)
+
+Review group P (packet P5, ECO-039, ECO-045). `routes/`, wired by `demo_village.gd _build_routes`:
+
+- **Estimates from the real router** (`routes/route_estimator.gd`): a trip is planned as a resident's own (tunnels it fits
+  with its load, the water's crossings when it offers some) -- "before" on the live network, "after" on a COPY of it with
+  the proposal in it (a dig's segments open, the Dig tool's plan laid and open, or a bridge offered as an open one is,
+  `routes/preview_crossings.gd`) -- and costed by the router itself (`tunnel_router.gd last_cost_m`); a route the live
+  planner prices without the water has its wading priced as the router would, so before and after are on one footing.
+  Nobody is standing about; times are walking only, at the walker's pace (a carrier slower), on the demo calendar; every
+  estimate says so and that the movement rules are not final (MOVE-G01–05).
+- **Through the routing desk** (decision 0361): ONE step a frame across all estimates -- the copy, or one trip's one
+  plan -- at the end of the frame's routing window (`cast/demo_cast.gd window_tail`, after the residents' plans), only
+  when no resident waits and the window can take it, charged to the window; only for what is on screen.
+  "Before" is the live router's own plan (its warm cache shared); "after" is planned on a copy. After a step longer
+  than the budget (one plan is never cut in two), the estimate rests that many windows.
+  The panels say "calculating…" until it is done; a change to the network, the crossings, the weather, or a bridge
+  planned or opened starts it again (a bridge's work in progress does not).
+- **The Water panel's site**: Build shows only for a kind that can be built now. A kind the stores cannot pay for says
+  what is missing ("Plank footbridge: missing 4.7 U planks") with **Saw planks ▸** (the Work screen's saw task when one is
+  queued, else the Woods panel -- nothing is ordered) or **Woods: fell or haul logs ▸**. Under it the **benefit**: up to
+  three work trips that cross the water near the site, now and after ("the hall to the far bank by the mill: now about
+  3.8 game hours, after about 3.3 game hours (14% quicker)"), who can use it, its cost from the Build card. A planned
+  bridge: its materials (paid when planned: nothing missing) reserved at their source, being carried, or delivered at the
+  site; its stages; its builder; **Bridge task ▸** on the Work screen. An open bridge: its route across, its condition and
+  the route a work trip takes now -- no construction controls.
+- **The Tunnels panel's project**: the piece laid in the Dig tool, once it may be dug -- its benefit if dug; else the
+  first dig in the job list -- its **stages** (`routes/dig_stages.gd`, ECO-045: a junction where it meets another dug
+  bore, then a connection or a spur), a **dead-end heading** said apart from a finished stage, the **next payoff** with
+  how far the dig to it is and its benefit (the piece open to that stage), who fits the bore (by body; a group member by
+  member), and that digging takes no materials. **Work ▸** opens the Work screen's projects.
+- **The Routes layer** (`routes/route_overlay.gd`): the selected residents' routes, each its own, coloured by stretch
+  (`routes/route_kinds.gd`: surface, wading, underground dashed with its level, bridge, swimming), and a post with the
+  words where one is held up (`routes/route_reasons.gd`, from the real cause): "finding a route", "waiting for mouth",
+  "no safe exit", "closed by flood", "closed by a roof fall", "load too wide", "too big for the bore", "can't find a way
+  there", "gave up". The picker's notes give each member's stretches or hold-up. With nobody selected (ECO-039): each
+  work district's **public way** from the square for the public walker (the widest body, carrying -- so never swimming),
+  labelled with its time; a narrow body's tunnel **shortcut** beside it where there is one, marked optional; and the swim
+  links drawn as what they are -- optional crossings for swimmers (a swimmer's whole trip is not estimated for the layer:
+  a plan offered the swim links costs a dozen surface plans).
+- **The rescue card** (`routes/rescue_card.gd`): each rescue's incident card adds its phase, an approximate time to
+  safety or the blockage, and **Victim ▸ / Responder ▸ / Landing ▸** (select and centre; `ui/demo_incident_cards.gd`
+  DETAILS), the same while paused.
+- Checked on the real scene by `test/live/demo_routes_live.gd` (`test_demo_routes_live.gd`), the rest by
+  `test_demo_routes.gd`.
 
 ## Action cards: what a button will do, and who will do it (decision 0332)
 
@@ -387,7 +434,7 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
 | (any camera move) | The eye never sits inside a tree crown, the crowns between it and what it looks at are thinned, and a selected resident shows through foliage and roofs (see The camera and the trees) |
 | Left click a spoil heap | Select it: a brass ring, and the party panel says how much earth it holds |
 | Right click a spoil heap (or C with it selected) | The selected residents who can carry dig it out and haul its earth to the village stores (Clear; see Spoil heaps) |
-| V | Steps the one shown map layer (see Map layers): Growing: soil moisture, Growing: ripeness, Getting there: water range (wade / swim / dive, fords, bridge spans, landings, fish stocks), Woods: zones and trees, off -- the same layer the Map layer picker shows |
+| V | Steps the one shown map layer (see Map layers): Growing: soil moisture, Growing: ripeness, Growing: water service, Getting there: water range (wade / swim / dive, fords, bridge spans, landings, fish stocks), Getting there: routes, Woods: zones and trees, off -- the same layer the Map layer picker shows |
 
 The "Demo party" panel in the HUD's left column lists the selection, and **never hides** (decision 0391,
 review F20/F31). Its header says how many are selected; a summary line says who and what -- one resident's name
@@ -814,7 +861,7 @@ opens the Pantry (decision 0292), whose headline is the pantry total:
 | Drain | A wet or waterlogged bed: a resident digs a ditch round it (6 WU); its moisture drops at once to the top of its crop's band, and the ditch sheds up to 1000 a day for good (decision 0205) |
 | Raise / Bank | A resident fetches 2 U of tunnel earth from the nearest spoil heap or the stores that hold it and carries it to the bed: a raised bed drains and is warmer at night; a banked bed keeps half of each dry day's loss. Earth adds no fertility. Cancelled (or unable to reach or work the bed) with the earth in hand, the resident carries it back to where it came from (decision 0401) |
 | Rest | Rest the bed fallow (+0.5 fertility points a day; nothing is sown) |
-| V | Map layer: moisture, then ripeness, then the water range, then the woods, then off -- or pick one on the Map layer picker (see Map layers) |
+| V | Map layer: moisture, then ripeness, then the water service, then the water range, then the routes, then the woods, then off -- or pick one on the Map layer picker (see Map layers) |
 | K / Food | The Pantry |
 | G / Planner (G) (bed panel) | The seasonal planner (below) |
 | Compare… (bed panel) | Every bed side by side, sortable, ringed and ranked on the map (below) |
@@ -1150,7 +1197,8 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
   difficulty (the rescue incident's own line) and the selected residents' swimming (two, then "n more selected"
   opening the list). Below, scrolling: **Swimmers** -- how many are in the water, the water today, Dive and Swim
   shortcuts, and **All residents**, folded until opened, a row per resident that selects it and centres the
-  camera on it -- then **Bridges** -- the site, each kind's cost with the two Build buttons right under them,
+  camera on it -- then **Bridges** -- the site, each kind's cost with the Build buttons right under them (each shown
+  only when it can be built now, the missing material and its source button below them: decision 0461),
   ◀ Site / Site ▶ / Span two banks…, the bridges, the stores and the news. At 1280x720 Dive, Swim shortcuts and
   both Builds are in view without scrolling; every button is at least 32 px tall, every line at least 14 px. The
   pinned alert shows up to four lines (all of it in its tooltip), and where the pinned selection would squeeze the
@@ -1312,6 +1360,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `kitchen/` | The meal loop: the dishes and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |
+| `routes/` | Route and infrastructure previews (decision 0461): the estimate on copies of the network through the routing desk, the proposal's crossing, the stretches and hold-ups, the work places, a dig's stages, a bridge's project words, the Routes map layer and its subject, the rescue card's details, and the controller over the Water and Tunnels panels |
 | `work/` | The work board over every job owner (one adapter each), the claim, the named crews and presets, the order lists' entries, Shift+right-click's queue and the Work screen (decision 0411) |
 | `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens; then the underground view drawn once |
 | `demo_layers.gd` | The four render layers every drawn node is on, and the plane each view picks on (decision 0206) |

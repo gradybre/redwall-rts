@@ -15,8 +15,11 @@ extends CanvasLayer
 ##   "All residents", FOLDED by default -- a row per resident that selects it and centres the camera on it
 ##   (`resident_picked`). Healthy residents on land never stand between the player and an action.
 ##   BRIDGES: the site chosen, its span, each kind's cost and, directly under the two, their Build buttons (each
-##   one's tooltip is its ACTION CARD, decision 0332, `set_card`); then ◀ / ▶ / Span two banks… to choose another
-##   site, every bridge planned or open, the village stores and the water's latest news.
+##   one's tooltip is its ACTION CARD, decision 0332, `set_card`) -- shown only for a kind that can be built now
+##   (decision 0461: "Build appears only when it can commit"); then the PROJECT lines (what is missing and the source
+##   button that leads to the saw or haul that supplies it; a planned bridge's materials delivered or reserved; an open
+##   one's route and condition) and the BENEFIT estimate (demo/routes/, `show_routes`); then ◀ / ▶ / Span two banks…
+##   to choose another site, every bridge planned or open, the village stores and the water's latest news.
 ## Buttons emit `action(name)` (ACTION_*); nothing here decides anything. Text is at least 14 px (UI §2.1)
 ## and every button at least 32 px tall (UX-T03); a caption cut by the column ends in an ellipsis and is whole
 ## in its tooltip.
@@ -43,9 +46,11 @@ const ACTION_BUILD_LOG: StringName = &"build_log"
 const ACTION_DIVE: StringName = &"dive"
 const ACTION_CONSENT: StringName = &"consent"
 const ACTION_CRAMP: StringName = &"cramp"
+## The project's source button (decision 0461): its caption is set with the link (`set_source`).
+const ACTION_SOURCE: StringName = &"source"
 const BUTTON_TEXT: Dictionary = {
 	&"prev_site": "◀ Site", &"next_site": "Site ▶", &"span_tool": "Span two banks…",
-	&"build_plank": "Build footbridge", &"build_log": "Build log bridge",
+	&"build_plank": "Build footbridge", &"build_log": "Build log bridge", &"source": "Source ▸",
 	&"dive": "Dive in the pond", &"consent": "Swim shortcuts: on",
 }
 ## What a button does, where its action card does not say it (decision 0391: every action has a hover text).
@@ -199,6 +204,11 @@ func _build_bridges() -> void:
 	_add_line(_column, &"plank_cost", SMALL_PX, Palette.INK, null)
 	_add_line(_column, &"log_cost", SMALL_PX, Palette.INK, null)
 	_column.add_child(_row(BUILD_ACTIONS))
+	_add_line(_column, &"project", SMALL_PX, Palette.INK, null)
+	var source := _row([ACTION_SOURCE] as Array[StringName])
+	source.visible = false
+	_column.add_child(source)
+	_add_line(_column, &"routes", SMALL_PX, Palette.UMBER, null)
 	_column.add_child(_row(NAV_ACTIONS))
 	_add_line(_column, &"bridges", SMALL_PX, Palette.UMBER, null)
 	_add_line(_column, &"stores", SMALL_PX, Palette.INK, null)
@@ -285,7 +295,8 @@ func button(key: StringName) -> Button:
 
 
 func line(key: StringName) -> String:
-	"""A line's text as given: conditions, alert, swimmers_title, swimmers, site_title, site, bridges, stores or log."""
+	"""A line's text as given: conditions, alert, swimmers_title, swimmers, site_title, site, project, routes, bridges,
+	stores or log."""
 	return String(_texts.get(key, ""))
 
 
@@ -426,6 +437,8 @@ func show_site(title: String, text: String, enabled: Dictionary) -> void:
 	_show_label(&"log_cost", log)
 	for key: StringName in SITE_ACTIONS:
 		(_buttons[key] as Button).disabled = not bool(enabled.get(key, true))
+	for key: StringName in BUILD_ACTIONS:
+		(_buttons[key] as Button).visible = bool(enabled.get(key, true))
 
 
 func _show_label(key: StringName, text: String) -> void:
@@ -444,6 +457,24 @@ func set_card(key: StringName, card_text: String, enabled: bool) -> void:
 	if b.tooltip_text != card_text:
 		b.tooltip_text = card_text
 	b.disabled = not enabled
+
+
+func show_routes(project: String, benefit: String) -> void:
+	"""The site's project lines (missing material, a planned bridge's materials, an open one's route and condition) and
+	its benefit estimate (decision 0461), each hidden when empty."""
+	_texts[&"project"] = project
+	_texts[&"routes"] = benefit
+	_show_label(&"project", project)
+	_show_label(&"routes", benefit)
+
+
+func set_source(caption: String, tip: String, shown: bool) -> void:
+	"""The project's source button: the saw or haul that supplies what is missing, or the bridge's own task."""
+	var b := _buttons[ACTION_SOURCE] as Button
+	b.get_parent().visible = shown
+	if b.text != caption:
+		b.text = caption
+	b.tooltip_text = tip
 
 
 func show_status(bridges: String, stores: String, log: String) -> void:

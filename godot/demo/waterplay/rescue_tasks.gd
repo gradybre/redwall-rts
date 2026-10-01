@@ -275,6 +275,10 @@ class SwimRescue extends "res://demo/tunnel/tunnel_task.gd":
 		"""The water's rescue is never interrupted by bedtime (decision 0210)."""
 		return true
 
+	func is_above() -> bool:
+		"""Whether it treads above a victim held below that it cannot fetch (the rescue card's blockage, decision 0461)."""
+		return _above and phase == PHASE_OUT
+
 	func label() -> String:
 		"""In words."""
 		if _above and phase == PHASE_OUT:

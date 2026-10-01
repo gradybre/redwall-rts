@@ -342,7 +342,9 @@ func _water_checks() -> void:
 	_check("water: All residents folded", not bool(water.call(&"roster_open")) and not (water.call(&"roster_row", 0) as Control).is_visible_in_tree())
 	var hidden: PackedStringArray = PackedStringArray()
 	var lost: PackedStringArray = PackedStringArray()
-	for key: StringName in [WaterPanel.ACTION_DIVE, WaterPanel.ACTION_CONSENT, WaterPanel.ACTION_BUILD_PLANK, WaterPanel.ACTION_BUILD_LOG]:
+	_builds_shown_only_when_they_commit(water)
+	for key: StringName in _shown_actions(water, [WaterPanel.ACTION_DIVE, WaterPanel.ACTION_CONSENT, WaterPanel.ACTION_BUILD_PLANK,
+			WaterPanel.ACTION_BUILD_LOG]):
 		var button: Button = water.call(&"button", key)
 		if _fraction(button) < FULL:
 			hidden.append(String(key))
@@ -365,11 +367,33 @@ func _water_checks() -> void:
 	await _rescue_checks(water)
 
 
+func _shown_actions(water: CanvasLayer, keys: Array[StringName]) -> Array[StringName]:
+	"""The keys whose buttons are shown: a Build button shows only when it can commit (decision 0461)."""
+	var out: Array[StringName] = []
+	for key: StringName in keys:
+		if (water.call(&"button", key) as Button).visible:
+			out.append(key)
+	return out
+
+
+func _builds_shown_only_when_they_commit(water: CanvasLayer) -> void:
+	"""Decision 0461: each Build button is shown exactly when its action card allows it (its tooltip's "Can't now" is
+	the hidden one's reason), and a hidden one leaves the project line saying what is missing."""
+	var wrong: PackedStringArray = PackedStringArray()
+	for key: StringName in [WaterPanel.ACTION_BUILD_PLANK, WaterPanel.ACTION_BUILD_LOG]:
+		var button: Button = water.call(&"button", key)
+		if button.visible == button.tooltip_text.contains("Can't now"):
+			wrong.append(String(key))
+	_check("water: a Build shows only when it can commit", wrong.is_empty(), ", ".join(wrong))
+
+
 func _captions_whole(water: CanvasLayer) -> void:
-	"""The Water panel's action captions are whole: each button is at least as wide as its words."""
+	"""The Water panel's action captions are whole: each shown button is at least as wide as its words."""
 	var cut: PackedStringArray = PackedStringArray()
 	for key: StringName in WaterPanel.BUTTON_TEXT:
 		var button: Button = water.call(&"button", key)
+		if not button.is_visible_in_tree():
+			continue
 		var font: Font = button.get_theme_font(&"font")
 		var words: float = font.get_string_size(button.text, HORIZONTAL_ALIGNMENT_LEFT, -1.0,
 			button.get_theme_font_size(&"font_size")).x
@@ -398,7 +422,7 @@ func _rescue_checks(water: CanvasLayer) -> void:
 		_check("rescue: the selection folds only where it must", bool(water.call(&"picked_folded")) == (_scale > 100),
 			"folded %s" % water.call(&"picked_folded"))
 	var lost: PackedStringArray = PackedStringArray()
-	for key: StringName in [WaterPanel.ACTION_DIVE, WaterPanel.ACTION_BUILD_LOG]:
+	for key: StringName in _shown_actions(water, [WaterPanel.ACTION_DIVE, WaterPanel.ACTION_BUILD_LOG]):
 		if not await _reachable(water.call(&"button", key)):
 			lost.append(String(key))
 	_check("rescue: the actions reachable", lost.is_empty(), ", ".join(lost))

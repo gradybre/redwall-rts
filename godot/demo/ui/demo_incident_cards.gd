@@ -24,6 +24,13 @@ extends CanvasLayer
 ##
 ## It refreshes a few times a second on real time (paused too), and sweeps the incidents' watches first, so
 ## an incident's state is current wherever it is read.
+##
+## DETAILS (decision 0461, review P5's rescue card). An owner may give its incidents more than one line: `add_details`
+## registers a provider for keys beginning with a prefix -- the water's rescues, "water:rescue:" -- which fills an
+## `Extra` each refresh: lines (the phase; an approximate time, or the blockage), shown as one line under the text, and
+## up to MAX_TARGETS targets, each a button at the front of the verbs' row that selects and centres it (a resident,
+## through the news's jump) or centres the camera on a point (a landing). Read on real time, so it keeps working while
+## the village is paused.
 
 const IncidentsScript := preload("res://demo/demo_incidents.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
@@ -52,6 +59,33 @@ const UNPIN: String = "Unpin"
 const SNOOZE: String = "Snooze 2 min"
 const DISMISS: String = "Dismiss"
 const HISTORY: String = "All news (N)"
+## Targets a card's details may offer (see DETAILS).
+const MAX_TARGETS: int = 3
+
+
+## An incident's extra lines and targets (see DETAILS), filled by its provider; reused.
+class Extra:
+	extends RefCounted
+	var lines: PackedStringArray = PackedStringArray()
+	var labels: PackedStringArray = PackedStringArray()
+	var kinds: PackedInt32Array = PackedInt32Array()
+	var ids: PackedInt32Array = PackedInt32Array()
+	var points: PackedVector2Array = PackedVector2Array()
+
+	func clear() -> void:
+		"""Nothing extra."""
+		lines.clear()
+		labels.clear()
+		kinds.clear()
+		ids.clear()
+		points.clear()
+
+	func add_target(label: String, kind: int, id: int, point: Vector2) -> void:
+		"""A target button: a target the news can jump to (`kind`, `id`), or with kind TARGET_NONE a point to centre."""
+		labels.append(label)
+		kinds.append(kind)
+		ids.append(id)
+		points.append(point)
 
 var _incidents: IncidentsScript = null
 var _jump: JumpScript = null
@@ -74,6 +108,14 @@ var _was_yielding: bool = false
 var _refresh_in: float = 0.0
 var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
+## See DETAILS: the providers by key prefix, the camera's centring, and the details shown now.
+var _detail_prefixes: PackedStringArray = PackedStringArray()
+var _detail_providers: Array[Callable] = []
+var _centre: Callable = Callable()
+var _extra: Extra = Extra.new()
+var _extra_label: Label = null
+var _targets: Array[Button] = []
+var _target_row: HFlowContainer = null
 
 
 func configure(incidents: IncidentsScript, jump: JumpScript) -> void:
@@ -86,6 +128,18 @@ func configure(incidents: IncidentsScript, jump: JumpScript) -> void:
 func hide_while(query: Callable) -> void:
 	"""Draw no card while `query()` is true (the stall banner, the open history)."""
 	_yield_to.append(query)
+
+
+func add_details(prefix: String, provider: Callable) -> void:
+	"""Incidents whose key begins with `prefix` show `provider(key: String, out: Extra) -> bool`'s details (see
+	DETAILS)."""
+	_detail_prefixes.append(prefix)
+	_detail_providers.append(provider)
+
+
+func set_centre(centre: Callable) -> void:
+	"""How a point target centres the camera: `centre(point: Vector3)` (demo_camera.gd `centre_on`)."""
+	_centre = centre
 
 
 func _ready() -> void:
@@ -119,7 +173,26 @@ func build() -> void:
 	_body = FarmUi.label("", BODY_PX, Palette.INK)
 	_body.custom_minimum_size.x = WIDTH - MARGINS[0] - MARGINS[2]
 	column.add_child(_body)
+	_build_details(column)
 	_build_verbs(column)
+	_build_targets()
+
+
+func _build_details(column: VBoxContainer) -> void:
+	"""The details' line (see DETAILS), hidden until an incident has some."""
+	_extra_label = FarmUi.label("", BODY_PX, Palette.UMBER)
+	_extra_label.custom_minimum_size.x = WIDTH - MARGINS[0] - MARGINS[2]
+	_extra_label.visible = false
+	column.add_child(_extra_label)
+
+
+func _build_targets() -> void:
+	"""The details' target buttons, first in the verbs' row (see DETAILS), hidden until an incident has some."""
+	for k: int in MAX_TARGETS:
+		var button: Button = _verb(_target_row, "", go_to_target.bind(k))
+		_target_row.move_child(button, k)
+		button.visible = false
+		_targets.append(button)
 
 
 func _build_verbs(column: VBoxContainer) -> void:
@@ -128,6 +201,7 @@ func _build_verbs(column: VBoxContainer) -> void:
 	verbs.add_theme_constant_override(&"h_separation", 6)
 	verbs.add_theme_constant_override(&"v_separation", 6)
 	column.add_child(verbs)
+	_target_row = verbs
 	_go = _verb(verbs, GO_TO, go_to)
 	_pin = _verb(verbs, PIN, toggle_pin)
 	_snooze = _verb(verbs, SNOOZE, snooze)
@@ -170,7 +244,29 @@ func refresh() -> bool:
 		_drawn_revision = _incidents.revision
 		_drawn_count = queued
 		_draw(front, queued)
+	_fill_details(front)
 	return _frame.visible
+
+
+func _fill_details(serial: int) -> void:
+	"""The shown incident's details (see DETAILS), every refresh: its time moves while its text may not."""
+	_extra.clear()
+	var key: String = _incidents.key_of(serial) if serial != IncidentsScript.NO_SERIAL else ""
+	var shown: bool = false
+	for k: int in _detail_prefixes.size():
+		if not key.is_empty() and key.begins_with(_detail_prefixes[k]) and _detail_providers[k].is_valid():
+			shown = bool(_detail_providers[k].call(key, _extra))
+			break
+	var text: String = " · ".join(_extra.lines) if shown else ""
+	if _extra_label.text != text:
+		_extra_label.text = text
+		_place.call_deferred()
+	_extra_label.visible = not text.is_empty()
+	for k: int in MAX_TARGETS:
+		var on: bool = shown and k < _extra.labels.size()
+		_targets[k].visible = on
+		if on and _targets[k].text != _extra.labels[k]:
+			_targets[k].text = _extra.labels[k]
 
 
 func _yielding() -> bool:
@@ -220,6 +316,28 @@ func body_text() -> String:
 func is_shown() -> bool:
 	"""Whether the card is drawn."""
 	return _frame != null and _frame.visible
+
+
+func details_text() -> String:
+	"""The details' lines shown now (checks)."""
+	return _extra_label.text if _extra_label != null and _extra_label.visible else ""
+
+
+func target_labels() -> PackedStringArray:
+	"""The details' target buttons shown now (checks)."""
+	return _extra.labels.duplicate()
+
+
+func go_to_target(k: int) -> bool:
+	"""A details target (see DETAILS): select and centre a resident, or centre a point."""
+	if k < 0 or k >= _extra.labels.size():
+		return false
+	if _extra.kinds[k] != NoticesScript.TARGET_NONE:
+		return _jump != null and _jump.jump(_extra.kinds[k], _extra.ids[k])
+	if not _centre.is_valid():
+		return false
+	_centre.call(Vector3(_extra.points[k].x, 0.0, _extra.points[k].y))
+	return true
 
 
 func go_to() -> bool:

@@ -138,6 +138,9 @@ var bridge_view: BridgeViewScript = null
 var swim_view: SwimViewScript = null
 var panel: PanelScript = null
 var services: ServicesScript = null
+## `(members: PackedInt32Array) -> void`: fills the site's project and benefit lines after the site (demo/routes/
+## demo_routes.gd, decision 0461); none: the panel shows the site alone.
+var site_extras: Callable = Callable()
 ## Residents whose rescue incident is open (see RESCUE INCIDENTS).
 var _rescue_open: PackedInt32Array = PackedInt32Array()
 ## The bridge site chosen for the panel: a candidate (index), or a surveyed span of two banks.
@@ -987,6 +990,8 @@ func refresh_panel() -> void:
 		allowed[BUILD_ACTIONS[kind]] = card.is_ok()
 		panel.set_card(BUILD_ACTIONS[kind], card.text(), card.is_ok())
 	panel.show_site(text.site_title(site_custom, site_candidate), about, allowed)
+	if site_extras.is_valid():
+		site_extras.call(members)
 	panel.show_status(text.bridges_text(), services.stores.stock_line(), text.log_text())
 
 

@@ -13,8 +13,9 @@ extends Node3D
 ##                                    Rest (fallow), Cancel jobs -- given to the selected residents, or
 ##                                    queued for the field crew
 ##   V                                the map layers (map_lenses.gd, decision 0292): off -> Growing:
-##                                    soil moisture -> Growing: ripeness -> each added by the village
-##                                    (Getting there: water range, Woods; add_overlay) -> off -- the same
+##                                    soil moisture -> Growing: ripeness -> Growing: water service -> each
+##                                    added by the village (Getting there: water range, routes; Woods;
+##                                    add_overlay) -> off -- the same
 ##                                    one active layer the Map layer picker (demo/ui/demo_lens_picker.gd)
 ##                                    selects directly
 ##   K, or the HUD's Food command     the Pantry: Stocks (what is in store, where, incoming, next to
@@ -137,7 +138,7 @@ var _events: PackedInt32Array = PackedInt32Array()
 var _spoiled: PackedInt32Array = PackedInt32Array()
 var _lines: PackedStringArray = PackedStringArray()
 var _levels: PackedByteArray = PackedByteArray()
-## The village's map layers: the farm's two first, then the village's (add_overlay). V steps them.
+## The village's map layers: the farm's three first, then the village's (add_overlay). V steps them.
 var lenses: LensesScript = LensesScript.new()
 var _shown_hour: int = 0
 var _water: PackedByteArray = PackedByteArray([0, 0])

@@ -22,6 +22,10 @@ extends CanvasLayer
 ## palette row for each kind of fixture its places take -- its words, a "+" and a "−" -- and the suggested layout's
 ## button. Those buttons emit "fit:add:<kind>", "fit:take:<kind>" and "fit:suggest" (room_text.gd FIT_*).
 ##
+## A PROJECT (decision 0461, review P5 and ECO-045): under the selected tunnel, the dig being worked or the piece being
+## laid -- its stages and dead-end heading, what it needs, who can use it and its benefit estimate (demo/routes/
+## demo_routes.gd fills `show_project`) -- with a "Work ▸" button to the Work screen (ACTION_PROJECT_LINK).
+##
 ## ACTION CARDS (decision 0332): each tunnel job's and fit-out button's tooltip is its action card -- result, cost as
 ## have / need, work, who goes and what they stop, and, disabled, the order's own refusal with its fix (`set_tip`;
 ## tunnel_ext.gd fills them from the orders' own checks, and enables the buttons by the same answer).
@@ -55,6 +59,10 @@ const BUTTON_TEXT: Dictionary = {
 	&"widen": "Widen", &"brace": "Brace", &"lanterns": "Hang lanterns", &"repair": "Repair",
 }
 const TUNNEL_ACTIONS: Array[StringName] = [&"widen", &"brace", &"lanterns", &"repair"]
+## The project's link to the Work screen (see A PROJECT).
+const ACTION_PROJECT_LINK: StringName = &"project_link"
+const PROJECT_LINK_TEXT: String = "Work ▸"
+const PROJECT_LINK_TIP: String = "Open the Work screen's projects: the digs and hauls under way, who is on each, why one waits"
 
 const NO_TUNNEL: String = "Click a finished tunnel's mouth or route to select it."
 const PLANNING: String = "Laying a tunnel"
@@ -133,6 +141,7 @@ func build() -> void:
 	column.add_child(_build_finds_row())
 	_build_tunnel_box(column)
 	_build_room_box(column)
+	_build_project(column)
 	_lines[&"log"] = _label("", SMALL_PX, Palette.UMBER, null)
 	column.add_child(_lines[&"log"])
 
@@ -194,6 +203,25 @@ func _build_tunnel_box(column: VBoxContainer) -> void:
 	_tunnel_box.add_child(grid)
 	for key in TUNNEL_ACTIONS:
 		grid.add_child(_button(key))
+
+
+func _build_project(column: VBoxContainer) -> void:
+	"""The project lines and their Work ▸ button (see A PROJECT), hidden until shown."""
+	_lines[&"project"] = _label("", SMALL_PX, Palette.INK, null)
+	_lines[&"project"].visible = false
+	column.add_child(_lines[&"project"])
+	_button_words[ACTION_PROJECT_LINK] = PROJECT_LINK_TEXT
+	var link := _button(ACTION_PROJECT_LINK)
+	link.tooltip_text = PROJECT_LINK_TIP
+	link.visible = false
+	column.add_child(link)
+
+
+func show_project(text: String) -> void:
+	"""The project lines (see A PROJECT); "" hides them and the Work ▸ button."""
+	_set_line(&"project", text)
+	(_lines[&"project"] as Label).visible = not text.is_empty()
+	(_buttons[ACTION_PROJECT_LINK] as Button).visible = not text.is_empty()
 
 
 func _build_room_box(column: VBoxContainer) -> void:
@@ -323,7 +351,7 @@ func button(key: StringName) -> Button:
 
 
 func line(key: StringName) -> String:
-	"""A line's text: weather, stores, housing, finds, tunnel_title, tunnel or log."""
+	"""A line's text: weather, stores, housing, finds, tunnel_title, tunnel, project or log."""
 	return (_lines[key] as Label).text
 
 

@@ -68,8 +68,14 @@ var to_u: PackedInt32Array = PackedInt32Array()
 var posted_cuts: PackedInt32Array = PackedInt32Array()
 var posted_spoil: PackedInt64Array = PackedInt64Array()
 var posted_stone: PackedInt64Array = PackedInt64Array()
+## THE PLAYER'S HOLD (decision 0411, the Work screen): each posting's identity -- a SERIAL, new with each fresh post
+## (a resume keeps it), never reused -- and whether the player paused that job (`held`: its worker let go, nobody --
+## not even the worker it was called away from, tunnel_job_task.gd `take_back` -- takes it until it is released).
+var serial: PackedInt64Array = PackedInt64Array()
+var held: PackedByteArray = PackedByteArray()
 ## Bumped when a job is posted, starts, pauses or ends.
 var revision: int = 0
+var _next_serial: int = 0
 
 var _network: GraphScript = null
 var _stores: StoresScript = null
@@ -88,6 +94,8 @@ func _init(network: GraphScript, stores: StoresScript) -> void:
 	work_rem.resize(Rules.MAX_SEGMENTS)
 	posted_spoil.resize(Rules.MAX_SEGMENTS)
 	posted_stone.resize(Rules.MAX_SEGMENTS)
+	serial.resize(Rules.MAX_SEGMENTS)
+	held.resize(Rules.MAX_SEGMENTS)
 	_progress.resize(GraphScript.P_SIZE)
 	_cost.resize(2)
 
@@ -164,6 +172,9 @@ func post(slot: int, job: int, resident: int, span_from_u: int, span_to_u: int) 
 	kind[slot] = job
 	tunnel_gen[slot] = _network.generation[slot]
 	worker[slot] = resident
+	_next_serial += 1
+	serial[slot] = _next_serial
+	held[slot] = 0
 	work_usec[slot] = 0
 	work_rem[slot] = 0
 	paid[slot] = 0
@@ -289,7 +300,24 @@ func clear(slot: int) -> void:
 	"""No job on tunnel `slot`."""
 	kind[slot] = JOB_NONE
 	worker[slot] = -1
+	held[slot] = 0
 	revision += 1
+
+
+func hold(slot: int, on: bool) -> void:
+	"""The player pauses the job on `slot` (its worker let go: its task ends at its next step) or releases it (see THE
+	PLAYER'S HOLD)."""
+	if not has_job(slot):
+		return
+	held[slot] = 1 if on else 0
+	if on:
+		worker[slot] = -1
+	revision += 1
+
+
+func is_held(slot: int) -> bool:
+	"""Whether the player paused the job on `slot`."""
+	return has_job(slot) and held[slot] == 1
 
 
 func label(slot: int) -> String:

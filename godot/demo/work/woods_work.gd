@@ -10,7 +10,7 @@ const NoticesScript := preload("res://demo/demo_notices.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 
 const BLOCKED_WAY: String = "can't reach it — tried again at the woods' next hour"
-const OTHER_JOB: String = "has another woods job"
+const OTHER_JOB: String = WorkIds.OTHER_WOODS_JOB
 
 var _crew: CrewScript = null
 var _read: IntMath.IntResult = IntMath.IntResult.new()

@@ -11,10 +11,10 @@ const RETRYING: String = "can't reach it, trying again"
 
 var _crew: CrewScript = null
 var _network: GraphScript = null
-var _brains: Array = []
+var _brains: Array[BrainScript] = []
 
 
-func _init(crew: CrewScript, network: GraphScript, brains: Array) -> void:
+func _init(crew: CrewScript, network: GraphScript, brains: Array[BrainScript]) -> void:
 	"""Read this spoil crew's rows on this network, worked by these residents' brains."""
 	id = WorkIds.SOURCE_SPOIL
 	_crew = crew

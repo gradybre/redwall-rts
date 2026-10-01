@@ -607,8 +607,13 @@ func test_the_order_list_adds_removes_and_reorders_up_to_eight() -> void:
 		assert_true(brain.append_queued(_entry("q%d" % k, taken)), "queued %d" % k)
 	assert_false(brain.append_queued(_entry("q3", taken)), "the same words twice: refused")
 	brain.remember_unfinished(_entry("back", taken))
-	assert_equal(brain.queue_size(), 8, "eight")
-	assert_false(brain.append_queued(_entry("q7", taken)), "a ninth refused")
+	assert_true(brain.append_queued(_entry("q7", taken)), "an eighth queued order")
+	assert_false(brain.append_queued(_entry("q8", taken)), "a ninth refused")
+	assert_false(brain.can_queue(), "the queue is full")
+	brain.remember_unfinished(_entry("back again", taken))
+	assert_equal(brain.queue_size(), 10, "eight queued and two kept from interruptions: a full queue pushes none out")
+	assert_true(brain.remove_queued(0), "the latest interruption dropped by the player")
+	assert_true(brain.remove_queued(8), "and q7")
 	assert_equal(OrderList.entry_words(brain, 0), "back to back", "the interrupted job first")
 	assert_equal(OrderList.entry_words(brain, 1), "q0", "then the queue in order")
 	assert_true(brain.remove_queued(2), "q1 removed")
@@ -642,12 +647,13 @@ func test_interruptions_keep_three_and_never_push_out_the_players_queue() -> voi
 
 
 func test_a_queued_task_is_left_to_its_resident_and_taken_up_when_its_work_is_done() -> void:
-	"""A harvest queued for resident 0 while it walks under an order: the board's claims leave it alone (promised);
-	ended, resident 0 takes it up. A queued walk goes first when appended to an idle resident's list, then the next."""
+	"""A harvest queued for resident 0 while it is in bed: the board's claims leave it alone (promised) though everyone
+	else is free; up again, resident 0 takes it up -- its own list before the board's claim. A queued walk goes first
+	when appended to an idle resident's list, then the next."""
 	var rig := _rig()
 	_crews(rig, PackedInt32Array([0, 0, 0, 0, 0, 0]))
 	var brain := _brain(rig, 0)
-	brain.order_move(brain.position + Vector2(1.5, 0.0))
+	brain.resting = true
 	rig.farm.order(FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array(), FarmJobs.ORIGIN_PLAYER)
 	var row: int = _farm_row(rig, FarmJobs.KIND_HARVEST, BED_CARROTS)
 	assert_equal(rig.board.queue_task(WorkIds.SOURCE_FARM, row, 0), "", "queued for 0")
@@ -655,8 +661,8 @@ func test_a_queued_task_is_left_to_its_resident_and_taken_up_when_its_work_is_do
 	assert_true(rig.board.resume_words(WorkIds.SOURCE_FARM, rig.farm.jobs.serial[row]).begins_with("queued for"), "said")
 	_run(rig, 2.0, func() -> bool: return false)
 	assert_equal(rig.farm.jobs.worker[row], FarmJobs.NOBODY, "nobody else takes it")
-	brain.work_done()
-	assert_equal(rig.farm.jobs.worker[row], 0, "taken up by 0 when its order is done")
+	brain.resting = false
+	assert_true(_run(rig, 1.0, func() -> bool: return rig.farm.jobs.worker[row] == 0), "taken up by 0, up again")
 	var walker := _brain(rig, 1)
 	var goal: Vector2 = walker.position + Vector2(2.0, 0.0)
 	assert_equal(rig.board.queue_walk(1, goal), "", "a walk queued")
@@ -744,7 +750,7 @@ func test_a_mixed_group_previews_each_members_eligibility() -> void:
 	rig.farm.order(FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array([1]), FarmJobs.ORIGIN_PLAYER)
 	_brain(rig, 2).water_hold = true
 	rig.farm.preview_into(card, FarmJobs.KIND_COMPOST, 0, PackedInt32Array([0, 1, 2]))
-	assert_equal(card.members, "Of 3 selected: %s can; %s can't (has a farm job); %s can't (held by the rescue)" % [
+	assert_equal(card.members, "Of 3 selected: %s can; %s can't (has another farm job); %s can't (held by the rescue)" % [
 		_name(rig, 0), _name(rig, 1), _name(rig, 2)], "member by member")
 	var row: int = _farm_row(rig, FarmJobs.KIND_HARVEST, BED_CARROTS)
 	assert_equal(rig.board.members_words(WorkIds.SOURCE_FARM, row, PackedInt32Array([0, 2])),

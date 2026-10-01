@@ -355,7 +355,7 @@ func members_line(members: PackedInt32Array) -> String:
 		if who < 0 or who >= _cast.actor_count():
 			continue
 		names.append(_name_of(who))
-		why.append("has a farm job" if not _is_free(who) else ("held by the rescue" if _brain(who).water_hold else ""))
+		why.append(WorkIds.OTHER_FARM_JOB if not _is_free(who) else (WorkIds.HELD if _brain(who).water_hold else ""))
 	return CardScript.each_member(names, why)
 
 
@@ -903,15 +903,16 @@ func cancel_row(row: int) -> String:
 		_finish(row, "")
 		return ""
 	jobs.become_delivery(row)
-	_say("Harvest cancelled: %s carries the %s of %s on to store" % [_carrier_words(row), Text.units_text(jobs.load_milli[row]),
-		_item_word(row)])
+	_say("Harvest cancelled: %s carries the %s of %s on to store" % [_carrier_words(row),
+		Text.units_text(jobs.load_milli[row]), _item_word(row)])
 	return ""
 
 
 func reassign(row: int, who: int) -> String:
 	"""The player gives job `row` to resident `who` instead, taken off whatever it was doing; the one on it is let go
-	(the work done stays with the job). A load in hand stays with its carrier (no load changes hands from afar). ""
-	when done, else why not."""
+	(the work done stays with the job) -- AFTER the job is `who`'s, so the one let go cannot take it straight back up
+	from its own order list. A load in hand stays with its carrier (no load changes hands from afar). "" when done, else
+	why not."""
 	if not jobs.is_live(row):
 		return WorkIds.NOT_FOUND
 	if who < 0 or who >= _cast.actor_count():
@@ -919,15 +920,18 @@ func reassign(row: int, who: int) -> String:
 	if _holds_load(row):
 		return WorkIds.CARRYING % _carrier_words(row)
 	if jobs.job_of_worker_into(who, _busy) and _busy.value != row:
-		return "has another farm job"
-	if jobs.worker[row] == who:
+		return WorkIds.OTHER_FARM_JOB
+	var old: int = jobs.worker[row]
+	if old == who:
 		return ""
-	if jobs.worker[row] != JobsScript.NOBODY:
-		_park(row, "", JobsScript.BLOCK_NONE)
+	if old != JobsScript.NOBODY:
+		jobs.unassign(row)
+		jobs.rewind_to_walk(row)
 	_paused_serial[row] = 0
 	jobs.blocked[row] = JobsScript.BLOCK_NONE
 	_take_over(row, who)
 	_step(row, 0)
+	_free_worker(old)
 	return ""
 
 

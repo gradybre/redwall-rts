@@ -205,6 +205,35 @@ func test_reassign_through_the_picker_shows_each_residents_eligibility() -> void
 	board.brain_of(2).water_hold = false
 
 
+func test_an_open_picker_stays_with_its_task_when_the_list_re_sorts() -> void:
+	"""Reassign… opened on the queued felling, second under a queued harvest; the harvest is then paused (paused tasks
+	list last) so the felling moves up: the row with the open picker still shows the felling, and a pick there gives
+	the felling -- not whatever took its old place. A row given a new task never keeps an open picker."""
+	var rig: RefCounted = _suite._rig()
+	var crew: RefCounted = (rig.get(&"forestry") as Node).get(&"crew")
+	var board: BoardScript = rig.get(&"board")
+	rig.get(&"farm").call(&"order", FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array(), FarmJobs.ORIGIN_PLAYER)
+	crew.call(&"order", ForestJobs.KIND_FELL, NORTH_OAK, 0, PackedInt32Array(), ForestJobs.ORIGIN_PLAYER)
+	var screen := _screen(rig)
+	var fell := _row_titled(screen, "Fell")
+	assert_equal(screen.task_rows_shown().find(fell), 1, "the felling second, under the harvest")
+	_press(fell.button_of(&"pick"))
+	board.pause(WorkIds.SOURCE_FARM, 0, true)
+	screen.refresh()
+	assert_equal(screen.task_rows_shown().find(fell), 0, "the felling now first")
+	assert_true(fell.title().begins_with("Fell"), "the same row still shows the felling: %s" % fell.title())
+	assert_true(fell.picker_open(), "its picker still open")
+	_press(fell.resident_button(4))
+	assert_equal((crew.get(&"jobs") as ForestJobs).worker[0], 4, "the felling given to resident 4")
+	assert_equal(((rig.get(&"farm") as RefCounted).get(&"jobs") as FarmJobs).worker[0], FarmJobs.NOBODY, "the harvest untouched")
+	_press(_row_titled(screen, "Fell").button_of(&"pick"))
+	crew.call(&"cancel_row", 0)
+	crew.call(&"order", ForestJobs.KIND_SAW, ForestJobs.NO_TARGET, 0, PackedInt32Array(), ForestJobs.ORIGIN_PLAYER)
+	screen.refresh()
+	for row: TaskRowScript in screen.task_rows_shown():
+		assert_false(row.picker_open(), "no open picker on %s" % row.title())
+
+
 func test_priority_and_urgent_from_the_row() -> void:
 	"""▲ raises the task's priority (the title says so), ▼ lowers it, Urgent marks it (and again unmarks it)."""
 	var rig: RefCounted = _suite._rig()
@@ -335,12 +364,12 @@ func test_an_order_list_is_shown_and_edited_from_the_residents_view() -> void:
 	var screen := _screen(rig)
 	_press(screen.tab_button(ScreenScript.VIEW_RESIDENTS))
 	var row := _resident_row(screen, 1)
-	assert_equal(row.list_text(), "Next: Walk to 1, 1 → Walk to 2, 2 → then its routine", "the list")
+	assert_equal(row.list_text(), "Next: Walk to 1.0, 1.0 → Walk to 2.0, 2.0 → then its routine", "the list")
 	_press(row.entry_button(1, &"sooner"))
-	assert_equal(_resident_row(screen, 1).list_text(), "Next: Walk to 2, 2 → Walk to 1, 1 → then its routine", "moved")
+	assert_equal(_resident_row(screen, 1).list_text(), "Next: Walk to 2.0, 2.0 → Walk to 1.0, 1.0 → then its routine", "moved")
 	assert_true(_resident_row(screen, 1).entry_button(0, &"sooner").disabled, "the first cannot go sooner")
 	_press(_resident_row(screen, 1).entry_button(0, &"remove"))
-	assert_equal(_resident_row(screen, 1).list_text(), "Next: Walk to 1, 1 → then its routine", "removed")
+	assert_equal(_resident_row(screen, 1).list_text(), "Next: Walk to 1.0, 1.0 → then its routine", "removed")
 	_press(_resident_row(screen, 1).entry_button(0, &"later"))
 	assert_equal(brain.queue_size(), 1, "the last cannot go later")
 
@@ -372,7 +401,7 @@ func _tunnel_site() -> Array:
 	handoffs.before_each()
 	var space := CastSpaceScript.new()
 	space.setup([], [] as Array[Vector3])
-	var brains: Array = []
+	var brains: Array[BrainScript] = []
 	for k: int in 3:
 		brains.append(handoffs._brain(space, Vector2(-2.0, float(k)), ["Mouse", "Mole", "Badger"][k]))
 	var network: GraphScript = space.tunnels
@@ -434,6 +463,52 @@ func test_a_tunnel_job_paused_reassigned_and_cancelled() -> void:
 	assert_false(work.live(bore), "gone")
 
 
+func test_a_paused_tunnel_job_is_not_taken_back_by_its_old_worker() -> void:
+	"""The worker called away keeps the job on its list; the player pauses it; when the worker's order is done it does
+	not take the job back (tunnel_jobs.gd THE PLAYER'S HOLD) -- and once released anyone eligible may."""
+	var site := _tunnel_site()
+	var work: TunnelWork = site[3]
+	var bore: int = site[4]
+	var jobs: TunnelJobs = site[2]
+	var mouse: BrainScript = site[1][0]
+	assert_true(work.claim(bore, 0), "the mouse on it")
+	mouse.order_move(mouse.position + Vector2(-1.0, 0.0))
+	assert_true(mouse.promises(WorkIds.SOURCE_TUNNELS, work.key(bore)), "kept to come back to")
+	assert_equal(work.pause(bore, true), "", "paused by the player")
+	mouse.work_done()
+	assert_equal(jobs.worker[bore], -1, "not taken back while paused")
+	assert_equal(work.pause(bore, false), "", "released")
+	assert_true(work.waiting(bore), "waiting for anyone")
+
+
+func test_a_tunnel_job_posted_again_is_a_new_job() -> void:
+	"""Paused, cancelled and posted again (the same kind): a new posting, with its own key, not paused."""
+	var site := _tunnel_site()
+	var work: TunnelWork = site[3]
+	var bore: int = site[4]
+	var jobs: TunnelJobs = site[2]
+	var first: int = work.key(bore)
+	work.pause(bore, true)
+	assert_equal(work.cancel(bore), "", "cancelled")
+	jobs.post(bore, TunnelJobs.JOB_BRACE, -1, 0, 4096)
+	assert_true(work.key(bore) != first, "a new key")
+	assert_false(work.is_paused(bore), "not paused")
+	assert_true(work.waiting(bore), "waiting")
+	work.pause(bore, true)
+	assert_equal(work.reassign(bore, 0), "", "reassigned")
+	assert_false(work.is_paused(bore), "a reassign releases the hold")
+	var old_task: JobTaskScript = (site[1][0] as BrainScript).task
+	assert_true(old_task.is_valid(), "the mouse's task works this posting")
+	jobs.hold(bore, true)
+	jobs.clear(bore)
+	assert_equal(jobs.held[bore], 0, "a clear lets the hold go")
+	jobs.post(bore, TunnelJobs.JOB_BRACE, 1, 0, 4096)
+	assert_false(old_task.is_valid(), "the old task does not work the new posting")
+	jobs.hold(bore, true)
+	jobs.post(bore, TunnelJobs.JOB_LANTERNS, -1, 0, 4096)
+	assert_false(jobs.is_held(bore), "another kind posted: a new job, not held")
+
+
 func test_a_widening_needs_one_who_can_dig() -> void:
 	"""Widening is DIGGING: only one who can dig is eligible (the mole here)."""
 	var site := _tunnel_site()
@@ -489,9 +564,12 @@ func test_a_mixed_group_on_a_tunnel_job_previews_each_member() -> void:
 	actions.select(ref[0])
 	var card := CardScript.new()
 	actions.preview_into(card, TunnelJobs.JOB_BRACE, PackedInt32Array([0, 1]))
-	assert_equal(card.members, "Of 2 selected: Resident 0 can; Resident 1 can't (%s)" % ActionsScript.NOT_FITTING, card.members)
+	assert_equal(card.members, "Of 2 selected: Resident 0 can; Resident 1 can't (%s)" % WorkIds.NOT_FITTING, card.members)
 	actions.preview_into(card, TunnelJobs.JOB_BRACE, PackedInt32Array([0]))
 	assert_equal(card.members, "", "one selected: no preview")
+	brains[0].underground = true
+	assert_equal(actions.member_refusal(TunnelJobs.JOB_BRACE, 0), WorkIds.BELOW, "one below ground can't take it")
+	brains[0].underground = false
 	handoffs.after_each()
 
 
@@ -505,7 +583,7 @@ func test_spoil_rows_are_listed_with_their_phase_and_say_how_to_stop_them() -> v
 	crew.configure(cast, cast.space().tunnels, FarmTunnels.new(), null, func(_m: int) -> void: pass, Vector2.ZERO)
 	var heap: int = handoffs._spoil_site(cast)
 	crew.order(heap, PackedInt32Array([1]))
-	var brains: Array = []
+	var brains: Array[BrainScript] = []
 	for i: int in cast.actor_count():
 		brains.append((cast.actor(i) as DemoActorScript).brain)
 	var work := SpoilWork.new(crew, cast.space().tunnels, brains)
@@ -532,7 +610,7 @@ func test_a_waiting_fixture_is_listed_and_handed_to_a_resident() -> void:
 	var stores: StoresScript = (ext.get(&"works") as Node).get(&"stores")
 	stores.add_planks(100000)
 	assert_true(graph.fit.order(graph, r, RoomsScript.FIX_BED, stores) >= 0, "a bed planned")
-	var brains: Array = []
+	var brains: Array[BrainScript] = []
 	var cast: Node = parts[1]
 	for i: int in cast.call(&"actor_count"):
 		brains.append((cast.call(&"actor", i) as DemoActorScript).brain)

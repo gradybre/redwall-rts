@@ -10,7 +10,7 @@ const NoticesScript := preload("res://demo/demo_notices.gd")
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 
-const OTHER_JOB: String = "has another farm job"
+const OTHER_JOB: String = WorkIds.OTHER_FARM_JOB
 
 var _crew: CrewScript = null
 var _read: IntMath.IntResult = IntMath.IntResult.new()

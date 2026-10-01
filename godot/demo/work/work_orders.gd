@@ -24,13 +24,14 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const TaskScript := preload("res://demo/work/work_task.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 
+const AnswerScript := preload("res://demo/work/queue_answer.gd")
+
 const QUEUED: String = "%s queued for %s (%d on its list)"
+const NOT_TAKEN: String = "%s cannot be taken now"
 const TAKEN: String = "%s: %s is on it now (it had nothing else to do)"
 const CANT: String = "Can't queue: %s"
 const UNDER_WAY: String = "%s is under way already: %s is on it"
 const WALK_QUEUED: String = "Walk queued for %d"
-## Every refusal begins "Can't" (as the owners' own do), which is how the command layer marks it refused.
-const REFUSED: String = "Can't"
 const HEAP_BY_ORDER: String = "Can't queue: a spoil heap is cleared by order — right-click it without Shift"
 const NOTHING_ON_BED: String = "Can't queue: nothing to do on bed %d now"
 const YOUNG_TREE: String = "Can't queue: a young tree is left to grow"
@@ -41,6 +42,8 @@ var _forestry: ForestryScript = null
 var _spoil: SpoilScript = null
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _task: TaskScript = TaskScript.new()
+## Whether the call under way queued something (`queue_at`'s answer).
+var _ok: bool = false
 
 
 func configure(board: BoardScript, farm: FarmScript, forestry: ForestryScript, spoil: SpoilScript) -> void:
@@ -51,9 +54,17 @@ func configure(board: BoardScript, farm: FarmScript, forestry: ForestryScript, s
 	_spoil = spoil
 
 
-func queue_at(screen: Vector2, ground: Vector2, members: PackedInt32Array) -> String:
+func queue_at(screen: Vector2, ground: Vector2, members: PackedInt32Array) -> AnswerScript:
 	"""Shift+right-click at screen point `screen`, over ground point `ground` (x z metres; INF off the ground), with
-	`members` selected: append the order to their lists. Says what happened ("" with nobody selected)."""
+	`members` selected: append the order to their lists. Whether one was queued, and what to say (nothing with nobody
+	selected or off the ground)."""
+	_ok = false
+	var said: String = _queue_at(screen, ground, members)
+	return AnswerScript.new(_ok, said)
+
+
+func _queue_at(screen: Vector2, ground: Vector2, members: PackedInt32Array) -> String:
+	"""`queue_at`'s words (`_ok` set when something was queued)."""
 	if members.is_empty():
 		return ""
 	if _farm != null and _farm.bed_at_into(screen, _read):
@@ -70,7 +81,7 @@ func queue_at(screen: Vector2, ground: Vector2, members: PackedInt32Array) -> St
 
 
 func queue_walks(ground: Vector2, members: PackedInt32Array) -> String:
-	"""A walk to `ground` on every member's list."""
+	"""A walk to `ground` on every member's list (`_ok` when at least one took it)."""
 	var queued: int = 0
 	var refused: String = ""
 	for who: int in members:
@@ -79,32 +90,41 @@ func queue_walks(ground: Vector2, members: PackedInt32Array) -> String:
 			queued += 1
 		else:
 			refused = why
-	return refused if queued == 0 else WALK_QUEUED % queued
+	_ok = queued > 0
+	return CANT % refused if queued == 0 else WALK_QUEUED % queued
 
 
 func _queue_bed(bed: int, members: PackedInt32Array) -> String:
-	"""The bed's most pressing verb, put on the farm's board and queued for the nearest member."""
+	"""The bed's most pressing verb, put on the farm's board and queued for the nearest member -- whose list must have
+	room first, so nothing is put on the board for nobody."""
 	if not _farm.pressing_kind_into(bed, _read):
 		return NOTHING_ON_BED % (bed + 1)
 	var kind: int = _read.value
+	var who: int = nearest(members, Catalog.bed_centre_m(bed))
+	if not _board.brain_of(who).can_queue():
+		return CANT % (BoardScript.LIST_FULL % [_board.name_of(who), BrainScript.QUEUE_MAX])
 	var said: String = _farm.crew.order(kind, bed, PackedInt32Array(), FarmJobs.ORIGIN_PLAYER)
 	if not _farm.crew.jobs.job_on_bed_into(kind, bed, _read):
 		return said
-	return queue_task(WorkIds.SOURCE_FARM, _read.value, nearest(members, Catalog.bed_centre_m(bed)))
+	return queue_task(WorkIds.SOURCE_FARM, _read.value, who)
 
 
 func _queue_woods(picked: int, index: int, members: PackedInt32Array) -> String:
-	"""The woods' verb for what was clicked, put on the woods' board and queued for the nearest member."""
+	"""The woods' verb for what was clicked, put on the woods' board and queued for the nearest member (its list's room
+	checked first)."""
 	var kind: int = woods_kind(picked, index)
 	if kind < 0:
 		return YOUNG_TREE
 	var target: int = ForestJobs.NO_TARGET if kind == ForestJobs.KIND_SAW else index
 	var gen: int = _forestry.deadfall.generation[index] if kind == ForestJobs.KIND_GATHER else 0
+	var who: int = nearest(members, _forestry.crew.point_of(kind, target))
+	if not _board.brain_of(who).can_queue():
+		return CANT % (BoardScript.LIST_FULL % [_board.name_of(who), BrainScript.QUEUE_MAX])
 	var said: String = _forestry.crew.order(kind, target, gen, PackedInt32Array(), ForestJobs.ORIGIN_PLAYER)
 	var row: int = waiting_row(kind, target)
 	if row < 0:
 		return said
-	return queue_task(WorkIds.SOURCE_WOODS, row, nearest(members, _forestry.crew.target_point(row)))
+	return queue_task(WorkIds.SOURCE_WOODS, row, who)
 
 
 func woods_kind(picked: int, index: int) -> int:
@@ -139,7 +159,8 @@ func waiting_row(kind: int, target: int) -> int:
 
 
 func queue_task(task_source: int, row: int, who: int) -> String:
-	"""Queue board task (source, row) for `who`; says what happened -- queued, or taken up at once by an idle `who`."""
+	"""Queue board task (source, row) for `who`; says what happened -- queued, or taken up at once by an idle `who`
+	(`_ok` either way), or why not."""
 	if not _board.fill(task_source, row, _task):
 		return CANT % WorkIds.NOT_FOUND
 	var words: String = "%s %s" % [_task.action, _task.target]
@@ -150,8 +171,12 @@ func queue_task(task_source: int, row: int, who: int) -> String:
 		return CANT % why
 	var brain: BrainScript = _board.brain_of(who)
 	if brain.promises(task_source, _task.key):
+		_ok = true
 		return QUEUED % [words, _board.name_of(who), brain.queue_size()]
-	return TAKEN % [words, _board.name_of(who)]
+	if _board.source(task_source).worker(row) == who:
+		_ok = true
+		return TAKEN % [words, _board.name_of(who)]
+	return CANT % (NOT_TAKEN % words)
 
 
 func nearest(members: PackedInt32Array, to: Vector2) -> int:

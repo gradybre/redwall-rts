@@ -27,7 +27,8 @@ const CREW_HAULERS: int = 3
 const CREW_BUILDERS: int = 4
 const CREW_COUNT: int = 5
 const CREW_NAMES: Array[String] = ["Field", "Woods", "Diggers", "Haulers", "Builders"]
-const PREFERRED: Array[int] = [WorkIds.ACT_FARM, WorkIds.ACT_WOODS, WorkIds.ACT_DIG, WorkIds.ACT_HAUL, WorkIds.ACT_BUILD]
+const PREFERRED: Array[int] = [WorkIds.ACT_FARM, WorkIds.ACT_WOODS, WorkIds.ACT_DIG, WorkIds.ACT_HAUL,
+	WorkIds.ACT_BUILD]
 ## Each crew's two fallbacks, in order.
 const FALLBACKS: Array[Array] = [
 	[WorkIds.ACT_HAUL, WorkIds.ACT_WOODS],

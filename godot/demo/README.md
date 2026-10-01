@@ -331,7 +331,8 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
   before they are applied.
 - **The order list** (resident_brain.gd THE ORDER LIST): **Shift+right-click** appends an order -- a bed's most
   pressing job, a tree's, trunk's, deadfall's or the sawhorse's, or a walk to open ground -- to the end of the list
-  (at most 8); a job kept from an interruption goes to the front. The party panel, the Residents roster and the Work
+  (at most 8 queued; up to 3 jobs kept from interruptions besides); a job kept from an interruption goes to the front.
+  The queue starts at once for a resident with nothing to do, when a plain move arrives, or when a job is done. The party panel, the Residents roster and the Work
   screen read it as "Next: back to Brace, tunnel 2 → Harvest, the carrot bed"; then the resident's routine. A task
   queued for a resident (or kept to come back to) is left to it.
 - **The Work screen** (`work/work_screen.gd`): the HUD's **Jobs** command (UI-SET-029, **J**) -- unlocked by the demo

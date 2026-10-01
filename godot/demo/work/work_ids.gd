@@ -44,6 +44,18 @@ const PRIORITY_NORMAL: int = 3
 const PRIORITY_LOW: int = 4
 const PRIORITY_NAMES: Array[String] = ["Forbidden", "Highest", "High", "Normal", "Low"]
 
+## Why a resident cannot take a task -- ONE set of words for the Reassign picker, a group order's preview on the action
+## cards and the owners' own refusals (decision 0411, review UX-001 and F44's remainder).
+const OTHER_FARM_JOB: String = "has another farm job"
+const OTHER_WOODS_JOB: String = "has another woods job"
+const OTHER_BRIDGE: String = "builds another bridge"
+const HELD: String = "held by the rescue"
+const IN_WATER: String = "in the water"
+const NOT_FITTING: String = "does not fit this tunnel's bore"
+const NOT_A_DIGGER: String = "can't dig (its body fits no standard bore)"
+const DIGGING: String = "is digging a tunnel"
+const BELOW: String = "is below ground"
+
 ## The refusal words the board's own commands answer with (a source's own words are used where it has them).
 const NOT_FOUND: String = "that task is no longer on the board"
 const CARRYING: String = "%s is carrying the load — it finishes the delivery first"

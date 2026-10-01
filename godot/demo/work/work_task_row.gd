@@ -83,8 +83,16 @@ func _button(text: String, what: StringName) -> Button:
 	return made
 
 
+func shows(source: int, row: int, key: int) -> bool:
+	"""Whether this row shows that task (source, row and key)."""
+	return task_source == source and task_row == row and task_key == key
+
+
 func show_task(task: TaskScript, board: BoardScript) -> void:
-	"""Paint the row for `task` (its record just filled) and its commands' states."""
+	"""Paint the row for `task` (its record just filled) and its commands' states; a row given another task closes its
+	Reassign picker (a pick is always for the task the picker was opened on)."""
+	if not shows(task.source, task.row, task.key):
+		close_picker()
 	task_source = task.source
 	task_row = task.row
 	task_key = task.key

@@ -69,7 +69,7 @@ static func task_entry(owner: RefCounted, task_source: int, row: int, task_key: 
 static func walk_entry(owner: RefCounted, to: Vector2) -> UnfinishedScript:
 	"""An order-list entry for a walk to `to`."""
 	var walk := QueuedWalk.new(owner, to)
-	return UnfinishedScript.new(walk.take_back, "Walk to %.0f, %.0f" % [to.x, to.y], WorkIds.SOURCE_WALK, -1)
+	return UnfinishedScript.new(walk.take_back, "Walk to %.1f, %.1f" % [to.x, to.y], WorkIds.SOURCE_WALK, -1)
 
 
 static func entry_words(brain: BrainScript, k: int) -> String:

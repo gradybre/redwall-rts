@@ -39,10 +39,12 @@ const VIEW_TASKS: int = 0
 const VIEW_RESIDENTS: int = 1
 const VIEW_PROJECTS: int = 2
 const VIEW_NAMES: Array[String] = ["Tasks", "Residents and crews", "Projects"]
-const EMPTY: String = "No work waiting. Order some: right-click a bed, a tree or a heap with residents selected, use a tunnel's or the Water panel's buttons, or plant from a bed's panel."
+const EMPTY: String = ("No work waiting. Order some: right-click a bed, a tree or a heap with residents "
+	+ "selected, use a tunnel's or the Water panel's buttons, or plant from a bed's panel.")
 const PAUSED_NOTE: String = " · the village is paused: the work waits with it"
 const CANCEL_ALL: String = "Cancel all work…"
-const CANCEL_SCOPE: String = "Cancel all work: %d tasks — %s. Loads in hand are still delivered; deliveries, paid tunnel jobs and bridges go on."
+const CANCEL_SCOPE: String = ("Cancel all work: %d tasks — %s. Loads in hand are still delivered; "
+	+ "deliveries, paid tunnel jobs and bridges go on.")
 const NOTHING_TO_CANCEL: String = "Nothing to cancel: every task here goes on (deliveries, paid tunnel jobs, bridges)."
 const PRESET_HEAD: String = "Work preset:"
 const PRESET_NOW: String = "In force: %s — %s. Hover or focus a preset to see what it would change."
@@ -93,8 +95,12 @@ var _sources: PackedInt32Array = PackedInt32Array()
 var _rows: PackedInt32Array = PackedInt32Array()
 var _states: PackedInt32Array = PackedInt32Array()
 var _order: PackedInt32Array = PackedInt32Array()
+var _keys: PackedInt64Array = PackedInt64Array()
 var _members: PackedInt32Array = PackedInt32Array()
 var _counts: PackedInt32Array = PackedInt32Array()
+## Which pooled task row shows the n-th listed task, and which rows are taken this repaint (`_bind_rows`).
+var _bound: PackedInt32Array = PackedInt32Array()
+var _row_used: PackedByteArray = PackedByteArray()
 ## The preset whose preview shows (-1: none; the line says the preset in force).
 var _previewing: int = -1
 
@@ -252,6 +258,7 @@ func toggle() -> bool:
 		_answer.text = ""
 		_confirm.visible = false
 		refresh()
+		_place.call_deferred()
 	return visible
 
 
@@ -303,7 +310,6 @@ func refresh() -> void:
 		_put_header(0, EMPTY)
 	else:
 		_fill_tasks(view == VIEW_PROJECTS)
-	_place.call_deferred()
 
 
 func _collect() -> void:
@@ -312,6 +318,7 @@ func _collect() -> void:
 	_sources.clear()
 	_rows.clear()
 	_states.clear()
+	_keys.clear()
 	for id: int in WorkIds.SOURCE_COUNT:
 		var src: SourceScript = _board.source(id)
 		if src == null:
@@ -321,6 +328,7 @@ func _collect() -> void:
 				_sources.append(id)
 				_rows.append(row)
 				_states.append(_task.state)
+				_keys.append(_task.key)
 	_order.clear()
 	if view == VIEW_PROJECTS:
 		for k: int in _sources.size():
@@ -350,7 +358,10 @@ func _paused() -> bool:
 
 
 func _fill_tasks(by_project: bool) -> void:
-	"""The task rows in `_order`; the Projects view puts each source's name over its tasks."""
+	"""The task rows in `_order`, each on the pooled row that showed that very task before (ROWS FOLLOW THEIR TASK:
+	an open Reassign picker and the keyboard's focus stay with the task when the list re-sorts); the Projects view puts
+	each source's name over its tasks."""
+	_bind_rows()
 	var at: int = 0
 	var header: int = 0
 	var last_source: int = -1
@@ -362,11 +373,38 @@ func _fill_tasks(by_project: bool) -> void:
 			header += 1
 			at += 1
 		_board.fill(_sources[k], _rows[k], _task)
-		var row: TaskRowScript = _task_row(n)
+		var row: TaskRowScript = _task_rows[_bound[n]]
 		row.show_task(_task, _board)
 		row.visible = true
 		_list.move_child(row, at)
 		at += 1
+
+
+func _bind_rows() -> void:
+	"""`_bound[n]`: the pooled row for the n-th listed task -- the one already showing it (same source, row and key),
+	else a free one (its picker closed: a new task)."""
+	_bound.resize(_order.size())
+	_bound.fill(-1)
+	_row_used.resize(_task_rows.size())
+	_row_used.fill(0)
+	for n: int in _order.size():
+		var k: int = _order[n]
+		for r: int in _task_rows.size():
+			var row: TaskRowScript = _task_rows[r]
+			if _row_used[r] == 0 and row.shows(_sources[k], _rows[k], _keys[k]):
+				_bound[n] = r
+				_row_used[r] = 1
+				break
+	for n: int in _order.size():
+		if _bound[n] >= 0:
+			continue
+		var r: int = _row_used.find(0)
+		if r < 0:
+			r = _task_rows.size()
+			_task_row(r)
+			_row_used.append(0)
+		_bound[n] = r
+		_row_used[r] = 1
 
 
 func _fill_residents() -> void:

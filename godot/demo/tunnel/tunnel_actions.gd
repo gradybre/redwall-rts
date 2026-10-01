@@ -40,6 +40,7 @@ const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const CrewScript := preload("res://demo/tunnel/tunnel_crew.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
 
 const PICK_M: float = 0.9
 const MOUTH_PICK_M: float = 1.2
@@ -58,9 +59,6 @@ const NOTHING_TO_REPAIR: String = "tunnel %d needs no repair"
 const NO_MOLE: String = "nobody free who fits a bore can dig it"
 const NO_WORKER: String = "nobody who fits tunnel %d's bore is free"
 const SHORT: String = "the demo stores are short (need wood %s, stone %s)"
-## A member's refusal in a group order's preview (`members_line`).
-const NOT_A_DIGGER: String = "can't dig, or is digging"
-const NOT_FITTING: String = "does not fit the bore, or is below"
 const POSTED: String = "%s: %s is on the way to tunnel %d"
 ## THE DECISION's checks, and the codes an action card gives them.
 const REFUSED_BY_NONE: int = 0
@@ -230,14 +228,25 @@ func members_line(job: int, selection: PackedInt32Array) -> String:
 		return ""
 	var names := PackedStringArray()
 	var why := PackedStringArray()
-	var below := job != JobsScript.JOB_PUMP
 	for i: int in selection:
 		names.append(_names[i])
-		if _mole_job(job):
-			why.append("" if _free_digger(i) else NOT_A_DIGGER)
-		else:
-			why.append("" if _can_work(i, below, false) else NOT_FITTING)
+		why.append(member_refusal(job, i))
 	return CardScript.each_member(names, why)
+
+
+func member_refusal(job: int, i: int) -> String:
+	"""Why resident `i` could not work `job` on the selected tunnel, in the work board's words (demo/work/work_ids.gd;
+	"" when it could): `_choose_worker`'s own tests -- a digger for a mole job, else one not below who fits the bore."""
+	var b := _works.brain(i)
+	if b.order == BrainScript.ORDER_DIG:
+		return WorkIds.DIGGING
+	if _mole_job(job):
+		return "" if _can_dig[i] == 1 else WorkIds.NOT_A_DIGGER
+	if b.underground:
+		return WorkIds.BELOW
+	if job != JobsScript.JOB_PUMP and not _network.fits_tunnel(i, selected, false):
+		return WorkIds.NOT_FITTING
+	return ""
 
 
 func _cost_rows(card: CardScript, job: int) -> void:

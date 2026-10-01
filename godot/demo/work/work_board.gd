@@ -44,10 +44,11 @@ const BUCKET_URGENT: int = 2
 const BUCKET_ORDINARY: int = 3
 ## Why a resident cannot take work now, as the Reassign picker and the group preview say it.
 const RESTING: String = "asleep — the night routine has it in bed"
-const IN_WATER: String = "in the water"
-const HELD: String = "held by the rescue"
+const IN_WATER: String = WorkIds.IN_WATER
+const HELD: String = WorkIds.HELD
 const UNKNOWN: String = "nobody by that number"
 const WALK_DONE_M: float = 0.45
+const LIST_FULL: String = "%s's order list is full (%d queued) or holds it already"
 
 var crews: CrewsScript = CrewsScript.new()
 ## Claims made since the board began, and the evaluations and candidates looked at (the profile's counts).
@@ -239,7 +240,11 @@ func index_size() -> int:
 func consider(who: int) -> bool:
 	"""THE CLAIM for one resident: if it is idle, the best eligible indexed task it may take, claimed. True when one
 	was."""
-	if not idle(who) or _idx_source.is_empty():
+	if not idle(who):
+		return false
+	if _brains[who].queue_size() > 0 and _brains[who].take_up_unfinished():
+		return true
+	if _idx_source.is_empty():
 		return false
 	evaluations += 1
 	var scan_from: int = Time.get_ticks_usec()
@@ -424,7 +429,11 @@ func reassign(task_source: int, row: int, who: int) -> String:
 	var why: String = eligibility_words(task_source, row, who)
 	if not why.is_empty():
 		return why
-	return _done(_command_source(task_source, row), func(src: SourceScript) -> String: return src.reassign(row, who))
+	var said: String = _done(_command_source(task_source, row),
+		func(src: SourceScript) -> String: return src.reassign(row, who))
+	if said.is_empty():
+		_brains[who].forget_task(task_source, _sources[task_source].key(row))
+	return said
 
 
 func _command_source(task_source: int, row: int) -> SourceScript:
@@ -545,12 +554,23 @@ func _append(who: int, entry: UnfinishedScript) -> String:
 		return UNKNOWN
 	var brain: BrainScript = _brains[who]
 	if not brain.append_queued(entry):
-		return "%s's order list is full (%d) or holds it already" % [name_of(who), BrainScript.QUEUE_MAX]
+		return LIST_FULL % [name_of(who), BrainScript.QUEUE_MAX]
 	revision += 1
 	_next_index_usec = _clock_usec
-	if brain.order == BrainScript.ORDER_NONE and not brain.resting and not brain.water_hold and not brain.in_water:
-		brain.take_up_unfinished()
+	_start_list(who, brain)
 	return ""
+
+
+func _start_list(who: int, brain: BrainScript) -> void:
+	"""A queued order's turn as `who` stands now: taken up at once when it has nothing to do (or works at a spot -- an
+	order with no end of its own); after a plain move, once the move arrives (`track_walk`). Any other work -- a job,
+	a task -- hands it on when it is done."""
+	if brain.resting or brain.water_hold or brain.in_water:
+		return
+	if brain.order == BrainScript.ORDER_NONE or brain.order == BrainScript.ORDER_WORK:
+		brain.take_up_unfinished()
+	elif brain.order == BrainScript.ORDER_MOVE and _walking[who] == 0 and not has_job(who):
+		track_walk(who, brain.goal())
 
 
 func take_back_task(brain: RefCounted, task_source: int, row: int, task_key: int) -> bool:

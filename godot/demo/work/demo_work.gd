@@ -10,6 +10,7 @@ extends Node
 const BoardScript := preload("res://demo/work/work_board.gd")
 const ScreenScript := preload("res://demo/work/work_screen.gd")
 const OrdersScript := preload("res://demo/work/work_orders.gd")
+const AnswerScript := preload("res://demo/work/queue_answer.gd")
 const FarmWork := preload("res://demo/work/farm_work.gd")
 const WoodsWork := preload("res://demo/work/woods_work.gd")
 const BridgeWork := preload("res://demo/work/bridge_work.gd")
@@ -105,7 +106,8 @@ func unlock_jobs_command(shell: UiShell) -> bool:
 	var index: int = UiShell.COMMAND_IDS.find(UiShell.ID_JOBS)
 	jobs.disabled = false
 	jobs.icon = load(JOBS_ICON) as Texture2D
-	jobs.tooltip_text = CommandTips.tooltip(UiShell.COMMAND_LABELS[index], UiShell.COMMAND_ACTIONS[index], JOBS_TOOLTIP, "")
+	jobs.tooltip_text = CommandTips.tooltip(UiShell.COMMAND_LABELS[index], UiShell.COMMAND_ACTIONS[index],
+		JOBS_TOOLTIP, "")
 	jobs.accessibility_description = JOBS_TOOLTIP
 	jobs.pressed.connect(func() -> void: toggle())
 	return true
@@ -116,6 +118,6 @@ func toggle() -> bool:
 	return screen.toggle()
 
 
-func queue_at(screen_point: Vector2, ground: Vector2, members: PackedInt32Array) -> String:
-	"""Shift+right-click (work_orders.gd): append to the selection's order lists. Says what happened."""
+func queue_at(screen_point: Vector2, ground: Vector2, members: PackedInt32Array) -> AnswerScript:
+	"""Shift+right-click (work_orders.gd): append to the selection's order lists. Whether it did, and what to say."""
 	return orders.queue_at(screen_point, ground, members)

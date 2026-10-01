@@ -320,7 +320,7 @@ func pause(row: int, on: bool) -> String:
 
 func reassign(row: int, who: int) -> String:
 	"""The player gives bridge `row` to resident `who` instead (taken off whatever it was doing); the builder on it is
-	let go, a load it carried put back at its source. "" when done, else why not."""
+	let go -- after the bridge is `who`'s -- a load it carried put back at its source. "" when done, else why not."""
 	if not _bridges.is_planned(row):
 		return WorkIds.NOT_FOUND
 	if who < 0 or who >= _cast.actor_count():
@@ -328,14 +328,19 @@ func reassign(row: int, who: int) -> String:
 	if builder[row] == who:
 		return ""
 	if brain_of(who).water_hold or brain_of(who).in_water:
-		return "in the water"
+		return WorkIds.IN_WATER
 	if _busy(who):
-		return "builds another bridge"
-	_let_go_of(row)
+		return WorkIds.OTHER_BRIDGE
+	var old: int = builder[row]
+	if old != NOBODY:
+		_drop(row, false)
 	_paused_gen[row] = -1
 	unreached_usec[row] = 0
 	_assign(row, who)
 	_step_row(row, 0)
+	if old != NOBODY:
+		brain_of(old).play_in_place(BrainScript.CLIP_IDLE)
+		brain_of(old).work_done()
 	return ""
 
 
@@ -357,6 +362,7 @@ func _let_go_of(row: int) -> void:
 	var brain: BrainScript = brain_of(who)
 	brain.play_in_place(BrainScript.CLIP_IDLE)
 	brain.work_done()
+
 
 func _step_row(row: int, usec: int) -> void:
 	"""One frame of bridge `row`'s current step."""

@@ -8,8 +8,8 @@ const BridgesScript := preload("res://demo/waterplay/bridges.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 
 const NO_CANCEL: String = "a bridge's material is paid when it is planned — the demo cannot take a bridge back"
-const OTHER_BRIDGE: String = "builds another bridge"
-const IN_WATER: String = "in the water"
+const OTHER_BRIDGE: String = WorkIds.OTHER_BRIDGE
+const IN_WATER: String = WorkIds.IN_WATER
 
 var _crew: CrewScript = null
 var _bridges: BridgesScript = null

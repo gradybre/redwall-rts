@@ -101,9 +101,11 @@ extends RefCounted
 ## THE ORDER LIST (decision 0411, review UX-002; UI §3's eight-task queue). The same list holds the player's QUEUED
 ## orders: Shift+right-click appends one (`append_queued`) to the END of the list -- taken after everything already on
 ## it -- where a job kept from an interruption goes to the front, taken next. So the list in TAKE ORDER (`queue_*`,
-## index 0 next) reads Now -> Next ... -> then back to its routine. At most QUEUE_MAX entries; of those kept from
-## interruptions at most RESUME_MAX (the oldest goes). The player may remove an entry or move it up or down. Nothing
-## else is a queue: every entry is taken up by the one path above (`take_up_unfinished`).
+## index 0 next) reads Now -> Next ... -> then back to its routine. At most QUEUE_MAX queued orders (UI §3's eight
+## manual tasks) and, apart from them, at most RESUME_MAX jobs kept from interruptions (the oldest of those goes) -- so
+## a full queue never pushes out the job an interruption left, nor an interruption the player's queue. The player may
+## remove an entry or move it up or down. Nothing else is a queue: every entry is taken up by the one path above
+## (`take_up_unfinished`); one handed its task some other way is forgotten (`forget_task`).
 ##
 ## THE NIGHT (decision 0210, demo/burrow/night_routine.gd). At dusk the night routine hands each resident a sleep
 ## task (sleep_task.gd): home through the network to its own bed, lie down, sleep, and in the morning up and back to
@@ -256,7 +258,7 @@ const CARRY_MAX_RATE: float = 4.2
 const DEFAULT_CLIP_S: float = 3.0
 ## How many unfinished jobs a resident keeps to come back to (see RESUMING; demo value, 0205).
 const RESUME_MAX: int = 3
-## How many entries its order list holds in all (see THE ORDER LIST; UI §3: "Append up to 8 manual tasks per resident").
+## How many queued orders its order list holds (see THE ORDER LIST; UI §3: "Append up to 8 manual tasks per resident").
 const QUEUE_MAX: int = 8
 
 var index: int = -1
@@ -2111,20 +2113,20 @@ class DigBack extends RefCounted:
 func remember_unfinished(job: UnfinishedScript) -> void:
 	"""Keep an unfinished job to come back to (see RESUMING), taken next: the latest RESUME_MAX are kept, and one kept
 	again (the same words: the same job) moves to the latest place rather than twice. A player's queued entries are
-	kept (see THE ORDER LIST); the list never holds more than QUEUE_MAX."""
+	kept apart (see THE ORDER LIST)."""
 	if job == null:
 		return
 	_forget_label(job.label())
 	_unfinished.append(job)
-	while _returns() > RESUME_MAX or _unfinished.size() > QUEUE_MAX:
+	while _returns() > RESUME_MAX:
 		_unfinished.remove_at(_oldest_return())
 	queue_revision += 1
 
 
 func append_queued(job: UnfinishedScript) -> bool:
 	"""THE ORDER LIST: the player's queued order, taken after everything already on the list. False -- nothing kept --
-	when the list holds QUEUE_MAX already or that very entry (the same words) is on it."""
-	if job == null or _unfinished.size() >= QUEUE_MAX:
+	when it holds QUEUE_MAX queued orders already or that very entry (the same words) is on it."""
+	if job == null or not can_queue():
 		return false
 	for kept: UnfinishedScript in _unfinished:
 		if kept.label() == job.label():
@@ -2133,6 +2135,24 @@ func append_queued(job: UnfinishedScript) -> bool:
 	_unfinished.insert(0, job)
 	queue_revision += 1
 	return true
+
+
+func can_queue() -> bool:
+	"""Whether its order list has room for another queued order (QUEUE_MAX)."""
+	return _unfinished.size() - _returns() < QUEUE_MAX
+
+
+func forget_task(task_source: int, task_key: int) -> bool:
+	"""It has that work board task now -- taken up from its list, claimed, reassigned: every entry naming it goes, so a
+	stale one is never taken up later (see THE ORDER LIST). Whether one went."""
+	var gone: bool = false
+	for k: int in range(_unfinished.size() - 1, -1, -1):
+		if _unfinished[k].names_task(task_source, task_key):
+			_unfinished.remove_at(k)
+			gone = true
+	if gone:
+		queue_revision += 1
+	return gone
 
 
 func _forget_label(words: String) -> void:
@@ -2151,7 +2171,7 @@ func _returns() -> int:
 
 
 func _oldest_return() -> int:
-	"""The list index of the oldest entry kept from an interruption -- else of the entry taken last."""
+	"""The list index of the oldest entry kept from an interruption (called only while there is one)."""
 	for k: int in _unfinished.size():
 		if not _unfinished[k].queued:
 			return k
@@ -2209,6 +2229,7 @@ func take_up_unfinished() -> bool:
 		var job: UnfinishedScript = _unfinished.pop_back()
 		queue_revision += 1
 		if job.resume(self):
+			forget_task(job.source, job.key)
 			return true
 	return false
 

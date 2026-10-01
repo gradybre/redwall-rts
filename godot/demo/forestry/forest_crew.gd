@@ -943,7 +943,7 @@ func members_line(members: PackedInt32Array) -> String:
 		if who < 0 or who >= _cast.actor_count():
 			continue
 		names.append(name_of(who))
-		why.append("has a woods job" if not _is_free(who) else ("held by the rescue" if brain_of(who).water_hold else ""))
+		why.append(WorkIds.OTHER_WOODS_JOB if not _is_free(who) else (WorkIds.HELD if brain_of(who).water_hold else ""))
 	return CardScript.each_member(names, why)
 
 
@@ -1156,8 +1156,9 @@ func cancel_row(row: int) -> String:
 
 
 func reassign(row: int, who: int) -> String:
-	"""The player gives job `row` to resident `who` instead, taken off whatever it was doing; the one on it is let go.
-	A load in hand stays with its carrier (no load changes hands from afar). "" when done, else why not."""
+	"""The player gives job `row` to resident `who` instead, taken off whatever it was doing; the one on it is let go --
+	AFTER the job is `who`'s, so it cannot take it straight back up from its own order list. A load in hand stays with
+	its carrier (no load changes hands from afar). "" when done, else why not."""
 	if not jobs.is_live(row):
 		return WorkIds.NOT_FOUND
 	if who < 0 or who >= _cast.actor_count():
@@ -1165,13 +1166,17 @@ func reassign(row: int, who: int) -> String:
 	if jobs.load_milli[row] > 0:
 		return WorkIds.CARRYING % _carrier_words(row)
 	if jobs.of_worker_into(who, _probe) and _probe.value != row:
-		return "has another woods job"
-	if jobs.worker[row] == who:
+		return WorkIds.OTHER_WOODS_JOB
+	var old: int = jobs.worker[row]
+	if old == who:
 		return ""
-	_let_job_go(row)
+	if old != JobsScript.NOBODY:
+		jobs.unassign(row)
+		jobs.rewind_to_walk(row)
 	_paused_serial[row] = 0
 	jobs.assign(row, who)
 	_step(row, 0)
+	_free_worker(old)
 	return ""
 
 

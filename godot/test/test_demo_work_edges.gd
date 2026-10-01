@@ -26,6 +26,10 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
+const OrdersScript := preload("res://demo/work/work_orders.gd")
+const AnswerScript := preload("res://demo/work/queue_answer.gd")
+const FarmWork := preload("res://demo/work/farm_work.gd")
 
 const BED_CARROTS: int = 2
 const NORTH_OAK: int = 32
@@ -225,7 +229,7 @@ func test_a_mixed_group_on_a_woods_card_previews_each_member() -> void:
 	crew.call(&"order", ForestJobs.KIND_SAW, ForestJobs.NO_TARGET, 0, PackedInt32Array([1]), ForestJobs.ORIGIN_PLAYER)
 	var card := CardScript.new()
 	crew.call(&"preview_into", card, ForestJobs.KIND_FELL, NORTH_OAK, 0, PackedInt32Array([0, 1]))
-	assert_equal(card.members, "Of 2 selected: Placeholder 0 can; Placeholder 1 can't (has a woods job)", card.members)
+	assert_equal(card.members, "Of 2 selected: Placeholder 0 can; Placeholder 1 can't (has another woods job)", card.members)
 
 
 func test_a_reassigned_bridge_lets_its_old_builder_go() -> void:
@@ -393,3 +397,256 @@ func test_a_tunnel_worker_called_away_keeps_its_job_promised() -> void:
 	assert_false(board.consider(1), "the mole is not given it")
 	brains[0].work_done()
 	assert_equal(work.worker(bore), 0, "the mouse takes it back")
+
+
+# --- the review's findings (decision 0411's review) ------------------------------------------------
+
+func test_a_task_queued_after_a_plain_move_is_taken_when_the_move_arrives() -> void:
+	"""Shift after a plain right-click move: the move is the order's Now; when it arrives the queued harvest is taken
+	up -- the queued task never starves, promised to a resident that would only hold."""
+	var rig: RefCounted = _rig()
+	var board: BoardScript = rig.get(&"board")
+	var farm: FarmCrewScript = rig.get(&"farm")
+	var brain := _brain(rig, 0)
+	brain.order_move(brain.position + Vector2(1.5, 0.0))
+	farm.order(FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array(), FarmJobs.ORIGIN_PLAYER)
+	var row: int = _suite._farm_row(rig, FarmJobs.KIND_HARVEST, BED_CARROTS)
+	assert_equal(board.queue_task(WorkIds.SOURCE_FARM, row, 0), "", "queued behind the move")
+	assert_true(_suite._run(rig, 30.0, func() -> bool: return farm.jobs.worker[row] == 0), "taken once the move arrived")
+	assert_equal(brain.queue_size(), 0, "nothing left on its list")
+
+
+func test_an_idle_resident_takes_its_own_list_before_the_boards_claim() -> void:
+	"""An idle resident with an entry on its list takes that up first, before the board's best for it."""
+	var rig: RefCounted = _rig()
+	var board: BoardScript = rig.get(&"board")
+	var brain := _brain(rig, 0)
+	var taken := [false]
+	brain.append_queued(UnfinishedScript.new(func(_b: RefCounted) -> bool:
+		taken[0] = true
+		return true, "mine"))
+	rig.get(&"farm").call(&"order", FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array(), FarmJobs.ORIGIN_PLAYER)
+	board.rebuild_index()
+	assert_true(board.consider(0), "it took something")
+	assert_true(taken[0], "its own entry, first")
+
+
+func test_a_promised_task_claimed_by_its_resident_leaves_no_stale_entry_and_reassign_frees_it() -> void:
+	"""A task queued for a resident in the water is claimed for it by the board once it is out; the entry goes with the
+	claim, so a later Reassign lets that resident go cleanly -- free, not left holding with no job."""
+	var rig: RefCounted = _rig()
+	var board: BoardScript = rig.get(&"board")
+	var farm: FarmCrewScript = rig.get(&"farm")
+	_suite._crews(rig, PackedInt32Array([0, 3, 3, 3, 3, 3]))
+	_rest_all_but(rig, 0, true)
+	var brain := _brain(rig, 0)
+	brain.in_water = true
+	farm.order(FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array(), FarmJobs.ORIGIN_PLAYER)
+	var row: int = _suite._farm_row(rig, FarmJobs.KIND_HARVEST, BED_CARROTS)
+	assert_equal(board.queue_task(WorkIds.SOURCE_FARM, row, 0), "", "queued while in the water")
+	brain.in_water = false
+	board.rebuild_index()
+	assert_true(board.consider(0), "claimed for it")
+	assert_equal(farm.jobs.worker[row], 0, "its own")
+	assert_false(brain.promises(WorkIds.SOURCE_FARM, farm.jobs.serial[row]), "no stale entry left")
+	_brain(rig, 3).resting = false
+	assert_equal(board.reassign(WorkIds.SOURCE_FARM, row, 3), "", "reassigned")
+	assert_equal([farm.jobs.worker[row], brain.order], [3, BrainScript.ORDER_NONE], "the old worker let go, free")
+	_rest_all_but(rig, 0, false)
+
+
+func test_idle_leaves_out_every_resident_kept_from_work() -> void:
+	"""Underground, lying down, indoors, in the water or crossing: never given work by the board."""
+	var rig: RefCounted = _rig()
+	var board: BoardScript = rig.get(&"board")
+	var brain := _brain(rig, 0)
+	assert_true(board.idle(0), "idle to start with")
+	for flag: StringName in [&"underground", &"lying", &"indoors", &"in_water"]:
+		brain.set(flag, true)
+		assert_false(board.idle(0), "%s: not idle" % flag)
+		brain.set(flag, false)
+	brain.state = BrainScript.State.CROSS
+	assert_false(board.idle(0), "crossing: not idle")
+	brain.state = BrainScript.State.IDLE
+	board.track_walk(0, Vector2(1.0, 1.0))
+	assert_false(board.idle(0), "on a queued walk: not idle")
+
+
+func test_shift_on_a_task_that_cannot_be_taken_is_not_called_taken() -> void:
+	"""The queue's answer says what happened: a paused harvest queued for an idle resident is not taken (it waits for
+	Resume), so the answer is a refusal, not "on it now"; a task under way is refused as such; a full list refuses."""
+	var rig: RefCounted = _rig()
+	var board: BoardScript = rig.get(&"board")
+	var farm: FarmCrewScript = rig.get(&"farm")
+	var orders := OrdersScript.new()
+	orders.configure(board, null, rig.get(&"forestry"), null)
+	farm.order(FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array(), FarmJobs.ORIGIN_PLAYER)
+	var row: int = _suite._farm_row(rig, FarmJobs.KIND_HARVEST, BED_CARROTS)
+	board.pause(WorkIds.SOURCE_FARM, row, true)
+	var said: String = orders.queue_task(WorkIds.SOURCE_FARM, row, 0)
+	assert_true(said.begins_with("Can't queue:") and said.ends_with("cannot be taken now"), said)
+	assert_equal(farm.jobs.worker[row], FarmJobs.NOBODY, "nobody on it")
+	board.pause(WorkIds.SOURCE_FARM, row, false)
+	board.reassign(WorkIds.SOURCE_FARM, row, 3)
+	said = orders.queue_task(WorkIds.SOURCE_FARM, row, 0)
+	assert_true(said.ends_with("is on it"), "under way: %s" % said)
+	var walks := OrdersScript.new()
+	walks.configure(board, null, null, null)
+	var answer: AnswerScript = walks.queue_at(Vector2.ZERO, Vector2(1.0, 1.0), PackedInt32Array([1]))
+	assert_true(answer.ok and answer.words == OrdersScript.WALK_QUEUED % 1, "a walk queued, ok")
+	for k: int in 8:
+		_brain(rig, 2).append_queued(UnfinishedScript.new(func(_b: RefCounted) -> bool: return false, "x%d" % k))
+	answer = walks.queue_at(Vector2.ZERO, Vector2(2.0, 2.0), PackedInt32Array([2]))
+	assert_false(answer.ok, "a full list: refused (%s)" % answer.words)
+	assert_true(answer.words.begins_with("Can't queue:"), answer.words)
+
+
+func test_a_command_or_a_queued_order_re_indexes_at_once() -> void:
+	"""The candidate index is rebuilt once a claim period -- and at the next update after a command or a queued order,
+	so the claim never works from a list the player just changed."""
+	var rig: RefCounted = _rig()
+	var board: BoardScript = rig.get(&"board")
+	rig.get(&"farm").call(&"order", FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array(), FarmJobs.ORIGIN_PLAYER)
+	var row: int = _suite._farm_row(rig, FarmJobs.KIND_HARVEST, BED_CARROTS)
+	board.update(1)
+	var rebuilt: int = board.index_rebuilds
+	board.update(1)
+	assert_equal(board.index_rebuilds, rebuilt, "not rebuilt mid-period")
+	assert_equal(board.set_task_priority(WorkIds.SOURCE_FARM, row, WorkIds.PRIORITY_HIGH), true, "a priority set")
+	board.pause(WorkIds.SOURCE_FARM, row, true)
+	board.update(1)
+	assert_equal(board.index_rebuilds, rebuilt + 1, "a command: rebuilt at the next update")
+	_brain(rig, 1).order_move(_brain(rig, 1).position + Vector2(1.0, 0.0))
+	board.queue_walk(1, Vector2(3.0, 3.0))
+	board.update(1)
+	assert_equal(board.index_rebuilds, rebuilt + 2, "a queued order: rebuilt at the next update")
+
+
+func test_a_shift_order_to_a_resident_at_a_work_spot_starts_at_once() -> void:
+	"""A work-spot order has no end of its own: a queued walk given to a resident working at a spot is taken up at
+	once."""
+	var rig: RefCounted = _rig()
+	var board: BoardScript = rig.get(&"board")
+	var brain := _brain(rig, 0)
+	brain.order_work(0, 0)
+	assert_equal(brain.order, BrainScript.ORDER_WORK, "working at a spot")
+	var goal := Vector2(1.0, 1.0)
+	assert_equal(board.queue_walk(0, goal), "", "queued")
+	assert_equal([brain.order, brain.goal()], [BrainScript.ORDER_MOVE, goal], "on its way at once")
+
+
+func test_a_shift_order_never_cuts_a_jobs_walk_short() -> void:
+	"""Queued behind a resident walking to its farm job: the job's walk is not taken for a plain move -- on arrival the
+	resident works the job; the queued walk waits on its list until the job is done."""
+	var rig: RefCounted = _rig()
+	var board: BoardScript = rig.get(&"board")
+	var farm: FarmCrewScript = rig.get(&"farm")
+	var row: int = _suite._harvest_to(rig, 3)
+	_suite._frame(rig)
+	assert_equal(board.queue_walk(3, Vector2(1.0, 1.0)), "", "a walk queued behind the job")
+	var cutting := func() -> bool: return farm.jobs.current_step(row) == FarmJobs.STEP_WORK + FarmJobs.WORK_HARVEST \
+		and farm.jobs.elapsed_usec[row] > 0
+	assert_true(_suite._run(rig, 90.0, cutting), "working the harvest")
+	assert_equal([farm.jobs.worker[row], _brain(rig, 3).queue_size()], [3, 1], "its job, the walk still waiting")
+
+
+func test_a_reassign_to_a_resident_that_had_the_task_queued_clears_its_entry() -> void:
+	"""A task queued for resident 1 is reassigned to resident 1 directly: its entry naming the task goes."""
+	var rig: RefCounted = _rig()
+	var board: BoardScript = rig.get(&"board")
+	var farm: FarmCrewScript = rig.get(&"farm")
+	_brain(rig, 1).resting = true
+	farm.order(FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array(), FarmJobs.ORIGIN_PLAYER)
+	var row: int = _suite._farm_row(rig, FarmJobs.KIND_HARVEST, BED_CARROTS)
+	board.queue_task(WorkIds.SOURCE_FARM, row, 1)
+	_brain(rig, 1).resting = false
+	assert_equal(board.reassign(WorkIds.SOURCE_FARM, row, 1), "", "reassigned to it")
+	assert_false(_brain(rig, 1).promises(WorkIds.SOURCE_FARM, farm.jobs.serial[row]), "its entry gone")
+
+
+func test_a_task_taken_up_from_the_list_leaves_no_second_entry_for_it() -> void:
+	"""Two entries naming the same task (a queued one and a job kept from an interruption): the first taken up hands the
+	task over and the other goes with it."""
+	var rig: RefCounted = _rig()
+	var board: BoardScript = rig.get(&"board")
+	var farm: FarmCrewScript = rig.get(&"farm")
+	var brain := _brain(rig, 1)
+	brain.resting = true
+	farm.order(FarmJobs.KIND_HARVEST, BED_CARROTS, PackedInt32Array(), FarmJobs.ORIGIN_PLAYER)
+	var row: int = _suite._farm_row(rig, FarmJobs.KIND_HARVEST, BED_CARROTS)
+	board.queue_task(WorkIds.SOURCE_FARM, row, 1)
+	brain.remember_unfinished(farm.unfinished_of(row))
+	assert_equal(brain.queue_size(), 2, "two entries for one task")
+	brain.resting = false
+	assert_true(brain.take_up_unfinished(), "taken up")
+	assert_equal(farm.jobs.worker[row], 1, "its")
+	assert_false(brain.promises(WorkIds.SOURCE_FARM, farm.jobs.serial[row]), "no entry left naming it")
+
+
+func _stale_reassign(rig: RefCounted, source: int, row: int, serial: int) -> void:
+	"""Resident 0, on task (source, row), also has it queued (a stale entry); the task is reassigned to 3: 0 must end
+	free, not pulled back to the task and left holding."""
+	var board: BoardScript = rig.get(&"board")
+	board.queue_task(source, row, 0)
+	assert_true(_brain(rig, 0).promises(source, serial), "the stale entry")
+	assert_equal(board.reassign(source, row, 3), "", "reassigned to 3")
+	assert_true(board.source(source).worker(row) == 3, "3 on it")
+	assert_equal(_brain(rig, 0).order, BrainScript.ORDER_NONE, "0 let go, free")
+
+
+func test_a_reassign_never_lets_the_old_worker_take_the_task_back() -> void:
+	"""The farm and the woods hand the task to the new worker BEFORE letting the old one go, so even an entry naming it
+	on the old worker's list cannot pull it back and leave it holding with no job."""
+	var rig: RefCounted = _rig()
+	var farm: FarmCrewScript = rig.get(&"farm")
+	var row: int = _suite._harvest_to(rig, 0)
+	_suite._frame(rig)
+	_stale_reassign(rig, WorkIds.SOURCE_FARM, row, farm.jobs.serial[row])
+	var other: RefCounted = _rig()
+	var crew: RefCounted = (other.get(&"forestry") as Node).get(&"crew")
+	crew.call(&"order", ForestJobs.KIND_FELL, NORTH_OAK, 0, PackedInt32Array([0]), ForestJobs.ORIGIN_PLAYER)
+	_suite._frame(other)
+	_stale_reassign(other, WorkIds.SOURCE_WOODS, 0, (crew.get(&"jobs") as ForestJobs).serial[0])
+
+
+func test_a_queued_woods_order_checks_the_list_before_posting() -> void:
+	"""Shift on a tree with the nearest resident's list full: refused, and no felling put on the board for nobody."""
+	var rig: RefCounted = _rig()
+	var board: BoardScript = rig.get(&"board")
+	var orders := OrdersScript.new()
+	orders.configure(board, null, rig.get(&"forestry"), null)
+	for k: int in 8:
+		_brain(rig, 2).append_queued(UnfinishedScript.new(func(_b: RefCounted) -> bool: return false, "x%d" % k))
+	var said: String = orders._queue_woods(4, NORTH_OAK, PackedInt32Array([2]))
+	assert_true(said.begins_with("Can't queue:"), said)
+	var jobs: ForestJobs = ((rig.get(&"forestry") as Node).get(&"crew") as RefCounted).get(&"jobs")
+	assert_equal(jobs.live_count(), 0, "nothing put on the board")
+
+
+func test_a_queued_bed_order_checks_the_list_before_posting() -> void:
+	"""Shift on a ripe bed with the resident's list full: refused, and no harvest put on the board for nobody."""
+	var it := IntegrationTest.new()
+	it.before_each()
+	var farm: DemoFarmScript = it._village(false)
+	farm.step(24 * HOUR_USEC)
+	var cast: DemoCastScript = farm.get(&"_cast")
+	var brains: Array[BrainScript] = []
+	var names := PackedStringArray()
+	var keys: Array[StringName] = []
+	for i: int in cast.actor_count():
+		brains.append((cast.actor(i) as DemoActorScript).brain)
+		names.append("R%d" % i)
+		keys.append(&"mouse_keeper")
+	var board := BoardScript.new()
+	board.bind(brains, names, keys)
+	board.add_source(FarmWork.new(farm.crew))
+	var orders := OrdersScript.new()
+	orders.configure(board, farm, null, null)
+	for k: int in 8:
+		brains[0].append_queued(UnfinishedScript.new(func(_b: RefCounted) -> bool: return false, "x%d" % k))
+	farm.crew.cancel_bed(BED_CARROTS)
+	var before: int = farm.crew.jobs.live_count()
+	var said: String = orders._queue_bed(BED_CARROTS, PackedInt32Array([0]))
+	assert_true(said.begins_with("Can't queue:"), said)
+	assert_equal(farm.crew.jobs.live_count(), before, "nothing put on the board")
+	it.after_each()

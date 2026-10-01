@@ -17,22 +17,21 @@ const NewsJumpScript := preload("res://demo/ui/demo_news_jump.gd")
 const PAID_CANCEL: String = "its materials are used already — pause it instead"
 const SHORT: String = "the stores are short of its materials"
 const CLOSED: String = "the tunnel is closed — it needs its repair first"
-const NOT_A_DIGGER: String = "can't dig (its body fits no standard bore)"
-const NOT_FITTING: String = "does not fit this tunnel's bore"
-const DIGGING: String = "is digging a tunnel"
+const NOT_A_DIGGER: String = WorkIds.NOT_A_DIGGER
+const NOT_FITTING: String = WorkIds.NOT_FITTING
+const DIGGING: String = WorkIds.DIGGING
 
 var _jobs: JobsScript = null
 var _network: GraphScript = null
 var _stores: StoresScript = null
-var _brains: Array = []
+var _brains: Array[BrainScript] = []
 ## `can_dig(who) -> bool` (tunnel_control.gd `is_digger`).
 var _can_dig: Callable = Callable()
-## Per segment: the job key the player paused there (-1: none).
-var _paused_key: PackedInt64Array = PackedInt64Array()
 var _cost: PackedInt32Array = PackedInt32Array([0, 0])
 
 
-func _init(jobs: JobsScript, network: GraphScript, stores: StoresScript, brains: Array, can_dig: Callable) -> void:
+func _init(jobs: JobsScript, network: GraphScript, stores: StoresScript, brains: Array[BrainScript],
+		can_dig: Callable) -> void:
 	"""Read these jobs on this network, paid from these stores, worked by these residents' brains."""
 	id = WorkIds.SOURCE_TUNNELS
 	_jobs = jobs
@@ -53,8 +52,8 @@ func live(row: int) -> bool:
 
 
 func key(row: int) -> int:
-	"""The job's identity: the segment's generation and the job's kind."""
-	return _jobs.tunnel_gen[row] * 8 + _jobs.kind[row]
+	"""The job's identity: its posting's serial (tunnel_jobs.gd THE PLAYER'S HOLD)."""
+	return _jobs.serial[row]
 
 
 func worker(row: int) -> int:
@@ -121,8 +120,8 @@ func _send(row: int, who: int) -> void:
 
 
 func is_paused(row: int) -> bool:
-	"""Whether the player paused the job."""
-	return live(row) and row < _paused_key.size() and _paused_key[row] == key(row)
+	"""Whether the player paused the job (tunnel_jobs.gd `is_held`)."""
+	return _jobs.is_held(row)
 
 
 func fill(task: TaskScript, row: int) -> void:
@@ -151,18 +150,9 @@ func pause(row: int, on: bool) -> String:
 	"""Pause the job (its worker's task ends at its next step: tunnel_job_task.gd `step`) or resume it."""
 	if not live(row):
 		return WorkIds.NOT_FOUND
-	if _paused_key.size() < capacity():
-		var old: int = _paused_key.size()
-		_paused_key.resize(capacity())
-		for k: int in range(old, capacity()):
-			_paused_key[k] = -1
-	if not on:
-		_paused_key[row] = -1
-		return ""
-	if is_paused(row):
+	if on and is_paused(row):
 		return WorkIds.PAUSED_ALREADY
-	_paused_key[row] = key(row)
-	_jobs.pause(row)
+	_jobs.hold(row, on)
 	return ""
 
 
@@ -187,8 +177,7 @@ func reassign(row: int, who: int) -> String:
 		return why
 	if _jobs.worker[row] == who:
 		return ""
-	if row < _paused_key.size():
-		_paused_key[row] = -1
+	_jobs.hold(row, false)
 	_jobs.pause(row)
 	_send(row, who)
 	return ""

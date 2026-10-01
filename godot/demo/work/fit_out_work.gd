@@ -17,12 +17,12 @@ const CANT_REACH_ROOM: String = "can't reach the room (its body fits no way in)"
 
 var _graph: RefCounted = null
 var _crew: FixtureCrewScript = null
-var _brains: Array = []
+var _brains: Array[BrainScript] = []
 ## `name_of(who) -> String`.
 var _name_of: Callable = Callable()
 
 
-func _init(graph: RefCounted, crew: FixtureCrewScript, brains: Array, name_of: Callable) -> void:
+func _init(graph: RefCounted, crew: FixtureCrewScript, brains: Array[BrainScript], name_of: Callable) -> void:
 	"""Read this network's fit-out and its crew, worked by these residents' brains; `name_of(who)` names a resident."""
 	id = WorkIds.SOURCE_FIT_OUT
 	_graph = graph

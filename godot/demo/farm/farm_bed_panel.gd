@@ -31,7 +31,7 @@ extends CanvasLayer
 ## service under its moisture.
 ## COMPARE… (decision 0451, UX-008) swaps the readout and the verbs for every bed side by side, sortable, each ringed
 ## and ranked on the map (farm_compare_view.gd), its title in the head and Back in the foot as the picker's; a row opens
-## that bed and the view stays. "Planner (G)" in the head opens the seasonal planner (farm_planner.gd).
+## that bed and the view stays. "Planner (T)" in the head opens the seasonal planner (farm_planner.gd).
 ##
 ## The panel only shows and asks: pressing emits a signal and demo_farm.gd orders the work.
 
@@ -65,7 +65,7 @@ signal pantry_requested
 signal sluice_requested
 ## A sluice setting was pressed (weir_sluice.gd SLUICE_*).
 signal sluice_chosen(setting: int)
-## "Planner (G)" was pressed (decision 0451).
+## "Planner (T)" was pressed (decision 0451).
 signal planner_requested
 ## The Compare view opened, closed or re-sorted: the map's compare marks should follow (`compare_marks`).
 signal compare_changed
@@ -74,7 +74,7 @@ signal compare_bed_picked(bed: int)
 
 const WEIR_TITLE: String = "Weir sluice · garden leat"
 const SLUICE_TIP: String = "Show the weir sluice that feeds the garden leat (Bed 2, Bed 4 and Bed 6) and what each setting does"
-const HINT: String = "Click a crop bed to tend it · right-click it with residents selected to set them to its most pressing work · V or the Map layer picker: map layers · K: pantry · G: planner"
+const HINT: String = "Click a crop bed to tend it · right-click it with residents selected to set them to its most pressing work · V or the Map layer picker: map layers · K: pantry · T: planner"
 ## The verbs with a button of their own, in order (sowing is "Plant…"): with Plant… and the two
 ## moisture verbs on the first row, four rows of three.
 const VERB_KINDS: Array[int] = [JobsScript.KIND_WATER, JobsScript.KIND_DRAIN, JobsScript.KIND_HARVEST,
@@ -308,7 +308,7 @@ func _header() -> HBoxContainer:
 	_title.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(_title)
-	var planner: Button = FarmUi.button("Planner (G)", FarmUi.SMALL_PX)
+	var planner: Button = FarmUi.button("Planner (T)", FarmUi.SMALL_PX)
 	planner.tooltip_text = "The seasonal planner: every bed at a glance, the season's calendar, soil plans and the record"
 	planner.pressed.connect(func() -> void: planner_requested.emit())
 	row.add_child(planner)

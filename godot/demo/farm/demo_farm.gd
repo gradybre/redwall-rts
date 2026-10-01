@@ -23,8 +23,8 @@ extends Node3D
 ##   left click the weir              the weir sluice's controls in the bed panel (farm_leat.gd, decision 0441;
 ##                                    `on_weir_click`, asked after the water's play):
 ##   (or a bed's Sluice…)             Close / Half / Open, each card previewing the beds it changes
-##   G, or the Farm panel's            the seasonal planner (farm_planner.gd, decision 0451): every bed at a
-##     "Planner (G)"                  glance, the season's calendar, soil plans and the after-action record
+##   T, or the Farm panel's            the seasonal planner (farm_planner.gd, decision 0451; T, UI §5's calendar
+##     "Planner (T)"                  key, decision 0492): every bed at a glance, the season's calendar, soil plans and the after-action record
 ##   Esc                              close the Pantry, then the bed panel
 ## The routine crew (the fieldworker and the gatherer) take queued jobs and the farm's own harvest
 ## and clearing jobs whenever they are wandering.
@@ -235,7 +235,7 @@ func _build_panels() -> void:
 
 func _build_planner() -> void:
 	"""The after-action record from this hour on, and the seasonal planner over the farm, its crew and the record --
-	opened by G and the bed panel's "Planner (G)"; the bed panel's Compare view marks the map (decision 0451)."""
+	opened by T and the bed panel's "Planner (T)"; the bed panel's Compare view marks the map (decision 0451)."""
 	record.bind(pantry, sim.crop_weather().weather())
 	record.start(services.calendar.hour_index())
 	planner = PlannerScript.new()
@@ -589,7 +589,7 @@ func on_ground_order(screen: Vector2) -> bool:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	"""V: overlays; K (open_food): the Pantry; G: the planner; Esc: close the planner, the Pantry, then the bed panel."""
+	"""V: overlays; K (open_food): the Pantry; T: the planner; Esc: close the planner, the Pantry, then the bed panel."""
 	if not event is InputEventKey or not event.is_pressed() or event.is_echo():
 		return
 	if handle_key(event as InputEventKey) and is_inside_tree():

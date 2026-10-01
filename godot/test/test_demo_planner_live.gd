@@ -40,7 +40,7 @@ func _assert_run(size: String) -> void:
 
 
 func test_the_planner_on_the_real_scene_at_1280x720() -> void:
-	"""G, Tab, a filter and a row clicked, the calendar, plans and record, G and Esc, Compare, and 125 %, at 1280x720."""
+	"""T, Tab, a filter and a row clicked, the calendar, plans and record, T and Esc, Compare, and 125 %, at 1280x720."""
 	_assert_run("1280x720")
 
 

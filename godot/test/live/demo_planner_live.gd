@@ -1,8 +1,8 @@
 extends SceneTree
-## The seasonal planner on the REAL scene with REAL Viewport input (decision 0451): G opens it as a modal of the input
+## The seasonal planner on the REAL scene with REAL Viewport input (decision 0451): T opens it as a modal of the input
 ## gate with the focus inside it and its frame inside the window; Tab stays inside; its filter is clicked; a row clicked
 ## closes it, opens that bed's panel and centres the camera; the calendar's timeline and table, the soil plans and the
-## record are shown; G and Esc close it; the bed panel's Compare… rings and ranks the beds; and at 125 % it still fits.
+## record are shown; T and Esc close it; the bed panel's Compare… rings and ranks the beds; and at 125 % it still fits.
 ## Not discovered by the runner: test/test_demo_planner_live.gd runs it in its own process (the runner's worker cannot
 ## dispatch input; docs/ENVIRONMENT.md).
 ##
@@ -152,9 +152,9 @@ func _pause() -> void:
 
 
 func _g_opens_the_planner_as_a_modal() -> void:
-	"""G opens the planner over the scrim, the top modal, the focus inside it, its frame inside the window."""
-	_key(KEY_G)
-	_check("G opens the planner", _planner().visible)
+	"""T opens the planner over the scrim, the top modal, the focus inside it, its frame inside the window."""
+	_key(KEY_T)
+	_check("T opens the planner", _planner().visible)
 	_check("the planner is the top modal", _gate().top_layer() == _planner())
 	_check("focus lands inside the planner", _gate().in_top_modal(_focus()), str(_focus()))
 	_check("the planner fits the window", _fits(_planner().call(&"frame_rect")), str(_planner().call(&"frame_rect")))
@@ -197,7 +197,7 @@ func _a_row_opens_its_bed() -> void:
 
 func _the_calendar_s_timeline() -> void:
 	"""The calendar's tab: the timeline, today the HUD's day."""
-	_key(KEY_G)
+	_key(KEY_T)
 	_click(_centre(_planner().call(&"tab_button", 1)))
 	var season: RefCounted = _planner().call(&"season")
 	var calendar: RefCounted = _village.call(&"services").get("calendar")
@@ -251,11 +251,11 @@ func _the_record() -> void:
 
 
 func _g_and_esc_close_it() -> void:
-	"""G closes it; G opens it; Esc closes it -- and Esc does not also clear the selection."""
-	_key(KEY_G)
-	_check("G closes the planner", not _planner().visible)
-	_key(KEY_G)
-	_check("G opens it again", _planner().visible)
+	"""T closes it; T opens it; Esc closes it -- and Esc does not also clear the selection."""
+	_key(KEY_T)
+	_check("T closes the planner", not _planner().visible)
+	_key(KEY_T)
+	_check("T opens it again", _planner().visible)
 	_key(KEY_ESCAPE)
 	_check("Esc closes it", not _planner().visible)
 	_check("the bed stays open", int(_farm().get("selected_bed")) == BED_RADISH)
@@ -296,7 +296,7 @@ func _compare_back() -> void:
 func _at_125() -> void:
 	"""At 125 % the planner still fits the window."""
 	_village.call(&"set_ui_scale", 125)
-	_key(KEY_G)
+	_key(KEY_T)
 	_planner().call(&"show_tab", 0)
 	_check("at 125 % the planner fits the window", _fits(_planner().call(&"frame_rect")), str(_planner().call(&"frame_rect")))
 	_capture("planner_125")

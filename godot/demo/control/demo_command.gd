@@ -13,7 +13,7 @@ extends Node3D
 ##                                the work board's `queue_at` (demo/work/work_orders.gd); not in the underground view
 ##   R                            release the selection back to wandering
 ##   Esc (`selection_clear`)      clear the selection
-##   B (or T) / U                 the Dig tool (the cutaway, drag a tunnel) / underground view -- the
+##   B / U                        the Dig tool (the cutaway, drag a tunnel) / underground view -- the
 ##                                tool (demo/tunnel/tunnel_control.gd) sees every event first and,
 ##                                while it is open, takes the clicks and keys it uses
 ##   left click a finished tunnel select it for the "Tunnels & burrows (demo)" panel, keeping any

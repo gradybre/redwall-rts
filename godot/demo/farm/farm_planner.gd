@@ -2,9 +2,9 @@ extends CanvasLayer
 ## THE SEASONAL PLANNER (decision 0451; review F45, UX-008's overview half, ECO-005, P1's "Seasonal forecast" row, P4):
 ## the village's answer to "what threatens tonight's meal or next season?" -- exceptions first, not another wall of
 ## numbers. DEMO UI in the woodland skin, in the HUD's modal rectangle above the HUD (as the Work screen and the Pantry),
-## a modal of the input gate (decision 0261: G, Esc and its × close it; Tab and Enter work inside it; focus comes back
-## where it was). G opens it, and so does the Farm panel's "Planner (G)". It follows the interface scale (DemoUiScale,
-## decision 0391) and is laid out for 1280x720.
+## a modal of the input gate (decision 0261: T, Esc and its × close it; Tab and Enter work inside it; focus comes back
+## where it was). T opens it (UI §5's calendar key; decision 0492), and so does the Farm panel's "Planner (T)". It
+## follows the interface scale (DemoUiScale, decision 0391) and is laid out for 1280x720.
 ##
 ## FOUR TABS, each a view of the farm's real state through one pure module:
 ##   Farm overview    one row a bed -- crop, stage, when and how much it harvests, its soil moisture in the bed panel's
@@ -47,7 +47,7 @@ signal bed_wanted(bed: int)
 
 const TITLE: String = "Seasonal planner"
 ## The planner's key: free in the input map and in the demo (UI §5's calendar key T is the Dig tool's here; decision 0451).
-const KEY: Key = KEY_G
+const KEY: Key = KEY_T
 const TAB_OVERVIEW: int = 0
 const TAB_CALENDAR: int = 1
 const TAB_PLANS: int = 2
@@ -180,7 +180,7 @@ func _header() -> HBoxContainer:
 	_date.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(_date)
 	_close = FarmUi.button("×")
-	_close.tooltip_text = "Close the planner (G or Esc)"
+	_close.tooltip_text = "Close the planner (T or Esc)"
 	_close.pressed.connect(func() -> void: close_requested.emit())
 	row.add_child(_close)
 	return row
@@ -325,7 +325,7 @@ func open() -> void:
 
 
 func close() -> void:
-	"""Close (the gate's Esc and G, and the ×)."""
+	"""Close (the gate's Esc and T, and the ×)."""
 	visible = false
 
 

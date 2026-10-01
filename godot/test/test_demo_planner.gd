@@ -674,12 +674,12 @@ func _row_of(view: Object, bed: int) -> int:
 
 # --- the planner --------------------------------------------------------------------------------------------------------
 
-func test_g_opens_the_planner_and_g_and_esc_close_it() -> void:
-	"""G toggles the planner, as the bed panel's "Planner (G)" does; Esc closes it before the Pantry or the bed."""
+func test_t_opens_the_planner_and_t_and_esc_close_it() -> void:
+	"""T (UI §5's calendar key, decision 0492) toggles the planner, as the bed panel's "Planner (T)" does; Esc closes it before the Pantry or the bed."""
 	var farm: DemoFarmScript = _ui._farm()
-	assert_true(farm.handle_key(_key(KEY_G)), "G is the farm's")
+	assert_true(farm.handle_key(_key(KEY_T)), "T is the farm's")
 	assert_true(farm.planner.visible, "open")
-	assert_true(farm.handle_key(_key(KEY_G)), "again")
+	assert_true(farm.handle_key(_key(KEY_T)), "again")
 	assert_false(farm.planner.visible, "closed")
 	farm.select_bed(BED_CARROTS)
 	farm.bed_panel.planner_requested.emit()
@@ -687,9 +687,10 @@ func test_g_opens_the_planner_and_g_and_esc_close_it() -> void:
 	assert_true(farm.handle_key(_key(KEY_ESCAPE)), "Esc")
 	assert_false(farm.planner.visible, "Esc closes it first")
 	assert_equal(farm.selected_bed, BED_CARROTS, "the bed stays open")
-	var ctrl := _key(KEY_G)
+	var ctrl := _key(KEY_T)
 	ctrl.ctrl_pressed = true
-	assert_false(farm.handle_key(ctrl), "Ctrl+G is not the planner's")
+	assert_false(farm.handle_key(ctrl), "Ctrl+T is not the planner's")
+	assert_false(farm.handle_key(_key(KEY_G)), "G is Run until's, not the planner's (decision 0492)")
 
 
 func test_the_overview_rows_follow_the_filter_and_open_their_bed() -> void:

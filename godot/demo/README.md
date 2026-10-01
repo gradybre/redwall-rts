@@ -559,7 +559,7 @@ centre under the alerts), each completed **only by what really happens in the vi
 | Esc | Close the top pop-up; else drop the Dig tool's piece or close the tool; else clear the selection; else open the game menu |
 | Menu ("≡") | The game menu (above) |
 | F8 | The Demo Lab (above) |
-| B (or T, or "Dig tunnel (B)") | The Dig tool: lay out tunnels and branches (below); again: close it. (B is the HUD's Build key, locked in the demo, so the demo takes it; the command strip says so) |
+| B (or "Dig tunnel (B)") | The Dig tool: lay out tunnels and branches (below); again: close it. (B is the HUD's Build key, locked in the demo, so the demo takes it; the command strip says so) |
 | H / C in the Dig tool (or "Burrow home (H)" / "Root cellar (C)") | The room tools: place a burrow home or a root cellar as its own structure (see Burrow homes and root cellars) |
 | U | Underground view: a top-down section cut at the tunnels' level (see The underground view) |
 | PgUp / PgDn in the U view | Show level 1 / level 2 (see The second level). On the surface they stay the camera's zoom; Alt+PgUp/PgDn its pitch |
@@ -625,7 +625,7 @@ pitch 30, was a screen of leaves) while a selected worker under one, or behind a
 ## Digging tunnels
 
 The tunnels are one **network** (decision 0208, `tunnel/underground_graph.gd`): bores meeting at
-junctions, reached from the surface by mouths. Press **B** (or T, or the party panel's "Dig tunnel (B)"):
+junctions, reached from the surface by mouths. Press **B** (or the party panel's "Dig tunnel (B)"):
 the Dig tool opens in the underground view (and puts the view back when it closes). **Drag** from where a
 piece starts to where it ends -- it is dug as you release, if it may be (Shift while dragging drops a bend
 at the pointer) -- or click its points one by one and press Enter or right-click. Backspace takes back a
@@ -1002,7 +1002,7 @@ opens the Pantry (decision 0292), whose headline is the pantry total:
 | Rest | Rest the bed fallow (+0.5 fertility points a day; nothing is sown) |
 | V | Map layer: moisture, then ripeness, then the water service, then the water range, then the routes, then the woods, then off -- or pick one on the Map layer picker (see Map layers) |
 | K / Food | The Pantry |
-| G / Planner (G) (bed panel) | The seasonal planner (below) |
+| T / Planner (T) (bed panel) | The seasonal planner (below) |
 | Compare… (bed panel) | Every bed side by side, sortable, ringed and ranked on the map (below) |
 
 Threats: spring is wet (beds waterlog and stop growing -- Drain them, run a tunnel under them, or raise
@@ -1017,10 +1017,11 @@ x 19.5 m, z 4) irrigates the beds it runs under. Details and every number's sour
 
 ## The seasonal planner (decision 0451)
 
-Review group O (F45, UX-008, ECO-005's presentation, P1's "Seasonal forecast", P4). **G**, or **Planner (G)** in the
+Review group O (F45, UX-008, ECO-005's presentation, P1's "Seasonal forecast", P4). **T**, or **Planner (T)** in the
 Farm panel's head, opens it (`farm/farm_planner.gd`): a modal of the input gate in the HUD's modal rectangle, like the
-Work screen -- G, Esc or its "×" close it, Tab stays inside, focus goes back where it was -- at the interface scale.
-(UI §5's calendar key T is the Dig tool's alias here, so the planner takes G.) Four tabs:
+Work screen -- T, Esc or its "×" close it, Tab stays inside, focus goes back where it was -- at the interface scale.
+(T is UI §5's calendar key, `open_calendar`; it was the Dig tool's alias for B until decision 0492 gave it back, and G
+went to "Run until…".) Open, it is a planning surface: with "Pause while planning" on it pauses the village. Four tabs:
 
 - **Farm overview** (`farm/farm_plan_rows.gd`): one row a bed -- bed, crop, stage (and the verb when it needs attention:
   "Needs: Drain"), harvest when and how much, soil moisture in the bed panel's words ("Good · 66%"), the work on it and

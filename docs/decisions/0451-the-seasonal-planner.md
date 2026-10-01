@@ -21,14 +21,15 @@ work package 4 for "a compact after-action record based on committed outcomes".
 
 ## Decision
 
-### 1. One planner screen, opened by G and the Farm panel
+### 1. One planner screen, opened by T and the Farm panel
 
 `demo/farm/farm_planner.gd`: a modal of the input gate (decision 0261) in the HUD's modal rectangle, as the Work screen
-and the Pantry are -- G, Esc and its "×" close it, Tab stays inside it, focus goes back where it was -- at the
+and the Pantry are -- T, Esc and its "×" close it, Tab stays inside it, focus goes back where it was -- at the
 interface scale (`DemoUiScale`, decision 0391), laid out for 1280x720. Four tabs: **Farm overview**, **Season
-calendar**, **Soil plans**, **Record**. The bed panel's head carries **Planner (G)** (the "Farm tab" opener).
+calendar**, **Soil plans**, **Record**. The bed panel's head carries **Planner (T)** (the "Farm tab" opener).
 
-**The key is G.** UI §5 binds the seasonal calendar to T (`open_calendar`), but in the demo T is the Dig tool's alias for
+**The key is T** -- since the batch 5 integration, decision 0492. As this branch shipped it, the key was G, for this
+reason, kept for the record: UI §5 binds the seasonal calendar to T (`open_calendar`), but in the demo T was the Dig tool's alias for
 B (`tunnel_control.gd`, tested in `test_demo_tunnel.gd`). G is free in the input map and in every demo handler (checked:
 the input map's 80 actions; the demo's hard-coded keys B, T, H, C, L, U, V, K, R, F7, F8, F11; J is the Work screen's,
 decision 0411; Ctrl+G and other modified G are left alone). Reclaiming T for the calendar would move the Dig tool's key;
@@ -137,23 +138,23 @@ season's) totals. The last 48 days are kept.
 ## Consequences
 
 - **Shared files touched**: `demo/farm/farm_pantry.gd` (the ledger: three columns, three increments, three readers),
-  `demo/farm/demo_farm.gd` (building the planner and record, G, the record's hourly close and posts),
-  `demo/farm/farm_bed_panel.gd` (Planner (G), Compare…, the compare view in place of the readout),
+  `demo/farm/demo_farm.gd` (building the planner and record, T, the record's hourly close and posts),
+  `demo/farm/farm_bed_panel.gd` (Planner (T), Compare…, the compare view in place of the readout),
   `demo/farm/farm_view.gd` and `demo/farm/farm_bed_visual.gd` (the compare marks and ring), `demo/farm/farm_text.gd`
   (a public `degrees_text`), `demo/demo_village.gd` (the kitchen and the camera jump handed to the farm, the planner
-  watched as a modal with G its close key).
+  watched as a modal with T its close key).
 - The bed panel's verb grid has a fourth row (Compare… after Cancel jobs).
 - One farm note a day enters the 128-entry feed.
 - Planner refreshes only while open, 4 times a second; the calendar and the plans rebuild only when the farm, the hour,
   the record or the kitchen changed (their inputs compared whole, not hashed); the pooled tables write a cell's text,
   a row's colour and its accessible description only when they change.
 - The bed panel's Compare view closes, and the map's rings and ranks with it, when the panel is hidden or no bed is
-  open. G opens and closes the planner on the same (logical) key the gate reads.
+  open. T opens and closes the planner on the same (logical) key the gate reads.
 
 ## Left open
 
-- UI §5's T for the calendar (the demo's Dig alias) and routing the HUD's date trigger to the planner: a key and HUD
-  decision for later.
+- ~~UI §5's T for the calendar (the demo's Dig alias)~~ -- settled by decision 0492: the planner is T. Routing the HUD's
+  date trigger to the planner is still a HUD decision for later.
 - A weather-aware forecast (projecting growth through announced events and frost nights) would disagree with the bed
   panel's own "ripe in about N h"; both would have to move together.
 - Bulk bed orders and their preview (P4's "batch identical orders") remain unbuilt.

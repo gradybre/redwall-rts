@@ -29,8 +29,10 @@ extends Node
 ## Space, Backspace), none of which it reads while the field takes them.
 ##
 ## FOCUS OUTSIDE A MODAL. The demo's panels are REGIONS (`add_region`): the right column (its tab strip
-## and the four panels), the left column (the party panel's buttons) and the Map layer picker (decision 0391).
-## F7 moves focus world -> right column -> left column -> map layers -> world; Tab and Shift+Tab cycle within
+## and the four panels), the left column (the party panel's buttons) and the Map layer picker (decision 0391), then
+## the top-centre cards while shown: the first-village guide's card (decision 0481) and the people's offer card (decision
+## 0491). F7 moves focus world -> right column -> left column -> map layers -> guide card -> offer card -> world (a
+## hidden region is passed over); Tab and Shift+Tab cycle within
 ## the focused region in reading order
 ## (Godot's own traversal stops at each CanvasLayer); Esc with keyboard focus in a region gives it back
 ## to the world.

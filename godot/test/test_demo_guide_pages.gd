@@ -80,7 +80,7 @@ func test_help_keeps_every_key_the_controls_page_had() -> void:
 	var keys := PackedStringArray()
 	for k: int in topics.count():
 		keys.append(topics.keys_of(k))
-	for key: String in ["F7", "F8", "Tab / Shift+Tab", "B or T", "K", "Esc", "Space", "U", "V", "N", "O", "J", "L"]:
+	for key: String in ["F7", "F8", "Tab / Shift+Tab", "B", "T", "G", "F6", "K", "Esc", "Space", "U", "V", "N", "O", "J", "L"]:
 		assert_true(keys.has(key), "lists %s" % key)
 
 

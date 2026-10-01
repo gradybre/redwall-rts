@@ -5,7 +5,7 @@ extends Node3D
 ##
 ## CONTROLS (demo_command.gd hands every event here first; Enter, and a drag's motion and release, are read
 ## in its `_input`, before the HUD, so they can never press or be lost to a HUD control):
-##   B (or T, or "Dig tunnel" in the Demo party panel)   the Dig tool: the view goes underground (the
+##   B (or "Dig tunnel" in the Demo party panel)         the Dig tool: the view goes underground (the
 ##                                         cutaway, tunnel_view.gd) and back to what it was when the tool
 ##                                         closes; again: close it. B was the HUD's Build key, locked in the
 ##                                         demo (its command strip says so); U stays the view's own switch.
@@ -423,15 +423,15 @@ static func _shift_only_non_letter(event: InputEventKey) -> bool:
 
 
 static func _modified(event: InputEventKey) -> bool:
-	"""Whether a modifier is held (B, T and U are plain keys)."""
+	"""Whether a modifier is held (B and U are plain keys)."""
 	return event.shift_pressed or event.ctrl_pressed or event.alt_pressed or event.meta_pressed
 
 
 func _on_key(event: InputEventKey) -> bool:
-	"""B or T opens the Dig tool; U switches the underground view."""
+	"""B opens the Dig tool; U switches the underground view (T is the seasonal planner's, decision 0492)."""
 	if _modified(event):
 		return false
-	if key_of(event) == KEY_B or key_of(event) == KEY_T:
+	if key_of(event) == KEY_B:
 		begin_plan()
 		return true
 	if key_of(event) == KEY_U:
@@ -465,7 +465,7 @@ func _plan_input(event: InputEvent) -> bool:
 
 
 func _plan_key(event: InputEventKey) -> bool:
-	"""Enter digs, Backspace takes a point back, Esc drops the piece (or closes the tool), B or T closes it,
+	"""Enter digs, Backspace takes a point back, Esc drops the piece (or closes the tool), B closes it,
 	U switches the view, Shift while dragging drops a bend. A key held with Ctrl, Cmd or Alt -- or a letter with Shift --
 	is not the tool's."""
 	if _modified(event) and not (key_of(event) == KEY_SHIFT or _shift_only_non_letter(event)):
@@ -477,7 +477,7 @@ func _plan_key(event: InputEventKey) -> bool:
 			undo_point()
 		KEY_ESCAPE:
 			_escape()
-		KEY_B, KEY_T:
+		KEY_B:
 			cancel_plan()
 		KEY_U:
 			toggle_view()
@@ -495,13 +495,13 @@ func _plan_key(event: InputEventKey) -> bool:
 
 
 func _room_key(event: InputEvent) -> bool:
-	"""With a room tool open: B or T closes the Dig tool, U switches the view, H or C switches the room tool
+	"""With a room tool open: B closes the Dig tool, U switches the view, H or C switches the room tool
 	(the same one again: back to tunnels)."""
 	var key := event as InputEventKey
 	if key == null or not key.is_pressed() or key.is_echo() or _modified(key):
 		return false
 	match key_of(key):
-		KEY_B, KEY_T:
+		KEY_B:
 			cancel_plan()
 		KEY_U:
 			toggle_view()

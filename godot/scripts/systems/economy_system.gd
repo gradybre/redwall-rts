@@ -145,22 +145,22 @@ func _open_stores() -> void:
 	if _pantry_filters == 0 or _material_filters == 0:
 		_catalog_error = "category domain missing a routed category"
 		return
-	var pantry: InventoryScript.OpResult = _inventory.create_container(
+	var pantry_result: InventoryScript.OpResult = _inventory.create_container(
 		InventoryScript.NULL_REF, PANTRY_MAX_MASS_G, _pantry_filters, InventoryScript.UNSET_POLICY, true)
 	var store: InventoryScript.OpResult = _inventory.create_container(
 		InventoryScript.NULL_REF, MATERIAL_STORE_MAX_MASS_G, _material_filters, InventoryScript.UNSET_POLICY, true)
-	if not pantry.ok or not store.ok:
+	if not pantry_result.ok or not store.ok:
 		_catalog_error = "store creation refused"
 		return
-	_pantry = pantry.ref
+	_pantry = pantry_result.ref
 	_material_store = store.ref
 
 
 func _filters_for(category_names: Array[StringName]) -> int:
 	"""Compose a 64-bit container filter from compiled category ids. 0 when any is unknown."""
 	var mask: int = 0
-	for name: StringName in category_names:
-		var category: int = _definitions.category_compiled_id(name)
+	for category_name: StringName in category_names:
+		var category: int = _definitions.category_compiled_id(category_name)
 		if category < 0:
 			return 0
 		mask |= _inventory.category_mask(category)
@@ -253,7 +253,7 @@ func stock_milli(item_key: StringName) -> int:
 
 func stock_units(item_key: StringName) -> int:
 	"""Whole catalog units of an item in store, rounded down (BAL-NUM-001 discounts down)."""
-	return stock_milli(item_key) / InventoryScript.MILLI_PER_UNIT
+	@warning_ignore("integer_division") return stock_milli(item_key) / InventoryScript.MILLI_PER_UNIT
 
 
 func available_milli(item_key: StringName) -> int:
@@ -285,13 +285,13 @@ func ready_nutrition_points() -> int:
 	return _ready_nutrition_points
 
 
-func bind_residents(residents: ResidentsScript) -> void:
+func bind_residents(resident_store: ResidentsScript) -> void:
 	"""Adopt the residents store that supplies GDD §5.8's daily-demand divisor.
 
 	Binding null unbinds, which returns food-days to explicitly unpopulated. The store is read,
 	never mutated: this system owns stock, not population.
 	"""
-	_residents = residents
+	_residents = resident_store
 
 
 func residents() -> ResidentsScript:
@@ -353,7 +353,7 @@ func food_days_text() -> String:
 	# renders byte for byte by contract: a renderer that appends a unit is deriving a value it
 	# was given. The refused case keeps the bare marker -- "-- days" would read as a measured
 	# zero rather than an absent divisor.
-	return "%d.%02d days" % [centi.value / FOOD_DAYS_SCALE, centi.value % FOOD_DAYS_SCALE]
+	@warning_ignore("integer_division") return "%d.%02d days" % [centi.value / FOOD_DAYS_SCALE, centi.value % FOOD_DAYS_SCALE]
 
 
 func fuel_days_text() -> String:
@@ -413,7 +413,7 @@ func _lot_nutrition_points(lot: Vector2i) -> int:
 	var per_unit: int = _definitions.nutrition_per_u(item_id)
 	if per_unit <= 0 or _is_expired(lot, item_id):
 		return 0
-	return _inventory.lot_available_milli(lot) * per_unit / InventoryScript.MILLI_PER_UNIT
+	@warning_ignore("integer_division") return _inventory.lot_available_milli(lot) * per_unit / InventoryScript.MILLI_PER_UNIT
 
 
 func _is_expired(lot: Vector2i, item_id: int) -> bool:

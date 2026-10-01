@@ -1060,7 +1060,7 @@ func _heap_sift_up(index: int) -> void:
 	"""Restore the heap upwards after an insert or a decrease-key."""
 	var position: int = index
 	while position > 0:
-		var parent: int = (position - 1) / 2
+		@warning_ignore("integer_division") var parent: int = (position - 1) / 2
 		if not _heap_less(_heap[position], _heap[parent]):
 			return
 		_heap_swap(position, parent)
@@ -1204,7 +1204,7 @@ func _find_descriptor(start_macro: int, goal_cell: int, clearance: int, variant_
 	return NO_ROUTE
 
 
-func _acquire_descriptor(tick: int) -> int:
+func _acquire_descriptor(_tick: int) -> int:
 	"""Take a free descriptor, evicting the least recently used unreferenced one if need be."""
 	for descriptor: int in ROUTE_DESCRIPTOR_CAPACITY:
 		if _d_flags[descriptor] == 0:

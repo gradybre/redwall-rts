@@ -38,7 +38,7 @@ const TaskRecord := preload("res://demo/work/work_task.gd")
 ## a game hour of 750 ticks every 25 s).
 const DT: float = 1.0 / 30.0
 const TICKS_PER_FRAME: int = 1
-const FRAMES_PER_HOUR: int = SimClock.TICKS_PER_HOUR / TICKS_PER_FRAME
+@warning_ignore("integer_division") const FRAMES_PER_HOUR: int = SimClock.TICKS_PER_HOUR / TICKS_PER_FRAME
 const WALK_M_S: float = 1.0
 const BODY_M: float = 0.25
 ## The village's proportions (world_layout.gd): the kitchen's pantry a few metres from the cauldron, the hall's table
@@ -297,26 +297,26 @@ func test_stock_becomes_breakfast_by_exactly_the_recipe() -> void:
 
 
 
-func _log_meals(v: Village, log: Dictionary) -> void:
-	"""Record each resident's meals as they are eaten or missed: log[[i, key]] = the dish (or -1 missed, -2 raw)."""
+func _log_meals(v: Village, meal_log: Dictionary) -> void:
+	"""Record each resident's meals as they are eaten or missed: meal_log[[i, key]] = the dish (or -1 missed, -2 raw)."""
 	for i in v.brains.size():
 		var key: int = v.kitchen.fed.last_meal[i]
-		if key < 0 or log.has([i, key]):
+		if key < 0 or meal_log.has([i, key]):
 			continue
 		match v.kitchen.fed.last_outcome[i]:
 			FedScript.OUTCOME_ATE:
-				log[[i, key]] = v.kitchen.fed.last_dish[i]
+				meal_log[[i, key]] = v.kitchen.fed.last_dish[i]
 			FedScript.OUTCOME_RAW:
-				log[[i, key]] = -2
+				meal_log[[i, key]] = -2
 			_:
-				log[[i, key]] = -1
+				meal_log[[i, key]] = -1
 
 
-func _run_logging(v: Village, frames: int, log: Dictionary) -> void:
+func _run_logging(v: Village, frames: int, meal_log: Dictionary) -> void:
 	"""`_run` a frame at a time, logging the meals."""
 	for f in frames:
 		_run(v, 1)
-		_log_meals(v, log)
+		_log_meals(v, meal_log)
 
 
 func test_two_days_of_breakfast_and_supper_alternate_the_dishes() -> void:
@@ -328,8 +328,8 @@ func test_two_days_of_breakfast_and_supper_alternate_the_dishes() -> void:
 	_stock(v, CARROT, 30000)
 	_open(v)
 	_with_night(v)
-	var log := {}
-	_run_logging(v, 54 * FRAMES_PER_HOUR, log)
+	var meal_log := {}
+	_run_logging(v, 54 * FRAMES_PER_HOUR, meal_log)
 	for k in v.kitchen.cooked_keys.size():
 		var key: int = v.kitchen.cooked_keys[k]
 		assert_equal(v.kitchen.cooked_dishes[k], Rules.DISH_PORRIDGE if key % 2 == Rules.MEAL_BREAKFAST else Rules.DISH_SOUP,
@@ -339,7 +339,7 @@ func test_two_days_of_breakfast_and_supper_alternate_the_dishes() -> void:
 		assert_true(v.kitchen.cooked_keys.has(Rules.meal_key(day, Rules.MEAL_SUPPER)), "day %d: supper cooked" % day)
 	for i in 4:
 		for meal in 2:
-			assert_true(int(log.get([i, Rules.meal_key(2, meal)], -9)) >= 0, "day 2: resident %d ate %s" % [i, Rules.MEAL_NAMES[meal]])
+			assert_true(int(meal_log.get([i, Rules.meal_key(2, meal)], -9)) >= 0, "day 2: resident %d ate %s" % [i, Rules.MEAL_NAMES[meal]])
 	assert_equal(50000 - v.pantry.milli_of(OATS) - v.pantry.milli_of(CARROT), v.kitchen.consumed_food_milli
 		+ v.kitchen.raw_eaten_milli, "the pantry lost exactly what the batches took and the hungry ate raw")
 	var by_recipe: int = 0
@@ -597,7 +597,7 @@ func test_hungry_with_no_portion_eats_raw_roots_never_grain() -> void:
 	assert_equal(v.kitchen.raw_eaten_milli, 2000, "counted")
 	assert_equal(v.pantry.milli_of(OATS), 4000, "never the oats")
 	assert_equal(Rules.raw_np_per_u(OATS), 0, "grain is not raw-edible")
-	assert_equal(Rules.RAW_NP_CAP * 1000 / Rules.raw_np_per_u(CARROT), 3750, "a full raw meal is 3.75 U of roots")
+	@warning_ignore("integer_division") assert_equal(Rules.RAW_NP_CAP * 1000 / Rules.raw_np_per_u(CARROT), 3750, "a full raw meal is 3.75 U of roots")
 
 
 func test_a_raw_meal_at_supper_s_end_is_eaten_before_bed() -> void:
@@ -661,7 +661,7 @@ func test_with_the_night_the_cook_rises_at_five_and_is_not_sent_back() -> void:
 	_run(v, 4 * FRAMES_PER_HOUR, func() -> bool: return v.brains[0].task is SleepTaskScript)
 	assert_true(v.brains[0].task is SleepTaskScript, "the cook asleep")
 	_run(v, 10 * FRAMES_PER_HOUR, func() -> bool: return v.calendar.hour_index() % 24 == Rules.COOK_RISE_HOUR)
-	_run(v, FRAMES_PER_HOUR / 2)
+	@warning_ignore("integer_division") _run(v, FRAMES_PER_HOUR / 2)
 	assert_equal(v.kitchen.role_of(0), KitchenScript.ROLE_COOK, "up at 05:00 on its round")
 	assert_true(v.brains[1].task is SleepTaskScript, "the village still asleep")
 	var stayed: bool = true
@@ -1007,7 +1007,7 @@ func test_a_cancelled_meal_gives_its_food_back_and_spoils_half_a_batch_cooking()
 	var said: String = v.kitchen.cancel_meal()
 	assert_true(said.ends_with("what was fetched stays at the kitchen for the next meal)"), said)
 	assert_equal(v.kitchen.wip_key(), KitchenScript.FREE, "the batch is gone")
-	assert_equal(v.pantry.spoiled_milli, Rules.INPUT_MILLI[dish] / 2, "half its food spoiled")
+	@warning_ignore("integer_division") assert_equal(v.pantry.spoiled_milli, Rules.INPUT_MILLI[dish] / 2, "half its food spoiled")
 	assert_equal(v.kitchen.batches_cooked, batches, "no portions from it")
 	_assert_no_fresher(ages, _lot_ages(v), "cancel")
 	_assert_books(v, 20000, "cancel")
@@ -1146,9 +1146,9 @@ func test_the_work_board_hands_out_no_work_at_mealtime() -> void:
 func test_the_intervals_keep_their_real_seconds() -> void:
 	"""Decision 0421: the hand-out cadence and the diners' re-call keep the real seconds they had on the old calendar --
 	half a second, and the night's 1.27 s -- now that a calendar tick is a thirtieth of a second at 1x."""
-	assert_equal(KitchenScript.PICKUP_TICKS * 1000000 / SimClock.TICKS_PER_SECOND, 500000, "half a second")
+	@warning_ignore("integer_division") assert_equal(KitchenScript.PICKUP_TICKS * 1000000 / SimClock.TICKS_PER_SECOND, 500000, "half a second")
 	assert_equal(KitchenScript.RESEND_TICKS, NightScript.RESEND_TICKS, "the night's re-send")
-	assert_equal(NightScript.RESEND_TICKS * 1000 / SimClock.TICKS_PER_SECOND, 1266, "1.27 s")
+	@warning_ignore("integer_division") assert_equal(NightScript.RESEND_TICKS * 1000 / SimClock.TICKS_PER_SECOND, 1266, "1.27 s")
 
 
 func test_the_tab_note_says_the_rules_hours() -> void:

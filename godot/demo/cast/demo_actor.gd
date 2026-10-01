@@ -195,14 +195,14 @@ var _strike: StrikeClockScript = null
 var _in_cut: bool = false
 
 
-func setup_creature(index: int, key: StringName, row: Dictionary, space: CastSpaceScript, seed: int) -> bool:
+func setup_creature(index: int, key: StringName, row: Dictionary, space: CastSpaceScript, seed_value: int) -> bool:
 	"""Build a real creature from its manifest row. Returns false (and builds a placeholder, keeping
 	the manifest key and taking cast slot `index`'s colour) if its body cannot be loaded."""
 	var body_path := String(row.get("body", ""))
 	var scene: PackedScene = load(body_path) as PackedScene if ResourceLoader.exists(body_path) else null
 	if scene == null:
 		push_warning("demo cast: %s has no loadable body; using a placeholder" % key)
-		setup_placeholder(index, space, seed)
+		setup_placeholder(index, space, seed_value)
 		creature_key = key
 		display_name = friendly_name(key)
 		return false
@@ -220,7 +220,7 @@ func setup_creature(index: int, key: StringName, row: Dictionary, space: CastSpa
 	var height := float(row.get("height_m", PLACEHOLDER_HEIGHT_M))
 	_describe(index, key, String(row.get("species", key.split("_")[0])), height)
 	_build_stoop(height)
-	_make_brain(space, float(row.get("walk_speed_m_s", PLACEHOLDER_WALK_SPEED_M_S)), body_radius(height), seed, lengths)
+	_make_brain(space, float(row.get("walk_speed_m_s", PLACEHOLDER_WALK_SPEED_M_S)), body_radius(height), seed_value, lengths)
 	brain.set_carry_motion(motion)
 	_read_sleep(row.get("sleep", {}), height)
 	_read_crouch_and_dig(row)
@@ -262,16 +262,16 @@ func _notification(what: int) -> void:
 		brain.drop_jobs()
 
 
-func _make_brain(space: CastSpaceScript, gait: float, radius: float, seed: int, lengths: Dictionary) -> void:
+func _make_brain(space: CastSpaceScript, gait: float, radius: float, seed_value: int, lengths: Dictionary) -> void:
 	"""The brain, walking at WALK_PACE times its walk clip's gait speed, the clip sped to match."""
 	brain = BrainScript.new()
-	brain.configure(space, gait * WALK_PACE, radius, seed, lengths)
+	brain.configure(space, gait * WALK_PACE, radius, seed_value, lengths)
 	brain.set_gait_speed(gait)
 	if _marker == null:
 		_build_marker()
 
 
-func setup_placeholder(index: int, space: CastSpaceScript, seed: int) -> void:
+func setup_placeholder(index: int, space: CastSpaceScript, seed_value: int) -> void:
 	"""A capsule with a nose on its +Z side, driven by the same brain at a nominal walk speed."""
 	is_placeholder = true
 	creature_key = StringName("placeholder_%d" % index)
@@ -290,7 +290,7 @@ func setup_placeholder(index: int, space: CastSpaceScript, seed: int) -> void:
 	for clip in CLIPS:
 		if clip != BrainScript.CLIP_SLEEP:
 			lengths[clip] = PLACEHOLDER_CLIP_S
-	_make_brain(space, PLACEHOLDER_WALK_SPEED_M_S, radius, seed, lengths)
+	_make_brain(space, PLACEHOLDER_WALK_SPEED_M_S, radius, seed_value, lengths)
 	_read_sleep({}, PLACEHOLDER_HEIGHT_M)
 
 
@@ -380,14 +380,14 @@ func _build_stoop(height: float) -> void:
 	rig lacks the bones it bends."""
 	if _skeleton == null:
 		return
-	var stoop := StoopScript.new()
-	stoop.name = &"Stoop"
-	if not stoop.setup(_skeleton, _relative_transform(_skeleton).basis, height):
-		stoop.free()
+	var modifier := StoopScript.new()
+	modifier.name = &"Stoop"
+	if not modifier.setup(_skeleton, _relative_transform(_skeleton).basis, height):
+		modifier.free()
 		return
-	_skeleton.add_child(stoop)
-	_skeleton.move_child(stoop, 0)
-	_stoop = stoop
+	_skeleton.add_child(modifier)
+	_skeleton.move_child(modifier, 0)
+	_stoop = modifier
 
 
 func stoop_target_m() -> float:

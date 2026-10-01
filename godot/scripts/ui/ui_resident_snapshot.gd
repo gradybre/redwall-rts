@@ -112,19 +112,19 @@ func capture(directory: EntityDirectoryScript, residents: ResidentsScript, needs
 		return _refuse(REFUSE_STALE_SELECTION)
 	if not directory.is_valid_of_kind(ref, EntityDirectoryScript.KIND_RESIDENT):
 		return _refuse(REFUSE_NOT_A_RESIDENT)
-	var row: int = directory.get_typed_row(ref)
-	if not residents.is_alive(row) or not needs.is_alive(row):
+	var typed_row: int = directory.get_typed_row(ref)
+	if not residents.is_alive(typed_row) or not needs.is_alive(typed_row):
 		return _refuse(REFUSE_ROW_NOT_LIVING)
-	if not _read_values(needs, row):
+	if not _read_values(needs, typed_row):
 		return _refuse(REFUSE_NEED_OUT_OF_RANGE)
-	_fill_rates(needs, row)
+	_fill_rates(needs, typed_row)
 	_ref = ref
-	_row_index = row
+	_row_index = typed_row
 	_last_refusal = REFUSE_NONE
 	return true
 
 
-func _read_values(needs: NeedsScript, row: int) -> bool:
+func _read_values(needs: NeedsScript, typed_row: int) -> bool:
 	"""Copy all five need values first, and reject the WHOLE card if any is out of range.
 
 	Checking every value before writing a single string is what stops the card printing four
@@ -132,7 +132,7 @@ func _read_values(needs: NeedsScript, row: int) -> bool:
 	not a display case.
 	"""
 	for need: int in NeedsScript.NEED_COUNT:
-		if not needs.need_into(row, need, _value):
+		if not needs.need_into(typed_row, need, _value):
 			return false
 		if _value.value < NeedsScript.NEED_MIN or _value.value > NeedsScript.NEED_MAX:
 			return false
@@ -140,14 +140,14 @@ func _read_values(needs: NeedsScript, row: int) -> bool:
 	return true
 
 
-func _fill_rates(needs: NeedsScript, row: int) -> void:
+func _fill_rates(needs: NeedsScript, typed_row: int) -> void:
 	"""Ask the store for each need's published rate and write the five rows from the answers."""
 	for need: int in NeedsScript.NEED_COUNT:
-		var bound: bool = _read_rate(needs, row, need)
+		var bound: bool = _read_rate(needs, typed_row, need)
 		_write_row(_rows[need], need, bound)
 
 
-func _read_rate(needs: NeedsScript, row: int, need: int) -> bool:
+func _read_rate(needs: NeedsScript, typed_row: int, need: int) -> bool:
 	"""Put one need's signed rate in `_rate`, or refuse with the reason it could not be read.
 
 	Five statically typed calls, one per GDD §4.2 need, each into the caller-owned `_rate`. No
@@ -156,26 +156,26 @@ func _read_rate(needs: NeedsScript, row: int, need: int) -> bool:
 	"""
 	match need:
 		NeedsScript.NEED_HUNGER:
-			return _read_hunger_rate(needs, row)
+			return _read_hunger_rate(needs, typed_row)
 		NeedsScript.NEED_REST:
-			return needs.rest_rate_milli_per_hour_into(row, _rate)
+			return needs.rest_rate_milli_per_hour_into(typed_row, _rate)
 		NeedsScript.NEED_COMFORT:
-			return needs.comfort_rate_milli_per_hour_into(row, _rate)
+			return needs.comfort_rate_milli_per_hour_into(typed_row, _rate)
 		NeedsScript.NEED_SOCIAL:
-			return needs.social_rate_milli_per_hour_into(row, _rate)
+			return needs.social_rate_milli_per_hour_into(typed_row, _rate)
 		NeedsScript.NEED_PURPOSE:
-			return needs.purpose_rate_milli_per_hour_into(row, _rate)
+			return needs.purpose_rate_milli_per_hour_into(typed_row, _rate)
 	return _rate.refuse("no published reader is declared for need %d" % need)
 
 
-func _read_hunger_rate(needs: NeedsScript, row: int) -> bool:
+func _read_hunger_rate(needs: NeedsScript, typed_row: int) -> bool:
 	"""Hunger's rate: the published POSITIVE decay magnitude for the verified size, negated once.
 
 	The ruling keeps `hunger_rate_milli_per_hour()`'s established sign and callers, so the
 	adapter obtains the size class, checks the result, and uses `R = -magnitude`. The magnitude
 	already carries the size and season multipliers; nothing is applied to it here.
 	"""
-	var size_class: IntMath.IntResult = needs.size_class_of(row)
+	var size_class: IntMath.IntResult = needs.size_class_of(typed_row)
 	if not size_class.ok:
 		return _rate.refuse(size_class.error)
 	var magnitude: IntMath.IntResult = needs.hunger_rate_milli_per_hour(size_class.value)
@@ -184,19 +184,19 @@ func _read_hunger_rate(needs: NeedsScript, row: int) -> bool:
 	return _rate.succeed(-magnitude.value)
 
 
-func _write_row(row: NeedRow, need: int, bound: bool) -> void:
+func _write_row(need_row: NeedRow, need: int, bound: bool) -> void:
 	"""Format one row from its copied value and the rate the store did or did not publish."""
-	row.label = UiResidentCard.NEED_LABELS[need]
-	row.value_text = UiResidentCard.percent_text(row.basis_points)
-	row.has_rate = bound
-	row.rate_milli = _rate.value if bound else 0
-	row.capped = bound and UiNeedRate.is_capped(row.basis_points, row.rate_milli)
-	row.rate_text = UiNeedRate.row_text(row.basis_points, row.rate_milli) if bound \
+	need_row.label = UiResidentCard.NEED_LABELS[need]
+	need_row.value_text = UiResidentCard.percent_text(need_row.basis_points)
+	need_row.has_rate = bound
+	need_row.rate_milli = _rate.value if bound else 0
+	need_row.capped = bound and UiNeedRate.is_capped(need_row.basis_points, need_row.rate_milli)
+	need_row.rate_text = UiNeedRate.row_text(need_row.basis_points, need_row.rate_milli) if bound \
 		else UiNeedRate.UNAVAILABLE
-	var detail: String = UiNeedRate.accessible_text(row.basis_points, row.rate_milli) if bound \
+	var detail: String = UiNeedRate.accessible_text(need_row.basis_points, need_row.rate_milli) if bound \
 		else "%s: %s" % [UiNeedRate.UNAVAILABLE, _rate.error]
-	row.accessible = "%s, field %s, %s, %s" \
-		% [row.label, UiResidentCard.NEED_FIELDS[need], row.value_text, detail]
+	need_row.accessible = "%s, field %s, %s, %s" \
+		% [need_row.label, UiResidentCard.NEED_FIELDS[need], need_row.value_text, detail]
 
 
 func row(need: int) -> NeedRow:

@@ -118,9 +118,9 @@ func test_a_missing_icon_is_a_roundel_in_the_swatch_ringed_in_brass() -> void:
 	var props := PropsScript.new()
 	var swatch := Color(0.2, 0.4, 0.22)
 	var image: Image = PropsScript.roundel_image(swatch)
-	var middle: Color = image.get_pixel(PropsScript.ROUNDEL_PX / 2, PropsScript.ROUNDEL_PX / 2)
+	@warning_ignore("integer_division") var middle: Color = image.get_pixel(PropsScript.ROUNDEL_PX / 2, PropsScript.ROUNDEL_PX / 2)
 	assert_less_than(absf(middle.g - swatch.g), 0.08, "the swatch at the middle")
-	var rim: Color = image.get_pixel(PropsScript.ROUNDEL_PX / 2, 1)
+	@warning_ignore("integer_division") var rim: Color = image.get_pixel(PropsScript.ROUNDEL_PX / 2, 1)
 	assert_less_than(absf(rim.r - Palette.BRASS.r) + absf(rim.g - Palette.BRASS.g) + absf(rim.b - Palette.BRASS.b), 0.02,
 		"brass at the rim")
 	assert_almost_equal(image.get_pixel(0, 0).a, 0.0, "clear at the corner")

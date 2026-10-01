@@ -332,8 +332,8 @@ func begin_prewarm() -> void:
 	_samples = Node3D.new()
 	_samples.name = "PrewarmSamples"
 	add_child(_samples)
-	var focus: Vector3 = _focus()
-	prewarm.build_samples(_samples, Vector3(focus.x, Layers.FLOOR_Y_M - SAMPLE_DEPTH_M * 0.5, focus.z))
+	var focus_at: Vector3 = _focus()
+	prewarm.build_samples(_samples, Vector3(focus_at.x, Layers.FLOOR_Y_M - SAMPLE_DEPTH_M * 0.5, focus_at.z))
 	_cover = _make_cover()
 	add_child(_cover)
 	_indicator.visible = true

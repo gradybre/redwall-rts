@@ -59,10 +59,10 @@ func _space(points: Array[Dictionary], obstacles: Array[Vector3]) -> CastSpaceSc
 	return space
 
 
-func _brain(space: CastSpaceScript, at_poi: int, seed: int) -> BrainScript:
+func _brain(space: CastSpaceScript, at_poi: int, seed_value: int) -> BrainScript:
 	"""A resident standing in slot 0 of `at_poi`, facing its face direction."""
 	var brain := BrainScript.new()
-	brain.configure(space, WALK_M_S, BODY_M, seed, _lengths())
+	brain.configure(space, WALK_M_S, BODY_M, seed_value, _lengths())
 	var slot := space.free_slot(at_poi)
 	space.reserve(at_poi, slot)
 	brain.start_at(space.slot_position(at_poi, slot), BrainScript.yaw_of(space.poi_face[at_poi]), at_poi, slot)
@@ -1105,7 +1105,7 @@ func test_a_resident_works_twice_as_long_as_it_walked_to_get_there() -> void:
 	var trip := 0.0
 	var worked := 0.0
 	for f in 60 * 400:
-		var was := brain.state
+		var _was := brain.state
 		brain.step(DT)
 		var travelling := brain.state == BrainScript.State.TURN or brain.state == BrainScript.State.WALK
 		if brain.poi == 1 and travelling and worked > 0.0:

@@ -73,7 +73,7 @@ func _add_player(bus: int) -> void:
 	"""One idle player of bus `bus`: placed in the world for Work and Water, flat for Cues."""
 	var flat: AudioStreamPlayer = AudioStreamPlayer.new() if bus == SoundMix.BUS_CUES else null
 	var placed: AudioStreamPlayer3D = AudioStreamPlayer3D.new() if flat == null else null
-	var player: Node = flat if flat != null else placed
+	var player: Node = (flat as Node) if flat != null else (placed as Node)
 	player.name = "Voice%d" % _player_bus.size()
 	add_child(player)
 	_flat.append(flat)
@@ -200,7 +200,7 @@ func silence() -> int:
 	for voice: int in _player_bus.size():
 		_voice_cue[voice] = -1
 		_voice_until[voice] = 0
-		var player: Node = _placed[voice] if _placed[voice] != null else _flat[voice]
+		var player: Node = (_placed[voice] as Node) if _placed[voice] != null else (_flat[voice] as Node)
 		if bool(player.get(&"playing")):
 			stopped += 1
 		player.call(&"stop")

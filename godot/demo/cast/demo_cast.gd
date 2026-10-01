@@ -84,8 +84,8 @@ func advance(real_delta: float) -> void:
 	clock.advance(real_delta)
 	if _space != null:
 		_space.routes.serve()
-	for actor in _actors:
-		(actor as DemoActorScript).advance(clock)
+	for cast_actor in _actors:
+		(cast_actor as DemoActorScript).advance(clock)
 	if _space != null:
 		_space.nav.advance_builds(CastNavScript.BUILD_BUDGET_USEC)
 		_space.routes.end_window()
@@ -104,17 +104,17 @@ func build(manifest: Dictionary, points: Array[Dictionary], obstacles: Array[Vec
 	var keys: Array = cast.keys()
 	var count := keys.size() if not keys.is_empty() else PLACEHOLDER_COUNT
 	for i in count:
-		var actor: DemoActorScript = DemoActorScript.new()
+		var cast_actor: DemoActorScript = DemoActorScript.new()
 		if keys.is_empty():
-			actor.setup_placeholder(i, _space, BASE_SEED + i * SEED_STRIDE)
+			cast_actor.setup_placeholder(i, _space, BASE_SEED + i * SEED_STRIDE)
 		else:
-			actor.setup_creature(i, StringName(keys[i]), cast[keys[i]], _space, BASE_SEED + i * SEED_STRIDE)
-		actor.name = String(actor.creature_key)
-		actor.brain.homes = CastRoutinesScript.homes_for(actor.creature_key, _space.poi_names)
-		actor.brain.socials = CastRoutinesScript.socials_for(_space.poi_names)
-		_place(actor, i, count)
-		add_child(actor)
-		_actors.append(actor)
+			cast_actor.setup_creature(i, StringName(keys[i]), cast[keys[i]], _space, BASE_SEED + i * SEED_STRIDE)
+		cast_actor.name = String(cast_actor.creature_key)
+		cast_actor.brain.homes = CastRoutinesScript.homes_for(cast_actor.creature_key, _space.poi_names)
+		cast_actor.brain.socials = CastRoutinesScript.socials_for(_space.poi_names)
+		_place(cast_actor, i, count)
+		add_child(cast_actor)
+		_actors.append(cast_actor)
 
 
 func actors() -> Array[Node3D]:
@@ -136,9 +136,9 @@ func actor_count() -> int:
 	return _actors.size()
 
 
-func set_bounds(bounds: AABB) -> void:
+func set_bounds(ground_box: AABB) -> void:
 	"""The walkable area (its x/z extent) that ordered formations must stay inside."""
-	_bounds = Rect2(bounds.position.x, bounds.position.z, bounds.size.x, bounds.size.z)
+	_bounds = Rect2(ground_box.position.x, ground_box.position.z, ground_box.size.x, ground_box.size.z)
 	if _space != null:
 		_space.bounds = _bounds
 
@@ -188,30 +188,30 @@ func space() -> CastSpaceScript:
 	return _space
 
 
-func _place(actor: DemoActorScript, i: int, count: int) -> void:
+func _place(cast_actor: DemoActorScript, i: int, count: int) -> void:
 	"""Start actor i at its own POI, spread evenly through the list; share, or ring the origin, if short."""
 	var n := _space.poi_position.size()
 	var poi := -1
 	if n > 0:
 		poi = floori(float(i * n) / float(count)) if n >= count else i % n
 		if _space.free_slot(poi) < 0:
-			poi = _space.choose_poi(-1, actor.brain.rng)
+			poi = _space.choose_poi(-1, cast_actor.brain.rng)
 	if poi < 0:
 		var angle := TAU * float(i) / float(count)
-		actor.place(Vector2(cos(angle), sin(angle)) * NO_POI_RING_M, angle, -1, -1)
+		cast_actor.place(Vector2(cos(angle), sin(angle)) * NO_POI_RING_M, angle, -1, -1)
 		return
 	var slot := _space.free_slot(poi)
 	_space.reserve(poi, slot)
 	var face := _space.poi_face[poi]
 	var face_yaw := BrainScript.yaw_of(face) if face != Vector2.ZERO else 0.0
-	actor.place(_space.slot_position(poi, slot), face_yaw, poi, slot)
+	cast_actor.place(_space.slot_position(poi, slot), face_yaw, poi, slot)
 
 
 func _clear() -> void:
 	"""Remove any cast from an earlier build."""
-	for actor in _actors:
-		if is_instance_valid(actor):
-			remove_child(actor)
-			actor.free()
+	for cast_actor in _actors:
+		if is_instance_valid(cast_actor):
+			remove_child(cast_actor)
+			cast_actor.free()
 	_actors.clear()
 	_space = null

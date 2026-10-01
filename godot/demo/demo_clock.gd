@@ -56,7 +56,7 @@ func step_usec(k: int) -> int:
 	"""Sub-step `k`'s share of this frame, in microseconds: an even split, the remainder going one
 	microsecond at a time to the first sub-steps, so the shares add up exactly."""
 	var count := steps()
-	return frame_usec / count + (1 if k < frame_usec % count else 0)
+	@warning_ignore("integer_division") return frame_usec / count +(1 if k < frame_usec % count else 0)
 
 
 func step_s(k: int) -> float:

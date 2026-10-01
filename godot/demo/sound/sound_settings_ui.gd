@@ -95,19 +95,19 @@ func _step_button(text: String, bus: int, by: int, row: HBoxContainer) -> Button
 
 func _slider(bus: int) -> HSlider:
 	"""Bus `bus`'s slider, 0..100 in 5 % steps (the mouse's; no keyboard focus -- − and + are the keys')."""
-	var slider := HSlider.new()
-	slider.min_value = 0.0
-	slider.max_value = float(SoundMix.PERCENT_MAX)
-	slider.step = float(SoundMix.PERCENT_STEP)
-	slider.custom_minimum_size = Vector2(SLIDER_W, 20.0)
-	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	slider.focus_mode = Control.FOCUS_NONE
-	slider.scrollable = false  # the wheel scrolls the page, never a volume
-	slider.tooltip_text = "%s volume" % SoundMix.BUS_LABELS[bus]
-	slider.value_changed.connect(_on_slider.bind(bus))
-	_sliders.append(slider)
-	return slider
+	var new_slider := HSlider.new()
+	new_slider.min_value = 0.0
+	new_slider.max_value = float(SoundMix.PERCENT_MAX)
+	new_slider.step = float(SoundMix.PERCENT_STEP)
+	new_slider.custom_minimum_size = Vector2(SLIDER_W, 20.0)
+	new_slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	new_slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	new_slider.focus_mode = Control.FOCUS_NONE
+	new_slider.scrollable = false  # the wheel scrolls the page, never a volume
+	new_slider.tooltip_text = "%s volume" % SoundMix.BUS_LABELS[bus]
+	new_slider.value_changed.connect(_on_slider.bind(bus))
+	_sliders.append(new_slider)
+	return new_slider
 
 
 func _preset_row() -> HBoxContainer:

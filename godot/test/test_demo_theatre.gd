@@ -165,7 +165,7 @@ func test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain
 	holds no more than 200 particles; the tunnel overlay's mounds throw none of their own (they are the pool's)."""
 	var graph := GraphScript.new()
 	for k in RoomsScript.MAX_ROOMS:
-		var r := _home(graph, Vector2i((k % 4) * 12288 - 18432, (k / 4) * 12288 - 6144))
+		@warning_ignore("integer_division") var r := _home(graph, Vector2i((k % 4) * 12288 - 18432, (k / 4) * 12288 - 6144))
 		for f in RoomsScript.fixture_count(RoomsScript.TEMPLATE_HOME):
 			if FixturesScript.place_kind(RoomsScript.TEMPLATE_HOME, f) == RoomsScript.FIX_HEARTH:
 				graph.fit.phase_of(graph, r, f)
@@ -401,10 +401,10 @@ func test_one_fills_at_a_time_and_only_a_basketful() -> void:
 			func(_s: int) -> bool: return true, func(_s: int) -> float: return 2.0))
 	var haul: HaulScript = network.haul
 	assert_false(tasks[0]._at_post(one, 1 << 40) or tasks[1]._at_post(two, 1 << 40), "both joined, nothing behind the face")
-	network.add_spoil(chain[1], CrewTaskScript.MIN_LOAD_MILLI / 2)
+	@warning_ignore("integer_division") network.add_spoil(chain[1], CrewTaskScript.MIN_LOAD_MILLI / 2)
 	assert_false(tasks[0]._at_post(one, CrewTaskScript.MIN_LOAD_MILLI), "half a basket: not yet")
 	assert_equal(haul.stage_of(one.index), HaulScript.STAGE_NONE, "not filling")
-	network.add_spoil(chain[1], CrewTaskScript.MIN_LOAD_MILLI / 2)
+	@warning_ignore("integer_division") network.add_spoil(chain[1], CrewTaskScript.MIN_LOAD_MILLI / 2)
 	assert_false(tasks[1]._at_post(two, CrewTaskScript.MIN_LOAD_MILLI + 1), "its own least not reached")
 	assert_true(tasks[0]._at_post(one, CrewTaskScript.MIN_LOAD_MILLI), "a basketful: fills")
 	assert_equal(haul.stage_of(one.index), HaulScript.STAGE_FILLING, "filling")
@@ -574,7 +574,7 @@ func test_the_baskets_are_drawn_as_the_hauling_stands() -> void:
 	"""A filler's basket stands before it, its spoil rising with the fill; a carrier holds the loaded basket (and lets it
 	go after); a tipper's basket leans toward the heap, emptying; tipped, a puff."""
 	var space := _space()
-	var chain := _open_tunnel(space, [Vector2i(0, 0), Vector2i(12288, 0)])
+	var _chain := _open_tunnel(space, [Vector2i(0, 0), Vector2i(12288, 0)])
 	var network := space.tunnels
 	HeapsScript.place(network, space, 0)
 	var cast := _keep(_one_mouse_cast()) as DemoCastScript
@@ -633,7 +633,7 @@ func test_a_face_gets_its_lantern_light_and_clods() -> void:
 	var slot := chain[1]
 	var digger := _brain(space, Vector2.ZERO)
 	network.start_dig(slot, network.generation[slot], digger.index)
-	network.advance(slot, network.generation[slot], 150 * 1000000 / Rules.TICKS_PER_SECOND)
+	@warning_ignore("integer_division") network.advance(slot, network.generation[slot], 150 * 1000000 / Rules.TICKS_PER_SECOND)
 	digger.task_stand_in_bore(slot, network.face_m(slot), true)
 	var pools: ParticlesScript = _keep(ParticlesScript.new())
 	pools.configure()
@@ -727,18 +727,18 @@ func test_braces_go_up_one_at_a_time_each_with_a_puff() -> void:
 	var pools: ParticlesScript = site[3]
 	var slot: int = site[4]
 	jobs.post(slot, JobsScript.JOB_BRACE, 0, 0, network.length_u[slot])
-	jobs.work_usec[slot] = jobs.total[slot] * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND * 2 / 3
+	@warning_ignore("integer_division") jobs.work_usec[slot] = jobs.total[slot] * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND * 2 / 3
 	marks.refresh()
 	assert_equal(marks.frames_up(slot), 0, "posted, not paid: none, however far the work")
 	jobs.work_usec[slot] = 0
 	jobs.paid[slot] = 1
-	jobs.work_usec[slot] = jobs.total[slot] * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND / 3
+	@warning_ignore("integer_division") jobs.work_usec[slot] = jobs.total[slot] * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND / 3
 	marks.refresh()
 	var early := marks.frames_up(slot)
 	assert_true(early >= 1, "a third done: some frames (%d)" % early)
 	assert_equal(pools.puffs, 1, "a puff for the newest")
 	assert_equal(marks._rise_kind[slot], MarksScript.RISE_FRAME, "it rises")
-	jobs.work_usec[slot] = jobs.total[slot] * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND * 2 / 3
+	@warning_ignore("integer_division") jobs.work_usec[slot] = jobs.total[slot] * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND * 2 / 3
 	marks.refresh()
 	assert_true(marks.frames_up(slot) > early, "more as the work goes on")
 	assert_equal(pools.puffs, 2, "a puff each time")
@@ -758,11 +758,11 @@ func test_lanterns_hang_one_at_a_time_their_glow_swelling() -> void:
 	var slot: int = site[4]
 	jobs.post(slot, JobsScript.JOB_LANTERNS, 0, 0, network.length_u[slot])
 	jobs.paid[slot] = 1
-	jobs.work_usec[slot] = jobs.total[slot] * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND * 3 / 5
+	@warning_ignore("integer_division") jobs.work_usec[slot] = jobs.total[slot] * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND * 3 / 5
 	marks.refresh()
 	var early := marks.lanterns_up(slot)
 	assert_true(early >= 1 and early < marks._lantern_count(slot), "three fifths done: some, not all (%d of %d)" % [early, marks._lantern_count(slot)])
-	jobs.work_usec[slot] = jobs.total[slot] * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND
+	@warning_ignore("integer_division") jobs.work_usec[slot] = jobs.total[slot] * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND
 	marks.refresh()
 	assert_true(marks.lanterns_up(slot) > early, "hung as the work reached them")
 	assert_equal(marks._rise_kind[slot], MarksScript.RISE_GLOW, "the newest's glow swells")
@@ -842,13 +842,13 @@ func test_a_fixture_rises_from_its_ring_as_it_is_put_in_then_puffs() -> void:
 	view.refresh(0.0)
 	assert_null(view.rising(r, 0), "planned, not worked: only the ring")
 	assert_true(graph.fit.claim(graph, r, 0, 3), "claimed")
-	graph.fit.work(graph, r, 0, 3, FixturesScript.install_usec(RoomsScript.FIX_BED) / 4)
+	@warning_ignore("integer_division") graph.fit.work(graph, r, 0, 3, FixturesScript.install_usec(RoomsScript.FIX_BED) / 4)
 	view.refresh(0.0)
 	var rising := view.rising(r, 0)
 	assert_not_null(rising, "worked: rising")
 	var low := rising.position.y
 	assert_true(low < 0.0, "under the floor still (%.3f)" % low)
-	graph.fit.work(graph, r, 0, 3, FixturesScript.install_usec(RoomsScript.FIX_BED) / 2)
+	@warning_ignore("integer_division") graph.fit.work(graph, r, 0, 3, FixturesScript.install_usec(RoomsScript.FIX_BED) / 2)
 	view.refresh(0.0)
 	assert_true(view.rising(r, 0).position.y > low, "higher as the work goes on")
 	graph.fit.work(graph, r, 0, 3, FixturesScript.install_usec(RoomsScript.FIX_BED))
@@ -889,7 +889,7 @@ func test_a_room_dries_from_the_door_outward_as_it_was_dug() -> void:
 	for slot in chain:
 		if graph.is_room_body(slot):
 			graph.start_dig(slot, graph.generation[slot], 0)
-			graph.advance(slot, graph.generation[slot], graph.total_ticks(slot) * 1000000 / Rules.TICKS_PER_SECOND / 4)
+			@warning_ignore("integer_division") graph.advance(slot, graph.generation[slot], graph.total_ticks(slot) * 1000000 / Rules.TICKS_PER_SECOND / 4)
 		else:
 			graph.start_dig(slot, graph.generation[slot], 0)
 			graph.advance(slot, graph.generation[slot], 1000000000)

@@ -110,24 +110,24 @@ func bind(brains: Array[BrainScript], names: PackedStringArray, keys: Array[Stri
 	_walking.resize(count)
 	_walk_goal.resize(count)
 	for who: int in count:
-		_due_usec[who] = CLAIM_PERIOD_USEC * (who + 1) / maxi(count, 1)
+		@warning_ignore("integer_division") _due_usec[who] = CLAIM_PERIOD_USEC * (who + 1) / maxi(count, 1)
 	_sources.resize(WorkIds.SOURCE_COUNT)
 	_priority.resize(WorkIds.SOURCE_COUNT)
 	_priority_key.resize(WorkIds.SOURCE_COUNT)
 	_urgent.resize(WorkIds.SOURCE_COUNT)
 
 
-func add_source(source: SourceScript) -> void:
+func add_source(adapter: SourceScript) -> void:
 	"""List and command this owner's tasks (one adapter per WorkIds.SOURCE_*)."""
-	_sources[source.id] = source
-	var rows: int = source.capacity()
-	_priority[source.id] = PackedInt32Array()
-	_priority[source.id].resize(rows)
-	_priority[source.id].fill(WorkIds.PRIORITY_NORMAL)
-	_priority_key[source.id] = PackedInt64Array()
-	_priority_key[source.id].resize(rows)
-	_urgent[source.id] = PackedByteArray()
-	_urgent[source.id].resize(rows)
+	_sources[adapter.id] = adapter
+	var rows: int = adapter.capacity()
+	_priority[adapter.id] = PackedInt32Array()
+	_priority[adapter.id].resize(rows)
+	_priority[adapter.id].fill(WorkIds.PRIORITY_NORMAL)
+	_priority_key[adapter.id] = PackedInt64Array()
+	_priority_key[adapter.id].resize(rows)
+	_urgent[adapter.id] = PackedByteArray()
+	_urgent[adapter.id].resize(rows)
 
 
 func source(id: int) -> SourceScript:
@@ -140,9 +140,9 @@ func set_needs_gate(gate: Callable) -> void:
 	_needs_gate = gate
 
 
-func set_jump(jump: Callable) -> void:
-	"""`jump(kind, id, point) -> bool`: the village's "Go to" (demo_news_jump.gd, else the camera on the point)."""
-	_jump = jump
+func set_jump(jump_to: Callable) -> void:
+	"""`jump_to(kind, id, point) -> bool`: the village's "Go to" (demo_news_jump.gd, else the camera on the point)."""
+	_jump = jump_to
 
 
 func resident_count() -> int:

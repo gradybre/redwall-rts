@@ -286,7 +286,7 @@ func advance_usec(usec: int) -> int:
 	Returns how many midnights were crossed (each ran §5.4's recovery)."""
 	assert(usec >= 0, "demo time never runs backwards")
 	_tick_carry += usec * SimClock.TICKS_PER_SECOND
-	var ticks: int = _tick_carry / USEC_PER_SECOND
+	@warning_ignore("integer_division") var ticks: int = _tick_carry / USEC_PER_SECOND
 	_tick_carry -= ticks * USEC_PER_SECOND
 	return advance_ticks(ticks)
 

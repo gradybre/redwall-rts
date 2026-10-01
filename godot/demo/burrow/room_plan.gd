@@ -131,7 +131,7 @@ func _candidates(graph: GraphScript, socket: Vector2i, outward: Vector2i) -> Arr
 func _leg_candidates(graph: GraphScript, slot: int, socket: Vector2i, outward: Vector2i, out: Array[Vector2i]) -> void:
 	"""Segment `slot`'s legs' candidates near `socket`: the perpendicular's foot, and the way out's meeting."""
 	var base := 2 * slot * Rules.MAX_POINTS
-	var far := socket + Rules.unit_of(outward.x, outward.y) * AUTO_REACH_U / Rules.DIR_SCALE
+	@warning_ignore("integer_division") var far := socket + Rules.unit_of(outward.x, outward.y) * AUTO_REACH_U / Rules.DIR_SCALE
 	for k in range(1, graph.point_count[slot]):
 		var a := Vector2i(graph.points_u[base + 2 * k - 2], graph.points_u[base + 2 * k - 1])
 		var b := Vector2i(graph.points_u[base + 2 * k], graph.points_u[base + 2 * k + 1])
@@ -147,7 +147,7 @@ static func _foot(p: Vector2i, a: Vector2i, b: Vector2i) -> Vector2i:
 	var ab := b - a
 	var length_sq := maxi(ab.x * ab.x + ab.y * ab.y, 1)
 	var along := clampi(ab.x * (p.x - a.x) + ab.y * (p.y - a.y), 0, length_sq)
-	return Vector2i(a.x + ab.x * along / length_sq, a.y + ab.y * along / length_sq)
+	@warning_ignore("integer_division") return Vector2i(a.x + ab.x * along / length_sq, a.y + ab.y * along / length_sq)
 
 
 func _try(graph: GraphScript, site: RoomsScript.Site, at: Vector2i, socket: Vector2i, outward: Vector2i) -> bool:

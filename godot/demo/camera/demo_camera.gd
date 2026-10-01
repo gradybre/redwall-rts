@@ -130,10 +130,10 @@ func _init() -> void:
 	_apply_pose()
 
 
-func configure(bounds: AABB, focus: Vector3) -> void:
+func configure(ground_box: AABB, start_focus: Vector3) -> void:
 	"""Set the ground box the focus may roam and the point to start over, and snap there."""
-	_bounds = bounds.abs()
-	_home_focus = clamp_focus(focus, _bounds)
+	_bounds = ground_box.abs()
+	_home_focus = clamp_focus(start_focus, _bounds)
 	reset_view()
 
 
@@ -320,17 +320,17 @@ func _apply_pose() -> void:
 
 # --- the pure math, public so the suite can check it without a tree -------------------------------
 
-static func clamp_focus(point: Vector3, bounds: AABB) -> Vector3:
+static func clamp_focus(point: Vector3, ground_box: AABB) -> Vector3:
 	"""A focus point held inside the ground box on every axis."""
-	var low: Vector3 = bounds.position
-	var high: Vector3 = bounds.end
+	var low: Vector3 = ground_box.position
+	var high: Vector3 = ground_box.end
 	return Vector3(clampf(point.x, low.x, high.x), clampf(point.y, low.y, high.y),
 		clampf(point.z, low.z, high.z))
 
 
-static func zoomed_distance(distance: float, notches: int) -> float:
+static func zoomed_distance(from_distance: float, notches: int) -> float:
 	"""The distance after some zoom notches (positive inward), inside the zoom limits."""
-	return clampf(distance * pow(1.0 - ZOOM_STEP, float(notches)), DISTANCE_MIN, DISTANCE_MAX)
+	return clampf(from_distance * pow(1.0 - ZOOM_STEP, float(notches)), DISTANCE_MIN, DISTANCE_MAX)
 
 
 static func clamp_pitch(pitch: float) -> float:

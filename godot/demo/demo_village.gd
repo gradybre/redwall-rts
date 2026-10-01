@@ -282,9 +282,9 @@ func _warm_and_open() -> void:
 	_prewarm.add_step("woods: stumps, saplings, splits", _forestry.view.prewarm)
 	_prewarm.add_step("sound streams", _sound.warm)
 	var view: TunnelViewScript = (_command as DemoCommandScript).tunnels().view
-	var rooms: RoomViewScript = (_command as DemoCommandScript).tunnels().ext.room_view
-	_prewarm.add_frame_step("rooms on the ground", UndergroundPrewarmScript.FRAMES, rooms.begin_surface_prewarm,
-		rooms.end_surface_prewarm)
+	var room_view: RoomViewScript = (_command as DemoCommandScript).tunnels().ext.room_view
+	_prewarm.add_frame_step("rooms on the ground", UndergroundPrewarmScript.FRAMES, room_view.begin_surface_prewarm,
+		room_view.end_surface_prewarm)
 	_prewarm.add_frame_step("underground view", UndergroundPrewarmScript.FRAMES, view.begin_prewarm, view.end_prewarm)
 	_prewarm.add_frame_step("canopy fade and silhouette", CANOPY_PREWARM_FRAMES, _canopy.begin_prewarm, _canopy.end_prewarm)
 	var weather_view: WeatherViewScript = (_command as DemoCommandScript).tunnels().ext.weather_view

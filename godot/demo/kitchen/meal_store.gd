@@ -50,14 +50,14 @@ func _init() -> void:
 	_age.resize(MAX_LOTS)
 
 
-func add(dish: int, portions: int, meal_key: int) -> int:
-	"""A finished batch: `portions` of `dish` cooked for meal `meal_key`, fresh, in the pot. Its row (FREE: no row
+func add(dish: int, portion_count: int, meal_key: int) -> int:
+	"""A finished batch: `portion_count` of `dish` cooked for meal `meal_key`, fresh, in the pot. Its row (FREE: no row
 	free, and nothing is added -- the kitchen never cooks a batch it cannot keep)."""
 	var lot: int = _dish.find(FREE)
-	if lot < 0 or portions <= 0:
+	if lot < 0 or portion_count <= 0:
 		return FREE
 	_dish[lot] = dish
-	_count[lot] = portions
+	_count[lot] = portion_count
 	_reserved[lot] = 0
 	_meal[lot] = meal_key
 	_out[lot] = 0
@@ -181,7 +181,7 @@ func age_hour(season: int) -> int:
 		if _dish[lot] == FREE:
 			continue
 		var numerator: int = (TABLE_PERMILLE if _out[lot] == 1 else POT_PERMILLE) * temperature + _remainder[lot]
-		_age[lot] += numerator / FACTOR_DENOMINATOR
+		@warning_ignore("integer_division") _age[lot] += numerator / FACTOR_DENOMINATOR
 		_remainder[lot] = numerator % FACTOR_DENOMINATOR
 		if _age[lot] >= _shelf(lot):
 			spoiled += _spoil_unreserved(lot)
@@ -195,7 +195,7 @@ func _spoil_unreserved(lot: int) -> int:
 		return 0
 	_count[lot] -= gone
 	spoiled_portions += gone
-	spoiled_milli += gone * Rules.MILLI_PER_U * Rules.PORTION_G / Rules.SPOILED_G
+	@warning_ignore("integer_division") spoiled_milli += gone * Rules.MILLI_PER_U * Rules.PORTION_G / Rules.SPOILED_G
 	if _count[lot] == 0:
 		_dish[lot] = FREE
 	revision += 1
@@ -228,7 +228,7 @@ func portions_lasting(meal_key: int, hours: int, season: int) -> int:
 	for lot: int in MAX_LOTS:
 		if _dish[lot] == FREE or _meal[lot] >= meal_key:
 			continue
-		var rate: int = (TABLE_PERMILLE if _out[lot] == 1 else POT_PERMILLE) * temperature / FACTOR_DENOMINATOR
+		@warning_ignore("integer_division") var rate: int = (TABLE_PERMILLE if _out[lot] == 1 else POT_PERMILLE) * temperature / FACTOR_DENOMINATOR
 		if _shelf(lot) - int(_age[lot]) > hours * rate:
 			total += _count[lot]
 	return total
@@ -256,8 +256,8 @@ func hours_left_of(dish: int, season: int) -> int:
 	for lot: int in MAX_LOTS:
 		if _dish[lot] != dish:
 			continue
-		var rate: int = maxi(1, (TABLE_PERMILLE if _out[lot] == 1 else POT_PERMILLE) * temperature / FACTOR_DENOMINATOR)
-		var left: int = (_shelf(lot) - int(_age[lot]) + rate - 1) / rate
+		@warning_ignore("integer_division") var rate: int = maxi(1, (TABLE_PERMILLE if _out[lot] == 1 else POT_PERMILLE) * temperature / FACTOR_DENOMINATOR)
+		@warning_ignore("integer_division") var left: int = (_shelf(lot) - int(_age[lot]) + rate - 1) / rate
 		least = left if least < 0 else mini(least, left)
 	return least
 

@@ -151,37 +151,37 @@ func _build() -> void:
 	add_child(_frame)
 	var stack := VBoxContainer.new()
 	_frame.add_child(stack)
-	for page: VBoxContainer in [_build_menu(), _build_controls(), _build_settings(), _build_confirm()]:
-		page.add_theme_constant_override(&"separation", 8)
-		stack.add_child(page)
-		_pages.append(page)
+	for sheet: VBoxContainer in [_build_menu(), _build_controls(), _build_settings(), _build_confirm()]:
+		sheet.add_theme_constant_override(&"separation", 8)
+		stack.add_child(sheet)
+		_pages.append(sheet)
 	_show_page(PAGE_MENU)
 
 
 func _build_menu() -> VBoxContainer:
 	"""Title, the pause and save lines, and the six buttons."""
-	var page := VBoxContainer.new()
-	page.add_child(FarmUi.label(TITLE, FarmUi.TITLE_PX, Palette.INK, true))
-	page.add_child(_line(PAUSED_LINE, FarmUi.BODY_PX, Palette.UMBER))
-	page.add_child(_line(NO_SAVE_LINE, FarmUi.BODY_PX, Palette.CLAY))
+	var sheet := VBoxContainer.new()
+	sheet.add_child(FarmUi.label(TITLE, FarmUi.TITLE_PX, Palette.INK, true))
+	sheet.add_child(_line(PAUSED_LINE, FarmUi.BODY_PX, Palette.UMBER))
+	sheet.add_child(_line(NO_SAVE_LINE, FarmUi.BODY_PX, Palette.CLAY))
 	var actions: Array[Callable] = [close, confirm.bind(CONFIRM_RESTART), _show_page.bind(PAGE_CONTROLS),
 		_show_page.bind(PAGE_SETTINGS), open_lab, confirm.bind(CONFIRM_QUIT)]
 	for k: int in MENU_BUTTONS.size():
 		var button: Button = FarmUi.button(MENU_BUTTONS[k])
 		button.tooltip_text = MENU_TIPS[k]
 		button.pressed.connect(actions[k])
-		page.add_child(button)
+		sheet.add_child(button)
 		_menu_buttons.append(button)
-	return page
+	return sheet
 
 
 func _build_controls() -> VBoxContainer:
 	"""The demo's keys, two columns in a scroll, and Back."""
-	var page := VBoxContainer.new()
-	page.add_child(FarmUi.label("Controls", FarmUi.TITLE_PX, Palette.INK, true))
+	var sheet := VBoxContainer.new()
+	sheet.add_child(FarmUi.label("Controls", FarmUi.TITLE_PX, Palette.INK, true))
 	_controls_scroll = ScrollContainer.new()
 	_controls_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	page.add_child(_controls_scroll)
+	sheet.add_child(_controls_scroll)
 	var grid := GridContainer.new()
 	grid.columns = 2
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -195,15 +195,15 @@ func _build_controls() -> VBoxContainer:
 		var does: Label = FarmUi.label(String(row[1]), FarmUi.BODY_PX, Palette.INK)
 		does.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		grid.add_child(does)
-	page.add_child(_back_button())
-	return page
+	sheet.add_child(_back_button())
+	return sheet
 
 
 func _build_settings() -> VBoxContainer:
 	"""Interface scale, full screen and the sound, in a scroll (see _place), and Back."""
-	var page := VBoxContainer.new()
-	page.add_child(FarmUi.label("Settings", FarmUi.TITLE_PX, Palette.INK, true))
-	var body: VBoxContainer = _settings_scroll_body(page)
+	var sheet := VBoxContainer.new()
+	sheet.add_child(FarmUi.label("Settings", FarmUi.TITLE_PX, Palette.INK, true))
+	var body: VBoxContainer = _settings_scroll_body(sheet)
 	body.add_child(FarmUi.label(SCALE_TITLE, FarmUi.BODY_PX, Palette.INK, true))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override(&"separation", 8)
@@ -220,16 +220,16 @@ func _build_settings() -> VBoxContainer:
 	_fullscreen.pressed.connect(toggle_fullscreen)
 	body.add_child(_fullscreen)
 	body.add_child(sound)
-	page.add_child(_back_button())
-	return page
+	sheet.add_child(_back_button())
+	return sheet
 
 
-func _settings_scroll_body(page: VBoxContainer) -> VBoxContainer:
+func _settings_scroll_body(sheet: VBoxContainer) -> VBoxContainer:
 	"""The Settings page's scroll (sized in _place) and the column inside it."""
 	_settings_scroll = ScrollContainer.new()
 	_settings_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_settings_scroll.follow_focus = true
-	page.add_child(_settings_scroll)
+	sheet.add_child(_settings_scroll)
 	_settings_body = VBoxContainer.new()
 	_settings_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_settings_body.add_theme_constant_override(&"separation", 8)
@@ -239,20 +239,20 @@ func _settings_scroll_body(page: VBoxContainer) -> VBoxContainer:
 
 func _build_confirm() -> VBoxContainer:
 	"""The question, the lost-village line, Cancel and the verb."""
-	var page := VBoxContainer.new()
+	var sheet := VBoxContainer.new()
 	_confirm_title = FarmUi.label("", FarmUi.TITLE_PX, Palette.INK, true)
-	page.add_child(_confirm_title)
-	page.add_child(_line(CONFIRM_LINE, FarmUi.BODY_PX, Palette.CLAY))
+	sheet.add_child(_confirm_title)
+	sheet.add_child(_line(CONFIRM_LINE, FarmUi.BODY_PX, Palette.CLAY))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override(&"separation", 10)
-	page.add_child(row)
+	sheet.add_child(row)
 	_confirm_cancel = FarmUi.button("Cancel")
 	_confirm_cancel.pressed.connect(_show_page.bind(PAGE_MENU))
 	row.add_child(_confirm_cancel)
 	_confirm_ok = FarmUi.button("")
 	_confirm_ok.pressed.connect(_confirmed)
 	row.add_child(_confirm_ok)
-	return page
+	return sheet
 
 
 func _line(text: String, px: int, colour: Color) -> Label:
@@ -354,8 +354,8 @@ func _keyboard_focus() -> bool:
 	"""Whether the keyboard holds the focus now (a drawn focus, not a click's)."""
 	if not is_inside_tree():
 		return false
-	var owner: Control = get_viewport().gui_get_focus_owner()
-	return owner != null and owner.has_focus(true)
+	var focus_owner: Control = get_viewport().gui_get_focus_owner()
+	return focus_owner != null and focus_owner.has_focus(true)
 
 
 func _first_button(index: int) -> Button:

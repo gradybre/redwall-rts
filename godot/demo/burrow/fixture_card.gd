@@ -84,7 +84,7 @@ static func _first_waiting(graph: RefCounted, r: int, f_new: int) -> String:
 	before the new one's place `f_new`, the resident puts that in first -- said so (empty when the new one is first)."""
 	graph.fit.waiting_into(graph, _waiting)
 	for row: int in _waiting:
-		if row / FixturesScript.PLACES == r and row % FixturesScript.PLACES < f_new:
+		@warning_ignore("integer_division") if row / FixturesScript.PLACES == r and row % FixturesScript.PLACES < f_new:
 			return FIRST_WAITING % RoomsScript.FIXTURE_NAMES[graph.fit.kind_at(graph, r, row % FixturesScript.PLACES)]
 	return ""
 

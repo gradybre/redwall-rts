@@ -144,7 +144,7 @@ static func floor_div_into(a: int, b: int, out: IntResult) -> bool:
 		return out.refuse("floor_div requires a nonnegative numerator")
 	if b <= 0:
 		return out.refuse("denominator must be positive")
-	return out.succeed(a / b)
+	@warning_ignore("integer_division") return out.succeed(a / b)
 
 
 static func ceil_div(a: int, b: int) -> IntResult:
@@ -170,7 +170,7 @@ static func ceil_div_into(a: int, b: int, out: IntResult) -> bool:
 		return out.refuse("denominator must be positive")
 	if a > INT64_MAX - (b - 1):
 		return out.refuse("int64 overflow forming ceil_div numerator")
-	return out.succeed((a + b - 1) / b)
+	@warning_ignore("integer_division") return out.succeed((a + b - 1) / b)
 
 
 static func trunc_div(a: int, b: int) -> IntResult:
@@ -190,7 +190,7 @@ static func trunc_div_into(a: int, b: int, out: IntResult) -> bool:
 	"""Non-allocating trunc_div(): write the truncated quotient into `out` and return out.ok."""
 	if b <= 0:
 		return out.refuse("denominator must be positive")
-	return out.succeed(a / b)
+	@warning_ignore("integer_division") return out.succeed(a / b)
 
 
 static func checked_add(a: int, b: int) -> IntResult:
@@ -225,7 +225,7 @@ static func checked_mul_into(a: int, b: int, out: IntResult) -> bool:
 	if (a == -1 and b == INT64_MIN) or (b == -1 and a == INT64_MIN):
 		return out.refuse("int64 multiplication would overflow")
 	var product: int = a * b
-	if product / b != a:
+	@warning_ignore("integer_division") if product / b != a:
 		return out.refuse("int64 multiplication would overflow")
 	return out.succeed(product)
 

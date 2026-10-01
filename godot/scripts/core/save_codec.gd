@@ -561,9 +561,9 @@ class Reader:
 			return false
 		if count < 0:
 			return _fail(REFUSE_NEGATIVE_LENGTH, "padding count %d is negative" % count)
-		var refusal: StringName = SaveCodecScript.zero_padding_refusal(_bytes, _cursor, count)
-		if refusal != REFUSE_NONE:
-			return _fail(refusal, "%d reserved bytes at offset %d" % [count, _cursor])
+		var padding_refusal: StringName = SaveCodecScript.zero_padding_refusal(_bytes, _cursor, count)
+		if padding_refusal != REFUSE_NONE:
+			return _fail(padding_refusal, "%d reserved bytes at offset %d" % [count, _cursor])
 		_cursor += count
 		return true
 

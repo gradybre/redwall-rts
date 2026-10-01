@@ -220,13 +220,13 @@ func _board(side: int, k: int) -> MeshInstance3D:
 
 func _make_ditch() -> Node3D:
 	"""The Drain job's ditch: a dark trench strip on each side and its spoil lip outside (hidden)."""
-	var ring: Node3D = _hidden_node("Ditch")
+	var ditch_node: Node3D = _hidden_node("Ditch")
 	var trench := _box_mesh(DITCH_STRIP, _matte(DITCH_COLOR, DITCH_ROUGHNESS))
 	var lip: CapsuleMesh = _berm_mesh(DITCH_LIP_LENGTH_M, DITCH_LIP_RADIUS_M, _earth(DITCH_LIP_COLOR))
 	for side: int in 4:
-		ring.add_child(_side_piece(trench, side, DITCH_HALF_M, DITCH_STRIP.y * 0.5, Basis.IDENTITY))
-		ring.add_child(_side_piece(lip, side, DITCH_LIP_HALF_M, 0.0, _lying(DITCH_LIP_SQUASH)))
-	return ring
+		ditch_node.add_child(_side_piece(trench, side, DITCH_HALF_M, DITCH_STRIP.y * 0.5, Basis.IDENTITY))
+		ditch_node.add_child(_side_piece(lip, side, DITCH_LIP_HALF_M, 0.0, _lying(DITCH_LIP_SQUASH)))
+	return ditch_node
 
 
 static func _hidden_node(node_name: String) -> Node3D:
@@ -509,8 +509,8 @@ func _lay_puddles(multimesh: MultiMesh) -> void:
 			var rx: float = rng.randf_range(PUDDLE_RADIUS.x, PUDDLE_RADIUS.y) * inner
 			var rz: float = rng.randf_range(PUDDLE_RADIUS.x, PUDDLE_RADIUS.y) * inner
 			var at: Vector2 = centre + Vector2(rng.randf_range(-1.0, 1.0), rng.randf_range(-1.0, 1.0)) * rx
-			var basis := Basis(Vector3.UP, rng.randf_range(-PI, PI)) * Basis.from_scale(Vector3(rx, 1.0, rz))
-			multimesh.set_instance_transform(patch * PUDDLE_BLOBS + blob, Transform3D(basis, Vector3(at.x, y, at.y)))
+			var facing := Basis(Vector3.UP, rng.randf_range(-PI, PI)) * Basis.from_scale(Vector3(rx, 1.0, rz))
+			multimesh.set_instance_transform(patch * PUDDLE_BLOBS + blob, Transform3D(facing, Vector3(at.x, y, at.y)))
 
 
 # --- the state --------------------------------------------------------------------------------
@@ -520,11 +520,11 @@ func show_state(stage: int, item: int, growth: int, band: int, ripe_hours: int, 
 	var heads: bool = Look.shows_heads(stage, item)
 	_show_heads(heads, item)
 	_furrows.visible = stage == SimScript.STAGE_SOWN
-	var sheen_colour: Color = Look.sheen(band)
+	var sheen_tint: Color = Look.sheen(band)
 	var sheen_material := _sheen.material_override as StandardMaterial3D
-	sheen_material.albedo_color = sheen_colour
+	sheen_material.albedo_color = sheen_tint
 	sheen_material.roughness = Look.sheen_roughness(band)
-	_sheen.visible = sheen_colour.a > 0.0 and not heads
+	_sheen.visible = sheen_tint.a > 0.0 and not heads
 	_puddles.visible = Look.shows_puddles(band) and not heads
 	_show_plants(stage, item, growth, heads)
 	label.text = "%s\n%s" % [title, status]
@@ -544,7 +544,7 @@ func _show_plants(stage: int, item: int, growth: int, heads: bool) -> void:
 		_rebuild(kind)
 	_show_parts(true, _heads_mm != null and Look.shows_head_mesh(stage, growth))
 	_paint(stage, item, growth)
-	var key: int = stage * 100000 + growth / GROWTH_STEP
+	@warning_ignore("integer_division") var key: int = stage * 100000 + growth / GROWTH_STEP
 	if key != _shown_key:
 		_shown_key = key
 		_assign_cells(stage, growth)
@@ -681,8 +681,8 @@ func _layout_for(kind: int) -> Array[Transform3D]:
 		for column: int in grid.y:
 			var u: float = (column + 0.5 + rng.randf_range(-JITTER, JITTER)) / grid.y
 			var v: float = (row + 0.5 + rng.randf_range(-JITTER, JITTER) * 0.5) / grid.x
-			var basis := Basis(Vector3.UP, rng.randf_range(-PI, PI)).scaled(Vector3.ONE * rng.randf_range(SCALE_JITTER.x, SCALE_JITTER.y))
-			out.append(Transform3D(basis, Vector3((u - 0.5) * span, _assets.soil_y - 0.01, (v - 0.5) * span)))
+			var facing := Basis(Vector3.UP, rng.randf_range(-PI, PI)).scaled(Vector3.ONE * rng.randf_range(SCALE_JITTER.x, SCALE_JITTER.y))
+			out.append(Transform3D(facing, Vector3((u - 0.5) * span, _assets.soil_y - 0.01, (v - 0.5) * span)))
 	return out
 
 
@@ -715,8 +715,8 @@ func plant_transform(i: int, scale_now: float, lean: float, slump: float = 1.0) 
 	"""Plant `i` at `scale_now` of its own size, leaning `lean` radians and keeping `slump` of its
 	height (bed units)."""
 	var t: Transform3D = _layout[i]
-	var basis: Basis = (Basis(Vector3.RIGHT, lean) * t.basis).scaled(Vector3.ONE * scale_now)
-	return Transform3D(Basis.from_scale(Vector3(1.0, slump, 1.0)) * basis, t.origin)
+	var facing: Basis = (Basis(Vector3.RIGHT, lean) * t.basis).scaled(Vector3.ONE * scale_now)
+	return Transform3D(Basis.from_scale(Vector3(1.0, slump, 1.0)) * facing, t.origin)
 
 
 func _show_heads(on: bool, item: int) -> void:

@@ -357,7 +357,6 @@ signal resident_row_picked(row_index: int)
 
 var _registry: UiRegistry = UiRegistry.new()
 var _layout: UiLayout = UiLayout.new()
-var _theme: UiTheme = UiTheme.new()
 var _availability: UiAvailability = UiAvailability.new()
 var _hits: UiHitTest = UiHitTest.new()
 var _focus: UiFocusOrder = null
@@ -780,10 +779,10 @@ func _control_minimum_size(id: int) -> Vector2:
 
 func _minimum_size(id: int) -> Vector2:
 	"""The registry's minimum size for an element, or a zero size for a runtime-sized row."""
-	var size: UiRegistry.Size = UiRegistry.Size.new()
-	if not _registry.size_into(id, size):
+	var size_spec: UiRegistry.Size = UiRegistry.Size.new()
+	if not _registry.size_into(id, size_spec):
 		return Vector2.ZERO
-	return Vector2(float(size.min_width), float(size.min_height))
+	return Vector2(float(size_spec.min_width), float(size_spec.min_height))
 
 
 func _preferred_size(id: int, available_width: float) -> Vector2:
@@ -793,13 +792,13 @@ func _preferred_size(id: int, available_width: float) -> Vector2:
 	PLAYER" into "Paused: PL", which is §1.3's "never truncate warnings/costs" failure. The
 	minimum is the fallback, not the default.
 	"""
-	var size: UiRegistry.Size = UiRegistry.Size.new()
-	if not _registry.size_into(id, size):
+	var size_spec: UiRegistry.Size = UiRegistry.Size.new()
+	if not _registry.size_into(id, size_spec):
 		return Vector2.ZERO
-	var width: float = float(size.min_width)
-	if float(size.max_width) <= available_width:
-		width = float(size.max_width)
-	return Vector2(width, float(size.min_height))
+	var width: float = float(size_spec.min_width)
+	if float(size_spec.max_width) <= available_width:
+		width = float(size_spec.max_width)
+	return Vector2(width, float(size_spec.min_height))
 
 
 
@@ -1333,7 +1332,7 @@ func _build_need_rows(column: VBoxContainer) -> void:
 	_apply_semantics(_need_rows[0], ID_NEED_ROW, "")
 
 
-func _build_need_row_parts(row: Control, index: int) -> void:
+func _build_need_row_parts(row: Control, _index: int) -> void:
 	"""One need row's label, exact percent, per-hour rate and 8 px track.
 
 	The track is three rectangles, not one: a MUTED edge so the empty part of the track is
@@ -1788,9 +1787,9 @@ func _place_zones() -> void:
 		+ Vector2(0.0, _geometry.time.size.y + ROW_GAP), _minimum_size(ID_CALENDAR)))
 	_place(ID_MINIMAP_FRAME, _geometry.minimap)
 	_place(ID_COMMAND_STRIP, _geometry.commands)
-	var brush_size: Vector2 = Vector2(_geometry.commands.size.x, ZONE_BRUSH_HEIGHT)
+	var brush_extent: Vector2 = Vector2(_geometry.commands.size.x, ZONE_BRUSH_HEIGHT)
 	_place(ID_ZONE_BRUSH, Rect2(_geometry.commands.position
-		- Vector2(0.0, brush_size.y + ROW_GAP), brush_size))
+		- Vector2(0.0, brush_extent.y + ROW_GAP), brush_extent))
 	_place(ID_DETAIL, _geometry.detail)
 	_place(ID_WORKSPACE, _workspace_rect())
 	_refresh_frames()
@@ -1996,14 +1995,14 @@ func _error_panel_size() -> Vector2:
 	The same `min(max(measured, floor), ceiling)` shape §4.1 uses for the detail panel. Above the
 	ceiling the body scrolls; it is never clipped and never abbreviated.
 	"""
-	var size: UiRegistry.Size = UiRegistry.Size.new()
-	if not _registry.size_into(ID_ERROR_PANEL, size):
+	var size_spec: UiRegistry.Size = UiRegistry.Size.new()
+	if not _registry.size_into(ID_ERROR_PANEL, size_spec):
 		return Vector2.ZERO
 	var available: float = _geometry.logical_width - 2.0 * UiLayout.SAFE_INSET
-	var width: float = maxf(float(size.min_width), minf(float(size.max_width), available))
+	var width: float = maxf(float(size_spec.min_width), minf(float(size_spec.max_width), available))
 	var measured: float = _wrapped_height(_error_line, width - _error_body_inset()
 		- PANEL_PADDING) + 2.0 * PANEL_PADDING
-	return Vector2(width, minf(maxf(measured, float(size.min_height)), float(size.max_height)))
+	return Vector2(width, minf(maxf(measured, float(size_spec.min_height)), float(size_spec.max_height)))
 
 
 func _error_body_inset() -> float:
@@ -2226,7 +2225,7 @@ func _row_commands(owner_size: Vector2) -> void:
 		x += cell + ROW_GAP
 
 
-func _wrap_children(owner_id: int, children: Array, owner_size: Vector2) -> void:
+func _wrap_children(_owner_id: int, children: Array, owner_size: Vector2) -> void:
 	"""Lay children left to right inside an owner, wrapping to a new row at its right edge.
 
 	§1.2: "Command buttons wrap into two or three rows; excess commands live in the context quick
@@ -2710,11 +2709,11 @@ func _place_pause_label() -> void:
 	"""UI-SET-086, "TC, below time/alerts": centred on the alert column, which is the screen's own
 	centre line, and directly under the alert card when one is showing -- in the card's place when
 	none is, rather than hanging a card's height below an empty zone (decision 0200)."""
-	var size: Vector2 = _preferred_size(ID_PAUSE_LABEL, _geometry.alerts.size.x)
+	var pause_size: Vector2 = _preferred_size(ID_PAUSE_LABEL, _geometry.alerts.size.x)
 	var top: float = _geometry.alerts.position.y
 	if (_controls[ID_ALERT_STACK] as Control).visible:
 		top += _geometry.alerts.size.y + ROW_GAP
-	_place(ID_PAUSE_LABEL, Rect2(Vector2(_geometry.alerts.get_center().x - size.x / 2.0, top), size))
+	_place(ID_PAUSE_LABEL, Rect2(Vector2(_geometry.alerts.get_center().x - pause_size.x / 2.0, top), pause_size))
 
 
 func set_pause_display(paused: bool, reasons: String) -> void:
@@ -2808,14 +2807,14 @@ func _resolve_card_notices() -> void:
 	if _card_hidden or active <= 0:
 		return
 	_notices.order_into(_history_order)
-	for position: int in active:
+	for active_position: int in active:
 		if _cards_wanted >= ALERT_CARD_INSTANCES:
 			break
 		var notice: UiNotices.Notice = _card_notices[_cards_wanted]
-		if not _notices.notice_into(_history_order[position], active - 1, notice) \
+		if not _notices.notice_into(_history_order[active_position], active - 1, notice) \
 				or (not _withheld_code.is_empty() and notice.code == _withheld_code):
 			continue
-		_card_indices[_cards_wanted] = _history_order[position]
+		_card_indices[_cards_wanted] = _history_order[active_position]
 		_cards_wanted += 1
 	if _cards_wanted > 0 and _card_notices[0].id != _card_notice_id:
 		_card_notice_id = _card_notices[0].id
@@ -3806,7 +3805,7 @@ func paint_brush_at(tile: int) -> bool:
 	player did not draw.
 	"""
 	var origin_x: int = tile % MAP_TILES_X
-	var origin_z: int = tile / MAP_TILES_X
+	@warning_ignore("integer_division") var origin_z: int = tile / MAP_TILES_X
 	if origin_x + _brush_size > MAP_TILES_X or origin_z + _brush_size > MAP_TILES_Z:
 		return _refuse(REFUSE_TILE_RANGE)
 	for step_z: int in _brush_size:

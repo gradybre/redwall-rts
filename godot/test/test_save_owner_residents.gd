@@ -99,7 +99,7 @@ func test_every_physical_scalar_and_skill_address() -> void:
 	for field: int in 19:
 		var extent: int = 6144 if field >= 17 else 512
 		for index: int in extent:
-			var row: int = index / 12 if field >= 17 else index
+			@warning_ignore("integer_division") var row: int = index / 12 if field >= 17 else index
 			c.present[row] = 1
 			var original: int = c.get(FIELDS[field])[index]
 			_put(c,field,index,_bad_value(field))
@@ -252,11 +252,11 @@ func test_public_arrival_refusals_null_safety_and_capture_restore() -> void:
 	for tick: int in [0,MAX_I64]:
 		assert_true(store.set_arrival_tick(row,tick).ok,"public legal arrival")
 	for tick: int in [-1,MIN_I64]:
-		var before: PackedByteArray = store.state_bytes()
+		var snapshot: PackedByteArray = store.state_bytes()
 		var result: Residents.OpResult = store.set_arrival_tick(row,tick)
 		assert_false(result.ok,"public negative refuses")
 		assert_equal(result.error,&"INVALID_ARRIVAL_TICK","producer namespace")
-		assert_equal(store.state_bytes(),before,"producer refusal atomic")
+		assert_equal(store.state_bytes(),snapshot,"producer refusal atomic")
 	assert_equal(store.set_arrival_tick(511,-1).error,&"RESIDENT_NOT_PRESENT","presence first")
 	var before: PackedByteArray = store.state_bytes()
 	assert_false(store.copy_columns_into(null),"null capture")

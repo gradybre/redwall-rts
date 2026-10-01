@@ -144,7 +144,7 @@ func set_auto(z: int, on: bool) -> bool:
 func zone_at_tile_into(tile: int, out: IntMath.IntResult) -> bool:
 	"""The zone covering exterior tile `tile`, into `out`; refuses NO_ZONE_HERE."""
 	var tx: int = tile % ResourceNodes.MAP_TILES_X
-	var tz: int = tile / ResourceNodes.MAP_TILES_X
+	@warning_ignore("integer_division") var tz: int = tile / ResourceNodes.MAP_TILES_X
 	for z: int in MAX_ZONES:
 		if is_zone(z) and tx >= x0[z] and tx <= x1[z] and tz >= z0[z] and tz <= z1[z]:
 			return out.succeed(z)

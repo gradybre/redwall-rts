@@ -297,7 +297,7 @@ func test_the_farm_adopts_the_calendar_only_before_either_runs() -> void:
 	assert_false(idle.share_calendar(started).ok, "refused when the shared calendar has run")
 	assert_false(idle.share_calendar(null).ok, "and with none")
 	var part := DemoFarmScript.SimScript.new()
-	part.advance_usec(HOUR_USEC / 2)
+	@warning_ignore("integer_division") part.advance_usec(HOUR_USEC / 2)
 	assert_equal(part.hours_run, 0, "half an hour: no hour run yet")
 	assert_false(part.share_calendar(CalendarScript.new()).ok, "but its calendar has moved: refused")
 	assert_true(farm.sim.calendar == _services.calendar, "kept")

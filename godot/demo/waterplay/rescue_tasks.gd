@@ -245,7 +245,7 @@ class SwimRescue extends "res://demo/tunnel/tunnel_task.gd":
 	func _start_tow(brain: RefCounted) -> void:
 		"""The victim in hand at the surface: tow it to the landing named from here (one the tow can reach
 		against the flow), trailing behind."""
-		var landing: PackedVector2Array = _tow_landing.call(brain.position,
+		@warning_ignore("integer_division") var landing: PackedVector2Array = _tow_landing.call(brain.position,
 			_motion.state.swim_mm_s[brain.index] * Rules.TOW_PERMILLE / Rules.PERMILLE)
 		landing_land = landing[0]
 		landing_water = landing[1]

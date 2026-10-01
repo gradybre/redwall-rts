@@ -465,7 +465,7 @@ func test_a_banked_bed_keeps_half_of_a_dry_day() -> void:
 	_hours(sim, 24)
 	delta = sim.last_weather_delta()
 	assert_equal(before_plain + delta, sim.moisture_of(BED_EMPTY_CLAY), "plain: the weather's delta")
-	assert_equal(before_banked + delta - delta / 2, sim.moisture_of(BED_EMPTY_LOAM), "banked: half back")
+	@warning_ignore("integer_division") assert_equal(before_banked + delta - delta / 2, sim.moisture_of(BED_EMPTY_LOAM), "banked: half back")
 
 
 func test_every_bed_sheds_down_toward_its_band_s_top() -> void:

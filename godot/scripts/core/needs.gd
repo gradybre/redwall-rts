@@ -498,9 +498,9 @@ var _out_value: int = 0
 
 func _init() -> void:
 	"""Allocate every column once to capacity, then reset to the empty settlement state."""
-	assert(RESIDENT_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_RESIDENT],
+	@warning_ignore("assert_always_true") assert(RESIDENT_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_RESIDENT],
 		"needs columns must match the directory's RESIDENT row capacity")
-	assert(RESIDENT_LIVING_CAP == EntityDirectory.RESIDENT_LIVING_CAP,
+	@warning_ignore("assert_always_true") assert(RESIDENT_LIVING_CAP == EntityDirectory.RESIDENT_LIVING_CAP,
 		"needs living cap must match the directory's living cap")
 	_check_rate_bounds()
 	_allocate_columns()
@@ -518,11 +518,11 @@ func _check_rate_bounds() -> void:
 	same way: its worst case is every drain at once, and adding a term without widening the
 	bound trips this assert rather than reaching _integrate_step()'s refusal at runtime.
 	"""
-	assert(HEALTH_STARVATION_DRAIN_PER_HOUR + HEALTH_COLD_DRAIN_PER_HOUR
+	@warning_ignore("assert_always_true") assert(HEALTH_STARVATION_DRAIN_PER_HOUR + HEALTH_COLD_DRAIN_PER_HOUR
 		+ HEALTH_UNTREATED_INJURY_DRAIN_PER_HOUR[INJURY_UNTREATED_SERIOUS]
 		+ HEALTH_AIRLESS_DRAIN_PER_HOUR <= MAX_RATE_MAGNITUDE,
 		"the summed health drain exceeds the integrator's proven rate bound")
-	var largest: int = maxi(HUNGER_DECAY_MILLI_PER_HOUR * SIZE_MULTIPLIER[SIZE_LARGE]
+	@warning_ignore("integer_division") var largest: int = maxi(HUNGER_DECAY_MILLI_PER_HOUR * SIZE_MULTIPLIER[SIZE_LARGE]
 		* WINTER_HUNGER_MULTIPLIER / (SIZE_DENOMINATOR * SEASON_DENOMINATOR),
 		REST_RESTORE_BED_MILLI_PER_HOUR)
 	largest = maxi(largest, SOCIAL_RESTORE_PAIRED_MILLI_PER_HOUR)
@@ -1178,7 +1178,7 @@ func _integrate_step(current: int, remainder: int, rate: int, denominator: int,
 	if remainder >= denominator or remainder <= -denominator:
 		return REFUSE_REMAINDER_INVARIANT
 	var accumulator: int = remainder + rate
-	var whole: int = accumulator / denominator
+	@warning_ignore("integer_division") var whole: int = accumulator / denominator
 	accumulator -= whole * denominator
 	if not IntMath.checked_add_into(current, whole, _math):
 		return REFUSE_OVERFLOW

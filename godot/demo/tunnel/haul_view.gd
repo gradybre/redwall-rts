@@ -51,17 +51,17 @@ func configure(network: GraphScript, cast: DemoCastScript, particles: ParticlesS
 	_drawn.resize(cast.actor_count())
 	_held.resize(cast.actor_count())
 	for i in cast.actor_count():
-		var basket := Node3D.new()
+		var basket_node := Node3D.new()
 		var body := MeshInstance3D.new()
 		body.mesh = KitScript.basket(props)
-		basket.add_child(body)
+		basket_node.add_child(body)
 		var spoil := MeshInstance3D.new()
 		spoil.mesh = KitScript.spoil_heap()
 		spoil.position = Vector3(0.0, KitScript.rim_m(props) * 0.35, 0.0)
-		basket.add_child(spoil)
-		basket.visible = false
-		add_child(basket)
-		_baskets.append(basket)
+		basket_node.add_child(spoil)
+		basket_node.visible = false
+		add_child(basket_node)
+		_baskets.append(basket_node)
 		_spoil.append(spoil)
 
 
@@ -109,19 +109,19 @@ func _hold(i: int, carrying: bool) -> void:
 func _place(i: int, stage: int, permille: int) -> void:
 	"""Resident `i`'s floor basket: before it while it fills (spoil rising) or tips (leaning over, emptying), else
 	hidden."""
-	var basket := _baskets[i]
-	basket.visible = stage == HaulScript.STAGE_FILLING or stage == HaulScript.STAGE_TIPPING
-	if not basket.visible:
+	var basket_node := _baskets[i]
+	basket_node.visible = stage == HaulScript.STAGE_FILLING or stage == HaulScript.STAGE_TIPPING
+	if not basket_node.visible:
 		return
 	var brain := (_cast.actor(i) as DemoActorScript).brain
 	var tipping := stage == HaulScript.STAGE_TIPPING
 	var way := _toward_heap(i, brain.position) if tipping else Vector2(sin(brain.yaw), cos(brain.yaw))
 	var feet := (_cast.actor(i) as Node3D).position
-	basket.position = Vector3(brain.position.x + way.x * AHEAD_M, feet.y, brain.position.y + way.y * AHEAD_M)
-	basket.rotation = Vector3(TIP_LEAN_RAD if tipping else 0.0, atan2(way.x, way.y), 0.0)
+	basket_node.position = Vector3(brain.position.x + way.x * AHEAD_M, feet.y, brain.position.y + way.y * AHEAD_M)
+	basket_node.rotation = Vector3(TIP_LEAN_RAD if tipping else 0.0, atan2(way.x, way.y), 0.0)
 	var share := float(permille) / float(Rules.PERMILLE)
 	var fill := 1.0 - share if tipping else lerpf(FIRST_SPOIL, 1.0, share)
 	_spoil[i].scale = Vector3(1.0, maxf(fill, 0.01), 1.0)
 	var layer := Layers.body_mask(brain.view_level())
-	if basket.get_child(0) is VisualInstance3D and (basket.get_child(0) as VisualInstance3D).layers != layer:
-		Layers.set_layers(basket, layer)
+	if basket_node.get_child(0) is VisualInstance3D and (basket_node.get_child(0) as VisualInstance3D).layers != layer:
+		Layers.set_layers(basket_node, layer)

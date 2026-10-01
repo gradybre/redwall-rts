@@ -204,8 +204,8 @@ static func until_text(span_hours: int) -> String:
 	if span_hours < 24:
 		return "%dh" % span_hours
 	if span_hours % 24 == 0:
-		return "%dd" % (span_hours / 24)
-	return "%dd %dh" % [span_hours / 24, span_hours % 24]
+		@warning_ignore("integer_division") return "%dd" % (span_hours / 24)
+	@warning_ignore("integer_division") return "%dd %dh" % [span_hours / 24, span_hours % 24]
 
 
 static func store_cells(pantry: PantryScript, at: int) -> PackedStringArray:
@@ -213,7 +213,7 @@ static func store_cells(pantry: PantryScript, at: int) -> PackedStringArray:
 	rate ('×0.35')."""
 	var storage := pantry.storage
 	var permille: int = storage.permille_of(at)
-	return PackedStringArray([storage.label_of(at), Text.units_text(pantry.used_milli_of(at)),
+	@warning_ignore("integer_division") return PackedStringArray([storage.label_of(at), Text.units_text(pantry.used_milli_of(at)),
 		Text.units_text(pantry.reserved_milli_of(at)), Text.units_text(pantry.room_milli_of(at)),
 		Text.units_text(storage.capacity_milli_of(at)), "×%d.%02d" % [permille / 1000, (permille % 1000) / 10]])
 

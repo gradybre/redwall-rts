@@ -427,7 +427,7 @@ func _first_index_of_lot(claims: PackedInt64Array, claim_count: int, lot_slot: i
 	return claim_count
 
 
-func _first_index_of_key(claims: PackedInt64Array, claim_count: int, index: int) -> int:
+func _first_index_of_key(claims: PackedInt64Array, _claim_count: int, index: int) -> int:
 	"""Index of the first record sharing record `index`'s `(lot, purpose)` coalescing key."""
 	var base: int = index * CLAIM_STRIDE
 	var lot_slot: int = claims[base + CLAIM_LOT_SLOT]
@@ -781,7 +781,7 @@ func _push_free(row: int) -> void:
 	"""Insert a freed row into the min-heap so the next allocation still finds the lowest index."""
 	var index: int = _free_count
 	while index > 0:
-		var parent: int = (index - 1) / 2
+		@warning_ignore("integer_division") var parent: int = (index - 1) / 2
 		if _free_heap[parent] <= row:
 			break
 		_free_heap[index] = _free_heap[parent]
@@ -1846,6 +1846,6 @@ func _reservation_live_heap_ok() -> bool:
 		if seen[row] == 1:
 			return false
 		seen[row] = 1
-		if index > 0 and _free_heap[(index - 1) / 2] > row:
+		@warning_ignore("integer_division") if index > 0 and _free_heap[(index - 1) / 2] > row:
 			return false
 	return true

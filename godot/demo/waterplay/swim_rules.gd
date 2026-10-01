@@ -189,7 +189,7 @@ static func ticks_for_usec(usec: int, carry: PackedInt64Array) -> int:
 	"""Whole fixed ticks in `usec` demo microseconds, keeping the remainder in `carry[0]` (in
 	tick-microseconds: usec x 30), so no microsecond is lost or counted twice."""
 	carry[0] += usec * TICKS_PER_SECOND
-	var ticks: int = carry[0] / USEC_PER_SECOND
+	@warning_ignore("integer_division") var ticks: int = carry[0] / USEC_PER_SECOND
 	carry[0] -= ticks * USEC_PER_SECOND
 	return ticks
 
@@ -201,8 +201,8 @@ static func cold_water(air_tenths: int) -> bool:
 
 static func flow_mm_s(flow_u_s: int, flood_permille: int) -> int:
 	"""A flow's speed in mm/s, sped by a flood (`flood_permille` of full flood, 0..1000)."""
-	var base: int = flow_u_s * PERMILLE / UNITS_PER_M
-	return base * (PERMILLE + FLOOD_FLOW_PERMILLE * clampi(flood_permille, 0, PERMILLE) / PERMILLE) / PERMILLE
+	@warning_ignore("integer_division") var base: int = flow_u_s * PERMILLE / UNITS_PER_M
+	@warning_ignore("integer_division") return base * (PERMILLE + FLOOD_FLOW_PERMILLE * clampi(flood_permille, 0, PERMILLE) / PERMILLE) / PERMILLE
 
 
 static func rest_drain_per_tick(swim_mm_s: int, flow_speed_mm_s: int, cold: bool) -> int:
@@ -298,7 +298,7 @@ static func stage_wu(kind: int, stage: int, deck_length_u: int, piers: int) -> i
 
 static func work_usec(wu: int, level: int) -> int:
 	"""Demo microseconds `wu` WU take at a skill level: WU x USEC_PER_WU / the §5.3 skill factor."""
-	return wu * USEC_PER_WU * PERMILLE / ForestRules.skill_factor_permille(level)
+	@warning_ignore("integer_division") return wu * USEC_PER_WU * PERMILLE / ForestRules.skill_factor_permille(level)
 
 
 static func units_text(milli: int) -> String:

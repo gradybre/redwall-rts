@@ -385,7 +385,7 @@ func age_hour(season: int) -> int:
 		if _lot_item[lot] == FREE:
 			continue
 		var numerator: int = storage.permille_of(_lot_location[lot]) * temperature + _lot_remainder[lot]
-		_lot_age[lot] += numerator / FACTOR_DENOMINATOR
+		@warning_ignore("integer_division") _lot_age[lot] += numerator / FACTOR_DENOMINATOR
 		_lot_remainder[lot] = numerator % FACTOR_DENOMINATOR
 		if _lot_age[lot] >= Catalog.shelf_hours_of(_lot_item[lot]) * FACTOR_DENOMINATOR:
 			_spoil(lot)
@@ -406,9 +406,9 @@ func _spoil(lot: int) -> void:
 func compost_spoiled() -> int:
 	"""Send spoiled food to compost at §5.7's 4 : 2; returns the compost made (milli-U). An odd
 	milli-U that cannot convert whole stays spoiled."""
-	var taken: int = spoiled_milli - spoiled_milli % (COMPOST_FROM_SPOILED_IN / COMPOST_FROM_SPOILED_OUT)
+	@warning_ignore("integer_division") var taken: int = spoiled_milli - spoiled_milli % (COMPOST_FROM_SPOILED_IN / COMPOST_FROM_SPOILED_OUT)
 	spoiled_milli -= taken
-	return taken * COMPOST_FROM_SPOILED_OUT / COMPOST_FROM_SPOILED_IN
+	@warning_ignore("integer_division") return taken * COMPOST_FROM_SPOILED_OUT / COMPOST_FROM_SPOILED_IN
 
 
 func take_spoiled_items_into(out: PackedInt32Array) -> int:
@@ -428,7 +428,7 @@ func milli_of(item: int) -> int:
 
 func units_of(item: int) -> int:
 	"""Whole units of an item (what the pantry counts)."""
-	return _item_milli[item] / MILLI_PER_U
+	@warning_ignore("integer_division") return _item_milli[item] / MILLI_PER_U
 
 
 func hours_left_into(item: int, out: IntMath.IntResult) -> bool:
@@ -442,14 +442,14 @@ func hours_left_into(item: int, out: IntMath.IntResult) -> bool:
 				least = left
 	if least < 0:
 		return out.refuse(REFUSE_NO_STOCK)
-	return out.succeed(least / FACTOR_DENOMINATOR)
+	@warning_ignore("integer_division") return out.succeed(least / FACTOR_DENOMINATOR)
 
 
 func freshness_permille_into(item: int, out: IntMath.IntResult) -> bool:
 	"""How much shelf life the item's oldest lot has left, per 1000; refuses NO_STOCK."""
 	if not hours_left_into(item, out):
 		return false
-	return out.succeed(out.value * FACTOR_DENOMINATOR / Catalog.shelf_hours_of(item))
+	@warning_ignore("integer_division") return out.succeed(out.value * FACTOR_DENOMINATOR / Catalog.shelf_hours_of(item))
 
 
 func first_to_spoil_into(item: int, hour_index: int, out: IntMath.IntResult) -> bool:
@@ -506,11 +506,11 @@ func lot_spoil_hours(lot: int, hour_index: int) -> int:
 		var hour: int = hour_index + hours + 1
 		var rate: int = maxi(1, permille * StockAge.temperature_factor_of(season_of_hour(hour), false))
 		var span: int = HOURS_PER_SEASON - posmod(hour, HOURS_PER_SEASON)
-		var to_spoil: int = (needed * FACTOR_DENOMINATOR - carried + rate - 1) / rate
+		@warning_ignore("integer_division") var to_spoil: int = (needed * FACTOR_DENOMINATOR - carried + rate - 1) / rate
 		if to_spoil <= span:
 			return hours + to_spoil
 		var aged: int = rate * span + carried
-		needed -= aged / FACTOR_DENOMINATOR
+		@warning_ignore("integer_division") needed -= aged / FACTOR_DENOMINATOR
 		carried = aged % FACTOR_DENOMINATOR
 		hours += span
 	return hours
@@ -519,8 +519,8 @@ func lot_spoil_hours(lot: int, hour_index: int) -> int:
 static func season_of_hour(hour_index: int) -> int:
 	"""The season (0 spring .. 3 winter) of the calendar hour `hour_index` counts from the midnight
 	before spring day 1 (demo_calendar.gd `hour_index`)."""
-	var day: int = hour_index / SimClock.HOURS_PER_DAY
-	return (day % SimClock.DAYS_PER_YEAR) / SimClock.DAYS_PER_SEASON
+	@warning_ignore("integer_division") var day: int = hour_index / SimClock.HOURS_PER_DAY
+	@warning_ignore("integer_division") return (day % SimClock.DAYS_PER_YEAR) / SimClock.DAYS_PER_SEASON
 
 
 func lot_milli(lot: int) -> int:

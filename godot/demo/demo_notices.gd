@@ -117,22 +117,22 @@ func now_msec() -> int:
 	return _clock.now_msec() if _clock != null else Time.get_ticks_msec()
 
 
-func post(source: int, level: int, text: String, summary: String = "", to_kind: int = TARGET_NONE,
+func post(from_source: int, at_level: int, message: String, brief: String = "", to_kind: int = TARGET_NONE,
 		to_id: int = -1, serial: int = NO_INCIDENT) -> bool:
 	"""Add one notice, stamped with the demo date now -- or, when it repeats the newest entry, count it there
 	(see REPEATS FOLD). `to_kind` / `to_id` name its target (TARGET_*), `serial` the incident it reports. Refuses
-	(false, nothing kept) empty text, or a source, level or target outside SOURCE_* / LEVEL_* / TARGET_*."""
-	if text.is_empty() or source < 0 or source >= SOURCE_NAMES.size() or level < LEVEL_NOTE \
-			or level > LEVEL_WARNING or to_kind < TARGET_NONE or to_kind >= TARGET_NAMES.size():
+	(false, nothing kept) an empty message, or a source, level or target outside SOURCE_* / LEVEL_* / TARGET_*."""
+	if message.is_empty() or from_source < 0 or from_source >= SOURCE_NAMES.size() or at_level < LEVEL_NOTE \
+			or at_level > LEVEL_WARNING or to_kind < TARGET_NONE or to_kind >= TARGET_NAMES.size():
 		return false
 	var row: int = _row(0)
-	if _source.size() > 0 and repeats_newest(source, level, text, summary) and _target_kind[row] == to_kind \
+	if _source.size() > 0 and repeats_newest(from_source, at_level, message, brief) and _target_kind[row] == to_kind \
 			and _target_id[row] == to_id and _incident[row] == serial:
 		_repeats[row] += 1
 	else:
 		if _source.size() >= CAPACITY:
 			_remove(_victim())
-		_append(source, level, text, summary, to_kind, to_id, serial)
+		_append(from_source, at_level, message, brief, to_kind, to_id, serial)
 		row = _source.size() - 1
 		rows_posted += 1
 	_stamp[row] = _calendar.date_text() if _calendar != null else UNDATED
@@ -141,14 +141,14 @@ func post(source: int, level: int, text: String, summary: String = "", to_kind: 
 	return true
 
 
-func _append(source: int, level: int, text: String, summary: String, to_kind: int, to_id: int,
+func _append(from_source: int, at_level: int, message: String, brief: String, to_kind: int, to_id: int,
 		serial: int) -> void:
 	"""One new newest entry (stamped and timed by `post`)."""
 	_stamp.append(UNDATED)
-	_text.append(text)
-	_summary.append(summary)
-	_source.append(source)
-	_level.append(level)
+	_text.append(message)
+	_summary.append(brief)
+	_source.append(from_source)
+	_level.append(at_level)
 	_posted_msec.append(0)
 	_repeats.append(1)
 	_target_kind.append(to_kind)
@@ -189,19 +189,19 @@ func _held(i: int) -> bool:
 	return true
 
 
-func repeats_newest(source: int, level: int, text: String, summary: String) -> bool:
+func repeats_newest(from_source: int, at_level: int, message: String, brief: String) -> bool:
 	"""Whether a post says exactly what the newest entry says (see REPEATS FOLD). An empty feed has no newest
 	entry, so the first post never matches."""
 	if _source.is_empty():
 		return false
 	var newest: int = _row(0)
-	return _source[newest] == source and _level[newest] == level and _text[newest] == text \
-			and _summary[newest] == summary
+	return _source[newest] == from_source and _level[newest] == at_level and _text[newest] == message \
+			and _summary[newest] == brief
 
 
-func poster(source: int, level: int) -> Callable:
-	"""A `(text: String) -> void` that posts at this source and level (for a module's notice hook)."""
-	return func(text: String) -> void: post(source, level, text)
+func poster(from_source: int, at_level: int) -> Callable:
+	"""A `(message: String) -> void` that posts at this source and level (for a module's notice hook)."""
+	return func(message: String) -> void: post(from_source, at_level, message)
 
 
 func count() -> int:

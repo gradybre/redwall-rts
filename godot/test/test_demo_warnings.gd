@@ -94,29 +94,29 @@ static func _tunnels_of(network: GraphScript, chain: PackedInt32Array) -> Packed
 
 func test_the_signs_come_before_the_warning() -> void:
 	"""The first signs show at half the warning's pressure, so a hazard is seen before the notice feed names it."""
-	assert_equal(LookScript.SIGN_PERMILLE, HazardsScript.WARN_PERMILLE / 2, "half the warning's")
+	@warning_ignore("integer_division") assert_equal(LookScript.SIGN_PERMILLE, HazardsScript.WARN_PERMILLE / 2, "half the warning's")
 	assert_true(LookScript.SIGN_PERMILLE < HazardsScript.WARN_PERMILLE, "before it")
 
 
 func test_the_level_rises_from_the_signs_to_the_strike() -> void:
 	"""level_permille: 0 below the signs, 0 at them, rising evenly to 1000 at the strike, never past it."""
-	var sign := LookScript.SIGN_PERMILLE
+	var sign_permille := LookScript.SIGN_PERMILLE
 	assert_equal(LookScript.level_permille(0), 0, "nothing")
-	assert_equal(LookScript.level_permille(sign - 1), 0, "just short of the signs")
-	assert_equal(LookScript.level_permille(sign), 0, "the signs begin")
-	assert_equal(LookScript.level_permille(sign + 1), 1000 / (1000 - sign), "and rise")
-	assert_equal(LookScript.level_permille(HazardsScript.WARN_PERMILLE), (500 - sign) * 1000 / (1000 - sign), "at the warning")
+	assert_equal(LookScript.level_permille(sign_permille - 1), 0, "just short of the signs")
+	assert_equal(LookScript.level_permille(sign_permille), 0, "the signs begin")
+	@warning_ignore("integer_division") assert_equal(LookScript.level_permille(sign_permille + 1), 1000 / (1000 - sign_permille), "and rise")
+	@warning_ignore("integer_division") assert_equal(LookScript.level_permille(HazardsScript.WARN_PERMILLE), (500 - sign_permille) * 1000 / (1000 - sign_permille), "at the warning")
 	assert_equal(LookScript.level_permille(1000), 1000, "at the strike: full")
 	assert_equal(LookScript.level_permille(1400), 1000, "never past it")
 
 
 func test_each_seep_state_has_its_look() -> void:
 	"""Plain below the signs; first signs; warned; flooded (its own look); plain when braced or closed another way."""
-	var sign := LookScript.SIGN_PERMILLE
+	var sign_permille := LookScript.SIGN_PERMILLE
 	var warn := HazardsScript.WARN_PERMILLE
 	var none := GraphScript.CLOSED_NONE
-	assert_equal(LookScript.seep_look(sign - 1, none, false), LookScript.LOOK_NONE, "below the signs")
-	assert_equal(LookScript.seep_look(sign, none, false), LookScript.LOOK_SEEP_SIGNS, "the first signs")
+	assert_equal(LookScript.seep_look(sign_permille - 1, none, false), LookScript.LOOK_NONE, "below the signs")
+	assert_equal(LookScript.seep_look(sign_permille, none, false), LookScript.LOOK_SEEP_SIGNS, "the first signs")
 	assert_equal(LookScript.seep_look(warn - 1, none, false), LookScript.LOOK_SEEP_SIGNS, "signs till the warning")
 	assert_equal(LookScript.seep_look(warn, none, false), LookScript.LOOK_SEEP_WARNED, "warned")
 	assert_equal(LookScript.seep_look(1000, GraphScript.CLOSED_FLOODED, false), LookScript.LOOK_FLOODED, "struck")
@@ -126,11 +126,11 @@ func test_each_seep_state_has_its_look() -> void:
 
 func test_each_strain_state_has_its_look() -> void:
 	"""The strain's: plain, first signs, warned, fallen in; plain when braced or flooded instead."""
-	var sign := LookScript.SIGN_PERMILLE
+	var sign_permille := LookScript.SIGN_PERMILLE
 	var warn := HazardsScript.WARN_PERMILLE
 	var none := GraphScript.CLOSED_NONE
-	assert_equal(LookScript.strain_look(sign - 1, none, false), LookScript.LOOK_NONE, "below the signs")
-	assert_equal(LookScript.strain_look(sign, none, false), LookScript.LOOK_STRAIN_SIGNS, "the first signs")
+	assert_equal(LookScript.strain_look(sign_permille - 1, none, false), LookScript.LOOK_NONE, "below the signs")
+	assert_equal(LookScript.strain_look(sign_permille, none, false), LookScript.LOOK_STRAIN_SIGNS, "the first signs")
 	assert_equal(LookScript.strain_look(warn, none, false), LookScript.LOOK_STRAIN_WARNED, "warned")
 	assert_equal(LookScript.strain_look(0, GraphScript.CLOSED_COLLAPSED, false), LookScript.LOOK_COLLAPSED, "struck")
 	assert_equal(LookScript.strain_look(900, GraphScript.CLOSED_FLOODED, false), LookScript.LOOK_NONE, "flooded instead")
@@ -161,8 +161,8 @@ func test_a_bore_is_handed_its_hazard_levels() -> void:
 	pools.configure()
 	var view: HazardViewScript = _keep(HazardViewScript.new())
 	view.configure(network, hazards, bores, pools)
-	hazards.seep_usec[slot] = HazardsScript.SEEP_FULL_USEC * 3 / 4
-	hazards.strain_usec[slot] = HazardsScript.STRAIN_FULL_USEC * 3 / 5
+	@warning_ignore("integer_division") hazards.seep_usec[slot] = HazardsScript.SEEP_FULL_USEC * 3 / 4
+	@warning_ignore("integer_division") hazards.strain_usec[slot] = HazardsScript.STRAIN_FULL_USEC * 3 / 5
 	view.refresh()
 	assert_equal(view.seep_level(slot), LookScript.level_permille(750), "the seep's level")
 	assert_equal(view.strain_level(slot), LookScript.level_permille(600), "the strain's")
@@ -188,13 +188,13 @@ func test_a_segment_split_finds_its_strain_again() -> void:
 	view.configure(network, hazards, site[1], pools)
 	hazards.fall_from_u[slot] = 2048
 	hazards.fall_to_u[slot] = 4096
-	hazards.strain_usec[slot] = HazardsScript.STRAIN_FULL_USEC * 6 / 10
+	@warning_ignore("integer_division") hazards.strain_usec[slot] = HazardsScript.STRAIN_FULL_USEC * 6 / 10
 	view.refresh()
 	assert_almost_equal(view._strain_span[slot].x, 1.5, "its weak section")
 	network.length_u[slot] -= 1024
 	hazards.fall_from_u[slot] = 1024
 	hazards.fall_to_u[slot] = 3072
-	hazards.strain_usec[slot] = HazardsScript.STRAIN_FULL_USEC * 8 / 10
+	@warning_ignore("integer_division") hazards.strain_usec[slot] = HazardsScript.STRAIN_FULL_USEC * 8 / 10
 	view.refresh()
 	assert_almost_equal(view._strain_span[slot].x, 0.5, "found again")
 
@@ -209,13 +209,13 @@ func test_a_level_is_written_only_when_it_moves_a_step() -> void:
 	pools.configure()
 	var view: HazardViewScript = _keep(HazardViewScript.new())
 	view.configure(network, hazards, site[1], pools)
-	hazards.seep_usec[slot] = HazardsScript.SEEP_FULL_USEC * 6 / 10
+	@warning_ignore("integer_division") hazards.seep_usec[slot] = HazardsScript.SEEP_FULL_USEC * 6 / 10
 	view.refresh()
 	var drawn := view.seep_level(slot)
-	hazards.seep_usec[slot] += HazardsScript.SEEP_FULL_USEC / 200
+	@warning_ignore("integer_division") hazards.seep_usec[slot] += HazardsScript.SEEP_FULL_USEC / 200
 	view.refresh()
 	assert_equal(view.seep_level(slot), drawn, "a creep: not written")
-	hazards.seep_usec[slot] += HazardsScript.SEEP_FULL_USEC / 40
+	@warning_ignore("integer_division") hazards.seep_usec[slot] += HazardsScript.SEEP_FULL_USEC / 40
 	view.refresh()
 	assert_true(view.seep_level(slot) >= drawn + HazardViewScript.LEVEL_STEP, "a step: written")
 
@@ -231,7 +231,7 @@ func test_the_first_signs_are_drawn_however_faint() -> void:
 	pools.configure()
 	var view: HazardViewScript = _keep(HazardViewScript.new())
 	view.configure(network, hazards, site[1], pools)
-	hazards.seep_usec[slot] = HazardsScript.SEEP_FULL_USEC * 26 / 100
+	@warning_ignore("integer_division") hazards.seep_usec[slot] = HazardsScript.SEEP_FULL_USEC * 26 / 100
 	view.refresh()
 	assert_equal(view.seep_level(slot), LookScript.level_permille(260), "faint, but drawn")
 	assert_true(view.seep_level(slot) < HazardViewScript.LEVEL_STEP, "under a step")
@@ -262,10 +262,10 @@ func test_the_worst_seeps_drip_and_the_worst_strains_trickle() -> void:
 	pools.configure()
 	var view: HazardViewScript = _keep(HazardViewScript.new())
 	view.configure(network, hazards, bores, pools)
-	hazards.seep_usec[slots[0]] = HazardsScript.SEEP_FULL_USEC * 6 / 10
-	hazards.seep_usec[slots[1]] = HazardsScript.SEEP_FULL_USEC * 9 / 10
-	hazards.seep_usec[slots[2]] = HazardsScript.SEEP_FULL_USEC * 7 / 10
-	hazards.strain_usec[slots[2]] = HazardsScript.STRAIN_FULL_USEC * 8 / 10
+	@warning_ignore("integer_division") hazards.seep_usec[slots[0]] = HazardsScript.SEEP_FULL_USEC * 6 / 10
+	@warning_ignore("integer_division") hazards.seep_usec[slots[1]] = HazardsScript.SEEP_FULL_USEC * 9 / 10
+	@warning_ignore("integer_division") hazards.seep_usec[slots[2]] = HazardsScript.SEEP_FULL_USEC * 7 / 10
+	@warning_ignore("integer_division") hazards.strain_usec[slots[2]] = HazardsScript.STRAIN_FULL_USEC * 8 / 10
 	view.refresh()
 	assert_equal([view.dripping(0), view.dripping(1)], [slots[1], slots[2]], "the two worst, worst first")
 	assert_equal([view.trickling(0), view.trickling(1)], [slots[2], -1], "one strain")
@@ -289,7 +289,7 @@ func test_a_warned_tunnel_is_ringed_in_clay_in_the_u_view_too() -> void:
 	var slot: int = _tunnels_of(network, site[3])[0]
 	var marks: MarksScript = _keep(MarksScript.new())
 	marks.configure(network, hazards, PropsScript.new(), DemoClockScript.new())
-	hazards.strain_usec[slot] = HazardsScript.STRAIN_FULL_USEC * 6 / 10
+	@warning_ignore("integer_division") hazards.strain_usec[slot] = HazardsScript.STRAIN_FULL_USEC * 6 / 10
 	marks.refresh()
 	var below: MeshInstance3D = marks._rings_below[2 * slot]
 	assert_true(marks._rings[2 * slot].visible and below.visible, "ringed above and below")
@@ -325,7 +325,7 @@ func test_a_young_tunnel_s_seam_heals_over_days() -> void:
 	var built := signs.seam_builds
 	signs.refresh()
 	assert_equal(signs.seam_builds, built, "unchanged: not rebuilt")
-	calendar.tick = TICKS_PER_DAY * 3 / 2
+	@warning_ignore("integer_division") calendar.tick = TICKS_PER_DAY * 3 / 2
 	signs.refresh()
 	assert_true(signs.seam(slot).visible and _seam_alpha(signs, slot) < alpha, "fainter")
 	assert_almost_equal(SignsScript.freshness(1.5), 0.5, "half healed")
@@ -469,7 +469,7 @@ func test_the_readout_prices_the_bracing() -> void:
 	"""brace_text: a quantum's wood and stone times the quanta, to the tenth of a unit, rounded down."""
 	var wood := JobsScript.BRACE_WOOD_MILLI_U * 13
 	var stone := JobsScript.BRACE_STONE_MILLI_U * 13
-	assert_equal(ReadoutScript.brace_text(13), "brace %d.%d wood + %d.%d stone" % [wood / 1000, wood % 1000 / 100,
+	@warning_ignore("integer_division") assert_equal(ReadoutScript.brace_text(13), "brace %d.%d wood + %d.%d stone" % [wood / 1000, wood % 1000 / 100,
 		stone / 1000, stone % 1000 / 100], "13 quanta")
 	assert_equal(ReadoutScript.brace_text(0), "brace 0.0 wood + 0.0 stone", "nothing")
 	assert_equal(ReadoutScript.tenths(3790), "3.7", "rounded down")

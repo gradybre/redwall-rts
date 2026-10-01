@@ -298,7 +298,7 @@ func configure(brains: Array[BrainScript], names: PackedStringArray, species: Pa
 	_plan(_hour_seen)
 	var meal: int = Rules.meal_of_hour(_hour_seen % SimClock.HOURS_PER_DAY)
 	if meal >= 0:
-		_open_meal(Rules.meal_key(_hour_seen / SimClock.HOURS_PER_DAY, meal))
+		@warning_ignore("integer_division") _open_meal(Rules.meal_key(_hour_seen / SimClock.HOURS_PER_DAY, meal))
 
 
 func bind_news(notices: NoticesScript, incidents: IncidentsScript) -> void:
@@ -344,10 +344,10 @@ func _designated_of(keys: Array[StringName]) -> int:
 	return 0 if not keys.is_empty() or not _brains.is_empty() else NOBODY
 
 
-static func _first_key(hour_index: int) -> int:
-	"""The first meal whose serving has not ended at `hour_index`."""
-	var day: int = hour_index / SimClock.HOURS_PER_DAY
-	var hour: int = hour_index % SimClock.HOURS_PER_DAY
+static func _first_key(at_hour: int) -> int:
+	"""The first meal whose serving has not ended at `at_hour`."""
+	@warning_ignore("integer_division") var day: int = at_hour / SimClock.HOURS_PER_DAY
+	var hour: int = at_hour % SimClock.HOURS_PER_DAY
 	if hour < Rules.END_HOUR[Rules.MEAL_BREAKFAST]:
 		return Rules.meal_key(day, Rules.MEAL_BREAKFAST)
 	if hour < Rules.END_HOUR[Rules.MEAL_SUPPER]:
@@ -357,12 +357,12 @@ static func _first_key(hour_index: int) -> int:
 
 static func _ends_at(key: int) -> int:
 	"""The calendar hour index meal `key`'s serving ends at."""
-	return (key / 2) * SimClock.HOURS_PER_DAY + Rules.END_HOUR[key % 2]
+	@warning_ignore("integer_division") return (key / 2) * SimClock.HOURS_PER_DAY + Rules.END_HOUR[key % 2]
 
 
 static func _cook_from(key: int) -> int:
 	"""The calendar hour index meal `key` may be cooked from: its COOK_FROM_HOUR of its day (see THE COOK)."""
-	return (key / 2) * SimClock.HOURS_PER_DAY + Rules.COOK_FROM_HOUR[key % 2]
+	@warning_ignore("integer_division") return (key / 2) * SimClock.HOURS_PER_DAY + Rules.COOK_FROM_HOUR[key % 2]
 
 
 # --- per frame -----------------------------------------------------------------------------------------
@@ -381,42 +381,42 @@ func update() -> void:
 		_hand_out()
 
 
-func _on_hour(hour_index: int) -> void:
+func _on_hour(at_hour: int) -> void:
 	"""An hour crossed: the portions age, everyone's hunger falls, reserved food that spoiled is let go; a meal is
 	called or closed; the next meals are planned."""
-	var season: int = PantryScript.season_of_hour(hour_index)
+	var season: int = PantryScript.season_of_hour(at_hour)
 	store.age_hour(season)
 	pantry.spoiled_milli += store.take_spoiled()
-	fed.pass_hour(hour_index / SimClock.HOURS_PER_DAY, season == WINTER, hour_index)
+	@warning_ignore("integer_division") fed.pass_hour(at_hour / SimClock.HOURS_PER_DAY, season == WINTER, at_hour)
 	takes.prune(pantry)
-	var day: int = hour_index / SimClock.HOURS_PER_DAY
-	var hour: int = hour_index % SimClock.HOURS_PER_DAY
+	@warning_ignore("integer_division") var day: int = at_hour / SimClock.HOURS_PER_DAY
+	var hour: int = at_hour % SimClock.HOURS_PER_DAY
 	for meal: int in 2:
 		if hour == Rules.END_HOUR[meal]:
 			_close_meal(Rules.meal_key(day, meal))
 		if hour == Rules.CALL_HOUR[meal]:
 			_open_meal(Rules.meal_key(day, meal))
-	_plan(hour_index)
+	_plan(at_hour)
 	revision += 1
 
 
 # --- planning ----------------------------------------------------------------------------------------
 
-func _plan(hour_index: int) -> void:
+func _plan(at_hour: int) -> void:
 	"""Retire meals over or cooked, plan the next ones into free slots, and top short ones up (see THE MEALS)."""
 	for s: int in MAX_SLOTS:
-		if _slot_key[s] != FREE and (_slot_done(s) or hour_index >= _ends_at(_slot_key[s])):
+		if _slot_key[s] != FREE and (_slot_done(s) or at_hour >= _ends_at(_slot_key[s])):
 			_retire(s)
 	for s: int in _slots_by_key():
-		_top_up(s, hour_index)
+		_top_up(s, at_hour)
 	for s: int in MAX_SLOTS:
 		if _slot_key[s] == FREE:
-			_fill_slot(s, hour_index)
+			_fill_slot(s, at_hour)
 
 
-func _fill_slot(s: int, hour_index: int) -> void:
+func _fill_slot(s: int, at_hour: int) -> void:
 	"""Plan the next meal into slot `s`: its dish, how many batches, and its food reserved."""
-	while hour_index >= _ends_at(_next_key):
+	while at_hour >= _ends_at(_next_key):
 		_next_key += 1
 	_slot_key[s] = _next_key
 	_next_key += 1
@@ -426,7 +426,7 @@ func _fill_slot(s: int, hour_index: int) -> void:
 	_slot_dish[s] = _choose_dish(_slot_prefer[s])
 	_resort_slots()
 	_slot_wanted[s] = _wanted(s)
-	_top_up(s, hour_index)
+	_top_up(s, at_hour)
 
 
 func _choose_dish(prefer: int) -> int:
@@ -449,14 +449,14 @@ func _wanted(s: int) -> int:
 	"""Batches slot `s`'s meal wants: a portion each for every resident, less the LEFTOVERS -- portions of meals whose
 	serving is over that will still be good at its call (eaten first) -- when it is the earliest planned meal."""
 	var key: int = _slot_key[s]
-	var call: int = (key / 2) * SimClock.HOURS_PER_DAY + Rules.CALL_HOUR[key % 2]
-	var spare: int = store.portions_lasting(_first_key(_hour_seen), maxi(0, call - _hour_seen),
+	@warning_ignore("integer_division") var call_at: int = (key / 2) * SimClock.HOURS_PER_DAY + Rules.CALL_HOUR[key % 2]
+	var spare: int = store.portions_lasting(_first_key(_hour_seen), maxi(0, call_at - _hour_seen),
 		PantryScript.season_of_hour(_hour_seen)) if key == _earliest_key() else 0
 	var short: int = maxi(0, _brains.size() - spare)
-	return (short + Rules.PORTIONS_PER_BATCH[_slot_dish[s]] - 1) / Rules.PORTIONS_PER_BATCH[_slot_dish[s]]
+	@warning_ignore("integer_division") return (short + Rules.PORTIONS_PER_BATCH[_slot_dish[s]] - 1) / Rules.PORTIONS_PER_BATCH[_slot_dish[s]]
 
 
-func _top_up(s: int, hour_index: int) -> void:
+func _top_up(s: int, at_hour: int) -> void:
 	"""Reserve what slot `s` still lacks; with nothing yet reserved or cooked, turn to the other dish when only its
 	food is there."""
 	if _slot_cooked[s] == 0 and _wip_key != _slot_key[s] and takes.live_milli(pantry, _slot_take[s]) == 0:
@@ -468,13 +468,13 @@ func _top_up(s: int, hour_index: int) -> void:
 		return
 	var drawn: int = takes.draw_fetched(pantry, _larder_take, _slot_take[s], Rules.INPUT_CROP[dish],
 		lacking * Rules.INPUT_MILLI[dish])
-	lacking -= drawn / Rules.INPUT_MILLI[dish]
+	@warning_ignore("integer_division") lacking -= drawn / Rules.INPUT_MILLI[dish]
 	if lacking <= 0:
 		return
-	takes.reserve_into(pantry, _slot_take[s], Rules.INPUT_CROP[dish], lacking * Rules.INPUT_MILLI[dish], hour_index, _read)
+	takes.reserve_into(pantry, _slot_take[s], Rules.INPUT_CROP[dish], lacking * Rules.INPUT_MILLI[dish], at_hour, _read)
 	var odd: int = takes.live_milli(pantry, _slot_take[s]) % Rules.INPUT_MILLI[dish]
 	if odd > 0:
-		takes.release_milli(pantry, _slot_take[s], odd, hour_index)
+		takes.release_milli(pantry, _slot_take[s], odd, at_hour)
 
 
 func _retire(s: int) -> void:
@@ -495,7 +495,7 @@ func _slot_done(s: int) -> bool:
 
 func _reserved_batches(s: int) -> int:
 	"""Whole batches slot `s`'s live reservation makes."""
-	return takes.live_milli(pantry, _slot_take[s]) / Rules.INPUT_MILLI[_slot_dish[s]]
+	@warning_ignore("integer_division") return takes.live_milli(pantry, _slot_take[s]) / Rules.INPUT_MILLI[_slot_dish[s]]
 
 
 func _wip_on(s: int) -> int:
@@ -641,7 +641,7 @@ func cancel_meal() -> String:
 		return Words.NOTHING_PLANNED
 	var key: int = _slot_key[s]
 	if _wip_key == key:
-		var spoil: int = Rules.INPUT_MILLI[_wip_dish] / 2
+		@warning_ignore("integer_division") var spoil: int = Rules.INPUT_MILLI[_wip_dish] / 2
 		pantry.spoiled_milli += spoil
 		cancelled_spoil_milli += spoil
 		_wip_key = FREE
@@ -1293,8 +1293,8 @@ func _reserve_raw(i: int) -> bool:
 	enough for at most RAW_NP_CAP. False when there is none."""
 	var best: int = FREE
 	for lot: int in PantryScript.MAX_LOTS:
-		var item: int = pantry.lot_item(lot)
-		if item == PantryScript.FREE or Rules.raw_np_per_u(item) == 0 or takes.free_milli(pantry, lot) <= 0:
+		var candidate: int = pantry.lot_item(lot)
+		if candidate == PantryScript.FREE or Rules.raw_np_per_u(candidate) == 0 or takes.free_milli(pantry, lot) <= 0:
 			continue
 		if best == FREE or pantry.lot_spoil_hours(lot, _hour_seen) < pantry.lot_spoil_hours(best, _hour_seen):
 			best = lot
@@ -1303,12 +1303,12 @@ func _reserve_raw(i: int) -> bool:
 	var item: int = pantry.lot_item(best)
 	var np_per_u: int = Rules.raw_np_per_u(item)
 	_raw_take[i] = takes.new_take()
-	var milli: int = takes.reserve_lot(pantry, _raw_take[i], best, Rules.RAW_NP_CAP * Rules.MILLI_PER_U / np_per_u)
+	@warning_ignore("integer_division") var milli: int = takes.reserve_lot(pantry, _raw_take[i], best, Rules.RAW_NP_CAP * Rules.MILLI_PER_U / np_per_u)
 	if milli <= 0:
 		takes.release(_raw_take[i])
 		_raw_take[i] = 0
 		return false
-	_raw_np[i] = milli * np_per_u / Rules.MILLI_PER_U
+	@warning_ignore("integer_division") _raw_np[i] = milli * np_per_u / Rules.MILLI_PER_U
 	_raw_item[i] = item
 	_location[i] = pantry.lot_location(best)
 	return true
@@ -1674,7 +1674,7 @@ func preview_draw_into(card: CardScript, members: PackedInt32Array) -> void:
 	card.result = "%s%s into the water butt by the well (it holds %s of %s)" % ["Up to " if d.worker < 0 else "",
 		Words.units(d.amount), Words.units(stores.water_milli_u), Words.units(StoresScript.WATER_CAP_MILLI_U)]
 	if d.amount > 0:
-		card.work_usec = CalendarScript.usec_for_ticks(d.amount * Rules.DRAW_MWU_PER_MILLI / Rules.MWU_PER_TICK)
+		@warning_ignore("integer_division") card.work_usec = CalendarScript.usec_for_ticks(d.amount * Rules.DRAW_MWU_PER_MILLI / Rules.MWU_PER_TICK)
 	card.who = d.who
 	card.worker = d.worker
 	card.prerequisites = PackedStringArray(["a resident to carry it (a mouse carries 12 U, an otter 16, the badger 24)"])
@@ -1858,8 +1858,8 @@ func cookable_batches() -> int:
 	needed, so it does not limit)."""
 	var batches: int = 0
 	for dish: int in Rules.DISH_COUNT:
-		batches += _crop_milli(Rules.INPUT_CROP[dish]) / Rules.INPUT_MILLI[dish]
-	return mini(batches, stores.wood_milli_u / Rules.WOOD_MILLI_PER_BATCH)
+		@warning_ignore("integer_division") batches += _crop_milli(Rules.INPUT_CROP[dish]) / Rules.INPUT_MILLI[dish]
+	@warning_ignore("integer_division") return mini(batches, stores.wood_milli_u / Rules.WOOD_MILLI_PER_BATCH)
 
 
 func _crop_milli(crop: int) -> int:
@@ -1884,7 +1884,7 @@ func days_of_meals_milli() -> int:
 	if daily <= 0:
 		return 0
 	var portions: int = store.portions() + (Rules.PORTIONS_PER_BATCH[_wip_dish] if _wip_key != FREE else 0)
-	return (portions + cookable_batches() * Rules.PORTIONS_PER_BATCH[Rules.DISH_PORRIDGE]) * 1000 / daily
+	@warning_ignore("integer_division") return (portions + cookable_batches() * Rules.PORTIONS_PER_BATCH[Rules.DISH_PORRIDGE]) * 1000 / daily
 
 
 func ledger_lines() -> PackedStringArray:

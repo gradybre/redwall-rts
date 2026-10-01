@@ -225,7 +225,7 @@ func _run_crew(c: Dictionary, substeps: int) -> Dictionary:
 	var helper: BrainScript = (c["brains"] as Array[BrainScript])[c["helper"]]
 	var off := 0
 	var seen := PackedInt32Array()
-	for f in roundi(300.0 / DT) / substeps:
+	@warning_ignore("integer_division") for f in roundi(300.0 / DT) / substeps:
 		_frame(c["brains"], works, substeps)
 		if network.piece_done(c["piece"]):
 			break
@@ -795,7 +795,7 @@ func _water_feed_has(suite: RefCounted, words: String) -> bool:
 func _full_of_mouths(network: GraphScript) -> void:
 	"""Twelve dug mouth-to-mouth tunnels, 3 m apart, in the village's west: every mouth row taken, segment rows to
 	spare."""
-	for k in Rules.MAX_MOUTHS / 2:
+	@warning_ignore("integer_division") for k in Rules.MAX_MOUTHS / 2:
 		_dig_all(network, _stored(network, PackedInt32Array([-18432, 3072 * k - 18432, -8192, 3072 * k - 18432])))
 	assert_equal(network.mouth_node.count(-1), 0, "every mouth row taken")
 	assert_true(network.phase.count(GraphScript.PHASE_FREE) > 0, "segment rows to spare")

@@ -122,23 +122,23 @@ func _close_button() -> Button:
 
 func _tab(k: int) -> Button:
 	"""One wood tab: brass while its panel is shown; takes keyboard focus (decision 0261)."""
-	var tab := Button.new()
-	tab.text = TAB_TEXT[k]
-	tab.tooltip_text = TAB_TIPS[k]
-	Styles.focusable(tab, TAB_MARGINS)
-	tab.toggle_mode = true
-	tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tab.add_theme_font_size_override(&"font_size", TAB_PX)
-	tab.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, TAB_MARGINS))
-	tab.add_theme_stylebox_override(&"hover", Styles.box(Styles.PIECE_WOOD_HOVER, TAB_MARGINS))
-	tab.add_theme_stylebox_override(&"pressed", Styles.box(Styles.PIECE_BRASS, TAB_MARGINS))
-	tab.add_theme_stylebox_override(&"hover_pressed", Styles.box(Styles.PIECE_BRASS, TAB_MARGINS))
+	var new_tab := Button.new()
+	new_tab.text = TAB_TEXT[k]
+	new_tab.tooltip_text = TAB_TIPS[k]
+	Styles.focusable(new_tab, TAB_MARGINS)
+	new_tab.toggle_mode = true
+	new_tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	new_tab.add_theme_font_size_override(&"font_size", TAB_PX)
+	new_tab.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, TAB_MARGINS))
+	new_tab.add_theme_stylebox_override(&"hover", Styles.box(Styles.PIECE_WOOD_HOVER, TAB_MARGINS))
+	new_tab.add_theme_stylebox_override(&"pressed", Styles.box(Styles.PIECE_BRASS, TAB_MARGINS))
+	new_tab.add_theme_stylebox_override(&"hover_pressed", Styles.box(Styles.PIECE_BRASS, TAB_MARGINS))
 	for item: StringName in [&"font_color", &"font_hover_color"]:
-		tab.add_theme_color_override(item, Palette.text_on(Palette.SURFACE_WOOD))
+		new_tab.add_theme_color_override(item, Palette.text_on(Palette.SURFACE_WOOD))
 	for item: StringName in [&"font_pressed_color", &"font_hover_pressed_color"]:
-		tab.add_theme_color_override(item, Palette.text_on(Palette.SURFACE_BRASS))
-	tab.pressed.connect(func() -> void: show_panel(k))
-	return tab
+		new_tab.add_theme_color_override(item, Palette.text_on(Palette.SURFACE_BRASS))
+	new_tab.pressed.connect(func() -> void: show_panel(k))
+	return new_tab
 
 
 func add_panel(key: int, panel: Object) -> void:
@@ -243,9 +243,9 @@ static func strip_placement(width: int, height: int, layout: UiLayout, geometry:
 	return Rect2(geometry.detail.position, Vector2(geometry.detail.size.x, STRIP_H))
 
 
-static func panel_placement(width: int, height: int, frame_expand: float, top_inset: float, layout: UiLayout,
+static func panel_placement(width: int, height: int, frame_expand: float, inset_top: float, layout: UiLayout,
 		geometry: UiLayout.Geometry) -> Rect2:
-	"""A zone panel's rectangle in logical pixels: the detail zone `top_inset` below its top (the tab
+	"""A zone panel's rectangle in logical pixels: the detail zone `inset_top` below its top (the tab
 	strip's STRIP_H + STRIP_GAP under this zone), inset by the panel's carved frame, ending above the
 	command strip where the two overlap. Fills `geometry` (the HUD's layout with the journal closed,
 	as it is whenever a zone panel shows)."""
@@ -254,7 +254,7 @@ static func panel_placement(width: int, height: int, frame_expand: float, top_in
 	var commands: Rect2 = geometry.commands
 	if commands.position.x < zone.end.x and commands.end.x > zone.position.x:
 		bottom = minf(bottom, commands.position.y - COMMAND_GAP)
-	var top: float = zone.position.y + top_inset + frame_expand
+	var top: float = zone.position.y + inset_top + frame_expand
 	return Rect2(zone.position.x + frame_expand, top, zone.size.x - 2.0 * frame_expand,
 		maxf(bottom - frame_expand - top, 0.0))
 

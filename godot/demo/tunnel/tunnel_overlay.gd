@@ -342,16 +342,16 @@ func set_ground(ground: MeshInstance3D) -> void:
 func _make_mound() -> Node3D:
 	"""The disturbed earth over a digger underground: a low dome (its clods are the warren's pooled particles,
 	warren_particles.gd, thrown over it by dig_theatre.gd)."""
-	var mound := Node3D.new()
+	var mound_root := Node3D.new()
 	var dome := MeshInstance3D.new()
 	dome.name = "Dome"
 	dome.mesh = heap_mesh()
 	dome.material_override = _spoil_material()
 	dome.scale = Vector3(MOUND_RADIUS_M, MOUND_HEIGHT_M, MOUND_RADIUS_M)
-	mound.add_child(dome)
-	mound.visible = false
-	add_child(mound)
-	return mound
+	mound_root.add_child(dome)
+	mound_root.visible = false
+	add_child(mound_root)
+	return mound_root
 
 
 func set_plan_level(level: int) -> void:
@@ -665,7 +665,7 @@ func _show_mouth(m: int, ramp: int) -> void:
 	portal, under its arch -- or, a burrow home's door, all the way down to the door. A cellar's hatch covers its ramp
 	(room_view.gd): nothing is drawn or cut. The ground is cut open over the cutting."""
 	var node := _holes[m]
-	var bore := int(_network.bore[ramp])
+	var bore_kind := int(_network.bore[ramp])
 	var home_door := MouthScript.door_template(_network, m) == RoomsScript.TEMPLATE_HOME
 	var run := MouthScript.cutting_run_m(_network, m)
 	node.visible = _network.mouth_opened(m) and run > 0.0
@@ -679,13 +679,13 @@ func _show_mouth(m: int, ramp: int) -> void:
 	node.rotation = Vector3(0.0, atan2(into.x, into.y), 0.0)
 	_open_m[m] = run * opened if node.visible else 0.0
 	var end := MouthScript.END_DOOR if home_door else (MouthScript.END_THROAT if opened >= 1.0 else MouthScript.END_FACE)
-	_court_m[m] = MouthScript.court_half_m(_props, bore) if end == MouthScript.END_THROAT else 0.0
-	(node.get_child(MOUTH_CUTTING) as MeshInstance3D).mesh = MouthScript.cutting_mesh(bore, run * opened, end, _court_m[m])
-	_stand_gateway(node, bore, _open_m[m], opened >= 1.0 and not home_door)
+	_court_m[m] = MouthScript.court_half_m(_props, bore_kind) if end == MouthScript.END_THROAT else 0.0
+	(node.get_child(MOUTH_CUTTING) as MeshInstance3D).mesh = MouthScript.cutting_mesh(bore_kind, run * opened, end, _court_m[m])
+	_stand_gateway(node, bore_kind, _open_m[m], opened >= 1.0 and not home_door)
 	_cut_hole(m, node.visible)
 
 
-func _stand_gateway(node: Node3D, bore: int, portal: float, standing: bool) -> void:
+func _stand_gateway(node: Node3D, bore_kind: int, portal: float, standing: bool) -> void:
 	"""Mouth `node`'s arch -- the staged one with its lantern and glow, else the procedural gateway -- at the portal,
 	`standing` once its cutting is open there."""
 	var gateway := node.get_child(MOUTH_GATEWAY) as MeshInstance3D
@@ -699,14 +699,14 @@ func _stand_gateway(node: Node3D, bore: int, portal: float, standing: bool) -> v
 		return
 	if not staged:
 		gateway.mesh = MouthScript.gateway_mesh()
-		gateway.transform = MouthScript.gateway_at(bore, portal)
+		gateway.transform = MouthScript.gateway_at(bore_kind, portal)
 		return
 	gateway.mesh = _props.fitted(MouthScript.ARCH_KEY)
-	gateway.transform = MouthScript.arch_at(_props, bore, portal)
+	gateway.transform = MouthScript.arch_at(_props, bore_kind, portal)
 	lantern.mesh = _props.fitted(MouthScript.LANTERN_KEY)
-	lantern.transform = MouthScript.lantern_on_arch(_props, bore, portal)
+	lantern.transform = MouthScript.lantern_on_arch(_props, bore_kind, portal)
 	glow.mesh = MouthScript.glow_mesh()
-	glow.position = MouthScript.glow_at(_props, bore, portal)
+	glow.position = MouthScript.glow_at(_props, bore_kind, portal)
 
 
 func _cut_hole(m: int, open: bool) -> void:
@@ -856,9 +856,9 @@ func show_ghost(plan: PlanScript, cursor: Vector2, has_cursor: bool, snap: int, 
 	_show_plan_label(_label_below, plan, cursor, has_cursor, words, refused)
 
 
-static func _show_snap_ring(ring: MeshInstance3D, show: bool, cursor: Vector2) -> void:
+static func _show_snap_ring(ring: MeshInstance3D, shown: bool, cursor: Vector2) -> void:
 	"""The brass ring round a snap target (one view's), at the pointer."""
-	ring.visible = show
+	ring.visible = shown
 	ring.position = Vector3(cursor.x, MarksScript.LIFT_M, cursor.y)
 	MarksScript.set_alpha(ring, Palette.BRASS, 1.0)
 

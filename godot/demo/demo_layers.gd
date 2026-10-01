@@ -147,11 +147,11 @@ static func pick_ground(origin: Vector3, direction: Vector3, plane_y: float) -> 
 	return Vector2(origin.x + direction.x * t, origin.z + direction.z * t)
 
 
-static func floor_through(eye: Vector3, seen: Vector3, floor_y: float) -> Vector2:
+static func floor_through(eye: Vector3, seen: Vector3, floor_at_y: float) -> Vector2:
 	"""Where the line from `eye` through `seen` meets the floor, (x, z) -- what the cap shows at `seen`
 	(underground_cap.gdshader does the same sum). `seen` must lie below the eye."""
 	var drop: float = maxf(eye.y - seen.y, 1e-4)
-	var reach: float = (eye.y - floor_y) / drop
+	var reach: float = (eye.y - floor_at_y) / drop
 	return Vector2(eye.x + (seen.x - eye.x) * reach, eye.z + (seen.z - eye.z) * reach)
 
 

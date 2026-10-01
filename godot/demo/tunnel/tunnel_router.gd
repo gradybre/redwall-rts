@@ -491,7 +491,7 @@ func _emit(out: PackedVector2Array, legs: PackedInt32Array) -> void:
 				_emit_tunnel(_prev[node], node, out, legs)
 			VIA_CROSSING:
 				out.append(_node[node])
-				legs.append(crossing_code((_key[node] - Rules.MAX_MOUTHS) / 2, (_key[node] - Rules.MAX_MOUTHS) % 2 == 0))
+				@warning_ignore("integer_division") legs.append(crossing_code((_key[node] - Rules.MAX_MOUTHS) / 2, (_key[node] - Rules.MAX_MOUTHS) % 2 == 0))
 			_:
 				_emit_surface(_routes[_prev[node] * MAX_NODES + node], out, legs)
 

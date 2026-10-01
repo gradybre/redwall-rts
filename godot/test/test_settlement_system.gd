@@ -380,7 +380,7 @@ func _quiet_offset() -> int:
 
 func _expected_decay(rate_milli_per_hour: int, ticks: int) -> int:
 	"""GDD §5.2's released whole points over `ticks` at a constant rate: trunc(T*R/750000)."""
-	return ticks * rate_milli_per_hour / NEED_DENOMINATOR
+	@warning_ignore("integer_division") return ticks * rate_milli_per_hour / NEED_DENOMINATOR
 
 
 # --- composition and lifecycle ------------------------------------------------------------------
@@ -574,7 +574,7 @@ func test_a_tick_advances_a_job_in_the_work_state() -> void:
 	_populated()
 	var job_slot: int = _start_solo_work(0)
 	var factor: int = _settlement.work().work_factor_of(0, JobsScript.JOB_KIND_HAUL).value
-	var expected: int = BASE_MWU_PER_TICK * factor / WORK_FACTOR_DENOMINATOR
+	@warning_ignore("integer_division") var expected: int = BASE_MWU_PER_TICK * factor / WORK_FACTOR_DENOMINATOR
 	_settlement.run_tick(1)
 	var remaining: int = _settlement.jobs().remaining_mwu_of(job_slot).value
 	assert_equal(LARGE_JOB_MWU - remaining, expected, "the job advanced by one tick's production")
@@ -603,7 +603,7 @@ func test_productive_work_credits_xp_at_ten_per_completed_work_unit() -> void:
 	var accepted: int = LARGE_JOB_MWU - _settlement.jobs().remaining_mwu_of(job_slot).value
 	var after_xp: int = _settlement.residents().skill_xp_of(0, JobsScript.JOB_KIND_HAUL).value
 	assert_true(accepted > MILLI_WU_PER_WU, "forty ticks completed at least one work unit")
-	assert_equal(after_xp - before_xp, XP_PER_WU * (accepted / MILLI_WU_PER_WU),
+	@warning_ignore("integer_division") assert_equal(after_xp - before_xp, XP_PER_WU * (accepted / MILLI_WU_PER_WU),
 		"XP is exactly ten per completed work unit")
 
 
@@ -623,9 +623,9 @@ func test_a_party_advances_its_shared_row_once_at_the_combined_rate() -> void:
 	"""Decision 0017: a two-worker party advances the coordinator by the sum of both potentials."""
 	_populated()
 	var coordinator: int = _start_party(0, 1)
-	var first: int = BASE_MWU_PER_TICK * _settlement.work().work_factor_of(
+	@warning_ignore("integer_division") var first: int = BASE_MWU_PER_TICK * _settlement.work().work_factor_of(
 		0, JobsScript.JOB_KIND_HAUL).value / WORK_FACTOR_DENOMINATOR
-	var second: int = BASE_MWU_PER_TICK * _settlement.work().work_factor_of(
+	@warning_ignore("integer_division") var second: int = BASE_MWU_PER_TICK * _settlement.work().work_factor_of(
 		1, JobsScript.JOB_KIND_HAUL).value / WORK_FACTOR_DENOMINATOR
 	_settlement.run_tick(1)
 	var accepted: int = LARGE_JOB_MWU - _settlement.jobs().remaining_mwu_of(coordinator).value
@@ -1085,7 +1085,7 @@ func test_the_first_midnight_reaches_the_settlement_day_boundary() -> void:
 	_bind_game()
 	_game.day_advanced.connect(_on_day_advanced)
 	_game.set_speed(SimClockScript.SPEED_QUADRUPLE)
-	var frames: int = SimClockScript.FIRST_MIDNIGHT_TICK / 4 + 10
+	@warning_ignore("integer_division") var frames: int = SimClockScript.FIRST_MIDNIGHT_TICK / 4 + 10
 	for frame: int in frames:
 		_game.advance_host_time(TICK_FRAME_USEC)
 	assert_true(_game.get_completed_tick() >= SimClockScript.FIRST_MIDNIGHT_TICK,
@@ -2407,7 +2407,7 @@ func _designate_dormitory(hall: Vector2i) -> Vector2i:
 
 func _place_bed(room: Vector2i, index: int) -> Vector2i:
 	"""Place one bed on the `index`th tile of this suite's dormitory footprint."""
-	var tile: int = _tile(HALL_ORIGIN_X + 1 + index % DORMITORY_TILES_X,
+	@warning_ignore("integer_division") var tile: int = _tile(HALL_ORIGIN_X + 1 + index % DORMITORY_TILES_X,
 		HALL_ORIGIN_Z + 1 + index / DORMITORY_TILES_X)
 	var bed: BuildingsScript.OpResult = _settlement.buildings().place_furniture(
 		room, int(CatalogScript.FURNITURE_DEFINITION["bed"]), tile, 0)
@@ -3025,18 +3025,18 @@ func test_an_existing_claim_is_revalidated_at_commit_and_refused() -> void:
 	again rather than replay the earlier yes.
 	"""
 	var container: Vector2i = _settlement_store()
-	var seed: Vector2i = _settlement_seed_lot(container, SEED_SHELF_MILLI_HOURS - 1000)
-	assert_true(_settlement.inventory().reserve_lot(seed, SEED_RESERVE_MILLI).ok,
+	var seed_lot: Vector2i = _settlement_seed_lot(container, SEED_SHELF_MILLI_HOURS - 1000)
+	assert_true(_settlement.inventory().reserve_lot(seed_lot, SEED_RESERVE_MILLI).ok,
 		"the claim is taken while the seed is still usable")
-	assert_true(_settlement.inventory().advance_lot_age_hour(seed, 1000, 1000).ok,
+	assert_true(_settlement.inventory().advance_lot_age_hour(seed_lot, 1000, 1000).ok,
 		"then one game hour of §5.8 storage age takes it to the threshold exactly")
-	assert_equal(_settlement.inventory().lot_age_milli_hours(seed), SEED_SHELF_MILLI_HOURS,
+	assert_equal(_settlement.inventory().lot_age_milli_hours(seed_lot), SEED_SHELF_MILLI_HOURS,
 		"1440000 milli-hours, the exact expiry boundary")
 	var committed: WorldInventoryScript.OpResult = _settlement.inventory().consume_reserved(
-		seed, SEED_RESERVE_MILLI)
+		seed_lot, SEED_RESERVE_MILLI)
 	assert_false(committed.ok, "so the commit is refused")
 	assert_equal(committed.error, WorldInventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "by name")
-	assert_equal(_settlement.inventory().lot_quantity_milli(seed), SEED_LOT_QUANTITY_MILLI,
+	assert_equal(_settlement.inventory().lot_quantity_milli(seed_lot), SEED_LOT_QUANTITY_MILLI,
 		"and nothing was consumed")
 
 
@@ -3044,17 +3044,17 @@ func test_the_guard_still_lets_the_hourly_pass_convert_the_seed_it_refuses() -> 
 	"""The conversion is not a consumer. A guard that blocked its own cleanup would deadlock."""
 	var container: Vector2i = _settlement_store()
 	_settlement.stock_age().declare_storage_class(container, StockAgeScript.STORAGE_CELLAR, false)
-	var seed: Vector2i = _settlement_seed_lot(container, SEED_SHELF_MILLI_HOURS)
-	assert_equal(_settlement.inventory().reserve_lot(seed, SEED_RESERVE_MILLI).error,
+	var seed_lot: Vector2i = _settlement_seed_lot(container, SEED_SHELF_MILLI_HOURS)
+	assert_equal(_settlement.inventory().reserve_lot(seed_lot, SEED_RESERVE_MILLI).error,
 		WorldInventoryScript.REFUSE_SEED_PAST_SHELF_LIFE, "a sower is refused")
 	var hour: StockAgeScript.HourResult = _settlement.stock_age().run_hour(
 		2 * SimClockScript.TICKS_PER_DAY + 9 * SimClockScript.TICKS_PER_HOUR
 			- SimClockScript.CALENDAR_OFFSET_TICKS)
 	assert_true(hour.ok, "while the hourly pass still runs: %s" % hour.error)
 	assert_equal(hour.seed_lots_converted, 1, "converting the lot the guard refused")
-	assert_equal(_settlement.inventory().lot_item_id(seed),
+	assert_equal(_settlement.inventory().lot_item_id(seed_lot),
 		_settlement.item_definitions().compiled_id(&"compost"), "into compost")
-	assert_true(_settlement.inventory().reserve_lot(seed, SEED_RESERVE_MILLI).ok,
+	assert_true(_settlement.inventory().reserve_lot(seed_lot, SEED_RESERVE_MILLI).ok,
 		"which no seed rule refuses")
 
 

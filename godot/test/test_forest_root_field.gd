@@ -76,10 +76,10 @@ func test_a_root_rising_past_the_cap_is_footing_only_below_it() -> void:
 		faces.append(v)
 	var field := FieldScript.new()
 	field.bake(faces, 3.0, 0.3)
-	var low: float = field.centre_of(field.side / 2 + 9)
-	var high: float = field.centre_of(field.side / 2 + 14)
-	assert_true(absf(field.height_local(Vector2(low, field.centre_of(field.side / 2))) - (1.0 + (low - 1.0) * 1.2)) < 0.002, "the ramp under the cap at %.3f" % low)
-	assert_almost_equal(field.height_local(Vector2(high, field.centre_of(field.side / 2))), 0.2, "past the cap: the root below")
+	@warning_ignore("integer_division") var low: float = field.centre_of(field.side / 2 + 9)
+	@warning_ignore("integer_division") var high: float = field.centre_of(field.side / 2 + 14)
+	@warning_ignore("integer_division") assert_true(absf(field.height_local(Vector2(low, field.centre_of(field.side / 2))) - (1.0 + (low - 1.0) * 1.2)) < 0.002, "the ramp under the cap at %.3f" % low)
+	@warning_ignore("integer_division") assert_almost_equal(field.height_local(Vector2(high, field.centre_of(field.side / 2))), 0.2, "past the cap: the root below")
 
 
 func test_the_field_slopes_across_z_too_and_ends_at_its_edge() -> void:
@@ -92,9 +92,9 @@ func test_the_field_slopes_across_z_too_and_ends_at_its_edge() -> void:
 	_quad(faces, 2.0, -0.5, 3.0, 0.5, 0.3)
 	var field := FieldScript.new()
 	field.bake(faces, 3.0, 0.3)
-	var z0: float = field.centre_of(field.side / 2 + 10)
-	var z1: float = field.centre_of(field.side / 2 + 11)
-	var x: float = field.centre_of(field.side / 2)
+	@warning_ignore("integer_division") var z0: float = field.centre_of(field.side / 2 + 10)
+	@warning_ignore("integer_division") var z1: float = field.centre_of(field.side / 2 + 11)
+	@warning_ignore("integer_division") var x: float = field.centre_of(field.side / 2)
 	var mid: float = field.height_local(Vector2(x, (z0 + z1) * 0.5))
 	assert_true(absf(mid - ((z0 + z1) * 0.5 - 1.0) * 0.4) < 0.002, "half way between rows (%.4f)" % mid)
 	assert_almost_equal(field.height_local(Vector2(2.9, 0.0)), 0.3, "at the edge")
@@ -109,7 +109,7 @@ func test_a_sloping_root_is_read_where_it_is() -> void:
 		faces.append(v)
 	var field := FieldScript.new()
 	field.bake(faces, 3.0, 0.3)
-	var x: float = field.centre_of(field.side / 2 + 12)
+	@warning_ignore("integer_division") var x: float = field.centre_of(field.side / 2 + 12)
 	assert_true(absf(field.height_local(Vector2(x, 0.0)) - (x - 1.0) * 0.4) < 0.002, "on the ramp at %.3f" % x)
 
 

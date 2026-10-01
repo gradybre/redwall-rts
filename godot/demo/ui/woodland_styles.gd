@@ -111,9 +111,9 @@ static var _ring: ImageTexture = null
 static var _heading_font: Font = null
 
 
-static func has_recipe(piece: StringName) -> bool:
+static func has_recipe(piece_name: StringName) -> bool:
 	"""True when a piece name has a recipe here."""
-	return RECIPES.has(piece)
+	return RECIPES.has(piece_name)
 
 
 static func piece(name: StringName) -> Texture2D:

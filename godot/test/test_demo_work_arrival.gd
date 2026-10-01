@@ -34,7 +34,6 @@ const NORTH_OAK: int = 32
 
 var _nodes: Array[Object] = []
 var _services: ServicesScript = null
-var _read: IntMath.IntResult = IntMath.IntResult.new()
 
 
 func before_each() -> void:

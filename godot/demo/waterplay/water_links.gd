@@ -77,7 +77,6 @@ var conn_body: PackedInt32Array = PackedInt32Array()
 var _map: WaterMapScript = null
 var _obstacles: Array[Vector3] = []
 var _wade_m: float = 0.0
-var _read: IntMath.IntResult = IntMath.IntResult.new()
 
 
 func build(map: WaterMapScript, obstacles: Array[Vector3]) -> void:

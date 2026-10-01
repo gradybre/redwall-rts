@@ -784,7 +784,7 @@ class ChunkCursor:
 	func _values_into(out: Chunk) -> bool:
 		"""Emit the next run of the current column's values, advancing the field when it ends."""
 		var total: int = SaveSectionNavigationScript.wire_field_count(_record, _wire)
-		var per_chunk: int = CHUNK_BYTES / SaveSectionNavigationScript.wire_field_width(_wire)
+		@warning_ignore("integer_division") var per_chunk: int = CHUNK_BYTES / SaveSectionNavigationScript.wire_field_width(_wire)
 		var end: int = mini(_element + per_chunk, total)
 		var bytes: PackedByteArray = \
 			SaveSectionNavigationScript.wire_field_slice(_record, _wire, _element, end)

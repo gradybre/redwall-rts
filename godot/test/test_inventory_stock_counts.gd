@@ -165,7 +165,7 @@ func test_shape_and_busy_refusals_have_defined_precedence() -> void:
 		_target.set(field, prior)
 	for field: StringName in [&"_tx_open", &"_tx_poisoned", &"_attesting", &"_j_count"]:
 		var prior: Variant = _inv.get(field)
-		_inv.set(field, 1 if field == &"_j_count" else true)
+		_inv.set(field, (1 as Variant) if field == &"_j_count" else (true as Variant))
 		_assert_refusal("INV_STOCK_COUNTS_BUSY")
 		_inv.set(field, prior)
 

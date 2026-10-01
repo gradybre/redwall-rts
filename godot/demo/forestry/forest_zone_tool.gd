@@ -51,7 +51,7 @@ func press(at: Vector2) -> bool:
 	"""A left press on the ground at `at`: the rectangle starts there. False off the grid."""
 	if phase != PHASE_ARMED or not tile_xz_into(at, _read):
 		return false
-	start_tile = Vector2i(_read.value % ResourceNodes.MAP_TILES_X, _read.value / ResourceNodes.MAP_TILES_X)
+	@warning_ignore("integer_division") start_tile = Vector2i(_read.value % ResourceNodes.MAP_TILES_X, _read.value / ResourceNodes.MAP_TILES_X)
 	end_tile = start_tile
 	phase = PHASE_DRAGGING
 	return true
@@ -61,7 +61,7 @@ func move(at: Vector2) -> bool:
 	"""The pointer moved to `at` while dragging: the rectangle's far corner follows (whole tiles)."""
 	if phase != PHASE_DRAGGING or not tile_xz_into(at, _read):
 		return false
-	end_tile = Vector2i(_read.value % ResourceNodes.MAP_TILES_X, _read.value / ResourceNodes.MAP_TILES_X)
+	@warning_ignore("integer_division") end_tile = Vector2i(_read.value % ResourceNodes.MAP_TILES_X, _read.value / ResourceNodes.MAP_TILES_X)
 	return true
 
 

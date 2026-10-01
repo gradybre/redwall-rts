@@ -59,7 +59,7 @@ func _split_surface(mesh: ArrayMesh, s: int, xform: Transform3D, cut_y: float, l
 		index = PackedInt32Array(range(verts.size()))
 	var below := PackedInt32Array()
 	var above := PackedInt32Array()
-	for f: int in index.size() / 3:
+	@warning_ignore("integer_division") for f: int in index.size() / 3:
 		var low: float = minf((xform * verts[index[3 * f]]).y, minf((xform * verts[index[3 * f + 1]]).y, (xform * verts[index[3 * f + 2]]).y))
 		for corner: int in 3:
 			if low < cut_y:

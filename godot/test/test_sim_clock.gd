@@ -498,10 +498,10 @@ func test_advance_retains_no_objects_across_many_frames() -> void:
 	task 2.7 benchmark. What it does catch is the leak class: a scheduler that keeps a result,
 	a Calendar or a diagnostic object per frame instead of reusing its one scratch.
 	"""
-	var before: int = Performance.get_monitor(Performance.OBJECT_COUNT)
+	var before: int = int(Performance.get_monitor(Performance.OBJECT_COUNT))
 	for _index: int in 500:
 		_clock.advance(16666)
-	var after: int = Performance.get_monitor(Performance.OBJECT_COUNT)
+	var after: int = int(Performance.get_monitor(Performance.OBJECT_COUNT))
 	assert_equal(after - before, 0, "500 advance() frames retained no objects")
 
 

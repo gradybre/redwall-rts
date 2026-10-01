@@ -62,7 +62,7 @@ static func meal_words(key: int) -> String:
 
 static func meal_title(key: int) -> String:
 	"""A meal by its key with its day: "Breakfast, day 3"."""
-	return "%s, day %d" % [Rules.MEAL_TITLES[posmod(key, 2)], key / 2 + 1] if key >= 0 else "The next meal"
+	@warning_ignore("integer_division") return "%s, day %d" % [Rules.MEAL_TITLES[posmod(key, 2)], key / 2 + 1] if key >= 0 else "The next meal"
 
 
 static func clip_for(step: int, brain: RefCounted) -> StringName:
@@ -262,7 +262,7 @@ static func draw_ordered(amount: int, who: String) -> String:
 static func fed_line(state: int, hunger: int, today: int, need: int, last: String) -> String:
 	"""The resident panel's lines, short enough for its width: "Fed · 72% full · 1800/6000 NP today", then "Last
 	meal: breakfast, porridge"."""
-	var line: String = "%s · %d%% full · %d/%d NP today" % [Rules.FED_WORDS[state].capitalize(),
+	@warning_ignore("integer_division") var line: String = "%s · %d%% full · %d/%d NP today" % [Rules.FED_WORDS[state].capitalize(),
 		hunger * 100 / Rules.NEED_MAX, today, need]
 	return line + ("\nLast meal: " + last if not last.is_empty() else "")
 
@@ -274,7 +274,7 @@ static func monotony_line(dish: int, repeats: int, value: int, hours: int) -> St
 
 static func day_hour(hour_index: int) -> String:
 	"""A calendar hour as "day 3, 14:00"."""
-	return "day %d, %02d:00" % [hour_index / SimClock.HOURS_PER_DAY + 1, hour_index % SimClock.HOURS_PER_DAY]
+	@warning_ignore("integer_division") return "day %d, %02d:00" % [hour_index / SimClock.HOURS_PER_DAY + 1, hour_index % SimClock.HOURS_PER_DAY]
 
 
 static func days_value(milli_days: int) -> String:
@@ -283,7 +283,7 @@ static func days_value(milli_days: int) -> String:
 		return "0 days"
 	if milli_days < 100:
 		return "<0.1 days"
-	return "%d.%d days" % [milli_days / 1000, (milli_days % 1000) / 100]
+	@warning_ignore("integer_division") return "%d.%d days" % [milli_days / 1000, (milli_days % 1000) / 100]
 
 
 static func days_text(milli_days: int) -> String:
@@ -294,7 +294,7 @@ static func days_text(milli_days: int) -> String:
 static func cookable_line(dish: int) -> String:
 	"""The Recipes tab's mark: "Cookable (active): Wild oat porridge — the GDD's porridge: grain 2 + water 2 -> 2
 	portions of 1800 NP, 12 WU, keeps 24 h; the kitchen cooks it in turn"."""
-	return "Cookable (active): %s — cooked as the GDD's %s: %s %s + water %s → %d portions of %d NP, %d WU, keeps %d h. The kitchen cooks it in turn with %s." % [
+	@warning_ignore("integer_division") return "Cookable (active): %s — cooked as the GDD's %s: %s %s + water %s → %d portions of %d NP, %d WU, keeps %d h. The kitchen cooks it in turn with %s." % [
 		Rules.DISH_NAMES[dish], Rules.GDD_ROWS[dish], Rules.INPUT_WORDS[dish], units(Rules.INPUT_MILLI[dish]),
 		units(Rules.WATER_MILLI[dish]), Rules.PORTIONS_PER_BATCH[dish], Rules.NP_PER_PORTION[dish],
 		Rules.WORK_MWU[dish] / 1000, Rules.SHELF_HOURS[dish], Rules.DISH_NAMES[Rules.other(dish)].to_lower()]

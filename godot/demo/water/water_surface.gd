@@ -97,7 +97,7 @@ func _mesh(grid: WaterGridScript, map: WaterMapScript, body: int, material: Mate
 	flows.resize(count)
 	var y: float = -Rules.to_m(map.body_level_drop_u(body))
 	for k: int in count:
-		var at: Vector2 = grid.position_m(k % grid.xs.size(), k / grid.xs.size())
+		@warning_ignore("integer_division") var at: Vector2 = grid.position_m(k % grid.xs.size(), k / grid.xs.size())
 		vertices[k] = Vector3(at.x, y, at.y)
 		var margin: float = clampf(Rules.to_m(grid.margin_u[k]), -1.0, 1.0)
 		colours[k] = Color(clampf(Rules.to_m(grid.depth_u[k]) / 2.0, 0.0, 1.0), margin * 0.5 + 0.5, 0.0, 1.0)

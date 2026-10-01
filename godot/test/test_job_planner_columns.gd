@@ -82,10 +82,10 @@ func test_empty_copy_and_restore_have_exact_wire_and_payload() -> void:
 	assert_true(_record.equals(Schema.Record.new()), "exact empty record")
 	var encoded: Section.EncodeResult = Section.EncodeResult.new()
 	assert_true(Section.encode_section(_record, encoded), "encode")
-	var hash: HashingContext = HashingContext.new()
-	hash.start(HashingContext.HASH_SHA256)
-	hash.update(encoded.bytes)
-	assert_equal(hash.finish().hex_encode(),
+	var hasher: HashingContext = HashingContext.new()
+	hasher.start(HashingContext.HASH_SHA256)
+	hasher.update(encoded.bytes)
+	assert_equal(hasher.finish().hex_encode(),
 		"46760dad840a3e5480ae15857964dc342306b4bbe3dcf543ca318c2a69beae9d", "pre-extraction hash")
 	assert_equal(encoded.bytes.size(), 384203, "wire unchanged")
 	var payload: int = 0
@@ -343,11 +343,11 @@ func test_mixed_actual_owners_restore_counters_claims_and_diagnostic_reset() -> 
 	var diagnostics: PackedStringArray = _diagnostic_names()
 	assert_equal(diagnostics.size(), 21, "actual reset assignment census")
 	for name: String in diagnostics:
-		_planner.set(name, &"prior observation" if name == "_last_blocker" else 77)
+		_planner.set(name, (&"prior observation" as Variant) if name == "_last_blocker" else (77 as Variant))
 	assert_true(Schema.record_refusal(_record).is_ok(), "retained demand fixture valid")
 	assert_true(_planner.restore_job_index_columns(_record), "restore retained demands")
 	for name: String in diagnostics:
-		assert_equal(_planner.get(name), &"" if name == "_last_blocker" else 0, "diagnostic reset: " + name)
+		assert_equal(_planner.get(name), (&"" as Variant) if name == "_last_blocker" else (0 as Variant), "diagnostic reset: " + name)
 	for name: StringName in [&"_pending_count", &"_unmet_count", &"_requested_count",
 			&"_demand_enabled_count", &"_demand_pending_count", &"_demand_unmet_count",
 			&"_hive_pending_count", &"_hive_unmet_count"]:
@@ -432,7 +432,7 @@ func test_diagnostic_image_framing_order_and_distinct_diagnostics() -> void:
 	"""Decode the specified format independently of the owner's append helpers."""
 	var diagnostics: PackedStringArray = _diagnostic_names()
 	for index: int in diagnostics.size():
-		_planner.set(diagnostics[index], &"évidence" if diagnostics[index] == "_last_blocker" else 101 + index)
+		_planner.set(diagnostics[index], (&"évidence" as Variant) if diagnostics[index] == "_last_blocker" else ((101 + index) as Variant))
 	# Distinct values make same-width column/counter swaps observable, even in empty fixtures.
 	for index: int in Schema.FIELD_KEYS.size():
 		var name: StringName = Schema.FIELD_KEYS[index]

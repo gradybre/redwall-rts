@@ -68,26 +68,26 @@ static func store_shelf_transform() -> Transform3D:
 func _shelf(location: int) -> ShelfScript:
 	"""The shelf of storage location `location`, built the first time it is needed."""
 	while _shelves.size() <= location:
-		var shelf := ShelfScript.new()
-		shelf.name = "Shelf%d" % _shelves.size()
-		shelf.build(_goods.props)
-		shelf.visible = false
-		add_child(shelf)
-		_shelves.append(shelf)
+		var new_shelf := ShelfScript.new()
+		new_shelf.name = "Shelf%d" % _shelves.size()
+		new_shelf.build(_goods.props)
+		new_shelf.visible = false
+		add_child(new_shelf)
+		_shelves.append(new_shelf)
 	return _shelves[location]
 
 
 func refresh() -> void:
 	"""Stock the covered store's shelf. A cellar's location has none: its stock shows on its racks (see the header)."""
-	var shelf: ShelfScript = _shelf(0)
-	shelf.visible = true
-	shelf.show_stock(fill_permille(0), _stock_keys(0))
+	var store_shelf: ShelfScript = _shelf(0)
+	store_shelf.visible = true
+	store_shelf.show_stock(fill_permille(0), _stock_keys(0))
 
 
 func fill_permille(location: int) -> int:
 	"""How full a location is, per mille of its capacity."""
 	var capacity: int = _pantry.storage.capacity_milli_of(location)
-	return 0 if capacity <= 0 else _pantry.used_milli_of(location) * 1000 / capacity
+	@warning_ignore("integer_division") return 0 if capacity <= 0 else _pantry.used_milli_of(location) * 1000 / capacity
 
 
 func _stock_keys(location: int) -> Array[StringName]:

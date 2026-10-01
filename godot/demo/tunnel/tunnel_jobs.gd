@@ -201,12 +201,12 @@ func start(slot: int) -> bool:
 
 func done_ticks(slot: int) -> int:
 	"""F1000 ticks of the job done, capped at its total."""
-	return mini(total[slot], work_usec[slot] * Rules.TICKS_PER_SECOND / Rules.USEC_PER_SECOND)
+	@warning_ignore("integer_division") return mini(total[slot], work_usec[slot] * Rules.TICKS_PER_SECOND / Rules.USEC_PER_SECOND)
 
 
 func percent(slot: int) -> int:
 	"""Whole percent of the job done (floored)."""
-	return done_ticks(slot) * 100 / maxi(total[slot], 1)
+	@warning_ignore("integer_division") return done_ticks(slot) * 100 / maxi(total[slot], 1)
 
 
 func is_done(slot: int) -> bool:
@@ -219,14 +219,14 @@ func work(slot: int, usec: int) -> void:
 	if not has_job(slot) or usec <= 0 or paid[slot] == 0:
 		return
 	var credited := usec * rate_permille[slot] + work_rem[slot]
-	work_usec[slot] += credited / Rules.PERMILLE
+	@warning_ignore("integer_division") work_usec[slot] += credited / Rules.PERMILLE
 	work_rem[slot] = credited % Rules.PERMILLE
 
 
 func along_m(slot: int) -> float:
 	"""Where along the tunnel the work is now, in metres: through its span as the work goes."""
 	var span := to_u[slot] - from_u[slot]
-	var along := from_u[slot] + span * done_ticks(slot) / maxi(total[slot], 1)
+	@warning_ignore("integer_division") var along := from_u[slot] + span * done_ticks(slot) / maxi(total[slot], 1)
 	return Rules.to_m(along)
 
 

@@ -314,7 +314,7 @@ func test_a_link_through_deep_ground_is_cut_and_read_out_in_it() -> void:
 		ticks += GroundScript.dig_ticks(kind)
 	assert_true(differs > 0, "some cut in ground level 1 has not")
 	assert_equal(tally.slice(ReadoutScript.T_METRES, ReadoutScript.T_METRES + 4), metres, "the readout's ground is the dig's")
-	assert_equal(tally[ReadoutScript.T_TICKS], ticks * Rules.link_work_permille(Rules.LINK_STAIRS) / Rules.PERMILLE, "its hours")
+	@warning_ignore("integer_division") assert_equal(tally[ReadoutScript.T_TICKS], ticks * Rules.link_work_permille(Rules.LINK_STAIRS) / Rules.PERMILLE, "its hours")
 
 
 static func _where_the_depths_differ(ground: GroundScript) -> int:
@@ -324,7 +324,7 @@ static func _where_the_depths_differ(ground: GroundScript) -> int:
 	var q := Rules.link_quanta(run)
 	for x in range(-4096, 4097, 256):
 		for k in q:
-			var along := (2 * k + 1) * run / (2 * q)
+			@warning_ignore("integer_division") var along := (2 * k + 1) * run / (2 * q)
 			var z := -8192 + along
 			if 2 * Rules.link_drop_u(Rules.LINK_STAIRS, along, run) >= Rules.LEVEL_SPACING_U \
 					and ground.type_at(x, z) != ground.type_at_level(x, z, L2):
@@ -427,7 +427,7 @@ func test_a_level_2_room_is_refused_by_its_own_level_s_edges() -> void:
 	assert_equal(rooms.refusal(graph, site, HOME, Vector2i(-20480 + 512, 2048), 0, L2), RoomsScript.REFUSE_OUT_OF_BOUNDS, "past the edge")
 	site.water = func(_a: Vector2i, _b: Vector2i, _reach: int) -> bool: return true
 	assert_equal(rooms.refusal(graph, site, HOME, Vector2i(-12288, 2048), 0, L2), RoomsScript.REFUSE_UNDER_WATER, "under the water")
-	site.water = func(_a: Vector2i, _b: Vector2i, reach: int) -> bool: return reach != RoomsScript.HOOD_HALF_U + Rules.BORE_WIDTH_U / 2
+	@warning_ignore("integer_division") site.water = func(_a: Vector2i, _b: Vector2i, reach: int) -> bool: return reach != RoomsScript.HOOD_HALF_U + Rules.BORE_WIDTH_U / 2
 	assert_equal(rooms.refusal(graph, site, HOME, Vector2i(-12288, 2048), 0, L1), RoomsScript.REFUSE_UNDER_WATER,
 		"on level 1 too, its void (split out of the door ramp's water check for level 2) under the water")
 	site.water = Callable()
@@ -580,7 +580,7 @@ func test_a_level_2_room_s_door_is_cut_open_once_it_breaks_ground() -> void:
 	assert_false(graph.rooms.is_done(graph, s[0]), "begun, not done")
 	assert_true(bores.room_cut(door) != Vector4.ZERO, "cut open once begun")
 	var branch := LevelsTest.plan_of(L2, Rules.LINK_NONE)
-	var mid := (EAST_FOOT + graph.node_at(door)) / 2
+	@warning_ignore("integer_division") var mid := (EAST_FOOT + graph.node_at(door)) / 2
 	assert_equal(LevelsTest.lay(graph, branch, [mid, mid + Vector2i(0, 4096)]), Rules.REFUSE_NONE, "a branch off the passage")
 	assert_true(LevelsTest.store(graph, branch) >= 0, "dug")
 	bores.refresh_hubs()

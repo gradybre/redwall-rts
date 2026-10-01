@@ -2729,7 +2729,7 @@ func test_run_tick_creates_the_hive_service_through_the_drain() -> void:
 
 func test_the_idle_sweep_reaches_a_hive_within_one_stagger_period() -> void:
 	"""ARCH-SYS-009's idle cadence over the Hive class: a 1/30 slice per tick."""
-	var hive: int = _hive()
+	var _sweep_hive: int = _hive()
 	var created: int = 0
 	var first: int = _day_start_tick(2)
 	for tick: int in range(first, first + JobPlannerScript.STAGGER_MODULUS):
@@ -2990,7 +2990,7 @@ func test_the_hive_sweep_reaches_every_slot_of_its_stagger_exactly_once_per_peri
 	"""
 	var hives: int = JobPlannerScript.STAGGER_MODULUS + 6
 	for index: int in hives:
-		assert_equal(_hive(20 + index % 50, 40 + index / 50, 1), index, "hive %d lands in order" % index)
+		@warning_ignore("integer_division") assert_equal(_hive(20 + index % 50, 40 + index / 50, 1), index, "hive %d lands in order" % index)
 	var created: int = 0
 	var first: int = _day_start_tick(2)
 	for tick: int in range(first, first + JobPlannerScript.STAGGER_MODULUS):

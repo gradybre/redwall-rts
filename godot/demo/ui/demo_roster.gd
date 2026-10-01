@@ -192,7 +192,7 @@ static func location_text(brain: BrainScript) -> String:
 static func level_at_depth_u(depth_u: int) -> int:
 	"""The tunnel level a floor this deep (u) belongs to: level 1 down to halfway to level 2's floor, then level
 	2. A ramp between the surface and level 1 is level 1 (it is underground, and leads there)."""
-	var between: int = (Rules.level_floor_depth_u(Rules.LEVEL_1) + Rules.level_floor_depth_u(Rules.LEVEL_2)) / 2
+	@warning_ignore("integer_division") var between: int = (Rules.level_floor_depth_u(Rules.LEVEL_1) + Rules.level_floor_depth_u(Rules.LEVEL_2)) / 2
 	return Rules.LEVEL_1 if depth_u <= between else Rules.LEVEL_2
 
 

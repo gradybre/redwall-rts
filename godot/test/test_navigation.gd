@@ -175,7 +175,7 @@ func test_bounded_capacities_match_arch_path_005() -> void:
 	assert_equal(NavigationScript.ROUTE_DESCRIPTOR_CAPACITY, 256, "256 cache descriptors")
 	assert_equal(NavigationScript.ROUTE_CELL_CAPACITY, 1048576, "1048576 route cells")
 	assert_equal(NavigationScript.PATH_REQUEST_CAPACITY, 8192, "8192 path request records")
-	assert_equal(
+	@warning_ignore("integer_division") assert_equal(
 		NavigationScript.ROUTE_CELL_CAPACITY / SpatialWorldScript.CELL_COUNT, 4,
 		"the arena holds exactly four worst-case 262144-cell paths, as ARCH-PATH-005 states")
 
@@ -265,7 +265,7 @@ func test_every_route_step_is_adjacent_and_passable() -> void:
 		if index == 0:
 			continue
 		var dx: int = absi(cells[index] % 512 - cells[index - 1] % 512)
-		var dz: int = absi(cells[index] / 512 - cells[index - 1] / 512)
+		@warning_ignore("integer_division") var dz: int = absi(cells[index] / 512 - cells[index - 1] / 512)
 		if dx > 1 or dz > 1 or dx + dz == 0:
 			illegal += 1
 	assert_equal(illegal, 0, "every cell is passable and every step is one legal lattice move")
@@ -839,7 +839,7 @@ func _fill_every_descriptor() -> Array[int]:
 	var made: int = 0
 	while made < NavigationScript.ROUTE_DESCRIPTOR_CAPACITY:
 		var column: int = made % LAND_MACRO_COLUMNS
-		var row: int = FIRST_LAND_MACRO_ROW + made / LAND_MACRO_COLUMNS
+		@warning_ignore("integer_division") var row: int = FIRST_LAND_MACRO_ROW + made / LAND_MACRO_COLUMNS
 		var corner: int = _cell(column * 16, row * 16)
 		var request: int = _submit(corner, corner + 1, 1)
 		_run(request, 4)
@@ -906,7 +906,7 @@ func _p95_nearest_rank(values: PackedInt32Array) -> int:
 	"""ARCH-PATH-007's nearest-rank p95: the `ceil_div(95*N,100)`-th smallest value, 1-based."""
 	var sorted_values: PackedInt32Array = values.duplicate()
 	sorted_values.sort()
-	var rank: int = (95 * sorted_values.size() + 99) / 100
+	@warning_ignore("integer_division") var rank: int = (95 * sorted_values.size() + 99) / 100
 	return sorted_values[rank - 1]
 
 
@@ -920,7 +920,7 @@ func _short_route_batch() -> Array[int]:
 	var requests: Array[int] = []
 	for index: int in READINESS_BATCH:
 		var column: int = index % LAND_MACRO_COLUMNS
-		var macro_row: int = FIRST_LAND_MACRO_ROW + index / LAND_MACRO_COLUMNS
+		@warning_ignore("integer_division") var macro_row: int = FIRST_LAND_MACRO_ROW + index / LAND_MACRO_COLUMNS
 		var start_x: int = column * SpatialWorldScript.MACRO_CELLS + 5
 		var start_z: int = macro_row * SpatialWorldScript.MACRO_CELLS + 5
 		requests.append(
@@ -1021,7 +1021,7 @@ func test_the_measured_price_of_losing_cross_start_reuse() -> void:
 	var goal: int = _cell(ANCHOR_X + 60, ANCHOR_Z + 40)
 	var requests: Array[int] = []
 	for index: int in 64:
-		requests.append(_submit(_cell(ANCHOR_X + index % 8, ANCHOR_Z + index / 8), goal, 1))
+		@warning_ignore("integer_division") requests.append(_submit(_cell(ANCHOR_X + index % 8, ANCHOR_Z + index / 8), goal, 1))
 	var settled: PackedInt32Array = _ticks_to_ready(requests, 256)
 	var p95_ticks: int = _p95_nearest_rank(settled)
 	print("[PATH-R02 reuse loss] 64 starts in one macro, p95 %d ticks, %d expansions"
@@ -1034,7 +1034,7 @@ func test_the_measured_price_of_losing_cross_start_reuse() -> void:
 	assert_equal(
 		_navigation.descriptor_in_use_count(), 64, "one descriptor each, against 127 before")
 	for index: int in [0, 17, 63]:
-		var start: int = _cell(ANCHOR_X + (index as int) % 8, ANCHOR_Z + (index as int) / 8)
+		@warning_ignore("integer_division") var start: int = _cell(ANCHOR_X + (index as int) % 8, ANCHOR_Z + (index as int) / 8)
 		assert_true(_navigation.reference_cost_into(start, goal, 1, _result), "the reference runs")
 		assert_equal(
 			_cost(requests[index as int]), _result.value,

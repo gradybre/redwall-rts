@@ -112,7 +112,7 @@ func configure(control: Node3D) -> void:
 		node.material_override = _materials[0]
 	for node: MeshInstance3D in [_passage, _passage_below]:
 		node.material_override = _materials[2]
-	for end in 2:
+	for _end in 2:
 		_rings.append(_ring(Layers.SURFACE_MARKS, 0.0))
 		_rings.append(_ring(Layers.UNDERGROUND_MARKS, Layers.FLOOR_Y_M))
 	_label = _words_label(Layers.SURFACE_MARKS, 0.6)
@@ -157,23 +157,23 @@ func _ring(layer: int, lift: float) -> MeshInstance3D:
 
 func _words_label(layer: int, lift: float) -> Label3D:
 	"""The ghost's words over its middle, wrapped, drawn on top, hidden."""
-	var label := Label3D.new()
-	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.no_depth_test = true
-	label.fixed_size = true
-	label.pixel_size = LABEL_PIXEL
-	label.font_size = LABEL_PX
-	label.outline_size = 10
-	label.outline_modulate = Palette.DEEP_SHADE
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.width = LABEL_WRAP_PX
-	label.offset = LABEL_OFFSET_PX
-	label.layers = layer
-	label.position.y = lift
-	label.visible = false
-	add_child(label)
-	return label
+	var tag := Label3D.new()
+	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	tag.no_depth_test = true
+	tag.fixed_size = true
+	tag.pixel_size = LABEL_PIXEL
+	tag.font_size = LABEL_PX
+	tag.outline_size = 10
+	tag.outline_modulate = Palette.DEEP_SHADE
+	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tag.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tag.width = LABEL_WRAP_PX
+	tag.offset = LABEL_OFFSET_PX
+	tag.layers = layer
+	tag.position.y = lift
+	tag.visible = false
+	add_child(tag)
+	return tag
 
 
 func register(prewarm: PrewarmScript) -> void:
@@ -188,12 +188,12 @@ func register(prewarm: PrewarmScript) -> void:
 
 # --- the tool ---------------------------------------------------------------------------------
 
-func begin(kind: int, site: RoomsScript.Site) -> void:
-	"""Open the tool for rooms of template `kind`, over `site` (what a room must keep clear of)."""
+func begin(kind: int, clear_of: RoomsScript.Site) -> void:
+	"""Open the tool for rooms of template `kind`, over `clear_of` (what a room must keep clear of)."""
 	active = true
 	plan.kind = kind
 	set_level(_control.laying_level())
-	_site = site
+	_site = clear_of
 	_site_key = _control.site_key()
 	_site_serial += 1
 	_checked = Vector4i(0, 0, 0, -1)
@@ -334,11 +334,11 @@ func _draw_ghost() -> void:
 		node.material_override = material
 		node.visible = true
 	_draw_passage()
-	for label: Label3D in [_label, _label_below]:
-		label.visible = true
-		label.text = _words
-		label.modulate = Palette.CLAY if refused else Palette.CREAM
-		label.position = Vector3(centre.x, label.position.y, centre.y)
+	for tag: Label3D in [_label, _label_below]:
+		tag.visible = true
+		tag.text = _words
+		tag.modulate = Palette.CLAY if refused else Palette.CREAM
+		tag.position = Vector3(centre.x, tag.position.y, centre.y)
 
 
 func _draw_passage() -> void:
@@ -438,9 +438,9 @@ func _lay_passage(r: int, digger: int) -> int:
 	return -1
 
 
-func _refuse(words: String) -> bool:
+func _refuse(reason_words: String) -> bool:
 	"""Say why a room may not be laid, and drop a clay marker where it stands."""
-	_control.say(REFUSED % words)
+	_control.say(REFUSED % reason_words)
 	_control.mark_at(Vector2(Rules.to_m(plan.centre_u.x), Rules.to_m(plan.centre_u.y)), false)
 	return false
 

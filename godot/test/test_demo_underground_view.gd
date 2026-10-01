@@ -269,7 +269,7 @@ func test_every_drawn_node_is_on_exactly_one_view_and_the_surface_stays_up() -> 
 	var v := _village()
 	var slot := _dig(v)
 	for node: VisualInstance3D in _drawn(v):
-		assert_true(Layers.is_one_view(node.layers), "%s is in one view (layers %d)" % [node.get_path_to(node.owner) if node.owner else node.name, node.layers])
+		assert_true(Layers.is_one_view(node.layers), "%s is in one view (layers %d)" % [(node.get_path_to(node.owner) as Variant) if node.owner else (node.name as Variant), node.layers])
 		if node is Label3D:
 			assert_true(node.layers == Layers.SURFACE_MARKS or node.layers == Layers.UNDERGROUND_MARKS, "%s is a mark" % node.name)
 	for root: Node in [v["world"], v["water"], v["woods"]]:
@@ -594,7 +594,7 @@ func test_a_tunnel_being_dug_opens_the_cap_up_to_its_face_only() -> void:
 	network.advance(ref[0], ref[1], 1000000000)
 	var bore := network.next_in_piece(ref[0])
 	assert_true(network.start_dig(bore, network.generation[bore], 0), "its bore taken up")
-	var half_usec := network.total_ticks(bore) / 2 * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND
+	@warning_ignore("integer_division") var half_usec := network.total_ticks(bore) / 2 * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND
 	network.advance(bore, network.generation[bore], half_usec)
 	tool.overlay.refresh()
 	var face: float = tool.overlay.dug_m(bore)

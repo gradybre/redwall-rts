@@ -485,7 +485,7 @@ func test_ripening_dates_the_tile_and_exposes_the_stated_job_priority() -> void:
 	"""REQ-SET-073 also creates a priority-2 harvest job. The transition and the priority are
 	exposed; the job is ARCH-SYS-006's, and this store must not create one."""
 	assert_equal(_store.tile_ripe_tick_of(TILE).value, -1, "an unworked tile has no ripe tick")
-	var slot: int = _ripe(GRAIN)
+	var _slot: int = _ripe(GRAIN)
 	assert_equal(_store.tile_ripe_tick_of(TILE).value, _ripe_tick_of(GRAIN),
 		"the ripening tick is dated onto the tile")
 	assert_equal(_store.harvest_job_priority(), 2, "REQ-SET-073's stated priority")

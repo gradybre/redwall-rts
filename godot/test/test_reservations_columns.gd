@@ -356,15 +356,15 @@ func test_adapter_reduced_context_and_cross_row_asymmetry() -> void:
 	assert_equal(_pool_image(),before,"owner refusal leaves state")
 
 func test_generated_owner_admission_implies_codec_admission() -> void:
-	for seed: int in 12:
+	for seed_value: int in 12:
 		_columns = Reservations.ReservationColumns.new(8,8,16)
 		for row: int in 8:
-			if (row+seed) % 3 == 0:
+			if (row+seed_value) % 3 == 0:
 				continue
 			_columns.occupied[row] = 1
-			_columns.r_job_slot[row] = (row+seed) % 8
+			_columns.r_job_slot[row] = (row+seed_value) % 8
 			_columns.r_job_generation[row] = 1
-			_columns.r_lot_slot[row] = (row*3+seed) % 16
+			_columns.r_lot_slot[row] = (row*3+seed_value) % 16
 			_columns.r_lot_generation[row] = 2
 			_columns.r_purpose[row] = -2147483648+row
 			_columns.r_quantity_milli[row] = row+1
@@ -417,10 +417,10 @@ func test_full_capacity_reverse_keys_and_literal_wire_hashes() -> void:
 			raw.append_array(prefix.to_bytes())
 			raw.append_array(Codec.column_slice(block,ordinal,0,rows))
 		assert_equal(raw.size(),104+37*rows,"literal size")
-		var hash: HashingContext = HashingContext.new()
-		hash.start(HashingContext.HASH_SHA256)
-		hash.update(raw)
-		assert_equal(hash.finish().hex_encode(),hashes[variant],"unchanged preimplementation block hash")
+		var hasher: HashingContext = HashingContext.new()
+		hasher.start(HashingContext.HASH_SHA256)
+		hasher.update(raw)
+		assert_equal(hasher.finish().hex_encode(),hashes[variant],"unchanged preimplementation block hash")
 
 func test_corrupt_live_payload_refuses_before_export() -> void:
 	var codes: Array[StringName] = [&"COLUMN_RESERVATION_OCCUPANCY",&"COLUMN_RESERVATION_BLANK",&"COLUMN_RESERVATION_REF",&"COLUMN_RESERVATION_QUANTITY",&"COLUMN_RESERVATION_EXPIRY",&"COLUMN_RESERVATION_JOB_GENERATION",&"COLUMN_RESERVATION_DUPLICATE"]

@@ -52,7 +52,7 @@ static func fix_for(code: String) -> String:
 
 static func trips(milli: int) -> int:
 	"""Carrying trips `milli` of logs takes, CARRY_LOAD_MILLI a trip (rounded up)."""
-	return (milli + Rules.CARRY_LOAD_MILLI - 1) / Rules.CARRY_LOAD_MILLI
+	@warning_ignore("integer_division") return (milli + Rules.CARRY_LOAD_MILLI - 1) / Rules.CARRY_LOAD_MILLI
 
 
 static func fill(card: CardScript, kind: int, amount_milli: int, wood_milli: int, compost_milli: int) -> void:

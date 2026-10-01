@@ -82,7 +82,7 @@ func refusal_words(who: int, why: StringName, at: Vector2 = Vector2.ZERO) -> Str
 		Rules.REFUSE_CANNOT_DIVE:
 			return "%s doesn't dive" % name
 		Rules.REFUSE_TIRED:
-			return "%s is too tired to swim (stamina %d%%, needs %d%%)" % [name, _state.rest_percent(who), Rules.REST_ENTRY_MIN / 100]
+			@warning_ignore("integer_division") return "%s is too tired to swim (stamina %d%%, needs %d%%)" % [name, _state.rest_percent(who), Rules.REST_ENTRY_MIN / 100]
 		Rules.REFUSE_NO_CONSENT:
 			return "%s has swim shortcuts off" % name
 		Rules.REFUSE_TOO_SHALLOW:
@@ -101,7 +101,7 @@ func reason_words(who: int, why: StringName) -> String:
 		Rules.REFUSE_NO_CONSENT:
 			return "swim shortcuts are off"
 		Rules.REFUSE_TIRED:
-			return "too tired (stamina %d%%, needs %d%%)" % [_state.rest_percent(who), Rules.REST_ENTRY_MIN / 100]
+			@warning_ignore("integer_division") return "too tired (stamina %d%%, needs %d%%)" % [_state.rest_percent(who), Rules.REST_ENTRY_MIN / 100]
 		Rules.REFUSE_LOADED:
 			return "carrying a load"
 		Rules.REFUSE_FLOW:
@@ -135,7 +135,7 @@ func cold_line(cold: bool) -> String:
 func degrees() -> String:
 	"""The day's temperature (what the water follows), e.g. "6.5 °C"."""
 	var tenths: int = _services.weather.day_temperature_tenths()
-	return "%s%d.%d °C" % ["-" if tenths < 0 else "", absi(tenths) / 10, absi(tenths) % 10]
+	@warning_ignore("integer_division") return "%s%d.%d °C" % ["-" if tenths < 0 else "", absi(tenths) / 10, absi(tenths) % 10]
 
 
 static func cost_words(survey: BridgesScript.Survey) -> String:
@@ -156,10 +156,10 @@ static func short_line(survey: BridgesScript.Survey, stores: StoresScript) -> St
 		cost_words(survey), Rules.units_text(stores.plank_milli_u), Rules.units_text(stores.wood_milli_u)]
 
 
-static func site_answer(plank: BridgesScript.Survey, log: BridgesScript.Survey) -> String:
+static func site_answer(plank: BridgesScript.Survey, log_survey: BridgesScript.Survey) -> String:
 	"""The answer when a span of two banks is chosen: can it take a bridge."""
-	if plank.ok or log.ok:
-		return "Span chosen: %.1f m of water — build it from the Water panel" % WaterRules.to_m((plank if plank.ok else log).span_u)
+	if plank.ok or log_survey.ok:
+		return "Span chosen: %.1f m of water — build it from the Water panel" % WaterRules.to_m((plank if plank.ok else log_survey).span_u)
 	return "Can't bridge there: %s" % plank.reason
 
 
@@ -190,7 +190,7 @@ func incident_words(who: int) -> String:
 	if task == null:
 		return "%s — in difficulty" % name_of(who)
 	var where: String = "being brought ashore" if task.towed else ("underwater" if task.down_m > 0.0 else "at the surface")
-	var victim: String = "%s, %s, breath %d%%" % [name_of(who), where, _state.air[who] * 100 / Rules.AIR_FULL]
+	@warning_ignore("integer_division") var victim: String = "%s, %s, breath %d%%" % [name_of(who), where, _state.air[who] * 100 / Rules.AIR_FULL]
 	if not task.engaged:
 		var left_s: int = maxi(ceili(RescueScript.WASH_ASHORE_S - task.waited_s), 0)
 		return "%s — no rescuer free yet (the water brings it ashore in %d s)" % [victim, left_s]
@@ -213,7 +213,7 @@ func swimmers_text() -> String:
 	"""One line per resident: what it can do, what the water is doing to it, breath and stamina."""
 	var lines := PackedStringArray()
 	for who: int in _state.count:
-		lines.append("%s (%s): %s · breath %d%% · stamina %d%%" % [name_of(who), ability_word(who), mode_words(who),
+		@warning_ignore("integer_division") lines.append("%s (%s): %s · breath %d%% · stamina %d%%" % [name_of(who), ability_word(who), mode_words(who),
 			_state.air[who] * 100 / Rules.AIR_FULL, _state.rest_percent(who)])
 	return "\n".join(lines)
 
@@ -257,16 +257,16 @@ func site_title(custom: bool, candidate: int) -> String:
 		"the neck, the stream's narrowest" if candidate == 0 else "upstream of the neck"]
 
 
-static func site_text(plank: BridgesScript.Survey, log: BridgesScript.Survey, trunk_ready: bool) -> String:
+static func site_text(plank: BridgesScript.Survey, log_survey: BridgesScript.Survey, trunk_ready: bool) -> String:
 	"""The chosen site: span, deck and piers, and each kind's cost or reason."""
-	var shown: BridgesScript.Survey = plank if plank.span_u > 0 else log
+	var shown: BridgesScript.Survey = plank if plank.span_u > 0 else log_survey
 	var lines := PackedStringArray()
 	if shown.span_u > 0:
 		lines.append("%.1f m of water · %.1f m of deck" % [WaterRules.to_m(shown.span_u), WaterRules.to_m(shown.deck_u)])
 	var piers: String = ", no piers" if plank.piers == 0 else ""
 	lines.append(PLANK_LINE + (cost_words(plank) + piers if plank.ok else "can't — " + plank.reason))
 	var source: String = " (a felled trunk lies ready)" if trunk_ready else " (from the log stack)"
-	lines.append(LOG_LINE + (cost_words(log) + source if log.ok else "can't — " + log.reason))
+	lines.append(LOG_LINE + (cost_words(log_survey) + source if log_survey.ok else "can't — " + log_survey.reason))
 	return "\n".join(lines)
 
 
@@ -305,7 +305,7 @@ func skill_line(who: int, alone: bool) -> String:
 		return "%s\n%s\n%s" % [_crew.line_of(who), first_up(Rules.swim_words(_species(who))), first_up(_state.meter_text(who))]
 	var short: String = _crew.short_of(who)
 	if _brain(who).in_water or _state.air[who] < Rules.AIR_FULL:
-		short += " · breath %d%%" % (_state.air[who] * 100 / Rules.AIR_FULL)
+		@warning_ignore("integer_division") short += " · breath %d%%" % (_state.air[who] * 100 / Rules.AIR_FULL)
 	return short
 
 

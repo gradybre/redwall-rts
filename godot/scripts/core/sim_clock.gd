@@ -293,14 +293,14 @@ class Calendar:
 		"""
 		tick = p_tick
 		var time: int = p_tick + CALENDAR_OFFSET_TICKS
-		var day_zero: int = time / TICKS_PER_DAY
+		@warning_ignore("integer_division") var day_zero: int = time / TICKS_PER_DAY
 		tick_of_day = time % TICKS_PER_DAY
 		absolute_day = day_zero + 1
-		year = day_zero / DAYS_PER_YEAR + 1
-		season = (day_zero % DAYS_PER_YEAR) / DAYS_PER_SEASON
+		@warning_ignore("integer_division") year = day_zero / DAYS_PER_YEAR + 1
+		@warning_ignore("integer_division") season = (day_zero % DAYS_PER_YEAR) / DAYS_PER_SEASON
 		season_day = day_zero % DAYS_PER_SEASON + 1
-		hour = tick_of_day / TICKS_PER_HOUR
-		minute = (tick_of_day % TICKS_PER_HOUR) * MINUTES_PER_HOUR / TICKS_PER_HOUR
+		@warning_ignore("integer_division") hour = tick_of_day / TICKS_PER_HOUR
+		@warning_ignore("integer_division") minute = (tick_of_day % TICKS_PER_HOUR) * MINUTES_PER_HOUR / TICKS_PER_HOUR
 
 	func season_name() -> String:
 		"""Display name of this instant's season."""
@@ -578,7 +578,7 @@ func acknowledge_without_catchup() -> int:
 	"""
 	if _command_barred():
 		return 0
-	var discarded: int = _debt / TICK_COST
+	@warning_ignore("integer_division") var discarded: int = _debt / TICK_COST
 	_debt = 0
 	_acknowledged_catchup_resets += 1
 	_acknowledged_ticks_discarded += discarded
@@ -680,10 +680,10 @@ func _is_overloaded(speed: int) -> bool:
 # independent codec review"), so nothing in this file assumes one, and nothing here may be cited
 # as having settled one.
 
-func restore_runtime(completed_tick: int, debt: int, requested_speed: int, pause_mask: int,
-		fallback_count: int, diagnostic_pause_count: int, acknowledged_catchup_resets: int,
-		acknowledged_ticks_discarded: int, subtick_debt_discards: int,
-		day_boundaries_crossed: int) -> bool:
+func restore_runtime(p_completed_tick: int, p_debt: int, p_requested_speed: int, p_pause_mask: int,
+		p_fallback_count: int, p_diagnostic_pause_count: int, p_acknowledged_catchup_resets: int,
+		p_acknowledged_ticks_discarded: int, p_subtick_debt_discards: int,
+		p_day_boundaries_crossed: int) -> bool:
 	"""Install a saved clock runtime verbatim. False, with NOTHING changed, if any argument fails.
 
 	EVERY argument is validated before the FIRST assignment (decision 0059, allocate before
@@ -701,85 +701,85 @@ func restore_runtime(completed_tick: int, debt: int, requested_speed: int, pause
 	clock refuses while a barrier is up; this one writes through it, because it is the write the
 	barrier was raised for.
 	"""
-	if not restore_refusal(completed_tick, debt, requested_speed, pause_mask, fallback_count,
-			diagnostic_pause_count, acknowledged_catchup_resets, acknowledged_ticks_discarded,
-			subtick_debt_discards, day_boundaries_crossed).is_ok():
+	if not restore_refusal(p_completed_tick, p_debt, p_requested_speed, p_pause_mask, p_fallback_count,
+			p_diagnostic_pause_count, p_acknowledged_catchup_resets, p_acknowledged_ticks_discarded,
+			p_subtick_debt_discards, p_day_boundaries_crossed).is_ok():
 		return false
-	_completed_tick = completed_tick
-	_debt = debt
-	_requested_speed = requested_speed
-	_pause_mask = pause_mask
-	_assign_restored_counters(fallback_count, diagnostic_pause_count, acknowledged_catchup_resets,
-		acknowledged_ticks_discarded, subtick_debt_discards, day_boundaries_crossed)
+	_completed_tick = p_completed_tick
+	_debt = p_debt
+	_requested_speed = p_requested_speed
+	_pause_mask = p_pause_mask
+	_assign_restored_counters(p_fallback_count, p_diagnostic_pause_count, p_acknowledged_catchup_resets,
+		p_acknowledged_ticks_discarded, p_subtick_debt_discards, p_day_boundaries_crossed)
 	_last_diagnostic = ""
 	_last_error = ""
 	return true
 
 
-func _assign_restored_counters(fallback_count: int, diagnostic_pause_count: int,
-		acknowledged_catchup_resets: int, acknowledged_ticks_discarded: int,
-		subtick_debt_discards: int, day_boundaries_crossed: int) -> void:
+func _assign_restored_counters(p_fallback_count: int, p_diagnostic_pause_count: int,
+		p_acknowledged_catchup_resets: int, p_acknowledged_ticks_discarded: int,
+		p_subtick_debt_discards: int, p_day_boundaries_crossed: int) -> void:
 	"""Assign G3's six recorded counters verbatim. Only reached after the whole record validates."""
-	_fallback_count = fallback_count
-	_diagnostic_pause_count = diagnostic_pause_count
-	_acknowledged_catchup_resets = acknowledged_catchup_resets
-	_acknowledged_ticks_discarded = acknowledged_ticks_discarded
-	_subtick_debt_discards = subtick_debt_discards
-	_day_boundaries_crossed = day_boundaries_crossed
+	_fallback_count = p_fallback_count
+	_diagnostic_pause_count = p_diagnostic_pause_count
+	_acknowledged_catchup_resets = p_acknowledged_catchup_resets
+	_acknowledged_ticks_discarded = p_acknowledged_ticks_discarded
+	_subtick_debt_discards = p_subtick_debt_discards
+	_day_boundaries_crossed = p_day_boundaries_crossed
 
 
-static func restore_refusal(completed_tick: int, debt: int, requested_speed: int, pause_mask: int,
-		fallback_count: int, diagnostic_pause_count: int, acknowledged_catchup_resets: int,
-		acknowledged_ticks_discarded: int, subtick_debt_discards: int,
-		day_boundaries_crossed: int) -> RestoreRefusal:
+static func restore_refusal(p_completed_tick: int, p_debt: int, p_requested_speed: int, p_pause_mask: int,
+		p_fallback_count: int, p_diagnostic_pause_count: int, p_acknowledged_catchup_resets: int,
+		p_acknowledged_ticks_discarded: int, p_subtick_debt_discards: int,
+		p_day_boundaries_crossed: int) -> RestoreRefusal:
 	"""Every rule `restore_runtime()` enforces, as a pure check that mutates no clock.
 
 	Static and side-effect free so a save codec can run the identical validation on a decoded
 	record BEFORE it has a clock to install it into, and so a refusal reason exists without a
 	half-published world. The argument order matches `restore_runtime()` exactly.
 	"""
-	var tick: RestoreRefusal = _restore_tick_refusal(completed_tick)
+	var tick: RestoreRefusal = _restore_tick_refusal(p_completed_tick)
 	if not tick.is_ok():
 		return tick
-	var control: RestoreRefusal = _restore_control_refusal(requested_speed, pause_mask)
+	var control: RestoreRefusal = _restore_control_refusal(p_requested_speed, p_pause_mask)
 	if not control.is_ok():
 		return control
-	return _restore_host_metadata_refusal(debt, fallback_count, diagnostic_pause_count,
-		acknowledged_catchup_resets, acknowledged_ticks_discarded, subtick_debt_discards,
-		day_boundaries_crossed)
+	return _restore_host_metadata_refusal(p_debt, p_fallback_count, p_diagnostic_pause_count,
+		p_acknowledged_catchup_resets, p_acknowledged_ticks_discarded, p_subtick_debt_discards,
+		p_day_boundaries_crossed)
 
 
-static func _restore_tick_refusal(completed_tick: int) -> RestoreRefusal:
+static func _restore_tick_refusal(p_completed_tick: int) -> RestoreRefusal:
 	"""Tick 0 is legal; a negative tick and one whose calendar offset would overflow are not."""
-	if completed_tick < 0:
+	if p_completed_tick < 0:
 		return RestoreRefusal.new(REFUSE_RESTORE_NEGATIVE_TICK,
-			"completed tick %d is negative" % completed_tick)
-	if completed_tick > RESTORE_COMPLETED_TICK_MAX:
+			"completed tick %d is negative" % p_completed_tick)
+	if p_completed_tick > RESTORE_COMPLETED_TICK_MAX:
 		return RestoreRefusal.new(REFUSE_RESTORE_TICK_UNREPRESENTABLE,
 			"completed tick %d overflows the `tick + %d` offset calendar"
-				% [completed_tick, CALENDAR_OFFSET_TICKS])
+				% [p_completed_tick, CALENDAR_OFFSET_TICKS])
 	return RestoreRefusal.new(REFUSE_NONE, "")
 
 
-static func _restore_control_refusal(requested_speed: int, pause_mask: int) -> RestoreRefusal:
+static func _restore_control_refusal(p_requested_speed: int, p_pause_mask: int) -> RestoreRefusal:
 	"""Requested speed is 1, 2 or 4 -- never 3, never 0 -- and the mask holds only known bits.
 
 	SPEED_PAUSED is derived from the mask by `effective_speed()` and is never a stored requested
 	speed, so 0 is refused here exactly as `set_speed()` refuses it.
 	"""
-	if not SELECTABLE_SPEEDS.has(requested_speed):
+	if not SELECTABLE_SPEEDS.has(p_requested_speed):
 		return RestoreRefusal.new(REFUSE_RESTORE_SPEED,
-			"requested speed %d is not one of 1, 2, 4" % requested_speed)
-	if pause_mask < 0 or (pause_mask & ~KNOWN_PAUSE_BITS) != 0:
+			"requested speed %d is not one of 1, 2, 4" % p_requested_speed)
+	if p_pause_mask < 0 or (p_pause_mask & ~KNOWN_PAUSE_BITS) != 0:
 		return RestoreRefusal.new(REFUSE_RESTORE_PAUSE_MASK,
-			"pause mask %d carries a bit outside the known %d" % [pause_mask, KNOWN_PAUSE_BITS])
+			"pause mask %d carries a bit outside the known %d" % [p_pause_mask, KNOWN_PAUSE_BITS])
 	return RestoreRefusal.new(REFUSE_NONE, "")
 
 
-static func _restore_host_metadata_refusal(debt: int, fallback_count: int,
-		diagnostic_pause_count: int, acknowledged_catchup_resets: int,
-		acknowledged_ticks_discarded: int, subtick_debt_discards: int,
-		day_boundaries_crossed: int) -> RestoreRefusal:
+static func _restore_host_metadata_refusal(p_debt: int, p_fallback_count: int,
+		p_diagnostic_pause_count: int, p_acknowledged_catchup_resets: int,
+		p_acknowledged_ticks_discarded: int, p_subtick_debt_discards: int,
+		p_day_boundaries_crossed: int) -> RestoreRefusal:
 	"""Debt and each of G3's six counters lie in `0..INT64_MAX`, checked one field at a time.
 
 	The upper end of that domain is the GDScript int itself, which IS int64, so the rule a value
@@ -787,16 +787,16 @@ static func _restore_host_metadata_refusal(debt: int, fallback_count: int,
 	`INT64_MAX/4`: a restorable value is not permission to overflow, and `_is_overloaded()`
 	already refuses its own multiplication rather than wrapping.
 	"""
-	if debt < 0:
-		return RestoreRefusal.new(REFUSE_RESTORE_NEGATIVE_DEBT, "debt %d is negative" % debt)
-	var first: RestoreRefusal = _first_negative_counter("_fallback_count", fallback_count,
-		"_diagnostic_pause_count", diagnostic_pause_count,
-		"_acknowledged_catchup_resets", acknowledged_catchup_resets)
+	if p_debt < 0:
+		return RestoreRefusal.new(REFUSE_RESTORE_NEGATIVE_DEBT, "debt %d is negative" % p_debt)
+	var first: RestoreRefusal = _first_negative_counter("_fallback_count", p_fallback_count,
+		"_diagnostic_pause_count", p_diagnostic_pause_count,
+		"_acknowledged_catchup_resets", p_acknowledged_catchup_resets)
 	if not first.is_ok():
 		return first
-	return _first_negative_counter("_acknowledged_ticks_discarded", acknowledged_ticks_discarded,
-		"_subtick_debt_discards", subtick_debt_discards,
-		"_day_boundaries_crossed", day_boundaries_crossed)
+	return _first_negative_counter("_acknowledged_ticks_discarded", p_acknowledged_ticks_discarded,
+		"_subtick_debt_discards", p_subtick_debt_discards,
+		"_day_boundaries_crossed", p_day_boundaries_crossed)
 
 
 static func _first_negative_counter(first_name: String, first_value: int, second_name: String,
@@ -828,7 +828,7 @@ func debt() -> int:
 
 func owed_ticks() -> int:
 	"""Whole ticks currently owed and not yet run."""
-	return _debt / TICK_COST
+	@warning_ignore("integer_division") return _debt / TICK_COST
 
 
 func fallback_count() -> int:
@@ -900,7 +900,7 @@ static func calendar_at_into(tick: int, out: Calendar) -> void:
 
 static func day_index_at(tick: int) -> int:
 	"""Zero-based day number of a tick under the offset calendar."""
-	return (tick + CALENDAR_OFFSET_TICKS) / TICKS_PER_DAY
+	@warning_ignore("integer_division") return (tick + CALENDAR_OFFSET_TICKS) / TICKS_PER_DAY
 
 
 static func is_day_boundary(tick: int) -> bool:

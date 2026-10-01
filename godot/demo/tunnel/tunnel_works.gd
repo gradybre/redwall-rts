@@ -382,7 +382,7 @@ func _note_rock(slot: int, lead: int, face: int) -> void:
 		say(CrewScript.LINE_ROCK_BADGER)
 
 
-func _on_cut(slot: int, c: int, layer: int, kind: int, at: Vector2i) -> void:
+func _on_cut(slot: int, _c: int, layer: int, kind: int, at: Vector2i) -> void:
 	"""A metre cut at `at` (u) through ground `kind`: roll its find (once per metre and layer)."""
 	var found := finds.dig(ground.cell_of(at.x, at.y), layer, kind)
 	if found == FindsScript.FIND_NONE:
@@ -442,7 +442,7 @@ func _on_job_cut(slot: int, job: int, c: int) -> int:
 	"""The `c`-th cut of a job: a widening rolls the metre it widens. Returns the cut's dig ticks (0 for a job
 	that cuts nothing: a clearing's are counted as dug)."""
 	if job == JobsScript.JOB_WIDEN:
-		var k := c / Rules.WIDE_EXTRA_QUANTA
+		@warning_ignore("integer_division") var k := c / Rules.WIDE_EXTRA_QUANTA
 		var kind := _network.quantum_kind(slot, k)
 		_on_cut(slot, c, FindsScript.LAYER_WIDEN, kind, _network.quantum_point_u(slot, k))
 		return GroundScript.dig_ticks(kind)
@@ -547,7 +547,7 @@ func after_splits() -> void:
 	in them, their hazards and their finds follow onto the halves; and each half's
 	dig is taken as seen as it stands, so a new half's cuts are not counted again (its stone, its finds)."""
 	var splits := _network.last_splits
-	for i in splits.size() / 3:
+	@warning_ignore("integer_division") for i in splits.size() / 3:
 		var old := splits[3 * i]
 		var tail := splits[3 * i + 1]
 		var split_u := splits[3 * i + 2]
@@ -569,7 +569,7 @@ func _repoint_finds(splits: PackedInt32Array) -> void:
 	"""Each find cut in a segment these splits cut (`last_splits` triples) now lies in whichever of its
 	halves passes nearest its place -- however many times one piece split the same segment."""
 	var halves := PackedInt32Array()
-	for i in splits.size() / 3:
+	@warning_ignore("integer_division") for i in splits.size() / 3:
 		for k in 2:
 			if not halves.has(splits[3 * i + k]):
 				halves.append(splits[3 * i + k])

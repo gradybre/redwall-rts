@@ -606,7 +606,7 @@ static func total_field_width() -> int:
 
 static func elements_per_chunk(field: int) -> int:
 	"""How many of one field's values fit in CHUNK_BYTES. 65536 for a u8 column, 16384 for i32."""
-	return CHUNK_BYTES / FIELD_WIDTHS[field]
+	@warning_ignore("integer_division") return CHUNK_BYTES / FIELD_WIDTHS[field]
 
 
 static func field_count_offset(field: int) -> int:

@@ -76,7 +76,7 @@ static func pipeline_permille(workers: int, faces: int) -> int:
 	if n <= faces:
 		return n * Rules.PERMILLE
 	var finished := mini(n - faces, faces)
-	return (faces - finished) * Rules.PERMILLE + finished * Rules.PERMILLE * Rules.TICKS_PER_QUANTUM / FACE_CYCLE_TICKS
+	@warning_ignore("integer_division") return (faces - finished) * Rules.PERMILLE + finished * Rules.PERMILLE * Rules.TICKS_PER_QUANTUM / FACE_CYCLE_TICKS
 
 
 func join(index: int, slot: int) -> bool:
@@ -151,9 +151,9 @@ func rate_permille(slot: int, lead: int, faces: int, face_ground: int, fits: Cal
 	"""The rate segment `slot`'s crew digs at, per mille of one F1000 worker: the pipeline rate, scaled by
 	the Foremole's skill factor (THE DIGGING SKILL), slowed in rock with no breaker at work."""
 	var rate := pipeline_permille(face_workers(slot, fits), faces)
-	rate = rate * skills.factor_permille(lead) / Rules.PERMILLE
+	@warning_ignore("integer_division") rate = rate * skills.factor_permille(lead) / Rules.PERMILLE
 	if face_ground == GroundScript.ROCK and not breaker_present(slot, lead):
-		rate = rate * GroundScript.ROCK_ALONE_PERMILLE / Rules.PERMILLE
+		@warning_ignore("integer_division") rate = rate * GroundScript.ROCK_ALONE_PERMILLE / Rules.PERMILLE
 	return rate
 
 

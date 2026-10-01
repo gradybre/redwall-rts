@@ -55,7 +55,7 @@ func _nonclaim(fishing: bool) -> PackedByteArray:
 	var exclude: Array[String] = ["_effort_claim_count" if fishing else "_claim_count"]
 	for field: String in fields:
 		exclude.append("_"+field)
-	return _whole(_fish if fishing else _forage,exclude)
+	return _whole((_fish as Object) if fishing else (_forage as Object),exclude)
 
 func _cell(record: Object, field: String, row: int, value: int) -> void:
 	var column: Variant = record.get(field)
@@ -65,7 +65,7 @@ func _cell(record: Object, field: String, row: int, value: int) -> void:
 func _seed(fishing: bool, full: bool = false) -> void:
 	var rows: int = 512 if fishing else 8192
 	var fields: Array[String] = FF if fishing else VF
-	var record: Object = _fc if fishing else _vc
+	var record: Object = (_fc as Object) if fishing else (_vc as Object)
 	for row: int in rows:
 		if not full and row != 2 and row != rows-1:
 			continue
@@ -80,8 +80,8 @@ func _capture(fishing: bool) -> bool:
 	return _fish.copy_effort_claim_columns_into(_fc) if fishing else _forage.copy_forage_claim_columns_into(_vc)
 
 func _reject(fishing: bool, code: StringName, capture: bool = false) -> void:
-	var store: Variant = _fish if fishing else _forage
-	var record: Object = _fc if fishing else _vc
+	var store: Variant = (_fish as Object) if fishing else (_forage as Object)
+	var record: Object = (_fc as Object) if fishing else (_vc as Object)
 	var before: PackedByteArray = _whole(store)
 	var input: PackedByteArray = _fields(record)
 	var dir: Variant = store.directory()
@@ -98,8 +98,8 @@ func test_defaults_sparse_last_row_and_independent_arrays_are_exact() -> void:
 	for fishing: bool in [true,false]:
 		var fields: Array[String] = FF if fishing else VF
 		var rows: int = 512 if fishing else 8192
-		var record: Object = _fc if fishing else _vc
-		var store: Variant = _fish if fishing else _forage
+		var record: Object = (_fc as Object) if fishing else (_vc as Object)
+		var store: Variant = (_fish as Object) if fishing else (_forage as Object)
 		for field: String in fields:
 			assert_equal(record.get(field).size(),rows,"fixed default extent")
 		_seed(fishing)
@@ -119,8 +119,8 @@ func test_defaults_sparse_last_row_and_independent_arrays_are_exact() -> void:
 func test_all_caller_and_live_shapes_refuse_without_indexing() -> void:
 	for fishing: bool in [true,false]:
 		var fields: Array[String] = FF if fishing else VF
-		var record: Object = _fc if fishing else _vc
-		var store: Variant = _fish if fishing else _forage
+		var record: Object = (_fc as Object) if fishing else (_vc as Object)
+		var store: Variant = (_fish as Object) if fishing else (_forage as Object)
 		var code: StringName = &"COLUMN_FISH_CLAIM_SHAPE" if fishing else &"COLUMN_FORAGE_CLAIM_SHAPE"
 		for field: String in fields:
 			var original: Variant = record.get(field)
@@ -159,7 +159,7 @@ func test_other_section_aggregates_scratch_and_order_keys_are_never_rebuilt() ->
 	_vc.claim_created_tick[2] = 9223372036854775807
 	_vc.claim_persistent_id[2] = 0
 	for fishing: bool in [true,false]:
-		var store: Variant = _fish if fishing else _forage
+		var store: Variant = (_fish as Object) if fishing else (_forage as Object)
 		for name: String in ["_math","_math_b","_math_c"]:
 			store.get(name).refuse("retained scratch")
 		var other: PackedByteArray = _nonclaim(fishing)
@@ -173,8 +173,8 @@ func test_payload_domains_and_inactive_blanks_refuse_on_both_paths() -> void:
 	for fishing: bool in [true,false]:
 		_seed(fishing)
 		assert_true(_restore(fishing),"valid structural source")
-		var store: Variant = _fish if fishing else _forage
-		var record: Object = _fc if fishing else _vc
+		var store: Variant = (_fish as Object) if fishing else (_forage as Object)
+		var record: Object = (_fc as Object) if fishing else (_vc as Object)
 		var fields: Array[String] = FF if fishing else VF
 		var prefix: String = "COLUMN_FISH_CLAIM_" if fishing else "COLUMN_FORAGE_CLAIM_"
 		var cases: Array = [[FF[0],2,"OCCUPANCY"],[FF[1],0,"REF"],[FF[2],-1,"REF"],[FF[2],352418,"REF"],[FF[3],0,"REF"],[FF[4],352418,"REF"],[FF[5],0,"REF"],[FF[6],0,"SLOT_COUNT"],[FF[6],7,"SLOT_COUNT"],[FF[6],2147483647,"SLOT_COUNT"],[FF[7],-1,"REF"],[FF[7],352418,"REF"]] if fishing else [[VF[0],2,"OCCUPANCY"],[VF[1],-1,"REF"],[VF[1],352418,"REF"],[VF[2],0,"REF"],[VF[3],352418,"REF"],[VF[4],0,"REF"],[VF[5],352418,"REF"],[VF[6],0,"REF"],[VF[7],-1,"KIND"],[VF[7],5,"KIND"],[VF[8],0,"QUANTITY"],[VF[8],1180001,"QUANTITY"],[VF[8],9223372036854775807,"QUANTITY"],[VF[9],-1,"ORDER_KEY"],[VF[10],-1,"ORDER_KEY"]]
@@ -201,7 +201,7 @@ func test_source_count_and_old_payload_refusal_rules_are_distinct() -> void:
 	for fishing: bool in [true,false]:
 		_seed(fishing)
 		assert_true(_restore(fishing),"valid source")
-		var store: Variant = _fish if fishing else _forage
+		var store: Variant = (_fish as Object) if fishing else (_forage as Object)
 		var count_name: String = "_effort_claim_count" if fishing else "_claim_count"
 		var code: StringName = &"COLUMN_FISH_CLAIM_SOURCE_COUNT" if fishing else &"COLUMN_FORAGE_CLAIM_SOURCE_COUNT"
 		for count: int in [-1,0,9000]:
@@ -219,7 +219,7 @@ func test_source_count_and_old_payload_refusal_rules_are_distinct() -> void:
 func test_table_wide_flags_precede_earlier_row_payload_errors() -> void:
 	for fishing: bool in [true,false]:
 		_seed(fishing)
-		var record: Object = _fc if fishing else _vc
+		var record: Object = (_fc as Object) if fishing else (_vc as Object)
 		var fields: Array[String] = FF if fishing else VF
 		var rows: int = 512 if fishing else 8192
 		_cell(record,fields[1],0,1)
@@ -250,7 +250,7 @@ func test_maximum_ref_and_quantity_fields_are_preserved_without_typed_row_clamp(
 	_vc.claim_created_tick[2] = 9223372036854775807
 	_vc.claim_persistent_id[2] = 9223372036854775807
 	for fishing: bool in [true,false]:
-		var record: Object = _fc if fishing else _vc
+		var record: Object = (_fc as Object) if fishing else (_vc as Object)
 		var before: PackedByteArray = _fields(record)
 		assert_true(_restore(fishing),"maximum structural boundary")
 		assert_true(_capture(fishing),"recapture exact maximums")
@@ -285,7 +285,7 @@ func test_adapter_gate_precedence_preserves_owner_block_and_clock() -> void:
 	var open_clock: Clock = Clock.new()
 	for fishing: bool in [true,false]:
 		var block: Codec.OwnerRecord = _block(fishing)
-		var store: Variant = _fish if fishing else _forage
+		var store: Variant = (_fish as Object) if fishing else (_forage as Object)
 		var before: PackedByteArray = _whole(store)
 		var target: PackedByteArray = _fields(block)
 		var clock_before: PackedByteArray = _fields(open_clock)
@@ -306,7 +306,7 @@ func test_adapter_gate_precedence_preserves_owner_block_and_clock() -> void:
 
 func test_adapter_every_group_extent_and_metadata_shape_is_total() -> void:
 	for fishing: bool in [true,false]:
-		var store: Variant = _fish if fishing else _forage
+		var store: Variant = (_fish as Object) if fishing else (_forage as Object)
 		var before: PackedByteArray = _whole(store)
 		for mode: int in 6:
 			var block: Codec.OwnerRecord = _block(fishing)
@@ -338,7 +338,7 @@ func test_adapter_forwards_codec_and_stronger_owner_refusals_atomically() -> voi
 	for fishing: bool in [true,false]:
 		_seed(fishing)
 		assert_true(_restore(fishing),"valid source")
-		var store: Variant = _fish if fishing else _forage
+		var store: Variant = (_fish as Object) if fishing else (_forage as Object)
 		var block: Codec.OwnerRecord = _block(fishing)
 		assert_true(_block_capture(fishing,block).is_ok(),"capture")
 		block.u8_columns[0][2] = 2
@@ -372,12 +372,12 @@ func test_adapter_literal_mapping_recapture_and_independent_containers() -> void
 		_seed(fishing)
 		assert_true(_restore(fishing),"source install")
 		var fields: Array[String] = FF if fishing else VF
-		var record: Object = _fc if fishing else _vc
+		var record: Object = (_fc as Object) if fishing else (_vc as Object)
 		var block: Codec.OwnerRecord = _block(fishing)
 		var old_group: Array[PackedInt32Array] = block.i32_columns
 		assert_true(_block_capture(fishing,block).is_ok(),"capture exact block")
 		for index: int in fields.size():
-			var column: Variant = block.u8_columns[0] if index == 0 else (block.i64_columns[index-8] if not fishing and index >= 8 else block.i32_columns[index-1])
+			var column: Variant = (block.u8_columns[0] as Variant) if index == 0 else ((block.i64_columns[index-8] as Variant) if not fishing and index >= 8 else (block.i32_columns[index-1] as Variant))
 			assert_equal(column,record.get(fields[index]),"literal semantic ordinal maps exact column")
 		old_group[0].fill(123)
 		assert_true(block.i32_columns[0][2] != 123,"published Array group independent of previous output")
@@ -423,10 +423,10 @@ func test_six_complete_literal_owner_wire_goldens() -> void:
 				raw.append_array(prefix.to_bytes())
 				raw.append_array(Codec.column_slice(block,ordinal,0,rows))
 			assert_equal(raw.size(),14947 if fishing else 434298,"fixed complete block size")
-			var hash: HashingContext = HashingContext.new()
-			hash.start(HashingContext.HASH_SHA256)
-			hash.update(raw)
-			assert_equal(hash.finish().hex_encode(),fish_hashes[variant] if fishing else forage_hashes[variant],"preimplementation independent golden")
+			var hasher: HashingContext = HashingContext.new()
+			hasher.start(HashingContext.HASH_SHA256)
+			hasher.update(raw)
+			assert_equal(hasher.finish().hex_encode(),fish_hashes[variant] if fishing else forage_hashes[variant],"preimplementation independent golden")
 
 func _public_world() -> Dictionary:
 	var residents: Residents = Residents.new()
@@ -491,11 +491,11 @@ func test_real_stale_claims_survive_slice_restore_until_normal_purge() -> void:
 	_fish = restored.fish
 	_forage = restored.forage
 	for fishing: bool in [true,false]:
-		var before: PackedByteArray = _whole(_fish if fishing else _forage)
+		var before: PackedByteArray = _whole((_fish as Object) if fishing else (_forage as Object))
 		var block: Codec.OwnerRecord = _block(fishing)
 		assert_true(_block_capture(fishing,block).is_ok(),"stale identity is structurally capturable")
 		assert_true(_apply(fishing,block,_clock).is_ok(),"structural slice preserves stale claim")
-		assert_equal(_whole(_fish if fishing else _forage),before,"restore must not purge or repair")
+		assert_equal(_whole((_fish as Object) if fishing else (_forage as Object)),before,"restore must not purge or repair")
 	for world: Dictionary in [uninterrupted,restored]:
 		var fish_released = world.fish.purge_stale_effort_claims()
 		var forage_released = world.forage.purge_stale_claims()

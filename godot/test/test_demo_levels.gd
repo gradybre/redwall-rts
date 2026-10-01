@@ -134,7 +134,7 @@ func test_a_ramp_down_is_never_steeper_than_one_in_two_and_a_half() -> void:
 	"""A ramp link falls LEVEL_SPACING_U over its run, eased at both ends: 10.875 m at the least. Sampled every 16 u
 	at its shortest and longest runs, it falls monotonically from 0 to 4 m, never steeper than 2:5, its float twin
 	within a unit of it."""
-	assert_equal(Rules.link_min_run_u(Rules.LINK_RAMP), 4096 * 5 / 2 + 896, "11136 u")
+	@warning_ignore("integer_division") assert_equal(Rules.link_min_run_u(Rules.LINK_RAMP), 4096 * 5 / 2 + 896, "11136 u")
 	for run: int in [Rules.link_min_run_u(Rules.LINK_RAMP), Rules.LINK_MAX_RAMP_RUN_U]:
 		assert_equal(Rules.link_drop_u(Rules.LINK_RAMP, 0, run), 0, "the head")
 		assert_equal(Rules.link_drop_u(Rules.LINK_RAMP, run, run), 4096, "the foot")
@@ -269,7 +269,7 @@ func test_stairs_take_a_quarter_more_work_than_a_ramp() -> void:
 	graph.add_piece(stairs.spec_of(0), ref)
 	graph.start_dig(ref[0], ref[1], 0)
 	graph.advance(ref[0], ref[1], 1000000)
-	assert_equal(graph.done(ref[0]), 30 * 1000 / 1250, "24 ticks for a second of work")
+	@warning_ignore("integer_division") assert_equal(graph.done(ref[0]), 30 * 1000 / 1250, "24 ticks for a second of work")
 	assert_equal(graph.work_permille(ref[0]), 1250, "its work")
 	assert_equal(graph.work_permille(0), 1000, "a ramp's")
 
@@ -520,8 +520,8 @@ func test_a_trip_bound_for_level_2_ends_at_its_node_by_the_cheapest_way() -> voi
 		var legs := PackedInt32Array()
 		space.plan_path(index, start, graph.node_m(foot), BODY_M, out, legs, true, false, foot)
 		assert_true(space.nav.last_found and out[out.size() - 1] == graph.node_m(foot), "ends at the foot from %s" % start)
-		var reference := _reference_table(graph, start)
-		var best: float = reference["dist"][0][(reference["ids"] as Array[int]).find(foot) + 2]
+		var ref_table := _reference_table(graph, start)
+		var best: float = ref_table["dist"][0][(ref_table["ids"] as Array[int]).find(foot) + 2]
 		assert_almost_equal(GraphTest._route_cost(graph, start, out, legs, 1.0), best, "the reference's cost from %s" % start)
 
 
@@ -575,10 +575,10 @@ func _lengths() -> Dictionary:
 	return lengths
 
 
-func _brain(space: CastSpaceScript, at: Vector2, seed: int) -> BrainScript:
+func _brain(space: CastSpaceScript, at: Vector2, seed_value: int) -> BrainScript:
 	"""A mouse at `at` who fits the bores."""
 	var brain := BrainScript.new()
-	brain.configure(space, 1.0, BODY_M, seed, _lengths())
+	brain.configure(space, 1.0, BODY_M, seed_value, _lengths())
 	brain.start_at(at, 0.0, -1, -1)
 	space.tunnels.set_body(brain.index, MOUSE_U, 256)
 	return brain
@@ -1148,7 +1148,7 @@ func test_clicks_land_on_the_shown_level_s_floor() -> void:
 		var floor_at: Vector2 = Layers.floor_through(eye, seen, Layers.floor_y(level))
 		assert_true(Layers.pick_ground(eye, (seen - eye).normalized(), Layers.floor_y(level)).distance_to(floor_at) < 1e-3,
 			"what the cap shows under the pointer is where the click lands, on level %d" % level)
-	assert_almost_equal(tool.view.floor_focus(origin, direction, Layers.floor_y(2)).y, -5.25, "the focus on level 2's floor")
+	assert_almost_equal(ViewScript.floor_focus(origin, direction, Layers.floor_y(2)).y, -5.25, "the focus on level 2's floor")
 	assert_almost_equal(Layers.pick_y(true, Rules.LEVEL_2), -5.25, "the rule")
 	assert_almost_equal(Layers.pick_y(false, Rules.LEVEL_2), 0.0, "the surface's is the ground")
 
@@ -1339,10 +1339,10 @@ func test_one_on_level_2_walks_out_the_cheapest_way_up() -> void:
 
 func _way_up_m(graph: GraphScript, node: int) -> float:
 	"""The reference's cheapest way from network node `node` to any mouth (m)."""
-	var reference := _reference_table(graph, Vector2.ZERO)
-	var ids: Array[int] = reference["ids"]
+	var ref_table := _reference_table(graph, Vector2.ZERO)
+	var ids: Array[int] = ref_table["ids"]
 	var best := INF
 	for k in ids.size():
 		if graph.node_kind[ids[k]] == GraphScript.NODE_MOUTH:
-			best = minf(best, reference["dist"][ids.find(node) + 2][k + 2])
+			best = minf(best, ref_table["dist"][ids.find(node) + 2][k + 2])
 	return best

@@ -98,7 +98,7 @@ static func water_circles_m(margin_m: float) -> Array[Vector3]:
 	ground cover to keep off: one per pond circle, and along each stream leg every 0.75 m with the
 	half-width tapered as the leg tapers. Pure function of the authored data (no map is built)."""
 	var out: Array[Vector3] = []
-	for k: int in range(1, STREAM_VERTICES.size() / 4):
+	@warning_ignore("integer_division") for k: int in range(1, STREAM_VERTICES.size() / 4):
 		var a := Vector2(Rules.to_m(STREAM_VERTICES[k * 4 - 4]), Rules.to_m(STREAM_VERTICES[k * 4 - 3]))
 		var b := Vector2(Rules.to_m(STREAM_VERTICES[k * 4]), Rules.to_m(STREAM_VERTICES[k * 4 + 1]))
 		var ra: float = Rules.to_m(STREAM_VERTICES[k * 4 - 2])
@@ -108,7 +108,7 @@ static func water_circles_m(margin_m: float) -> Array[Vector3]:
 			var t: float = float(s) / float(steps)
 			var at: Vector2 = a.lerp(b, t)
 			out.append(Vector3(at.x, at.y, lerpf(ra, rb, t) + margin_m))
-	for k: int in POND_CIRCLES.size() / 4:
+	@warning_ignore("integer_division") for k: int in POND_CIRCLES.size() / 4:
 		out.append(Vector3(Rules.to_m(POND_CIRCLES[k * 4]), Rules.to_m(POND_CIRCLES[k * 4 + 1]),
 			Rules.to_m(POND_CIRCLES[k * 4 + 2]) + margin_m))
 	return out

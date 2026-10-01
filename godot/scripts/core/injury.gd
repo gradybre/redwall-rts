@@ -271,9 +271,9 @@ var _math: IntMath.IntResult = IntMath.IntResult.new()
 
 func _init() -> void:
 	"""Allocate every column once to capacity, then reset to the empty settlement state."""
-	assert(RESIDENT_CAPACITY == Needs.RESIDENT_CAPACITY,
+	@warning_ignore("assert_always_true") assert(RESIDENT_CAPACITY == Needs.RESIDENT_CAPACITY,
 		"injury rows must match the needs store's resident row capacity")
-	assert(KIND_COUNT == 6 and KIND_EXHAUSTION == 5,
+	@warning_ignore("assert_always_true") assert(KIND_COUNT == 6 and KIND_EXHAUSTION == 5,
 		"InjuryKind is GDD §4.3's six-member domain and must not be extended here")
 	_allocate_columns()
 	clear()
@@ -467,7 +467,7 @@ func untreated_hours_of(slot: int) -> IntMath.IntResult:
 	var code: StringName = _check_present_slot(slot)
 	if code != REFUSE_NONE:
 		return _read(code, 0)
-	return _read(REFUSE_NONE, _untreated_ticks[slot] / TICKS_PER_HOUR)
+	@warning_ignore("integer_division") return _read(REFUSE_NONE, _untreated_ticks[slot] / TICKS_PER_HOUR)
 
 
 func care_progress_mwu_of(slot: int) -> IntMath.IntResult:
@@ -1080,7 +1080,7 @@ const REFUSE_COLUMN_RESCUER_DUPLICATE: StringName = &"COLUMN_RESCUER_DUPLICATE"
 
 static func columns_refusal(present: PackedByteArray, kind: PackedByteArray,
 		airless_episode: PackedByteArray, exhaustion_latch: PackedByteArray,
-		care_context_blocked: PackedByteArray, severity: PackedInt32Array,
+		context_blocked: PackedByteArray, severity: PackedInt32Array,
 		rescuer_slot: PackedInt32Array, rescuer_generation: PackedInt32Array,
 		untreated_ticks: PackedInt64Array, care_progress_mwu: PackedInt64Array,
 		last_incident_ordinal: PackedInt64Array) -> StringName:
@@ -1091,11 +1091,11 @@ static func columns_refusal(present: PackedByteArray, kind: PackedByteArray,
 	rule, and last the exact nonnull rescuer-pair uniqueness scan.
 	"""
 	if not _columns_are_capacity_sized(present, kind, airless_episode, exhaustion_latch,
-			care_context_blocked, severity, rescuer_slot, rescuer_generation, untreated_ticks,
+			context_blocked, severity, rescuer_slot, rescuer_generation, untreated_ticks,
 			care_progress_mwu, last_incident_ordinal):
 		return REFUSE_COLUMN_SHAPE
 	var domains: StringName = _column_domain_refusal(present, kind, airless_episode,
-		exhaustion_latch, care_context_blocked, severity, rescuer_slot, rescuer_generation,
+		exhaustion_latch, context_blocked, severity, rescuer_slot, rescuer_generation,
 		untreated_ticks, care_progress_mwu, last_incident_ordinal)
 	if domains != REFUSE_NONE:
 		return domains
@@ -1104,7 +1104,7 @@ static func columns_refusal(present: PackedByteArray, kind: PackedByteArray,
 	if relations != REFUSE_NONE:
 		return relations
 	var inactive: StringName = _column_inactive_refusal(present, kind, airless_episode,
-		exhaustion_latch, care_context_blocked, severity, rescuer_slot, rescuer_generation,
+		exhaustion_latch, context_blocked, severity, rescuer_slot, rescuer_generation,
 		untreated_ticks, care_progress_mwu, last_incident_ordinal)
 	if inactive != REFUSE_NONE:
 		return inactive
@@ -1113,7 +1113,7 @@ static func columns_refusal(present: PackedByteArray, kind: PackedByteArray,
 
 static func _columns_are_capacity_sized(present: PackedByteArray, kind: PackedByteArray,
 		airless_episode: PackedByteArray, exhaustion_latch: PackedByteArray,
-		care_context_blocked: PackedByteArray, severity: PackedInt32Array,
+		context_blocked: PackedByteArray, severity: PackedInt32Array,
 		rescuer_slot: PackedInt32Array, rescuer_generation: PackedInt32Array,
 		untreated_ticks: PackedInt64Array, care_progress_mwu: PackedInt64Array,
 		last_incident_ordinal: PackedInt64Array) -> bool:
@@ -1122,7 +1122,7 @@ static func _columns_are_capacity_sized(present: PackedByteArray, kind: PackedBy
 		return false
 	if airless_episode.size() != RESIDENT_CAPACITY \
 			or exhaustion_latch.size() != RESIDENT_CAPACITY \
-			or care_context_blocked.size() != RESIDENT_CAPACITY:
+			or context_blocked.size() != RESIDENT_CAPACITY:
 		return false
 	if severity.size() != RESIDENT_CAPACITY or rescuer_slot.size() != RESIDENT_CAPACITY \
 			or rescuer_generation.size() != RESIDENT_CAPACITY:
@@ -1134,14 +1134,14 @@ static func _columns_are_capacity_sized(present: PackedByteArray, kind: PackedBy
 
 static func _column_domain_refusal(present: PackedByteArray, kind: PackedByteArray,
 		airless_episode: PackedByteArray, exhaustion_latch: PackedByteArray,
-		care_context_blocked: PackedByteArray, severity: PackedInt32Array,
+		context_blocked: PackedByteArray, severity: PackedInt32Array,
 		rescuer_slot: PackedInt32Array, rescuer_generation: PackedInt32Array,
 		untreated_ticks: PackedInt64Array, care_progress_mwu: PackedInt64Array,
 		last_incident_ordinal: PackedInt64Array) -> StringName:
 	"""Gates 2-8: the four flag bytes, the kind byte, severity, the ref pair, the three i64 floors."""
 	if not _byte_column_below(present, 2) or not _byte_column_below(airless_episode, 2) \
 			or not _byte_column_below(exhaustion_latch, 2) \
-			or not _byte_column_below(care_context_blocked, 2):
+			or not _byte_column_below(context_blocked, 2):
 		return REFUSE_COLUMN_FLAGS
 	if not _byte_column_below(kind, KIND_COUNT):
 		return REFUSE_COLUMN_KIND
@@ -1227,7 +1227,7 @@ static func _column_relation_refusal(kind: PackedByteArray, airless_episode: Pac
 
 static func _column_inactive_refusal(present: PackedByteArray, kind: PackedByteArray,
 		airless_episode: PackedByteArray, exhaustion_latch: PackedByteArray,
-		care_context_blocked: PackedByteArray, severity: PackedInt32Array,
+		context_blocked: PackedByteArray, severity: PackedInt32Array,
 		rescuer_slot: PackedInt32Array, rescuer_generation: PackedInt32Array,
 		untreated_ticks: PackedInt64Array, care_progress_mwu: PackedInt64Array,
 		last_incident_ordinal: PackedInt64Array) -> StringName:
@@ -1239,7 +1239,7 @@ static func _column_inactive_refusal(present: PackedByteArray, kind: PackedByteA
 	var row: int = present.find(0, 0)
 	while row >= 0:
 		if kind[row] != KIND_NONE or airless_episode[row] != 0 or exhaustion_latch[row] != 0 \
-				or care_context_blocked[row] != 0 or severity[row] != SEVERITY_NONE:
+				or context_blocked[row] != 0 or severity[row] != SEVERITY_NONE:
 			return REFUSE_COLUMN_INACTIVE
 		if untreated_ticks[row] != 0 or care_progress_mwu[row] != 0 \
 				or last_incident_ordinal[row] != 0:

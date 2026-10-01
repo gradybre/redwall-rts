@@ -116,7 +116,7 @@ func test_the_network_refuses_a_piece_it_has_no_room_for() -> void:
 	var graph := GraphScript.new()
 	var ref := PackedInt32Array([-1, 0, -1])
 	assert_equal(Rules.MAX_MOUTHS, 24, "the cap")
-	for k in Rules.MAX_MOUTHS / 2:
+	@warning_ignore("integer_division") for k in Rules.MAX_MOUTHS / 2:
 		assert_true(graph.add_into(_route([Vector2i(-10000, 1500 * k - 8000), Vector2i(0, 1500 * k - 8000)]), 2, k, ref), "tunnel %d" % k)
 	assert_equal(graph.mouth_node.count(-1), 0, "every mouth row taken")
 	var spec := SpecScript.new()
@@ -762,7 +762,7 @@ func test_a_full_network_refuses_in_words() -> void:
 	"""Every mouth row taken: a sound piece far from the rest is refused for room."""
 	var graph := GraphScript.new()
 	var ref := PackedInt32Array([-1, 0, -1])
-	for k in Rules.MAX_MOUTHS / 2:
+	@warning_ignore("integer_division") for k in Rules.MAX_MOUTHS / 2:
 		graph.add_into(_route([Vector2i(-18000, 1500 * k - 18000), Vector2i(-8000, 1500 * k - 18000)]), 2, k, ref)
 	assert_equal(_reason(graph, [Vector2i(5000, 15000), Vector2i(15000, 15000)]), Rules.REFUSE_NO_MOUTH_ROWS, "no mouth row: refused naming the mouths")
 
@@ -797,7 +797,7 @@ func test_the_crew_digs_at_the_lead_s_skill() -> void:
 	assert_equal(crew.rate_permille(0, 1, 1, GroundScript.LOAM, fits), 1000, "the mouse")
 	assert_true(crew.join(1, 0), "the mouse joins the mole's crew")
 	crew.set_present(1, true)
-	assert_equal(crew.rate_permille(0, 0, 1, GroundScript.LOAM, fits), 1506 * 1150 / 1000, "two at a standard face, the mole's skill")
+	@warning_ignore("integer_division") assert_equal(crew.rate_permille(0, 0, 1, GroundScript.LOAM, fits), 1506 * 1150 / 1000, "two at a standard face, the mole's skill")
 	crew.credit_ticks(0, 0, 113, fits)
 	assert_equal([crew.skills.xp[0], crew.skills.xp[1]], [45090, 90], "both learn")
 	crew.move_site(0, 5)
@@ -1268,9 +1268,9 @@ func test_a_piece_crossing_two_bores_is_the_same_piece_either_way_laid() -> void
 	for ends: Array in [[Vector2i(-6144, 0), Vector2i(12288, 0)], [Vector2i(12288, 0), Vector2i(-6144, 0)]]:
 		var points: Array[Vector2i] = []
 		points.assign(ends)
-		var plan := _lay(graph, points)
-		assert_equal(plan.piece_reason(graph, BOUNDS_U, PackedInt32Array()), Rules.REFUSE_NONE, "laid from %s" % points[0])
-		assert_true(plan._along_of_crossing(0) < plan._along_of_crossing(1), "its crossings in route order")
+		var laid := _lay(graph, points)
+		assert_equal(laid.piece_reason(graph, BOUNDS_U, PackedInt32Array()), Rules.REFUSE_NONE, "laid from %s" % points[0])
+		assert_true(laid._along_of_crossing(0) < laid._along_of_crossing(1), "its crossings in route order")
 	var plan := _lay(graph, [Vector2i(-6144, 0), Vector2i(12288, 0)])
 	plan.piece_reason(graph, BOUNDS_U, PackedInt32Array())
 	assert_true(graph.add_piece(plan.spec_of(0), ref), "stored")
@@ -1370,7 +1370,7 @@ func test_the_ghost_s_whole_piece_check_is_cheap_enough_to_follow_the_pointer() 
 		var t0 := Time.get_ticks_usec()
 		assert_equal(plan.piece_reason(graph, BOUNDS_U, PackedInt32Array()), Rules.REFUSE_NONE, "a valid piece")
 		best = mini(best, Time.get_ticks_usec() - t0)
-	assert_equal(plan.crossings.size() / 3, 5, "five crossings")
+	@warning_ignore("integer_division") assert_equal(plan.crossings.size() / 3, 5, "five crossings")
 	assert_true(best < 3000, "checked in %d us" % best)
 
 

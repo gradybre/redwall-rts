@@ -74,13 +74,13 @@ func configure(network: GraphScript, space: CastSpaceScript, particles: Particle
 	_face_at.resize(FACE_SLOTS)
 	_face_back.resize(FACE_SLOTS)
 	for k in FACE_SLOTS:
-		var lantern := MeshInstance3D.new()
-		lantern.mesh = KitScript.hand_lantern(props)
-		lantern.layers = Layers.UNDERGROUND
-		lantern.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		lantern.visible = false
-		add_child(lantern)
-		_lanterns.append(lantern)
+		var lamp := MeshInstance3D.new()
+		lamp.mesh = KitScript.hand_lantern(props)
+		lamp.layers = Layers.UNDERGROUND
+		lamp.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		lamp.visible = false
+		add_child(lamp)
+		_lanterns.append(lamp)
 
 
 func is_face(slot: int) -> bool:

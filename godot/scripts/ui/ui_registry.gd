@@ -481,7 +481,7 @@ func _assert_opens_contracts() -> void:
 			"§4.3 gates UI-SET-087 on F6/accessible mode, so no element may open it")
 		assert(not (GATES[opener - FIRST_ID] == GATE_SELECTED and row[1] == SURFACE_WORKSPACE),
 			"an ordinary selection must never open a centre workspace")
-	assert(OPENS[31][0] == ROSTER_ID,
+	@warning_ignore("assert_always_true") assert(OPENS[31][0] == ROSTER_ID,
 		"§4.1: UI-SET-031 is 'ALWAYS; opens roster rows 069'")
 
 

@@ -186,10 +186,10 @@ var _seen_reason: PackedByteArray = PackedByteArray()
 var _seen_mouth: PackedInt32Array = PackedInt32Array()
 
 
-func configure(cast: DemoCastScript, camera: Camera3D, selection: Callable, mark: Callable, notice: Callable,
+func configure(cast: DemoCastScript, camera: Camera3D, selection: Callable, mark: Callable, notice_line: Callable,
 		services: ServicesScript = null) -> void:
 	"""Plan and draw tunnels for this cast, picking through this camera. `selection` returns the selected
-	actor indices; `mark(at: Vector3, accepted: bool)` drops an order marker; `notice(text)` shows a line in
+	actor indices; `mark(at: Vector3, accepted: bool)` drops an order marker; `notice_line(text)` shows a line in
 	the party panel; `services` are the demo's shared weather, water and notice feed (none: the extensions
 	make a set of their own)."""
 	name = "TunnelControl"
@@ -199,7 +199,7 @@ func configure(cast: DemoCastScript, camera: Camera3D, selection: Callable, mark
 	network = _space.tunnels
 	_selection = selection
 	_mark = mark
-	_notice = notice
+	_notice = notice_line
 	var bounds := cast.bounds()
 	_bounds_u = Rect2i(Rules.to_u(bounds.position.x), Rules.to_u(bounds.position.y), Rules.to_u(bounds.size.x),
 		Rules.to_u(bounds.size.y))
@@ -847,7 +847,7 @@ func crew_rate(digger: int, faces: int = 1) -> int:
 		if i != digger and workers < CrewScript.MAX_BUILDERS and network.fits(i):
 			workers += 1
 	var skill := ext.works.crew.skills.factor_permille(digger) if digger >= 0 else Rules.PERMILLE
-	return CrewScript.pipeline_permille(workers, faces) * skill / Rules.PERMILLE
+	@warning_ignore("integer_division") return CrewScript.pipeline_permille(workers, faces) * skill / Rules.PERMILLE
 
 
 # --- digging a piece ------------------------------------------------------------------------
@@ -920,7 +920,7 @@ func _send(digger: int, now: bool) -> void:
 	_mark.call(_start3(first), true)
 	var ticks := PackedInt32Array([0, 0])
 	network.piece_ticks_into(_ref[2], ticks)
-	_say(_link_worded(DIG_STARTED % [length, _piece_quanta(_ref[2]), _finished_spoil_u(_ref[2]), ticks[1] / Rules.TICKS_PER_SECOND]))
+	@warning_ignore("integer_division") _say(_link_worded(DIG_STARTED % [length, _piece_quanta(_ref[2]), _finished_spoil_u(_ref[2]), ticks[1] / Rules.TICKS_PER_SECOND]))
 
 
 func _link_worded(words: String) -> String:
@@ -960,7 +960,7 @@ func _finished_spoil_u(p: int) -> int:
 	for slot in chain:
 		network.progress_into(slot, network.total_ticks(slot), 1, spoil)
 		total += spoil[GraphScript.P_SPOIL]
-	return total / 1000
+	@warning_ignore("integer_division") return total / 1000
 
 
 func accept_piece(p: int) -> void:
@@ -1254,12 +1254,12 @@ func tool_card_into(card: CardScript, verb: String, what: String) -> void:
 		card.who = TOOL_NOBODY
 		return
 	var selection := _selection.call() as PackedInt32Array
-	var name: String = (_cast.actor(digger) as DemoActorScript).display_name
+	var worker_name: String = (_cast.actor(digger) as DemoActorScript).display_name
 	card.worker = digger
 	if selection.has(digger):
-		card.who = CardScript.assign_first(name, selection.size(), "who can dig")
+		card.who = CardScript.assign_first(worker_name, selection.size(), "who can dig")
 	else:
-		card.who = CardScript.assign_village(name, TOOL_FREE if _brain(digger).dig_tunnel < 0 else TOOL_BUSY)
+		card.who = CardScript.assign_village(worker_name, TOOL_FREE if _brain(digger).dig_tunnel < 0 else TOOL_BUSY)
 	var crew := crew_size(digger) - 1
 	if crew > 0:
 		card.who += " + %d on the crew" % crew

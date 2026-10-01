@@ -50,7 +50,7 @@ static func units_text(milli: int) -> String:
 		return "0 U"
 	if milli < MILLI_PER_TENTH:
 		return "<0.1 U"
-	return "%d.%d U" % [milli / MILLI_PER_U, (milli % MILLI_PER_U) / MILLI_PER_TENTH]
+	@warning_ignore("integer_division") return "%d.%d U" % [milli / MILLI_PER_U, (milli % MILLI_PER_U) / MILLI_PER_TENTH]
 
 
 static func clock_line(sim: SimScript) -> String:
@@ -127,7 +127,7 @@ static func sown_estimate_milli(sim: SimScript, bed: int, item: int) -> int:
 static func estimate_milli(base_milli: int, fertility_factor: int, rotation_factor: int) -> int:
 	"""REQ-SET-074's formula at full health and neutral pollination: base x fertility x rotation (factors per 1000),
 	floored once (milli-U)."""
-	return base_milli * fertility_factor * rotation_factor / 1000000
+	@warning_ignore("integer_division") return base_milli * fertility_factor * rotation_factor / 1000000
 
 
 static func pick_reason(sim: SimScript, bed: int, item: int) -> String:
@@ -151,7 +151,7 @@ static func pick_reason(sim: SimScript, bed: int, item: int) -> String:
 static func stage_line(sim: SimScript, bed: int, read: IntMath.IntResult) -> String:
 	"""The bed's stage with its timing: growth and hours to ripe, or how long it has stood ripe."""
 	var stage: int = sim.stage_of(bed)
-	var growth: int = sim.growth_permille(bed) / 10
+	@warning_ignore("integer_division") var growth: int = sim.growth_permille(bed) / 10
 	if stage == SimScript.STAGE_RIPE and sim.ripe_hours_into(bed, read):
 		var left: int = FarmingScript.RIPE_WITHER_HOURS - read.value
 		if read.value < FarmingScript.RIPE_GRACE_HOURS:
@@ -186,8 +186,8 @@ static func moisture_percent(moisture: int, band_max: int) -> int:
 	"""A 0..10000 moisture reading as whole percent: floored, but rounded up above the range's top (PLAYER TERMS).
 	10000 rounds up to 100, so a full scale never reads past 100%."""
 	if moisture > band_max:
-		return (moisture + 99) / 100
-	return moisture / 100
+		@warning_ignore("integer_division") return (moisture + 99) / 100
+	@warning_ignore("integer_division") return moisture / 100
 
 
 static func range_line(sim: SimScript, bed: int) -> String:
@@ -195,7 +195,7 @@ static func range_line(sim: SimScript, bed: int) -> String:
 	var whose: String = "this crop"
 	if not Catalog.is_item(sim.item_of(bed)) and not Catalog.is_item(sim.chosen_of(bed)):
 		whose = "an empty bed"
-	return "Suitable for %s: %d–%d%%" % [whose, sim.band_min_of(bed) / 100, sim.band_max_of(bed) / 100]
+	@warning_ignore("integer_division") return "Suitable for %s: %d–%d%%" % [whose, sim.band_min_of(bed) / 100, sim.band_max_of(bed) / 100]
 
 
 static func soil_line(_sim: SimScript, bed: int) -> String:
@@ -227,7 +227,7 @@ static func health_line(sim: SimScript, bed: int) -> String:
 
 static func percent_text(scale_value: int) -> String:
 	"""A 0..10000 reading as a whole percent, floored: 6399 -> '63%', 10000 -> '100%'."""
-	return "%d%%" % (clampi(scale_value, 0, 10000) / 100)
+	@warning_ignore("integer_division") return "%d%%" % (clampi(scale_value, 0, 10000) / 100)
 
 
 static func change_text(factor: int) -> String:
@@ -240,8 +240,8 @@ static func change_text(factor: int) -> String:
 static func points_text(scale_value: int, signed: bool) -> String:
 	"""An amount on a 0..10000 scale in percentage points: 50 -> '0.5', 1500 -> '15', 1550 -> '15.5' (with
 	`signed`, a leading '+' or '−'). Tenths are floored; a whole number drops its '.0'."""
-	var magnitude: int = absi(scale_value) / 10
-	var words: String = "%d" % (magnitude / 10) if magnitude % 10 == 0 else "%d.%d" % [magnitude / 10, magnitude % 10]
+	@warning_ignore("integer_division") var magnitude: int = absi(scale_value) / 10
+	@warning_ignore("integer_division") var words: String = "%d" % (magnitude / 10) if magnitude % 10 == 0 else "%d.%d" % [magnitude / 10, magnitude % 10]
 	if not signed:
 		return words
 	return ("−" if scale_value < 0 else "+") + words
@@ -250,8 +250,8 @@ static func points_text(scale_value: int, signed: bool) -> String:
 static func factor_text(factor: int) -> String:
 	"""A factor per 1000 as a multiplier: 850 -> '0.85', 815 -> '0.815', 1000 -> '1.00'."""
 	if factor % 10 == 0:
-		return "%d.%02d" % [factor / 1000, (factor % 1000) / 10]
-	return "%d.%03d" % [factor / 1000, factor % 1000]
+		@warning_ignore("integer_division") return "%d.%02d" % [factor / 1000, (factor % 1000) / 10]
+	@warning_ignore("integer_division") return "%d.%03d" % [factor / 1000, factor % 1000]
 
 
 static func works_line(sim: SimScript, bed: int) -> String:
@@ -302,8 +302,8 @@ static func harvest_breakdown(sim: SimScript, bed: int, read: IntMath.IntResult)
 		return ""
 	var harvest: int = read.value
 	var base: int = FarmingScript.CROP_BASE_YIELD_MILLI[Catalog.crop_of(item)]
-	var health: int = sim.health_of(bed) / FarmingScript.HEALTH_FACTOR_DIVISOR
-	var formula: int = base * sim.fertility_factor_of(bed) * health * sim.rotation_preview(bed, item) / 1000000000
+	@warning_ignore("integer_division") var health: int = sim.health_of(bed) / FarmingScript.HEALTH_FACTOR_DIVISOR
+	@warning_ignore("integer_division") var formula: int = base * sim.fertility_factor_of(bed) * health * sim.rotation_preview(bed, item) / 1000000000
 	var line: String = "Base %s × fertility %s × health %s × rotation %s = %s" % [units_text(base),
 		factor_text(sim.fertility_factor_of(bed)), factor_text(health), factor_text(sim.rotation_preview(bed, item)),
 		units_text(formula)]
@@ -336,7 +336,7 @@ static func verb_tip(sim: SimScript, bed: int, kind: int) -> String:
 			return "Water: %s moisture points while below this crop's range (and a watered bed loses less to blight " \
 				% points_text(FarmingScript.TEND_MOISTURE_RESTORE, true) + "and frost today)"
 		JobsScript.KIND_DRAIN:
-			return "Drain: dig a ditch; the moisture drops to the top of this crop's range (%d%%)" % (sim.band_max_of(bed) / 100)
+			@warning_ignore("integer_division") return "Drain: dig a ditch; the moisture drops to the top of this crop's range (%d%%)" % (sim.band_max_of(bed) / 100)
 		JobsScript.KIND_COMPOST:
 			return "Compost: %s fertility points" % points_text(FarmingScript.COMPOST_FERTILITY_GAIN, true)
 	return ""
@@ -414,5 +414,5 @@ static func need_is_warning(need: int) -> bool:
 static func span_text(hours: int) -> String:
 	"""Game hours as the player reads them: whole days as days ('2 days'), else hours ('47 h')."""
 	if hours >= 24 and hours % 24 == 0:
-		return "1 day" if hours == 24 else "%d days" % (hours / 24)
+		@warning_ignore("integer_division") return "1 day" if hours == 24 else "%d days" % (hours / 24)
 	return "%d h" % hours

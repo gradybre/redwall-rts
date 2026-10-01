@@ -87,27 +87,27 @@ func test_frame_steps_run_after_the_warm_frames_in_order_before_the_release() ->
 	first), exactly its frames are drawn, it finishes (timed, its frames as `loaded`), the next begins --
 	and only then is the pause released, once."""
 	var prewarm := PrewarmScript.new()
-	var log: Array[String] = []
+	var step_log: Array[String] = []
 	var released: Array[int] = [0]
-	prewarm.add_frame_step("under", 2, func() -> void: log.append("under+"), func() -> void: log.append("under-"))
-	prewarm.add_frame_step("more", 1, func() -> void: log.append("more+"), func() -> void: log.append("more-"))
+	prewarm.add_frame_step("under", 2, func() -> void: step_log.append("under+"), func() -> void: step_log.append("under-"))
+	prewarm.add_frame_step("more", 1, func() -> void: step_log.append("more+"), func() -> void: step_log.append("more-"))
 	prewarm.release_after_frames(func() -> void: released[0] += 1, 1)
 	prewarm._process(0.016)
-	assert_equal(log, [] as Array[String], "the warm frame first")
+	assert_equal(step_log,[] as Array[String], "the warm frame first")
 	prewarm._process(0.016)
-	assert_equal(log, ["under+"] as Array[String], "then the first step begins: its first frame")
+	assert_equal(step_log,["under+"] as Array[String], "then the first step begins: its first frame")
 	prewarm._process(0.016)
-	assert_equal(log, ["under+"] as Array[String], "its second frame")
+	assert_equal(step_log,["under+"] as Array[String], "its second frame")
 	prewarm._process(0.016)
-	assert_equal(log, ["under+", "under-", "more+"] as Array[String], "two drawn: finished, and the next begun")
+	assert_equal(step_log,["under+", "under-", "more+"] as Array[String], "two drawn: finished, and the next begun")
 	assert_equal(released[0], 0, "not released yet")
 	prewarm._process(0.016)
-	assert_equal(log, ["under+", "under-", "more+", "more-"] as Array[String], "one drawn: all finished")
+	assert_equal(step_log,["under+", "under-", "more+", "more-"] as Array[String], "one drawn: all finished")
 	assert_equal(released[0], 1, "then released")
 	assert_equal([String(prewarm.report[0]["step"]), int(prewarm.report[0]["loaded"])], ["under", 2], "reported, its frames")
 	for frame: int in 5:
 		prewarm._process(0.016)
-	assert_equal([released[0], log.size()], [1, 4], "released once, each step once")
+	assert_equal([released[0], step_log.size()], [1, 4], "released once, each step once")
 	prewarm.free()
 
 

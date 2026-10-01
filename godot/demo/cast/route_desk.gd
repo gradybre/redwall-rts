@@ -91,7 +91,7 @@ func charge(index: int, usec: int) -> void:
 	_spent_usec += maxi(usec, 0)
 	_charged = index
 	if index >= 0:
-		estimate_usec = (3 * estimate_usec + maxi(usec, 0)) / 4
+		@warning_ignore("integer_division") estimate_usec = (3 * estimate_usec + maxi(usec, 0)) / 4
 		forget(index)
 
 

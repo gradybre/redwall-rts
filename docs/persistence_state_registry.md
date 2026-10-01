@@ -585,7 +585,7 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Resident active list | `_live_slots` | 4 | `RESIDENT_CAPACITY` = 512 | Only `[0, _live_count)` is meaningful | 2 | §4 COMPONENT_COLUMNS | Rebuilt ascending. |
 | Cohort rollback scratch | `_cohort_slots` | 4 | `INITIAL_POPULATION` = 12 | Only the current synchronous spawn/rollback call owns meaningful entries | 3 | -- | STATE-COHORT-R01: written by spawn_initial_settlement and read only by _rollback_cohort. Successful-call residue has no future meaning; bare reusable slots cannot record founder identity after death. No save/digest membership; save cannot observe an in-flight call. See rulings/2026-09-11_focus_and_rollback_state.md. |
 | Resident catalog and counters | -- | -- | -- | -- | 2 | §2 CATALOG_IDS | `_species_ids` and `_catalog_error` are rebuilt by reloading the catalog; `_live_count` is recomputed with the active list. |
-| Resident scratch | -- | -- | -- | -- | 3 | -- | `_math` and the `_owns_collaborators` construction flag. `_last_column_refusal` [decision 0132] is the StringName code from the most recent `restore_columns()` refusal: a diagnostic scalar, excluded from `state_bytes()`, owing no ledger byte. |
+| Resident scratch | -- | -- | -- | -- | 3 | -- | The `_owns_collaborators` construction flag (the unused `_math` scratch was deleted, decision 0501). `_last_column_refusal` [decision 0132] is the StringName code from the most recent `restore_columns()` refusal: a diagnostic scalar, excluded from `state_bytes()`, owing no ledger byte. |
 
 ### `godot/scripts/core/resource_catalog_binding.gd`
 

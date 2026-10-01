@@ -204,7 +204,7 @@ func test_an_incident_runs_needs_decision_assigned_recovering_resolved() -> void
 	var shared := _services()
 	var incidents: IncidentsScript = shared.incidents
 	var cues: Array[Vector2i] = []
-	incidents.incident_cue.connect(func(cue: int, serial: int, _severity: int) -> void: cues.append(Vector2i(cue, serial)))
+	incidents.incident_cue.connect(func(cue: int, cue_serial: int, _severity: int) -> void: cues.append(Vector2i(cue, cue_serial)))
 	var state: Array[int] = [IncidentsScript.STATE_NEEDS_DECISION]
 	var serial: int = incidents.raise("water:rescue:2", NoticesScript.SOURCE_WATER, IncidentsScript.SEVERITY_CRITICAL,
 		"Otter in difficulty", NoticesScript.TARGET_RESIDENT, 2, func() -> int: return state[0])

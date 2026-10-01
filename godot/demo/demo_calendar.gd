@@ -50,13 +50,13 @@ func ticks_for_usec(usec: int) -> int:
 		return 0
 	var scaled: int = _remainder + usec * SimClock.TICKS_PER_HOUR
 	_remainder = scaled % HOUR_USEC
-	return scaled / HOUR_USEC
+	@warning_ignore("integer_division") return scaled / HOUR_USEC
 
 
 static func usec_for_ticks(ticks: int) -> int:
 	"""The demo microseconds `ticks` calendar ticks take at 1x (rounded down): work stated in ticks, as the kitchen's
 	step rate, shown in the demo time every other work time is counted in (action_card.gd)."""
-	return ticks * HOUR_USEC / SimClock.TICKS_PER_HOUR
+	@warning_ignore("integer_division") return ticks * HOUR_USEC / SimClock.TICKS_PER_HOUR
 
 
 static func next_hour_crossing(after_tick: int) -> int:
@@ -72,7 +72,7 @@ static func is_day_boundary(boundary_tick: int) -> bool:
 
 static func hour_index_at(at_tick: int) -> int:
 	"""Whole game hours since midnight before spring day 1 at a tick: changes exactly at each crossing."""
-	return (at_tick + SimClock.CALENDAR_OFFSET_TICKS) / SimClock.TICKS_PER_HOUR
+	@warning_ignore("integer_division") return (at_tick + SimClock.CALENDAR_OFFSET_TICKS) / SimClock.TICKS_PER_HOUR
 
 
 func hour_index() -> int:

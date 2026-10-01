@@ -406,7 +406,7 @@ func _run_theatre() -> void:
 	_theatre_seen = _network.revision
 	if changed or _theatre_frame == 0:
 		hazard_view.refresh()
-	if changed or _theatre_frame == THEATRE_SLOW_FRAMES / 2:
+	@warning_ignore("integer_division") if changed or _theatre_frame == THEATRE_SLOW_FRAMES / 2:
 		signs.refresh()
 
 
@@ -497,14 +497,14 @@ func has_room_selected() -> bool:
 	return selected_room >= 0 and _network.rooms.is_ref(selected_room, selected_room_gen)
 
 
-func on_action(name: StringName) -> void:
+func on_action(action: StringName) -> void:
 	"""A panel button (tunnel_panel.gd ACTION_*)."""
 	var selection := _selection.call() as PackedInt32Array
-	if String(name).begins_with(RoomTextScript.FIT_PREFIX):
-		fit_action(name, selection)
+	if String(action).begins_with(RoomTextScript.FIT_PREFIX):
+		fit_action(action, selection)
 		_refresh_in = 0.0
 		return
-	match name:
+	match action:
 		PanelScript.ACTION_NEXT_WEATHER:
 			_skip_weather()
 		PanelScript.ACTION_EVENT:
@@ -513,17 +513,17 @@ func on_action(name: StringName) -> void:
 		PanelScript.ACTION_REPAIR:
 			actions.order(_repair_job(), selection)
 		_:
-			actions.order(JOB_FOR_ACTION[name], selection)
+			actions.order(JOB_FOR_ACTION[action], selection)
 	_refresh_in = 0.0
 
 
-func fit_action(name: StringName, selection: PackedInt32Array) -> int:
+func fit_action(action: StringName, selection: PackedInt32Array) -> int:
 	"""A fit-out button on the selected room (room_text.gd FIT_*): add or take out one fixture of a kind, or the
 	suggested layout; the selected residents put what was ordered in. REFUSE_NONE, or why not (said in the log)."""
 	if not has_room_selected():
 		return FixturesScript.REFUSE_NOT_DUG
 	var r := selected_room
-	var parts := String(name).split(":")
+	var parts := String(action).split(":")
 	var code := FixturesScript.REFUSE_NONE
 	if parts[1] == RoomTextScript.FIT_SUGGEST:
 		code = _network.fit.suggest(_network, r, works.stores)
@@ -575,9 +575,9 @@ func route_ground(points_u: PackedInt32Array, count: int, level: int = Rules.TOP
 	for k in range(1, count):
 		var a := Vector2i(points_u[2 * k - 2], points_u[2 * k - 1])
 		var b := Vector2i(points_u[2 * k], points_u[2 * k + 1])
-		var steps := maxi(1, Rules.isqrt(Rules.leg_squared_u(points_u, k)) / Rules.QUANTUM_U)
+		@warning_ignore("integer_division") var steps := maxi(1, Rules.isqrt(Rules.leg_squared_u(points_u, k)) / Rules.QUANTUM_U)
 		for s in steps:
-			var at := a + (b - a) * (2 * s + 1) / (2 * steps)
+			@warning_ignore("integer_division") var at := a + (b - a) * (2 * s + 1) / (2 * steps)
 			metres[works.ground.type_at_level(at.x, at.y, level)] += 1
 	var parts := PackedStringArray()
 	for kind in 4:
@@ -713,7 +713,7 @@ func _hazard_text(slot: int) -> String:
 		return "Safe: braced"
 	if not hazards.exposed(slot):
 		return "Safe ground (no wet or sandy stretch)"
-	return "Wet ground: seep %d%% · sand: strain %d%% — bracing prevents both" % [hazards.seep_permille(slot) / 10,
+	@warning_ignore("integer_division") return "Wet ground: seep %d%% · sand: strain %d%% — bracing prevents both" % [hazards.seep_permille(slot) / 10,
 		hazards.strain_permille(slot) / 10]
 
 

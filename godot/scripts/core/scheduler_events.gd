@@ -404,17 +404,17 @@ func _init(p_clock: SimClock = null) -> void:
 
 func _assert_contracts() -> void:
 	"""Prove the record stride, the 8224-byte ledger row and the reserve arithmetic before use."""
-	assert(OFFSET_RESERVED + FIELD_BYTES == RECORD_BYTES,
+	@warning_ignore("assert_always_true") assert(OFFSET_RESERVED + FIELD_BYTES == RECORD_BYTES,
 		"the contract's last field must end exactly at the 32-byte stride")
-	assert(TICK_FIELD_BYTES + 6 * FIELD_BYTES == RECORD_BYTES,
+	@warning_ignore("assert_always_true") assert(TICK_FIELD_BYTES + 6 * FIELD_BYTES == RECORD_BYTES,
 		"the record is one i64 boundary plus six i32 fields")
-	assert(RECORD_PAYLOAD_BYTES == 8192 and RUNTIME_PAYLOAD_BYTES == 8224,
+	@warning_ignore("assert_always_true") assert(RECORD_PAYLOAD_BYTES == 8192 and RUNTIME_PAYLOAD_BYTES == 8224,
 		"256 records of 32 bytes plus a 32-byte control header is the ledger's 8224")
-	assert(OFFSET_CONTROL_LAST_APPLIED_SEQUENCE_HIGH + FIELD_BYTES == CONTROL_BYTES,
+	@warning_ignore("assert_always_true") assert(OFFSET_CONTROL_LAST_APPLIED_SEQUENCE_HIGH + FIELD_BYTES == CONTROL_BYTES,
 		"the control header's last field must end exactly at 32 bytes")
 	assert(RESERVED_CONTROL_SLOTS == SimClock.ALL_PAUSE_REASONS.size() + 1,
 		"the reserve is five unmatched pause holds, one per reason, plus one overload downgrade")
-	assert(EXTENSION_FIXED_BYTES == 48, "the contract's X = 48 + 32*S")
+	@warning_ignore("assert_always_true") assert(EXTENSION_FIXED_BYTES == 48, "the contract's X = 48 + 32*S")
 
 
 func _allocate_columns() -> void:

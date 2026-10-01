@@ -287,11 +287,11 @@ func _moisture_day(bed: int, weather_delta: int) -> void:
 	var moisture: int = moisture_of(bed)
 	var delta: int = 0
 	if _banked[bed] == 1 and weather_delta < 0:
-		delta += (-weather_delta) / 2
+		@warning_ignore("integer_division") delta += (-weather_delta) / 2
 	var low: int = band_min_of(bed)
 	var high: int = band_max_of(bed)
 	if _irrigated[bed] == 1:
-		delta += clampi((low + high) / 2 - (moisture + delta), -IRRIGATE_PER_DAY, IRRIGATE_PER_DAY)
+		@warning_ignore("integer_division") delta += clampi((low + high) / 2 - (moisture + delta), -IRRIGATE_PER_DAY, IRRIGATE_PER_DAY)
 	elif _drained[bed] == 1:
 		delta -= clampi(moisture + delta - (low + DRAIN_MARGIN), 0, DRAIN_PER_DAY)
 	if _raised[bed] == 1 and _irrigated[bed] == 0:
@@ -620,7 +620,7 @@ func growth_permille(bed: int) -> int:
 	if not target.ok:
 		return 0
 	var grown: int = _farming.growth_milli_hours_of(slot).value
-	return mini(grown * 1000 / target.value, 1000)
+	@warning_ignore("integer_division") return mini(grown * 1000 / target.value, 1000)
 
 
 func hours_to_ripe_into(bed: int, out: IntMath.IntResult) -> bool:
@@ -638,7 +638,7 @@ func hours_to_ripe_into(bed: int, out: IntMath.IntResult) -> bool:
 	if out.value <= 0:
 		return out.refuse(String(REFUSE_STALLED))
 	var left: int = _farming.growth_target_milli_hours_of(slot).value - _farming.growth_milli_hours_of(slot).value
-	return out.succeed((left + out.value - 1) / out.value)
+	@warning_ignore("integer_division") return out.succeed((left + out.value - 1) / out.value)
 
 
 func ripe_hours_into(bed: int, out: IntMath.IntResult) -> bool:
@@ -769,7 +769,7 @@ func forecast_event() -> int:
 
 func active_event() -> int:
 	"""The real weather's event active today (EVENT_NONE for none)."""
-	var absolute_season: int = (_absolute_day - 1) / SimClock.DAYS_PER_SEASON
+	@warning_ignore("integer_division") var absolute_season: int = (_absolute_day - 1) / SimClock.DAYS_PER_SEASON
 	return _crop_weather.weather().active_event_on(absolute_season, _season_day)
 
 
@@ -795,7 +795,7 @@ func slot_of(bed: int) -> int:
 
 func take_events_into(out: PackedInt32Array) -> int:
 	"""Move the logged (kind, bed) pairs into `out` (appended) and forget them; returns the pairs."""
-	var pairs: int = _events.size() / 2
+	@warning_ignore("integer_division") var pairs: int = _events.size() / 2
 	out.append_array(_events)
 	_events.clear()
 	return pairs

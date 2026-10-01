@@ -47,9 +47,9 @@ var _bank: WaterMapScript.Bank = WaterMapScript.Bank.new()
 var _spill: Vector2i = Vector2i.ZERO
 
 
-func _init(map: WaterMapScript = null) -> void:
-	"""Answer from `map` (the water node's), or from the village's authored water."""
-	_map = map if map != null else _default_map()
+func _init(water_map: WaterMapScript = null) -> void:
+	"""Answer from `water_map` (the water node's), or from the village's authored water."""
+	_map = water_map if water_map != null else _default_map()
 	var found := IntMath.IntResult.new()
 	var resolved: bool = _map.landing_index_into(SPILL_LANDING, found)
 	assert(resolved, "the village water must have its %s landing" % SPILL_LANDING)

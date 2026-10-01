@@ -465,7 +465,7 @@ func _scale_checks() -> void:
 	for key: String in frames:
 		var frame: Control = frames[key]
 		if frame == null or not is_equal_approx(frame.scale.x, s):
-			off.append("%s %s" % [key, frame.scale.x if frame != null else "none"])
+			off.append("%s %s" % [key, (frame.scale.x as Variant) if frame != null else ("none" as Variant)])
 	var indicator: float = float(_command().call(&"tunnels").get("view").call(&"indicator_scale"))
 	if not is_equal_approx(indicator, s):
 		off.append("level indicator %s" % indicator)

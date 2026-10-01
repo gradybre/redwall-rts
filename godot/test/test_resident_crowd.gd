@@ -323,7 +323,7 @@ func test_an_instance_outside_the_buffer_is_refused_not_answered() -> void:
 func test_yaw_is_never_turned_into_a_rotation() -> void:
 	"""MOVE-G01/G04: the yaw zero-reference and handedness are unauthored, so no basis derives one."""
 	_spawn(1)
-	_transforms.place(_residents.ref_of(0), 0, 0, 0, TransformsScript.YAW_UNITS_PER_TURN / 4)
+	@warning_ignore("integer_division") _transforms.place(_residents.ref_of(0), 0, 0, 0, TransformsScript.YAW_UNITS_PER_TURN / 4)
 	_bind()
 	_refresh(1000, 1000)
 	assert_true(_crowd.instance_basis(0).is_equal_approx(Basis.IDENTITY),

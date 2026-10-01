@@ -190,8 +190,8 @@ func _insert_pick(first: int, room: int, row: int, cost: float, d: float) -> voi
 func link_cost_m(walker: int, k: int) -> float:
 	"""What swim link `k` costs `walker`, as metres at its walk speed: the bank walks, climbing in and
 	out, and the swim at the speed it makes good across the flow (INF: it cannot hold its line)."""
-	var flood_scale: int = Rules.PERMILLE + Rules.FLOOD_FLOW_PERMILLE * motion.flood_permille / Rules.PERMILLE
-	var across: int = links.link_flow_across[k] * flood_scale / Rules.PERMILLE
+	@warning_ignore("integer_division") var flood_scale: int = Rules.PERMILLE + Rules.FLOOD_FLOW_PERMILLE * motion.flood_permille / Rules.PERMILLE
+	@warning_ignore("integer_division") var across: int = links.link_flow_across[k] * flood_scale / Rules.PERMILLE
 	var ground: int = Rules.ground_speed_mm_s(state.swim_mm_s[walker], across, 0)
 	if ground <= 0:
 		return INF

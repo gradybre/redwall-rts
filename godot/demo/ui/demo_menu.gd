@@ -10,22 +10,27 @@ extends CanvasLayer
 ##     line that the demo cannot save yet;
 ##   * CONTROLS: the demo's keys and clicks (DEMO_CONTROLS);
 ##   * SETTINGS: only what works -- the interface scale (100/125/150 %, UI §8.1's `ui_scale`, each size
-##     offered only where the layout fits it), full screen, and the sound (demo/sound/sound_settings_ui.gd,
-##     decision 0351: each bus's volume and mute, and the mixes), scrolling in the modal rectangle when the
-##     window is short;
+##     offered only where the layout fits it), full screen, accessibility and time (demo/access/access_settings_ui.gd,
+##     decision 0471: the four presets, each setting, the auto-pauses, Restore defaults), and the sound
+##     (demo/sound/sound_settings_ui.gd, decision 0351: each bus's volume and mute, and the mixes), scrolling in the
+##     modal rectangle when the window is short (in its own pixels at any scale: demo_scroll.gd);
 ##   * CONFIRM: Restart and Quit both ask first, and say again that the village will be lost. Focus lands
 ##     on Cancel.
 ## Esc goes back one page, and from the menu closes it (the input gate calls `back_or_close`).
 ##
 ## PAUSE. Opening holds the clock's MENU pause reason (`GameManager.set_menu_pause`), closing releases
 ## it: the requested speed is kept apart, so the village comes back at the speed it had, and a PLAYER
-## pause held before stays held. Drawn above the HUD (LAYER), below the stall banner.
+## pause held before stays held. In the village the hold goes through the pause ledger (`hold_pause`,
+## demo/session/pause_ledger.gd, decision 0471), which shares MENU with a planning or critical pause, so
+## closing the menu never lifts one of those. Drawn above the HUD (LAYER), below the stall banner.
 ##
 ## ACTIONS are the host's Callables (`on_restart`, `on_quit`, `on_lab`, `on_scale`, `on_fullscreen`,
 ## ...), so the menu decides nothing about the scene; demo_village.gd wires them.
 
 const FarmUi := preload("res://demo/farm/farm_ui.gd")
 const SoundSettingsScript := preload("res://demo/sound/sound_settings_ui.gd")
+const AccessSettingsScript := preload("res://demo/access/access_settings_ui.gd")
+const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
@@ -55,7 +60,7 @@ const MENU_TIPS: Array[String] = [
 	"Close the menu and carry on at the speed you had (Esc)",
 	"Start the demo again from its first morning (asks first)",
 	"The demo's keys and clicks",
-	"Interface scale, full screen and sound",
+	"Interface scale, full screen, accessibility, time and sound",
 	"Test triggers -- weather, a tunnel threat, a storm gust, a swimmer's cramp",
 	"Leave the demo (asks first)",
 ]
@@ -78,7 +83,9 @@ const DEMO_CONTROLS: Array = [
 	["Q / E, middle drag", "Turn the camera (middle drag also tilts it)"],
 	["Wheel, Page Up / Down", "Zoom"],
 	["Home", "Reset the view"],
-	["Space", "Pause or resume"],
+	["Space", "Pause; or, paused, Resume (your pause, a planning pause, a critical pause)"],
+	["G", "Run until dawn, dusk, the next meal, a project, a harvest or a warning (the button by 4x)"],
+	["F6", "The object list: every resident, bed, tree, bridge, mouth and room; Enter selects and centres"],
 	["B or T", "Dig tool: drag a tunnel (Enter digs a piece laid by clicks; Backspace takes a point back)"],
 	["H / C in the Dig tool", "Place a burrow home / a root cellar"],
 	["U", "Underground view"],
@@ -103,6 +110,10 @@ var is_fullscreen: Callable = Callable()
 var scale_percent: int = UiLayout.USER_SCALE_100
 ## The Settings page's sound section; the host sets its `apply` (the demo's mix).
 var sound: SoundSettingsScript = SoundSettingsScript.new()
+## The Settings page's accessibility and time section; the host sets its actions (decision 0471).
+var access: AccessSettingsScript = AccessSettingsScript.new()
+## `(held: bool) -> bool`: hold the MENU pause through the host's pause ledger (unset: on the clock directly).
+var hold_pause: Callable = Callable()
 
 var _manager: GameManagerScript = null
 var _holding: bool = false
@@ -219,6 +230,7 @@ func _build_settings() -> VBoxContainer:
 	_fullscreen = FarmUi.button("")
 	_fullscreen.pressed.connect(toggle_fullscreen)
 	body.add_child(_fullscreen)
+	body.add_child(access)
 	body.add_child(sound)
 	page.add_child(_back_button())
 	return page
@@ -226,9 +238,7 @@ func _build_settings() -> VBoxContainer:
 
 func _settings_scroll_body(page: VBoxContainer) -> VBoxContainer:
 	"""The Settings page's scroll (sized in _place) and the column inside it."""
-	_settings_scroll = ScrollContainer.new()
-	_settings_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_settings_scroll.follow_focus = true
+	_settings_scroll = DemoScroll.new()
 	page.add_child(_settings_scroll)
 	_settings_body = VBoxContainer.new()
 	_settings_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -291,7 +301,8 @@ func close() -> bool:
 		return true
 	_hold(false)
 	if _holding:
-		push_warning("the clock refused to release the menu's pause (%s); the menu stays open" % _manager.last_refusal())
+		push_warning("the clock refused to release the menu's pause (%s); the menu stays open"
+			% (_manager.last_refusal() if _manager != null else &"NO_CLOCK"))
 		return false
 	visible = false
 	return true
@@ -324,10 +335,15 @@ func is_holding_pause() -> bool:
 
 
 func _hold(held: bool) -> void:
-	"""Hold or release MENU once (a refused request leaves the menu's record unchanged)."""
-	if held == _holding or _manager == null:
+	"""Hold or release MENU once, through the host's ledger when it has one (a refused request leaves the menu's
+	record unchanged)."""
+	if held == _holding:
 		return
-	if _manager.set_menu_pause(held):
+	if hold_pause.is_valid():
+		if bool(hold_pause.call(held)):
+			_holding = held
+		return
+	if _manager != null and _manager.set_menu_pause(held):
 		_holding = held
 
 
@@ -431,6 +447,7 @@ func _refresh_settings() -> void:
 	_scale_note.visible = not refused.is_empty()
 	var full: bool = is_fullscreen.is_valid() and bool(is_fullscreen.call())
 	_fullscreen.text = FULLSCREEN_TEXT % ("on" if full else "off")
+	access.refresh()
 	sound.refresh()
 
 

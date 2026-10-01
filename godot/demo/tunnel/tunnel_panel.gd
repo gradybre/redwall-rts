@@ -39,6 +39,7 @@ const DetailZone := preload("res://demo/ui/demo_detail_zone.gd")
 const RoomTextScript := preload("res://demo/burrow/room_text.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
 
 signal action(name: StringName)
 
@@ -119,8 +120,7 @@ func build() -> void:
 	_frame.mouse_filter = Control.MOUSE_FILTER_STOP
 	_frame.add_theme_stylebox_override(&"panel", Styles.box(Styles.PIECE_PANEL, CONTENT_MARGINS))
 	add_child(_frame)
-	_body = ScrollContainer.new()
-	_body.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_body = DemoScroll.new()
 	_frame.add_child(_body)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override(&"separation", 5)

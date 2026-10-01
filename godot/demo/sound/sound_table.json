@@ -1,0 +1,111 @@
+{
+	"version": 1,
+	"note": "The live demo's sound cues (decision 0351). Each cue: files (any number; none staged yet, so every cue plays silent), bus (ambience|work|water|cues), positional, loop, volume_db, range_m (positional only), gap_ms (real time between plays), voices (at once), equivalent (what shows the same thing to a player with the sound off). Drop the files in at these paths and nothing else changes.",
+	"cues": {
+		"chop": {
+			"files": ["res://demo/assets/sound/chop_01.ogg", "res://demo/assets/sound/chop_02.ogg", "res://demo/assets/sound/chop_03.ogg"],
+			"bus": "work", "positional": true, "loop": false, "volume_db": -4.0, "range_m": 28.0, "gap_ms": 300, "voices": 3,
+			"equivalent": "Wood chips fly from the trunk; the resident's task line reads Felling"
+		},
+		"gnaw": {
+			"files": ["res://demo/assets/sound/gnaw_01.ogg", "res://demo/assets/sound/gnaw_02.ogg"],
+			"bus": "work", "positional": true, "loop": false, "volume_db": -6.0, "range_m": 22.0, "gap_ms": 350, "voices": 2,
+			"equivalent": "Wood chips fly from the trunk; the beaver's task line reads Felling"
+		},
+		"saw": {
+			"files": ["res://demo/assets/sound/saw_01.ogg", "res://demo/assets/sound/saw_02.ogg"],
+			"bus": "work", "positional": true, "loop": false, "volume_db": -6.0, "range_m": 24.0, "gap_ms": 450, "voices": 2,
+			"equivalent": "The sawyer works at the sawhorse; the task line reads Sawing planks"
+		},
+		"dig": {
+			"files": ["res://demo/assets/sound/dig_01.ogg", "res://demo/assets/sound/dig_02.ogg", "res://demo/assets/sound/dig_03.ogg"],
+			"bus": "work", "positional": true, "loop": false, "volume_db": -6.0, "range_m": 22.0, "gap_ms": 250, "voices": 3,
+			"equivalent": "Clods burst off the dig face and the tunnel panel's progress moves on"
+		},
+		"tree_fall": {
+			"files": ["res://demo/assets/sound/tree_fall_01.ogg"],
+			"bus": "work", "positional": true, "loop": false, "volume_db": -2.0, "range_m": 45.0, "gap_ms": 600, "voices": 2,
+			"equivalent": "The tree topples in a burst of leaves and dust; the Woods notice says it came down"
+		},
+		"pickup": {
+			"files": ["res://demo/assets/sound/pickup_01.ogg", "res://demo/assets/sound/pickup_02.ogg"],
+			"bus": "work", "positional": true, "loop": false, "volume_db": -10.0, "range_m": 16.0, "gap_ms": 120, "voices": 2,
+			"equivalent": "The load appears in the resident's arms and it walks with the carry gait"
+		},
+		"drop": {
+			"files": ["res://demo/assets/sound/drop_01.ogg", "res://demo/assets/sound/drop_02.ogg"],
+			"bus": "work", "positional": true, "loop": false, "volume_db": -8.0, "range_m": 16.0, "gap_ms": 120, "voices": 2,
+			"equivalent": "The load leaves the resident's arms; the stock figure it went into rises"
+		},
+		"step_grass": {
+			"files": ["res://demo/assets/sound/step_grass_01.ogg", "res://demo/assets/sound/step_grass_02.ogg", "res://demo/assets/sound/step_grass_03.ogg"],
+			"bus": "work", "positional": true, "loop": false, "volume_db": -16.0, "range_m": 14.0, "gap_ms": 90, "voices": 3,
+			"equivalent": "The resident's walk"
+		},
+		"step_dirt": {
+			"files": ["res://demo/assets/sound/step_dirt_01.ogg", "res://demo/assets/sound/step_dirt_02.ogg", "res://demo/assets/sound/step_dirt_03.ogg"],
+			"bus": "work", "positional": true, "loop": false, "volume_db": -16.0, "range_m": 14.0, "gap_ms": 90, "voices": 3,
+			"equivalent": "The resident's walk along a worn path"
+		},
+		"step_wood": {
+			"files": ["res://demo/assets/sound/step_wood_01.ogg", "res://demo/assets/sound/step_wood_02.ogg", "res://demo/assets/sound/step_wood_03.ogg"],
+			"bus": "work", "positional": true, "loop": false, "volume_db": -13.0, "range_m": 16.0, "gap_ms": 90, "voices": 2,
+			"equivalent": "The resident's walk across the bridge deck"
+		},
+		"step_tunnel": {
+			"files": ["res://demo/assets/sound/step_tunnel_01.ogg", "res://demo/assets/sound/step_tunnel_02.ogg"],
+			"bus": "work", "positional": true, "loop": false, "volume_db": -16.0, "range_m": 12.0, "gap_ms": 90, "voices": 2,
+			"equivalent": "The resident's walk through the tunnel (U view)"
+		},
+		"step_wade": {
+			"files": ["res://demo/assets/sound/step_wade_01.ogg", "res://demo/assets/sound/step_wade_02.ogg"],
+			"bus": "water", "positional": true, "loop": false, "volume_db": -12.0, "range_m": 14.0, "gap_ms": 120, "voices": 2,
+			"equivalent": "The resident wades; the Water panel shows it wading"
+		},
+		"splash": {
+			"files": ["res://demo/assets/sound/splash_01.ogg", "res://demo/assets/sound/splash_02.ogg"],
+			"bus": "water", "positional": true, "loop": false, "volume_db": -6.0, "range_m": 26.0, "gap_ms": 300, "voices": 2,
+			"equivalent": "The swim or dive pose in the water; the Water panel shows the resident swimming or diving"
+		},
+		"water_in": {
+			"files": ["res://demo/assets/sound/water_in_01.ogg"],
+			"bus": "water", "positional": true, "loop": false, "volume_db": -10.0, "range_m": 18.0, "gap_ms": 250, "voices": 2,
+			"equivalent": "The resident is drawn in the water; the Water panel shows its mode"
+		},
+		"water_out": {
+			"files": ["res://demo/assets/sound/water_out_01.ogg"],
+			"bus": "water", "positional": true, "loop": false, "volume_db": -12.0, "range_m": 18.0, "gap_ms": 250, "voices": 2,
+			"equivalent": "The resident climbs out onto the bank; the Water panel shows it on land"
+		},
+		"amb_stream": {
+			"files": ["res://demo/assets/sound/amb_stream_loop.ogg"],
+			"bus": "water", "positional": true, "loop": true, "volume_db": -8.0, "range_m": 22.0, "gap_ms": 0, "voices": 1,
+			"equivalent": "The stream and the pond are drawn flowing"
+		},
+		"amb_wind": {
+			"files": ["res://demo/assets/sound/amb_wind_loop.ogg"],
+			"bus": "ambience", "positional": false, "loop": true, "volume_db": -14.0, "range_m": 0.0, "gap_ms": 0, "voices": 1,
+			"equivalent": "Swaying trees; the HUD's weather readout"
+		},
+		"amb_rain": {
+			"files": ["res://demo/assets/sound/amb_rain_loop.ogg"],
+			"bus": "ambience", "positional": false, "loop": true, "volume_db": -10.0, "range_m": 0.0, "gap_ms": 0, "voices": 1,
+			"equivalent": "Rain falls on screen; the weather readout says rain"
+		},
+		"warning": {
+			"files": ["res://demo/assets/sound/warning_01.ogg"],
+			"bus": "cues", "positional": false, "loop": false, "volume_db": -6.0, "range_m": 0.0, "gap_ms": 1500, "voices": 1,
+			"equivalent": "The news strip's 'Warning:' line, kept in the notification history (N)"
+		},
+		"complete": {
+			"files": ["res://demo/assets/sound/complete_01.ogg"],
+			"bus": "cues", "positional": false, "loop": false, "volume_db": -8.0, "range_m": 0.0, "gap_ms": 800, "voices": 1,
+			"equivalent": "The tunnel, room or bridge is drawn finished and its panel says it is open"
+		},
+		"ui_click": {
+			"files": ["res://demo/assets/sound/ui_click_01.ogg"],
+			"bus": "cues", "positional": false, "loop": false, "volume_db": -14.0, "range_m": 0.0, "gap_ms": 40, "voices": 2,
+			"equivalent": "The button's pressed look and what the press did"
+		}
+	}
+}

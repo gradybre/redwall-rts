@@ -63,7 +63,7 @@ func _initialize() -> void:
 	_steps = [_pantry_opens_as_a_modal, _pantry_blocks_the_world, _pantry_traps_tab, _pantry_escape_returns,
 		_escape_ladder_ends_in_the_menu, _menu_button_opens_the_menu, _menu_pages_and_escape, _menu_controls_back,
 		_menu_restores_speed, _menu_confirms_restart_and_quit, _confirm_cancel_and_quit,
-		_settings_offer_what_works, _settings_close, _f7_and_tab_reach_every_panel_button, _focus_ring_off,
+		_settings_offer_what_works, _settings_fit_and_sound, _settings_close, _f7_and_tab_reach_every_panel_button, _focus_ring_off,
 		_f7_reaches_the_left_column_then_the_world, _enter_and_space_route_by_focus, _enter_goes_to_the_dig_tool,
 		_lab_holds_the_triggers, _lab_fires_and_panels_are_clean, _lab_from_the_menu, _history_click_does_not_leak,
 		_a_click_gives_the_arrows_back, _the_banner_over_the_lab, _the_banner_takes_enter,
@@ -374,14 +374,37 @@ func _confirm_cancel_and_quit() -> void:
 
 
 func _settings_offer_what_works() -> void:
-	"""Settings: the scale the window fits, full screen, and sound marked as absent."""
+	"""Settings: the scale the window fits, full screen, and the sound (decision 0351) -- inside the window."""
 	_menu().menu_button(3).pressed.emit()
 	_check("Settings opens", _menu().page() == MenuScript.PAGE_SETTINGS)
 	var fits_150: bool = _size.y >= 1080
 	_check("100%% is chosen", _menu().scale_button(0).button_pressed)
 	_check("150%% is offered only where it fits", _menu().scale_button(2).disabled != fits_150)
-	_check("sound is marked as not in the demo", _menu().page_text(MenuScript.PAGE_SETTINGS).contains("no sound"))
+	_check("the sound section is offered", _menu().page_text(MenuScript.PAGE_SETTINGS).contains("Quiet focus"))
 	_capture("menu_settings")
+
+
+func _settings_fit_and_sound() -> void:
+	"""Laid out: the Settings frame inside the window; the sound owner follows the menu (decision 0351)."""
+	var frame: PanelContainer = _menu().frame()
+	var bottom: float = frame.position.y + frame.size.y * frame.scale.y
+	_check("the Settings frame fits the window", frame.position.y >= 0.0 and bottom <= float(_size.y) + 1.0,
+		"top %.0f bottom %.0f" % [frame.position.y, bottom])
+	_sound_follows_the_menu()
+
+
+func _sound_follows_the_menu() -> void:
+	"""The village's sound owner: its buses made, ducked while the menu holds the clock, and Work's + moves the bus."""
+	var sound: Node = _village.call(&"sound")
+	var mix: RefCounted = sound.get(&"mix")
+	_check("the sound owner ducks while the menu holds the clock", bool(mix.get(&"paused")))
+	var work: int = AudioServer.get_bus_index(&"Work")
+	_check("the Work bus exists", work > 0)
+	var settings: Node = _menu().get(&"sound")
+	(settings.call(&"up_button", 2) as Button).pressed.emit()
+	_check("Work's + raises the bus to 80 %", absf(AudioServer.get_bus_volume_db(work) - linear_to_db(0.8)) < 0.01,
+		"%.2f dB" % AudioServer.get_bus_volume_db(work))
+	(settings.call(&"down_button", 2) as Button).pressed.emit()
 
 
 func _settings_close() -> void:

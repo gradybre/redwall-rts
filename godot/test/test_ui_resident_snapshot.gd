@@ -346,10 +346,20 @@ func test_elapsed_simulation_does_not_change_a_per_hour_rate() -> void:
 	var before: String = _snapshot.row(NeedsScript.NEED_HUNGER).rate_text
 	var value_before: int = _snapshot.row(NeedsScript.NEED_HUNGER).basis_points
 	for step: int in 750:
-		assert_true(_needs.tick(slot).ok, "tick %d applies" % step)
+		assert_true(_residents.tick_needs_all().ok, "tick %d applies" % step)
 	assert_true(_snapshot.capture(_directory, _residents, _needs, _residents.ref_of(slot)),
 		"and captured again a simulated hour later")
 	assert_equal(_snapshot.row(NeedsScript.NEED_HUNGER).rate_text, before,
 		"the displayed rate is identical")
 	assert_true(_snapshot.row(NeedsScript.NEED_HUNGER).basis_points < value_before,
 		"while the value it describes has actually fallen")
+
+
+func test_a_childs_hunger_row_shows_the_child_rate() -> void:
+	"""Decision 0521: the row shows the staged rate the sweep applies, 187500 for a small child."""
+	var made: ResidentsScript.OpResult = _residents.spawn_with_stage(&"mouse",
+		ResidentsScript.LIFE_STAGE_CHILD)
+	assert_true(made.ok, "a child mouse is spawned")
+	assert_true(_snapshot.capture(_directory, _residents, _needs, made.ref), "captured")
+	assert_equal(_snapshot.row(NeedsScript.NEED_HUNGER).rate_milli, -187500,
+		"three quarters of the adult 250000, negated once")

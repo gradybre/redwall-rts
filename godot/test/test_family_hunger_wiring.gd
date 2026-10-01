@@ -129,7 +129,8 @@ func test_an_all_adult_settlement_run_matches_the_base_digest() -> void:
 	assert_equal(committed, 4500, "every tick committed")
 	var digest: String = ctx.finish().hex_encode()
 	print("PC04 SETTLEMENT_DIGEST ", digest)
-	assert_equal(digest, SETTLEMENT_DIGEST, "the all-adult settlement is byte-identical to the base")
+	assert_equal(digest, SETTLEMENT_DIGEST,
+		"the all-adult settlement is byte-identical to the base")
 
 
 func test_an_all_adult_seeded_standalone_run_matches_the_base_digest() -> void:
@@ -197,7 +198,8 @@ func test_every_stage_size_and_season_hunger_rate_is_the_literal() -> void:
 		assert_true(needs.set_winter(winter == 1).ok, "season applies")
 		for stage: int in 3:
 			for size: int in 3:
-				var read: IntMath.IntResult = needs.hunger_rate_milli_per_hour_for_stage(stage, size)
+				var read: IntMath.IntResult = needs.hunger_rate_milli_per_hour_for_stage(stage,
+					size)
 				assert_true(read.ok, "stage %d size %d reads" % [stage, size])
 				assert_equal(read.value, HUNGER_LITERALS[stage * 6 + size * 2 + winter],
 					"stage %d size %d winter %d" % [stage, size, winter])
@@ -324,8 +326,17 @@ func test_daily_demand_sums_each_residents_own_stage_row() -> void:
 	assert_equal(residents.daily_demand_np().value, 25560, "the settlement in winter")
 
 
+func test_the_non_allocating_stage_reader_answers_minus_one_for_an_empty_row() -> void:
+	"""`life_stage_code_of()` never reports a free row's leftover byte as a stage."""
+	var residents: ResidentsScript = ResidentsScript.new()
+	var child: int = residents.spawn_with_stage(&"mouse", ResidentsScript.LIFE_STAGE_CHILD).value
+	assert_equal(residents.life_stage_code_of(child), ResidentsScript.LIFE_STAGE_CHILD, "a child")
+	assert_equal(residents.life_stage_code_of(child + 1), -1, "a free row")
+	assert_equal(residents.life_stage_code_of(-1), -1, "out of range")
+
+
 func test_the_refuge_start_stays_twelve_adults() -> void:
-	"""DEC-043 activates no child: the §5.1 cohort is twelve ADULT rows."""
+	"""DEC-044 activates no child: the §5.1 cohort is twelve ADULT rows."""
 	_settlement = SettlementSystemScript.new()
 	assert_true(_settlement.create_initial_settlement(), "the cohort was created")
 	var residents: ResidentsScript = _settlement.residents()

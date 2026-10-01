@@ -127,7 +127,7 @@ extends RefCounted
 ## stays byte-unchanged. Divergences from it are marked `DIVERGENCE:` at each site.
 ##
 ## ---------------------------------------------------------------------------------------
-## LIFE-STAGE HUNGER (PC-04, DEC-043, decision 0521). Hunger decay is
+## LIFE-STAGE HUNGER (PC-04, DEC-044, decision 0521). Hunger decay is
 ## floor(250000 x size x season x stage / 10^9) milli-points/hour, read from the fixed-stage
 ## table `family_rules.gd` publishes (FAMILY-RULES-R01): ADULT 1000, CHILD 750, ELDER 1000. The
 ## stage itself is NOT stored here. Residents owns the one stage column (MOVE-DEP-R02) and the
@@ -137,7 +137,7 @@ extends RefCounted
 ## A standalone store has no Residents owner and therefore no stage column; its stage-blind
 ## entries are fixtures and integrate every row on the ADULT row. ADULT and ELDER share 1000 as
 ## an authored equality in that table, never as a fallback. Children are not active in any
-## scenario (DEC-043), so every live world integrates the same bytes as before this change.
+## scenario (DEC-044), so every live world integrates the same bytes as before this change.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")

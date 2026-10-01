@@ -217,7 +217,7 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 | Allocation | Count | Bytes/element | Bytes | Lifetime | Derivation |
 |---|---|---|---|---|---|
 | Fixed registry payload | 25038690 | 1 | 25038690 | mutable | Sum §2.2 (+1536 decision 0021; +306304 decisions 0026/0030; +131072 claim-ordering cache, declared separately per R05-QUOTA-024; +256 decision 0027, ratified; +12800 decision 0037; +126976 decision 0039; +212992 decision 0040; +13312 decision 0041; +40960 decision 0045 FieldPolicy); +35840 decision 0051 hive-service slice; +16 decision 0055 Weather absolute-season identity; +512 decision 0095 Resident life stage; +2048 decision0167 full Expedition claim slot) |
-| Auxiliary payload | 25293280 | 1 | 25293280 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005, +65536 READY_06 §7, +212996 ARCH-STATE-007, +49152 ARCH-STATE-008, +520192 decision 0053) |
+| Auxiliary payload | 25339632 | 1 | 25339632 | mutable | Sum §3 (+786436 decision 0019, +158816 ARCH-STATE-005, +65536 READY_06 §7, +212996 ARCH-STATE-007, +49152 ARCH-STATE-008, +520192 decision 0053, +46352 decision 0521 household/care owner) |
 | Static navigation map | 262144 | 14 | 3670016 | shared immutable | walkability/layer bytes + terrain/height/clearance i32 |
 | Active A* builder | 262144 | 21 | 5505024 | mutable | g,parent,heap,heap_position,stamp i32 + state byte |
 | Route cell arena | 1048576 | 4 | 4194304 | mutable | ARCH-PATH-005 cells |
@@ -253,13 +253,13 @@ All allocations beyond GDD field payload/derived map dimensions are `[NEW]` capa
 
 | Metric | Bytes | Arithmetic / meaning |
 |---|---|---|
-| Planned allocated payload | 70015827 | Mechanical sum of printed allocation rows; +10536 decision0169 immutable schema; +2271 decision0167 (2048 claim slot,179 prior declaration drift,44 new declaration metadata); decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054, **−3151872 decision 0138** (the presentation-private pose scaffold row is deleted, not moved: §2.2's `Transform` 2801664 and §3's `TransformBinding` 350208 already budget the one directory-bound store `settlement_system.gd` now composes, and 2801664+350208=3151872 exactly) |
+| Planned allocated payload | 70062179 | Mechanical sum of printed allocation rows; +46352 decision0521 household/care owner (FAMILY-STATE-R01, allocated once per world although not yet composed into the settlement); +10536 decision0169 immutable schema; +2271 decision0167 (2048 claim slot,179 prior declaration drift,44 new declaration metadata); decision 0050 reconciliation, +16 decision 0055, +8224 decision 0054, **−3151872 decision 0138** (the presentation-private pose scaffold row is deleted, not moved: §2.2's `Transform` 2801664 and §3's `TransformBinding` 350208 already budget the one directory-bound store `settlement_system.gd` now composes, and 2801664+350208=3151872 exactly) |
 | Allocator/object reserve | 8388608 | [NEW] 8*1048576 |
-| One live world plus reserve | 78404435 | Payload + reserve |
-| Headroom below decimal 100 MB | 21595565 | 100000000 − live total |
-| Additional candidate mutable state | 63770659 | Second mutable world: payload −3670016 navigation map −2097152 catalog arenas −262144 I/O −131072 UI snapshots −55200 timing −19048 shared immutable declaration −10536 shared immutable component schema. Decision0167 corrects the prior duplicate charge of the whole declaration row, not just its growth. |
-| Transactional peak plus same reserve | 142175094 | Live total + candidate mutable state |
-| Transactional headroom | -42175094 | 100000000 − transactional peak |
+| One live world plus reserve | 78450787 | Payload + reserve |
+| Headroom below decimal 100 MB | 21549213 | 100000000 − live total |
+| Additional candidate mutable state | 63817011 | Second mutable world: payload −3670016 navigation map −2097152 catalog arenas −262144 I/O −131072 UI snapshots −55200 timing −19048 shared immutable declaration −10536 shared immutable component schema. Decision0167 corrects the prior duplicate charge of the whole declaration row, not just its growth. |
+| Transactional peak plus same reserve | 142267798 | Live total + candidate mutable state |
+| Transactional headroom | -42267798 | 100000000 − transactional peak |
 
 **ARCH-MEM-010 (reconciled 2026-09-11, decision 0050; advanced 2026-09-11 by decisions 0055,
 0054 and 0066).** Historical decision0066 snapshot (current totals are in §2.3): payload was
@@ -346,6 +346,7 @@ Historical diagnosis through 2026-09-10 (superseded current basis; retained evid
 | Demolition owner scan, de-duplication and generation-checked report identity | decision 0145 | +1043456 | 70003020 | 78391628 |
 | Full Expedition claim slot and declaration census correction | decision 0167 | +2271 | 70005291 | 78393899 |
 | Immutable component column schema | decision 0169 | +10536 | 70015827 | 78404435 |
+| PC-04 household and dependent-care owner | decision 0521 | +46352 | 70062179 | 78450787 |
 
 The 66103398 figure recorded in decision 0021 is confirmed: it is the baseline plus the latch and nothing else, and it is superseded here only because further decisions are folded in on top of it. Coordinator bookkeeping (decision 0017) and the expanded movement scope (decision 0020) are **not** in any line above; see §3.1.
 
@@ -469,6 +470,14 @@ The GDD registry does not encode every deadline, ownership mapping, or remainder
 | FurnitureIndex | ref_slot, ref_generation, room_next, room_prev | I32 | 4 | 4 | 81920 | 1310720 | [decision 0080] A furniture row's directory reference and its doubly-linked place in its room's list |
 | WorldTileMaps | furniture_slot | I32 | 4 | 1 | 16384 | 65536 | [decision 0080] A FIFTH column on the existing WorldTileMaps row above. §5.9's "furniture cannot overlap" needs a per-tile occupant and the existing four columns carry building and room only |
 | FurnitureKindCount | kind_count | I32 | 4 | 1 | 9 | 36 | [decision 0080] One maintained live count per FurnitureDefinition key, so the Beds counter is a read rather than a scan of 81920 rows |
+| HouseholdIndex | present | B8 | 1 | 1 | 256 | 256 | [decision 0521; FAMILY-STATE-R01] `households.gd`'s 256 household rows. Household IDs and `(row, generation)` refs are local to this owner and never EntityRefs |
+| HouseholdIndex | generation, persistent_id, member_count | I32 | 4 | 3 | 256 | 3072 | [decision 0521] Retained generation (retirement keeps it, so a reused row is a new identity), the monotonic local ID and the living member count |
+| HouseholdMembers | member_slot, member_generation | I32 | 4 | 2 | 2048 | 16384 | [decision 0521] Fixed 8-wide member arena, index row*8+ordinal, resident directory EntityRefs in persistent-ID order with a null tail. At most 8 living members per household (DEC-044) |
+| HouseholdCursor | next_household_id | I64 | 8 | 1 | 1 | 8 | [decision 0521] Initial 1, terminal 2147483648; exhaustion refuses and never resets |
+| DependentCare | present, care_eligible, warning_bits, willing | B8 | 1 | 4 | 512 | 2048 | [decision 0521] One row per RESIDENT typed row, bound to its directory generation. Presence follows Residents; stage stays solely in Residents |
+| DependentCare | resident_generation, household_row, household_generation, preferred_caregiver_id_0, preferred_caregiver_id_1, care, provider_slot, provider_generation, service_paired_ticks, provider_served_ticks_today | I32 | 4 | 10 | 512 | 20480 | [decision 0521] Household back-reference, two preferred-caregiver persistent IDs, care 0..10000, the active provider EntityRef, the 0..749 turn counter and the provider's 0..18000 daily share |
+| DependentCare | care_remainder | I64 | 8 | 1 | 512 | 4096 | [decision 0521] Care's own signed remainder, magnitude < 750000; a separate integrator from Needs because the served rate exceeds Needs' proven rate bound |
+| DependentCareDay | served_day | I64 | 8 | 1 | 1 | 8 | [decision 0521] The absolute day the daily shares count; reset at ARCH-SYS-019a's midnight leg |
 
 Auxiliary payload sum = **20144096 bytes** `[DERIVED]`. Decision 0080 added the packed Building, Room and Furniture index tables plus the per-tile furniture occupant (+1885220): 17234780+1885220=19120000. That is 16712540 before the movement ground slice added decision 0053's three identity/cursor rows (+350208 TransformBinding, +163840 PathRequestContact, +6144 ResidentRouteCursor, +520192 in total): 16712540+520192=17232732. Decision 0066 then added ResidentRouteCursor's fourth column (+2048): 17232732+2048=17234780. The 16712540 figure is 15439604 before this reconciliation, plus 786436 of reservation-pool indexing (decision 0019), 158816 of Job/JobAgent runtime columns (ARCH-STATE-005), 65536 for `TileHistory.family_streak` (READY_06 §7, taking that I32 group from six columns/393216 bytes to seven/458752), 212996 of GearInstance allocator and exclusive-claim columns (ARCH-STATE-007) and 49152 for `HivePollinationLinks`' orchard recipients (ruling 2026-09-09 §3, ARCH-STATE-008, taking that table from 24576 rows/196608 bytes to 30720/245760): 15439604+786436+158816+65536+212996+49152=16712540. Arena links and exact owner counts must validate before activation; unused child descriptors are zero. These are explicit schema extensions, not permission to omit the original fields. Snapshotting original plus auxiliary columns is mandatory for replay.
 
@@ -600,18 +609,28 @@ Unscaled host clock -> scheduler debt -> fixed tick k
 
 **ARCH-TICK-003.** Daily ordering is stock aging → ecology → crops/weather → immigration/departures → progression. At midnight, aging uses the season in the elapsed interval; ecology uses the new calendar day's season; crop hourly growth uses the elapsed hour's climate, followed by new-day weather/moisture/service reset. Prepare deaths/departures as intents, but commit them before progression so current living population and cause-of-death counters are correct. All systems below operate once in their assigned phase. `[GDD §5.1 REQ-SET-007, §5.10–5.11; NEW crossing convention]`
 
-**PC-04 proposed phase extension (FAMILY-C4-R01 v3; not runtime-active).**
-The reviewed draft in `planning/family_execution_package.md` proposes ARCH-SYS-017a
-for elapsed-interval companionship care, ARCH-SYS-017b for ordered CHILL/medical
-completion followed by final mood in existing ARCH-SYS-018, and ARCH-SYS-019a after lifecycle commit for old-day
-care attribution/reset and the global selection pass at in-flight tick k mod30=0.
-Selection stages next-interval assignments; it never grants service in its own tick.
-Existing Needs health integration is still exactly once, with pre-interval rate
-sampling; newly submitted CHILL drain first enters tick k+1. The service integration
-packet must bind staged assignments into the next job arbitration and safe-work
-interruption protocol. This paragraph registers the proposed phase ownership and
-names; it does not activate the draft or certify a working caller. PC-04 remains
-in-flight pending exact API/transaction packets and confirmation of review repairs.
+**PC-04 phase extension (FAMILY-C4-R01 v4; adopted under DEC-044, not runtime-active).**
+Decision 0521 reconciles the sub-phase numbering with this section; no phase below runs
+until a scenario activates children, and the service integration (gate 6) binds them.
+- **ARCH-SYS-017a** integrates companionship care for the elapsed interval `(k-1,k]` from the
+  paired participation committed in the preceding interval; a new assignment earns nothing in
+  its own tick. **ARCH-SYS-017b** then submits CHILL onset and medical completions in fixed
+  order. Both are sub-phases of ARCH-SYS-017 CareHealth, and CareHealth today executes inside the
+  ARCH-SYS-003 needs sweep (`settlement_system.gd`'s ordering note): 017a follows that sweep
+  in the same position, so Needs' single health integration and its pre-interval rate sampling
+  are unchanged. Newly submitted CHILL drain first enters tick k+1.
+- **ARCH-SYS-018** SocialMood consumes the preceding interval's paired care/social participation
+  once and computes final mood after 017a/017b. **ARCH-SYS-019** commits lifecycle.
+- **ARCH-SYS-019a** sits between ARCH-SYS-019 and ARCH-SYS-020: if k is a midnight it resets the
+  providers' daily shares (the interval ending at midnight is already credited to the old day,
+  per ARCH-TICK-002), then on in-flight `k mod 30 = 0` it stages next-interval assignments.
+- **ARCH-TICK-003 is unchanged.** 019a's midnight reset is a per-tick phase gated on the
+  midnight predicate, not a REQ-SET-007 daily leg, so the daily order stock aging → ecology →
+  crops/weather → immigration/departures → progression gains no leg. What is NOT a documentation
+  change, and stays open with task 08.4 and gate 6: FAMILY-C4-R01 wants midnight reputation to
+  read post-CareHealth, lifecycle-committed mood before immigration counts candidates, while
+  ARCH-SYS-007 runs ahead of ARCH-SYS-017 in the same midnight tick. Choosing which committed
+  state that reputation reads is a producer-ordering decision for the immigration owner.
 
 
 | ID / system | Reads | Writes | Frequency and dependency | Provenance |

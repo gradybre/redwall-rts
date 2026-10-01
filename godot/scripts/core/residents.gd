@@ -56,13 +56,13 @@ extends RefCounted
 ## preserves `movement.gd`'s current "adult 0 is the only profiled stage". Free rows hold 0 and
 ## are distinguished by `_present`/the directory generation, never by their stage byte.
 ##
-## WHAT LIFE STAGE DOES. Since PC-04's adoption (DEC-043, decision 0521) the stage selects the
+## WHAT LIFE STAGE DOES. Since PC-04's adoption (DEC-044, decision 0521) the stage selects the
 ## hunger rate and the daily nutrition demand through FAMILY-RULES-R01's table: CHILD 750/1000 of
 ## the adult rate, ELDER equal to ADULT by authored equality. `tick_needs_all()` hands this
 ## store's stage column to the needs sweep, and the demand readers below read the same column.
 ##
 ## WHAT LIFE STAGE DOES NOT DO. It does not activate dependent simulation: no scenario spawns a
-## child (DEC-043), and care, schedules, child movement and the admission transaction are held
+## child (DEC-044), and care, schedules, child movement and the admission transaction are held
 ## at PC-04's open engineering gates. Nothing here derives a child or elder coefficient from an
 ## adult one. `movement.gd` still refuses any stage but ADULT
 ## because `_profile_life_stage` (MOVE-DEP-R02's +4-byte starter-catalog column) is that module's
@@ -983,6 +983,17 @@ func life_stage_of(slot: int) -> IntMath.IntResult:
 	return _read_value(_life_stage[slot])
 
 
+func life_stage_code_of(slot: int) -> int:
+	"""The row's life stage, or -1 when the row holds no resident. Non-allocating.
+
+	For per-tick callers (the PC-04 care sweep) that must not allocate an IntResult per row.
+	Slot-addressed like `life_stage_of()`, so it carries no generation check.
+	"""
+	if not is_present(slot):
+		return -1
+	return _life_stage[slot]
+
+
 func life_stage_of_ref(ref: Vector2i) -> IntMath.IntResult:
 	"""Generation-checked `life_stage_of()`: refuses a stale or wrong-kind reference.
 
@@ -1587,7 +1598,7 @@ func _demand_of_row_into(life_stage: int, size_class: int, out: IntMath.IntResul
 	"""floor(6000 * size * season * stage / 10^9) NP/day, read from the fixed-stage table.
 
 	GDD §4.1 fixes the 6000 NP/day small baseline, §5.2 the size multipliers and the winter
-	x1.20, and PC-04 (DEC-043) the stage multiplier: ADULT 1000, CHILD 750, ELDER 1000.
+	x1.20, and PC-04 (DEC-044) the stage multiplier: ADULT 1000, CHILD 750, ELDER 1000.
 	FAMILY-RULES-R01 multiplies all of them in checked int64 before its one division, so the ADULT
 	row equals the pre-PC-04 floor(6000 * size * season / 10^6) exactly. `out` doubles as this
 	call's own scratch.

@@ -134,8 +134,8 @@ line that **the demo can't save yet**. Restart and Quit ask first and say again 
 Opening it holds the clock's MENU pause reason and closing releases only that, so the village comes back at
 the speed it had (and a pause of your own stays). Settings holds only what works: the interface scale
 (100 / 125 / 150 %, the HUD and every demo panel together; a size the window cannot show at 720 logical rows
-is disabled and says so -- at 1280x720 only 100 %) and full screen; sound is marked as not in the demo. The
-Menu button no longer opens the New Settlement form: its Create would discard the settlement the demo runs on.
+is disabled and says so -- at 1280x720 only 100 %), full screen, and the sound's volumes, mutes and mixes
+(see "Sound" below). The Menu button no longer opens the New Settlement form: its Create would discard the settlement the demo runs on.
 
 **The Demo Lab** (`ui/demo_lab.gd`, F8, or the menu's "Demo Lab"): the demo's test triggers, and only here --
 Next weather (the one calendar runs on to the next change of weather, at most 48 h), Test event (the tunnels'
@@ -699,6 +699,44 @@ delivered, nothing made or lost. At most four work one heap; the emptied heap st
 A heap still growing under a dig is refused. The party panel says who is "Clearing a spoil heap" or
 "Hauling spoil to the compost".
 
+## Sound (decision 0351)
+
+The first sound pass (`sound/`; review F43, UX-029, UX-031). **No sound files are staged yet**, so the demo is
+silent: every cue is wired, takes its voice and keeps its limits, and plays nothing until its file is dropped in
+at the path the table names (`sound/sound_table.json`; each missing cue warns once at boot). The sourcing plan
+waits on Brendan's approval of each download.
+
+- **One owner, not an autoload** (`sound/sound_director.gd`, a child of the village). Everything it hears is the
+  demo's -- cast, woods, tunnels, water, notices, camera -- so it is made and freed with the scene, and the sixth
+  autoload slot stays free for the game's own AudioManager.
+- **Five buses**: Master, Ambience (wind, rain), Work (tools, loads, footsteps; through "Work Surface" and "Work
+  Under"), Water (the stream, splashes, wading) and Cues (warnings, completions, clicks). Made by name once.
+- **A bounded voice pool** (`sound/sound_voices.gd`): 8 Work, 4 Water and 3 Cues players made at boot; each
+  cue has its own voice cap and a **real-time gap** (`gap_ms`), so at 4x, or with twenty residents chopping, the
+  extra events fold rather than stack. No player's pitch is ever changed.
+- **The listener** stands over the camera's focus, 0.4 of the zoom up, turned with the view: close in you hear the work at the focus;
+  zoomed out the village settles to its ambience. A placed cue beyond its range takes no voice.
+- **Paused** (any pause: yours, the menu's, the stall banner's): wind, rain and water duck 12 dB, work and
+  water one-shots stop and none start; warnings and clicks still sound. **The U view** low-passes the world
+  above (ambience, water, surface work); with it off, digging below is the muffled one.
+- **The event map** (`sound/sound_taps.gd`) sounds only what the models have already committed: a carry
+  beginning or ending (pickup, drop), entering or leaving the water, starting to swim or dive (splash), each
+  stride by the ground underfoot (grass, a worn path's dirt, a bridge leg's wood, a tunnel, wading), each whole
+  beat of a felling, grubbing or sawing step that has begun, a tree coming down, each dig quantum cut, a tunnel,
+  room or bridge opening (complete), a *new* warning in the notice feed (a folded repeat does not chime again),
+  and every button press. A tree blown down falls too. It reads the models and writes nothing: no sound, and no
+  animation, awards anything.
+- **Every cue has a text or picture match** (the table refuses a cue without one): chips and the task line for a
+  chop, clods and the tunnel panel for a dig, the news strip's "Warning:" line for the warning, and so on.
+  Muted, nothing is missed.
+- **Settings** (the game menu): each bus's volume (−, +, a slider; 5 % steps) and Mute, and three mixes --
+  Balanced (UI §8.1's defaults), Quiet focus (alerts forward, the world well down) and Atmosphere. They last
+  for the session and through Restart, as the interface scale does; nothing is saved to disk.
+- **Cost**: twenty residents at 4x -- all walking, twelve felling, one digging, loads changing hands, with the
+  trees, bridges, notices, weather and water read too: p50 37 µs, p95 71–76 µs, p99 106–123 µs, max ≤ 230 µs a
+  frame (`test/test_demo_sound_cost.gd`, headless, Apple Silicon). The boot prewarm step (streams and the
+  worn-path grid) takes about 16 ms.
+
 ## Layout
 
 | Folder | Owns |
@@ -723,4 +761,5 @@ A heap still growing under a dig is refused. The party panel says who is "Cleari
 | `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |
 | `ui/` | The woodland HUD skin; the HUD date, the news strip and the right column's tabs; the Sim beds relabel |
 | `camera/` | The RTS camera |
+| `sound/` | The sound pass: the cue table (data), the mix and its buses, the voice pool, the event map, the owner and the Settings section |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

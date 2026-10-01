@@ -4,6 +4,11 @@
 // Everything is sampled in world XZ, so the ground plane can be any size without stretching.
 // Paths are capsules (segment + radius) passed from world_layout.gd, the same ones the scatter
 // uses to keep ground cover off them; the ragged edge comes from the same noise as the grass.
+//
+// FROST AND SNOW (decision 0301, review F42): weather_view.gd sets `snow_cover` (how much lies) and
+// `frost_cover` (how much of it is frost). It lies on the ground itself, in world space -- so it has no
+// edge anywhere -- on what faces up, thinner on the worn paths (trodden), and never at or below the water
+// line (`water_level_y`): the carved bank's wet foot and the bed under the water stay as they are.
 shader_type spatial;
 render_mode diffuse_burley, specular_schlick_ggx;
 
@@ -27,10 +32,29 @@ uniform float clearing_wobble = 2.5;
 uniform float south_opening = 15.0;
 uniform float forest_blend = 9.0;
 
+uniform float snow_cover = 0.0;
+uniform float frost_cover = 0.0;
+uniform vec3 snow_color : source_color = vec3(0.93, 0.95, 0.98);
+uniform float water_level_y = -0.18;
+
 varying vec2 world_xz;
+varying float world_y;
+varying float world_up;
 
 void vertex() {
-	world_xz = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xz;
+	vec4 world = MODEL_MATRIX * vec4(VERTEX, 1.0);
+	world_xz = world.xz;
+	world_y = world.y;
+	world_up = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz).y;
+}
+
+// How much frost or snow lies here, 0..1 (see FROST AND SNOW): `path` is the worn-path share.
+float lying(float path, float fine, float mid) {
+	float dry = smoothstep(water_level_y + 0.04, water_level_y + 0.16, world_y);
+	float flat_ = smoothstep(0.6, 0.92, world_up);
+	float patchy = smoothstep(0.25, 0.7, fine * 0.55 + mid * 0.55 + snow_cover * 0.35 - frost_cover * 0.2);
+	float amount = snow_cover * dry * flat_ * mix(1.0, 0.45, path);
+	return clamp(amount * mix(patchy, 1.0, (1.0 - frost_cover) * 0.6), 0.0, 1.0);
 }
 
 float segment_distance(vec2 p, vec4 seg) {
@@ -85,9 +109,10 @@ void fragment() {
 	vec3 dirt = mix(path_color, path_worn_color, clamp(wear, 0.0, 1.0));
 	dirt *= mix(0.94, 1.04, fine) * mix(0.97, 1.02, detail);
 
-	ALBEDO = mix(grass, dirt, path);
-	ROUGHNESS = mix(0.93, 0.88, path);
+	float cover = lying(path, fine, mid);
+	ALBEDO = mix(mix(grass, dirt, path), snow_color, cover * mix(0.92, 0.55, frost_cover));
+	ROUGHNESS = mix(mix(0.93, 0.88, path), mix(0.78, 0.5, frost_cover), cover);
 	SPECULAR = 0.3;
 	NORMAL_MAP = texture(detail_normal, world_xz * 0.33).rgb;
-	NORMAL_MAP_DEPTH = mix(0.55, 1.0, path);
+	NORMAL_MAP_DEPTH = mix(mix(0.55, 1.0, path), 0.25, cover * (1.0 - frost_cover));
 }

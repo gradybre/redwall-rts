@@ -74,6 +74,12 @@ extends Node3D
 ## (demo_services.gd `stores`), which the tunnels' bracing and lanterns spend; planting takes its
 ## compost from the farm's compost store. `_build_forestry()` wires it; its trees' and yard's circles
 ## join the cast's obstacles before the cast is built.
+##
+## INPUT, MENU AND KEYBOARD (decision 0261): ONE INPUT GATE (demo/ui/demo_input_gate.gd), added last so it
+## reads every event first, owns the demo's modals -- the Pantry, the game menu (demo/ui/demo_menu.gd) and
+## the Demo Lab (demo/ui/demo_lab.gd) -- and keyboard focus in the panels (F7, Tab, Enter/Space by focused
+## context). The HUD's Menu button, and Esc once nothing else takes it (`_unhandled_input`, which runs
+## after every child's), open the game menu; F8 opens the Lab, which holds the demo's test triggers.
 
 const DemoManifestScript := preload("res://demo/demo_manifest.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
@@ -109,6 +115,13 @@ const SpoilScript := preload("res://demo/spoil/demo_spoil.gd")
 const PrewarmScript := preload("res://demo/demo_prewarm.gd")
 const TunnelViewScript := preload("res://demo/tunnel/tunnel_view.gd")
 const UndergroundPrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
+const InputGateScript := preload("res://demo/ui/demo_input_gate.gd")
+const MenuScript := preload("res://demo/ui/demo_menu.gd")
+const LabScript := preload("res://demo/ui/demo_lab.gd")
+const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
+const TunnelPanelScript := preload("res://demo/tunnel/tunnel_panel.gd")
+const ForestPanelScript := preload("res://demo/forestry/forest_panel.gd")
+const WaterPanelScript := preload("res://demo/waterplay/water_panel.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -120,6 +133,9 @@ const WATER_OVERLAY_NAME: String = "water zones and fishery"
 const PROCESS_AFTER_CHILDREN: int = 1
 ## Refit the sun's shadow range when the zoom has moved this far since the last fit.
 const SHADOW_REFIT_M: float = 0.5
+## An interface scale is offered only where it leaves the HUD this many logical pixels tall: the demo's
+## panels are laid out for 1280x720 at 100 %.
+const MIN_LOGICAL_HEIGHT: float = 720.0
 
 @onready var _game: Node = $Game
 
@@ -141,6 +157,12 @@ var _links: LinksScript = null
 var _spoil: SpoilScript = null
 var _prewarm: PrewarmScript = PrewarmScript.new()
 var _shadow_view_m: float = -1.0
+var _gate: InputGateScript = InputGateScript.new()
+var _menu: MenuScript = MenuScript.new()
+var _lab: LabScript = LabScript.new()
+## Whether this boot holds its own PLAYER pause until the first frames are drawn (a restart: UI-SET-103's
+## opening pause is held only once per process).
+var _held_open: bool = false
 
 
 func _ready() -> void:
@@ -167,7 +189,9 @@ func _ready() -> void:
 	_build_shared_ui()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
+	_hold_restart_open()
 	_warm_and_open()
+	_build_input()
 
 
 func _warm_and_open() -> void:
@@ -368,10 +392,20 @@ func services() -> ServicesScript:
 
 
 func _open_running() -> void:
-	"""Release UI-SET-103's opening inspection pause, once, so the demo opens running (see TIME). Only
-	the PLAYER reason is released; any other held reason stays."""
-	if UIManager.opening_pause_applied() and not UIManager.player_has_resumed() and GameManager.is_paused():
+	"""Release UI-SET-103's opening inspection pause, once, so the demo opens running (see TIME) -- or, after
+	a restart, the boot's own hold (`_hold_restart_open`). Only the PLAYER reason is released; any other held
+	reason stays."""
+	if _held_open or (UIManager.opening_pause_applied() and not UIManager.player_has_resumed() \
+			and GameManager.is_paused()):
+		_held_open = false
 		GameManager.resume_game()
+
+
+func _hold_restart_open() -> void:
+	"""After "Restart demo" the opening inspection pause is not held again (UIManager holds it once per
+	process), so the clock would run through the prewarm's frames: hold PLAYER until they are drawn."""
+	if UIManager.opening_pause_applied() and not GameManager.is_paused() and GameManager.pause_game():
+		_held_open = true
 
 
 func weather() -> WeatherScript:
@@ -383,6 +417,127 @@ func weather() -> WeatherScript:
 func rooms() -> RoomsScript:
 	"""The network's rooms (demo/burrow/underground_rooms.gd): `cellars(graph)` for the root cellars' API."""
 	return _command.tunnels().network.rooms
+
+
+func _build_input() -> void:
+	"""The game menu, the Demo Lab and, last of all the village's children, the input gate over them, the
+	Pantry and the panels (see INPUT, MENU AND KEYBOARD)."""
+	_build_menu()
+	_build_lab()
+	add_child(_gate)
+	_gate.yield_to(_stall_banner.is_shown)
+	var shell: UiShell = _shell()
+	if shell != null:
+		_gate.defer_to(shell.workspace_owns_input)
+	get_viewport().size_changed.connect(_refit_ui_scale)
+	_gate.watch_modal(_farm.pantry_panel, _farm.pantry_panel, _farm.toggle_pantry, [&"open_food"] as Array[StringName])
+	_gate.set_modal_close(_farm.pantry_panel, _farm.pantry_panel.close_button())
+	_gate.watch_modal(_menu, _menu, _menu.back_or_close)
+	_gate.watch_modal(_lab, _lab, _lab.close, [] as Array[StringName], [LabScript.KEY] as Array[Key])
+	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
+	_gate.add_region("right column", [_zone, _farm.bed_panel, ext.panel, _forestry.panel, _waterplay.panel] as Array[Node])
+	_gate.add_region("left column", [(_command as DemoCommandScript).panel()] as Array[Node])
+
+
+func _build_menu() -> void:
+	"""UI-SET-019's game menu: Resume, Restart, Controls, Settings, the Lab and Quit (demo_menu.gd)."""
+	add_child(_menu)
+	_menu.bind(GameManager as GameManagerScript)
+	_menu.on_restart = restart
+	_menu.on_quit = get_tree().quit
+	_menu.on_lab = _lab.open
+	_menu.on_scale = set_ui_scale
+	_menu.scale_fits = ui_scale_fits
+	_menu.on_fullscreen = WindowKeysScript.toggle
+	_menu.is_fullscreen = func() -> bool: return DisplayServer.window_get_mode() in [DisplayServer.WINDOW_MODE_FULLSCREEN,
+		DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN]
+	var shell: UiShell = _shell()
+	if shell != null:
+		shell.set_menu_handler(_menu.open)
+		if DemoUiScale.percent != DemoUiScale.UiLayout.USER_SCALE_100:
+			shell.apply_user_scale.call_deferred(DemoUiScale.percent)
+	_menu.scale_percent = DemoUiScale.percent
+
+
+func _build_lab() -> void:
+	"""The Demo Lab's four test triggers, each the same `on_action` its panel's button used to call."""
+	add_child(_lab)
+	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
+	_lab.add_trigger("Next weather", "Run the one calendar on to the next change of weather", "Tunnels",
+		ext.on_action.bind(TunnelPanelScript.ACTION_NEXT_WEATHER))
+	_lab.add_trigger("Test event", "Bring the tunnels' next seeded threat now", "Tunnels",
+		ext.on_action.bind(TunnelPanelScript.ACTION_EVENT))
+	_lab.add_trigger("Storm gust", "Blow a storm gust through the woods now", "Woods",
+		_forestry.on_action.bind(ForestPanelScript.ACTION_STORM))
+	_lab.add_trigger("Cramp", "Every selected resident swimming tires at once and needs rescue", "Water",
+		_waterplay.on_action.bind(WaterPanelScript.ACTION_CRAMP), _swimmer_selected, "Select a resident in the water first")
+
+
+func _swimmer_selected() -> bool:
+	"""Whether a selected resident is in the water (the Lab's Cramp can act)."""
+	return _waterplay.text.any_in_water((_command as DemoCommandScript).selected())
+
+
+func restart() -> void:
+	"""The menu's confirmed Restart: the demo scene again from its first morning (nothing is saved)."""
+	get_tree().reload_current_scene.call_deferred()
+
+
+func set_ui_scale(percent: int) -> void:
+	"""The menu's interface scale: the HUD's (`apply_user_scale`) and every demo panel's."""
+	var shell: UiShell = _shell()
+	if shell != null:
+		shell.apply_user_scale(percent)
+	DemoUiScale.apply(percent, get_viewport())
+
+
+func _refit_ui_scale() -> void:
+	"""After a resize or a full-screen toggle, step the interface scale down to the largest one the window
+	still fits (MIN_LOGICAL_HEIGHT), so a 150 % chosen full screen does not squeeze a smaller window."""
+	if ui_scale_fits(DemoUiScale.percent):
+		return
+	var best: int = DemoUiScale.UiLayout.USER_SCALE_100
+	for percent: int in DemoUiScale.UiLayout.USER_SCALES:
+		if percent < DemoUiScale.percent and ui_scale_fits(percent):
+			best = percent
+	_menu.scale_percent = best
+	set_ui_scale(best)
+
+
+func ui_scale_fits(percent: int) -> bool:
+	"""Whether this window can show the demo at `percent` (MIN_LOGICAL_HEIGHT)."""
+	var size_px: Vector2 = get_viewport().get_visible_rect().size
+	return DemoUiScale.fits(int(size_px.x), int(size_px.y), percent, MIN_LOGICAL_HEIGHT)
+
+
+func input_gate() -> InputGateScript:
+	"""The demo's input gate (checks)."""
+	return _gate
+
+
+func menu() -> MenuScript:
+	"""The demo's game menu (checks)."""
+	return _menu
+
+
+func lab() -> LabScript:
+	"""The Demo Lab (checks)."""
+	return _lab
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	"""Last of the demo's handlers: Esc that nothing else dismissed opens the game menu (UI §3's ladder
+	ends there); F8 opens the Demo Lab."""
+	var key := event as InputEventKey
+	if key == null or not key.pressed or key.echo or key.ctrl_pressed or key.alt_pressed or key.meta_pressed:
+		return
+	if key.keycode == KEY_ESCAPE:
+		_menu.open()
+	elif key.keycode == LabScript.KEY:
+		_lab.open()
+	else:
+		return
+	get_viewport().set_input_as_handled()
 
 
 func _process(_delta: float) -> void:

@@ -1158,7 +1158,8 @@ func test_the_panel_shows_and_enables_what_it_is_told() -> void:
 	assert_true(panel.button(PanelScript.ACTION_BRACE).disabled, "brace not enabled")
 	assert_false(panel.button(PanelScript.ACTION_REPAIR).disabled, "repair enabled")
 	assert_equal(panel.button(PanelScript.ACTION_REPAIR).text, "Pump out", "its words")
-	assert_equal(panel.button(PanelScript.ACTION_EVENT).focus_mode, Control.FOCUS_NONE, "never takes focus")
+	assert_equal(panel.button(PanelScript.ACTION_WIDEN).focus_mode, Control.FOCUS_ALL, "takes keyboard focus (decision 0261)")
+	assert_false(panel.has_button(PanelScript.ACTION_EVENT), "the test event is the Demo Lab's, not the panel's")
 
 
 func test_the_panel_s_buttons_emit_their_action() -> void:
@@ -1166,9 +1167,9 @@ func test_the_panel_s_buttons_emit_their_action() -> void:
 	var panel := _panel()
 	var heard: Array[StringName] = []
 	panel.action.connect(func(name: StringName) -> void: heard.append(name))
-	panel.button(PanelScript.ACTION_EVENT).pressed.emit()
+	panel.button(PanelScript.ACTION_BRACE).pressed.emit()
 	panel.button(PanelScript.ACTION_WIDEN).pressed.emit()
-	assert_equal(heard, [&"event", &"widen"] as Array[StringName], "heard")
+	assert_equal(heard, [&"brace", &"widen"] as Array[StringName], "heard")
 
 
 func test_the_panel_s_text_is_legible() -> void:

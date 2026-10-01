@@ -39,12 +39,13 @@ const BUTTON_TEXT: Dictionary = {
 	&"fell": "Fell", &"haul": "Haul logs", &"grub": "Grub out stump", &"plant": "Plant sapling",
 	&"forestry_zone": "Mark forestry zone", &"conservation_zone": "Mark conservation zone",
 	&"intensive": "Intensive: off", &"auto": "Auto-fell", &"remove_zone": "Unmark zone",
-	&"gather": "Gather deadfall", &"saw": "Saw planks", &"storm": "Storm gust (demo)", &"cancel": "Cancel woods jobs",
+	&"gather": "Gather deadfall", &"saw": "Saw planks", &"cancel": "Cancel woods jobs",
 }
 const TREE_ACTIONS: Array[StringName] = [&"fell", &"haul", &"grub", &"plant"]
 const ZONE_ACTIONS: Array[StringName] = [&"intensive", &"auto", &"remove_zone"]
 const TOOL_ACTIONS: Array[StringName] = [&"forestry_zone", &"conservation_zone"]
-const WORK_ACTIONS: Array[StringName] = [&"gather", &"saw", &"cancel", &"storm"]
+## ACTION_STORM is a test trigger: its button is the Demo Lab's (demo/ui/demo_lab.gd, decision 0261).
+const WORK_ACTIONS: Array[StringName] = [&"gather", &"saw", &"cancel"]
 const LINE_KEYS: Array[StringName] = [&"stores", &"counts", &"season"]
 const NO_TREE: String = "Click a tree, a stump or a cleared spot in the woods."
 const DETAIL_NAME: String = "UI-SET-036"
@@ -147,10 +148,10 @@ func _label(text: String, px: int, colour: Color, font: Font) -> Label:
 
 
 func _button(key: StringName) -> Button:
-	"""A wood button that emits `action(key)` and never takes focus."""
+	"""A wood button that emits `action(key)`; takes keyboard focus (decision 0261)."""
 	var button := Button.new()
 	button.text = BUTTON_TEXT[key]
-	button.focus_mode = Control.FOCUS_NONE
+	Styles.focusable(button, BUTTON_MARGINS)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.clip_text = true
 	button.add_theme_font_size_override(&"font_size", SMALL_PX + 1)

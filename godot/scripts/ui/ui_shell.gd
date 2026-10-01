@@ -485,6 +485,8 @@ var _need_basis_points: PackedInt32Array = PackedInt32Array()
 var _detail_emblem_pixels: int = 48
 var _picked_tile: int = NO_TILE
 var _create_button: Button = null
+## UI-SET-019's host menu (`set_menu_handler`); invalid: the New Settlement form.
+var _menu_handler: Callable = Callable()
 var _brush_size: int = 1
 var _focused_element: int = 0
 var _focus_visuals_owner: Control = null
@@ -3449,9 +3451,25 @@ func _on_calendar_pressed() -> void:
 
 
 func _on_menu_pressed() -> void:
-	"""UI-SET-019: open the workspace frame on the New Settlement form."""
-	open_workspace_page(ID_NEW_SETTLEMENT)
+	"""UI-SET-019: open the game menu -- a host's own (`set_menu_handler`: the live demo's pause menu,
+	decision 0261), else the workspace frame on the New Settlement form."""
+	if _menu_handler.is_valid():
+		_menu_handler.call()
+	else:
+		open_workspace_page(ID_NEW_SETTLEMENT)
 	shell_action.emit(ID_MENU)
+
+
+func workspace_owns_input() -> bool:
+	"""Whether an open workspace's scrim holds the input (UI-C3-R01 §4), for a host that routes keys of
+	its own (the live demo's input gate, decision 0261)."""
+	return _workspace_owns_input()
+
+
+func set_menu_handler(handler: Callable) -> void:
+	"""Let a host open its own game menu from UI-SET-019 instead of the New Settlement form (an invalid
+	Callable restores the form). The live demo, which cannot create a settlement, opens its pause menu."""
+	_menu_handler = handler
 
 
 func _on_minimap_input(event: InputEvent) -> void:

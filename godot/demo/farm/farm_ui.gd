@@ -7,6 +7,7 @@ extends RefCounted
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
+const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
 
 const TITLE_PX: int = 20
 const BODY_PX: int = 15
@@ -41,10 +42,11 @@ static func label(text: String, px: int, colour: Color, heading: bool = false) -
 
 
 static func button(text: String, px: int = BODY_PX) -> Button:
-	"""A wood button: cream on wood, brass when pressed, muted when disabled; never takes focus."""
+	"""A wood button: cream on wood, brass when pressed, muted when disabled; takes keyboard focus, with the
+	HUD's focus ring (decision 0261)."""
 	var made := Button.new()
 	made.text = text
-	made.focus_mode = Control.FOCUS_NONE
+	Styles.focusable(made, BUTTON_MARGINS)
 	made.add_theme_font_size_override(&"font_size", px)
 	made.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, BUTTON_MARGINS))
 	made.add_theme_stylebox_override(&"hover", Styles.box(Styles.PIECE_WOOD_HOVER, BUTTON_MARGINS))
@@ -75,7 +77,7 @@ static func set_enabled(control: Button, enabled: bool, why: String) -> void:
 static func geometry_for(viewport_size: Vector2, layout: UiLayout, geometry: UiLayout.Geometry) -> void:
 	"""Fill `geometry` for this viewport (scale 1 below the supported floor)."""
 	if not layout.compute_into(maxi(int(viewport_size.x), UiLayout.SUPPORTED_MIN_WIDTH),
-			maxi(int(viewport_size.y), UiLayout.SUPPORTED_MIN_HEIGHT), UiLayout.USER_SCALE_100, false, geometry):
+			maxi(int(viewport_size.y), UiLayout.SUPPORTED_MIN_HEIGHT), DemoUiScale.percent, false, geometry):
 		geometry.scale = 1.0
 
 

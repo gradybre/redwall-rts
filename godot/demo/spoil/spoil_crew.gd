@@ -365,13 +365,16 @@ func _deliver_load(row: int) -> void:
 
 func _settle_load(row: int, brain: BrainScript) -> void:
 	"""A row ending with a basket: tipped into the store when its worker stands at the drop spot about to tip it, else put
-	back on its heap -- never delivered from afar, never lost (see ARRIVING IS EXPLICIT)."""
+	back on its heap -- never lost (see ARRIVING IS EXPLICIT). A heap that will not take it back (its mouth row freed
+	meanwhile) passes it to the stores, as the farm crew's earth return does (decision 0401)."""
 	if load_milli[row] <= 0:
 		return
 	if step[row] == STEP_DROP and brain.arrived_near(goal[row], ARRIVE_M):
 		_deliver_load(row)
 		return
-	_tunnels.return_spoil_into(_network, heap[row], int(load_milli[row]), _read)
+	if not _tunnels.return_spoil_into(_network, heap[row], int(load_milli[row]), _read):
+		_deliver_load(row)
+		return
 	load_milli[row] = 0
 	revision += 1
 

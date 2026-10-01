@@ -79,7 +79,11 @@ compost store" is superseded by §3 above (already amended by 0361 for baskets c
   would mislead); a drawn tip heap at the stockpile with its own obstacle row (new placement and nav cost, and P7's
   asset swap owns the stockpile's look).
 - Walking a cancelled carry back follows the two rulings on record (cancel finishes the delivery; nothing credited or
-  lost from afar) and the woods' precedent, rather than inventing a ground pile.
+  lost from afar) and the woods' precedent, rather than inventing a ground pile. **The one exception is 0361's own:**
+  a carrier that cannot get back at all puts its earth back on its source -- or, when that heap will no longer take it
+  (its mouth row freed), into the stores -- from where it stands. A clearing basket follows the same rule
+  (`spoil_crew.gd _settle_load`). Earth is moved from afar only then, and only back to where it came from or to the
+  stores; it is never lost and never credited to a bed.
 
 ## Consequences
 
@@ -109,6 +113,29 @@ suites. 47 were killed at once; of the rest, one was equivalent (rewritten as a 
 apply (rewritten), and four survived -- a source index below 0, the dig spot moved off the heap, the stores' take not
 bumping their revision, and an unbound store reached (a script error the scratch runner had not counted). Tests and
 the harness were tightened and every one is killed.
+
+## Review (2026-10-01)
+
+The independent code review of 12684ab found no CRITICAL or HIGH. Its MEDIUM and LOW findings were all applied in a
+follow-up commit:
+- **MEDIUM:** earth carried back was not redrawn on its heap -- `farm_view.gd _shrink_heaps` skipped a heap with
+  nothing taken, and the tunnel overlay redraws a heap only when its tipped earth changes. So a heap emptied by a raise
+  and then refilled by the cancelled raise's return stayed invisible. The view now keeps `_drawn_taken` per heap and
+  redraws whenever what was taken changes, including back to 0.
+- **LOW:** a stuck earth return (or delivery) raised a meaningless "farm:stuck:<bed>:10" incident; `_raise_stuck` now
+  raises only for production.
+- **LOW:** the heap-gone test moved its own conservation target; it now frees the mouth as `_free_node` does
+  (`mouth_spoil` 0) and checks the books every frame, the no-store branch too.
+- **LOW:** a clearing basket whose heap refused it back was zeroed (lost); it now goes into the stores.
+- **LOW:** `take_spoil_into` ignored `take_earth`'s result; it now refuses.
+- **LOW:** the wording above now names 0361's exception.
+- **Optional:** `has_store()` is now `_is_source`'s test; the bed panel's Cancel tip says earth in hand goes back to its
+  heap; `decide` reads `most_earth` once, and the card reuses it.
+
+Mutation testing of the fixes: 14 mutants, one at a time, sources shasum-checked after each. 13 were killed (three
+after new tests: the view redrawn every frame while earth is taken, a clearing basket whose heap has gone, and the
+Cancel tip). One is equivalent: ignoring `take_earth`'s result cannot change anything, because `take_spoil_into`
+checks the same amount against the same store first.
 
 ## Source
 

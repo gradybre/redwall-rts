@@ -142,7 +142,7 @@ func bind_store(stores: StoresScript, at: Vector2) -> void:
 
 
 func has_store() -> bool:
-	"""Whether earth can be kept in (and fetched from) the stores."""
+	"""Whether earth can be kept in (and fetched from) the stores: `_is_source`'s test for STORE."""
 	return _stores != null
 
 
@@ -174,7 +174,7 @@ func taken_milli(network: GraphScript, heap: int) -> int:
 
 func _is_source(source: int) -> bool:
 	"""Whether `source` names a heap row, or the stores when they are bound."""
-	return (source >= 0 and source < HEAPS) or (source == STORE and _stores != null)
+	return (source >= 0 and source < HEAPS) or (source == STORE and has_store())
 
 
 func take_spoil_into(network: GraphScript, source: int, milli: int, out: IntMath.IntResult) -> bool:
@@ -184,7 +184,8 @@ func take_spoil_into(network: GraphScript, source: int, milli: int, out: IntMath
 	if spoil_left(network, source) < milli:
 		return out.refuse(REFUSE_NO_SPOIL)
 	if source == STORE:
-		_stores.take_earth(milli)
+		if not _stores.take_earth(milli):
+			return out.refuse(REFUSE_NO_SPOIL)
 	else:
 		_taken[source] += milli
 	return out.succeed(spoil_left(network, source))

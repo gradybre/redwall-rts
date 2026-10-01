@@ -29,6 +29,7 @@ const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const SpoilCrewScript := preload("res://demo/spoil/spoil_crew.gd")
 const DemoSpoilScript := preload("res://demo/spoil/demo_spoil.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const IncidentsScript := preload("res://demo/demo_incidents.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 
 const DT: float = 1.0 / 60.0
@@ -180,6 +181,12 @@ func _carry_motion() -> Dictionary:
 	for k: int in 66:
 		keys.append([0.0, 6.5 * k / 65.0])
 	return {"keys_xz": keys, "mean_speed_m_s": 1.0, "period_s": 6.5}
+
+
+func _free_mouth(m: int) -> void:
+	"""Mouth row `m` freed and reused as underground_graph.gd `_free_node` leaves it: a new generation, nothing heaped."""
+	_network.mouth_gen[m] += 1
+	_network.mouth_spoil[m] = 0
 
 
 func _brain(i: int) -> BrainScript:
@@ -423,8 +430,13 @@ func test_an_earth_return_that_cannot_get_through_puts_its_earth_back_where_it_c
 	_crew.order(JobsScript.KIND_RAISE, BED_LOAM, PackedInt32Array([1]), JobsScript.ORIGIN_PLAYER)
 	assert_true(_run(180.0, _carrying(JobsScript.KIND_RAISE, BED_LOAM), 2000), "carrying")
 	_tunnels.bind_store(_stores, Vector2(500.0, 500.0))
+	var incidents := IncidentsScript.new()
+	_crew.set_incidents(incidents)
 	_crew.cancel_bed(BED_LOAM)
 	assert_true(_run(30.0, _idle(), 2000), "given up")
+	assert_equal(incidents.serial_of("farm:stuck:%d:%d" % [BED_LOAM, JobsScript.KIND_RETURN_EARTH]), IncidentsScript.NO_SERIAL,
+		"a carry home is not a stuck farm job: no incident")
+	assert_equal(incidents.revision, 0, "nothing raised at all")
 	assert_true(_balanced, _first_off)
 	assert_equal(_stores.earth_milli_u, 2000, "put back in the stores")
 	assert_true(_notices[_notices.size() - 1].contains("the 2.0 U of earth was put back to the stores"), _notices[-1])
@@ -432,18 +444,22 @@ func test_an_earth_return_that_cannot_get_through_puts_its_earth_back_where_it_c
 
 
 func test_earth_whose_heap_has_gone_goes_to_the_stores_or_waits_in_hand() -> void:
-	"""The heap a return is bound for no longer takes it back (its mouth row freed and reused): the earth goes into the
-	stores instead. With no stores bound either, the return waits on the board still holding it -- never dropped."""
+	"""The heap a return is bound for no longer takes it back (its mouth row freed and reused, as `_free_node` does it:
+	the generation moves on and its heaped earth goes with the old row): the earth goes into the stores instead. With
+	no stores bound either, the return waits on the board still holding it -- never dropped. The books balance every
+	frame against what is heaped now plus the 2 U in hand."""
 	var heaps := _dig_tunnel(Vector2(2.0, 8.0), Vector2(10.0, 8.0))
 	var dug: int = _heaped()
 	_crew.order(JobsScript.KIND_RAISE, BED_LOAM, PackedInt32Array([1]), JobsScript.ORIGIN_PLAYER)
 	assert_true(_run(120.0, _carrying(JobsScript.KIND_RAISE, BED_LOAM), dug), "carrying")
 	var source: int = _crew.jobs.heap[_row_of(JobsScript.KIND_RAISE, BED_LOAM)]
 	_crew.cancel_bed(BED_LOAM)
-	_network.mouth_gen[source] += 1
-	assert_true(_run(120.0, _idle(), _tunnels.total_spoil(_network) + DOSE), "carried back")
+	_free_mouth(source)
+	var now: int = _heaped() + DOSE
+	assert_equal(_accounted(), now, "the heap gone with its row; the 2 U still in hand")
+	assert_true(_run(120.0, _idle(), now), "carried back")
 	assert_true(_balanced, _first_off)
-	assert_equal(_stores.earth_milli_u, DOSE, "into the stores")
+	assert_equal(_stores.earth_milli_u, DOSE, "into the stores: exactly the 2 U")
 	assert_equal(heaps.size(), 2, "two heaps")
 	var unbound := TunnelsScript.new()
 	var crew := CrewScript.new()
@@ -454,17 +470,27 @@ func test_earth_whose_heap_has_gone_goes_to_the_stores_or_waits_in_hand() -> voi
 	var held := func() -> bool:
 		return crew.jobs.job_on_bed_into(JobsScript.KIND_BANK, BED_CLAY, _read) \
 			and crew.jobs.current_step(_read.value) == JobsScript.STEP_CARRY_BED and crew.jobs.load_milli[_read.value] > 0
+	var in_hand := func() -> int:
+		var total: int = 0
+		for row: int in JobsScript.MAX_JOBS:
+			total += crew.jobs.load_milli[row] if crew.jobs.is_live(row) else 0
+		return total
+	## These books see no stores: what is heaped now is on the heaps or in this crew's hands.
+	var books := PackedInt64Array([_heaped(), 1])
 	var stepped := func(seconds: float, done: Callable) -> bool:
 		for frame: int in roundi(seconds / DT):
 			_cast.advance(DT)
 			crew.update(_cast.clock.frame_usec)
+			if unbound.total_spoil(_network) + int(in_hand.call()) != books[0]:
+				books[1] = 0
 			if done.call():
 				return true
 		return false
 	assert_true(stepped.call(120.0, held), "carrying, books with no stores")
 	var from: int = crew.jobs.heap[_read.value]
 	crew.cancel_bed(BED_CLAY)
-	_network.mouth_gen[from] += 1
+	_free_mouth(from)
+	books[0] = _heaped() + DOSE
 	var waiting := func() -> bool:
 		return crew.jobs.job_on_bed_into(JobsScript.KIND_RETURN_EARTH, BED_CLAY, _read) \
 			and crew.jobs.worker[_read.value] == JobsScript.NOBODY
@@ -472,9 +498,31 @@ func test_earth_whose_heap_has_gone_goes_to_the_stores_or_waits_in_hand() -> voi
 	assert_equal(crew.jobs.load_milli[_read.value], DOSE, "still holding the 2 U")
 	assert_equal(crew.jobs.blocked[_read.value], JobsScript.BLOCK_WAY, "waiting for the next hour")
 	assert_equal(_notices[-1], "The 2.0 U of earth has nowhere to go back to: it waits on the board", "said")
+	assert_equal(books[1], 1, "the books balanced every frame, with no stores")
 
 
 # --- the books ------------------------------------------------------------------------------------
+
+func test_a_clearing_basket_whose_heap_has_gone_goes_into_the_stores() -> void:
+	"""A clearing worker called away with a basket puts it back on its heap (0361) -- unless the heap's mouth row was
+	freed meanwhile and will not take it: then the basket goes into the stores, not lost (decision 0401)."""
+	var heaps := _dig_tunnel(Vector2(2.0, 8.0), Vector2(10.0, 8.0))
+	_spoil = SpoilCrewScript.new()
+	_spoil.configure(_cast, _network, _tunnels, null, _stores.add_earth, DemoSpoilScript.drop_point(_cast))
+	_spoil.order(heaps[0], PackedInt32Array([3]))
+	var carrying := func() -> bool:
+		var r: int = _spoil.row_of(3)
+		return r >= 0 and _spoil.load_milli[r] > 0 and _spoil.issued[r] == 1 and _brain(3).carrying
+	assert_true(_run(60.0, carrying, _heaped()), "a basket on its way")
+	var basket: int = _spoil.in_hand_milli()
+	_free_mouth(heaps[0])
+	var now: int = _heaped() + basket
+	_brain(3).order_move(Vector2(-6.0, -6.0))
+	assert_true(_run(2.0, func() -> bool: return _spoil.row_of(3) < 0, now), "called away")
+	assert_true(_balanced, _first_off)
+	assert_equal(_spoil.in_hand_milli(), 0, "the basket is settled")
+	assert_equal(_stores.earth_milli_u, basket, "into the stores, all of it")
+
 
 func test_the_stores_keep_earth_all_or_nothing() -> void:
 	"""add_earth ignores nothing-or-less; take_earth takes all it is asked or none; the stores line names the earth."""

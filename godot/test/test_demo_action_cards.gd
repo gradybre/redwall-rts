@@ -1154,6 +1154,7 @@ func test_the_bed_panels_buttons_dim_name_resident_0_and_scope_cancel() -> void:
 	panel.refresh()
 	assert_false(panel._cancel.disabled, "a job to cancel")
 	assert_equal(panel._cancel.tooltip_text, BedPanelScript.CANCEL_TIP, "this bed's jobs only")
+	assert_true(BedPanelScript.CANCEL_TIP.contains("earth in hand goes back to its heap"), "and earth goes back (0401)")
 
 
 func test_a_picker_row_refused_by_the_board_keeps_the_boards_words() -> void:

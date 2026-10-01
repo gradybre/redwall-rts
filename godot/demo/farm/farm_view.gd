@@ -46,6 +46,8 @@ var _tunnels: TunnelsScript = null
 var _network: GraphScript = null
 var _heap_overlay: OverlayScript = null
 var _shown: PackedInt64Array = PackedInt64Array()
+## Per heap: the earth taken from it when it was last drawn here (decision 0401: earth carried back is drawn again).
+var _drawn_taken: PackedInt64Array = PackedInt64Array()
 var _selected: int = -1
 ## What the beds were last drawn for: the sim's revision and the marks (selection, overlay).
 var _seen_revision: int = -1
@@ -79,6 +81,8 @@ func follow_tunnels(tunnels: TunnelsScript, network: GraphScript, heap_overlay: 
 	_tunnels = tunnels
 	_network = network
 	_heap_overlay = heap_overlay
+	_drawn_taken.resize(TunnelsScript.HEAPS)
+	_drawn_taken.fill(0)
 
 
 static func hide_world_beds(village: Node) -> int:
@@ -180,12 +184,16 @@ func set_overlay(mode: int) -> int:
 
 
 func _shrink_heaps() -> void:
-	"""Draw each heap spoil was taken from at the size of what is left (hidden when empty)."""
+	"""Draw each heap earth was taken from at the size of what is left (hidden when empty) -- every frame while some is
+	taken (the overlay redraws a heap at all it was tipped), and once more when what was taken has all come back (an
+	earth return, decision 0401), so it stands whole again."""
 	if _heap_overlay == null or _network == null:
 		return
 	for heap: int in TunnelsScript.HEAPS:
-		if _tunnels.taken_milli(_network, heap) <= 0:
+		var taken: int = _tunnels.taken_milli(_network, heap)
+		if taken <= 0 and _drawn_taken[heap] == taken:
 			continue
+		_drawn_taken[heap] = taken
 		var node: MeshInstance3D = _heap_overlay.heap(heap)
 		var left: int = _tunnels.spoil_left(_network, heap)
 		node.visible = left > 0

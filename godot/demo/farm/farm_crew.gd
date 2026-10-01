@@ -89,6 +89,8 @@ class Decision:
 	var waits_room: bool = false
 	var need_milli: int = 0
 	var item: int = Catalog.NO_ITEM
+	## The most earth any one source holds (`most_earth`), read once for the refusal and the card's cost.
+	var earth_milli: int = 0
 
 
 ## The residents whose routine includes farm work.
@@ -165,8 +167,9 @@ func set_incidents(incidents: IncidentsScript) -> void:
 
 
 func _raise_stuck(row: int) -> void:
-	"""Job `row` could not be reached: its bed's stuck-job incident."""
-	if _incidents == null:
+	"""Job `row` could not be reached: its bed's stuck-job incident -- for production only: a delivery or an earth
+	return carries a load home, and the bed does not want it (decision 0401)."""
+	if _incidents == null or not _is_production(row):
 		return
 	var bed: int = jobs.bed[row]
 	var kind: int = jobs.kind[row]
@@ -255,10 +258,11 @@ func decide(kind: int, bed: int, members: PackedInt32Array, sow_item: int = Cata
 	already, who has it. `sow_item`: sowing as if that crop were chosen (the picker's rows; `refusal_for` asks the
 	same `sow_refusal` of the chosen crop). Changes nothing. The answer is reused: read it before the next call."""
 	var d: Decision = _decision
+	d.earth_milli = most_earth()
 	if kind == JobsScript.KIND_SOW and Catalog.is_item(sow_item):
 		d.code = _sim.sow_refusal(bed, sow_item)
 	else:
-		d.code = JobsScript.refusal_for(_sim, kind, bed, most_earth())
+		d.code = JobsScript.refusal_for(_sim, kind, bed, d.earth_milli)
 	d.row = -1
 	d.worker = -1
 	d.busy = false
@@ -315,7 +319,7 @@ func preview_into(card: CardScript, kind: int, bed: int, members: PackedInt32Arr
 	`sow_item`: a picker row's crop (see `decide`)."""
 	var d: Decision = decide(kind, bed, members, sow_item)
 	card.reset("%s %s" % [JobsScript.KIND_NAMES[kind], bed_label(bed)])
-	FarmCard.fill(card, _sim, kind, bed, most_earth(), _probe, sow_item)
+	FarmCard.fill(card, _sim, kind, bed, d.earth_milli, _probe, sow_item)
 	if d.code != &"":
 		card.refuse(String(d.code), reason_text(d.code), FarmCard.fix_for(d.code))
 		return

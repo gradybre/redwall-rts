@@ -66,6 +66,41 @@ func test_the_highest_surface_at_or_below_the_cap_is_kept() -> void:
 	assert_almost_equal(field.height_local(Vector2(0.5, 1.5)), 0.0, "buried: the ground")
 
 
+func test_a_root_rising_past_the_cap_is_footing_only_below_it() -> void:
+	"""A ramp from 1.0 m to 2.2 m over a 0.2 m root: where the ramp is under CAP_M it is the footing; where
+	it rises past the cap (trunk or crown) the root below is."""
+	var faces := PackedVector3Array()
+	_quad(faces, 1.0, -0.5, 2.0, 0.5, 0.2)
+	for v: Vector3 in [Vector3(1.0, 1.0, -0.5), Vector3(2.0, 2.2, -0.5), Vector3(2.0, 2.2, 0.5),
+			Vector3(1.0, 1.0, -0.5), Vector3(2.0, 2.2, 0.5), Vector3(1.0, 1.0, 0.5)]:
+		faces.append(v)
+	var field := FieldScript.new()
+	field.bake(faces, 3.0, 0.3)
+	var low: float = field.centre_of(field.side / 2 + 9)
+	var high: float = field.centre_of(field.side / 2 + 14)
+	assert_true(absf(field.height_local(Vector2(low, field.centre_of(field.side / 2))) - (1.0 + (low - 1.0) * 1.2)) < 0.002, "the ramp under the cap at %.3f" % low)
+	assert_almost_equal(field.height_local(Vector2(high, field.centre_of(field.side / 2))), 0.2, "past the cap: the root below")
+
+
+func test_the_field_slopes_across_z_too_and_ends_at_its_edge() -> void:
+	"""Bilinear in both directions: a ramp along z reads half way between two cell rows; a root reaching
+	the grid's edge reads nothing beyond it."""
+	var faces := PackedVector3Array()
+	for v: Vector3 in [Vector3(-0.5, 0.0, 1.0), Vector3(0.5, 0.0, 1.0), Vector3(0.5, 0.4, 2.0),
+			Vector3(-0.5, 0.0, 1.0), Vector3(0.5, 0.4, 2.0), Vector3(-0.5, 0.4, 2.0)]:
+		faces.append(v)
+	_quad(faces, 2.0, -0.5, 3.0, 0.5, 0.3)
+	var field := FieldScript.new()
+	field.bake(faces, 3.0, 0.3)
+	var z0: float = field.centre_of(field.side / 2 + 10)
+	var z1: float = field.centre_of(field.side / 2 + 11)
+	var x: float = field.centre_of(field.side / 2)
+	var mid: float = field.height_local(Vector2(x, (z0 + z1) * 0.5))
+	assert_true(absf(mid - ((z0 + z1) * 0.5 - 1.0) * 0.4) < 0.002, "half way between rows (%.4f)" % mid)
+	assert_almost_equal(field.height_local(Vector2(2.9, 0.0)), 0.3, "at the edge")
+	assert_almost_equal(field.height_local(Vector2(3.2, 0.0)), 0.0, "beyond it")
+
+
 func test_a_sloping_root_is_read_where_it_is() -> void:
 	"""A ramp rising 0 -> 0.4 m along +X: the field follows it (bilinear between cell centres)."""
 	var faces := PackedVector3Array()

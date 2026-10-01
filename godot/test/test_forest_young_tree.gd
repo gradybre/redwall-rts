@@ -159,6 +159,7 @@ func test_at_the_swap_the_stump_goes_and_the_young_tree_stands_at_the_centre() -
 	assert_almost_equal(node.position.z, stand.at[OAK].y, "at the centre (z)")
 	assert_almost_equal(node.position.y, -Sizes.sink_m(&"oak_mature", stand.size[OAK]) * share, "the sink scaled")
 	assert_almost_equal(node.transform.basis.get_scale().x, view._tree_rest[OAK].basis.get_scale().x * share, "the model scaled")
+	assert_almost_equal(view.mound_scale(OAK), share, "the walkers stand on the young tree's roots, at its share")
 
 
 func test_the_young_tree_grows_to_full_size_and_matures_seamlessly() -> void:

@@ -66,7 +66,7 @@ func bake(faces: PackedVector3Array, reach: float, trunk_radius: float) -> void:
 
 func _rasterise(a: Vector3, b: Vector3, c: Vector3) -> void:
 	"""Raise every cell centre under triangle abc to the triangle's height there, if at or below CAP_M."""
-	if minf(a.y, minf(b.y, c.y)) > CAP_M or maxf(a.y, maxf(b.y, c.y)) <= 0.0:
+	if minf(a.y, minf(b.y, c.y)) > CAP_M:
 		return
 	var area: float = (b.x - a.x) * (c.z - a.z) - (c.x - a.x) * (b.z - a.z)
 	if absf(area) < MIN_AREA_M2:

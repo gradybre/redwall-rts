@@ -115,6 +115,7 @@ const PrewarmScript := preload("res://demo/demo_prewarm.gd")
 const TunnelViewScript := preload("res://demo/tunnel/tunnel_view.gd")
 const UndergroundPrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 const CanopyScript := preload("res://demo/camera/canopy_clear.gd")
+const WeatherViewScript := preload("res://demo/weather/weather_view.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -126,7 +127,8 @@ const WATER_OVERLAY_NAME: String = "water zones and fishery"
 const PROCESS_AFTER_CHILDREN: int = 1
 ## Refit the sun's shadow range when the zoom has moved this far since the last fit.
 const SHADOW_REFIT_M: float = 0.5
-## Frames the canopy's fade and silhouette samples are drawn for at boot (as the U view's, decision 0206).
+## Frames the canopy's fade and silhouette samples, and the frost and snow overlay, are drawn for at boot
+## (as the U view's, decision 0206).
 const CANOPY_PREWARM_FRAMES: int = 2
 
 @onready var _game: Node = $Game
@@ -194,6 +196,8 @@ func _warm_and_open() -> void:
 		rooms.end_surface_prewarm)
 	_prewarm.add_frame_step("underground view", UndergroundPrewarmScript.FRAMES, view.begin_prewarm, view.end_prewarm)
 	_prewarm.add_frame_step("canopy fade and silhouette", CANOPY_PREWARM_FRAMES, _canopy.begin_prewarm, _canopy.end_prewarm)
+	var weather_view: WeatherViewScript = (_command as DemoCommandScript).tunnels().ext.weather_view
+	_prewarm.add_frame_step("frost and snow overlay", CANOPY_PREWARM_FRAMES, weather_view.begin_prewarm, weather_view.end_prewarm)
 	_prewarm.warm()
 	_prewarm.release_after_frames(_open_running)
 

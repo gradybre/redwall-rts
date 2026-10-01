@@ -106,6 +106,15 @@ func test_a_ray_spans_a_crown_between_its_entry_and_exit() -> void:
 	assert_equal(Math.ray_enters(crowns, 0, Vector3(-20.0, 1.0, 0.0), Vector3.RIGHT), Math.MISS, "under the base: a miss")
 
 
+func test_a_falling_ray_leaves_at_the_base() -> void:
+	"""ray_span on a ray falling through the crown's middle: out where it crosses the base plane, not the
+	ellipsoid's bottom."""
+	var crowns := _one_crown(StandScript.LOOK_OAK, Vector2(0.0, 0.0), 1.0)
+	var span: Vector2 = Math.ray_span(crowns, 0, Vector3(0.0, 20.0, 0.0), Vector3.DOWN)
+	assert_almost_equal(span.y, 20.0 - Math.CROWN_BASE_M[0], "out at the base")
+	assert_almost_equal(span.x, 20.0 - Math.CROWN_CENTRE_M[0] - Math.CROWN_HALF_HEIGHT_M[0], "in at the top")
+
+
 func test_a_sight_line_crosses_only_what_it_reaches() -> void:
 	"""segment_crosses: through the crown yes; stopping short of it, or passing under its base, no."""
 	var crowns := _one_crown(StandScript.LOOK_BEECH, Vector2(0.0, 0.0), 1.0)
@@ -158,6 +167,21 @@ func test_an_eye_that_cannot_get_out_comes_in_under_the_crown() -> void:
 	assert_almost_equal(allowed, maxf(entry - CanopyScript.EYE_MARGIN_M, CanopyScript.EYE_FLOOR_M), "short of the near side")
 	assert_true(allowed < 10.0 and allowed >= CanopyScript.EYE_FLOOR_M, "in, not past the floor (%.2f)" % allowed)
 	assert_true(canopy.crown_holding(focus + direction * allowed) < 0, "and outside every crown")
+
+
+func test_the_eye_never_comes_nearer_than_the_floor() -> void:
+	"""A row of crowns too deep to get out of (more than MAX_PULLS of them along the line), whose near side
+	is closer than EYE_FLOOR_M: pulled in, to the floor."""
+	var trees: Array[Dictionary] = []
+	for k: int in 16:
+		trees.append(_oak_at(Vector2(0.8 * float(k) + 3.0, 0.0), 1.0))
+	var made: Array = _canopy(trees)
+	var canopy: CanopyScript = made[0]
+	var pitch: float = deg_to_rad(40.0)
+	var direction: Vector3 = Math.eye_direction(PI / 2.0, pitch)
+	assert_true(Math.ray_span(canopy._eye_crowns, 0, Vector3.ZERO, direction).x - CanopyScript.EYE_MARGIN_M < CanopyScript.EYE_FLOOR_M, "the near side is inside the floor")
+	assert_true(canopy.crown_holding(direction * 9.0) >= 0, "9 m out: in a crown")
+	assert_almost_equal(canopy.allowed_distance(Vector3.ZERO, PI / 2.0, pitch, 9.0), CanopyScript.EYE_FLOOR_M, "the floor")
 
 
 func test_the_rig_moves_the_drawn_eye_at_once_and_keeps_the_zoom() -> void:

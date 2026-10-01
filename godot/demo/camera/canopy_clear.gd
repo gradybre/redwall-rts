@@ -158,8 +158,6 @@ func allowed_distance(focus: Vector3, yaw: float, pitch: float, distance: float)
 	MAX_PUSH_M farther), or failing that in short of their near side (never nearer than EYE_FLOOR_M), each
 	EYE_MARGIN_M clear. Crowns the line merely passes through are the fade's (see THE EYE)."""
 	var direction: Vector3 = Math.eye_direction(yaw, pitch)
-	if crown_holding(focus + direction * distance) < 0:
-		return distance
 	var outward: float = _pulled(focus, direction, distance, 1.0)
 	if outward - distance <= MAX_PUSH_M:
 		return outward
@@ -440,7 +438,7 @@ static func set_xray(actor: Node, overlay: Material) -> int:
 
 func begin_prewarm() -> void:
 	"""Build each look's fade material from its model and draw one sample of each -- below the focus, in the
-	view but behind the ground -- with the first resident wearing the silhouette, for the prewarm's frames."""
+	view but behind the ground -- with every resident wearing the silhouette, for the prewarm's frames."""
 	var below: Vector3 = _rig.focus() + Vector3.DOWN * PREWARM_DEPTH_M
 	for look: int in StandScript.LOOK_KEYS.size():
 		var mesh: MeshInstance3D = _first_mesh(_look_node(look))
@@ -454,17 +452,18 @@ func begin_prewarm() -> void:
 		sample.set_instance_shader_parameter(PARAM_FADE, 0.5)
 		sample.set_instance_shader_parameter(PARAM_BASE, below.y)
 		_samples.append(sample)
-	if _cast != null and _cast.actor_count() > 0:
-		set_xray(_cast.actor(0), _xray)
+	for i: int in (_cast.actor_count() if _cast != null else 0):
+		set_xray(_cast.actor(i), _xray)
 
 
 func end_prewarm() -> void:
-	"""Free the samples and take the silhouette off again (unless that resident is selected)."""
+	"""Free the samples and take the silhouette off again (but from the selected)."""
 	for sample: Node3D in _samples:
 		sample.queue_free()
 	_samples.clear()
-	if _cast != null and _cast.actor_count() > 0 and _xray_on.size() > 0 and _xray_on[0] == 0:
-		set_xray(_cast.actor(0), null)
+	for i: int in (_cast.actor_count() if _cast != null else 0):
+		if i >= _xray_on.size() or _xray_on[i] == 0:
+			set_xray(_cast.actor(i), null)
 
 
 func _look_node(look: int) -> Node3D:

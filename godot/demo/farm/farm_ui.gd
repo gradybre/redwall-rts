@@ -12,7 +12,10 @@ const CardScript := preload("res://demo/ui/action_card.gd")
 
 const TITLE_PX: int = 20
 const BODY_PX: int = 15
-const SMALL_PX: int = 13
+## UI §2.1's minimum rendered text (13 px before decision 0391, review F35).
+const SMALL_PX: int = 14
+## UX-T03: every button at least 32 logical px tall (decision 0391).
+const BUTTON_H: float = 32.0
 ## An item's icon on a list row (the Pantry's, the crop picker's).
 const ICON_PX: int = 28
 const CONTENT_MARGINS: PackedFloat32Array = [14.0, 10.0, 14.0, 12.0]
@@ -47,6 +50,7 @@ static func button(text: String, px: int = BODY_PX) -> Button:
 	HUD's focus ring (decision 0261)."""
 	var made := Button.new()
 	made.text = text
+	made.custom_minimum_size.y = BUTTON_H
 	Styles.focusable(made, BUTTON_MARGINS)
 	made.add_theme_font_size_override(&"font_size", px)
 	made.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, BUTTON_MARGINS))

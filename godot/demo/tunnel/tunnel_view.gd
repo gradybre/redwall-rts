@@ -40,6 +40,7 @@ const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const WaterScript := preload("res://demo/village_water.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
+const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const UiRegistry := preload("res://scripts/ui/ui_registry.gd")
 
@@ -220,9 +221,10 @@ func _place_indicator() -> void:
 
 
 func place_indicator_for(size_px: Vector2) -> void:
-	"""The HUD's layout for a screen of `size_px` (computed once a size), and the indicator placed by it."""
+	"""The HUD's layout for a screen of `size_px` at the interface scale (demo_ui_scale.gd, decision 0391), and the
+	indicator placed by it."""
 	if not _layout.compute_into(maxi(int(size_px.x), UiLayout.SUPPORTED_MIN_WIDTH),
-			maxi(int(size_px.y), UiLayout.SUPPORTED_MIN_HEIGHT), UiLayout.USER_SCALE_100, false, _geometry):
+			maxi(int(size_px.y), UiLayout.SUPPORTED_MIN_HEIGHT), DemoUiScale.percent, false, _geometry):
 		_geometry.scale = 1.0
 	_centre_indicator()
 

@@ -142,6 +142,7 @@ const PrewarmScript := preload("res://demo/demo_prewarm.gd")
 const TunnelViewScript := preload("res://demo/tunnel/tunnel_view.gd")
 const UndergroundPrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 const InputGateScript := preload("res://demo/ui/demo_input_gate.gd")
+const ActionCardScript := preload("res://demo/ui/action_card.gd")
 const MenuScript := preload("res://demo/ui/demo_menu.gd")
 const LabScript := preload("res://demo/ui/demo_lab.gd")
 const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
@@ -173,9 +174,11 @@ const UNDERGROUND_LENS_QUESTION: String = "What lies under the village?"
 const PROCESS_AFTER_CHILDREN: int = 1
 ## Refit the sun's shadow range when the zoom has moved this far since the last fit.
 const SHADOW_REFIT_M: float = 0.5
-## An interface scale is offered only where it leaves the HUD this many logical pixels tall: the demo's
-## panels are laid out for 1280x720 at 100 %.
-const MIN_LOGICAL_HEIGHT: float = 720.0
+## An interface scale is offered only where it leaves the HUD this many logical pixels tall: 1280x720 at 125 %
+## (decision 0391). Every demo panel reflows or scrolls there, and the bottom band's news strip and Map layer picker
+## each keep a place clear of the right column; at 150 % on 1280x720 (480 rows) those two have no room apart, so
+## that size stays refused. It was 720 -- 1280x720 at 100 % only -- under decision 0261.
+const MIN_LOGICAL_HEIGHT: float = 576.0
 ## Frames the canopy's fade and silhouette samples, and the frost and snow overlay, are drawn for at boot
 ## (as the U view's, decision 0206).
 const CANOPY_PREWARM_FRAMES: int = 2
@@ -234,6 +237,7 @@ func _ready() -> void:
 	add_child(_command)
 	_command.configure(_cast, _camera.camera(), _game.get_node_or_null(GAME_HUD_ROOT) as Control, _services)
 	_command.set_world(_world as DemoWorldScript)
+	(_command as DemoCommandScript).set_centre((_camera as DemoCameraScript).centre_on)
 	_build_farm(manifest)
 	_build_spoil()
 	_build_forestry()
@@ -679,7 +683,10 @@ func _build_input() -> void:
 	var shell: UiShell = _shell()
 	if shell != null:
 		_gate.defer_to(shell.workspace_owns_input)
+		_gate.occlude_with(_workspace_rect.bind(shell))
 	get_viewport().size_changed.connect(_refit_ui_scale)
+	get_viewport().size_changed.connect(_scale_tooltips)
+	_scale_tooltips()
 	_gate.watch_modal(_farm.pantry_panel, _farm.pantry_panel, _farm.toggle_pantry, [&"open_food"] as Array[StringName])
 	_gate.set_modal_close(_farm.pantry_panel, _farm.pantry_panel.close_button())
 	_gate.watch_modal(_menu, _menu, _menu.back_or_close)
@@ -687,7 +694,22 @@ func _build_input() -> void:
 	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
 	_gate.add_region("right column", [_zone, _farm.bed_panel, ext.panel, _forestry.panel, _waterplay.panel] as Array[Node])
 	_gate.add_region("left column", [(_command as DemoCommandScript).panel()] as Array[Node])
+	_gate.add_region("map layers", [_lens_picker] as Array[Node])
 	_sound.watch_buttons.call_deferred(get_tree().root)
+
+
+func _workspace_rect(shell: UiShell) -> Rect2:
+	"""Where the HUD's workspace (the Residents roster and its kin) is drawn now, in viewport pixels; empty when it is
+	closed. It draws over the right column at 1280x720, and the input gate skips what it covers (decision 0391)."""
+	var workspace: Control = shell.control_for(UiShell.ID_WORKSPACE)
+	if workspace == null or not workspace.is_visible_in_tree():
+		return Rect2()
+	return InputGateScript.screen_rect(workspace)
+
+
+func _scale_tooltips() -> void:
+	"""The action cards' tooltips at the HUD's effective scale for this window (decision 0391)."""
+	ActionCardScript.scale_tooltips(DemoUiScale.effective_scale(get_viewport().get_visible_rect().size))
 
 
 func _build_menu() -> void:
@@ -737,7 +759,8 @@ func restart() -> void:
 
 
 func set_ui_scale(percent: int) -> void:
-	"""The menu's interface scale: the HUD's (`apply_user_scale`) and every demo panel's."""
+	"""The menu's interface scale: the HUD's (`apply_user_scale`) and every demo panel's (they re-place on the
+	viewport's `size_changed`, which `apply` raises -- the tooltips' scale too)."""
 	var shell: UiShell = _shell()
 	if shell != null:
 		shell.apply_user_scale(percent)

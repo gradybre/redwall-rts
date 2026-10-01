@@ -79,7 +79,7 @@
 		},
 		"amb_stream": {
 			"files": ["res://demo/assets/sound/amb_stream_loop.ogg"],
-			"bus": "water", "positional": true, "loop": true, "volume_db": -8.0, "range_m": 22.0, "gap_ms": 0, "voices": 1,
+			"bus": "water", "positional": true, "loop": true, "volume_db": -8.0, "range_m": 45.0, "gap_ms": 0, "voices": 1,
 			"equivalent": "The stream and the pond are drawn flowing"
 		},
 		"amb_wind": {

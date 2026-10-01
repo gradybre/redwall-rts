@@ -14,11 +14,12 @@ extends RefCounted
 ##                     while swimming
 ##   chop / gnaw / dig / saw   each whole STRIKE_USEC / STROKE_USEC of a woods work step that has begun
 ##                     (forest_jobs.gd `issued`) -- felling, grubbing a stump, sawing; never a walk to it
-##   tree_fall         a tree gone from standing to a stump (forest_stand.gd): felled or blown down
+##   tree_fall         a tree gone from standing to a stump (felled) or straight to cleared (blown down:
+##                     forest_stand.gd `blow_down_into`)
 ##   dig               each dig quantum CUT (underground_graph.gd `cut_count`), at the digger, below
 ##   complete          a tunnel or room segment opening (DIGGING -> OPEN), a bridge opening (PLANNED -> OPEN)
-##   warning           a NEW warning in the notice feed (demo_notices.gd); a repeat it folds (×2) is not new,
-##                     so it does not chime again (UI §7)
+##   warning           a NEW warning row in the notice feed (demo_notices.gd `rows_posted`); a repeat it folds
+##                     into an existing row (×2) is not new, so it does not chime again (UI §7)
 ## Ambience is a level, not an edge: wind and rain from the weather's condition, the stream from the nearest
 ## bank to the listener; read every AMBIENCE_MS.
 ##
@@ -125,8 +126,7 @@ var _seg_done: PackedInt32Array = PackedInt32Array()
 var _seg_cuts: PackedInt32Array = PackedInt32Array()
 var _bridge_phase: PackedByteArray = PackedByteArray()
 var _bridge_generation: PackedInt32Array = PackedInt32Array()
-var _notice_msec: int = -1
-var _notice_revision: int = -1
+var _notice_rows: int = 0
 var _ambience_msec: int = -1000000
 var _at: Vector3 = Vector3.ZERO
 var _bank: WaterMapScript.Bank = WaterMapScript.Bank.new()
@@ -156,15 +156,14 @@ func cue_row(c: int) -> int:
 	return _cue[c]
 
 
-func watch(now_msec: int) -> void:
+func watch() -> void:
 	"""Take every bound source's state as it stands, as the baseline: nothing that was already so sounds."""
 	_watch_brains()
 	_watch_jobs()
 	_watch_trees()
 	_watch_segments()
 	_watch_bridges()
-	_notice_msec = now_msec
-	_notice_revision = notices.revision if notices != null else -1
+	_notice_rows = notices.rows_posted if notices != null else 0
 
 
 func poll(now_msec: int, listener_ground: Vector2) -> int:
@@ -176,7 +175,7 @@ func poll(now_msec: int, listener_ground: Vector2) -> int:
 	_poll_trees()
 	_poll_segments()
 	_poll_bridges()
-	_poll_notices(now_msec)
+	_poll_notices()
 	if now_msec - _ambience_msec >= AMBIENCE_MS:
 		_ambience_msec = now_msec
 		_poll_ambience(listener_ground)
@@ -356,7 +355,9 @@ func _poll_jobs() -> void:
 		if code < 0:
 			continue
 		var beats: int = _beats_of(row)
-		if beats > _job_beats[row]:
+		if beats < _job_beats[row]:
+			_job_beats[row] = beats  # the work began again on this row (a reused row, a step taken back)
+		elif beats > _job_beats[row]:
 			_job_beats[row] = beats
 			_strike(row, code - JobsScript.STEP_WORK)
 
@@ -395,7 +396,8 @@ func _poll_trees() -> void:
 	_stand_revision = stand.revision
 	for t: int in stand.count():
 		var state: int = stand.state_of(t)
-		if state == StandScript.STATE_STUMP and _tree_state[t] == StandScript.STATE_MATURE:
+		if _tree_state[t] == StandScript.STATE_MATURE and (state == StandScript.STATE_STUMP
+				or state == StandScript.STATE_CLEARED):
 			_emit(C_TREE_FALL, stand.at[t].x, 0.0, stand.at[t].y, false)
 		_tree_state[t] = state
 
@@ -412,7 +414,8 @@ func _watch_segments() -> void:
 	for slot: int in TunnelRules.MAX_SEGMENTS:
 		_seg_phase[slot] = network.phase[slot]
 		_seg_generation[slot] = network.generation[slot]
-		_seg_done[slot] = network.done(slot) if network.phase[slot] == GraphScript.PHASE_DIGGING else 0
+		var dug: bool = network.phase[slot] == GraphScript.PHASE_DIGGING or network.phase[slot] == GraphScript.PHASE_PAUSED
+		_seg_done[slot] = network.done(slot) if dug else 0
 		_seg_cuts[slot] = network.cut_count(slot) if _seg_done[slot] > 0 else 0
 
 
@@ -478,20 +481,15 @@ func _poll_bridges() -> void:
 
 # --- notices and ambience --------------------------------------------------------------------------
 
-func _poll_notices(now_msec: int) -> void:
-	"""warning for a new warning posted since the last poll -- not for a repeat the feed folded (×2). Nothing
-	posted (the feed's revision unchanged): nothing read."""
-	if notices == null:
+func _poll_notices() -> void:
+	"""warning when a new row posted since the last poll is a warning -- not for a repeat the feed folded into a
+	row it already had (×2), which writes no new row."""
+	if notices == null or notices.rows_posted == _notice_rows:
 		return
-	var since: int = now_msec - _notice_msec
-	_notice_msec = now_msec
-	if notices.revision == _notice_revision:
-		return
-	_notice_revision = notices.revision
-	for k: int in notices.count():
-		if notices.age_msec(k, now_msec) > since:
-			return
-		if notices.level(k) == NoticesScript.LEVEL_WARNING and notices.repeats(k) == 1:
+	var fresh: int = mini(notices.rows_posted - _notice_rows, notices.count())
+	_notice_rows = notices.rows_posted
+	for k: int in fresh:
+		if notices.level(k) == NoticesScript.LEVEL_WARNING:
 			_emit_flat(C_WARNING)
 			return
 

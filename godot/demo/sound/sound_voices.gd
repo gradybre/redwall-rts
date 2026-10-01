@@ -38,8 +38,10 @@ var _player_bus: PackedInt32Array = PackedInt32Array()
 ## Per voice: the cue it sounds (-1: none) and until when (Time msec).
 var _voice_cue: PackedInt32Array = PackedInt32Array()
 var _voice_until: PackedInt64Array = PackedInt64Array()
-## Per cue: when it last played (Time msec; a large negative: never), plays, folds, and the next variant.
+## Per cue: when it last played (Time msec; a large negative: never), offers (every `play` call), plays, folds,
+## and the next variant.
 var _last_play: PackedInt64Array = PackedInt64Array()
+var offered: PackedInt32Array = PackedInt32Array()
 var played: PackedInt32Array = PackedInt32Array()
 var folded: PackedInt32Array = PackedInt32Array()
 var _variant: PackedInt32Array = PackedInt32Array()
@@ -62,7 +64,7 @@ func build(table: SoundTable) -> void:
 	var cues: int = table.count()
 	_last_play.resize(cues)
 	_last_play.fill(-1000000)
-	for column: PackedInt32Array in [played, folded, _variant]:
+	for column: PackedInt32Array in [offered, played, folded, _variant]:
 		column.resize(cues)
 		column.fill(0)
 
@@ -89,6 +91,7 @@ func voice_count() -> int:
 func play(row: int, at: Vector3, below: bool, now_msec: int) -> int:
 	"""Sound cue `row` at `at` (a flat cue ignores it), on the Work bus's underground half when `below`.
 	Returns PLAYED or why not (REFUSE_*; see A PLAY)."""
+	offered[row] += 1
 	var code: int = admit(row, now_msec)
 	if code != PLAYED:
 		refused[code] += 1
@@ -173,19 +176,20 @@ func busy(bus: int, now_msec: int) -> int:
 	return n
 
 
-func stop_bus(bus: int) -> int:
-	"""Stop every voice of bus `bus` now (the clock paused: work stops). Returns how many were busy."""
+func stop_bus(bus: int, now_msec: int) -> int:
+	"""Stop every voice of bus `bus` now (the clock paused: work stops). Returns how many were still busy."""
 	var stopped: int = 0
 	for voice: int in _player_bus.size():
 		if _player_bus[voice] != bus or _voice_cue[voice] < 0:
 			continue
+		var was_busy: bool = _voice_until[voice] > now_msec
 		_voice_cue[voice] = -1
 		_voice_until[voice] = 0
 		if _placed[voice] != null:
 			_placed[voice].stop()
 		else:
 			_flat[voice].stop()
-		stopped += 1
+		stopped += 1 if was_busy else 0
 	return stopped
 
 

@@ -44,6 +44,9 @@ const UNDATED: String = "—"
 
 ## Bumped by every post.
 var revision: int = 0
+## Rows ever written: bumped by every post that is not folded into the newest (a reader counts new rows by it;
+## the demo's sound, decision 0351).
+var rows_posted: int = 0
 
 var _calendar: CalendarScript = null
 var _stamp: PackedStringArray = PackedStringArray()
@@ -93,6 +96,7 @@ func post(source: int, level: int, text: String, summary: String = "") -> bool:
 		_repeats[row] = 1
 		_head = (_head + 1) % CAPACITY
 		_count = mini(_count + 1, CAPACITY)
+		rows_posted += 1
 	_stamp[row] = _calendar.date_text() if _calendar != null else UNDATED
 	_posted_msec[row] = Time.get_ticks_msec()
 	revision += 1

@@ -35,6 +35,9 @@ var _values: Array[Label] = []
 var _mutes: Array[Button] = []
 var _downs: Array[Button] = []
 var _ups: Array[Button] = []
+## The − and + buttons' tooltips, by bus (FarmUi.set_enabled clears an enabled button's tooltip).
+var _down_tips: PackedStringArray = PackedStringArray()
+var _up_tips: PackedStringArray = PackedStringArray()
 var _presets: Array[Button] = []
 var _note: Label = null
 var _silent: bool = true
@@ -85,6 +88,7 @@ func _step_button(text: String, bus: int, by: int, row: HBoxContainer) -> Button
 	button.tooltip_text = "%s %s by %d%%" % ["Lower" if by < 0 else "Raise", SoundMix.BUS_LABELS[bus].to_lower(),
 		absi(by)]
 	button.pressed.connect(step.bind(bus, by))
+	(_down_tips if by < 0 else _up_tips).append(button.tooltip_text)
 	row.add_child(button)
 	return button
 
@@ -99,6 +103,7 @@ func _slider(bus: int) -> HSlider:
 	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	slider.focus_mode = Control.FOCUS_NONE
+	slider.scrollable = false  # the wheel scrolls the page, never a volume
 	slider.tooltip_text = "%s volume" % SoundMix.BUS_LABELS[bus]
 	slider.value_changed.connect(_on_slider.bind(bus))
 	_sliders.append(slider)
@@ -175,12 +180,19 @@ func refresh() -> void:
 		_values[bus].text = PERCENT_TEXT % percent
 		_mutes[bus].set_pressed_no_signal(SoundMix.muted[bus] == 1)
 		_mutes[bus].text = MUTED_TEXT if SoundMix.muted[bus] == 1 else MUTE_TEXT
-		FarmUi.set_enabled(_downs[bus], percent > 0, "Already silent")
-		FarmUi.set_enabled(_ups[bus], percent < SoundMix.PERCENT_MAX, "Already at full volume")
+		_set_step_enabled(_downs[bus], percent > 0, _down_tips[bus], "Already silent")
+		_set_step_enabled(_ups[bus], percent < SoundMix.PERCENT_MAX, _up_tips[bus], "Already at full volume")
 	for index: int in _presets.size():
 		_presets[index].set_pressed_no_signal(index == SoundMix.preset)
 	_note.text = (SILENT_NOTE + " " if _silent else "") + MATCH_NOTE
 	_refreshing = false
+
+
+static func _set_step_enabled(button: Button, enabled: bool, tip: String, why: String) -> void:
+	"""A − or + enabled with its own tooltip, or disabled with the reason."""
+	FarmUi.set_enabled(button, enabled, why)
+	if enabled:
+		button.tooltip_text = tip
 
 
 # --- checks -----------------------------------------------------------------------------------------

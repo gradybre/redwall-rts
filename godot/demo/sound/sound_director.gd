@@ -15,7 +15,8 @@ extends Node3D
 ## the mix; the event map (sound_taps.gd) is read and each event offered to the voices (sound_voices.gd);
 ## the ambience loops ease towards the map's levels.
 ##
-## THE LISTENER sits over the camera's focus, LISTENER_LIFT of the zoom distance up: zoomed in, the work at
+## THE LISTENER sits over the camera's focus, LISTENER_LIFT of the zoom distance up, turned with the camera's
+## heading (so a sound on the screen's left is heard on the left whichever way the view faces): zoomed in, the work at
 ## the focus is close; zoomed out to the woods, the listener rises out of the work's range and the village
 ## settles to its ambience (UX-029's calm bed). A placed cue farther from the listener than its range is not
 ## given a voice at all (REFUSE_FAR), so distant work never takes one from near work.
@@ -85,7 +86,8 @@ func configure(table_path: String = SoundTable.DEFAULT_PATH) -> bool:
 	event map's cues. False when the table could not be read (the demo then runs silent, warned once)."""
 	var ok: bool = table.load_from(table_path)
 	if not ok:
-		push_warning("demo sound: %s; the demo runs silent" % "; ".join(table.errors))
+		push_warning("demo sound: %s; %s" % ["; ".join(table.errors),
+			"the demo runs silent" if table.count() == 0 else "those cues are left out"])
 	mix.ensure_buses()
 	mix.apply()
 	voices.build(table)
@@ -153,7 +155,7 @@ func follow_demo(cast: DemoCastScript, forestry: ForestryScript, network: GraphS
 	taps.notices = services.notices if services != null else null
 	taps.weather = services.weather if services != null else null
 	taps.water_map = water_map
-	taps.watch(Time.get_ticks_msec())
+	taps.watch()
 
 
 func is_silent() -> bool:
@@ -179,7 +181,7 @@ func _process(delta: float) -> void:
 func update(now_msec: int, delta_s: float) -> void:
 	"""Follow the camera, the pause and the U view; play this frame's events; ease the loops."""
 	if _camera != null:
-		set_listener(_camera.focus(), _camera.distance())
+		set_listener(_camera.focus(), _camera.distance(), deg_to_rad(_camera.yaw_degrees()))
 	if _clock != null:
 		set_paused(_clock.get_effective_speed() == 0)
 	if _view_on.is_valid():
@@ -190,14 +192,16 @@ func update(now_msec: int, delta_s: float) -> void:
 	_ease_loops(delta_s)
 
 
-func set_listener(focus: Vector3, distance: float) -> void:
-	"""Stand the listener over `focus`, LISTENER_LIFT of `distance` up (see THE LISTENER)."""
+func set_listener(focus: Vector3, distance: float, yaw: float = 0.0) -> void:
+	"""Stand the listener over `focus`, LISTENER_LIFT of `distance` up, facing the camera's heading `yaw` (radians,
+	0 looking toward -Z, as demo_camera.gd's rig turns) (see THE LISTENER)."""
 	_listener_at.x = focus.x
 	_listener_at.y = focus.y + distance * LISTENER_LIFT
 	_listener_at.z = focus.z
 	_listener_ground.x = focus.x
 	_listener_ground.y = focus.z
 	listener.position = _listener_at
+	listener.rotation.y = yaw
 
 
 func listener_at() -> Vector3:
@@ -212,8 +216,8 @@ func set_paused(on: bool) -> void:
 	mix.paused = on
 	mix.apply()
 	if on:
-		voices.stop_bus(SoundMix.BUS_WORK)
-		voices.stop_bus(SoundMix.BUS_WATER)
+		voices.stop_bus(SoundMix.BUS_WORK, Time.get_ticks_msec())
+		voices.stop_bus(SoundMix.BUS_WATER, Time.get_ticks_msec())
 
 
 func set_underground(on: bool) -> void:
@@ -235,11 +239,6 @@ func cue(row: int, at: Vector3, below: bool, now_msec: int) -> int:
 	if table.positional[row] == 1 and at.distance_to(_listener_at) > table.range_m[row]:
 		return REFUSE_FAR
 	return voices.play(row, at, below, now_msec)
-
-
-func cue_id(id: StringName, at: Vector3 = Vector3.ZERO) -> int:
-	"""cue() by id, now (a UI click; checks)."""
-	return cue(table.row(id), at, false, Time.get_ticks_msec())
 
 
 func _ease_loops(delta_s: float) -> void:

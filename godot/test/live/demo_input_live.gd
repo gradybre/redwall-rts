@@ -63,7 +63,7 @@ func _initialize() -> void:
 	_steps = [_pantry_opens_as_a_modal, _pantry_blocks_the_world, _pantry_traps_tab, _pantry_escape_returns,
 		_escape_ladder_ends_in_the_menu, _menu_button_opens_the_menu, _menu_pages_and_escape, _menu_controls_back,
 		_menu_restores_speed, _menu_confirms_restart_and_quit, _confirm_cancel_and_quit,
-		_settings_offer_what_works, _settings_fit_and_sound, _settings_close, _f7_and_tab_reach_every_panel_button, _focus_ring_off,
+		_settings_offer_what_works, _settings_fit_and_sound, _settings_close, _sound_really_plays, _f7_and_tab_reach_every_panel_button, _focus_ring_off,
 		_f7_reaches_the_left_column_then_the_world, _enter_and_space_route_by_focus, _enter_goes_to_the_dig_tool,
 		_lab_holds_the_triggers, _lab_fires_and_panels_are_clean, _lab_from_the_menu, _history_click_does_not_leak,
 		_a_click_gives_the_arrows_back, _the_banner_over_the_lab, _the_banner_takes_enter,
@@ -391,6 +391,81 @@ func _settings_fit_and_sound() -> void:
 	_check("the Settings frame fits the window", frame.position.y >= 0.0 and bottom <= float(_size.y) + 1.0,
 		"top %.0f bottom %.0f" % [frame.position.y, bottom])
 	_sound_follows_the_menu()
+
+
+func _sound_really_plays() -> void:
+	"""In the running scene, with a real (silent) stream injected: a chop is given to a playing player at pitch 1,
+	the pause stops it, the rain loop plays with its level and stops at 0, and a button made now clicks
+	(decision 0351). The injected streams are taken out again."""
+	var sound: Node = _village.call(&"sound")
+	var table: RefCounted = sound.get(&"table")
+	var voices: Node = sound.get(&"voices")
+	var chop: int = int(table.call(&"row", &"chop"))
+	var wav := _silent_wav()
+	(table.get(&"streams") as Array)[chop] = [wav]
+	var now: int = Time.get_ticks_msec() + 100000
+	_check("a chop is played", int(sound.call(&"cue", chop, sound.call(&"listener_at"), false, now)) == 0)
+	var player: AudioStreamPlayer3D = _playing_voice(voices)
+	_check("its player really plays, at pitch 1", player != null and is_equal_approx(player.pitch_scale, 1.0))
+	sound.call(&"set_paused", true)
+	_check("the pause stops it", _playing_voice(voices) == null)
+	sound.call(&"set_paused", false)
+	(table.get(&"streams") as Array)[chop] = []
+	_loop_plays_and_stops(sound, wav)
+	_a_late_button_clicks(sound, table, voices)
+
+
+func _silent_wav() -> AudioStreamWAV:
+	"""Two seconds of silence, 16-bit mono."""
+	var wav := AudioStreamWAV.new()
+	wav.format = AudioStreamWAV.FORMAT_16_BITS
+	wav.mix_rate = 22050
+	var data := PackedByteArray()
+	data.resize(22050 * 2 * 2)
+	wav.data = data
+	return wav
+
+
+func _playing_voice(voices: Node) -> AudioStreamPlayer3D:
+	"""The first placed voice playing (null: none)."""
+	for voice: int in int(voices.call(&"voice_count")):
+		var player := voices.call(&"placed_player", voice) as AudioStreamPlayer3D
+		if player != null and player.playing:
+			return player
+	return null
+
+
+func _loop_plays_and_stops(sound: Node, wav: AudioStreamWAV) -> void:
+	"""The rain loop with a stream: playing as its level rises, stopped at 0."""
+	var rain := (sound.get(&"_loop_flat") as Array)[1] as AudioStreamPlayer
+	var taps: RefCounted = sound.get(&"taps")
+	var level: int = int(taps.get(&"rain_permille"))
+	rain.stream = wav
+	taps.set(&"rain_permille", 1000)
+	sound.call(&"_ease_loops", 0.5)
+	_check("the rain loop plays while it rains", rain.playing)
+	taps.set(&"rain_permille", 0)
+	sound.call(&"_ease_loops", 5.0)
+	_check("and stops when it is dry", not rain.playing)
+	rain.stream = null
+	taps.set(&"rain_permille", level)
+
+
+func _a_late_button_clicks(sound: Node, table: RefCounted, voices: Node) -> void:
+	"""A button added to the running scene now is hooked as it joins the tree, and clicks."""
+	var click: int = int(table.call(&"row", &"ui_click"))
+	var before: int = _offered(voices, click)
+	var late := Button.new()
+	_village.add_child(late)
+	late.pressed.emit()
+	_check("a button made after boot offers its click (played, or held back by the click's gap or voices)",
+		_offered(voices, click) == before + 1, "offered %d -> %d" % [before, _offered(voices, click)])
+	late.queue_free()
+
+
+func _offered(voices: Node, cue: int) -> int:
+	"""How many times cue `cue` was offered to the voices (sound_voices.gd `offered`)."""
+	return int((voices.get(&"offered") as PackedInt32Array)[cue])
 
 
 func _sound_follows_the_menu() -> void:

@@ -228,6 +228,7 @@ func _settings_scroll_body(page: VBoxContainer) -> VBoxContainer:
 	"""The Settings page's scroll (sized in _place) and the column inside it."""
 	_settings_scroll = ScrollContainer.new()
 	_settings_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_settings_scroll.follow_focus = true
 	page.add_child(_settings_scroll)
 	_settings_body = VBoxContainer.new()
 	_settings_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL

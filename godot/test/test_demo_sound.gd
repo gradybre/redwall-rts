@@ -27,6 +27,7 @@ const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const SkillsScript := preload("res://demo/forestry/forest_skills.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const WorldLayout := preload("res://demo/world/world_layout.gd")
 
@@ -110,6 +111,26 @@ func test_a_cue_without_an_equivalent_or_with_an_unknown_bus_is_refused() -> voi
 	assert_true(table.row(&"ok") >= 0, "the good cue")
 	assert_equal(table.errors.size(), 2, "two refusals said")
 	assert_false(SoundTable.new().load_from("res://demo/sound/no_such_table.json"), "a missing table refuses")
+
+
+func test_each_bad_field_refuses_its_cue() -> void:
+	"""A loud volume, a placed cue with no range, a negative gap, no voices or too many, files that are not a
+	list or too many, and a second cue of the same id: each is refused, saying which."""
+	var bad: Array[Dictionary] = []
+	for field: Array in [["volume_db", 12.0], ["range_m", 0.0], ["gap_ms", -1], ["voices", 0], ["voices", 9],
+			["files", "chop.ogg"], ["files", ["1", "2", "3", "4", "5", "6", "7", "8", "9"]]]:
+		var spec: Dictionary = _cue("work", 0, 1)
+		spec[field[0]] = field[1]
+		bad.append(spec)
+	for spec: Dictionary in bad:
+		var table := SoundTable.new()
+		assert_false(table.add(&"bad", spec), "refused: %s" % str(spec))
+		assert_equal(table.count(), 0, "nothing taken")
+	var twice := SoundTable.new()
+	assert_true(twice.add(&"knock", _cue("work", 0, 1)), "the first")
+	assert_false(twice.add(&"knock", _cue("work", 0, 1)), "the same id again")
+	assert_true(twice.errors[0].contains("listed twice"), "says so")
+	assert_true(SoundTable.new().add(&"flat", _cue("cues", 0, 1)), "a flat cue needs no range")
 
 
 func test_missing_files_play_silent_with_one_warning_per_cue() -> void:
@@ -251,7 +272,7 @@ func _run_fellers(speed: int, seconds: int, n: int) -> Array:
 	var made: Array = _fellers(n)
 	director.taps.brains = made[0]
 	director.taps.jobs = made[1]
-	director.taps.watch(0)
+	director.taps.watch()
 	var jobs: JobsScript = made[1]
 	var chop: int = director.table.row(&"chop")
 	var raised: int = 0
@@ -280,25 +301,106 @@ func test_four_x_raises_more_strikes_but_never_stacks_them() -> void:
 	assert_true(int(four[2]) <= table.voices[chop], "never more than %d chops at once" % table.voices[chop])
 
 
-func test_no_voice_is_ever_pitched_at_any_speed() -> void:
-	"""In the tree with a real (silent) stream, a chop played while the clock runs at 4x plays at pitch 1."""
-	var director := _director()
-	(Engine.get_main_loop() as SceneTree).root.add_child(director)
+func _wav(ms: int) -> AudioStreamWAV:
+	"""A silent 16-bit mono stream `ms` long (a real stream, so players really play)."""
 	var wav := AudioStreamWAV.new()
 	wav.format = AudioStreamWAV.FORMAT_16_BITS
 	wav.mix_rate = 22050
 	var data := PackedByteArray()
-	data.resize(22050 * 2 / 5)
+	data.resize(22050 * 2 * ms / 1000)
 	wav.data = data
+	return wav
+
+
+func _busy_player(director: DirectorScript) -> AudioStreamPlayer3D:
+	"""The placed voice last given a stream (null: none)."""
+	for voice: int in director.voices.voice_count():
+		var player: AudioStreamPlayer3D = director.voices.placed_player(voice)
+		if player != null and player.stream != null:
+			return player
+	return null
+
+
+func test_a_chop_at_four_x_plays_at_pitch_one_its_range_and_its_variants() -> void:
+	"""The clock at 4x and real streams: a felling beat raised through update() is given to a player at pitch 1,
+	whose range is the cue's, for the stream's length; the next play takes the next variant. (That the player
+	really plays, and that a pause really stops it, is the live harness's: the runner has no tree.)"""
+	var director := _director()
+	var clock := GameManagerScript.new()
+	clock.start_game()
+	assert_true(clock.set_speed(4), "4x")
+	director.bind(null, clock, Callable())
 	var chop: int = director.table.row(&"chop")
-	director.table.streams[chop] = [wav]
-	director.taps.brains.clear()
-	assert_equal(director.cue(chop, Vector3.ZERO, false, 5000), VoicesScript.PLAYED, "played")
+	var first: AudioStreamWAV = _wav(200)
+	director.table.streams[chop] = [first, _wav(200)]
+	var made: Array = _fellers(1)
+	director.taps.brains = made[0]
+	director.taps.jobs = made[1]
+	director.taps.watch()
+	(made[1] as JobsScript).elapsed_usec[0] = TapsScript.STRIKE_USEC
+	director.update(5000, 0.016)
+	assert_equal(director.voices.played[chop], 1, "the beat played through update() at 4x")
 	for voice: int in director.voices.voice_count():
 		assert_almost_equal(director.voices.pitch_of(voice), 1.0, "voice %d at pitch 1" % voice)
+	var player: AudioStreamPlayer3D = _busy_player(director)
+	assert_not_null(player, "a placed player was given the stream")
+	if player != null:
+		assert_almost_equal(player.max_distance, director.table.range_m[chop], "heard over the chop's range")
+		assert_true(player.stream == first, "the first variant")
 	assert_equal(director.voices.sounding(chop, 5000 + 150), 1, "busy for the stream's 200 ms")
 	assert_equal(director.voices.sounding(chop, 5000 + 200), 0, "and no longer")
-	director.get_parent().remove_child(director)
+	assert_equal(director.cue(chop, Vector3.ZERO, false, 6000), VoicesScript.PLAYED, "again")
+	assert_true(_given_streams(director).has(director.table.streams[chop][1]), "the second variant next")
+	clock.free()
+
+
+func _given_streams(director: DirectorScript) -> Array:
+	"""Every stream a placed voice was last given."""
+	var streams: Array = []
+	for voice: int in director.voices.voice_count():
+		if director.voices.placed_player(voice) != null and director.voices.placed_player(voice).stream != null:
+			streams.append(director.voices.placed_player(voice).stream)
+	return streams
+
+
+func test_a_staged_file_loads_without_a_warning_and_loops_as_its_cue_says() -> void:
+	"""A file that exists is loaded (no warning), the cue is no longer silent, and a looping cue's Ogg is set to
+	loop -- the drop-in path the sourcing plan relies on, with a saved stream standing in for a staged file."""
+	var path: String = "user://test_demo_sound_loop.tres"
+	var ogg := AudioStreamOggVorbis.new()
+	ogg.loop = false
+	assert_equal(ResourceSaver.save(ogg, path), OK, "a stand-in file saved")
+	var spec: Dictionary = _cue("ambience", 0, 1)
+	spec["loop"] = true
+	spec["files"] = [path, "res://demo/assets/sound/no_such.ogg"]
+	var table := SoundTable.new()
+	assert_true(table.add(&"drone", spec), "the cue")
+	assert_equal(table.load_streams(), 1, "the file that exists is loaded")
+	assert_false(table.is_silent(0), "no longer silent")
+	assert_true((table.stream_of(0, 0) as AudioStreamOggVorbis).loop, "set to loop")
+	assert_equal(table.warnings, 1, "the missing one still warned about, once")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+
+func test_a_looping_cue_s_files_are_set_to_loop() -> void:
+	"""An Ogg or MP3 file on a looping cue is set to loop; on a one-shot, not."""
+	var ogg := AudioStreamOggVorbis.new()
+	SoundTable._set_looping(ogg, true)
+	assert_true(ogg.loop, "looped")
+	var mp3 := AudioStreamMP3.new()
+	mp3.loop = true
+	SoundTable._set_looping(mp3, false)
+	assert_false(mp3.loop, "a one-shot does not loop")
+
+
+func test_the_listener_turns_with_the_camera() -> void:
+	"""Facing 180 degrees round, the listener's forward is +Z: left and right follow the view."""
+	var director := _director()
+	director.set_listener(Vector3.ZERO, 10.0, PI)
+	var forward: Vector3 = -director.listener.transform.basis.z
+	assert_almost_equal(forward.z, 1.0, "turned round")
+	director.set_listener(Vector3.ZERO, 10.0)
+	assert_almost_equal((-director.listener.transform.basis.z).z, -1.0, "facing -Z by default")
 
 
 # --- pause, the U view, distance -----------------------------------------------------------------------
@@ -309,6 +411,8 @@ func test_pausing_ducks_ambience_stops_work_and_keeps_cues() -> void:
 	var director := _director()
 	var chop: int = director.table.row(&"chop")
 	assert_equal(director.cue(chop, Vector3.ZERO, false, 1000), VoicesScript.PLAYED, "work sounds")
+	var splash: int = director.table.row(&"splash")
+	assert_equal(director.cue(splash, Vector3.ZERO, false, 1000), VoicesScript.PLAYED, "a splash sounds")
 	var ambience: float = _bus_db(SoundMix.BUS_NAMES[SoundMix.BUS_AMBIENCE])
 	director.set_paused(true)
 	assert_almost_equal(_bus_db(SoundMix.BUS_NAMES[SoundMix.BUS_AMBIENCE]), ambience + SoundMix.DUCK_DB, "ambience ducked")
@@ -318,6 +422,8 @@ func test_pausing_ducks_ambience_stops_work_and_keeps_cues() -> void:
 		SoundMix.percent_db(SoundMix.percents[SoundMix.BUS_WORK]), "work's bus is not ducked: its voices stop")
 	assert_equal(director.voices.busy(SoundMix.BUS_WORK, 1001), 0, "work stopped")
 	assert_equal(director.cue(chop, Vector3.ZERO, false, 2000), DirectorScript.REFUSE_PAUSED, "no work starts")
+	assert_equal(director.voices.busy(SoundMix.BUS_WATER, 1001), 0, "the splash stopped")
+	assert_equal(director.cue(splash, Vector3.ZERO, false, 2000), DirectorScript.REFUSE_PAUSED, "no water one-shot starts")
 	assert_equal(director.cue(director.table.row(&"warning"), Vector3.ZERO, false, 2000), VoicesScript.PLAYED, "a cue does")
 	director.set_paused(false)
 	assert_almost_equal(_bus_db(SoundMix.BUS_NAMES[SoundMix.BUS_AMBIENCE]), ambience, "ambience back")
@@ -406,7 +512,11 @@ func test_down_is_refused_at_silence_and_up_at_full() -> void:
 	assert_true(settings.down_button(SoundMix.BUS_CUES).disabled, "− off at 0")
 	settings.set_percent(SoundMix.BUS_CUES, 100)
 	assert_true(settings.up_button(SoundMix.BUS_CUES).disabled, "+ off at 100")
+	assert_equal(settings.up_button(SoundMix.BUS_CUES).tooltip_text, "Already at full volume", "saying why")
 	assert_false(settings.down_button(SoundMix.BUS_CUES).disabled, "− back")
+	assert_true(settings.down_button(SoundMix.BUS_CUES).tooltip_text.begins_with("Lower"), "with its own tooltip")
+	settings.set_percent(SoundMix.BUS_CUES, 50)
+	assert_true(settings.up_button(SoundMix.BUS_CUES).tooltip_text.begins_with("Raise"), "+ has its tooltip back")
 
 
 func test_quiet_focus_sets_the_mix_and_a_custom_volume_unlights_it() -> void:
@@ -466,7 +576,7 @@ func _taps_for(brains: Array[BrainScript]) -> TapsScript:
 	var taps := TapsScript.new()
 	taps.bind_table(_shipped())
 	taps.brains = brains
-	taps.watch(0)
+	taps.watch()
 	return taps
 
 
@@ -515,6 +625,8 @@ func test_a_strike_sounds_only_once_the_work_has_begun_and_a_beat_is_done() -> v
 	taps.poll(16, Vector2.ZERO)
 	assert_equal(taps.event_count, 0, "a walk never strikes")
 	jobs.step[0] = 1
+	taps.poll(24, Vector2.ZERO)
+	assert_equal(taps.event_count, 0, "at the fell, not yet begun (its opening check not passed): no chop")
 	jobs.issued[0] = 1
 	jobs.elapsed_usec[0] = TapsScript.STRIKE_USEC - 1
 	taps.poll(32, Vector2.ZERO)
@@ -529,6 +641,23 @@ func test_a_strike_sounds_only_once_the_work_has_begun_and_a_beat_is_done() -> v
 	assert_equal(taps.event_count, 0, "no beat since: nothing")
 
 
+func test_a_beaver_fells_by_gnawing() -> void:
+	"""The beaver's felling beats sound as gnaws, a mouse's as chops (forest_skills.gd `gnaws_wood`)."""
+	var made: Array = _fellers(2)
+	var skills := SkillsScript.new()
+	skills.setup([&"beaver_bridgewright", &"mouse"] as Array[StringName], PackedStringArray(["beaver", "mouse"]))
+	var taps := _taps_for(made[0])
+	taps.jobs = made[1]
+	taps.skills = skills
+	taps.watch()
+	var jobs: JobsScript = made[1]
+	jobs.elapsed_usec[0] = TapsScript.STRIKE_USEC
+	jobs.elapsed_usec[1] = TapsScript.STRIKE_USEC
+	taps.poll(16, Vector2.ZERO)
+	assert_equal(_events(taps, TapsScript.C_GNAW), 1, "the beaver gnaws")
+	assert_equal(_events(taps, TapsScript.C_CHOP), 1, "the mouse chops")
+
+
 func test_sawing_strokes_and_grubbing_digs() -> void:
 	"""A saw step strokes every STROKE_USEC; a grub strikes as a dig."""
 	var made: Array = _fellers(2)
@@ -539,7 +668,7 @@ func test_sawing_strokes_and_grubbing_digs() -> void:
 	jobs.step[1] = 1
 	var taps := _taps_for(made[0])
 	taps.jobs = jobs
-	taps.watch(0)
+	taps.watch()
 	jobs.elapsed_usec[0] = TapsScript.STROKE_USEC
 	jobs.elapsed_usec[1] = TapsScript.STRIKE_USEC
 	taps.poll(16, Vector2.ZERO)
@@ -550,11 +679,12 @@ func test_sawing_strokes_and_grubbing_digs() -> void:
 func test_a_tree_sounds_its_fall_only_when_it_falls() -> void:
 	"""The stand unchanged: nothing; felled (standing -> stump): one tree_fall, at the tree."""
 	var stand := StandScript.new()
-	var placements: Array[Dictionary] = [{"key": &"oak_mature", "at": Vector2(-10.0, -24.0), "yaw": 0.0, "size": 1.0}]
+	var placements: Array[Dictionary] = [{"key": &"oak_mature", "at": Vector2(-10.0, -24.0), "yaw": 0.0, "size": 1.0},
+		{"key": &"beech_mature", "at": Vector2(0.0, -24.0), "yaw": 0.0, "size": 1.0}]
 	assert_true(stand.bind_into(placements, WOOD, 1, _read), "bound")
 	var taps := _taps_for([] as Array[BrainScript])
 	taps.stand = stand
-	taps.watch(0)
+	taps.watch()
 	taps.poll(16, Vector2.ZERO)
 	assert_equal(taps.event_count, 0, "standing")
 	assert_true(stand.fell_into(0, 5, Vector2.UP, false, _read), "felled")
@@ -563,6 +693,27 @@ func test_a_tree_sounds_its_fall_only_when_it_falls() -> void:
 	assert_almost_equal(taps.event_at[0].x, -10.0, "at the tree")
 	taps.poll(48, Vector2.ZERO)
 	assert_equal(taps.event_count, 0, "once")
+	assert_true(stand.fell_into(1, 6, Vector2.UP, false, _read), "the second felled")
+	taps.poll(64, Vector2.ZERO)
+	assert_equal(_events(taps, TapsScript.C_TREE_FALL), 1, "only the second falls: the first stump is not new")
+	assert_almost_equal(taps.event_at[0].x, 0.0, "at the second tree")
+	assert_true(stand.grub_into(0, _read), "the first stump grubbed out")
+	taps.poll(80, Vector2.ZERO)
+	assert_equal(taps.event_count, 0, "a stump grubbed is no fall")
+
+
+func test_a_tree_blown_down_falls_too() -> void:
+	"""A storm's blow-down goes straight from standing to cleared; it falls all the same."""
+	var stand := StandScript.new()
+	var placements: Array[Dictionary] = [{"key": &"oak_mature", "at": Vector2(-10.0, -24.0), "yaw": 0.0, "size": 1.0}]
+	assert_true(stand.bind_into(placements, WOOD, 1, _read), "bound")
+	var taps := _taps_for([] as Array[BrainScript])
+	taps.stand = stand
+	taps.watch()
+	assert_true(stand.blow_down_into(0, 5, Vector2.UP, _read), "blown down")
+	assert_equal(stand.state_of(0), StandScript.STATE_CLEARED, "cleared at once")
+	taps.poll(16, Vector2.ZERO)
+	assert_equal(_events(taps, TapsScript.C_TREE_FALL), 1, "it falls")
 
 
 func test_a_dig_sounds_each_cut_and_completes_on_opening() -> void:
@@ -578,7 +729,7 @@ func test_a_dig_sounds_each_cut_and_completes_on_opening() -> void:
 	network.digger[0] = 0
 	var taps := _taps_for([digger] as Array[BrainScript])
 	taps.network = network
-	taps.watch(0)
+	taps.watch()
 	network.advance(0, network.generation[0], 1000)
 	taps.poll(16, Vector2.ZERO)
 	assert_equal(_events(taps, TapsScript.C_DIG), 0, "no cut yet")
@@ -586,9 +737,14 @@ func test_a_dig_sounds_each_cut_and_completes_on_opening() -> void:
 	taps.poll(32, Vector2.ZERO)
 	assert_equal(_events(taps, TapsScript.C_DIG), 1, "a cut: dig")
 	assert_equal(taps.event_below[0], 1, "below")
+	network.advance(0, network.generation[0], 100000)
+	taps.poll(40, Vector2.ZERO)
+	assert_equal(_events(taps, TapsScript.C_DIG), 0, "more dig time, no new cut: nothing")
 	network.advance(0, network.generation[0], 1000000000)
 	taps.poll(48, Vector2.ZERO)
 	assert_equal(_events(taps, TapsScript.C_COMPLETE), 1, "open: complete")
+	taps.poll(64, Vector2.ZERO)
+	assert_equal(_events(taps, TapsScript.C_COMPLETE), 0, "once: an open segment is not opening again")
 
 
 func test_a_bridge_completes_once_when_it_opens() -> void:
@@ -598,7 +754,7 @@ func test_a_bridge_completes_once_when_it_opens() -> void:
 	bridges.phase[1] = BridgesScript.PHASE_OPEN
 	var taps := _taps_for([] as Array[BrainScript])
 	taps.bridges = bridges
-	taps.watch(0)
+	taps.watch()
 	taps.poll(16, Vector2.ZERO)
 	assert_equal(taps.event_count, 0, "nothing opened")
 	bridges.phase[0] = BridgesScript.PHASE_OPEN
@@ -607,6 +763,10 @@ func test_a_bridge_completes_once_when_it_opens() -> void:
 	bridges.phase[2] = BridgesScript.PHASE_PLANNED
 	taps.poll(48, Vector2.ZERO)
 	assert_equal(taps.event_count, 0, "a new plan is no completion")
+	bridges.generation[2] += 1
+	bridges.phase[2] = BridgesScript.PHASE_OPEN
+	taps.poll(64, Vector2.ZERO)
+	assert_equal(taps.event_count, 0, "a different bridge (a new generation) found open is not this one opening")
 
 
 func test_a_new_warning_chimes_and_a_note_or_a_folded_repeat_does_not() -> void:
@@ -614,7 +774,7 @@ func test_a_new_warning_chimes_and_a_note_or_a_folded_repeat_does_not() -> void:
 	var notices := NoticesScript.new()
 	var taps := _taps_for([] as Array[BrainScript])
 	taps.notices = notices
-	taps.watch(Time.get_ticks_msec())
+	taps.watch()
 	taps.poll(Time.get_ticks_msec(), Vector2.ZERO)
 	assert_equal(taps.event_count, 0, "nothing posted: nothing")
 	notices.post(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_NOTE, "Beans sown")
@@ -629,6 +789,17 @@ func test_a_new_warning_chimes_and_a_note_or_a_folded_repeat_does_not() -> void:
 	assert_equal(notices.repeats(0), 2, "the feed folded it")
 	taps.poll(Time.get_ticks_msec(), Vector2.ZERO)
 	assert_equal(taps.event_count, 0, "a repeat does not chime again")
+	notices.post(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_NOTE, "Peas up")
+	taps.poll(Time.get_ticks_msec(), Vector2.ZERO)
+	assert_equal(taps.event_count, 0, "a later note does not raise the old warning again")
+	notices.post(NoticesScript.SOURCE_WEATHER, NoticesScript.LEVEL_WARNING, "Frost tonight")
+	notices.post(NoticesScript.SOURCE_WEATHER, NoticesScript.LEVEL_WARNING, "Frost tonight")
+	taps.poll(Time.get_ticks_msec(), Vector2.ZERO)
+	assert_equal(_events(taps, TapsScript.C_WARNING), 1, "a new warning folded in the same frame still chimes")
+	notices.post(NoticesScript.SOURCE_EVENTS, NoticesScript.LEVEL_WARNING, "Fire")
+	notices.post(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_NOTE, "Beans sown")
+	taps.poll(Time.get_ticks_msec(), Vector2.ZERO)
+	assert_equal(_events(taps, TapsScript.C_WARNING), 1, "a warning under a later note in one frame chimes")
 
 
 func test_water_edges_and_a_splash_as_swimming_begins() -> void:
@@ -638,7 +809,7 @@ func test_water_edges_and_a_splash_as_swimming_begins() -> void:
 	swim.setup(PackedStringArray(["otter"]), PackedInt32Array([1024]))
 	var taps := _taps_for([brain] as Array[BrainScript])
 	taps.swim = swim
-	taps.watch(0)
+	taps.watch()
 	brain.in_water = true
 	swim.mode[0] = SwimStateScript.MODE_WADE
 	taps.poll(16, Vector2.ZERO)
@@ -675,7 +846,7 @@ func test_footsteps_follow_the_ground_underfoot() -> void:
 	var taps := _taps_for([brain] as Array[BrainScript])
 	var off_path := _grass_point()
 	brain.position = off_path
-	taps.watch(0)
+	taps.watch()
 	var steps: int = _walk(taps, brain, off_path, off_path + Vector2(0.95, 0.0), 19)
 	assert_equal(steps, 2, "0.95 m: two strides")
 	brain.underground = true
@@ -712,13 +883,48 @@ func _grass_point() -> Vector2:
 	return Vector2(-19.0, 19.0)
 
 
+func test_wading_steps_splash_softly() -> void:
+	"""A resident wading (swim mode WADE, not yet in deep water) takes wading steps."""
+	var brain := BrainScript.new()
+	var swim := SwimStateScript.new()
+	swim.setup(PackedStringArray(["mouse"]), PackedInt32Array([1024]))
+	var taps := _taps_for([brain] as Array[BrainScript])
+	taps.swim = swim
+	brain.position = _grass_point()
+	taps.watch()
+	swim.mode[0] = SwimStateScript.MODE_WADE
+	brain.position += Vector2(0.5, 0.0)
+	taps.poll(16, Vector2.ZERO)
+	assert_equal(_events(taps, TapsScript.C_STEP_WADE), 1, "a wading step")
+	assert_equal(_events(taps, TapsScript.C_STEP_GRASS), 0, "not grass")
+
+
+func test_a_work_begun_again_strikes_from_its_first_beat() -> void:
+	"""A row's work taken back to fewer beats (the row reused, or the step begun again) strikes again at its next
+	whole beat, not only once it passes the old count."""
+	var made: Array = _fellers(1)
+	var jobs: JobsScript = made[1]
+	var taps := _taps_for(made[0])
+	taps.jobs = jobs
+	taps.watch()
+	jobs.elapsed_usec[0] = 3 * TapsScript.STRIKE_USEC
+	taps.poll(16, Vector2.ZERO)
+	assert_equal(_events(taps, TapsScript.C_CHOP), 1, "three beats: a chop")
+	jobs.elapsed_usec[0] = 0
+	taps.poll(32, Vector2.ZERO)
+	assert_equal(taps.event_count, 0, "begun again: nothing yet")
+	jobs.elapsed_usec[0] = TapsScript.STRIKE_USEC
+	taps.poll(48, Vector2.ZERO)
+	assert_equal(_events(taps, TapsScript.C_CHOP), 1, "its first beat strikes")
+
+
 func test_a_worn_path_sounds_as_dirt() -> void:
 	"""On a worn path (world_layout.gd's capsules) a stride is dirt."""
 	var brain := BrainScript.new()
 	var taps := _taps_for([brain] as Array[BrainScript])
 	var on_path := _a_path_point(taps)
 	brain.position = on_path
-	taps.watch(0)
+	taps.watch()
 	brain.position = on_path + Vector2(0.0, 0.46)
 	taps.poll(16, Vector2.ZERO)
 	var dirt: int = _events(taps, TapsScript.C_STEP_DIRT)

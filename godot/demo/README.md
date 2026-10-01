@@ -67,6 +67,34 @@ at 2x and 4x they move and dig two and four times as fast. The camera, the HUD, 
 panel and the selection and order marks stay on real time, so the player can still select, order
 and dig while paused -- the orders are carried out on resume.
 
+## Time controls: the pause types, Resume and "Run until…" (decision 0471)
+
+Review UX-022 (`session/`). **Every pause says why, and there is one Resume.**
+
+- **The pause card** (`ui/demo_pause_card.gd`) stands in for the HUD's "Paused: PLAYER" line, top centre: "Paused —"
+  and each reason in words, most urgent first, then **Resume (Space)**. Its tooltip says what Resume clears. While a
+  pop-up is open (the Pantry, the Work screen, the object list) it sits bottom centre above it.
+- **The kinds** (`session/pause_ledger.gd`): *Critical* -- a critical incident (a resident in difficulty in the water, a
+  tunnel threat), with "Pause on a critical incident" on (the default), or a stall (the stall banner's own, as before);
+  *the game menu*; *Planning* -- the Pantry, the Work screen, the village news, the Residents list, the object list or the
+  Dig tool open, with "Pause while planning" on (off by default, UI §8.1); *You paused* -- Space, the HUD's pause button,
+  or a "Run until…" that arrived ("Reached dawn: Y1 Spring 2, 06:00").
+- **Resume** -- the card's button, Space while paused, or the HUD's pause button pressed while paused -- clears your
+  pause, a planning pause and a critical pause. It never closes the game menu (its own Resume does) and never
+  acknowledges a stall (the stall banner's Resume, which drops the owed time, does). After Resume a planning surface left
+  open stays unpaused until every one has closed. **Panels never override your pause**: closing one lets go of its own
+  planning pause only. The menu, a planning surface and a critical incident share the clock's MENU reason through the
+  ledger, so closing the menu never lifts the others.
+- **Run until…** -- the button in the time controls (in the cluster's first row, right of 4x; left of the cluster at the
+  narrow profile), or **G**: a menu with the speed (1x / 2x / 4x) and six targets, each saying when or why not --
+  **Dawn** (06:00, the night routine's), **Dusk** (20:00), **Next meal** (the kitchen's 07:00 or 17:00 call), **Project
+  done** (the selected room being dug, else the selected tunnel being dug, else the bridge planned at the Water panel's
+  site), **Harvest window** (a bed coming ripe), **Next warning** (a new warning line or incident). The village runs at the
+  speed, then pauses saying where it got to. The calendar targets land **on the tick** (the demo clock's next frame is
+  capped, `demo_clock.gd limit_usec`): from 05:40 at 4x, Run until dawn stops at 06:00:00. Any pause or critical event
+  first cancels the run, and the card says so ("Run until dawn cancelled: paused (you paused)"); the button reads
+  "■ Dawn" while it runs, and the menu has **Stop the run**.
+
 ## One village: one calendar, one weather, one water, one feed
 
 The farm and the tunnel works were built apart; in the demo they are one village (the woods too), sharing four things
@@ -180,7 +208,7 @@ the speed it had (and a pause of your own stays). Settings holds only what works
 (100 / 125 / 150 %, the HUD and every demo panel, the level indicator and the action cards' tooltips together; a
 size the window cannot show at 576 logical rows and 1024 logical px wide is disabled and says so -- at 1280x720, 150 %;
 decision 0391), full screen, and the sound's volumes, mutes and mixes
-(see "Sound" below). The Menu button no longer opens the New Settlement form: its Create would discard the settlement the demo runs on.
+(see "Sound" below), and **Accessibility** and **Time** (see "Accessibility" below). The Menu button no longer opens the New Settlement form: its Create would discard the settlement the demo runs on.
 
 **The Demo Lab** (`ui/demo_lab.gd`, F8, or the menu's "Demo Lab"): the demo's test triggers, and only here --
 Next weather (the one calendar runs on to the next change of weather, at most 48 h), Test event (the tunnels'
@@ -190,7 +218,9 @@ Tunnels, Woods and Water panels now hold only the village's own choices.
 
 **Keyboard focus** (decision 0261). The demo's panel buttons -- the right column's tabs and "×", the Farm,
 Pantry, Tunnels (rooms and fit-out too), Woods and Water panels, and the party panel's Dig and room buttons --
-take keyboard focus and wear the HUD's brass focus ring while they have it (a click's focus is not drawn).
+take keyboard focus and wear the HUD's brass focus ring while they have it (a click's focus is not drawn). Every demo
+panel that scrolls -- the Woods, Tunnels and Pantry panels and the menu's Settings now too -- brings the focused control
+into view in its own pixels at any interface scale (`ui/demo_scroll.gd`; decision 0471 finished F35's list).
 
 | Key | Does |
 |---|---|
@@ -198,6 +228,24 @@ take keyboard focus and wear the HUD's brass focus ring while they have it (a cl
 | Tab / Shift+Tab | Next / previous button where the focus is (in a pop-up: its buttons only) |
 | Enter / Space | Press the focused button. Only the keyboard's focus takes them: after a click, Enter still digs the piece the Dig tool has laid, Space still pauses and the arrows still pan the camera |
 | Esc | With focus in a panel: back to the world. Otherwise the pop-up, tool or selection ladder below, then the game menu |
+| Space | Pause; paused, Resume (your pause, a planning pause, a critical pause; never the menu's or a stall's) |
+| G | "Run until…" (decision 0471): Tab and the arrows move through it, Enter chooses, G or Esc close it |
+| F6 | The object list (decision 0471): every resident, crop bed, tree, bridge, tunnel mouth and room; Enter on a row selects it and centres the view on it |
+
+**Accessibility** (decision 0471, review UX-023, `access/`): the game menu's Settings holds four **presets** -- pointing at
+one (mouse or keyboard focus) previews what it would change, pressing applies it at once, live, and lights it while all it
+sets is in place -- and each setting as its own toggle, which a preset only ever turns on:
+
+| Preset | Sets |
+|---|---|
+| Large readable | the interface at 150 % where the window offers it, else 125 %; bigger tooltips (x1.25); high-contrast panels (a flat, opaque face under every panel's text, re-drawn in place: `woodland_styles.gd set_high_contrast`) |
+| Keyboard planner | focus hints (a line under the keyboard's focus naming it and its keys: `access/focus_hint.gd`); show interactive targets (a brass ring on every resident, bed, tree, bridge, mouth and room a click selects: `access/target_marks.gd`) |
+| Reduced motion | the camera stops easing; the selection rings, a swimmer's ripple and the mound over a digger stop pulsing; every particle system at 35 %; the rain and snow thinner and half as fast (`access/demo_motion.gd`). The demo has no camera shake |
+| Quiet focus | the sound's Quiet focus mix; fewer news toasts (warnings only, one at a time; everything stays in the village news) |
+
+Under **Time**: Pause while planning (off) and Pause on a critical incident (on). **Restore defaults** says everything it
+will change and asks first. The settings last for the session and through Restart, as the scale and sound do; nothing is
+saved to disk. Key rebinding is not offered: the demo has no rebinding system yet.
 
 **The top bar tells the village's truth** (decision 0251, review group E). One read model
 (`ui/demo_hud_model.gd`, painted by `ui/demo_hud_counters.gd`) gives every cell exactly one owner, the
@@ -1222,11 +1270,13 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |
 | `work/` | The work board over every job owner (one adapter each), the claim, the named crews and presets, the order lists' entries, Shift+right-click's queue and the Work screen (decision 0411) |
+| `session/` | The time controls: the pause ledger (the kinds, their words, the one Resume), "Run until…" (its targets read from the calendar, the kitchen, the projects, the beds and the news) and the frame-by-frame control (Space, G, the HUD's pause button, the planning surfaces, the critical incidents) (decision 0471) |
+| `access/` | Accessibility: the settings and presets, their effects on the village, reduced motion, the world's interactive targets (the object list, F6, and their rings), the focus hint, the Settings section (decision 0471) |
 | `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens; then the underground view drawn once |
 | `demo_layers.gd` | The four render layers every drawn node is on, and the plane each view picks on (decision 0206) |
 | `map_lenses.gd`, `lens_subject.gd` | The map layers: one shown at a time, each with its question, legend and subject; V's cycle and U's followed layer (decision 0292) |
 | `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |
-| `ui/` | The woodland HUD skin; the HUD date, the news strip, the village-news history, the incident card and "Go to", and the right column's tabs; the HUD's village read model (counters and ledger), the Residents roster and the village map; the Map layer picker |
+| `ui/` | The woodland HUD skin; the HUD date, the news strip, the village-news history, the incident card and "Go to", and the right column's tabs; the HUD's village read model (counters and ledger), the Residents roster and the village map; the Map layer picker; the pause card and the "Run until…" button and menu (decision 0471) |
 | `camera/` | The RTS camera, and the canopy clearance: the eye kept out of crowns, the crowns in the way thinned, the selected shown through |
 | `sound/` | The sound pass: the cue table (data), the mix and its buses, the voice pool, the event map, the owner and the Settings section |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

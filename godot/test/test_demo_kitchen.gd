@@ -186,7 +186,7 @@ func test_a_supper_with_fresh_fish_is_the_fish_stew() -> void:
 	assert_true(_run(v, 6 * FRAMES_PER_HOUR, func() -> bool: return v.kitchen.store.portions_of(Rules.DISH_FISH_STEW) >= 3) > 0,
 		"a batch cooked")
 	assert_equal(v.kitchen.store.portions_of(Rules.DISH_FISH_STEW) % 3, 0, "three portions a batch")
-	var batches: int = v.kitchen.store.portions_of(Rules.DISH_FISH_STEW) / 3
+	@warning_ignore("integer_division") var batches: int = v.kitchen.store.portions_of(Rules.DISH_FISH_STEW) / 3
 	assert_equal(v.pantry.milli_of(Catalog.FIRST_CATCH + 3), 4000 - batches * 2000, "2 U of perch a batch")
 	assert_equal(v.pantry.milli_of(CARROT), 4000 - batches * 2000, "2 U of roots a batch")
 	assert_equal(v.kitchen.consumed_food_milli, batches * 4000, "the books: both inputs")

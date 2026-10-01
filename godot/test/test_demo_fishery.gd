@@ -245,8 +245,8 @@ func test_work_runs_on_the_calendar_at_the_gdd_rate() -> void:
 	assert_equal(Rules.work_ticks(60000, 0), 750, "a net cycle is an hour")
 	assert_equal(Rules.work_usec(60000, 0), 25000000, "25 s at 1x")
 	assert_equal(Rules.work_ticks(60000, 4), 625, "fishing 4 works 1.2x as fast")
-	assert_equal(Rules.mwu_numerator(25000000, 0) / Rules.MWU_DENOMINATOR, 60000, "an hour of demo time is 60 WU")
-	assert_equal(Rules.mwu_numerator(25000000, 4) / Rules.MWU_DENOMINATOR, 72000, "and 72 WU at fishing 4 (factor 1200)")
+	@warning_ignore("integer_division") assert_equal(Rules.mwu_numerator(25000000, 0) / Rules.MWU_DENOMINATOR, 60000, "an hour of demo time is 60 WU")
+	@warning_ignore("integer_division") assert_equal(Rules.mwu_numerator(25000000, 4) / Rules.MWU_DENOMINATOR, 72000, "and 72 WU at fishing 4 (factor 1200)")
 
 
 func test_the_catch_is_six_species_never_eel_pike_shrimp_or_the_coast() -> void:
@@ -426,7 +426,7 @@ func test_a_boat_rows_its_fixed_route_on_integer_progress() -> void:
 	assert_true(fleet.take(0, 7), "taken")
 	assert_true(fleet.set_off(0), "off")
 	var length: int = fleet.course_len_u[0]
-	var usec: int = (length * 1000000 + FleetScript.ROW_SPEED_U_S - 1) / FleetScript.ROW_SPEED_U_S
+	@warning_ignore("integer_division") var usec: int = (length * 1000000 + FleetScript.ROW_SPEED_U_S - 1) / FleetScript.ROW_SPEED_U_S
 	assert_equal(fleet.step(usec - 100000), 0, "not there yet")
 	assert_equal(fleet.step(100000), 1, "on station")
 	assert_equal(fleet.phase[0], FleetScript.PHASE_ON_STATION, "on station")

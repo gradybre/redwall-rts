@@ -16,6 +16,7 @@ const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
 const FarmTunnels := preload("res://demo/farm/farm_tunnels.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const InterruptScript := preload("res://demo/control/work_interrupt.gd")
 
 const DT: float = 1.0 / 60.0
 const USEC: int = 16667
@@ -216,6 +217,10 @@ func test_a_heap_is_picked_under_the_pointer_and_selected() -> void:
 	spoil.crew.step[spoil.crew.row_of(1)] = CrewScript.STEP_CARRY
 	assert_equal(spoil.task_text(1), SpoilScript.HAULING_TEXT, "hauling")
 	assert_equal(command.doing_text(1), SpoilScript.HAULING_TEXT, "the party panel says so")
+	assert_equal(spoil.resume_rule(1), InterruptScript.RESUMES, "an order elsewhere: it comes back to the heap (0331)")
+	assert_equal(spoil.resume_rule(2), InterruptScript.NOT_MINE, "not clearing: not the spoil's to answer")
+	assert_equal(command.interrupt_text(1), "Interrupts: %s — goes back to it after" % SpoilScript.HAULING_TEXT,
+		"the action cards' line")
 	for node: Node in [spoil, command, camera]:
 		node.free()
 

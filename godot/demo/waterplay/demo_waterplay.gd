@@ -60,6 +60,7 @@ const StandScript := preload("res://demo/forestry/forest_stand.gd")
 const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
 
 ## The player did something with the water: show the Water panel (demo/ui/demo_detail_zone.gd).
 signal panel_wanted
@@ -89,6 +90,18 @@ const STONE_FIND_MILLI: int = 250
 ## A builder works a log off a lying trunk this far out from its middle (m, demo: beside a felled
 ## trunk's 1.1 m girth).
 const TRUNK_SIDE_M: float = 1.6
+## The Build buttons' action cards (decision 0331; `build_card`), by swim_rules.gd KIND_*.
+const BUILD_ACTIONS: Array[StringName] = [&"build_plank", &"build_log"]
+const BUILD_NEEDS: Array[String] = ["a site both banks take; planks (sawn at the sawhorse) and wood for any piers",
+	"a site both banks take; a 6.0 U log: a felled trunk lying ready, or wood at the log stack"]
+const BUILD_FIXES: Array[String] = ["Woods ▸ Saw planks (2.0 U wood makes 2.0 U planks)",
+	"Woods ▸ Fell a tree (its trunk gives the log), or Haul logs to the log stack"]
+const SITE_FIX: String = "◀ Site / Site ▶ for another, or Span two banks…"
+const BUILT: String = "%.1f m of water bridged (%s): anyone may cross, carrying or not"
+const TRUNK_NOTE: String = "; its log comes off a felled trunk lying ready (no stores spent)"
+const DIVE_RESULT: String = "Each diver dives at the pond's deepest point and brings up what it finds"
+const DIVE_NEEDS: String = "a diver (an otter), rested and willing, deep enough water for its height"
+const DIVE_FIX: String = "select an otter who is rested (Swim shortcuts on)"
 ## A span of two banks is named for the landing nearest it.
 const SITE_NAMES: Dictionary = {&"fisher_shelter": "fisher's bridge", &"ford_west": "ford bridge",
 	&"ford_east": "ford bridge", &"weir_bank": "weir bridge", &"boathouse": "boathouse bridge", &"pond_west": "pond bridge"}
@@ -131,6 +144,12 @@ var _read: IntMath.IntResult = IntMath.IntResult.new()
 ## The answer of a lookup (`ready_trunk_into`, `bridge_at_into`, `bridge_on_site_into`), kept apart from
 ## `_read` so a lookup never overwrites a store's answer in flight.
 var _found: IntMath.IntResult = IntMath.IntResult.new()
+## THE DECISION's material (`build_refusal`): where the bridge's material would come from (CrewScript SOURCE_*), the
+## point it lies at, and -- a log off a felled trunk -- that trunk. The action cards' card (decision 0331).
+var _source_kind: int = CrewScript.SOURCE_PLANKS
+var _source_at: Vector2 = Vector2.ZERO
+var _source_trunk: int = -1
+var _card: CardScript = CardScript.new()
 var _refresh_in: float = 0.0
 var _panel_was_shown: bool = false
 var _cold_said: int = -1
@@ -236,6 +255,7 @@ func _hook_command() -> void:
 		return
 	_command.add_ground_handlers(on_ground_click, on_ground_order)
 	_command.add_task_text(task_text)
+	_command.add_resume_rule(crew.resume_rule)
 	_command.add_input_hook(handle_tool_input)
 	_command.add_skill_text(skill_text)
 
@@ -340,7 +360,7 @@ func order_dive(members: PackedInt32Array, spot: Vector2) -> String:
 	var sent: int = 0
 	var refused := PackedStringArray()
 	for who: int in members:
-		var at: Vector2 = spot + Vector2.from_angle(TAU * float(sent) / 4.0) * (DIVE_SPREAD_M if sent > 0 else 0.0)
+		var at: Vector2 = dive_spot(spot, sent)
 		var why: StringName = dive_refusal(who, at)
 		if why != Rules.REFUSE_NONE:
 			refused.append(text.refusal_words(who, why, at))
@@ -349,6 +369,37 @@ func order_dive(members: PackedInt32Array, spot: Vector2) -> String:
 		brain_of(who).order_task(DiveTaskScript.new(motion, links, at, down, roll_find, find_home))
 		sent += 1
 	return TextScript.sent_line(sent, "diving", refused)
+
+
+static func dive_spot(spot: Vector2, sent: int) -> Vector2:
+	"""Where the `sent`-th diver of an order goes in: the spot, then spread round it (`order_dive`, `dive_card`)."""
+	return spot + Vector2.from_angle(TAU * float(sent) / 4.0) * (DIVE_SPREAD_M if sent > 0 else 0.0)
+
+
+func dive_card(members: PackedInt32Array, spot: Vector2) -> CardScript:
+	"""The Dive button's action card (decision 0331): `order_dive`'s own loop -- each selected resident's
+	`dive_refusal` at its own spread spot -- without sending anyone: who dives (the first named, with what it
+	stops), and, when nobody would, the refusals the order says. Reused: read it before the next call."""
+	_card.reset("Dive in the pond")
+	_card.result = DIVE_RESULT
+	_card.prerequisites.append(DIVE_NEEDS)
+	var going := PackedStringArray()
+	var refused := PackedStringArray()
+	for who: int in members:
+		var why: StringName = dive_refusal(who, dive_spot(spot, going.size()))
+		if why != Rules.REFUSE_NONE:
+			refused.append(text.refusal_words(who, why, dive_spot(spot, going.size())))
+			continue
+		if going.is_empty():
+			_card.worker = who
+		going.append(name_of(who))
+	if going.is_empty():
+		_card.refuse("NO_DIVER", "; ".join(refused) if not refused.is_empty() else "nobody selected", DIVE_FIX)
+		return _card
+	_card.who = "Assign selected: %s%s" % [", ".join(going), "" if refused.is_empty() else " (not: %s)" % "; ".join(refused)]
+	if _command != null:
+		_card.interrupts = _command.interrupt_text(_card.worker)
+	return _card
 
 
 func dive_refusal(who: int, at: Vector2) -> StringName:
@@ -443,12 +494,13 @@ func survey_site(kind: int) -> BridgesScript.Survey:
 
 func build(kind: int, members: PackedInt32Array) -> String:
 	"""Plan and pay for a `kind` bridge at the chosen site, and set it building (see bridge_crew.gd).
-	Refused in words: the site, the stores, or no free row."""
+	Refused in words: the site, the stores, or no free row -- `build_refusal`, the action card's own check."""
+	var refused: String = build_refusal(kind, members)
+	if not refused.is_empty():
+		return refused
 	var survey: BridgesScript.Survey = survey_site(kind)
-	if not survey.ok:
-		return "Can't build a %s here: %s" % [Rules.KIND_NAMES[kind], survey.reason]
 	var source: PackedVector2Array = PackedVector2Array()
-	var paid: String = _pay(survey, source, brain_of(members[0]).surface_point() if not members.is_empty() else survey.shore_a)
+	var paid: String = _pay(survey, source)
 	if not paid.is_empty():
 		return paid
 	if not bridges.plan_into(survey, site_name(), _read):
@@ -461,25 +513,112 @@ func build(kind: int, members: PackedInt32Array) -> String:
 	return crew.start(row, int(source[0].x), source[1], members)
 
 
-func _pay(survey: BridgesScript.Survey, source: PackedVector2Array, near: Vector2) -> String:
-	"""Take the bridge's material from the one stores (a log: from the felled trunk lying ready nearest
-	`near` -- the builder, else the site) -- all of it, or (a refusal in words) none. `source` gets
-	[(SOURCE_*, 0), where it is]."""
+func build_refusal(kind: int, members: PackedInt32Array) -> String:
+	"""THE DECISION a build takes (decision 0331): why a `kind` bridge may not be built at the chosen site now ("" when
+	it may) -- the site's survey, then the material (`_material_refusal`: where it would come from), then a free
+	row. `build` and the action card (`build_card`) both run it. Changes nothing."""
+	var survey: BridgesScript.Survey = survey_site(kind)
+	if not survey.ok:
+		return "Can't build a %s here: %s" % [Rules.KIND_NAMES[kind], survey.reason]
+	var near: Vector2 = brain_of(members[0]).surface_point() if not members.is_empty() else survey.shore_a
+	var short: String = _material_refusal(survey, near)
+	if not short.is_empty():
+		return short
+	if not bridges.has_free_row():
+		return "Can't build: every bridge row is taken (%d)" % BridgesScript.MAX_BRIDGES
+	return ""
+
+
+func _material_refusal(survey: BridgesScript.Survey, near: Vector2) -> String:
+	"""Where the bridge's material would come from, into `_source_*` -- the plank stack (planks and pier wood), the
+	felled trunk lying ready nearest `near` (the builder, else the site), else the log stack's wood -- or the stores'
+	refusal in words when they cannot meet it. Changes nothing."""
+	var stores: StoresScript = services.stores
+	_source_trunk = -1
+	if survey.kind == Rules.KIND_PLANK:
+		_source_kind = CrewScript.SOURCE_PLANKS
+		_source_at = Yard.at(Yard.PLANK_STACK)
+		var enough: bool = stores.can_pay_planks(survey.planks_milli) and stores.wood_milli_u >= survey.wood_milli
+		return "" if enough else TextScript.short_line(survey, stores)
+	if ready_trunk_into(near, _found):
+		_source_kind = CrewScript.SOURCE_TRUNK
+		_source_trunk = _found.value
+		_source_at = beside_trunk(_found.value, near)
+		return ""
+	_source_kind = CrewScript.SOURCE_LOG_STACK
+	_source_at = Yard.log_stack_at()
+	return "" if stores.wood_milli_u >= Rules.LOG_WOOD_MILLI else TextScript.short_line(survey, stores)
+
+
+func _pay(survey: BridgesScript.Survey, source: PackedVector2Array) -> String:
+	"""Take the bridge's material from where `build_refusal` found it (`_source_*`) -- all of it, or (a refusal in
+	words) none. `source` gets [(SOURCE_*, 0), where it is]."""
+	var stores: StoresScript = services.stores
+	if _source_kind == CrewScript.SOURCE_PLANKS:
+		if not stores.pay_planks(survey.planks_milli):
+			return TextScript.short_line(survey, stores)
+		stores.take_wood(survey.wood_milli)
+	elif _source_kind == CrewScript.SOURCE_TRUNK:
+		if not _stand.take_trunk_into(_source_trunk, Rules.LOG_WOOD_MILLI, _read):
+			return TextScript.short_line(survey, stores)
+	elif not stores.take_wood(Rules.LOG_WOOD_MILLI):
+		return TextScript.short_line(survey, stores)
+	source.append_array([Vector2(_source_kind, 0.0), _source_at])
+	return ""
+
+
+func build_card(kind: int, members: PackedInt32Array) -> CardScript:
+	"""A Build button's action card (decision 0331): `build_refusal`'s answer, the bridge's result, its material as
+	have / need from the stores the HUD reads, its building work at the builder's skill, and who builds it --
+	bridge_crew.gd's own choice (`builder_for`: the nearest selected to the material, else the bridgewright).
+	Reused: read it before the next call."""
+	var survey: BridgesScript.Survey = survey_site(kind)
+	_card.reset("Build a %s" % Rules.KIND_NAMES[kind])
+	_card.prerequisites.append(BUILD_NEEDS[kind])
+	var refused: String = build_refusal(kind, members)
+	_bridge_costs(survey)
+	if survey.ok:
+		_card.result = BUILT % [WaterRules.to_m(survey.span_u), site_name()]
+	if not refused.is_empty():
+		_card.refuse("SITE" if not survey.ok else "MATERIAL", _reason_of(refused), BUILD_FIXES[kind] if survey.ok else SITE_FIX)
+		return _card
+	_build_who(survey, members)
+	return _card
+
+
+static func _reason_of(refused: String) -> String:
+	"""A build refusal's reason for its card: the words after "Can't build ...: ", without the stores' own "-- <fix>"
+	tail (the card states its fix on its own line)."""
+	var reason: String = refused.substr(refused.find(": ") + 2)
+	var tail: int = reason.find(" -- ")
+	return reason.left(tail) if tail >= 0 else reason
+
+
+func _bridge_costs(survey: BridgesScript.Survey) -> void:
+	"""The bridge's material rows: planks and pier wood, or a log's wood (none from the stores off a ready trunk)."""
 	var stores: StoresScript = services.stores
 	if survey.kind == Rules.KIND_PLANK:
-		if not stores.can_pay_planks(survey.planks_milli) or stores.wood_milli_u < survey.wood_milli:
-			return TextScript.short_line(survey, stores)
-		stores.pay_planks(survey.planks_milli)
-		stores.take_wood(survey.wood_milli)
-		source.append_array([Vector2(CrewScript.SOURCE_PLANKS, 0.0), Yard.at(Yard.PLANK_STACK)])
-		return ""
-	if ready_trunk_into(near, _found) and _stand.take_trunk_into(_found.value, Rules.LOG_WOOD_MILLI, _read):
-		source.append_array([Vector2(CrewScript.SOURCE_TRUNK, 0.0), beside_trunk(_found.value, near)])
-		return ""
-	if not stores.take_wood(Rules.LOG_WOOD_MILLI):
-		return TextScript.short_line(survey, stores)
-	source.append_array([Vector2(CrewScript.SOURCE_LOG_STACK, 0.0), Yard.log_stack_at()])
-	return ""
+		_card.add_cost("Planks", stores.plank_milli_u, survey.planks_milli)
+		if survey.wood_milli > 0:
+			_card.add_cost("Wood (piers)", stores.wood_milli_u, survey.wood_milli)
+	elif _source_kind == CrewScript.SOURCE_TRUNK and survey.ok:
+		_card.result += TRUNK_NOTE
+	else:
+		_card.add_cost("Wood (a log)", stores.wood_milli_u, Rules.LOG_WOOD_MILLI)
+
+
+func _build_who(survey: BridgesScript.Survey, members: PackedInt32Array) -> void:
+	"""Who builds it, as `crew.start` will choose, with the work at that builder's skill."""
+	var who: int = crew.builder_for(members, _source_at)
+	var named: int = who if who >= 0 else (crew.crew()[0] if not crew.crew().is_empty() else -1)
+	_card.work_usec = crew.build_usec(survey.kind, survey.deck_u, survey.piers, named)
+	if who >= 0:
+		_card.worker = who
+		_card.who = CardScript.assign_selected(name_of(who), crew.able_count(members), members.size())
+		if _command != null:
+			_card.interrupts = _command.interrupt_text(who)
+	else:
+		_card.who = CardScript.specialist("bridgewright", name_of(named) if named >= 0 else "", members.size())
 
 
 func _refund(survey: BridgesScript.Survey, source: PackedVector2Array) -> void:
@@ -747,14 +886,20 @@ func refresh_panel() -> void:
 	"""Fill the Water panel from the state, the bridges, the stores and the feed."""
 	var members: PackedInt32Array = _command.selected() if _command != null else PackedInt32Array()
 	panel.show_water(text.conditions_line(), text.alert_line(), text.swimmers_title(), text.swimmers_text())
+	var dive: CardScript = dive_card(members, pond_dive_spot())
+	panel.set_card(PanelScript.ACTION_DIVE, dive.text(), dive.is_ok())
 	panel.set_swim_buttons(consent_shown(members if not members.is_empty() else PackedInt32Array(range(state.count))),
-		{PanelScript.ACTION_DIVE: text.any_diver(members), PanelScript.ACTION_CRAMP: text.any_in_water(members)})
+		{PanelScript.ACTION_DIVE: dive.is_ok(), PanelScript.ACTION_CRAMP: text.any_in_water(members)})
 	var plank: BridgesScript.Survey = survey_site(Rules.KIND_PLANK)
 	var log: BridgesScript.Survey = survey_site(Rules.KIND_LOG)
 	var about: String = text.standing_text(_found.value) if bridge_on_site_into(_found) \
 		else TextScript.site_text(plank, log, ready_trunk_into(log.shore_a, _found))
-	panel.show_site(text.site_title(site_custom, site_candidate), about,
-		{PanelScript.ACTION_BUILD_PLANK: plank.ok, PanelScript.ACTION_BUILD_LOG: log.ok})
+	var allowed: Dictionary = {}
+	for kind: int in BUILD_ACTIONS.size():
+		var card: CardScript = build_card(kind, members)
+		allowed[BUILD_ACTIONS[kind]] = card.is_ok()
+		panel.set_card(BUILD_ACTIONS[kind], card.text(), card.is_ok())
+	panel.show_site(text.site_title(site_custom, site_candidate), about, allowed)
 	panel.show_status(text.bridges_text(), services.stores.stock_line(), text.log_text())
 
 

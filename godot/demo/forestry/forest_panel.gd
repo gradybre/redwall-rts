@@ -12,12 +12,14 @@ extends CanvasLayer
 ## trunks lying and deadfall; the season's and the weather's effect on the work; the selected tree and
 ## its zone's floor, with the verbs that tree takes; the selected zone and its settings; the zone tools;
 ## the queue; and the woods' latest news. Its buttons emit `action` with a name (ACTION_*); nothing
-## here decides anything.
+## here decides anything. Each job verb's tooltip is its ACTION CARD (decision 0331, `set_card`): result, cost as
+## have / need, work, who will do it and what they stop, and -- disabled -- the exact refusal and its fix.
 
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const DetailZone := preload("res://demo/ui/demo_detail_zone.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
 
 signal action(name: StringName)
 
@@ -211,6 +213,16 @@ func _enable(keys: Array[StringName], enabled: Dictionary, shown: bool) -> void:
 		var b := _buttons[key] as Button
 		b.visible = shown
 		b.disabled = not bool(enabled.get(key, false))
+
+
+func set_card(key: StringName, card_text: String, enabled: bool) -> void:
+	"""An action's card (decision 0331, demo/ui/action_card.gd) as its button's tooltip, the button pressable only
+	when the card allows it (its visibility is the section's)."""
+	var b := _buttons[key] as Button
+	CardScript.dress(b)
+	if b.tooltip_text != card_text:
+		b.tooltip_text = card_text
+	b.disabled = not enabled
 
 
 func set_tool_armed(key: StringName) -> void:

@@ -28,6 +28,7 @@ const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const InterruptScript := preload("res://demo/control/work_interrupt.gd")
 
 const NOBODY: int = -1
 const STEP_WAITING: int = 0
@@ -83,6 +84,8 @@ var _crew: PackedInt32Array = PackedInt32Array()
 var _pickup_usec: int = 0
 var _found: Vector2 = Vector2.ZERO
 var _pick: IntMath.IntResult = IntMath.IntResult.new()
+## `builder_for`'s own answer (never `_pick`, which `start` reads).
+var _probe: IntMath.IntResult = IntMath.IntResult.new()
 var _no_taken: PackedVector2Array = PackedVector2Array()
 
 
@@ -152,6 +155,36 @@ func _nearest_into(members: PackedInt32Array, to: Vector2, out: IntMath.IntResul
 	if best_d == INF:
 		return out.refuse("NO_FREE_BUILDER")
 	return out.succeed(out.value)
+
+
+func builder_for(members: PackedInt32Array, at: Vector2) -> int:
+	"""Who `start` gives a bridge with its material at `at` to: the nearest of `members` on land and free of the
+	rescue (-1: it waits for the bridgewright) -- `start`'s own choice, for an action card (decision 0331)."""
+	return _probe.value if _nearest_into(members, at, _probe) else NOBODY
+
+
+func able_count(members: PackedInt32Array) -> int:
+	"""How many of `members` could take a bridge now (on land, free of the rescue)."""
+	var n: int = 0
+	for who: int in members:
+		n += 0 if brain_of(who).water_hold or brain_of(who).in_water else 1
+	return n
+
+
+func build_usec(kind: int, deck_u: int, piers: int, who: int) -> int:
+	"""The building work of a bridge for resident `who` (-1: base skill), in demo microseconds: every stage's WU
+	(swim_rules.gd `stage_wu`; a log's shaping is its beams' first WU) and a plank load's LOAD_WU, each at `who`'s
+	`_usec_per_wu` -- the rate the work is credited at."""
+	var wu: int = LOAD_WU if kind == Rules.KIND_PLANK else 0
+	for stage: int in Rules.STAGE_COUNT:
+		wu += Rules.stage_wu(kind, stage, deck_u, piers)
+	return wu * _usec_per_wu(level_of(who) if who >= 0 else 0)
+
+
+func resume_rule(who: int) -> int:
+	"""demo_command.gd `add_resume_rule`: a builder ordered away leaves its bridge waiting for a builder (`_drop`
+	does not keep it on the resident's resume list)."""
+	return InterruptScript.DROPS_BRIDGE if builder.has(who) else InterruptScript.NOT_MINE
 
 
 func _assign(row: int, who: int) -> void:

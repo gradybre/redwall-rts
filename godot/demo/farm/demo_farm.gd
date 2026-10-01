@@ -141,6 +141,8 @@ func configure(manifest: Dictionary, world: DemoWorldScript, cast: DemoCastScrip
 	hud.unlock_food_command(toggle_pantry)
 	command.set_ground_handlers(on_ground_click, on_ground_order)
 	command.set_task_text(crew.task_text)
+	command.add_resume_rule(crew.resume_rule)
+	bed_panel.set_preview(command.selected, command.interrupt_text)
 
 
 func _bind_services(shared: ServicesScript) -> void:

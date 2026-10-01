@@ -7,6 +7,7 @@ extends RefCounted
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
 
 const TITLE_PX: int = 20
 const BODY_PX: int = 15
@@ -70,6 +71,16 @@ static func set_enabled(control: Button, enabled: bool, why: String) -> void:
 	control.disabled = not enabled
 	control.tooltip_text = "" if enabled else why
 	control.modulate.a = 1.0 if enabled else 0.5
+
+
+static func set_card(control: Button, enabled: bool, tip: String) -> void:
+	"""Enable a button, or disable and dim it as `set_enabled` does, its tooltip `tip` either way -- its action card
+	(decision 0331) -- written only when it changed, so a tooltip showing is left alone."""
+	control.disabled = not enabled
+	control.modulate.a = 1.0 if enabled else 0.5
+	CardScript.dress(control)
+	if control.tooltip_text != tip:
+		control.tooltip_text = tip
 
 
 static func geometry_for(viewport_size: Vector2, layout: UiLayout, geometry: UiLayout.Geometry) -> void:

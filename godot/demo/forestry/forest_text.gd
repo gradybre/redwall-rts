@@ -27,7 +27,6 @@ var _deadfall: DeadfallScript = null
 var _crew: CrewScript = null
 var _services: ServicesScript = null
 var _counts: PackedInt32Array = PackedInt32Array()
-var _enabled_tree: Dictionary = {}
 var _enabled_zone: Dictionary = {}
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 ## The latest answer to an order, shown under the queue for ANSWER_MSEC of real time.
@@ -142,15 +141,6 @@ func tree_text(t: int) -> String:
 	if _stand.state_of(t) == StandScript.STATE_MATURE and not fell_code.is_empty():
 		line += "\nCan't fell: " + _crew.reason_text(fell_code, t)
 	return line
-
-
-func tree_actions(t: int) -> Dictionary:
-	"""Which of the tree's verbs can be pressed."""
-	_enabled_tree[PanelScript.ACTION_FELL] = _stand.is_tree(t) and _crew.refusal_for(JobsScript.KIND_FELL, t, 0).is_empty()
-	_enabled_tree[PanelScript.ACTION_HAUL] = _stand.is_tree(t) and _crew.refusal_for(JobsScript.KIND_HAUL, t, 0).is_empty()
-	_enabled_tree[PanelScript.ACTION_GRUB] = _stand.is_tree(t) and _crew.refusal_for(JobsScript.KIND_GRUB, t, 0).is_empty()
-	_enabled_tree[PanelScript.ACTION_PLANT] = _stand.is_tree(t) and _crew.refusal_for(JobsScript.KIND_PLANT, t, 0).is_empty()
-	return _enabled_tree
 
 
 func zone_title(z: int) -> String:

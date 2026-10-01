@@ -211,7 +211,7 @@ func test_a_resident_drains_a_waterlogged_bed() -> void:
 	assert_equal(crew.jobs.live_count(), 0, "the job closed")
 	assert_true(_notices.has("Drain done: the radish bed"), "said so")
 	assert_equal(crew.order(JobsScript.KIND_DRAIN, BED_RADISH, PackedInt32Array([1]), JobsScript.ORIGIN_PLAYER),
-		"Can't drain: not too wet", "a drained bed refuses")
+		"Can't drain: the bed is not too wet", "a drained bed refuses")
 
 
 func test_a_drain_ends_if_the_bed_dried_on_the_way() -> void:
@@ -225,7 +225,7 @@ func test_a_drain_ends_if_the_bed_dried_on_the_way() -> void:
 	var ended := func() -> bool: return crew.jobs.live_count() == 0
 	assert_true(_run(cast, crew, 90.0, ended), "ended")
 	assert_false(sim.is_ditched(BED_RADISH), "no ditch dug")
-	assert_true(_notices.has("Can't drain: not too wet"), "said why")
+	assert_true(_notices.has("Can't drain: the bed is not too wet"), "said why")
 
 
 func test_a_worker_called_away_keeps_the_work_done_for_the_next() -> void:
@@ -272,9 +272,9 @@ func test_orders_explain_refusals_and_queues() -> void:
 	var sim := SimScript.new()
 	var crew := _crew(cast, sim, _pantry(cast))
 	assert_equal(crew.order(JobsScript.KIND_HARVEST, BED_WHEAT, PackedInt32Array(), JobsScript.ORIGIN_PLAYER),
-		"Can't harvest: not ripe", "not ripe")
+		"Can't harvest: the crop is not ripe yet", "not ripe")
 	assert_equal(crew.order(JobsScript.KIND_WATER, BED_LOAM, PackedInt32Array(), JobsScript.ORIGIN_PLAYER),
-		"Can't water: nothing growing", "empty bed")
+		"Can't water: nothing is growing to water", "empty bed")
 	assert_equal(crew.order(JobsScript.KIND_WATER, BED_WHEAT, PackedInt32Array(), JobsScript.ORIGIN_PLAYER),
 		"Water queued: the field crew will see to it", "queued")
 	assert_equal(crew.order(JobsScript.KIND_WATER, BED_WHEAT, PackedInt32Array(), JobsScript.ORIGIN_PLAYER),
@@ -780,7 +780,8 @@ func test_the_bed_panel_offers_only_what_the_bed_can_take() -> void:
 	panel.show_bed(BED_LOAM)
 	assert_false(panel.verb_button(JobsScript.KIND_SOW).disabled, "plant")
 	assert_true(panel.verb_button(JobsScript.KIND_WATER).disabled, "water")
-	assert_equal(panel.verb_button(JobsScript.KIND_WATER).tooltip_text, "nothing growing", "why")
+	assert_true(panel.verb_button(JobsScript.KIND_WATER).tooltip_text.contains("Can't now: nothing is growing to water"),
+		"why: its action card (decision 0331)")
 	assert_true(panel.verb_button(JobsScript.KIND_HARVEST).disabled, "harvest")
 	assert_equal(panel.line_text(1), "Soil moisture: Good · 60%", "readout")
 	assert_equal(panel.line_text(2), "Suitable for an empty bed: 40–80%", "the range it is judged by")
@@ -904,7 +905,7 @@ func test_the_bed_panel_s_drain_button() -> void:
 	var drain: Button = panel.verb_button(JobsScript.KIND_DRAIN)
 	assert_equal(drain.text, "Drain", "labelled")
 	assert_true(drain.disabled, "a good bed")
-	assert_equal(drain.tooltip_text, "not too wet", "why")
+	assert_true(drain.tooltip_text.contains("Can't now: the bed is not too wet"), "why: its action card (decision 0331)")
 	_set_moisture(sim, BED_RADISH, 9800)
 	panel.refresh()
 	assert_false(drain.disabled, "waterlogged: drain it")

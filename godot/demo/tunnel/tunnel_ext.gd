@@ -73,6 +73,8 @@ const HaulViewScript := preload("res://demo/tunnel/haul_view.gd")
 const SignsScript := preload("res://demo/tunnel/warren_signs.gd")
 const WarrenKitScript := preload("res://demo/tunnel/warren_kit.gd")
 const MouthScript := preload("res://demo/tunnel/tunnel_mouth.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
+const FixtureCardScript := preload("res://demo/burrow/fixture_card.gd")
 
 ## The player did something on the tunnels (selected one, laid a route): show the tunnels panel.
 signal panel_wanted
@@ -141,6 +143,12 @@ var _mark: Callable = Callable()
 var _refresh_in: float = 0.0
 var _weather_skip: Callable = Callable()
 var _enabled: Dictionary = {}
+## The action cards (decision 0331): one card filled per button, each button's card text, what an order would
+## interrupt (`interrupt(who) -> String`, demo_command.gd `interrupt_text`; set_interrupt), the residents' names.
+var _card: CardScript = CardScript.new()
+var _tips: Dictionary = {}
+var _interrupt: Callable = Callable()
+var _names: PackedStringArray = PackedStringArray()
 var _ground: Vector2 = Vector2.ZERO
 ## The stores' revision the finds shelf was last drawn for.
 var _finds_seen: int = -1
@@ -177,6 +185,7 @@ func configure(cast: DemoCastScript, camera: Camera3D, overlay: OverlayScript, b
 		names.append(actor.display_name)
 		species.append(actor.species)
 	works.setup(cast.space(), brains, species, bounds_u, notice, services)
+	_names = names
 	can_dig = diggers_of(cast)
 	actions = ActionsScript.new(works, cast.space(), can_dig, names, bounds_u)
 	_props = services.props if services != null else PropsScript.new()
@@ -336,6 +345,11 @@ func set_world(world: Node, under_u: PackedInt32Array) -> void:
 func set_hud(hud_root: Control) -> void:
 	"""The HUD whose resident journal the panel keeps clear of."""
 	panel.watch_hud(hud_root)
+
+
+func set_interrupt(interrupt: Callable) -> void:
+	"""`interrupt(who) -> String`: what an order would take resident `who` from (the action cards' line)."""
+	_interrupt = interrupt
 
 
 func set_weather_skip(skip: Callable) -> void:
@@ -598,10 +612,14 @@ func refresh_panel() -> void:
 		panel.show_tunnel(_planning_heading(), GroundViewScript.LEGEND, "", {})
 		return
 	if has_room_selected() and not actions.has_selection():
+		var rows: Array[Dictionary] = RoomTextScript.palette_rows(_network, selected_room)
+		var suggest_ok := _fit_cards(selected_room, rows)
 		panel.show_room(RoomTextScript.title(_network, selected_room), RoomTextScript.body(_network, selected_room, night,
-			_stored), RoomTextScript.palette_rows(_network, selected_room), RoomTextScript.suggest_text(_network, selected_room),
-			_network.fit.missing_cost(_network, selected_room) != Vector3i.ZERO)
+			_stored), rows, RoomTextScript.suggest_text(_network, selected_room), suggest_ok)
 		panel.show_tunnel("", "", "", {})
+		for key: StringName in _tips:
+			if String(key).begins_with(RoomTextScript.FIT_PREFIX):
+				panel.set_tip(key, _tips[key])
 		return
 	panel.show_room("", "", [], "", false)
 	if not actions.has_selection():
@@ -610,7 +628,9 @@ func refresh_panel() -> void:
 	var slot := actions.selected
 	var kind := "ramp, " if _network.seg_kind[slot] == GraphScript.SEG_RAMP else ""
 	panel.show_tunnel("Tunnel %d — %s%s" % [slot + 1, kind, PlanScript.length_text(_network.length_u[slot])],
-		tunnel_text(slot), _repair_label(slot), _enabled_actions(slot))
+		tunnel_text(slot), _repair_label(slot), _enabled_actions())
+	for key: StringName in PanelScript.TUNNEL_ACTIONS:
+		panel.set_tip(key, _tips[key])
 
 
 func tunnel_text(slot: int) -> String:
@@ -686,11 +706,39 @@ func _repair_label(slot: int) -> String:
 	return "Repair"
 
 
-func _enabled_actions(slot: int) -> Dictionary:
-	"""Which of the panel's tunnel actions can be pressed now (a pressed one still says why not)."""
-	var closed := _network.closed[slot] != GraphScript.CLOSED_NONE
-	_enabled[PanelScript.ACTION_WIDEN] = not closed and _network.bore[slot] == Rules.BORE_STANDARD
-	_enabled[PanelScript.ACTION_BRACE] = not closed and _network.braced[slot] == 0
-	_enabled[PanelScript.ACTION_LANTERNS] = not closed and _network.lit[slot] == 0
-	_enabled[PanelScript.ACTION_REPAIR] = closed
+func _enabled_actions() -> Dictionary:
+	"""Which of the panel's tunnel actions can be pressed now: each one's ACTION CARD allows it (decision 0331:
+	tunnel_actions.gd `preview_into`, the order's own `refusal` -- the tunnel, a worker, the stores), the card kept
+	in `_tips` for its tooltip."""
+	var selection := _selection.call() as PackedInt32Array
+	for key: StringName in PanelScript.TUNNEL_ACTIONS:
+		var job: int = _repair_job() if key == PanelScript.ACTION_REPAIR else JOB_FOR_ACTION[key]
+		actions.preview_into(_card, job, selection)
+		_enabled[key] = _card.is_ok()
+		_tips[key] = _card_text()
 	return _enabled
+
+
+func _card_text() -> String:
+	"""The filled card's text, with what its resident would stop doing."""
+	if _card.worker >= 0 and _interrupt.is_valid():
+		_card.interrupts = String(_interrupt.call(_card.worker))
+	return _card.text()
+
+
+func _fit_cards(r: int, rows: Array[Dictionary]) -> bool:
+	"""The selected room's fit-out cards (fixture_card.gd), kept in `_tips`: each palette row's "+" and "−" pressable
+	when the fit-out's own refusal allows it (written into `rows`, which the panel enables them by). Returns whether
+	the suggested layout may be ordered."""
+	var selection := _selection.call() as PackedInt32Array
+	for row: Dictionary in rows:
+		var kind: int = row["kind"]
+		FixtureCardScript.add_into(_card, _network, r, kind, works.stores, selection, fixture_crew, _names)
+		row["add"] = _card.is_ok()
+		_tips[StringName("%s%s:%d" % [RoomTextScript.FIT_PREFIX, RoomTextScript.FIT_ADD, kind])] = _card_text()
+		FixtureCardScript.take_into(_card, _network, r, kind, works.stores, _stored)
+		row["take"] = _card.is_ok()
+		_tips[StringName("%s%s:%d" % [RoomTextScript.FIT_PREFIX, RoomTextScript.FIT_TAKE, kind])] = _card_text()
+	FixtureCardScript.suggest_into(_card, _network, r, works.stores, selection, fixture_crew, _names)
+	_tips[StringName(RoomTextScript.FIT_PREFIX + RoomTextScript.FIT_SUGGEST)] = _card_text()
+	return _card.is_ok()

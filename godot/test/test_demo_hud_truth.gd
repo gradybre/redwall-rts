@@ -627,8 +627,8 @@ func test_the_meter_redraws_on_any_change_and_the_panel_shows_it_with_a_bed() ->
 	assert_true(panel.details_text().contains("\nReadings (of 10000): moisture "), "and the raw readings")
 	assert_equal(panel.line_text(8), "Expected harvest: 5.1 U of carrot", "one expected harvest")
 	assert_equal(panel._fallow.tooltip_text, Text.rest_tip(), "Rest says its effect in points")
-	assert_equal(panel.verb_button(JobsScript.KIND_COMPOST).tooltip_text, "Compost: +15 fertility points",
-		"an enabled verb says its effect")
+	assert_true(panel.verb_button(JobsScript.KIND_COMPOST).tooltip_text.contains("Compost: +15 fertility points"),
+		"an enabled verb says its effect (on its action card, decision 0331)")
 	panel.toggle_details()
 	assert_equal(panel.details_text(), "", "toggled again: closed")
 	var meter_at: int = panel.meter().get_index()

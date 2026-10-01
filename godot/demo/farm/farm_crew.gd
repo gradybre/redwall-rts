@@ -32,6 +32,26 @@ const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
+const FarmCard := preload("res://demo/farm/farm_card.gd")
+const InterruptScript := preload("res://demo/control/work_interrupt.gd")
+
+## THE DECISION (decision 0331, review F33/F44). `decide` answers what an order of a verb on a bed would do now --
+## its refusal, the same job already on the board, and who takes it -- and is the ONE function both `order` and the
+## bed panel's action card (`preview_into`) read, so the card names the resident the order then sends.
+class Decision:
+	## The refusal (empty: the order goes ahead).
+	var code: StringName = &""
+	## The same job already on the board (-1: a new one is opened).
+	var row: int = -1
+	## Who takes it now (-1: it waits for the field crew).
+	var worker: int = -1
+	## The job is already under way with `worker` (nothing changes).
+	var busy: bool = false
+	## Selected residents free to take it, and how many are selected.
+	var free: int = 0
+	var selected: int = 0
+
 
 ## The residents whose routine includes farm work.
 const CREW_KEYS: Array[StringName] = [&"mouse_fieldworker", &"squirrel_gatherer"]
@@ -62,6 +82,9 @@ var _crew: PackedInt32Array = PackedInt32Array()
 var _pickup_usec: int = 0
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _busy: IntMath.IntResult = IntMath.IntResult.new()
+## `decide`'s own scratch and answer (reused; read before the next call).
+var _probe: IntMath.IntResult = IntMath.IntResult.new()
+var _decision: Decision = Decision.new()
 var _no_taken: PackedVector2Array = PackedVector2Array()
 var _idle: PackedInt32Array = PackedInt32Array()
 ## Where the last target/spot search landed (presentation positions).
@@ -97,33 +120,108 @@ func crew() -> PackedInt32Array:
 # --- ordering -----------------------------------------------------------------------------------
 
 func order(kind: int, bed: int, members: PackedInt32Array, origin: int) -> String:
-	"""Queue `kind` on `bed` and, with `members`, give it to the nearest of them now. Returns what to
-	tell the player: who is on it, that it waits for the crew, or why it cannot be done."""
-	var code: StringName = JobsScript.refusal_for(_sim, kind, bed, max_heap_spoil())
-	if code != &"":
-		return "Can't %s: %s" % [JobsScript.KIND_NAMES[kind].to_lower(), reason_text(code)]
+	"""Queue `kind` on `bed` and, with `members`, give it to the nearest free of them now -- as `decide` says. Returns
+	what to tell the player: who is on it, that it waits for the crew, or why it cannot be done."""
+	var d: Decision = decide(kind, bed, members)
+	var what: String = JobsScript.KIND_NAMES[kind]
+	if d.code != &"":
+		return "Can't %s: %s" % [what.to_lower(), reason_text(d.code)]
+	if d.busy:
+		return "%s is already under way: %s is on it" % [what, _name_of(d.worker)]
+	var row: int = d.row
+	var queued: bool = row >= 0
+	var who: int = d.worker
+	if not queued:
+		var source: int = JobsScript.compost_source(_sim, bed) if kind == JobsScript.KIND_COMPOST else 0
+		if not jobs.open_into(kind, bed, origin, source, _read):
+			return "Can't %s: %s" % [what.to_lower(), reason_text(StringName(_read.error))]
+		row = _read.value
+	if who < 0:
+		return ("%s is already queued for the field crew" if queued else "%s queued: the field crew will see to it") % what
+	_take_over(row, who)
+	return "%s: %s is on it" % [what, _name_of(who)]
+
+
+func decide(kind: int, bed: int, members: PackedInt32Array, sow_item: int = Catalog.NO_ITEM) -> Decision:
+	"""What ordering `kind` on `bed` with `members` selected would do now (see THE DECISION): the refusal (the verb's
+	own, or a full board), the same job on the board, and the nearest free member to take it -- or, under way
+	already, who has it. `sow_item`: sowing as if that crop were chosen (the picker's rows; `refusal_for` asks the
+	same `sow_refusal` of the chosen crop). Changes nothing. The answer is reused: read it before the next call."""
+	var d: Decision = _decision
+	if kind == JobsScript.KIND_SOW and Catalog.is_item(sow_item):
+		d.code = _sim.sow_refusal(bed, sow_item)
+	else:
+		d.code = JobsScript.refusal_for(_sim, kind, bed, max_heap_spoil())
+	d.row = -1
+	d.worker = -1
+	d.busy = false
+	d.selected = members.size()
+	d.free = 0
+	if d.code != &"":
+		return d
+	if jobs.job_on_bed_into(kind, bed, _probe):
+		d.row = _probe.value
+		if jobs.worker[d.row] != JobsScript.NOBODY:
+			d.worker = jobs.worker[d.row]
+			d.busy = true
+			return d
+	elif jobs.live_count() >= JobsScript.MAX_JOBS:
+		d.code = StringName(JobsScript.REFUSE_BOARD_FULL)
+		return d
+	for who: int in members:
+		d.free += 1 if _is_free(who) else 0
+	if _nearest_free_into(members, Catalog.bed_centre_m(bed), _probe):
+		d.worker = _probe.value
+	return d
+
+
+func _is_free(who: int) -> bool:
+	"""Whether resident `who` exists and has no farm job (`_nearest_free_into`'s test)."""
+	return who >= 0 and who < _cast.actor_count() and not jobs.job_of_worker_into(who, _busy)
+
+
+func preview_into(card: CardScript, kind: int, bed: int, members: PackedInt32Array, sow_item: int = Catalog.NO_ITEM) -> void:
+	"""The action card for `kind` on `bed` with `members` selected (decision 0331): `decide`'s refusal and assignment,
+	the verb's result, cost and needs (farm_card.gd), and the work left in its plan -- what `order` will do.
+	`sow_item`: a picker row's crop (see `decide`)."""
+	var d: Decision = decide(kind, bed, members, sow_item)
+	card.reset("%s %s" % [JobsScript.KIND_NAMES[kind], bed_label(bed)])
+	FarmCard.fill(card, _sim, kind, bed, max_heap_spoil(), _probe, sow_item)
+	if d.code != &"":
+		card.refuse(String(d.code), reason_text(d.code), FarmCard.fix_for(d.code))
+		return
 	var source: int = JobsScript.compost_source(_sim, bed) if kind == JobsScript.KIND_COMPOST else 0
-	if jobs.job_on_bed_into(kind, bed, _read):
-		return _join_queued(_read.value, members)
-	if not jobs.open_into(kind, bed, origin, source, _read):
-		return "Can't %s: %s" % [JobsScript.KIND_NAMES[kind].to_lower(), reason_text(StringName(_read.error))]
-	var row: int = _read.value
-	if not _nearest_free_into(members, Catalog.bed_centre_m(bed), _read):
-		return "%s queued: the field crew will see to it" % JobsScript.KIND_NAMES[kind]
-	_take_over(row, _read.value)
-	return "%s: %s is on it" % [JobsScript.KIND_NAMES[kind], _name_of(_read.value)]
+	if d.row >= 0:
+		source = jobs.source[d.row]
+	var from_step: int = jobs.step[d.row] if d.row >= 0 else 0
+	var kept: int = jobs.elapsed_usec[d.row] if d.row >= 0 else 0
+	card.work_usec = maxi(JobsScript.plan_work_usec(kind, source, from_step) - kept, 0)
+	_preview_who(card, d)
 
 
-func _join_queued(row: int, members: PackedInt32Array) -> String:
-	"""The same job is already on the board: a free selected resident takes it over if nobody has it;
-	otherwise say who is on it."""
-	var what: String = JobsScript.KIND_NAMES[jobs.kind[row]]
-	if jobs.worker[row] != JobsScript.NOBODY:
-		return "%s is already under way: %s is on it" % [what, worker_name(row)]
-	if not _nearest_free_into(members, Catalog.bed_centre_m(jobs.bed[row]), _read):
-		return "%s is already queued for the field crew" % what
-	_take_over(row, _read.value)
-	return "%s: %s is on it" % [what, _name_of(_read.value)]
+func _preview_who(card: CardScript, d: Decision) -> void:
+	"""The card's assignment: who is on it already, the selected resident it goes to, or the field crew's queue."""
+	if d.busy:
+		card.who = CardScript.under_way(_name_of(d.worker))
+	elif d.worker >= 0:
+		card.who = CardScript.assign_selected(_name_of(d.worker), d.free, d.selected)
+		card.worker = d.worker
+	else:
+		card.who = CardScript.queue_for("the field crew", crew_names(), d.selected)
+
+
+func crew_names() -> PackedStringArray:
+	"""The routine crew's names, in crew order."""
+	var names := PackedStringArray()
+	for who: int in _crew:
+		names.append(_name_of(who))
+	return names
+
+
+func resume_rule(who: int) -> int:
+	"""demo_command.gd `add_resume_rule`: a resident with a farm job goes back to it after another order (`_drop`
+	keeps it on its resume list)."""
+	return InterruptScript.RESUMES if jobs.job_of_worker_into(who, _busy) else InterruptScript.NOT_MINE
 
 
 func _nearest_free_into(members: PackedInt32Array, to: Vector2, out: IntMath.IntResult) -> bool:
@@ -528,8 +626,8 @@ func max_heap_spoil() -> int:
 
 
 static func reason_text(code: StringName) -> String:
-	"""A refusal code in words."""
-	return String(code).to_lower().replace("_", " ")
+	"""A refusal code in the player's words -- the action card's too (farm_card.gd)."""
+	return FarmCard.reason_words(code)
 
 
 static func _units_text(milli: int) -> String:

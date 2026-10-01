@@ -37,6 +37,28 @@ const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
+const ForestCard := preload("res://demo/forestry/forest_card.gd")
+const InterruptScript := preload("res://demo/control/work_interrupt.gd")
+
+## THE DECISION (decision 0331, review F33/F44). `decide` answers what an order would do now -- the same job already
+## on the board (joined), the refusal, who takes it and how many wait to haul -- and is the ONE function both the
+## orders (`order`, `order_haul`) and the Woods panel's action cards (`preview_into`) read.
+class Decision:
+	## The refusal (empty: the order goes ahead).
+	var code: String = ""
+	## The same job already on the board (-1: a new one).
+	var row: int = -1
+	## Who takes it now (-1: it waits for the forestry crew).
+	var worker: int = -1
+	## The same job is under way with `worker` already.
+	var busy: bool = false
+	## Selected residents free of woods work, and how many are selected.
+	var free: int = 0
+	var selected: int = 0
+	## Felling: the others who will wait to haul; hauling with a selection: how many haul.
+	var helpers: int = 0
+
 
 const CREW_KEYS: Array[StringName] = SkillsScript.SKILLED_KEYS
 const CLIP_CHOP: StringName = &"pull_radish"
@@ -67,6 +89,8 @@ const WAIT_EXTRA_M: float = 1.4
 const PICKUP_USEC: int = 500000
 ## The sawing plan's saw step (forest_jobs.gd PLANS): a load past it is planks, before it logs.
 const SAW_WORK_STEP: int = 3
+## A selected haul with every selected resident busy in the woods (`decide`).
+const REFUSE_ALL_BUSY: String = "EVERYONE_SELECTED_BUSY"
 
 var jobs: JobsScript = JobsScript.new()
 var skills: SkillsScript = SkillsScript.new()
@@ -94,6 +118,9 @@ var _probe: IntMath.IntResult = IntMath.IntResult.new()
 var _no_taken: PackedVector2Array = PackedVector2Array()
 var _idle: PackedInt32Array = PackedInt32Array()
 var _found: Vector2 = Vector2.ZERO
+## `decide`'s answer and scratch (reused).
+var _decision: Decision = Decision.new()
+var _pick: IntMath.IntResult = IntMath.IntResult.new()
 
 
 func configure(cast: DemoCastScript, stand: StandScript, zones: ZonesScript, deadfall: DeadfallScript,
@@ -144,52 +171,114 @@ func crew() -> PackedInt32Array:
 # --- ordering -----------------------------------------------------------------------------------
 
 func order(kind: int, target: int, gen: int, members: PackedInt32Array, origin: int) -> String:
-	"""Queue `kind` on `target` and, with `members`, give it to the nearest of them now (felling: the
-	others wait to haul it). Returns what to tell the player."""
-	if kind != JobsScript.KIND_SAW and kind != JobsScript.KIND_HAUL and jobs.find_into(kind, target, _read):
-		return _join_queued(_read.value, members)
-	var code: String = refusal_for(kind, target, gen)
-	if not code.is_empty():
-		return "Can't %s: %s" % [JobsScript.KIND_NAMES[kind].to_lower(), reason_text(code, target)]
+	"""Queue `kind` on `target` and, with `members`, give it to the nearest free of them now (felling: the others wait
+	to haul it) -- as `decide` says. Returns what to tell the player."""
+	var d: Decision = decide(kind, target, gen, members)
+	var what: String = JobsScript.KIND_NAMES[kind]
+	if d.row >= 0:
+		return _join_queued(d, what)
+	if not d.code.is_empty():
+		return "Can't %s: %s" % [what.to_lower(), reason_text(d.code, target)]
 	if not jobs.open_into(kind, target, gen, origin, _read):
-		return "Can't %s: %s" % [JobsScript.KIND_NAMES[kind].to_lower(), reason_text(_read.error, target)]
+		return "Can't %s: %s" % [what.to_lower(), reason_text(_read.error, target)]
 	var row: int = _read.value
-	if not _nearest_free_into(members, target_point(row), _read):
-		return "%s queued: the forestry crew will see to it" % JobsScript.KIND_NAMES[kind]
-	var who: int = _read.value
+	var who: int = d.worker
+	if who < 0:
+		return "%s queued: the forestry crew will see to it" % what
 	jobs.assign(row, who)
-	var said: String = "%s: %s is on it" % [JobsScript.KIND_NAMES[kind], name_of(who)]
+	var said: String = "%s: %s is on it" % [what, name_of(who)]
 	if kind == JobsScript.KIND_FELL:
 		said += _haulers_join(target, members)
 	return said
 
 
-func _join_queued(row: int, members: PackedInt32Array) -> String:
-	"""The same job is already on the board: a free selected resident takes it if nobody has it;
+func _join_queued(d: Decision, what: String) -> String:
+	"""The same job is already on the board: the free selected resident `decide` chose takes it if nobody has it;
 	otherwise say who is on it."""
-	var what: String = JobsScript.KIND_NAMES[jobs.kind[row]]
-	if jobs.worker[row] != JobsScript.NOBODY:
-		return "%s is already under way: %s is on it" % [what, worker_name(row)]
-	if not _nearest_free_into(members, target_point(row), _busy):
+	if d.busy:
+		return "%s is already under way: %s is on it" % [what, name_of(d.worker)]
+	if d.worker < 0:
 		return "%s is already queued for the forestry crew" % what
-	jobs.assign(row, _busy.value)
-	return "%s: %s is on it" % [what, name_of(_busy.value)]
+	jobs.assign(d.row, d.worker)
+	return "%s: %s is on it" % [what, name_of(d.worker)]
 
 
 func order_haul(t: int, members: PackedInt32Array) -> String:
 	"""Every free selected resident (up to MAX_HAULERS a trunk) hauls tree `t`'s trunk; with nobody
 	selected, one haul is queued for the crew."""
-	var code: String = refusal_for(JobsScript.KIND_HAUL, t, 0)
-	if not code.is_empty():
-		return "Can't haul logs: %s" % reason_text(code, t)
 	if members.is_empty():
 		return order(JobsScript.KIND_HAUL, t, 0, members, JobsScript.ORIGIN_PLAYER)
-	var joined: int = _add_haulers(t, members)
-	if joined > 0:
-		return "Haul logs: %d on it" % joined
-	if jobs.on_target(JobsScript.KIND_HAUL, t) >= JobsScript.MAX_HAULERS:
-		return "Can't haul logs: the trunk has all the haulers it can take"
-	return "Can't haul logs: everyone selected is busy"
+	var d: Decision = decide(JobsScript.KIND_HAUL, t, 0, members)
+	if not d.code.is_empty():
+		return "Can't haul logs: %s" % reason_text(d.code, t)
+	return "Haul logs: %d on it" % _add_haulers(t, members)
+
+
+func decide(kind: int, target: int, gen: int, members: PackedInt32Array) -> Decision:
+	"""What ordering `kind` on `target` with `members` selected would do now (see THE DECISION). Changes nothing; the
+	answer is reused -- read it before the next call."""
+	var d: Decision = _decision
+	d.code = ""
+	d.row = -1
+	d.worker = -1
+	d.busy = false
+	d.helpers = 0
+	d.selected = members.size()
+	d.free = 0
+	for who: int in members:
+		d.free += 1 if _is_free(who) else 0
+	if kind != JobsScript.KIND_SAW and kind != JobsScript.KIND_HAUL and jobs.find_into(kind, target, _pick):
+		d.row = _pick.value
+		d.busy = jobs.worker[d.row] != JobsScript.NOBODY
+		if d.busy:
+			d.worker = jobs.worker[d.row]
+		elif _nearest_free_into(members, target_point(d.row), _pick):
+			d.worker = _pick.value
+		return d
+	d.code = refusal_for(kind, target, gen)
+	if d.code.is_empty():
+		d.code = _open_refusal(kind, target, members)
+	if d.code.is_empty() and _nearest_free_into(members, point_of(kind, target), _pick):
+		d.worker = _pick.value
+		d.helpers = _helpers_for(kind, target, d.free)
+	return d
+
+
+func _open_refusal(kind: int, target: int, members: PackedInt32Array) -> String:
+	"""Why the board cannot take the job (forest_jobs.gd `open_into`'s refusals; a selected haul: none free)."""
+	var hands: int = jobs.on_target(JobsScript.KIND_HAUL, target) + jobs.on_target(JobsScript.KIND_FELL, target)
+	if kind == JobsScript.KIND_HAUL and hands >= JobsScript.MAX_HAULERS:
+		return JobsScript.REFUSE_ENOUGH_HANDS
+	if jobs.live_count() >= JobsScript.MAX_JOBS:
+		return JobsScript.REFUSE_FULL
+	if kind == JobsScript.KIND_HAUL and not members.is_empty() and _free_count(members) == 0:
+		return REFUSE_ALL_BUSY
+	return ""
+
+
+func _helpers_for(kind: int, target: int, free: int) -> int:
+	"""How many more of the free selection `order` puts on the trunk: felling's haulers after the feller, or every
+	hauler of a selected haul -- up to MAX_HAULERS hands on it and the board's free rows."""
+	var hands: int = jobs.on_target(JobsScript.KIND_HAUL, target) + jobs.on_target(JobsScript.KIND_FELL, target)
+	var rows: int = JobsScript.MAX_JOBS - jobs.live_count()
+	if kind == JobsScript.KIND_FELL:
+		return maxi(mini(free - 1, mini(JobsScript.MAX_HAULERS - hands - 1, rows - 1)), 0)
+	if kind == JobsScript.KIND_HAUL:
+		return maxi(mini(free, mini(JobsScript.MAX_HAULERS - hands, rows)), 0)
+	return 0
+
+
+func _is_free(who: int) -> bool:
+	"""Whether resident `who` exists and has no woods job (`_nearest_free_into`'s test)."""
+	return who >= 0 and who < _cast.actor_count() and not jobs.of_worker_into(who, _probe)
+
+
+func _free_count(members: PackedInt32Array) -> int:
+	"""How many of `members` are free of woods work."""
+	var n: int = 0
+	for who: int in members:
+		n += 1 if _is_free(who) else 0
+	return n
 
 
 func _haulers_join(t: int, members: PackedInt32Array) -> String:
@@ -273,6 +362,10 @@ func reason_text(code: String, target: int) -> String:
 			return "no compost to plant with (0.25 U needed)"
 		"NOT_ENOUGH_WOOD":
 			return "the demo stores hold under %s of wood" % Rules.units_text(Rules.SAW_BATCH_MILLI)
+		JobsScript.REFUSE_ENOUGH_HANDS:
+			return "the trunk has all the haulers it can take"
+		REFUSE_ALL_BUSY:
+			return "everyone selected is busy"
 	return code.to_lower().replace("_", " ")
 
 
@@ -309,12 +402,17 @@ func _nearest_free_into(members: PackedInt32Array, to: Vector2, out: IntMath.Int
 
 func target_point(row: int) -> Vector2:
 	"""Where job `row`'s target stands (a tree, a pile, or the log stack for sawing)."""
-	match jobs.kind[row]:
+	return point_of(jobs.kind[row], jobs.target[row])
+
+
+func point_of(kind: int, target: int) -> Vector2:
+	"""Where a job of `kind` on `target` is: the pile, the log stack for sawing, else the tree."""
+	match kind:
 		JobsScript.KIND_GATHER:
-			return _deadfall.at[jobs.target[row]]
+			return _deadfall.at[target]
 		JobsScript.KIND_SAW:
 			return Yard.log_stack_at()
-	return _stand.at[jobs.target[row]]
+	return _stand.at[target]
 
 
 func cancel_target(kind: int, target: int) -> int:
@@ -543,12 +641,7 @@ func _begin_work(row: int, work: int) -> String:
 	"""The work step's opening check and its length in demo time ("" to go ahead)."""
 	var who: int = jobs.worker[row]
 	var t: int = jobs.target[row]
-	var season_pm: int = Rules.season_permille(_calendar.now().season, work == JobsScript.WORK_FELL)
-	var speed_pm: int = Rules.weather_permille(_weather.event())
-	var wu: int = _work_wu(row, work)
-	var skill: int = Rules.SKILL_SAWING if work == JobsScript.WORK_SAW else Rules.SKILL_FELLING
-	var level: int = skills.level_of(who, skill) if _trains(work) else 0
-	jobs.work_usec[row] = Rules.work_usec(wu, level, season_pm, speed_pm)
+	jobs.work_usec[row] = step_usec(work, t, who)
 	match work:
 		JobsScript.WORK_FELL:
 			var code: String = _fell_refusal(t)
@@ -566,13 +659,24 @@ func _begin_work(row: int, work: int) -> String:
 	return ""
 
 
-func _work_wu(row: int, work: int) -> int:
-	"""A work step's WU: §5.9's felling and planting, the demo's for the rest."""
+func step_usec(work: int, target: int, who: int) -> int:
+	"""How long work step `work` on `target` takes resident `who` now (-1: nobody known, at base skill), in demo
+	microseconds: its WU at `who`'s skill when the step trains one, this season's and today's weather's pace -- the
+	ONE timing the work and the action card's work share."""
+	var season_pm: int = Rules.season_permille(_calendar.now().season, work == JobsScript.WORK_FELL)
+	var speed_pm: int = Rules.weather_permille(_weather.event())
+	var skill: int = Rules.SKILL_SAWING if work == JobsScript.WORK_SAW else Rules.SKILL_FELLING
+	var level: int = skills.level_of(who, skill) if _trains(work) and who >= 0 else 0
+	return Rules.work_usec(work_wu(work, target), level, season_pm, speed_pm)
+
+
+func work_wu(work: int, target: int) -> int:
+	"""A work step's WU: §5.9's felling and planting, the demo's for the rest (a deadfall pile's by its size)."""
 	match work:
 		JobsScript.WORK_FELL:
 			return Rules.FELL_WU
 		JobsScript.WORK_GATHER:
-			return Rules.deadfall_wu(_deadfall.milli[jobs.target[row]])
+			return Rules.deadfall_wu(_deadfall.milli[target])
 		JobsScript.WORK_SAW:
 			return Rules.SAW_WU
 		JobsScript.WORK_PLANT:
@@ -738,6 +842,97 @@ func _plan_done(row: int) -> void:
 		jobs.restart(row)
 		return
 	finish(row, "")
+
+
+func preview_into(card: CardScript, kind: int, target: int, gen: int, members: PackedInt32Array) -> void:
+	"""The action card for `kind` on `target` with `members` selected (decision 0331): `decide`'s refusal and
+	assignment, the job's result, cost and needs (forest_card.gd), and its work at the named resident's skill."""
+	var d: Decision = decide(kind, target, gen, members)
+	card.reset(ForestCard.verb_text(kind, _tree_label(kind, target)))
+	ForestCard.fill(card, kind, _result_amount(kind, target), _stores.wood_milli_u, _compost())
+	if not d.code.is_empty() and d.row < 0:
+		card.refuse(d.code, reason_text(d.code, target), ForestCard.fix_for(d.code))
+		return
+	card.work_usec = plan_usec(kind, target, d.worker if not d.busy else -1)
+	if kind == JobsScript.KIND_FELL:
+		card.work_note = ForestCard.FELL_NOTE % ForestCard.trips(Rules.TREE_WOOD_MILLI)
+	_preview_who(card, kind, d)
+
+
+func _preview_who(card: CardScript, kind: int, d: Decision) -> void:
+	"""The card's assignment in the one command grammar (action_card.gd)."""
+	if d.busy:
+		card.who = CardScript.under_way(name_of(d.worker))
+		return
+	if d.worker < 0:
+		card.who = CardScript.queue_for("the forestry crew", _crew_names(), d.selected)
+		return
+	card.worker = d.worker
+	if kind == JobsScript.KIND_FELL:
+		card.who = CardScript.lead_with(name_of(d.worker), d.free, d.selected, d.helpers, "waiting to haul")
+	elif kind == JobsScript.KIND_HAUL and d.selected > 0:
+		card.who = CardScript.lead_with(name_of(d.worker), d.free, d.selected, d.helpers - 1, "more hauling")
+	else:
+		card.who = CardScript.assign_selected(name_of(d.worker), d.free, d.selected)
+
+
+func plan_usec(kind: int, target: int, who: int) -> int:
+	"""The work of a job's plan for resident `who` (-1: base skill): its work steps' `step_usec`; a haul's loading
+	and stacking once a trip, for every trip the trunk's wood takes."""
+	var plan: Array = JobsScript.PLANS[kind]
+	var usec: int = 0
+	for code: Variant in plan:
+		if int(code) >= JobsScript.STEP_WORK:
+			usec += step_usec(int(code) - JobsScript.STEP_WORK, target, who)
+	if kind == JobsScript.KIND_HAUL:
+		usec *= ForestCard.trips(_trunk_or_tree(target))
+	return usec
+
+
+func _trunk_or_tree(t: int) -> int:
+	"""The wood a haul will carry: the trunk lying, or a whole tree's while it still stands to be felled."""
+	return _stand.trunk_milli[t] if _stand.trunk_milli[t] > 0 else Rules.TREE_WOOD_MILLI
+
+
+func _result_amount(kind: int, target: int) -> int:
+	"""The milli-U a job brings in: a tree's or a trunk's wood, a pile's, a sawing batch (0: none)."""
+	match kind:
+		JobsScript.KIND_FELL:
+			return Rules.TREE_WOOD_MILLI
+		JobsScript.KIND_HAUL:
+			return _trunk_or_tree(target) if _stand.is_tree(target) else 0
+		JobsScript.KIND_GATHER:
+			return _deadfall.milli[target] if target >= 0 and target < _deadfall.milli.size() else 0
+		JobsScript.KIND_SAW:
+			return Rules.SAW_BATCH_MILLI
+	return 0
+
+
+func _tree_label(kind: int, target: int) -> String:
+	"""What the card's verb names: the tree's kind ("the oak"), the spot, or nothing for sawing and gathering."""
+	if kind == JobsScript.KIND_SAW or kind == JobsScript.KIND_GATHER or not _stand.is_tree(target):
+		return ""
+	if kind == JobsScript.KIND_FELL or kind == JobsScript.KIND_HAUL:
+		return "the " + _tree_name(target)
+	return _stand.label_of(target).to_lower()
+
+
+func _compost() -> int:
+	"""The compost planting would draw on (milli-U; 0 with none wired)."""
+	return int(_compost_left.call()) if _compost_left.is_valid() else 0
+
+
+func _crew_names() -> PackedStringArray:
+	"""The routine forestry crew's names."""
+	var names := PackedStringArray()
+	for who: int in _crew:
+		names.append(name_of(who))
+	return names
+
+
+func resume_rule(who: int) -> int:
+	"""demo_command.gd `add_resume_rule`: a resident with a woods job goes back to it after another order (`_drop`)."""
+	return InterruptScript.RESUMES if jobs.of_worker_into(who, _probe) else InterruptScript.NOT_MINE
 
 
 func _drop(row: int) -> void:

@@ -10,6 +10,7 @@ extends Node3D
 ## Its ground handlers are asked after the farm's and before the woods' (a heap may stand inside a
 ## forestry zone), so a click on a heap is the heap's.
 
+const InterruptScript := preload("res://demo/control/work_interrupt.gd")
 const CrewScript := preload("res://demo/spoil/spoil_crew.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoCommandScript := preload("res://demo/control/demo_command.gd")
@@ -58,6 +59,7 @@ func configure(cast: DemoCastScript, command: DemoCommandScript, camera: Camera3
 	command.add_ground_handlers(on_ground_click, on_ground_order)
 	command.add_input_hook(on_input)
 	command.add_task_text(task_text)
+	command.add_resume_rule(resume_rule)
 
 
 static func drop_point(cast: DemoCastScript) -> Vector2:
@@ -65,6 +67,12 @@ static func drop_point(cast: DemoCastScript) -> Vector2:
 	var space := cast.space()
 	var poi: int = space.poi_names.find(DROP_POI)
 	return space.poi_position[poi] if poi >= 0 else Vector2.ZERO
+
+
+func resume_rule(actor_index: int) -> int:
+	"""demo_command.gd `add_resume_rule` (decision 0331): a resident clearing a heap goes back to it after another
+	order (spoil_crew.gd keeps it while spoil is left)."""
+	return InterruptScript.RESUMES if crew.row_of(actor_index) >= 0 else InterruptScript.NOT_MINE
 
 
 func task_text(actor_index: int) -> String:

@@ -1,16 +1,21 @@
 extends RefCounted
-## Residents walk over the trees' root mounds, not through them. Decision 0196 (live demo).
-## Presentation only: it raises a surface resident's drawn feet (the brain's `ground_y_m`, which only
-## the tunnels otherwise set) onto the mound of any mature tree or felled stump it stands on
-## (forest_roots.gd), and lets it down again beyond. Only while the trees are the staged models: a
-## placeholder tree has no mound.
+## Residents walk over the trees' roots, not through them. Decision 0196 (live demo); decision 0301
+## (review F40) for the roots themselves. Presentation only: it raises a surface resident's drawn feet
+## (the brain's `ground_y_m`, which only the tunnels otherwise set) onto the roots of any mature tree,
+## felled stump or young tree it stands on, and lets it down again beyond. Only while the trees are
+## the staged models: a placeholder tree has no roots.
+##
+## THE ROOTS are each model's own support heightfield (forest_root_field.gd), baked from its mesh and
+## read in the tree's local space -- its position, its YAW and its size -- so a walker stands on a
+## root where one is drawn and on the ground between two. A young tree's field is read at its drawn
+## scale (`use_fields`' `mound_scale`: the view's), so a young oak lifts a walker a third as high.
 ##
 ## Per frame it looks at each resident against the trees in its own and the eight neighbouring cells
-## of a bucket grid built once over the trees' fixed positions -- a handful of distance checks each,
-## allocating nothing.
+## of a bucket grid built once over the trees' fixed positions -- a reach test, then (inside it) a
+## rotation and four reads of the field -- allocating nothing.
 
 const StandScript := preload("res://demo/forestry/forest_stand.gd")
-const Roots := preload("res://demo/forestry/forest_roots.gd")
+const FieldScript := preload("res://demo/forestry/forest_root_field.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 
@@ -27,6 +32,10 @@ var _cast: DemoCastScript = null
 var _cell_trees: PackedInt32Array = PackedInt32Array()
 var _cell_count: PackedInt32Array = PackedInt32Array()
 var _lifted: PackedByteArray = PackedByteArray()
+## Per StandScript.LOOK_*: the model's root field (null: that look has none -- nothing lifts).
+var _fields: Array[FieldScript] = []
+## `mound_scale(t) -> float`: how large tree `t`'s roots are drawn now (0: none).
+var _mound_scale: Callable = Callable()
 
 
 func configure(stand: StandScript, cast: DemoCastScript) -> void:
@@ -54,7 +63,7 @@ static func _cell_of(at: Vector2) -> int:
 
 
 func height_at(at: Vector2) -> float:
-	"""The highest mound under a point (0 on open ground)."""
+	"""The highest root under a point (0 on open ground)."""
 	var best: float = 0.0
 	var cx: int = floori(at.x / CELL_M) + GRID_HALF_CELLS
 	var cz: int = floori(at.y / CELL_M) + GRID_HALF_CELLS
@@ -68,20 +77,30 @@ func height_at(at: Vector2) -> float:
 	return best
 
 
+func use_fields(fields: Array[FieldScript], mound_scale: Callable) -> void:
+	"""Stand walkers on these root fields (per look), each tree's read at `mound_scale(t)` of its size."""
+	_fields = fields
+	_mound_scale = mound_scale
+
+
 func _cell_height(cell: int, at: Vector2) -> float:
-	"""The highest mound of one cell's trees under `at`."""
+	"""The highest root of one cell's trees under `at`."""
 	var best: float = 0.0
 	for k: int in _cell_count[cell]:
 		var t: int = _cell_trees[cell * PER_CELL + k]
-		var state: int = _stand.state_of(t)
-		if state != StandScript.STATE_MATURE and state != StandScript.STATE_STUMP:
+		var field: FieldScript = _fields[_stand.look[t]] if _stand.look[t] < _fields.size() else null
+		if field == null:
 			continue
-		best = maxf(best, Roots.height_at(_stand.look[t], _stand.size[t], _stand.at[t].distance_to(at)))
+		var size: float = _stand.size[t] * float(_mound_scale.call(t))
+		var reach: float = field.reach_m * size * 1.5
+		if size <= 0.0 or at.distance_squared_to(_stand.at[t]) > reach * reach:
+			continue
+		best = maxf(best, field.height_at(at, _stand.at[t], _stand.yaw[t], size))
 	return best
 
 
 func apply() -> void:
-	"""Lift every resident on the surface onto the mound under it, or let it down onto the ground there
+	"""Lift every resident on the surface onto the roots under it, or let it down onto the ground there
 	(the carved bank's height, demo/waterplay/); a resident in a tunnel or in the water is left alone."""
 	if not enabled or _cast == null:
 		return

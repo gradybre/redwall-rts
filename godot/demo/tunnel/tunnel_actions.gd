@@ -22,6 +22,10 @@ extends RefCounted
 ##
 ## CREWS: a dig confirmed with other residents selected besides the mole, or a right click on the
 ## entrance of a tunnel being dug with residents selected, puts them on its crew.
+##
+## THE DECISION (decision 0332, review F33/F44): `refusal` -- the tunnel's state, the worker (into `_pick[0]`) and the
+## stores, in that order -- is the ONE check both `order` and the panel's action cards (`preview_into`) run, so a
+## card's refusal is the order's, word for word, and its worker the one sent.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
@@ -35,6 +39,7 @@ const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const CrewScript := preload("res://demo/tunnel/tunnel_crew.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
 
 const PICK_M: float = 0.9
 const MOUTH_PICK_M: float = 1.2
@@ -54,10 +59,36 @@ const NO_MOLE: String = "nobody free who fits a bore can dig it"
 const NO_WORKER: String = "nobody who fits tunnel %d's bore is free"
 const SHORT: String = "the demo stores are short (need wood %s, stone %s)"
 const POSTED: String = "%s: %s is on the way to tunnel %d"
+## THE DECISION's checks, and the codes an action card gives them.
+const REFUSED_BY_NONE: int = 0
+const REFUSED_BY_TUNNEL: int = 1
+const REFUSED_BY_WORKER: int = 2
+const REFUSED_BY_STORES: int = 3
+const REFUSED_CODES: Array[String] = ["", "TUNNEL", "NO_WORKER", "STORES_SHORT"]
+## Each job's result, need, and the card's words (by tunnel_jobs.gd JOB_*).
+const RESULTS: Array[String] = ["", "Widened: otters and the badger fit, and loads go through", "Braced: no seep, no roof fall",
+	"Lit: a lantern every 4 m; walking below is quicker", "Pumped out: the tunnel opens again",
+	"The fall cleared: the tunnel opens again"]
+const NEEDS: Array[String] = ["", "a finished, open tunnel; a free digger (and any crew selected)",
+	"a finished, open tunnel; a resident who fits its bore", "a finished, open tunnel; a resident who fits its bore",
+	"a flooded tunnel; anyone (worked from the surface)", "a fallen roof; a free digger (and any crew selected)"]
+const PAID_NOTE: String = " (materials paid already)"
+const MOLE_NOTE: String = ", plus the walk (one digger's pace; a crew is quicker)"
+const FIRST_DIGGER: String = "who can dig"
+const FIRST_FITS: String = "who fits the bore"
+const MOST_SKILLED: String = "the village's most skilled free digger"
+const NEAREST_FREE: String = "the nearest free resident who fits the bore"
+const FIX_SELECT: String = "click a finished tunnel's mouth or route"
+const FIX_CLOSED: String = "Repair it first (Pump out / Clear the fall)"
+const FIX_DIGGER: String = "select a mole, mouse or squirrel who is not digging"
+const FIX_WORKER: String = "select a mouse, mole or squirrel who is free"
+const FIX_STORES: String = "Woods ▸ Haul logs or Gather deadfall for wood; digging through rock brings stone"
 const CREW_JOINED: String = "%d joined the Foremole's crew on tunnel %d"
 
 var selected: int = -1
 var selected_gen: int = 0
+## Which check the last `refusal` stopped at (REFUSED_BY_*; REFUSED_BY_NONE when it allowed the job).
+var refused_by: int = 0
 
 var _works: WorksScript = null
 var _network: GraphScript = null
@@ -89,13 +120,13 @@ func set_under(under_u: PackedInt32Array) -> void:
 
 # --- selecting ------------------------------------------------------------------------------
 
-func pick_into(at: Vector2, out: PackedInt32Array) -> bool:
-	"""The finished segment nearest `at` within PICK_M of its route (or MOUTH_PICK_M of a mouth it opens
-	at), into out[0]. False when none is that near."""
+func pick_into(at: Vector2, out: PackedInt32Array, level: int = Rules.TOP_LEVEL) -> bool:
+	"""The finished segment on `level` nearest `at` within PICK_M of its route (or MOUTH_PICK_M of a mouth it opens
+	at), into out[0] -- a link down is on both levels it joins (decision 0212). False when none is that near."""
 	var best_d := PICK_M
 	var found := false
 	for slot in Rules.MAX_SEGMENTS:
-		if not _network.is_open(slot) or _network.seg_room[slot] >= 0:
+		if not _network.is_open(slot) or _network.seg_room[slot] >= 0 or not on_level(slot, level):
 			continue
 		var d := _network.distance_to_route(slot, at)
 		for end in 2:
@@ -108,9 +139,15 @@ func pick_into(at: Vector2, out: PackedInt32Array) -> bool:
 	return found
 
 
-func select_at(at: Vector2) -> bool:
-	"""Select the finished tunnel under `at`. False (the selection kept) when none is there."""
-	if not pick_into(at, _pick):
+func on_level(slot: int, level: int) -> bool:
+	"""Whether segment `slot` is seen on `level`: its own, or -- a link -- either it joins."""
+	var own: int = _network.seg_level[slot]
+	return own == level or (_network.seg_kind[slot] == GraphScript.SEG_LINK and own + 1 == level)
+
+
+func select_at(at: Vector2, level: int = Rules.TOP_LEVEL) -> bool:
+	"""Select the finished tunnel on `level` under `at`. False (the selection kept) when none is there."""
+	if not pick_into(at, _pick, level):
 		return false
 	select(_pick[0])
 	return true
@@ -136,16 +173,104 @@ func has_selection() -> bool:
 
 func order(job: int, selection: PackedInt32Array) -> bool:
 	"""Order `job` on the selected tunnel (see JOBS). False, with the reason said, when refused."""
-	var reason := _job_refusal(job)
-	if reason.is_empty() and not _choose_worker(job, selection):
-		reason = NO_MOLE if _mole_job(job) else NO_WORKER % (selected + 1)
-	if reason.is_empty():
-		reason = _cost_refusal(job)
+	var reason := refusal(job, selection)
 	if not reason.is_empty():
 		_works.tell(REFUSED % reason)
 		return false
 	_post(job, _works.brain(_pick[0]), selection)
 	return true
+
+
+func refusal(job: int, selection: PackedInt32Array) -> String:
+	"""Why `job` may not be ordered on the selected tunnel with `selection` ("" when it may; the worker is then in
+	`_pick[0]`) -- see THE DECISION. `refused_by` says which check refused (REFUSED_BY_*). Changes nothing."""
+	refused_by = REFUSED_BY_TUNNEL
+	var reason := _job_refusal(job)
+	if not reason.is_empty():
+		return reason
+	refused_by = REFUSED_BY_WORKER
+	if not _choose_worker(job, selection):
+		return NO_MOLE if _mole_job(job) else NO_WORKER % (selected + 1)
+	refused_by = REFUSED_BY_STORES
+	reason = _cost_refusal(job)
+	refused_by = REFUSED_BY_NONE if reason.is_empty() else REFUSED_BY_STORES
+	return reason
+
+
+func preview_into(card: CardScript, job: int, selection: PackedInt32Array) -> void:
+	"""The action card for `job` on the selected tunnel with `selection` (decision 0332): `refusal`'s answer, the
+	job's result, its cost from the stores (have / need; nothing once paid), its work left and who goes."""
+	var n := selected + 1
+	card.reset("%s tunnel %d" % [JobsScript.NAMES[job], n] if has_selection() else JobsScript.NAMES[job])
+	card.result = RESULTS[job]
+	card.prerequisites.append(NEEDS[job])
+	var reason := refusal(job, selection)
+	if has_selection() and _network.is_open(selected):
+		_cost_rows(card, job)
+	if not reason.is_empty():
+		card.refuse(REFUSED_CODES[refused_by], reason, _fix_for(job))
+		return
+	var jobs := _works.jobs
+	var done := jobs.done_ticks(selected) if jobs.has_job(selected) and jobs.kind[selected] == job else 0
+	card.work_usec = maxi(jobs.ticks_for(selected, job) - done, 0) * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND
+	if _mole_job(job):
+		card.work_note = MOLE_NOTE
+	_preview_who(card, job, selection)
+
+
+func _cost_rows(card: CardScript, job: int) -> void:
+	"""The job's cost rows, as `_cost_refusal` weighs them: wood and stone the stores hold against the job's price
+	(none for a job whose inputs were paid already, or that costs nothing)."""
+	var jobs := _works.jobs
+	if jobs.has_job(selected) and jobs.kind[selected] == job and jobs.paid[selected] == 1:
+		card.result += PAID_NOTE
+		return
+	jobs.cost_into(selected, job, _cost)
+	if _cost[0] > 0:
+		card.add_cost("Wood", _works.stores.wood_milli_u, _cost[0])
+	if _cost[1] > 0:
+		card.add_cost("Stone", _works.stores.stone_milli_u, _cost[1])
+
+
+func _preview_who(card: CardScript, job: int, selection: PackedInt32Array) -> void:
+	"""Who `order` sends (the worker `refusal` chose) in the one command grammar, and a mole job's crew."""
+	var who := _pick[0]
+	var from_selection := selection.has(who)
+	card.worker = who
+	if _mole_job(job):
+		var crew := crew_joining(selected, selection, who)
+		var lead := CardScript.assign_first(_names[who], selection.size(), FIRST_DIGGER) if from_selection \
+			else CardScript.assign_village(_names[who], MOST_SKILLED)
+		card.who = lead if crew == 0 else "%s + %d on the crew" % [lead, crew]
+	elif from_selection:
+		card.who = CardScript.assign_first(_names[who], selection.size(), FIRST_FITS)
+	else:
+		card.who = CardScript.assign_village(_names[who], NEAREST_FREE)
+
+
+func crew_joining(slot: int, members: PackedInt32Array, lead: int) -> int:
+	"""How many of `members` `add_crew` would put on tunnel `slot`'s crew under `lead`: all but the lead, anyone
+	digging and anyone on it already, up to the crew's room (tunnel_crew.gd `join`)."""
+	var room := CrewScript.MAX_BUILDERS - 1 - _works.crew.count_of(slot)
+	var n := 0
+	for i: int in members:
+		if i != lead and _works.brain(i).order != BrainScript.ORDER_DIG and _works.crew.member_site[i] != slot:
+			n += 1
+	return clampi(n, 0, maxi(room, 0))
+
+
+func _fix_for(job: int) -> String:
+	"""How to put the last refusal right (see FIXES)."""
+	if refused_by == REFUSED_BY_TUNNEL and has_selection() and _network.is_open(selected) \
+			and _network.closed[selected] != GraphScript.CLOSED_NONE and job != JobsScript.JOB_PUMP and job != JobsScript.JOB_CLEAR:
+		return FIX_CLOSED
+	if refused_by == REFUSED_BY_TUNNEL and not has_selection():
+		return FIX_SELECT
+	if refused_by == REFUSED_BY_WORKER:
+		return FIX_DIGGER if _mole_job(job) else FIX_WORKER
+	if refused_by == REFUSED_BY_STORES:
+		return FIX_STORES
+	return ""
 
 
 static func _mole_job(job: int) -> bool:

@@ -49,11 +49,17 @@ extends RefCounted
 ## the pantry's 750 (§5.8) -- while it is DEEP (its floor at least COOL_DEPTH_U down), has at least one storage
 ## fixture, and no hearth warms it: none in a home whose void lies within HEAT_REACH_U of its void, and none in a room
 ## it OPENS ONTO (one whose socket a run of passages no longer than OPENS_ONTO_U, through no other room, reaches from
-## one of its sockets; two ramps' runs are longer, so no such run passes a mouth).
+## one of its sockets; two ramps' runs are longer, so no such run passes a mouth). DEPTH IS ITS LEVEL'S (decision 0212):
+## a cellar on level 2 is 5.25 m down, deep by any reckoning; a hearth warms a cellar through the earth only on its own
+## level (the candidate 4 m spacing keeps the levels apart), and a level-2 room's DOOR is one of its ways in (it is a
+## socket there, underground_rooms.gd `way_in_node`) -- and no run passes a LINK between the levels (a hearth's
+## warmth stays on its level: the stairs' 5 m run alone is shorter than OPENS_ONTO_U, so this is a rule, not a length).
 
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const AllocationScript := preload("res://demo/burrow/bed_allocation.gd")
+## underground_graph.gd SEG_LINK (not preloaded: the graph preloads this script).
+const LINK_KIND: int = RoomsScript.LINK_KIND
 
 const EMPTY: int = 0
 const PLANNED: int = 1
@@ -286,18 +292,34 @@ func _last_taken(graph: RefCounted, r: int, kind: int) -> int:
 
 func order(graph: RefCounted, r: int, kind: int, stores: RefCounted) -> int:
 	"""Plan a fixture of `kind` in room `r`'s first empty place that takes it (a large bed: the first alcove whose nook
-	may be dug), paying its cost from `stores` all or nothing. REFUSE_NONE, or why not (see REASONS)."""
-	var refused := _order_refusal(graph, r, kind)
+	may be dug), paying its cost from `stores` all or nothing. REFUSE_NONE, or why not (see REASONS) -- the refusal
+	`order_refusal` gives, which the action cards show (decision 0332)."""
+	var refused := order_refusal(graph, r, kind, stores)
 	if refused != REFUSE_NONE:
 		return refused
-	var f := _place_of(graph, r, kind, EMPTY, false)
-	if kind == RoomsScript.FIX_BIG_BED:
-		f = nook_place(graph, r)
-		if f < 0:
-			return REFUSE_NO_NOOK
+	var f := place_for(graph, r, kind)
 	if not stores.pay_all(COST_WOOD_MILLI[kind], COST_STONE_MILLI[kind], COST_PLANKS_MILLI[kind]):
 		return REFUSE_SHORT
 	_plan(graph, r, f, kind)
+	return REFUSE_NONE
+
+
+func place_for(graph: RefCounted, r: int, kind: int) -> int:
+	"""The place an order of `kind` in room `r` fills: its first empty place that takes it, a large bed's first alcove
+	whose nook may be dug (-1: none)."""
+	return nook_place(graph, r) if kind == RoomsScript.FIX_BIG_BED else _place_of(graph, r, kind, EMPTY, false)
+
+
+func order_refusal(graph: RefCounted, r: int, kind: int, stores: RefCounted) -> int:
+	"""Why a fixture of `kind` may not be ordered in room `r` now, cost included (REFUSE_NONE: it may) -- `order`'s
+	own checks, in its order, changing nothing (a large bed's `nook_refused` says why its nook may not go)."""
+	var refused := _order_refusal(graph, r, kind)
+	if refused != REFUSE_NONE:
+		return refused
+	if kind == RoomsScript.FIX_BIG_BED and nook_place(graph, r) < 0:
+		return REFUSE_NO_NOOK
+	if not stores.can_pay(COST_WOOD_MILLI[kind], COST_STONE_MILLI[kind]) or not stores.can_pay_planks(COST_PLANKS_MILLI[kind]):
+		return REFUSE_SHORT
 	return REFUSE_NONE
 
 
@@ -353,18 +375,30 @@ func suggest(graph: RefCounted, r: int, stores: RefCounted) -> int:
 	"""THE SUGGESTED LAYOUT: plan a fixture in every empty place of room `r` at once -- a large bed in the first alcove
 	that may take one if the home has none (see LARGE BEDS) -- paying for all of them or none. REFUSE_NONE, or why
 	not."""
-	if not graph.rooms.is_done(graph, r):
-		return REFUSE_NOT_DUG
+	var refused := suggest_refusal(graph, r, stores)
+	if refused != REFUSE_NONE:
+		return refused
 	var layout := PackedInt32Array()
 	layout_into(graph, r, layout)
 	var cost := layout_cost(layout)
-	if cost == Vector3i.ZERO:
-		return REFUSE_NOTHING_TO_ADD
 	if not stores.pay_all(cost.y, cost.z, cost.x):
 		return REFUSE_SHORT
 	for f in layout.size():
 		if layout[f] >= 0:
 			_plan(graph, r, f, layout[f])
+	return REFUSE_NONE
+
+
+func suggest_refusal(graph: RefCounted, r: int, stores: RefCounted) -> int:
+	"""Why the suggested layout may not be ordered in room `r` now (REFUSE_NONE: it may) -- `suggest`'s own checks,
+	changing nothing."""
+	if not graph.rooms.is_done(graph, r):
+		return REFUSE_NOT_DUG
+	var cost := missing_cost(graph, r)
+	if cost == Vector3i.ZERO:
+		return REFUSE_NOTHING_TO_ADD
+	if not stores.can_pay(cost.y, cost.z) or not stores.can_pay_planks(cost.x):
+		return REFUSE_SHORT
 	return REFUSE_NONE
 
 
@@ -405,15 +439,24 @@ func has_room_for(graph: RefCounted, r: int, kind: int) -> bool:
 func take_out(graph: RefCounted, r: int, kind: int, stores: RefCounted, stored_u: int = 0) -> int:
 	"""Take room `r`'s last fixture of `kind` out (a planned one before an installed one), its cost back into
 	`stores`. A cellar holding `stored_u` of food keeps racks for at least that. REFUSE_NONE, or why not."""
+	var refused := take_refusal(graph, r, kind, stored_u)
+	if refused != REFUSE_NONE:
+		return refused
+	var row := r * PLACES + _last_taken(graph, r, kind)
+	stores.refund(COST_WOOD_MILLI[kind], COST_STONE_MILLI[kind], COST_PLANKS_MILLI[kind])
+	_clear(row)
+	revision += 1
+	return REFUSE_NONE
+
+
+func take_refusal(graph: RefCounted, r: int, kind: int, stored_u: int = 0) -> int:
+	"""Why room `r`'s last `kind` may not be taken out now (REFUSE_NONE: it may) -- `take_out`'s own checks."""
 	var f := _last_taken(graph, r, kind)
 	if f < 0:
 		return REFUSE_NONE_TO_TAKE
 	var row := r * PLACES + f
 	if phase[row] == INSTALLED and is_storage(kind) and capacity_u(graph, r) - CAPACITY_U[kind] < stored_u:
 		return REFUSE_HOLDS_FOOD
-	stores.refund(COST_WOOD_MILLI[kind], COST_STONE_MILLI[kind], COST_PLANKS_MILLI[kind])
-	_clear(row)
-	revision += 1
 	return REFUSE_NONE
 
 
@@ -564,8 +607,8 @@ func _hearth_opens(graph: RefCounted, r: int) -> bool:
 	for h in RoomsScript.MAX_ROOMS:
 		if h == r or not has_hearth(graph, h):
 			continue
-		for k in RoomsScript.socket_count(rooms.template[h]):
-			var node := rooms.socket_of(h, k)
+		for k in rooms.way_in_count(h):
+			var node := rooms.way_in_node(h, k)
 			if node >= 0 and _dist[node] <= OPENS_ONTO_U:
 				return true
 	return false
@@ -578,8 +621,8 @@ func _walk_from_sockets(graph: RefCounted, r: int) -> void:
 	counts passes a mouth.)"""
 	_dist.fill(OPENS_ONTO_U + 1)
 	_queue.clear()
-	for k in RoomsScript.socket_count(graph.rooms.template[r]):
-		var node: int = graph.rooms.socket_of(r, k)
+	for k in graph.rooms.way_in_count(r):
+		var node: int = graph.rooms.way_in_node(r, k)
 		if node >= 0:
 			_dist[node] = 0
 			_queue.append(node)
@@ -590,10 +633,11 @@ func _walk_from_sockets(graph: RefCounted, r: int) -> void:
 
 
 func _relax(graph: RefCounted, node: int) -> void:
-	"""Shorten the way to every node one open passage on from `node` (see `_walk_from_sockets`)."""
+	"""Shorten the way to every node one open passage on from `node`, never through a room or down a link (see
+	`_walk_from_sockets`)."""
 	for j in Rules.JUNCTION_DEGREE:
 		var slot: int = graph.node_segment(node, j)
-		if slot < 0 or not graph.is_open(slot) or graph.seg_room[slot] >= 0:
+		if slot < 0 or not graph.is_open(slot) or graph.seg_room[slot] >= 0 or graph.seg_kind[slot] == LINK_KIND:
 			continue
 		var next: int = graph.other_end(slot, node)
 		var d: int = _dist[node] + graph.length_u[slot]

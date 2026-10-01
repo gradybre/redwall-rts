@@ -20,6 +20,11 @@ extends RefCounted
 ##     (needs a breaker), wet ground (seeps: brace) -- loam, the plain case, unnamed.
 ## A ROOM's readout (`room_text`, decision 0209) is the room tool's: its own quanta cell by cell, its door ramp,
 ## and its proposed passage, the room at its crew's three-face rate.
+## LEVELS (decision 0212): each quantum's ground is read on its own level (tunnel_ground.gd THE GROUND AT DEPTH;
+## a link's by the level its floor lies nearer there). A LINK's readout names its kind and grade and gives its run
+## and its slope: e.g. "Stairs down · 5.2 m run, 6.6 m slope · 7 quanta · 1.9 h (crew of 2)" over "13 U spoil ·
+## 16 timber risers, 4:5 (38.7°) · clay 3 m (slow)" -- its quanta the started metres of its slope, each stair
+## quantum's time STAIR_WORK_PERMILLE of a bore's (tunnel_rules.gd LINKS).
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const JobsScript := preload("res://demo/tunnel/tunnel_jobs.gd")
@@ -53,10 +58,40 @@ static func text(plan: PlanScript, ground: GroundScript, rate_permille: int, cre
 	var first := PackedStringArray([PlanScript.length_text(plan.length_u()), "%d quanta" % tally[T_QUANTA],
 		"%d.%d h (%s)" % [hours_tenths / 10, hours_tenths % 10, "crew of %d" % crew if crew > 1 else "one digger"]])
 	var second := PackedStringArray(["%d U spoil" % (tally[T_SPOIL] / 1000), brace_text(tally[T_QUANTA])])
+	if plan.is_link():
+		first[0] = link_heading(plan.link_kind, plan.length_u())
+		second[1] = grade_text(plan.link_kind, plan.length_u())
 	var ground_words := _ground_words(tally)
 	if not ground_words.is_empty():
 		second.append(ground_words)
 	return "%s\n%s" % [" · ".join(first), " · ".join(second)]
+
+
+static func link_heading(kind: int, run_u: int) -> String:
+	"""A link's name and its run and slope: "Ramp down · 11.2 m run, 11.9 m slope"."""
+	return "%s down · %s run, %s slope" % [Rules.LINK_NAMES[kind].capitalize(), _metres(run_u), _metres(Rules.link_slope_u(run_u))]
+
+
+static func grade_text(kind: int, run_u: int) -> String:
+	"""A link's grade in words: a ramp's steepest (1:2.5 at most), stairs' risers and pitch."""
+	var permille := Rules.link_grade_permille(kind, run_u)
+	var degrees := roundi(rad_to_deg(atan(float(permille) / float(Rules.PERMILLE))) * 10.0)
+	var pitch := "%d.%d°" % [degrees / 10, degrees % 10]
+	if kind == Rules.LINK_STAIRS:
+		return "%d timber risers, pitch %s" % [Rules.STAIR_RISERS, pitch]
+	return "grade 1:%s (%s)" % [_ratio(permille), pitch]
+
+
+static func _ratio(permille: int) -> String:
+	"""Run over rise for a grade in per mille, to the tenth (400 -> "2.5")."""
+	var tenths_value := Rules.PERMILLE * 10 / maxi(permille, 1)
+	return "%d.%d" % [tenths_value / 10, tenths_value % 10]
+
+
+static func _metres(u: int) -> String:
+	"""A length in u as metres to the tenth, rounded to the nearest ("11.9 m")."""
+	var tenths_value := (u * 10 + Rules.UNITS_PER_M / 2) / Rules.UNITS_PER_M
+	return "%d.%d m" % [tenths_value / 10, tenths_value % 10]
 
 
 static func brace_text(quanta: int) -> String:
@@ -71,19 +106,36 @@ static func tenths(milli_u: int) -> String:
 
 
 static func tally_into(plan: PlanScript, ground: GroundScript, tally: PackedInt64Array) -> void:
-	"""The piece's quanta, ticks, spoil and metres through each ground, into `tally` (T_* slots)."""
+	"""The piece's quanta, ticks, spoil and metres through each ground, into `tally` (T_* slots), each quantum on
+	its own level (see LEVELS)."""
 	tally.fill(0)
+	if plan.is_link():
+		_link_tally(plan, ground, tally)
+		return
 	var cuts := _cuts(plan)
 	for i in cuts.size() - 1:
 		var run := cuts[i + 1] - cuts[i]
 		var q := Rules.bore_quanta(run)
 		for k in q:
 			var at := GraphScript.route_point_u(plan.points_u, plan.count, cuts[i] + (2 * k + 1) * run / (2 * q))
-			_count(ground, at, tally, true)
+			_count(ground, at, tally, true, plan.level)
 	if plan.starts_at_mouth():
 		_count(ground, plan.point_u(0), tally, false)
 	if plan.ends_at_mouth():
 		_count(ground, plan.point_u(plan.count - 1), tally, false)
+
+
+static func _link_tally(plan: PlanScript, ground: GroundScript, tally: PackedInt64Array) -> void:
+	"""A link's quanta -- the started metres of its slope, spread along its run, each on the level its floor lies
+	nearer -- their ticks at the link's work (stairs' risers), spoil and ground (see LEVELS)."""
+	var run := plan.length_u()
+	var q := Rules.link_quanta(run)
+	for k in q:
+		var along := (2 * k + 1) * run / (2 * q)
+		var drop := Rules.link_drop_u(plan.link_kind, along, run)
+		var at_level := plan.level + (1 if 2 * drop >= Rules.LEVEL_SPACING_U else 0)
+		_count(ground, GraphScript.route_point_u(plan.points_u, plan.count, along), tally, true, at_level)
+	tally[T_TICKS] = tally[T_TICKS] * Rules.link_work_permille(plan.link_kind) / Rules.PERMILLE
 
 
 static func _cuts(plan: PlanScript) -> PackedInt32Array:
@@ -105,16 +157,17 @@ static func _cuts(plan: PlanScript) -> PackedInt32Array:
 	return unique
 
 
-static func _count(ground: GroundScript, at: Vector2i, tally: PackedInt64Array, bore: bool) -> void:
-	"""One quantum at `at`: its ticks and spoil, and (a bore quantum) a metre of its ground."""
-	var kind := ground.type_at(at.x, at.y) if ground != null else GroundScript.LOAM
+static func _count(ground: GroundScript, at: Vector2i, tally: PackedInt64Array, bore: bool,
+		level: int = Rules.TOP_LEVEL) -> void:
+	"""One quantum at `at` on `level`: its ticks and spoil, and (a bore quantum) a metre of its ground."""
+	var kind := ground.type_at_level(at.x, at.y, level) if ground != null else GroundScript.LOAM
 	tally[T_QUANTA] += 1
 	tally[T_TICKS] += GroundScript.dig_ticks(kind)
 	tally[T_SPOIL] += GroundScript.spoil_of(kind)
 	if not bore:
 		return
 	tally[T_METRES + kind] += 1
-	if ground != null and ground.wet_at(at.x, at.y):
+	if ground != null and ground.wet_at_level(at.x, at.y, level):
 		tally[T_WET] += 1
 
 
@@ -132,15 +185,15 @@ static func _ground_words(tally: PackedInt64Array) -> String:
 # --- a room (decision 0209) -------------------------------------------------------------------
 
 static func room_text(kind: int, centre: Vector2i, turns: int, passage: PlanScript, ground: GroundScript,
-		rate_one: int, rate_room: int, crew: int, passage_to: String) -> String:
+		rate_one: int, rate_room: int, crew: int, passage_to: String, level: int = Rules.TOP_LEVEL) -> String:
 	"""The room tool's readout (room_tool.gd): the room's name, all its quanta -- its cells, its door ramp and
-	shaft, and its proposed passage -- the hours its crew takes (the room at its ROOM_FACES faces' rate
-	`rate_room`, the rest at `rate_one`), its spoil, and its passage (or that it stands alone). e.g.
+	shaft (on level 1), and its proposed passage -- the hours its crew takes (the room at its ROOM_FACES faces'
+	rate `rate_room`, the rest at `rate_one`), its spoil, and its passage (or that it stands alone). e.g.
 	"Burrow home · 33 quanta · 7.9 h (crew of 3)" over "66 U spoil · passage 3.2 m to Tunnel 4"."""
 	var cells := _tally()
 	var rest := _tally()
 	var way := _tally()
-	room_tally_into(kind, centre, turns, ground, cells, rest)
+	room_tally_into(kind, centre, turns, ground, cells, rest, level)
 	if passage.count >= 2:
 		tally_into(passage, ground, way)
 	var quanta := cells[T_QUANTA] + rest[T_QUANTA] + way[T_QUANTA]
@@ -161,11 +214,13 @@ static func _tally() -> PackedInt64Array:
 
 
 static func room_tally_into(kind: int, centre: Vector2i, turns: int, ground: GroundScript, cells: PackedInt64Array,
-		ramp: PackedInt64Array) -> void:
-	"""A room's own quanta cell by cell into `cells` (underground_rooms.gd `cell_local`), and its door ramp's --
-	the shaft at its mouth and each metre down -- into `ramp`."""
+		ramp: PackedInt64Array, level: int = Rules.TOP_LEVEL) -> void:
+	"""A room's own quanta cell by cell on its level into `cells` (underground_rooms.gd `cell_local`), and on level 1
+	its door ramp's -- the shaft at its mouth and each metre down -- into `ramp` (a lower level's room has none)."""
 	for k in RoomsScript.total_quanta(kind):
-		_count(ground, centre + RoomsScript.rotate_u(RoomsScript.cell_local(kind, k), turns), cells, false)
+		_count(ground, centre + RoomsScript.rotate_u(RoomsScript.cell_local(kind, k), turns), cells, false, level)
+	if level != Rules.TOP_LEVEL:
+		return
 	var hole := RoomsScript.mouth_at(kind, centre, turns)
 	var door := RoomsScript.door_at(kind, centre, turns)
 	_count(ground, hole, ramp, false)

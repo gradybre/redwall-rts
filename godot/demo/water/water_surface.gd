@@ -7,10 +7,10 @@ extends RefCounted
 ## overlapping. The surface is flat at the body's level; the carved bank rises through it, so the
 ## visible shoreline is exactly where the integer map puts the waterline.
 ##
-## Colours are blends of the locked ART-LOCK-001 pigments (world_look.gd), as the ground's are:
-## sandy shallows (brass/sage/oat), deep water darkening from ink, and the sky's own hazy horizon
-## (cream/sage, world_look.gd's `sky_horizon_color`) in the fresnel reflection. The engine adds the
-## real sky's specular on top (REFLECTION_SOURCE_SKY).
+## Colours are the world's own water targets (world_look.gd `water_targets`, decision 0301: DEC-038's
+## world-art direction, not the UI lock): sandy shallows, deep water darkening toward the shade tone,
+## and the sky's own hazy horizon (world_look.gd's `sky_horizon_color`) in the fresnel reflection. The
+## engine adds the real sky's specular on top (REFLECTION_SOURCE_SKY).
 ##
 ## TIME. `advance(frame_usec)` adds the demo clock's microseconds for the frame (0 while paused) to
 ## an integer total, and the shader's phase is that total modulo one cycle -- so the flow freezes
@@ -77,11 +77,8 @@ func _material(ripple: Texture2D, foam: Texture2D, sky: Color) -> ShaderMaterial
 	var material := ShaderMaterial.new()
 	material.shader = WATER_SHADER
 	material.render_priority = RENDER_PRIORITY
-	material.set_shader_parameter(&"shallow_color", Look.SAGE.lerp(Look.BRASS, 0.3))
-	material.set_shader_parameter(&"deep_color", Look.INK.lerp(Look.SAGE, 0.08).darkened(0.4))
-	material.set_shader_parameter(&"horizon_color", Look.CREAM.lerp(Look.SAGE, 0.25))
+	Look.set_targets(material, Look.water_targets())
 	material.set_shader_parameter(&"sky_color", sky)
-	material.set_shader_parameter(&"foam_color", Look.CREAM)
 	material.set_shader_parameter(&"ripple_normal", ripple)
 	material.set_shader_parameter(&"foam_noise", foam)
 	material.set_shader_parameter(&"cycle_seconds", float(CYCLE_USEC) / float(USEC_PER_SECOND))

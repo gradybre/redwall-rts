@@ -14,6 +14,7 @@ const FarmUi := preload("res://demo/farm/farm_ui.gd")
 const ZoneScript := preload("res://demo/ui/demo_detail_zone.gd")
 const NewsScript := preload("res://demo/ui/demo_news_strip.gd")
 const PartyScript := preload("res://demo/control/demo_party_panel.gd")
+const SoundSettingsScript := preload("res://demo/sound/sound_settings_ui.gd")
 
 var _nodes: Array[Node] = []
 var _game: GameManagerScript = null
@@ -222,8 +223,9 @@ func test_the_demo_lab_entry_closes_the_menu_and_opens_the_lab() -> void:
 
 # --- settings -------------------------------------------------------------------------------------
 
-func test_settings_offer_only_the_scales_that_fit_and_mark_sound_absent() -> void:
-	"""A size the window cannot fit is disabled with the reason; the chosen one is lit; sound is absent."""
+func test_settings_offer_only_the_scales_that_fit_and_the_sound() -> void:
+	"""A size the window cannot fit is disabled with the reason; the chosen one is lit; the sound section is there
+	(decision 0351; its own checks are test_demo_sound.gd's)."""
 	var menu := _menu()
 	menu.scale_fits = func(percent: int) -> bool: return percent <= UiLayout.USER_SCALE_125
 	menu.open()
@@ -233,7 +235,7 @@ func test_settings_offer_only_the_scales_that_fit_and_mark_sound_absent() -> voi
 	assert_false(menu.scale_button(1).disabled, "125% offered")
 	assert_true(menu.scale_button(2).disabled, "150% refused")
 	assert_equal(menu.scale_button(2).tooltip_text, MenuScript.SCALE_TOO_SMALL % 150, "with the reason")
-	assert_true(menu.page_text(MenuScript.PAGE_SETTINGS).contains(MenuScript.SOUND_LINE), "sound: none yet")
+	assert_true(menu.page_text(MenuScript.PAGE_SETTINGS).contains(SoundSettingsScript.TITLE), "the sound section")
 	assert_true(menu.page_text(MenuScript.PAGE_SETTINGS).contains("150% needs a larger window"), "the note says why")
 	assert_equal(MenuScript.refused_note(PackedStringArray(["125%", "150%"])), "125% and 150% need a larger window",
 		"two refused read as one sentence")

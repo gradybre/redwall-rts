@@ -181,9 +181,26 @@ func open_into(job_kind: int, job_bed: int, job_origin: int, job_source: int, ou
 
 func _plan(row: int) -> Array:
 	"""The step list job `row` runs through (a constant table; nothing is copied)."""
-	if kind[row] == KIND_COMPOST and source[row] == SOURCE_SPOIL:
+	return plan_of(kind[row], source[row])
+
+
+static func plan_of(job_kind: int, job_source: int) -> Array:
+	"""The step list a job of `job_kind` from `job_source` runs through: composting from tunnel spoil walks to a
+	heap first (COMPOST_FROM_SPOIL_PLAN), every other its PLANS row."""
+	if job_kind == KIND_COMPOST and job_source == SOURCE_SPOIL:
 		return COMPOST_FROM_SPOIL_PLAN
-	return PLANS[kind[row]]
+	return PLANS[job_kind]
+
+
+static func plan_work_usec(job_kind: int, job_source: int, from_step: int) -> int:
+	"""The work left in a job's plan from step `from_step` on, in the cast's demo microseconds -- every work step's
+	`work_usec_of`, the walks not counted (the action card's work, decision 0332)."""
+	var plan: Array = plan_of(job_kind, job_source)
+	var usec: int = 0
+	for k: int in range(maxi(from_step, 0), plan.size()):
+		if int(plan[k]) >= STEP_WORK:
+			usec += work_usec_of(int(plan[k]) - STEP_WORK)
+	return usec
 
 
 func plan_size(row: int) -> int:
@@ -292,6 +309,11 @@ func is_live(row: int) -> bool:
 
 func work_usec(work_kind: int) -> int:
 	"""How long a work kind takes, in the cast's demo microseconds."""
+	return work_usec_of(work_kind)
+
+
+static func work_usec_of(work_kind: int) -> int:
+	"""How long a work kind takes, in the cast's demo microseconds: its WU at DEMO_USEC_PER_WU."""
 	return WORK_WU[work_kind] * DEMO_USEC_PER_WU
 
 

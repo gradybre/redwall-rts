@@ -12,9 +12,13 @@ extends Node3D
 ##                                    Harvest, Clear, Compost, Cover, Raise and Bank (tunnel spoil),
 ##                                    Rest (fallow), Cancel jobs -- given to the selected residents, or
 ##                                    queued for the field crew
-##   V                                map overlays: off -> moisture -> ripeness -> any added by the
-##                                    village (the water's zones, add_overlay) -> off
-##   K, or the HUD's Food command     the Pantry: stock per ingredient, freshness, dishes it feeds
+##   V                                the map layers (map_lenses.gd, decision 0292): off -> Growing:
+##                                    soil moisture -> Growing: ripeness -> each added by the village
+##                                    (Getting there: water range, Woods; add_overlay) -> off -- the same
+##                                    one active layer the Map layer picker (demo/ui/demo_lens_picker.gd)
+##                                    selects directly
+##   K, or the HUD's Food command     the Pantry: Stocks (what is in store, where, incoming, next to
+##                                    spoil) and Recipe ideas (not cookable yet)
 ##   Esc                              close the Pantry, then the bed panel
 ## The routine crew (the fieldworker and the gatherer) take queued jobs and the farm's own harvest
 ## and clearing jobs whenever they are wandering.
@@ -52,6 +56,8 @@ const ViewScript := preload("res://demo/farm/farm_view.gd")
 const BedPanelScript := preload("res://demo/farm/farm_bed_panel.gd")
 const PantryPanelScript := preload("res://demo/farm/farm_pantry_panel.gd")
 const GoodsScript := preload("res://demo/farm/farm_goods.gd")
+const LensesScript := preload("res://demo/map_lenses.gd")
+const Look := preload("res://demo/farm/farm_look.gd")
 const CarryViewScript := preload("res://demo/farm/farm_carry_view.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
@@ -84,6 +90,10 @@ var sim: SimScript = SimScript.new()
 var tunnels: TunnelsScript = TunnelsScript.new()
 var crew: CrewScript = CrewScript.new()
 var alerts: AlertsScript = AlertsScript.new()
+## farm_alerts.gd COND_DRY, COND_WET, COND_WORN, COND_BLIGHT -> the job that answers it.
+const REMEDY_KINDS: PackedInt32Array = [JobsScript.KIND_WATER, JobsScript.KIND_DRAIN, JobsScript.KIND_COMPOST,
+	JobsScript.KIND_CLEAR]
+var _remedy_read: IntMath.IntResult = IntMath.IntResult.new()
 var recipes: RecipesScript = RecipesScript.new()
 var hud: HudScript = HudScript.new()
 var storage: StorageScript = null
@@ -105,11 +115,8 @@ var _events: PackedInt32Array = PackedInt32Array()
 var _spoiled: PackedInt32Array = PackedInt32Array()
 var _lines: PackedStringArray = PackedStringArray()
 var _levels: PackedByteArray = PackedByteArray()
-## Overlays after the farm's own on the V cycle (add_overlay): their names and `(on: bool)` switches.
-var _extra_names: PackedStringArray = PackedStringArray()
-var _extra_shows: Array[Callable] = []
-## Where the V cycle stands: 0 off, then the farm's modes, then the extras in order.
-var _overlay_step: int = 0
+## The village's map layers: the farm's two first, then the village's (add_overlay). V steps them.
+var lenses: LensesScript = LensesScript.new()
 var _shown_hour: int = 0
 var _water: PackedByteArray = PackedByteArray([0, 0])
 var _read: IntMath.IntResult = IntMath.IntResult.new()
@@ -133,14 +140,19 @@ func configure(manifest: Dictionary, world: DemoWorldScript, cast: DemoCastScrip
 	pantry = PantryScript.new(storage)
 	crew.configure(cast, sim, pantry, tunnels, well_position(), services.notices.poster(
 		NoticesScript.SOURCE_CREW, NoticesScript.LEVEL_NOTE))
+	alerts.bind_incidents(services.incidents, remedy_on)
+	crew.set_incidents(services.incidents)
 	recipes.load_index()
 	goods = GoodsScript.new(services.props)
 	_build_view(manifest, world, command)
+	_add_farm_lenses()
 	_build_panels()
 	hud.bind(shell)
 	hud.unlock_food_command(toggle_pantry)
 	command.set_ground_handlers(on_ground_click, on_ground_order)
 	command.set_task_text(crew.task_text)
+	command.add_resume_rule(crew.resume_rule)
+	bed_panel.set_preview(command.selected, command.interrupt_text)
 
 
 func _bind_services(shared: ServicesScript) -> void:
@@ -188,6 +200,7 @@ func _build_panels() -> void:
 	add_child(pantry_panel)
 	pantry_panel.compost_requested.connect(compost_spoiled)
 	pantry_panel.close_requested.connect(toggle_pantry)
+	pantry_panel.bed_requested.connect(open_bed_from_pantry)
 
 
 static func store_position(cast: DemoCastScript) -> Vector2:
@@ -320,7 +333,16 @@ func _hourly() -> void:
 	_levels.clear()
 	alerts.collect_into(sim, _events, _spoiled, _lines, _levels)
 	for k: int in _lines.size():
-		services.notices.post(NoticesScript.SOURCE_FARM, _levels[k], _lines[k])
+		var bed: int = alerts.targets[k]
+		services.notices.post(NoticesScript.SOURCE_FARM, _levels[k], _lines[k], "",
+			NoticesScript.TARGET_BED if bed >= 0 else NoticesScript.TARGET_NONE, bed, alerts.serials[k])
+
+
+func remedy_on(bed: int, cond: int) -> bool:
+	"""Whether a job answering a bed's condition (farm_alerts.gd COND_*) is on it: Water a dry bed, Drain a
+	waterlogged one, Compost a worn-out one, Clear a blighted one (decision 0331: the incident's ASSIGNED)."""
+	var kind: int = REMEDY_KINDS[cond] if cond >= 0 and cond < REMEDY_KINDS.size() else -1
+	return kind >= 0 and crew.jobs.job_on_bed_into(kind, bed, _remedy_read)
 
 
 # --- the player's verbs -----------------------------------------------------------------------------
@@ -388,6 +410,13 @@ func open_pantry() -> void:
 		toggle_pantry()
 
 
+func open_bed_from_pantry(bed: int) -> void:
+	"""The empty Pantry's suggestion: close the Pantry and open the bed it names."""
+	if pantry_panel.visible:
+		toggle_pantry()
+	select_bed(bed)
+
+
 func compost_spoiled() -> void:
 	"""Spoiled food to the compost store, at §5.7's 4 : 2."""
 	sim.compost_milli += pantry.compost_spoiled()
@@ -444,7 +473,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func handle_key(event: InputEventKey) -> bool:
 	"""Apply one key press; true when it was the farm's."""
 	if event.physical_keycode == KEY_V:
-		_say("Map overlay: %s" % cycle_overlays())
+		_say("Map layer: %s" % cycle_overlays())
 		return true
 	if event.is_action_pressed(&"open_food") or event.physical_keycode == KEY_K:
 		toggle_pantry()
@@ -459,23 +488,36 @@ func handle_key(event: InputEventKey) -> bool:
 	return false
 
 
-func add_overlay(overlay_name: String, show: Callable) -> void:
-	"""Put another map overlay on V's cycle, after the farm's own: `show(on: bool)` switches it (the
-	village's water zones). One key, one cycle, so no two overlays fight for V."""
-	_extra_names.append(overlay_name)
-	_extra_shows.append(show)
+func _add_farm_lenses() -> void:
+	"""The farm's two layers, first on V's cycle: soil moisture and ripeness, each with its legend in the
+	beds' own overlay colours (farm_look.gd)."""
+	var moisture: int = lenses.add("Growing", "Soil moisture", "Which beds are too dry or too wet?",
+		_farm_overlay.bind(ViewScript.OVERLAY_MOISTURE))
+	lenses.set_legend(moisture, PackedColorArray(Look.BAND_OVERLAY), PackedStringArray(SimScript.BAND_NAMES))
+	var ripeness: int = lenses.add("Growing", "Ripeness", "Which beds are ready to harvest?",
+		_farm_overlay.bind(ViewScript.OVERLAY_RIPENESS))
+	lenses.set_legend(ripeness, PackedColorArray([Look.UNRIPE_OVERLAY, Look.RIPE_OVERLAY, Look.LATE_OVERLAY,
+		Look.NO_OVERLAY]), PackedStringArray(["growing", "ripe", "past its best or lost", "empty"]))
+
+
+func _farm_overlay(on: bool, mode: int) -> void:
+	"""Show the beds' overlay `mode`, or clear it. The two farm layers share the beds' one overlay; that is
+	safe because `lenses.select` switches every other layer off BEFORE it switches the chosen one on."""
+	view.set_overlay(mode if on else ViewScript.OVERLAY_OFF)
+
+
+func add_overlay(group: String, label: String, question: String, show: Callable) -> int:
+	"""Put another map layer on V's cycle, after the farm's own: `show(on: bool)` switches it (the
+	village's water range, the woods). One active layer for V and the picker alike. Returns its row in
+	`lenses`."""
+	return lenses.add(group, label, question, show)
 
 
 func cycle_overlays() -> String:
-	"""V: off -> moisture -> ripeness -> each added overlay -> off. Returns what now shows."""
-	var farm_modes: int = ViewScript.OVERLAY_NAMES.size()
-	_overlay_step = (_overlay_step + 1) % (farm_modes + _extra_shows.size())
-	view.set_overlay(_overlay_step if _overlay_step < farm_modes else ViewScript.OVERLAY_OFF)
-	for k: int in _extra_shows.size():
-		_extra_shows[k].call(_overlay_step == farm_modes + k)
-	if _overlay_step < farm_modes:
-		return ViewScript.OVERLAY_NAMES[_overlay_step]
-	return _extra_names[_overlay_step - farm_modes]
+	"""V: off -> each layer on V's cycle -> off (map_lenses.gd `cycle`), after adopting an outside switch
+	(U). Returns the title of what now shows."""
+	lenses.sync()
+	return lenses.title_of(lenses.cycle())
 
 
 func _say(text: String) -> void:

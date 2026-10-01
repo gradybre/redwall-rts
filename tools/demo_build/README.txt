@@ -55,7 +55,8 @@ Tunnels
 Farm and village
   Left click a crop bed     its panel: plant, water, harvest, clear, compost, cover
   Right click a bed         (residents selected) do its most pressing work
-  V                         map overlays: moisture, ripeness, water, off
+  V                         map layers: moisture, ripeness, water range, woods, off
+                            (or pick one on the Map layer picker, bottom left)
   K                         the pantry
 
 Time and window

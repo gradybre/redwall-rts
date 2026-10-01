@@ -266,6 +266,14 @@ func plan_into(survey: Survey, label: String, out: IntMath.IntResult) -> bool:
 	return out.refuse("every bridge row is taken (%d)" % MAX_BRIDGES)
 
 
+func has_free_row() -> bool:
+	"""Whether a bridge row is free for `plan_into` (an action card's check, decision 0332)."""
+	for row: int in MAX_BRIDGES:
+		if phase[row] == PHASE_FREE:
+			return true
+	return false
+
+
 func _write(row: int, survey: Survey, label: String) -> void:
 	"""A planned bridge's columns."""
 	phase[row] = PHASE_PLANNED

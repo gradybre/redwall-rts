@@ -11,12 +11,13 @@ extends CanvasLayer
 ## dive and swim verbs; the bridge site chosen (a candidate, or two banks) with its span, deck, piers
 ## and cost, and the build buttons; every bridge planned or open with its stage and builder; the demo
 ## stores' planks and wood; and the water's latest news. Buttons emit `action(name)` (ACTION_*);
-## nothing here decides anything.
+## nothing here decides anything. The Build buttons' tooltips are their ACTION CARDS (decision 0332, `set_card`).
 
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const DetailZone := preload("res://demo/ui/demo_detail_zone.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
 
 signal action(name: StringName)
 
@@ -175,6 +176,16 @@ func show_site(title: String, text: String, enabled: Dictionary) -> void:
 	_set_line(&"site", text)
 	for key: StringName in SITE_ACTIONS:
 		(_buttons[key] as Button).disabled = not bool(enabled.get(key, true))
+
+
+func set_card(key: StringName, card_text: String, enabled: bool) -> void:
+	"""An action's card (decision 0332, demo/ui/action_card.gd) as its button's tooltip, the button pressable only
+	when the card allows it."""
+	var b := _buttons[key] as Button
+	CardScript.dress(b)
+	if b.tooltip_text != card_text:
+		b.tooltip_text = card_text
+	b.disabled = not enabled
 
 
 func show_status(bridges: String, stores: String, log: String) -> void:

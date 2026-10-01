@@ -60,6 +60,8 @@ const ServicesScript := preload("res://demo/demo_services.gd")
 const AbilitiesScript := preload("res://demo/control/resident_abilities.gd")
 const Layers := preload("res://demo/demo_layers.gd")
 const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
+const InterruptScript := preload("res://demo/control/work_interrupt.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
 
 const RING_GAP_M: float = 0.12
 const PULSE_HZ: float = 1.1
@@ -120,6 +122,10 @@ var _ground_orders: Array[Callable] = []
 var _task_texts: Array[Callable] = []
 var _input_hooks: Array[Callable] = []
 var _skill_texts: Array[Callable] = []
+## The job owners' resume rules (work_interrupt.gd; see add_resume_rule).
+var _resume_rules: Array[Callable] = []
+## The tool buttons' action card (reused; _refresh_tool_cards).
+var _tool_card_data: CardScript = CardScript.new()
 ## The party panel's notice line, per resident (see say): its text, and when it was said (0: never).
 var _notice_of: PackedStringArray = PackedStringArray()
 var _notice_order: PackedInt32Array = PackedInt32Array()
@@ -158,6 +164,7 @@ func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null,
 	_panel.dig_requested.connect(_on_dig_requested)
 	_panel.room_requested.connect(_on_room_requested)
 	_tunnels.ext.set_hud(hud_root)
+	_tunnels.ext.set_interrupt(interrupt_text)
 
 
 func set_world(world: DemoWorldScript) -> void:
@@ -305,7 +312,7 @@ func _build_marks(count: int) -> void:
 func _mark_node(colour: Color, below: bool) -> MeshInstance3D:
 	"""One ring mark on the surface's marks layer -- or, `below`, the U view's, drawn over the cap."""
 	var ring := MarksScript.make_ring(colour)
-	ring.layers = Layers.UNDERGROUND_MARKS if below else Layers.SURFACE_MARKS
+	ring.layers = Layers.MARKS_ALL if below else Layers.SURFACE_MARKS
 	if below:
 		var material := ring.material_override as StandardMaterial3D
 		material.no_depth_test = true
@@ -516,7 +523,7 @@ func selection_count() -> int:
 
 
 func is_selected(actor_index: int) -> bool:
-	"""Whether this resident is selected (per-frame safe: no array made; the village map's dots)."""
+	"""Whether this resident is selected (no array is built: the village map's dots and the canopy's per-frame check)."""
 	return actor_index >= 0 and actor_index < _selected.size() and _selected[actor_index] != 0
 
 
@@ -555,9 +562,9 @@ static func proxy_into(brain: BrainScript, foot: Vector3, height: float, below_s
 		out: PackedFloat32Array) -> void:
 	"""One resident's pick proxy where it is seen (see PICKING) into out: foot x, y, z, height, radius.
 	On the surface, or underground in the underground view: its body where it is drawn -- except a
-	resident on the surface in the underground view, which is its marker on the level's floor.
-	Underground otherwise: a digging mole as its mound -- on the ground, the mound's drawn radius from
-	`eye` -- and anyone else not at all (radius 0). Asleep inside the hall (not drawn), not at all."""
+	resident on the surface, or on another level than the U view shows (decision 0212), which is its marker on the
+	shown level's floor. Underground otherwise: a digging mole as its mound -- on the ground, the mound's drawn
+	radius from `eye` -- and anyone else not at all (radius 0). Asleep inside the hall (not drawn), not at all."""
 	out[0] = foot.x
 	out[1] = foot.y
 	out[2] = foot.z
@@ -565,8 +572,8 @@ static func proxy_into(brain: BrainScript, foot: Vector3, height: float, below_s
 	out[4] = brain.radius if not brain.indoors else 0.0
 	if brain.indoors:
 		return
-	if below_seen and not brain.underground:
-		out[1] = Layers.FLOOR_Y_M
+	if below_seen and brain.view_level() != Layers.active_level:
+		out[1] = Layers.view_floor_y()
 		out[3] = MARKER_PICK_HEIGHT_M
 		out[4] = DemoActorScript.MARKER_RADIUS_M + DemoActorScript.MARKER_EDGE_M
 		return
@@ -604,7 +611,7 @@ func order_at(at: Vector2) -> bool:
 func order_along(origin: Vector3, direction: Vector3) -> bool:
 	"""Order the selection to where a unit ray meets the view's plane -- the ground, or the level's floor
 	in the underground view (see PICKING). False when it misses the plane."""
-	var ground: Vector2 = Layers.pick_ground(origin, direction, Layers.pick_y(underground_view()))
+	var ground: Vector2 = Layers.pick_ground(origin, direction, Layers.pick_y(underground_view(), Layers.active_level))
 	if ground == Vector2.INF:
 		return false
 	return order_to(Vector3(ground.x, 0.0, ground.y))
@@ -634,7 +641,7 @@ func mark(at: Vector3, accepted: bool) -> void:
 	_marker_colour[i] = MarksScript.ORDERED if accepted else MarksScript.REFUSED
 	_markers[i].position = Vector3(at.x, MarksScript.LIFT_M, at.z)
 	_markers[i].visible = true
-	_markers_below[i].position = Vector3(at.x, Layers.FLOOR_Y_M + Layers.MARK_LIFT_M, at.z)
+	_markers_below[i].position = Vector3(at.x, Layers.view_floor_y() + Layers.MARK_LIFT_M, at.z)
 	_markers_below[i].visible = true
 
 
@@ -651,6 +658,7 @@ func _process(delta: float) -> void:
 	if _refresh_in <= 0.0:
 		_refresh_in = PANEL_REFRESH_S
 		_refresh_panel()
+		_refresh_tool_cards()
 		_panel.follow_hud()
 
 
@@ -692,10 +700,10 @@ func _put_ring(ring: MeshInstance3D, at: Vector3, brain: BrainScript, pulse: flo
 
 
 static func _put_ring_below(ring: MeshInstance3D, brain: BrainScript, pulse: float) -> void:
-	"""The U view's ring under a resident: on the bore floor it stands on, or -- on the surface -- round
-	its marker on the level's floor (see MARKS)."""
+	"""The U view's ring under a resident: on the bore floor it stands on, or -- on the surface or another level
+	than the U view shows -- round its marker on the shown level's floor (see MARKS)."""
 	var r := (brain.radius + RING_GAP_M) * pulse
-	var floor_y: float = brain.ground_y_m if brain.underground else Layers.FLOOR_Y_M
+	var floor_y: float = brain.ground_y_m if brain.view_level() == Layers.active_level else Layers.view_floor_y()
 	ring.position = Vector3(brain.position.x, floor_y + Layers.MARK_LIFT_M, brain.position.y)
 	ring.scale = Vector3(r, 1.0, r)
 
@@ -806,3 +814,45 @@ func _dug_percent(brain: BrainScript) -> int:
 func panel() -> PanelScript:
 	"""The demo party panel."""
 	return _panel
+
+
+# --- what an order interrupts (decision 0332, review F44) -----------------------------------------
+
+func add_resume_rule(rule: Callable) -> void:
+	"""`rule(actor_index: int) -> int`: a job owner's answer to "if an order takes this resident from your job, does
+	it go back to it?" (work_interrupt.gd's codes, NOT_MINE for a resident it has no job for)."""
+	_resume_rules.append(rule)
+
+
+func interrupt_text(actor_index: int) -> String:
+	"""What an order given to this resident now interrupts, and whether it goes back to it after -- the action
+	cards' line (demo/ui/action_card.gd): the party panel's own activity words, the brain's RESUMING rule."""
+	if actor_index < 0 or actor_index >= _cast.actor_count():
+		return ""
+	var brain := (_cast.actor(actor_index) as DemoActorScript).brain
+	return InterruptScript.text(activity_text(actor_index), InterruptScript.resume_of(brain, _resume_rules, actor_index))
+
+
+func _refresh_tool_cards() -> void:
+	"""The party panel's Dig tunnel and room tool buttons, each with its action card (tunnel_control.gd
+	`tool_card_into`) and what its digger would stop doing -- while they show."""
+	var dig := _panel.dig_button()
+	if dig == null or not dig.visible or _tunnels == null:
+		return
+	_tool_card(dig, PanelScript.DIG_TIP)
+	for k: int in PanelScript.ROOM_TIPS.size():
+		var room := _panel.room_button(k)
+		if room != null:
+			_tool_card(room, PanelScript.ROOM_TIPS[k])
+
+
+func _tool_card(button: Button, tip: String) -> void:
+	"""One tool button's card: its own words (`tip`: "Name (key) — what it does") as verb and result."""
+	var cut := tip.find(" — ")
+	_tunnels.tool_card_into(_tool_card_data, tip.left(cut), tip.substr(cut + 3))
+	if _tool_card_data.worker >= 0:
+		_tool_card_data.interrupts = interrupt_text(_tool_card_data.worker)
+	var said := _tool_card_data.text()
+	CardScript.dress(button)
+	if button.tooltip_text != said:
+		button.tooltip_text = said

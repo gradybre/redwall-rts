@@ -8,6 +8,8 @@ which the demo scene reads. Without it the demo still runs, on placeholder shape
   world/<key>.glb          buildings, environment and props: their L0, unchanged -- except the
                            crops whose L0 shatters (grain, roots), which make_demo_crop_cards.py
                            rebuilds as a bare bed plus alpha-cutout cards of the real plants
+  world/weir_structure.glb the weir's L0 without its baked water and earth slab (make_demo_weir.py,
+                           decision 0301), which the demo fits to its stream
   props/, plants/, icons/  the 2026-09-29 passes' props and plants, which have no L0: made by
                            make_demo_props.py from their high-poly sources (budget meshes, plant
                            cards, item icons)
@@ -53,6 +55,7 @@ from repair_meshy_rig import read_accessor, read_glb, write_glb  # noqa: E402
 from rig_meshy_tail import mat_mul, node_worlds, transform_point  # noqa: E402
 import make_demo_crop_cards  # noqa: E402
 import make_demo_props  # noqa: E402
+import make_demo_weir  # noqa: E402
 import demo_texture_imports  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -245,6 +248,16 @@ def stage_props(library: pathlib.Path, out: pathlib.Path) -> dict:
 		return {}
 
 
+def stage_weir(library: pathlib.Path, out: pathlib.Path) -> dict:
+	"""The weir structure's row (make_demo_weir.py), or none without Blender -- the demo then draws the
+	fitted weir's placeholder."""
+	try:
+		return make_demo_weir.stage(library, out)
+	except RuntimeError as error:
+		print(f"stage_demo_assets: weir structure skipped, the weir will be a placeholder: {error}")
+		return {}
+
+
 def cast_keys(library: pathlib.Path) -> list[str]:
 	"""The creatures to stage: the CAST, and each OPTIONAL_CAST creature whose grounded clips exist."""
 	return [*CAST, *(key for key in OPTIONAL_CAST if (library / "creature" / key / "grounded").is_dir())]
@@ -289,6 +302,7 @@ def main() -> int:
 	if args.only in (None, "world"):
 		manifest["world"] = stage_world(args.library, args.out)
 		manifest["world"].update(stage_crop_cards(args.library, args.out))
+		manifest["world"].update(stage_weir(args.library, args.out))
 	if args.only in (None, "world", "props"):
 		manifest["world"].update(stage_props(args.library, args.out))
 	if args.only in (None, "cast"):

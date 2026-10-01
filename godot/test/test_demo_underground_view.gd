@@ -291,9 +291,9 @@ func _check_underground(v: Dictionary, slot: int) -> void:
 			assert_equal((piece as VisualInstance3D).layers, Layers.UNDERGROUND, "room %d's %s below" % [r, piece.name])
 	assert_true(tool.ext.find_props.shown_count() >= 1, "the find lies in the bore")
 	assert_equal(below.layers_now(), Layers.UNDERGROUND, "the resident below")
-	assert_false(below.marker().visible, "no marker while below")
+	assert_equal(below.marker().get_child(0).layers, Layers.UNDERGROUND_2_MARKS, "while below, a marker only in the other level's view")
 	var above := v["cast"].actor(1) as DemoActorScript
-	assert_true(above.marker().visible and above.marker().get_child(0).layers == Layers.UNDERGROUND_MARKS, "a marker for one above")
+	assert_true(above.marker().visible and above.marker().get_child(0).layers == Layers.MARKS_ALL, "a marker for one above, in every level's view")
 	_check_fit_out(tool)
 
 
@@ -664,7 +664,7 @@ func test_the_u_views_marks_are_drawn_over_the_cap_on_its_own_layer() -> void:
 	for pair: Array in [[command._rings[1], command._rings_below[1]], [command._markers[0], command._markers_below[0]]]:
 		var above: MeshInstance3D = pair[0]
 		var below: MeshInstance3D = pair[1]
-		assert_equal([above.layers, below.layers], [Layers.SURFACE_MARKS, Layers.UNDERGROUND_MARKS], "one per view")
+		assert_equal([above.layers, below.layers], [Layers.SURFACE_MARKS, Layers.MARKS_ALL], "one per view (the U view's on every level's)")
 		assert_false((above.material_override as BaseMaterial3D).no_depth_test, "the surface's is depth-tested")
 		assert_true((below.material_override as BaseMaterial3D).no_depth_test, "the U view's is drawn over the cap")
 		assert_true(below.visible and absf(below.position.y - Layers.FLOOR_Y_M) < 0.1, "on the floor")
@@ -762,7 +762,7 @@ func test_a_resident_changes_layer_going_down_and_up_and_its_parts_follow() -> v
 	_send_below(v["cast"], network, network.next_in_piece(ref[0]))
 	v["cast"].advance(DT)
 	assert_equal(actor.layers_now(), Layers.UNDERGROUND, "below")
-	assert_false(actor.marker().visible, "no marker")
+	assert_equal(actor.marker().get_child(0).layers, Layers.UNDERGROUND_2_MARKS, "its marker only in level 2's view")
 	actor.set_work_tool(BoxMesh.new(), Transform3D.IDENTITY)
 	assert_equal((actor.get_node(^"WorkTool") as VisualInstance3D).layers, Layers.UNDERGROUND, "the tool joins it")
 	actor.hold(BoxMesh.new(), Transform3D.IDENTITY)

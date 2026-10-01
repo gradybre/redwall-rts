@@ -26,7 +26,9 @@ extends Node3D
 ##
 ## TIME is the demo's one calendar and clock: the calendar's midnights regrow stumps and saplings and
 ## drop deadfall; a storm day (§5.10's heavy rain) blows a tree down and drops more; work runs on the
-## demo clock, so pause and 2x / 4x apply. What happens goes to the one notice feed (source Woods).
+## demo clock, so pause and 2x / 4x apply. What happens goes to the one notice feed (source Woods). A
+## blown-down tree is also an incident (decision 0331: "woods:windthrow:<tree>", on the tree) until its trunk is
+## hauled clear (`windthrow_state`).
 ##
 ## THE WOOD goes into the demo's ONE stores (demo_services.gd `stores`, tunnel_stores.gd): the same
 ## wood the tunnels' bracing and lanterns spend; planks are sawn from it into the same stores.
@@ -46,9 +48,11 @@ const PickScript := preload("res://demo/forestry/forest_pick.gd")
 const ZoneToolScript := preload("res://demo/forestry/forest_zone_tool.gd")
 const TextScript := preload("res://demo/forestry/forest_text.gd")
 const LiftScript := preload("res://demo/forestry/forest_lift.gd")
+const RootFieldScript := preload("res://demo/forestry/forest_root_field.gd")
 const Yard := preload("res://demo/forestry/forest_yard.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
+const IncidentsScript := preload("res://demo/demo_incidents.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoCommandScript := preload("res://demo/control/demo_command.gd")
@@ -60,11 +64,19 @@ const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 const ResourceNodes := preload("res://scripts/core/resource_nodes.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
+const ForestCard := preload("res://demo/forestry/forest_card.gd")
 
 ## The player did something in the woods: show the Woods panel (demo/ui/demo_detail_zone.gd).
 signal panel_wanted
 
 const PANEL_REFRESH_S: float = 0.25
+## The panel's job verbs and the job each orders (see `action_card`).
+const ACTION_KINDS: Dictionary = {&"fell": JobsScript.KIND_FELL, &"haul": JobsScript.KIND_HAUL,
+	&"gather": JobsScript.KIND_GATHER, &"saw": JobsScript.KIND_SAW, &"plant": JobsScript.KIND_PLANT, &"grub": JobsScript.KIND_GRUB}
+const NO_DEADFALL: String = "Can't gather deadfall: none is lying in the woods"
+const NO_TREE: String = "Select a tree first"
+const CANCEL_TIP: String = "Cancel ALL woods jobs (%d on the board), not just the selected tree's; loads in hand go into store"
 ## The demo's two zones at the start (demo values): the north stand to work, the old grove to keep.
 const SEED_ZONES: Array[Array] = [
 	[ZonesScript.KIND_FORESTRY, Vector2(-16.0, -30.0), Vector2(14.0, -18.0), "North stand"],
@@ -113,14 +125,20 @@ var _sources: PackedVector2Array = PackedVector2Array()
 var _chip_trees: PackedInt32Array = PackedInt32Array()
 var _chip_at: PackedVector3Array = PackedVector3Array()
 var _ground: Vector2 = Vector2.ZERO
+## The Woods panel's action cards (decision 0332): the one card filled per button, and a job's target.
+var _card: CardScript = CardScript.new()
+var _target: Vector2i = Vector2i.ZERO
+var _allowed: Dictionary = {}
 
 
 static func extra_obstacles(world: DemoWorldScript) -> Array[Vector3]:
 	"""The circles the cast must also walk round for the woods' work: the woods' trees, stumps and
-	rocks out to the forestry reach, and the wood yard's pieces (demo_village.gd merges them in before
-	the cast is built)."""
-	var out: Array[Vector3] = world.woods_obstacles(Rules.REACH_M + Rules.WORK_MARGIN_M + 3.0)
+	rocks out to the forestry reach, the wood yard's pieces, and the staged trees' proud roots (decision
+	0301: forest_root_field.gd) -- demo_village.gd merges them in before the cast is built."""
+	var reach: float = Rules.REACH_M + Rules.WORK_MARGIN_M + 3.0
+	var out: Array[Vector3] = world.woods_obstacles(reach)
 	out.append_array(Yard.obstacles())
+	out.append_array(RootFieldScript.root_obstacles(world.trees(), world.tree_node, reach))
 	return out
 
 
@@ -184,6 +202,7 @@ func _build_views() -> void:
 	view = ViewScript.new()
 	add_child(view)
 	view.configure(stand, _world.tree_node, _world.make_piece, services.props)
+	view.set_occupied(_occupied)
 	yard_view = YardViewScript.new()
 	add_child(yard_view)
 	yard_view.configure(services.stores, deadfall, services.props, _world.make_piece)
@@ -196,6 +215,7 @@ func _build_views() -> void:
 	panel.action.connect(on_action)
 	view.sync(_day, services.calendar.now().hour)
 	lift.configure(stand, _cast)
+	lift.use_fields(view.root_fields(), view.mound_scale)
 	lift.enabled = view.staged
 
 
@@ -205,6 +225,7 @@ func _hook_command() -> void:
 		return
 	_command.add_ground_handlers(on_ground_click, on_ground_order)
 	_command.add_task_text(crew.task_text)
+	_command.add_resume_rule(crew.resume_rule)
 	_command.add_input_hook(handle_tool_input)
 	_command.set_skill_text(skill_text)
 
@@ -275,10 +296,21 @@ func storm(what: String) -> int:
 	if t < 0 or not stand.blow_down_into(t, _day, wind, _read):
 		_post(NoticesScript.LEVEL_NOTE, "%s shook the woods: deadfall is down" % what)
 		return -1
-	_post(NoticesScript.LEVEL_WARNING, "%s blew down %s: %s of wood lie across the ground — clear it" %
-		[what, text.where_tree(t), Rules.units_text(_read.value)], "A tree blew down — haul it clear")
+	services.incidents.report("woods:windthrow:%d" % t, NoticesScript.SOURCE_WOODS, IncidentsScript.SEVERITY_WARNING,
+		"%s blew down %s: %s of wood lie across the ground — clear it" % [what, text.where_tree(t),
+		Rules.units_text(_read.value)], "A tree blew down — haul it clear", NoticesScript.TARGET_TREE, t,
+		windthrow_state.bind(t))
 	crew.raise_routine_jobs()
 	return t
+
+
+func windthrow_state(t: int) -> int:
+	"""A blown-down tree's incident (decision 0331): RESOLVED once its trunk is hauled clear, ASSIGNED while a
+	haul is on it."""
+	if not stand.is_tree(t) or stand.trunk_milli[t] <= 0:
+		return IncidentsScript.STATE_RESOLVED
+	return IncidentsScript.STATE_ASSIGNED if crew.jobs.on_target(JobsScript.KIND_HAUL, t) > 0 \
+		else IncidentsScript.STATE_NEEDS_DECISION
 
 
 func _storm_victim() -> int:
@@ -542,28 +574,65 @@ func _arm_zone_tool(action_name: StringName) -> void:
 
 
 func _panel_verb(action_name: StringName, members: PackedInt32Array) -> String:
-	"""The selected tree's verb, deadfall gathering or sawing, given to the selection or queued."""
-	match action_name:
-		PanelScript.ACTION_GATHER:
-			var from: Vector2 = Yard.log_stack_at()
-			if not deadfall.nearest_into(from, 2.0 * Rules.REACH_M, _read):
-				return "Can't gather deadfall: none is lying in the woods"
-			return crew.order(JobsScript.KIND_GATHER, _read.value, deadfall.generation[_read.value], members, JobsScript.ORIGIN_PLAYER)
-		PanelScript.ACTION_SAW:
-			return crew.order(JobsScript.KIND_SAW, JobsScript.NO_TARGET, 0, members, JobsScript.ORIGIN_PLAYER)
-		PanelScript.ACTION_HAUL:
-			return crew.order_haul(selected_tree, members)
-	if selected_tree < 0:
-		return "Select a tree first"
-	var kinds: Dictionary = {PanelScript.ACTION_FELL: JobsScript.KIND_FELL, PanelScript.ACTION_GRUB: JobsScript.KIND_GRUB,
-		PanelScript.ACTION_PLANT: JobsScript.KIND_PLANT}
-	return crew.order(int(kinds[action_name]), selected_tree, 0, members, JobsScript.ORIGIN_PLAYER)
+	"""The selected tree's verb, deadfall gathering or sawing, given to the selection or queued -- on the target its
+	card was shown for (`_target_into`)."""
+	var refused: String = _target_into(action_name)
+	if not refused.is_empty():
+		return refused
+	var kind: int = ACTION_KINDS[action_name]
+	if kind == JobsScript.KIND_HAUL:
+		return crew.order_haul(_target.x, members)
+	return crew.order(kind, _target.x, _target.y, members, JobsScript.ORIGIN_PLAYER)
+
+
+func _target_into(action_name: StringName) -> String:
+	"""The target a panel verb acts on, into `_target` (index, generation): the nearest deadfall to the log stack, no
+	target for sawing, else the selected tree. '' when there is one, else the refusal in words."""
+	_target = Vector2i(JobsScript.NO_TARGET, 0)
+	if action_name == PanelScript.ACTION_GATHER:
+		if not deadfall.nearest_into(Yard.log_stack_at(), 2.0 * Rules.REACH_M, _read):
+			return NO_DEADFALL
+		_target = Vector2i(_read.value, deadfall.generation[_read.value])
+	elif action_name != PanelScript.ACTION_SAW:
+		if selected_tree < 0:
+			return NO_TREE
+		_target = Vector2i(selected_tree, 0)
+	return ""
+
+
+func action_card(action_name: StringName, members: PackedInt32Array) -> CardScript:
+	"""A panel verb's action card (decision 0332): the crew's own preview on the target the order would take, and
+	what the named resident would stop doing. Reused: read it before the next call."""
+	var kind: int = ACTION_KINDS[action_name]
+	var refused: String = _target_into(action_name)
+	if not refused.is_empty():
+		_card.reset(ForestCard.verb_text(kind, ""))
+		_card.refuse(DeadfallScript.REFUSE_NO_PILE if kind == JobsScript.KIND_GATHER else "NO_TREE",
+			refused.substr(refused.find(": ") + 2) if refused.contains(": ") else refused,
+			ForestCard.fix_for(DeadfallScript.REFUSE_NO_PILE) if kind == JobsScript.KIND_GATHER else "")
+		return _card
+	crew.preview_into(_card, kind, _target.x, _target.y, members)
+	if _card.worker >= 0 and _command != null:
+		_card.interrupts = _command.interrupt_text(_card.worker)
+	return _card
+
+
+func _show_cards() -> Dictionary:
+	"""Every verb's card on its button: its tooltip, pressable only when the card allows it. Returns which may be
+	pressed ({action: bool}), for the tree section's own enabling (the same answer, so nothing flips)."""
+	var members: PackedInt32Array = _command.selected() if _command != null else PackedInt32Array()
+	for action_name: StringName in ACTION_KINDS:
+		var card: CardScript = action_card(action_name, members)
+		_allowed[action_name] = card.is_ok()
+		panel.set_card(action_name, card.text(), card.is_ok())
+	panel.set_card(PanelScript.ACTION_CANCEL, CANCEL_TIP % crew.jobs.live_count(), crew.jobs.live_count() > 0)
+	return _allowed
 
 
 func refresh_panel() -> void:
 	"""Fill the Woods panel from the stand, the zones, the stores, the board and the feed."""
 	panel.show_status(text.stores_line(), text.counts_line(), text.season_line(), text.queue_text(), text.log_text())
-	panel.show_tree(text.tree_title(selected_tree, _day), text.tree_text(selected_tree), text.tree_actions(selected_tree))
+	panel.show_tree(text.tree_title(selected_tree, _day), text.tree_text(selected_tree), _show_cards())
 	var z: int = marks.selected_zone
 	panel.show_zone(text.zone_title(z), text.zone_text(z), text.zone_actions(z),
 		zones.is_zone(z) and zones.intensive[z] == 1, zones.is_zone(z) and zones.auto_fell[z] == 1)

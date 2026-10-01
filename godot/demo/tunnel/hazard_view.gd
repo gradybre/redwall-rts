@@ -118,7 +118,7 @@ func _find_spans(slot: int) -> void:
 	var last := -INF
 	for k in _network.timeline_count(slot):
 		var at := _network.quantum_point_u(slot, k)
-		if ground != null and ground.wet_at(at.x, at.y):
+		if ground != null and ground.wet_at_level(at.x, at.y, _network.quantum_level(slot, k)):
 			var along := Rules.to_m(_network.quantum_along_u(slot, k))
 			first = minf(first, along)
 			last = maxf(last, along)

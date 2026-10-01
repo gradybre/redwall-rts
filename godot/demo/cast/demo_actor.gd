@@ -61,6 +61,7 @@ const TailRigScript := preload("res://scripts/presentation/tail_rig.gd")
 const ClipRootMotionScript := preload("res://scripts/presentation/clip_root_motion.gd")
 const DemoClockScript := preload("res://demo/demo_clock.gd")
 const Layers := preload("res://demo/demo_layers.gd")
+const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 const StoopScript := preload("res://demo/cast/stoop_modifier.gd")
 const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
@@ -142,10 +143,11 @@ var _hand_bone: int = -1
 var _hand_left: int = -1
 var _hand_right: int = -1
 var _skeleton_to_actor: Transform3D = Transform3D.IDENTITY
-## Whether the meshes were last put below (1) or above (0) ground (-1: not yet), and on which layer.
+## The level the meshes were last put on (0 the surface, else the level underground; -1: not yet), and on which
+## layer.
 var _below: int = -1
 var _layers: int = Layers.SURFACE
-## The U view's marker for this resident while it is on the surface (top level: placed in the world).
+## The U view's marker for this resident on the levels it is not on (top level: placed in the world).
 var _marker: Node3D = null
 var _floor_y: float = 0.0
 ## The tail's water mode as last set, and the heading its pull was last aimed along.
@@ -376,18 +378,20 @@ func tail_in_water() -> bool:
 
 
 func _apply_view() -> void:
-	"""On the surface layer above ground, the underground layer in a bore (see UNDERGROUND): rewritten
-	only when that changes -- a layers write, never a fade or a material. The marker follows a resident
-	on the surface."""
-	var below := 1 if brain.underground else 0
-	if below != _below:
-		_below = below
-		_layers = Layers.UNDERGROUND if brain.underground else Layers.SURFACE
+	"""On the surface layer above ground, its level's underground layer in a bore (see UNDERGROUND; decision 0212:
+	demo_layers.gd `body_mask`): rewritten only when that changes -- a layers write, never a fade or a material.
+	The marker shows in the U view of every level the resident is not on (`marker_mask`), on the floor of the level
+	shown, under the resident."""
+	var level := brain.view_level()
+	if level != _below:
+		_below = level
+		_layers = Layers.body_mask(level)
 		Layers.set_layers(self, _layers, _marker)
+		if _marker != null:
+			Layers.set_layers(_marker, Layers.marker_mask(level))
 	if _marker != null:
-		_marker.visible = not brain.underground and not brain.indoors
-	if _marker != null and below == 0:
-		_marker.position = Vector3(brain.position.x, Layers.FLOOR_Y_M + Layers.MARK_LIFT_M, brain.position.y)
+		_marker.visible = not brain.indoors
+		_marker.position = Vector3(brain.position.x, Layers.view_floor_y() + Layers.MARK_LIFT_M, brain.position.y)
 
 
 func layers_now() -> int:
@@ -447,7 +451,7 @@ func _build_marker() -> void:
 		disc.mesh = marker_mesh()
 		disc.material_override = marker_materials()[k]
 		disc.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		disc.layers = Layers.UNDERGROUND_MARKS
+		disc.layers = Layers.marker_mask(Rules.LEVEL_SURFACE)
 		var radius: float = MARKER_RADIUS_M + (MARKER_EDGE_M if k == 0 else 0.0)
 		disc.scale = Vector3(radius, 1.0, radius)
 		_marker.add_child(disc)

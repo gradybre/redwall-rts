@@ -1,17 +1,27 @@
 extends RefCounted
 ## The demo village's ground, sun and sky. Decision 0196 (live demo). Presentation only.
 ##
-## Colours are blends of the locked ART-LOCK-001 pigments
-## (`docs/design/ui_refinement/asset_generation_lock.json`), which allows interpolation between
-## locked pigments but no new base hues. The light is a warm late-morning sun a little east of
-## south -- behind an RTS camera that looks north over the square -- so the building fronts that
-## face the square catch it and the shadows fall away up the screen.
+## WORLD MATERIAL TARGETS (decision 0301, review F51). The world's colours answer to the approved
+## world-art example -- DEC-038, `docs/art-reference/visual_direction_alignment.md` -- and NOT to the
+## UI illustration lock (`docs/design/ui_refinement/asset_generation_lock.md`), whose twelve pigments
+## "do not become global world-rendering rules". DEC-038 asks for "restrained moss green, oatmeal,
+## ochre and earth tones with deliberate value grouping", a colour RELATIONSHIP, not a palette. So:
+##   * the nine BASE TONES below are the world's own. They were first seeded (decision 0196) from the
+##     UI lock's values; decision 0301 compared every ground and water target against the approved
+##     example and kept them, because each already sits in its DEC-038 value group -- a new hue may be
+##     added whenever the world reference calls for one, and nothing here limits the world to these;
+##   * each MATERIAL TARGET (`ground_targets`, `bank_targets`, `water_targets`) is a named colour with a
+##     declared VALUE GROUP (`value_group_of`): dark, mid, light or sky, by linear luminance. The
+##     checks hold every target inside its group, and the path above the grass by PATH_OVER_GRASS.
+## The light is a warm late-morning sun a little east of south -- behind an RTS camera that looks
+## north over the square -- so the building fronts that face the square catch it and the shadows fall
+## away up the screen.
 
 const Layout := preload("res://demo/world/world_layout.gd")
 const Scatter := preload("res://demo/world/world_scatter.gd")
 const GROUND_SHADER := preload("res://demo/world/demo_ground.gdshader")
 
-# ART-LOCK-001 pigments, sRGB.
+# The world's base tones, sRGB (see WORLD MATERIAL TARGETS).
 const INK: Color = Color(0.145, 0.216, 0.176)
 const OAT: Color = Color(0.918, 0.882, 0.784)
 const SAGE: Color = Color(0.439, 0.506, 0.443)
@@ -21,6 +31,23 @@ const TIMBER: Color = Color(0.569, 0.38, 0.243)
 const UMBER: Color = Color(0.349, 0.263, 0.196)
 const CREAM: Color = Color(0.961, 0.941, 0.875)
 const FLINT: Color = Color(0.541, 0.553, 0.518)
+
+## DEC-038 value groups: linear-luminance ranges a material target is kept inside (decision 0301).
+const VALUE_DARK: Vector2 = Vector2(0.0, 0.1)
+const VALUE_MID: Vector2 = Vector2(0.1, 0.26)
+const VALUE_LIGHT: Vector2 = Vector2(0.26, 0.5)
+const VALUE_SKY: Vector2 = Vector2(0.5, 1.0)
+## The worn path reads at least this much lighter than the grass (the approved example's dirt paths
+## run 1.8-3.4x the value of its lit grass; decision 0301).
+const PATH_OVER_GRASS: float = 1.4
+## Each material target's value group (the names are the shaders' parameters).
+const VALUE_GROUPS: Dictionary = {
+	&"grass_color": VALUE_MID, &"grass_sun_color": VALUE_MID, &"moss_color": VALUE_DARK,
+	&"earth_color": VALUE_DARK, &"path_color": VALUE_LIGHT, &"path_worn_color": VALUE_DARK,
+	&"litter_color": VALUE_DARK, &"mud_dry": VALUE_DARK, &"mud_wet": VALUE_DARK, &"bed_color": VALUE_DARK,
+	&"shallow_color": VALUE_MID, &"deep_color": VALUE_DARK, &"horizon_color": VALUE_SKY,
+	&"foam_color": VALUE_SKY,
+}
 
 ## The ground plane is far larger than the play area so its edge is never on screen.
 const GROUND_SIZE_M: float = 400.0
@@ -85,14 +112,53 @@ static func _ground_material() -> ShaderMaterial:
 
 
 static func _set_ground_colors(material: ShaderMaterial) -> void:
-	"""Ground pigments: warm grass, darker moss, earth, a muted worn path and leaf litter."""
-	material.set_shader_parameter(&"grass_color", LEAF.lerp(BRASS, 0.28))
-	material.set_shader_parameter(&"grass_sun_color", LEAF.lerp(BRASS, 0.56))
-	material.set_shader_parameter(&"moss_color", LEAF.lerp(INK, 0.35))
-	material.set_shader_parameter(&"earth_color", UMBER.lerp(TIMBER, 0.3))
-	material.set_shader_parameter(&"path_color", TIMBER.lerp(BRASS, 0.55).lerp(OAT, 0.2))
-	material.set_shader_parameter(&"path_worn_color", UMBER.lerp(TIMBER, 0.45))
-	material.set_shader_parameter(&"litter_color", UMBER.lerp(LEAF, 0.35))
+	"""The ground's material targets (`ground_targets`) onto its shader."""
+	set_targets(material, ground_targets())
+
+
+static func ground_targets() -> Dictionary:
+	"""The ground's world material targets: warm grass, darker moss, earth, a muted worn path and leaf
+	litter (see WORLD MATERIAL TARGETS)."""
+	return {
+		&"grass_color": LEAF.lerp(BRASS, 0.28), &"grass_sun_color": LEAF.lerp(BRASS, 0.56),
+		&"moss_color": LEAF.lerp(INK, 0.35), &"earth_color": UMBER.lerp(TIMBER, 0.3),
+		&"path_color": TIMBER.lerp(BRASS, 0.55).lerp(OAT, 0.2), &"path_worn_color": UMBER.lerp(TIMBER, 0.45),
+		&"litter_color": UMBER.lerp(LEAF, 0.35),
+	}
+
+
+static func bank_targets() -> Dictionary:
+	"""The bank film's targets (demo/water/water_bank.gdshader): dry and wet mud, and the bed."""
+	return {
+		&"mud_dry": UMBER.lerp(LEAF, 0.3).lerp(TIMBER, 0.1), &"mud_wet": UMBER.lerp(INK, 0.5),
+		&"bed_color": UMBER.lerp(INK, 0.5).lerp(BRASS, 0.15),
+	}
+
+
+static func water_targets() -> Dictionary:
+	"""The water surface's targets (demo/water/water.gdshader): sandy shallows, deep water darkening
+	toward the shade tone, the sky's own hazy horizon in the fresnel, and foam."""
+	return {
+		&"shallow_color": SAGE.lerp(BRASS, 0.3), &"deep_color": INK.lerp(SAGE, 0.08).darkened(0.4),
+		&"horizon_color": CREAM.lerp(SAGE, 0.25), &"foam_color": CREAM,
+	}
+
+
+static func set_targets(material: ShaderMaterial, targets: Dictionary) -> void:
+	"""Every target onto the shader parameter of its name."""
+	for key: StringName in targets:
+		material.set_shader_parameter(key, targets[key])
+
+
+static func value_of(colour: Color) -> float:
+	"""A colour's value: its linear luminance (Rec. 709), 0..1."""
+	var linear: Color = colour.srgb_to_linear()
+	return 0.2126 * linear.r + 0.7152 * linear.g + 0.0722 * linear.b
+
+
+static func value_group_of(target: StringName) -> Vector2:
+	"""The value group a named material target is kept inside (VALUE_GROUPS; the whole range if none)."""
+	return VALUE_GROUPS.get(target, Vector2(0.0, 1.0))
 
 
 static func make_ground() -> MeshInstance3D:

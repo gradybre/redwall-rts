@@ -211,7 +211,7 @@ func test_a_resident_drains_a_waterlogged_bed() -> void:
 	assert_equal(crew.jobs.live_count(), 0, "the job closed")
 	assert_true(_notices.has("Drain done: the radish bed"), "said so")
 	assert_equal(crew.order(JobsScript.KIND_DRAIN, BED_RADISH, PackedInt32Array([1]), JobsScript.ORIGIN_PLAYER),
-		"Can't drain: not too wet", "a drained bed refuses")
+		"Can't drain: the bed is not too wet", "a drained bed refuses")
 
 
 func test_a_drain_ends_if_the_bed_dried_on_the_way() -> void:
@@ -225,7 +225,7 @@ func test_a_drain_ends_if_the_bed_dried_on_the_way() -> void:
 	var ended := func() -> bool: return crew.jobs.live_count() == 0
 	assert_true(_run(cast, crew, 90.0, ended), "ended")
 	assert_false(sim.is_ditched(BED_RADISH), "no ditch dug")
-	assert_true(_notices.has("Can't drain: not too wet"), "said why")
+	assert_true(_notices.has("Can't drain: the bed is not too wet"), "said why")
 
 
 func test_a_worker_called_away_keeps_the_work_done_for_the_next() -> void:
@@ -272,9 +272,9 @@ func test_orders_explain_refusals_and_queues() -> void:
 	var sim := SimScript.new()
 	var crew := _crew(cast, sim, _pantry(cast))
 	assert_equal(crew.order(JobsScript.KIND_HARVEST, BED_WHEAT, PackedInt32Array(), JobsScript.ORIGIN_PLAYER),
-		"Can't harvest: not ripe", "not ripe")
+		"Can't harvest: the crop is not ripe yet", "not ripe")
 	assert_equal(crew.order(JobsScript.KIND_WATER, BED_LOAM, PackedInt32Array(), JobsScript.ORIGIN_PLAYER),
-		"Can't water: nothing growing", "empty bed")
+		"Can't water: nothing is growing to water", "empty bed")
 	assert_equal(crew.order(JobsScript.KIND_WATER, BED_WHEAT, PackedInt32Array(), JobsScript.ORIGIN_PLAYER),
 		"Water queued: the field crew will see to it", "queued")
 	assert_equal(crew.order(JobsScript.KIND_WATER, BED_WHEAT, PackedInt32Array(), JobsScript.ORIGIN_PLAYER),
@@ -783,7 +783,8 @@ func test_the_bed_panel_offers_only_what_the_bed_can_take() -> void:
 	panel.show_bed(BED_LOAM)
 	assert_false(panel.verb_button(JobsScript.KIND_SOW).disabled, "plant")
 	assert_true(panel.verb_button(JobsScript.KIND_WATER).disabled, "water")
-	assert_equal(panel.verb_button(JobsScript.KIND_WATER).tooltip_text, "nothing growing", "why")
+	assert_true(panel.verb_button(JobsScript.KIND_WATER).tooltip_text.contains("Can't now: nothing is growing to water"),
+		"why: its action card (decision 0332)")
 	assert_true(panel.verb_button(JobsScript.KIND_HARVEST).disabled, "harvest")
 	assert_equal(panel.line_text(1), "Soil moisture: Good · 60%", "readout")
 	assert_equal(panel.line_text(2), "Suitable for an empty bed: 40–80%", "the range it is judged by")
@@ -907,7 +908,7 @@ func test_the_bed_panel_s_drain_button() -> void:
 	var drain: Button = panel.verb_button(JobsScript.KIND_DRAIN)
 	assert_equal(drain.text, "Drain", "labelled")
 	assert_true(drain.disabled, "a good bed")
-	assert_equal(drain.tooltip_text, "not too wet", "why")
+	assert_true(drain.tooltip_text.contains("Can't now: the bed is not too wet"), "why: its action card (decision 0332)")
 	_set_moisture(sim, BED_RADISH, 9800)
 	panel.refresh()
 	assert_false(drain.disabled, "waterlogged: drain it")
@@ -950,7 +951,8 @@ func test_the_words_for_a_ditch_and_a_span_of_hours() -> void:
 
 
 func test_the_pantry_panel_breaks_the_food_out_by_item() -> void:
-	"""Per-item rows, the stores line (with a fixture cellar) and the dishes of the picked item."""
+	"""Stocks: a row per ingredient per store (with a fixture cellar) and each store as a row; Recipe
+	ideas: the picked ingredient's dishes (decision 0292)."""
 	var sim := SimScript.new()
 	var storage := StorageScript.new()
 	storage.add_provider(func() -> Array: return [{"id": &"c", "position": Vector2.ZERO, "capacity_u": 60,
@@ -963,12 +965,16 @@ func test_the_pantry_panel_breaks_the_food_out_by_item() -> void:
 	_nodes.append(panel)
 	panel.configure(sim, pantry, recipes)
 	assert_true(panel.toggle(), "open")
-	assert_equal(panel.item_row_text(CARROT), "Carrot — 5.1 U · spoils in 551 h in the root cellar",
-		"carrots: 281 spring hours at ×0.35, then 270 at summer's ×0.525")
-	assert_equal(panel.item_row_text(RADISH), "Radish — none", "no radish")
-	assert_equal(panel.stores_text(), "Stores: Covered store 0/400.0 U (ages ×1.00) · Root cellar 5.1/60.0 U (ages ×0.35)", "stores")
+	assert_equal(panel.stock_row_count(), 1, "one row: the carrots in the cellar")
+	assert_equal(panel.shown_stock_row(0), PackedStringArray(["Carrot", "5.1 U", "—", "Root cellar", "all in 22d 23h"]),
+		"carrots: 281 spring hours at ×0.35, then 270 at summer's ×0.525 = 551 h")
+	assert_equal(panel.store_row_cells(0), PackedStringArray(["Covered store", "0 U", "0 U", "400.0 U", "400.0 U", "×1.00"]), "store")
+	assert_equal(panel.store_row_cells(1), PackedStringArray(["Root cellar", "5.1 U", "0 U", "54.9 U", "60.0 U", "×0.35"]), "cellar")
+	panel.show_tab(PantryPanelScript.TAB_RECIPES)
 	panel.select_item(CARROT)
 	assert_equal(panel.dish_title(), "Carrot feeds 109 dishes (and 15 more through prepared parts)", "dishes")
+	assert_equal(panel.item_button(CARROT).text, "Carrot · 5.1 U in store", "its stock on its button")
+	assert_equal(panel.item_button(RADISH).text, "Radish · none in store", "none")
 	assert_true(panel.total_text().begins_with("5.1 U of food in store"), "total")
 	assert_false(panel.toggle(), "closed")
 
@@ -1095,15 +1101,16 @@ func test_keys_cycle_the_overlay_and_open_the_pantry() -> void:
 
 
 func test_one_key_cycles_every_map_overlay() -> void:
-	"""V: moisture, ripeness, then an overlay the village added (the water's zones), then off -- each
-	shown alone, so no two overlays share V."""
+	"""V: moisture, ripeness, then a layer the village added (the water's range), then off -- each shown
+	alone, so no two layers share the map (decision 0292: the same one active layer the picker shows)."""
 	var farm := _farm()
 	var water_shown: Array[bool] = []
-	farm.add_overlay("water zones", func(on: bool) -> void: water_shown.append(on))
+	farm.add_overlay("Getting there", "Water range", "Where?", func(on: bool) -> void: water_shown.append(on))
 	var names: Array[String] = []
 	for press: int in 4:
 		names.append(farm.cycle_overlays())
-	assert_equal(names, ["moisture", "ripeness", "water zones", "off"] as Array[String], "the cycle")
+	assert_equal(names, ["Growing: Soil moisture", "Growing: Ripeness", "Getting there: Water range", "Off"] as Array[String],
+		"the cycle")
 	assert_equal(water_shown, [false, false, true, false] as Array[bool], "the water shown only on its step")
 	assert_equal(farm.view.overlay_mode, ViewScript.OVERLAY_OFF, "and the farm's off again")
 

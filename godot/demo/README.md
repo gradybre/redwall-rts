@@ -14,7 +14,7 @@ feed the simulation. `scenes/main.tscn` is untouched.
 ## Run it
 
 ```
-python3 tools/stage_demo_assets.py      # copy and make the library assets (gitignored, ~2.8 GB)
+python3 tools/stage_demo_assets.py      # copy and make the library assets (gitignored, ~2.8 GB; the weir's structure too)
 godot --path godot demo/demo_village.tscn
 ```
 
@@ -50,7 +50,9 @@ with `RedwallDemo.exe`, its `.pck` and a README, zipped -- that boots straight i
   `demo_prewarm.gd` loads at boot what would first load mid-game -- every staged prop and icon, every
   plant's card atlases, the woods' stumps, saplings and tree splits (about 0.13 s on the Mac, timed in
   its `report`) -- and the clock starts only once the first three frames are drawn, and then two frames
-  of the underground view with a sample of everything it can show (decision 0206). While the banner
+  of the underground view with a sample of everything it can show (decision 0206), two of the canopy's
+  fade and the selected residents' silhouette, and two of the frost and snow overlay on the village
+  (decision 0301), so a first fade, a first selection under a crown and a first frost cost no compile. While the banner
   is up it is the one overload surface (the HUD's CLOCK_OVERLOADED card is withheld); Resume resolves
   the notice, and a 2x/4x step-down warning (no pause) is resolved once the clock has run 10 s quiet.
 
@@ -87,7 +89,12 @@ that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
   So over a spell the rain that slows walkers is the rain that wets the beds. Frost nights (the farm's
   demo overlay) read as frost. Rain slows surface walking to 80%, snow to 60%, frost to 85%; tunnels
   are not slowed, so walkers take them in bad weather. Rain and snow fall; a shower dims the light by
-  a quarter and adds a little haze (the streaks say it rains -- no grey fog).
+  a quarter and adds a little haze (the streaks say it rains -- no grey fog). Frost and snow LIE ON
+  THINGS (decision 0301, review F42 -- they were a 60 m white sheet following the camera, over the water
+  as well): the ground's and the bank film's own shaders take the cover in world space, so it has no
+  edge, on what faces up, thinner on the worn paths, never at or below the water line; the village's
+  buildings and props wear a cover overlay (roofs, lids, the tops of stones) while any lies. The water
+  never whitens. Snow lies fully, frost patchily at about half (`weather/weather_view.gd` COVER).
 - **One water adapter** (`village_water.gd`, `demo_village.water()`) over the real water map
   (`water/water_map.gd`, see Water): the farm's water-edge query (irrigation: dry ground within 2.5 m
   of the waterline), the tunnels' wet ground (within 4.5 m), their flood (the stream spills over the
@@ -95,12 +102,43 @@ that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
   water: "a tunnel cannot pass under the stream or the pond"). The three reaches are demo values,
   each the one the placeholder it replaced used; the placeholders -- the farm's reed pond and the
   tunnels' stream table and flood sheet -- are gone.
-- **One notice feed** (`demo_notices.gd`). Every farm warning, weather change, tunnel happening, threat
-  and crew report is posted there with its date; the newest show bottom centre as **Village news
-  (demo)** (`ui/demo_news_strip.gd`: notes 12 s, warnings 30 s, warnings worded and in clay), and the
+- **One notice feed** (`demo_notices.gd`, 128 entries since decision 0331). Every farm warning, weather change,
+  tunnel happening, threat and crew report is posted there with its date; the newest show bottom centre as
+  **Village news (demo)** (`ui/demo_news_strip.gd`: notes 12 s, warnings 30 s of *unpaused* time --
+  the news clock, `demo_news_clock.gd`, stands still while paused -- warnings worded and in clay), and the
   tunnels' own latest stay in their panel (the farm's bed panel shows only its bed: decision 0205). Nothing in the demo raises a HUD alert card
   any more: the HUD shows the two earliest unresolved notices, and demo lines, which nothing resolves,
-  held both cards for good.
+  held both cards for good. A toast is only the transient view; see **Village news** below.
+
+## Village news: the history, incidents and the top-centre card (decision 0331)
+
+- **The history** (`ui/demo_news_history.gd`): every kept entry, newest first, "date · place · Warning: text",
+  filtered by place (*All*, *Farm*, *Woods*, *Tunnels*, *Water*, *Village* -- weather, threats and the crew's
+  reports; the first place picked shows it alone, more add to it) and by severity (*All*, *Warnings*, *Notes*).
+  An entry about a bed, tree, tunnel, resident or bridge has **Go to**: it selects the target as a click would,
+  brings its panel and eases the camera over it (`ui/demo_news_jump.gd`), closing the window. Above the
+  history, **Needs attention** lists every open or pinned incident ("No active problems" erases nothing below).
+  Open it with **N**, the HUD's own history trigger (the window stands in for the shell's history in the
+  top-centre zone; *Settlement notices* in its header opens the shell's), the news strip's button or the
+  card's *All news*. Esc or × closes it. It draws the newest 40 rows; *Show older* draws 40 more. When the feed
+  is full the oldest entry goes -- but never an open or pinned incident's newest entry.
+- **Incidents** (`demo_incidents.gd`): a warning that stays true until dealt with -- a waterlogged or dry bed,
+  a worn-out bed, blight, tonight's frost, a farm job nobody could reach, a full store, a flooded or collapsed
+  tunnel, a blown-down tree, no bed, a threat, a resident in difficulty. Each is *Needs a decision*,
+  *Assigned* (a Drain, Water, Clear, haul or pump job is on it; a rescuer is on the way), *Recovering* (a bed
+  back in band waiting to be sure; a victim being brought ashore) or *Resolved*. A repeat while open merges
+  into the same card, counted "(×3)"; a recurrence after it resolved reopens it, counted, and announces again.
+  The strip counts the open ones ("2 need attention") until they resolve; *Dismiss* on a routine one (a worn-out
+  bed left fallow) stops it asking, while a dismissed warning still counts until it resolves.
+- **The card** (`ui/demo_incident_cards.gd`): critical incidents (a threat, a resident in difficulty) queue at
+  the top centre under the HUD's alert zone, ONE card drawn with "1 of 3"; *Pin* puts any incident at the front
+  and keeps it there, resolved or not; *Snooze 2 min* (unpaused time) and *Dismiss* step to the next.
+  A resolved critical card says so for 6 s, then goes. Warnings and routine incidents stay in the history.
+- **The farm re-alerts** (review F37): a bed waterlogged, drained and waterlogged again in the same season is
+  warned of again -- once it had stayed back in its band for 2 farm hours (`farm_alerts.gd` STANDING
+  CONDITIONS); back within those 2 hours it is the same occurrence, said once. Dry and worn out alike.
+- **The sound hook**: `demo_incidents.gd` emits `incident_cue(cue, serial, severity)` when a critical
+  incident is raised or recurs and when any incident resolves, never for a merged repeat.
 
 **One stores** (`demo_services.gd` `stores`, `tunnel/tunnel_stores.gd`): the village's wood, stone, planks
 and finds. The woods put their wood in and saw their planks from it; the tunnels' bracing and lanterns
@@ -117,9 +155,10 @@ tabs switch by hand; all hide while the resident journal is open.
 ## The HUD
 
 The action bar's commands each have a hover tooltip -- what it does and its key, read from the input
-map (`ui/demo_command_tips.gd`); an enabled command answers its key. The notification history has its
-own "×" (Esc closes it, N toggles it). The Pantry draws above the HUD, so its "×" is reachable at
-1280x720. The Village news strip is centred on the action bar and follows it.
+map (`ui/demo_command_tips.gd`); an enabled command answers its key. In the demo, N and the history
+trigger open the **Village news** window (see above); the shell's own notification history, which has its
+own "×" (Esc closes it), is reached from that window's *Settlement notices*. The Pantry draws above the HUD, so its "×" is reachable at
+1280x720. The Map layer picker sits bottom left (see Map layers). The Village news strip is centred on the action bar and follows it.
 
 **Pop-ups own the input** (decision 0261, `ui/demo_input_gate.gd`). The Pantry, the game menu and the Demo Lab
 are modals: a light scrim covers the world and the HUD, so no click, drag or wheel outside the frame reaches
@@ -135,8 +174,8 @@ line that **the demo can't save yet**. Restart and Quit ask first and say again 
 Opening it holds the clock's MENU pause reason and closing releases only that, so the village comes back at
 the speed it had (and a pause of your own stays). Settings holds only what works: the interface scale
 (100 / 125 / 150 %, the HUD and every demo panel together; a size the window cannot show at 720 logical rows
-is disabled and says so -- at 1280x720 only 100 %) and full screen; sound is marked as not in the demo. The
-Menu button no longer opens the New Settlement form: its Create would discard the settlement the demo runs on.
+is disabled and says so -- at 1280x720 only 100 %), full screen, and the sound's volumes, mutes and mixes
+(see "Sound" below). The Menu button no longer opens the New Settlement form: its Create would discard the settlement the demo runs on.
 
 **The Demo Lab** (`ui/demo_lab.gd`, F8, or the menu's "Demo Lab"): the demo's test triggers, and only here --
 Next weather (the one calendar runs on to the next change of weather, at most 48 h), Test event (the tunnels'
@@ -188,6 +227,82 @@ suitable range, fertility and crop health as percentages, fertility's effect on 
 ("−15%"), one expected harvest, and treatments in percentage points ("Rest: +0.5 fertility points a
 day"). **Details** in the bed panel shows the harvest's multiplication and the raw 0..10000 readings.
 
+## Map layers (decision 0292)
+
+One map layer shows at a time (`map_lenses.gd`), each answering one question with a small legend:
+
+| Layer | Its question | Its legend |
+|---|---|---|
+| Growing: Soil moisture | Which beds are too dry or too wet? | dry, low, good, wet, waterlogged (the beds' discs) |
+| Growing: Ripeness | Which beds are ready to harvest? | growing, ripe, past its best or lost, empty |
+| Getting there: Water range | Where can they wade, swim, dive or cross? | wade, swim, dive, ford, bridge site, swim link, landing |
+| Woods: Zones and trees | Which trees may be felled, which must stay? | forestry and conservation zones; mature, young, stump, cleared |
+| Underground: Tunnels | What lies under the village? | the U view's cut (U switches it too) |
+
+- **The Map layer picker** (`ui/demo_lens_picker.gd`) names the shown layer on its header button ("Getting
+  there: Water range ▾", or "Map layer: off ▾"); the button unfolds the list of layers, one button each, its
+  question as the tooltip. A pick shows that layer alone and folds the list; picking the shown one again, or
+  **Off**, shows none. Under the header: the question, the subject, what they can do there, and the legend.
+- **V** steps the same layer: off, moisture, ripeness, water range, woods, off. **U** switches the underground
+  view, and the picker follows it: the Underground layer is then the shown one (the others switch off); V from
+  it goes to moisture and back to the surface.
+- **Whose water range** (`waterplay/water_range.gd`): nobody selected, the 1.0 m mouse anchor ("Water range
+  for: a 1.0 m mouse (nobody selected)"); one resident, its own ("Water range for: Otter fisher"); a group, the
+  **whole group** -- the zones painted for its shortest member, so yellow is water every one of them wades --
+  with who among them swims and who dives by name ("Swim: all but Badger quarryman. Dive: Otter fisher."), never
+  the first selected standing in for the rest. **◀ ▶** step from the group to each member ("Badger quarryman
+  (3 of 3 selected)": its own zones, wading depth, swimming and diving) and back. A new selection goes back to
+  the whole group.
+- **Where** (UI §1.1 bottom left, "Minimap + layers"): just right of the party panel's column, so it can
+  grow upward without meeting it -- down on the command strip where the space left of the news strip is wide
+  enough (1920x1080), else just above the bottom band (1280x720, and whenever the resident journal pushes the
+  news strip left). It is clear of the minimap, the news strip, the command strip and the party panel (which
+  at 1280x720 fills its column with anyone selected).
+
+## Action cards: what a button will do, and who will do it (decision 0332)
+
+Every demo action's button carries an **action card** as its tooltip (`ui/action_card.gd`, review group H,
+findings F33 and F44), enabled or not: the farm's Plant…, crop rows, Water, Drain, Harvest, Clear,
+Compost, Cover, Raise and Bank; the woods' Fell, Haul logs, Grub out, Plant sapling, Gather deadfall and
+Saw planks; the tunnels' Widen, Brace, Hang lanterns and Repair; Dig tunnel and the room tools; each
+fixture's "+" and "−" and the Suggested layout; the Water panel's Build footbridge, Build log bridge and
+Dive. A card reads, top down:
+
+```text
+Build a plank footbridge
+Can't now: it needs 4.7 U planks; the stores hold 0.0 U planks and 76.0 U wood
+To fix: Woods ▸ Saw planks (2.0 U wood makes 2.0 U planks)
+3.4 m of water bridged (neck bridge): anyone may cross, carrying or not
+Planks: have 0.0 U · need 4.7 U
+Work: about 6.7 game hours, plus the walk
+Who: Assign selected: Squirrel forester (nearest of 2)
+Interrupts: Felling the oak — goes back to it after
+Needs: a site both banks take; planks (sawn at the sawhorse) and wood for any piers
+```
+
+- **The card is the order's own decision.** Each system's order and its card run the same function:
+  `farm_crew.gd decide`, `forest_crew.gd decide`, `tunnel_actions.gd refusal`, `room_fixtures.gd
+  order_refusal` / `suggest_refusal` / `take_refusal`, `demo_waterplay.gd build_refusal`, the dive loop's
+  `dive_spot` and `dive_refusal`, and the Dig tool's `choose_digger`. So a card's refusal is the order's
+  (code and words), its resident is the one sent, its cost is what is spent, and a button is pressable
+  exactly when its card allows it. The bridge, tunnel and fixture buttons now refuse a short store before
+  they are pressed, not after.
+- **Costs** are have / need from the stores the HUD reads (wood, stone, planks), the farm's compost store,
+  and the fullest spoil heap. **Work** is in game hours of the demo calendar (2.5 demo seconds a game
+  hour); the walk is not counted, and a mole job's card says a crew is quicker.
+- **Who**, in one grammar everywhere: "Assign selected: X (nearest of 3)" (farm, woods, bridges);
+  "Assign selected: X (first of 3 who fits the bore)" and "Assign X (the nearest free resident who fits
+  the bore)" (tunnels); "Lead: X (nearest of 3) + 2 waiting to haul" (felling); "Queue for the field crew:
+  …" / "Queue for the forestry crew: …"; "Queue for the bridgewright: Beaver bridgewright (specialist)";
+  "Already under way: X is on it".
+- **Interrupts** says what the named resident stops and whether it goes back to it (the brain's resuming
+  rule, `control/work_interrupt.gd`; `demo_command.gd interrupt_text`): a farm, woods, spoil or tunnel job
+  resumes; a dig with nothing dug drops its route; a bridge waits for a builder; a sleeper goes back to bed.
+- **A harvest with no store room** (decision 0222) is not refused: its card says it waits on the board, uncut,
+  and how much has nowhere to go -- what the order then does.
+- The cards wear the HUD skin's tooltip (the map piece, ink text) and break their lines to stay inside
+  UI-SET-073's 360 × 240.
+
 ## Commanding the residents
 
 | Input | Does |
@@ -204,15 +319,18 @@ day"). **Details** in the bed panel shows the harvest's multiplication and the r
 | B (or T, or "Dig tunnel (B)") | The Dig tool: lay out tunnels and branches (below); again: close it. (B is the HUD's Build key, locked in the demo, so the demo takes it; the command strip says so) |
 | H / C in the Dig tool (or "Burrow home (H)" / "Root cellar (C)") | The room tools: place a burrow home or a root cellar as its own structure (see Burrow homes and root cellars) |
 | U | Underground view: a top-down section cut at the tunnels' level (see The underground view) |
+| PgUp / PgDn in the U view | Show level 1 / level 2 (see The second level). On the surface they stay the camera's zoom; Alt+PgUp/PgDn its pitch |
+| L in the Dig tool | Lay a link down to level 2: once a ramp, again stairs, again back to tunnels (see The second level) |
 | Left click a finished tunnel | Select it for the "Tunnels & burrows (demo)" panel (see below) |
 | Left click a dug home or cellar | Select it for its fit-out in the same panel (see Fit-out and living) |
 | Right click a tree, trunk, deadfall, stump, cleared spot or the sawhorse | The woods' verb for it (see The woods) |
 | Right click deep water | Swimmers swim out and tread water there; an otter over water deeper than it is tall dives; a non-swimmer is refused by name (see Water gameplay) |
 | Right click / left click a bridge site | Build the planned bridge there with the selection / select the site for the Water panel |
 | Middle-button drag | Turn the camera: across turns it (right turns right, as E), up and down tilt it |
+| (any camera move) | The eye never sits inside a tree crown, the crowns between it and what it looks at are thinned, and a selected resident shows through foliage and roofs (see The camera and the trees) |
 | Left click a spoil heap | Select it: a brass ring, and the party panel says how much spoil it holds |
 | Right click a spoil heap (or C with it selected) | The selected residents who can carry dig it out and haul it to the farm's compost store (Clear; see Spoil heaps) |
-| V | The one map-overlay cycle: the farm's moisture, its ripeness, the water's zones and fishery (wade / swim / dive, fords, bridge spans, landings, fish stocks), the woods' zones and trees, off |
+| V | Steps the one shown map layer (see Map layers): Growing: soil moisture, Growing: ripeness, Getting there: water range (wade / swim / dive, fords, bridge spans, landings, fish stocks), Woods: zones and trees, off -- the same layer the Map layer picker shows |
 
 The "Demo party" panel in the HUD's left column lists the selection. With one resident selected it
 also lists **what that resident can be ordered to do** (`control/resident_abilities.gd`): a short line
@@ -225,6 +343,25 @@ called away from a job it had not finished (a tunnel job, a dig, a farm or a woo
 **comes back to it** when the work that took it is done -- the latest three are kept, the panel says
 "Then back to: ...", and R (release) forgets them. Orders move the demo cast only, never the
 simulation.
+
+## The camera and the trees
+
+The woods are dense, and the orbit camera used to sit inside a crown (review F53: the NW oak at 11 m,
+pitch 30, was a screen of leaves) while a selected worker under one, or behind a roof, could not be seen.
+`camera/canopy_clear.gd` (decision 0301) answers with three things, each scoped to what is in the way:
+
+- **The eye.** If the eye would sit inside a tree crown -- each crown an ellipsoid cut at its base,
+  measured from the staged oak and beech (`camera/canopy_math.gd`) -- it is moved along its own line out
+  past the crown's far side (at most 25 m farther), or failing that in short of its near side (never
+  nearer the focus than 3 m). The move is made the same frame; the zoom you asked for comes back by
+  itself once the way is clear (`camera/demo_camera.gd` CLEARANCE).
+- **The crowns in the way.** Only the crowns the lines from the eye to the focus and to each selected
+  resident pass through, and any crown at the lens, are thinned -- an opaque-pass dither above the crown's
+  base (`camera/canopy_fade.gdshader`), at most eight, easing in and out in a fifth of a second. The trunk
+  stays whole, the shadow on the ground stays whole, the rest of the woods is untouched.
+- **The selected.** A selected resident wears a brass silhouette drawn only where something more than
+  0.6 m nearer covers it (`camera/selected_xray.gdshader`): through a crown or a roof, never through the
+  grass at its feet.
 
 ## Digging tunnels
 
@@ -329,8 +466,52 @@ Mac with a lit tunnel, from 278 ms).
   woods, the water and the spoil heaps are surface things.
 - **Prewarmed**: everything it can draw registers with `tunnel/underground_prewarm.gd` as it is built,
   and a sample of each is drawn for two frames behind the opening pause.
-- Later phases: the switch's crossfade and the second level (P6); the generated arch, door, chimney pot, root
-  bin, hanging stores, rug and crouch-walk clips replace the procedural ones (P7).
+- Later phases: the switch's crossfade; the generated arch, door, chimney pot, root bin, hanging stores, rug and
+  crouch-walk clips replace the procedural ones (P7). The second level is P6's (below).
+
+## The second level (decision 0212)
+
+The warren goes down a second level (design §3, §5 and §8 P6; Brendan's ruling: "Second level: build it in the
+demo now at the candidate 4 m spacing"). Its floor is **5.25 m** down -- level 1's 1.25 m and DEC-040's
+**candidate** 4 m spacing (`tunnel/tunnel_rules.gd LEVEL_SPACING_U`), a demo value that MOVE-G01..05 have not
+settled. Nothing opens onto it from the surface: it is reached only by a **link**.
+
+- **Links** (`tunnel_rules.gd` LINKS): in the Dig tool press **L** for a **ramp** down (L again: **stairs**; again:
+  back to tunnels). Press on level 1's network where it starts -- a junction, a ramp's foot, a room's free socket
+  or a bore's side -- and release where its foot lands: it snaps onto level 2's network there, or ends in a new
+  blind end to dig on from. A link is straight. A **ramp** is no steeper than 1:2.5 (eased at both ends): at least
+  10.9 m of run, at most 16 m, walked at walk pace along its slope. **Stairs** are 16 timber-fronted treads of
+  0.25 m rise: 5-8 m of run (4:5 at the steepest, 38.7°), less to dig but walked at half pace, and each quantum is a
+  quarter more work (the risers). Both are cut and costed by their slope. The ghost's words give its kind, run and
+  slope, quanta, hours, spoil and its risers or grade (`tunnel/dig_readout.gd`); refusals say why (its head off
+  level 1's network, a bend, too short or too long, a tunnel joining its slope, earth to keep from the tunnels it
+  passes while it is near their height).
+- **Level 2** (PgDn in the U view): the Dig tool lays tunnels on the level shown. A piece there starts on its
+  network (a link's foot, a junction, a bore) and may end blind; it keeps its pillar from level 2's voids and
+  crosses only level 2's bores. **Rooms** too (H, C): a level-2 room has no mound, no door or hatch on the
+  surface, no ramp -- its door is a socket its passage joins, and it is placed only with that passage (dug first;
+  call the digger away before either is begun and both are dropped, or the room alone and its door is left as the
+  passage's blind end). With the U view off the tool lays on level 1; U or PgUp/PgDn with the tool open re-lays on the
+  level now shown.
+  Voids on different levels never meet: the spacing keeps 1 m of earth or more between them; a link keeps its pillar
+  from each level only where its slope comes near that level's height.
+- **Deeper ground** (`tunnel/tunnel_ground.gd` THE GROUND AT DEPTH, demo values): level 2 has more clay and rock and
+  less sand, and is wet only within 2.5 m of the water (the water table) rather than 4.5 m -- so its bores seep only
+  near the water and strain only through their sand.
+- **Walking** (`tunnel/graph_paths.gd`): the routes' Dijkstra walks across the levels as through any segment; a
+  link's cost is its slope over its pace. Residents go down ramps and stairs with their feet planted (the walk at
+  the slope's pace, the body pitched with it, P1's), stooping by the bore; the night sends them to beds on level 2,
+  crews haul baskets up the links to the heap, evacuees and called-away diggers walk out up them, and a paused
+  level-2 dig is resumed through them. A cellar on level 2 is deep for the cool rule; a hearth warms it only on its
+  own level (never up or down a link).
+- **The view** (`tunnel/tunnel_view.gd` THE LEVELS): **PgUp/PgDn** show level 1 or level 2 -- one cull-mask write,
+  nothing built or re-materialed (each level has its own layers, `demo_layers.gd`). Each level has its own cap at its
+  own section with its own void mask and strata, and draws the **other level as a faint outline** only. A link is
+  drawn on both levels, each copy cut at its level's section; from level 1 its head is seen going down under the
+  cut, from level 2 its foot coming up through it. Clicks land on the shown level's floor. A strip under the alerts
+  says which level is shown; holding PgUp/PgDn never zooms in the U view. The camera's pivot stays at the ground. Residents on the other level, or on a link's hidden middle, are cream markers. The
+  surface's seams and vents, and a digger's mound, are level 1's only. Particles share P5's 200-particle budget and
+  face slots; lights go to the level shown.
 
 ## Burrow homes and root cellars
 
@@ -354,7 +535,7 @@ Rooms are their own structures on the network (decision 0209, `burrow/undergroun
   band; over the crop beds; under a building or the well; within 1 m of earth of another room; within 1 m
   of a tunnel, or its door ramp within a pillar of another's (join a tunnel at a socket instead); its mound,
   cutting or door on a tree, a heap, a prop, a work spot or a mouth;
-  off the village; and the second level (P6).
+  off the village. On level 2 only the void is tested, and it needs its passage (see The second level).
 - **Digging**: a room is one piece in the digger's job list, dug by the same diggers and crews as a
   tunnel: its door ramp and shaft, then its 24 quanta cell by cell out from the door, a crew at three
   faces; spoil heaps by its door. The shell grows in stages from the door as it is dug, and its name
@@ -474,9 +655,21 @@ it belongs to (roots, cabbage, beans or grain), on the demo's one calendar (abov
 the **pantry**, counted per item, at the slowest-spoiling store with room -- a **root cellar**, delivered
 at its hatch (spoilage 350 per mille, the GDD's cellar) before the covered store (1000), and of two cellars
 the one nearer the bed (`farm/farm_cellars.gd` turns `underground_rooms.cellars()` into pantry stores);
-the top bar's Ready food cell shows the pantry total, and the Food command (or K) opens the Pantry: stock per
-ingredient, the lot that spoils first (GDD §5.8 spoilage by where it is stored), and the library dishes
-each feeds.
+the top bar's Ready food cell shows the pantry total, and the Food command (or K) opens the Pantry (decision 0292):
+
+- **Stocks** (first, and what it opens on): a table, one row per ingredient per store -- **In store**,
+  **Incoming** (a harvest on its way there, its room reserved), the **Store**, and **Next to spoil** there ("all
+  in 10d", or "1.2 U in 1d 10h" when it is the first of several lots; GDD §5.8 spoilage by where it is kept).
+  Food that spoils within two game days goes first, soonest first, marked "Soon" in clay. The order is set
+  when the Pantry opens (or Stocks is chosen) and **kept while it is open**: figures change in place, a new
+  row goes at the end, a row whose stock has gone stays reading "0 U", and a row whose store is taken away
+  (a cellar's racks out) reads "(store gone)". Under it each store is a row: stored,
+  reserved for harvests, free, capacity and how fast it ages food; then spoiled food and its compost button.
+  An empty pantry says so and names a real source from the beds -- a ripe bed to harvest, else the bed that
+  ripens soonest, else an empty bed to plant -- with an **Open bed N** button.
+- **Recipe ideas (not cookable yet)**: every ingredient in catalog order with its stock, and the content
+  library's dishes the picked one feeds -- candidates for a kitchen that does not exist. There is no Orders
+  tab: nothing in the demo cooks or orders food yet.
 
 **Nothing harvested is lost or credited from afar** (decision 0222, the review's F19/F24/F27/F28):
 
@@ -506,7 +699,7 @@ each feeds.
 | Drain | A wet or waterlogged bed: a resident digs a ditch round it (6 WU); its moisture drops at once to the top of its crop's band, and the ditch sheds up to 1000 a day for good (decision 0205) |
 | Raise / Bank | A resident fetches 2 U of tunnel spoil from a heap: a raised bed drains and is warmer at night; a banked bed keeps half of each dry day's loss |
 | Rest | Rest the bed fallow (+0.5 fertility points a day; nothing is sown) |
-| V | Map overlay: moisture, then ripeness, then the water's zones, then the woods, then off (one key for every overlay) |
+| V | Map layer: moisture, then ripeness, then the water range, then the woods, then off -- or pick one on the Map layer picker (see Map layers) |
 | K / Food | The Pantry |
 
 Threats: spring is wet (beds waterlog and stop growing -- Drain them, run a tunnel under them, or raise
@@ -670,11 +863,21 @@ Residents work trees within 30 m of the square (`forestry/forest_rules.gd` REACH
 - **Drawing** (`forestry/forest_view.gd`): a felled tree is cut above its root mound -- its model split
   once per kind (`forest_split.gd`) -- and the trunk and crown topple away from the feller, land in a
   burst of leaves and dust and give way to the felled trunk (the beaver's: the gnawed log); the stump
-  wears the fresh-cut oak stump for a season, then the mossy one, and grows a shoot. The staged trees
+  wears the fresh-cut oak stump for a season, then the mossy one, and grows a shoot. A regrowing tree
+  (decision 0301, review F52) climbs one height ramp over its 48 days: the shoot or sapling first, then,
+  once the ramp passes the sapling's full size (about a quarter of the way), the tree's own mature model
+  scaled down to the ramp's height -- about a third at the swap, the heights equal either side -- let
+  down by the same share of its sink, at the tree's centre, with the stump and stub gone; it reaches full
+  size the midnight it matures. A spot something stands on keeps its shoot. The staged trees
   and the plinth buildings are let down into the ground by their own measured base (decision 0205,
   `world/world_sizes.gd SINK_M`: oak 1.2 m, beech 0.5, residence 0.42, store 0.12, kitchen 0.11,
-  workbench 0.07), so roots run into the ground and walls rise out of it; residents walking over what
-  stands of a root flare are lifted onto it (`forest_lift.gd`). The yard by the workbench holds
+  workbench 0.07), so roots run into the ground and walls rise out of it. Residents stand on the roots
+  where the roots are (decision 0301, review F40): each staged model's own support heightfield is baked
+  from its mesh at boot (`forest_root_field.gd`, 12.5 cm cells, about 8 ms a model) and read in the
+  tree's own frame -- its spot, its yaw, its size, a young tree's share -- so a walker rises onto a root
+  and stays on the ground in the hollow beside it (`forest_lift.gd`). Roots standing more than 0.45 m
+  proud are walked round instead: a flare circle about each staged trunk and up to fifteen lobe circles
+  join the cast's obstacles. The yard by the workbench holds
   the sawhorse, the plank stack (as tall as the planks), a second woodpile (as tall as the wood), the
   chopping block and the sapling baskets.
 - **For bridges and boats next**: the planks are `tunnel_stores.gd` `plank_milli_u` with
@@ -689,8 +892,16 @@ A stream runs down the village's east edge -- narrowing to a neck at the north-e
 the weir and the mill, spreading into a shallow ford where the east road crosses it, then deepening
 by the fisher shelter -- into a pond beyond the south-east corner with a boathouse on its shore.
 It lies east of the ±20 m square; the walking area is widened over it (see Water gameplay), and
-nothing in the village moved. The ground is carved into banks and beds; the surface flows at the stream's own speed and
-stops when the game pauses. V's overlay cycle ends on the zones and the live fishery. The fishery
+nothing in the village moved. **The weir** (decision 0301, review F41) is the library weir's structure,
+not its diorama: `tools/make_demo_weir.py` strips the L0's baked pool, tail water and earth slab, and
+`water/weir_fit.gd` fits what is left to the stream -- its ends moved out onto both banks (0.7 m past each
+waterline, the gaps filled with its own plain wall), its piers' and wall's foot let down to the bed, and
+a stone sill under the wall from bank to bank on the bed -- in the demo's one water surface. Its crest
+stands where the model has it. It stands at z = -16.2, 2.2 m upstream of its first spot, clear of the
+`weir_bank` landing; the one swim link that crossed where it now stands is gone (22 remain). Unstaged,
+a plain wall and sill of the same fitted span stand in for it. The ground and water colours answer to
+the world-art direction (DEC-038), not the UI pigment lock: `world/world_look.gd` WORLD MATERIAL TARGETS. The ground is carved into banks and beds; the surface flows at the stream's own speed and
+stops when the game pauses. The Water range map layer shows the zones and the live fishery. The fishery
 runs on the demo's one calendar (its days are the farm's and the HUD's). A flood (the tunnels' threat)
 raises the stream up its banks at the ford.
 
@@ -759,10 +970,10 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
 - **Water tab** (right column): conditions, alerts, who is swimming, the chosen site and its costs,
   bridges, stores and the water's news. The alert line is one incident per victim, updated in place:
   where it is and its breath, who is answering and at what, the landing once it is settled, and why
-  nothing better went -- or, with nobody, when the water will bring it ashore. **V** paints the zones
-  for the first selected resident's own height, the bridge candidates, the swim links and the landings;
-  the fishery's site labels are two lines each (quota and slots; each species' stock and state), laid
-  out so they never overlap.
+  nothing better went -- or, with nobody, when the water will bring it ashore.
+  The **Water range** layer (V or the Map layer picker) paints the zones
+  for its subject -- one resident's own height, or a group's, member by member (see Map layers) -- the bridge candidates, the swim links and the landings; the fishery's site labels are two
+  lines each (quota and slots; each species' stock and state), laid out so they never overlap.
 
 ## Spoil heaps
 
@@ -775,6 +986,45 @@ delivered, nothing made or lost. At most four work one heap; the emptied heap st
 A heap still growing under a dig is refused. The party panel says who is "Clearing a spoil heap" or
 "Hauling spoil to the compost".
 
+## Sound (decision 0351)
+
+The first sound pass (`sound/`; review F43, UX-029, UX-031). **No sound files are staged yet**, so the demo is
+silent: every cue is wired, takes its voice and keeps its limits, and plays nothing until its file is dropped in
+at the path the table names (`sound/sound_table.json`; each missing cue warns once at boot). The sourcing plan
+waits on Brendan's approval of each download.
+
+- **One owner, not an autoload** (`sound/sound_director.gd`, a child of the village). Everything it hears is the
+  demo's -- cast, woods, tunnels, water, notices, camera -- so it is made and freed with the scene, and the sixth
+  autoload slot stays free for the game's own AudioManager.
+- **Five buses**: Master, Ambience (wind, rain), Work (tools, loads, footsteps; through "Work Surface" and "Work
+  Under"), Water (the stream, splashes, wading) and Cues (warnings, completions, clicks). Made by name once.
+- **A bounded voice pool** (`sound/sound_voices.gd`): 8 Work, 4 Water and 3 Cues players made at boot; each
+  cue has its own voice cap and a **real-time gap** (`gap_ms`), so at 4x, or with twenty residents chopping, the
+  extra events fold rather than stack. No player's pitch is ever changed.
+- **The listener** stands over the camera's focus, 0.4 of the zoom up, turned with the view: close in you hear the work at the focus;
+  zoomed out the village settles to its ambience. A placed cue beyond its range takes no voice.
+- **Paused** (any pause: yours, the menu's, the stall banner's): wind, rain and water duck 12 dB, work and
+  water one-shots stop and none start; warnings and clicks still sound. **The U view** low-passes the world
+  above (ambience, water, surface work); with it off, digging below is the muffled one.
+- **The event map** (`sound/sound_taps.gd`) sounds only what the models have already committed: a carry
+  beginning or ending (pickup, drop), entering or leaving the water, starting to swim or dive (splash), each
+  stride by the ground underfoot (grass, a worn path's dirt, a bridge leg's wood, a tunnel, wading), each whole
+  beat of a felling, grubbing or sawing step that has begun, a tree coming down, each dig quantum cut, a tunnel,
+  room or bridge opening (complete), a *new* warning in the notice feed (a folded repeat does not chime again)
+  or a critical incident raised or come back (decision 0331's `incident_cue`; one chime a frame at most),
+  and every button press. A tree blown down falls too. It reads the models and writes nothing: no sound, and no
+  animation, awards anything.
+- **Every cue has a text or picture match** (the table refuses a cue without one): chips and the task line for a
+  chop, clods and the tunnel panel for a dig, the news strip's "Warning:" line for the warning, and so on.
+  Muted, nothing is missed.
+- **Settings** (the game menu): each bus's volume (−, +, a slider; 5 % steps) and Mute, and three mixes --
+  Balanced (UI §8.1's defaults), Quiet focus (alerts forward, the world well down) and Atmosphere. They last
+  for the session and through Restart, as the interface scale does; nothing is saved to disk.
+- **Cost**: twenty residents at 4x -- all walking, twelve felling, one digging, loads changing hands, with the
+  trees, bridges, notices, weather and water read too: p50 37 µs, p95 71–76 µs, p99 106–123 µs, max ≤ 230 µs a
+  frame (`test/test_demo_sound_cost.gd`, headless, Apple Silicon). The boot prewarm step (streams and the
+  worn-path grid) takes about 16 ms.
+
 ## Layout
 
 | Folder | Owns |
@@ -786,17 +1036,20 @@ A heap still growing under a dig is refused. The party panel says who is "Cleari
 | `control/` | Selecting and ordering residents, and the demo party panel |
 | `tunnel/` | Player-dug tunnels: rules, the tunnel network and planner, planning, drawing, the underground view; and their extensions -- ground, queues, crews, jobs, hazards, finds, the demo stores, the tunnel panel; the construction theatre -- the warren's particle budget, the dig face, the baskets, the hazards' warnings, the surface signs |
 | `demo_calendar.gd`, `demo_services.gd`, `village_water.gd`, `demo_notices.gd` | The one calendar, the shared set, the one water adapter (over `water/water_map.gd`), the one notice feed |
+| `demo_incidents.gd`, `demo_news_clock.gd` | The incidents (open conditions, the card queue, the sound hook) and the news clock that stands still while paused |
 | `weather/` | The demo's one weather (read from the farm's real §5.10 row) and its rain, snow and light |
 | `burrow/` | Rooms as their own structures: the templates, sockets and refusals (`underground_rooms.gd`), placing one and its passage (`room_plan.gd`, `room_tool.gd`), drawing it (`room_view.gd`, `room_mesh.gd`); the cellar API; the fit-out (`room_fixtures.gd`, `fixture_crew.gd`, `install_task.gd`, `fixture_view.gd`, `fixture_kit.gd`, `room_text.gd`) and the night (`night_routine.gd`, `bed_allocation.gd`, `sleep_task.gd`) |
 | `events/` | Seeded threats (a flood, a fire) and evacuation |
-| `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the V overlay |
-| `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel |
-| `farm/` | The farm: real FarmPlot rows, the pantry and its storage providers, the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves |
+| `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the water overlay (the Water range map layer) |
+| `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel; whose water range the map layer paints (`water_range.gd`) |
+| `farm/` | The farm: real FarmPlot rows, the pantry and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |
 | `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens; then the underground view drawn once |
 | `demo_layers.gd` | The four render layers every drawn node is on, and the plane each view picks on (decision 0206) |
+| `map_lenses.gd`, `lens_subject.gd` | The map layers: one shown at a time, each with its question, legend and subject; V's cycle and U's followed layer (decision 0292) |
 | `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |
-| `ui/` | The woodland HUD skin; the HUD date, the news strip and the right column's tabs; the HUD's village read model (counters and ledger), the Residents roster and the village map |
-| `camera/` | The RTS camera |
+| `ui/` | The woodland HUD skin; the HUD date, the news strip, the village-news history, the incident card and "Go to", and the right column's tabs; the HUD's village read model (counters and ledger), the Residents roster and the village map; the Map layer picker |
+| `camera/` | The RTS camera, and the canopy clearance: the eye kept out of crowns, the crowns in the way thinned, the selected shown through |
+| `sound/` | The sound pass: the cue table (data), the mix and its buses, the voice pool, the event map, the owner and the Settings section |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

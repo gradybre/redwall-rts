@@ -137,33 +137,56 @@ func place(slot: int, network: GraphScript, from_m: float, to_m: float, widen_m:
 	_ensure(slot)
 	if from_m <= 0.0:
 		clear(slot)
+	_put_on_level(slot, network)
 	var curve: BoreCurveScript = BoreCurveScript.of(network, slot)
 	var length := network.length_m(slot)
 	var step := 0 if from_m <= 0.0 else floori(from_m / STEP_M) + 1
+	var cut_level := dress_level(network, slot)
+	var rooted := cut_level == Rules.TOP_LEVEL
 	while float(step) * STEP_M <= to_m:
 		var along := float(step) * STEP_M
 		var bore := Rules.BORE_WIDE if network.bore[slot] == Rules.BORE_WIDE or along < widen_m else Rules.BORE_STANDARD
 		var floor_y := network.floor_y_at(slot, along)
-		if dressed_at(floor_y, bore) and along >= clear_a_m and along <= length - clear_b_m:
+		if dressed_at(floor_y, bore, cut_level) and along >= clear_a_m and along <= length - clear_b_m:
 			curve.sample(along, _sample)
-			_dress_step(slot, network.generation[slot] * 7919 + step, Vector3(_sample[0].x, floor_y, _sample[0].y), _sample[1], bore)
+			_dress_step(slot, network.generation[slot] * 7919 + step, Vector3(_sample[0].x, floor_y, _sample[0].y), _sample[1], bore,
+				rooted)
 		step += 1
 	for node: MultiMeshInstance3D in [_stones[slot], _roots[slot]]:
 		node.visible = node.multimesh.visible_instance_count > 0
 
 
-static func dressed_at(floor_y: float, bore: int) -> bool:
-	"""Whether a step whose floor lies at `floor_y` is dressed: its highest root stays under the section
-	plane (demo_layers.gd CAP_Y_M), so nothing stands through the cut."""
-	return floor_y + Rules.crown_m(bore) * ROOT_TO_T + ROOT_CAP_CLEAR_M <= Layers.CAP_Y_M
+static func dressed_at(floor_y: float, bore: int, level: int = Rules.TOP_LEVEL) -> bool:
+	"""Whether a step whose floor lies at `floor_y` is dressed: its highest root stays under `level`'s section
+	plane (demo_layers.gd `cap_y`), so nothing stands through the cut."""
+	return floor_y + Rules.crown_m(bore) * ROOT_TO_T + ROOT_CAP_CLEAR_M <= Layers.cap_y(level)
 
 
-func _dress_step(slot: int, seed: int, centre: Vector3, heading: Vector2, bore: int) -> void:
-	"""One step's stones and roots (see the header)."""
+static func dress_level(network: GraphScript, slot: int) -> int:
+	"""The level whose section a segment's dressing must stay under (decision 0212): its own -- or a link's foot's,
+	so a link is dressed only where it is seen from the level below (it stands on both levels' layers)."""
+	var level: int = network.seg_level[slot]
+	return level + 1 if network.seg_kind[slot] == GraphScript.SEG_LINK else level
+
+
+func _put_on_level(slot: int, network: GraphScript) -> void:
+	"""Segment `slot`'s stones and roots on its level's layer (a link's on both levels'; decision 0212)."""
+	var level: int = network.seg_level[slot]
+	var mask := Layers.below(level)
+	if network.seg_kind[slot] == GraphScript.SEG_LINK:
+		mask |= Layers.below(level + 1)
+	for node: MultiMeshInstance3D in [_stones[slot], _roots[slot]]:
+		node.layers = mask
+
+
+func _dress_step(slot: int, seed: int, centre: Vector3, heading: Vector2, bore: int, rooted: bool = true) -> void:
+	"""One step's stones and -- `rooted`: near the surface, on level 1 -- roots (see the header)."""
 	var side := Vector3(-heading.y, 0.0, heading.x)
 	for wall: float in [-1.0, 1.0]:
 		if unit(seed, 1 + int(wall)) < STONE_CHANCE:
 			_add_stone(slot, seed + int(wall) * 31, centre, side * wall, bore)
+	if not rooted:
+		return
 	var near := root_chance(Vector2(centre.x, centre.z))
 	for k in ROOTS_PER_STEP:
 		if unit(seed, 10 + k) < near * ROOT_CHANCE:

@@ -35,6 +35,12 @@ extends Node3D
 ## MOTION. Input moves TARGET values; `_process` eases the shown values toward them with an
 ## exponential damp, so the camera glides and stops softly. The focus is clamped to the AABB
 ## given to `configure()`, distance and pitch to fixed ranges. `_process` allocates nothing.
+##
+## CLEARANCE (decision 0301, review F53). A clearance provider (`set_clearance`: canopy_clear.gd's
+## `allowed_distance`) may move the drawn eye along its own line, nearer or farther than the zoom asks,
+## so it never sits inside a tree crown. The move is made AT ONCE (no frame is drawn inside the crown) and
+## the eye eases back with the ordinary damp once the way is clear; the zoom TARGET is never changed, so
+## the player's zoom comes back by itself.
 
 const FOV_DEGREES: float = 40.0
 const NEAR_PLANE: float = 0.1
@@ -105,6 +111,8 @@ var _held: PackedByteArray = PackedByteArray()
 var _drag_turning: bool = false
 ## Scratch for the eye's local position, reused every frame.
 var _eye: Vector3 = Vector3.ZERO
+## `clearance(focus, yaw, pitch, distance) -> float`: where the eye may sit (see CLEARANCE).
+var _clearance: Callable = Callable()
 
 
 func _init() -> void:
@@ -148,7 +156,7 @@ func make_current() -> void:
 
 func centre_on(point: Vector3) -> void:
 	"""Ease the view to look at `point` (x, z; held inside the ground box), keeping yaw, pitch and zoom: the
-	Residents roster's and the minimap's "go there" (decision 0251)."""
+	Residents roster's and the minimap's "go there" (decision 0251), and the news's "Go to" (decision 0331)."""
 	_target_focus.x = point.x
 	_target_focus.z = point.z
 	_clamp_target_focus()
@@ -160,7 +168,23 @@ func snap() -> void:
 	_yaw = _target_yaw
 	_pitch = _target_pitch
 	_distance = _target_distance
+	_clear_view()
 	_apply_pose()
+
+
+func set_clearance(clearance: Callable) -> void:
+	"""Place the drawn eye where `clearance(focus, yaw, pitch, distance) -> float` allows (see CLEARANCE)."""
+	_clearance = clearance
+
+
+func _clear_view() -> void:
+	"""Move the drawn distance to where the clearance provider allows (nothing without one, nor for an
+	answer that is not a finite distance)."""
+	if not _clearance.is_valid():
+		return
+	var allowed: float = float(_clearance.call(_focus, _yaw, _pitch, _distance))
+	if is_finite(allowed):
+		_distance = allowed
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -271,6 +295,7 @@ func step(delta: float) -> void:
 	_yaw = lerpf(_yaw, _target_yaw, blend)
 	_pitch = lerpf(_pitch, _target_pitch, blend)
 	_distance = lerpf(_distance, _target_distance, blend)
+	_clear_view()
 	_apply_pose()
 
 

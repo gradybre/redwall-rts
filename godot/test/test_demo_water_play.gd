@@ -1084,16 +1084,20 @@ func test_the_right_column_has_a_water_tab_and_the_feed_a_water_source() -> void
 
 
 func test_the_water_panel_shows_the_site_and_disables_what_cannot_be_built() -> void:
-	"""The neck's site lists its span and both kinds' cost; with a bridge standing there it says so and
-	neither kind can be built; consent shows on its button."""
+	"""The neck's site lists its span and both kinds' cost; a kind the stores cannot pay for is disabled (its action
+	card, decision 0332); with a bridge standing there it says so and neither kind can be built; consent shows on its
+	button."""
 	var rig := _rig()
 	rig.play.select_candidate(0)
 	rig.play.refresh_panel()
 	var panel: PanelScript = rig.play.panel
 	assert_equal(panel.line(&"site_title"), "Bridge site 1 of 3: the neck, the stream's narrowest", "title")
 	assert_true(panel.line(&"site").contains("Plank footbridge: 4.") and panel.line(&"site").contains("Log bridge: one 6.0 U log (from the log stack)"), panel.line(&"site"))
-	assert_false(panel.button(PanelScript.ACTION_BUILD_PLANK).disabled, "plank: may")
+	assert_true(panel.button(PanelScript.ACTION_BUILD_PLANK).disabled, "plank: no planks in the stores (decision 0332)")
+	assert_true(panel.button(PanelScript.ACTION_BUILD_PLANK).tooltip_text.contains("Planks: have 0.0 U"), "its card says why")
 	_services.stores.add_planks(6000)
+	rig.play.refresh_panel()
+	assert_false(panel.button(PanelScript.ACTION_BUILD_PLANK).disabled, "plank: may, once the planks are in")
 	rig.play.build(Rules.KIND_PLANK, PackedInt32Array())
 	rig.play.refresh_panel()
 	assert_equal(panel.line(&"site"), "Neck bridge, a plank footbridge: 0% built — waiting for a builder", panel.line(&"site"))

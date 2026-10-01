@@ -20,6 +20,11 @@ extends RefCounted
 ## floor sleep in a reachable heated hall and ... a housing deficit alert") it sleeps on the hall's floor, and at dusk
 ## the feed says who has no bed (a warning). Without a hall (a test's village) it stays up.
 ##
+## NO BED IS AN INCIDENT (decision 0331, review UX-011): with the demo's incidents bound (`set_incidents`), the dusk
+## warning is also the incident "village:no_bed" (demo_incidents.gd) on the first resident without one -- each dusk
+## that still finds someone bedless merges into it, counting the nights -- RESOLVED once everyone has a bed
+## (`bed_state`, read at the allocation each dusk makes).
+##
 ## THE ALARM: while a threat is under way (the works' events) sleepers stand up by their beds (sleep_task.gd).
 ##
 ## THE HEARTHS burn from HEARTH_FROM_HOUR to HEARTH_TO_HOUR -- evenings and nights (fixture_view.gd: their glow, their
@@ -32,6 +37,8 @@ const SleepTaskScript := preload("res://demo/burrow/sleep_task.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
+const IncidentsScript := preload("res://demo/demo_incidents.gd")
+const NO_BED_KEY: String = "village:no_bed"
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const PathsScript := preload("res://demo/tunnel/graph_paths.gd")
 const Layers := preload("res://demo/demo_layers.gd")
@@ -68,6 +75,7 @@ var _brains: Array[BrainScript] = []
 var _names: PackedStringArray = PackedStringArray()
 var _calendar: CalendarScript = null
 var _notices: NoticesScript = null
+var _incidents: IncidentsScript = null
 var _alarm: Callable = Callable()
 var _hall: Vector2 = Vector2.INF
 var _night: bool = false
@@ -96,6 +104,21 @@ func configure(graph: RefCounted, brains: Array[BrainScript], names: PackedStrin
 	_at_u.resize(2 * brains.size())
 	_sent_tick.resize(brains.size())
 	_sent_tick.fill(-RESEND_TICKS)
+
+
+func set_incidents(incidents: IncidentsScript) -> void:
+	"""Raise the no-bed warning as an incident in `incidents` (see NO BED IS AN INCIDENT)."""
+	_incidents = incidents
+
+
+func bed_state() -> int:
+	"""The no-bed incident's state: RESOLVED once everyone has a bed, else needing a decision."""
+	return IncidentsScript.STATE_RESOLVED if first_bedless() < 0 else IncidentsScript.STATE_NEEDS_DECISION
+
+
+func first_bedless() -> int:
+	"""The first resident without a bed (-1: everyone has one)."""
+	return bed_of.find(AllocationScript.NO_BED)
 
 
 func set_hall(door: Vector2) -> void:
@@ -171,7 +194,12 @@ func _at_dusk() -> void:
 		return
 	_notices.post(NoticesScript.SOURCE_CREW, NoticesScript.LEVEL_NOTE, DUSK_NOTE)
 	var bedless := bedless_names()
-	if not bedless.is_empty() and _hall.is_finite():
+	if bedless.is_empty() or not _hall.is_finite():
+		return
+	if _incidents != null:
+		_incidents.report(NO_BED_KEY, NoticesScript.SOURCE_CREW, IncidentsScript.SEVERITY_WARNING, NO_BED_WARNING % bedless,
+			"", NoticesScript.TARGET_RESIDENT, first_bedless(), bed_state)
+	else:
 		_notices.post(NoticesScript.SOURCE_CREW, NoticesScript.LEVEL_WARNING, NO_BED_WARNING % bedless)
 
 
@@ -239,7 +267,7 @@ func _bed_task(i: int, task: SleepTaskScript) -> bool:
 		RoomsScript.fixture_field(RoomsScript.TEMPLATE_HOME, f, 4)), rooms.turns[r])
 	var large: bool = _graph.fit.kind_at(_graph, r, f) == RoomsScript.FIX_BIG_BED
 	task.to_bed(room_name(r), middle, _graph.node_m(middle), Vector2(Rules.to_m(at.x), Rules.to_m(at.y)),
-		atan2(float(face.x), float(face.y)), Layers.FLOOR_Y_M + bed_top_m,
+		atan2(float(face.x), float(face.y)), Layers.floor_y(rooms.level[r]) + bed_top_m,
 		SleepTaskScript.LARGE_FOOT_M if large else SleepTaskScript.FOOT_M)
 	return true
 

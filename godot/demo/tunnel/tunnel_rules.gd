@@ -555,9 +555,12 @@ static func stoop_drop_u(height_u: int, crown_u: int) -> int:
 ##     `fillet_reach_u` along each leg, and must fit in FILLET_SHARE_PERMILLE of the shorter one.
 ##   * A mouth's RAMP runs straight for RAMP_RUN_U: the first bend stands beyond it.
 ##   * JUNCTION_DEGREE: at most four bores meet at one junction (its hub has four openings).
-##   * LEVELS: level 1's floor is BORE_FLOOR_DEPTH_U down; every piece the tool lays is dug on it
-##     (BUILDABLE_LEVEL). Level 2 (P6) would lie LEVEL_2_FLOOR_DEPTH_U down -- DEC-040's candidate 4 m
-##     spacing, a demo value -- and is named for the network's level column, not yet dug.
+##   * LEVELS (decision 0212, the revamp's P6): level 1's floor is BORE_FLOOR_DEPTH_U down, and every mouth
+##     opens onto it (TOP_LEVEL). Level 2's lies LEVEL_SPACING_U lower -- DEC-040's CANDIDATE 4 m spacing,
+##     carried here as a named demo value and NOT settled: MOVE-G01..05 stay open. Both are dug
+##     (`is_buildable_level`); nothing opens onto level 2 from the surface, so it is reached only by a LINK.
+##   * LINKS (see LINKS below): a RAMP or STAIRS segment is the only thing that joins two levels (design §3
+##     rule 7). It runs straight, from a point on level 1's network down to level 2.
 ## Their refusals are LINK_BASE + k, worded in LINK_REASONS (MOVE-REQ-018: in text, not colour alone); a
 ## "%s" in one is the tunnel it names (`link_text`).
 
@@ -583,8 +586,12 @@ const JUNCTION_DEGREE: int = 4
 const LEVEL_SURFACE: int = 0
 const LEVEL_1: int = 1
 const LEVEL_2: int = 2
-const BUILDABLE_LEVEL: int = LEVEL_1
-const LEVEL_2_FLOOR_DEPTH_U: int = 5376
+## The level every mouth opens onto (and every room's own door or hatch reaches): level 1.
+const TOP_LEVEL: int = LEVEL_1
+const DEEPEST_LEVEL: int = LEVEL_2
+## THE CANDIDATE SPACING between level floors (DEC-040's 4 m; a demo value, unsettled against MOVE-G01..05).
+const LEVEL_SPACING_U: int = 4096
+const LEVEL_2_FLOOR_DEPTH_U: int = BORE_FLOOR_DEPTH_U + LEVEL_SPACING_U
 ## A turn this near straight back has no fillet that fits anywhere.
 const TURN_BACK_SLACK: int = 64
 
@@ -606,6 +613,15 @@ const REFUSE_SAME_NODE: int = 111
 const REFUSE_INTO_ROOM: int = 112
 const REFUSE_SOCKET_ANGLE: int = 113
 const REFUSE_SOCKET_TAKEN: int = 114
+## The second level and the links down to it (decision 0212; see LINKS).
+const REFUSE_LINK_START: int = 115
+const REFUSE_RAMP_SHORT: int = 116
+const REFUSE_STAIRS_SHORT: int = 117
+const REFUSE_LINK_LONG: int = 118
+const REFUSE_LINK_BEND: int = 119
+const REFUSE_LOWER_START: int = 120
+const REFUSE_JOIN_LINK: int = 121
+const REFUSE_LOWER_JOIN: int = 122
 ## A socket's passage runs straight out of the wall this far (u) before it may bend, within the MEETING angle
 ## of straight out (design §3 rule 5: "a passage leaves a socket straight for >= 1 m").
 const SOCKET_STRAIGHT_U: int = 1024
@@ -625,6 +641,14 @@ const LINK_REASONS: Array[String] = [
 	"it would break into %s: join it at one of its sockets, or keep 1 m of earth from it",
 	"a tunnel leaves a room's socket straight out through its wall for 1 m",
 	"that socket already has a tunnel",
+	"a ramp or stairs down starts on the first level's network: at a junction, a ramp's foot, a room's free socket or a bore's side",
+	"too short for a ramp: going 4 m down at no steeper than 1:2.5 takes at least 10.9 m",
+	"too short for stairs: 16 timber risers of 0.25 m need treads of at least 0.31 m -- 5 m of run",
+	"too long: a ramp down runs at most 16 m, stairs at most 8 m",
+	"a ramp or stairs runs straight from its head to its foot: no bends",
+	"on the second level a tunnel starts from the network: from a stair's or ramp's foot, a junction or a bore",
+	"stairs or a ramp between the levels cannot be joined on the slope: join it at its head or its foot",
+	"a room on the second level is reached only through the tunnels: it needs a passage to the network",
 ]
 
 
@@ -733,5 +757,161 @@ static func pillar_gap_u(bore_a: int, bore_b: int) -> int:
 
 static func level_floor_depth_u(level: int) -> int:
 	"""How far below the ground a level's floor lies (u): the surface 0, level 1 the bores' depth, level 2
-	the candidate (see LEVELS)."""
+	the candidate spacing lower (see LEVELS)."""
 	return [0, BORE_FLOOR_DEPTH_U, LEVEL_2_FLOOR_DEPTH_U][clampi(level, LEVEL_SURFACE, LEVEL_2)]
+
+
+static func level_floor_m(level: int) -> float:
+	"""A level's floor height (m, negative below the ground; presentation)."""
+	return -to_m(level_floor_depth_u(level))
+
+
+static func is_buildable_level(level: int) -> bool:
+	"""Whether pieces and rooms may be dug on `level` (level 1 and level 2; see LEVELS)."""
+	return level >= TOP_LEVEL and level <= DEEPEST_LEVEL
+
+
+static func vertical_gap_u(top_a: int, floor_a: int, top_b: int, floor_b: int) -> int:
+	"""How much earth stands between two voids one over the other (u; negative where their heights overlap):
+	each given by the depth below the ground of its top and its floor (top < floor)."""
+	return maxi(top_b - floor_a, top_a - floor_b)
+
+
+static func ramp_depth_u(from_mouth_u: int) -> int:
+	"""How far below the ground a mouth's ramp floor lies this far from its mouth (u, exact to a unit): the
+	integer twin of `ramp_depth_m` -- eased in, straight at the steepest grade, eased out at RAMP_RUN_U."""
+	var x := clampi(from_mouth_u, 0, RAMP_RUN_U)
+	var f := RAMP_FILLET_U
+	if x <= f:
+		return RAMP_GRADE_RISE * x * x / (RAMP_GRADE_RUN * 2 * f)
+	if x >= RAMP_RUN_U - f:
+		var left := RAMP_RUN_U - x
+		return BORE_FLOOR_DEPTH_U - RAMP_GRADE_RISE * left * left / (RAMP_GRADE_RUN * 2 * f)
+	return RAMP_GRADE_RISE * (2 * x - f) / (RAMP_GRADE_RUN * 2)
+
+
+# --- links between levels (decision 0212) --------------------------------------------------------
+##
+## LINKS. The only way from one level to the next (design §3 rule 7): a straight LINK segment from its HEAD on
+## level 1's network (a junction, a ramp's foot, a room's free socket, or a point on a bore's side) down
+## LEVEL_SPACING_U to its FOOT on level 2 (a junction, a room's free socket, a bore's side, or a new blind end
+## to dig on from). Two kinds, DEMO VALUES:
+##   * RAMP: at no steeper than RAMP_GRADE_RISE:RAMP_GRADE_RUN (1:2.5, the mouths' grade), its ends eased over
+##     RAMP_FILLET_U as a mouth's ramp is: at least `link_min_run_u` (10.875 m) of run, walked at walk speed
+##     along its slope.
+##   * STAIRS: STAIR_RISERS timber risers of STAIR_RISE_U (0.25 m) on treads of STAIR_MIN_TREAD_U (0.3125 m,
+##     a 4:5 grade, 38.7 degrees) up to STAIR_MAX_TREAD_U: 5 to 8 m of run -- steeper, so less to dig, but
+##     walked at STAIR_SPEED_PERMILLE of walk speed along the slope, and each quantum takes STAIR_WORK_PERMILLE
+##     of a bore's work (the risers are set as it is dug).
+## A link runs at most its kind's `link_max_run_u`. Its void is one standard bore along the slope: its quanta
+## are the started metres of its SLOPE length (`link_slope_u`), and so is a planner's cost. A stair's walking
+## line runs through the middle of every tread (the drawn risers sit half a riser either side of it).
+const LINK_NONE: int = 0
+const LINK_RAMP: int = 1
+const LINK_STAIRS: int = 2
+const LINK_NAMES: Array[String] = ["", "ramp", "stairs"]
+const LINK_MAX_RAMP_RUN_U: int = 16384
+const STAIR_RISERS: int = 16
+const STAIR_RISE_U: int = LEVEL_SPACING_U / STAIR_RISERS
+const STAIR_MIN_TREAD_U: int = 320
+const STAIR_MAX_TREAD_U: int = 512
+const STAIR_SPEED_PERMILLE: int = 500
+const STAIR_WORK_PERMILLE: int = 1250
+
+
+static func link_min_run_u(kind: int) -> int:
+	"""The shortest run (u) a link of `kind` may have: a ramp's at its steepest grade and easing, stairs' on
+	their shortest treads (see LINKS)."""
+	if kind == LINK_STAIRS:
+		return STAIR_RISERS * STAIR_MIN_TREAD_U
+	return LEVEL_SPACING_U * RAMP_GRADE_RUN / RAMP_GRADE_RISE + RAMP_FILLET_U
+
+
+static func link_max_run_u(kind: int) -> int:
+	"""The longest run (u) a link of `kind` may have (see LINKS)."""
+	return STAIR_RISERS * STAIR_MAX_TREAD_U if kind == LINK_STAIRS else LINK_MAX_RAMP_RUN_U
+
+
+static func link_refusal(kind: int, run_u: int) -> int:
+	"""REFUSE_NONE, or why a link of `kind` may not run `run_u` (too short for its grade, or too long)."""
+	if run_u < link_min_run_u(kind):
+		return REFUSE_STAIRS_SHORT if kind == LINK_STAIRS else REFUSE_RAMP_SHORT
+	if run_u > link_max_run_u(kind):
+		return REFUSE_LINK_LONG
+	return REFUSE_NONE
+
+
+static func link_slope_u(run_u: int) -> int:
+	"""A link's length along its slope (u, rounded up): its run and LEVEL_SPACING_U down."""
+	return isqrt_ceil(run_u * run_u + LEVEL_SPACING_U * LEVEL_SPACING_U)
+
+
+static func link_quanta(run_u: int) -> int:
+	"""The quanta a link cuts: every started metre of its slope (ECON-001: no partial quantum)."""
+	return ceil_div(link_slope_u(run_u), QUANTUM_U) * CROSS_SECTION_QUANTA
+
+
+static func link_drop_u(kind: int, along_u: int, run_u: int) -> int:
+	"""How far below its head a link's walking floor lies `along_u` into its run (u, exact to a unit): a ramp
+	eased in and out over RAMP_FILLET_U at the one grade that takes it LEVEL_SPACING_U down in `run_u`; stairs
+	straight down their pitch line (see LINKS)."""
+	var x := clampi(along_u, 0, run_u)
+	var d := LEVEL_SPACING_U
+	if kind == LINK_STAIRS:
+		return d * x / maxi(run_u, 1)
+	var f := RAMP_FILLET_U
+	var span := maxi(run_u - f, 1)
+	if x <= f:
+		return d * x * x / (2 * f * span)
+	if x >= run_u - f:
+		var left := run_u - x
+		return d - d * left * left / (2 * f * span)
+	return d * (2 * x - f) / (2 * span)
+
+
+static func link_drop_m(kind: int, along_m: float, run_m: float) -> float:
+	"""`link_drop_u` in metres for drawing and walking (presentation; the same curve in floats)."""
+	var x := clampf(along_m, 0.0, run_m)
+	var d := to_m(LEVEL_SPACING_U)
+	if kind == LINK_STAIRS:
+		return d * x / maxf(run_m, 1e-6)
+	var f := to_m(RAMP_FILLET_U)
+	var span := maxf(run_m - f, 1e-6)
+	if x <= f:
+		return d * x * x / (2.0 * f * span)
+	if x >= run_m - f:
+		return d - d * (run_m - x) * (run_m - x) / (2.0 * f * span)
+	return d * (2.0 * x - f) / (2.0 * span)
+
+
+static func link_slope(kind: int, along_m: float, run_m: float) -> float:
+	"""How steeply a link's floor falls this far into its run (m down per m along; 0 past either end)."""
+	if along_m <= 0.0 or along_m >= run_m:
+		return 0.0
+	var d := to_m(LEVEL_SPACING_U)
+	if kind == LINK_STAIRS:
+		return d / maxf(run_m, 1e-6)
+	var f := to_m(RAMP_FILLET_U)
+	var span := maxf(run_m - f, 1e-6)
+	if along_m <= f:
+		return d * along_m / (f * span)
+	if along_m >= run_m - f:
+		return d * (run_m - along_m) / (f * span)
+	return d / span
+
+
+static func link_grade_permille(kind: int, run_u: int) -> int:
+	"""A link's steepest grade, per mille (rise over run): a ramp's straight middle, stairs' pitch."""
+	if kind == LINK_STAIRS:
+		return LEVEL_SPACING_U * PERMILLE / maxi(run_u, 1)
+	return LEVEL_SPACING_U * PERMILLE / maxi(run_u - RAMP_FILLET_U, 1)
+
+
+static func link_speed_permille(kind: int) -> int:
+	"""How fast a link is walked along its slope, per mille of walk speed (see LINKS)."""
+	return STAIR_SPEED_PERMILLE if kind == LINK_STAIRS else PERMILLE
+
+
+static func link_work_permille(kind: int) -> int:
+	"""How much work a link's quantum takes, per mille of a bore's (see LINKS)."""
+	return STAIR_WORK_PERMILLE if kind == LINK_STAIRS else PERMILLE

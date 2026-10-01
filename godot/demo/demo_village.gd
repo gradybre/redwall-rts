@@ -32,12 +32,21 @@ extends Node3D
 ## WATER (demo/water/demo_water.gd): the stream down the east edge and the pond beyond the south-east
 ## corner, outside the ±20 m square residents and tunnels keep to; the cast walks the world's and the
 ## water's merged spots and obstacles. Its flow follows the demo clock and its fishery the demo
-## calendar. V cycles the one set of map overlays: the farm's moisture, its ripeness, the water's
-## zones, off (demo_farm.gd `add_overlay`).
+## calendar. MAP LAYERS (decision 0292, demo/map_lenses.gd): one shown at a time, each with one question
+## and a legend -- Growing: soil moisture and ripeness (the farm's), Getting there: water range (whose:
+## demo/waterplay/water_range.gd), Woods, Underground (U's view, followed). The Map layer picker on the
+## bottom left (demo/ui/demo_lens_picker.gd) picks them directly; V steps the same one active layer.
 ##   * ONE NOTICE FEED (demo_notices.gd): every farm, weather, tunnel and threat notice, date-stamped,
 ##     shown bottom centre (demo/ui/demo_news_strip.gd) and, per source, in the two panels. Nothing in
 ##     the demo raises a HUD alert card: the HUD shows the two earliest unresolved notices and demo
 ##     lines, which nothing resolves, would hold both cards for good (UI §7).
+##   * VILLAGE NEWS (decision 0331, review F11, F37, UX-011): the feed's history window (demo/ui/demo_news_history.gd:
+##     every kept entry, filtered by place and severity, with "Go to"), the incidents behind the warnings
+##     (demo_incidents.gd: kept until resolved or acknowledged), the top-centre card queue of the critical and
+##     pinned ones (demo/ui/demo_incident_cards.gd), and the news clock that stops toasts ageing while paused.
+##     The news strip's button, the card's and the HUD's own history command (N, its trigger: `_on_shell_action`)
+##     all open the window; it stands in for the shell's history in the top-centre zone, and offers the shell's
+##     "Settlement notices" from its header. `_build_news()` wires it, and each target kind's "Go to".
 ## The HUD's right column holds ONE demo panel at a time -- the farm's or the tunnels' -- under a tab
 ## strip (demo/ui/demo_detail_zone.gd); a click on a bed or a tunnel brings its panel.
 ##
@@ -73,6 +82,11 @@ extends Node3D
 ## SPOIL (demo/spoil/): a tunnel's spoil heaps can be selected and cleared -- dug out and hauled into the
 ## farm's compost store (Clear: right-click a heap with residents selected). `_build_spoil()` wires it.
 ##
+## CANOPY (demo/camera/canopy_clear.gd, decision 0301): the camera's eye is held out of tree crowns, the
+## crowns between the eye and the focus or a selected resident thin out, and a selected resident shows as
+## a silhouette through foliage and roofs. `_build_canopy()` wires it after the woods; its materials are
+## drawn once at boot (a prewarm frame step).
+##
 ## WOODS (demo/forestry/): every tree is a real ResourceNode row -- felled, hauled, regrown, blown down,
 ## replanted -- worked by the residents, with forestry and conservation zones, deadfall, a sawhorse and
 ## the "Woods (demo)" panel, the right column's third tab. Its wood goes into the demo's ONE stores
@@ -85,6 +99,11 @@ extends Node3D
 ## the Demo Lab (demo/ui/demo_lab.gd) -- and keyboard focus in the panels (F7, Tab, Enter/Space by focused
 ## context). The HUD's Menu button, and Esc once nothing else takes it (`_unhandled_input`, which runs
 ## after every child's), open the game menu; F8 opens the Lab, which holds the demo's test triggers.
+##
+## SOUND (decision 0351, demo/sound/): ONE SOUND OWNER (sound_director.gd), scene-scoped rather than an autoload,
+## hears the village's committed events (its event map, sound_taps.gd) and plays them through five buses with a
+## bounded voice pool; its volumes and mixes are the game menu's Settings. No sound files are staged yet, so it
+## plays silent; its streams load in the boot prewarm.
 
 const DemoManifestScript := preload("res://demo/demo_manifest.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
@@ -129,13 +148,27 @@ const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
 const TunnelPanelScript := preload("res://demo/tunnel/tunnel_panel.gd")
 const ForestPanelScript := preload("res://demo/forestry/forest_panel.gd")
 const WaterPanelScript := preload("res://demo/waterplay/water_panel.gd")
+const CanopyScript := preload("res://demo/camera/canopy_clear.gd")
+const WeatherViewScript := preload("res://demo/weather/weather_view.gd")
+const LensPickerScript := preload("res://demo/ui/demo_lens_picker.gd")
+const TunnelControlScript := preload("res://demo/tunnel/tunnel_control.gd")
+const WaterOverlayScript := preload("res://demo/water/water_overlay.gd")
+const ForestMarks := preload("res://demo/forestry/forest_marks.gd")
+const Palette := preload("res://demo/ui/woodland_palette.gd")
+const NewsHistoryScript := preload("res://demo/ui/demo_news_history.gd")
+const IncidentCardsScript := preload("res://demo/ui/demo_incident_cards.gd")
+const NewsJumpScript := preload("res://demo/ui/demo_news_jump.gd")
+const NoticesScript := preload("res://demo/demo_notices.gd")
+const SoundScript := preload("res://demo/sound/sound_director.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
 const GAME_CAMERA: NodePath = ^"World/Camera3D"
 const GAME_HUD_ROOT: NodePath = ^"UI/HUD/Root"
-## The water's inspection overlay, the last step of V's one overlay cycle (demo_farm.gd add_overlay).
-const WATER_OVERLAY_NAME: String = "water zones and fishery"
+## The water's inspection overlay as a map layer (demo_farm.gd add_overlay; decision 0292).
+const WATER_LENS_QUESTION: String = "Where can they wade, swim, dive or cross?"
+const WOODS_LENS_QUESTION: String = "Which trees may be felled, which must stay?"
+const UNDERGROUND_LENS_QUESTION: String = "What lies under the village?"
 ## Process priority: after the farm (priority 0) has advanced the calendar each frame.
 const PROCESS_AFTER_CHILDREN: int = 1
 ## Refit the sun's shadow range when the zoom has moved this far since the last fit.
@@ -143,6 +176,10 @@ const SHADOW_REFIT_M: float = 0.5
 ## An interface scale is offered only where it leaves the HUD this many logical pixels tall: the demo's
 ## panels are laid out for 1280x720 at 100 %.
 const MIN_LOGICAL_HEIGHT: float = 720.0
+## Frames the canopy's fade and silhouette samples, and the frost and snow overlay, are drawn for at boot
+## (as the U view's, decision 0206).
+const CANOPY_PREWARM_FRAMES: int = 2
+const COVER_PREWARM_FRAMES: int = 2
 
 @onready var _game: Node = $Game
 
@@ -164,14 +201,22 @@ var _forestry: ForestryScript = null
 var _waterplay: WaterplayScript = null
 var _links: LinksScript = null
 var _spoil: SpoilScript = null
+var _canopy: CanopyScript = null
 var _prewarm: PrewarmScript = PrewarmScript.new()
 var _shadow_view_m: float = -1.0
 var _gate: InputGateScript = InputGateScript.new()
 var _menu: MenuScript = MenuScript.new()
 var _lab: LabScript = LabScript.new()
+var _sound: SoundScript = SoundScript.new()
 ## Whether this boot holds its own PLAYER pause until the first frames are drawn (a restart: UI-SET-103's
 ## opening pause is held only once per process).
 var _held_open: bool = false
+var _lens_picker: LensPickerScript = null
+## The Water range layer's row in the farm's lenses (its subject is set once the water's play is built).
+var _water_lens: int = 0
+var _history: NewsHistoryScript = null
+var _cards: IncidentCardsScript = null
+var _jump: NewsJumpScript = NewsJumpScript.new()
 
 
 func _ready() -> void:
@@ -192,10 +237,12 @@ func _ready() -> void:
 	_build_farm(manifest)
 	_build_spoil()
 	_build_forestry()
+	_build_canopy()
 	_command.add_skill_text(_command.tunnels().ext.skill_text)
 	_command.add_skill_text(_command.tunnels().ext.night.home_text)
 	_build_waterplay()
 	_build_shared_ui()
+	_build_sound()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
 	_hold_restart_open()
@@ -211,11 +258,15 @@ func _warm_and_open() -> void:
 	_prewarm.add_step("props and icons", _services.props.warm_all)
 	_prewarm.add_step("plant atlases", _farm.view.assets.ensure_all_loaded)
 	_prewarm.add_step("woods: stumps, saplings, splits", _forestry.view.prewarm)
+	_prewarm.add_step("sound streams", _sound.warm)
 	var view: TunnelViewScript = (_command as DemoCommandScript).tunnels().view
 	var rooms: RoomViewScript = (_command as DemoCommandScript).tunnels().ext.room_view
 	_prewarm.add_frame_step("rooms on the ground", UndergroundPrewarmScript.FRAMES, rooms.begin_surface_prewarm,
 		rooms.end_surface_prewarm)
 	_prewarm.add_frame_step("underground view", UndergroundPrewarmScript.FRAMES, view.begin_prewarm, view.end_prewarm)
+	_prewarm.add_frame_step("canopy fade and silhouette", CANOPY_PREWARM_FRAMES, _canopy.begin_prewarm, _canopy.end_prewarm)
+	var weather_view: WeatherViewScript = (_command as DemoCommandScript).tunnels().ext.weather_view
+	_prewarm.add_frame_step("frost and snow overlay", COVER_PREWARM_FRAMES, weather_view.begin_prewarm, weather_view.end_prewarm)
 	_prewarm.warm()
 	_prewarm.release_after_frames(_open_running)
 
@@ -273,7 +324,11 @@ func _build_farm(manifest: Dictionary) -> void:
 	_command.tunnels().ext.set_stored(_farm.cellar_stored_u)
 	_command.tunnels().ext.set_weather_skip(_farm.skip_to_next_weather)
 	_command.tunnels().ext.events_view.set_flood_rise(_water.set_flood_rise)
-	_farm.add_overlay(WATER_OVERLAY_NAME, _water.set_overlay_shown)
+	_water_lens = _farm.add_overlay("Getting there", "Water range", WATER_LENS_QUESTION, _water.set_overlay_shown)
+	_farm.lenses.set_legend(_water_lens, PackedColorArray([WaterOverlayScript.WADE_COLOUR, WaterOverlayScript.SWIM_COLOUR,
+		WaterOverlayScript.DIVE_COLOUR, WaterOverlayScript.FORD_COLOUR, WaterOverlayScript.BRIDGE_COLOUR,
+		WaterOverlayScript.LINK_COLOUR, WaterOverlayScript.LANDING_COLOUR]), PackedStringArray(["wade", "swim",
+		"dive", "ford", "bridge site", "swim link", "landing"]))
 
 
 func _build_spoil() -> void:
@@ -308,7 +363,24 @@ func _build_forestry() -> void:
 		_camera.camera(), _services, wood)
 	_forestry.crew.set_compost(compost_left, take_compost)
 	_forestry.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
-	_farm.add_overlay(ForestryScript.OVERLAY_NAME, _forestry.set_overlay)
+	var woods: int = _farm.add_overlay("Woods", "Zones and trees", WOODS_LENS_QUESTION, _forestry.set_overlay)
+	_farm.lenses.set_legend(woods, PackedColorArray([ForestMarks.FORESTRY_COLOUR, ForestMarks.CONSERVATION_COLOUR,
+		Palette.LEAF, Palette.BRASS, Palette.UMBER, Palette.CLAY]), PackedStringArray(["forestry zone",
+		"conservation zone", "mature tree", "young tree", "stump", "cleared spot"]))
+
+
+func _build_canopy() -> void:
+	"""The crowns kept out of the camera's way and the selected residents' silhouettes, over the woods'
+	trees (demo/camera/canopy_clear.gd)."""
+	_canopy = CanopyScript.new()
+	add_child(_canopy)
+	_canopy.configure(_camera as DemoCameraScript, _forestry.stand, _forestry.view, _cast as DemoCastScript,
+		_command as DemoCommandScript)
+
+
+func canopy() -> CanopyScript:
+	"""The canopy clearance (demo/camera/canopy_clear.gd)."""
+	return _canopy
 
 
 func compost_left() -> int:
@@ -332,6 +404,7 @@ func _build_waterplay() -> void:
 	_waterplay.configure(_cast as DemoCastScript, _command as DemoCommandScript, _camera.camera(), _services,
 		_water.map(), _links, _water, _forestry.stand)
 	_waterplay.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
+	_farm.lenses.set_subject(_water_lens, _waterplay.water_range)
 
 
 func waterplay() -> WaterplayScript:
@@ -368,10 +441,104 @@ func _build_shared_ui() -> void:
 	_zone.add_panel(DetailZoneScript.PANEL_TUNNELS, ext.panel)
 	_zone.add_panel(DetailZoneScript.PANEL_WOODS, _forestry.panel)
 	_zone.add_panel(DetailZoneScript.PANEL_WATER, _waterplay.panel)
+	_build_lens_picker()
 	_farm.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_FARM))
 	ext.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_TUNNELS))
 	_forestry.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_WOODS))
 	_waterplay.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_WATER))
+	_build_news()
+
+
+func _build_news() -> void:
+	"""The village news (see VILLAGE NEWS): the strip on the news clock with its count, the history window, the
+	incident card, every "Go to", and the HUD's history command routed to the window."""
+	_news.bind_news(_services.incidents, _services.news_clock, (GameManager as GameManagerScript).is_paused)
+	_jump.bind_camera(_camera as DemoCameraScript)
+	_register_jumps()
+	_history = NewsHistoryScript.new()
+	add_child(_history)
+	_history.configure(_services.notices, _services.incidents, _jump)
+	_cards = IncidentCardsScript.new()
+	add_child(_cards)
+	_cards.configure(_services.incidents, _jump)
+	_cards.hide_while(_history.is_open)
+	_cards.hide_while(_stall_banner.is_shown)
+	_news.history_wanted.connect(_history.open)
+	_cards.history_wanted.connect(_history.open)
+	var shell: UiShell = _shell()
+	if shell != null:
+		_history.set_settlement(shell.open_notice_history)
+		_history.defer_keys_while(shell.notice_details_open)
+		_history.defer_keys_while(shell.workspace_owns_input)
+		_cards.hide_while(shell.notice_details_open)
+		shell.shell_action.connect(_on_shell_action)
+
+
+func _register_jumps() -> void:
+	"""Each target kind's "Go to": where it is now, and how a click selects it (demo_news_jump.gd)."""
+	var network: GraphScript = (_command as DemoCommandScript).tunnels().network
+	_jump.register(NoticesScript.TARGET_BED, func(bed: int) -> Vector3: return NewsJumpScript.bed_point(bed),
+		_farm.select_bed)
+	_jump.register(NoticesScript.TARGET_TREE,
+		func(t: int) -> Vector3: return NewsJumpScript.tree_point(_forestry.stand, t), _forestry.select_tree)
+	_jump.register(NoticesScript.TARGET_TUNNEL,
+		func(slot: int) -> Vector3: return NewsJumpScript.tunnel_point(network, slot), select_tunnel)
+	_jump.register(NoticesScript.TARGET_RESIDENT, resident_point, select_resident)
+	_jump.register(NoticesScript.TARGET_BRIDGE,
+		func(row: int) -> Vector3: return NewsJumpScript.bridge_point(_waterplay.bridges, row), _waterplay.select_bridge)
+
+
+func resident_point(who: int) -> Vector3:
+	"""Where resident `who` stands (INF: no such resident)."""
+	if who < 0 or who >= _cast.actor_count():
+		return Vector3.INF
+	var at: Vector3 = (_cast.actor(who) as Node3D).position
+	return Vector3(at.x, 0.0, at.z)
+
+
+func select_resident(who: int) -> void:
+	"""Select resident `who` alone, as a click on it does."""
+	(_command as DemoCommandScript).select(PackedInt32Array([who]))
+
+
+func select_tunnel(slot: int) -> void:
+	"""Select tunnel `slot` and bring the Tunnels panel forward, as a click on it does; in the U view, on the level it
+	lies on (decision 0212)."""
+	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
+	var ext: TunnelExtScript = tool.ext
+	ext.deselect_room()
+	ext.actions.select(slot)
+	tool.reveal_tunnel(slot)
+	ext.panel_wanted.emit()
+
+
+func _on_shell_action(element_id: int) -> void:
+	"""The HUD's history trigger (N is read by the window itself, first): the village news stands in for the
+	shell's history in the top-centre zone (one expansion there), so the shell's opened history is closed --
+	and the focus it hands back to the trigger let go, or the HUD would draw the trigger's keyboard description
+	over the window -- and the window toggled; a shell history the trigger just closed (opened from a
+	settlement card) closes the window too."""
+	if element_id != UiShell.ID_HISTORY_TRIGGER:
+		return
+	var shell: UiShell = _shell()
+	if _history.take_trigger(shell != null and shell.notice_details_open()):
+		shell.close_notice_details()
+		get_viewport().gui_release_focus()
+
+
+func news_history() -> NewsHistoryScript:
+	"""The village-news history window (checks)."""
+	return _history
+
+
+func incident_cards() -> IncidentCardsScript:
+	"""The top-centre incident card (checks)."""
+	return _cards
+
+
+func news_jump() -> NewsJumpScript:
+	"""The news's "Go to" (checks)."""
+	return _jump
 
 
 func _build_village_hud() -> void:
@@ -406,6 +573,31 @@ func minimap() -> MinimapScript:
 func counters() -> HudCountersScript:
 	"""The top bar's village counters and ledger (demo/ui/demo_hud_counters.gd)."""
 	return _counters
+
+
+func _build_lens_picker() -> void:
+	"""The Underground layer (U's view, followed: map_lenses.gd) and the Map layer picker bottom left, clear
+	of the news strip's band (which the journal moves)."""
+	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
+	var under: int = _farm.lenses.add("Underground", "Tunnels", UNDERGROUND_LENS_QUESTION, show_underground)
+	_farm.lenses.follow_state(under, func() -> bool: return tool.view.on)
+	_farm.lenses.set_legend(under, PackedColorArray([Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0)]),
+		PackedStringArray(["blue hatch: too wet to dig", "stone: building footings", "U: back to the surface"]))
+	_lens_picker = LensPickerScript.new()
+	add_child(_lens_picker)
+	_lens_picker.configure(_farm.lenses, _zone.journal_open)
+
+
+func show_underground(on: bool) -> void:
+	"""The Underground layer's switch: the tunnels' U view on or off (one cull-mask write)."""
+	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
+	if tool.view.on != on:
+		tool.toggle_view()
+
+
+func lens_picker() -> LensPickerScript:
+	"""The Map layer picker (demo/ui/demo_lens_picker.gd)."""
+	return _lens_picker
 
 
 func _shell() -> UiShell:
@@ -462,6 +654,21 @@ func rooms() -> RoomsScript:
 	return _command.tunnels().network.rooms
 
 
+func _build_sound() -> void:
+	"""The demo's sound owner (see SOUND): its table, buses and voices, listening to the camera, the clock, the U
+	view and the village's models."""
+	add_child(_sound)
+	_sound.configure()
+	var tunnels: TunnelControlScript = (_command as DemoCommandScript).tunnels()
+	_sound.bind(_camera as DemoCameraScript, GameManager as GameManagerScript, func() -> bool: return tunnels.view.on)
+	_sound.follow_demo(_cast as DemoCastScript, _forestry, tunnels.network, _waterplay, _services, _water.map())
+
+
+func sound() -> SoundScript:
+	"""The demo's sound owner (demo/sound/sound_director.gd)."""
+	return _sound
+
+
 func _build_input() -> void:
 	"""The game menu, the Demo Lab and, last of all the village's children, the input gate over them, the
 	Pantry and the panels (see INPUT, MENU AND KEYBOARD)."""
@@ -480,6 +687,7 @@ func _build_input() -> void:
 	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
 	_gate.add_region("right column", [_zone, _farm.bed_panel, ext.panel, _forestry.panel, _waterplay.panel] as Array[Node])
 	_gate.add_region("left column", [(_command as DemoCommandScript).panel()] as Array[Node])
+	_sound.watch_buttons.call_deferred(get_tree().root)
 
 
 func _build_menu() -> void:
@@ -500,6 +708,8 @@ func _build_menu() -> void:
 		if DemoUiScale.percent != DemoUiScale.UiLayout.USER_SCALE_100:
 			shell.apply_user_scale.call_deferred(DemoUiScale.percent)
 	_menu.scale_percent = DemoUiScale.percent
+	_menu.sound.apply = _sound.mix.apply
+	_menu.sound.set_silent(_sound.is_silent())
 
 
 func _build_lab() -> void:

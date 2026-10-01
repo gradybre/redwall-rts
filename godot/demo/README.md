@@ -369,8 +369,8 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
 `lenses/` (wired by `demo_village.gd _build_lens_picker`, one `lenses/demo_lens_kit.gd`):
 
 - **The legend** (`ui/demo_lens_legend.gd`, in the picker's card): what the layer's ramp measures, with its units
-  (the caption), then its ordered **ramp** as one continuous bar -- a row per entry with its threshold ("good · within
-  the range", "swim · 0.25 to 1.00 m deep") -- then its **keys** (fords, bridge sites, landings...). The Water range's
+  (the caption), then its ordered **ramp** as one continuous colour bar with each entry's word and threshold under its
+  segment ("good / in range", "swim / ≤1.00 m") -- then its **keys** (fords, bridge sites, landings...). The Water range's
   depths follow whoever is painted (a badger's wade reaches 0.64 m). The scales are data: `lenses/lens_scales.gd`.
 - **The hover readout** (`ui/demo_lens_readout.gd`): beside the pointer, the exact value under it for the shown
   layer -- "Soil moisture 60% · good" with that bed's own band edges ("dry <5% · low <25% · wet ≤90% · waterlogged
@@ -379,10 +379,10 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
   "Oak · mature tree / forestry zone North stand: may be felled (keeps 20% mature)". Read ten times a second, worded
   only when what is under the pointer changes, hidden over any panel; nothing is allocated per frame. Routes and
   Underground have no readout (no probe).
-- **Compare** (the card's **Compare with… ▾**): pick a second layer and its areas are drawn as **outlines** over the
+- **Compare** (the picker header's button between the layer's name and Off, two overlapping squares): pick a second layer and its areas are drawn as **outlines** over the
   shown one (`lenses/lens_contours.gd`: each area traced in its own colour on its inside, round an ink core) -- a bed
   filled by moisture and ringed by the leat's service; the readout adds the compared layer's value. Its legend shows
-  below, compact and outlined. Picking it again, or **✕**, turns it off. V and the list change the shown layer and keep
+  below its "Outlined: …" line, compact and outlined. Picking it again, or **✕**, turns it off. V and the list change the shown layer and keep
   the compared one (unless it becomes the shown one); U's view drops it. Only layers with an outlining probe are
   offered: the three Growing layers, the Water range and the Woods' zones.
 - **Colours** (`lenses/lens_palette.gd`): one token per area colour, read by the bed discs, the water's zone paint,

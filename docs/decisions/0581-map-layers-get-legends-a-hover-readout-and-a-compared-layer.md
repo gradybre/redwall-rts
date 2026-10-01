@@ -40,8 +40,14 @@ registration lines in `demo_farm.gd` and `demo_village.gd` are untouched.
 
 ### 2. The legend
 
-`ui/demo_lens_legend.gd`: the caption, then the ramp as one continuous bar (a row per entry: swatch, word, threshold),
-then the other entries as key chips. The Water range's depths and caption come from its probe for whoever is painted
+`ui/demo_lens_legend.gd`: the caption, then the ramp as one continuous colour bar with each entry's word under its
+segment and its threshold under that ("wade / ≤0.25 m"), then the other entries as key chips. The segments flow onto
+a second line where the card is too narrow, rather than widening it.
+
+**Kept short for 1280x720.** A first version drew a row per ramp entry and a "Compare with… ▾" row in the card; the
+moisture card grew from 127 px to 273 px and the layout harness's check that the guide's objective card still shows
+above the picker at 1280x720 100 % (decision 0481) failed. The bar form and the compare control in the header bring
+the moisture card to 154 px, and the check passes again. The Water range's depths and caption come from its probe for whoever is painted
 (a group by its shortest member, decision 0292 §3). A layer given its scale after its legend was built is rebuilt on
 the next re-text.
 
@@ -58,7 +64,9 @@ Underground have none.
 
 ### 4. Comparing two layers: outlines
 
-Picked in the card ("Compare with… ▾", then a layer; the same again or ✕ turns it off). The compared layer's areas
+Picked from the picker's header (the button between the layer's name and Off -- two overlapping squares -- which
+unfolds the layers that can be outlined, in the card); while one is outlined the button stays pressed and the card
+says "Outlined: Growing: Water service ✕"; picking it again or ✕ turns it off. The compared layer's areas
 are traced by marching squares over its probe's field (`lenses/lens_contours.gd`), each area as a strip in its own
 legend colour on its inside round an ink core, time-sliced at about 1 ms a frame, redrawn only when the compared
 probe's field revision moves. Only layers whose probe can outline are offered (the Growing layers, the Water range,
@@ -146,6 +154,11 @@ No key is added. V still steps the shown layer, U still follows the underground;
   motion, the colour check over every layer).
 - Allocation checks count objects and retained static memory over hundreds of reads; transient Variant allocation is
   not observable from GDScript.
+- Mutation testing (65 mutants of the new logic, one at a time in a copy of the tree, each file hash-checked on
+  restore): 57 killed at first; the 8 survivors (an area past its swatches, `find` ignoring the group, a record's
+  areas, the pond's ice, the woods' tree entries, the readout's second line, the over-a-panel check -- masked off-tree
+  by the missing camera, so it became its own `may_read` -- and a new shown layer with the same reading) each got a
+  test, and all 65 are now killed.
 
 ## Source
 

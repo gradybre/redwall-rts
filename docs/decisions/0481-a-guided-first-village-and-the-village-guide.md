@@ -272,3 +272,17 @@ are short (LOW); a practice story's first click costs about 83 ms while the wind
   follow baseline sessions.
 - UX-017's "a mild setback shows two remedies" is met only as the blocked lines and the three ways; no setback is staged.
 - UX-018's "not-yet-learned" entries and spoiler controls, and UX-020's before/after image, are not built.
+
+## At the batch 5 integration (2026-10-01)
+
+- **Help carries S's controls** (0471: Space as the one Resume, G for Run until, F6 for the object list) and O's planner
+  on T (0492), with "B" alone for the Dig tool. New topics cover the object list, the presets, planning the season and
+  going fishing.
+- **The window's pause goes through S's ledger** (`hold_pause` -> `hold_guide`), not straight to the clock.
+- **One card at the top centre**: the incident card, then this guide card, then T's offer card (0491), which waits
+  behind it. Both the guide card and the offer card also stand aside while the Residents list (L) is open: at
+  1280x720 the guide card covered the list's rows, which the people harness caught. The pause card steps below the
+  guide card.
+- **Water part B** (0431–0436): the field guide gains the fish stew, the six fish, dried fish, flour, fishing gear,
+  fishing and the boats, and the drying rack and mill (53 entries). Only a CROP shelved counts as the "harvest came
+  into store" a guide objective confirms; a catch, dried fish or flour never does.

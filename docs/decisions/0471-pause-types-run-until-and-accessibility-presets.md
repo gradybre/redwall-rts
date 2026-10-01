@@ -122,3 +122,15 @@ UX-023's rebinding and P9's "rebind a conflicting key" are not done here. The Co
 - A pause card shown over a pop-up takes clicks; Space inside a pop-up still goes to the pop-up (decision 0261).
 - Critical incidents pause on the clock's MENU, not CRITICAL (§1); a future settlement-side CRITICAL producer would
   let the clock say it itself.
+
+## At the batch 5 integration (2026-10-01)
+
+- **G stays "Run until…"**; O's planner moved to T (decision 0492).
+- **More planning surfaces and a guide hold.** The seasonal planner is a planning surface. The village guide's window
+  (0481) holds its MENU pause through the ledger as a hold of its own, HOLD_GUIDE, with the words "The village guide is
+  open" and the Resume refusal "Close the village guide to resume". It no longer sets the clock directly, so neither it
+  nor the game menu can release the other's pause.
+- **The pause card** steps below the one top-centre card shown: the incident card, else the guide card.
+- **The menu's controls became Help** (0481): Space as the one Resume, G and F6 are key rows there, with two how-to
+  topics (the object list; the presets and Time).
+- **The Songs bus** (0442) is in every mix, so Quiet focus turns it down too.

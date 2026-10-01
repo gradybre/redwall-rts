@@ -88,6 +88,14 @@ and 0.55 m forward of the hull's centre; the deck walked at 0.6 m/s; a rescue's 
 - `RESPONSE_*` values are compared numerically (`answered`, `_look_after`): a new rank must keep BOAT >= WATCH and
   DIVE the only answer for a victim held below.
 
+
+## At the batch 5 integration (2026-10-01)
+
+- **Routes** (0461): `route_kinds.gd` reads a crew member's boat as a BOAT leg ("by boat"), from the fleet rows, never
+  as a router crossing.
+- **The rescue card** (0461) shows a boat rescue's phase, the jetty as its landing and a time from ROW_SPEED_U_S.
+- **Names** (0491): the boat rescue's assistance is logged through `ashore`, so the helm's deed is recorded by name.
+
 ## Source
 
 GDD §5.4 (boat: 2/2, 120 party-WU, base 36, wear 15, injury 20; REQ-SET-052/054), §5.9 (Boathouse: 2 stored boats),

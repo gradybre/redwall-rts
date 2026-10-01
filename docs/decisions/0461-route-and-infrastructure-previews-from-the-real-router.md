@@ -141,6 +141,21 @@ An independent review (code-reviewer) of the first commit found one CRITICAL, on
   fails unloaded fails the same second check; a junction with another piece's planned-only segment cannot be laid — the
   plan joins only open bores). The first pass's ten survivors each got a test that kills them.
 
+
+## At the batch 5 integration (2026-10-01)
+
+- **The Routes layer sits beside the water's.** Its lens is added straight after "Getting there: Water range", so the
+  picker and V keep the "Getting there" pair together (it was after the woods).
+- **Names** (0491): the rescue card's targets read "Victim: *name* ▸" and "Responder: *name* ▸", and the examples
+  in the headers use the cast's names.
+- **Boat legs** (water part B, 0432). A boat's legs are task-driven, not router crossing rows, so `route_kinds.gd`
+  reads the boat a crew member sits in. The old catch-all WATER kind is now BOAT, "by boat": it runs from the boat's
+  position along its course, to its station or back to its berth. It is drawn on the layer, given a legend row and
+  said in the member's line ("Corra Netley: by boat 6 m"). A moored boat has no leg; the walk to the jetty is the
+  route.
+- **The rescue card answers a boat.** A boat rescue's phase reads "*name*: by boat: rowing out" (and so on), its
+  landing is the jetty and its time comes from the boat's speed.
+
 ## Source
 
 REVIEW.md P5 (925–946), P1's tunnel, bridge and water-safety rows (798–800), the bridge wireframe (845–861);

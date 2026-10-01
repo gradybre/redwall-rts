@@ -191,6 +191,15 @@ weir bridge -- it is now asked after the water's play and is a box test; togglin
 warning -- once a flood now; three functions over 30 lines split. LOW, fixed: the gate is not redrawn at rest; the
 header cited a function that does not exist. (Its songs findings are in 0442.)
 
+
+## At the batch 5 integration (2026-10-01)
+
+- **The map layers.** "Growing: Water service" stays the farm's third layer, after ripeness; P's "Getting there:
+  Routes" now sits beside "Getting there: Water range" (it was added after the woods). V steps off, moisture, ripeness,
+  water service, water range, routes, woods, off. The lens tests that count layers count both.
+- **The bed panel.** Its verb grid carries both "Sluice…" (this record) and O's "Compare…" (0451). Showing the weir
+  closes an open Compare view, as showing no bed does.
+
 ## Source
 
 Review ECO-006 (`REVIEW.md` 2315–2337) and the digest's guidance (`review_digest/part1.md`: "bounded, discrete

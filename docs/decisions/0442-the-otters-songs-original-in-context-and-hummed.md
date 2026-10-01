@@ -1,5 +1,5 @@
 # 0442 — The otters' songs: four original pieces, sung only in their context, taught by hearing, hummed on their own bus
-Date: 2026-10-01 · Status: Accepted (the texts await Brendan's review)
+Date: 2026-10-01 · Status: Accepted. **Brendan approved the four song texts as written on 2026-10-01** (decision 0493).
 
 Numbered in this lane's block (0441–0449; see 0441). Brendan approved water part B, "otter songs" among it
 (2026-10-01). The review's **SOC-026** (a community repertoire: original short pieces for work, gathering and
@@ -131,7 +131,8 @@ a score**: the demo has no score, and nothing here would play one (UX-030).
 - New songs are data: add an entry to `songs.json` (the load enforces the limits; `MAX_SONGS` 16, one bit each).
 - Lane 1's boats and fishing count as work through the same reads (a resident working or holding a working task);
   no change is needed there for a fisher to sing.
-- Brendan reviews the texts; a text he rejects is replaced in the data, and this record is updated with the new words.
+- Brendan reviewed the texts and approved all four as written (2026-10-01); none was replaced. A text changed later is
+  changed in the data, and this record is updated with the new words.
 - Open: UX-030's village motif and score; UX-032's named voices; a chronicle as the slots' source; a remembrance
   piece (SOC-026's third kind) once there is something to remember.
 
@@ -156,6 +157,16 @@ fixed: bubbles and heads are computed only for singers; the hum is stopped once 
 every frame; any of a resident's tasks working counts, not only its first; a learner teaches in its own name; the
 choice list is reused. LOW, left: the bubble's placement on screen is checked in the running demo's frames, not by a
 headless test (the suite's worker runs outside the scene tree).
+
+
+## At the batch 5 integration (2026-10-01)
+
+- **The texts are approved** as written (Brendan, 2026-10-01; decision 0493).
+- **The sixth bus in the presets.** S's Quiet focus preset (0471) applies SoundMix's own QUIET_PERCENTS, so it sets the
+  Songs bus (25 %) with the other five; Balanced and Atmosphere carry it too.
+- **Fishing is work.** Water part B's fishery joined the work board as SOURCE_FISHERY (7, SOURCE_COUNT 8), so a fisher or
+  a boat's rower holding a WORKING fishery task sings work songs through the same board read, with nothing changed
+  here.
 
 ## Source
 

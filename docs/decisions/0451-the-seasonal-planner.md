@@ -183,6 +183,18 @@ Compare's marks stayed on the map with the panel hidden, G opened on the physica
 the pea was a hard-coded index. Of its LOW findings, the cache keys and the double-counted cancelled batch are fixed;
 the rest are recorded under Left open.
 
+
+## At the batch 5 integration (2026-10-01)
+
+- **The key is T** (decision 0492): S's "Run until…" also took G. T is UI §5's calendar key; it was the Dig tool's alias,
+  which is dropped.
+- **A planning surface** (0471): the open planner is listed with the Pantry and the Work screen, so with "Pause while
+  planning" on it holds the planning pause through the ledger. It holds no pause of its own.
+- **The ledger and the record cover every pantry item** (water part B, 0431): the pantry's stored, withdrawn and spoiled
+  columns, and the record's per-item groups, are sized by PANTRY_ITEM_COUNT (24), so a catch, dried fish and flour
+  count with the crops. "Harvested" is therefore everything stored.
+- **The bed panel** carries Compare… beside B2's Sluice… (0441).
+
 ## Source
 
 REVIEW.md F45 (601–607), P1's "Seasonal forecast" row (806), P4 (904–923) with its farm overview work detail; the review

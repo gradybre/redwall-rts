@@ -38,6 +38,12 @@ the GDD's own answer, not an invented one. Rejected: putting dried fish in the s
 Ruling 1's "two dishes, alternating" stands for breakfast and the soup's turn; the stew only replaces a supper the
 pantry's fresh fish can make. A flour dish can join the same way when its inputs exist (0434).
 
+
+## At the batch 5 integration (2026-10-01)
+
+- **The guide** (0481): the field guide's dishes are built from meal_rules.gd, so the stew is an entry, cooked at supper,
+  its roots the second input. Help's kitchen topic and the supper objective name the stew when it is planned.
+
 ## Source
 
 GDD §5.7 (`fish_stew`, the food table, REQ-SET-094/109); balance §3.2 (`fish_stew`: `@fish:2000;roots:2000;water:2000`);

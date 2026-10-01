@@ -74,11 +74,13 @@ Review UX-022 (`session/`). **Every pause says why, and there is one Resume.**
 
 - **The pause card** (`ui/demo_pause_card.gd`) stands in for the HUD's "Paused: PLAYER" line, top centre: "Paused —"
   and each reason in words, most urgent first, then **Resume (Space)**. Its tooltip says what Resume clears. While a
-  pop-up is open (the Pantry, the Work screen, the object list) it sits bottom centre above it.
+  pop-up is open (the Pantry, the Work screen, the object list) it sits bottom centre above it. Otherwise it steps below
+  the one card shown at the top centre under the alerts -- the incident card, else the first-village guide's card.
 - **The kinds** (`session/pause_ledger.gd`): *Critical* -- a critical incident (a resident in difficulty in the water, a
   tunnel threat), with "Pause on a critical incident" on (the default), or a stall (the stall banner's own, as before);
-  *the game menu*; *Planning* -- the Pantry, the Work screen, the village news, the Residents list, the object list or the
-  Dig tool open, with "Pause while planning" on (off by default, UI §8.1); *You paused* -- Space, the HUD's pause button,
+  *the game menu*, or *the village guide* (its window holds its own MENU hold, so neither releases the other's);
+  *Planning* -- the Pantry, the Work screen, the seasonal planner (T), the village news, the Residents list, the object
+  list or the Dig tool open, with "Pause while planning" on (off by default, UI §8.1); *You paused* -- Space, the HUD's pause button,
   or a "Run until…" that arrived ("Reached dawn: Y1 Spring 2, 06:00").
 - **Resume** -- the card's button, Space while paused, or the HUD's pause button pressed while paused -- clears your
   pause, a planning pause and a critical pause. It never closes the game menu (its own Resume does) and never
@@ -317,7 +319,8 @@ characters -- each with a name, an interest and a way of speaking, from ONE data
   memory), a first harvest (a cancelled one carried in as its delivery is none), a skill level reached, and a first
   meal cooked that fed everyone.
 - **The spotlight**: after a rescue or a build, a top-centre card offers to mark the resident notable (★ on the roster;
-  nothing about the work changes) -- once per resident and kind; it waits behind any incident card.
+  nothing about the work changes) -- once per resident and kind; it waits behind any incident card and the guide's card,
+  and while the Residents list is open.
 - **The season's reflection**: at a season's end the card offers up to three of its moments -- **Pin to chronicle**
   (posted to the village news: "Chronicle: Corra Netley brought Tuppen Clayholm ashore (Spring 4)"), **Keep private**
   or **Dismiss** (it leaves the resident's history); **Later** leaves them as they are.
@@ -336,7 +339,7 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
 | Growing: Ripeness | Which beds are ready to harvest? | growing, ripe, past its best or lost, empty |
 | Growing: Water service | Which beds does the weir's garden leat water? | not served, dry (leat empty), normal, wet (decision 0441) |
 | Getting there: Water range | Where can they wade, swim, dive or cross? | wade, swim, dive, ford, bridge site, swim link, landing |
-| Getting there: Routes | How do they get there, and what holds them up? | surface, wading, underground, bridge, swimming (optional), the posts (waiting, blocked); public ways never swim (decision 0461) |
+| Getting there: Routes | How do they get there, and what holds them up? | surface, wading, underground, bridge, swimming (optional), by boat, the posts (waiting, blocked); public ways never swim (decision 0461) |
 | Woods: Zones and trees | Which trees may be felled, which must stay? | forestry and conservation zones; mature, young, stump, cleared |
 | Underground: Tunnels | What lies under the village? | the U view's cut (U switches it too) |
 
@@ -393,7 +396,9 @@ Review group P (packet P5, ECO-039, ECO-045). `routes/`, wired by `demo_village.
   how far the dig to it is and its benefit (the piece open to that stage), who fits the bore (by body; a group member by
   member), and that digging takes no materials. **Work ▸** opens the Work screen's projects.
 - **The Routes layer** (`routes/route_overlay.gd`): the selected residents' routes, each its own, coloured by stretch
-  (`routes/route_kinds.gd`: surface, wading, underground dashed with its level, bridge, swimming), and a post with the
+  (`routes/route_kinds.gd`: surface, wading, underground dashed with its level, bridge, swimming, and **by boat** -- a
+  crew member aboard, drawn along the boat's own course to its station or back to its berth, since a boat's legs are
+  its task's, not the router's), and a post with the
   words where one is held up (`routes/route_reasons.gd`, from the real cause): "finding a route", "waiting for mouth",
   "no safe exit", "closed by flood", "closed by a roof fall", "load too wide", "too big for the bore", "can't find a way
   there", "gave up". The picker's notes give each member's stretches or hold-up. With nobody selected (ECO-039): each
@@ -520,21 +525,24 @@ centre under the alerts), each completed **only by what really happens in the vi
   guide** hides it. A lost target is replaced (another ripe bed, the soonest, an empty bed to plant, a lost crop to
   clear); a blocked meal or bridge says why in its owner's own words and the fix; objective 4 shows its three ways side
   by side. The frost is the farm's own (the night into Spring 11, then the next).
-- **Where**: between the side columns, at most 420 wide; it yields to a critical incident's card, the stall banner and
-  the news history, and never reaches the Map layer picker -- it drops its teaching, then its next action, and where even
+- **Where**: between the side columns, at most 420 wide; it yields to a critical incident's card, the stall banner, the
+  news history and the open Residents list (it would cover the list's rows at 1280x720), and the people's offer card
+  waits behind it -- one card at the top centre: incident, guide, offer; and never reaches the Map layer picker -- it drops its teaching, then its next action, and where even
   that cannot fit (125 % on 1280x720 with a legend unfolded) it waits.
 - **Skip and reopen** (the card's Hide guide, the game menu's row, the window's Objectives tab) only hide or show the
   card: nothing is granted or lost. Hidden, it keeps up; reopened, it is on the first objective not done.
 - **Done**: "The first village stands", and a chronicle entry in Village news under the new **Village** source. Free
   play goes on; the Hearth Charter, the long-term goal, is beyond the demo.
-- **The village guide** (O, the HUD's Objectives command, unlocked for it): a modal that holds the menu pause (the village
-  waits) with five tabs -- **Objectives** (done, current with its cause, ahead), **Projects**, **Field guide**, **Help**
+- **The village guide** (O, the HUD's Objectives command, unlocked for it): a modal that holds a menu pause through the
+  pause ledger, "The village guide is open" (the village waits) with five tabs -- **Objectives** (done, current with its cause, ahead), **Projects**, **Field guide**, **Help**
   and **Practice**.
-- **Help** (also the game menu's Help page, in place of the 21-key Controls wall): 18 how-to topics and the 25 keys,
+- **Help** (also the game menu's Help page, in place of the 21-key Controls wall): 22 how-to topics and the 28 keys,
   searched in plain words ("how do I cross the stream", "eat", "why is my job waiting"), each topic a command answers
   with that command as a button.
-- **Field guide**: 41 entries built from the demo's own tables -- the 16 crops (which dish each feeds), the two dishes, 6
-  materials, 8 buildings and stations, 5 skills, 4 water-safety entries -- each with Uses, Requires, Alternatives and
+- **Field guide**: 53 entries built from the demo's own tables -- the 16 crops (which dish each feeds), the three dishes
+  (the fish stew at supper among them), 7 materials (fishing gear among them), 10 buildings and stations (fishing and
+  the boats, the drying rack and mill among them), 5 skills, 4 water-safety entries, and 8 fish and preserved foods (the
+  six fish, dried fish, flour) -- each with Uses, Requires, Alternatives and
   Available here, linked, a crop's pantry stock live; nothing the demo lacks.
 - **Practice stories**: a loaded crew at the stream, a delivery with nowhere to go, a winter pantry -- three choices each,
   what happened, a debrief comparing all three, Restart. Built from fresh copies of the village's own models (a pantry,
@@ -1046,7 +1054,8 @@ went to "Run until…".) Open, it is a planning surface: with "Pause while plann
 - **Record** (`farm/farm_record.gd`): yesterday, this season's days as a table and the season's totals -- harvested,
   food used (cooked and raw), portions eaten, spoiled (in store, on the table, a cancelled batch), who went without and
   crops lost -- read only from committed outcomes: the pantry's ledger of food stored, withdrawn and spoiled (never
-  reset), the kitchen's counters and meal log, and the crops that withered. Each day is closed at the farm's hour after
+  reset; every pantry item, so a catch, the rack's dried fish and the mill's flour count with the crops -- "harvested"
+  is everything stored), the kitchen's counters and meal log, and the crops that withered. Each day is closed at the farm's hour after
   its midnight (once the kitchen has tallied its supper) and posted to the village news (place Farm), each season's
   totals at its last day.
 

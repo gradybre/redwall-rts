@@ -141,6 +141,14 @@ arrived worker (decision 0361, rechecked every frame of work). A catch goes to t
 - The demo still has no FISHING RNG stream: no hazard roll, no injury, no rare-quality roll (fishing_driver.gd's named
   blockers); the injury risk is shown, never rolled.
 
+
+## At the batch 5 integration (2026-10-01)
+
+- **The pantry's ledger and O's record** (0451) cover all 24 pantry items.
+- **The guide** (0481): the field guide describes the catch, gear, fishing, the rack and the mill from these tables.
+  A catch shelved is not a "harvest" for the first-village guide.
+- **The Routes layer and the rescue card** (0461) read boat legs and boat rescues (see 0432).
+
 ## Source
 
 GDD §5.4 (the gear table, the catch, REQ-SET-043..056), §5.3, §5.7, §5.9; SET-AMEND-001 (the whitelist); decisions 0196,

@@ -161,6 +161,17 @@ nearby were 0451, 0461 and 0471).
   is skipped by the Lab's weather skip has no line; a few helpers only tests call (`name_with_role`, `has_person`,
   `record`, `chronicle_into`).
 
+
+## At the batch 5 integration (2026-10-01)
+
+- **The offer card waits behind the guide card** (0481) as it does the incident card. It stands aside while the
+  Residents list is open. The people harness now hides the guide before it asks for the spotlight, and checks the
+  spotlight waits while the guide card shows.
+- **F7** visits the guide card, then the offer card, after the Map layer picker.
+- **Names reach P's rescue card** (its Victim and Responder targets) and the routes' and object list's examples.
+- **A boat rescue is a deed.** Water part B's boat lands its victim through rescue.gd `ashore`, so the assistance log
+  names the helm and the people's ledger records the rescue for them. The fishery's boat-rescue test asserts the log.
+
 ## Source
 
 Brendan's rulings of 2026-10-01 (the brief for review group T); `redwall-review/REVIEW.md` P6 (lines 948–964); the

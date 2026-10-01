@@ -615,8 +615,9 @@ func _refresh_counters() -> void:
 	indistinguishable on screen from one the simulation actually derived.
 
 	`Fuel-days` stays unpopulated: its daily heating demand has no input in any implemented
-	system (see EconomySystem.fuel_days_missing_input()). `Beds` stays unpopulated too, because
-	it needs a Building/Room/Furniture store that does not exist. `Residents` is now supplied
+	system (see EconomySystem.fuel_days_missing_input()). `Beds` stays unpopulated too: the
+	Building/Room/Furniture stores exist, but nothing places a building (decision 0511), so a bed
+	count would be a fabricated zero rather than the §5.1 refuge's. `Residents` is now supplied
 	from the residents store's own living count when one is bound.
 	"""
 	if not _has_hud():

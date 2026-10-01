@@ -159,6 +159,11 @@ func follow_demo(cast: DemoCastScript, forestry: ForestryScript, network: GraphS
 	taps.watch()
 
 
+func follow_fishery(fishery: RefCounted) -> void:
+	"""Water part B's fishery too (sound_taps.gd `fishery`): its splashes and its boats' oars."""
+	taps.fishery = fishery
+
+
 func is_silent() -> bool:
 	"""Whether no cue has a stream loaded (no file staged: tools/stage_demo_audio.py)."""
 	for r: int in table.count():

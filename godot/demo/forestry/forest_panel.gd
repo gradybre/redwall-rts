@@ -20,6 +20,7 @@ const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const DetailZone := preload("res://demo/ui/demo_detail_zone.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
 
 signal action(name: StringName)
 
@@ -95,8 +96,7 @@ func build() -> void:
 	_frame.mouse_filter = Control.MOUSE_FILTER_STOP
 	_frame.add_theme_stylebox_override(&"panel", Styles.box(Styles.PIECE_PANEL, CONTENT_MARGINS))
 	add_child(_frame)
-	_body = ScrollContainer.new()
-	_body.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_body = DemoScroll.new()
 	_frame.add_child(_body)
 	_column = VBoxContainer.new()
 	_column.add_theme_constant_override(&"separation", 5)

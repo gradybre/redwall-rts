@@ -727,6 +727,7 @@ func test_the_view_hides_the_world_beds_and_redraws_on_change() -> void:
 	view.refresh()
 	assert_true(view.beds[BED_LOAM].overlay.visible, "overlay shown")
 	assert_equal(view.cycle_overlay(), ViewScript.OVERLAY_RIPENESS, "ripeness")
+	assert_equal(view.cycle_overlay(), ViewScript.OVERLAY_WATER, "the garden leat's water service (decision 0441)")
 	assert_equal(view.cycle_overlay(), ViewScript.OVERLAY_OFF, "off")
 	_set_moisture(sim, BED_LOAM, 9000)
 	assert_true(sim.drain_bed(BED_LOAM).ok, "the loam bed drained")
@@ -1122,17 +1123,18 @@ func test_keys_cycle_the_overlay_and_open_the_pantry() -> void:
 
 
 func test_one_key_cycles_every_map_overlay() -> void:
-	"""V: moisture, ripeness, then a layer the village added (the water's range), then off -- each shown
-	alone, so no two layers share the map (decision 0292: the same one active layer the picker shows)."""
+	"""V: moisture, ripeness, the garden leat's water service (decision 0441), then a layer the village added (the
+	water's range), then off -- each shown alone, so no two layers share the map (decision 0292: the same one active
+	layer the picker shows)."""
 	var farm := _farm()
 	var water_shown: Array[bool] = []
 	farm.add_overlay("Getting there", "Water range", "Where?", func(on: bool) -> void: water_shown.append(on))
 	var names: Array[String] = []
-	for press: int in 4:
+	for press: int in 5:
 		names.append(farm.cycle_overlays())
-	assert_equal(names, ["Growing: Soil moisture", "Growing: Ripeness", "Getting there: Water range", "Off"] as Array[String],
-		"the cycle")
-	assert_equal(water_shown, [false, false, true, false] as Array[bool], "the water shown only on its step")
+	assert_equal(names, ["Growing: Soil moisture", "Growing: Ripeness", "Growing: Water service",
+		"Getting there: Water range", "Off"] as Array[String], "the cycle")
+	assert_equal(water_shown, [false, false, false, true, false] as Array[bool], "the water shown only on its step")
 	assert_equal(farm.view.overlay_mode, ViewScript.OVERLAY_OFF, "and the farm's off again")
 
 

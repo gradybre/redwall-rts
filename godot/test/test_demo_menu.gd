@@ -159,7 +159,7 @@ func test_controls_list_the_demo_s_keys() -> void:
 	"""The Controls page names the focus switch, the Lab and the tools, one key per row."""
 	var menu := _menu()
 	var text: String = menu.page_text(MenuScript.PAGE_CONTROLS)
-	for key: String in ["F7", "F8", "Tab / Shift+Tab", "B or T", "K", "Esc", "Space"]:
+	for key: String in ["F7", "F8", "Tab / Shift+Tab", "B", "T", "G", "F6", "K", "Esc", "Space"]:
 		assert_true(text.contains(key), "lists %s" % key)
 	assert_true(text.contains("Back"), "and Back")
 

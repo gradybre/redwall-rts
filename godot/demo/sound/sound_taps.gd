@@ -101,6 +101,14 @@ var notices: NoticesScript = null
 var incidents: IncidentsScript = null
 var weather: WeatherScript = null
 var water_map: WaterMapScript = null
+## Water part B's fishery (demo/fishery/fishery.gd; decision 0431): its committed splashes (a net or trap set, a boat
+## pushing off, a hole cut in the ice) and its boats' oars -- a wood knock (the existing `step_wood` cue: oar on
+## rowlock) every OAR_STROKE_U a boat rows. Untyped, so the sound owns no dependency on the fishery.
+var fishery: RefCounted = null
+## A boat's oars knock once every this much rowing (u, 1.2 m: a stroke).
+const OAR_STROKE_U: int = 1229
+var _oar_u: PackedInt32Array = PackedInt32Array()
+var _oar_progress: PackedInt32Array = PackedInt32Array()
 
 ## This frame's events: cue row, where (world metres), whether below ground.
 var event_count: int = 0
@@ -184,6 +192,7 @@ func poll(now_msec: int, listener_ground: Vector2) -> int:
 	_poll_segments()
 	_poll_bridges()
 	_poll_notices()
+	_poll_fishery()
 	if now_msec - _ambience_msec >= AMBIENCE_MS:
 		_ambience_msec = now_msec
 		_poll_ambience(listener_ground)
@@ -204,6 +213,29 @@ func _emit(c: int, x: float, y: float, z: float, below: bool) -> void:
 	event_at[event_count] = _at
 	event_below[event_count] = 1 if below else 0
 	event_count += 1
+
+
+func _poll_fishery() -> void:
+	"""The fishery's committed splashes, and a knock each OAR_STROKE_U a boat rows (see `fishery`)."""
+	if fishery == null:
+		return
+	var splashes: PackedVector2Array = fishery.get(&"sound_at")
+	for at: Vector2 in splashes:
+		_emit(C_SPLASH, at.x, -0.18, at.y, false)
+	if not splashes.is_empty():
+		fishery.call(&"clear_sounds")
+	var fleet: RefCounted = fishery.get(&"fleet")
+	var progress: PackedInt32Array = fleet.get(&"progress_u")
+	if _oar_u.size() != progress.size():
+		_oar_u.resize(progress.size())
+		_oar_progress = progress.duplicate()
+	for boat: int in progress.size():
+		_oar_u[boat] += absi(progress[boat] - _oar_progress[boat])
+		_oar_progress[boat] = progress[boat]
+		if _oar_u[boat] >= OAR_STROKE_U:
+			_oar_u[boat] -= OAR_STROKE_U
+			var at: Vector2 = fleet.call(&"position_m", boat)
+			_emit(C_STEP_WOOD, at.x, -0.1, at.y, false)
 
 
 func _emit_flat(c: int) -> void:

@@ -17,6 +17,7 @@ const Words := preload("res://demo/kitchen/kitchen_text.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
+const FarmingScript := preload("res://scripts/core/farming.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
@@ -172,6 +173,47 @@ func _with_night(v: Village) -> void:
 
 # --- the numbers ------------------------------------------------------------------------------------
 
+func test_a_supper_with_fresh_fish_is_the_fish_stew() -> void:
+	"""Decision 0436: with a batch's fresh fish and roots free, supper is the fish stew -- both inputs reserved from real
+	lots, withdrawn together when the batch starts, 3 portions of 2200 NP a batch; the books balance."""
+	var v := _open(_village(3, tick_at(0, 14)))
+	_stock(v, Catalog.FIRST_CATCH + 3, 4000)
+	_stock(v, CARROT, 4000)
+	v.stores.add_water(10000)
+	_run(v, FRAMES_PER_HOUR + 10)
+	var plan: PackedInt32Array = v.kitchen.plan_of(Rules.meal_key(0, Rules.MEAL_SUPPER))
+	assert_equal(plan[0], Rules.DISH_FISH_STEW, "supper is the fish stew")
+	assert_true(_run(v, 6 * FRAMES_PER_HOUR, func() -> bool: return v.kitchen.store.portions_of(Rules.DISH_FISH_STEW) >= 3) > 0,
+		"a batch cooked")
+	assert_equal(v.kitchen.store.portions_of(Rules.DISH_FISH_STEW) % 3, 0, "three portions a batch")
+	var batches: int = v.kitchen.store.portions_of(Rules.DISH_FISH_STEW) / 3
+	assert_equal(v.pantry.milli_of(Catalog.FIRST_CATCH + 3), 4000 - batches * 2000, "2 U of perch a batch")
+	assert_equal(v.pantry.milli_of(CARROT), 4000 - batches * 2000, "2 U of roots a batch")
+	assert_equal(v.kitchen.consumed_food_milli, batches * 4000, "the books: both inputs")
+
+
+func test_without_roots_the_fish_waits_and_supper_is_what_there_is() -> void:
+	"""Fresh fish but no roots: no fish stew (both inputs or neither); with no roots for the soup either, the meal turns
+	to porridge as the alternation does; the fish is not touched."""
+	var v := _open(_village(2, tick_at(0, 14)))
+	_stock(v, Catalog.FIRST_CATCH, 4000)
+	_stock(v, OATS, 4000)
+	v.stores.add_water(10000)
+	_run(v, FRAMES_PER_HOUR + 10)
+	assert_equal(v.kitchen.plan_of(Rules.meal_key(0, Rules.MEAL_SUPPER))[0], Rules.DISH_PORRIDGE, "porridge instead")
+	assert_equal(v.kitchen.takes.free_milli_of_crop(v.pantry, Catalog.CAT_FISH), 4000, "the fish untouched")
+
+
+func test_the_ready_food_counts_each_dish_at_its_own_portions() -> void:
+	"""The HUD's Ready food: the fish stew's fish and the roots it takes make 3 portions a batch; the roots left the soup's
+	2 -- never the roots counted twice."""
+	var v := _open(_village(4, tick_at(0, 8)))
+	_stock(v, Catalog.FIRST_CATCH, 2000)
+	_stock(v, CARROT, 6000)
+	assert_equal(v.kitchen.cookable_batches(), 2, "one stew batch, one soup batch from the 4 U of roots left (not two from 6)")
+	assert_equal(v.kitchen.cookable_portions(), 5, "3 + 2 portions")
+
+
 func test_the_dishes_are_the_gdd_rows() -> void:
 	"""Porridge is §5.7's `porridge` (grain 2 + water 2 -> 2 x 1800 NP, 12 WU, 24 h) and the soup its `root_stew`
 	(roots 3 + water 1 -> 2 x 1800, 16 WU, 24 h); a batch burns BAL-SUPPLY-004's 0.1 U of wood; at §5.2's 80 milli-WU a
@@ -182,8 +224,13 @@ func test_the_dishes_are_the_gdd_rows() -> void:
 		Rules.NP_PER_PORTION[1], Rules.WORK_MWU[1], Rules.SHELF_HOURS[1]], ["root_stew", 3000, 1000, 2, 1800, 16000, 24], "soup")
 	assert_equal(Rules.WOOD_MILLI_PER_BATCH, 100, "0.1 U of wood a batch")
 	assert_equal([Rules.batch_ticks(0), Rules.batch_ticks(1)], [150, 200], "12 and 16 WU at 60 WU a game hour")
-	assert_equal(Rules.LIBRARY_IDS, ["salamandastron::SAL_recipe_wild_oat_porridge", "outcast::OUT_recipe_togget_s_vegetable_soup"],
-		"the library's two recipes")
+	assert_equal(Rules.LIBRARY_IDS, ["salamandastron::SAL_recipe_wild_oat_porridge", "outcast::OUT_recipe_togget_s_vegetable_soup",
+		"taggerung::TAG_recipe_requested_perch_or_trout"], "the library's three recipes (the third: decision 0436)")
+	assert_equal([Rules.GDD_ROWS[2], Rules.INPUT_MILLI[2], Rules.SIDE_MILLI[2], Rules.WATER_MILLI[2], Rules.PORTIONS_PER_BATCH[2],
+		Rules.NP_PER_PORTION[2], Rules.WORK_MWU[2], Rules.SHELF_HOURS[2]], ["fish_stew", 2000, 2000, 2000, 3, 2200, 20000, 24],
+		"§5.7 fish_stew: fish 2 + roots 2 + water 2 -> 3 x 2200 NP, 20 WU, 24 h")
+	assert_equal([Rules.INPUT_CROP[2], Rules.SIDE_CROP[2]], [Catalog.CAT_FISH, FarmingScript.CROP_ROOTS], "fresh fish and roots")
+	assert_false(Rules.is_input(Rules.DISH_FISH_STEW, Catalog.ITEM_DRIED_FISH), "dried fish is not §5.7's `fish`")
 
 
 func test_grain_and_roots_are_their_rows() -> void:

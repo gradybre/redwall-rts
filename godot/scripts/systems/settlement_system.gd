@@ -86,12 +86,13 @@ extends Node
 ##
 ## WHAT ARCH-SYS-002 NOW DOES, AND WHAT IT STILL DOES NOT. It drains `commands.gd`'s ordered
 ## next-tick queue and commits each drained record through `command_dispatch.gd`. In THIS node's
-## composition that now reaches ALL SIX implemented kinds. Four of them -- CANCEL_JOB,
+## composition that now reaches ALL SEVEN implemented kinds. Four of them -- CANCEL_JOB,
 ## NAME_RESIDENT, SET_ACTIVITY_SCHEDULE and SET_JOB_PRIORITIES -- always did, because this node
-## composes the resident-side stores. DESIGNATE_ZONE and SET_POLICY refused COMMAND_STORE_NOT_BOUND
+## composes the resident-side stores, and APPOINT_WARDEN (decision 0511) reaches the same
+## `residents.gd` for the same reason. DESIGNATE_ZONE and SET_POLICY refused COMMAND_STORE_NOT_BOUND
 ## until task 04.4, because they need `forage.gd` and `job_planner.gd`; `_bind_ecology_to_commands()`
 ## is the named handoff task 04.2 reserved for it and it runs during composition, so a player's
-## zone and policy edits now reach real stores in the running game. The remaining eighteen
+## zone and policy edits now reach real stores in the running game. The remaining seventeen
 ## ARCH-CMD-003 kinds refuse COMMAND_UNSUPPORTED_FEATURE and name their missing owner.
 ##
 ## ONE PLAYER COMMAND CANNOT PRODUCE TWO DESIGNATIONS. `command_dispatch.gd` records
@@ -2561,11 +2562,11 @@ func commands() -> CommandsScript:
 
 
 func command_dispatch() -> CommandDispatchScript:
-	"""ARCH-SYS-002's commit stage, WITH the ecology bound: all six implemented kinds commit here.
+	"""ARCH-SYS-002's commit stage, WITH the ecology bound: all seven implemented kinds commit here.
 
 	`_bind_ecology_to_commands()` calls `bind_ecology()` during composition, so DESIGNATE_ZONE and
 	SET_POLICY reach `forage.gd` and `job_planner.gd` instead of refusing COMMAND_STORE_NOT_BOUND.
-	The other eighteen ARCH-CMD-003 kinds still refuse COMMAND_UNSUPPORTED_FEATURE and name the
+	The other seventeen ARCH-CMD-003 kinds still refuse COMMAND_UNSUPPORTED_FEATURE and name the
 	store they are waiting for.
 	"""
 	return _dispatch
@@ -2867,13 +2868,14 @@ func _recheck_demolition_residents(building_ref: Vector2i) -> StringName:
 
 
 func _footprint_binding_refusal() -> StringName:
-	"""Stage 5: refuse while nothing binds an inventory container to a footprint tile.
+	"""Stage 5: refuse until the footprint-containment success path lands (DEMO-CONTAIN-R01 D4).
 
-	AN InventoryContainer ROW CARRIES NO POSITION. GDD §4.2 gives it owner, max mass, filters,
-	reserved mass, policy and reachability, and `buildings.gd`'s tile maps name buildings, rooms
-	and furniture -- never a container. So a ground pile standing in the doorway, or another
-	entity's container physically inside this footprint, cannot be enumerated at all, and the
-	owner scan above proves OWNERSHIP rather than CONTAINMENT.
+	`inventory.gd` now carries a placement anchor per container and publishes the bounded
+	`containers_anchored_in_into()` query (decision 0531), but NOTHING ANCHORS A LIVE CONTAINER YET:
+	the starter stores are rebound and anchored in D3, ground piles arrive in D2, and the owner
+	scan / tile scan agreement this gate needs is D4. Until those land, a ground pile in the
+	doorway or another entity's container inside this footprint is still not provably absent,
+	and the owner scan above proves OWNERSHIP rather than CONTAINMENT.
 
 	Reporting the previous four stages as a pass would therefore report "I looked and found
 	nothing" when the truth is "I cannot see there" -- which is the one confusion INV-GOODS-R01

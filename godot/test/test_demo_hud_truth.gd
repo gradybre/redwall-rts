@@ -280,8 +280,8 @@ func test_a_row_says_who_where_what_and_what_next() -> void:
 	var command: CommandScript = parts[0]
 	var roster := _roster(parts)
 	var doing: String = command.activity_text(0)
-	assert_equal(roster.row_text(0), "Placeholder 0 — Placeholder · On the surface\n" + doing.left(1).to_upper()
-		+ doing.substr(1), "a placeholder has no trade; its line 2 is the party panel's words")
+	assert_equal(roster.row_text(0), "Placeholder 0 — placeholder · On the surface\n" + doing.left(1).to_upper()
+		+ doing.substr(1), "no trade; species lower case (0491); line 2 the party panel's words")
 	assert_equal(doing, "wandering", "a placeholder left to its routine")
 	assert_equal(RosterScript.row_words("Mole digger", "Mole", "digger", "Underground, level 1", "digging tunnel — 43%",
 		PackedStringArray(["back to Burrow home 1"])), "Mole digger — Mole, digger · Underground, level 1\n"

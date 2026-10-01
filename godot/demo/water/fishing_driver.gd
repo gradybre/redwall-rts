@@ -53,8 +53,14 @@ extends RefCounted
 ##     injury stores. The risk number and each site's bank landing point (the rescue point) are
 ##     published; the roll is phase 2's.
 ##   * THE RARE-QUALITY ROLL -- the same FISHING stream. Every lot is PLAIN.
-##   * UNLOCKS (M1 trap, M2 weir, M3 boat), WINTER ICE (REQ-SET-051: the ice kit is offered nowhere)
-##     and STORMS (REQ-SET-052) are not evaluated: the demo runs no milestones or weather.
+##   * UNLOCKS (M1 trap, M2 weir, M3 boat) are not evaluated: the demo runs no milestones.
+##
+## WINTER ICE (REQ-SET-051; water part B, decision 0433). The pond's ice is the fishery owner's (demo/fishery/
+## pond_ice.gd); it tells the driver with `set_lake_frozen`. While the lake is frozen the ice kit is the ONLY gear
+## its sites take ("permit only equipped ice-kit crews"), and while it is open the ice kit is refused there ("Frozen
+## lake"). The river is never frozen (REQ-SET-051: "river/coast access remains weather-dependent"). Storms and the
+## hard freeze's boat ban (REQ-SET-052/144) are the boat's owner's (demo/fishery/fishery.gd `entry_refusal`).
+## GEAR DURABILITY AND WEAR are now real too, in the fishery's gear locker (demo/fishery/gear_locker.gd, gear.gd).
 
 const Fishing := preload("res://scripts/core/fishing.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
@@ -97,7 +103,7 @@ const INJURY_CREW_TERM: int = 4
 const SITE_GEAR_MASK: Array[int] = [
 	(1 << Fishing.GEAR_HAND_NET) | (1 << Fishing.GEAR_TRAP) | (1 << Fishing.GEAR_WEIR),
 	(1 << Fishing.GEAR_HAND_NET) | (1 << Fishing.GEAR_TRAP),
-	(1 << Fishing.GEAR_HAND_NET) | (1 << Fishing.GEAR_TRAP) | (1 << Fishing.GEAR_BOAT),
+	(1 << Fishing.GEAR_HAND_NET) | (1 << Fishing.GEAR_TRAP) | (1 << Fishing.GEAR_BOAT) | (1 << Fishing.GEAR_ICE_KIT),
 ]
 
 const JOB_KIND_FISH: int = Catalog.JOB_KIND["FISH"]
@@ -113,6 +119,9 @@ const REFUSE_NEGATIVE_TICK: StringName = &"NEGATIVE_TICK"
 const REFUSE_SPECIES_IDS: StringName = &"SPECIES_ID_COUNT"
 const REFUSE_NO_HABITAT: StringName = &"NO_HABITAT_OF_TYPE"
 const REFUSE_NOT_A_CYCLE: StringName = &"NOT_AN_OPEN_CYCLE"
+## WINTER ICE's two refusals.
+const REFUSE_ICE_COVERS: StringName = &"ICE_COVERS_THE_LAKE"
+const REFUSE_NOT_FROZEN: StringName = &"LAKE_NOT_FROZEN"
 
 
 class CreateResult:
@@ -201,6 +210,8 @@ var _tick_carry: int = 0
 var _calendar: SimClock.Calendar = SimClock.Calendar.new(0)
 var _scan: SimClock.Calendar = SimClock.Calendar.new(0)
 var _math: IntMath.IntResult = IntMath.IntResult.new()
+## Whether the lake's ice covers it (see WINTER ICE).
+var _lake_frozen: bool = false
 ## Bumped whenever a stock, a quota or the calendar day changes, so a display redraws only then.
 var revision: int = 0
 
@@ -386,6 +397,9 @@ func refusal(site: int, species_index: int, gear: int) -> StringName:
 		return REFUSE_GEAR_NOT_AT_SITE
 	if not gear_takes_species(gear, species_row_of(site, species_index)):
 		return REFUSE_GEAR_SPECIES
+	var iced: StringName = ice_refusal(site, gear)
+	if iced != REFUSE_NONE:
+		return iced
 	var row: int = stock_row(site, species_index)
 	var block: StringName = _fishing.harvest_block_code(row, _calendar.season, _calendar.season_day)
 	if block != REFUSE_NONE:
@@ -394,6 +408,29 @@ func refusal(site: int, species_index: int, gear: int) -> StringName:
 		return Fishing.REFUSE_QUOTA_REACHED
 	if _fishing.must_queue(_habitat_ref[site], Fishing.GEAR_EFFORT_SLOTS[gear]):
 		return Fishing.REFUSE_EFFORT_SLOTS_FULL
+	return REFUSE_NONE
+
+
+func set_lake_frozen(frozen: bool) -> void:
+	"""Whether ice covers the lake now (see WINTER ICE)."""
+	if frozen != _lake_frozen:
+		_lake_frozen = frozen
+		revision += 1
+
+
+func lake_frozen() -> bool:
+	"""Whether ice covers the lake (see WINTER ICE)."""
+	return _lake_frozen
+
+
+func ice_refusal(site: int, gear: int) -> StringName:
+	"""WINTER ICE at a valid site: on the frozen lake only the ice kit; on the open lake never the ice kit."""
+	if SITE_HABITAT[site] != Fishing.HABITAT_LAKE:
+		return REFUSE_NONE if gear != Fishing.GEAR_ICE_KIT else REFUSE_NOT_FROZEN
+	if _lake_frozen and gear != Fishing.GEAR_ICE_KIT:
+		return REFUSE_ICE_COVERS
+	if not _lake_frozen and gear == Fishing.GEAR_ICE_KIT:
+		return REFUSE_NOT_FROZEN
 	return REFUSE_NONE
 
 

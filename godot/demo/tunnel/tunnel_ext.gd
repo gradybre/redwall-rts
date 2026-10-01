@@ -141,6 +141,10 @@ var _view: ViewScript = null
 var _selection: Callable = Callable()
 var _mark: Callable = Callable()
 var _refresh_in: float = 0.0
+## The panel's project lines and its Work ▸ link (demo/routes/demo_routes.gd, decision 0461): `project_text() ->
+## String` ("" for none) and `project_link()`. None: no project shown.
+var project_text: Callable = Callable()
+var project_link: Callable = Callable()
 var _weather_skip: Callable = Callable()
 var _enabled: Dictionary = {}
 ## The action cards (decision 0332): one card filled per button, each button's card text, what an order would
@@ -512,6 +516,9 @@ func on_action(action: StringName) -> void:
 				works.tell("A demo event is already under way")
 		PanelScript.ACTION_REPAIR:
 			actions.order(_repair_job(), selection)
+		PanelScript.ACTION_PROJECT_LINK:
+			if project_link.is_valid():
+				project_link.call()
 		_:
 			actions.order(JOB_FOR_ACTION[action], selection)
 	_refresh_in = 0.0
@@ -628,6 +635,7 @@ func refresh_panel() -> void:
 	if works.stores.revision != _finds_seen:
 		_finds_seen = works.stores.revision
 		_show_finds()
+	panel.show_project(String(project_text.call()) if project_text.is_valid() else "")
 	if ground_view.planning:
 		panel.show_room("", "", [], "", false)
 		panel.show_tunnel(_planning_heading(), GroundViewScript.LEGEND, "", {})

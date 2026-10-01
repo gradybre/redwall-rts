@@ -28,6 +28,11 @@ extends CanvasLayer
 ##     down), its order list ("Next:", decision 0411: what it will go back to and what was queued -- a row
 ##     each), its skills, its orders IN FULL (each with what to right-click: never folded away) and the hint; for a group, one row per member (every member: no "+ n more"), each a
 ##     button that selects that resident alone and centres the camera on it (`member_picked`).
+##   * THE PERSON (decision 0491, review P6), for one resident whose entry carries the people's "person"
+##     (demo/people/demo_people.gd): its species line names its role ("Mouse, keeper"), a "Why:" line follows what it
+##     is doing, and after its lines the person section (demo/people/person_section.gd): its skills as meters, and
+##     "About <name>" opening its interest, relationships, notable pin and notable moments (each going to its place
+##     and person: `person_section().go_to`).
 ## Where the column is too short for the header, summary and actions and a useful inspector (125 % and
 ## 150 % at 1280x720), the summary and actions move to the top of the inspector -- reached by scrolling,
 ## never hidden.
@@ -51,6 +56,7 @@ const PickRow := preload("res://demo/ui/demo_pick_row.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
+const PersonSection := preload("res://demo/people/person_section.gd")
 
 signal dig_requested
 signal room_requested(kind: int)
@@ -145,6 +151,7 @@ var _member_rows: Array[Button] = []
 var _member_index: PackedInt32Array = PackedInt32Array()
 var _member_count: int = 0
 var _abilities: Label = null
+var _person: PersonSection = null
 var _hint: Label = null
 var _docked: bool = true
 var _pending_notice: String = ""
@@ -288,6 +295,9 @@ func _build_detail() -> void:
 	_member_box = VBoxContainer.new()
 	_member_box.add_theme_constant_override(&"separation", 1)
 	_rows.add_child(_member_box)
+	_person = PersonSection.new()
+	_person.build(inner_width() - SCROLLBAR_ALLOWANCE)
+	_detail.add_child(_person)
 	_abilities = _wrapped("", SMALL_PX, Palette.UMBER)
 	_abilities.visible = false
 	_detail.add_child(_abilities)
@@ -366,6 +376,7 @@ func show_party(entries: Array[Dictionary]) -> void:
 			else PackedStringArray()
 	_abilities.text = "\n".join(abilities)
 	_abilities.visible = not abilities.is_empty()
+	_person.show_person(entries[0].get("person", {}) if entries.size() == 1 else {})
 	_queue_place()
 
 
@@ -436,6 +447,11 @@ func summary() -> String:
 func count_shown() -> String:
 	"""The header's count ("6 selected"; "" for nobody)."""
 	return _count.text if _count != null else ""
+
+
+func person_section() -> PersonSection:
+	"""The one-resident inspector's person (null before build)."""
+	return _person
 
 
 func abilities_text() -> String:
@@ -533,7 +549,7 @@ static func first_up(words: String) -> String:
 
 static func party_lines(entries: Array[Dictionary]) -> PackedStringArray:
 	"""What the panel says, in reading order. Nobody: NOBODY. One resident: its name (the summary's lead),
-	species, what it is doing, the progress or step of that (when its state has one), how fed it is (the kitchen's
+	species and role ("Mouse, keeper"), what it is doing, why (the person's, decision 0491), the progress or step of that (when its state has one), how fed it is (the kitchen's
 	rows, decision 0381), "Next:" and a row per entry of its order list (decision 0411), then its skills, a line for each line of them.
 	A group: "n residents", then a line per member -- every member -- with its fed word and short skills after its
 	state."""
@@ -555,11 +571,15 @@ static func party_lines(entries: Array[Dictionary]) -> PackedStringArray:
 static func _one_lines(entry: Dictionary, lines: PackedStringArray) -> void:
 	"""One resident's lines (see party_lines)."""
 	var state: String = String(entry["state"])
+	var role: String = String(entry.get("role", ""))
 	lines.append(String(entry["name"]))
-	lines.append(String(entry["species"]))
+	lines.append(String(entry["species"]) + (", " + role if not role.is_empty() else ""))
 	lines.append(command_of(state))
 	if not step_of(state).is_empty():
 		lines.append(step_line(step_of(state)))
+	var why: String = String((entry.get("person", {}) as Dictionary).get("why", ""))
+	if not why.is_empty():
+		lines.append(why)
 	for fed: String in String(entry.get("fed", "")).split("\n", false):
 		lines.append(fed)
 	var then: PackedStringArray = entry.get("then", PackedStringArray())

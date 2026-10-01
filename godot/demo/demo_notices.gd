@@ -35,7 +35,9 @@ const SOURCE_EVENTS: int = 3
 const SOURCE_CREW: int = 4
 const SOURCE_WOODS: int = 5
 const SOURCE_WATER: int = 6
-const SOURCE_NAMES: Array[String] = ["Farm", "Tunnels", "Weather", "Threat", "Crew", "Woods", "Water"]
+## The village's own chronicle: a finished first-village guide, a completed player-named project (decision 0481).
+const SOURCE_VILLAGE: int = 7
+const SOURCE_NAMES: Array[String] = ["Farm", "Tunnels", "Weather", "Threat", "Crew", "Woods", "Water", "Village"]
 const LEVEL_NOTE: int = 0
 const LEVEL_WARNING: int = 1
 ## §7: "severity word+icon" -- the word, so colour never states the level alone.
@@ -55,7 +57,7 @@ const GROUP_NAMES: Array[String] = ["Farm", "Woods", "Tunnels", "Water", "Villag
 const ALL_GROUPS: int = 31
 ## SOURCE_* -> GROUP_*.
 const SOURCE_GROUP: PackedByteArray = [GROUP_FARM, GROUP_TUNNELS, GROUP_VILLAGE, GROUP_VILLAGE, GROUP_VILLAGE,
-	GROUP_WOODS, GROUP_WATER]
+	GROUP_WOODS, GROUP_WATER, GROUP_VILLAGE]
 ## The history's severity filter.
 const SHOW_ALL: int = 0
 const SHOW_WARNINGS: int = 1

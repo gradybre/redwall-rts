@@ -553,7 +553,10 @@ func _f7_reaches_the_left_column_then_the_world() -> void:
 	_check("F7 a third time: the Map layer picker", _focus() != null
 		and _village.get("_lens_picker").is_ancestor_of(_focus()), str(_focus()))
 	_key(KEY_F7)
-	_check("F7 a fourth time: the world", _focus() == null)
+	_check("F7 a fourth time: the guide card (decision 0481)", _focus() != null
+		and _village.call(&"guide").get("card").call(&"frame").is_ancestor_of(_focus()), str(_focus()))
+	_key(KEY_F7)
+	_check("F7 a fifth time: the world", _focus() == null)
 	_check("the selection is untouched", _command().call(&"selection_count") > 1)
 	_key(KEY_ESCAPE)
 
@@ -605,11 +608,13 @@ func _enter_goes_to_the_dig_tool() -> void:
 # --- F50: the Demo Lab --------------------------------------------------------------------------
 
 func _lab_holds_the_triggers() -> void:
-	"""F8 opens the Lab with the four triggers; the panels hold none of them; F8 closes it."""
+	"""F8 opens the Lab with the four triggers, then the guide's Practice stories (decision 0481); the panels hold none of
+	them; F8 closes it."""
 	var lab: CanvasLayer = _village.call(&"lab")
 	_key(KEY_F8)
 	_check("F8 opens the Demo Lab", lab.visible and _gate().top_layer() == lab)
-	_check("the Lab holds the four triggers", Array(lab.call(&"trigger_labels")) == TRIGGER_WORDS)
+	_check("the Lab holds the four triggers and Practice stories",
+		Array(lab.call(&"trigger_labels")) == ["Next weather", "Test event", "Storm gust", "Cramp", "Practice stories"])
 	_check("Cramp waits for a swimmer", (lab.call(&"trigger_button", 3) as Button).disabled)
 	_capture("demo_lab")
 

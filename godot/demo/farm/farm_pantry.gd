@@ -35,6 +35,11 @@ extends RefCounted
 ## batch taking its ingredients, a hungry resident's raw emergency meal. A lot row is reused once freed, so every
 ## opening gives the row a new SERIAL (`lot_serial`): a reservation made against (row, serial) can never draw on
 ## another lot that happens to take the same row later (demo/kitchen/ingredient_takes.gd).
+##
+## THE LEDGER (decision 0451, the seasonal planner's after-action record). Per item, never reset: every milli-U that
+## came IN (a delivery stored: `_lot_into`, the one place a lot grows), went OUT (`withdraw_into`) and SPOILED (`_spoil`).
+## Committed outcomes only -- a reservation, a load in hand or a composting moves none of them -- so for every item
+## `milli_of == stored_total_milli - withdrawn_total_milli - spoiled_total_milli` (test_demo_planner.gd checks it).
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
@@ -69,6 +74,12 @@ const GONE: int = -2
 
 var storage: StorageScript = null
 var spoiled_milli: int = 0
+## Every milli-U of a CROP a DELIVERY has ever shelved (`store_upto_into`: a harvest carried to its store), and the item
+## of the latest: the first-village guide's "a harvest came into store" (demo/guide/, decision 0481). `add_into` (a
+## test's or a fixture's stocking) never counts, and nor do the pantry's other goods (decision 0431: a catch, the rack's
+## dried fish, the mill's flour) -- they are not a harvest.
+var delivered_milli: int = 0
+var last_delivered_item: int = FREE
 
 var _lot_item: PackedInt32Array = PackedInt32Array()
 var _lot_location: PackedInt32Array = PackedInt32Array()
@@ -77,6 +88,10 @@ var _lot_age: PackedInt64Array = PackedInt64Array()
 var _lot_remainder: PackedInt32Array = PackedInt32Array()
 var _item_milli: PackedInt64Array = PackedInt64Array()
 var _spoiled_items: PackedInt32Array = PackedInt32Array()
+## THE LEDGER (see the header): per item, cumulative milli-U stored, withdrawn and spoiled.
+var _in_milli: PackedInt64Array = PackedInt64Array()
+var _out_milli: PackedInt64Array = PackedInt64Array()
+var _spoiled_by_item: PackedInt64Array = PackedInt64Array()
 var _ids: Array = []
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _hold_live: PackedByteArray = PackedByteArray()
@@ -100,7 +115,9 @@ func _init(p_storage: StorageScript) -> void:
 	for column: PackedInt64Array in [_lot_milli, _lot_age]:
 		column.resize(MAX_LOTS)
 	_lot_item.fill(FREE)
-	_item_milli.resize(Catalog.ITEM_COUNT)
+	_item_milli.resize(Catalog.PANTRY_ITEM_COUNT)
+	for column: PackedInt64Array in [_in_milli, _out_milli, _spoiled_by_item]:
+		column.resize(Catalog.PANTRY_ITEM_COUNT)
 	_ids.resize(MAX_LOTS)
 	_hold_live.resize(MAX_HOLDS)
 	_hold_location.resize(MAX_HOLDS)
@@ -114,7 +131,7 @@ func add_into(item: int, milli: int, location: int, out: IntMath.IntResult) -> b
 	"""Store `milli` of `item` at `location` as a fresh lot (see the header on a full table). Writes
 	the lot row into `out`; refuses a bad item, quantity or location, or one without the room -- room a
 	reservation holds is not free."""
-	if not Catalog.is_item(item):
+	if not Catalog.is_pantry_item(item):
 		return out.refuse(REFUSE_NOT_AN_ITEM)
 	if milli <= 0:
 		return out.refuse(REFUSE_BAD_QUANTITY)
@@ -137,6 +154,7 @@ func _lot_into(item: int, milli: int, location: int, out: IntMath.IntResult) -> 
 		return out.refuse(REFUSE_NO_ROOM)
 	_lot_milli[lot] += milli
 	_item_milli[item] += milli
+	_in_milli[item] += milli
 	return out.succeed(lot)
 
 
@@ -208,7 +226,7 @@ func _best_location_into(milli: int, item: int, by_distance: bool, from_u: Vecto
 func _lot_row_for(item: int, location: int) -> bool:
 	"""Whether a delivery of `item` could be kept at `location` as a lot: a free row, or a lot of it there
 	to merge into (`_lot_into`). Any location for NO_ITEM (a room-only question)."""
-	if not Catalog.is_item(item) or _lot_item.find(FREE) >= 0:
+	if not Catalog.is_pantry_item(item) or _lot_item.find(FREE) >= 0:
 		return true
 	return _oldest_lot_into(item, location, _lot_probe)
 
@@ -257,7 +275,7 @@ func total_milli() -> int:
 	"""Every item's stock added up, milli-U: the HUD's Food figure and the Pantry's total (F28: summed
 	before it is formatted)."""
 	var total: int = 0
-	for item: int in Catalog.ITEM_COUNT:
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		total += _item_milli[item]
 	return total
 
@@ -268,7 +286,7 @@ func reserve_near_into(item: int, milli: int, from: Vector2, out: IntMath.IntRes
 	"""Reserve room for `milli` of `item` at the store a delivery from `from` should go to
 	(`location_near_into`'s choice, where a lot of it can be kept). The hold's row into `out`; refuses a
 	bad item or quantity, NO_STORAGE_ROOM or a full hold table."""
-	if not Catalog.is_item(item):
+	if not Catalog.is_pantry_item(item):
 		return out.refuse(REFUSE_NOT_AN_ITEM)
 	if milli <= 0:
 		return out.refuse(REFUSE_BAD_QUANTITY)
@@ -352,7 +370,7 @@ func store_upto_into(item: int, milli: int, location: int, hold: int, out: IntMa
 	stores WHAT FITS -- the free room plus the hold's own -- as a lot, draws the hold down by it (to
 	nothing when not all of it fitted: that store has no more room to keep). How much was stored into
 	`out` (0 when nothing fitted, or no lot row was to be had); refuses a bad item, quantity or location."""
-	if not Catalog.is_item(item):
+	if not Catalog.is_pantry_item(item):
 		return out.refuse(REFUSE_NOT_AN_ITEM)
 	if milli <= 0:
 		return out.refuse(REFUSE_BAD_QUANTITY)
@@ -365,6 +383,9 @@ func store_upto_into(item: int, milli: int, location: int, hold: int, out: IntMa
 		return out.succeed(0)
 	if own > 0:
 		_hold_milli[hold] = maxi(0, own - fits) if fits == milli else 0
+	if Catalog.is_item(item):
+		delivered_milli += fits
+		last_delivered_item = item
 	return out.succeed(fits)
 
 
@@ -398,6 +419,7 @@ func _spoil(lot: int) -> void:
 	var item: int = _lot_item[lot]
 	_item_milli[item] -= _lot_milli[lot]
 	spoiled_milli += _lot_milli[lot]
+	_spoiled_by_item[item] += _lot_milli[lot]
 	_spoiled_items.append(item)
 	_lot_item[lot] = FREE
 	_lot_milli[lot] = 0
@@ -424,6 +446,21 @@ func take_spoiled_items_into(out: PackedInt32Array) -> int:
 func milli_of(item: int) -> int:
 	"""How much of an item the pantry holds, milli-U."""
 	return _item_milli[item]
+
+
+func stored_total_milli(item: int) -> int:
+	"""THE LEDGER: every milli-U of `item` ever stored here (deliveries), never reset."""
+	return _in_milli[item]
+
+
+func withdrawn_total_milli(item: int) -> int:
+	"""THE LEDGER: every milli-U of `item` ever withdrawn (the kitchen's batches and raw meals), never reset."""
+	return _out_milli[item]
+
+
+func spoiled_total_milli(item: int) -> int:
+	"""THE LEDGER: every milli-U of `item` that ever spoiled in store, never reset (composting does not touch it)."""
+	return _spoiled_by_item[item]
 
 
 func units_of(item: int) -> int:
@@ -574,6 +611,7 @@ func withdraw_into(lot: int, serial: int, milli: int, out: IntMath.IntResult) ->
 		return out.refuse(REFUSE_NO_STOCK)
 	_lot_milli[lot] -= milli
 	_item_milli[_lot_item[lot]] -= milli
+	_out_milli[_lot_item[lot]] += milli
 	if _lot_milli[lot] == 0:
 		_lot_item[lot] = FREE
 	return out.succeed(milli)

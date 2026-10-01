@@ -1,6 +1,6 @@
 {
  "registry_id": "RWL-CANONICAL-REGISTRY-2026-09-15-3",
- "registry_version": 6,
+ "registry_version": 7,
  "status": "ADOPTED_KEYS_TYPES_AND_ORDINALS_FOR_NAMED_SNAPSHOT",
  "release_save_ready": false,
  "source_commit": "reconciled_to_integration_head_from_197472b9d7f2",
@@ -56,8 +56,8 @@
   "world_init": "21a88aebbacb757c552056144379b57251119fdc606aa4344fe3c698fb387e5a"
  },
  "canonical_stream": "RWL-STATE-1",
- "record_count": 603,
- "packed_source_field_count": 554,
+ "record_count": 604,
+ "packed_source_field_count": 555,
  "policy": "Fixed per compatible build; add owners/fields explicitly on arrival, change rules identity and affected versions; refuse incompatible development saves. Never infer registry at runtime. source_module_sha256 records the named reconciliation snapshot, not current HEAD; current acceptance source hashes are retained with each task evidence ledger.",
  "owners": [
   {
@@ -6232,7 +6232,7 @@
   {
    "section_id": 7,
    "owner_key": "inventory",
-   "owner_schema_version": 3,
+   "owner_schema_version": 4,
    "fields": [
     {
      "field_key": "_c_free_count",
@@ -6657,6 +6657,20 @@
      },
      "ordinal": 29,
      "source_contract": "C135"
+    },
+    {
+     "field_key": "_c_anchor_tile",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "inventory",
+     "source_member": "_c_anchor_tile",
+     "shape": {
+      "declared_capacity": "`_c_capacity` <= 101376",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 30,
+     "source_contract": "C174"
     }
    ]
   },
@@ -9727,6 +9741,10 @@
   "C173": {
    "unused": "Zero in every cell at or beyond the saved count.",
    "notes": "SAVE-J2-R01: prefix preserves exact LIFO push order and membership; row 0 is valid. Count is separately persisted. Membership bits rebuild only from this prefix."
+  },
+  "C174": {
+   "unused": "`-1` (`UNPLACED_TILE`) is a container on no tile -- a satchel, an expedition pack -- and the canonical value of every inactive row",
+   "notes": "DEMO-CONTAIN-R01 #1/#2/#8 (decision 0531): one placement cell per InventoryContainer, 0..16383 = GDD 5.1's z*128+x, interiors on the same grid. Container -> tile, so one tile may carry a store, a project container and one ground pile. Authoritative and not rebuildable: Buildings holds no Inventory ref and owner equality proves ownership, not placement (decision 0145). Appended as inventory ordinal 30 under owner schema 4 / section schema 5; older bodies are refused, not migrated (FISH-ID-R01 precedent). A placement CELL so MOVE-G02's level encoding may later widen its meaning without widening the column."
   }
  },
  "section_schema_versions": [
@@ -9736,7 +9754,7 @@
   2,
   1,
   1,
-  4,
+  5,
   2,
   2,
   1,

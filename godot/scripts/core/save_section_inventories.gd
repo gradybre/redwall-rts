@@ -19,7 +19,7 @@ extends RefCounted
 ##   |      4 |      | block 0 `fishing`, owner schema 2                 |       |
 ##   |        |      | block 1 `forage`, owner schema 1                  |       |
 ##   |        |      | block 2 `gear`, owner schema 1                    |       |
-##   |        |      | block 3 `inventory`, owner schema 3                |       |
+##   |        |      | block 3 `inventory`, owner schema 4                |       |
 ##   |        |      | block 4 `reservations`, owner schema 1             |       |
 ##   |        |      | block 5 `stock_age`, owner schema 1                |       |
 ##
@@ -29,7 +29,7 @@ extends RefCounted
 ## `element_count:u64` followed by its tightly packed little-endian values. COLUMN-MAJOR, by
 ## SAVE-LAYOUT-R01's explicit choice and not by inference from SoA storage.
 ##
-## Current owner versions are Fishing2, Inventory3 and the other four1, from REG-R01's
+## Current owner versions are Fishing2, Inventory4 and the other four1, from REG-R01's
 ## `owners` array. REG-R01's baseline SECTION version vector `[2,2,1,2,1,1,2,1,2,1,1,2,1,2,1]`
 ## gives section 7 version 2 "for protected provenance"; that number lives in the 64-byte
 ## descriptor `save_header.gd` carries and is deliberately NOT written by this module.
@@ -104,7 +104,7 @@ extends RefCounted
 ##
 ## ## Size: chunked, because ARCH-SAVE-003 says large sections are
 ##
-## At the compiled maxima with every slot free this section is 10440015 bytes -- larger than
+## At the compiled maxima with every slot free this section is 10845527 bytes -- larger than
 ## section 3. ARCH-SAVE-003: "stream Chronicle and large sections in 65536-byte chunks,
 ## calculating CRC/digest incrementally." `ChunkCursor` is that stream, field-aligned so no chunk
 ## straddles two columns or two owners, following `save_section_directory.gd`'s precedent exactly.
@@ -201,7 +201,8 @@ const OWNER_KEYS: Array[String] = [
 ]
 
 ## REG-R01's `owner_schema_version` per owner. INV-CANON-R01 takes `inventory` from 2 to **3**
-## with the canonicalized unused payload; FISH-ID-R01 takes `fishing` from 1 to **2** with the
+## with the canonicalized unused payload, and DEMO-CONTAIN-R01 to **4** with the appended
+## `_c_anchor_tile`; FISH-ID-R01 takes `fishing` from 1 to **2** with the
 ## appended Expedition slot, and the other four are still 1. Both numbers are READ from the
 ## store that owns each, beside the exact columns it describes, rather than restated
 ## here: two modules naming the version independently is two numbers that can disagree.
@@ -216,7 +217,11 @@ const OWNER_SCHEMA_VERSIONS: Array[int] = [
 ## `save_header.gd` carries the number and does not interpret it, so the section owner publishes
 ## it -- exactly as `save_section_world_runtime.gd` publishes section 1's.
 ## FISH-ID-R01 moves it 3 -> **4** with the appended `fishing` ordinal 7; schema 3 is refused.
-const SECTION_SCHEMA_VERSION: int = 4
+## DEMO-CONTAIN-R01 #8 (decision 0531) moves it 4 -> **5** with the appended `inventory` ordinal 30,
+## `_c_anchor_tile`, in the same activation that takes the `inventory` OWNER from 3 to 4. Schema 4
+## is refused rather than migrated, per ruling #8 and the FISH-ID-R01 precedent: an old-layout
+## body is never reinterpreted, even where a default would happen to be harmless.
+const SECTION_SCHEMA_VERSION: int = 5
 
 ## SAVE-LAYOUT-R01 / S2: owner keys are nonempty ASCII, at most 256 bytes.
 const OWNER_KEY_MAX_BYTES: int = 256
@@ -291,26 +296,28 @@ const KEYS_INVENTORY: Array[StringName] = [
 	&"_c_reachable", &"_l_item_id", &"_l_quality", &"_l_provenance", &"_l_recipe_id",
 	&"_l_container_slot", &"_l_container_generation", &"_l_next", &"_l_prev",
 	&"_l_quantity_milli", &"_l_reserved_milli", &"_l_age_milli_hours", &"_l_age_remainder",
-	&"_c_free", &"_l_free",
+	&"_c_free", &"_l_free", &"_c_anchor_tile",
 ]
+## DEMO-CONTAIN-R01 APPENDS ordinal 30, `_c_anchor_tile`, and renumbers nothing: ordinals 0..29
+## keep their wire positions, so the free stacks stay at 28 and 29 and the anchor follows them.
 const TYPES_INVENTORY: Array[int] = [
 	TYPE_U32, TYPE_U32, TYPE_U8, TYPE_U8, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32,
 	TYPE_I32, TYPE_I32, TYPE_I64, TYPE_I64, TYPE_I64, TYPE_I64, TYPE_U8, TYPE_I32, TYPE_I32,
 	TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I32, TYPE_I64, TYPE_I64, TYPE_I64,
-	TYPE_I64, TYPE_I32, TYPE_I32,
+	TYPE_I64, TYPE_I32, TYPE_I32, TYPE_I32,
 ]
 const EXTENTS_INVENTORY: Array[int] = [
 	EXT_SCALAR, EXT_SCALAR, EXT_PRIMARY, EXT_CHILD_0, EXT_PRIMARY, EXT_CHILD_0, EXT_PRIMARY,
 	EXT_PRIMARY, EXT_PRIMARY, EXT_PRIMARY, EXT_PRIMARY, EXT_PRIMARY, EXT_PRIMARY, EXT_PRIMARY,
 	EXT_PRIMARY, EXT_PRIMARY, EXT_CHILD_0, EXT_CHILD_0, EXT_CHILD_0, EXT_CHILD_0, EXT_CHILD_0,
 	EXT_CHILD_0, EXT_CHILD_0, EXT_CHILD_0, EXT_CHILD_0, EXT_CHILD_0, EXT_CHILD_0, EXT_CHILD_0,
-	EXT_PRIMARY, EXT_CHILD_0,
+	EXT_PRIMARY, EXT_CHILD_0, EXT_PRIMARY,
 ]
 ## Ordinals 28 and 29 are the free STACKS: backed by the container and lot extents, persisted
 ## only as far as the counts at ordinals 0 and 1. HAZARD 1.
 const COUNT_FIELDS_INVENTORY: Array[int] = [
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, 0, 1,
+	-1, -1, -1, -1, -1, 0, 1, -1,
 ]
 
 const KEYS_RESERVATIONS: Array[StringName] = [
@@ -826,7 +833,7 @@ const NEGATIVE_ONE_FILL_KEYS: Array[StringName] = [
 	&"_effort_claim_job_slot", &"_claim_job_slot",
 	&"_claim_designation_slot", &"_claim_basin_slot", &"_claim_patch_kind", &"_lot_slot",
 	&"_item_id", &"_owner_slot", &"_r_job_slot", &"_r_lot_slot", &"_c_owner_slot",
-	&"_c_first_lot", &"_l_container_slot", &"_l_next", &"_l_prev",
+	&"_c_first_lot", &"_l_container_slot", &"_l_next", &"_l_prev", &"_c_anchor_tile",
 ]
 
 
@@ -1613,14 +1620,16 @@ static func _blank_row_refusal(block: OwnerRecord, row: int,
 ## DELIBERATELY NOT `canonical_fill_of()`. That function is what a freshly allocated
 ## `OwnerRecord` column is FILLED with, so validating an inactive row against it would be a
 ## check whose expectation comes from the thing it checks: change the fill and the check moves
-## with it, silently. These are the twenty-two numbers the ruling prints, typed here once, and
-## `test_save_section_inventories.gd` reads them back off the encoded wire at literal offsets.
+## with it, silently. These are the twenty-two numbers INV-CANON-R01 prints plus DEMO-CONTAIN-R01's
+## one, typed here once, and `test_save_section_inventories.gd` reads them back off the encoded
+## wire at literal offsets.
 ##
-## Container ordinals 6..15 and lot ordinals 16..27 -- every inventory payload field. The three
-## groups NOT in these lists are the ones the ruling preserves: occupancy (2, 3), the row's own
-## generation (4, 5), and the two free stacks (28, 29).
-const INVENTORY_UNUSED_CONTAINER_ORDINALS: Array[int] = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
-const INVENTORY_UNUSED_CONTAINER_VALUES: Array[int] = [-1, 0, 0, 0, -1, 0, 0, 0, 0, 0]
+## Container ordinals 6..15 and 30 and lot ordinals 16..27 -- every inventory payload field. The
+## three groups NOT in these lists are the ones the ruling preserves: occupancy (2, 3), the row's
+## own generation (4, 5), and the two free stacks (28, 29). Ordinal 30 is DEMO-CONTAIN-R01's
+## `_c_anchor_tile`, whose unused value is -1, `inventory.gd`'s UNPLACED_TILE.
+const INVENTORY_UNUSED_CONTAINER_ORDINALS: Array[int] = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 30]
+const INVENTORY_UNUSED_CONTAINER_VALUES: Array[int] = [-1, 0, 0, 0, -1, 0, 0, 0, 0, 0, -1]
 const INVENTORY_UNUSED_LOT_ORDINALS: Array[int] = [
 	16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27,
 ]
@@ -1960,7 +1969,25 @@ static func _inventory_containers_refusal(block: OwnerRecord) -> SaveHeader.Refu
 		var chain: SaveHeader.Refusal = _container_chain_refusal(block, slot, is_live, lot_capacity)
 		if not chain.is_ok():
 			return chain
+		var anchor: SaveHeader.Refusal = _container_anchor_refusal(block, slot)
+		if not anchor.is_ok():
+			return anchor
 	return _accepted()
+
+
+static func _container_anchor_refusal(block: OwnerRecord, slot: int) -> SaveHeader.Refusal:
+	"""DEMO-CONTAIN-R01: an anchor is -1 (unplaced) or a cell in `0..ANCHOR_TILE_COUNT-1`.
+
+	Checked on every row. An inactive row's -1 is ALSO pinned by the unused table above, so a
+	live row is where this gate does its own work: a forged 16384 would otherwise index past the
+	caller's tile mask in `containers_anchored_in_into()` the moment the store was published.
+	"""
+	var anchor: int = block.i32_column(30)[slot]
+	if InventoryScript.is_anchor_tile_in_domain(anchor):
+		return _accepted()
+	return _refuse(REFUSE_SLOT_RANGE,
+		"owner 'inventory' field '_c_anchor_tile' row %d holds anchor %d, outside %d and 0..%d"
+			% [slot, anchor, InventoryScript.UNPLACED_TILE, InventoryScript.ANCHOR_TILE_COUNT - 1])
 
 
 static func _container_chain_refusal(block: OwnerRecord, slot: int, is_live: bool,
@@ -2394,6 +2421,7 @@ static func _install_container_columns(block: OwnerRecord,
 	block.set_i64_column(14, columns.c_used_mass_g)
 	block.set_u8_column(15, columns.c_reachable)
 	block.set_stack_column(28, columns.c_free, columns.c_free_count)
+	block.set_i32_column(30, columns.c_anchor_tile)
 
 
 static func _install_lot_columns(block: OwnerRecord,
@@ -2463,6 +2491,7 @@ static func _extract_container_columns(block: OwnerRecord,
 	columns.c_used_mass_g = block.i64_column(14)
 	columns.c_reachable = block.u8_column(15)
 	columns.c_free = block.i32_column(28)
+	columns.c_anchor_tile = block.i32_column(30)
 
 
 static func _extract_lot_columns(block: OwnerRecord,

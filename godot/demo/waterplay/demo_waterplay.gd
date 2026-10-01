@@ -138,6 +138,9 @@ var bridge_view: BridgeViewScript = null
 var swim_view: SwimViewScript = null
 var panel: PanelScript = null
 var services: ServicesScript = null
+## `(members: PackedInt32Array) -> void`: fills the site's project and benefit lines after the site (demo/routes/
+## demo_routes.gd, decision 0461); none: the panel shows the site alone.
+var site_extras: Callable = Callable()
 ## Residents whose rescue incident is open (see RESCUE INCIDENTS).
 var _rescue_open: PackedInt32Array = PackedInt32Array()
 ## The bridge site chosen for the panel: a candidate (index), or a surveyed span of two banks.
@@ -285,7 +288,8 @@ func _hook_command() -> void:
 	_command.add_task_text(task_text)
 	_command.add_resume_rule(crew.resume_rule)
 	_command.add_input_hook(handle_tool_input)
-	_command.add_skill_text(skill_text)
+	_command.add_skill_text(bridging_text, true)
+	_command.add_skill_text(swimming_text)
 	panel.resident_picked.connect(_command.pick_member)
 
 
@@ -417,7 +421,7 @@ func order_swim(members: PackedInt32Array, spot: Vector2) -> String:
 	var refused := PackedStringArray()
 	for k: int in members.size():
 		var who: int = members[k]
-		var why: StringName = state.swim_refusal(who, false)
+		var why: StringName = Rules.REFUSE_ICE if motion.iced_at(spot) else state.swim_refusal(who, false)
 		if why != Rules.REFUSE_NONE:
 			refused.append(text.refusal_words(who, why))
 			continue
@@ -482,6 +486,8 @@ func dive_refusal(who: int, at: Vector2) -> StringName:
 	height (water_rules.gd's DIVE zone), consent and rest."""
 	if not state.can_dive(who):
 		return Rules.REFUSE_CANNOT_DIVE
+	if motion.iced_at(at):
+		return Rules.REFUSE_ICE
 	if motion.zone_for(who, at) != WaterRules.ZONE_DIVE or motion.max_dive_m(who, at) <= 0.0:
 		return Rules.REFUSE_TOO_SHALLOW
 	return state.swim_refusal(who, false)
@@ -987,6 +993,8 @@ func refresh_panel() -> void:
 		allowed[BUILD_ACTIONS[kind]] = card.is_ok()
 		panel.set_card(BUILD_ACTIONS[kind], card.text(), card.is_ok())
 	panel.show_site(text.site_title(site_custom, site_candidate), about, allowed)
+	if site_extras.is_valid():
+		site_extras.call(members)
 	panel.show_status(text.bridges_text(), services.stores.stock_line(), text.log_text())
 
 
@@ -1002,6 +1010,16 @@ func task_text(who: int) -> String:
 func skill_text(who: int, alone: bool) -> String:
 	"""A resident's bridge building, swimming, breath and stamina for the party panel."""
 	return text.skill_line(who, alone)
+
+
+func bridging_text(who: int, alone: bool) -> String:
+	"""A resident's bridge building alone (a skill-only provider: the people's meters say it for one resident)."""
+	return text.bridge_line(who, alone)
+
+
+func swimming_text(who: int, alone: bool) -> String:
+	"""A resident's swimming, breath and stamina (what is left of `skill_text` without its bridge building)."""
+	return text.swim_line(who, alone)
 
 
 func brain_of(who: int) -> BrainScript:

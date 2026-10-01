@@ -173,8 +173,8 @@ func test_every_supplied_counter_matches_the_starter_fixture() -> void:
 	`Residents` MOVED from unpopulated to supplied in the task-04.4 UI shell: the residents
 	store publishes a living count, so refusing to show it was under-reporting rather than
 	honesty. §5.1's cohort is twelve, asserted as a literal here and cross-checked against the
-	store the counter is derived from. `Beds` still has no Building, Furniture or Room store and
-	is still unpopulated.
+	store the counter is derived from. `Beds` still has no placed building to count (the stores
+	exist; decision 0511) and is still unpopulated.
 	"""
 	_seed_starting_settlement()
 	_ui.register_hud(_hud)
@@ -423,8 +423,8 @@ func test_a_generated_world_is_populated_and_beds_stay_unpopulated() -> void:
 	poorer path, so pressing it emptied the settlement it had just generated. The old assertion
 	is retired because the behaviour it described was wrong, not because it became inconvenient.
 
-	Beds are still UNPOPULATED, and that half is unchanged: no Building, Furniture or Room store
-	exists, so a bed count would be a fabricated zero. Residents and Beds are a §1.1 pair and
+	Beds are still UNPOPULATED, and that half is unchanged: the Building stores exist but nothing
+	places a building, so a bed count would be a fabricated zero. Residents and Beds are a §1.1 pair and
 	only one of them has an owner."""
 	_ui.register_hud(_hud)
 	assert_true(_ui.create_world(), "Create succeeds")

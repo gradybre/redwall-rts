@@ -74,6 +74,10 @@ const UNRIPE_OVERLAY: Color = Color(0.32, 0.6, 0.3, 0.45)
 const RIPE_OVERLAY: Color = Color(0.93, 0.74, 0.25, 0.6)
 const LATE_OVERLAY: Color = Color(0.85, 0.35, 0.2, 0.6)
 const NO_OVERLAY: Color = Color(0.4, 0.35, 0.3, 0.25)
+## The Water service layer (decision 0441), by the garden leat's service (weir_sluice.gd SERVICE_*): not served, dry
+## (the leat empty), normal, wet.
+const SERVICE_OVERLAY: Array[Color] = [Color(0.4, 0.35, 0.3, 0.25), Color(0.86, 0.66, 0.3, 0.55),
+	Color(0.36, 0.64, 0.4, 0.55), Color(0.3, 0.46, 0.7, 0.58)]
 ## Label colours: calm, needs attention, urgent.
 const LABEL_CALM: Color = Palette.CREAM
 const LABEL_ATTENTION: Color = Color("#F2C46B")

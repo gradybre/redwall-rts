@@ -87,7 +87,7 @@ func free_milli_of_crop(pantry: PantryScript, crop: int) -> int:
 	var total: int = 0
 	for lot: int in PantryScript.MAX_LOTS:
 		var item: int = pantry.lot_item(lot)
-		if item != PantryScript.FREE and Catalog.ITEM_CROP[item] == crop:
+		if item != PantryScript.FREE and Catalog.category_of(item) == crop:
 			total += maxi(0, pantry.lot_milli(lot) - _per_lot[lot])
 	return total
 
@@ -135,7 +135,7 @@ func _candidates(pantry: PantryScript, crop: int, hour_index: int) -> void:
 	_hours.clear()
 	for lot: int in PantryScript.MAX_LOTS:
 		var item: int = pantry.lot_item(lot)
-		if item == PantryScript.FREE or Catalog.ITEM_CROP[item] != crop or free_milli(pantry, lot) <= 0:
+		if item == PantryScript.FREE or Catalog.category_of(item) != crop or free_milli(pantry, lot) <= 0:
 			continue
 		_rows.append(lot)
 		_hours.append(pantry.lot_spoil_hours(lot, hour_index))
@@ -170,13 +170,19 @@ func _live(pantry: PantryScript, e: int) -> bool:
 	return _take[e] != FREE and pantry.lot_serial(_lot[e]) == _serial[e]
 
 
-func live_milli(pantry: PantryScript, take: int, where: int = -1) -> int:
-	"""How much `take` holds in lots that are still its own (only at `where`, AT_* ; -1: anywhere), milli-U."""
+func live_milli(pantry: PantryScript, take: int, where: int = -1, crop: int = -1) -> int:
+	"""How much `take` holds in lots that are still its own (only at `where`, AT_* ; -1: anywhere; only of category
+	`crop`, -1: any -- a two-input dish's halves), milli-U."""
 	var total: int = 0
 	for e: int in MAX_ENTRIES:
-		if _take[e] == take and _live(pantry, e) and (where < 0 or _where[e] == where):
+		if _take[e] == take and _live(pantry, e) and (where < 0 or _where[e] == where) and _is_of(pantry, e, crop):
 			total += _milli[e]
 	return total
+
+
+func _is_of(pantry: PantryScript, e: int, crop: int) -> bool:
+	"""Whether entry `e`'s lot is of category `crop` (any for -1)."""
+	return crop < 0 or Catalog.category_of(pantry.lot_item(_lot[e])) == crop
 
 
 func prune(pantry: PantryScript) -> int:
@@ -190,18 +196,18 @@ func prune(pantry: PantryScript) -> int:
 
 
 func consume_into(pantry: PantryScript, take: int, milli: int, where: int, hour_index: int,
-		out: IntMath.IntResult) -> bool:
+		out: IntMath.IntResult, crop: int = -1) -> bool:
 	"""Withdraw exactly `milli` of `take`'s food from where it is (`where`, AT_*: a batch starting takes it AT_KITCHEN,
 	a raw emergency meal AT_STORE), the lot that spoils first first, all or nothing. Refuses NOT_ENOUGH_RESERVED,
 	changing nothing."""
 	if milli <= 0:
 		return out.refuse(PantryScript.REFUSE_BAD_QUANTITY)
 	_trim_to_lots(pantry, take, where)
-	if live_milli(pantry, take, where) < milli:
+	if live_milli(pantry, take, where, crop) < milli:
 		return out.refuse(REFUSE_SHORT)
 	var left: int = milli
 	while left > 0:
-		var e: int = _soonest_at(pantry, take, where, hour_index)
+		var e: int = _soonest_at(pantry, take, where, hour_index, crop)
 		var part: int = mini(left, _milli[e])
 		pantry.withdraw_into(_lot[e], _serial[e], part, _read)
 		_milli[e] -= part
@@ -228,12 +234,13 @@ func _trim_to_lots(pantry: PantryScript, take: int, where: int) -> void:
 			_take[e] = FREE
 
 
-func _soonest_at(pantry: PantryScript, take: int, where: int, hour_index: int) -> int:
-	"""`take`'s live entry at `where` whose lot spoils first (the lowest row on a tie); -1: none."""
+func _soonest_at(pantry: PantryScript, take: int, where: int, hour_index: int, crop: int = -1) -> int:
+	"""`take`'s live entry at `where` (of category `crop`; -1: any) whose lot spoils first (the lowest row on a tie);
+	-1: none."""
 	var best: int = -1
 	var best_hours: int = 0
 	for e: int in MAX_ENTRIES:
-		if _take[e] != take or _where[e] != where or not _live(pantry, e):
+		if _take[e] != take or _where[e] != where or not _live(pantry, e) or not _is_of(pantry, e, crop):
 			continue
 		var hours: int = pantry.lot_spoil_hours(_lot[e], hour_index)
 		if best < 0 or hours < best_hours:
@@ -262,12 +269,12 @@ func release_at_store(pantry: PantryScript, take: int, location: int) -> int:
 	return freed
 
 
-func release_milli(pantry: PantryScript, take: int, milli: int, hour_index: int) -> int:
-	"""Give back `milli` of `take`'s reservation it no longer needs, the latest-spoiling food first (still at its
-	store first); returns how much was given back."""
+func release_milli(pantry: PantryScript, take: int, milli: int, hour_index: int, crop: int = -1) -> int:
+	"""Give back `milli` of `take`'s reservation (of category `crop`; -1: any) it no longer needs, the latest-spoiling
+	food first (still at its store first); returns how much was given back."""
 	var left: int = milli
 	while left > 0:
-		var e: int = _latest(pantry, take, hour_index)
+		var e: int = _latest(pantry, take, hour_index, crop)
 		if e < 0:
 			break
 		var part: int = mini(left, _milli[e])
@@ -278,12 +285,13 @@ func release_milli(pantry: PantryScript, take: int, milli: int, hour_index: int)
 	return milli - left
 
 
-func _latest(pantry: PantryScript, take: int, hour_index: int) -> int:
-	"""`take`'s entry to give back first: at its store before in hand or at the kitchen, then the latest to spoil."""
+func _latest(pantry: PantryScript, take: int, hour_index: int, crop: int = -1) -> int:
+	"""`take`'s entry (of category `crop`; -1: any) to give back first: at its store before in hand or at the kitchen,
+	then the latest to spoil."""
 	var best: int = -1
 	var best_hours: int = 0
 	for e: int in MAX_ENTRIES:
-		if _take[e] != take:
+		if _take[e] != take or (crop >= 0 and not (_live(pantry, e) and _is_of(pantry, e, crop))):
 			continue
 		var hours: int = pantry.lot_spoil_hours(_lot[e], hour_index) if _live(pantry, e) else 1 << 30
 		if best < 0 or _where[e] < _where[best] or (_where[e] == _where[best] and hours > best_hours):
@@ -356,7 +364,7 @@ func fetched_milli_of_crop(pantry: PantryScript, take: int, crop: int) -> int:
 	var total: int = 0
 	for e: int in MAX_ENTRIES:
 		if _take[e] == take and _where[e] != AT_STORE and _live(pantry, e) \
-				and Catalog.ITEM_CROP[pantry.lot_item(_lot[e])] == crop:
+				and Catalog.category_of(pantry.lot_item(_lot[e])) == crop:
 			total += _milli[e]
 	return total
 
@@ -369,7 +377,7 @@ func draw_fetched(pantry: PantryScript, from_take: int, to_take: int, crop: int,
 		if left == 0:
 			break
 		if _take[e] != from_take or _where[e] == AT_STORE or not _live(pantry, e) \
-				or Catalog.ITEM_CROP[pantry.lot_item(_lot[e])] != crop:
+				or Catalog.category_of(pantry.lot_item(_lot[e])) != crop:
 			continue
 		if _milli[e] <= left:
 			_take[e] = to_take

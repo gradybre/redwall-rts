@@ -18,6 +18,7 @@ const BridgeWork := preload("res://demo/work/bridge_work.gd")
 const TunnelWork := preload("res://demo/work/tunnel_work.gd")
 const FitOutWork := preload("res://demo/work/fit_out_work.gd")
 const SpoilWork := preload("res://demo/work/spoil_work.gd")
+const FisheryWork := preload("res://demo/work/fishery_work.gd")
 const KitchenWork := preload("res://demo/work/kitchen_work.gd")
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
@@ -80,6 +81,12 @@ func _add_owners(farm: FarmScript, forestry: ForestryScript, waterplay: Waterpla
 		board.add_source(FitOutWork.new(_cast.space().tunnels, ext.fixture_crew, brains, board.name_of))
 	if spoil != null:
 		board.add_source(SpoilWork.new(spoil.crew, _cast.space().tunnels, brains))
+
+
+func add_fishery(fishery: RefCounted) -> void:
+	"""WATER PART B ON THE BOARD (decision 0431): the fishery's jobs -- trips' seats, traps' collections, the rack, the mill
+	and the gear (work/fishery_work.gd) -- claimed like the farm's."""
+	board.add_source(FisheryWork.new(fishery))
 
 
 func add_kitchen(kitchen: KitchenScript) -> void:

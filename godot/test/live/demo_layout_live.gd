@@ -342,7 +342,9 @@ func _water_checks() -> void:
 	_check("water: All residents folded", not bool(water.call(&"roster_open")) and not (water.call(&"roster_row", 0) as Control).is_visible_in_tree())
 	var hidden: PackedStringArray = PackedStringArray()
 	var lost: PackedStringArray = PackedStringArray()
-	for key: StringName in [WaterPanel.ACTION_DIVE, WaterPanel.ACTION_CONSENT, WaterPanel.ACTION_BUILD_PLANK, WaterPanel.ACTION_BUILD_LOG]:
+	_builds_shown_only_when_they_commit(water)
+	for key: StringName in _shown_actions(water, [WaterPanel.ACTION_DIVE, WaterPanel.ACTION_CONSENT, WaterPanel.ACTION_BUILD_PLANK,
+			WaterPanel.ACTION_BUILD_LOG]):
 		var button: Button = water.call(&"button", key)
 		if _fraction(button) < FULL:
 			hidden.append(String(key))
@@ -365,11 +367,33 @@ func _water_checks() -> void:
 	await _rescue_checks(water)
 
 
+func _shown_actions(water: CanvasLayer, keys: Array[StringName]) -> Array[StringName]:
+	"""The keys whose buttons are shown: a Build button shows only when it can commit (decision 0461)."""
+	var out: Array[StringName] = []
+	for key: StringName in keys:
+		if (water.call(&"button", key) as Button).visible:
+			out.append(key)
+	return out
+
+
+func _builds_shown_only_when_they_commit(water: CanvasLayer) -> void:
+	"""Decision 0461: each Build button is shown exactly when its action card allows it (its tooltip's "Can't now" is
+	the hidden one's reason), and a hidden one leaves the project line saying what is missing."""
+	var wrong: PackedStringArray = PackedStringArray()
+	for key: StringName in [WaterPanel.ACTION_BUILD_PLANK, WaterPanel.ACTION_BUILD_LOG]:
+		var button: Button = water.call(&"button", key)
+		if button.visible == button.tooltip_text.contains("Can't now"):
+			wrong.append(String(key))
+	_check("water: a Build shows only when it can commit", wrong.is_empty(), ", ".join(wrong))
+
+
 func _captions_whole(water: CanvasLayer) -> void:
-	"""The Water panel's action captions are whole: each button is at least as wide as its words."""
+	"""The Water panel's action captions are whole: each shown button is at least as wide as its words."""
 	var cut: PackedStringArray = PackedStringArray()
 	for key: StringName in WaterPanel.BUTTON_TEXT:
 		var button: Button = water.call(&"button", key)
+		if not button.is_visible_in_tree():
+			continue
 		var font: Font = button.get_theme_font(&"font")
 		var words: float = font.get_string_size(button.text, HORIZONTAL_ALIGNMENT_LEFT, -1.0,
 			button.get_theme_font_size(&"font_size")).x
@@ -398,7 +422,7 @@ func _rescue_checks(water: CanvasLayer) -> void:
 		_check("rescue: the selection folds only where it must", bool(water.call(&"picked_folded")) == (_scale > 100),
 			"folded %s" % water.call(&"picked_folded"))
 	var lost: PackedStringArray = PackedStringArray()
-	for key: StringName in [WaterPanel.ACTION_DIVE, WaterPanel.ACTION_BUILD_LOG]:
+	for key: StringName in _shown_actions(water, [WaterPanel.ACTION_DIVE, WaterPanel.ACTION_BUILD_LOG]):
 		if not await _reachable(water.call(&"button", key)):
 			lost.append(String(key))
 	_check("rescue: the actions reachable", lost.is_empty(), ", ".join(lost))
@@ -448,8 +472,10 @@ func _scale_checks() -> void:
 	keep apart."""
 	var s: float = _effective()
 	var incidents: Object = _village.get("_services").get("incidents")
-	incidents.call(&"raise", "layout:card", 2, 2, "A layout check: the stream is rising fast at the weir")
 	_village.get("_lens_picker").call(&"choose", 1)
+	await _frames(SETTLE_FRAMES)
+	_guide_room()
+	incidents.call(&"raise", "layout:card", 2, 2, "A layout check: the stream is rising fast at the weir")
 	await _frames(SETTLE_FRAMES)
 	var card_frame: Control = _village.get("_cards").get("_frame")
 	for k: int in 240:
@@ -460,7 +486,7 @@ func _scale_checks() -> void:
 		"water": _water().get("_frame"), "bed": _farm().get("bed_panel").get("_frame"),
 		"lens picker": _village.get("_lens_picker").get("_frame"), "card": _village.get("_cards").get("_frame"),
 		"news strip": _village.get("_news").get("_frame"), "news window": _village.get("_history").get("_frame"),
-		"pantry": _farm().get("pantry_panel").get("_frame")}
+		"pantry": _farm().get("pantry_panel").get("_frame"), "guide card": _village.call(&"guide").get("card").call(&"frame")}
 	var off: PackedStringArray = PackedStringArray()
 	for key: String in frames:
 		var frame: Control = frames[key]
@@ -517,3 +543,31 @@ func _apart(frames: Dictionary) -> void:
 	_check("the incident card shows", card.is_visible_in_tree())
 	_check("the card clear of the party panel and the tab strip", not card.get_global_rect().intersects(party)
 		and not card.get_global_rect().intersects(strip), "%s" % card.get_global_rect())
+	_guide_apart(frames, party, strip, right, picker)
+
+
+func _guide_apart(frames: Dictionary, party: Rect2, strip: Rect2, right: Rect2, picker: Rect2) -> void:
+	"""With a critical incident's card up, the guide's objective card (decision 0481) yields to it: one card at the top
+	centre."""
+	_check("the guide card yields to the incident card", not (frames["guide card"] as Control).is_visible_in_tree())
+
+
+func _guide_room() -> void:
+	"""With a map layer's legend unfolded, the guide's objective card is above the Map layer picker and clear of the
+	side columns and the tab strip -- or, where no density of it fits, waits (never overlapping)."""
+	var card: Control = _village.call(&"guide").get("card").call(&"frame")
+	var picker: Rect2 = (_village.get("_lens_picker").get("_frame") as Control).get_global_rect()
+	var party: Rect2 = (_party().get("_frame") as Control).get_global_rect()
+	var strip: Rect2 = (_village.get("_zone").get("_strip") as Control).get_global_rect()
+	var rect: Rect2 = card.get_global_rect()
+	var shown: bool = card.is_visible_in_tree()
+	var incident: bool = bool(_village.get("_cards").call(&"is_shown"))
+	var cramped: bool = bool(_village.call(&"guide").get("card").get("_cramped"))
+	var why: String = "shown" if shown else ("yielding to the incident card" if incident else "waiting for room")
+	_check("the guide card clear of the Map layer picker", not shown or not rect.intersects(picker),
+		"%s %s %s" % [why, rect, picker])
+	_check("the guide card clear of the party panel and the tab strip", not shown or (not rect.intersects(party)
+		and not rect.intersects(strip)), "%s" % rect)
+	_check("the guide card hidden only to yield or for room", shown or incident or cramped, why)
+	_check("the guide card shows at 100 %", shown or incident or DemoUiScale.percent != 100, why)
+	_capture("guide_room")

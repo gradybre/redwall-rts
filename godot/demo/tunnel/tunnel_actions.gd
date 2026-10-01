@@ -467,7 +467,7 @@ func add_crew(slot: int, members: PackedInt32Array, lead: int) -> int:
 		joined += 1
 	if joined > 0:
 		_works.tell(CREW_JOINED % [joined, slot + 1])
-		_works.say(CrewScript.LINE_CREW)
+		_works.speak(CrewScript.SAY_CREW, lead)
 	return joined
 
 

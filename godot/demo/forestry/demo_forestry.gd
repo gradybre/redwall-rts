@@ -227,7 +227,7 @@ func _hook_command() -> void:
 	_command.add_task_text(crew.task_text)
 	_command.add_resume_rule(crew.resume_rule)
 	_command.add_input_hook(handle_tool_input)
-	_command.set_skill_text(skill_text)
+	_command.set_skill_text(skill_text, true)
 
 
 # --- per frame ------------------------------------------------------------------------------------

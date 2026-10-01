@@ -143,6 +143,8 @@ const REFUSE_LOADED: StringName = &"LOADED"
 const REFUSE_FLOW: StringName = &"FLOW_TOO_STRONG"
 const REFUSE_AIR: StringName = &"AIR_BUDGET"
 const REFUSE_TOO_SHALLOW: StringName = &"TOO_SHALLOW_TO_DIVE"
+## Ice covers the water (water part B, decision 0433): nobody swims or dives under it.
+const REFUSE_ICE: StringName = &"ICE_COVERS_THE_WATER"
 
 
 static func has_species(species: String) -> bool:

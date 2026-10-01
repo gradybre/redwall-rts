@@ -102,7 +102,8 @@ const NAME_CAP_BYTES: int = 128
 ## two numbers that moved in that activation are the (7, 'inventory') owner schema and section
 ## 7's descriptor schema, both 2 -> 3, pinned separately below.
 ## SAVE-J2-R01 adds three packed lists and three scalar counts: +6 records, +3 packed.
-const REGISTRY_PACKED_FIELD_COUNT: int = 554
+## DEMO-CONTAIN-R01 (decision 0531) declares inventory's `_c_anchor_tile`: +1 record, +1 packed.
+const REGISTRY_PACKED_FIELD_COUNT: int = 555
 
 ## Pinned as LITERALS, deliberately not read from the JSON or from `Digest.*`. Every other
 ## assertion in this suite compares the compiled table against the registry it was generated
@@ -115,31 +116,34 @@ const REGISTRY_PACKED_FIELD_COUNT: int = 554
 ## that normalizes its inactive payload accepts a strictly smaller set of states than schema 2
 ## did, and leaving the name still would let a stricter codec ship under the old identity while
 ## every self-referential check in this file stayed green.
-const REGISTRY_RECORD_COUNT: int = 603
-const REGISTRY_FIELD_COUNT: int = 611
+const REGISTRY_RECORD_COUNT: int = 604
+const REGISTRY_FIELD_COUNT: int = 612
 const REGISTRY_DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-09-15-3"
 ## SAVE-SEQ-R01 v2 advances declaration version to 4 while retaining this exact namespace.
 ## The version is independent of the opaque identity suffix; commands owner becomes 2.
 ## SAVE-J2-R01 advances version5; FISH-ID-R01 advances registry6 and Fishing owner2/section7schema4.
-const REGISTRY_DECLARATION_VERSION: int = 6
+## DEMO-CONTAIN-R01 advances registry7 and Inventory owner4/section7schema5, same namespace.
+const REGISTRY_DECLARATION_VERSION: int = 7
 
 ## INV-CANON-R01's two version numbers, pinned as literals and read back from BOTH the registry
 ## JSON and the compiled table. They live in different namespaces -- one is the owner block's
 ## `owner_schema_version`, the other the 64-byte descriptor's `schema_version` -- and the whole
 ## point of the activation is that they move together with the codec.
-const INVENTORY_OWNER_SCHEMA_VERSION: int = 3
-const SECTION_SEVEN_SCHEMA_VERSION: int = 4
+## DEMO-CONTAIN-R01 (decision 0531) moves them to 4 and 5 with the appended `_c_anchor_tile`.
+const INVENTORY_OWNER_SCHEMA_VERSION: int = 4
+const SECTION_SEVEN_SCHEMA_VERSION: int = 5
 
-## Section 7 `inventory`'s thirty declared field keys in DECLARED ORDINAL ORDER, pinned outside
+## Section 7 `inventory`'s thirty-one declared field keys in DECLARED ORDINAL ORDER, pinned outside
 ## the JSON. REG-R01's order interleaves container and lot columns and is explicitly not
-## alphabetical; INV-CANON-R01 changes the payload SEMANTICS and not one key or ordinal.
+## alphabetical; INV-CANON-R01 changes the payload SEMANTICS and not one key or ordinal, and
+## DEMO-CONTAIN-R01 APPENDS `_c_anchor_tile` as ordinal 30 without moving any earlier key.
 const INVENTORY_DECLARED_KEYS: String = (
 	"_c_free_count, _l_free_count, _c_live, _l_live, _c_generation, _l_generation, "
 	+ "_c_owner_slot, _c_owner_generation, _c_policy, _c_lot_count, _c_first_lot, "
 	+ "_c_max_mass_g, _c_filters, _c_reserved_mass_g, _c_used_mass_g, _c_reachable, "
 	+ "_l_item_id, _l_quality, _l_provenance, _l_recipe_id, _l_container_slot, "
 	+ "_l_container_generation, _l_next, _l_prev, _l_quantity_milli, _l_reserved_milli, "
-	+ "_l_age_milli_hours, _l_age_remainder, _c_free, _l_free"
+	+ "_l_age_milli_hours, _l_age_remainder, _c_free, _l_free, _c_anchor_tile"
 )
 
 ## construction.gd's section-4 block, pinned independently of the registry JSON so that deleting
@@ -434,7 +438,7 @@ func _assert_field_shape(declaration: Digest.Declaration, field: Dictionary, ind
 
 
 func test_registry_counts_are_the_ones_the_ruling_reconciled() -> void:
-	"""603 canonical records over 52 owners, 554 persisted packed fields, release_save_ready false."""
+	"""604 canonical records over 52 owners, 555 persisted packed fields, release_save_ready false."""
 	var data: Dictionary = _registry()
 	assert_equal(int(data["record_count"]), Digest.CANONICAL_RECORD_COUNT, "registry record_count")
 	assert_equal(int(data["packed_source_field_count"]), REGISTRY_PACKED_FIELD_COUNT,
@@ -442,7 +446,7 @@ func test_registry_counts_are_the_ones_the_ruling_reconciled() -> void:
 	assert_equal(String(data["registry_id"]), Digest.DECLARATION_ID, "registry id")
 	assert_false(bool(data["release_save_ready"]), "release_save_ready stays false")
 	assert_equal(Digest.production_declaration().record_count(), Digest.CANONICAL_RECORD_COUNT,
-		"the compiled declaration counts the same 603 records")
+		"the compiled declaration counts the same 604 records")
 
 
 func test_the_active_rules_identity_and_counts_match_their_independent_pins() -> void:
@@ -461,8 +465,8 @@ func test_the_active_rules_identity_and_counts_match_their_independent_pins() ->
 		"R-WORLD-S1-001 takes section 1 to schema version 3 in the active registry")
 
 
-func test_inventory_owner_three_and_section_seven_four_match_registry() -> void:
-	"""INV-CANON-R01: the registry, the compiled table and the §7 codec all read 3, or none do.
+func test_inventory_owner_four_and_section_seven_five_match_registry() -> void:
+	"""DEMO-CONTAIN-R01: the registry, the compiled table and the §7 codec all read 4/5, or none do.
 
 	FOUR INDEPENDENT SOURCES, deliberately. The registry JSON and the compiled table are
 	generated from each other and would move together under a coordinated edit; the literal
@@ -486,18 +490,20 @@ func test_inventory_owner_three_and_section_seven_four_match_registry() -> void:
 		"the compiled declaration table carries the same owner schema version")
 
 
-func test_section_seven_keeps_its_thirty_inventory_fields_and_adds_no_record() -> void:
-	"""`canonical_record_delta` is 0: the same 30 keys in the same order, at 596 records."""
+func test_section_seven_keeps_its_thirty_inventory_fields_and_appends_the_anchor() -> void:
+	"""INV-CANON-R01's 30 keys keep their order; DEMO-CONTAIN-R01 appends exactly one, at 30."""
 	var data: Dictionary = _registry()
 	var owner: Dictionary = _owner_of(data, 7, "inventory")
 	var keys: PackedStringArray = PackedStringArray()
 	for field: Variant in owner["fields"] as Array:
 		keys.append(String((field as Dictionary)["field_key"]))
-	assert_equal(keys.size(), 30, "INV-CANON-R01 keeps all 30 declared inventory fields")
+	assert_equal(keys.size(), 31, "INV-CANON-R01's 30 fields plus decision 0531's anchor")
+	assert_equal(int(((owner["fields"] as Array)[30] as Dictionary)["ordinal"]), 30,
+		"the anchor is ordinal 30")
 	assert_equal(", ".join(keys), INVENTORY_DECLARED_KEYS,
 		"the declared order is unchanged, container and lot columns still interleaved")
 	assert_equal(int(data["record_count"]), REGISTRY_RECORD_COUNT,
-		"no canonical record is added or removed by the schema 3 activation")
+		"the registry counts the appended record and no other change")
 
 
 func _owner_of(data: Dictionary, section: int, key: String) -> Dictionary:

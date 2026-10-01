@@ -63,6 +63,7 @@ const SpecScript := preload("res://demo/tunnel/piece_spec.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 const GroundCutScript := preload("res://demo/world/ground_cut.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
+const DemoMotion := preload("res://demo/access/demo_motion.gd")
 
 const LIFT_M: float = 0.045
 const PLAN_WIDTH_M: float = 0.32
@@ -781,7 +782,7 @@ func _update_mound(slot: int) -> void:
 	var at := _space.resident_position[digger]
 	mound_node.position = Vector3(at.x, 0.0, at.y)
 	mound_node.scale = Vector3.ONE * mound_scale(_camera_distance(mound_node.position))
-	var bob := 1.0 + 0.25 * sin(TAU * MOUND_BOB_HZ * _time)
+	var bob := DemoMotion.pulse(1.0 + 0.25 * sin(TAU * MOUND_BOB_HZ * _time))
 	(mound_node.get_child(0) as Node3D).scale.y = MOUND_HEIGHT_M * bob
 
 

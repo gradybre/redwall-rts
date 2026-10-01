@@ -41,6 +41,11 @@ extends Node3D
 ## so it never sits inside a tree crown. The move is made AT ONCE (no frame is drawn inside the crown) and
 ## the eye eases back with the ordinary damp once the way is clear; the zoom TARGET is never changed, so
 ## the player's zoom comes back by itself.
+##
+## REDUCED MOTION (decision 0471, UI §6 "Reduced motion: camera smoothing off"): the shown values take their targets
+## at once -- no easing -- while movement stays continuous and the player's own.
+
+const DemoMotion := preload("res://demo/access/demo_motion.gd")
 
 const FOV_DEGREES: float = 40.0
 const NEAR_PLANE: float = 0.1
@@ -288,7 +293,7 @@ func step(delta: float) -> void:
 		_target_focus.x += (strafe * cos(_target_yaw) - advance * sin(_target_yaw)) * metres
 		_target_focus.z += (-strafe * sin(_target_yaw) - advance * cos(_target_yaw)) * metres
 		_clamp_target_focus()
-	var blend: float = damp_factor(DAMPING, delta)
+	var blend: float = 1.0 if DemoMotion.reduced else damp_factor(DAMPING, delta)
 	_focus.x = lerpf(_focus.x, _target_focus.x, blend)
 	_focus.y = lerpf(_focus.y, _target_focus.y, blend)
 	_focus.z = lerpf(_focus.z, _target_focus.z, blend)

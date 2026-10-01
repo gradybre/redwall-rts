@@ -229,6 +229,13 @@ static func crossing_row(code: int) -> int:
 	return leg_slot(code) - Rules.MAX_SEGMENTS
 
 
+func last_cost_m() -> float:
+	"""What the route the last `plan` found costs, in metres-at-walk-speed -- the very figure its search settled the
+	goal at (see WEATHER, LANTERNS AND QUEUES). A read for comparisons on top of the router (demo/routes/
+	route_estimator.gd, decision 0461); meaningful only after a `plan` that returned true."""
+	return _dist[GOAL]
+
+
 func plan(nav: CastNavScript, from: Vector2, to: Vector2, body: float, standing: PackedVector3Array,
 		standing_count: int, revision: int, out: PackedVector2Array, legs: PackedInt32Array,
 		goal_node: int = -1) -> bool:

@@ -34,6 +34,7 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
+const PeopleBook := preload("res://demo/people/people_book.gd")
 
 ## How often each resident is reconsidered (cast time): the crews' old pick-up interval.
 const CLAIM_PERIOD_USEC: int = 500000
@@ -70,6 +71,9 @@ var revision: int = 0
 var _sources: Array[SourceScript] = []
 var _brains: Array[BrainScript] = []
 var _names: PackedStringArray = PackedStringArray()
+## Each resident's name with its species and role ("Wenna Tallowby (mouse keeper)"; decision 0491), for the rows where
+## the role helps choose (the Work screen's residents).
+var _labels: PackedStringArray = PackedStringArray()
 var _clock_usec: int = 0
 var _due_usec: PackedInt64Array = PackedInt64Array()
 var _cursor: PackedInt32Array = PackedInt32Array()
@@ -103,6 +107,9 @@ func bind(brains: Array[BrainScript], names: PackedStringArray, keys: Array[Stri
 	"""Work with these residents (by actor index), named so, each starting on its trade's crew (work_crews.gd)."""
 	_brains = brains
 	_names = names
+	_labels = PackedStringArray()
+	for who: int in names.size():
+		_labels.append(PeopleBook.with_role(names[who], keys[who] if who < keys.size() else &""))
 	crews.setup(keys)
 	var count: int = brains.size()
 	_due_usec.resize(count)
@@ -153,6 +160,11 @@ func resident_count() -> int:
 func name_of(who: int) -> String:
 	"""Resident `who`'s name (UNKNOWN out of range)."""
 	return _names[who] if who >= 0 and who < _names.size() else UNKNOWN
+
+
+func label_of(who: int) -> String:
+	"""Resident `who`'s name with its species and role ("Wenna Tallowby (mouse keeper)"; UNKNOWN out of range)."""
+	return _labels[who] if who >= 0 and who < _labels.size() else UNKNOWN
 
 
 func brain_of(who: int) -> BrainScript:

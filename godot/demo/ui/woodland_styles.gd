@@ -104,8 +104,19 @@ const READOUT_HOVER_ALPHA: float = 0.10
 const READOUT_PRESSED_ALPHA: float = 0.18
 const READOUT_RADIUS: int = 4
 
-## Rendered pieces by name, shared across every apply in the process. Textures are immutable
-## once built, so sharing them is safe; StyleBoxes are NOT shared, because each carries margins.
+## HIGH CONTRAST (decision 0471, UI §8.1 `high_contrast`): the pieces text is read on are re-rendered with a flat,
+## opaque, untextured face -- no grain, no relief, no inset shading, the parchment's lightest tone -- under the same
+## carved band, IN PLACE: each cached texture is updated, so every panel and the HUD already wearing it changes at once
+## (a live preview), and a piece first drawn later is drawn the same way.
+const CONTRAST_PIECES: Array[StringName] = [PIECE_PANEL, PIECE_PANEL_TIGHT, PIECE_MAP, PIECE_ROW, PIECE_FIELD,
+	PIECE_TILE, PIECE_TILE_HOVER]
+
+## Whether the text pieces wear the high-contrast face now.
+static var high_contrast: bool = false
+
+## Rendered pieces by name, shared across every apply in the process. A texture changes only through
+## `set_high_contrast`, which updates it in place for every user at once; StyleBoxes are NOT shared, because each
+## carries margins.
 static var _pieces: Dictionary = {}
 static var _ring: ImageTexture = null
 static var _heading_font: Font = null
@@ -144,7 +155,33 @@ static func spec_for(name: StringName) -> Textures.Spec:
 	spec.rivets = bool(row["rivets"])
 	spec.outline = Palette.PIGMENTS[int(row["outline"])]
 	spec.noise_seed = hash(name) & 0xFFFF
+	if high_contrast and CONTRAST_PIECES.has(name):
+		_flatten(spec, int(row["face"]))
 	return spec
+
+
+static func _flatten(spec: Textures.Spec, face: int) -> void:
+	"""The high-contrast face: one opaque tone, no grain, relief or inset shading, a dark outline."""
+	spec.face_dark = Palette.face_light(face)
+	spec.face_light = Palette.face_light(face)
+	spec.grain = 0.0
+	spec.relief = 0.0
+	spec.inset_shadow = 0.0
+	spec.outline = Palette.DEEP_SHADE
+
+
+static func set_high_contrast(on: bool) -> int:
+	"""Turn the high-contrast face on or off, re-rendering the text pieces already drawn in place (see HIGH
+	CONTRAST); returns how many were redrawn."""
+	if on == high_contrast:
+		return 0
+	high_contrast = on
+	var redrawn: int = 0
+	for name: StringName in CONTRAST_PIECES:
+		if _pieces.has(name):
+			(_pieces[name] as ImageTexture).update(Textures.build_image(spec_for(name)))
+			redrawn += 1
+	return redrawn
 
 
 static func box(name: StringName, margins: PackedFloat32Array) -> StyleBoxTexture:

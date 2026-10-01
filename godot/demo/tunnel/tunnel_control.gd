@@ -364,6 +364,14 @@ func show_level(level: int) -> void:
 	_relay()
 
 
+func reveal_tunnel(slot: int) -> void:
+	"""Show the level segment `slot` is seen on, when the U view is on and shows a level it is not on (the news's "Go
+	to" on a level-2 tunnel, decision 0331 with 0212). A link is seen from both levels, so it never switches."""
+	if not view.on or slot < 0 or slot >= network.seg_level.size() or ext.actions.on_level(slot, view.level):
+		return
+	show_level(network.seg_level[slot])
+
+
 func laying_level() -> int:
 	"""The level the tool lays on: the U view's, or with the view off level 1 (see THE SECOND LEVEL)."""
 	return view.level if view.on else Rules.TOP_LEVEL

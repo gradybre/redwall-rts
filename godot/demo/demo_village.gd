@@ -502,10 +502,13 @@ func select_resident(who: int) -> void:
 
 
 func select_tunnel(slot: int) -> void:
-	"""Select tunnel `slot` and bring the Tunnels panel forward, as a click on it does."""
-	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
+	"""Select tunnel `slot` and bring the Tunnels panel forward, as a click on it does; in the U view, on the level it
+	lies on (decision 0212)."""
+	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
+	var ext: TunnelExtScript = tool.ext
 	ext.deselect_room()
 	ext.actions.select(slot)
+	tool.reveal_tunnel(slot)
 	ext.panel_wanted.emit()
 
 

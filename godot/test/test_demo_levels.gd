@@ -919,6 +919,32 @@ func test_each_level_is_drawn_on_its_own_layers() -> void:
 	assert_equal([bores.chunk(way, 0).layers, bores.chunk(way, 0).material_override], [Layers.UNDERGROUND_2, BoreViewScript.earth_material(2)], "the passage below")
 
 
+func test_a_go_to_on_a_level_2_tunnel_shows_its_level() -> void:
+	"""The news's "Go to" on a tunnel (demo_village.gd `select_tunnel`, decision 0331) reveals its level in the U view:
+	a level-2 passage from level 1 shows level 2; the stairs, seen from both, never switch; with the view off nothing
+	moves."""
+	var s := _village_below()
+	var tool: ControlScript = s["v"]["tool"]
+	var network: GraphScript = tool.network
+	var lower: int = s["lower"]
+	var passage := network.rooms.door[lower]
+	var way: int = network.node_segment(passage, 0) if network.node_segment(passage, 0) != network.rooms.body[lower] else network.node_segment(passage, 1)
+	assert_true(tool.view.on, "the U view is on")
+	assert_equal(network.seg_level[way], Rules.LEVEL_2, "the passage is on level 2")
+	tool.show_level(Rules.TOP_LEVEL)
+	tool.reveal_tunnel(s["stairs"])
+	assert_equal(tool.view.level, Rules.TOP_LEVEL, "the stairs are seen from level 1: no switch")
+	tool.reveal_tunnel(way)
+	assert_equal(tool.view.level, Rules.LEVEL_2, "the passage's level shown")
+	tool.reveal_tunnel(way)
+	assert_equal(tool.view.level, Rules.LEVEL_2, "already shown: kept")
+	tool.show_level(Rules.TOP_LEVEL)
+	tool.toggle_view()
+	tool.reveal_tunnel(way)
+	assert_equal(tool.view.level, Rules.TOP_LEVEL, "the view off: nothing moves")
+	tool.reveal_tunnel(-1)
+
+
 func test_level_2_s_rooms_and_marks_stand_on_its_floor() -> void:
 	"""The lower home's fit-out and outline stand on level 2's floor, and it has no outline on the ground; level 2's cap is
 	shaded from its floor; the stairs' selection line shows from both levels; a link is picked from either level, a bore

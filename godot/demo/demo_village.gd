@@ -787,6 +787,7 @@ func _build_news() -> void:
 	"""The village news (see VILLAGE NEWS): the strip on the news clock with its count, the history window, the
 	incident card, every "Go to", and the HUD's history command routed to the window."""
 	_news.bind_news(_services.incidents, _services.news_clock, (GameManager as GameManagerScript).is_paused)
+	_news.bind_jump(_jump)
 	_jump.bind_camera(_camera as DemoCameraScript)
 	_register_jumps()
 	_farm.set_bed_jump(func(bed: int) -> bool: return _jump.jump(NoticesScript.TARGET_BED, bed))

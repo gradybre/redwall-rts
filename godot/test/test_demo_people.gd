@@ -78,7 +78,9 @@ static func manifest() -> Dictionary:
 
 
 func _cast() -> DemoCastScript:
-	"""The demo's nine residents, as placeholders under their keys."""
+	"""The demo's nine residents, as placeholders under their keys (each warns that its body is not loadable: the
+	manifest names none, on purpose)."""
+	expect_diagnostic("has no loadable body; using a placeholder")
 	var cast: DemoCastScript = _keep(DemoCastScript.new())
 	cast.build(manifest(), [] as Array[Dictionary], [] as Array[Vector3])
 	return cast
@@ -168,8 +170,10 @@ func test_a_dialect_tag_longer_than_two_words_is_dropped() -> void:
 
 func test_a_broken_or_missing_file_leaves_trade_labels() -> void:
 	"""No file: no person; the default file again: the names are back."""
+	expect_diagnostic("demo people: no file at res://no/such/people.json")
 	assert_false(PeopleBook.load_from("res://no/such/people.json"), "missing")
 	assert_equal(DemoActorScript.name_for(&"mouse_keeper"), "Mouse keeper", "its key's label")
+	expect_diagnostic("demo people: res://demo/sound/sound_table.json is not a people table")
 	assert_false(PeopleBook.load_from("res://demo/sound/sound_table.json"), "not a people table")
 	assert_true(PeopleBook.load_from(), "the demo's own file")
 	assert_equal(DemoActorScript.name_for(&"mouse_keeper"), "Wenna Tallowby", "named again")
@@ -903,7 +907,7 @@ func test_a_skill_level_reached_by_real_work_is_a_deed_and_a_starting_level_is_n
 	taps.watch()
 	taps.calendar.tick += TapsScript.SKILL_POLL_TICKS
 	assert_equal(taps.poll(), 0, "level 3 to start: nothing")
-	assert_true(skills.add_work(1, ForestRules.SKILL_FELLING, ForestRules.xp_of_level(1) / ForestRules.XP_PER_WU), "a level")
+	@warning_ignore("integer_division") assert_true(skills.add_work(1, ForestRules.SKILL_FELLING, ForestRules.xp_of_level(1) / ForestRules.XP_PER_WU), "a level")
 	assert_equal(taps.poll(), 0, "looked at only every SKILL_POLL_TICKS")
 	taps.calendar.tick += TapsScript.SKILL_POLL_TICKS
 	assert_equal(taps.poll(), 1, "level 1")
@@ -911,7 +915,7 @@ func test_a_skill_level_reached_by_real_work_is_a_deed_and_a_starting_level_is_n
 	assert_equal([ledger.ev_kind[0], ledger.ev_who[0], ledger.ev_subject[0], ledger.ev_amount[0]],
 		[Ledger.KIND_SKILL, 1, "Felling", 1], "the novice's first level")
 	assert_equal(Words.event_text(Ledger.KIND_SKILL, "Felling", "", 1), "Reached Felling · Level 1", "worded")
-	skills.add_work(1, ForestRules.SKILL_FELLING, (ForestRules.xp_of_level(3) - ForestRules.xp_of_level(1)) / ForestRules.XP_PER_WU)
+	@warning_ignore("integer_division") skills.add_work(1, ForestRules.SKILL_FELLING, (ForestRules.xp_of_level(3) - ForestRules.xp_of_level(1)) / ForestRules.XP_PER_WU)
 	taps.calendar.tick += TapsScript.SKILL_POLL_TICKS
 	assert_equal(taps.poll(), 2, "levels 2 and 3")
 	assert_equal([ledger.ev_amount[1], ledger.ev_amount[2]], [2, 3], "each level")
@@ -932,7 +936,7 @@ func test_working_together_grows_affinity_and_working_apart_does_not() -> void:
 	taps.watch()
 	assert_equal(board.crews.crew_of[0], board.crews.crew_of[1], "0 and 1 on the Field crew")
 	assert_true(board.crews.crew_of[2] != board.crews.crew_of[0], "2 on the Woods crew")
-	for k: int in Ledger.SHARED_HOUR_TICKS / TapsScript.SHARE_POLL_TICKS:
+	@warning_ignore("integer_division") for k: int in Ledger.SHARED_HOUR_TICKS / TapsScript.SHARE_POLL_TICKS:
 		taps.calendar.tick += TapsScript.SHARE_POLL_TICKS
 		taps.poll()
 	var ledger: Ledger = taps.ledger

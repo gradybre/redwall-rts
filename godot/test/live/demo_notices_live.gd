@@ -203,6 +203,9 @@ func _the_strip() -> void:
 	var picker: Rect2 = (_village.get("_lens_picker").get("_frame") as Control).get_global_rect()
 	_check("the strip keeps to its band, clear of the Map layer picker", not rect.intersects(picker),
 		"%s / %s, %d lines" % [rect, picker, strip.lines_fitting()])
+	var frame: Control = strip.get("_frame")
+	_check("no empty room under the lines (measured at the width drawn)", absf(frame.size.y
+		- frame.get_combined_minimum_size().y) < 1.0, "%s / %s" % [frame.size, frame.get_combined_minimum_size()])
 	_floors("the strip", strip)
 	await _capture("notices_strip")
 

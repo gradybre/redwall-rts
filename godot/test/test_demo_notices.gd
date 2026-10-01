@@ -250,6 +250,45 @@ func test_untagged_lines_still_fold_only_when_said_twice_in_a_row() -> void:
 	assert_equal(feed.count(), 3, "apart once something was said between")
 
 
+func test_a_named_kind_never_joins_an_untagged_line_that_happens_to_share_it() -> void:
+	"""An untagged line's inferred kind "farm:Crows" with a bed target is not a named kind: crows notified with that
+	kind and subject start their own entry."""
+	var feed := _feed()
+	feed.post(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_WARNING, "Crows", "", NoticesScript.TARGET_BED, 3)
+	assert_equal(feed.kind(0), &"farm:Crows", "inferred")
+	feed.notify(NoticesScript.SOURCE_FARM, NoticesScript.TIER_NORMAL, &"farm:Crows", "Crows", "", "",
+		NoticesScript.TARGET_BED, 3)
+	assert_equal(feed.count(), 2, "apart")
+	assert_equal(feed.repeats(1), 1, "the untagged line was not counted")
+
+
+func test_a_grouped_repeat_of_a_snoozed_kind_stays_quiet() -> void:
+	"""Crows announced, then snoozed: their next repeat moves to the top but is not announced again."""
+	var feed := _feed()
+	_calendar_of(feed)
+	_crows_on_bed(feed, 3)
+	assert_true(feed.is_announced(0), "announced")
+	feed.snooze_kind(CROWS, 6)
+	_crows_on_bed(feed, 3)
+	assert_equal(feed.repeats(0), 2, "grouped")
+	assert_false(feed.is_announced(0), "but quiet")
+	assert_equal(feed.snoozed_quiet, 1, "counted")
+
+
+func test_entries_keep_their_first_tick_through_overflow() -> void:
+	"""Every column moves together when the oldest goes: each kept entry's first tick is the one it was posted at."""
+	var feed := _feed()
+	var calendar := _calendar_of(feed)
+	for k: int in NoticesScript.CAPACITY + 5:
+		calendar.tick = 100 + k
+		feed.post(NoticesScript.SOURCE_CREW, NoticesScript.LEVEL_NOTE, "Report %d" % k)
+	assert_equal(feed.count(), NoticesScript.CAPACITY, "full")
+	for k: int in [0, 1, NoticesScript.CAPACITY - 1]:
+		var said: int = int(feed.text(k).get_slice(" ", 1))
+		assert_equal(feed.first_tick(k), 100 + said, "entry %d first said at its own tick" % k)
+		assert_equal(feed.said_tick(k), 100 + said, "and last")
+
+
 func test_readers_find_new_rows_by_id_after_a_group_moves_a_row() -> void:
 	"""A new warning and a grouped repeat in one frame: the repeat is newest, but only the warning is new since."""
 	var feed := _feed()
@@ -635,6 +674,11 @@ func test_the_history_s_snooze_wake_and_dismiss() -> void:
 	assert_true(history.snooze_row(0), "snoozed")
 	assert_equal(history.history_verb(0, 2).text, "Wake", "now Wake")
 	assert_equal(history.snoozed_text(), "Snoozed: Crows at the barley (6 h)", "named, with its hours")
+	var calendar := CalendarScript.new()
+	shared.notices.bind_calendar(calendar)
+	calendar.tick = 2 * HOUR
+	history.refresh()
+	assert_equal(history.snoozed_text(), "Snoozed: Crows at the barley (4 h)", "the hours left follow the game hour")
 	assert_true(history.snooze_row(0), "woken")
 	assert_equal(history.snoozed_text(), "", "nothing snoozed")
 	history.snooze_row(0)

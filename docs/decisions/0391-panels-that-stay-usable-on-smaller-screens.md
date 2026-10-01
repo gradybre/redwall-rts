@@ -176,6 +176,28 @@ the picker's last crop and the orders list are reachable by scrolling and Back i
   a real click on Swim shortcuts, in view unscrolled; the picker open across a real Spring 4 → 5 boundary keeps its
   focus and scroll; 150 % chosen at 1080p steps down to 125 % at 1280x720.
 
+- **Suite**: `./tools/run_tests.sh` -- "ok: 6828 tests, 559289 assertions, 0 failures." (base fe74b95: 6804 tests.)
+- **Live harnesses** (staged assets, and again on placeholders): `demo_input_live.gd` 152 / 0 at 1280x720 and
+  158 / 0 at 1920x1080; `demo_layout_live.gd` 145 / 0 at 1280x720, 211 / 0 at 1920x1080 and 2560x1440 (153, 226, 226
+  on placeholders, whose six-resident cast adds checks).
+- **Mutation testing**: 84 mutants of the new logic (the party panel's words, pools, dock and ledger rules; the Water
+  panel's pins, fold, floors and wiring; the picker's in-place refresh and its head and foot; `demo_scroll.gd`; the
+  gate's cover; the picker, news band and card placements; the tooltip scale; the scale-fit floors; the 14 / 32 px
+  constants; every new connection), one at a time, each file restored and its SHA-256 checked: **83 killed**. The
+  first pass left 17; new live checks (reveal distances, focus following, a focused Release across a dock, captions
+  whole, every frame inside its zone, a roster row's pick, the Woods and Tunnels floors, the unfolded picker list) and
+  unit checks (chips re-coloured, half-covered stops, the fit floors, Release wired) killed 16. **One survives:** the
+  Water sections' `MIN_BODY_H` floor in `_place` -- with the alert capped at four lines, folding the selection
+  always leaves at least that, so the floor never binds; it is kept as a guard.
+- **Independent review** (code-reviewer, on 2dd8593): three HIGH, all fixed in the second commit -- member rows rebuilt
+  on every refresh (now pools), the Water panel's unbounded pinned part (now capped and folding), and a height-only
+  scale floor that let 1440x900 and 1280x1024 at 150 % overlap the picker and news strip (now width too). MEDIUMs
+  fixed: unskinned, unscaled hover texts in the two panels; focus lost when the summary moves; picker lines recoloured
+  every refresh; a camera check that passed on any movement; `demo_scroll.gd` untested; long functions. LOWs fixed:
+  the index fallback, an unbounded date loop, the cover read per control, a docstring, a dead test line.
+- Frames: `scratchpad/rv_f_check/` (party 1 / 6 / 9, water, water_rescue, picker, scale at 100 / 125 / 150 % and
+  2560x1440 at 150 %; group_selected, water_action, picker_spring_5 and menu_settings at 1280x720 and 1920x1080).
+
 ## Consequences
 
 - A new demo panel that scrolls should use `ui/demo_scroll.gd`, or Tab focus will scroll it wrongly at 125 % and

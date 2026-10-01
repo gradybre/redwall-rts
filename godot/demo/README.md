@@ -176,7 +176,8 @@ line that **the demo can't save yet**. Restart and Quit ask first and say again 
 Opening it holds the clock's MENU pause reason and closing releases only that, so the village comes back at
 the speed it had (and a pause of your own stays). Settings holds only what works: the interface scale
 (100 / 125 / 150 %, the HUD and every demo panel, the level indicator and the action cards' tooltips together; a
-size the window cannot show at 576 logical rows is disabled and says so -- at 1280x720, 150 %; decision 0391), full screen, and the sound's volumes, mutes and mixes
+size the window cannot show at 576 logical rows and 1024 logical px wide is disabled and says so -- at 1280x720, 150 %;
+decision 0391), full screen, and the sound's volumes, mutes and mixes
 (see "Sound" below). The Menu button no longer opens the New Settlement form: its Create would discard the settlement the demo runs on.
 
 **The Demo Lab** (`ui/demo_lab.gd`, F8, or the menu's "Demo Lab"): the demo's test triggers, and only here --
@@ -973,7 +974,9 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
   shortcuts, and **All residents**, folded until opened, a row per resident that selects it and centres the
   camera on it -- then **Bridges** -- the site, each kind's cost with the two Build buttons right under them,
   ◀ Site / Site ▶ / Span two banks…, the bridges, the stores and the news. At 1280x720 Dive, Swim shortcuts and
-  both Builds are in view without scrolling; every button is at least 32 px tall, every line at least 14 px.
+  both Builds are in view without scrolling; every button is at least 32 px tall, every line at least 14 px. The
+  pinned alert shows up to four lines (all of it in its tooltip), and where the pinned selection would squeeze the
+  sections below two button rows -- a rescue at 125 % -- it folds into All residents.
 - **Bridges.** The Water panel steps through the map's three bridge candidates or spans any two banks
   you click. A plank footbridge costs 1.0 U of planks a metre of deck (and 1.0 U of wood a pier, one per
   started 2.5 m of span over 3.5 m); a log bridge costs one 6.0 U log -- a felled trunk lying ready, else

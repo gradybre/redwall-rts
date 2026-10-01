@@ -15,6 +15,7 @@ extends SceneTree
 ## PASS|FAIL <detail>` per check and `LIVE-SUMMARY <checks> <failures>`; exits 1 on any failure.
 
 const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
+const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const WaterPanel := preload("res://demo/waterplay/water_panel.gd")
 const ZoneScript := preload("res://demo/ui/demo_detail_zone.gd")
@@ -181,6 +182,14 @@ func _capture(file_name: String) -> void:
 	_manager().set("_last_host_usec", Time.get_ticks_usec())
 
 
+func _zone_foot() -> float:
+	"""The foot of a right-column panel's rectangle, viewport px (demo_detail_zone.gd `panel_placement`)."""
+	var geometry := UiLayout.Geometry.new()
+	var rect: Rect2 = ZoneScript.panel_placement(_size.x, _size.y, 10.0, ZoneScript.STRIP_H + ZoneScript.STRIP_GAP,
+		UiLayout.new(), geometry)
+	return rect.end.y * geometry.scale
+
+
 func _effective() -> float:
 	"""The HUD's effective scale S for this window at the scale now."""
 	return DemoUiScale.effective_scale(Vector2(_size))
@@ -214,9 +223,14 @@ func _party_checks() -> void:
 		var n: int = mini(wanted, cast) if wanted < PARTIES.back() else cast
 		_command().call(&"select", PackedInt32Array(range(n)))
 		_command().call(&"_refresh_panel")
-		_command().call(&"say", NOTICE)
+		await _frames(SETTLE_FRAMES)
+		(_party().call(&"inspector") as ScrollContainer).scroll_vertical = 100000
+		await _frames(1)
+		_command().call(&"say", "%s (%d of %d)" % [NOTICE, n, wanted])
 		await _frames(SETTLE_FRAMES)
 		var party: CanvasLayer = _party()
+		_check("party %d: a new notice scrolls the inspector back to it" % n,
+			(party.call(&"inspector") as ScrollContainer).scroll_vertical == 0)
 		var frame: Control = party.get("_frame")
 		var what: String = "party %d" % n
 		_check("%s: the frame is shown" % what, frame.is_visible_in_tree() and _fraction(frame) >= FULL,
@@ -243,14 +257,72 @@ func _members(party: CanvasLayer, n: int, what: String) -> void:
 		_check("%s: the orders in full, each target kept" % what, orders.contains("— the ground, a work spot"), orders.left(60))
 		var abilities: Label = party.get("_abilities")
 		_check("%s: the orders reachable" % what, await _reachable(abilities))
+		await _reveal_tall(party, abilities)
 		return
 	_check("%s: a row for every member" % what, int(party.call(&"member_row_count")) == n)
+	if n == int(_village.get("_cast").call(&"actor_count")):
+		await _reveal_checks(party, n)
 	var unreachable: PackedStringArray = PackedStringArray()
 	for k: int in n:
 		var row: Button = party.call(&"member_row", k)
 		if not await _reachable(row):
 			unreachable.append(str(k))
 	_check("%s: every member row reachable" % what, unreachable.is_empty(), ", ".join(unreachable))
+
+
+func _reveal_checks(party: CanvasLayer, n: int) -> void:
+	"""demo_scroll.gd at this scale: revealing the last row scrolls the least distance (the row's foot at the view's
+	foot); revealing a row above scrolls up to it; keyboard focus on a row brings it into view; and a focused Release
+	keeps its focus when the summary and actions move (`fit` to no room and back)."""
+	var inspector: ScrollContainer = party.call(&"inspector")
+	var last: Button = party.call(&"member_row", n - 1)
+	inspector.scroll_vertical = 0
+	await _frames(2)
+	inspector.call(&"reveal", last)
+	await _frames(2)
+	var view: Rect2 = inspector.get_global_rect()
+	var margin: float = 4.0 * inspector.get_global_transform().get_scale().y
+	var foot_gap: float = view.end.y - last.get_global_rect().end.y
+	_check("reveal: the least distance down", inspector.scroll_vertical == 0 or absf(foot_gap - margin) <= 1.5,
+		"gap %.1f" % foot_gap)
+	var first: Button = party.call(&"member_row", 0)
+	inspector.call(&"reveal", first)
+	await _frames(2)
+	_check("reveal: back up to a row above", _fraction(first) >= FULL)
+	inspector.scroll_vertical = 0
+	await _frames(2)
+	last.grab_focus()
+	await _frames(2)
+	_check("focus on a row brings it into view", _fraction(last) >= FULL, str(last.get_global_rect()))
+	await _dock_keeps_focus(party)
+
+
+func _reveal_tall(party: CanvasLayer, hint: Control) -> void:
+	"""A control taller than the view (the orders list, where the column is short) is revealed from its top; a
+	shorter one comes whole."""
+	var inspector: ScrollContainer = party.call(&"inspector")
+	if hint.size.y <= inspector.size.y:
+		inspector.call(&"reveal", hint)
+		await _frames(2)
+		_check("reveal: a short one comes whole", _fraction(hint) >= FULL)
+		return
+	inspector.call(&"reveal", hint)
+	await _frames(2)
+	_check("reveal: a tall one from its top", absf(hint.get_global_rect().position.y - inspector.get_global_rect().position.y) <= 1.0)
+
+
+func _dock_keeps_focus(party: CanvasLayer) -> void:
+	"""A focused Release keeps its focus when the summary and actions move into the inspector and back."""
+	var release: Button = party.call(&"release_button")
+	release.grab_focus()
+	var was: bool = bool(party.call(&"docked"))
+	party.call(&"fit", 1.0)
+	_check("undocking keeps Release's focus", root.gui_get_focus_owner() == release and not bool(party.call(&"docked")))
+	party.call(&"fit", 4000.0)
+	_check("docking again keeps it", root.gui_get_focus_owner() == release)
+	release.release_focus()
+	party.call(&"fit", 4000.0 if was else 1.0)
+	await _frames(SETTLE_FRAMES)
 
 
 # --- F12: the Water panel ---------------------------------------------------------------------------------
@@ -283,10 +355,27 @@ func _water_checks() -> void:
 	await _frames(SETTLE_FRAMES)
 	var last: int = int(_village.get("_cast").call(&"actor_count")) - 1
 	_check("water: All residents rows reachable once unfolded", await _reachable(water.call(&"roster_row", last)))
+	(water.call(&"roster_row", last) as Button).pressed.emit()
+	_check("water: a row selects its resident", _command().call(&"selected") == PackedInt32Array([last]))
+	_command().call(&"select", PackedInt32Array([0]))
 	_floors("water", water)
+	_captions_whole(water)
 	_capture("water")
 	water.call(&"set_roster_open", false)
 	await _rescue_checks(water)
+
+
+func _captions_whole(water: CanvasLayer) -> void:
+	"""The Water panel's action captions are whole: each button is at least as wide as its words."""
+	var cut: PackedStringArray = PackedStringArray()
+	for key: StringName in WaterPanel.BUTTON_TEXT:
+		var button: Button = water.call(&"button", key)
+		var font: Font = button.get_theme_font(&"font")
+		var words: float = font.get_string_size(button.text, HORIZONTAL_ALIGNMENT_LEFT, -1.0,
+			button.get_theme_font_size(&"font_size")).x
+		if button.size.x < words:
+			cut.append(button.text)
+	_check("water: every action's caption whole", cut.is_empty(), ", ".join(cut))
 
 
 func _rescue_checks(water: CanvasLayer) -> void:
@@ -314,7 +403,7 @@ func _rescue_checks(water: CanvasLayer) -> void:
 			lost.append(String(key))
 	_check("rescue: the actions reachable", lost.is_empty(), ", ".join(lost))
 	var frame: Rect2 = water.call(&"frame_rect")
-	_check("rescue: the frame inside the window", frame.end.y <= float(_size.y) + 0.5, str(frame))
+	_check("rescue: the frame inside its zone", frame.end.y <= _zone_foot() + 0.5, "%s, foot %.1f" % [frame, _zone_foot()])
 	_capture("water_rescue")
 	water.call(&"set_selected", PackedInt32Array([0]))
 	_village.get("_waterplay").set("_refresh_in", 0.0)
@@ -333,6 +422,8 @@ func _picker_checks() -> void:
 	for node: Node in bed.find_children("*", "ScrollContainer", true, false):
 		scrolls += 1 if (node as Control).is_visible_in_tree() else 0
 	_check("picker: one scroll owner", scrolls == 1, "%d" % scrolls)
+	var frame: Rect2 = bed.call(&"frame_rect")
+	_check("picker: the frame inside its zone", frame.end.y <= _zone_foot() + 0.5, "%s, foot %.1f" % [frame, _zone_foot()])
 	var back: Button = bed.call(&"back_button")
 	_check("picker: Back in view", _fraction(back) >= FULL, str(back.get_global_rect()))
 	var body: ScrollContainer = bed.call(&"body")
@@ -381,10 +472,31 @@ func _scale_checks() -> void:
 	_check("every demo surface at S=%.2f" % s, off.is_empty(), ", ".join(off))
 	var tip: int = CardScript.tooltip_theme().get_font_size(&"font_size", &"TooltipLabel")
 	_check("card tooltips at TIP_PX x S", tip == roundi(float(CardScript.TIP_PX) * s), "%d px" % tip)
+	var geometry := UiLayout.Geometry.new()
+	UiLayout.new().compute_into(_size.x, _size.y, DemoUiScale.percent, false, geometry)
+	var top: float = (geometry.management_top + 10.0) * s
+	_check("the picker inside its slot", (frames["lens picker"] as Control).get_global_rect().position.y >= top - 0.5)
+	_village.get("_lens_picker").call(&"toggle_list")
+	await _frames(SETTLE_FRAMES)
+	_check("unfolded, the list scrolls inside its slot", (frames["lens picker"] as Control).get_global_rect().position.y >= top - 0.5)
+	_village.get("_lens_picker").call(&"toggle_list")
+	await _woods_and_tunnels()
 	_apart(frames)
 	_capture("scale")
 	_village.get("_lens_picker").call(&"choose", 0)
 	incidents.call(&"resolve", "layout:card")
+
+
+func _woods_and_tunnels() -> void:
+	"""The Woods and Tunnels panels meet the 14 px and 32 px floors too."""
+	var zone: Node = _village.get("_zone")
+	zone.call(&"show_panel", ZoneScript.PANEL_WOODS)
+	await _frames(SETTLE_FRAMES)
+	_floors("woods", _village.get("_forestry").get("panel"))
+	zone.call(&"show_panel", ZoneScript.PANEL_TUNNELS)
+	await _frames(SETTLE_FRAMES)
+	_floors("tunnels", _command().call(&"tunnels").get("ext").get("panel"))
+	zone.call(&"show_panel", ZoneScript.PANEL_FARM)
 
 
 func _apart(frames: Dictionary) -> void:

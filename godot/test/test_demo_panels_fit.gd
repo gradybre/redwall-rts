@@ -32,6 +32,8 @@ const CalendarScript := preload("res://demo/demo_calendar.gd")
 const CommandScript := preload("res://demo/control/demo_command.gd")
 const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
 const VillageScript := preload("res://demo/demo_village.gd")
+const TunnelPanel := preload("res://demo/tunnel/tunnel_panel.gd")
+const ForestPanel := preload("res://demo/forestry/forest_panel.gd")
 
 const BED_LOAM: int = 0
 const PEA: int = 11
@@ -206,6 +208,19 @@ func test_the_picker_has_one_scroll_and_a_fixed_title_and_back() -> void:
 	assert_equal(panel.picker_title_text(), "", "and the title")
 
 
+func test_the_woods_and_tunnels_buttons_meet_the_floors() -> void:
+	"""Every Woods and Tunnels button at least 32 px tall and 14 px type, shown or not (the tunnels' show only with a
+	tunnel selected, which the live harness does not do)."""
+	for panel: CanvasLayer in [_own(TunnelPanel.new()), _own(ForestPanel.new())] as Array[CanvasLayer]:
+		panel.call(&"build")
+		var buttons: Array[Node] = panel.find_children("*", "Button", true, false)
+		assert_true(buttons.size() > 0, "%s has buttons" % panel.name)
+		for node: Node in buttons:
+			var b := node as Button
+			assert_true(b.custom_minimum_size.y >= 32.0 or b.get_combined_minimum_size().y >= 32.0, "%s: 32 px" % b.text)
+			assert_true(b.get_theme_font_size(&"font_size") >= 14, "%s: 14 px" % b.text)
+
+
 func test_farm_small_text_is_at_least_14_px() -> void:
 	"""The farm's small type and every farm button meet UI §2.1's 14 px and UX-T03's 32 px (F35's 13 px)."""
 	assert_true(FarmUi.SMALL_PX >= 14, "small type: %d px" % FarmUi.SMALL_PX)
@@ -251,6 +266,7 @@ func test_pick_member_selects_alone_and_centres() -> void:
 	assert_equal(centred.size(), 1, "and not centred")
 	command.panel().member_picked.emit(1)
 	assert_equal(command.selected(), PackedInt32Array([1]), "the party panel's row reaches it")
+	assert_true(command.panel().release_requested.is_connected(command.release_selection), "Release (R) is the R key's own")
 
 
 # --- the bottom band and the card at the narrow profile ---------------------------------------------
@@ -343,6 +359,10 @@ func test_a_control_under_the_cover_is_no_focus_stop() -> void:
 	gate.occlude_with(func() -> Rect2: return cover[0])
 	assert_equal(GateScript.screen_rect(hidden), Rect2(100, 0, 40, 32), "its rect on screen")
 	assert_true(gate.covered(hidden), "under the cover")
+	cover[0] = Rect2(120, 0, 60, 60)
+	assert_true(gate.covered(hidden), "half under it is covered too")
+	assert_equal(gate.region_controls(0), [open] as Array[Control], "and no stop")
+	cover[0] = Rect2(90, 0, 60, 60)
 	assert_false(gate.covered(open), "the other is not")
 	assert_equal(gate.region_controls(0), [open] as Array[Control], "the covered one is no stop")
 	var focus := GateScript.Focus.new()
@@ -397,6 +417,7 @@ func test_a_scale_is_offered_only_where_the_bottom_band_has_room() -> void:
 	assert_true(DemoUiScale.fits(1440, 900, 125, h, w), "1440x900 at 125 %")
 	assert_true(DemoUiScale.fits(1366, 768, 125, h, w), "1366x768 at 125 %")
 	assert_false(DemoUiScale.fits(1366, 768, 150, h, w), "1366x768 at 150 %: too short")
+	assert_false(DemoUiScale.fits(1920, 720, 150, h, w), "1920x720 at 150 %: wide enough, too short")
 
 
 func test_a_reveal_works_in_the_scroll_s_own_pixels() -> void:
@@ -439,6 +460,10 @@ func test_the_party_rows_are_a_pool_re_worded_in_place() -> void:
 	panel.member_picked.connect(func(i: int) -> void: picked.append(i))
 	rows[0].pressed.emit()
 	assert_equal(picked, [12] as Array[int], "the first row lists R2 now")
+	var chips: Array[Color] = [Color.RED, Color.GREEN]
+	panel.show_party([{"index": 1, "name": "A", "state": "holding", "colour": chips[0]},
+		{"index": 2, "name": "B", "state": "holding", "colour": chips[1]}] as Array[Dictionary])
+	assert_equal((rows[1].get_node(^"Chip") as ColorRect).color, chips[1], "each row's chip is its resident's")
 	panel.show_party([{"index": 4, "name": "A", "species": "Mouse", "state": "holding"}] as Array[Dictionary])
 	var lines: Array[Label] = panel.get("_line_labels")
 	var first: Label = lines[0]

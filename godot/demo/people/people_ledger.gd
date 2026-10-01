@@ -24,7 +24,8 @@ extends RefCounted
 ## SOCIAL_GAIN (2), at most once a pair a day; a rescue adds RESCUE_GAIN (8), once per rescue
 ## (REQ-SET-036); a pair is friends from FRIEND_AT (40) until it falls below FRIEND_CLEAR_BELOW (25) (REQ-SET-037);
 ## affinity is clamped to -100..100 and, at midnight, a pair without contact for DECAY_AFTER_DAYS (3) moves one point
-## toward 0 (§5.3). The GDD's feast gain (5) has no feast in the demo to apply to. The only thing friendship does in
+## toward 0 (§5.3). The GDD's feast gain (FEAST_GAIN, 5: REQ-SET-036) is added for every pair who shared the regatta's
+## feast (decision 0438), once per feast. The only thing friendship does in
 ## the GDD -- mentoring as a SOCIAL alternative -- is not built in the demo, so affinity has NO mechanical effect here;
 ## the inspector shows it lightly in words. The degree cap of 8 cannot bind a nine-resident cast (eight others each).
 ## The demo cast starts with no relationship: the GDD's starting edges are for its own twelve, not this community.
@@ -39,10 +40,12 @@ const KIND_ROOM: int = 4
 const KIND_FIRST_HARVEST: int = 5
 const KIND_SKILL: int = 6
 const KIND_MEAL: int = 7
-const KIND_COUNT: int = 8
+## The regatta's race won (decision 0438): its winning crew's deed, pinned to the chronicle when the regatta records it.
+const KIND_REGATTA: int = 8
+const KIND_COUNT: int = 9
 ## The order a season's reflection offers deeds in (lower first; -1: never offered -- the rescued side of a rescue,
 ## whose deed the rescuer's event offers).
-const REFLECT_RANK: PackedInt32Array = [0, -1, 1, 1, 1, 2, 4, 3]
+const REFLECT_RANK: PackedInt32Array = [0, -1, 1, 1, 1, 2, 4, 3, 1]
 ## The distinctive deeds a spotlight is offered after (SOC-001: a rescue; a bridge, tunnel or room built).
 const SPOTLIGHT_KINDS: PackedInt32Array = [KIND_RESCUE, KIND_BRIDGE, KIND_TUNNEL, KIND_ROOM]
 ## How many moments a season's reflection offers (SOC-028).
@@ -56,6 +59,7 @@ const CURATION_DISMISSED: int = 3
 ## The GDD's affinity numbers (see AFFINITY).
 const SOCIAL_GAIN: int = 2
 const RESCUE_GAIN: int = 8
+const FEAST_GAIN: int = 5
 const FRIEND_AT: int = 40
 const FRIEND_CLEAR_BELOW: int = 25
 const AFFINITY_MIN: int = -100
@@ -410,6 +414,15 @@ func add_rescue(rescuer: int, victim: int, day: int) -> bool:
 	if p < 0:
 		return false
 	_gain(p, RESCUE_GAIN, day)
+	return true
+
+
+func add_feast(a: int, b: int, day: int) -> bool:
+	"""A feast shared (REQ-SET-036): FEAST_GAIN, once per feast (the caller's), and an everyday contact."""
+	var p: int = pair(a, b)
+	if p < 0:
+		return false
+	_gain(p, FEAST_GAIN, day)
 	return true
 
 

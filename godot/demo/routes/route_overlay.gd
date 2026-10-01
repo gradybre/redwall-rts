@@ -14,6 +14,9 @@ extends Node3D
 ## labelled with its walking time; a narrow body's tunnel shortcut, where its route goes below and the public way does
 ## not, as a second, fainter ribbon marked optional; and the SWIM LINKS (water_links.gd) as dashed blue bars, labelled
 ## once as optional crossings for swimmers. Nobody is ever sent to swim by it.
+## THE FERRY (decision 0437): its fixed course from the ferry stage to the far stage, by ferry's colour, labelled with
+## what it is doing now -- open and its next departure, or CLOSED and why (`ferry_status`) -- with the public ways and
+## for anyone selected; a passenger or crew aboard draws the boat's own course in the same colour.
 ##
 ## REDRAWN ONLY ON CHANGE, AT MOST A FEW TIMES A SECOND: every REDRAW_S (at once after a new subject or switch) a
 ## cheap signature of what is drawn (per member its state, waypoint, route size and reason; whether the public estimate
@@ -32,7 +35,7 @@ const Palette := preload("res://demo/ui/woodland_palette.gd")
 
 ## Each kind's colour (route_kinds.gd KIND_*): surface, wading, underground, bridge, swimming, by boat, new bridge.
 const KIND_COLOURS: Array[Color] = [Color("#F5F0DF"), Color("#E8C64A"), Color("#B88A5A"), Color("#E08A3C"),
-	Color("#5BB2E8"), Color("#6F8FD8"), Color("#F2B35C")]
+	Color("#5BB2E8"), Color("#6F8FD8"), Color("#F2B35C"), Color("#7FD1B9")]
 const WAIT_COLOUR: Color = Palette.BRASS
 const BLOCK_COLOUR: Color = Palette.CLAY
 const PUBLIC_COLOUR: Color = Color(0.96, 0.94, 0.87, 0.75)
@@ -63,6 +66,9 @@ var public_shortcut: Callable = Callable()
 ## The swim links' land ends (a pair each), drawn with the public ways (see PUBLIC WAYS).
 var swim_a: PackedVector2Array = PackedVector2Array()
 var swim_b: PackedVector2Array = PackedVector2Array()
+## THE FERRY: its course (stage to stage, metres; empty: no ferry) and `() -> String`, its line now.
+var ferry_course: PackedVector2Array = PackedVector2Array()
+var ferry_status: Callable = Callable()
 ## How many times the ribbons were rebuilt (checks: never per frame unchanged).
 var rebuilds: int = 0
 
@@ -203,6 +209,8 @@ func signature() -> int:
 		h = h * 31 + int(public_estimate.is_done()) + public_estimate.restarts * 1009
 		if shortcut_estimate != null:
 			h = h * 31 + int(shortcut_estimate.is_done()) + shortcut_estimate.restarts * 1009
+	if ferry_status.is_valid():
+		h = h * 31 + String(ferry_status.call()).hash()
 	return h if h != 0 else 1
 
 
@@ -221,6 +229,7 @@ func redraw() -> void:
 	else:
 		for k: int in members.size():
 			any = _draw_member(members[k], k) or any
+	any = _draw_ferry() or any
 	if not any:
 		_quad(Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Vector3.ZERO, Color(0, 0, 0, 0))
 	_mesh.surface_end()
@@ -234,7 +243,7 @@ func _draw_member(who: int, k: int) -> bool:
 	var why: int = ReasonsScript.diagnose(brain, _graph, _where)
 	var drew: bool = false
 	if kinds.boat_leg_into(who, _boat_leg):
-		var colour: Color = KIND_COLOURS[KindsScript.KIND_BOAT]
+		var colour: Color = KIND_COLOURS[kinds.boat_kind_of(who)]
 		for p: int in range(1, _boat_leg.size()):
 			_strip(_boat_leg[p - 1], _boat_leg[p], ROUTE_WIDTH_M, colour)
 		drew = true
@@ -275,6 +284,19 @@ func _draw_swim_links() -> bool:
 	if swim_a.is_empty():
 		return false
 	_place_label(swim_a[0], SWIM_LABEL, colour.lightened(0.3))
+	return true
+
+
+func _draw_ferry() -> bool:
+	"""THE FERRY: its course as a thin ribbon and its line at the ferry stage (see the header)."""
+	if ferry_course.size() < 2:
+		return false
+	var colour: Color = KIND_COLOURS[KindsScript.KIND_FERRY]
+	colour.a = 0.8
+	for k: int in range(1, ferry_course.size()):
+		_dashed(ferry_course[k - 1], ferry_course[k], PUBLIC_WIDTH_M, colour)
+	if ferry_status.is_valid() and _used_labels < _labels.size():
+		_place_label(ferry_course[0], String(ferry_status.call()), colour.lightened(0.3))
 	return true
 
 

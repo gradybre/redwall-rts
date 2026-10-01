@@ -78,6 +78,26 @@ func test_the_menu_pause_holds_menu_and_says_so() -> void:
 	assert_equal(_words(), LedgerScript.MENU_WORDS, "its words")
 
 
+func test_the_village_guide_holds_a_menu_pause_of_its_own() -> void:
+	"""The village guide's window (decision 0481) holds MENU through the ledger as its own hold (batch 5): its words and
+	Resume refusal, and neither it nor the game menu releases the other's pause."""
+	assert_true(_ledger.hold_guide(true), "held")
+	assert_equal(_clock_reasons(), ["MENU"] as Array[String], "the clock holds MENU")
+	assert_equal(_ledger.kinds(), LedgerScript.KIND_MENU, "a menu kind")
+	assert_equal(_words(), LedgerScript.GUIDE_WORDS, "its own words")
+	assert_equal(_ledger.resume_refusal(), LedgerScript.RESUME_GUIDE, "close the guide to resume")
+	assert_true(_ledger.hold_menu(true), "the game menu too")
+	assert_equal(_words(), "%s | %s" % [LedgerScript.MENU_WORDS, LedgerScript.GUIDE_WORDS], "both said")
+	assert_equal(_ledger.resume_refusal(), LedgerScript.RESUME_MENU, "the menu first")
+	assert_true(_ledger.hold_guide(false), "the guide let go")
+	assert_true(_game.is_paused(), "the menu's pause stands")
+	assert_equal(_words(), LedgerScript.MENU_WORDS, "the menu alone")
+	assert_true(_ledger.hold_guide(true) and _ledger.hold_menu(false), "the other way round")
+	assert_true(_game.is_paused(), "the guide's pause stands")
+	assert_true(_ledger.hold_guide(false), "released")
+	assert_false(_game.is_paused(), "the village runs")
+
+
 func test_a_planning_surface_pauses_only_with_the_setting_on() -> void:
 	"""Pause while planning is off by default (UI §8.1): the Pantry open pauses nothing until it is on."""
 	_ledger.set_planning(true, "the Pantry")

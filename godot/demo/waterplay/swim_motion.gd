@@ -40,6 +40,9 @@ var flood_permille: int = 0
 var flood_rise_m: float = 0.0
 ## Whether the water is cold today (swim_rules.gd `cold_water`).
 var cold: bool = false
+## Whether ice covers the pond (water part B, decision 0433: demo/fishery/pond_ice.gd says so). Nobody swims or dives
+## under it -- `iced_at` refuses every swim there, and the links across it are not offered.
+var pond_frozen: bool = false
 
 var _body: IntMath.IntResult = IntMath.IntResult.new()
 
@@ -79,6 +82,16 @@ func flow_m_s(at: Vector2) -> Vector2:
 	var flow: Vector2i = map.flow_at(u_of(at))
 	var factor: float = float(Rules.PERMILLE + Rules.FLOOD_FLOW_PERMILLE * flood_permille / Rules.PERMILLE) / float(Rules.PERMILLE)
 	return Vector2(flow) * factor / float(Rules.UNITS_PER_M)
+
+
+func iced_at(at: Vector2) -> bool:
+	"""Whether `at` is water under ice (the frozen pond)."""
+	if not pond_frozen or not map.body_at_into(u_of(at), _ice_body):
+		return false
+	return map.body_kind(_ice_body.value) == WaterMapScript.KIND_POND
+
+
+var _ice_body: IntMath.IntResult = IntMath.IntResult.new()
 
 
 func zone_for(who: int, at: Vector2) -> int:

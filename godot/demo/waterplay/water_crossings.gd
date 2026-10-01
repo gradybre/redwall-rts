@@ -162,7 +162,7 @@ func _pick_links(walker: int, from: Vector2, to: Vector2) -> void:
 	var first: int = _pick_count
 	for k: int in links.link_count:
 		var cost: float = link_cost_m(walker, k)
-		if cost == INF:
+		if cost == INF or motion.iced_at((links.link_water_a[k] + links.link_water_b[k]) * 0.5):
 			continue
 		var d: float = _segment_distance((links.link_water_a[k] + links.link_water_b[k]) * 0.5, from, to)
 		_insert_pick(first, room, LINK_ROW0 + k, cost, d)
@@ -307,6 +307,8 @@ func entry_refusal(brain: RefCounted, k: int) -> StringName:
 	against (`link_cost_m`)."""
 	var who: int = brain.index
 	var why: StringName = state.swim_refusal(who, brain.carrying)
+	if why == Rules.REFUSE_NONE and motion.iced_at((links.link_water_a[k] + links.link_water_b[k]) * 0.5):
+		return Rules.REFUSE_ICE
 	if why == Rules.REFUSE_NONE and link_cost_m(who, k) == INF:
 		return Rules.REFUSE_FLOW
 	return why

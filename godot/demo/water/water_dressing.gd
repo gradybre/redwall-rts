@@ -32,14 +32,16 @@ extends RefCounted
 ## footprint is the fitted one, so the cast, the woods and the ground cover keep off its abutments.
 ##
 ## THE WATER'S SMALL PROPS (asset pass, tools/make_demo_props.py; sized by demo/props/demo_props.gd):
-## a jetty runs out into the pond from the boathouse's front, the rowboat moored alongside it and the
-## coracle off its end, a raft at the pond's west side; by the fisher shelter a fishing rod propped
-## at the bank, a folded net, an eel trap in the shallows and a smoking rack; a trout and a perch in
-## the two creels' lids. Each is placed from the water map's depths (probed at 0.5 m): the boats
-## float with their waterline about a third up the hull; the jetty's deck (measured at 66% of the
-## model's height) stands 0.22 m above the water. They are
-## drawn only: none blocks a resident -- every one stands outside the play square or in the water.
-## The bridge models (bridge_plank, bridge_log, bridge_pier) are staged for the bridge-building step
+## the jetty runs east into the pond from its west bank, 1.3 m south of the boathouse's front -- outside the
+## boathouse's footprint, its land end on the bank top (water part B, decision 0432: demo/boats/boat_routes.gd
+## owns its geometry; the two rowboats moored at it are the boat core's, drawn by demo/boats/boat_view.gd, not
+## placed here); the coracle afloat off the pond's north-east bank, clear of the boats' routes; a raft at the
+## pond's west side; by the fisher shelter a fishing rod propped at the bank, a folded net, an eel trap in the
+## shallows and a smoking rack (the fishery's drying rack, decision 0434); a trout and a perch in the two creels'
+## lids. Each is placed from the water map's depths (probed at 0.5 m): the boats float with their waterline
+## about a third up the hull; the jetty's deck (measured at 66% of the model's height) stands 0.22 m above the
+## water. They are drawn only: none blocks a resident -- every one stands outside the play square or in the
+## water. The bridge models (bridge_plank, bridge_log, bridge_pier) are staged for the bridge-building step
 ## and not placed.
 ##
 ## NOT PLACED: the saltpan. GDD §5.7 accepts salt only from "coastal-brine provenance; well/river
@@ -88,9 +90,8 @@ const PLACEMENTS: Array[Dictionary] = [
 ## The water's small props: key, where (m), which way (+X of the model turned by yaw_deg), and the
 ## height its base stands at (m; the water's surface is at -0.18).
 const PROP_PLACEMENTS: Array[Dictionary] = [
-	{"key": &"jetty", "at": Vector2(24.6, 28.2), "yaw_deg": -90.0, "base_y": -1.29},
-	{"key": &"boat_rowboat", "at": Vector2(26.5, 28.6), "yaw_deg": -88.0, "base_y": -0.48},
-	{"key": &"boat_coracle", "at": Vector2(23.0, 30.4), "yaw_deg": 20.0, "base_y": -0.38},
+	{"key": &"jetty", "at": Vector2(21.35, 28.9), "yaw_deg": 0.0, "base_y": -1.29},
+	{"key": &"boat_coracle", "at": Vector2(32.2, 24.4), "yaw_deg": 40.0, "base_y": -0.38},
 	{"key": &"boat_raft", "at": Vector2(23.2, 32.2), "yaw_deg": 35.0, "base_y": -0.3},
 	{"key": &"fishing_rod", "at": Vector2(21.3, 9.7), "yaw_deg": 0.0, "base_y": 0.0},
 	{"key": &"fishing_net", "at": Vector2(21.0, 5.2), "yaw_deg": 20.0, "base_y": 0.0},

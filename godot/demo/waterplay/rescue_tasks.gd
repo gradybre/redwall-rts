@@ -50,6 +50,10 @@ const RESPONSE_LINE: int = 1
 const RESPONSE_WATCH: int = 2
 const RESPONSE_SWIM: int = 3
 const RESPONSE_DIVE: int = 4
+## A boat rowed out to a victim at the surface (water part B, decision 0432; demo/boats/boat_rescue.gd). It answers a
+## surface victim as fully as a swimmer (>= RESPONSE_WATCH: `answered`), never one held below (that needs a diver, so
+## a diver still takes over from it), and is ranked against the nearest swimmer by route (rescue.gd `_boat_answers`).
+const RESPONSE_BOAT: int = 5
 
 
 ## The resident in difficulty (see the header).

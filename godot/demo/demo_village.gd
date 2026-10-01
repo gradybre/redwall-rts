@@ -122,6 +122,7 @@ const DemoCommandScript := preload("res://demo/control/demo_command.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const KitchenNodeScript := preload("res://demo/kitchen/demo_kitchen.gd")
+const FisheryNodeScript := preload("res://demo/fishery/demo_fishery.gd")
 const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
@@ -235,6 +236,8 @@ var _history: NewsHistoryScript = null
 var _cards: IncidentCardsScript = null
 var _jump: NewsJumpScript = NewsJumpScript.new()
 var _work: DemoWorkScript = null
+## Water part B (decision 0431): fishing trips, boats, gear, ice, the drying rack and the mill.
+var _fishery: FisheryNodeScript = null
 
 
 func _ready() -> void:
@@ -262,6 +265,7 @@ func _ready() -> void:
 	_command.add_skill_text(_command.tunnels().ext.night.home_text)
 	_command.set_fed_text(_kitchen.kitchen.fed_text)
 	_build_waterplay()
+	_build_fishery()
 	_build_shared_ui()
 	_build_work()
 	_build_sound()
@@ -349,8 +353,9 @@ func _build_farm(manifest: Dictionary) -> void:
 	_water_lens = _farm.add_overlay("Getting there", "Water range", WATER_LENS_QUESTION, _water.set_overlay_shown)
 	_farm.lenses.set_legend(_water_lens, PackedColorArray([WaterOverlayScript.WADE_COLOUR, WaterOverlayScript.SWIM_COLOUR,
 		WaterOverlayScript.DIVE_COLOUR, WaterOverlayScript.FORD_COLOUR, WaterOverlayScript.BRIDGE_COLOUR,
-		WaterOverlayScript.LINK_COLOUR, WaterOverlayScript.LANDING_COLOUR]), PackedStringArray(["wade", "swim",
-		"dive", "ford", "bridge site", "swim link", "landing"]))
+		WaterOverlayScript.LINK_COLOUR, WaterOverlayScript.LANDING_COLOUR, WaterOverlayScript.ICE_SAFE_COLOUR,
+		WaterOverlayScript.ICE_THIN_COLOUR]), PackedStringArray(["wade", "swim", "dive", "ford", "bridge site", "swim link",
+		"landing", "safe ice (winter)", "thin ice: keep off"]))
 
 
 func _build_kitchen() -> void:
@@ -441,6 +446,21 @@ func _build_waterplay() -> void:
 	_farm.lenses.set_subject(_water_lens, _waterplay.water_range)
 
 
+func _build_fishery() -> void:
+	"""WATER PART B (demo/fishery/, demo/boats/; decision 0431), after the water's play: the fishery over the water's
+	fishing driver, the farm's pantry and the kitchen's reservations; its sections in the Water panel, its boats in the
+	rescue, its jobs on the work board (`_build_work`)."""
+	_fishery = FisheryNodeScript.new()
+	add_child(_fishery)
+	_fishery.configure(_cast as DemoCastScript, _command as DemoCommandScript, _services, _waterplay, _water,
+		_farm.pantry, _kitchen.kitchen.takes, _water.map())
+
+
+func fishery() -> FisheryNodeScript:
+	"""The village's fishery (demo/fishery/demo_fishery.gd)."""
+	return _fishery
+
+
 func _build_work() -> void:
 	"""The village's work (see WORK): the board over every owner built so far, its screen behind the HUD's Jobs command,
 	and Shift+right-click's queue -- after the shared UI, whose "Go to" its screen uses."""
@@ -449,6 +469,7 @@ func _build_work() -> void:
 	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
 	_work.configure(_cast as DemoCastScript, _farm, _forestry, _waterplay, _spoil, tool.ext, tool.is_digger)
 	_work.add_kitchen(_kitchen.kitchen)
+	_work.add_fishery(_fishery.fishery)
 	var command: DemoCommandScript = _command as DemoCommandScript
 	_work.set_readouts(command.activity_text, (GameManager as GameManagerScript).is_paused, work_jump, command.selected)
 	command.set_queue_handler(_work.queue_at)
@@ -727,6 +748,7 @@ func _build_sound() -> void:
 	var tunnels: TunnelControlScript = (_command as DemoCommandScript).tunnels()
 	_sound.bind(_camera as DemoCameraScript, GameManager as GameManagerScript, func() -> bool: return tunnels.view.on)
 	_sound.follow_demo(_cast as DemoCastScript, _forestry, tunnels.network, _waterplay, _services, _water.map())
+	_sound.follow_fishery(_fishery.fishery)
 
 
 func sound() -> SoundScript:

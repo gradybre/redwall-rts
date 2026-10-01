@@ -17,6 +17,13 @@ extends CanvasLayer
 ##   BRIDGES: the site chosen, its span, each kind's cost and, directly under the two, their Build buttons (each
 ##   one's tooltip is its ACTION CARD, decision 0332, `set_card`); then ◀ / ▶ / Span two banks… to choose another
 ##   site, every bridge planned or open, the village stores and the water's latest news.
+##   FISHING (water part B, decision 0431): the trip being chosen -- its site, method and fish, each stepped with a
+##   button -- with REQ-SET-055's figures before it is authorised (stock, quota, expected catch, gear condition,
+##   closure dates, the numerical risk), Authorise trip (its card the order's own decision), the trips out (one
+##   chosen, Cancel trip), and the gear locker: each piece's wear, Make net / trap / ice kit and Mend gear.
+##   BOATS: each boat, where it is and its wear, the jetty, and the pond's ice.
+##   DRYING RACK AND MILL: the rack's four slots, the mill, the pantry's fish, dried fish and flour; Dry fish and
+##   Mill grain.
 ## Buttons emit `action(name)` (ACTION_*); nothing here decides anything. Text is at least 14 px (UI §2.1)
 ## and every button at least 32 px tall (UX-T03); a caption cut by the column ends in an ellipsis and is whole
 ## in its tooltip.
@@ -43,17 +50,46 @@ const ACTION_BUILD_LOG: StringName = &"build_log"
 const ACTION_DIVE: StringName = &"dive"
 const ACTION_CONSENT: StringName = &"consent"
 const ACTION_CRAMP: StringName = &"cramp"
+## Water part B's verbs (decision 0431): the trip's choice, Authorise, the trips, the gear, the rack and the mill.
+const ACTION_FISH_SITE: StringName = &"fish_site"
+const ACTION_FISH_METHOD: StringName = &"fish_method"
+const ACTION_FISH_SPECIES: StringName = &"fish_species"
+const ACTION_AUTHORISE: StringName = &"fish_authorise"
+const ACTION_NEXT_TRIP: StringName = &"fish_next_trip"
+const ACTION_CANCEL_TRIP: StringName = &"fish_cancel"
+const ACTION_MAKE_NET: StringName = &"make_net"
+const ACTION_MAKE_TRAP: StringName = &"make_trap"
+const ACTION_MAKE_ICE_KIT: StringName = &"make_ice_kit"
+const ACTION_MEND: StringName = &"mend"
+const ACTION_DRY: StringName = &"dry_fish"
+const ACTION_MILL: StringName = &"mill_grain"
 const BUTTON_TEXT: Dictionary = {
 	&"prev_site": "◀ Site", &"next_site": "Site ▶", &"span_tool": "Span two banks…",
 	&"build_plank": "Build footbridge", &"build_log": "Build log bridge",
 	&"dive": "Dive in the pond", &"consent": "Swim shortcuts: on",
+	&"fish_site": "Site ▸", &"fish_method": "Method ▸", &"fish_species": "Fish ▸",
+	&"fish_authorise": "Authorise trip", &"fish_next_trip": "Next trip ▸", &"fish_cancel": "Cancel trip",
+	&"make_net": "Make net", &"make_trap": "Make trap", &"make_ice_kit": "Make ice kit", &"mend": "Mend gear",
+	&"dry_fish": "Dry fish", &"mill_grain": "Mill grain",
 }
 ## What a button does, where its action card does not say it (decision 0391: every action has a hover text).
 const BUTTON_TIPS: Dictionary = {
 	&"prev_site": "The previous bridge site on the stream", &"next_site": "The next bridge site on the stream",
 	&"span_tool": "Choose a site yourself: click one bank, then the other (Esc drops it)",
 	&"consent": "Swim shortcuts: whether the selected residents (everyone, with nobody selected) may swim across instead of walking round",
+	&"fish_site": "The next fishing water: the run, the ford, the pond",
+	&"fish_method": "The next method there: hand net, trap, boat, ice fishing",
+	&"fish_species": "The next fish of that water",
+	&"fish_next_trip": "Choose the next trip out (Cancel trip acts on it)",
 }
+## The Fishing, Boats and rack-and-mill sections' button rows (decision 0431).
+const CHOICE_ACTIONS: Array[StringName] = [&"fish_site", &"fish_method", &"fish_species"]
+const TRIP_ACTIONS: Array[StringName] = [&"fish_authorise", &"fish_next_trip", &"fish_cancel"]
+const GEAR_ACTIONS: Array[StringName] = [&"make_net", &"make_trap", &"make_ice_kit", &"mend"]
+const STATION_ACTIONS: Array[StringName] = [&"dry_fish", &"mill_grain"]
+## Their lines, in order: what fishery.gd's panel text fills.
+const FISHERY_LINES: Array[StringName] = [&"fish_choice", &"fish_preview", &"fish_trips", &"fish_gear", &"boats",
+	&"stations"]
 const SITE_ACTIONS: Array[StringName] = [&"prev_site", &"next_site", &"span_tool", &"build_plank", &"build_log"]
 ## The two Build buttons, side by side under their kinds' costs.
 const BUILD_ACTIONS: Array[StringName] = [&"build_plank", &"build_log"]
@@ -151,6 +187,7 @@ func build() -> void:
 	_body.add_child(_column)
 	_build_swimmers()
 	_build_bridges()
+	_build_fishery()
 	_pinned.minimum_size_changed.connect(_queue_place)
 	_column.minimum_size_changed.connect(_queue_place)
 
@@ -203,6 +240,34 @@ func _build_bridges() -> void:
 	_add_line(_column, &"bridges", SMALL_PX, Palette.UMBER, null)
 	_add_line(_column, &"stores", SMALL_PX, Palette.INK, null)
 	_add_line(_column, &"log", SMALL_PX, Palette.UMBER, null)
+
+
+func _build_fishery() -> void:
+	"""Fishing (the trip's choice and figures, Authorise, the trips, the gear), Boats, and the drying rack and mill
+	(water part B, decision 0431): below the bridges, so the 0391 actions above stay in view at 1280x720."""
+	_add_line(_column, &"fish_title", HEADING_PX, Palette.INK, Styles.heading_font())
+	_set_line(&"fish_title", "Fishing")
+	_add_line(_column, &"fish_choice", SMALL_PX, Palette.INK, null)
+	_column.add_child(_row(CHOICE_ACTIONS))
+	_add_line(_column, &"fish_preview", SMALL_PX, Palette.UMBER, null)
+	_column.add_child(_row(TRIP_ACTIONS))
+	_add_line(_column, &"fish_trips", SMALL_PX, Palette.INK, null)
+	_add_line(_column, &"fish_gear", SMALL_PX, Palette.UMBER, null)
+	_column.add_child(_row(GEAR_ACTIONS))
+	_add_line(_column, &"boats_title", HEADING_PX, Palette.INK, Styles.heading_font())
+	_set_line(&"boats_title", "Boats")
+	_add_line(_column, &"boats", SMALL_PX, Palette.INK, null)
+	_add_line(_column, &"stations_title", HEADING_PX, Palette.INK, Styles.heading_font())
+	_set_line(&"stations_title", "Drying rack and mill")
+	_add_line(_column, &"stations", SMALL_PX, Palette.INK, null)
+	_column.add_child(_row(STATION_ACTIONS))
+
+
+func show_fishery(lines: Dictionary) -> void:
+	"""Water part B's sections: each FISHERY_LINES key's text (missing keys keep theirs)."""
+	for key: StringName in FISHERY_LINES:
+		if lines.has(key):
+			_set_line(key, String(lines[key]))
 
 
 func _queue_place() -> void:

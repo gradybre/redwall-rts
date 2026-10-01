@@ -151,6 +151,9 @@ class Decision extends RefCounted:
 	var batches: int = 0
 	var food_have: int = 0
 	var food_need: int = 0
+	## A two-input dish's second input (the fish stew's roots), had and needed.
+	var side_have: int = 0
+	var side_need: int = 0
 	var water_have: int = 0
 	var water_need: int = 0
 	var wood_have: int = 0
@@ -430,19 +433,34 @@ func _fill_slot(s: int, hour_index: int) -> void:
 
 
 func _choose_dish(prefer: int) -> int:
-	"""The alternation's dish `prefer` -- or the other, when the pantry has no food for its batch but has for the
-	other's (ruling 1)."""
+	"""The alternation's dish `prefer` -- at supper the fish stew instead whenever a batch's fresh fish and roots are
+	free (decision 0436: fresh fish is cooked while it is fresh) -- or the other, when the pantry has no food for its
+	batch but has for the other's (ruling 1)."""
+	if prefer == Rules.DISH_SOUP and _free_batches(Rules.DISH_FISH_STEW) > 0:
+		return Rules.DISH_FISH_STEW
 	var turn: int = Rules.other(prefer)
-	if _free_food(prefer) < Rules.INPUT_MILLI[prefer] and _free_food(turn) >= Rules.INPUT_MILLI[turn]:
+	if _free_batches(prefer) == 0 and _free_batches(turn) > 0:
 		return turn
 	return prefer
 
 
 func _free_food(dish: int) -> int:
-	"""Food in `dish`'s category no planned meal holds (milli-U): unreserved in the pantry, and fetched and waiting in
-	the larder (see THE LARDER) -- a meal turns to the other dish only when neither has a batch's."""
-	var crop: int = Rules.INPUT_CROP[dish]
+	"""Food in `dish`'s (first) category no planned meal holds (milli-U): unreserved in the pantry, and fetched and
+	waiting in the larder (see THE LARDER) -- a meal turns to the other dish only when neither has a batch's."""
+	return _free_of(Rules.INPUT_CROP[dish])
+
+
+func _free_of(crop: int) -> int:
+	"""Category `crop`'s food no planned meal holds: unreserved in the pantry, and fetched waiting in the larder."""
 	return takes.free_milli_of_crop(pantry, crop) + takes.fetched_milli_of_crop(pantry, _larder_take, crop)
+
+
+func _free_batches(dish: int) -> int:
+	"""Whole batches of `dish` the free food makes (the lesser of its two inputs for a two-input dish)."""
+	var batches: int = _free_food(dish) / Rules.INPUT_MILLI[dish]
+	if Rules.SIDE_CROP[dish] >= 0:
+		batches = mini(batches, _free_of(Rules.SIDE_CROP[dish]) / Rules.SIDE_MILLI[dish])
+	return batches
 
 
 func _wanted(s: int) -> int:
@@ -463,18 +481,39 @@ func _top_up(s: int, hour_index: int) -> void:
 		_slot_dish[s] = _choose_dish(_slot_prefer[s])
 	var dish: int = _slot_dish[s]
 	_slot_wanted[s] = maxi(_slot_cooked[s] + _wip_on(s), _wanted(s))
-	var lacking: int = _slot_wanted[s] - _slot_cooked[s] - _wip_on(s) - _reserved_batches(s)
+	var wanted: int = _slot_wanted[s] - _slot_cooked[s] - _wip_on(s)
+	if wanted - _reserved_batches(s) <= 0:
+		return
+	_reserve_input(s, Rules.INPUT_CROP[dish], Rules.INPUT_MILLI[dish], wanted, hour_index)
+	if Rules.SIDE_CROP[dish] >= 0:
+		_reserve_input(s, Rules.SIDE_CROP[dish], Rules.SIDE_MILLI[dish], wanted, hour_index)
+		_even_inputs(s, hour_index)
+
+
+func _reserve_input(s: int, crop: int, per_batch: int, wanted: int, hour_index: int) -> void:
+	"""Hold category `crop`'s food for `wanted` batches of slot `s`'s meal at `per_batch` each: the larder's fetched food
+	first, then the pantry's soonest to spoil; trimmed to whole batches."""
+	var lacking: int = wanted * per_batch - takes.live_milli(pantry, _slot_take[s], -1, crop)
 	if lacking <= 0:
 		return
-	var drawn: int = takes.draw_fetched(pantry, _larder_take, _slot_take[s], Rules.INPUT_CROP[dish],
-		lacking * Rules.INPUT_MILLI[dish])
-	lacking -= drawn / Rules.INPUT_MILLI[dish]
-	if lacking <= 0:
-		return
-	takes.reserve_into(pantry, _slot_take[s], Rules.INPUT_CROP[dish], lacking * Rules.INPUT_MILLI[dish], hour_index, _read)
-	var odd: int = takes.live_milli(pantry, _slot_take[s]) % Rules.INPUT_MILLI[dish]
+	lacking -= takes.draw_fetched(pantry, _larder_take, _slot_take[s], crop, lacking)
+	if lacking > 0:
+		takes.reserve_into(pantry, _slot_take[s], crop, lacking, hour_index, _read)
+	var odd: int = takes.live_milli(pantry, _slot_take[s], -1, crop) % per_batch
 	if odd > 0:
-		takes.release_milli(pantry, _slot_take[s], odd, hour_index)
+		takes.release_milli(pantry, _slot_take[s], odd, hour_index, crop)
+
+
+func _even_inputs(s: int, hour_index: int) -> void:
+	"""A two-input meal holds no more of either input than whole batches of both make (the rest stays free)."""
+	var dish: int = _slot_dish[s]
+	var batches: int = _reserved_batches(s)
+	for k: int in 2:
+		var crop: int = Rules.INPUT_CROP[dish] if k == 0 else Rules.SIDE_CROP[dish]
+		var per: int = Rules.INPUT_MILLI[dish] if k == 0 else Rules.SIDE_MILLI[dish]
+		var over: int = takes.live_milli(pantry, _slot_take[s], -1, crop) - batches * per
+		if over > 0:
+			takes.release_milli(pantry, _slot_take[s], over, hour_index, crop)
 
 
 func _retire(s: int) -> void:
@@ -494,8 +533,17 @@ func _slot_done(s: int) -> bool:
 
 
 func _reserved_batches(s: int) -> int:
-	"""Whole batches slot `s`'s live reservation makes."""
-	return takes.live_milli(pantry, _slot_take[s]) / Rules.INPUT_MILLI[_slot_dish[s]]
+	"""Whole batches slot `s`'s live reservation makes (the lesser of a two-input dish's inputs)."""
+	return _batches_held(s, -1)
+
+
+func _batches_held(s: int, where: int) -> int:
+	"""Whole batches slot `s`'s take holds (at `where`, AT_*; -1: anywhere): its input, and any second input."""
+	var dish: int = _slot_dish[s]
+	var batches: int = takes.live_milli(pantry, _slot_take[s], where, Rules.INPUT_CROP[dish]) / Rules.INPUT_MILLI[dish]
+	if Rules.SIDE_CROP[dish] >= 0:
+		batches = mini(batches, takes.live_milli(pantry, _slot_take[s], where, Rules.SIDE_CROP[dish]) / Rules.SIDE_MILLI[dish])
+	return batches
 
 
 func _wip_on(s: int) -> int:
@@ -542,7 +590,7 @@ func _cookable_slot() -> int:
 	for s: int in _slots_by_key():
 		if _slot_done(s) or not _cook_time_come(s):
 			continue
-		if takes.live_milli(pantry, _slot_take[s], TakesScript.AT_KITCHEN) >= Rules.INPUT_MILLI[_slot_dish[s]]:
+		if _batches_held(s, TakesScript.AT_KITCHEN) > 0:
 			return s
 	return FREE
 
@@ -569,18 +617,33 @@ func _start_batch() -> bool:
 		return false
 	var s: int = _cookable_slot()
 	var dish: int = _slot_dish[s]
-	if not takes.consume_into(pantry, _slot_take[s], Rules.INPUT_MILLI[dish], TakesScript.AT_KITCHEN, _hour_seen, _read):
+	if not _consume_batch_food(s, dish):
 		return false
 	var water_taken: bool = stores.take_water(Rules.WATER_MILLI[dish])
 	if not (stores.take_wood(Rules.WOOD_MILLI_PER_BATCH) and water_taken):
 		push_error("kitchen: a batch's water or wood was gone after can_start_batch found it")
-	consumed_food_milli += Rules.INPUT_MILLI[dish]
+	consumed_food_milli += Rules.batch_food_milli(dish)
 	consumed_water_milli += Rules.WATER_MILLI[dish]
 	consumed_wood_milli += Rules.WOOD_MILLI_PER_BATCH
 	_wip_key = _slot_key[s]
 	_wip_dish = dish
 	_wip_mwu = 0
 	revision += 1
+	return true
+
+
+func _consume_batch_food(s: int, dish: int) -> bool:
+	"""Withdraw a batch's food at the kitchen -- its input and any second input, both or neither: both are checked
+	there first, then each `consume_into` (all or nothing) takes its own."""
+	var side: int = Rules.SIDE_CROP[dish]
+	if side >= 0 and takes.live_milli(pantry, _slot_take[s], TakesScript.AT_KITCHEN, side) < Rules.SIDE_MILLI[dish]:
+		return false
+	if not takes.consume_into(pantry, _slot_take[s], Rules.INPUT_MILLI[dish], TakesScript.AT_KITCHEN, _hour_seen, _read,
+			Rules.INPUT_CROP[dish]):
+		return false
+	if side >= 0 and not takes.consume_into(pantry, _slot_take[s], Rules.SIDE_MILLI[dish], TakesScript.AT_KITCHEN,
+			_hour_seen, _read, side):
+		push_error("kitchen: a batch's second input was gone between its check and its withdrawal")
 	return true
 
 
@@ -641,7 +704,7 @@ func cancel_meal() -> String:
 		return Words.NOTHING_PLANNED
 	var key: int = _slot_key[s]
 	if _wip_key == key:
-		var spoil: int = Rules.INPUT_MILLI[_wip_dish] / 2
+		var spoil: int = Rules.batch_food_milli(_wip_dish) / 2
 		pantry.spoiled_milli += spoil
 		cancelled_spoil_milli += spoil
 		_wip_key = FREE
@@ -1543,6 +1606,8 @@ func decide_meal(members: PackedInt32Array = PackedInt32Array()) -> Decision:
 		return d.refuse(NOTHING_TO_COOK, Words.enough_reason(d.meal_key), "")
 	if d.food_have < Rules.INPUT_MILLI[d.dish] and _wip_key == FREE:
 		return d.refuse(NO_FOOD, Words.no_food_reason(d.dish, _free_food(Rules.other(d.dish))), Words.FIX_FOOD)
+	if d.side_have < Rules.SIDE_MILLI[d.dish] and _wip_key == FREE:
+		return d.refuse(NO_FOOD, Words.no_side_reason(d.dish, d.side_have), Words.FIX_FOOD)
 	if not keep_water and d.water_have + water_on_the_way() < Rules.WATER_MILLI[d.dish]:
 		return d.refuse(NO_WATER, Words.no_water_reason(d.dish, d.water_have, d.water_need), Words.FIX_WATER)
 	if d.wood_have < Rules.WOOD_MILLI_PER_BATCH:
@@ -1559,7 +1624,10 @@ func _fill_needs(d: Decision, s: int) -> void:
 	d.dish = _slot_dish[s]
 	d.batches = maxi(0, _slot_wanted[s] - _slot_cooked[s] - _wip_on(s))
 	d.food_need = d.batches * Rules.INPUT_MILLI[d.dish]
-	d.food_have = takes.live_milli(pantry, _slot_take[s]) + _free_food(d.dish)
+	d.food_have = takes.live_milli(pantry, _slot_take[s], -1, Rules.INPUT_CROP[d.dish]) + _free_food(d.dish)
+	d.side_need = d.batches * Rules.SIDE_MILLI[d.dish]
+	if Rules.SIDE_CROP[d.dish] >= 0:
+		d.side_have = takes.live_milli(pantry, _slot_take[s], -1, Rules.SIDE_CROP[d.dish]) + _free_of(Rules.SIDE_CROP[d.dish])
 	d.water_need = d.batches * Rules.WATER_MILLI[d.dish]
 	d.water_have = stores.water_milli_u
 	d.wood_need = d.batches * Rules.WOOD_MILLI_PER_BATCH
@@ -1655,6 +1723,8 @@ func preview_cook_into(card: CardScript, members: PackedInt32Array) -> void:
 		card.result = "%d batches of %s: %d portions of %d NP" % [d.batches, Rules.DISH_NAMES[d.dish].to_lower(),
 			d.batches * Rules.PORTIONS_PER_BATCH[d.dish], Rules.NP_PER_PORTION[d.dish]]
 		card.add_cost(Rules.INPUT_WORDS[d.dish].capitalize(), d.food_have, d.food_need)
+		if Rules.SIDE_CROP[d.dish] >= 0:
+			card.add_cost(Rules.SIDE_WORDS[d.dish].capitalize(), d.side_have, d.side_need)
 		card.add_cost("Water", d.water_have, d.water_need)
 		card.add_cost("Wood", d.wood_have, d.wood_need)
 		card.work_usec = CalendarScript.usec_for_ticks(d.batches * Rules.batch_ticks(d.dish))
@@ -1854,19 +1924,44 @@ func fed_word(i: int) -> String:
 
 
 func cookable_batches() -> int:
-	"""Batches every grain and roots in the pantry would make, at most the wood's (water is drawn at the well as
-	needed, so it does not limit)."""
-	var batches: int = 0
-	for dish: int in Rules.DISH_COUNT:
-		batches += _crop_milli(Rules.INPUT_CROP[dish]) / Rules.INPUT_MILLI[dish]
+	"""Batches every grain, roots and fresh fish in the pantry would make, at most the wood's (water is drawn at the
+	well as needed, so it does not limit): porridge from the grain; the fish stew from the fish and the roots it takes;
+	the soup from the roots left."""
+	var stew: int = _stew_batches()
+	var batches: int = _crop_milli(Rules.INPUT_CROP[Rules.DISH_PORRIDGE]) / Rules.INPUT_MILLI[Rules.DISH_PORRIDGE] + stew \
+		+ _soup_batches_after(stew)
 	return mini(batches, stores.wood_milli_u / Rules.WOOD_MILLI_PER_BATCH)
+
+
+func cookable_portions() -> int:
+	"""The portions `cookable_batches` cook, each dish at its own PORTIONS_PER_BATCH (the stew makes 3), the wood's
+	limit taken porridge first."""
+	var wood: int = stores.wood_milli_u / Rules.WOOD_MILLI_PER_BATCH
+	var porridge: int = mini(wood, _crop_milli(Rules.INPUT_CROP[Rules.DISH_PORRIDGE]) / Rules.INPUT_MILLI[Rules.DISH_PORRIDGE])
+	var stew: int = mini(wood - porridge, _stew_batches())
+	var soup: int = mini(wood - porridge - stew, _soup_batches_after(stew))
+	return porridge * Rules.PORTIONS_PER_BATCH[Rules.DISH_PORRIDGE] + stew * Rules.PORTIONS_PER_BATCH[Rules.DISH_FISH_STEW] \
+		+ soup * Rules.PORTIONS_PER_BATCH[Rules.DISH_SOUP]
+
+
+func _stew_batches() -> int:
+	"""Fish stew batches the pantry's fresh fish and roots make."""
+	var stew: int = Rules.DISH_FISH_STEW
+	return mini(_crop_milli(Rules.INPUT_CROP[stew]) / Rules.INPUT_MILLI[stew],
+		_crop_milli(Rules.SIDE_CROP[stew]) / Rules.SIDE_MILLI[stew])
+
+
+func _soup_batches_after(stew: int) -> int:
+	"""Soup batches the roots left after `stew` batches of fish stew make."""
+	var roots: int = _crop_milli(Rules.INPUT_CROP[Rules.DISH_SOUP]) - stew * Rules.SIDE_MILLI[Rules.DISH_FISH_STEW]
+	return maxi(0, roots) / Rules.INPUT_MILLI[Rules.DISH_SOUP]
 
 
 func _crop_milli(crop: int) -> int:
 	"""Every milli-U of crop row `crop` in the pantry, reserved or not."""
 	var total: int = 0
-	for item: int in Catalog.ITEM_COUNT:
-		if Catalog.ITEM_CROP[item] == crop:
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
+		if Catalog.category_of(item) == crop:
 			total += pantry.milli_of(item)
 	return total
 
@@ -1877,14 +1972,14 @@ func daily_portions() -> int:
 
 
 func days_of_meals_milli() -> int:
-	"""THE HUD's Ready food (decision 0381): portions held (and the batch cooking) plus the portions the stores' grain
-	and roots would cook (both dishes make PORTIONS_PER_BATCH, 2, a batch), over the village's daily portions -- in
-	thousandths of a day."""
+	"""THE HUD's Ready food (decision 0381): portions held (and the batch cooking) plus the portions the stores' grain,
+	roots and fresh fish would cook (`cookable_portions`: each dish's own PORTIONS_PER_BATCH), over the village's daily
+	portions -- in thousandths of a day."""
 	var daily: int = daily_portions()
 	if daily <= 0:
 		return 0
 	var portions: int = store.portions() + (Rules.PORTIONS_PER_BATCH[_wip_dish] if _wip_key != FREE else 0)
-	return (portions + cookable_batches() * Rules.PORTIONS_PER_BATCH[Rules.DISH_PORRIDGE]) * 1000 / daily
+	return (portions + cookable_portions()) * 1000 / daily
 
 
 func ledger_lines() -> PackedStringArray:
@@ -1892,8 +1987,10 @@ func ledger_lines() -> PackedStringArray:
 	portions held and the raw grain and roots ("5 portions · grain 18.0 · roots 12.0 U"; the water, wood and cook are
 	the Kitchen tab's)."""
 	var grain: String = Words.units(_crop_milli(Rules.INPUT_CROP[Rules.DISH_PORRIDGE]))
-	return PackedStringArray(["%d portions · grain %s · roots %s" % [store.portions(), grain.trim_suffix(" U"),
-		Words.units(_crop_milli(Rules.INPUT_CROP[Rules.DISH_SOUP]))]])
+	var roots: String = Words.units(_crop_milli(Rules.INPUT_CROP[Rules.DISH_SOUP]))
+	var fish: int = _crop_milli(Rules.INPUT_CROP[Rules.DISH_FISH_STEW])
+	var line: String = "%d portions · grain %s · roots %s" % [store.portions(), grain.trim_suffix(" U"), roots]
+	return PackedStringArray([line if fish == 0 else "%s · fish %s" % [line.trim_suffix(" U"), Words.units(fish)]])
 
 
 func stock_rows() -> Array[PackedStringArray]:

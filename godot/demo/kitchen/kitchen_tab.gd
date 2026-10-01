@@ -152,8 +152,10 @@ func meals_text() -> String:
 func pot_text() -> String:
 	"""Portions in the pot and at the table."""
 	var store: StoreScript = _kitchen.store
-	return "Portions: %d in the pot, %d at the table (porridge %d, soup %d)" % [store.in_pot(), store.at_table(),
+	var line: String = "Portions: %d in the pot, %d at the table (porridge %d, soup %d" % [store.in_pot(), store.at_table(),
 		store.portions_of(Rules.DISH_PORRIDGE), store.portions_of(Rules.DISH_SOUP)]
+	var stew: int = store.portions_of(Rules.DISH_FISH_STEW)
+	return line + (", fish stew %d)" % stew if stew > 0 else ")")
 
 
 func water_text() -> String:

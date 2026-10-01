@@ -131,7 +131,7 @@ static func _cooking_text(kitchen: RefCounted) -> String:
 
 static func _item_word(item: int) -> String:
 	"""A pantry item in lower case."""
-	return Catalog.ITEM_LABELS[item].to_lower() if Catalog.is_item(item) else "food"
+	return Catalog.ITEM_LABELS[item].to_lower() if Catalog.is_pantry_item(item) else "food"
 
 
 # --- news ---------------------------------------------------------------------------------------------
@@ -200,6 +200,12 @@ static func no_food_reason(dish: int, other_free: int) -> String:
 	if other_free < Rules.INPUT_MILLI[other]:
 		line += ", nor %s for %s" % [Rules.INPUT_WORDS[other], Rules.DISH_NAMES[other].to_lower()]
 	return line
+
+
+static func no_side_reason(dish: int, have: int) -> String:
+	"""Not a batch's second input (the fish stew's roots)."""
+	return "the pantry has %s of %s for %s; a batch takes %s" % [units(have), Rules.SIDE_WORDS[dish],
+		Rules.DISH_NAMES[dish].to_lower(), units(Rules.SIDE_MILLI[dish])]
 
 
 static func no_water_reason(dish: int, have: int, need: int) -> String:
@@ -293,7 +299,13 @@ static func days_text(milli_days: int) -> String:
 
 static func cookable_line(dish: int) -> String:
 	"""The Recipes tab's mark: "Cookable (active): Wild oat porridge — the GDD's porridge: grain 2 + water 2 -> 2
-	portions of 1800 NP, 12 WU, keeps 24 h; the kitchen cooks it in turn"."""
+	portions of 1800 NP, 12 WU, keeps 24 h; the kitchen cooks it in turn" (the fish stew's: at supper, while there is
+	fresh fish, decision 0436)."""
+	if Rules.SIDE_CROP[dish] >= 0:
+		return "Cookable (active): %s — cooked as the GDD's %s: %s %s + %s %s + water %s → %d portions of %d NP, %d WU, keeps %d h. The kitchen cooks it at supper, in place of %s, whenever the stores hold a batch's fresh fish." % [
+			Rules.DISH_NAMES[dish], Rules.GDD_ROWS[dish], Rules.INPUT_WORDS[dish], units(Rules.INPUT_MILLI[dish]),
+			Rules.SIDE_WORDS[dish], units(Rules.SIDE_MILLI[dish]), units(Rules.WATER_MILLI[dish]), Rules.PORTIONS_PER_BATCH[dish],
+			Rules.NP_PER_PORTION[dish], Rules.WORK_MWU[dish] / 1000, Rules.SHELF_HOURS[dish], Rules.DISH_NAMES[Rules.other(dish)].to_lower()]
 	return "Cookable (active): %s — cooked as the GDD's %s: %s %s + water %s → %d portions of %d NP, %d WU, keeps %d h. The kitchen cooks it in turn with %s." % [
 		Rules.DISH_NAMES[dish], Rules.GDD_ROWS[dish], Rules.INPUT_WORDS[dish], units(Rules.INPUT_MILLI[dish]),
 		units(Rules.WATER_MILLI[dish]), Rules.PORTIONS_PER_BATCH[dish], Rules.NP_PER_PORTION[dish],

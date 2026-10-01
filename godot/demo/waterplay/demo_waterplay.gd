@@ -417,7 +417,7 @@ func order_swim(members: PackedInt32Array, spot: Vector2) -> String:
 	var refused := PackedStringArray()
 	for k: int in members.size():
 		var who: int = members[k]
-		var why: StringName = state.swim_refusal(who, false)
+		var why: StringName = Rules.REFUSE_ICE if motion.iced_at(spot) else state.swim_refusal(who, false)
 		if why != Rules.REFUSE_NONE:
 			refused.append(text.refusal_words(who, why))
 			continue
@@ -482,6 +482,8 @@ func dive_refusal(who: int, at: Vector2) -> StringName:
 	height (water_rules.gd's DIVE zone), consent and rest."""
 	if not state.can_dive(who):
 		return Rules.REFUSE_CANNOT_DIVE
+	if motion.iced_at(at):
+		return Rules.REFUSE_ICE
 	if motion.zone_for(who, at) != WaterRules.ZONE_DIVE or motion.max_dive_m(who, at) <= 0.0:
 		return Rules.REFUSE_TOO_SHALLOW
 	return state.swim_refusal(who, false)

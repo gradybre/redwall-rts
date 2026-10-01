@@ -27,8 +27,12 @@ Measured from the files, not assumed, and written to the manifest:
     ground on some walks, and read the squirrel forester 21% fast (0.828 against 0.682). The row
     keeps both, and says which it used.
 
+  sound/<cue>_NN.ogg|wav    the sound cues' files from the CC0 audio library (assets/library/audio/), by
+                           tools/stage_demo_audio.py (decision 0351): godot/demo/sound/sound_table.json lists
+                           them; they are not in the manifest
+
 `--only world|cast` restages one half and MERGES it into an existing manifest.json, so restaging
-the cast keeps the world's entries (and the other way round).
+the cast keeps the world's entries (and the other way round). `--only sound` stages the sound files alone.
 
 Textures: staging ends by applying tools/demo_texture_imports.py (VRAM compression for the models'
 textures, the card atlases and icons packed as files); `--godot godot` on that tool imports whatever
@@ -54,6 +58,7 @@ from rig_meshy_tail import mat_mul, node_worlds, transform_point  # noqa: E402
 import make_demo_crop_cards  # noqa: E402
 import make_demo_props  # noqa: E402
 import demo_texture_imports  # noqa: E402
+import stage_demo_audio  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 LIBRARY = ROOT / "assets/library"
@@ -277,9 +282,11 @@ def main() -> int:
 	parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 	parser.add_argument("--library", type=pathlib.Path, default=LIBRARY)
 	parser.add_argument("--out", type=pathlib.Path, default=OUT)
-	parser.add_argument("--only", choices=("world", "props", "cast"),
-		help="stage one part: world (with the crop cards and the props), props alone, or cast")
+	parser.add_argument("--only", choices=("world", "props", "cast", "sound"),
+		help="stage one part: world (with the crop cards and the props), props alone, cast, or sound")
 	args = parser.parse_args()
+	if args.only == "sound":
+		return stage_sound(args.library, args.out)
 	manifest = {"tool": "tools/stage_demo_assets.py", "decision": "0196", "facing": "+Z", "world": {}, "cast": {}}
 	existing = args.out / "manifest.json"
 	if args.only and existing.is_file():
@@ -300,7 +307,21 @@ def main() -> int:
 			f"{row['walk_speed_estimate_m_s']:.3f})  tailed {row['tailed']}")
 	print(f"stage_demo_assets: {len(manifest['world'])} world assets, {len(manifest['cast'])} creatures -> {args.out}")
 	stage_texture_imports(args.out)
+	if args.only is None:
+		stage_sound(args.library, args.out)
 	return 0
+
+
+def stage_sound(library: pathlib.Path, out: pathlib.Path) -> int:
+	"""Stage the sound files (tools/stage_demo_audio.py, decision 0351), last, so a sound problem never stops the
+	models: anything it cannot stage is reported and plays silent. 1 when something was skipped or it failed."""
+	try:
+		result = stage_demo_audio.stage(library, out)
+	except (RuntimeError, OSError, ValueError) as error:
+		print(f"stage_demo_assets: sound not staged, the demo will be silent: {error}")
+		return 1
+	stage_demo_audio.report(result)
+	return 1 if result["skipped"] else 0
 
 
 def stage_texture_imports(out: pathlib.Path) -> None:

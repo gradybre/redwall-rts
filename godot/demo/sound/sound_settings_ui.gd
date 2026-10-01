@@ -9,7 +9,7 @@ extends VBoxContainer
 ## they are the player's own. Every change goes into SoundMix's settings (kept through Restart) and then to the
 ## buses through the host's `apply`.
 ##
-## The NOTE says what is true: with no sound files staged the demo is silent and the settings wait for them;
+## The NOTE says what is true: with no sound files staged (a copy without them) the demo is silent and the settings wait;
 ## and every sound has a text or picture match, so nothing is lost muted (UI §7).
 
 const SoundMix := preload("res://demo/sound/sound_mix.gd")
@@ -21,7 +21,7 @@ const MIXES_TITLE: String = "Mix"
 const MUTE_TEXT: String = "Mute"
 const MUTED_TEXT: String = "Muted"
 const PERCENT_TEXT: String = "%d%%"
-const SILENT_NOTE: String = "The demo's sound files are not in yet, so it is silent: these settings are kept for them."
+const SILENT_NOTE: String = "This copy of the demo has no sound files, so it is silent: these settings are kept for them."
 const MATCH_NOTE: String = "Every sound has a text or picture match: with the sound off, nothing is missed."
 const LABEL_W: float = 132.0
 const VALUE_W: float = 46.0

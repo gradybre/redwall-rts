@@ -1,8 +1,9 @@
 extends "res://test/framework/test_case.gd"
-## The live demo's first sound pass (decision 0351; review F43, P8, UX-029, UX-031), with no sound files
-## staged: the data table and its silent placeholders, the buses and their routing, the bounded voice pool
-## (caps, real-time gaps, no stacking and no pitch-up at 4x), the pause duck and the underground filter, the
-## Settings page's volumes, mutes and mixes, and the EVENT MAP sounding completed events only.
+## The live demo's first sound pass (decision 0351; review F43, P8, UX-029, UX-031). Passes with the sound
+## files staged (tools/stage_demo_audio.py) or not (CI stages none): the data table and its silent placeholders,
+## the buses and their routing, the bounded voice pool (caps, real-time gaps, no stacking and no pitch-up at
+## 4x), the pause duck and the underground filter, the Settings page's volumes, mutes and mixes, and the EVENT
+## MAP sounding completed events only.
 ##
 ## Off-tree unless a test says otherwise; times are explicit milliseconds, so nothing waits on a clock. The
 ## buses are the real AudioServer's (made by name, idempotent), so each test puts the mix back.
@@ -32,6 +33,9 @@ const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const WorldLayout := preload("res://demo/world/world_layout.gd")
 
 const WOOD: int = 60
+## The folder tools/stage_demo_audio.py stages into, and the longest one-shot it stages (the tree's fall, 1.44 s).
+const STAGED_DIR: String = "res://demo/assets/sound/"
+const MAX_ONE_SHOT_S: float = 2.0
 ## Frames of 1/60 s for the real-time runs.
 const FRAME_MS: int = 16
 
@@ -133,9 +137,29 @@ func test_each_bad_field_refuses_its_cue() -> void:
 	assert_true(SoundTable.new().add(&"flat", _cue("cues", 0, 1)), "a flat cue needs no range")
 
 
+func _unstaged() -> SoundTable:
+	"""The shipped table with every file moved to a folder that does not exist: nothing staged, staged or not."""
+	var table := _shipped()
+	for r: int in table.count():
+		var moved := PackedStringArray()
+		for path: String in table.files[r]:
+			moved.append(path.replace(STAGED_DIR, "res://demo/assets/no_such_sound_folder/"))
+		table.files[r] = moved
+	return table
+
+
+func _staged_count(table: SoundTable) -> int:
+	"""How many of `table`'s files are staged (and imported) in this checkout."""
+	var found: int = 0
+	for r: int in table.count():
+		for path: String in table.files[r]:
+			found += 1 if ResourceLoader.exists(path) else 0
+	return found
+
+
 func test_missing_files_play_silent_with_one_warning_per_cue() -> void:
 	"""Nothing staged: no stream loads, every cue is silent, each warned about once however often it loads."""
-	var table := _shipped()
+	var table := _unstaged()
 	assert_equal(table.load_streams(), 0, "nothing to load")
 	assert_equal(table.warnings, table.count(), "one warning per cue")
 	assert_equal(table.load_streams(), 0, "again")
@@ -150,20 +174,60 @@ func test_a_silent_cue_still_plays_its_voice_and_its_gap() -> void:
 	var director := _director()
 	director.warm()
 	var chop: int = director.table.row(&"chop")
+	director.table.streams[chop] = []  # silent whether or not the files are staged here
 	assert_equal(director.cue(chop, Vector3.ZERO, false, 1000), VoicesScript.PLAYED, "played (silent)")
 	assert_equal(director.voices.sounding(chop, 1000), 1, "its voice is taken")
 	assert_equal(director.voices.sounding(chop, 1000 + VoicesScript.HOLD_MS), 0, "and freed after HOLD_MS")
 
 
 func test_the_prewarm_loads_the_streams_at_boot() -> void:
-	"""The director's warm() is a prewarm step: run with the rest, reported (0 loaded while nothing is staged)."""
+	"""The director's warm() is a prewarm step: run with the rest, reported; it loads every staged file (none
+	in CI) and the director is silent exactly when nothing is staged."""
 	var director := _director()
+	var staged: int = _staged_count(director.table)
 	var prewarm := PrewarmScript.new()
 	_nodes.append(prewarm)
 	prewarm.add_step("sound streams", director.warm)
-	assert_equal(prewarm.warm(), 0, "nothing staged")
+	assert_equal(prewarm.warm(), staged, "every staged file loaded")
 	assert_equal(String(prewarm.report[0]["step"]), "sound streams", "reported")
-	assert_true(director.is_silent(), "the director knows it is silent")
+	assert_equal(director.is_silent(), staged == 0, "the director knows whether it is silent")
+
+
+func _loops(stream: AudioStream) -> bool:
+	"""Whether a staged stream loops: an Ogg set to loop by its cue, or a WAV whose loop marker the import read
+	(the wind, whose join tools/stage_demo_audio.py cross-fades)."""
+	if stream is AudioStreamOggVorbis:
+		return (stream as AudioStreamOggVorbis).loop
+	if stream is AudioStreamWAV:
+		var wav := stream as AudioStreamWAV
+		return wav.loop_mode == AudioStreamWAV.LOOP_FORWARD and wav.loop_end > wav.loop_begin
+	return false
+
+
+func test_the_shipped_table_is_staged_whole_or_not_at_all() -> void:
+	"""Every file the shipped table lists is in the staged folder, and staging (tools/stage_demo_audio.py) puts
+	in all of them or, in CI, none: a partial set means a skipped or unimported file. Staged, each loads with
+	a length, a loop cue loops, and no one-shot outlasts MAX_ONE_SHOT_S (a voice is held for its length)."""
+	var table := _shipped()
+	var total: int = 0
+	for r: int in table.count():
+		for path: String in table.files[r]:
+			assert_true(path.begins_with(STAGED_DIR), "%s is in the staged folder" % path)
+			total += 1
+	var staged: int = _staged_count(table)
+	assert_true(staged == 0 or staged == total, "%d of %d files staged: all or none" % [staged, total])
+	if staged == 0:
+		return
+	assert_equal(table.load_streams(), total, "every staged file loads")
+	assert_equal(table.warnings, 0, "no missing-file warning")
+	for r: int in table.count():
+		for v: int in table.files[r].size():
+			var stream: AudioStream = table.stream_of(r, v)
+			assert_true(stream.get_length() > 0.0, "%s variant %d has a length" % [table.ids[r], v])
+			if table.loop[r] == 1:
+				assert_true(_loops(stream), "%s loops" % table.ids[r])
+			else:
+				assert_true(stream.get_length() <= MAX_ONE_SHOT_S, "%s variant %d is short" % [table.ids[r], v])
 
 
 # --- buses and routing -------------------------------------------------------------------------------

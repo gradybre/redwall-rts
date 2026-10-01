@@ -159,7 +159,7 @@ func follow_demo(cast: DemoCastScript, forestry: ForestryScript, network: GraphS
 
 
 func is_silent() -> bool:
-	"""Whether no cue has a stream loaded (nothing staged yet)."""
+	"""Whether no cue has a stream loaded (no file staged: tools/stage_demo_audio.py)."""
 	for r: int in table.count():
 		if not table.is_silent(r):
 			return false

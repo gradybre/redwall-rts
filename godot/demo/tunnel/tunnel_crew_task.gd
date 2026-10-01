@@ -25,6 +25,9 @@ extends "res://demo/tunnel/tunnel_task.gd"
 ## finisher's own work, so a member out with its basket still counts as at its post: the crew's rate, and so every
 ## dig's time, is exactly as before. When the dig is done a member below takes what is left behind the face out in a
 ## last basket, and its place ends at the heap. Called away, it drops its load on the heap (spoil_haul.gd `leave`).
+## ARRIVING IS EXPLICIT (decision 0361, the review's F05): it tips only once its walk out has ARRIVED at the tip spot
+## (resident_brain.gd `arrived_near`) -- else it walks there again -- and a haul whose walk was given up returns its
+## basket to the pile behind the face (`return_basket`) rather than tipping it from wherever it stopped.
 
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const CrewScript := preload("res://demo/tunnel/tunnel_crew.gd")
@@ -46,6 +49,8 @@ const FILL_S: float = 1.4
 const TIP_S: float = 0.9
 ## A tipper stands this far out from the heap's finished rim (m).
 const TIP_CLEAR_M: float = 0.45
+## It tips only standing within this of its tip spot (m; the brain's crowded-site arrival is 0.35).
+const TIP_REACH_M: float = 0.5
 const HAUL_POST: int = 0
 const HAUL_FILL: int = 1
 const HAUL_OUT: int = 2
@@ -67,6 +72,8 @@ var _timer: float = 0.0
 ## Set at each tip: walking back down from the heap it is still counted at its post (the dig's rate is unchanged by
 ## hauling). It is read only while the member is not in its place, which after its first way in only a tip causes.
 var _returning: bool = false
+## Where its basket is carried to and tipped (set as it sets off with it).
+var _tip_at: Vector2 = Vector2.ZERO
 
 
 func _init(crew: CrewScript, network: GraphScript, crew_slot: int, fits: bool, hand_spot: Vector2,
@@ -207,9 +214,7 @@ func _haul(member: BrainScript, delta: float, active: bool) -> bool:
 	if haul_stage == HAUL_FILL:
 		_fill(member, haul, delta)
 	elif haul_stage == HAUL_OUT:
-		haul_stage = HAUL_TIP
-		_timer = 0.0
-		haul.set_stage(member.index, HaulScript.STAGE_TIPPING, 0)
+		_reach_tip(member, haul)
 	elif haul_stage == HAUL_TIP:
 		return _tip(member, haul, delta, active)
 	return true
@@ -223,13 +228,24 @@ func _fill(member: BrainScript, haul: HaulScript, delta: float) -> void:
 	haul.set_stage(member.index, HaulScript.STAGE_FILLING, int(_timer / FILL_S * float(Rules.PERMILLE)))
 	if _timer < FILL_S:
 		return
-	if haul.pile_milli(_network, _mouth) <= 0 or not member.task_haul_out(_mouth, tip_spot(member)):
+	_tip_at = tip_spot(member)
+	if haul.pile_milli(_network, _mouth) <= 0 or not member.task_haul_out(_mouth, _tip_at):
 		haul.set_stage(member.index, HaulScript.STAGE_NONE, 0)
 		haul_stage = HAUL_POST
 		return
 	haul.fill(_network, member.index)
 	haul.set_stage(member.index, HaulScript.STAGE_CARRYING, Rules.PERMILLE)
 	haul_stage = HAUL_OUT
+
+
+func _reach_tip(member: BrainScript, haul: HaulScript) -> void:
+	"""Carried out: start tipping only standing at the tip spot (see ARRIVING IS EXPLICIT), else walk there again."""
+	if not member.arrived_near(_tip_at, TIP_REACH_M):
+		member.task_walk_to(_tip_at)
+		return
+	haul_stage = HAUL_TIP
+	_timer = 0.0
+	haul.set_stage(member.index, HaulScript.STAGE_TIPPING, 0)
 
 
 func _tip(member: BrainScript, haul: HaulScript, delta: float, active: bool) -> bool:
@@ -280,8 +296,12 @@ func finish(brain: RefCounted) -> void:
 
 
 func cancel(brain: RefCounted) -> void:
-	"""Called away: off the crew, its load dropped on the heap."""
-	_off((brain as BrainScript).index)
+	"""Called away: off the crew, its load dropped on the heap -- or, its walk out given up, returned to the pile (see
+	ARRIVING IS EXPLICIT)."""
+	var member := brain as BrainScript
+	if member.trip_failed() and haul_stage == HAUL_OUT:
+		_network.haul.return_basket(_network, member.index)
+	_off(member.index)
 
 
 func _off(who: int) -> void:

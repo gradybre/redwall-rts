@@ -584,6 +584,44 @@ func test_a_spoil_worker_pushed_off_its_spot_stops_digging() -> void:
 	assert_equal(crew.step[row], SpoilCrewScript.STEP_GO, "walking back to its spot first")
 
 
+func test_a_basket_whose_walk_out_failed_goes_back_to_the_pile() -> void:
+	"""F05 for P5's basket hauling (decision 0211): a member whose walk out with its basket was given up returns the
+	basket to the pile behind the face -- nothing is tipped on the heap from afar; one merely called away tips it there,
+	as before. Three haulers on the mouth, so the heap is drawn at what was tipped."""
+	var space := CastSpaceScript.new()
+	space.setup([], [] as Array[Vector3])
+	var network := space.tunnels
+	var ref := PackedInt32Array([-1, 0, -1])
+	assert_true(network.add_into(DIG_ROUTE, 2, 9, ref), "a dig")
+	var m: int = network.spoil_mouth[ref[0]]
+	var brains: Array[BrainScript] = []
+	var crew := CrewScript.new()
+	for i in 3:
+		brains.append(_brain(space, Vector2(-2.0, float(i)), "Mouse"))
+		crew.set_resident(i, "Mouse")
+		network.haul.join(network, i, m)
+	network.add_spoil(ref[0], 4000)
+	var heap_before := network.haul.on_heap_milli(network, m)
+	var took := network.haul.fill(network, 0)
+	assert_true(took > 0, "a basketful: %d" % took)
+	_cancel_hauler(crew, network, brains[0], true)
+	assert_equal([network.haul.on_heap_milli(network, m), network.haul.pile_milli(network, m), network.haul.carried(network, m)],
+		[heap_before, took, 0], "back on the pile, the heap as it was")
+	var again := network.haul.fill(network, 1)
+	assert_equal(again, took, "the pile filled again")
+	_cancel_hauler(crew, network, brains[1], false)
+	assert_equal(network.haul.on_heap_milli(network, m), heap_before + again, "called away: tipped on the heap")
+
+
+func _cancel_hauler(crew: CrewScript, network: GraphScript, brain: BrainScript, walk_failed: bool) -> void:
+	"""A crew place carrying its basket out, cancelled -- its walk given up, or called away."""
+	var task := CrewTaskScript.new(crew, network, 0, true, Vector2.ZERO, func(_s: int) -> bool: return true,
+		func(_s: int) -> float: return 0.0)
+	task.haul_stage = CrewTaskScript.HAUL_OUT
+	brain.trip_outcome = BrainScript.TRIP_FAILED if walk_failed else BrainScript.TRIP_UNDERWAY
+	task.cancel(brain)
+
+
 func _water_rig() -> Array:
 	"""The water suite's rig (the placeholder cast on the village water, the water gameplay over it), with planks in
 	the stores for a footbridge. [suite, rig]."""

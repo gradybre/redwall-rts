@@ -154,6 +154,27 @@ func test_a_waiting_carry_sets_off_carrying() -> void:
 	assert_true(brain.carrying, "set off carrying")
 
 
+func test_a_routine_departure_in_a_spent_window_idles_a_moment_longer() -> void:
+	"""F06 for the routine: a wanderer about to set off while the frame's routing is spent idles instead of planning, and
+	goes once a window has room."""
+	var space := CastSpaceScript.new()
+	var points: Array[Dictionary] = []
+	for x in [-6.0, 6.0]:
+		points.append({"name": &"spot", "position": Vector3(x, 0.0, 0.0), "face": Vector3.FORWARD,
+			"activities": [&"collect_object"] as Array[StringName], "capacity": 1})
+	space.setup(points, [] as Array[Vector3])
+	var brain := _brain(space, Vector2(0.0, 3.0))
+	space.routes.budget_usec = 1000
+	space.routes.charge(-1, BIG_USEC)
+	for f in roundi(5.0 / DT):
+		brain.step(DT)
+	assert_equal(brain.state, BrainScript.State.IDLE, "still idling: no plan in a spent window")
+	space.routes.end_window()
+	for f in roundi(0.5 / DT):
+		brain.step(DT)
+	assert_true(brain.state == BrainScript.State.TURN or brain.state == BrainScript.State.WALK, "off once there is room")
+
+
 func test_released_while_waiting_it_gives_its_place_up() -> void:
 	"""A release takes it off the trip: it idles, and its place at the desk is given up at its turn."""
 	var pair := _spent_space()
@@ -215,6 +236,30 @@ func test_one_sweep_agrees_with_the_planner_spot_by_spot() -> void:
 				wrong.append(spot)
 	assert_true(wrong.is_empty() and agree > 40, "spot by spot as the planner (%d agree; differ at %s)" % [agree, wrong])
 	assert_false(space.nav.reaches(Vector2(-2.0, 6.0), Vector2(-10.0, 0.0), BODY_M), "nothing inside the ring")
+	assert_false(space.nav.reaches(Vector2(-10.0, 0.0), Vector2(-2.0, 6.0), BODY_M), "nor out of it: a new start, a new sweep")
+
+
+func _reaches_as_planned(circles: Array[Vector3], from: Vector2, spot: Vector2, what: String) -> void:
+	"""Over `circles`, the planner finds a route from -> spot and `reaches` says so too."""
+	var space := CastSpaceScript.new()
+	space.setup([], circles)
+	var route := PackedVector2Array()
+	space.nav.plan(from, spot, BODY_M, PackedVector3Array(), 0, route)
+	assert_true(space.nav.last_found, "%s: the planner finds a route" % what)
+	assert_true(space.nav.reaches(from, spot, BODY_M), "%s: and the sweep says so" % what)
+
+
+func test_the_sweep_finds_the_way_into_a_pocket_and_out_of_one() -> void:
+	"""The plan's own nodes round the circles by its goal (a pocket no static node sees into) and round its start (a
+	pocket whose only way out is by them, a blocker outside its mouth) are part of the sweep's answer, as of the plan's."""
+	var into: Array[Vector3] = [Vector3(-0.300157, 0.518614, 2.247468), Vector3(0.801401, 0.767038, -0.505703),
+		Vector3(-0.267829, 0.570135, -0.268059), Vector3(1.143471, 0.781662, -0.156017), Vector3(1.370453, 0.66643, 0.685659),
+		Vector3(-1.057276, 0.812051, 1.449733), Vector3(0.276128, 0.54406, 2.463751)]
+	_reaches_as_planned(into, Vector2(8.0, 8.0), Vector2(0.080805, 0.671349), "into a pocket")
+	var out: Array[Vector3] = [Vector3(3.2, 0.9, 0.0)]
+	for k in range(1, 10):
+		out.append(Vector3(cos(TAU * k / 10.0) * 1.5, 0.45, sin(TAU * k / 10.0) * 1.5))
+	_reaches_as_planned(out, Vector2.ZERO, Vector2(8.0, 0.0), "out of a pocket")
 
 
 # --- the piece chains and the selection, read per frame without making anything ---------------------------
@@ -252,8 +297,12 @@ func _check_chain(graph: GraphScript, p: int, what: String) -> void:
 		graph.piece_locate_into(p, along + 0.25, place)
 		assert_equal([int(place[0]), snappedf(place[1], 0.001)], [slot, 0.25], "%s: a point just into segment %d" % [what, slot])
 		along += graph.length_m(slot)
+	place[0] = -1.0
+	place[1] = -1.0
 	graph.piece_locate_into(p, along + 5.0, place)
-	assert_equal(int(place[0]), chain[chain.size() - 1], "%s: past the end, clamped to the last" % what)
+	var last := chain[chain.size() - 1]
+	assert_equal([int(place[0]), snappedf(place[1], 0.001)], [last, snappedf(graph.length_m(last), 0.001)],
+		"%s: past the end, clamped to the last's end" % what)
 
 
 func test_the_selection_is_read_by_revision_without_an_array_a_frame() -> void:

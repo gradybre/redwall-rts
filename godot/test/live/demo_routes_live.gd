@@ -336,7 +336,12 @@ func _tunnel_project() -> void:
 	var text: String = ext.get("panel").call(&"line", &"project")
 	_check("dig: its benefit if dug", took >= 0 and text.contains("one end to the other"), text)
 	await _capture("routes_dig_laid")
-	_check("dig: dug", bool(tool.call(&"confirm")))
+	# The village keeps moving while the harness waits, so a transient refusal is possible at the instant of
+	# the first try -- most likely a resident standing on the new entrance (ENTRANCE_OCCUPIED); the tool keeps
+	# the piece laid either way. Try again for a while, as a player would; a lasting refusal still fails.
+	# Seen once on the slower CI runner (PR #207); not reproduced locally.
+	var dug_after: int = await _until(func() -> bool: return bool(tool.call(&"confirm")), ESTIMATE_FRAMES)
+	_check("dig: dug", dug_after >= 0, "confirm refused for %d frames" % ESTIMATE_FRAMES)
 	await _frames(SETTLE_FRAMES)
 	ext.call(&"refresh_panel")
 	text = ext.get("panel").call(&"line", &"project")

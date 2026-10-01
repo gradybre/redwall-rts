@@ -1,0 +1,68 @@
+{
+  "about": "The village repertoire: short ORIGINAL songs the otters sing and teach (decision 0442). Written for this demo; no line, name or phrase is taken from any book. Keep every line within line_limit characters, with {deed} filled by the longest deed (deed_limit).",
+  "line_limit": 44,
+  "deed_limit": 20,
+  "songs": [
+    {
+      "id": "work_long_pull",
+      "title": "The Long Pull",
+      "context": "work",
+      "tune": [0, 2, 4, 7, 4, 2, 0],
+      "beats": [2, 1, 1, 2, 1, 1, 3],
+      "lines": [
+        "Heave and set, and heave again,",
+        "the load's no lighter for the rain;",
+        "one more step and one more stone,",
+        "no back was ever bent alone.",
+        "Pull for the bank and pull for the bend,",
+        "the stream's a road with a willing end."
+      ]
+    },
+    {
+      "id": "work_lift_and_lay",
+      "title": "Lift and Lay",
+      "context": "work",
+      "tune": [4, 4, 2, 0, 2, 4, 2],
+      "beats": [1, 1, 1, 2, 1, 1, 3],
+      "lines": [
+        "Lift it high and lay it low,",
+        "sing it light and work it slow;",
+        "the sun is climbing, so are we,",
+        "and supper's waiting, wait and see."
+      ]
+    },
+    {
+      "id": "supper_set_the_board",
+      "title": "Set the Board",
+      "context": "supper",
+      "tune": [0, 4, 7, 9, 7, 4, 5, 4],
+      "beats": [1, 1, 2, 1, 1, 1, 1, 3],
+      "lines": [
+        "Bring the bowls and bring the bread,",
+        "bring the ones the river fed;",
+        "shift along and make some room,",
+        "there's lamplight yet against the gloom.",
+        "Whoever's late, we'll keep a share;",
+        "the bench is long, there's room to spare.",
+        "A cup for {deed}!"
+      ],
+      "deed_fallback": "the cook"
+    },
+    {
+      "id": "evening_herons_hour",
+      "title": "The Heron's Hour",
+      "context": "evening",
+      "tune": [7, 4, 2, 4, 0, 2, 0],
+      "beats": [2, 1, 1, 2, 2, 1, 4],
+      "lines": [
+        "Slow now, the water's going grey,",
+        "the heron's tucked his legs away;",
+        "hang the net and bank the coal,",
+        "the dark will keep us, safe and whole,",
+        "and tell of {deed} tomorrow.",
+        "The stream can do the singing now."
+      ],
+      "deed_fallback": "the day"
+    }
+  ]
+}

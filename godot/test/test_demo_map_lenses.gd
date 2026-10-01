@@ -180,8 +180,8 @@ func test_v_and_the_picker_name_the_same_layer() -> void:
 	var farm := _farm()
 	farm.add_overlay("Getting there", "Water range", "Where?", _show.bind("water"))
 	var picker := _picker(farm.lenses)
-	picker.lens_button(2).pressed.emit()
-	assert_equal(farm.view.overlay_mode, ViewScript.OVERLAY_RIPENESS, "the picker's ripeness")
+	picker.lens_button(3).pressed.emit()
+	assert_equal(farm.view.overlay_mode, ViewScript.OVERLAY_WATER, "the picker's water service (decision 0441)")
 	var key := InputEventKey.new()
 	key.pressed = true
 	key.physical_keycode = KEY_V
@@ -189,7 +189,7 @@ func test_v_and_the_picker_name_the_same_layer() -> void:
 	picker.refresh()
 	assert_equal(picker.title_text(), "Getting there: Water range", "V went on from the pick")
 	assert_equal(farm.view.overlay_mode, ViewScript.OVERLAY_OFF, "the beds' overlay off")
-	assert_true(picker.lens_button(3).button_pressed and not picker.lens_button(2).button_pressed, "the list agrees")
+	assert_true(picker.lens_button(4).button_pressed and not picker.lens_button(3).button_pressed, "the list agrees")
 	farm.handle_key(key)
 	picker.refresh()
 	assert_equal(picker.title_text(), "Map layer: off", "V to off")

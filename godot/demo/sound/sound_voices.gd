@@ -23,8 +23,9 @@ const REFUSE_GAP: int = 1
 const REFUSE_CUE_CAP: int = 2
 const REFUSE_BUS_CAP: int = 3
 const REFUSE_NO_POOL: int = 4
-## Players per bus (SoundMix.BUS_* order): none for Master and Ambience.
-const POOL_SIZES: PackedInt32Array = [0, 0, 8, 4, 3]
+## Players per bus (SoundMix.BUS_* order): none for Master and Ambience, none for Songs (demo/songs/song_hum.gd has
+## its own voices).
+const POOL_SIZES: PackedInt32Array = [0, 0, 8, 4, 3, 0]
 ## A silent cue holds its voice this long (ms): about a footstep's or a chop's sound.
 const HOLD_MS: int = 350
 ## A positional voice is at full volume within this share of its cue's range.

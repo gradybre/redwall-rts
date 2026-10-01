@@ -240,6 +240,7 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
 |---|---|---|
 | Growing: Soil moisture | Which beds are too dry or too wet? | dry, low, good, wet, waterlogged (the beds' discs) |
 | Growing: Ripeness | Which beds are ready to harvest? | growing, ripe, past its best or lost, empty |
+| Growing: Water service | Which beds does the weir's garden leat water? | not served, dry (leat empty), normal, wet (decision 0441) |
 | Getting there: Water range | Where can they wade, swim, dive or cross? | wade, swim, dive, ford, bridge site, swim link, landing |
 | Woods: Zones and trees | Which trees may be felled, which must stay? | forestry and conservation zones; mature, young, stump, cleared |
 | Underground: Tunnels | What lies under the village? | the U view's cut (U switches it too) |
@@ -248,7 +249,7 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
   there: Water range ▾", or "Map layer: off ▾"); the button unfolds the list of layers, one button each, its
   question as the tooltip. A pick shows that layer alone and folds the list; picking the shown one again, or
   **Off**, shows none. Under the header: the question, the subject, what they can do there, and the legend.
-- **V** steps the same layer: off, moisture, ripeness, water range, woods, off. **U** switches the underground
+- **V** steps the same layer: off, moisture, ripeness, water service, water range, woods, off. **U** switches the underground
   view, and the picker follows it: the Underground layer is then the shown one (the others switch off); V from
   it goes to moisture and back to the surface.
 - **Whose water range** (`waterplay/water_range.gd`): nobody selected, the 1.0 m mouse anchor ("Water range
@@ -1159,6 +1160,55 @@ either puts it back from where it stands. **Compost comes only from plant waste*
 Pantry's spoiled food at 4 : 2 -- and Compost spends only the compost store; earth never raises fertility. There is no
 backfill yet: the tunnels have no way to fill a dug passage, so that use waits for one (decision 0401).
 
+## The weir sluice and the garden leat (decision 0441)
+
+The weir's sluice gate is a player control (review ECO-006: bounded, discrete water service; no hydrology). **Click
+the weir** (or a bed's **Sluice…**) and the farm panel shows it: **Close**, **Half** and **Open**, each button's
+tooltip its action card, and the **affected-bed preview** -- for the setting under the pointer, else the setting now --
+in words ("Open: Bed 2 and Bed 4 go to wet, Bed 6 to normal. Bed 4 is already waterlogged.") and bed by bed (its
+band now, its service then, what the leat adds at the next midnight). The order is done at once (no one walks to the
+wheel: a demo simplification); the beds' water changes at midnight.
+
+- **The zone** is Bed 2, Bed 4 and Bed 6 -- the east column -- fed by a covered culvert from the weir to a timber
+  leat head at Bed 2's north-east corner (`water/weir_sluice.gd`). Its table: Closed, all three **dry**; Half, Bed 2
+  and 4 **normal**, Bed 6 dry; Open, Bed 2 and 4 **wet**, Bed 6 normal. Other beds are not served. The demo opens
+  closed, so its tuned spring is unchanged.
+- **Through the moisture model** (`farm/farm_sim.gd` THE GARDEN LEAT): normal moves a bed up to 1500 a day toward its
+  band's middle (as a tunnel irrigates), wet raises it up to 1500 toward 1000 over its band's top and never lowers it,
+  dry adds nothing. The leat's share is worked on the bed as the day left it, so the preview's "+15% from the
+  leat" is exactly the leat's own share; the night's weather and the loam's drainage above the band's top come on
+  top of it.
+- **Tunnels**: a bed the leat waters takes the leat's water instead of a tunnel's and is not drained that day; a bed
+  it leaves dry keeps whatever its tunnels, ditch and raising do. A travel tunnel never changes because of the sluice.
+- **Floods**: while the tunnels' flood runs with the sluice not closed, an incident says which beds it will
+  waterlog or wet and to close the sluice (the preview says it too). Closed in time, it resolves; left open, as the
+  flood passes the wet beds are raised past their WET band (waterlogged; capped at the scale's top) and the normal
+  ones into it, and the feed says so.
+- **Drawn**: a three-plank board in the weir's gate bay (the model's baked board is taken out) winds up on the demo
+  clock -- half its lift at Half -- with broken white water below the bay while it is up; the leat head's water stands
+  empty, half full or brim full. The stream keeps its one level (decision 0301), so the pool does not drop.
+- **The Water service map layer** colours each bed by its service.
+
+## Songs (decision 0442)
+
+The otters sing, and teach their songs (`songs/`; review SOC-026, UX-030, UX-032). **Four short original songs**
+(`songs/songs.json`, quoted in decision 0442): two work songs, a supper song and an evening song, written for this
+demo -- no name, line or phrase from any book -- a line at a time in a parchment bubble over the singer.
+
+- **Only in their context** (`songs/demo_songs.gd`): a work song only while actually working (carrying, at an
+  order's work, at a kitchen step, or holding a work-board task that is working or hauling -- not walking to it), the
+  supper song only seated at the supper table, the evening song from 19:00 to 22:00 while wandering free or walking
+  home to bed. A song stops the moment its singer leaves its context; nothing waits for a song.
+- **Who** (`songs/song_circle.gd`): the otters know every song; anyone who hears one sung to its end twice within
+  6 m learns it, and sings it from then on (a routine Village news line). At most two lead at once; supper is one
+  table -- one leads, everyone seated who knows it joins (a "♪ ♪"), and the day's first supper song is a news line.
+- **Verse slots** name only what the village has recorded: a bridge it opened ("A cup for the weir bridge!"), a
+  rescue; with none, the song's own words.
+- **Settings** (the game menu's Sound): **Residents sing: on/off** -- off, nobody sings, hums or makes song news --
+  and a sixth bus, **Songs (humming)**, with its own volume and Mute.
+- **The hum** (`songs/song_hum.gd`): no new files -- each song's tune is synthesised once (the boot prewarm) into a
+  soft closed-mouth hum, played at the singer on the Songs bus as each line begins. It is diegetic and never a score.
+
 ## Sound (decision 0351)
 
 The first sound pass (`sound/`; review F43, UX-029, UX-031). **The files are staged, not committed**:
@@ -1171,8 +1221,9 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 - **One owner, not an autoload** (`sound/sound_director.gd`, a child of the village). Everything it hears is the
   demo's -- cast, woods, tunnels, water, notices, camera -- so it is made and freed with the scene, and the sixth
   autoload slot stays free for the game's own AudioManager.
-- **Five buses**: Master, Ambience (wind, rain), Work (tools, loads, footsteps; through "Work Surface" and "Work
-  Under"), Water (the stream, splashes, wading) and Cues (warnings, completions, clicks). Made by name once.
+- **Six buses**: Master, Ambience (wind, rain), Work (tools, loads, footsteps; through "Work Surface" and "Work
+  Under"), Water (the stream, splashes, wading), Cues (warnings, completions, clicks) and Songs (the residents'
+  humming, decision 0442). Made by name once.
 - **A bounded voice pool** (`sound/sound_voices.gd`): 8 Work, 4 Water and 3 Cues players made at boot; each
   cue has its own voice cap and a **real-time gap** (`gap_ms`), so at 4x, or with twenty residents chopping, the
   extra events fold rather than stack. No player's pitch is ever changed.
@@ -1215,7 +1266,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `weather/` | The demo's one weather (read from the farm's real §5.10 row) and its rain, snow and light |
 | `burrow/` | Rooms as their own structures: the templates, sockets and refusals (`underground_rooms.gd`), placing one and its passage (`room_plan.gd`, `room_tool.gd`), drawing it (`room_view.gd`, `room_mesh.gd`); the cellar API; the fit-out (`room_fixtures.gd`, `fixture_crew.gd`, `install_task.gd`, `fixture_view.gd`, `fixture_kit.gd`, `room_text.gd`) and the night (`night_routine.gd`, `bed_allocation.gd`, `sleep_task.gd`) |
 | `events/` | Seeded threats (a flood, a fire) and evacuation |
-| `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the water overlay (the Water range map layer) |
+| `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the water overlay (the Water range map layer), the weir's sluice table and its gate and leat head (decision 0441) |
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel; whose water range the map layer paints (`water_range.gd`) |
 | `farm/` | The farm: real FarmPlot rows, the pantry and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves |
 | `kitchen/` | The meal loop: the dishes and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |
@@ -1229,4 +1280,5 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `ui/` | The woodland HUD skin; the HUD date, the news strip, the village-news history, the incident card and "Go to", and the right column's tabs; the HUD's village read model (counters and ledger), the Residents roster and the village map; the Map layer picker |
 | `camera/` | The RTS camera, and the canopy clearance: the eye kept out of crowns, the crowns in the way thinned, the selected shown through |
 | `sound/` | The sound pass: the cue table (data), the mix and its buses, the voice pool, the event map, the owner and the Settings section |
+| `songs/` | The residents' songs: the repertoire (data), who sings what when, the bubbles, the hum (decision 0442) |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

@@ -330,11 +330,11 @@ const REFUSE_RIG_CATALOG: StringName = &"RIG_CATALOG_INVALID"
 const REFUSE_UNKNOWN_RIG: StringName = &"UNKNOWN_RIG"
 ## REQ-SET-157 (decision 0511): the appointee is a retained row whose resident has died.
 const REFUSE_WARDEN_CANDIDATE_NOT_LIVING: StringName = &"WARDEN_CANDIDATE_NOT_LIVING"
-## REQ-SET-157 says "any living resident"; §5.11 prose says "another adult". Only ADULT satisfies
-## both, so CHILD and ELDER refuse until a ruling settles them. Not a policy invented here.
-const REFUSE_WARDEN_CANDIDATE_STAGE: StringName = &"WARDEN_CANDIDATE_STAGE_UNRULED"
-## REQ-SET-157 enables appointment when the Warden "dies/leaves". Replacing a LIVING Warden is
-## not specified anywhere, so it refuses rather than deposing anybody.
+## DEC-042 (Brendan, 2026-10-01): a living ADULT or ELDER may serve; a CHILD may not.
+const REFUSE_WARDEN_CANDIDATE_CHILD: StringName = &"WARDEN_CANDIDATE_IS_CHILD"
+## The target already IS the serving Warden: there is nothing to appoint, confirmed or not.
+const REFUSE_WARDEN_ALREADY_SERVING: StringName = &"WARDEN_CANDIDATE_ALREADY_SERVING"
+## DEC-042: a living Warden is replaced only with explicit confirmation. Without it, this.
 const REFUSE_WARDEN_SEAT_OCCUPIED: StringName = &"WARDEN_SEAT_OCCUPIED"
 
 ## GDD §4.2 `Equipment`: four of its five I32 columns at length 512 (`clothing_tier` stays in
@@ -1372,25 +1372,42 @@ func set_role(slot: int, role: int) -> OpResult:
 	return _succeed(role, ref_of(slot))
 
 
-func appoint_warden(slot: int) -> OpResult:
-	"""REQ-SET-157: make a living ADULT the Warden while no living Warden serves (decision 0511).
+func appoint_warden(slot: int, replace_serving: bool = false) -> OpResult:
+	"""REQ-SET-157 as ruled by DEC-042: appoint a living ADULT or ELDER Warden (decision 0511).
 
-	THE ONLY WRITE IS THE ROLE BYTE -- §5.11: "player can appoint another adult, with no stat
-	change". Skills, XP, needs, name and stage are untouched. Refusals, in order: a free row, a
-	dead resident, a stage the documents do not agree on, and a living Warden already serving
-	(the target itself included). A refusal writes nothing. The previous Warden's retained dead
-	row keeps its WARDEN byte: it is history, and nothing counts a dead row as serving.
+	THE ONLY WRITES ARE ROLE BYTES -- §5.11: "with no stat change". Refusals, in order: a free
+	row, a dead resident, a CHILD, the sitting Warden itself, and -- only when `replace_serving`
+	is false -- a living Warden already serving. Every check runs before the first write, so a
+	refusal writes nothing. On a confirmed replacement every living WARDEN row steps down to
+	RESIDENT first (its stage is untouched; a SPECIALIST byte replaced at its own appointment is
+	not restored), then the target becomes WARDEN. A dead Warden's retained byte is history and
+	is never rewritten.
 	"""
 	if not is_present(slot):
 		return _refuse(REFUSE_NOT_PRESENT)
 	if not is_alive(slot):
 		return _refuse(REFUSE_WARDEN_CANDIDATE_NOT_LIVING)
-	if _life_stage[slot] != LIFE_STAGE_ADULT:
-		return _refuse(REFUSE_WARDEN_CANDIDATE_STAGE)
-	if serving_warden_slot() != EntityDirectory.NULL_SLOT:
+	if _life_stage[slot] == LIFE_STAGE_CHILD:
+		return _refuse(REFUSE_WARDEN_CANDIDATE_CHILD)
+	if _role[slot] == ROLE_WARDEN:
+		return _refuse(REFUSE_WARDEN_ALREADY_SERVING)
+	if not replace_serving and serving_warden_slot() != EntityDirectory.NULL_SLOT:
 		return _refuse(REFUSE_WARDEN_SEAT_OCCUPIED)
+	_step_down_serving_wardens()
 	_role[slot] = ROLE_WARDEN
 	return _succeed(slot, ref_of(slot))
+
+
+func _step_down_serving_wardens() -> void:
+	"""DEC-042's step-down: every LIVING Warden returns to the ordinary RESIDENT role.
+
+	Called only after `appoint_warden()` has passed every check, so it cannot leave a partial
+	appointment behind. A dead Warden's row is skipped: it no longer serves and keeps its byte.
+	"""
+	for index: int in _live_count:
+		var row: int = _live_slots[index]
+		if _role[row] == ROLE_WARDEN and is_alive(row):
+			_role[row] = ROLE_RESIDENT
 
 
 func serving_warden_slot() -> int:

@@ -31,10 +31,11 @@ incomplete for adopted policies, not authority to remove them.
   bed/population constraints, manual acceptance and deterministic arrivals.
   Integrate ACCEPT_CANDIDATES/ASSIGN_BED/APPOINT_WARDEN and relevant care commands.
   Keep reserved hunter skill inactive and check each candidate atomically.
-  *Partly done 2026-10-01 (decision 0511):* APPOINT_WARDEN commits for a living ADULT
-  while no living Warden serves. Open: CHILD/ELDER eligibility and living-Warden replacement
-  need a ruling, departure has no owner, and the REQ-SET-040 naming trigger awaits the
-  READY_07 I2 generated-name gate. ACCEPT_CANDIDATES and ASSIGN_BED are untouched.
+  *Partly done 2026-10-01 (decision 0511, DEC-042):* APPOINT_WARDEN commits for a living
+  ADULT or ELDER into a vacant seat, and replaces a living Warden (who steps down to RESIDENT)
+  only with explicit confirmation. Open: departure has no owner, and the REQ-SET-040 naming
+  trigger awaits the READY_07 I2 generated-name gate. ACCEPT_CANDIDATES and ASSIGN_BED are
+  untouched.
 - [ ] 08.5 Implement feasts and CONFIRM_FEAST, chronicle, meaningful named events,
   contextual voices and civic Charter. Preserve uncertain supernatural truth
   and era-specific identity. Finite event definitions specify trigger, effect,

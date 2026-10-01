@@ -2,12 +2,10 @@ extends "res://test/framework/test_case.gd"
 ## REQ-SET-157's Warden succession: `residents.gd::appoint_warden()` and the APPOINT_WARDEN arm of
 ## `command_dispatch.gd` (decision 0511).
 ##
-## THE DEFINED PART ONLY. REQ-SET-157: "When Warden Rowan or a later Warden dies/leaves, the
-## system shall allow appointment of any living resident and preserve the settlement." GDD §5.11:
-## "Warden death alone does not end play; player can appoint another adult, with no stat change."
-## Only a living ADULT satisfies both sentences, and only a vacant seat is named by either, so a
-## CHILD, an ELDER and a living Warden's replacement each refuse with their own code -- tested
-## below by value -- rather than being decided here.
+## REQ-SET-157 AS RULED BY DEC-042 (Brendan, 2026-10-01). A living ADULT or ELDER may be appointed;
+## a CHILD may not. A living Warden is replaced only when the command CONFIRMS it (`arg0` = 1); the
+## old Warden then steps down to RESIDENT in the same atomic write. Without confirmation an occupied
+## seat refuses WARDEN_SEAT_OCCUPIED, as before. Every case is tested below by value.
 ##
 ## THE CONSTANTS ARE TRANSCRIBED FROM THE DOCUMENTS: Role RESIDENT=0/WARDEN=1/SPECIALIST=2 is GDD
 ## §4.3's table, life stage ADULT=0/CHILD=1/ELDER=2 is MOVE-DEP-R02, and APPOINT_WARDEN=1 is
@@ -177,8 +175,8 @@ func test_a_settlement_with_no_warden_at_all_can_appoint_one() -> void:
 	assert_equal(_residents.serving_warden_slot(), first, "by the appointee")
 
 
-func test_a_living_warden_is_not_replaced() -> void:
-	"""Replacing a LIVING Warden is specified nowhere, so it refuses and deposes nobody."""
+func test_a_living_warden_is_not_replaced_without_confirmation() -> void:
+	"""DEC-042: replacing a LIVING Warden needs confirmation; without it nothing is written."""
 	var rowan: int = _spawn()
 	assert_true(_residents.set_role(rowan, ROLE_WARDEN).ok, "row 0 is the living Warden")
 	var rival: int = _spawn()
@@ -189,13 +187,81 @@ func test_a_living_warden_is_not_replaced() -> void:
 	assert_equal(_role(rowan), ROLE_WARDEN, "and the Warden still serves")
 
 
+func test_a_confirmed_replacement_steps_the_living_warden_down() -> void:
+	"""DEC-042: with confirmation the sitting Warden becomes RESIDENT and the appointee WARDEN."""
+	var rowan: int = _spawn()
+	assert_true(_residents.set_role(rowan, ROLE_WARDEN).ok, "row 0 is the living Warden")
+	var heir: int = _spawn()
+	var skills: PackedInt64Array = _skill_image(rowan)
+	assert_true(_residents.appoint_warden(heir, true).ok, "the confirmed appointment succeeds")
+	assert_equal(_role(heir), ROLE_WARDEN, "the heir is the Warden")
+	assert_equal(_role(rowan), ROLE_RESIDENT, "the old Warden steps down to an ordinary role")
+	assert_equal(_residents.life_stage_of(rowan).value, STAGE_ADULT, "keeping its stage")
+	assert_equal(_skill_image(rowan), skills, "and every skill: stepping down is no stat change")
+	assert_equal(_residents.serving_warden_slot(), heir, "exactly one Warden serves")
+
+
+func test_an_elder_warden_steps_down_as_an_elder_resident() -> void:
+	"""The ordinary role is RESIDENT whatever the stage; an ELDER stays an ELDER."""
+	var elder: int = _spawn(STAGE_ELDER)
+	assert_true(_residents.appoint_warden(elder).ok, "an elder is appointed into the vacant seat")
+	var heir: int = _spawn()
+	assert_true(_residents.appoint_warden(heir, true).ok, "and replaced, confirmed")
+	assert_equal(_role(elder), ROLE_RESIDENT, "the elder is an ordinary resident again")
+	assert_equal(_residents.life_stage_of(elder).value, STAGE_ELDER, "and still an elder")
+
+
+func test_a_confirmed_replacement_leaves_a_dead_wardens_byte_alone() -> void:
+	"""Only a SERVING Warden steps down; a dead Warden's retained byte is history."""
+	var rowan: int = _rowan_has_died()
+	var second: int = _spawn()
+	assert_true(_residents.appoint_warden(second).ok, "a second Warden fills the vacant seat")
+	var third: int = _spawn()
+	assert_true(_residents.appoint_warden(third, true).ok, "a third replaces her, confirmed")
+	assert_equal([_role(rowan), _role(second), _role(third)],
+		[ROLE_WARDEN, ROLE_RESIDENT, ROLE_WARDEN], "dead history kept, living Warden stepped down")
+
+
+func test_a_confirmed_replacement_steps_every_living_warden_down() -> void:
+	"""Two living WARDEN bytes (a raw setter can write them) both step down, so one serves after."""
+	var first: int = _spawn()
+	var second: int = _spawn()
+	assert_true(_residents.set_role(first, ROLE_WARDEN).ok, "one living Warden")
+	assert_true(_residents.set_role(second, ROLE_WARDEN).ok, "and a second, by a raw setter")
+	var heir: int = _spawn()
+	assert_true(_residents.appoint_warden(heir, true).ok, "the confirmed appointment succeeds")
+	assert_equal([_role(first), _role(second), _role(heir)],
+		[ROLE_RESIDENT, ROLE_RESIDENT, ROLE_WARDEN], "both step down and only the heir serves")
+
+
+func test_a_specialist_who_served_returns_as_a_resident() -> void:
+	"""Role is one byte: a SPECIALIST appointed Warden is not restored to SPECIALIST (DEC-042)."""
+	var specialist: int = _spawn()
+	assert_true(_residents.set_role(specialist, ROLE_SPECIALIST).ok, "a specialist")
+	assert_true(_residents.appoint_warden(specialist).ok, "is appointed into the vacant seat")
+	var heir: int = _spawn()
+	assert_true(_residents.appoint_warden(heir, true).ok, "and replaced, confirmed")
+	assert_equal(_role(specialist), ROLE_RESIDENT, "the lost SPECIALIST role is not restored")
+
+
+func test_a_refused_confirmed_replacement_writes_nothing() -> void:
+	"""Atomic: a confirmed command that refuses (a CHILD target) deposes nobody."""
+	var rowan: int = _spawn()
+	assert_true(_residents.set_role(rowan, ROLE_WARDEN).ok, "a living Warden")
+	var child: int = _spawn(STAGE_CHILD)
+	assert_equal(_residents.appoint_warden(child, true).error,
+		ResidentsScript.REFUSE_WARDEN_CANDIDATE_CHILD, "the child refuses even with confirmation")
+	assert_equal([_role(rowan), _role(child)], [ROLE_WARDEN, ROLE_RESIDENT],
+		"and the Warden was not stepped down")
+
 func test_the_serving_warden_cannot_be_appointed_again() -> void:
-	"""Re-appointing the sitting Warden is the same occupied seat, not a silent success."""
+	"""Re-appointing the sitting Warden is a refusal, confirmed or not, never a silent no-op."""
 	var rowan: int = _spawn()
 	assert_true(_residents.appoint_warden(rowan).ok, "the first appointment succeeds")
-	assert_equal(_residents.appoint_warden(rowan).error,
-		ResidentsScript.REFUSE_WARDEN_SEAT_OCCUPIED, "a second one refuses")
-
+	for confirm: bool in [false, true]:
+		assert_equal(_residents.appoint_warden(rowan, confirm).error,
+			ResidentsScript.REFUSE_WARDEN_ALREADY_SERVING, "a second one refuses (confirm %s)" % confirm)
+	assert_equal(_role(rowan), ROLE_WARDEN, "and she still serves")
 
 func test_an_incapacitated_warden_still_holds_the_seat() -> void:
 	"""Health 1-15 is INCAPACITATED, not dead: REQ-SET-157 opens the seat on death or departure."""
@@ -220,18 +286,16 @@ func test_a_dead_resident_cannot_be_appointed() -> void:
 	assert_equal(_role(fallen), ROLE_RESIDENT, "and its role byte is untouched")
 
 
-func test_a_child_and_an_elder_refuse_as_unruled_stages() -> void:
-	"""Only ADULT satisfies both REQ-SET-157 and §5.11; the other two stages await a ruling."""
+func test_a_child_cannot_be_appointed_and_an_elder_can() -> void:
+	"""DEC-042: a living ADULT or ELDER may serve; a CHILD may not."""
 	_rowan_has_died()
-	for stage: int in [STAGE_CHILD, STAGE_ELDER]:
-		var candidate: int = _spawn(stage)
-		var refused: ResidentsScript.OpResult = _residents.appoint_warden(candidate)
-		assert_equal(refused.error, ResidentsScript.REFUSE_WARDEN_CANDIDATE_STAGE,
-			"stage %d refuses as unruled" % stage)
-		assert_equal(_role(candidate), ROLE_RESIDENT, "stage %d keeps its role" % stage)
-	assert_equal(_residents.serving_warden_slot(), EntityDirectory.NULL_SLOT,
-		"and the seat is still vacant")
-
+	var child: int = _spawn(STAGE_CHILD)
+	assert_equal(_residents.appoint_warden(child).error,
+		ResidentsScript.REFUSE_WARDEN_CANDIDATE_CHILD, "a child refuses")
+	assert_equal(_role(child), ROLE_RESIDENT, "and keeps its role")
+	var elder: int = _spawn(STAGE_ELDER)
+	assert_true(_residents.appoint_warden(elder).ok, "an elder is appointed")
+	assert_equal(_residents.serving_warden_slot(), elder, "and serves")
 
 func test_a_free_row_refuses_as_not_present() -> void:
 	"""A row nobody occupies has no resident to appoint."""
@@ -268,7 +332,7 @@ func test_two_living_wardens_answer_with_the_lowest_row() -> void:
 	assert_equal(_residents.serving_warden_slot(), first, "the lowest living row answers")
 
 
-func test_the_refusal_order_is_presence_then_life_then_stage_then_seat() -> void:
+func test_the_refusal_order_is_presence_then_life_then_child_then_seat() -> void:
 	"""Decision 0511's order, pinned while a living Warden makes the LAST refusal always true."""
 	var rowan: int = _spawn()
 	assert_true(_residents.set_role(rowan, ROLE_WARDEN).ok, "a living Warden serves")
@@ -284,7 +348,9 @@ func test_the_refusal_order_is_presence_then_life_then_stage_then_seat() -> void
 		ResidentsScript.REFUSE_WARDEN_CANDIDATE_NOT_LIVING, "a dead child for life before stage")
 	var child: int = _spawn(STAGE_CHILD)
 	assert_equal(_residents.appoint_warden(child).error,
-		ResidentsScript.REFUSE_WARDEN_CANDIDATE_STAGE, "a living child for stage before the seat")
+		ResidentsScript.REFUSE_WARDEN_CANDIDATE_CHILD, "a living child for stage before the seat")
+	assert_equal(_residents.appoint_warden(rowan).error,
+		ResidentsScript.REFUSE_WARDEN_ALREADY_SERVING, "the sitting Warden before the seat")
 
 
 func test_both_warden_bytes_survive_a_section_four_round_trip() -> void:
@@ -370,13 +436,42 @@ func test_an_appoint_warden_command_naming_a_dead_resident_refuses() -> void:
 	_assert_store_refusal(ResidentsScript.REFUSE_WARDEN_CANDIDATE_NOT_LIVING, "dead heir")
 
 
-func test_an_appoint_warden_command_naming_a_child_refuses_as_unruled() -> void:
+func test_an_appoint_warden_command_naming_a_child_refuses() -> void:
 	"""The stage refusal reaches the ledger as the store's code, not as a generic failure."""
 	_rowan_has_died()
 	var child: int = _spawn(STAGE_CHILD)
-	assert_true(_submit(child), "the command is admitted")
-	_assert_store_refusal(ResidentsScript.REFUSE_WARDEN_CANDIDATE_STAGE, "child")
+	assert_true(_submit(child, 1), "the command is admitted, even confirmed")
+	_assert_store_refusal(ResidentsScript.REFUSE_WARDEN_CANDIDATE_CHILD, "child")
 
+
+func test_a_confirmed_command_replaces_the_living_warden() -> void:
+	"""arg0 = 1 is DEC-042's confirmation: the commit steps the old Warden down."""
+	var rowan: int = _spawn()
+	assert_true(_residents.set_role(rowan, ROLE_WARDEN).ok, "a living Warden")
+	var heir: int = _spawn()
+	assert_true(_submit(heir, 1), "the confirmed command is admitted")
+	assert_equal(_commit(), 1, "it commits")
+	assert_equal(_last().code_id, CommandDispatchScript.RESULT_COMMITTED, "as COMMAND_COMMITTED")
+	assert_equal([_role(rowan), _role(heir)], [ROLE_RESIDENT, ROLE_WARDEN], "the seat changed hands")
+
+
+func test_an_unconfirmed_command_against_a_living_warden_requires_confirmation() -> void:
+	"""arg0 = 0 into an occupied seat is the confirm-required refusal, and deposes nobody."""
+	var rowan: int = _spawn()
+	assert_true(_residents.set_role(rowan, ROLE_WARDEN).ok, "a living Warden")
+	var heir: int = _spawn()
+	assert_true(_submit(heir, 0), "the unconfirmed command is admitted")
+	_assert_store_refusal(ResidentsScript.REFUSE_WARDEN_SEAT_OCCUPIED, "unconfirmed")
+	assert_equal([_role(rowan), _role(heir)], [ROLE_WARDEN, ROLE_RESIDENT], "nothing changed")
+
+
+func test_a_confirmed_command_into_a_vacant_seat_simply_appoints() -> void:
+	"""Confirmation is permission to replace, not a requirement that someone be serving."""
+	_rowan_has_died()
+	var heir: int = _spawn()
+	assert_true(_submit(heir, 1), "the confirmed command is admitted")
+	assert_equal(_commit(), 1, "it commits")
+	assert_equal(_role(heir), ROLE_WARDEN, "and the heir serves")
 
 func test_an_appoint_warden_command_with_a_stale_target_refuses() -> void:
 	"""A resident despawned after admission is a stale target, never its slot's next tenant."""
@@ -401,17 +496,18 @@ func test_an_appoint_warden_command_with_the_null_target_refuses() -> void:
 	assert_equal(_last().code_id, CommandDispatchScript.RESULT_TARGET_REQUIRED, "as target required")
 
 
-func test_an_appoint_warden_command_with_an_argument_refuses() -> void:
-	"""Decision 0511's schema reserves both arguments at 0; a nonzero one is refused, not ignored."""
-	_rowan_has_died()
+func test_an_appoint_warden_command_outside_the_confirm_domain_refuses() -> void:
+	"""arg0 is 0 or 1 and arg1 is 0; anything else is refused, never ignored (decision 0511)."""
+	var rowan: int = _spawn()
+	assert_true(_residents.set_role(rowan, ROLE_WARDEN).ok, "a living Warden, so a misread replaces")
 	var heir: int = _spawn()
-	assert_true(_submit(heir, 1, 0), "arg0 = 1 is admissible")
-	assert_true(_submit(heir, 0, -1), "and so is arg1 = -1")
-	assert_equal(_commit(), 0, "neither commits")
-	assert_equal(_last().code_id, CommandDispatchScript.RESULT_ARGUMENT_RANGE, "as argument range")
-	assert_equal(_dispatch.refused_count(), 2, "both refused")
-	assert_equal(_role(heir), ROLE_RESIDENT, "and nobody was appointed")
-
+	for args: Array in [[2, 0], [-1, 0], [1, 1], [0, -1]]:
+		assert_true(_submit(heir, args[0], args[1]), "arguments %s are admissible" % [args])
+		assert_equal(_commit(), 0, "arguments %s do not commit" % [args])
+		assert_equal(_last().code_id, CommandDispatchScript.RESULT_ARGUMENT_RANGE,
+			"arguments %s refuse as argument range, before the store is asked" % [args])
+	assert_equal(_dispatch.refused_count(), 4, "all four refused")
+	assert_equal([_role(rowan), _role(heir)], [ROLE_WARDEN, ROLE_RESIDENT], "nothing changed")
 
 func test_an_appoint_warden_command_with_a_payload_refuses() -> void:
 	"""The identity is the whole command, so a nonempty payload is refused rather than ignored."""

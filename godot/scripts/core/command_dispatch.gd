@@ -78,9 +78,10 @@ extends RefCounted
 ##   CANCEL_JOB             target = the Job. No payload and no argument: the identity IS the whole
 ##                          command, so a nonempty payload is refused rather than ignored.
 ##   APPOINT_WARDEN         decision 0511, not 0043. target = the appointee resident; no payload;
-##                          arg0 = arg1 = 0. REQ-SET-157 names a person and nothing else, so the
-##                          identity is the whole command and a nonzero argument or payload refuses.
-##                          Every eligibility rule is `residents.gd`'s and reaches the ledger as
+##                          arg0 = REPLACE confirmation (0 = only into a vacant seat, 1 = the player
+##                          confirmed stepping a LIVING Warden down, DEC-042); arg1 = 0. Any other
+##                          argument or a payload refuses rather than being ignored. Every
+##                          eligibility rule is `residents.gd`'s and reaches the ledger as
 ##                          COMMAND_STORE_REFUSED carrying the store's own code.
 ##
 ## The other seventeen refuse COMMAND_UNSUPPORTED_FEATURE and name their missing owner in
@@ -305,6 +306,11 @@ const JOB_KIND_COUNT: int = PrioritiesScript.JOB_KIND_COUNT
 const TOGGLE_UNCHANGED: int = -1
 const TOGGLE_OFF: int = 0
 const TOGGLE_ON: int = 1
+
+## APPOINT_WARDEN's `arg0`: appoint only into a vacant seat, or confirm stepping a living Warden
+## down (DEC-042). The two values are the whole domain; anything else refuses ARGUMENT_RANGE.
+const APPOINT_VACANT_ONLY: int = 0
+const APPOINT_CONFIRM_REPLACE: int = 1
 
 ## SET_POLICY names WHICH policy it edits in `arg0` and its value in `arg1`, because §8.1 fixes
 ## no per-kind schema and a single unlabelled integer would make two policies indistinguishable in
@@ -1002,23 +1008,27 @@ func _is_toggle(value: int) -> bool:
 # --- APPOINT_WARDEN -----------------------------------------------------------------------------
 
 func _commit_appoint_warden(command: CommandsScript.Command) -> int:
-	"""REQ-SET-157: appoint the targeted resident Warden. Decision 0511's schema; target only.
+	"""REQ-SET-157 under DEC-042: appoint the targeted resident Warden (decision 0511's schema).
 
-	Revalidates the target NOW, refuses any argument or payload rather than ignoring it, then
-	asks `residents.gd`, which owns the role column and every eligibility rule: living, ADULT,
-	and no living Warden already serving. A store refusal is ledgered with its own code.
+	Revalidates the target NOW, refuses an argument outside the confirm domain or any payload
+	rather than ignoring it, then asks `residents.gd`, which owns the role column and every
+	eligibility rule: living, not a CHILD, not already serving, and -- unless `arg0` confirms
+	the replacement -- no living Warden serving. A store refusal is ledgered with its own code.
 	"""
 	if _residents == null:
 		return RESULT_STORE_NOT_BOUND
 	var resolved: int = _resolve_target(command, EntityDirectory.KIND_RESIDENT)
 	if resolved != RESULT_COMMITTED:
 		return resolved
-	if command.arg0 != 0 or command.arg1 != 0:
+	if command.arg0 != APPOINT_VACANT_ONLY and command.arg0 != APPOINT_CONFIRM_REPLACE:
+		return RESULT_ARGUMENT_RANGE
+	if command.arg1 != 0:
 		return RESULT_ARGUMENT_RANGE
 	var empty: int = _load_payload(command, 0)
 	if empty != RESULT_COMMITTED:
 		return empty
-	var appointed: ResidentsScript.OpResult = _residents.appoint_warden(_target_row)
+	var appointed: ResidentsScript.OpResult = _residents.appoint_warden(_target_row,
+		command.arg0 == APPOINT_CONFIRM_REPLACE)
 	if not appointed.ok:
 		_store_code = appointed.error
 		return RESULT_STORE_REFUSED

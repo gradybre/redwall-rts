@@ -1061,6 +1061,25 @@ later change is a free re-scale, not a regeneration.
 Paid generation of the beaver asset was approved separately (the demo asset pass, 2026-09-29).
 This decision does not authorize any other roster addition.
 
+### DEC-042 — Warden succession: adult or elder, and confirmed replacement
+
+2026-10-01 · State: `USER_CONFIRMED`.
+
+Brendan ruled on the two Warden questions decision 0511 raised, relayed through the settlement
+coordinator on 2026-10-01:
+
+- **Who can serve.** A living **ADULT or ELDER** resident can be appointed Warden. A CHILD cannot.
+  This settles the conflict between REQ-SET-157 ("any living resident") and GDD §5.11 ("another
+  adult"); both GDD sentences are amended to say ADULT or ELDER.
+- **Replacing a living Warden** is allowed **with explicit confirmation**. The outgoing Warden
+  steps down to the ordinary RESIDENT role, keeping their life stage. Without confirmation the
+  appointment refuses as an occupied seat. The change is atomic.
+- **Naming** a newly appointed Warden waits for the READY_07 I2 generated-name gate. No change.
+
+Scope: the refuge scenario's Warden office (DEC-003/DEC-008). It creates no universal leader and
+no Warden office for other scenarios. Implementation: decision 0511 and
+`residents.gd::appoint_warden()`.
+
 ### DEC-040 engineering follow-through
 
 Brendan subsequently requested: “let's plan those as well, then give me what to send back to claude”. [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) records the resulting Astra-authored numeric economy/hazard choices. This is delegated engineering authoring, not a claim the user supplied every value. DEC-040's four-level candidate status remains unchanged. [Decision0092](decisions/0092-underground-economy-and-hazard-parameters.md) records adoption and its limits.

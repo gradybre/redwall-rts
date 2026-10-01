@@ -42,18 +42,31 @@ refunds the base §4.1 row at every tier. That is a second open item behind the 
   resident and preserve the settlement."
 - GDD §5.11: "Warden death alone does not end play; player can appoint another adult, with no stat change."
 - DEC-008 keeps the refuge's Warden succession operative and creates no universal leader.
+- **DEC-042 (Brendan, 2026-10-01)** settles the questions this record first left open: an ADULT or ELDER may serve, a
+  CHILD may not, and a living Warden may be replaced with explicit confirmation, stepping down to RESIDENT. The GDD
+  §5.11 sentence and REQ-SET-157 are amended to say so. The text below describes the ruled behaviour; the original
+  open questions are kept, answered, at the end of this section.
 
-**Store: `residents.gd::appoint_warden(slot)`.** It owns the Role column (§4.2 `Role` B8, already saved by
+**Store: `residents.gd::appoint_warden(slot, replace_serving)`.** It owns the Role column (§4.2 `Role` B8, already saved by
 `save_owner_residents.gd`), so the appointment persists through the existing section-4 owner with no schema change.
-- **It writes one byte, the Role.** No skill, XP, need, health, name or stage changes.
-- **It refuses, in this order:**
+- **It writes only Role bytes.** No skill, XP, need, health, name or stage changes, for the appointee or the outgoing
+  Warden.
+- **It refuses, in this order, before any write:**
 
   | Condition | Refusal |
   |---|---|
   | Free row | `RESIDENT_NOT_PRESENT` |
   | Dead resident | `WARDEN_CANDIDATE_NOT_LIVING` |
-  | Stage other than ADULT | `WARDEN_CANDIDATE_STAGE_UNRULED` |
-  | A living Warden already serving, the target included | `WARDEN_SEAT_OCCUPIED` |
+  | CHILD (DEC-042) | `WARDEN_CANDIDATE_IS_CHILD` |
+  | The target already is the living Warden, confirmed or not | `WARDEN_CANDIDATE_ALREADY_SERVING` |
+  | A living Warden serves and `replace_serving` is false | `WARDEN_SEAT_OCCUPIED` |
+
+- **A confirmed replacement is atomic.** Every check passes first; then every LIVING row whose Role is WARDEN steps down
+  to RESIDENT (its stage is untouched), then the target becomes WARDEN. No write can fail after the first one. A dead
+  Warden's retained byte is never rewritten.
+- **A SPECIALIST who served loses SPECIALIST.** Role is one byte (§4.3), so appointment overwrote it and step-down
+  writes RESIDENT. Keeping a "previous role" would need a new saved column (registry, section-4 schema and memory
+  ledger), which is not cheap, so it is not kept. Nothing writes SPECIALIST today.
 
 - **`serving_warden_slot()`** returns the lowest living row whose Role is WARDEN. A dead Warden's retained row keeps
   its WARDEN byte as history and does not serve.
@@ -62,19 +75,20 @@ refunds the base §4.1 row at every tier. That is a second open item behind the 
 six.
 - target = the appointee resident;
 - no payload;
-- `arg0` = `arg1` = 0.
+- `arg0` = the replacement confirmation: 0 appoints only into a vacant seat, 1 is the player's DEC-042 confirmation to
+  step a living Warden down;
+- `arg1` = 0.
 
-REQ-SET-157 names a person and nothing else, so a nonzero argument refuses as `COMMAND_ARGUMENT_RANGE` and a payload
-refuses as `COMMAND_PAYLOAD_SCHEMA`, rather than either being ignored. A store refusal reaches the ledger as
+An explicit flag in the one command was chosen over a two-step confirm: a two-step flow needs a pending-confirmation
+store and its persistence, while the confirmation dialog is the interface's job and the command records what the
+player confirmed. Any `arg0` outside {0, 1}, a nonzero `arg1`, or a payload refuses (`COMMAND_ARGUMENT_RANGE`,
+`COMMAND_PAYLOAD_SCHEMA`) rather than being ignored. Without the flag, an occupied seat refuses
+`WARDEN_SEAT_OCCUPIED`, the confirm-required refusal. A store refusal reaches the ledger as
 `COMMAND_STORE_REFUSED` with the store's own code. No result code was added, so no result id is renumbered.
 - Seven of ARCH-CMD-003's 24 kinds are now implemented.
 - `settlement_system.gd` reaches the arm through the residents store it already binds.
 
 **What stays open, recorded rather than invented:**
-- **CHILD and ELDER eligibility.** REQ-SET-157 says "any living resident". §5.11 says "another adult". Only ADULT
-  satisfies both, so CHILD and ELDER refuse as unruled. DEC-032's "elders retain individual roles" does not say an
-  elder may be *appointed*.
-- **Replacing a living Warden.** Both texts open the seat only on death or departure.
 - **Departure.** No owner writes it: `needs.gd` leaves `departure_days` unwritten. "Serving" therefore means living.
   When a departure owner lands, a departed row must stop counting as serving.
 - **The naming trigger.**
@@ -87,15 +101,18 @@ refuses as `COMMAND_PAYLOAD_SCHEMA`, rather than either being ignored. A store r
 - **Pending naming triggers can be recovered.** A living row with Role WARDEN and `_named == 0` is exactly an appointee
   whose REQ-SET-040 trigger has not been applied. Until then the state the GDD forbids (an appointed Warden who is not
   notable) exists on every anonymous appointment, and the later naming owner should sweep that predicate once.
-- **Role is one enum (§4.3).** Appointing a SPECIALIST therefore replaces that byte with WARDEN. Nothing writes
-  SPECIALIST today.
 - **A seat that was never held is treated as vacant, on purpose.** REQ-SET-157's trigger is "dies/leaves", but a dead
   Warden's row can be despawned, which erases the WARDEN byte, so "never held" and "held by someone who left" cannot be
   told apart from the columns. DEC-008 makes the office the refuge scenario's; when another scenario lands without a
   Warden office, the command must be scoped to the scenario that has one.
-- **These questions need a ruling and are not answered here:** CHILD/ELDER eligibility, replacing a living Warden and the
-  naming trigger's dependency on I2. They are raised for Brendan through the coordinator, not filed into
-  `open_items.json` from this branch.
+- **Questions raised, and Brendan's rulings (DEC-042, 2026-10-01):**
+  - *CHILD and ELDER eligibility* (REQ-SET-157 "any living resident" against §5.11 "another adult"): **ADULT or ELDER may
+    serve; a CHILD may not.** The first implementation refused both as unruled; the refusal is now CHILD-only,
+    `WARDEN_CANDIDATE_IS_CHILD`, and both GDD sentences are amended.
+  - *Replacing a living Warden*: **allowed with explicit confirmation**; the outgoing Warden steps down to RESIDENT.
+    Implemented as `arg0` = 1 above.
+  - *The naming trigger's dependency on I2*: **wait for the READY_07 I2 rule.** No change; the recovery predicate above
+    still applies.
 
 ## 3. Availability reasons now name the gap that remains
 
@@ -144,7 +161,8 @@ An independent `code-reviewer` pass on the diff found **no CRITICAL or HIGH find
 bytes. The MEDIUM and LOW findings were handled as follows:
 
 - **Fixed, with tests:**
-  - the refusal order is now pinned (presence, then life, then stage, then seat). Its three order mutants are killed.
+  - the refusal order is now pinned (presence, then life, then stage, then seat; DEC-042 later added "already
+    serving" before the seat). Its three order mutants are killed.
   - a section-4 round trip now carries both a dead Warden's byte and an appointee's byte.
   - the stale-phrase guard now also rejects the "no Transform", "no Building", "no save codec" and "no notification
     history" prefixes.
@@ -156,7 +174,7 @@ bytes. The MEDIUM and LOW findings were handled as follows:
   - `systems_architecture.md`, `STATUS.md` and task 04 no longer say "eighteen".
 - **Recorded, not changed:**
   - the never-held seat (above);
-  - the questions needing a ruling (above);
+  - the questions needing a ruling (above; since answered by DEC-042);
   - CANCEL_JOB and NAME_RESIDENT not refusing nonzero arguments, which predates this branch;
   - the demo tooltip that quotes `REASON_TEXTS`, which belongs to the demo owner.
 

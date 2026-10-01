@@ -307,6 +307,11 @@ var lying: bool = false
 var lie_top_y_m: float = 0.0
 var indoors: bool = false
 var lie_middle_m: Vector2 = Vector2.ZERO
+## THE COLD (decision 0571, demo/winter/): how much of its work it does, per mille -- full, or the Chilled factor while
+## it is Chilled (cold_exposure.gd). The outdoor crews credit their work through `work_credit`.
+var work_permille: int = 1000
+## The work's sub-microsecond remainder at a reduced rate (per mille x usec), so a slowed job loses nothing.
+var _work_remainder: int = 0
 ## The unfinished jobs it will come back to, oldest first (see RESUMING).
 var _unfinished: Array[UnfinishedScript] = []
 ## Bumped whenever its order list changes (an entry kept, queued, taken up, removed or moved; see THE ORDER LIST).
@@ -1155,6 +1160,19 @@ func release() -> void:
 	_let_go()
 	_unfinished.clear()
 	queue_revision += 1
+
+
+func work_credit(usec: int) -> int:
+	"""THE COLD: the work `usec` microseconds of it at its work rate are worth (all of them at full rate), the
+	remainder kept so a slowed job is credited exactly over many frames."""
+	if work_permille >= 1000 or usec <= 0:
+		_work_remainder = 0
+		return usec
+	var scaled: int = usec * work_permille + _work_remainder
+	_work_remainder = scaled % 1000
+	@warning_ignore("integer_division")
+	var credited: int = scaled / 1000
+	return credited
 
 
 func work_done() -> void:

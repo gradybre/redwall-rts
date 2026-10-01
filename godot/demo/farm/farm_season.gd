@@ -16,6 +16,12 @@ extends RefCounted
 ##              each growing bed ripens (the bed panel's own figure, farm_plan_rows.gd), and until when the food in
 ##              store makes meals (the HUD's Ready food, kitchen.gd `days_of_meals_milli`, from today).
 ## What is NOT known is said, not drawn: an unannounced season event, next season's event, the weather of days to come.
+##
+## THE FUEL LANE (decision 0571, demo/winter/): the hearths' rule for the season (SCHEDULED: §5.8's 4 U a day a hearth
+## in winter, 2 U on a spring or autumn day under 10 °C, nothing in summer), in autumn the twelve-day winter target
+## (REQ-SET-114, Brendan's ruling 6: SCHEDULED on the season's last day, with the wood in store against it), and today
+## either "No current heat demand" (NOW) or how long the wood heats the village at today's demand -- to REQ-SET-147's
+## last heated hour (ESTIMATE). Bound with `fuel` (hearth_fuel.gd); unbound, said in the notes.
 
 const SimScript := preload("res://demo/farm/farm_sim.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
@@ -31,6 +37,9 @@ const CalendarScript := preload("res://demo/demo_calendar.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const FuelScript := preload("res://demo/winter/hearth_fuel.gd")
+const WinterText := preload("res://demo/winter/winter_text.gd")
+const WinterRules := preload("res://demo/winter/winter_rules.gd")
 
 const SCHEDULED: int = 0
 const RECORDED: int = 1
@@ -49,8 +58,10 @@ const LANE_FROST: int = 5
 const LANE_BLIGHT: int = 6
 const LANE_BEDS: int = 7
 const LANE_MEALS: int = 8
-const LANE_COUNT: int = 9
-const LANE_NAMES: Array[String] = ["Roots", "Cabbage", "Beans", "Grain", "Weather", "Frost", "Blight", "Beds", "Meals"]
+const LANE_FUEL: int = 9
+const LANE_COUNT: int = 10
+const LANE_NAMES: Array[String] = ["Roots", "Cabbage", "Beans", "Grain", "Weather", "Frost", "Blight", "Beds", "Meals",
+	"Fuel"]
 ## The §5.6 crop row each crop lane shows.
 const LANE_CROPS: Array[int] = [FarmingScript.CROP_ROOTS, FarmingScript.CROP_CABBAGE, FarmingScript.CROP_BEANS,
 	FarmingScript.CROP_GRAIN]
@@ -73,6 +84,8 @@ var detail: PackedStringArray = PackedStringArray()
 var tag: PackedStringArray = PackedStringArray()
 ## What is not known, said in words (see the header).
 var notes: PackedStringArray = PackedStringArray()
+## The hearths' fuel (see THE FUEL LANE); null: none.
+var fuel: FuelScript = null
 
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 
@@ -94,6 +107,7 @@ func build(sim: SimScript, record: RecordScript, kitchen: KitchenScript, p_absol
 	_add_recorded(record, sim)
 	_add_beds(sim)
 	_add_meals(kitchen, sim)
+	_add_fuel()
 
 
 func count() -> int:
@@ -304,6 +318,37 @@ func _add_meals(kitchen: KitchenScript, sim: SimScript) -> void:
 			"%s, %d batches for %d portions; food reserved for %d of them" % [MealRules.DISH_SHORT[plan[0]], plan[1],
 			plan[1] * MealRules.PORTIONS_PER_BATCH[plan[0]], plan[3]])
 	_add_runway(kitchen, sim)
+
+
+func _add_fuel() -> void:
+	"""THE FUEL LANE: the season's rule, autumn's winter target, and today's demand or none (see the header)."""
+	if fuel == null:
+		notes.append("No hearths are kept: heating fuel is not planned.")
+		return
+	_add(LANE_FUEL, SCHEDULED, 1, DAYS, "Hearths' rule", _fuel_rule())
+	if season == WeatherScript.SEASON_AUTUMN:
+		_add(LANE_FUEL, SCHEDULED, DAYS, DAYS, "Winter target", "%s (REQ-SET-114)" % WinterText.projection_line(fuel),
+			"Target")
+	if today == 0:
+		return
+	if fuel.heating_day_milli() <= 0:
+		_add(LANE_FUEL, NOW, today, today, WinterText.NO_DEMAND, WinterText.demand_line(fuel))
+		return
+	var last: int = fuel.last_heated_hour()
+	var until: int = DAYS if WinterRules.hour_absolute_season(last) != absolute_season else WinterRules.hour_season_day(last)
+	_add(LANE_FUEL, ESTIMATE, today, until, "Heated until about %s" % WinterText.hour_text(last),
+		"%s; %s (%s)" % [WinterText.demand_line(fuel), WinterText.last_heated_line(fuel),
+		WinterText.hud_line(fuel.fuel_days_hundredths())], "Heat")
+
+
+func _fuel_rule() -> String:
+	"""The season's hearth rule, in words (§5.8)."""
+	if season == WeatherScript.SEASON_WINTER:
+		return "every hearth burns %s a day (1 U heats a hearth 6 hours)" % WinterText.units(WinterRules.WINTER_DAY_MILLI)
+	if season == WeatherScript.SEASON_SUMMER:
+		return "no hearth is lit for heat in summer"
+	return "a hearth burns %s a day on a day whose mean is under %s, else nothing" % [
+		WinterText.units(WinterRules.SHOULDER_DAY_MILLI), WinterText.degrees(WinterRules.SHOULDER_BELOW_TENTHS)]
 
 
 func _add_runway(kitchen: KitchenScript, sim: SimScript) -> void:

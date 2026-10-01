@@ -20,11 +20,13 @@ const ACTION_FIELD_GUIDE: StringName = &"field_guide"
 const ACTION_PROJECTS: StringName = &"projects"
 const ACTION_PRACTICE: StringName = &"practice"
 const ACTION_GUIDE: StringName = &"guide"
+## The Heating fuel breakdown (decision 0571, demo/winter/fuel_panel.gd).
+const ACTION_FUEL: StringName = &"fuel"
 const ACTION_LABELS: Dictionary = {
 	ACTION_PANTRY: "Open the Pantry (K)", ACTION_KITCHEN: "Open the Kitchen tab", ACTION_JOBS: "Open Work (J)",
 	ACTION_NEWS: "Open Village news (N)", ACTION_RESIDENTS: "Open Residents (L)", ACTION_WATER: "Open the Water panel",
 	ACTION_DIG: "Open the Dig tool (B)", ACTION_FIELD_GUIDE: "Open the field guide", ACTION_PROJECTS: "Open projects",
-	ACTION_PRACTICE: "Open practice stories", ACTION_GUIDE: "Show the guide card",
+	ACTION_PRACTICE: "Open practice stories", ACTION_GUIDE: "Show the guide card", ACTION_FUEL: "Open Heating fuel",
 }
 
 ## [title, key(s), what it does, keywords, action]. The how-to topics first, then one per key.
@@ -39,6 +41,7 @@ const TOPICS: Array = [
 	["Build a bridge", "Water panel", "The Water panel's Bridges section steps through the sites (◀ Site ▶, or Span two banks…) with each kind's cost: a plank footbridge (planks, sawn from wood) or a log bridge (one log). A loaded resident never swims, so a bridge is the dry way over for carriers.", "bridge cross stream water planks log ford", ACTION_WATER],
 	["Dig a tunnel", "B", "Press B (or the party panel's Dig tunnel) with a mouse, mole or squirrel selected, and drag from where it starts to where it ends (8 m at least). Tunnels are walked in any weather, drain the beds above them and lead to burrow homes and root cellars.", "dig tunnel mole route dry burrow cellar", ACTION_DIG],
 	["Protect beds from frost and wet", "Click a bed", "Frost nights are announced at noon the day before: Cover a bed with a crop (4 °C warmer for the night). A waterlogged bed stops growing: Drain it, raise it with tunnel earth, or run a tunnel under it.", "frost cover drain wet waterlogged raise bank bed weather", ACTION_NONE],
+	["Keep the village warm in winter", "Heating fuel, the top bar", "From a cold autumn day through winter every hearth -- each burrow home's and the hall's -- burns wood from the stores: 4 U a day in winter, 2 U on a spring or autumn day under 10 °C. The top bar's Heating fuel says how many days the wood lasts; under 2 it turns clay and the Firewood order in the woods goes urgent. A hearth out of wood lets its room cool toward the frost. Below 0 °C, outdoors or in a cold room, residents build up exposure: after 4 hours they are Chilled -- working at 80% -- and go to warm up by a lit hearth. Gather deadfall or fell in a forestry zone before winter; click Heating fuel for the breakdown, the twelve-day winter target and the emergency choices.", "winter heat heating fuel firewood wood hearth cold chilled warm exposure frost fire", ACTION_FUEL],
 	["Pause and speed", "Space, 1x 2x 4x, G", "Space pauses; paused, Space (or the pause card's Resume) clears your pause, a planning pause or a critical pause -- never the game menu's. The HUD's 1x, 2x and 4x buttons set the speed, and Run until… (G, the button by 4x) runs the village to dawn, dusk, the next meal, a project, a harvest or a warning, then pauses saying so. Paused, you can still select, inspect and give orders: they are carried out on resume.", "pause speed time fast slow resume run until dawn dusk", ACTION_NONE],
 	["Find anything: the object list", "F6", "The object list names every resident, crop bed, tree, bridge, tunnel mouth and room; Enter on a row selects it and centres the view on it.", "object list find select keyboard bed tree bridge mouth room", ACTION_NONE],
 	["Easier to read, steer or hear", "Game menu, Settings", "Settings holds four presets -- Large readable, Keyboard planner, Reduced motion and Quiet focus -- each previewed before it applies, and every setting on its own; under Time, Pause while planning and Pause on a critical incident.", "accessibility preset large readable keyboard reduced motion quiet focus contrast tooltip settings planning critical", ACTION_NONE],

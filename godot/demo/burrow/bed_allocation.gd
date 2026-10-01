@@ -59,6 +59,29 @@ static func allocate(current: PackedInt32Array, at_u: PackedInt32Array, permitte
 			out[i] = nearest_free(beds, out, Vector2i(at_u[2 * i], at_u[2 * i + 1]), permitted[i])
 
 
+static func allocate_warm_first(current: PackedInt32Array, at_u: PackedInt32Array, permitted: PackedByteArray,
+		beds: PackedInt32Array, warm: PackedByteArray, out: PackedInt32Array) -> void:
+	"""WARM BEDS FIRST (decision 0571: "bed allocation prefers heated homes"). `warm` holds a byte per bed of `beds`
+	(1: its home is warm -- heated, or no heat is demanded). REQ-SET-132's two passes run over the warm beds first -- a
+	resident keeps its current bed only if it is warm -- and then, for whoever is still without one, over the cold beds
+	(where a current cold bed is kept). With every bed warm this is `allocate` exactly."""
+	var warm_beds := PackedInt32Array()
+	var cold_beds := PackedInt32Array()
+	for k: int in beds.size() >> 2:
+		var into: PackedInt32Array = warm_beds if warm[k] == 1 else cold_beds
+		into.append_array(beds.slice(4 * k, 4 * k + 4))
+	var first := PackedInt32Array()
+	allocate(current, at_u, permitted, warm_beds, first)
+	var left := permitted.duplicate()
+	for i: int in first.size():
+		if first[i] != NO_BED:
+			left[i] = SIZE_NONE
+	allocate(current, at_u, left, cold_beds, out)
+	for i: int in first.size():
+		if first[i] != NO_BED:
+			out[i] = first[i]
+
+
 static func _size_of_bed(beds: PackedInt32Array, id: int) -> int:
 	"""The size of bed `id` among `beds` (SIZE_NONE: it does not stand)."""
 	for k in beds.size() / 4:

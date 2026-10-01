@@ -134,6 +134,14 @@ extends Node3D
 ## (the button in the time cluster, G) runs the village to dawn, dusk, the next meal, a project, a harvest or a warning
 ## and pauses saying so. `_build_session()` wires it; the game menu holds its pause through the ledger.
 ##
+## THE WINTER (decision 0571, demo/winter/; Brendan's rulings of 2026-10-01): the hearths -- the hall's and every fitted
+## burrow home's -- burn the stores' wood by the GDD's continuous demand, rooms cool without it, residents build up
+## exposure in the cold and are Chilled at 4 hours (working at 80% and warming up at a lit hearth), the woods keep a
+## Firewood order (urgent under 2 fuel-days), the top bar's Fuel cell is UI-SET-003's Heating fuel again (its click
+## opens the fuel breakdown with the emergency choices), the planner has a Fuel lane, and the Demo Lab's "Skip to next
+## season" brings winter. `_build_winter()` wires it after the woods (its firewood) and the kitchen (its cooking wood);
+## `_build_work()` hands it the work board.
+##
 ## ACCESSIBILITY (decision 0471, review UX-023, demo/access/): the four presets and their settings in the menu's
 ## Settings, applied live (`_on_access_changed`, access_effects.gd); the OBJECT LIST (F6) of every resident, bed, tree,
 ## bridge, tunnel mouth and room, and the rings that show them (village_targets.gd); the focus hints.
@@ -224,6 +232,10 @@ const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 const ForestSkills := preload("res://demo/forestry/forest_skills.gd")
 const DigSkills := preload("res://demo/tunnel/dig_skills.gd")
 const BridgeCrew := preload("res://demo/waterplay/bridge_crew.gd")
+const WinterScript := preload("res://demo/winter/demo_winter.gd")
+## GameManager's host-clock field the season skip re-bases (see `forgive_host_time`).
+const HOST_USEC_FIELD: StringName = &"_last_host_usec"
+const FuelPanelScript := preload("res://demo/winter/fuel_panel.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -306,6 +318,8 @@ var _people: PeopleScript = null
 var _people_card: PeopleCardScript = null
 ## Water part B (decision 0431): fishing trips, boats, gear, ice, the drying rack and the mill.
 var _fishery: FisheryNodeScript = null
+var _winter: WinterScript = null
+var _fuel_panel: FuelPanelScript = FuelPanelScript.new()
 
 
 func _ready() -> void:
@@ -329,9 +343,10 @@ func _ready() -> void:
 	_build_spoil()
 	_build_forestry()
 	_build_canopy()
+	_build_winter()
 	_command.add_skill_text(_command.tunnels().ext.skill_text, true)
 	_command.add_skill_text(_command.tunnels().ext.night.home_text)
-	_command.set_fed_text(_kitchen.kitchen.fed_text)
+	_command.set_fed_text(fed_and_warm_text)
 	_build_waterplay()
 	_build_fishery()
 	_build_shared_ui()
@@ -511,6 +526,65 @@ func _build_canopy() -> void:
 		_command as DemoCommandScript)
 
 
+func _build_winter() -> void:
+	"""THE WINTER (see above): the hearths, the cold and the firewood over the village's stores, cast, homes, night,
+	kitchen and the farm's real §5.10 row; the planner's Fuel lane; the fuel breakdown behind the Heating fuel cell."""
+	_winter = WinterScript.new()
+	add_child(_winter)
+	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
+	_winter.configure(_services, _cast as DemoCastScript, tool.network, tool.ext.night, _farm.sim.crop_weather().weather())
+	_winter.bind_kitchen(_kitchen.kitchen)
+	_farm.planner.set_fuel(_winter.fuel)
+	add_child(_fuel_panel)
+	_fuel_panel.bind(_winter)
+
+
+func winter() -> WinterScript:
+	"""The village's winter (demo/winter/demo_winter.gd)."""
+	return _winter
+
+
+func fuel_panel() -> FuelPanelScript:
+	"""The Heating fuel breakdown (demo/winter/fuel_panel.gd)."""
+	return _fuel_panel
+
+
+func fed_and_warm_text(i: int, alone: bool) -> String:
+	"""The party panel's needs rows for resident `i`: the kitchen's fed rows, then the winter's cold line (Chilled and
+	why, or the exposure building) when there is one."""
+	var fed: String = _kitchen.kitchen.fed_text(i, alone)
+	var warm: String = _winter.status_text(i, alone)
+	if warm.is_empty():
+		return fed
+	return warm if fed.is_empty() else fed + ("\n" if alone else " · ") + warm
+
+
+func fed_and_warm_word(i: int) -> String:
+	"""The roster's fed word for resident `i`, and "chilled" after it when it is."""
+	var word: String = _winter.status_word(i)
+	return _kitchen.kitchen.fed_word(i) + ("" if word.is_empty() else " · " + word)
+
+
+func skip_to_next_season() -> int:
+	"""The Demo Lab's "Skip to next season" (decision 0571; demo/winter/season_skip.gd): the farm advances the calendar,
+	the winter in lockstep. The real time the skip itself took is FORGIVEN, as a harness's screenshot is
+	(docs/ENVIRONMENT.md: a long frame stalls the clock into its CRITICAL pause) -- the player asked for the jump; it is
+	not a stall. The hours stepped."""
+	var hours: int = _winter.skip_to_next_season(_farm.advance_calendar)
+	forgive_host_time()
+	return hours
+
+
+static func forgive_host_time() -> void:
+	"""Forgive the settlement clock the real time just spent (the harnesses' screenshot rule, docs/ENVIRONMENT.md): its
+	host clock is re-based. GameManager has no public entry for it, so its field is set by name -- and checked, so a
+	rename fails loudly here and in test_demo_winter.gd rather than letting the skip trip the stall pause."""
+	if not (HOST_USEC_FIELD in GameManager):
+		push_error("demo_village: GameManager has no %s to forgive the skip's real time" % HOST_USEC_FIELD)
+		return
+	(GameManager as GameManagerScript).set(HOST_USEC_FIELD, Time.get_ticks_usec())
+
+
 func canopy() -> CanopyScript:
 	"""The canopy clearance (demo/camera/canopy_clear.gd)."""
 	return _canopy
@@ -565,6 +639,7 @@ func _build_work() -> void:
 	_work.configure(_cast as DemoCastScript, _farm, _forestry, _waterplay, _spoil, tool.ext, tool.is_digger)
 	_work.add_kitchen(_kitchen.kitchen)
 	_work.add_fishery(_fishery.fishery)
+	_winter.bind_work(_forestry.crew, _work.board)
 	var command: DemoCommandScript = _command as DemoCommandScript
 	_work.set_readouts(command.activity_text, (GameManager as GameManagerScript).is_paused, work_jump, command.selected)
 	command.set_queue_handler(_work.queue_at)
@@ -622,6 +697,7 @@ func _build_guide() -> void:
 		HelpTopics.ACTION_RESIDENTS: _open_residents,
 		HelpTopics.ACTION_WATER: _zone.show_panel.bind(DetailZoneScript.PANEL_WATER),
 		HelpTopics.ACTION_DIG: _open_dig_tool.bind(tool),
+		HelpTopics.ACTION_FUEL: _fuel_panel.open,
 	}
 
 
@@ -853,6 +929,9 @@ func _on_shell_action(element_id: int) -> void:
 	and the focus it hands back to the trigger let go, or the HUD would draw the trigger's keyboard description
 	over the window -- and the window toggled; a shell history the trigger just closed (opened from a
 	settlement card) closes the window too."""
+	if element_id == UiShell.ID_FUEL:
+		_fuel_panel.open()
+		return
 	if element_id != UiShell.ID_HISTORY_TRIGGER:
 		return
 	var shell: UiShell = _shell()
@@ -882,11 +961,12 @@ func _build_village_hud() -> void:
 	var network: GraphScript = (_command as DemoCommandScript).tunnels().network
 	_counters.model.bind_village(_services.stores, _farm.pantry, _cast as DemoCastScript, network)
 	_counters.model.bind_meals(_kitchen.kitchen)
+	_counters.model.bind_fuel(_winter)
 	_counters.bind(_shell())
 	_roster = RosterScript.new()
 	add_child(_roster)
 	_roster.configure(_shell(), _cast as DemoCastScript, _command as DemoCommandScript, _camera as DemoCameraScript)
-	_roster.set_fed_text(_kitchen.kitchen.fed_word)
+	_roster.set_fed_text(fed_and_warm_word)
 	var view: Control = _shell().control_for(UiShell.ID_MINIMAP_VIEW) if _shell() != null else null
 	if view == null:
 		return
@@ -1066,6 +1146,8 @@ func _build_input() -> void:
 	_gate.set_modal_close(_run_menu, _run_menu.close_button())
 	_gate.watch_modal(_objects, _objects.frame(), _objects.close, [ObjectListScript.ACTION] as Array[StringName])
 	_gate.set_modal_close(_objects, _objects.close_button())
+	_gate.watch_modal(_fuel_panel, _fuel_panel.frame(), _fuel_panel.close)
+	_gate.set_modal_close(_fuel_panel, _fuel_panel.close_button())
 	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
 	_gate.add_region("right column", [_zone, _farm.bed_panel, ext.panel, _forestry.panel, _waterplay.panel] as Array[Node])
 	_gate.add_region("left column", [(_command as DemoCommandScript).panel()] as Array[Node])
@@ -1125,6 +1207,9 @@ func _build_lab() -> void:
 		_forestry.on_action.bind(ForestPanelScript.ACTION_STORM))
 	_lab.add_trigger("Cramp", "Every selected resident swimming tires at once and needs rescue", "Water",
 		_waterplay.on_action.bind(WaterPanelScript.ACTION_CRAMP), _swimmer_selected, "Select a resident in the water first")
+	_lab.add_trigger("Skip to next season", "Run the one calendar on to 06:00 on day 1 of the next season: crops, stores, "
+		+ "weather and the hearths catch up; walking, work, meals and the cold are skipped", "Village news",
+		skip_to_next_season)
 
 
 func _build_session() -> void:
@@ -1180,6 +1265,7 @@ func _add_planning() -> void:
 	_time.add_planning("the object list", func() -> bool: return _objects.visible)
 	_time.add_planning("the Dig tool", func() -> bool: return tool.planning)
 	_time.add_planning("the Residents list", _workspace_open)
+	_time.add_planning("the heating fuel breakdown", func() -> bool: return _fuel_panel.visible)
 
 
 func _workspace_open() -> bool:

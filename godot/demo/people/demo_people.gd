@@ -437,7 +437,8 @@ func moments_of(who: int) -> Array[Dictionary]:
 
 func why_of(who: int) -> String:
 	"""Why `who` is at what it is doing, from the owner that has it: the kitchen, the night, the water, the work board
-	(its crew's own work, or a hand lent), the player's order -- or free."""
+	(its crew's own work, or a hand lent), a task that says its own reason (`why()`: the winter's warm-up break, decision
+	0571), the player's order -- or free."""
 	var brain: BrainScript = (_cast.actor(who) as DemoActorScript).brain
 	if brain.water_hold:
 		return WHY_HELD
@@ -451,6 +452,8 @@ func why_of(who: int) -> String:
 	var work: String = _board_why(who)
 	if not work.is_empty():
 		return work
+	if brain.task != null and brain.task.has_method(&"why"):
+		return String(brain.task.call(&"why"))
 	return WHY_ORDER if brain.order != BrainScript.ORDER_NONE else WHY_FREE
 
 

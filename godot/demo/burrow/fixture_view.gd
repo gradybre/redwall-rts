@@ -16,7 +16,8 @@ extends Node3D
 ## time) -- a lantern or hanging stores swell out on the wall instead, a rug's colours come up through the floor --
 ## and once in, the ring goes and a puff of dust (the warren's pooled particles) marks it.
 ##
-## LIT (`lit() -> bool`: the night routine's hearth hours) a home's hearth glows: its embers show and one of the pooled
+## LIT (`lit(r) -> bool`, per home: the night routine's `hearth_lit` -- the winter's fuelled-and-demanded hearth, decision
+## 0571, or the hearth hours with no winter bound) a home's hearth glows: its embers show and one of the pooled
 ## lights (tunnel_lanterns.gd `set_hearth_spots`) burns deep orange over its firebox; a lantern hung in a room lights too
 ## (`set_fit_spots`). ON THE GROUND a home with a hearth has a chimney pot on its mound over the hearth, SMOKING while
 ## it is lit; the smoke runs on the demo clock (paused, it stands still; at 4x it rises four times as fast). A home on
@@ -128,7 +129,7 @@ func _build_room_row() -> void:
 
 
 func set_lit(lit: Callable) -> void:
-	"""`lit() -> bool`: whether it is the hearths' hours now (see LIT)."""
+	"""`lit(r: int) -> bool`: whether home row r's hearth burns now (see LIT)."""
 	_lit = lit
 
 
@@ -148,13 +149,12 @@ func refresh(delta: float) -> void:
 	"""Rebuild each place whose phase changed, show the dug rooms, light and smoke by the hour, follow the clock with
 	the smoke, and a few times a second fill the cellars (see the header)."""
 	var fit: FixturesScript = _graph.fit
-	var lit := _lit.is_valid() and bool(_lit.call())
 	for r in RoomsScript.MAX_ROOMS:
 		var dug: bool = _graph.rooms.is_done(_graph, r)
 		_below[r].visible = dug
 		if dug:
 			_refresh_places(fit, r)
-		_light(r, dug and lit and fit.has_hearth(_graph, r))
+		_light(r, dug and fit.has_hearth(_graph, r) and _lit.is_valid() and bool(_lit.call(r)))
 	var speed := float(_clock.speed) if _clock != null else 1.0
 	for puffs in _smoke:
 		puffs.speed_scale = speed

@@ -416,7 +416,7 @@ func _issue(row: int, brain: BrainScript) -> void:
 func _step_load(row: int, brain: BrainScript, usec: int) -> void:
 	"""Load the planks, or shape the log where it lies (crediting the log's first WU), then carry."""
 	brain.play_in_place(_load_clip(row))
-	elapsed_usec[row] += usec
+	elapsed_usec[row] += brain.work_credit(usec)
 	var level: int = level_of(builder[row])
 	if _bridges.kind[row] == Rules.KIND_LOG:
 		_credit(row, _whole_wu(row, level), Rules.LOG_SHAPE_WU)
@@ -445,7 +445,7 @@ func _arrive_site(row: int, brain: BrainScript) -> void:
 func _step_work(row: int, brain: BrainScript, usec: int) -> void:
 	"""Work the stages at the site; the bridge opens with the deck's last WU."""
 	brain.play_in_place(stage_clip(_bridges.stage_of(row)))
-	elapsed_usec[row] += usec
+	elapsed_usec[row] += brain.work_credit(usec)
 	_credit(row, _whole_wu(row, level_of(builder[row])), 1 << 30)
 	if _bridges.is_open(row):
 		_finish(row)

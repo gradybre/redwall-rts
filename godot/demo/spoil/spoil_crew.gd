@@ -319,7 +319,7 @@ func _step_work(row: int, usec: int) -> void:
 		work_usec[row] = 0
 		return
 	brain.play_in_place(_dig_clip(brain) if step[row] == STEP_DIG else BrainScript.CLIP_IDLE)
-	work_usec[row] += usec
+	work_usec[row] += brain.work_credit(usec)
 	if step[row] == STEP_DIG and work_usec[row] >= DIG_USEC:
 		_dig_load(row)
 	elif step[row] == STEP_DROP and work_usec[row] >= DROP_USEC:

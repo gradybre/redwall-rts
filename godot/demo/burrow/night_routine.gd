@@ -37,7 +37,14 @@ extends RefCounted
 ## night does not send it back to bed.
 ##
 ## THE HEARTHS burn from HEARTH_FROM_HOUR to HEARTH_TO_HOUR -- evenings and nights (fixture_view.gd: their glow, their
-## chimneys' smoke).
+## chimneys' smoke) -- in a village with no winter bound (a suite's).
+##
+## WARM BEDS AND FUELLED HEARTHS (decision 0571, demo/winter/): `set_warmth(warm, lit)` binds the winter's two answers
+## for a home row r -- `warm(r) -> bool`, its beds are warm (its hearth heats it, or no heat is demanded), and
+## `lit(r) -> bool`, its hearth burns (fuelled AND demanded: hearth_fuel.gd `hearth_lit`). Bound, beds are allocated WARM
+## FIRST (bed_allocation.gd `allocate_warm_first`: "bed allocation prefers heated homes") and `hearth_lit(r)` -- the
+## query the hearth's glow and the room's panel read -- is the winter's. `consolidate()` is the fuel panel's emergency
+## action, never taken by itself: beds allocated warm first NOW, and anyone asleep whose bed changed sent to the new one.
 
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const FixturesScript := preload("res://demo/burrow/room_fixtures.gd")
@@ -96,6 +103,12 @@ var _at_u: PackedInt32Array = PackedInt32Array()
 var _next: PackedInt32Array = PackedInt32Array()
 ## Per resident: the calendar tick it was last sent to bed at (see RESEND_TICKS).
 var _sent_tick: PackedInt32Array = PackedInt32Array()
+## WARM BEDS AND FUELLED HEARTHS: the winter's answers (unset: every bed warm, the hearths on the hour rule), and a
+## byte per bed of the last allocation (1: warm).
+var _warm: Callable = Callable()
+var _lit: Callable = Callable()
+var _words: Callable = Callable()
+var _bed_warm: PackedByteArray = PackedByteArray()
 
 
 func configure(graph: RefCounted, brains: Array[BrainScript], names: PackedStringArray, heights_u: PackedInt32Array,
@@ -158,6 +171,28 @@ func _morning_for(i: int) -> bool:
 	"""Resident `i`'s morning: the village's, or its own early one (a bound method, not a lambda: a lambda would hold
 	this routine strongly from the sleep task its brains keep -- a cycle)."""
 	return is_morning() or up_early(i)
+
+
+func set_warmth(warm: Callable, lit: Callable, words: Callable = Callable()) -> void:
+	"""`warm(r) -> bool` and `lit(r) -> bool` for home row r (see WARM BEDS AND FUELLED HEARTHS), and `words(r) ->
+	String`, its hearth in the room panel's words."""
+	_warm = warm
+	_lit = lit
+	_words = words
+
+
+func hearth_words(r: int) -> String:
+	"""Home row `r`'s hearth for the room panel: the winter's words when bound, else lit or cold by the hour."""
+	if _words.is_valid():
+		return String(_words.call(r))
+	return "lit, smoke from the chimney" if hearth_lit(r) else "cold until evening"
+
+
+func hearth_lit(r: int) -> bool:
+	"""THE HEARTH'S QUERY for home row `r` (the glow's, the room panel's): the winter's when bound, else the hearth hours."""
+	if _lit.is_valid():
+		return bool(_lit.call(r))
+	return hearth_burns()
 
 
 func set_alarm(alarm: Callable) -> void:
@@ -263,8 +298,64 @@ func allocate() -> void:
 	for i in _brains.size():
 		_at_u[2 * i] = Rules.to_u(_brains[i].position.x)
 		_at_u[2 * i + 1] = Rules.to_u(_brains[i].position.y)
-	AllocationScript.allocate(bed_of, _at_u, permitted, _beds, _next)
+	if _warm.is_valid():
+		_mark_warm_beds()
+		AllocationScript.allocate_warm_first(bed_of, _at_u, permitted, _beds, _bed_warm, _next)
+	else:
+		AllocationScript.allocate(bed_of, _at_u, permitted, _beds, _next)
 	bed_of = _next.duplicate()
+
+
+func _mark_warm_beds() -> void:
+	"""A byte per standing bed (its id, x, z, size quad): whether its home is warm now (see WARM BEDS AND FUELLED
+	HEARTHS)."""
+	_bed_warm.resize(_beds.size() >> 2)
+	for k: int in _bed_warm.size():
+		@warning_ignore("integer_division")
+		var home: int = _beds[4 * k] / FixturesScript.PLACES
+		_bed_warm[k] = 1 if bool(_warm.call(home)) else 0
+
+
+func consolidate(keep: Callable = Callable()) -> int:
+	"""The emergency action (see WARM BEDS AND FUELLED HEARTHS): allocate now, warm first -- the homes `keep(r) -> bool`
+	names counting as the warm ones for this allocation (unset: the winter's own warmth) -- and send anyone asleep whose
+	bed changed to its new one. How many residents' beds changed."""
+	var before: PackedInt32Array = bed_of.duplicate()
+	var own: Callable = _warm
+	if keep.is_valid():
+		_warm = keep
+	allocate()
+	_warm = own
+	var moved: int = 0
+	for i: int in bed_of.size():
+		if bed_of[i] == before[i]:
+			continue
+		moved += 1
+		if _night and _brains[i].task is SleepTaskScript:
+			send(i)
+	return moved
+
+
+func beds_in(r: int) -> int:
+	"""How many beds stand in home row `r` (as the last allocation saw them)."""
+	var n: int = 0
+	for k: int in _beds.size() >> 2:
+		@warning_ignore("integer_division")
+		var home: int = _beds[4 * k] / FixturesScript.PLACES
+		n += 1 if home == r else 0
+	return n
+
+
+func warm_beds() -> int:
+	"""How many residents' beds are in warm homes (every bed when no winter is bound): REQ-SET-149's "warm beds"."""
+	var n: int = 0
+	for i: int in bed_of.size():
+		if bed_of[i] == AllocationScript.NO_BED:
+			continue
+		@warning_ignore("integer_division")
+		var home: int = bed_of[i] / FixturesScript.PLACES
+		n += 1 if not _warm.is_valid() or bool(_warm.call(home)) else 0
+	return n
 
 
 func may_send(i: int) -> bool:

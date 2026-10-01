@@ -11,6 +11,8 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 
 const BLOCKED_WAY: String = "can't reach it — tried again at the woods' next hour"
 const OTHER_JOB: String = WorkIds.OTHER_WOODS_JOB
+## The winter's automatic order's name (decision 0571; forest_jobs.gd ORIGIN_FIREWOOD).
+const FIREWOOD: String = "Firewood"
 
 var _crew: CrewScript = null
 var _read: IntMath.IntResult = IntMath.IntResult.new()
@@ -43,7 +45,10 @@ func worker(row: int) -> int:
 
 
 func activity(row: int) -> int:
-	"""forest_crew.gd `activity_of`: carrying and gathering wood is HAULING, the rest WOODS."""
+	"""forest_crew.gd `activity_of`: carrying and gathering wood is HAULING, the rest WOODS -- but the winter's Firewood
+	order is WOODS work whatever its kind (decision 0571: "under the woods activity")."""
+	if _crew.jobs.origin[row] == JobsScript.ORIGIN_FIREWOOD:
+		return WorkIds.ACT_WOODS
 	return CrewScript.activity_of(_crew.jobs.kind[row])
 
 
@@ -76,6 +81,8 @@ func fill(task: TaskScript, row: int) -> void:
 	var jobs: JobsScript = _crew.jobs
 	task.key = jobs.serial[row]
 	task.action = JobsScript.KIND_NAMES[jobs.kind[row]]
+	if jobs.origin[row] == JobsScript.ORIGIN_FIREWOOD:
+		task.action = "%s: %s" % [FIREWOOD, task.action.to_lower()]
 	task.target = _crew.target_words(row)
 	task.worker = jobs.worker[row]
 	task.activity = activity(row)

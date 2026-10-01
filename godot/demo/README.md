@@ -115,8 +115,8 @@ that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
 ## Village news: the history, incidents and the top-centre card (decision 0331)
 
 - **The history** (`ui/demo_news_history.gd`): every kept entry, newest first, "date · place · Warning: text",
-  filtered by place (*All*, *Farm*, *Woods*, *Tunnels*, *Water*, *Village* -- weather, threats and the crew's
-  reports; the first place picked shows it alone, more add to it) and by severity (*All*, *Warnings*, *Notes*).
+  filtered by place (*All*, *Farm*, *Woods*, *Tunnels*, *Water*, *Village* -- weather, threats, the crew's
+  reports and the village's chronicle, a finished guide or project (decision 0481); the first place picked shows it alone, more add to it) and by severity (*All*, *Warnings*, *Notes*).
   An entry about a bed, tree, tunnel, resident or bridge has **Go to**: it selects the target as a click would,
   brings its panel and eases the camera over it (`ui/demo_news_jump.gd`), closing the window. Above the
   history, **Needs attention** lists every open or pinned incident ("No active problems" erases nothing below).
@@ -173,7 +173,9 @@ not also clear the selection. The notification history is not a modal (UI §3 la
 reaches the world, and the world stays live beside it.
 
 **The game menu** (`ui/demo_menu.gd`): the HUD's Menu button ("≡"), or Esc when nothing else is left to
-close, opens it -- Resume, Restart demo…, Controls (the keys below), Settings, Demo Lab and Quit… -- with the
+close, opens it -- Resume, Restart demo…, Help (the searchable help that replaced the Controls page: decision 0481, see
+The first-village guide), Settings, Demo Lab and Quit…, then the first-village guide's row (where it stands, Skip guide /
+Reopen guide, Village guide (O), Practice stories) -- with the
 line that **the demo can't save yet**. Restart and Quit ask first and say again that the village will be lost.
 Opening it holds the clock's MENU pause reason and closing releases only that, so the village comes back at
 the speed it had (and a pause of your own stays). Settings holds only what works: the interface scale
@@ -185,7 +187,7 @@ decision 0391), full screen, and the sound's volumes, mutes and mixes
 **The Demo Lab** (`ui/demo_lab.gd`, F8, or the menu's "Demo Lab"): the demo's test triggers, and only here --
 Next weather (the one calendar runs on to the next change of weather, at most 48 h), Test event (the tunnels'
 next seeded threat now), Storm gust (through the woods) and Cramp (every selected resident swimming tires at
-once; disabled with no swimmer selected). They are the same actions the panels' "(demo)" buttons were; the
+once; disabled with no swimmer selected) -- and Practice stories (the village guide's practice tab; decision 0481). They are the same actions the panels' "(demo)" buttons were; the
 Tunnels, Woods and Water panels now hold only the village's own choices.
 
 **Keyboard focus** (decision 0261). The demo's panel buttons -- the right column's tabs and "×", the Farm,
@@ -194,10 +196,11 @@ take keyboard focus and wear the HUD's brass focus ring while they have it (a cl
 
 | Key | Does |
 |---|---|
-| F7 | Move focus: world -> the right column (its first tab) -> the left column (the party panel) -> the Map layer picker -> world. A control the Residents workspace (L) covers is skipped, and Enter on one is not pressed (decision 0391) |
+| F7 | Move focus: world -> the right column (its first tab) -> the left column (the party panel) -> the Map layer picker -> the guide's objective card (when shown; decision 0481) -> world. A control the Residents workspace (L) covers is skipped, and Enter on one is not pressed (decision 0391) |
 | Tab / Shift+Tab | Next / previous button where the focus is (in a pop-up: its buttons only) |
 | Enter / Space | Press the focused button. Only the keyboard's focus takes them: after a click, Enter still digs the piece the Dig tool has laid, Space still pauses and the arrows still pan the camera |
 | Esc | With focus in a panel: back to the world. Otherwise the pop-up, tool or selection ladder below, then the game menu |
+| (typing) | In a pop-up's text field (the help or field-guide search, a project's name) every key but Esc and Tab types (decision 0481) |
 
 **The top bar tells the village's truth** (decision 0251, review group E). One read model
 (`ui/demo_hud_model.gd`, painted by `ui/demo_hud_counters.gd`) gives every cell exactly one owner, the
@@ -357,6 +360,50 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
   tasks grouped by where they are. **Cancel all work…** only shows its scope (counted per source; deliveries, paid
   tunnel jobs and bridges go on) until Cancel them is pressed.
 
+## The first-village guide (decision 0481)
+
+Review group U (F49, P7, UX-017, UX-019) and UX-018 and UX-020: `guide/`. One objective card at a time (UI-SET-072, top
+centre under the alerts), each completed **only by what really happens in the village** -- never a button or a timer:
+
+| # | Objective | Done when |
+|---|---|---|
+| 1 | Meet a villager | a resident is selected (a click, a box, the roster) |
+| 2 | Bring in a harvest | a harvest is shelved in a store (the pantry's delivered total; an order, a cut crop or a load in hand is not) |
+| 3 | Serve the first supper | a supper's tally says someone ate a cooked portion (19:00; the plan, the pot, breakfast are not) |
+| 4 | Ready the village for the frost | the first of: someone over the middle of an open bridge; someone walking through a tunnel and up 6 m or more from where they went down (not digging); a bed with a crop covered, raised, banked, ditched or tunnel-drained |
+
+- **The card** teaches (what and why), says the current cause or blocker and the next legal action, and confirms the
+  real outcome ("5.1 U of carrot came into store") for 10 s of unpaused time or until Next; one already done before its
+  card came up says "Already done:". A brass ring and a bobbing brass point mark its target in the world (a resident, a
+  bed, the cauldron, a bridge, a tunnel mouth). **Show me** eases the camera over it (the target below the card) and
+  opens a bed's, tunnel's or bridge's panel; a resident is only centred. **Help** opens this step's how-to. **Hide
+  guide** hides it. A lost target is replaced (another ripe bed, the soonest, an empty bed to plant, a lost crop to
+  clear); a blocked meal or bridge says why in its owner's own words and the fix; objective 4 shows its three ways side
+  by side. The frost is the farm's own (the night into Spring 11, then the next).
+- **Where**: between the side columns, at most 420 wide; it yields to a critical incident's card, the stall banner and
+  the news history, and never reaches the Map layer picker -- it drops its teaching, then its next action, and where even
+  that cannot fit (125 % on 1280x720 with a legend unfolded) it waits.
+- **Skip and reopen** (the card's Hide guide, the game menu's row, the window's Objectives tab) only hide or show the
+  card: nothing is granted or lost. Hidden, it keeps up; reopened, it is on the first objective not done.
+- **Done**: "The first village stands", and a chronicle entry in Village news under the new **Village** source. Free
+  play goes on; the Hearth Charter, the long-term goal, is beyond the demo.
+- **The village guide** (O, the HUD's Objectives command, unlocked for it): a modal that holds the menu pause (the village
+  waits) with five tabs -- **Objectives** (done, current with its cause, ahead), **Projects**, **Field guide**, **Help**
+  and **Practice**.
+- **Help** (also the game menu's Help page, in place of the 21-key Controls wall): 18 how-to topics and the 25 keys,
+  searched in plain words ("how do I cross the stream", "eat", "why is my job waiting"), each topic a command answers
+  with that command as a button.
+- **Field guide**: 41 entries built from the demo's own tables -- the 16 crops (which dish each feeds), the two dishes, 6
+  materials, 8 buildings and stations, 5 skills, 4 water-safety entries -- each with Uses, Requires, Alternatives and
+  Available here, linked, a crop's pantry stock live; nothing the demo lacks.
+- **Practice stories**: a loaded crew at the stream, a delivery with nowhere to go, a winter pantry -- three choices each,
+  what happened, a debrief comparing all three, Restart. Built from fresh copies of the village's own models (a pantry,
+  a farm with its own calendar, a bridge surveyor over the stream's shape), never the village: it is untouched (the
+  window's pause holds it too). From the Practice tab, the menu's row or the Demo Lab.
+- **Projects**: up to three, your name, the places selected when pinned (with Go to) and one measure with a target --
+  wood, planks, stone, ready food, harvested or suppers eaten from now, bridges or tunnel stretches open. Reached, it is
+  ticked and Village news records it once with before and after. Session only (no save).
+
 ## Commanding the residents
 
 | Input | Does |
@@ -368,6 +415,7 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
 | Right click a work spot | Work there; anyone beyond its free slots holds behind it |
 | Shift + right click | Append the order to the selection's order lists instead: a bed, tree, trunk, deadfall or the sawhorse queues its job for the nearest selected, open ground a walk for each (see Work) |
 | J (or the Jobs command) | The Work screen: tasks, residents and crews, projects (see Work) |
+| O (or the Objectives command) | The village guide: objectives, your projects, the field guide, help and practice stories (see The first-village guide) |
 | R | Release the selection back to its own routine |
 | Esc | Close the top pop-up; else drop the Dig tool's piece or close the tool; else clear the selection; else open the game menu |
 | Menu ("≡") | The game menu (above) |
@@ -1221,6 +1269,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `kitchen/` | The meal loop: the dishes and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |
+| `guide/` | The first-village guide (decision 0481): the outcome ledger, the objectives' progress and words, the card and its world marker, the village guide window and its pages -- help, field guide, practice stories, projects |
 | `work/` | The work board over every job owner (one adapter each), the claim, the named crews and presets, the order lists' entries, Shift+right-click's queue and the Work screen (decision 0411) |
 | `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens; then the underground view drawn once |
 | `demo_layers.gd` | The four render layers every drawn node is on, and the plane each view picks on (decision 0206) |

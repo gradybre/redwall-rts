@@ -14,6 +14,11 @@ extends RefCounted
 ## `pay_planks` -- all or nothing, like `pay` -- and `units_text` for the panels. `take_wood` is the
 ## sawyer's all-or-nothing draw on the wood.
 ##
+## EARTH (decision 0401): the earth cleared off the tunnels' spoil heaps is kept here, by the open stockpile,
+## `earth_milli_u` -- excavated earth, a plain material: never compost and never fertility (the adopted
+## `excavated_earth` rule). Raising and banking a bed may fetch it back from here (farm_tunnels.gd EARTH). The API:
+## `add_earth`, `take_earth` (all or nothing). It is not a top-bar figure; the panels' stores line shows it.
+##
 ## THE FIT-OUT (demo/burrow/room_fixtures.gd, decision 0210) pays its fixtures with `pay_all` (wood, stone and planks,
 ## all or nothing) and takes a fixture's cost back with `refund`.
 ##
@@ -38,6 +43,8 @@ var stone_milli_u: int = START_STONE_MILLI_U
 var plank_milli_u: int = 0
 ## Water in the butt by the well (see WATER).
 var water_milli_u: int = 0
+## Earth kept by the stockpile (see EARTH), milli-U.
+var earth_milli_u: int = 0
 ## Per find kind (FindsScript.FIND_*): how many have been dug up.
 var finds: PackedInt32Array = PackedInt32Array()
 ## Bumped on every change, so the panel redraws only when something changed.
@@ -150,6 +157,23 @@ func pay_planks(milli_u: int) -> bool:
 	return true
 
 
+func add_earth(milli_u: int) -> void:
+	"""Earth carried off a spoil heap is kept here (see EARTH)."""
+	if milli_u <= 0:
+		return
+	earth_milli_u += milli_u
+	revision += 1
+
+
+func take_earth(milli_u: int) -> bool:
+	"""Take this much earth (milli-U) to raise or bank a bed -- all of it, or (false) none."""
+	if milli_u <= 0 or earth_milli_u < milli_u:
+		return false
+	earth_milli_u -= milli_u
+	revision += 1
+	return true
+
+
 func add_stone(milli_u: int) -> void:
 	"""Stone dug out of rock comes into the stock."""
 	if milli_u <= 0:
@@ -170,9 +194,10 @@ static func units_text(milli_u: int) -> String:
 
 
 func stock_line() -> String:
-	"""The panels' stores line -- the same figures, in the same words, as the top bar's Wood, Stone and Planks."""
-	return "Village stores: wood %s · stone %s · planks %s" % [units_text(wood_milli_u), units_text(stone_milli_u),
-		units_text(plank_milli_u)]
+	"""The panels' stores line -- the same figures, in the same words, as the top bar's Wood, Stone and Planks -- and the
+	earth kept by the stockpile, which the top bar does not show (see EARTH)."""
+	return "Village stores: wood %s · stone %s · planks %s · earth %s" % [units_text(wood_milli_u),
+		units_text(stone_milli_u), units_text(plank_milli_u), units_text(earth_milli_u)]
 
 
 func finds_line() -> String:

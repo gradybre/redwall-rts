@@ -179,7 +179,7 @@ func _resolve_frost(sim: SimScript) -> void:
 static func frost_text(season: int, season_day: int) -> String:
 	"""'Frost tonight (Spring 4, 02:00–05:59)! …' for the night after this season day."""
 	var night: Vector2i = Weather.next_day(season, season_day)
-	return "Frost tonight (%s, %02d:00–%02d:59)! Cover growing beds (or raise them with spoil) and harvest what is ripe" \
+	return "Frost tonight (%s, %02d:00–%02d:59)! Cover growing beds (or raise them with earth) and harvest what is ripe" \
 		% [CalendarScript.day_text(night.x, night.y), Weather.FROST_FIRST_HOUR, Weather.FROST_LAST_HOUR]
 
 

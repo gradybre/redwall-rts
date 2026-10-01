@@ -79,8 +79,9 @@ extends Node3D
 ## stores, put in by residents -- and the night: at dusk everyone goes home to bed (the party panel says whose bed, or
 ## that it has none), and the farm's pantry tells a cellar's racks how full it is (`cellar_fill`).
 ##
-## SPOIL (demo/spoil/): a tunnel's spoil heaps can be selected and cleared -- dug out and hauled into the
-## farm's compost store (Clear: right-click a heap with residents selected). `_build_spoil()` wires it.
+## SPOIL (demo/spoil/): a tunnel's spoil heaps can be selected and cleared -- their earth dug out and hauled into the
+## village stores by the stockpile (Clear: right-click a heap with residents selected), where Raise and Bank fetch it
+## again. Earth is never compost (decision 0401). `_build_spoil()` wires it.
 ##
 ## CANOPY (demo/camera/canopy_clear.gd, decision 0301): the camera's eye is held out of tree crowns, the
 ## crowns between the eye and the focus or a selected resident thin out, and a selected resident shows as
@@ -371,18 +372,12 @@ func kitchen() -> KitchenNodeScript:
 
 
 func _build_spoil() -> void:
-	"""Spoil heaps to select and clear (demo/spoil/), after the farm, whose spoil books and compost store
-	they use, and before the woods, so a click on a heap in a forestry zone is the heap's."""
+	"""Spoil heaps to select and clear (demo/spoil/), after the farm, whose earth books they use, into the village
+	stores, and before the woods, so a click on a heap in a forestry zone is the heap's."""
 	_spoil = SpoilScript.new()
 	add_child(_spoil)
 	_spoil.configure(_cast as DemoCastScript, _command as DemoCommandScript, _camera.camera(), _cast.space().tunnels,
-		_farm.tunnels, _services.props, give_compost)
-
-
-func give_compost(milli: int) -> void:
-	"""Put `milli` into the farm's compost store: a cleared heap's spoil (demo/spoil/spoil_crew.gd)."""
-	if milli > 0:
-		_farm.sim.compost_milli += milli
+		_farm.tunnels, _services.props, _services.stores)
 
 
 func spoil() -> SpoilScript:

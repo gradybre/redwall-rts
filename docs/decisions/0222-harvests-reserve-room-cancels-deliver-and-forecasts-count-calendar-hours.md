@@ -116,7 +116,9 @@ The instruction suggested "<1 U" for non-empty stock under one unit; with tenths
 - `farm_crew.take_back` and `forest_crew.take_back` take (row, serial); a resume bound to the old (row, kind, target)
   shape no longer exists.
 - Spoil carried to a bed for Raise/Bank/Compost-from-spoil is still dropped if that job is cancelled mid-carry (it is
-  not stock in the pantry or the stores); out of this review's scope and recorded here as open.
+  not stock in the pantry or the stores); out of this review's scope and recorded here as open. (*Resolved by
+  [0401](0401-spoil-becomes-earth-not-compost.md): earth in hand is walked back to its heap or the stores; there is no
+  Compost-from-spoil any more.*)
 - A carrier waiting for room holds its load in place until the player makes room or orders it away; nothing times it
   out.
 - Mutation testing (46 mutants of the new logic in the pantry, both crews, both job boards, the text and the

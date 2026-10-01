@@ -43,8 +43,14 @@ func worker(row: int) -> int:
 
 
 func activity(row: int) -> int:
-	"""A harvest's delivery is HAULING; every other farm job FARM."""
-	return WorkIds.ACT_HAUL if _crew.jobs.kind[row] == JobsScript.KIND_DELIVER else WorkIds.ACT_FARM
+	"""A harvest's delivery and an earth return (decision 0401: earth carried back to its source) are HAULING -- deliveries,
+	never claimed as farm production; every other farm job FARM."""
+	return WorkIds.ACT_HAUL if is_delivery(_crew.jobs.kind[row]) else WorkIds.ACT_FARM
+
+
+static func is_delivery(kind: int) -> bool:
+	"""Whether a farm job kind only carries a load home: a harvest's delivery or an earth return."""
+	return kind == JobsScript.KIND_DELIVER or kind == JobsScript.KIND_RETURN_EARTH
 
 
 func point(row: int) -> Vector2:
@@ -78,12 +84,12 @@ func fill(task: TaskScript, row: int) -> void:
 	task.target = _crew.bed_label(jobs.bed[row])
 	task.worker = jobs.worker[row]
 	task.activity = activity(row)
-	task.carrying = _crew.holds_load(row)
+	task.carrying = _crew.holds_load(row) or _crew.holds_earth(row)
 	task.point = point(row)
 	task.target_kind = NoticesScript.TARGET_BED
 	task.target_id = jobs.bed[row]
 	var code: int = jobs.current_step(row)
-	var plan: int = JobsScript.plan_work_usec(jobs.kind[row], jobs.source[row], jobs.step[row])
+	var plan: int = JobsScript.plan_work_usec(jobs.kind[row], jobs.step[row])
 	task.remaining_usec = maxi(plan - jobs.elapsed_usec[row], 0)
 	if task.worker == JobsScript.NOBODY:
 		waiting_state_into(task, _crew.is_paused(row), _crew.blocked_words(row))
@@ -101,6 +107,8 @@ func _refusals(task: TaskScript, row: int) -> void:
 		task.reassign_refusal = task.pause_refusal
 	if _crew.jobs.kind[row] == JobsScript.KIND_DELIVER:
 		task.cancel_refusal = WorkIds.DELIVERY_GOES_ON
+	elif _crew.jobs.kind[row] == JobsScript.KIND_RETURN_EARTH:
+		task.cancel_refusal = WorkIds.EARTH_GOES_BACK
 
 
 func _who_carries(task: TaskScript) -> String:

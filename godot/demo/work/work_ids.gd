@@ -63,6 +63,8 @@ const BELOW: String = "is below ground"
 const NOT_FOUND: String = "that task is no longer on the board"
 const CARRYING: String = "%s is carrying the load — it finishes the delivery first"
 const DELIVERY_GOES_ON: String = "a delivery always finishes: its load is already cut"
+## An earth return (farm_jobs.gd KIND_RETURN_EARTH, decision 0401): a delivery of earth back to its heap or the stores.
+const EARTH_GOES_BACK: String = "earth carried back always finishes: it goes back where it was dug"
 const PAUSED_ALREADY: String = "it is paused already"
 
 

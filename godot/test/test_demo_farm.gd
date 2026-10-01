@@ -375,16 +375,16 @@ func test_clearing_a_blighted_crop_uproots_it_for_compost() -> void:
 
 func test_compost_takes_two_units_once_a_season() -> void:
 	"""From the store: +1500 fertility (7000 -> 8500), the store 4 U -> 2 U; a second time the tile
-	refuses; with 1.9 U in the store another bed refuses, but not when spoil brings it."""
+	refuses; with 1.9 U in the store another bed refuses -- and nothing else can bring it (decision 0401)."""
 	var sim := SimScript.new()
-	assert_true(sim.compost(BED_EMPTY_LOAM, true).ok, "composted")
+	assert_true(sim.compost(BED_EMPTY_LOAM).ok, "composted")
 	assert_equal(sim.fertility_of(BED_EMPTY_LOAM), 8500, "+1500")
 	assert_equal(sim.compost_milli, 2000, "2 U used")
-	assert_equal(sim.compost(BED_EMPTY_LOAM, true).error, FarmingScript.REFUSE_COMPOST_NOT_ELIGIBLE, "once a season")
+	assert_equal(sim.compost(BED_EMPTY_LOAM).error, FarmingScript.REFUSE_COMPOST_NOT_ELIGIBLE, "once a season")
 	sim.compost_milli = 1900
-	assert_equal(sim.compost_refusal(BED_EMPTY_CLAY, true), SimScript.REFUSE_NO_COMPOST, "short")
-	assert_equal(sim.compost_refusal(BED_EMPTY_CLAY, false), SimScript.REFUSE_NONE, "spoil brings its own")
-	assert_true(sim.compost(BED_EMPTY_CLAY, false).ok, "dug in")
+	assert_equal(sim.compost_refusal(BED_EMPTY_CLAY), SimScript.REFUSE_NO_COMPOST, "short")
+	assert_equal(sim.compost(BED_EMPTY_CLAY).error, SimScript.REFUSE_NO_COMPOST, "refused")
+	assert_equal(sim.fertility_of(BED_EMPTY_CLAY), 7000, "no fertility without the store's compost")
 	assert_equal(sim.compost_milli, 1900, "the store untouched")
 
 
@@ -425,7 +425,7 @@ func test_drainage_stops_at_the_low_side_and_irrigation_lifts_a_dry_bed() -> voi
 func test_an_empty_bed_rests_back_its_fertility() -> void:
 	"""REQ-SET-078: an empty bed gains 50 fertility a day without a worker; a sown one does not."""
 	var sim := SimScript.new()
-	sim.compost(BED_EMPTY_LOAM, true)
+	sim.compost(BED_EMPTY_LOAM)
 	assert_equal(sim.fertility_of(BED_EMPTY_LOAM), 8500, "composted")
 	_hours(sim, 18)
 	assert_equal(sim.fertility_of(BED_EMPTY_LOAM), 8550, "+50 at midnight")
@@ -872,20 +872,20 @@ func test_spoil_is_taken_off_a_heap_and_the_heap_shrinks() -> void:
 	assert_equal(tunnels.spoil_left(network, entrance), 18000, "a reused mouth row's heap starts clean")
 
 
-func test_the_nearest_heap_with_enough_spoil_is_chosen() -> void:
+func test_the_nearest_heap_with_enough_earth_is_chosen() -> void:
 	"""Nearest to the exit end, but the exit heap holds only 2 U: 3 U comes from the entrance (18 U, the
-	8 m tunnel's); nothing holds 19 U."""
+	8 m tunnel's); nothing holds 19 U. No stores bound: heaps only."""
 	var network := GraphScript.new()
 	var tunnels := TunnelsScript.new()
 	var heaps: PackedInt32Array = _open(network, [Vector2(-15.0, 16.4), Vector2(-7.0, 16.4)])
 	network.set_heap(heaps[0], Vector2(-15.0, 17.4), 0.8, Vector2(0.0, 1.0))
 	network.set_heap(heaps[1], Vector2(-7.0, 17.4), 0.3, Vector2(0.0, 1.0))
-	assert_true(tunnels.nearest_heap_into(network, Vector2(-6.0, 17.0), 2000, _read), "2 U")
+	assert_true(tunnels.nearest_earth_into(network, Vector2(-6.0, 17.0), 2000, _read), "2 U")
 	assert_equal(_read.value, heaps[1], "the exit heap")
-	assert_true(tunnels.nearest_heap_into(network, Vector2(-6.0, 17.0), 3000, _read), "3 U")
+	assert_true(tunnels.nearest_earth_into(network, Vector2(-6.0, 17.0), 3000, _read), "3 U")
 	assert_equal(_read.value, heaps[0], "the entrance heap")
-	assert_true(tunnels.nearest_heap_into(network, Vector2.ZERO, 18000, _read), "18 U: the entrance heap")
-	assert_false(tunnels.nearest_heap_into(network, Vector2.ZERO, 18001, _read), "none that big")
+	assert_true(tunnels.nearest_earth_into(network, Vector2.ZERO, 18000, _read), "18 U: the entrance heap")
+	assert_false(tunnels.nearest_earth_into(network, Vector2.ZERO, 18001, _read), "none that big")
 
 
 # --- the job board ----------------------------------------------------------------------------
@@ -893,23 +893,24 @@ func test_the_nearest_heap_with_enough_spoil_is_chosen() -> void:
 func test_jobs_open_once_per_kind_and_bed() -> void:
 	"""A second sow on bed 0 is refused; a water on bed 0 is not; the board holds 24."""
 	var jobs := JobsScript.new()
-	assert_true(jobs.open_into(JobsScript.KIND_SOW, 0, JobsScript.ORIGIN_PLAYER, 0, _read), "sow")
+	assert_true(jobs.open_into(JobsScript.KIND_SOW, 0, JobsScript.ORIGIN_PLAYER, _read), "sow")
 	assert_equal(_read.value, 0, "row 0")
-	assert_false(jobs.open_into(JobsScript.KIND_SOW, 0, JobsScript.ORIGIN_PLAYER, 0, _read), "again")
+	assert_false(jobs.open_into(JobsScript.KIND_SOW, 0, JobsScript.ORIGIN_PLAYER, _read), "again")
 	assert_equal(_read.error, JobsScript.REFUSE_DUPLICATE, "duplicate")
-	assert_true(jobs.open_into(JobsScript.KIND_WATER, 0, JobsScript.ORIGIN_PLAYER, 0, _read), "water")
+	assert_true(jobs.open_into(JobsScript.KIND_WATER, 0, JobsScript.ORIGIN_PLAYER, _read), "water")
 	for kind: int in JobsScript.KIND_COUNT:
 		for bed: int in 3:
-			jobs.open_into(kind, bed, JobsScript.ORIGIN_ROUTINE, 0, _read)
+			jobs.open_into(kind, bed, JobsScript.ORIGIN_ROUTINE, _read)
 	assert_equal(jobs.live_count(), 24, "full")
-	assert_false(jobs.open_into(JobsScript.KIND_COVER, 5, JobsScript.ORIGIN_PLAYER, 0, _read), "full")
+	assert_false(jobs.open_into(JobsScript.KIND_COVER, 5, JobsScript.ORIGIN_PLAYER, _read), "full")
 	assert_equal(_read.error, JobsScript.REFUSE_BOARD_FULL, "says so")
 	assert_equal(JobsScript.KIND_COUNT, 9, "nine kinds: Drain is the ninth")
 	assert_equal(JobsScript.KIND_DELIVER, JobsScript.KIND_COUNT, "the delivery after the orderable kinds")
-	assert_equal(JobsScript.KIND_NAMES.size(), JobsScript.KIND_COUNT + 1, "a name each, the delivery's too")
-	assert_equal(JobsScript.KIND_DOING.size(), JobsScript.KIND_COUNT + 1, "a doing each")
-	assert_equal(JobsScript.PLANS.size(), JobsScript.KIND_COUNT + 1, "a plan each")
-	assert_false(jobs.open_into(JobsScript.KIND_COUNT, 0, JobsScript.ORIGIN_PLAYER, 0, _read), "no such kind")
+	assert_equal(JobsScript.KIND_RETURN_EARTH, JobsScript.KIND_COUNT + 1, "then the earth return")
+	assert_equal(JobsScript.KIND_NAMES.size(), JobsScript.KIND_COUNT + 2, "a name each, the delivery's and return's too")
+	assert_equal(JobsScript.KIND_DOING.size(), JobsScript.KIND_COUNT + 2, "a doing each")
+	assert_equal(JobsScript.PLANS.size(), JobsScript.KIND_COUNT + 2, "a plan each")
+	assert_false(jobs.open_into(JobsScript.KIND_COUNT, 0, JobsScript.ORIGIN_PLAYER, _read), "no such kind")
 	assert_equal(_read.error, JobsScript.REFUSE_BAD_KIND, "says so")
 
 
@@ -917,7 +918,7 @@ func test_a_watering_job_walks_its_plan_and_keeps_work_on_rewind() -> void:
 	"""Well, fetch, carry to the bed, tend; a worker leaving mid-tend rewinds to the carry with the
 	tending done so far kept; leaving the work step clears it."""
 	var jobs := JobsScript.new()
-	jobs.open_into(JobsScript.KIND_WATER, 1, JobsScript.ORIGIN_PLAYER, 0, _read)
+	jobs.open_into(JobsScript.KIND_WATER, 1, JobsScript.ORIGIN_PLAYER, _read)
 	var row: int = _read.value
 	var seen := PackedInt32Array([jobs.current_step(row)])
 	while jobs.advance(row):
@@ -925,7 +926,7 @@ func test_a_watering_job_walks_its_plan_and_keeps_work_on_rewind() -> void:
 	assert_equal(seen, PackedInt32Array([JobsScript.STEP_GO_WELL, JobsScript.STEP_WORK + JobsScript.WORK_FETCH,
 		JobsScript.STEP_CARRY_BED, JobsScript.STEP_WORK + JobsScript.WORK_TEND]), "the plan")
 	var fetch := JobsScript.new()
-	fetch.open_into(JobsScript.KIND_WATER, 1, JobsScript.ORIGIN_PLAYER, 0, _read)
+	fetch.open_into(JobsScript.KIND_WATER, 1, JobsScript.ORIGIN_PLAYER, _read)
 	fetch.advance(_read.value)
 	fetch.elapsed_usec[_read.value] = 500000
 	assert_true(fetch.advance(_read.value), "past the fetch")
@@ -945,7 +946,7 @@ func test_a_watering_job_walks_its_plan_and_keeps_work_on_rewind() -> void:
 func test_a_drain_job_walks_to_the_bed_and_digs() -> void:
 	"""Drain: to the bed, then 6 WU of digging (9 s of the cast's time)."""
 	var jobs := JobsScript.new()
-	assert_true(jobs.open_into(JobsScript.KIND_DRAIN, 3, JobsScript.ORIGIN_PLAYER, 0, _read), "opened")
+	assert_true(jobs.open_into(JobsScript.KIND_DRAIN, 3, JobsScript.ORIGIN_PLAYER, _read), "opened")
 	var row: int = _read.value
 	assert_equal(jobs.current_step(row), JobsScript.STEP_GO_BED, "to the bed")
 	assert_true(jobs.advance(row), "then")
@@ -955,12 +956,18 @@ func test_a_drain_job_walks_to_the_bed_and_digs() -> void:
 	assert_equal(JobsScript.KIND_NAMES[JobsScript.KIND_DRAIN], "Drain", "named")
 
 
-func test_compost_from_spoil_goes_to_a_heap_first() -> void:
-	"""The spoil plan: heap, dig, carry, compost."""
+func test_compost_goes_to_the_bed_and_never_to_a_heap() -> void:
+	"""Decision 0401: compost is the compost store's, walked to the bed and worked in -- no plan digs a heap but Raise
+	and Bank, and an earth return carries back to one."""
 	var jobs := JobsScript.new()
-	jobs.open_into(JobsScript.KIND_COMPOST, 2, JobsScript.ORIGIN_PLAYER, JobsScript.SOURCE_SPOIL, _read)
-	assert_equal(jobs.current_step(_read.value), JobsScript.STEP_GO_HEAP, "to the heap")
-	assert_equal(jobs.plan_size(_read.value), 4, "four steps")
+	jobs.open_into(JobsScript.KIND_COMPOST, 2, JobsScript.ORIGIN_PLAYER, _read)
+	assert_equal(jobs.current_step(_read.value), JobsScript.STEP_GO_BED, "to the bed")
+	assert_equal(jobs.plan_size(_read.value), 2, "two steps")
+	for kind: int in JobsScript.PLANS.size():
+		var digs: bool = JobsScript.PLANS[kind].has(JobsScript.STEP_WORK + JobsScript.WORK_DIG)
+		assert_equal(digs, kind == JobsScript.KIND_RAISE or kind == JobsScript.KIND_BANK, "%s digs earth" % JobsScript.KIND_NAMES[kind])
+	assert_equal(JobsScript.PLANS[JobsScript.KIND_RETURN_EARTH], [JobsScript.STEP_CARRY_HEAP,
+		JobsScript.STEP_WORK + JobsScript.WORK_DROP], "an earth return: carry back, tip")
 
 
 func test_verbs_are_offered_by_the_bed_state() -> void:
@@ -976,7 +983,7 @@ func test_verbs_are_offered_by_the_bed_state() -> void:
 	assert_equal(JobsScript.refusal_for(sim, JobsScript.KIND_HARVEST, BED_WHEAT, 0),
 		StringName(JobsScript.REFUSE_NOT_RIPE), "not ripe")
 	assert_equal(JobsScript.refusal_for(sim, JobsScript.KIND_RAISE, BED_WHEAT, 1999),
-		StringName(JobsScript.REFUSE_NO_SPOIL), "1.999 U")
+		StringName(JobsScript.REFUSE_NO_EARTH), "1.999 U")
 	assert_equal(JobsScript.refusal_for(sim, JobsScript.KIND_BANK, BED_WHEAT, 2000), &"", "2 U")
 	sim.raise_bed(BED_WHEAT)
 	assert_equal(JobsScript.refusal_for(sim, JobsScript.KIND_RAISE, BED_WHEAT, 5000), SimScript.REFUSE_ALREADY, "once")
@@ -990,11 +997,11 @@ func test_verbs_are_offered_by_the_bed_state() -> void:
 	assert_equal(JobsScript.refusal_for(sim, JobsScript.KIND_DRAIN, BED_RADISH, 0), &"", "waterlogged: drain it")
 
 
-func test_compost_source_prefers_the_store() -> void:
-	"""4 U in store: from the store; 1 U: from spoil, which the verb accepts only with 2 U on a heap."""
+func test_compost_is_the_store_s_and_no_amount_of_earth_stands_in() -> void:
+	"""Decision 0401: 4 U in store, compost can go on; 1 U, it is refused whatever earth there is."""
 	var sim := SimScript.new()
-	assert_equal(JobsScript.compost_source(sim, BED_EMPTY_LOAM), JobsScript.SOURCE_STORE, "the store")
+	assert_equal(JobsScript.refusal_for(sim, JobsScript.KIND_COMPOST, BED_EMPTY_LOAM, 0), &"", "the store")
 	sim.compost_milli = 1000
-	assert_equal(JobsScript.compost_source(sim, BED_EMPTY_LOAM), JobsScript.SOURCE_SPOIL, "spoil")
 	assert_equal(JobsScript.refusal_for(sim, JobsScript.KIND_COMPOST, BED_EMPTY_LOAM, 1999), SimScript.REFUSE_NO_COMPOST, "short")
-	assert_equal(JobsScript.refusal_for(sim, JobsScript.KIND_COMPOST, BED_EMPTY_LOAM, 2000), &"", "spoil will do")
+	assert_equal(JobsScript.refusal_for(sim, JobsScript.KIND_COMPOST, BED_EMPTY_LOAM, 1 << 40), SimScript.REFUSE_NO_COMPOST,
+		"earth will not do")

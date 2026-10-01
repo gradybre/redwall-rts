@@ -67,7 +67,7 @@ const LINE_COUNT: int = 10
 const LINE_MOISTURE: int = 1
 const DETAILS_SHOW: String = "Details ▸"
 const DETAILS_HIDE: String = "Details ▾"
-const CANCEL_TIP: String = "Cancel every job on this bed only (a harvest in hand goes into store)"
+const CANCEL_TIP: String = "Cancel every job on this bed only (a harvest in hand goes into store; earth in hand goes back to its heap)"
 const NO_JOBS_TIP: String = "no jobs"
 
 var bed: int = -1

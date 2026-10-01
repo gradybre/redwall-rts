@@ -250,6 +250,29 @@ func test_the_water_is_read_to_the_unit_with_its_zone() -> void:
 	assert_true(probe.can_outline() and probe.field_bounds_m().has_point(deep), "the water is its field")
 
 
+func test_the_pond_reads_as_its_ice_and_the_stream_as_water() -> void:
+	"""Thin ice over the pond: the pond's landing reads thin ice (safe ice when safe); the stream still reads its zone."""
+	var map: WaterMapScript = _map()
+	var overlay := _overlay()
+	var probe := WaterProbe.new(map, overlay)
+	var pond := Vector2.INF
+	for k: int in map.landing_count():
+		if map.body_kind(map.landing_body(k)) == WaterMapScript.KIND_POND:
+			var water := Vector2(WaterRules.to_m(map.landing_water(k).x), WaterRules.to_m(map.landing_water(k).y))
+			var land := Vector2(WaterRules.to_m(map.landing_land(k).x), WaterRules.to_m(map.landing_land(k).y))
+			pond = water + (water - land).normalized() * 1.5
+	assert_true(pond != Vector2.INF, "the village has a pond landing")
+	assert_true(probe.read_into(pond, _reading) and _reading.entry <= 2, "open water: a zone")
+	overlay.ice_state = WaterProbe.ICE_THIN
+	assert_true(probe.read_into(pond, _reading), "iced")
+	assert_equal([_reading.entry, _reading.area], [WaterProbe.ENTRY_THIN_ICE, WaterProbe.ENTRY_THIN_ICE], "thin ice")
+	overlay.ice_state = WaterProbe.ICE_SAFE
+	probe.read_into(pond, _reading)
+	assert_equal(_reading.entry, WaterProbe.ENTRY_SAFE_ICE, "safe ice")
+	probe.read_into(_deep_point(map), _reading)
+	assert_true(_reading.entry <= 2, "the stream is not iced")
+
+
 func test_the_water_words_hold_the_shallower_zone_at_a_threshold() -> void:
 	"""0.25 m exactly is wading for the mouse, one unit more is swimming; 1.00 m swimming, one more diving."""
 	var overlay := _overlay()
@@ -328,8 +351,8 @@ func test_a_tree_and_its_zone_are_read() -> void:
 	var woods: Array = _woods()
 	var probe := WoodsProbe.new(woods[0], woods[1])
 	assert_true(probe.read_into(Vector2(-10.0, -24.0), _reading), "the oak")
-	assert_equal([_reading.entry, _reading.area, _reading.who], [WoodsProbe.TREE_ENTRY[StandScript.STATE_MATURE],
-		WoodsProbe.ENTRY_FORESTRY, 0], "a mature tree in a forestry zone")
+	assert_equal([_reading.entry, _reading.area, _reading.who], [2, WoodsProbe.ENTRY_FORESTRY, 0],
+		"a mature tree (the legend's third entry) in a forestry zone")
 	assert_true(probe.describe(_reading).begins_with("Oak · mature tree\nforestry zone Oak copse: "), probe.describe(_reading))
 	assert_true(probe.read_into(Vector2(-11.5, -25.5), _reading), "in the zone, no tree in reach")
 	assert_equal([_reading.entry, _reading.who], [WoodsProbe.ENTRY_FORESTRY, WoodsProbe.ZONE_WHO], "the zone")
@@ -339,6 +362,7 @@ func test_a_tree_and_its_zone_are_read() -> void:
 	assert_true(probe.describe(_reading).ends_with("in no zone: the woods' own"), probe.describe(_reading))
 	assert_true(probe.read_into(Vector2(10.0, -24.0), _reading), "the sapling")
 	assert_equal(probe.describe(_reading).get_slice("\n", 0), "Young oak", "a young tree by its own name")
+	assert_equal(_reading.entry, 3, "the legend's young tree")
 	assert_false(probe.read_into(Vector2(40.0, 40.0), _reading), "open ground")
 
 

@@ -134,7 +134,7 @@ func test_a_layer_added_as_a_record_carries_everything() -> void:
 	def.ramp_count = 2
 	def.ticks = PackedStringArray(["under 20%", "20% and over"])
 	def.caption = "Leaf cover %"
-	def.areas = PackedInt32Array([0, 1])
+	def.areas = PackedInt32Array([1])
 	def.over = LensPalette.OVER_GRASS
 	def.probe = SquareProbe.new()
 	var lens: int = lenses.add_def(def)
@@ -146,8 +146,15 @@ func test_a_layer_added_as_a_record_carries_everything() -> void:
 	assert_equal([lenses.ramp_from_of(lens), lenses.ramp_count_of(lens)], [0, 2], "its ramp")
 	assert_equal(lenses.ticks_of(lens), def.ticks, "its thresholds")
 	assert_equal(lenses.caption_of(lens), "Leaf cover %", "its caption")
-	assert_equal(lenses.area_colours(lens), PackedColorArray([LensPalette.GROWING, LensPalette.RIPE]), "its area colours")
-	assert_equal(lenses.area_words(lens), PackedStringArray(["green", "turning"]), "and words")
+	assert_equal(lenses.area_colours(lens), PackedColorArray([LensPalette.RIPE]), "its area colours, as set")
+	assert_equal(lenses.area_words(lens), PackedStringArray(["turning"]), "and words")
+	var other := DefScript.new()
+	other.group = "Growing"
+	other.label = "Leaf fall"
+	other.show = _show.bind("other")
+	var second: int = lenses.add_def(other)
+	assert_equal(lenses.find("Growing", "Leaf fall"), second, "the same label in another group is another layer")
+	assert_equal(lenses.find("Woods", "Leaf fall"), lens, "and the first still its own")
 	assert_true(lenses.probe_of(lens) == def.probe and lenses.can_compare(lens), "its probe")
 	var followed := DefScript.new()
 	followed.follow = func() -> bool: return false
@@ -159,6 +166,8 @@ func test_areas_default_to_the_ramp_and_skip_missing_swatches() -> void:
 	"""No areas set: the ramp's swatches; set: those, past the swatches skipped."""
 	var lenses := _lenses()
 	assert_equal(lenses.area_entries(1), PackedInt32Array([0, 1]), "the ramp")
+	lenses.set_areas(1, PackedInt32Array([1, 3]))
+	assert_equal(lenses.area_colours(1), PackedColorArray([LensPalette.SWIM]), "one past the swatches skipped")
 	lenses.set_areas(1, PackedInt32Array([2, 0, 9]))
 	assert_equal(lenses.area_colours(1), PackedColorArray([LensPalette.DIVE, LensPalette.WADE]), "set, 9 skipped")
 	assert_equal(lenses.area_words(1), PackedStringArray(["c", "a"]), "their words")
@@ -375,6 +384,10 @@ func test_the_readout_words_fade_and_go() -> void:
 	readout.set_words("", "Outlined, Water range:\nWater 0.42 m deep · swim")
 	assert_equal(readout.main_text(), "", "no main words")
 	assert_true(readout.second_text().begins_with("Outlined"), "the second layer's")
+	readout.set_words("a", "b")
+	assert_true(readout.second_line_shown(), "a second line")
+	readout.set_words("a", "")
+	assert_false(readout.second_line_shown(), "no second line takes no room")
 	readout.hide_readout()
 	assert_false(readout.shown(), "going")
 	readout._process(0.08)
@@ -498,6 +511,24 @@ func test_the_kit_words_the_readout_only_on_a_change() -> void:
 	assert_equal(kit.rewords, 2, "a compared layer: new words")
 	assert_equal(kit.readout.second_text(), "Outlined, Layer 1:\nclass 0", "its words")
 	assert_false(kit.read_point(Vector2.INF, main, null), "off the ground")
+	lenses.set_compare(LensesScript.OFF)
+	kit.read_point(Vector2.ZERO, main, null)
+	var before: int = kit.rewords
+	lenses.select(2)
+	kit.read_point(Vector2.ZERO, lenses.probe_of(2), null)
+	assert_equal(kit.rewords, before + 1, "another layer reading the same: its own words")
+
+
+func test_the_pointer_is_read_only_over_the_world_inside_the_window() -> void:
+	"""A layer to read, no panel under the pointer, a camera, and the pointer inside the window: each needed."""
+	var size := Vector2(1280.0, 720.0)
+	assert_true(KitScript.may_read(true, false, true, Vector2(10.0, 10.0), size), "all there")
+	assert_false(KitScript.may_read(false, false, true, Vector2(10.0, 10.0), size), "no layer to read")
+	assert_false(KitScript.may_read(true, true, true, Vector2(10.0, 10.0), size), "over a panel")
+	assert_false(KitScript.may_read(true, false, false, Vector2(10.0, 10.0), size), "no camera")
+	assert_false(KitScript.may_read(true, false, true, Vector2.INF, size), "no pointer yet")
+	assert_false(KitScript.may_read(true, false, true, Vector2(1280.0, 10.0), size), "past the right edge")
+	assert_false(KitScript.may_read(true, false, true, Vector2(-1.0, 10.0), size), "past the left")
 
 
 func test_the_kit_hides_the_readout_off_the_ground_over_a_panel_or_off_tree() -> void:

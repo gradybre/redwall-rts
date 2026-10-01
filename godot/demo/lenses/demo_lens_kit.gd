@@ -155,13 +155,18 @@ func update_readout(pointer: Vector2, viewport_size: Vector2, over_ui: bool) -> 
 	var main: ProbeScript = _lenses.probe_of(_lenses.active)
 	var second: ProbeScript = _lenses.probe_of(_lenses.compare)
 	var camera: Camera3D = get_viewport().get_camera_3d() if is_inside_tree() else null
-	if (main == null and second == null) or over_ui or camera == null or pointer == Vector2.INF \
-			or not Rect2(Vector2.ZERO, viewport_size).has_point(pointer):
+	if not may_read(main != null or second != null, over_ui, camera != null, pointer, viewport_size):
 		readout.hide_readout()
 		return
 	var point: Vector2 = Layers.pick_ground(camera.project_ray_origin(pointer), camera.project_ray_normal(pointer), 0.0)
 	read_point(point, main, second)
 	readout.place(pointer, viewport_size)
+
+
+static func may_read(has_probe: bool, over_ui: bool, has_camera: bool, pointer: Vector2, viewport_size: Vector2) -> bool:
+	"""Whether the pointer may be read: some layer to read, not over a panel, a camera, a pointer inside the window."""
+	return has_probe and not over_ui and has_camera and pointer != Vector2.INF \
+		and Rect2(Vector2.ZERO, viewport_size).has_point(pointer)
 
 
 func read_point(point: Vector2, main: ProbeScript, second: ProbeScript) -> bool:

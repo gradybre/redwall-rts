@@ -123,6 +123,11 @@ func second_text() -> String:
 	return _second.text if _second.visible else ""
 
 
+func second_line_shown() -> bool:
+	"""Whether the compared layer's line takes room."""
+	return _second.visible
+
+
 func panel_rect() -> Rect2:
 	"""The card on screen, viewport px."""
 	return Rect2(_panel.position, _panel.size * _panel.scale)

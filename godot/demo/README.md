@@ -410,7 +410,27 @@ the **pantry**, counted per item, at the slowest-spoiling store with room -- a *
 at its hatch (spoilage 350 per mille, the GDD's cellar) before the covered store (1000), and of two cellars
 the one nearer the bed (`farm/farm_cellars.gd` turns `underground_rooms.cellars()` into pantry stores);
 the HUD's Food cell shows the pantry total, and the Food command (or K) opens the Pantry: stock per
-ingredient, freshness (GDD §5.8 spoilage by where it is stored), and the library dishes each feeds.
+ingredient, the lot that spoils first (GDD §5.8 spoilage by where it is stored), and the library dishes
+each feeds.
+
+**Nothing harvested is lost or credited from afar** (decision 0222, the review's F19/F24/F27/F28):
+
+- **Room first.** A harvest reserves room in its store as the cutting starts. With room nowhere it is
+  **not cut**: the crop stands, the job waits on the board, the order's answer and the feed say how much
+  has nowhere to go, and the bed panel shows it in clay with a **Make room… (Pantry, K)** button. The crew
+  takes it up once there is room.
+- **What fits.** A store that shrank under a reservation (a cellar's racks taken out) takes what fits;
+  the carrier keeps the rest and carries it on to another store with room -- or waits at the store with
+  it, trying again, until there is one. Root cellars follow the same rules, down to the shelf.
+- **Cancel is not delivery.** "Cancel jobs" on a bed stops its production; a harvest already cut
+  becomes its **delivery**: the carrier walks on and the store is credited when it gets there. A carrier
+  ordered elsewhere keeps the load with the job and comes back to it (its resume queue); released, the
+  field crew takes it.
+- **The Pantry's figures.** Every quantity -- stock, totals, capacity, yield, a load carried, the HUD's
+  Food cell -- is one form, tenths of a unit floored (`5.1 U`, `400.0 U`, never `0 U` for something:
+  `<0.1 U`), and totals are summed in milli-units first. Each row names the **first lot to spoil**, its
+  store and the **game hours** until it does, at that store's rate and each season's, a season change
+  included -- the very sum the hourly ageing makes.
 
 | Input | Does |
 |---|---|
@@ -562,6 +582,13 @@ Residents work trees within 30 m of the square (`forestry/forest_rules.gd` REACH
 | Left click a tree, stump or spot | Select it: the Woods panel shows its state, its zone's floor and its verbs |
 | Left click inside a zone | Select the zone: intensive (keep 10%), auto-fell, unmark |
 | Woods panel | The same verbs with nobody selected are queued for the forestry crew (the squirrel forester and the beaver, who take the board's work while wandering); Mark forestry / conservation zone, then drag on the ground (Esc: cancel); Gather deadfall; Saw planks; Cancel woods jobs; Storm gust (demo) |
+
+- **Conservation** (decision 0222, the farm's own rule): wood and planks reach the stores only where they
+  are stacked. Cancelling woods jobs with a load in hand turns each into that load's **delivery** -- logs
+  (a sawyer's too) walked to the log stack, planks to the plank stack -- credited on arrival, never at the
+  cancel; a hauler called away keeps the load with the job and comes back to it. Planting's 0.25 U of
+  compost is paid **once per job**: a planter called away, a new planter or a retry never pays it again
+  (the work itself starts over).
 
 - **Zones** (`forestry/forest_zones.gd`, GDD ZoneType FORESTRY 5 and CONSERVATION 8): a forestry zone keeps
   20% of its trees mature (10% intensive) -- a fell that would breach it, counting fells already ordered,

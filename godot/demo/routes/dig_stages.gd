@@ -115,7 +115,7 @@ func percent_to_next(graph: GraphScript) -> int:
 	for k: int in range(from, upto[next]):
 		dug += graph.done(chain[k])
 		total += graph.total_ticks(chain[k])
-	return dug * 100 / maxi(total, 1)
+	@warning_ignore("integer_division") return dug * 100 / maxi(total, 1)
 
 
 func stage_line(k: int) -> String:

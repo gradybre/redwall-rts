@@ -105,7 +105,7 @@ static func usec_to_tick(at: CalendarScript, wanted_tick: int) -> int:
 	if needed <= 0:
 		return 0
 	var scaled: int = needed * CalendarScript.HOUR_USEC - at.remainder()
-	return (scaled + SimClock.TICKS_PER_HOUR - 1) / SimClock.TICKS_PER_HOUR
+	@warning_ignore("integer_division") return (scaled + SimClock.TICKS_PER_HOUR - 1) / SimClock.TICKS_PER_HOUR
 
 
 func tick_for(which: int) -> int:
@@ -124,9 +124,9 @@ func tick_for(which: int) -> int:
 
 # --- availability -------------------------------------------------------------------------------------------
 
-func set_project(project_name: String, state: Callable) -> void:
+func set_project(title: String, state: Callable) -> void:
 	"""The selected project, and its watch `state() -> PROJECT_*` (an invalid Callable: none selected)."""
-	_project_name = project_name
+	_project_name = title
 	_project_state = state
 
 
@@ -253,9 +253,9 @@ static func date_at(at_tick: int) -> String:
 
 static func span_text(ticks: int) -> String:
 	"""Game time in words: 'in 3 h 20 min', 'in 45 min' (750 ticks an hour, 12.5 a minute)."""
-	var minutes: int = ticks * SimClock.MINUTES_PER_HOUR / SimClock.TICKS_PER_HOUR
+	@warning_ignore("integer_division") var minutes: int = ticks * SimClock.MINUTES_PER_HOUR / SimClock.TICKS_PER_HOUR
 	if minutes >= SimClock.MINUTES_PER_HOUR:
-		return "in %d h %d min" % [minutes / SimClock.MINUTES_PER_HOUR, minutes % SimClock.MINUTES_PER_HOUR]
+		@warning_ignore("integer_division") return "in %d h %d min" % [minutes / SimClock.MINUTES_PER_HOUR, minutes % SimClock.MINUTES_PER_HOUR]
 	return "in %d min" % minutes
 
 
@@ -269,7 +269,7 @@ func preview(which: int, speed: int) -> String:
 	if at < 0:
 		return "%s: %s" % [TARGET_TITLES[which], "when %s" % words(which) if which == TARGET_PROJECT
 			else "whenever it comes"]
-	var real_s: int = usec_to_tick(calendar, at) / maxi(speed, 1) / 1000000
+	@warning_ignore("integer_division") var real_s: int = usec_to_tick(calendar, at) / maxi(speed, 1) / 1000000
 	var at_calendar := SimClock.Calendar.new(at)
-	return "%s: %02d:00, %s (about %d min %d s at %dx)" % [TARGET_TITLES[which], at_calendar.hour,
+	@warning_ignore("integer_division") return "%s: %02d:00, %s (about %d min %d s at %dx)" % [TARGET_TITLES[which], at_calendar.hour,
 		span_text(at - calendar.tick), real_s / 60, real_s % 60, maxi(speed, 1)]

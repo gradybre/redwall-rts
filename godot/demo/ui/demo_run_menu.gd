@@ -95,13 +95,13 @@ func _init() -> void:
 func _build_targets(column: VBoxContainer) -> void:
 	"""One button per target, its line wrapping at the menu's width."""
 	for target: int in RunScript.TARGET_COUNT:
-		var button: Button = FarmUi.button("", FarmUi.SMALL_PX)
-		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		button.custom_minimum_size.x = WIDTH - FarmUi.CONTENT_MARGINS[0] - FarmUi.CONTENT_MARGINS[2]
-		button.pressed.connect(choose.bind(target))
-		column.add_child(button)
-		_targets.append(button)
+		var made: Button = FarmUi.button("", FarmUi.SMALL_PX)
+		made.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		made.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		made.custom_minimum_size.x = WIDTH - FarmUi.CONTENT_MARGINS[0] - FarmUi.CONTENT_MARGINS[2]
+		made.pressed.connect(choose.bind(target))
+		column.add_child(made)
+		_targets.append(made)
 
 
 func _build_speeds() -> HBoxContainer:
@@ -112,12 +112,12 @@ func _build_speeds() -> HBoxContainer:
 	title.autowrap_mode = TextServer.AUTOWRAP_OFF
 	row.add_child(title)
 	for value: int in SimClock.SELECTABLE_SPEEDS:
-		var button: Button = FarmUi.button("%dx" % value, FarmUi.SMALL_PX)
-		button.toggle_mode = true
-		button.tooltip_text = "Run at %dx" % value
-		button.pressed.connect(choose_speed.bind(value))
-		row.add_child(button)
-		_speeds.append(button)
+		var made: Button = FarmUi.button("%dx" % value, FarmUi.SMALL_PX)
+		made.toggle_mode = true
+		made.tooltip_text = "Run at %dx" % value
+		made.pressed.connect(choose_speed.bind(value))
+		row.add_child(made)
+		_speeds.append(made)
 	return row
 
 
@@ -268,15 +268,15 @@ func close_button() -> Button:
 
 # --- placement ------------------------------------------------------------------------------------------------
 
-static func button_rect(cluster: Rect2, last_speed: Rect2, scale: float) -> Rect2:
+static func button_rect(cluster: Rect2, last_speed: Rect2, ui_scale: float) -> Rect2:
 	"""The button's rectangle, viewport px: row 1's free end of the cluster, right of the 4x toggle, when it has
 	MIN_INSIDE_W; else OUTSIDE_W wide just left of the cluster, level with the 4x toggle."""
-	var gap: float = GAP * scale
+	var gap: float = GAP * ui_scale
 	var left: float = last_speed.end.x + gap
 	var right: float = cluster.end.x - gap
-	if right - left >= MIN_INSIDE_W * scale:
+	if right - left >= MIN_INSIDE_W * ui_scale:
 		return Rect2(left, last_speed.position.y, right - left, last_speed.size.y)
-	var width: float = OUTSIDE_W * scale
+	var width: float = OUTSIDE_W * ui_scale
 	return Rect2(cluster.position.x - gap - width, last_speed.position.y, width, last_speed.size.y)
 
 
@@ -285,14 +285,14 @@ func _place() -> void:
 	if not is_inside_tree() or not _cluster.is_valid():
 		return
 	FarmUi.geometry_for(get_viewport().get_visible_rect().size, _layout, _geometry)
-	var scale: float = _geometry.scale
+	var ui_scale: float = _geometry.scale
 	var cluster: Rect2 = _cluster.call()
-	var rect: Rect2 = button_rect(cluster, _last_speed.call(), scale)
-	_button.scale = Vector2(scale, scale)
+	var rect: Rect2 = button_rect(cluster, _last_speed.call(), ui_scale)
+	_button.scale = Vector2(ui_scale, ui_scale)
 	_button.position = rect.position
-	_button.custom_minimum_size = Vector2(rect.size.x / scale, rect.size.y / scale)
+	_button.custom_minimum_size = Vector2(rect.size.x / ui_scale, rect.size.y / ui_scale)
 	_button.size = _button.custom_minimum_size
-	var logical_right: float = cluster.end.x / scale
+	var logical_right: float = cluster.end.x / ui_scale
 	var width: float = minf(WIDTH, _geometry.logical_width - 2.0 * FarmUi.FRAME_EXPAND)
 	var x: float = clampf(logical_right - width, FarmUi.FRAME_EXPAND, _geometry.logical_width - width)
-	FarmUi.place(_frame, Rect2(x, cluster.end.y / scale + GAP + FarmUi.FRAME_EXPAND, width, 0.0), scale)
+	FarmUi.place(_frame, Rect2(x, cluster.end.y / ui_scale + GAP + FarmUi.FRAME_EXPAND, width, 0.0), ui_scale)

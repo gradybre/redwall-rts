@@ -104,9 +104,9 @@ var _chain: PackedInt32Array = PackedInt32Array()
 var _when: SimClock.Calendar = SimClock.Calendar.new(0)
 
 
-func add_skill(skill_name: String, xp_of: Callable) -> void:
+func add_skill(label: String, xp_of: Callable) -> void:
 	"""Watch a skill's level: `xp_of(who) -> int` (its XP on §5.3's curve, forest_rules.gd `level_of`)."""
-	_skill_names.append(skill_name)
+	_skill_names.append(label)
 	_skill_xp.append(xp_of)
 
 

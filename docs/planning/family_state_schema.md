@@ -1,10 +1,13 @@
 # PC-04 bounded state and load contract
 
-FAMILY-STATE-R01 · version3 draft · 2026-09-19 · Astra
+FAMILY-STATE-R01 · version3 · 2026-09-19 · Astra · **ADOPTED 2026-10-01 (DEC-044)**
 
-Companion to family_execution_package.md. Proposed, not active registry state.
-Do not implement or mark the family package complete before independent review
-of this table, the gameplay rules and their cross-owner transaction boundary.
+Companion to family_execution_package.md. Brendan signed off this table on
+2026-10-01. [Decision 0521](../decisions/0521-pc04-adopted-with-children-inactive.md)
+implements the single-owner store (`godot/scripts/core/households.gd`, 46352 bytes)
+and records exactly where it stops: no settlement composes it, the §4/§5 owner
+registration and the cross-owner admission/lifecycle transaction remain gate 3,
+and the selection scratch waits for the service pass (gate 6).
 
 ## Household owner
 
@@ -139,7 +142,12 @@ Restore order: directory and residents first; family/§4+§5 before care planner
 publication; relationship history and names bind independently by persistent ID.
 One command cannot change life stage. New caregiving willingness/preference UI
 requires a versioned SET_POLICY payload or named new command protocol; it must not
-reuse opaque bytes in an existing policy ID. Command wire design remains a blocker.
+reuse opaque bytes in an existing policy ID. The wire itself is drafted in
+family_lifecycle_contract.md "Versioned player commands" (SET_POLICY selectors
+2 CARE_WILLING and 3 CARE_PREFERRED) and adopted with it. What remains open is its
+activation, which changes the rules/catalog fingerprint together with the other
+family domains (gate 3); decision 0521 reconciles this sentence, which previously
+called the wire design itself a blocker.
 Existing household admission must be an atomic-unit variant of ACCEPT_CANDIDATES,
 not a loop that silently accepts some individual rows. The replay records that
 unit identity and its checked selection; it never rerolls household composition.

@@ -1,12 +1,14 @@
 # Fixed life stages, households and care
 
-PC-04 / FAMILY-C4-R01 · version 4 draft · 2026-09-19 · Astra
+PC-04 / FAMILY-C4-R01 · version 4 · 2026-09-19 · Astra · **ADOPTED 2026-10-01 (DEC-044)**
 
-Status: authoring and independent review. This is a proposed exact engineering
-amendment under the delegated settlement scope, not a record of numeric values
-supplied by Brendan and not permission to activate incomplete dependent profiles.
-The user-confirmed boundary is DEC-032/033. The policies below are [NEW] except
-where explicitly inherited. Births, aging, adulthood transitions and death by age
+Status: **adopted, with children kept inactive.** Brendan signed off this design on
+2026-10-01 ([DEC-044](../setting_decisions.md#dec-044--pc-04-adopted-with-children-kept-inactive);
+implementation and gate state in [decision 0521](../decisions/0521-pc04-adopted-with-children-inactive.md)).
+The values below were drafted by Astra and are now **confirmed as Brendan's own
+decisions**; the earlier `[NEW]` provenance flag is removed for that reason. Adoption
+is not activation: no scenario spawns a child, and engineering gates 1–6 in "Review and
+remaining closure" below stay open. The boundary remains DEC-032/033. Births, aging, adulthood transitions and death by age
 remain outside this release. Stage is fixed for a scenario. All living residents
 count toward 256, all resident rows toward 512. No family owns a Node hierarchy.
 
@@ -32,8 +34,9 @@ and community fallback available.
 
 The six starter pairs in INIT-B have affinity 20, as the numeric starter contract
 states. They are not automatically friends: inherited friendship enters at 40
-and clears below 25. The queue's phrase “Friend pairs” must be corrected before
-INIT-B dispatch. Family expansion does not change these twelve adult initial
+and clears below 25. The work queue's INIT-B entry already says so ("six reciprocal
+affinity-20 pairs (not friend=true at threshold40)"); the earlier "Friend pairs"
+wording this paragraph asked to correct is gone (checked 2026-10-01, decision 0521). Family expansion does not change these twelve adult initial
 residents, add children to the refuge baseline, or change the lone rat petition.
 PC-03 must explicitly author mixed-stage scenario households.
 
@@ -214,7 +217,9 @@ maximums, schema/section ownership, allocator terminal behavior and byte arithme
 family_lifecycle_contract.md drafts command wire selectors. Exact method parameter
 records, cross-owner transaction binding and review remain required.
 Do not add arrays to the memory ledger or registry until that complete table is
-independently reviewed. The existing affinity store can be designed independently
+independently reviewed. (Satisfied 2026-10-01: Brendan signed the table off under
+DEC-044, and decision 0521 adds the 46352-byte owner to the ledger and its registry
+rows, UNRESOLVED until the §4/§5 owner registration of gate 3.) The existing affinity store can be designed independently
 once household/affinity separation above is accepted; no degree cap expansion is
 required to preserve a child's care network.
 
@@ -238,6 +243,8 @@ Headless counters cannot substitute for those captures.
 ## Review and remaining closure
 
 This draft closes proposed coefficient and routine choices, not all PC-04 gates.
+**At adoption (DEC-044, 2026-10-01) items 1–6 below are engineering gates 1–6 and all
+stay open; decision 0521 records what exists for each and what is missing.**
 Required next revisions before full execution approval:
 
 1. A finite illness model with causal exposures, exact thresholds/rates, recovery,

@@ -166,9 +166,13 @@ func _draw_tree(t: int, state: int) -> void:
 
 
 func _replace_tree_node(t: int) -> void:
-	"""A mature tree of the stand's look: made the world's way (the old one, if the world's, is hidden)."""
-	if _tree_nodes[t] != null:
-		_tree_nodes[t].visible = false
+	"""A mature tree of the stand's look, made the world's way: the old one is freed if this view made
+	it, only hidden if it is the world's (review F18: a replaced tree leaves nothing of its own behind)."""
+	var old: Node3D = _tree_nodes[t] if is_instance_valid(_tree_nodes[t]) else null
+	if old != null and old.get_parent() == self:
+		old.queue_free()
+	elif old != null:
+		old.visible = false
 	var node: Node3D = _make.call(StandScript.LOOK_KEYS[_stand.look[t]], _stand.at[t], _stand.yaw[t], _stand.size[t]) as Node3D
 	add_child(node)
 	_tree_nodes[t] = node
@@ -316,20 +320,24 @@ func _start_fall(t: int) -> void:
 	var key: StringName = StandScript.LOOK_KEYS[_stand.look[t]]
 	var scale_y: float = maxf(node.transform.basis.get_scale().y, 0.0001)
 	if _split.parts_into(key, node, Roots.model_cut_m(_stand.look[t], _stand.size[t]) / scale_y, _parts):
-		_lower_nodes[t] = _part_node(_parts[0], node.transform * (_parts[2] as Transform3D))
-		_upper_nodes[t] = _part_node(_parts[1], node.transform * (_parts[2] as Transform3D))
-		_rest[t] = _upper_nodes[t].transform
+		var xform: Transform3D = node.transform * (_parts[2] as Transform3D)
+		_lower_nodes[t] = _part_node(_lower_nodes[t], _parts[0], xform)
+		_upper_nodes[t] = _part_node(_upper_nodes[t], _parts[1], xform)
+		_rest[t] = xform
 	_falling_s[t] = 0.0
 	_landed[t] = 0
 	_falls.append(t)
 
 
-func _part_node(mesh: Mesh, xform: Transform3D) -> MeshInstance3D:
-	"""A node drawing one cut part where the tree stood."""
-	var part := MeshInstance3D.new()
+func _part_node(part: MeshInstance3D, mesh: Mesh, xform: Transform3D) -> MeshInstance3D:
+	"""A node drawing one cut part where the tree stood: the tree's own from its last fall, set back
+	in place, or -- its first fall, or its first since its look changed -- a new one (review F18:
+	felled, regrown and felled again, a tree keeps two part nodes, not two more each time)."""
+	if part == null:
+		part = MeshInstance3D.new()
+		add_child(part)
 	part.mesh = mesh
 	part.transform = xform
-	add_child(part)
 	return part
 
 

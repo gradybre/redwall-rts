@@ -162,6 +162,8 @@ var _bounds_u: Rect2i = Rect2i()
 var _circles_u: PackedInt32Array = PackedInt32Array()
 var _spots_u: PackedInt32Array = PackedInt32Array()
 var _under_u: PackedInt32Array = PackedInt32Array()
+## The world's buildings alone; `_under_u` adds every structure placed since (a cellar building, decision 0612).
+var _world_under_u: PackedInt32Array = PackedInt32Array()
 var _ground: Vector2 = Vector2.ZERO
 var _cursor: Vector2 = Vector2.ZERO
 var _has_cursor: bool = false
@@ -244,7 +246,8 @@ func set_world(world: DemoWorldScript) -> void:
 	_world = world
 	view.set_world(world, world.building_obstacles(), world.trees())
 	overlay.bores.set_trees(world.trees())
-	_under_u = Rules.circles_to_u(PackedVector3Array(world.building_obstacles()))
+	_world_under_u = Rules.circles_to_u(PackedVector3Array(world.building_obstacles()))
+	_under_u = _world_under_u.duplicate()
 	ext.set_world(world, _under_u)
 
 
@@ -692,6 +695,8 @@ func _refresh_clearances() -> void:
 	"""What a new mouth must clear now: every obstacle and heap, and every work spot and mouth (see WHAT A
 	PIECE MUST CLEAR)."""
 	_circles_u = Rules.circles_to_u(_space.obstacles)
+	_under_u = _world_under_u.duplicate()
+	_under_u.append_array(Rules.circles_to_u(_space.structure_circles()))
 	_spots_u.clear()
 	for poi in _space.poi_position.size():
 		for k in _space.poi_capacity[poi]:

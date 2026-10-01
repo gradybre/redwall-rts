@@ -1,5 +1,6 @@
 # 0611 — The cool cellar: surplus food is moved to where it keeps longer
-Date: 2026-10-01 · Status: Accepted (demo feature #30, approved by Brendan 2026-10-01). Proposals P1–P7 await his ruling.
+Date: 2026-10-01 · Status: Accepted (demo feature #30, approved by Brendan 2026-10-01). P1–P6 ruled as built; P7 ruled
+"Build both cellars" (decision 0612).
 
 Numbered 0611 because the brief assigned 0611–0619. No record with those numbers exists on any branch
 (`git log --all`) or in any sibling worktree.
@@ -82,6 +83,16 @@ The rules used:
 - **General, not cellar-only.** The rule is "a store that ages it more slowly, with room", not "a cellar".
   - The covered store's food therefore also restocks the kitchen pantry (750) when the kitchen has made room.
   - A future ground pile (OPEN_PILE, 1500, the demolition ruling's piles) is hauled from without new code.
+
+## Brendan's rulings (2026-10-01, relayed by the coordinator)
+
+- **P1–P6 are approved as built.** Surplus is any food nobody has reserved. The soonest-spoiling lot moves first, but
+  not one with under 6 hours left. Any store that ages food more slowly is a destination. Food in hand ages at its
+  source's rate. A move takes one small carry (48 U). Planning runs every 2 s, with 4 moves at once and a 60 s back-off.
+- **P7: "Build both cellars."** The dug root cellar stays as it is. The GDD's Cellar building is added alongside it:
+  decision 0612.
+
+The proposals as they were put follow, kept as the record of what was weighed.
 
 ## Proposals for Brendan (the documents are silent; the smallest demo behaviour was built)
 

@@ -40,7 +40,7 @@ const GoodsScript := preload("res://demo/farm/farm_goods.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
-const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
+const SpotScript := preload("res://demo/stores/stand_spot.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 
@@ -72,8 +72,6 @@ const NOBODY: int = -1
 const NONE: int = -1
 const ARRIVE_M: float = 0.4
 const RING_GAP_M: float = 0.45
-const RINGS: int = 4
-const RING_SPOTS: int = 12
 const MAX_TRIES: int = 3
 const WORK_CLIP: StringName = &"collect_object"
 const CANT_CARRY: String = "can't carry a load"
@@ -132,7 +130,7 @@ var _cand_hours: PackedInt32Array = PackedInt32Array()
 var _cand_free: PackedInt64Array = PackedInt64Array()
 var _cand_count: int = 0
 var _found: Vector2 = Vector2.ZERO
-var _no_taken: PackedVector2Array = PackedVector2Array()
+var _spot: PackedVector2Array = PackedVector2Array([Vector2.ZERO])
 
 
 func _init() -> void:
@@ -712,21 +710,8 @@ func _hold_load(who: int, it: int) -> void:
 
 
 func _spot_near(target: Vector2, first_ring: float, brain: BrainScript) -> bool:
-	"""The standable, reachable spot nearest the carrier on rings round `target`, clear of anyone standing
-	(cast_orders.spot_ok), into `_found`. False when no ring has one."""
-	var from: Vector2 = brain.surface_point()
-	var members: Array[BrainScript] = [brain]
-	var avoid: PackedVector3Array = CastOrdersScript.standing_except(_cast.space(), members)
-	for ring: int in RINGS:
-		var radius: float = first_ring + RING_GAP_M * ring
-		var found: bool = false
-		for k: int in (1 if radius <= 0.0 else RING_SPOTS):
-			var spot: Vector2 = target + Vector2.from_angle(TAU * k / RING_SPOTS) * radius
-			if found and spot.distance_squared_to(from) >= _found.distance_squared_to(from):
-				continue
-			if CastOrdersScript.spot_ok(_cast.space(), spot, brain.radius, _cast.bounds(), avoid, _no_taken, from):
-				_found = spot
-				found = true
-		if found:
-			return true
-	return false
+	"""The spot to stand at round `target` (stand_spot.gd), into `_found`. False when there is none."""
+	if not SpotScript.find_into(_cast, target, first_ring, brain, _spot):
+		return false
+	_found = _spot[0]
+	return true

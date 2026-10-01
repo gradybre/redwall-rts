@@ -587,8 +587,35 @@ func _build_stores() -> void:
 	_stores.configure(_cast as DemoCastScript, (_command as DemoCommandScript).tunnels().network, _farm.pantry,
 		func(lot: int) -> int: return int(takes.call(&"free_milli", pantry, lot)), _farm.sim.calendar.hour_index,
 		_farm.goods)
-	_work.add_stores(_stores.haul, _farm.pantry)
-	(_command as DemoCommandScript).add_task_text(_stores.haul.task_text)
+	_build_cellar_buildings()
+	_work.add_stores(_stores.haul, _farm.pantry, _stores.builders)
+	(_command as DemoCommandScript).add_task_text(_stores.doing_text)
+
+
+func _build_cellar_buildings() -> void:
+	"""The cellar buildings (demo/stores/, decision 0612): placed from the Pantry's "Build a cellar…" (which closes the
+	Pantry and arms the placing tool), built from the village stores at the open stockpile by residents through the work
+	board, each a cellar store of the pantry once built."""
+	var command: DemoCommandScript = _command as DemoCommandScript
+	var tool: TunnelControlScript = command.tunnels()
+	_stores.configure_cellars(_services.stores, _farm.goods.props, SpoilScript.drop_point(_cast as DemoCastScript),
+		tool.room_site, tool.site_key, tool.network, _camera.camera(), command.say)
+	_stores.set_unlock_facts(_cellar_unlock_facts)
+	_farm.pantry_panel.add_store_control(_stores.bar)
+	_stores.bar.build_requested.connect(func() -> void:
+		_farm.pantry_panel.toggle()
+		_stores.start_placing())
+	command.add_input_hook(_stores.handle_input)
+
+
+func _cellar_unlock_facts() -> Vector4i:
+	"""What the cellar building's unlock reads (cellar_rules.gd THE UNLOCK): the calendar day, the residents living,
+	the cast's size and the portions eaten so far (the kitchen's nearest count of portions made). The demo's cast never
+	changes -- no deaths, no immigration -- so the residents living are the cast (decision 0612 P1)."""
+	@warning_ignore("integer_division")  # whole days by intent
+	var day: int = _farm.sim.calendar.hour_index() / 24 + 1
+	var cast_size: int = (_cast as DemoCastScript).actor_count()
+	return Vector4i(day, cast_size, cast_size, _kitchen.kitchen.portions_eaten)
 
 
 func stores() -> StoresNodeScript:

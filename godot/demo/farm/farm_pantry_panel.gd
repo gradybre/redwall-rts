@@ -574,6 +574,14 @@ func store_row_cells(at: int) -> PackedStringArray:
 	return out
 
 
+func add_store_control(control: Control) -> void:
+	"""Put `control` on the Stocks tab under the stores and why they keep food (the cellar buildings' line and Build
+	button, decision 0612); it is the caller's to fill."""
+	var page := _pages[TAB_STOCKS] as VBoxContainer
+	page.add_child(control)
+	page.move_child(control, _why.get_index() + 1)
+
+
 func why_text() -> String:
 	"""What the Stocks tab says under its stores about why each keeps food as it does (decision 0611)."""
 	return _why.text

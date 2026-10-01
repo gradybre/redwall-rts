@@ -473,7 +473,8 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
   to its heap reads "Carry earth back", a delivery, and Cancel refuses it; decision 0401). The kitchen's cook and
   water drawers are listed as well (`kitchen_work.gd`; the kitchen hands them out itself), and the board hands no
   work to a resident at its meal (`set_needs_gate`, `kitchen.gd kept_for_meals`; decision 0381). The food stores'
-  moves into a cooler store are a ninth source, **Food stores** (`stores_work.gd`, decision 0611; see The cool cellar).
+  moves into a cooler store are a ninth source, **Food stores** (`stores_work.gd`, decision 0611; see The cool cellar),
+  which also lists the cellar buildings' places (decision 0612).
 - **Nobody wanders while eligible work waits.** Every half second of cast time each resident is reconsidered
   (staggered); an idle one -- wandering, on the surface, not resting, not in the water nor held by its rescue, its
   needs not first -- takes the best waiting task it is eligible for (skills and physical fit -- fits the bore, can
@@ -914,6 +915,31 @@ where the covered store ages it at 1000 -- it keeps 2.8 times as long. Nothing a
 - **For later stores** (`farm/farm_storage.gd` STORAGE CLASS): a store declares its §5.8 class (`storage_class`, open
   pile 1500 / covered 1000 / pantry 750 / cellar 350) and its `why`; a ground pile or a stockpile zone that says OPEN_PILE
   is hauled from by the same rule. A cool cellar is the CELLAR class, a warm one keeps like a PANTRY.
+
+## The Cellar building (decision 0612)
+
+Brendan's ruling on 0611's P7 was "Build both cellars": beside the dug root cellar stands the GDD's **Cellar** building
+(`stores/`), every figure read from the settlement's own tables (`scripts/core/building_definitions.gd`,
+`construction.gd`): wood 20 and stone 60, 900 WU, 1,000,000 g -- **2000 U** at the GDD's 500 g a unit -- and §5.8's
+cellar factor, 350 per mille.
+
+- **Placing**: the Pantry's Stocks tab has a **Cellar buildings** line and **Build a cellar…** (no key). It closes the
+  Pantry and arms the placing tool (`stores/cellar_place.gd`): a ghost of the library cellar follows the pointer, turned
+  to the square, brass where it may stand and clay with the reason where it may not (off the village, an obstacle, a
+  work spot or mouth, a building, the beds, the water, a tunnel or dug room, the other cellar). Click places it; Esc or a
+  right click puts the tool away. At most two stand. Placing deducts nothing.
+- **Building** (`stores/cellar_builders.gd`, REQ-SET-124/125/126): four places a cellar on the work board's **Food
+  stores** source, claimed for idle carriers. A builder walks to the open stockpile, lifts a load (2.4-4.8 U, its §5.2
+  carry at 5000 g a unit -- only now taken from the stores), carries it to the site and sets it down; once everything is
+  there they build it, their time summed (a WU is 0.15 s). Called away, a load goes back into the stores whole. The
+  Pantry's **Cancel** lets the builders go and returns what was delivered: all of it before the work, 80% after.
+- **The look**: the library cellar model pressed flat as a marked footprint, rising with the work, whole when built; a
+  plank stack and a heap of rubble at its site grow with the wood and stone; its name and percent over it. Its footprint
+  is an obstacle from the moment it is placed.
+- **Built, it is a store like any other**: the CELLAR class, filled by the haul, explained by the why note ("Cellar 1 —
+  a large store above ground: food keeps 2.8× as long as in the covered store").
+- **Open from the start** (`cellar_rules.gd UNLOCK`, one constant; the GDD's M1 needs 12 residents -- the options are in
+  decision 0612).
 
 ## The construction theatre and the warnings (decision 0211)
 

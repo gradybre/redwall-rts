@@ -289,7 +289,7 @@ Needs: a site both banks take; planks (sawn at the sawhorse) and wood for any pi
   exactly when its card allows it. The bridge, tunnel and fixture buttons now refuse a short store before
   they are pressed, not after.
 - **Costs** are have / need from the stores the HUD reads (wood, stone, planks), the farm's compost store,
-  and the fullest spoil heap. **Work** is in game hours of the demo calendar (2.5 demo seconds a game
+  and the earth on the fullest spoil heap or in the stores (Raise, Bank; decision 0401). **Work** is in game hours of the demo calendar (2.5 demo seconds a game
   hour); the walk is not counted, and a mole job's card says a crew is quicker.
 - **Who**, in one grammar everywhere: "Assign selected: X (nearest of 3)" (farm, woods, bridges);
   "Assign selected: X (first of 3 who fits the bore)" and "Assign X (the nearest free resident who fits
@@ -329,8 +329,8 @@ Needs: a site both banks take; planks (sawn at the sawhorse) and wood for any pi
 | Right click / left click a bridge site | Build the planned bridge there with the selection / select the site for the Water panel |
 | Middle-button drag | Turn the camera: across turns it (right turns right, as E), up and down tilt it |
 | (any camera move) | The eye never sits inside a tree crown, the crowns between it and what it looks at are thinned, and a selected resident shows through foliage and roofs (see The camera and the trees) |
-| Left click a spoil heap | Select it: a brass ring, and the party panel says how much spoil it holds |
-| Right click a spoil heap (or C with it selected) | The selected residents who can carry dig it out and haul it to the farm's compost store (Clear; see Spoil heaps) |
+| Left click a spoil heap | Select it: a brass ring, and the party panel says how much earth it holds |
+| Right click a spoil heap (or C with it selected) | The selected residents who can carry dig it out and haul its earth to the village stores (Clear; see Spoil heaps) |
 | V | Steps the one shown map layer (see Map layers): Growing: soil moisture, Growing: ripeness, Getting there: water range (wade / swim / dive, fords, bridge spans, landings, fish stocks), Woods: zones and trees, off -- the same layer the Map layer picker shows |
 
 The "Demo party" panel in the HUD's left column lists the selection. With one resident selected it
@@ -708,7 +708,7 @@ the top bar's Ready food cell shows the pantry total, and the Food command (or K
 | Plant… (bed panel) | The crop picker: every ingredient, sowable ones first, with growth hours, yield, family and its rotation effect in this bed; the rest say why not (soil, planting window) |
 | Water / Harvest / Clear / Compost / Cover | Given to the selected residents, or queued for the field crew (the fieldworker and gatherer take queued work while wandering) |
 | Drain | A wet or waterlogged bed: a resident digs a ditch round it (6 WU); its moisture drops at once to the top of its crop's band, and the ditch sheds up to 1000 a day for good (decision 0205) |
-| Raise / Bank | A resident fetches 2 U of tunnel spoil from a heap: a raised bed drains and is warmer at night; a banked bed keeps half of each dry day's loss |
+| Raise / Bank | A resident fetches 2 U of tunnel earth from the nearest spoil heap or the stores that hold it and carries it to the bed: a raised bed drains and is warmer at night; a banked bed keeps half of each dry day's loss. Earth adds no fertility. Cancelled (or unable to reach or work the bed) with the earth in hand, the resident carries it back to where it came from (decision 0401) |
 | Rest | Rest the bed fallow (+0.5 fertility points a day; nothing is sown) |
 | V | Map layer: moisture, then ripeness, then the water range, then the woods, then off -- or pick one on the Map layer picker (see Map layers) |
 | K / Food | The Pantry |
@@ -992,16 +992,26 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
 
 A finished tunnel's spoil heaps can be cleared (`spoil/`, decision 0205). Left click a heap to select
 it; right click it (or press C) with residents selected, and those who can carry dig it out a basketful
-(2 U, the farm's own load off a heap) at a time and haul it to the farm's compost store, tipped by the
-open stockpile -- the demo's one use for spoil is compost (the farm's Compost job digs it off a heap too).
-Every milli-U goes through the farm's spoil books, the ones Raise and Bank take from: taken, carried,
-delivered, nothing made or lost. At most four work one heap; the emptied heap stops being an obstacle.
+(2 U, the farm's own load off a heap) at a time and haul it to the village stores, tipped by the
+open stockpile. At most four work one heap; the emptied heap stops being an obstacle.
 A heap still growing under a dig is refused. The party panel says who is "Clearing a spoil heap" or
-"Hauling spoil to the compost". A worker digs or tips only standing at its own spot: one whose walk failed
+"Hauling earth to the stores". A worker digs or tips only standing at its own spot: one whose walk failed
 waits a few seconds -- "... — can't reach it, trying again" -- and tries again, at most three times, keeping
-any basket in hand. A basket reaches the store only by being tipped at the drop spot: a worker called away, or
+any basket in hand. A basket reaches the stores only by being tipped at the drop spot: a worker called away, or
 one that gives up, puts its basket back on the heap -- nothing is delivered from afar, nothing is lost
 (decision 0361).
+
+**Spoil is earth, not compost** (decision 0401, Brendan's ruling of 2026-09-30, the adopted
+`excavated_earth` rule: dug earth is never fertiliser). What a tunnel digs out is earth. It is heaped at the mouth,
+carried, and then either built into a bed by **Raise** or **Bank** or kept -- on its heap, or in the stores, where
+the Tunnels and Water panels' stores line shows it ("earth 4.0 U"; it is not a top-bar figure). Raise and Bank fetch
+it from whichever holds 2 U nearest the resident: a spoil heap, or the stores. Every milli-U goes through the farm's
+earth books (`farm/farm_tunnels.gd` EARTH): dug = on the heaps + in baskets + in hand + in the stores + built in, at
+every moment. A raise or bank cancelled (or refused at its bed, or unable to reach it) with earth in hand becomes
+"Carry earth back": the carrier walks it back to its heap or the stores and tips it there; one that cannot get back
+either puts it back from where it stands. **Compost comes only from plant waste** -- a cleared crop's 0.5 U and the
+Pantry's spoiled food at 4 : 2 -- and Compost spends only the compost store; earth never raises fertility. There is no
+backfill yet: the tunnels have no way to fill a dug passage, so that use waits for one (decision 0401).
 
 ## Sound (decision 0351)
 

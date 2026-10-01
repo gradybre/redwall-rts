@@ -5,9 +5,10 @@ extends RefCounted
 ## too; this file only words it. The refusal words here are also the order's own ("Can't drain: the bed is not too
 ## wet"), farm_crew.gd `reason_text`, so a card and the answer to pressing it say the same thing.
 ##
-## COSTS. Compost takes COMPOST_MILLI_PER_TILE (2 U) from the farm's compost store when it holds enough, else from a
-## spoil heap (farm_jobs.gd `compost_source`); raising and banking take SPOIL_PER_JOB_MILLI off one heap. The have is
-## the farm's compost store and the fullest heap -- the very figures `refusal_for` compares. Seed is not stocked in
+## COSTS. Compost takes COMPOST_MILLI_PER_TILE (2 U) from the farm's compost store, which only plant waste fills
+## (decision 0401); raising and banking take EARTH_PER_JOB_MILLI of earth from one source -- a spoil heap or the stores
+## (farm_tunnels.gd SOURCES). The have is the compost store and the fullest source -- the very figures `refusal_for`
+## compares. Seed is not stocked in
 ## the demo (farm_sim.gd), so sowing shows no cost; water comes from the well.
 
 const SimScript := preload("res://demo/farm/farm_sim.gd")
@@ -22,8 +23,8 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const WORDS: Dictionary = {
 	&"NOT_RIPE": "the crop is not ripe yet",
 	&"NOTHING_GROWING": "nothing is growing to water",
-	&"NO_TUNNEL_SPOIL": "no spoil heap holds %s",
-	&"NOT_ENOUGH_COMPOST": "not enough compost: %s from the store or a spoil heap",
+	&"NO_EARTH": "no spoil heap or store holds %s of earth",
+	&"NOT_ENOUGH_COMPOST": "not enough compost: %s from the compost store",
 	&"COMPOST_NOT_ELIGIBLE": "this bed has had its compost this season",
 	&"ALREADY_DONE": "it is done on this bed already",
 	&"NO_CROP_STANDING": "there is no crop to cover",
@@ -40,8 +41,8 @@ const WORDS: Dictionary = {
 const FIXES: Dictionary = {
 	&"NOTHING_GROWING": "Plant… a crop first",
 	&"NO_CROP_STANDING": "Plant… a crop first",
-	&"NO_TUNNEL_SPOIL": "Dig tunnel (B): its spoil heaps up at the mouth",
-	&"NOT_ENOUGH_COMPOST": "Pantry (K) ▸ compost spoiled food, or dig a tunnel (B) for spoil",
+	&"NO_EARTH": "Dig tunnel (B): its earth heaps up at the mouth",
+	&"NOT_ENOUGH_COMPOST": "Pantry (K) ▸ compost spoiled food, or clear a withered bed",
 	&"COMPOST_NOT_ELIGIBLE": "wait for the next season",
 	&"BED_RESTING_FALLOW": "Unrest the bed first",
 	&"NO_ITEM_CHOSEN": "Plant… and pick a crop",
@@ -53,11 +54,12 @@ const FIXES: Dictionary = {
 }
 ## What each verb needs (by farm_jobs.gd KIND_*).
 const NEEDS: Array[String] = ["an empty bed, not resting; the crop's soil and sowing season",
-	"a growing crop", "a ripe crop", "a withered or blighted crop", "once a season a bed; %s of compost or spoil",
-	"a crop standing, not yet covered", "%s of tunnel spoil on one heap", "%s of tunnel spoil on one heap",
+	"a growing crop", "a ripe crop", "a withered or blighted crop", "once a season a bed; %s of compost",
+	"a crop standing, not yet covered", "%s of earth on one heap or in the stores",
+	"%s of earth on one heap or in the stores",
 	"a wet or waterlogged bed"]
 const COMPOST_STORE: String = "Compost (store)"
-const SPOIL_HEAP: String = "Tunnel spoil (one heap)"
+const EARTH: String = "Earth (one heap or the stores)"
 
 
 static func reason_words(code: StringName) -> String:
@@ -69,8 +71,8 @@ static func reason_words(code: StringName) -> String:
 
 
 static func dose_milli(compost: bool) -> int:
-	"""The dose a verb takes: compost's REQ-SET-076 dose, or the spoil a raise, bank or spoil compost takes off a heap."""
-	return FarmingScript.COMPOST_MILLI_PER_TILE if compost else JobsScript.SPOIL_PER_JOB_MILLI
+	"""The dose a verb takes: compost's REQ-SET-076 dose, or the earth a raise or a bank takes from one source."""
+	return FarmingScript.COMPOST_MILLI_PER_TILE if compost else JobsScript.EARTH_PER_JOB_MILLI
 
 
 static func fix_for(code: StringName) -> String:
@@ -78,22 +80,18 @@ static func fix_for(code: StringName) -> String:
 	return FIXES.get(code, "")
 
 
-static func fill(card: CardScript, sim: SimScript, kind: int, bed: int, spoil_milli: int, read: IntMath.IntResult,
+static func fill(card: CardScript, sim: SimScript, kind: int, bed: int, earth_milli: int, read: IntMath.IntResult,
 		sow_item: int = Catalog.NO_ITEM) -> void:
-	"""The card's result, costs and needs for `kind` on `bed` (spoil_milli: the fullest heap, as `refusal_for`;
+	"""The card's result, costs and needs for `kind` on `bed` (earth_milli: the fullest earth source, as `refusal_for`;
 	sow_item: a picker row's crop, else the chosen one)."""
 	card.result = result_text(sim, kind, bed, read, sow_item)
 	var needs: String = NEEDS[kind]
 	card.prerequisites.append(needs % CardScript.amount_text(dose_milli(kind == JobsScript.KIND_COMPOST)) if needs.contains("%s") else needs)
 	match kind:
 		JobsScript.KIND_COMPOST:
-			var need: int = sim.farming().compost_milli_per_tile()
-			if JobsScript.compost_source(sim, bed) == JobsScript.SOURCE_STORE or spoil_milli < JobsScript.SPOIL_PER_JOB_MILLI:
-				card.add_cost(COMPOST_STORE, sim.compost_milli, need)
-			if JobsScript.compost_source(sim, bed) == JobsScript.SOURCE_SPOIL:
-				card.add_cost(SPOIL_HEAP, spoil_milli, JobsScript.SPOIL_PER_JOB_MILLI)
+			card.add_cost(COMPOST_STORE, sim.compost_milli, sim.farming().compost_milli_per_tile())
 		JobsScript.KIND_RAISE, JobsScript.KIND_BANK:
-			card.add_cost(SPOIL_HEAP, spoil_milli, JobsScript.SPOIL_PER_JOB_MILLI)
+			card.add_cost(EARTH, earth_milli, JobsScript.EARTH_PER_JOB_MILLI)
 
 
 static func result_text(sim: SimScript, kind: int, bed: int, read: IntMath.IntResult,
@@ -114,5 +112,5 @@ static func result_text(sim: SimScript, kind: int, bed: int, read: IntMath.IntRe
 		JobsScript.KIND_COVER:
 			return "Cover with straw: frost spares the crop tonight (off at 06:00)"
 		JobsScript.KIND_RAISE:
-			return "Raise with tunnel spoil: the bed drains and is warmer at night"
-	return "Bank with tunnel spoil: the bed keeps half of each day's drying"
+			return "Raise with tunnel earth: the bed drains and is warmer at night (earth adds no fertility)"
+	return "Bank with tunnel earth: the bed keeps half of each day's drying (earth adds no fertility)"

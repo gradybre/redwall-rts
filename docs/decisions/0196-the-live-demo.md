@@ -7,6 +7,12 @@ built on `feat/live-demo` (commit 114a902). Where the playtest fix pass later ch
 marked **(changed by 0205)** and the new value is left to 0205. Every constant named here lives in
 the file cited, and that file is the authority if the two disagree.
 
+> **Superseded in part by [0401](0401-spoil-becomes-earth-not-compost.md) (2026-10-01, Brendan's ruling of
+> 2026-09-30):** "spoil as soil" -- tunnel spoil dug in as a bed's compost, and §58's "spoil-compost" -- is retired.
+> What a tunnel digs out is *earth* (the adopted `excavated_earth`): it raises and banks beds and is kept, but never
+> becomes compost or fertility; compost comes only from plant waste. The drainage, irrigation and raised/banked bed
+> effects stand.
+
 ## Decision
 
 ### Scope and boot
@@ -353,7 +359,7 @@ The pantry agent's 12 decisions are reconstructed from the `farm/*.gd` headers.
 58. **Farm verbs and WU** (`farm/farm_jobs.gd`). Cited: sow 4, tend 1, harvest 6, clear 10, compost 8.
     Demo values: cover 2, raise 6, bank 6, fetch 1, dig 2, drop 1. A WU is shown as 1.5 s of cast
     time. Raise, bank and spoil-compost each take §5.6's 2 U dose of tunnel spoil. (changed by 0205:
-    a Drain verb.)
+    a Drain verb.) (**Superseded by 0401:** no spoil-compost; raise and bank take 2 U of earth, a demo value.)
 59. **The crew** (`farm/farm_crew.gd`). The fieldworker and gatherer take queued work while wandering.
     A player's order goes to the nearest selected resident. The farm itself raises only REQ-SET-073
     harvest jobs and REQ-SET-085 clearing jobs.

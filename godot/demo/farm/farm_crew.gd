@@ -11,7 +11,7 @@ extends RefCounted
 ## every withered one; everything else waits for the player.
 ##
 ## HOW A STEP RUNS. A walk issues `order_move()` (or `order_carry()`, the carry walk, for a harvest
-## to the store and water or spoil to a bed) to a standable spot beside its target, facing it, and
+## to the store and water or earth to a bed) to a standable spot beside its target, facing it, and
 ## is done when the brain holds there. A work step plays the work clip in place for its WU
 ## (farm_jobs.gd) of the cast's time, applying its effect at the end -- except sowing's seed
 ## commitment, which is REQ-SET-071's productive START. A resident the player orders elsewhere (or
@@ -32,6 +32,13 @@ extends RefCounted
 ##     at the store, on arrival. Called away, a carrier leaves the load with the job and comes back to it
 ##     through its resume queue; released, the routine crew takes it. A job never closes holding a load:
 ##     one that cannot get through waits on the board with it (`_park`) and is tried again next hour.
+##
+## EARTH IS CONSERVED TOO (decision 0401; 0222's open item). Raise and Bank dig 2 U of earth from a heap or the stores
+## (farm_tunnels.gd SOURCES) and carry it to the bed, where the work builds it in (`build_with`). A raise or a bank
+## that ends with earth in hand -- cancelled (0222's ruling: cancel is not loss), or unable to reach or work its bed --
+## becomes an EARTH RETURN (farm_jobs.gd KIND_RETURN_EARTH): its carrier walks the earth back to its source and tips
+## it there (`return_spoil_into`) on arrival. A return that cannot get through either puts the earth back where it
+## came from (`return_spoil_into` from where it stands, 0361's rule for an undelivered basket). Earth is never lost.
 ##
 ## INCIDENTS (decision 0331, review UX-011). Two of those endings are conditions that stay true after the
 ## notice, so they are also incidents (demo_incidents.gd) when the crew is bound to them (`set_incidents`):
@@ -170,7 +177,7 @@ func _raise_stuck(row: int) -> void:
 func stuck_state(bed: int, kind: int) -> int:
 	"""A stuck job's incident state: RESOLVED once the bed no longer wants it, ASSIGNED while it is on the board
 	again, else needing a decision."""
-	if JobsScript.refusal_for(_sim, kind, bed, max_heap_spoil()) != &"":
+	if JobsScript.refusal_for(_sim, kind, bed, most_earth()) != &"":
 		return IncidentsScript.STATE_RESOLVED
 	if jobs.job_on_bed_into(kind, bed, _room_read):
 		return IncidentsScript.STATE_ASSIGNED
@@ -218,8 +225,7 @@ func order(kind: int, bed: int, members: PackedInt32Array, origin: int) -> Strin
 	if queued and jobs.blocked[row] == JobsScript.BLOCK_WAY:
 		jobs.blocked[row] = JobsScript.BLOCK_NONE
 	if not queued:
-		var source: int = JobsScript.compost_source(_sim, bed) if kind == JobsScript.KIND_COMPOST else 0
-		if not jobs.open_into(kind, bed, origin, source, _read):
+		if not jobs.open_into(kind, bed, origin, _read):
 			return "Can't %s: %s" % [what.to_lower(), reason_text(StringName(_read.error))]
 		row = _read.value
 	if d.waits_room:
@@ -252,7 +258,7 @@ func decide(kind: int, bed: int, members: PackedInt32Array, sow_item: int = Cata
 	if kind == JobsScript.KIND_SOW and Catalog.is_item(sow_item):
 		d.code = _sim.sow_refusal(bed, sow_item)
 	else:
-		d.code = JobsScript.refusal_for(_sim, kind, bed, max_heap_spoil())
+		d.code = JobsScript.refusal_for(_sim, kind, bed, most_earth())
 	d.row = -1
 	d.worker = -1
 	d.busy = false
@@ -309,16 +315,13 @@ func preview_into(card: CardScript, kind: int, bed: int, members: PackedInt32Arr
 	`sow_item`: a picker row's crop (see `decide`)."""
 	var d: Decision = decide(kind, bed, members, sow_item)
 	card.reset("%s %s" % [JobsScript.KIND_NAMES[kind], bed_label(bed)])
-	FarmCard.fill(card, _sim, kind, bed, max_heap_spoil(), _probe, sow_item)
+	FarmCard.fill(card, _sim, kind, bed, most_earth(), _probe, sow_item)
 	if d.code != &"":
 		card.refuse(String(d.code), reason_text(d.code), FarmCard.fix_for(d.code))
 		return
-	var source: int = JobsScript.compost_source(_sim, bed) if kind == JobsScript.KIND_COMPOST else 0
-	if d.row >= 0:
-		source = jobs.source[d.row]
 	var from_step: int = jobs.step[d.row] if d.row >= 0 else 0
 	var kept: int = jobs.elapsed_usec[d.row] if d.row >= 0 else 0
-	card.work_usec = maxi(JobsScript.plan_work_usec(kind, source, from_step) - kept, 0)
+	card.work_usec = maxi(JobsScript.plan_work_usec(kind, from_step) - kept, 0)
 	_preview_who(card, d)
 
 
@@ -375,12 +378,16 @@ func _take_over(row: int, who: int) -> void:
 
 func cancel_bed(bed: int) -> int:
 	"""Take every production job off a bed. A harvest already cut is not put in store here: it becomes
-	its delivery, carried on and credited at the store (see CONSERVATION). Returns how many."""
+	its delivery, carried on and credited at the store (see CONSERVATION); earth in hand is carried back to where it
+	came from (see EARTH IS CONSERVED TOO). Returns how many."""
 	var cancelled: int = 0
 	for row: int in JobsScript.MAX_JOBS:
-		if not jobs.is_live(row) or jobs.bed[row] != bed or jobs.kind[row] == JobsScript.KIND_DELIVER:
+		if not jobs.is_live(row) or jobs.bed[row] != bed or not _is_production(row):
 			continue
 		cancelled += 1
+		if _holds_earth(row):
+			_return_earth(row, "%s cancelled" % JobsScript.KIND_NAMES[jobs.kind[row]])
+			continue
 		if not _holds_load(row):
 			_finish(row, "")
 			continue
@@ -397,9 +404,9 @@ func raise_routine_jobs() -> void:
 	for bed: int in Catalog.BED_COUNT:
 		var stage: int = _sim.stage_of(bed)
 		if stage == SimScript.STAGE_RIPE and not jobs.job_on_bed_into(JobsScript.KIND_HARVEST, bed, _read):
-			jobs.open_into(JobsScript.KIND_HARVEST, bed, JobsScript.ORIGIN_ROUTINE, 0, _read)
+			jobs.open_into(JobsScript.KIND_HARVEST, bed, JobsScript.ORIGIN_ROUTINE, _read)
 		if stage == SimScript.STAGE_WITHERED and not jobs.job_on_bed_into(JobsScript.KIND_CLEAR, bed, _read):
-			jobs.open_into(JobsScript.KIND_CLEAR, bed, JobsScript.ORIGIN_ROUTINE, 0, _read)
+			jobs.open_into(JobsScript.KIND_CLEAR, bed, JobsScript.ORIGIN_ROUTINE, _read)
 	for row: int in JobsScript.MAX_JOBS:
 		if jobs.is_live(row) and jobs.blocked[row] == JobsScript.BLOCK_WAY:
 			jobs.blocked[row] = JobsScript.BLOCK_NONE
@@ -481,7 +488,7 @@ func _issue_walk(row: int, code: int, brain: BrainScript) -> void:
 		return
 	jobs.goal[row] = _found
 	jobs.issued[row] = 1
-	if code == JobsScript.STEP_CARRY_BED or code == JobsScript.STEP_CARRY_STORE:
+	if code == JobsScript.STEP_CARRY_BED or code == JobsScript.STEP_CARRY_STORE or code == JobsScript.STEP_CARRY_HEAP:
 		brain.order_carry(_found, target)
 	else:
 		brain.order_move(_found, target)
@@ -504,17 +511,19 @@ func _carry_into_cellar(row: int, brain: BrainScript) -> bool:
 
 
 func _target_into(row: int, code: int) -> bool:
-	"""Where a walk step goes, into `_found`: the bed, the well, a spoil heap with enough on it, or
-	the store the harvest is bound for. False when there is no heap to go to."""
+	"""Where a walk step goes, into `_found`: the bed, the well, an earth source with enough (a heap or the stores),
+	the source an earth return goes back to, or the store the harvest is bound for. False when no source has enough."""
 	match code:
 		JobsScript.STEP_GO_WELL:
 			_found = _well_at
 		JobsScript.STEP_GO_HEAP:
 			var from: Vector2 = _brain(jobs.worker[row]).surface_point()
-			if not _tunnels.nearest_heap_into(_network, from, JobsScript.SPOIL_PER_JOB_MILLI, _read):
+			if not _tunnels.nearest_earth_into(_network, from, JobsScript.EARTH_PER_JOB_MILLI, _read):
 				return false
 			jobs.heap[row] = _read.value
-			_found = _network.heap_at[_read.value]
+			_found = _tunnels.spot_of(_network, _read.value)
+		JobsScript.STEP_CARRY_HEAP:
+			_found = _tunnels.spot_of(_network, jobs.heap[row])
 		JobsScript.STEP_CARRY_STORE:
 			_found = _pantry.storage.position_of(jobs.location[row])
 		_:
@@ -527,8 +536,8 @@ func _stand_of(row: int, code: int) -> float:
 	match code:
 		JobsScript.STEP_GO_WELL:
 			return WELL_STAND_M
-		JobsScript.STEP_GO_HEAP:
-			return _network.heap_radius_m[jobs.heap[row]] + HEAP_STAND_M
+		JobsScript.STEP_GO_HEAP, JobsScript.STEP_CARRY_HEAP:
+			return _tunnels.rim_m(_network, jobs.heap[row]) + HEAP_STAND_M
 		JobsScript.STEP_CARRY_STORE:
 			return RING_GAP_M * jobs.tries[row]
 	return BED_STAND_M + RING_GAP_M * jobs.tries[row]
@@ -600,15 +609,11 @@ func _begin_work(row: int, work: int) -> String:
 	if work == JobsScript.WORK_SOW:
 		return "" if jobs.begun[row] == 1 else _said(_sim.sow_start(bed), "Sow")
 	if work == JobsScript.WORK_DIG:
-		var enough: bool = _tunnels.spoil_left(_network, jobs.heap[row]) >= JobsScript.SPOIL_PER_JOB_MILLI
-		return "" if enough else "The spoil heap is used up"
+		var enough: bool = _tunnels.spoil_left(_network, jobs.heap[row]) >= JobsScript.EARTH_PER_JOB_MILLI
+		return "" if enough else "The earth there is used up"
 	if work == JobsScript.WORK_FETCH or work == JobsScript.WORK_DROP:
 		return ""
-	var code: StringName = &""
-	if work == JobsScript.WORK_COMPOST:
-		code = _sim.compost_refusal(bed, jobs.source[row] == JobsScript.SOURCE_STORE)
-	else:
-		code = JobsScript.refusal_for(_sim, jobs.kind[row], bed, JobsScript.SPOIL_PER_JOB_MILLI)
+	var code: StringName = JobsScript.refusal_for(_sim, jobs.kind[row], bed, JobsScript.EARTH_PER_JOB_MILLI)
 	if code == &"":
 		return ""
 	return "Can't %s: %s" % [JobsScript.KIND_NAMES[jobs.kind[row]].to_lower(), reason_text(code)]
@@ -627,13 +632,13 @@ func _end_work(row: int, work: int) -> String:
 		JobsScript.WORK_CLEAR:
 			return _said(_sim.clear(bed), "Clear")
 		JobsScript.WORK_COMPOST:
-			return _said(_sim.compost(bed, jobs.source[row] == JobsScript.SOURCE_STORE), "Compost")
+			return _said(_sim.compost(bed), "Compost")
 		JobsScript.WORK_COVER:
 			return _said(_sim.cover(bed), "Cover")
 		JobsScript.WORK_RAISE:
-			return _said(_sim.raise_bed(bed), "Raise")
+			return _build(row, _sim.raise_bed(bed), "Raise")
 		JobsScript.WORK_BANK:
-			return _said(_sim.bank_bed(bed), "Bank")
+			return _build(row, _sim.bank_bed(bed), "Bank")
 		JobsScript.WORK_DRAIN:
 			return _said(_sim.drain_bed(bed), "Drain")
 		JobsScript.WORK_DIG:
@@ -657,16 +662,31 @@ func _end_harvest(row: int) -> String:
 
 
 func _end_dig(row: int) -> String:
-	"""Spoil off the heap: the heap shrinks by the job's 2 U."""
-	if not _tunnels.take_spoil_into(_network, jobs.heap[row], JobsScript.SPOIL_PER_JOB_MILLI, _read):
-		return "The spoil heap is used up"
-	jobs.load_milli[row] = JobsScript.SPOIL_PER_JOB_MILLI
+	"""Earth off its source: the heap (or the stores) gives up the job's 2 U, now in hand."""
+	if not _tunnels.take_spoil_into(_network, jobs.heap[row], JobsScript.EARTH_PER_JOB_MILLI, _read):
+		return "The earth there is used up"
+	jobs.load_milli[row] = JobsScript.EARTH_PER_JOB_MILLI
+	return ""
+
+
+func _build(row: int, done: FarmingScript.OpResult, verb: String) -> String:
+	"""A raise or a bank done: the earth in hand is built into the bed (see EARTH IS CONSERVED TOO). Refused, the
+	earth stays in hand (and `_finish` sends it back)."""
+	if not done.ok:
+		return _said(done, verb)
+	_tunnels.build_with(jobs.load_milli[row])
+	jobs.load_milli[row] = 0
 	return ""
 
 
 func _end_drop(row: int) -> void:
 	"""The harvest into the pantry at its store: what fits (see CONSERVATION). All of it: the job ends
-	saying how much. Some left: carried on to a store with room, or kept, waiting, until there is one."""
+	saying how much. Some left: carried on to a store with room, or kept, waiting, until there is one. An earth
+	return's tip instead puts its earth back at its source (see EARTH IS CONSERVED TOO)."""
+	if jobs.kind[row] == JobsScript.KIND_RETURN_EARTH:
+		_tip_back(row, "%s tipped %s of earth back %s" % [_name_of(jobs.worker[row]),
+			Text.units_text(jobs.load_milli[row]), _source_words(jobs.heap[row])])
+		return
 	var stored: int = 0
 	if _here_into(row, _read):
 		jobs.location[row] = _read.value
@@ -726,9 +746,13 @@ func _drop(row: int) -> void:
 
 func _finish(row: int, text: String) -> void:
 	"""Close job `row`, send its worker back to its routine, and say how it ended. A job still holding a
-	harvest is never closed: it waits on the board with its load (`_park`)."""
+	harvest is never closed: it waits on the board with its load (`_park`); one holding earth carries it back (see
+	EARTH IS CONSERVED TOO)."""
 	if _holds_load(row):
 		_park(row, text, JobsScript.BLOCK_WAY)
+		return
+	if _holds_earth(row):
+		_return_earth(row, text)
 		return
 	_release_hold(row)
 	var who: int = jobs.worker[row]
@@ -829,6 +853,52 @@ func _release_hold(row: int) -> void:
 	"""Job `row` gives up its reservation, if any."""
 	_pantry.release(jobs.hold[row])
 	jobs.hold[row] = JobsScript.FREE
+
+
+func _is_production(row: int) -> bool:
+	"""Whether job `row` is production a cancel closes: not a delivery or an earth return (they carry a load home)."""
+	return jobs.kind[row] != JobsScript.KIND_DELIVER and jobs.kind[row] != JobsScript.KIND_RETURN_EARTH
+
+
+func _holds_earth(row: int) -> bool:
+	"""Whether job `row` has earth in hand: a raise or a bank between its dig and its work done, or an earth return."""
+	var earthy: bool = jobs.kind[row] == JobsScript.KIND_RAISE or jobs.kind[row] == JobsScript.KIND_BANK \
+		or jobs.kind[row] == JobsScript.KIND_RETURN_EARTH
+	return earthy and jobs.load_milli[row] > 0
+
+
+func _return_earth(row: int, why: String) -> void:
+	"""Job `row` ends with earth in hand (see EARTH IS CONSERVED TOO): a raise or a bank becomes an earth return,
+	walked back by its worker (the field crew's, when nobody has it); a return that itself could not get through puts
+	the earth back where it came from now."""
+	var lead: String = why + ": " if why != "" else ""
+	if jobs.kind[row] == JobsScript.KIND_RETURN_EARTH:
+		_tip_back(row, "%sthe %s of earth was put back %s" % [lead, Text.units_text(jobs.load_milli[row]),
+			_source_words(jobs.heap[row])])
+		return
+	jobs.become_earth_return(row)
+	var who: String = worker_name(row)
+	_say("%s%s carries the %s of earth back %s" % [lead, who if who != "" else "the field crew",
+		Text.units_text(jobs.load_milli[row]), _source_words(jobs.heap[row])])
+
+
+func _tip_back(row: int, text: String) -> void:
+	"""Put job `row`'s earth back at its source and close the job, saying `text`. A source that will not take it back
+	(a heap whose mouth row was freed meanwhile) passes it to the stores; with no stores either it is kept, the job
+	waiting on the board with it (`_park`), as a harvest with nowhere to go is."""
+	var milli: int = jobs.load_milli[row]
+	if not _tunnels.return_spoil_into(_network, jobs.heap[row], milli, _read):
+		if not _tunnels.return_spoil_into(_network, TunnelsScript.STORE, milli, _read):
+			_park(row, "The %s of earth has nowhere to go back to: it waits on the board" % Text.units_text(milli),
+				JobsScript.BLOCK_WAY)
+			return
+	jobs.load_milli[row] = 0
+	_finish(row, text)
+
+
+func _source_words(source: int) -> String:
+	"""Where earth from `source` goes back: 'to the spoil heap' or 'to the stores'."""
+	return "to the stores" if source == TunnelsScript.STORE else "to the spoil heap"
 
 
 func _holds_load(row: int) -> bool:
@@ -933,7 +1003,9 @@ func task_text(who: int) -> String:
 		JobsScript.STEP_GO_WELL:
 			return what + " — to the well"
 		JobsScript.STEP_GO_HEAP:
-			return what + " — to the spoil heap"
+			return what + (" — to the stores for earth" if jobs.heap[row] == TunnelsScript.STORE else " — to the spoil heap")
+		JobsScript.STEP_CARRY_HEAP:
+			return "Carrying %s of earth back %s" % [Text.units_text(jobs.load_milli[row]), _source_words(jobs.heap[row])]
 		JobsScript.STEP_CARRY_STORE:
 			return "Carrying %s of %s to the %s" % [Text.units_text(jobs.load_milli[row]), _item_word(row), _store_word(row)]
 		JobsScript.STEP_CARRY_BED:
@@ -955,12 +1027,9 @@ func bed_label(bed: int) -> String:
 	return "bed %d" % (bed + 1)
 
 
-func max_heap_spoil() -> int:
-	"""The most spoil any one heap holds, milli-U."""
-	var most: int = 0
-	for heap: int in TunnelsScript.HEAPS:
-		most = maxi(most, _tunnels.spoil_left(_network, heap))
-	return most
+func most_earth() -> int:
+	"""The most earth any one source (a heap or the stores) holds, milli-U: what Raise and Bank need 2 U of."""
+	return _tunnels.most_earth(_network)
 
 
 static func reason_text(code: StringName) -> String:

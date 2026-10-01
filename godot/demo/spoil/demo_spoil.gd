@@ -1,9 +1,9 @@
 extends Node3D
 ## Spoil heaps you can select and clear. Decision 0205 (the playtest of 2026-09-29). DEMO: presentation
-## over the farm's spoil books (spoil_crew.gd says where the spoil goes and why).
+## over the farm's earth books (spoil_crew.gd says where the earth goes and why: the village stores, decision 0401).
 ##
 ##   Left click a heap          select it: a brass ring round it, and the party panel's notice says how
-##                              much spoil it holds and how to clear it (the selection is kept)
+##                              much earth it holds and how to clear it (the selection is kept)
 ##   Right click a heap         with residents selected: they dig it out and haul it away (Clear)
 ##   C                          with a heap selected and residents selected: the same
 ##
@@ -19,6 +19,7 @@ const FarmTunnels := preload("res://demo/farm/farm_tunnels.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 const MarksScript := preload("res://demo/control/demo_marks.gd")
 const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
+const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 
 ## A click this far beyond a heap's drawn rim still picks it (metres; demo value).
 const PICK_SLACK_M: float = 0.3
@@ -26,10 +27,10 @@ const PICK_SLACK_M: float = 0.3
 const RING_GAP_M: float = 0.15
 const NOTHING: int = -1
 const DROP_POI: StringName = &"stockpile"
-const SELECTED_TEXT: String = "Spoil heap: %.1f U of spoil. Right-click it (or C) with residents selected to dig it out and haul it to the compost"
+const SELECTED_TEXT: String = "Spoil heap: %.1f U of earth. Right-click it (or C) with residents selected to dig it out and haul it to the stores"
 const EMPTY_TEXT: String = "Spoil heap: cleared"
 const CLEARING_TEXT: String = "Clearing a spoil heap"
-const HAULING_TEXT: String = "Hauling spoil to the compost"
+const HAULING_TEXT: String = "Hauling earth to the stores"
 ## A worker whose walk failed, waiting to try again (spoil_crew.gd ARRIVING IS EXPLICIT; decision 0361).
 const BLOCKED_TEXT: String = "%s — can't reach it, trying again"
 
@@ -46,15 +47,17 @@ var _ring: MeshInstance3D = null
 
 
 func configure(cast: DemoCastScript, command: DemoCommandScript, camera: Camera3D, network: GraphScript,
-		tunnels: FarmTunnels, props: PropsScript, deliver: Callable) -> void:
-	"""Clear heaps with this cast, through the command layer's ground handlers; spoil goes by `deliver`."""
+		tunnels: FarmTunnels, props: PropsScript, stores: StoresScript) -> void:
+	"""Clear heaps with this cast, through the command layer's ground handlers. Their earth is kept in `stores`, at
+	the drop spot, which the farm's books then count as a source of earth (farm_tunnels.gd `bind_store`)."""
 	name = "DemoSpoil"
 	_cast = cast
 	_command = command
 	_camera = camera
 	_network = network
 	_tunnels = tunnels
-	crew.configure(cast, network, tunnels, props, deliver, drop_point(cast))
+	tunnels.bind_store(stores, drop_point(cast))
+	crew.configure(cast, network, tunnels, props, stores.add_earth, drop_point(cast))
 	_ring = MarksScript.make_ring(MarksScript.SELECTED)
 	_ring.visible = false
 	add_child(_ring)
@@ -65,7 +68,7 @@ func configure(cast: DemoCastScript, command: DemoCommandScript, camera: Camera3
 
 
 static func drop_point(cast: DemoCastScript) -> Vector2:
-	"""Where cleared spoil is tipped: by the open stockpile (the village's bulk store), else the middle."""
+	"""Where cleared earth is tipped and kept: by the open stockpile (the village's bulk store), else the middle."""
 	var space := cast.space()
 	var poi: int = space.poi_names.find(DROP_POI)
 	return space.poi_position[poi] if poi >= 0 else Vector2.ZERO
@@ -87,7 +90,7 @@ func task_text(actor_index: int) -> String:
 
 
 func heap_at_point(at: Vector2) -> int:
-	"""The heap with spoil on it under ground point `at` (x z metres), nearest first, or NOTHING."""
+	"""The heap with earth on it under ground point `at` (x z metres), nearest first, or NOTHING."""
 	var best: int = NOTHING
 	var best_d: float = INF
 	for h: int in FarmTunnels.HEAPS:

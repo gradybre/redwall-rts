@@ -28,7 +28,7 @@ extends RefCounted
 ##   * per-bed moisture on top of the weather's, through `apply_moisture_delta()`: a DRAINED bed
 ##     (a tunnel under it) sheds up to DRAIN_PER_DAY toward its crop's low side, an IRRIGATED bed (a
 ##     tunnel from the pond under it) is pulled up to IRRIGATE_PER_DAY toward its band's middle, a
-##     RAISED bed (tunnel spoil) sheds RAISED_DRAIN_PER_DAY and is warmer at night, a BANKED bed
+##     RAISED bed (tunnel earth) sheds RAISED_DRAIN_PER_DAY and is warmer at night, a BANKED bed
 ##     keeps half of each day's weather loss, a DITCHED bed (the Drain job) sheds up to
 ##     DITCH_DRAIN_PER_DAY toward its crop's low side as a tunnel drain does; and EVERY bed above its
 ##     crop's high side sheds up to NATURAL_DRAIN_PER_DAY back toward it (the village loam drains);
@@ -36,6 +36,10 @@ extends RefCounted
 ##     to the top of its crop's band, and the ditch dug round it keeps shedding (above) for good;
 ##   * CLEARING a blighted, still-growing crop is uprooting it: `apply_health_loss()` of its whole
 ##     health withers it and `clear_withered()` clears it, returning REQ-SET-085's 0.5 U compost.
+## COMPOST IS PLANT WASTE (decision 0401). The compost store (`compost_milli`) is filled only by plant waste -- a cleared
+## crop's 0.5 U here, and the Pantry's spoiled food at §5.7's 4 : 2 (demo_farm.gd `compost_spoiled`) -- and `compost()`
+## always pays its 2 U from it. Tunnel earth never composts and never adds fertility: raising and banking a bed only set
+## its flag.
 ## Seed is not stocked (the demo has unlimited seed); REQ-SET-071's 250 milli-U is reported only.
 
 const FarmingScript := preload("res://scripts/core/farming.gd")
@@ -78,7 +82,7 @@ const DRAIN_PER_DAY: int = 1500
 const DRAIN_MARGIN: int = 500
 const IRRIGATE_PER_DAY: int = 1500
 const RAISED_DRAIN_PER_DAY: int = 800
-## A ditch round a bed sheds less than a tunnel under it (1500) and more than spoil lifting it (800):
+## A ditch round a bed sheds less than a tunnel under it (1500) and more than earth lifting it (800):
 ## a round demo value between the two.
 const DITCH_DRAIN_PER_DAY: int = 1000
 ## What any bed sheds above its crop's high side, per day (well-drained village loam). Spring's +600
@@ -498,25 +502,25 @@ func clear(bed: int) -> FarmingScript.OpResult:
 	return _changed(cleared)
 
 
-func compost_refusal(bed: int, from_store: bool) -> StringName:
+func compost_refusal(bed: int) -> StringName:
 	"""Why compost cannot go on a bed now: once a season per tile (REQ-SET-076), or a short store."""
 	if not Catalog.is_bed(bed):
 		return REFUSE_NOT_A_BED
 	if not _farming.is_compost_eligible(_tile[bed], _absolute_day):
 		return FarmingScript.REFUSE_COMPOST_NOT_ELIGIBLE
-	if from_store and compost_milli < _farming.compost_milli_per_tile():
+	if compost_milli < _farming.compost_milli_per_tile():
 		return REFUSE_NO_COMPOST
 	return REFUSE_NONE
 
 
-func compost(bed: int, from_store: bool) -> FarmingScript.OpResult:
-	"""REQ-SET-076 `apply_compost()`: +1500 fertility. From the store it takes the 2 U it returns;
-	otherwise the caller brought them (tunnel spoil, farm_crew.gd)."""
-	var code: StringName = compost_refusal(bed, from_store)
+func compost(bed: int) -> FarmingScript.OpResult:
+	"""REQ-SET-076 `apply_compost()`: +1500 fertility, paid with the 2 U it returns from the compost store (see COMPOST
+	IS PLANT WASTE)."""
+	var code: StringName = compost_refusal(bed)
 	if code != REFUSE_NONE:
 		return _refuse(code)
 	var applied: FarmingScript.OpResult = _farming.apply_compost(_slot[bed], _absolute_day)
-	if applied.ok and from_store:
+	if applied.ok:
 		compost_milli -= applied.value
 	return _changed(applied)
 
@@ -527,12 +531,12 @@ func cover(bed: int) -> FarmingScript.OpResult:
 
 
 func raise_bed(bed: int) -> FarmingScript.OpResult:
-	"""Tunnel spoil raises a bed: it drains, and is RAISED_WARMTH_TENTHS warmer. Permanent."""
+	"""Tunnel earth raises a bed: it drains, and is RAISED_WARMTH_TENTHS warmer. Permanent. No fertility (decision 0401)."""
 	return _set_flag(_raised, bed)
 
 
 func bank_bed(bed: int) -> FarmingScript.OpResult:
-	"""Tunnel spoil banks a bed: it keeps half of each day's weather loss. Permanent."""
+	"""Tunnel earth banks a bed: it keeps half of each day's weather loss. Permanent. No fertility (decision 0401)."""
 	return _set_flag(_banked, bed)
 
 
@@ -699,12 +703,12 @@ func is_covered(bed: int) -> bool:
 
 
 func is_raised(bed: int) -> bool:
-	"""Whether spoil has raised the bed."""
+	"""Whether earth has raised the bed."""
 	return _raised[bed] == 1
 
 
 func is_banked(bed: int) -> bool:
-	"""Whether spoil banks the bed."""
+	"""Whether earth banks the bed."""
 	return _banked[bed] == 1
 
 

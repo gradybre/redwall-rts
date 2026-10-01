@@ -12,12 +12,19 @@ extends RefCounted
 ## in the network's own units (u, 1/1024 m): some leg of the route comes within UNDER_REACH_U of the
 ## bed's centre. The beds' centres are imported from the layout once (float is import only).
 ##
-## SPOIL AS SOIL. Each mouth's heap holds the spoil dug out there so far (`heaped_milli`, milli-U, the
-## adopted 2 U per cubic metre); a heap is a mouth row of the network. The farm takes spoil from a heap
-## -- to raise a bed, bank it, or dig it in as compost -- and the heap is what is LEFT: what has been
-## tipped on it (a dig crew's baskets still on the way are not on it yet: underground_graph.gd `haul`,
-## decision 0211) minus taken. What was taken is kept here per heap and per mouth generation, so a freed and reused mouth
-## row starts a fresh heap.
+## EARTH (decision 0401, which retires 0196's "spoil as soil"). What a tunnel digs out is EARTH (the adopted
+## `excavated_earth`: a plain material -- never compost, never fertility). Each mouth's spoil heap holds the earth dug
+## out there (`heaped_milli`, milli-U, the adopted 2 U per cubic metre); a heap is a mouth row of the network. The heap
+## is what is LEFT: what has been tipped on it (a dig crew's baskets still on the way are not on it yet:
+## underground_graph.gd `haul`, decision 0211) minus taken. What was taken is kept here per heap and per mouth
+## generation, so a freed and reused mouth row starts a fresh heap. Earth taken off a heap is carried somewhere and is
+## then (1) KEPT in the village stores by the stockpile (a cleared heap: demo/spoil/spoil_crew.gd), (2) BUILT into a
+## bed by Raise or Bank (`build_with`, counted in `built_milli`), or (3) put back where it came from
+## (`return_spoil_into`: a carry that never arrived, decision 0361). Nothing else makes or ends earth.
+##
+## SOURCES. Raise and Bank fetch their earth from a heap or, once a heap has been cleared there, from the stores
+## (`bind_store`): source STORE, after the HEAPS heap rows. `spoil_left`, `take_spoil_into`, `return_spoil_into`,
+## `spot_of` and `rim_m` take either; `nearest_earth_into` and `most_earth` look at both.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
@@ -25,10 +32,14 @@ const PathsScript := preload("res://demo/tunnel/graph_paths.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const WaterScript := preload("res://demo/village_water.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 
 ## A bore within this of a bed's centre runs under the bed: the bed's half-width (1.5 m).
 const UNDER_REACH_U: int = 1536
 const HEAPS: int = Rules.MAX_MOUTHS
+## The village stores' earth as a source (see SOURCES): the row after the heaps.
+const STORE: int = HEAPS
+const SOURCES: int = HEAPS + 1
 const REFUSE_NO_SPOIL: String = "NOT_ENOUGH_SPOIL"
 const REFUSE_BAD_HEAP: String = "NO_SUCH_HEAP"
 
@@ -41,6 +52,11 @@ var _bed_x: PackedInt32Array = PackedInt32Array()
 var _bed_z: PackedInt32Array = PackedInt32Array()
 var _taken: PackedInt64Array = PackedInt64Array()
 var _taken_generation: PackedInt32Array = PackedInt32Array()
+## Earth built into beds by Raise and Bank, milli-U (see EARTH).
+var built_milli: int = 0
+## Where earth is kept (see SOURCES); null: no store, only heaps.
+var _stores: StoresScript = null
+var _store_at: Vector2 = Vector2.ZERO
 
 
 func _init() -> void:
@@ -117,7 +133,18 @@ func water_of_into(network: GraphScript, bed: int, out: PackedByteArray) -> void
 			out[0] = 1
 
 
-# --- spoil ----------------------------------------------------------------------------------
+# --- earth ---------------------------------------------------------------------------------
+
+func bind_store(stores: StoresScript, at: Vector2) -> void:
+	"""Earth is kept in `stores`, fetched from `at` (the stockpile's spot, metres x z; see SOURCES)."""
+	_stores = stores
+	_store_at = at
+
+
+func has_store() -> bool:
+	"""Whether earth can be kept in (and fetched from) the stores."""
+	return _stores != null
+
 
 func _sync_heap(network: GraphScript, heap: int) -> void:
 	"""Forget what was taken from a heap whose mouth row was freed or reused."""
@@ -127,14 +154,16 @@ func _sync_heap(network: GraphScript, heap: int) -> void:
 
 
 func heaped_milli(network: GraphScript, heap: int) -> int:
-	"""All the spoil heap `heap` (a mouth row) has received, milli-U."""
+	"""All the earth heap `heap` (a mouth row) has received, milli-U."""
 	return network.heaped_milli(heap)
 
 
-func spoil_left(network: GraphScript, heap: int) -> int:
-	"""The spoil still on heap `heap`, milli-U: tipped on it minus taken (see SPOIL AS SOIL)."""
-	_sync_heap(network, heap)
-	return network.haul.on_heap_milli(network, heap) - _taken[heap]
+func spoil_left(network: GraphScript, source: int) -> int:
+	"""The earth still at `source`, milli-U: on a heap, tipped on it minus taken (see EARTH); the stores' (STORE)."""
+	if source == STORE:
+		return _stores.earth_milli_u if _stores != null else 0
+	_sync_heap(network, source)
+	return network.haul.on_heap_milli(network, source) - _taken[source]
 
 
 func taken_milli(network: GraphScript, heap: int) -> int:
@@ -143,47 +172,83 @@ func taken_milli(network: GraphScript, heap: int) -> int:
 	return _taken[heap]
 
 
-func take_spoil_into(network: GraphScript, heap: int, milli: int, out: IntMath.IntResult) -> bool:
-	"""Take `milli` of spoil off heap `heap`; refuses a bad heap or one holding less."""
-	if heap < 0 or heap >= HEAPS or milli <= 0:
+func _is_source(source: int) -> bool:
+	"""Whether `source` names a heap row, or the stores when they are bound."""
+	return (source >= 0 and source < HEAPS) or (source == STORE and _stores != null)
+
+
+func take_spoil_into(network: GraphScript, source: int, milli: int, out: IntMath.IntResult) -> bool:
+	"""Take `milli` of earth from `source` (a heap or STORE); refuses a bad source or one holding less."""
+	if not _is_source(source) or milli <= 0:
 		return out.refuse(REFUSE_BAD_HEAP)
-	if spoil_left(network, heap) < milli:
+	if spoil_left(network, source) < milli:
 		return out.refuse(REFUSE_NO_SPOIL)
-	_taken[heap] += milli
-	return out.succeed(spoil_left(network, heap))
+	if source == STORE:
+		_stores.take_earth(milli)
+	else:
+		_taken[source] += milli
+	return out.succeed(spoil_left(network, source))
 
 
-func return_spoil_into(network: GraphScript, heap: int, milli: int, out: IntMath.IntResult) -> bool:
-	"""Put `milli` of spoil taken off heap `heap` back on it -- a load carried off and never delivered (decision 0361:
-	nothing is credited from afar); refuses a bad heap or more than was taken from it."""
-	if heap < 0 or heap >= HEAPS or milli <= 0:
+func return_spoil_into(network: GraphScript, source: int, milli: int, out: IntMath.IntResult) -> bool:
+	"""Put `milli` of earth taken from `source` back -- a load carried off and never delivered (decision 0361: nothing
+	is credited from afar); refuses a bad source, or more than was taken from a heap."""
+	if not _is_source(source) or milli <= 0:
 		return out.refuse(REFUSE_BAD_HEAP)
-	_sync_heap(network, heap)
-	if _taken[heap] < milli:
+	if source == STORE:
+		_stores.add_earth(milli)
+		return out.succeed(spoil_left(network, source))
+	_sync_heap(network, source)
+	if _taken[source] < milli:
 		return out.refuse(REFUSE_NO_SPOIL)
-	_taken[heap] -= milli
-	return out.succeed(spoil_left(network, heap))
+	_taken[source] -= milli
+	return out.succeed(spoil_left(network, source))
 
 
-func nearest_heap_into(network: GraphScript, from: Vector2, milli: int, out: IntMath.IntResult) -> bool:
-	"""The heap holding at least `milli` whose spot is nearest `from` (presentation choice of which
-	heap to walk to); refuses NOT_ENOUGH_SPOIL when none does."""
+func build_with(milli: int) -> void:
+	"""`milli` of earth carried to a bed is built into it (Raise, Bank; see EARTH)."""
+	if milli > 0:
+		built_milli += milli
+
+
+func spot_of(network: GraphScript, source: int) -> Vector2:
+	"""Where earth is fetched from `source` (metres x z): its heap's spot, or the stockpile's."""
+	return _store_at if source == STORE else network.heap_at[source]
+
+
+func rim_m(network: GraphScript, source: int) -> float:
+	"""How far `source` reaches from `spot_of` (m): its heap's placed radius; the stockpile's spot is a point (0)."""
+	return 0.0 if source == STORE else network.heap_radius_m[source]
+
+
+func nearest_earth_into(network: GraphScript, from: Vector2, milli: int, out: IntMath.IntResult) -> bool:
+	"""The source holding at least `milli` -- a heap, or the stores -- whose spot is nearest `from` (presentation
+	choice of where to walk); refuses NOT_ENOUGH_SPOIL when none does."""
 	var found: bool = false
 	var best_d: float = INF
-	for heap: int in HEAPS:
-		if spoil_left(network, heap) < milli:
+	for source: int in SOURCES:
+		if not _is_source(source) or spoil_left(network, source) < milli:
 			continue
-		var d: float = network.heap_at[heap].distance_squared_to(from)
+		var d: float = spot_of(network, source).distance_squared_to(from)
 		if not found or d < best_d:
 			best_d = d
-			found = out.succeed(heap)
+			found = out.succeed(source)
 	if not found:
 		return out.refuse(REFUSE_NO_SPOIL)
 	return true
 
 
+func most_earth(network: GraphScript) -> int:
+	"""The most earth any one source -- a heap or the stores -- holds, milli-U (what Raise and Bank compare)."""
+	var most: int = 0
+	for source: int in SOURCES:
+		if _is_source(source):
+			most = maxi(most, spoil_left(network, source))
+	return most
+
+
 func total_spoil(network: GraphScript) -> int:
-	"""All the spoil left on every heap, milli-U."""
+	"""All the earth left on every heap, milli-U (the stores' not counted)."""
 	var total: int = 0
 	for heap: int in HEAPS:
 		total += spoil_left(network, heap)

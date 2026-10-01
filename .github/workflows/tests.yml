@@ -117,6 +117,12 @@ jobs:
       - name: Starter structures metadata fault injection
         run: python3 tools/test_starter_structures_metadata.py
 
+      - name: Demo audio staging self-test
+        # Needs neither the audio library nor afconvert: it checks the tool on
+        # small WAVs it writes, and the committed ledger and sound table
+        # against the tool's choices (decision 0351).
+        run: python3 tools/test_stage_demo_audio.py
+
       - name: UI refinement contract
         # This one hashes PNGs and asserts their magic bytes. *.png is LFS, so
         # it runs in this job, whose checkout already sets lfs: true, rather

@@ -1005,10 +1005,12 @@ one that gives up, puts its basket back on the heap -- nothing is delivered from
 
 ## Sound (decision 0351)
 
-The first sound pass (`sound/`; review F43, UX-029, UX-031). **No sound files are staged yet**, so the demo is
-silent: every cue is wired, takes its voice and keeps its limits, and plays nothing until its file is dropped in
-at the path the table names (`sound/sound_table.json`; each missing cue warns once at boot). The sourcing plan
-waits on Brendan's approval of each download.
+The first sound pass (`sound/`; review F43, UX-029, UX-031). **The files are staged, not committed**:
+`python3 tools/stage_demo_audio.py` (also run by `tools/stage_demo_assets.py`) copies or renders 56 files for the
+21 cues from nine CC0 packs in the gitignored audio library, then `godot --headless --path godot --import` imports
+them. Where each file came from, its licence and hash: `docs/art-reference/audio_library/`. Without them (CI)
+every cue is still wired, takes its voice and keeps its limits, and plays nothing (each missing cue warns once at
+boot). First volumes were set by measured loudness, not by ear: they wait on Brendan's listen.
 
 - **One owner, not an autoload** (`sound/sound_director.gd`, a child of the village). Everything it hears is the
   demo's -- cast, woods, tunnels, water, notices, camera -- so it is made and freed with the scene, and the sixth
@@ -1040,7 +1042,7 @@ waits on Brendan's approval of each download.
 - **Cost**: twenty residents at 4x -- all walking, twelve felling, one digging, loads changing hands, with the
   trees, bridges, notices, weather and water read too: p50 37 µs, p95 71–76 µs, p99 106–123 µs, max ≤ 230 µs a
   frame (`test/test_demo_sound_cost.gd`, headless, Apple Silicon). The boot prewarm step (streams and the
-  worn-path grid) takes about 16 ms.
+  worn-path grid) took about 16 ms with nothing staged and 22 ms loading all 56 files.
 
 ## Layout
 

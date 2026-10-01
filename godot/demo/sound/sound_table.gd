@@ -10,8 +10,9 @@ extends RefCounted
 ## player the same thing with the sound off (UX-031, UI §7 "All sound cues have visible text"). A row with
 ## no equivalent is refused, so a cue cannot be the only way to learn something.
 ##
-## MISSING FILES. The demo ships with none staged (the sourcing plan waits on approval), so every cue plays
-## SILENT: `load_streams` loads what exists, and warns ONCE per cue whose files are missing. A silent cue still
+## MISSING FILES. The files are not in git: tools/stage_demo_audio.py stages them from the gitignored CC0 audio
+## library (decision 0351, phase 2), and a checkout without them (CI) has none, so every cue plays SILENT there:
+## `load_streams` loads what exists, and warns ONCE per cue whose files are missing. A silent cue still
 ## takes its voice and its gap (sound_voices.gd), so the caps and the event map behave as they will with audio.
 
 const SoundMix := preload("res://demo/sound/sound_mix.gd")

@@ -108,6 +108,13 @@ extends Node3D
 ## the selection's order lists. `_build_work()` wires it once every owner is built -- the kitchen's cook and water
 ## drawers listed too, and no work handed out to a resident at its meal (`add_kitchen`, decision 0381 with 0411).
 ##
+## THE FIRST-VILLAGE GUIDE (decision 0481, demo/guide/; review F49, P7, UX-017 to UX-020): one objective card at a time,
+## each completed only by its real outcome in the village (a resident inspected, a harvest shelved, a supper eaten, a
+## bridge crossed / a tunnel walked / a bed readied before the frost), with a marker in the world; the village guide
+## window behind the HUD's Objectives command (O) -- objectives, player-named projects, the field guide, the searchable
+## help (also the game menu's Help page) and practice stories kept apart from the village. `_build_guide()` binds it to
+## the village's real models (read only) and `_build_input()` hands it the menu, the Lab and the gate.
+##
 ## SOUND (decision 0351, demo/sound/): ONE SOUND OWNER (sound_director.gd), scene-scoped rather than an autoload,
 ## hears the village's committed events (its event map, sound_taps.gd) and plays them through five buses with a
 ## bounded voice pool; its volumes and mixes are the game menu's Settings. No sound files are staged yet, so it
@@ -197,6 +204,11 @@ const VillageTargets := preload("res://demo/access/village_targets.gd")
 const Access := preload("res://demo/access/demo_access.gd")
 const FarmSimScript := preload("res://demo/farm/farm_sim.gd")
 const FarmCatalog := preload("res://demo/farm/farm_catalog.gd")
+const GuideScript := preload("res://demo/guide/demo_guide.gd")
+const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
+const GuideWorldScript := preload("res://demo/guide/guide_world.gd")
+const HelpTopics := preload("res://demo/guide/help_topics.gd")
+const PantryPanelScript := preload("res://demo/farm/farm_pantry_panel.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -274,6 +286,7 @@ var _targets: TargetsScript = TargetsScript.new()
 var _marks: MarksScript = MarksScript.new()
 var _hint: HintScript = HintScript.new()
 var _objects: ObjectListScript = ObjectListScript.new()
+var _guide: GuideScript = null
 
 
 func _ready() -> void:
@@ -305,6 +318,7 @@ func _ready() -> void:
 	_build_work()
 	_build_routes()
 	_build_sound()
+	_build_guide()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
 	_hold_restart_open()
@@ -542,6 +556,75 @@ func _show_routes(on: bool) -> void:
 	"""The Routes layer's switch (built before the previews it shows: the picker lists it beside the water's)."""
 	if _routes != null:
 		_routes.show_lens(on)
+
+
+func _build_guide() -> void:
+	"""The first-village guide (see THE FIRST-VILLAGE GUIDE) over the village's real models, its card yielding to the
+	incident card (one card at the top centre) as that yields, kept above the Map layer picker, and the commands its
+	help topics link to."""
+	_guide = GuideScript.new()
+	add_child(_guide)
+	_guide.configure(_guide_world(), _services.notices, _jump, _camera, GameManager as GameManagerScript)
+	_guide.card.hide_while(_history.is_open)
+	_guide.card.hide_while(_stall_banner.is_shown)
+	_guide.card.hide_while(_cards.is_shown)
+	_guide.card.set_avoid(func() -> Rect2: return _lens_picker.frame_rect() if _lens_picker.visible else Rect2())
+	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
+	_guide.actions = {
+		HelpTopics.ACTION_PANTRY: _farm.open_pantry,
+		HelpTopics.ACTION_KITCHEN: func() -> void: _farm.open_pantry(); _farm.pantry_panel.show_tab(PantryPanelScript.TAB_KITCHEN),
+		HelpTopics.ACTION_JOBS: _work.screen.open,
+		HelpTopics.ACTION_NEWS: _history.open,
+		HelpTopics.ACTION_RESIDENTS: _open_residents,
+		HelpTopics.ACTION_WATER: _zone.show_panel.bind(DetailZoneScript.PANEL_WATER),
+		HelpTopics.ACTION_DIG: _open_dig_tool.bind(tool),
+	}
+
+
+func _open_dig_tool(tool: TunnelControlScript) -> void:
+	"""The Dig tool open (B), or left open."""
+	if not tool.planning:
+		tool.begin_plan()
+
+
+func _guide_world() -> GuideWorldScript:
+	"""What the guide reads of the village (demo/guide/guide_world.gd): every model it completes an objective on."""
+	var world := GuideWorldScript.new()
+	var command: DemoCommandScript = _command as DemoCommandScript
+	world.selected = command.selected
+	world.first = command.first_selected
+	world.name_of = func(i: int) -> String: return (_cast.actor(i) as DemoActorScript).display_name \
+		if i >= 0 and i < _cast.actor_count() else "a resident"
+	for i: int in _cast.actor_count():
+		world.brains.append((_cast.actor(i) as DemoActorScript).brain)
+	world.sim = _farm.sim
+	world.pantry = _farm.pantry
+	world.jobs = _farm.crew.jobs
+	world.worker_name = _farm.crew.worker_name
+	world.kitchen = _kitchen.kitchen
+	world.bridges = _waterplay.bridges
+	world.bridge_refusal = func(kind: int) -> String: return _waterplay.build_refusal(kind, command.selected())
+	world.site_name = _waterplay.site_name
+	world.network = command.tunnels().network
+	world.calendar = _services.calendar
+	world.stores = _services.stores
+	world.focus = (_camera as DemoCameraScript).focus
+	world.selected_bed = func() -> int: return _farm.selected_bed
+	world.selected_tunnel = func() -> int: return command.tunnels().ext.actions.selected
+	world.water_map = _water.map()
+	return world
+
+
+func _open_residents() -> void:
+	"""The HUD's Residents command (L), as a press of its button."""
+	var residents := _shell().control_for(UiShell.ID_RESIDENTS) as Button if _shell() != null else null
+	if residents != null and not residents.disabled:
+		residents.pressed.emit()
+
+
+func guide() -> GuideScript:
+	"""The first-village guide (demo/guide/demo_guide.gd)."""
+	return _guide
 
 
 func work_jump(kind: int, id: int, point: Vector2) -> bool:
@@ -886,6 +969,7 @@ func _build_input() -> void:
 	_gate.add_region("right column", [_zone, _farm.bed_panel, ext.panel, _forestry.panel, _waterplay.panel] as Array[Node])
 	_gate.add_region("left column", [(_command as DemoCommandScript).panel()] as Array[Node])
 	_gate.add_region("map layers", [_lens_picker] as Array[Node])
+	_guide.attach(_menu, _lab, _gate, _shell())
 	_sound.watch_buttons.call_deferred(get_tree().root)
 
 
@@ -952,6 +1036,7 @@ func _build_session() -> void:
 	_time.run.ripe_mask = ripe_beds
 	_time.run.growing = func() -> bool: return growing_beds() != 0
 	_menu.hold_pause = _time.ledger.hold_menu
+	_guide.window.hold_pause = _time.ledger.hold_guide
 	_add_planning()
 	add_child(_card)
 	_card.configure(_time.ledger, manager.get_speed)
@@ -960,7 +1045,7 @@ func _build_session() -> void:
 	_card.hide_while = [_stall_banner.is_shown, func() -> bool: return not _time.opened,
 		func() -> bool: return _menu.visible] as Array[Callable]
 	_card.modal_open = func() -> bool: return _gate.modal_open()
-	_card.avoid = func() -> Rect2: return _cards.frame_rect() if _cards.is_shown() else Rect2()
+	_card.avoid = _top_card_rect
 	_card.hud_cards_shown = _hud_cards_shown
 	add_child(_run_menu)
 	add_child(_run_menu.button_layer())
@@ -971,6 +1056,16 @@ func _build_session() -> void:
 	_run_menu.speed = manager.get_speed
 	_run_menu.before_open = func() -> void: VillageTargets.project_into(_time.run, _tunnel_tool(), _waterplay)
 	_time.run_menu = _run_menu
+
+
+func _top_card_rect() -> Rect2:
+	"""The one card shown at the top centre under the alerts, which the pause card steps below: the incident card, else
+	the first-village guide's card (which yields to it), else nothing."""
+	if _cards.is_shown():
+		return _cards.frame_rect()
+	if _guide != null and _guide.card.is_shown():
+		return _guide.card.frame_rect()
+	return Rect2()
 
 
 func _add_planning() -> void:

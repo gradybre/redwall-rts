@@ -13,7 +13,9 @@ extends RefCounted
 ##                  (demo_stall_banner.gd): its Resume drops the owed ticks explicitly, so ours never does.
 ##   * CRITICAL  -- a critical incident raised or come back (demo_incidents.gd `incident_cue`), with
 ##                  "Pause on a critical incident" on (UI §8.1 `critical_autopause`, default on).
-##   * MENU      -- the game menu is open (demo_menu.gd). Only closing it lifts it.
+##   * MENU      -- the game menu is open (demo_menu.gd), or the village guide's window (demo/guide/guide_window.gd,
+##                  decision 0481: `hold_guide`, its own hold so the two never release each other's). Only closing
+##                  the one that holds it lifts it.
 ##   * PLANNING  -- a planning surface is open (the Pantry, the Work screen, the village news, the Residents
 ##                  roster, the object list, the Dig tool) with "Pause while planning" on (UI §8.1
 ##                  `pause_management`, default OFF).
@@ -49,16 +51,20 @@ const RESUMABLE: int = KIND_PLAYER | KIND_PLANNING | KIND_CRITICAL
 const HOLD_MENU: int = 1
 const HOLD_PLANNING: int = 2
 const HOLD_INCIDENT: int = 4
+## The village guide's window (decision 0481), a MENU kind of its own words.
+const HOLD_GUIDE: int = 8
 
 const STALL_WORDS: String = "Critical: the computer stalled, so the village stopped rather than skip time"
 const CRITICAL_WORDS: String = "Critical: %s"
 const MORE_CRITICAL_WORDS: String = "Critical: %s (and %d more)"
 const MENU_WORDS: String = "The game menu is open"
+const GUIDE_WORDS: String = "The village guide is open"
 const PLANNING_WORDS: String = "Planning: %s is open"
 const PLAYER_WORDS: String = "You paused"
 const OTHER_WORDS: String = "Held by the game (%s)"
 const RESUME_NONE: String = "Nothing to resume"
 const RESUME_MENU: String = "Close the game menu to resume"
+const RESUME_GUIDE: String = "Close the village guide to resume"
 const RESUME_STALL: String = "Resume on the stall banner (Enter)"
 
 ## Whether a planning surface pauses (UI §8.1 `pause_management`, default off) and a critical incident does
@@ -93,6 +99,11 @@ func bind(manager: GameManagerScript) -> void:
 func hold_menu(on: bool) -> bool:
 	"""The game menu's pause (demo_menu.gd `hold_pause`): held while it is open. False: the clock refused."""
 	return _set_hold(HOLD_MENU, on)
+
+
+func hold_guide(on: bool) -> bool:
+	"""The village guide window's pause (guide_window.gd `hold_pause`): held while it is open. False: the clock refused."""
+	return _set_hold(HOLD_GUIDE, on)
 
 
 func set_planning(open: bool, what: String) -> void:
@@ -212,7 +223,7 @@ func kinds() -> int:
 		out |= KIND_STALL
 	if clock.has_pause_reason(SimClock.VICTORY) or clock.has_pause_reason(SimClock.LOAD):
 		out |= KIND_OTHER
-	if has_hold(HOLD_MENU) or (clock.has_pause_reason(SimClock.MENU) and _holds == 0):
+	if has_hold(HOLD_MENU | HOLD_GUIDE) or (clock.has_pause_reason(SimClock.MENU) and _holds == 0):
 		out |= KIND_MENU
 	if has_hold(HOLD_PLANNING):
 		out |= KIND_PLANNING
@@ -232,7 +243,7 @@ func resume_refusal() -> String:
 	if now & RESUMABLE != 0:
 		return ""
 	if now & KIND_MENU != 0:
-		return RESUME_MENU
+		return RESUME_GUIDE if has_hold(HOLD_GUIDE) and not has_hold(HOLD_MENU) else RESUME_MENU
 	if now & KIND_STALL != 0:
 		return RESUME_STALL
 	return RESUME_NONE
@@ -247,8 +258,10 @@ func reasons_into(out: PackedStringArray) -> int:
 	if now & KIND_CRITICAL != 0:
 		out.append(CRITICAL_WORDS % _incident_text if _incident_count <= 1
 			else MORE_CRITICAL_WORDS % [_incident_text, _incident_count - 1])
-	if now & KIND_MENU != 0:
+	if has_hold(HOLD_MENU) or (now & KIND_MENU != 0 and not has_hold(HOLD_GUIDE)):
 		out.append(MENU_WORDS)
+	if has_hold(HOLD_GUIDE):
+		out.append(GUIDE_WORDS)
 	if now & KIND_PLANNING != 0:
 		out.append(PLANNING_WORDS % _planning_what)
 	if now & KIND_PLAYER != 0:

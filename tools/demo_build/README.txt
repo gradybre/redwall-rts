@@ -1,7 +1,8 @@
 REDWALL DEMO -- a small Mossflower village (Windows build)
 ==========================================================
 
-Built {built} from commit {commit} with Godot {godot}.
+Built {built} from commit {commit} with Godot {godot}: a {export} build.
+(A playtest build is a "debug" build: it reports errors into its log instead of closing.)
 
 
 HOW TO RUN
@@ -62,6 +63,25 @@ Farm and village
 Time and window
   Space                     pause / resume   F1 / F2 / F3           1x / 2x / 4x speed
   F11                       full screen on / off
+  F12                       mark a problem in the playtest log (see below)
+
+
+IF SOMETHING GOES WRONG
+-----------------------
+Press F12 the moment you see a bug, a crash or a freeze: it marks the playtest log with the time
+and what you did just before ("Marked #1" appears). Then carry on, or quit.
+
+Afterwards send the newest playtest-....log file. If the game crashed and you have started it
+again since, send the newest two: the crashed session's log is then the second-newest, and the
+newer one notes that it "DID NOT END CLEANLY". The logs are in
+
+  %APPDATA%\Godot\app_userdata\Redwall Demo\logs
+
+(paste that into Explorer's address bar). In the game: Esc > Settings > Playtest log > Open log
+folder. Copy report in the same place copies a summary to paste into a message. godot.log, in the
+same folder, helps too. The log holds this PC's graphics card, driver and Windows version and what
+happened in the game -- no account names, folder paths or anything typed -- and is never sent
+anywhere by itself.
 
 
 WHAT THIS IS

@@ -23,7 +23,8 @@ Without staging it still runs, on placeholder shapes.
 
 ## Windows build
 
-`python3 tools/build_demo_windows.py --out <folder>` makes a standalone Windows copy -- a folder
+`python3 tools/build_demo_windows.py --out <folder>` makes a standalone Windows playtest copy (a debug export;
+`--release` for a final build, decision 0562) -- a folder
 with `RedwallDemo.exe`, its `.pck` and a README, zipped -- that boots straight into this scene
 (`docs/ENVIRONMENT.md` has the details and what it needs). Decision 0196 records the choices:
 
@@ -56,6 +57,91 @@ with `RedwallDemo.exe`, its `.pck` and a README, zipped -- that boots straight i
   (decision 0301), so a first fade, a first selection under a crown and a first frost cost no compile. While the banner
   is up it is the one overload surface (the HUD's CLOCK_OVERLOADED card is withheld); Resume resolves
   the notice, and a 2x/4x step-down warning (no pause) is resolved once the clock has run 10 s quiet.
+
+## For playtesters: the crash and error log (decision 0562)
+
+Every run of the demo writes a **playtest log**, one file per session, beside Godot's own `godot.log`:
+
+| System | Folder |
+|---|---|
+| Windows (the build) | `%APPDATA%\Godot\app_userdata\Redwall Demo\logs` |
+| macOS (an exported copy) | `~/Library/Application Support/Godot/app_userdata/Redwall Demo/logs` |
+| Run from the project | the same, with `Redwall RTS` in place of `Redwall Demo` |
+
+The file is `playtest-<date>_<time>-p<process>.log`, and the newest sorts last. The folder keeps the last ten sessions.
+Each file holds at most 2 MiB, with a reserve so that marks, freezes and the session's end are still written.
+
+**In the game.** Press **F12** the moment something goes wrong (on a Mac keyboard, Fn+F12). It writes a numbered
+*mark* with the time and the last 24 breadcrumbs, and a toast says "Marked #n". **Game menu → Settings → Playtest log**
+shows the folder and has three buttons:
+
+- **Open log folder**, which opens Explorer or Finder;
+- **Copy report**, which copies this machine's details and the session's last 120 lines to the clipboard, with no paths;
+- **Mark a problem here**, which does the same as F12.
+
+Help's "Something went wrong? Report it" topic says the same, and its button opens the folder.
+
+**What a file holds** (`demo/playtest/`):
+
+- **A header.** It records the start time and UTC offset; the version, which is the commit a build was made from
+  (`demo/build_info.json`, baked by the build script) or `dev <commit>` from git in a project run; and the build type
+  (export or project, debug or release). It then records Godot, the OS, CPU and memory, the graphics adapter, its
+  driver (Windows reports it; macOS does not) and the rendering method and driver actually running, after any
+  fallback. Last come the screen, the window (its mode, size and vsync), the demo's settings with the presets
+  fully in effect, and the language. It also records whether **the previous session ended cleanly**. A missing end
+  marker means a crash, a forced quit or a hang, and the header names that file, so the tester knows to send it too.
+- **Breadcrumbs**: a 64-entry ring of notable events, written in batches at most once a second:
+  - the village built, opened and restarted;
+  - the modal on top of the input gate opened and closed (the game menu, the Pantry, the Lab, Work and so on);
+  - the right column's panel, the underground view and the map layer;
+  - every order, accepted or refused, with how many residents were selected, plus Dig tunnel, Release and the room
+    buttons;
+  - the clock's speed and state;
+  - each village-news post (its source and level only).
+
+  There is never one per frame, and none holds typed text or anything about the player.
+- **Errors**: every `push_error`, `push_warning`, GDScript runtime error, engine error and `printerr`, caught through
+  Godot 4.7's `OS.add_logger`. Each is written with its place and up to six script frames, and the breadcrumbs before
+  it are written first, so the file stays in time order. A line repeated more than five times is only counted.
+- **A heartbeat every 30 s**: the game's date and speed, the frame rate and the worst frame, the slow frames (over
+  100 ms), memory and video memory, object, node and orphan counts, and the error totals.
+- **Freezes.** A frame longer than 3 s once the village runs (20 s while it loads) is written when the game recovers,
+  with the breadcrumbs. A watch thread writes the same freeze *while it is still going*, so a hang the tester ends by
+  killing the game is in the file too.
+- **The end**: `== session end` with the totals. Every line is flushed as it is written.
+
+Home and user-data folders are replaced by `~` and `<user data>` in every line. Nothing is sent anywhere: the tester
+sends the file.
+
+**What the tester can paste** (Brendan's message to a playtester):
+
+> If anything goes wrong -- a crash, a freeze, something odd -- press **F12** right then (on a Mac, Fn+F12), then
+> carry on or quit. Afterwards, open the game menu (Esc) → Settings → Playtest log → **Open log folder**, and send
+> me the newest `playtest-….log` file. If the game crashed and you have started it again since, send the newest
+> two, since the crashed session's file is then the second-newest. `godot.log` in the same folder helps as well. If you can't find the folder, it is
+> `%APPDATA%\Godot\app_userdata\Redwall Demo\logs` on Windows (paste that into Explorer's address bar) or
+> `~/Library/Application Support/Godot/app_userdata/Redwall Demo/logs` on a Mac (Finder → Go → Go to Folder).
+> **Copy report** in the same place puts a summary on the clipboard to paste into a message.
+
+**The Windows build.** The build needs nothing new to switch this on:
+
+- `debug/file_logging/enable_file_logging.pc` is on by Godot's default, release exports included, and
+  `test_demo_playtest_log.gd` pins it.
+- The build script bakes `demo/build_info.json` before the export and removes it afterwards. The pack's verification
+  fails if that file is missing, or if the log did not start.
+- The README in the zip says where the logs are.
+
+**Playtest builds are debug exports** (Brendan's ruling, 2026-10-01): `build_demo_windows.py` exports with
+`--export-debug` by default, and `--release` makes a final build on the release template. The reason, measured on the
+4.7.2 **release** template (the macOS one, which runs the same engine code as Windows'):
+
+- a method called on null **ends the process at once** (signal 11), with no message anywhere;
+- an out-of-range index raises nothing;
+- `print` output that has not been flushed is lost.
+
+The **debug** template reports both as SCRIPT ERRORs with script frames, and carries on. The packed build info names
+the mode, the header quotes it, and the pack check fails when it is not the mode asked for (decision 0562). With a
+release build, the breadcrumbs and the unclean-end note are what explain a crash.
 
 ## Time
 
@@ -1686,4 +1772,5 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `camera/` | The RTS camera, and the canopy clearance: the eye kept out of crowns, the crowns in the way thinned, the selected shown through |
 | `sound/` | The sound pass: the cue table (data), the mix and its buses, the voice pool, the event map, the owner and the Settings section |
 | `songs/` | The residents' songs: the repertoire (data), who sings what when, the bubbles, the hum (decision 0442) |
+| `playtest/` | The playtest log (decision 0562): the session and its file, the breadcrumb ring, the error logger, the freeze watch, the header, the folder's rotation, F12's mark and toast, the Settings section, and the village's taps |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

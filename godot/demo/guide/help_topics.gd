@@ -20,11 +20,14 @@ const ACTION_FIELD_GUIDE: StringName = &"field_guide"
 const ACTION_PROJECTS: StringName = &"projects"
 const ACTION_PRACTICE: StringName = &"practice"
 const ACTION_GUIDE: StringName = &"guide"
+## The playtest log's folder (decision 0562).
+const ACTION_LOGS: StringName = &"logs"
 const ACTION_LABELS: Dictionary = {
 	ACTION_PANTRY: "Open the Pantry (K)", ACTION_KITCHEN: "Open the Kitchen tab", ACTION_JOBS: "Open Work (J)",
 	ACTION_NEWS: "Open Village news (N)", ACTION_RESIDENTS: "Open Residents (L)", ACTION_WATER: "Open the Water panel",
 	ACTION_DIG: "Open the Dig tool (B)", ACTION_FIELD_GUIDE: "Open the field guide", ACTION_PROJECTS: "Open projects",
 	ACTION_PRACTICE: "Open practice stories", ACTION_GUIDE: "Show the guide card",
+	ACTION_LOGS: "Open the log folder",
 }
 
 ## [title, key(s), what it does, keywords, action]. The how-to topics first, then one per key.
@@ -51,6 +54,7 @@ const TOPICS: Array = [
 	["Practise a situation", "Village guide (O), Practice", "Practice stories are short situations kept apart from your village -- a loaded crew at the stream, a delivery with nowhere to go, a winter pantry -- each with a restart and a debrief. Nothing they do touches the village.", "practice story lesson try scenario", ACTION_PRACTICE],
 	["The first-village guide", "Game menu, Objectives (O)", "One objective at a time, each done only by what really happens in the village. Hide it, or reopen it, from the game menu or Objectives (O): nothing is granted or lost either way.", "guide objective tutorial skip reopen first", ACTION_GUIDE],
 	["Saving", "", "The demo can't save yet: quitting or restarting loses this village.", "save load quit restart", ACTION_NONE],
+	["Something went wrong? Report it", "F12, Settings", "Press F12 (Fn+F12 on a Mac) the moment you see a bug, a crash or a freeze: it marks the playtest log with the time and what happened just before. The logs are in %APPDATA%\\Godot\\app_userdata\\Redwall Demo\\logs on Windows and ~/Library/Application Support/Godot/app_userdata/Redwall Demo/logs on a Mac (Redwall RTS in place of Redwall Demo when run from the project); send Brendan the newest playtest file. Settings, Playtest log, opens the folder and copies a report to paste.", "bug crash freeze report log problem error mark send playtest", ACTION_LOGS],
 ]
 ## The demo's keys and clicks, one topic each (they were the Controls page).
 const KEY_ROWS: Array = [
@@ -82,6 +86,7 @@ const KEY_ROWS: Array = [
 	["Enter / Space", "Press the focused button"],
 	["F8", "Demo Lab"],
 	["F11", "Full screen"],
+	["F12", "Mark a problem in the playtest log (for a bug report)"],
 ]
 
 var _entries: Array[SearchScript.Entry] = []

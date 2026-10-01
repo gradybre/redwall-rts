@@ -93,6 +93,9 @@ const THEN_HEAD: String = "Then back to:"
 ## finish left it, with why (ARRIVAL AND REFUSAL; decision 0361).
 const FINDING_ROUTE: String = "finding a route"
 const HOLDING_REFUSED: String = "holding — %s"
+## A step that says why a resident stopped, not how far it got: its row is its own words, never "Progress: ..." --
+## A's route refusals and the spoil crew's retry wait (demo_spoil.gd BLOCKED_TEXT).
+const WHY_STEPS: Array[String] = [BrainScript.REFUSED_NO_ROUTE, BrainScript.REFUSED_BLOCKED, "can't reach it"]
 const BULLET: String = "• "
 ## A group's common activity: each activity and how many are at it, most first.
 const TALLY: String = "%s ×%d"
@@ -513,6 +516,14 @@ static func step_of(state: String) -> String:
 	return "" if at < 0 else state.substr(at + STEP_MARK.length())
 
 
+static func step_line(step: String) -> String:
+	"""A step's row: "Progress: 43%", or a refusal's own words where the step says why it stopped (WHY_STEPS)."""
+	for why: String in WHY_STEPS:
+		if step.begins_with(why):
+			return step
+	return PROGRESS % step
+
+
 static func first_up(words: String) -> String:
 	"""`words` with a capital first letter."""
 	return words.left(1).to_upper() + words.substr(1)
@@ -543,7 +554,7 @@ static func _one_lines(entry: Dictionary, lines: PackedStringArray) -> void:
 	lines.append(String(entry["species"]))
 	lines.append(command_of(state))
 	if not step_of(state).is_empty():
-		lines.append(PROGRESS % step_of(state))
+		lines.append(step_line(step_of(state)))
 	var then: PackedStringArray = entry.get("then", PackedStringArray())
 	if not then.is_empty():
 		lines.append(THEN_HEAD)

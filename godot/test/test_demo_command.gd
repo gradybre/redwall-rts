@@ -452,6 +452,18 @@ func test_a_state_splits_into_its_command_and_its_progress() -> void:
 		PanelScript.PROGRESS % "to the well"]), "a row each")
 
 
+func test_a_refusal_step_reads_as_why_not_progress() -> void:
+	"""A's refusals (decision 0361) in F's rows (0391): "holding — can't find a way there" is the command "holding" and
+	the reason in its own words, not "Progress: ..."; a real step keeps its label."""
+	var held: Array[Dictionary] = [{"name": "Mole digger", "species": "Mole",
+		"state": PanelScript.HOLDING_REFUSED % BrainScript.REFUSED_NO_ROUTE}]
+	assert_equal(PanelScript.party_lines(held), PackedStringArray(["Mole digger", "Mole", "holding",
+		BrainScript.REFUSED_NO_ROUTE]), "the reason, unlabelled")
+	assert_equal(PanelScript.step_line(BrainScript.REFUSED_BLOCKED), BrainScript.REFUSED_BLOCKED, "gave up")
+	assert_equal(PanelScript.step_line("can't reach it, trying again"), "can't reach it, trying again", "spoil's wait")
+	assert_equal(PanelScript.step_line("43%"), PanelScript.PROGRESS % "43%", "progress keeps its label")
+
+
 func test_a_group_summary_tallies_its_activities_most_first() -> void:
 	"""The group's common activity: each command and how many, most first, ties in selection order; one resident's
 	summary is its name and state; nobody's says so; the count reads "n selected"."""

@@ -112,10 +112,15 @@ ASTRA_CYCLE_03_CENSUS = {
 # this offsets 0142's packed removals while adding three net canonical scalar records.
 EXPLAINED_SINCE_CENSUS = {
 	# Decision0167 adds one canonical fixed i32 Expedition-slot column.
-	"prose_records": 1,
+	# Decision 0531 adds inventory's `_c_anchor_tile`: one canonical packed i32 column whose
+	# capacity prose "`_c_capacity` <= 101376" is an upper bound already in use, so it moves
+	# prose_records, upper_bound, packed_source_fields and canonical_records by one each and
+	# leaves distinct_expressions alone.
+	"prose_records": 2,
 	"equality": 1,
-	"packed_source_fields": 1,
-	"canonical_records": 4,
+	"upper_bound": 1,
+	"packed_source_fields": 2,
+	"canonical_records": 5,
 	"other_canonical_shapes": 3,
 	"distinct_expressions": -1,
 }
@@ -613,7 +618,7 @@ def _census(registry: dict, rows: list) -> dict:
 		delta = seen - value
 		line = "%s: this audit %d, Astra Cycle 3 %d (%+d)" % (key, seen, value, delta)
 		if EXPLAINED_SINCE_CENSUS.get(key) == delta:
-			explained.append(line + " -- decisions 0142, 0157 and 0167: retire three deposit members; persist three dirty lists/counts and full Expedition claim slot")
+			explained.append(line + " -- decisions 0142, 0157, 0167 and 0531: retire three deposit members; persist three dirty lists/counts, full Expedition claim slot and the container anchor tile")
 		else:
 			unexplained.append(line)
 	return {

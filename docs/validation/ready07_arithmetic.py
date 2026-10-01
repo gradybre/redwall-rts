@@ -26,7 +26,8 @@ for l in s[a:b].splitlines():
 # +1 row for decision 0055's Weather absolute-season columns (16 B). Decision 0054's scheduler
 # queue is an allocation row only: a control block, not per-entity columns, so no field row moves.
 # +1 row for decision 0095's Resident life_stage column (512 B, B8 x RESIDENT_CAPACITY).
-assert len(fields)==144 and sum(fields)==25038690
+# +1 row for decision 0531's InventoryContainer.anchor_tile (405504 B, I32 x CONTAINER_CAPACITY).
+assert len(fields)==145 and sum(fields)==25444194
 # §3's printed rows must sum to the "Auxiliary payload" allocation row.
 #
 # THE HOLE THIS CLOSES. `fields` above slices on the '## 2.3' boundary, so it covers §2.2 ONLY --
@@ -133,12 +134,17 @@ registry=json.loads((r/'docs/planning/canonical_state_registry.json').read_text(
 registry_owners=registry['owners']
 registry_fields=[f for owner in registry_owners for f in owner['fields']]
 registry_key_bytes=sum(len(owner['owner_key'].encode('utf-8')) for owner in registry_owners)+sum(len(f['field_key'].encode('utf-8')) for f in registry_fields)
-assert (len(registry_owners),len(registry_fields),registry_key_bytes)==(52,611,9051)
+# Decision 0531 appends `_c_anchor_tile` (14 key bytes): 611 -> 612 fields, 9051 -> 9065 bytes.
+assert (len(registry_owners),len(registry_fields),registry_key_bytes)==(52,612,9065)
 DECISION_0127_ADDED=len(registry_owners)*16+len(registry_fields)*15+registry_key_bytes
-assert DECISION_0127_ADDED==19048
+assert DECISION_0127_ADDED==19077
 # 179 prior omitted bytes plus44 new field metadata enter the term above ONCE.
 DECISION_0167_CLAIM_SLOT=512*4
 assert DECISION_0167_CLAIM_SLOT==2048
+# Decision 0531: DEMO-CONTAIN-R01's InventoryContainer.anchor_tile, one I32 per container row at
+# ARCH-MEM-002's 101376. Its 29 bytes of declaration metadata enter DECISION_0127_ADDED above.
+DECISION_0531_ANCHOR=101376*4
+assert DECISION_0531_ANCHOR==405504
 # decision 0130: the resident render path. 512*100 instance buffer (48 B of PackedFloat32Array
 # transform, 4 B of owner slot and the RenderingServer's own 48 B TRANSFORM_3D instance, counted
 # rather than assumed free) plus 87552*36 for a SECOND transforms.gd instance. That second store
@@ -180,10 +186,10 @@ schema_key_bytes=sum(len(value.encode('utf-8')) for array in schema_arrays for v
 assert (len(schema_arrays),schema_ints,schema_key_bytes)==(15,781,4288)
 DECISION_0169_ADDED=schema_ints*8+schema_key_bytes
 assert DECISION_0169_ADDED==10536
-assert len(allocations)==34 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED
+assert len(allocations)==34 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
-assert payload==70015827
-assert live==78404435 and candidate==63770659 and live+candidate==142175094
+assert payload==70421360
+assert live==78809968 and candidate==64176163 and live+candidate==142986131
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

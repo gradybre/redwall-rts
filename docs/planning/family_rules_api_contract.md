@@ -1,6 +1,9 @@
 # Family stage-rate table API
 
-FAMILY-RULES-R01 · version1 accepted bounded contract · 2026-09-19 · Astra
+FAMILY-RULES-R01 · version1 accepted bounded contract · 2026-09-19 · Astra ·
+**bound 2026-10-01**: under DEC-044 / [decision 0521](../decisions/0521-pc04-adopted-with-children-inactive.md)
+Needs reads its hunger rows and Residents its demand rows; no child is active, so no
+live world reads a CHILD row.
 
 This bounded packet implements the reviewed family hunger and daily-demand table as
 an immutable derived catalog helper. It does not activate family gameplay, change

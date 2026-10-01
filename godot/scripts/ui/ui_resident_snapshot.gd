@@ -86,6 +86,9 @@ var _rows: Array[NeedRow] = []
 ## The reference every filled row belongs to. One identity for all five, by construction.
 var _ref: Vector2i = EntityDirectoryScript.NULL_REF
 var _row_index: int = -1
+## The captured resident's life stage, read from Residents' one stage column (decision 0521), so
+## the hunger row shows the rate the staged sweep actually applies.
+var _life_stage: int = NeedsScript.LIFE_STAGE_ADULT
 var _last_refusal: StringName = REFUSE_NONE
 ## Reused readers, so a capture allocates nothing.
 var _value: IntMath.IntResult = IntMath.IntResult.new()
@@ -117,6 +120,7 @@ func capture(directory: EntityDirectoryScript, residents: ResidentsScript, needs
 		return _refuse(REFUSE_ROW_NOT_LIVING)
 	if not _read_values(needs, typed_row):
 		return _refuse(REFUSE_NEED_OUT_OF_RANGE)
+	_life_stage = residents.life_stage_code_of(typed_row)
 	_fill_rates(needs, typed_row)
 	_ref = ref
 	_row_index = typed_row
@@ -171,6 +175,8 @@ func _read_rate(needs: NeedsScript, typed_row: int, need: int) -> bool:
 func _read_hunger_rate(needs: NeedsScript, typed_row: int) -> bool:
 	"""Hunger's rate: the published POSITIVE decay magnitude for the verified size, negated once.
 
+	The magnitude is the CAPTURED resident's life-stage row (decision 0521), read through
+	`hunger_rate_milli_per_hour_for_stage()`, so a child's card shows the child rate.
 	The ruling keeps `hunger_rate_milli_per_hour()`'s established sign and callers, so the
 	adapter obtains the size class, checks the result, and uses `R = -magnitude`. The magnitude
 	already carries the size and season multipliers; nothing is applied to it here.
@@ -178,7 +184,8 @@ func _read_hunger_rate(needs: NeedsScript, typed_row: int) -> bool:
 	var size_class: IntMath.IntResult = needs.size_class_of(typed_row)
 	if not size_class.ok:
 		return _rate.refuse(size_class.error)
-	var magnitude: IntMath.IntResult = needs.hunger_rate_milli_per_hour(size_class.value)
+	var magnitude: IntMath.IntResult = needs.hunger_rate_milli_per_hour_for_stage(_life_stage,
+		size_class.value)
 	if not magnitude.ok:
 		return _rate.refuse(magnitude.error)
 	return _rate.succeed(-magnitude.value)

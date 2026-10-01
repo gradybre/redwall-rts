@@ -125,9 +125,23 @@ extends RefCounted
 ##
 ## Promoted from the verified `docs/validation/headless/winter_world.gd` control kernel, which
 ## stays byte-unchanged. Divergences from it are marked `DIVERGENCE:` at each site.
+##
+## ---------------------------------------------------------------------------------------
+## LIFE-STAGE HUNGER (PC-04, DEC-044, decision 0521). Hunger decay is
+## floor(250000 x size x season x stage / 10^9) milli-points/hour, read from the fixed-stage
+## table `family_rules.gd` publishes (FAMILY-RULES-R01): ADULT 1000, CHILD 750, ELDER 1000. The
+## stage itself is NOT stored here. Residents owns the one stage column (MOVE-DEP-R02) and the
+## production sweep `tick_all_staged()` reads it as an argument, so there is no second copy to
+## drift. A store composed by Residents calls `require_life_stages()`, after which the
+## stage-blind `tick()` and `tick_all()` refuse rather than integrate a child at the adult rate.
+## A standalone store has no Residents owner and therefore no stage column; its stage-blind
+## entries are fixtures and integrate every row on the ADULT row. ADULT and ELDER share 1000 as
+## an authored equality in that table, never as a fallback. Children are not active in any
+## scenario (DEC-044), so every live world integrates the same bytes as before this change.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
+const FamilyRules := preload("res://scripts/core/family_rules.gd")
 
 # --- capacities ----------------------------------------------------------------------------
 
@@ -230,6 +244,16 @@ const SIZE_DENOMINATOR: int = 1000
 ## REQ-SET-143 / §5.2 "winter x1.20", over the same 1000 denominator.
 const WINTER_HUNGER_MULTIPLIER: int = 1200
 const SEASON_DENOMINATOR: int = 1000
+
+## PC-04 life stages, the protected local IDs FAMILY-RULES-R01 indexes by. They equal
+## Residents.LIFE_STAGE_*; this module cannot preload Residents (Residents preloads it), so a
+## test asserts the equality instead. COUNT is a bound, never a stored stage.
+const LIFE_STAGE_ADULT: int = 0
+const LIFE_STAGE_CHILD: int = 1
+const LIFE_STAGE_ELDER: int = 2
+const LIFE_STAGE_COUNT: int = 3
+## One hunger rate per (stage, size): index = stage * SIZE_COUNT + size.
+const HUNGER_RATE_COUNT: int = LIFE_STAGE_COUNT * SIZE_COUNT
 
 # --- health (REQ-SET-014, REQ-SET-017, REQ-SET-018) ----------------------------------------
 
@@ -395,6 +419,13 @@ const REFUSE_OVERFLOW: StringName = &"OVERFLOW"
 const REFUSE_RATE_OUT_OF_RANGE: StringName = &"RATE_OUT_OF_RANGE"
 const REFUSE_INVALID_DENOMINATOR: StringName = &"INVALID_DENOMINATOR"
 const REFUSE_REMAINDER_INVARIANT: StringName = &"REMAINDER_INVARIANT_BROKEN"
+## A stage-blind tick on a store whose rows carry life stages in Residents (decision 0521).
+const REFUSE_LIFE_STAGES_REQUIRED: StringName = &"LIFE_STAGES_REQUIRED"
+## The staged sweep was handed a stage column of the wrong length.
+const REFUSE_LIFE_STAGE_SHAPE: StringName = &"LIFE_STAGE_SHAPE"
+## FAMILY-RULES-R01's own diagnostic codes, imported rather than restated.
+const REFUSE_STAGE_INVALID: StringName = &"FAMILY_STAGE_INVALID"
+const REFUSE_STAGE_RULES_UNAVAILABLE: StringName = &"FAMILY_STAGE_RULES_UNAVAILABLE"
 
 
 class OpResult:
@@ -466,10 +497,17 @@ var _airless: PackedByteArray = PackedByteArray()
 
 var _winter: bool = false
 var _hard_freeze: bool = false
-## Hunger decay per size class, milli-need-points/hour, with the size and winter multipliers
-## already folded in. Recomputed only when winter changes, so the compound multiplication
-## happens once per season boundary and never on the per-tick path.
+## Hunger decay per (life stage, size class), milli-need-points/hour, index
+## stage * SIZE_COUNT + size, with the stage, size and winter multipliers already folded in.
+## Copied from `_family_rules` only when winter changes, so no multiplication happens on the
+## per-tick path.
 var _hunger_rate_milli: PackedInt64Array = PackedInt64Array()
+## The fixed-stage rate table (FAMILY-RULES-R01). One instance per store, built once; it owns no
+## world state. Residents reads the same instance for daily demand through `family_rules()`.
+var _family_rules: FamilyRules = FamilyRules.new()
+## True once a Residents owner has composed this store: stage-blind ticks then refuse.
+## Composition configuration, set once and never cleared by `clear()`.
+var _life_stages_required: bool = false
 
 var _present_count: int = 0
 var _living_count: int = 0
@@ -502,9 +540,26 @@ func _init() -> void:
 		"needs columns must match the directory's RESIDENT row capacity")
 	@warning_ignore("assert_always_true") assert(RESIDENT_LIVING_CAP == EntityDirectory.RESIDENT_LIVING_CAP,
 		"needs living cap must match the directory's living cap")
+	_check_family_rule_inputs()
 	_check_rate_bounds()
 	_allocate_columns()
 	clear()
+
+
+func _check_family_rule_inputs() -> void:
+	"""Prove the stage table's adult row is built from this module's own §5.2 constants.
+
+	The table multiplies by an extra stage factor of 1000 over a 1000x larger denominator, so
+	its ADULT row equals the pre-PC-04 size-and-season product exactly. That equality is what
+	keeps an all-adult world byte-identical, and it rests on these inputs agreeing.
+	"""
+	assert(_family_rules.is_ready(), "the fixed-stage rate table must build")
+	assert(FamilyRules.HUNGER_BASE == HUNGER_DECAY_MILLI_PER_HOUR, "hunger base agrees")
+	assert(FamilyRules.SIZE_MULT == SIZE_MULTIPLIER, "size multipliers agree")
+	assert(FamilyRules.SEASON_MULT == [SEASON_DENOMINATOR, WINTER_HUNGER_MULTIPLIER],
+		"season multipliers agree")
+	assert(FamilyRules.STAGE_MULT[LIFE_STAGE_ADULT] == FamilyRules.DENOM
+		/ (SIZE_DENOMINATOR * SEASON_DENOMINATOR), "the adult stage factor is the identity")
 
 
 func _check_rate_bounds() -> void:
@@ -552,7 +607,7 @@ func _allocate_columns() -> void:
 	_infirmary.resize(RESIDENT_CAPACITY)
 	_injury_state.resize(RESIDENT_CAPACITY)
 	_airless.resize(RESIDENT_CAPACITY)
-	_hunger_rate_milli.resize(SIZE_COUNT)
+	_hunger_rate_milli.resize(HUNGER_RATE_COUNT)
 	_rate_scratch.resize(NEED_COUNT)
 
 
@@ -865,10 +920,31 @@ func size_class_of(slot: int) -> IntMath.IntResult:
 
 
 func hunger_rate_milli_per_hour(size_class: int) -> IntMath.IntResult:
-	"""Current hunger decay for a size class, milli-need-points/hour, size and season applied."""
+	"""Current ADULT hunger decay for a size class, milli-need-points/hour, size and season applied.
+
+	The established positive-magnitude reader, kept for its callers (decision 0096). It names the
+	ADULT row explicitly; ELDER shares that value by authored equality. A CHILD's rate is only
+	available through `hunger_rate_milli_per_hour_for_stage()`, and the resident panel must move
+	to that reader before any scenario activates a child (decision 0521).
+	"""
+	return hunger_rate_milli_per_hour_for_stage(LIFE_STAGE_ADULT, size_class)
+
+
+func hunger_rate_milli_per_hour_for_stage(life_stage: int, size_class: int) -> IntMath.IntResult:
+	"""Current hunger decay for a (life stage, size class), milli-points/hour. Refuses a bad input.
+
+	Stage is checked before size, matching FAMILY-RULES-R01's refusal precedence.
+	"""
+	if life_stage < 0 or life_stage >= LIFE_STAGE_COUNT:
+		return _read(REFUSE_STAGE_INVALID, 0)
 	if size_class < 0 or size_class >= SIZE_COUNT:
 		return _read(REFUSE_INVALID_SIZE, 0)
-	return _read(REFUSE_NONE, _hunger_rate_milli[size_class])
+	return _read(REFUSE_NONE, _hunger_rate_milli[life_stage * SIZE_COUNT + size_class])
+
+
+func family_rules() -> FamilyRules:
+	"""The fixed-stage rate table this store integrates hunger from. Immutable; never per tick."""
+	return _family_rules
 
 
 func is_winter() -> bool:
@@ -902,21 +978,17 @@ func set_hard_freeze(hard_freeze: bool) -> OpResult:
 
 
 func _recompute_hunger_rates() -> StringName:
-	"""Fold the size and season multipliers into one hunger rate per size class.
+	"""Copy this season's nine (stage, size) hunger rates out of the fixed-stage table.
 
-	GDD §5.2: "Compound multipliers are applied in int64 before division." Both multipliers
-	are therefore multiplied first and the combined 1000*1000 denominator divided once, so no
+	GDD §5.2: "Compound multipliers are applied in int64 before division." FAMILY-RULES-R01's
+	table multiplies stage, size and season in checked int64 and divides once by 10^9, so no
 	intermediate rounding occurs (BAL-AUTH-002). Runs at a season boundary, not per tick.
 	"""
-	var season: int = WINTER_HUNGER_MULTIPLIER if _winter else SEASON_DENOMINATOR
-	for size_class: int in SIZE_COUNT:
-		if not IntMath.checked_mul_into(HUNGER_DECAY_MILLI_PER_HOUR, SIZE_MULTIPLIER[size_class], _math):
-			return REFUSE_OVERFLOW
-		if not IntMath.checked_mul_into(_math.value, season, _math):
-			return REFUSE_OVERFLOW
-		if not IntMath.floor_div_into(_math.value, SIZE_DENOMINATOR * SEASON_DENOMINATOR, _math):
-			return REFUSE_OVERFLOW
-		_hunger_rate_milli[size_class] = _math.value
+	for stage: int in LIFE_STAGE_COUNT:
+		for size_class: int in SIZE_COUNT:
+			if not _family_rules.hunger_rate_milli_into(stage, size_class, _winter, _math):
+				return StringName(_math.error)
+			_hunger_rate_milli[stage * SIZE_COUNT + size_class] = _math.value
 	return REFUSE_NONE
 
 
@@ -1190,35 +1262,85 @@ func _integrate_step(current: int, remainder: int, rate: int, denominator: int,
 	return REFUSE_NONE
 
 
+func require_life_stages() -> void:
+	"""Mark this store as composed by a Residents owner: stage-blind ticks refuse from now on.
+
+	Residents calls this once when it adopts the store. It is configuration, not state: `clear()`
+	does not reset it and no save carries it.
+	"""
+	_life_stages_required = true
+
+
+func life_stages_required() -> bool:
+	"""True when a Residents owner composed this store and only the staged sweep may integrate."""
+	return _life_stages_required
+
+
 func tick(slot: int) -> OpResult:
-	"""Integrate one resident across one fixed tick. Refuses a dead or absent resident.
+	"""Integrate one resident of a STANDALONE store across one fixed tick, on the ADULT row.
 
 	REQ-SET-011: this takes no elapsed time, no speed and no delta. A tick is a tick, so 2x
 	and 4x run more of exactly this call and nothing else (REQ-SET-003), and visibility cannot
-	reach it at all.
+	reach it at all. Refuses on a Residents-composed store, whose rows carry real stages.
 	"""
+	if _life_stages_required:
+		return _result(REFUSE_LIFE_STAGES_REQUIRED)
+	return tick_staged(slot, LIFE_STAGE_ADULT)
+
+
+func tick_staged(slot: int, life_stage: int) -> OpResult:
+	"""Integrate one resident at an explicit life stage. Refuses a dead/absent row or bad stage."""
 	var code: StringName = _check_live_slot(slot)
+	if code == REFUSE_NONE and (life_stage < 0 or life_stage >= LIFE_STAGE_COUNT):
+		code = REFUSE_STAGE_INVALID
 	if code != REFUSE_NONE:
 		return _result(code)
-	code = _tick_resident(slot)
+	code = _tick_resident(slot, life_stage)
 	if code == REFUSE_NONE:
 		_out_value = 1
 	return _result(code)
 
 
 func tick_all() -> OpResult:
+	"""Integrate every living resident of a STANDALONE store for one tick, on the ADULT row.
+
+	Refuses on a Residents-composed store: its production sweep is `tick_all_staged()`, fed the
+	owner's stage column, so a child can never be integrated at the adult rate by omission.
+	"""
+	if _life_stages_required:
+		_last_refused_slot = -1
+		return _result(REFUSE_LIFE_STAGES_REQUIRED)
+	return _sweep(PackedByteArray(), false)
+
+
+func tick_all_staged(life_stages: PackedByteArray) -> OpResult:
 	"""Integrate every spawned, living resident for one tick; value is the count integrated.
 
-	Dead rows are skipped rather than refused -- a settlement with a death in it is not an
-	error. A genuine refusal stops the sweep and names the row in last_refused_slot(), so a
-	partial sweep is always visible instead of being averaged away.
+	`life_stages` is the Residents stage column, indexed by the same typed row. It is read, never
+	kept. Every living row's stage is checked BEFORE any row integrates, so an out-of-domain byte
+	refuses the whole sweep with nothing written. Dead rows are skipped rather than refused -- a
+	settlement with a death in it is not an error. A genuine refusal stops the sweep and names
+	the row in last_refused_slot(), so a partial sweep is always visible.
 	"""
 	_last_refused_slot = -1
+	if life_stages.size() != RESIDENT_CAPACITY:
+		return _result(REFUSE_LIFE_STAGE_SHAPE)
+	for slot: int in RESIDENT_CAPACITY:
+		if _present[slot] == 1 and _status[slot] != STATUS_DEAD \
+				and life_stages[slot] >= LIFE_STAGE_COUNT:
+			_last_refused_slot = slot
+			return _result(REFUSE_STAGE_INVALID)
+	return _sweep(life_stages, true)
+
+
+func _sweep(life_stages: PackedByteArray, staged: bool) -> OpResult:
+	"""The one per-tick loop behind both sweeps. `staged` false integrates every row as ADULT."""
 	var integrated: int = 0
 	for slot: int in RESIDENT_CAPACITY:
 		if _present[slot] == 0 or _status[slot] == STATUS_DEAD:
 			continue
-		var code: StringName = _tick_resident(slot)
+		var stage: int = life_stages[slot] if staged else LIFE_STAGE_ADULT
+		var code: StringName = _tick_resident(slot, stage)
 		if code != REFUSE_NONE:
 			_last_refused_slot = slot
 			return _result(code)
@@ -1227,18 +1349,21 @@ func tick_all() -> OpResult:
 	return _result(REFUSE_NONE)
 
 
-func _tick_resident(slot: int) -> StringName:
+func _tick_resident(slot: int, life_stage: int) -> StringName:
 	"""Integrate one resident: sample health inputs, then needs, cold, health, status.
 
 	The health inputs are sampled BEFORE the needs move, so a tick's health effect reflects
 	the state the resident was actually in during that tick. This is winter_world.gd's own
-	ordering (it reads `starving` before decaying hunger) and is kept deliberately.
+	ordering (it reads `starving` before decaying hunger) and is kept deliberately. The caller
+	has already validated `life_stage`.
 	"""
 	var starving: bool = _need_value[slot * NEED_COUNT + NEED_HUNGER] == HUNGER_STARVING_VALUE
 	var cold_gain: int = _cold_gain_milli_per_hour(slot)
 	var health_rate: int = _health_rate_per_hour(slot, starving, cold_gain)
 	var cold_rate: int = _cold_rate_milli_per_hour(slot, cold_gain)
 	_fill_need_rates(slot)
+	var hunger_index: int = life_stage * SIZE_COUNT + _size_class[slot]
+	_rate_scratch[NEED_HUNGER] = -_hunger_rate_milli[hunger_index]
 	var code: StringName = _integrate_needs(slot)
 	if code != REFUSE_NONE:
 		return code
@@ -1300,7 +1425,7 @@ func _integrate_health(slot: int, rate: int) -> StringName:
 # --- rate selection ------------------------------------------------------------------------------
 
 func _fill_need_rates(slot: int) -> void:
-	"""Write this resident's five signed need rates, in milli-need-points/hour, into scratch.
+	"""Write this resident's four non-hunger rates, signed milli-points/hour, into scratch.
 
 	§5.2's restoration column adds to the baseline decay rather than replacing it: the winter
 	control kernel's net +1100 social while socializing is exactly 1200 - 100, and its net
@@ -1308,10 +1433,11 @@ func _fill_need_rates(slot: int) -> void:
 	"no awake decay while asleep" -- so sleep restoration is gross, not net.
 
 	All five are produced in one pass into a reused five-element column rather than through a
-	call per need, because this runs for every living resident on every tick.
+	call per need, because this runs for every living resident on every tick. The hunger entry
+	is NOT written here: its rate depends on the life stage, which only `_tick_resident()` is
+	handed, and the published rate readers never read it (decision 0096).
 	"""
 	var paired: int = SOCIAL_RESTORE_PAIRED_MILLI_PER_HOUR if _social_paired[slot] == 1 else 0
-	_rate_scratch[NEED_HUNGER] = -_hunger_rate_milli[_size_class[slot]]
 	_rate_scratch[NEED_REST] = _rest_rate_milli_per_hour(slot)
 	_rate_scratch[NEED_COMFORT] = _comfort_restore_milli_per_hour(slot) - COMFORT_DECAY_MILLI_PER_HOUR
 	_rate_scratch[NEED_SOCIAL] = paired - SOCIAL_DECAY_MILLI_PER_HOUR

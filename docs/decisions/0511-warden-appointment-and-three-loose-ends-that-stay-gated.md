@@ -141,6 +141,9 @@ No element became AVAILABLE, because none of those flows is complete. Changes, b
 
 ## 4. The family hunger helper stays unwired in the settlement. Blocked on PC-04.
 
+**Superseded by [0521](0521-pc04-adopted-with-children-inactive.md) (2026-10-01):** Brendan adopted PC-04 as DEC-044
+and asked for the helper to be wired; it now is, with children kept inactive. The reasoning below is kept as it stood.
+
 `family_rules.gd`'s intended consumer is the Needs hunger integrator and the daily-demand sum, choosing a rate by
 life stage.
 - [FAMILY-RULES-R01](../planning/family_rules_api_contract.md): "The helper remains unbound until activation; catalog

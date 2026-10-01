@@ -1115,6 +1115,36 @@ step D2 raised):
 
 Engineering adoption, and the recorded front/rotation choice, is decision 0532.
 
+### DEC-044 — PC-04 adopted, with children kept inactive
+
+2026-10-01 · State: `USER_CONFIRMED`.
+
+Brendan ruled on the PC-04 family execution package (FAMILY-C4-R01 v4 with FAMILY-LIFE-R01 and
+FAMILY-STATE-R01), relayed through the settlement coordinator on 2026-10-01:
+
+- **Adopt PC-04 and sign off its design.** Build the household and care stores and their APIs, and
+  wire the family hunger helper into Needs.
+- **Activate no children in any scenario.** The current Refuge start stays twelve adults and the
+  lone rat petition is unchanged. Engineering gates 1–6 of the package stay **open**: (1) CHILL
+  illness review, (2) departure/separation, (3) owner APIs and the cross-owner transaction,
+  (4) PC-03 household templates, (5) child movement/geometry/rigs and (6) the service/task graph.
+  Build only what the adopted specification fully defines.
+- **The drafted values are Brendan's own decisions**, no longer agent-authored `[NEW]` choices:
+  child hunger is 750/1000 of the adult rate; care decays 250/hour and gains 3000/hour while
+  served; ordinary service starts at care ≤6000 and stops at ≥9000; a service turn is at most 750
+  paired ticks; a household has at most 8 living members; a child has at most 2 named caregivers;
+  caregiving willingness is on by default; zero care causes no direct harm; the child mood weights
+  sum to 12; purpose is restored by play 320/hour and learning 400/hour; grief reuses
+  `friend_died` and `stranger_died`.
+- **Children may have non-violent arguments** — the draft's choice, confirmed: the ordinary daily
+  pair-conflict rule applies at every stage, with its memory and affinity consequences and no
+  injury or combat.
+
+Scope: the settlement layer's dependent-resident model (DEC-032/DEC-033). It changes no adult or
+elder rule while children are inactive; the GDD amendments to mood, relationship eviction and
+REQ-SET-036 that the package proposes take effect only when children are active.
+Implementation and gate state: [decision 0521](decisions/0521-pc04-adopted-with-children-inactive.md).
+
 ### DEC-040 engineering follow-through
 
 Brendan subsequently requested: “let's plan those as well, then give me what to send back to claude”. [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) records the resulting Astra-authored numeric economy/hazard choices. This is delegated engineering authoring, not a claim the user supplied every value. DEC-040's four-level candidate status remains unchanged. [Decision0092](decisions/0092-underground-economy-and-hazard-parameters.md) records adoption and its limits.

@@ -197,10 +197,19 @@ schema_key_bytes=sum(len(value.encode('utf-8')) for array in schema_arrays for v
 assert (len(schema_arrays),schema_ints,schema_key_bytes)==(15,781,4288)
 DECISION_0169_ADDED=schema_ints*8+schema_key_bytes
 assert DECISION_0169_ADDED==10536
-assert len(allocations)==38 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED
+# decision 0521: households.gd, PC-04's household and dependent-care owner (FAMILY-STATE-R01).
+# Eight §3 rows rolling into the Auxiliary payload allocation, so it adds no row:
+# households B8[256] + 3 I32[256] + member arena 2 I32[2048] + i64 cursor, and dependents
+# 4 B8[512] + 10 I32[512] + 1 I64[512] + i64 served day. The 5632-byte selection scratch is NOT
+# here: the selection pass is held at gate 6 and allocates nothing yet.
+DECISION_0521_ADDED=(1*256)+(3*4*256)+(2*4*2048)+8+(4*1*512)+(10*4*512)+(8*512)+8
+assert DECISION_0521_ADDED==46352
+# Decision 0532 adds four allocation rows (34 -> 38); decision 0521 folds into the existing
+# Auxiliary payload row and adds none.
+assert len(allocations)==38 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
-assert payload==70589300
-assert live==78977908 and candidate==64344103 and live+candidate==143322011
+assert payload==70635652
+assert live==79024260 and candidate==64390455 and live+candidate==143414715
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

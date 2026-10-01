@@ -56,9 +56,15 @@ extends RefCounted
 ## preserves `movement.gd`'s current "adult 0 is the only profiled stage". Free rows hold 0 and
 ## are distinguished by `_present`/the directory generation, never by their stage byte.
 ##
-## WHAT LIFE STAGE DOES NOT DO. It does not enable dependent simulation. PC-04 owns child/elder
-## needs, care, schedule, work and hazard rules and none of them exist, so nothing here derives a
-## child or elder coefficient from an adult one. `movement.gd` still refuses any stage but ADULT
+## WHAT LIFE STAGE DOES. Since PC-04's adoption (DEC-044, decision 0521) the stage selects the
+## hunger rate and the daily nutrition demand through FAMILY-RULES-R01's table: CHILD 750/1000 of
+## the adult rate, ELDER equal to ADULT by authored equality. `tick_needs_all()` hands this
+## store's stage column to the needs sweep, and the demand readers below read the same column.
+##
+## WHAT LIFE STAGE DOES NOT DO. It does not activate dependent simulation: no scenario spawns a
+## child (DEC-044), and care, schedules, child movement and the admission transaction are held
+## at PC-04's open engineering gates. Nothing here derives a child or elder coefficient from an
+## adult one. `movement.gd` still refuses any stage but ADULT
 ## because `_profile_life_stage` (MOVE-DEP-R02's +4-byte starter-catalog column) is that module's
 ## to add; this store answers what a resident's stage IS, and the profile owner answers whether
 ## that stage may travel. Storing CHILD is therefore legal and travelling as one is not.
@@ -107,6 +113,7 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const NeedsScript := preload("res://scripts/core/needs.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
+const FamilyRules := preload("res://scripts/core/family_rules.gd")
 
 ## Resident typed rows, GDD §4.1: storage 512, living population never above 256.
 const RESIDENT_CAPACITY: int = 512
@@ -196,8 +203,9 @@ const SEASON_MULTIPLIER_WINTER: int = NeedsScript.WINTER_HUNGER_MULTIPLIER
 const SEASON_MULTIPLIER_DEFAULT: int = NeedsScript.SEASON_DENOMINATOR
 const SEASON_DENOMINATOR: int = NeedsScript.SEASON_DENOMINATOR
 
-## One divisor for the compound size x season multiplication, applied after both multiplies so
-## the §5.2 "compound multipliers are applied in int64 before division" rule holds.
+## The pre-PC-04 divisor for the compound size x season multiplication. Demand is now read from
+## FAMILY-RULES-R01's table, whose ADULT stage factor 1000 over its 10^9 divisor reduces to
+## exactly this; `_init()` asserts that identity so an all-adult world keeps its numbers.
 const DEMAND_DENOMINATOR: int = SIZE_DENOMINATOR * SEASON_DENOMINATOR
 
 # --- roles and skills, GDD §4.3 / §5.3 ------------------------------------------------------
@@ -453,6 +461,10 @@ func _init(p_directory: EntityDirectory = null, p_needs: NeedsScript = null) -> 
 	_owns_collaborators = p_directory == null and p_needs == null
 	_directory = p_directory if p_directory != null else EntityDirectory.new()
 	_needs = p_needs if p_needs != null else NeedsScript.new()
+	_needs.require_life_stages()
+	assert(FamilyRules.DEMAND_BASE == BASE_NUTRITION_PER_DAY_NP
+		and FamilyRules.DENOM / FamilyRules.STAGE_MULT[LIFE_STAGE_ADULT] == DEMAND_DENOMINATOR,
+		"the stage table's ADULT demand row must equal the §4.1/§5.2 baseline")
 	assert(LIFE_STAGE_KEYS.size() == LIFE_STAGE_COUNT,
 		"the life-stage name table must cover exactly the bounded stage domain")
 	assert(SPECIES_RIG_KEY.size() == SPECIES_COUNT,
@@ -966,6 +978,17 @@ func life_stage_of(slot: int) -> IntMath.IntResult:
 	if not is_present(slot):
 		return _read_refusal(REFUSE_NOT_PRESENT)
 	return _read_value(_life_stage[slot])
+
+
+func life_stage_code_of(slot: int) -> int:
+	"""The row's life stage, or -1 when the row holds no resident. Non-allocating.
+
+	For per-tick callers (the PC-04 care sweep) that must not allocate an IntResult per row.
+	Slot-addressed like `life_stage_of()`, so it carries no generation check.
+	"""
+	if not is_present(slot):
+		return -1
+	return _life_stage[slot]
 
 
 func life_stage_of_ref(ref: Vector2i) -> IntMath.IntResult:
@@ -1545,6 +1568,17 @@ func set_skill_xp(slot: int, skill: int, xp: int) -> OpResult:
 	return _succeed(_skill_level[index], ref_of(slot))
 
 
+# --- the needs sweep (ARCH-SYS-003), staged by life stage --------------------------------------
+
+func tick_needs_all() -> NeedsScript.OpResult:
+	"""Integrate every living resident's needs for one tick at that resident's own life stage.
+
+	The production needs sweep. It hands this store's stage column to `needs.tick_all_staged()`,
+	which reads it and keeps no copy, so the stage stays in exactly one column (MOVE-DEP-R02).
+	"""
+	return _needs.tick_all_staged(_life_stage)
+
+
 # --- GDD §5.8 daily nutrition demand ------------------------------------------------------------
 
 func resident_daily_demand_np(slot: int) -> IntMath.IntResult:
@@ -1553,22 +1587,21 @@ func resident_daily_demand_np(slot: int) -> IntMath.IntResult:
 	if not is_present(slot):
 		out.refuse(String(REFUSE_NOT_PRESENT))
 		return out
-	_demand_of_size_into(_size_class[slot], season_multiplier(), out)
+	_demand_of_row_into(_life_stage[slot], _size_class[slot], out)
 	return out
 
 
-func _demand_of_size_into(size_class: int, season: int, out: IntMath.IntResult) -> bool:
-	"""floor(6000 * size_multiplier * season_multiplier / 1000000), int64 before the divide.
+func _demand_of_row_into(life_stage: int, size_class: int, out: IntMath.IntResult) -> bool:
+	"""floor(6000 * size * season * stage / 10^9) NP/day, read from the fixed-stage table.
 
 	GDD §4.1 fixes the 6000 NP/day small baseline, §5.2 the size multipliers and the winter
-	x1.20, and §5.2's integration rule requires compound multipliers to be applied in int64
-	before any division. `out` doubles as this call's own scratch.
+	x1.20, and PC-04 (DEC-044) the stage multiplier: ADULT 1000, CHILD 750, ELDER 1000.
+	FAMILY-RULES-R01 multiplies all of them in checked int64 before its one division, so the ADULT
+	row equals the pre-PC-04 floor(6000 * size * season / 10^6) exactly. `out` doubles as this
+	call's own scratch.
 	"""
-	if not IntMath.checked_mul_into(BASE_NUTRITION_PER_DAY_NP, SIZE_MULTIPLIER[size_class], out):
-		return false
-	if not IntMath.checked_mul_into(out.value, season, out):
-		return false
-	return IntMath.floor_div_into(out.value, DEMAND_DENOMINATOR, out)
+	return _needs.family_rules().daily_demand_np_into(life_stage, size_class,
+		_needs.is_winter(), out)
 
 
 func daily_demand_np() -> IntMath.IntResult:
@@ -1590,14 +1623,13 @@ func daily_demand_np_into(out: IntMath.IntResult) -> bool:
 	`out` is caller-owned and doubles as this call's scratch, so it must not be a result the
 	caller still needs. Nothing is allocated per resident.
 	"""
-	var season: int = season_multiplier()
 	var total: int = 0
 	var counted: int = 0
 	for index: int in _live_count:
 		var slot: int = _live_slots[index]
 		if not _needs.is_alive(slot):
 			continue
-		if not _demand_of_size_into(_size_class[slot], season, out):
+		if not _demand_of_row_into(_life_stage[slot], _size_class[slot], out):
 			return false
 		if not IntMath.checked_add_into(total, out.value, out):
 			return false
@@ -1609,7 +1641,10 @@ func daily_demand_np_into(out: IntMath.IntResult) -> bool:
 
 
 func daily_demand_for_cohort(small: int, medium: int, large: int) -> IntMath.IntResult:
-	"""Daily demand of a hypothetical size cohort, for forecasts and the §7.1 fixtures.
+	"""Daily demand of a hypothetical ADULT size cohort, for forecasts and the §7.1 fixtures.
+
+	The cohort is ADULT by name, not by default: PC-04's stage-mixed admission forecast sums each
+	member's own stage row and needs a scenario household template (gate 4) to exist first.
 
 	Reads no store state except the season, so a projection cannot mutate or depend on the live
 	population. Refuses a negative count or an empty cohort.
@@ -1626,12 +1661,11 @@ func daily_demand_for_cohort(small: int, medium: int, large: int) -> IntMath.Int
 
 
 func _cohort_demand_into(small: int, medium: int, large: int, out: IntMath.IntResult) -> bool:
-	"""Sum the three size classes' demands, each already scaled by today's season multiplier."""
-	var season: int = season_multiplier()
+	"""Sum the three ADULT size classes' demands, each already scaled by today's season."""
 	var counts: Array[int] = [small, medium, large]
 	var total: int = 0
 	for size_class: int in SIZE_COUNT:
-		if not _demand_of_size_into(size_class, season, out):
+		if not _demand_of_row_into(LIFE_STAGE_ADULT, size_class, out):
 			return false
 		if not IntMath.checked_mul_into(out.value, counts[size_class], out):
 			return false

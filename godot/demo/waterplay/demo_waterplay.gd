@@ -22,8 +22,10 @@ extends Node3D
 ##                                bridgewright); Dive in the pond (selected otters); Swim shortcuts on/off
 ##                                (HAZ-001 consent, for the selection); Cramp (demo): a selected swimmer in
 ##                                the water tires at once -- the rescue on demand
-##   V                            the water's overlay shows the zones for the first selected resident's
-##                                own height, the ford, the bridge candidates, the swim links and landings
+##   V / the Map layer picker     "Getting there: Water range" shows the zones for its subject
+##                                (water_range.gd: one resident's own height; a group's per member, painted
+##                                for the shortest, steppable member by member), the ford, the bridge
+##                                candidates, the swim links and landings (decision 0292)
 ##
 ## TIME is the demo clock: air and stamina tick at 30 a second of demo time (none while paused), the
 ## work and the walking run 2x / 4x with the HUD. What happens goes to the one notice feed (Water).
@@ -59,6 +61,7 @@ const Roots := preload("res://demo/forestry/forest_roots.gd")
 const StandScript := preload("res://demo/forestry/forest_stand.gd")
 const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
+const WaterRangeScript := preload("res://demo/waterplay/water_range.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 
 ## The player did something with the water: show the Water panel (demo/ui/demo_detail_zone.gd).
@@ -101,6 +104,8 @@ var crossings: CrossingsScript = CrossingsScript.new()
 var rescue: RescueScript = RescueScript.new()
 var crew: CrewScript = CrewScript.new()
 var text: TextScript = TextScript.new()
+## Whose water range the Water range lens paints (decision 0292).
+var water_range: WaterRangeScript = WaterRangeScript.new()
 var bridge_view: BridgeViewScript = null
 var swim_view: SwimViewScript = null
 var panel: PanelScript = null
@@ -134,7 +139,7 @@ var _found: IntMath.IntResult = IntMath.IntResult.new()
 var _refresh_in: float = 0.0
 var _panel_was_shown: bool = false
 var _cold_said: int = -1
-var _overlay_who: int = -2
+var _overlay_revision: int = -1
 var _point: Vector2 = Vector2.ZERO
 
 
@@ -179,6 +184,7 @@ func configure(cast: DemoCastScript, command: DemoCommandScript, camera: Camera3
 	links = water_links
 	finds.resize(FIND_NAMES.size())
 	_set_up_state()
+	water_range.configure(state, _name_of)
 	motion.configure(map, state)
 	bridges.configure(map, _bridge_obstacles(), links.area)
 	crossings.configure(cast, map, links, bridges, state, motion)
@@ -284,19 +290,20 @@ func _follow_conditions() -> void:
 
 
 func _follow_selection() -> void:
-	"""The overlay's zones follow the first selected resident's height (the mouse's with none)."""
+	"""The overlay's zones follow the Water range lens's subject (water_range.gd): the selection, a group by
+	its shortest member or the member stepped to, the mouse with nobody selected."""
 	if _water == null or _command == null:
 		return
-	var picked: PackedInt32Array = _command.selected()
-	var who: int = picked[0] if not picked.is_empty() else -1
-	if who == _overlay_who:
+	water_range.follow(_command.selected())
+	if water_range.revision == _overlay_revision:
 		return
-	_overlay_who = who
-	if who < 0:
-		_water.overlay().set_body("a 1.0 m mouse", WaterRules.MOUSE_HEIGHT_U)
-		return
-	var actor := _cast.actor(who) as DemoActorScript
-	_water.overlay().set_body("%s (%.2f m)" % [actor.display_name, actor.height_m], state.height_u[who])
+	_overlay_revision = water_range.revision
+	_water.overlay().set_body(water_range.paint_label(), water_range.paint_height_u())
+
+
+func _name_of(who: int) -> String:
+	"""A resident's name, as the panels show it."""
+	return (_cast.actor(who) as DemoActorScript).display_name
 
 
 func _say(line: String, warning: bool) -> void:

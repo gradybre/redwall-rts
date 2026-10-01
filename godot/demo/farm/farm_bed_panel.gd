@@ -40,7 +40,7 @@ signal cancel_requested
 signal close_requested
 signal pantry_requested
 
-const HINT: String = "Click a crop bed to tend it · right-click it with residents selected to set them to its most pressing work · V: map overlays (moisture, ripeness, water) · K: pantry"
+const HINT: String = "Click a crop bed to tend it · right-click it with residents selected to set them to its most pressing work · V or the Map layer picker: map layers · K: pantry"
 ## The verbs with a button of their own, in order (sowing is "Plant…"): with Plant… and the two
 ## moisture verbs on the first row, four rows of three.
 const VERB_KINDS: Array[int] = [JobsScript.KIND_WATER, JobsScript.KIND_DRAIN, JobsScript.KIND_HARVEST,

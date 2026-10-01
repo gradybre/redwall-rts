@@ -235,17 +235,18 @@ func _materialize_after_create(ok: bool, report: UiWorldSession.Report) -> bool:
 	"""Decision 0533: Create's colony step. A refusal empties the settlement, as boot's does.
 
 	The session has published a world and its cohort by now. A world without its colony is not a
-	§5.1 settlement, so a refused colony fails the whole action and the settlement is reset to
-	empty -- what boot's `_abandon_transaction()` leaves -- rather than half-created.
+	§5.1 settlement, so a refused colony fails the whole action: the settlement is reset to
+	empty -- what boot's `_abandon_transaction()` leaves -- and the session forgets the map it
+	published, so no panel reads a world whose rows the reset destroyed.
 	"""
 	if not ok:
 		return false
 	if SettlementSystem.materialize_starter_colony():
 		return true
-	report.ok = false
-	report.error = SettlementSystem.last_refusal()
+	var code: StringName = SettlementSystem.last_refusal()
 	SettlementSystem.reset()
-	return false
+	return _session.refuse_published_world(report, code,
+		"the world was generated but its starter colony could not be placed.")
 
 
 func _reconcile_economy_after_create(ok: bool) -> void:
@@ -259,7 +260,12 @@ func _reconcile_economy_after_create(ok: bool) -> void:
 	if EconomySystem == null:
 		return
 	if ok:
-		_reopen_starter_stores()
+		EconomySystem.reset()
+		var binding: StarterColonyScript.StoreBinding = StarterColonyScript.StoreBinding.new()
+		if not SettlementSystem.starter_store_binding_into(binding) \
+				or not EconomySystem.open_and_seed_starter_stores(binding):
+			push_error("Create: the starter stores could not open: %s / %s"
+				% [SettlementSystem.last_refusal(), EconomySystem.last_refusal()])
 		EconomySystem.bind_residents(SettlementSystem.residents())
 	elif not _economy_owners_live():
 		EconomySystem.reset()
@@ -272,24 +278,6 @@ func _economy_owners_live() -> bool:
 	var owner_ref: Vector2i = EconomySystem.inventory().container_owner(EconomySystem.pantry())
 	return SettlementSystem.directory().is_valid_of_kind(owner_ref,
 		EntityDirectoryScript.KIND_BUILDING)
-
-
-func _reopen_starter_stores() -> void:
-	"""Rebind EconomySystem's stores to the NEW colony and seed GDD §5.1's inventory into them.
-
-	Decision 0533: the stores are owned by the starter colony's buildings. Create discards the
-	previous settlement, so the previous stores' owners are gone with it; they are reset, reopened
-	on the new hall and stockpiles, and seeded with §5.1's initial inventory exactly as boot does.
-	A refusal is pushed, not swallowed: closed stores read as empty, which is a wrong picture.
-	"""
-	EconomySystem.reset()
-	var binding: StarterColonyScript.StoreBinding = StarterColonyScript.StoreBinding.new()
-	if not SettlementSystem.starter_store_binding_into(binding):
-		push_error("Create: starter stores have no colony: %s" % SettlementSystem.last_refusal())
-	elif not EconomySystem.open_starter_stores(binding):
-		push_error("Create: starter stores could not open: %s" % EconomySystem.last_refusal())
-	elif not EconomySystem.seed_initial_inventory():
-		push_error("Create: starting inventory refused: %s" % EconomySystem.last_refusal())
 
 
 func _report_generation(ok: bool, report: UiWorldSession.Report) -> void:

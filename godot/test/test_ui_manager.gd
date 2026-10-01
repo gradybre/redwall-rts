@@ -518,6 +518,33 @@ func test_a_create_that_loses_the_old_colony_drops_the_stores_it_owned() -> void
 	assert_false(EconomySystem.stores_open(), "closes stores whose owners no longer exist")
 
 
+class RefusingPlacement extends RefCounted:
+	"""A placement authority that refuses every footprint tile, so the colony cannot be placed."""
+
+	func building_tile_refusal(_tile_index: int) -> StringName:
+		"""Refuse every tile with a code of its own."""
+		return &"TEST_COLONY_REFUSED"
+
+
+func test_a_create_whose_colony_refuses_leaves_nothing_half_made() -> void:
+	"""Decision 0533: a world without its colony is no §5.1 settlement. The settlement is reset,
+	the session forgets the map it published, the stores close, and the code reaches the player."""
+	_ui.register_hud(_hud)
+	var probe: RefusingPlacement = RefusingPlacement.new()
+	assert_true(SettlementSystem.buildings().set_placement_authority(probe).ok, "the probe binds")
+	var ok: bool = _ui.create_world()
+	SettlementSystem.buildings().set_placement_authority(SettlementSystem.ground_piles())
+	assert_false(ok, "Create refuses")
+	var report: UiWorldSessionScript.Report = _ui.world_session().last_report()
+	assert_equal(report.error, &"TEST_COLONY_REFUSED", "with the colony's own code")
+	assert_true(report.detail.length() > 0, "and a plain reason")
+	assert_equal(SettlementSystem.population(), 0, "the settlement was reset to empty")
+	assert_false(_ui.world_session().has_world(), "the session forgot the map it published")
+	assert_false(EconomySystem.stores_open(), "and the stores closed with their owners")
+	assert_true(SettlementSystem.buildings().has_placement_authority(), "the composer is rebound")
+	SettlementSystem.reset()
+
+
 func test_create_stands_the_cohort_exactly_where_boot_stands_it() -> void:
 	"""Create must place §5.1's twelve, and place them where booting does, byte for byte.
 

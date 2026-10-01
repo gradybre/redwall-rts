@@ -408,6 +408,18 @@ func _report_refusal(out: Report, code: StringName, detail: String) -> bool:
 	return _refuse(code)
 
 
+func refuse_published_world(out: Report, code: StringName, detail: String) -> bool:
+	"""Withdraw a world this session published, because the caller could not finish it.
+
+	Decision 0533: Create's colony step runs after publication. When it refuses, the caller
+	resets the settlement, so the published map no longer describes any store -- this session
+	forgets it (`has_world()` false, no minimap or tile detail over destroyed rows) and the
+	report carries the caller's code and reason as a refusal. Always returns false.
+	"""
+	_world = null
+	return _report_refusal(out, code, detail)
+
+
 func _open_catalog() -> bool:
 	"""Load the item registry this session resolves the seventeen world bindings through."""
 	if _items != null and _items.is_loaded():

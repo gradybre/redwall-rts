@@ -463,3 +463,18 @@ func test_a_stockpile_covering_a_planned_origin_from_elsewhere_does_not_bind() -
 	var binding: StarterColony.StoreBinding = StarterColony.StoreBinding.new()
 	assert_equal(StarterColony.store_binding_into(_store, _plan, binding),
 		StarterColony.REFUSE_NOT_PLACED, "but its origin is not the plan's, so it does not bind")
+
+
+func test_a_building_covering_its_planned_origin_from_elsewhere_is_caught() -> void:
+	"""Same type and tile ownership at the origin, but another origin: not the planned building."""
+	assert_equal(_apply(), StarterColony.REFUSE_NONE, "the colony applies")
+	assert_true(_store.demolish_building(_applied.building_ref(4)).ok, "the last stockpile goes")
+	var shifted: Buildings.OpResult = _store.place_building(
+		int(Catalog.BUILDING_DEFINITION["open_stockpile"]), _tile(70, 64), 0, START_MASK)
+	assert_true(shifted.ok, "a stockpile from (70,64) covers (70,65)")
+	assert_true(_store.set_building_state(shifted.ref, int(Catalog.BUILDING_STATE["ACTIVE"])).ok,
+		"ACTIVE")
+	_applied.building_slot[4] = shifted.ref.x
+	_applied.building_generation[4] = shifted.ref.y
+	assert_equal(StarterColony.plan_mismatch_refusal(_store, _plan, _applied),
+		StarterColony.REFUSE_PLAN_MISMATCH, "the origin drift is caught")

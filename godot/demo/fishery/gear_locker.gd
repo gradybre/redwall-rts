@@ -57,10 +57,11 @@ const LOT_MILLI: int = GearScript.GEAR_LOT_QUANTITY_MILLI
 ## The locker's capacity (§5.9: "the fisher and boathouse gear lockers hold 200000 g").
 const LOCKER_G: int = 200000
 ## The locker's owner. `inventory.gd` refuses an ownerless container since decision 0533 (DEMO-CONTAIN-R01 #7), but
-## the demo's fisher shelter is a presentation building with no directory row (decision 0251; D3 deliberately does not
-## wire the demo's buildings to the settlement). This private inventory is read by no gate, save or directory, so the
-## shelter is named by this fixed, well-formed placeholder ref -- slot 0, generation 1 -- until the demo's buildings
-## are real rows, when it becomes the shelter's Building ref.
+## the demo's fisher shelter is a presentation building with no directory row (D3 deliberately does not wire the
+## demo's buildings to the settlement). The locker owns this private inventory (decision 0435) and nothing reads its
+## owner -- no gate, save or directory -- so the shelter is named by this fixed, well-formed placeholder ref, slot 0
+## generation 1, recorded in decision 0533. It has the shape of a real directory's first row: if this inventory is
+## ever merged into the settlement's, it must become the shelter's real Building ref first, or it names that row.
 const DEMO_FISHER_SHELTER_OWNER: Vector2i = Vector2i(0, 1)
 const MAX_GEAR: int = 24
 const NONE: int = -1

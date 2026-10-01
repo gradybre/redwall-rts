@@ -42,6 +42,9 @@ and refuse a footprint over a live pile (0532's M4).
      on a site with a live building or a World row, writing nothing. A failure after its first
      write resets the settlement, as a cohort refusal does; `ui_manager.gd` also resets on a
      refusal caught before the first write, so Create never leaves a world without its colony.
+     The session then forgets the map it published (`ui_world_session.refuse_published_world()`),
+     so no minimap or tile detail reads rows the reset destroyed, and the report carries the
+     colony's own code and a plain reason.
    - `ui_world_session.gd` declares the four new kinds its `reset` Callable clears (Building,
      Room, Furniture, World; decision 0094), or Create after a boot would refuse
      WORLD_FOREIGN_LIVE_ROWS.
@@ -202,15 +205,82 @@ and refuse a footprint over a live pile (0532's M4).
   `create_container()` can no longer write one, so a restore could refuse it; that is a format
   tightening left to whoever next touches section 7 (D4's anchored-NULL_REF refusal covers the
   gate meanwhile).
-- **The demo is untouched.** Its village keeps its own presentation buildings and
-  `tunnel_stores` (decision 0251). The autoloaded EconomySystem now boots with closed stores in
-  the demo scene, which never reads them.
+- **The demo is not wired to the settlement**, as the brief ordered. Its village keeps its own
+  presentation buildings and `tunnel_stores` (decision 0251), and the autoloaded EconomySystem
+  boots with closed stores in the demo scene, which never reads them. **One demo file changed:**
+  #207's fishery gear locker (decision 0435) created its private container with the null owner,
+  which `create_container()` now refuses. The demo's fisher shelter has no directory row, so the
+  locker names `DEMO_FISHER_SHELTER_OWNER = (0, 1)`, a fixed well-formed placeholder.
+  - Nothing reads that owner: the locker's inventory is private, in no gate, save or directory.
+  - It is chosen over a demo-private `EntityDirectory` (about 10 MB of columns for one ref) and
+    over a fabricated building row in the fishing driver's directory.
+  - It has the shape of a real directory's first row, so if the locker's inventory is ever merged
+    into the settlement's, the owner must first become the shelter's real Building ref.
+  This is the one place a placeholder owner remains; the starter stores, which the ruling
+  covers, have real owners.
 - `docs/planning/registry_capacity_audit.json` is regenerated, because `inventory.gd` and
   `buildings.gd` changed.
 
 ## Evidence
 
-(Filled in below as the runs complete.)
+- **Tests.**
+  - `test_starter_colony.gd` (20 tests) covers the module against a standalone store: positions
+    restated from §5.9, determinism, every refusal writing nothing (occupied footprint, locked
+    mask, null inputs, a moved building, a full building directory, a pile under the site), and
+    the plan check catching state, tier, rotation, origin, type, room-run order, room type and
+    furniture type/rotation/position drift, plus the binding's refusals.
+  - `test_settlement_starter_colony.gd` (19 tests) covers the real settlement: the colony and
+    World row after generation, a pile request succeeding, the M4 refusal, reset and repeat
+    refusals, a refusal after the first write resetting to empty, the id order, the gate pinned
+    at stage 5, the directory / section 1 / section 4 / section 7 checks of item 8, and seed
+    determinism.
+  - The economy, UI-manager, inventory, buildings and ground-pile suites gained the rest: the
+    fill order to the gram, the split and its rollback, reserved headroom, nested transactions,
+    the ownerless-container refusal, the placement authority, and Create's repaint, its refused
+    colony and its stale-owner handling.
+- **Suite.** `./tools/run_tests.sh` on the merged branch: `ok: 7702 tests, 573942 assertions,
+  0 failures.` Before the master merge, one run under a load average near 65 failed the
+  wall-clock `test_demo_sound_cost.gd::test_twenty_workers_at_four_x_cost_little_per_frame`
+  (p99 1018 us against 500 us); the immediate rerun passed, `ok: 7274 tests, 565637 assertions,
+  0 failures.` No budget was changed.
+- **Contracts.** Every "Specification contracts" step in `.github/workflows/tests.yml` passes,
+  plus the five building/starter/construction preflight and allocation tools. The capacity
+  audit was regenerated for `inventory.gd` and `buildings.gd` and re-checked after the merge.
+- **Boots.** 600 frames of `scenes/main.tscn` (exit 0, no error; "food-days 5.48 days, ready
+  408000 NP") and of `demo/demo_village.tscn` (exit 0, no error).
+- **Warnings.** `tools/gdscript_warnings.py` (from the test-hygiene branch) reports no warning
+  on any line this branch adds.
+- **Mutation testing: 76 mutants** over `starter_colony.gd`, `economy_system.gd`,
+  `buildings.gd`, `ground_piles.gd`, `inventory.gd`, `settlement_system.gd`, `ui_manager.gd`
+  and `ui_world_session.gd`, run in two rounds on cloned trees against the focused suites.
+  **70 are killed.** The six survivors:
+  - three clauses of the plan check that the store's own invariants already imply: a live
+    building of the planned type at the planned origin necessarily owns its origin tile; a room
+    whose exact tile run lies in the hall's interior is necessarily the hall's; a floor piece
+    whose origin tile is in the planned room is necessarily in that room. Kept as defence in
+    depth;
+  - the settlement's call to `plan_mismatch_refusal()`: the apply is deterministic, so no input
+    reaches a mismatch there. It is the module's check, killed in its own suite;
+  - "food first" in the fill order, unobservable while pantry and material routes are disjoint
+    (see Why);
+  - the abort when `open_starter_stores()`'s container creation fails, unreachable because
+    `is_complete()` already makes every check Inventory would.
+- **Independent `code-reviewer`, two passes.**
+  - First pass: one HIGH, fixed. After Create the HUD showed "Food-days --" and "Residents --"
+    until the next stock change, because it repainted before the stores reopened. MEDIUM, all
+    fixed: plan-check clauses without a test; untested rollback branches; a failed Create
+    leaving stale-owned stores or a world without its colony; no pin on the gate against the
+    real colony; this record's placeholder and its contradiction about saves. LOW, fixed:
+    unchecked `begin()` results, the routing helper's name, a duplicated owner predicate,
+    loose types, the id-order test. Not fixed: section 7 restore tightening and the
+    construction kind for Create, both handed on under Consequences.
+  - Second pass, on the fixes and the master merge: one HIGH, fixed — the gear-locker fix was
+    unstaged when the merge was about to be committed. MEDIUM, fixed: Create's colony refusal
+    left the session's map published; this Evidence section; the origin clause; boot and Create
+    duplicating the open-and-seed sequence (now `open_and_seed_starter_stores()`). LOW, fixed:
+    `withdraw()` on closed stores now refuses STORES_NOT_OPEN; the locker's citation. Left:
+    `_report_generation_failure()` says "the settlement is now empty" even for refusals before
+    the reset (older than D3).
 
 ## Source
 

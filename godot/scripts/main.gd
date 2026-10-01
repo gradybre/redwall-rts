@@ -131,8 +131,5 @@ func _seed_stores() -> void:
 	if not SettlementSystem.starter_store_binding_into(binding):
 		push_error("Starter stores have no colony to bind to: %s" % SettlementSystem.last_refusal())
 		return
-	if not EconomySystem.open_starter_stores(binding):
-		push_error("Starter stores could not open: %s" % EconomySystem.last_refusal())
-		return
-	if not EconomySystem.seed_initial_inventory():
-		push_error("Starting inventory refused: %s" % EconomySystem.last_refusal())
+	if not EconomySystem.open_and_seed_starter_stores(binding):
+		push_error("Starter stores could not open and seed: %s" % EconomySystem.last_refusal())

@@ -265,6 +265,14 @@ func _create_store(index: int, owner_ref: Vector2i, max_mass_g: int, filters: in
 	return REFUSE_NONE
 
 
+func open_and_seed_starter_stores(binding: StarterColonyScript.StoreBinding) -> bool:
+	"""Boot's and Create's one entry: open the stores on `binding`, then seed §5.1's inventory.
+
+	False, with the refusal in `last_refusal()`, when either step refuses.
+	"""
+	return open_starter_stores(binding) and seed_initial_inventory()
+
+
 func seed_initial_inventory() -> bool:
 	"""Deposit GDD §5.1's initial inventory in §5.9's order: food first, then item ID.
 
@@ -400,6 +408,8 @@ func withdraw(item_key: StringName, quantity_milli: int) -> bool:
 		return false
 	if quantity_milli <= 0:
 		return _refuse(InventoryScript.REFUSE_INVALID_QUANTITY)
+	if _store_count == 0:
+		return _refuse(REFUSE_STORES_NOT_OPEN)
 	var before: int = _inventory.total_live_milli(item_id)
 	if available_milli(item_key) < quantity_milli:
 		return _refuse(InventoryScript.REFUSE_INSUFFICIENT_UNRESERVED)

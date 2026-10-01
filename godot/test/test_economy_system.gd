@@ -574,6 +574,8 @@ func test_the_stores_stay_closed_until_a_colony_binds_them() -> void:
 	assert_equal(fresh.stockpile(0), InventoryScript.NULL_REF, "nor does a stockpile store")
 	assert_false(fresh.deposit(&"wood", MILLI), "so a deposit is refused")
 	assert_equal(fresh.last_refusal(), EconomySystemScript.REFUSE_STORES_NOT_OPEN, "by name")
+	assert_false(fresh.withdraw(&"wood", MILLI), "and so is a withdrawal")
+	assert_equal(fresh.last_refusal(), EconomySystemScript.REFUSE_STORES_NOT_OPEN, "by the same name")
 	assert_equal(fresh.material_used_mass_g(), 0, "and the material stores hold nothing")
 	fresh.free()
 
@@ -756,4 +758,14 @@ func test_a_caller_held_transaction_is_refused_not_joined() -> void:
 	assert_equal(fresh.last_refusal(), InventoryScript.REFUSE_NESTED_TRANSACTION, "as nested")
 	assert_false(fresh.stores_open(), "staying closed")
 	fresh.inventory().abort()
+	fresh.free()
+
+
+func test_open_and_seed_is_boots_and_creates_one_entry() -> void:
+	"""One call opens the bound stores and seeds §5.1's inventory; a refused open seeds nothing."""
+	var fresh: EconomySystemScript = EconomySystemScript.new()
+	assert_false(fresh.open_and_seed_starter_stores(null), "no binding, no stores")
+	assert_equal(fresh.inventory().live_lot_count(), 0, "and nothing was seeded")
+	assert_true(fresh.open_and_seed_starter_stores(_colony.binding), "a binding opens and seeds")
+	assert_equal(fresh.ready_nutrition_points(), STARTER_READY_NP, "§7.1's 408000 NP")
 	fresh.free()

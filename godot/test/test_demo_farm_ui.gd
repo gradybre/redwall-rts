@@ -168,7 +168,7 @@ func test_a_harvest_is_carried_to_the_store_as_its_own_item() -> void:
 	var crew := _crew(cast, sim, pantry)
 	sim.advance_usec(24 * HOUR_USEC)
 	crew.order(JobsScript.KIND_HARVEST, BED_CARROTS, PackedInt32Array([3]), JobsScript.ORIGIN_PLAYER)
-	var stored := func() -> bool: return pantry.total_units() > 0
+	var stored := func() -> bool: return pantry.total_milli() > 0
 	assert_true(_run(cast, crew, 180.0, stored), "delivered")
 	assert_equal(pantry.milli_of(CARROT), 5100, "5.1 U of carrots")
 	assert_equal(pantry.milli_at(CARROT, 0), 5100, "in the covered store")
@@ -345,7 +345,7 @@ func test_a_harvest_is_hauled_with_the_carry_walk() -> void:
 	assert_true(_run(cast, crew, 120.0, hauling), "hauling")
 	cast.advance(DT)
 	assert_true(_brain(cast, 3).carrying, "with the carry walk")
-	assert_equal(crew.task_text(3), "Carrying the carrot harvest to store", "says so")
+	assert_equal(crew.task_text(3), "Carrying 5.1 U of carrot to the covered store", "says so, and how much")
 
 
 func _dig_tunnel(network: GraphScript, from_m: Vector2, to_m: Vector2) -> PackedInt32Array:
@@ -380,8 +380,9 @@ func test_spoil_from_a_heap_raises_a_bed_and_the_heap_shrinks() -> void:
 	assert_equal(crew.max_heap_spoil(), 16000, "2 U taken")
 
 
-func test_cancelling_a_bed_stores_a_harvest_in_hand() -> void:
-	"""A harvest carried when its jobs are cancelled goes into store as it is."""
+func test_cancelling_a_bed_lets_a_harvest_in_hand_finish_its_delivery() -> void:
+	"""Decision 0222 (the review's F24): a harvest carried when its jobs are cancelled is not put in store
+	at the cancel -- it becomes its delivery, carried on and stored at the store."""
 	var cast := _cast()
 	var sim := SimScript.new()
 	var pantry := _pantry(cast)
@@ -391,8 +392,10 @@ func test_cancelling_a_bed_stores_a_harvest_in_hand() -> void:
 	var cut := func() -> bool: return crew.jobs.current_step(0) == JobsScript.STEP_CARRY_STORE
 	assert_true(_run(cast, crew, 90.0, cut), "cut and carrying")
 	assert_equal(crew.cancel_bed(BED_CARROTS), 1, "one job")
-	assert_equal(pantry.milli_of(CARROT), 5100, "stored anyway")
-	assert_equal(crew.jobs.live_count(), 0, "gone")
+	assert_equal(pantry.milli_of(CARROT), 0, "not credited at the cancel")
+	assert_equal(crew.jobs.kind[0], JobsScript.KIND_DELIVER, "now its delivery")
+	assert_true(_run(cast, crew, 90.0, func() -> bool: return crew.jobs.live_count() == 0), "delivered")
+	assert_equal(pantry.milli_of(CARROT), 5100, "stored at the store")
 
 
 # --- the brain's farm orders and the command layer's hooks -----------------------------------------
@@ -482,7 +485,7 @@ func test_the_panel_words_come_from_the_rules() -> void:
 	assert_equal(Text.rotation_text(850), "same family again: yield ×0.85", "second")
 	assert_equal(Text.rotation_text(1100), "legume after a change: yield ×1.10", "legume")
 	var sim := SimScript.new()
-	assert_equal(Text.pick_row(sim, BED_LOAM, PEA), "legume · 144 h · 7 U · fresh rotation: yield ×1.00 · feeds the soil +8",
+	assert_equal(Text.pick_row(sim, BED_LOAM, PEA), "legume · 144 h · 7.0 U · fresh rotation: yield ×1.00 · feeds the soil +8",
 		"a legume says it feeds the soil")
 	assert_equal(Text.pick_reason(sim, BED_CLAY, RADISH), "needs loam or sand (this bed is clay)", "soil")
 	assert_equal(Text.pick_reason(sim, BED_LOAM, PEA), "sow in Spring 5–10; Summer 1–3", "window")
@@ -590,20 +593,21 @@ func _fixture(path: String, data: Dictionary) -> String:
 
 
 func test_the_food_cell_shows_the_pantry_total_and_takes_it_back() -> void:
-	"""The Food cell reads "7 U"; when UIManager writes its own figure the next sync paints the total
-	back; an unchanged frame paints nothing."""
+	"""The Food cell reads the pantry's milli-U total in the farm's one units form, "7.4 U" (decision
+	0222); when UIManager writes its own figure the next sync paints the total back; an unchanged frame
+	paints nothing."""
 	var shell := UiShell.new()
 	_nodes.append(shell)
 	shell.build()
 	var hud := HudScript.new()
 	hud.bind(shell)
-	assert_true(hud.sync(7), "painted")
-	assert_equal(shell.counter_value_label(UiShell.ID_FOOD).text, "7 U", "the pantry total")
-	assert_false(hud.sync(7), "nothing changed")
+	assert_true(hud.sync(7400), "painted")
+	assert_equal(shell.counter_value_label(UiShell.ID_FOOD).text, "7.4 U", "the pantry total")
+	assert_false(hud.sync(7400), "nothing changed")
 	shell.set_counter_display(UiShell.ID_FOOD, "5.48")
-	assert_true(hud.sync(7), "painted back")
-	assert_equal(shell.counter_value_label(UiShell.ID_FOOD).text, "7 U", "ours again")
-	assert_true(hud.sync(8), "a new total")
+	assert_true(hud.sync(7400), "painted back")
+	assert_equal(shell.counter_value_label(UiShell.ID_FOOD).text, "7.4 U", "ours again")
+	assert_true(hud.sync(8000), "a new total")
 
 
 func test_the_food_command_opens_the_pantry() -> void:
@@ -971,12 +975,13 @@ func test_the_pantry_panel_breaks_the_food_out_by_item() -> void:
 	_nodes.append(panel)
 	panel.configure(sim, pantry, recipes)
 	assert_true(panel.toggle(), "open")
-	assert_equal(panel.item_row_text(CARROT), "Carrot — 5 U · 100% fresh, spoils in 240 h", "carrots")
+	assert_equal(panel.item_row_text(CARROT), "Carrot — 5.1 U · spoils in 551 h in the root cellar",
+		"carrots: 281 spring hours at ×0.35, then 270 at summer's ×0.525")
 	assert_equal(panel.item_row_text(RADISH), "Radish — none", "no radish")
-	assert_equal(panel.stores_text(), "Stores: Covered store 0/400 U (ages ×1.00) · Root cellar 5/60 U (ages ×0.35)", "stores")
+	assert_equal(panel.stores_text(), "Stores: Covered store 0/400.0 U (ages ×1.00) · Root cellar 5.1/60.0 U (ages ×0.35)", "stores")
 	panel.select_item(CARROT)
 	assert_equal(panel.dish_title(), "Carrot feeds 109 dishes (and 15 more through prepared parts)", "dishes")
-	assert_true(panel.total_text().begins_with("5 U of food in store"), "total")
+	assert_true(panel.total_text().begins_with("5.1 U of food in store"), "total")
 	assert_false(panel.toggle(), "closed")
 
 
@@ -995,6 +1000,18 @@ func _farm() -> DemoFarmScript:
 	var providers: Array[Callable] = []
 	farm.configure({}, null, cast, command, camera, null, providers, _services)
 	return farm
+
+
+func test_a_long_step_ages_each_hour_at_its_own_season() -> void:
+	"""Decision 0222: a step crossing many hours -- spring's first morning to summer's first hour, in one
+	call -- ages the pantry hour by hour at each crossing's season (281 spring hours at ×1.0, then one
+	summer hour at ×1.5), the very sum the Pantry's forecast counts on."""
+	var farm := _farm()
+	assert_true(farm.pantry.add_into(WHEAT, 1000, 0, _read), "wheat in store")
+	var lot: int = _read.value
+	assert_equal(farm.advance_calendar(282 * HOUR_USEC), 282, "282 hours crossed")
+	assert_equal(farm.sim.calendar.hour_index(), 288, "summer's first hour")
+	assert_equal(farm.pantry.lot_age(lot), 282500, "281 h at 1000 and 1 h at 1500")
 
 
 func test_the_most_pressing_work_on_a_bed() -> void:

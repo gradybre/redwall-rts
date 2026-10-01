@@ -4,8 +4,10 @@ extends CanvasLayer
 ## woodland skin, in the HUD's modal rectangle, below the HUD's layer.
 ##
 ## Left: every farmed ingredient -- its icon (farm_goods.gd: a render of its own model, else a roundel
-## in its colour) -- with its whole units in store, how fresh its oldest lot is and how
-## many hours before it spoils (§5.8), in stock first. Right: for the ingredient picked, the content
+## in its colour) -- with how much is in store and the lot that spoils FIRST: its amount, its store and
+## the calendar hours until it spoils at that store's rate and each season's, a season change included
+## (§5.8; farm_pantry.gd THE FORECAST, decision 0222), in stock first. Every quantity is the farm's one
+## units form (farm_text.gd UNITS), and the total is summed in milli-U before it is written. Right: for the ingredient picked, the content
 ## library's dishes it feeds (farm_recipes.gd) -- candidates for a kitchen that does not exist yet.
 ## Above: each storage place, its load and how fast it spoils food (the cellar providers' permille);
 ## below: spoiled food, which can be sent to compost at §5.7's 4 : 2.
@@ -32,6 +34,8 @@ signal close_requested
 
 const TITLE: String = "Pantry"
 const RECIPE_NOTE: String = "Dishes from the Redwall content library that use it — candidates for the kitchen (no cooking yet)."
+## What the spoil times on the rows mean (the review's F27: say the assumption).
+const FORECAST_NOTE: String = "Spoil times are game hours from now, at each store's rate and the season's, a coming season change included."
 const LIST_WIDTH: float = 400.0
 const MIN_BODY_H: float = 200.0
 ## The panel's height that is not the two lists: header, stores line, spoiled row, margins.
@@ -95,6 +99,7 @@ func _build() -> void:
 	column.add_child(_header())
 	_stores = FarmUi.label("", FarmUi.SMALL_PX, Palette.UMBER)
 	column.add_child(_stores)
+	column.add_child(FarmUi.label(FORECAST_NOTE, FarmUi.SMALL_PX, Palette.UMBER))
 	_body = HBoxContainer.new()
 	_body.add_theme_constant_override(&"separation", 14)
 	_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -189,7 +194,7 @@ func refresh() -> void:
 	"""Rewrite the totals, the stores, every row and the picked ingredient's dishes."""
 	if _pantry == null or not visible:
 		return
-	_total.text = "%d U of food in store · %s" % [_pantry.total_units(), Text.clock_line(_sim)]
+	_total.text = "%s of food in store · %s" % [Text.units_text(_pantry.total_milli()), Text.clock_line(_sim)]
 	_stores.text = stores_text()
 	var order: int = 0
 	for in_stock: bool in [true, false]:
@@ -199,19 +204,24 @@ func refresh() -> void:
 				_item_buttons[item].text = item_row_text(item)
 				order += 1
 	_fill_dishes()
-	_spoiled.text = "Spoiled food: %d.%d U" % [_pantry.spoiled_milli / 1000, (_pantry.spoiled_milli % 1000) / 100]
+	_spoiled.text = "Spoiled food: %s" % Text.units_text(_pantry.spoiled_milli)
 	FarmUi.set_enabled(_compost, _pantry.spoiled_milli >= 2, "nothing has spoiled")
 	_place.call_deferred()
 
 
 func item_row_text(item: int) -> String:
-	"""'Carrot — 5 U · 80% fresh, spoils in 190 h' or 'Carrot — none'."""
-	var units: int = _pantry.units_of(item)
-	if _pantry.milli_of(item) <= 0:
+	"""'Carrot — 5.1 U · spoils in 160 h in the covered store' (one lot), 'Carrot — 5.1 U · first to
+	spoil: 2.0 U in the covered store, in 200 h' (more), or 'Carrot — none'."""
+	var held: int = _pantry.milli_of(item)
+	if held <= 0 or not _pantry.first_to_spoil_into(item, _sim.calendar.hour_index(), _read):
 		return "%s — none" % Catalog.ITEM_LABELS[item]
-	var fresh: int = _read.value / 10 if _pantry.freshness_permille_into(item, _read) else 0
-	var hours: int = _read.value if _pantry.hours_left_into(item, _read) else 0
-	return "%s — %d U · %d%% fresh, spoils in %d h" % [Catalog.ITEM_LABELS[item], units, fresh, hours]
+	var lot: int = _read.value
+	var hours: int = _pantry.lot_spoil_hours(lot, _sim.calendar.hour_index())
+	var store: String = _pantry.storage.label_of(_pantry.lot_location(lot)).to_lower()
+	var what: String = "%s — %s" % [Catalog.ITEM_LABELS[item], Text.units_text(held)]
+	if _pantry.lot_milli(lot) == held:
+		return "%s · spoils in %d h in the %s" % [what, hours, store]
+	return "%s · first to spoil: %s in the %s, in %d h" % [what, Text.units_text(_pantry.lot_milli(lot)), store, hours]
 
 
 func stores_text() -> String:
@@ -219,9 +229,9 @@ func stores_text() -> String:
 	var parts := PackedStringArray()
 	var storage := _pantry.storage
 	for location: int in storage.count():
-		parts.append("%s %d/%d U (ages ×%d.%02d)" % [storage.label_of(location), _pantry.used_milli_of(location) / 1000,
-			storage.capacity_milli_of(location) / 1000, storage.permille_of(location) / 1000,
-			(storage.permille_of(location) % 1000) / 10])
+		parts.append("%s %s/%s (ages ×%d.%02d)" % [storage.label_of(location),
+			Text.units_text(_pantry.used_milli_of(location)).trim_suffix(" U"), Text.units_text(storage.capacity_milli_of(location)),
+			storage.permille_of(location) / 1000, (storage.permille_of(location) % 1000) / 10])
 	return "Stores: " + " · ".join(parts)
 
 

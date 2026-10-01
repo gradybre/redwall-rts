@@ -13,6 +13,14 @@ extends RefCounted
 ##           planks to the plank stack, stack them
 ##   PLANT   to the yard, take a sapling basket, carry it to the cleared spot, plant (4 WU, §5.9)
 ##   GRUB    to the stump, dig it out
+##
+## A DELIVERY (decision 0222, the review's F24) is what a job with a load in hand becomes when its work is
+## cancelled: CARRY_LOGS walks logs or deadfall wood to the log stack and stacks them, CARRY_PLANKS walks
+## planks to the plank stack. The stores are credited there, on arrival -- never at the cancel. Neither is
+## an order (KIND_COUNT counts the orderable kinds). A job keeps its SERIAL through everything it becomes
+## (a fell turned haul, a haul turned delivery), so a resident's resume finds it; PAID says planting's
+## compost is paid for this job (F25: once per job, kept through rewinds and a change of hands); BLOCKED
+## says it waits for a way to its target, lifted at the woods' next hour.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 
@@ -22,10 +30,14 @@ const KIND_GATHER: int = 2
 const KIND_SAW: int = 3
 const KIND_PLANT: int = 4
 const KIND_GRUB: int = 5
+## The orderable kinds; the two deliveries come after them.
 const KIND_COUNT: int = 6
-const KIND_NAMES: Array[String] = ["Fell", "Haul logs", "Gather deadfall", "Saw planks", "Plant a sapling", "Grub out a stump"]
+const KIND_CARRY_LOGS: int = 6
+const KIND_CARRY_PLANKS: int = 7
+const KIND_NAMES: Array[String] = ["Fell", "Haul logs", "Gather deadfall", "Saw planks", "Plant a sapling", "Grub out a stump",
+	"Carry logs to the stack", "Carry planks to the stack"]
 const KIND_DOING: Array[String] = ["Felling", "Hauling logs from", "Gathering deadfall", "Sawing planks",
-	"Planting a sapling at", "Grubbing out"]
+	"Planting a sapling at", "Grubbing out", "Carrying logs to the log stack", "Carrying planks to the plank stack"]
 
 ## Walks (< STEP_WORK) and works (STEP_WORK + WORK_*).
 const STEP_GO_TREE: int = 0
@@ -56,6 +68,8 @@ const PLANS: Array[Array] = [
 		STEP_WORK + WORK_STACK_PLANKS],
 	[STEP_GO_YARD, STEP_WORK + WORK_FETCH_SAPLING, STEP_CARRY_SITE, STEP_WORK + WORK_PLANT],
 	[STEP_GO_TREE, STEP_WORK + WORK_GRUB],
+	[STEP_CARRY_STACK, STEP_WORK + WORK_DROP],
+	[STEP_CARRY_PLANKS, STEP_WORK + WORK_STACK_PLANKS],
 ]
 
 const ORIGIN_PLAYER: int = 0
@@ -90,15 +104,24 @@ var issued: PackedByteArray = PackedByteArray()
 var tries: PackedByteArray = PackedByteArray()
 var goal: PackedVector2Array = PackedVector2Array()
 var revision: int = 0
+## The job's identity for its whole life (see the header); never reused.
+var serial: PackedInt64Array = PackedInt64Array()
+## 1 once planting's compost is paid for this job (see the header).
+var paid: PackedByteArray = PackedByteArray()
+## 1 while it waits for a way to its target (see the header).
+var blocked: PackedByteArray = PackedByteArray()
+var _next_serial: int = 0
 
 
 func _init() -> void:
 	"""Size every column once; every row free."""
 	for column: PackedInt32Array in [kind, target, target_gen, worker, step, origin]:
 		column.resize(MAX_JOBS)
-	for column: PackedInt64Array in [elapsed_usec, work_usec, load_milli]:
+	for column: PackedInt64Array in [elapsed_usec, work_usec, load_milli, serial]:
 		column.resize(MAX_JOBS)
 	issued.resize(MAX_JOBS)
+	paid.resize(MAX_JOBS)
+	blocked.resize(MAX_JOBS)
 	tries.resize(MAX_JOBS)
 	goal.resize(MAX_JOBS)
 	kind.fill(FREE)
@@ -127,6 +150,8 @@ func open_into(job_kind: int, job_target: int, gen: int, job_origin: int, out: I
 	target_gen[row] = gen
 	origin[row] = job_origin
 	worker[row] = NOBODY
+	_next_serial += 1
+	serial[row] = _next_serial
 	_reset(row)
 	revision += 1
 	return out.succeed(row)
@@ -140,6 +165,8 @@ func _reset(row: int) -> void:
 	load_milli[row] = 0
 	issued[row] = 0
 	tries[row] = 0
+	paid[row] = 0
+	blocked[row] = 0
 
 
 func find_into(job_kind: int, job_target: int, out: IntMath.IntResult) -> bool:
@@ -168,10 +195,11 @@ func of_worker_into(who: int, out: IntMath.IntResult) -> bool:
 
 
 func assign(row: int, who: int) -> void:
-	"""Give job `row` to resident `who`, from its current step's walk."""
+	"""Give job `row` to resident `who`, from its current step's walk (a wait for a way is lifted)."""
 	worker[row] = who
 	issued[row] = 0
 	tries[row] = 0
+	blocked[row] = 0
 	revision += 1
 
 
@@ -209,6 +237,28 @@ func become(row: int, job_kind: int) -> void:
 	kind[row] = job_kind
 	_reset(row)
 	revision += 1
+
+
+func become_delivery(row: int, job_kind: int) -> void:
+	"""Job `row`'s work is cancelled with a load in hand: it is now the delivery `job_kind` of that load.
+	At a step the delivery shares (the carry walk under way, the drop begun) it carries on from there;
+	otherwise (logs on their way to the sawhorse, or on it) it sets off afresh for the stack."""
+	var at: int = (PLANS[job_kind] as Array).find(current_step(row))
+	kind[row] = job_kind
+	revision += 1
+	if at >= 0:
+		step[row] = at
+		return
+	step[row] = 0
+	issued[row] = 0
+	elapsed_usec[row] = 0
+	work_usec[row] = 0
+	tries[row] = 0
+
+
+func is_delivery(row: int) -> bool:
+	"""Whether job `row` is a delivery (see the header)."""
+	return kind[row] == KIND_CARRY_LOGS or kind[row] == KIND_CARRY_PLANKS
 
 
 func rewind_to_walk(row: int) -> void:

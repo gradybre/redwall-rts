@@ -11,7 +11,9 @@ extends CanvasLayer
 ## its most pressing condition and the verb that answers it (farm_text.gd -- hidden when nothing
 ## presses, clay only for a warning); its crop and stage with the hours to ripe or to withering,
 ## moisture against the crop's band, soil fertility and health, what has been done to the ground, the
-## expected yield, and the jobs on it; then the verbs.
+## expected yield, and the jobs on it; then the verbs. A harvest waiting for store room (farm_crew.gd
+## CONSERVATION, decision 0222) adds a clay line saying how much has nowhere to go and a "Make room…"
+## button that opens the Pantry.
 ## A verb that cannot be done now is disabled, its reason in its tooltip. "Plant…" opens the PICKER:
 ## every ingredient, those sowable now first, each with its row's growth hours, yield, family and its
 ## rotation effect IN THIS BED (the same family again shows the penalty; legumes say they feed the
@@ -36,6 +38,7 @@ signal crop_picked(item: int)
 signal fallow_toggled
 signal cancel_requested
 signal close_requested
+signal pantry_requested
 
 const HINT: String = "Click a crop bed to tend it · right-click it with residents selected to set them to its most pressing work · V: map overlays (moisture, ripeness, water) · K: pantry"
 ## The verbs with a button of their own, in order (sowing is "Plant…"): with Plant… and the two
@@ -65,6 +68,8 @@ var _clock: Label = null
 var _needs: Label = null
 var _lines: Array[Label] = []
 var _message: Label = null
+var _shortage: Label = null
+var _make_room: Button = null
 var _hint: Label = null
 var _message_since: int = 0
 var _actions: GridContainer = null
@@ -119,12 +124,24 @@ func _build() -> void:
 	_message = FarmUi.label("", FarmUi.BODY_PX, Palette.CLAY)
 	_message.visible = false
 	column.add_child(_message)
+	_build_shortage(column)
 	_actions = _build_actions()
 	column.add_child(_actions)
 	_picker = _build_picker()
 	column.add_child(_picker)
 	_hint = FarmUi.label(HINT, FarmUi.SMALL_PX, Palette.UMBER)
 	column.add_child(_hint)
+
+
+func _build_shortage(column: VBoxContainer) -> void:
+	"""The storage shortage line and its "Make room…" button, both hidden until a harvest waits."""
+	_shortage = FarmUi.label("", FarmUi.BODY_PX, Palette.CLAY)
+	_shortage.visible = false
+	column.add_child(_shortage)
+	_make_room = FarmUi.button("Make room… (Pantry, K)")
+	_make_room.visible = false
+	_make_room.pressed.connect(func() -> void: pantry_requested.emit())
+	column.add_child(_make_room)
 
 
 func _build_frame() -> VBoxContainer:
@@ -237,6 +254,8 @@ func refresh() -> void:
 	for label: Label in _lines:
 		label.visible = has_bed and not picking
 	_needs.visible = false
+	_shortage.visible = false
+	_make_room.visible = false
 	_actions.visible = has_bed and not picking
 	_picker.visible = has_bed and picking
 	_hint.visible = not has_bed
@@ -303,6 +322,9 @@ func _fill_lines() -> void:
 	for k: int in _lines.size():
 		_lines[k].text = texts[k]
 		_lines[k].visible = not texts[k].is_empty()
+	_shortage.text = _crew.shortage_text(bed)
+	_shortage.visible = not _shortage.text.is_empty()
+	_make_room.visible = _shortage.visible
 
 
 func _jobs_line() -> String:
@@ -393,6 +415,16 @@ func verb_button(kind: int) -> Button:
 func picker_button(item: int) -> Button:
 	"""The open picker's button for an ingredient (every ingredient is listed; tests and the check)."""
 	return _pick_buttons[item]
+
+
+func shortage_line() -> String:
+	"""The storage shortage line as shown ('' when hidden; tests)."""
+	return _shortage.text if _shortage.visible else ""
+
+
+func make_room_button() -> Button:
+	"""The "Make room…" button (tests)."""
+	return _make_room
 
 
 func line_text(k: int) -> String:

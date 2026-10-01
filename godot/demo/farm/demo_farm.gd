@@ -180,6 +180,7 @@ func _build_panels() -> void:
 	bed_panel.fallow_toggled.connect(func() -> void: sim.set_fallow(selected_bed, not sim.is_fallow(selected_bed)))
 	bed_panel.cancel_requested.connect(func() -> void: crew.cancel_bed(selected_bed))
 	bed_panel.close_requested.connect(func() -> void: select_bed(NO_BED))
+	bed_panel.pantry_requested.connect(open_pantry)
 	pantry_panel = PantryPanelScript.new()
 	pantry_panel.configure(sim, pantry, recipes)
 	pantry_panel.set_goods(goods)
@@ -273,15 +274,16 @@ func step(usec: int) -> void:
 	work and the HUD's Food figure."""
 	advance_calendar(usec)
 	crew.update(usec)
-	hud.sync(pantry.total_units())
+	hud.sync(pantry.total_milli())
 
 
 func advance_calendar(usec: int) -> int:
 	"""The calendar part of a step: every hour crossed (pantry ageing, the hourly jobs and alerts), then
 	the weather re-read and a change of it posted. Returns the hours crossed."""
 	var hours: int = sim.advance_usec(usec)
+	var first: int = sim.calendar.hour_index() - hours + 1
 	for hour: int in hours:
-		pantry.age_hour(sim.season())
+		pantry.age_hour(PantryScript.season_of_hour(first + hour))
 	if hours > 0:
 		_hourly()
 	if services.weather.sync():
@@ -379,6 +381,12 @@ func select_bed(bed: int) -> void:
 func toggle_pantry() -> void:
 	"""Open or close the Pantry."""
 	pantry_panel.toggle()
+
+
+func open_pantry() -> void:
+	"""Open the Pantry (the bed panel's "Make room…"); already open, it stays open."""
+	if not pantry_panel.visible:
+		toggle_pantry()
 
 
 func compost_spoiled() -> void:

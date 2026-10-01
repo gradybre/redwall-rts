@@ -358,7 +358,7 @@ func test_a_harvest_is_carried_as_its_own_model_and_put_down_at_the_store() -> v
 	cast.advance(DT)
 	var held := carrier.find_child("Held", false, false) as MeshInstance3D
 	assert_true(held != null and held.visible, "shown on the carry walk")
-	assert_true(_run(cast, crew, carry, 180.0, func() -> bool: return pantry.total_units() > 0), "delivered")
+	assert_true(_run(cast, crew, carry, 180.0, func() -> bool: return pantry.total_milli() > 0), "delivered")
 	assert_false(carrier.holding(), "hands empty at the store")
 	var stock: StockViewScript = _keep(StockViewScript.new())
 	stock.configure(pantry, goods)

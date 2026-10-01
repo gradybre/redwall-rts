@@ -613,7 +613,8 @@ func test_a_hauler_loads_on_the_log_stacks_side_of_the_trunk() -> void:
 
 
 func test_a_resident_ordered_away_drops_the_job_where_it_had_got_to() -> void:
-	"""Called away mid-haul, the load stays with the job; released from it, the load goes into store."""
+	"""Called away mid-haul, the load stays with the job; the haul cancelled, it is still not in store
+	(decision 0222) -- the hauler, taking the job back, stacks it."""
 	var forestry := _forestry()
 	forestry.stand.fell_into(WEST_OAK, 1, Vector2(-1.0, 0.0), false, _read)
 	forestry.order_on(PickScript.KIND_TRUNK, WEST_OAK, PackedInt32Array([1]))
@@ -626,6 +627,11 @@ func test_a_resident_ordered_away_drops_the_job_where_it_had_got_to() -> void:
 	assert_equal(forestry.crew.jobs.worker[row], JobsScript.NOBODY, "back on the board")
 	assert_equal(forestry.crew.jobs.load_milli[row], 6000, "the load kept")
 	forestry.crew.cancel_all()
+	assert_equal(_services.stores.wood_milli_u, 40000, "not credited at the cancel")
+	assert_equal(forestry.crew.jobs.kind[row], JobsScript.KIND_CARRY_LOGS, "the load's delivery waits")
+	brain.work_done()
+	assert_equal(forestry.crew.jobs.worker[row], 1, "the hauler took it back")
+	assert_true(_run(forestry, func() -> bool: return forestry.crew.jobs.live_count() == 0), "stacked")
 	assert_equal(_services.stores.wood_milli_u, 46000, "the load went into store")
 	assert_equal(forestry.stand.trunk_milli[WEST_OAK], 6000, "the rest still lies there")
 
@@ -687,18 +693,24 @@ func test_sawing_turns_two_units_of_logs_into_planks() -> void:
 		"Can't saw planks: the demo stores hold under 2.0 U of wood", "not enough")
 
 
-func test_a_sawing_called_off_puts_its_load_away_as_what_it_is() -> void:
-	"""Cancelled while carrying the logs: they go back as wood; cancelled while carrying the planks: they
-	go into store as planks. Nothing is lost either way."""
+func test_a_sawing_called_off_carries_its_load_away_as_what_it_is() -> void:
+	"""Decision 0222 (the review's F24): cancelled while carrying the logs, they are carried back to the
+	log stack as wood; cancelled while carrying the planks, they are carried on to the plank stack. The
+	stores are credited on arrival, never at the cancel; nothing is lost either way."""
 	var forestry := _forestry()
 	forestry.order_on(PickScript.KIND_SAW, -1, PackedInt32Array([3]))
 	assert_true(_run(forestry, func() -> bool: return forestry.crew.jobs.load_milli[0] > 0), "logs in hand")
 	forestry.crew.cancel_all()
+	assert_equal(_services.stores.wood_milli_u, 38000, "not back yet")
+	assert_equal(forestry.crew.jobs.kind[0], JobsScript.KIND_CARRY_LOGS, "carried back")
+	assert_true(_run(forestry, func() -> bool: return forestry.crew.jobs.live_count() == 0), "stacked")
 	assert_equal(_services.stores.wood_milli_u, 40000, "the logs went back")
 	assert_equal(_services.stores.plank_milli_u, 0, "no planks")
 	forestry.order_on(PickScript.KIND_SAW, -1, PackedInt32Array([3]))
 	assert_true(_run(forestry, func() -> bool: return forestry.crew.jobs.current_step(0) == JobsScript.STEP_CARRY_PLANKS), "planks in hand")
 	forestry.crew.cancel_all()
+	assert_equal(_services.stores.plank_milli_u, 0, "not stacked yet")
+	assert_true(_run(forestry, func() -> bool: return forestry.crew.jobs.live_count() == 0), "stacked")
 	assert_equal(_services.stores.wood_milli_u, 38000, "the logs were sawn")
 	assert_equal(_services.stores.plank_milli_u, 2000, "the planks went into store")
 
@@ -1155,8 +1167,8 @@ func test_a_woods_job_called_away_is_taken_back_when_the_other_work_is_done() ->
 	brain.work_done()
 	assert_equal(forestry.crew.jobs.worker[_read.value], 2, "someone else has it: not taken back")
 	forestry.crew.jobs.unassign(_read.value)
-	brain.remember_unfinished(UnfinishedScript.new(forestry.crew.take_back.bind(_read.value, JobsScript.KIND_FELL,
-		tree, forestry.crew.jobs.target_gen[_read.value]), "Fell (woods)"))
+	brain.remember_unfinished(UnfinishedScript.new(forestry.crew.take_back.bind(_read.value,
+		forestry.crew.jobs.serial[_read.value]), "Fell (woods)"))
 	brain.work_done()
 	assert_equal(forestry.crew.jobs.worker[_read.value], 1, "given back to it")
 	assert_true(row > 0, "one fell on that tree")

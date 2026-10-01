@@ -7,6 +7,11 @@ extends RefCounted
 ## `pressing_kind_into`): clear a withered or blighted crop, harvest a ripe one, drain a waterlogged
 ## growing bed, water a parched one, cover one before a frost. Nothing pressing, no line. Every need
 ## is a warning but a ripe crop still in its grace (need_is_warning; the alerts call that a NOTE).
+##
+## UNITS (decision 0222, the review's F28). A farm quantity is milli-U; the player reads it through ONE
+## formatter, `units_text`, wherever it appears -- stock, totals, capacity, yield and a carried load:
+## tenths of a unit, floored, so a figure never claims food that is not there; and never "0 U" for
+## something -- below a tenth reads "<0.1 U". Totals are summed in milli-U first.
 
 const SimScript := preload("res://demo/farm/farm_sim.gd")
 const Weather := preload("res://demo/farm/farm_weather.gd")
@@ -25,6 +30,18 @@ const NEED_DRAIN: int = 4
 const NEED_WATER: int = 5
 const NEED_COVER: int = 6
 const REFUSE_NOTHING_PRESSING: String = "NOTHING_PRESSING"
+const MILLI_PER_U: int = 1000
+const MILLI_PER_TENTH: int = 100
+
+
+static func units_text(milli: int) -> String:
+	"""A quantity (milli-U, never negative) as the player reads it (see UNITS): '5.1 U', '400.0 U',
+	'<0.1 U', '0 U'."""
+	if milli == 0:
+		return "0 U"
+	if milli < MILLI_PER_TENTH:
+		return "<0.1 U"
+	return "%d.%d U" % [milli / MILLI_PER_U, (milli % MILLI_PER_U) / MILLI_PER_TENTH]
 
 
 static func clock_line(sim: SimScript) -> String:
@@ -77,9 +94,9 @@ static func rotation_text(factor: int) -> String:
 static func pick_row(sim: SimScript, bed: int, item: int) -> String:
 	"""One crop-picker row: the item, its row's numbers, and its rotation effect in this bed."""
 	var crop: int = Catalog.crop_of(item)
-	var line: String = "%s · %d h · %d U · %s" % [
+	var line: String = "%s · %d h · %s · %s" % [
 		Catalog.FAMILY_NAMES[Catalog.family_of(item)], FarmingScript.CROP_GROWTH_HOURS[crop],
-		FarmingScript.CROP_BASE_YIELD_MILLI[crop] / 1000, rotation_text(sim.rotation_preview(bed, item))]
+		units_text(FarmingScript.CROP_BASE_YIELD_MILLI[crop]), rotation_text(sim.rotation_preview(bed, item))]
 	if FarmingScript.CROP_FERTILITY_COST[crop] < 0:
 		line += " · feeds the soil +%d" % (-FarmingScript.CROP_FERTILITY_COST[crop] / 100)
 	return line
@@ -183,7 +200,7 @@ static func yield_line(sim: SimScript, bed: int, read: IntMath.IntResult) -> Str
 	if not Catalog.is_item(item) or not standing or not sim.expected_yield_into(bed, read):
 		return ""
 	var what: String = "Harvest now" if sim.stage_of(bed) == SimScript.STAGE_RIPE else "Expected yield"
-	return "%s: %d.%d U of %s" % [what, read.value / 1000, (read.value % 1000) / 100, Catalog.ITEM_LABELS[item].to_lower()]
+	return "%s: %s of %s" % [what, units_text(read.value), Catalog.ITEM_LABELS[item].to_lower()]
 
 
 # --- the needs line ------------------------------------------------------------------------------

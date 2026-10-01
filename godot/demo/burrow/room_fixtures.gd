@@ -35,8 +35,9 @@ extends RefCounted
 ## The SUGGESTED LAYOUT puts one large bed in a home that has none, in the first alcove of LARGE_BED_PLACES whose nook
 ## may be dug, and burrow beds in the rest (the demo's cast is six small residents to four big ones).
 ## A WU is INSTALL_USEC_PER_WU of demo time for the one resident putting it in (a demo value, a tenth of the farm's
-## 1.5 s: a walk across the village takes game hours on the demo calendar, so a bed is 1.2 game hours' work, a hearth
-## 3.6). A resident called away keeps its place: the place is KEPT for it (`asked`) until fixture_crew.gd lets it lapse.
+## 1.5 s, set when a walk across the village took game hours; kept in real seconds by decision 0421, so a bed is 7
+## game minutes' work at 25 s a game hour, a hearth 22). A resident called away keeps its place: the place is KEPT for
+## it (`asked`) until fixture_crew.gd lets it lapse.
 ##
 ## COMFORT (a home's readout, 0..10000 as the GDD's needs; presentation only, no GDD mechanic): FLOOR_COMFORT (the
 ## GDD's floor/camp 2000) for a bare home; BED_COMFORT more with a bed in it; HEARTH_COMFORT more with a hearth, so a

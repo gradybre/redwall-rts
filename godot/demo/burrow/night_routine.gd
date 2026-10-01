@@ -2,10 +2,14 @@ extends RefCounted
 ## THE NIGHT: residents sleep at home. Decision 0210 (the underground revamp's P4; Brendan's ruling 3, design §10:
 ## "residents sleep at home at night"). Presentation only: it moves the demo cast, nothing else.
 ##
-## ON THE DEMO CALENDAR (demo_calendar.gd, a game hour every 2.5 demo seconds). Night runs from DUSK_HOUR to
-## DAWN_HOUR: twelve game hours, 30 demo seconds (the calendar opens at 06:00 on spring 1, so the demo opens by day). The day is a minute at 1x, so a walk home across the village --
-## 15 m at a mouse's 1 m/s -- takes six game hours: dusk is early enough that most are in bed by midnight. Whoever is
-## still on the way home at dawn turns back to its parked job (`work_done`) rather than going to bed to get up.
+## ON THE DEMO CALENDAR (demo_calendar.gd: 25 s a game hour at 1x, a day ten minutes; decision 0421). Night runs from
+## DUSK_HOUR to DAWN_HOUR: 20:00 to 05:59, ten game hours, 250 demo seconds (the calendar opens at 06:00 on spring 1,
+## so the demo opens by day). A resident walks 18-26 m a game hour (0.72-1.05 m/s), so a walk home across the village
+## -- 15-20 m -- takes under a game hour: everyone is in bed by about 21:00, before the GDD's default schedule sleeps
+## (§5.3: SLEEP 22:00-06:00, SOCIAL 18:00-20:00, ANYTHING 20:00-22:00). Dusk is set off at 20:00, the end of the
+## schedule's social hours, so supper (17:00-18:59, meal_rules.gd) and the raw meals at its end have an hour before
+## it. Whoever is still on the way home at dawn turns back to its parked job (`work_done`) rather than going to bed
+## to get up. (Before 0421 the day was a minute, a walk home took six game hours, and dusk was 18:00.)
 ##
 ## AT DUSK every resident not held by an emergency (the water's rescue, an evacuation: a task's `urgent()`), not in
 ## the water and not on a crossing is handed a sleep task (sleep_task.gd). What it was doing is PARKED on its resume
@@ -28,7 +32,7 @@ extends RefCounted
 ## THE ALARM: while a threat is under way (the works' events) sleepers stand up by their beds (sleep_task.gd).
 ##
 ## AN EARLY RISER (decision 0381, the kitchen): `set_early_riser(up_early)` -- `up_early(i: int) -> bool` -- names a
-## resident who is up before dawn: the cook, from 01:00, to have breakfast on the table by morning. Its night ends when
+## resident who is up before dawn: the cook, from 05:00, to have breakfast on the table by morning. Its night ends when
 ## that says so (its sleep task's morning; one still on its way to bed turns back, as at dawn), and while it does the
 ## night does not send it back to bed.
 ##
@@ -49,19 +53,20 @@ const PathsScript := preload("res://demo/tunnel/graph_paths.gd")
 const Layers := preload("res://demo/demo_layers.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 
-const DUSK_HOUR: int = 18
+const DUSK_HOUR: int = 20
 const DAWN_HOUR: int = 6
-## The hearths burn through the evening and the night, until breakfast (fixture_view.gd: their glow and smoke).
-const HEARTH_FROM_HOUR: int = 17
+## The hearths burn from an hour before dusk through the night, until breakfast is called (fixture_view.gd: their glow
+## and smoke).
+const HEARTH_FROM_HOUR: int = 19
 const HEARTH_TO_HOUR: int = 7
 ## The hall's door, where the bedless go in: its steps (world_layout.gd POINTS).
 const HALL_POI: StringName = &"hall_steps"
 ## The mattress's top over a home's floor (m): the staged bed's, measured by the fixtures' view (`set_bed_top`).
 const DEFAULT_BED_TOP_M: float = 0.45
-## A free resident is sent to bed again at most every RESEND_TICKS of calendar time (half a game hour: 1.25 demo
-## seconds), so one whose way home fails is not planned again and again; an attempt that finds nowhere to send it
-## counts too.
-const RESEND_TICKS: int = 375
+## A free resident is sent to bed again at most every RESEND_TICKS of calendar time (1.27 demo seconds, about three game
+## minutes: the 1.25 s it was before decision 0421, to the next whole tick), so one whose way home fails is not planned
+## again and again; an attempt that finds nowhere to send it counts too.
+const RESEND_TICKS: int = 38
 ## The bedless go in at the hall's door side by side, this far apart (m), so none waits on another.
 const HALL_SPACING_M: float = 0.9
 const DUSK_NOTE: String = "Dusk: the village goes home to bed"

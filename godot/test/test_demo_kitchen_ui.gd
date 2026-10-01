@@ -245,16 +245,18 @@ func test_the_fed_line_and_the_roster_word() -> void:
 # --- the cook rises early -----------------------------------------------------------------------
 
 func test_the_cook_rises_early_only_with_work_and_is_not_sent_back() -> void:
-	"""At 01:00 the cook with today's meals to get cooked is up early (the night's early riser); with nothing to do it
-	is not; another resident never is. Its sleep task ends then, and the night does not send it back to bed."""
+	"""At 05:00 (decision 0421) the cook with today's meals to get cooked is up early (the night's early riser); before
+	05:00, or with nothing to do, it is not; another resident never is; at dawn everyone is up."""
+	var idle := _kitchen(2, tick_at(1, Rules.COOK_RISE_HOUR), _pantry(), StoresScript.new())
+	assert_false(idle.up_early(0), "no food: nothing to do")
 	var pantry := _pantry()
-	var kitchen := _kitchen(2, tick_at(1, 1), pantry, StoresScript.new())
-	assert_false(kitchen.up_early(0), "no food: nothing to do")
+	var kitchen := _kitchen(2, tick_at(1, Rules.COOK_RISE_HOUR - 1), pantry, StoresScript.new())
 	pantry.add_into(OATS, 10000, 0, _read)
 	kitchen.update()
+	assert_false(kitchen.up_early(0), "04:00: still asleep")
 	kitchen.calendar.tick += SimClock.TICKS_PER_HOUR
 	kitchen.update()
-	assert_true(kitchen.up_early(0), "food to fetch: up early")
+	assert_true(kitchen.up_early(0), "05:00, food to fetch: up early")
 	assert_false(kitchen.up_early(1), "not the others")
 	kitchen.calendar.tick = tick_at(1, 6)
 	kitchen.update()

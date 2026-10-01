@@ -31,13 +31,16 @@ extends RefCounted
 ## large). The BEAVER is not in the GDD's sixteen; DEC-041 puts it between the squirrel and the otter "but stockier",
 ## so it is MEDIUM here -- a demo value.
 ##
-## THE DAY (ruling 4: breakfast and supper). Night is 18:00-05:59 (decision 0210). BREAKFAST is called at 06:00, on
-## waking, and served until 12:59; SUPPER is called at 13:00 and served until 16:59 -- its end, with the raw emergency
-## meals it starts, comes an hour before bedtime, so they are eaten before the night takes anyone. The cook is up at
-## COOK_RISE_HOUR (01:00) to cook breakfast; SUPPER is cooked from 09:00 (COOK_FROM_HOUR). Portions keep 24 h in
-## the pot at the covered factor, but out on the table they age at the open-pile one (§5.8, 1500) -- times summer's 1500,
-## 10.7 h -- so a supper put out at dawn would spoil before its end; cooked from 09:00 and put out as it is cooked, it
-## lasts to 17:00 in any season. These hours are demo values.
+## THE DAY (ruling 4: breakfast and supper; decision 0421's times, now that a game hour is 25 s and walking fits it).
+## Night is 20:00-05:59 (night_routine.gd). BREAKFAST is called at 07:00, the GDD's work start (§5.3's default
+## schedule: WORK from 07:00), and served until 08:59; SUPPER is called at 17:00 and served until 18:59 -- its end,
+## with the raw emergency meals it starts, comes an hour before bedtime, so they are eaten before the night takes
+## anyone. The cook is up at COOK_RISE_HOUR (05:00), an hour before the village, to cook breakfast (five batches of
+## porridge for nine is 60 WU, a game hour at the step rate, plus the fetch); SUPPER is cooked from 15:00
+## (COOK_FROM_HOUR), two hours before its call. Portions keep 24 h in the pot at the covered factor, but out on the
+## table they age at the open-pile one (§5.8, 1500) -- times summer's 1500, 10.7 h -- so a breakfast put out as early
+## as 06:00 lasts to about 16:40, and a supper put out as early as 16:00 to about 02:40: past their windows in any
+## season. These hours are demo values.
 ##
 ## THE WORK RATE (§5.2): "Each work tick produces 80 milli-WU x factor/1000"; the demo has no cooking skill, mood or
 ## health model, so the factor is 1000 (skill 0, PLAIN): 80 milli-WU each calendar tick, 60 WU a game hour. Eating is
@@ -95,11 +98,11 @@ const MEAL_BREAKFAST: int = 0
 const MEAL_SUPPER: int = 1
 const MEAL_NAMES: Array[String] = ["breakfast", "supper"]
 const MEAL_TITLES: Array[String] = ["Breakfast", "Supper"]
-const CALL_HOUR: Array[int] = [6, 13]
-const END_HOUR: Array[int] = [13, 17]
-const COOK_RISE_HOUR: int = 1
-## The hour of its day each meal may be cooked from: breakfast at the cook's rising, supper from 09:00.
-const COOK_FROM_HOUR: Array[int] = [COOK_RISE_HOUR, 9]
+const CALL_HOUR: Array[int] = [7, 17]
+const END_HOUR: Array[int] = [9, 19]
+const COOK_RISE_HOUR: int = 5
+## The hour of its day each meal may be cooked from: breakfast at the cook's rising, supper from 15:00.
+const COOK_FROM_HOUR: Array[int] = [COOK_RISE_HOUR, 15]
 
 ## §5.2's hunger need and its thresholds.
 const NEED_MAX: int = 10000

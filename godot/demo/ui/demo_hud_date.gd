@@ -3,8 +3,9 @@ extends RefCounted
 ##
 ## UI-SET-101, the date trigger in the top-right time cluster, is printed by UIManager from the
 ## SETTLEMENT's clock (GameManager), which runs at 30 ticks a second -- 25 real seconds a game hour --
-## while the demo's farm, weather and notices run on the demo's ONE calendar (demo_calendar.gd, 2.5 s a
-## game hour). Two dates on one screen was wrong. So the demo prints its calendar's DAY there, THROUGH
+## while the demo's farm, weather and notices run on the demo's ONE calendar (demo_calendar.gd; since
+## decision 0421 also 25 s a game hour, but its own counter, started and paused with the demo's). Two dates
+## on one screen was wrong. So the demo prints its calendar's DAY there, THROUGH
 ## THE SHELL'S OWN PUBLIC DISPLAY ENTRY POINT, `set_status_line()`, and nothing else: GameManager,
 ## UIManager, the simulation and ui_shell.gd are untouched, and nothing is written into sim state.
 ##

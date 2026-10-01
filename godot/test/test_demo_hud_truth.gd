@@ -32,7 +32,7 @@ const JobsScript := preload("res://demo/farm/farm_jobs.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 
-const HOUR_USEC: int = 2500000
+const HOUR_USEC: int = preload("res://demo/demo_calendar.gd").HOUR_USEC
 const BED_LOAM: int = 0
 const BED_CARROTS: int = 2
 const CARROT: int = 2

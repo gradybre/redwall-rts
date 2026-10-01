@@ -34,9 +34,11 @@ const BoardScript := preload("res://demo/work/work_board.gd")
 const KitchenWork := preload("res://demo/work/kitchen_work.gd")
 const TaskRecord := preload("res://demo/work/work_task.gd")
 
-const DT: float = 1.0 / 60.0
-## Calendar ticks a frame at 1x: a game hour (750 ticks) every 2.5 s.
-const TICKS_PER_FRAME: int = 5
+## A frame of the demo clock's longest sub-step (1/30 s) at 1x: one calendar tick (decision 0421: 30 ticks a second,
+## a game hour of 750 ticks every 25 s).
+const DT: float = 1.0 / 30.0
+const TICKS_PER_FRAME: int = 1
+const FRAMES_PER_HOUR: int = SimClock.TICKS_PER_HOUR / TICKS_PER_FRAME
 const WALK_M_S: float = 1.0
 const BODY_M: float = 0.25
 ## The village's proportions (world_layout.gd): the kitchen's pantry a few metres from the cauldron, the hall's table
@@ -251,9 +253,11 @@ func _everyone_had(v: Village, key: int) -> bool:
 
 func test_stock_becomes_breakfast_by_exactly_the_recipe() -> void:
 	"""02:00 with oats and carrots in the store and an empty butt: the cook fetches the meals' food, the free
-	residents draw the water, the cook cooks two batches of porridge, carries the pot to the table, cooks two of soup
-	and carries that; the village eats breakfast and supper. The oats fall by exactly 2 x 2 U, the carrots by 2 x 3 U,
-	the water by 2 x 2 + 2 x 1 U, the wood by 4 x 0.1 U; every portion is held, eaten or spoiled."""
+	residents draw the water, the cook (up from 05:00) cooks two batches of porridge, carries the pot to the table, and
+	the village eats breakfast; the one portion left over is still good at supper's call, so supper is one batch of
+	soup (decision 0421's hours: breakfast out by 07:00 lasts to supper in spring), carried out and eaten. The oats fall
+	by exactly 2 x 2 U, the carrots by 3 U, the water by 2 x 2 + 1 U, the wood by 3 x 0.1 U; every portion is held,
+	eaten or spoiled."""
 	var v := _village(3, tick_at(1, 2))
 	_stock(v, OATS, 10000)
 	_stock(v, CARROT, 12000)
@@ -261,20 +265,21 @@ func test_stock_becomes_breakfast_by_exactly_the_recipe() -> void:
 	var breakfast := Rules.meal_key(1, Rules.MEAL_BREAKFAST)
 	assert_equal(v.kitchen.planned_keys(), PackedInt32Array([breakfast, breakfast + 1, breakfast + 2, breakfast + 3]),
 		"two days' meals planned")
-	var ran := _run(v, 16 * 150, func() -> bool: return _everyone_had(v, breakfast + 1))
-	assert_true(ran < 16 * 150, "breakfast and supper eaten before supper ended (%d frames)" % ran)
+	var ran := _run(v, 17 * FRAMES_PER_HOUR, func() -> bool: return _everyone_had(v, breakfast + 1))
+	assert_true(ran < 17 * FRAMES_PER_HOUR, "breakfast and supper eaten before supper ended (%d frames)" % ran)
 	assert_equal(v.pantry.milli_of(OATS), 6000, "oats: 10.0 - 4.0 U")
-	assert_equal(v.pantry.milli_of(CARROT), 6000, "carrots: 12.0 - 6.0 U")
-	assert_equal(v.kitchen.consumed_water_milli, 6000, "two porridge batches' water and two soups'")
+	assert_equal(v.pantry.milli_of(CARROT), 9000, "carrots: 12.0 - 3.0 U")
+	assert_equal(v.kitchen.consumed_water_milli, 5000, "two porridge batches' water and one soup's")
 	assert_equal(v.kitchen.poured_water_milli - v.kitchen.consumed_water_milli, v.stores.water_milli_u,
 		"every unit poured is in the butt or was used")
-	assert_equal(v.stores.wood_milli_u, StoresScript.START_WOOD_MILLI_U - 400, "four batches of wood")
-	assert_equal(v.kitchen.batches_cooked, 4, "four batches")
+	assert_equal(v.stores.wood_milli_u, StoresScript.START_WOOD_MILLI_U - 300, "three batches of wood")
+	assert_equal(v.kitchen.batches_cooked, 3, "three batches: the leftover cut supper to one")
 	for i in v.brains.size():
 		assert_equal(v.kitchen.fed.last_outcome[i], FedScript.OUTCOME_ATE, "resident %d ate" % i)
-	assert_equal(v.kitchen.store.portions() + v.kitchen.portions_eaten + v.kitchen.store.spoiled_portions, 8,
+	assert_equal(v.kitchen.store.portions() + v.kitchen.portions_eaten + v.kitchen.store.spoiled_portions, 6,
 		"every portion cooked is held, eaten or spoiled")
-	assert_true(v.kitchen.portions_eaten >= 3, "everyone's breakfast among them")
+	assert_true(v.kitchen.portions_eaten >= 6, "everyone's breakfast and supper among them")
+	assert_equal(v.kitchen.store.spoiled_portions, 0, "none spoiled")
 
 
 
@@ -302,7 +307,7 @@ func _run_logging(v: Village, frames: int, log: Dictionary) -> void:
 
 func test_two_days_of_breakfast_and_supper_alternate_the_dishes() -> void:
 	"""From 14:00 of day 0 to dusk of day 2 with the night routine (everyone sleeps in the hall; the cook is up at
-	02:00): breakfast is porridge and supper soup each day (ruling 1); on day 2 every resident eats breakfast after
+	05:00): breakfast is porridge and supper soup each day (ruling 1); on day 2 every resident eats breakfast after
 	dawn and supper before dusk; every milli-U of food the pantry lost is in the batches cooked."""
 	var v := _village(4, tick_at(0, 14))
 	_stock(v, OATS, 20000)
@@ -310,7 +315,7 @@ func test_two_days_of_breakfast_and_supper_alternate_the_dishes() -> void:
 	_open(v)
 	_with_night(v)
 	var log := {}
-	_run_logging(v, 52 * 150, log)
+	_run_logging(v, 54 * FRAMES_PER_HOUR, log)
 	for k in v.kitchen.cooked_keys.size():
 		var key: int = v.kitchen.cooked_keys[k]
 		assert_equal(v.kitchen.cooked_dishes[k], Rules.DISH_PORRIDGE if key % 2 == Rules.MEAL_BREAKFAST else Rules.DISH_SOUP,
@@ -353,27 +358,47 @@ func test_portions_are_eaten_oldest_first_and_once() -> void:
 	assert_equal(store.portions(), 5, "six cooked, one eaten")
 
 
-func test_supper_cooked_from_nine_lasts_to_its_end_in_summer() -> void:
-	"""Supper is cooked from 09:00 (breakfast from 01:00): on the table a portion ages at the open-pile factor times
-	summer's, 10.7 h of its 24 -- put out at 10:00 it is good at 17:00; put out at dawn it would have spoiled."""
+func test_meals_are_cooked_close_to_their_calls_and_last_their_windows_in_summer() -> void:
+	"""Decision 0421: breakfast is cooked from the cook's rising at 05:00, supper from 15:00. On the table a portion ages
+	at the open-pile factor times summer's, 10.7 h of its 24 -- so a breakfast an hour in the pot and put out at 06:00
+	is good to the end of its window at 09:00 and beyond, and a supper put out at 16:00 is good to 19:00; a supper put
+	out at 06:00 would have spoiled before its window opened."""
 	assert_equal([KitchenScript._cook_from(Rules.meal_key(3, Rules.MEAL_BREAKFAST)),
-		KitchenScript._cook_from(Rules.meal_key(3, Rules.MEAL_SUPPER))], [3 * 24 + 1, 3 * 24 + 9], "01:00 and 09:00")
+		KitchenScript._cook_from(Rules.meal_key(3, Rules.MEAL_SUPPER))], [3 * 24 + 5, 3 * 24 + 15], "05:00 and 15:00")
 	const SUMMER: int = 1
-	var store := StoreScript.new()
-	store.add(Rules.DISH_SOUP, 2, 1)
-	store.age_hour(SUMMER)
-	store.carry_out()
-	for h in 7:
+	for meal: int in 2:
+		var store := StoreScript.new()
+		store.add(Rules.dish_for_meal(meal), 2, meal)
 		store.age_hour(SUMMER)
-	assert_equal(store.portions(), 2, "cooked by 10:00, good at 17:00")
+		store.carry_out()
+		var out_hour: int = Rules.COOK_FROM_HOUR[meal] + 1
+		for h in Rules.END_HOUR[meal] - out_hour + 1:
+			store.age_hour(SUMMER)
+		assert_equal(store.portions(), 2, "%s: out at %02d:00, good past %02d:00" % [Rules.MEAL_NAMES[meal], out_hour,
+			Rules.END_HOUR[meal]])
 	var dawn := StoreScript.new()
 	dawn.add(Rules.DISH_SOUP, 2, 1)
-	for h in 2:
-		dawn.age_hour(SUMMER)
 	dawn.carry_out()
-	for h in 11:
+	for h in Rules.CALL_HOUR[Rules.MEAL_SUPPER] - 6:
 		dawn.age_hour(SUMMER)
-	assert_equal(dawn.portions(), 0, "out from 06:00, gone before 17:00")
+	assert_equal(dawn.portions(), 0, "a supper out from 06:00 is gone by 17:00")
+
+
+func test_the_day_s_hours_follow_decision_0421() -> void:
+	"""Breakfast 07:00-08:59 and supper 17:00-18:59; the cook up at 05:00, an hour before the village; supper ends an
+	hour before dusk (20:00), so a raw meal at its end is eaten before bed; no meal is served at night."""
+	assert_equal([Rules.CALL_HOUR, Rules.END_HOUR, Rules.COOK_RISE_HOUR, Rules.COOK_FROM_HOUR],
+		[[7, 17], [9, 19], 5, [5, 15]], "the hours")
+	var served := PackedInt32Array()
+	for hour: int in 24:
+		served.append(Rules.meal_of_hour(hour))
+	assert_equal(served, PackedInt32Array([-1, -1, -1, -1, -1, -1, -1, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, 1, 1, -1,
+		-1, -1, -1, -1]), "breakfast at 7 and 8, supper at 17 and 18")
+	assert_equal(Rules.END_HOUR[Rules.MEAL_SUPPER], NightScript.DUSK_HOUR - 1, "supper ends an hour before dusk")
+	assert_equal(Rules.COOK_RISE_HOUR, NightScript.DAWN_HOUR - 1, "the cook an hour before dawn")
+	for meal: int in 2:
+		assert_false(NightScript.is_night_hour(Rules.CALL_HOUR[meal]) or NightScript.is_night_hour(Rules.END_HOUR[meal] - 1),
+			"%s is served by day" % Rules.MEAL_NAMES[meal])
 
 
 func test_portions_age_faster_on_the_table_and_spoil_at_equal_mass() -> void:
@@ -490,7 +515,7 @@ func test_no_water_says_so_exactly_and_supper_is_missed() -> void:
 	words with its fix; supper's call raises "No supper tonight: ..." with the same reason and fix; nobody eats, the
 	tally says so, the food is untouched -- and a Draw water order then fills the butt (credited once) and the next
 	meal is cooked."""
-	var v := _village(3, tick_at(1, 13))
+	var v := _village(3, tick_at(1, 17))
 	_stock(v, CARROT, 12000)
 	_stock(v, OATS, 8000)
 	v.kitchen.keep_water = false
@@ -502,7 +527,7 @@ func test_no_water_says_so_exactly_and_supper_is_missed() -> void:
 	var serial: int = v.incidents.serial_of(KitchenScript.INCIDENT_KEY)
 	assert_true(serial >= 0 and v.incidents.is_unresolved(serial), "the incident is open")
 	assert_equal(v.incidents.text_of(serial), "No supper tonight: " + d.reason + ". To fix: " + d.fix, "No supper tonight, why, and the fix")
-	_run(v, 5 * 150)
+	_run(v, 5 * FRAMES_PER_HOUR)
 	var supper := Rules.meal_key(1, Rules.MEAL_SUPPER)
 	assert_equal(v.kitchen.meal_keys[v.kitchen.meal_keys.size() - 1], supper, "supper's tally")
 	assert_equal([v.kitchen.meal_ate[v.kitchen.meal_ate.size() - 1], v.kitchen.meal_without[v.kitchen.meal_without.size() - 1]],
@@ -513,9 +538,9 @@ func test_no_water_says_so_exactly_and_supper_is_missed() -> void:
 	assert_equal([v.pantry.milli_of(CARROT), v.pantry.milli_of(OATS), v.kitchen.batches_cooked], [12000, 8000, 0], "nothing cooked")
 	_with_night(v)
 	_run(v, 1, func() -> bool: return v.calendar.hour_index() % 24 == 7)
-	_run(v, 14 * 150, func() -> bool: return v.calendar.hour_index() % 24 == 7)
+	_run(v, 14 * FRAMES_PER_HOUR, func() -> bool: return v.calendar.hour_index() % 24 == 7)
 	assert_true(v.kitchen.order_draw(PackedInt32Array([1])).begins_with("Draw 12.0 U of water"), "Draw water: a mouse's carry")
-	_run(v, 6 * 150, func() -> bool: return v.stores.water_milli_u > 0)
+	_run(v, 6 * FRAMES_PER_HOUR, func() -> bool: return v.stores.water_milli_u > 0)
 	assert_equal([v.stores.water_milli_u, v.kitchen.poured_water_milli], [12000, 12000], "poured once")
 	var next: int = Rules.meal_key(2, Rules.MEAL_BREAKFAST)
 	v.kitchen.store.add(Rules.DISH_PORRIDGE, 2, next)
@@ -529,13 +554,13 @@ func test_no_water_says_so_exactly_and_supper_is_missed() -> void:
 
 func test_no_food_and_no_fuel_are_said_too() -> void:
 	"""An empty pantry refuses NO_FOOD naming both categories; with food but no wood, NO_FUEL."""
-	var v := _open(_village(2, tick_at(1, 9)))
+	var v := _open(_village(2, tick_at(1, 6)))
 	var d: KitchenScript.Decision = v.kitchen.decide_meal()
 	assert_equal(d.code, KitchenScript.NO_FOOD, "no food")
 	assert_true(d.reason.contains("no grain for wild oat porridge") and d.reason.contains("nor roots for togget's vegetable soup"),
 		"both dishes named: " + d.reason)
 	assert_equal(d.fix, Words.FIX_FOOD, "harvest or plant")
-	var w := _village(2, tick_at(1, 9))
+	var w := _village(2, tick_at(1, 6))
 	_stock(w, OATS, 4000)
 	w.stores.wood_milli_u = 50
 	_open(w)
@@ -552,7 +577,7 @@ func test_hungry_with_no_portion_eats_raw_roots_never_grain() -> void:
 	v.kitchen.keep_water = false
 	_open(v)
 	v.kitchen.fed.hunger[0] = 2400
-	_run(v, 6 * 150)
+	_run(v, 11 * FRAMES_PER_HOUR)
 	assert_equal(v.kitchen.fed.last_outcome[0], FedScript.OUTCOME_RAW, "ate raw")
 	assert_equal(v.pantry.milli_of(CARROT), 0, "the 2.0 U of carrot there was")
 	assert_equal(v.kitchen.raw_eaten_milli, 2000, "counted")
@@ -562,10 +587,10 @@ func test_hungry_with_no_portion_eats_raw_roots_never_grain() -> void:
 
 
 func test_a_raw_meal_at_supper_s_end_is_eaten_before_bed() -> void:
-	"""With the night running: supper's serving ends at 17:00, an hour before dusk, and the hungry with no portion go
-	to eat raw food then; dusk does not take them off it (the store is a long walk here: they eat after dark, then go
+	"""With the night running: supper's serving ends at 19:00, an hour before dusk, and the hungry with no portion go
+	to eat raw food then; dusk does not take them off it (should they still be eating after dark, they finish, then go
 	to bed). The tally posted at the end stands: each counted once."""
-	var v := _village(3, tick_at(1, 15))
+	var v := _village(3, tick_at(1, 17))
 	_stock(v, CARROT, 30000)
 	v.kitchen.keep_water = false
 	_open(v)
@@ -573,12 +598,12 @@ func test_a_raw_meal_at_supper_s_end_is_eaten_before_bed() -> void:
 	for i: int in 3:
 		v.kitchen.fed.hunger[i] = 1200
 	var supper: int = Rules.meal_key(1, Rules.MEAL_SUPPER)
-	_run(v, 3 * 150, func() -> bool: return v.kitchen.meal_keys.has(supper))
-	assert_equal(v.calendar.hour_index() % 24, 17, "supper ends at 17:00")
+	_run(v, 3 * FRAMES_PER_HOUR, func() -> bool: return v.kitchen.meal_keys.has(supper))
+	assert_equal(v.calendar.hour_index() % 24, Rules.END_HOUR[Rules.MEAL_SUPPER], "supper ends at 19:00")
 	var at: int = v.kitchen.meal_keys.find(supper)
 	var counted: Array[int] = [v.kitchen.meal_raw[at], v.kitchen.meal_without[at]]
 	assert_true(counted[0] > 0, "the hungry set off to eat raw")
-	_run(v, 8 * 150, func() -> bool: return v.calendar.hour_index() % 24 == 23)
+	_run(v, 8 * FRAMES_PER_HOUR, func() -> bool: return v.calendar.hour_index() % 24 == 23)
 	var raw: int = 0
 	for i: int in 3:
 		raw += 1 if v.kitchen.fed.last_outcome[i] == FedScript.OUTCOME_RAW else 0
@@ -595,7 +620,7 @@ func test_the_cook_takes_its_portion_when_it_decides_to_eat_and_never_waits() ->
 	v.stores.water_milli_u = 20000
 	_open(v)
 	var key: int = Rules.meal_key(1, Rules.MEAL_BREAKFAST)
-	assert_true(_run(v, 12 * 150, func() -> bool: return v.kitchen.store.available(key) > 0) < 12 * 150, "out")
+	assert_true(_run(v, 12 * FRAMES_PER_HOUR, func() -> bool: return v.kitchen.store.available(key) > 0) < 12 * FRAMES_PER_HOUR, "out")
 	var cook: int = v.kitchen.cook
 	var out: int = v.kitchen.store.available(key)
 	v.kitchen._cook_eat(cook, key)
@@ -610,32 +635,33 @@ func test_the_cook_takes_its_portion_when_it_decides_to_eat_and_never_waits() ->
 		"none left: on with its round")
 
 
-func test_with_the_night_the_cook_rises_at_one_and_is_not_sent_back() -> void:
+func test_with_the_night_the_cook_rises_at_five_and_is_not_sent_back() -> void:
 	"""The night routine's early riser: asleep in the hall at dusk, the cook (with the day's food to fetch and cook) is
-	up at 01:00 on its round while the village sleeps, and the night does not send it back to bed."""
+	up at 05:00 on its round while the village sleeps, and the night does not send it back to bed."""
 	var v := _village(3, tick_at(1, 20))
 	_stock(v, OATS, 10000)
 	_stock(v, CARROT, 10000)
 	v.stores.water_milli_u = 20000
 	_open(v)
 	_with_night(v)
-	_run(v, 4 * 150, func() -> bool: return v.brains[0].task is SleepTaskScript)
+	_run(v, 4 * FRAMES_PER_HOUR, func() -> bool: return v.brains[0].task is SleepTaskScript)
 	assert_true(v.brains[0].task is SleepTaskScript, "the cook asleep")
-	_run(v, 6 * 150, func() -> bool: return v.calendar.hour_index() % 24 == 1)
-	_run(v, 75)
-	assert_equal(v.kitchen.role_of(0), KitchenScript.ROLE_COOK, "up at 01:00 on its round")
+	_run(v, 10 * FRAMES_PER_HOUR, func() -> bool: return v.calendar.hour_index() % 24 == Rules.COOK_RISE_HOUR)
+	_run(v, FRAMES_PER_HOUR / 2)
+	assert_equal(v.kitchen.role_of(0), KitchenScript.ROLE_COOK, "up at 05:00 on its round")
 	assert_true(v.brains[1].task is SleepTaskScript, "the village still asleep")
 	var stayed: bool = true
-	for f in 150:
+	for f in FRAMES_PER_HOUR:
 		_run(v, 1)
 		stayed = stayed and not (v.brains[0].task is SleepTaskScript)
 	assert_true(stayed, "never sent back to bed while it has work")
 
 
 func test_a_late_breakfast_goes_out_before_supper_is_cooked() -> void:
-	"""Breakfast cooked late (10:00) with supper's food already at the cauldron and supper cookable from 09:00: the
-	cook takes breakfast's pot to the table before it cooks supper -- breakfast is not kept in the pot till 13:00."""
-	var v := _village(4, tick_at(1, 10))
+	"""Breakfast cooked late (07:00) with supper's food already at the cauldron and supper cookable now (the player's
+	Cook now): the cook takes breakfast's pot to the table before it cooks supper -- breakfast is not kept in the pot
+	till its serving is over."""
+	var v := _village(4, tick_at(1, 7))
 	_stock(v, OATS, 10000)
 	_stock(v, CARROT, 12000)
 	v.stores.water_milli_u = 30000
@@ -646,9 +672,10 @@ func test_a_late_breakfast_goes_out_before_supper_is_cooked() -> void:
 		v.kitchen.takes.pick_up(v.pantry, take, 0)
 		v.kitchen.takes.put_down(take)
 	var supper: int = Rules.meal_key(1, Rules.MEAL_SUPPER)
+	v.kitchen._cook_now_key = supper
 	var settled := func() -> bool: return v.kitchen.store.at_table() > 0 or v.kitchen.cooked_keys.has(supper) \
 			or v.kitchen.wip_key() == supper
-	assert_true(_run(v, 6 * 150, settled) < 6 * 150, "breakfast out, or supper begun")
+	assert_true(_run(v, 6 * FRAMES_PER_HOUR, settled) < 6 * FRAMES_PER_HOUR, "breakfast out, or supper begun")
 	assert_true(v.kitchen.store.at_table() > 0, "breakfast went out first")
 	assert_false(v.kitchen.cooked_keys.has(supper) or v.kitchen.wip_key() == supper, "supper not begun before it")
 
@@ -663,11 +690,11 @@ func test_leftovers_still_good_at_the_call_cook_fewer_batches() -> void:
 	assert_equal(v.kitchen.plan_of(breakfast)[1], 2, "four residents: two batches")
 	v.kitchen.store.add(Rules.DISH_SOUP, 2, breakfast - 1)
 	v.kitchen.store.carry_out()
-	_run(v, 160)
+	_run(v, FRAMES_PER_HOUR + 10)
 	assert_equal(v.kitchen.plan_of(breakfast)[1], 1, "two leftovers: one batch")
 	v.kitchen.store.add(Rules.DISH_SOUP, 2, breakfast - 1)
 	v.kitchen.store.carry_out()
-	_run(v, 160)
+	_run(v, FRAMES_PER_HOUR + 10)
 	var d: KitchenScript.Decision = v.kitchen.decide_meal()
 	assert_equal([v.kitchen.plan_of(breakfast)[1], d.code], [0, KitchenScript.NOTHING_TO_COOK], "four: nothing to cook")
 	assert_equal(d.reason, "breakfast, day 2 has all it needs: its portions are cooked or left over", "said so")
@@ -689,7 +716,7 @@ func test_a_raw_meal_is_at_most_three_thousand_np() -> void:
 	v.kitchen.keep_water = false
 	_open(v)
 	v.kitchen.fed.hunger[0] = 1000
-	_run(v, 8 * 150, func() -> bool: return v.kitchen.raw_eaten_milli > 0)
+	_run(v, 11 * FRAMES_PER_HOUR, func() -> bool: return v.kitchen.raw_eaten_milli > 0)
 	assert_equal(v.kitchen.raw_eaten_milli, 3750, "3.75 U")
 	assert_true(v.kitchen.fed.hunger[0] <= 1000 + 3000, "at most 3000 NP")
 
@@ -697,7 +724,7 @@ func test_a_raw_meal_is_at_most_three_thousand_np() -> void:
 func test_the_night_does_not_send_the_early_riser_back_between_tasks() -> void:
 	"""Up early with work to do, the cook between two parts (wandering on its own) is not sent back to bed by the
 	night's sweep of the free; anyone else wandering at night is."""
-	var v := _village(3, tick_at(1, 2))
+	var v := _village(3, tick_at(1, Rules.COOK_RISE_HOUR))
 	_stock(v, OATS, 10000)
 	_stock(v, CARROT, 10000)
 	v.stores.water_milli_u = 20000
@@ -838,7 +865,7 @@ func test_the_cook_called_away_mid_batch_comes_back_to_it() -> void:
 	_stock(v, CARROT, 10000)
 	v.stores.water_milli_u = 20000
 	_open(v)
-	assert_true(_run(v, 8 * 150, func() -> bool: return _cooking(v)) < 8 * 150, "a batch cooking")
+	assert_true(_run(v, 8 * FRAMES_PER_HOUR, func() -> bool: return _cooking(v)) < 8 * FRAMES_PER_HOUR, "a batch cooking")
 	var cook: int = v.kitchen.cook
 	var key: int = v.kitchen.wip_key()
 	var progress: int = v.kitchen.wip_progress()
@@ -849,7 +876,7 @@ func test_the_cook_called_away_mid_batch_comes_back_to_it() -> void:
 		"the batch waits, its inputs taken once")
 	assert_true(v.brains[cook].unfinished_labels().has(Words.ROUND_LABEL), "the round is kept to come back to")
 	v.brains[cook].work_done()
-	_run(v, 6 * 150, func() -> bool: return v.kitchen.wip_key() != key or v.kitchen.wip_progress() < progress)
+	_run(v, 6 * FRAMES_PER_HOUR, func() -> bool: return v.kitchen.wip_key() != key or v.kitchen.wip_progress() < progress)
 	assert_true(v.kitchen.cooked_keys.has(key), "the same batch finished")
 	_assert_books(v, 20000, "called away")
 
@@ -863,14 +890,14 @@ func test_a_diner_called_away_gives_its_portion_back_and_eats_once() -> void:
 	v.stores.water_milli_u = 20000
 	_open(v)
 	var eating := func() -> bool: return v.kitchen.step_of(1) == KitchenScript.WORK_EAT
-	assert_true(_run(v, 12 * 150, eating) < 12 * 150, "resident 1 eating")
+	assert_true(_run(v, 12 * FRAMES_PER_HOUR, eating) < 12 * FRAMES_PER_HOUR, "resident 1 eating")
 	var out: int = v.kitchen.store.at_table()
 	v.brains[1].order_move(v.brains[1].position + Vector2(0.0, 3.0))
 	_run(v, 2)
 	assert_equal(v.kitchen.store.at_table(), out, "its portion is back on the table")
 	assert_false(v.kitchen.fed.had(1, Rules.meal_key(1, Rules.MEAL_BREAKFAST)), "and not eaten")
 	v.brains[1].release()
-	_run(v, 6 * 150, func() -> bool: return v.kitchen.fed.had(1, Rules.meal_key(1, Rules.MEAL_BREAKFAST)))
+	_run(v, 6 * FRAMES_PER_HOUR, func() -> bool: return v.kitchen.fed.had(1, Rules.meal_key(1, Rules.MEAL_BREAKFAST)))
 	assert_equal(v.kitchen.fed.last_outcome[1], FedScript.OUTCOME_ATE, "called again, it ate")
 	_assert_books(v, 20000, "diner called away")
 
@@ -887,7 +914,7 @@ func test_food_waiting_in_the_larder_keeps_the_dish() -> void:
 	var fetched := func() -> bool:
 		var s: int = v.kitchen._slot_index_of(supper)
 		return s >= 0 and v.kitchen.takes.live_milli(v.pantry, v.kitchen._slot_take[s], TakesScript.AT_KITCHEN) >= 3000
-	assert_true(_run(v, 12 * 150, fetched) < 12 * 150, "supper's roots at the kitchen")
+	assert_true(_run(v, 12 * FRAMES_PER_HOUR, fetched) < 12 * FRAMES_PER_HOUR, "supper's roots at the kitchen")
 	v.kitchen._retire(v.kitchen._slot_index_of(supper))
 	assert_equal(v.kitchen.takes.free_milli_of_crop(v.pantry, Rules.INPUT_CROP[Rules.DISH_SOUP]), 0,
 		"no roots unreserved in the pantry")
@@ -915,7 +942,7 @@ func _eating_at_the_end(v: Village) -> int:
 	v.stores.water_milli_u = 20000
 	_open(v)
 	var eating := func() -> bool: return v.kitchen.step_of(1) == KitchenScript.WORK_EAT and v.kitchen.must_finish(1)
-	assert_true(_run(v, 12 * 150, eating) < 12 * 150, "resident 1 eating")
+	assert_true(_run(v, 12 * FRAMES_PER_HOUR, eating) < 12 * FRAMES_PER_HOUR, "resident 1 eating")
 	var key: int = Rules.meal_key(1, Rules.MEAL_BREAKFAST)
 	assert_true(v.brains[1].task.urgent(), "eating, the night lets it finish first")
 	v.kitchen._close_meal(key)
@@ -930,7 +957,7 @@ func test_a_diner_eating_at_the_end_is_counted_once() -> void:
 	var at: int = v.kitchen.meal_keys.find(key)
 	var ate: int = v.kitchen.meal_ate[at]
 	assert_true(ate >= 1, "counted at the end")
-	_run(v, 2 * 150, func() -> bool: return v.kitchen.fed.had(1, key))
+	_run(v, 2 * FRAMES_PER_HOUR, func() -> bool: return v.kitchen.fed.had(1, key))
 	assert_equal(v.kitchen.fed.last_outcome[1], FedScript.OUTCOME_ATE, "it finished")
 	assert_equal([v.kitchen.meal_ate[at], v.kitchen._ate_by_meal.has(key)], [ate, false], "and was not counted again")
 	_assert_books(v, 20000, "eating at the end")
@@ -959,7 +986,7 @@ func test_a_cancelled_meal_gives_its_food_back_and_spoils_half_a_batch_cooking()
 	_stock(v, CARROT, 10000)
 	v.stores.water_milli_u = 20000
 	_open(v)
-	assert_true(_run(v, 8 * 150, func() -> bool: return _cooking(v)) < 8 * 150, "a batch cooking")
+	assert_true(_run(v, 8 * FRAMES_PER_HOUR, func() -> bool: return _cooking(v)) < 8 * FRAMES_PER_HOUR, "a batch cooking")
 	var dish: int = v.kitchen.wip_dish()
 	var batches: int = v.kitchen.batches_cooked
 	var ages := _lot_ages(v)
@@ -973,17 +1000,16 @@ func test_a_cancelled_meal_gives_its_food_back_and_spoils_half_a_batch_cooking()
 
 
 func test_night_falling_mid_batch_keeps_it_for_the_morning() -> void:
-	"""Today's supper cancelled and tomorrow's breakfast ordered cooked now (Cook now; twelve residents, six batches;
-	its food already fetched to the cauldron, the cook beside it) when dusk takes the cook to bed with a batch on the
-	fire: the batch waits, its food taken once; up early, the cook finishes it -- exactly one more batch of that meal.
-	The reserved food ages through the night like any (no lot is made fresher)."""
-	var v := _village(12, tick_at(1, 16) + 300)
+	"""Supper over, tomorrow's breakfast ordered cooked now (Cook now; twelve residents, six batches -- 72 WU, over an
+	hour; its food already fetched to the cauldron, the cook beside it) when dusk takes the cook to bed with a batch on
+	the fire: the batch waits, its food taken once; up early, the cook finishes it -- exactly one more batch of that
+	meal. The reserved food ages through the night like any (no lot is made fresher)."""
+	var v := _village(12, tick_at(1, NightScript.DUSK_HOUR - 1) + 300)
 	_stock(v, CARROT, 30000)
 	_stock(v, OATS, 20000)
 	v.stores.water_milli_u = 30000
 	_open(v)
 	_with_night(v)
-	assert_true(v.kitchen.cancel_meal().begins_with("Supper, day 2"), "today's supper cancelled")
 	var tomorrow: int = Rules.meal_key(2, Rules.MEAL_BREAKFAST)
 	for key: int in v.kitchen.planned_keys():
 		var take: int = v.kitchen._slot_take[v.kitchen._slot_index_of(key)]
@@ -992,18 +1018,19 @@ func test_night_falling_mid_batch_keeps_it_for_the_morning() -> void:
 	v.brains[0].position = CAULDRON + Vector2(-1.0, 0.0)
 	var said: String = v.kitchen.order_cook(PackedInt32Array())
 	assert_true(said.begins_with("Cook breakfast now: 6 batches"), said)
-	var late := func() -> bool: return v.calendar.hour_index() % 24 == 18 and v.kitchen.wip_key() == tomorrow
-	assert_true(_run(v, 2 * 150, late) < 2 * 150, "tomorrow's breakfast on the fire as dusk falls")
+	var late := func() -> bool: return v.calendar.hour_index() % 24 == NightScript.DUSK_HOUR \
+			and v.kitchen.wip_key() == tomorrow
+	assert_true(_run(v, 2 * FRAMES_PER_HOUR, late) < 2 * FRAMES_PER_HOUR, "tomorrow's breakfast on the fire as dusk falls")
 	_run(v, 30)
 	var taken: int = v.kitchen.consumed_food_milli
 	assert_equal(v.kitchen.wip_key(), tomorrow, "still on the fire after dusk")
 	assert_true(v.brains[v.kitchen.cook].task is SleepTaskScript, "the cook gone to bed")
 	var done_before: int = _count_of(v.kitchen.cooked_keys, tomorrow)
 	var ages := _lot_ages(v)
-	_run(v, 7 * 150, func() -> bool: return v.calendar.hour_index() % 24 == 1)
+	_run(v, 10 * FRAMES_PER_HOUR, func() -> bool: return v.calendar.hour_index() % 24 == Rules.COOK_RISE_HOUR)
 	assert_equal([v.kitchen.wip_key(), v.kitchen.consumed_food_milli], [tomorrow, taken], "untouched all night")
 	_assert_no_fresher(ages, _lot_ages(v), "night")
-	_run(v, 8 * 150, func() -> bool: return v.kitchen.wip_key() != tomorrow)
+	_run(v, 8 * FRAMES_PER_HOUR, func() -> bool: return v.kitchen.wip_key() != tomorrow)
 	assert_equal(_count_of(v.kitchen.cooked_keys, tomorrow), done_before + 1, "finished in the morning, once")
 	_assert_books(v, 50000, "night")
 
@@ -1047,7 +1074,7 @@ func test_the_work_board_lists_the_cook_and_the_drawers_and_never_claims_them() 
 	_open(v)
 	var board := _board(v)
 	assert_false(v.kitchen.kept_for_meals(-1), "nobody by that number")
-	_run(v, 4 * 150, func() -> bool: return _role_holder(v, KitchenScript.ROLE_COOK) >= 0 \
+	_run(v, 4 * FRAMES_PER_HOUR, func() -> bool: return _role_holder(v, KitchenScript.ROLE_COOK) >= 0 \
 		and _role_holder(v, KitchenScript.ROLE_DRAW) >= 0)
 	var cook: int = _role_holder(v, KitchenScript.ROLE_COOK)
 	var drawer: int = _role_holder(v, KitchenScript.ROLE_DRAW)
@@ -1088,13 +1115,170 @@ func test_the_work_board_hands_out_no_work_at_mealtime() -> void:
 	var breakfast := Rules.meal_key(1, Rules.MEAL_BREAKFAST)
 	assert_false(v.kitchen.kept_for_meals(2), "before the meal: free for work")
 	assert_true(board.idle(2), "and the board may claim it")
-	assert_true(_run(v, 12 * 150, func() -> bool: return v.kitchen.serving() == breakfast \
-		and v.kitchen.meal_coming(breakfast)) < 12 * 150, "breakfast on its way")
+	assert_true(_run(v, 12 * FRAMES_PER_HOUR, func() -> bool: return v.kitchen.serving() == breakfast \
+		and v.kitchen.meal_coming(breakfast)) < 12 * FRAMES_PER_HOUR, "breakfast on its way")
 	v.kitchen.update()
 	assert_true(v.kitchen.kept_for_meals(2), "due at the table")
 	assert_false(board.idle(2), "so the board hands it no work")
-	_run(v, 12 * 150, func() -> bool: return v.kitchen.fed.had(2, breakfast) and v.kitchen.role_of(2) \
+	_run(v, 12 * FRAMES_PER_HOUR, func() -> bool: return v.kitchen.fed.had(2, breakfast) and v.kitchen.role_of(2) \
 		== KitchenScript.ROLE_NONE)
 	assert_true(v.kitchen.fed.had(2, breakfast), "it ate")
 	assert_false(v.kitchen.kept_for_meals(2), "fed and done: the meals let it go")
 
+
+
+# --- decision 0421: the re-timed day ----------------------------------------------------------------------
+
+func test_the_intervals_keep_their_real_seconds() -> void:
+	"""Decision 0421: the hand-out cadence and the diners' re-call keep the real seconds they had on the old calendar --
+	half a second, and the night's 1.27 s -- now that a calendar tick is a thirtieth of a second at 1x."""
+	assert_equal(KitchenScript.PICKUP_TICKS * 1000000 / SimClock.TICKS_PER_SECOND, 500000, "half a second")
+	assert_equal(KitchenScript.RESEND_TICKS, NightScript.RESEND_TICKS, "the night's re-send")
+	assert_equal(NightScript.RESEND_TICKS * 1000 / SimClock.TICKS_PER_SECOND, 1266, "1.27 s")
+
+
+func test_the_tab_note_says_the_rules_hours() -> void:
+	"""The Kitchen tab's note is filled from meal_rules.gd's hours, so it cannot drift from them."""
+	assert_true(Words.tab_note().begins_with("Breakfast is called at 07:00 and supper at 17:00. The cook is up at 05:00 "
+		+ "to cook breakfast, and cooks supper from 15:00;"), Words.tab_note())
+
+
+func test_food_fetched_for_a_later_meal_does_not_keep_the_cook_on_duty() -> void:
+	"""Supper's food put down at the cauldron at 10:00 (supper is cooked from 15:00): the cook is not on duty, so it may
+	be called to the table like anyone. Ordered cooked now with the butt empty, the same food keeps it on duty (waiting
+	for water it may draw itself)."""
+	var v := _village(3, tick_at(1, 10))
+	_stock(v, CARROT, 12000)
+	v.kitchen.keep_water = false
+	_open(v)
+	for key: int in v.kitchen.planned_keys():
+		var take: int = v.kitchen._slot_take[v.kitchen._slot_index_of(key)]
+		v.kitchen.takes.pick_up(v.pantry, take, 0)
+		v.kitchen.takes.put_down(take)
+	assert_false(v.kitchen._on_duty(0), "supper's food waits for 15:00: the cook is free")
+	assert_true(v.kitchen._may_call(0), "and may be called to a meal")
+	v.kitchen._cook_now_key = Rules.meal_key(1, Rules.MEAL_SUPPER)
+	v.kitchen._duty_tick = -1
+	assert_true(v.kitchen._on_duty(0), "ordered cooked now: on duty")
+
+
+func _raw_walker(v: Village) -> void:
+	"""Resident 1 hungry at supper's end with no supper (the butt empty): it sets off for its raw meal."""
+	_stock(v, CARROT, 30000)
+	v.kitchen.keep_water = false
+	_open(v)
+	v.kitchen.fed.hunger[1] = 1200
+	_run(v, 2 * FRAMES_PER_HOUR, func() -> bool: return v.kitchen.step_of(1) == KitchenScript.WALK_RAW)
+	_run(v, 2)
+	assert_equal(v.kitchen.step_of(1), KitchenScript.WALK_RAW, "walking to its raw meal")
+
+
+func test_a_raw_meal_whose_walk_was_given_up_sets_off_again_after_a_pause() -> void:
+	"""Decision 0421: a raw meal comes after the serving's end, so a walk given up (blocked) is not the end of it: the
+	food stays reserved, and once RESEND_TICKS have passed it sets off again; it eats raw."""
+	var v := _village(3, tick_at(1, 18))
+	_raw_walker(v)
+	v.brains[1]._abandon_trip()
+	assert_equal([v.kitchen._raw_retry[1], v.kitchen.role_of(1)], [1, KitchenScript.ROLE_NONE], "held, off its walk")
+	assert_true(v.kitchen._raw_take[1] > 0, "its food still reserved")
+	_run(v, KitchenScript.RESEND_TICKS - 2)
+	assert_equal(v.kitchen.role_of(1), KitchenScript.ROLE_NONE, "not before the pause")
+	_run(v, KitchenScript.RESEND_TICKS)
+	assert_equal([v.kitchen.role_of(1), v.kitchen.step_of(1), v.kitchen._fails[1]], [KitchenScript.ROLE_EAT,
+		KitchenScript.WALK_RAW, 1], "off again, one walk failed")
+	_run(v, 2 * FRAMES_PER_HOUR, func() -> bool: return v.kitchen.fed.last_outcome[1] == FedScript.OUTCOME_RAW)
+	assert_equal(v.kitchen.fed.last_outcome[1], FedScript.OUTCOME_RAW, "it ate raw")
+
+
+func test_a_raw_meal_given_up_by_an_order_or_the_night_is_gone_without() -> void:
+	"""Only a walk the resident gave up is tried again: ordered away, it goes without at once; held for a retry when
+	dusk takes it to bed, it goes without then -- its food given back either way, not kept reserved all night."""
+	var v := _village(3, tick_at(1, 18))
+	_raw_walker(v)
+	v.brains[1].order_move(v.brains[1].position + Vector2(0.0, 3.0))
+	assert_equal([v.kitchen._raw_retry[1], v.kitchen._raw_take[1]], [0, 0], "an order: not held, the food back")
+	assert_equal(v.kitchen.fed.last_outcome[1], FedScript.OUTCOME_SKIPPED, "it went without")
+	var w := _village(3, tick_at(1, 18))
+	_raw_walker(w)
+	_with_night(w)
+	w.brains[1]._abandon_trip()
+	w.brains[1].order_move(w.brains[1].position + Vector2(1.0, 0.0))
+	w.brains[1].release()
+	assert_equal(w.kitchen._raw_retry[1], 1, "held")
+	w.calendar.tick = tick_at(1, NightScript.DUSK_HOUR)
+	_run(w, 2 * KitchenScript.RESEND_TICKS, func() -> bool: return w.kitchen._raw_retry[1] == 0)
+	assert_true(w.brains[1].task is SleepTaskScript, "sent to bed at dusk")
+	assert_equal([w.kitchen._raw_retry[1], w.kitchen._raw_take[1], w.kitchen.role_of(1)], [0, 0,
+		KitchenScript.ROLE_NONE], "given up at bedtime, the food back")
+	assert_equal(w.kitchen.fed.last_outcome[1], FedScript.OUTCOME_SKIPPED, "it went without")
+
+
+func test_a_held_raw_meal_waits_out_an_order_and_is_kept_from_the_work_board() -> void:
+	"""Held for a retry, a resident is kept for the meals (the work board claims nothing for it, and it is handed no
+	water to draw); a player's order is waited out, never overridden; three walks given up and it goes without."""
+	var v := _village(3, tick_at(1, 18))
+	_raw_walker(v)
+	v.brains[1]._abandon_trip()
+	assert_true(v.kitchen.kept_for_meals(1), "kept for its meal")
+	assert_false(v.kitchen._free_for(1), "not free for the kitchen's other work")
+	v.brains[1].order_move(v.brains[1].position + Vector2(0.0, 2.0))
+	_run(v, 3 * KitchenScript.RESEND_TICKS)
+	assert_equal([v.brains[1].order, v.kitchen.role_of(1), v.kitchen._raw_retry[1]], [BrainScript.ORDER_MOVE,
+		KitchenScript.ROLE_NONE, 1], "the order stands; still held")
+	v.brains[1].release()
+	_run(v, 2 * KitchenScript.RESEND_TICKS, func() -> bool: return v.kitchen.role_of(1) == KitchenScript.ROLE_EAT)
+	assert_equal(v.kitchen.step_of(1), KitchenScript.WALK_RAW, "free again: off to eat")
+	for attempt: int in 2:
+		_run(v, 2)
+		v.brains[1]._abandon_trip()
+		_run(v, 2 * KitchenScript.RESEND_TICKS, func() -> bool: return v.kitchen.role_of(1) == KitchenScript.ROLE_EAT \
+			or v.kitchen._raw_take[1] == 0)
+	assert_equal([v.kitchen._raw_retry[1], v.kitchen._raw_take[1], v.kitchen.role_of(1)], [0, 0,
+		KitchenScript.ROLE_NONE], "a third walk given up: the meal let go")
+	assert_equal(v.kitchen.fed.last_outcome[1], FedScript.OUTCOME_SKIPPED, "it went without")
+
+
+func test_a_held_raw_meal_not_to_be_taken_when_free_is_gone_without() -> void:
+	"""Held for a retry, a resident the water holds when it comes free (an emergency of the river) is not sent off:
+	the raw meal is given up -- it went without, its food given back."""
+	var v := _village(3, tick_at(1, 18))
+	_raw_walker(v)
+	v.brains[1]._abandon_trip()
+	v.brains[1].water_hold = true
+	_run(v, 2 * KitchenScript.RESEND_TICKS)
+	assert_equal([v.kitchen._raw_retry[1], v.kitchen._raw_take[1], v.kitchen.role_of(1)], [0, 0,
+		KitchenScript.ROLE_NONE], "given up, the food back")
+	assert_equal(v.kitchen.fed.last_outcome[1], FedScript.OUTCOME_SKIPPED, "it went without")
+
+
+func test_a_held_raw_eater_called_to_the_next_meal_went_without_the_last() -> void:
+	"""A raw meal still held when the next meal is called (its resident kept busy by an order till then): the call
+	gives the raw food back and the tally of the meal it missed moves it to "went without" -- never counted as fed."""
+	var v := _village(3, tick_at(1, 18))
+	_raw_walker(v)
+	var supper: int = Rules.meal_key(1, Rules.MEAL_SUPPER)
+	var at: int = v.kitchen.meal_keys.find(supper)
+	var counted: Array[int] = [v.kitchen.meal_raw[at], v.kitchen.meal_without[at]]
+	v.brains[1]._abandon_trip()
+	var next: int = Rules.meal_key(2, Rules.MEAL_BREAKFAST)
+	v.kitchen.store.add(Rules.DISH_PORRIDGE, 2, next)
+	v.kitchen.store.carry_out()
+	v.kitchen._open_meal(next)
+	v.kitchen._call_diners()
+	assert_equal([v.kitchen.meal_raw[at], v.kitchen.meal_without[at]], [counted[0] - 1, counted[1] + 1],
+		"supper's tally: went without")
+	assert_equal([v.kitchen._raw_take[1], v.kitchen._raw_retry[1]], [0, 0], "the raw food given back")
+	assert_equal([v.kitchen.role_of(1), v.kitchen.meal_of(1)], [KitchenScript.ROLE_EAT, next], "called to breakfast")
+	assert_true(v.kitchen.fed.had(1, supper), "supper recorded as missed")
+
+
+func test_a_store_walk_that_failed_goes_to_a_spot_clear_of_those_standing() -> void:
+	"""The first walk to a store goes to the spot nearest it; after a failed walk, to one clear of everyone standing
+	still -- a second raw eater does not walk into the first, eating at the store."""
+	var v := _open(_village(3, tick_at(1, 10)))
+	v.brains[2].start_at(STORE_AT, 0.0, -1, -1)
+	v.kitchen._location[1] = 0
+	v.kitchen._step[1] = KitchenScript.WALK_RAW
+	assert_true(v.kitchen._store_spot(1, v.brains[1]).distance_to(STORE_AT) < 0.01, "first: the store's own spot")
+	v.kitchen._fails[1] = 1
+	assert_true(v.kitchen._store_spot(1, v.brains[1]).distance_to(STORE_AT) > 0.4, "after a failure: clear of resident 2")

@@ -10,7 +10,8 @@ const CardScript := preload("res://demo/ui/action_card.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 
 const NOTHING_PLANNED: String = "No meal is planned yet"
-const TAB_NOTE: String = "Breakfast is called at 06:00 and supper at 13:00. The cook is up at 01:00 to cook breakfast, and cooks supper from 09:00; each pot goes to the hall's table as it is cooked, and between meals the cook fetches the next day's food from the stores. The village is called once a meal is on its way. A portion is 1800 NP; a small resident needs 6000 a day."
+## The Kitchen tab's note: its hours are filled from meal_rules.gd's own (`tab_note`), so they cannot drift.
+const TAB_NOTE: String = "Breakfast is called at %02d:00 and supper at %02d:00. The cook is up at %02d:00 to cook breakfast, and cooks supper from %02d:00; each pot goes to the hall's table as it is cooked, and between meals the cook fetches the next day's food from the stores. The village is called once a meal is on its way. A portion is 1800 NP; a small resident needs 6000 a day."
 const ROUND_LABEL: String = "Cooking the village's meals"
 const DRAW_LABEL: String = "Drawing water for the kitchen"
 const NO_COOK_REASON: String = "nobody is free to cook"
@@ -42,6 +43,12 @@ const WORK_POUR: int = Steps.WORK_POUR
 const WORK_WAIT: int = Steps.WORK_WAIT
 const WORK_EAT: int = Steps.WORK_EAT
 const WORK_EAT_RAW: int = Steps.WORK_EAT_RAW
+
+static func tab_note() -> String:
+	"""TAB_NOTE with the meals' hours (meal_rules.gd CALL_HOUR, COOK_RISE_HOUR, COOK_FROM_HOUR)."""
+	return TAB_NOTE % [Rules.CALL_HOUR[Rules.MEAL_BREAKFAST], Rules.CALL_HOUR[Rules.MEAL_SUPPER], Rules.COOK_RISE_HOUR,
+		Rules.COOK_FROM_HOUR[Rules.MEAL_SUPPER]]
+
 
 static func units(milli: int) -> String:
 	"""A quantity in the HUD's form ("2.0 U")."""

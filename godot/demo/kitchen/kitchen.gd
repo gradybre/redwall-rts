@@ -22,17 +22,17 @@ extends RefCounted
 ##             finishes it, nothing is taken again); finished, its 2 portions go into the pot (meal_store.gd);
 ##   serve     each meal's pot carried to the hall's table as soon as it is cooked, and the portions put out (1 WU);
 ##   eat       before it sets off to fetch again, the cook eats today's meal waiting at the table.
-## Breakfast is cooked from COOK_RISE_HOUR (01:00): the cook is up before the village to have it on the table by
-## morning (night_routine.gd's early riser), then fetches the next day's food; supper is cooked from 09:00
-## (meal_rules.gd COOK_FROM_HOUR: on the open table a portion ages at the open-pile factor, and from dawn it would spoil
-## before supper's end in summer).
+## Breakfast is cooked from COOK_RISE_HOUR (05:00): the cook is up before the village to have it on the table by
+## its call at 07:00 (night_routine.gd's early riser), then fetches the next day's food; supper is cooked from 15:00
+## (meal_rules.gd COOK_FROM_HOUR: on the open table a portion ages at the open-pile factor, so a meal is cooked close
+## to its call). The hours are decision 0421's.
 ##
 ## WATER is drawn by anyone free (the fixture crew's convention: the nearest resident wandering on its own) while
 ## KEEP WATER DRAWN is on -- the butt by the well kept full, a carry at a time (§5.2's carry capacity, water 1000 g a
 ## unit), at most MAX_DRAWERS at once -- or by the selected residents on the player's Draw water order. A batch takes
 ## its water from that stock (ruling 2: drawn "into the stores"), as it takes its wood.
 ##
-## THE DINERS. During a meal (from its call, 06:00 or 13:00), once its food is on its way (in the pot or out), every
+## THE DINERS. During a meal (from its call, 07:00 or 17:00), once its food is on its way (in the pot or out), every
 ## resident not in an emergency, the water or bed is called to the tables -- a drawer too -- its job PARKED on its
 ## resume queue (decision 0205) as the night's are; whoever comes free during the meal is called too. Seated, it eats the first portion out by §5.7's order (meal_store.gd) -- a 12-WU task, the portion
 ## consumed at its end (REQ-SET-095) -- and goes back to its job. At the meal's end, a resident still without food
@@ -117,9 +117,11 @@ const NOBODY: int = -1
 ## The village cook's trade (cast_routines.gd: the keeper keeps the hall, the table and the well).
 const COOK_KEYS: Array[StringName] = [&"mouse_keeper"]
 const MAX_DRAWERS: int = 2
-## Hand-outs and a free diner's re-call, at most this often (calendar ticks: a fifth and half a game hour).
-const PICKUP_TICKS: int = 150
-const RESEND_TICKS: int = 375
+## Hand-outs and a free diner's re-call, at most this often (calendar ticks: 0.5 s at 1x, as the other crews'
+## PICKUP_USEC, and the night routine's RESEND_TICKS, 1.27 s -- the real seconds they were before decision 0421 made a
+## game hour 25 s).
+const PICKUP_TICKS: int = 15
+const RESEND_TICKS: int = NightScript.RESEND_TICKS
 ## A cook stands in (nobody else free being the cook) when a meal is called within this many hours.
 const STAND_IN_HOURS: int = 4
 ## Walks given up in a row before the kitchen gives up on that place for the meal.
@@ -212,6 +214,8 @@ var _draw_amount: PackedInt64Array = PackedInt64Array()
 var _called: PackedInt32Array = PackedInt32Array()
 var _sent_tick: PackedInt32Array = PackedInt32Array()
 var _fails: PackedInt32Array = PackedInt32Array()
+## Per resident: 1 while a raw meal whose walk was given up waits to set off again (see `called_away`).
+var _raw_retry: PackedByteArray = PackedByteArray()
 var _tasks: Array[TaskScript] = []
 # the planned meals
 var _slot_key: PackedInt32Array = PackedInt32Array()
@@ -311,6 +315,7 @@ func _size_columns(n: int) -> void:
 	for column: PackedInt64Array in [_mwu, _need, _water, _draw_amount]:
 		column.resize(n)
 	_issued.resize(n)
+	_raw_retry.resize(n)
 	_at_work.resize(n)
 	_target.resize(n)
 	_face.resize(n)
@@ -535,11 +540,16 @@ func _cookable_slot() -> int:
 	"""The earliest planned meal a batch may start for now: its cooking time come (or ordered now) and a batch's food
 	at the cauldron (FREE: none)."""
 	for s: int in _slots_by_key():
-		if _slot_done(s) or (_hour_seen < _cook_from(_slot_key[s]) and _cook_now_key != _slot_key[s]):
+		if _slot_done(s) or not _cook_time_come(s):
 			continue
 		if takes.live_milli(pantry, _slot_take[s], TakesScript.AT_KITCHEN) >= Rules.INPUT_MILLI[_slot_dish[s]]:
 			return s
 	return FREE
+
+
+func _cook_time_come(s: int) -> bool:
+	"""Whether slot `s`'s meal may be cooked now: its COOK_FROM_HOUR come, or ordered cooked now (Cook now)."""
+	return _hour_seen >= _cook_from(_slot_key[s]) or _cook_now_key == _slot_key[s]
 
 
 func can_start_batch() -> bool:
@@ -648,6 +658,7 @@ func _start_role(i: int, role: int, cleared: bool = false) -> void:
 	`cleared`: its old part already ended (a raw meal reserved since)."""
 	if not cleared:
 		_clear_role(i)
+	_raw_retry[i] = 0
 	var brain: BrainScript = _brains[i]
 	if brain.order == BrainScript.ORDER_WORK and brain.poi >= 0:
 		brain.remember_unfinished(UnfinishedScript.new(NightScript.WorkBack.new(brain.poi).take_back,
@@ -672,9 +683,15 @@ func _clear_role(i: int) -> void:
 	if _raw_take[i] > 0:
 		takes.release(_raw_take[i])
 		_raw_take[i] = 0
+	_raw_retry[i] = 0
+	_seat[i] = FREE
+	_reset_part(i)
+
+
+func _reset_part(i: int) -> void:
+	"""Resident `i` has no kitchen part now: its role and step state reset, its task let go."""
 	_role[i] = ROLE_NONE
 	_step[i] = STEP_DONE
-	_seat[i] = FREE
 	_issued[i] = 0
 	_at_work[i] = 0
 	_tasks[i] = null
@@ -731,16 +748,27 @@ func drive(i: int, brain: BrainScript, delta: float) -> bool:
 
 
 func _walk_target(i: int) -> Vector2:
-	"""Where resident `i`'s walk goes: a store's or the raw food's spot is found as it sets off; after a failed walk,
-	a spot near the place clear of everyone standing still."""
+	"""Where resident `i`'s walk goes: a store's or the raw food's spot is found as it sets off (`_store_spot`); after
+	a failed walk, a spot near the place clear of everyone standing still."""
 	var brain: BrainScript = _brains[i]
-	var at: Vector2 = _target[i]
 	if _step[i] == WALK_STORE or _step[i] == WALK_RAW:
-		at = pantry.storage.position_of(_location[i])
-		return PlacesScript.spot_near(brain.space(), brain.space().bounds, at, at, brain.position)
+		return _store_spot(i, brain)
 	if _fails[i] > 0:
-		return PlacesScript.spot_near(brain.space(), brain.space().bounds, at, at, brain.position, [brain])
-	return at
+		return PlacesScript.spot_near(brain.space(), brain.space().bounds, _target[i], _target[i], brain.position,
+			[brain])
+	return _target[i]
+
+
+func _store_spot(i: int, brain: BrainScript) -> Vector2:
+	"""Resident `i`'s spot at the store it walks to: the nearest clear one -- and after a failed walk, clear of everyone
+	standing still too (decision 0421: a raw eater now stands at its store real seconds, so a second one can find the
+	first eating at its spot; it tries again at a free one). Kept in `_target`."""
+	var at: Vector2 = pantry.storage.position_of(_location[i])
+	var clear: Array[RefCounted] = []
+	if _fails[i] > 0:
+		clear.append(brain)
+	_target[i] = PlacesScript.spot_near(brain.space(), brain.space().bounds, at, at, brain.position, clear)
+	return _target[i]
 
 
 func _carries(i: int) -> bool:
@@ -757,11 +785,50 @@ func called_away(i: int, task: TaskScript) -> void:
 	var walking: bool = _step[i] > STEP_DONE and _step[i] < WORK_FIRST and _issued[i] == 1
 	var failed_at: int = _step[i]
 	var fails: int = _fails[i] + (1 if walking else 0)
+	if walking and _raw_take[i] > 0 and _brains[i].trip_failed() and fails < MAX_FAILS:
+		_hold_raw_meal(i, fails)
+		return
 	_clear_role(i)
 	_fails[i] = fails
 	if fails >= MAX_FAILS:
 		_give_up_walk(i, failed_at)
 	revision += 1
+
+
+func _hold_raw_meal(i: int, fails: int) -> void:
+	"""Resident `i`'s walk to its raw meal was given up (blocked, not an order): the meal stays reserved and it sets
+	off again once free and RESEND_TICKS have passed (`_retry_raw_meals`), up to MAX_FAILS walks. A raw meal comes
+	after the serving's end, when no call repeats it, and since decision 0421 a raw eater stands at its store real
+	seconds, so two can block each other's way."""
+	_raw_retry[i] = 1
+	_sent_tick[i] = calendar.tick
+	_fails[i] = fails
+	_reset_part(i)
+	revision += 1
+
+
+func _retry_raw_meals() -> void:
+	"""Each raw meal held after a failed walk sets off again once its resident is free (an order or a job of its own
+	is waited out); one gone to bed, or that may not be taken when free (the water, an emergency), is given up -- it
+	went without, its food given back."""
+	for i: int in _raw_retry.size():
+		if _raw_retry[i] == 1 and _gone_to_bed(i):
+			_clear_role(i)
+			continue
+		if _raw_retry[i] == 0 or _brains[i].order != BrainScript.ORDER_NONE \
+				or calendar.tick - _sent_tick[i] < RESEND_TICKS:
+			continue
+		_raw_retry[i] = 0
+		if _raw_take[i] > 0 and _may_take(i):
+			_start_role(i, ROLE_EAT, true)
+		else:
+			_clear_role(i)
+
+
+func _gone_to_bed(i: int) -> bool:
+	"""Whether resident `i` has been taken to bed: resting through the night (the night routine sets it for everyone,
+	sleep task or not). A raw meal held from the evening is not eaten in the night, even by the cook up early."""
+	return _brains[i].resting
 
 
 func _give_up_walk(i: int, step: int) -> void:
@@ -1252,6 +1319,7 @@ func _reserve_raw(i: int) -> bool:
 func _hand_out() -> void:
 	"""Give the round to the cook, call free diners to the meal, and water trips to whoever is free and not due at
 	the table."""
+	_retry_raw_meals()
 	_hand_cook()
 	_call_diners()
 	_hand_draws()
@@ -1304,7 +1372,8 @@ func _free_for(i: int) -> bool:
 	"""Whether resident `i` may be handed kitchen work now: on its own, out of the water, not on a crossing, and not
 	resting (unless up early)."""
 	var brain: BrainScript = _brains[i]
-	if brain.order != BrainScript.ORDER_NONE or brain.water_hold or brain.in_water or _role[i] != ROLE_NONE:
+	if brain.order != BrainScript.ORDER_NONE or brain.water_hold or brain.in_water or _role[i] != ROLE_NONE \
+			or _raw_retry[i] == 1:
 		return false
 	return brain.state != BrainScript.State.CROSS and (not brain.resting or up_early(i))
 
@@ -1331,10 +1400,11 @@ func kept_for_meals(i: int) -> bool:
 	"""Whether resident `i` is kept for the meals now, so the work board claims nothing for it (work_board.gd
 	`set_needs_gate`, decision 0411 with 0381): it has a kitchen part (cooking, drawing water, at the table), it is
 	due at the table (a meal on its way that it has not had: the kitchen calls it as soon as it is free), or it is
-	the cook with a meal still to get to the table (the kitchen hands it the round as soon as it is free)."""
+	the cook with a meal still to get to the table (the kitchen hands it the round as soon as it is free), or its
+	raw meal is held to set off again (`_hold_raw_meal`)."""
 	if i < 0 or i >= _role.size():
 		return false
-	return _role[i] != ROLE_NONE or _due_to_eat(i) or _on_duty(i)
+	return _role[i] != ROLE_NONE or _raw_retry[i] == 1 or _due_to_eat(i) or _on_duty(i)
 
 
 func _holder(role: int) -> int:
@@ -1410,8 +1480,9 @@ func _call_diners() -> void:
 		if first or (_brains[i].order == BrainScript.ORDER_NONE and calendar.tick - _sent_tick[i] >= RESEND_TICKS):
 			_called[i] = _serving
 			_sent_tick[i] = calendar.tick
+			_clear_role(i)
 			_meal[i] = _serving
-			_start_role(i, ROLE_EAT)
+			_start_role(i, ROLE_EAT, true)
 			if _announced != _serving:
 				_announced = _serving
 				_say(Words.call_line(_serving))
@@ -1435,9 +1506,11 @@ func _on_duty(i: int) -> bool:
 
 
 func _food_at_cauldron() -> bool:
-	"""Whether a planned meal's food is put down at the cauldron."""
+	"""Whether a planned meal whose cooking time has come (or ordered now) has food put down at the cauldron. Food
+	fetched ahead for a later meal does not keep the cook on duty: between breakfast and supper's cooking (decision
+	0421's hours do not overlap) it is a diner like the rest."""
 	for s: int in _slot_order:
-		if takes.live_milli(pantry, _slot_take[s], TakesScript.AT_KITCHEN) > 0:
+		if _cook_time_come(s) and takes.live_milli(pantry, _slot_take[s], TakesScript.AT_KITCHEN) > 0:
 			return true
 	return false
 
@@ -1584,7 +1657,7 @@ func preview_cook_into(card: CardScript, members: PackedInt32Array) -> void:
 		card.add_cost(Rules.INPUT_WORDS[d.dish].capitalize(), d.food_have, d.food_need)
 		card.add_cost("Water", d.water_have, d.water_need)
 		card.add_cost("Wood", d.wood_have, d.wood_need)
-		card.work_usec = d.batches * Rules.batch_ticks(d.dish) * CalendarScript.HOUR_USEC / SimClock.TICKS_PER_HOUR
+		card.work_usec = CalendarScript.usec_for_ticks(d.batches * Rules.batch_ticks(d.dish))
 		card.work_note = ", plus fetching and the walk"
 	card.who = d.who
 	card.worker = d.worker
@@ -1601,8 +1674,7 @@ func preview_draw_into(card: CardScript, members: PackedInt32Array) -> void:
 	card.result = "%s%s into the water butt by the well (it holds %s of %s)" % ["Up to " if d.worker < 0 else "",
 		Words.units(d.amount), Words.units(stores.water_milli_u), Words.units(StoresScript.WATER_CAP_MILLI_U)]
 	if d.amount > 0:
-		card.work_usec = d.amount * Rules.DRAW_MWU_PER_MILLI / Rules.MWU_PER_TICK * CalendarScript.HOUR_USEC \
-				/ SimClock.TICKS_PER_HOUR
+		card.work_usec = CalendarScript.usec_for_ticks(d.amount * Rules.DRAW_MWU_PER_MILLI / Rules.MWU_PER_TICK)
 	card.who = d.who
 	card.worker = d.worker
 	card.prerequisites = PackedStringArray(["a resident to carry it (a mouse carries 12 U, an otter 16, the badger 24)"])

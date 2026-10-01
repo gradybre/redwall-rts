@@ -1,6 +1,6 @@
 extends "res://test/framework/test_case.gd"
 ## The action cards and the assignment preview (decision 0332; review group H, findings F33 and F44). Every demo
-## action's button shows a card -- result, cost as have / need, work in game hours, who will do it, what that resident
+## action's button shows a card -- result, cost as have / need, work in game time, who will do it, what that resident
 ## stops and whether it goes back to it, needs, and refused, the exact reason and its fix -- filled by the SAME
 ## decision the order then takes. So these tests hold each family to it: the card's cost is what the order spends, its
 ## refusal is the order's (code and words), its resident is the one the order sends, its work is the work's length.
@@ -139,14 +139,18 @@ func test_a_card_puts_the_refusal_and_its_fix_first() -> void:
 	assert_equal(card.text(), "Again", "just the verb")
 
 
-func test_work_is_game_hours_on_the_demo_calendar() -> void:
-	"""A game hour is HOUR_USEC (2.5 demo seconds); tenths rounded up, so a sliver of work is never 0.0."""
-	assert_equal(CardScript.hours_text(2500000), "about 1 game hour", "one")
-	assert_equal(CardScript.hours_text(12000000), "about 4.8 game hours", "a compost: 8 WU x 1.5 s")
-	assert_equal(CardScript.hours_text(1), "about 0.1 game hours", "a sliver")
-	assert_equal(CardScript.hours_text(250000), "about 0.1 game hours", "a tenth exactly")
-	assert_equal(CardScript.hours_text(250001), "about 0.2 game hours", "just past it")
-	assert_equal(CardScript.hours_text(0), "about 0.0 game hours", "none")
+func test_work_is_game_time_on_the_demo_calendar() -> void:
+	"""A game hour is HOUR_USEC (25 demo seconds, decision 0421): under an hour the card says whole game minutes, rounded
+	up, so a sliver of work is never nothing; from an hour, hours to the tenth, rounded up."""
+	assert_equal(CardScript.hours_text(25000000), "about 1 game hour", "one")
+	assert_equal(CardScript.hours_text(12000000), "about 29 game minutes", "a compost: 8 WU x 1.5 s, 28.8 minutes")
+	assert_equal(CardScript.hours_text(1), "about 1 game minute", "a sliver")
+	assert_equal(CardScript.hours_text(416666), "about 1 game minute", "under a minute")
+	assert_equal(CardScript.hours_text(416667), "about 2 game minutes", "just past it")
+	assert_equal(CardScript.hours_text(24999999), "about 1 game hour", "a microsecond short of the hour")
+	assert_equal(CardScript.hours_text(25000001), "about 1.1 game hours", "just past it")
+	assert_equal(CardScript.hours_text(60000000), "about 2.4 game hours", "an hour and more, to the tenth")
+	assert_equal(CardScript.hours_text(0), "about 0 game minutes", "none")
 
 
 func test_lines_break_at_word_boundaries() -> void:
@@ -318,7 +322,7 @@ func _run_farm(cast: DemoCastScript, crew: FarmCrew, seconds: float, done: Calla
 
 
 func test_a_farm_card_costs_what_the_order_spends_and_works_as_long() -> void:
-	"""Compost on the carrot bed: 2.0 U from the compost store, 8 WU (4.8 game hours) -- and the order takes exactly
+	"""Compost on the carrot bed: 2.0 U from the compost store, 8 WU (12 s: 29 game minutes) -- and the order takes exactly
 	that, its work step running exactly that long."""
 	var cast := _cast()
 	var sim := FarmSim.new()
@@ -330,7 +334,7 @@ func test_a_farm_card_costs_what_the_order_spends_and_works_as_long() -> void:
 	assert_equal(card.cost_have[0], sim.compost_milli, "have: the store")
 	assert_equal(card.cost_need[0], 2000, "need: a dose")
 	assert_equal(card.work_usec, FarmJobs.work_usec_of(FarmJobs.WORK_COMPOST), "the plan's one work step")
-	assert_true(card.text().contains("Work: about 4.8 game hours, plus the walk"), card.text())
+	assert_true(card.text().contains("Work: about 29 game minutes, plus the walk"), card.text())
 	assert_true(card.result.contains("fertility points"), "the panel's effect words")
 	var before: int = sim.compost_milli
 	crew.order(FarmJobs.KIND_COMPOST, BED_CARROTS, PackedInt32Array([2]), FarmJobs.ORIGIN_PLAYER)
@@ -1056,7 +1060,7 @@ func test_a_cards_edges() -> void:
 	assert_equal(card.cost_line(1), "Compost: have 0.1 U · need 0.25 U", "a quarter unit, exactly")
 	assert_equal(CardScript.need_text(4700), "4.7 U", "tenths as the HUD prints them")
 	card.work_usec = 0
-	assert_true(card.text().contains("Work: about 0.0 game hours"), "no work is still work said")
+	assert_true(card.text().contains("Work: about 0 game minutes"), "no work is still work said")
 	var words := PackedStringArray()
 	for k: int in 30:
 		words.append("word")

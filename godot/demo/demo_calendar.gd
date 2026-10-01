@@ -7,13 +7,18 @@ extends RefCounted
 ## hours and days -- growth, the 48-hour grace, withering at 120 hours, fallow days, the compost
 ## season -- and §5.10's daily weather run unchanged on it.
 ##
-## WHAT IS A DEMO VALUE: HOW FAST THOSE TICKS COME. At the settlement's own rate a game hour is 25 real
-## seconds and a crop takes 50 to 80 real minutes to ripen, which no demo can show. So the calendar
-## runs HOUR_USEC demo microseconds to the game hour: 2.5 s, a day a minute at 1x (15 s at 4x), a
-## 120-hour crop ripe in five minutes. It is driven ONLY by the demo clock's microseconds
-## (demo_clock.gd), so the HUD's pause stops it and 2x / 4x scale it exactly. That one compression
-## applies to everything on the calendar: the farm, the weather (demo/weather/demo_weather.gd reads
-## its hour from here) and the HUD's date (demo/ui/demo_hud_date.gd prints `date_text()`).
+## HOW FAST THOSE TICKS COME: THE SETTLEMENT'S OWN RATE. Brendan's ruling of 2026-10-01 (decision 0421): at 1x one
+## game day lasts ten real minutes, as the GDD adopts (docs/game_gdd.md §5.1: "At 1x: day 10 minutes, season 120
+## minutes, year 8 hours"; REQ-SET-006). So HOUR_USEC is 25 000 000 demo microseconds -- 25 s a game hour, 750 ticks
+## in it: exactly the settlement's fixed "30 ticks/real second at 1x" (GDD §4.1's time row), 2x and 4x scaling it.
+## Walking and work run on the same demo microseconds (demo_clock.gd), so a resident at 0.72 m/s covers 18 m in a
+## game hour, and the village fits its day. (Until this ruling the calendar ran ten times faster -- 2.5 s a game
+## hour, a day a minute -- and a walk across the village took most of a day; decision 0196 recorded that compression,
+## 0421 retires it.) It is driven ONLY by the demo clock's microseconds (demo_clock.gd), so the HUD's pause stops it
+## and 2x / 4x scale it exactly. Everything on the calendar reads its time HERE and keeps no conversion of its own:
+## the farm, the weather (demo/weather/demo_weather.gd reads its hour from here), the kitchen, the night, the
+## fishery, the HUD's date (demo/ui/demo_hud_date.gd prints `date_text()`) and the action cards' work times
+## (action_card.gd `hours_text`).
 ##
 ## WHO ADVANCES IT. Exactly one owner: the farm's model (demo/farm/farm_sim.gd `advance_usec`), because
 ## every hour crossing and midnight must run the real crop/weather stage in order. Everyone else reads.
@@ -24,8 +29,10 @@ extends RefCounted
 
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 
-## Demo microseconds per game hour (see above).
-const HOUR_USEC: int = 2500000
+## Demo microseconds per game hour (see above): 25 s, 750 ticks at 30 a second.
+const HOUR_USEC: int = 25000000
+## Demo microseconds per game day: ten minutes at 1x.
+const DAY_USEC: int = HOUR_USEC * SimClock.HOURS_PER_DAY
 ## The season names the demo prints (sim_clock's own are lower case).
 const SEASON_TITLES: Array[String] = ["Spring", "Summer", "Autumn", "Winter"]
 
@@ -44,6 +51,12 @@ func ticks_for_usec(usec: int) -> int:
 	var scaled: int = _remainder + usec * SimClock.TICKS_PER_HOUR
 	_remainder = scaled % HOUR_USEC
 	return scaled / HOUR_USEC
+
+
+static func usec_for_ticks(ticks: int) -> int:
+	"""The demo microseconds `ticks` calendar ticks take at 1x (rounded down): work stated in ticks, as the kitchen's
+	step rate, shown in the demo time every other work time is counted in (action_card.gd)."""
+	return ticks * HOUR_USEC / SimClock.TICKS_PER_HOUR
 
 
 static func next_hour_crossing(after_tick: int) -> int:

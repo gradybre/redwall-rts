@@ -14,10 +14,12 @@ extends RefCounted
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const FixturesScript := preload("res://demo/burrow/room_fixtures.gd")
 const InstallTaskScript := preload("res://demo/burrow/install_task.gd")
+const CalendarScript := preload("res://demo/demo_calendar.gd")
 
 const PICKUP_USEC: int = 500000
 const MAX_INSTALLERS: int = 3
-const KEEP_USEC: int = 60000000
+## A game day of demo time, the calendar's own (decision 0421: ten minutes at 1x, longer than the night).
+const KEEP_USEC: int = CalendarScript.DAY_USEC
 
 var _graph: RefCounted = null
 var _brains: Array[BrainScript] = []

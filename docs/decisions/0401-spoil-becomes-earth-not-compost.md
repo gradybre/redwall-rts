@@ -137,6 +137,12 @@ after new tests: the view redrawn every frame while earth is taken, a clearing b
 Cancel tip). One is equivalent: ignoring `take_earth`'s result cannot change anything, because `take_spoil_into`
 checks the same amount against the same store first.
 
+## Integration with review batch 4 (M's work board)
+
+The work board (0411) landed before this branch. Its farm adapter shows an earth return as a delivery -- HAULING,
+carrying, never claimed as farm production -- and Cancel refuses it (`work_ids.gd EARTH_GOES_BACK`); the farm crew's
+`pause` and `reassign`, which the board's commands call, refuse while earth is in hand. See 0411's integration note.
+
 ## Source
 
 Brendan's ruling of 2026-09-30 (above); `docs/underground_economy_hazard_amendment.md` ECON-002; GDD §5.6, §5.7, §5.8,

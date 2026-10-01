@@ -292,3 +292,13 @@ places the fieldworker by a reachable roots bed, because the walk from the hall 
 - **With food only in far stores, the meals run late.** Soonest-to-spoil sends the cook there first. This is honest,
   and the cure is a root cellar near the kitchen or room in the kitchen pantry.
 - **The sound cues come later** (the brief).
+
+## Integration with review batch 4
+
+- **The fed line always shows.** The note above ("the party panel's fit can fold the fed line away") is resolved:
+  F's panel (0391) never folds, and the fed rows are no longer one of the skills providers that came last. The
+  command layer carries them as their own entry (`demo_command.gd set_fed_text` / `fed_text`): for one resident
+  they are the rows right after what it is doing (before the order list and the skills), and in a group row the
+  word follows the state. They are part of the panel's refresh signature.
+- **Meals and the work board** (0411): the board claims no work for a resident `kitchen.gd kept_for_meals` keeps,
+  and the cook's round and the water draws are rows on the Work screen (`work/kitchen_work.gd`).

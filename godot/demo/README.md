@@ -319,7 +319,10 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
   board -- the farm's, the woods', the bridges', the tunnels' jobs, the rooms' fit-out, the spoil heaps' -- read
   through one adapter each (`farm_work.gd`, `woods_work.gd`, `bridge_work.gd`, `tunnel_work.gd`, `fit_out_work.gd`,
   `spoil_work.gd`); every command goes to the owner's own function, so its conservation rules hold (decision 0222:
-  a load in hand is carried on, never paused or handed over from afar).
+  a load in hand is carried on, never paused or handed over from afar -- earth too: a farm job carrying earth back
+  to its heap reads "Carry earth back", a delivery, and Cancel refuses it; decision 0401). The kitchen's cook and
+  water drawers are listed as well (`kitchen_work.gd`; the kitchen hands them out itself), and the board hands no
+  work to a resident at its meal (`set_needs_gate`, `kitchen.gd kept_for_meals`; decision 0381).
 - **Nobody wanders while eligible work waits.** Every half second of cast time each resident is reconsidered
   (staggered); an idle one -- wandering, on the surface, not resting, not in the water nor held by its rescue, its
   needs not first -- takes the best waiting task it is eligible for (skills and physical fit -- fits the bore, can
@@ -336,8 +339,9 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
 - **The order list** (resident_brain.gd THE ORDER LIST): **Shift+right-click** appends an order -- a bed's most
   pressing job, a tree's, trunk's, deadfall's or the sawhorse's, or a walk to open ground -- to the end of the list
   (at most 8 queued; up to 3 jobs kept from interruptions besides); a job kept from an interruption goes to the front.
-  The queue starts at once for a resident with nothing to do, when a plain move arrives, or when a job is done. The party panel, the Residents roster and the Work
-  screen read it as "Next: back to Brace, tunnel 2 → Harvest, the carrot bed"; then the resident's routine. A task
+  The queue starts at once for a resident with nothing to do, when a plain move arrives, or when a job is done. The Residents roster and the Work
+  screen read it as "Next: back to Brace, tunnel 2 → Harvest, the carrot bed"; then the resident's routine. The
+  party panel lists it under "Next:", a row each ("→ back to Brace, tunnel 2"). A task
   queued for a resident (or kept to come back to) is left to it.
 - **The Work screen** (`work/work_screen.gd`): the HUD's **Jobs** command (UI-SET-029, **J**) -- unlocked by the demo
   for it, as Food is for the Pantry -- opens it over the HUD (Esc, J or × close it; Tab and Enter work inside it).
@@ -839,7 +843,8 @@ of wood. Grain is wheat, barley or oats; roots are radish, turnip, carrot, beetr
   full: whoever is free and not due at a table draws, two at most.
 - **Fed.** Each resident's need is the GDD's NP a day (6000 small, 7200 medium, 9600 large). The resident panel
   reads "Fed · 72% full · 1800/6000 NP today" and "Last meal: breakfast, porridge" (fed above 3500, peckish to
-  1501, hungry below), the monotony memory when it applies; the roster shows the word. No penalties.
+  1501, hungry below), the monotony memory when it applies -- its own rows, right after what the resident is doing;
+  a group's rows and the roster show the word. No penalties.
 - **Short.** A meal called with nothing coming raises "No supper tonight: <why>. To fix: <where>" in the village
   news; at its end anyone hungry eats raw roots or cabbage nobody has reserved (at most 3000 NP), the rest go
   without, and the tally is posted ("Supper, day 2: 8 ate, 1 went without").

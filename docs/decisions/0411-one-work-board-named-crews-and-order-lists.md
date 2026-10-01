@@ -213,6 +213,29 @@ candidates in a pass.
   after its materials are paid has no salvage model, so Cancel refuses it; the Work screen repaints its pooled rows four
   times a second while open.
 
+## Integration with review batch 4 (N's kitchen, L's earth, F's panels)
+
+This branch was merged after the tunnel asset swap (0371), F's panels (0391) and N's meals (0381), and before L's
+earth (0401). Where they met:
+
+- **Meals plug in through `set_needs_gate`.** `demo_work.gd add_kitchen` hands the board `kitchen.gd
+  kept_for_meals(i)`: true while the resident has a kitchen part (cooking, drawing water, at the table), is due at the
+  table (a meal on its way that it has not had -- the kitchen calls it as soon as it is free) or is the cook with a
+  meal still to get out. Nothing is claimed for it then, so the board never hands out work at mealtime.
+- **The kitchen is a source** (`work/kitchen_work.gd`, `SOURCE_KITCHEN` 6; the queued walk's `SOURCE_WALK` moved to
+  7). The cook's round and each water draw are rows on the Work screen in the kitchen's own words, with their worker,
+  at the cauldron or the well. The kitchen hands them out itself, so nothing waits to be claimed; Pause, Cancel and
+  Reassign refuse with the way to change them (the Pantry's Kitchen tab, or another order), and Cancel all work leaves
+  them alone. A diner at the table is a meal, not work: not listed.
+- **An earth return is a delivery.** L's "Carry earth back" (`KIND_RETURN_EARTH`, kind 10, not orderable) reads on
+  the Work screen as HAULING, carrying while its earth is in hand, never claimed as farm production; Cancel refuses
+  it (`EARTH_GOES_BACK`), as it refuses a harvest's delivery. The farm crew's own `pause` and `reassign` refuse while
+  a raise or a bank holds earth, as they do for a harvest: no load is paused or handed over from afar.
+- **The order list in F's party panel** is a "Next:" heading and a row per entry in take order, each marked "→ " --
+  F31's list (0391) in this decision's words. The roster and the Work screen keep the one-line "Next: a → b".
+- **The live harness** runs F's and M's steps together; the scaled Work screen check follows F's 150 % choice at
+  1080p (it had read 125 %).
+
 ## Source
 
 REVIEW.md F05, F22 (233–239), F32 (449–459), F44 (593–599), P1's "Work / production" row (801), P2 (865–884); the review

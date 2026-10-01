@@ -217,3 +217,11 @@ the picker's last crop and the orders list are reachable by scrolling and Back i
 - **The news strip is as tall as its lines, not its band**: with several warnings at 1280x720 it grows up over the
   Map layer picker (seen in the frames after four game days; decision 0331's strip, pre-existing).
 - **The HUD's own command strip** truncates "Residents" and "Objectives" at the narrow profile (the shell's layout).
+
+## Integration with review batch 4
+
+- **A refusal step is not progress.** The inspector splits a state at " — " into its command and a "Progress: ..."
+  row. A's "holding — can't find a way there" (0361) and the spoil crew's "... — can't reach it, trying again" are
+  why a resident stopped, so `step_line` gives them as their own words (WHY_STEPS) and labels only real progress.
+- **N's fed rows** (0381) follow what a resident is doing; **M's order list** (0411) is "Next:" and a row per entry,
+  each marked "→ " (BULLET retired).

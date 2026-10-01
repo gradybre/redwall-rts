@@ -279,6 +279,12 @@ func _the_spotlight() -> void:
 	"""The spotlight card is shown, in the window, clear of the party panel; Spotlight ★ clicked marks the rescuer
 	notable and the roster stars it."""
 	var card: CanvasLayer = _village.call(&"people_card")
+	var guide: Node = _village.call(&"guide")
+	if bool(guide.get(&"card").call(&"is_shown")):
+		card.call(&"refresh")
+		_check("it waits while the guide's card shows (one card at the top centre)", not bool(card.call(&"is_shown")))
+		guide.call(&"toggle_guide")
+		await _frames(SETTLE_FRAMES)
 	card.call(&"refresh")
 	await _frames(SETTLE_FRAMES)
 	_check("the spotlight shows", int(card.call(&"mode")) == CardScript.MODE_SPOTLIGHT, card.call(&"body_text"))

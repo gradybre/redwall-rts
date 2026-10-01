@@ -586,7 +586,10 @@ func _build_guide() -> void:
 	_guide.card.hide_while(_stall_banner.is_shown)
 	_guide.card.hide_while(_cards.is_shown)
 	# One card at the top centre, the most urgent: the incident card, then this guide card, then the people's offer card.
+	# Both stand aside while the Residents list (L) is open: at 1280x720 they would cover its rows.
 	_people_card.hide_while(_guide.card.is_shown)
+	_guide.card.hide_while(_workspace_open)
+	_people_card.hide_while(_workspace_open)
 	_guide.card.set_avoid(func() -> Rect2: return _lens_picker.frame_rect() if _lens_picker.visible else Rect2())
 	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
 	_guide.actions = {

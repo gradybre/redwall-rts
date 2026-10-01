@@ -283,7 +283,8 @@ Needs: a site both banks take; planks (sawn at the sawhorse) and wood for any pi
 - **The card is the order's own decision.** Each system's order and its card run the same function:
   `farm_crew.gd decide`, `forest_crew.gd decide`, `tunnel_actions.gd refusal`, `room_fixtures.gd
   order_refusal` / `suggest_refusal` / `take_refusal`, `demo_waterplay.gd build_refusal`, the dive loop's
-  `dive_spot` and `dive_refusal`, and the Dig tool's `choose_digger`. So a card's refusal is the order's
+  `dive_spot` and `dive_refusal`, and the Dig tool's `choose_digger` with its capacity gate
+  (`underground_graph.gd any_piece_refusal`, decision 0361). So a card's refusal is the order's
   (code and words), its resident is the one sent, its cost is what is spent, and a button is pressable
   exactly when its card allows it. The bridge, tunnel and fixture buttons now refuse a short store before
   they are pressed, not after.

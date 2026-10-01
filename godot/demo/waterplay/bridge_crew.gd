@@ -69,6 +69,8 @@ const PLANK_KEY: StringName = &"bridge_plank"
 const LOG_KEY: StringName = &"bridge_log"
 const GNAWED_KEY: StringName = &"gnawed_log"
 const GNAWING_SPECIES: Array[String] = ["beaver"]
+## A bridge its builder could not get to, while the routine crew leaves it (see ARRIVING IS EXPLICIT): `job_text`.
+const UNREACHED_WAITING: String = "waiting — can't reach it; the crew tries again in %d s"
 ## How a resident index that names nobody is worded (see `name_of`).
 const UNNAMED: String = "nobody"
 
@@ -492,6 +494,8 @@ func short_of(who: int) -> String:
 func job_text(row: int) -> String:
 	"""Bridge `row`'s job in words, for the Water panel."""
 	if builder[row] == NOBODY:
+		if unreached_usec[row] > 0:
+			return UNREACHED_WAITING % ceili(float(unreached_usec[row]) / 1000000.0)
 		return STEP_WORDS[STEP_WAITING]
 	return "%s — %s" % [name_of(builder[row]), STEP_WORDS[step[row]]]
 

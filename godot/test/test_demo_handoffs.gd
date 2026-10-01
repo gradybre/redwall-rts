@@ -31,6 +31,7 @@ const LevelsTest := preload("res://test/test_demo_levels.gd")
 const ViewTest := preload("res://test/test_demo_underground_view.gd")
 const CrewScript := preload("res://demo/tunnel/tunnel_crew.gd")
 const DemoSpoilScript := preload("res://demo/spoil/demo_spoil.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
 
 const DT: float = 1.0 / 60.0
 const USEC: int = 16667
@@ -840,3 +841,40 @@ func test_the_dig_tool_refuses_only_when_no_piece_could_fit_naming_what_ran_out(
 			tool.network.phase[slot] = GraphScript.PHASE_PLANNED
 	assert_false(tool.begin_plan(), "nothing could fit")
 	assert_true(tool.notice().contains(Rules.link_text(Rules.REFUSE_NO_SEGMENT_ROWS, "")), "naming the bores: %s" % tool.notice())
+
+
+# --- integration with review batch 2 (decision 0332's action cards) ------------------------------------
+
+func test_the_dig_tools_card_refuses_as_the_tool_does() -> void:
+	"""F08 on the card: every mouth taken, the card allows the tool (a connection still fits); no segment row left, it
+	refuses in `begin_plan`'s own words."""
+	var tool := _tool_full_of_mouths()
+	var card := CardScript.new()
+	tool.tool_card_into(card, "Dig tunnel (B)", "the Dig tool")
+	assert_true(card.is_ok(), "a connection still fits: %s" % card.text())
+	for slot in Rules.MAX_SEGMENTS:
+		if tool.network.phase[slot] == GraphScript.PHASE_FREE:
+			tool.network.phase[slot] = GraphScript.PHASE_PLANNED
+	tool.tool_card_into(card, "Dig tunnel (B)", "the Dig tool")
+	assert_equal([card.code, card.reason], [ControlScript.TOOL_FULL_CODE, Rules.link_text(Rules.REFUSE_NO_SEGMENT_ROWS, "")],
+		card.text())
+	assert_false(tool.begin_plan(), "and the tool refuses")
+	assert_true(tool.notice().contains(card.reason), "in the same words: %s" % tool.notice())
+
+
+func test_an_unreached_bridge_says_so_while_the_crew_leaves_it() -> void:
+	"""F05 on the Water panel: a bridge its builder could not get to reads "can't reach it" with the crew's wait, then
+	waiting for a builder once the wait is over."""
+	var pair := _water_rig()
+	var rig: RefCounted = pair[1]
+	var play: Node = rig.get(&"play")
+	play.call(&"select_candidate", 0)
+	play.call(&"build", SwimRules.KIND_PLANK, PackedInt32Array([0]))
+	var crew: BridgeCrewScript = play.get(&"crew")
+	var source: Vector2 = crew.source_at[0]
+	(rig.get(&"cast") as DemoCastScript).space().set_mound(0, PackedVector3Array([Vector3(source.x, 3.2, source.y)]))
+	_water_frames(rig, 2, func() -> void: pass)
+	assert_equal(crew.builder[0], BridgeCrewScript.NOBODY, "let go")
+	assert_equal(crew.job_text(0), BridgeCrewScript.UNREACHED_WAITING % 10, crew.job_text(0))
+	crew.unreached_usec[0] = 0
+	assert_equal(crew.job_text(0), BridgeCrewScript.STEP_WORDS[BridgeCrewScript.STEP_WAITING], "waiting again")

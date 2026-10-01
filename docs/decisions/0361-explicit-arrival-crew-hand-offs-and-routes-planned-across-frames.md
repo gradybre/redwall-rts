@@ -93,6 +93,22 @@ Before = 6b6e2ca, after = this branch with the review fixes.
   away) and four MEDIUM (the sweep cache ignored the body; a desk turn that re-waited could be dropped; an unreached
   bridge builder was left holding; spoil retries never ended). All fixed with tests.
 
+## Integration with review batch 2 (decision 0332's cards, 0292's lens)
+
+This branch was cut before review batch 2 (PR #201) and merged after it. Where the two met:
+
+- **One selection source.** The Water range lens (`water_range.gd`, 0292) follows the selection only when its
+  revision moved: `demo_waterplay.gd _follow_selection` reads `selection_revision()` and builds the selection array
+  once per change, then repaints whenever the lens's own revision moves (a new selection or a ◀ ▶ step). The village
+  map's dots and the canopy read `is_selected`, the same byte column; nothing reads the selection per frame by array.
+- **The Dig tool's card refuses what `begin_plan` refuses.** `tunnel_control.gd tool_card_into` asks
+  `any_piece_refusal` and, with no piece able to fit, states the capacity in `begin_plan`'s own words (code
+  `NETWORK_FULL`). A piece refused as laid (`rows_refusal`) depends on the piece, so the card cannot preview it.
+- **"Can't reach it" reaches the cards.** A spoil worker waiting to retry says so in its task text, which is the
+  activity an action card's Interrupts line quotes. A bridge whose builder could not get there reads, in the Water
+  panel, "waiting — can't reach it; the crew tries again in N s" for the UNREACHED_WAIT_USEC the crew leaves it; the
+  build card's Who is unchanged (a new bridge's row has no such wait).
+
 ## Consequences
 
 - Any new job owner must use `arrived_near`, not `state == HOLD`, before crediting work. **The farm crew

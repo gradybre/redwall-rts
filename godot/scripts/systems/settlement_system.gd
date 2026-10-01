@@ -315,15 +315,25 @@ extends Node
 ##     `test_a_shared_directory_is_not_cleared_by_this_store` pins that), which is why placing
 ##     the call in `_clear_stores()` alongside the ecology's is safe and leaks no slot.
 ##
-## WHAT THE COMPOSITION DOES NOT DO, stated because decision 0080's consequences are easy to
-## over-read. THERE IS NO STARTER SETTLEMENT. `live_building_count()`, `live_room_count()` and
-## `live_furniture_count()` are 0 after `create_generated_settlement()` as well as before it:
-## `world_init.gd` generates terrain, resource nodes, forage basins and the estuary, and §5.1's
-## hall, beds, hearth, pantry, well, stockpiles and workbench are NOT among them. So
-## `live_furniture_of_kind(bed)` answers 0 truthfully rather than answering §5.1's twelve, and a
-## HUD bed counter reading it would display a real 0 for a settlement with no beds in it. NOTHING
-## HERE PLACES A BUILDING TO MAKE THAT NUMBER LOOK RIGHT. The §7.2 starter build is a separate
-## piece of work with its own unresolved inputs, itemised in decision 0087.
+## THE STARTER COLONY IS NOW REAL (INIT-C live apply, DEMO-CONTAIN-R01 step D3, decision 0533).
+## `create_generated_settlement()` publishes the world and then, still inside its one transaction,
+## creates the World directory row and materialises `starter_structures.gd`'s validated plan
+## through `starter_colony.gd`: §5.9's hall, four open stockpiles, well and workbench, the hall's
+## dormitory/kitchen/common/pantry rooms and its thirty-one floor furniture, all ACTIVE at tier 1
+## and rotation 0, placed through `buildings.gd`'s ordinary doors and then re-read against the
+## plan. So `live_building_count()` is 7, `live_room_count()` 4, `live_furniture_count()` 31 and
+## `live_furniture_of_kind(bed)` 12 after generation -- measured rows, not a fixture. The eight
+## partition/door EDGES, room validity and building condition are NOT applied; decision 0533 and
+## `starter_colony.gd`'s header say why. UI-SET-103's Create reaches the same apply through
+## `materialize_starter_colony()`, which `ui_manager.gd` calls after its own publication.
+##
+## THE GROUND-PILE COMPOSER IS COMPOSED HERE AND OUTLIVES NOTHING IT SERVES (decision 0532's
+## obligation). `ground_piles.gd` is built in `_init()` over this settlement's inventory, buildings
+## and stock-age stores and kept in `_ground_piles` for the node's whole life, because Inventory
+## and Buildings each hold it only weakly. It is Inventory's site authority for
+## `create_ground_pile()` and Buildings' placement authority, so `place_building()` refuses a
+## footprint over a live pile by name (BUILDING_FOOTPRINT_OVER_GROUND_PILE, 0532's M4). Its World
+## binding is made each time the starter colony is materialised, from the row created there.
 ##
 ## NO STAGE IS ADDED TO THE TICK. The store is structural state edited by placement and
 ## demolition, not integrated per tick, and ARCH-SYS-016 RoomHeat -- the one §5 stage that would
@@ -339,8 +349,8 @@ extends Node
 ## `buildings()` actually owns, and `Building.construction` names a project `construction()`
 ## actually owns. A `Construction` built with its own allocator would refuse every real building.
 ##
-## `live_project_count()` is 0 after `create_generated_settlement()` for the same reason
-## `live_building_count()` is: nothing here places a blueprint, so nothing here opens a project.
+## `live_project_count()` is 0 after `create_generated_settlement()`: the starter colony is
+## placed ACTIVE (decision 0533), not as blueprints, and nothing here opens a project.
 ## ALSO ADDS NO TICK STAGE. `work.gd` owns the productive tick that would call `add_work_mwu()`
 ## and `jobs.gd` owns REQ-SET-124's delivery and build jobs; neither file calls this store yet,
 ## so `tick_stage_count()` is still 8 and every stage keeps its name.
@@ -535,6 +545,10 @@ const ConstructionScript := preload("res://scripts/core/construction.gd")
 const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 const StockAgeScript := preload("res://scripts/core/stock_age.gd")
+const GroundPilesScript := preload("res://scripts/core/ground_piles.gd")
+const StarterStructuresScript := preload("res://scripts/core/starter_structures.gd")
+const StarterColonyScript := preload("res://scripts/core/starter_colony.gd")
+const MilestonesScript := preload("res://scripts/core/milestones.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const PerfTimerScript := preload("res://scripts/utils/perf_timer.gd")
 
@@ -647,6 +661,17 @@ const REFUSE_POSE_TRANSFORM: StringName = &"INITIAL_POSE_TRANSFORM_REFUSED"
 ## R-INIT-ID-001 step 5, tightened by INIT-POSE-R01 §2.5: replacement rollback does not exist, so
 ## a published world is never overwritten -- not even one with nobody standing in it.
 const REFUSE_WORLD_ALREADY_PUBLISHED: StringName = &"SETTLEMENT_WORLD_ALREADY_PUBLISHED"
+## INIT-C live apply (decision 0533). The colony is materialised once per settlement; a World row
+## or a live building already present means it has been, or that something else placed there.
+const REFUSE_STARTER_COLONY_PRESENT: StringName = &"STARTER_COLONY_ALREADY_PRESENT"
+const REFUSE_GROUND_PILES_BIND: StringName = &"GROUND_PILE_COMPOSER_BIND_REFUSED"
+const REFUSE_GROUND_PILE_WORLD_BIND: StringName = &"GROUND_PILE_WORLD_BIND_REFUSED"
+## GDD §5.11: "Active new worlds start with M0=0 and both masks=1". The starter structures all
+## carry unlock ordinal 0, so this is the mask they are placed under; no Progress store exists to
+## read it back from (decision 0087 blocker 2), so the authored value is named here once.
+const STARTER_UNLOCKED_MASK: int = MilestonesScript.INITIAL_MASK
+## The KIND_WORLD row is the directory's only one of its kind (capacity 1), so it is typed row 0.
+const WORLD_TYPED_ROW: int = 0
 
 ## REQ-SET-128's composed demolition gate (INV-GOODS-R01). Every one of these is a refusal that
 ## wrote nothing. The two resident refusals are `construction.gd`'s OWN codes, re-raised rather
@@ -756,6 +781,11 @@ var _construction: ConstructionScript = null
 var _inventory: InventoryScript = null
 var _item_definitions: ItemDefinitionsScript = null
 var _stock_age: StockAgeScript = null
+## DEMO-CONTAIN-R01 #9's site and placement authority (decision 0532). Held STRONGLY here, for the
+## node's whole life, because Inventory and Buildings hold it only weakly.
+var _ground_piles: GroundPilesScript = null
+## Producer of the authored starter plan (decision 0184). Holds only its last refusal code.
+var _starter_producer: StarterStructuresScript = StarterStructuresScript.new()
 ## ARCH-SYS-001's ONE authoritative pose store, bound to the SAME directory as the resident store.
 ## The renderer borrows it through `transforms()`; presentation never constructs a second one and
 ## never writes a simulation pose. Movement, when it is composed, becomes its sole per-tick writer.
@@ -900,6 +930,7 @@ func _init() -> void:
 	_construction = ConstructionScript.new(_buildings)
 	_transforms = TransformsScript.new(_directory)
 	_compose_stock_layer()
+	_compose_ground_piles()
 	_bind_ecology_to_commands()
 	_size_index_and_scratch_columns()
 	_assert_shared_contracts()
@@ -941,6 +972,24 @@ func _compose_stock_layer() -> void:
 	_item_definitions.load_default(_inventory)
 	_stock_age = StockAgeScript.new(_inventory, _item_definitions)
 	_bind_seed_expiry_authority()
+
+
+func _compose_ground_piles() -> void:
+	"""Build decision 0532's composer and make it Inventory's site and Buildings' placement authority.
+
+	Runs once, after the stock layer exists. Both bindings are wiring, not state: `clear()` on
+	either store keeps them, so `reset()` does not rebind. A refused bind is fatal rather than
+	silent, because an unbound composer would let a building cover a pile.
+	"""
+	_ground_piles = GroundPilesScript.new()
+	@warning_ignore("assert_always_true")
+	assert(EntityDirectoryScript.KIND_CAPACITY[EntityDirectoryScript.KIND_WORLD] == WORLD_TYPED_ROW + 1,
+		"the World row is the directory's only row of its kind")
+	if _ground_piles.bind_stores(_inventory, _buildings, _stock_age) \
+			and _buildings.set_placement_authority(_ground_piles).ok:
+		return
+	_last_refusal = REFUSE_GROUND_PILES_BIND
+	push_error("SettlementSystem could not bind the ground-pile composer")
 
 
 func _bind_seed_expiry_authority() -> void:
@@ -1096,6 +1145,9 @@ func create_generated_settlement(items: ItemDefinitionsScript,
 	     directory allocator. They receive persistent ids 1-12 and Warden Rowan receives 1.
 	  4. PUBLISH THE WORLD from the SAME continuing counter, so the first world entity is 13.
 	     `publish_prepared()` clears and reseeds nothing.
+	  5. MATERIALISE THE STARTER COLONY (INIT-C live apply, decision 0533): the World row, then
+	     §5.9's seven buildings, four rooms and thirty-one furniture, from the same counter AFTER
+	     the world, so R-INIT-ID-001's "first world entity is 13" still holds.
 
 	ALLOCATE BEFORE CONSUME (decision 0059). A populated settlement refuses at step 1 and is
 	byte-identical afterwards, which is how "a refused initialization retains the previous valid
@@ -1113,6 +1165,8 @@ func create_generated_settlement(items: ItemDefinitionsScript,
 	if not planned.ok:
 		return _refuse(planned.error)
 	var cohort: StringName = _refuse_cohort_preflight()
+	if cohort == REFUSE_NONE and not _starter_producer.prepare_into(StarterStructuresScript.Plan.new()):
+		cohort = _starter_producer.last_refusal()
 	if cohort != REFUSE_NONE:
 		_world.discard_prepared_plan()
 		return _refuse(cohort)
@@ -1163,6 +1217,9 @@ func _run_initialization_transaction() -> bool:
 	var published: WorldInitScript.GenerateResult = _world.publish_prepared()
 	if not published.ok:
 		return _abandon_transaction(published.error)
+	var colony: StringName = _materialize_refusal()
+	if colony != REFUSE_NONE:
+		return _abandon_transaction(colony)
 	_last_refusal = REFUSE_NONE
 	return true
 
@@ -1210,6 +1267,80 @@ func create_initial_settlement() -> bool:
 		return false
 	_last_refusal = REFUSE_NONE
 	return true
+
+
+# --- INIT-C live apply: the starter colony (DEMO-CONTAIN-R01 D3, decision 0533) ---------------
+
+func materialize_starter_colony() -> bool:
+	"""Create the World row and §5.9's starter colony in a settlement that has neither. All or nothing.
+
+	THE CREATE BUTTON'S COLONY STEP. Boot runs the same body inside its own transaction, after
+	`publish_prepared()`; UI-SET-103's Create publishes through its own session and calls this
+	afterwards, so both routes place the same rows in the same order. A refusal found by the
+	preflight changes nothing. A refusal after the first write -- unreachable while the preflight
+	holds, because every later door is deterministic over an empty hall -- empties the settlement
+	with its code kept, exactly as a cohort refusal does, rather than leave a partial colony.
+	"""
+	var code: StringName = _materialize_refusal()
+	if code == REFUSE_NONE:
+		_last_refusal = REFUSE_NONE
+		return true
+	if _directory.live_count(EntityDirectoryScript.KIND_WORLD) != 0 \
+			and code != REFUSE_STARTER_COLONY_PRESENT:
+		reset()
+	return _refuse(code)
+
+
+func _materialize_refusal() -> StringName:
+	"""Preflight the plan and the empty site, then write: World row, binding, colony, re-read."""
+	if _buildings.live_building_count() != 0 \
+			or _directory.live_count(EntityDirectoryScript.KIND_WORLD) != 0:
+		return REFUSE_STARTER_COLONY_PRESENT
+	var plan: StarterStructuresScript.Plan = StarterStructuresScript.Plan.new()
+	if not _starter_producer.prepare_into(plan):
+		return _starter_producer.last_refusal()
+	var code: StringName = StarterColonyScript.preflight_refusal(_buildings, plan,
+		STARTER_UNLOCKED_MASK)
+	if code != REFUSE_NONE:
+		return code
+	var world_row: Vector2i = _directory.create(EntityDirectoryScript.KIND_WORLD)
+	if world_row == EntityDirectoryScript.NULL_REF:
+		return _directory.last_refusal()
+	if not _ground_piles.bind_world(world_row):
+		return REFUSE_GROUND_PILE_WORLD_BIND
+	var applied: StarterColonyScript.Applied = StarterColonyScript.Applied.new()
+	code = StarterColonyScript.apply_into(_buildings, plan, STARTER_UNLOCKED_MASK, applied)
+	if code != REFUSE_NONE:
+		return code
+	return StarterColonyScript.plan_mismatch_refusal(_buildings, plan, applied)
+
+
+func starter_store_binding_into(out: StarterColonyScript.StoreBinding) -> bool:
+	"""Answer #7's owners and #3a's anchors for EconomySystem, read back from the live buildings.
+
+	`out` names the hall as the pantry's owner and the four open stockpiles, in plan order, as the
+	material stores' owners, each anchored at its building's origin tile. Refuses -- `out`
+	cleared -- unless that colony is standing. Cold path: it prepares one plan to read the origins.
+	"""
+	var plan: StarterStructuresScript.Plan = StarterStructuresScript.Plan.new()
+	if not _starter_producer.prepare_into(plan):
+		out.clear()
+		return _refuse(_starter_producer.last_refusal())
+	var code: StringName = StarterColonyScript.store_binding_into(_buildings, plan, out)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	return true
+
+
+func world_ref() -> Vector2i:
+	"""The live World directory row, or the null ref before the starter colony is materialised."""
+	return _directory.ref_of_slot(_directory.owner_slot_of_typed_row(
+		EntityDirectoryScript.KIND_WORLD, WORLD_TYPED_ROW))
+
+
+func ground_piles() -> GroundPilesScript:
+	"""Decision 0532's ground-pile composer, bound to this settlement's stores and World row."""
+	return _ground_piles
 
 
 # --- INIT-POSE-R01: the authored starter placement ---------------------------------------------
@@ -2600,10 +2731,9 @@ func reservations() -> ReservationsScript:
 func buildings() -> BuildingsScript:
 	"""GDD §4.2's Building, Room and Furniture rows, over THIS settlement's one directory.
 
-	Empty until something places a structure: `world_init.gd` generates terrain and ecology and
-	§5.1 lists no starter building among them, so a generated settlement still has 0 buildings.
-	What the composition buys is that a placement now allocates out of the same allocator every
-	other settlement reference lives in, so a `Furniture.user` can name a resident this store's
+	A generated settlement holds §5.9's starter colony: seven buildings, four rooms and thirty-one
+	furniture (decision 0533). Every placement allocates out of the same allocator every other
+	settlement reference lives in, so a `Furniture.user` can name a resident this store's
 	`residents()` owns and the mask, the tile maps and the directory cannot disagree.
 	"""
 	return _buildings
@@ -2626,7 +2756,7 @@ func construction() -> ConstructionScript:
 	"""REQ-SET-124-128/137's project lifecycle, over THIS settlement's one Building store.
 
 	Empty until something places a blueprint and opens a project: composition is not construction,
-	and `world_init.gd` places no building for one to be opened against. What the composition buys
+	and the starter colony stands ACTIVE with no project behind it. What the composition buys
 	is that `Building.construction` and this store's rows name each other through the same
 	allocator, so a project cannot outlive, or be orphaned by, the building it is building.
 	"""

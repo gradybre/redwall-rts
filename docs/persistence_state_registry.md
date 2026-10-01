@@ -965,3 +965,9 @@ interpretation is retained as superseded evidence in the dated ruling.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
 |---|---|---|---|---|---|---|---|
 | Authored refuge preparation | -- | -- | -- | Plan defaults -1; header zero | 3 | -- | INIT-C-PREP-R01v1 / decision0184. Cold derived plan, no saved authority or live owner construction. Ten caller-owned PackedInt32Array payloads total2480 logical bytes; caller plus one staged Plan bound4960, with bounded metadata/graph scratch. Success publishes validated arrays by copy-on-write assignment; refusal preserves prior output. Producer last_refusal is transient diagnostic state. Actual native overhead is not measured. Exact tile layout and candidate adjacency establish no body fit, topology publication, room validity, heat, real contacts or container admission; those remain INIT-C and related integration contracts. |
+
+### `godot/scripts/core/starter_colony.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
+|---|---|---|---|---|---|---|---|
+| INIT-C live apply records | -- | -- | -- | Applied refs and StoreBinding owners `(-1,0)`, anchors -1 | 3 | -- | DEMO-CONTAIN-R01 D3 / decision 0533. No module-level column: the translator writes only through `buildings.gd`'s public doors, whose rows are the saved state. `Applied` (six PackedInt32Array, 7+4+31 slot/generation pairs, 336 logical bytes) and `StoreBinding` (one pantry ref and tile plus three 4-cell PackedInt32Array, 60 logical bytes) are caller-owned cold records allocated per generation or binding read, never resident between them, and never saved: the binding is re-read from the live Building rows each time. |

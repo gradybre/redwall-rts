@@ -24,8 +24,13 @@ extends "res://test/framework/test_case.gd"
 ##       from jobs and recipes, which this milestone does not build, so there is no tick to
 ##       test and no replacement.
 ##
-## GDD §7.1's starter food fixture and §5.9's two container masses are used as acceptance
-## fixtures: both are independently restated here rather than read back from the code.
+## GDD §7.1's starter food fixture and §5.9's container masses are used as acceptance fixtures:
+## both are independently restated here rather than read back from the code.
+##
+## DECISION 0533 (DEMO-CONTAIN-R01 D3): the stores open only when bound to real owners. Every test
+## below runs against stores bound to a `starter_colony_fixture.gd` colony -- the hall owns the
+## pantry, the four open stockpiles own four 400000 g material stores -- and the fill order is
+## §5.9's "food first, then item ID, filling container IDs ascending".
 
 const EconomySystemScript := preload("res://scripts/systems/economy_system.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
@@ -33,6 +38,14 @@ const ResidentsScript := preload("res://scripts/core/residents.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const BuildingDefinitionsScript := preload("res://scripts/core/building_definitions.gd")
 const CatalogScript := preload("res://scripts/core/catalog.gd")
+const ColonyFixture := preload("res://test/fixtures/starter_colony_fixture.gd")
+const StarterColonyScript := preload("res://scripts/core/starter_colony.gd")
+
+## GDD §5.9's origin tiles, `z*128+x`, restated rather than read from the plan: the hall at
+## (58,59), then the stockpiles at (50,60), (50,65), (70,60), (70,65) in authored order.
+const HALL_ORIGIN_TILE: int = 59 * 128 + 58
+const STOCKPILE_ORIGIN_TILES: Array[int] = [60 * 128 + 50, 65 * 128 + 50, 60 * 128 + 70,
+	65 * 128 + 70]
 
 ## GDD §5.1's built fixture: "four open stockpiles", and §5.9's "Four pantry shelves". Restated
 ## here from the specification rather than read out of `building_definitions.gd`.
@@ -72,14 +85,20 @@ const STARTER_FOOD_DAYS_CENTI: int = 548
 const STARTER_FOOD_DAYS_TEXT: String = "5.48 days"
 
 var _economy: EconomySystemScript = null
+var _colony: ColonyFixture = null
 var _residents: ResidentsScript = null
 var _depleted: Array[StringName] = []
 var _changes: int = 0
 
 
 func before_each() -> void:
-	"""Build a fresh economy system and listen for its UI signals."""
+	"""Build a fresh economy system, bind its stores to a starter colony, and listen for signals."""
+	_colony = ColonyFixture.new()
 	_economy = EconomySystemScript.new()
+	if _colony.refusal != StarterColonyScript.REFUSE_NONE \
+			or not _economy.open_starter_stores(_colony.binding):
+		fail("the starter stores could not be bound: %s / %s"
+			% [_colony.refusal, _economy.last_refusal()])
 	_residents = null
 	_depleted = []
 	_changes = 0
@@ -90,6 +109,7 @@ func before_each() -> void:
 func after_each() -> void:
 	"""Free the economy system built for the test."""
 	_residents = null
+	_colony = null
 	if _economy != null:
 		_economy.free()
 		_economy = null
@@ -114,11 +134,16 @@ func _seed_starting_inventory() -> void:
 
 
 func test_catalog_is_loaded_into_open_stores() -> void:
-	"""All 60 authoritative items register, and both GDD §5.9 stores open."""
+	"""All 60 authoritative items register, and the pantry and four stockpile stores open."""
 	assert_equal(_economy.catalog_error(), "", "the catalog loaded")
 	assert_equal(_economy.item_count(), 61, "all 61 catalog rows are registered")
+	assert_true(_economy.stores_open(), "the stores are bound")
 	assert_true(_economy.inventory().is_container_valid(_economy.pantry()), "the pantry is open")
-	assert_true(_economy.inventory().is_container_valid(_economy.material_store()), "the store is open")
+	for index: int in STARTER_OPEN_STOCKPILES:
+		assert_true(_economy.inventory().is_container_valid(_economy.stockpile(index)),
+			"stockpile store %d is open" % index)
+	assert_equal(_economy.inventory().live_container_count(), 1 + STARTER_OPEN_STOCKPILES,
+		"five containers and no sixth")
 
 
 func test_starts_with_empty_stores() -> void:
@@ -174,11 +199,13 @@ func test_deposit_over_container_mass_is_refused_not_clamped() -> void:
 	REQ-SET-110/120: insufficient capacity stops the operation with a diagnostic and never
 	deletes or silently discards goods.
 	"""
-	var wood_units: int = EconomySystemScript.MATERIAL_STORE_MAX_MASS_G / 5000
-	assert_true(_economy.deposit(&"wood", wood_units * MILLI), "the store fills exactly")
+	var wood_units: int = 320
+	assert_true(_economy.deposit(&"wood", wood_units * MILLI), "the four stores fill exactly")
+	var before: PackedByteArray = _economy.inventory().state_bytes()
 	assert_false(_economy.deposit(&"wood", MILLI), "one unit past capacity is refused")
 	assert_equal(_economy.last_refusal(), InventoryScript.REFUSE_CAPACITY_EXCEEDED, "refusal is explicit")
 	assert_equal(_economy.stock_milli(&"wood"), wood_units * MILLI, "nothing was clamped away")
+	assert_true(_economy.inventory().state_bytes() == before, "and nothing at all was written")
 
 
 func test_withdraw_spends_when_affordable() -> void:
@@ -227,14 +254,16 @@ func test_food_and_materials_route_to_their_own_stores() -> void:
 	_economy.deposit(&"ration", 10 * MILLI)
 	_economy.deposit(&"wood", 10 * MILLI)
 	assert_equal(_economy.store_used_mass_g(_economy.pantry()), 5000, "10 ration U is 5000 g of pantry")
-	assert_equal(_economy.store_used_mass_g(_economy.material_store()), 50000, "10 wood U is 50000 g of store")
+	assert_equal(_economy.store_used_mass_g(_economy.stockpile(0)), 50000,
+		"10 wood U is 50000 g of the first stockpile store")
+	assert_equal(_economy.material_used_mass_g(), 50000, "and of the material stores together")
 
 
 func test_starting_inventory_fits_the_specified_container_masses() -> void:
 	"""GDD §5.9: the starting inventory fits the pantry and the four stockpiles as specified."""
 	_seed_starting_inventory()
 	var pantry_used: int = _economy.store_used_mass_g(_economy.pantry())
-	var store_used: int = _economy.store_used_mass_g(_economy.material_store())
+	var store_used: int = _economy.material_used_mass_g()
 	assert_equal(pantry_used, 179200, "starting food masses 179200 g")
 	assert_equal(store_used, 1512000, "starting materials mass 1512000 g")
 	assert_true(pantry_used <= EconomySystemScript.PANTRY_MAX_MASS_G, "starting food fits the pantry")
@@ -285,7 +314,8 @@ func _catalog_with_edible_seed() -> String:
 func test_a_nutritious_seed_is_still_excluded_because_it_is_a_seed() -> void:
 	"""GDD §5.8 / REQ-SET-013: seed stock is never food, whatever its nutrition row says."""
 	_economy.reset(_catalog_with_edible_seed())
-	assert_equal(_economy.catalog_error(), "", "the fixture catalog opened the stores")
+	assert_equal(_economy.catalog_error(), "", "the fixture catalog loaded")
+	assert_true(_economy.open_starter_stores(_colony.binding), "and the stores rebind to the colony")
 	assert_true(_economy.is_known_item(EDIBLE_SEED_KEY), "the edible seed registered")
 	assert_true(_economy.definitions().is_seed(_economy.definitions().compiled_id(EDIBLE_SEED_KEY)),
 		"the fixture row really is a seed")
@@ -322,7 +352,7 @@ func test_expired_food_is_excluded_from_ready_nutrition() -> void:
 
 
 func test_reset_returns_to_empty_stores() -> void:
-	"""reset() clears every lot, reopens the stores, and drops the borrowed residents store.
+	"""reset() clears every lot, closes the stores, and drops the borrowed residents store.
 
 	The binding must go with the stock. A reset that kept it would divide the reloaded, empty
 	stores by the previous run's population, which is a wrong food-days figure on screen rather
@@ -342,6 +372,9 @@ func test_reset_returns_to_empty_stores() -> void:
 		"the refusal names the missing store")
 	assert_equal(_economy.food_days_text(), "--",
 		"food-days is unpopulated after a reset, never the previous run's figure")
+	assert_false(_economy.stores_open(), "the stores closed with their owners' settlement")
+	assert_equal(_economy.pantry(), InventoryScript.NULL_REF, "so the pantry names nothing")
+	assert_true(_economy.open_starter_stores(_colony.binding), "and they reopen on a binding")
 
 
 func test_stores_conserve_quantity_across_a_sequence() -> void:
@@ -528,3 +561,199 @@ func test_the_pantry_mass_is_four_shelves_own_pantry_capacity() -> void:
 	assert_equal(definitions.shelf_capacity_g_of(shelf) * STARTER_PANTRY_SHELVES,
 		EconomySystemScript.PANTRY_MAX_MASS_G,
 		"four pantry shelves supply exactly the pantry's mass")
+
+
+# --- decision 0533: owned, anchored stores and §5.9's fill order (DEMO-CONTAIN-R01 D3) ----------
+
+func test_the_stores_stay_closed_until_a_colony_binds_them() -> void:
+	"""Answer #7: no ownerless container. A fresh economy opens nothing and refuses stock by name."""
+	var fresh: EconomySystemScript = EconomySystemScript.new()
+	assert_false(fresh.stores_open(), "nothing is open before a binding")
+	assert_equal(fresh.inventory().live_container_count(), 0, "and no container exists")
+	assert_equal(fresh.pantry(), InventoryScript.NULL_REF, "the pantry names nothing")
+	assert_equal(fresh.stockpile(0), InventoryScript.NULL_REF, "nor does a stockpile store")
+	assert_false(fresh.deposit(&"wood", MILLI), "so a deposit is refused")
+	assert_equal(fresh.last_refusal(), EconomySystemScript.REFUSE_STORES_NOT_OPEN, "by name")
+	assert_equal(fresh.material_used_mass_g(), 0, "and the material stores hold nothing")
+	fresh.free()
+
+
+func test_the_pantry_is_the_halls_and_each_store_is_one_stockpiles_anchored_at_its_origin() -> void:
+	"""#3a and #7: owners are the hall and the four open stockpiles; anchors are their origins."""
+	var inventory: InventoryScript = _economy.inventory()
+	var hall: Vector2i = _colony.buildings.building_at_tile(HALL_ORIGIN_TILE)
+	assert_equal(inventory.container_owner(_economy.pantry()), hall, "the hall owns the pantry")
+	assert_equal(inventory.container_anchor_tile(_economy.pantry()), HALL_ORIGIN_TILE,
+		"anchored at the hall's origin tile")
+	assert_equal(inventory.container_max_mass_g(_economy.pantry()), 200000, "four shelves' 200000 g")
+	for index: int in STARTER_OPEN_STOCKPILES:
+		var store: Vector2i = _economy.stockpile(index)
+		var tile: int = STOCKPILE_ORIGIN_TILES[index]
+		assert_equal(inventory.container_owner(store), _colony.buildings.building_at_tile(tile),
+			"stockpile store %d is owned by the stockpile at tile %d" % [index, tile])
+		assert_equal(inventory.container_anchor_tile(store), tile, "and anchored at its origin")
+		assert_equal(inventory.container_max_mass_g(store), 400000, "with its own 400000 g")
+	assert_true(_economy.stockpile(0).x < _economy.stockpile(3).x,
+		"plan order is ascending container order")
+	assert_equal(_economy.stockpile(STARTER_OPEN_STOCKPILES), InventoryScript.NULL_REF,
+		"and there is no fifth stockpile store")
+	assert_equal(_economy.stockpile(-1), InventoryScript.NULL_REF, "nor a negative one")
+
+
+func test_an_incomplete_or_repeated_binding_is_refused_and_writes_nothing() -> void:
+	"""Open refuses before writing: a null binding, a missing owner, a bad anchor, a second open."""
+	var fresh: EconomySystemScript = EconomySystemScript.new()
+	var before: PackedByteArray = fresh.inventory().state_bytes()
+	assert_false(fresh.open_starter_stores(null), "a null binding is refused")
+	assert_equal(fresh.last_refusal(), EconomySystemScript.REFUSE_INVALID_STORE_BINDING, "by name")
+	var partial: StarterColonyScript.StoreBinding = StarterColonyScript.StoreBinding.new()
+	partial.pantry_owner = _colony.binding.pantry_owner
+	partial.pantry_anchor_tile = _colony.binding.pantry_anchor_tile
+	assert_false(fresh.open_starter_stores(partial), "a binding with no stockpiles is refused")
+	assert_equal(fresh.last_refusal(), EconomySystemScript.REFUSE_INVALID_STORE_BINDING,
+		"as an incomplete binding, before Inventory is asked")
+	var off_grid: StarterColonyScript.StoreBinding = _copy_binding(_colony.binding)
+	off_grid.stockpile_anchor_tile[3] = 16384
+	assert_false(fresh.open_starter_stores(off_grid), "an off-grid anchor is refused")
+	assert_equal(fresh.last_refusal(), EconomySystemScript.REFUSE_INVALID_STORE_BINDING, "likewise")
+	var ownerless: StarterColonyScript.StoreBinding = _copy_binding(_colony.binding)
+	ownerless.pantry_owner = InventoryScript.NULL_REF
+	assert_false(fresh.open_starter_stores(ownerless), "an ownerless pantry is refused")
+	assert_equal(fresh.last_refusal(), EconomySystemScript.REFUSE_INVALID_STORE_BINDING, "likewise")
+	var slotless: StarterColonyScript.StoreBinding = _copy_binding(_colony.binding)
+	slotless.stockpile_slot[0] = -1
+	assert_false(fresh.open_starter_stores(slotless), "a negative owner slot is refused")
+	assert_equal(fresh.last_refusal(), EconomySystemScript.REFUSE_INVALID_STORE_BINDING,
+		"even with a live-looking generation beside it")
+	assert_true(fresh.inventory().state_bytes() == before, "and none of them wrote a byte")
+	assert_true(fresh.open_starter_stores(_colony.binding), "a complete binding opens")
+	var opened: PackedByteArray = fresh.inventory().state_bytes()
+	assert_false(fresh.open_starter_stores(_colony.binding), "and a second open is refused")
+	assert_equal(fresh.last_refusal(), EconomySystemScript.REFUSE_STORES_ALREADY_OPEN, "by name")
+	assert_true(fresh.inventory().state_bytes() == opened, "leaving the open stores untouched")
+	fresh.free()
+
+
+func _copy_binding(source: StarterColonyScript.StoreBinding) -> StarterColonyScript.StoreBinding:
+	"""An independent copy of `source`, so a test can corrupt one field of it."""
+	var copy: StarterColonyScript.StoreBinding = StarterColonyScript.StoreBinding.new()
+	copy.pantry_owner = source.pantry_owner
+	copy.pantry_anchor_tile = source.pantry_anchor_tile
+	copy.stockpile_slot = source.stockpile_slot.duplicate()
+	copy.stockpile_generation = source.stockpile_generation.duplicate()
+	copy.stockpile_anchor_tile = source.stockpile_anchor_tile.duplicate()
+	return copy
+
+
+func test_a_deposit_fills_the_stockpiles_in_ascending_order_and_splits_at_a_full_one() -> void:
+	"""§5.9 "filling container IDs ascending": 100 wood U is 400000 g, then 100000 g."""
+	assert_true(_economy.deposit(&"wood", 100 * MILLI), "500000 g of wood is accepted")
+	assert_equal(_economy.store_used_mass_g(_economy.stockpile(0)), 400000, "the first fills")
+	assert_equal(_economy.store_used_mass_g(_economy.stockpile(1)), 100000, "the rest spills")
+	assert_equal(_economy.store_used_mass_g(_economy.stockpile(2)), 0, "nothing reaches the third")
+	assert_equal(_economy.stock_milli(&"wood"), 100 * MILLI, "and no quantity is lost or made")
+	assert_true(_economy.deposit(&"wood", 10 * MILLI), "a second deposit")
+	assert_equal(_economy.store_used_mass_g(_economy.stockpile(1)), 150000,
+		"tops up the first store with room, merging into its stack")
+	assert_equal(_economy.inventory().live_lot_count(), 2, "two lots, one per store touched")
+	assert_true(_economy.withdraw(&"wood", 85 * MILLI), "a withdrawal spans both stores")
+	assert_equal(_economy.stock_milli(&"wood"), 25 * MILLI, "exactly what was asked is taken")
+	assert_true(_economy.inventory().audit().ok, "and the inventory audits")
+
+
+func test_a_split_charges_the_per_lot_ceiling_and_never_overfills() -> void:
+	"""The split is floor(free*1000/mass): a part whose ceiling charge would overflow never lands."""
+	assert_true(_economy.deposit(&"wood", 79999), "79.999 wood U charges 399995 g")
+	assert_equal(_economy.store_used_mass_g(_economy.stockpile(0)), 399995, "ceil(79999*5000/1000)")
+	assert_true(_economy.deposit(&"wood", 2 * MILLI), "two more units arrive")
+	assert_equal(_economy.store_used_mass_g(_economy.stockpile(0)), 400000,
+		"the first store takes exactly the 0.001 U that fills it")
+	assert_equal(_economy.store_used_mass_g(_economy.stockpile(1)), 9995,
+		"and the second takes the rest")
+	assert_equal(_economy.stock_milli(&"wood"), 81999, "every milli-unit accounted for")
+
+
+func test_the_initial_inventory_lands_in_section_5_9_fill_order() -> void:
+	"""Food first, then item ID, filling container IDs ascending: the exact grams per store."""
+	assert_true(_economy.seed_initial_inventory(), "the §5.1 inventory is accepted")
+	assert_equal(_economy.store_used_mass_g(_economy.pantry()), 179200, "food fills the pantry")
+	var expected: Array[int] = [400000, 400000, 400000, 312000]
+	for index: int in STARTER_OPEN_STOCKPILES:
+		assert_equal(_economy.store_used_mass_g(_economy.stockpile(index)), expected[index],
+			"stockpile store %d holds %d g" % [index, expected[index]])
+	assert_equal(_store_items(_economy.stockpile(0)),
+		_item_ids([&"cloth", &"compost", &"iron", &"rope", &"stone"]),
+		"the first store takes the low item ids and the head of the stone")
+	assert_equal(_store_items(_economy.stockpile(1)), _item_ids([&"stone", &"tool", &"wood"]),
+		"the second the stone's tail, the tools and the head of the wood")
+	assert_equal(_economy.stock_units(&"stone"), 100, "stone is split, not lost")
+	assert_equal(_economy.stock_units(&"wood"), 180, "and so is wood")
+	assert_equal(_economy.ready_nutrition_points(), STARTER_READY_NP, "§7.1's 408000 NP")
+
+
+func _store_items(container: Vector2i) -> PackedInt32Array:
+	"""The sorted compiled item ids of every lot in `container`."""
+	var ids: PackedInt32Array = PackedInt32Array()
+	var lot: Vector2i = _economy.inventory().container_first_lot(container)
+	while lot != InventoryScript.NULL_REF:
+		ids.append(_economy.inventory().lot_item_id(lot))
+		lot = _economy.inventory().container_next_lot(lot)
+	ids.sort()
+	return ids
+
+
+func _item_ids(keys: Array[StringName]) -> PackedInt32Array:
+	"""The sorted compiled ids of `keys`."""
+	var ids: PackedInt32Array = PackedInt32Array()
+	for key: StringName in keys:
+		ids.append(_economy.definitions().compiled_id(key))
+	ids.sort()
+	return ids
+
+
+func test_the_initial_inventory_list_restates_gdd_5_1() -> void:
+	"""The list moved from main.gd into EconomySystem; it must still be §5.1's twenty rows."""
+	assert_equal(EconomySystemScript.INITIAL_INVENTORY_U, STARTING_INVENTORY_U,
+		"EconomySystem's list is the specification's, row for row")
+	assert_equal(EconomySystemScript.MATERIAL_STORE_MAX_MASS_G, 1600000,
+		"four 400000 g stores are §5.9's 1600000 g")
+
+
+func test_a_split_deposit_that_cannot_finish_rolls_every_part_back() -> void:
+	"""330 wood U is 1650000 g: four stores take 1600000 g, the rest has nowhere to go -- so nothing
+	lands. The parts already placed in earlier stores are rolled back with the refusal."""
+	var before: PackedByteArray = _economy.inventory().state_bytes()
+	assert_false(_economy.deposit(&"wood", 330 * MILLI), "the deposit is refused")
+	assert_equal(_economy.last_refusal(), InventoryScript.REFUSE_CAPACITY_EXCEEDED, "for capacity")
+	assert_true(_economy.inventory().state_bytes() == before, "every placed part was rolled back")
+	assert_false(_economy.inventory().is_transaction_open(), "and the transaction was closed")
+	assert_equal(_changes, 0, "no change was signalled")
+
+
+func test_reserved_capacity_is_not_filled_by_a_split() -> void:
+	"""A store's reserved mass is headroom someone else holds: the split fills around it."""
+	assert_true(_economy.inventory().reserve_container_mass(_economy.stockpile(0), 395000).ok,
+		"395000 g of the first store is claimed")
+	assert_true(_economy.deposit(&"wood", 10 * MILLI), "50000 g of wood arrives")
+	assert_equal(_economy.store_used_mass_g(_economy.stockpile(0)), 5000,
+		"the first store takes only its unclaimed 5000 g")
+	assert_equal(_economy.store_used_mass_g(_economy.stockpile(1)), 45000, "the rest spills")
+
+
+func test_a_caller_held_transaction_is_refused_not_joined() -> void:
+	"""Deposit, withdraw and open never close a transaction someone else opened on `inventory()`."""
+	assert_true(_economy.deposit(&"wood", 10 * MILLI), "some wood is stored")
+	assert_true(_economy.inventory().begin().ok, "a caller opens its own transaction")
+	assert_false(_economy.deposit(&"wood", MILLI), "a deposit is refused")
+	assert_equal(_economy.last_refusal(), InventoryScript.REFUSE_NESTED_TRANSACTION, "as nested")
+	assert_false(_economy.withdraw(&"wood", MILLI), "so is a withdrawal")
+	assert_equal(_economy.last_refusal(), InventoryScript.REFUSE_NESTED_TRANSACTION, "likewise")
+	assert_true(_economy.inventory().is_transaction_open(), "the caller's transaction is still open")
+	_economy.inventory().abort()
+	var fresh: EconomySystemScript = EconomySystemScript.new()
+	assert_true(fresh.inventory().begin().ok, "on a closed economy, a caller opens one too")
+	assert_false(fresh.open_starter_stores(_colony.binding), "and the stores refuse to open")
+	assert_equal(fresh.last_refusal(), InventoryScript.REFUSE_NESTED_TRANSACTION, "as nested")
+	assert_false(fresh.stores_open(), "staying closed")
+	fresh.inventory().abort()
+	fresh.free()

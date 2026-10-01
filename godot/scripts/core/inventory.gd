@@ -119,13 +119,14 @@ extends RefCounted
 ##    must be advanced on every create/destroy and rebuilt on every load, and this is a cold
 ##    destructive path that runs once per demolition request.
 ##
-##    A MISSING OWNER IS NOT AN EMPTY RESULT. `create_container()` writes the owner pair it is
-##    handed WITHOUT validating it against the directory -- this module does not own the
-##    directory and says so -- so the null ref `(-1, 0)` and a zero generation are real residue
-##    in `_c_owner_slot`/`_c_owner_generation`, and answering a malformed owner with "every
-##    container nobody owns" would read exactly like a proof that nothing is stored there. So a
-##    malformed owner REFUSES, an undersized output REFUSES WITHOUT TRUNCATING, and the visible
-##    count is zeroed on both. Only a complete scan for a well-formed owner may report 0.
+##    A MISSING OWNER IS NOT AN EMPTY RESULT. `create_container()` validates the owner's SHAPE
+##    -- since DEMO-CONTAIN-R01 #7 (decision 0533) it refuses the null ref `(-1, 0)`, a negative
+##    slot and a zero generation, INVALID_OWNER_REF -- but never its LIFE in the directory, which
+##    this module does not own. A restored save is not re-checked either, so a malformed owner is
+##    still possible residue in `_c_owner_slot`/`_c_owner_generation`, and answering it with
+##    "every container nobody owns" would read exactly like a proof that nothing is stored there.
+##    So a malformed owner REFUSES, an undersized output REFUSES WITHOUT TRUNCATING, and the
+##    visible count is zeroed on both. Only a complete scan for a well-formed owner may report 0.
 ##
 ##    IT PROVES OWNERSHIP AND NOT CONTAINMENT. Equality with a Building ref says a container is
 ##    keyed to that Building; it says nothing about what physically stands inside its footprint,
@@ -1234,6 +1235,11 @@ func create_container(owner_ref: Vector2i, max_mass_g: int, filters: int, policy
 		reachable: bool, anchor_tile: int = UNPLACED_TILE) -> OpResult:
 	"""Create an InventoryContainer row and return its `(slot, generation)` ref.
 
+	`owner_ref` must be a well-formed directory ref: DEMO-CONTAIN-R01 #7 (decision 0533) retired
+	the last ownerless containers, so the null ref, a negative slot or a zero generation refuses
+	INVALID_OWNER_REF before anything is written. Whether that owner is LIVE is the composer's to
+	prove; this store holds no directory.
+
 	`anchor_tile` is DEMO-CONTAIN-R01's placement cell (invariant 9). Leaving it out creates an
 	UNPLACED container, which is what every caller before decision 0531 created; an anchor
 	outside `UNPLACED_TILE` and `0..ANCHOR_TILE_COUNT-1` refuses INVALID_ANCHOR_TILE.
@@ -1249,6 +1255,8 @@ func _create_container_checked(owner_ref: Vector2i, max_mass_g: int, filters: in
 	var guard: StringName = _guard()
 	if guard != REFUSE_NONE:
 		return guard
+	if not is_well_formed_owner(owner_ref):
+		return REFUSE_INVALID_OWNER_REF
 	if max_mass_g < 0:
 		return REFUSE_INVALID_MASS
 	if not IntMath.fits_int32(policy):
@@ -1363,6 +1371,14 @@ func _set_anchor_checked(container_ref: Vector2i, tile: int) -> StringName:
 	_journal_container(container_ref.x)
 	_c_anchor_tile[container_ref.x] = tile
 	return _succeed(NULL_REF, 0)
+
+
+static func is_well_formed_owner(owner_ref: Vector2i) -> bool:
+	"""True for a directory-shaped ref: a non-negative slot and a generation above NULL_GENERATION.
+
+	The null ref `(-1, 0)` is not one. Shape only -- liveness is the directory's to answer.
+	"""
+	return owner_ref.x >= 0 and owner_ref.y > NULL_GENERATION
 
 
 static func is_anchor_tile_in_domain(tile: int) -> bool:
@@ -3288,7 +3304,7 @@ func containers_by_owner_into(owner_ref: Vector2i, out_pairs: PackedInt32Array,
 	index is built or kept. Costs one pass over the occupied part of the container store per
 	pass, which is why it belongs on a cold destructive path and not on a tick.
 	"""
-	if owner_ref.x < 0 or owner_ref.y <= 0:
+	if not is_well_formed_owner(owner_ref):
 		return out.refuse(String(REFUSE_INVALID_OWNER_REF))
 	var found: int = _count_containers_of_owner(owner_ref)
 	if out_pairs.size() < found * 2:

@@ -1,39 +1,10 @@
 extends Node
-## Boot scene: wires the HUD to UIManager, seeds the starting settlement stores, and attaches the
-## resident crowd to the cohort those stores create.
+## Boot scene: wires the HUD to UIManager, generates the settlement and its starter colony, opens
+## the starter stores on that colony's buildings and seeds them, and attaches the resident crowd.
 
 const HudScript := preload("res://scripts/ui/hud.gd")
 const ResidentStageScript := preload("res://scripts/presentation/resident_stage.gd")
-
-## GDD §5.1 initial inventory, in whole catalog units. Copied verbatim from the specification
-## line "Initial inventory U: wood 180, stone 100, ..."; nothing here is invented or rounded.
-## Placement order does not matter: the pantry and material store take disjoint categories and
-## every listed item fits, so the GDD's "food first, then item ID" fill order and this order
-## produce the same result.
-const STARTING_INVENTORY_U: Dictionary = {
-	&"wood": 180,
-	&"stone": 100,
-	&"iron": 20,
-	&"rope": 20,
-	&"tool": 24,
-	&"cloth": 24,
-	&"water": 60,
-	&"grain": 80,
-	&"roots": 80,
-	&"berries": 40,
-	&"nuts": 40,
-	&"dried_fish": 60,
-	&"ration": 60,
-	&"seed_grain": 32,
-	&"seed_roots": 32,
-	&"seed_beans": 16,
-	&"seed_cabbage": 16,
-	&"seed_flax": 16,
-	&"herb": 12,
-	&"compost": 32,
-}
-
-const MILLI_PER_UNIT: int = 1000
+const StarterColonyScript := preload("res://scripts/core/starter_colony.gd")
 
 @onready var _hud: HudScript = $UI/HUD as HudScript
 @onready var _resident_stage: ResidentStageScript = \
@@ -55,8 +26,8 @@ func _ready() -> void:
 	if _hud == null:
 		push_error("main.tscn has no HUD at UI/HUD; the interface will not update.")
 	UIManager.register_hud(_hud)
-	_seed_stores()
-	_generate_initial_world()
+	if _generate_initial_world():
+		_seed_stores()
 	_attach_resident_stage()
 	GameManager.start_game()
 	UIManager.push_alert("Mossflower stirs.")
@@ -68,7 +39,7 @@ func _ready() -> void:
 	])
 
 
-func _generate_initial_world() -> void:
+func _generate_initial_world() -> bool:
 	"""Run REQ-SET-009 whole: generate §5.1's world WITH its cohort, then bind the food divisor.
 
 	ONE CALL, NOT TWO. Booting used to spawn the cohort alone, so the running game had twelve
@@ -89,13 +60,16 @@ func _generate_initial_world() -> void:
 
 	A refused generation unbinds the food-days divisor explicitly. Leaving an earlier run's cohort
 	bound after a scene reload would divide this run's stores by the previous run's population,
-	which is a wrong number on screen rather than an absent one.
+	which is a wrong number on screen rather than an absent one. It also leaves the stores closed:
+	they are owned by the starter colony's buildings (decision 0533), so a refused generation has
+	nothing to own them, and false tells `_ready()` not to seed.
 	"""
 	if not SettlementSystem.create_generated_settlement(EconomySystem.definitions()):
 		EconomySystem.bind_residents(null)
 		push_error("Initial settlement could not be created: %s" % SettlementSystem.last_refusal())
-		return
+		return false
 	EconomySystem.bind_residents(SettlementSystem.residents())
+	return true
 
 
 func _attach_resident_stage() -> void:
@@ -146,8 +120,19 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _seed_stores() -> void:
-	"""Deposit the GDD §5.1 starting inventory, reporting any item the stores refuse."""
-	for item_key: StringName in STARTING_INVENTORY_U:
-		var quantity_milli: int = int(STARTING_INVENTORY_U[item_key]) * MILLI_PER_UNIT
-		if not EconomySystem.deposit(item_key, quantity_milli):
-			push_error("Starting inventory refused for '%s': %s" % [item_key, EconomySystem.last_refusal()])
+	"""Open the starter stores on the colony's buildings, then deposit GDD §5.1's inventory.
+
+	Answer #7 / decision 0533: the pantry is owned by the hall and the material store by the four
+	open stockpiles, each anchored at its origin tile, so the stores can only open after the
+	colony stands. The inventory list itself is `EconomySystem.INITIAL_INVENTORY_U`, deposited in
+	§5.9's fill order by `seed_initial_inventory()`.
+	"""
+	var binding: StarterColonyScript.StoreBinding = StarterColonyScript.StoreBinding.new()
+	if not SettlementSystem.starter_store_binding_into(binding):
+		push_error("Starter stores have no colony to bind to: %s" % SettlementSystem.last_refusal())
+		return
+	if not EconomySystem.open_starter_stores(binding):
+		push_error("Starter stores could not open: %s" % EconomySystem.last_refusal())
+		return
+	if not EconomySystem.seed_initial_inventory():
+		push_error("Starting inventory refused: %s" % EconomySystem.last_refusal())

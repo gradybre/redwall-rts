@@ -127,12 +127,13 @@ func test_elements_with_no_owning_store_name_the_owner_they_wait_on() -> void:
 
 
 func test_the_bed_counter_is_not_drawn_as_a_zero() -> void:
-	"""No building is placed, so the Bed counter must be excused rather than shown as 0 beds."""
+	"""Beds now stand (decision 0533), but nothing routes them here: excused, not shown as 0."""
 	assert_false(_availability.is_wired(7), "UI-SET-007 is not claimed as working")
 	var label: String = _availability.unavailable_label(7)
 	assert_true(label.begins_with(UNAVAILABLE_WORD), "it reads as unavailable: '%s'" % label)
 	assert_true(label.contains("Building"), "and names the Building stores")
-	assert_true(label.contains("no building is placed"), "and the placement they still lack")
+	assert_true(label.contains("no build,"), "and the commands they still lack")
+	assert_true(label.contains("no panel reads them"), "and that nothing reads the beds here")
 	assert_true(label.contains("task 06"), "and the task that owns that contract")
 	assert_false(label.ends_with("0"), "the label is a reason, not a count ending in a figure")
 
@@ -210,7 +211,8 @@ func test_no_reason_claims_a_store_that_now_exists_is_missing() -> void:
 		"no save codec", "needs the save codec", "no Building, Furniture or Room store",
 		"needs the Building store", "no Transform or route store", "needs the movement store",
 		"no notification history store", "no forecast model exists", "needs the forecast model",
-		"no Transform", "no Building", "no save codec", "no notification history"])
+		"no Transform", "no Building", "no save codec", "no notification history",
+		"no building is placed", "no buildings placed", "nothing places a building"])
 	for reason: int in range(1, UiAvailability.REASON_COUNT):
 		for phrase: String in stale:
 			assert_false(UiAvailability.REASON_TEXTS[reason].contains(phrase),

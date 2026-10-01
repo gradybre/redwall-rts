@@ -2391,10 +2391,12 @@ func test_containers_by_owner_proves_an_empty_result_for_a_live_owner() -> void:
 
 
 func test_containers_by_owner_refuses_a_malformed_owner_instead_of_matching_unowned_rows() -> void:
-	"""`create_container()` never validates its owner, so unowned residue must not be an answer."""
-	var unowned: Vector2i = _container(BIG_MASS, InventoryScript.NULL_REF)
-	assert_equal(_inv.container_owner(unowned), InventoryScript.NULL_REF,
-		"a container really can carry the null owner")
+	"""A malformed owner is a refused QUESTION, never "every container nobody owns".
+
+	`create_container()` refuses such an owner since decision 0533, but a restored save is not
+	re-checked, so the query keeps refusing the shape rather than trusting the writer.
+	"""
+	_container(BIG_MASS, OWNER_A)
 	var out: InventoryScript.IntMath.IntResult = InventoryScript.IntMath.IntResult.new()
 	var pairs: PackedInt32Array = _pairs(_inv.owner_query_cells())
 	for malformed: Vector2i in [InventoryScript.NULL_REF, Vector2i(5, 0), Vector2i(-3, 2),
@@ -2404,6 +2406,33 @@ func test_containers_by_owner_refuses_a_malformed_owner_instead_of_matching_unow
 		assert_equal(out.error, String(InventoryScript.REFUSE_INVALID_OWNER_REF), "and says so")
 		assert_equal(out.value, 0, "with the count cleared")
 	assert_equal(pairs[0], -7, "and nothing written into the caller's buffer")
+
+
+func test_create_container_refuses_an_ownerless_container_and_writes_nothing() -> void:
+	"""DEMO-CONTAIN-R01 #7 (decision 0533): no InventoryContainer row may be created ownerless.
+
+	The null ref, a zero generation, a negative slot and a negative generation all refuse
+	INVALID_OWNER_REF before anything is written -- ahead of the mass check, so the owner is the
+	first thing a malformed request is told about. Slot 0 generation 1 is the smallest well-formed
+	owner and is accepted: the check is the shape of a directory ref, not a guess at liveness.
+	"""
+	var before: PackedByteArray = _inv.state_bytes()
+	for malformed: Vector2i in [InventoryScript.NULL_REF, Vector2i(5, 0), Vector2i(-3, 2),
+			Vector2i(0, -1)]:
+		var made: InventoryScript.OpResult = _inv.create_container(malformed, BIG_MASS,
+			InventoryScript.FILTERS_ACCEPT_ALL, TEST_POLICY, true)
+		assert_false(made.ok, "(%d, %d) owns nothing" % [malformed.x, malformed.y])
+		assert_equal(made.error, InventoryScript.REFUSE_INVALID_OWNER_REF, "and is refused by name")
+		assert_equal(made.ref, InventoryScript.NULL_REF, "with no ref handed back")
+	assert_equal(_inv.create_container(InventoryScript.NULL_REF, -1,
+		InventoryScript.FILTERS_ACCEPT_ALL, TEST_POLICY, true).error,
+		InventoryScript.REFUSE_INVALID_OWNER_REF, "the owner is refused before the mass")
+	assert_true(_inv.state_bytes() == before, "no refused request wrote a byte")
+	assert_equal(_inv.live_container_count(), 0, "and no container exists")
+	assert_true(_inv.create_container(Vector2i(0, 1), BIG_MASS, InventoryScript.FILTERS_ACCEPT_ALL,
+		TEST_POLICY, true).ok, "slot 0 generation 1 is a well-formed owner")
+	assert_true(InventoryScript.is_well_formed_owner(Vector2i(0, 1)), "the predicate agrees")
+	assert_false(InventoryScript.is_well_formed_owner(InventoryScript.NULL_REF), "and refuses null")
 
 
 func test_containers_by_owner_refuses_an_undersized_buffer_without_truncating() -> void:

@@ -33,6 +33,7 @@ const UiNotices := preload("res://scripts/ui/ui_notices.gd")
 const WorldInitScript := preload("res://scripts/core/world_init.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
+const StarterColonyScript := preload("res://scripts/core/starter_colony.gd")
 const NeedsScript := preload("res://scripts/core/needs.gd")
 const UiResidentCard := preload("res://scripts/ui/ui_resident_card.gd")
 const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
@@ -222,11 +223,73 @@ func create_world() -> bool:
 		SettlementSystem.reset, SettlementSystem.create_placed_cohort_on)
 	if not ok and report.error == UiWorldSession.REFUSE_COHORT:
 		report.error = SettlementSystem.last_refusal()
+	ok = _materialize_after_create(ok, report)
+	_reconcile_economy_after_create(ok)
 	_report_generation(ok, report)
-	if ok and EconomySystem != null:
-		EconomySystem.bind_residents(SettlementSystem.residents())
+	if ok:
 		refresh_roster()
 	return ok
+
+
+func _materialize_after_create(ok: bool, report: UiWorldSession.Report) -> bool:
+	"""Decision 0533: Create's colony step. A refusal empties the settlement, as boot's does.
+
+	The session has published a world and its cohort by now. A world without its colony is not a
+	§5.1 settlement, so a refused colony fails the whole action and the settlement is reset to
+	empty -- what boot's `_abandon_transaction()` leaves -- rather than half-created.
+	"""
+	if not ok:
+		return false
+	if SettlementSystem.materialize_starter_colony():
+		return true
+	report.ok = false
+	report.error = SettlementSystem.last_refusal()
+	SettlementSystem.reset()
+	return false
+
+
+func _reconcile_economy_after_create(ok: bool) -> void:
+	"""Rebind EconomySystem to the new colony, or drop stores whose owners Create destroyed.
+
+	Runs BEFORE the HUD repaint in `_report_generation()`, so the first figures the player sees
+	after Create are the new settlement's. A refused Create that never reached the session's reset
+	keeps the running settlement and its stores; one that did reset leaves stores owned by rows
+	that no longer exist, and #7 says stale ownership is rejected, so they are closed.
+	"""
+	if EconomySystem == null:
+		return
+	if ok:
+		_reopen_starter_stores()
+		EconomySystem.bind_residents(SettlementSystem.residents())
+	elif not _economy_owners_live():
+		EconomySystem.reset()
+
+
+func _economy_owners_live() -> bool:
+	"""True when EconomySystem has no store, or its pantry's owner is a live Building here."""
+	if not EconomySystem.stores_open():
+		return true
+	var owner_ref: Vector2i = EconomySystem.inventory().container_owner(EconomySystem.pantry())
+	return SettlementSystem.directory().is_valid_of_kind(owner_ref,
+		EntityDirectoryScript.KIND_BUILDING)
+
+
+func _reopen_starter_stores() -> void:
+	"""Rebind EconomySystem's stores to the NEW colony and seed GDD §5.1's inventory into them.
+
+	Decision 0533: the stores are owned by the starter colony's buildings. Create discards the
+	previous settlement, so the previous stores' owners are gone with it; they are reset, reopened
+	on the new hall and stockpiles, and seeded with §5.1's initial inventory exactly as boot does.
+	A refusal is pushed, not swallowed: closed stores read as empty, which is a wrong picture.
+	"""
+	EconomySystem.reset()
+	var binding: StarterColonyScript.StoreBinding = StarterColonyScript.StoreBinding.new()
+	if not SettlementSystem.starter_store_binding_into(binding):
+		push_error("Create: starter stores have no colony: %s" % SettlementSystem.last_refusal())
+	elif not EconomySystem.open_starter_stores(binding):
+		push_error("Create: starter stores could not open: %s" % EconomySystem.last_refusal())
+	elif not EconomySystem.seed_initial_inventory():
+		push_error("Create: starting inventory refused: %s" % EconomySystem.last_refusal())
 
 
 func _report_generation(ok: bool, report: UiWorldSession.Report) -> void:
@@ -616,8 +679,8 @@ func _refresh_counters() -> void:
 
 	`Fuel-days` stays unpopulated: its daily heating demand has no input in any implemented
 	system (see EconomySystem.fuel_days_missing_input()). `Beds` stays unpopulated too: the
-	Building/Room/Furniture stores exist, but nothing places a building (decision 0511), so a bed
-	count would be a fabricated zero rather than the §5.1 refuge's. `Residents` is now supplied
+	starter colony's twelve beds now stand (decision 0533), but no UI step routes a bed figure
+	here yet, and UI-SET-007 says what it waits on rather than showing a number nobody wired. `Residents` is now supplied
 	from the residents store's own living count when one is bound.
 	"""
 	if not _has_hud():

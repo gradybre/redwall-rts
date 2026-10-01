@@ -108,6 +108,9 @@ const WORLD_PERSISTENT_IDS: int = (GENERATED_RESOURCE_NODES + REPLACED_TREE_NODE
 ## The generated world's LIVE directory rows: the replaced tree nodes are not among them.
 const WORLD_LIVE_ROWS: int = (GENERATED_RESOURCE_NODES + GENERATED_BASINS
 	+ GENERATED_FISH_HABITATS)
+## INIT-C live apply (decision 0533) allocates AFTER the world: the one World row, then GDD §5.9's
+## 7 buildings, 4 rooms and 31 floor furniture. Restated from §5.9, not read from the plan.
+const STARTER_COLONY_ROWS: int = 1 + 7 + 4 + 31
 
 ## GDD §5.1: "A fixed-seed tutorial uses seed 20260905." The only seed the section authors, and
 ## the only one a boot with no New Settlement form can legitimately use.
@@ -2074,7 +2077,8 @@ func test_the_world_entities_continue_the_same_counter_from_thirteen() -> void:
 		world_rows += 1
 		if lowest_world_id == 0 or id < lowest_world_id:
 			lowest_world_id = id
-	assert_equal(world_rows, WORLD_LIVE_ROWS, "every generated world row is counted")
+	assert_equal(world_rows, WORLD_LIVE_ROWS + STARTER_COLONY_ROWS,
+		"every generated world row and every starter colony row is counted")
 	assert_equal(lowest_world_id, COHORT_SIZE + 1,
 		"the first world entity follows the twelfth resident")
 
@@ -2513,20 +2517,20 @@ func test_resetting_the_settlement_empties_the_building_store_and_its_directory_
 		"and the directory holds no row of any kind at all")
 
 
-func test_a_generated_settlement_still_places_no_building_and_counts_no_bed() -> void:
-	"""THE HONEST NEGATIVE. §5.1's hall, twelve beds, hearth and pantry are NOT generated.
+func test_a_generated_settlement_materialises_the_starter_colony() -> void:
+	"""REVERSES test_a_generated_settlement_still_places_no_building_and_counts_no_bed.
 
-	`world_init.gd` publishes terrain, resource nodes, forage basins and the estuary; §5.1's
-	built fixture is not among them and this change does not add it. A `Beds` counter wired to
-	`live_furniture_of_kind()` today therefore shows a TRUE 0, and the §7.2 starter build remains
-	outstanding work. Pinned so no later reader mistakes composition for construction.
+	That test pinned an honest negative: §5.1's hall, beds, hearth and pantry were not generated,
+	and decision 0087 itemised why. DEMO-CONTAIN-R01 step D3 (decision 0533) is the INIT-C live
+	apply that closes it, so the negative is reversed rather than deleted: the built fixture now
+	stands, as measured rows, in the same generation that publishes the world.
 	"""
 	assert_true(_generate(), "the settlement generates")
 	assert_equal(_settlement.population(), COHORT_SIZE, "with its twelve residents")
 	assert_true(_settlement.world().is_published(), "and a published world")
-	assert_equal(_settlement.buildings().live_building_count(), 0, "and NO starter hall")
+	assert_equal(_settlement.buildings().live_building_count(), 7, "and §5.9's seven structures")
 	assert_equal(_settlement.buildings().live_furniture_of_kind(
-		int(CatalogScript.FURNITURE_DEFINITION["bed"])), 0, "and NO starter beds")
+		int(CatalogScript.FURNITURE_DEFINITION["bed"])), 12, "and §5.1's twelve beds")
 
 
 func test_a_building_placed_after_generation_takes_the_next_persistent_id() -> void:
@@ -3232,9 +3236,16 @@ func test_the_assembly_row_grants_no_home_bed_or_building() -> void:
 	with no Furniture row in existence, which is exactly the fiction this must not create.
 	"""
 	assert_true(_generate(), "REQ-SET-009 runs (refusal: %s)" % _settlement.last_refusal())
-	assert_equal(_settlement.buildings().live_building_count(), 0, "no building was created")
-	assert_equal(_settlement.buildings().live_room_count(), 0, "no room")
-	assert_equal(_settlement.buildings().live_furniture_count(), 0, "and no bed")
+	# Decision 0533's starter colony stands, and the assembly adds nothing to it: exactly the
+	# planned 7/4/31 rows, and not one bed given a user by the placement.
+	assert_equal(_settlement.buildings().live_building_count(), 7, "only the starter buildings")
+	assert_equal(_settlement.buildings().live_room_count(), 4, "only the starter rooms")
+	assert_equal(_settlement.buildings().live_furniture_count(), 31, "only the starter furniture")
+	for row: int in BuildingsScript.FURNITURE_CAPACITY:
+		var piece: Vector2i = _settlement.buildings().furniture_ref_of_row(row)
+		if piece != EntityDirectoryScript.NULL_REF:
+			assert_equal(_settlement.buildings().user_ref_of_furniture(piece),
+				EntityDirectoryScript.NULL_REF, "furniture row %d has no user" % row)
 	for index: int in COHORT_SIZE:
 		var slot: int = _slot_of_persistent_id(index + 1)
 		assert_false(_settlement.residents().home_is_live(slot), "id %d has no home" % (index + 1))

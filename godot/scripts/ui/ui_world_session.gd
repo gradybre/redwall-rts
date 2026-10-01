@@ -100,14 +100,20 @@ const REFUSE_COHORT: StringName = &"SETTLEMENT_COHORT_REFUSED"
 
 ## Directory kinds the `reset` Callable clears that `world_init.gd` does not own itself.
 ##
-## Only KIND_RESIDENT. `settlement_system.gd`'s reset clears the resident store, and since the
-## cohort-first change those residents hold directory rows -- so after a real boot the generator's
-## preflight saw twelve rows it did not own and refused WORLD_FOREIGN_LIVE_ROWS, making Create
-## fail in the running game. The generator cannot know what an opaque Callable clears; this
-## session passed the Callable, so this session is what declares it.
+## KIND_RESIDENT, and since decision 0533 the starter colony's four kinds. `settlement_system.gd`'s
+## reset clears the resident store, and since the cohort-first change those residents hold
+## directory rows -- so after a real boot the generator's preflight saw twelve rows it did not own
+## and refused WORLD_FOREIGN_LIVE_ROWS, making Create fail in the running game. The INIT-C apply
+## added the World row and the starter buildings, rooms and furniture, which the same reset
+## clears (`buildings.clear()` and the directory clear). The generator cannot know what an opaque
+## Callable clears; this session passed the Callable, so this session is what declares it.
 ## Not a `const`: GDScript does not accept a PackedInt32Array literal built from a preloaded
 ## script's constant as a constant expression. Allocated once with the session, never resized.
-var _caller_cleared_kinds: PackedInt32Array = PackedInt32Array([EntityDirectoryScript.KIND_RESIDENT])
+var _caller_cleared_kinds: PackedInt32Array = PackedInt32Array([
+	EntityDirectoryScript.KIND_RESIDENT, EntityDirectoryScript.KIND_BUILDING,
+	EntityDirectoryScript.KIND_ROOM, EntityDirectoryScript.KIND_FURNITURE,
+	EntityDirectoryScript.KIND_WORLD,
+])
 const REFUSE_NAME_LENGTH: StringName = &"UI_SETTLEMENT_NAME_LENGTH"
 const REFUSE_NAME_CONTROL_CHARACTER: StringName = &"UI_SETTLEMENT_NAME_CONTROL_CHARACTER"
 const REFUSE_SEED_RANGE: StringName = &"UI_SEED_OUT_OF_RANGE"

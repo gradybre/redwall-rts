@@ -2441,19 +2441,43 @@
     {
       "id": "DEMOLITION-D3",
       "title": "INIT-C live apply and starter container rebind",
-      "status": "blocked",
+      "status": "done",
       "depends_on": [
         "DEMOLITION-D1",
+        "DEMOLITION-D2",
         "INIT-C-PREP"
       ],
       "owns": [
+        "godot/scripts/core/starter_colony.gd",
         "godot/scripts/systems/settlement_system.gd",
-        "godot/scripts/systems/economy_system.gd"
+        "godot/scripts/systems/economy_system.gd",
+        "godot/scripts/systems/ui_manager.gd",
+        "godot/scripts/ui/ui_world_session.gd",
+        "godot/scripts/main.gd",
+        "godot/scripts/core/buildings.gd",
+        "godot/scripts/core/ground_piles.gd",
+        "godot/scripts/core/inventory.gd",
+        "godot/test/test_starter_colony.gd",
+        "godot/test/test_settlement_starter_colony.gd",
+        "godot/test/fixtures/starter_colony_fixture.gd",
+        "godot/test/test_economy_system.gd",
+        "godot/test/test_ui_manager.gd",
+        "godot/test/test_settlement_system.gd",
+        "godot/test/test_inventory.gd",
+        "godot/test/test_inventory_stock_counts.gd",
+        "godot/test/test_buildings.gd",
+        "godot/test/test_ground_piles.gd",
+        "docs/decisions/0533-the-starter-colony-is-materialised-and-the-stores-are-owned-by-it.md",
+        "docs/tasks/lanes/06/2026-10-01-demolition-d3-init-c-live-apply.md",
+        "docs/rulings/2026-10-01_demolition_containment.md",
+        "docs/persistence_state_registry.md",
+        "docs/planning/registry_capacity_audit.json"
       ],
       "agent": "game-coder",
       "gate": "none",
       "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
-      "acceptance": "Answers #3a/#3b/#7, blocker 6: materialise the 7 buildings, 4 rooms and 31 furniture; rebind the pantry to the hall and the material store to the four stockpiles (400000 g each), anchored at their origin tiles; then create_container refuses a NULL_REF owner."
+      "acceptance": "Answers #3a/#3b/#7, blocker 6: materialise the 7 buildings, 4 rooms and 31 furniture; rebind the pantry to the hall and the material store to the four stockpiles (400000 g each), anchored at their origin tiles; then create_container refuses a NULL_REF owner.",
+      "note": "Done with decision 0533. The pantry and the four stockpile stores are owned and anchored correctly but still live in EconomySystem's own inventory, not settlement.inventory(), which the demolition gate reads; D4 must scan both or merge them first (0533 Consequences)."
     },
     {
       "id": "DEMOLITION-D4",

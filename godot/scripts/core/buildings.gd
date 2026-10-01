@@ -78,6 +78,12 @@ extends RefCounted
 ##   * NO CONSTRUCTION STORE. `Building.construction` is stored and validated as a live
 ##     KIND_CONSTRUCTION reference when one is supplied; delivery, WIP, refunds and completion
 ##     are task 06.2. A blueprint placed here has no project behind it yet.
+##   * A FOOTPRINT OVER A LIVE GROUND PILE IS REFUSED, BUT NOT BY THIS STORE'S OWN KNOWLEDGE. This
+##     store holds no container, so it cannot see a pile. `set_placement_authority()` binds an
+##     object -- `ground_piles.gd`, composed by `settlement_system.gd` -- that every placement asks
+##     about each footprint tile, and its refusal is returned unchanged (decision 0532's M4,
+##     decision 0533). The binding is wiring: weak, kept by `clear()`, and absent in a store built
+##     on its own, which then has no piles to cover. A RELEASED authority fails closed.
 ##   * NO CONTAINER IS CREATED. `inventory.gd` owns InventoryContainer rows and
 ##     R-BUILD-DOM-004 says in terms "do not create a parallel container store". This store
 ##     publishes the Building row a container can be owned BY, and `base_store_g_of()` states the
@@ -203,6 +209,11 @@ const REFUSE_UNKNOWN_STATION: StringName = &"UNKNOWN_STATION"
 const REFUSE_MASK_MISMATCH: StringName = &"ROOM_FURNITURE_MASK_MISMATCH"
 const REFUSE_SAME_ROOM: StringName = &"FURNITURE_ALREADY_IN_ROOM"
 const REFUSE_DIFFERENT_BUILDING: StringName = &"DIFFERENT_BUILDING"
+const REFUSE_INVALID_PLACEMENT_AUTHORITY: StringName = &"INVALID_PLACEMENT_AUTHORITY"
+
+## The one method a placement authority publishes: `building_tile_refusal(tile) -> StringName`,
+## REFUSE_NONE for a tile a footprint may cover, else the authority's own refusal code.
+const PLACEMENT_TILE_METHOD: StringName = &"building_tile_refusal"
 
 
 class OpResult:
@@ -230,6 +241,9 @@ class OpResult:
 
 var _directory: EntityDirectory = null
 var _owns_directory: bool = false
+## Wiring, not state (decision 0533): the authority every footprint tile is shown to, held weakly
+## because `ground_piles.gd`'s composer holds this store strongly. Not cleared by `clear()`.
+var _placement_authority: WeakRef = null
 var _definitions: BuildingDefinitions = null
 
 # --- Building columns (GDD §4.2, architecture §2.2) ---------------------------------------------
@@ -583,8 +597,39 @@ func _refuse_place_building(type_id: int, origin_tile: int, rotation: int,
 	return _refuse_footprint(type_id, origin_tile, rotation)
 
 
+func placement_refusal(type_id: int, origin_tile: int, rotation: int,
+		unlocked_mask: int) -> StringName:
+	"""The code `place_building()` would refuse with, or REFUSE_NONE. Writes nothing (a preview).
+
+	The same checks in the same order, so a caller can validate a whole layout before placing any
+	of it (decision 0059); `place_building()` still re-runs them at the moment it writes.
+	"""
+	return _refuse_place_building(type_id, origin_tile, rotation, unlocked_mask)
+
+
+func set_placement_authority(authority: Object) -> OpResult:
+	"""Bind -- or with null, unbind -- the authority every placement shows its footprint tiles to.
+
+	Refused for an object that does not publish PLACEMENT_TILE_METHOD. Held weakly; a released
+	authority refuses every later placement INVALID_PLACEMENT_AUTHORITY rather than letting a
+	footprint through unchecked.
+	"""
+	if authority != null and not authority.has_method(PLACEMENT_TILE_METHOD):
+		return _refuse(REFUSE_INVALID_PLACEMENT_AUTHORITY)
+	_placement_authority = null if authority == null else weakref(authority)
+	return OpResult.new(true, REFUSE_NONE, 0, NULL_REF)
+
+
+func has_placement_authority() -> bool:
+	"""True when a LIVE placement authority is bound. False for unbound and for released."""
+	return _placement_authority != null and _placement_authority.get_ref() != null
+
+
 func _refuse_footprint(type_id: int, origin_tile: int, rotation: int) -> StringName:
-	"""REQ-SET-122's tile half: in-bounds and nonoverlapping. Terrain conditions are not read."""
+	"""REQ-SET-122's tile half: in-bounds and nonoverlapping, then the placement authority's word.
+
+	Terrain conditions are not read here.
+	"""
 	var size_x: int = _definitions.footprint_x_of(type_id)
 	var size_z: int = _definitions.footprint_z_of(type_id)
 	var extent_x: int = extent_x_of(size_x, size_z, rotation)
@@ -595,6 +640,22 @@ func _refuse_footprint(type_id: int, origin_tile: int, rotation: int) -> StringN
 		for offset_x: int in extent_x:
 			if _building_slot[_tile_at(origin_tile, offset_x, offset_z)] != NO_LINK:
 				return REFUSE_FOOTPRINT_OCCUPIED
+	return _authority_footprint_refusal(origin_tile, extent_x, extent_z)
+
+
+func _authority_footprint_refusal(origin_tile: int, extent_x: int, extent_z: int) -> StringName:
+	"""Show every footprint tile to the bound placement authority; its first refusal, or none."""
+	if _placement_authority == null:
+		return REFUSE_NONE
+	var authority: Object = _placement_authority.get_ref()
+	if authority == null:
+		return REFUSE_INVALID_PLACEMENT_AUTHORITY
+	for offset_z: int in extent_z:
+		for offset_x: int in extent_x:
+			var code: StringName = StringName(authority.call(PLACEMENT_TILE_METHOD,
+				_tile_at(origin_tile, offset_x, offset_z)))
+			if code != REFUSE_NONE:
+				return code
 	return REFUSE_NONE
 
 

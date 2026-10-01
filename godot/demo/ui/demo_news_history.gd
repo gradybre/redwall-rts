@@ -76,6 +76,7 @@ var _defer_to: Array[Callable] = []
 ## The history's rows: what each shows (target kind and id, two per row; the level drawn), and how many may be
 ## drawn (PAGE more each "Show older").
 var _history_target: PackedInt32Array = PackedInt32Array()
+## The tier each history row was last painted at (UNDRAWN: never), so a redraw repaints only a changed row.
 var _history_level: PackedByteArray = PackedByteArray()
 ## The entry id each history row shows (its Snooze and Dismiss act on it).
 var _history_id: PackedInt32Array = PackedInt32Array()

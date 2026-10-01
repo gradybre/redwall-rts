@@ -554,7 +554,8 @@ func kind(k: int) -> StringName:
 
 
 func kind_named(k: int) -> bool:
-	"""Whether entry `k`'s poster named its kind (only then does it group)."""
+	"""Whether entry `k`'s poster named its kind (an incident's line is named from its key). Only a named line that
+	reports no incident groups."""
 	return _named[_row(k)] == 1
 
 

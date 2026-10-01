@@ -1,5 +1,5 @@
 # 0591 — Notices get tiers, kinds, grouping, snooze and a toast budget
-Date: 2026-10-01 · Status: Accepted (demo); the PROPOSALS below await Brendan's ruling
+Date: 2026-10-01 · Status: Accepted; Brendan ruled on all ten proposals the same day (below)
 
 Numbered 0591 because the brief asked for 0591–0599. No record numbered 0590–0599 exists on any branch
 (`git log --all`) or in any sibling worktree.
@@ -88,11 +88,13 @@ the pause ledger (0471). Presentation only: nothing here writes the simulation.
 `tier = TIER_AUTO`, `kind = NO_KIND` and `subject = ""` after them. `report`, `raise`, `poster`, `rows_posted`, `level`
 and the line formats of normal and info entries are unchanged.
 
-## PROPOSALS — for Brendan's ruling
+## The ten proposals and Brendan's ruling
 
-Each is the smallest demo behaviour where the documents are silent; the recommendation is what is built.
+**Ruling, 2026-10-01: Brendan approved all ten as built**, each with the recommended option below; relayed to this
+work by the feature coordinator. Where the documents were silent, each was the smallest demo behaviour; they are now
+adopted demo rules, not open questions.
 
-| # | Question | Options | Recommendation (built) |
+| # | Question | Options | Ruled (as built) |
 |---|---|---|---|
 | P1 | Three tiers against §7's four severities | (a) urgent = CRITICAL, normal = WARNING + ADVISORY, info = INFO; (b) add an advisory tier | (a), as the brief asked |
 | P2 | Distinct sounds with only one alert cue in the table | (a) info silent, normal one chime, urgent two; (b) a new softer cue (a new staged file, `tools/stage_demo_audio.py` CHOICES and its ledger); (c) info plays `complete` | (a) — no new asset, no change for today's warnings |
@@ -104,6 +106,21 @@ Each is the smallest demo behaviour where the documents are silent; the recommen
 | P8 | Per-line buttons cost a line at 1280×720 | (a) Go to and × on every line, fit to the band; (b) verbs only in the history (three lines, no buttons); (c) verbs on the newest line only | (a) |
 | P9 | What Dismiss on a notice does to its incident | (a) nothing — the notice is off the strip; the incident keeps its own Dismiss; (b) acknowledges the incident | (a) |
 | P10 | An untagged line's kind | (a) its source and words, so Snooze quiets that exact line; (b) its source, so Snooze quiets the whole source | (a) |
+
+## Review
+
+An independent review (code-reviewer) found no CRITICAL or HIGH issues; API compatibility holds. From its MEDIUM
+findings, these were fixed:
+- The strip's × and Go to are now 32×32 (UI §2.1's hitbox), and the live harness checks their width too.
+- Tests were added that catch a grouped repeat losing its new tier, `_remove` losing a column's place, a named notice
+  joining an incident's line, and the urgent size.
+
+Left as they are, for a ruling if wanted:
+- **"Run until the next warning" counts every new warning row**, including rows of a snoozed kind and rows the budget
+  held back, so such a row can end a run without a toast to show why. Counting announced rows only would change
+  decision 0471's target.
+- The `matches` / `filtered_into` filters (by level) and the history (by tier) disagree on a NOTE posted with a
+  normal tier. No caller does that.
 
 ## Also found
 

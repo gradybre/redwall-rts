@@ -17,7 +17,8 @@ extends CanvasLayer
 ## narrow profile, 125 % on 1280x720) it takes the whole gap instead (decision 0391). The command strip moves left when the
 ## resident journal takes the right column; the strip follows it (`follow_journal`). Geometry is the
 ## HUD's own (`scripts/ui/ui_layout.gd`, read, never modified) in LOGICAL pixels at the HUD's scale.
-## It ignores the mouse, so a click through it still reaches the world; it draws below the HUD.
+## Only its buttons take the mouse (see TIERS, GO TO AND DISMISS), so a click anywhere else still reaches the world; it
+## draws below the HUD.
 ##
 ## Refreshed a few times a second on real time (it must read while the village is paused); it
 ## rebuilds nothing, only rewrites LINES labels.
@@ -213,8 +214,10 @@ func _build_line(column: VBoxContainer, slot: int) -> void:
 
 
 func _line_button(row: HBoxContainer, words: String, tip: String, act: Callable) -> Button:
-	"""A line's wood button: the mouse only, never the keyboard focus (Space and Enter stay the HUD's)."""
+	"""A line's wood button, at least 32×32 (UI §2.1's minimum hitbox): the mouse only, never the keyboard focus (Space
+	and Enter stay the HUD's)."""
 	var button: Button = FarmUi.button(words, LINE_PX)
+	button.custom_minimum_size = Vector2(FarmUi.BUTTON_H, FarmUi.BUTTON_H)
 	button.focus_mode = Control.FOCUS_NONE
 	button.mouse_filter = Control.MOUSE_FILTER_STOP
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER

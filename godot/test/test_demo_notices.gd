@@ -194,12 +194,13 @@ func test_repeats_of_a_kind_and_subject_group_with_a_count_and_move_to_the_top()
 	feed.post(NoticesScript.SOURCE_WEATHER, NoticesScript.LEVEL_NOTE, "Rain")
 	calendar.tick += HOUR
 	var rows: int = feed.rows_posted
-	feed.notify(NoticesScript.SOURCE_FARM, NoticesScript.TIER_NORMAL, CROWS, "Crows back at the barley", "bed:3")
+	feed.notify(NoticesScript.SOURCE_FARM, NoticesScript.TIER_URGENT, CROWS, "Crows back at the barley", "bed:3")
 	assert_equal(feed.rows_posted, rows, "a grouped repeat writes no row")
 	assert_equal(feed.count(), 3, "three entries: crows, the tree, the rain")
 	assert_equal(feed.text(0), "Crows back at the barley", "newest, with the newest words")
 	assert_equal(feed.repeats(0), 3, "counted")
-	assert_equal(feed.line(0), "Y1 Spring 1, 08:00 · Warning: Crows back at the barley (×3)", "the count shown")
+	assert_equal(feed.line(0), "Y1 Spring 1, 08:00 · Urgent: Crows back at the barley (×3)", "the count shown")
+	assert_equal(feed.tier(0), NoticesScript.TIER_URGENT, "the repeat's tier taken")
 	assert_equal(feed.entry_id(0), id, "its id kept")
 	assert_equal(feed.first_tick(0), 0, "first said at tick 0")
 	assert_equal(feed.said_tick(0), 2 * HOUR, "last said two hours on")
@@ -287,6 +288,40 @@ func test_entries_keep_their_first_tick_through_overflow() -> void:
 		var said: int = int(feed.text(k).get_slice(" ", 1))
 		assert_equal(feed.first_tick(k), 100 + said, "entry %d first said at its own tick" % k)
 		assert_equal(feed.said_tick(k), 100 + said, "and last")
+
+
+func test_a_named_notice_never_joins_an_incident_s_line() -> void:
+	"""A notice with an incident line's kind and subject ("farm:wet", "3") starts its own entry; the incident's line
+	keeps its serial (so "still open" and the overflow hold still find it)."""
+	var shared := ServicesScript.new()
+	var serial: int = shared.incidents.report("farm:wet:3", NoticesScript.SOURCE_FARM, IncidentsScript.SEVERITY_WARNING,
+		"Bed 4 is waterlogged")
+	shared.notices.notify(NoticesScript.SOURCE_FARM, NoticesScript.TIER_NORMAL, &"farm:wet", "Still wet", "3")
+	assert_equal(shared.notices.count(), 2, "apart")
+	assert_equal(shared.notices.incident(1), serial, "the incident's line keeps its serial")
+	assert_equal(shared.notices.repeats(1), 1, "and was not counted")
+
+
+func test_every_column_moves_with_its_entry_through_overflow_and_regroups() -> void:
+	"""Mixed tiers, kinds and held-back rows overflow the feed and regroup mid-feed: each kept entry's tier, announced
+	flag, kind, subject and id still describe that entry."""
+	var feed := _feed()
+	_calendar_of(feed)
+	for k: int in NoticesScript.CAPACITY + 7:
+		var tier: int = k % 3
+		feed.notify(NoticesScript.SOURCE_CREW, tier, StringName("kind%d" % (k % 5)), "Entry %d" % k, "s%d" % k)
+	feed.notify(NoticesScript.SOURCE_CREW, NoticesScript.TIER_NORMAL, &"kind3", "Entry again", "s60")
+	assert_equal(feed.text(0), "Entry again", "a mid-feed regroup moved to the top")
+	assert_equal(feed.subject(0), "s60", "its subject kept")
+	for k: int in range(1, feed.count()):
+		var said: int = int(feed.text(k).get_slice(" ", 1))
+		assert_equal(feed.tier(k), said % 3, "entry %d's tier" % said)
+		assert_equal(String(feed.kind(k)), "kind%d" % (said % 5), "entry %d's kind" % said)
+		assert_equal(feed.subject(k), "s%d" % said, "entry %d's subject" % said)
+		assert_equal(feed.entry_id(k), said + 1, "entry %d's id" % said)
+		var urgent: bool = said % 3 == NoticesScript.TIER_URGENT
+		assert_true(not urgent or feed.is_announced(k), "entry %d: urgent, announced" % said)
+	assert_true(feed.throttled > 0, "some rows were held back, so the announced column was mixed")
 
 
 func test_readers_find_new_rows_by_id_after_a_group_moves_a_row() -> void:
@@ -529,7 +564,7 @@ func _jump_to_beds() -> JumpScript:
 
 
 func test_the_strip_draws_each_tier_at_its_own_weight_and_life() -> void:
-	"""Urgent: heading face, 15 px, clay; normal: clay, 14 px; info: ink; an urgent toast lasts a minute."""
+	"""Urgent: heading face, clay (at the strip's URGENT_PX); normal: clay; info: ink; an urgent toast lasts a minute."""
 	var feed := _feed()
 	var strip := _strip(feed)
 	feed.post(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_NOTE, "Beans sown")
@@ -538,7 +573,7 @@ func test_the_strip_draws_each_tier_at_its_own_weight_and_life() -> void:
 	assert_equal(strip.refresh(feed.now_msec()), 3, "three lines")
 	var urgent: Label = strip.find_children("*", "Label", true, false)[1] as Label
 	assert_equal(strip.line_tier(0), NoticesScript.TIER_URGENT, "urgent on top")
-	assert_equal(urgent.get_theme_font_size(&"font_size"), StripScript.URGENT_PX, "larger")
+	assert_equal(urgent.get_theme_font_size(&"font_size"), StripScript.URGENT_PX, "the strip's urgent size")
 	assert_equal(urgent.get_theme_font(&"font"), Styles.heading_font(), "the heading face")
 	assert_equal(urgent.get_theme_color(&"font_color"), Palette.CLAY, "clay")
 	assert_equal(strip.line_tier(1), NoticesScript.TIER_NORMAL, "normal next")
@@ -554,6 +589,7 @@ func test_paint_tier_sets_and_clears_the_urgent_face() -> void:
 	var label := Label.new()
 	StripScript.paint_tier(label, NoticesScript.TIER_URGENT, 14, 15)
 	assert_true(label.has_theme_font_override(&"font"), "urgent face")
+	assert_equal(label.get_theme_font_size(&"font_size"), 15, "the urgent size (the history's 15 px)")
 	StripScript.paint_tier(label, NoticesScript.TIER_NORMAL, 14, 15)
 	assert_false(label.has_theme_font_override(&"font"), "cleared")
 	assert_equal(label.get_theme_font_size(&"font_size"), 14, "body size")

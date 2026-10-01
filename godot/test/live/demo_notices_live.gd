@@ -135,17 +135,23 @@ func _key(code: Key) -> void:
 		root.push_input(event)
 
 
-func _floors(what: String, layer: Node) -> void:
-	"""Every shown label and button under `layer` at least 14 px; every shown button at least 32 px tall."""
+func _floors(what: String, layer: Node, wide: bool = false) -> void:
+	"""Every shown label with text at least 14 px; every shown button with text at least 14 px and 32 px tall, and one
+	with text or an icon at least 32 px wide too where `wide` (UI §2.1's 32×32 hitbox: the strip's × and Go to)."""
 	var bad := PackedStringArray()
 	for node: Node in layer.find_children("*", "Control", true, false):
 		var control := node as Control
 		if not (control is Label or control is Button) or not control.is_visible_in_tree():
 			continue
-		if String(control.get(&"text")).is_empty():
+		var worded: bool = not String(control.get(&"text")).is_empty()
+		if wide and control is Button and (control as Button).icon != null and control.size.x < 32.0 - 0.01:
+			bad.append("%s %.0f wide" % [control.name, control.size.x])
+		if not worded:
 			continue
 		if control.get_theme_font_size(&"font_size") < 14 or (control is Button and control.size.y < 32.0 - 0.01):
 			bad.append("%s %dpx %.0f" % [control.name, control.get_theme_font_size(&"font_size"), control.size.y])
+		elif wide and control is Button and control.size.x < 32.0 - 0.01:
+			bad.append("%s %.0f wide" % [control.name, control.size.x])
 	_check("%s: text 14 px, buttons 32 px" % what, bad.is_empty(), ", ".join(bad))
 
 
@@ -206,7 +212,7 @@ func _the_strip() -> void:
 	var frame: Control = strip.get("_frame")
 	_check("no empty room under the lines (measured at the width drawn)", absf(frame.size.y
 		- frame.get_combined_minimum_size().y) < 1.0, "%s / %s" % [frame.size, frame.get_combined_minimum_size()])
-	_floors("the strip", strip)
+	_floors("the strip", strip, true)
 	await _capture("notices_strip")
 
 

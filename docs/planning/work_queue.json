@@ -2414,18 +2414,29 @@
     {
       "id": "DEMOLITION-D2",
       "title": "Ground-pile contract: Inventory's single create_ground_pile(tile) door",
-      "status": "blocked",
+      "status": "done",
       "depends_on": [
         "DEMOLITION-D1"
       ],
       "owns": [
         "godot/scripts/core/inventory.gd",
-        "godot/test/test_inventory.gd"
+        "godot/scripts/core/ground_piles.gd",
+        "godot/test/test_inventory_ground_piles.gd",
+        "godot/test/test_ground_piles.gd",
+        "docs/decisions/0532-ground-piles-are-placed-breadth-first-and-reclaimed-at-commit.md",
+        "docs/tasks/lanes/06/2026-10-01-demolition-d2-ground-piles.md",
+        "docs/rulings/2026-10-01_demolition_containment.md",
+        "docs/setting_decisions.md",
+        "docs/systems_architecture.md",
+        "docs/persistence_state_registry.md",
+        "docs/planning/registry_capacity_audit.json",
+        "docs/validation/ready07_arithmetic.py"
       ],
       "agent": "game-coder",
       "gate": "none",
       "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
-      "acceptance": "Answer #9 exactly: World owner, GROUND_PILE policy, 400000 g, storage class 1500, one pile per tile, in-bounds and passable, N/E/S/W breadth-first spill capped at 16384 tiles, never on a DEMOLISHING/destroyed/inaccessible footprint, empty-pile reclaim at commit, refund placement from the door's outside access tile. Ledger the optional derived tile->pile map if built."
+      "acceptance": "Answer #9 exactly: World owner, GROUND_PILE policy, 400000 g, storage class 1500, one pile per tile, in-bounds and passable, N/E/S/W breadth-first spill capped at 16384 tiles, never on a DEMOLISHING/destroyed/inaccessible footprint, empty-pile reclaim at commit, refund placement from the door's outside access tile. Ledger the optional derived tile->pile map if built.",
+      "note": "Branch feat/demolition-d2, decision 0532. No save schema change (section 7 stays 5, registry stays v7). Brendan's 2026-10-01 follow-up (DEC-043): doorless buildings (and halls at rotation != 0) seed the refund from the footprint edge ring, front first; no pile on any standing footprint. Hands on: no production code creates the KIND_WORLD row or wires ground_piles.gd (D3); D5 needs an in-transaction placement variant and D6 a move-existing-cargo variant; building placement must refuse or evacuate a footprint over a live pile (D3/D8)."
     },
     {
       "id": "DEMOLITION-D3",

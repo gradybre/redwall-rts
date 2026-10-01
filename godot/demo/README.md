@@ -201,7 +201,7 @@ Feature #39 (`demo_notices.gd`, `demo_notice_snoozes.gd`, `ui/demo_news_strip.gd
 Every existing call is unchanged. To add a new kind of notice, use `notify`:
 
 ```gdscript
-# notify(source, tier, kind, text, subject = "", summary = "", to_kind = TARGET_NONE, to_id = -1) -> bool
+# notify(from_source, as_tier, as_kind, words, about_subject = "", brief = "", to_kind = TARGET_NONE, to_id = -1) -> bool
 services.notices.notify(NoticesScript.SOURCE_CREW, NoticesScript.TIER_NORMAL, &"cold_home",
 	"The east burrow is cold — light a fire", "home:%d" % home, "Cold home")
 services.notices.notify(NoticesScript.SOURCE_CREW, NoticesScript.TIER_URGENT, &"out_of_fuel", "The village is out of fuel")
@@ -214,9 +214,10 @@ services.notices.notify(NoticesScript.SOURCE_CREW, NoticesScript.TIER_INFO, &"ch
   - Snooze works by kind, so use one kind per sort of notice, not one per resident.
 - **`tier`**: `TIER_URGENT` | `TIER_NORMAL` | `TIER_INFO`. `notify` posts urgent and normal as WARNING and info as NOTE.
 - **`to_kind` / `to_id`**: the jump target, `TARGET_*`. Go to shows when the village's jump can find it.
-- **`post`** is unchanged, with three optional parameters added last:
-  `post(source, level, text, summary = "", to_kind = TARGET_NONE, to_id = -1, serial = NO_INCIDENT, tier = TIER_AUTO,
-  kind = NO_KIND, subject = "")`. `TIER_AUTO` infers the tier (warning -> normal, note -> info). Without a kind, a line
+- **`post`** is unchanged, with three optional parameters added last: `post(from_source, at_level, words, brief = "",
+  to_kind = TARGET_NONE, to_id = -1, serial = NO_INCIDENT, as_tier = TIER_AUTO, as_kind = NO_KIND, about_subject = "")`.
+  (The parameters are named apart from the accessors `text()`, `kind()`, ... that they would shadow; GDScript passes
+  arguments by position, so no caller changes.) `TIER_AUTO` infers the tier (warning -> normal, note -> info). Without a kind, a line
   folds only with an identical line said just before it (decision 0210), and its kind is "<source>:<its words>".
 - **Incidents** (`incidents.report(key, ...)`): the line's tier is the severity's (critical -> urgent), and its kind and
   subject come from the key. "farm:wet:3" gives kind `farm:wet` and subject `3`, so key a new incident

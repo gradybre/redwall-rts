@@ -426,12 +426,12 @@ func refresh() -> bool:
 	return true
 
 
-@warning_ignore("integer_division")
 func _snooze_hour() -> int:
 	"""The game hour now while any kind is snoozed (the snoozed line's hours left change with it), else -1. Integer
 	division: whole hours, by intent."""
 	if _notices.snoozes.count(_notices.now_tick()) == 0:
 		return -1
+	@warning_ignore("integer_division")
 	return _notices.now_tick() / SimClock.TICKS_PER_HOUR
 
 

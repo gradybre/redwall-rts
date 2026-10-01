@@ -198,74 +198,78 @@ func now_tick() -> int:
 
 # --- posting ------------------------------------------------------------------------------------------
 
-func post(source: int, level: int, text: String, summary: String = "", to_kind: int = TARGET_NONE,
-		to_id: int = -1, serial: int = NO_INCIDENT, tier: int = TIER_AUTO, kind: StringName = NO_KIND,
-		subject: String = "") -> bool:
+func post(from_source: int, at_level: int, words: String, brief: String = "", to_kind: int = TARGET_NONE,
+		to_id: int = -1, serial: int = NO_INCIDENT, as_tier: int = TIER_AUTO, as_kind: StringName = NO_KIND,
+		about_subject: String = "") -> bool:
 	"""Add one notice, stamped with the demo date now -- or, when it repeats the newest entry, count it there
 	(see REPEATS FOLD), or when it names a kind, group it (see GROUPING). `to_kind` / `to_id` name its target
-	(TARGET_*), `serial` the incident it reports, `tier` its TIER_* (TIER_AUTO: inferred), `kind` and `subject` what
-	sort of notice it is and what about (see TIERS). Refuses (false, nothing kept) empty text, or a source, level,
-	target or tier outside SOURCE_* / LEVEL_* / TARGET_* / TIER_*."""
-	if not _valid(source, level, text, to_kind, tier):
+	(TARGET_*), `serial` the incident it reports, `as_tier` its TIER_* (TIER_AUTO: inferred), `as_kind` and
+	`about_subject` what sort of notice it is and what about (see TIERS). Refuses (false, nothing kept) empty words, or a
+	source, level, target or tier outside SOURCE_* / LEVEL_* / TARGET_* / TIER_*. The parameters are named apart from
+	the accessors (`text`, `kind`, ...), which they would shadow; GDScript passes them by position, so callers are
+	unaffected."""
+	if not _valid(from_source, at_level, words, to_kind, as_tier):
 		return false
-	var said: int = infer_tier(level) if tier == TIER_AUTO else tier
-	var about: String = subject_of(subject, to_kind, to_id)
+	var said: int = infer_tier(at_level) if as_tier == TIER_AUTO else as_tier
+	var about: String = subject_of(about_subject, to_kind, to_id)
 	var row: int = _row(0)
-	var groups: bool = kind != NO_KIND and serial == NO_INCIDENT
-	var grouped: int = _group_row(String(kind), about) if groups else -1
-	if not groups and _source.size() > 0 and repeats_newest(source, level, text, summary) \
+	var groups: bool = as_kind != NO_KIND and serial == NO_INCIDENT
+	var grouped: int = _group_row(String(as_kind), about) if groups else -1
+	if not groups and _source.size() > 0 and repeats_newest(from_source, at_level, words, brief) \
 			and _target_kind[row] == to_kind and _target_id[row] == to_id and _incident[row] == serial:
 		_repeats[row] += 1
 		_dismissed[row] = 0
 	elif grouped >= 0:
-		row = _regroup(grouped, source, level, text, summary, to_kind, to_id, said)
+		row = _regroup(grouped, from_source, at_level, words, brief, to_kind, to_id, said)
 	else:
-		row = _new_row(source, level, text, summary, to_kind, to_id, serial)
-		_tag(row, said, kind, about)
+		row = _new_row(from_source, at_level, words, brief, to_kind, to_id, serial)
+		_tag(row, said, as_kind, about)
 	_stamp[row] = _calendar.date_text() if _calendar != null else UNDATED
 	_posted_msec[row] = now_msec()
 	_said_tick[row] = now_tick()
 	revision += 1
-	notice_posted.emit(_id[row], _tier[row], StringName(_kind[row]), text)
+	notice_posted.emit(_id[row], _tier[row], StringName(_kind[row]), words)
 	return true
 
 
-func notify(source: int, tier: int, kind: StringName, text: String, subject: String = "", summary: String = "",
-		to_kind: int = TARGET_NONE, to_id: int = -1) -> bool:
-	"""The short form for a new kind of notice (see TIERS): `post` at a WARNING for an urgent or normal `tier`, a NOTE
-	for info, naming its `kind` and `subject` (so its repeats group). Refuses TIER_AUTO and an empty kind."""
-	if tier < TIER_INFO or tier > TIER_URGENT or kind == NO_KIND:
+func notify(from_source: int, as_tier: int, as_kind: StringName, words: String, about_subject: String = "",
+		brief: String = "", to_kind: int = TARGET_NONE, to_id: int = -1) -> bool:
+	"""The short form for a new kind of notice (see TIERS): `post` at a WARNING for an urgent or normal `as_tier`, a
+	NOTE for info, naming its `as_kind` and `about_subject` (so its repeats group). Refuses TIER_AUTO and an empty
+	kind."""
+	if as_tier < TIER_INFO or as_tier > TIER_URGENT or as_kind == NO_KIND:
 		return false
-	var level: int = LEVEL_NOTE if tier == TIER_INFO else LEVEL_WARNING
-	return post(source, level, text, summary, to_kind, to_id, NO_INCIDENT, tier, kind, subject)
+	var at_level: int = LEVEL_NOTE if as_tier == TIER_INFO else LEVEL_WARNING
+	return post(from_source, at_level, words, brief, to_kind, to_id, NO_INCIDENT, as_tier, as_kind, about_subject)
 
 
-func _valid(source: int, level: int, text: String, to_kind: int, tier: int) -> bool:
+func _valid(from_source: int, at_level: int, words: String, to_kind: int, as_tier: int) -> bool:
 	"""Whether a post's text, source, level, target and tier are in range."""
-	return not text.is_empty() and source >= 0 and source < SOURCE_NAMES.size() and level >= LEVEL_NOTE \
-		and level <= LEVEL_WARNING and to_kind >= TARGET_NONE and to_kind < TARGET_NAMES.size() \
-		and tier >= TIER_AUTO and tier <= TIER_URGENT
+	return not words.is_empty() and from_source >= 0 and from_source < SOURCE_NAMES.size() and at_level >= LEVEL_NOTE \
+		and at_level <= LEVEL_WARNING and to_kind >= TARGET_NONE and to_kind < TARGET_NAMES.size() \
+		and as_tier >= TIER_AUTO and as_tier <= TIER_URGENT
 
 
-static func infer_tier(level: int) -> int:
+static func infer_tier(at_level: int) -> int:
 	"""The tier a post that names none takes (see TIERS): a WARNING is normal, a NOTE info."""
-	return TIER_NORMAL if level == LEVEL_WARNING else TIER_INFO
+	return TIER_NORMAL if at_level == LEVEL_WARNING else TIER_INFO
 
 
-static func subject_of(subject: String, to_kind: int, to_id: int) -> String:
+static func subject_of(about_subject: String, to_kind: int, to_id: int) -> String:
 	"""What a post is about (see TIERS): `subject` when given, else its target "bed:3", else ""."""
-	if not subject.is_empty():
-		return subject
+	if not about_subject.is_empty():
+		return about_subject
 	if to_kind <= TARGET_NONE or to_kind >= TARGET_NAMES.size():
 		return ""
 	return "%s:%d" % [TARGET_NAMES[to_kind], to_id]
 
 
-func _new_row(source: int, level: int, text: String, summary: String, to_kind: int, to_id: int, serial: int) -> int:
+func _new_row(from_source: int, at_level: int, words: String, brief: String, to_kind: int, to_id: int,
+		serial: int) -> int:
 	"""A new newest row (overflow letting the oldest unheld one go), with a new entry id; returns its index."""
 	if _source.size() >= CAPACITY:
 		_remove(_victim())
-	_append(source, level, text, summary, to_kind, to_id, serial)
+	_append(from_source, at_level, words, brief, to_kind, to_id, serial)
 	rows_posted += 1
 	var row: int = _source.size() - 1
 	_id[row] = rows_posted
@@ -273,11 +277,11 @@ func _new_row(source: int, level: int, text: String, summary: String, to_kind: i
 	return row
 
 
-func _tag(row: int, said: int, kind: StringName, about: String) -> void:
+func _tag(row: int, said: int, as_kind: StringName, about: String) -> void:
 	"""A new row's tier, kind (named, or inferred: see TIERS), subject, and whether it is announced (see THROTTLE)."""
 	_tier[row] = said
-	_named[row] = 0 if kind == NO_KIND else 1
-	_kind[row] = String(kind) if kind != NO_KIND else _inferred_kind(row)
+	_named[row] = 0 if as_kind == NO_KIND else 1
+	_kind[row] = String(as_kind) if as_kind != NO_KIND else _inferred_kind(row)
 	_subject[row] = about
 	_announced[row] = _admit(said, _kind[row])
 
@@ -288,44 +292,44 @@ func _inferred_kind(row: int) -> String:
 	return "%s:%s" % [SOURCE_NAMES[_source[row]].to_lower(), words]
 
 
-func _group_row(kind: String, about: String) -> int:
+func _group_row(as_kind: String, about: String) -> int:
 	"""The storage index of the newest entry a post naming `kind` about `about` joins (see GROUPING; -1: none)."""
 	var now: int = now_tick()
 	for i: int in range(_source.size() - 1, -1, -1):
-		if _named[i] == 1 and _kind[i] == kind and _subject[i] == about and _incident[i] == NO_INCIDENT:
+		if _named[i] == 1 and _kind[i] == as_kind and _subject[i] == about and _incident[i] == NO_INCIDENT:
 			return i if now - _said_tick[i] <= GROUP_WINDOW_TICKS else -1
 	return -1
 
 
-func _regroup(i: int, source: int, level: int, text: String, summary: String, to_kind: int, to_id: int,
+func _regroup(i: int, from_source: int, at_level: int, words: String, brief: String, to_kind: int, to_id: int,
 		said: int) -> int:
 	"""Fold a grouped repeat into storage index `i` and move it to the newest place (see GROUPING): counted, its id,
 	kind, subject and first tick kept, the new words, level, tier and target taken; shown again unless snoozed (one
 	the budget held back asks the budget again). Returns its new index."""
 	var kept := Vector4i(_id[i], _repeats[i] + 1, _named[i], _announced[i])
 	var first: int = _first_tick[i]
-	var kind: String = _kind[i]
+	var as_kind: String = _kind[i]
 	var about: String = _subject[i]
 	_remove(i)
-	_append(source, level, text, summary, to_kind, to_id, NO_INCIDENT)
+	_append(from_source, at_level, words, brief, to_kind, to_id, NO_INCIDENT)
 	var row: int = _source.size() - 1
 	_id[row] = kept.x
 	_repeats[row] = kept.y
 	_named[row] = kept.z
 	_first_tick[row] = first
-	_kind[row] = kind
+	_kind[row] = as_kind
 	_subject[row] = about
 	_tier[row] = said
-	_announced[row] = 1 if kept.w == 1 and not _snoozed(kind, said) else _admit(said, kind)
+	_announced[row] = 1 if kept.w == 1 and not _snoozed(as_kind, said) else _admit(said, as_kind)
 	return row
 
 
-func _admit(said: int, kind: String) -> int:
+func _admit(said: int, as_kind: String) -> int:
 	"""Whether a new row is announced (1) or kept quiet (0): urgent always; a snoozed kind never; else while its
 	tier's toast budget allows (see THROTTLE)."""
 	if said == TIER_URGENT:
 		return 1
-	if _snoozed(kind, said):
+	if _snoozed(as_kind, said):
 		snoozed_quiet += 1
 		return 0
 	_refill()
@@ -345,14 +349,14 @@ func _refill() -> void:
 	_credit_at = now
 
 
-func _append(source: int, level: int, text: String, summary: String, to_kind: int, to_id: int,
+func _append(from_source: int, at_level: int, words: String, brief: String, to_kind: int, to_id: int,
 		serial: int) -> void:
 	"""One new newest entry (stamped and timed by `post`, tagged by `_tag` or `_regroup`)."""
 	_stamp.append(UNDATED)
-	_text.append(text)
-	_summary.append(summary)
-	_source.append(source)
-	_level.append(level)
+	_text.append(words)
+	_summary.append(brief)
+	_source.append(from_source)
+	_level.append(at_level)
 	_posted_msec.append(0)
 	_repeats.append(1)
 	_target_kind.append(to_kind)
@@ -399,29 +403,29 @@ func _held(i: int) -> bool:
 	return true
 
 
-func repeats_newest(source: int, level: int, text: String, summary: String) -> bool:
+func repeats_newest(from_source: int, at_level: int, words: String, brief: String) -> bool:
 	"""Whether a post says exactly what the newest entry says (see REPEATS FOLD). An empty feed has no newest
 	entry, so the first post never matches."""
 	if _source.is_empty():
 		return false
 	var newest: int = _row(0)
-	return _source[newest] == source and _level[newest] == level and _text[newest] == text \
-			and _summary[newest] == summary
+	return _source[newest] == from_source and _level[newest] == at_level and _text[newest] == words \
+			and _summary[newest] == brief
 
 
-func poster(source: int, level: int) -> Callable:
+func poster(from_source: int, at_level: int) -> Callable:
 	"""A `(text: String) -> void` that posts at this source and level (for a module's notice hook)."""
-	return func(text: String) -> void: post(source, level, text)
+	return func(words: String) -> void: post(from_source, at_level, words)
 
 
 # --- snooze and dismiss -------------------------------------------------------------------------------
 
-func snooze_kind(kind: StringName, hours: int = SNOOZE_HOURS) -> bool:
+func snooze_kind(as_kind: StringName, hours: int = SNOOZE_HOURS) -> bool:
 	"""Quiet `kind` for `hours` game hours from now (see SNOOZE AND DISMISS). Refuses an empty kind or hours < 1."""
-	if kind == NO_KIND or hours < 1:
+	if as_kind == NO_KIND or hours < 1:
 		return false
 	var now: int = now_tick()
-	if not snoozes.snooze(String(kind), now + hours * SimClock.TICKS_PER_HOUR, now):
+	if not snoozes.snooze(String(as_kind), now + hours * SimClock.TICKS_PER_HOUR, now):
 		return false
 	revision += 1
 	return true
@@ -434,9 +438,9 @@ func snooze_entry(k: int, hours: int = SNOOZE_HOURS) -> bool:
 	return snooze_kind(kind(k), hours)
 
 
-func wake_kind(kind: StringName) -> bool:
+func wake_kind(as_kind: StringName) -> bool:
 	"""End `kind`'s snooze (false: it was not snoozed)."""
-	if not snoozes.wake(String(kind)):
+	if not snoozes.wake(String(as_kind)):
 		return false
 	revision += 1
 	return true
@@ -449,21 +453,23 @@ func wake_all() -> int:
 	return woken
 
 
-func is_kind_snoozed(kind: StringName) -> bool:
+func is_kind_snoozed(as_kind: StringName) -> bool:
 	"""Whether `kind` is snoozed now."""
-	return snoozes.is_snoozed(String(kind), now_tick())
+	return snoozes.is_snoozed(String(as_kind), now_tick())
 
 
-@warning_ignore("integer_division")
-func snooze_hours_left(kind: StringName) -> int:
-	"""Whole game hours until `kind` wakes, rounded up (0: not snoozed). Integer division: whole hours, by intent."""
-	var left: int = snoozes.until(String(kind)) - now_tick()
-	return (left + SimClock.TICKS_PER_HOUR - 1) / SimClock.TICKS_PER_HOUR if left > 0 else 0
+func snooze_hours_left(as_kind: StringName) -> int:
+	"""Whole game hours until `as_kind` wakes, rounded up (0: not snoozed). Integer division: whole hours, by intent."""
+	var left: int = snoozes.until(String(as_kind)) - now_tick()
+	if left <= 0:
+		return 0
+	@warning_ignore("integer_division")
+	return (left + SimClock.TICKS_PER_HOUR - 1) / SimClock.TICKS_PER_HOUR
 
 
-func _snoozed(kind: String, said: int) -> bool:
+func _snoozed(as_kind: String, said: int) -> bool:
 	"""Whether an entry of `kind` at tier `said` is kept quiet by a snooze now (never an urgent one)."""
-	return said != TIER_URGENT and snoozes.is_snoozed(kind, now_tick())
+	return said != TIER_URGENT and snoozes.is_snoozed(as_kind, now_tick())
 
 
 func dismiss(k: int) -> bool:
@@ -475,9 +481,9 @@ func dismiss(k: int) -> bool:
 	return true
 
 
-func dismiss_id(entry_id: int) -> bool:
+func dismiss_id(wanted_id: int) -> bool:
 	"""`dismiss` the entry with this id (false: gone, or already dismissed)."""
-	return dismiss(index_of(entry_id))
+	return dismiss(index_of(wanted_id))
 
 
 # --- reading ------------------------------------------------------------------------------------------
@@ -677,7 +683,7 @@ func short_line(k: int) -> String:
 
 
 func kind_title(wanted: StringName) -> String:
-	"""A kind in words: the newest entry of it's summary, else its text (the kind itself when none is kept)."""
+	"""A kind in words: the summary of its newest entry, else that entry's text (the kind itself when none is kept)."""
 	for k: int in count():
 		if _kind[_row(k)] == String(wanted):
 			return summary(k) if not summary(k).is_empty() else text(k)

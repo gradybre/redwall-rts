@@ -420,7 +420,7 @@ func _keep_record() -> void:
 			RecordText.day_summary(record, k))
 		var day: int = record.value(k, RecordScript.F_DAY)
 		if day % RecordScript.DAYS_PER_SEASON == RecordScript.DAYS_PER_SEASON - 1:
-			services.notices.post(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_NOTE, "Season's record, "
+			@warning_ignore("integer_division") services.notices.post(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_NOTE, "Season's record, "
 				+ RecordText.season_line(record, day / RecordScript.DAYS_PER_SEASON))
 
 

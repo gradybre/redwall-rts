@@ -37,20 +37,20 @@ func _init() -> void:
 	_state = FarmUi.label("", FarmUi.BODY_PX, Palette.INK, true)
 	add_child(_state)
 	add_child(FarmUi.label(ZONE_TEXT, FarmUi.SMALL_PX, Palette.UMBER))
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override(&"separation", 6)
+	var strip := HBoxContainer.new()
+	strip.add_theme_constant_override(&"separation", 6)
 	for setting: int in Sluice.SLUICE_COUNT:
-		var button: Button = FarmUi.button(Sluice.SLUICE_VERBS[setting])
-		button.toggle_mode = true
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.pressed.connect(func() -> void: sluice_chosen.emit(setting))
-		button.mouse_entered.connect(hover.bind(setting))
-		button.focus_entered.connect(hover.bind(setting))
-		button.mouse_exited.connect(hover.bind(NO_HOVER))
-		button.focus_exited.connect(hover.bind(NO_HOVER))
-		row.add_child(button)
-		_buttons.append(button)
-	add_child(row)
+		var choice: Button = FarmUi.button(Sluice.SLUICE_VERBS[setting])
+		choice.toggle_mode = true
+		choice.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		choice.pressed.connect(func() -> void: sluice_chosen.emit(setting))
+		choice.mouse_entered.connect(hover.bind(setting))
+		choice.focus_entered.connect(hover.bind(setting))
+		choice.mouse_exited.connect(hover.bind(NO_HOVER))
+		choice.focus_exited.connect(hover.bind(NO_HOVER))
+		strip.add_child(choice)
+		_buttons.append(choice)
+	add_child(strip)
 	_preview_title = FarmUi.label("", FarmUi.SMALL_PX, Palette.UMBER, true)
 	add_child(_preview_title)
 	_preview = FarmUi.label("", FarmUi.BODY_PX, Palette.INK)
@@ -79,11 +79,11 @@ func refresh() -> void:
 	_state.text = "Sluice: %s" % Sluice.SLUICE_NAMES[_leat.setting]
 	for setting: int in Sluice.SLUICE_COUNT:
 		_leat.card_into(_card, setting)
-		var button: Button = _buttons[setting]
-		FarmUi.set_card(button, _card.is_ok(), _card.text())
-		button.set_pressed_no_signal(setting == _leat.setting)
+		var choice: Button = _buttons[setting]
+		FarmUi.set_card(choice, _card.is_ok(), _card.text())
+		choice.set_pressed_no_signal(setting == _leat.setting)
 		if setting == _leat.setting:
-			button.modulate.a = 1.0
+			choice.modulate.a = 1.0
 	var shown: int = _hover if Sluice.is_sluice(_hover) else _leat.setting
 	_leat.preview_into(shown, _shown)
 	_preview_title.text = NOW_TITLE if shown == _leat.setting else IF_TITLE % Sluice.SLUICE_NAMES[shown].to_lower()
@@ -98,11 +98,11 @@ static func row_text(p: LeatScript.Preview, k: int) -> String:
 	var change: String = Sluice.SERVICE_NAMES[p.service_after[k]]
 	if p.service_now[k] != p.service_after[k]:
 		change = "%s → %s" % [Sluice.SERVICE_NAMES[p.service_now[k]], change]
-	var nudge: String = "nothing added" if p.nudge[k] == 0 else "%+d%% from the leat" % (p.nudge[k] / 100)
+	@warning_ignore("integer_division") var nudge: String = "nothing added" if p.nudge[k] == 0 else "%+d%% from the leat" % (p.nudge[k] / 100)
 	var text: String = "%s · %s now · leat %s · %s" % [Sluice.bed_word(p.beds[k]), SimScript.BAND_NAMES[p.band_now[k]],
 		change, nudge]
 	if p.flooding and p.flood_rise[k] > 0:
-		text += " · flood +%d%%" % (p.flood_rise[k] / 100)
+		@warning_ignore("integer_division") text += " · flood +%d%%" % (p.flood_rise[k] / 100)
 	return text
 
 

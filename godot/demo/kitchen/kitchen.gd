@@ -459,9 +459,9 @@ func _free_of(crop: int) -> int:
 
 func _free_batches(dish: int) -> int:
 	"""Whole batches of `dish` the free food makes (the lesser of its two inputs for a two-input dish)."""
-	var batches: int = _free_food(dish) / Rules.INPUT_MILLI[dish]
+	@warning_ignore("integer_division") var batches: int = _free_food(dish) / Rules.INPUT_MILLI[dish]
 	if Rules.SIDE_CROP[dish] >= 0:
-		batches = mini(batches, _free_of(Rules.SIDE_CROP[dish]) / Rules.SIDE_MILLI[dish])
+		@warning_ignore("integer_division") batches = mini(batches, _free_of(Rules.SIDE_CROP[dish]) / Rules.SIDE_MILLI[dish])
 	return batches
 
 
@@ -1940,8 +1940,8 @@ func cookable_batches() -> int:
 func cookable_portions() -> int:
 	"""The portions `cookable_batches` cook, each dish at its own PORTIONS_PER_BATCH (the stew makes 3), the wood's
 	limit taken porridge first."""
-	var wood: int = stores.wood_milli_u / Rules.WOOD_MILLI_PER_BATCH
-	var porridge: int = mini(wood, _crop_milli(Rules.INPUT_CROP[Rules.DISH_PORRIDGE]) / Rules.INPUT_MILLI[Rules.DISH_PORRIDGE])
+	@warning_ignore("integer_division") var wood: int = stores.wood_milli_u / Rules.WOOD_MILLI_PER_BATCH
+	@warning_ignore("integer_division") var porridge: int = mini(wood, _crop_milli(Rules.INPUT_CROP[Rules.DISH_PORRIDGE]) / Rules.INPUT_MILLI[Rules.DISH_PORRIDGE])
 	var stew: int = mini(wood - porridge, _stew_batches())
 	var soup: int = mini(wood - porridge - stew, _soup_batches_after(stew))
 	return porridge * Rules.PORTIONS_PER_BATCH[Rules.DISH_PORRIDGE] + stew * Rules.PORTIONS_PER_BATCH[Rules.DISH_FISH_STEW] \
@@ -1951,14 +1951,14 @@ func cookable_portions() -> int:
 func _stew_batches() -> int:
 	"""Fish stew batches the pantry's fresh fish and roots make."""
 	var stew: int = Rules.DISH_FISH_STEW
-	return mini(_crop_milli(Rules.INPUT_CROP[stew]) / Rules.INPUT_MILLI[stew],
+	@warning_ignore("integer_division") return mini(_crop_milli(Rules.INPUT_CROP[stew]) / Rules.INPUT_MILLI[stew],
 		_crop_milli(Rules.SIDE_CROP[stew]) / Rules.SIDE_MILLI[stew])
 
 
 func _soup_batches_after(stew: int) -> int:
 	"""Soup batches the roots left after `stew` batches of fish stew make."""
 	var roots: int = _crop_milli(Rules.INPUT_CROP[Rules.DISH_SOUP]) - stew * Rules.SIDE_MILLI[Rules.DISH_FISH_STEW]
-	return maxi(0, roots) / Rules.INPUT_MILLI[Rules.DISH_SOUP]
+	@warning_ignore("integer_division") return maxi(0, roots) / Rules.INPUT_MILLI[Rules.DISH_SOUP]
 
 
 func _crop_milli(crop: int) -> int:

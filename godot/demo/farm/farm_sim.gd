@@ -339,7 +339,7 @@ static func leat_delta(service: int, moisture: int, low: int, high: int) -> int:
 	"""The leat's own nudge to a bed at `moisture` with band [low, high] (see THE GARDEN LEAT): NORMAL toward the
 	middle either way, WET up toward the WET band's middle only, DRY and NONE nothing."""
 	if service == Sluice.SERVICE_NORMAL:
-		return clampi((low + high) / 2 - moisture, -LEAT_PER_DAY, LEAT_PER_DAY)
+		@warning_ignore("integer_division") return clampi((low + high) / 2 - moisture, -LEAT_PER_DAY, LEAT_PER_DAY)
 	if service == Sluice.SERVICE_WET:
 		return clampi(high + WET_ABOVE_TOP - moisture, 0, LEAT_PER_DAY)
 	return 0

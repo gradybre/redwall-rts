@@ -416,7 +416,7 @@ func _fill_overview() -> void:
 
 func _fill_calendar() -> void:
 	"""Rebuild the season's entries when anything they read changed, then the timeline or the table."""
-	var now_season: int = (_sim.calendar.now().absolute_day - 1) / SimClock.DAYS_PER_SEASON
+	@warning_ignore("integer_division") var now_season: int = (_sim.calendar.now().absolute_day - 1) / SimClock.DAYS_PER_SEASON
 	_season_now[0] = _sim.calendar.hour_index()
 	_season_now[1] = _record.revision if _record != null else 0
 	_season_now[2] = _sim.revision
@@ -472,15 +472,15 @@ func _fill_record() -> void:
 	"""Yesterday's line, this season's totals and days, and the last season's totals."""
 	var days: int = _record.day_count() if _record != null else 0
 	_yesterday.text = RecordText.day_line(_record, days - 1) if days > 0 else NO_DAY_YET
-	var season: int = (_sim.calendar.now().absolute_day - 1) / SimClock.DAYS_PER_SEASON
-	var lines := PackedStringArray([RecordText.season_line(_record, season)])
-	if season > 0 and _record.season_days(season - 1) > 0:
-		lines.append("Last season — " + RecordText.season_line(_record, season - 1))
+	@warning_ignore("integer_division") var now_season: int = (_sim.calendar.now().absolute_day - 1) / SimClock.DAYS_PER_SEASON
+	var lines := PackedStringArray([RecordText.season_line(_record, now_season)])
+	if now_season > 0 and _record.season_days(now_season - 1) > 0:
+		lines.append("Last season — " + RecordText.season_line(_record, now_season - 1))
 	_season_line.text = "\n".join(lines)
 	var shown: int = 0
-	_record_table.set_row_count(_record.season_days(season))
+	_record_table.set_row_count(_record.season_days(now_season))
 	for k: int in days:
-		if _record.value(k, RecordScript.F_DAY) / SimClock.DAYS_PER_SEASON == season:
+		@warning_ignore("integer_division") if _record.value(k, RecordScript.F_DAY) / SimClock.DAYS_PER_SEASON == now_season:
 			RecordText.table_cells_into(_record, k, _cells)
 			var short: bool = _record.value(k, RecordScript.F_WITHOUT) > 0 or _record.value(k, RecordScript.F_LOST) > 0
 			_record_table.set_row(shown, _cells, k, Palette.CLAY if short else Palette.INK)

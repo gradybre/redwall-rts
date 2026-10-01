@@ -559,7 +559,7 @@ func refresh_lens() -> void:
 
 
 func member_note(who: int) -> String:
-	"""One member's route in words: its hold-up, else its stretches ("Mouse keeper: surface 12 m · underground, level 1
+	"""One member's route in words: its hold-up, else its stretches ("Wenna Tallowby: surface 12 m · underground, level 1
 	8 m"), else that it is not going anywhere."""
 	var brain: BrainScript = brain_of(who)
 	var why: int = ReasonsScript.diagnose(brain, _cast.space().tunnels, _where)

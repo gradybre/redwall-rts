@@ -33,8 +33,9 @@ const LINE_BLOCK: String = "Blocked: the line won't reach yet — the thrower wa
 const WATCH_BLOCK: String = "Blocked: no diver with the air free — the swimmer above tows them the moment they float up (about %d s)"
 const ETA: String = "safe ashore in about %d s at 1× (approximate: the flow is not counted)"
 const APPROACH: String = "on the way to the water"
-const VICTIM: String = "Victim ▸"
-const RESPONDER: String = "Responder ▸"
+## The residents' targets carry their names (decision 0491): "Victim: Tobit Highbough ▸".
+const VICTIM: String = "Victim: %s ▸"
+const RESPONDER: String = "Responder: %s ▸"
 const LANDING: String = "Landing ▸"
 
 ## One card's details (the caller's, reused).
@@ -100,9 +101,10 @@ func card_into(key: String, out: CardsScript.Extra) -> bool:
 	out.lines.append(_details.phase)
 	if not _details.time.is_empty():
 		out.lines.append(_details.time)
-	out.add_target(VICTIM, NoticesScript.TARGET_RESIDENT, _details.victim, Vector2.ZERO)
+	out.add_target(VICTIM % name_of(_details.victim), NoticesScript.TARGET_RESIDENT, _details.victim, Vector2.ZERO)
 	if _details.responder >= 0:
-		out.add_target(RESPONDER, NoticesScript.TARGET_RESIDENT, _details.responder, Vector2.ZERO)
+		out.add_target(RESPONDER % name_of(_details.responder), NoticesScript.TARGET_RESIDENT, _details.responder,
+			Vector2.ZERO)
 	if _details.landing.is_finite():
 		out.add_target(LANDING, NoticesScript.TARGET_NONE, -1, _details.landing)
 	return true

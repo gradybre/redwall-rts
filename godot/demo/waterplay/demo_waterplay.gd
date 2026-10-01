@@ -288,7 +288,8 @@ func _hook_command() -> void:
 	_command.add_task_text(task_text)
 	_command.add_resume_rule(crew.resume_rule)
 	_command.add_input_hook(handle_tool_input)
-	_command.add_skill_text(skill_text)
+	_command.add_skill_text(bridging_text, true)
+	_command.add_skill_text(swimming_text)
 	panel.resident_picked.connect(_command.pick_member)
 
 
@@ -1007,6 +1008,16 @@ func task_text(who: int) -> String:
 func skill_text(who: int, alone: bool) -> String:
 	"""A resident's bridge building, swimming, breath and stamina for the party panel."""
 	return text.skill_line(who, alone)
+
+
+func bridging_text(who: int, alone: bool) -> String:
+	"""A resident's bridge building alone (a skill-only provider: the people's meters say it for one resident)."""
+	return text.bridge_line(who, alone)
+
+
+func swimming_text(who: int, alone: bool) -> String:
+	"""A resident's swimming, breath and stamina (what is left of `skill_text` without its bridge building)."""
+	return text.swim_line(who, alone)
 
 
 func brain_of(who: int) -> BrainScript:

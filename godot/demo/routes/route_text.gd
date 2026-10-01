@@ -94,7 +94,7 @@ static func bore_who(bore_class: int, fitting: int, fitting_loaded: int, total: 
 
 static func member_lines(graph: GraphScript, members: PackedInt32Array, bore_class: int, carrying: bool,
 		name_of: Callable) -> PackedStringArray:
-	"""Each member's own verdict for a bore of `bore_class` (carrying, when `carrying`): "Mouse keeper: fits, carrying
+	"""Each member's own verdict for a bore of `bore_class` (carrying, when `carrying`): "Wenna Tallowby: fits, carrying
 	too" -- never the first member's for the rest (see FIT)."""
 	var lines := PackedStringArray()
 	for who: int in members:

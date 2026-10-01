@@ -814,7 +814,9 @@ func test_the_rescue_card_names_victim_responder_landing_and_a_time_the_same_whi
 	assert_true(details.landing.is_finite(), "the landing it will be towed to")
 	var extra := CardsScript.Extra.new()
 	assert_true(card.card_into("water:rescue:0", extra), "the card's details")
-	assert_equal(extra.labels, PackedStringArray([RescueCardScript.VICTIM, RescueCardScript.RESPONDER, RescueCardScript.LANDING]), "three targets")
+	assert_equal(extra.labels, PackedStringArray([RescueCardScript.VICTIM % card.name_of(0),
+		RescueCardScript.RESPONDER % card.name_of(2), RescueCardScript.LANDING]), "three targets, the residents by name")
+	assert_true(extra.labels[0].contains(card.name_of(0)) and not card.name_of(0).is_empty(), "the victim's name")
 	assert_equal([extra.kinds[0], extra.ids[0], extra.ids[1]], [NoticesScript.TARGET_RESIDENT, 0, 2], "the residents")
 	var again := RescueCardScript.Details.new()
 	card.details_into("water:rescue:0", again)

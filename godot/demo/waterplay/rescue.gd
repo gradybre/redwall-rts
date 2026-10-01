@@ -62,6 +62,8 @@ const CastNavScript := preload("res://demo/cast/cast_nav.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 
 const DISPATCH_S: float = 1.0
+## The assistance log's length (see THE ASSISTANCE LOG).
+const ASSIST_LOG: int = 32
 const WASH_ASHORE_S: float = 90.0
 const WASH_ASHORE_ENGAGED_S: float = 240.0
 ## A swim counts this many times its straight length against a walk -- the weighting water_links.gd
@@ -71,6 +73,13 @@ const SWIM_WEIGHT: float = LinksScript.SWIM_WEIGHT
 ## Rescues so far (for the panel), and whether a victim is waiting.
 var rescued: int = 0
 var victims: PackedInt32Array = PackedInt32Array()
+## THE ASSISTANCE LOG (decision 0491): every victim a RESCUER brought ashore -- the rescuer that held it as it landed
+## (a swimmer's tow or a thrower's haul) and the victim -- newest last, at most ASSIST_LOG long; `assists` counts them
+## all. A victim the water washed ashore (the safety net) is no assistance and is not logged. The people ledger
+## (demo/people/people_taps.gd) reads it: a rescue is remembered only when it actually succeeded.
+var assists: int = 0
+var assisted_by: PackedInt32Array = PackedInt32Array()
+var assisted_victim: PackedInt32Array = PackedInt32Array()
 ## How many routes the last `nearest_free_into` planned (NEAREST BY ROUTE: the bound spares the rest),
 ## and the way the one it chose would go (m: its route, and a swimmer's weighted swim on; INF when no
 ## candidate's route could be planned).
@@ -397,7 +406,26 @@ func _is_rescuing(brain: BrainScript) -> bool:
 
 
 func ashore(victim: RefCounted, landing: PackedVector2Array) -> void:
-	"""A victim brought to a landing's water point: it climbs out there and rests."""
+	"""A victim brought to a landing's water point by its rescuer (a rescue task's hand-over): logged as an assistance
+	(see THE ASSISTANCE LOG); it climbs out there and rests."""
+	var task: Tasks.VictimTask = _victim_task[victim.index]
+	if task != null and task.responder >= 0:
+		_log_assist(task.responder, victim.index)
+	_land(victim, landing)
+
+
+func _log_assist(rescuer: int, victim: int) -> void:
+	"""One assistance into the log (see THE ASSISTANCE LOG)."""
+	assists += 1
+	assisted_by.append(rescuer)
+	assisted_victim.append(victim)
+	if assisted_by.size() > ASSIST_LOG:
+		assisted_by.remove_at(0)
+		assisted_victim.remove_at(0)
+
+
+func _land(victim: RefCounted, landing: PackedVector2Array) -> void:
+	"""A victim at a landing's water point, however it got there: it climbs out and rests."""
 	var who: int = victim.index
 	victims.erase(who)
 	_victim_task[who] = null
@@ -413,7 +441,7 @@ func _wash_ashore(who: int) -> void:
 	brain.water_place(landing[1], _motion.surface_y_m(landing[1]), brain.yaw)
 	_note("%s washed ashore at the landing, unhurt" % name_of(who), true)
 	_stand_down(brain)
-	ashore(brain, landing)
+	_land(brain, landing)
 
 
 func _stand_down(victim: BrainScript) -> void:

@@ -8,8 +8,10 @@ extends Node
 ##
 ## THE ADAPTER. The same rows, the same workspace, filled from the demo's cast, one row per resident in cast order
 ## (`actor_of(row)` is that row's cast index):
-##   line 1   name -- species, trade · where it is (on the surface, in the water, indoors, underground and on
-##            which level) · how fed it is (fed, peckish, hungry: the kitchen's, decision 0381, when one is bound)
+##   line 1   name (its person's, decision 0491: "Wenna Tallowby", marked ★ when the player has pinned it as notable)
+##            -- species, trade ("mouse, keeper": the trade stays a role) · where it is (on the surface, in the water,
+##            indoors, underground and on which level) · how fed it is (fed, peckish, hungry: the kitchen's, decision
+##            0381, when one is bound)
 ##   line 2   what it is doing now (the party panel's own words, demo_command.gd `activity_text`) and the saved
 ##            work it will go back to and its queued orders ("Next: ...", the party panel's line)
 ## The workspace's title says "Residents". Rows refresh twice a second while the roster is open, and only when a
@@ -45,6 +47,8 @@ const UNDERGROUND: String = "Underground, level %d"
 ## A row's text starts this far in from its left edge (UI §1.2's 12 px panel padding).
 const ROW_INSET_PX: float = 12.0
 const ROW_SLOTS: Array[StringName] = [&"normal", &"hover", &"pressed", &"disabled", &"hover_pressed"]
+## A resident the player pinned as notable (SOC-001, decision 0491): after its name.
+const NOTABLE_MARK: String = " ★"
 
 var _shell: UiShell = null
 var _cast: DemoCastScript = null
@@ -52,6 +56,8 @@ var _cast: DemoCastScript = null
 var _command: CommandScript = null
 ## (who: int) -> String: a resident's fed state in a word (demo/kitchen/kitchen.gd `fed_word`; unset: not shown).
 var _fed_text: Callable = Callable()
+## (who: int) -> bool: whether the player pinned a resident as notable (demo/people/people_ledger.gd; unset: never).
+var _notable: Callable = Callable()
 ## The camera rig: `centre_on`.
 var _rig: CameraScript = null
 var _rows: PackedStringArray = PackedStringArray()
@@ -78,6 +84,11 @@ func configure(shell: UiShell, cast: DemoCastScript, command: CommandScript, rig
 func set_fed_text(fed_text: Callable) -> void:
 	"""Show each resident's fed state on its row (see THE ADAPTER)."""
 	_fed_text = fed_text
+
+
+func set_notable(notable: Callable) -> void:
+	"""Mark the residents the player pinned as notable (see THE ADAPTER)."""
+	_notable = notable
 
 
 func _on_shell_action(element_id: int) -> void:
@@ -156,13 +167,16 @@ func row_text(i: int) -> String:
 	var where: String = location_text(brain)
 	if _fed_text.is_valid():
 		where += " · " + String(_fed_text.call(i))
-	return row_words(actor.display_name, actor.species, trade_of(actor.creature_key), where, doing,
+	var who: String = actor.display_name
+	if _notable.is_valid() and bool(_notable.call(i)):
+		who += NOTABLE_MARK
+	return row_words(who, actor.species.to_lower(), trade_of(actor.creature_key), where, doing,
 		OrderList.items_into(brain, PackedStringArray()))
 
 
 static func row_words(who: String, species: String, trade: String, where: String, doing: String,
 		then: PackedStringArray) -> String:
-	"""'Mole digger — Mole, digger · Underground, level 1' over 'Digging tunnel — 43% · Next: back to ...'."""
+	"""'Tuppen Clayholm — mole, digger · Underground, level 1' over 'Digging tunnel — 43% · Next: back to ...'."""
 	var first: String = "%s — %s%s · %s" % [who, species, ", " + trade if not trade.is_empty() else "", where]
 	var second: String = doing.left(1).to_upper() + doing.substr(1)
 	if not then.is_empty():

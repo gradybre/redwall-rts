@@ -2,8 +2,9 @@
 
 A presentation-only demo (decision 0196). It boots the real game — settlement, simulation clock,
 HUD, UIManager — and draws a small village of real library assets on top: buildings, trees,
-crops and props at game scale, and eight real rigged residents who walk between work spots with
-live tail springs (`TailRig`, decision 0194), grounded clips (0193) and stride-matched speed.
+crops and props at game scale, and nine real rigged residents -- an original community, each named (see People) --
+who walk between work spots with live tail springs (`TailRig`, decision 0194), grounded clips (0193) and
+stride-matched speed.
 The HUD wears a demo-only woodland skin in the visual language of
 `docs/design/ui_refinement/visuals/05_woodland_art_concept.png`.
 
@@ -226,7 +227,7 @@ into view in its own pixels at any interface scale (`ui/demo_scroll.gd`; decisio
 
 | Key | Does |
 |---|---|
-| F7 | Move focus: world -> the right column (its first tab) -> the left column (the party panel) -> the Map layer picker -> the guide's objective card (when shown; decision 0481) -> world. A control the Residents workspace (L) covers is skipped, and Enter on one is not pressed (decision 0391) |
+| F7 | Move focus: world -> the right column (its first tab) -> the left column (the party panel) -> the Map layer picker -> the guide's objective card (when shown; decision 0481) -> the people's offer card, while one shows (decision 0491) -> world. A control the Residents workspace (L) covers is skipped, and Enter on one is not pressed (decision 0391) |
 | Tab / Shift+Tab | Next / previous button where the focus is (in a pop-up: its buttons only) |
 | Enter / Space | Press the focused button. Only the keyboard's focus takes them: after a click, Enter still digs the piece the Dig tool has laid, Space still pauses and the arrows still pan the camera |
 | Esc | With focus in a panel: back to the world. Otherwise the pop-up, tool or selection ladder below, then the game menu |
@@ -267,7 +268,8 @@ the same six figures and where each is. A figure whose owner is missing reads **
 UIManager still repaints the cells with the settlement's figures when the simulation's stock changes;
 the demo paints its own back the next frame.
 
-**Residents (L)** lists the cast, one row per resident: name, species and trade, where it is (on the
+**Residents (L)** lists the cast, one row per resident: its name, species and trade ("Wenna Tallowby — mouse,
+keeper"; ★ after a resident the player pinned as notable -- see People), where it is (on the
 surface, in the water, indoors, or underground and on which level), what it is doing (the party panel's
 own words) and the saved work it will go back to. Clicking a row selects that resident, so the Demo party
 panel shows it, centres the camera on it and closes the roster (`ui/demo_roster.gd`).
@@ -282,6 +284,47 @@ the tunnels, bridges or woods change; the frame and the dots are drawn each fram
 suitable range, fertility and crop health as percentages, fertility's effect on the yield as a change
 ("−15%"), one expected harvest, and treatments in percentage points ("Rest: +0.5 fertility points a
 day"). **Details** in the bed panel shows the harvest's multiplication and the raw 0..10000 readings.
+
+## People (decision 0491)
+
+The demo's nine residents are an **original community** (Brendan's rulings, 2026-10-01) -- not Rowan, not book
+characters -- each with a name, an interest and a way of speaking, from ONE data file, `people/demo_people.json`
+(edit it there; its provenance note says they are original). Their trades stay roles.
+
+| Resident | Name | Interest |
+|---|---|---|
+| Mouse keeper | Wenna Tallowby | carves tiny animal figures for the windowsills |
+| Mouse fieldworker | Jory Whitethorn | can whistle a dozen birdcalls |
+| Squirrel gatherer | Linnet Whinberry | plays a reed pipe, badly and often |
+| Squirrel forester | Tobit Highbough | sorts a pebble collection by colour |
+| Otter boatwright | Tegwin Slipstone | is teaching himself to read from an old almanac |
+| Otter fisher | Corra Netley | sings rounds and teaches them to anyone nearby (calls everyone "friend") |
+| Mole digger | Tuppen Clayholm | keeps a box of odd keys and buttons (light molespeak: "hurr", "burr aye") |
+| Badger quarryman | Hulda Slatebrook | embroiders samplers with old sayings |
+| Beaver bridgewright | Elstan Weirholt | plays the fiddle in the evenings |
+
+- **One name everywhere.** `display_name` is the person's: the roster, the party panel, the Work screen ("Wenna
+  Tallowby (mouse keeper) — Haulers crew"), the news, incidents, action cards, refusals and every feed name the same
+  person. A placeholder (nothing staged) keeps its label.
+- **The resident inspector** (the party panel with one resident selected): its name and role ("Mouse, keeper"), what it
+  is doing and **why** ("Why: the Field crew's own work (Farm)", "Why: the village cook", "Why: your order", "Why: free —
+  no task taken yet"), how fed it is, and its **skills as meters** ("Felling · Level 3" over its progress to the next
+  level, from the XP real work earned). **About <name> ▸** opens, only when asked, its interest, its evening line,
+  its relationships ("Rescued by Corra Netley", "Often works with Tobit Highbough"), **Pin as notable**, and its
+  **notable moments**, newest first, each with **Go to** (the place) and the other person in it.
+- **Notable moments are committed deeds only** (`people/people_taps.gd` into `people/people_ledger.gd`): a rescue that
+  succeeded (never a victim washed ashore), a bridge, tunnel or room built (a dig called away is paused, not built: no
+  memory), a first harvest (a cancelled one carried in as its delivery is none), a skill level reached, and a first
+  meal cooked that fed everyone.
+- **The spotlight**: after a rescue or a build, a top-centre card offers to mark the resident notable (★ on the roster;
+  nothing about the work changes) -- once per resident and kind; it waits behind any incident card.
+- **The season's reflection**: at a season's end the card offers up to three of its moments -- **Pin to chronicle**
+  (posted to the village news: "Chronicle: Corra Netley brought Tuppen Clayholm ashore (Spring 4)"), **Keep private**
+  or **Dismiss** (it leaves the resident's history); **Later** leaves them as they are.
+- **Relationships** grow from what happens, by the GDD's own numbers (REQ-SET-035..037): +2 for an hour worked side by side
+  together or a supper shared (once a pair a day), +8 for a rescue; friends from 40. They change nothing mechanical.
+- **Evening lines**, at most one a day at 19:00: the next resident in turn who is free then, at its own pastime where
+  it actually is -- with its own pleased words only after a deed of its own that day. A note in the news, nothing more.
 
 ## Map layers (decision 0292)
 
@@ -359,7 +402,7 @@ Review group P (packet P5, ECO-039, ECO-045). `routes/`, wired by `demo_village.
   links drawn as what they are -- optional crossings for swimmers (a swimmer's whole trip is not estimated for the layer:
   a plan offered the swim links costs a dozen surface plans).
 - **The rescue card** (`routes/rescue_card.gd`): each rescue's incident card adds its phase, an approximate time to
-  safety or the blockage, and **Victim ▸ / Responder ▸ / Landing ▸** (select and centre; `ui/demo_incident_cards.gd`
+  safety or the blockage, and **Victim: *name* ▸ / Responder: *name* ▸ / Landing ▸** (each resident by name, decision 0491) (select and centre; `ui/demo_incident_cards.gd`
   DETAILS), the same while paused.
 - Checked on the real scene by `test/live/demo_routes_live.gd` (`test_demo_routes_live.gd`), the rest by
   `test_demo_routes.gd`.
@@ -399,10 +442,10 @@ Needs: a site both banks take; planks (sawn at the sawhorse) and wood for any pi
 - **Who**, in one grammar everywhere: "Assign selected: X (nearest of 3)" (farm, woods, bridges);
   "Assign selected: X (first of 3 who fits the bore)" and "Assign X (the nearest free resident who fits
   the bore)" (tunnels); "Lead: X (nearest of 3) + 2 waiting to haul" (felling); "Queue for the Field crew:
-  Mouse fieldworker or Squirrel gatherer, then anyone free who can" -- the work board's own words (decision
+  Jory Whitethorn or Linnet Whinberry, then anyone free who can" -- the work board's own words (decision
   0411: the crew preferring that work first, then anyone eligible); "Already under way: X is on it". With two or
-  more selected a card also previews **each member** (decision 0411, review UX-001): "Of 3 selected: Mouse keeper,
-  Mole digger can; Badger quarryman can't (does not fit the bore, or is below)" -- the farm's, the woods' and the
+  more selected a card also previews **each member** (decision 0411, review UX-001): "Of 3 selected: Wenna Tallowby,
+  Tuppen Clayholm can; Hulda Slatebrook can't (does not fit the bore, or is below)" -- the farm's, the woods' and the
   tunnels' cards, in the Work screen's Reassign words.
 - **Interrupts** says what the named resident stops and whether it goes back to it (the brain's resuming
   rule, `control/work_interrupt.gd`; `demo_command.gd interrupt_text`): a farm, woods, spoil or tunnel job
@@ -1081,6 +1124,8 @@ hold; at 2x and 4x they run faster.
 - **Crews**: up to three helpers with the Foremole; one worker per quantum's face, so a helper who
   fits finishes behind it (1506 per mille on a standard bore), more faces when widening. The
   Foremole's digging skill raises the crew's rate (1000 + 50 per level, per mille: a mole's 3 is 1150).
+  The dig's lead says its sayings under its own name, plainly ("Wenna Tallowby: "A big job, this. Dug before
+  supper.""); only Tuppen adds a word of his light molespeak. The rock warning is plain (decision 0491).
 - **Threats** (`events/`): a seeded flood at the stream edge or a fire at the covered store. Residents
   in it take the network out -- in at the nearest mouth, up at the one furthest from the danger --
   (or walk out), shelter, and go home when it clears.
@@ -1444,6 +1489,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `world/` | Terrain, lighting, village layout, points of interest |
 | `cast/` | The residents: body, clips, live tail, job routines, orders |
 | `control/` | Selecting and ordering residents, and the demo party panel |
+| `people/` | The cast's names and interests (`demo_people.json`, `people_book.gd`), the committed deeds, curation and affinity (`people_ledger.gd`, written by `people_taps.gd`), the spotlight, reflection, evening lines and inspector info (`demo_people.gd`), the inspector's person section and the offer card (decision 0491) |
 | `tunnel/` | Player-dug tunnels: rules, the tunnel network and planner, planning, drawing, the underground view; and their extensions -- ground, queues, crews, jobs, hazards, finds, the demo stores, the tunnel panel; the construction theatre -- the warren's particle budget, the dig face, the baskets, the hazards' warnings, the surface signs |
 | `demo_calendar.gd`, `demo_services.gd`, `village_water.gd`, `demo_notices.gd` | The one calendar, the shared set, the one water adapter (over `water/water_map.gd`), the one notice feed |
 | `demo_incidents.gd`, `demo_news_clock.gd` | The incidents (open conditions, the card queue, the sound hook) and the news clock that stands still while paused |

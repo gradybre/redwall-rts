@@ -9,7 +9,7 @@ extends RefCounted
 ## and root cellars, underground). Each is REGISTERED by the host with five Callables:
 ##   capacity() -> int        how many rows the owner has (ids 0..capacity-1)
 ##   exists(id) -> bool       whether row `id` holds one now
-##   label(id) -> String      its name as its panel says it ("Mouse keeper", "the carrot bed", "Young oak")
+##   label(id) -> String      its name as its panel says it ("Wenna Tallowby", "the carrot bed", "Young oak")
 ##   point(id) -> Vector3     where it is (on the ground; a room's centre, below)
 ##   pick(id)                 select it, as a click on it does (its panel comes forward)
 ## `collect` lists what exists now, in kind order then id order -- the order the list shows -- into reused columns.
@@ -126,7 +126,7 @@ func point_of(k: int) -> Vector3:
 
 
 func row_text(k: int) -> String:
-	"""Listed target `k`'s row in the list: 'Mouse keeper — resident'."""
+	"""Listed target `k`'s row in the list: 'Wenna Tallowby — resident'."""
 	var name: String = label_of(k)
 	if not name.is_empty():
 		name = name.substr(0, 1).to_upper() + name.substr(1)

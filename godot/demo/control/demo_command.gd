@@ -132,6 +132,13 @@ var _ground_orders: Array[Callable] = []
 var _task_texts: Array[Callable] = []
 var _input_hooks: Array[Callable] = []
 var _skill_texts: Array[Callable] = []
+## Per skill provider: whether it gives only skill levels (felling, digging, bridging) -- left out of a resident's own
+## inspector when the people's skill meters show them (decision 0491; see set_person_info).
+var _skill_only: PackedByteArray = PackedByteArray()
+## `info(actor_index) -> Dictionary` and `stamp(actor_index) -> int`: the person behind a resident for the one-resident
+## inspector (demo/people/demo_people.gd `inspector_info`, `stamp_of`; decision 0491); unset: none.
+var _person_info: Callable = Callable()
+var _person_stamp: Callable = Callable()
 ## `fed(actor_index, alone) -> String`: how fed a resident is (the kitchen's, decision 0381; see set_fed_text).
 var _fed_text: Callable = Callable()
 ## The job owners' resume rules (work_interrupt.gd; see add_resume_rule).
@@ -243,17 +250,26 @@ func add_input_hook(hook: Callable) -> void:
 	_input_hooks.append(hook)
 
 
-func set_skill_text(provider: Callable) -> void:
+func set_skill_text(provider: Callable, skill_only: bool = false) -> void:
 	"""`provider(actor_index: int, alone: bool) -> String`: a resident's skills for the panel -- the
 	long form when it is selected alone, the short one in a list (demo/forestry/forest_skills.gd).
-	Replaces any others."""
+	Replaces any others. `skill_only`: it says only skill levels (see `_skill_only`)."""
 	_skill_texts = [provider]
+	_skill_only = PackedByteArray([1 if skill_only else 0])
 
 
-func add_skill_text(provider: Callable) -> void:
+func add_skill_text(provider: Callable, skill_only: bool = false) -> void:
 	"""Another owner's skills or meters (the water's: bridge building, breath and stamina), shown after
 	those added before it."""
 	_skill_texts.append(provider)
+	_skill_only.append(1 if skill_only else 0)
+
+
+func set_person_info(info: Callable, stamp: Callable) -> void:
+	"""The people's inspector rows (see `_person_info`): a resident selected alone shows them, its skills as meters
+	in place of the skill-only providers' words."""
+	_person_info = info
+	_person_stamp = stamp
 
 
 func set_fed_text(provider: Callable) -> void:
@@ -853,6 +869,7 @@ func _refresh_panel() -> void:
 			_signature.append(skills_text(i).hash())
 			_signature.append(fed_text(i).hash())
 			_signature.append(brain.queue_revision)
+			_signature.append(int(_person_stamp.call(i)) if _person_stamp.is_valid() else 0)
 	if _signature == _shown:
 		return
 	_shown = _signature.duplicate()
@@ -862,13 +879,18 @@ func _refresh_panel() -> void:
 func party_entries() -> Array[Dictionary]:
 	"""What the panel shows for each selected resident."""
 	var entries: Array[Dictionary] = []
+	var alone: bool = selection_count() == 1
 	for i in selected():
 		var actor := _cast.actor(i) as DemoActorScript
 		var brain := actor.brain
-		entries.append({"index": i, "name": actor.display_name, "species": actor.species, "colour": actor.chip_colour,
-			"digger": _tunnels.is_digger(i), "state": activity_text(i), "skills": skills_text(i), "fed": fed_text(i),
+		var entry: Dictionary = {"index": i, "name": actor.display_name, "species": actor.species,
+			"role": actor.role(), "colour": actor.chip_colour, "digger": _tunnels.is_digger(i), "state": activity_text(i),
+			"skills": skills_text(i), "fed": fed_text(i),
 			"abilities": AbilitiesScript.lines_for(actor.species, actor.height_m, brain.radius, brain.can_carry()),
-			"then": OrderList.items_into(brain, PackedStringArray())})
+			"then": OrderList.items_into(brain, PackedStringArray())}
+		if alone and _person_info.is_valid():
+			entry["person"] = _person_info.call(i)
+		entries.append(entry)
 	return entries
 
 
@@ -892,11 +914,15 @@ func activity_text(actor_index: int) -> String:
 
 func skills_text(actor_index: int) -> String:
 	"""A resident's skills for the panel ("" with no provider): every provider's words, the long form a
-	line each (the panel shows a line apiece) when it is selected alone, the short forms joined in a list."""
+	line each (the panel shows a line apiece) when it is selected alone, the short forms joined in a list. Alone with
+	the people's meters bound (`set_person_info`), the skill-only providers are left out: the meters say it."""
 	var alone: bool = selection_count() <= 1
+	var meters: bool = alone and _person_info.is_valid()
 	var parts := PackedStringArray()
-	for provider: Callable in _skill_texts:
-		var said: String = String(provider.call(actor_index, alone))
+	for k: int in _skill_texts.size():
+		if meters and _skill_only[k] == 1:
+			continue
+		var said: String = String(_skill_texts[k].call(actor_index, alone))
 		if not said.is_empty():
 			parts.append(said)
 	return ("\n" if alone else " · ").join(parts)

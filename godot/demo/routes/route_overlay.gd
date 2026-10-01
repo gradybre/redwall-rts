@@ -7,7 +7,7 @@ extends Node3D
 ## STRETCHES (route_kinds.gd), one ribbon each, coloured by kind and named in the layer's legend: surface, wading (the
 ## ford), underground (dashed; the level labelled where it goes below), a bridge, swimming, the proposed bridge. A
 ## group shows EACH MEMBER's own route (MOVE-REQ-012: never the lead's for all).
-## THE BLOCKING POINT (route_reasons.gd): a post where the reason applies, and its words beside it -- "Mouse keeper:
+## THE BLOCKING POINT (route_reasons.gd): a post where the reason applies, and its words beside it -- "Wenna Tallowby:
 ## waiting for mouth" (a wait that ends by itself: brass), "Badger quarryman: load too wide" (clay).
 ## PUBLIC WAYS: a thin ribbon from the square to each work district for the public walker (carrying, never swimming),
 ## labelled with its walking time; a narrow body's tunnel shortcut, where its route goes below and the public way does

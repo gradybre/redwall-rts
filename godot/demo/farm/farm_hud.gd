@@ -4,7 +4,7 @@ extends RefCounted
 ## THE FOOD FIGURE. The HUD's top-left Food cell (UI-SET-002) is fed by UIManager with
 ## EconomySystem's ready-food days -- the SETTLEMENT's inventory, which the demo farm must not write
 ## into. So the demo shows its pantry total in that cell THROUGH THE SHELL'S OWN PUBLIC ENTRY POINT,
-## `set_counter_display(ID_FOOD, "34 U")`, and nothing else: UIManager, EconomySystem and the
+## `set_counter_display(ID_FOOD, "34.2 U")`, and nothing else: UIManager, EconomySystem and the
 ## simulation are untouched. UIManager repaints the cell whenever stocks change or a day passes;
 ## `sync()` notices its own text was replaced (the cell no longer reads what it painted) and paints
 ## the pantry total back. The ledger line (UI-SET-009) still carries the settlement's figures -- a
@@ -19,6 +19,7 @@ extends RefCounted
 
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const CommandTips := preload("res://demo/ui/demo_command_tips.gd")
+const Text := preload("res://demo/farm/farm_text.gd")
 
 const FOOD_ICON: String = "res://ui/painted/res_food_ready.svg"
 ## What the unlocked Food command does. Its tooltip is "Food (K) — " and this, in the command strip's
@@ -26,7 +27,7 @@ const FOOD_ICON: String = "res://ui/painted/res_food_ready.svg"
 const FOOD_TOOLTIP: String = "Pantry: the farm's ingredients in store, and the dishes they feed"
 
 var _shell: UiShell = null
-var _painted_units: int = -1
+var _painted_milli: int = -1
 var _painted_label: String = ""
 var _warned: bool = false
 
@@ -36,26 +37,26 @@ func bind(shell: UiShell) -> void:
 	_shell = shell
 
 
-static func food_text(units: int) -> String:
-	"""The Food cell's value for the pantry total."""
-	return "%d U" % units
+static func food_text(milli: int) -> String:
+	"""The Food cell's value for the pantry total (milli-U), in the farm's one units form (F28)."""
+	return Text.units_text(milli)
 
 
-func sync(units: int) -> bool:
-	"""Show `units` in the Food cell, repainting it only when the total changed or UIManager wrote
-	over it (an integer and a string reference compared per frame; no formatting). True when it
-	painted this call."""
+func sync(milli: int) -> bool:
+	"""Show the pantry total `milli` in the Food cell, repainting it only when the total changed or
+	UIManager wrote over it (an integer and a string reference compared per frame; no formatting).
+	True when it painted this call."""
 	if _shell == null or not is_instance_valid(_shell):
 		return false
 	var label: Label = _shell.counter_value_label(UiShell.ID_FOOD)
-	if label == null or (units == _painted_units and label.text == _painted_label):
+	if label == null or (milli == _painted_milli and label.text == _painted_label):
 		return false
-	if not _shell.set_counter_display(UiShell.ID_FOOD, food_text(units)):
+	if not _shell.set_counter_display(UiShell.ID_FOOD, food_text(milli)):
 		if not _warned:
 			push_warning("demo farm: the Food cell refused the pantry total (%s)" % _shell.last_refusal())
 			_warned = true
 		return false
-	_painted_units = units
+	_painted_milli = milli
 	_painted_label = label.text
 	return true
 

@@ -17,6 +17,21 @@ extends RefCounted
 ## commitment, which is REQ-SET-071's productive START. A resident the player orders elsewhere (or
 ## releases) drops the job back on the board where it had got to, load and all; a step that cannot
 ## be done any more (the crop withered on the way, a spot out of reach) ends the job with a notice.
+##
+## CONSERVATION (decision 0222; the review's F19 and F24). A harvest is the one job that makes stock,
+## and none of it is ever lost or credited from afar:
+##   * ROOM FIRST. The harvest reserves room for its expected yield (farm_pantry.gd RESERVATIONS) as the
+##     cutting starts; with none anywhere it is NOT cut: the job waits on the board, the worker goes free,
+##     and the shortage is said -- in the order's answer, the feed and the bed's own text
+##     (`shortage_text`), which points at the Pantry. The crew takes it up again once there is room.
+##   * WHAT FITS. At the store the carrier puts down what fits (a cellar can shrink under a reservation,
+##     its racks taken out) and keeps the rest: it carries it on to another store with room, or waits
+##     there with it, trying again every drop, until there is room.
+##   * CANCEL IS NOT DELIVERY. Cancelling a bed's jobs closes its production; a harvest already cut
+##     becomes a DELIVERY (farm_jobs.gd) that its carrier walks on and puts down -- the store is credited
+##     at the store, on arrival. Called away, a carrier leaves the load with the job and comes back to it
+##     through its resume queue; released, the routine crew takes it. A job never closes holding a load:
+##     one that cannot get through waits on the board with it (`_park`) and is tried again next hour.
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const SimScript := preload("res://demo/farm/farm_sim.gd")
@@ -32,6 +47,7 @@ const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
+const Text := preload("res://demo/farm/farm_text.gd")
 
 ## The residents whose routine includes farm work.
 const CREW_KEYS: Array[StringName] = [&"mouse_fieldworker", &"squirrel_gatherer"]
@@ -48,6 +64,8 @@ const HEAP_STAND_M: float = 0.55
 const WELL_STAND_M: float = 1.6
 ## The routine crew looks at the board this often (cast time).
 const PICKUP_USEC: int = 500000
+## Where the player makes room (the bed panel's Pantry button and the K key).
+const MAKE_ROOM: String = "make room in the Pantry (K)"
 
 var jobs: JobsScript = JobsScript.new()
 
@@ -108,6 +126,9 @@ func order(kind: int, bed: int, members: PackedInt32Array, origin: int) -> Strin
 	if not jobs.open_into(kind, bed, origin, source, _read):
 		return "Can't %s: %s" % [JobsScript.KIND_NAMES[kind].to_lower(), reason_text(StringName(_read.error))]
 	var row: int = _read.value
+	if not _can_store(row):
+		jobs.blocked[row] = JobsScript.BLOCK_ROOM
+		return "Harvest queued, but %s" % _shortage_words(row)
 	if not _nearest_free_into(members, Catalog.bed_centre_m(bed), _read):
 		return "%s queued: the field crew will see to it" % JobsScript.KIND_NAMES[kind]
 	_take_over(row, _read.value)
@@ -120,6 +141,10 @@ func _join_queued(row: int, members: PackedInt32Array) -> String:
 	var what: String = JobsScript.KIND_NAMES[jobs.kind[row]]
 	if jobs.worker[row] != JobsScript.NOBODY:
 		return "%s is already under way: %s is on it" % [what, worker_name(row)]
+	if jobs.blocked[row] == JobsScript.BLOCK_WAY:
+		jobs.blocked[row] = JobsScript.BLOCK_NONE
+	if not _ready(row):
+		return "%s waits: %s" % [what, _shortage_words(row)]
 	if not _nearest_free_into(members, Catalog.bed_centre_m(jobs.bed[row]), _read):
 		return "%s is already queued for the field crew" % what
 	_take_over(row, _read.value)
@@ -149,12 +174,20 @@ func _take_over(row: int, who: int) -> void:
 
 
 func cancel_bed(bed: int) -> int:
-	"""Take every job off a bed; a harvest being carried is put in store as it is. Returns how many."""
+	"""Take every production job off a bed. A harvest already cut is not put in store here: it becomes
+	its delivery, carried on and credited at the store (see CONSERVATION). Returns how many."""
 	var cancelled: int = 0
 	for row: int in JobsScript.MAX_JOBS:
-		if jobs.is_live(row) and jobs.bed[row] == bed:
+		if not jobs.is_live(row) or jobs.bed[row] != bed or jobs.kind[row] == JobsScript.KIND_DELIVER:
+			continue
+		cancelled += 1
+		if not _holds_load(row):
 			_finish(row, "")
-			cancelled += 1
+			continue
+		jobs.become_delivery(row)
+		var who: String = worker_name(row)
+		_say("Harvest cancelled: %s carries the %s of %s on to store" % [who if who != "" else "the crew",
+			Text.units_text(jobs.load_milli[row]), _item_word(row)])
 	return cancelled
 
 
@@ -167,6 +200,9 @@ func raise_routine_jobs() -> void:
 			jobs.open_into(JobsScript.KIND_HARVEST, bed, JobsScript.ORIGIN_ROUTINE, 0, _read)
 		if stage == SimScript.STAGE_WITHERED and not jobs.job_on_bed_into(JobsScript.KIND_CLEAR, bed, _read):
 			jobs.open_into(JobsScript.KIND_CLEAR, bed, JobsScript.ORIGIN_ROUTINE, 0, _read)
+	for row: int in JobsScript.MAX_JOBS:
+		if jobs.is_live(row) and jobs.blocked[row] == JobsScript.BLOCK_WAY:
+			jobs.blocked[row] = JobsScript.BLOCK_NONE
 
 
 # --- per frame ----------------------------------------------------------------------------------
@@ -187,7 +223,7 @@ func update(usec: int) -> void:
 func _hand_out() -> void:
 	"""Give each waiting job, oldest row first, to the nearest crew member wandering on its own."""
 	for row: int in JobsScript.MAX_JOBS:
-		if not jobs.is_live(row) or jobs.worker[row] != JobsScript.NOBODY:
+		if not jobs.is_live(row) or jobs.worker[row] != JobsScript.NOBODY or not _ready(row):
 			continue
 		_idle.clear()
 		for who: int in _crew:
@@ -230,8 +266,10 @@ func _step_walk(row: int, code: int) -> void:
 func _issue_walk(row: int, code: int, brain: BrainScript) -> void:
 	"""Send the worker to a spot beside this step's target, carrying on a carry step -- into a root cellar, down to its
 	middle to shelve the harvest (farm_cellars.gd CARRIED IN)."""
-	if code == JobsScript.STEP_CARRY_STORE and _carry_into_cellar(row, brain):
-		return
+	if code == JobsScript.STEP_CARRY_STORE:
+		_aim_delivery(row, brain)
+		if _carry_into_cellar(row, brain):
+			return
 	if not _target_into(row, code):
 		_finish(row, "%s: nothing to fetch it from" % JobsScript.KIND_NAMES[jobs.kind[row]])
 		return
@@ -319,14 +357,8 @@ func _step_work(row: int, work: int, usec: int) -> void:
 	"""Start the work (its opening effect once, the clip), count its WU, and apply its effect at the
 	end. Work done by an earlier worker is kept (see farm_jobs.rewind_to_walk)."""
 	var brain: BrainScript = _brain(jobs.worker[row])
-	if jobs.issued[row] == 0:
-		var refused: String = _begin_work(row, work)
-		if refused != "":
-			_finish(row, refused)
-			return
-		jobs.begun[row] = 1
-		brain.play_in_place(WORK_CLIP)
-		jobs.issued[row] = 1
+	if jobs.issued[row] == 0 and not _start_work(row, work, brain):
+		return
 	if brain.state != BrainScript.State.HOLD or brain.order != BrainScript.ORDER_MOVE:
 		_drop(row)
 		return
@@ -334,11 +366,29 @@ func _step_work(row: int, work: int, usec: int) -> void:
 	if jobs.elapsed_usec[row] < jobs.work_usec(work):
 		return
 	brain.play_in_place(BrainScript.CLIP_IDLE)
+	if work == JobsScript.WORK_DROP:
+		_end_drop(row)
+		return
 	var ended: String = _end_work(row, work)
 	if ended != "":
 		_finish(row, ended)
 	elif not jobs.advance(row):
-		_finish(row, "" if work == JobsScript.WORK_DROP else _done_text(row))
+		_finish(row, _done_text(row))
+
+
+func _start_work(row: int, work: int, brain: BrainScript) -> bool:
+	"""Open a work step: its opening effect or refusal, a harvest's room reserved (else it waits, uncut),
+	then the clip. False when the job ended or went back to the board instead."""
+	var refused: String = _begin_work(row, work)
+	if refused != "":
+		_finish(row, refused)
+		return false
+	if work == JobsScript.WORK_HARVEST and not _reserve_harvest(row):
+		return false
+	jobs.begun[row] = 1
+	brain.play_in_place(WORK_CLIP)
+	jobs.issued[row] = 1
+	return true
 
 
 func _begin_work(row: int, work: int) -> String:
@@ -386,14 +436,13 @@ func _end_work(row: int, work: int) -> String:
 			return _said(_sim.drain_bed(bed), "Drain")
 		JobsScript.WORK_DIG:
 			return _end_dig(row)
-		JobsScript.WORK_DROP:
-			return _end_drop(row)
 	return ""
 
 
 func _end_harvest(row: int) -> String:
-	"""REQ-SET-074's harvest: the yield of the bed's item becomes the worker's load, bound for the
-	store that spoils it slowest with room for it -- the nearest to the bed among equals."""
+	"""REQ-SET-074's harvest: the yield of the bed's item becomes the worker's load, bound for the store
+	its reservation holds room at (the slowest-spoiling with room, the nearest the bed among equals). A
+	cut bigger than the reservation keeps its extra room where there is any; the drop puts down what fits."""
 	var bed: int = jobs.bed[row]
 	var item: int = _sim.item_of(bed)
 	var cut: FarmingScript.OpResult = _sim.harvest(bed)
@@ -401,9 +450,7 @@ func _end_harvest(row: int) -> String:
 		return "Can't harvest: %s" % reason_text(cut.error)
 	jobs.load_item[row] = item
 	jobs.load_milli[row] = cut.value
-	if not _pantry.location_near_into(cut.value, Catalog.bed_centre_m(bed), _read):
-		return "No room in any store for the %s" % Catalog.ITEM_LABELS[item].to_lower()
-	jobs.location[row] = _read.value
+	_pantry.resize_hold(jobs.hold[row], cut.value)
 	return ""
 
 
@@ -415,26 +462,52 @@ func _end_dig(row: int) -> String:
 	return ""
 
 
-func _end_drop(row: int) -> String:
-	"""The harvest goes into the pantry at its store, as its own item; the job ends saying how much."""
-	var what: String = _done_text(row)
-	if not _deliver_load(row):
-		return "The store had no room: the %s was lost" % Catalog.ITEM_LABELS[jobs.load_item[row]].to_lower()
-	_say(what)
-	return ""
+func _end_drop(row: int) -> void:
+	"""The harvest into the pantry at its store: what fits (see CONSERVATION). All of it: the job ends
+	saying how much. Some left: carried on to a store with room, or kept, waiting, until there is one."""
+	var stored: int = 0
+	if _here_into(row, _read):
+		jobs.location[row] = _read.value
+		if _pantry.store_upto_into(jobs.load_item[row], jobs.load_milli[row], _read.value, jobs.hold[row], _read):
+			stored = _read.value
+	jobs.load_milli[row] -= stored
+	if jobs.load_milli[row] > 0:
+		_carry_on(row, stored)
+		return
+	_release_hold(row)
+	_finish(row, "Harvested %s of %s into the %s" % [Text.units_text(stored), _item_word(row),
+		_pantry.storage.label_of(jobs.location[row]).to_lower()])
 
 
-func _deliver_load(row: int) -> bool:
-	"""Put a carried harvest into the pantry (at its store, else wherever has room). True when stored
-	or when there was no harvest to store."""
-	var item: int = jobs.load_item[row]
-	var milli: int = jobs.load_milli[row]
-	if jobs.kind[row] != JobsScript.KIND_HARVEST or not Catalog.is_item(item) or milli <= 0:
-		return true
-	jobs.load_milli[row] = 0
-	if _pantry.add_into(item, milli, jobs.location[row], _read):
-		return true
-	return _pantry.location_for_into(milli, _read) and _pantry.add_into(item, milli, _read.value, _read)
+func _carry_on(row: int, stored: int) -> void:
+	"""Part of a load is still in hand after a drop: reserve room for it from here and walk it on. With
+	none anywhere, wait with it and try the drop again (said once) -- here, keeping the spent reservation
+	to follow this store by id, or at the covered store when this one has gone."""
+	var from: Vector2 = _brain(jobs.worker[row]).surface_point()
+	if _pantry.reserve_near_into(jobs.load_item[row], jobs.load_milli[row], from, _busy):
+		var took: String = _took_text(row, stored)
+		_release_hold(row)
+		_take_hold(row, _busy.value)
+		jobs.blocked[row] = JobsScript.BLOCK_NONE
+		jobs.back_to_carry(row)
+		_say("%s%s carries the %s%s of %s on to the %s" % [took, _name_of(jobs.worker[row]), "other " if stored > 0 else "",
+			Text.units_text(jobs.load_milli[row]), _item_word(row), _pantry.storage.label_of(jobs.location[row]).to_lower()])
+		return
+	if _here_into(row, _read):
+		jobs.elapsed_usec[row] = 0
+	else:
+		_release_hold(row)
+		jobs.location[row] = 0
+		jobs.back_to_carry(row)
+	_flag_shortage(row, stored > 0)
+
+
+func _took_text(row: int, stored: int) -> String:
+	"""'The covered store took 3.0 U of carrot: ' for a part put down ('' for none)."""
+	if stored <= 0:
+		return ""
+	return "The %s took %s of %s: " % [_pantry.storage.label_of(jobs.location[row]).to_lower(), Text.units_text(stored),
+		_item_word(row)]
 
 
 func _drop(row: int) -> void:
@@ -444,44 +517,196 @@ func _drop(row: int) -> void:
 	jobs.unassign(row)
 	jobs.rewind_to_walk(row)
 	if who >= 0 and who < _cast.actor_count() and _brain(who).order != BrainScript.ORDER_NONE:
-		_brain(who).remember_unfinished(UnfinishedScript.new(take_back.bind(row, jobs.kind[row], jobs.bed[row]),
+		_brain(who).remember_unfinished(UnfinishedScript.new(take_back.bind(row, jobs.serial[row]),
 			"%s, bed %d" % [JobsScript.KIND_NAMES[jobs.kind[row]], jobs.bed[row] + 1]))
 	_say("%s left the %s job" % [_name_of(who), JobsScript.KIND_NAMES[jobs.kind[row]].to_lower()])
 
 
 func _finish(row: int, text: String) -> void:
-	"""Close job `row` -- putting a harvest still being carried into store, so no food is lost -- send
-	its worker back to its routine, and say how it ended."""
-	_deliver_load(row)
+	"""Close job `row`, send its worker back to its routine, and say how it ended. A job still holding a
+	harvest is never closed: it waits on the board with its load (`_park`)."""
+	if _holds_load(row):
+		_park(row, text, JobsScript.BLOCK_WAY)
+		return
+	_release_hold(row)
 	var who: int = jobs.worker[row]
 	jobs.close(row)
-	if who >= 0 and who < _cast.actor_count():
-		var brain: BrainScript = _brain(who)
-		brain.play_in_place(BrainScript.CLIP_IDLE)
-		brain.work_done()
+	_free_worker(who)
 	if text != "":
 		_say(text)
 
 
-func take_back(brain: RefCounted, row: int, kind: int, bed: int) -> bool:
+func _park(row: int, text: String, why: int) -> void:
+	"""Put job `row` back on the board where it had got to -- load, reservation and all -- blocked for
+	`why` (farm_jobs.gd BLOCK_*), its worker free; say `text`."""
+	var who: int = jobs.worker[row]
+	jobs.unassign(row)
+	jobs.rewind_to_walk(row)
+	jobs.blocked[row] = why
+	_free_worker(who)
+	if text != "":
+		_say(text)
+
+
+func _free_worker(who: int) -> void:
+	"""A worker done with its job: idle, and back to its routine (or its next unfinished job)."""
+	if who >= 0 and who < _cast.actor_count():
+		var brain: BrainScript = _brain(who)
+		brain.play_in_place(BrainScript.CLIP_IDLE)
+		brain.work_done()
+
+
+func take_back(brain: RefCounted, row: int, serial: int) -> bool:
 	"""Give job `row` back to the resident it was taken from (resident_brain.gd RESUMING), if it is still
-	the same job, waiting for someone."""
+	the same job (its serial: a harvest become a delivery still is), waiting for someone and ready."""
 	var who: int = int(brain.get(&"index"))
-	if not jobs.is_live(row) or jobs.kind[row] != kind or jobs.bed[row] != bed:
+	if not jobs.is_live(row) or jobs.serial[row] != serial:
 		return false
-	if jobs.worker[row] != JobsScript.NOBODY or jobs.job_of_worker_into(who, _busy):
+	if jobs.worker[row] != JobsScript.NOBODY or jobs.job_of_worker_into(who, _busy) or not _ready(row):
 		return false
 	_take_over(row, who)
 	return true
 
 
 func _done_text(row: int) -> String:
-	"""What a finished job says."""
-	var bed_name: String = bed_label(jobs.bed[row])
-	if jobs.kind[row] == JobsScript.KIND_HARVEST:
-		return "Harvested %s U of %s into the %s" % [_units_text(jobs.load_milli[row]),
-			Catalog.ITEM_LABELS[jobs.load_item[row]].to_lower(), _pantry.storage.label_of(jobs.location[row]).to_lower()]
-	return "%s done: %s" % [JobsScript.KIND_NAMES[jobs.kind[row]], bed_name]
+	"""What a finished job says (a harvest says it at its drop)."""
+	return "%s done: %s" % [JobsScript.KIND_NAMES[jobs.kind[row]], bed_label(jobs.bed[row])]
+
+
+# --- storage room (see CONSERVATION) ---------------------------------------------------------------
+
+func _reserve_harvest(row: int) -> bool:
+	"""Room for the harvest's expected yield, reserved before it is cut (kept from an earlier start while
+	its store stands). With none anywhere the job waits on the board, uncut; false."""
+	if jobs.hold[row] != JobsScript.FREE and _here_into(row, _read):
+		return true
+	_release_hold(row)
+	if _pantry.reserve_near_into(_harvest_item(row), _need_milli(row), Catalog.bed_centre_m(jobs.bed[row]), _read):
+		_take_hold(row, _read.value)
+		return true
+	var who: String = _name_of(jobs.worker[row])
+	_park(row, "", JobsScript.BLOCK_ROOM)
+	_say("%s left the harvest standing: %s" % [who, _shortage_words(row)])
+	return false
+
+
+func _aim_delivery(row: int, brain: BrainScript) -> void:
+	"""Before a carry walk: the store its reservation holds room for the whole load at; else a new
+	reservation from here; else wherever its reservation still stands, or the covered store, to put down
+	what fits and wait there with the rest."""
+	var need: int = _need_milli(row)
+	if _pantry.hold_milli(jobs.hold[row]) >= need and _here_into(row, _read):
+		jobs.location[row] = _read.value
+		return
+	if _pantry.reserve_near_into(_harvest_item(row), need, brain.surface_point(), _busy):
+		_release_hold(row)
+		_take_hold(row, _busy.value)
+		return
+	if not _here_into(row, _read):
+		_release_hold(row)
+	jobs.location[row] = _read.value if _here_into(row, _read) else 0
+
+
+func _here_into(row: int, out: IntMath.IntResult) -> bool:
+	"""The store job `row` is delivering to, into `out`: where its reservation is, else the covered
+	store it walks to without one. Refuses when its reservation's store has gone."""
+	if jobs.hold[row] == JobsScript.FREE:
+		return out.succeed(0)
+	return _pantry.hold_location_into(jobs.hold[row], out)
+
+
+func _take_hold(row: int, held: int) -> void:
+	"""Job `row` keeps reservation `held`, delivering to its store."""
+	jobs.hold[row] = held
+	if _pantry.hold_location_into(held, _busy):
+		jobs.location[row] = _busy.value
+
+
+func _release_hold(row: int) -> void:
+	"""Job `row` gives up its reservation, if any."""
+	_pantry.release(jobs.hold[row])
+	jobs.hold[row] = JobsScript.FREE
+
+
+func _holds_load(row: int) -> bool:
+	"""Whether job `row` has a harvest in hand."""
+	return (jobs.kind[row] == JobsScript.KIND_HARVEST or jobs.kind[row] == JobsScript.KIND_DELIVER) \
+		and jobs.load_milli[row] > 0 and Catalog.is_item(jobs.load_item[row])
+
+
+func _need_milli(row: int) -> int:
+	"""The room job `row` needs: its load in hand, else a ripe harvest's expected yield (0: none)."""
+	if _holds_load(row):
+		return jobs.load_milli[row]
+	if jobs.kind[row] != JobsScript.KIND_HARVEST or _sim.stage_of(jobs.bed[row]) != SimScript.STAGE_RIPE:
+		return 0
+	return _busy.value if _sim.expected_yield_into(jobs.bed[row], _busy) else 0
+
+
+func _can_store(row: int) -> bool:
+	"""Whether job `row`'s harvest has somewhere to go: nothing to store, its reservation standing, or
+	room for it somewhere now."""
+	var need: int = _need_milli(row)
+	if need <= 0 or (_pantry.hold_milli(jobs.hold[row]) >= need and _here_into(row, _busy)):
+		return true
+	return _pantry.location_for_item_into(_harvest_item(row), need, _busy)
+
+
+func _ready(row: int) -> bool:
+	"""Whether a waiting job can be handed out: not waiting for a way (lifted hourly), and with room for
+	its harvest -- a shortage newly found is said once."""
+	if jobs.blocked[row] == JobsScript.BLOCK_WAY:
+		return false
+	if _can_store(row):
+		jobs.blocked[row] = JobsScript.BLOCK_NONE
+		return true
+	_flag_shortage(row, false)
+	return false
+
+
+func _flag_shortage(row: int, partly: bool) -> void:
+	"""Mark job `row` waiting for room and say so, once until it moves again."""
+	if jobs.blocked[row] == JobsScript.BLOCK_ROOM:
+		return
+	jobs.blocked[row] = JobsScript.BLOCK_ROOM
+	var line: String = _shortage_words(row, partly)
+	_say(line.left(1).to_upper() + line.substr(1))
+
+
+func _shortage_words(row: int, partly: bool = false) -> String:
+	"""'no store has room for 5.1 U of carrot — make room in the Pantry (K)' ('the other 2.1 U' once part
+	of a load is stored)."""
+	return "no store has room for %s%s of %s — %s" % ["the other " if partly else "",
+		Text.units_text(_need_milli(row)), _item_word(row), MAKE_ROOM]
+
+
+func _item_word(row: int) -> String:
+	"""The item a job's harvest is, lower case ("harvest" when it has none)."""
+	var item: int = _harvest_item(row)
+	return Catalog.ITEM_LABELS[item].to_lower() if Catalog.is_item(item) else "harvest"
+
+
+func _store_word(row: int) -> String:
+	"""The store a delivery is bound for, lower case, read through its reservation (a store index can
+	move at the hourly refresh); "store" once its store has gone."""
+	if not _here_into(row, _busy):
+		return "store"
+	return _pantry.storage.label_of(_busy.value).to_lower()
+
+
+func _harvest_item(row: int) -> int:
+	"""The item a job's harvest is: its load, else its bed's crop (Catalog.NO_ITEM for neither)."""
+	return jobs.load_item[row] if Catalog.is_item(jobs.load_item[row]) else _sim.item_of(jobs.bed[row])
+
+
+func shortage_text(bed: int) -> String:
+	"""The bed's storage shortage for its farm text: its harvest or delivery waiting for room ("" when
+	none is)."""
+	for row: int in JobsScript.MAX_JOBS:
+		if jobs.is_live(row) and jobs.bed[row] == bed and not _can_store(row):
+			return "Waiting: " + _shortage_words(row)
+	return ""
+
 
 
 # --- readouts -----------------------------------------------------------------------------------
@@ -499,7 +724,7 @@ func task_text(who: int) -> String:
 		JobsScript.STEP_GO_HEAP:
 			return what + " — to the spoil heap"
 		JobsScript.STEP_CARRY_STORE:
-			return "Carrying the %s harvest to store" % Catalog.ITEM_LABELS[jobs.load_item[row]].to_lower()
+			return "Carrying %s of %s to the %s" % [Text.units_text(jobs.load_milli[row]), _item_word(row), _store_word(row)]
 		JobsScript.STEP_CARRY_BED:
 			return what + " — carrying"
 	return what
@@ -530,11 +755,6 @@ func max_heap_spoil() -> int:
 static func reason_text(code: StringName) -> String:
 	"""A refusal code in words."""
 	return String(code).to_lower().replace("_", " ")
-
-
-static func _units_text(milli: int) -> String:
-	"""Milli-U as whole units with one decimal (display only)."""
-	return "%d.%d" % [milli / 1000, (milli % 1000) / 100]
 
 
 func _said(result: FarmingScript.OpResult, verb: String) -> String:

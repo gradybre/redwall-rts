@@ -375,7 +375,7 @@ func test_the_village_s_cellars_take_the_farm_s_harvest() -> void:
 		cast.advance(DT)
 		farm.crew.update(cast.clock.frame_usec)
 		below = below or (cast.actor(3) as DemoActorScript).brain.underground
-		if farm.pantry.total_units() > 0:
+		if farm.pantry.total_milli() > 0:
 			stored = true
 			break
 	assert_true(stored, "delivered")
@@ -424,11 +424,41 @@ func test_a_carrier_walks_the_harvest_down_into_the_cellar() -> void:
 		cast.advance(DT)
 		farm.crew.update(cast.clock.frame_usec)
 		held_below = held_below or (brain.underground and brain.state == BrainScript.State.HOLD)
-		if farm.pantry.total_units() > 0:
+		if farm.pantry.total_milli() > 0:
 			break
 	assert_true(held_below, "shelving it below, in the cellar")
 	assert_true(farm.storage.index_of_id_into(&"root_cellar:%d:0" % by_beds, _read), "the cellar")
 	assert_equal(farm.pantry.milli_at(CARROT, _read.value), 5100, "holds the carrots")
+
+
+func test_a_cancelled_harvest_is_still_shelved_in_the_cellar_on_arrival() -> void:
+	"""Decision 0222 in a root cellar: the harvest reserves its room there before the cut, a cancel while
+	it is carried down credits nothing, and the carrier shelves it below -- the cellar holds the 5.1 U only
+	then, and its reservation is gone."""
+	var farm := _village(true)
+	var by_beds := _dig_cellar(_command.tunnels().network, Vector2(-6.0, 12.8))
+	farm.step(24 * HOUR_USEC)
+	assert_true(farm.storage.index_of_id_into(&"root_cellar:%d:0" % by_beds, _read), "the cellar")
+	var cellar: int = _read.value
+	var cast: DemoCastScript = farm._cast
+	var brain: BrainScript = (cast.actor(3) as DemoActorScript).brain
+	brain.set_carry_motion({"keys_xz": [[0.0, 0.0], [0.0, 0.4], [0.0, 0.8]], "mean_speed_m_s": 0.4, "period_s": 2.0})
+	farm.crew.order(JobsScript.KIND_HARVEST, BED_CARROTS, PackedInt32Array([3]), JobsScript.ORIGIN_PLAYER)
+	var cancelled: bool = false
+	for frame: int in roundi(240.0 / DT):
+		cast.advance(DT)
+		farm.crew.update(cast.clock.frame_usec)
+		if not cancelled and farm.crew.jobs.load_milli[0] > 0 and farm.crew.jobs.issued[0] == 1:
+			assert_equal(farm.pantry.reserved_milli_of(cellar), 5100, "its room held in the cellar")
+			assert_equal(farm.crew.cancel_bed(BED_CARROTS), 1, "cancelled on the way")
+			assert_equal(farm.pantry.total_milli(), 0, "nothing credited at the cancel")
+			cancelled = true
+		if farm.pantry.total_milli() > 0:
+			break
+	assert_true(cancelled, "cancelled mid-carry")
+	assert_true(brain.underground, "shelved below")
+	assert_equal(farm.pantry.milli_at(CARROT, cellar), 5100, "the cellar holds the carrots")
+	assert_equal(farm.pantry.reserved_milli_of(cellar), 0, "and no longer reserves room for them")
 
 
 func test_the_village_hands_the_tunnels_cellars_to_the_farm() -> void:

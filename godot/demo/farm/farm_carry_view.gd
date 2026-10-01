@@ -37,12 +37,14 @@ func configure(cast: DemoCastScript, jobs: JobsScript, goods: GoodsScript) -> vo
 
 
 static func harvest_in_hand_into(jobs: JobsScript, who: int, out: IntMath.IntResult) -> bool:
-	"""The item resident `who` has in hand, into `out`: a harvest job's load, not yet delivered.
+	"""The item resident `who` has in hand, into `out`: a harvest's load (or a cancelled harvest's
+	delivery, farm_jobs.gd KIND_DELIVER), not yet delivered.
 	Refuses NOT_ON_A_JOB or NO_HARVEST_IN_HAND."""
 	if not jobs.job_of_worker_into(who, out):
 		return out.refuse(REFUSE_NO_JOB)
 	var row: int = out.value
-	if jobs.kind[row] != JobsScript.KIND_HARVEST or jobs.load_milli[row] <= 0 or not Catalog.is_item(jobs.load_item[row]):
+	var harvest: bool = jobs.kind[row] == JobsScript.KIND_HARVEST or jobs.kind[row] == JobsScript.KIND_DELIVER
+	if not harvest or jobs.load_milli[row] <= 0 or not Catalog.is_item(jobs.load_item[row]):
 		return out.refuse(REFUSE_NO_LOAD)
 	return out.succeed(jobs.load_item[row])
 

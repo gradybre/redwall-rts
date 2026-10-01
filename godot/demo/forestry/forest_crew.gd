@@ -16,8 +16,16 @@ extends RefCounted
 ## holds there. A work step plays its clip in place for its WU (forest_rules.gd `work_usec`: skill,
 ## season and weather), the axe in hand for felling (the beaver gnaws, with none) and the spade for
 ## grubbing and planting, and applies its effect at the end. A resident ordered elsewhere drops the
-## job back on the board where it had got to, load and all; a job closed with a load in hand puts the
-## load in store, so no wood is lost.
+## job back on the board where it had got to, load and all, and comes back to it (resident_brain.gd
+## RESUMING).
+##
+## CONSERVATION (decision 0222; the farm's own rule, demo/farm/farm_crew.gd CONSERVATION). Wood and planks
+## reach the stores only where they are stacked. Cancelling a job with a load in hand turns it into that
+## load's DELIVERY (forest_jobs.gd): the hauler walks it on to the log stack (logs a sawyer had taken go
+## back there), the sawyer's planks on to the plank stack, and the stores are credited on arrival --
+## never at the cancel (the review's F24). A job is never closed holding a load: one that cannot get
+## through waits on the board with it, tried again at the next hour. Planting's compost is paid ONCE per
+## job (`paid`, F25): a planter called away, a new planter, a retry -- none pays it again.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Rules := preload("res://demo/forestry/forest_rules.gd")
@@ -312,29 +320,47 @@ func target_point(row: int) -> Vector2:
 	match jobs.kind[row]:
 		JobsScript.KIND_GATHER:
 			return _deadfall.at[jobs.target[row]]
-		JobsScript.KIND_SAW:
+		JobsScript.KIND_SAW, JobsScript.KIND_CARRY_LOGS:
 			return Yard.log_stack_at()
+		JobsScript.KIND_CARRY_PLANKS:
+			return Yard.at(Yard.PLANK_STACK)
 	return _stand.at[jobs.target[row]]
 
 
 func cancel_target(kind: int, target: int) -> int:
-	"""Take every job of `kind` off `target` (loads in hand go into store). Returns how many."""
+	"""Take every job of `kind` off `target` (a load in hand is delivered, see CONSERVATION). Returns how
+	many."""
 	var cancelled: int = 0
 	for row: int in JobsScript.MAX_JOBS:
 		if jobs.is_live(row) and jobs.kind[row] == kind and jobs.target[row] == target:
-			finish(row, "")
+			_cancel(row)
 			cancelled += 1
 	return cancelled
 
 
 func cancel_all() -> int:
-	"""Take every job off the board. Returns how many."""
+	"""Take every job off the board -- but a delivery, which carries on (see CONSERVATION). Returns how
+	many were cancelled."""
 	var cancelled: int = 0
 	for row: int in JobsScript.MAX_JOBS:
-		if jobs.is_live(row):
-			finish(row, "")
+		if jobs.is_live(row) and not jobs.is_delivery(row):
+			_cancel(row)
 			cancelled += 1
 	return cancelled
+
+
+func _cancel(row: int) -> void:
+	"""Cancel job `row`'s work: with nothing in hand it closes; with a load it becomes that load's
+	delivery, walked on to its stack."""
+	var milli: int = jobs.load_milli[row]
+	if milli <= 0:
+		finish(row, "")
+		return
+	var planks: bool = jobs.kind[row] == JobsScript.KIND_SAW and jobs.step[row] > SAW_WORK_STEP
+	jobs.become_delivery(row, JobsScript.KIND_CARRY_PLANKS if planks else JobsScript.KIND_CARRY_LOGS)
+	var who: String = worker_name(row)
+	_say("%s carries the %s of %s on to the %s" % [who if not who.is_empty() else "The crew", Rules.units_text(milli),
+		"planks" if planks else "logs", "plank stack" if planks else "log stack"])
 
 
 # --- per frame ----------------------------------------------------------------------------------
@@ -355,7 +381,7 @@ func update(usec: int) -> void:
 func _hand_out() -> void:
 	"""Give each waiting job, oldest row first, to the nearest crew member wandering on its own."""
 	for row: int in JobsScript.MAX_JOBS:
-		if not jobs.is_live(row) or jobs.worker[row] != JobsScript.NOBODY:
+		if not jobs.is_live(row) or jobs.worker[row] != JobsScript.NOBODY or jobs.blocked[row] == 1:
 			continue
 		_idle.clear()
 		for who: int in _crew:
@@ -560,7 +586,7 @@ func _begin_work(row: int, work: int) -> String:
 		JobsScript.WORK_FETCH_LOGS:
 			return "" if _stores.wood_milli_u >= Rules.SAW_BATCH_MILLI else "Can't saw: not enough wood in the stores"
 		JobsScript.WORK_PLANT:
-			return _begin_planting(t)
+			return _begin_planting(row)
 		JobsScript.WORK_GRUB:
 			return "" if _stand.state_of(t) == StandScript.STATE_STUMP else "The stump was gone"
 	return ""
@@ -589,12 +615,17 @@ static func _trains(work: int) -> bool:
 	return work == JobsScript.WORK_FELL or work == JobsScript.WORK_SAW
 
 
-func _begin_planting(t: int) -> String:
-	"""Planting's compost is spent as the work starts (§5.9's cost); refuses a spot no longer clear."""
-	if _stand.state_of(t) != StandScript.STATE_CLEARED:
+func _begin_planting(row: int) -> String:
+	"""Planting's compost is spent as the job's work first starts (§5.9's cost) -- once for the job, not
+	again when a planter called away, or another, starts it again (see CONSERVATION); refuses a spot no
+	longer clear."""
+	if _stand.state_of(jobs.target[row]) != StandScript.STATE_CLEARED:
 		return "Can't plant: the spot is not clear"
+	if jobs.paid[row] == 1:
+		return ""
 	if not _compost_take.is_valid() or not bool(_compost_take.call(Rules.PLANT_COMPOST_MILLI)):
 		return "Can't plant: no compost to plant with (0.25 U needed)"
+	jobs.paid[row] = 1
 	return ""
 
 
@@ -679,7 +710,10 @@ func _end_drop(row: int) -> String:
 	var milli: int = jobs.load_milli[row]
 	jobs.load_milli[row] = 0
 	_stores.add_wood(milli)
-	if jobs.kind[row] == JobsScript.KIND_GATHER:
+	if jobs.kind[row] == JobsScript.KIND_CARRY_LOGS:
+		_say("%s stacked %s of logs: the demo stores hold %s of wood" % [name_of(jobs.worker[row]), Rules.units_text(milli),
+			Rules.units_text(_stores.wood_milli_u)])
+	elif jobs.kind[row] == JobsScript.KIND_GATHER:
 		_say("%s gathered %s of deadfall into the stores" % [name_of(jobs.worker[row]), Rules.units_text(milli)])
 	elif _stand.trunk_milli[jobs.target[row]] <= 0 and jobs.on_target(JobsScript.KIND_HAUL, jobs.target[row]) == 1:
 		_say("The %s's logs are all stacked: the demo stores hold %s of wood" % [_tree_name(jobs.target[row]),
@@ -747,51 +781,49 @@ func _drop(row: int) -> void:
 	jobs.unassign(row)
 	jobs.rewind_to_walk(row)
 	if brain_of(who).order != BrainScript.ORDER_NONE:
-		brain_of(who).remember_unfinished(UnfinishedScript.new(
-			take_back.bind(row, jobs.kind[row], jobs.target[row], jobs.target_gen[row]),
+		brain_of(who).remember_unfinished(UnfinishedScript.new(take_back.bind(row, jobs.serial[row]),
 			"%s (woods)" % JobsScript.KIND_NAMES[jobs.kind[row]]))
 	_say("%s left the %s job" % [name_of(who), JobsScript.KIND_NAMES[jobs.kind[row]].to_lower()])
 
 
 func finish(row: int, text: String) -> void:
-	"""Close job `row` -- putting any load in hand into store, so no wood is lost -- send its worker back
-	to its routine, and say how it ended."""
-	_deliver_load(row)
+	"""Close job `row`, send its worker back to its routine, and say how it ended. A job with a load in
+	hand is not closed: it waits on the board with it, for a way there, tried again next hour."""
 	var who: int = jobs.worker[row]
-	jobs.close(row)
-	if who >= 0 and who < _cast.actor_count():
-		var actor := _cast.actor(who) as DemoActorScript
-		actor.clear_work_tool()
-		if actor.holding():
-			actor.drop_held()
-		actor.brain.play_in_place(BrainScript.CLIP_IDLE)
-		actor.brain.work_done()
+	if jobs.load_milli[row] > 0:
+		jobs.unassign(row)
+		jobs.rewind_to_walk(row)
+		jobs.blocked[row] = 1
+	else:
+		jobs.close(row)
+	_free_worker(who)
 	if not text.is_empty():
 		_say(text)
 
 
-func take_back(brain: RefCounted, row: int, kind: int, target: int, gen: int) -> bool:
+func _free_worker(who: int) -> void:
+	"""A worker done with its job: tool away, hands empty, idle, back to its routine."""
+	if who < 0 or who >= _cast.actor_count():
+		return
+	var actor := _cast.actor(who) as DemoActorScript
+	actor.clear_work_tool()
+	if actor.holding():
+		actor.drop_held()
+	actor.brain.play_in_place(BrainScript.CLIP_IDLE)
+	actor.brain.work_done()
+
+
+func take_back(brain: RefCounted, row: int, serial: int) -> bool:
 	"""Give woods job `row` back to the resident it was taken from (resident_brain.gd RESUMING), if it is
-	still the same job on the same target, waiting for someone."""
+	still the same job (its serial: a haul become a delivery still is), waiting for someone and not for a
+	way there."""
 	var who: int = int(brain.get(&"index"))
-	if not jobs.is_live(row) or jobs.kind[row] != kind or jobs.target[row] != target:
+	if not jobs.is_live(row) or jobs.serial[row] != serial:
 		return false
-	if jobs.target_gen[row] != gen or jobs.worker[row] != JobsScript.NOBODY or jobs.of_worker_into(who, _probe):
+	if jobs.worker[row] != JobsScript.NOBODY or jobs.blocked[row] == 1 or jobs.of_worker_into(who, _probe):
 		return false
 	jobs.assign(row, who)
 	return true
-
-
-func _deliver_load(row: int) -> void:
-	"""A load still in hand goes into store as what it is: planks once sawn, else wood."""
-	var milli: int = jobs.load_milli[row]
-	if milli <= 0:
-		return
-	jobs.load_milli[row] = 0
-	if jobs.kind[row] == JobsScript.KIND_SAW and jobs.step[row] > SAW_WORK_STEP:
-		_stores.add_planks(milli)
-	else:
-		_stores.add_wood(milli)
 
 
 # --- routine work -------------------------------------------------------------------------------
@@ -802,6 +834,7 @@ func raise_routine_jobs() -> void:
 	for t: int in _stand.count():
 		if _stand.trunk_milli[t] > 0 and jobs.on_target(JobsScript.KIND_HAUL, t) == 0:
 			jobs.open_into(JobsScript.KIND_HAUL, t, 0, JobsScript.ORIGIN_ROUTINE, _read)
+	jobs.blocked.fill(0)
 	for zone: int in ZonesScript.MAX_ZONES:
 		if _zones.is_zone(zone) and _zones.auto_fell[zone] == 1 and not _zone_has_fell(zone):
 			_raise_zone_fell(zone)
@@ -856,7 +889,7 @@ func task_text(who: int) -> String:
 func _object_of(row: int) -> String:
 	"""The words for a job's target in the "doing" line."""
 	match jobs.kind[row]:
-		JobsScript.KIND_GATHER, JobsScript.KIND_SAW:
+		JobsScript.KIND_GATHER, JobsScript.KIND_SAW, JobsScript.KIND_CARRY_LOGS, JobsScript.KIND_CARRY_PLANKS:
 			return ""
 		JobsScript.KIND_FELL, JobsScript.KIND_GRUB:
 			return "the " + _stand.label_of(jobs.target[row]).to_lower()
@@ -895,7 +928,7 @@ func job_line(row: int) -> String:
 	var t: int = jobs.target[row]
 	if jobs.kind[row] == JobsScript.KIND_FELL or jobs.kind[row] == JobsScript.KIND_HAUL:
 		what += " — the %s %s" % [_tree_name(t), _where(t)]
-	elif jobs.kind[row] != JobsScript.KIND_SAW and jobs.kind[row] != JobsScript.KIND_GATHER:
+	elif jobs.kind[row] != JobsScript.KIND_SAW and jobs.kind[row] != JobsScript.KIND_GATHER and not jobs.is_delivery(row):
 		what += " — %s %s" % [_stand.label_of(t).to_lower(), _where(t)]
 	return "%s: %s" % [what, who if not who.is_empty() else "waiting for the crew"]
 

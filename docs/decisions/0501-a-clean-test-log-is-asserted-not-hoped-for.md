@@ -171,6 +171,26 @@ run), so the fix cleans them too.
   - the same message from `grab_focus`, and in a suite that declares no tolerance, both of which must stay findings;
   - a RefCounted cycle.
 
+## Brought up to master 2110ccd (PRs #207, #208, #209)
+
+Master gained batch 5's demo code, ground piles and PC-04 households after the sweep. The same treatment applied:
+
+- **202 analyzer warnings, all fixed by intent:** 193 from #207/#208 and 9 from #209. That was 140 integer divisions,
+  4 constant-pin asserts, 45 shadowed or confusable names, 12 unused parameters, variables or members (one more
+  `_math`, in `ground_piles.gd`, struck from the registry) and 1 redundant `await`. None was a bug. The one quotient that feeds float maths,
+  `field_guide.gd`'s `sqrt(float(BRIDGEWRIGHT_XP / 5000))`, is exact.
+- **The log, in CI conditions** (no staged assets), had 218 undeclared WARNING lines, and the worker leaked 84 objects and 7
+  resources at exit:
+  - The people suites build their cast from a manifest naming no body on purpose. Each build's nine placeholder
+    warnings are now declared.
+  - Two suites stored lambdas that captured the suite in an object the suite held. That is the same fixture cycle as
+    above, and the same fix in `after_each`.
+  - The integration village leaked the Run-until menu's button layer. The menu creates it, but the village parents
+    it in `_ready()`, so `_keep_detached_members` now follows into the members it collects.
+- **A runner behaviour worth knowing:** each line counts against the FIRST declaration it matches. So two identical
+  `expect_diagnostic` fragments in one test leave the second unseen, and the test fails. A fixture built twice in one
+  test declares its fragment once.
+
 ## Rejected
 
 - **A runner-wide allowlist of message texts.** It would have hidden a new refusal that happened to match an old

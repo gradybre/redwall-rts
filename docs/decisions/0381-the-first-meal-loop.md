@@ -7,6 +7,10 @@ Date: 2026-10-01 · Status: Accepted
 > the re-call 38 (the real seconds they were). The "Open" notes on slow walking, late suppers and slow harvests are
 > answered there.
 
+> **Extended by [0436](0436-the-kitchens-third-dish-is-the-fish-stew.md) (2026-10-01):** a third dish, §5.7's fish
+> stew, is cooked at supper in place of the soup whenever a batch's fresh fish and roots are free; ruling 1's
+> alternation stands otherwise. Dried fish is eaten raw as the reserve (0434).
+
 Review group N (findings F21 and UX-027, with the minimal versions of ECO-029 and SOC-007): in the live demo a harvest
 could not end in anyone being fed. Now the village keeps a kitchen. A cook fetches the food, cooks it and puts the
 portions out on the hall's table. The residents eat breakfast and supper there, and each carries an integer

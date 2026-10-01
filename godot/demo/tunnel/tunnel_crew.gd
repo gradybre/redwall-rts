@@ -27,7 +27,11 @@ extends RefCounted
 ## earns each worker at the face its §5.3 XP, and the Foremole's skill factor (1000 + 50 x level) scales
 ## the crew's rate.
 ##
-## THE FOREMOLE'S LINES are original light mole dialect (DEC-017), not quoted from any book.
+## THE LEAD'S SAYINGS (decision 0491) are original, not quoted from any book, and plain: the lead SAYS them under its
+## own name (`spoken`: 'Tuppen Clayholm: "A big job, this. Dug before supper, hurr."'), and only a speaker whose own
+## voice has light dialect (demo/people/demo_people.json, DEC-017: the mole digger's "hurr", "burr aye") adds a word of
+## it. Functional words -- the rock warning, LINE_ROCK_ALONE -- are never dialect. (They were the Foremole's heavy
+## molespeak before 0491, said by whoever led, a mouse or a badger too.)
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
@@ -37,13 +41,25 @@ const MAX_BUILDERS: int = 4
 const FACE_CYCLE_TICKS: int = Rules.BRACE_TICKS + Rules.CUT_TICKS
 const BREAKER_SPECIES: String = "badger"
 
-const LINE_START: String = "Foremole: \"Hurr, a gurt job this. Oi'll 'ave 'er dugged afore supper, burr aye.\""
-const LINE_CREW: String = "Foremole: \"More paws, more tunnel! Stand be'ind oi an' finish wot oi cut, hurr.\""
-const LINE_ROCK_ALONE: String = "Foremole: \"Burr, 'tis rock down yurr! Oi can scratch at 'er, but fetch ee badger to crack it.\""
-const LINE_ROCK_BADGER: String = "Foremole: \"Hoo, that badger do crack rock loik 'azelnuts. Onward, zurr!\""
-const LINE_OPEN: String = "Foremole: \"Thurr she be — a foine tunnel, clear through. Hurr hurr.\""
-const LINE_SKILL: String = "Foremole: \"Moi paws be gettin' the knack o' this diggin'. Quicker now, burr.\""
-const LINE_WIDENED: String = "Foremole: \"Wide enough fer a badger now, an' 'is supper basket too, burr aye.\""
+## The lead's sayings (see THE LEAD'S SAYINGS), by SAY_*.
+const SAY_START: int = 0
+const SAY_CREW: int = 1
+const SAY_ROCK_BADGER: int = 2
+const SAY_OPEN: int = 3
+const SAY_SKILL: int = 4
+const SAY_WIDENED: int = 5
+const SAYINGS: Array[String] = [
+	"A big job, this. Dug before supper.",
+	"More paws, more tunnel. Stand behind me and finish what I cut.",
+	"The rock cracks now the badger is here. Onward!",
+	"There it is: a fine tunnel, clear through.",
+	"My paws are getting the knack of this digging. Quicker now.",
+	"Wide enough for a badger now, and a supper basket too.",
+]
+## Who says a saying when the speaker is not known (a suite's works without names).
+const UNNAMED_SPEAKER: String = "The dig's lead"
+## The rock warning: functional, so plain (DEC-017), and asking for the response it names.
+const LINE_ROCK_ALONE: String = "The dig has reached rock: it goes slowly without a badger on the crew to break it"
 
 ## Per resident index: the segment it crews (-1: none), whether it is at its post, and whether it is a
 ## rock breaker.
@@ -54,6 +70,17 @@ var breaker: PackedByteArray = PackedByteArray()
 var skills: SkillsScript = SkillsScript.new()
 ## Per resident index: the order it joined in (0 first), which sets its place behind the face.
 var member_rank: PackedInt32Array = PackedInt32Array()
+
+
+static func spoken(saying: int, speaker: String, tag: String) -> String:
+	"""Saying SAY_* `saying` under `speaker`'s name, with the speaker's own light dialect word `tag` before its last
+	stop ("" for none): 'Tuppen Clayholm: "A big job, this. Dug before supper, hurr."'."""
+	var line: String = SAYINGS[saying] if saying >= 0 and saying < SAYINGS.size() else ""
+	if not tag.is_empty() and line.ends_with("."):
+		line = "%s, %s." % [line.left(line.length() - 1), tag]
+	elif not tag.is_empty() and line.ends_with("!"):
+		line = "%s, %s!" % [line.left(line.length() - 1), tag]
+	return "%s: \"%s\"" % [speaker if not speaker.is_empty() else UNNAMED_SPEAKER, line]
 
 
 func set_resident(index: int, species: String) -> void:

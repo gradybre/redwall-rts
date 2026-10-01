@@ -27,6 +27,8 @@ extends Node3D
 ## (route_desk.gd) a budget of ROUTE_BUDGET_USEC a frame: residents whose trips find it spent wait, "finding a route",
 ## and are served first come first served at the start of a later frame's step -- paused or not -- and the frame's
 ## window closes after the step. Out of the tree (the suites' casts) there is no budget: every plan runs at once.
+## Just before it closes, `window_tail` (if set) may spend what the residents left of it: the route previews'
+## one step (demo/routes/demo_routes.gd, decision 0461) -- residents first, previews from the leftovers.
 
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
@@ -53,6 +55,8 @@ var _bounds: Rect2 = Rect2(-1e4, -1e4, 2e4, 2e4)
 var clock: DemoClockScript = DemoClockScript.new()
 ## The routing budget the space's desk is given (see ROUTING): 0 until the cast is in the tree.
 var route_budget_usec: int = 0
+## Called at the end of each frame's routing window, before it closes (see ROUTING): none by default.
+var window_tail: Callable = Callable()
 
 
 func _init() -> void:
@@ -88,6 +92,8 @@ func advance(real_delta: float) -> void:
 		(actor as DemoActorScript).advance(clock)
 	if _space != null:
 		_space.nav.advance_builds(CastNavScript.BUILD_BUDGET_USEC)
+		if window_tail.is_valid():
+			window_tail.call()
 		_space.routes.end_window()
 
 

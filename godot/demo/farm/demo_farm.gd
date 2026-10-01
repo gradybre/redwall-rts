@@ -13,12 +13,18 @@ extends Node3D
 ##                                    Rest (fallow), Cancel jobs -- given to the selected residents, or
 ##                                    queued for the field crew
 ##   V                                the map layers (map_lenses.gd, decision 0292): off -> Growing:
-##                                    soil moisture -> Growing: ripeness -> each added by the village
-##                                    (Getting there: water range, Woods; add_overlay) -> off -- the same
+##                                    soil moisture -> Growing: ripeness -> Growing: water service -> each
+##                                    added by the village (Getting there: water range, routes; Woods;
+##                                    add_overlay) -> off -- the same
 ##                                    one active layer the Map layer picker (demo/ui/demo_lens_picker.gd)
 ##                                    selects directly
 ##   K, or the HUD's Food command     the Pantry: Stocks (what is in store, where, incoming, next to
 ##                                    spoil) and Recipe ideas (not cookable yet)
+##   left click the weir              the weir sluice's controls in the bed panel (farm_leat.gd, decision 0441;
+##                                    `on_weir_click`, asked after the water's play):
+##   (or a bed's Sluice…)             Close / Half / Open, each card previewing the beds it changes
+##   T, or the Farm panel's            the seasonal planner (farm_planner.gd, decision 0451; T, UI §5's calendar
+##     "Planner (T)"                  key, decision 0492): every bed at a glance, the season's calendar, soil plans and the after-action record
 ##   Esc                              close the Pantry, then the bed panel
 ## The routine crew (the fieldworker and the gatherer) take queued jobs and the farm's own harvest
 ## and clearing jobs whenever they are wandering.
@@ -29,6 +35,10 @@ extends Node3D
 ## 2x / 4x speed it up. After each advance the demo's ONE weather (demo/weather/demo_weather.gd) is
 ## re-read from the farm's real §5.10 row -- the same rain that wets the beds slows the walkers -- and
 ## a change of weather is posted to the notice feed.
+##
+## THE RECORD (farm_record.gd, decision 0451): at each farm hour the hour's lost crops are noted and every day that has
+## ended is closed from the ledgers -- the pantry's stored, withdrawn and spoiled food, the kitchen's portions and meals
+## (`bind_kitchen`) -- and posted to the notice feed as the day's record (and at a season's last day, the season's).
 ##
 ## WHAT IT SAYS goes to the demo's ONE notice feed (demo_notices.gd): the farm's warnings (farm_alerts.gd,
 ## WARNING or NOTE) and the crew's reports, which the HUD's news strip shows; the bed panel shows only
@@ -74,6 +84,14 @@ const PickScript := preload("res://demo/control/demo_pick.gd")
 const Layout := preload("res://demo/world/world_layout.gd")
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const LeatScript := preload("res://demo/farm/farm_leat.gd")
+const WeirView := preload("res://demo/water/weir_gate_view.gd")
+const EventsScript := preload("res://demo/events/demo_events.gd")
+const PlannerScript := preload("res://demo/farm/farm_planner.gd")
+const GateScript := preload("res://demo/ui/demo_input_gate.gd")
+const RecordScript := preload("res://demo/farm/farm_record.gd")
+const RecordText := preload("res://demo/farm/farm_record_text.gd")
+const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
 
 ## A bed was opened: the right column should show the farm's panel (demo/ui/demo_detail_zone.gd).
 signal panel_wanted
@@ -90,6 +108,8 @@ var sim: SimScript = SimScript.new()
 var tunnels: TunnelsScript = TunnelsScript.new()
 var crew: CrewScript = CrewScript.new()
 var alerts: AlertsScript = AlertsScript.new()
+## The weir's sluice and the garden leat it feeds (decision 0441).
+var leat: LeatScript = LeatScript.new()
 ## farm_alerts.gd COND_DRY, COND_WET, COND_WORN, COND_BLIGHT -> the job that answers it.
 const REMEDY_KINDS: PackedInt32Array = [JobsScript.KIND_WATER, JobsScript.KIND_DRAIN, JobsScript.KIND_COMPOST,
 	JobsScript.KIND_CLEAR]
@@ -106,6 +126,9 @@ var services: ServicesScript = null
 ## The harvested goods' models and icons, and who is drawn carrying which (presentation).
 var goods: GoodsScript = null
 var carry_view: CarryViewScript = CarryViewScript.new()
+## The seasonal planner and the after-action record it shows (decision 0451).
+var planner: PlannerScript = null
+var record: RecordScript = RecordScript.new()
 
 var _cast: DemoCastScript = null
 var _command: DemoCommandScript = null
@@ -115,7 +138,7 @@ var _events: PackedInt32Array = PackedInt32Array()
 var _spoiled: PackedInt32Array = PackedInt32Array()
 var _lines: PackedStringArray = PackedStringArray()
 var _levels: PackedByteArray = PackedByteArray()
-## The village's map layers: the farm's two first, then the village's (add_overlay). V steps them.
+## The village's map layers: the farm's three first, then the village's (add_overlay). V steps them.
 var lenses: LensesScript = LensesScript.new()
 var _shown_hour: int = 0
 var _water: PackedByteArray = PackedByteArray([0, 0])
@@ -123,6 +146,8 @@ var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _rooms: RoomsScript = null
 ## The fit-out's revision the pantry's stores were last read at.
 var _seen_fit: int = -1
+## `jump(bed) -> bool`: select a bed and ease the camera over it (the village news' "Go to"; none: select only).
+var _bed_jump: Callable = Callable()
 
 
 func configure(manifest: Dictionary, world: DemoWorldScript, cast: DemoCastScript, command: DemoCommandScript,
@@ -141,12 +166,14 @@ func configure(manifest: Dictionary, world: DemoWorldScript, cast: DemoCastScrip
 	crew.configure(cast, sim, pantry, tunnels, well_position(), services.notices.poster(
 		NoticesScript.SOURCE_CREW, NoticesScript.LEVEL_NOTE))
 	alerts.bind_incidents(services.incidents, remedy_on)
+	leat.configure(sim, services.incidents, services.notices)
 	crew.set_incidents(services.incidents)
 	recipes.load_index()
 	goods = GoodsScript.new(services.props)
 	_build_view(manifest, world, command)
 	_add_farm_lenses()
 	_build_panels()
+	_build_planner()
 	hud.bind(shell)
 	hud.unlock_food_command(toggle_pantry)
 	command.set_ground_handlers(on_ground_click, on_ground_order)
@@ -193,6 +220,9 @@ func _build_panels() -> void:
 	bed_panel.cancel_requested.connect(func() -> void: crew.cancel_bed(selected_bed))
 	bed_panel.close_requested.connect(func() -> void: select_bed(NO_BED))
 	bed_panel.pantry_requested.connect(open_pantry)
+	bed_panel.sluice_requested.connect(show_weir)
+	bed_panel.sluice_chosen.connect(set_sluice)
+	bed_panel.set_leat(leat)
 	pantry_panel = PantryPanelScript.new()
 	pantry_panel.configure(sim, pantry, recipes)
 	pantry_panel.set_goods(goods)
@@ -201,6 +231,45 @@ func _build_panels() -> void:
 	pantry_panel.compost_requested.connect(compost_spoiled)
 	pantry_panel.close_requested.connect(toggle_pantry)
 	pantry_panel.bed_requested.connect(open_bed_from_pantry)
+
+
+func _build_planner() -> void:
+	"""The after-action record from this hour on, and the seasonal planner over the farm, its crew and the record --
+	opened by T and the bed panel's "Planner (T)"; the bed panel's Compare view marks the map (decision 0451)."""
+	record.bind(pantry, sim.crop_weather().weather())
+	record.start(services.calendar.hour_index())
+	planner = PlannerScript.new()
+	planner.configure(sim, crew, record)
+	add_child(planner)
+	planner.close_requested.connect(toggle_planner)
+	planner.bed_wanted.connect(open_bed_from_planner)
+	bed_panel.planner_requested.connect(toggle_planner)
+	bed_panel.compare_changed.connect(func() -> void: view.set_compare(bed_panel.compare_marks()))
+	bed_panel.compare_bed_picked.connect(select_bed)
+
+
+func bind_kitchen(kitchen: KitchenScript) -> void:
+	"""The kitchen whose portions and meals the record counts and whose plans the calendar shows."""
+	record.set_kitchen(kitchen)
+	planner.set_kitchen(kitchen)
+
+
+func set_bed_jump(jump: Callable) -> void:
+	"""`jump(bed) -> bool`: how the planner's rows show a bed -- selected and the camera eased over it."""
+	_bed_jump = jump
+
+
+func toggle_planner() -> void:
+	"""Open or close the seasonal planner."""
+	planner.toggle()
+
+
+func open_bed_from_planner(bed: int) -> void:
+	"""A planner row: close the planner, open the bed and centre the camera on it (select only, without a jump)."""
+	if planner.visible:
+		planner.close()
+	if not (_bed_jump.is_valid() and bool(_bed_jump.call(bed))):
+		select_bed(bed)
 
 
 static func store_position(cast: DemoCastScript) -> Vector2:
@@ -261,6 +330,7 @@ func _process(delta: float) -> void:
 	"""Run the farm on this frame's demo time; keep the panels current -- at
 	once when the calendar's hour turns, so the panel's date never trails the HUD's."""
 	step(_cast.clock.frame_usec if _cast != null else 0)
+	leat.follow_flood(flood_running())
 	if _cast != null:
 		carry_view.refresh()
 		_follow_fit_out()
@@ -336,6 +406,22 @@ func _hourly() -> void:
 		var bed: int = alerts.targets[k]
 		services.notices.post(NoticesScript.SOURCE_FARM, _levels[k], _lines[k], "",
 			NoticesScript.TARGET_BED if bed >= 0 else NoticesScript.TARGET_NONE, bed, alerts.serials[k])
+	_keep_record()
+
+
+func _keep_record() -> void:
+	"""The hour's lost crops into the record, then each day that has ended closed and posted (THE RECORD)."""
+	record.note_events(_events)
+	record.note_weather(services.calendar.hour_index())
+	var closed: int = record.close_through(services.calendar.hour_index())
+	for n: int in closed:
+		var k: int = record.day_count() - closed + n
+		services.notices.post(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_NOTE, RecordText.day_line(record, k),
+			RecordText.day_summary(record, k))
+		var day: int = record.value(k, RecordScript.F_DAY)
+		if day % RecordScript.DAYS_PER_SEASON == RecordScript.DAYS_PER_SEASON - 1:
+			services.notices.post(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_NOTE, "Season's record, "
+				+ RecordText.season_line(record, day / RecordScript.DAYS_PER_SEASON))
 
 
 func remedy_on(bed: int, cond: int) -> bool:
@@ -386,6 +472,31 @@ func pressing_kind_into(bed: int, out: IntMath.IntResult) -> bool:
 		if JobsScript.refusal_for(sim, kind, bed, earth) == &"":
 			return out.succeed(kind)
 	return out.refuse("NOTHING_TO_DO")
+
+
+func flood_running() -> bool:
+	"""Whether the tunnels' threat is a flood under way now (demo/events/demo_events.gd; none without tunnels)."""
+	var tool: TunnelControlScript = _command.tunnels() if _command != null else null
+	if tool == null or tool.ext == null or tool.ext.works == null:
+		return false
+	var events: EventsScript = tool.ext.works.events
+	return events != null and events.active and events.kind == EventsScript.KIND_FLOOD
+
+
+func show_weir() -> void:
+	"""The weir's sluice in the bed panel (decision 0441): no bed selected."""
+	selected_bed = NO_BED
+	view.select_bed(NO_BED)
+	bed_panel.show_weir()
+	panel_wanted.emit()
+
+
+func set_sluice(setting: int) -> String:
+	"""THE SLUICE ORDER (farm_leat.gd `set_sluice`): its answer shows on the panel's message line."""
+	var said: String = leat.set_sluice(setting)
+	bed_panel.show_message(said)
+	bed_panel.refresh()
+	return said
 
 
 func select_bed(bed: int) -> void:
@@ -452,6 +563,15 @@ func on_ground_click(screen: Vector2) -> bool:
 	return false
 
 
+func on_weir_click(screen: Vector2) -> bool:
+	"""A left click on the weir (decision 0441): its sluice in the bed panel. The village asks it AFTER the water's
+	play, so a bridge at the weir's landing is that play's click, not the sluice's."""
+	if _camera == null or not WeirView.ray_hits_weir(_camera.project_ray_origin(screen), _camera.project_ray_normal(screen)):
+		return false
+	show_weir()
+	return true
+
+
 func on_ground_order(screen: Vector2) -> bool:
 	"""A right click with residents selected: on a bed, its most pressing work; elsewhere not ours."""
 	if not _bed_under_into(screen, _read):
@@ -469,7 +589,7 @@ func on_ground_order(screen: Vector2) -> bool:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	"""V: overlays; K (open_food): the Pantry; Esc: close the Pantry, then the bed panel."""
+	"""V: overlays; K (open_food): the Pantry; T: the planner; Esc: close the planner, the Pantry, then the bed panel."""
 	if not event is InputEventKey or not event.is_pressed() or event.is_echo():
 		return
 	if handle_key(event as InputEventKey) and is_inside_tree():
@@ -484,19 +604,25 @@ func handle_key(event: InputEventKey) -> bool:
 	if event.is_action_pressed(&"open_food") or event.physical_keycode == KEY_K:
 		toggle_pantry()
 		return true
+	if GateScript.key_of(event) == PlannerScript.KEY and not (event.ctrl_pressed or event.alt_pressed or event.meta_pressed):
+		toggle_planner()
+		return true
 	if event.is_action_pressed(&"ui_cancel") or event.physical_keycode == KEY_ESCAPE:
+		if planner.visible:
+			toggle_planner()
+			return true
 		if pantry_panel.visible:
 			toggle_pantry()
 			return true
-		if Catalog.is_bed(selected_bed):
+		if Catalog.is_bed(selected_bed) or bed_panel.showing_weir:
 			select_bed(NO_BED)
 			return true
 	return false
 
 
 func _add_farm_lenses() -> void:
-	"""The farm's two layers, first on V's cycle: soil moisture and ripeness, each with its legend in the
-	beds' own overlay colours (farm_look.gd)."""
+	"""The farm's three layers, first on V's cycle: soil moisture, ripeness and the garden leat's water service
+	(decision 0441), each with its legend in the beds' own overlay colours (farm_look.gd)."""
 	var moisture: int = lenses.add("Growing", "Soil moisture", "Which beds are too dry or too wet?",
 		_farm_overlay.bind(ViewScript.OVERLAY_MOISTURE))
 	lenses.set_legend(moisture, PackedColorArray(Look.BAND_OVERLAY), PackedStringArray(SimScript.BAND_NAMES))
@@ -504,6 +630,10 @@ func _add_farm_lenses() -> void:
 		_farm_overlay.bind(ViewScript.OVERLAY_RIPENESS))
 	lenses.set_legend(ripeness, PackedColorArray([Look.UNRIPE_OVERLAY, Look.RIPE_OVERLAY, Look.LATE_OVERLAY,
 		Look.NO_OVERLAY]), PackedStringArray(["growing", "ripe", "past its best or lost", "empty"]))
+	var service: int = lenses.add("Growing", "Water service", "Which beds does the weir's garden leat water?",
+		_farm_overlay.bind(ViewScript.OVERLAY_WATER))
+	lenses.set_legend(service, PackedColorArray(Look.SERVICE_OVERLAY), PackedStringArray(["not served",
+		"dry (leat empty)", "normal", "wet"]))
 
 
 func _farm_overlay(on: bool, mode: int) -> void:

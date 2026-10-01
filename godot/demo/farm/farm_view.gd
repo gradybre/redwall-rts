@@ -31,7 +31,9 @@ const StockViewScript := preload("res://demo/farm/farm_stock_view.gd")
 const OVERLAY_OFF: int = 0
 const OVERLAY_MOISTURE: int = 1
 const OVERLAY_RIPENESS: int = 2
-const OVERLAY_NAMES: Array[String] = ["off", "moisture", "ripeness"]
+## The garden leat's service per bed (decision 0441).
+const OVERLAY_WATER: int = 3
+const OVERLAY_NAMES: Array[String] = ["off", "moisture", "ripeness", "water service"]
 ## The world pieces this close to a bed centre are the bed (hidden).
 const WORLD_PIECE_MATCH_M: float = 0.05
 
@@ -49,6 +51,8 @@ var _shown: PackedInt64Array = PackedInt64Array()
 ## Per heap: the earth taken from it when it was last drawn here (decision 0401: earth carried back is drawn again).
 var _drawn_taken: PackedInt64Array = PackedInt64Array()
 var _selected: int = -1
+## The bed panel's Compare view's marks, one a bed ('' unmarked; decision 0451): a cream ring and the rank under the label.
+var _compare: PackedStringArray = PackedStringArray()
 ## What the beds were last drawn for: the sim's revision and the marks (selection, overlay).
 var _seen_revision: int = -1
 var _seen_marks: int = -1
@@ -139,7 +143,7 @@ func _state_key(bed: int) -> int:
 	var works: int = (1 if _sim.is_covered(bed) else 0) + (2 if _sim.is_raised(bed) else 0) \
 		+ (4 if _sim.is_banked(bed) else 0) + (8 if _sim.is_ditched(bed) else 0)
 	var key: int = (((((stage * 32 + item) * 32 + chosen) * 64 + growth) * 8 + _sim.band_of(bed)) * 16 + ripe)
-	return (key * 16 + works) * 8 + marks
+	return ((key * 16 + works) * 4 + _sim.leat_service_of(bed)) * 8 + marks
 
 
 func _draw(bed: int) -> void:
@@ -150,26 +154,45 @@ func _draw(bed: int) -> void:
 	var band: int = _sim.band_of(bed)
 	var ripe_hours: int = _ripe_hours(bed)
 	var visual: BedVisualScript = beds[bed]
+	var status: String = Look.status(stage, _sim.chosen_of(bed), growth, band, ripe_hours)
+	var mark: String = _compare[bed] if bed < _compare.size() else ""
 	visual.show_state(stage, item, growth, band, ripe_hours, Look.title(item, _sim.chosen_of(bed), stage),
-		Look.status(stage, _sim.chosen_of(bed), growth, band, ripe_hours))
+		status if mark.is_empty() else "%s\n%s" % [status, mark])
 	visual.set_selected(_selected == bed)
+	visual.set_compared(not mark.is_empty())
 	visual.show_works(_sim.is_covered(bed), _sim.is_raised(bed), _sim.is_banked(bed), _sim.is_ditched(bed))
-	visual.show_overlay(_overlay_colour(stage, band, ripe_hours))
+	visual.show_overlay(_overlay_colour(stage, band, ripe_hours, _sim.leat_service_of(bed)))
 
 
-func _overlay_colour(stage: int, band: int, ripe_hours: int) -> Color:
+func _overlay_colour(stage: int, band: int, ripe_hours: int, service: int) -> Color:
 	"""The overlay disc's colour in the current mode (clear when off)."""
 	match overlay_mode:
 		OVERLAY_MOISTURE:
 			return Look.BAND_OVERLAY[band]
 		OVERLAY_RIPENESS:
 			return Look.ripeness_overlay(stage, ripe_hours)
+		OVERLAY_WATER:
+			return Look.SERVICE_OVERLAY[service]
 	return Color(0, 0, 0, 0)
 
 
 func select_bed(bed: int) -> void:
 	"""Ring one bed (-1: none)."""
 	_selected = bed
+
+
+func set_compare(marks: PackedStringArray) -> void:
+	"""The Compare view's marks, a bed each ('' for none; an empty array clears them): every bed redraws."""
+	if marks == _compare:
+		return
+	_compare = marks.duplicate()
+	_shown.fill(-1)
+	_seen_marks = -1
+
+
+func compare_mark(bed: int) -> String:
+	"""A bed's Compare mark as drawn ('' none; checks)."""
+	return _compare[bed] if bed < _compare.size() else ""
 
 
 func cycle_overlay() -> int:

@@ -77,6 +77,9 @@ const SNOOZE_MSEC: int = 120000
 var revision: int = 0
 ## RAISE_* of the most recent `raise`.
 var last_raise: int = RAISE_REFUSED
+## Incidents raised new or come back so far (a merged repeat is not counted): what "Run until the next warning or
+## incident" watches (decision 0471). Only ever counts up.
+var occurrences: int = 0
 
 var _clock: NewsClockScript = null
 var _calendar: CalendarScript = null
@@ -158,6 +161,8 @@ func raise(key: String, source: int, severity: int, text: String, target_kind: i
 	_count[row] += 1
 	_set_details(row, severity, text, target_kind, target_id, watch)
 	revision += 1
+	if last_raise != RAISE_MERGED:
+		occurrences += 1
 	if last_raise != RAISE_MERGED and severity == SEVERITY_CRITICAL:
 		incident_cue.emit(CUE_CRITICAL_RAISED, _serial[row], severity)
 	return _serial[row]

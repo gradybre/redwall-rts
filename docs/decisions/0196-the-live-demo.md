@@ -5,6 +5,11 @@ Date: 2026-09-30 · Status: Accepted
 > compresses time. `HOUR_USEC` is 25 000 000 -- 25 s a game hour, a day ten minutes at 1x, the GDD's own rate -- by
 > Brendan's ruling. Item 6's "2.5 s a game hour, a day a minute at 1x" is history.
 
+> **Superseded in part by water part B, [0431](0431-fishing-trips-feed-the-pantry.md)–[0436](0436-the-kitchens-third-dish-is-the-fish-stew.md)
+> (2026-10-01):** item 76's named blockers "gear durability and wear" (now real gear, 0435) and "winter ice" (0433) are
+> built, the catch is landed in the pantry (0431), and the boathouse's boats are worked from a jetty outside it (0432).
+> The hazard and rare-quality rolls, injury, M1–M3 unlocks and storms beyond the boat's departure stay open.
+
 The number was reserved when the live demo began and is cited in the headers of `godot/demo/*.gd`
 and in `godot/demo/README.md`; this record collects what every build step decided. Values are as
 built on `feat/live-demo` (commit 114a902). Where the playtest fix pass later changed one, it is

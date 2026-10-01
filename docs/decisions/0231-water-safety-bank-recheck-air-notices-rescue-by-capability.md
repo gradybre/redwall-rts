@@ -1,6 +1,10 @@
 # 0231 — Water safety: the bank recheck, threshold air notices, rescue by capability
 Date: 2026-09-30 · Status: Accepted
 
+> **Its note for water part B is built by [0432](0432-the-boat-core-jetty-routes-crew-and-boat-rescue.md) (2026-10-01):**
+> a boat is `RESPONSE_BOAT`, reserved and released like every rescuer and ranked by route; the bank recheck runs at
+> the jetty and at the ice's edge too.
+
 External review group C (F07, F38, F39), written against 157a3a4 and reconfirmed here on `feat/live-demo`
 43d9654 with failing tests before any fix. **Numbered 0231, not 0212:** parallel review branches each take
 their highest number plus 20 (0211 + 20 here), so they cannot collide. Everything is in

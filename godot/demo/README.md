@@ -2,8 +2,9 @@
 
 A presentation-only demo (decision 0196). It boots the real game — settlement, simulation clock,
 HUD, UIManager — and draws a small village of real library assets on top: buildings, trees,
-crops and props at game scale, and eight real rigged residents who walk between work spots with
-live tail springs (`TailRig`, decision 0194), grounded clips (0193) and stride-matched speed.
+crops and props at game scale, and nine real rigged residents -- an original community, each named (see People) --
+who walk between work spots with live tail springs (`TailRig`, decision 0194), grounded clips (0193) and
+stride-matched speed.
 The HUD wears a demo-only woodland skin in the visual language of
 `docs/design/ui_refinement/visuals/05_woodland_art_concept.png`.
 
@@ -67,6 +68,36 @@ at 2x and 4x they move and dig two and four times as fast. The camera, the HUD, 
 panel and the selection and order marks stay on real time, so the player can still select, order
 and dig while paused -- the orders are carried out on resume.
 
+## Time controls: the pause types, Resume and "Run until…" (decision 0471)
+
+Review UX-022 (`session/`). **Every pause says why, and there is one Resume.**
+
+- **The pause card** (`ui/demo_pause_card.gd`) stands in for the HUD's "Paused: PLAYER" line, top centre: "Paused —"
+  and each reason in words, most urgent first, then **Resume (Space)**. Its tooltip says what Resume clears. While a
+  pop-up is open (the Pantry, the Work screen, the object list) it sits bottom centre above it. Otherwise it steps below
+  the one card shown at the top centre under the alerts -- the incident card, else the first-village guide's card.
+- **The kinds** (`session/pause_ledger.gd`): *Critical* -- a critical incident (a resident in difficulty in the water, a
+  tunnel threat), with "Pause on a critical incident" on (the default), or a stall (the stall banner's own, as before);
+  *the game menu*, or *the village guide* (its window holds its own MENU hold, so neither releases the other's);
+  *Planning* -- the Pantry, the Work screen, the seasonal planner (T), the village news, the Residents list, the object
+  list or the Dig tool open, with "Pause while planning" on (off by default, UI §8.1); *You paused* -- Space, the HUD's pause button,
+  or a "Run until…" that arrived ("Reached dawn: Y1 Spring 2, 06:00").
+- **Resume** -- the card's button, Space while paused, or the HUD's pause button pressed while paused -- clears your
+  pause, a planning pause and a critical pause. It never closes the game menu (its own Resume does) and never
+  acknowledges a stall (the stall banner's Resume, which drops the owed time, does). After Resume a planning surface left
+  open stays unpaused until every one has closed. **Panels never override your pause**: closing one lets go of its own
+  planning pause only. The menu, a planning surface and a critical incident share the clock's MENU reason through the
+  ledger, so closing the menu never lifts the others.
+- **Run until…** -- the button in the time controls (in the cluster's first row, right of 4x; left of the cluster at the
+  narrow profile), or **G**: a menu with the speed (1x / 2x / 4x) and six targets, each saying when or why not --
+  **Dawn** (06:00, the night routine's), **Dusk** (20:00), **Next meal** (the kitchen's 07:00 or 17:00 call), **Project
+  done** (the selected room being dug, else the selected tunnel being dug, else the bridge planned at the Water panel's
+  site), **Harvest window** (a bed coming ripe), **Next warning** (a new warning line or incident). The village runs at the
+  speed, then pauses saying where it got to. The calendar targets land **on the tick** (the demo clock's next frame is
+  capped, `demo_clock.gd limit_usec`): from 05:40 at 4x, Run until dawn stops at 06:00:00. Any pause or critical event
+  first cancels the run, and the card says so ("Run until dawn cancelled: paused (you paused)"); the button reads
+  "■ Dawn" while it runs, and the menu has **Stop the run**.
+
 ## One village: one calendar, one weather, one water, one feed
 
 The farm and the tunnel works were built apart; in the demo they are one village (the woods too), sharing four things
@@ -115,8 +146,8 @@ that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
 ## Village news: the history, incidents and the top-centre card (decision 0331)
 
 - **The history** (`ui/demo_news_history.gd`): every kept entry, newest first, "date · place · Warning: text",
-  filtered by place (*All*, *Farm*, *Woods*, *Tunnels*, *Water*, *Village* -- weather, threats and the crew's
-  reports; the first place picked shows it alone, more add to it) and by severity (*All*, *Warnings*, *Notes*).
+  filtered by place (*All*, *Farm*, *Woods*, *Tunnels*, *Water*, *Village* -- weather, threats, the crew's
+  reports and the village's chronicle, a finished guide or project (decision 0481); the first place picked shows it alone, more add to it) and by severity (*All*, *Warnings*, *Notes*).
   An entry about a bed, tree, tunnel, resident or bridge has **Go to**: it selects the target as a click would,
   brings its panel and eases the camera over it (`ui/demo_news_jump.gd`), closing the window. Above the
   history, **Needs attention** lists every open or pinned incident ("No active problems" erases nothing below).
@@ -173,31 +204,54 @@ not also clear the selection. The notification history is not a modal (UI §3 la
 reaches the world, and the world stays live beside it.
 
 **The game menu** (`ui/demo_menu.gd`): the HUD's Menu button ("≡"), or Esc when nothing else is left to
-close, opens it -- Resume, Restart demo…, Controls (the keys below), Settings, Demo Lab and Quit… -- with the
+close, opens it -- Resume, Restart demo…, Help (the searchable help that replaced the Controls page: decision 0481, see
+The first-village guide), Settings, Demo Lab and Quit…, then the first-village guide's row (where it stands, Skip guide /
+Reopen guide, Village guide (O), Practice stories) -- with the
 line that **the demo can't save yet**. Restart and Quit ask first and say again that the village will be lost.
 Opening it holds the clock's MENU pause reason and closing releases only that, so the village comes back at
 the speed it had (and a pause of your own stays). Settings holds only what works: the interface scale
 (100 / 125 / 150 %, the HUD and every demo panel, the level indicator and the action cards' tooltips together; a
 size the window cannot show at 576 logical rows and 1024 logical px wide is disabled and says so -- at 1280x720, 150 %;
 decision 0391), full screen, and the sound's volumes, mutes and mixes
-(see "Sound" below). The Menu button no longer opens the New Settlement form: its Create would discard the settlement the demo runs on.
+(see "Sound" below), and **Accessibility** and **Time** (see "Accessibility" below). The Menu button no longer opens the New Settlement form: its Create would discard the settlement the demo runs on.
 
 **The Demo Lab** (`ui/demo_lab.gd`, F8, or the menu's "Demo Lab"): the demo's test triggers, and only here --
 Next weather (the one calendar runs on to the next change of weather, at most 48 h), Test event (the tunnels'
 next seeded threat now), Storm gust (through the woods) and Cramp (every selected resident swimming tires at
-once; disabled with no swimmer selected). They are the same actions the panels' "(demo)" buttons were; the
+once; disabled with no swimmer selected) -- and Practice stories (the village guide's practice tab; decision 0481). They are the same actions the panels' "(demo)" buttons were; the
 Tunnels, Woods and Water panels now hold only the village's own choices.
 
 **Keyboard focus** (decision 0261). The demo's panel buttons -- the right column's tabs and "×", the Farm,
 Pantry, Tunnels (rooms and fit-out too), Woods and Water panels, and the party panel's Dig and room buttons --
-take keyboard focus and wear the HUD's brass focus ring while they have it (a click's focus is not drawn).
+take keyboard focus and wear the HUD's brass focus ring while they have it (a click's focus is not drawn). Every demo
+panel that scrolls -- the Woods, Tunnels and Pantry panels and the menu's Settings now too -- brings the focused control
+into view in its own pixels at any interface scale (`ui/demo_scroll.gd`; decision 0471 finished F35's list).
 
 | Key | Does |
 |---|---|
-| F7 | Move focus: world -> the right column (its first tab) -> the left column (the party panel) -> the Map layer picker -> world. A control the Residents workspace (L) covers is skipped, and Enter on one is not pressed (decision 0391) |
+| F7 | Move focus: world -> the right column (its first tab) -> the left column (the party panel) -> the Map layer picker -> the guide's objective card (when shown; decision 0481) -> the people's offer card, while one shows (decision 0491) -> world. A control the Residents workspace (L) covers is skipped, and Enter on one is not pressed (decision 0391) |
 | Tab / Shift+Tab | Next / previous button where the focus is (in a pop-up: its buttons only) |
 | Enter / Space | Press the focused button. Only the keyboard's focus takes them: after a click, Enter still digs the piece the Dig tool has laid, Space still pauses and the arrows still pan the camera |
 | Esc | With focus in a panel: back to the world. Otherwise the pop-up, tool or selection ladder below, then the game menu |
+| Space | Pause; paused, Resume (your pause, a planning pause, a critical pause; never the menu's or a stall's) |
+| G | "Run until…" (decision 0471): Tab and the arrows move through it, Enter chooses, G or Esc close it |
+| F6 | The object list (decision 0471): every resident, crop bed, tree, bridge, tunnel mouth and room; Enter on a row selects it and centres the view on it |
+
+**Accessibility** (decision 0471, review UX-023, `access/`): the game menu's Settings holds four **presets** -- pointing at
+one (mouse or keyboard focus) previews what it would change, pressing applies it at once, live, and lights it while all it
+sets is in place -- and each setting as its own toggle, which a preset only ever turns on:
+
+| Preset | Sets |
+|---|---|
+| Large readable | the interface at 150 % where the window offers it, else 125 %; bigger tooltips (x1.25); high-contrast panels (a flat, opaque face under every panel's text, re-drawn in place: `woodland_styles.gd set_high_contrast`) |
+| Keyboard planner | focus hints (a line under the keyboard's focus naming it and its keys: `access/focus_hint.gd`); show interactive targets (a brass ring on every resident, bed, tree, bridge, mouth and room a click selects: `access/target_marks.gd`) |
+| Reduced motion | the camera stops easing; the selection rings, a swimmer's ripple and the mound over a digger stop pulsing; every particle system at 35 %; the rain and snow thinner and half as fast (`access/demo_motion.gd`). The demo has no camera shake |
+| Quiet focus | the sound's Quiet focus mix; fewer news toasts (warnings only, one at a time; everything stays in the village news) |
+
+Under **Time**: Pause while planning (off) and Pause on a critical incident (on). **Restore defaults** says everything it
+will change and asks first. The settings last for the session and through Restart, as the scale and sound do; nothing is
+saved to disk. Key rebinding is not offered: the demo has no rebinding system yet.
+| (typing) | In a pop-up's text field (the help or field-guide search, a project's name) every key but Esc, Tab and Enter types; Enter is swallowed, so it never reaches the Dig tool (decision 0481) |
 
 **The top bar tells the village's truth** (decision 0251, review group E). One read model
 (`ui/demo_hud_model.gd`, painted by `ui/demo_hud_counters.gd`) gives every cell exactly one owner, the
@@ -205,7 +259,7 @@ same object its panel reads, and writes nothing into the settlement simulation:
 
 | Cell | Figure | Owner (and where else it shows) |
 |---|---|---|
-| Ready food | days of meals, one decimal, floored (`2.5 days`; decision 0381) | the kitchen: portions held plus the portions the stores' grain and roots would cook, over the portions the village eats a day; the ledger adds one line of the stock behind it, the portions, grain and roots (the Pantry's Kitchen tab, K) |
+| Ready food | days of meals, one decimal, floored (`2.5 days`; decision 0381) | the kitchen: portions held plus the portions the stores' grain, roots and fresh fish would cook (each dish at its own portions: decision 0436), over the portions the village eats a day; the ledger adds one line of the stock behind it, the portions, grain, roots and any fish (the Pantry's Kitchen tab, K) |
 | Planks (Fuel's slot) | U, one decimal | the village stores (Tunnels, Woods, Water panels) |
 | Wood / Stone | U, one decimal | the village stores (the same panels) |
 | Residents | count | the cast (the Residents roster) |
@@ -216,7 +270,8 @@ the same six figures and where each is. A figure whose owner is missing reads **
 UIManager still repaints the cells with the settlement's figures when the simulation's stock changes;
 the demo paints its own back the next frame.
 
-**Residents (L)** lists the cast, one row per resident: name, species and trade, where it is (on the
+**Residents (L)** lists the cast, one row per resident: its name, species and trade ("Wenna Tallowby — mouse,
+keeper"; ★ after a resident the player pinned as notable -- see People), where it is (on the
 surface, in the water, indoors, or underground and on which level), what it is doing (the party panel's
 own words) and the saved work it will go back to. Clicking a row selects that resident, so the Demo party
 panel shows it, centres the camera on it and closes the roster (`ui/demo_roster.gd`).
@@ -232,6 +287,48 @@ suitable range, fertility and crop health as percentages, fertility's effect on 
 ("−15%"), one expected harvest, and treatments in percentage points ("Rest: +0.5 fertility points a
 day"). **Details** in the bed panel shows the harvest's multiplication and the raw 0..10000 readings.
 
+## People (decision 0491)
+
+The demo's nine residents are an **original community** (Brendan's rulings, 2026-10-01) -- not Rowan, not book
+characters -- each with a name, an interest and a way of speaking, from ONE data file, `people/demo_people.json`
+(edit it there; its provenance note says they are original). Their trades stay roles.
+
+| Resident | Name | Interest |
+|---|---|---|
+| Mouse keeper | Wenna Tallowby | carves tiny animal figures for the windowsills |
+| Mouse fieldworker | Jory Whitethorn | can whistle a dozen birdcalls |
+| Squirrel gatherer | Linnet Whinberry | plays a reed pipe, badly and often |
+| Squirrel forester | Tobit Highbough | sorts a pebble collection by colour |
+| Otter boatwright | Tegwin Slipstone | is teaching himself to read from an old almanac |
+| Otter fisher | Corra Netley | sings rounds and teaches them to anyone nearby (calls everyone "friend") |
+| Mole digger | Tuppen Clayholm | keeps a box of odd keys and buttons (light molespeak: "hurr", "burr aye") |
+| Badger quarryman | Hulda Slatebrook | embroiders samplers with old sayings |
+| Beaver bridgewright | Elstan Weirholt | plays the fiddle in the evenings |
+
+- **One name everywhere.** `display_name` is the person's: the roster, the party panel, the Work screen ("Wenna
+  Tallowby (mouse keeper) — Haulers crew"), the news, incidents, action cards, refusals and every feed name the same
+  person. A placeholder (nothing staged) keeps its label.
+- **The resident inspector** (the party panel with one resident selected): its name and role ("Mouse, keeper"), what it
+  is doing and **why** ("Why: the Field crew's own work (Farm)", "Why: the village cook", "Why: your order", "Why: free —
+  no task taken yet"), how fed it is, and its **skills as meters** ("Felling · Level 3" over its progress to the next
+  level, from the XP real work earned). **About <name> ▸** opens, only when asked, its interest, its evening line,
+  its relationships ("Rescued by Corra Netley", "Often works with Tobit Highbough"), **Pin as notable**, and its
+  **notable moments**, newest first, each with **Go to** (the place) and the other person in it.
+- **Notable moments are committed deeds only** (`people/people_taps.gd` into `people/people_ledger.gd`): a rescue that
+  succeeded (never a victim washed ashore), a bridge, tunnel or room built (a dig called away is paused, not built: no
+  memory), a first harvest (a cancelled one carried in as its delivery is none), a skill level reached, and a first
+  meal cooked that fed everyone.
+- **The spotlight**: after a rescue or a build, a top-centre card offers to mark the resident notable (★ on the roster;
+  nothing about the work changes) -- once per resident and kind; it waits behind any incident card and the guide's card,
+  and while the Residents list is open.
+- **The season's reflection**: at a season's end the card offers up to three of its moments -- **Pin to chronicle**
+  (posted to the village news: "Chronicle: Corra Netley brought Tuppen Clayholm ashore (Spring 4)"), **Keep private**
+  or **Dismiss** (it leaves the resident's history); **Later** leaves them as they are.
+- **Relationships** grow from what happens, by the GDD's own numbers (REQ-SET-035..037): +2 for an hour worked side by side
+  together or a supper shared (once a pair a day), +8 for a rescue; friends from 40. They change nothing mechanical.
+- **Evening lines**, at most one a day at 19:00: the next resident in turn who is free then, at its own pastime where
+  it actually is -- with its own pleased words only after a deed of its own that day. A note in the news, nothing more.
+
 ## Map layers (decision 0292)
 
 One map layer shows at a time (`map_lenses.gd`), each answering one question with a small legend:
@@ -240,7 +337,9 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
 |---|---|---|
 | Growing: Soil moisture | Which beds are too dry or too wet? | dry, low, good, wet, waterlogged (the beds' discs) |
 | Growing: Ripeness | Which beds are ready to harvest? | growing, ripe, past its best or lost, empty |
+| Growing: Water service | Which beds does the weir's garden leat water? | not served, dry (leat empty), normal, wet (decision 0441) |
 | Getting there: Water range | Where can they wade, swim, dive or cross? | wade, swim, dive, ford, bridge site, swim link, landing |
+| Getting there: Routes | How do they get there, and what holds them up? | surface, wading, underground, bridge, swimming (optional), by boat, the posts (waiting, blocked); public ways never swim (decision 0461) |
 | Woods: Zones and trees | Which trees may be felled, which must stay? | forestry and conservation zones; mature, young, stump, cleared |
 | Underground: Tunnels | What lies under the village? | the U view's cut (U switches it too) |
 
@@ -248,7 +347,7 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
   there: Water range ▾", or "Map layer: off ▾"); the button unfolds the list of layers, one button each, its
   question as the tooltip. A pick shows that layer alone and folds the list; picking the shown one again, or
   **Off**, shows none. Under the header: the question, the subject, what they can do there, and the legend.
-- **V** steps the same layer: off, moisture, ripeness, water range, woods, off. **U** switches the underground
+- **V** steps the same layer: off, moisture, ripeness, water service, water range, routes, woods, off. **U** switches the underground
   view, and the picker follows it: the Underground layer is then the shown one (the others switch off); V from
   it goes to moisture and back to the surface.
 - **Whose water range** (`waterplay/water_range.gd`): nobody selected, the 1.0 m mouse anchor ("Water range
@@ -264,6 +363,54 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
   pushes the news strip left), else right of the minimap. It is clear of the minimap, the news strip, the
   command strip, the party panel and the right column; where its slot is short, its list and card scroll under
   its header (decision 0391).
+
+## Routes and infrastructure previews (decision 0461)
+
+Review group P (packet P5, ECO-039, ECO-045). `routes/`, wired by `demo_village.gd _build_routes`:
+
+- **Estimates from the real router** (`routes/route_estimator.gd`): a trip is planned as a resident's own (tunnels it fits
+  with its load, the water's crossings when it offers some) -- "before" on the live network, "after" on a COPY of it with
+  the proposal in it (a dig's segments open, the Dig tool's plan laid and open, or a bridge offered as an open one is,
+  `routes/preview_crossings.gd`) -- and costed by the router itself (`tunnel_router.gd last_cost_m`); a route the live
+  planner prices without the water has its wading priced as the router would, so before and after are on one footing.
+  Nobody is standing about; times are walking only, at the walker's pace (a carrier slower), on the demo calendar; every
+  estimate says so and that the movement rules are not final (MOVE-G01–05).
+- **Through the routing desk** (decision 0361): ONE step a frame across all estimates -- the copy, or one trip's one
+  plan -- at the end of the frame's routing window (`cast/demo_cast.gd window_tail`, after the residents' plans), only
+  when no resident waits and the window can take it, charged to the window; only for what is on screen.
+  "Before" is the live router's own plan (its warm cache shared); "after" is planned on a copy. After a step longer
+  than the budget (one plan is never cut in two), the estimate rests that many windows.
+  The panels say "calculating…" until it is done; a change to the network, the crossings, the weather, or a bridge
+  planned or opened starts it again (a bridge's work in progress does not).
+- **The Water panel's site**: Build shows only for a kind that can be built now. A kind the stores cannot pay for says
+  what is missing ("Plank footbridge: missing 4.7 U planks") with **Saw planks ▸** (the Work screen's saw task when one is
+  queued, else the Woods panel -- nothing is ordered) or **Woods: fell or haul logs ▸**. Under it the **benefit**: up to
+  three work trips that cross the water near the site, now and after ("the hall to the far bank by the mill: now about
+  3.8 game hours, after about 3.3 game hours (14% quicker)"), who can use it, its cost from the Build card. A planned
+  bridge: its materials (paid when planned: nothing missing) reserved at their source, being carried, or delivered at the
+  site; its stages; its builder; **Bridge task ▸** on the Work screen. An open bridge: its route across, its condition and
+  the route a work trip takes now -- no construction controls.
+- **The Tunnels panel's project**: the piece laid in the Dig tool, once it may be dug -- its benefit if dug; else the
+  first dig in the job list -- its **stages** (`routes/dig_stages.gd`, ECO-045: a junction where it meets another dug
+  bore, then a connection or a spur), a **dead-end heading** said apart from a finished stage, the **next payoff** with
+  how far the dig to it is and its benefit (the piece open to that stage), who fits the bore (by body; a group member by
+  member), and that digging takes no materials. **Work ▸** opens the Work screen's projects.
+- **The Routes layer** (`routes/route_overlay.gd`): the selected residents' routes, each its own, coloured by stretch
+  (`routes/route_kinds.gd`: surface, wading, underground dashed with its level, bridge, swimming, and **by boat** -- a
+  crew member aboard, drawn along the boat's own course to its station or back to its berth, since a boat's legs are
+  its task's, not the router's), and a post with the
+  words where one is held up (`routes/route_reasons.gd`, from the real cause): "finding a route", "waiting for mouth",
+  "no safe exit", "closed by flood", "closed by a roof fall", "load too wide", "too big for the bore", "can't find a way
+  there", "gave up". The picker's notes give each member's stretches or hold-up. With nobody selected (ECO-039): each
+  work district's **public way** from the square for the public walker (the widest body, carrying -- so never swimming),
+  labelled with its time; a narrow body's tunnel **shortcut** beside it where there is one, marked optional; and the swim
+  links drawn as what they are -- optional crossings for swimmers (a swimmer's whole trip is not estimated for the layer:
+  a plan offered the swim links costs a dozen surface plans).
+- **The rescue card** (`routes/rescue_card.gd`): each rescue's incident card adds its phase, an approximate time to
+  safety or the blockage, and **Victim: *name* ▸ / Responder: *name* ▸ / Landing ▸** (each resident by name, decision 0491) (select and centre; `ui/demo_incident_cards.gd`
+  DETAILS), the same while paused.
+- Checked on the real scene by `test/live/demo_routes_live.gd` (`test_demo_routes_live.gd`), the rest by
+  `test_demo_routes.gd`.
 
 ## Action cards: what a button will do, and who will do it (decision 0332)
 
@@ -300,10 +447,10 @@ Needs: a site both banks take; planks (sawn at the sawhorse) and wood for any pi
 - **Who**, in one grammar everywhere: "Assign selected: X (nearest of 3)" (farm, woods, bridges);
   "Assign selected: X (first of 3 who fits the bore)" and "Assign X (the nearest free resident who fits
   the bore)" (tunnels); "Lead: X (nearest of 3) + 2 waiting to haul" (felling); "Queue for the Field crew:
-  Mouse fieldworker or Squirrel gatherer, then anyone free who can" -- the work board's own words (decision
+  Jory Whitethorn or Linnet Whinberry, then anyone free who can" -- the work board's own words (decision
   0411: the crew preferring that work first, then anyone eligible); "Already under way: X is on it". With two or
-  more selected a card also previews **each member** (decision 0411, review UX-001): "Of 3 selected: Mouse keeper,
-  Mole digger can; Badger quarryman can't (does not fit the bore, or is below)" -- the farm's, the woods' and the
+  more selected a card also previews **each member** (decision 0411, review UX-001): "Of 3 selected: Wenna Tallowby,
+  Tuppen Clayholm can; Hulda Slatebrook can't (does not fit the bore, or is below)" -- the farm's, the woods' and the
   tunnels' cards, in the Work screen's Reassign words.
 - **Interrupts** says what the named resident stops and whether it goes back to it (the brain's resuming
   rule, `control/work_interrupt.gd`; `demo_command.gd interrupt_text`): a farm, woods, spoil or tunnel job
@@ -320,7 +467,8 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
 - **The work board** (`work/work_board.gd`) is the one common owner of who does what. Each job owner keeps its own
   board -- the farm's, the woods', the bridges', the tunnels' jobs, the rooms' fit-out, the spoil heaps' -- read
   through one adapter each (`farm_work.gd`, `woods_work.gd`, `bridge_work.gd`, `tunnel_work.gd`, `fit_out_work.gd`,
-  `spoil_work.gd`); every command goes to the owner's own function, so its conservation rules hold (decision 0222:
+  `spoil_work.gd`, and water part B's `fishery_work.gd`: trips' seats, traps, the rack, the mill and the gear, decision
+  0431); every command goes to the owner's own function, so its conservation rules hold (decision 0222:
   a load in hand is carried on, never paused or handed over from afar -- earth too: a farm job carrying earth back
   to its heap reads "Carry earth back", a delivery, and Cancel refuses it; decision 0401). The kitchen's cook and
   water drawers are listed as well (`kitchen_work.gd`; the kitchen hands them out itself), and the board hands no
@@ -357,6 +505,53 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
   tasks grouped by where they are. **Cancel all work…** only shows its scope (counted per source; deliveries, paid
   tunnel jobs and bridges go on) until Cancel them is pressed.
 
+## The first-village guide (decision 0481)
+
+Review group U (F49, P7, UX-017, UX-019) and UX-018 and UX-020: `guide/`. One objective card at a time (UI-SET-072, top
+centre under the alerts), each completed **only by what really happens in the village** -- never a button or a timer:
+
+| # | Objective | Done when |
+|---|---|---|
+| 1 | Meet a villager | a resident is selected (a click, a box, the roster) |
+| 2 | Bring in a harvest | a harvest is shelved in a store (the pantry's delivered total; an order, a cut crop or a load in hand is not) |
+| 3 | Serve the first supper | a resident finishes a cooked supper portion (their own record; the plan, the pot, a portion held, raw food, breakfast are not) |
+| 4 | Ready the village for the frost | the first of: someone over the middle of an open bridge; someone walking through a tunnel and up 6 m or more from where they went down (not the digger, a dig crew or a tunnel job's worker); a bed with a crop covered, raised, banked, ditched or tunnel-drained |
+
+- **The card** teaches (what and why), says the current cause or blocker and the next legal action, and confirms the
+  real outcome ("5.1 U of carrot came into store") for 10 s of unpaused time or until Next; one already done before its
+  card came up says "Already done:". A brass ring and a bobbing brass point mark its target in the world (a resident, a
+  bed, the cauldron, a bridge, a tunnel mouth). **Show me** eases the camera over it (the target below the card) and
+  opens a bed's, tunnel's or bridge's panel; a resident is only centred. **Help** opens this step's how-to. **Hide
+  guide** hides it. A lost target is replaced (another ripe bed, the soonest, an empty bed to plant, a lost crop to
+  clear); a blocked meal or bridge says why in its owner's own words and the fix; objective 4 shows its three ways side
+  by side. The frost is the farm's own (the night into Spring 11, then the next).
+- **Where**: between the side columns, at most 420 wide; it yields to a critical incident's card, the stall banner, the
+  news history and the open Residents list (it would cover the list's rows at 1280x720), and the people's offer card
+  waits behind it -- one card at the top centre: incident, guide, offer; and never reaches the Map layer picker -- it drops its teaching, then its next action, and where even
+  that cannot fit (125 % on 1280x720 with a legend unfolded) it waits.
+- **Skip and reopen** (the card's Hide guide, the game menu's row, the window's Objectives tab) only hide or show the
+  card: nothing is granted or lost. Hidden, it keeps up; reopened, it is on the first objective not done.
+- **Done**: "The first village stands", and a chronicle entry in Village news under the new **Village** source. Free
+  play goes on; the Hearth Charter, the long-term goal, is beyond the demo.
+- **The village guide** (O, the HUD's Objectives command, unlocked for it): a modal that holds a menu pause through the
+  pause ledger, "The village guide is open" (the village waits) with five tabs -- **Objectives** (done, current with its cause, ahead), **Projects**, **Field guide**, **Help**
+  and **Practice**.
+- **Help** (also the game menu's Help page, in place of the 21-key Controls wall): 22 how-to topics and the 28 keys,
+  searched in plain words ("how do I cross the stream", "eat", "why is my job waiting"), each topic a command answers
+  with that command as a button.
+- **Field guide**: 53 entries built from the demo's own tables -- the 16 crops (which dish each feeds), the three dishes
+  (the fish stew at supper among them), 7 materials (fishing gear among them), 10 buildings and stations (fishing and
+  the boats, the drying rack and mill among them), 5 skills, 4 water-safety entries, and 8 fish and preserved foods (the
+  six fish, dried fish, flour) -- each with Uses, Requires, Alternatives and
+  Available here, linked, a crop's pantry stock live; nothing the demo lacks.
+- **Practice stories**: a loaded crew at the stream, a delivery with nowhere to go, a winter pantry -- three choices each,
+  what happened, a debrief comparing all three, Restart. Built from fresh copies of the village's own models (a pantry,
+  a farm with its own calendar, a bridge surveyor over the stream's shape), never the village: it is untouched (the
+  window's pause holds it too). From the Practice tab, the menu's row or the Demo Lab.
+- **Projects**: up to three, your name, the places selected when pinned (with Go to) and one measure with a target --
+  wood, planks, stone, ready food, harvested or suppers eaten from now, bridges or tunnel stretches open. Reached, it is
+  ticked and Village news records it once with before and after. Session only (no save).
+
 ## Commanding the residents
 
 | Input | Does |
@@ -368,11 +563,12 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
 | Right click a work spot | Work there; anyone beyond its free slots holds behind it |
 | Shift + right click | Append the order to the selection's order lists instead: a bed, tree, trunk, deadfall or the sawhorse queues its job for the nearest selected, open ground a walk for each (see Work) |
 | J (or the Jobs command) | The Work screen: tasks, residents and crews, projects (see Work) |
+| O (or the Objectives command) | The village guide: objectives, your projects, the field guide, help and practice stories (see The first-village guide) |
 | R | Release the selection back to its own routine |
 | Esc | Close the top pop-up; else drop the Dig tool's piece or close the tool; else clear the selection; else open the game menu |
 | Menu ("≡") | The game menu (above) |
 | F8 | The Demo Lab (above) |
-| B (or T, or "Dig tunnel (B)") | The Dig tool: lay out tunnels and branches (below); again: close it. (B is the HUD's Build key, locked in the demo, so the demo takes it; the command strip says so) |
+| B (or "Dig tunnel (B)") | The Dig tool: lay out tunnels and branches (below); again: close it. (B is the HUD's Build key, locked in the demo, so the demo takes it; the command strip says so) |
 | H / C in the Dig tool (or "Burrow home (H)" / "Root cellar (C)") | The room tools: place a burrow home or a root cellar as its own structure (see Burrow homes and root cellars) |
 | U | Underground view: a top-down section cut at the tunnels' level (see The underground view) |
 | PgUp / PgDn in the U view | Show level 1 / level 2 (see The second level). On the surface they stay the camera's zoom; Alt+PgUp/PgDn its pitch |
@@ -386,7 +582,7 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
 | (any camera move) | The eye never sits inside a tree crown, the crowns between it and what it looks at are thinned, and a selected resident shows through foliage and roofs (see The camera and the trees) |
 | Left click a spoil heap | Select it: a brass ring, and the party panel says how much earth it holds |
 | Right click a spoil heap (or C with it selected) | The selected residents who can carry dig it out and haul its earth to the village stores (Clear; see Spoil heaps) |
-| V | Steps the one shown map layer (see Map layers): Growing: soil moisture, Growing: ripeness, Getting there: water range (wade / swim / dive, fords, bridge spans, landings, fish stocks), Woods: zones and trees, off -- the same layer the Map layer picker shows |
+| V | Steps the one shown map layer (see Map layers): Growing: soil moisture, Growing: ripeness, Growing: water service, Getting there: water range (wade / swim / dive, fords, bridge spans, landings, fish stocks), Getting there: routes, Woods: zones and trees, off -- the same layer the Map layer picker shows |
 
 The "Demo party" panel in the HUD's left column lists the selection, and **never hides** (decision 0391,
 review F20/F31). Its header says how many are selected; a summary line says who and what -- one resident's name
@@ -438,7 +634,7 @@ pitch 30, was a screen of leaves) while a selected worker under one, or behind a
 ## Digging tunnels
 
 The tunnels are one **network** (decision 0208, `tunnel/underground_graph.gd`): bores meeting at
-junctions, reached from the surface by mouths. Press **B** (or T, or the party panel's "Dig tunnel (B)"):
+junctions, reached from the surface by mouths. Press **B** (or the party panel's "Dig tunnel (B)"):
 the Dig tool opens in the underground view (and puts the view back when it closes). **Drag** from where a
 piece starts to where it ends -- it is dug as you release, if it may be (Shift while dragging drops a bend
 at the pointer) -- or click its points one by one and press Enter or right-click. Backspace takes back a
@@ -813,8 +1009,10 @@ opens the Pantry (decision 0292), whose headline is the pantry total:
 | Drain | A wet or waterlogged bed: a resident digs a ditch round it (6 WU); its moisture drops at once to the top of its crop's band, and the ditch sheds up to 1000 a day for good (decision 0205) |
 | Raise / Bank | A resident fetches 2 U of tunnel earth from the nearest spoil heap or the stores that hold it and carries it to the bed: a raised bed drains and is warmer at night; a banked bed keeps half of each dry day's loss. Earth adds no fertility. Cancelled (or unable to reach or work the bed) with the earth in hand, the resident carries it back to where it came from (decision 0401) |
 | Rest | Rest the bed fallow (+0.5 fertility points a day; nothing is sown) |
-| V | Map layer: moisture, then ripeness, then the water range, then the woods, then off -- or pick one on the Map layer picker (see Map layers) |
+| V | Map layer: moisture, then ripeness, then the water service, then the water range, then the routes, then the woods, then off -- or pick one on the Map layer picker (see Map layers) |
 | K / Food | The Pantry |
+| T / Planner (T) (bed panel) | The seasonal planner (below) |
+| Compare… (bed panel) | Every bed side by side, sortable, ringed and ranked on the map (below) |
 
 Threats: spring is wet (beds waterlog and stop growing -- Drain them, run a tunnel under them, or raise
 them; every bed sheds up to 500 a day above its band's top, so in the first spring only the Ideal spell
@@ -826,13 +1024,58 @@ the next beds at midnight unless the blighted bed is cleared, and a ripe crop st
 real stream's edge (dry ground within 2.5 m of its waterline -- inside the square, by the ford or at
 x 19.5 m, z 4) irrigates the beds it runs under. Details and every number's source: `farm/*.gd` headers.
 
+## The seasonal planner (decision 0451)
+
+Review group O (F45, UX-008, ECO-005's presentation, P1's "Seasonal forecast", P4). **T**, or **Planner (T)** in the
+Farm panel's head, opens it (`farm/farm_planner.gd`): a modal of the input gate in the HUD's modal rectangle, like the
+Work screen -- T, Esc or its "×" close it, Tab stays inside, focus goes back where it was -- at the interface scale.
+(T is UI §5's calendar key, `open_calendar`; it was the Dig tool's alias for B until decision 0492 gave it back, and G
+went to "Run until…".) Open, it is a planning surface: with "Pause while planning" on it pauses the village. Four tabs:
+
+- **Farm overview** (`farm/farm_plan_rows.gd`): one row a bed -- bed, crop, stage (and the verb when it needs attention:
+  "Needs: Drain"), harvest when and how much, soil moisture in the bed panel's words ("Good · 66%"), the work on it and
+  who has it (or queued, paused, blocked), the next sowing. **Needs attention** (a warning Needs line, a harvest waiting
+  for store room, a job nobody can reach) and **Harvest soon** (ripe, or within 24 game hours at today's rate) filter
+  it, counted on their buttons. A growing crop's date is the bed panel's own "ripe in about N h" dated on the one
+  calendar -- "≈ Spring 9, 14:00 · about 5.1 U", an estimate at this hour's growth rate; a ripe crop's dates are the
+  rules' (full yield until 48 h after it ripened, withers at 120). A row (click or Enter) closes the planner, opens that
+  bed and centres the camera on it -- the news' "Go to".
+- **Season calendar** (`farm/farm_season.gd`, `farm/farm_timeline.gd`): this season or the next, as a timeline of lanes
+  (the four crop rows, weather, frost, blight, beds, meals) or as a **Table** of the same entries in words. Each entry is
+  **Scheduled** (solid bar: §5.6 planting windows, the season's §5.10 baseline, the demo's frost and blight schedule,
+  the season event once announced -- three days ahead, never before -- a ripe bed's grace and withering, the kitchen's
+  planned meals), **Recorded** (small square: each past day's weather), **Now** (ringed diamond: today's) or **Estimate**
+  (outlined bar: when crops sown in their window would ripen at a full rate, each bed's ripening, until when the food in
+  store makes meals -- the HUD's Ready food from today). What is not known is said in words. Today is the HUD's date.
+- **Soil plans** (`farm/farm_soil_plans.gd`, ECO-005): for one bed over one season, **Compost, then sow**, **A legume in
+  rotation** and **Rest it fallow** side by side -- what each sows and when, this season's harvest, the fertility at the
+  season's end, what the next crop would then yield, and the staff time (the jobs' own work, and staff-days of 10 game
+  work hours, GDD §5.3), from GDD §5.6's own rules; presentation only (the bed's own buttons act).
+- **Record** (`farm/farm_record.gd`): yesterday, this season's days as a table and the season's totals -- harvested,
+  food used (cooked and raw), portions eaten, spoiled (in store, on the table, a cancelled batch), who went without and
+  crops lost -- read only from committed outcomes: the pantry's ledger of food stored, withdrawn and spoiled (never
+  reset; every pantry item, so a catch, the rack's dried fish and the mill's flour count with the crops -- "harvested"
+  is everything stored), the kitchen's counters and meal log, and the crops that withered. Each day is closed at the farm's hour after
+  its midnight (once the kitchen has tallied its supper) and posted to the village news (place Farm), each season's
+  totals at its last day.
+
+**Compare…** in the bed panel (UX-008, `farm/farm_compare_view.gd`) swaps the readout for every bed side by side --
+ready, harvest, moisture, fertility -- sortable by Harvest, Ready, Moisture, Fertility or Bed; the order holds while it
+shows (press a sort to sort again), a row opens that bed with the view kept, and the beds wear a cream ring and their
+rank under their label ("#2 by harvest") until Back. There is no bulk bed order to preview.
+
 ## The kitchen (decision 0381)
 
 Breakfast and supper, cooked from the pantry's real stock (`kitchen/`). Two dishes, alternating: **wild oat
 porridge** at breakfast (the GDD's `porridge` row: grain 2 U + water 2 U, 12 WU) and **Togget's vegetable soup** at
 supper (its `root_stew` row: roots 3 U + water 1 U, 16 WU), each batch 2 portions of 1800 NP that keep 24 h, and 0.1 U
 of wood. Grain is wheat, barley or oats; roots are radish, turnip, carrot, beetroot, parsnip or onion (each crop's
-§5.6 row). If one dish's food is short the other is cooked.
+§5.6 row). If one dish's food is short the other is cooked. **The third dish** (water part B, decision 0436): at
+supper, whenever the stores hold a batch's fresh fish and roots nobody has set aside, the kitchen cooks **poached perch
+or trout** instead of the soup -- the GDD's `fish_stew` row: fresh fish 2 U (any of the six species) + roots 2 U + water
+2 U, 20 WU, 3 portions of 2200 NP that keep 24 h; both inputs reserved from real lots and withdrawn together. Dried fish is
+not the stew's `fish`: it is the village's reserve, eaten as it is by a hungry resident (1800 NP a unit, after anything
+spoiling sooner).
 
 - **The day** (decision 0421). Breakfast is called at 07:00 and served until 08:59; supper at 17:00 until 18:59, an
   hour before dusk (so whoever goes to eat raw food at its end has eaten before bed). The cook (the keeper; a free
@@ -897,6 +1140,8 @@ hold; at 2x and 4x they run faster.
 - **Crews**: up to three helpers with the Foremole; one worker per quantum's face, so a helper who
   fits finishes behind it (1506 per mille on a standard bore), more faces when widening. The
   Foremole's digging skill raises the crew's rate (1000 + 50 per level, per mille: a mole's 3 is 1150).
+  The dig's lead says its sayings under its own name, plainly ("Wenna Tallowby: "A big job, this. Dug before
+  supper.""); only Tuppen adds a word of his light molespeak. The rock warning is plain (decision 0491).
 - **Threats** (`events/`): a seeded flood at the stream edge or a fire at the covered store. Residents
   in it take the network out -- in at the nearest mouth, up at the one furthest from the danger --
   (or walk out), shelter, and go home when it clears.
@@ -1057,7 +1302,8 @@ raises the stream up its banks at the ford.
 zones, ground and bed height, flow, nearest bank, landings, ford and bridge candidates, and
 `segment_crosses_water` for tunnels. `water/fishing_driver.gd` runs the real fishing store
 (`scripts/core/fishing.gd`) on demo time -- the stream is the river habitat, the pond the lake --
-and returns each cycle's catch as species lots without touching any pantry. The depths and the
+and returns each cycle's catch as species lots; the fishery (water part B, below) opens, completes or cancels
+those cycles and lands the lots in the pantry. The depths and the
 zone thresholds are demo values (`water/water_rules.gd`); decision 0196 records them.
 
 ## Water gameplay
@@ -1109,7 +1355,8 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
   difficulty (the rescue incident's own line) and the selected residents' swimming (two, then "n more selected"
   opening the list). Below, scrolling: **Swimmers** -- how many are in the water, the water today, Dive and Swim
   shortcuts, and **All residents**, folded until opened, a row per resident that selects it and centres the
-  camera on it -- then **Bridges** -- the site, each kind's cost with the two Build buttons right under them,
+  camera on it -- then **Bridges** -- the site, each kind's cost with the Build buttons right under them (each shown
+  only when it can be built now, the missing material and its source button below them: decision 0461),
   ◀ Site / Site ▶ / Span two banks…, the bridges, the stores and the news. At 1280x720 Dive, Swim shortcuts and
   both Builds are in view without scrolling; every button is at least 32 px tall, every line at least 14 px. The
   pinned alert shows up to four lines (all of it in its tooltip), and where the pinned selection would squeeze the
@@ -1133,6 +1380,50 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
   The **Water range** layer (V or the Map layer picker) paints the zones
   for its subject -- one resident's own height, or a group's, member by member (see Map layers) -- the bridge candidates, the swim links and the landings; the fishery's site labels are two
   lines each (quota and slots; each species' stock and state), laid out so they never overlap.
+
+## Fishing, boats, ice, the rack and the mill (water part B; decisions 0431-0436)
+
+Fishing trips feed the pantry through the real fishery (`fishery/`, `boats/`): the catch is debited from
+`scripts/core/fishing.gd`'s stock and quota and lands in the stores as its species.
+
+- **Authorise a trip** (Water panel ▸ Fishing): **Site ▸** the run, the ford or the pond; **Method ▸** a hand net or a
+  trap from the bank, a boat on the pond, ice fishing on the frozen pond; **Fish ▸** that water's fish (trout, dace,
+  salmon in the stream; perch, carp, whitefish in the pond -- never eel or pike; no coast here, so no herring, mackerel
+  or mussel). Before it is authorised the panel and the card show the stock and today's quota, any closure and when it
+  reopens, the expected catch, the gear's condition and the numerical risk (REQ-SET-055). **Authorise trip** puts its
+  seats on the work board (J), to the selected residents first.
+- **The methods** are the GDD's gear rows, each in its own role: a **hand net** (60 WU, one fisher, any fish), a **trap**
+  (set 20 WU, left 6 game hours, collected 20 WU; dace, perch, carp), a **boat** (two crew, 120 party-WU, the biggest
+  catch; the helm needs fishing 1, the second may be a learner) and **ice fishing** (an ice kit and a winter outfit, 90
+  WU, safe ice only). There is no line: the GDD has none.
+- **A trip**: the fisher fetches its gear from the locker by the fisher shelter, walks to the water, and the trip is
+  checked again there (a storm, a hard freeze, ice, a closure, the quota, worn gear: refused, nothing is taken and the
+  trip waits on the board saying why); the fishing cycle opens (its effort slots, the gear's durability claim, room held
+  in a store for the catch), the work is done, the store's catch is taken, and the catch is carried to the store. **Cancel
+  trip** releases everything at once; a catch out of the water is always landed. One called away sets its catch down
+  where it stands, for the next to fetch. A trip two game hours past its estimate is an OVERDUE warning.
+- **Boats** (Water panel ▸ Boats): two rowboats kept at the boathouse, moored at the **jetty** on the pond's west bank
+  (outside the boathouse). The crew wait at the jetty, board, row a **fixed route** to a fishing station and back, and
+  step off; out on the water they are held (nothing calls them off mid-pond). A boat wears 15 a trip and none sets out
+  below its wear (Mend gear). **Boat rescue**: a resident in difficulty at the pond's surface may be answered by a boat
+  -- when its crew's way is shorter than a swimmer's, or no swimmer is free -- rowed out, hauled aboard, landed at the
+  jetty.
+- **Gear** (Water panel ▸ Fishing): real gear in the locker (hand nets, traps, ice kits, winter outfits), each piece's
+  durability and cycles left shown; a worn piece is refused before a trip, never broken during one. **Make net / trap /
+  ice kit** at the workbench (the stores' wood, the locker's rope or iron: the village came with 4 U of rope and 2 U of
+  iron); **Mend gear** mends the most worn free piece or boat (wood 1 + rope 0.25 for 200 points).
+- **Winter ice**: the pond freezes in the cold (frozen at 10 mm, safe at 60 mm; a millimetre a game hour at −5 °C). Ice
+  stops boats, nets, traps and swimmers on the pond (a boat, net or trap out when it freezes is called in); THIN ICE is
+  a warning while it lasts; SAFE ICE takes ice fishers out to the hole. The Water range layer paints safe ice white and thin ice slate.
+- **The smoking rack** (Water panel ▸ Drying rack and mill ▸ **Dry fish**): the GDD's dryer running its `dry_fish` row --
+  4 U of the fresh fish that spoils first, hung (24 WU), cured 12 game hours in one of four slots (smoke rises), taken
+  down: 3 U of dried fish that keep 720 h.
+- **The mill** (**Mill grain**): 3 U of grain carried over the stream to the watermill, ground (12 WU, the wheel
+  churning), 3 U of flour back to the store whose room was held for it. No dish uses flour yet: every flour recipe needs nuts, mushrooms, berries,
+  fruit or honey, which the village does not have; it is stock for later.
+- **The Pantry's Stocks** lists each fish species, dried fish and flour like the crops (the Recipes tab still lists the
+  16 farm ingredients: its library index has no fish yet). The sound: a splash where a net
+  or trap goes in, a boat pushes off or a hole is cut, and the oars' knock as a boat rows.
 
 ## Spoil heaps
 
@@ -1159,6 +1450,55 @@ either puts it back from where it stands. **Compost comes only from plant waste*
 Pantry's spoiled food at 4 : 2 -- and Compost spends only the compost store; earth never raises fertility. There is no
 backfill yet: the tunnels have no way to fill a dug passage, so that use waits for one (decision 0401).
 
+## The weir sluice and the garden leat (decision 0441)
+
+The weir's sluice gate is a player control (review ECO-006: bounded, discrete water service; no hydrology). **Click
+the weir** (or a bed's **Sluice…**) and the farm panel shows it: **Close**, **Half** and **Open**, each button's
+tooltip its action card, and the **affected-bed preview** -- for the setting under the pointer, else the setting now --
+in words ("Open: Bed 2 and Bed 4 go to wet, Bed 6 to normal. Bed 4 is already waterlogged.") and bed by bed (its
+band now, its service then, what the leat adds at the next midnight). The order is done at once (no one walks to the
+wheel: a demo simplification); the beds' water changes at midnight.
+
+- **The zone** is Bed 2, Bed 4 and Bed 6 -- the east column -- fed by a covered culvert from the weir to a timber
+  leat head at Bed 2's north-east corner (`water/weir_sluice.gd`). Its table: Closed, all three **dry**; Half, Bed 2
+  and 4 **normal**, Bed 6 dry; Open, Bed 2 and 4 **wet**, Bed 6 normal. Other beds are not served. The demo opens
+  closed, so its tuned spring is unchanged.
+- **Through the moisture model** (`farm/farm_sim.gd` THE GARDEN LEAT): normal moves a bed up to 1500 a day toward its
+  band's middle (as a tunnel irrigates), wet raises it up to 1500 toward 1000 over its band's top and never lowers it,
+  dry adds nothing. The leat's share is worked on the bed as the day left it, so the preview's "+15% from the
+  leat" is exactly the leat's own share; the night's weather and the loam's drainage above the band's top come on
+  top of it.
+- **Tunnels**: a bed the leat waters takes the leat's water instead of a tunnel's and is not drained that day; a bed
+  it leaves dry keeps whatever its tunnels, ditch and raising do. A travel tunnel never changes because of the sluice.
+- **Floods**: while the tunnels' flood runs with the sluice not closed, an incident says which beds it will
+  waterlog or wet and to close the sluice (the preview says it too). Closed in time, it resolves; left open, as the
+  flood passes the wet beds are raised past their WET band (waterlogged; capped at the scale's top) and the normal
+  ones into it, and the feed says so.
+- **Drawn**: a three-plank board in the weir's gate bay (the model's baked board is taken out) winds up on the demo
+  clock -- half its lift at Half -- with broken white water below the bay while it is up; the leat head's water stands
+  empty, half full or brim full. The stream keeps its one level (decision 0301), so the pool does not drop.
+- **The Water service map layer** colours each bed by its service.
+
+## Songs (decision 0442)
+
+The otters sing, and teach their songs (`songs/`; review SOC-026, UX-030, UX-032). **Four short original songs**
+(`songs/songs.json`, quoted in decision 0442): two work songs, a supper song and an evening song, written for this
+demo -- no name, line or phrase from any book -- a line at a time in a parchment bubble over the singer.
+
+- **Only in their context** (`songs/demo_songs.gd`): a work song only while actually working (carrying, at an
+  order's work, at a kitchen step, or holding a work-board task that is working or hauling -- not walking to it), the
+  supper song only seated at the supper table, the evening song from 19:00 to 22:00 while wandering free or walking
+  home to bed. A song stops the moment its singer leaves its context; nothing waits for a song.
+- **Who** (`songs/song_circle.gd`): the otters know every song; anyone who hears one sung to its end twice within
+  6 m learns it, and sings it from then on (a routine Village news line). At most two lead at once; supper is one
+  table -- one leads, everyone seated who knows it joins (a "♪ ♪"), and the day's first supper song is a news line.
+- **Verse slots** name only what the village has recorded: a bridge it opened ("A cup for the weir bridge!"), a
+  rescue; with none, the song's own words.
+- **Settings** (the game menu's Sound): **Residents sing: on/off** -- off, nobody sings, hums or makes song news --
+  and a sixth bus, **Songs (humming)**, with its own volume and Mute.
+- **The hum** (`songs/song_hum.gd`): no new files -- each song's tune is synthesised once (the boot prewarm) into a
+  soft closed-mouth hum, played at the singer on the Songs bus as each line begins. It is diegetic and never a score.
+
 ## Sound (decision 0351)
 
 The first sound pass (`sound/`; review F43, UX-029, UX-031). **The files are staged, not committed**:
@@ -1171,8 +1511,9 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 - **One owner, not an autoload** (`sound/sound_director.gd`, a child of the village). Everything it hears is the
   demo's -- cast, woods, tunnels, water, notices, camera -- so it is made and freed with the scene, and the sixth
   autoload slot stays free for the game's own AudioManager.
-- **Five buses**: Master, Ambience (wind, rain), Work (tools, loads, footsteps; through "Work Surface" and "Work
-  Under"), Water (the stream, splashes, wading) and Cues (warnings, completions, clicks). Made by name once.
+- **Six buses**: Master, Ambience (wind, rain), Work (tools, loads, footsteps; through "Work Surface" and "Work
+  Under"), Water (the stream, splashes, wading), Cues (warnings, completions, clicks) and Songs (the residents'
+  humming, decision 0442). Made by name once.
 - **A bounded voice pool** (`sound/sound_voices.gd`): 8 Work, 4 Water and 3 Cues players made at boot; each
   cue has its own voice cap and a **real-time gap** (`gap_ms`), so at 4x, or with twenty residents chopping, the
   extra events fold rather than stack. No player's pitch is ever changed.
@@ -1209,24 +1550,32 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `world/` | Terrain, lighting, village layout, points of interest |
 | `cast/` | The residents: body, clips, live tail, job routines, orders |
 | `control/` | Selecting and ordering residents, and the demo party panel |
+| `people/` | The cast's names and interests (`demo_people.json`, `people_book.gd`), the committed deeds, curation and affinity (`people_ledger.gd`, written by `people_taps.gd`), the spotlight, reflection, evening lines and inspector info (`demo_people.gd`), the inspector's person section and the offer card (decision 0491) |
 | `tunnel/` | Player-dug tunnels: rules, the tunnel network and planner, planning, drawing, the underground view; and their extensions -- ground, queues, crews, jobs, hazards, finds, the demo stores, the tunnel panel; the construction theatre -- the warren's particle budget, the dig face, the baskets, the hazards' warnings, the surface signs |
 | `demo_calendar.gd`, `demo_services.gd`, `village_water.gd`, `demo_notices.gd` | The one calendar, the shared set, the one water adapter (over `water/water_map.gd`), the one notice feed |
 | `demo_incidents.gd`, `demo_news_clock.gd` | The incidents (open conditions, the card queue, the sound hook) and the news clock that stands still while paused |
 | `weather/` | The demo's one weather (read from the farm's real §5.10 row) and its rain, snow and light |
 | `burrow/` | Rooms as their own structures: the templates, sockets and refusals (`underground_rooms.gd`), placing one and its passage (`room_plan.gd`, `room_tool.gd`), drawing it (`room_view.gd`, `room_mesh.gd`); the cellar API; the fit-out (`room_fixtures.gd`, `fixture_crew.gd`, `install_task.gd`, `fixture_view.gd`, `fixture_kit.gd`, `room_text.gd`) and the night (`night_routine.gd`, `bed_allocation.gd`, `sleep_task.gd`) |
 | `events/` | Seeded threats (a flood, a fire) and evacuation |
-| `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the water overlay (the Water range map layer) |
+| `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the water overlay (the Water range map layer), the weir's sluice table and its gate and leat head (decision 0441) |
+| `fishery/` | Water part B: the trips, jobs and stations (`fishery.gd`, its rows `fishery_tables.gd`, its task), the numbers (`fishery_rules.gd`), the real gear locker over gear.gd, the FISH skill, the pond's ice, the words, the drawing and the node wiring it into the village (`demo_fishery.gd`) |
+| `boats/` | The boat core: the jetty, berths and fixed routes (`boat_routes.gd`), the boats as integer rows (`boat_fleet.gd`), their drawing, and the boat as a rescue rank (`boat_rescue.gd`) |
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel; whose water range the map layer paints (`water_range.gd`) |
-| `farm/` | The farm: real FarmPlot rows, the pantry and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves |
+| `farm/` | The farm: real FarmPlot rows, the pantry (and its ledger) and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves; the seasonal planner -- its overview rows, season calendar and timeline, soil plans, the after-action record and its tables (`farm_planner*.gd`, `farm_plan_rows.gd`, `farm_season.gd`, `farm_timeline.gd`, `farm_soil_plan*.gd`, `farm_record*.gd`) -- and the bed panel's Compare view (`farm_compare_view.gd`) |
 | `kitchen/` | The meal loop: the dishes and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |
+| `routes/` | Route and infrastructure previews (decision 0461): the estimate on copies of the network through the routing desk, the proposal's crossing, the stretches and hold-ups, the work places, a dig's stages, a bridge's project words, the Routes map layer and its subject, the rescue card's details, and the controller over the Water and Tunnels panels |
+| `guide/` | The first-village guide (decision 0481): the outcome ledger, the objectives' progress and words, the card and its world marker, the village guide window and its pages -- help, field guide, practice stories, projects |
 | `work/` | The work board over every job owner (one adapter each), the claim, the named crews and presets, the order lists' entries, Shift+right-click's queue and the Work screen (decision 0411) |
+| `session/` | The time controls: the pause ledger (the kinds, their words, the one Resume), "Run until…" (its targets read from the calendar, the kitchen, the projects, the beds and the news) and the frame-by-frame control (Space, G, the HUD's pause button, the planning surfaces, the critical incidents) (decision 0471) |
+| `access/` | Accessibility: the settings and presets, their effects on the village, reduced motion, the world's interactive targets (the object list, F6, and their rings), the focus hint, the Settings section (decision 0471) |
 | `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens; then the underground view drawn once |
 | `demo_layers.gd` | The four render layers every drawn node is on, and the plane each view picks on (decision 0206) |
 | `map_lenses.gd`, `lens_subject.gd` | The map layers: one shown at a time, each with its question, legend and subject; V's cycle and U's followed layer (decision 0292) |
 | `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |
-| `ui/` | The woodland HUD skin; the HUD date, the news strip, the village-news history, the incident card and "Go to", and the right column's tabs; the HUD's village read model (counters and ledger), the Residents roster and the village map; the Map layer picker |
+| `ui/` | The woodland HUD skin; the HUD date, the news strip, the village-news history, the incident card and "Go to", and the right column's tabs; the HUD's village read model (counters and ledger), the Residents roster and the village map; the Map layer picker; the pause card and the "Run until…" button and menu (decision 0471) |
 | `camera/` | The RTS camera, and the canopy clearance: the eye kept out of crowns, the crowns in the way thinned, the selected shown through |
 | `sound/` | The sound pass: the cue table (data), the mix and its buses, the voice pool, the event map, the owner and the Settings section |
+| `songs/` | The residents' songs: the repertoire (data), who sings what when, the bubbles, the hum (decision 0442) |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

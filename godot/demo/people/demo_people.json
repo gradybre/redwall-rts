@@ -1,0 +1,79 @@
+{
+	"version": 1,
+	"provenance": "ORIGINAL. The live demo's cast is an original community (Brendan's rulings of 2026-10-01, decision 0491): these names, interests, evening pastimes and lines were written for the demo and are not taken from the books (docs/setting_bible.md 3.2: original game design is labelled original). They are hand-written for these nine demo residents only; the main game's fixed 32-entry name catalogs and naming system (docs/game_gdd.md 5.3) are unchanged. Rowan stays the settlement game's Warden; the mouse keeper here is not Rowan.",
+	"note": "One row per demo cast key (demo/demo_manifest.gd). name: the resident's name (personal + descriptive, DEC-016). interest: their own pastime, a personal trait, never a species one. speech: how they talk (DEC-017: distinct voices, light dialect). evening: what they do when free of an evening, as it follows 'is ...' (no pronouns). pleased: a short line, in their own voice, said ONLY on an evening after a deed of theirs the ledger committed that day. dialect: their own light dialect words (DEC-017), at most two words a line, appended to their own spoken lines only; functional UI text never carries them. Edit freely: the demo reads this file at boot.",
+	"people": {
+		"mouse_keeper": {
+			"name": "Wenna Tallowby",
+			"interest": "carves tiny animal figures for the windowsills",
+			"speech": "plain, unhurried",
+			"evening": "carving a tiny animal figure for a windowsill",
+			"pleased": "No hurry, and it came out well.",
+			"dialect": []
+		},
+		"mouse_fieldworker": {
+			"name": "Jory Whitethorn",
+			"interest": "can whistle a dozen birdcalls",
+			"speech": "short, cheerful",
+			"evening": "whistling birdcalls",
+			"pleased": "Done! Good, that.",
+			"dialect": []
+		},
+		"squirrel_gatherer": {
+			"name": "Linnet Whinberry",
+			"interest": "plays a reed pipe, badly and often",
+			"speech": "plain",
+			"evening": "playing a reed pipe, badly",
+			"pleased": "That went better than my piping.",
+			"dialect": []
+		},
+		"squirrel_forester": {
+			"name": "Tobit Highbough",
+			"interest": "sorts a pebble collection by colour",
+			"speech": "slow and careful",
+			"evening": "sorting a pebble collection by colour",
+			"pleased": "That... came out... about right.",
+			"dialect": []
+		},
+		"otter_boatwright": {
+			"name": "Tegwin Slipstone",
+			"interest": "is teaching himself to read from an old almanac",
+			"speech": "plain",
+			"evening": "reading an old almanac, a word at a time",
+			"pleased": "That one goes in the almanac's margin.",
+			"dialect": []
+		},
+		"otter_fisher": {
+			"name": "Corra Netley",
+			"interest": "sings rounds and teaches them to anyone nearby",
+			"speech": "calls everyone \"friend\" (a personal habit, not an otter trait)",
+			"evening": "singing a round",
+			"pleased": "Not bad work, friend!",
+			"dialect": []
+		},
+		"mole_digger": {
+			"name": "Tuppen Clayholm",
+			"interest": "keeps a box of odd keys and buttons",
+			"speech": "light molespeak: one or two words a line at most (DEC-017)",
+			"evening": "sorting a box of odd keys and buttons",
+			"pleased": "A good day's work.",
+			"dialect": ["hurr", "burr aye"]
+		},
+		"badger_quarryman": {
+			"name": "Hulda Slatebrook",
+			"interest": "embroiders samplers with old sayings",
+			"speech": "soft-spoken",
+			"evening": "stitching an old saying into a sampler",
+			"pleased": "That deserves a stitch or two.",
+			"dialect": []
+		},
+		"beaver_bridgewright": {
+			"name": "Elstan Weirholt",
+			"interest": "plays the fiddle in the evenings",
+			"speech": "plain",
+			"evening": "playing the fiddle",
+			"pleased": "That's worth a tune.",
+			"dialect": []
+		}
+	}
+}

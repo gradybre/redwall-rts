@@ -1043,6 +1043,12 @@ func _start_trip_record() -> void:
 	_refusal = ""
 
 
+func is_stranded() -> bool:
+	"""Whether it stands underground with every way out closed, looking again every RETRY_S (`_wait_stranded`): the
+	route overlay's "no safe exit" (demo/routes/route_reasons.gd, decision 0461)."""
+	return _stranded_s >= 0.0
+
+
 func trip_failed() -> bool:
 	"""Whether its last trip was given up (see ARRIVAL AND REFUSAL)."""
 	return trip_outcome == TRIP_FAILED

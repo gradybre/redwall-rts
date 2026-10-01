@@ -12,6 +12,7 @@ const Tasks := preload("res://demo/waterplay/rescue_tasks.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
+const DemoMotion := preload("res://demo/access/demo_motion.gd")
 
 const RIPPLE_COLOUR: Color = Color(0.92, 0.96, 1.0, 0.55)
 const DISTRESS_COLOUR: Color = Color(0.9, 0.45, 0.3, 0.75)
@@ -56,9 +57,10 @@ func configure(cast: DemoCastScript, state: StateScript, motion: MotionScript, r
 
 
 func _process(delta: float) -> void:
-	"""Follow every swimmer (real time, so ripples still breathe while paused)."""
+	"""Follow every swimmer (real time, so ripples still breathe while paused; still with reduced motion, decision
+	0471)."""
 	_time += delta
-	var pulse: float = 1.0 + RIPPLE_SCALE * sin(TAU * RIPPLE_PULSE_HZ * _time)
+	var pulse: float = DemoMotion.pulse(1.0 + RIPPLE_SCALE * sin(TAU * RIPPLE_PULSE_HZ * _time))
 	for who: int in _ripples.size():
 		var actor := _cast.actor(who) as DemoActorScript
 		_place(who, actor, pulse)

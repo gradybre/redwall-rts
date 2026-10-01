@@ -87,6 +87,8 @@ func refusal_words(who: int, why: StringName, at: Vector2 = Vector2.ZERO) -> Str
 			return "%s has swim shortcuts off" % name
 		Rules.REFUSE_TOO_SHALLOW:
 			return "too shallow for %s to dive here (%s)" % [name, depth_words(who, at)]
+		Rules.REFUSE_ICE:
+			return "%s can't swim there: ice covers the pond" % name
 	return "%s can't go: %s" % [name, String(why).to_lower().replace("_", " ")]
 
 
@@ -106,6 +108,8 @@ func reason_words(who: int, why: StringName) -> String:
 			return "carrying a load"
 		Rules.REFUSE_FLOW:
 			return "the current is too strong to swim across"
+		Rules.REFUSE_ICE:
+			return "ice covers the pond"
 		Rules.REFUSE_CANNOT_SWIM:
 			return "it doesn't swim"
 	return String(why).to_lower().replace("_", " ")
@@ -301,12 +305,22 @@ func log_text() -> String:
 
 func skill_line(who: int, alone: bool) -> String:
 	"""The party panel's water words: bridge building, and swimming with breath and stamina."""
+	var swim: String = swim_line(who, alone)
+	return bridge_line(who, alone) + ("" if swim.is_empty() else ("\n" if alone else " · ") + swim)
+
+
+func bridge_line(who: int, alone: bool) -> String:
+	"""Bridge building: "Bridging 6 · XP .../..." alone, "bridge 6" in a list."""
+	return _crew.line_of(who) if alone else _crew.short_of(who)
+
+
+func swim_line(who: int, alone: bool) -> String:
+	"""Swimming with breath and stamina alone; in a list the breath only while in the water or short of air ("")."""
 	if alone:
-		return "%s\n%s\n%s" % [_crew.line_of(who), first_up(Rules.swim_words(_species(who))), first_up(_state.meter_text(who))]
-	var short: String = _crew.short_of(who)
+		return "%s\n%s" % [first_up(Rules.swim_words(_species(who))), first_up(_state.meter_text(who))]
 	if _brain(who).in_water or _state.air[who] < Rules.AIR_FULL:
-		short += " · breath %d%%" % (_state.air[who] * 100 / Rules.AIR_FULL)
-	return short
+		return "breath %d%%" % (_state.air[who] * 100 / Rules.AIR_FULL)
+	return ""
 
 
 static func first_up(words: String) -> String:

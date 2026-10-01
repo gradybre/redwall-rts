@@ -29,6 +29,9 @@ extends CanvasLayer
 ## unresolved condition stays an incident (demo_incidents.gd) until it resolves or is acknowledged. So
 ## while any incident is unresolved the strip stays up with its count ("2 need attention"), and its one
 ## button -- the only part of the strip that takes the mouse -- opens the history (`history_wanted`).
+##
+## FEWER TOASTS (decision 0471, the Quiet focus preset): with `quiet` on the strip toasts warnings only, one at a
+## time; notes are still in the history, and the count still shows.
 
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
@@ -75,6 +78,8 @@ var _clock: NewsClockScript = null
 var _paused_query: Callable = Callable()
 var _history_button: Button = null
 var _attention: int = 0
+## Fewer toasts: warnings only, one line (see FEWER TOASTS).
+var quiet: bool = false
 
 
 func configure(notices: NoticesScript) -> void:
@@ -202,11 +207,12 @@ func refresh(now_msec: int) -> int:
 		_journal_open = not _journal_open
 		_place.call_deferred()
 	var shown: int = 0
+	var most: int = 1 if quiet else LINES
 	for k: int in _notices.count():
-		if shown >= LINES:
+		if shown >= most:
 			break
-		var life: int = WARNING_MSEC if _notices.level(k) == NoticesScript.LEVEL_WARNING else NOTE_MSEC
-		if _notices.age_msec(k, now_msec) > life:
+		var warning: bool = _notices.level(k) == NoticesScript.LEVEL_WARNING
+		if (quiet and not warning) or _notices.age_msec(k, now_msec) > (WARNING_MSEC if warning else NOTE_MSEC):
 			continue
 		_show_line(shown, k)
 		shown += 1

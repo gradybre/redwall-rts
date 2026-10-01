@@ -79,7 +79,7 @@ func test_every_item_is_a_pantry_leaf_with_a_crop_row() -> void:
 	for item: int in Catalog.ITEM_COUNT:
 		assert_equal(String((items[item] as Dictionary)["leaf_id"]), Catalog.ITEM_LEAVES[item], "leaf %d" % item)
 		assert_true(Catalog.ITEM_CROP[item] != FarmingScript.CROP_FLAX, "no fibre crop")
-	assert_equal(Catalog.ITEM_LABELS.size(), 16, "labels")
+	assert_equal(Catalog.ITEM_LABELS.size(), Catalog.PANTRY_ITEM_COUNT, "labels: the crops, then the pantry's other goods (0431)")
 	assert_equal(Catalog.ITEM_VISUAL.size(), 16, "visuals")
 	assert_equal(Catalog.ITEM_TINT.size(), 16, "tints")
 	assert_equal(Catalog.ITEM_RIPE_HEADS.size(), 16, "ripe heads")

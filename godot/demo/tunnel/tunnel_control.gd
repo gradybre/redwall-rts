@@ -5,7 +5,7 @@ extends Node3D
 ##
 ## CONTROLS (demo_command.gd hands every event here first; Enter, and a drag's motion and release, are read
 ## in its `_input`, before the HUD, so they can never press or be lost to a HUD control):
-##   B (or T, or "Dig tunnel" in the Demo party panel)   the Dig tool: the view goes underground (the
+##   B (or "Dig tunnel" in the Demo party panel)         the Dig tool: the view goes underground (the
 ##                                         cutaway, tunnel_view.gd) and back to what it was when the tool
 ##                                         closes; again: close it. B was the HUD's Build key, locked in the
 ##                                         demo (its command strip says so); U stays the view's own switch.
@@ -423,15 +423,15 @@ static func _shift_only_non_letter(event: InputEventKey) -> bool:
 
 
 static func _modified(event: InputEventKey) -> bool:
-	"""Whether a modifier is held (B, T and U are plain keys)."""
+	"""Whether a modifier is held (B and U are plain keys)."""
 	return event.shift_pressed or event.ctrl_pressed or event.alt_pressed or event.meta_pressed
 
 
 func _on_key(event: InputEventKey) -> bool:
-	"""B or T opens the Dig tool; U switches the underground view."""
+	"""B opens the Dig tool; U switches the underground view (T is the seasonal planner's, decision 0492)."""
 	if _modified(event):
 		return false
-	if key_of(event) == KEY_B or key_of(event) == KEY_T:
+	if key_of(event) == KEY_B:
 		begin_plan()
 		return true
 	if key_of(event) == KEY_U:
@@ -465,7 +465,7 @@ func _plan_input(event: InputEvent) -> bool:
 
 
 func _plan_key(event: InputEventKey) -> bool:
-	"""Enter digs, Backspace takes a point back, Esc drops the piece (or closes the tool), B or T closes it,
+	"""Enter digs, Backspace takes a point back, Esc drops the piece (or closes the tool), B closes it,
 	U switches the view, Shift while dragging drops a bend. A key held with Ctrl, Cmd or Alt -- or a letter with Shift --
 	is not the tool's."""
 	if _modified(event) and not (key_of(event) == KEY_SHIFT or _shift_only_non_letter(event)):
@@ -477,7 +477,7 @@ func _plan_key(event: InputEventKey) -> bool:
 			undo_point()
 		KEY_ESCAPE:
 			_escape()
-		KEY_B, KEY_T:
+		KEY_B:
 			cancel_plan()
 		KEY_U:
 			toggle_view()
@@ -495,13 +495,13 @@ func _plan_key(event: InputEventKey) -> bool:
 
 
 func _room_key(event: InputEvent) -> bool:
-	"""With a room tool open: B or T closes the Dig tool, U switches the view, H or C switches the room tool
+	"""With a room tool open: B closes the Dig tool, U switches the view, H or C switches the room tool
 	(the same one again: back to tunnels)."""
 	var key := event as InputEventKey
 	if key == null or not key.is_pressed() or key.is_echo() or _modified(key):
 		return false
 	match key_of(key):
-		KEY_B, KEY_T:
+		KEY_B:
 			cancel_plan()
 		KEY_U:
 			toggle_view()
@@ -830,6 +830,20 @@ func ghost_refused() -> bool:
 	return _ghost_refusal != Rules.REFUSE_NONE
 
 
+func laid_piece_reason() -> int:
+	"""Why the piece as laid (not the ghost to the pointer) may not be dug -- the plan's own whole-piece check, as
+	`confirm` runs it; REFUSE_NONE when it may (the route preview's question, decision 0461)."""
+	if plan.count < 2:
+		return Rules.REFUSE_TOO_FEW_POINTS
+	return plan.piece_reason(network, _bounds_u, _circles_u, _spots_u, _under_u)
+
+
+func laid_spec() -> SpecScript:
+	"""The piece as laid, as `confirm` would store it (its digger the one `choose_digger` names) -- for a preview on a
+	copy of the network only (decision 0461)."""
+	return plan.spec_of(maxi(choose_digger(), 0))
+
+
 func crew_size(digger: int) -> int:
 	"""How many would dig: the digger and the rest of the selection it can take on (at most a full crew)."""
 	var n := 1
@@ -914,7 +928,7 @@ func _send(digger: int, now: bool) -> void:
 		return
 	network.start_dig(first, _ref[1], digger)
 	_brain(digger).order_dig(first, _ref[1])
-	ext.works.say(CrewScript.LINE_START)
+	ext.works.speak(CrewScript.SAY_START, digger)
 	ext.crew_on_dig(first, digger)
 	_sync_seen()
 	_mark.call(_start3(first), true)
@@ -1058,7 +1072,7 @@ func start_room(first: int, gen: int, digger: int) -> bool:
 	if now:
 		network.start_dig(first, gen, digger)
 		_brain(digger).order_dig(first, gen)
-		ext.works.say(CrewScript.LINE_START)
+		ext.works.speak(CrewScript.SAY_START, digger)
 		ext.crew_on_dig(first, digger)
 		_mark.call(_start3(first), true)
 	_sync_seen()

@@ -121,9 +121,20 @@ const STORE_FULL_KEY: String = "farm:store_full"
 const STORE_FULL_TEXT: String = "The stores are full: a harvest has nowhere to go — dig a root cellar or eat from the Pantry"
 ## A full store counts as resolved once there is room for this much (one unit) somewhere.
 const STORE_ROOM_MILLI: int = 1000
+## The harvest log's length (see THE HARVEST LOG).
+const HARVEST_LOG: int = 32
 const STUCK_TEXT: String = "%s on bed %d is stuck: nobody can get to it — clear the way or order it again"
 
 var jobs: JobsScript = JobsScript.new()
+## THE HARVEST LOG (decision 0491): every harvest put in store whole -- who brought it in, from which bed, which item --
+## newest last, at most HARVEST_LOG long; `harvests` counts them all. Written once, when a HARVEST job's last load is
+## stored. A cancelled harvest is not: never cut, it never gets here; already cut, it is carried in as its delivery
+## (KIND_DELIVER, 0222) and logged as no harvest -- a cancelled job leaves no memory. The people ledger
+## (demo/people/people_taps.gd) reads it for a resident's first harvest.
+var harvests: int = 0
+var harvested_by: PackedInt32Array = PackedInt32Array()
+var harvested_bed: PackedInt32Array = PackedInt32Array()
+var harvested_item: PackedInt32Array = PackedInt32Array()
 
 var _cast: DemoCastScript = null
 var _sim: SimScript = null
@@ -758,8 +769,22 @@ func _end_drop(row: int) -> void:
 		_carry_on(row, stored)
 		return
 	_release_hold(row)
+	if jobs.kind[row] == JobsScript.KIND_HARVEST:
+		_log_harvest(row)
 	_finish(row, "Harvested %s of %s into the %s" % [Text.units_text(stored), _item_word(row),
 		_pantry.storage.label_of(jobs.location[row]).to_lower()])
+
+
+func _log_harvest(row: int) -> void:
+	"""Job `row`'s harvest is in store whole: into the log (see THE HARVEST LOG)."""
+	harvests += 1
+	harvested_by.append(jobs.worker[row])
+	harvested_bed.append(jobs.bed[row])
+	harvested_item.append(jobs.load_item[row])
+	if harvested_by.size() > HARVEST_LOG:
+		harvested_by.remove_at(0)
+		harvested_bed.remove_at(0)
+		harvested_item.remove_at(0)
 
 
 func _carry_on(row: int, stored: int) -> void:

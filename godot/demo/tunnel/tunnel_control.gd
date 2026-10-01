@@ -830,6 +830,20 @@ func ghost_refused() -> bool:
 	return _ghost_refusal != Rules.REFUSE_NONE
 
 
+func laid_piece_reason() -> int:
+	"""Why the piece as laid (not the ghost to the pointer) may not be dug -- the plan's own whole-piece check, as
+	`confirm` runs it; REFUSE_NONE when it may (the route preview's question, decision 0461)."""
+	if plan.count < 2:
+		return Rules.REFUSE_TOO_FEW_POINTS
+	return plan.piece_reason(network, _bounds_u, _circles_u, _spots_u, _under_u)
+
+
+func laid_spec() -> SpecScript:
+	"""The piece as laid, as `confirm` would store it (its digger the one `choose_digger` names) -- for a preview on a
+	copy of the network only (decision 0461)."""
+	return plan.spec_of(maxi(choose_digger(), 0))
+
+
 func crew_size(digger: int) -> int:
 	"""How many would dig: the digger and the rest of the selection it can take on (at most a full crew)."""
 	var n := 1

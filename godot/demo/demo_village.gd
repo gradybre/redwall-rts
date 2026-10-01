@@ -171,6 +171,8 @@ const NewsJumpScript := preload("res://demo/ui/demo_news_jump.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const SoundScript := preload("res://demo/sound/sound_director.gd")
 const DemoWorkScript := preload("res://demo/work/demo_work.gd")
+const RoutesScript := preload("res://demo/routes/demo_routes.gd")
+const RescueCardScript := preload("res://demo/routes/rescue_card.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -235,6 +237,9 @@ var _history: NewsHistoryScript = null
 var _cards: IncidentCardsScript = null
 var _jump: NewsJumpScript = NewsJumpScript.new()
 var _work: DemoWorkScript = null
+## The route and infrastructure previews (decision 0461) and their map layer's row.
+var _routes: RoutesScript = null
+var _routes_lens: int = -1
 
 
 func _ready() -> void:
@@ -264,6 +269,7 @@ func _ready() -> void:
 	_build_waterplay()
 	_build_shared_ui()
 	_build_work()
+	_build_routes()
 	_build_sound()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
@@ -456,6 +462,30 @@ func _build_work() -> void:
 	_work.screen.close_requested.connect(_work.screen.close)
 
 
+func _build_routes() -> void:
+	"""The route and infrastructure previews (demo/routes/, decision 0461): the Water panel's bridge benefit and project
+	lines, the Tunnels panel's project, the Routes layer, and the rescue's details on the incident card."""
+	_routes = RoutesScript.new()
+	add_child(_routes)
+	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
+	_routes.configure(_cast as DemoCastScript, _command as DemoCommandScript, _waterplay, tool, _work, _forestry.crew.jobs,
+		_zone.show_panel.bind(DetailZoneScript.PANEL_WOODS))
+	_farm.lenses.set_subject(_routes_lens, _routes.subject)
+	_cards.add_details(RescueCardScript.KEY_PREFIX, _routes.rescue_card.card_into)
+	_cards.set_centre((_camera as DemoCameraScript).centre_on)
+
+
+func routes() -> RoutesScript:
+	"""The route and infrastructure previews (demo/routes/demo_routes.gd)."""
+	return _routes
+
+
+func _show_routes(on: bool) -> void:
+	"""The Routes layer's switch (built before the previews it shows: the picker lists it beside the water's)."""
+	if _routes != null:
+		_routes.show_lens(on)
+
+
 func work_jump(kind: int, id: int, point: Vector2) -> bool:
 	"""The Work screen's "Go to": the news's own jump for a target it knows (selected, the camera eased over it), else
 	the camera eased over the task's place."""
@@ -644,6 +674,8 @@ func _build_lens_picker() -> void:
 	"""The Underground layer (U's view, followed: map_lenses.gd) and the Map layer picker bottom left, clear
 	of the news strip's band (which the journal moves)."""
 	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
+	_routes_lens = _farm.lenses.add("Getting there", "Routes", RoutesScript.QUESTION, _show_routes)
+	_farm.lenses.set_legend(_routes_lens, RoutesScript.legend_swatches(), RoutesScript.legend_words())
 	var under: int = _farm.lenses.add("Underground", "Tunnels", UNDERGROUND_LENS_QUESTION, show_underground)
 	_farm.lenses.follow_state(under, func() -> bool: return tool.view.on)
 	_farm.lenses.set_legend(under, PackedColorArray([Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0)]),

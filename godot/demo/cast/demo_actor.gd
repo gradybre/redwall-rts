@@ -5,8 +5,9 @@ extends Node3D
 ## ---------------------------------------------------------------------------------------
 ## THE CLIPS. Each clip file is staged STRIPPED to skeleton + animation (tools/stage_demo_assets.py).
 ## Its track paths (`Armature/Skeleton3D:<bone>`) resolve unchanged from the body scene's root, so the
-## body's AnimationPlayer plays all six from one AnimationLibrary. Every clip loops: the activities
-## are held for whole loops (resident_brain.gd), so a loop always ends where the next begins.
+## body's AnimationPlayer plays them all from one AnimationLibrary. Every clip loops but the dig swing (see CROUCHING
+## AND STRIKING): the activities are held for whole loops (resident_brain.gd), so a loop always ends where the next
+## begins.
 ##
 ## THE TAIL. `TailRig.attach()` needs the skeleton inside the tree (decision 0191), so it runs from
 ## `_ready()`. The mole and badger have no chain and are refused with REFUSE_NO_CHAIN -- expected,
@@ -44,6 +45,20 @@ extends Node3D
 ## holds the pose. On a ramp the node pitches with the slope (the brain's `pitch`), so the feet meet it,
 ## and the spine leans half of that back into the slope.
 ##
+## CROUCHING AND STRIKING (decision 0371, the underground revamp's P7; review F17). Where the bore makes a resident stoop
+## (`stoop_target_m` at least CROUCH_FROM_M) its WALK plays as the staged crouch walk (Meshy 524
+## `Cautious_Crouch_Walk_Forward`, decision 0204), at the pace the walk would have -- the ground speed the brain moves it
+## at over the crouch's own recorded speed (the clip's stride_rate()) -- and the procedural stoop adds only what the
+## crouch's own lowered head (the cast row's `crouch.head_drop_m`) leaves to clear. A mole, upright in every bore, walks.
+## A carrier keeps its carry walk (the stoop bends it). A digger at an underground face with the staged swing (Meshy 128
+## `Heavy_Hammer_Swing`, the mole digger and the badger quarryman) swings it ONCE PER STRIKE, not looped
+## (strike_clock.gd: one swing a quantum cut, timed so its blow lands as the cut does), standing between swings and
+## blended back out of each over BLEND_BACK_S. Neither changes the brain: what it moves, the actor only plays.
+##
+## IN A CUTTING (decision 0371; review F16). A tunnel's ramp is an open cutting down to where its bore goes under the
+## ground (tunnel_mouth.gd): a resident walking it is drawn on the surface layer too, so the surface view sees it go down
+## into the ground under the arch (or to a burrow home's door) rather than vanish at the mouth.
+##
 ## ASLEEP (decision 0210). While the brain is `lying` the body is laid on the surface it names (`lie_top_y_m`: a
 ## mattress, a floor): with the staged sleep clip (Meshy's Sleep_Normally, staged as sleep_normally) the body is lifted
 ## so its LOWEST point -- the clip's own measure, tools/stage_demo_assets.py `sleep_row`, taken from its skinned
@@ -65,11 +80,20 @@ const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 const StoopScript := preload("res://demo/cast/stoop_modifier.gd")
 const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
+const StrikeClockScript := preload("res://demo/cast/strike_clock.gd")
+const MouthScript := preload("res://demo/tunnel/tunnel_mouth.gd")
 
 const CROSSFADE_S: float = 0.25
 const LIBRARY: StringName = &"cast"
 const CLIPS: Array[StringName] = [&"idle", &"walk", &"collect_object", &"stand_and_drink", &"wave_one_hand",
-	&"carry_heavy_object_walk", &"pull_radish", &"swim", &"tread_water", &"dive", &"sleep_normally"]
+	&"carry_heavy_object_walk", &"pull_radish", &"swim", &"tread_water", &"dive", &"sleep_normally",
+	&"cautious_crouch_walk_forward", &"heavy_hammer_swing"]
+## The crouch walk and the dig swing (see CROUCHING AND STRIKING): the walk crouches where the stoop is at least
+## CROUCH_FROM_M; a swing blends back to the stance over BLEND_BACK_S. The swing plays once, never looped.
+const CLIP_CROUCH: StringName = &"cautious_crouch_walk_forward"
+const CLIP_SWING: StringName = &"heavy_hammer_swing"
+const CROUCH_FROM_M: float = 0.05
+const BLEND_BACK_S: float = 0.4
 ## The procedural lie-down (see ASLEEP): the body tipped back this far about its X axis (on its back, head toward
 ## -Z) and lifted by this share of its height (half a lying body's depth).
 const LIE_BACK_RAD: float = -PI * 0.5
@@ -162,6 +186,13 @@ var _stoop_drop: float = 0.0
 ## whether this creature lies by the clip or procedurally (see ASLEEP).
 var _sleep_floor_m: float = 0.0
 var _lies_by_clip: bool = false
+## The crouch walk's recorded ground speed (m/s; 0: no crouch clip) and how much lower it carries the head than the
+## walk (m); the swing's strikes (null: no swing clip). See CROUCHING AND STRIKING.
+var _crouch_speed: float = 0.0
+var _crouch_drop: float = 0.0
+var _strike: StrikeClockScript = null
+## Whether the body is drawn on the surface too, walking an open cutting (see IN A CUTTING).
+var _in_cut: bool = false
 
 
 func setup_creature(index: int, key: StringName, row: Dictionary, space: CastSpaceScript, seed: int) -> bool:
@@ -192,6 +223,7 @@ func setup_creature(index: int, key: StringName, row: Dictionary, space: CastSpa
 	_make_brain(space, float(row.get("walk_speed_m_s", PLACEHOLDER_WALK_SPEED_M_S)), body_radius(height), seed, lengths)
 	brain.set_carry_motion(motion)
 	_read_sleep(row.get("sleep", {}), height)
+	_read_crouch_and_dig(row)
 	if brain.can_carry() and _skeleton != null:
 		_build_load(height)
 	return true
@@ -207,6 +239,20 @@ func _read_sleep(sleep: Dictionary, height: float) -> void:
 		brain.lie_middle_m = Vector2(float(centre[0]), float(centre[1]))
 	else:
 		brain.lie_middle_m = Vector2(0.0, -height * 0.5)
+
+
+func _read_crouch_and_dig(row: Dictionary) -> void:
+	"""The crouch walk's speed and head drop, and the swing's length and blow, from the cast row (see CROUCHING AND
+	STRIKING; tools/stage_demo_assets.py `crouch_row`, `dig_row`) -- only for a clip that is staged."""
+	var crouch: Dictionary = row.get("crouch", {})
+	if brain.has_clip(CLIP_CROUCH) and float(crouch.get("speed_m_s", 0.0)) > ClipRootMotionScript.MIN_SPEED_M_S:
+		_crouch_speed = float(crouch["speed_m_s"])
+		_crouch_drop = float(crouch.get("head_drop_m", 0.0))
+	var dig: Dictionary = row.get("dig", {})
+	if brain.has_clip(CLIP_SWING):
+		_strike = StrikeClockScript.new()
+		_strike.swing_s = float(dig.get("length_s", _strike.swing_s))
+		_strike.impact_s = float(dig.get("impact_s", _strike.impact_s))
 
 
 func _make_brain(space: CastSpaceScript, gait: float, radius: float, seed: int, lengths: Dictionary) -> void:
@@ -280,6 +326,7 @@ func advance(clock: DemoClockScript) -> void:
 	for k in clock.steps():
 		brain.step(clock.step_s(k))
 	_apply_transform()
+	_step_strike(clock.delta_s())
 	ease_stoop(clock.delta_s())
 	_apply_clip(clock.speed)
 	if _skeleton == null and (_held != null or _tool != null or _work_tool != null):
@@ -348,6 +395,8 @@ func stoop_target_m() -> float:
 func ease_stoop(delta_s: float) -> void:
 	"""Ease the stoop toward where the resident is, over STOOP_EASE_S of demo time, and lean into a ramp."""
 	var target := stoop_target_m()
+	if _playing == CLIP_CROUCH:
+		target = maxf(target - _crouch_drop, 0.0)
 	if target > 0.0:
 		_stoop_drop = target
 	_stoop_ease = move_toward(_stoop_ease, 1.0 if target > 0.0 else 0.0, delta_s / STOOP_EASE_S)
@@ -383,15 +432,23 @@ func _apply_view() -> void:
 	The marker shows in the U view of every level the resident is not on (`marker_mask`), on the floor of the level
 	shown, under the resident."""
 	var level := brain.view_level()
-	if level != _below:
+	var in_cut := _walks_a_cutting()
+	if level != _below or in_cut != _in_cut:
 		_below = level
-		_layers = Layers.body_mask(level)
+		_in_cut = in_cut
+		_layers = Layers.body_mask(level) | (Layers.SURFACE if in_cut else 0)
 		Layers.set_layers(self, _layers, _marker)
 		if _marker != null:
 			Layers.set_layers(_marker, Layers.marker_mask(level))
 	if _marker != null:
 		_marker.visible = not brain.indoors
 		_marker.position = Vector3(brain.position.x, Layers.view_floor_y() + Layers.MARK_LIFT_M, brain.position.y)
+
+
+func _walks_a_cutting() -> bool:
+	"""Whether the resident walks an open cutting now (see IN A CUTTING): on the surface its bore is none."""
+	var space := brain.space()
+	return MouthScript.in_open_cutting(space.tunnels, space.resident_tunnel[brain.index], space.resident_along[brain.index])
 
 
 func layers_now() -> int:
@@ -464,17 +521,79 @@ func _adopt(part: VisualInstance3D) -> void:
 
 
 func _apply_clip(game_speed: int) -> void:
-	"""Crossfade to the brain's clip when it changes; follow its playback speed times the game's every
-	frame (0 while paused: a frozen pose)."""
+	"""Crossfade to the clip to play when it changes (see CROUCHING AND STRIKING: the brain's, else the crouch or the
+	swing in its place); follow its playback speed times the game's every frame (0 while paused: a frozen pose)."""
 	if _player == null:
 		return
-	_player.speed_scale = brain.clip_speed * float(game_speed)
-	if brain.clip == _playing:
+	var want := played_clip()
+	_player.speed_scale = played_rate(want) * float(game_speed)
+	if want == _playing:
 		return
-	_playing = brain.clip
+	var blend := BLEND_BACK_S if _playing == CLIP_SWING else CROSSFADE_S
+	_playing = want
 	var full: StringName = _library_names.get(_playing, &"")
 	if full != &"":
-		_player.play(full, CROSSFADE_S)
+		_player.play(full, blend)
+
+
+func played_clip() -> StringName:
+	"""The clip to play now (see CROUCHING AND STRIKING)."""
+	var striking := _striking()
+	return choose_clip(brain.clip, striking, striking and _strike.swinging(), crouches())
+
+
+static func choose_clip(brain_clip: StringName, striking: bool, swinging: bool, crouching: bool) -> StringName:
+	"""The clip to play for the brain's `brain_clip`: at a face, the swing while one plays and the stance between; a
+	walk where the resident crouches, the crouch walk; else the brain's own."""
+	if striking:
+		return CLIP_SWING if swinging else BrainScript.CLIP_IDLE
+	if brain_clip == BrainScript.CLIP_WALK and crouching:
+		return CLIP_CROUCH
+	return brain_clip
+
+
+func played_rate(clip: StringName) -> float:
+	"""How fast `clip` plays before the game's speed: the crouch at the walk's ground speed over its own, a swing and
+	the stance between at their own pace, else the brain's."""
+	if clip == CLIP_CROUCH:
+		return crouch_rate(brain.walk_speed, brain.clip_speed, brain.gait_rate(), _crouch_speed)
+	if _striking():
+		return 1.0
+	return brain.clip_speed
+
+
+static func crouch_rate(walk_speed: float, clip_speed: float, gait_rate: float, crouch_speed: float) -> float:
+	"""The crouch walk's rate for a walk played at `clip_speed`: the walk clip plays at `gait_rate` (walk_speed over its
+	gait speed: the brain's stride_rate()) times the bore's and slope's factor, so the ground speed is walk_speed times
+	clip_speed over gait_rate -- and the crouch, recorded at `crouch_speed`, plays at that over it."""
+	return walk_speed * clip_speed / maxf(gait_rate, 1e-4) / maxf(crouch_speed, 1e-4)
+
+
+func crouches() -> bool:
+	"""Whether this resident crouch-walks where it is: it has the crouch, and the bore makes it stoop."""
+	return _crouch_speed > 0.0 and stoop_target_m() >= CROUCH_FROM_M
+
+
+func _striking() -> bool:
+	"""Whether this resident strikes at an underground face now (see CROUCHING AND STRIKING)."""
+	return _strike != null and brain.state == BrainScript.State.DIG and brain.underground and brain.dig_tunnel >= 0
+
+
+func _step_strike(delta_s: float) -> void:
+	"""The strikes' clock on with the dig's cuts (forgotten off the face); a new swing restarts the clip."""
+	if _strike == null:
+		return
+	if not _striking():
+		_strike.reset()
+		return
+	if _strike.step(brain.space().tunnels.cut_count(brain.dig_tunnel), delta_s) and _playing == CLIP_SWING:
+		_player.stop()
+		_playing = &""
+
+
+func strikes() -> StrikeClockScript:
+	"""The swing's strikes (null without the swing clip; checks)."""
+	return _strike
 
 
 func _attach_tail() -> void:
@@ -700,7 +819,7 @@ func _build_library(paths: Dictionary, motion_out: Dictionary) -> Dictionary:
 		var source := _find_player(holder)
 		if source != null and not source.get_animation_list().is_empty():
 			var animation := source.get_animation(source.get_animation_list()[0])
-			animation.loop_mode = Animation.LOOP_LINEAR
+			animation.loop_mode = Animation.LOOP_NONE if clip == CLIP_SWING else Animation.LOOP_LINEAR
 			library.add_animation(clip, animation)
 			lengths[clip] = animation.length
 			_library_names[clip] = StringName("%s/%s" % [LIBRARY, clip])

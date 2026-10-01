@@ -86,16 +86,12 @@ static func room_at(network: GraphScript, space: CastSpaceScript, at: Vector2, r
 	for m in Rules.MAX_MOUTHS:
 		if network.is_mouth(m):
 			room = minf(room, network.mouth_at(m).distance_to(at) - r - rim)
-			room = minf(room, cutting_gap(network, m, at) - r)
+			room = minf(room, cutting_gap(network, space, m, at) - r)
 	return room
 
 
-static func cutting_gap(network: GraphScript, m: int, at: Vector2) -> float:
-	"""How far `at` stands outside mouth `m`'s ramp cutting (its open length down the ramp, and its banks; tunnel_mouth.gd)
-	(m)."""
-	var ramp := network.mouth_ramp(m)
-	var run := minf(Rules.portal_m(int(network.bore[ramp])), network.length_m(ramp))
-	var from := network.mouth_at(m)
-	var to := from + network.mouth_inward(m) * run
-	var half := CUT_HALF_M * (OverlayScript.WIDE_HOLE_SCALE if network.bore[ramp] == Rules.BORE_WIDE else 1.0)
-	return Geometry2D.get_closest_point_to_segment(at, from, to).distance_to(at) - half
+static func cutting_gap(network: GraphScript, space: CastSpaceScript, m: int, at: Vector2) -> float:
+	"""How far `at` stands outside mouth `m`'s ramp cutting (its run down the ramp to the arch's far side, its banks
+	and its forecourt; tunnel_mouth.gd `cutting_gap`) (m; 0 on it)."""
+	var bore := int(network.bore[network.mouth_ramp(m)])
+	return MouthScript.cutting_gap(network, m, at, space.court_half_m(bore), MouthScript.BANK_WIDTH_M)

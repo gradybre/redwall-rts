@@ -1,22 +1,33 @@
 extends RefCounted
-## The fit-out's pieces: how each fixture is drawn. Decision 0210 (the underground revamp's P4). Presentation only.
+## The fit-out's pieces: how each fixture is drawn. Decisions 0210 (the underground revamp's P4) and 0371 (P7, the
+## generated props swapped in). Presentation only.
 ##
-## LIBRARY PROPS where the library has one (demo/props/demo_props.gd sizes them): the bed, the stone hearth, the
-## table and stools, the pantry shelf, the wall lantern, and the clay jars and sacks that fill a cellar's racks.
-## THE LARGE BED (decision 0211) is the library's bed stretched to LARGE_BED_M for the big residents.
-## PROCEDURAL STAND-INS for the four the library does not have yet -- the generated root_bin, hanging_stores and
-## rag_rug are P7's swap (decision 0204) -- each in a few shared meshes and materials:
-##   * the PANTRY RACK: a timber frame of four posts and two boards, jars on its top board and sacks on its lower one;
-##   * the ROOT BIN: a slatted timber box, its roots heaped higher as the cellar fills;
-##   * the HANGING STORES: a pole on two posts, strings of onions and bundles of herbs hung from it;
-##   * the RAG RUG: a DECAL on the floor, an oval braided in rings of rag colours drawn once into a small texture.
+## LIBRARY PROPS (demo/props/demo_props.gd sizes them): the bed, the stone hearth, the table and stools, the pantry
+## shelf, the wall lantern, and the clay jars and sacks that fill a cellar's racks -- and, since P7, the underground
+## pass's own (decision 0204), each where it is staged, with its procedural STAND-IN kept for a demo with nothing staged
+## (CI, a fresh clone):
+##   * the ROOT BIN: the library's slatted bin. It is modelled full of roots, and cutting them out shattered its slats
+##     (decision 0371), so it shows full whatever the cellar holds and has no slot; the cellar's fill shows on its
+##     shelves, rack and hanging stores. Stand-in, a slatted timber box whose heap of roots rises as the cellar fills;
+##   * the HANGING STORES: the library's bar of onion, garlic and herb strings (`hanging_stores_strung`, at the
+##     furniture budget and in parts, so each string shows on its own as a cellar fills) HUNG FROM THE ROOM'S RING BEAM
+##     by its wall brackets -- its origin is its lowest point, so it is placed by its top (`hang`); stand-in, a pole on
+##     two posts and strings of onions and bundles of herbs hung from it;
+##   * the RAG RUG: the library's braided rug lying on the floor; stand-in, a DECAL, an oval braided in rings of rag
+##     colours drawn once into a small texture;
+##   * THE LARGE BED (decision 0211): the library bed lengthened in Blender without stretching its quilt (`large_bed`),
+##     drawn LARGE_BED_M; stand-in, the bed stretched to it.
+##   * the PANTRY RACK stays procedural: a timber frame of four posts and two boards, jars on its top board and sacks
+##     on its lower one.
 ## A PLANNED fixture (paid for, not yet put in) is a chalk ring on the floor where it will stand.
-## ON THE GROUND a home with a hearth has a CHIMNEY POT on its mound over the hearth, and SMOKE rising from it while the
-## hearth is lit (CPUParticles3D: no GPU process shader to compile; at most SMOKE_AMOUNT puffs a home).
+## ON THE GROUND a home with a hearth has a CHIMNEY POT on its mound over the hearth -- the library's clay pot on its
+## stone collar (`chimney_pot`), else a stand-in of the same -- and SMOKE rising from it while the hearth is lit
+## (CPUParticles3D: no GPU process shader to compile; at most SMOKE_AMOUNT puffs a home).
 ##
 ## FILL SLOTS. A cellar's storage fixtures carry SLOTS: places a jar, a sack or a string of stores shows once the
-## cellar is full enough (fixture_view.gd shows them in order across the cellar as it fills). Every piece here is made
-## of the meshes and materials `register` hands the U view's prewarm.
+## cellar is full enough (fixture_view.gd shows them in order across the cellar as it fills); the stand-in root bin's
+## heap is a slot that follows the fill (`fill_heap`). Every piece here is made of the meshes and materials `register` hands the
+## U view's prewarm.
 
 const PropsScript := preload("res://demo/props/demo_props.gd")
 const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
@@ -64,6 +75,14 @@ const SOOT: Color = Color(0.08, 0.07, 0.06)
 const CHIMNEY_TOP_M: float = 0.55
 const SMOKE_AMOUNT: int = 16
 const SMOKE_LIFE_S: float = 4.5
+## The staged props (decision 0371) and what they are drawn as; the hanging stores' parts, bar first.
+const ROOT_BIN_KEY: StringName = &"root_bin"
+const HANGING_KEY: StringName = &"hanging_stores_strung"
+const HANGING_BAR: String = "bar"
+const HANGING_STRINGS: Array[String] = ["string0", "string1", "string2", "string3", "string4"]
+const RUG_KEY: StringName = &"rag_rug"
+const CHIMNEY_KEY: StringName = &"chimney_pot"
+const LARGE_BED_KEY: StringName = &"large_bed"
 const JAR_KEY: StringName = &"clay_jars"
 const SACK_KEY: StringName = &"sack_pile"
 const JAR_SCALE: float = 0.5
@@ -170,11 +189,13 @@ static func prop(parent: Node3D, props: PropsScript, key: StringName, at: Transf
 
 
 static func large_bed(parent: Node3D, props: PropsScript) -> MeshInstance3D:
-	"""A LARGE BED (decision 0211): the library's burrow bed drawn LARGE_BED_M long and wide -- the same frame, straw
-	and quilt, made for the badger -- under `parent`, its head to -Z as the bed's."""
-	var bound: AABB = props.drawn_bound(&"bed")
+	"""A LARGE BED (decision 0211) under `parent`, its head to -Z as the bed's, LARGE_BED_M long and wide: the library's
+	bed lengthened (`large_bed`, its quilt not stretched), widened by a plain scale -- else the burrow bed stretched to
+	it, the same frame, straw and quilt."""
+	var key := LARGE_BED_KEY if props.is_staged(LARGE_BED_KEY) else &"bed"
+	var bound: AABB = props.drawn_bound(key)
 	var stretch := Vector3(LARGE_BED_M.x / maxf(bound.size.x, 0.01), 1.0, LARGE_BED_M.y / maxf(bound.size.z, 0.01))
-	return prop(parent, props, &"bed", Transform3D(Basis.from_scale(stretch), Vector3.ZERO))
+	return prop(parent, props, key, Transform3D(Basis.from_scale(stretch), Vector3.ZERO))
 
 
 static func planned(parent: Node3D) -> void:
@@ -202,9 +223,12 @@ static func rack(parent: Node3D, props: PropsScript, slots: Array[Node3D]) -> vo
 		slots.append(slot)
 
 
-static func root_bin(parent: Node3D, slots: Array[Node3D]) -> void:
-	"""The root bin (see the header): slatted sides round a heap of roots, the heap its one slot (`slots`), scaled by
-	fixture_view.gd to the cellar's fill."""
+static func root_bin(parent: Node3D, slots: Array[Node3D], props: PropsScript = null) -> void:
+	"""The root bin (see the header). Staged, the library's bin, modelled full of roots: it has no slot. The stand-in's
+	heap is its one slot (`slots`), raised to the cellar's fill by fixture_view.gd (`fill_heap`)."""
+	if props != null and props.is_staged(ROOT_BIN_KEY):
+		prop(parent, props, ROOT_BIN_KEY, Transform3D.IDENTITY)
+		return
 	var size := BIN_SIZE_M
 	for k in BIN_SLATS:
 		var y := size.y * (float(k) + 0.5) / float(BIN_SLATS)
@@ -220,9 +244,34 @@ static func root_bin(parent: Node3D, slots: Array[Node3D]) -> void:
 	slots.append(heap)
 
 
-static func hanging(parent: Node3D, slots: Array[Node3D]) -> void:
-	"""The hanging stores (see the header): a pole on two posts and STRINGS strings hung from it, into `slots`,
-	hidden -- onions and garlic on some, herb bundles on the others."""
+static func fill_heap(slot: Node3D, permille: int) -> void:
+	"""The stand-in root bin's heap raised to HEAP_TOP_M at a full cellar (whether it shows at all is its slot's turn,
+	fixture_view.gd). Not a heap: untouched."""
+	if slot is MeshInstance3D and (slot as MeshInstance3D).mesh is SphereMesh:
+		slot.scale.y = HEAP_TOP_M * float(clampi(permille, 0, 1000)) / 1000.0 / HEAP_HALF_M
+
+
+static func _shadowless(node: GeometryInstance3D) -> GeometryInstance3D:
+	"""`node` casting no shadow (the fit-out's pieces never do)."""
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return node
+
+
+static func hanging(parent: Node3D, slots: Array[Node3D], props: PropsScript = null, hang: Transform3D = Transform3D.IDENTITY) -> void:
+	"""The hanging stores (see the header) into `slots`, hidden: staged, the bar and its five strings placed by `hang`
+	(`hang_at`: its top on the room's ring beam, its back to the wall); stand-in, a pole on two posts and STRINGS strings
+	hung from it -- onions and garlic on some, herb bundles on the others."""
+	if props != null and props.has_parts(HANGING_KEY):
+		var hung := Node3D.new()
+		hung.transform = hang
+		parent.add_child(hung)
+		hung.add_child(_shadowless(props.part_instance(HANGING_KEY, HANGING_BAR)))
+		for name: String in HANGING_STRINGS:
+			var string := _shadowless(props.part_instance(HANGING_KEY, name))
+			string.visible = false
+			hung.add_child(string)
+			slots.append(string)
+		return
 	for side: float in [-1.0, 1.0]:
 		part(parent, _box(Vector3(0.05, POLE_Y_M + 0.08, 0.05)), TIMBER, Vector3(side * POLE_M * 0.5, (POLE_Y_M + 0.08) * 0.5, 0.0))
 	var pole := part(parent, _cylinder(0.025, POLE_M), TIMBER, Vector3(0.0, POLE_Y_M, 0.0))
@@ -239,6 +288,13 @@ static func hanging(parent: Node3D, slots: Array[Node3D]) -> void:
 		slots.append(string)
 
 
+static func hang_at(props: PropsScript, top_y: float, back_m: float) -> Transform3D:
+	"""Where the staged hanging stores hang in their place's frame (+Z its front): their top -- the wall brackets -- at
+	`top_y` over the floor, their back `back_m` behind the place, flat to the wall."""
+	var bound: AABB = props.drawn_bound(HANGING_KEY)
+	return Transform3D(Basis.IDENTITY, Vector3(0.0, top_y - bound.end.y, -back_m - bound.position.z))
+
+
 static func shelf_slots(parent: Node3D, props: PropsScript, depth: float, slots: Array[Node3D]) -> void:
 	"""A shelf's SHELF_SLOTS sacks at its foot, before it (`depth`: the shelf's own depth, m), into `slots`, hidden."""
 	for k in SHELF_SLOTS:
@@ -248,8 +304,10 @@ static func shelf_slots(parent: Node3D, props: PropsScript, depth: float, slots:
 		slots.append(slot)
 
 
-static func rug(parent: Node3D) -> Decal:
-	"""The rag rug: a decal pressed down onto the floor (see the header)."""
+static func rug(parent: Node3D, props: PropsScript = null) -> Node3D:
+	"""The rag rug (see the header): the library's braided rug on the floor, else a decal pressed down onto it."""
+	if props != null and props.is_staged(RUG_KEY):
+		return prop(parent, props, RUG_KEY, Transform3D.IDENTITY)
 	var decal := Decal.new()
 	decal.texture_albedo = rug_texture()
 	decal.size = Vector3(RUG_SIZE_M.x, 0.5, RUG_SIZE_M.y)
@@ -293,15 +351,26 @@ static func embers(parent: Node3D, at: Vector3) -> MeshInstance3D:
 
 # --- the chimney (on the ground) ----------------------------------------------------------------
 
-static func chimney(parent: Node3D) -> void:
-	"""A home's chimney pot on its mound, over the hearth: a clay pot on a stone collar (a stand-in until P7's
-	chimney_pot), casting its shadow on the turf. Its top is CHIMNEY_TOP_M over `parent`."""
-	part(parent, _cylinder(0.24, 0.16), STONE, Vector3(0.0, 0.08, 0.0))
-	part(parent, _cone(0.12, 0.17, CHIMNEY_TOP_M - 0.22), CLAY, Vector3(0.0, 0.16 + (CHIMNEY_TOP_M - 0.22) * 0.5, 0.0))
-	part(parent, _cylinder(0.19, 0.06), CLAY, Vector3(0.0, CHIMNEY_TOP_M - 0.03, 0.0))
-	part(parent, _cylinder(0.12, 0.02), SOOT, Vector3(0.0, CHIMNEY_TOP_M + 0.005, 0.0))
+static func chimney(parent: Node3D, props: PropsScript = null) -> void:
+	"""A home's chimney pot on its mound, over the hearth -- the library's clay pot on its stone collar, else a stand-in
+	of the same -- casting its shadow on the turf. Its top is `chimney_top_m` over `parent`."""
+	if props != null and props.is_staged(CHIMNEY_KEY):
+		prop(parent, props, CHIMNEY_KEY, Transform3D.IDENTITY)
+	else:
+		part(parent, _cylinder(0.24, 0.16), STONE, Vector3(0.0, 0.08, 0.0))
+		part(parent, _cone(0.12, 0.17, CHIMNEY_TOP_M - 0.22), CLAY, Vector3(0.0, 0.16 + (CHIMNEY_TOP_M - 0.22) * 0.5, 0.0))
+		part(parent, _cylinder(0.19, 0.06), CLAY, Vector3(0.0, CHIMNEY_TOP_M - 0.03, 0.0))
+		part(parent, _cylinder(0.12, 0.02), SOOT, Vector3(0.0, CHIMNEY_TOP_M + 0.005, 0.0))
 	for piece: Node in parent.get_children():
-		(piece as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		if piece is GeometryInstance3D:
+			(piece as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+
+
+static func chimney_top_m(props: PropsScript = null) -> float:
+	"""How high a chimney's top -- where its smoke leaves -- stands over its foot (m)."""
+	if props != null and props.is_staged(CHIMNEY_KEY):
+		return props.drawn_bound(CHIMNEY_KEY).end.y
+	return CHIMNEY_TOP_M
 
 
 static func smoke() -> CPUParticles3D:
@@ -369,11 +438,11 @@ static func _fade_ramp() -> Gradient:
 	return ramp
 
 
-static func register_ground(parent: Node3D) -> void:
+static func register_ground(parent: Node3D, props: PropsScript = null) -> void:
 	"""One of each piece the fit-out draws on the ground -- the chimney's stone and clay, and smoke already rising (a
 	particle system draws instanced, its own pipeline) -- under `parent`, for the rooms' ground prewarm (room_view.gd
 	`begin_surface_prewarm`)."""
-	chimney(parent)
+	chimney(parent, props)
 	var puffs := smoke()
 	parent.add_child(puffs)
 	puffs.preprocess = SMOKE_LIFE_S
@@ -381,9 +450,15 @@ static func register_ground(parent: Node3D) -> void:
 
 
 static func register(prewarm: PrewarmScript, props: PropsScript) -> void:
-	"""Every mesh and material the fit-out draws below, for the U view's prewarm (decision 0206)."""
+	"""Every mesh and material the fit-out draws below, for the U view's prewarm (decision 0206): the library props
+	(each staged one's own surfaces, every part of one made in parts) and the stand-ins' pieces."""
 	for key: StringName in [&"bed", &"hearth", &"table_stools", &"pantry_shelf", &"wall_lantern", JAR_KEY, SACK_KEY]:
 		prewarm.add_mesh(props.mesh_of(key))
+	for key: StringName in [LARGE_BED_KEY, RUG_KEY, ROOT_BIN_KEY]:
+		if props.is_staged(key):
+			prewarm.add_mesh(props.mesh_of(key))
+	for name: String in props.part_names(HANGING_KEY):
+		prewarm.add_mesh(props.part_mesh(HANGING_KEY, name))
 	for colour: Color in [TIMBER, SLAT, ROOT, ONION, HERB]:
 		prewarm.add_mesh(_box(Vector3.ONE * 0.1), material(colour))
 	prewarm.add_mesh(_ring(), material(CHALK, true))

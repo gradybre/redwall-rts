@@ -74,6 +74,13 @@ ITEMS = ["item_radish", "item_turnip", "item_carrot", "item_beetroot", "item_oni
 	"item_celery", "item_strawberry", "item_peas", "item_barley", "item_oats",
 	"item_trout", "item_perch", "item_eel", "item_shrimp", "item_mussels", "item_hotroot"]
 FINDS = ["find_flint", "find_clay", "relic_bell", "relic_key", "relic_banner"]
+## The underground pass's seven props (asset library README, "Underground revamp pass"; decision 0204), each in the
+## family its size suggests -- root_bin at the furniture budget, since at 1,150 its feet and slats collapsed. Four are
+## used as made; make_demo_derived_props.py fixes the other three's known defects from the same high-poly (decision
+## 0371): the door split from its frame, the arch's slab cut out, the hand lantern and hanging stores at the furniture
+## budget.
+UNDERGROUND_PROPS = {"burrow_door": "furniture", "tunnel_arch": "furniture", "hand_lantern": "small_prop",
+	"hanging_stores": "small_prop", "root_bin": "furniture", "chimney_pot": "small_prop", "rag_rug": "small_prop"}
 ## Every prop: key -> family. Most have no L0 at all. basket is rebuilt from its high-poly because its
 ## library L0 shatters (the README's "Known problems"); the older props this pass puts to use (the
 ## lantern, the chamber's bed, jars and shelf, the tools) are rebuilt too, because their library L0s
@@ -88,6 +95,7 @@ PROPS = {
 		"wall_lantern", "clay_jars", "spade", "hoe", "sickle", "axe"]},
 	**{key: "furniture" for key in ["boat_coracle", "boat_rowboat", "boat_raft", "jetty", "smoking_rack",
 		"bridge_plank", "bridge_log", "bridge_pier", "felled_trunk", "plank_stack", "bed", "pantry_shelf", "hearth"]},
+	**UNDERGROUND_PROPS,
 }
 ICONS = set(ITEMS) | set(FINDS)
 

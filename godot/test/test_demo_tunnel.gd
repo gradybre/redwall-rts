@@ -2295,7 +2295,8 @@ func test_a_view_switch_writes_nothing_but_the_camera_mask() -> void:
 	"""Decision 0206: with a world, a tool, an open tunnel and a resident in it, U on and U off -- and a
 	frame of every drawing's own work after each -- leave every drawn node's transparency, material,
 	visibility and layers, and every material's transparency, exactly as they were; only the camera's
-	cull mask moves. The resident below is on the underground layer, the one above on the surface."""
+	cull mask moves. The resident below (past its ramp's open cutting, decision 0371) is on the underground layer, the
+	one above on the surface."""
 	var world := DemoWorldScript.new()
 	_nodes.append(world)
 	world.build({"world": {}, "cast": {}})
@@ -2304,7 +2305,7 @@ func test_a_view_switch_writes_nothing_but_the_camera_mask() -> void:
 	var slot := _open_tunnel(space, [Vector2i(-4096, 8192), Vector2i(4096, 8192)])
 	var below := cast.actor(2) as DemoActorScript
 	below.brain.order_move(Vector2(0.0, 8.0))
-	below.brain._start_travel(0, 0.0, 4.0)
+	below.brain._start_travel(0, 3.5, 4.0)
 	var tool := _tool(cast, [PackedInt32Array()], [], [])
 	tool.set_world(world)
 	var camera := tool.view._camera

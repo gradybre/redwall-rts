@@ -189,6 +189,8 @@ func configure(cast: DemoCastScript, camera: Camera3D, overlay: OverlayScript, b
 	can_dig = diggers_of(cast)
 	actions = ActionsScript.new(works, cast.space(), can_dig, names, bounds_u)
 	_props = services.props if services != null else PropsScript.new()
+	_overlay.set_props(_props)
+	cast.space().set_props(_props)
 	_arm_diggers(can_dig)
 	_build_views()
 	_build_theatre()
@@ -287,13 +289,13 @@ func _build_theatre() -> void:
 	particles.configure()
 	dig_theatre = DigTheatreScript.new()
 	add_child(dig_theatre)
-	dig_theatre.configure(_network, _cast.space(), particles, marks.lights, _overlay.mound)
+	dig_theatre.configure(_network, _cast.space(), particles, marks.lights, _overlay.mound, _props)
 	hazard_view = HazardViewScript.new()
 	add_child(hazard_view)
 	hazard_view.configure(_network, works.hazards, _overlay.bores, particles)
 	haul_view = HaulViewScript.new()
 	add_child(haul_view)
-	haul_view.configure(_network, _cast, particles)
+	haul_view.configure(_network, _cast, particles, _props)
 	signs = SignsScript.new()
 	add_child(signs)
 	signs.configure(_network, _overlay.bores)
@@ -304,13 +306,22 @@ func _build_theatre() -> void:
 
 func ground_samples(parent: Node3D) -> void:
 	"""One of each piece the theatre draws on the ground, under `parent`, for the rooms' ground prewarm (room_view.gd
-	`begin_surface_prewarm`): a seam and a vent, a mouth's gateway with its lantern, a basket and a loaded one, and the
-	clods and the dust already flying (a particle system draws instanced, its own pipeline)."""
+	`begin_surface_prewarm`): a seam and a vent, a mouth's cutting, its arch and lantern (or the gateway), the burrow
+	door's frame and leaf, a basket and a loaded one, and the clods and the dust already flying (a particle system draws
+	instanced, its own pipeline)."""
 	signs.sample_into(parent)
-	for mesh: Mesh in [MouthScript.gateway_mesh(), WarrenKitScript.basket(), WarrenKitScript.loaded_basket()]:
-		var sample := MeshInstance3D.new()
-		sample.mesh = mesh
-		parent.add_child(sample)
+	var meshes: Array[Mesh] = [MouthScript.gateway_mesh(), WarrenKitScript.basket(_props), WarrenKitScript.loaded_basket(_props),
+		MouthScript.cutting_mesh(Rules.BORE_STANDARD, Rules.portal_m(Rules.BORE_STANDARD), MouthScript.END_THROAT),
+		MouthScript.glow_mesh()]
+	for key: StringName in [MouthScript.ARCH_KEY, MouthScript.LANTERN_KEY, &"burrow_door_open"]:
+		meshes.append(_props.fitted(key))
+	for part: String in _props.part_names(&"burrow_door_open"):
+		meshes.append(_props.part_mesh(&"burrow_door_open", part))
+	for mesh: Mesh in meshes:
+		if mesh != null:
+			var sample := MeshInstance3D.new()
+			sample.mesh = mesh
+			parent.add_child(sample)
 	for mesh: Mesh in [ParticlesScript.clod_mesh(), ParticlesScript.dust_mesh()]:
 		var flying := CPUParticles3D.new()
 		flying.mesh = mesh
@@ -341,6 +352,7 @@ func set_world(world: Node, under_u: PackedInt32Array) -> void:
 	var ground := world.get_node_or_null(^"Ground") as MeshInstance3D
 	if ground != null:
 		room_view.set_turf(ground.get_active_material(0))
+		_overlay.set_ground(ground)
 	weather_view.configure(works.weather, _cast.clock, world)
 
 
@@ -373,6 +385,7 @@ func _process(delta: float) -> void:
 		marks.select(_marked)
 	marks.refresh()
 	room_view.refresh()
+	room_view.swing_doors(_cast.clock.delta_s())
 	fixture_view.refresh(delta)
 	find_props.refresh()
 	_run_theatre()

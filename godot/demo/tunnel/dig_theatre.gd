@@ -22,6 +22,7 @@ const Layers := preload("res://demo/demo_layers.gd")
 const ParticlesScript := preload("res://demo/tunnel/warren_particles.gd")
 const LanternsScript := preload("res://demo/tunnel/tunnel_lanterns.gd")
 const KitScript := preload("res://demo/tunnel/warren_kit.gd")
+const PropsScript := preload("res://demo/props/demo_props.gd")
 
 const FACE_SLOTS: int = ParticlesScript.FACE_SLOTS
 ## The lantern stands this far behind the digger and this far to its left (m); its light this high over its base.
@@ -37,6 +38,8 @@ var _space: CastSpaceScript = null
 var _particles: ParticlesScript = null
 var _lights: LanternsScript = null
 var _mound_of: Callable = Callable()
+## The demo's props, for the library hand lantern (decision 0371; null or unstaged: warren_kit.gd's stand-in).
+var _props: PropsScript = null
 ## Per face slot: its segment (-1: free) and that segment's generation, the cuts it has seen, and its lantern.
 var _slot_of: PackedInt32Array = PackedInt32Array()
 var _gen_of: PackedInt32Array = PackedInt32Array()
@@ -53,11 +56,12 @@ var _left: Vector3 = Vector3.ZERO
 
 
 func configure(network: GraphScript, space: CastSpaceScript, particles: ParticlesScript, lights: LanternsScript,
-		mound_of: Callable) -> void:
+		mound_of: Callable, props: PropsScript = null) -> void:
 	"""The faces of this network's digs, their diggers found in `space`, their clods from `particles`, their light
-	from `lights`; `mound_of(slot) -> Node3D` is the overlay's mound over a segment's digger (null: none). A lantern
-	per face slot, made now, hidden."""
+	from `lights`; `mound_of(slot) -> Node3D` is the overlay's mound over a segment's digger (null: none); the
+	lanterns `props`' (warren_kit.gd). A lantern per face slot, made now, hidden."""
 	name = "DigTheatre"
+	_props = props
 	_network = network
 	_space = space
 	_particles = particles
@@ -71,7 +75,7 @@ func configure(network: GraphScript, space: CastSpaceScript, particles: Particle
 	_face_back.resize(FACE_SLOTS)
 	for k in FACE_SLOTS:
 		var lantern := MeshInstance3D.new()
-		lantern.mesh = KitScript.hand_lantern()
+		lantern.mesh = KitScript.hand_lantern(props)
 		lantern.layers = Layers.UNDERGROUND
 		lantern.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		lantern.visible = false
@@ -188,6 +192,6 @@ func _clod_at(slot: int) -> Vector3:
 
 func register(prewarm: RefCounted) -> void:
 	"""The lantern and the pools' meshes, for the U view's prewarm (decision 0206)."""
-	KitScript.register(prewarm)
+	KitScript.register(prewarm, _props)
 	for mesh in ParticlesScript.meshes():
 		prewarm.add_multimesh(mesh)

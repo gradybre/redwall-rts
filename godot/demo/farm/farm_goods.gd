@@ -20,7 +20,7 @@ func _init(p_props: PropsScript = null) -> void:
 
 func has_model(item: int) -> bool:
 	"""Whether `item` has a model of its own (staged or not)."""
-	return Catalog.is_item(item) and Catalog.ITEM_PROP[item] != &""
+	return Catalog.is_pantry_item(item) and Catalog.ITEM_PROP[item] != &""
 
 
 func icon_of(item: int) -> Texture2D:

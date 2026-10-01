@@ -27,7 +27,7 @@ extends Node
 ## of them that are on the per-tick path, so the list and the code cannot drift apart silently:
 ##
 ##   ARCH-SYS-002 CommandCommit      -> `command_dispatch.commit_tick_into()` every tick, FIRST
-##   ARCH-SYS-003 IntervalIntegrator -> `needs.tick_all()`         every tick, after commit
+##   ARCH-SYS-003 IntervalIntegrator -> `residents.tick_needs_all()` every tick, after commit
 ##   ARCH-SYS-004 StockAge           -> `stock_age.run_hour_into()` EVERY HOUR CROSSING, on the
 ##                                     tick path, and REQ-SET-007's FIRST daily leg at midnight
 ##   ARCH-SYS-005 Ecology            -> `ecology.run_day_into()`   MIDNIGHT ONLY, never per tick
@@ -59,7 +59,7 @@ extends Node
 ##   * ARCH-SYS-017 CareHealth RUNS IN ARCH-SYS-003's SLOT, WHICH IS FOURTEEN PLACES EARLY. THIS
 ##     IS AN ORDERING DEBT, not a naming convenience, and it is stated here in full because the
 ##     previous revision left it implicit. `needs.gd` integrates health, cold exposure and the
-##     incapacitation/death transitions INSIDE `tick_all()`, so they are computed at position 3
+##     incapacitation/death transitions INSIDE the needs sweep, so they are computed at position 3
 ##     rather than at the table's position 17. The table's own stated constraint -- "before
 ##     lifecycle and progression" -- still holds, because neither ARCH-SYS-019 nor ARCH-SYS-020
 ##     exists. WHAT IS ACTUALLY LOST is everything between the two positions: cold exposure cannot
@@ -419,7 +419,7 @@ extends Node
 ## nothing of its own: the Calendar, the IntResult and the TickResult are instance scratch, and
 ## every column is packed and sized once. It calls three functions that allocate INSIDE modules
 ## this task does not own, each their published contract:
-##   * `needs.tick_all()`   ONE OpResult per tick for the whole sweep (needs.gd header).
+##   * `residents.tick_needs_all()` ONE OpResult per tick for the whole sweep (needs.gd header).
 ##   * `schedule.resolve_into()` three IntResults inside `needs.gd`, per resident RESOLVED, and a
 ##     resident resolves once per 30 ticks (schedule.gd header).
 ##   * `jobs.evaluate()`    one OpResult plus ~27 IntResults per PASS, and a resident passes once
@@ -1872,7 +1872,7 @@ func _integrate_interval() -> bool:
 	must be visible, not averaged away.
 	"""
 	_stage_timer.start()
-	var swept: NeedsScript.OpResult = _needs.tick_all()
+	var swept: NeedsScript.OpResult = _residents.tick_needs_all()
 	_close_stage(TICK_STAGE_INTERVAL)
 	if swept.ok:
 		return true

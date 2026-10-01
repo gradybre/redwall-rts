@@ -17,12 +17,27 @@ incomplete for adopted policies, not authority to remove them.
   map/init/catalog hashes, exact residents/inventory/building condition/ecology,
   objectives/loss/continuation, onboarding and title/selection text. Unknown
   quantities are authoring blockers. Do not duplicate Refuge values as defaults.
-- [ ] 08.2 **PC-04 family amendment:** fixed life stages and dependents, household/
+- [x] 08.2 **PC-04 family amendment:** fixed life stages and dependents, household/
   caregiver references, schedules, service/care work, quantities and needs,
   injury/illness/exposure/rescue/death, early warning and non-graphic presentation.
   All living stages share the 256/512 limits. No hazardous child work; births,
   aging or automatic adult coefficients are not adopted. Include schema/bytes,
   command/save changes and fixtures before enabling dependent profiles.
+  *Adopted 2026-10-01 (DEC-044, decision 0521) with children kept inactive.* Built:
+  the life-stage hunger and daily-demand multiplier in Needs/Residents (all-adult runs
+  byte-identical to the base), and the household/care store `core/households.gd`
+  (46352 B, single-owner APIs, pure care arithmetic, column capture/validation/restore
+  with schema-1 refuse-not-migrate). Activation stays behind the open gates:
+  - [ ] Gate 1 — CHILL illness: Injury two-bit extension and joint hazard/CareHealth review.
+  - [ ] Gate 2 — departure/separation: lifecycle transaction, chronicle-first ordering,
+    LAST_CAREGIVER_LEAVING warning. The store's detach primitive exists.
+  - [ ] Gate 3 — owner APIs and the cross-owner admission/lifecycle transaction; §4/§5
+    owner registration, ordinals and the family rules fingerprint; SET_POLICY selector
+    activation; composing the store into the settlement.
+  - [ ] Gate 4 — PC-03 family household templates and the stage-mixed admission forecast.
+  - [ ] Gate 5 — stage-qualified child movement profile, geometry, beds/contacts and rigs.
+  - [ ] Gate 6 — service/task graph: care selection pass and its scratch, safe-work
+    interruption, reservation arbitration, Relationship pair-day accounting, notices.
 - [ ] 08.3 Implement real relationships, care, mood memories, grief/remembrance,
   recovery and departure intent; commit deaths/departures with correct reference,
   inventory and history handling. Use exact existing effect values; do not attach

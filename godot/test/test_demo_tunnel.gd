@@ -1012,10 +1012,11 @@ func test_b_opens_the_tool_for_anybody_who_fits_and_refuses_when_nobody_can_dig(
 	var nobody := _tool(cast, [PackedInt32Array()], [], notices)
 	assert_equal(nobody.choose_digger(), 0, "nobody selected: the mole, the most skilled")
 	nobody.ext.can_dig.fill(0)
-	assert_true(nobody.handle_input(_key(KEY_T)), "T (B's alias) is taken")
+	assert_true(nobody.handle_input(_key(KEY_B)), "B is taken")
 	assert_false(nobody.planning, "not planning")
 	assert_equal(notices[-1], "Can't dig: nobody selected can dig -- select someone who fits a bore (moles dig best)", "why")
 	assert_false(tool.handle_input(_key(KEY_Y)), "other keys are left alone")
+	assert_false(tool.handle_input(_key(KEY_T)), "T is no longer an alias: the seasonal planner's (decision 0492)")
 
 
 func test_every_resident_s_fit_is_set_from_its_body() -> void:

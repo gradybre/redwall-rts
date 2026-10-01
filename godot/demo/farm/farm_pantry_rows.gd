@@ -147,7 +147,7 @@ func _sort_key(row: int) -> int:
 	"""Soon rows by their hours, a tie in catalog order; every other row after them in catalog order,
 	store by store."""
 	var catalog: int = item[row] * StorageScript.MAX_LOCATIONS + maxi(location[row], 0)
-	var span: int = Catalog.ITEM_COUNT * StorageScript.MAX_LOCATIONS
+	var span: int = Catalog.PANTRY_ITEM_COUNT * StorageScript.MAX_LOCATIONS
 	return (hours[row] if is_soon(row) else SOON_HOURS + 1) * span + catalog
 
 

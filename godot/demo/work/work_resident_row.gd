@@ -72,7 +72,7 @@ func show_resident(resident: int, board: BoardScript, now_words: String, has_job
 	var crews: CrewsScript = board.crews
 	var crew: int = crews.crew_of[resident]
 	var status: int = CrewsScript.status_of(brain, has_job)
-	_title.text = "%s — %s crew · %s" % [board.name_of(resident), CrewsScript.CREW_NAMES[crew],
+	_title.text = "%s — %s crew · %s" % [board.label_of(resident), CrewsScript.CREW_NAMES[crew],
 		CrewsScript.STATUS_NAMES[status]]
 	_now.text = NOW % now_words
 	_back.tooltip_text = "Move to the %s crew" % CrewsScript.CREW_NAMES[posmod(crew - 1, CrewsScript.CREW_COUNT)]

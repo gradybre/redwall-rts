@@ -55,18 +55,24 @@ const REFUSE_NO_BED: String = "NO_BED_THERE"
 
 const NO_ITEM: int = -1
 
-## The farmed ingredients: key, label, pantry LEAF id and the §5.6 crop row each grows by.
+## The farmed ingredients: key, label, pantry LEAF id and the §5.6 crop row each grows by. ITEM_KEYS, ITEM_LABELS,
+## ITEM_PROP and ITEM_SWATCH run on past the sixteen crops to the PANTRY'S OTHER GOODS (see below); every crop-only
+## table (ITEM_LEAVES, ITEM_CROP, the visuals) stops at ITEM_COUNT.
 const ITEM_KEYS: Array[StringName] = [
 	&"radish", &"turnip", &"carrot", &"beetroot", &"parsnip", &"onion",
 	&"cabbage", &"lettuce", &"spinach", &"leek", &"celery",
 	&"pea", &"broad_bean",
 	&"wheat", &"barley", &"oats",
+	&"trout", &"dace", &"salmon", &"perch", &"carp", &"whitefish",
+	&"dried_fish", &"flour",
 ]
 const ITEM_LABELS: Array[String] = [
 	"Radish", "Turnip", "Carrot", "Beetroot", "Parsnip", "Onion",
 	"Cabbage", "Lettuce", "Spinach", "Leek", "Celery",
 	"Pea", "Broad bean",
 	"Wheat", "Barley", "Oats",
+	"Trout", "Dace", "Salmon", "Perch", "Carp", "Whitefish",
+	"Dried fish", "Flour",
 ]
 const ITEM_LEAVES: Array[String] = [
 	"LEAF_radish", "LEAF_turnip", "LEAF_carrot", "LEAF_beetroot", "LEAF_parsnip", "LEAF_onion",
@@ -83,6 +89,31 @@ const ITEM_CROP: Array[int] = [
 	FarmingScript.CROP_GRAIN, FarmingScript.CROP_GRAIN, FarmingScript.CROP_GRAIN,
 ]
 const ITEM_COUNT: int = 16
+
+## THE PANTRY'S OTHER GOODS (decision 0431, water part B): what the water and the stations put in the pantry beside the
+## crops, each an item of `data/item_definitions.json` with its §5.7 row's shelf life:
+##   * the six freshwater species the demo's water holds -- the stream's trout, dace and salmon (the river habitat)
+##     and the pond's perch, carp and whitefish (the lake) -- each its OWN item, never a generic "fish" (BAL-CAT-004;
+##     SET-AMEND-001's whitelist). §5.7: "All fish species except mussel | 1400 | No | 48". Herring, mackerel and
+##     mussel are the coast's: the demo has no coast, so none is ever caught and none has a pantry item. Eel and pike
+##     are hazards, never food (REQ-SET-056); shrimp is not a game fish.
+##   * dried fish, §5.7's `dry_fish` output: 720 h, directly edible ("Dried/salted fish ... are directly edible").
+##   * flour, §5.7's `flour` output: "Grain/flour | 1200 | No | 720/240" -- 240 h, not eaten raw.
+## Their CATEGORY (what a recipe asks for) extends the §5.6 crop rows past FarmingScript's five: CAT_FISH is §5.7's
+## `fish` selector over the species (BAL-CAT-004), CAT_DRIED_FISH and CAT_FLOUR their own items.
+const PANTRY_ITEM_COUNT: int = 24
+const FIRST_CATCH: int = 16
+const CATCH_COUNT: int = 6
+const ITEM_DRIED_FISH: int = 22
+const ITEM_FLOUR: int = 23
+const CAT_FISH: int = 5
+const CAT_DRIED_FISH: int = 6
+const CAT_FLOUR: int = 7
+## The goods' categories and §5.7 shelf hours, from FIRST_CATCH on.
+const GOODS_CATEGORY: Array[int] = [CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_DRIED_FISH, CAT_FLOUR]
+const GOODS_SHELF_HOURS: Array[int] = [48, 48, 48, 48, 48, 48, 720, 240]
+## scripts/core/fishing.gd SPECIES_KEYS row -> pantry item (NO_ITEM: the coast's three, which the demo cannot catch).
+const SPECIES_ITEM: Array[int] = [16, 17, 18, 19, 20, 21, NO_ITEM, NO_ITEM, NO_ITEM]
 
 ## §5.7's base shelf hours by §5.6 crop row (beans, cabbage, flax, grain, roots). Flax is 0: an
 ## unlimited-shelf material, and never farmed here.
@@ -162,6 +193,8 @@ const ITEM_PROP: Array[StringName] = [
 	&"", &"item_lettuce", &"", &"item_leek", &"item_celery",
 	&"item_peas", &"",
 	&"", &"item_barley", &"item_oats",
+	&"item_trout", &"", &"", &"item_perch", &"", &"",
+	&"", &"",
 ]
 ## The fallback icon's colour: the item's own, from its produce (parsnip cream, spinach dark leaf).
 const ITEM_SWATCH: Array[Color] = [
@@ -171,6 +204,9 @@ const ITEM_SWATCH: Array[Color] = [
 	Color(0.52, 0.72, 0.36),
 	Color(0.48, 0.68, 0.3), Color(0.58, 0.7, 0.4),
 	Color(0.86, 0.7, 0.36), Color(0.82, 0.68, 0.4), Color(0.84, 0.74, 0.5),
+	Color(0.62, 0.6, 0.5), Color(0.66, 0.7, 0.72), Color(0.86, 0.5, 0.42), Color(0.5, 0.6, 0.36),
+	Color(0.7, 0.58, 0.32), Color(0.84, 0.84, 0.8),
+	Color(0.56, 0.36, 0.22), Color(0.94, 0.9, 0.8),
 ]
 
 ## The beds: world crop ids, one FarmPlot each, their demo soils.
@@ -209,6 +245,25 @@ static func is_item(item: int) -> bool:
 	return item >= 0 and item < ITEM_COUNT
 
 
+static func is_pantry_item(item: int) -> bool:
+	"""Whether `item` is anything the pantry keeps: a farmed ingredient or one of THE PANTRY'S OTHER GOODS."""
+	return item >= 0 and item < PANTRY_ITEM_COUNT
+
+
+static func category_of(item: int) -> int:
+	"""What a recipe calls a pantry item: a crop's §5.6 row, else its goods category (CAT_*); -1 for no item."""
+	if is_item(item):
+		return ITEM_CROP[item]
+	if is_pantry_item(item):
+		return GOODS_CATEGORY[item - ITEM_COUNT]
+	return -1
+
+
+static func item_of_species(species_row: int) -> int:
+	"""The pantry item a fishing.gd species row lands as (NO_ITEM: one the demo cannot catch)."""
+	return SPECIES_ITEM[species_row] if species_row >= 0 and species_row < SPECIES_ITEM.size() else NO_ITEM
+
+
 static func is_bed(bed: int) -> bool:
 	"""Whether `bed` names one of the six beds."""
 	return bed >= 0 and bed < BED_COUNT
@@ -225,8 +280,10 @@ static func family_of(item: int) -> int:
 
 
 static func shelf_hours_of(item: int) -> int:
-	"""§5.7's base shelf life of an ingredient, by its crop row."""
-	return CROP_SHELF_HOURS[ITEM_CROP[item]]
+	"""§5.7's base shelf life of a pantry item: a crop's by its crop row, the other goods' their own."""
+	if is_item(item):
+		return CROP_SHELF_HOURS[ITEM_CROP[item]]
+	return GOODS_SHELF_HOURS[item - ITEM_COUNT]
 
 
 static func bed_centre_m(bed: int) -> Vector2:

@@ -103,6 +103,10 @@ var events: EventsScript = null
 var log_lines: PackedStringArray = PackedStringArray()
 ## Bumped whenever something is said, so the panel redraws on change.
 var log_revision: int = 0
+## How the dig's lead says a saying (decision 0491; tunnel_crew.gd THE LEAD'S SAYINGS): `voice(who, saying) -> String`,
+## the whole line under the speaker's name in its own voice -- bound by the people (demo/people/demo_people.gd); unbound,
+## the saying plainly under UNNAMED_SPEAKER.
+var voice: Callable = Callable()
 ## The newest log line as said, and how many times in a row (a repeat folds into it as "... (×3)": decision
 ## 0210, the notice feed's REPEATS FOLD).
 var _log_said: String = ""
@@ -242,6 +246,11 @@ func _post(text: String, summary: String, source: int, level: int) -> void:
 	notices.post(source, level, text, summary)
 
 
+func speak(saying: int, who: int) -> void:
+	"""Resident `who` (the dig's lead) says CrewScript.SAY_* `saying` -- a NOTE, in its own voice (see `voice`)."""
+	say(voice.call(who, saying) if voice.is_valid() else CrewScript.spoken(saying, "", ""))
+
+
 func tell(text: String) -> void:
 	"""The answer to the player's own order (a refusal, a prompt, who is on it): the tunnel panel's log
 	and the party panel's notice line, beside the selection -- not the feed."""
@@ -306,7 +315,7 @@ func _watch_opening(slot: int) -> void:
 	if next >= 0 and _network.phase[next] == GraphScript.PHASE_DIGGING:
 		crew.move_site(slot, next)
 	elif _network.piece_done(_network.piece[slot]) and not fresh:
-		say(CrewScript.LINE_OPEN)
+		speak(CrewScript.SAY_OPEN, _network.piece_digger[_network.piece[slot]])
 
 
 func _watch_room(slot: int, fresh: bool) -> void:
@@ -365,7 +374,7 @@ func _stone_and_skill(slot: int, lead: int, ticks: int) -> void:
 	stores.add_stone(stone - _seen_stone[slot])
 	_seen_stone[slot] = stone
 	if crew.credit_ticks(slot, lead, ticks, _fits[slot]):
-		say(CrewScript.LINE_SKILL)
+		speak(CrewScript.SAY_SKILL, lead)
 
 
 func _note_rock(slot: int, lead: int, face: int) -> void:
@@ -379,7 +388,7 @@ func _note_rock(slot: int, lead: int, face: int) -> void:
 	if note == 1:
 		warn(CrewScript.LINE_ROCK_ALONE, ALERT_ROCK)
 	elif note == 2:
-		say(CrewScript.LINE_ROCK_BADGER)
+		speak(CrewScript.SAY_ROCK_BADGER, lead)
 
 
 func _on_cut(slot: int, c: int, layer: int, kind: int, at: Vector2i) -> void:
@@ -451,12 +460,13 @@ func _on_job_cut(slot: int, job: int, c: int) -> int:
 
 func _finish_job(slot: int) -> void:
 	"""A job's work is done: it takes effect, and is said."""
+	var worker: int = jobs.worker[slot]
 	var job := jobs.finish(slot)
 	if job == JobsScript.JOB_PUMP or job == JobsScript.JOB_CLEAR:
 		hazards.repaired(slot, job == JobsScript.JOB_PUMP)
 	say(JOB_DONE[job] % (slot + 1), ALERT_DONE[job] % (slot + 1))
 	if job == JobsScript.JOB_WIDEN:
-		say(CrewScript.LINE_WIDENED)
+		speak(CrewScript.SAY_WIDENED, worker)
 
 
 func _void_job(slot: int) -> void:

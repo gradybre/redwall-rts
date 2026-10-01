@@ -89,6 +89,13 @@ class Spec:
 
 static func build(spec: Spec) -> ImageTexture:
 	"""Render one piece into a texture. Returns null for a spec too small to have a middle."""
+	var image: Image = build_image(spec)
+	return ImageTexture.create_from_image(image) if image != null else null
+
+
+static func build_image(spec: Spec) -> Image:
+	"""Render one piece into an image (null for a spec too small to have a middle): what `build` wraps, and what the
+	high-contrast switch writes into a texture already in use (woodland_styles.gd `set_high_contrast`)."""
 	if spec == null or spec.size <= 2 * spec.margin:
 		return null
 	var image: Image = Image.create_empty(spec.size, spec.size, false, Image.FORMAT_RGBA8)
@@ -98,7 +105,7 @@ static func build(spec: Spec) -> ImageTexture:
 			image.set_pixel(x, y, texel(spec, noise, x, y))
 	if spec.rivets:
 		_stamp_rivets(image, spec)
-	return ImageTexture.create_from_image(image)
+	return image
 
 
 static func noise_image(period: int, noise_seed: int) -> Image:

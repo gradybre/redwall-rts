@@ -8,8 +8,8 @@ Date: 2026-10-01 · Status: Accepted
 > answered there.
 
 > **Extended by [0601](0601-the-recipe-book-favourites-and-the-cooks-choice.md) (2026-10-01):** ruling 1's two
-> dishes are now the recipe book's eight, and the alternation is the cook's choice (the food that keeps least long, then
-> the village's favourites, then the book's order); the other meal's dish is still the fallback.
+> dishes are now the recipe book's eight, and the alternation is the cook's choice (a dish that feeds the whole meal,
+> then the food that keeps least long, then the village's favourites, then the book's order); the other meal's dish is still the fallback.
 
 > **Extended by [0436](0436-the-kitchens-third-dish-is-the-fish-stew.md) (2026-10-01):** a third dish, §5.7's fish
 > stew, is cooked at supper in place of the soup whenever a batch's fresh fish and roots are free; ruling 1's

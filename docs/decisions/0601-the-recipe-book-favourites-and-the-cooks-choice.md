@@ -1,5 +1,5 @@
 # 0601 — The kitchen's recipe book, each species' favourites, and the cook's choice
-Date: 2026-10-01 · Status: Accepted (its PROPOSALS await Brendan's ruling)
+Date: 2026-10-01 · Status: Accepted (Brendan ruled P1–P4 as built and directed P5, 2026-10-01: see below)
 
 Feature 16, approved by Brendan on 2026-10-01: more Redwall dishes, with each species' favourites. Extends decisions
 0381 (the meal loop, ruling 1's alternation) and 0436 (the fish stew). Numbered in this lane's 0601–0609 range; 0602 is
@@ -95,7 +95,15 @@ first (the stew's roots before the soup's), then the rest in the book's order; t
 same numbers, so it is never counted twice. Under a wood limit the multi-input dishes now come first (was porridge
 first): a difference of a portion or two only when wood is short.
 
-## PROPOSALS needing Brendan's ruling
+## Brendan's rulings (2026-10-01)
+
+"Approve, but add in everything for 5 now." **P1–P4 are approved as built**: the favourites table, the choice's order
+(whole meal, freshness, taste, book order -- so 0436's "a fish stew whenever there is a batch" is narrowed by his
+ruling), no variety rotation (feature 17's), and the hotpot cooked from the start without its M1 unlock. **P5**: the
+families rejected for want of a §5.7 row -- pies, pasties and turnovers, scones, oatcakes, farls and hardtack, salads,
+cordials -- are to be added now: decision 0603 and DEC-045.
+
+## The proposals as they were put
 
 1. **The favourites table** (`dish_favourites.gd`). Only "moles like Togget's vegetable soup" rests on the library
    (Togget is a mole, `outcast::OUT_character_togget`). The rest are proposals: moles and badgers the beetroot soup
@@ -127,7 +135,25 @@ recipes without touching the kitchen's logic. Selectors make "a beetroot soup" m
 new code reads `INPUT_N` and `input_selector/category/milli`. A dish's inputs may not share an item
 (`test_demo_dishes.gd` checks the book). The field guide's dish ids are built from the book (`dish_<key>`).
 
-## Verification
+## The independent review (2026-10-01)
+
+The code-reviewer agent reviewed 4cdbe92. **HIGH, fixed**: a batch of several inputs could withdraw some of them and
+still count as cooked -- `consume_into` trims every entry of the take at the kitchen to its lot, so a later input
+checked before the first withdrawal could be short after it (food taken from its lot by someone else, the lot living
+on); the kitchen then pushed an error and returned true, the ledger counting food the pantry never lost. Now the take
+is trimmed once (`ingredient_takes.gd trim_to_lots`), every input checked, then each withdrawn; a refusal after that
+returns false. MEDIUM, fixed: tests that kill the mutants it found surviving (reserving by category, not selector; the
+Cook card's free food; leftovers in the choice). LOW, fixed: `other(NO_DISH)` is NO_DISH; a misspelt item key in the
+book is an error, not a shift by -1. MEDIUM, ruled: taste deciding the dish (and so which food is used) is Brendan's
+P1/P2 ruling; today it only breaks ties between dishes of one §5.7 row, as the choice orders freshness first.
+
+Verification of the fixes: mutation 55 mutants, 53 killed -- the survivors are the estimate's plain-dish filter
+(as below) and dropping `return false` after a refused withdrawal, which the trim-and-check before it makes
+unreachable (an equivalent mutant: it guards a can't-happen). Full suite: 7541 tests, 568424 assertions, 1 failure -- the routes live
+harness's water rescue at 1280x720, a wall-clock scene untouched here, which passed on its rerun (35 checks, 0
+failures).
+
+## Verification (of 4cdbe92)
 
 - Suite: `ok: 7538 tests, 568402 assertions, 0 failures.` New suite `godot/test/test_demo_dishes.gd` (23 tests) and
   `tools/test_make_demo_pantry_index.py` (4).

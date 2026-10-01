@@ -222,7 +222,11 @@ static func _add_inputs(inputs: Array) -> void:
 		var category: int = int(input[0])
 		var items := PackedInt32Array()
 		for key: Variant in input[2]:
-			items.append(Catalog.ITEM_KEYS.find(StringName(key)))
+			var item: int = Catalog.ITEM_KEYS.find(StringName(key))
+			if item < 0 or item >= TakesScript.MASK_BITS:
+				push_error("meal_rules: dish_book.gd names no pantry item %s" % key)
+				continue
+			items.append(item)
 		IN_SELECTOR.append(category if items.is_empty() else TakesScript.items_selector(items))
 		plain = plain if items.is_empty() else 0
 		IN_CATEGORY.append(category)
@@ -287,7 +291,10 @@ static func dish_for_meal(meal: int) -> int:
 
 
 static func other(dish: int) -> int:
-	"""The other meal's first dish -- what a meal turns to when none of its own dishes has food (ruling 1)."""
+	"""The other meal's first dish -- what a meal turns to when none of its own dishes has food (ruling 1); NO_DISH for
+	no dish."""
+	if dish < 0 or dish >= DISH_COUNT:
+		return NO_DISH
 	return DISH_SOUP if DISH_MEAL[dish] == MEAL_BREAKFAST else DISH_PORRIDGE
 
 

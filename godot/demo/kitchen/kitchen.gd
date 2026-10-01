@@ -687,18 +687,18 @@ func _start_batch() -> bool:
 
 
 func _consume_batch_food(s: int, dish: int) -> bool:
-	"""Withdraw a batch's food at the kitchen -- every input, all or none: the later inputs are checked there first,
-	then each `consume_into` (all or nothing) takes its own, the first input's refusal still taking nothing."""
-	for k: int in range(1, Rules.INPUT_N[dish]):
+	"""Withdraw a batch's food at the kitchen -- every input, all or none: the take is trimmed to what its lots still
+	hold (food something else took is not there), every input is checked there, and only then is each withdrawn."""
+	takes.trim_to_lots(pantry, _slot_take[s], TakesScript.AT_KITCHEN)
+	for k: int in Rules.INPUT_N[dish]:
 		if takes.live_milli(pantry, _slot_take[s], TakesScript.AT_KITCHEN, Rules.input_selector(dish, k)) \
 				< Rules.input_milli(dish, k):
 			return false
 	for k: int in Rules.INPUT_N[dish]:
 		if not takes.consume_into(pantry, _slot_take[s], Rules.input_milli(dish, k), TakesScript.AT_KITCHEN, _hour_seen,
 				_read, Rules.input_selector(dish, k)):
-			if k == 0:
-				return false
 			push_error("kitchen: a batch's input was gone between its check and its withdrawal")
+			return false
 	return true
 
 

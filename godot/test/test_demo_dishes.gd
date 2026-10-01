@@ -166,6 +166,15 @@ func test_every_dish_is_a_library_production_candidate() -> void:
 		assert_true(found.get(id, false), "%s is a production candidate" % id)
 
 
+func test_every_dish_has_an_input_and_a_meal() -> void:
+	"""No row of the book is empty (a dish of no inputs would make endless batches) or for no meal; the other meal's
+	dish of no dish is none."""
+	for dish: int in Rules.DISH_COUNT:
+		assert_true(Rules.INPUT_N[dish] >= 1, "%s has an input" % Rules.DISH_NAMES[dish])
+		assert_true(Rules.DISH_MEAL[dish] == Rules.MEAL_BREAKFAST or Rules.DISH_MEAL[dish] == Rules.MEAL_SUPPER, "a meal")
+	assert_equal(Rules.other(Rules.NO_DISH), Rules.NO_DISH, "no dish")
+
+
 func test_inputs_are_the_demos_own_produce_and_never_overlap() -> void:
 	"""Every input's items are of its category and are things the demo grows or catches; a dish's inputs never share an
 	item (so no food counts twice); keys are unique; dried fish and flour feed no dish."""
@@ -335,6 +344,39 @@ func test_a_dish_that_feeds_the_whole_meal_comes_first() -> void:
 		"neither feeds six: the fish, fresher")
 
 
+func test_leftovers_count_toward_feeding_the_whole_meal() -> void:
+	"""Four moles and badgers, 3 U of beetroot (2 portions) and carrots: alone, the soup feeds all four; with two good
+	portions left from breakfast, two are wanted, so the beetroot soup feeds the meal and is cooked."""
+	var pantry := _pantry()
+	var kitchen := _kitchen(PackedStringArray(["mole", "badger", "mole", "badger"]), tick_at(0, 10), pantry,
+		StoresScript.new())
+	var key: int = Rules.meal_key(0, Rules.MEAL_SUPPER)
+	pantry.add_into(BEETROOT, 3000, 0, _read)
+	pantry.add_into(CARROT, 9000, 0, _read)
+	kitchen._plan(kitchen.hour_index())
+	assert_equal(kitchen.plan_of(key)[0], Rules.DISH_SOUP, "no leftovers: the soup")
+	var fresh := _pantry()
+	var with_leftovers := _kitchen(PackedStringArray(["mole", "badger", "mole", "badger"]), tick_at(0, 10), fresh,
+		StoresScript.new())
+	with_leftovers.store.add(Rules.DISH_PORRIDGE, 2, Rules.meal_key(0, Rules.MEAL_BREAKFAST))
+	fresh.add_into(BEETROOT, 3000, 0, _read)
+	fresh.add_into(CARROT, 9000, 0, _read)
+	with_leftovers._plan(with_leftovers.hour_index())
+	assert_equal(with_leftovers.plan_of(key)[0], Rules.DISH_BEETROOT_SOUP, "two leftovers: the favourite feeds the rest")
+
+
+func test_the_cook_card_counts_free_food_too() -> void:
+	"""The Cook decision's have counts the meal's reservation and the food still free: 2 U of peas held, 4 U more free."""
+	var pantry := _pantry()
+	pantry.add_into(PEA, 2000, 0, _read)
+	pantry.add_into(CABBAGE, 2000, 0, _read)
+	var kitchen := _kitchen(_many("mouse", 1), tick_at(0, 10), pantry, StoresScript.new())
+	pantry.add_into(PEA, 4000, 0, _read)
+	var d: KitchenScript.Decision = kitchen.decide_meal()
+	assert_equal(d.dish, Rules.DISH_BEAN_HOTPOT, "the hotpot")
+	assert_equal([d.input_have[0], d.input_need[0], d.input_have[1]], [6000, 2000, 2000], "held and free")
+
+
 func test_breakfast_picks_among_the_porridges_and_falls_back_to_supper_s() -> void:
 	"""Squirrels like the barleymeal: from barley or oats it is theirs, from wheat the plain porridge; with no grain at
 	all, breakfast is a supper dish (ruling 1's other dish) -- the best of them; with nothing, the porridge, waiting."""
@@ -395,9 +437,10 @@ func test_a_meal_of_two_inputs_holds_only_whole_batches_of_both() -> void:
 	assert_equal(kitchen.takes.free_milli_of_crop(pantry, FarmingScript.CROP_BEANS), 4000, "the rest of the peas free")
 
 
-func test_a_batch_missing_a_later_input_takes_nothing() -> void:
-	"""The hotpot's food at the kitchen, then its greens eaten elsewhere: the batch cannot start, and the peas are not
-	withdrawn without them (all inputs or none)."""
+func test_a_batch_missing_part_of_an_input_takes_nothing() -> void:
+	"""The hotpot's food at the kitchen, then half its greens taken from their lot by someone else (the lot lives on): the
+	batch cannot start -- nothing withdrawn, nothing counted consumed -- and with the first input gone instead, the same
+	(all inputs or none; the review's H1)."""
 	var pantry := _pantry()
 	pantry.add_into(PEA, 2000, 0, _read)
 	pantry.add_into(CABBAGE, 2000, 0, _read)
@@ -407,23 +450,32 @@ func test_a_batch_missing_a_later_input_takes_nothing() -> void:
 	kitchen.takes.pick_up(pantry, take, kitchen.takes.store_to_fetch(pantry, take))
 	kitchen.takes.put_down(take)
 	var lot: int = _lot_of(pantry, CABBAGE)
-	assert_true(pantry.withdraw_into(lot, pantry.lot_serial(lot), 2000, _read), "the greens gone")
+	assert_true(pantry.withdraw_into(lot, pantry.lot_serial(lot), 1000, _read), "half the greens gone")
 	assert_false(kitchen._consume_batch_food(kitchen._slot_index_of(key), Rules.DISH_BEAN_HOTPOT), "no batch")
-	assert_equal(pantry.milli_of(PEA), 2000, "the peas untouched")
+	assert_equal([pantry.milli_of(PEA), pantry.milli_of(CABBAGE), kitchen.consumed_food_milli], [2000, 1000, 0],
+		"the peas and the greens left untouched, nothing counted")
+	var peas: int = _lot_of(pantry, PEA)
+	assert_true(pantry.withdraw_into(peas, pantry.lot_serial(peas), 1000, _read), "half the peas gone too")
+	pantry.add_into(CABBAGE, 1000, 0, _read)
+	assert_false(kitchen._consume_batch_food(kitchen._slot_index_of(key), Rules.DISH_BEAN_HOTPOT), "still no batch")
+	assert_equal([pantry.milli_of(PEA), pantry.milli_of(CABBAGE)], [1000, 2000], "nothing withdrawn")
 
 
 func test_a_variant_cooks_from_its_own_ingredients_only() -> void:
 	"""A batch of the beetroot soup withdraws 3 U of beetroot and onion and leaves the carrots: real lots, the books
 	balancing (food consumed = the pantry's loss)."""
 	var pantry := _pantry()
-	pantry.add_into(BEETROOT, 3000, 0, _read)
 	pantry.add_into(CARROT, 3000, 0, _read)
+	pantry.add_into(BEETROOT, 3000, 0, _read)
 	var stores := StoresScript.new()
 	stores.add_water(10000)
 	var kitchen := _kitchen(PackedStringArray(["badger"]), tick_at(0, 15), pantry, stores)
 	var key: int = Rules.meal_key(0, Rules.MEAL_SUPPER)
 	assert_equal(kitchen.plan_of(key)[0], Rules.DISH_BEETROOT_SOUP, "the badger's favourite")
 	var take: int = kitchen.take_of(key)
+	assert_equal([kitchen.takes.live_milli(pantry, take, -1, TakesScript.items_selector(PackedInt32Array([CARROT]))),
+		kitchen.takes.live_milli(pantry, take, -1, TakesScript.items_selector(PackedInt32Array([BEETROOT])))], [0, 3000],
+		"it holds the beetroot, not the carrots stocked first (the first lot)")
 	kitchen.takes.pick_up(pantry, take, kitchen.takes.store_to_fetch(pantry, take))
 	kitchen.takes.put_down(take)
 	assert_true(kitchen._consume_batch_food(kitchen._slot_index_of(key), Rules.DISH_BEETROOT_SOUP), "a batch withdrawn")
@@ -516,6 +568,7 @@ func test_the_recipe_index_lists_the_catch_dried_fish_and_flour() -> void:
 	file.store_string(JSON.stringify(renamed))
 	file.close()
 	assert_false(RecipesScript.new().load_index(path), "a goods entry out of the catalog's order")
+	DirAccess.remove_absolute(path)
 
 
 func test_the_recipes_tab_lists_every_pantry_item() -> void:

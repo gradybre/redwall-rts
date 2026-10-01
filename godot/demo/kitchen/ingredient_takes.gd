@@ -245,6 +245,12 @@ func consume_into(pantry: PantryScript, take: int, milli: int, where: int, hour_
 	return out.succeed(milli)
 
 
+func trim_to_lots(pantry: PantryScript, take: int, where: int) -> void:
+	"""Cut `take`'s entries at `where` down to what their lots still hold (see `_trim_to_lots`): a caller withdrawing
+	several selectors from one take checks them all after this, before the first withdrawal (kitchen.gd)."""
+	_trim_to_lots(pantry, take, where)
+
+
 func _trim_to_lots(pantry: PantryScript, take: int, where: int) -> void:
 	"""Cut `take`'s entries at `where` down to what their lots still hold (food something else took is not there to
 	cook), so `consume_into`'s withdrawals can never be refused half-way: all or nothing."""

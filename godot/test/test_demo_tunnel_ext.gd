@@ -21,6 +21,7 @@ const JobsScript := preload("res://demo/tunnel/tunnel_jobs.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
 const HazardsScript := preload("res://demo/tunnel/tunnel_hazards.gd")
+const CalendarScript := preload("res://demo/demo_calendar.gd")
 const EventsScript := preload("res://demo/events/demo_events.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
@@ -1120,7 +1121,8 @@ func test_threats_come_in_a_seeded_order() -> void:
 	var events := EventsScript.new()
 	assert_true(events.trigger(), "a flood")
 	assert_false(events.trigger(), "one at a time")
-	assert_equal(events.next_auto_usec, 616254902, "the next comes on its own after 540 s plus a seeded jitter")
+	assert_equal(events.next_auto_usec, 9 * CalendarScript.DAY_USEC + 676254902,
+		"the next comes on its own after 9 game days plus a seeded jitter (decision 0912)")
 	assert_equal(events.advance(0), EventsScript.CHANGE_NONE, "paused")
 	assert_equal(events.advance(39999999), EventsScript.CHANGE_NONE, "a microsecond left")
 	assert_equal(events.advance(1), EventsScript.CHANGE_ENDED, "over")
@@ -1128,12 +1130,30 @@ func test_threats_come_in_a_seeded_order() -> void:
 	assert_equal(events.kind, EventsScript.KIND_FIRE, "fire")
 
 
-func test_the_first_threat_comes_on_its_own_after_six_minutes() -> void:
-	"""360 s of demo time with nothing ordered brings the first."""
+func test_the_first_threat_comes_on_its_own_after_six_game_days() -> void:
+	"""Six game days of demo time (decision 0912; 60 real minutes at 1x) with nothing ordered bring the first."""
 	var events := EventsScript.new()
-	assert_equal(events.advance(359999999), EventsScript.CHANGE_NONE, "not yet")
+	assert_equal(EventsScript.FIRST_AUTO_USEC, 6 * CalendarScript.DAY_USEC, "six game days")
+	assert_equal(events.advance(6 * CalendarScript.DAY_USEC - 1), EventsScript.CHANGE_NONE, "not yet")
 	assert_equal(events.advance(1), EventsScript.CHANGE_STARTED, "now")
 	assert_equal(events.kind, EventsScript.KIND_FLOOD, "a flood")
+
+
+func test_threats_come_about_every_nine_game_days() -> void:
+	"""Run on the real module: after each threat ENDS the next is 9 game days on plus a seeded jitter under 2 days; a
+	year (48 game days, an hour a step) meets five, where it met about 45, starting at the same hours every run."""
+	var events := EventsScript.new()
+	for k: int in 20:
+		assert_true(events.trigger(), "threat %d" % k)
+		events.advance(EventsScript.DURATION_USEC)
+		assert_true(events.next_auto_usec >= 9 * CalendarScript.DAY_USEC
+			and events.next_auto_usec < 11 * CalendarScript.DAY_USEC, "gap after %d: %d usec" % [k, events.next_auto_usec])
+	events = EventsScript.new()
+	var starts: PackedInt32Array = PackedInt32Array()
+	for hour: int in 48 * 24:
+		if events.advance(CalendarScript.HOUR_USEC) == EventsScript.CHANGE_STARTED:
+			starts.append(hour + 1)
+	assert_equal(starts, PackedInt32Array([144, 390, 621, 868, 1106]), "five threats, at these hours of demo time")
 
 
 func test_the_flood_s_disc_and_shelters() -> void:

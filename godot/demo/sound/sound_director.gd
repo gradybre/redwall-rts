@@ -153,6 +153,7 @@ func follow_demo(cast: DemoCastScript, forestry: ForestryScript, network: GraphS
 	taps.stand = forestry.stand if forestry != null else null
 	taps.network = network
 	taps.notices = services.notices if services != null else null
+	taps.incidents = services.incidents if services != null else null
 	taps.weather = services.weather if services != null else null
 	taps.water_map = water_map
 	taps.watch()

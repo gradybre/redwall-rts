@@ -920,7 +920,8 @@ waits on Brendan's approval of each download.
   beginning or ending (pickup, drop), entering or leaving the water, starting to swim or dive (splash), each
   stride by the ground underfoot (grass, a worn path's dirt, a bridge leg's wood, a tunnel, wading), each whole
   beat of a felling, grubbing or sawing step that has begun, a tree coming down, each dig quantum cut, a tunnel,
-  room or bridge opening (complete), a *new* warning in the notice feed (a folded repeat does not chime again),
+  room or bridge opening (complete), a *new* warning in the notice feed (a folded repeat does not chime again)
+  or a critical incident raised or come back (decision 0331's `incident_cue`; one chime a frame at most),
   and every button press. A tree blown down falls too. It reads the models and writes nothing: no sound, and no
   animation, awards anything.
 - **Every cue has a text or picture match** (the table refuses a cue without one): chips and the task line for a

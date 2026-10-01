@@ -21,6 +21,7 @@ const JobsScript := preload("res://demo/forestry/forest_jobs.gd")
 const StandScript := preload("res://demo/forestry/forest_stand.gd")
 const BridgesScript := preload("res://demo/waterplay/bridges.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
+const IncidentsScript := preload("res://demo/demo_incidents.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
 const WaterLayout := preload("res://demo/water/water_layout.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
@@ -800,6 +801,37 @@ func test_a_new_warning_chimes_and_a_note_or_a_folded_repeat_does_not() -> void:
 	notices.post(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_NOTE, "Beans sown")
 	taps.poll(Time.get_ticks_msec(), Vector2.ZERO)
 	assert_equal(_events(taps, TapsScript.C_WARNING), 1, "a warning under a later note in one frame chimes")
+
+
+func test_a_critical_incident_chimes_once_and_a_warning_or_a_merged_repeat_does_not() -> void:
+	"""Decision 0331's sound hook: a critical incident raised chimes the warning cue; a warning incident raised
+	alone does not (it has no row); a merged repeat does not; one that resolves and comes back does; a reported
+	critical incident, which also posts its warning row, chimes once."""
+	var notices := NoticesScript.new()
+	var incidents := IncidentsScript.new()
+	incidents.bind(notices, null, null)
+	var taps := _taps_for([] as Array[BrainScript])
+	taps.notices = notices
+	taps.incidents = incidents
+	taps.watch()
+	incidents.raise("farm:store_full", NoticesScript.SOURCE_FARM, IncidentsScript.SEVERITY_WARNING, "Stores full")
+	taps.poll(Time.get_ticks_msec(), Vector2.ZERO)
+	assert_equal(taps.event_count, 0, "a warning incident raised alone is silent")
+	incidents.raise("threat", NoticesScript.SOURCE_EVENTS, IncidentsScript.SEVERITY_CRITICAL, "A fox")
+	taps.poll(Time.get_ticks_msec(), Vector2.ZERO)
+	assert_equal(_events(taps, TapsScript.C_WARNING), 1, "a critical incident chimes")
+	taps.poll(Time.get_ticks_msec(), Vector2.ZERO)
+	assert_equal(taps.event_count, 0, "once")
+	incidents.raise("threat", NoticesScript.SOURCE_EVENTS, IncidentsScript.SEVERITY_CRITICAL, "A fox, closer")
+	taps.poll(Time.get_ticks_msec(), Vector2.ZERO)
+	assert_equal(taps.event_count, 0, "a merged repeat does not chime again")
+	incidents.resolve("threat")
+	incidents.raise("threat", NoticesScript.SOURCE_EVENTS, IncidentsScript.SEVERITY_CRITICAL, "A fox again")
+	taps.poll(Time.get_ticks_msec(), Vector2.ZERO)
+	assert_equal(_events(taps, TapsScript.C_WARNING), 1, "a recurrence chimes")
+	incidents.report("water:rescue:1", NoticesScript.SOURCE_WATER, IncidentsScript.SEVERITY_CRITICAL, "Otter in difficulty")
+	taps.poll(Time.get_ticks_msec(), Vector2.ZERO)
+	assert_equal(_events(taps, TapsScript.C_WARNING), 1, "its row and its cue in one frame: one chime")
 
 
 func test_water_edges_and_a_splash_as_swimming_begins() -> void:

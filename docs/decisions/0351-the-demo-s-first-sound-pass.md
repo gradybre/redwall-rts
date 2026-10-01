@@ -124,6 +124,19 @@ so the demo is silent, and every sound has a text or picture match.
 **Persistence** follows the interface scale's (decision 0261, `demo_ui_scale.gd`): static vars, kept for the
 session and through Restart, never written to disk -- the demo saves nothing.
 
+## Integration with the village news (review batch 2)
+
+Group I's incidents (decision 0331) landed beside this pass. Its sound hook, `incident_cue(cue, serial,
+severity)`, is now heard: `sound_taps.gd` connects to `services().incidents.incident_cue`, and a
+CUE_CRITICAL_RAISED (a critical incident raised, or come back after it resolved -- never a merged repeat) asks
+the next poll for the **warning** cue. The poll chimes once a frame at most, so a critical incident that is
+`report`ed, and so also posts its warning row, is heard once. A WARNING-severity incident raised without a
+feed row stays silent (it is not a new warning row); CUE_RESOLVED is not sounded -- the table has no cue for a
+resolution, and adding one is left to the sound files' pass. The connection is the one signal the event map
+listens to: a presentation cue the incidents emit for exactly this purpose. Tested in `test_demo_sound.gd`
+(`test_a_critical_incident_chimes_once_and_a_warning_or_a_merged_repeat_does_not`). `rows_posted` is bumped
+where I's feed appends a row, not where it folds a repeat.
+
 ## Not done (recorded so it is not assumed)
 
 - **No audio was heard.** Without files nothing can be; the mix levels, ranges and gaps are first guesses to

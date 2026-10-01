@@ -135,6 +135,16 @@ buttons are at least 32 px tall (UI §2).
   layers' "clear only my own mode" guard, which `select`'s off-then-on order makes redundant), and the guard was
   removed.
 
+## Integration with group G (review batch 2)
+
+Merged onto the input gate, focus and interface scale (decision 0261) with no change to J's code: the Pantry
+panel's content is J's, and its modality is the gate's (`watch_modal` and `set_modal_close` in
+`demo_village.gd`, which still finds `close_button()`); every Pantry and picker button is `farm_ui.gd button`,
+which carries G's focus ring; and the picker's slot comes from the news strip's `band_placement`, which lays
+out at `DemoUiScale.percent`, so it follows the menu's scale. The picker is not one of the gate's F7 regions.
+The live input harness's Pantry check read `demo_farm.gd`'s removed `_overlay_step`; it now reads
+`lenses.active` ("V does not step the map layer").
+
 ## Source
 
 The external review (`REVIEW.md` F46, F47, P1's Stocks / Pantry, Recipes / orders and Map / layers rows, the pantry

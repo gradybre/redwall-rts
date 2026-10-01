@@ -19,7 +19,10 @@ extends RefCounted
 ##   dig               each dig quantum CUT (underground_graph.gd `cut_count`), at the digger, below
 ##   complete          a tunnel or room segment opening (DIGGING -> OPEN), a bridge opening (PLANNED -> OPEN)
 ##   warning           a NEW warning row in the notice feed (demo_notices.gd `rows_posted`); a repeat it folds
-##                     into an existing row (×2) is not new, so it does not chime again (UI §7)
+##                     into an existing row (×2) is not new, so it does not chime again (UI §7) -- or a CRITICAL
+##                     incident raised or come back (demo_incidents.gd `incident_cue`, CUE_CRITICAL_RAISED;
+##                     decision 0331's sound hook), which a merged repeat never sends. One chime a frame at most,
+##                     so an incident that also posts its warning row is heard once.
 ## Ambience is a level, not an edge: wind and rain from the weather's condition, the stream from the nearest
 ## bank to the listener; read every AMBIENCE_MS.
 ##
@@ -37,6 +40,7 @@ const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
 const BridgesScript := preload("res://demo/waterplay/bridges.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
+const IncidentsScript := preload("res://demo/demo_incidents.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
 const WorldLayout := preload("res://demo/world/world_layout.gd")
@@ -94,6 +98,7 @@ var stand: StandScript = null
 var network: GraphScript = null
 var bridges: BridgesScript = null
 var notices: NoticesScript = null
+var incidents: IncidentsScript = null
 var weather: WeatherScript = null
 var water_map: WaterMapScript = null
 
@@ -127,6 +132,8 @@ var _seg_cuts: PackedInt32Array = PackedInt32Array()
 var _bridge_phase: PackedByteArray = PackedByteArray()
 var _bridge_generation: PackedInt32Array = PackedInt32Array()
 var _notice_rows: int = 0
+## A critical incident was raised since the last poll (`_on_incident_cue`).
+var _incident_alarm: bool = false
 var _ambience_msec: int = -1000000
 var _at: Vector3 = Vector3.ZERO
 var _bank: WaterMapScript.Bank = WaterMapScript.Bank.new()
@@ -164,6 +171,7 @@ func watch() -> void:
 	_watch_segments()
 	_watch_bridges()
 	_notice_rows = notices.rows_posted if notices != null else 0
+	_watch_incidents()
 
 
 func poll(now_msec: int, listener_ground: Vector2) -> int:
@@ -483,15 +491,32 @@ func _poll_bridges() -> void:
 
 func _poll_notices() -> void:
 	"""warning when a new row posted since the last poll is a warning -- not for a repeat the feed folded into a
-	row it already had (×2), which writes no new row."""
-	if notices == null or notices.rows_posted == _notice_rows:
-		return
-	var fresh: int = mini(notices.rows_posted - _notice_rows, notices.count())
-	_notice_rows = notices.rows_posted
-	for k: int in fresh:
-		if notices.level(k) == NoticesScript.LEVEL_WARNING:
-			_emit_flat(C_WARNING)
-			return
+	row it already had (×2), which writes no new row -- or a critical incident was raised; once a frame."""
+	var warn: bool = _incident_alarm
+	_incident_alarm = false
+	if notices != null and notices.rows_posted != _notice_rows:
+		var fresh: int = mini(notices.rows_posted - _notice_rows, notices.count())
+		_notice_rows = notices.rows_posted
+		for k: int in fresh:
+			if notices.level(k) == NoticesScript.LEVEL_WARNING:
+				warn = true
+				break
+	if warn:
+		_emit_flat(C_WARNING)
+
+
+func _watch_incidents() -> void:
+	"""Hear the incidents' sound hook (none already raised sounds)."""
+	_incident_alarm = false
+	if incidents != null and not incidents.incident_cue.is_connected(_on_incident_cue):
+		incidents.incident_cue.connect(_on_incident_cue)
+
+
+func _on_incident_cue(cue: int, _serial: int, _severity: int) -> void:
+	"""A critical incident raised or come back: the next poll's warning. A resolution is not sounded yet (the
+	table has no cue for it)."""
+	if cue == IncidentsScript.CUE_CRITICAL_RAISED:
+		_incident_alarm = true
 
 
 func _poll_ambience(listener_ground: Vector2) -> void:

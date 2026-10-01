@@ -166,6 +166,29 @@ the shell's own history.
   tested; LOWs fixed where cheap (same-day blight recurrence, the strip button's focus) and the rest recorded
   above.
 
+## Integration with groups B, E, G, J and R (review batch 2)
+
+Merged onto a master that already held the harvest conservation (decision 0222), the HUD read model (0251) and
+the input gate (0261):
+
+- **Full store.** 0222 never cuts a harvest without reserved room, so I's "no room: the harvest was lost" paths
+  no longer exist. The full-store incident is raised where a harvest now *waits* for room: `_flag_shortage` (a
+  shortage newly found, once until the job moves), `_reserve_harvest`'s "left the harvest standing", and
+  `order()`'s "Harvest queued, but no store has room". Its watch is unchanged (resolved once a store has room
+  for 1 U).
+- **One `centre_on`.** E's camera `centre_on` (x and z, the target's height kept) serves the news's Go to too;
+  I's copy was dropped.
+- **Scale.** The history window and the incident card place themselves through `farm_ui.gd geometry_for`,
+  which reads G's `DemoUiScale.percent`, so both follow the menu's interface scale and re-place on the
+  `size_changed` it raises.
+- **Keys under a HUD workspace.** The window also defers to `shell.workspace_owns_input`, and `defer_keys_while`
+  now withholds Esc as well as N: under a workspace's scrim the workspace is the top of the dismissal ladder.
+  A demo modal (Pantry, menu, Lab) needs nothing here: the input gate reads first, consumes N, and its Esc
+  closes the modal before the window sees the key.
+- **The live input harness** now expects N to open this window (not the shell's history behind it) and Esc to
+  close it without clearing the selection.
+- R's sound hears `incident_cue` (decision 0351's integration note).
+
 ## Source
 
 `/Users/brendan/Developer/redwall-review/REVIEW.md` F11, F37 and P1's "Village news / chronicle" row; the review

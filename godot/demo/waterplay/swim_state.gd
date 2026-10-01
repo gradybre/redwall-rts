@@ -20,7 +20,11 @@ extends RefCounted
 ## EVENTS a tick raises are latched as bits (`take_events`), read once by the water's owner:
 ##   TIRED at rest <= 1500 in the water (HAZ-003's return request), once until rest is back at 4000;
 ##   EXHAUSTED at rest 0 in the water (HAZ-003: self-propelled swimming stops -- in difficulty);
-##   LOW_AIR at air <= 450 submerged (HAZ-002's advisory); AIR_OUT at air 0 submerged.
+##   LOW_AIR at air <= 450 submerged (HAZ-002's advisory); AIR_OUT at air 0 submerged. Both are
+##   THRESHOLD ENTRIES (review F38, decision 0231): each is raised once as air crosses its line, latched
+##   in `air_latch`, and re-armed only by a fresh dive (going down from the surface) or at the surface
+##   with air back at AIR_LOW_REARM (600) -- so a dive raises each at most once, the next dive can raise
+##   them again, and the air itself is a meter the panels read in place, never a stream of notices.
 
 const Rules := preload("res://demo/waterplay/swim_rules.gd")
 
@@ -40,6 +44,9 @@ const EVENT_TIRED: int = 1
 const EVENT_EXHAUSTED: int = 2
 const EVENT_LOW_AIR: int = 4
 const EVENT_AIR_OUT: int = 8
+## `air_latch` bits: the low-air advisory and the air-out event already raised this time below.
+const LATCH_LOW_AIR: int = 1
+const LATCH_AIR_OUT: int = 2
 
 var count: int = 0
 var swim_mm_s: PackedInt32Array = PackedInt32Array()
@@ -57,6 +64,8 @@ var events: PackedInt32Array = PackedInt32Array()
 ## HAZ-003's latches: tired and exhausted episodes, re-armed at rest 4000 on land.
 var tired_latch: PackedByteArray = PackedByteArray()
 var exhausted_latch: PackedByteArray = PackedByteArray()
+## HAZ-002's latches (LATCH_* bits), re-armed at AIR_LOW_REARM at the surface.
+var air_latch: PackedByteArray = PackedByteArray()
 ## Bumped whenever something a panel shows changes (a mode, a latch, a capability).
 var revision: int = 0
 
@@ -78,6 +87,7 @@ func setup(species: PackedStringArray, heights_u: PackedInt32Array) -> void:
 	mode.resize(count)
 	tired_latch.resize(count)
 	exhausted_latch.resize(count)
+	air_latch.resize(count)
 	for who: int in count:
 		_seed(who, species[who], heights_u[who])
 	revision += 1
@@ -97,6 +107,7 @@ func _seed(who: int, kind: String, h_u: int) -> void:
 	events[who] = 0
 	tired_latch[who] = 0
 	exhausted_latch[who] = 0
+	air_latch[who] = 0
 
 
 func has(who: int) -> bool:
@@ -125,10 +136,14 @@ func in_difficulty(who: int) -> bool:
 
 
 func set_mode(who: int, value: int) -> void:
-	"""What the water is doing to `who` from this tick on."""
-	if mode[who] != value:
-		mode[who] = value
-		revision += 1
+	"""What the water is doing to `who` from this tick on. Going down from the surface is a fresh dive:
+	HAZ-002's latches re-arm (see EVENTS)."""
+	if mode[who] == value:
+		return
+	if value == MODE_DIVE and mode[who] != MODE_DISTRESS_UNDER:
+		air_latch[who] = 0
+	mode[who] = value
+	revision += 1
 
 
 func set_consent(who: int, on: bool) -> void:
@@ -153,16 +168,28 @@ func _tick(who: int) -> void:
 	var submerged: bool = m == MODE_DIVE or m == MODE_DISTRESS_UNDER
 	if submerged:
 		air[who] = maxi(air[who] - Rules.AIR_PER_SUBMERGED_TICK, 0)
-		if air[who] <= Rules.AIR_LOW_ADVISORY:
-			events[who] |= EVENT_LOW_AIR
-		if air[who] == 0:
-			events[who] |= EVENT_AIR_OUT
+		_air_events(who)
 	else:
 		air[who] = mini(air[who] + Rules.AIR_RECOVERY_PER_TICK, Rules.AIR_FULL)
+		if air[who] >= Rules.AIR_LOW_REARM and air_latch[who] != 0:
+			air_latch[who] = 0
+			revision += 1
 	if m == MODE_SWIM or m == MODE_TREAD or m == MODE_DIVE:
 		_spend(who)
 	elif m == MODE_LAND or m == MODE_WADE or m == MODE_RESTING:
 		_recover(who, Rules.REST_RESTING_FACTOR if m == MODE_RESTING else 1)
+
+
+func _air_events(who: int) -> void:
+	"""HAZ-002's advisory and air-out, each raised once as air crosses its line (see EVENTS)."""
+	if air[who] <= Rules.AIR_LOW_ADVISORY and (air_latch[who] & LATCH_LOW_AIR) == 0:
+		air_latch[who] |= LATCH_LOW_AIR
+		events[who] |= EVENT_LOW_AIR
+		revision += 1
+	if air[who] == 0 and (air_latch[who] & LATCH_AIR_OUT) == 0:
+		air_latch[who] |= LATCH_AIR_OUT
+		events[who] |= EVENT_AIR_OUT
+		revision += 1
 
 
 func _spend(who: int) -> void:

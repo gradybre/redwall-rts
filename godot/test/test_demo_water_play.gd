@@ -1628,6 +1628,7 @@ func test_a_rescue_task_whose_victim_is_no_longer_held_ends_where_it_is() -> voi
 	var victim := _brain(rig, 0)
 	var held := Tasks.VictimTask.new(rig.play.motion, 0.0)
 	var rescuer := _brain(rig, 2)
+	held.reserve(2, Tasks.RESPONSE_SWIM, "")
 	var from: Vector2 = rescuer.position
 	var swim := Tasks.SwimRescue.new(rig.play.motion, victim, held, PackedVector2Array([WEST_BANK, RUN_MID]),
 		Callable(), rig.play.rescue.tow_landing)

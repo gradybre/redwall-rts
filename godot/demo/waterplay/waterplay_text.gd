@@ -87,6 +87,27 @@ func refusal_words(who: int, why: StringName, at: Vector2 = Vector2.ZERO) -> Str
 	return "%s can't go: %s" % [name, String(why).to_lower().replace("_", " ")]
 
 
+func bank_refusal_line(who: int, why: StringName) -> String:
+	"""A swimmer refused at the bank on its way across (water_crossings.gd THE BANK RECHECK), in words."""
+	return "%s won't swim across: %s — going round by land" % [name_of(who), reason_words(who, why)]
+
+
+func reason_words(who: int, why: StringName) -> String:
+	"""Why `who` may not go into the water now, in words, without its name."""
+	match why:
+		Rules.REFUSE_NO_CONSENT:
+			return "swim shortcuts are off"
+		Rules.REFUSE_TIRED:
+			return "too tired (stamina %d%%, needs %d%%)" % [_state.rest_percent(who), Rules.REST_ENTRY_MIN / 100]
+		Rules.REFUSE_LOADED:
+			return "carrying a load"
+		Rules.REFUSE_FLOW:
+			return "the current is too strong to swim across"
+		Rules.REFUSE_CANNOT_SWIM:
+			return "it doesn't swim"
+	return String(why).to_lower().replace("_", " ")
+
+
 func depth_words(who: int, at: Vector2) -> String:
 	"""The depth at `at` against the body's height (a dive needs water deeper than the body is tall)."""
 	var depth: int = _map.depth_at(MotionScript.u_of(at))
@@ -150,12 +171,29 @@ func conditions_line() -> String:
 
 
 func alert_line() -> String:
-	"""Every resident in difficulty and what is being done ("" when nobody is)."""
+	"""Every resident in difficulty, one incident apiece (`incident_words`); "" when nobody is."""
 	var parts := PackedStringArray()
 	for who: int in _rescue.victims:
-		var task: Tasks.VictimTask = _rescue.victim_task(who)
-		parts.append("%s — %s" % [name_of(who), task.label() if task != null else "in difficulty"])
+		parts.append(incident_words(who))
 	return "" if parts.is_empty() else "In difficulty: %s" % "; ".join(parts)
+
+
+func incident_words(who: int) -> String:
+	"""One victim's incident, updated in place: where it is and its breath, who is answering it and at
+	what, the landing it is being brought to, and why nothing better went -- or, with nobody, when the
+	water will carry it ashore (rescue.gd's safety net). E.g. "Otter, underwater, breath 37% — Otter 2:
+	diving to fetch them"."""
+	var task: Tasks.VictimTask = _rescue.victim_task(who)
+	if task == null:
+		return "%s — in difficulty" % name_of(who)
+	var where: String = "being brought ashore" if task.towed else ("underwater" if task.down_m > 0.0 else "at the surface")
+	var victim: String = "%s, %s, breath %d%%" % [name_of(who), where, _state.air[who] * 100 / Rules.AIR_FULL]
+	if not task.engaged:
+		var left_s: int = maxi(ceili(RescueScript.WASH_ASHORE_S - task.waited_s), 0)
+		return "%s — no rescuer free yet (the water brings it ashore in %d s)" % [victim, left_s]
+	var landing: String = _rescue.landing_words_of(_brain(task.responder))
+	var why: String = "" if task.why.is_empty() else " (%s)" % task.why
+	return "%s — %s: %s%s%s" % [victim, name_of(task.responder), _brain(task.responder).task_label(), landing, why]
 
 
 func swimmers_title() -> String:

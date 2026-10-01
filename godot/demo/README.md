@@ -120,6 +120,40 @@ map (`ui/demo_command_tips.gd`); an enabled command answers its key. The notific
 own "×" (Esc closes it, N toggles it). The Pantry draws above the HUD, so its "×" is reachable at
 1280x720. The Village news strip is centred on the action bar and follows it.
 
+**Pop-ups own the input** (decision 0261, `ui/demo_input_gate.gd`). The Pantry, the game menu and the Demo Lab
+are modals: a light scrim covers the world and the HUD, so no click, drag or wheel outside the frame reaches
+them, and no world or HUD key works behind them (focus keys, Enter, Space, F11 and key releases pass). Focus
+lands inside (the Pantry's first ingredient; its "×" is last), Tab and Shift+Tab stay inside, and Esc -- or
+its own key, K for the Pantry, F8 for the Lab -- closes it and puts focus back where it was. That Esc does
+not also clear the selection. The notification history is not a modal (UI §3 layer 30): a click on it never
+reaches the world, and the world stays live beside it.
+
+**The game menu** (`ui/demo_menu.gd`): the HUD's Menu button ("≡"), or Esc when nothing else is left to
+close, opens it -- Resume, Restart demo…, Controls (the keys below), Settings, Demo Lab and Quit… -- with the
+line that **the demo can't save yet**. Restart and Quit ask first and say again that the village will be lost.
+Opening it holds the clock's MENU pause reason and closing releases only that, so the village comes back at
+the speed it had (and a pause of your own stays). Settings holds only what works: the interface scale
+(100 / 125 / 150 %, the HUD and every demo panel together; a size the window cannot show at 720 logical rows
+is disabled and says so -- at 1280x720 only 100 %) and full screen; sound is marked as not in the demo. The
+Menu button no longer opens the New Settlement form: its Create would discard the settlement the demo runs on.
+
+**The Demo Lab** (`ui/demo_lab.gd`, F8, or the menu's "Demo Lab"): the demo's test triggers, and only here --
+Next weather (the one calendar runs on to the next change of weather, at most 48 h), Test event (the tunnels'
+next seeded threat now), Storm gust (through the woods) and Cramp (every selected resident swimming tires at
+once; disabled with no swimmer selected). They are the same actions the panels' "(demo)" buttons were; the
+Tunnels, Woods and Water panels now hold only the village's own choices.
+
+**Keyboard focus** (decision 0261). The demo's panel buttons -- the right column's tabs and "×", the Farm,
+Pantry, Tunnels (rooms and fit-out too), Woods and Water panels, and the party panel's Dig and room buttons --
+take keyboard focus and wear the HUD's brass focus ring while they have it (a click's focus is not drawn).
+
+| Key | Does |
+|---|---|
+| F7 | Move focus: world -> the right column (its first tab) -> the left column (the party panel) -> world |
+| Tab / Shift+Tab | Next / previous button where the focus is (in a pop-up: its buttons only) |
+| Enter / Space | Press the focused button. Only the keyboard's focus takes them: after a click, Enter still digs the piece the Dig tool has laid, Space still pauses and the arrows still pan the camera |
+| Esc | With focus in a panel: back to the world. Otherwise the pop-up, tool or selection ladder below, then the game menu |
+
 The top-left **Sim beds** cell is the settlement simulation's bed count, which the demo does not run, so it
 reads "Unavailable" by design; its tooltip says where the demo's beds are counted (a home's panel, a resident's
 panel, the Tunnels panel's "Burrow homes: 1 (3 demo beds)"). The demo relabels it and never writes a value into it
@@ -135,7 +169,9 @@ panel, the Tunnels panel's "Burrow homes: 1 (3 demo beds)"). The demo relabels i
 | Right click ground | Move there in a formation, then hold |
 | Right click a work spot | Work there; anyone beyond its free slots holds behind it |
 | R | Release the selection back to its own routine |
-| Esc | Clear the selection |
+| Esc | Close the top pop-up; else drop the Dig tool's piece or close the tool; else clear the selection; else open the game menu |
+| Menu ("≡") | The game menu (above) |
+| F8 | The Demo Lab (above) |
 | B (or T, or "Dig tunnel (B)") | The Dig tool: lay out tunnels and branches (below); again: close it. (B is the HUD's Build key, locked in the demo, so the demo takes it; the command strip says so) |
 | H / C in the Dig tool (or "Burrow home (H)" / "Root cellar (C)") | The room tools: place a burrow home or a root cellar as its own structure (see Burrow homes and root cellars) |
 | U | Underground view: a top-down section cut at the tunnels' level (see The underground view) |
@@ -446,7 +482,7 @@ hold; at 2x and 4x they run faster.
 | Panel: Widen / Brace / Hang lanterns / Repair | A job on the selected tunnel (see below) |
 | B, with a digger **and** others selected, then a dig | The others join the Foremole's dig crew |
 | Right click a tunnel being dug, residents selected | They join its crew |
-| Panel: Next weather (demo) / Test event (demo) | Run the one calendar -- farm, weather and date together -- on to the next change of weather (at most 48 h) / bring the next threat |
+| Demo Lab (F8): Next weather / Test event | Run the one calendar -- farm, weather and date together -- on to the next change of weather (at most 48 h) / bring the next threat |
 
 - **Weather**: the village's one weather (above). Hazards soak while it rains.
 - **Hauling**: a carrier may take a bore its load fits (a mouse or squirrel a standard bore, an otter a
@@ -561,7 +597,7 @@ Residents work trees within 30 m of the square (`forestry/forest_rules.gd` REACH
 | Right click the sawhorse or the plank stack | Saw 2 U of logs into 2 U of planks |
 | Left click a tree, stump or spot | Select it: the Woods panel shows its state, its zone's floor and its verbs |
 | Left click inside a zone | Select the zone: intensive (keep 10%), auto-fell, unmark |
-| Woods panel | The same verbs with nobody selected are queued for the forestry crew (the squirrel forester and the beaver, who take the board's work while wandering); Mark forestry / conservation zone, then drag on the ground (Esc: cancel); Gather deadfall; Saw planks; Cancel woods jobs; Storm gust (demo) |
+| Woods panel | The same verbs with nobody selected are queued for the forestry crew (the squirrel forester and the beaver, who take the board's work while wandering); Mark forestry / conservation zone, then drag on the ground (Esc: cancel); Gather deadfall; Saw planks; Cancel woods jobs (the storm gust is the Demo Lab's) |
 
 - **Zones** (`forestry/forest_zones.gd`, GDD ZoneType FORESTRY 5 and CONSERVATION 8): a forestry zone keeps
   20% of its trees mature (10% intensive) -- a fell that would breach it, counting fells already ordered,
@@ -636,7 +672,7 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
   flow; with none free, anyone throws a line (8 m) from the nearest landing and hauls it in. Nobody
   drowns: with nobody coming after 90 s (or a rescuer on the way but not there after 240 s, who then
   stands down) it washes ashore at a landing. It then rests 20 s, recovering three times
-  as fast. Cramp (demo) in the Water panel starts one on demand.
+  as fast. The Demo Lab's Cramp (F8) starts one on demand.
 - **Bridges.** The Water panel steps through the map's three bridge candidates or spans any two banks
   you click. A plank footbridge costs 1.0 U of planks a metre of deck (and 1.0 U of wood a pier, one per
   started 2.5 m of span over 3.5 m); a log bridge costs one 6.0 U log -- a felled trunk lying ready, else

@@ -654,10 +654,12 @@ const LINK_REASONS: Array[String] = [
 	"on the second level a tunnel starts from the network: from a stair's or ramp's foot, a junction or a bore",
 	"stairs or a ramp between the levels cannot be joined on the slope: join it at its head or its foot",
 	"a room on the second level is reached only through the tunnels: it needs a passage to the network",
-	"all 24 mouths in this demo are open: join the tunnels you have instead of opening a new mouth",
-	"all 96 junctions and ends in this demo are used: join at an existing junction or end",
-	"all 96 bores in this demo are laid: no room for another",
+	"all %d mouths in this demo are open: join the tunnels you have instead of opening a new mouth",
+	"all %d junctions and ends in this demo are used: join at an existing junction or end",
+	"all %d bores in this demo are laid: no room for another",
 ]
+## The capacity each REFUSE_NO_*_ROWS refusal names, in order from REFUSE_NO_MOUTH_ROWS.
+const ROWS_CAPS: Array[int] = [MAX_MOUTHS, MAX_NODES, MAX_SEGMENTS]
 
 
 static func link_text(code: int, name: String) -> String:
@@ -666,6 +668,8 @@ static func link_text(code: int, name: String) -> String:
 	if code < LINK_BASE:
 		return reason_text(code)
 	var words := LINK_REASONS[code - LINK_BASE]
+	if code >= REFUSE_NO_MOUTH_ROWS and code <= REFUSE_NO_SEGMENT_ROWS:
+		return words % ROWS_CAPS[code - REFUSE_NO_MOUTH_ROWS]
 	return words % name if words.contains("%s") else words
 
 

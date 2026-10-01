@@ -409,6 +409,22 @@ func test_a_new_order_while_stepping_clear_is_obeyed_not_overridden() -> void:
 	assert_equal([(c["job"] as SavedJob).taken_back, brain.order], [0, BrainScript.ORDER_MOVE], "holding there; the job waits")
 
 
+func test_an_order_while_walking_out_below_is_obeyed_not_overridden() -> void:
+	"""F04 keeps the player's word when the piece ended underground too: ordered elsewhere while it walks out of the
+	network to step clear, the digger comes up and goes where it was ordered; it neither steps clear nor takes the saved
+	job up over the order."""
+	var c := _dig_over_job(true)
+	var brain: BrainScript = c["brain"]
+	var space: CastSpaceScript = c["space"]
+	var walking_out := _run_until([brain] as Array[BrainScript], func() -> bool:
+		return space.tunnels.piece_done(c["piece"]) and brain.state == BrainScript.State.TUNNEL, 400.0)
+	assert_true(walking_out, "walking out of the network")
+	brain.order_move(Vector2(-3.0, 6.0))
+	_run_until([brain] as Array[BrainScript], func() -> bool: return false, 60.0)
+	assert_true(brain.arrived_near(Vector2(-3.0, 6.0), 0.2), "where it was ordered: %s" % brain.position)
+	assert_equal([(c["job"] as SavedJob).taken_back, brain.order], [0, BrainScript.ORDER_MOVE], "holding there; the job waits")
+
+
 func test_the_players_release_mid_dig_still_forgets_the_saved_jobs() -> void:
 	"""F04 keeps R: released while digging, the resident forgets every saved job and goes back to its own routine."""
 	var c := _dig_over_job(false)
@@ -544,9 +560,8 @@ func test_a_paused_spoil_worker_says_it_cannot_reach_it() -> void:
 	assert_equal(said[0], DemoSpoilScript.BLOCKED_TEXT % DemoSpoilScript.CLEARING_TEXT, "in words")
 
 
-func test_a_basket_with_nowhere_reachable_to_tip_is_kept_not_delivered() -> void:
-	"""F05 on the way back: the drop spot walled round, a worker with a basket finds nowhere to tip it. The basket is
-	kept in hand -- never delivered from where it stands -- and the row waits to try again."""
+func _walled_drop() -> Array:
+	"""A worker clearing a heap whose drop spot is walled round. [cast, crew, heap, heaped, delivered]."""
 	var cast := _spoil_cast()
 	var delivered := PackedInt64Array([0])
 	var crew := SpoilCrewScript.new()
@@ -555,10 +570,40 @@ func test_a_basket_with_nowhere_reachable_to_tip_is_kept_not_delivered() -> void
 	_wall_round(cast.space(), Vector2.ZERO, 0)
 	var heaped := crew.spoil_left(heap)
 	crew.order(heap, PackedInt32Array([1]))
-	_spoil_frames(cast, crew, 90.0, func() -> void: pass)
-	assert_equal(int(delivered[0]), 0, "nothing delivered")
-	assert_equal(crew.spoil_left(heap) + crew.in_hand_milli(), heaped, "the load is in the basket: %d in hand" % crew.in_hand_milli())
-	assert_true(crew.in_hand_milli() > 0 and crew.blocked[crew.row_of(1)] == 1, "kept, waiting to try again")
+	var kept := false
+	for f in roundi(90.0 / DT):
+		_spoil_frames(cast, crew, DT, func() -> void: pass)
+		if crew.row_of(1) >= 0 and crew.blocked[crew.row_of(1)] == 1:
+			kept = true
+			break
+	assert_true(kept, "waiting to try again")
+	return [cast, crew, heap, heaped, delivered]
+
+
+func test_a_basket_with_nowhere_reachable_to_tip_is_kept_then_put_back() -> void:
+	"""F05 on the way back: the drop spot walled round, a worker with a basket finds nowhere to tip it. The basket is
+	kept in hand -- never delivered from where it stands -- while the row tries again; after MAX_TRIES the row ends and
+	the basket goes back on its heap: nothing delivered, nothing lost."""
+	var w := _walled_drop()
+	var crew: SpoilCrewScript = w[1]
+	var delivered: PackedInt64Array = w[4]
+	assert_equal([int(delivered[0]), crew.spoil_left(w[2]) + crew.in_hand_milli()], [0, w[3]], "kept in hand")
+	assert_true(crew.in_hand_milli() > 0, "a basketful in hand")
+	_spoil_frames(w[0], crew, 60.0, func() -> void: pass)
+	assert_equal([crew.row_of(1), int(delivered[0]), crew.in_hand_milli(), crew.spoil_left(w[2])], [-1, 0, 0, w[3]],
+		"given up: the basket back on the heap")
+
+
+func test_a_worker_called_away_with_an_undelivered_basket_puts_it_back() -> void:
+	"""F05 (the review's second look): called away while its basket waits for a drop spot, the worker does not deliver it
+	from where it stands -- the load goes back on its heap and the job is kept to come back to."""
+	var w := _walled_drop()
+	var crew: SpoilCrewScript = w[1]
+	var brain := ((w[0] as DemoCastScript).actor(1) as DemoActorScript).brain
+	brain.order_move(brain.position + Vector2(-2.0, 0.0))
+	crew.update(USEC)
+	assert_equal([crew.row_of(1), int((w[4] as PackedInt64Array)[0]), crew.spoil_left(w[2])], [-1, 0, w[3]], "back on the heap")
+	assert_equal(brain.unfinished_labels(), PackedStringArray(["Clear spoil heap"]), "kept to come back to")
 
 
 func test_a_spoil_worker_pushed_off_its_spot_stops_digging() -> void:
@@ -696,6 +741,7 @@ func test_a_bridge_builder_walled_off_from_the_material_loads_nothing_and_says_s
 	assert_false(remote[0], "never loading from afar")
 	assert_equal(play.get(&"bridges").percent(0), 0, "no work credited")
 	assert_true(_water_feed_has(pair[0], "Placeholder 3 can't get to the material"), "the feed says who and why")
+	assert_equal([crew.builder[0], brain.order], [BridgeCrewScript.NOBODY, BrainScript.ORDER_NONE], "the builder let go")
 
 
 func test_a_bridge_refused_its_spot_names_the_builder_it_was_given_to() -> void:
@@ -714,6 +760,11 @@ func test_a_bridge_refused_its_spot_names_the_builder_it_was_given_to() -> void:
 	assert_true(_water_feed_has(pair[0], "Placeholder 0 can't get to the material"), "named its own builder")
 	assert_false(_water_feed_has(pair[0], "Placeholder 5 can't get to"), "not the cast's last")
 	assert_equal(crew.builder[0], BridgeCrewScript.NOBODY, "the bridge waits for a builder")
+	crew.set_crew(PackedInt32Array([0]))
+	var revision := crew.revision
+	_water_frames(rig, 30, func() -> void: pass)
+	assert_equal([crew.builder[0], crew.revision], [BridgeCrewScript.NOBODY, revision],
+		"the routine crew does not take it straight back up (UNREACHED_WAIT_USEC)")
 
 
 func test_a_resident_index_that_names_nobody_is_refused() -> void:

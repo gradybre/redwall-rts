@@ -122,6 +122,18 @@ func _spent_space() -> Array:
 	return [space, brain]
 
 
+func test_a_turn_that_plans_and_waits_again_keeps_its_place() -> void:
+	"""A resident whose turn plans and then starts a second trip that has to wait is not dropped from the queue."""
+	var desk := DeskScript.new()
+	desk.budget_usec = 1000
+	desk.register(0, func() -> void:
+		desk.charge(0, 2000)
+		desk.wait(0))
+	desk.wait(0)
+	desk.serve()
+	assert_true(desk.is_waiting(0), "still waiting for its second trip")
+
+
 func test_an_order_in_a_spent_window_waits_finding_a_route_then_sets_off() -> void:
 	"""F06: ordered when the frame's routing is spent, the resident stands in ROUTE -- the party panel says "finding a
 	route" -- and sets off in its turn on the next window."""
@@ -237,6 +249,50 @@ func test_one_sweep_agrees_with_the_planner_spot_by_spot() -> void:
 	assert_true(wrong.is_empty() and agree > 40, "spot by spot as the planner (%d agree; differ at %s)" % [agree, wrong])
 	assert_false(space.nav.reaches(Vector2(-2.0, 6.0), Vector2(-10.0, 0.0), BODY_M), "nothing inside the ring")
 	assert_false(space.nav.reaches(Vector2(-10.0, 0.0), Vector2(-2.0, 6.0), BODY_M), "nor out of it: a new start, a new sweep")
+
+
+func test_the_sweep_is_kept_for_one_body_and_one_set_of_circles() -> void:
+	"""The sweep answers for the body it was made for (its links use the body's own radius), and is made again when the
+	circles change: never a yes the planner would not find."""
+	var ring: Array[Vector3] = []
+	for k in 8:
+		ring.append(Vector3(cos(TAU * k / 8.0) * 2.0, 0.5, sin(TAU * k / 8.0) * 2.0))
+	var space := CastSpaceScript.new()
+	space.setup([], ring)
+	var route := PackedVector2Array()
+	space.nav.plan(Vector2.ZERO, Vector2(5.0, 0.3), 0.29, PackedVector3Array(), 0, route)
+	var wide_found := space.nav.last_found
+	space.nav.reaches(Vector2.ZERO, Vector2(5.0, 0.3), 0.21)
+	assert_equal(space.nav.reaches(Vector2.ZERO, Vector2(5.0, 0.3), 0.29), wide_found, "the wider body's own answer")
+	var open := _open_space()
+	assert_true(open.nav.reaches(Vector2(-4.0, 0.0), Vector2(4.0, 3.0), BODY_M), "open ground")
+	var wall := PackedVector3Array()
+	for k in 4:
+		wall.append(Vector3(4.0 + cos(TAU * k / 4.0) * 0.9, 0.7, 3.0 + sin(TAU * k / 4.0) * 0.9))
+	open.set_mound(0, wall)
+	assert_false(open.nav.reaches(Vector2(-4.0, 0.0), Vector2(4.0, 3.0), BODY_M), "walled round since: swept again")
+
+
+func test_holding_is_no_arrival_after_a_trip_given_up() -> void:
+	"""`arrived_near` holds only after an ARRIVED trip: one given up at the very spot is not arrival."""
+	var space := _open_space()
+	var brain := _brain(space, Vector2(-4.0, 0.0))
+	brain.order_move(Vector2(-4.0, 2.0))
+	for f in roundi(5.0 / DT):
+		brain.step(DT)
+	assert_true(brain.arrived_near(Vector2(-4.0, 2.0), 0.2), "arrived")
+	brain.trip_outcome = BrainScript.TRIP_FAILED
+	assert_false(brain.arrived_near(Vector2(-4.0, 2.0), 0.2), "the same spot, a trip given up: no arrival")
+
+
+func test_a_piece_short_of_node_rows_is_refused_naming_them() -> void:
+	"""F08: with mouth rows to spare but no node row, a mouth-to-mouth piece is refused for the nodes, in words."""
+	var graph := GraphScript.new()
+	graph.node_kind.fill(GraphScript.NODE_JUNCTION)
+	var spec := SpecScript.new()
+	spec.set_route(PackedInt32Array([0, 0, 12288, 0]), 2)
+	assert_equal(graph.rows_refusal(spec), Rules.REFUSE_NO_NODE_ROWS, "refused for its nodes")
+	assert_true(Rules.link_text(Rules.REFUSE_NO_NODE_ROWS, "").contains("%d junctions" % Rules.MAX_NODES), "named, with the cap")
 
 
 func _reaches_as_planned(circles: Array[Vector3], from: Vector2, spot: Vector2, what: String) -> void:

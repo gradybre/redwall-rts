@@ -38,9 +38,11 @@ extends RefCounted
 ## instead sweeps everything a route from that start reaches -- once, kept for that start, body class and set of
 ## circles -- and answers a spot by a link from it to a node the sweep reached, or through the plan's own nodes round
 ## the circles by it (its pocket), each tested exactly as the plan tests its goal's links. A yes is never wrong (the plan
-## would find that very route). A no differs from the plan's answer in one corner only: the plan shrinks the circles by
-## its goal for its start's links too, so a start link the spot's own nearness clears is not tried -- such a spot is
-## refused, as an unreachable one is.
+## would find that very route). A no can differ from the plan's answer in two rare corners: the plan shrinks the circles
+## by its goal for its start's links too, so a start link the spot's own nearness clears is not tried; and the plan's
+## own nodes round the goal are followed only among themselves and from what the sweep reached, so a route that leaves
+## the goal's pocket into ground the sweep never reached and comes back is not found. Such a spot is refused, as an
+## unreachable one is. The sweep is kept for one start, one body (its links use the body's own radius) and one graph.
 ##
 ## The sweep itself reads the static graph's CONNECTED PARTS (labelled once per graph, `_label_parts`): what a route
 ## from the start reaches is every part one of the start's own links reaches, and through the plan's nodes round the
@@ -110,6 +112,8 @@ var _plan_id: int = 0
 var _swept: bool = false
 var _swept_from: Vector2 = Vector2.INF
 var _swept_graph: GraphScript = null
+var _swept_body: float = -1.0
+var _pocket_queue: PackedInt32Array = PackedInt32Array()
 var _swept_static: PackedByteArray = PackedByteArray()
 var _swept_points: PackedVector2Array = PackedVector2Array()
 var _no_standing: PackedVector3Array = PackedVector3Array()
@@ -345,18 +349,26 @@ func _pocket_reached(spot: Vector2) -> bool:
 	_dynamic.clear()
 	_dynamic_reach.clear()
 	_ring_locals(spot)
-	_closed.resize(_dynamic.size())
+	var count := _dynamic.size()
+	_closed.resize(count)
 	_closed.fill(0)
-	for k in _dynamic.size():
+	_pocket_queue.resize(count)
+	var tail := 0
+	for k in count:
 		if _ring_linked_from_sweep(k):
 			_closed[k] = 1
-	for pass_index in _dynamic.size():
-		for a in _dynamic.size():
-			for b in _dynamic.size():
-				if _closed[a] == 1 and _closed[b] == 0 and _dynamic[a].distance_to(_dynamic[b]) <= LOCAL_LINK_M \
-						and _dynamic_edge_clear(_dynamic[a], _dynamic[b]):
-					_closed[b] = 1
-	for k in _dynamic.size():
+			_pocket_queue[tail] = k
+			tail += 1
+	var head := 0
+	while head < tail:
+		var a := _pocket_queue[head]
+		head += 1
+		for b in count:
+			if _closed[b] == 0 and _dynamic[a].distance_to(_dynamic[b]) <= LOCAL_LINK_M and _dynamic_edge_clear(_dynamic[a], _dynamic[b]):
+				_closed[b] = 1
+				_pocket_queue[tail] = b
+				tail += 1
+	for k in count:
 		if _closed[k] == 1 and _dynamic[k].distance_to(spot) <= LINK_M and _dynamic_edge_clear(_dynamic[k], spot):
 			return true
 	return false
@@ -380,10 +392,10 @@ func _sweep_from(from: Vector2, body: float) -> void:
 	"""Mark what a route from `from` reaches on this body's graph, unless the last sweep did (see REACHABILITY BY ONE
 	SWEEP): the plan's own search with no goal to stop at, round the obstacles alone."""
 	var graph := ensure_graph(body)
-	if _swept and _swept_from == from and _swept_graph == graph:
+	if _swept and _swept_from == from and _swept_graph == graph and _swept_body == body:
 		return
 	_begin(from, from, body, _no_standing, 0)
-	_prepare_search()
+	_prepare_search(false)
 	if _fresh.is_empty():
 		_sweep_by_parts()
 	else:
@@ -510,6 +522,7 @@ func _keep_sweep(from: Vector2, graph: GraphScript) -> void:
 	_swept = true
 	_swept_from = from
 	_swept_graph = graph
+	_swept_body = _link_body
 
 
 func _begin(from: Vector2, to: Vector2, body: float, standing: PackedVector3Array, standing_count: int) -> void:
@@ -524,8 +537,9 @@ func _begin(from: Vector2, to: Vector2, body: float, standing: PackedVector3Arra
 	_standing_count = standing_count
 
 
-func _prepare_search() -> void:
-	"""The plan's own nodes, the standing-resident flags on static nodes, and fresh search arrays."""
+func _prepare_search(rings_at_goal: bool = true) -> void:
+	"""The plan's own nodes, the standing-resident flags on static nodes, and fresh search arrays. A sweep, whose goal is
+	its start, rings it once (`rings_at_goal` false)."""
 	_plan_id += 1
 	_dynamic.clear()
 	_dynamic_reach.clear()
@@ -534,7 +548,8 @@ func _prepare_search() -> void:
 	for s in _standing_count:
 		_ring_standing(_standing[s])
 	_ring_locals(_start)
-	_ring_locals(_goal)
+	if rings_at_goal:
+		_ring_locals(_goal)
 	var total := _graph.nodes.size() + _dynamic.size()
 	_cost.resize(total)
 	_cost.fill(INF)

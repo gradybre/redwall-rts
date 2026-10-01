@@ -153,6 +153,18 @@ func take_spoil_into(network: GraphScript, heap: int, milli: int, out: IntMath.I
 	return out.succeed(spoil_left(network, heap))
 
 
+func return_spoil_into(network: GraphScript, heap: int, milli: int, out: IntMath.IntResult) -> bool:
+	"""Put `milli` of spoil taken off heap `heap` back on it -- a load carried off and never delivered (decision 0361:
+	nothing is credited from afar); refuses a bad heap or more than was taken from it."""
+	if heap < 0 or heap >= HEAPS or milli <= 0:
+		return out.refuse(REFUSE_BAD_HEAP)
+	_sync_heap(network, heap)
+	if _taken[heap] < milli:
+		return out.refuse(REFUSE_NO_SPOIL)
+	_taken[heap] -= milli
+	return out.succeed(spoil_left(network, heap))
+
+
 func nearest_heap_into(network: GraphScript, from: Vector2, milli: int, out: IntMath.IntResult) -> bool:
 	"""The heap holding at least `milli` whose spot is nearest `from` (presentation choice of which
 	heap to walk to); refuses NOT_ENOUGH_SPOIL when none does."""

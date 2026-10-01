@@ -21,7 +21,9 @@ extends RefCounted
 ## given up holds too. Each step at the source or the site starts only when the brain's trip ARRIVED and the builder
 ## stands within ARRIVE_M of its spot (resident_brain.gd `arrived_near`), and loading and building recheck it every
 ## frame: a builder who could not get there -- or is no longer there -- loads and builds nothing; the bridge waits for
-## a builder again, its material where it was, and the feed names who could not get where.
+## a builder again, its material where it was, and the feed names who could not get where. The builder is let go (its
+## work done: back to a saved job or its routine), and the routine crew does not take that bridge up again for
+## UNREACHED_WAIT_USEC.
 
 const Rules := preload("res://demo/waterplay/swim_rules.gd")
 const ForestRules := preload("res://demo/forestry/forest_rules.gd")
@@ -50,6 +52,8 @@ const SOURCE_WORDS: Array[String] = ["the plank stack", "the log stack", "the fe
 ## Loading planks at the stack (demo, forestry's LOAD_WU).
 const LOAD_WU: int = ForestRules.LOAD_WU
 const PICKUP_USEC: int = 500000
+## A bridge its builder could not get to waits this long before the routine crew takes it up again (demo value).
+const UNREACHED_WAIT_USEC: int = 10000000
 const ARRIVE_M: float = 0.45
 const RING_GAP_M: float = 0.45
 const RINGS: int = 4
@@ -78,6 +82,9 @@ var source: PackedByteArray = PackedByteArray()
 var source_at: PackedVector2Array = PackedVector2Array()
 ## Whether the material has been carried to the site.
 var at_site: PackedByteArray = PackedByteArray()
+## How long a bridge its builder could not get to still waits before the routine crew takes it up (see ARRIVING IS
+## EXPLICIT; demo usec).
+var unreached_usec: PackedInt64Array = PackedInt64Array()
 ## Bridge-building XP per resident (actor index).
 var xp: PackedInt64Array = PackedInt64Array()
 var revision: int = 0
@@ -105,6 +112,7 @@ func configure(cast: DemoCastScript, bridges: BridgesScript, weather: WeatherScr
 	builder.resize(BridgesScript.MAX_BRIDGES)
 	builder.fill(NOBODY)
 	at_site.resize(BridgesScript.MAX_BRIDGES)
+	unreached_usec.resize(BridgesScript.MAX_BRIDGES)
 	step.resize(BridgesScript.MAX_BRIDGES)
 	issued.resize(BridgesScript.MAX_BRIDGES)
 	goal.resize(BridgesScript.MAX_BRIDGES)
@@ -181,6 +189,8 @@ func update(usec: int) -> void:
 	if usec <= 0:
 		return
 	_pickup_usec += usec
+	for row: int in BridgesScript.MAX_BRIDGES:
+		unreached_usec[row] = maxi(unreached_usec[row] - usec, 0)
 	if _pickup_usec >= PICKUP_USEC:
 		_pickup_usec = 0
 		_hand_out()
@@ -192,7 +202,7 @@ func update(usec: int) -> void:
 func _hand_out() -> void:
 	"""Give each waiting bridge to the nearest crew member wandering on its own."""
 	for row: int in BridgesScript.MAX_BRIDGES:
-		if not _bridges.is_planned(row) or builder[row] != NOBODY:
+		if not _bridges.is_planned(row) or builder[row] != NOBODY or unreached_usec[row] > 0:
 			continue
 		var idle := PackedInt32Array()
 		for who: int in _crew:
@@ -341,7 +351,11 @@ func _unreached(row: int, to_source: bool) -> void:
 	before the row lets the builder go -- the review's F15)."""
 	var who: int = builder[row]
 	_drop(row, false)
+	unreached_usec[row] = UNREACHED_WAIT_USEC
 	_note("%s: %s can't get to %s" % [_title(row), name_of(who), "the material" if to_source else "the site"])
+	var brain: BrainScript = brain_of(who)
+	if brain.order == BrainScript.ORDER_MOVE:
+		brain.work_done()
 
 
 func _drop(row: int, say_left: bool = true) -> void:

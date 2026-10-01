@@ -129,7 +129,8 @@ extends RefCounted
 ## budget and every plan runs at once.
 ##
 ## Yaw 0 faces +Z, the way the models face: forward is Vector2(sin(yaw), cos(yaw)) in (x, z).
-## Deterministic: every random choice comes from this resident's own seeded generator.
+## Deterministic: every random choice comes from this resident's own seeded generator. (In the live scene the FRAME a
+## trip sets off on can depend on how long route planning takes on the machine -- see ROUTING -- never where it goes.)
 
 const ClipRootMotionScript := preload("res://scripts/presentation/clip_root_motion.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
@@ -468,7 +469,7 @@ func step(delta: float) -> void:
 			_step_face(delta)
 		State.ACT:
 			_step_act(delta)
-		State.HOLD:
+		State.HOLD, State.ROUTE:
 			pass
 		State.TUNNEL:
 			_step_tunnel(delta)
@@ -480,8 +481,6 @@ func step(delta: float) -> void:
 			_step_task(delta)
 		State.CROSS:
 			_step_cross(delta)
-		State.ROUTE:
-			pass
 	if state == State.TURN or state == State.WALK or state == State.TUNNEL or state == State.CROSS:
 		_trip_s += delta
 	_space.set_walking(index, state == State.WALK)
@@ -1059,6 +1058,7 @@ func _set_off(tunnels: bool, loaded: bool, carry: bool) -> void:
 	if _space.routes.may_plan(index):
 		_plan_and_go()
 		return
+	_leave_line()
 	_space.routes.wait(index)
 	state = State.ROUTE
 	_set_clip(CLIP_IDLE, 1.0)
@@ -1151,7 +1151,7 @@ func work_done() -> void:
 func _let_go() -> void:
 	"""Back to wandering. Holding or walking under a move order, it stops and idles a moment first;
 	working under an order, it finishes the bout in hand."""
-	_resume_after_dig = false
+	_forget_step_out()
 	if order == ORDER_NONE:
 		return
 	var was_move := order == ORDER_MOVE or state == State.HOLD or order == ORDER_TASK
@@ -1206,7 +1206,7 @@ func _start_ordered_trip(goal: Vector2) -> void:
 	surface it sets off through the routing desk (see ROUTING)."""
 	_idle_on_surface = false
 	_resume_on_surface = false
-	_resume_after_dig = false
+	_forget_step_out()
 	_leave_line()
 	carrying = false
 	_bouts_left = 0
@@ -1825,7 +1825,7 @@ func _start_trip_below(node: int) -> void:
 	"""Walk to `node` underground: through the network from the surface, or on through it from below."""
 	_idle_on_surface = false
 	_resume_on_surface = false
-	_resume_after_dig = false
+	_forget_step_out()
 	_leave_line()
 	carrying = false
 	_bouts_left = 0
@@ -1996,6 +1996,13 @@ func _leave_finished(done_slot: int) -> void:
 	_set_underground(false)
 	_space.move_resident(index, position)
 	_step_clear(outward)
+
+
+func _forget_step_out() -> void:
+	"""A new order or a release: no stepping clear of a finished hole once up, nor taking the saved job up after it -- the
+	player's word wins (RESUMING)."""
+	_step_out_on_surface = false
+	_resume_after_dig = false
 
 
 func _step_clear(outward: Vector2) -> void:
@@ -2390,7 +2397,7 @@ func interrupt_to_task(new_task: TaskScript) -> void:
 	_leave_dig()
 	_leave_line()
 	_drop_task()
-	_resume_after_dig = false
+	_forget_step_out()
 	_idle_on_surface = false
 	carrying = false
 	path.clear()

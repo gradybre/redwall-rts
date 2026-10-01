@@ -32,6 +32,9 @@ var budget_usec: int = 0
 var _spent_usec: int = 0
 ## A typical plan's time: the running mean (weight a quarter to the newest) of the plans charged to a resident.
 var estimate_usec: int = 0
+## The resident the last plan was charged to (-1: none, or a formation's): `serve` tells a turn that planned from one that
+## did not by it.
+var _charged: int = -1
 ## Measurement: what the last finished window spent, the most any window has, and how many plans were served late.
 var last_window_usec: int = 0
 var max_window_usec: int = 0
@@ -86,6 +89,7 @@ func charge(index: int, usec: int) -> void:
 	"""A plan took `usec` of this window (resident `index`'s -- served, it waits no longer; -1: no resident's, a
 	formation's search)."""
 	_spent_usec += maxi(usec, 0)
+	_charged = index
 	if index >= 0:
 		estimate_usec = (3 * estimate_usec + maxi(usec, 0)) / 4
 		forget(index)
@@ -104,14 +108,19 @@ func forget(index: int) -> void:
 func serve() -> void:
 	"""Serve the waiting residents in turn while this window's budget lasts (DemoCast, each frame). Each turn either
 	plans (and is charged, which takes it off the queue) or finds its resident no longer waiting and gives the place up;
-	a turn that does neither is dropped, so the loop always ends."""
-	while _count > 0 and has_budget():
+	a turn that does neither is dropped, so the loop always ends. One that planned and then waits again (a second trip
+	started in its turn) keeps the place it took. At most two turns a resident a call: a turn that keeps waiting again
+	cannot hold the frame."""
+	for guard in 2 * _turns.size():
+		if _count == 0 or not has_budget():
+			return
 		var who := _queue[0]
 		var turn: Callable = _turns[who]
+		_charged = -1
 		if turn.is_valid():
 			turn.call()
 			served += 1
-		if _count > 0 and _queue[0] == who:
+		if _charged != who and _count > 0 and _queue[0] == who:
 			forget(who)
 
 

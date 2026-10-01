@@ -462,7 +462,7 @@ func _init(p_directory: EntityDirectory = null, p_needs: NeedsScript = null) -> 
 	_directory = p_directory if p_directory != null else EntityDirectory.new()
 	_needs = p_needs if p_needs != null else NeedsScript.new()
 	_needs.require_life_stages()
-	assert(FamilyRules.DEMAND_BASE == BASE_NUTRITION_PER_DAY_NP
+	@warning_ignore("assert_always_true", "integer_division") assert(FamilyRules.DEMAND_BASE == BASE_NUTRITION_PER_DAY_NP
 		and FamilyRules.DENOM / FamilyRules.STAGE_MULT[LIFE_STAGE_ADULT] == DEMAND_DENOMINATOR,
 		"the stage table's ADULT demand row must equal the §4.1/§5.2 baseline")
 	assert(LIFE_STAGE_KEYS.size() == LIFE_STAGE_COUNT,

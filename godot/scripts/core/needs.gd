@@ -554,11 +554,11 @@ func _check_family_rule_inputs() -> void:
 	keeps an all-adult world byte-identical, and it rests on these inputs agreeing.
 	"""
 	assert(_family_rules.is_ready(), "the fixed-stage rate table must build")
-	assert(FamilyRules.HUNGER_BASE == HUNGER_DECAY_MILLI_PER_HOUR, "hunger base agrees")
+	@warning_ignore("assert_always_true") assert(FamilyRules.HUNGER_BASE == HUNGER_DECAY_MILLI_PER_HOUR, "hunger base agrees")
 	assert(FamilyRules.SIZE_MULT == SIZE_MULTIPLIER, "size multipliers agree")
 	assert(FamilyRules.SEASON_MULT == [SEASON_DENOMINATOR, WINTER_HUNGER_MULTIPLIER],
 		"season multipliers agree")
-	assert(FamilyRules.STAGE_MULT[LIFE_STAGE_ADULT] == FamilyRules.DENOM
+	@warning_ignore("assert_always_true", "integer_division") assert(FamilyRules.STAGE_MULT[LIFE_STAGE_ADULT] == FamilyRules.DENOM
 		/ (SIZE_DENOMINATOR * SEASON_DENOMINATOR), "the adult stage factor is the identity")
 
 

@@ -145,6 +145,17 @@ assert DECISION_0167_CLAIM_SLOT==2048
 # ARCH-MEM-002's 101376. Its 29 bytes of declaration metadata enter DECISION_0127_ADDED above.
 DECISION_0531_ANCHOR=101376*4
 assert DECISION_0531_ANCHOR==405504
+# Decision 0532: DEMO-CONTAIN-R01 #9's ground piles. Four §2.3 allocation rows, no §2.2 field row
+# (the derived tile map is unsaved): inventory.gd's tile -> pile map, one i32 per GDD §5.1 tile;
+# its reclaim candidates, one i32 per undo-journal entry; ground_piles.gd's breadth-first visit
+# byte and queue i32 per tile; and its refund-ring sort keys (2*(128+128) i64, DEC-043's doorless
+# ring rule) plus one i32 start tile. Raise this with the next allocation; never relax it.
+DECISION_0532_TILE_MAP=16384*4
+DECISION_0532_CANDIDATES=4096*4
+DECISION_0532_SPILL=16384*(1+4)
+DECISION_0532_RING=2*(128+128)*8+4
+DECISION_0532_ADDED=DECISION_0532_TILE_MAP+DECISION_0532_CANDIDATES+DECISION_0532_SPILL+DECISION_0532_RING
+assert DECISION_0532_ADDED==167940
 # decision 0130: the resident render path. 512*100 instance buffer (48 B of PackedFloat32Array
 # transform, 4 B of owner slot and the RenderingServer's own 48 B TRANSFORM_3D instance, counted
 # rather than assumed free) plus 87552*36 for a SECOND transforms.gd instance. That second store
@@ -187,16 +198,18 @@ assert (len(schema_arrays),schema_ints,schema_key_bytes)==(15,781,4288)
 DECISION_0169_ADDED=schema_ints*8+schema_key_bytes
 assert DECISION_0169_ADDED==10536
 # decision 0521: households.gd, PC-04's household and dependent-care owner (FAMILY-STATE-R01).
-# Eight §3 rows rolling into the Auxiliary payload allocation, so the row count stays 34:
+# Eight §3 rows rolling into the Auxiliary payload allocation, so it adds no row:
 # households B8[256] + 3 I32[256] + member arena 2 I32[2048] + i64 cursor, and dependents
 # 4 B8[512] + 10 I32[512] + 1 I64[512] + i64 served day. The 5632-byte selection scratch is NOT
 # here: the selection pass is held at gate 6 and allocates nothing yet.
 DECISION_0521_ADDED=(1*256)+(3*4*256)+(2*4*2048)+8+(4*1*512)+(10*4*512)+(8*512)+8
 assert DECISION_0521_ADDED==46352
-assert len(allocations)==34 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0521_ADDED
+# Decision 0532 adds four allocation rows (34 -> 38); decision 0521 folds into the existing
+# Auxiliary payload row and adds none.
+assert len(allocations)==38 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
-assert payload==70467712
-assert live==78856320 and candidate==64222515 and live+candidate==143078835
+assert payload==70635652
+assert live==79024260 and candidate==64390455 and live+candidate==143414715
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

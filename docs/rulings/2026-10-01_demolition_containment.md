@@ -110,6 +110,36 @@ Answer #4 (levels) is **deferred to MOVE-G02** by the ruling itself: the anchor 
 placement cell so a later level-plus-tile encoding fits in the same width, and that encoding is
 a future save-schema bump, not part of D1–D9.
 
+## Implementation status
+
+| Step | State | Record | What landed |
+|---|---|---|---|
+| D1 | in review (branch `feat/demolition-d1`) | [decision 0531](../decisions/0531-demolition-containment-is-adopted-and-containers-carry-an-anchor-tile.md) | The anchor column, its two write doors, the bounded anchor query, section 7 schema 5. |
+| D2 | done (branch `feat/demolition-d2`) | [decision 0532](../decisions/0532-ground-piles-are-placed-breadth-first-and-reclaimed-at-commit.md) | #9 in full, plus the follow-up ruling below: `inventory.gd::create_ground_pile()`, the derived unsaved tile -> pile map, reclaim at commit, and `ground_piles.gd`'s site authority, all-or-nothing N/E/S/W placement (16384-tile cap) and refund start tiles (door, or the footprint's ring front-first). No save schema change. |
+| D3-D9 | not started | -- | -- |
+
+**Follow-up ruling, 2026-10-01** (Brendan, recorded under [DEC-043](../setting_decisions.md)),
+answering the two points D2 raised:
+
+* **Doorless structures** (wells, workbenches, stockpiles, any building without an authored door)
+  start the refund search from the ring of tiles touching the footprint, nearest to the building's
+  front first, then spill outward breadth-first N/E/S/W as usual. "Front" is the side the
+  building's rotation faces; where a type defines no front, use the rotation-0 south side rotated
+  by the building's rotation, and record that choice. Buildings with an authored door keep
+  starting outside the door.
+* **Footprints.** A ground pile never sits on any standing building's footprint, and one being
+  demolished is refused by name. This is Brendan's confirmed reading of "inaccessible footprint".
+
+How D2 implements it (decision 0532 records each choice):
+* No building type defines a front, so every front is the rotation-0 south side turned a quarter
+  clockwise per rotation step (UI-SET-056): rotation 0 faces S, 1 W, 2 N, 3 E.
+* Only the GDD §5.9 hall at rotation 0 has an authored door, so a rotated hall uses its ring too.
+* "Touching" means sharing an edge, so the four corner tiles are not in the ring.
+* "Nearest" is Manhattan distance, in half tiles, to the centre of the front side's ring segment.
+  Ties go to the lower tile index.
+* "Destroyed footprint" is the operation's own caller-supplied mask. It still refuses a footprint
+  whose building row D5 has already removed.
+
 ## Estimate, as approved
 
 About **16-20 agent sessions** for the full path:

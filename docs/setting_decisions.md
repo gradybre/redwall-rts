@@ -1100,6 +1100,21 @@ The verbatim answers and the D1-D9 plan are in
 [DEMO-CONTAIN-R01](rulings/2026-10-01_demolition_containment.md); engineering adoption is
 decision 0531.
 
+**Follow-up ruling, 2026-10-01** (relayed through the settlement coordinator, answering two points
+step D2 raised):
+
+- **Doorless structures.** Wells, workbenches, stockpiles and any building without an authored
+  door start the refund search from the **ring of tiles touching the footprint, nearest to the
+  building's front first**, then spill outward breadth-first N/E/S/W as usual. "Front" is the
+  side the building's rotation faces; where a type defines no front, use the rotation-0 south side
+  rotated by the building's rotation, and record that choice. Buildings with an authored door
+  keep starting outside the door.
+- **Footprints.** A ground pile never sits on any standing building's footprint, and one being
+  demolished is refused by name. This is Brendan's confirmed reading of #9's "inaccessible
+  footprint".
+
+Engineering adoption, and the recorded front/rotation choice, is decision 0532.
+
 ### DEC-044 — PC-04 adopted, with children kept inactive
 
 2026-10-01 · State: `USER_CONFIRMED`.

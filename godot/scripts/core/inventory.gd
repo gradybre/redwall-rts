@@ -154,6 +154,15 @@ extends RefCounted
 ##    PLACEMENT, not ownership, and the demolition gate needs both to agree (#3a). It saves no
 ##    reverse index and is never called from a tick.
 ##
+## 10. A GROUND PILE IS A CONTAINER THAT IS ITS TILE (DEMO-CONTAIN-R01 #9; decision 0532).
+##    `create_ground_pile()` is the only door: World-owned, policy POLICY_GROUND_PILE, 400000 g,
+##    anchored for good, at most one per tile. The one-per-tile check reads a DERIVED, UNSAVED
+##    tile -> pile map that is journaled with the rows, re-derived by `audit()` and rebuilt on
+##    restore. Passability and the footprint rules are asked of a bound site authority
+##    (`ground_piles.gd`), because this store holds no map of the world. An empty pile is
+##    reclaimed by the commit that emptied it (ARCH-MEM-002), so a pile at rest always holds a lot
+##    or a reservation.
+##
 ## ARCH-MEM-001: every column is a packed array allocated once in _init(). No GDScript Array is
 ## allocated per row; a container's lots are an intrusive doubly linked list threaded through
 ## two packed lot columns, not a per-container child array.
@@ -232,10 +241,12 @@ const FILTERS_ACCEPT_ALL: int = -1
 ## owns the protected table and the artifact digest; every value named here is read from there.
 ## What inventory owns is ADMISSION to its own column and PRESERVATION across every operation.
 ##
-## Container policy remains genuinely opaque: §4.3 numbers no policy enum, BAL-CAT-001 compiles
-## it from sorted ASCII keys and no ruling has closed it, so `_c_policy` keeps the old
-## equality-only treatment and UNSET_POLICY keeps its sentinel wording. That asymmetry is
-## deliberate; do not "tidy" it by inventing a policy domain that no contract states.
+## Container policy remains MOSTLY opaque: §4.3 numbers no policy enum, BAL-CAT-001 compiles it
+## from sorted ASCII keys, and no ruling has closed the domain, so `_c_policy` keeps the old
+## equality-only treatment and UNSET_POLICY keeps its sentinel wording. The ONE exception is
+## DEMO-CONTAIN-R01 #9's GROUND_PILE, which a ruling does name: decision 0532 numbers it
+## explicitly (POLICY_GROUND_PILE = 1, below) and reserves it to `create_ground_pile()`. Every
+## other value is still opaque; do not "tidy" this into a policy domain no contract states.
 ##
 ## `UNSET_PROVENANCE` is the COMPATIBILITY SPELLING for ORDINARY and is no longer a sentinel:
 ## PROV-R01 says "The old `UNSET_PROVENANCE=0` is a compatibility spelling for ORDINARY, not a
@@ -262,6 +273,9 @@ const _J_LOT_FREE_CELL: int = 2
 const _J_CONTAINER_FREE_CELL: int = 3
 const _J_SOURCED: int = 4
 const _J_SUNK: int = 5
+## One cell of the derived tile -> pile map (decision 0532), so a rollback restores the map with
+## the rows it indexes.
+const _J_PILE_CELL: int = 6
 
 ## Lot pre-image field offsets inside the journal arena.
 const LOT_F_ITEM: int = 0
@@ -398,6 +412,40 @@ const REFUSE_INVALID_ANCHOR_TILE: StringName = &"INVALID_ANCHOR_TILE"
 const REFUSE_ANCHOR_MASK_SHAPE: StringName = &"ANCHOR_MASK_SHAPE"
 ## `audit()`: a live container whose anchor is outside the domain above.
 const REFUSE_AUDIT_ANCHOR: StringName = &"AUDIT_ANCHOR_OUT_OF_RANGE"
+
+## DEMO-CONTAIN-R01 #9 (decision 0532): the container policy domain's FIRST AUTHORED MEMBER.
+## Explicitly numbered, so BAL-CAT-001's sorted-key compile can never move it: 0 stays the
+## UNSET_POLICY sentinel and every other value stays opaque. `create_ground_pile()` is the only
+## door that writes it; `create_container()` refuses it, so a row carrying it IS a ground pile.
+const POLICY_GROUND_PILE: int = 1
+## GDD §5.9: "Ground piles hold at most 400000 g each". The approved #9 value, not a balance knob.
+const GROUND_PILE_MAX_MASS_G: int = 400000
+## The derived tile -> pile map's "no pile on this tile".
+const NO_PILE: int = -1
+## `create_container()` was handed POLICY_GROUND_PILE: only `create_ground_pile()` mints a pile.
+const REFUSE_GROUND_PILE_POLICY_RESERVED: StringName = &"GROUND_PILE_POLICY_RESERVED"
+## #9 "one pile per tile": the tile already carries a live pile.
+const REFUSE_GROUND_PILE_TILE_TAKEN: StringName = &"GROUND_PILE_TILE_TAKEN"
+## A pile created in its own implicit transaction would be empty at that commit and reclaimed at
+## once (ARCH-MEM-002), so creation is admitted only inside an explicit transaction that fills it.
+const REFUSE_GROUND_PILE_NEEDS_TRANSACTION: StringName = &"GROUND_PILE_NEEDS_TRANSACTION"
+## No site authority is bound, so nothing can prove the tile passable and off a refused footprint.
+const REFUSE_NO_GROUND_PILE_AUTHORITY: StringName = &"NO_GROUND_PILE_AUTHORITY"
+## The bound site authority does not publish both methods below, or has been released.
+const REFUSE_INVALID_GROUND_PILE_AUTHORITY: StringName = &"INVALID_GROUND_PILE_AUTHORITY"
+## `set_container_anchor()` on a pile: a pile IS its tile, and the tile map indexes it there.
+const REFUSE_GROUND_PILE_ANCHOR_FIXED: StringName = &"GROUND_PILE_ANCHOR_FIXED"
+## `audit()`: the derived tile -> pile map disagrees with the pile rows it is derived from, or a
+## pile is at rest with no lot (ARCH-MEM-002 forbids that row).
+const REFUSE_AUDIT_GROUND_PILE: StringName = &"AUDIT_GROUND_PILE_MAP"
+## A commit would leave a pile with no lot but an outstanding reserved mass: it can neither keep
+## its row (ARCH-MEM-002) nor be destroyed with a claim on it, so the operation is refused.
+const REFUSE_GROUND_PILE_EMPTY_WITH_CLAIM: StringName = &"GROUND_PILE_EMPTY_WITH_CLAIM"
+## The site authority's two methods (decision 0532). `ground_pile_tile_refusal(tile) ->
+## StringName` answers REFUSE_NONE only for an in-bounds, passable tile on no DEMOLISHING,
+## destroyed or inaccessible footprint; `ground_pile_owner_ref() -> Vector2i` is the World ref.
+const GROUND_PILE_TILE_METHOD: StringName = &"ground_pile_tile_refusal"
+const GROUND_PILE_OWNER_METHOD: StringName = &"ground_pile_owner_ref"
 
 
 class OpResult:
@@ -538,6 +586,29 @@ var _seed_expiry_authority: WeakRef = null
 var _tx_cleanup_lot: Vector2i = NULL_REF
 var _op_cleanup_lot: Vector2i = NULL_REF
 
+## DEMO-CONTAIN-R01 #9's optional derived tile -> pile map, approved with #9 (decision 0532):
+## `ANCHOR_TILE_COUNT` cells holding the container SLOT of the live pile anchored there, or
+## NO_PILE. DERIVED, NEVER SAVED: every value follows from the live rows' policy and anchor, so
+## `_rebuild_derived_state()` rebuilds it on restore and `audit()` re-derives it. Journaled per
+## cell (`_J_PILE_CELL`) so a rollback restores it with the rows. It exists only so "one pile per
+## tile" is one read, not a 101376-row scan. 16384 x 4 = 65536 B, ledgered in ARCH §2.3.
+var _pile_at_tile: PackedInt32Array = PackedInt32Array()
+## The ground-pile SITE AUTHORITY (`ground_piles.gd`), BORROWED and held WEAKLY like the other two
+## authorities. Inventory holds no map, so it cannot prove a tile passable or off a refused
+## footprint itself. Wiring, not state: not journaled, not in state_bytes(), survives clear().
+var _ground_pile_authority: WeakRef = null
+## RECLAIM CANDIDATES. The container slots of every pile the open transaction created or took a
+## lot out of. ARCH-MEM-002: "a ground pile with no live lot cannot retain an occupied row", so a
+## successful commit retires each candidate left with no lot and no reserved mass. Every push is
+## made by an operation that also journals, so `JOURNAL_CAPACITY` cells bound it; the overflow
+## flag is a belt-and-braces fallback to a full map scan, never expected. Transaction scratch:
+## cleared by begin and by rollback, absent from state_bytes(). 4096 x 4 = 16384 B (ARCH §2.3).
+var _pile_candidates: PackedInt32Array = PackedInt32Array()
+var _pile_candidate_count: int = 0
+var _pile_candidates_overflowed: bool = false
+## The World ref the site authority returned for the pile being created. Call scratch.
+var _site_owner: Vector2i = NULL_REF
+
 # Task 2.7 scratch. Not simulation state: rollback and state_bytes() both ignore these.
 ## Checked-arithmetic scratch shared by every internal helper. A helper that produces one
 ## integer leaves it here; its caller copies `_math.value` into a local before the next call.
@@ -596,6 +667,7 @@ func _allocate_container_columns() -> void:
 	_c_live.resize(_c_capacity)
 	_c_reachable.resize(_c_capacity)
 	_c_free.resize(_c_capacity)
+	_pile_at_tile.resize(ANCHOR_TILE_COUNT)
 
 
 func _allocate_lot_columns() -> void:
@@ -627,6 +699,7 @@ func _allocate_shared_columns() -> void:
 	_j_kind.resize(JOURNAL_CAPACITY)
 	_j_index.resize(JOURNAL_CAPACITY)
 	_j_row.resize(JOURNAL_CAPACITY * ROW_STRIDE)
+	_pile_candidates.resize(JOURNAL_CAPACITY)
 	_audit_live_milli.resize(ITEM_CAPACITY)
 
 
@@ -673,6 +746,8 @@ func _clear_container_rows() -> void:
 	_c_free_count = _refill_free_stack(_c_free, _c_generation, _c_capacity)
 	_c_live_count = 0
 	_c_slot_high_water = 0
+	_pile_at_tile.fill(NO_PILE)
+	_clear_pile_candidates()
 
 
 func _clear_lot_rows() -> void:
@@ -803,6 +878,12 @@ func commit() -> OpResult:
 		_rollback()
 		_close_transaction()
 		return _refuse(code)
+	var claim: StringName = _pile_commit_refusal()
+	if claim != REFUSE_NONE:
+		_rollback()
+		_close_transaction()
+		return _refuse(claim)
+	_reclaim_empty_piles()
 	_j_count = 0
 	_close_transaction()
 	return _ok(NULL_REF, 0)
@@ -857,6 +938,7 @@ func _open_transaction() -> void:
 	_tx_poisoned = false
 	_tx_error = REFUSE_NONE
 	_op_cleanup_lot = NULL_REF
+	_clear_pile_candidates()
 	_j_count = 0
 	_tx_saved_c_free_count = _c_free_count
 	_tx_saved_l_free_count = _l_free_count
@@ -891,6 +973,8 @@ func _leave(owned: bool, code: StringName) -> OpResult:
 	value are read from _out_ref/_out_value; on any refusal the result carries NULL_REF and 0,
 	so a refusal cannot hand back a stale ref from an earlier successful operation.
 	"""
+	if owned and code == REFUSE_NONE:
+		code = _pile_commit_refusal()
 	var failed: bool = code != REFUSE_NONE
 	if failed:
 		_tx_poisoned = true
@@ -900,6 +984,7 @@ func _leave(owned: bool, code: StringName) -> OpResult:
 		if failed:
 			_rollback()
 		else:
+			_reclaim_empty_piles()
 			_j_count = 0
 		_close_transaction()
 	if failed:
@@ -916,6 +1001,8 @@ func _leave_into(owned: bool, code: StringName, out: IntMath.IntResult) -> bool:
 	instead of a fresh object. `out.value` carries the produced integer and `out.ref` has no
 	analogue: an aging caller already holds the lot ref it passed in.
 	"""
+	if owned and code == REFUSE_NONE:
+		code = _pile_commit_refusal()
 	var failed: bool = code != REFUSE_NONE
 	if failed:
 		_tx_poisoned = true
@@ -925,6 +1012,7 @@ func _leave_into(owned: bool, code: StringName, out: IntMath.IntResult) -> bool:
 		if failed:
 			_rollback()
 		else:
+			_reclaim_empty_piles()
 			_j_count = 0
 		_close_transaction()
 	if failed:
@@ -969,21 +1057,30 @@ func _rollback() -> void:
 			_restore_lot(index, base)
 		elif kind == _J_CONTAINER:
 			_restore_container(index, base)
-		elif kind == _J_LOT_FREE_CELL:
-			_l_free[index] = _j_row[base]
-		elif kind == _J_CONTAINER_FREE_CELL:
-			_c_free[index] = _j_row[base]
-		elif kind == _J_SOURCED:
-			_sourced_milli[index] = _j_row[base]
 		else:
-			_sunk_milli[index] = _j_row[base]
+			_restore_scalar(kind, index, _j_row[base])
 		i -= 1
 	_c_free_count = _tx_saved_c_free_count
 	_l_free_count = _tx_saved_l_free_count
 	_c_live_count = _tx_saved_c_live_count
 	_l_live_count = _tx_saved_l_live_count
 	_equipped_lot_count = _tx_saved_equipped_count
+	_clear_pile_candidates()
 	_j_count = 0
+
+
+func _restore_scalar(kind: int, index: int, value: int) -> void:
+	"""Write one journaled free-stack cell, conservation counter or tile-map cell back."""
+	if kind == _J_LOT_FREE_CELL:
+		_l_free[index] = value
+	elif kind == _J_CONTAINER_FREE_CELL:
+		_c_free[index] = value
+	elif kind == _J_SOURCED:
+		_sourced_milli[index] = value
+	elif kind == _J_PILE_CELL:
+		_pile_at_tile[index] = value
+	else:
+		_sunk_milli[index] = value
 
 
 func _journal_lot(slot: int) -> void:
@@ -1116,12 +1213,17 @@ func _alloc_container_slot() -> int:
 	return slot
 
 
-func _free_container_slot(slot: int) -> void:
-	"""Return a container slot to the free stack, journaling the cell the push overwrites."""
+func _free_container_slot(slot: int, journaled: bool = true) -> void:
+	"""Return a container slot to the free stack, journaling the cell the push overwrites.
+
+	`journaled` is false only for the ground-pile reclaim, which runs after a commit has become
+	final. One body for both, so the generation-exhaustion rule cannot drift between them.
+	"""
 	if _c_generation[slot] >= MAX_INT32:
 		return
 	_c_generation[slot] += 1
-	_journal_scalar(_J_CONTAINER_FREE_CELL, _c_free_count, _c_free[_c_free_count])
+	if journaled:
+		_journal_scalar(_J_CONTAINER_FREE_CELL, _c_free_count, _c_free[_c_free_count])
 	_c_free[_c_free_count] = slot
 	_c_free_count += 1
 
@@ -1151,6 +1253,8 @@ func _create_container_checked(owner_ref: Vector2i, max_mass_g: int, filters: in
 		return REFUSE_INVALID_MASS
 	if not IntMath.fits_int32(policy):
 		return REFUSE_OVERFLOW
+	if policy == POLICY_GROUND_PILE:
+		return REFUSE_GROUND_PILE_POLICY_RESERVED
 	if not is_anchor_tile_in_domain(anchor_tile):
 		return REFUSE_INVALID_ANCHOR_TILE
 	if _c_free_count == 0:
@@ -1199,6 +1303,8 @@ func _destroy_container_checked(container_ref: Vector2i) -> StringName:
 	if _c_generation[slot] >= MAX_INT32:
 		return REFUSE_GENERATION_EXHAUSTED
 	_journal_container(slot)
+	if _c_policy[slot] == POLICY_GROUND_PILE:
+		_set_pile_cell(_c_anchor_tile[slot], NO_PILE)
 	_c_live[slot] = 0
 	_c_live_count -= 1
 	_free_container_slot(slot)
@@ -1250,6 +1356,8 @@ func _set_anchor_checked(container_ref: Vector2i, tile: int) -> StringName:
 		return guard
 	if not is_container_valid(container_ref):
 		return REFUSE_INVALID_CONTAINER
+	if _c_policy[container_ref.x] == POLICY_GROUND_PILE:
+		return REFUSE_GROUND_PILE_ANCHOR_FIXED
 	if not is_anchor_tile_in_domain(tile):
 		return REFUSE_INVALID_ANCHOR_TILE
 	_journal_container(container_ref.x)
@@ -1260,6 +1368,221 @@ func _set_anchor_checked(container_ref: Vector2i, tile: int) -> StringName:
 static func is_anchor_tile_in_domain(tile: int) -> bool:
 	"""True for UNPLACED_TILE and for every placement cell in `0..ANCHOR_TILE_COUNT-1`."""
 	return tile == UNPLACED_TILE or (tile >= 0 and tile < ANCHOR_TILE_COUNT)
+
+
+# --- Ground piles (DEMO-CONTAIN-R01 #9, decision 0532) ---------------------------------------
+#
+# A ground pile is an ordinary InventoryContainer row with three fixed facts: policy
+# POLICY_GROUND_PILE, capacity GROUND_PILE_MAX_MASS_G, and an anchor on exactly one placement
+# cell. `create_ground_pile()` is the ONLY door that mints one, and it enforces every #9 rule
+# that this store can see -- the domain, one pile per tile (through the derived tile map), the
+# World owner and the fixed capacity -- and asks the bound SITE AUTHORITY for the rules it
+# cannot: in bounds, passable, and never on a DEMOLISHING, destroyed or inaccessible footprint.
+# Storage class 1500 is `stock_age.gd`'s fact, so `ground_piles.gd` declares it after its commit.
+#
+# AN EMPTY PILE NEVER OUTLIVES ITS OPERATION. ARCH-MEM-002: "a ground pile with no live lot
+# cannot retain an occupied row". Every successful commit -- explicit or implicit -- that created
+# a pile or took a lot out of one reclaims every pile left with no lot and no reserved mass.
+# That is why creation is refused outside an explicit transaction: alone, it would be reclaimed
+# by its own commit.
+
+func set_ground_pile_authority(authority: Object) -> OpResult:
+	"""Bind -- or with null, unbind -- the site authority `create_ground_pile()` consults.
+
+	Refused while a transaction is open, and refused for an object that does not publish both
+	`ground_pile_tile_refusal(tile) -> StringName` and `ground_pile_owner_ref() -> Vector2i`.
+	Wiring, not simulation state: not journaled, not in state_bytes(), survives clear(). Held
+	weakly, because `ground_piles.gd` owns this store strongly.
+	"""
+	if _tx_open:
+		return _refuse(REFUSE_TRANSACTION_OPEN)
+	if authority != null and (not authority.has_method(GROUND_PILE_TILE_METHOD)
+			or not authority.has_method(GROUND_PILE_OWNER_METHOD)):
+		return _refuse(REFUSE_INVALID_GROUND_PILE_AUTHORITY)
+	_ground_pile_authority = null if authority == null else weakref(authority)
+	return _ok(NULL_REF, 0)
+
+
+func has_ground_pile_authority() -> bool:
+	"""True when a LIVE site authority is bound. False for unbound and for released."""
+	return _ground_pile_authority != null and _ground_pile_authority.get_ref() != null
+
+
+func create_ground_pile(tile: int) -> OpResult:
+	"""Mint the one ground pile #9 allows on `tile` and return its container ref.
+
+	Refuses, before writing anything: outside an explicit transaction
+	(GROUND_PILE_NEEDS_TRANSACTION); a tile outside `0..ANCHOR_TILE_COUNT-1`
+	(INVALID_ANCHOR_TILE); a tile that already carries a pile (GROUND_PILE_TILE_TAKEN); an unbound
+	or released authority; the authority's own refusal for the tile; a malformed World ref
+	(INVALID_OWNER_REF); and a full container store. The row is owned by the World, holds
+	400000 g, admits every category, is reachable, and is anchored at `tile` for good.
+	"""
+	var owned: bool = _enter()
+	return _leave(owned, _create_ground_pile_checked(tile, owned))
+
+
+func _create_ground_pile_checked(tile: int, owned: bool) -> StringName:
+	"""Validate, ask the site authority, then allocate the pile row and its map cell."""
+	var guard: StringName = _guard()
+	if guard != REFUSE_NONE:
+		return guard
+	if owned:
+		return REFUSE_GROUND_PILE_NEEDS_TRANSACTION
+	if tile < 0 or tile >= ANCHOR_TILE_COUNT:
+		return REFUSE_INVALID_ANCHOR_TILE
+	if _pile_at_tile[tile] != NO_PILE:
+		return REFUSE_GROUND_PILE_TILE_TAKEN
+	var site: StringName = _ground_pile_site_refusal(tile)
+	if site != REFUSE_NONE:
+		return site
+	var owner_ref: Vector2i = _site_owner
+	if owner_ref.x < 0 or owner_ref.y <= NULL_GENERATION:
+		return REFUSE_INVALID_OWNER_REF
+	if _c_free_count == 0:
+		return REFUSE_CAPACITY_INVENTORY_CONTAINER
+	var slot: int = _alloc_container_slot()
+	_journal_container(slot)
+	_write_new_container(slot, owner_ref, GROUND_PILE_MAX_MASS_G, FILTERS_ACCEPT_ALL,
+		POLICY_GROUND_PILE, true)
+	_c_anchor_tile[slot] = tile
+	_c_live_count += 1
+	_set_pile_cell(tile, slot)
+	_note_pile_candidate(slot)
+	return _succeed(Vector2i(slot, _c_generation[slot]), 0)
+
+
+func _ground_pile_site_refusal(tile: int) -> StringName:
+	"""Ask the site authority about `tile`; leave its World ref in `_site_owner`.
+
+	`_attesting` is raised across both calls so an authority that re-enters this store is
+	refused by `_guard()`. A released binding fails CLOSED, never as unbound.
+	"""
+	if _ground_pile_authority == null:
+		return REFUSE_NO_GROUND_PILE_AUTHORITY
+	var authority: Object = _ground_pile_authority.get_ref()
+	if authority == null:
+		return REFUSE_INVALID_GROUND_PILE_AUTHORITY
+	_attesting = true
+	var code: StringName = StringName(authority.call(GROUND_PILE_TILE_METHOD, tile))
+	var owner_ref: Vector2i = authority.call(GROUND_PILE_OWNER_METHOD)
+	_attesting = false
+	_site_owner = owner_ref
+	return code
+
+
+func _set_pile_cell(tile: int, value: int) -> void:
+	"""Journal then write one cell of the derived tile -> pile map."""
+	_journal_scalar(_J_PILE_CELL, tile, _pile_at_tile[tile])
+	_pile_at_tile[tile] = value
+
+
+func _note_if_pile(slot: int) -> void:
+	"""Make container `slot` a reclaim candidate when it is a ground pile."""
+	if _c_policy[slot] == POLICY_GROUND_PILE:
+		_note_pile_candidate(slot)
+
+
+func _note_pile_candidate(slot: int) -> void:
+	"""Remember a pile this transaction touched, for the reclaim at its commit."""
+	if _pile_candidate_count >= _pile_candidates.size():
+		_pile_candidates_overflowed = true
+		return
+	_pile_candidates[_pile_candidate_count] = slot
+	_pile_candidate_count += 1
+
+
+func _clear_pile_candidates() -> void:
+	"""Forget every reclaim candidate: a new transaction, a rollback, a clear or a restore."""
+	_pile_candidate_count = 0
+	_pile_candidates_overflowed = false
+
+
+func _reclaim_empty_piles() -> void:
+	"""ARCH-MEM-002: retire every touched pile left with no lot and no reserved mass, at commit.
+
+	Runs only after a transaction has SUCCEEDED and is closing, so nothing here is journaled:
+	there is no rollback after it. A candidate may repeat or may already be retired; the
+	liveness and policy test makes both harmless. Cold: piles are touched by hauling and
+	demolition, not by a tick.
+	"""
+	if _pile_candidates_overflowed:
+		for tile: int in range(ANCHOR_TILE_COUNT):
+			if _pile_at_tile[tile] != NO_PILE:
+				_reclaim_if_empty(_pile_at_tile[tile])
+	for index: int in range(_pile_candidate_count):
+		_reclaim_if_empty(_pile_candidates[index])
+	_clear_pile_candidates()
+
+
+func _pile_commit_refusal() -> StringName:
+	"""GROUND_PILE_EMPTY_WITH_CLAIM when a touched pile would end the transaction lotless but claimed.
+
+	ARCH-MEM-002 lets no lotless pile keep its row, and `destroy_container()` refuses to drop an
+	outstanding capacity claim (`reserved_mass_g`). A pile in both states has no legal end, so the
+	operation that would leave it so is refused and rolled back, never silently un-claimed.
+	"""
+	if _pile_candidates_overflowed:
+		for tile: int in range(ANCHOR_TILE_COUNT):
+			if _pile_at_tile[tile] != NO_PILE and _is_claimed_empty_pile(_pile_at_tile[tile]):
+				return REFUSE_GROUND_PILE_EMPTY_WITH_CLAIM
+	for index: int in range(_pile_candidate_count):
+		if _is_claimed_empty_pile(_pile_candidates[index]):
+			return REFUSE_GROUND_PILE_EMPTY_WITH_CLAIM
+	return REFUSE_NONE
+
+
+func _is_claimed_empty_pile(slot: int) -> bool:
+	"""True for a live pile holding no lot but an outstanding reserved mass."""
+	return _c_live[slot] == 1 and _c_policy[slot] == POLICY_GROUND_PILE \
+		and _c_lot_count[slot] == 0 and _c_reserved_mass_g[slot] != 0
+
+
+func _reclaim_if_empty(slot: int) -> void:
+	"""Retire one candidate when it is still a live pile holding no lot and no reservation."""
+	if _c_live[slot] != 1 or _c_policy[slot] != POLICY_GROUND_PILE:
+		return
+	if _c_lot_count[slot] != 0 or _c_reserved_mass_g[slot] != 0:
+		return
+	_retire_empty_pile(slot, _c_anchor_tile[slot])
+
+
+func _retire_empty_pile(slot: int, tile: int) -> void:
+	"""Free one empty pile row exactly as `destroy_container()` would, without the journal.
+
+	A slot whose generation is exhausted is retired instead of pushed, the allocator's own rule.
+	"""
+	_pile_at_tile[tile] = NO_PILE
+	_c_live[slot] = 0
+	_c_live_count -= 1
+	_free_container_slot(slot, false)
+
+
+func ground_pile_at_tile(tile: int) -> Vector2i:
+	"""The live pile anchored on `tile`, or the null ref for none and for an out-of-domain tile."""
+	if tile < 0 or tile >= ANCHOR_TILE_COUNT or _pile_at_tile[tile] == NO_PILE:
+		return NULL_REF
+	var slot: int = _pile_at_tile[tile]
+	return Vector2i(slot, _c_generation[slot])
+
+
+func is_ground_pile(container_ref: Vector2i) -> bool:
+	"""True when `container_ref` names a live ground pile."""
+	return is_container_valid(container_ref) \
+		and _c_policy[container_ref.x] == POLICY_GROUND_PILE
+
+
+func ground_pile_map_bytes() -> int:
+	"""Resident bytes of the derived tile -> pile map, for the ARCH §2.3 ledger row."""
+	return _pile_at_tile.size() * 4
+
+
+func _rebuild_pile_map() -> void:
+	"""Re-derive the tile -> pile map from the live rows. Restore validated uniqueness first."""
+	_pile_at_tile.fill(NO_PILE)
+	for slot: int in range(_c_slot_high_water):
+		if _c_live[slot] == 1 and _c_policy[slot] == POLICY_GROUND_PILE:
+			_pile_at_tile[_c_anchor_tile[slot]] = slot
 
 
 func reserve_container_mass(container_ref: Vector2i, mass_g: int) -> OpResult:
@@ -1312,6 +1635,7 @@ func _change_reserved_mass(container_ref: Vector2i, delta_g: int) -> StringName:
 	var next: int = _math.value
 	_journal_container(slot)
 	_c_reserved_mass_g[slot] = next
+	_note_if_pile(slot)
 	return _succeed(NULL_REF, next)
 
 
@@ -1369,6 +1693,7 @@ func _unlink_lot(slot: int) -> void:
 	_l_prev[slot] = NULL_SLOT
 	_l_next[slot] = NULL_SLOT
 	_c_lot_count[container_slot] -= 1
+	_note_if_pile(container_slot)
 
 
 # --- Lot operations ---------------------------------------------------------------------------
@@ -3370,6 +3695,8 @@ func audit() -> OpResult:
 	if code == REFUSE_NONE:
 		code = _audit_containers()
 	if code == REFUSE_NONE:
+		code = _audit_ground_piles()
+	if code == REFUSE_NONE:
 		code = _audit_conservation()
 	return _ok(NULL_REF, 0) if code == REFUSE_NONE else _refuse(code)
 
@@ -3470,6 +3797,31 @@ func _audit_container_capacity(slot: int) -> StringName:
 	return REFUSE_NONE
 
 
+func _audit_ground_piles() -> StringName:
+	"""Re-derive the tile -> pile map (decision 0532) and compare it with the maintained one.
+
+	Every live pile must be placed, hold the fixed 400000 g and be the map's entry for its own
+	tile; every map entry must be such a pile. Counting both sides closes the stale-cell case.
+	"""
+	var piles: int = 0
+	for slot: int in range(_c_slot_high_water):
+		if _c_live[slot] != 1 or _c_policy[slot] != POLICY_GROUND_PILE:
+			continue
+		piles += 1
+		var tile: int = _c_anchor_tile[slot]
+		if tile < 0 or tile >= ANCHOR_TILE_COUNT or _pile_at_tile[tile] != slot:
+			return REFUSE_AUDIT_GROUND_PILE
+		if _c_max_mass_g[slot] != GROUND_PILE_MAX_MASS_G:
+			return REFUSE_AUDIT_GROUND_PILE
+		if not _tx_open and _c_lot_count[slot] == 0:
+			return REFUSE_AUDIT_GROUND_PILE
+	var mapped: int = 0
+	for tile: int in range(ANCHOR_TILE_COUNT):
+		if _pile_at_tile[tile] != NO_PILE:
+			mapped += 1
+	return REFUSE_NONE if mapped == piles else REFUSE_AUDIT_GROUND_PILE
+
+
 func _audit_conservation() -> StringName:
 	"""Verify `live + sunk == sourced` for every item, from one pass over the lot columns.
 
@@ -3554,6 +3906,8 @@ func _append_container_state(out: PackedByteArray) -> void:
 	out.append_array(var_to_bytes(_c_reachable))
 	out.append_array(var_to_bytes(_c_anchor_tile))
 	out.append_array(var_to_bytes(_c_free))
+	# Derived, not saved -- but a rollback must restore it exactly, so the image includes it.
+	out.append_array(var_to_bytes(_pile_at_tile))
 
 
 func _ok(ref: Vector2i, value: int) -> OpResult:
@@ -4073,6 +4427,9 @@ func _canonical_live_refusal(cols: CanonicalColumns) -> StringName:
 	var anchors: StringName = _canonical_live_anchor_refusal(cols)
 	if anchors != REFUSE_NONE:
 		return anchors
+	var piles: StringName = _canonical_live_pile_refusal(cols)
+	if piles != REFUSE_NONE:
+		return piles
 	return _canonical_live_lot_refusal(cols)
 
 
@@ -4082,6 +4439,31 @@ func _canonical_live_anchor_refusal(cols: CanonicalColumns) -> StringName:
 		if cols.c_live[slot] == 1 and not is_anchor_tile_in_domain(cols.c_anchor_tile[slot]):
 			_canonical_detail = "live container %d is anchored at %d, outside %d and 0..%d" \
 				% [slot, cols.c_anchor_tile[slot], UNPLACED_TILE, ANCHOR_TILE_COUNT - 1]
+			return REFUSE_CANONICAL_LIVE_ROW
+	return REFUSE_NONE
+
+
+func _canonical_live_pile_refusal(cols: CanonicalColumns) -> StringName:
+	"""Decision 0532: a saved pile is placed, alone on its tile, World-owned-shaped and 400000 g.
+
+	Checked BEFORE anything is adopted, because the derived tile -> pile map is rebuilt from
+	these rows and could not represent two piles on one tile. COLD PATH: the per-call tile mask
+	is allocated here, like `_canonical_partition_refusal()`'s, and never on a tick.
+	"""
+	var seen: PackedByteArray = PackedByteArray()
+	seen.resize(ANCHOR_TILE_COUNT)
+	seen.fill(0)
+	for slot: int in range(cols.container_capacity):
+		if cols.c_live[slot] != 1 or cols.c_policy[slot] != POLICY_GROUND_PILE:
+			continue
+		var tile: int = cols.c_anchor_tile[slot]
+		if tile < 0 or tile >= ANCHOR_TILE_COUNT or seen[tile] == 1:
+			_canonical_detail = "ground pile %d is unplaced or shares tile %d" % [slot, tile]
+			return REFUSE_CANONICAL_LIVE_ROW
+		seen[tile] = 1
+		if cols.c_max_mass_g[slot] != GROUND_PILE_MAX_MASS_G or cols.c_owner_slot[slot] < 0 \
+				or cols.c_owner_generation[slot] <= NULL_GENERATION or cols.c_lot_count[slot] == 0:
+			_canonical_detail = "ground pile %d is empty or has a malformed owner or capacity" % slot
 			return REFUSE_CANONICAL_LIVE_ROW
 	return REFUSE_NONE
 
@@ -4154,6 +4536,8 @@ func _rebuild_derived_state() -> void:
 	restore. Re-seeding `sourced` with the restored live quantity and `sunk` with zero is the
 	only rebuild that leaves `audit()`'s `live + sunk == sourced` identity true without inventing
 	a history the save never carried; it records no new fact.
+
+	The tile -> pile map (decision 0532) is rebuilt here too: derived, never saved.
 	"""
 	_c_live_count = 0
 	_c_slot_high_water = 0
@@ -4161,6 +4545,8 @@ func _rebuild_derived_state() -> void:
 		if _c_live[slot] == 1:
 			_c_live_count += 1
 			_c_slot_high_water = slot + 1
+	_rebuild_pile_map()
+	_clear_pile_candidates()
 	_sourced_milli.fill(0)
 	_sunk_milli.fill(0)
 	_l_live_count = 0

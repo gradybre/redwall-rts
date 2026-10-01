@@ -26,6 +26,16 @@ extends CanvasLayer
 ##
 ## Refreshed a few times a second on real time (it reads while paused); it re-texts labels and builds
 ## nothing after the legends are made (once per layer).
+##
+## THE LEGEND AND THE COMPARED LAYER (decision 0581). Each layer's legend (demo_lens_legend.gd) gives what its ramp
+## measures with units, its ramp as one bar with a threshold under each entry, and its keys. COMPARE is the header's
+## second button (two overlapping squares, between the layer's name and Off): it unfolds, in the card, the layers that
+## can be outlined over the shown one (those with an outlining probe, map_lenses.gd `is_compare_candidate`); picking
+## one outlines its areas on the map (demo/lenses/lens_contours.gd), keeps the button pressed and adds a line under
+## the legend -- "Outlined: Growing: Water service ✕" -- with that layer's legend drawn as outlines; picking it again,
+## or ✕, turns it off. That is the one way in and out; V and the list change the shown layer and keep the compared one
+## unless it becomes the shown one. The control sits in the header so the card stays short at 1280x720, where the
+## guide's card must fit above the picker (decision 0481).
 
 const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
 const FarmUi := preload("res://demo/farm/farm_ui.gd")
@@ -35,11 +45,23 @@ const LensesScript := preload("res://demo/map_lenses.gd")
 const PartyScript := preload("res://demo/control/demo_party_panel.gd")
 const NewsScript := preload("res://demo/ui/demo_news_strip.gd")
 const SubjectScript := preload("res://demo/lens_subject.gd")
+const LegendScript := preload("res://demo/ui/demo_lens_legend.gd")
 
 const TITLE: String = "Map layer"
 const LIST_CLOSED: String = "▾"
 const LIST_OPEN: String = "▴"
 const KEY_HINT: String = "V steps through the layers · U switches the underground view"
+const COMPARE_TIP: String = "Compare: outline a second layer's areas over this one"
+const COMPARE_ON_TEXT: String = "Outlined: %s"
+## The compare button's glyph, drawn like the HUD's line icons (24 px, a 2 px cream stroke): a filled square under an
+## outlined one -- a layer, and a second outlined over it.
+const COMPARE_SVG: String = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#F5F0DF\" stroke-width=\"2\"><rect x=\"3\" y=\"3\" width=\"12\" height=\"12\" fill=\"#F5F0DF\"/><rect x=\"9\" y=\"9\" width=\"12\" height=\"12\"/></svg>"
+
+## The compare button: wide enough for its glyph inside the wood button's margins; the glyph's size.
+const COMPARE_W: float = 42.0
+const COMPARE_ICON_PX: int = 20
+
+static var _compare_icon: Texture2D = null
 ## Its width above the bottom band, and at most beside the minimap; the carved frame's overhang.
 const WIDTH: float = 340.0
 const MAX_WIDTH: float = 440.0
@@ -52,7 +74,6 @@ const GAP: float = 8.0
 const TARGET_PX: float = 32.0
 ## UI §2: 14 px is the floor for any text; body text at the farm's 15.
 const NOTE_PX: int = 14
-const SWATCH_PX: float = 14.0
 const REFRESH_S: float = 0.25
 
 var _lenses: LensesScript = null
@@ -75,7 +96,15 @@ var _prev: Button = null
 var _next: Button = null
 var _notes: Label = null
 var _legend_box: VBoxContainer = null
-var _legends: Array[HFlowContainer] = []
+var _legends: Array[LegendScript] = []
+var _compare_row: HBoxContainer = null
+var _compare_button: Button = null
+var _compare_label: Label = null
+var _compare_off: Button = null
+var _compare_list: VBoxContainer = null
+var _compare_buttons: Array[Button] = []
+var _outline_box: VBoxContainer = null
+var _outline_legends: Array[LegendScript] = []
 var _refresh_in: float = 0.0
 var _seen_subject: int = -1
 var _seen_revision: int = -1
@@ -134,6 +163,17 @@ func _build_header() -> HBoxContainer:
 	_list_button.tooltip_text = "Choose a map layer by the question it answers"
 	_list_button.pressed.connect(toggle_list)
 	row.add_child(_list_button)
+	_compare_button = _button("")
+	_compare_button.custom_minimum_size.x = COMPARE_W
+	_compare_button.toggle_mode = true
+	_compare_button.icon = compare_icon()
+	_compare_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_compare_button.add_theme_constant_override(&"icon_max_width", COMPARE_ICON_PX)
+	for state: StringName in [&"icon_pressed_color", &"icon_hover_pressed_color"]:
+		_compare_button.add_theme_color_override(state, Palette.DEEP_SHADE)
+	_compare_button.tooltip_text = COMPARE_TIP
+	_compare_button.pressed.connect(toggle_compare_list)
+	row.add_child(_compare_button)
 	_off = _button("Off")
 	_off.tooltip_text = "Show no map layer"
 	_off.pressed.connect(choose.bind(LensesScript.OFF))
@@ -168,7 +208,29 @@ func _build_card() -> VBoxContainer:
 	card.add_child(_notes)
 	_legend_box = VBoxContainer.new()
 	card.add_child(_legend_box)
+	_build_compare(card)
 	return card
+
+
+func _build_compare(card: VBoxContainer) -> void:
+	"""The compare row (its list's button and ✕), the folded list, and the outlined legends' box."""
+	_compare_list = VBoxContainer.new()
+	_compare_list.add_theme_constant_override(&"separation", 4)
+	_compare_list.visible = false
+	card.add_child(_compare_list)
+	_compare_row = HBoxContainer.new()
+	_compare_row.add_theme_constant_override(&"separation", 6)
+	_compare_label = FarmUi.label("", NOTE_PX, Palette.INK, true)
+	_compare_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_compare_row.add_child(_compare_label)
+	_compare_off = _button("✕")
+	_compare_off.custom_minimum_size.x = TARGET_PX
+	_compare_off.tooltip_text = "Stop outlining the second layer"
+	_compare_off.pressed.connect(choose_compare.bind(LensesScript.OFF))
+	_compare_row.add_child(_compare_off)
+	card.add_child(_compare_row)
+	_outline_box = VBoxContainer.new()
+	card.add_child(_outline_box)
 
 
 func _button(text: String) -> Button:
@@ -200,32 +262,26 @@ func _ensure_rows() -> void:
 		_list.add_child(made)
 		_lens_buttons.append(made)
 	while _legends.size() < _lenses.count():
-		_legends.append(_make_legend(_legends.size()))
+		_legends.append(_make_legend(_legends.size(), _legend_box, false))
+		_outline_legends.append(_make_legend(_outline_legends.size(), _outline_box, true))
+	while _compare_buttons.size() < _lenses.count() - 1:
+		var lens: int = _compare_buttons.size() + 1
+		var made: Button = _button(_lenses.title_of(lens))
+		made.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		made.toggle_mode = true
+		made.tooltip_text = "Outline %s over the shown layer" % _lenses.title_of(lens)
+		made.pressed.connect(choose_compare.bind(lens))
+		_compare_list.add_child(made)
+		_compare_buttons.append(made)
 
 
-func _make_legend(lens: int) -> HFlowContainer:
-	"""A layer's legend: a swatch and its words, flowing in rows (words alone for a clear swatch)."""
-	var flow := HFlowContainer.new()
-	flow.add_theme_constant_override(&"h_separation", 10)
-	flow.add_theme_constant_override(&"v_separation", 2)
-	var swatches: PackedColorArray = _lenses.swatches_of(lens)
-	var words: PackedStringArray = _lenses.words_of(lens)
-	for k: int in words.size():
-		var chip := HBoxContainer.new()
-		chip.add_theme_constant_override(&"separation", 4)
-		if k < swatches.size() and swatches[k].a > 0.0:
-			var swatch := ColorRect.new()
-			swatch.color = Color(swatches[k], 1.0)
-			swatch.custom_minimum_size = Vector2(SWATCH_PX, SWATCH_PX)
-			swatch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			chip.add_child(swatch)
-		var word: Label = FarmUi.label(words[k], NOTE_PX, Palette.INK)
-		word.autowrap_mode = TextServer.AUTOWRAP_OFF
-		chip.add_child(word)
-		flow.add_child(chip)
-	flow.visible = false
-	_legend_box.add_child(flow)
-	return flow
+func _make_legend(lens: int, box: VBoxContainer, outlined: bool) -> LegendScript:
+	"""A layer's legend (demo_lens_legend.gd): its caption, its ramp with thresholds, and its keys; hidden."""
+	var made := LegendScript.new()
+	box.add_child(made)
+	made.build(_lenses, lens, outlined)
+	made.visible = false
+	return made
 
 
 # --- what it does -------------------------------------------------------------------------------
@@ -240,6 +296,19 @@ func choose(lens: int) -> void:
 func toggle_list() -> void:
 	"""Unfold or fold the list of layers."""
 	_list.visible = not _list.visible
+	refresh()
+
+
+func choose_compare(lens: int) -> void:
+	"""Outline `lens` over the shown layer -- or none, for ✕ or the layer already outlined -- and fold its list."""
+	_lenses.set_compare(LensesScript.OFF if lens == _lenses.compare else lens)
+	_compare_list.visible = false
+	refresh()
+
+
+func toggle_compare_list() -> void:
+	"""Unfold or fold the list of layers that can be outlined."""
+	_compare_list.visible = not _compare_list.visible
 	refresh()
 
 
@@ -276,9 +345,32 @@ func refresh() -> void:
 	_card.visible = active != LensesScript.OFF and not _list.visible
 	for k: int in _legends.size():
 		_legends[k].visible = k == active
+		_outline_legends[k].visible = k == _lenses.compare
+		if k == active or k == _lenses.compare:
+			_legends[k].retext()
+			_outline_legends[k].retext()
 	if _card.visible:
 		_fill_card(active)
+	_fill_compare()
 	_place.call_deferred()
+
+
+func _fill_compare() -> void:
+	"""The compare button's state, which layers its list offers, and the Outlined line."""
+	var compare: int = _lenses.compare
+	var any: bool = compare != LensesScript.OFF
+	for k: int in _compare_buttons.size():
+		var candidate: bool = _lenses.is_compare_candidate(k + 1)
+		_compare_buttons[k].visible = candidate
+		_compare_buttons[k].set_pressed_no_signal(k + 1 == compare)
+		any = any or candidate
+	_compare_list.visible = _compare_list.visible and any and _card.visible
+	FarmUi.set_enabled(_compare_button, any and _card.visible, "No other layer can be outlined over this one")
+	_compare_button.set_pressed_no_signal(compare != LensesScript.OFF or _compare_list.visible)
+	_compare_row.visible = compare != LensesScript.OFF
+	_outline_box.visible = _compare_row.visible
+	if _compare_row.visible:
+		_compare_label.text = COMPARE_ON_TEXT % _lenses.title_of(compare)
 
 
 func _fill_card(active: int) -> void:
@@ -353,10 +445,57 @@ func notes_shown() -> bool:
 
 func legend_words(lens: int) -> PackedStringArray:
 	"""The words of `lens`'s legend as drawn."""
-	var out := PackedStringArray()
-	for chip: Node in _legends[lens].get_children():
-		out.append((chip.get_child(chip.get_child_count() - 1) as Label).text)
-	return out
+	return _legends[lens].words()
+
+
+func legend(lens: int) -> LegendScript:
+	"""`lens`'s legend (its caption, ramp thresholds and keys)."""
+	return _legends[lens]
+
+
+func outline_legend(lens: int) -> LegendScript:
+	"""`lens`'s legend as the compare outlines draw it."""
+	return _outline_legends[lens]
+
+
+static func compare_icon() -> Texture2D:
+	"""The compare button's glyph (made once)."""
+	if _compare_icon == null:
+		var image := Image.new()
+		if image.load_svg_from_string(COMPARE_SVG, 1.0) == OK:
+			_compare_icon = ImageTexture.create_from_image(image)
+	return _compare_icon
+
+
+func compare_button() -> Button:
+	"""The header's compare button (it unfolds the compare list)."""
+	return _compare_button
+
+
+func compare_text() -> String:
+	"""The Outlined line ('' while nothing is compared)."""
+	return _compare_label.text if _compare_row.visible else ""
+
+
+func compare_off_button() -> Button:
+	"""The Outlined line's ✕."""
+	return _compare_off
+
+
+func compare_lens_button(lens: int) -> Button:
+	"""The compare list's button for `lens` (1..)."""
+	_ensure_rows()
+	return _compare_buttons[lens - 1]
+
+
+func compare_list_shown() -> bool:
+	"""Whether the compare list is unfolded."""
+	return _compare_list.visible
+
+
+func compare_offered() -> bool:
+	"""Whether the compare button can be used (a layer is shown and another can be outlined over it)."""
+	return _card.visible and not _compare_button.disabled
 
 
 func legend_shown(lens: int) -> bool:

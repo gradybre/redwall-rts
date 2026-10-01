@@ -33,6 +33,7 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const MenuScript := preload("res://demo/ui/demo_menu.gd")
 const GateScript := preload("res://demo/ui/demo_input_gate.gd")
 const WaterLayout := preload("res://demo/water/water_layout.gd")
+const GearLocker := preload("res://demo/fishery/gear_locker.gd")
 
 var _nodes: Array[Node] = []
 var _read: IntMath.IntResult = IntMath.IntResult.new()
@@ -169,6 +170,27 @@ func test_the_field_guide_has_exactly_the_demo_s_crops_and_dishes() -> void:
 		assert_true(dish_entry.requires.contains(FarmText.units_text(Rules.INPUT_MILLI[dish])), "its input")
 
 
+func test_the_field_guide_has_the_catch_dried_fish_flour_and_gear() -> void:
+	"""Water part B (decision 0431): one entry per pantry good past the crops, titled as the catalog, its shelf life the
+	catalog's; the fish stew is a dish at supper; the gear's figures are the locker's; the rack and the mill are a
+	station."""
+	var guide := FieldGuideScript.new()
+	var goods: PackedInt32Array = guide.of_kind(FieldGuideScript.KIND_GOODS)
+	assert_equal(goods.size(), Catalog.PANTRY_ITEM_COUNT - Catalog.ITEM_COUNT, "every fish, dried fish and flour")
+	for item: int in range(Catalog.ITEM_COUNT, Catalog.PANTRY_ITEM_COUNT):
+		var entry: FieldGuideScript.Entry = guide.entry(guide.index_of(FieldGuideScript.item_id(item)))
+		assert_equal(entry.title, Catalog.ITEM_LABELS[item], "titled as the catalog")
+		assert_true((entry.requires + entry.here).contains("%d game hours" % Catalog.shelf_hours_of(item)),
+			"%s keeps the catalog's hours" % entry.title)
+	var stew: FieldGuideScript.Entry = guide.entry(guide.index_of(FieldGuideScript.DISH_IDS[Rules.DISH_FISH_STEW]))
+	assert_equal(stew.summary, "Cooked for supper", "the stew is supper's")
+	assert_true(stew.requires.contains(FarmText.units_text(Rules.SIDE_MILLI[Rules.DISH_FISH_STEW]) + " of roots"),
+		stew.requires)
+	var gear: String = guide.entry(guide.index_of(&"material_gear")).requires
+	assert_true(gear.contains(FarmText.units_text(GearLocker.MAKE_WOOD_MILLI[GearLocker.KIND_TRAP])), gear)
+	assert_true(guide.index_of(&"station_rack_mill") >= 0 and guide.index_of(&"station_fishing") >= 0, "the stations")
+
+
 func test_field_guide_figures_are_the_tables_own() -> void:
 	"""A bed's planks, a hearth's stone, a footbridge's planks a metre, the cellar's and covered store's rates and the
 	species' swimming are the figures in the demo's tables."""
@@ -195,7 +217,7 @@ func test_field_guide_links_resolve_and_nothing_absent_is_described() -> void:
 		for section: String in [entry.uses, entry.requires, entry.alternatives, entry.here]:
 			assert_false(section.is_empty(), "%s: a section" % entry.id)
 		var all: String = (entry.title + entry.uses + entry.requires + entry.alternatives + entry.here).to_lower()
-		for absent: String in ["mead", "hunt", "mill ", "boat", "feast", "charter", "fish stew"]:
+		for absent: String in ["mead", "hunt", "feast", "charter", "ferry", "regatta"]:
 			assert_false(all.contains(absent), "%s mentions %s" % [entry.id, absent])
 
 

@@ -12,7 +12,8 @@ extends RefCounted
 ## THE TIME is approximate and says so: what is left of the rescuer's walk to the water at its walking pace, the swim
 ## out at its swim speed, a fetch from below at the dive's vertical speed both ways, and the tow to the landing at
 ## TOW_PERMILLE of its swim -- the flow, which helps or hinders, is left out. A line: the walk, the throw, and the haul
-## at LINE_PULL_M_S. With nobody answering, or a line that will not reach, or a swimmer treading above one it cannot
+## at LINE_PULL_M_S. A BOAT (water part B's RESPONSE_BOAT, decision 0432): the walk to the jetty, the row out at the
+## boat's speed, the row back to its berth, the victim landed at the jetty's land end. With nobody answering, or a line that will not reach, or a swimmer treading above one it cannot
 ## fetch, there is no time: the BLOCKAGE is said instead, with when the water's safety net brings it ashore.
 
 const RescueScript := preload("res://demo/waterplay/rescue.gd")
@@ -24,6 +25,10 @@ const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const CardsScript := preload("res://demo/ui/demo_incident_cards.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
+const BoatRescueScript := preload("res://demo/boats/boat_rescue.gd")
+const FleetScript := preload("res://demo/boats/boat_fleet.gd")
+const BoatRoutes := preload("res://demo/boats/boat_routes.gd")
+const WaterRules := preload("res://demo/water/water_rules.gd")
 
 ## The rescue incidents' key (demo_waterplay.gd RESCUE_KEY's prefix).
 const KEY_PREFIX: String = "water:rescue:"
@@ -33,6 +38,9 @@ const LINE_BLOCK: String = "Blocked: the line won't reach yet — the thrower wa
 const WATCH_BLOCK: String = "Blocked: no diver with the air free — the swimmer above tows them the moment they float up (about %d s)"
 const ETA: String = "safe ashore in about %d s at 1× (approximate: the flow is not counted)"
 const APPROACH: String = "on the way to the water"
+## A boat rescue's phase words (boat_rescue.gd BoatRescue PHASE_*).
+const BOAT_PHASES: Array[String] = ["by boat: boarding at the jetty", "by boat: rowing out", "by boat: hauling them aboard",
+	"by boat: rowing back to the jetty", "by boat: landing at the jetty", "by boat: ashore"]
 ## The residents' targets carry their names (decision 0491): "Victim: Tobit Highbough ▸".
 const VICTIM: String = "Victim: %s ▸"
 const RESPONDER: String = "Responder: %s ▸"
@@ -86,7 +94,9 @@ func details_into(key: String, out: Details) -> bool:
 		return true
 	var rescuer: BrainScript = brain_of(task.responder)
 	out.phase = "%s: %s" % [name_of(task.responder), rescuer.task_label() if rescuer.state == BrainScript.State.TASK else APPROACH]
-	if rescuer.task is Tasks.LineRescue:
+	if rescuer.task is BoatRescueScript.BoatRescue:
+		_boat_into(rescuer, rescuer.task as BoatRescueScript.BoatRescue, out)
+	elif rescuer.task is Tasks.LineRescue:
 		_line_into(rescuer, rescuer.task as Tasks.LineRescue, out)
 	elif rescuer.task is Tasks.SwimRescue:
 		_swim_into(rescuer, rescuer.task as Tasks.SwimRescue, task, out)
@@ -145,6 +155,24 @@ func _swim_into(rescuer: BrainScript, swim: Tasks.SwimRescue, task: Tasks.Victim
 	if task.down_m > 0.0:
 		seconds += 2.0 * task.down_m * 1000.0 / float(SwimRules.DIVE_VERTICAL_MM_S)
 	seconds += victim.distance_to(_rescue.tow_landing(victim, roundi(tow * 1000.0))[1]) / tow
+	out.time = ETA % ceili(seconds)
+
+
+func _boat_into(rescuer: BrainScript, boat: BoatRescueScript.BoatRescue, out: Details) -> void:
+	"""A boat: the phase, the jetty it lands them at, and the walk, the row out and the row back at the boat's speed."""
+	out.phase = "%s: %s" % [name_of(rescuer.index), BOAT_PHASES[clampi(boat.phase, 0, BOAT_PHASES.size() - 1)]]
+	var jetty: Vector2 = BoatRoutes.m_of(BoatRoutes.JETTY_LAND_U)
+	out.landing = jetty
+	var speed: float = WaterRules.to_m(FleetScript.ROW_SPEED_U_S)
+	var fleet: FleetScript = _rescue.boats.fleet if _rescue.boats != null else null
+	if speed <= 0.0 or fleet == null or boat.boat < 0:
+		return
+	var berth: Vector2 = BoatRoutes.m_of(BoatRoutes.BERTH_U[boat.boat])
+	var at: Vector2 = fleet.position_m(boat.boat)
+	var victim: Vector2 = boat.victim.get(&"position")
+	var seconds: float = at.distance_to(berth) / speed
+	if boat.phase <= BoatRescueScript.BoatRescue.PHASE_OUT:
+		seconds = walk_left_s(rescuer) + (at.distance_to(victim) + victim.distance_to(berth)) / speed
 	out.time = ETA % ceili(seconds)
 
 

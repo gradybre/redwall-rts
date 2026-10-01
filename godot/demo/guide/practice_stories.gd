@@ -359,7 +359,7 @@ func _age_day(pantry: PantryScript, season: int, day: int, lines: PackedStringAr
 static func _food_of(pantry: PantryScript, dish: int) -> int:
 	"""How much of `dish`'s food the pantry holds."""
 	var total: int = 0
-	for item: int in Catalog.ITEM_COUNT:
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		if Rules.is_input(dish, item):
 			total += pantry.milli_of(item)
 	return total

@@ -40,6 +40,8 @@ const DiveTaskScript := preload("res://demo/waterplay/dive_task.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const TasksScript := preload("res://demo/waterplay/rescue_tasks.gd")
+const FleetScript := preload("res://demo/boats/boat_fleet.gd")
+const BoatRoutes := preload("res://demo/boats/boat_routes.gd")
 
 const DT: float = 1.0 / 60.0
 const BODY_M: float = 0.25
@@ -789,6 +791,35 @@ func test_a_planned_bridge_s_materials_are_reserved_then_delivered_and_nothing_i
 	assert_true(lines.contains("Work: piers 100% · beams 0% · deck 0%"), "its stages (no piers to build)")
 	rig.play.crew.at_site[row] = 1
 	assert_true(ProjectScript.planned_lines(rig.play.bridges, rig.play.crew, row).contains("delivered at the site"), "delivered")
+
+
+# --- boat legs (water part B) -------------------------------------------------------------------------------------
+
+func test_a_crew_member_aboard_reads_by_boat_out_and_back() -> void:
+	"""A boat's legs are task-driven, not router pairs (decision 0432): a crew member aboard a boat under way has a BOAT
+	leg -- from where the boat is, on to its station, or back to its berth -- said "by boat"; moored, or aboard
+	nothing, there is none (the walk to the jetty is the route)."""
+	var fleet := FleetScript.new()
+	var kinds := KindsScript.new()
+	var leg := PackedVector2Array()
+	assert_false(kinds.boat_leg_into(3, leg), "no fleet: no boat leg")
+	kinds.fleet = fleet
+	assert_false(kinds.boat_leg_into(3, leg), "aboard nothing")
+	fleet.seat(0, FleetScript.HELM, 3)
+	var course := PackedInt32Array(BoatRoutes.ROUTES[0])
+	assert_true(fleet.set_course(0, course, null), "a course from the berth")
+	assert_false(kinds.boat_leg_into(3, leg), "moored: none")
+	assert_true(fleet.set_off(0), "rowing out")
+	fleet.step(1000000)
+	assert_true(kinds.boat_leg_into(3, leg), "aboard and under way")
+	assert_true(leg[0].distance_to(fleet.position_m(0)) < 0.001, "from where the boat is")
+	var station := BoatRoutes.m_of(Vector2i(course[course.size() - 2], course[course.size() - 1]))
+	assert_true(leg[leg.size() - 1].distance_to(station) < 0.001, "out to its station")
+	fleet.row_back(0)
+	assert_true(kinds.boat_leg_into(3, leg), "rowing back")
+	assert_true(leg[leg.size() - 1].distance_to(BoatRoutes.m_of(BoatRoutes.BERTH_U[0])) < 0.001, "back to its berth")
+	assert_false(kinds.boat_leg_into(2, leg), "the one ashore has none")
+	assert_equal(KindsScript.KIND_WORDS[KindsScript.KIND_BOAT], "by boat", "said by boat, not an unknown crossing")
 
 
 # --- the rescue card ---------------------------------------------------------------------------------------------

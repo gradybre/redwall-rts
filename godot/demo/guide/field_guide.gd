@@ -1,15 +1,17 @@
 extends RefCounted
 ## THE FIELD GUIDE: a linked almanac of what this demo really has (decision 0481; review UX-018). Crops and what they
-## are for (the two dishes among them), materials and their uses, buildings and stations, residents' skills, and
-## water safety -- each entry with its USES, what it REQUIRES, its ALTERNATIVES, where it is AVAILABLE HERE, and links
+## are for (the three dishes among them), materials and their uses, buildings and stations, residents' skills, water
+## safety, and the fish and preserved food water part B brought (decision 0431) -- each entry with its USES, what it REQUIRES, its ALTERNATIVES, where it is AVAILABLE HERE, and links
 ## to the entries it names. Plain-language search (guide_search.gd).
 ##
 ## ONLY WHAT THE DEMO HAS. The entries are BUILT from the demo's own tables, not written beside them: the crops from
 ## farm_catalog.gd (every farmed item, nothing else), which dish each feeds from meal_rules.gd `is_input`, a dish's
 ## inputs, water, wood, work and portions from meal_rules.gd, shelf lives from the catalog's §5.7 rows and the stores'
 ## factors from stock_age.gd, the fit-out's costs from room_fixtures.gd, the bridges' from swim_rules.gd, the woods'
-## from forest_rules.gd, the species' swimming from swim_rules.gd. A table changing changes its entry; nothing the demo
-## lacks (the GDD's other dishes, hunting, mills, boats) has one. test_demo_guide.gd checks each against its table.
+## from forest_rules.gd, the species' swimming from swim_rules.gd; the fish, dried fish and flour from the catalog's
+## pantry goods, fishing from fishery_rules.gd, the rack and the mill from its station numbers, the gear from
+## gear_locker.gd. A table changing changes its entry; nothing the demo lacks (the GDD's other dishes, hunting, mead,
+## ferries) has one. test_demo_guide_pages.gd checks each against its table.
 ## `bind_pantry` adds a live "In the pantry now" line to a crop.
 
 const SearchScript := preload("res://demo/guide/guide_search.gd")
@@ -27,6 +29,8 @@ const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 const DigSkills := preload("res://demo/tunnel/dig_skills.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const FarmText := preload("res://demo/farm/farm_text.gd")
+const FisheryRules := preload("res://demo/fishery/fishery_rules.gd")
+const GearLocker := preload("res://demo/fishery/gear_locker.gd")
 
 const KIND_CROP: int = 0
 const KIND_DISH: int = 1
@@ -34,12 +38,17 @@ const KIND_MATERIAL: int = 2
 const KIND_STATION: int = 3
 const KIND_SKILL: int = 4
 const KIND_SAFETY: int = 5
+## The pantry's other goods (decision 0431): the catch, dried fish and flour.
+const KIND_GOODS: int = 6
 const KIND_NAMES: Array[String] = ["Crops", "Dishes", "Materials", "Buildings and stations", "Residents' skills",
-	"Water safety"]
+	"Water safety", "Fish and preserved food"]
 ## The crop rows' names as the guide says them (farming.gd's rows: roots, cabbage, beans, grain).
 const ROW_WORDS: Dictionary = {FarmingScript.CROP_ROOTS: "Root crop", FarmingScript.CROP_CABBAGE: "Leaf crop",
 	FarmingScript.CROP_BEANS: "Pulse", FarmingScript.CROP_GRAIN: "Grain"}
-const DISH_IDS: Array[StringName] = [&"dish_porridge", &"dish_soup"]
+const DISH_IDS: Array[StringName] = [&"dish_porridge", &"dish_soup", &"dish_fish_stew"]
+## The catch's waters, by item from Catalog.FIRST_CATCH (fishing_driver.gd HABITATS: the stream is the river habitat,
+## the pond the lake's).
+const CATCH_WATERS: Array[String] = ["the stream", "the stream", "the stream", "the pond", "the pond", "the pond"]
 
 
 ## One entry.
@@ -69,6 +78,8 @@ func _init() -> void:
 		_add(_crop(item))
 	for dish: int in Rules.DISH_COUNT:
 		_add(_dish(dish))
+	for item: int in range(Catalog.ITEM_COUNT, Catalog.PANTRY_ITEM_COUNT):
+		_add(_goods(item))
 	_add_materials()
 	_add_stations()
 	_add_skills()
@@ -131,13 +142,13 @@ func _crop_uses(item: int, links: Array[StringName]) -> String:
 	var parts := PackedStringArray()
 	for dish: int in Rules.DISH_COUNT:
 		if Rules.is_input(dish, item):
-			parts.append("%s (%s): %s makes %d portions" % [Rules.DISH_NAMES[dish], Rules.MEAL_NAMES[dish],
-				FarmText.units_text(Rules.INPUT_MILLI[dish]), Rules.PORTIONS_PER_BATCH[dish]])
+			parts.append("%s (%s): %s makes %d portions" % [Rules.DISH_NAMES[dish], Rules.MEAL_NAMES[meal_of(dish)],
+				FarmText.units_text(input_milli(dish, item)), Rules.PORTIONS_PER_BATCH[dish]])
 			links.append(DISH_IDS[dish])
 	if Rules.raw_np_per_u(item) > 0:
 		parts.append("eaten raw by a hungry resident when a meal is missed (%d NP a unit)" % Rules.raw_np_per_u(item))
 	if parts.is_empty():
-		return "Neither of the demo's two dishes cooks it yet: it is grown and stored."
+		return "None of the demo's dishes cooks it yet: it is grown and stored."
 	var text: String = "; ".join(parts)
 	return text.substr(0, 1).to_upper() + text.substr(1) + "."
 
@@ -159,23 +170,88 @@ static func _grown_here(item: int) -> String:
 	return "Any of the six crop beds can be sown with it."
 
 
+static func meal_of(dish: int) -> int:
+	"""The meal `dish` is cooked for: porridge at breakfast; the soup, and the fish stew in its place, at supper."""
+	return Rules.MEAL_BREAKFAST if dish == Rules.DISH_PORRIDGE else Rules.MEAL_SUPPER
+
+
+static func input_milli(dish: int, item: int) -> int:
+	"""How much of `item`'s category a batch of `dish` takes: its main input's, else its second's."""
+	return Rules.INPUT_MILLI[dish] if Catalog.category_of(item) == Rules.INPUT_CROP[dish] else Rules.SIDE_MILLI[dish]
+
+
+static func item_id(item: int) -> StringName:
+	"""The entry a pantry item links to: a crop's, else one of the pantry's other goods'."""
+	return crop_id(item) if Catalog.is_item(item) else StringName("goods_%s" % Catalog.ITEM_KEYS[item])
+
+
 func _dish(dish: int) -> Entry:
-	"""One of the kitchen's two dishes: its meal, portions, inputs, work and the other dish."""
+	"""One of the kitchen's three dishes: its meal, portions, inputs, work and the other dish."""
 	var links: Array[StringName] = [&"station_kitchen", &"material_water", &"material_wood"]
-	for item: int in Catalog.ITEM_COUNT:
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		if Rules.is_input(dish, item):
-			links.append(crop_id(item))
+			links.append(item_id(item))
 	links.append(DISH_IDS[Rules.other(dish)])
-	var uses: String = "%s: each batch is %d portions of %d NP, keeping %d game hours." % [Rules.MEAL_TITLES[dish],
+	var meal: int = meal_of(dish)
+	var uses: String = "%s: each batch is %d portions of %d NP, keeping %d game hours." % [Rules.MEAL_TITLES[meal],
 		Rules.PORTIONS_PER_BATCH[dish], Rules.NP_PER_PORTION[dish], Rules.SHELF_HOURS[dish]]
-	var requires: String = "%s of %s (%s), %s of water and %s of wood a batch; %d WU of cooking at the cauldron." % [
-		FarmText.units_text(Rules.INPUT_MILLI[dish]), Rules.INPUT_WORDS[dish], Rules.INPUT_CROPS_TEXT[dish],
+	var food: String = "%s of %s (%s)" % [FarmText.units_text(Rules.INPUT_MILLI[dish]), Rules.INPUT_WORDS[dish],
+		Rules.INPUT_CROPS_TEXT[dish]]
+	if Rules.SIDE_MILLI[dish] > 0:
+		food += " and %s of %s" % [FarmText.units_text(Rules.SIDE_MILLI[dish]), Rules.SIDE_WORDS[dish]]
+	var requires: String = "%s, %s of water and %s of wood a batch; %d WU of cooking at the cauldron." % [food,
 		FarmText.units_text(Rules.WATER_MILLI[dish]), FarmText.units_text(Rules.WOOD_MILLI_PER_BATCH),
 		Rules.WORK_MWU[dish] / 1000]
 	var other: String = "When its food is short the cook makes %s instead." % Rules.DISH_NAMES[Rules.other(dish)]
-	return make(DISH_IDS[dish], KIND_DISH, Rules.DISH_NAMES[dish], "Cooked for %s" % Rules.MEAL_NAMES[dish],
+	if dish == Rules.DISH_FISH_STEW:
+		other = "Cooked at supper in the soup's place while the stores hold a batch's fresh fish and roots; otherwise %s." \
+			% Rules.DISH_NAMES[Rules.other(dish)]
+	return make(DISH_IDS[dish], KIND_DISH, Rules.DISH_NAMES[dish], "Cooked for %s" % Rules.MEAL_NAMES[meal],
 		PackedStringArray([uses, requires, other, "Cooked at the cauldron by the keeper, served at the hall's tables."]),
 		links)
+
+
+# --- fish and preserved food -------------------------------------------------------------------------
+
+func _goods(item: int) -> Entry:
+	"""One of the pantry's other goods (decision 0431): a fish of the catch, dried fish or flour."""
+	var links: Array[StringName] = [&"station_store", &"station_fishing"]
+	var shelf: int = Catalog.shelf_hours_of(item)
+	var fields: PackedStringArray
+	var summary: String
+	if item == Catalog.ITEM_DRIED_FISH:
+		summary = "Fish smoked at the rack"
+		links = [&"station_rack_mill", &"station_store"]
+		fields = PackedStringArray([
+			"The village's reserve: eaten raw by a hungry resident when a meal is missed (%d NP a unit)." % Rules.raw_np_per_u(item),
+			"Drying fresh fish at the rack: %s of fish makes %s, %d WU and %d hours' curing." % [
+				FarmText.units_text(FisheryRules.DRY_IN_MILLI), FarmText.units_text(FisheryRules.DRY_OUT_MILLI),
+				FisheryRules.DRY_WORK_MWU / 1000, FisheryRules.DRY_PASSIVE_HOURS],
+			"Fresh fish, cooked in the fish stew while it keeps (%d game hours)." % Catalog.shelf_hours_of(Catalog.FIRST_CATCH),
+			"Keeps %d game hours in store; the Pantry (K) lists it." % shelf])
+	elif item == Catalog.ITEM_FLOUR:
+		summary = "Grain ground at the mill"
+		links = [&"station_rack_mill", &"station_store", &"crop_oats"]
+		fields = PackedStringArray([
+			"Kept as stock for later baking: none of the demo's dishes uses it yet, and it is not eaten raw.",
+			"Milling grain: %s of grain makes %s, %d WU." % [FarmText.units_text(FisheryRules.MILL_IN_MILLI),
+				FarmText.units_text(FisheryRules.MILL_OUT_MILLI), FisheryRules.MILL_WORK_MWU / 1000],
+			"Unground grain cooks as porridge.", "Keeps %d game hours in store; the Pantry (K) lists it." % shelf])
+	else:
+		var water: String = CATCH_WATERS[item - Catalog.FIRST_CATCH]
+		summary = "Fresh fish from %s" % water
+		links.append(&"dish_fish_stew")
+		links.append(&"goods_dried_fish")
+		fields = PackedStringArray([
+			"%s (supper): %s of fresh fish with %s of roots makes %d portions; or dried at the rack." % [
+				Rules.DISH_NAMES[Rules.DISH_FISH_STEW], FarmText.units_text(Rules.INPUT_MILLI[Rules.DISH_FISH_STEW]),
+				FarmText.units_text(Rules.SIDE_MILLI[Rules.DISH_FISH_STEW]), Rules.PORTIONS_PER_BATCH[Rules.DISH_FISH_STEW]],
+			"An authorised fishing trip (the Water panel's Fishing) and its gear; keeps only %d game hours, and is never eaten raw." % shelf,
+			"The other fish of the catch; dried fish keeps far longer.",
+			"Fished in %s." % water])
+	var entry: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], summary, fields, links)
+	entry.item = item
+	return entry
 
 
 # --- materials ---------------------------------------------------------------------------------------
@@ -188,6 +264,7 @@ func _add_materials() -> void:
 	_add(_material_earth())
 	_add(_material_compost())
 	_add(_material_water())
+	_add(_material_gear())
 
 
 static func _material_wood() -> Entry:
@@ -246,11 +323,27 @@ static func _material_compost() -> Entry:
 static func _material_water() -> Entry:
 	"""The material water entry."""
 	return make(&"material_water", KIND_MATERIAL, "Water", "Drawn at the well", PackedStringArray([
-		"Cooking: %s for a batch of porridge, %s for soup." % [FarmText.units_text(Rules.WATER_MILLI[Rules.DISH_PORRIDGE]),
-			FarmText.units_text(Rules.WATER_MILLI[Rules.DISH_SOUP])],
+		"Cooking: %s for a batch of porridge, %s for soup, %s for the fish stew." % [
+			FarmText.units_text(Rules.WATER_MILLI[Rules.DISH_PORRIDGE]), FarmText.units_text(Rules.WATER_MILLI[Rules.DISH_SOUP]),
+			FarmText.units_text(Rules.WATER_MILLI[Rules.DISH_FISH_STEW])],
 		"Anyone free draws it into the butt (Keep water drawn, in the Kitchen tab).", "None: the dishes need it.",
 		"The butt by the well holds %s." % FarmText.units_text(StoresScript.WATER_CAP_MILLI_U)]),
-		[&"station_kitchen", &"dish_porridge", &"dish_soup"])
+		[&"station_kitchen", &"dish_porridge", &"dish_soup", &"dish_fish_stew"])
+
+
+static func _material_gear() -> Entry:
+	"""Fishing gear, from gear_locker.gd: what each piece is made of, and mending."""
+	var parts := PackedStringArray()
+	for kind: int in [GearLocker.KIND_NET, GearLocker.KIND_TRAP, GearLocker.KIND_ICE_KIT]:
+		parts.append("a %s (%s of wood, %s of %s, %d WU)" % [GearLocker.KIND_NAMES[kind],
+			FarmText.units_text(GearLocker.MAKE_WOOD_MILLI[kind]), FarmText.units_text(GearLocker.MAKE_MATERIAL_MILLI[kind]),
+			GearLocker.MAT_NAMES[GearLocker.MAKE_MATERIAL[kind]], GearLocker.MAKE_MWU[kind] / 1000])
+	return make(&"material_gear", KIND_MATERIAL, "Fishing gear", "Nets, traps and ice kits", PackedStringArray([
+		"A trip takes its method's gear: a hand net, a trap, the boat, or an ice kit with a winter outfit; each wears with use.",
+		"Made at the gear locker: %s." % "; ".join(parts),
+		"Mend gear instead of making it again (%s of wood and %s of rope, %d WU)." % [FarmText.units_text(GearLocker.MEND_WOOD_MILLI),
+			FarmText.units_text(GearLocker.MEND_ROPE_MILLI), GearLocker.MEND_MWU / 1000],
+		"The gear locker; the Water panel's Fishing lists each piece's wear."]), [&"station_fishing", &"material_wood"])
 
 
 # --- buildings and stations --------------------------------------------------------------------------
@@ -265,6 +358,8 @@ func _add_stations() -> void:
 	_add(_station_cellar())
 	_add(_station_tunnels())
 	_add(_station_bridges())
+	_add(_station_fishing())
+	_add(_station_rack_mill())
 
 
 static func _station_beds() -> Entry:
@@ -292,7 +387,7 @@ static func _station_kitchen() -> Entry:
 			KitchenNode.PANTRY_CAPACITY_U, StockAge.STORE_FACTOR[StockAge.STORAGE_PANTRY]],
 		"A cook (the keeper, or anyone free), food, water in the butt and wood.", "Raw food for the hungry when a meal is missed.",
 		"The cauldron east of the square; the hall's tables; the Pantry's Kitchen tab."]),
-		[&"dish_porridge", &"dish_soup", &"material_water", &"skill_cooking"])
+		[&"dish_porridge", &"dish_soup", &"dish_fish_stew", &"material_water", &"skill_cooking"])
 
 
 static func _station_sawhorse() -> Entry:
@@ -340,6 +435,31 @@ static func _station_bridges() -> Entry:
 		"The ford (wading at %d%% pace); swimming, unladen." % (SwimRules.WADE_PERMILLE / 10),
 		"Three sites on the stream, or any two banks (the Water panel)."]),
 		[&"material_planks", &"material_wood", &"skill_bridges", &"safety_wading"])
+
+static func _station_fishing() -> Entry:
+	"""Fishing trips, the boats and the jetty, from fishery_rules.gd."""
+	var parts := PackedStringArray()
+	for method: int in FisheryRules.METHOD_COUNT:
+		parts.append("%s: %s" % [FisheryRules.METHOD_NAMES[method], FisheryRules.METHOD_ROLES[method]])
+	return make(&"station_fishing", KIND_STATION, "Fishing, boats and the jetty", "Trips that feed the pantry",
+		PackedStringArray([
+		"Catching fish for the pantry: %s." % "; ".join(parts),
+		"A trip authorised in the Water panel (its site, method and fish, with the stock, quota, expected catch and risk shown first), its gear, and fishers free; the boat's crew is %d." % FisheryRules.METHOD_CREW[FisheryRules.METHOD_BOAT],
+		"The crops and the porridge and soup feed the village without fish.",
+		"Banks at %s; the boats at the pond's jetty; the Water panel's Fishing and Boats." % ", ".join(FisheryRules.SITE_NAMES)]),
+		[&"material_gear", &"goods_trout", &"goods_perch", &"safety_rescue"])
+
+
+static func _station_rack_mill() -> Entry:
+	"""The drying rack and the mill, from fishery_rules.gd."""
+	return make(&"station_rack_mill", KIND_STATION, "Drying rack and mill", "Fish kept, grain ground", PackedStringArray([
+		"Drying fish into the village's reserve (%d slots); grinding grain into flour (%d at a time)." % [
+			FisheryRules.RACK_SLOTS, FisheryRules.MILL_SLOTS],
+		"Fresh fish for the rack (%s a batch); grain for the mill (%s a batch); a resident to work each batch." % [
+			FarmText.units_text(FisheryRules.DRY_IN_MILLI), FarmText.units_text(FisheryRules.MILL_IN_MILLI)],
+		"Cook fresh fish in the stew instead of drying it.", "The Water panel's Drying rack and mill: Dry fish, Mill grain."]),
+		[&"goods_dried_fish", &"goods_flour", &"station_store"])
+
 
 # --- residents' skills -------------------------------------------------------------------------------
 
@@ -481,8 +601,9 @@ func of_kind(kind: int) -> PackedInt32Array:
 
 
 func live_line(k: int) -> String:
-	"""A crop's stock in the pantry now ('' for other entries, or with no pantry bound)."""
+	"""A pantry item's stock now -- a crop's, a fish's, dried fish's or flour's ('' for other entries, or with no
+	pantry bound)."""
 	var item: int = _entries[k].item
-	if _pantry == null or not Catalog.is_item(item):
+	if _pantry == null or not Catalog.is_pantry_item(item):
 		return ""
 	return "In the pantry now: %s." % FarmText.units_text(_pantry.milli_of(item))

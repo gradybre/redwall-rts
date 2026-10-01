@@ -581,6 +581,7 @@ func _build_routes() -> void:
 	_routes.configure(_cast as DemoCastScript, _command as DemoCommandScript, _waterplay, tool, _work, _forestry.crew.jobs,
 		_zone.show_panel.bind(DetailZoneScript.PANEL_WOODS))
 	_farm.lenses.set_subject(_routes_lens, _routes.subject)
+	_routes.kinds.fleet = _fishery.fishery.fleet
 	_cards.add_details(RescueCardScript.KEY_PREFIX, _routes.rescue_card.card_into)
 	_cards.set_centre((_camera as DemoCameraScript).centre_on)
 

@@ -675,6 +675,17 @@ func test_a_partial_delivery_counts_what_was_shelved() -> void:
 	assert_equal(pantry.delivered_milli, 2000, "and only that is counted")
 
 
+func test_a_catch_or_the_rack_s_and_mill_s_goods_are_no_harvest() -> void:
+	"""Water part B stores fish, dried fish and flour through the same delivery (decision 0431): none of them is a harvest
+	the first-village guide may confirm -- only a crop counts."""
+	var pantry := PantryScript.new(StorageScript.new(Vector2.ZERO))
+	for item: int in [Catalog.FIRST_CATCH, Catalog.ITEM_DRIED_FISH, Catalog.ITEM_FLOUR]:
+		assert_true(pantry.store_upto_into(item, 1000, 0, -1, _read), "%s stored" % Catalog.ITEM_LABELS[item])
+	assert_equal([pantry.delivered_milli, pantry.last_delivered_item], [0, PantryScript.FREE], "no harvest counted")
+	pantry.store_upto_into(CARROT, 1000, 0, -1, _read)
+	assert_equal([pantry.delivered_milli, pantry.last_delivered_item], [1000, CARROT], "the carrot is")
+
+
 func _owner(world: WorldScript, notices: NoticesScript, manager: GameManagerScript) -> GuideScript:
 	"""The guide's owner over `world`, off-tree (no camera, no jump)."""
 	var guide := GuideScript.new()

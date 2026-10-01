@@ -58,12 +58,13 @@ const F_RAIN: int = 14
 const F_EVENT: int = 15
 const F_WEATHER_SEEN: int = 16
 const SCALARS: int = 17
-## The per-item groups, ITEM_COUNT values each after the scalars.
+## The per-item groups, PANTRY_ITEM_COUNT values each after the scalars: every pantry item -- the crops and, since water
+## part B (decision 0431), the catch, dried fish and flour.
 const G_HARVESTED: int = 0
 const G_USED: int = 1
 const G_SPOILED: int = 2
 const GROUPS: int = 3
-const STRIDE: int = SCALARS + GROUPS * Catalog.ITEM_COUNT
+const STRIDE: int = SCALARS + GROUPS * Catalog.PANTRY_ITEM_COUNT
 ## Each group's day total field.
 const GROUP_TOTALS: PackedInt32Array = [F_HARVESTED, F_USED, F_SPOILED]
 const NO_DAY: int = -1
@@ -100,8 +101,8 @@ var _weather_seen: PackedInt64Array = PackedInt64Array()
 func _init() -> void:
 	"""Size the open day and its snapshots once."""
 	_open.resize(STRIDE)
-	_snap_items.resize(GROUPS * Catalog.ITEM_COUNT)
-	_now_items.resize(GROUPS * Catalog.ITEM_COUNT)
+	_snap_items.resize(GROUPS * Catalog.PANTRY_ITEM_COUNT)
+	_now_items.resize(GROUPS * Catalog.PANTRY_ITEM_COUNT)
 	_snap_kitchen.resize(K_COUNT)
 	_now_kitchen.resize(K_COUNT)
 	_weather_seen.resize(WEATHER_DAYS * W_STRIDE)
@@ -222,8 +223,8 @@ func _fill_items() -> void:
 		return
 	_read_items_into(_now_items)
 	for group: int in GROUPS:
-		for item: int in Catalog.ITEM_COUNT:
-			var at: int = group * Catalog.ITEM_COUNT + item
+		for item: int in Catalog.PANTRY_ITEM_COUNT:
+			var at: int = group * Catalog.PANTRY_ITEM_COUNT + item
 			var delta: int = _now_items[at] - _snap_items[at]
 			_open[SCALARS + at] = delta
 			_open[GROUP_TOTALS[group]] += delta
@@ -249,10 +250,10 @@ func _fill_kitchen() -> void:
 
 func _read_items_into(out: PackedInt64Array) -> void:
 	"""The pantry's three ledgers, item by item (zeros without a pantry)."""
-	for item: int in Catalog.ITEM_COUNT:
-		out[G_HARVESTED * Catalog.ITEM_COUNT + item] = pantry.stored_total_milli(item) if pantry != null else 0
-		out[G_USED * Catalog.ITEM_COUNT + item] = pantry.withdrawn_total_milli(item) if pantry != null else 0
-		out[G_SPOILED * Catalog.ITEM_COUNT + item] = pantry.spoiled_total_milli(item) if pantry != null else 0
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
+		out[G_HARVESTED * Catalog.PANTRY_ITEM_COUNT + item] = pantry.stored_total_milli(item) if pantry != null else 0
+		out[G_USED * Catalog.PANTRY_ITEM_COUNT + item] = pantry.withdrawn_total_milli(item) if pantry != null else 0
+		out[G_SPOILED * Catalog.PANTRY_ITEM_COUNT + item] = pantry.spoiled_total_milli(item) if pantry != null else 0
 
 
 func _read_kitchen_into(out: PackedInt64Array) -> void:
@@ -281,7 +282,7 @@ func value(k: int, field: int) -> int:
 
 func item_value(k: int, group: int, item: int) -> int:
 	"""Kept day `k`'s movement of `item` in group G_* (milli-U)."""
-	return _days[k * STRIDE + SCALARS + group * Catalog.ITEM_COUNT + item]
+	return _days[k * STRIDE + SCALARS + group * Catalog.PANTRY_ITEM_COUNT + item]
 
 
 func open_value(field: int) -> int:

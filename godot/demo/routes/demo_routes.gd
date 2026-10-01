@@ -123,6 +123,7 @@ var _crosses: Callable = Callable()
 var _scratch: BridgesScript = null
 var _scratch_key: int = 0
 var _where: ReasonsScript.Where = ReasonsScript.Where.new()
+var _boat_leg: PackedVector2Array = PackedVector2Array()
 
 
 func configure(cast: DemoCastScript, command: CommandScript, water: WaterplayScript, tool: ToolScript,
@@ -168,14 +169,14 @@ func _build_overlay() -> void:
 
 static func legend_swatches() -> PackedColorArray:
 	"""The Routes layer's legend swatches (map_lenses.gd `set_legend`), one per `legend_words`."""
-	var out := PackedColorArray(OverlayScript.KIND_COLOURS.slice(0, 5))
+	var out := PackedColorArray(OverlayScript.KIND_COLOURS.slice(0, 6))
 	out.append_array([OverlayScript.WAIT_COLOUR, OverlayScript.BLOCK_COLOUR, Color(0, 0, 0, 0)])
 	return out
 
 
 static func legend_words() -> PackedStringArray:
 	"""The legend's words: each stretch, the two posts, and the promise that nobody is made to swim (ECO-039)."""
-	return PackedStringArray(["surface", "wading", "underground (dashed)", "bridge", "swimming (optional)",
+	return PackedStringArray(["surface", "wading", "underground (dashed)", "bridge", "swimming (optional)", "by boat",
 		"post: waiting", "post: blocked", "public ways never swim"])
 
 
@@ -565,6 +566,11 @@ func member_note(who: int) -> String:
 	var why: int = ReasonsScript.diagnose(brain, _cast.space().tunnels, _where)
 	if why != ReasonsScript.NONE:
 		return "%s: %s" % [name_of(who), ReasonsScript.WORDS[why]]
+	if kinds.boat_leg_into(who, _boat_leg):
+		var metres: float = 0.0
+		for p: int in range(1, _boat_leg.size()):
+			metres += _boat_leg[p - 1].distance_to(_boat_leg[p])
+		return "%s: %s %d m" % [name_of(who), KindsScript.KIND_WORDS[KindsScript.KIND_BOAT], maxi(roundi(metres), 1)]
 	if brain.trip_outcome != BrainScript.TRIP_UNDERWAY or brain.path_index >= brain.path.size():
 		return "%s: not on a trip" % name_of(who)
 	return "%s: %s" % [name_of(who), kinds.runs_text(_cast.space().tunnels, brain.position, brain.path,

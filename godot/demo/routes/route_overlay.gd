@@ -5,8 +5,9 @@ extends Node3D
 ## the brains' own routes (resident_brain.gd `path`, `path_tunnel`) and the public estimate (route_estimator.gd) say.
 ##
 ## STRETCHES (route_kinds.gd), one ribbon each, coloured by kind and named in the layer's legend: surface, wading (the
-## ford), underground (dashed; the level labelled where it goes below), a bridge, swimming, the proposed bridge. A
-## group shows EACH MEMBER's own route (MOVE-REQ-012: never the lead's for all).
+## ford), underground (dashed; the level labelled where it goes below), a bridge, swimming, by boat (a crew member
+## aboard: the boat's own course, route_kinds.gd BOAT LEGS), the proposed bridge. A group shows EACH MEMBER's own route
+## (MOVE-REQ-012: never the lead's for all).
 ## THE BLOCKING POINT (route_reasons.gd): a post where the reason applies, and its words beside it -- "Wenna Tallowby:
 ## waiting for mouth" (a wait that ends by itself: brass), "Badger quarryman: load too wide" (clay).
 ## PUBLIC WAYS: a thin ribbon from the square to each work district for the public walker (carrying, never swimming),
@@ -29,7 +30,7 @@ const EstimatorScript := preload("res://demo/routes/route_estimator.gd")
 const Layers := preload("res://demo/demo_layers.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 
-## Each kind's colour (route_kinds.gd KIND_*): surface, wading, underground, bridge, swimming, by water, new bridge.
+## Each kind's colour (route_kinds.gd KIND_*): surface, wading, underground, bridge, swimming, by boat, new bridge.
 const KIND_COLOURS: Array[Color] = [Color("#F5F0DF"), Color("#E8C64A"), Color("#B88A5A"), Color("#E08A3C"),
 	Color("#5BB2E8"), Color("#6F8FD8"), Color("#F2B35C")]
 const WAIT_COLOUR: Color = Palette.BRASS
@@ -76,6 +77,7 @@ var _signature: int = 0
 var _kinds: PackedInt32Array = PackedInt32Array()
 var _levels: PackedInt32Array = PackedInt32Array()
 var _where: ReasonsScript.Where = ReasonsScript.Where.new()
+var _boat_leg: PackedVector2Array = PackedVector2Array()
 var _used_labels: int = 0
 var _used_posts: int = 0
 var _since: float = 0.0
@@ -195,6 +197,8 @@ func signature() -> int:
 		var why: int = ReasonsScript.diagnose(brain, _graph, _where)
 		h = h * 31 + brain.state * 7 + brain.path_index * 131 + brain.path.size() * 8191 + why * 524287
 		h = h * 31 + roundi(_where.at.x * 10.0) * 3 + roundi(_where.at.y * 10.0) * 5 + brain.trip_outcome
+		if kinds.boat_leg_into(who, _boat_leg):
+			h = h * 31 + roundi(_boat_leg[0].x * 10.0) * 7 + roundi(_boat_leg[0].y * 10.0) * 11 + _boat_leg.size()
 	if members.is_empty() and public_estimate != null:
 		h = h * 31 + int(public_estimate.is_done()) + public_estimate.restarts * 1009
 		if shortcut_estimate != null:
@@ -229,7 +233,12 @@ func _draw_member(who: int, k: int) -> bool:
 	var brain: BrainScript = brain_of(who)
 	var why: int = ReasonsScript.diagnose(brain, _graph, _where)
 	var drew: bool = false
-	if brain.trip_outcome == BrainScript.TRIP_UNDERWAY and brain.path_index < brain.path.size():
+	if kinds.boat_leg_into(who, _boat_leg):
+		var colour: Color = KIND_COLOURS[KindsScript.KIND_BOAT]
+		for p: int in range(1, _boat_leg.size()):
+			_strip(_boat_leg[p - 1], _boat_leg[p], ROUTE_WIDTH_M, colour)
+		drew = true
+	elif brain.trip_outcome == BrainScript.TRIP_UNDERWAY and brain.path_index < brain.path.size():
 		_ribbon_route(brain.position, brain.path, brain.path_tunnel, brain.path_index, ROUTE_WIDTH_M, 1.0)
 		drew = true
 	if why != ReasonsScript.NONE and k < MAX_MARKS:

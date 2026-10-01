@@ -241,7 +241,8 @@ static func _supper(world: WorldScript, facts: FactsScript, out: Status) -> void
 		_aim_food(world, d, out)
 		return
 	out.state = Text.SUPPER_MISSED % facts.supper_missed_day if facts.supper_missed_day > 0 \
-		else Text.SUPPER_PLANNED % [Rules.DISH_NAMES[Rules.DISH_SOUP].to_lower(), world.hour()]
+		else Text.SUPPER_PLANNED % [Rules.DISH_NAMES[d.dish if d.dish == Rules.DISH_FISH_STEW else Rules.DISH_SOUP].to_lower(),
+			world.hour()]
 	out.next = Text.NEXT_SUPPER_WAIT
 
 

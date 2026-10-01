@@ -91,7 +91,7 @@ static func table_cells_into(record: RecordScript, k: int, out: PackedStringArra
 static func _items(record: RecordScript, k: int, group: int) -> String:
 	"""' (carrot 5.1 U, radish 2.0 U)' -- the items a group moved that day ('' for none)."""
 	var parts := PackedStringArray()
-	for item: int in Catalog.ITEM_COUNT:
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		var milli: int = record.item_value(k, group, item)
 		if milli > 0:
 			parts.append("%s %s" % [Catalog.ITEM_LABELS[item].to_lower(), Text.units_text(milli)])

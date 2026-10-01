@@ -74,9 +74,10 @@ const GONE: int = -2
 
 var storage: StorageScript = null
 var spoiled_milli: int = 0
-## Every milli-U a DELIVERY has ever shelved (`store_upto_into`: a harvest carried to its store), and the item of the
-## latest: the first-village guide's "a harvest came into store" (demo/guide/, decision 0481). `add_into` (a test's or a
-## fixture's stocking) never counts.
+## Every milli-U of a CROP a DELIVERY has ever shelved (`store_upto_into`: a harvest carried to its store), and the item
+## of the latest: the first-village guide's "a harvest came into store" (demo/guide/, decision 0481). `add_into` (a
+## test's or a fixture's stocking) never counts, and nor do the pantry's other goods (decision 0431: a catch, the rack's
+## dried fish, the mill's flour) -- they are not a harvest.
 var delivered_milli: int = 0
 var last_delivered_item: int = FREE
 
@@ -382,8 +383,9 @@ func store_upto_into(item: int, milli: int, location: int, hold: int, out: IntMa
 		return out.succeed(0)
 	if own > 0:
 		_hold_milli[hold] = maxi(0, own - fits) if fits == milli else 0
-	delivered_milli += fits
-	last_delivered_item = item
+	if Catalog.is_item(item):
+		delivered_milli += fits
+		last_delivered_item = item
 	return out.succeed(fits)
 
 

@@ -7,9 +7,13 @@ extends RefCounted
 ## A waypoint's KIND is how it is reached from the one before: a SURFACE leg (WADE where the water's hook costs wading
 ## on it: the ford), a segment of the network walked (UNDERGROUND, with that segment's level; 0 for a ramp or stairs
 ## between the levels), or a crossing -- a bridge row (BRIDGE), a swim link row (SWIM), the preview's proposed bridge
-## (PROPOSED, preview_crossings.gd PROPOSAL_ROW), or any other water crossing (WATER: a boat leg, should the water
-## offer one). `runs_text` merges consecutive waypoints of one kind into a run, e.g.
-## "surface 18 m · wading 6 m · surface 12 m".
+## (PROPOSED, preview_crossings.gd PROPOSAL_ROW), or any other water crossing (BOAT). `runs_text` merges consecutive
+## waypoints of one kind into a run, e.g. "surface 18 m · wading 6 m · surface 12 m".
+##
+## BOAT LEGS (water part B, decisions 0432 and 0461). A boat's legs are TASK-DRIVEN, not router pairs: a crew member
+## aboard (a fishing trip's seat or a boat rescue's helm) is placed by the boat (boat_fleet.gd), not walking a route.
+## `boat_leg_into` reads the boat it sits in -- where it is now and the rest of its course, out to its station or back
+## to its berth -- so the Routes layer draws it as BOAT ("by boat"), never as an unknown crossing or nothing.
 
 const RouterScript := preload("res://demo/tunnel/tunnel_router.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
@@ -17,17 +21,20 @@ const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const CrossingHookScript := preload("res://demo/cast/crossing_hook.gd")
 const PreviewScript := preload("res://demo/routes/preview_crossings.gd")
 const BridgesScript := preload("res://demo/waterplay/bridges.gd")
+const FleetScript := preload("res://demo/boats/boat_fleet.gd")
+const BoatRoutes := preload("res://demo/boats/boat_routes.gd")
 
 const KIND_SURFACE: int = 0
 const KIND_WADE: int = 1
 const KIND_UNDERGROUND: int = 2
 const KIND_BRIDGE: int = 3
 const KIND_SWIM: int = 4
-const KIND_WATER: int = 5
+## A boat leg (see BOAT LEGS), and any other water crossing.
+const KIND_BOAT: int = 5
 const KIND_PROPOSED: int = 6
 const KIND_COUNT: int = 7
 ## How each kind reads in a run ("wading 6 m") and in the overlay's legend.
-const KIND_WORDS: Array[String] = ["surface", "wading", "underground", "bridge", "swimming", "by water", "new bridge"]
+const KIND_WORDS: Array[String] = ["surface", "wading", "underground", "bridge", "swimming", "by boat", "new bridge"]
 ## A level that is between the two (a ramp or stairs down).
 const BETWEEN_LEVELS: int = 0
 
@@ -37,6 +44,8 @@ var swim_first: int = BridgesScript.MAX_BRIDGES
 var swim_count: int = 0
 ## The water's hook, for wading (the base: no water).
 var hook: CrossingHookScript = CrossingHookScript.new()
+## The village's boats (water part B; none: no boat legs).
+var fleet: FleetScript = null
 
 
 func configure(water_hook: CrossingHookScript, first_swim_row: int, swim_rows: int) -> void:
@@ -59,7 +68,35 @@ func kind_of(code: int, a: Vector2, b: Vector2) -> int:
 		return KIND_BRIDGE
 	if row >= swim_first and row < swim_first + swim_count:
 		return KIND_SWIM
-	return KIND_WATER
+	return KIND_BOAT
+
+
+func boat_leg_into(who: int, out: PackedVector2Array) -> bool:
+	"""Resident `who`'s boat leg (see BOAT LEGS) into `out` (cleared first): the boat where it is now, then the rest of
+	its course -- on out to its station, or, on station or rowing back, back to its berth. False when `who` is in no boat
+	under way (moored: the walk to and from the jetty is its route)."""
+	out.clear()
+	var boat: int = fleet.boat_of_crew(who) if fleet != null else -1
+	if boat < 0 or fleet.phase[boat] == FleetScript.PHASE_MOORED:
+		return false
+	out.append(fleet.position_m(boat))
+	var points: PackedInt32Array = fleet.course[boat]
+	var start: int = 0
+	var outward: bool = fleet.phase[boat] == FleetScript.PHASE_OUT
+	var ahead := PackedVector2Array()
+	for k: int in range(1, points.size() / 2):
+		var a := Vector2i(points[k * 2 - 2], points[k * 2 - 1])
+		var b := Vector2i(points[k * 2], points[k * 2 + 1])
+		var length: int = BoatRoutes.leg_length_u(a, b)
+		if outward and start + length > fleet.progress_u[boat]:
+			out.append(BoatRoutes.m_of(b))
+		elif not outward and start < fleet.progress_u[boat]:
+			ahead.append(BoatRoutes.m_of(a))
+		start += length
+	if not outward:
+		for k: int in range(ahead.size() - 1, -1, -1):
+			out.append(ahead[k])
+	return out.size() > 1
 
 
 static func level_of(graph: GraphScript, code: int) -> int:

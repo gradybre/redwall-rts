@@ -976,6 +976,7 @@ func test_only_steps_whose_roots_stay_under_the_cut_are_dressed() -> void:
 
 func test_a_build_holds_at_most_max_rings() -> void:
 	"""Past MAX_RINGS a build takes no more rings."""
+	expect_diagnostic("bore_mesh: more than")
 	var builder := BoreMeshScript.new()
 	builder.begin()
 	for ring in BoreMeshScript.MAX_RINGS + 3:

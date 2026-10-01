@@ -770,6 +770,8 @@ func test_a_bridge_refused_its_spot_names_the_builder_it_was_given_to() -> void:
 
 func test_a_resident_index_that_names_nobody_is_refused() -> void:
 	"""F15 at the boundaries: -1 (NOBODY) or one past the cast is no actor and names nobody -- never the cast's last."""
+	expect_diagnostic("demo cast: no actor")
+	expect_diagnostic("bridge crew: no resident")
 	var pair := _water_rig()
 	var rig: RefCounted = pair[1]
 	var cast: DemoCastScript = rig.get(&"cast")

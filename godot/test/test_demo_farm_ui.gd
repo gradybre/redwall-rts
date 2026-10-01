@@ -69,6 +69,11 @@ var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _services: ServicesScript = ServicesScript.new()
 
 
+func tolerates_outside_tree() -> bool:
+	"""Its node fixtures are never inside the scene tree (test_case.gd ENGINE DIAGNOSTICS)."""
+	return true
+
+
 func before_each() -> void:
 	"""A fresh set of demo services per test."""
 	_services = ServicesScript.new()

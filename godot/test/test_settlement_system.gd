@@ -2751,6 +2751,7 @@ func test_a_retry_that_also_fails_halts_the_simulation_and_is_never_retried_agai
 	and refuses identically. That is the point of revalidating rather than replaying: the second
 	refusal is real evidence the fault is unresolved, not a cached verdict.
 	"""
+	expect_diagnostic("stock integrity fault")
 	_faulting_hour_setup()
 	assert_true(_settlement.run_tick(750), "the hour refuses")
 	assert_true(_settlement.run_tick(751),
@@ -2774,6 +2775,7 @@ func test_a_halted_tick_runs_no_stage_and_re_asserts_the_shared_critical_bit() -
 	re-submits the hold on every refused tick: a wrongly cleared integrity pause costs one
 	refused tick instead of resuming an unsafe world.
 	"""
+	expect_diagnostic("stock integrity fault")
 	_faulting_hour_setup()
 	assert_true(_settlement.run_tick(750), "the hour refuses")
 	assert_true(_settlement.run_tick(751), "the retry fails and halts")
@@ -2792,6 +2794,7 @@ func test_a_halted_tick_runs_no_stage_and_re_asserts_the_shared_critical_bit() -
 
 func test_only_a_reset_leaves_a_halted_settlement() -> void:
 	"""The one exit is `reset()`. No "clear the fault" call exists, deliberately."""
+	expect_diagnostic("stock integrity fault")
 	_faulting_hour_setup()
 	assert_true(_settlement.run_tick(750), "the hour refuses")
 	assert_true(_settlement.run_tick(751), "the retry fails and halts")
@@ -2869,6 +2872,7 @@ func test_a_per_lot_arithmetic_failure_pauses_and_halts_without_a_retry() -> voi
 	blocker in the decision record, not a judgement that this failure deserves less; what this
 	file can honour -- the blocking pause and the byte-identical store -- it honours.
 	"""
+	expect_diagnostic("stock integrity fault")
 	var lot: Vector2i = _store_with_one_overflowing_lot()
 	var before: PackedByteArray = _settlement.inventory().state_bytes()
 	assert_true(_settlement.run_tick(750), "the crossing tick still commits")
@@ -2913,6 +2917,7 @@ func test_the_daily_aging_leg_raises_and_retries_the_same_fault_as_the_tick_path
 
 func test_a_halted_settlement_refuses_the_daily_boundary_before_aging_anything() -> void:
 	"""A boundary must not walk past an unrecovered integrity fault into ecology and crops."""
+	expect_diagnostic("stock integrity fault")
 	_populated()
 	_faulting_hour_setup()
 	assert_true(_settlement.run_tick(750), "the hour faults")

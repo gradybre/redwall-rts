@@ -51,6 +51,11 @@ const SEED: int = 5211
 var _nodes: Array[Node] = []
 
 
+func tolerates_outside_tree() -> bool:
+	"""Its node fixtures are never inside the scene tree (test_case.gd ENGINE DIAGNOSTICS)."""
+	return true
+
+
 func after_each() -> void:
 	"""Free every node a test built."""
 	for node in _nodes:

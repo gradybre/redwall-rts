@@ -114,6 +114,7 @@ func _frame(f: int) -> void:
 
 func test_twenty_workers_at_four_x_cost_little_per_frame() -> void:
 	"""The director's frame, p50 / p95 / p99 / max, with every source busy; p99 under BUDGET_P99_USEC."""
+	tolerate_diagnostic("it plays silent until they are staged")  # the real cues: unstaged in CI
 	_crowd()
 	var samples := PackedInt64Array()
 	samples.resize(FRAMES)

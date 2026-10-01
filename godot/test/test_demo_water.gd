@@ -1343,6 +1343,7 @@ func test_stacked_labels_rise_clear_of_each_other_lowest_first() -> void:
 func test_a_site_whose_landing_the_map_lacks_is_not_labelled() -> void:
 	"""A map with no landings: every site's label stays hidden and out of the layout -- none falls to the
 	world origin (over the well) as it used to. On the village's map all three sit over their landings."""
+	expect_diagnostic("WATER_UNKNOWN_LANDING")
 	var overlay := Overlay.new()
 	_nodes.append(overlay)
 	overlay.set_driver(_driver(), _straight_stream())

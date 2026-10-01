@@ -26,6 +26,11 @@ const INSTALLED: int = FixturesScript.INSTALLED
 
 # --- fixtures -------------------------------------------------------------------------------------
 
+func tolerates_outside_tree() -> bool:
+	"""Its node fixtures are never inside the scene tree (test_case.gd ENGINE DIAGNOSTICS)."""
+	return true
+
+
 func _room(graph: GraphScript, kind: int, at: Vector2i, dug: bool = true) -> int:
 	"""A room of `kind` laid at `at` (u), turned 0, dug unless told not to; its row."""
 	var ref := PackedInt32Array([0, 0, 0, 0, 0])

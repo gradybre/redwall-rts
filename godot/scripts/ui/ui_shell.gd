@@ -2442,9 +2442,14 @@ func _place_local(id: int, rect: Rect2) -> void:
 
 
 func _set_rect(control: Control, rect: Rect2) -> void:
-	"""Apply one rectangle to a control without disturbing its anchors."""
+	"""Apply one rectangle to a control without disturbing its anchors.
+
+	`set_size()`, not the `size` property: the property's setter warns that an anchored node's size "will be overridden
+	after _ready()" whenever it runs before the node's first frame in the tree. The shell owns this geometry and lays it
+	out again on every resize (`_on_resized`), so nothing overrides it; the live layout harness checks the result at
+	1280x720 and 1920x1080. Both calls do the same thing (decision 0501)."""
 	control.position = rect.position
-	control.size = rect.size
+	control.set_size(rect.size)
 
 
 func _wire_focus() -> int:

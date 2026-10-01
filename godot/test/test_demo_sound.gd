@@ -160,6 +160,7 @@ func _staged_count(table: SoundTable) -> int:
 
 func test_missing_files_play_silent_with_one_warning_per_cue() -> void:
 	"""Nothing staged: no stream loads, every cue is silent, each warned about once however often it loads."""
+	expect_diagnostic("files missing")
 	var table := _unstaged()
 	assert_equal(table.load_streams(), 0, "nothing to load")
 	assert_equal(table.warnings, table.count(), "one warning per cue")
@@ -172,6 +173,7 @@ func test_missing_files_play_silent_with_one_warning_per_cue() -> void:
 
 func test_a_silent_cue_still_plays_its_voice_and_its_gap() -> void:
 	"""With no file the director still gives a cue its voice and its gap, so caps behave as they will with audio."""
+	tolerate_diagnostic("it plays silent until they are staged")  # the real cues: unstaged in CI
 	var director := _director()
 	director.warm()
 	var chop: int = director.table.row(&"chop")
@@ -184,6 +186,7 @@ func test_a_silent_cue_still_plays_its_voice_and_its_gap() -> void:
 func test_the_prewarm_loads_the_streams_at_boot() -> void:
 	"""The director's warm() is a prewarm step: run with the rest, reported; it loads every staged file (none
 	in CI) and the director is silent exactly when nothing is staged."""
+	tolerate_diagnostic("it plays silent until they are staged")  # the real cues: unstaged in CI
 	var director := _director()
 	var staged: int = _staged_count(director.table)
 	var prewarm := PrewarmScript.new()
@@ -431,6 +434,7 @@ func _given_streams(director: DirectorScript) -> Array:
 func test_a_staged_file_loads_without_a_warning_and_loops_as_its_cue_says() -> void:
 	"""A file that exists is loaded (no warning), the cue is no longer silent, and a looping cue's Ogg is set to
 	loop -- the drop-in path the sourcing plan relies on, with a saved stream standing in for a staged file."""
+	expect_diagnostic("files missing (res://demo/assets/sound/no_such.ogg)")
 	var path: String = "user://test_demo_sound_loop.tres"
 	var ogg := AudioStreamOggVorbis.new()
 	ogg.loop = false

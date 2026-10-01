@@ -820,6 +820,7 @@ func test_a_reused_row_never_keeps_the_last_incident_s_watch() -> void:
 
 func test_a_full_table_still_posts_the_warning() -> void:
 	"""Every row open: `report` is refused an incident but the feed still gets the line."""
+	expect_diagnostic("incident table full or raise refused")
 	var shared := _services()
 	for k: int in IncidentsScript.MAX_INCIDENTS:
 		shared.incidents.raise("k%d" % k, NoticesScript.SOURCE_CREW, IncidentsScript.SEVERITY_WARNING, "x")

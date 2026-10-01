@@ -105,6 +105,11 @@ static func two_levels(t: TestCaseScript) -> GraphScript:
 	return graph
 
 
+func tolerates_outside_tree() -> bool:
+	"""Its node fixtures are never inside the scene tree (test_case.gd ENGINE DIAGNOSTICS)."""
+	return true
+
+
 func _two_levels() -> GraphScript:
 	"""THE TWO LEVELS fixture (`two_levels`), checked here."""
 	return two_levels(self)

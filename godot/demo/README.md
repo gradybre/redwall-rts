@@ -513,6 +513,42 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
   command strip, the party panel and the right column; where its slot is short, its list and card scroll under
   its header (decision 0391).
 
+### Legends, the hover readout and comparing two layers (decision 0581)
+
+`lenses/` (wired by `demo_village.gd _build_lens_picker`, one `lenses/demo_lens_kit.gd`):
+
+- **The legend** (`ui/demo_lens_legend.gd`, in the picker's card): what the layer's ramp measures, with its units
+  (the caption), then its ordered **ramp** as one continuous colour bar with each entry's word and threshold under its
+  segment ("good / in range", "swim / ≤1.00 m") -- then its **keys** (fords, bridge sites, landings...). The Water range's
+  depths follow whoever is painted (a badger's wade reaches 0.64 m). The scales are data: `lenses/lens_scales.gd`.
+- **The hover readout** (`ui/demo_lens_readout.gd`): beside the pointer, the exact value under it for the shown
+  layer -- "Soil moisture 60% · good" with that bed's own band edges ("dry <5% · low <25% · wet ≤90% · waterlogged
+  >90%"), "Bed 3, Carrot · 80% grown / ripe in about N h at this hour's rate", "Bed 2 · leat: normal / up to 15 points
+  a day toward its good range's middle", "Water 1.40 m deep · dive / for a 1.0 m mouse: wade ≤0.25 m · swim ≤1.00 m",
+  "Oak · mature tree / forestry zone North stand: may be felled (keeps 20% mature)". Read ten times a second, worded
+  only when what is under the pointer changes, hidden over any panel; nothing is allocated per frame. Routes and
+  Underground have no readout (no probe).
+- **Compare** (the picker header's button between the layer's name and Off, two overlapping squares): pick a second layer and its areas are drawn as **outlines** over the
+  shown one (`lenses/lens_contours.gd`: each area traced in its own colour on its inside, round an ink core) -- a bed
+  filled by moisture and ringed by the leat's service; the readout adds the compared layer's value. Its legend shows
+  below its "Outlined: …" line, compact and outlined. Picking it again, or **✕**, turns it off. V and the list change the shown layer and keep
+  the compared one (unless it becomes the shown one); U's view drops it. Only layers with an outlining probe are
+  offered: the three Growing layers, the Water range and the Woods' zones.
+- **Colours** (`lenses/lens_palette.gd`): one token per area colour, read by the bed discs, the water's zone paint,
+  the legends and the outlines; every layer's area colours pass the colour-blind check (`lenses/lens_colour_check.gd`:
+  deuteranopia and protanopia, legend, day and night). The moisture and ripeness ramps changed for it (moisture: orange
+  dry, pale low, sage good, periwinkle wet, indigo waterlogged; ripeness: blue-grey growing, gold ripe, plum past its
+  best).
+- **At night**: every layer's marks are unshaded, and the outlines also ignore the haze, so the moon and lamps do not
+  dim them; only the frame's own grade does, and the check includes it.
+- **Reduced motion**: the readout fades in and out over 80 ms (UI §2.2), at once with Reduced motion on.
+- **Adding a layer** (a seasonal one, the winter's fuel): fill one `lenses/lens_def.gd` record -- group, label,
+  question, `show(on)`, swatches and words, which swatches form the ramp with a threshold each, the caption with
+  units, which swatches are areas, the ground they lie on, and optionally a probe (`lenses/lens_probe.gd`: `read_into`
+  with no allocation, `describe`, and a field to outline) -- and call `demo_farm.lenses.add_def(def)`. V, the picker,
+  the legend, the readout, compare and the colour check (`test/live/demo_lens_live.gd` checks every layer the village
+  has) pick it up with no other change. Put its area colours in `lens_palette.gd`.
+
 ## Routes and infrastructure previews (decision 0461)
 
 Review group P (packet P5, ECO-039, ECO-045). `routes/`, wired by `demo_village.gd _build_routes`:
@@ -1766,7 +1802,8 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `access/` | Accessibility: the settings and presets, their effects on the village, reduced motion, the world's interactive targets (the object list, F6, and their rings), the focus hint, the Settings section (decision 0471) |
 | `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens; then the underground view drawn once |
 | `demo_layers.gd` | The four render layers every drawn node is on, and the plane each view picks on (decision 0206) |
-| `map_lenses.gd`, `lens_subject.gd` | The map layers: one shown at a time, each with its question, legend and subject; V's cycle and U's followed layer (decision 0292) |
+| `map_lenses.gd`, `lens_subject.gd` | The map layers: one shown at a time, each with its question, legend and subject; V's cycle and U's followed layer (decision 0292); each layer's scale, probe and the compared layer (decision 0581) |
+| `lenses/` | The map layers' legends, hover readout and compare outlines (decision 0581): a layer as one record, the probes (beds, water, woods), the legend scales, the colour tokens and the colour-blind check, the outlines, and the kit that wires them |
 | `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |
 | `ui/` | The woodland HUD skin; the HUD date, the news strip, the village-news history, the incident card and "Go to", and the right column's tabs; the HUD's village read model (counters and ledger), the Residents roster and the village map; the Map layer picker; the pause card and the "Run until…" button and menu (decision 0471) |
 | `camera/` | The RTS camera, and the canopy clearance: the eye kept out of crowns, the crowns in the way thinned, the selected shown through |

@@ -187,6 +187,7 @@ const WaterPanelScript := preload("res://demo/waterplay/water_panel.gd")
 const CanopyScript := preload("res://demo/camera/canopy_clear.gd")
 const WeatherViewScript := preload("res://demo/weather/weather_view.gd")
 const LensPickerScript := preload("res://demo/ui/demo_lens_picker.gd")
+const LensKitScript := preload("res://demo/lenses/demo_lens_kit.gd")
 const TunnelControlScript := preload("res://demo/tunnel/tunnel_control.gd")
 const WaterOverlayScript := preload("res://demo/water/water_overlay.gd")
 const ForestMarks := preload("res://demo/forestry/forest_marks.gd")
@@ -284,6 +285,8 @@ var _sound: SoundScript = SoundScript.new()
 ## opening pause is held only once per process).
 var _held_open: bool = false
 var _lens_picker: LensPickerScript = null
+## The map layers' hover readout and compare outlines (decision 0581).
+var _lens_kit: LensKitScript = null
 ## The Water range layer's row in the farm's lenses (its subject is set once the water's play is built).
 var _water_lens: int = 0
 var _history: NewsHistoryScript = null
@@ -929,6 +932,9 @@ func _build_lens_picker() -> void:
 	_farm.lenses.follow_state(under, func() -> bool: return tool.view.on)
 	_farm.lenses.set_legend(under, PackedColorArray([Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0)]),
 		PackedStringArray(["blue hatch: too wet to dig", "stone: building footings", "U: back to the surface"]))
+	_lens_kit = LensKitScript.new()
+	add_child(_lens_kit)
+	_lens_kit.attach(_farm.lenses, _farm.sim, _water.map(), _water.overlay(), _forestry.stand, _forestry.zones)
 	_lens_picker = LensPickerScript.new()
 	add_child(_lens_picker)
 	_lens_picker.configure(_farm.lenses, _zone.journal_open)
@@ -944,6 +950,11 @@ func show_underground(on: bool) -> void:
 func lens_picker() -> LensPickerScript:
 	"""The Map layer picker (demo/ui/demo_lens_picker.gd)."""
 	return _lens_picker
+
+
+func lens_kit() -> LensKitScript:
+	"""The map layers' hover readout and compare outlines (demo/lenses/demo_lens_kit.gd)."""
+	return _lens_kit
 
 
 func _shell() -> UiShell:

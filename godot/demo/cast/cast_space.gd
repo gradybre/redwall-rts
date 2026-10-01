@@ -37,7 +37,8 @@ extends RefCounted
 ##
 ## TUNNEL MOUTHS AND HEAPS. Nobody is sent to STAND on a planned mouth: a formation keeps off them
 ## (`mouth_circles`), a mole stepping out of its exit keeps off them (`on_mouth`), and no mouth may
-## open on a work spot (tunnel_rules). Walks may cross a hole's rim -- planning round every mouth
+## open on a work spot (tunnel_rules); nor over an opened mouth's open cutting (decision 0371). Walks may cross a hole's
+## rim and a cutting -- planning round every mouth
 ## was measured at five times the cost of a plan (16 more circles to ring on every search), for a
 ## glance's difference. A spoil heap is a real obstacle: `set_heap` adds it to the world's
 ## circles, and each body class's navigation graph is rebuilt in slices over the next frames (cast_nav.gd
@@ -54,6 +55,8 @@ const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const CrossingHookScript := preload("res://demo/cast/crossing_hook.gd")
+const MouthScript := preload("res://demo/tunnel/tunnel_mouth.gd")
+const PropsScript := preload("res://demo/props/demo_props.gd")
 
 const PLAN_MARGIN_M: float = CastNavScript.PLAN_MARGIN_M
 const GOAL_EPSILON_M: float = CastNavScript.GOAL_EPSILON_M
@@ -107,6 +110,8 @@ var resident_heading: PackedInt32Array = PackedInt32Array()
 ## The walkable area (x, z); unbounded until DemoCast.set_bounds.
 var bounds: Rect2 = Rect2(-1e4, -1e4, 2e4, 2e4)
 var nav: CastNavScript = CastNavScript.new()
+## Each bore class's forecourt half-width as the mouths draw it (`court_half_m`, `set_props`).
+var _court_half: PackedFloat32Array = PackedFloat32Array()
 var tunnels: GraphScript = GraphScript.new()
 ## The water's crossings (see IN THE WATER); the base offers none.
 var crossings: CrossingHookScript = CrossingHookScript.new()
@@ -329,12 +334,38 @@ func _to_node_m(index: int, node: int) -> float:
 
 func on_mouth(at: Vector2, body: float) -> bool:
 	"""Whether a body of radius `body` standing at `at` would overlap any mouth's hole and rim (a planned one's
-	too)."""
+	too), or stand over an opened mouth's open cutting and the arch at its foot (tunnel_mouth.gd, decision 0371)."""
 	var reach := body + TunnelRules.HOLE_RADIUS_M * TunnelRules.RIM_FACTOR
 	for m in TunnelRules.MAX_MOUTHS:
-		if tunnels.is_mouth(m) and tunnels.mouth_at(m).distance_squared_to(at) < reach * reach:
+		if not tunnels.is_mouth(m):
+			continue
+		if tunnels.mouth_at(m).distance_squared_to(at) < reach * reach or _over_cutting(m, at, body):
 			return true
 	return false
+
+
+func _over_cutting(m: int, at: Vector2, body: float) -> bool:
+	"""Whether a body at `at` overlaps mouth `m`'s open cutting or its forecourt, out to the far side of the arch over
+	its foot (tunnel_mouth.gd `cutting_gap`)."""
+	if not tunnels.mouth_opened(m):
+		return false
+	var bore := int(tunnels.bore[tunnels.mouth_ramp(m)])
+	return MouthScript.cutting_gap(tunnels, m, at, court_half_m(bore), 0.0) < body
+
+
+func court_half_m(bore: int) -> float:
+	"""How far either side of a bore class's cutting its forecourt opens (m): as the mouths draw it, the staged arch's
+	piers once `set_props` has the table (tunnel_mouth.gd `court_half_m`)."""
+	if _court_half.size() <= bore:
+		set_props(null)
+	return _court_half[bore]
+
+
+func set_props(props: PropsScript) -> void:
+	"""The props table the mouths are drawn with (tunnel_ext.gd): the forecourts' width follows its arch."""
+	_court_half.resize(TunnelRules.BORE_WIDTHS_U.size())
+	for bore in _court_half.size():
+		_court_half[bore] = MouthScript.court_half_m(props, bore)
 
 
 func mouth_circles() -> PackedVector3Array:

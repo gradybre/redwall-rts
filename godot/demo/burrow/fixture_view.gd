@@ -5,8 +5,10 @@ extends Node3D
 ## visibly fill as harvests come in"). Presentation only.
 ##
 ## BELOW (the U view's layers), per room and place (room_fixtures.gd): nothing while it is EMPTY, a chalk ring while it
-## is PLANNED, the fixture once INSTALLED (fixture_kit.gd: the library's props, and stand-ins for the root bin, the
-## hanging stores and the rug). A place's node is built when its phase changes -- never on a view switch -- and a
+## is PLANNED, the fixture once INSTALLED (fixture_kit.gd: the library's props -- since P7 (decision 0371) the root
+## bin, the hanging stores, the rug and the large bed too -- each with a procedural stand-in for when it is not staged).
+## The hanging stores hang from the room's ring beam by their wall brackets (`hang_back_m`), their top HANG_TOP_M over
+## the floor. A place's node is built when its phase changes -- never on a view switch -- and a
 ## room's pieces show only while it is dug.
 ##
 ## PUT IN (decision 0211; design §4 "each with an install pop"): while a resident works a planned place, the fixture
@@ -47,6 +49,9 @@ const FLOOR_LIFT_M: float = 0.02
 const FIRE_OUT_SHARE: float = 0.2
 const FIRE_Y_M: float = 0.12
 const FIRE_LIGHT: Vector3 = Vector3(0.0, 0.35, 0.2)
+## The staged hanging stores hang with their top here over the floor: on the ring beam (room_view.gd BEAM_Y_M) by
+## their brackets, their back against its inner face.
+const HANG_TOP_M: float = RoomViewScript.BEAM_Y_M + RoomViewScript.BEAM_DEPTH_M * 0.5
 ## A hung lantern hangs this high on the wall, its bracket's reach out from it (the wall lantern's fit).
 const LANTERN_LIFT_M: float = 1.0
 const FILL_EVERY_S: float = 0.25
@@ -112,9 +117,9 @@ func _build_room_row() -> void:
 	var ground := Node3D.new()
 	ground.visible = false
 	add_child(ground)
-	KitScript.chimney(ground)
+	KitScript.chimney(ground, _props)
 	var puffs := KitScript.smoke()
-	puffs.position = Vector3(0.0, KitScript.CHIMNEY_TOP_M, 0.0)
+	puffs.position = Vector3(0.0, KitScript.chimney_top_m(_props), 0.0)
 	ground.add_child(puffs)
 	Layers.set_layers(ground, Layers.SURFACE)
 	_ground.append(ground)
@@ -239,10 +244,8 @@ func _rise(row: int, fit: FixturesScript) -> void:
 	var rising := _rising[row]
 	if kind == RoomsScript.FIX_LANTERN or kind == RoomsScript.FIX_HANGING:
 		rising.scale = Vector3.ONE * share
-	elif kind == RoomsScript.FIX_RUG:
-		for child in rising.get_children():
-			if child is Decal:
-				(child as Decal).modulate = Color(1.0, 1.0, 1.0, share)
+	elif kind == RoomsScript.FIX_RUG and rising.get_child_count() > 0 and rising.get_child(0) is Decal:
+		(rising.get_child(0) as Decal).modulate = Color(1.0, 1.0, 1.0, share)
 	else:
 		rising.position.y = -_rise_tall[row] * (1.0 - share)
 
@@ -266,12 +269,15 @@ func _install(r: int, f: int, piece: Node3D) -> void:
 		RoomsScript.FIX_RACK:
 			KitScript.rack(piece, _props, slots)
 		RoomsScript.FIX_BIN:
-			KitScript.root_bin(piece, slots)
+			KitScript.root_bin(piece, slots, _props)
 		RoomsScript.FIX_HANGING:
-			KitScript.hanging(piece, slots)
+			var back := hang_back_m(_graph.rooms.template[r], f)
+			KitScript.hanging(piece, slots, _props, KitScript.hang_at(_props, HANG_TOP_M, back) if back >= 0.0 else Transform3D.IDENTITY)
 			_fill_all(slots, _graph.rooms.template[r] == RoomsScript.TEMPLATE_HOME)
 		RoomsScript.FIX_RUG:
-			(KitScript.rug(piece) as Decal).cull_mask = Layers.below(_graph.rooms.level[r])
+			var rug := KitScript.rug(piece, _props)
+			if rug is Decal:
+				(rug as Decal).cull_mask = Layers.below(_graph.rooms.level[r])
 		RoomsScript.FIX_LANTERN:
 			_hang_lantern(piece)
 		RoomsScript.FIX_BIG_BED:
@@ -298,6 +304,28 @@ func _hang_lantern(piece: Node3D) -> void:
 	var reach: float = _props.drawn_bound(&"wall_lantern").size.x * 0.5
 	var hung := Transform3D(Basis(Vector3.UP, PI * 0.5), Vector3(0.0, LANTERN_LIFT_M, reach))
 	KitScript.prop(piece, _props, &"wall_lantern", hung)
+
+
+static func hang_back_m(template: int, f: int) -> float:
+	"""How far behind place `f` of a room of `template` -- back along its facing, in the room's own frame -- the ring
+	beam's inner face is (m): where the hanging stores' back hangs (room_view.gd's beam: a circle BEAM_INSET_M inside a
+	home's wall, a rectangle inside a cellar's). -1 when the way back never meets it."""
+	var at := Vector2(Rules.to_m(RoomsScript.fixture_field(template, f, 1)), Rules.to_m(RoomsScript.fixture_field(template, f, 2)))
+	var back := -Vector2(float(RoomsScript.fixture_field(template, f, 3)), float(RoomsScript.fixture_field(template, f, 4))).normalized()
+	var wall := Vector2(Rules.to_m(RoomsScript.void_half(template).x), Rules.to_m(RoomsScript.void_half(template).y))
+	var inset := RoomViewScript.BEAM_INSET_M + RoomViewScript.BEAM_WIDTH_M * 0.5
+	if RoomsScript.SHAPE[template] == RoomsScript.SHAPE_ROUND:
+		var reach := wall.x - inset
+		var along := at.dot(back)
+		var under := along * along - at.length_squared() + reach * reach
+		return -along + sqrt(under) if under >= 0.0 else -1.0
+	var best := -1.0
+	for axis: int in 2:
+		if absf(back[axis]) > 1e-4:
+			var t := (signf(back[axis]) * (wall[axis] - inset) - at[axis]) / back[axis]
+			if t >= 0.0 and (best < 0.0 or t < best):
+				best = t
+	return best
 
 
 func place_transform(r: int, f: int) -> Transform3D:
@@ -385,8 +413,7 @@ func show_fill(r: int, permille: int) -> void:
 		for slot: Node3D in _slots[r * PLACES + f]:
 			slot.visible = shown > 0
 			shown -= 1
-			if slot is MeshInstance3D and (slot as MeshInstance3D).mesh is SphereMesh:
-				slot.scale.y = KitScript.HEAP_TOP_M * float(clampi(permille, 0, 1000)) / KitScript.HEAP_HALF_M / 1000.0
+			KitScript.fill_heap(slot, permille)
 
 
 static func _fill_all(slots: Array, full: bool) -> void:

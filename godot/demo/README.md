@@ -331,8 +331,8 @@ Mac with a lit tunnel, from 278 ms).
   woods, the water and the spoil heaps are surface things.
 - **Prewarmed**: everything it can draw registers with `tunnel/underground_prewarm.gd` as it is built,
   and a sample of each is drawn for two frames behind the opening pause.
-- Later phases: the switch's crossfade; the generated arch, door, chimney pot, root bin, hanging stores, rug and
-  crouch-walk clips replace the procedural ones (P7). The second level is P6's (below).
+- Later phases: the switch's crossfade. The generated props and clips are P7's (decision 0371, below). The second
+  level is P6's (below).
 
 ## The second level (decision 0212)
 
@@ -414,8 +414,9 @@ Rooms are their own structures on the network (decision 0209, `burrow/undergroun
   door and the sockets, a wall lantern (warm in a home, cooler in a cellar) as one of the pooled lights; cut
   clean at the section. On the surface a low turfed mound in the village's own grass, cut back to a bank of
   bare earth where the ramp comes in: a home's round front door in a timber ring on a fieldstone sill at the
-  foot of its cutting, a cellar's two-leaf hatch leaning against its bank -- procedural until P7's generated
-  doors. The mound is an obstacle from the moment the room is laid.
+  foot of its cutting, a cellar's two-leaf hatch leaning against its bank. Since P7 the home's door is the library's
+  burrow door at the foot of an open cutting, and it swings open for whoever comes through (below). The mound is an
+  obstacle from the moment the room is laid.
 - **Ways in**: the door and the hatch are mouths of the network (`mouth_kind` DOOR, HATCH), so routes go in
   and out by them as by a tunnel's mouth; a room with a passage is a way through, too.
 - A dug room is **bare** -- only its own lantern by the door. What stands in it is its fit-out (below).
@@ -446,8 +447,8 @@ words: "the demo stores are short: the bed needs 2 planks (they hold ...)"); tak
 A planned fixture shows as a chalk ring; a resident **walks in and puts it in** (the work clip, 0.15 s of demo
 time a WU): the residents selected when it was ordered, else the nearest one wandering on its own, three at
 most at once, never at night. One called away (to bed at dusk, say) keeps the place for a game day and comes back
-to it (`burrow/fixture_crew.gd`). The root bin, the hanging stores and the rug are procedural stand-ins, and the
-chimney pot too, until P7's generated props.
+to it (`burrow/fixture_crew.gd`). Since P7 the root bin, the hanging stores, the rug, the chimney pot and the large
+bed are the library's (below); each keeps its procedural stand-in for a demo with nothing staged.
 
 **Comfort** (a home's panel and the resident panel): 2000 bare, 4000 with a bed, 6000 with a hearth too (the
 GDD's dormitory target), and 250 a decoration up to 1000 -- the suggested layout reads 7000, "cozy". A readout
@@ -509,6 +510,41 @@ vent every 5 m; every mouth arch hangs a lit lantern.
 once is not drawn. The weather's rain and snow, the woods' chips and leaves and the swimmers' bubbles are their own.
 
 **The Dig tool's readout** adds what bracing the route would cost: "brace 4.0 wood + 4.0 stone".
+
+## The generated props and clips (decision 0371)
+
+The underground pass's seven props and nineteen clips (decision 0204) are in, with their known defects fixed in Blender
+or in code; nothing was spent. Every piece keeps its procedural stand-in, drawn when nothing is staged (CI).
+
+- **The mouths** (`tunnel/tunnel_mouth.gd`). A tunnel's ramp is an **open cutting**: its floor follows the ramp down --
+  the floor the residents walk -- between hand-dug earth walls, its middle worn paler, and the ground is cut open over
+  it (`world/ground_cut.gd`: the ground's triangles over the hole dropped, the rest of them drawn again round it in the
+  ground's own grass). Where the bore goes under the turf the cutting opens into a forecourt and the generated
+  **tunnel arch** stands, its doorway's slab cut out in Blender, framing the bore, a wall lantern on its lintel; beyond
+  it the bore goes on dark. A resident walking the cutting is drawn on the surface too, so it is seen going down and
+  under the arch. Nobody is sent to stand over a cutting or its forecourt, and no spoil heap is laid on one
+  (`tunnel_mouth.gd cutting_gap`, asked by `cast/cast_space.gd on_mouth` and `tunnel/tunnel_heaps.gd`).
+- **The burrow door** (`burrow/room_view.gd`, `burrow/door_swing.gd`). A home's door ramp is an open cutting down to
+  its door: the generated burrow door, its round leaf split from its stone face in Blender and hung from a hinge. It
+  swings open as a resident comes through below, and shut behind it.
+- **The crouch walk** (`cast/demo_actor.gd`). In a bore that makes a resident stoop, its walk is the crouch walk
+  (Meshy's `Cautious_Crouch_Walk_Forward`), played at the speed its planted feet move; the procedural stoop adds only
+  what the crouch leaves to clear. A mole, upright in every bore, walks. The mouse keeper's crouch is pinned again as it
+  is staged (`tools/stage_demo_assets.py REPIN`).
+- **The dig** (`cast/strike_clock.gd`). A digger at the face with the swing (the mole digger and the badger quarryman:
+  Meshy's `Heavy_Hammer_Swing`) swings it once per quantum cut, timed to land as the cut falls, and stands between
+  swings. It is never looped: the swing ends turned 68-81 degrees.
+- **The hand lantern and the basket** (`tunnel/warren_kit.gd`): the library's candle lantern (made at the furniture
+  budget, its horn panes glowing) set down at the face, and the library basket for hauling.
+- **The fit-out** (`burrow/fixture_kit.gd`): the root bin, the rag rug, the chimney pot on the mound, the hanging
+  stores -- at the furniture budget, in parts, hung by their wall brackets from the room's ring beam, a cellar's
+  strings showing one by one as it fills -- and the large bed, the library bed lengthened in Blender without
+  stretching its quilt. The library root bin is modelled full of roots, so it shows full whatever the cellar holds.
+- **The stairs** (`tunnel/stair_view.gd`): timber tread boards whose nosing overhangs a timber riser, over packed earth,
+  in a procedural grain.
+
+The fixed props are made by `tools/make_demo_derived_props.py` (Blender half `tools/demo_derived_blender.py`) from the
+library high-polys, into `assets/props/<key>__<part>.glb`; `stage_demo_assets.py` runs it with the props.
 
 ## Farming
 

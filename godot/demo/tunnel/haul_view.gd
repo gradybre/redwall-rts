@@ -20,6 +20,7 @@ const ParticlesScript := preload("res://demo/tunnel/warren_particles.gd")
 const KitScript := preload("res://demo/tunnel/warren_kit.gd")
 const Layers := preload("res://demo/demo_layers.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
+const PropsScript := preload("res://demo/props/demo_props.gd")
 
 ## A basket on the floor stands this far before its resident (m); tipped, it leans this far over (rad).
 const AHEAD_M: float = 0.42
@@ -35,11 +36,15 @@ var _spoil: Array[MeshInstance3D] = []
 ## Per resident: the stage it was last drawn at, and whether its actor holds the basket.
 var _drawn: PackedByteArray = PackedByteArray()
 var _held: PackedByteArray = PackedByteArray()
+## The demo's props, for the library basket (decision 0371; null or unstaged: warren_kit.gd's stand-in).
+var _props: PropsScript = null
 
 
-func configure(network: GraphScript, cast: DemoCastScript, particles: ParticlesScript) -> void:
-	"""Draw this network's hauling for this cast, puffing from `particles`: a hidden basket per resident."""
+func configure(network: GraphScript, cast: DemoCastScript, particles: ParticlesScript, props: PropsScript = null) -> void:
+	"""Draw this network's hauling for this cast, puffing from `particles`, its baskets `props`' (warren_kit.gd): a
+	hidden basket per resident."""
 	name = "HaulView"
+	_props = props
 	_network = network
 	_cast = cast
 	_particles = particles
@@ -48,11 +53,11 @@ func configure(network: GraphScript, cast: DemoCastScript, particles: ParticlesS
 	for i in cast.actor_count():
 		var basket := Node3D.new()
 		var body := MeshInstance3D.new()
-		body.mesh = KitScript.basket()
+		body.mesh = KitScript.basket(props)
 		basket.add_child(body)
 		var spoil := MeshInstance3D.new()
 		spoil.mesh = KitScript.spoil_heap()
-		spoil.position = Vector3(0.0, KitScript.BASKET_TALL_M * 0.35, 0.0)
+		spoil.position = Vector3(0.0, KitScript.rim_m(props) * 0.35, 0.0)
 		basket.add_child(spoil)
 		basket.visible = false
 		add_child(basket)
@@ -96,7 +101,7 @@ func _hold(i: int, carrying: bool) -> void:
 	_held[i] = want
 	var actor := _cast.actor(i) as DemoActorScript
 	if carrying:
-		actor.hold(KitScript.loaded_basket(), KitScript.basket_fit())
+		actor.hold(KitScript.loaded_basket(_props), KitScript.basket_fit(_props))
 	else:
 		actor.drop_held()
 

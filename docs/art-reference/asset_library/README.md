@@ -127,8 +127,8 @@ high-poly (PBR, 2K, triangles, no remesh; 30). **36 each.**
 - Every high-poly is Y-up, faces +Z and is centred on the origin, with its longest side about 1.9 units.
 - The L0s were made free, by `make_demo_props.py`'s own `stage()`, into the demo's gitignored
   `godot/demo/assets/props/`. Godot 4 imports each one upright, with its bottom at y = 0.
-  - These keys are **not yet in that tool's `PROPS` table**, nor in the demo's `manifest.json`. The
-    underground branch adds them.
+  - The underground revamp's P7 (decision 0371) added these keys to that tool's `PROPS` table
+    (`UNDERGROUND_PROPS`) and so to the demo's `manifest.json`.
   - `root_bin` was tried first as a small prop. At 1,150 triangles its feet and slats collapsed, so it was
     made at the furniture budget instead.
 
@@ -158,6 +158,24 @@ All 19 went through repair → tail → ground → bake. No existing row of `rep
 | Sleep, `otter_boatwright` baked | The tail's clearance constraint falls **2.6 cm short**: the otter lies on its tail. The bake exits 1 on this row. The bake's other failing row (`otter_fisher` / `anim_collect_object`, a 124° flick) was already failing on master. |
 | Crouch-walk, `mouse_keeper` | Two contacts are left unpinned (`"support"`), so 8.8 cm of slide remains. The other seven pin to 0–1.8 cm. |
 | Crouch-walk (all 8) | It travels, 0.68–2.74 m per loop, and that is recorded as root motion (0195). The swing foot drags 0.06–0.81 m, the known gait scrape. |
+
+**Derived for the demo (P7, decision [0371](../../decisions/0371-the-generated-underground-props-and-clips-swapped-in.md)).**
+`tools/make_demo_derived_props.py` (Blender half `demo_derived_blender.py`) makes these from the high-polys, which it only
+reads, into the demo's gitignored `godot/demo/assets/props/`, each with a `.made.json` (the job, stamped with both
+Blender scripts' SHA-256, and the source's SHA-256) and a manifest row. Same decimate-and-bake as the plain L0s; every
+key inside the furniture ceiling (2,000), its parts together.
+
+| Key | Source (SHA-256) | Fix | Parts (triangles) |
+|---|---|---|---|
+| `burrow_door_open` | `prop/burrow_door/highpoly.glb` (`2de1ea40966d…`) | leaf (a disc round its measured middle) split from the frame, the leaf's back face brought up to a door's thickness and its edge closed by a rim | `burrow_door_open__leaf.glb` 559, `burrow_door_open__frame.glb` 1340 |
+| `tunnel_arch_open` | `prop/tunnel_arch/highpoly.glb` (`f685f3e1b6ab…`) | the doorway's two dark sheets (4,571 faces) removed | `tunnel_arch_open__arch.glb` 1899 |
+| `hanging_stores_strung` | `prop/hanging_stores/highpoly.glb` (`7940c13a0215…`) | at the furniture budget, split into its bar and five strings | `hanging_stores_strung__bar.glb` 520, `hanging_stores_strung__string0.glb` 272, `hanging_stores_strung__string1.glb` 232, `hanging_stores_strung__string2.glb` 259, `hanging_stores_strung__string3.glb` 264, `hanging_stores_strung__string4.glb` 271 |
+| `hand_lantern_lit` | `prop/hand_lantern/highpoly.glb` (`26476ac1720c…`) | at the furniture budget; its pale horn panes and candle a second material, `glow` | `hand_lantern_lit__lantern.glb` 1900 |
+| `large_bed` | `prop/bed/highpoly.glb` (`5c76233c032b…`) | lengthened by 1.31 units, the middle slab repeated (quilt not stretched) | `large_bed__bed.glb` 1899 |
+
+The root bin was tried twice (its roots split from its bin; its roots cut out) and both shattered its slats at the
+budget: the plain L0 is used, full. `tools/stage_demo_assets.py` also re-pins the mouse keeper's crouch walk as it stages
+it (support tolerance 2 cm, `REPIN`): its two contacts left unpinned above pin, the library's grounded clip untouched.
 
 ## What is in it
 

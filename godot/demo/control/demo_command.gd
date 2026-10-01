@@ -515,6 +515,11 @@ func selection_count() -> int:
 	return _selected.count(1)
 
 
+func is_selected(actor_index: int) -> bool:
+	"""Whether this resident is selected (no array is built: the canopy's per-frame check)."""
+	return actor_index >= 0 and actor_index < _selected.size() and _selected[actor_index] != 0
+
+
 func selected() -> PackedInt32Array:
 	"""The selected actor indices, in cast order."""
 	var out := PackedInt32Array()

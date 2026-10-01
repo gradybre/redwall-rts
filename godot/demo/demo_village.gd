@@ -68,6 +68,11 @@ extends Node3D
 ## SPOIL (demo/spoil/): a tunnel's spoil heaps can be selected and cleared -- dug out and hauled into the
 ## farm's compost store (Clear: right-click a heap with residents selected). `_build_spoil()` wires it.
 ##
+## CANOPY (demo/camera/canopy_clear.gd, decision 0301): the camera's eye is held out of tree crowns, the
+## crowns between the eye and the focus or a selected resident thin out, and a selected resident shows as
+## a silhouette through foliage and roofs. `_build_canopy()` wires it after the woods; its materials are
+## drawn once at boot (a prewarm frame step).
+##
 ## WOODS (demo/forestry/): every tree is a real ResourceNode row -- felled, hauled, regrown, blown down,
 ## replanted -- worked by the residents, with forestry and conservation zones, deadfall, a sawhorse and
 ## the "Woods (demo)" panel, the right column's third tab. Its wood goes into the demo's ONE stores
@@ -109,6 +114,7 @@ const SpoilScript := preload("res://demo/spoil/demo_spoil.gd")
 const PrewarmScript := preload("res://demo/demo_prewarm.gd")
 const TunnelViewScript := preload("res://demo/tunnel/tunnel_view.gd")
 const UndergroundPrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
+const CanopyScript := preload("res://demo/camera/canopy_clear.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -120,6 +126,8 @@ const WATER_OVERLAY_NAME: String = "water zones and fishery"
 const PROCESS_AFTER_CHILDREN: int = 1
 ## Refit the sun's shadow range when the zoom has moved this far since the last fit.
 const SHADOW_REFIT_M: float = 0.5
+## Frames the canopy's fade and silhouette samples are drawn for at boot (as the U view's, decision 0206).
+const CANOPY_PREWARM_FRAMES: int = 2
 
 @onready var _game: Node = $Game
 
@@ -139,6 +147,7 @@ var _forestry: ForestryScript = null
 var _waterplay: WaterplayScript = null
 var _links: LinksScript = null
 var _spoil: SpoilScript = null
+var _canopy: CanopyScript = null
 var _prewarm: PrewarmScript = PrewarmScript.new()
 var _shadow_view_m: float = -1.0
 
@@ -161,6 +170,7 @@ func _ready() -> void:
 	_build_farm(manifest)
 	_build_spoil()
 	_build_forestry()
+	_build_canopy()
 	_command.add_skill_text(_command.tunnels().ext.skill_text)
 	_command.add_skill_text(_command.tunnels().ext.night.home_text)
 	_build_waterplay()
@@ -183,6 +193,7 @@ func _warm_and_open() -> void:
 	_prewarm.add_frame_step("rooms on the ground", UndergroundPrewarmScript.FRAMES, rooms.begin_surface_prewarm,
 		rooms.end_surface_prewarm)
 	_prewarm.add_frame_step("underground view", UndergroundPrewarmScript.FRAMES, view.begin_prewarm, view.end_prewarm)
+	_prewarm.add_frame_step("canopy fade and silhouette", CANOPY_PREWARM_FRAMES, _canopy.begin_prewarm, _canopy.end_prewarm)
 	_prewarm.warm()
 	_prewarm.release_after_frames(_open_running)
 
@@ -276,6 +287,20 @@ func _build_forestry() -> void:
 	_forestry.crew.set_compost(compost_left, take_compost)
 	_forestry.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
 	_farm.add_overlay(ForestryScript.OVERLAY_NAME, _forestry.set_overlay)
+
+
+func _build_canopy() -> void:
+	"""The crowns kept out of the camera's way and the selected residents' silhouettes, over the woods'
+	trees (demo/camera/canopy_clear.gd)."""
+	_canopy = CanopyScript.new()
+	add_child(_canopy)
+	_canopy.configure(_camera as DemoCameraScript, _forestry.stand, _forestry.view, _cast as DemoCastScript,
+		_command as DemoCommandScript)
+
+
+func canopy() -> CanopyScript:
+	"""The canopy clearance (demo/camera/canopy_clear.gd)."""
+	return _canopy
 
 
 func compost_left() -> int:

@@ -579,8 +579,8 @@ func test_the_spoil_forecast_crosses_a_season_change() -> void:
 
 
 func test_the_pantry_row_names_the_next_lot_to_spoil() -> void:
-	"""Two carrot lots, a young one in the cellar (×0.35) and an older one in the covered store: the row
-	shows the whole stock and the lot that goes first -- its amount, its hours, its store."""
+	"""Two carrot lots, a young one in the cellar (×0.35) and an older one in the covered store: a row per
+	store (decision 0292), each naming its own next lot to spoil and its hours."""
 	var sim := SimScript.new()
 	var pantry := _store_pantry()
 	pantry.add_into(CARROT, 2000, 0, _read)
@@ -593,8 +593,10 @@ func test_the_pantry_row_names_the_next_lot_to_spoil() -> void:
 	panel.toggle()
 	assert_true(pantry.next_spoil_into(CARROT, sim.calendar.hour_index(), _read), "a forecast")
 	assert_equal(_read.value, 200, "the covered store's lot: 200 spring hours")
-	assert_equal(panel.item_row_text(CARROT), "Carrot — 5.1 U · first to spoil: 2.0 U in the covered store, in 200 h",
-		"the next lot, not the whole stock")
+	assert_equal(panel.shown_stock_row(0), PackedStringArray(["Carrot", "2.0 U", "—", "Covered store", "all in 8d 8h"]),
+		"the covered store's lot: 200 h")
+	assert_equal(panel.shown_stock_row(1), PackedStringArray(["Carrot", "3.1 U", "—", "Root cellar", "all in 22d 23h"]),
+		"the cellar's: 281 spring hours at ×0.35, then 270 at summer's ×0.525 = 551 h")
 
 
 # --- F28: figures sum milli-units, and read the same everywhere ----------------------------------------
@@ -612,8 +614,8 @@ func test_units_read_with_one_decimal_and_never_hide_a_little() -> void:
 
 
 func test_fractional_stock_sums_before_it_is_rounded() -> void:
-	"""0.9 U of each of the 16 ingredients: 14.4 U in the header, 0.9 U on each row, 14.4/400.0 U on
-	the store line -- the same figure three ways."""
+	"""0.9 U of each of the 16 ingredients: 14.4 U in the header, 0.9 U on each row, 14.4 U stored of
+	400.0 U on the store's row -- the same figure three ways."""
 	var sim := SimScript.new()
 	var pantry := PantryScript.new(StorageScript.new())
 	for item: int in Catalog.ITEM_COUNT:
@@ -624,8 +626,10 @@ func test_fractional_stock_sums_before_it_is_rounded() -> void:
 	panel.toggle()
 	assert_equal(pantry.total_milli(), 14400, "the authoritative total")
 	assert_true(panel.total_text().begins_with("14.4 U of food in store"), "header: " + panel.total_text())
-	assert_true(panel.item_row_text(CARROT).begins_with("Carrot — 0.9 U"), "row: " + panel.item_row_text(CARROT))
-	assert_equal(panel.stores_text(), "Stores: Covered store 14.4/400.0 U (ages ×1.00)", "store line")
+	assert_equal(panel.stock_row_count(), Catalog.ITEM_COUNT, "a row each")
+	assert_equal(panel.shown_stock_row(CARROT).slice(0, 2), PackedStringArray(["Carrot", "0.9 U"]), "row")
+	assert_equal(panel.store_row_cells(0), PackedStringArray(["Covered store", "14.4 U", "0 U", "385.6 U", "400.0 U", "×1.00"]),
+		"store row")
 
 
 func test_a_delivery_that_cannot_get_through_waits_with_its_load() -> void:
@@ -814,7 +818,7 @@ func test_a_stale_woods_resume_does_not_take_a_new_job_in_the_same_row() -> void
 
 func test_the_first_to_spoil_is_not_the_oldest() -> void:
 	"""An older lot in the cellar (×0.35) and a fresh one in the covered store: the fresh one spoils
-	first -- 240 h against the cellar lot's hundreds -- and is the one the row names."""
+	first -- 240 h against the cellar lot's hundreds -- and its store's row says so."""
 	var sim := SimScript.new()
 	var pantry := _store_pantry()
 	pantry.add_into(CARROT, 3000, 1, _read)
@@ -827,8 +831,11 @@ func test_the_first_to_spoil_is_not_the_oldest() -> void:
 	_nodes.append(panel)
 	panel.configure(sim, pantry, null)
 	panel.toggle()
-	assert_equal(panel.item_row_text(CARROT), "Carrot — 5.0 U · first to spoil: 2.0 U in the covered store, in 240 h",
-		"named in the row")
+	assert_equal(panel.shown_stock_row(0), PackedStringArray(["Carrot", "2.0 U", "—", "Covered store", "all in 10d"]),
+		"the covered store's row: 240 h")
+	assert_true(pantry.first_to_spoil_at_into(CARROT, 1, sim.calendar.hour_index(), _read), "the cellar's lot")
+	assert_true(pantry.lot_spoil_hours(_read.value, sim.calendar.hour_index()) > 240, "spoils later")
+	assert_equal(panel.shown_stock_row(1)[3], "Root cellar", "on its own row")
 
 
 func test_a_delivery_without_a_reservation_never_borrows_anothers() -> void:

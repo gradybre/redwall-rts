@@ -126,7 +126,7 @@ tabs switch by hand; all hide while the resident journal is open.
 The action bar's commands each have a hover tooltip -- what it does and its key, read from the input
 map (`ui/demo_command_tips.gd`); an enabled command answers its key. The notification history has its
 own "×" (Esc closes it, N toggles it). The Pantry draws above the HUD, so its "×" is reachable at
-1280x720. The Village news strip is centred on the action bar and follows it.
+1280x720. The Map layer picker sits bottom left (see Map layers). The Village news strip is centred on the action bar and follows it.
 
 **Pop-ups own the input** (decision 0261, `ui/demo_input_gate.gd`). The Pantry, the game menu and the Demo Lab
 are modals: a light scrim covers the world and the HUD, so no click, drag or wheel outside the frame reaches
@@ -195,6 +195,38 @@ suitable range, fertility and crop health as percentages, fertility's effect on 
 ("−15%"), one expected harvest, and treatments in percentage points ("Rest: +0.5 fertility points a
 day"). **Details** in the bed panel shows the harvest's multiplication and the raw 0..10000 readings.
 
+## Map layers (decision 0292)
+
+One map layer shows at a time (`map_lenses.gd`), each answering one question with a small legend:
+
+| Layer | Its question | Its legend |
+|---|---|---|
+| Growing: Soil moisture | Which beds are too dry or too wet? | dry, low, good, wet, waterlogged (the beds' discs) |
+| Growing: Ripeness | Which beds are ready to harvest? | growing, ripe, past its best or lost, empty |
+| Getting there: Water range | Where can they wade, swim, dive or cross? | wade, swim, dive, ford, bridge site, swim link, landing |
+| Woods: Zones and trees | Which trees may be felled, which must stay? | forestry and conservation zones; mature, young, stump, cleared |
+| Underground: Tunnels | What lies under the village? | the U view's cut (U switches it too) |
+
+- **The Map layer picker** (`ui/demo_lens_picker.gd`) names the shown layer on its header button ("Getting
+  there: Water range ▾", or "Map layer: off ▾"); the button unfolds the list of layers, one button each, its
+  question as the tooltip. A pick shows that layer alone and folds the list; picking the shown one again, or
+  **Off**, shows none. Under the header: the question, the subject, what they can do there, and the legend.
+- **V** steps the same layer: off, moisture, ripeness, water range, woods, off. **U** switches the underground
+  view, and the picker follows it: the Underground layer is then the shown one (the others switch off); V from
+  it goes to moisture and back to the surface.
+- **Whose water range** (`waterplay/water_range.gd`): nobody selected, the 1.0 m mouse anchor ("Water range
+  for: a 1.0 m mouse (nobody selected)"); one resident, its own ("Water range for: Otter fisher"); a group, the
+  **whole group** -- the zones painted for its shortest member, so yellow is water every one of them wades --
+  with who among them swims and who dives by name ("Swim: all but Badger quarryman. Dive: Otter fisher."), never
+  the first selected standing in for the rest. **◀ ▶** step from the group to each member ("Badger quarryman
+  (3 of 3 selected)": its own zones, wading depth, swimming and diving) and back. A new selection goes back to
+  the whole group.
+- **Where** (UI §1.1 bottom left, "Minimap + layers"): just right of the party panel's column, so it can
+  grow upward without meeting it -- down on the command strip where the space left of the news strip is wide
+  enough (1920x1080), else just above the bottom band (1280x720, and whenever the resident journal pushes the
+  news strip left). It is clear of the minimap, the news strip, the command strip and the party panel (which
+  at 1280x720 fills its column with anyone selected).
+
 ## Commanding the residents
 
 | Input | Does |
@@ -220,7 +252,7 @@ day"). **Details** in the bed panel shows the harvest's multiplication and the r
 | (any camera move) | The eye never sits inside a tree crown, the crowns between it and what it looks at are thinned, and a selected resident shows through foliage and roofs (see The camera and the trees) |
 | Left click a spoil heap | Select it: a brass ring, and the party panel says how much spoil it holds |
 | Right click a spoil heap (or C with it selected) | The selected residents who can carry dig it out and haul it to the farm's compost store (Clear; see Spoil heaps) |
-| V | The one map-overlay cycle: the farm's moisture, its ripeness, the water's zones and fishery (wade / swim / dive, fords, bridge spans, landings, fish stocks), the woods' zones and trees, off |
+| V | Steps the one shown map layer (see Map layers): Growing: soil moisture, Growing: ripeness, Getting there: water range (wade / swim / dive, fords, bridge spans, landings, fish stocks), Woods: zones and trees, off -- the same layer the Map layer picker shows |
 
 The "Demo party" panel in the HUD's left column lists the selection. With one resident selected it
 also lists **what that resident can be ordered to do** (`control/resident_abilities.gd`): a short line
@@ -501,9 +533,21 @@ it belongs to (roots, cabbage, beans or grain), on the demo's one calendar (abov
 the **pantry**, counted per item, at the slowest-spoiling store with room -- a **root cellar**, delivered
 at its hatch (spoilage 350 per mille, the GDD's cellar) before the covered store (1000), and of two cellars
 the one nearer the bed (`farm/farm_cellars.gd` turns `underground_rooms.cellars()` into pantry stores);
-the top bar's Ready food cell shows the pantry total, and the Food command (or K) opens the Pantry: stock per
-ingredient, the lot that spoils first (GDD §5.8 spoilage by where it is stored), and the library dishes
-each feeds.
+the top bar's Ready food cell shows the pantry total, and the Food command (or K) opens the Pantry (decision 0292):
+
+- **Stocks** (first, and what it opens on): a table, one row per ingredient per store -- **In store**,
+  **Incoming** (a harvest on its way there, its room reserved), the **Store**, and **Next to spoil** there ("all
+  in 10d", or "1.2 U in 1d 10h" when it is the first of several lots; GDD §5.8 spoilage by where it is kept).
+  Food that spoils within two game days goes first, soonest first, marked "Soon" in clay. The order is set
+  when the Pantry opens (or Stocks is chosen) and **kept while it is open**: figures change in place, a new
+  row goes at the end, a row whose stock has gone stays reading "0 U", and a row whose store is taken away
+  (a cellar's racks out) reads "(store gone)". Under it each store is a row: stored,
+  reserved for harvests, free, capacity and how fast it ages food; then spoiled food and its compost button.
+  An empty pantry says so and names a real source from the beds -- a ripe bed to harvest, else the bed that
+  ripens soonest, else an empty bed to plant -- with an **Open bed N** button.
+- **Recipe ideas (not cookable yet)**: every ingredient in catalog order with its stock, and the content
+  library's dishes the picked one feeds -- candidates for a kitchen that does not exist. There is no Orders
+  tab: nothing in the demo cooks or orders food yet.
 
 **Nothing harvested is lost or credited from afar** (decision 0222, the review's F19/F24/F27/F28):
 
@@ -533,7 +577,7 @@ each feeds.
 | Drain | A wet or waterlogged bed: a resident digs a ditch round it (6 WU); its moisture drops at once to the top of its crop's band, and the ditch sheds up to 1000 a day for good (decision 0205) |
 | Raise / Bank | A resident fetches 2 U of tunnel spoil from a heap: a raised bed drains and is warmer at night; a banked bed keeps half of each dry day's loss |
 | Rest | Rest the bed fallow (+0.5 fertility points a day; nothing is sown) |
-| V | Map overlay: moisture, then ripeness, then the water's zones, then the woods, then off (one key for every overlay) |
+| V | Map layer: moisture, then ripeness, then the water range, then the woods, then off -- or pick one on the Map layer picker (see Map layers) |
 | K / Food | The Pantry |
 
 Threats: spring is wet (beds waterlog and stop growing -- Drain them, run a tunnel under them, or raise
@@ -735,7 +779,7 @@ stands where the model has it. It stands at z = -16.2, 2.2 m upstream of its fir
 `weir_bank` landing; the one swim link that crossed where it now stands is gone (22 remain). Unstaged,
 a plain wall and sill of the same fitted span stand in for it. The ground and water colours answer to
 the world-art direction (DEC-038), not the UI pigment lock: `world/world_look.gd` WORLD MATERIAL TARGETS. The ground is carved into banks and beds; the surface flows at the stream's own speed and
-stops when the game pauses. V's overlay cycle ends on the zones and the live fishery. The fishery
+stops when the game pauses. The Water range map layer shows the zones and the live fishery. The fishery
 runs on the demo's one calendar (its days are the farm's and the HUD's). A flood (the tunnels' threat)
 raises the stream up its banks at the ford.
 
@@ -804,10 +848,10 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
 - **Water tab** (right column): conditions, alerts, who is swimming, the chosen site and its costs,
   bridges, stores and the water's news. The alert line is one incident per victim, updated in place:
   where it is and its breath, who is answering and at what, the landing once it is settled, and why
-  nothing better went -- or, with nobody, when the water will bring it ashore. **V** paints the zones
-  for the first selected resident's own height, the bridge candidates, the swim links and the landings;
-  the fishery's site labels are two lines each (quota and slots; each species' stock and state), laid
-  out so they never overlap.
+  nothing better went -- or, with nobody, when the water will bring it ashore.
+  The **Water range** layer (V or the Map layer picker) paints the zones
+  for its subject -- one resident's own height, or a group's, member by member (see Map layers) -- the bridge candidates, the swim links and the landings; the fishery's site labels are two
+  lines each (quota and slots; each species' stock and state), laid out so they never overlap.
 
 ## Spoil heaps
 
@@ -834,14 +878,15 @@ A heap still growing under a dig is refused. The party panel says who is "Cleari
 | `weather/` | The demo's one weather (read from the farm's real §5.10 row) and its rain, snow and light |
 | `burrow/` | Rooms as their own structures: the templates, sockets and refusals (`underground_rooms.gd`), placing one and its passage (`room_plan.gd`, `room_tool.gd`), drawing it (`room_view.gd`, `room_mesh.gd`); the cellar API; the fit-out (`room_fixtures.gd`, `fixture_crew.gd`, `install_task.gd`, `fixture_view.gd`, `fixture_kit.gd`, `room_text.gd`) and the night (`night_routine.gd`, `bed_allocation.gd`, `sleep_task.gd`) |
 | `events/` | Seeded threats (a flood, a fire) and evacuation |
-| `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the V overlay |
-| `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel |
-| `farm/` | The farm: real FarmPlot rows, the pantry and its storage providers, the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves |
+| `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the water overlay (the Water range map layer) |
+| `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel; whose water range the map layer paints (`water_range.gd`) |
+| `farm/` | The farm: real FarmPlot rows, the pantry and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |
 | `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens; then the underground view drawn once |
 | `demo_layers.gd` | The four render layers every drawn node is on, and the plane each view picks on (decision 0206) |
+| `map_lenses.gd`, `lens_subject.gd` | The map layers: one shown at a time, each with its question, legend and subject; V's cycle and U's followed layer (decision 0292) |
 | `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |
-| `ui/` | The woodland HUD skin; the HUD date, the news strip and the right column's tabs; the HUD's village read model (counters and ledger), the Residents roster and the village map |
+| `ui/` | The woodland HUD skin; the HUD date, the news strip and the right column's tabs; the HUD's village read model (counters and ledger), the Residents roster and the village map; the Map layer picker |
 | `camera/` | The RTS camera, and the canopy clearance: the eye kept out of crowns, the crowns in the way thinned, the selected shown through |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

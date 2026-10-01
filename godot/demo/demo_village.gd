@@ -32,8 +32,10 @@ extends Node3D
 ## WATER (demo/water/demo_water.gd): the stream down the east edge and the pond beyond the south-east
 ## corner, outside the ±20 m square residents and tunnels keep to; the cast walks the world's and the
 ## water's merged spots and obstacles. Its flow follows the demo clock and its fishery the demo
-## calendar. V cycles the one set of map overlays: the farm's moisture, its ripeness, the water's
-## zones, off (demo_farm.gd `add_overlay`).
+## calendar. MAP LAYERS (decision 0292, demo/map_lenses.gd): one shown at a time, each with one question
+## and a legend -- Growing: soil moisture and ripeness (the farm's), Getting there: water range (whose:
+## demo/waterplay/water_range.gd), Woods, Underground (U's view, followed). The Map layer picker on the
+## bottom left (demo/ui/demo_lens_picker.gd) picks them directly; V steps the same one active layer.
 ##   * ONE NOTICE FEED (demo_notices.gd): every farm, weather, tunnel and threat notice, date-stamped,
 ##     shown bottom centre (demo/ui/demo_news_strip.gd) and, per source, in the two panels. Nothing in
 ##     the demo raises a HUD alert card: the HUD shows the two earliest unresolved notices and demo
@@ -136,13 +138,20 @@ const ForestPanelScript := preload("res://demo/forestry/forest_panel.gd")
 const WaterPanelScript := preload("res://demo/waterplay/water_panel.gd")
 const CanopyScript := preload("res://demo/camera/canopy_clear.gd")
 const WeatherViewScript := preload("res://demo/weather/weather_view.gd")
+const LensPickerScript := preload("res://demo/ui/demo_lens_picker.gd")
+const TunnelControlScript := preload("res://demo/tunnel/tunnel_control.gd")
+const WaterOverlayScript := preload("res://demo/water/water_overlay.gd")
+const ForestMarks := preload("res://demo/forestry/forest_marks.gd")
+const Palette := preload("res://demo/ui/woodland_palette.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
 const GAME_CAMERA: NodePath = ^"World/Camera3D"
 const GAME_HUD_ROOT: NodePath = ^"UI/HUD/Root"
-## The water's inspection overlay, the last step of V's one overlay cycle (demo_farm.gd add_overlay).
-const WATER_OVERLAY_NAME: String = "water zones and fishery"
+## The water's inspection overlay as a map layer (demo_farm.gd add_overlay; decision 0292).
+const WATER_LENS_QUESTION: String = "Where can they wade, swim, dive or cross?"
+const WOODS_LENS_QUESTION: String = "Which trees may be felled, which must stay?"
+const UNDERGROUND_LENS_QUESTION: String = "What lies under the village?"
 ## Process priority: after the farm (priority 0) has advanced the calendar each frame.
 const PROCESS_AFTER_CHILDREN: int = 1
 ## Refit the sun's shadow range when the zoom has moved this far since the last fit.
@@ -184,6 +193,9 @@ var _lab: LabScript = LabScript.new()
 ## Whether this boot holds its own PLAYER pause until the first frames are drawn (a restart: UI-SET-103's
 ## opening pause is held only once per process).
 var _held_open: bool = false
+var _lens_picker: LensPickerScript = null
+## The Water range layer's row in the farm's lenses (its subject is set once the water's play is built).
+var _water_lens: int = 0
 
 
 func _ready() -> void:
@@ -289,7 +301,11 @@ func _build_farm(manifest: Dictionary) -> void:
 	_command.tunnels().ext.set_stored(_farm.cellar_stored_u)
 	_command.tunnels().ext.set_weather_skip(_farm.skip_to_next_weather)
 	_command.tunnels().ext.events_view.set_flood_rise(_water.set_flood_rise)
-	_farm.add_overlay(WATER_OVERLAY_NAME, _water.set_overlay_shown)
+	_water_lens = _farm.add_overlay("Getting there", "Water range", WATER_LENS_QUESTION, _water.set_overlay_shown)
+	_farm.lenses.set_legend(_water_lens, PackedColorArray([WaterOverlayScript.WADE_COLOUR, WaterOverlayScript.SWIM_COLOUR,
+		WaterOverlayScript.DIVE_COLOUR, WaterOverlayScript.FORD_COLOUR, WaterOverlayScript.BRIDGE_COLOUR,
+		WaterOverlayScript.LINK_COLOUR, WaterOverlayScript.LANDING_COLOUR]), PackedStringArray(["wade", "swim",
+		"dive", "ford", "bridge site", "swim link", "landing"]))
 
 
 func _build_spoil() -> void:
@@ -324,7 +340,10 @@ func _build_forestry() -> void:
 		_camera.camera(), _services, wood)
 	_forestry.crew.set_compost(compost_left, take_compost)
 	_forestry.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
-	_farm.add_overlay(ForestryScript.OVERLAY_NAME, _forestry.set_overlay)
+	var woods: int = _farm.add_overlay("Woods", "Zones and trees", WOODS_LENS_QUESTION, _forestry.set_overlay)
+	_farm.lenses.set_legend(woods, PackedColorArray([ForestMarks.FORESTRY_COLOUR, ForestMarks.CONSERVATION_COLOUR,
+		Palette.LEAF, Palette.BRASS, Palette.UMBER, Palette.CLAY]), PackedStringArray(["forestry zone",
+		"conservation zone", "mature tree", "young tree", "stump", "cleared spot"]))
 
 
 func _build_canopy() -> void:
@@ -362,6 +381,7 @@ func _build_waterplay() -> void:
 	_waterplay.configure(_cast as DemoCastScript, _command as DemoCommandScript, _camera.camera(), _services,
 		_water.map(), _links, _water, _forestry.stand)
 	_waterplay.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
+	_farm.lenses.set_subject(_water_lens, _waterplay.water_range)
 
 
 func waterplay() -> WaterplayScript:
@@ -398,6 +418,7 @@ func _build_shared_ui() -> void:
 	_zone.add_panel(DetailZoneScript.PANEL_TUNNELS, ext.panel)
 	_zone.add_panel(DetailZoneScript.PANEL_WOODS, _forestry.panel)
 	_zone.add_panel(DetailZoneScript.PANEL_WATER, _waterplay.panel)
+	_build_lens_picker()
 	_farm.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_FARM))
 	ext.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_TUNNELS))
 	_forestry.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_WOODS))
@@ -436,6 +457,29 @@ func minimap() -> MinimapScript:
 func counters() -> HudCountersScript:
 	"""The top bar's village counters and ledger (demo/ui/demo_hud_counters.gd)."""
 	return _counters
+func _build_lens_picker() -> void:
+	"""The Underground layer (U's view, followed: map_lenses.gd) and the Map layer picker bottom left, clear
+	of the news strip's band (which the journal moves)."""
+	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
+	var under: int = _farm.lenses.add("Underground", "Tunnels", UNDERGROUND_LENS_QUESTION, show_underground)
+	_farm.lenses.follow_state(under, func() -> bool: return tool.view.on)
+	_farm.lenses.set_legend(under, PackedColorArray([Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0)]),
+		PackedStringArray(["blue hatch: too wet to dig", "stone: building footings", "U: back to the surface"]))
+	_lens_picker = LensPickerScript.new()
+	add_child(_lens_picker)
+	_lens_picker.configure(_farm.lenses, _zone.journal_open)
+
+
+func show_underground(on: bool) -> void:
+	"""The Underground layer's switch: the tunnels' U view on or off (one cull-mask write)."""
+	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
+	if tool.view.on != on:
+		tool.toggle_view()
+
+
+func lens_picker() -> LensPickerScript:
+	"""The Map layer picker (demo/ui/demo_lens_picker.gd)."""
+	return _lens_picker
 
 
 func _shell() -> UiShell:

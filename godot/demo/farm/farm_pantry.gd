@@ -23,7 +23,8 @@ extends RefCounted
 ## (`add_into`, `location_for_into` and `location_near_into` all count it as taken). A delivery stores
 ## against its own hold (`store_upto`), taking WHAT FITS when the store shrank meanwhile (a cellar's racks
 ## taken out) and saying how much, so the carrier keeps the rest. A hold follows its store by id across
-## `refresh_locations`, like a lot; a hold whose store has gone answers STORAGE_LOCATION_GONE.
+## `refresh_locations`, like a lot; a hold whose store has gone answers STORAGE_LOCATION_GONE. A hold names its
+## item, so the Pantry can show what is INCOMING per ingredient and store (`incoming_milli`, decision 0292).
 ##
 ## THE FORECAST (`next_spoil_into`, F27) is in CALENDAR hours: the hour crossings until a lot spoils, each
 ## aging it at its store's factor and at the season of that crossing -- the very sum `age_hour` will make,
@@ -75,6 +76,8 @@ var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _hold_live: PackedByteArray = PackedByteArray()
 var _hold_location: PackedInt32Array = PackedInt32Array()
 var _hold_milli: PackedInt64Array = PackedInt64Array()
+## What each hold's harvest is (the Pantry's "incoming" per item; decision 0292). FREE on a free row.
+var _hold_item: PackedInt32Array = PackedInt32Array()
 var _hold_ids: Array = []
 ## `_lot_row_for`'s own scratch (its callers' `out` may be any other).
 var _lot_probe: IntMath.IntResult = IntMath.IntResult.new()
@@ -93,6 +96,8 @@ func _init(p_storage: StorageScript) -> void:
 	_hold_live.resize(MAX_HOLDS)
 	_hold_location.resize(MAX_HOLDS)
 	_hold_milli.resize(MAX_HOLDS)
+	_hold_item.resize(MAX_HOLDS)
+	_hold_item.fill(FREE)
 	_hold_ids.resize(MAX_HOLDS)
 
 
@@ -264,6 +269,7 @@ func reserve_near_into(item: int, milli: int, from: Vector2, out: IntMath.IntRes
 	_hold_live[hold] = 1
 	_hold_location[hold] = out.value
 	_hold_milli[hold] = milli
+	_hold_item[hold] = item
 	return out.succeed(hold)
 
 
@@ -280,6 +286,11 @@ func hold_location_into(hold: int, out: IntMath.IntResult) -> bool:
 func is_hold(hold: int) -> bool:
 	"""Whether `hold` is a live reservation."""
 	return hold >= 0 and hold < MAX_HOLDS and _hold_live[hold] == 1
+
+
+func hold_item(hold: int) -> int:
+	"""The item hold `hold` keeps room for (FREE for a free row)."""
+	return _hold_item[hold] if is_hold(hold) else FREE
 
 
 func hold_milli(hold: int) -> int:
@@ -303,6 +314,7 @@ func release(hold: int) -> void:
 	if is_hold(hold):
 		_hold_live[hold] = 0
 		_hold_milli[hold] = 0
+		_hold_item[hold] = FREE
 
 
 func reserved_milli_of(location: int) -> int:
@@ -310,6 +322,16 @@ func reserved_milli_of(location: int) -> int:
 	var held: int = 0
 	for hold: int in MAX_HOLDS:
 		if _holds_place(hold) and _hold_location[hold] == location:
+			held += _hold_milli[hold]
+	return held
+
+
+func incoming_milli(item: int, location: int) -> int:
+	"""How much of `item` live holds keep room for at `location`, milli-U: a harvest being cut or carried
+	there (the Pantry's "incoming"; a hold whose store has gone counts nowhere)."""
+	var held: int = 0
+	for hold: int in MAX_HOLDS:
+		if _holds_place(hold) and _hold_item[hold] == item and _hold_location[hold] == location:
 			held += _hold_milli[hold]
 	return held
 
@@ -436,6 +458,23 @@ func first_to_spoil_into(item: int, hour_index: int, out: IntMath.IntResult) -> 
 	return out.succeed(best)
 
 
+func first_to_spoil_at_into(item: int, location: int, hour_index: int, out: IntMath.IntResult) -> bool:
+	"""The lot of `item` at `location` that spoils first from `hour_index` (as `first_to_spoil_into`, kept to
+	one store), into `out`; the lowest row on a tie. Refuses NO_STOCK."""
+	var best: int = FREE
+	var best_hours: int = 0
+	for lot: int in MAX_LOTS:
+		if _lot_item[lot] != item or _lot_location[lot] != location:
+			continue
+		var hours: int = lot_spoil_hours(lot, hour_index)
+		if best == FREE or hours < best_hours:
+			best = lot
+			best_hours = hours
+	if best == FREE:
+		return out.refuse(REFUSE_NO_STOCK)
+	return out.succeed(best)
+
+
 func next_spoil_into(item: int, hour_index: int, out: IntMath.IntResult) -> bool:
 	"""Calendar hours until the item's first lot spoils (see `first_to_spoil_into`); refuses NO_STOCK."""
 	if not first_to_spoil_into(item, hour_index, out):
@@ -495,6 +534,11 @@ func lot_count() -> int:
 func lot_age(lot: int) -> int:
 	"""A lot's effective age, milli-hours (tests)."""
 	return _lot_age[lot]
+
+
+func lot_item(lot: int) -> int:
+	"""A lot's item (FREE for a free row)."""
+	return _lot_item[lot]
 
 
 func lot_location(lot: int) -> int:

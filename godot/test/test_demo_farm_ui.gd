@@ -950,7 +950,8 @@ func test_the_words_for_a_ditch_and_a_span_of_hours() -> void:
 
 
 func test_the_pantry_panel_breaks_the_food_out_by_item() -> void:
-	"""Per-item rows, the stores line (with a fixture cellar) and the dishes of the picked item."""
+	"""Stocks: a row per ingredient per store (with a fixture cellar) and each store as a row; Recipe
+	ideas: the picked ingredient's dishes (decision 0292)."""
 	var sim := SimScript.new()
 	var storage := StorageScript.new()
 	storage.add_provider(func() -> Array: return [{"id": &"c", "position": Vector2.ZERO, "capacity_u": 60,
@@ -963,12 +964,16 @@ func test_the_pantry_panel_breaks_the_food_out_by_item() -> void:
 	_nodes.append(panel)
 	panel.configure(sim, pantry, recipes)
 	assert_true(panel.toggle(), "open")
-	assert_equal(panel.item_row_text(CARROT), "Carrot — 5.1 U · spoils in 551 h in the root cellar",
-		"carrots: 281 spring hours at ×0.35, then 270 at summer's ×0.525")
-	assert_equal(panel.item_row_text(RADISH), "Radish — none", "no radish")
-	assert_equal(panel.stores_text(), "Stores: Covered store 0/400.0 U (ages ×1.00) · Root cellar 5.1/60.0 U (ages ×0.35)", "stores")
+	assert_equal(panel.stock_row_count(), 1, "one row: the carrots in the cellar")
+	assert_equal(panel.shown_stock_row(0), PackedStringArray(["Carrot", "5.1 U", "—", "Root cellar", "all in 22d 23h"]),
+		"carrots: 281 spring hours at ×0.35, then 270 at summer's ×0.525 = 551 h")
+	assert_equal(panel.store_row_cells(0), PackedStringArray(["Covered store", "0 U", "0 U", "400.0 U", "400.0 U", "×1.00"]), "store")
+	assert_equal(panel.store_row_cells(1), PackedStringArray(["Root cellar", "5.1 U", "0 U", "54.9 U", "60.0 U", "×0.35"]), "cellar")
+	panel.show_tab(PantryPanelScript.TAB_RECIPES)
 	panel.select_item(CARROT)
 	assert_equal(panel.dish_title(), "Carrot feeds 109 dishes (and 15 more through prepared parts)", "dishes")
+	assert_equal(panel.item_button(CARROT).text, "Carrot · 5.1 U in store", "its stock on its button")
+	assert_equal(panel.item_button(RADISH).text, "Radish · none in store", "none")
 	assert_true(panel.total_text().begins_with("5.1 U of food in store"), "total")
 	assert_false(panel.toggle(), "closed")
 
@@ -1095,15 +1100,16 @@ func test_keys_cycle_the_overlay_and_open_the_pantry() -> void:
 
 
 func test_one_key_cycles_every_map_overlay() -> void:
-	"""V: moisture, ripeness, then an overlay the village added (the water's zones), then off -- each
-	shown alone, so no two overlays share V."""
+	"""V: moisture, ripeness, then a layer the village added (the water's range), then off -- each shown
+	alone, so no two layers share the map (decision 0292: the same one active layer the picker shows)."""
 	var farm := _farm()
 	var water_shown: Array[bool] = []
-	farm.add_overlay("water zones", func(on: bool) -> void: water_shown.append(on))
+	farm.add_overlay("Getting there", "Water range", "Where?", func(on: bool) -> void: water_shown.append(on))
 	var names: Array[String] = []
 	for press: int in 4:
 		names.append(farm.cycle_overlays())
-	assert_equal(names, ["moisture", "ripeness", "water zones", "off"] as Array[String], "the cycle")
+	assert_equal(names, ["Growing: Soil moisture", "Growing: Ripeness", "Getting there: Water range", "Off"] as Array[String],
+		"the cycle")
 	assert_equal(water_shown, [false, false, true, false] as Array[bool], "the water shown only on its step")
 	assert_equal(farm.view.overlay_mode, ViewScript.OVERLAY_OFF, "and the farm's off again")
 

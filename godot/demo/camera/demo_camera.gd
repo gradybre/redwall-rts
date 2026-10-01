@@ -44,8 +44,18 @@ extends Node3D
 ##
 ## REDUCED MOTION (decision 0471, UI §6 "Reduced motion: camera smoothing off"): the shown values take their targets
 ## at once -- no easing -- while movement stays continuous and the player's own.
+##
+## THE MODES' HOOKS (decision 0801, camera_modes.gd). The follow, the orbit, the bookmarks and the cutaway angle move
+## the targets through `track` and `aim` (and the orbit through `turn_target`), which the player's own moves are told
+## apart from by two REVISIONS: `pan_revision` counts every frame the player moved the view's centre (a held pan, the
+## edge pan, `centre_on` -- the minimap, the roster, a "Go to" -- and Home), `turn_revision` every frame they turned it
+## (Q / E, the middle drag across; a drag up or down only tilts). A follow ends when the first moves, an orbit when
+## either does (UI §5: "manual camera movement cancels follow"). The EDGE PAN (edge_pan.gd) pushes through `set_edge_push`, added to the held keys; a
+## diagonal is normalised (UI §5: "diagonal normalized"), so W+D is no faster than W. The middle drag turns per LOGICAL
+## pixel (UI §1.2's S, as UI §6's drag-pan is "divided by S"), so the same sweep turns as far at 720p as at 4K.
 
 const DemoMotion := preload("res://demo/access/demo_motion.gd")
+const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
 
 const FOV_DEGREES: float = 40.0
 const NEAR_PLANE: float = 0.1
@@ -118,6 +128,12 @@ var _drag_turning: bool = false
 var _eye: Vector3 = Vector3.ZERO
 ## `clearance(focus, yaw, pitch, distance) -> float`: where the eye may sit (see CLEARANCE).
 var _clearance: Callable = Callable()
+## Frames the player moved the view's centre, and turned it (see THE MODES' HOOKS).
+var _pan_revision: int = 0
+var _turn_revision: int = 0
+## The edge pan's push this frame, -1..1 across (right +) and along (forward +) the view.
+var _edge_strafe: float = 0.0
+var _edge_advance: float = 0.0
 
 
 func _init() -> void:
@@ -145,6 +161,7 @@ func configure(bounds: AABB, focus: Vector3) -> void:
 func reset_view() -> void:
 	"""Return to the configured focus, facing north, at the default pitch and distance."""
 	_target_focus = _home_focus
+	_pan_revision += 1
 	_target_yaw = 0.0
 	_target_pitch = deg_to_rad(PITCH_DEFAULT_DEGREES)
 	_target_distance = DISTANCE_DEFAULT
@@ -165,6 +182,37 @@ func centre_on(point: Vector3) -> void:
 	_target_focus.x = point.x
 	_target_focus.z = point.z
 	_clamp_target_focus()
+	_pan_revision += 1
+
+
+func track(point: Vector3) -> void:
+	"""Ease the view's centre over `point` (x, z) as the follow does, each frame: not the player's pan."""
+	_target_focus.x = point.x
+	_target_focus.z = point.z
+	_clamp_target_focus()
+
+
+func aim(point: Vector3, yaw_deg: float, pitch_deg: float, metres: float) -> void:
+	"""Ease to a whole view -- a bookmark, the orbit's framing, the cutaway angle: the centre (x, z, in the ground box),
+	the heading by the shorter way round, the pitch and the distance inside their limits. Not the player's pan."""
+	_target_focus.x = point.x
+	_target_focus.z = point.z
+	_clamp_target_focus()
+	_target_yaw = nearest_turn(_target_yaw, deg_to_rad(yaw_deg))
+	_target_pitch = clamp_pitch(deg_to_rad(pitch_deg))
+	_target_distance = clampf(metres, DISTANCE_MIN, DISTANCE_MAX)
+
+
+func turn_target(radians: float) -> void:
+	"""Turn the target heading by `radians` (positive turns left, as Q): the orbit's turn, not the player's."""
+	_target_yaw += radians
+
+
+func set_edge_push(strafe: float, advance: float) -> void:
+	"""The edge pan's push for the frames to come, each -1, 0 or 1 (edge_pan.gd): right and forward are positive. Added
+	to the held keys, the sum held to -1..1 (`_pan_by_held`)."""
+	_edge_strafe = strafe
+	_edge_advance = advance
 
 
 func snap() -> void:
@@ -237,9 +285,19 @@ func drag_input(event: InputEvent) -> bool:
 	if (motion.button_mask & MOUSE_BUTTON_MASK_MIDDLE) == 0:
 		_drag_turning = false
 		return false
-	_target_yaw -= deg_to_rad(DRAG_YAW_DEGREES_PER_PX) * motion.relative.x
-	_target_pitch = clamp_pitch(_target_pitch + deg_to_rad(DRAG_PITCH_DEGREES_PER_PX) * motion.relative.y)
+	var logical: float = _pixel_scale()
+	_target_yaw -= deg_to_rad(DRAG_YAW_DEGREES_PER_PX) * motion.relative.x / logical
+	_target_pitch = clamp_pitch(_target_pitch + deg_to_rad(DRAG_PITCH_DEGREES_PER_PX) * motion.relative.y / logical)
+	if motion.relative.x != 0.0:
+		_turn_revision += 1
 	return true
+
+
+func _pixel_scale() -> float:
+	"""Physical pixels per logical pixel in this rig's viewport (UI §1.2's S; 1.0 off-tree)."""
+	if not is_inside_tree():
+		return 1.0
+	return maxf(DemoUiScale.effective_scale(get_viewport().get_visible_rect().size), 0.01)
 
 
 func is_drag_turning() -> bool:
@@ -284,15 +342,8 @@ func step(delta: float) -> void:
 	"""One frame of motion: held input moves the targets, the view eases after them.
 
 	Written component by component so a frame builds no new vectors."""
-	var strafe: float = float(_held[HELD_RIGHT]) - float(_held[HELD_LEFT])
-	var advance: float = float(_held[HELD_FORWARD]) - float(_held[HELD_BACK])
-	var turn: float = float(_held[HELD_ROTATE_LEFT]) - float(_held[HELD_ROTATE_RIGHT])
-	_target_yaw += deg_to_rad(ROTATE_SPEED_DEGREES) * turn * delta
-	if strafe != 0.0 or advance != 0.0:
-		var metres: float = PAN_SPEED_PER_METRE * _target_distance * delta
-		_target_focus.x += (strafe * cos(_target_yaw) - advance * sin(_target_yaw)) * metres
-		_target_focus.z += (-strafe * sin(_target_yaw) - advance * cos(_target_yaw)) * metres
-		_clamp_target_focus()
+	_turn_by_held(delta)
+	_pan_by_held(delta)
 	var blend: float = 1.0 if DemoMotion.reduced else damp_factor(DAMPING, delta)
 	_focus.x = lerpf(_focus.x, _target_focus.x, blend)
 	_focus.y = lerpf(_focus.y, _target_focus.y, blend)
@@ -302,6 +353,29 @@ func step(delta: float) -> void:
 	_distance = lerpf(_distance, _target_distance, blend)
 	_clear_view()
 	_apply_pose()
+
+
+func _turn_by_held(delta: float) -> void:
+	"""Q / E held turn the target heading (a turn the player made)."""
+	var turn: float = float(_held[HELD_ROTATE_LEFT]) - float(_held[HELD_ROTATE_RIGHT])
+	if turn != 0.0:
+		_target_yaw += deg_to_rad(ROTATE_SPEED_DEGREES) * turn * delta
+		_turn_revision += 1
+
+
+func _pan_by_held(delta: float) -> void:
+	"""The held pan keys and the edge pan move the target centre along the view, a diagonal no faster than a
+	straight pan (a pan the player made)."""
+	var strafe: float = clampf(float(_held[HELD_RIGHT]) - float(_held[HELD_LEFT]) + _edge_strafe, -1.0, 1.0)
+	var advance: float = clampf(float(_held[HELD_FORWARD]) - float(_held[HELD_BACK]) + _edge_advance, -1.0, 1.0)
+	if strafe == 0.0 and advance == 0.0:
+		return
+	var length: float = maxf(sqrt(strafe * strafe + advance * advance), 1.0)
+	var metres: float = PAN_SPEED_PER_METRE * _target_distance * delta / length
+	_target_focus.x += (strafe * cos(_target_yaw) - advance * sin(_target_yaw)) * metres
+	_target_focus.z += (-strafe * sin(_target_yaw) - advance * cos(_target_yaw)) * metres
+	_clamp_target_focus()
+	_pan_revision += 1
 
 
 func _clamp_target_focus() -> void:
@@ -343,6 +417,11 @@ static func clamp_pitch(pitch: float) -> float:
 	return clampf(pitch, deg_to_rad(PITCH_MIN_DEGREES), deg_to_rad(PITCH_MAX_DEGREES))
 
 
+static func nearest_turn(from: float, to: float) -> float:
+	"""A heading equal to `to` (radians, modulo a whole turn) no more than half a turn from `from`."""
+	return from + wrapf(to - from, -PI, PI)
+
+
 static func damp_factor(rate: float, delta: float) -> float:
 	"""How far to close the gap to a target this frame: frame-rate independent, 0..1."""
 	return 1.0 - exp(-maxf(rate, 0.0) * maxf(delta, 0.0))
@@ -373,6 +452,26 @@ func distance() -> float:
 func target_distance() -> float:
 	"""The distance input has asked for."""
 	return _target_distance
+
+
+func target_pitch_degrees() -> float:
+	"""The pitch input has asked for, in degrees."""
+	return rad_to_deg(_target_pitch)
+
+
+func target_yaw_degrees() -> float:
+	"""The heading input has asked for, in degrees (not wrapped)."""
+	return rad_to_deg(_target_yaw)
+
+
+func pan_revision() -> int:
+	"""How many frames the player has moved the view's centre (see THE MODES' HOOKS)."""
+	return _pan_revision
+
+
+func turn_revision() -> int:
+	"""How many frames the player has turned the view (see THE MODES' HOOKS)."""
+	return _turn_revision
 
 
 func pitch_degrees() -> float:

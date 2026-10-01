@@ -88,6 +88,10 @@ extends Node3D
 ## a silhouette through foliage and roofs. `_build_canopy()` wires it after the woods; its materials are
 ## drawn once at boot (a prewarm frame step).
 ##
+## CAMERA MODES (demo/camera/camera_modes.gd, decision 0801): bookmarks (Ctrl+Shift / Shift + 1-4), follow the
+## selected resident (End), orbit the building in view (Shift+O) and the U view's cutaway angle (Shift+U), with the
+## edge pan and a strip saying which is on. `_build_camera_modes()` wires them.
+##
 ## WOODS (demo/forestry/): every tree is a real ResourceNode row -- felled, hauled, regrown, blown down,
 ## replanted -- worked by the residents, with forestry and conservation zones, deadfall, a sawhorse and
 ## the "Woods (demo)" panel, the right column's third tab. Its wood goes into the demo's ONE stores
@@ -185,6 +189,7 @@ const TunnelPanelScript := preload("res://demo/tunnel/tunnel_panel.gd")
 const ForestPanelScript := preload("res://demo/forestry/forest_panel.gd")
 const WaterPanelScript := preload("res://demo/waterplay/water_panel.gd")
 const CanopyScript := preload("res://demo/camera/canopy_clear.gd")
+const CameraModesScript := preload("res://demo/camera/camera_modes.gd")
 const WeatherViewScript := preload("res://demo/weather/weather_view.gd")
 const LensPickerScript := preload("res://demo/ui/demo_lens_picker.gd")
 const TunnelControlScript := preload("res://demo/tunnel/tunnel_control.gd")
@@ -304,6 +309,7 @@ var _objects: ObjectListScript = ObjectListScript.new()
 var _guide: GuideScript = null
 var _people: PeopleScript = null
 var _people_card: PeopleCardScript = null
+var _camera_modes: CameraModesScript = null
 ## Water part B (decision 0431): fishing trips, boats, gear, ice, the drying rack and the mill.
 var _fishery: FisheryNodeScript = null
 
@@ -340,6 +346,7 @@ func _ready() -> void:
 	_build_people()
 	_build_sound()
 	_build_guide()
+	_build_camera_modes()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
 	_hold_restart_open()
@@ -623,6 +630,51 @@ func _build_guide() -> void:
 		HelpTopics.ACTION_WATER: _zone.show_panel.bind(DetailZoneScript.PANEL_WATER),
 		HelpTopics.ACTION_DIG: _open_dig_tool.bind(tool),
 	}
+
+
+func _build_camera_modes() -> void:
+	"""The camera's modes over the rig: bookmarks, follow (End), orbit and the U view's cutaway angle, with the edge pan
+	and their strip (demo/camera/camera_modes.gd, decision 0801)."""
+	var tool: TunnelControlScript = _tunnel_tool()
+	var command: DemoCommandScript = _command as DemoCommandScript
+	_camera_modes = CameraModesScript.new()
+	add_child(_camera_modes)
+	_camera_modes.primary = command.first_selected
+	_camera_modes.resident_point = resident_point
+	_camera_modes.resident_name = func(who: int) -> String: return String(_cast.actor(who).get(&"display_name"))
+	var shell: UiShell = _shell()
+	_camera_modes.modal_open = func() -> bool:
+		return _gate.modal_open() or (shell != null and shell.workspace_owns_input())
+	_camera_modes.underground = func() -> bool: return tool.view.on
+	_camera_modes.set_underground = show_underground
+	_camera_modes.tunnel_extent = func() -> Rect2: return CameraModesScript.network_extent(tool.network, tool.view.level)
+	_camera_modes.strip.below = _camera_strip_floor.bind(tool)
+	_camera_modes.configure(_camera as DemoCameraScript)
+	command.add_input_hook(_camera_modes.escape_hook)
+
+
+func _camera_strip_floor(tool: TunnelControlScript) -> Rect2:
+	"""The lowest thing shown in the top half of the screen's middle column, which the camera strip stands under: the
+	U view's level indicator, the incident or guide card, the pause card (while it is up there, not over a pop-up) and
+	the Map layer picker where a short window puts it beside them (1280x720)."""
+	var middle: float = get_viewport().get_visible_rect().size.y * 0.5
+	var lowest: Rect2 = tool.view.indicator_rect() if tool.view.indicator_shown() else Rect2()
+	lowest = _lower_of(lowest, _top_card_rect(), middle)
+	if _card.visible and _card.is_shown() and _card.layer == PauseCardScript.LAYER:
+		lowest = _lower_of(lowest, _card.frame_rect(), middle)
+	if _lens_picker.visible:
+		lowest = _lower_of(lowest, _lens_picker.frame_rect(), middle)
+	return lowest
+
+
+static func _lower_of(lowest: Rect2, rect: Rect2, middle: float) -> Rect2:
+	"""`rect` if it starts in the top half (above `middle`) and reaches lower than `lowest`; else `lowest`."""
+	return rect if rect.has_area() and rect.position.y < middle and rect.end.y > lowest.end.y else lowest
+
+
+func camera_modes() -> CameraModesScript:
+	"""The camera's modes (demo/camera/camera_modes.gd)."""
+	return _camera_modes
 
 
 func _open_dig_tool(tool: TunnelControlScript) -> void:

@@ -245,7 +245,7 @@ sets is in place -- and each setting as its own toggle, which a preset only ever
 |---|---|
 | Large readable | the interface at 150 % where the window offers it, else 125 %; bigger tooltips (x1.25); high-contrast panels (a flat, opaque face under every panel's text, re-drawn in place: `woodland_styles.gd set_high_contrast`) |
 | Keyboard planner | focus hints (a line under the keyboard's focus naming it and its keys: `access/focus_hint.gd`); show interactive targets (a brass ring on every resident, bed, tree, bridge, mouth and room a click selects: `access/target_marks.gd`) |
-| Reduced motion | the camera stops easing; the selection rings, a swimmer's ripple and the mound over a digger stop pulsing; every particle system at 35 %; the rain and snow thinner and half as fast (`access/demo_motion.gd`). The demo has no camera shake |
+| Reduced motion | the camera stops easing (a follow holds its resident, a bookmark or the cutaway angle lands at once; the orbit still turns, steadily); the selection rings, a swimmer's ripple and the mound over a digger stop pulsing; every particle system at 35 %; the rain and snow thinner and half as fast (`access/demo_motion.gd`). The demo has no camera shake |
 | Quiet focus | the sound's Quiet focus mix; fewer news toasts (warnings only, one at a time; everything stays in the village news) |
 
 Under **Time**: Pause while planning (off) and Pause on a critical incident (on). **Restore defaults** says everything it
@@ -578,7 +578,12 @@ centre under the alerts), each completed **only by what really happens in the vi
 | Right click a tree, trunk, deadfall, stump, cleared spot or the sawhorse | The woods' verb for it (see The woods) |
 | Right click deep water | Swimmers swim out and tread water there; an otter over water deeper than it is tall dives; a non-swimmer is refused by name (see Water gameplay) |
 | Right click / left click a bridge site | Build the planned bridge there with the selection / select the site for the Water panel |
-| Middle-button drag | Turn the camera: across turns it (right turns right, as E), up and down tilt it |
+| Middle-button drag | Turn the camera: across turns it (right turns right, as E), up and down tilt it -- per logical pixel, so as far at 4K as at 1080p |
+| Pointer resting at a window edge | Edge pan, after a quarter second; not over a panel, behind a pop-up or while a button is held (see The camera's modes) |
+| End | Follow the selected resident; End again, or any pan, stops (see The camera's modes) |
+| Ctrl+Shift+1..4 / Shift+1..4 | Save the view as bookmark 1-4 / go back to it |
+| Shift+O | Orbit the building in the middle of the view, slowly; Esc or Shift+O stops |
+| Shift+U | The U view at its cutaway angle, framing the tunnels; Shift+U again gives your angle back |
 | (any camera move) | The eye never sits inside a tree crown, the crowns between it and what it looks at are thinned, and a selected resident shows through foliage and roofs (see The camera and the trees) |
 | Left click a spoil heap | Select it: a brass ring, and the party panel says how much earth it holds |
 | Right click a spoil heap (or C with it selected) | The selected residents who can carry dig it out and haul its earth to the village stores (Clear; see Spoil heaps) |
@@ -630,6 +635,32 @@ pitch 30, was a screen of leaves) while a selected worker under one, or behind a
 - **The selected.** A selected resident wears a brass silhouette drawn only where something more than
   0.6 m nearer covers it (`camera/selected_xray.gdshader`): through a crown or a roof, never through the
   grass at its feet.
+
+## The camera's modes (decision 0801)
+
+Feature #60 (`camera/camera_modes.gd`, `camera_bookmarks.gd`, `edge_pan.gd`, `camera_strip.gd`). All presentation: the
+rig stays the player's, and none of it reaches the simulation.
+
+| Key | Mode |
+|---|---|
+| End | **Follow** the selected resident (UI §5's `camera_follow`): the view eases after them as they walk (held on them, no easing, with reduced motion). Turning, zooming and tilting keep it; any pan -- the keys, the edge, the minimap, a "Go to", Home, a bookmark -- or End again stops it |
+| Ctrl+Shift+1..4 | **Save** the view (where the camera is going: centre, heading, pitch, distance) as bookmark 1-4 |
+| Shift+1..4 | **Go back** to a bookmark (eased; at once with reduced motion). An empty one says how to fill it. Bookmarks last the session and through Restart; nothing is saved to disk |
+| Shift+O | **Orbit** the village building nearest the middle of the view (within 12 m; else the middle itself): 35 degrees down, from a distance fitted to its size, turning six degrees a second -- paused too. Zoom and tilt still work; Esc, Shift+O, a pan, a turn, a bookmark or End stop it. Esc keeps its ladder: an open pop-up or panel, then the Dig tool's piece and the tool, come first; the orbit's stop before clearing the selection |
+| Shift+U | **The cutaway angle**: the U view (turned on if it is off) from 65 degrees down, over the middle of the network on the level shown, far enough to see all of it (18 m at the least). Shift+U again, or leaving the U view, gives back the pitch and distance you had. The camera only; the U view's lights are the tunnels' |
+
+A dark **strip** in the top-centre column -- the level indicator's twin, under whatever else stands there (the level
+indicator, the guide's or an incident's card, the pause card) -- says which mode is on ("Following Wenna Tallowby · End
+or a pan stops", "Orbiting the hall · Esc stops", "Cutaway angle · Shift+U: your view back") and, for a moment, what a
+bookmark key did. None of the keys works behind a pop-up or the HUD's scrimmed workspace.
+
+**Edge pan** (UI §6): rest the pointer in the 12-logical-pixel band along any window edge (24 physical pixels at 4K) for
+a quarter second and the view pans that way at the keys' speed; corners pan diagonally, no faster. It is off over any
+panel, behind a pop-up, in a text field, while a mouse button is held, and while the window does not have the focus or
+the pointer is outside it. A diagonal key pan is now normalised too (W+D is no faster than W).
+
+**At 720p and at 4K** the camera frames the same: one vertical field of view kept by height, zoom limits in metres,
+frame-rate-independent easing, the edge band and the middle drag in logical pixels.
 
 ## Digging tunnels
 
@@ -1575,7 +1606,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `map_lenses.gd`, `lens_subject.gd` | The map layers: one shown at a time, each with its question, legend and subject; V's cycle and U's followed layer (decision 0292) |
 | `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |
 | `ui/` | The woodland HUD skin; the HUD date, the news strip, the village-news history, the incident card and "Go to", and the right column's tabs; the HUD's village read model (counters and ledger), the Residents roster and the village map; the Map layer picker; the pause card and the "Run until…" button and menu (decision 0471) |
-| `camera/` | The RTS camera, and the canopy clearance: the eye kept out of crowns, the crowns in the way thinned, the selected shown through |
+| `camera/` | The RTS camera, and the canopy clearance: the eye kept out of crowns, the crowns in the way thinned, the selected shown through; the camera's modes (bookmarks, follow, orbit, the cutaway angle), the edge pan and their strip |
 | `sound/` | The sound pass: the cue table (data), the mix and its buses, the voice pool, the event map, the owner and the Settings section |
 | `songs/` | The residents' songs: the repertoire (data), who sings what when, the bubbles, the hum (decision 0442) |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

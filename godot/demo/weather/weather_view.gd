@@ -50,6 +50,7 @@ const COVER_SHADER := preload("res://demo/weather/snow_cover.gdshader")
 const WaterLayout := preload("res://demo/water/water_layout.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const WaterRules := preload("res://demo/water/water_rules.gd")
+const DemoMotion := preload("res://demo/access/demo_motion.gd")
 const PARAM_COVER: StringName = &"snow_cover"
 const PARAM_FROST: StringName = &"frost_cover"
 
@@ -210,11 +211,12 @@ static func _cover_noise() -> NoiseTexture2D:
 
 
 func _process(_delta: float) -> void:
-	"""Follow the view, run the particles at the game's speed, and ease toward the weather's look."""
+	"""Follow the view, run the particles at the game's speed (slower with reduced motion, decision 0471), and ease
+	toward the weather's look."""
 	if _weather == null:
 		return
 	_follow_view()
-	var speed := float(_clock.speed) if _clock != null else 1.0
+	var speed := (float(_clock.speed) if _clock != null else 1.0) * DemoMotion.veil_speed()
 	_rain.speed_scale = speed
 	_snow.speed_scale = speed
 	var condition := _weather.condition()

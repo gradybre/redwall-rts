@@ -44,6 +44,7 @@ const Palette := preload("res://demo/ui/woodland_palette.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const GoodsScript := preload("res://demo/farm/farm_goods.gd")
+const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
 
 signal compost_requested
 signal close_requested
@@ -215,9 +216,9 @@ func _build_stocks() -> VBoxContainer:
 
 
 func _scroll() -> ScrollContainer:
-	"""A vertical scroll that takes the body's height (`_place`)."""
-	var scroll := ScrollContainer.new()
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	"""A vertical scroll that takes the body's height (`_place`), following focus in its own pixels at any interface
+	scale (demo_scroll.gd; decision 0471, F35)."""
+	var scroll := DemoScroll.new()
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.custom_minimum_size.y = MIN_BODY_H

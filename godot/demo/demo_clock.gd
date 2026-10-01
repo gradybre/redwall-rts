@@ -16,6 +16,9 @@ extends RefCounted
 ## sub-steps no longer than MAX_STEP_USEC, split in integer microseconds, so a slow frame at 4x
 ## never makes one walker step a quarter of a metre at once.
 ##
+## A FRAME MAY BE CAPPED (`limit_usec`, decision 0471): "Run until dawn" sets the most demo time the next frame may
+## pass, so the calendar lands on its target tick exactly (demo/session/run_until.gd); -1, the default, caps nothing.
+##
 ## Presentation only: nothing here feeds the simulation, whose own clock this merely reads.
 
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
@@ -27,6 +30,8 @@ const MAX_STEP_USEC: int = 33334
 ## The effective speed this frame (0, 1, 2 or 4) and the demo microseconds it covers.
 var speed: int = 1
 var frame_usec: int = 0
+## The most demo microseconds a frame may pass (-1: no cap). Set by the run-until (decision 0471).
+var limit_usec: int = -1
 
 var _source: GameManagerScript = null
 
@@ -40,6 +45,8 @@ func advance(real_delta: float) -> void:
 	"""Start a frame of `real_delta` real seconds: read the speed, and how many demo microseconds pass."""
 	speed = _source.get_effective_speed() if _source != null else 1
 	frame_usec = roundi(real_delta * float(USEC_PER_SECOND)) * speed
+	if limit_usec >= 0:
+		frame_usec = mini(frame_usec, limit_usec)
 
 
 func delta_s() -> float:

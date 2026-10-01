@@ -67,6 +67,7 @@ const InterruptScript := preload("res://demo/control/work_interrupt.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const OrderList := preload("res://demo/work/order_list.gd")
 const QueueAnswer := preload("res://demo/work/queue_answer.gd")
+const DemoMotion := preload("res://demo/access/demo_motion.gd")
 
 const RING_GAP_M: float = 0.12
 const PULSE_HZ: float = 1.1
@@ -764,8 +765,9 @@ func _process(delta: float) -> void:
 
 
 func _place_rings() -> void:
-	"""Selection rings (pulsing) at the selected residents' feet; the hover ring at the hovered one."""
-	var pulse := 1.0 + PULSE_SCALE * sin(TAU * PULSE_HZ * _time)
+	"""Selection rings (pulsing; still with reduced motion, decision 0471) at the selected residents' feet; the hover
+	ring at the hovered one."""
+	var pulse := DemoMotion.pulse(1.0 + PULSE_SCALE * sin(TAU * PULSE_HZ * _time))
 	for i in _rings.size():
 		_rings[i].visible = _selected[i] != 0
 		_rings_below[i].visible = _rings[i].visible

@@ -112,6 +112,16 @@ extends Node3D
 ## hears the village's committed events (its event map, sound_taps.gd) and plays them through five buses with a
 ## bounded voice pool; its volumes and mixes are the game menu's Settings. No sound files are staged yet, so it
 ## plays silent; its streams load in the boot prewarm.
+##
+## TIME CONTROLS (decision 0471, review UX-022, demo/session/): THE PAUSE LEDGER tells the pause types apart -- the
+## player's, the game menu's, a planning surface's (Pause while planning, off by default) and a critical incident's
+## (on by default) -- the PAUSE CARD top centre says each and offers the one Resume (Space too), and "RUN UNTIL..."
+## (the button in the time cluster, G) runs the village to dawn, dusk, the next meal, a project, a harvest or a warning
+## and pauses saying so. `_build_session()` wires it; the game menu holds its pause through the ledger.
+##
+## ACCESSIBILITY (decision 0471, review UX-023, demo/access/): the four presets and their settings in the menu's
+## Settings, applied live (`_on_access_changed`, access_effects.gd); the OBJECT LIST (F6) of every resident, bed, tree,
+## bridge, tunnel mouth and room, and the rings that show them (village_targets.gd); the focus hints.
 
 const DemoManifestScript := preload("res://demo/demo_manifest.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
@@ -175,6 +185,18 @@ const WeirViewScript := preload("res://demo/water/weir_gate_view.gd")
 const SongsScript := preload("res://demo/songs/demo_songs.gd")
 const RoutesScript := preload("res://demo/routes/demo_routes.gd")
 const RescueCardScript := preload("res://demo/routes/rescue_card.gd")
+const TimeControlScript := preload("res://demo/session/time_control.gd")
+const PauseCardScript := preload("res://demo/ui/demo_pause_card.gd")
+const RunMenuScript := preload("res://demo/ui/demo_run_menu.gd")
+const AccessEffectsScript := preload("res://demo/access/access_effects.gd")
+const TargetsScript := preload("res://demo/access/world_targets.gd")
+const MarksScript := preload("res://demo/access/target_marks.gd")
+const HintScript := preload("res://demo/access/focus_hint.gd")
+const ObjectListScript := preload("res://demo/access/object_list.gd")
+const VillageTargets := preload("res://demo/access/village_targets.gd")
+const Access := preload("res://demo/access/demo_access.gd")
+const FarmSimScript := preload("res://demo/farm/farm_sim.gd")
+const FarmCatalog := preload("res://demo/farm/farm_catalog.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -244,6 +266,14 @@ var _songs: SongsScript = null
 ## The route and infrastructure previews (decision 0461) and their map layer's row.
 var _routes: RoutesScript = null
 var _routes_lens: int = -1
+var _time: TimeControlScript = TimeControlScript.new()
+var _card: PauseCardScript = PauseCardScript.new()
+var _run_menu: RunMenuScript = RunMenuScript.new()
+var _effects: AccessEffectsScript = AccessEffectsScript.new()
+var _targets: TargetsScript = TargetsScript.new()
+var _marks: MarksScript = MarksScript.new()
+var _hint: HintScript = HintScript.new()
+var _objects: ObjectListScript = ObjectListScript.new()
 
 
 func _ready() -> void:
@@ -758,6 +788,7 @@ func _open_running() -> void:
 			and GameManager.is_paused()):
 		_held_open = false
 		GameManager.resume_game()
+	_time.opened = true
 
 
 func _hold_restart_open() -> void:
@@ -827,6 +858,8 @@ func _build_input() -> void:
 	Pantry and the panels (see INPUT, MENU AND KEYBOARD)."""
 	_build_menu()
 	_build_lab()
+	_build_session()
+	_build_access()
 	add_child(_gate)
 	_gate.yield_to(_stall_banner.is_shown)
 	var shell: UiShell = _shell()
@@ -845,6 +878,10 @@ func _build_input() -> void:
 	_gate.watch_modal(_farm.planner, _farm.planner, _farm.planner.close, [] as Array[StringName],
 		[_farm.planner.KEY] as Array[Key])
 	_gate.set_modal_close(_farm.planner, _farm.planner.close_button())
+	_gate.watch_modal(_run_menu, _run_menu.frame(), _run_menu.close, [] as Array[StringName], [RunMenuScript.KEY] as Array[Key])
+	_gate.set_modal_close(_run_menu, _run_menu.close_button())
+	_gate.watch_modal(_objects, _objects.frame(), _objects.close, [ObjectListScript.ACTION] as Array[StringName])
+	_gate.set_modal_close(_objects, _objects.close_button())
 	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
 	_gate.add_region("right column", [_zone, _farm.bed_panel, ext.panel, _forestry.panel, _waterplay.panel] as Array[Node])
 	_gate.add_region("left column", [(_command as DemoCommandScript).panel()] as Array[Node])
@@ -862,8 +899,10 @@ func _workspace_rect(shell: UiShell) -> Rect2:
 
 
 func _scale_tooltips() -> void:
-	"""The action cards' tooltips at the HUD's effective scale for this window (decision 0391)."""
-	ActionCardScript.scale_tooltips(DemoUiScale.effective_scale(get_viewport().get_visible_rect().size))
+	"""The action cards' tooltips at the HUD's effective scale for this window (decision 0391), larger with bigger
+	tooltips on (decision 0471)."""
+	ActionCardScript.scale_tooltips(DemoUiScale.effective_scale(get_viewport().get_visible_rect().size)
+		* Access.tooltip_scale())
 
 
 func _build_menu() -> void:
@@ -900,6 +939,163 @@ func _build_lab() -> void:
 		_forestry.on_action.bind(ForestPanelScript.ACTION_STORM))
 	_lab.add_trigger("Cramp", "Every selected resident swimming tires at once and needs rescue", "Water",
 		_waterplay.on_action.bind(WaterPanelScript.ACTION_CRAMP), _swimmer_selected, "Select a resident in the water first")
+
+
+func _build_session() -> void:
+	"""The time controls (see TIME CONTROLS): the ledger the menu holds its pause through, the run on the demo
+	calendar and the farm's beds, the planning surfaces, the pause card, and the run's button and menu."""
+	var manager := GameManager as GameManagerScript
+	add_child(_time)
+	_time.configure(manager, _cast.clock, _services.notices, _services.incidents)
+	_time.bind_shell(_shell())
+	_time.run.calendar = _services.calendar
+	_time.run.ripe_mask = ripe_beds
+	_time.run.growing = func() -> bool: return growing_beds() != 0
+	_menu.hold_pause = _time.ledger.hold_menu
+	_add_planning()
+	add_child(_card)
+	_card.configure(_time.ledger, manager.get_speed)
+	_card.on_resume = _time.resume
+	_card.run_note = _time.run_note
+	_card.hide_while = [_stall_banner.is_shown, func() -> bool: return not _time.opened,
+		func() -> bool: return _menu.visible] as Array[Callable]
+	_card.modal_open = func() -> bool: return _gate.modal_open()
+	_card.avoid = func() -> Rect2: return _cards.frame_rect() if _cards.is_shown() else Rect2()
+	_card.hud_cards_shown = _hud_cards_shown
+	add_child(_run_menu)
+	add_child(_run_menu.button_layer())
+	_run_menu.configure(_time.run, _hud_rect.bind(UiShell.ID_TIME_CLUSTER), _hud_rect.bind(UiShell.ID_SPEED_4))
+	_run_menu.on_start = _time.start_run
+	_run_menu.on_stop = _time.stop_run
+	_run_menu.on_speed = manager.set_speed
+	_run_menu.speed = manager.get_speed
+	_run_menu.before_open = func() -> void: VillageTargets.project_into(_time.run, _tunnel_tool(), _waterplay)
+	_time.run_menu = _run_menu
+
+
+func _add_planning() -> void:
+	"""The planning surfaces the planning pause follows, first named first."""
+	var tool: TunnelControlScript = _tunnel_tool()
+	_time.add_planning("the Pantry", func() -> bool: return _farm.pantry_panel.visible)
+	_time.add_planning("the Work screen", func() -> bool: return _work.screen.visible)
+	_time.add_planning("the seasonal planner", func() -> bool: return _farm.planner.visible)
+	_time.add_planning("the village news", _history.is_open)
+	_time.add_planning("the object list", func() -> bool: return _objects.visible)
+	_time.add_planning("the Dig tool", func() -> bool: return tool.planning)
+	_time.add_planning("the Residents list", _workspace_open)
+
+
+func _workspace_open() -> bool:
+	"""Whether the HUD's ordinary workspace (the Residents list) is open."""
+	var shell: UiShell = _shell()
+	return shell != null and _workspace_rect(shell).has_area()
+
+
+func _build_access() -> void:
+	"""Accessibility (see ACCESSIBILITY): the targets and their rings, the object list, the focus hint, and the
+	settings' effects, applied now from the settings the session kept."""
+	_targets.centre = (_camera as DemoCameraScript).centre_on
+	VillageTargets.register(_targets, _cast as DemoCastScript, _farm, _forestry, _waterplay, _tunnel_tool(),
+		select_resident, select_tunnel)
+	add_child(_marks)
+	_marks.configure(_targets)
+	add_child(_hint)
+	_hint.modal_open = func() -> bool: return _gate.modal_open()
+	add_child(_objects)
+	_objects.targets = _targets
+	add_child(_effects)
+	_effects.ledger = _time.ledger
+	_effects.marks = _marks
+	_effects.hint = _hint
+	_effects.news = _news
+	_effects.hud_theme_owner = _shell()
+	_effects.motion_root = self
+	_effects.on_tooltips = _scale_tooltips
+	_effects.on_sound = _sound.mix.apply
+	_menu.access.scale_to = _menu.choose_scale
+	_menu.access.scale_fits = ui_scale_fits
+	_menu.access.applied = _on_access_changed
+	_effects.apply()
+
+
+func _on_access_changed() -> void:
+	"""A setting changed in the menu: apply every effect now, and repaint the sound's rows (a preset may set the mix)."""
+	_effects.apply()
+	_menu.sound.refresh()
+
+
+func _tunnel_tool() -> TunnelControlScript:
+	"""The Dig tool and the network it owns."""
+	return (_command as DemoCommandScript).tunnels()
+
+
+func _hud_rect(id: int) -> Rect2:
+	"""HUD element `id`'s rectangle in viewport pixels (empty without a HUD)."""
+	var shell: UiShell = _shell()
+	var control: Control = shell.control_for(id) if shell != null else null
+	return InputGateScript.screen_rect(control) if control != null else Rect2()
+
+
+func _hud_cards_shown() -> bool:
+	"""Whether the HUD's own alert cards are showing (the pause card then sits under them)."""
+	var shell: UiShell = _shell()
+	var stack: Control = shell.control_for(UiShell.ID_ALERT_STACK) if shell != null else null
+	return stack != null and stack.visible
+
+
+func ripe_beds() -> int:
+	"""A bit per crop bed that is ripe now (the farm's own stage): the harvest windows open."""
+	var mask: int = 0
+	for bed: int in FarmCatalog.BED_COUNT:
+		if _farm.sim.stage_of(bed) == FarmSimScript.STAGE_RIPE:
+			mask |= 1 << bed
+	return mask
+
+
+func growing_beds() -> int:
+	"""A bit per crop bed growing toward a harvest (sown, sprouting or growing)."""
+	var mask: int = 0
+	for bed: int in FarmCatalog.BED_COUNT:
+		var stage: int = _farm.sim.stage_of(bed)
+		if stage == FarmSimScript.STAGE_SOWN or stage == FarmSimScript.STAGE_SPROUTING \
+				or stage == FarmSimScript.STAGE_GROWING:
+			mask |= 1 << bed
+	return mask
+
+
+func time_control() -> TimeControlScript:
+	"""The time controls: the pause ledger and the run (checks)."""
+	return _time
+
+
+func pause_card() -> PauseCardScript:
+	"""The pause card (checks)."""
+	return _card
+
+
+func run_menu() -> RunMenuScript:
+	"""The "Run until…" button and menu (checks)."""
+	return _run_menu
+
+
+func object_list() -> ObjectListScript:
+	"""The F6 object list (checks)."""
+	return _objects
+
+
+func access_effects() -> AccessEffectsScript:
+	"""The accessibility settings' effects (checks)."""
+	return _effects
+
+
+func target_marks() -> MarksScript:
+	"""The interactive targets' rings (checks)."""
+	return _marks
+
+
+func focus_hint() -> HintScript:
+	"""The focus hint (checks)."""
+	return _hint
 
 
 func _swimmer_selected() -> bool:
@@ -957,7 +1153,7 @@ func lab() -> LabScript:
 
 func _unhandled_input(event: InputEvent) -> void:
 	"""Last of the demo's handlers: Esc that nothing else dismissed opens the game menu (UI §3's ladder
-	ends there); F8 opens the Demo Lab."""
+	ends there); F8 opens the Demo Lab; F6 the object list (decision 0471)."""
 	var key := event as InputEventKey
 	if key == null or not key.pressed or key.echo or key.ctrl_pressed or key.alt_pressed or key.meta_pressed:
 		return
@@ -965,6 +1161,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_menu.open()
 	elif key.keycode == LabScript.KEY:
 		_lab.open()
+	elif key.is_action_pressed(ObjectListScript.ACTION):
+		_objects.open()
 	else:
 		return
 	get_viewport().set_input_as_handled()
@@ -1000,3 +1198,4 @@ func _skin_hud() -> void:
 		push_warning("no HUD at %s; the demo runs unskinned" % GAME_HUD_ROOT)
 		return
 	WoodlandSkinScript.apply(hud_root)
+	_effects.apply_tooltips()

@@ -1,7 +1,7 @@
 extends VBoxContainer
-## The game menu's sound settings (demo_menu.gd's Settings page): a volume and a mute for each of the five
-## buses, and the three mixes. Decision 0351 (review F43, UX-031; UI §8.1's master, ambience, effects and
-## notice volumes). DEMO UI in the woodland skin.
+## The game menu's sound settings (demo_menu.gd's Settings page): a volume and a mute for each of the six
+## buses, the three mixes, and whether the residents sing (SONGS: on or off; decision 0442). Decision 0351
+## (review F43, UX-031; UI §8.1's master, ambience, effects and notice volumes). DEMO UI in the woodland skin.
 ##
 ## A ROW per bus: its name, − and + (5 % steps: UI §8.1's stepper, and the keyboard's way, since the input gate
 ## steps through buttons), a slider for the mouse (it takes no focus), the percent, and Mute. The MIXES row:
@@ -21,6 +21,10 @@ const MIXES_TITLE: String = "Mix"
 const MUTE_TEXT: String = "Mute"
 const MUTED_TEXT: String = "Muted"
 const PERCENT_TEXT: String = "%d%%"
+const SONGS_TITLE: String = "Songs"
+const SONGS_ON_TEXT: String = "Residents sing: on"
+const SONGS_OFF_TEXT: String = "Residents sing: off"
+const SONGS_TIP: String = "Whether the residents sing their songs: the words over them, the hum and the song news. The Songs volume above only sets the hum."
 const SILENT_NOTE: String = "This copy of the demo has no sound files, so it is silent: these settings are kept for them."
 const MATCH_NOTE: String = "Every sound has a text or picture match: with the sound off, nothing is missed."
 const LABEL_W: float = 132.0
@@ -40,6 +44,7 @@ var _down_tips: PackedStringArray = PackedStringArray()
 var _up_tips: PackedStringArray = PackedStringArray()
 var _presets: Array[Button] = []
 var _note: Label = null
+var _songs: Button = null
 var _silent: bool = true
 var _refreshing: bool = false
 
@@ -52,6 +57,7 @@ func _init() -> void:
 	for bus: int in SoundMix.BUS_COUNT:
 		add_child(_bus_row(bus))
 	add_child(_preset_row())
+	add_child(_songs_row())
 	_note = FarmUi.label("", FarmUi.SMALL_PX, Palette.UMBER)
 	add_child(_note)
 	refresh()
@@ -127,7 +133,30 @@ func _preset_row() -> HBoxContainer:
 	return row
 
 
+func _songs_row() -> HBoxContainer:
+	"""SONGS: one toggle, lit while the residents sing."""
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override(&"separation", 8)
+	var title: Label = FarmUi.label(SONGS_TITLE, FarmUi.SMALL_PX, Palette.INK, true)
+	title.custom_minimum_size.x = LABEL_W
+	row.add_child(title)
+	_songs = FarmUi.button(SONGS_ON_TEXT, FarmUi.SMALL_PX)
+	_songs.toggle_mode = true
+	_songs.tooltip_text = SONGS_TIP
+	_songs.toggled.connect(set_songs)
+	row.add_child(_songs)
+	return row
+
+
 # --- changes ----------------------------------------------------------------------------------------
+
+func set_songs(on: bool) -> void:
+	"""Let the residents sing or not (the toggle), apply and repaint."""
+	if _refreshing or SoundMix.songs_on == on:
+		return
+	SoundMix.songs_on = on
+	_changed()
+
 
 func step(bus: int, by: int) -> void:
 	"""Move bus `bus`'s volume by `by` percent (− / +)."""
@@ -184,6 +213,8 @@ func refresh() -> void:
 		_set_step_enabled(_ups[bus], percent < SoundMix.PERCENT_MAX, _up_tips[bus], "Already at full volume")
 	for index: int in _presets.size():
 		_presets[index].set_pressed_no_signal(index == SoundMix.preset)
+	_songs.set_pressed_no_signal(SoundMix.songs_on)
+	_songs.text = SONGS_ON_TEXT if SoundMix.songs_on else SONGS_OFF_TEXT
 	_note.text = (SILENT_NOTE + " " if _silent else "") + MATCH_NOTE
 	_refreshing = false
 
@@ -220,6 +251,11 @@ func down_button(bus: int) -> Button:
 func preset_button(index: int) -> Button:
 	"""Mix `index`'s button."""
 	return _presets[index]
+
+
+func songs_button() -> Button:
+	"""The songs toggle."""
+	return _songs
 
 
 func note_text() -> String:

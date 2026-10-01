@@ -171,6 +171,8 @@ const NewsJumpScript := preload("res://demo/ui/demo_news_jump.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const SoundScript := preload("res://demo/sound/sound_director.gd")
 const DemoWorkScript := preload("res://demo/work/demo_work.gd")
+const WeirViewScript := preload("res://demo/water/weir_gate_view.gd")
+const SongsScript := preload("res://demo/songs/demo_songs.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -235,6 +237,8 @@ var _history: NewsHistoryScript = null
 var _cards: IncidentCardsScript = null
 var _jump: NewsJumpScript = NewsJumpScript.new()
 var _work: DemoWorkScript = null
+var _weir_view: WeirViewScript = null
+var _songs: SongsScript = null
 
 
 func _ready() -> void:
@@ -281,6 +285,8 @@ func _warm_and_open() -> void:
 	_prewarm.add_step("plant atlases", _farm.view.assets.ensure_all_loaded)
 	_prewarm.add_step("woods: stumps, saplings, splits", _forestry.view.prewarm)
 	_prewarm.add_step("sound streams", _sound.warm)
+	if _songs != null and _songs.hum != null:
+		_prewarm.add_step("song hums", _songs.hum.warm)
 	var view: TunnelViewScript = (_command as DemoCommandScript).tunnels().view
 	var rooms: RoomViewScript = (_command as DemoCommandScript).tunnels().ext.room_view
 	_prewarm.add_frame_step("rooms on the ground", UndergroundPrewarmScript.FRAMES, rooms.begin_surface_prewarm,
@@ -321,6 +327,7 @@ func _build_cast(manifest: Dictionary) -> void:
 	var obstacles: Array[Vector3] = _water.merged_obstacles(_world.obstacles())
 	obstacles.append_array(ForestryScript.extra_obstacles(_world as DemoWorldScript))
 	obstacles.append_array(WaterplayScript.land_obstacles())
+	obstacles.append_array(WeirViewScript.land_obstacles())
 	_links = WaterplayScript.make_links(_water.map(), obstacles)
 	obstacles.append_array(_links.band)
 	_cast.build(manifest, _water.merged_points(_world.points_of_interest()), obstacles, _links.area)
@@ -342,6 +349,7 @@ func _build_farm(manifest: Dictionary) -> void:
 	_farm.configure(manifest, _world as DemoWorldScript, _cast as DemoCastScript, _command as DemoCommandScript,
 		_camera.camera(), _shell(), storage_providers(), _services)
 	_farm.follow_rooms(rooms())
+	_build_weir_view()
 	_command.tunnels().ext.fixture_view.set_fill(_farm.cellar_fill)
 	_command.tunnels().ext.set_stored(_farm.cellar_stored_u)
 	_command.tunnels().ext.set_weather_skip(_farm.skip_to_next_weather)
@@ -351,6 +359,21 @@ func _build_farm(manifest: Dictionary) -> void:
 		WaterOverlayScript.DIVE_COLOUR, WaterOverlayScript.FORD_COLOUR, WaterOverlayScript.BRIDGE_COLOUR,
 		WaterOverlayScript.LINK_COLOUR, WaterOverlayScript.LANDING_COLOUR]), PackedStringArray(["wade", "swim",
 		"dive", "ford", "bridge site", "swim link", "landing"]))
+
+
+func _build_weir_view() -> void:
+	"""The weir's sluice gate and the garden leat's head, following the farm's leat (decision 0441)."""
+	_weir_view = WeirViewScript.new()
+	add_child(_weir_view)
+	var weir := _world.find_child("Water_weir", true, false) as MeshInstance3D
+	var surface := _water.surface()
+	var material: Material = surface.materials[0] if surface != null and not surface.materials.is_empty() else null
+	_weir_view.build(weir, material, _farm.leat, (_cast as DemoCastScript).clock)
+
+
+func weir_view() -> WeirViewScript:
+	"""The weir's sluice gate and the leat head (checks and the scripted run)."""
+	return _weir_view
 
 
 func _build_kitchen() -> void:
@@ -439,6 +462,7 @@ func _build_waterplay() -> void:
 		_water.map(), _links, _water, _forestry.stand)
 	_waterplay.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
 	_farm.lenses.set_subject(_water_lens, _waterplay.water_range)
+	(_command as DemoCommandScript).add_ground_handlers(_farm.on_weir_click, func(_screen: Vector2) -> bool: return false)
 
 
 func _build_work() -> void:
@@ -721,12 +745,41 @@ func rooms() -> RoomsScript:
 
 func _build_sound() -> void:
 	"""The demo's sound owner (see SOUND): its table, buses and voices, listening to the camera, the clock, the U
-	view and the village's models."""
+	view and the village's models; then the residents' songs, which hum on its Songs bus."""
 	add_child(_sound)
 	_sound.configure()
 	var tunnels: TunnelControlScript = (_command as DemoCommandScript).tunnels()
 	_sound.bind(_camera as DemoCameraScript, GameManager as GameManagerScript, func() -> bool: return tunnels.view.on)
 	_sound.follow_demo(_cast as DemoCastScript, _forestry, tunnels.network, _waterplay, _services, _water.map())
+	_build_songs()
+
+
+func _build_songs() -> void:
+	"""The residents' songs (decision 0442): read from the cast, the kitchen, the night and the work board; their news
+	to the village feed; their slots filled from the deeds the water's play has recorded."""
+	_songs = SongsScript.new()
+	add_child(_songs)
+	if _songs.configure(_cast as DemoCastScript, _camera.camera(), _services.calendar, _services.notices):
+		_songs.follow(_kitchen.kitchen, _work.board)
+		_songs.set_deeds(village_deeds)
+
+
+func village_deeds() -> PackedStringArray:
+	"""What the village has done that a song may name (demo_songs.gd DEEDS): each bridge it has opened, and a rescue."""
+	var out := PackedStringArray()
+	if _waterplay == null:
+		return out
+	for row: int in _waterplay.bridges.names.size():
+		if _waterplay.bridges.is_open(row) and not _waterplay.bridges.names[row].is_empty():
+			out.append("the " + _waterplay.bridges.names[row])
+	if _waterplay.rescue.rescued > 0:
+		out.append("the swimmer saved")
+	return out
+
+
+func songs() -> SongsScript:
+	"""The residents' songs (demo/songs/demo_songs.gd)."""
+	return _songs
 
 
 func sound() -> SoundScript:

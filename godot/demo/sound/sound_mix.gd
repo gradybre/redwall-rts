@@ -1,5 +1,5 @@
 extends RefCounted
-## The live demo's mix: its five player-facing buses, their volumes and mutes (the game menu's Settings), the
+## The live demo's mix: its six player-facing buses, their volumes and mutes (the game menu's Settings), the
 ## mix presets, the pause duck and the underground filter. Decision 0351 (review F43, UX-029, UX-031).
 ## Presentation only.
 ##
@@ -10,6 +10,10 @@ extends RefCounted
 ##            halves of its own: "Work Surface" and "Work Under" (below ground)
 ##   Water    the stream, splashes, wading                   (UI §8.1 lists water under ambience: 60)
 ##   Cues     warnings, completions and clicks               (notice_volume, 70)
+##   Songs    the residents' hummed songs (decision 0442):    (a demo bus, 50)
+##            diegetic singing, apart from any score
+## SONGS ON (`songs_on`, the Settings' "Songs" toggle): whether residents sing at all -- the bubbles, the hum and the
+## song news (demo/songs/). Off is not a mute: nothing is sung. The Songs bus's own Mute silences only the hum.
 ## Volumes are 0..100 % in steps of 5 (UI §8.1's steppers); 0 % or mute silences a bus.
 ##
 ## SETTINGS LIVE IN STATIC VARS, as the interface scale's do (demo_ui_scale.gd): they last for the session and
@@ -29,9 +33,11 @@ const BUS_AMBIENCE: int = 1
 const BUS_WORK: int = 2
 const BUS_WATER: int = 3
 const BUS_CUES: int = 4
-const BUS_COUNT: int = 5
-const BUS_NAMES: Array[StringName] = [&"Master", &"Ambience", &"Work", &"Water", &"Cues"]
-const BUS_LABELS: Array[String] = ["All sound", "Wind and rain", "Work and steps", "Water", "Alerts and clicks"]
+const BUS_SONGS: int = 5
+const BUS_COUNT: int = 6
+const BUS_NAMES: Array[StringName] = [&"Master", &"Ambience", &"Work", &"Water", &"Cues", &"Songs"]
+const BUS_LABELS: Array[String] = ["All sound", "Wind and rain", "Work and steps", "Water", "Alerts and clicks",
+	"Songs (humming)"]
 const WORK_SURFACE: StringName = &"Work Surface"
 const WORK_UNDER: StringName = &"Work Under"
 const PERCENT_STEP: int = 5
@@ -47,10 +53,11 @@ const PRESET_TIPS: Array[String] = [
 	"Alerts and clicks forward; wind, water and work turned well down",
 	"Wind, water and work forward; alerts a little back",
 ]
-## Per preset, the five buses' percents in BUS_* order. Balanced is UI §8.1's defaults.
-const BALANCED_PERCENTS: PackedInt32Array = [80, 60, 75, 60, 70]
-const QUIET_PERCENTS: PackedInt32Array = [70, 20, 30, 20, 85]
-const ATMOSPHERE_PERCENTS: PackedInt32Array = [80, 85, 70, 85, 55]
+## Per preset, the six buses' percents in BUS_* order. Balanced is UI §8.1's defaults; the Songs bus is the demo's
+## (decision 0442: subtle by default, down in Quiet focus, up in Atmosphere).
+const BALANCED_PERCENTS: PackedInt32Array = [80, 60, 75, 60, 70, 50]
+const QUIET_PERCENTS: PackedInt32Array = [70, 20, 30, 20, 85, 25]
+const ATMOSPHERE_PERCENTS: PackedInt32Array = [80, 85, 70, 85, 55, 65]
 const PRESET_PERCENTS: Array[PackedInt32Array] = [BALANCED_PERCENTS, QUIET_PERCENTS, ATMOSPHERE_PERCENTS]
 
 ## Paused: the Ambience and Water buses drop this far (dB).
@@ -61,18 +68,21 @@ const LOW_PASS_HZ: float = 800.0
 const SILENT_DB: float = -80.0
 
 static var percents: PackedInt32Array = PRESET_PERCENTS[PRESET_BALANCED].duplicate()
-static var muted: PackedByteArray = PackedByteArray([0, 0, 0, 0, 0])
+static var muted: PackedByteArray = PackedByteArray([0, 0, 0, 0, 0, 0])
 static var preset: int = PRESET_BALANCED
+## Whether residents sing at all (see SONGS ON).
+static var songs_on: bool = true
 
 var paused: bool = false
 var underground: bool = false
 
 
 static func reset() -> void:
-	"""Back to Balanced, nothing muted (tests; a fresh process starts here)."""
+	"""Back to Balanced, nothing muted, songs on (tests; a fresh process starts here)."""
 	percents = PRESET_PERCENTS[PRESET_BALANCED].duplicate()
-	muted = PackedByteArray([0, 0, 0, 0, 0])
+	muted = PackedByteArray([0, 0, 0, 0, 0, 0])
 	preset = PRESET_BALANCED
+	songs_on = true
 
 
 static func set_percent(bus: int, percent: int) -> bool:
@@ -94,7 +104,7 @@ static func set_muted(bus: int, on: bool) -> bool:
 
 
 static func choose_preset(index: int) -> bool:
-	"""Apply a preset's five volumes (mutes are the player's and stay). False for an unknown preset."""
+	"""Apply a preset's volumes (mutes are the player's and stay). False for an unknown preset."""
 	if index < 0 or index >= PRESET_PERCENTS.size():
 		return false
 	percents = PRESET_PERCENTS[index].duplicate()
@@ -163,6 +173,7 @@ func apply() -> void:
 	_filter(BUS_NAMES[BUS_WATER], underground)
 	_filter(WORK_SURFACE, underground)
 	_filter(WORK_UNDER, not underground)
+	_filter(BUS_NAMES[BUS_SONGS], underground)
 
 
 func bus_db(bus: int) -> float:

@@ -19,7 +19,7 @@ const SoundMix := preload("res://demo/sound/sound_mix.gd")
 
 const DEFAULT_PATH: String = "res://demo/sound/sound_table.json"
 ## Bus keys as the JSON names them, by SoundMix.BUS_* (Master is no cue's bus).
-const BUS_KEYS: Array[String] = ["", "ambience", "work", "water", "cues"]
+const BUS_KEYS: Array[String] = ["", "ambience", "work", "water", "cues", "songs"]
 const MIN_VOLUME_DB: float = -60.0
 const MAX_VOLUME_DB: float = 6.0
 const MAX_VOICES: int = 8

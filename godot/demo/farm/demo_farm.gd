@@ -19,6 +19,9 @@ extends Node3D
 ##                                    selects directly
 ##   K, or the HUD's Food command     the Pantry: Stocks (what is in store, where, incoming, next to
 ##                                    spoil) and Recipe ideas (not cookable yet)
+##   left click the weir              the weir sluice's controls in the bed panel (farm_leat.gd, decision 0441;
+##                                    `on_weir_click`, asked after the water's play):
+##   (or a bed's Sluice…)             Close / Half / Open, each card previewing the beds it changes
 ##   Esc                              close the Pantry, then the bed panel
 ## The routine crew (the fieldworker and the gatherer) take queued jobs and the farm's own harvest
 ## and clearing jobs whenever they are wandering.
@@ -74,6 +77,9 @@ const PickScript := preload("res://demo/control/demo_pick.gd")
 const Layout := preload("res://demo/world/world_layout.gd")
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const LeatScript := preload("res://demo/farm/farm_leat.gd")
+const WeirView := preload("res://demo/water/weir_gate_view.gd")
+const EventsScript := preload("res://demo/events/demo_events.gd")
 
 ## A bed was opened: the right column should show the farm's panel (demo/ui/demo_detail_zone.gd).
 signal panel_wanted
@@ -90,6 +96,8 @@ var sim: SimScript = SimScript.new()
 var tunnels: TunnelsScript = TunnelsScript.new()
 var crew: CrewScript = CrewScript.new()
 var alerts: AlertsScript = AlertsScript.new()
+## The weir's sluice and the garden leat it feeds (decision 0441).
+var leat: LeatScript = LeatScript.new()
 ## farm_alerts.gd COND_DRY, COND_WET, COND_WORN, COND_BLIGHT -> the job that answers it.
 const REMEDY_KINDS: PackedInt32Array = [JobsScript.KIND_WATER, JobsScript.KIND_DRAIN, JobsScript.KIND_COMPOST,
 	JobsScript.KIND_CLEAR]
@@ -141,6 +149,7 @@ func configure(manifest: Dictionary, world: DemoWorldScript, cast: DemoCastScrip
 	crew.configure(cast, sim, pantry, tunnels, well_position(), services.notices.poster(
 		NoticesScript.SOURCE_CREW, NoticesScript.LEVEL_NOTE))
 	alerts.bind_incidents(services.incidents, remedy_on)
+	leat.configure(sim, services.incidents, services.notices)
 	crew.set_incidents(services.incidents)
 	recipes.load_index()
 	goods = GoodsScript.new(services.props)
@@ -193,6 +202,9 @@ func _build_panels() -> void:
 	bed_panel.cancel_requested.connect(func() -> void: crew.cancel_bed(selected_bed))
 	bed_panel.close_requested.connect(func() -> void: select_bed(NO_BED))
 	bed_panel.pantry_requested.connect(open_pantry)
+	bed_panel.sluice_requested.connect(show_weir)
+	bed_panel.sluice_chosen.connect(set_sluice)
+	bed_panel.set_leat(leat)
 	pantry_panel = PantryPanelScript.new()
 	pantry_panel.configure(sim, pantry, recipes)
 	pantry_panel.set_goods(goods)
@@ -261,6 +273,7 @@ func _process(delta: float) -> void:
 	"""Run the farm on this frame's demo time; keep the panels current -- at
 	once when the calendar's hour turns, so the panel's date never trails the HUD's."""
 	step(_cast.clock.frame_usec if _cast != null else 0)
+	leat.follow_flood(flood_running())
 	if _cast != null:
 		carry_view.refresh()
 		_follow_fit_out()
@@ -388,6 +401,31 @@ func pressing_kind_into(bed: int, out: IntMath.IntResult) -> bool:
 	return out.refuse("NOTHING_TO_DO")
 
 
+func flood_running() -> bool:
+	"""Whether the tunnels' threat is a flood under way now (demo/events/demo_events.gd; none without tunnels)."""
+	var tool: TunnelControlScript = _command.tunnels() if _command != null else null
+	if tool == null or tool.ext == null or tool.ext.works == null:
+		return false
+	var events: EventsScript = tool.ext.works.events
+	return events != null and events.active and events.kind == EventsScript.KIND_FLOOD
+
+
+func show_weir() -> void:
+	"""The weir's sluice in the bed panel (decision 0441): no bed selected."""
+	selected_bed = NO_BED
+	view.select_bed(NO_BED)
+	bed_panel.show_weir()
+	panel_wanted.emit()
+
+
+func set_sluice(setting: int) -> String:
+	"""THE SLUICE ORDER (farm_leat.gd `set_sluice`): its answer shows on the panel's message line."""
+	var said: String = leat.set_sluice(setting)
+	bed_panel.show_message(said)
+	bed_panel.refresh()
+	return said
+
+
 func select_bed(bed: int) -> void:
 	"""Open a bed's panel and ring it (NO_BED: close)."""
 	selected_bed = bed
@@ -452,6 +490,15 @@ func on_ground_click(screen: Vector2) -> bool:
 	return false
 
 
+func on_weir_click(screen: Vector2) -> bool:
+	"""A left click on the weir (decision 0441): its sluice in the bed panel. The village asks it AFTER the water's
+	play, so a bridge at the weir's landing is that play's click, not the sluice's."""
+	if _camera == null or not WeirView.ray_hits_weir(_camera.project_ray_origin(screen), _camera.project_ray_normal(screen)):
+		return false
+	show_weir()
+	return true
+
+
 func on_ground_order(screen: Vector2) -> bool:
 	"""A right click with residents selected: on a bed, its most pressing work; elsewhere not ours."""
 	if not _bed_under_into(screen, _read):
@@ -488,15 +535,15 @@ func handle_key(event: InputEventKey) -> bool:
 		if pantry_panel.visible:
 			toggle_pantry()
 			return true
-		if Catalog.is_bed(selected_bed):
+		if Catalog.is_bed(selected_bed) or bed_panel.showing_weir:
 			select_bed(NO_BED)
 			return true
 	return false
 
 
 func _add_farm_lenses() -> void:
-	"""The farm's two layers, first on V's cycle: soil moisture and ripeness, each with its legend in the
-	beds' own overlay colours (farm_look.gd)."""
+	"""The farm's three layers, first on V's cycle: soil moisture, ripeness and the garden leat's water service
+	(decision 0441), each with its legend in the beds' own overlay colours (farm_look.gd)."""
 	var moisture: int = lenses.add("Growing", "Soil moisture", "Which beds are too dry or too wet?",
 		_farm_overlay.bind(ViewScript.OVERLAY_MOISTURE))
 	lenses.set_legend(moisture, PackedColorArray(Look.BAND_OVERLAY), PackedStringArray(SimScript.BAND_NAMES))
@@ -504,6 +551,10 @@ func _add_farm_lenses() -> void:
 		_farm_overlay.bind(ViewScript.OVERLAY_RIPENESS))
 	lenses.set_legend(ripeness, PackedColorArray([Look.UNRIPE_OVERLAY, Look.RIPE_OVERLAY, Look.LATE_OVERLAY,
 		Look.NO_OVERLAY]), PackedStringArray(["growing", "ripe", "past its best or lost", "empty"]))
+	var service: int = lenses.add("Growing", "Water service", "Which beds does the weir's garden leat water?",
+		_farm_overlay.bind(ViewScript.OVERLAY_WATER))
+	lenses.set_legend(service, PackedColorArray(Look.SERVICE_OVERLAY), PackedStringArray(["not served",
+		"dry (leat empty)", "normal", "wet"]))
 
 
 func _farm_overlay(on: bool, mode: int) -> void:

@@ -31,7 +31,9 @@ const StockViewScript := preload("res://demo/farm/farm_stock_view.gd")
 const OVERLAY_OFF: int = 0
 const OVERLAY_MOISTURE: int = 1
 const OVERLAY_RIPENESS: int = 2
-const OVERLAY_NAMES: Array[String] = ["off", "moisture", "ripeness"]
+## The garden leat's service per bed (decision 0441).
+const OVERLAY_WATER: int = 3
+const OVERLAY_NAMES: Array[String] = ["off", "moisture", "ripeness", "water service"]
 ## The world pieces this close to a bed centre are the bed (hidden).
 const WORLD_PIECE_MATCH_M: float = 0.05
 
@@ -139,7 +141,7 @@ func _state_key(bed: int) -> int:
 	var works: int = (1 if _sim.is_covered(bed) else 0) + (2 if _sim.is_raised(bed) else 0) \
 		+ (4 if _sim.is_banked(bed) else 0) + (8 if _sim.is_ditched(bed) else 0)
 	var key: int = (((((stage * 32 + item) * 32 + chosen) * 64 + growth) * 8 + _sim.band_of(bed)) * 16 + ripe)
-	return (key * 16 + works) * 8 + marks
+	return ((key * 16 + works) * 4 + _sim.leat_service_of(bed)) * 8 + marks
 
 
 func _draw(bed: int) -> void:
@@ -154,16 +156,18 @@ func _draw(bed: int) -> void:
 		Look.status(stage, _sim.chosen_of(bed), growth, band, ripe_hours))
 	visual.set_selected(_selected == bed)
 	visual.show_works(_sim.is_covered(bed), _sim.is_raised(bed), _sim.is_banked(bed), _sim.is_ditched(bed))
-	visual.show_overlay(_overlay_colour(stage, band, ripe_hours))
+	visual.show_overlay(_overlay_colour(stage, band, ripe_hours, _sim.leat_service_of(bed)))
 
 
-func _overlay_colour(stage: int, band: int, ripe_hours: int) -> Color:
+func _overlay_colour(stage: int, band: int, ripe_hours: int, service: int) -> Color:
 	"""The overlay disc's colour in the current mode (clear when off)."""
 	match overlay_mode:
 		OVERLAY_MOISTURE:
 			return Look.BAND_OVERLAY[band]
 		OVERLAY_RIPENESS:
 			return Look.ripeness_overlay(stage, ripe_hours)
+		OVERLAY_WATER:
+			return Look.SERVICE_OVERLAY[service]
 	return Color(0, 0, 0, 0)
 
 

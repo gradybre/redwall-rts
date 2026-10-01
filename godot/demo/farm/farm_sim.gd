@@ -32,6 +32,15 @@ extends RefCounted
 ##     keeps half of each day's weather loss, a DITCHED bed (the Drain job) sheds up to
 ##     DITCH_DRAIN_PER_DAY toward its crop's low side as a tunnel drain does; and EVERY bed above its
 ##     crop's high side sheds up to NATURAL_DRAIN_PER_DAY back toward it (the village loam drains);
+##   * THE GARDEN LEAT (decision 0441): a bed the weir's sluice serves (water/weir_sluice.gd: wet, normal or dry)
+##     takes its water from the leat instead of a tunnel: NORMAL is moved up to LEAT_PER_DAY toward its band's
+##     middle (as a tunnel irrigates), WET is raised up to LEAT_PER_DAY toward WET_ABOVE_TOP over its band's top
+##     and never lowered, DRY adds nothing (the leat runs empty: the tunnels, ditch and raising act as before). The
+##     leat's share is worked out on the bed's moisture as the day left it, BEFORE the night's weather (`leat_delta`
+##     on `_day_start`), so the sluice's preview -- read during the day -- is exactly the leat's own share; the
+##     weather and the natural drainage above the band's top come on top of it. A watered bed is not drained by a tunnel, a raised bed or a ditch the same day, as a
+##     tunnel-irrigated one is not. A FLOOD that passes while the leat runs (`apply_flood_surge`) lifts a WET bed
+##     past its WET band (waterlogged) and a NORMAL one into it, at once;
 ##   * DRAINING a Wet or Waterlogged bed (`drain_bed()`, the Drain job): its moisture drops at once
 ##     to the top of its crop's band, and the ditch dug round it keeps shedding (above) for good;
 ##   * CLEARING a blighted, still-growing crop is uprooting it: `apply_health_loss()` of its whole
@@ -51,6 +60,7 @@ const SimClock := preload("res://scripts/core/sim_clock.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const Weather := preload("res://demo/farm/farm_weather.gd")
+const Sluice := preload("res://demo/water/weir_sluice.gd")
 
 ## The WEATHER stream's world seed (demo value).
 const WEATHER_SEED: int = 196
@@ -90,6 +100,12 @@ const DITCH_DRAIN_PER_DAY: int = 1000
 ## spell (+1200 a day, days 6-8) waterlogs the opening radish -- at the midnight opening spring 8,
 ## not spring 6 as with none (playtest 2026-09-29; farm_weather.gd spaces the threats round it).
 const NATURAL_DRAIN_PER_DAY: int = 500
+## The garden leat (see THE GARDEN LEAT; decision 0441, demo values): a day's most, as a tunnel irrigates; how far
+## over its band's top a WET bed is raised (the middle of the WET band, MOISTURE_NEAR_MARGIN wide); how far past the
+## WET band a flood down an open leat lifts a WET bed (into WATERLOGGED).
+const LEAT_PER_DAY: int = IRRIGATE_PER_DAY
+const WET_ABOVE_TOP: int = 1000
+const FLOOD_OVER_WET: int = 500
 ## The band an empty bed with nothing chosen is judged against (demo: the beans/cabbage span).
 const EMPTY_BAND_MIN: int = 4000
 const EMPTY_BAND_MAX: int = 8000
@@ -141,6 +157,10 @@ var _blighted: PackedByteArray = PackedByteArray()
 var _drained: PackedByteArray = PackedByteArray()
 var _irrigated: PackedByteArray = PackedByteArray()
 var _ditched: PackedByteArray = PackedByteArray()
+## Per bed, the garden leat's service (weir_sluice.gd SERVICE_*; decision 0441), and its moisture as the day left it
+## (before the midnight's weather: the leat's basis).
+var _service: PackedByteArray = PackedByteArray()
+var _day_start: PackedInt32Array = PackedInt32Array()
 var _blight_days: PackedInt32Array = PackedInt32Array()
 var _neighbours: Array[PackedInt32Array] = []
 var _events: PackedInt32Array = PackedInt32Array()
@@ -167,9 +187,9 @@ func _init() -> void:
 
 func _allocate() -> void:
 	"""Size every per-bed column once."""
-	for column: PackedInt32Array in [_slot, _tile, _item, _chosen, _blight_days]:
+	for column: PackedInt32Array in [_slot, _tile, _item, _chosen, _blight_days, _day_start]:
 		column.resize(Catalog.BED_COUNT)
-	for column: PackedByteArray in [_covered, _raised, _banked, _fallow, _blighted, _drained, _irrigated, _ditched]:
+	for column: PackedByteArray in [_covered, _raised, _banked, _fallow, _blighted, _drained, _irrigated, _ditched, _service]:
 		column.resize(Catalog.BED_COUNT)
 	_item.fill(NO_ITEM)
 	_chosen.fill(NO_ITEM)
@@ -260,6 +280,8 @@ func _hour_bed(bed: int, tick: int, air: int) -> void:
 func run_day(boundary_tick: int) -> void:
 	"""One midnight: demo blight for the completed day, the stage's real day, then the beds' own."""
 	_blight_completed_day()
+	for bed: int in Catalog.BED_COUNT:
+		_day_start[bed] = moisture_of(bed)
 	var ran: bool = _crop_weather.run_day_into(boundary_tick, 0, _day)
 	if not ran:
 		push_warning("farm day refused: %s" % _day.error)
@@ -282,25 +304,71 @@ func run_day(boundary_tick: int) -> void:
 # --- moisture -------------------------------------------------------------------------------
 
 func _moisture_day(bed: int, weather_delta: int) -> void:
-	"""A bed's own moisture change after the weather's: banked, irrigated, drained, raised, ditched,
-	then the natural drainage of a bed above its band."""
+	"""A bed's own moisture change after the weather's (`day_delta`), applied."""
+	var delta: int = day_delta(bed, weather_delta, _service[bed], _day_start[bed])
+	if delta != 0:
+		_farming.apply_moisture_delta(_slot[bed], delta)
+
+
+func day_delta(bed: int, weather_delta: int, service: int, before: int) -> int:
+	"""What a midnight does to a bed's moisture after the weather's `weather_delta`, with the leat's `service` worked
+	on `before` (the bed's moisture before the weather; THE GARDEN LEAT): banked, then the leat or a tunnel watering
+	it (or a tunnel draining it), raised, ditched, then the natural drainage of a bed above its band. A read."""
 	var moisture: int = moisture_of(bed)
 	var delta: int = 0
 	if _banked[bed] == 1 and weather_delta < 0:
 		delta += (-weather_delta) / 2
 	var low: int = band_min_of(bed)
 	var high: int = band_max_of(bed)
-	if _irrigated[bed] == 1:
+	var watered: bool = _irrigated[bed] == 1 or Sluice.is_watering(service)
+	if Sluice.is_watering(service):
+		delta += leat_delta(service, before, low, high)
+	elif _irrigated[bed] == 1:
 		delta += clampi((low + high) / 2 - (moisture + delta), -IRRIGATE_PER_DAY, IRRIGATE_PER_DAY)
 	elif _drained[bed] == 1:
 		delta -= clampi(moisture + delta - (low + DRAIN_MARGIN), 0, DRAIN_PER_DAY)
-	if _raised[bed] == 1 and _irrigated[bed] == 0:
+	if _raised[bed] == 1 and not watered:
 		delta -= clampi(moisture + delta - (low + DRAIN_MARGIN), 0, RAISED_DRAIN_PER_DAY)
-	if _ditched[bed] == 1 and _irrigated[bed] == 0:
+	if _ditched[bed] == 1 and not watered:
 		delta -= clampi(moisture + delta - (low + DRAIN_MARGIN), 0, DITCH_DRAIN_PER_DAY)
 	delta -= clampi(moisture + delta - high, 0, NATURAL_DRAIN_PER_DAY)
-	if delta != 0:
-		_farming.apply_moisture_delta(_slot[bed], delta)
+	return delta
+
+
+static func leat_delta(service: int, moisture: int, low: int, high: int) -> int:
+	"""The leat's own nudge to a bed at `moisture` with band [low, high] (see THE GARDEN LEAT): NORMAL toward the
+	middle either way, WET up toward the WET band's middle only, DRY and NONE nothing."""
+	if service == Sluice.SERVICE_NORMAL:
+		return clampi((low + high) / 2 - moisture, -LEAT_PER_DAY, LEAT_PER_DAY)
+	if service == Sluice.SERVICE_WET:
+		return clampi(high + WET_ABOVE_TOP - moisture, 0, LEAT_PER_DAY)
+	return 0
+
+
+func flood_surge(bed: int, service: int) -> int:
+	"""How much a flood passing down the leat would raise bed `bed` now with `service` (see THE GARDEN LEAT): a WET
+	bed to FLOOD_OVER_WET past its WET band, a NORMAL one to WET_ABOVE_TOP over its band; never lowered, never past
+	the moisture scale's top."""
+	var target: int = 0
+	if service == Sluice.SERVICE_WET:
+		target = band_max_of(bed) + FarmingScript.MOISTURE_NEAR_MARGIN + FLOOD_OVER_WET
+	elif service == Sluice.SERVICE_NORMAL:
+		target = band_max_of(bed) + WET_ABOVE_TOP
+	return clampi(mini(target, FarmingScript.MOISTURE_MAX) - moisture_of(bed), 0, FarmingScript.MOISTURE_MAX)
+
+
+func apply_flood_surge(bed: int) -> int:
+	"""A flood has passed down the leat: raise bed `bed` by `flood_surge` for its service now (through
+	`apply_moisture_delta()`). Returns the rise applied."""
+	if not Catalog.is_bed(bed):
+		return 0
+	var surge: int = flood_surge(bed, _service[bed])
+	if surge == 0:
+		return 0
+	var before: int = moisture_of(bed)
+	_farming.apply_moisture_delta(_slot[bed], surge)
+	revision += 1
+	return moisture_of(bed) - before
 
 
 func _band_crop(bed: int) -> int:
@@ -326,7 +394,11 @@ func band_max_of(bed: int) -> int:
 
 func band_of(bed: int) -> int:
 	"""BAND_*: the bed's moisture against its band, split where §5.6's moisture factor changes."""
-	var moisture: int = moisture_of(bed)
+	return band_at(bed, moisture_of(bed))
+
+
+func band_at(bed: int, moisture: int) -> int:
+	"""BAND_*: where `moisture` would stand against the bed's band (the sluice's flood preview asks)."""
 	var low: int = band_min_of(bed)
 	var high: int = band_max_of(bed)
 	if moisture < low - FarmingScript.MOISTURE_NEAR_MARGIN:
@@ -581,6 +653,22 @@ func set_tunnel_water(bed: int, drained: bool, irrigated: bool) -> void:
 	_drained[bed] = drained_now
 	_irrigated[bed] = irrigated_now
 	revision += 1
+
+
+func set_leat_service(bed: int, service: int) -> void:
+	"""What the garden leat does for a bed (weir_sluice.gd SERVICE_*; farm_leat.gd decides, the midnight applies it).
+	An unknown bed or service is ignored."""
+	if not Catalog.is_bed(bed) or service < Sluice.SERVICE_NONE or service > Sluice.SERVICE_WET:
+		return
+	if _service[bed] == service:
+		return
+	_service[bed] = service
+	revision += 1
+
+
+func leat_service_of(bed: int) -> int:
+	"""The garden leat's service to a bed (weir_sluice.gd SERVICE_*)."""
+	return _service[bed]
 
 
 func _set_flag(column: PackedByteArray, bed: int) -> FarmingScript.OpResult:

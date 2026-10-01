@@ -26,6 +26,10 @@ extends CanvasLayer
 ## rotation effect IN THIS BED (the same family again shows the penalty; legumes say they feed the
 ## soil), the rest disabled with the reason -- soil or planting window.
 ##
+## THE WEIR (decision 0441): clicking the weir, or a bed's "Sluice…", shows the sluice's controls here instead of a bed
+## (farm_sluice_box.gd: the setting, three cards and the affected-bed preview); a bed the garden leat serves says its
+## service under its moisture.
+##
 ## The panel only shows and asks: pressing emits a signal and demo_farm.gd orders the work.
 
 const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
@@ -44,6 +48,8 @@ const MeterScript := preload("res://demo/farm/farm_moisture_meter.gd")
 const FarmCard := preload("res://demo/farm/farm_card.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const SluiceBox := preload("res://demo/farm/farm_sluice_box.gd")
+const LeatScript := preload("res://demo/farm/farm_leat.gd")
 
 signal verb_requested(kind: int)
 signal crop_picked(item: int)
@@ -51,7 +57,13 @@ signal fallow_toggled
 signal cancel_requested
 signal close_requested
 signal pantry_requested
+## The weir's controls are wanted (a bed's "Sluice…").
+signal sluice_requested
+## A sluice setting was pressed (weir_sluice.gd SLUICE_*).
+signal sluice_chosen(setting: int)
 
+const WEIR_TITLE: String = "Weir sluice · garden leat"
+const SLUICE_TIP: String = "Show the weir sluice that feeds the garden leat (Bed 2, Bed 4 and Bed 6) and what each setting does"
 const HINT: String = "Click a crop bed to tend it · right-click it with residents selected to set them to its most pressing work · V or the Map layer picker: map layers · K: pantry"
 ## The verbs with a button of their own, in order (sowing is "Plant…"): with Plant… and the two
 ## moisture verbs on the first row, four rows of three.
@@ -72,6 +84,8 @@ const NO_JOBS_TIP: String = "no jobs"
 
 var bed: int = -1
 var picking: bool = false
+## Whether the weir's sluice is shown instead of a bed (THE WEIR).
+var showing_weir: bool = false
 
 var _sim: SimScript = null
 var _crew: CrewScript = null
@@ -121,6 +135,10 @@ var _interrupt: Callable = Callable()
 var _card: CardScript = CardScript.new()
 var _no_members: PackedInt32Array = PackedInt32Array()
 var _place_queued: bool = false
+var _leat: LeatScript = null
+var _sluice_box: SluiceBox = null
+var _leat_line: Label = null
+var _sluice: Button = null
 
 
 func configure(sim: SimScript, crew: CrewScript) -> void:
@@ -131,6 +149,18 @@ func configure(sim: SimScript, crew: CrewScript) -> void:
 	name = "FarmBedPanel"
 	_build()
 	show_nothing()
+
+
+func set_leat(leat: LeatScript) -> void:
+	"""Show the garden leat: the weir's controls and each served bed's line (THE WEIR)."""
+	_leat = leat
+	_sluice_box.bind(leat)
+	refresh()
+
+
+func sluice_box() -> SluiceBox:
+	"""The weir's controls (checks)."""
+	return _sluice_box
 
 
 func set_goods(goods: GoodsScript) -> void:
@@ -166,6 +196,8 @@ func _build() -> void:
 		if k == LINE_MOISTURE:
 			_meter = MeterScript.new()
 			column.add_child(_meter)
+			_leat_line = FarmUi.label("", FarmUi.BODY_PX, Palette.INK)
+			column.add_child(_leat_line)
 	_build_details(column)
 	_message = FarmUi.label("", FarmUi.BODY_PX, Palette.CLAY)
 	_message.visible = false
@@ -175,8 +207,17 @@ func _build() -> void:
 	column.add_child(_actions)
 	_picker = _build_picker()
 	column.add_child(_picker)
+	_build_sluice(column)
 	_hint = FarmUi.label(HINT, FarmUi.SMALL_PX, Palette.UMBER)
 	column.add_child(_hint)
+
+
+func _build_sluice(column: VBoxContainer) -> void:
+	"""The weir's controls (THE WEIR), hidden until the weir is shown; a press asks for the order."""
+	_sluice_box = SluiceBox.new()
+	_sluice_box.visible = false
+	_sluice_box.sluice_chosen.connect(func(setting: int) -> void: sluice_chosen.emit(setting))
+	column.add_child(_sluice_box)
 
 
 func _build_shortage(column: VBoxContainer) -> void:
@@ -275,6 +316,10 @@ func _build_actions() -> GridContainer:
 	_cancel = FarmUi.button("Cancel jobs")
 	_cancel.pressed.connect(func() -> void: cancel_requested.emit())
 	grid.add_child(_cancel)
+	_sluice = FarmUi.button("Sluice…")
+	_sluice.tooltip_text = SLUICE_TIP
+	_sluice.pressed.connect(func() -> void: sluice_requested.emit())
+	grid.add_child(_sluice)
 	for child: Node in grid.get_children():
 		(child as Control).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return grid
@@ -305,6 +350,16 @@ func show_nothing() -> void:
 	"""No bed: the farm calendar and how to start."""
 	bed = -1
 	picking = false
+	showing_weir = false
+	refresh()
+
+
+func show_weir() -> void:
+	"""The weir's sluice instead of a bed (THE WEIR)."""
+	bed = -1
+	picking = false
+	showing_weir = true
+	show_message("")
 	refresh()
 
 
@@ -312,6 +367,7 @@ func show_bed(p_bed: int) -> void:
 	"""Show one bed (its verbs; the picker closed)."""
 	bed = p_bed
 	picking = false
+	showing_weir = false
 	show_message("")
 	refresh()
 
@@ -330,8 +386,24 @@ func refresh() -> void:
 	if _message.visible and Time.get_ticks_msec() - _message_since > MESSAGE_MSEC:
 		_message.visible = false
 	var has_bed: bool = Catalog.is_bed(bed)
-	_title.text = _bed_title() if has_bed else "Farm"
+	var weir: bool = showing_weir and not has_bed and _leat != null
+	_title.text = _bed_title() if has_bed else (WEIR_TITLE if weir else "Farm")
 	_clock.text = Text.clock_line(_sim)
+	_show_parts(has_bed, weir)
+	if weir:
+		_sluice_box.refresh()
+	if has_bed and not picking:
+		_fill_needs()
+		_fill_lines()
+		_fill_buttons()
+	elif has_bed:
+		refresh_picker()
+	_queue_place()
+
+
+func _show_parts(has_bed: bool, weir: bool) -> void:
+	"""Which parts show: a bed's readout and verbs (or its picker), the date and hint with nothing chosen, the weir's
+	controls for the weir; the lines filled later start hidden."""
 	_clock.visible = not has_bed
 	for label: Label in _lines:
 		label.visible = has_bed and not picking
@@ -345,14 +417,9 @@ func refresh() -> void:
 	_picker.visible = has_bed and picking
 	_picker_title.visible = _picker.visible
 	_foot.visible = _picker.visible
-	_hint.visible = not has_bed
-	if has_bed and not picking:
-		_fill_needs()
-		_fill_lines()
-		_fill_buttons()
-	elif has_bed:
-		refresh_picker()
-	_queue_place()
+	_hint.visible = not has_bed and not weir
+	_sluice_box.visible = weir
+	_leat_line.visible = false
 
 
 func _bed_title() -> String:
@@ -419,6 +486,8 @@ func _fill_lines() -> void:
 	_meter.show_reading(_sim.moisture_of(bed), _sim.band_min_of(bed), _sim.band_max_of(bed),
 		FarmingScript.MOISTURE_NEAR_MARGIN)
 	_meter.accessibility_description = "%s. %s" % [texts[LINE_MOISTURE], texts[LINE_MOISTURE + 1]]
+	_leat_line.text = _leat.service_line(bed) if _leat != null else ""
+	_leat_line.visible = not _leat_line.text.is_empty()
 	_details_button.text = DETAILS_HIDE if _details_open else DETAILS_SHOW
 	if _details_open:
 		var breakdown: String = Text.harvest_breakdown(_sim, bed, _read)

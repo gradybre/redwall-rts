@@ -70,7 +70,10 @@ func _initialize() -> void:
 		_a_click_gives_the_arrows_back, _the_banner_over_the_lab, _the_banner_takes_enter,
 		_the_hud_workspace_keeps_the_keys, _the_workspace_covers_no_stop, _a_group_is_box_selected,
 		_a_member_row_selects_and_centres, _a_water_action_without_scrolling, _the_picker_opens_on_bed_1,
-		_the_picker_crosses_spring_5, _scale_follows_the_choice,
+		_the_picker_crosses_spring_5, _jobs_opens_the_work_screen, _work_tab_and_enter, _work_queue_a_fell,
+		_work_open_the_picker, _work_reassign_by_click, _work_show_residents, _work_scroll_to_resident, _work_edit_a_crew, _work_cancel_all_shows_its_scope,
+		_work_keep_working, _work_closes_on_j, _shift_right_click_queues,
+		_scale_follows_the_choice, _work_at_the_chosen_scale, _work_close_scaled,
 		_restart_boots_again, _after_restart, _a_smaller_window_steps_the_scale_down]
 
 
@@ -116,8 +119,8 @@ func _key(code: Key, shift: bool = false) -> void:
 		root.push_input(event)
 
 
-func _click(at: Vector2, button: MouseButton = MOUSE_BUTTON_LEFT) -> void:
-	"""Press and release a mouse button at `at`."""
+func _click(at: Vector2, button: MouseButton = MOUSE_BUTTON_LEFT, shift: bool = false) -> void:
+	"""Press and release a mouse button at `at` (with Shift held when `shift`)."""
 	var motion := InputEventMouseMotion.new()
 	motion.position = at
 	root.push_input(motion)
@@ -125,6 +128,7 @@ func _click(at: Vector2, button: MouseButton = MOUSE_BUTTON_LEFT) -> void:
 		var event := InputEventMouseButton.new()
 		event.button_index = button
 		event.position = at
+		event.shift_pressed = shift
 		event.pressed = down
 		event.button_mask = MOUSE_BUTTON_MASK_LEFT if down and button == MOUSE_BUTTON_LEFT else 0
 		root.push_input(event)
@@ -722,6 +726,239 @@ func _the_hud_workspace_keeps_the_keys() -> void:
 	_check("so F7 still reaches the panels beside it", _gate().region_of(_focus()) == 0)
 	_key(KEY_ESCAPE)
 	_shell().call(&"_on_back_pressed")
+
+
+# --- the Work screen (decision 0411; review F22, F32, SOC-004, UX-002) -----------------------------------
+
+func _work() -> Node:
+	"""The village's work (demo/work/demo_work.gd)."""
+	return _village.call(&"work")
+
+
+func _work_screen() -> CanvasLayer:
+	"""The Work screen."""
+	return _work().get("screen")
+
+
+func _board() -> RefCounted:
+	"""The work board."""
+	return _work().get("board")
+
+
+func _jobs_opens_the_work_screen() -> void:
+	"""The HUD's Jobs command is unlocked for the Work screen: J opens it as a modal with the focus inside it and its
+	frame inside the window; Esc closes it; a click on the Jobs button opens it again."""
+	var jobs := _shell_control("ID_JOBS") as Button
+	_check("the Jobs command is enabled", jobs != null and not jobs.disabled)
+	_key(KEY_J)
+	_check("J opens the Work screen", _work_screen().visible)
+	_check("the Work screen is the top modal", _gate().top_layer() == _work_screen())
+	_check("focus lands inside the Work screen", _gate().in_top_modal(_focus()), str(_focus()))
+	var frame: Rect2 = _work_screen().call(&"frame_rect")
+	_check("the Work screen fits the window", Rect2(Vector2.ZERO, Vector2(_size)).grow(1.0).encloses(frame), str(frame))
+	_key(KEY_ESCAPE)
+	_check("Esc closes the Work screen", not _work_screen().visible)
+	_click(_centre(jobs))
+	_check("a click on Jobs opens it", _work_screen().visible)
+
+
+func _work_tab_and_enter() -> void:
+	"""Tab moves the focus through the Work screen's own controls (the gate's trap); Enter on a focused view tab presses
+	it."""
+	var screen := _work_screen()
+	var residents: Button = screen.call(&"tab_button", 1)
+	residents.grab_focus()
+	_key(KEY_TAB)
+	_check("Tab stays inside the Work screen", _gate().in_top_modal(_focus()), str(_focus()))
+	residents.grab_focus()
+	_key(KEY_ENTER)
+	_check("Enter on a focused tab shows its view", int(screen.get("view")) == 1)
+	(screen.call(&"tab_button", 0) as Button).grab_focus()
+	_key(KEY_ENTER)
+	_check("and back to the Tasks", int(screen.get("view")) == 0)
+
+
+func _work_queue_a_fell() -> void:
+	"""A felling ordered with nobody selected: on the Work screen's Tasks view, with its worker, state and commands."""
+	var forestry: Node = _village.get("_forestry")
+	var crew: RefCounted = forestry.get("crew")
+	var stand: RefCounted = forestry.get("stand")
+	for t: int in int(stand.call(&"count")):
+		if String(crew.call(&"refusal_for", 0, t, 0)).is_empty():
+			crew.call(&"order", 0, t, 0, PackedInt32Array(), 0)
+			break
+	var screen := _work_screen()
+	screen.call(&"refresh")
+	var row: Control = _fell_row()
+	_check("the felling is a row on the Tasks view", row != null)
+	if row == null:
+		return
+	(screen.get("_scroll") as ScrollContainer).ensure_control_visible(row)
+	_capture("work_tasks")
+
+
+func _fell_row() -> Control:
+	"""The Tasks view's felling row (null: none)."""
+	for row: Control in _work_screen().call(&"task_rows_shown"):
+		if String(row.call(&"title")).begins_with("Fell"):
+			return row
+	return null
+
+
+func _work_open_the_picker() -> void:
+	"""A click on the felling's Reassign… opens its picker: every resident, each with its eligibility."""
+	var row: Control = _fell_row()
+	if row == null:
+		_check("the felling's row is still there", false)
+		return
+	_click(_centre(row.call(&"button_of", &"pick")))
+	_check("Reassign… opens the picker", bool(row.call(&"picker_open")))
+	var last: Control = row.call(&"resident_button", int(_board().call(&"resident_count")) - 1)
+	if last != null:
+		(_work_screen().get("_scroll") as ScrollContainer).ensure_control_visible(last)
+	_capture("work_picker")
+
+
+func _work_reassign_by_click() -> void:
+	"""A click on a resident in the picker gives it the felling; the row says so."""
+	var row: Control = _fell_row()
+	if row == null:
+		_check("the felling's row is still there", false)
+		return
+	var board: RefCounted = _board()
+	var source: int = int(row.get("task_source"))
+	var task_row: int = int(row.get("task_row"))
+	var before: int = int(board.call(&"source", source).call(&"worker", task_row))
+	var to: int = -1
+	for who: int in int(board.call(&"resident_count")):
+		if who != before and String(board.call(&"eligibility_words", source, task_row, who)).is_empty():
+			to = who
+			break
+	var button: Button = row.call(&"resident_button", to)
+	_check("an eligible resident's button is enabled", button != null and not button.disabled)
+	_click(_centre(button))
+	var after: int = int(board.call(&"source", source).call(&"worker", task_row))
+	_check("a click reassigns the felling", after == to, "%d -> %d (wanted %d): %s" % [before, after, to,
+		_work_screen().call(&"answer")])
+
+
+func _work_show_residents() -> void:
+	"""A click on the Residents tab shows the crews; resident 0's row is scrolled into view (drawn by the next step)."""
+	var screen := _work_screen()
+	_click(_centre(screen.call(&"tab_button", 1)))
+	_check("a click shows the Residents view", int(screen.get("view")) == 1)
+	_check("resident 0 has a row", _resident_row(0) != null)
+
+
+func _work_scroll_to_resident() -> void:
+	"""Resident 0's Crew ▶ scrolled into view, once the Residents view is laid out (drawn by the next step)."""
+	var row: Control = _resident_row(0)
+	if row != null:
+		(_work_screen().get("_scroll") as ScrollContainer).ensure_control_visible(row.call(&"button_of", &"crew_on"))
+
+
+func _resident_row(who: int) -> Control:
+	"""The Residents view's row for resident `who` (null: none)."""
+	for shown: Control in _work_screen().call(&"resident_rows_shown"):
+		if int(shown.get("who")) == who:
+			return shown
+	return null
+
+
+func _work_edit_a_crew() -> void:
+	"""The Residents view: a click on a resident's "Crew ▶" moves it to the next crew, its row says so."""
+	var screen := _work_screen()
+	var crews: RefCounted = _board().get("crews")
+	var row: Control = _resident_row(0)
+	if row == null:
+		return
+	var was: int = int((crews.get("crew_of") as PackedInt32Array)[0])
+	var button: Button = row.call(&"button_of", &"crew_on")
+	_click(_centre(button))
+	var now: int = int((crews.get("crew_of") as PackedInt32Array)[0])
+	_check("Crew ▶ moves it to the next crew", now == (was + 1) % 5, "%d -> %d at %s" % [was, now, _centre(button)])
+	screen.call(&"refresh")
+	var named: Control = _resident_row(0)
+	_check("its row names the new crew", named != null and String(named.call(&"title")).contains(
+		["Field", "Woods", "Diggers", "Haulers", "Builders"][now] + " crew"), String(named.call(&"title")) if named else "")
+	_check("the screen is still open", screen.visible)
+	var frame: Rect2 = screen.call(&"frame_rect")
+	_check("the Residents view fits the window", Rect2(Vector2.ZERO, Vector2(_size)).grow(1.0).encloses(frame), str(frame))
+	(screen.call(&"preset_button", 1) as Button).grab_focus()
+	_check("a focused preset previews its changes", String((screen.get("_preset_note") as Label).text).begins_with("Harvest week"))
+	_capture("work_residents")
+
+
+func _work_cancel_all_shows_its_scope() -> void:
+	"""The Projects view groups the tasks by where they are; Cancel all work… only shows its scope, counted, until it
+	is confirmed."""
+	var screen := _work_screen()
+	_click(_centre(screen.call(&"tab_button", 2)))
+	_check("a click shows the Projects view", int(screen.get("view")) == 2)
+	var before: int = (screen.call(&"task_rows_shown") as Array).size()
+	_click(_centre(screen.call(&"cancel_all_button")))
+	_check("Cancel all work… shows its scope first", String(screen.call(&"confirm_text")).begins_with("Cancel all work:")
+		or String(screen.call(&"answer")).begins_with("Nothing to cancel"), String(screen.call(&"confirm_text")))
+	_check("and cancels nothing yet", (screen.call(&"task_rows_shown") as Array).size() == before)
+	_capture("work_cancel_scope")
+
+
+func _work_keep_working() -> void:
+	"""Keep working closes the scope; nothing was cancelled."""
+	var screen := _work_screen()
+	var frame: Rect2 = screen.call(&"frame_rect")
+	_check("the Work screen still fits the window with the scope shown", Rect2(Vector2.ZERO, Vector2(_size)).grow(1.0)
+		.encloses(frame), str(frame))
+	var keep: Button = (screen.call(&"confirm_buttons") as Array)[1]
+	if keep.is_visible_in_tree():
+		_click(_centre(keep))
+	_check("Keep working closes the scope", String(screen.call(&"confirm_text")).is_empty())
+
+
+func _work_closes_on_j() -> void:
+	"""J closes the Work screen again (its own key)."""
+	_key(KEY_J)
+	_check("J closes the Work screen", not _work_screen().visible)
+
+
+func _shift_right_click_queues() -> void:
+	"""Shift+right-click on open ground with a resident selected appends a walk to its order list: an idle resident
+	takes it up at once, a second one waits on the list -- "Next: ..." in the party panel."""
+	_command().call(&"select", PackedInt32Array([1]))
+	var brain: Object = _brain(1)
+	brain.call(&"release")
+	var at: Vector2 = Vector2(float(_size.x) * 0.5, float(_size.y) * 0.45)
+	_click(at, MOUSE_BUTTON_RIGHT, true)
+	_click(at + Vector2(-60.0, 0.0), MOUSE_BUTTON_RIGHT, true)
+	_check("Shift+right-click appends to the order list", int(brain.call(&"queue_size")) >= 1,
+		"list %d, order %d: %s (hovered %s)" % [int(brain.call(&"queue_size")), int(brain.get("order")),
+		_command().call(&"notice_for_selection"), root.gui_get_hovered_control()])
+	var entries: Array = _command().call(&"party_entries")
+	_check("the party panel lists what is next", entries.size() == 1
+		and not (entries[0]["then"] as PackedStringArray).is_empty())
+	_check("and says it was queued", String(_command().call(&"notice_for_selection")).begins_with("Walk queued"))
+	brain.call(&"release")
+	_command().call(&"clear_selection")
+
+
+func _work_at_the_chosen_scale() -> void:
+	"""(At 1920x1080, after 150% was chosen: decision 0391's step.) The Work screen is drawn at the HUD's scale and still
+	fits the window."""
+	if _size.y < 1080:
+		return
+	_key(KEY_J)
+	var frame: Control = _work_screen().get("_frame")
+	var chosen: float = 1.5 if _chose_150 else 1.25
+	_check("the Work screen follows the interface scale", is_equal_approx(frame.scale.x, chosen), str(frame.scale))
+	var rect: Rect2 = _work_screen().call(&"frame_rect")
+	_check("and fits the window at it", Rect2(Vector2.ZERO, Vector2(_size)).grow(1.0).encloses(rect), str(rect))
+	_capture("work_scaled")
+
+
+func _work_close_scaled() -> void:
+	"""(At 1920x1080.) J closes it again."""
+	if _size.y >= 1080 and _work_screen().visible:
+		_key(KEY_J)
 
 
 func _scale_follows_the_choice() -> void:

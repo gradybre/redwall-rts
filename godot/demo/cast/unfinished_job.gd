@@ -8,6 +8,18 @@ extends RefCounted
 ## with `take_back`: `(brain: RefCounted) -> bool`, which gives the job back to that resident (its
 ## resident_brain.gd) if it still waits for someone (still posted, the same job, nobody on it) and
 ## answers whether it did. A stale job answers false and is simply dropped.
+##
+## THE ORDER LIST (decision 0411, review UX-002): the same record is a player's QUEUED order (Shift+right-click) --
+## `queued` -- appended to the resident's list rather than kept from an interruption; and it names the work board's task
+## it stands for (`source`, `key`: demo/work/work_ids.gd SOURCE_*, the job's serial), so the Work screen can say who
+## means to come back to a task and the board's claims leave a task promised to a resident alone. -1: no board task
+## (a dig, a work spot, a walk).
+
+## A NEXT entry the player queued, not a job kept from an interruption.
+var queued: bool = false
+## The work board task it stands for (demo/work/work_ids.gd SOURCE_*; -1: none) and that task's key (its serial).
+var source: int = -1
+var key: int = -1
 
 var _take_back: Callable = Callable()
 var _label: String = ""
@@ -16,11 +28,19 @@ var _label: String = ""
 var _owner: RefCounted = null
 
 
-func _init(take_back: Callable, what: String) -> void:
-	"""The job, as its owner's `take_back(brain) -> bool` and a few words for the panel."""
+func _init(take_back: Callable, what: String, task_source: int = -1, task_key: int = -1) -> void:
+	"""The job, as its owner's `take_back(brain) -> bool` and a few words for the panel; the work board task it stands
+	for, if any (see THE ORDER LIST)."""
 	_take_back = take_back
 	_label = what
 	_owner = take_back.get_object() as RefCounted
+	source = task_source
+	key = task_key
+
+
+func names_task(task_source: int, task_key: int) -> bool:
+	"""Whether this entry stands for that work board task (see THE ORDER LIST)."""
+	return source >= 0 and source == task_source and key == task_key
 
 
 func resume(brain: RefCounted) -> bool:

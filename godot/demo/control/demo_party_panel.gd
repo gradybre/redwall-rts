@@ -23,11 +23,10 @@ extends CanvasLayer
 ##     Dig tunnel (B), Burrow home (H) and Root cellar (C) with a digger in it;
 ##   * the INSPECTOR, a vertical scroll filling the rest of the column: first the notice line (the
 ##     selection's own prompts and refusals, demo_command.gd `say`; a new one scrolls back to it), then for
-##     one resident its species,
-##     what it is doing now, the progress or the step of that (the words after " — "), how fed it is (decision
-##     0381: next to what it is doing, so a long skills list never pushes it down), what it will go
-##     back to -- a row a job -- its skills, its orders IN FULL (each with what to right-click: never
-##     folded away) and the hint; for a group, one row per member (every member: no "+ n more"), each a
+##     one resident its species, what it is doing now, the progress or the step of that (the words after
+##     " — "), how fed it is (decision 0381: next to what it is doing, so a long skills list never pushes it
+##     down), its order list ("Next:", decision 0411: what it will go back to and what was queued -- a row
+##     each), its skills, its orders IN FULL (each with what to right-click: never folded away) and the hint; for a group, one row per member (every member: no "+ n more"), each a
 ##     button that selects that resident alone and centres the camera on it (`member_picked`).
 ## Where the column is too short for the header, summary and actions and a useful inspector (125 % and
 ## 150 % at 1280x720), the summary and actions move to the top of the inspector -- reached by scrolling,
@@ -88,8 +87,11 @@ const GROUP: String = "%d residents"
 ## Where a state's progress or step starts ("Digging tunnel — 43%": the command, then "43%").
 const STEP_MARK: String = " — "
 const PROGRESS: String = "Progress: %s"
-## The unfinished jobs a resident will go back to (resident_brain.gd RESUMING), latest first: a row each.
-const THEN_HEAD: String = "Then back to:"
+## The order list (decision 0411, UX-002: resident_brain.gd THE ORDER LIST; demo/work/order_list.gd's words), in take
+## order -- the jobs it will go back to and its queued orders -- under its heading, a row each (F31: a list, not one
+## joined line; decision 0391), each row marked with the list's arrow.
+const THEN_HEAD: String = "Next:"
+const THEN_MARK: String = "→ "
 ## A resident waiting for its route to be planned (resident_brain.gd ROUTING), and one holding where a trip it could not
 ## finish left it, with why (ARRIVAL AND REFUSAL; decision 0361).
 const FINDING_ROUTE: String = "finding a route"
@@ -97,7 +99,6 @@ const HOLDING_REFUSED: String = "holding — %s"
 ## A step that says why a resident stopped, not how far it got: its row is its own words, never "Progress: ..." --
 ## A's route refusals and the spoil crew's retry wait (demo_spoil.gd BLOCKED_TEXT).
 const WHY_STEPS: Array[String] = [BrainScript.REFUSED_NO_ROUTE, BrainScript.REFUSED_BLOCKED, "can't reach it"]
-const BULLET: String = "• "
 ## A group's common activity: each activity and how many are at it, most first.
 const TALLY: String = "%s ×%d"
 const WIDTH: float = 320.0
@@ -533,7 +534,7 @@ static func first_up(words: String) -> String:
 static func party_lines(entries: Array[Dictionary]) -> PackedStringArray:
 	"""What the panel says, in reading order. Nobody: NOBODY. One resident: its name (the summary's lead),
 	species, what it is doing, the progress or step of that (when its state has one), how fed it is (the kitchen's
-	rows, decision 0381), "Then back to:" and a row per unfinished job, then its skills, a line for each line of them.
+	rows, decision 0381), "Next:" and a row per entry of its order list (decision 0411), then its skills, a line for each line of them.
 	A group: "n residents", then a line per member -- every member -- with its fed word and short skills after its
 	state."""
 	var lines := PackedStringArray()
@@ -565,7 +566,7 @@ static func _one_lines(entry: Dictionary, lines: PackedStringArray) -> void:
 	if not then.is_empty():
 		lines.append(THEN_HEAD)
 		for job: String in then:
-			lines.append(BULLET + job)
+			lines.append(THEN_MARK + job)
 	for skill: String in String(entry.get("skills", "")).split("\n", false):
 		lines.append(skill)
 

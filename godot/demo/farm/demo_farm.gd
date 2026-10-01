@@ -425,6 +425,12 @@ func compost_spoiled() -> void:
 
 # --- input ------------------------------------------------------------------------------------------
 
+func bed_at_into(screen: Vector2, out: IntMath.IntResult) -> bool:
+	"""The bed under a screen point, into `out` (the work board's Shift+right-click queue, decision 0411); refuses when
+	the ray misses every bed."""
+	return _bed_under_into(screen, out)
+
+
 func _bed_under_into(screen: Vector2, out: IntMath.IntResult) -> bool:
 	"""The bed under a screen point, into `out`; refuses when the ray misses every bed."""
 	var origin: Vector3 = _camera.project_ray_origin(screen)

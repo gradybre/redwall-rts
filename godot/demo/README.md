@@ -297,9 +297,12 @@ Needs: a site both banks take; planks (sawn at the sawhorse) and wood for any pi
   hour); the walk is not counted, and a mole job's card says a crew is quicker.
 - **Who**, in one grammar everywhere: "Assign selected: X (nearest of 3)" (farm, woods, bridges);
   "Assign selected: X (first of 3 who fits the bore)" and "Assign X (the nearest free resident who fits
-  the bore)" (tunnels); "Lead: X (nearest of 3) + 2 waiting to haul" (felling); "Queue for the field crew:
-  …" / "Queue for the forestry crew: …"; "Queue for the bridgewright: Beaver bridgewright (specialist)";
-  "Already under way: X is on it".
+  the bore)" (tunnels); "Lead: X (nearest of 3) + 2 waiting to haul" (felling); "Queue for the Field crew:
+  Mouse fieldworker or Squirrel gatherer, then anyone free who can" -- the work board's own words (decision
+  0411: the crew preferring that work first, then anyone eligible); "Already under way: X is on it". With two or
+  more selected a card also previews **each member** (decision 0411, review UX-001): "Of 3 selected: Mouse keeper,
+  Mole digger can; Badger quarryman can't (does not fit the bore, or is below)" -- the farm's, the woods' and the
+  tunnels' cards, in the Work screen's Reassign words.
 - **Interrupts** says what the named resident stops and whether it goes back to it (the brain's resuming
   rule, `control/work_interrupt.gd`; `demo_command.gd interrupt_text`): a farm, woods, spoil or tunnel job
   resumes; a dig with nothing dug drops its route; a bridge waits for a builder; a sleeper goes back to bed.
@@ -307,6 +310,46 @@ Needs: a site both banks take; planks (sawn at the sawhorse) and wood for any pi
   and how much has nowhere to go -- what the order then does.
 - The cards wear the HUD skin's tooltip (the map piece, ink text) and break their lines to stay inside
   UI-SET-073's 360 × 240.
+
+## Work: one board, named crews and order lists (decision 0411)
+
+Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `work/`:
+
+- **The work board** (`work/work_board.gd`) is the one common owner of who does what. Each job owner keeps its own
+  board -- the farm's, the woods', the bridges', the tunnels' jobs, the rooms' fit-out, the spoil heaps' -- read
+  through one adapter each (`farm_work.gd`, `woods_work.gd`, `bridge_work.gd`, `tunnel_work.gd`, `fit_out_work.gd`,
+  `spoil_work.gd`); every command goes to the owner's own function, so its conservation rules hold (decision 0222:
+  a load in hand is carried on, never paused or handed over from afar).
+- **Nobody wanders while eligible work waits.** Every half second of cast time each resident is reconsidered
+  (staggered); an idle one -- wandering, on the surface, not resting, not in the water nor held by its rescue, its
+  needs not first -- takes the best waiting task it is eligible for (skills and physical fit -- fits the bore, can
+  dig, on land, one job a board -- never a species lock): an URGENT task first, then its crew's priority for the work,
+  the task's own priority, the nearest. The farm's, the woods' and the bridgewright's old routine crews stand down.
+  A paused tunnel job (its worker called away) waits for a resident who can work it -- unless its worker means to
+  come back to it. The fit-out keeps its own hand-out (anyone free who can reach the room); spoil heaps are cleared
+  by order only.
+- **Crews** (`work/work_crews.gd`): Field, Woods, Diggers, Haulers and Builders, each with a preferred activity
+  and two fallbacks (priority 1, 2, 3; anything else 4; 0 forbids). Everyone starts on its trade's crew and the
+  player moves them. A member is **available, occupied, resting or absent**. **Presets** -- Normal, Harvest week,
+  Winter stores -- are whole priority tables, previewed (what each would change) on hover and keyboard focus
+  before they are applied.
+- **The order list** (resident_brain.gd THE ORDER LIST): **Shift+right-click** appends an order -- a bed's most
+  pressing job, a tree's, trunk's, deadfall's or the sawhorse's, or a walk to open ground -- to the end of the list
+  (at most 8 queued; up to 3 jobs kept from interruptions besides); a job kept from an interruption goes to the front.
+  The queue starts at once for a resident with nothing to do, when a plain move arrives, or when a job is done. The party panel, the Residents roster and the Work
+  screen read it as "Next: back to Brace, tunnel 2 → Harvest, the carrot bed"; then the resident's routine. A task
+  queued for a resident (or kept to come back to) is left to it.
+- **The Work screen** (`work/work_screen.gd`): the HUD's **Jobs** command (UI-SET-029, **J**) -- unlocked by the demo
+  for it, as Food is for the Pantry -- opens it over the HUD (Esc, J or × close it; Tab and Enter work inside it).
+  **Tasks**: every task, blocked first, then under way, queued, paused: "Harvest — the carrot bed · Mouse
+  fieldworker", its state and why it waits ("Blocked: no store has room for 5.1 U of carrot — make room in the
+  Pantry (K)", "Travelling: finding a route", "can't reach it"), the work left in game hours and who means to come
+  back to it; with **Go to**, **Pause/Resume**, **Cancel this task**, **Reassign…** (every resident, each with its
+  eligibility; with residents selected, the group previewed member by member), **▲/▼ Priority** and **Urgent**. A
+  command a task cannot take is disabled saying why. **Residents and crews**: each crew, its members' status, what each
+  is doing now and its order list (▲ Sooner, ▼ Later, ✕ Remove), ◀ Crew / Crew ▶; the presets above. **Projects**: the
+  tasks grouped by where they are. **Cancel all work…** only shows its scope (counted per source; deliveries, paid
+  tunnel jobs and bridges go on) until Cancel them is pressed.
 
 ## Commanding the residents
 
@@ -317,6 +360,8 @@ Needs: a site both banks take; planks (sawn at the sawhorse) and wood for any pi
 | Left click empty ground | Clear the selection |
 | Right click ground | Move there in a formation, then hold |
 | Right click a work spot | Work there; anyone beyond its free slots holds behind it |
+| Shift + right click | Append the order to the selection's order lists instead: a bed, tree, trunk, deadfall or the sawhorse queues its job for the nearest selected, open ground a walk for each (see Work) |
+| J (or the Jobs command) | The Work screen: tasks, residents and crews, projects (see Work) |
 | R | Release the selection back to its own routine |
 | Esc | Close the top pop-up; else drop the Dig tool's piece or close the tool; else clear the selection; else open the game menu |
 | Menu ("≡") | The game menu (above) |
@@ -353,7 +398,8 @@ on it. Where the column is too short for the header, summary and actions and a u
 kept for whoever was selected when it was said, so selecting someone else shows theirs. A resident
 called away from a job it had not finished (a tunnel job, a dig, a farm or a woods job, a spoil heap)
 **comes back to it** when the work that took it is done -- the latest three are kept, the panel says
-"Then back to: ...", and R (release) forgets them -- a finished dig takes its saved job back up once the
+"Next: back to ..." (with any orders queued by Shift+right-click; decision 0411), and R (release) forgets them -- a
+finished dig takes its saved job back up once the
 digger has stepped clear of the hole (at night it keeps it for the morning). Orders move the demo cast only,
 never the simulation.
 
@@ -1157,6 +1203,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `kitchen/` | The meal loop: the dishes and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |
+| `work/` | The work board over every job owner (one adapter each), the claim, the named crews and presets, the order lists' entries, Shift+right-click's queue and the Work screen (decision 0411) |
 | `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens; then the underground view drawn once |
 | `demo_layers.gd` | The four render layers every drawn node is on, and the plane each view picks on (decision 0206) |
 | `map_lenses.gd`, `lens_subject.gd` | The map layers: one shown at a time, each with its question, legend and subject; V's cycle and U's followed layer (decision 0292) |

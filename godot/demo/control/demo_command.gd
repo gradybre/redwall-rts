@@ -8,6 +8,9 @@ extends Node3D
 ##   left click empty ground      clear the selection
 ##   right click ground           move the selection there, spread into a formation, then hold
 ##   right click a POI's spot     work there (its free slots; the rest hold behind it)
+##   shift + right click          APPEND the order to the selection's order lists instead (decision 0411, UI §3's
+##                                `command_queue`): a bed, a tree or the like queues its job, open ground a walk --
+##                                the work board's `queue_at` (demo/work/work_orders.gd); not in the underground view
 ##   R                            release the selection back to wandering
 ##   Esc (`selection_clear`)      clear the selection
 ##   B (or T) / U                 the Dig tool (the cutaway, drag a tunnel) / underground view -- the
@@ -62,6 +65,8 @@ const Layers := preload("res://demo/demo_layers.gd")
 const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 const InterruptScript := preload("res://demo/control/work_interrupt.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const OrderList := preload("res://demo/work/order_list.gd")
+const QueueAnswer := preload("res://demo/work/queue_answer.gd")
 
 const RING_GAP_M: float = 0.12
 const PULSE_HZ: float = 1.1
@@ -132,6 +137,8 @@ var _fed_text: Callable = Callable()
 var _resume_rules: Array[Callable] = []
 ## The camera's "look at this point" (set_centre), for pick_member.
 var _centre: Callable = Callable()
+## Shift+right-click's handler (`queue(screen, ground, members) -> QueueAnswer`; see set_queue_handler).
+var _queue: Callable = Callable()
 ## The tool buttons' action card (reused; _refresh_tool_cards).
 var _tool_card_data: CardScript = CardScript.new()
 ## The party panel's notice line, per resident (see say): its text, and when it was said (0: never).
@@ -449,9 +456,31 @@ func _on_button(event: InputEventMouseButton) -> bool:
 			_finish_select(event.position)
 		return true
 	if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed and selection_count() > 0:
-		order_at(event.position)
+		if event.shift_pressed and _queue.is_valid() and not underground_view():
+			queue_at(event.position)
+		else:
+			order_at(event.position)
 		return true
 	return false
+
+
+func set_queue_handler(queue: Callable) -> void:
+	"""`queue(screen: Vector2, ground: Vector2, members: PackedInt32Array) -> QueueAnswer`: Shift+right-click appends
+	the order to the selection's order lists (the work board, decision 0411): whether it did, and what to say."""
+	_queue = queue
+
+
+func queue_at(at: Vector2) -> bool:
+	"""Shift+right-click at screen point `at`: the order appended to the selection's lists (see set_queue_handler),
+	marked where it landed and said in the party panel. True when something was queued."""
+	var ground: Vector2 = Layers.pick_ground(_camera.project_ray_origin(at), _camera.project_ray_normal(at),
+		Layers.pick_y(false, Layers.active_level))
+	var answer: QueueAnswer = _queue.call(at, ground, selected())
+	if ground.is_finite():
+		mark(Vector3(ground.x, 0.0, ground.y), answer.ok)
+	say(answer.words)
+	_refresh_in = 0.0
+	return answer.ok
 
 
 func _on_motion(at: Vector2) -> bool:
@@ -821,7 +850,7 @@ func _refresh_panel() -> void:
 			_signature.append(doing_text(i).hash())
 			_signature.append(skills_text(i).hash())
 			_signature.append(fed_text(i).hash())
-			_signature.append(brain.unfinished_labels().size())
+			_signature.append(brain.queue_revision)
 	if _signature == _shown:
 		return
 	_shown = _signature.duplicate()
@@ -837,7 +866,7 @@ func party_entries() -> Array[Dictionary]:
 		entries.append({"index": i, "name": actor.display_name, "species": actor.species, "colour": actor.chip_colour,
 			"digger": _tunnels.is_digger(i), "state": activity_text(i), "skills": skills_text(i), "fed": fed_text(i),
 			"abilities": AbilitiesScript.lines_for(actor.species, actor.height_m, brain.radius, brain.can_carry()),
-			"then": brain.unfinished_labels()})
+			"then": OrderList.items_into(brain, PackedStringArray())})
 	return entries
 
 

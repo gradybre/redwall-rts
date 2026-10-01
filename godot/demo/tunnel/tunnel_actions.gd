@@ -40,6 +40,7 @@ const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const CrewScript := preload("res://demo/tunnel/tunnel_crew.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
 
 const PICK_M: float = 0.9
 const MOUTH_PICK_M: float = 1.2
@@ -216,6 +217,36 @@ func preview_into(card: CardScript, job: int, selection: PackedInt32Array) -> vo
 	if _mole_job(job):
 		card.work_note = MOLE_NOTE
 	_preview_who(card, job, selection)
+	card.members = members_line(job, selection)
+
+
+func members_line(job: int, selection: PackedInt32Array) -> String:
+	"""A group order's preview, member by member (decision 0411, review UX-001): who of the selection could work `job`
+	on the selected tunnel -- the Foremole's digging or the bore's fit, `_choose_worker`'s own tests -- and why not the
+	others. (A mole job's other members join its crew: they are shown as able when they could dig it.)"""
+	if selection.size() <= 1:
+		return ""
+	var names := PackedStringArray()
+	var why := PackedStringArray()
+	for i: int in selection:
+		names.append(_names[i])
+		why.append(member_refusal(job, i))
+	return CardScript.each_member(names, why)
+
+
+func member_refusal(job: int, i: int) -> String:
+	"""Why resident `i` could not work `job` on the selected tunnel, in the work board's words (demo/work/work_ids.gd;
+	"" when it could): `_choose_worker`'s own tests -- a digger for a mole job, else one not below who fits the bore."""
+	var b := _works.brain(i)
+	if b.order == BrainScript.ORDER_DIG:
+		return WorkIds.DIGGING
+	if _mole_job(job):
+		return "" if _can_dig[i] == 1 else WorkIds.NOT_A_DIGGER
+	if b.underground:
+		return WorkIds.BELOW
+	if job != JobsScript.JOB_PUMP and not _network.fits_tunnel(i, selected, false):
+		return WorkIds.NOT_FITTING
+	return ""
 
 
 func _cost_rows(card: CardScript, job: int) -> void:

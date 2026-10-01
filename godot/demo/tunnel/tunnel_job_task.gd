@@ -15,6 +15,9 @@ const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const PathsScript := preload("res://demo/tunnel/graph_paths.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
+## The work board's names (decision 0411): an order-list entry names its job by SOURCE_TUNNELS and the posting's serial
+## (tunnel_jobs.gd THE PLAYER'S HOLD; demo/work/tunnel_work.gd `key`).
+const WorkIds := preload("res://demo/work/work_ids.gd")
 
 ## A pump stands this far out from its mouth's centre, off the hole.
 const PUMP_STAND_M: float = 1.1
@@ -28,6 +31,8 @@ var _jobs: JobsScript = null
 var _network: GraphScript = null
 var _kind: int = 0
 var _gen: int = 0
+## The posting's serial (tunnel_jobs.gd THE PLAYER'S HOLD): the order-list entry names the job by it.
+var _serial: int = 0
 var _via_b: bool = false
 var _pump_mouth: int = -1
 
@@ -39,6 +44,7 @@ func _init(jobs: JobsScript, network: GraphScript, job_slot: int) -> void:
 	slot = job_slot
 	_kind = jobs.kind[job_slot]
 	_gen = network.generation[job_slot]
+	_serial = jobs.serial[job_slot]
 	_via_b = _kind != JobsScript.JOB_PUMP and jobs.along_m(job_slot) > network.length_m(job_slot) * 0.5
 	if _kind == JobsScript.JOB_PUMP:
 		_pump_mouth = _mouth_near(network, job_slot)
@@ -59,8 +65,9 @@ func _below() -> bool:
 
 
 func is_valid() -> bool:
-	"""Whether the job this task works is still posted, as the same kind, on the same segment."""
-	return _jobs.has_job(slot) and _jobs.kind[slot] == _kind and _network.generation[slot] == _gen
+	"""Whether the job this task works is still posted, as the same kind, on the same segment -- the same posting."""
+	return _jobs.has_job(slot) and _jobs.kind[slot] == _kind and _network.generation[slot] == _gen \
+		and _jobs.serial[slot] == _serial
 
 
 func site_node(_brain: RefCounted) -> int:
@@ -124,13 +131,14 @@ func unfinished() -> RefCounted:
 	this same job, taken back while it still waits for a worker."""
 	if not is_valid() or _jobs.is_done(slot):
 		return null
-	return UnfinishedScript.new(take_back, "%s, tunnel %d" % [JobsScript.NAMES[_kind], slot + 1])
+	return UnfinishedScript.new(take_back, "%s, tunnel %d" % [JobsScript.NAMES[_kind], slot + 1], WorkIds.SOURCE_TUNNELS,
+		_serial)
 
 
 func take_back(brain: RefCounted) -> bool:
 	"""Give the paused job back to this resident (its spans, progress and paid inputs kept) and send it, if the
 	job is still this one, not done and nobody is on it."""
-	if not is_valid() or _jobs.is_done(slot) or _jobs.worker[slot] >= 0:
+	if not is_valid() or _jobs.is_done(slot) or _jobs.worker[slot] >= 0 or _jobs.is_held(slot):
 		return false
 	var worker := brain as BrainScript
 	_jobs.post(slot, _kind, worker.index, 0, 0)

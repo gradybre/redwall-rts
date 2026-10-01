@@ -472,7 +472,7 @@ func test_the_fed_rows_follow_what_a_resident_is_doing() -> void:
 		"skills": "Felling 0\nDigging 3"}]
 	assert_equal(PanelScript.party_lines(one), PackedStringArray(["Mole digger", "Mole", "Digging tunnel",
 		PanelScript.PROGRESS % "43%", "Fed · 100% full", "Last meal: breakfast, porridge", PanelScript.THEN_HEAD,
-		PanelScript.BULLET + "Brace tunnel 2", "Felling 0", "Digging 3"]), "fed after what it is doing")
+		PanelScript.THEN_MARK + "Brace tunnel 2", "Felling 0", "Digging 3"]), "fed after what it is doing")
 	var two: Array[Dictionary] = [{"name": "A", "state": "holding", "fed": "peckish", "skills": "fell 0"},
 		{"name": "B", "state": "holding"}]
 	assert_equal(PanelScript.party_lines(two), PackedStringArray(["2 residents", "A — holding · peckish · fell 0",
@@ -538,14 +538,15 @@ func test_the_ledger_never_hides_the_panel() -> void:
 
 
 func test_the_panel_says_what_a_resident_will_go_back_to() -> void:
-	"""One resident with unfinished jobs: "Then back to:" and a row per job, latest first (F31: a list, not one
-	joined line)."""
+	"""One resident with unfinished jobs and a queued order: its order list (decision 0411) under "Next:", a row each in
+	take order (F31: a list, not one joined line; decision 0391)."""
 	var one: Array[Dictionary] = [{"name": "Mole digger", "species": "Mole", "state": "raising bed 3",
-		"then": PackedStringArray(["Hang lanterns, tunnel 1", "Brace tunnel 2"])}]
+		"then": PackedStringArray(["back to Hang lanterns, tunnel 1", "Harvest, bed 3"])}]
 	var lines: PackedStringArray = PanelScript.party_lines(one)
 	assert_equal(lines[3], PanelScript.THEN_HEAD, "the heading")
-	assert_equal(lines[4], PanelScript.BULLET + "Hang lanterns, tunnel 1", "the latest first")
-	assert_equal(lines[5], PanelScript.BULLET + "Brace tunnel 2", "a row each")
+	assert_equal(lines[3], "Next:", "in the order list's word")
+	assert_equal(lines[4], PanelScript.THEN_MARK + "back to Hang lanterns, tunnel 1", "the first to be taken first")
+	assert_equal(lines[5], PanelScript.THEN_MARK + "Harvest, bed 3", "a row each")
 
 
 func test_the_dig_button_says_what_it_does_and_its_key() -> void:

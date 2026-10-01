@@ -69,6 +69,8 @@ var work_note: String = WALK_NOTE
 ## The assignment preview ("Assign selected: Mouse keeper (nearest of 3)"), and the resident named in it.
 var who: String = ""
 var worker: int = NOBODY
+## A group order's preview, member by member (`each_member`; decision 0411, review UX-001); "" for one selected.
+var members: String = ""
 ## What that resident will stop doing, and whether it goes back to it (demo_command.gd `interrupt_text`).
 var interrupts: String = ""
 var prerequisites: PackedStringArray = PackedStringArray()
@@ -89,6 +91,7 @@ func reset(p_verb: String) -> RefCounted:
 	work_note = WALK_NOTE
 	who = ""
 	worker = NOBODY
+	members = ""
 	interrupts = ""
 	prerequisites.clear()
 	code = ""
@@ -146,6 +149,8 @@ func text() -> String:
 		lines.append(WORK + hours_text(work_usec) + work_note)
 	if not who.is_empty():
 		lines.append(WHO + who)
+	if not members.is_empty():
+		lines.append(members)
 	if not interrupts.is_empty():
 		lines.append(interrupts)
 	if not prerequisites.is_empty():
@@ -211,6 +216,24 @@ static func specialist(role: String, name: String, selected: int) -> String:
 	if name.is_empty():
 		return head + ": none in the village — select residents to do it"
 	return "%s: %s (specialist)" % [head, name]
+
+
+static func each_member(names: PackedStringArray, refusals: PackedStringArray) -> String:
+	"""A group order's preview, member by member (decision 0411, review UX-001): "Of 3 selected: Mouse keeper, Mole
+	digger can; Badger quarryman can't (does not fit the bore)" -- `refusals[k]` is member k's reason ("" when it can).
+	"" for one selected or none."""
+	if names.size() <= 1:
+		return ""
+	var can := PackedStringArray()
+	var parts := PackedStringArray()
+	for k: int in names.size():
+		if refusals[k].is_empty():
+			can.append(names[k])
+		else:
+			parts.append("%s can't (%s)" % [names[k], refusals[k]])
+	if not can.is_empty():
+		parts.insert(0, "%s can" % ", ".join(can))
+	return "Of %d selected: %s" % [names.size(), "; ".join(parts)]
 
 
 static func under_way(name: String) -> String:

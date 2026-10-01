@@ -100,6 +100,12 @@ extends Node3D
 ## context). The HUD's Menu button, and Esc once nothing else takes it (`_unhandled_input`, which runs
 ## after every child's), open the game menu; F8 opens the Lab, which holds the demo's test triggers.
 ##
+## WORK (decision 0411, demo/work/): ONE WORK BOARD over every job owner -- the farm, the woods, the bridges, the
+## tunnels' jobs, the rooms' fit-out, the spoil heaps -- claims their waiting work for idle eligible residents (the
+## named, editable crews first: Field, Woods, Diggers, Haulers, Builders), in place of the old hidden fixed crews;
+## the HUD's Jobs command (J) opens its Work screen (tasks, residents and crews, projects); Shift+right-click appends to
+## the selection's order lists. `_build_work()` wires it once every owner is built.
+##
 ## SOUND (decision 0351, demo/sound/): ONE SOUND OWNER (sound_director.gd), scene-scoped rather than an autoload,
 ## hears the village's committed events (its event map, sound_taps.gd) and plays them through five buses with a
 ## bounded voice pool; its volumes and mixes are the game menu's Settings. No sound files are staged yet, so it
@@ -162,6 +168,7 @@ const IncidentCardsScript := preload("res://demo/ui/demo_incident_cards.gd")
 const NewsJumpScript := preload("res://demo/ui/demo_news_jump.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const SoundScript := preload("res://demo/sound/sound_director.gd")
+const DemoWorkScript := preload("res://demo/work/demo_work.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -225,6 +232,7 @@ var _water_lens: int = 0
 var _history: NewsHistoryScript = null
 var _cards: IncidentCardsScript = null
 var _jump: NewsJumpScript = NewsJumpScript.new()
+var _work: DemoWorkScript = null
 
 
 func _ready() -> void:
@@ -253,6 +261,7 @@ func _ready() -> void:
 	_command.set_fed_text(_kitchen.kitchen.fed_text)
 	_build_waterplay()
 	_build_shared_ui()
+	_build_work()
 	_build_sound()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
@@ -434,6 +443,34 @@ func _build_waterplay() -> void:
 		_water.map(), _links, _water, _forestry.stand)
 	_waterplay.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
 	_farm.lenses.set_subject(_water_lens, _waterplay.water_range)
+
+
+func _build_work() -> void:
+	"""The village's work (see WORK): the board over every owner built so far, its screen behind the HUD's Jobs command,
+	and Shift+right-click's queue -- after the shared UI, whose "Go to" its screen uses."""
+	_work = DemoWorkScript.new()
+	add_child(_work)
+	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
+	_work.configure(_cast as DemoCastScript, _farm, _forestry, _waterplay, _spoil, tool.ext, tool.is_digger)
+	var command: DemoCommandScript = _command as DemoCommandScript
+	_work.set_readouts(command.activity_text, (GameManager as GameManagerScript).is_paused, work_jump, command.selected)
+	command.set_queue_handler(_work.queue_at)
+	_work.unlock_jobs_command(_shell())
+	_work.screen.close_requested.connect(_work.screen.close)
+
+
+func work_jump(kind: int, id: int, point: Vector2) -> bool:
+	"""The Work screen's "Go to": the news's own jump for a target it knows (selected, the camera eased over it), else
+	the camera eased over the task's place."""
+	if _jump.can_jump(kind, id):
+		return _jump.jump(kind, id)
+	(_camera as DemoCameraScript).centre_on(Vector3(point.x, 0.0, point.y))
+	return true
+
+
+func work() -> DemoWorkScript:
+	"""The village's work board and Work screen (demo/work/demo_work.gd)."""
+	return _work
 
 
 func waterplay() -> WaterplayScript:
@@ -718,6 +755,8 @@ func _build_input() -> void:
 	_gate.set_modal_close(_farm.pantry_panel, _farm.pantry_panel.close_button())
 	_gate.watch_modal(_menu, _menu, _menu.back_or_close)
 	_gate.watch_modal(_lab, _lab, _lab.close, [] as Array[StringName], [LabScript.KEY] as Array[Key])
+	_gate.watch_modal(_work.screen, _work.screen, _work.screen.close, [&"open_jobs"] as Array[StringName])
+	_gate.set_modal_close(_work.screen, _work.screen.close_button())
 	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
 	_gate.add_region("right column", [_zone, _farm.bed_panel, ext.panel, _forestry.panel, _waterplay.panel] as Array[Node])
 	_gate.add_region("left column", [(_command as DemoCommandScript).panel()] as Array[Node])

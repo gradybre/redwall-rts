@@ -241,12 +241,12 @@ func _pantry_blocks_the_world() -> void:
 		"order %d" % int(_brain(0).get("order")))
 	_drag(Vector2(10.0, float(_size.y) * 0.9), Vector2(float(_size.x) - 10.0, float(_size.y) * 0.98))
 	_check("a drag does not box-select", _command().call(&"selected") == PackedInt32Array([0]))
-	var overlay: int = int(_village.get("_farm").get("_overlay_step"))
+	var overlay: int = int(_village.get("_farm").get("lenses").get("active"))
 	_key(KEY_B)
 	_key(KEY_V)
 	_key(KEY_SPACE)
 	_check("B does not open the Dig tool", not bool(_command().call(&"tunnels").get("planning")))
-	_check("V does not cycle the overlays", int(_village.get("_farm").get("_overlay_step")) == overlay)
+	_check("V does not step the map layer", int(_village.get("_farm").get("lenses").get("active")) == overlay)
 	_check("Space does not toggle the pause", bool(_manager().call(&"is_paused")) == paused)
 	var camera: Node = _village.get("_camera")
 	var distance: float = float(camera.get("_target_distance"))
@@ -544,16 +544,19 @@ func _lab_from_the_menu() -> void:
 
 
 func _history_click_does_not_leak() -> void:
-	"""The notification history is an expansion, not a modal: a click on it never reaches the world."""
+	"""The village news history (N, decision 0331; it stands in for the shell's notification history) is an
+	expansion, not a modal: a click on it never reaches the world, and Esc closes it before the selection."""
 	_command().call(&"select", PackedInt32Array([1]))
 	_order_before = int(_brain(1).get("order"))
 	_key(KEY_N)
-	var history: Control = _shell_control("ID_HISTORY")
-	_check("N opens the history", history.is_visible_in_tree())
-	_click(_centre(history), MOUSE_BUTTON_RIGHT)
+	var history: Object = _village.call(&"news_history")
+	_check("N opens the village news history", bool(history.call(&"is_open")))
+	_check("and not the shell's history behind it", not _shell_control("ID_HISTORY").is_visible_in_tree())
+	_click((history.call(&"frame_rect") as Rect2).get_center(), MOUSE_BUTTON_RIGHT)
 	_check("a right-click on it issues no order", int(_brain(1).get("order")) == _order_before)
 	_key(KEY_ESCAPE)
-	_check("Esc closes it", not history.is_visible_in_tree())
+	_check("Esc closes it", not bool(history.call(&"is_open")))
+	_check("and leaves the selection", _command().call(&"selected") == PackedInt32Array([1]))
 	_key(KEY_ESCAPE)
 
 

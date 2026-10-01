@@ -54,6 +54,7 @@ const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const CrossingHookScript := preload("res://demo/cast/crossing_hook.gd")
+const RouteDeskScript := preload("res://demo/cast/route_desk.gd")
 
 const PLAN_MARGIN_M: float = CastNavScript.PLAN_MARGIN_M
 const GOAL_EPSILON_M: float = CastNavScript.GOAL_EPSILON_M
@@ -112,6 +113,9 @@ var tunnels: GraphScript = GraphScript.new()
 var crossings: CrossingHookScript = CrossingHookScript.new()
 ## The widest body registered so far (m): every slot is placed with room for it (see ROOM FOR THE BODY).
 var slot_body_m: float = 0.0
+## Route planning spread over frames (route_desk.gd, decision 0361): every plan is charged to the frame's window, and
+## a trip start waits its turn once the window's budget is spent. No budget unless the live scene gives one.
+var routes: RouteDeskScript = RouteDeskScript.new()
 
 var _slot_at: PackedVector2Array = PackedVector2Array()
 var _standing: PackedVector3Array = PackedVector3Array()
@@ -150,6 +154,14 @@ func setup(points: Array[Dictionary], obstacle_list: Array[Vector3]) -> void:
 	resident_along.clear()
 	resident_heading.clear()
 	tunnels = GraphScript.new()
+	_renew_routes()
+
+
+func _renew_routes() -> void:
+	"""A fresh routing desk for a fresh cast (nobody registered or waiting), keeping the budget it was given."""
+	var budget := routes.budget_usec
+	routes = RouteDeskScript.new()
+	routes.budget_usec = budget
 
 
 func set_heap(m: int, circle: Vector3) -> void:

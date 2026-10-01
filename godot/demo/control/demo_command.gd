@@ -87,6 +87,10 @@ var _camera: Camera3D = null
 var _panel: PanelScript = null
 var _tunnels: TunnelControlScript = null
 var _selected: PackedByteArray = PackedByteArray()
+## Bumped whenever the selection changes (decision 0361, the review's F01): a per-frame reader compares it with the one
+## it last saw and reads the selection again only when it moved (`first_selected`, `selected_into`), never building
+## an array a frame.
+var _selection_revision: int = 0
 var _hover: int = -1
 var _pressing: bool = false
 var _dragging: bool = false
@@ -479,6 +483,7 @@ func _finish_select(at: Vector2) -> void:
 	else:
 		_selected.fill(0)
 		_selected[hit] = 1
+	_selection_revision += 1
 	_refresh_in = 0.0
 
 
@@ -499,6 +504,7 @@ func select_box(corner_a: Vector2, corner_b: Vector2, additive: bool) -> void:
 	var count := PickScript.box_members(_screen, _on_screen, corner_a, corner_b, _hits)
 	for k in count:
 		_selected[_hits[k]] = 1
+	_selection_revision += 1
 	_refresh_in = 0.0
 
 
@@ -508,12 +514,14 @@ func select(members: PackedInt32Array) -> void:
 	for i in members:
 		if i >= 0 and i < _selected.size():
 			_selected[i] = 1
+	_selection_revision += 1
 	_refresh_in = 0.0
 
 
 func clear_selection() -> void:
 	"""Deselect everyone."""
 	_selected.fill(0)
+	_selection_revision += 1
 	_refresh_in = 0.0
 
 
@@ -527,8 +535,33 @@ func is_selected(actor_index: int) -> bool:
 	return actor_index >= 0 and actor_index < _selected.size() and _selected[actor_index] != 0
 
 
+func selection_revision() -> int:
+	"""Bumped whenever the selection changes: compare it with the one last seen before reading the selection again."""
+	return _selection_revision
+
+
+func first_selected() -> int:
+	"""The first selected actor index in cast order, or -1 with none selected (per-frame safe: no array made)."""
+	return _selected.find(1)
+
+
+func selected_into(out: PackedInt32Array) -> int:
+	"""The selected actor indices, in cast order, written into `out` (resized only when the count changed); how many.
+	Per-frame safe with a kept `out`."""
+	var count := _selected.count(1)
+	if out.size() != count:
+		out.resize(count)
+	var k := 0
+	for i in _selected.size():
+		if _selected[i] != 0:
+			out[k] = i
+			k += 1
+	return count
+
+
 func selected() -> PackedInt32Array:
-	"""The selected actor indices, in cast order."""
+	"""The selected actor indices, in cast order (a new array: once per order or click, never per frame -- a per-frame
+	reader uses `selection_revision` with `first_selected` or `selected_into`)."""
 	var out := PackedInt32Array()
 	for i in _selected.size():
 		if _selected[i] != 0:
@@ -781,6 +814,8 @@ func activity_text(actor_index: int) -> String:
 		place = String(_cast.space().poi_names[brain.poi]).replace("_", " ")
 	elif brain.order == BrainScript.ORDER_DIG:
 		place = _dig_place(brain)
+	if brain.activity() == BrainScript.ACTIVITY_HOLDING and brain.trip_failed():
+		return PanelScript.HOLDING_REFUSED % brain.route_refusal()
 	return PanelScript.state_text(brain.activity(), brain.clip, place, _dug_percent(brain))
 
 

@@ -160,7 +160,8 @@ in its drop work (1 WU, 1.5 s), at most `MAX_PER_HEAP` = 4 on a heap; only resid
 compost), so it is hauled into the farm's compost store, tipped by the open stockpile. Every milli-U is
 taken through the farm's own spoil books (`farm_tunnels.take_spoil_into`, the ones Raise and Bank take
 from) and delivered, or in a basket; a worker called away tips its basket into the store and keeps the
-heap to come back to. The emptied heap stops being an obstacle (its spot stays in the network, where a
+heap to come back to. (*Amended by [0361](0361-explicit-arrival-crew-hand-offs-and-routes-planned-across-frames.md):
+a basket reaches the store only by being tipped at the drop spot; a worker called away puts it back on its heap.*) The emptied heap stops being an obstacle (its spot stays in the network, where a
 widening re-heaps) -- and one that takes spoil again (a fall cleared, a chamber dug) is an obstacle again.
 Each emptied heap rebuilds the cast's obstacles, so the next plan of each body class pays its graph
 rebuild (about 11 ms, `cast_space.set_heaps`) -- accepted: it happens once per heap cleared. Moving a

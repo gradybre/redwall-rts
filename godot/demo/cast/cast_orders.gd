@@ -7,7 +7,8 @@ extends RefCounted
 ## k spacings, where the spacing lets the widest body in the group stand beside any other with a
 ## gap. A spot is taken when it is inside the bounds, clear of every obstacle by the body and a
 ## margin, clear of every resident standing there already and every tunnel mouth (nobody is sent
-## to stand in a hole), a spacing from every spot taken, and REACHABLE -- the planner finds a route to it. So a click inside a building or off the map snaps
+## to stand in a hole), a spacing from every spot taken, and REACHABLE -- the planner finds a route to it (asked of one
+## sweep from where the group stands: cast_nav.gd REACHABILITY BY ONE SWEEP). So a click inside a building or off the map snaps
 ## to the nearest spots that satisfy all of that; a click with none within FORMATION_MAX_M is
 ## refused. Residents are then matched to spots greedily, nearest pair first, so few paths cross.
 ##
@@ -18,7 +19,9 @@ extends RefCounted
 ## a formation behind the POI (away from what it faces). Every order goes through the brain, which
 ## releases whatever slot the resident held, so the reservation bits stay exact.
 ##
-## All of this runs once per click, never per frame.
+## All of this runs once per click, never per frame. The formation's reachability plans are charged to the frame's
+## routing window (route_desk.gd, decision 0361), so the residents' own plans after a costly search wait their turn on
+## later frames rather than adding to this one.
 
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
@@ -71,9 +74,7 @@ static func spot_ok(space: CastSpaceScript, spot: Vector2, body: float, bounds: 
 	for circle in avoid:
 		if Vector2(circle.x, circle.z).distance_to(spot) < circle.y + body + FORMATION_GAP_M:
 			return false
-	var route := PackedVector2Array()
-	space.nav.plan(reach_from, spot, body, PackedVector3Array(), 0, route)
-	return space.nav.last_found
+	return space.nav.reaches(reach_from, spot, body)  # one sweep answers every candidate (cast_nav.gd REACHABILITY BY ONE SWEEP)
 
 
 static func match_nearest(from: PackedVector2Array, to: PackedVector2Array) -> PackedInt32Array:
@@ -147,7 +148,10 @@ static func order_move(space: CastSpaceScript, members: Array[BrainScript], poin
 	if members.is_empty():
 		return spots
 	var avoid := standing_except(space, members)
-	if not formation_slots(space, point, members.size(), widest(members), bounds, avoid, members[0].surface_point(), spots):
+	var began := Time.get_ticks_usec()
+	var fitted := formation_slots(space, point, members.size(), widest(members), bounds, avoid, members[0].surface_point(), spots)
+	space.routes.charge(-1, Time.get_ticks_usec() - began)
+	if not fitted:
 		spots.clear()
 		return spots
 	var from := PackedVector2Array()

@@ -16,6 +16,14 @@ extends RefCounted
 ## (like felling; §4.3 names none), §5.3's arithmetic -- 10 XP a WU, the level curve, a work time
 ## divided by 1000 + 50 x level -- shown in the party panel. The beaver starts at level 6. A storm day
 ## slows outdoor work to 80% (§5.10). A builder ordered away leaves the bridge where it got to.
+##
+## ARRIVING IS EXPLICIT (decision 0361, the review's F05). A builder holding is not a builder arrived: one whose walk was
+## given up holds too. Each step at the source or the site starts only when the brain's trip ARRIVED and the builder
+## stands within ARRIVE_M of its spot (resident_brain.gd `arrived_near`), and loading and building recheck it every
+## frame: a builder who could not get there -- or is no longer there -- loads and builds nothing; the bridge waits for
+## a builder again, its material where it was, and the feed names who could not get where. The builder is let go (its
+## work done: back to a saved job or its routine), and the routine crew does not take that bridge up again for
+## UNREACHED_WAIT_USEC.
 
 const Rules := preload("res://demo/waterplay/swim_rules.gd")
 const ForestRules := preload("res://demo/forestry/forest_rules.gd")
@@ -45,6 +53,8 @@ const SOURCE_WORDS: Array[String] = ["the plank stack", "the log stack", "the fe
 ## Loading planks at the stack (demo, forestry's LOAD_WU).
 const LOAD_WU: int = ForestRules.LOAD_WU
 const PICKUP_USEC: int = 500000
+## A bridge its builder could not get to waits this long before the routine crew takes it up again (demo value).
+const UNREACHED_WAIT_USEC: int = 10000000
 const ARRIVE_M: float = 0.45
 const RING_GAP_M: float = 0.45
 const RINGS: int = 4
@@ -59,6 +69,8 @@ const PLANK_KEY: StringName = &"bridge_plank"
 const LOG_KEY: StringName = &"bridge_log"
 const GNAWED_KEY: StringName = &"gnawed_log"
 const GNAWING_SPECIES: Array[String] = ["beaver"]
+## How a resident index that names nobody is worded (see `name_of`).
+const UNNAMED: String = "nobody"
 
 ## Per bridge row: the builder (actor index), the step, whether it was issued, where it walks to, work
 ## done in this step (demo usec), the material's source and point.
@@ -71,6 +83,9 @@ var source: PackedByteArray = PackedByteArray()
 var source_at: PackedVector2Array = PackedVector2Array()
 ## Whether the material has been carried to the site.
 var at_site: PackedByteArray = PackedByteArray()
+## How long a bridge its builder could not get to still waits before the routine crew takes it up (see ARRIVING IS
+## EXPLICIT; demo usec).
+var unreached_usec: PackedInt64Array = PackedInt64Array()
 ## Bridge-building XP per resident (actor index).
 var xp: PackedInt64Array = PackedInt64Array()
 var revision: int = 0
@@ -100,6 +115,7 @@ func configure(cast: DemoCastScript, bridges: BridgesScript, weather: WeatherScr
 	builder.resize(BridgesScript.MAX_BRIDGES)
 	builder.fill(NOBODY)
 	at_site.resize(BridgesScript.MAX_BRIDGES)
+	unreached_usec.resize(BridgesScript.MAX_BRIDGES)
 	step.resize(BridgesScript.MAX_BRIDGES)
 	issued.resize(BridgesScript.MAX_BRIDGES)
 	goal.resize(BridgesScript.MAX_BRIDGES)
@@ -206,6 +222,8 @@ func update(usec: int) -> void:
 	if usec <= 0:
 		return
 	_pickup_usec += usec
+	for row: int in BridgesScript.MAX_BRIDGES:
+		unreached_usec[row] = maxi(unreached_usec[row] - usec, 0)
 	if _pickup_usec >= PICKUP_USEC:
 		_pickup_usec = 0
 		_hand_out()
@@ -217,7 +235,7 @@ func update(usec: int) -> void:
 func _hand_out() -> void:
 	"""Give each waiting bridge to the nearest crew member wandering on its own."""
 	for row: int in BridgesScript.MAX_BRIDGES:
-		if not _bridges.is_planned(row) or builder[row] != NOBODY:
+		if not _bridges.is_planned(row) or builder[row] != NOBODY or unreached_usec[row] > 0:
 			continue
 		var idle := PackedInt32Array()
 		for who: int in _crew:
@@ -245,6 +263,9 @@ func _step_row(row: int, usec: int) -> void:
 		return
 	if brain.state != BrainScript.State.HOLD:
 		return
+	if not brain.arrived_near(goal[row], ARRIVE_M):
+		_unreached(row, step[row] == STEP_GO_SOURCE or step[row] == STEP_LOAD)
+		return
 	match step[row]:
 		STEP_GO_SOURCE:
 			step[row] = STEP_LOAD
@@ -265,8 +286,7 @@ func _issue(row: int, brain: BrainScript) -> void:
 	if target == source_at[row]:
 		first = TRUNK_STAND_M if source[row] == SOURCE_TRUNK else SOURCE_STAND_M
 	if not _spot_near(target, first, brain):
-		_drop(row)
-		_note("%s: %s can't get to %s" % [_title(row), name_of(builder[row]), "the material" if target == source_at[row] else "the site"])
+		_unreached(row, target == source_at[row])
 		return
 	goal[row] = _found
 	issued[row] = 1
@@ -358,7 +378,20 @@ func _finish(row: int) -> void:
 	_note("The %s is open: %s built it; anyone may cross it now, carrying or not" % [_bridges.names[row], name_of(who)])
 
 
-func _drop(row: int) -> void:
+func _unreached(row: int, to_source: bool) -> void:
+	"""The builder could not get to the material (`to_source`) or the site, or is no longer there: nothing is loaded or
+	built from afar; the bridge waits for a builder again, and the feed names who could not get where (the name read
+	before the row lets the builder go -- the review's F15)."""
+	var who: int = builder[row]
+	_drop(row, false)
+	unreached_usec[row] = UNREACHED_WAIT_USEC
+	_note("%s: %s can't get to %s" % [_title(row), name_of(who), "the material" if to_source else "the site"])
+	var brain: BrainScript = brain_of(who)
+	if brain.order == BrainScript.ORDER_MOVE:
+		brain.work_done()
+
+
+func _drop(row: int, say_left: bool = true) -> void:
 	"""The builder was ordered away: the bridge waits where it got to (a load goes back to its source)."""
 	var who: int = builder[row]
 	var actor := _cast.actor(who) as DemoActorScript
@@ -368,7 +401,8 @@ func _drop(row: int) -> void:
 	step[row] = STEP_WAITING
 	issued[row] = 0
 	revision += 1
-	_note("%s left the %s" % [name_of(who), _bridges.names[row]])
+	if say_left:
+		_note("%s left the %s" % [name_of(who), _bridges.names[row]])
 
 
 # --- places, looks and words ---------------------------------------------------------------------
@@ -486,12 +520,16 @@ func _title(row: int) -> String:
 
 
 func brain_of(who: int) -> BrainScript:
-	"""Resident `who`'s brain."""
+	"""Resident `who`'s brain (`who` a resident of the cast: DemoCast.actor refuses any other index)."""
 	return (_cast.actor(who) as DemoActorScript).brain
 
 
 func name_of(who: int) -> String:
-	"""Resident `who`'s name."""
+	"""Resident `who`'s name; an index that names nobody is refused (an error) and named as nobody -- NOBODY must never
+	be read as the cast's last (the review's F15)."""
+	if who < 0 or who >= _cast.actor_count():
+		push_error("bridge crew: no resident %d to name" % who)
+		return UNNAMED
 	return (_cast.actor(who) as DemoActorScript).display_name
 
 

@@ -1,7 +1,7 @@
 extends "res://test/framework/test_case.gd"
 ## Clearing spoil heaps (demo/spoil/, decision 0205): a finished tunnel's heap is dug out a basketful
 ## at a time and hauled into the farm's compost store, through the farm's own spoil books, every milli-U
-## accounted for; the emptied heap stops being an obstacle; a worker called away keeps the heap to come
+## accounted for; the emptied heap stops being an obstacle; a worker called away puts its basket back and keeps the heap to come
 ## back to. On the placeholder cast, stepped at 60 Hz, out of the tree.
 
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
@@ -150,9 +150,9 @@ func _has_circle_at(at: Vector2) -> bool:
 	return false
 
 
-func test_a_worker_called_away_tips_its_basket_and_comes_back() -> void:
-	"""Ordered elsewhere with a basket, the worker's load goes into the store (nothing lost), its row
-	ends and it keeps the heap; its next work done sends it back to the heap."""
+func test_a_worker_called_away_puts_its_basket_back_and_comes_back() -> void:
+	"""Ordered elsewhere with a basket, the worker's load goes back on its heap (nothing lost, and nothing delivered from
+	where it stands: decision 0361), its row ends and it keeps the heap; its next work done sends it back to the heap."""
 	var tunnels := FarmTunnels.new()
 	var crew := _crew(tunnels)
 	var site: PackedInt32Array = _open_tunnel(true)
@@ -168,10 +168,12 @@ func test_a_worker_called_away_tips_its_basket_and_comes_back() -> void:
 			break
 		_run(crew, DT)
 	assert_true(crew.load_milli[row] > 0, "carrying a basket")
+	var delivered_before: int = int(_delivered[0])
 	_brain(1).order_move(Vector2(-6.0, -6.0))
 	crew.update(USEC)
 	assert_equal(crew.row_of(1), -1, "the row ended")
-	assert_equal(crew.spoil_left(heap) + int(_delivered[0]), heaped, "the basket was tipped into the store")
+	assert_equal(int(_delivered[0]), delivered_before, "nothing delivered from where it stood")
+	assert_equal(crew.spoil_left(heap) + int(_delivered[0]), heaped, "the basket went back on the heap")
 	assert_equal(_brain(1).unfinished_labels(), PackedStringArray(["Clear spoil heap"]), "kept")
 	_brain(1).work_done()
 	assert_equal(crew.row_of(1) >= 0, true, "back on the heap")

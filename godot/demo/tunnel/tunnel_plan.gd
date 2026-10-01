@@ -897,8 +897,8 @@ func _near_own_socket(graph: GraphScript, r: int, at: Vector2i) -> bool:
 
 
 func _rows_reason(graph: GraphScript) -> int:
-	"""Whether the network has the rows the piece needs."""
-	return Rules.REFUSE_NONE if graph.room_for(spec_of(-1)) else Rules.REFUSE_NETWORK_FULL
+	"""Whether the network has the rows the piece needs -- refused naming the capacity it would exhaust (decision 0361)."""
+	return graph.rows_refusal(spec_of(-1))
 
 
 func refused_name(graph: GraphScript) -> String:

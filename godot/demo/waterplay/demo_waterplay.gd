@@ -178,6 +178,8 @@ var _refresh_in: float = 0.0
 var _panel_was_shown: bool = false
 var _cold_said: int = -1
 var _overlay_revision: int = -1
+## The selection revision `_follow_selection` last read (-1: none yet).
+var _selection_seen: int = -1
 var _point: Vector2 = Vector2.ZERO
 
 
@@ -332,10 +334,14 @@ func _follow_conditions() -> void:
 
 func _follow_selection() -> void:
 	"""The overlay's zones follow the Water range lens's subject (water_range.gd): the selection, a group by
-	its shortest member or the member stepped to, the mouse with nobody selected."""
+	its shortest member or the member stepped to, the mouse with nobody selected. The selection is read again only
+	when it changed (its revision: decision 0361, the review's F01) -- no array is made per frame."""
 	if _water == null or _command == null:
 		return
-	water_range.follow(_command.selected())
+	var revision: int = _command.selection_revision()
+	if revision != _selection_seen:
+		_selection_seen = revision
+		water_range.follow(_command.selected())
 	if water_range.revision == _overlay_revision:
 		return
 	_overlay_revision = water_range.revision

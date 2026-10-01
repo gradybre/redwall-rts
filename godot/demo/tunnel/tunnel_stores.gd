@@ -2,9 +2,9 @@ extends RefCounted
 ## THE DEMO'S ONE STORES: its wood, stone, planks and finds. Decision 0196 (live demo). Presentation
 ## only. Made once by demo_services.gd and shared by the tunnel works and the woods.
 ##
-## THE HUD'S WOOD AND STONE ARE THE SIMULATION'S (UIManager reads EconomySystem.stock_units), and the
-## demo never writes into the simulation -- so bracing and lanterns are paid from THIS stock, shown
-## in the tunnel and woods panels and labelled as the demo's. Quantities are integer milli-U
+## THE TOP BAR SHOWS THIS STOCK. Its Wood, Stone and Planks cells read these three figures (the demo's HUD read
+## model, demo/ui/demo_hud_model.gd, decision 0251) -- never written into the settlement simulation, whose
+## own stock the demo does not run. Bracing and lanterns are paid from here. Quantities are integer milli-U
 ## (AGENTS.md: quantity_milli). It starts at START_WOOD_MILLI_U and START_STONE_MILLI_U (demo values),
 ## gains stone from rock quanta dug (tunnel_ground.gd), and gains WOOD from the woods
 ## (demo/forestry/): every log hauled to the log stack and every deadfall pile gathered.
@@ -137,8 +137,8 @@ static func units_text(milli_u: int) -> String:
 
 
 func stock_line() -> String:
-	"""The panel's stores line."""
-	return "Demo stores: wood %s · stone %s · planks %s" % [units_text(wood_milli_u), units_text(stone_milli_u),
+	"""The panels' stores line -- the same figures, in the same words, as the top bar's Wood, Stone and Planks."""
+	return "Village stores: wood %s · stone %s · planks %s" % [units_text(wood_milli_u), units_text(stone_milli_u),
 		units_text(plank_milli_u)]
 
 

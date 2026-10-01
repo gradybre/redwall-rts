@@ -244,7 +244,7 @@ func _cellar_location(r: int) -> int:
 # --- per frame ------------------------------------------------------------------------------------
 
 func _process(delta: float) -> void:
-	"""Run the farm on this frame's demo time; keep the HUD's Food figure and the panels current -- at
+	"""Run the farm on this frame's demo time; keep the panels current -- at
 	once when the calendar's hour turns, so the panel's date never trails the HUD's."""
 	step(_cast.clock.frame_usec if _cast != null else 0)
 	if _cast != null:
@@ -270,10 +270,9 @@ func _follow_fit_out() -> void:
 
 func step(usec: int) -> void:
 	"""Advance the farm by `usec` demo microseconds: the calendar and everything on it, then the crew's
-	work and the HUD's Food figure."""
+	work. (The top bar reads the pantry's total itself: demo/ui/demo_hud_model.gd.)"""
 	advance_calendar(usec)
 	crew.update(usec)
-	hud.sync(pantry.total_units())
 
 
 func advance_calendar(usec: int) -> int:

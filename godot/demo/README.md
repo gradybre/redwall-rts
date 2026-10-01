@@ -102,9 +102,10 @@ that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
   any more: the HUD shows the two earliest unresolved notices, and demo lines, which nothing resolves,
   held both cards for good.
 
-**One stores** (`demo_services.gd` `stores`, `tunnel/tunnel_stores.gd`): the demo's wood, stone, planks
+**One stores** (`demo_services.gd` `stores`, `tunnel/tunnel_stores.gd`): the village's wood, stone, planks
 and finds. The woods put their wood in and saw their planks from it; the tunnels' bracing and lanterns
-are paid from it. The HUD's Wood and Stone are the settlement's and are never written.
+are paid from it. The top bar's Wood, Stone and Planks are these figures (below); the settlement
+simulation's own stock is never written.
 
 **The right column holds one demo panel at a time** (`ui/demo_detail_zone.gd`): a tab strip, *Farm*,
 *Tunnels* (& burrows), *Woods* and *Water*, and a "×" that folds the column away (a panel's own "×"
@@ -120,10 +121,38 @@ map (`ui/demo_command_tips.gd`); an enabled command answers its key. The notific
 own "×" (Esc closes it, N toggles it). The Pantry draws above the HUD, so its "×" is reachable at
 1280x720. The Village news strip is centred on the action bar and follows it.
 
-The top-left **Sim beds** cell is the settlement simulation's bed count, which the demo does not run, so it
-reads "Unavailable" by design; its tooltip says where the demo's beds are counted (a home's panel, a resident's
-panel, the Tunnels panel's "Burrow homes: 1 (3 demo beds)"). The demo relabels it and never writes a value into it
-(`ui/demo_beds_label.gd`, decision 0211).
+**The top bar tells the village's truth** (decision 0251, review group E). One read model
+(`ui/demo_hud_model.gd`, painted by `ui/demo_hud_counters.gd`) gives every cell exactly one owner, the
+same object its panel reads, and writes nothing into the settlement simulation:
+
+| Cell | Figure | Owner (and where else it shows) |
+|---|---|---|
+| Ready food | whole units in store | the pantry's total (the Pantry's headline, K) |
+| Planks (Fuel's slot) | U, one decimal | the village stores (Tunnels, Woods, Water panels) |
+| Wood / Stone | U, one decimal | the village stores (the same panels) |
+| Residents | count | the cast (the Residents roster) |
+| Beds | count | beds installed in dug burrow homes (the Tunnels panel's housing line) |
+
+The village keeps no fuel, so Fuel's slot shows Planks. Clicking any cell opens the ledger, which lists
+the same six figures and where each is. A figure whose owner is missing reads **Unavailable**, never 0.
+UIManager still repaints the cells with the settlement's figures when the simulation's stock changes;
+the demo paints its own back the next frame.
+
+**Residents (L)** lists the cast, one row per resident: name, species and trade, where it is (on the
+surface, in the water, indoors, or underground and on which level), what it is doing (the party panel's
+own words) and the saved work it will go back to. Clicking a row selects that resident, so the Demo party
+panel shows it, centres the camera on it and closes the roster (`ui/demo_roster.gd`).
+
+**The minimap draws the village** (`ui/demo_minimap.gd`), north up: paths, buildings, crop beds, the
+stream and pond, standing trees, dug tunnels and their mouths, burrow homes, root cellars and bridges,
+with the camera's view as a pale frame and each resident as a dot in its party-panel colour (hollow while
+underground, ringed when selected). Click or drag on it to move the camera. The base is redrawn only when
+the tunnels, bridges or woods change; the frame and the dots are drawn each frame into reused arrays.
+
+**The farm speaks in player terms** (F34): "Soil moisture: Good · 66%" over a banded meter with the crop's
+suitable range, fertility and crop health as percentages, fertility's effect on the yield as a change
+("−15%"), one expected harvest, and treatments in percentage points ("Rest: +0.5 fertility points a
+day"). **Details** in the bed panel shows the harvest's multiplication and the raw 0..10000 readings.
 
 ## Commanding the residents
 
@@ -420,7 +449,7 @@ ingredient, freshness (GDD §5.8 spoilage by where it is stored), and the librar
 | Water / Harvest / Clear / Compost / Cover | Given to the selected residents, or queued for the field crew (the fieldworker and gatherer take queued work while wandering) |
 | Drain | A wet or waterlogged bed: a resident digs a ditch round it (6 WU); its moisture drops at once to the top of its crop's band, and the ditch sheds up to 1000 a day for good (decision 0205) |
 | Raise / Bank | A resident fetches 2 U of tunnel spoil from a heap: a raised bed drains and is warmer at night; a banked bed keeps half of each dry day's loss |
-| Rest | Rest the bed fallow (it regains fertility; nothing is sown) |
+| Rest | Rest the bed fallow (+0.5 fertility points a day; nothing is sown) |
 | V | Map overlay: moisture, then ripeness, then the water's zones, then the woods, then off (one key for every overlay) |
 | K / Food | The Pantry |
 
@@ -454,7 +483,7 @@ hold; at 2x and 4x they run faster.
   A busy mouth has a short **queue**: walkers wait in a line beside it rather than crowding the hole.
 - **Upgrades**, each on one bore (a stretch between junctions, ramps' feet or mouths): Widen (a digger re-digs five more quanta a metre; otters and the badger then fit),
   Brace (ECON-002's wood 250 + stone 250 milli-U and 25 ticks a quantum, from the demo's one stores --
-  the wood the woods bring in; the HUD's Wood and Stone are the settlement's), Hang lanterns (a lit
+  the wood the woods bring in, shown in the top bar's Wood and Stone), Hang lanterns (a lit
   bore, walked 10% faster).
 - **Hazards** (deterministic, warned, preventable): an unbraced tunnel through wet ground floods after
   40 s of rain (warned at 20); through sand it partly collapses after 75 s of rain or crossings (warned
@@ -685,6 +714,6 @@ A heap still growing under a dig is refused. The party panel says who is "Cleari
 | `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens; then the underground view drawn once |
 | `demo_layers.gd` | The four render layers every drawn node is on, and the plane each view picks on (decision 0206) |
 | `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |
-| `ui/` | The woodland HUD skin; the HUD date, the news strip and the right column's tabs; the Sim beds relabel |
+| `ui/` | The woodland HUD skin; the HUD date, the news strip and the right column's tabs; the HUD's village read model (counters and ledger), the Residents roster and the village map |
 | `camera/` | The RTS camera |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

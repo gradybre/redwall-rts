@@ -526,7 +526,7 @@ func test_the_demo_stores_take_wood_in_and_saw_planks_out_all_or_nothing() -> vo
 	assert_false(stores.pay_planks(2500), "refused whole")
 	assert_true(stores.pay_planks(500), "paid")
 	assert_equal(stores.plank_milli_u, 1500, "left")
-	assert_equal(stores.stock_line(), "Demo stores: wood 50.0 U · stone 20.0 U · planks 1.5 U", "the line")
+	assert_equal(stores.stock_line(), "Village stores: wood 50.0 U · stone 20.0 U · planks 1.5 U", "the line")
 	stores.add_wood(-5)
 	assert_equal(stores.wood_milli_u, 50000, "a negative intake is nothing")
 
@@ -941,7 +941,7 @@ func test_the_woods_panel_says_what_the_selected_tree_can_take() -> void:
 	assert_false(panel.button(PanelScript.ACTION_FELL).disabled, "fell")
 	assert_true(panel.button(PanelScript.ACTION_PLANT).disabled, "no planting")
 	assert_equal(panel.line(&"counts"), "Standing: 170 mature · 3 young\nFelled: 0 stumps · 0 cleared · trunks 0.0 U\nDeadfall: 3 piles, %s" % Rules.units_text(forestry.deadfall.total_milli()), "counts")
-	assert_true(panel.line(&"stores").begins_with("Demo stores: wood 40.0 U · planks 0.0 U"), "the stock")
+	assert_true(panel.line(&"stores").begins_with("Village stores: wood 40.0 U · planks 0.0 U"), "the stock")
 	forestry.select_tree(OLD_GROVE_OAK)
 	forestry.refresh_panel()
 	assert_true(panel.button(PanelScript.ACTION_FELL).disabled, "protected")

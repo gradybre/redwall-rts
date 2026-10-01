@@ -1,8 +1,8 @@
 extends "res://test/framework/test_case.gd"
 ## The warren's warnings and signs (decision 0211, the underground revamp's P5): the hazards' visual language
 ## (hazard_look.gd) and its drawing (hazard_view.gd: the bore's instance uniforms, the drips and the sand), the U view's
-## warning rings, the surface signs (turf seams that heal, air vents, the mouths' hung lanterns), the brace cost in the
-## Dig tool's readout, and the HUD's Beds cell.
+## warning rings, the surface signs (turf seams that heal, air vents, the mouths' hung lanterns) and the brace cost in
+## the Dig tool's readout. (The HUD's Beds cell is the village's now: test_demo_hud_truth.gd, decision 0251.)
 ##
 ## No scene tree and no staged assets; nodes are built out of the tree and freed after each test.
 
@@ -25,8 +25,6 @@ const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const DemoClockScript := preload("res://demo/demo_clock.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
-const BedsLabelScript := preload("res://demo/ui/demo_beds_label.gd")
-const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 
 const TICKS_PER_DAY: int = SimClock.TICKS_PER_DAY
@@ -472,27 +470,3 @@ func test_the_readout_prices_the_bracing() -> void:
 	assert_equal(ReadoutScript.tenths(3790), "3.7", "rounded down")
 	assert_equal(ReadoutScript.tenths(4000), "4.0", "whole")
 	assert_equal(ReadoutScript.tenths(99), "0.0", "under a tenth")
-
-
-# --- the HUD's Beds cell -------------------------------------------------------------------------------
-
-func test_the_beds_cell_says_whose_beds_it_counts() -> void:
-	"""Relabelled "Sim beds" with a tooltip; its value -- the simulation's, not running -- is left as the shell drew
-	it; written once, not again; the shell repainting its caption, written back."""
-	var shell: UiShell = _keep(UiShell.new())
-	shell.build()
-	var before := shell.counter_value_label(UiShell.ID_BEDS).text
-	var label := BedsLabelScript.new()
-	assert_false(label.sync(), "unbound: nothing")
-	label.bind(shell)
-	assert_true(label.sync(), "relabelled")
-	assert_equal(shell.counter_caption_label(UiShell.ID_BEDS).text, BedsLabelScript.CAPTION, "Sim beds")
-	assert_equal(shell.control_for(UiShell.ID_BEDS).tooltip_text, BedsLabelScript.TOOLTIP, "and says so")
-	assert_equal(shell.counter_value_label(UiShell.ID_BEDS).text, before, "the value untouched")
-	assert_false(label.sync(), "unchanged: nothing written")
-	shell.control_for(UiShell.ID_BEDS).tooltip_text = ""
-	assert_true(label.sync(), "its tooltip repainted: written back")
-	assert_equal(shell.control_for(UiShell.ID_BEDS).tooltip_text, BedsLabelScript.TOOLTIP, "said again")
-	shell.counter_caption_label(UiShell.ID_BEDS).text = "Beds"
-	assert_true(label.sync(), "repainted: written back")
-	assert_equal(shell.counter_caption_label(UiShell.ID_BEDS).text, "Sim beds", "ours again")

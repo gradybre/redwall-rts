@@ -102,9 +102,10 @@ that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
   any more: the HUD shows the two earliest unresolved notices, and demo lines, which nothing resolves,
   held both cards for good.
 
-**One stores** (`demo_services.gd` `stores`, `tunnel/tunnel_stores.gd`): the demo's wood, stone, planks
+**One stores** (`demo_services.gd` `stores`, `tunnel/tunnel_stores.gd`): the village's wood, stone, planks
 and finds. The woods put their wood in and saw their planks from it; the tunnels' bracing and lanterns
-are paid from it. The HUD's Wood and Stone are the settlement's and are never written.
+are paid from it. The top bar's Wood, Stone and Planks are these figures (below); the settlement
+simulation's own stock is never written.
 
 **The right column holds one demo panel at a time** (`ui/demo_detail_zone.gd`): a tab strip, *Farm*,
 *Tunnels* (& burrows), *Woods* and *Water*, and a "×" that folds the column away (a panel's own "×"
@@ -120,10 +121,72 @@ map (`ui/demo_command_tips.gd`); an enabled command answers its key. The notific
 own "×" (Esc closes it, N toggles it). The Pantry draws above the HUD, so its "×" is reachable at
 1280x720. The Village news strip is centred on the action bar and follows it.
 
-The top-left **Sim beds** cell is the settlement simulation's bed count, which the demo does not run, so it
-reads "Unavailable" by design; its tooltip says where the demo's beds are counted (a home's panel, a resident's
-panel, the Tunnels panel's "Burrow homes: 1 (3 demo beds)"). The demo relabels it and never writes a value into it
-(`ui/demo_beds_label.gd`, decision 0211).
+**Pop-ups own the input** (decision 0261, `ui/demo_input_gate.gd`). The Pantry, the game menu and the Demo Lab
+are modals: a light scrim covers the world and the HUD, so no click, drag or wheel outside the frame reaches
+them, and no world or HUD key works behind them (focus keys, Enter, Space, F11 and key releases pass). Focus
+lands inside (the Pantry's first ingredient; its "×" is last), Tab and Shift+Tab stay inside, and Esc -- or
+its own key, K for the Pantry, F8 for the Lab -- closes it and puts focus back where it was. That Esc does
+not also clear the selection. The notification history is not a modal (UI §3 layer 30): a click on it never
+reaches the world, and the world stays live beside it.
+
+**The game menu** (`ui/demo_menu.gd`): the HUD's Menu button ("≡"), or Esc when nothing else is left to
+close, opens it -- Resume, Restart demo…, Controls (the keys below), Settings, Demo Lab and Quit… -- with the
+line that **the demo can't save yet**. Restart and Quit ask first and say again that the village will be lost.
+Opening it holds the clock's MENU pause reason and closing releases only that, so the village comes back at
+the speed it had (and a pause of your own stays). Settings holds only what works: the interface scale
+(100 / 125 / 150 %, the HUD and every demo panel together; a size the window cannot show at 720 logical rows
+is disabled and says so -- at 1280x720 only 100 %) and full screen; sound is marked as not in the demo. The
+Menu button no longer opens the New Settlement form: its Create would discard the settlement the demo runs on.
+
+**The Demo Lab** (`ui/demo_lab.gd`, F8, or the menu's "Demo Lab"): the demo's test triggers, and only here --
+Next weather (the one calendar runs on to the next change of weather, at most 48 h), Test event (the tunnels'
+next seeded threat now), Storm gust (through the woods) and Cramp (every selected resident swimming tires at
+once; disabled with no swimmer selected). They are the same actions the panels' "(demo)" buttons were; the
+Tunnels, Woods and Water panels now hold only the village's own choices.
+
+**Keyboard focus** (decision 0261). The demo's panel buttons -- the right column's tabs and "×", the Farm,
+Pantry, Tunnels (rooms and fit-out too), Woods and Water panels, and the party panel's Dig and room buttons --
+take keyboard focus and wear the HUD's brass focus ring while they have it (a click's focus is not drawn).
+
+| Key | Does |
+|---|---|
+| F7 | Move focus: world -> the right column (its first tab) -> the left column (the party panel) -> world |
+| Tab / Shift+Tab | Next / previous button where the focus is (in a pop-up: its buttons only) |
+| Enter / Space | Press the focused button. Only the keyboard's focus takes them: after a click, Enter still digs the piece the Dig tool has laid, Space still pauses and the arrows still pan the camera |
+| Esc | With focus in a panel: back to the world. Otherwise the pop-up, tool or selection ladder below, then the game menu |
+
+**The top bar tells the village's truth** (decision 0251, review group E). One read model
+(`ui/demo_hud_model.gd`, painted by `ui/demo_hud_counters.gd`) gives every cell exactly one owner, the
+same object its panel reads, and writes nothing into the settlement simulation:
+
+| Cell | Figure | Owner (and where else it shows) |
+|---|---|---|
+| Ready food | U, one decimal (summed in milli-U first; decision 0222) | the pantry's total (the Pantry's headline, K) |
+| Planks (Fuel's slot) | U, one decimal | the village stores (Tunnels, Woods, Water panels) |
+| Wood / Stone | U, one decimal | the village stores (the same panels) |
+| Residents | count | the cast (the Residents roster) |
+| Beds | count | beds installed in dug burrow homes (the Tunnels panel's housing line) |
+
+The village keeps no fuel, so Fuel's slot shows Planks. Clicking any cell opens the ledger, which lists
+the same six figures and where each is. A figure whose owner is missing reads **Unavailable**, never 0.
+UIManager still repaints the cells with the settlement's figures when the simulation's stock changes;
+the demo paints its own back the next frame.
+
+**Residents (L)** lists the cast, one row per resident: name, species and trade, where it is (on the
+surface, in the water, indoors, or underground and on which level), what it is doing (the party panel's
+own words) and the saved work it will go back to. Clicking a row selects that resident, so the Demo party
+panel shows it, centres the camera on it and closes the roster (`ui/demo_roster.gd`).
+
+**The minimap draws the village** (`ui/demo_minimap.gd`), north up: paths, buildings, crop beds, the
+stream and pond, standing trees, dug tunnels and their mouths, burrow homes, root cellars and bridges,
+with the camera's view as a pale frame and each resident as a dot in its party-panel colour (hollow while
+underground, ringed when selected). Click or drag on it to move the camera. The base is redrawn only when
+the tunnels, bridges or woods change; the frame and the dots are drawn each frame into reused arrays.
+
+**The farm speaks in player terms** (F34): "Soil moisture: Good · 66%" over a banded meter with the crop's
+suitable range, fertility and crop health as percentages, fertility's effect on the yield as a change
+("−15%"), one expected harvest, and treatments in percentage points ("Rest: +0.5 fertility points a
+day"). **Details** in the bed panel shows the harvest's multiplication and the raw 0..10000 readings.
 
 ## Commanding the residents
 
@@ -135,7 +198,9 @@ panel, the Tunnels panel's "Burrow homes: 1 (3 demo beds)"). The demo relabels i
 | Right click ground | Move there in a formation, then hold |
 | Right click a work spot | Work there; anyone beyond its free slots holds behind it |
 | R | Release the selection back to its own routine |
-| Esc | Clear the selection |
+| Esc | Close the top pop-up; else drop the Dig tool's piece or close the tool; else clear the selection; else open the game menu |
+| Menu ("≡") | The game menu (above) |
+| F8 | The Demo Lab (above) |
 | B (or T, or "Dig tunnel (B)") | The Dig tool: lay out tunnels and branches (below); again: close it. (B is the HUD's Build key, locked in the demo, so the demo takes it; the command strip says so) |
 | H / C in the Dig tool (or "Burrow home (H)" / "Root cellar (C)") | The room tools: place a burrow home or a root cellar as its own structure (see Burrow homes and root cellars) |
 | U | Underground view: a top-down section cut at the tunnels' level (see The underground view) |
@@ -455,8 +520,28 @@ it belongs to (roots, cabbage, beans or grain), on the demo's one calendar (abov
 the **pantry**, counted per item, at the slowest-spoiling store with room -- a **root cellar**, delivered
 at its hatch (spoilage 350 per mille, the GDD's cellar) before the covered store (1000), and of two cellars
 the one nearer the bed (`farm/farm_cellars.gd` turns `underground_rooms.cellars()` into pantry stores);
-the HUD's Food cell shows the pantry total, and the Food command (or K) opens the Pantry: stock per
-ingredient, freshness (GDD §5.8 spoilage by where it is stored), and the library dishes each feeds.
+the top bar's Ready food cell shows the pantry total, and the Food command (or K) opens the Pantry: stock per
+ingredient, the lot that spoils first (GDD §5.8 spoilage by where it is stored), and the library dishes
+each feeds.
+
+**Nothing harvested is lost or credited from afar** (decision 0222, the review's F19/F24/F27/F28):
+
+- **Room first.** A harvest reserves room in its store as the cutting starts. With room nowhere it is
+  **not cut**: the crop stands, the job waits on the board, the order's answer and the feed say how much
+  has nowhere to go, and the bed panel shows it in clay with a **Make room… (Pantry, K)** button. The crew
+  takes it up once there is room.
+- **What fits.** A store that shrank under a reservation (a cellar's racks taken out) takes what fits;
+  the carrier keeps the rest and carries it on to another store with room -- or waits at the store with
+  it, trying again, until there is one. Root cellars follow the same rules, down to the shelf.
+- **Cancel is not delivery.** "Cancel jobs" on a bed stops its production; a harvest already cut
+  becomes its **delivery**: the carrier walks on and the store is credited when it gets there. A carrier
+  ordered elsewhere keeps the load with the job and comes back to it (its resume queue); released, the
+  field crew takes it.
+- **The Pantry's figures.** Every quantity -- stock, totals, capacity, yield, a load carried, the top bar's
+  Ready food cell -- is one form, tenths of a unit floored (`5.1 U`, `400.0 U`, never `0 U` for something:
+  `<0.1 U`), and totals are summed in milli-units first. Each row names the **first lot to spoil**, its
+  store and the **game hours** until it does, at that store's rate and each season's, a season change
+  included -- the very sum the hourly ageing makes.
 
 | Input | Does |
 |---|---|
@@ -466,7 +551,7 @@ ingredient, freshness (GDD §5.8 spoilage by where it is stored), and the librar
 | Water / Harvest / Clear / Compost / Cover | Given to the selected residents, or queued for the field crew (the fieldworker and gatherer take queued work while wandering) |
 | Drain | A wet or waterlogged bed: a resident digs a ditch round it (6 WU); its moisture drops at once to the top of its crop's band, and the ditch sheds up to 1000 a day for good (decision 0205) |
 | Raise / Bank | A resident fetches 2 U of tunnel spoil from a heap: a raised bed drains and is warmer at night; a banked bed keeps half of each dry day's loss |
-| Rest | Rest the bed fallow (it regains fertility; nothing is sown) |
+| Rest | Rest the bed fallow (+0.5 fertility points a day; nothing is sown) |
 | V | Map overlay: moisture, then ripeness, then the water's zones, then the woods, then off (one key for every overlay) |
 | K / Food | The Pantry |
 
@@ -492,7 +577,7 @@ hold; at 2x and 4x they run faster.
 | Panel: Widen / Brace / Hang lanterns / Repair | A job on the selected tunnel (see below) |
 | B, with a digger **and** others selected, then a dig | The others join the Foremole's dig crew |
 | Right click a tunnel being dug, residents selected | They join its crew |
-| Panel: Next weather (demo) / Test event (demo) | Run the one calendar -- farm, weather and date together -- on to the next change of weather (at most 48 h) / bring the next threat |
+| Demo Lab (F8): Next weather / Test event | Run the one calendar -- farm, weather and date together -- on to the next change of weather (at most 48 h) / bring the next threat |
 
 - **Weather**: the village's one weather (above). Hazards soak while it rains.
 - **Hauling**: a carrier may take a bore its load fits (a mouse or squirrel a standard bore, an otter a
@@ -500,7 +585,7 @@ hold; at 2x and 4x they run faster.
   A busy mouth has a short **queue**: walkers wait in a line beside it rather than crowding the hole.
 - **Upgrades**, each on one bore (a stretch between junctions, ramps' feet or mouths): Widen (a digger re-digs five more quanta a metre; otters and the badger then fit),
   Brace (ECON-002's wood 250 + stone 250 milli-U and 25 ticks a quantum, from the demo's one stores --
-  the wood the woods bring in; the HUD's Wood and Stone are the settlement's), Hang lanterns (a lit
+  the wood the woods bring in, shown in the top bar's Wood and Stone), Hang lanterns (a lit
   bore, walked 10% faster).
 - **Hazards** (deterministic, warned, preventable): an unbraced tunnel through wet ground floods after
   40 s of rain (warned at 20); through sand it partly collapses after 75 s of rain or crossings (warned
@@ -607,7 +692,14 @@ Residents work trees within 30 m of the square (`forestry/forest_rules.gd` REACH
 | Right click the sawhorse or the plank stack | Saw 2 U of logs into 2 U of planks |
 | Left click a tree, stump or spot | Select it: the Woods panel shows its state, its zone's floor and its verbs |
 | Left click inside a zone | Select the zone: intensive (keep 10%), auto-fell, unmark |
-| Woods panel | The same verbs with nobody selected are queued for the forestry crew (the squirrel forester and the beaver, who take the board's work while wandering); Mark forestry / conservation zone, then drag on the ground (Esc: cancel); Gather deadfall; Saw planks; Cancel woods jobs; Storm gust (demo) |
+| Woods panel | The same verbs with nobody selected are queued for the forestry crew (the squirrel forester and the beaver, who take the board's work while wandering); Mark forestry / conservation zone, then drag on the ground (Esc: cancel); Gather deadfall; Saw planks; Cancel woods jobs (the storm gust is the Demo Lab's) |
+
+- **Conservation** (decision 0222, the farm's own rule): wood and planks reach the stores only where they
+  are stacked. Cancelling woods jobs with a load in hand turns each into that load's **delivery** -- logs
+  (a sawyer's too) walked to the log stack, planks to the plank stack -- credited on arrival, never at the
+  cancel; a hauler called away keeps the load with the job and comes back to it. Planting's 0.25 U of
+  compost is paid **once per job**: a planter called away, a new planter or a retry never pays it again
+  (the work itself starts over).
 
 - **Zones** (`forestry/forest_zones.gd`, GDD ZoneType FORESTRY 5 and CONSERVATION 8): a forestry zone keeps
   20% of its trees mature (10% intensive) -- a fell that would breach it, counting fells already ordered,
@@ -672,17 +764,34 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
   treading water when it stops, angling into the flow and swept by what it cannot hold; the tail floats.
   Stamina (HAZ-001/003): no routine swim under 40%, turn for the bank at 15%, in difficulty at 0; cold
   water (below 10.0 °C) doubles the drain; a flood doubles the flow.
+- **The bank recheck** (review F07, decision 0231). A route's swim is checked again at the water, every
+  step down the bank until the swimmer goes in: swim shortcuts, stamina, a load, and whether it can still
+  swim against the flow there. Refused, it climbs back up, plans again from land (round, the ford, a
+  bridge -- or still water it may swim) and the water's news says why ("Mole won't swim across: swim
+  shortcuts are off — going round by land"). One already swimming is never pulled out: it finishes the
+  crossing to the far bank (or turns back tiring, or is rescued), and its next trip is planned by land.
 - **Diving** (otters): a planned dive needs the descent, 8 s of search, the ascent and a 300-tick reserve
   in air (HAZ-002: 1200, 1 a tick below, 4 back); it turns for the surface when the air says so. Each
   dive's find is drawn from the dive's number (a stone, a hook, silt, a relic, ...); a relic joins the
   stores' finds, a stone 0.25 U of stone. Bubbles rise from a diver; the party panel shows breath and
-  stamina.
+  stamina. **Low air (450) and air out (0) are said once each** as the air crosses them (review F38,
+  decision 0231), not once a tick: they re-arm only back at the surface with 600 air, so one dive says
+  "low on air" at most once and the next dive can say it again. The breath itself is a meter the panels
+  update in place; the news keeps its history.
 - **Rescue** (REQ-SET-054): a resident in difficulty is warned in the feed and drifts, treading hard.
-  The nearest free swimmer goes in and tows it (60% of its speed) to a landing it can reach against the
-  flow; with none free, anyone throws a line (8 m) from the nearest landing and hauls it in. Nobody
-  drowns: with nobody coming after 90 s (or a rescuer on the way but not there after 240 s, who then
-  stands down) it washes ashore at a landing. It then rests 20 s, recovering three times
-  as fast. Cramp (demo) in the Water panel starts one on demand.
+  **By capability** (review F39, decision 0231): one held below goes to the nearest free *diver* whose air
+  covers the way down, back up with it and a 300 reserve; one at the surface to the nearest free swimmer,
+  who tows it (60% of its speed) to a landing it can reach against the flow. Fallbacks say why in the
+  feed: with no diver for one below, a swimmer treads above it, ready to tow the moment its air runs out
+  and it floats up; with no swimmer at all, anyone takes a line (8 m) to the nearest landing and hauls it
+  in once it is within reach. A fallback is looked at again every second: a diver come free takes over
+  from one waiting above or on the bank, and it stands down (an otter sent to wait above because it was
+  short of air goes down itself once it has breathed). One rescuer answers a victim at a time; one the
+  player calls away frees it at once and is not sent back to it, and one whose swim shortcuts are turned
+  off on its way lets the victim go at the water rather than going in. Nobody drowns: with nobody coming
+  after 90 s (or a rescuer on the way but not there after 240 s, who then stands down) it washes ashore
+  at a landing. It then rests 20 s, recovering three times as fast. The Demo Lab's Cramp (F8) starts
+  one on demand.
 - **Bridges.** The Water panel steps through the map's three bridge candidates or spans any two banks
   you click. A plank footbridge costs 1.0 U of planks a metre of deck (and 1.0 U of wood a pier, one per
   started 2.5 m of span over 3.5 m); a log bridge costs one 6.0 U log -- a felled trunk lying ready, else
@@ -694,9 +803,12 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
 - **Who goes in to rescue** is the nearest by route to where it goes in, not in a straight line (decision
   0205): a swimmer across the stream with a long way round loses to one a little farther on the near bank.
 - **Water tab** (right column): conditions, alerts, who is swimming, the chosen site and its costs,
-  bridges, stores and the water's news. **V** paints the zones for the first selected resident's own
-  height, the bridge candidates, the swim links and the landings; the fishery's site labels are two
-  lines each (quota and slots; each species' stock and state), laid out so they never overlap.
+  bridges, stores and the water's news. The alert line is one incident per victim, updated in place:
+  where it is and its breath, who is answering and at what, the landing once it is settled, and why
+  nothing better went -- or, with nobody, when the water will bring it ashore. **V** paints the zones
+  for the first selected resident's own height, the bridge candidates, the swim links and the landings;
+  the fishery's site labels are two lines each (quota and slots; each species' stock and state), laid
+  out so they never overlap.
 
 ## Spoil heaps
 
@@ -731,6 +843,6 @@ A heap still growing under a dig is refused. The party panel says who is "Cleari
 | `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens; then the underground view drawn once |
 | `demo_layers.gd` | The four render layers every drawn node is on, and the plane each view picks on (decision 0206) |
 | `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |
-| `ui/` | The woodland HUD skin; the HUD date, the news strip and the right column's tabs; the Sim beds relabel |
+| `ui/` | The woodland HUD skin; the HUD date, the news strip and the right column's tabs; the HUD's village read model (counters and ledger), the Residents roster and the village map |
 | `camera/` | The RTS camera |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

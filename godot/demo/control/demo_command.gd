@@ -515,6 +515,11 @@ func selection_count() -> int:
 	return _selected.count(1)
 
 
+func is_selected(actor_index: int) -> bool:
+	"""Whether this resident is selected (per-frame safe: no array made; the village map's dots)."""
+	return actor_index >= 0 and actor_index < _selected.size() and _selected[actor_index] != 0
+
+
 func selected() -> PackedInt32Array:
 	"""The selected actor indices, in cast order."""
 	var out := PackedInt32Array()
@@ -745,22 +750,30 @@ func _refresh_panel() -> void:
 func party_entries() -> Array[Dictionary]:
 	"""What the panel shows for each selected resident."""
 	var entries: Array[Dictionary] = []
-	var space := _cast.space()
 	for i in selected():
 		var actor := _cast.actor(i) as DemoActorScript
 		var brain := actor.brain
-		var place := ""
-		if brain.poi >= 0:
-			place = String(space.poi_names[brain.poi]).replace("_", " ")
-		elif brain.order == BrainScript.ORDER_DIG:
-			place = _dig_place(brain)
-		var doing := doing_text(i)
-		var state := PanelScript.state_text(brain.activity(), brain.clip, place, _dug_percent(brain))
 		entries.append({"name": actor.display_name, "species": actor.species, "colour": actor.chip_colour,
-			"digger": _tunnels.is_digger(i), "state": doing if doing != "" else state, "skills": skills_text(i),
+			"digger": _tunnels.is_digger(i), "state": activity_text(i), "skills": skills_text(i),
 			"abilities": AbilitiesScript.lines_for(actor.species, actor.height_m, brain.radius, brain.can_carry()),
 			"then": brain.unfinished_labels()})
 	return entries
+
+
+func activity_text(actor_index: int) -> String:
+	"""What a resident is doing now, in the party panel's words: its outside work (doing_text), else its walking,
+	working, digging or holding state at its place (demo_party_panel.gd `state_text`). The Residents roster
+	(demo/ui/demo_roster.gd, decision 0251) prints the same words, so the two never disagree."""
+	var doing := doing_text(actor_index)
+	if doing != "":
+		return doing
+	var brain := (_cast.actor(actor_index) as DemoActorScript).brain
+	var place := ""
+	if brain.poi >= 0:
+		place = String(_cast.space().poi_names[brain.poi]).replace("_", " ")
+	elif brain.order == BrainScript.ORDER_DIG:
+		place = _dig_place(brain)
+	return PanelScript.state_text(brain.activity(), brain.clip, place, _dug_percent(brain))
 
 
 func skills_text(actor_index: int) -> String:

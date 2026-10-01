@@ -33,6 +33,8 @@ extends RefCounted
 ##     tick, three times that while resting after a rescue.
 ##   * A flood (demo/events/) speeds the stream by up to its full rise: twice the flow in full flood.
 ##   * Diving: 0.5 m/s down and up, 8 s searching the bed, never deeper than DIVE_FLOOR_CLEAR_M above it.
+##   * The low-air advisory re-arms once a resident is back at the surface with air >= 600 (a 150-unit
+##     band over HAZ-002's 450, about 1.3 s of breathing), so one dive raises it once (decision 0231).
 ##   * Rescue: a thrown line reaches 8 m and hauls at 0.5 m/s; towing is at 60% of the rescuer's swim;
 ##     a rescued resident rests 20 s where it was brought ashore.
 ##   * Bridges: a plank footbridge takes 1.0 U of planks a metre of deck and 1.0 U of wood a pier; a
@@ -91,6 +93,7 @@ const FLOOD_FLOW_PERMILLE: int = 1000
 const DIVE_VERTICAL_MM_S: int = 500
 const DIVE_SEARCH_TICKS: int = 240
 const DIVE_FLOOR_CLEAR_M: float = 0.35
+const AIR_LOW_REARM: int = 600
 
 # --- demo: rescue --------------------------------------------------------------------------------
 
@@ -225,6 +228,18 @@ static func dive_ticks(depth_down_mm: int) -> int:
 	"""HAZ-002's T for a planned dive `depth_down_mm` below the surface: down, the search, and up."""
 	var one_way: int = WaterRules.ceil_div(depth_down_mm * TICKS_PER_SECOND, DIVE_VERTICAL_MM_S)
 	return 2 * one_way + DIVE_SEARCH_TICKS
+
+
+static func fetch_ticks(depth_down_mm: int) -> int:
+	"""HAZ-002's T for a rescuer fetching a resident held `depth_down_mm` below: down to it and back up
+	with it (no search). Admitted, like a dive, with air >= T + 300 (`admits_dive`)."""
+	return 2 * WaterRules.ceil_div(maxi(depth_down_mm, 0) * TICKS_PER_SECOND, DIVE_VERTICAL_MM_S)
+
+
+static func admits_fetch(air: int, depth_down_mm: int) -> bool:
+	"""Whether `air` covers fetching a resident held `depth_down_mm` below: `fetch_ticks` and HAZ-002's
+	300 reserve (`admits_dive`). False for one not below (no plan)."""
+	return admits_dive(air, fetch_ticks(depth_down_mm))
 
 
 static func admits_dive(air: int, planned_ticks: int) -> bool:

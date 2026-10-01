@@ -30,6 +30,7 @@ extends CanvasLayer
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
+const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const FarmUi := preload("res://demo/farm/farm_ui.gd")
@@ -267,7 +268,7 @@ func _place() -> void:
 		return
 	var size_px: Vector2 = get_viewport().get_visible_rect().size
 	if not _layout.compute_into(maxi(int(size_px.x), UiLayout.SUPPORTED_MIN_WIDTH),
-			maxi(int(size_px.y), UiLayout.SUPPORTED_MIN_HEIGHT), UiLayout.USER_SCALE_100, false, _geometry):
+			maxi(int(size_px.y), UiLayout.SUPPORTED_MIN_HEIGHT), DemoUiScale.percent, false, _geometry):
 		_geometry.scale = 1.0
 	var alerts: Rect2 = _geometry.alerts
 	_frame.scale = Vector2(_geometry.scale, _geometry.scale)

@@ -52,6 +52,113 @@ outputs come back as signed URLs, not files, and those URLs expire after about 2
 `credits_charged` column sums to exactly 3,728. Five tasks failed on Meshy's side and were
 charged nothing; one rig was refused.
 
+## Farm and tunnel pass — 2026-09-29
+
+32 more assets for the demo's farming and tunnel features, **1,152 credits** (Brendan approved
+exactly that: 3,575 before, 2,423 after). They follow the library's recipe:
+- a **concept** from the style reference (`nano-banana-2`, 6 credits);
+- a **textured high-poly** from that concept (`meshy-7`, PBR, 2K, triangles, no remesh, 30 credits).
+
+The **L0 is not a Meshy remesh**. Game-budget versions are made free in Blender instead: plant
+cards for the fields, decimated meshes for props. Every task, prompt and file hash is in
+`meshy_tasks.jsonl`, `concept_prompts.json` and `files.json`.
+
+| Family | Keys | What for |
+|---|---|---|
+| environment | `plant_radish`, `plant_turnip`, `plant_carrot`, `plant_beetroot`, `plant_onion`, `plant_leek`, `plant_lettuce`, `plant_celery`, `plant_strawberry`, `plant_peas`, `plant_barley`, `plant_oats` | **One plant each, not a bed.** A planned lot, dynamic planting, pots and wild patches are all arrangements of the same plant. Growth stages are derived from the mature plant by scale, leaf thinning and tint. |
+| prop | `item_radish` … `item_oats` (the same 12 crops) | The harvested item: carried to the store, rendered as the pantry icon, shown on shelves and in jars, and later used as a cooking ingredient. |
+| prop | `tunnel_brace`, `tunnel_rubble`, `find_flint`, `find_clay`, `relic_bell`, `relic_key`, `relic_banner`, `mole_pick` | Tunnel bracing, collapse rubble, digging finds and relics, and the mole's tool. |
+
+Known from the concepts: the turnip and carrot plants show their roots below the soil clump, as
+a cut-away. Staging sinks each plant to its soil line.
+
+## Water, bridge, beaver and forestry pass — 2026-09-29
+
+A second pass of 24 assets for the demo's water, bridge-building and forestry features. **901
+credits**, against about 913 Brendan approved (2,423 before, 1,522 after). It uses the same recipe
+as above: props are a concept plus a meshy-7 high-poly, 36 credits each.
+
+| Family | Keys |
+|---|---|
+| prop: water | `boat_coracle`, `boat_rowboat`, `boat_raft`, `jetty`, `fishing_rod`, `fishing_net`, `eel_trap`, `smoking_rack` |
+| prop: catches | `item_trout`, `item_perch`, `item_eel`, `item_shrimp`, `item_mussels`, `item_hotroot` |
+| prop: bridges | `bridge_plank`, `bridge_log`, `bridge_pier`, `gnawed_log` |
+| prop: forestry | `felled_trunk`, `plank_stack`, `sawhorse`, `chopping_block`, `sapling_basket` |
+| creature | `beaver_bridgewright` (DEC-041) |
+
+**The beaver follows the other creatures' recipe:**
+
+| Step | Credits |
+|---|---|
+| Multi-view concept (nano-banana-pro) | 9 |
+| T-pose multi-image high-poly (meshy-7) | 30 |
+| L0 remesh at 10,000 triangles and 1.40 m | 5 |
+| Rig at 1.40 m, walk and run included | 5 |
+| 8 clips, with the same action IDs as the otters | 24 |
+
+Its height, 1434 u, is DEC-041's proposed value. Decision 0203 (PR #196) added its species row
+and put it through the repair → tail → ground → bake chain. See "The beaver and the water clips"
+below.
+
+**`fishing_net` failed once on meshy-7:** `OverDenseInputError`, 77,382 active voxels against a
+limit of 65,536, charged 0. The retry on meshy-6 succeeded, for 30 credits. **Swim and dive clips
+were not bought:** Meshy's action catalog cannot be listed without spending, so swim cycles will
+be authored in Blender.
+
+## Underground revamp pass — 2026-09-29
+
+Seven props and 19 clips for the underground revamp (tunnels, burrow homes, root cellars). **309
+credits**, exactly what Brendan approved (1,522 before, 1,213 after). Decision
+[0204](../../decisions/0204-the-underground-pass-clips-and-props.md) records the choices below.
+
+**Props.** Library recipe: a `nano-banana-2` concept from the style reference (6), then a `meshy-7`
+high-poly (PBR, 2K, triangles, no remesh; 30). **36 each.**
+
+| Key | Concept task | High-poly task | L0 family |
+|---|---|---|---|
+| `burrow_door` | `01a0f007-c204-74d7-9b67-d812630413d7` | `01a0f008-c332-74c4-b420-641363ea18c7` | furniture, 1,900 |
+| `tunnel_arch` | `01a0f007-cc8f-74d4-a859-17b402b476b3` | `01a0f008-ccd1-72a7-bf7d-bc26d13554df` | furniture, 1,900 |
+| `hand_lantern` | `01a0f007-d839-7334-9c92-418843db7751` | `01a0f008-d4fb-74e8-83b6-23f6186586f1` | small prop, 1,150 |
+| `hanging_stores` | `01a0f007-e1b9-735e-956e-f75f649f9c6e` | `01a0f008-dc7f-7301-8461-8a3f5ab80b40` | small prop, 1,122 |
+| `root_bin` | `01a0f007-ec7a-7232-b394-a82a6e1928df` | `01a0f008-e5ac-7536-9b0d-b2fe7538a4c5` | furniture, 1,883 |
+| `chimney_pot` | `01a0f007-fadc-77a9-bab6-73a7a946ed5b` | `01a0f008-ee15-7049-aa2d-b73b73cc5e23` | small prop, 1,150 |
+| `rag_rug` | `01a0f008-02ae-7271-876e-69e4612726bc` | `01a0f008-f5f9-7187-9ccd-d8b85e14b326` | small prop, 1,145 |
+
+- Every high-poly is Y-up, faces +Z and is centred on the origin, with its longest side about 1.9 units.
+- The L0s were made free, by `make_demo_props.py`'s own `stage()`, into the demo's gitignored
+  `godot/demo/assets/props/`. Godot 4 imports each one upright, with its bottom at y = 0.
+  - These keys are **not yet in that tool's `PROPS` table**, nor in the demo's `manifest.json`. The
+    underground branch adds them.
+  - `root_bin` was tried first as a small prop. At 1,150 triangles its feet and slats collapsed, so it was
+    made at the furniture budget instead.
+
+**Clips.** `meshy_animate` on each creature's existing rig, 3 credits each. The eight cast creatures
+(`stage_demo_assets.py` `CAST`) get sleep and crouch-walk. `mole_digger`, `mole_mason` and
+`badger_quarryman` get the dig. Every task ID is in `meshy_tasks.jsonl`.
+
+| Role | Meshy action | File | Substitute? |
+|---|---|---|---|
+| Sleep / lie | 267 `Sleep_Normally` | `anim_sleep_normally.glb` | no: a looping sleep, lying on the back |
+| Pick-swing dig | 128 `Heavy_Hammer_Swing` | `anim_heavy_hammer_swing.glb` | **yes**: Meshy has no pickaxe, mining or digging action |
+| Crouch-walk | 524 `Cautious_Crouch_Walk_Forward` | `anim_cautious_crouch_walk_forward.glb` | no |
+
+All 19 went through repair → tail → ground → bake. No existing row of `repaired.json`,
+`tailed.json`, `grounded.json` or `baked.json` changed; the new rows are added.
+
+**Known problems in this pass:**
+
+| Asset | Problem |
+|---|---|
+| `tunnel_arch` | The doorway is filled by a **solid dark slab**, from the front and from behind. The concept painted it black. Cut it out in Blender before the passage tube can pass through. |
+| `burrow_door` | The door is modelled on both faces. It does not open. |
+| `hanging_stores`, `hand_lantern` L0 | At 1,150 triangles, the onions, garlic and herbs become faceted lumps, and the lantern's candle is mangled. Their high-polys are good. Build them as cards, or at a larger budget. |
+| `hanging_stores` | It hangs from wall brackets, but the L0's origin is its lowest point, like every prop. Hang it by its top. |
+| Dig (all 3) | The swing turns the hips 98–114° and **ends turned 68–81°**. So a looped dig snaps back each cycle. Grounding leaves it, as an intended turn (0201). Play it once per strike, facing the work, or author a loop. |
+| Sleep (all 8) | Meshy leaves it floating 0.16–1.23 m, so grounding seats it by its legs. The torso then sinks up to 19.5 cm into the ground (squirrel_forester; 4–7 cm on four others). Grounding reads only foot, toe and leg joints as support. |
+| Sleep, `otter_boatwright` baked | The tail's clearance constraint falls **2.6 cm short**: the otter lies on its tail. The bake exits 1 on this row. The bake's other failing row (`otter_fisher` / `anim_collect_object`, a 124° flick) was already failing on master. |
+| Crouch-walk, `mouse_keeper` | Two contacts are left unpinned (`"support"`), so 8.8 cm of slide remains. The other seven pin to 0–1.8 cm. |
+| Crouch-walk (all 8) | It travels, 0.68–2.74 m per loop, and that is recorded as root motion (0195). The swing foot drags 0.06–0.81 m, the known gait scrape. |
+
 ## What is in it
 
 Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceiling.

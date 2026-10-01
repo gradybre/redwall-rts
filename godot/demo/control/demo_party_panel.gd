@@ -33,6 +33,7 @@ extends CanvasLayer
 ## of it (1280x720), the hint goes first and then the orders, before the panel itself would.
 
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
+const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
@@ -183,11 +184,11 @@ func room_button(k: int) -> Button:
 
 
 func _wood_button(text: String, tip: String, pressed: Callable) -> Button:
-	"""A wood button: cream on wood, brass when pressed; never takes focus."""
+	"""A wood button: cream on wood, brass when pressed; takes keyboard focus (decision 0261)."""
 	var button := Button.new()
 	button.text = text
 	button.tooltip_text = tip
-	button.focus_mode = Control.FOCUS_NONE
+	Styles.focusable(button, BUTTON_MARGINS)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	button.add_theme_font_size_override(&"font_size", BODY_PX)
 	button.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, BUTTON_MARGINS))
@@ -407,7 +408,7 @@ static func placement(width: int, height: int, layout: UiLayout, geometry: UiLay
 	and the minimap, inset by the carved frame. Fills `geometry` (scale 1 when the viewport is
 	below the supported floor and the HUD refuses to lay out)."""
 	if not layout.compute_into(maxi(width, UiLayout.SUPPORTED_MIN_WIDTH), maxi(height, UiLayout.SUPPORTED_MIN_HEIGHT),
-			UiLayout.USER_SCALE_100, false, geometry):
+			DemoUiScale.percent, false, geometry):
 		geometry.scale = 1.0
 	var top := geometry.management_top + FRAME_EXPAND
 	var bottom := geometry.minimap.position.y - MINIMAP_GAP - FRAME_EXPAND

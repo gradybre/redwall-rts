@@ -1,7 +1,7 @@
 {
  "tool": "tools/rig_meshy_tail.py",
  "decision": "0191",
- "count": 93,
+ "count": 105,
  "files": [
   {
    "key": "beaver_bridgewright",
@@ -468,6 +468,36 @@
   },
   {
    "key": "mouse_fieldworker",
+   "file": "anim_cautious_crouch_walk_forward.glb",
+   "tail_vertices": 151,
+   "tail_length_m": 0.296,
+   "joint_radius_m": [
+    0.0116,
+    0.0138,
+    0.0208,
+    0.0147,
+    0.0146,
+    0.0167,
+    0.0154,
+    0.0134
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.0082,
+    0.0188,
+    0.0167,
+    0.0184,
+    0.0181,
+    0.0175,
+    0.0185
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "e8edd4d3d2a606e18c367245a5af6329be6bcdda5553c8b63f446f216cfb9ceb",
+   "output_sha256": "73442c57be348b613d72393a45b02f284d60d9f86ee62aabd9a683e98bdb5d86"
+  },
+  {
+   "key": "mouse_fieldworker",
    "file": "anim_chair_sit_idle.glb",
    "tail_vertices": 151,
    "tail_length_m": 0.296,
@@ -615,6 +645,36 @@
    "bind_scale": 1.0,
    "source_sha256": "8063d7bb6177cca56ce7bbab19368bf35db1a7f146fa605ab72ea4a8f661d21b",
    "output_sha256": "e64a32a157083c7f1bceae8b3a3bbce98e38e6f67ac689447ee9fb19f01df266"
+  },
+  {
+   "key": "mouse_fieldworker",
+   "file": "anim_sleep_normally.glb",
+   "tail_vertices": 151,
+   "tail_length_m": 0.296,
+   "joint_radius_m": [
+    0.0116,
+    0.0138,
+    0.0208,
+    0.0147,
+    0.0146,
+    0.0167,
+    0.0154,
+    0.0134
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.0082,
+    0.0188,
+    0.0167,
+    0.0184,
+    0.0181,
+    0.0175,
+    0.0185
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "148b9567e2cd2276e474b803bcdc77892a2495c07384667e82853517ba716a86",
+   "output_sha256": "2adbcbc4ac57e5d8f8b7734ad3190b718da419a762208d9dd26e09ea7587d491"
   },
   {
    "key": "mouse_fieldworker",
@@ -858,6 +918,36 @@
   },
   {
    "key": "mouse_keeper",
+   "file": "anim_cautious_crouch_walk_forward.glb",
+   "tail_vertices": 72,
+   "tail_length_m": 0.241,
+   "joint_radius_m": [
+    0.0054,
+    0.0108,
+    0.0054,
+    0.0091,
+    0.0054,
+    0.0054,
+    0.0096,
+    0.0094
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.0143,
+    0.0039,
+    0.0118,
+    0.0136,
+    0.0033,
+    0.0118,
+    0.0173
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "e65a810376114d3e3fadb18afdc12b2fa74eff064017bd5470640076c918225a",
+   "output_sha256": "1cea315bb56daa5b892601e84b28fe53aeae4066d5215a593453b3271d54ad84"
+  },
+  {
+   "key": "mouse_keeper",
    "file": "anim_chair_sit_idle.glb",
    "tail_vertices": 72,
    "tail_length_m": 0.241,
@@ -1005,6 +1095,36 @@
    "bind_scale": 1.0,
    "source_sha256": "88dfc2e348c8f3f3d83d19799d13ef38f26d60487d1206665d5bdac5f478a6f4",
    "output_sha256": "ae5f590ddba2b5d1df6a613ee0a5861f9d07bdb89a7fe3f70b55427f0658896c"
+  },
+  {
+   "key": "mouse_keeper",
+   "file": "anim_sleep_normally.glb",
+   "tail_vertices": 72,
+   "tail_length_m": 0.241,
+   "joint_radius_m": [
+    0.0054,
+    0.0108,
+    0.0054,
+    0.0091,
+    0.0054,
+    0.0054,
+    0.0096,
+    0.0094
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.0143,
+    0.0039,
+    0.0118,
+    0.0136,
+    0.0033,
+    0.0118,
+    0.0173
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "ba1ace0358ea1defffb16f0f2061ae5418373ff2fcad402d6f78e0e5045aacfc",
+   "output_sha256": "f8008b5de54e2f50253893470c68d9e0127f32c887da443b42cffade40b2eec6"
   },
   {
    "key": "mouse_keeper",
@@ -1248,6 +1368,36 @@
   },
   {
    "key": "otter_boatwright",
+   "file": "anim_cautious_crouch_walk_forward.glb",
+   "tail_vertices": 6096,
+   "tail_length_m": 0.7737,
+   "joint_radius_m": [
+    0.0752,
+    0.1117,
+    0.1585,
+    0.0689,
+    0.0688,
+    0.0657,
+    0.0648,
+    0.0585
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1924,
+    0.1161,
+    0.1848,
+    0.0774,
+    0.083,
+    0.0796,
+    0.0749
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "517b6ea9ce7de2dda4761b457d1aa98a855b5bf15523da7ca33a6df3e0b6424a",
+   "output_sha256": "6aab1dc8c641a7a3da67935e6cce19f5701b036dbb01fb542856aa84c93b9d5b"
+  },
+  {
+   "key": "otter_boatwright",
    "file": "anim_chair_sit_idle.glb",
    "tail_vertices": 6096,
    "tail_length_m": 0.7737,
@@ -1425,6 +1575,36 @@
    "bind_scale": 1.0,
    "source_sha256": "33d2802f7ae45617656d001f1a8572c2696b22fbd0ac7158ccaf8e24514a7571",
    "output_sha256": "27301b0a1018d5366d8d33300bcae86bca8450b1af0ede104f3e976e498f2692"
+  },
+  {
+   "key": "otter_boatwright",
+   "file": "anim_sleep_normally.glb",
+   "tail_vertices": 6096,
+   "tail_length_m": 0.7737,
+   "joint_radius_m": [
+    0.0752,
+    0.1117,
+    0.1585,
+    0.0689,
+    0.0688,
+    0.0657,
+    0.0648,
+    0.0585
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1924,
+    0.1161,
+    0.1848,
+    0.0774,
+    0.083,
+    0.0796,
+    0.0749
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "bd8dfa918360a5f6f4c4b51c21e923440692b3a4b0d89f83b08a103bf36c9695",
+   "output_sha256": "e72afd7add7c42333bda1985c6101117cbd70a935bda11ad1afa42fa4745fe1e"
   },
   {
    "key": "otter_boatwright",
@@ -1668,6 +1848,36 @@
   },
   {
    "key": "otter_fisher",
+   "file": "anim_cautious_crouch_walk_forward.glb",
+   "tail_vertices": 1475,
+   "tail_length_m": 0.8096,
+   "joint_radius_m": [
+    0.0695,
+    0.0822,
+    0.0875,
+    0.0706,
+    0.0911,
+    0.0784,
+    0.0738,
+    0.0631
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1113,
+    0.1,
+    0.1104,
+    0.0934,
+    0.1037,
+    0.0947,
+    0.1003
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "ebf43cd80172e3dd104ea5610115aa3767a69e0698593765d2a88fb3149ef5bd",
+   "output_sha256": "ac5a84e795dcbe01015640eb000c3ac96dc61e716714ba2a7898e007c75714d8"
+  },
+  {
+   "key": "otter_fisher",
    "file": "anim_chair_sit_idle.glb",
    "tail_vertices": 1475,
    "tail_length_m": 0.8096,
@@ -1845,6 +2055,36 @@
    "bind_scale": 1.0,
    "source_sha256": "e128d6538c6f0bb707cf84309669df24560c34141b2f216389da78156751732c",
    "output_sha256": "aa00cb15240c91337cf3649a7e8b04c115c623e9c79b2d5351dd7f64f83de26f"
+  },
+  {
+   "key": "otter_fisher",
+   "file": "anim_sleep_normally.glb",
+   "tail_vertices": 1475,
+   "tail_length_m": 0.8096,
+   "joint_radius_m": [
+    0.0695,
+    0.0822,
+    0.0875,
+    0.0706,
+    0.0911,
+    0.0784,
+    0.0738,
+    0.0631
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1113,
+    0.1,
+    0.1104,
+    0.0934,
+    0.1037,
+    0.0947,
+    0.1003
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "e20b61b1ac508bde484be448c757974bae514f243e078cf8072c593e0b2b1aab",
+   "output_sha256": "6d6e9d74b72a4e3cce187f10d23bae8d5a75c3eccb4b9d2011e3972a86861cb5"
   },
   {
    "key": "otter_fisher",
@@ -2088,6 +2328,36 @@
   },
   {
    "key": "squirrel_forester",
+   "file": "anim_cautious_crouch_walk_forward.glb",
+   "tail_vertices": 9806,
+   "tail_length_m": 1.43,
+   "joint_radius_m": [
+    0.1919,
+    0.1579,
+    0.1875,
+    0.1855,
+    0.175,
+    0.1789,
+    0.1769,
+    0.1437
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1745,
+    0.1943,
+    0.2057,
+    0.1997,
+    0.1765,
+    0.1931,
+    0.2894
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "8685879627bb0c8447e0dda3b6eacc86eb70041c865a6f270d4d9026a5f841f8",
+   "output_sha256": "ccbb9299303459a0d7930706ab160190fb865296b61c7d5e397078e3d0847d39"
+  },
+  {
+   "key": "squirrel_forester",
    "file": "anim_chair_sit_idle.glb",
    "tail_vertices": 9806,
    "tail_length_m": 1.43,
@@ -2235,6 +2505,36 @@
    "bind_scale": 1.0,
    "source_sha256": "7f7bdb823937446c34f8a65ff4f750bb3dfb242a74dc2668e4f33566e1ef1c08",
    "output_sha256": "f025a1b71adb8ddee0edec9f62398c583ab06f322380f7d43b128f3f67cbb13e"
+  },
+  {
+   "key": "squirrel_forester",
+   "file": "anim_sleep_normally.glb",
+   "tail_vertices": 9806,
+   "tail_length_m": 1.43,
+   "joint_radius_m": [
+    0.1919,
+    0.1579,
+    0.1875,
+    0.1855,
+    0.175,
+    0.1789,
+    0.1769,
+    0.1437
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.1745,
+    0.1943,
+    0.2057,
+    0.1997,
+    0.1765,
+    0.1931,
+    0.2894
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "8010852f7b721edaf3b70a78ef8444e9f3640a8600f91375659404ead8cf5b20",
+   "output_sha256": "fd5832fc9e7c7a6ddf36f0817a059a86bf22e547d5841378be377ed46bab4f16"
   },
   {
    "key": "squirrel_forester",
@@ -2478,6 +2778,36 @@
   },
   {
    "key": "squirrel_gatherer",
+   "file": "anim_cautious_crouch_walk_forward.glb",
+   "tail_vertices": 8385,
+   "tail_length_m": 0.763,
+   "joint_radius_m": [
+    0.0753,
+    0.0821,
+    0.1018,
+    0.108,
+    0.1171,
+    0.111,
+    0.0929,
+    0.0753
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.0797,
+    0.0973,
+    0.1143,
+    0.1192,
+    0.1284,
+    0.118,
+    0.0964
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "b995c7047f60f885e7684e855581b31c0dd1f18a437bf58c57817cd2812de3e5",
+   "output_sha256": "9a452446b71ae09b19abd281a29958972aefb49d99074bcff97c6d62646af08f"
+  },
+  {
+   "key": "squirrel_gatherer",
    "file": "anim_chair_sit_idle.glb",
    "tail_vertices": 8385,
    "tail_length_m": 0.763,
@@ -2625,6 +2955,36 @@
    "bind_scale": 1.0,
    "source_sha256": "b81bc979cd06dd07da6e57b5d9b92c84114d28e4d81e301d9371502637cb4ec5",
    "output_sha256": "8ef5903bdc5babdbfbe44f72955631f6639bdf731f55614b6e3c00707976fc41"
+  },
+  {
+   "key": "squirrel_gatherer",
+   "file": "anim_sleep_normally.glb",
+   "tail_vertices": 8385,
+   "tail_length_m": 0.763,
+   "joint_radius_m": [
+    0.0753,
+    0.0821,
+    0.1018,
+    0.108,
+    0.1171,
+    0.111,
+    0.0929,
+    0.0753
+   ],
+   "ground_clearance_m": [
+    0.0,
+    0.0797,
+    0.0973,
+    0.1143,
+    0.1192,
+    0.1284,
+    0.118,
+    0.0964
+   ],
+   "joints": 32,
+   "bind_scale": 1.0,
+   "source_sha256": "f9d94b3cffd4fdbd9f2c4373bcdd88a4e92e9f77b6a5ff85538e889da48c4569",
+   "output_sha256": "bbb534c46910a039c40ebe1e1345e29438721e1f1a035207cbcb1744630649b8"
   },
   {
    "key": "squirrel_gatherer",

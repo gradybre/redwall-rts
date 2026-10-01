@@ -48,6 +48,9 @@ const WEST_OAK: int = 33
 const NORTH_SAPLING: int = 0
 const OLD_GROVE_OAK: int = 2
 const NORTH_TREES: Array[int] = [32, 122, 141, 145, 154]
+## Review F18's retention run: complete fell/haul/regrow cycles measured after a warm-up.
+const RETENTION_WARMUP: int = 2
+const RETENTION_CYCLES: int = 20
 
 var _nodes: Array[Object] = []
 var _services: ServicesScript = null
@@ -526,7 +529,7 @@ func test_the_demo_stores_take_wood_in_and_saw_planks_out_all_or_nothing() -> vo
 	assert_false(stores.pay_planks(2500), "refused whole")
 	assert_true(stores.pay_planks(500), "paid")
 	assert_equal(stores.plank_milli_u, 1500, "left")
-	assert_equal(stores.stock_line(), "Demo stores: wood 50.0 U · stone 20.0 U · planks 1.5 U", "the line")
+	assert_equal(stores.stock_line(), "Village stores: wood 50.0 U · stone 20.0 U · planks 1.5 U", "the line")
 	stores.add_wood(-5)
 	assert_equal(stores.wood_milli_u, 50000, "a negative intake is nothing")
 
@@ -613,7 +616,8 @@ func test_a_hauler_loads_on_the_log_stacks_side_of_the_trunk() -> void:
 
 
 func test_a_resident_ordered_away_drops_the_job_where_it_had_got_to() -> void:
-	"""Called away mid-haul, the load stays with the job; released from it, the load goes into store."""
+	"""Called away mid-haul, the load stays with the job; the haul cancelled, it is still not in store
+	(decision 0222) -- the hauler, taking the job back, stacks it."""
 	var forestry := _forestry()
 	forestry.stand.fell_into(WEST_OAK, 1, Vector2(-1.0, 0.0), false, _read)
 	forestry.order_on(PickScript.KIND_TRUNK, WEST_OAK, PackedInt32Array([1]))
@@ -626,6 +630,11 @@ func test_a_resident_ordered_away_drops_the_job_where_it_had_got_to() -> void:
 	assert_equal(forestry.crew.jobs.worker[row], JobsScript.NOBODY, "back on the board")
 	assert_equal(forestry.crew.jobs.load_milli[row], 6000, "the load kept")
 	forestry.crew.cancel_all()
+	assert_equal(_services.stores.wood_milli_u, 40000, "not credited at the cancel")
+	assert_equal(forestry.crew.jobs.kind[row], JobsScript.KIND_CARRY_LOGS, "the load's delivery waits")
+	brain.work_done()
+	assert_equal(forestry.crew.jobs.worker[row], 1, "the hauler took it back")
+	assert_true(_run(forestry, func() -> bool: return forestry.crew.jobs.live_count() == 0), "stacked")
 	assert_equal(_services.stores.wood_milli_u, 46000, "the load went into store")
 	assert_equal(forestry.stand.trunk_milli[WEST_OAK], 6000, "the rest still lies there")
 
@@ -687,18 +696,24 @@ func test_sawing_turns_two_units_of_logs_into_planks() -> void:
 		"Can't saw planks: the demo stores hold under 2.0 U of wood", "not enough")
 
 
-func test_a_sawing_called_off_puts_its_load_away_as_what_it_is() -> void:
-	"""Cancelled while carrying the logs: they go back as wood; cancelled while carrying the planks: they
-	go into store as planks. Nothing is lost either way."""
+func test_a_sawing_called_off_carries_its_load_away_as_what_it_is() -> void:
+	"""Decision 0222 (the review's F24): cancelled while carrying the logs, they are carried back to the
+	log stack as wood; cancelled while carrying the planks, they are carried on to the plank stack. The
+	stores are credited on arrival, never at the cancel; nothing is lost either way."""
 	var forestry := _forestry()
 	forestry.order_on(PickScript.KIND_SAW, -1, PackedInt32Array([3]))
 	assert_true(_run(forestry, func() -> bool: return forestry.crew.jobs.load_milli[0] > 0), "logs in hand")
 	forestry.crew.cancel_all()
+	assert_equal(_services.stores.wood_milli_u, 38000, "not back yet")
+	assert_equal(forestry.crew.jobs.kind[0], JobsScript.KIND_CARRY_LOGS, "carried back")
+	assert_true(_run(forestry, func() -> bool: return forestry.crew.jobs.live_count() == 0), "stacked")
 	assert_equal(_services.stores.wood_milli_u, 40000, "the logs went back")
 	assert_equal(_services.stores.plank_milli_u, 0, "no planks")
 	forestry.order_on(PickScript.KIND_SAW, -1, PackedInt32Array([3]))
 	assert_true(_run(forestry, func() -> bool: return forestry.crew.jobs.current_step(0) == JobsScript.STEP_CARRY_PLANKS), "planks in hand")
 	forestry.crew.cancel_all()
+	assert_equal(_services.stores.plank_milli_u, 0, "not stacked yet")
+	assert_true(_run(forestry, func() -> bool: return forestry.crew.jobs.live_count() == 0), "stacked")
 	assert_equal(_services.stores.wood_milli_u, 38000, "the logs were sawn")
 	assert_equal(_services.stores.plank_milli_u, 2000, "the planks went into store")
 
@@ -941,7 +956,7 @@ func test_the_woods_panel_says_what_the_selected_tree_can_take() -> void:
 	assert_false(panel.button(PanelScript.ACTION_FELL).disabled, "fell")
 	assert_true(panel.button(PanelScript.ACTION_PLANT).disabled, "no planting")
 	assert_equal(panel.line(&"counts"), "Standing: 170 mature · 3 young\nFelled: 0 stumps · 0 cleared · trunks 0.0 U\nDeadfall: 3 piles, %s" % Rules.units_text(forestry.deadfall.total_milli()), "counts")
-	assert_true(panel.line(&"stores").begins_with("Demo stores: wood 40.0 U · planks 0.0 U"), "the stock")
+	assert_true(panel.line(&"stores").begins_with("Village stores: wood 40.0 U · planks 0.0 U"), "the stock")
 	forestry.select_tree(OLD_GROVE_OAK)
 	forestry.refresh_panel()
 	assert_true(panel.button(PanelScript.ACTION_FELL).disabled, "protected")
@@ -1136,6 +1151,121 @@ func test_a_sunk_tree_is_split_and_turned_at_its_cut_above_the_ground() -> void:
 		assert_almost_equal(view._stump_nodes[t].position.y, cut - height * (1.0 - ViewScript.STUMP_ABOVE_CUT), "tree %d: the stump caps the cut" % t)
 
 
+# --- felled, hauled and regrown again and again (review F18) ------------------------------------
+
+
+func _let_go_of_freed(view: ViewScript) -> void:
+	"""Stand in for the frame's end: the nodes the view queued for deletion go now, so what is left is
+	what it keeps."""
+	for child: Node in view.get_children():
+		if child.is_queued_for_deletion():
+			child.free()
+
+
+func _cycle_the_woods(stand: StandScript, view: ViewScript, cycle: int) -> void:
+	"""One complete cycle: the oak felled, by axe or (odd cycles) gnawed, so its trunk swaps between the
+	felled trunk and the gnawed log; the tree beside it blown down (even cycles) or felled and grubbed
+	out (odd); both topple and are hauled a load at a time; an oak is planted there (the beech becomes
+	an oak in cycle 0 only: planting is always an oak); the stumps turn mossy; both regrow on day 48."""
+	var day: int = 1 + cycle * (Rules.REGROW_DAYS + 2)
+	stand.fell_into(0, day, Vector2(1.0, 0.0), cycle % 2 == 1, _read)
+	if cycle % 2 == 0:
+		stand.blow_down_into(1, day, Vector2(0.0, 1.0), _read)
+	else:
+		stand.fell_into(1, day, Vector2(0.0, 1.0), false, _read)
+	view.sync(day, 8)
+	assert_true(view._upper_nodes[0].transform.is_equal_approx(view._lower_nodes[0].transform),
+		"cycle %d: the oak's crown stands on its stub until it falls (not where it last lay)" % cycle)
+	view.advance(ViewScript.FALL_S + ViewScript.LIE_S + 0.1)
+	for t: int in 2:
+		while stand.take_trunk_into(t, Rules.CARRY_LOAD_MILLI, _read):
+			view.sync(day, 9)
+	if cycle % 2 == 1:
+		stand.grub_into(1, _read)
+	stand.plant_into(1, day, _read)
+	view.sync(day + ViewScript.STUMP_FRESH_DAYS + 1, 8)
+	stand.regrow_due(day + Rules.REGROW_DAYS, func(_at: Vector2) -> bool: return false, PackedInt32Array())
+	view.sync(day + Rules.REGROW_DAYS, 8)
+	_let_go_of_freed(view)
+
+
+func test_twenty_fell_haul_regrow_cycles_keep_the_woods_drawing_bounded() -> void:
+	"""Review F18: after a warm-up (in which the beech is replaced by an oak), twenty complete cycles --
+	the oak felled or gnawed, hauled and regrown beside a tree uprooted by a storm or grubbed out and
+	replanted -- leave the view's children, the process's nodes and objects where they were; the oak
+	keeps its own two part nodes. Replacement is pinned by the two tests after this one."""
+	var stand := _stand_of(_three())
+	var view := _staged_view(stand)
+	for cycle: int in RETENTION_WARMUP:
+		_cycle_the_woods(stand, view, cycle)
+	var parts: Array[MeshInstance3D] = [view._lower_nodes[0], view._upper_nodes[0], view._upper_nodes[1]]
+	var children: int = view.get_child_count()
+	var nodes: int = int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT))
+	var objects: int = int(Performance.get_monitor(Performance.OBJECT_COUNT))
+	for cycle: int in range(RETENTION_WARMUP, RETENTION_WARMUP + RETENTION_CYCLES):
+		_cycle_the_woods(stand, view, cycle)
+		assert_equal(view.get_child_count(), children, "cycle %d: the view's children" % cycle)
+	assert_false(parts.has(null), "the oak and the replanted oak were split")
+	assert_true(view._lower_nodes[0] == parts[0] and view._upper_nodes[0] == parts[1], "the oak's own two parts")
+	assert_true(view._upper_nodes[1] == parts[2], "the replanted oak's own upper part")
+	assert_equal(int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)), nodes, "no node retained")
+	assert_equal(int(Performance.get_monitor(Performance.OBJECT_COUNT)), objects, "no object retained")
+	for t: int in 2:
+		assert_equal(stand.state_of(t), StandScript.STATE_MATURE, "tree %d stands again" % t)
+		assert_true(view.tree_visible(t), "tree %d drawn" % t)
+
+
+func _blow_down_the_beech(stand: StandScript, view: ViewScript) -> void:
+	"""The beech blown down on day 1; it topples and lies, and its trunk is hauled away."""
+	stand.blow_down_into(1, 1, Vector2(0.0, 1.0), _read)
+	view.sync(1, 8)
+	view.advance(ViewScript.FALL_S + ViewScript.LIE_S + 0.1)
+	stand.take_trunk_into(1, Rules.TREE_WOOD_MILLI, _read)
+
+
+func _grow_an_oak_there(stand: StandScript, view: ViewScript) -> void:
+	"""An oak planted where the beech stood, on day 1, grown on day 49."""
+	stand.plant_into(1, 1, _read)
+	stand.regrow_due(1 + Rules.REGROW_DAYS, func(_at: Vector2) -> bool: return false, PackedInt32Array())
+	view.sync(1 + Rules.REGROW_DAYS, 8)
+
+
+func test_a_tree_replaced_by_another_kind_frees_its_own_node_and_parts() -> void:
+	"""Review F18: an oak grown where a beech was blown down replaces the beech; the beech the view made
+	is freed, and so are its cut parts."""
+	var stand := _stand_of(_three())
+	var view := _staged_view(stand)
+	var beech: Array[Node3D] = [view._tree_nodes[1]]
+	_blow_down_the_beech(stand, view)
+	beech.append_array([view._lower_nodes[1], view._upper_nodes[1]])
+	assert_false(beech.has(null), "the beech was split")
+	_grow_an_oak_there(stand, view)
+	for k: int in beech.size():
+		assert_true(beech[k].is_queued_for_deletion(), "the beech's node %d is freed" % k)
+	assert_true(view._tree_nodes[1] != beech[0] and view.tree_visible(1), "an oak stands in its place")
+	assert_true(view._lower_nodes[1] == null and view._upper_nodes[1] == null, "cut afresh when it falls")
+
+
+func test_a_tree_the_world_placed_is_only_hidden_when_replaced() -> void:
+	"""Review F18: a beech the world placed, replaced by an oak, is hidden and left to the world."""
+	var stand := _stand_of(_three())
+	var world := _staged_world()
+	var holder: Node3D = _keep(Node3D.new()) as Node3D
+	var worlds: Node3D = world.make_piece(&"beech_mature", stand.at[1], stand.yaw[1], stand.size[1])
+	holder.add_child(worlds)
+	var view: ViewScript = _keep(ViewScript.new()) as ViewScript
+	view.configure(stand, func(p: int) -> Node3D: return worlds if p == stand.placement[1] else null,
+		world.make_piece, _services.props)
+	view.staged = true
+	view.sync(1, 7)
+	assert_true(view._tree_nodes[1] == worlds, "the world's beech is drawn")
+	_blow_down_the_beech(stand, view)
+	_grow_an_oak_there(stand, view)
+	assert_false(worlds.is_queued_for_deletion(), "not freed")
+	assert_true(worlds.get_parent() == holder and not worlds.visible, "hidden, still the world's")
+	assert_true(view._tree_nodes[1] != worlds and view.tree_visible(1), "the oak stands")
+
+
 func test_a_woods_job_called_away_is_taken_back_when_the_other_work_is_done() -> void:
 	"""Decision 0205 (resident_brain.gd RESUMING): a feller ordered away mid-walk leaves the fell on the
 	board and keeps it; its next work done gives the same job back to it."""
@@ -1155,8 +1285,8 @@ func test_a_woods_job_called_away_is_taken_back_when_the_other_work_is_done() ->
 	brain.work_done()
 	assert_equal(forestry.crew.jobs.worker[_read.value], 2, "someone else has it: not taken back")
 	forestry.crew.jobs.unassign(_read.value)
-	brain.remember_unfinished(UnfinishedScript.new(forestry.crew.take_back.bind(_read.value, JobsScript.KIND_FELL,
-		tree, forestry.crew.jobs.target_gen[_read.value]), "Fell (woods)"))
+	brain.remember_unfinished(UnfinishedScript.new(forestry.crew.take_back.bind(_read.value,
+		forestry.crew.jobs.serial[_read.value]), "Fell (woods)"))
 	brain.work_done()
 	assert_equal(forestry.crew.jobs.worker[_read.value], 1, "given back to it")
 	assert_true(row > 0, "one fell on that tree")

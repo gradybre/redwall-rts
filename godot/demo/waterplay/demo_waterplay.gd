@@ -183,6 +183,7 @@ func configure(cast: DemoCastScript, command: DemoCommandScript, camera: Camera3
 	bridges.configure(map, _bridge_obstacles(), links.area)
 	crossings.configure(cast, map, links, bridges, state, motion)
 	cast.space().crossings = crossings
+	crossings.on_refused = _on_bank_refusal
 	rescue.configure(cast, crossings, _say)
 	crew.configure(cast, bridges, services.weather, services.props, _say.bind(false))
 	text.configure(cast, state, motion, bridges, crew, rescue, services, map)
@@ -302,6 +303,11 @@ func _follow_selection() -> void:
 func _say(line: String, warning: bool) -> void:
 	"""Post a line to the one notice feed, from the water."""
 	services.notices.post(NoticesScript.SOURCE_WATER, NoticesScript.LEVEL_WARNING if warning else NoticesScript.LEVEL_NOTE, line)
+
+
+func _on_bank_refusal(who: int, why: StringName) -> void:
+	"""A swimmer turned back at the bank (water_crossings.gd THE BANK RECHECK): the feed says why."""
+	_say(text.bank_refusal_line(who, why), false)
 
 
 func _answer(said: String) -> void:

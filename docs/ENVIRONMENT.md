@@ -89,6 +89,17 @@ python3 tools/demo_texture_imports.py --godot godot         # the compression st
   scripts pause (as the player) around a screenshot; `verify_demo_pack.gd` forces one stall on purpose
   and presses Enter to check the banner.
 
+## Real input in a headless run
+
+- **The suite's worker cannot dispatch input.** `test/run_tests.gd` runs every suite inside `_initialize`,
+  before the root Window is in the tree: `push_input`, `grab_focus` and `release_focus` there fail with
+  `!is_inside_tree()`. A check that needs real Viewport input runs its own SceneTree script in a child process
+  (`test/test_demo_input_live.gd` runs `test/live/demo_input_live.gd`; decision 0261).
+- **The headless display server sizes the root to 64x64 on the first frame**, whatever `root.size` was set to
+  in `_initialize`. GUI hit tests then miss every control past 64 px while unhandled world input still arrives,
+  so a click "passes through" a panel for the wrong reason. Set `root.size` again each frame (the live harness
+  does).
+
 ## MCP servers
 
 Configured in `.mcp.json` (committed; contains no secrets).

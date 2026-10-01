@@ -349,6 +349,24 @@ func resume_game() -> bool:
 	return true
 
 
+func set_menu_pause(held: bool) -> bool:
+	"""Hold or release the MENU pause reason through the scheduler queue (UI §3: opening the game menu
+	adds MENU, closing it removes MENU only). The requested speed is kept apart, so releasing restores
+	it, and a PLAYER pause held before the menu opened is still held after it closes.
+
+	Refused outright while a load holds the barrier, and before the game has started.
+	"""
+	if _loading:
+		return _refuse(REFUSE_LOADING)
+	if not _started:
+		return _refuse(REFUSE_NOT_STARTED)
+	if not _queue_pause(SchedulerEventsScript.PRODUCER_MENU, SimClockScript.MENU,
+			SchedulerEventsScript.VALUE_HOLD if held else SchedulerEventsScript.VALUE_CLEAR):
+		return false
+	_sync_state()
+	return true
+
+
 func toggle_pause() -> bool:
 	"""Flip the PLAYER pause reason only. Refused during boot, under load, and on a queue refusal."""
 	if _loading:

@@ -343,6 +343,21 @@ LOW:
 
 Mutation over these fixes: 14 mutants, all killed.
 
+## Merged with master
+
+`origin/master` at b49b982 (review groups B, C, D, E and G, PR #199) merged into `feat/live-demo` with no textual
+conflict and no semantic fix needed:
+- E's `refresh_panel` / `housing_line` wording merged beside P6's level-aware rooms.
+- G's input gate (0261) runs its `_input` before the Dig tool's. Outside a modal, the gate drops a click's focus and
+  passes PgUp/PgDn on, so the U view's level keys still reach the tool. Inside a modal, it swallows them, as it does
+  every world key.
+- G's Demo Lab and button factories touch no P6 code.
+
+After the merge:
+- the suite: `ok: 6568 tests, 554739 assertions, 0 failures.`;
+- the live input harness: `LIVE-SUMMARY 116 0` at 1280x720 and `LIVE-SUMMARY 121 0` at 1920x1080;
+- `demo/demo_village.tscn` boots headless for 600 frames with no error.
+
 ## Consequences / open
 
 - **MOVE-G01–G05 stay open.** The 4 m spacing, the two levels, the link grades and paces, the stairs' work and the

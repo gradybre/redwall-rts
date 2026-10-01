@@ -889,7 +889,7 @@ func test_the_cellar_api_keeps_its_shape_served_from_rooms() -> void:
 	assert_equal(entries[0][StorageScript.KEY_ID], StringName("root_cellar:%d:%d" % [ref[0], ref[1]]), "the provider's id")
 	assert_equal(entries[0][StorageScript.KEY_LABEL], "Root cellar %d" % (ref[0] + 1), "labelled")
 	assert_equal(entries[0][StorageScript.KEY_POSITION], cellars[0]["position"], "delivered at the hatch")
-	assert_equal(graph.rooms.housing_line(graph), "Burrow homes: 0 (0 demo beds) · Root cellars: 1", "the panel's line")
+	assert_equal(graph.rooms.housing_line(graph), "Burrow homes: 0 (0 beds) · Root cellars: 1", "the panel's line")
 
 
 func test_a_home_is_no_cellar_and_a_relaid_row_is_a_new_store() -> void:

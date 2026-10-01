@@ -17,13 +17,28 @@ extends RefCounted
 ## food at equal mass: it leaves the item's count and joins `spoiled_milli`, which the Pantry view
 ## can send to compost at §5.7's 4 : 2 compost recipe. Shelf hours are §5.7's by crop row
 ## (farm_catalog.gd).
+##
+## RESERVATIONS (decision 0222). A harvest reserves its room before it is cut (`reserve_near_into`), so a
+## full store never destroys one (the review's F19): the room a HOLD keeps is not free to anyone else
+## (`add_into`, `location_for_into` and `location_near_into` all count it as taken). A delivery stores
+## against its own hold (`store_upto`), taking WHAT FITS when the store shrank meanwhile (a cellar's racks
+## taken out) and saying how much, so the carrier keeps the rest. A hold follows its store by id across
+## `refresh_locations`, like a lot; a hold whose store has gone answers STORAGE_LOCATION_GONE.
+##
+## THE FORECAST (`next_spoil_into`, F27) is in CALENDAR hours: the hour crossings until a lot spoils, each
+## aging it at its store's factor and at the season of that crossing -- the very sum `age_hour` will make,
+## season changes included. The first lot to spoil is found across stores (`first_to_spoil_into`), not the
+## oldest by effective age.
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const StockAge := preload("res://scripts/core/stock_age.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const SimClock := preload("res://scripts/core/sim_clock.gd")
 
 const MAX_LOTS: int = 128
+## Reservations held at once: the farm's job board is 24 rows, each with at most one.
+const MAX_HOLDS: int = 32
 const FREE: int = -1
 const MILLI_PER_U: int = 1000
 const FACTOR_DENOMINATOR: int = 1000
@@ -32,12 +47,18 @@ const U_PER_M: float = 1024.0
 ## §5.7: "compost | spoiled_food 4 ... | compost 2".
 const COMPOST_FROM_SPOILED_IN: int = 4
 const COMPOST_FROM_SPOILED_OUT: int = 2
+## Game hours in a season (sim_clock.gd: 12 days of 24 hours).
+const HOURS_PER_SEASON: int = SimClock.DAYS_PER_SEASON * SimClock.HOURS_PER_DAY
 
 const REFUSE_NOT_AN_ITEM: String = "NOT_AN_ITEM"
 const REFUSE_BAD_QUANTITY: String = "INVALID_QUANTITY"
 const REFUSE_NO_LOCATION: String = "NO_SUCH_LOCATION"
 const REFUSE_NO_ROOM: String = "NO_STORAGE_ROOM"
 const REFUSE_NO_STOCK: String = "NO_STOCK"
+const REFUSE_NO_HOLD: String = "NO_RESERVATION_ROW"
+const REFUSE_GONE: String = "STORAGE_LOCATION_GONE"
+## A hold's location once its store has gone (never a location index).
+const GONE: int = -2
 
 var storage: StorageScript = null
 var spoiled_milli: int = 0
@@ -51,6 +72,12 @@ var _item_milli: PackedInt64Array = PackedInt64Array()
 var _spoiled_items: PackedInt32Array = PackedInt32Array()
 var _ids: Array = []
 var _read: IntMath.IntResult = IntMath.IntResult.new()
+var _hold_live: PackedByteArray = PackedByteArray()
+var _hold_location: PackedInt32Array = PackedInt32Array()
+var _hold_milli: PackedInt64Array = PackedInt64Array()
+var _hold_ids: Array = []
+## `_lot_row_for`'s own scratch (its callers' `out` may be any other).
+var _lot_probe: IntMath.IntResult = IntMath.IntResult.new()
 
 
 func _init(p_storage: StorageScript) -> void:
@@ -63,19 +90,30 @@ func _init(p_storage: StorageScript) -> void:
 	_lot_item.fill(FREE)
 	_item_milli.resize(Catalog.ITEM_COUNT)
 	_ids.resize(MAX_LOTS)
+	_hold_live.resize(MAX_HOLDS)
+	_hold_location.resize(MAX_HOLDS)
+	_hold_milli.resize(MAX_HOLDS)
+	_hold_ids.resize(MAX_HOLDS)
 
 
 func add_into(item: int, milli: int, location: int, out: IntMath.IntResult) -> bool:
 	"""Store `milli` of `item` at `location` as a fresh lot (see the header on a full table). Writes
-	the lot row into `out`; refuses a bad item, quantity or location, or one without the room."""
+	the lot row into `out`; refuses a bad item, quantity or location, or one without the room -- room a
+	reservation holds is not free."""
 	if not Catalog.is_item(item):
 		return out.refuse(REFUSE_NOT_AN_ITEM)
 	if milli <= 0:
 		return out.refuse(REFUSE_BAD_QUANTITY)
 	if location < 0 or location >= storage.count():
 		return out.refuse(REFUSE_NO_LOCATION)
-	if used_milli_of(location) + milli > storage.capacity_milli_of(location):
+	if room_milli_of(location) < milli:
 		return out.refuse(REFUSE_NO_ROOM)
+	return _lot_into(item, milli, location, out)
+
+
+func _lot_into(item: int, milli: int, location: int, out: IntMath.IntResult) -> bool:
+	"""Put `milli` of `item` into a new lot at `location` (room already checked), or merge it into the
+	oldest such lot when the table is full. The lot into `out`; refuses NO_STORAGE_ROOM."""
 	var lot: int = _lot_item.find(FREE)
 	if lot >= 0:
 		_open_lot(lot, item, location)
@@ -112,7 +150,13 @@ func _oldest_lot_into(item: int, location: int, out: IntMath.IntResult) -> bool:
 func location_for_into(milli: int, out: IntMath.IntResult) -> bool:
 	"""Where a delivery of `milli` should go: the location that spoils slowest (lowest permille) with
 	room for all of it, the lowest index on a tie. Refuses NO_STORAGE_ROOM."""
-	return _best_location_into(milli, false, Vector2i.ZERO, out)
+	return _best_location_into(milli, Catalog.NO_ITEM, false, Vector2i.ZERO, out)
+
+
+func location_for_item_into(item: int, milli: int, out: IntMath.IntResult) -> bool:
+	"""`location_for_into` for a delivery of `item`: a location only where a lot of it can also be kept
+	(a free lot row, or one of its own there to merge into). Refuses NO_STORAGE_ROOM."""
+	return _best_location_into(milli, item, false, Vector2i.ZERO, out)
 
 
 func location_near_into(milli: int, from: Vector2, out: IntMath.IntResult) -> bool:
@@ -120,15 +164,20 @@ func location_near_into(milli: int, from: Vector2, out: IntMath.IntResult) -> bo
 	location with room for all of it, and among equals the one nearest `from` -- so a root cellar dug
 	near the beds shortens the haul. Distances are compared in integer u, converted once. Refuses
 	NO_STORAGE_ROOM."""
-	return _best_location_into(milli, true, Vector2i(roundi(from.x * U_PER_M), roundi(from.y * U_PER_M)), out)
+	return _near_into(milli, Catalog.NO_ITEM, from, out)
 
 
-func _best_location_into(milli: int, by_distance: bool, from_u: Vector2i, out: IntMath.IntResult) -> bool:
-	"""The lowest-permille location with room; ties to the nearest `from_u` (by_distance) or the lowest
-	index. Refuses NO_STORAGE_ROOM."""
+func _near_into(milli: int, item: int, from: Vector2, out: IntMath.IntResult) -> bool:
+	"""`location_near_into`, for `item` (NO_ITEM: any) -- see `_best_location_into`."""
+	return _best_location_into(milli, item, true, Vector2i(roundi(from.x * U_PER_M), roundi(from.y * U_PER_M)), out)
+
+
+func _best_location_into(milli: int, item: int, by_distance: bool, from_u: Vector2i, out: IntMath.IntResult) -> bool:
+	"""The lowest-permille location with room (and, for an `item`, a lot to keep it in); ties to the
+	nearest `from_u` (by_distance) or the lowest index. Refuses NO_STORAGE_ROOM."""
 	var best: int = FREE
 	for location: int in storage.count():
-		if used_milli_of(location) + milli > storage.capacity_milli_of(location):
+		if room_milli_of(location) < milli or not _lot_row_for(item, location):
 			continue
 		if best == FREE or storage.permille_of(location) < storage.permille_of(best):
 			best = location
@@ -138,6 +187,14 @@ func _best_location_into(milli: int, by_distance: bool, from_u: Vector2i, out: I
 	if best == FREE:
 		return out.refuse(REFUSE_NO_ROOM)
 	return out.succeed(best)
+
+
+func _lot_row_for(item: int, location: int) -> bool:
+	"""Whether a delivery of `item` could be kept at `location` as a lot: a free row, or a lot of it there
+	to merge into (`_lot_into`). Any location for NO_ITEM (a room-only question)."""
+	if not Catalog.is_item(item) or _lot_item.find(FREE) >= 0:
+		return true
+	return _oldest_lot_into(item, location, _lot_probe)
 
 
 func _distance2_u(location: int, from_u: Vector2i) -> int:
@@ -158,15 +215,130 @@ func used_milli_of(location: int) -> int:
 
 
 func refresh_locations() -> void:
-	"""Re-read the storage providers, keeping every lot with its location by id; a lot whose location
-	has gone moves to the covered store (location 0)."""
+	"""Re-read the storage providers, keeping every lot and hold with its location by id; a lot whose
+	location has gone moves to the covered store (location 0), a hold whose location has gone is GONE."""
 	for lot: int in MAX_LOTS:
 		_ids[lot] = storage.id_of(_lot_location[lot]) if _lot_item[lot] != FREE else null
+	for hold: int in MAX_HOLDS:
+		_hold_ids[hold] = storage.id_of(_hold_location[hold]) if _holds_place(hold) else null
 	storage.refresh()
 	for lot: int in MAX_LOTS:
 		if _lot_item[lot] == FREE:
 			continue
 		_lot_location[lot] = _read.value if storage.index_of_id_into(_ids[lot], _read) else 0
+	for hold: int in MAX_HOLDS:
+		if _holds_place(hold):
+			_hold_location[hold] = _read.value if storage.index_of_id_into(_hold_ids[hold], _read) else GONE
+
+
+func room_milli_of(location: int) -> int:
+	"""What a location can still take, milli-U: its capacity less what it holds and what is reserved
+	there (never below 0 -- a store that shrank under its stock has no room)."""
+	return maxi(0, storage.capacity_milli_of(location) - used_milli_of(location) - reserved_milli_of(location))
+
+
+func total_milli() -> int:
+	"""Every item's stock added up, milli-U: the HUD's Food figure and the Pantry's total (F28: summed
+	before it is formatted)."""
+	var total: int = 0
+	for item: int in Catalog.ITEM_COUNT:
+		total += _item_milli[item]
+	return total
+
+
+# --- reservations (see the header) -----------------------------------------------------------
+
+func reserve_near_into(item: int, milli: int, from: Vector2, out: IntMath.IntResult) -> bool:
+	"""Reserve room for `milli` of `item` at the store a delivery from `from` should go to
+	(`location_near_into`'s choice, where a lot of it can be kept). The hold's row into `out`; refuses a
+	bad item or quantity, NO_STORAGE_ROOM or a full hold table."""
+	if not Catalog.is_item(item):
+		return out.refuse(REFUSE_NOT_AN_ITEM)
+	if milli <= 0:
+		return out.refuse(REFUSE_BAD_QUANTITY)
+	var hold: int = _hold_live.find(0)
+	if hold < 0:
+		return out.refuse(REFUSE_NO_HOLD)
+	if not _near_into(milli, item, from, out):
+		return false
+	_hold_live[hold] = 1
+	_hold_location[hold] = out.value
+	_hold_milli[hold] = milli
+	return out.succeed(hold)
+
+
+func hold_location_into(hold: int, out: IntMath.IntResult) -> bool:
+	"""Where hold `hold` keeps its room, into `out`; refuses NO_RESERVATION_ROW for a free row and
+	STORAGE_LOCATION_GONE when its store has gone."""
+	if not is_hold(hold):
+		return out.refuse(REFUSE_NO_HOLD)
+	if _hold_location[hold] == GONE:
+		return out.refuse(REFUSE_GONE)
+	return out.succeed(_hold_location[hold])
+
+
+func is_hold(hold: int) -> bool:
+	"""Whether `hold` is a live reservation."""
+	return hold >= 0 and hold < MAX_HOLDS and _hold_live[hold] == 1
+
+
+func hold_milli(hold: int) -> int:
+	"""How much hold `hold` keeps room for, milli-U (0 for a free row)."""
+	return _hold_milli[hold] if is_hold(hold) else 0
+
+
+func resize_hold(hold: int, milli: int) -> bool:
+	"""Make hold `hold` keep room for `milli` instead: shrinking always takes, growing only into free
+	room at its store. False (the hold unchanged) when it cannot."""
+	if not is_hold(hold) or _hold_location[hold] == GONE or milli <= 0:
+		return false
+	if milli > _hold_milli[hold] and room_milli_of(_hold_location[hold]) < milli - _hold_milli[hold]:
+		return false
+	_hold_milli[hold] = milli
+	return true
+
+
+func release(hold: int) -> void:
+	"""Give up hold `hold`'s room (a free row: nothing)."""
+	if is_hold(hold):
+		_hold_live[hold] = 0
+		_hold_milli[hold] = 0
+
+
+func reserved_milli_of(location: int) -> int:
+	"""How much room reservations keep at a location, milli-U."""
+	var held: int = 0
+	for hold: int in MAX_HOLDS:
+		if _holds_place(hold) and _hold_location[hold] == location:
+			held += _hold_milli[hold]
+	return held
+
+
+func store_upto_into(item: int, milli: int, location: int, hold: int, out: IntMath.IntResult) -> bool:
+	"""A delivery of `milli` of `item` at `location`, against hold `hold` when it is there (else none):
+	stores WHAT FITS -- the free room plus the hold's own -- as a lot, draws the hold down by it (to
+	nothing when not all of it fitted: that store has no more room to keep). How much was stored into
+	`out` (0 when nothing fitted, or no lot row was to be had); refuses a bad item, quantity or location."""
+	if not Catalog.is_item(item):
+		return out.refuse(REFUSE_NOT_AN_ITEM)
+	if milli <= 0:
+		return out.refuse(REFUSE_BAD_QUANTITY)
+	if location < 0 or location >= storage.count():
+		return out.refuse(REFUSE_NO_LOCATION)
+	var own: int = _hold_milli[hold] if _holds_place(hold) and _hold_location[hold] == location else 0
+	var free: int = storage.capacity_milli_of(location) - used_milli_of(location) - reserved_milli_of(location) + own
+	var fits: int = mini(milli, free)
+	if fits <= 0 or not _lot_into(item, fits, location, _read):
+		return out.succeed(0)
+	if own > 0:
+		_hold_milli[hold] = maxi(0, own - fits) if fits == milli else 0
+	return out.succeed(fits)
+
+
+func _holds_place(hold: int) -> bool:
+	"""Whether `hold` is a live reservation with a store still standing (FREE and out-of-range rows are
+	not)."""
+	return is_hold(hold) and _hold_location[hold] != GONE
 
 
 # --- spoilage (§5.8) --------------------------------------------------------------------------
@@ -226,16 +398,9 @@ func units_of(item: int) -> int:
 	return _item_milli[item] / MILLI_PER_U
 
 
-func total_units() -> int:
-	"""Every item's whole units, added up: the HUD's Food figure."""
-	var total: int = 0
-	for item: int in Catalog.ITEM_COUNT:
-		total += units_of(item)
-	return total
-
-
 func hours_left_into(item: int, out: IntMath.IntResult) -> bool:
-	"""Effective hours until the item's OLDEST lot spoils; refuses NO_STOCK with none held."""
+	"""BASE shelf-life hours left on the item's OLDEST lot (effective age at the base rate, not a
+	calendar countdown -- `next_spoil_into` is that); refuses NO_STOCK with none held."""
 	var least: int = -1
 	for lot: int in MAX_LOTS:
 		if _lot_item[lot] == item:
@@ -252,6 +417,65 @@ func freshness_permille_into(item: int, out: IntMath.IntResult) -> bool:
 	if not hours_left_into(item, out):
 		return false
 	return out.succeed(out.value * FACTOR_DENOMINATOR / Catalog.shelf_hours_of(item))
+
+
+func first_to_spoil_into(item: int, hour_index: int, out: IntMath.IntResult) -> bool:
+	"""The item's lot that spoils FIRST in calendar hours from the demo calendar's `hour_index` (its
+	store's rate and each season's), into `out`; the lowest row on a tie. Refuses NO_STOCK."""
+	var best: int = FREE
+	var best_hours: int = 0
+	for lot: int in MAX_LOTS:
+		if _lot_item[lot] != item:
+			continue
+		var hours: int = lot_spoil_hours(lot, hour_index)
+		if best == FREE or hours < best_hours:
+			best = lot
+			best_hours = hours
+	if best == FREE:
+		return out.refuse(REFUSE_NO_STOCK)
+	return out.succeed(best)
+
+
+func next_spoil_into(item: int, hour_index: int, out: IntMath.IntResult) -> bool:
+	"""Calendar hours until the item's first lot spoils (see `first_to_spoil_into`); refuses NO_STOCK."""
+	if not first_to_spoil_into(item, hour_index, out):
+		return false
+	return out.succeed(lot_spoil_hours(out.value, hour_index))
+
+
+func lot_spoil_hours(lot: int, hour_index: int) -> int:
+	"""How many hour crossings after `hour_index` lot `lot` spoils at: `age_hour`'s own integer sum,
+	season by season. The crossing into hour h ages at the season of hour h (`season_of_hour`)."""
+	var permille: int = storage.permille_of(_lot_location[lot])
+	var needed: int = Catalog.shelf_hours_of(_lot_item[lot]) * FACTOR_DENOMINATOR - _lot_age[lot]
+	var carried: int = _lot_remainder[lot]
+	var hours: int = 0
+	if needed <= 0:
+		return 1
+	while needed > 0:
+		var hour: int = hour_index + hours + 1
+		var rate: int = maxi(1, permille * StockAge.temperature_factor_of(season_of_hour(hour), false))
+		var span: int = HOURS_PER_SEASON - posmod(hour, HOURS_PER_SEASON)
+		var to_spoil: int = (needed * FACTOR_DENOMINATOR - carried + rate - 1) / rate
+		if to_spoil <= span:
+			return hours + to_spoil
+		var aged: int = rate * span + carried
+		needed -= aged / FACTOR_DENOMINATOR
+		carried = aged % FACTOR_DENOMINATOR
+		hours += span
+	return hours
+
+
+static func season_of_hour(hour_index: int) -> int:
+	"""The season (0 spring .. 3 winter) of the calendar hour `hour_index` counts from the midnight
+	before spring day 1 (demo_calendar.gd `hour_index`)."""
+	var day: int = hour_index / SimClock.HOURS_PER_DAY
+	return (day % SimClock.DAYS_PER_YEAR) / SimClock.DAYS_PER_SEASON
+
+
+func lot_milli(lot: int) -> int:
+	"""How much a lot holds, milli-U."""
+	return _lot_milli[lot]
 
 
 func milli_at(item: int, location: int) -> int:

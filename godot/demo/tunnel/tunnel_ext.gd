@@ -594,8 +594,8 @@ func _planning_heading() -> String:
 
 func refresh_panel() -> void:
 	"""Fill the panel from the works and the selected tunnel."""
-	panel.show_status(works.weather.readout(), works.stores.stock_line() + " — the HUD's Wood and Stone are the settlement's",
-		_network.rooms.housing_line(_network) + " — demo beds, not the HUD's Beds", works.stores.finds_line(), "\n".join(works.log_lines))
+	panel.show_status(works.weather.readout(), works.stores.stock_line(), _network.rooms.housing_line(_network),
+		works.stores.finds_line(), "\n".join(works.log_lines))
 	if works.stores.revision != _finds_seen:
 		_finds_seen = works.stores.revision
 		_show_finds()

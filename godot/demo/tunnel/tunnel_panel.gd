@@ -23,8 +23,10 @@ extends CanvasLayer
 ## button. Those buttons emit "fit:add:<kind>", "fit:take:<kind>" and "fit:suggest" (room_text.gd FIT_*).
 ##
 ## STYLE: the woodland skin's carved-wood frame with a parchment face, ink and umber text, wood
-## buttons with cream text -- the party panel's pieces. The frame stops the mouse; no button takes
-## focus (Enter while laying a tunnel must never press one).
+## buttons with cream text -- the party panel's pieces. The frame stops the mouse. The buttons take
+## keyboard focus (decision 0261); Enter presses one only while it holds the KEYBOARD's focus -- a
+## clicked button's focus is dropped first, so Enter while laying a tunnel still digs
+## (demo/ui/demo_input_gate.gd).
 
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
@@ -42,9 +44,10 @@ const ACTION_BRACE: StringName = &"brace"
 const ACTION_LANTERNS: StringName = &"lanterns"
 const ACTION_REPAIR: StringName = &"repair"
 const ACTION_EVENT: StringName = &"event"
+## ACTION_NEXT_WEATHER and ACTION_EVENT are test triggers: their buttons are the Demo Lab's
+## (demo/ui/demo_lab.gd, decision 0261), which sends them through the same `on_action` as this panel.
 const BUTTON_TEXT: Dictionary = {
-	&"next_weather": "Next weather (demo)", &"widen": "Widen", &"brace": "Brace",
-	&"lanterns": "Hang lanterns", &"repair": "Repair", &"event": "Test event (demo)",
+	&"widen": "Widen", &"brace": "Brace", &"lanterns": "Hang lanterns", &"repair": "Repair",
 }
 const TUNNEL_ACTIONS: Array[StringName] = [&"widen", &"brace", &"lanterns", &"repair"]
 
@@ -120,12 +123,10 @@ func build() -> void:
 		_lines[key] = _label("", BODY_PX, Palette.INK, null)
 		column.add_child(_lines[key])
 	column.add_child(_build_finds_row())
-	column.add_child(_button(ACTION_NEXT_WEATHER))
 	_build_tunnel_box(column)
 	_build_room_box(column)
 	_lines[&"log"] = _label("", SMALL_PX, Palette.UMBER, null)
 	column.add_child(_lines[&"log"])
-	column.add_child(_button(ACTION_EVENT))
 
 
 func _build_finds_row() -> HFlowContainer:
@@ -279,10 +280,10 @@ func _label(text: String, px: int, colour: Color, font: Font) -> Label:
 
 
 func _button(key: StringName) -> Button:
-	"""A wood button that emits `action(key)` and never takes focus."""
+	"""A wood button that emits `action(key)`; takes keyboard focus (decision 0261)."""
 	var button := Button.new()
 	button.text = BUTTON_TEXT[key] if BUTTON_TEXT.has(key) else _button_words[key]
-	button.focus_mode = Control.FOCUS_NONE
+	Styles.focusable(button, BUTTON_MARGINS)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.add_theme_font_size_override(&"font_size", BODY_PX)
 	button.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, BUTTON_MARGINS))
@@ -296,6 +297,11 @@ func _button(key: StringName) -> Button:
 	button.pressed.connect(func() -> void: action.emit(key))
 	_buttons[key] = button
 	return button
+
+
+func has_button(key: StringName) -> bool:
+	"""Whether the panel has a button for an action (the Demo Lab's triggers have none here)."""
+	return _buttons.has(key)
 
 
 func button(key: StringName) -> Button:

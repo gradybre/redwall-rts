@@ -1,14 +1,10 @@
 extends RefCounted
 ## Where the farm meets the game's HUD, through the UI layer only. Decision 0196.
 ##
-## THE FOOD FIGURE. The HUD's top-left Food cell (UI-SET-002) is fed by UIManager with
-## EconomySystem's ready-food days -- the SETTLEMENT's inventory, which the demo farm must not write
-## into. So the demo shows its pantry total in that cell THROUGH THE SHELL'S OWN PUBLIC ENTRY POINT,
-## `set_counter_display(ID_FOOD, "34 U")`, and nothing else: UIManager, EconomySystem and the
-## simulation are untouched. UIManager repaints the cell whenever stocks change or a day passes;
-## `sync()` notices its own text was replaced (the cell no longer reads what it painted) and paints
-## the pantry total back. The ledger line (UI-SET-009) still carries the settlement's figures -- a
-## known, stated difference, since that line is the game's exact record.
+## THE FOOD FIGURE. The top bar's Ready food cell shows the pantry's total, painted -- with every other cell --
+## by the demo's HUD read model (demo/ui/demo_hud_model.gd, demo_hud_counters.gd; decision 0251). This file
+## keeps the one thing both the cell and the Pantry's headline must agree on: `food_text`, the figure's words,
+## which are the farm's one units form (farm_text.gd UNITS; decision 0222, F28) of a total summed in milli-U.
 ##
 ## THE FOOD COMMAND. UI-SET-030 ("Manage recipes and food orders", K) has no page built in the game
 ## yet, so the shell draws it locked. The demo unlocks the button, gives it its own painted food
@@ -19,6 +15,7 @@ extends RefCounted
 
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const CommandTips := preload("res://demo/ui/demo_command_tips.gd")
+const Text := preload("res://demo/farm/farm_text.gd")
 
 const FOOD_ICON: String = "res://ui/painted/res_food_ready.svg"
 ## What the unlocked Food command does. Its tooltip is "Food (K) — " and this, in the command strip's
@@ -26,9 +23,6 @@ const FOOD_ICON: String = "res://ui/painted/res_food_ready.svg"
 const FOOD_TOOLTIP: String = "Pantry: the farm's ingredients in store, and the dishes they feed"
 
 var _shell: UiShell = null
-var _painted_units: int = -1
-var _painted_label: String = ""
-var _warned: bool = false
 
 
 func bind(shell: UiShell) -> void:
@@ -36,28 +30,10 @@ func bind(shell: UiShell) -> void:
 	_shell = shell
 
 
-static func food_text(units: int) -> String:
-	"""The Food cell's value for the pantry total."""
-	return "%d U" % units
-
-
-func sync(units: int) -> bool:
-	"""Show `units` in the Food cell, repainting it only when the total changed or UIManager wrote
-	over it (an integer and a string reference compared per frame; no formatting). True when it
-	painted this call."""
-	if _shell == null or not is_instance_valid(_shell):
-		return false
-	var label: Label = _shell.counter_value_label(UiShell.ID_FOOD)
-	if label == null or (units == _painted_units and label.text == _painted_label):
-		return false
-	if not _shell.set_counter_display(UiShell.ID_FOOD, food_text(units)):
-		if not _warned:
-			push_warning("demo farm: the Food cell refused the pantry total (%s)" % _shell.last_refusal())
-			_warned = true
-		return false
-	_painted_units = units
-	_painted_label = label.text
-	return true
+static func food_text(milli: int) -> String:
+	"""The pantry total (milli-U) in the top bar's words ("34.2 U", the farm's one units form, F28): the Ready
+	food cell and its ledger line print this."""
+	return Text.units_text(milli)
 
 
 func unlock_food_command(open_pantry: Callable) -> bool:

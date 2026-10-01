@@ -146,6 +146,14 @@ func make_current() -> void:
 		_camera.current = true
 
 
+func centre_on(point: Vector3) -> void:
+	"""Ease the view to look at `point` (x, z; held inside the ground box), keeping yaw, pitch and zoom: the
+	Residents roster's and the minimap's "go there" (decision 0251)."""
+	_target_focus.x = point.x
+	_target_focus.z = point.z
+	_clamp_target_focus()
+
+
 func snap() -> void:
 	"""Jump the drawn view straight to its targets, skipping the easing."""
 	_focus = _target_focus

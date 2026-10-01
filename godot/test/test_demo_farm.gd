@@ -663,7 +663,7 @@ func test_deliveries_go_where_food_keeps_longest() -> void:
 	assert_true(pantry.add_into(RADISH, 2999, 0, _read), "radish")
 	assert_equal(pantry.units_of(CARROT), 5, "5 carrots")
 	assert_equal(pantry.units_of(RADISH), 2, "2 radishes")
-	assert_equal(pantry.total_units(), 7, "7 in all")
+	assert_equal(pantry.total_milli(), 8099, "8.099 U in all, summed before any rounding")
 	assert_equal(pantry.milli_at(CARROT, 1), 5100, "in the cellar")
 
 
@@ -905,9 +905,10 @@ func test_jobs_open_once_per_kind_and_bed() -> void:
 	assert_false(jobs.open_into(JobsScript.KIND_COVER, 5, JobsScript.ORIGIN_PLAYER, 0, _read), "full")
 	assert_equal(_read.error, JobsScript.REFUSE_BOARD_FULL, "says so")
 	assert_equal(JobsScript.KIND_COUNT, 9, "nine kinds: Drain is the ninth")
-	assert_equal(JobsScript.KIND_NAMES.size(), JobsScript.KIND_COUNT, "a name each")
-	assert_equal(JobsScript.KIND_DOING.size(), JobsScript.KIND_COUNT, "a doing each")
-	assert_equal(JobsScript.PLANS.size(), JobsScript.KIND_COUNT, "a plan each")
+	assert_equal(JobsScript.KIND_DELIVER, JobsScript.KIND_COUNT, "the delivery after the orderable kinds")
+	assert_equal(JobsScript.KIND_NAMES.size(), JobsScript.KIND_COUNT + 1, "a name each, the delivery's too")
+	assert_equal(JobsScript.KIND_DOING.size(), JobsScript.KIND_COUNT + 1, "a doing each")
+	assert_equal(JobsScript.PLANS.size(), JobsScript.KIND_COUNT + 1, "a plan each")
 	assert_false(jobs.open_into(JobsScript.KIND_COUNT, 0, JobsScript.ORIGIN_PLAYER, 0, _read), "no such kind")
 	assert_equal(_read.error, JobsScript.REFUSE_BAD_KIND, "says so")
 

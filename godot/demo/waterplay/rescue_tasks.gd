@@ -15,6 +15,19 @@ extends RefCounted
 ##                thrower waits, and every RESITE_S walks on to the landing nearest the drifting victim.
 ##   RestTask     ashore: up the landing's bank and rest (REST_AFTER_RESCUE_TICKS, three times the land
 ##                recovery), then back to its routine.
+##
+## ONE RESPONDER (review F39, decision 0231). A victim is reserved by exactly one rescuer at a time:
+## `VictimTask.reserve` names who and how (RESPONSE_*) and why a lesser response was sent, in one call;
+## `release` clears it only for the rescuer that holds it, so one stood down after another took over
+## never frees the victim from under its successor; the one let go (`let_go`) is not sent to it again --
+## a player who calls a rescuer away is not overruled a second later. A swimmer's SwimRescue fetches a victim held below
+## only if it dives and has the air for the way down, back up and HAZ-002's 300 reserve
+## (swim_rules.gd `fetch_ticks`); otherwise it treads above it (RESPONSE_WATCH), ready to tow the
+## moment it comes up -- and a watcher that dives, once it has breathed enough, goes down for it
+## (rescue.gd `_promote` makes it RESPONSE_DIVE). The reservation is authoritative: a rescue task whose
+## victim is no longer reserved for it ends (swimming ashore if in), however it was relieved; one that
+## may not swim when it reaches the water (HAZ-001) lets the victim go rather than going in; and
+## `towed` (in hand) is set only by the holder and cleared when the holder lets go.
 
 const TaskScript := preload("res://demo/tunnel/tunnel_task.gd")
 const Rules := preload("res://demo/waterplay/swim_rules.gd")
@@ -31,14 +44,29 @@ const RESITE_S: float = 2.0
 const CLIP_THROW: StringName = &"wave_one_hand"
 const CLIP_HAUL: StringName = &"pull_radish"
 const CLIP_REST: StringName = &"stand_and_drink"
+## How a victim is being answered (VictimTask.response), least to most capable for a victim held below.
+const RESPONSE_NONE: int = 0
+const RESPONSE_LINE: int = 1
+const RESPONSE_WATCH: int = 2
+const RESPONSE_SWIM: int = 3
+const RESPONSE_DIVE: int = 4
 
 
 ## The resident in difficulty (see the header).
 class VictimTask extends "res://demo/tunnel/tunnel_task.gd":
 	var down_m: float = 0.0
 	var towed: bool = false
-	var engaged: bool = false
 	var waited_s: float = 0.0
+	## The one rescuer answering it (-1: none), how (RESPONSE_*), and why nothing better was sent ("").
+	var responder: int = -1
+	var response: int = RESPONSE_NONE
+	var why: String = ""
+	## The last rescuer that let it go (called away, or relieved): not sent to it again (-1: none).
+	var let_go: int = -1
+	## Whether a rescuer is on its way or at work (read-only: `reserve` and `release` set it).
+	var engaged: bool:
+		get:
+			return responder >= 0
 	var _motion: MotionScript = null
 
 	func _init(motion: MotionScript, below_m: float) -> void:
@@ -67,6 +95,22 @@ class VictimTask extends "res://demo/tunnel/tunnel_task.gd":
 			return true
 		_motion.state.set_mode(who, StateScript.MODE_DISTRESS)
 		_motion.drift(brain, delta)
+		return true
+
+	func reserve(who: int, how: int, reason: String) -> void:
+		"""Rescuer `who` answers this victim `how` (RESPONSE_*), `reason` saying why nothing better went."""
+		responder = who
+		response = how
+		why = reason
+
+	func release(who: int) -> bool:
+		"""Rescuer `who` stops answering: the victim is free for another -- only if `who` held it."""
+		if who < 0 or who != responder:
+			return false
+		let_go = who
+		responder = -1
+		response = RESPONSE_NONE
+		why = ""
 		return true
 
 	func urgent() -> bool:
@@ -103,6 +147,8 @@ class SwimRescue extends "res://demo/tunnel/tunnel_task.gd":
 	var _on_ashore: Callable = Callable()
 	var _tow_landing: Callable = Callable()
 	var _down_m: float = 0.0
+	## Treading above a victim held below that it cannot fetch (it does not dive, or lacks the air).
+	var _above: bool = false
 
 	func _init(motion: MotionScript, the_victim: RefCounted, task: VictimTask, entry: PackedVector2Array,
 			on_ashore: Callable, tow_landing: Callable) -> void:
@@ -126,17 +172,16 @@ class SwimRescue extends "res://demo/tunnel/tunnel_task.gd":
 		phase = PHASE_DOWN
 
 	func step(brain: RefCounted, delta: float) -> bool:
-		"""One frame of the rescue -- given up, swimming ashore, when the victim came ashore another way."""
-		if phase < PHASE_TOW and victim.task != victim_task:
+		"""One frame of the rescue -- given up, swimming ashore, when the victim came ashore another way or
+		is no longer this rescuer's (ONE RESPONDER)."""
+		if phase < PHASE_TOW and (victim.task != victim_task or victim_task.responder != brain.index):
 			if brain.in_water:
 				brain.work_done()
 				return true
 			return false
 		match phase:
 			PHASE_DOWN:
-				if _motion.walk_bank(brain, _in_water, delta):
-					brain.water_in()
-					phase = PHASE_OUT
+				return _step_down(brain, delta)
 			PHASE_OUT:
 				_step_out(brain, delta)
 			PHASE_FETCH:
@@ -150,17 +195,36 @@ class SwimRescue extends "res://demo/tunnel/tunnel_task.gd":
 					phase = PHASE_DONE
 		return phase != PHASE_DONE
 
+	func _step_down(brain: RefCounted, delta: float) -> bool:
+		"""Down the bank and in -- checked again at the water like any swim (HAZ-001: it may not swim now,
+		say its consent was withdrawn): refused, it lets the victim go for the next rescuer and is done."""
+		if _motion.state.swim_refusal(brain.index, false) != Rules.REFUSE_NONE:
+			victim_task.release(brain.index)
+			return false
+		if _motion.walk_bank(brain, _in_water, delta):
+			brain.water_in()
+			phase = PHASE_OUT
+		return true
+
 	func _step_out(brain: RefCounted, delta: float) -> void:
-		"""Swim to the victim; a diver fetches one below, anyone else waits above it."""
+		"""Swim to the victim; one with the air to fetch it from below goes down, anyone else treads above
+		it (breathing) until it can, or until the victim comes up."""
 		var reached: bool = _motion.swim(brain, victim.position, delta) or brain.position.distance_to(victim.position) <= REACH_M
 		if not reached:
 			return
+		_above = false
 		if victim_task.down_m <= 0.0:
 			_start_tow(brain)
-		elif _motion.state.can_dive(brain.index):
+		elif can_fetch(brain.index):
 			phase = PHASE_FETCH
 		else:
+			_above = true
 			_motion.tread(brain, brain.position, delta)
+
+	func can_fetch(who: int) -> bool:
+		"""Whether rescuer `who` may go down for the victim now: it dives, and its air covers the way down
+		and back up with HAZ-002's reserve (swim_rules.gd `fetch_ticks`, `admits_dive`)."""
+		return _motion.state.can_dive(who) and Rules.admits_fetch(_motion.state.air[who], roundi(victim_task.down_m * 1000.0))
 
 	func _step_fetch(brain: RefCounted, delta: float) -> void:
 		"""Down to the victim, then both up together."""
@@ -202,10 +266,9 @@ class SwimRescue extends "res://demo/tunnel/tunnel_task.gd":
 			if _on_ashore.is_valid():
 				_on_ashore.call(victim, PackedVector2Array([landing_land, landing_water]))
 
-	func cancel(_brain: RefCounted) -> void:
-		"""Called away: the victim is left for another rescuer."""
-		if phase != PHASE_UP and phase != PHASE_DONE:
-			victim_task.engaged = false
+	func cancel(brain: RefCounted) -> void:
+		"""Called away: the victim is left for another rescuer (unless another already holds it)."""
+		if phase != PHASE_UP and phase != PHASE_DONE and victim_task.release(brain.index):
 			victim_task.towed = false
 
 	func urgent() -> bool:
@@ -214,6 +277,8 @@ class SwimRescue extends "res://demo/tunnel/tunnel_task.gd":
 
 	func label() -> String:
 		"""In words."""
+		if _above and phase == PHASE_OUT:
+			return "treading above them, ready to tow"
 		return WORDS[phase]
 
 
@@ -258,8 +323,8 @@ class LineRescue extends "res://demo/tunnel/tunnel_task.gd":
 
 	func step(brain: RefCounted, delta: float) -> bool:
 		"""Throw, then haul in -- or wait for the victim to come within reach (over once it came ashore
-		another way)."""
-		if victim.task != victim_task:
+		another way, or is no longer this thrower's: ONE RESPONDER)."""
+		if victim.task != victim_task or victim_task.responder != brain.index:
 			return false
 		brain.task_face(victim.position, delta)
 		_timer += delta
@@ -304,10 +369,9 @@ class LineRescue extends "res://demo/tunnel/tunnel_task.gd":
 			if _on_ashore.is_valid():
 				_on_ashore.call(victim, PackedVector2Array([landing_land, landing_water]))
 
-	func cancel(_brain: RefCounted) -> void:
-		"""Called away: the victim is left for another rescuer."""
-		if phase != PHASE_DONE:
-			victim_task.engaged = false
+	func cancel(brain: RefCounted) -> void:
+		"""Called away: the victim is left for another rescuer (unless another already holds it)."""
+		if phase != PHASE_DONE and victim_task.release(brain.index):
 			victim_task.towed = false
 
 	func line_out() -> bool:

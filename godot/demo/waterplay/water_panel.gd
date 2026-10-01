@@ -32,10 +32,11 @@ const ACTION_CRAMP: StringName = &"cramp"
 const BUTTON_TEXT: Dictionary = {
 	&"prev_site": "◀ Site", &"next_site": "Site ▶", &"span_tool": "Span two banks…",
 	&"build_plank": "Build footbridge", &"build_log": "Build log bridge",
-	&"dive": "Dive in the pond", &"consent": "Swim shortcuts: on", &"cramp": "Cramp (demo)",
+	&"dive": "Dive in the pond", &"consent": "Swim shortcuts: on",
 }
 const SITE_ACTIONS: Array[StringName] = [&"prev_site", &"next_site", &"span_tool", &"build_plank", &"build_log"]
-const SWIM_ACTIONS: Array[StringName] = [&"dive", &"consent", &"cramp"]
+## ACTION_CRAMP is a test trigger: its button is the Demo Lab's (demo/ui/demo_lab.gd, decision 0261).
+const SWIM_ACTIONS: Array[StringName] = [&"dive", &"consent"]
 const LINE_KEYS: Array[StringName] = [&"conditions", &"alert", &"swimmers_title", &"swimmers"]
 const DETAIL_NAME: String = "UI-SET-036"
 const FRAME_EXPAND: float = 10.0
@@ -129,10 +130,10 @@ func _label(text: String, px: int, colour: Color, font: Font) -> Label:
 
 
 func _button(key: StringName) -> Button:
-	"""A wood button that emits `action(key)` and never takes focus."""
+	"""A wood button that emits `action(key)`; takes keyboard focus (decision 0261)."""
 	var button := Button.new()
 	button.text = BUTTON_TEXT[key]
-	button.focus_mode = Control.FOCUS_NONE
+	Styles.focusable(button, BUTTON_MARGINS)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.clip_text = true
 	button.add_theme_font_size_override(&"font_size", SMALL_PX + 1)

@@ -22,6 +22,19 @@ extends "res://demo/cast/crossing_hook.gd"
 ## <= 1500, `turn_back`) makes for the nearer bank, and plans again from there -- tired, it is offered
 ## no swim. A resident in the water given a new order first swims to its nearest connection
 ## (`swim_ashore`), a leg of its own (ASHORE_ROW).
+##
+## THE BANK RECHECK (review F07, decision 0231). What was true when the route was planned may not be
+## true at the water: swim shortcuts turned off, stamina spent, a load picked up, a flood risen past
+## what it can swim against. So until the moment it goes in -- every step of the walk down the bank --
+## a link's swimmer is checked again (`entry_refusal`: swim_state.gd `swim_refusal` with its load, and
+## the link's flow for it now). Refused, it does not go in: it walks back up to the land end it came
+## down from (PHASE_REFUSED), its route ends there, and it plans again from land -- where the same
+## refusal offers it no swim, so it goes round, wades the ford or takes a bridge. `on_refused(who, why)`
+## says why (the Water panel's feed). ALREADY SWIMMING is different: consent and HAZ-001's entry bar
+## govern going IN, and a swimmer is never yanked out mid-stream or turned where it cannot stand. It
+## finishes the swim to the far bank (MOVE-REQ-007: a crossing entered is finished) -- or, tiring,
+## turns back by HAZ-003's return; exhausted, the rescue takes it -- and plans its next trip afresh on
+## land, where the refusal then applies.
 
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const RouterScript := preload("res://demo/tunnel/tunnel_router.gd")
@@ -51,12 +64,16 @@ const FAR_M: float = 64.0
 const PHASE_ON: int = 0
 const PHASE_ACROSS: int = 1
 const PHASE_OFF: int = 2
+## Refused at the bank (THE BANK RECHECK): back up to the land end it came down from.
+const PHASE_REFUSED: int = 3
 
 var map: WaterMapScript = null
 var links: LinksScript = null
 var bridges: BridgesScript = null
 var state: StateScript = null
 var motion: MotionScript = null
+## `(who: int, why: StringName) -> void`, told when a swimmer is refused at the bank (THE BANK RECHECK).
+var on_refused: Callable = Callable()
 
 var _cast: DemoCastScript = null
 var _leg_row: PackedInt32Array = PackedInt32Array()
@@ -252,24 +269,59 @@ func _step_bridge(brain: RefCounted, row: int, delta: float) -> bool:
 
 
 func _step_link(brain: RefCounted, k: int, delta: float) -> bool:
-	"""Down the bank, across the water and up the other side."""
+	"""Down the bank (checked again all the way: THE BANK RECHECK), across the water and up the other
+	side -- or, refused at the bank, back up the side it came down."""
 	var who: int = brain.index
 	var row: int = LINK_ROW0 + k
 	var reverse: bool = _leg_reverse[who] == 1
 	match _leg_phase[who]:
 		PHASE_ON:
-			if motion.walk_bank(brain, _leg_point(row, 1, reverse), delta):
-				_leg_phase[who] = PHASE_ACROSS
-				brain.water_in()
+			_step_down_bank(brain, k, delta)
 			return false
 		PHASE_ACROSS:
 			if motion.swim(brain, _leg_point(row, 2, reverse), delta):
 				_leg_phase[who] = PHASE_OFF
 			return false
-	var done: bool = motion.walk_bank(brain, _leg_point(row, 3, reverse), delta)
+	var end: int = 0 if _leg_phase[who] == PHASE_REFUSED else 3
+	var done: bool = motion.walk_bank(brain, _leg_point(row, end, reverse), delta)
 	if done:
 		state.set_mode(who, StateScript.MODE_LAND)
 	return done
+
+
+func _step_down_bank(brain: RefCounted, k: int, delta: float) -> void:
+	"""Down the bank to the water: refused (THE BANK RECHECK), turn back up; at the water, in."""
+	var who: int = brain.index
+	var why: StringName = entry_refusal(brain, k)
+	if why != Rules.REFUSE_NONE:
+		_refuse_leg(brain, LINK_ROW0 + k, why)
+		return
+	if motion.walk_bank(brain, _leg_point(LINK_ROW0 + k, 1, _leg_reverse[who] == 1), delta):
+		_leg_phase[who] = PHASE_ACROSS
+		brain.water_in()
+
+
+func entry_refusal(brain: RefCounted, k: int) -> StringName:
+	"""Why `brain` may not go into the water on swim link `k` now (Rules.REFUSE_NONE: it may): the swim
+	rules with the load it carries (swim_state.gd `swim_refusal`), or a flow it cannot hold its line
+	against (`link_cost_m`)."""
+	var who: int = brain.index
+	var why: StringName = state.swim_refusal(who, brain.carrying)
+	if why == Rules.REFUSE_NONE and link_cost_m(who, k) == INF:
+		return Rules.REFUSE_FLOW
+	return why
+
+
+func _refuse_leg(brain: RefCounted, row: int, why: StringName) -> void:
+	"""Refused at the bank: walk back up to the land end it came down from, and end the route there, so
+	it plans again from land (resident_brain.gd `_go_on_from_mouth`); `on_refused` says why."""
+	var who: int = brain.index
+	_leg_phase[who] = PHASE_REFUSED
+	brain.path.resize(brain.path_index + 1)
+	brain.path_tunnel.resize(brain.path_index + 1)
+	brain.path[brain.path_index] = _leg_point(row, 0, _leg_reverse[who] == 1)
+	if on_refused.is_valid():
+		on_refused.call(who, why)
 
 
 func _step_ashore(brain: RefCounted, delta: float) -> bool:
@@ -338,6 +390,8 @@ func leg_text(brain: RefCounted) -> String:
 		return "swimming ashore"
 	if row >= 0 and row < LINK_ROW0:
 		return "crossing the %s" % bridges.names[row]
+	if row >= LINK_ROW0 and _leg_phase[brain.index] == PHASE_REFUSED:
+		return "not swimming: back up the bank to go round"
 	return StateScript.MODE_WORDS[state.mode[brain.index]]
 
 

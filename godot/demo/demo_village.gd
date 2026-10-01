@@ -104,7 +104,8 @@ extends Node3D
 ## tunnels' jobs, the rooms' fit-out, the spoil heaps -- claims their waiting work for idle eligible residents (the
 ## named, editable crews first: Field, Woods, Diggers, Haulers, Builders), in place of the old hidden fixed crews;
 ## the HUD's Jobs command (J) opens its Work screen (tasks, residents and crews, projects); Shift+right-click appends to
-## the selection's order lists. `_build_work()` wires it once every owner is built.
+## the selection's order lists. `_build_work()` wires it once every owner is built -- the kitchen's cook and water
+## drawers listed too, and no work handed out to a resident at its meal (`add_kitchen`, decision 0381 with 0411).
 ##
 ## SOUND (decision 0351, demo/sound/): ONE SOUND OWNER (sound_director.gd), scene-scoped rather than an autoload,
 ## hears the village's committed events (its event map, sound_taps.gd) and plays them through five buses with a
@@ -452,6 +453,7 @@ func _build_work() -> void:
 	add_child(_work)
 	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
 	_work.configure(_cast as DemoCastScript, _farm, _forestry, _waterplay, _spoil, tool.ext, tool.is_digger)
+	_work.add_kitchen(_kitchen.kitchen)
 	var command: DemoCommandScript = _command as DemoCommandScript
 	_work.set_readouts(command.activity_text, (GameManager as GameManagerScript).is_paused, work_jump, command.selected)
 	command.set_queue_handler(_work.queue_at)

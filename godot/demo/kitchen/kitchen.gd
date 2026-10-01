@@ -1327,6 +1327,16 @@ func _due_to_eat(i: int) -> bool:
 	return _serving != FREE and not fed.had(i, _serving) and meal_coming(_serving)
 
 
+func kept_for_meals(i: int) -> bool:
+	"""Whether resident `i` is kept for the meals now, so the work board claims nothing for it (work_board.gd
+	`set_needs_gate`, decision 0411 with 0381): it has a kitchen part (cooking, drawing water, at the table), it is
+	due at the table (a meal on its way that it has not had: the kitchen calls it as soon as it is free), or it is
+	the cook with a meal still to get to the table (the kitchen hands it the round as soon as it is free)."""
+	if i < 0 or i >= _role.size():
+		return false
+	return _role[i] != ROLE_NONE or _due_to_eat(i) or _on_duty(i)
+
+
 func _holder(role: int) -> int:
 	"""Who has `role` now (NOBODY: nobody)."""
 	return _role.find(role)

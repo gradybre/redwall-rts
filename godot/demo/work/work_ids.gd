@@ -12,11 +12,14 @@ const SOURCE_BRIDGES: int = 2
 const SOURCE_TUNNELS: int = 3
 const SOURCE_FIT_OUT: int = 4
 const SOURCE_SPOIL: int = 5
-const SOURCE_COUNT: int = 6
+## The kitchen's cook and water drawers (decision 0381's kitchen; demo/work/kitchen_work.gd): listed, never claimed.
+const SOURCE_KITCHEN: int = 6
+const SOURCE_COUNT: int = 7
 ## What each source is called in the Projects view and the Cancel all scope.
-const SOURCE_NAMES: Array[String] = ["Farm", "Woods", "Bridges", "Tunnels", "Rooms and fit-out", "Spoil heaps"]
+const SOURCE_NAMES: Array[String] = ["Farm", "Woods", "Bridges", "Tunnels", "Rooms and fit-out", "Spoil heaps",
+	"Kitchen"]
 ## A queued walk (Shift+right-click on open ground): an order-list entry, never a board task.
-const SOURCE_WALK: int = 6
+const SOURCE_WALK: int = 7
 
 const ACT_FARM: int = 0
 const ACT_WOODS: int = 1

@@ -5,7 +5,8 @@ extends Node
 ## screen from the HUD's Jobs command (UI-SET-029, J) and hands the command layer `queue_at`.
 ##
 ## From `configure` on, the farm's, the woods' and the bridges' own routine hand-outs stand down (`set_claimer`): the
-## board claims their waiting work for any idle eligible resident, its own crew first.
+## board claims their waiting work for any idle eligible resident, its own crew first. `add_kitchen` lists the kitchen's
+## cook and drawers and keeps the board off a resident at its meal.
 
 const BoardScript := preload("res://demo/work/work_board.gd")
 const ScreenScript := preload("res://demo/work/work_screen.gd")
@@ -17,6 +18,8 @@ const BridgeWork := preload("res://demo/work/bridge_work.gd")
 const TunnelWork := preload("res://demo/work/tunnel_work.gd")
 const FitOutWork := preload("res://demo/work/fit_out_work.gd")
 const SpoilWork := preload("res://demo/work/spoil_work.gd")
+const KitchenWork := preload("res://demo/work/kitchen_work.gd")
+const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
@@ -77,6 +80,17 @@ func _add_owners(farm: FarmScript, forestry: ForestryScript, waterplay: Waterpla
 		board.add_source(FitOutWork.new(_cast.space().tunnels, ext.fixture_crew, brains, board.name_of))
 	if spoil != null:
 		board.add_source(SpoilWork.new(spoil.crew, _cast.space().tunnels, brains))
+
+
+func add_kitchen(kitchen: KitchenScript) -> void:
+	"""THE MEALS ON THE BOARD (decision 0411 with 0381): the kitchen's cook and water drawers listed on the Work screen
+	(kitchen_work.gd: the kitchen hands them out itself, so nothing is claimed), and the board keeping its hands off a
+	resident the meals have (`set_needs_gate`: kitchen.gd `kept_for_meals`) -- no work handed out at mealtime."""
+	var brains: Array[BrainScript] = []
+	for i: int in _cast.actor_count():
+		brains.append((_cast.actor(i) as DemoActorScript).brain)
+	board.add_source(KitchenWork.new(kitchen, brains))
+	board.set_needs_gate(kitchen.kept_for_meals)
 
 
 func set_readouts(activity: Callable, is_paused: Callable, jump: Callable, selection: Callable) -> void:

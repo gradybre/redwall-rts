@@ -29,6 +29,10 @@ const NightScript := preload("res://demo/burrow/night_routine.gd")
 const SleepTaskScript := preload("res://demo/burrow/sleep_task.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
+const BoardScript := preload("res://demo/work/work_board.gd")
+const KitchenWork := preload("res://demo/work/kitchen_work.gd")
+const TaskRecord := preload("res://demo/work/work_task.gd")
 
 const DT: float = 1.0 / 60.0
 ## Calendar ticks a frame at 1x: a game hour (750 ticks) every 2.5 s.
@@ -1010,3 +1014,87 @@ func _count_of(keys: PackedInt32Array, key: int) -> int:
 	for k: int in keys:
 		n += 1 if k == key else 0
 	return n
+
+
+# --- the kitchen on the work board (decision 0411 with 0381) -------------------------------------------------
+
+func _board(v: Village) -> BoardScript:
+	"""A work board over the village's residents with the kitchen's adapter and its meals gate (demo_work.gd
+	`add_kitchen`)."""
+	var who: Array = v.get_meta(&"who")
+	var board := BoardScript.new()
+	board.bind(v.brains, who[0], who[2])
+	board.add_source(KitchenWork.new(v.kitchen, v.brains))
+	board.set_needs_gate(v.kitchen.kept_for_meals)
+	return board
+
+
+func _role_holder(v: Village, role: int) -> int:
+	"""Who has kitchen `role` now (-1: nobody)."""
+	for i in v.brains.size():
+		if v.kitchen.role_of(i) == role:
+			return i
+	return -1
+
+
+func test_the_work_board_lists_the_cook_and_the_drawers_and_never_claims_them() -> void:
+	"""The cook's round and a water draw are rows on the Work screen in the kitchen's words, with their worker; the
+	board's commands refuse with the way to change them and change nothing; and the board keeps its hands off whoever
+	the kitchen has."""
+	var v := _village(3, tick_at(1, 2))
+	_stock(v, OATS, 10000)
+	_stock(v, CARROT, 12000)
+	_open(v)
+	var board := _board(v)
+	assert_false(v.kitchen.kept_for_meals(-1), "nobody by that number")
+	_run(v, 4 * 150, func() -> bool: return _role_holder(v, KitchenScript.ROLE_COOK) >= 0 \
+		and _role_holder(v, KitchenScript.ROLE_DRAW) >= 0)
+	var cook: int = _role_holder(v, KitchenScript.ROLE_COOK)
+	var drawer: int = _role_holder(v, KitchenScript.ROLE_DRAW)
+	assert_true(cook >= 0 and drawer >= 0, "a cook and a drawer at work (%d, %d)" % [cook, drawer])
+	var src := board.source(WorkIds.SOURCE_KITCHEN)
+	var task := TaskRecord.new()
+	assert_true(board.fill(WorkIds.SOURCE_KITCHEN, cook, task), "the cook's round is a row")
+	assert_equal([task.action, task.worker, task.cancel_refusal], [KitchenWork.COOK_ACTION, cook,
+		KitchenWork.BY_KITCHEN], "Cook, by its cook, run by the kitchen")
+	assert_false(task.reason.is_empty(), "in the kitchen's words")
+	assert_true(board.fill(WorkIds.SOURCE_KITCHEN, drawer, task), "the draw is a row")
+	assert_equal(task.action, KitchenWork.DRAW_ACTION, "Draw water")
+	assert_equal(task.point, v.places.well, "at the well")
+	for i in v.brains.size():
+		var role: int = v.kitchen.role_of(i)
+		assert_equal(src.live(i), role == KitchenScript.ROLE_COOK or role == KitchenScript.ROLE_DRAW,
+			"resident %d: a row only for the round or a draw" % i)
+	assert_false(board.cancel(WorkIds.SOURCE_KITCHEN, cook).is_empty(), "Cancel refuses")
+	assert_false(board.reassign(WorkIds.SOURCE_KITCHEN, drawer, cook).is_empty(), "Reassign refuses")
+	assert_equal([v.kitchen.role_of(cook), v.kitchen.role_of(drawer)], [KitchenScript.ROLE_COOK,
+		KitchenScript.ROLE_DRAW], "and nothing changed")
+	var counts := PackedInt32Array()
+	board.cancel_all_counts_into(counts)
+	assert_equal(counts[WorkIds.SOURCE_KITCHEN], 0, "Cancel all work leaves the kitchen alone")
+	assert_true(v.kitchen.kept_for_meals(cook) and v.kitchen.kept_for_meals(drawer), "kept for the meals")
+	assert_false(board.idle(cook) or board.idle(drawer), "so the board claims nothing for them")
+
+
+func test_the_work_board_hands_out_no_work_at_mealtime() -> void:
+	"""With breakfast on its way, a free resident who has not eaten is the meal's: the board's needs gate keeps it out
+	of claims until it has eaten; then it is free for work again."""
+	var v := _village(3, tick_at(1, 1))
+	_stock(v, OATS, 10000)
+	_stock(v, CARROT, 10000)
+	v.stores.water_milli_u = 20000
+	_open(v)
+	var board := _board(v)
+	var breakfast := Rules.meal_key(1, Rules.MEAL_BREAKFAST)
+	assert_false(v.kitchen.kept_for_meals(2), "before the meal: free for work")
+	assert_true(board.idle(2), "and the board may claim it")
+	assert_true(_run(v, 12 * 150, func() -> bool: return v.kitchen.serving() == breakfast \
+		and v.kitchen.meal_coming(breakfast)) < 12 * 150, "breakfast on its way")
+	v.kitchen.update()
+	assert_true(v.kitchen.kept_for_meals(2), "due at the table")
+	assert_false(board.idle(2), "so the board hands it no work")
+	_run(v, 12 * 150, func() -> bool: return v.kitchen.fed.had(2, breakfast) and v.kitchen.role_of(2) \
+		== KitchenScript.ROLE_NONE)
+	assert_true(v.kitchen.fed.had(2, breakfast), "it ate")
+	assert_false(v.kitchen.kept_for_meals(2), "fed and done: the meals let it go")
+

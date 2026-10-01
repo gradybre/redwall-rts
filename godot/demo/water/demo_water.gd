@@ -257,7 +257,8 @@ static func view_bounds(world_bounds: AABB) -> AABB:
 
 
 func _bank_material() -> ShaderMaterial:
-	"""The bank film's material: locked-pigment muds (world_look.gd) over a seeded noise."""
+	"""The bank film's material: the world's mud and bed targets (world_look.gd `bank_targets`, decision
+	0301) over a seeded noise."""
 	var noise := FastNoiseLite.new()
 	noise.seed = BANK_NOISE_SEED
 	noise.frequency = 0.04
@@ -268,8 +269,6 @@ func _bank_material() -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = BANK_SHADER
 	material.render_priority = 0
-	material.set_shader_parameter(&"mud_dry", Look.UMBER.lerp(Look.LEAF, 0.3).lerp(Look.TIMBER, 0.1))
-	material.set_shader_parameter(&"mud_wet", Look.UMBER.lerp(Look.INK, 0.5))
-	material.set_shader_parameter(&"bed_color", Look.UMBER.lerp(Look.INK, 0.5).lerp(Look.BRASS, 0.15))
+	Look.set_targets(material, Look.bank_targets())
 	material.set_shader_parameter(&"noise", texture)
 	return material

@@ -516,7 +516,7 @@ func selection_count() -> int:
 
 
 func is_selected(actor_index: int) -> bool:
-	"""Whether this resident is selected (per-frame safe: no array made; the village map's dots)."""
+	"""Whether this resident is selected (no array is built: the village map's dots and the canopy's per-frame check)."""
 	return actor_index >= 0 and actor_index < _selected.size() and _selected[actor_index] != 0
 
 

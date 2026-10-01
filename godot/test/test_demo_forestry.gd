@@ -1085,19 +1085,6 @@ static func _world_y_range(part: MeshInstance3D) -> Vector2:
 	return out
 
 
-func test_the_mound_heights_are_above_the_ground_after_the_sink() -> void:
-	"""What stands of a mound once the tree is let down by its sink: the profile less the sink, never
-	below the ground, scaled by the size."""
-	assert_almost_equal(Roots.height_at(StandScript.LOOK_OAK, 1.0, 2.0), 1.4 - 1.2, "the oak's flare at 2 m")
-	assert_almost_equal(Roots.height_at(StandScript.LOOK_OAK, 1.0, 3.0), 0.0, "the oak's mound is buried at 3 m")
-	assert_almost_equal(Roots.height_at(StandScript.LOOK_OAK, 0.95, 1.9), (1.4 - 1.2) * 0.95, "scaled by the size")
-	assert_almost_equal(Roots.height_at(StandScript.LOOK_BEECH, 1.0, 1.0), 0.61 - 0.5, "the beech's flare at 1 m")
-	assert_almost_equal(Roots.height_at(StandScript.LOOK_BEECH, 1.1, 2.75), 0.0, "the beech's mound is buried")
-	for look: int in StandScript.LOOK_KEYS.size():
-		for step: int in 60:
-			assert_true(Roots.height_at(look, 1.0, float(step) * 0.1) >= 0.0, "never below the ground")
-
-
 func test_the_sink_is_the_worlds_and_the_cut_is_measured_from_the_ground() -> void:
 	"""forest_roots takes each look's sink from world_sizes.gd, and the cut above the ground is the
 	cut in the model less the sink."""
@@ -1110,15 +1097,19 @@ func test_the_sink_is_the_worlds_and_the_cut_is_measured_from_the_ground() -> vo
 	assert_almost_equal(Roots.cut_m(StandScript.LOOK_BEECH, 1.0), 0.95 - 0.5, "the beech 0.45 m up")
 
 
-func test_the_walkers_are_lifted_only_onto_what_stands_of_the_mound() -> void:
-	"""forest_lift.gd reads the sunk mound: onto the oak's flare near the trunk, the bare ground at 3 m
-	where the mound used to lift a walker 1.07 m."""
+func test_the_woods_stand_walkers_on_the_staged_roots_turned_with_each_tree() -> void:
+	"""demo_forestry.gd hands the lift the view's root fields (forest_root_field.gd, decision 0301) and
+	its mound scale: a staged tree's field is baked, and the lift reads it through the view's scale (the
+	field's own lookups are test_forest_root_field.gd's)."""
 	var stand := _stand_of(_three())
+	var view := _staged_view(stand)
+	var fields: Array = view.root_fields()
+	assert_not_null(fields[StandScript.LOOK_OAK], "the oak's field is baked from its model")
+	assert_almost_equal(view.mound_scale(0), 1.0, "a standing oak's roots at full size")
 	var lift := LiftScript.new()
 	lift.configure(stand, null)
-	var oak: Vector2 = stand.at[0]
-	assert_almost_equal(lift.height_at(oak + Vector2(2.0, 0.0)), 1.4 - 1.2, "on the flare")
-	assert_almost_equal(lift.height_at(oak + Vector2(0.0, 3.0)), 0.0, "on the ground over the buried mound")
+	lift.use_fields(view.root_fields(), view.mound_scale)
+	assert_almost_equal(lift.height_at(stand.at[0] + Vector2(3.0, 0.0)), 0.0, "the fake column has no roots")
 
 
 func test_a_staged_tree_is_drawn_let_down_by_its_sink() -> void:

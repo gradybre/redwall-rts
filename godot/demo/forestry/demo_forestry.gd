@@ -46,6 +46,7 @@ const PickScript := preload("res://demo/forestry/forest_pick.gd")
 const ZoneToolScript := preload("res://demo/forestry/forest_zone_tool.gd")
 const TextScript := preload("res://demo/forestry/forest_text.gd")
 const LiftScript := preload("res://demo/forestry/forest_lift.gd")
+const RootFieldScript := preload("res://demo/forestry/forest_root_field.gd")
 const Yard := preload("res://demo/forestry/forest_yard.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
@@ -117,10 +118,12 @@ var _ground: Vector2 = Vector2.ZERO
 
 static func extra_obstacles(world: DemoWorldScript) -> Array[Vector3]:
 	"""The circles the cast must also walk round for the woods' work: the woods' trees, stumps and
-	rocks out to the forestry reach, and the wood yard's pieces (demo_village.gd merges them in before
-	the cast is built)."""
-	var out: Array[Vector3] = world.woods_obstacles(Rules.REACH_M + Rules.WORK_MARGIN_M + 3.0)
+	rocks out to the forestry reach, the wood yard's pieces, and the staged trees' proud roots (decision
+	0301: forest_root_field.gd) -- demo_village.gd merges them in before the cast is built."""
+	var reach: float = Rules.REACH_M + Rules.WORK_MARGIN_M + 3.0
+	var out: Array[Vector3] = world.woods_obstacles(reach)
 	out.append_array(Yard.obstacles())
+	out.append_array(RootFieldScript.root_obstacles(world.trees(), world.tree_node, reach))
 	return out
 
 
@@ -184,6 +187,7 @@ func _build_views() -> void:
 	view = ViewScript.new()
 	add_child(view)
 	view.configure(stand, _world.tree_node, _world.make_piece, services.props)
+	view.set_occupied(_occupied)
 	yard_view = YardViewScript.new()
 	add_child(yard_view)
 	yard_view.configure(services.stores, deadfall, services.props, _world.make_piece)
@@ -196,6 +200,7 @@ func _build_views() -> void:
 	panel.action.connect(on_action)
 	view.sync(_day, services.calendar.now().hour)
 	lift.configure(stand, _cast)
+	lift.use_fields(view.root_fields(), view.mound_scale)
 	lift.enabled = view.staged
 
 

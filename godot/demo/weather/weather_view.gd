@@ -3,25 +3,35 @@ extends Node3D
 ## demo_weather.gd says and changes nothing else.
 ##
 ## RAIN falls as pale streaks and SNOW as drifting flakes, from a box of sky that follows the camera's
-## view of the ground, so the village is always under it at any zoom; FROST and SNOW lay a thin white
-## veil over the ground. The sun dims and the haze thickens toward each condition's LOOK (demo
-## values) -- a grey rainy day, a bright cold one -- and the change eases in over EASE_S of demo time.
-## Particles run at the game's speed (paused: they hang in the air). The falls and the veil are on the
-## surface layer, which the underground view does not draw (decision 0206) -- nothing here hides for it.
+## view of the ground, so the village is always under it at any zoom. The sun dims and the haze thickens
+## toward each condition's LOOK (demo values) -- a grey rainy day, a bright cold one -- and the change
+## eases in over EASE_S of demo time. Particles run at the game's speed (paused: they hang in the air).
 ##
-## Everything is built once; per frame it only moves the sky box and eases a few numbers.
+## FROST AND SNOW LIE ON THINGS (decision 0301, review F42 -- they were a 60 m white sheet following the
+## camera, laid over the water as well as the ground). Now the cover is a property of the SURFACES, in
+## world space, so it has no edge: the ground's and the bank film's own shaders take `snow_cover` and
+## `frost_cover` (demo_ground.gdshader, water_bank.gdshader FROST AND SNOW), and every building and
+## prop in the village wears snow_cover.gdshader as its material_overlay while any lies -- on what faces
+## up, roofs and lids, never at or below the water line. The water surfaces are not touched: liquid
+## water never whitens. Snow is a fuller, whiter cover than frost (COVER, FROSTY).
+## The falls and the cover are on the surface layer, which the underground view does not draw (decision
+## 0206) -- nothing here hides for it.
+##
+## Everything is built once; per frame it only moves the sky box and eases a few numbers (and, as a
+## cover comes or goes, puts the overlay on or takes it off the village's meshes).
 
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
 const DemoClockScript := preload("res://demo/demo_clock.gd")
 
 ## Per condition (CLEAR, RAIN, SNOW, FROST): the sun's energy as a share of the world's, the haze
-## density added, and the ground veil's opacity.
+## density added, how much frost or snow lies, and how much of that is frost.
 ## Rain's were 0.45 and 0.012 until the playtest (decision 0205): about six and a half times the clear
 ## haze read as a heavy grey fog over the village. Now a shower dims the light by a quarter and adds
 ## about the clear day's haze again; the streaks are what say it rains.
 const SUN_SHARE: Array[float] = [1.0, 0.75, 0.7, 0.85]
 const FOG_ADD: Array[float] = [0.0, 0.0024, 0.008, 0.002]
-const VEIL_ALPHA: Array[float] = [0.0, 0.0, 0.42, 0.22]
+const COVER: Array[float] = [0.0, 0.0, 1.0, 0.6]
+const FROSTY: Array[float] = [0.0, 0.0, 0.0, 1.0]
 const EASE_S: float = 3.0
 const SKY_HALF_M: float = 18.0
 const SKY_HEIGHT_M: float = 9.0
@@ -29,11 +39,19 @@ const SKY_HEIGHT_M: float = 9.0
 const SKY_BELOW_CAMERA: float = 0.6
 const RAIN_COUNT: int = 2600
 const SNOW_COUNT: int = 2200
-const VEIL_SIZE_M: float = 60.0
-const VEIL_LIFT_M: float = 0.02
 const RAIN_COLOUR: Color = Color(0.8, 0.86, 0.94, 0.3)
 const SNOW_COLOUR: Color = Color(0.97, 0.98, 1.0, 0.95)
-const VEIL_COLOUR: Color = Color(0.93, 0.95, 0.98)
+## The lying cover's colour: a cool white (the falling flakes' own, less the sky's tint).
+const COVER_COLOUR: Color = Color(0.93, 0.95, 0.98)
+## Below this cover the overlay is taken off the village's meshes (it would draw nothing).
+const COVER_OFF: float = 0.01
+const COVER_NOISE_SEED: int = 41
+const COVER_SHADER := preload("res://demo/weather/snow_cover.gdshader")
+const WaterLayout := preload("res://demo/water/water_layout.gd")
+const DemoWorldScript := preload("res://demo/world/demo_world.gd")
+const WaterRules := preload("res://demo/water/water_rules.gd")
+const PARAM_COVER: StringName = &"snow_cover"
+const PARAM_FROST: StringName = &"frost_cover"
 
 var _weather: WeatherScript = null
 var _clock: DemoClockScript = null
@@ -43,15 +61,24 @@ var _sun_energy: float = 1.0
 var _fog: float = 0.0
 var _rain: CPUParticles3D = null
 var _snow: CPUParticles3D = null
-var _veil: MeshInstance3D = null
-var _veil_material: StandardMaterial3D = null
+## The materials the cover is set on: the ground's and the bank film's shaders, and the overlay.
+var _cover_materials: Array[ShaderMaterial] = []
+var _overlay: ShaderMaterial = null
+## The village's buildings and props, which wear the overlay while a cover lies.
+var _overlaid: Array[GeometryInstance3D] = []
+var _overlay_on: bool = false
+## While the boot prewarm's frame step runs, the overlay stays on whatever the cover (see begin_prewarm).
+var _prewarming: bool = false
 var _share: float = 1.0
 var _fog_add: float = 0.0
-var _veil_alpha: float = 0.0
+var _cover: float = 0.0
+var _frost: float = 0.0
 
 
 func configure(weather: WeatherScript, clock: DemoClockScript, world: Node) -> void:
-	"""Draw this weather on this clock, dimming `world`'s sun and haze (none: particles only)."""
+	"""Draw this weather on this clock, dimming `world`'s sun and haze and laying its cover (none:
+	particles only). Configured again with the world (tunnel_ext.gd), it keeps its particles and finds the
+	world's surfaces afresh."""
 	name = "WeatherView"
 	_weather = weather
 	_clock = clock
@@ -63,10 +90,11 @@ func configure(weather: WeatherScript, clock: DemoClockScript, world: Node) -> v
 		_sun_energy = _sun.light_energy
 	if _environment != null:
 		_fog = _environment.fog_density
-	_rain = _particles(RAIN_COUNT, _streak_mesh(), Vector3(0.0, -12.0, 0.0), 0.75)
-	_snow = _particles(SNOW_COUNT, _flake_mesh(), Vector3(0.0, -1.2, 0.0), 3.8)
-	_snow.spread = 25.0
-	_build_veil()
+	if _rain == null:
+		_rain = _particles(RAIN_COUNT, _streak_mesh(), Vector3(0.0, -12.0, 0.0), 0.75)
+		_snow = _particles(SNOW_COUNT, _flake_mesh(), Vector3(0.0, -1.2, 0.0), 3.8)
+		_snow.spread = 25.0
+	_build_cover(world)
 	_apply_targets(1.0)
 
 
@@ -118,17 +146,67 @@ static func _unshaded(colour: Color) -> StandardMaterial3D:
 	return material
 
 
-func _build_veil() -> void:
-	"""The thin white veil of frost or snow over the ground, following the view."""
-	var plane := PlaneMesh.new()
-	plane.size = Vector2(VEIL_SIZE_M, VEIL_SIZE_M)
-	_veil_material = _unshaded(Color(VEIL_COLOUR, 0.0))
-	_veil = MeshInstance3D.new()
-	_veil.mesh = plane
-	_veil.material_override = _veil_material
-	_veil.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_veil.visible = false
-	add_child(_veil)
+func _build_cover(world: Node) -> void:
+	"""Find what the cover lies on (see FROST AND SNOW): the ground's and the bank film's materials, and
+	the village's buildings and props for the overlay; make the overlay."""
+	_wear_overlay(false)
+	_cover_materials.clear()
+	_overlaid.clear()
+	_overlay = ShaderMaterial.new()
+	_overlay.shader = COVER_SHADER
+	_overlay.set_shader_parameter(&"noise", _cover_noise())
+	_cover_materials.append(_overlay)
+	if world == null:
+		_set_surface_targets()
+		return
+	var ground := world.find_child("Ground", true, false) as MeshInstance3D
+	var bank := world.get_parent().find_child("WaterBank", true, false) as MeshInstance3D if world.get_parent() != null else null
+	for surface: MeshInstance3D in [ground, bank]:
+		var material := surface.get_active_material(0) as ShaderMaterial if surface != null else null
+		if material != null:
+			_cover_materials.append(material)
+	_collect_overlaid(world)
+	_set_surface_targets()
+
+
+func _set_surface_targets() -> void:
+	"""Every cover material's colour and the water line it stops at (the water's own level)."""
+	var water_y: float = -WaterRules.to_m(WaterLayout.LEVEL_DROP_U)
+	for material: ShaderMaterial in _cover_materials:
+		material.set_shader_parameter(&"snow_color", COVER_COLOUR)
+		material.set_shader_parameter(&"water_level_y", water_y)
+
+
+func _collect_overlaid(world: Node) -> void:
+	"""The meshes under the world's village that wear the overlay: every building, prop and dressing piece,
+	not its trees (whose crowns are not roofs) nor the ground cover's MultiMeshes."""
+	var village: Node = world.get_node_or_null(^"Village")
+	if village == null:
+		return
+	var trees: Dictionary = {}
+	var demo_world := world as DemoWorldScript
+	if demo_world != null:
+		for i: int in demo_world.trees().size():
+			trees[demo_world.tree_node(i)] = true
+	for piece: Node in village.get_children():
+		if trees.has(piece) or piece is MultiMeshInstance3D:
+			continue
+		for node: Node in piece.find_children("*", "MeshInstance3D", true, false):
+			_overlaid.append(node as GeometryInstance3D)
+		if piece is MeshInstance3D:
+			_overlaid.append(piece as GeometryInstance3D)
+
+
+static func _cover_noise() -> NoiseTexture2D:
+	"""The overlay's patchiness: a seamless, seeded noise."""
+	var noise := FastNoiseLite.new()
+	noise.seed = COVER_NOISE_SEED
+	noise.frequency = 0.05
+	var texture := NoiseTexture2D.new()
+	texture.seamless = true
+	texture.generate_mipmaps = true
+	texture.noise = noise
+	return texture
 
 
 func _process(_delta: float) -> void:
@@ -155,21 +233,51 @@ func _set_emitting(particles: CPUParticles3D, on: bool) -> void:
 
 
 func _apply_targets(weight: float) -> void:
-	"""Ease the sun, the haze and the veil `weight` of the way toward the current condition's look."""
+	"""Ease the sun, the haze and the cover `weight` of the way toward the current condition's look."""
 	var condition := _weather.condition()
 	_share = lerpf(_share, SUN_SHARE[condition], weight)
 	_fog_add = lerpf(_fog_add, FOG_ADD[condition], weight)
-	_veil_alpha = lerpf(_veil_alpha, VEIL_ALPHA[condition], weight)
+	_cover = lerpf(_cover, COVER[condition], weight)
+	_frost = lerpf(_frost, FROSTY[condition], weight)
 	if _sun != null:
 		_sun.light_energy = _sun_energy * _share
 	if _environment != null:
 		_environment.fog_density = _fog + _fog_add
-	_veil_material.albedo_color.a = _veil_alpha
-	_veil.visible = _veil_alpha > 0.01
+	for material: ShaderMaterial in _cover_materials:
+		material.set_shader_parameter(PARAM_COVER, _cover)
+		material.set_shader_parameter(PARAM_FROST, _frost)
+	_wear_overlay(_cover > COVER_OFF)
+
+
+func begin_prewarm() -> void:
+	"""The boot prewarm's frame step (demo_prewarm.gd, decisions 0205/0206): the village wears the overlay
+	for its frames -- drawn, so its pipelines compile, but with no cover, so nothing shows."""
+	_prewarming = true
+	_set_overlay(true)
+
+
+func end_prewarm() -> void:
+	"""Back to what the weather says (no overlay on a clear day)."""
+	_prewarming = false
+	_set_overlay(_cover > COVER_OFF)
+
+
+func _wear_overlay(on: bool) -> void:
+	"""Put the cover's overlay on the village's buildings and props, or take it off (only on a change)."""
+	if on != _overlay_on and not _prewarming:
+		_set_overlay(on)
+
+
+func _set_overlay(on: bool) -> void:
+	"""Put the overlay on every village mesh, or take it off."""
+	_overlay_on = on
+	for mesh: GeometryInstance3D in _overlaid:
+		if is_instance_valid(mesh):
+			mesh.material_overlay = _overlay if on else null
 
 
 func _follow_view() -> void:
-	"""Centre the sky box and the veil on where the camera looks at the ground."""
+	"""Centre the sky box on where the camera looks at the ground."""
 	if not is_inside_tree():
 		return
 	var camera := get_viewport().get_camera_3d()
@@ -182,7 +290,6 @@ func _follow_view() -> void:
 	var sky := minf(SKY_HEIGHT_M, origin.y * SKY_BELOW_CAMERA)
 	_rain.global_position = Vector3(focus.x, sky, focus.z)
 	_snow.global_position = Vector3(focus.x, sky * 0.6, focus.z)
-	_veil.global_position = Vector3(focus.x, VEIL_LIFT_M, focus.z)
 
 
 func sun_share() -> float:
@@ -190,9 +297,24 @@ func sun_share() -> float:
 	return _share
 
 
-func veil_alpha() -> float:
-	"""The ground veil's current opacity (for checks)."""
-	return _veil_alpha
+func cover() -> float:
+	"""How much frost or snow lies now, 0..1 (for checks)."""
+	return _cover
+
+
+func frost() -> float:
+	"""How much of the cover is frost rather than snow, 0..1 (for checks)."""
+	return _frost
+
+
+func overlaid_count() -> int:
+	"""How many of the village's meshes wear the cover's overlay now (for checks)."""
+	return _overlaid.size() if _overlay_on else 0
+
+
+func cover_materials() -> Array[ShaderMaterial]:
+	"""The materials the cover is set on: the overlay, then the ground's and the bank's (for checks)."""
+	return _cover_materials
 
 
 func raining() -> bool:

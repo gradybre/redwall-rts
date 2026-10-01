@@ -14,7 +14,7 @@ feed the simulation. `scenes/main.tscn` is untouched.
 ## Run it
 
 ```
-python3 tools/stage_demo_assets.py      # copy and make the library assets (gitignored, ~2.8 GB)
+python3 tools/stage_demo_assets.py      # copy and make the library assets (gitignored, ~2.8 GB; the weir's structure too)
 godot --path godot demo/demo_village.tscn
 ```
 
@@ -50,7 +50,9 @@ with `RedwallDemo.exe`, its `.pck` and a README, zipped -- that boots straight i
   `demo_prewarm.gd` loads at boot what would first load mid-game -- every staged prop and icon, every
   plant's card atlases, the woods' stumps, saplings and tree splits (about 0.13 s on the Mac, timed in
   its `report`) -- and the clock starts only once the first three frames are drawn, and then two frames
-  of the underground view with a sample of everything it can show (decision 0206). While the banner
+  of the underground view with a sample of everything it can show (decision 0206), two of the canopy's
+  fade and the selected residents' silhouette, and two of the frost and snow overlay on the village
+  (decision 0301), so a first fade, a first selection under a crown and a first frost cost no compile. While the banner
   is up it is the one overload surface (the HUD's CLOCK_OVERLOADED card is withheld); Resume resolves
   the notice, and a 2x/4x step-down warning (no pause) is resolved once the clock has run 10 s quiet.
 
@@ -87,7 +89,12 @@ that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
   So over a spell the rain that slows walkers is the rain that wets the beds. Frost nights (the farm's
   demo overlay) read as frost. Rain slows surface walking to 80%, snow to 60%, frost to 85%; tunnels
   are not slowed, so walkers take them in bad weather. Rain and snow fall; a shower dims the light by
-  a quarter and adds a little haze (the streaks say it rains -- no grey fog).
+  a quarter and adds a little haze (the streaks say it rains -- no grey fog). Frost and snow LIE ON
+  THINGS (decision 0301, review F42 -- they were a 60 m white sheet following the camera, over the water
+  as well): the ground's and the bank film's own shaders take the cover in world space, so it has no
+  edge, on what faces up, thinner on the worn paths, never at or below the water line; the village's
+  buildings and props wear a cover overlay (roofs, lids, the tops of stones) while any lies. The water
+  never whitens. Snow lies fully, frost patchily at about half (`weather/weather_view.gd` COVER).
 - **One water adapter** (`village_water.gd`, `demo_village.water()`) over the real water map
   (`water/water_map.gd`, see Water): the farm's water-edge query (irrigation: dry ground within 2.5 m
   of the waterline), the tunnels' wet ground (within 4.5 m), their flood (the stream spills over the
@@ -210,6 +217,7 @@ day"). **Details** in the bed panel shows the harvest's multiplication and the r
 | Right click deep water | Swimmers swim out and tread water there; an otter over water deeper than it is tall dives; a non-swimmer is refused by name (see Water gameplay) |
 | Right click / left click a bridge site | Build the planned bridge there with the selection / select the site for the Water panel |
 | Middle-button drag | Turn the camera: across turns it (right turns right, as E), up and down tilt it |
+| (any camera move) | The eye never sits inside a tree crown, the crowns between it and what it looks at are thinned, and a selected resident shows through foliage and roofs (see The camera and the trees) |
 | Left click a spoil heap | Select it: a brass ring, and the party panel says how much spoil it holds |
 | Right click a spoil heap (or C with it selected) | The selected residents who can carry dig it out and haul it to the farm's compost store (Clear; see Spoil heaps) |
 | V | The one map-overlay cycle: the farm's moisture, its ripeness, the water's zones and fishery (wade / swim / dive, fords, bridge spans, landings, fish stocks), the woods' zones and trees, off |
@@ -225,6 +233,25 @@ called away from a job it had not finished (a tunnel job, a dig, a farm or a woo
 **comes back to it** when the work that took it is done -- the latest three are kept, the panel says
 "Then back to: ...", and R (release) forgets them. Orders move the demo cast only, never the
 simulation.
+
+## The camera and the trees
+
+The woods are dense, and the orbit camera used to sit inside a crown (review F53: the NW oak at 11 m,
+pitch 30, was a screen of leaves) while a selected worker under one, or behind a roof, could not be seen.
+`camera/canopy_clear.gd` (decision 0301) answers with three things, each scoped to what is in the way:
+
+- **The eye.** If the eye would sit inside a tree crown -- each crown an ellipsoid cut at its base,
+  measured from the staged oak and beech (`camera/canopy_math.gd`) -- it is moved along its own line out
+  past the crown's far side (at most 25 m farther), or failing that in short of its near side (never
+  nearer the focus than 3 m). The move is made the same frame; the zoom you asked for comes back by
+  itself once the way is clear (`camera/demo_camera.gd` CLEARANCE).
+- **The crowns in the way.** Only the crowns the lines from the eye to the focus and to each selected
+  resident pass through, and any crown at the lens, are thinned -- an opaque-pass dither above the crown's
+  base (`camera/canopy_fade.gdshader`), at most eight, easing in and out in a fifth of a second. The trunk
+  stays whole, the shadow on the ground stays whole, the rest of the woods is untouched.
+- **The selected.** A selected resident wears a brass silhouette drawn only where something more than
+  0.6 m nearer covers it (`camera/selected_xray.gdshader`): through a crown or a roof, never through the
+  grass at its feet.
 
 ## Digging tunnels
 
@@ -670,11 +697,21 @@ Residents work trees within 30 m of the square (`forestry/forest_rules.gd` REACH
 - **Drawing** (`forestry/forest_view.gd`): a felled tree is cut above its root mound -- its model split
   once per kind (`forest_split.gd`) -- and the trunk and crown topple away from the feller, land in a
   burst of leaves and dust and give way to the felled trunk (the beaver's: the gnawed log); the stump
-  wears the fresh-cut oak stump for a season, then the mossy one, and grows a shoot. The staged trees
+  wears the fresh-cut oak stump for a season, then the mossy one, and grows a shoot. A regrowing tree
+  (decision 0301, review F52) climbs one height ramp over its 48 days: the shoot or sapling first, then,
+  once the ramp passes the sapling's full size (about a quarter of the way), the tree's own mature model
+  scaled down to the ramp's height -- about a third at the swap, the heights equal either side -- let
+  down by the same share of its sink, at the tree's centre, with the stump and stub gone; it reaches full
+  size the midnight it matures. A spot something stands on keeps its shoot. The staged trees
   and the plinth buildings are let down into the ground by their own measured base (decision 0205,
   `world/world_sizes.gd SINK_M`: oak 1.2 m, beech 0.5, residence 0.42, store 0.12, kitchen 0.11,
-  workbench 0.07), so roots run into the ground and walls rise out of it; residents walking over what
-  stands of a root flare are lifted onto it (`forest_lift.gd`). The yard by the workbench holds
+  workbench 0.07), so roots run into the ground and walls rise out of it. Residents stand on the roots
+  where the roots are (decision 0301, review F40): each staged model's own support heightfield is baked
+  from its mesh at boot (`forest_root_field.gd`, 12.5 cm cells, about 8 ms a model) and read in the
+  tree's own frame -- its spot, its yaw, its size, a young tree's share -- so a walker rises onto a root
+  and stays on the ground in the hollow beside it (`forest_lift.gd`). Roots standing more than 0.45 m
+  proud are walked round instead: a flare circle about each staged trunk and up to fifteen lobe circles
+  join the cast's obstacles. The yard by the workbench holds
   the sawhorse, the plank stack (as tall as the planks), a second woodpile (as tall as the wood), the
   chopping block and the sapling baskets.
 - **For bridges and boats next**: the planks are `tunnel_stores.gd` `plank_milli_u` with
@@ -689,7 +726,15 @@ A stream runs down the village's east edge -- narrowing to a neck at the north-e
 the weir and the mill, spreading into a shallow ford where the east road crosses it, then deepening
 by the fisher shelter -- into a pond beyond the south-east corner with a boathouse on its shore.
 It lies east of the ±20 m square; the walking area is widened over it (see Water gameplay), and
-nothing in the village moved. The ground is carved into banks and beds; the surface flows at the stream's own speed and
+nothing in the village moved. **The weir** (decision 0301, review F41) is the library weir's structure,
+not its diorama: `tools/make_demo_weir.py` strips the L0's baked pool, tail water and earth slab, and
+`water/weir_fit.gd` fits what is left to the stream -- its ends moved out onto both banks (0.7 m past each
+waterline, the gaps filled with its own plain wall), its piers' and wall's foot let down to the bed, and
+a stone sill under the wall from bank to bank on the bed -- in the demo's one water surface. Its crest
+stands where the model has it. It stands at z = -16.2, 2.2 m upstream of its first spot, clear of the
+`weir_bank` landing; the one swim link that crossed where it now stands is gone (22 remain). Unstaged,
+a plain wall and sill of the same fitted span stand in for it. The ground and water colours answer to
+the world-art direction (DEC-038), not the UI pigment lock: `world/world_look.gd` WORLD MATERIAL TARGETS. The ground is carved into banks and beds; the surface flows at the stream's own speed and
 stops when the game pauses. V's overlay cycle ends on the zones and the live fishery. The fishery
 runs on the demo's one calendar (its days are the farm's and the HUD's). A flood (the tunnels' threat)
 raises the stream up its banks at the ford.
@@ -798,5 +843,5 @@ A heap still growing under a dig is refused. The party panel says who is "Cleari
 | `demo_layers.gd` | The four render layers every drawn node is on, and the plane each view picks on (decision 0206) |
 | `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |
 | `ui/` | The woodland HUD skin; the HUD date, the news strip and the right column's tabs; the HUD's village read model (counters and ledger), the Residents roster and the village map |
-| `camera/` | The RTS camera |
+| `camera/` | The RTS camera, and the canopy clearance: the eye kept out of crowns, the crowns in the way thinned, the selected shown through |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

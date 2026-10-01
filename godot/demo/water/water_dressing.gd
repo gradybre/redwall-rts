@@ -23,6 +23,14 @@ extends RefCounted
 ## the demo surface and their base blocks hide beneath it and the bank. Reeds sink their mud plate
 ## 0.1 m into the bank. Presentation only.
 ##
+## THE WEIR is no longer a diorama (decision 0301, review F41): it is the library weir's STRUCTURE
+## (tools/make_demo_weir.py: the L0 less its baked water and earth slab, manifest key
+## `weir_structure`), drawn at the library weir's own scale and sink and FITTED to the stream
+## (weir_fit.gd): its ends out on both banks, its foot and a stone sill down on the bed, in the demo's
+## one water surface. It stands 2.2 m upstream of its first spot, clear of the `weir_bank` landing (the
+## swimmers' way in at z = -14.0), where the stream is still 4.1 m wide (GDD §5.4: 4-12 m). Its
+## footprint is the fitted one, so the cast, the woods and the ground cover keep off its abutments.
+##
 ## THE WATER'S SMALL PROPS (asset pass, tools/make_demo_props.py; sized by demo/props/demo_props.gd):
 ## a jetty runs out into the pond from the boathouse's front, the rowboat moored alongside it and the
 ## coracle off its end, a raft at the pond's west side; by the fisher shelter a fishing rod propped
@@ -45,6 +53,11 @@ const WaterLayout := preload("res://demo/water/water_layout.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
 const Rules := preload("res://demo/water/water_rules.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
+const WeirFit := preload("res://demo/water/weir_fit.gd")
+
+## The weir's derived structure in the staging manifest (tools/make_demo_weir.py).
+const WEIR_KEY: StringName = &"weir"
+const WEIR_STRUCTURE_KEY: StringName = &"weir_structure"
 
 ## Measured model bounds [min, max] in metres, from the staging manifest (tools/stage_demo_assets.py,
 ## WATER). Y-up, front +Z.
@@ -64,7 +77,7 @@ const PLACEMENTS: Array[Dictionary] = [
 		"sink": 1.02},
 	{"id": &"fisher_shelter", "key": &"fisher_shelter", "at": Vector2(22.9, 7.3),
 		"yaw_deg": 90.0, "sink": 0.84},
-	{"id": &"weir", "key": &"weir", "at": Vector2(23.8, -14.0), "yaw_deg": 0.0, "sink": 0.43},
+	{"id": &"weir", "key": &"weir", "at": Vector2(23.7, -16.2), "yaw_deg": 0.0, "sink": 0.43},
 	{"id": &"mill", "key": &"mill", "at": Vector2(27.9, -19.5), "yaw_deg": 0.0, "sink": 0.48},
 	{"id": &"creel_shelter", "key": &"fish_creel", "at": Vector2(19.75, 5.7), "yaw_deg": 25.0,
 		"sink": 0.0},
@@ -100,7 +113,7 @@ const REEDS: Array[Vector3] = [
 const POINTS: Array[Dictionary] = [
 	{"name": &"fishing_spot", "at": Vector2(19.35, 9.5), "face_to": Vector2(23.0, 8.6),
 		"activities": [&"collect_object", &"idle"], "capacity": 1},
-	{"name": &"weir_work", "at": Vector2(19.35, -13.1), "face_to": Vector2(23.8, -14.0),
+	{"name": &"weir_work", "at": Vector2(19.35, -13.1), "face_to": Vector2(23.7, -16.2),
 		"activities": [&"collect_object", &"idle"], "capacity": 1},
 	{"name": &"boat_landing", "at": Vector2(19.3, 19.25), "face_to": Vector2(22.9, 22.4),
 		"activities": [&"collect_object", &"wave_one_hand"], "capacity": 1},
@@ -156,9 +169,9 @@ static func placements() -> Array[Dictionary]:
 
 static func placement_circles(p: Dictionary) -> Array[Vector3]:
 	"""Layout circles (x, z, radius) ringing one placement's footprint -- world_layout.gd's ring
-	(`cell_grid`, `cell_radius`, `rotate_xz`) over this module's sizes."""
+	(`cell_grid`, `cell_radius`, `rotate_xz`) over this module's sizes (the weir's: its fitted span)."""
 	var out: Array[Vector3] = []
-	var rect: Rect2 = scaled_rect(p["key"], p["size"])
+	var rect: Rect2 = weir_rect(p) if p["key"] == WEIR_KEY else scaled_rect(p["key"], p["size"])
 	var grid: Vector2i = Layout.cell_grid(rect)
 	var cell := Vector2(rect.size.x / grid.x, rect.size.y / grid.y)
 	var radius: float = Layout.cell_radius(rect)
@@ -170,6 +183,30 @@ static func placement_circles(p: Dictionary) -> Array[Vector3]:
 			var world: Vector2 = (p["at"] as Vector2) + Layout.rotate_xz(local, p["yaw"])
 			out.append(Vector3(world.x, world.y, radius))
 	return out
+
+
+static func weir_scale(p: Dictionary) -> float:
+	"""The weir's drawn scale: the library weir's own (its structure is drawn the same size), at its size."""
+	var bound: Array = native_bound(WEIR_KEY)
+	return uniform_scale(WEIR_KEY, bound[0], bound[1]) * float(p["size"])
+
+
+static func weir_axis(p: Dictionary) -> Vector2:
+	"""The weir's model +X on the ground: across the stream (Basis(UP, yaw) * X)."""
+	var x: Vector3 = Basis(Vector3.UP, float(p["yaw"])) * Vector3.RIGHT
+	return Vector2(x.x, x.z)
+
+
+static func weir_gaps(p: Dictionary) -> Vector2:
+	"""How far the weir's ends move out to stand on the banks (weir_fit.gd `gaps`, model units)."""
+	return WeirFit.gaps(WeirFit.channel_span(p["at"], weir_axis(p)), weir_scale(p))
+
+
+static func weir_rect(p: Dictionary) -> Rect2:
+	"""The fitted weir's footprint in its own XZ frame at drawn scale (x along +X, y along +Z)."""
+	var rect: Rect2 = WeirFit.fitted_rect(weir_gaps(p))
+	var s: float = weir_scale(p)
+	return Rect2(rect.position * s, rect.size * s)
 
 
 static func footprint_circles() -> Array[Vector3]:
@@ -242,7 +279,7 @@ static func build(parent: Node3D, world_manifest: Dictionary, map: WaterMapScrip
 	var all: Array[Dictionary] = placements()
 	all.append_array(reed_placements(map))
 	for p: Dictionary in all:
-		var piece: Node3D = _piece(world_manifest, scenes, p)
+		var piece: Node3D = weir_piece(world_manifest, map, p) if p["key"] == WEIR_KEY else _piece(world_manifest, scenes, p)
 		parent.add_child(piece)
 		made.append(piece)
 	var table: PropsScript = props if props != null else PropsScript.new()
@@ -285,6 +322,88 @@ static func _piece(world_manifest: Dictionary, scenes: Dictionary, p: Dictionary
 	var basis := Basis(Vector3.UP, float(p["yaw"])).scaled(Vector3.ONE * scale_factor * float(p["size"]))
 	piece.transform = Transform3D(basis, Vector3(at.x, Layout.GROUND_Y - float(p["sink"]), at.y))
 	return piece
+
+
+# --- the weir (decision 0301) ------------------------------------------------------------------------
+
+static func weir_piece(world_manifest: Dictionary, map: WaterMapScript, p: Dictionary) -> Node3D:
+	"""The weir fitted to the stream (see THE WEIR): the staged structure spread to the banks, its foot
+	let down and a sill laid on the bed under it -- or, unstaged, a box of the same fitted span standing
+	on the bed."""
+	var placed := Transform3D(Basis(Vector3.UP, float(p["yaw"])).scaled(Vector3.ONE * weir_scale(p)),
+		Vector3((p["at"] as Vector2).x, Layout.GROUND_Y - float(p["sink"]), (p["at"] as Vector2).y))
+	var ground_at: Callable = func(at: Vector2) -> float: return Rules.to_m(map.ground_height_at(Vector2i(Rules.to_u(at.x), Rules.to_u(at.y))))
+	var entry: Dictionary = world_manifest.get(String(WEIR_STRUCTURE_KEY), {})
+	var source: MeshInstance3D = _first_mesh_of(_scene({}, entry))
+	var piece: MeshInstance3D = MeshInstance3D.new()
+	piece.name = "Water_weir"
+	piece.transform = placed
+	if source == null:
+		piece.mesh = _weir_placeholder(weir_gaps(p), placed, ground_at)
+		return piece
+	piece.mesh = _weir_mesh(source, weir_gaps(p), placed, ground_at, _stone_rect(entry))
+	source.free()
+	return piece
+
+
+static func _weir_mesh(source: MeshInstance3D, gap: Vector2, placed: Transform3D, ground_at: Callable,
+		stone: Rect2) -> ArrayMesh:
+	"""The structure's surface spread and footed (in its mesh's own frame -- the staged structure is
+	exported with its transform applied), and the sill under it, drawn with the structure's material."""
+	var material: Material = source.get_active_material(0)
+	var structure: Array = WeirFit.spread(source.mesh.surface_get_arrays(0), gap)
+	WeirFit.let_down_foot(structure[Mesh.ARRAY_VERTEX], placed, ground_at)
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, structure)
+	mesh.surface_set_material(0, material)
+	var sill: Array = WeirFit.sill_arrays(WeirFit.END_LEFT - gap.x, WeirFit.END_RIGHT + gap.y, placed, ground_at, stone)
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, sill)
+	mesh.surface_set_material(1, _sill_material(material))
+	return mesh
+
+
+static func _sill_material(structure: Material) -> Material:
+	"""The structure's own material, its vertex colour shading each sill block, both sides drawn."""
+	var base := structure as BaseMaterial3D
+	if base == null:
+		return structure
+	var sill := base.duplicate() as BaseMaterial3D
+	sill.vertex_color_use_as_albedo = true
+	sill.cull_mode = BaseMaterial3D.CULL_DISABLED
+	return sill
+
+
+static func _weir_placeholder(gap: Vector2, placed: Transform3D, ground_at: Callable) -> ArrayMesh:
+	"""Unstaged: the sill over the fitted span and a plain wall standing on it, in timber."""
+	var arrays: Array = WeirFit.placeholder_arrays(WeirFit.END_LEFT - gap.x, WeirFit.END_RIGHT + gap.y, placed, ground_at)
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Look.TIMBER
+	material.vertex_color_use_as_albedo = true
+	material.roughness = 0.9
+	mesh.surface_set_material(0, material)
+	return mesh
+
+
+static func _stone_rect(entry: Dictionary) -> Rect2:
+	"""The structure's stone patch (manifest `stone_uv`: [u0, v0, u1, v1]); the whole map without one."""
+	var uv: Array = entry.get("stone_uv", [0.0, 0.0, 1.0, 1.0])
+	return Rect2(float(uv[0]), float(uv[1]), float(uv[2]) - float(uv[0]), float(uv[3]) - float(uv[1]))
+
+
+static func _first_mesh_of(scene: PackedScene) -> MeshInstance3D:
+	"""The first MeshInstance3D of an instanced scene, taken out of it (the rest freed); null without one."""
+	if scene == null:
+		return null
+	var root: Node = scene.instantiate()
+	var found: Array[Node] = root.find_children("*", "MeshInstance3D", true, false)
+	var mesh: MeshInstance3D = (root as MeshInstance3D) if root is MeshInstance3D else (found[0] as MeshInstance3D if not found.is_empty() else null)
+	if mesh != null and mesh != root:
+		mesh.get_parent().remove_child(mesh)
+	if mesh != root:
+		root.free()
+	return mesh
 
 
 static func _scene(scenes: Dictionary, entry: Dictionary) -> PackedScene:

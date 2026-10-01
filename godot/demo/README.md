@@ -257,7 +257,7 @@ same object its panel reads, and writes nothing into the settlement simulation:
 
 | Cell | Figure | Owner (and where else it shows) |
 |---|---|---|
-| Ready food | days of meals, one decimal, floored (`2.5 days`; decision 0381) | the kitchen: portions held plus the portions the stores' grain and roots would cook, over the portions the village eats a day; the ledger adds one line of the stock behind it, the portions, grain and roots (the Pantry's Kitchen tab, K) |
+| Ready food | days of meals, one decimal, floored (`2.5 days`; decision 0381) | the kitchen: portions held plus the portions the stores' grain, roots and fresh fish would cook (each dish at its own portions: decision 0436), over the portions the village eats a day; the ledger adds one line of the stock behind it, the portions, grain, roots and any fish (the Pantry's Kitchen tab, K) |
 | Planks (Fuel's slot) | U, one decimal | the village stores (Tunnels, Woods, Water panels) |
 | Wood / Stone | U, one decimal | the village stores (the same panels) |
 | Residents | count | the cast (the Residents roster) |
@@ -462,7 +462,8 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
 - **The work board** (`work/work_board.gd`) is the one common owner of who does what. Each job owner keeps its own
   board -- the farm's, the woods', the bridges', the tunnels' jobs, the rooms' fit-out, the spoil heaps' -- read
   through one adapter each (`farm_work.gd`, `woods_work.gd`, `bridge_work.gd`, `tunnel_work.gd`, `fit_out_work.gd`,
-  `spoil_work.gd`); every command goes to the owner's own function, so its conservation rules hold (decision 0222:
+  `spoil_work.gd`, and water part B's `fishery_work.gd`: trips' seats, traps, the rack, the mill and the gear, decision
+  0431); every command goes to the owner's own function, so its conservation rules hold (decision 0222:
   a load in hand is carried on, never paused or handed over from afar -- earth too: a farm job carrying earth back
   to its heap reads "Carry earth back", a delivery, and Cancel refuses it; decision 0401). The kitchen's cook and
   water drawers are listed as well (`kitchen_work.gd`; the kitchen hands them out itself), and the board hands no
@@ -1060,7 +1061,12 @@ Breakfast and supper, cooked from the pantry's real stock (`kitchen/`). Two dish
 porridge** at breakfast (the GDD's `porridge` row: grain 2 U + water 2 U, 12 WU) and **Togget's vegetable soup** at
 supper (its `root_stew` row: roots 3 U + water 1 U, 16 WU), each batch 2 portions of 1800 NP that keep 24 h, and 0.1 U
 of wood. Grain is wheat, barley or oats; roots are radish, turnip, carrot, beetroot, parsnip or onion (each crop's
-§5.6 row). If one dish's food is short the other is cooked.
+§5.6 row). If one dish's food is short the other is cooked. **The third dish** (water part B, decision 0436): at
+supper, whenever the stores hold a batch's fresh fish and roots nobody has set aside, the kitchen cooks **poached perch
+or trout** instead of the soup -- the GDD's `fish_stew` row: fresh fish 2 U (any of the six species) + roots 2 U + water
+2 U, 20 WU, 3 portions of 2200 NP that keep 24 h; both inputs reserved from real lots and withdrawn together. Dried fish is
+not the stew's `fish`: it is the village's reserve, eaten as it is by a hungry resident (1800 NP a unit, after anything
+spoiling sooner).
 
 - **The day** (decision 0421). Breakfast is called at 07:00 and served until 08:59; supper at 17:00 until 18:59, an
   hour before dusk (so whoever goes to eat raw food at its end has eaten before bed). The cook (the keeper; a free
@@ -1287,7 +1293,8 @@ raises the stream up its banks at the ford.
 zones, ground and bed height, flow, nearest bank, landings, ford and bridge candidates, and
 `segment_crosses_water` for tunnels. `water/fishing_driver.gd` runs the real fishing store
 (`scripts/core/fishing.gd`) on demo time -- the stream is the river habitat, the pond the lake --
-and returns each cycle's catch as species lots without touching any pantry. The depths and the
+and returns each cycle's catch as species lots; the fishery (water part B, below) opens, completes or cancels
+those cycles and lands the lots in the pantry. The depths and the
 zone thresholds are demo values (`water/water_rules.gd`); decision 0196 records them.
 
 ## Water gameplay
@@ -1364,6 +1371,50 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
   The **Water range** layer (V or the Map layer picker) paints the zones
   for its subject -- one resident's own height, or a group's, member by member (see Map layers) -- the bridge candidates, the swim links and the landings; the fishery's site labels are two
   lines each (quota and slots; each species' stock and state), laid out so they never overlap.
+
+## Fishing, boats, ice, the rack and the mill (water part B; decisions 0431-0436)
+
+Fishing trips feed the pantry through the real fishery (`fishery/`, `boats/`): the catch is debited from
+`scripts/core/fishing.gd`'s stock and quota and lands in the stores as its species.
+
+- **Authorise a trip** (Water panel ▸ Fishing): **Site ▸** the run, the ford or the pond; **Method ▸** a hand net or a
+  trap from the bank, a boat on the pond, ice fishing on the frozen pond; **Fish ▸** that water's fish (trout, dace,
+  salmon in the stream; perch, carp, whitefish in the pond -- never eel or pike; no coast here, so no herring, mackerel
+  or mussel). Before it is authorised the panel and the card show the stock and today's quota, any closure and when it
+  reopens, the expected catch, the gear's condition and the numerical risk (REQ-SET-055). **Authorise trip** puts its
+  seats on the work board (J), to the selected residents first.
+- **The methods** are the GDD's gear rows, each in its own role: a **hand net** (60 WU, one fisher, any fish), a **trap**
+  (set 20 WU, left 6 game hours, collected 20 WU; dace, perch, carp), a **boat** (two crew, 120 party-WU, the biggest
+  catch; the helm needs fishing 1, the second may be a learner) and **ice fishing** (an ice kit and a winter outfit, 90
+  WU, safe ice only). There is no line: the GDD has none.
+- **A trip**: the fisher fetches its gear from the locker by the fisher shelter, walks to the water, and the trip is
+  checked again there (a storm, a hard freeze, ice, a closure, the quota, worn gear: refused, nothing is taken and the
+  trip waits on the board saying why); the fishing cycle opens (its effort slots, the gear's durability claim, room held
+  in a store for the catch), the work is done, the store's catch is taken, and the catch is carried to the store. **Cancel
+  trip** releases everything at once; a catch out of the water is always landed. One called away sets its catch down
+  where it stands, for the next to fetch. A trip two game hours past its estimate is an OVERDUE warning.
+- **Boats** (Water panel ▸ Boats): two rowboats kept at the boathouse, moored at the **jetty** on the pond's west bank
+  (outside the boathouse). The crew wait at the jetty, board, row a **fixed route** to a fishing station and back, and
+  step off; out on the water they are held (nothing calls them off mid-pond). A boat wears 15 a trip and none sets out
+  below its wear (Mend gear). **Boat rescue**: a resident in difficulty at the pond's surface may be answered by a boat
+  -- when its crew's way is shorter than a swimmer's, or no swimmer is free -- rowed out, hauled aboard, landed at the
+  jetty.
+- **Gear** (Water panel ▸ Fishing): real gear in the locker (hand nets, traps, ice kits, winter outfits), each piece's
+  durability and cycles left shown; a worn piece is refused before a trip, never broken during one. **Make net / trap /
+  ice kit** at the workbench (the stores' wood, the locker's rope or iron: the village came with 4 U of rope and 2 U of
+  iron); **Mend gear** mends the most worn free piece or boat (wood 1 + rope 0.25 for 200 points).
+- **Winter ice**: the pond freezes in the cold (frozen at 10 mm, safe at 60 mm; a millimetre a game hour at −5 °C). Ice
+  stops boats, nets, traps and swimmers on the pond (a boat, net or trap out when it freezes is called in); THIN ICE is
+  a warning while it lasts; SAFE ICE takes ice fishers out to the hole. The Water range layer paints safe ice white and thin ice slate.
+- **The smoking rack** (Water panel ▸ Drying rack and mill ▸ **Dry fish**): the GDD's dryer running its `dry_fish` row --
+  4 U of the fresh fish that spoils first, hung (24 WU), cured 12 game hours in one of four slots (smoke rises), taken
+  down: 3 U of dried fish that keep 720 h.
+- **The mill** (**Mill grain**): 3 U of grain carried over the stream to the watermill, ground (12 WU, the wheel
+  churning), 3 U of flour back to the store whose room was held for it. No dish uses flour yet: every flour recipe needs nuts, mushrooms, berries,
+  fruit or honey, which the village does not have; it is stock for later.
+- **The Pantry's Stocks** lists each fish species, dried fish and flour like the crops (the Recipes tab still lists the
+  16 farm ingredients: its library index has no fish yet). The sound: a splash where a net
+  or trap goes in, a boat pushes off or a hole is cut, and the oars' knock as a boat rows.
 
 ## Spoil heaps
 
@@ -1498,6 +1549,8 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `burrow/` | Rooms as their own structures: the templates, sockets and refusals (`underground_rooms.gd`), placing one and its passage (`room_plan.gd`, `room_tool.gd`), drawing it (`room_view.gd`, `room_mesh.gd`); the cellar API; the fit-out (`room_fixtures.gd`, `fixture_crew.gd`, `install_task.gd`, `fixture_view.gd`, `fixture_kit.gd`, `room_text.gd`) and the night (`night_routine.gd`, `bed_allocation.gd`, `sleep_task.gd`) |
 | `events/` | Seeded threats (a flood, a fire) and evacuation |
 | `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the water overlay (the Water range map layer), the weir's sluice table and its gate and leat head (decision 0441) |
+| `fishery/` | Water part B: the trips, jobs and stations (`fishery.gd`, its rows `fishery_tables.gd`, its task), the numbers (`fishery_rules.gd`), the real gear locker over gear.gd, the FISH skill, the pond's ice, the words, the drawing and the node wiring it into the village (`demo_fishery.gd`) |
+| `boats/` | The boat core: the jetty, berths and fixed routes (`boat_routes.gd`), the boats as integer rows (`boat_fleet.gd`), their drawing, and the boat as a rescue rank (`boat_rescue.gd`) |
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel; whose water range the map layer paints (`water_range.gd`) |
 | `farm/` | The farm: real FarmPlot rows, the pantry (and its ledger) and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves; the seasonal planner -- its overview rows, season calendar and timeline, soil plans, the after-action record and its tables (`farm_planner*.gd`, `farm_plan_rows.gd`, `farm_season.gd`, `farm_timeline.gd`, `farm_soil_plan*.gd`, `farm_record*.gd`) -- and the bed panel's Compare view (`farm_compare_view.gd`) |
 | `kitchen/` | The meal loop: the dishes and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |

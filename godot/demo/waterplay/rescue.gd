@@ -44,6 +44,8 @@ const MAX_PLANS: int = 4
 const NEED_ANY: int = 0
 const NEED_SWIMMER: int = 1
 const NEED_DIVER: int = 2
+## A crew for a boat (water part B, decision 0432): anyone on land free to go who may take a boat's helm.
+const NEED_BOAT: int = 3
 const Rules := preload("res://demo/waterplay/swim_rules.gd")
 const StateScript := preload("res://demo/waterplay/swim_state.gd")
 const MotionScript := preload("res://demo/waterplay/swim_motion.gd")
@@ -60,6 +62,7 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const CastNavScript := preload("res://demo/cast/cast_nav.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
+const BoatRescueScript := preload("res://demo/boats/boat_rescue.gd")
 
 const DISPATCH_S: float = 1.0
 ## The assistance log's length (see THE ASSISTANCE LOG).
@@ -87,6 +90,14 @@ var last_plans: int = 0
 var last_cost_m: float = INF
 ## Divers otherwise free that the last NEED_DIVER ranking passed over for want of air.
 var last_short_of_air: int = 0
+## The boats as a rescuer (demo/boats/boat_rescue.gd; null: no boats). BOAT RESCUE: a victim at the surface of water a
+## free boat can row to is answered by a boat when its crew's way -- the walk to the jetty and the row out -- is
+## shorter than the nearest swimmer's, or when no swimmer is free (rather than a line).
+var boats: BoatRescueScript = null
+## The row cost for the victim being ranked (asked once per candidate; reset at each boat ranking, as which boat is
+## free changes).
+var _row_at: Vector2 = Vector2.INF
+var _row_cost: float = INF
 
 var _cast: DemoCastScript = null
 var _state: StateScript = null
@@ -208,10 +219,35 @@ func _look_after(who: int) -> void:
 	var reason: String = _no_diver_reason() if below else ""
 	if task.response >= Tasks.RESPONSE_WATCH:
 		return
+	if not below and _boat_answers(who, task):
+		return
 	if nearest_capable_into(at, who, NEED_SWIMMER, _read):
 		_send_swimmer(who, task, _read.value, Tasks.RESPONSE_WATCH if below else Tasks.RESPONSE_SWIM, reason)
 	elif not task.engaged and nearest_capable_into(at, who, NEED_ANY, _read):
 		_send_thrower(who, task, _read.value, "no swimmer is free")
+
+
+func _boat_answers(who: int, task: Tasks.VictimTask) -> bool:
+	"""BOAT RESCUE for a victim at the surface: the nearest boat crew by route, sent when its way is shorter than the
+	nearest swimmer's (or no swimmer is free), reserved in the same step. False when no boat goes."""
+	var at: Vector2 = brain_of(who).position
+	_row_at = Vector2.INF
+	if boats == null or boats.boat_for(at) < 0 or not nearest_capable_into(at, who, NEED_BOAT, _conn):
+		return false
+	var crew: int = _conn.value
+	var boat_cost: float = last_cost_m
+	var swimmer: bool = nearest_capable_into(at, who, NEED_SWIMMER, _read)
+	if swimmer and last_cost_m <= boat_cost:
+		return false
+	var rescue_task: RefCounted = boats.make_task(_motion, brain_of(who), task, ashore)
+	if rescue_task == null:
+		return false
+	var was: String = _stand_in(task)
+	var reason: String = "the boat is nearer" if swimmer else "no swimmer is free"
+	task.reserve(crew, Tasks.RESPONSE_BOAT, reason)
+	brain_of(crew).order_task(rescue_task)
+	_note(dispatch_line(name_of(crew), name_of(who), Tasks.RESPONSE_BOAT, reason, was), false)
+	return true
 
 
 func held_below(who: int) -> bool:
@@ -289,6 +325,8 @@ static func dispatch_line(rescuer: String, victim: String, how: int, reason: Str
 			return "%s: %s runs to throw %s a line" % [first_up(reason), rescuer, victim]
 		Tasks.RESPONSE_NONE:
 			return "%s: %s takes a line to the bank to wait for %s to come up" % [first_up(reason), rescuer, victim]
+		Tasks.RESPONSE_BOAT:
+			return "%s: %s rows a boat out to %s%s" % [first_up(reason), rescuer, victim, over]
 	return "%s swims out to rescue %s%s" % [rescuer, victim, over]
 
 
@@ -341,6 +379,8 @@ func may_go(who: int, victim: int, need: int) -> bool:
 		return false
 	if need == NEED_ANY:
 		return true
+	if need == NEED_BOAT:
+		return boats != null and boats.may_crew(who)
 	if _state.swim_refusal(who, false) != Rules.REFUSE_NONE:
 		return false
 	return need == NEED_SWIMMER or has_fetch_air(who, victim)
@@ -360,6 +400,8 @@ func _gather(at: Vector2, victim: int, need: int) -> int:
 	own connection, a thrower the landing nearest `at`), its weighted swim on, and its straight-line
 	bound. Counts the divers passed over for air (`last_short_of_air`). Returns how many rows."""
 	var landing: PackedVector2Array = nearest_landing(at) if need == NEED_ANY else PackedVector2Array()
+	if need == NEED_BOAT:
+		landing = PackedVector2Array([boats.entry_m(), boats.entry_m()])
 	var count: int = 0
 	last_short_of_air = 0
 	for who: int in _cast.actor_count():
@@ -368,14 +410,27 @@ func _gather(at: Vector2, victim: int, need: int) -> int:
 				last_short_of_air += 1
 			continue
 		var from: Vector2 = brain_of(who).surface_point()
-		var way: PackedVector2Array = landing if need == NEED_ANY else _entry_for(at, from)
+		var way: PackedVector2Array = landing if need == NEED_ANY or need == NEED_BOAT else _entry_for(at, from)
 		_cand[count] = who
 		_in_land[count] = way[0]
-		_swim_cost[count] = 0.0 if need == NEED_ANY else SWIM_WEIGHT * way[1].distance_to(at)
+		_swim_cost[count] = _onward_cost(need, way, at)
 		_bound[count] = from.distance_to(way[0]) + _swim_cost[count]
 		_planned[count] = 0
 		count += 1
 	return count
+
+
+func _onward_cost(need: int, way: PackedVector2Array, at: Vector2) -> float:
+	"""The cost on from where a rescuer leaves the land: nothing for a line, the weighted swim for a swimmer or a diver,
+	the weighted row for a boat's crew (boat_rescue.gd `row_cost_m`)."""
+	if need == NEED_ANY:
+		return 0.0
+	if need == NEED_BOAT:
+		if at != _row_at:
+			_row_at = at
+			_row_cost = boats.row_cost_m(at)
+		return _row_cost
+	return SWIM_WEIGHT * way[1].distance_to(at)
 
 
 func _least_unplanned_bound(count: int) -> int:
@@ -401,8 +456,8 @@ func route_cost_m(who: int, to: Vector2) -> float:
 
 
 func _is_rescuing(brain: BrainScript) -> bool:
-	"""Whether a resident is already on a rescue."""
-	return brain.task is Tasks.SwimRescue or brain.task is Tasks.LineRescue
+	"""Whether a resident is already on a rescue (a swim, a line or a boat)."""
+	return brain.task is Tasks.SwimRescue or brain.task is Tasks.LineRescue or brain.task is BoatRescueScript.BoatRescue
 
 
 func ashore(victim: RefCounted, landing: PackedVector2Array) -> void:
@@ -476,6 +531,9 @@ func landing_words_of(rescuer: BrainScript) -> String:
 		land = (rescuer.task as Tasks.LineRescue).landing_land
 	elif rescuer.task is Tasks.SwimRescue and (rescuer.task as Tasks.SwimRescue).phase >= Tasks.SwimRescue.PHASE_TOW:
 		land = (rescuer.task as Tasks.SwimRescue).landing_land
+	elif rescuer.task is BoatRescueScript.BoatRescue:
+		var row: BoatRescueScript.BoatRescue = rescuer.task as BoatRescueScript.BoatRescue
+		return " to the jetty" if row.phase >= BoatRescueScript.BoatRescue.PHASE_BACK else ""
 	if not land.is_finite():
 		return ""
 	var best: int = 0

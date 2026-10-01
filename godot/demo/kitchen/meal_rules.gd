@@ -53,7 +53,8 @@ extends RefCounted
 ##
 ## RAW EMERGENCY FOOD (REQ-SET-013, WorldPolicy raw_emergency_food default true): with no portion, a resident at
 ## hunger 1500 or less may eat raw-edible food nobody has reserved, "enough quantity to add at most 3000 NP", in the
-## same 12 WU. Raw-edible are the roots row (800 NP/U) and the cabbage row (600 NP/U); grain and beans are not (§5.7:
+## same 12 WU. Raw-edible are the roots row (800 NP/U), the cabbage row (600 NP/U) and dried fish (1800 NP/U, decision
+## 0431); grain, beans, flour and fresh fish are not (§5.7:
 ## "Raw ingredients marked 'No' cannot be consumed even in emergency").
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
@@ -62,24 +63,37 @@ const ResidentsScript := preload("res://scripts/core/residents.gd")
 
 const DISH_PORRIDGE: int = 0
 const DISH_SOUP: int = 1
-const DISH_COUNT: int = 2
+## THE THIRD DISH (water part B, decision 0436): the library's "Requested perch or trout"
+## (taggerung::TAG_recipe_requested_perch_or_trout, a poached perch proposal) COOKED AS §5.7's `fish_stew` row exactly:
+## "fish 2, roots 2, water 2 | meal_fish_stew 3x2200 | 20 | Kitchen/COOK | 24 | Start". Its fish is §5.7's `fish`
+## selector -- the six fresh species the village catches (never dried fish: that is its own item, the reserve) -- and
+## its second input is the roots row. It is cooked at SUPPER in place of the soup whenever the stores hold a batch's fresh
+## fish and roots nobody has set aside (fresh fish keeps 48 h: it is used while fresh); otherwise the alternation runs as
+## ruling 1 has it.
+const DISH_FISH_STEW: int = 2
+const DISH_COUNT: int = 3
 const NO_DISH: int = -1
-const DISH_NAMES: Array[String] = ["Wild oat porridge", "Togget's vegetable soup"]
-const DISH_SHORT: Array[String] = ["porridge", "soup"]
+const DISH_NAMES: Array[String] = ["Wild oat porridge", "Togget's vegetable soup", "Poached perch or trout"]
+const DISH_SHORT: Array[String] = ["porridge", "soup", "fish stew"]
 const LIBRARY_IDS: Array[String] = ["salamandastron::SAL_recipe_wild_oat_porridge",
-	"outcast::OUT_recipe_togget_s_vegetable_soup"]
+	"outcast::OUT_recipe_togget_s_vegetable_soup", "taggerung::TAG_recipe_requested_perch_or_trout"]
 ## The GDD §5.7 rows they are cooked as.
-const GDD_ROWS: Array[String] = ["porridge", "root_stew"]
-## Each dish's food input: its §5.6 crop row, and how much a batch takes.
-const INPUT_CROP: Array[int] = [FarmingScript.CROP_GRAIN, FarmingScript.CROP_ROOTS]
-const INPUT_WORDS: Array[String] = ["grain", "roots"]
-const INPUT_CROPS_TEXT: Array[String] = ["oats, wheat or barley", "carrot, turnip, radish, beetroot, parsnip or onion"]
-const INPUT_MILLI: Array[int] = [2000, 3000]
-const WATER_MILLI: Array[int] = [2000, 1000]
-const PORTIONS_PER_BATCH: Array[int] = [2, 2]
-const NP_PER_PORTION: Array[int] = [1800, 1800]
-const WORK_MWU: Array[int] = [12000, 16000]
-const SHELF_HOURS: Array[int] = [24, 24]
+const GDD_ROWS: Array[String] = ["porridge", "root_stew", "fish_stew"]
+## Each dish's food input: its §5.6 crop row (or the pantry's fish category), and how much a batch takes.
+const INPUT_CROP: Array[int] = [FarmingScript.CROP_GRAIN, FarmingScript.CROP_ROOTS, Catalog.CAT_FISH]
+const INPUT_WORDS: Array[String] = ["grain", "roots", "fresh fish"]
+const INPUT_CROPS_TEXT: Array[String] = ["oats, wheat or barley", "carrot, turnip, radish, beetroot, parsnip or onion",
+	"trout, dace, salmon, perch, carp or whitefish"]
+const INPUT_MILLI: Array[int] = [2000, 3000, 2000]
+## A dish's second food input (§5.7's fish_stew: "fish 2, roots 2"): its row and a batch's milli-U; -1: none.
+const SIDE_CROP: Array[int] = [-1, -1, FarmingScript.CROP_ROOTS]
+const SIDE_WORDS: Array[String] = ["", "", "roots"]
+const SIDE_MILLI: Array[int] = [0, 0, 2000]
+const WATER_MILLI: Array[int] = [2000, 1000, 2000]
+const PORTIONS_PER_BATCH: Array[int] = [2, 2, 3]
+const NP_PER_PORTION: Array[int] = [1800, 1800, 2200]
+const WORK_MWU: Array[int] = [12000, 16000, 20000]
+const SHELF_HOURS: Array[int] = [24, 24, 24]
 ## BAL-SUPPLY-004: "wood 100 milli-U/batch".
 const WOOD_MILLI_PER_BATCH: int = 100
 ## A portion's mass and spoiled food's (§5.7: 500 g and 250 g a unit): a spoiled portion is twice its milli-U.
@@ -130,7 +144,10 @@ const MONOTONY_HOURS: int = 6
 
 ## REQ-SET-013 and §5.7's raw table.
 const RAW_NP_CAP: int = 3000
-const RAW_NP_PER_U: Dictionary = {FarmingScript.CROP_ROOTS: 800, FarmingScript.CROP_CABBAGE: 600}
+## Dried fish is §5.7's PRESERVED `dried_fish` (1800 NP/U, "Dried/salted fish ... are directly edible"; decision 0431):
+## the village's reserve, eaten only this way -- §5.7's `fish` selector names the nine species, not their dried form.
+const RAW_NP_PER_U: Dictionary = {FarmingScript.CROP_ROOTS: 800, FarmingScript.CROP_CABBAGE: 600,
+	Catalog.CAT_DRIED_FISH: 1800}
 
 
 static func batch_ticks(dish: int) -> int:
@@ -139,8 +156,14 @@ static func batch_ticks(dish: int) -> int:
 
 
 static func is_input(dish: int, item: int) -> bool:
-	"""Whether pantry `item` is in `dish`'s food category (see THE CROPS IN EACH CATEGORY)."""
-	return Catalog.is_item(item) and Catalog.ITEM_CROP[item] == INPUT_CROP[dish]
+	"""Whether pantry `item` is in one of `dish`'s food categories (see THE CROPS IN EACH CATEGORY)."""
+	var category: int = Catalog.category_of(item)
+	return category >= 0 and (category == INPUT_CROP[dish] or category == SIDE_CROP[dish])
+
+
+static func batch_food_milli(dish: int) -> int:
+	"""All the food a batch of `dish` takes, milli-U (its input and any second one)."""
+	return INPUT_MILLI[dish] + SIDE_MILLI[dish]
 
 
 static func dish_for_meal(meal: int) -> int:
@@ -149,15 +172,14 @@ static func dish_for_meal(meal: int) -> int:
 
 
 static func other(dish: int) -> int:
-	"""The dish the alternation turns to after `dish` (ruling 1)."""
-	return DISH_SOUP if dish == DISH_PORRIDGE else DISH_PORRIDGE
+	"""The dish the alternation turns to when `dish`'s food is short (ruling 1): porridge and soup each other; the fish
+	stew, the soup it stands in for."""
+	return DISH_PORRIDGE if dish == DISH_SOUP else DISH_SOUP
 
 
 static func raw_np_per_u(item: int) -> int:
 	"""NP a unit of `item` gives eaten raw (0: not raw-edible, never eaten in an emergency)."""
-	if not Catalog.is_item(item):
-		return 0
-	return int(RAW_NP_PER_U.get(Catalog.ITEM_CROP[item], 0))
+	return int(RAW_NP_PER_U.get(Catalog.category_of(item), 0))
 
 
 static func size_of_species(species: String) -> int:

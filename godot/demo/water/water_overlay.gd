@@ -37,10 +37,15 @@ uniform vec4 swim_colour;
 uniform vec4 dive_colour;
 uniform float wade_max_m;
 uniform float dive_min_m;
+uniform int ice_state;
+uniform vec4 ice_safe_colour;
+uniform vec4 ice_thin_colour;
 varying float v_depth;
-void vertex() { v_depth = COLOR.r * 4.0; }
+varying float v_pond;
+void vertex() { v_depth = COLOR.r * 4.0; v_pond = COLOR.g; }
 void fragment() {
 	vec4 c = v_depth <= wade_max_m ? wade_colour : (v_depth <= dive_min_m ? swim_colour : dive_colour);
+	if (ice_state > 0 && v_pond > 0.5) { c = ice_state == 2 ? ice_safe_colour : ice_thin_colour; }
 	ALBEDO = c.rgb;
 	ALPHA = v_depth > 0.0005 ? c.a : 0.0;
 }
@@ -52,6 +57,11 @@ const FORD_COLOUR: Color = Color(0.4, 0.95, 0.4)
 const BRIDGE_COLOUR: Color = Color(1.0, 0.55, 0.2)
 const LANDING_COLOUR: Color = Color(1.0, 1.0, 1.0)
 const LINK_COLOUR: Color = Color(0.35, 0.6, 1.0)
+## THE POND'S ICE on this layer (water part B, decision 0433; demo/fishery/pond_ice.gd): over the pond the zones give
+## way to the ice's state -- SAFE ice white (walk out and fish through it; nobody swims), THIN ice slate (keep off).
+const ICE_SAFE_COLOUR: Color = Color(0.95, 0.97, 1.0, 0.7)
+const ICE_THIN_COLOUR: Color = Color(0.45, 0.5, 0.56, 0.7)
+const ICE_WORDS: Array[String] = ["", "slate = THIN ICE on the pond (%d mm): keep off", "white = SAFE ICE on the pond (%d mm): ice fishing only, no swimming"]
 const LIFT_M: float = 0.04
 const LABEL_HEIGHT_M: float = 3.2
 const LABEL_FONT_SIZE: int = 26
@@ -88,6 +98,9 @@ var _legend: Label3D = null
 ## Whose zones are painted (for the legend), and the body height they are for, in u.
 var body_label: String = "a 1.0 m mouse"
 var body_height_u: int = Rules.MOUSE_HEIGHT_U
+## The pond's ice as last set (pond_ice.gd STATE_*, and its millimetres), for the paint and the legend.
+var ice_state: int = 0
+var ice_mm: int = 0
 
 
 func configure(map: WaterMapScript, grid: WaterGridScript) -> void:
@@ -160,7 +173,7 @@ static func _state(preview: FishingDriverScript.Preview) -> String:
 		return "depleted" if preview.depleted else "open"
 	if preview.closed or preview.availability_per_1000 == 0:
 		return "shut to s%d d%d" % [preview.reopen_season, preview.reopen_day]
-	return String(preview.block).to_lower()
+	return String(preview.block).to_lower().replace("_", " ")
 
 
 func _zone_paint(map: WaterMapScript, grid: WaterGridScript) -> MeshInstance3D:
@@ -174,7 +187,8 @@ func _zone_paint(map: WaterMapScript, grid: WaterGridScript) -> MeshInstance3D:
 		var at: Vector2 = grid.position_m(k % grid.xs.size(), k / grid.xs.size())
 		var drop: float = Rules.to_m(map.body_level_drop_u(grid.body[k]))
 		vertices[k] = Vector3(at.x, LIFT_M - drop, at.y)
-		colours[k] = Color(Rules.to_m(grid.depth_u[k]) / 4.0, 0.0, 0.0, 1.0)
+		var pond: float = 1.0 if map.body_kind(grid.body[k]) == WaterMapScript.KIND_POND else 0.0
+		colours[k] = Color(Rules.to_m(grid.depth_u[k]) / 4.0, pond, 0.0, 1.0)
 	var arrays: Array = []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = vertices
@@ -203,6 +217,9 @@ static func _make_zone_material() -> ShaderMaterial:
 	material.set_shader_parameter(&"dive_colour", DIVE_COLOUR)
 	material.set_shader_parameter(&"wade_max_m", Rules.to_m(Rules.wade_max_u(Rules.MOUSE_HEIGHT_U)))
 	material.set_shader_parameter(&"dive_min_m", Rules.to_m(Rules.dive_min_u(Rules.MOUSE_HEIGHT_U)))
+	material.set_shader_parameter(&"ice_state", 0)
+	material.set_shader_parameter(&"ice_safe_colour", ICE_SAFE_COLOUR)
+	material.set_shader_parameter(&"ice_thin_colour", ICE_THIN_COLOUR)
 	return material
 
 
@@ -455,10 +472,24 @@ static func _first_clash(centres: PackedVector2Array, sizes: PackedVector2Array,
 	return -1
 
 
-static func legend_text(who: String, height_u: int) -> String:
-	"""The zone key for a body `height_u` tall."""
-	return "WATER (V)  zones for %s:\nyellow WADE <= %.2f m   blue SWIM <= %.2f m   violet DIVE deeper\ngreen span = ford   orange span = bridge candidate   blue bars = swim links   white = bank landing" % [
+static func legend_text(who: String, height_u: int, ice: int = 0, mm: int = 0) -> String:
+	"""The zone key for a body `height_u` tall, and the pond's ice when it has any (see THE POND'S ICE)."""
+	var key: String = "WATER (V)  zones for %s:\nyellow WADE <= %.2f m   blue SWIM <= %.2f m   violet DIVE deeper\ngreen span = ford   orange span = bridge candidate   blue bars = swim links   white = bank landing" % [
 		who, Rules.to_m(Rules.wade_max_u(height_u)), Rules.to_m(Rules.dive_min_u(height_u))]
+	return key if ice <= 0 or ice >= ICE_WORDS.size() else key + "\n" + ICE_WORDS[ice] % mm
+
+
+func set_ice(state: int, mm: int) -> void:
+	"""Paint the pond's ice (pond_ice.gd STATE_OPEN 0, THIN 1, SAFE 2; its thickness in mm) and key it."""
+	if state == ice_state and mm == ice_mm:
+		return
+	ice_state = state
+	ice_mm = mm
+	if _zone_material != null:
+		_zone_material.set_shader_parameter(&"ice_state", state)
+	if _legend != null:
+		_legend.text = legend_text(body_label, body_height_u, ice_state, ice_mm)
+		_size_label_px[_laid.find(_legend)] = label_size_px(_legend)
 
 
 func set_body(label: String, height_u: int) -> void:
@@ -470,7 +501,7 @@ func set_body(label: String, height_u: int) -> void:
 	_zone_material.set_shader_parameter(&"wade_max_m", Rules.to_m(Rules.wade_max_u(height_u)))
 	_zone_material.set_shader_parameter(&"dive_min_m", Rules.to_m(Rules.dive_min_u(height_u)))
 	if _legend != null:
-		_legend.text = legend_text(label, height_u)
+		_legend.text = legend_text(label, height_u, ice_state, ice_mm)
 		_size_label_px[_laid.find(_legend)] = label_size_px(_legend)
 
 

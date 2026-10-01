@@ -14,20 +14,28 @@ const SOURCE_FIT_OUT: int = 4
 const SOURCE_SPOIL: int = 5
 ## The kitchen's cook and water drawers (decision 0381's kitchen; demo/work/kitchen_work.gd): listed, never claimed.
 const SOURCE_KITCHEN: int = 6
-const SOURCE_COUNT: int = 7
+## The fishery: fishing trips' seats, traps' collections, the rack, the mill and the gear (water part B, decision 0431;
+## demo/work/fishery_work.gd): claimed like the farm's.
+const SOURCE_FISHERY: int = 7
+const SOURCE_COUNT: int = 8
 ## What each source is called in the Projects view and the Cancel all scope.
 const SOURCE_NAMES: Array[String] = ["Farm", "Woods", "Bridges", "Tunnels", "Rooms and fit-out", "Spoil heaps",
-	"Kitchen"]
+	"Kitchen", "Fishery and stations"]
 ## A queued walk (Shift+right-click on open ground): an order-list entry, never a board task.
-const SOURCE_WALK: int = 7
+const SOURCE_WALK: int = 8
 
 const ACT_FARM: int = 0
 const ACT_WOODS: int = 1
 const ACT_HAUL: int = 2
 const ACT_DIG: int = 3
 const ACT_BUILD: int = 4
-const ACT_COUNT: int = 5
-const ACT_NAMES: Array[String] = ["Farm", "Woods", "Hauling", "Digging", "Building"]
+## Water part B (decision 0431): fishing (a trip's seat, a trap's collection) and the stations' craft (the rack, the
+## mill, making and mending gear). No crew prefers them yet: everyone takes them at priority 4 unless the player moves
+## them (work_crews.gd), and a boat's helm still needs FISH >= 1.
+const ACT_FISH: int = 5
+const ACT_CRAFT: int = 6
+const ACT_COUNT: int = 7
+const ACT_NAMES: Array[String] = ["Farm", "Woods", "Hauling", "Digging", "Building", "Fishing", "Crafting"]
 
 const STATE_QUEUED: int = 0
 const STATE_ASSIGNED: int = 1

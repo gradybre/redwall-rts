@@ -87,6 +87,8 @@ func refusal_words(who: int, why: StringName, at: Vector2 = Vector2.ZERO) -> Str
 			return "%s has swim shortcuts off" % name
 		Rules.REFUSE_TOO_SHALLOW:
 			return "too shallow for %s to dive here (%s)" % [name, depth_words(who, at)]
+		Rules.REFUSE_ICE:
+			return "%s can't swim there: ice covers the pond" % name
 	return "%s can't go: %s" % [name, String(why).to_lower().replace("_", " ")]
 
 
@@ -106,6 +108,8 @@ func reason_words(who: int, why: StringName) -> String:
 			return "carrying a load"
 		Rules.REFUSE_FLOW:
 			return "the current is too strong to swim across"
+		Rules.REFUSE_ICE:
+			return "ice covers the pond"
 		Rules.REFUSE_CANNOT_SWIM:
 			return "it doesn't swim"
 	return String(why).to_lower().replace("_", " ")

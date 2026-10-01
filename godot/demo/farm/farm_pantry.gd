@@ -114,9 +114,9 @@ func _init(p_storage: StorageScript) -> void:
 	for column: PackedInt64Array in [_lot_milli, _lot_age]:
 		column.resize(MAX_LOTS)
 	_lot_item.fill(FREE)
-	_item_milli.resize(Catalog.ITEM_COUNT)
+	_item_milli.resize(Catalog.PANTRY_ITEM_COUNT)
 	for column: PackedInt64Array in [_in_milli, _out_milli, _spoiled_by_item]:
-		column.resize(Catalog.ITEM_COUNT)
+		column.resize(Catalog.PANTRY_ITEM_COUNT)
 	_ids.resize(MAX_LOTS)
 	_hold_live.resize(MAX_HOLDS)
 	_hold_location.resize(MAX_HOLDS)
@@ -130,7 +130,7 @@ func add_into(item: int, milli: int, location: int, out: IntMath.IntResult) -> b
 	"""Store `milli` of `item` at `location` as a fresh lot (see the header on a full table). Writes
 	the lot row into `out`; refuses a bad item, quantity or location, or one without the room -- room a
 	reservation holds is not free."""
-	if not Catalog.is_item(item):
+	if not Catalog.is_pantry_item(item):
 		return out.refuse(REFUSE_NOT_AN_ITEM)
 	if milli <= 0:
 		return out.refuse(REFUSE_BAD_QUANTITY)
@@ -225,7 +225,7 @@ func _best_location_into(milli: int, item: int, by_distance: bool, from_u: Vecto
 func _lot_row_for(item: int, location: int) -> bool:
 	"""Whether a delivery of `item` could be kept at `location` as a lot: a free row, or a lot of it there
 	to merge into (`_lot_into`). Any location for NO_ITEM (a room-only question)."""
-	if not Catalog.is_item(item) or _lot_item.find(FREE) >= 0:
+	if not Catalog.is_pantry_item(item) or _lot_item.find(FREE) >= 0:
 		return true
 	return _oldest_lot_into(item, location, _lot_probe)
 
@@ -274,7 +274,7 @@ func total_milli() -> int:
 	"""Every item's stock added up, milli-U: the HUD's Food figure and the Pantry's total (F28: summed
 	before it is formatted)."""
 	var total: int = 0
-	for item: int in Catalog.ITEM_COUNT:
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		total += _item_milli[item]
 	return total
 
@@ -285,7 +285,7 @@ func reserve_near_into(item: int, milli: int, from: Vector2, out: IntMath.IntRes
 	"""Reserve room for `milli` of `item` at the store a delivery from `from` should go to
 	(`location_near_into`'s choice, where a lot of it can be kept). The hold's row into `out`; refuses a
 	bad item or quantity, NO_STORAGE_ROOM or a full hold table."""
-	if not Catalog.is_item(item):
+	if not Catalog.is_pantry_item(item):
 		return out.refuse(REFUSE_NOT_AN_ITEM)
 	if milli <= 0:
 		return out.refuse(REFUSE_BAD_QUANTITY)
@@ -369,7 +369,7 @@ func store_upto_into(item: int, milli: int, location: int, hold: int, out: IntMa
 	stores WHAT FITS -- the free room plus the hold's own -- as a lot, draws the hold down by it (to
 	nothing when not all of it fitted: that store has no more room to keep). How much was stored into
 	`out` (0 when nothing fitted, or no lot row was to be had); refuses a bad item, quantity or location."""
-	if not Catalog.is_item(item):
+	if not Catalog.is_pantry_item(item):
 		return out.refuse(REFUSE_NOT_AN_ITEM)
 	if milli <= 0:
 		return out.refuse(REFUSE_BAD_QUANTITY)

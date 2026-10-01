@@ -44,6 +44,8 @@ var crumbs: BreadcrumbsScript = null
 var logger: LoggerScript = null
 var watch: WatchScript = WatchScript.new()
 var phase: int = PHASE_LOADING
+## The freeze threshold once running (FREEZE_RUNNING_USEC; a test shortens it).
+var running_freeze_usec: int = FREEZE_RUNNING_USEC
 var marks: int = 0
 var freezes: int = 0
 var _origin_usec: int = 0
@@ -126,7 +128,7 @@ func set_phase(next: int) -> void:
 
 func freeze_threshold_usec() -> int:
 	"""The current phase's freeze threshold."""
-	return FREEZE_RUNNING_USEC if phase == PHASE_RUNNING else FREEZE_LOADING_USEC
+	return running_freeze_usec if phase == PHASE_RUNNING else FREEZE_LOADING_USEC
 
 
 func record(kind: int, tag: StringName, a: int, b: int) -> void:
@@ -176,9 +178,9 @@ func write_now(text: String, forced: bool = false) -> void:
 func heartbeat_line(now_usec: int) -> String:
 	"""'+30.0s heartbeat  game Y1 Spring 1, 06:12, 1x | fps 60, worst 41 ms, slow 0 of 1800 | ...'."""
 	@warning_ignore("integer_division") var worst_ms: int = _worst_usec / 1000
-	return "+%.1fs heartbeat  game %s | fps %d, worst frame %d ms, slow %d of %d | memory %d MiB, video %d MiB, objects %d, nodes %d, orphans %d | errors %s, folded %d, dropped %d" % [
+	return "+%.1fs heartbeat  game %s | fps %d, worst frame %d ms, slow %d of %d | memory %s, video %d MiB, objects %d, nodes %d, orphans %d | errors %s, folded %d, dropped %d" % [
 		seconds(now_usec), String(game_time.call()) if game_time.is_valid() else "-",
-		roundi(Engine.get_frames_per_second()), worst_ms, _slow, _frames, _mib(Performance.MEMORY_STATIC),
+		roundi(Engine.get_frames_per_second()), worst_ms, _slow, _frames, memory_text(),
 		_mib(Performance.RENDER_VIDEO_MEM_USED), int(Performance.get_monitor(Performance.OBJECT_COUNT)),
 		int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)),
 		int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)), counts_text(), writer.suppressed(),
@@ -187,8 +189,13 @@ func heartbeat_line(now_usec: int) -> String:
 
 func counts_text() -> String:
 	"""'2 errors, 5 warnings, 0 script, 0 shader, 0 printerr'."""
-	var c: PackedInt32Array = logger.counts
+	var c: PackedInt32Array = logger.counts_snapshot()
 	return "%d errors, %d warnings, %d script, %d shader, %d printerr" % [c[0], c[1], c[2], c[3], c[4]]
+
+
+static func memory_text() -> String:
+	"""The engine's own memory in MiB -- only a debug build counts it (Performance.MEMORY_STATIC is 0 in release)."""
+	return "%d MiB" % _mib(Performance.MEMORY_STATIC) if OS.is_debug_build() else "n/a (release build)"
 
 
 static func _mib(monitor: Performance.Monitor) -> int:
@@ -245,9 +252,9 @@ func stop(reason: String, now_usec: int) -> void:
 	_stopped = true
 	watch.stop()
 	flush_crumbs()
-	writer.write("%s (%s) after %.1f s: %d marks, %d freezes, %s, %d folded, %d dropped" % [Files.END_MARKER, reason,
+	writer.write_final("%s (%s) after %.1f s: %d marks, %d freezes, %s, %d folded, %d dropped" % [Files.END_MARKER, reason,
 		seconds(now_usec), marks, freezes, counts_text(), writer.suppressed(),
-		writer.dropped()], true)
+		writer.dropped()])
 	writer.close()
 
 

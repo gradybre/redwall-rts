@@ -7,7 +7,7 @@ extends "res://test/framework/test_case.gd"
 const HARNESS: String = "res://test/live/playtest_log_live.gd"
 const CHECK_PREFIX: String = "LIVE "
 const SUMMARY_PREFIX: String = "LIVE-SUMMARY "
-const MIN_CHECKS: int = 13
+const MIN_CHECKS: int = 15
 
 
 func test_the_real_logger_captures_every_kind_of_line_and_f12_marks() -> void:

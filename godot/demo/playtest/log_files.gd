@@ -63,7 +63,7 @@ static func rotate(dir: String, keep: int) -> int:
 	were removed."""
 	var files: PackedStringArray = list(dir)
 	var removed: int = 0
-	for k: int in maxi(0, files.size() - (keep - 1)):
+	for k: int in maxi(0, files.size() - (maxi(keep, 1) - 1)):
 		if DirAccess.remove_absolute(dir.path_join(files[k])) == OK:
 			removed += 1
 	return removed

@@ -73,6 +73,7 @@ func _raise() -> void:
 	"""Every kind of line the logger should see, raised for real."""
 	_check("the node is under the root", _node != null and _node.get_parent() == root)
 	push_error("%s error" % PROBE)
+	push_error("%s paths %s and %s" % [PROBE, ProjectSettings.globalize_path("user://x"), _home()])
 	push_warning("%s warning" % PROBE)
 	printerr("%s printerr" % PROBE)
 	_null_call(null)
@@ -111,6 +112,13 @@ func _read_back() -> void:
 	_check("the session ended cleanly", Files.ended_cleanly(_dir.path_join(_file)))
 	_check("the header came first", text.begins_with("== Redwall demo playtest log\nsession: %s\nstarted: " % _file))
 	_check("no user-data path in it", not text.contains(ProjectSettings.globalize_path("user://")))
+	_check("no home path in it", not text.contains(_home()), _home())
+	_check("both read as their stand-ins", text.contains("%s paths <user data>/x and ~" % PROBE))
+
+
+func _home() -> String:
+	"""The home folder, as the session scrubs it."""
+	return OS.get_environment("USERPROFILE" if OS.get_name() == "Windows" else "HOME")
 
 
 func _clean() -> void:

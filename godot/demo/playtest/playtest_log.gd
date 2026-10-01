@@ -30,6 +30,8 @@ const NODE_NAME: StringName = &"PlaytestLog"
 const MARK_KEY: Key = KEY_F12
 ## Lines of the session Copy report carries under the header.
 const REPORT_TAIL: int = 120
+## Headless runs log under user://logs/<this> (see `default_dir`).
+const HEADLESS_SUBDIR: String = "headless"
 
 static var _instance: Node = null
 static var _session: SessionScript = null
@@ -45,12 +47,13 @@ var _layer_name: StringName = &""
 var _toast: ToastScript = ToastScript.new()
 
 
-static func ensure(tree: SceneTree, dir: String = Files.DIR) -> Node:
-	"""The process's playtest log: started (session and logger) and added under the root on the first call."""
+static func ensure(tree: SceneTree, dir: String = "") -> Node:
+	"""The process's playtest log: started (session and logger) and added under the root on the first call, in
+	`dir` or else `default_dir()`."""
 	if is_instance_valid(_instance):
 		return _instance
 	if _session == null or _session.is_stopped():
-		start_session(dir)
+		start_session(dir if not dir.is_empty() else default_dir())
 	var node: Node = (load("res://demo/playtest/playtest_log.gd") as GDScript).new()
 	node.name = NODE_NAME
 	_instance = node
@@ -58,8 +61,17 @@ static func ensure(tree: SceneTree, dir: String = Files.DIR) -> Node:
 	return node
 
 
+static func default_dir() -> String:
+	"""Files.DIR -- or, in a headless run (the live harnesses, the suite's children), its HEADLESS_SUBDIR, so they
+	never rotate a player's or a developer's own sessions away."""
+	return Files.DIR.path_join(HEADLESS_SUBDIR) if DisplayServer.get_name() == "headless" else Files.DIR
+
+
 static func start_session(dir: String) -> SessionScript:
-	"""Open a session in `dir` and install its logger (the node's `ensure` does this; the live check calls it)."""
+	"""Open a session in `dir` and install its logger (the node's `ensure` does this; the live check calls it). A
+	session still running is ended first, so its logger never outlives it."""
+	if session() != null:
+		stop_session("replaced by a new session")
 	var now: int = Time.get_ticks_usec()
 	var started := SessionScript.new(now)
 	var file_name: String = Files.session_name(Time.get_datetime_dict_from_system(), OS.get_process_id())
@@ -112,13 +124,13 @@ static func mark() -> int:
 
 
 static func folder() -> String:
-	"""The log folder as the system names it ('' without a session)."""
-	return Files.folder_text(_session.dir()) if session() != null else Files.folder_text(Files.DIR)
+	"""The log folder as the system names it: the session's, or the default one without a session."""
+	return Files.folder_text(_session.dir()) if session() != null else Files.folder_text(default_dir())
 
 
 static func open_folder() -> bool:
 	"""Open the log folder in Explorer or Finder. False when it could not be opened."""
-	var dir: String = _session.dir() if session() != null else Files.DIR
+	var dir: String = _session.dir() if session() != null else default_dir()
 	if not Files.ensure_dir(dir):
 		return false
 	var full: String = ProjectSettings.globalize_path(dir)

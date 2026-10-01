@@ -92,6 +92,14 @@ static func frames_text(backtraces: Array[ScriptBacktrace]) -> String:
 	return "\n".join(out)
 
 
+func counts_snapshot() -> PackedInt32Array:
+	"""A copy of `counts`, read under its lock (the logger's threads add to it)."""
+	_counts_mutex.lock()
+	var copy: PackedInt32Array = counts.duplicate()
+	_counts_mutex.unlock()
+	return copy
+
+
 func total() -> int:
 	"""Every captured line so far, of any type."""
 	_counts_mutex.lock()

@@ -88,9 +88,9 @@ func test_the_ring_wraps_and_keeps_the_newest() -> void:
 	assert_equal(ring.kind_of(Crumbs.CAPACITY + 10), -1, "a serial not yet recorded has no kind")
 
 
-func test_recording_allocates_nothing() -> void:
-	"""Ten thousand events after a warm-up: no memory and no object made (the columns are sized once, the tag is a
-	reference)."""
+func test_recording_retains_nothing() -> void:
+	"""Ten thousand events after a warm-up: no memory kept and no object made (the columns are sized once, the tag is
+	a reference). This catches growth; a temporary freed within `record` nets to zero and is a review matter."""
 	var ring := Crumbs.new(0)
 	for k: int in Crumbs.CAPACITY * 2:
 		ring.record_now(Crumbs.KIND_PANEL, &"DemoMenu", 1, k)
@@ -382,10 +382,12 @@ func test_the_watch_reports_a_freeze_once_while_it_lasts() -> void:
 
 
 func test_the_watch_thread_writes_a_freeze_still_going() -> void:
-	"""The thread, with no beat for longer than a short threshold, writes the freeze before any recovery."""
-	var session := _session()
-	session.watch.on_freeze = session._on_watch_freeze
-	assert_true(session.watch.start(100000), "the thread starts")
+	"""Started as the process starts it (`start_watch`) and running: with no frame for longer than the running
+	threshold, the thread writes the freeze before any recovery."""
+	var session := _session(Session.PHASE_LOADING)
+	session.running_freeze_usec = 100000
+	assert_true(session.start_watch(), "the thread starts")
+	session.set_phase(Session.PHASE_RUNNING)
 	session.record(Crumbs.KIND_ORDER, &"order accepted", 1, 0)
 	OS.delay_msec(Watch.POLL_MSEC * 3)
 	session.stop("test", Time.get_ticks_usec())
@@ -393,6 +395,32 @@ func test_the_watch_thread_writes_a_freeze_still_going() -> void:
 	var text: String = _read(session.file_name())
 	assert_true(text.contains("FREEZE  no frame for"), "the ongoing freeze written")
 	assert_true(text.contains("still waiting"), "saying it may never recover")
+
+
+func test_each_frame_beats_the_watch_at_the_phase_threshold() -> void:
+	"""`frame` beats the watch, and the watch's threshold follows the phase: loading's, then running's."""
+	var session := _session(Session.PHASE_LOADING)
+	var at: int = T0 + 50000
+	session.frame(at)
+	assert_equal(session.watch.check(at + Session.FREEZE_RUNNING_USEC), 0, "loading: running's threshold is no freeze")
+	assert_true(session.watch.check(at + Session.FREEZE_LOADING_USEC) > 0, "loading's is")
+	session.set_phase(Session.PHASE_RUNNING)
+	at += 100000
+	session.frame(at)
+	assert_equal(session.watch.check(at + Session.FREEZE_RUNNING_USEC - 1), 0, "running: just under the threshold")
+	assert_true(session.watch.check(at + Session.FREEZE_RUNNING_USEC) > 0, "running: at it")
+	session.stop("test", T0)
+
+
+func test_a_full_file_still_ends_cleanly() -> void:
+	"""Past the cap and the reserve both, the end marker is still written: a full log never reads as a crash."""
+	var session := _session()
+	var line: String = "y".repeat(1023)
+	for k: int in Writer.MAX_KIB + 80:
+		session.writer.write(line, true)
+	session.stop("quit", T0)
+	assert_true(session.writer.dropped() > 0, "lines were dropped")
+	assert_true(Files.ended_cleanly(_dir.path_join(session.file_name())), "the end is written")
 
 
 func test_the_heartbeat_says_time_rate_memory_and_errors() -> void:
@@ -450,6 +478,23 @@ func test_ending_the_session_lets_go_of_it() -> void:
 	assert_true(Files.ended_cleanly(_dir.path_join(file_name)), "after writing its end")
 
 
+func test_a_second_session_ends_the_first() -> void:
+	"""Starting a session while one runs ends the first (its end written, its watch joined, its logger released)."""
+	var first: Session = PlaytestLog.start_session(_dir)
+	var first_ref: WeakRef = weakref(first)
+	var first_name: String = first.file_name()
+	var watch: Watch = first.watch
+	first = null
+	OS.delay_msec(1100)
+	var second: Session = PlaytestLog.start_session(_dir)
+	assert_not_null(second, "the second starts")
+	assert_null(first_ref.get_ref(), "the first is let go")
+	assert_false(watch.running(), "its watch joined")
+	assert_true(Files.ended_cleanly(_dir.path_join(first_name)), "its end written")
+	second = null
+	PlaytestLog.stop_session("test")
+
+
 func test_copy_report_is_a_fresh_header_and_the_tail_without_paths() -> void:
 	"""The report: its header lines, the session's last lines, and no user folder."""
 	var session := _session()
@@ -475,7 +520,7 @@ func test_without_a_session_everything_is_a_quiet_no_op() -> void:
 	assert_equal(ui.mark(), 0, "Settings' Mark")
 	assert_equal(ui.status_text(), SettingsUi.NO_LOG, "says the log is not running")
 	assert_equal(ui.copy_report(), 0, "Copy report copies nothing")
-	assert_true(PlaytestLog.folder().ends_with("logs"), "the folder line still names the folder")
+	assert_true(PlaytestLog.folder().ends_with(Files.DIR.get_file().path_join(PlaytestLog.HEADLESS_SUBDIR)), "headless, the folder line names the headless folder")
 
 
 func test_settings_shows_the_section_and_help_says_where_the_logs_are() -> void:

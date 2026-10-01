@@ -108,6 +108,18 @@ func write(text: String, forced: bool = false) -> bool:
 	return written
 
 
+func write_final(text: String) -> bool:
+	"""The session's last line (its end marker and totals): written past the cap and the reserve, so a full file
+	still ends cleanly. False only with no file or from inside a write."""
+	_mutex.lock()
+	if _busy:
+		_mutex.unlock()
+		return false
+	_store(scrub(text))
+	_mutex.unlock()
+	return _file != null
+
+
 func _write_locked(text: String, forced: bool) -> bool:
 	"""`write` under the mutex: the cap, the file, the tail."""
 	var size_bytes: int = text.to_utf8_buffer().size() + 1

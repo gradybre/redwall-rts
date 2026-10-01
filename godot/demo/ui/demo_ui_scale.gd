@@ -14,15 +14,16 @@ const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 static var percent: int = UiLayout.USER_SCALE_100
 
 
-static func fits(width: int, height: int, user_percent: int, minimum_logical_height: float) -> bool:
-	"""Whether `user_percent` leaves the HUD's layout at least `minimum_logical_height` logical pixels tall
-	in a `width` x `height` window (the demo's panels need that much to be read)."""
+static func fits(width: int, height: int, user_percent: int, minimum_logical_height: float,
+		minimum_logical_width: float = 0.0) -> bool:
+	"""Whether `user_percent` leaves the HUD's layout at least `minimum_logical_height` logical pixels tall and
+	`minimum_logical_width` wide in a `width` x `height` window (the demo's panels need that much to be read)."""
 	var layout := UiLayout.new()
 	var geometry := UiLayout.Geometry.new()
 	if not layout.compute_into(maxi(width, UiLayout.SUPPORTED_MIN_WIDTH), maxi(height, UiLayout.SUPPORTED_MIN_HEIGHT),
 			user_percent, false, geometry):
 		return false
-	return geometry.logical_height >= minimum_logical_height
+	return geometry.logical_height >= minimum_logical_height and geometry.logical_width >= minimum_logical_width
 
 
 static func effective_scale(size_px: Vector2) -> float:

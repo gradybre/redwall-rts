@@ -81,6 +81,12 @@ const ROSTER_SHOW: String = "All residents (%d) ▸"
 const ROSTER_HIDE: String = "All residents (%d) ▾"
 const ROSTER_TIP: String = "Every resident's swimming, breath and stamina: click one to select it and centre on it"
 const MORE_SELECTED: String = "%d more selected — show all residents"
+## The sections never get less than this (Dive and Swim shortcuts, or the Builds, in view): where the pinned part
+## would leave less, the selected residents' lines fold away into All residents (decision 0391).
+const MIN_BODY_H: float = 2.0 * BUTTON_H + 3.0 * SEPARATION
+## The residents in difficulty are pinned up to this many lines; the whole text is in its tooltip (and on the
+## rescue's incident card, decision 0331).
+const ALERT_MAX_LINES: int = 4
 
 var _frame: PanelContainer = null
 var _outer: VBoxContainer = null
@@ -107,6 +113,11 @@ var _width: float = 316.0
 var _zone_shown: bool = false
 var _zone_inset: float = 0.0
 var _place_queued: bool = false
+## Whether the pinned selection was folded away to leave the sections MIN_BODY_H (see _place).
+var _picked_folded: bool = false
+## How many selected residents' lines are pinned, and whether "n more selected" is wanted (_fill_picked).
+var _picked_shown: int = 0
+var _more_wanted: bool = false
 
 
 func _ready() -> void:
@@ -125,6 +136,7 @@ func build() -> void:
 	_frame = PanelContainer.new()
 	_frame.mouse_filter = Control.MOUSE_FILTER_STOP
 	_frame.add_theme_stylebox_override(&"panel", Styles.box(Styles.PIECE_PANEL, CONTENT_MARGINS))
+	_frame.theme = CardScript.tooltip_theme()
 	add_child(_frame)
 	_outer = VBoxContainer.new()
 	_outer.add_theme_constant_override(&"separation", SEPARATION)
@@ -151,6 +163,10 @@ func _build_pinned() -> void:
 	_outer.add_child(_pinned)
 	_pinned.add_child(_label(TITLE, TITLE_PX, Palette.INK, Styles.heading_font()))
 	_add_line(_pinned, &"alert", BODY_PX, Palette.CLAY, null)
+	var alert := _lines[&"alert"] as Label
+	alert.max_lines_visible = ALERT_MAX_LINES
+	alert.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	alert.mouse_filter = Control.MOUSE_FILTER_PASS
 	_picked = VBoxContainer.new()
 	_picked.add_theme_constant_override(&"separation", 2)
 	_pinned.add_child(_picked)
@@ -281,6 +297,7 @@ func show_water(conditions: String, alert: String, swimmers_title: String, swimm
 	_set_line(&"conditions", conditions)
 	_set_line(&"alert", alert)
 	(_lines[&"alert"] as Label).visible = not alert.is_empty()
+	(_lines[&"alert"] as Label).tooltip_text = alert
 	_set_line(&"swimmers_title", swimmers_title)
 	if _texts[&"swimmers"] != swimmers:
 		_texts[&"swimmers"] = swimmers
@@ -307,8 +324,10 @@ func _fill_picked() -> void:
 	for k: int in _picked.get_child_count():
 		(_picked.get_child(k) as Control).visible = k < shown
 	var rest: int = _selected.size() - shown
-	_more.visible = rest > 0
+	_picked_shown = shown
+	_more_wanted = rest > 0
 	_more.text = MORE_SELECTED % rest
+	_set_folded(_picked_folded)
 
 
 func _line_at(parent: VBoxContainer, k: int, text: String) -> void:
@@ -348,7 +367,7 @@ func set_roster_open(open: bool) -> void:
 
 
 func _reveal_roster() -> void:
-	"""Scroll so the All residents toggle is at the top of the sections."""
+	"""Scroll the least distance that shows the All residents toggle (demo_scroll.gd `reveal`)."""
 	if _roster_toggle != null and _roster_toggle.is_inside_tree():
 		_body.reveal(_roster_toggle)
 
@@ -374,11 +393,10 @@ func roster_row(who: int) -> Button:
 
 
 func picked_texts() -> PackedStringArray:
-	"""The pinned selection's lines as shown (checks)."""
+	"""The pinned selection's lines as pinned (folded away or not; checks)."""
 	var out := PackedStringArray()
-	for child: Node in _picked.get_children():
-		if (child as Control).visible:
-			out.append((child as Label).text)
+	for k: int in _picked_shown:
+		out.append((_picked.get_child(k) as Label).text)
 	return out
 
 
@@ -495,11 +513,50 @@ func _place() -> void:
 	_frame.scale = Vector2(_geometry.scale, _geometry.scale)
 	_frame.position = rect.position * _geometry.scale
 	_frame.custom_minimum_size = Vector2(rect.size.x, 0.0)
+	var avail: float = rect.size.y - CONTENT_MARGINS[1] - CONTENT_MARGINS[3] - float(SEPARATION)
+	var bare: float = _pinned_bare_height()
+	var picked: float = _picked_height()
+	_set_folded(avail - bare - picked < MIN_BODY_H)
+	var room: float = avail - bare - (0.0 if _picked_folded else picked)
+	_body.custom_minimum_size.y = clampf(_column.get_combined_minimum_size().y, 0.0, maxf(room, MIN_BODY_H))
 	_frame.size = Vector2(rect.size.x, 0.0)
-	var room: float = rect.size.y - CONTENT_MARGINS[1] - CONTENT_MARGINS[3] - _pinned.get_combined_minimum_size().y \
-		- float(SEPARATION)
-	_body.custom_minimum_size.y = clampf(_column.get_combined_minimum_size().y, 0.0, maxf(room, 0.0))
 	_frame.visible = _zone_shown and not _detail_open
+
+
+func _pinned_bare_height() -> float:
+	"""The pinned part without the selection: the title and the residents in difficulty (capped, ALERT_MAX_LINES)."""
+	var total: float = 0.0
+	var shown: int = 0
+	for child: Node in _pinned.get_children():
+		var control := child as Control
+		if control == _picked or control == _more or not control.visible:
+			continue
+		total += control.get_combined_minimum_size().y
+		shown += 1
+	return total + float(SEPARATION * maxi(shown - 1, 0))
+
+
+func _picked_height() -> float:
+	"""What the pinned selection adds when shown: its lines and, with more selected, its button -- each with the
+	separation before it."""
+	var total: float = 0.0
+	if _picked_shown > 0:
+		total += _picked.get_combined_minimum_size().y + float(SEPARATION)
+	if _more_wanted:
+		total += _more.get_combined_minimum_size().y + float(SEPARATION)
+	return total
+
+
+func _set_folded(folded: bool) -> void:
+	"""Fold the pinned selection away (its residents stay in All residents) or show it."""
+	_picked_folded = folded
+	_picked.visible = not folded and _picked_shown > 0
+	_more.visible = not folded and _more_wanted
+
+
+func picked_folded() -> bool:
+	"""Whether the pinned selection is folded away to leave the sections their room (checks)."""
+	return _picked_folded
 
 
 func sections() -> ScrollContainer:

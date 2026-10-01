@@ -53,6 +53,11 @@ rule: where the column cannot hold the header, summary and actions **and** `MIN_
 hidden. Under an open resource ledger the panel moves below it, or, where that leaves less than its fixed part, stays
 where it is under the ledger (which draws over it until it closes) instead of hiding.
 
+The inspector's rows are **pools re-worded in place** (`_fill_rows`): the command layer re-shows the party five
+times a second whenever an activity changes, and rebuilding 32 px buttons would drop a click between press and
+release, a keyboard focus and a hover tooltip (the code review's HIGH). A row presses for the cast index it lists
+now. Moving the summary and actions between docked and undocked keeps a focused button's focus.
+
 *Why the notice is in the inspector, not the fixed part:* at 1280x720 with nine selected and a two-line notice the
 fixed part left one member row in view; F20 names the count, the order and the actions as what must always show.
 
@@ -67,6 +72,11 @@ bridges, stores and news). The cost lines are split out of `site_text` by its ow
 (`waterplay_text.gd PLANK_LINE`, `LOG_LINE`); `line(&"site")` still returns the text as given. Every button is at
 least 32 px tall with 14 px text and a hover text (the nav buttons and Swim shortcuts gained one); a row of buttons
 wraps rather than cutting a caption.
+
+The pinned part is bounded: the residents in difficulty show at most `ALERT_MAX_LINES` (4) lines, whole in the
+tooltip and on the incident card; and where the pinned selection would leave the sections less than `MIN_BODY_H` (two
+button rows) -- two victims and three selected at 125 % on 1280x720 -- it folds away into All residents. Without that
+the sections collapsed to nothing in exactly a rescue (the code review's HIGH).
 
 *Why the Builds come before the site's way-finding:* at 1280x720 that is what puts Dive, Swim shortcuts and both
 Builds in view without scrolling. Tabs (the review's alternative) would have hidden one section's emergencies and
@@ -87,6 +97,8 @@ move the row under the pointer).
 - **Action-card tooltips** (`ui/action_card.gd scale_tooltips`): a tooltip is a pop-up of the viewport, not a child
   of its panel's scaled frame, so it did not grow with the panel. The shared tooltip theme's type and margins are set
   to TIP_PX × S on every resize and scale change (`demo_village.gd _scale_tooltips`, `DemoUiScale.effective_scale`).
+  The party and Water panels' frames carry the same theme, so every hover text in them (Release, the rows, the nav
+  buttons) is skinned and scaled too.
 - **Scroll at any scale** (`ui/demo_scroll.gd`): the panels draw at S through their frame's `scale`, and Godot's
   `follow_focus` / `ensure_control_visible` mix global and local pixels, scrolling too far at S != 1 (measured: rows
   "revealed" out of view at 125 %). The four new scrolls follow focus with `reveal`, in the container's own pixels.
@@ -94,7 +106,10 @@ move the row under the pointer).
   → 14; the news strip's title and history button, the incident card's and news window's buttons, and the stall
   banner's diagnostic line 13 → 14. **32 px floor** (UX-T03) on every Farm, Pantry, Woods, Tunnels, Water and party
   button.
-- **The menu offers 125 % at 1280x720.** `demo_village.gd MIN_LOGICAL_HEIGHT` 720 → 576. At 576 logical rows (the
+- **The menu offers 125 % at 1280x720.** `demo_village.gd MIN_LOGICAL_HEIGHT` 720 → 576, and a new
+  `MIN_LOGICAL_WIDTH` 1024 (`DemoUiScale.fits` gained the width): the base scale is clamped at 1, so without it a
+  1440x900 or 1280x1024 window at 150 % (960 or 853 logical px wide) would put the picker and the news strip in one
+  gap -- the code review's case. At 576 logical rows (the
   narrow profile) every demo panel reflows or scrolls, the news strip takes the gap between the minimap and the right
   column where the centred band would be narrower than `MIN_W` (it had no width there), the Map layer picker keeps
   clear of the right column (a third slot, right of the minimap) and scrolls its list and card in a short slot, and

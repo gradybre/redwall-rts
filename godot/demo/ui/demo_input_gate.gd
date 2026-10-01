@@ -200,11 +200,12 @@ func top_layer() -> CanvasLayer:
 func region_controls(index: int) -> Array[Control]:
 	"""Region `index`'s focusable controls, in order, as they stand now -- less any the cover hides."""
 	var ring: Array[Control] = focusables(_regions[index])
-	if not _cover.is_valid():
+	var cover: Rect2 = _cover.call() if _cover.is_valid() else Rect2()
+	if not cover.has_area():
 		return ring
 	var open: Array[Control] = []
 	for control: Control in ring:
-		if not covered(control):
+		if not screen_rect(control).intersects(cover):
 			open.append(control)
 	return open
 

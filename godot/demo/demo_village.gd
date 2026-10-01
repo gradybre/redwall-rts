@@ -179,6 +179,9 @@ const SHADOW_REFIT_M: float = 0.5
 ## each keep a place clear of the right column; at 150 % on 1280x720 (480 rows) those two have no room apart, so
 ## that size stays refused. It was 720 -- 1280x720 at 100 % only -- under decision 0261.
 const MIN_LOGICAL_HEIGHT: float = 576.0
+## ... and this many wide (1280x720 at 125 %): narrower, the Map layer picker no longer fits between the party column
+## and the right column and would share the news strip's gap (a 1440x900 or 1280x1024 window at 150 %; decision 0391).
+const MIN_LOGICAL_WIDTH: float = 1024.0
 ## Frames the canopy's fade and silhouette samples, and the frost and snow overlay, are drawn for at boot
 ## (as the U view's, decision 0206).
 const CANOPY_PREWARM_FRAMES: int = 2
@@ -781,9 +784,9 @@ func _refit_ui_scale() -> void:
 
 
 func ui_scale_fits(percent: int) -> bool:
-	"""Whether this window can show the demo at `percent` (MIN_LOGICAL_HEIGHT)."""
+	"""Whether this window can show the demo at `percent` (MIN_LOGICAL_HEIGHT, MIN_LOGICAL_WIDTH)."""
 	var size_px: Vector2 = get_viewport().get_visible_rect().size
-	return DemoUiScale.fits(int(size_px.x), int(size_px.y), percent, MIN_LOGICAL_HEIGHT)
+	return DemoUiScale.fits(int(size_px.x), int(size_px.y), percent, MIN_LOGICAL_HEIGHT, MIN_LOGICAL_WIDTH)
 
 
 func input_gate() -> InputGateScript:

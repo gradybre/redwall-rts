@@ -175,13 +175,6 @@ func _build() -> void:
 	column.add_child(_actions)
 	_picker = _build_picker()
 	column.add_child(_picker)
-	_picker_title = FarmUi.label("", FarmUi.BODY_PX, Palette.INK, true)
-	_picker_title.visible = false
-	_head.add_child(_picker_title)
-	_back = FarmUi.button("Back")
-	_back.tooltip_text = "Back to the bed's verbs"
-	_back.pressed.connect(close_picker)
-	_foot.add_child(_back)
 	_hint = FarmUi.label(HINT, FarmUi.SMALL_PX, Palette.UMBER)
 	column.add_child(_hint)
 
@@ -292,6 +285,13 @@ func _build_picker() -> VBoxContainer:
 	foot: neither scrolls away)."""
 	var box := VBoxContainer.new()
 	box.visible = false
+	_picker_title = FarmUi.label("", FarmUi.BODY_PX, Palette.INK, true)
+	_picker_title.visible = false
+	_head.add_child(_picker_title)
+	_back = FarmUi.button("Back")
+	_back.tooltip_text = "Back to the bed's verbs"
+	_back.pressed.connect(close_picker)
+	_foot.add_child(_back)
 	_picker_rows = VBoxContainer.new()
 	_picker_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_picker_rows.add_theme_constant_override(&"separation", 4)
@@ -552,7 +552,9 @@ func refresh_picker() -> void:
 		var line: Label = _pick_details[item]
 		if line.text != detail:
 			line.text = detail
-		line.add_theme_color_override(&"font_color", Palette.UMBER if reason != "" else Palette.INK)
+		var colour: Color = Palette.UMBER if reason != "" else Palette.INK
+		if line.get_theme_color(&"font_color") != colour:
+			line.add_theme_color_override(&"font_color", colour)
 
 
 func picker_title() -> String:

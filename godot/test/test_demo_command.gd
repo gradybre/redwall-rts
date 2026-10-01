@@ -427,7 +427,8 @@ func test_the_panel_lists_one_resident_s_orders_in_full_and_never_hides() -> voi
 		"skills": "Felling 0\nSwims fast, dives", "abilities": lines}]
 	panel.show_party(one)
 	assert_equal(panel.abilities_text(), "\n".join(lines), "listed, every target kept")
-	var two: Array[Dictionary] = [one[0], {"name": "Mole digger", "species": "Mole", "state": "holding", "abilities": lines}]
+	var two: Array[Dictionary] = [one[0].merged({"index": 0}), {"index": 1, "name": "Mole digger", "species": "Mole",
+		"state": "holding", "abilities": lines}]
 	panel.show_party(two)
 	assert_equal(panel.abilities_text(), "", "a group: not listed")
 	panel.show_party(one)

@@ -30,6 +30,8 @@ const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const CommandScript := preload("res://demo/control/demo_command.gd")
+const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
+const VillageScript := preload("res://demo/demo_village.gd")
 
 const BED_LOAM: int = 0
 const PEA: int = 11
@@ -271,12 +273,11 @@ func test_the_picker_and_news_band_keep_clear_of_the_right_column_at_every_offer
 	150 %), the Map layer picker's slot and the news band stay clear of the right column, the minimap, the
 	party column and each other; at 125 % on 1280x720 the news band takes the whole gap (decision 0391)."""
 	var cases: Array = [[1280, 720, 100], [1280, 720, 125], [1920, 1080, 100], [1920, 1080, 125],
-		[1920, 1080, 150], [2560, 1440, 150], [3840, 2160, 100]]
+		[1920, 1080, 150], [2560, 1440, 150], [3840, 2160, 100], [1366, 768, 125], [1920, 1200, 150], [1440, 900, 125]]
 	for c: Array in cases:
 		var geometry := UiLayout.Geometry.new()
-		var band: Rect2 = NewsStrip.band_placement(c[0], c[1], UiLayout.new(), geometry)
 		DemoUiScale.percent = c[2]
-		band = NewsStrip.band_placement(c[0], c[1], UiLayout.new(), geometry)
+		var band: Rect2 = NewsStrip.band_placement(c[0], c[1], UiLayout.new(), geometry)
 		var slot: Rect2 = LensPicker.slot_rect(geometry, band).grow(LensPicker.FRAME_EXPAND)
 		var at: String = "%dx%d@%d" % c
 		var detail := Rect2(geometry.detail.position, Vector2(geometry.detail.size.x, geometry.commands.position.y))
@@ -318,20 +319,23 @@ func test_the_incident_card_stays_between_the_side_columns() -> void:
 
 # --- the input gate's covered stops -------------------------------------------------------------------
 
+func _stop(region: Control, at: Vector2) -> Button:
+	"""A 40 x 32 focusable button in `region` at `at`."""
+	var button := Button.new()
+	button.focus_mode = Control.FOCUS_ALL
+	button.position = at
+	button.size = Vector2(40, 32)
+	region.add_child(button)
+	return button
+
+
 func test_a_control_under_the_cover_is_no_focus_stop() -> void:
 	"""With a cover over part of a region, its covered buttons drop out of the ring and Enter on one already
 	focused is not pressed but goes on (G's open item, decision 0391); without a cover nothing changes."""
 	var gate := _own(GateScript.new()) as GateScript
 	var region := _own(Control.new()) as Control
-	var open := Button.new()
-	open.focus_mode = Control.FOCUS_ALL
-	open.size = Vector2(40, 32)
-	region.add_child(open)
-	var hidden := Button.new()
-	hidden.focus_mode = Control.FOCUS_ALL
-	hidden.position = Vector2(100, 0)
-	hidden.size = Vector2(40, 32)
-	region.add_child(hidden)
+	var open: Button = _stop(region, Vector2.ZERO)
+	var hidden: Button = _stop(region, Vector2(100, 0))
 	gate.add_region("test", [region] as Array[Node])
 	assert_equal(gate.region_controls(0).size(), 2, "no cover: both")
 	assert_false(gate.covered(hidden), "nothing covers it")
@@ -377,3 +381,68 @@ func test_the_card_tooltips_follow_the_hud_scale() -> void:
 	DemoUiScale.percent = 100
 	assert_almost_equal(DemoUiScale.effective_scale(Vector2(3840, 2160)), 2.0, "4K at 100 %: 200 %")
 	assert_almost_equal(DemoUiScale.effective_scale(Vector2(800, 600)), 1.0, "below the floor: the floor's")
+
+
+func test_a_scale_is_offered_only_where_the_bottom_band_has_room() -> void:
+	"""The menu's rule (demo_village.gd MIN_LOGICAL_HEIGHT and MIN_LOGICAL_WIDTH): 125 % at 1280x720 and every scale
+	at 1920x1080; never 150 % at 1280x720, 1440x900 or 1280x1024, where the picker and the news strip would share one
+	gap (the code review's cases)."""
+	var h: float = VillageScript.MIN_LOGICAL_HEIGHT
+	var w: float = VillageScript.MIN_LOGICAL_WIDTH
+	assert_true(DemoUiScale.fits(1280, 720, 125, h, w), "1280x720 at 125 %")
+	assert_false(DemoUiScale.fits(1280, 720, 150, h, w), "not 150 %")
+	assert_true(DemoUiScale.fits(1920, 1080, 150, h, w), "1920x1080 at 150 %")
+	assert_false(DemoUiScale.fits(1440, 900, 150, h, w), "1440x900 at 150 %: too narrow")
+	assert_false(DemoUiScale.fits(1280, 1024, 150, h, w), "1280x1024 at 150 %: too narrow")
+	assert_true(DemoUiScale.fits(1440, 900, 125, h, w), "1440x900 at 125 %")
+	assert_true(DemoUiScale.fits(1366, 768, 125, h, w), "1366x768 at 125 %")
+	assert_false(DemoUiScale.fits(1366, 768, 150, h, w), "1366x768 at 150 %: too short")
+
+
+func test_a_reveal_works_in_the_scroll_s_own_pixels() -> void:
+	"""Under a frame drawn at 1.5, `offset_in` sums the content's own positions (not the drawn ones), and a control
+	outside the scroll is -1."""
+	var frame := _own(Control.new()) as Control
+	frame.scale = Vector2(1.5, 1.5)
+	var scroll := DemoScroll.new()
+	frame.add_child(scroll)
+	var content := VBoxContainer.new()
+	scroll.add_child(content)
+	var group := Control.new()
+	group.position = Vector2(0, 300)
+	content.add_child(group)
+	var row := Button.new()
+	row.position = Vector2(0, 100)
+	group.add_child(row)
+	assert_equal(scroll.offset_in(row), 400.0, "300 + 100, unscaled")
+	assert_equal(scroll.offset_in(frame), -1.0, "not inside")
+	assert_equal(scroll.follow_focus, false, "the engine's focus following is off (it is wrong at S != 1)")
+
+
+func test_the_party_rows_are_a_pool_re_worded_in_place() -> void:
+	"""A group re-shown -- other members, other order -- keeps the same row buttons (a click, focus or tooltip on one
+	survives the refresh); a row presses for whoever it lists now; one resident's lines are a pool too."""
+	var panel := _own(PartyPanel.new()) as PartyPanel
+	panel.build()
+	var three: Array[Dictionary] = []
+	for i: int in 3:
+		three.append({"index": 10 + i, "name": "R%d" % i, "state": "holding"})
+	panel.show_party(three)
+	var rows: Array[Button] = [panel.member_row(0), panel.member_row(1), panel.member_row(2)]
+	var two: Array[Dictionary] = [three[2], three[0]]
+	panel.show_party(two)
+	assert_true(panel.member_row(0) == rows[0] and panel.member_row(1) == rows[1], "the same buttons")
+	assert_equal(panel.member_row_count(), 2, "two in use")
+	assert_null(panel.member_row(2), "the third out of use")
+	assert_false(rows[2].visible, "and hidden")
+	var picked: Array[int] = []
+	panel.member_picked.connect(func(i: int) -> void: picked.append(i))
+	rows[0].pressed.emit()
+	assert_equal(picked, [12] as Array[int], "the first row lists R2 now")
+	panel.show_party([{"index": 4, "name": "A", "species": "Mouse", "state": "holding"}] as Array[Dictionary])
+	var lines: Array[Label] = panel.get("_line_labels")
+	var first: Label = lines[0]
+	panel.show_party([{"index": 5, "name": "B", "species": "Otter", "state": "wandering"}] as Array[Dictionary])
+	assert_true((panel.get("_line_labels") as Array)[0] == first, "the same line label")
+	assert_equal(first.text, "Otter", "re-worded")
+	assert_false(rows[0].visible, "no member rows for one resident")

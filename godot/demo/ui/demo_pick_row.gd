@@ -60,6 +60,13 @@ static func _chip(colour: Color) -> ColorRect:
 	return swatch
 
 
+static func set_chip(row: Button, colour: Color) -> void:
+	"""Re-colour a row's chip (a row made without one has none to colour)."""
+	var swatch := row.get_node_or_null(^"Chip") as ColorRect
+	if swatch != null and swatch.color != colour:
+		swatch.color = colour
+
+
 static func set_text(row: Button, text: String) -> void:
 	"""Re-word a row (and its tooltip) only when the words changed, so a tooltip showing is left alone."""
 	if row.text != text:

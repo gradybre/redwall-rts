@@ -48,6 +48,7 @@ const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const PickRow := preload("res://demo/ui/demo_pick_row.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 
@@ -125,7 +126,15 @@ var _room_buttons: Array[Button] = []
 var _inspector: DemoScroll = null
 var _detail: VBoxContainer = null
 var _rows: VBoxContainer = null
+## One resident's lines and a group's member rows, each a pool re-worded in place (never rebuilt: a click, a
+## keyboard focus or a tooltip on a row survives the panel's refresh).
+var _line_box: VBoxContainer = null
+var _line_labels: Array[Label] = []
+var _member_box: VBoxContainer = null
 var _member_rows: Array[Button] = []
+## The cast index each member row selects, and how many rows are in use.
+var _member_index: PackedInt32Array = PackedInt32Array()
+var _member_count: int = 0
 var _abilities: Label = null
 var _hint: Label = null
 var _docked: bool = true
@@ -176,6 +185,7 @@ func _build() -> void:
 	_frame = PanelContainer.new()
 	_frame.mouse_filter = Control.MOUSE_FILTER_STOP
 	_frame.add_theme_stylebox_override(&"panel", Styles.box(Styles.PIECE_PANEL, CONTENT_MARGINS))
+	_frame.theme = CardScript.tooltip_theme()
 	add_child(_frame)
 	_column = VBoxContainer.new()
 	_column.add_theme_constant_override(&"separation", SEPARATION)
@@ -263,6 +273,12 @@ func _build_detail() -> void:
 	_rows = VBoxContainer.new()
 	_rows.add_theme_constant_override(&"separation", 3)
 	_detail.add_child(_rows)
+	_line_box = VBoxContainer.new()
+	_line_box.add_theme_constant_override(&"separation", 3)
+	_rows.add_child(_line_box)
+	_member_box = VBoxContainer.new()
+	_member_box.add_theme_constant_override(&"separation", 1)
+	_rows.add_child(_member_box)
 	_abilities = _wrapped("", SMALL_PX, Palette.UMBER)
 	_abilities.visible = false
 	_detail.add_child(_abilities)
@@ -346,31 +362,61 @@ func show_party(entries: Array[Dictionary]) -> void:
 
 func _fill_rows(entries: Array[Dictionary]) -> void:
 	"""The inspector's rows: one resident's lines (after its name, which the summary says), or a member row
-	each (`member_picked` on press)."""
-	for child in _rows.get_children():
-		_rows.remove_child(child)
-		child.queue_free()
-	_member_rows.clear()
+	each (`member_picked` on press) -- from the pools, re-worded in place, the rows not wanted hidden."""
 	var lines := party_lines(entries)
-	if entries.size() > 1:
-		for k: int in entries.size():
-			var row: Button = PickRow.make(lines[k + 1], entries[k].get("colour", Palette.SAGE), SMALL_PX, Palette.INK)
-			row.pressed.connect(member_picked.emit.bind(int(entries[k].get("index", k))))
-			_member_rows.append(row)
-			_rows.add_child(row)
-		return
-	for k: int in range(1, lines.size()):
-		_rows.add_child(_wrapped(lines[k], BODY_PX if k == 2 else SMALL_PX, Palette.INK if k == 2 else Palette.UMBER))
+	var group: bool = entries.size() > 1
+	_member_count = entries.size() if group else 0
+	_member_index.resize(_member_count)
+	for k: int in _member_count:
+		_member_index[k] = int(entries[k]["index"])
+		var row: Button = _member_row_at(k)
+		PickRow.set_text(row, lines[k + 1])
+		PickRow.set_chip(row, entries[k].get("colour", Palette.SAGE))
+	for k: int in _member_rows.size():
+		_member_rows[k].visible = k < _member_count
+	var shown: int = 0 if group else maxi(lines.size() - 1, 0)
+	for k: int in shown:
+		var label: Label = _line_at(k)
+		if label.text != lines[k + 1]:
+			label.text = lines[k + 1]
+	for k: int in _line_labels.size():
+		_line_labels[k].visible = k < shown
+
+
+func _member_row_at(k: int) -> Button:
+	"""Member row `k` of the pool (made, and connected once, when missing)."""
+	while _member_rows.size() <= k:
+		var row: Button = PickRow.make("", Palette.SAGE, SMALL_PX, Palette.INK)
+		row.pressed.connect(_on_member_pressed.bind(_member_rows.size()))
+		_member_rows.append(row)
+		_member_box.add_child(row)
+	return _member_rows[k]
+
+
+func _on_member_pressed(k: int) -> void:
+	"""Member row `k` was pressed: the resident it lists now."""
+	if k < _member_count:
+		member_picked.emit(_member_index[k])
+
+
+func _line_at(k: int) -> Label:
+	"""One resident's line `k` (after its name) from the pool: what it is doing in body ink, the rest in umber."""
+	while _line_labels.size() <= k:
+		var lead: bool = _line_labels.size() == 1
+		var label: Label = _wrapped("", BODY_PX if lead else SMALL_PX, Palette.INK if lead else Palette.UMBER)
+		_line_labels.append(label)
+		_line_box.add_child(label)
+	return _line_labels[k]
 
 
 func member_row(k: int) -> Button:
 	"""A group's member row `k` (null when there is none: one resident, or nobody)."""
-	return _member_rows[k] if k >= 0 and k < _member_rows.size() else null
+	return _member_rows[k] if k >= 0 and k < _member_count else null
 
 
 func member_row_count() -> int:
 	"""How many member rows the inspector lists (0 unless a group is selected)."""
-	return _member_rows.size()
+	return _member_count
 
 
 func summary() -> String:
@@ -599,10 +645,13 @@ func fit(height: float) -> bool:
 
 
 func _dock(docked: bool) -> void:
-	"""Put the summary and actions above the inspector (`docked`) or at its top."""
+	"""Put the summary and actions above the inspector (`docked`) or at its top; a button of theirs that had the
+	focus keeps it (moving a node drops its focus)."""
 	if docked == _docked:
 		return
 	_docked = docked
+	var focused: Control = get_viewport().gui_get_focus_owner() if is_inside_tree() else null
+	var keyboard: bool = focused != null and _top.is_ancestor_of(focused) and focused.has_focus(true)
 	_top.get_parent().remove_child(_top)
 	if docked:
 		_column.add_child(_top)
@@ -610,6 +659,8 @@ func _dock(docked: bool) -> void:
 	else:
 		_detail.add_child(_top)
 		_detail.move_child(_top, 0)
+	if focused != null and _top.is_ancestor_of(focused) and focused.is_inside_tree():
+		focused.grab_focus(not keyboard)
 
 
 func docked() -> bool:

@@ -286,6 +286,38 @@ func _water_checks() -> void:
 	_floors("water", water)
 	_capture("water")
 	water.call(&"set_roster_open", false)
+	await _rescue_checks(water)
+
+
+func _rescue_checks(water: CanvasLayer) -> void:
+	"""Two residents in difficulty and three selected (the code review's case): the alert is pinned, capped, whole in
+	its tooltip; the sections keep MIN_BODY_H (the selection folds away where it must) and every action stays
+	reachable; the frame stays inside the window. The panel's refresh beat is held meanwhile, so the water's own
+	(calm) state does not overwrite the case."""
+	var alert: String = "In difficulty: Otter fisher, underwater, breath 37% — Otter boatwright: diving to fetch them (the ford is nearer); Mouse keeper, at the surface, breath 64% — no rescuer free yet (the water brings it ashore in 80 s)"
+	_village.get("_waterplay").set("_refresh_in", 1000.0)
+	water.call(&"show_water", "Stream flowing 0.40 m/s · mild water", alert, "Swimmers — 2 in the water", water.call(&"line", &"swimmers"))
+	water.call(&"set_selected", PackedInt32Array([0, 1, 2]))
+	await _frames(2)
+	var label: Label = (water.get("_lines") as Dictionary)[&"alert"]
+	_check("rescue: the alert pinned", label.is_visible_in_tree() and _fraction(label) >= FULL)
+	_check("rescue: the whole alert in its tooltip", label.tooltip_text == alert)
+	var body: ScrollContainer = water.call(&"sections")
+	_check("rescue: the sections keep their room", body.size.y >= float(WaterPanel.MIN_BODY_H) - 0.5,
+		"%.0f, folded %s" % [body.size.y, water.call(&"picked_folded")])
+	if _size.y == 720:
+		_check("rescue: the selection folds only where it must", bool(water.call(&"picked_folded")) == (_scale > 100),
+			"folded %s" % water.call(&"picked_folded"))
+	var lost: PackedStringArray = PackedStringArray()
+	for key: StringName in [WaterPanel.ACTION_DIVE, WaterPanel.ACTION_BUILD_LOG]:
+		if not await _reachable(water.call(&"button", key)):
+			lost.append(String(key))
+	_check("rescue: the actions reachable", lost.is_empty(), ", ".join(lost))
+	var frame: Rect2 = water.call(&"frame_rect")
+	_check("rescue: the frame inside the window", frame.end.y <= float(_size.y) + 0.5, str(frame))
+	_capture("water_rescue")
+	water.call(&"set_selected", PackedInt32Array([0]))
+	_village.get("_waterplay").set("_refresh_in", 0.0)
 
 
 # --- F36 / F12: the crop picker -----------------------------------------------------------------------------

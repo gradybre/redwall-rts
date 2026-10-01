@@ -819,7 +819,7 @@ func _click_member_row(who: int) -> void:
 		str(_command().call(&"selected")))
 	var feet: Vector2 = _brain(who).get("position")
 	var after: Vector3 = camera.get("_target_focus")
-	_check("and centred the camera on it", after != before or (absf(after.x - feet.x) < 0.5 and absf(after.z - feet.y) < 0.5),
+	_check("and centred the camera on it", absf(after.x - feet.x) < 1.0 and absf(after.z - feet.y) < 1.0,
 		"%s -> %s, feet %s" % [before, after, feet])
 
 
@@ -871,9 +871,11 @@ func _the_picker_crosses_spring_5() -> void:
 	var bed: Node = farm.get("bed_panel")
 	var body: ScrollContainer = bed.call(&"body")
 	_picker_scroll = body.scroll_vertical
-	var day: int = 24 * CalendarScript.HOUR_USEC
-	while not String(bed.call(&"picker_title")).contains("Spring 5"):
-		farm.call(&"advance_calendar", day / 4)
+	var quarter: int = 6 * CalendarScript.HOUR_USEC
+	for k: int in 32:
+		if String(bed.call(&"picker_title")).contains("Spring 5"):
+			break
+		farm.call(&"advance_calendar", quarter)
 	_steps.push_front(_after_spring_5)
 
 

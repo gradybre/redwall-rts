@@ -198,6 +198,7 @@ func _start_living(brains: Array[BrainScript], names: PackedStringArray, bounds_
 		heights.append(Rules.to_u((_cast.actor(i) as DemoActorScript).height_m))
 	fixture_crew.configure(_network, brains)
 	night.configure(_network, brains, names, heights, _calendar, works.notices)
+	night.set_incidents(works.incidents)
 	night.set_alarm(func() -> bool: return works.events.active)
 	var hall: int = _cast.space().poi_names.find(NightScript.HALL_POI)
 	if hall >= 0:

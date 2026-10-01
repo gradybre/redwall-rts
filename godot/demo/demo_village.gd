@@ -40,6 +40,13 @@ extends Node3D
 ##     shown bottom centre (demo/ui/demo_news_strip.gd) and, per source, in the two panels. Nothing in
 ##     the demo raises a HUD alert card: the HUD shows the two earliest unresolved notices and demo
 ##     lines, which nothing resolves, would hold both cards for good (UI §7).
+##   * VILLAGE NEWS (decision 0331, review F11, F37, UX-011): the feed's history window (demo/ui/demo_news_history.gd:
+##     every kept entry, filtered by place and severity, with "Go to"), the incidents behind the warnings
+##     (demo_incidents.gd: kept until resolved or acknowledged), the top-centre card queue of the critical and
+##     pinned ones (demo/ui/demo_incident_cards.gd), and the news clock that stops toasts ageing while paused.
+##     The news strip's button, the card's and the HUD's own history command (N, its trigger: `_on_shell_action`)
+##     all open the window; it stands in for the shell's history in the top-centre zone, and offers the shell's
+##     "Settlement notices" from its header. `_build_news()` wires it, and each target kind's "Go to".
 ## The HUD's right column holds ONE demo panel at a time -- the farm's or the tunnels' -- under a tab
 ## strip (demo/ui/demo_detail_zone.gd); a click on a bed or a tunnel brings its panel.
 ##
@@ -143,6 +150,10 @@ const TunnelControlScript := preload("res://demo/tunnel/tunnel_control.gd")
 const WaterOverlayScript := preload("res://demo/water/water_overlay.gd")
 const ForestMarks := preload("res://demo/forestry/forest_marks.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
+const NewsHistoryScript := preload("res://demo/ui/demo_news_history.gd")
+const IncidentCardsScript := preload("res://demo/ui/demo_incident_cards.gd")
+const NewsJumpScript := preload("res://demo/ui/demo_news_jump.gd")
+const NoticesScript := preload("res://demo/demo_notices.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -196,6 +207,9 @@ var _held_open: bool = false
 var _lens_picker: LensPickerScript = null
 ## The Water range layer's row in the farm's lenses (its subject is set once the water's play is built).
 var _water_lens: int = 0
+var _history: NewsHistoryScript = null
+var _cards: IncidentCardsScript = null
+var _jump: NewsJumpScript = NewsJumpScript.new()
 
 
 func _ready() -> void:
@@ -423,6 +437,96 @@ func _build_shared_ui() -> void:
 	ext.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_TUNNELS))
 	_forestry.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_WOODS))
 	_waterplay.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_WATER))
+	_build_news()
+
+
+func _build_news() -> void:
+	"""The village news (see VILLAGE NEWS): the strip on the news clock with its count, the history window, the
+	incident card, every "Go to", and the HUD's history command routed to the window."""
+	_news.bind_news(_services.incidents, _services.news_clock, (GameManager as GameManagerScript).is_paused)
+	_jump.bind_camera(_camera as DemoCameraScript)
+	_register_jumps()
+	_history = NewsHistoryScript.new()
+	add_child(_history)
+	_history.configure(_services.notices, _services.incidents, _jump)
+	_cards = IncidentCardsScript.new()
+	add_child(_cards)
+	_cards.configure(_services.incidents, _jump)
+	_cards.hide_while(_history.is_open)
+	_cards.hide_while(_stall_banner.is_shown)
+	_news.history_wanted.connect(_history.open)
+	_cards.history_wanted.connect(_history.open)
+	var shell: UiShell = _shell()
+	if shell != null:
+		_history.set_settlement(shell.open_notice_history)
+		_history.defer_keys_while(shell.notice_details_open)
+		_history.defer_keys_while(shell.workspace_owns_input)
+		_cards.hide_while(shell.notice_details_open)
+		shell.shell_action.connect(_on_shell_action)
+
+
+func _register_jumps() -> void:
+	"""Each target kind's "Go to": where it is now, and how a click selects it (demo_news_jump.gd)."""
+	var network: GraphScript = (_command as DemoCommandScript).tunnels().network
+	_jump.register(NoticesScript.TARGET_BED, func(bed: int) -> Vector3: return NewsJumpScript.bed_point(bed),
+		_farm.select_bed)
+	_jump.register(NoticesScript.TARGET_TREE,
+		func(t: int) -> Vector3: return NewsJumpScript.tree_point(_forestry.stand, t), _forestry.select_tree)
+	_jump.register(NoticesScript.TARGET_TUNNEL,
+		func(slot: int) -> Vector3: return NewsJumpScript.tunnel_point(network, slot), select_tunnel)
+	_jump.register(NoticesScript.TARGET_RESIDENT, resident_point, select_resident)
+	_jump.register(NoticesScript.TARGET_BRIDGE,
+		func(row: int) -> Vector3: return NewsJumpScript.bridge_point(_waterplay.bridges, row), _waterplay.select_bridge)
+
+
+func resident_point(who: int) -> Vector3:
+	"""Where resident `who` stands (INF: no such resident)."""
+	if who < 0 or who >= _cast.actor_count():
+		return Vector3.INF
+	var at: Vector3 = (_cast.actor(who) as Node3D).position
+	return Vector3(at.x, 0.0, at.z)
+
+
+func select_resident(who: int) -> void:
+	"""Select resident `who` alone, as a click on it does."""
+	(_command as DemoCommandScript).select(PackedInt32Array([who]))
+
+
+func select_tunnel(slot: int) -> void:
+	"""Select tunnel `slot` and bring the Tunnels panel forward, as a click on it does."""
+	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
+	ext.deselect_room()
+	ext.actions.select(slot)
+	ext.panel_wanted.emit()
+
+
+func _on_shell_action(element_id: int) -> void:
+	"""The HUD's history trigger (N is read by the window itself, first): the village news stands in for the
+	shell's history in the top-centre zone (one expansion there), so the shell's opened history is closed --
+	and the focus it hands back to the trigger let go, or the HUD would draw the trigger's keyboard description
+	over the window -- and the window toggled; a shell history the trigger just closed (opened from a
+	settlement card) closes the window too."""
+	if element_id != UiShell.ID_HISTORY_TRIGGER:
+		return
+	var shell: UiShell = _shell()
+	if _history.take_trigger(shell != null and shell.notice_details_open()):
+		shell.close_notice_details()
+		get_viewport().gui_release_focus()
+
+
+func news_history() -> NewsHistoryScript:
+	"""The village-news history window (checks)."""
+	return _history
+
+
+func incident_cards() -> IncidentCardsScript:
+	"""The top-centre incident card (checks)."""
+	return _cards
+
+
+func news_jump() -> NewsJumpScript:
+	"""The news's "Go to" (checks)."""
+	return _jump
 
 
 func _build_village_hud() -> void:
@@ -457,6 +561,8 @@ func minimap() -> MinimapScript:
 func counters() -> HudCountersScript:
 	"""The top bar's village counters and ledger (demo/ui/demo_hud_counters.gd)."""
 	return _counters
+
+
 func _build_lens_picker() -> void:
 	"""The Underground layer (U's view, followed: map_lenses.gd) and the Map layer picker bottom left, clear
 	of the news strip's band (which the journal moves)."""

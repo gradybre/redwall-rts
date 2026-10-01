@@ -29,6 +29,12 @@ extends Node3D
 ##
 ## TIME is the demo clock: air and stamina tick at 30 a second of demo time (none while paused), the
 ## work and the walking run 2x / 4x with the HUD. What happens goes to the one notice feed (Water).
+##
+## RESCUE INCIDENTS (decision 0331, review UX-011): every resident in difficulty is also a CRITICAL incident,
+## "water:rescue:<who>" on that resident (demo_incidents.gd), so it queues in the top-centre alert zone until it
+## is over. Its text is the Water panel's one incident line per victim (waterplay_text.gd `incident_words`),
+## updated in place a few times a second (`sync_incidents`); it NEEDS A DECISION while nobody answers, is
+## ASSIGNED once a responder is on it, RECOVERING while being brought ashore, RESOLVED once it is out.
 
 const Rules := preload("res://demo/waterplay/swim_rules.gd")
 const WaterRules := preload("res://demo/water/water_rules.gd")
@@ -41,6 +47,7 @@ const StateScript := preload("res://demo/waterplay/swim_state.gd")
 const MotionScript := preload("res://demo/waterplay/swim_motion.gd")
 const CrossingsScript := preload("res://demo/waterplay/water_crossings.gd")
 const RescueScript := preload("res://demo/waterplay/rescue.gd")
+const Tasks := preload("res://demo/waterplay/rescue_tasks.gd")
 const CrewScript := preload("res://demo/waterplay/bridge_crew.gd")
 const BridgeViewScript := preload("res://demo/waterplay/bridge_view.gd")
 const SwimViewScript := preload("res://demo/waterplay/swim_view.gd")
@@ -73,6 +80,8 @@ const WALK_BOUNDS: AABB = AABB(Vector3(-20.0, 0.0, -34.0), Vector3(56.0, 4.0, 76
 ## Small water props standing on land (water_dressing.gd PROP_PLACEMENTS), as circles: rod, net, rack.
 const PROP_CIRCLES: Array[Vector3] = [Vector3(21.3, 0.3, 9.7), Vector3(21.0, 0.45, 5.2), Vector3(20.9, 0.6, 11.6)]
 const PANEL_REFRESH_S: float = 0.25
+const IncidentsScript := preload("res://demo/demo_incidents.gd")
+const RESCUE_KEY: String = "water:rescue:%d"
 const DIVE_SPREAD_M: float = 1.4
 const SWIM_SPREAD_M: float = 1.2
 ## A left click this near a bridge site's line selects it (m).
@@ -110,6 +119,8 @@ var bridge_view: BridgeViewScript = null
 var swim_view: SwimViewScript = null
 var panel: PanelScript = null
 var services: ServicesScript = null
+## Residents whose rescue incident is open (see RESCUE INCIDENTS).
+var _rescue_open: PackedInt32Array = PackedInt32Array()
 ## The bridge site chosen for the panel: a candidate (index), or a surveyed span of two banks.
 var site_candidate: int = 0
 var site_custom: bool = false
@@ -262,6 +273,7 @@ func _process(delta: float) -> void:
 	_refresh_in -= delta
 	if _refresh_in <= 0.0:
 		_refresh_in = PANEL_REFRESH_S
+		sync_incidents()
 		if panel.is_shown():
 			refresh_panel()
 		panel.follow_hud()
@@ -305,6 +317,41 @@ func _follow_selection() -> void:
 func _name_of(who: int) -> String:
 	"""A resident's name, as the panels show it."""
 	return (_cast.actor(who) as DemoActorScript).display_name
+
+
+func sync_incidents() -> void:
+	"""Each resident in difficulty as its rescue incident, raised, updated in place, or resolved once it is out
+	(see RESCUE INCIDENTS)."""
+	var incidents: IncidentsScript = services.incidents
+	for who: int in rescue.victims:
+		var key: String = RESCUE_KEY % who
+		if not incidents.update(key, rescue_state(who), text.incident_words(who)):
+			incidents.raise(key, NoticesScript.SOURCE_WATER, IncidentsScript.SEVERITY_CRITICAL, text.incident_words(who),
+				NoticesScript.TARGET_RESIDENT, who, rescue_state.bind(who))
+			incidents.update(key, rescue_state(who))
+			if not _rescue_open.has(who):
+				_rescue_open.append(who)
+	for k: int in range(_rescue_open.size() - 1, -1, -1):
+		if not rescue.victims.has(_rescue_open[k]):
+			incidents.resolve(RESCUE_KEY % _rescue_open[k])
+			_rescue_open.remove_at(k)
+
+
+func rescue_state(who: int) -> int:
+	"""A victim's incident state (its watch): RESOLVED once out of difficulty, RECOVERING while being brought
+	ashore, ASSIGNED with a responder on it, else needing a decision."""
+	if not rescue.victims.has(who):
+		return IncidentsScript.STATE_RESOLVED
+	var task: Tasks.VictimTask = rescue.victim_task(who)
+	if task == null or not task.engaged:
+		return IncidentsScript.STATE_NEEDS_DECISION
+	return IncidentsScript.STATE_RECOVERING if task.towed else IncidentsScript.STATE_ASSIGNED
+
+
+func select_bridge(row: int) -> void:
+	"""Show bridge `row`'s span as the chosen site, as a click on it does (the news's "Go to")."""
+	if row >= 0 and row < BridgesScript.MAX_BRIDGES and bridges.phase[row] != BridgesScript.PHASE_FREE:
+		_select_row(row)
 
 
 func _say(line: String, warning: bool) -> void:

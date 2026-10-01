@@ -29,6 +29,12 @@ extends Node
 ## ORDERS answer (`tell`: a refusal, a prompt, who is on the job) goes to the log and the party panel's
 ## notice line, beside the selection, not to the feed. Nothing here raises a HUD alert card.
 ##
+## INCIDENTS (decision 0331, review UX-011). A flooded or collapsed tunnel and a threat are still TRUE after
+## their warning, so they are also incidents (demo_incidents.gd) that stay until they are over:
+##   * "tunnel:flooded:<slot>:<gen>" / "tunnel:collapsed:<slot>:<gen>", a WARNING on the tunnel: ASSIGNED while
+##     a job is on it (pump, repair), RESOLVED once it is reopened or gone (`closure_state`);
+##   * "threat", CRITICAL (residents are sent to shelter): ASSIGNED while it lasts, RESOLVED once over.
+##
 ## Nothing here allocates per frame: callables are made once, and every column is sized at setup.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
@@ -38,6 +44,8 @@ const WaterScript := preload("res://demo/village_water.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
+const IncidentsScript := preload("res://demo/demo_incidents.gd")
+const THREAT_KEY: String = "threat"
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
 const CrewScript := preload("res://demo/tunnel/tunnel_crew.gd")
@@ -83,6 +91,7 @@ const ALERT_ROOM_DUG: String = "%s %d dug"
 var weather: WeatherScript = null
 var water: WaterScript = null
 var notices: NoticesScript = null
+var incidents: IncidentsScript = null
 var ground: GroundScript = null
 var stores: StoresScript = null
 var finds: FindsScript = null
@@ -138,6 +147,7 @@ func setup(space: CastSpaceScript, brains: Array[BrainScript], species: PackedSt
 	weather = shared.weather
 	water = shared.water
 	notices = shared.notices
+	incidents = shared.incidents
 	stores = shared.stores
 	events = EventsScript.new(water)
 	ground = GroundScript.new(bounds_u, water)
@@ -476,7 +486,7 @@ func _act_on(slot: int, event: int) -> void:
 		HazardsScript.EVENT_FLOODED:
 			hazards.flood(slot)
 			_empty_bore(slot)
-			warn(FLOODED % (slot + 1), ALERT_FLOODED % (slot + 1))
+			_warn_closed(slot, "flooded", FLOODED % (slot + 1), ALERT_FLOODED % (slot + 1))
 		HazardsScript.EVENT_COLLAPSE_DUE:
 			_try_collapse(slot)
 
@@ -492,7 +502,28 @@ func _try_collapse(slot: int) -> void:
 	_creaked[slot] = 0
 	hazards.collapse(slot)
 	_empty_bore(slot)
-	warn(COLLAPSED % (slot + 1), ALERT_COLLAPSED % (slot + 1))
+	_warn_closed(slot, "collapsed", COLLAPSED % (slot + 1), ALERT_COLLAPSED % (slot + 1))
+
+
+func _warn_closed(slot: int, how: String, text: String, summary: String) -> void:
+	"""A tunnel closed by flood or fall: the warning, as its incident (see INCIDENTS), in the log and the feed."""
+	_log(text)
+	var gen: int = _network.generation[slot]
+	incidents.report("tunnel:%s:%d:%d" % [how, slot, gen], NoticesScript.SOURCE_TUNNELS,
+		IncidentsScript.SEVERITY_WARNING, text, summary, NoticesScript.TARGET_TUNNEL, slot, closure_state.bind(slot, gen))
+
+
+func closure_state(slot: int, gen: int) -> int:
+	"""A closed tunnel's incident state: RESOLVED once it is reopened (pumped, cleared) or gone, ASSIGNED while a
+	job is on it."""
+	if not _network.is_ref(slot, gen) or _network.closed[slot] == GraphScript.CLOSED_NONE:
+		return IncidentsScript.STATE_RESOLVED
+	return IncidentsScript.STATE_ASSIGNED if jobs.has_job(slot) else IncidentsScript.STATE_NEEDS_DECISION
+
+
+func threat_state() -> int:
+	"""The threat's incident state: ASSIGNED (everyone is sent to shelter) while it lasts, then RESOLVED."""
+	return IncidentsScript.STATE_ASSIGNED if events.active else IncidentsScript.STATE_RESOLVED
 
 
 func _empty_bore(slot: int) -> void:
@@ -583,7 +614,9 @@ func start_test_event() -> bool:
 
 func _start_threat() -> void:
 	"""Say what threatens, and send everyone on the surface inside it away (demo_events.gd)."""
-	warn(EVENT_STARTED % events.threat_name(), ALERT_EVENT[events.kind], NoticesScript.SOURCE_EVENTS)
+	_log(EVENT_STARTED % events.threat_name())
+	incidents.report(THREAT_KEY, NoticesScript.SOURCE_EVENTS, IncidentsScript.SEVERITY_CRITICAL,
+		EVENT_STARTED % events.threat_name(), ALERT_EVENT[events.kind], NoticesScript.TARGET_NONE, -1, threat_state)
 	for b in _brains:
 		if b.underground or b.order == BrainScript.ORDER_DIG or not events.covers(b.position):
 			continue

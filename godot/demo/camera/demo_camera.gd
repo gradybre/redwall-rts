@@ -156,7 +156,7 @@ func make_current() -> void:
 
 func centre_on(point: Vector3) -> void:
 	"""Ease the view to look at `point` (x, z; held inside the ground box), keeping yaw, pitch and zoom: the
-	Residents roster's and the minimap's "go there" (decision 0251)."""
+	Residents roster's and the minimap's "go there" (decision 0251), and the news's "Go to" (decision 0331)."""
 	_target_focus.x = point.x
 	_target_focus.z = point.z
 	_clamp_target_focus()

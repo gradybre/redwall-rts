@@ -10,6 +10,10 @@ extends RefCounted
 ##   water      village_water.gd -- THE water adapter: the farm's edge query and the tunnels' wet-ground,
 ##              flood and route queries, answered from the real water map (demo/water/water_map.gd).
 ##   notices    demo_notices.gd -- THE notice feed: every demo warning and report, date-stamped.
+##   incidents  demo_incidents.gd -- THE incidents: the unresolved, actionable conditions behind the
+##              warnings (a waterlogged bed, a flooded tunnel, a rescue), kept until they resolve or the
+##              player acknowledges them, and the sound hook (decision 0331).
+##   news_clock demo_news_clock.gd -- the real time the news counts, stopped while the village is paused.
 ##   props      demo/props/demo_props.gd -- THE staged small props (items, finds, tunnel and water
 ##              gear, room furniture): each model's mesh loaded once and shared by every placement,
 ##              and the icons. demo_village.gd loads it from the manifest; a fresh set draws boxes.
@@ -25,6 +29,8 @@ const WeatherScript := preload("res://demo/weather/demo_weather.gd")
 const WaterScript := preload("res://demo/village_water.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
+const IncidentsScript := preload("res://demo/demo_incidents.gd")
+const NewsClockScript := preload("res://demo/demo_news_clock.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 
@@ -32,13 +38,17 @@ var calendar: CalendarScript = CalendarScript.new()
 var weather: WeatherScript = WeatherScript.new()
 var water: WaterScript = null
 var notices: NoticesScript = NoticesScript.new()
+var incidents: IncidentsScript = IncidentsScript.new()
+var news_clock: NewsClockScript = NewsClockScript.new()
 var props: PropsScript = PropsScript.new()
 var stores: StoresScript = StoresScript.new()
 
 
 func _init(water_map: WaterMapScript = null) -> void:
 	"""The set over `water_map` (the village water node's; none: the village's authored water), with
-	the notices stamped by the calendar's date."""
+	the notices and incidents stamped by the calendar's date and timed on the news clock."""
 	water = WaterScript.new(water_map)
 	notices.bind_calendar(calendar)
+	notices.bind_clock(news_clock)
+	incidents.bind(notices, calendar, news_clock)
 

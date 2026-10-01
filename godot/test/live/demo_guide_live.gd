@@ -10,7 +10,8 @@ extends SceneTree
 ## objective completes on the selection the click made, and its confirmation's Next is clicked. Then the second card's
 ## Show me opens its bed; Hide guide hides the card and the game menu's row reopens it, nothing granted; O opens the
 ## village guide, where the help is searched by typing, a field-guide entry opened, a practice story run with its
-## debrief (the village's figures unchanged), and a project named and pinned by typing. Prints `LIVE <name>:
+## debrief (the village's figures unchanged), a project named and pinned by typing, and the Goals tab's milestones and
+## village goals read (decision 0781). Prints `LIVE <name>:
 ## PASS|FAIL <detail>` per check and `LIVE-SUMMARY <checks> <failures>`; exits 1 on any failure.
 
 const GateScript := preload("res://demo/ui/demo_input_gate.gd")
@@ -58,7 +59,8 @@ func _initialize() -> void:
 		_hide_guide_by_click, _the_menu_row_says_hidden, _click_reopen, _reopened_nothing_granted,
 		_o_opens_the_village_guide, _open_the_help_tab, _type_into_the_help, _the_help_found_it, _open_the_field_guide_tab, _search_the_field_guide,
 		_open_a_field_guide_entry, _open_the_practice_tab, _start_a_story, _choose_in_the_story,
-		_practice_left_the_village_alone, _open_the_projects_tab, _name_and_pin_a_project, _esc_closes_the_guide,
+		_practice_left_the_village_alone, _open_the_projects_tab, _name_and_pin_a_project, _open_the_goals_tab, _the_goals_tab_shows_the_book,
+		_scroll_to_the_last_goal, _the_last_goal_is_in_view, _esc_closes_the_guide,
 		_the_card_clears_the_side_columns, _scale_up_with_a_legend, _the_card_keeps_above_the_picker, _back_to_100,
 		_dig_tool_then_the_guide, _enter_in_the_search_never_digs, _close_both, _the_lab_s_practice_stories,
 		_the_practice_window_is_on_top, _the_card_s_help_focuses_the_search, _the_search_has_the_focus]
@@ -411,6 +413,44 @@ func _name_and_pin_a_project() -> void:
 	_check("the project is pinned", pinned.size() == 1 and pinned[0].get("name") == "Wood for winter", str(pinned.size()))
 	_check("with the places selected", pinned.size() == 1 and pinned[0].get("place_names") == names, str(names))
 	_capture("guide_projects")
+
+
+func _open_the_goals_tab() -> void:
+	"""The Goals tab, clicked."""
+	_click_control(_window().call(&"tab_button", WindowScript.TAB_GOALS) as Control)
+
+
+func _the_goals_tab_shows_the_book() -> void:
+	"""The goals page is shown with the book as evaluated at the hour: the milestones' heading first, M1 with the
+	village's nine residents of twelve, the village goals' heading, a part not in this demo."""
+	var page: Control = _window().get("goals")
+	var book: RefCounted = _guide().get("goals").get("book")
+	_check("the Goals tab is shown", page.is_visible_in_tree() and _window().call(&"tab") == WindowScript.TAB_GOALS)
+	_check("the book was evaluated at the hour", int(book.get("evaluations")) > 0, str(book.get("evaluations")))
+	var m1: String = page.call(&"goal_text", &"m1_settled_hearth")
+	_check("M1 reads the village's residents", m1.contains("Residents: 9 of 12"), m1.replace("\n", " | "))
+	_check("the village goals' heading", String(page.call(&"heading_text", 1)).begins_with("Village goals:"))
+	_check("an unmodelled part says so", String(page.call(&"goal_text", &"m4_hearth_charter")).contains("not in this demo yet"))
+	var frame: Rect2 = (_window().call(&"frame") as Control).get_global_rect()
+	_check("the guide window is on screen", Rect2(Vector2.ZERO, Vector2(_size)).encloses(frame), str(frame))
+	_capture("guide_goals")
+
+
+func _scroll_to_the_last_goal() -> void:
+	"""The page is longer than the window: scroll to its end."""
+	var scroll: ScrollContainer = _window().get("_scroll")
+	scroll.scroll_vertical = int(scroll.get_v_scroll_bar().max_value)
+	_check("the goals scroll", scroll.get_v_scroll_bar().max_value > scroll.size.y, str(scroll.get_v_scroll_bar().max_value))
+
+
+func _the_last_goal_is_in_view() -> void:
+	"""After the scroll, the page's last line (the last goal's parts) is inside the scrolling area."""
+	var scroll: ScrollContainer = _window().get("_scroll")
+	var page: Control = _window().get("goals")
+	var last: Control = page.get_child(page.get_child_count() - 1) as Control
+	var shown: Rect2 = scroll.get_global_rect()
+	_check("the last goal is in view", shown.intersects(last.get_global_rect()), "%s / %s" % [last.get_global_rect(), shown])
+	_capture("guide_goals_end")
 
 
 func _esc_closes_the_guide() -> void:

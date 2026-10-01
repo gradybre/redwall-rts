@@ -1,0 +1,194 @@
+extends Node3D
+## The farm as drawn: the six beds at their stages, the map overlays, and the tunnel
+## spoil heaps shrinking as spoil is carried off. Decision 0196. Presentation only.
+##
+## The world's own crop pieces (world/world_layout.gd CROPS, always drawn ripe) are hidden and the
+## beds are drawn here instead, by farm_bed_visual.gd, from the sim's state. A bed is redrawn only
+## when what it shows changes -- its stage, item, growth step, moisture band, ripeness band -- so
+## the per-frame work is a comparison of a few integers per bed.
+##
+## OVERLAYS (V cycles them): OFF; MOISTURE, a disc over each bed in its band's colour; RIPENESS, a
+## disc growing -> ripe -> past its grace. Heaps: the tunnel overlay draws each heap at the size of
+## all the spoil ever heaped there; for a heap spoil has been taken from, this redraws it every
+## frame, after the tunnel overlay (process_priority), at the size of what is LEFT, and hides it
+## when it is empty.
+##
+## THE UNDERGROUND VIEW does not draw the beds, their labels or their plants: they are on the surface
+## layers (decision 0206). Nothing here fades or hides for it.
+
+const SimScript := preload("res://demo/farm/farm_sim.gd")
+const Catalog := preload("res://demo/farm/farm_catalog.gd")
+const Look := preload("res://demo/farm/farm_look.gd")
+const AssetsScript := preload("res://demo/farm/farm_assets.gd")
+const BedVisualScript := preload("res://demo/farm/farm_bed_visual.gd")
+const TunnelsScript := preload("res://demo/farm/farm_tunnels.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
+const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
+const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
+const StockViewScript := preload("res://demo/farm/farm_stock_view.gd")
+
+const OVERLAY_OFF: int = 0
+const OVERLAY_MOISTURE: int = 1
+const OVERLAY_RIPENESS: int = 2
+const OVERLAY_NAMES: Array[String] = ["off", "moisture", "ripeness"]
+## The world pieces this close to a bed centre are the bed (hidden).
+const WORLD_PIECE_MATCH_M: float = 0.05
+
+var assets: AssetsScript = AssetsScript.new()
+var beds: Array[BedVisualScript] = []
+var overlay_mode: int = OVERLAY_OFF
+## The stores' shelves (demo_farm.gd configures and refreshes it).
+var stock: StockViewScript = StockViewScript.new()
+
+var _sim: SimScript = null
+var _tunnels: TunnelsScript = null
+var _network: GraphScript = null
+var _heap_overlay: OverlayScript = null
+var _shown: PackedInt64Array = PackedInt64Array()
+var _selected: int = -1
+## What the beds were last drawn for: the sim's revision and the marks (selection, overlay).
+var _seen_revision: int = -1
+var _seen_marks: int = -1
+var _read: IntMath.IntResult = IntMath.IntResult.new()
+
+
+func _init() -> void:
+	"""Redraw heaps after the tunnel overlay has placed them this frame."""
+	process_priority = 20
+
+
+func build(manifest: Dictionary, sim: SimScript) -> void:
+	"""Load the staged bed art and build the six beds and the pond."""
+	name = "FarmView"
+	_sim = sim
+	assets.load_from(manifest)
+	for bed: int in Catalog.BED_COUNT:
+		var visual := BedVisualScript.new()
+		visual.build(bed, assets)
+		add_child(visual)
+		beds.append(visual)
+	_shown.resize(Catalog.BED_COUNT)
+	_shown.fill(-1)
+	add_child(stock)
+	refresh()
+
+
+func follow_tunnels(tunnels: TunnelsScript, network: GraphScript, heap_overlay: OverlayScript) -> void:
+	"""Shrink heaps drawn by `heap_overlay`."""
+	_tunnels = tunnels
+	_network = network
+	_heap_overlay = heap_overlay
+
+
+static func hide_world_beds(village: Node) -> int:
+	"""Hide the world's own crop pieces (always ripe) where the farm draws its beds. Returns how many."""
+	var hidden: int = 0
+	for child: Node in village.get_children():
+		var piece := child as Node3D
+		if piece == null:
+			continue
+		var at := Vector2(piece.position.x, piece.position.z)
+		for bed: int in Catalog.BED_COUNT:
+			if at.distance_to(Catalog.bed_centre_m(bed)) <= WORLD_PIECE_MATCH_M:
+				piece.visible = false
+				hidden += 1
+	return hidden
+
+
+func _process(_delta: float) -> void:
+	"""Redraw beds that changed, and shrink the heaps."""
+	refresh()
+	_shrink_heaps()
+
+
+func refresh() -> void:
+	"""Redraw every bed whose shown state changed -- looked at only when the sim changed (its
+	revision) or the marks did, so an unchanged frame costs two integer comparisons."""
+	if _sim == null:
+		return
+	var marks: int = (_selected + 1) * 8 + overlay_mode
+	if _sim.revision == _seen_revision and marks == _seen_marks:
+		return
+	_seen_revision = _sim.revision
+	_seen_marks = marks
+	for bed: int in Catalog.BED_COUNT:
+		var key: int = _state_key(bed)
+		if key != _shown[bed]:
+			_shown[bed] = key
+			_draw(bed)
+
+
+func _ripe_hours(bed: int) -> int:
+	"""Hours a ripe bed has stood (0 when not ripe)."""
+	return _read.value if _sim.ripe_hours_into(bed, _read) else 0
+
+
+func _state_key(bed: int) -> int:
+	"""Everything a bed's drawing depends on, packed into one integer."""
+	var stage: int = _sim.stage_of(bed)
+	var item: int = _sim.item_of(bed) + 1
+	var chosen: int = _sim.chosen_of(bed) + 1
+	var growth: int = _sim.growth_permille(bed) / BedVisualScript.GROWTH_STEP
+	var ripe: int = _ripe_hours(bed) / 24
+	var marks: int = (1 if _selected == bed else 0) + 2 * overlay_mode
+	var works: int = (1 if _sim.is_covered(bed) else 0) + (2 if _sim.is_raised(bed) else 0) \
+		+ (4 if _sim.is_banked(bed) else 0) + (8 if _sim.is_ditched(bed) else 0)
+	var key: int = (((((stage * 32 + item) * 32 + chosen) * 64 + growth) * 8 + _sim.band_of(bed)) * 16 + ripe)
+	return (key * 16 + works) * 8 + marks
+
+
+func _draw(bed: int) -> void:
+	"""Draw one bed from the sim."""
+	var stage: int = _sim.stage_of(bed)
+	var item: int = _sim.item_of(bed)
+	var growth: int = _sim.growth_permille(bed)
+	var band: int = _sim.band_of(bed)
+	var ripe_hours: int = _ripe_hours(bed)
+	var visual: BedVisualScript = beds[bed]
+	visual.show_state(stage, item, growth, band, ripe_hours, Look.title(item, _sim.chosen_of(bed), stage),
+		Look.status(stage, _sim.chosen_of(bed), growth, band, ripe_hours))
+	visual.set_selected(_selected == bed)
+	visual.show_works(_sim.is_covered(bed), _sim.is_raised(bed), _sim.is_banked(bed), _sim.is_ditched(bed))
+	visual.show_overlay(_overlay_colour(stage, band, ripe_hours))
+
+
+func _overlay_colour(stage: int, band: int, ripe_hours: int) -> Color:
+	"""The overlay disc's colour in the current mode (clear when off)."""
+	match overlay_mode:
+		OVERLAY_MOISTURE:
+			return Look.BAND_OVERLAY[band]
+		OVERLAY_RIPENESS:
+			return Look.ripeness_overlay(stage, ripe_hours)
+	return Color(0, 0, 0, 0)
+
+
+func select_bed(bed: int) -> void:
+	"""Ring one bed (-1: none)."""
+	_selected = bed
+
+
+func cycle_overlay() -> int:
+	"""Off -> moisture -> ripeness -> off. Returns the new mode."""
+	return set_overlay((overlay_mode + 1) % OVERLAY_NAMES.size())
+
+
+func set_overlay(mode: int) -> int:
+	"""Show overlay `mode` (OVERLAY_*; anything else: off). Returns the mode shown."""
+	overlay_mode = mode if mode > OVERLAY_OFF and mode < OVERLAY_NAMES.size() else OVERLAY_OFF
+	return overlay_mode
+
+
+func _shrink_heaps() -> void:
+	"""Draw each heap spoil was taken from at the size of what is left (hidden when empty)."""
+	if _heap_overlay == null or _network == null:
+		return
+	for heap: int in TunnelsScript.HEAPS:
+		if _tunnels.taken_milli(_network, heap) <= 0:
+			continue
+		var node: MeshInstance3D = _heap_overlay.heap(heap)
+		var left: int = _tunnels.spoil_left(_network, heap)
+		node.visible = left > 0
+		if left > 0:
+			var r: float = OverlayScript.heap_radius_m(left)
+			node.scale = Vector3(r, r * OverlayScript.HEAP_ASPECT, r)

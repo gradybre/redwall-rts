@@ -52,6 +52,54 @@ rather than reporting success. Prefer the script over the bare command; a count
 is deliberately not quoted here, because a hardcoded one goes stale the next
 time a test is added.
 
+## The Windows demo build
+
+One command, run on the Mac from the repository root, builds the standalone Windows live demo
+(decision 0196): it imports, VRAM-compresses the staged textures, reimports, exports, boots the pack
+to check it and zips it.
+
+```bash
+python3 tools/stage_demo_assets.py                          # once: the demo's assets (gitignored)
+python3 tools/build_demo_windows.py --out <folder>          # -> <folder>/redwall-demo-windows.zip
+python3 tools/build_demo_windows.py --out <folder> --pack-only   # no Windows templates: just the .pck
+python3 tools/demo_texture_imports.py --godot godot         # the compression step on its own
+```
+
+- **It needs Godot's Windows export templates.** Installed 2026-09-29 from the official
+  `Godot_v4.7.2-stable_export_templates.tpz` (1,281,349,702 bytes, SHA-512 checked against the
+  release's `SHA512-SUMS.txt`): the twelve `windows_*` templates now sit beside `macos.zip` in
+  `~/Library/Application Support/Godot/export_templates/4.7.2.stable/`. Without them the script stops
+  and says so; `--pack-only` still exports and verifies the pack. The package carries **no** D3D12
+  Agility SDK or ANGLE libraries, so the preset does not ask for them.
+- **`godot/export_presets.cfg` stays gitignored and local.** The committed preset is
+  `tools/demo_build/windows_export_preset.cfg`; the script merges it in by name and keeps every other
+  preset there (the macOS benchmark one).
+- **The export templates reject `--main-pack`** (verified in `tools/export_benchmark_build.py`), so
+  the pack is verified with the *editor* binary:
+  `godot --main-pack <pck> --script tools/godot/verify_demo_pack.gd -- <out.json>`.
+- **`ProjectSettings.get_setting()` ignores feature overrides.** The engine reads settings with
+  overrides applied; a script that checks `application/run/main_scene.demo_build` must call
+  `get_setting_with_override()` (or `..._and_custom_features()` in a test), or it reports
+  `scenes/main.tscn` from a correct pack.
+- **Touch a GLB to make Godot re-check it.** `--import` skips files whose modification time is
+  unchanged, even with their `.md5` deleted.
+- **A screenshot stalls the clock into a CRITICAL pause.** Reading back and PNG-encoding a HiDPI frame
+  takes longer than the clock's overload limit (a quarter second of debt at 1x); nothing in the game HUD
+  acknowledges an overload -- the demo's stall banner does (`demo/ui/demo_stall_banner.gd`). Harness
+  scripts pause (as the player) around a screenshot; `verify_demo_pack.gd` forces one stall on purpose
+  and presses Enter to check the banner.
+
+## Real input in a headless run
+
+- **The suite's worker cannot dispatch input.** `test/run_tests.gd` runs every suite inside `_initialize`,
+  before the root Window is in the tree: `push_input`, `grab_focus` and `release_focus` there fail with
+  `!is_inside_tree()`. A check that needs real Viewport input runs its own SceneTree script in a child process
+  (`test/test_demo_input_live.gd` runs `test/live/demo_input_live.gd`; decision 0261).
+- **The headless display server sizes the root to 64x64 on the first frame**, whatever `root.size` was set to
+  in `_initialize`. GUI hit tests then miss every control past 64 px while unhandled world input still arrives,
+  so a click "passes through" a panel for the wrong reason. Set `root.size` again each frame (the live harness
+  does).
+
 ## MCP servers
 
 Configured in `.mcp.json` (committed; contains no secrets).

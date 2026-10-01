@@ -9,6 +9,11 @@ config_version=5
 config/name="Redwall RTS"
 config/description="A Redwall-inspired RTS colony-builder"
 run/main_scene="res://scenes/main.tscn"
+; The Windows demo build (tools/build_demo_windows.py, decision 0196) exports with the custom feature
+; "demo_build", which boots it straight into the live demo, maximized and titled "Redwall Demo". The
+; editor and every other run have no such feature, so they still open scenes/main.tscn.
+run/main_scene.demo_build="res://demo/demo_village.tscn"
+config/name.demo_build="Redwall Demo"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
@@ -32,6 +37,7 @@ window/size/viewport_height=1080
 ; save/UI addendum: disable automatic base stretching and let the UI own its own scale.
 window/stretch/mode="disabled"
 window/stretch/aspect="expand"
+window/size/mode.demo_build=2
 
 [input]
 
@@ -459,4 +465,7 @@ open_menu={
 [rendering]
 
 renderer/rendering_method="forward_plus"
+; S3TC/BPTC is the desktop VRAM format the demo's staged 3D textures import to
+; (tools/demo_texture_imports.py). It is Godot's default; stated so an export cannot lose it.
+textures/vram_compression/import_s3tc_bptc=true
 anti_aliasing/quality/msaa_3d=2

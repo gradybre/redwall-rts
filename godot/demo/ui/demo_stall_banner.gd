@@ -1,0 +1,277 @@
+extends CanvasLayer
+## "The simulation paused after a stall -- Resume": the player's way out of the REQ-SET-008 diagnostic
+## pause. Decision 0196 (the Windows demo build). DEMO UI.
+##
+## WHY. When the computer stalls long enough that the clock falls a quarter second behind at 1x (a
+## shader compile on a first run, a hitch), the clock does not skip the owed time: it holds a CRITICAL
+## pause with a diagnostic (REQ-SET-008, ARCH-CLOCK-001). Recovery is the PLAYER's, never automatic,
+## and it is `GameManager.acknowledge_overload()` -- the HUD's pause button releases only the PLAYER
+## reason, and nothing in the game's HUD offers the acknowledgement yet, so the demo stayed frozen.
+##
+## WHAT. While the clock holds CRITICAL, a banner at the top centre, just under the HUD's alert zone,
+## says what happened and offers Resume; it is drawn above the HUD and takes the mouse. Resume -- the
+## button, or Enter or Space while the banner shows -- calls `acknowledge_overload()` once. That drops
+## the owed ticks explicitly (the clock counts every acknowledgement) and clears CRITICAL only; a PLAYER
+## pause the player set stays set. It NEVER resumes on its own: it only watches, a few times a second.
+##
+## ONE SURFACE, AND IT ENDS. The clock's diagnostic also reaches the HUD as an alert card
+## (UIManager raises CLOCK_OVERLOADED). Drawn together, the card, its keyboard description and this
+## banner said the same thing three times, one under the other (playtest 2026-09-29: "two stacked
+## cards show the same overload warning"). So while the banner is up it is THE overload surface: it
+## prints the clock's own sentence under its body, and asks the HUD shell to withhold that code's card
+## (`withhold_cards_with_code`; the notice stays active and in the history). Resume is the player's
+## acknowledgement that the condition is over, so once CRITICAL is gone the banner RESOLVES the notice
+## (`resolve_notices_with_code`): the row stays in the history, and a later stall regroups onto it
+## and raises it again. Before this the notice was never resolved, and the card "stayed throughout".
+##
+## Geometry is the HUD's own (`scripts/ui/ui_layout.gd`, read, never modified), in logical pixels at the
+## HUD's scale, as the news strip's.
+
+const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
+const SimClockScript := preload("res://scripts/core/sim_clock.gd")
+const UiLayout := preload("res://scripts/ui/ui_layout.gd")
+const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
+const Styles := preload("res://demo/ui/woodland_styles.gd")
+const Palette := preload("res://demo/ui/woodland_palette.gd")
+const FarmUi := preload("res://demo/farm/farm_ui.gd")
+const UiShell := preload("res://scripts/ui/ui_shell.gd")
+const UiManagerScript := preload("res://scripts/systems/ui_manager.gd")
+
+## The validation code UIManager raises the clock's diagnostic under -- the one this banner shows,
+## withholds from the cards while it is up, and resolves on Resume.
+const OVERLOAD_CODE: String = UiManagerScript.CLOCK_OVERLOAD_CODE
+
+const TITLE: String = "The simulation paused after a stall"
+const BODY: String = "The computer fell behind, so the village stopped rather than skip time. Nothing is lost."
+const RESUME: String = "Resume  (Enter)"
+## Above the HUD (1) and above the demo's pop-ups drawn over it (the pantry, 2): the player's way out
+## of the diagnostic pause is never under anything.
+const LAYER: int = 3
+const WIDTH: float = 460.0
+const GAP: float = 10.0
+const TITLE_PX: int = 17
+const BODY_PX: int = 14
+## The clock's own sentence ("Simulation overloaded at 1x: 29 whole tick(s) owed; ..."), the words the
+## withheld card would have shown, a step smaller than the body so it reads as the detail.
+const DIAGNOSTIC_PX: int = 13
+const REFRESH_S: float = 0.1
+## How long a reported diagnostic pause may take to land before the banner stops standing in for the
+## card: the rung lands at the scheduler's next barrier, one frame later, so a quarter second -- well
+## past any frame the pause itself does not stall -- only runs out when the pause was refused.
+const PENDING_MAX_S: float = 0.25
+const MARGINS: PackedFloat32Array = [18.0, 12.0, 18.0, 14.0]
+## A 2x/4x step-down warning (the clock's ladder: no pause, no banner, no Resume) is over once the clock
+## has run this many ticks since it was last raised -- 10 s at 1x, demo value (decision 0205) -- and its
+## notice is then resolved, so the playtest's "Simulation overloaded" card does not stay for good.
+const CLEAR_TICKS: int = 300
+const UiNotices := preload("res://scripts/ui/ui_notices.gd")
+
+var _manager: GameManagerScript = null
+var _frame: PanelContainer = null
+var _button: Button = null
+var _diagnostic: Label = null
+var _shell: UiShell = null
+var _row: UiNotices.Notice = UiNotices.Notice.new()
+## Whether the HUD is withholding the overload card for this banner right now.
+var _withholding: bool = false
+## Real seconds a reported diagnostic pause may still take to land (0: none pending).
+var _pending_s: float = 0.0
+## A diagnostic pause was just reported: the next process (the stalled frame's own) does not count.
+var _pending_fresh: bool = false
+var _layout: UiLayout = UiLayout.new()
+var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
+var _refresh_in: float = 0.0
+## How many times the player resumed through this banner (checks).
+var resumes: int = 0
+
+
+func bind(manager: GameManagerScript) -> void:
+	"""Watch this game clock, and build. The banner looks the moment the clock reports a diagnostic, so
+	it takes over from the HUD's card in the same frame the card is raised."""
+	_manager = manager
+	build()
+	var clock: SimClockScript = _manager.clock()
+	if not clock.clock_diagnostic_pause.is_connected(_on_diagnostic_pause):
+		clock.clock_diagnostic_pause.connect(_on_diagnostic_pause)
+
+
+func bind_shell(shell: UiShell) -> void:
+	"""The HUD shell whose CLOCK_OVERLOADED card this banner stands in for and resolves (null: none)."""
+	_shell = shell
+	_sync_shell(is_shown())
+
+
+func _on_diagnostic_pause(_diagnostic: String) -> void:
+	"""The clock reported its 1x diagnostic pause. The game's scheduler queues that rung to land at
+	its next barrier (the next frame), but UIManager raises the card in this same call -- so the
+	banner takes the condition over from the card NOW and the card is never drawn. A pause that has
+	not landed within PENDING_MAX_S (refused under a load barrier) hands the card back."""
+	_pending_s = PENDING_MAX_S
+	_pending_fresh = true
+	_sync_shell(true)
+
+
+func _ready() -> void:
+	"""Keep watching while anything pauses, place, and follow the viewport's size."""
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	build()
+	get_viewport().size_changed.connect(_place)
+	_place()
+
+
+func build() -> void:
+	"""The hidden frame: title, body and the Resume button (also out of the tree, for checks)."""
+	if _frame != null:
+		return
+	layer = LAYER
+	name = "DemoStallBanner"
+	_frame = PanelContainer.new()
+	_frame.add_theme_stylebox_override(&"panel", Styles.box(Styles.PIECE_PANEL, MARGINS))
+	_frame.visible = false
+	add_child(_frame)
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override(&"separation", 6)
+	_frame.add_child(column)
+	column.add_child(_label(TITLE, TITLE_PX, Palette.CLAY, Styles.heading_font()))
+	column.add_child(_label(BODY, BODY_PX, Palette.INK, null))
+	_diagnostic = _label("", DIAGNOSTIC_PX, Palette.UMBER, null)
+	column.add_child(_diagnostic)
+	_button = FarmUi.button(RESUME, BODY_PX + 1)
+	_button.focus_mode = Control.FOCUS_ALL
+	_button.add_theme_stylebox_override(&"focus", Styles.clear(MARGINS))
+	_button.pressed.connect(resume)
+	column.add_child(_button)
+
+
+func _label(text: String, px: int, colour: Color, font: Font) -> Label:
+	"""One wrapped line of the banner."""
+	var label := Label.new()
+	label.text = text
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.custom_minimum_size.x = WIDTH - MARGINS[0] - MARGINS[2]
+	label.add_theme_font_size_override(&"font_size", px)
+	label.add_theme_color_override(&"font_color", colour)
+	if font != null:
+		label.add_theme_font_override(&"font", font)
+	return label
+
+
+func _process(delta: float) -> void:
+	"""Look at the clock a few times a second (real time); show or hide to match. Never resumes. The
+	grace for a reported pause starts counting from the frame after it was reported: the stalled
+	frame's own long delta would otherwise spend it at once and let the card draw."""
+	if _pending_fresh:
+		_pending_fresh = false
+	else:
+		_pending_s = maxf(_pending_s - delta, 0.0)
+	_refresh_in -= delta
+	if _refresh_in > 0.0:
+		return
+	_refresh_in = REFRESH_S
+	refresh()
+	expire_quiet_overload()
+
+
+func expire_quiet_overload() -> int:
+	"""Resolve an active overload notice the clock has not raised again for CLEAR_TICKS (a step-down
+	warning's end; a held pause is Resume's). Returns how many it resolved."""
+	if _shell == null or not is_instance_valid(_shell) or _manager == null or is_held():
+		return 0
+	var notices: UiNotices = _shell.notices()
+	var now: int = _manager.get_completed_tick()
+	for index: int in notices.count():
+		if notices.notice_into(index, 0, _row) and not _row.resolved and _row.code == OVERLOAD_CODE \
+				and now - _row.last_tick >= CLEAR_TICKS:
+			return _shell.resolve_notices_with_code(OVERLOAD_CODE)
+	return 0
+
+
+func refresh() -> bool:
+	"""Show the banner exactly while CRITICAL is held, and keep the HUD's overload card withheld while
+	it is (or a reported pause is still landing); returns whether it is shown."""
+	var held: bool = is_held()
+	if _frame != null and _frame.visible != held:
+		_frame.visible = held
+		if held:
+			_diagnostic.text = _manager.clock().last_diagnostic()
+			_place()
+			if _button.is_inside_tree():
+				_button.grab_focus()
+		else:
+			_resolve_notice()
+	if held:
+		_pending_s = 0.0
+	var standing_in: bool = held or _pending_s > 0.0
+	if _withholding != standing_in:
+		_sync_shell(standing_in)
+	return held
+
+
+func _resolve_notice() -> void:
+	"""CRITICAL is gone -- the player resumed (Resume, Enter or Space) -- so the condition the notice
+	records is over: resolve it on the HUD, BEFORE its card is un-withheld, so the card never comes
+	back. The history keeps the row."""
+	if _shell != null and is_instance_valid(_shell):
+		_shell.resolve_notices_with_code(OVERLOAD_CODE)
+
+
+func _sync_shell(shown: bool) -> void:
+	"""While shown, the HUD withholds the overload card this banner stands in for; hidden, it may draw
+	it again (a 2x/4x step-down warning, which pauses nothing, still takes its card)."""
+	_withholding = shown
+	if _shell != null and is_instance_valid(_shell):
+		_shell.withhold_cards_with_code(OVERLOAD_CODE if shown else "")
+
+
+func diagnostic_text() -> String:
+	"""The clock's sentence the banner prints (checks)."""
+	return _diagnostic.text if _diagnostic != null else ""
+
+
+func is_held() -> bool:
+	"""Whether the game clock holds the REQ-SET-008 diagnostic (CRITICAL) pause."""
+	return _manager != null and _manager.clock().has_pause_reason(SimClockScript.CRITICAL)
+
+
+func is_shown() -> bool:
+	"""Whether the banner is drawn."""
+	return _frame != null and _frame.visible
+
+
+func _input(event: InputEvent) -> void:
+	"""Enter or Space resumes while the banner shows (the HUD's Space would only toggle PLAYER)."""
+	if not is_shown():
+		return
+	var key := event as InputEventKey
+	if key == null or not key.pressed or key.echo:
+		return
+	if key.keycode == KEY_ENTER or key.keycode == KEY_KP_ENTER or key.keycode == KEY_SPACE:
+		resume()
+		get_viewport().set_input_as_handled()
+
+
+func resume() -> int:
+	"""The player's acknowledgement: clear CRITICAL through `acknowledge_overload()`; the refresh that
+	follows sees CRITICAL gone and resolves the HUD's CLOCK_OVERLOADED notice. Returns the owed ticks
+	it dropped (0, and nothing done, when CRITICAL is not held)."""
+	if not is_held():
+		return 0
+	var dropped: int = _manager.acknowledge_overload()
+	resumes += 1
+	refresh()
+	return dropped
+
+
+func _place() -> void:
+	"""Top centre, just under the HUD's alert zone, at the HUD's scale."""
+	if not is_inside_tree() or _frame == null:
+		return
+	var size_px: Vector2 = get_viewport().get_visible_rect().size
+	if not _layout.compute_into(maxi(int(size_px.x), UiLayout.SUPPORTED_MIN_WIDTH),
+			maxi(int(size_px.y), UiLayout.SUPPORTED_MIN_HEIGHT), DemoUiScale.percent, false, _geometry):
+		_geometry.scale = 1.0
+	var alerts: Rect2 = _geometry.alerts
+	_frame.scale = Vector2(_geometry.scale, _geometry.scale)
+	_frame.size = Vector2(WIDTH, 0.0)
+	var x: float = alerts.position.x + (alerts.size.x - WIDTH) / 2.0
+	_frame.position = Vector2(x, alerts.end.y + GAP) * _geometry.scale

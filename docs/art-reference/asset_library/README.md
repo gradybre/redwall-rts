@@ -304,7 +304,7 @@ Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceil
 
 | Asset | Problem | Fix |
 |---|---|---|
-| bramble, fern_clump, wildflower_patch, birch_mature, apple_mature, crop_beans_ripe, basket | Leaves, fronds and the woven rim shatter under the automatic remesh at these budgets. **Every high-poly source is good** — see `contact_sheets/foliage_compare.png` | Build the L0 in Blender as leaf cards with alpha, or retopologise by hand. Not a Meshy remesh |
+| bramble, fern_clump, wildflower_patch, birch_mature, apple_mature, crop_beans_ripe, basket, crop_grain_ripe, crop_roots_ripe | Leaves, fronds, wheat stalks, carrot tops and the woven rim shatter under the automatic remesh at these budgets. **Every high-poly source is good** — see `contact_sheets/foliage_compare.png` | Build the L0 in Blender as leaf cards with alpha, or retopologise by hand. Not a Meshy remesh. For the live demo, `tools/make_demo_crop_cards.py` does this for grain and roots (a bare bed plus cards rendered from the high-poly) |
 | badger_steward | The robe hides the legs, so Meshy's auto-rigger refused it (`422 Pose estimation failed`) | Rig in Blender; or use badger_quarryman |
 | mole_digger, mole_mason, badger_cellarer rigs and clips | 17–19% short: the rig scaled their arm span, not their height (see above) | **Fixed** by `tools/repair_meshy_rig.py` (decision 0190): the single scene root is scaled ×1.2269, ×1.1860 and ×1.2020, measured from the files to within 1 mm of `SPECIES_HEIGHT_U`. Repaired copies are in `<key>/repaired/` |
 | *(not a file defect)* | Importing a rigged GLB into **Blender** adds a 2 m `Icosphere`. It is **not in the file** (0 of 110 contain one): Blender's glTF importer creates it as the bones' display shape (`io_scene_gltf2/blender/imp/node.py`) | Import with `disable_bone_shape=True`, or ignore it; it never reaches Godot |
@@ -316,12 +316,13 @@ Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceil
 | `chair_sit_idle` clips | Sits on nothing | Pair it with a seat at play time |
 | beaver_bridgewright tail | A broad, flat paddle. Meshy bound it to the Hips. Left there, it sank up to 43 cm into the ground (collect_object) and flew 61 cm up (bucket walk). Measured round, a chain's clearance would be its half-width, holding it off the ground it lies on. The first chain's spring rolled it 32–56°, and its edge dug up to 5.5 cm in | **Fixed** (decision 0203). Chained with `"section": "flat"`: clearance by thickness, in drawn metres. `tail_flat_roll.gd` keeps the paddle level after the spring. All 10 land clips pass the bake's ground and constraint checks |
 | Water clips (tailed creatures) | With the land gravity, the spring hung the otters' tails straight down under them in every swim and dive | **Fixed** (decision 0203). In a water clip the spring pulls the tail back along the body, not down. With no pull at all it stood out of the water. The live tail must be told too: `TailRig.set_water(true, back)` |
-| crop_cabbage_ripe | Cabbages read cyan-blue | Recolour the texture |
+| crop_cabbage_ripe | *(not a defect)* The concept is deliberately a blue-green savoy and the texture matches it, running slightly bluer (median leaf RGB 62,109,110 against the concept's 81,123,118) | Keep the authored colour. The live demo multiplies the albedo by the measured ratio, normalised on green: (1.16, 1.0, 0.95) |
 | stone_wall | Generated as an L-shaped corner, not a straight modular section | Cut it in Blender |
 | boathouse, weir, fisher_shelter | Water surfaces are baked into the mesh | Strip them; water is the engine's |
 | Most buildings | They sit on a sculpted dirt or grass base | Trim to the footprint, or keep as a decal |
 | mill | The waterwheel the prompt asked for isn't visible from the default view | Inspect it; may need adding |
 | squirrel_gatherer | A basket is attached to the hand, although the prompt said nothing held | Separate it in Blender |
+| crop_grain_ripe | The concept put a small well in the middle of the grain bed, and Meshy modelled it | Leave it out; the demo's cards never include it |
 | Crops | Only RIPE was generated, and the runtime module ceiling is **256** triangles | Author EMPTY, SOWN, GROWING and WITHERED, and a 256-triangle module, in Blender from these sources |
 
 ## The beaver and the water clips — 2026-09-29

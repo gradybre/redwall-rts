@@ -34,3 +34,6 @@ Thumbs.db
 
 # Provisional Meshy asset library: binaries live on local disk, the ledger is committed (docs/art-reference/asset_library/, decision 0188)
 assets/library/
+
+# Live demo: staged from the provisional asset library by tools/stage_demo_assets.py (decision 0196)
+godot/demo/assets/

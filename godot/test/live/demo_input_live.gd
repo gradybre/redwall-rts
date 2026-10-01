@@ -1,0 +1,675 @@
+extends SceneTree
+## The live demo's input, menu and keyboard checks on the REAL scene with REAL Viewport input (decision
+## 0261; review F26, F29, F30, F50). Not discovered by the runner (it is not `test_*.gd` in test/): the
+## suite runs it in its own process from test/test_demo_input_live.gd, because the runner's worker runs
+## every suite inside `_initialize`, before the root is in the tree, where no Viewport can dispatch input.
+##
+##     godot --headless --path godot --script res://test/live/demo_input_live.gd [-- --size 1920x1080]
+##         [-- --capture <dir>]   (not headless: saves the checked frames as PNGs)
+##
+## It boots demo/demo_village.tscn (on placeholders when the assets are not staged), then each step pushes
+## events through `root.push_input` -- the path a real click or key takes: `_input`, the GUI, the
+## unhandled passes -- and checks what the village did. Prints `LIVE <name>: PASS|FAIL <detail>` per check
+## and `LIVE-SUMMARY <checks> <failures>`; exits 1 on any failure.
+
+## The HUD shell's element ids, read from its script at run time: it names the GameManager autoload, which
+## a main-loop script cannot preload (autoload globals are not registered when it compiles).
+const SHELL_PATH: String = "res://scripts/ui/ui_shell.gd"
+const GateScript := preload("res://demo/ui/demo_input_gate.gd")
+const MenuScript := preload("res://demo/ui/demo_menu.gd")
+const ZoneScript := preload("res://demo/ui/demo_detail_zone.gd")
+const TunnelPanel := preload("res://demo/tunnel/tunnel_panel.gd")
+const ForestPanel := preload("res://demo/forestry/forest_panel.gd")
+const WaterPanel := preload("res://demo/waterplay/water_panel.gd")
+
+## Frames to let the village boot (its prewarm releases the clock after its first frames).
+const BOOT_FRAMES: int = 12
+## Frames between steps (a deferred placement or a queued free lands in between).
+const STEP_FRAMES: int = 2
+## Every label a test trigger had in the player panels (review F50).
+const TRIGGER_WORDS: Array[String] = ["Next weather", "Test event", "Storm gust", "Cramp"]
+
+var _village: Node = null
+var _frames: int = 0
+var _wait: int = BOOT_FRAMES
+var _steps: Array[Callable] = []
+var _checks: int = 0
+var _failures: int = 0
+var _size: Vector2i = Vector2i(1280, 720)
+var _capture_dir: String = ""
+var _pressed_count: int = 0
+var _order_before: int = 0
+var _ids: Dictionary = {}
+var _pending_capture: String = ""
+var _restart_checked_hold: bool = false
+
+
+func _initialize() -> void:
+	"""Read the arguments, size the window, boot the village and list the steps."""
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	for k: int in args.size() - 1:
+		if args[k] == "--size":
+			var parts: PackedStringArray = args[k + 1].split("x")
+			_size = Vector2i(int(parts[0]), int(parts[1]))
+		elif args[k] == "--capture":
+			_capture_dir = args[k + 1]
+	root.size = _size
+	_ids = (load(SHELL_PATH) as GDScript).get_script_constant_map()
+	if DisplayServer.get_name() != "headless":
+		DisplayServer.window_set_size(_size)
+	_village = (load("res://demo/demo_village.tscn") as PackedScene).instantiate()
+	root.add_child(_village)
+	current_scene = _village
+	_steps = [_pantry_opens_as_a_modal, _pantry_blocks_the_world, _pantry_traps_tab, _pantry_escape_returns,
+		_escape_ladder_ends_in_the_menu, _menu_button_opens_the_menu, _menu_pages_and_escape, _menu_controls_back,
+		_menu_restores_speed, _menu_confirms_restart_and_quit, _confirm_cancel_and_quit,
+		_settings_offer_what_works, _settings_close, _f7_and_tab_reach_every_panel_button, _focus_ring_off,
+		_f7_reaches_the_left_column_then_the_world, _enter_and_space_route_by_focus, _enter_goes_to_the_dig_tool,
+		_lab_holds_the_triggers, _lab_fires_and_panels_are_clean, _lab_from_the_menu, _history_click_does_not_leak,
+		_a_click_gives_the_arrows_back, _the_banner_over_the_lab, _the_banner_takes_enter,
+		_the_hud_workspace_keeps_the_keys, _scale_follows_the_choice,
+		_restart_boots_again, _after_restart, _a_smaller_window_steps_the_scale_down]
+
+
+func _process(_delta: float) -> bool:
+	"""Run one step each time the wait runs out; quit after the last. The headless display server sizes the
+	root to 64x64 on the first frame, so the size is held here."""
+	_frames += 1
+	if root.size != _size:
+		root.size = _size
+	_wait -= 1
+	if _wait > 0:
+		return false
+	if _steps.is_empty():
+		print("LIVE-SUMMARY %d %d" % [_checks, _failures])
+		quit(1 if _failures > 0 else 0)
+		return false
+	if not _pending_capture.is_empty():
+		_save_capture()
+	var step: Callable = _steps.pop_front()
+	step.call()
+	_wait = STEP_FRAMES
+	return false
+
+
+# --- helpers ----------------------------------------------------------------------------------------
+
+func _check(check_name: String, ok: bool, detail: String = "") -> void:
+	"""Record one check."""
+	_checks += 1
+	if not ok:
+		_failures += 1
+	print("LIVE %s: %s %s" % [check_name, "PASS" if ok else "FAIL", detail])
+
+
+func _key(code: Key, shift: bool = false) -> void:
+	"""Press and release one key through the Viewport."""
+	for down: bool in [true, false]:
+		var event := InputEventKey.new()
+		event.keycode = code
+		event.physical_keycode = code
+		event.shift_pressed = shift
+		event.pressed = down
+		root.push_input(event)
+
+
+func _click(at: Vector2, button: MouseButton = MOUSE_BUTTON_LEFT) -> void:
+	"""Press and release a mouse button at `at`."""
+	var motion := InputEventMouseMotion.new()
+	motion.position = at
+	root.push_input(motion)
+	for down: bool in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = button
+		event.position = at
+		event.pressed = down
+		event.button_mask = MOUSE_BUTTON_MASK_LEFT if down and button == MOUSE_BUTTON_LEFT else 0
+		root.push_input(event)
+
+
+func _drag(from: Vector2, to: Vector2) -> void:
+	"""A left drag from `from` to `to` in four moves."""
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.position = from
+	press.pressed = true
+	root.push_input(press)
+	for k: int in range(1, 5):
+		var motion := InputEventMouseMotion.new()
+		motion.position = from.lerp(to, float(k) / 4.0)
+		motion.button_mask = MOUSE_BUTTON_MASK_LEFT
+		root.push_input(motion)
+	var release := press.duplicate() as InputEventMouseButton
+	release.position = to
+	release.pressed = false
+	root.push_input(release)
+
+
+func _centre(control: Control) -> Vector2:
+	"""A control's centre on screen."""
+	return control.get_global_transform_with_canvas() * (control.size / 2.0)
+
+
+func _gate() -> GateScript:
+	"""The village's input gate."""
+	return _village.call(&"input_gate")
+
+
+func _menu() -> MenuScript:
+	"""The village's game menu."""
+	return _village.call(&"menu")
+
+
+func _command() -> Node:
+	"""The demo's command layer."""
+	return _village.get("_command")
+
+
+func _brain(i: int) -> Object:
+	"""Resident `i`'s brain."""
+	return _village.get("_cast").call(&"actor", i).get("brain")
+
+
+func _pantry() -> CanvasLayer:
+	"""The farm's Pantry panel."""
+	return _village.get("_farm").get("pantry_panel")
+
+
+func _shell() -> Control:
+	"""The HUD shell."""
+	return _village.call(&"_shell")
+
+
+func _shell_control(id_name: String) -> Control:
+	"""A HUD element by its shell constant's name (ID_MENU, ...)."""
+	return _shell().call(&"control_for", int(_ids[id_name]))
+
+
+func _focus() -> Control:
+	"""The focus owner."""
+	return root.gui_get_focus_owner()
+
+
+func _manager() -> Object:
+	"""The GameManager autoload."""
+	return root.get_node(^"GameManager")
+
+
+## A point on open ground, left of centre and below the HUD's top row -- outside any centred pop-up.
+func _world_point() -> Vector2:
+	"""Open world, outside the modal rectangle's frame and the side columns."""
+	return Vector2(float(_size.x) * 0.5, float(_size.y) * 0.93)
+
+
+func _capture(file_name: String) -> void:
+	"""Save this state's frame once it is drawn -- at the next step, so a step that captures ends there (only
+	when asked for, and never headless)."""
+	if not _capture_dir.is_empty() and DisplayServer.get_name() != "headless":
+		_pending_capture = file_name
+
+
+func _save_capture() -> void:
+	"""Write the pending frame, and forgive the clock the time the read-back took (a slow frame would
+	otherwise put the clock into its overload pause and the stall banner over the next checks)."""
+	root.get_texture().get_image().save_png(_capture_dir.path_join("%s_%dx%d.png" % [_pending_capture, _size.x, _size.y]))
+	_pending_capture = ""
+	_manager().set("_last_host_usec", Time.get_ticks_usec())
+
+
+# --- F26: the Pantry owns input -----------------------------------------------------------------
+
+func _pantry_opens_as_a_modal() -> void:
+	"""K opens the Pantry over a scrim, with focus inside it."""
+	_command().call(&"select", PackedInt32Array([0]))
+	_order_before = int(_brain(0).get("order"))
+	_key(KEY_K)
+	_check("pantry opens on K", _pantry().visible)
+	_check("pantry is the top modal", _gate().top_layer() == _pantry())
+	var scrim: ColorRect = _gate().scrim_of(_pantry())
+	_check("pantry has a scrim over the whole view", scrim != null and scrim.get_global_rect().size.x >= float(_size.x) - 1.0, str(scrim.get_global_rect()) if scrim else "none")
+	_check("focus lands inside the pantry", _gate().in_top_modal(_focus()), str(_focus()))
+	_check("opened by a key, its focus is drawn", _focus() != null and _focus().has_focus(true))
+	_check("on its content, not its ×", _focus() != _pantry().call(&"close_button"))
+	_capture("pantry_open")
+
+
+func _pantry_blocks_the_world() -> void:
+	"""An outside right-click, a drag, B, V and Space change nothing behind the Pantry."""
+	var paused: bool = bool(_manager().call(&"is_paused"))
+	_click(_world_point(), MOUSE_BUTTON_RIGHT)
+	_check("outside right-click issues no order", int(_brain(0).get("order")) == _order_before,
+		"order %d" % int(_brain(0).get("order")))
+	_drag(Vector2(10.0, float(_size.y) * 0.9), Vector2(float(_size.x) - 10.0, float(_size.y) * 0.98))
+	_check("a drag does not box-select", _command().call(&"selected") == PackedInt32Array([0]))
+	var overlay: int = int(_village.get("_farm").get("_overlay_step"))
+	_key(KEY_B)
+	_key(KEY_V)
+	_key(KEY_SPACE)
+	_check("B does not open the Dig tool", not bool(_command().call(&"tunnels").get("planning")))
+	_check("V does not cycle the overlays", int(_village.get("_farm").get("_overlay_step")) == overlay)
+	_check("Space does not toggle the pause", bool(_manager().call(&"is_paused")) == paused)
+	var camera: Node = _village.get("_camera")
+	var distance: float = float(camera.get("_target_distance"))
+	_key(KEY_PAGEUP)
+	_check("Page Up does not zoom the camera behind it", is_equal_approx(float(camera.get("_target_distance")), distance))
+	var down := InputEventKey.new()
+	down.keycode = KEY_LEFT
+	down.pressed = true
+	root.push_input(down)
+	_check("an arrow does not pan the camera behind it", not (camera.get("_held") as PackedByteArray).has(1))
+	down.pressed = false
+	root.push_input(down)
+	_check("the pantry is still open", _pantry().visible)
+
+
+func _pantry_traps_tab() -> void:
+	"""Tab and Shift+Tab stay inside the Pantry."""
+	var first: Control = _focus()
+	_key(KEY_TAB)
+	var second: Control = _focus()
+	_check("Tab moves within the pantry", second != first and _gate().in_top_modal(second), str(second))
+	for k: int in 40:
+		_key(KEY_TAB)
+		if not _gate().in_top_modal(_focus()):
+			break
+	_check("40 Tabs never leave the pantry", _gate().in_top_modal(_focus()))
+	_check("the pantry's focus is the keyboard's (drawn)", _focus() != null and _focus().has_focus(true))
+	_key(KEY_TAB, true)
+	_check("Shift+Tab stays inside", _gate().in_top_modal(_focus()))
+
+
+func _pantry_escape_returns() -> void:
+	"""Esc closes the Pantry alone: the selection stays, the scrim goes, focus goes back to the world."""
+	_key(KEY_ESCAPE)
+	_check("Esc closes the pantry", not _pantry().visible)
+	_check("the same Esc does not clear the selection", _command().call(&"selection_count") == 1)
+	_check("no modal is left", not _gate().modal_open())
+	_check("focus returns to the world", _focus() == null, str(_focus()))
+	_key(KEY_K)
+	_key(KEY_K)
+	_check("K opens and K closes the pantry", not _pantry().visible and not _gate().modal_open())
+	var zone: ZoneScript = _village.get("_zone")
+	_key(KEY_F7)
+	_key(KEY_K)
+	_check("K opens the pantry from a focused tab", _pantry().visible and _gate().in_top_modal(_focus()))
+	_key(KEY_ESCAPE)
+	_check("closing it gives the tab its focus back, drawn", _focus() == zone.tab(0) and _focus().has_focus(true))
+	_key(KEY_ESCAPE)
+
+
+func _escape_ladder_ends_in_the_menu() -> void:
+	"""Esc clears the selection, and the next Esc -- nothing left to dismiss -- opens the game menu."""
+	_key(KEY_ESCAPE)
+	_check("Esc then clears the selection", _command().call(&"selection_count") == 0)
+	_check("and does not open the menu", not _menu().visible)
+	_key(KEY_ESCAPE)
+	_check("the next Esc opens the game menu", _menu().visible)
+	_key(KEY_ESCAPE)
+	_check("Esc on the menu closes it", not _menu().visible)
+
+
+# --- F29: the game menu -------------------------------------------------------------------------
+
+func _menu_button_opens_the_menu() -> void:
+	"""The HUD's Menu button, clicked, opens the pause menu -- not the New Settlement form."""
+	_manager().call(&"set_speed", 2)
+	var button: Control = _shell_control("ID_MENU")
+	_click(_centre(button))
+	_check("Menu opens the game menu", _menu().visible and _menu().page() == MenuScript.PAGE_MENU)
+	_check("Menu does not open New Settlement", not _shell_control("ID_NEW_SETTLEMENT").is_visible_in_tree())
+	_check("the menu holds the MENU pause", (_manager().call(&"get_pause_reason_names") as Array).has("MENU"))
+	_check("the village stops", int(_manager().call(&"get_effective_speed")) == 0)
+	_check("the menu says the demo cannot save", _menu().page_text(MenuScript.PAGE_MENU).contains("can't save"))
+	_check("focus is on Resume", _focus() == _menu().menu_button(0))
+	_check("opened by a click, its focus is not drawn", not _focus().has_focus(true))
+	_capture("pause_menu")
+
+
+func _menu_pages_and_escape() -> void:
+	"""Controls and Settings open by keyboard; Esc goes back a page, then closes."""
+	_key(KEY_TAB)
+	_key(KEY_TAB)
+	_key(KEY_ENTER)
+	_check("Tab, Tab, Enter opens Controls", _menu().page() == MenuScript.PAGE_CONTROLS)
+	_check("Controls lists F7 and F8", _menu().page_text(MenuScript.PAGE_CONTROLS).contains("F7")
+		and _menu().page_text(MenuScript.PAGE_CONTROLS).contains("F8"))
+	_capture("menu_controls")
+
+
+func _menu_controls_back() -> void:
+	"""Esc from Controls goes back to the menu, focus on Controls."""
+	_key(KEY_ESCAPE)
+	_check("Esc goes back to the menu", _menu().visible and _menu().page() == MenuScript.PAGE_MENU)
+	_check("focus is back on Controls", _focus() == _menu().menu_button(2))
+
+
+func _menu_restores_speed() -> void:
+	"""Closing the menu releases MENU only and restores the 2x it had."""
+	_key(KEY_ESCAPE)
+	_check("Esc closes the menu", not _menu().visible)
+	_check("MENU is released", not (_manager().call(&"get_pause_reason_names") as Array).has("MENU"))
+	_check("the 2x speed is back", int(_manager().call(&"get_effective_speed")) == 2)
+	_manager().call(&"set_speed", 1)
+
+
+func _menu_confirms_restart_and_quit() -> void:
+	"""Restart and Quit ask first and say the village will be lost; Cancel and Esc go back."""
+	_menu().open()
+	_menu().menu_button(1).pressed.emit()
+	_check("Restart asks first", _menu().page() == MenuScript.PAGE_CONFIRM
+		and _menu().page_text(MenuScript.PAGE_CONFIRM).contains("will be lost"))
+	_check("focus is on Cancel", _focus() == _menu().cancel_button())
+	_capture("menu_confirm")
+
+
+func _confirm_cancel_and_quit() -> void:
+	"""Enter on Cancel goes back; Quit asks too; Esc on its question goes back."""
+	_key(KEY_ENTER)
+	_check("Enter on Cancel goes back", _menu().page() == MenuScript.PAGE_MENU and _menu().visible)
+	_menu().menu_button(5).pressed.emit()
+	_check("Quit asks first", _menu().page() == MenuScript.PAGE_CONFIRM
+		and _menu().confirm_button().text == "Quit demo")
+	_key(KEY_ESCAPE)
+	_check("Esc on the question goes back", _menu().page() == MenuScript.PAGE_MENU)
+
+
+func _settings_offer_what_works() -> void:
+	"""Settings: the scale the window fits, full screen, and sound marked as absent."""
+	_menu().menu_button(3).pressed.emit()
+	_check("Settings opens", _menu().page() == MenuScript.PAGE_SETTINGS)
+	var fits_150: bool = _size.y >= 1080
+	_check("100%% is chosen", _menu().scale_button(0).button_pressed)
+	_check("150%% is offered only where it fits", _menu().scale_button(2).disabled != fits_150)
+	_check("sound is marked as not in the demo", _menu().page_text(MenuScript.PAGE_SETTINGS).contains("no sound"))
+	_capture("menu_settings")
+
+
+func _settings_close() -> void:
+	"""Esc, Esc: Settings, then the menu, close."""
+	_key(KEY_ESCAPE)
+	_key(KEY_ESCAPE)
+	_check("two Escs close the menu", not _menu().visible and not _gate().modal_open())
+
+
+# --- F30: keyboard focus ------------------------------------------------------------------------
+
+func _f7_and_tab_reach_every_panel_button() -> void:
+	"""F7 lands on the right column; Tab reaches every shown button of each of the four panels."""
+	var zone: ZoneScript = _village.get("_zone")
+	for panel_key: int in 4:
+		zone.show_panel(panel_key)
+		_key(KEY_F7)
+		_check("F7 focuses the right column (panel %d)" % panel_key, _focus() == zone.tab(0), str(_focus()))
+		var wanted: Array[Control] = _gate().region_controls(0)
+		var reached: Array[Control] = []
+		for k: int in wanted.size() + 2:
+			if not reached.has(_focus()):
+				reached.append(_focus())
+			_key(KEY_TAB)
+		var missing: int = 0
+		for control: Control in wanted:
+			missing += 0 if reached.has(control) else 1
+		_check("Tab reaches all %d buttons of panel %d" % [wanted.size(), panel_key], missing == 0
+			and wanted.size() >= (5 if panel_key == ZoneScript.PANEL_TUNNELS else 6), "missing %d" % missing)
+		_key(KEY_ESCAPE)
+		_check("Esc gives focus back to the world (panel %d)" % panel_key, _focus() == null)
+	zone.show_panel(ZoneScript.PANEL_WOODS)
+	_key(KEY_F7)
+	_key(KEY_TAB)
+	_key(KEY_TAB, true)
+	_check("Shift+Tab steps back", _focus() == zone.tab(0))
+	for k: int in 6:
+		_key(KEY_TAB)
+	var panel: Node = _village.get("_forestry").get("panel")
+	_check("six Tabs on: a Woods button, the keyboard's", _focus() != null and panel.is_ancestor_of(_focus())
+		and _focus().has_focus(true), str(_focus()))
+	_capture("focus_ring")
+
+
+func _focus_ring_off() -> void:
+	"""Esc hands the focus back to the world, and the ring goes with it."""
+	_key(KEY_ESCAPE)
+	_check("the ring's focus is gone", _focus() == null)
+
+
+func _f7_reaches_the_left_column_then_the_world() -> void:
+	"""With the whole cast selected (a digger among them, so the party panel's Dig and room buttons show):
+	F7, F7 -> the left column; F7 -> the world."""
+	_command().call(&"select", PackedInt32Array(range(int(_village.get("_cast").call(&"actor_count")))))
+	_command().call(&"_refresh_panel")
+	var party: Node = _command().call(&"panel")
+	_key(KEY_F7)
+	_check("F7 first: the right column", _gate().region_of(_focus()) == 0)
+	_key(KEY_F7)
+	_check("F7 again: the party panel", _focus() != null and party.is_ancestor_of(_focus()), str(_focus()))
+	var ring: Array[Control] = _gate().region_controls(1)
+	_key(KEY_TAB)
+	_check("Tab moves along the party panel", ring.size() < 2 or _focus() == ring[1])
+	_key(KEY_F7)
+	_check("F7 a third time: the world", _focus() == null)
+	_check("the selection is untouched", _command().call(&"selection_count") > 1)
+	_key(KEY_ESCAPE)
+
+
+func _enter_and_space_route_by_focus() -> void:
+	"""Enter and Space press a keyboard-focused tab; a clicked one gives Space back to the pause."""
+	var zone: ZoneScript = _village.get("_zone")
+	zone.show_panel(ZoneScript.PANEL_FARM)
+	_key(KEY_F7)
+	_key(KEY_TAB)
+	_check("Tab reaches the Tunnels tab", _focus() == zone.tab(ZoneScript.PANEL_TUNNELS))
+	_key(KEY_ENTER)
+	_check("Enter presses it", zone.shown == ZoneScript.PANEL_TUNNELS)
+	var paused: bool = bool(_manager().call(&"is_paused"))
+	_key(KEY_TAB)
+	_key(KEY_SPACE)
+	_check("Space presses the focused Woods tab", zone.shown == ZoneScript.PANEL_WOODS)
+	_check("and does not pause", bool(_manager().call(&"is_paused")) == paused)
+	_key(KEY_ESCAPE)
+	_click(_centre(zone.tab(ZoneScript.PANEL_WATER)))
+	_check("a click opens Water", zone.shown == ZoneScript.PANEL_WATER, "%s at %s hovered %s" % [zone.shown, _centre(zone.tab(ZoneScript.PANEL_WATER)), root.gui_get_hovered_control()])
+	_key(KEY_SPACE)
+	_check("Space after a click pauses the world", bool(_manager().call(&"is_paused")) != paused)
+	_check("and drops the click's focus", _focus() == null)
+	_key(KEY_SPACE)
+
+
+func _enter_goes_to_the_dig_tool() -> void:
+	"""With the Dig tool out: Enter from a keyboard-focused button presses the button, not the tool; from a
+	clicked button or no focus it is the tool's."""
+	var tool: Object = _command().call(&"tunnels")
+	var zone: ZoneScript = _village.get("_zone")
+	_key(KEY_B)
+	_check("B opens the Dig tool", bool(tool.get("planning")))
+	tool.set("_last_notice", "")
+	_key(KEY_F7)
+	_key(KEY_TAB)
+	_key(KEY_ENTER)
+	_check("Enter on a focused tab presses the tab", zone.shown == ZoneScript.PANEL_TUNNELS)
+	_check("and the tool never saw it", String(tool.call(&"notice")).is_empty(), String(tool.call(&"notice")))
+	_click(_centre(zone.tab(ZoneScript.PANEL_FARM)))
+	_key(KEY_ENTER)
+	_check("Enter after a click is the tool's", not String(tool.call(&"notice")).is_empty())
+	_check("and did not press the clicked tab again", zone.shown == ZoneScript.PANEL_FARM)
+	_key(KEY_B)
+	_check("B closes the Dig tool", not bool(tool.get("planning")))
+
+
+# --- F50: the Demo Lab --------------------------------------------------------------------------
+
+func _lab_holds_the_triggers() -> void:
+	"""F8 opens the Lab with the four triggers; the panels hold none of them; F8 closes it."""
+	var lab: CanvasLayer = _village.call(&"lab")
+	_key(KEY_F8)
+	_check("F8 opens the Demo Lab", lab.visible and _gate().top_layer() == lab)
+	_check("the Lab holds the four triggers", Array(lab.call(&"trigger_labels")) == TRIGGER_WORDS)
+	_check("Cramp waits for a swimmer", (lab.call(&"trigger_button", 3) as Button).disabled)
+	_capture("demo_lab")
+
+
+func _lab_fires_and_panels_are_clean() -> void:
+	"""Storm gust fires from the Lab; no player panel holds a trigger; F8 closes the Lab."""
+	var lab: CanvasLayer = _village.call(&"lab")
+	(lab.call(&"trigger_button", 2) as Button).pressed.emit()
+	_check("Storm gust fires from the Lab", String(lab.call(&"status_text")).begins_with("Sent: Storm gust"))
+	var panels: Array[Node] = [_village.get("_farm").get("bed_panel"), _command().call(&"tunnels").get("ext").get("panel"),
+		_village.get("_forestry").get("panel"), _village.get("_waterplay").get("panel")]
+	var found: PackedStringArray = PackedStringArray()
+	for panel: Node in panels:
+		_button_words(panel, found)
+	_check("no player panel holds a test trigger", found.is_empty(), ", ".join(found))
+	_key(KEY_F8)
+	_check("F8 closes the Lab", not lab.visible and not _gate().modal_open())
+
+
+func _button_words(node: Node, found: PackedStringArray) -> void:
+	"""Every button under `node` whose text names a test trigger."""
+	for child: Node in node.get_children():
+		if child is Button:
+			for word: String in TRIGGER_WORDS:
+				if (child as Button).text.contains(word):
+					found.append((child as Button).text)
+		_button_words(child, found)
+
+
+func _lab_from_the_menu() -> void:
+	"""The menu's Demo Lab closes the menu (releasing its pause) and opens the Lab."""
+	var lab: CanvasLayer = _village.call(&"lab")
+	_menu().open()
+	_menu().menu_button(4).pressed.emit()
+	_check("the menu's Demo Lab opens the Lab", lab.visible and not _menu().visible)
+	_check("and releases MENU", not (_manager().call(&"get_pause_reason_names") as Array).has("MENU"))
+	_key(KEY_ESCAPE)
+	_check("Esc closes the Lab", not lab.visible)
+
+
+func _history_click_does_not_leak() -> void:
+	"""The notification history is an expansion, not a modal: a click on it never reaches the world."""
+	_command().call(&"select", PackedInt32Array([1]))
+	_order_before = int(_brain(1).get("order"))
+	_key(KEY_N)
+	var history: Control = _shell_control("ID_HISTORY")
+	_check("N opens the history", history.is_visible_in_tree())
+	_click(_centre(history), MOUSE_BUTTON_RIGHT)
+	_check("a right-click on it issues no order", int(_brain(1).get("order")) == _order_before)
+	_key(KEY_ESCAPE)
+	_check("Esc closes it", not history.is_visible_in_tree())
+	_key(KEY_ESCAPE)
+
+
+func _a_click_gives_the_arrows_back() -> void:
+	"""After clicking a tab, an arrow pans the camera (a click's focus is dropped), and the Food command
+	clicked opens the Pantry whose Esc hands the command its hidden focus back."""
+	var zone: ZoneScript = _village.get("_zone")
+	_click(_centre(zone.tab(ZoneScript.PANEL_WOODS)))
+	var camera: Node = _village.get("_camera")
+	var down := InputEventKey.new()
+	down.keycode = KEY_LEFT
+	down.pressed = true
+	root.push_input(down)
+	_check("an arrow after a click pans the camera", (camera.get("_held") as PackedByteArray).has(1))
+	_check("and drops the click's focus", _focus() == null)
+	down.pressed = false
+	root.push_input(down)
+	var food: Control = _shell().call(&"control_for", int((_ids["COMMAND_IDS"] as Array)[3]))
+	_click(_centre(food))
+	_check("the Food command opens the Pantry", _pantry().visible)
+	_key(KEY_ESCAPE)
+	_check("Esc gives the Food command its focus back, hidden as the click left it",
+		_focus() == food and not food.has_focus(true), str(_focus()))
+	_key(KEY_LEFT)
+
+
+func _the_banner_over_the_lab() -> void:
+	"""The Lab open, a stall puts the banner up: B still does nothing behind the Lab, and Enter is the
+	banner's Resume."""
+	_key(KEY_F8)
+	_check("the clock runs before the stall", not bool(_manager().call(&"is_paused")),
+		str(_manager().call(&"get_pause_reason_names")))
+	OS.delay_msec(1200)
+
+
+func _the_banner_takes_enter() -> void:
+	"""(The stall has landed.)"""
+	var banner: Node = _village.get("_stall_banner")
+	_check("a stall puts the banner up", bool(banner.call(&"is_shown")))
+	_key(KEY_B)
+	_check("B behind the Lab still does nothing", not bool(_command().call(&"tunnels").get("planning")))
+	_check("the Lab is still the top modal", _gate().top_layer() == _village.call(&"lab"))
+	_key(KEY_ENTER)
+	_check("Enter is the banner's Resume", not (_manager().call(&"get_pause_reason_names") as Array).has("CRITICAL"))
+	_key(KEY_F8)
+	_check("F8 closes the Lab", not _gate().modal_open())
+
+
+func _the_hud_workspace_keeps_the_keys() -> void:
+	"""The gate defers to the HUD shell's own scrimmed workspace (its true modal pages; none is reachable from
+	the demo, so the wiring is checked here and the routing in test_demo_input_gate.gd). An ordinary
+	workspace (Residents, L) holds nothing, and the panels stay live beside it (UI §4.2)."""
+	var defer: Callable = _gate().get("_defer_to")
+	_check("the gate defers to the shell's workspace", defer.is_valid() and defer.get_object() == _shell()
+		and defer.get_method() == &"workspace_owns_input")
+	_key(KEY_L)
+	_check("the Residents workspace is not modal", not bool(_shell().call(&"workspace_owns_input")))
+	_key(KEY_F7)
+	_check("so F7 still reaches the panels beside it", _gate().region_of(_focus()) == 0)
+	_key(KEY_ESCAPE)
+	_shell().call(&"_on_back_pressed")
+
+
+func _scale_follows_the_choice() -> void:
+	"""At 1920x1080: 125% scales the HUD, the right column and the stall banner together (and is kept
+	through a restart, below). At 1280x720 only 100% is offered, which the settings step checked."""
+	if _size.y < 1080:
+		return
+	_menu().open()
+	_menu().menu_button(3).pressed.emit()
+	_menu().scale_button(1).pressed.emit()
+	_check("125% reaches the HUD", int(_shell().get("_user_scale")) == 125)
+	_check("and the right column", is_equal_approx((_village.get("_zone").get("_strip") as Control).scale.x, 1.25))
+	_check("and the stall banner", is_equal_approx((_village.get("_stall_banner").get("_frame") as Control).scale.x, 1.25))
+	_menu().back_or_close()
+	_menu().back_or_close()
+
+
+# --- restart ------------------------------------------------------------------------------------
+
+func _restart_boots_again() -> void:
+	"""Restart, confirmed, reloads the demo."""
+	_menu().open()
+	_menu().menu_button(1).pressed.emit()
+	_menu().confirm_button().pressed.emit()
+	_village = null
+	_wait = 3
+	_restart_checked_hold = false
+
+
+func _after_restart() -> void:
+	"""The restarted demo runs, with no menu pause left over (waited for: its prewarm holds the clock for
+	its first frames)."""
+	_village = current_scene
+	if not _restart_checked_hold:
+		_restart_checked_hold = true
+		_check("the restart holds the clock through its first frames",
+			(_manager().call(&"get_pause_reason_names") as Array).has("PLAYER"))
+	if _village != null and bool(_manager().call(&"is_paused")) and _frames < 600:
+		_steps.push_front(_after_restart)
+		return
+	_check("the demo restarted", _village != null and _village.has_method(&"input_gate"))
+	if _village == null:
+		return
+	_check("no MENU pause survives the restart", not (_manager().call(&"get_pause_reason_names") as Array).has("MENU"))
+	_check("the restarted demo runs", not bool(_manager().call(&"is_paused")),
+		str(_manager().call(&"get_pause_reason_names")))
+	if _size.y >= 1080:
+		_check("the restart keeps 125% on the HUD", int(_shell().get("_user_scale")) == 125)
+		_check("and in the menu", _menu().scale_percent == 125)
+		_size = Vector2i(1280, 720)
+
+
+func _a_smaller_window_steps_the_scale_down() -> void:
+	"""(After a 1080p run.) The window shrinks to 1280x720: 125% no longer fits, so the demo is at 100%."""
+	if _menu().scale_percent == 100 and int(_shell().get("_user_scale")) == 100 and _size.y >= 1080:
+		return
+	_check("the scale steps down to what the window fits", _menu().scale_percent == 100
+		and int(_shell().get("_user_scale")) == 100)

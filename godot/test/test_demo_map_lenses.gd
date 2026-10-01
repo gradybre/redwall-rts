@@ -31,6 +31,9 @@ const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const MOUSE_U: int = 1024
 const OTTER_U: int = 1126
 const BADGER_U: int = 2611
+## The tallest picker card measured in the tree at 1920x1080 (the code review's measurement: a six-member
+## group's Water range).
+const TALLEST_CARD_H: float = 234.0
 
 var _nodes: Array[Node] = []
 ## What each test lens was told, in order: "<lens>:on" / "<lens>:off".
@@ -112,6 +115,8 @@ func test_the_underground_layer_follows_its_own_switch() -> void:
 	to the first cycle layer and switches it off; U pressed again with it shown leaves none."""
 	var lenses := _lenses()
 	lenses.select(3)
+	assert_false(lenses.sync(), "U off and not shown: nothing to adopt")
+	assert_equal(lenses.active, 3, "the water stays")
 	_said.clear()
 	_under_on = true
 	assert_true(lenses.sync(), "adopted")
@@ -193,13 +198,15 @@ func test_v_and_the_picker_name_the_same_layer() -> void:
 	assert_equal(farm.cycle_overlays(), "Growing: Ripeness", "V from the pick")
 
 
-func test_the_beds_overlay_is_cleared_only_by_its_own_switch() -> void:
-	"""Switching moisture off leaves ripeness shown (the farm's two layers share the beds' one overlay)."""
+func test_the_farm_s_two_layers_share_the_beds_overlay() -> void:
+	"""Moisture then ripeness then moisture: each shows (the others are switched off before it is on)."""
 	var farm := _farm()
 	farm.lenses.select(2)
 	assert_equal(farm.view.overlay_mode, ViewScript.OVERLAY_RIPENESS, "ripeness")
+	farm.lenses.select(1)
+	assert_equal(farm.view.overlay_mode, ViewScript.OVERLAY_MOISTURE, "moisture")
 	farm.lenses.select(2)
-	assert_equal(farm.view.overlay_mode, ViewScript.OVERLAY_RIPENESS, "moisture's off did not clear it")
+	assert_equal(farm.view.overlay_mode, ViewScript.OVERLAY_RIPENESS, "ripeness again: moisture's off came first")
 	farm.lenses.turn_off()
 	assert_equal(farm.view.overlay_mode, ViewScript.OVERLAY_OFF, "off")
 
@@ -212,6 +219,7 @@ func test_the_picker_shows_the_subject_and_steps_a_group() -> void:
 	var picker := _picker(lenses)
 	picker.lens_button(1).pressed.emit()
 	assert_equal(picker.subject_text(), "", "moisture has no subject")
+	assert_false(picker.subject_shown() or picker.notes_shown(), "no subject line, no notes")
 	assert_false(picker.stepper_shown(), "no stepper")
 	picker.lens_button(3).pressed.emit()
 	assert_equal(picker.subject_text(), "Water range for: a 1.0 m mouse (nobody selected)", "nobody")
@@ -267,6 +275,9 @@ func test_each_member_of_a_group_can_be_evaluated() -> void:
 		heights.append(range_of.paint_height_u())
 		lines.append(range_of.notes())
 	assert_equal(heights, PackedInt32Array([MOUSE_U, OTTER_U, BADGER_U, MOUSE_U]), "each, then the group")
+	range_of.step(1)
+	assert_equal(range_of.paint_label(), "Mouse keeper (1.00 m)", "a member stepped to is named alone")
+	range_of.step(-1)
 	assert_equal(lines[0], "Wades to 0.25 m · swims · does not dive", "the mouse")
 	assert_equal(lines[1], "Wades to 0.27 m · swims · dives", "the otter")
 	assert_equal(lines[2], "Wades to 0.64 m · cannot swim · does not dive", "the badger")
@@ -359,36 +370,66 @@ func _water_rig() -> Dictionary:
 # --- where the picker goes ------------------------------------------------------------------------
 
 func test_the_picker_keeps_clear_of_the_hud_at_both_sizes() -> void:
-	"""At 1280x720 and 1920x1080, journal open or closed: the picker's slot, with its tallest card, is inside
-	the view and clear of the minimap, the news band, the command strip and the party panel's column."""
+	"""At 1280x720 and 1920x1080, journal open or closed: the picker's whole slot -- all the room it may grow
+	into, frame included -- is inside the view and clear of the minimap, the news band, the command strip and
+	the party panel's column, and is at least TALLEST_CARD_H tall (the tallest card measured, 234 px: a
+	six-member group's water range) and WIDTH wide."""
 	for size: Vector2i in [Vector2i(1280, 720), Vector2i(1920, 1080)]:
 		for journal: bool in [false, true]:
 			var layout := UiLayout.new()
 			var geometry := UiLayout.Geometry.new()
 			var band: Rect2 = NewsScript.band_placement(size.x, size.y, layout, geometry, journal)
 			var slot: Rect2 = PickerScript.slot_rect(geometry, band)
-			var drawn := Rect2(slot.position.x - PickerScript.FRAME_EXPAND, slot.end.y - PickerScript.SLOT_MIN.y - PickerScript.FRAME_EXPAND,
-				slot.size.x + 2.0 * PickerScript.FRAME_EXPAND, PickerScript.SLOT_MIN.y + 2.0 * PickerScript.FRAME_EXPAND)
+			var drawn: Rect2 = slot.grow(PickerScript.FRAME_EXPAND)
 			var party := PartyScript.placement(size.x, size.y, layout, UiLayout.Geometry.new()).grow(PartyScript.FRAME_EXPAND)
 			var at: String = "%dx%d journal %s" % [size.x, size.y, journal]
 			assert_true(Rect2(0, 0, geometry.logical_width, geometry.logical_height).encloses(drawn), "%s: inside" % at)
 			for other: Rect2 in [geometry.minimap, geometry.commands, band, party]:
 				assert_false(drawn.intersects(other), "%s: %s clear of %s" % [at, drawn, other])
 			assert_true(slot.size.x >= PickerScript.WIDTH, "%s: at least its width" % at)
+			assert_true(slot.size.y >= TALLEST_CARD_H, "%s: room for the tallest card (%.0f)" % [at, slot.size.y])
 
 
-func test_the_slot_is_beside_the_minimap_where_it_has_room() -> void:
-	"""1920x1080: beside the minimap, above the command strip; 1280x720: above the bottom band."""
+func test_the_slot_sits_on_the_command_strip_where_it_has_room() -> void:
+	"""1920x1080: down on the command strip, right of the party column; 1280x720: above the bottom band."""
 	var layout := UiLayout.new()
 	var geometry := UiLayout.Geometry.new()
 	var band: Rect2 = NewsScript.band_placement(1920, 1080, layout, geometry, false)
 	var slot: Rect2 = PickerScript.slot_rect(geometry, band)
-	assert_equal(slot.position.x, geometry.minimap.end.x + PickerScript.GAP + PickerScript.FRAME_EXPAND, "beside the minimap")
+	var column: float = UiLayout.SAFE_INSET + 2.0 * PartyScript.FRAME_EXPAND + PartyScript.WIDTH
+	assert_equal(slot.position.x, column + PickerScript.GAP + PickerScript.FRAME_EXPAND, "right of the party column")
 	assert_equal(slot.end.y, geometry.commands.position.y - PickerScript.GAP - PickerScript.FRAME_EXPAND, "on the command strip")
-	assert_equal(slot.size.x, PickerScript.MAX_WIDTH, "as wide as it may be")
+	assert_equal(slot.size.x, band.position.x - PickerScript.GAP - PickerScript.FRAME_EXPAND - slot.position.x, "up to the news band")
 	band = NewsScript.band_placement(1280, 720, layout, geometry, false)
 	slot = PickerScript.slot_rect(geometry, band)
 	assert_equal(slot.end.y, geometry.minimap.position.y - PickerScript.GAP - PickerScript.FRAME_EXPAND, "above the bottom band")
+	assert_equal(slot.size.x, PickerScript.WIDTH, "its own width")
+	slot = PickerScript.slot_rect(geometry, Rect2())
+	assert_equal(slot.size.x, PickerScript.MAX_WIDTH, "no news strip: as wide as it may be")
+
+
+func test_the_picker_follows_the_journal_without_touching_the_news_strip() -> void:
+	"""At 1920x1080 the picker sits on the command strip with the journal closed and above the bottom band
+	with it open -- it asks the journal itself and works the band out from the strip's static equation, so
+	the strip's own journal state is left for the strip to follow (writing it once made the strip miss a
+	journal opening)."""
+	var open: Array[bool] = [false]
+	var query := func() -> bool: return open[0]
+	var news := NewsScript.new()
+	_nodes.append(news)
+	news.configure(ServicesScript.new().notices)
+	news.follow_journal(query)
+	var picker := PickerScript.new()
+	_nodes.append(picker)
+	picker.configure(_lenses(), query)
+	var closed: Rect2 = picker.slot_for(Vector2(1920.0, 1080.0))
+	open[0] = true
+	var opened: Rect2 = picker.slot_for(Vector2(1920.0, 1080.0))
+	assert_equal(closed.end.y, 978.0, "closed: on the command strip (996 less the gap and the frame)")
+	assert_equal(opened.end.y, 758.0, "open: above the bottom band (776 less the gap and the frame)")
+	assert_false(news.journal_followed(), "the strip's journal state untouched")
+	news.band_in(Vector2(1920.0, 1080.0))
+	assert_true(news.journal_followed(), "for the strip to follow itself")
 
 
 func _farm() -> DemoFarmScript:

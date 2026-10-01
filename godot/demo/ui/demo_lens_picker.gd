@@ -13,13 +13,14 @@ extends CanvasLayer
 ## the picker always names what the map shows.
 ##
 ## WHERE. UI §1.1's bottom-left zone, "Minimap + layers" (UI-SET-022, "Map layers", belongs with the
-## minimap), growing upward from its bottom edge (`slot_rect`): BESIDE the minimap -- right of it, above
-## the command strip, left of the news strip's band -- where that corner has room for the tallest card
-## (1920x1080); else just ABOVE the bottom band, right of the demo party panel's column (1280x720, where
-## the corner is 172 px tall, and whenever the journal pushes the news band left). It never covers the
-## minimap, the news strip, the command strip or the party panel (which at 1280x720 fills its column
-## with anyone selected); only the unfolded list -- transient, it folds on a pick -- may rise over the
-## world above it. The slot follows the viewport alone, so the picker does not jump as layers change.
+## minimap), growing upward from its bottom edge (`slot_rect`), always just right of the demo party
+## panel's column so that growing up never meets it: down on the command strip's top where the space
+## left of the news strip's band is wide enough (1920x1080), else just above the bottom band (1280x720,
+## where the news band leaves too little beside it, and whenever the journal pushes the band left). It
+## never covers the minimap, the news strip, the command strip or the party panel (which at 1280x720
+## fills its column with anyone selected, so the picker cannot share it). The slot follows the viewport
+## alone, so the picker does not jump as layers change. The news band comes from the strip's own static
+## equation (`band_placement`), so nothing of the strip's state is touched.
 ## Geometry is the HUD's own (scripts/ui/ui_layout.gd, read, never modified) in LOGICAL pixels at the
 ## HUD's scale. It draws below the HUD's layer, as the party panel does, so a modal covers it.
 ##
@@ -31,6 +32,7 @@ const Palette := preload("res://demo/ui/woodland_palette.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const LensesScript := preload("res://demo/map_lenses.gd")
 const PartyScript := preload("res://demo/control/demo_party_panel.gd")
+const NewsScript := preload("res://demo/ui/demo_news_strip.gd")
 const SubjectScript := preload("res://demo/lens_subject.gd")
 
 const TITLE: String = "Map layer"
@@ -43,16 +45,15 @@ const MAX_WIDTH: float = 440.0
 const FRAME_EXPAND: float = 10.0
 ## Kept clear of the minimap, the news band, the command strip and the party panel's column.
 const GAP: float = 8.0
-## The corner beside the minimap is used when it is at least this wide and tall (logical px): room for
-## the tallest card (the Water range for a group) at that width.
-const SLOT_MIN: Vector2 = Vector2(340.0, 190.0)
+## UI §2's interactive floor: every button at least this tall.
+const TARGET_PX: float = 32.0
 ## UI §2: 14 px is the floor for any text; body text at the farm's 15.
 const NOTE_PX: int = 14
 const SWATCH_PX: float = 14.0
 const REFRESH_S: float = 0.25
 
 var _lenses: LensesScript = null
-var _news_band: Callable = Callable()
+var _journal_open: Callable = Callable()
 var _frame: PanelContainer = null
 var _list_button: Button = null
 var _off: Button = null
@@ -69,15 +70,17 @@ var _legend_box: VBoxContainer = null
 var _legends: Array[HFlowContainer] = []
 var _refresh_in: float = 0.0
 var _seen_subject: int = -1
+var _seen_revision: int = -1
 var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 
 
-func configure(lenses: LensesScript, news_band: Callable = Callable()) -> void:
-	"""Pick among `lenses`; `news_band(viewport_size: Vector2) -> Rect2` is the news strip's band in logical
-	pixels (demo_news_strip.gd `band_in`), which the picker keeps clear of (none: no strip)."""
+func configure(lenses: LensesScript, journal_open: Callable = Callable()) -> void:
+	"""Pick among `lenses`; `journal_open() -> bool` says whether the resident journal holds the right column
+	(demo_detail_zone.gd), which moves the news strip's band the picker keeps clear of (none: never). The
+	band is worked out here from the strip's own static equation, so nothing of the strip's is touched."""
 	_lenses = lenses
-	_news_band = news_band
+	_journal_open = journal_open
 	name = "DemoLensPicker"
 	layer = 0
 	_build()
@@ -108,14 +111,14 @@ func _build_header() -> HBoxContainer:
 	"""'Map layer: <title>', the list's button and Off."""
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override(&"separation", 6)
-	_list_button = FarmUi.button("")
+	_list_button = _button("")
 	_list_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list_button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_list_button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_list_button.tooltip_text = "Choose a map layer by the question it answers"
 	_list_button.pressed.connect(toggle_list)
 	row.add_child(_list_button)
-	_off = FarmUi.button("Off")
+	_off = _button("Off")
 	_off.tooltip_text = "Show no map layer"
 	_off.pressed.connect(choose.bind(LensesScript.OFF))
 	row.add_child(_off)
@@ -152,10 +155,17 @@ func _build_card() -> VBoxContainer:
 	return card
 
 
+func _button(text: String) -> Button:
+	"""A wood button at least TARGET_PX tall."""
+	var made: Button = FarmUi.button(text)
+	made.custom_minimum_size.y = TARGET_PX
+	return made
+
+
 func _stepper(text: String, tip: String, delta: int) -> Button:
 	"""One of the subject's ◀ ▶ buttons, at least 32 px square (UI §2's target floor)."""
 	var made: Button = FarmUi.button(text)
-	made.custom_minimum_size = Vector2(32.0, 32.0)
+	made.custom_minimum_size = Vector2(TARGET_PX, TARGET_PX)
 	made.tooltip_text = tip
 	made.pressed.connect(step_subject.bind(delta))
 	_subject_row.add_child(made)
@@ -166,7 +176,7 @@ func _ensure_rows() -> void:
 	"""A list button and a legend for every layer the lenses have (made once each)."""
 	while _lens_buttons.size() < _lenses.count() - 1:
 		var lens: int = _lens_buttons.size() + 1
-		var made: Button = FarmUi.button(_lenses.title_of(lens))
+		var made: Button = _button(_lenses.title_of(lens))
 		made.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		made.toggle_mode = true
 		made.tooltip_text = _lenses.question_of(lens)
@@ -230,8 +240,9 @@ func _process(delta: float) -> void:
 	var changed: bool = _lenses.sync()
 	var subject: int = _lenses.subject_of(_lenses.active).revision
 	_refresh_in -= delta
-	if changed or subject != _seen_subject or _refresh_in <= 0.0:
+	if changed or subject != _seen_subject or _lenses.revision != _seen_revision or _refresh_in <= 0.0:
 		_seen_subject = subject
+		_seen_revision = _lenses.revision
 		_refresh_in = REFRESH_S
 		refresh()
 
@@ -310,8 +321,18 @@ func notes_text() -> String:
 
 
 func stepper_shown() -> bool:
-	"""Whether the ◀ ▶ subject stepper shows."""
-	return _prev.visible and _next.visible
+	"""Whether either of the ◀ ▶ subject stepper's buttons shows."""
+	return _prev.visible or _next.visible
+
+
+func subject_shown() -> bool:
+	"""Whether the subject line shows."""
+	return _subject_row.visible
+
+
+func notes_shown() -> bool:
+	"""Whether the notes show."""
+	return _notes.visible
 
 
 func legend_words(lens: int) -> PackedStringArray:
@@ -338,10 +359,7 @@ func _place() -> void:
 	"""In the bottom-left zone (see WHERE), as tall as its content; an unfolded list grows upward from it."""
 	if not is_inside_tree() or _frame == null:
 		return
-	var size_px: Vector2 = get_viewport().get_visible_rect().size
-	var band: Rect2 = _news_band.call(size_px) if _news_band.is_valid() else Rect2()
-	FarmUi.geometry_for(size_px, _layout, _geometry)
-	var slot: Rect2 = slot_rect(_geometry, band)
+	var slot: Rect2 = slot_for(get_viewport().get_visible_rect().size)
 	_frame.scale = Vector2(_geometry.scale, _geometry.scale)
 	_frame.custom_minimum_size = Vector2(slot.size.x, 0.0)
 	_frame.size = Vector2(slot.size.x, 0.0)
@@ -349,18 +367,23 @@ func _place() -> void:
 	_frame.position = Vector2(slot.position.x, top) * _geometry.scale
 
 
+func slot_for(viewport_size: Vector2) -> Rect2:
+	"""The slot (`slot_rect`) for this viewport with the journal as it is now; fills the picker's geometry
+	(its scale). The news band is the strip's own static equation: nothing of the strip's is read or set."""
+	var journal: bool = _journal_open.is_valid() and bool(_journal_open.call())
+	var band: Rect2 = NewsScript.band_placement(int(viewport_size.x), int(viewport_size.y), _layout, _geometry, journal)
+	return slot_rect(_geometry, band)
+
+
 static func slot_rect(geometry: UiLayout.Geometry, news_band: Rect2) -> Rect2:
-	"""Where the picker goes, in logical pixels (its x, its width and its BOTTOM edge -- it grows upward;
-	the height is the room it has): BESIDE the minimap, above the command strip and left of the news band,
-	where that corner is at least SLOT_MIN wide and tall (1920x1080); else ABOVE the bottom band, right of
-	the party panel's column (1280x720, or the journal open). Chosen by the viewport alone, never by what
-	the card shows, so the picker does not jump when a layer changes."""
-	var left: float = geometry.minimap.end.x + GAP + FRAME_EXPAND
+	"""Where the picker goes, in logical pixels: its x and width, and its BOTTOM edge (it grows upward; the
+	height is all the room it has, up to the reserved band). Always right of the party panel's column, so
+	growing up never meets it: down on the command strip where the space left of the news band is at least
+	WIDTH (1920x1080), else just above the bottom band (1280x720, or the journal open). Chosen by the
+	viewport alone, never by what the card shows, so the picker does not jump when a layer changes."""
+	var left: float = UiLayout.SAFE_INSET + 2.0 * PartyScript.FRAME_EXPAND + PartyScript.WIDTH + GAP + FRAME_EXPAND
+	var top: float = geometry.management_top + FRAME_EXPAND
 	var right: float = news_band.position.x - GAP - FRAME_EXPAND if news_band.size.x > 0.0 else geometry.commands.end.x
-	var bottom: float = geometry.commands.position.y - GAP - FRAME_EXPAND
-	var top: float = geometry.minimap.position.y - GAP
-	if right - left >= SLOT_MIN.x and bottom - top >= SLOT_MIN.y:
-		return Rect2(left, top, minf(right - left, MAX_WIDTH), bottom - top)
-	var column: float = UiLayout.SAFE_INSET + 2.0 * PartyScript.FRAME_EXPAND + PartyScript.WIDTH + GAP + FRAME_EXPAND
-	var above: float = geometry.minimap.position.y - GAP - FRAME_EXPAND
-	return Rect2(column, geometry.management_top + FRAME_EXPAND, WIDTH, above - geometry.management_top - FRAME_EXPAND)
+	if right - left >= WIDTH:
+		return Rect2(left, top, minf(right - left, MAX_WIDTH), geometry.commands.position.y - GAP - FRAME_EXPAND - top)
+	return Rect2(left, top, WIDTH, geometry.minimap.position.y - GAP - FRAME_EXPAND - top)

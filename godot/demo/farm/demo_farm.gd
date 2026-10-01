@@ -485,11 +485,9 @@ func _add_farm_lenses() -> void:
 
 
 func _farm_overlay(on: bool, mode: int) -> void:
-	"""Show the beds' overlay `mode`, or -- switched off -- clear it only if it is the one showing."""
-	if on:
-		view.set_overlay(mode)
-	elif view.overlay_mode == mode:
-		view.set_overlay(ViewScript.OVERLAY_OFF)
+	"""Show the beds' overlay `mode`, or clear it. The two farm layers share the beds' one overlay; that is
+	safe because `lenses.select` switches every other layer off BEFORE it switches the chosen one on."""
+	view.set_overlay(mode if on else ViewScript.OVERLAY_OFF)
 
 
 func add_overlay(group: String, label: String, question: String, show: Callable) -> int:

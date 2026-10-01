@@ -27,6 +27,7 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const RADISH: int = 0
 const CARROT: int = 2
 const LETTUCE: int = 7
+const SPINACH: int = 8
 const WHEAT: int = 13
 const BARLEY: int = 14
 const COVERED: int = 0
@@ -88,7 +89,9 @@ func _rows_of(panel: PantryPanelScript) -> Array[PackedStringArray]:
 func test_the_pantry_opens_on_stocks_and_recipes_are_their_own_tab() -> void:
 	"""Stocks first, and what it opens on; Recipe ideas is its own tab, labelled not cookable."""
 	var panel := _panel(SimScript.new(), _pantry())
-	assert_equal(PantryPanelScript.TAB_NAMES, ["Stocks", "Recipe ideas (not cookable yet)"] as Array[String], "the tabs, Stocks first")
+	assert_equal(panel.tab_button(PantryPanelScript.TAB_STOCKS).text, "Stocks", "Stocks first")
+	assert_equal(panel.tab_button(PantryPanelScript.TAB_RECIPES).text, "Recipe ideas (not cookable yet)", "then Recipe ideas")
+	assert_true(panel.tab_button(PantryPanelScript.TAB_STOCKS).get_index() < panel.tab_button(PantryPanelScript.TAB_RECIPES).get_index(), "in that order")
 	assert_true(panel.toggle(), "open")
 	assert_equal(panel.tab, PantryPanelScript.TAB_STOCKS, "opens on Stocks")
 	assert_true(panel.page_shown(PantryPanelScript.TAB_STOCKS) and not panel.page_shown(PantryPanelScript.TAB_RECIPES), "Stocks alone")
@@ -96,7 +99,7 @@ func test_the_pantry_opens_on_stocks_and_recipes_are_their_own_tab() -> void:
 	panel.tab_button(PantryPanelScript.TAB_RECIPES).pressed.emit()
 	assert_true(panel.page_shown(PantryPanelScript.TAB_RECIPES) and not panel.page_shown(PantryPanelScript.TAB_STOCKS), "Recipes alone")
 	assert_true(panel.tab_button(PantryPanelScript.TAB_RECIPES).button_pressed, "its tab pressed")
-	assert_equal(PantryPanelScript.RECIPE_HEADING, "Recipe ideas — not yet cookable", "labelled not cookable")
+	assert_equal(panel.recipe_heading(), "Recipe ideas — not yet cookable", "labelled not cookable")
 	assert_false(panel.toggle(), "closed")
 	assert_true(panel.toggle(), "reopened")
 	assert_equal(panel.tab, PantryPanelScript.TAB_STOCKS, "back on Stocks")
@@ -161,11 +164,13 @@ func test_the_soon_line_is_two_days() -> void:
 	var rows := RowsScript.new()
 	rows.rebuild(pantry, 0)
 	assert_equal(rows.item, PackedInt32Array([RADISH, LETTUCE]), "49 h left: not soon")
-	assert_false(rows.is_soon(pantry, 1, 0), "not soon at 49 h")
+	assert_false(rows.is_soon(1), "not soon at 49 h")
 	_age(pantry, 1)
 	rows.rebuild(pantry, 0)
 	assert_equal(rows.item, PackedInt32Array([LETTUCE, RADISH]), "48 h left: first")
-	assert_true(rows.is_soon(pantry, 0, 0), "soon at 48 h")
+	assert_true(rows.is_soon(0), "soon at 48 h")
+	assert_equal(rows.spoil_text(pantry, 0), "Soon: all in 2d", "and worded so at 48 h")
+	assert_equal(rows.spoil_text(pantry, 1), "all in 6d", "radish: 240 - 96 = 144 h, not soon")
 
 
 func test_soon_rows_go_soonest_first() -> void:
@@ -178,6 +183,18 @@ func test_soon_rows_go_soonest_first() -> void:
 	var rows := RowsScript.new()
 	rows.rebuild(pantry, 0)
 	assert_equal(rows.item, PackedInt32Array([WHEAT, CARROT]), "grain 720 h: 35 h left; roots 240 h: 40 h left")
+
+
+func test_equally_soon_rows_keep_the_catalog_order() -> void:
+	"""Lettuce and spinach (the cabbage row's 144 h) both 44 h from spoiling: lettuce first, as listed."""
+	var pantry := _pantry()
+	_add(pantry, SPINACH, 1000, COVERED)
+	_add(pantry, LETTUCE, 1000, COVERED)
+	_add(pantry, RADISH, 1000, COVERED)
+	_age(pantry, 100)
+	var rows := RowsScript.new()
+	rows.rebuild(pantry, 0)
+	assert_equal(rows.item, PackedInt32Array([LETTUCE, SPINACH, RADISH]), "a tie keeps its order; radish (140 h) after")
 
 
 func test_incoming_is_not_in_store() -> void:
@@ -200,6 +217,20 @@ func test_incoming_is_not_in_store() -> void:
 	assert_true(panel.total_text().begins_with("5.1 U of food in store"), "the total is stock alone")
 
 
+func test_lots_and_holds_alike_add_up_per_row() -> void:
+	"""Two carrot lots of equal age in one store: the row holds both, and names the lower lot row first
+	(as `first_to_spoil_into` does on a tie); two carrot holds there add up as incoming."""
+	var pantry := PantryScript.new(StorageScript.new())
+	_add(pantry, CARROT, 1000, COVERED)
+	_add(pantry, CARROT, 2000, COVERED)
+	assert_true(pantry.reserve_near_into(CARROT, 500, Vector2.ZERO, _read), "a hold")
+	assert_true(pantry.reserve_near_into(CARROT, 700, Vector2.ZERO, _read), "another")
+	var panel := _panel(SimScript.new(), pantry)
+	panel.toggle()
+	assert_equal(_rows_of(panel), [PackedStringArray(["Carrot", "3.0 U", "1.2 U", "Covered store", "1.0 U in 10d"])] as Array[PackedStringArray],
+		"one row: 3.0 U in store, 1.2 U incoming, the first lot (1.0 U) next")
+
+
 func test_a_hold_names_its_item_until_released() -> void:
 	"""farm_pantry.gd: a hold's item is counted incoming at its store, follows a resize, and is gone once
 	released; another item or store reads none."""
@@ -217,6 +248,30 @@ func test_a_hold_names_its_item_until_released() -> void:
 	assert_equal(pantry.incoming_milli(WHEAT, at), 0, "released: nothing incoming")
 	assert_true(pantry.reserve_near_into(BARLEY, 1000, Vector2.ZERO, _read), "the row reused")
 	assert_equal(pantry.incoming_milli(WHEAT, at) + pantry.incoming_milli(BARLEY, at), 1000, "as barley only")
+
+
+func test_a_store_taken_away_while_open_leaves_its_rows_gone_not_another_s() -> void:
+	"""A row keeps its store by id: the cellar taken away (its racks out) while the Pantry is open leaves its
+	row reading "(store gone)" and empty -- not the next store's figures, and no error -- and its carrots,
+	moved to the covered store, are a new row at the end."""
+	var shelves: Array = [{"id": &"a", "position": Vector2.ZERO, "capacity_u": 60, "spoilage_permille": 350,
+		"label": "Root cellar A"}, {"id": &"b", "position": Vector2.ZERO, "capacity_u": 60,
+		"spoilage_permille": 350, "label": "Root cellar B"}]
+	var storage := StorageScript.new()
+	storage.add_provider(func() -> Array: return shelves)
+	var pantry := PantryScript.new(storage)
+	_add(pantry, CARROT, 2000, 1)
+	_add(pantry, WHEAT, 3000, 2)
+	var panel := _panel(SimScript.new(), pantry)
+	panel.toggle()
+	assert_equal(_names(panel), ["Carrot", "Wheat"] as Array[String], "a row in each cellar")
+	shelves.remove_at(0)
+	pantry.refresh_locations()
+	panel.refresh()
+	assert_equal(_rows_of(panel), [PackedStringArray(["Carrot", "0 U", "—", "(store gone)", "—"]),
+		PackedStringArray(["Wheat", "3.0 U", "—", "Root cellar B", "all in 79d 18h"]),
+		PackedStringArray(["Carrot", "2.0 U", "—", "Covered store", "all in 10d"])] as Array[PackedStringArray],
+		"cellar A gone: its row empty; cellar B, now index 1, still its own; the carrots moved, a new row")
 
 
 func test_the_first_lot_to_spoil_at_one_store() -> void:
@@ -253,6 +308,10 @@ func test_the_order_is_kept_while_the_pantry_is_open() -> void:
 	panel.toggle()
 	panel.toggle()
 	assert_equal(_names(panel), ["Radish", "Wheat"] as Array[String], "reopened: made afresh, the spoiled row gone")
+	for column: int in range(1, 5):
+		assert_false(panel.stock_cell(2, column).visible, "the pooled third row's cell %d is hidden" % column)
+	assert_false(panel.stock_cell(2, 0).get_parent().visible, "and its name cell")
+	assert_true(panel.stock_cell(1, 4).visible and panel.stock_cell(1, 0).get_parent().visible, "the second row shows")
 
 
 func _names(panel: PantryPanelScript) -> Array[String]:
@@ -323,7 +382,6 @@ func test_a_reserved_only_pantry_is_not_empty() -> void:
 	var panel := _panel(SimScript.new(), pantry)
 	panel.toggle()
 	assert_false(panel.empty_shown(), "not empty")
-	assert_false(RowsScript.is_empty(pantry), "incoming counts")
 	assert_equal(panel.shown_stock_row(0)[2], "1.0 U", "incoming")
 
 

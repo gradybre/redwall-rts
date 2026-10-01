@@ -1,7 +1,7 @@
 extends CanvasLayer
 ## The Pantry: the Food command's view (UI-SET-030 opens UI-SET-060, "Recipes and production"),
 ## breaking the HUD's one Food figure out ingredient by ingredient. Decisions 0196 and 0292. DEMO UI in
-## the woodland skin, in the HUD's modal rectangle, below the HUD's layer.
+## the woodland skin, in the HUD's modal rectangle, above the HUD's layer (see LAYER).
 ##
 ## TWO TABS (decision 0292, the review's F46: usable stock before recipe prose).
 ##   Stocks (first, and what the Pantry opens on): a table, one row per ingredient per store
@@ -55,6 +55,8 @@ const STORE_HEADINGS: Array[String] = ["Store", "Stored", "Reserved for harvests
 const EMPTY_TEXT: String = "The pantry is empty, and no harvest is on its way."
 ## Notes and table headings: UI §2's 14 px floor (the farm's SMALL_PX is below it).
 const NOTE_PX: int = 14
+## UI §2's interactive floor: the tabs, the ingredient list and "Open bed" at least this tall.
+const TARGET_PX: float = 32.0
 const LIST_WIDTH: float = 300.0
 const STOCK_COLUMN_W: PackedFloat32Array = [210.0, 96.0, 96.0, 170.0, 0.0]
 const MIN_BODY_H: float = 160.0
@@ -85,6 +87,7 @@ var _empty: VBoxContainer = null
 var _suggestion: Label = null
 var _open_bed: Button = null
 var _item_buttons: Array[Button] = []
+var _recipe_heading: Label = null
 var _dish_title: Label = null
 var _dishes: Label = null
 var _spoiled: Label = null
@@ -161,6 +164,7 @@ func _build_tabs() -> HBoxContainer:
 	var group := ButtonGroup.new()
 	for k: int in TAB_NAMES.size():
 		var made: Button = FarmUi.button(TAB_NAMES[k])
+		made.custom_minimum_size.y = TARGET_PX
 		made.toggle_mode = true
 		made.button_group = group
 		made.button_pressed = k == tab
@@ -224,6 +228,7 @@ func _build_empty() -> VBoxContainer:
 	_suggestion = FarmUi.label("", FarmUi.BODY_PX, Palette.INK)
 	_empty.add_child(_suggestion)
 	_open_bed = FarmUi.button("")
+	_open_bed.custom_minimum_size.y = TARGET_PX
 	_open_bed.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_open_bed.pressed.connect(func() -> void: bed_requested.emit(_rows.suggested_bed))
 	_empty.add_child(_open_bed)
@@ -293,6 +298,7 @@ func _build_recipes() -> HBoxContainer:
 	list.add_child(rows)
 	for item: int in Catalog.ITEM_COUNT:
 		var row: Button = FarmUi.button("", FarmUi.BODY_PX)
+		row.custom_minimum_size.y = TARGET_PX
 		row.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		row.toggle_mode = true
 		row.pressed.connect(select_item.bind(item))
@@ -308,7 +314,8 @@ func _build_dishes() -> ScrollContainer:
 	var box := VBoxContainer.new()
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(box)
-	box.add_child(FarmUi.label(RECIPE_HEADING, FarmUi.TITLE_PX, Palette.INK, true))
+	_recipe_heading = FarmUi.label(RECIPE_HEADING, FarmUi.TITLE_PX, Palette.INK, true)
+	box.add_child(_recipe_heading)
 	box.add_child(FarmUi.label(RECIPE_NOTE, NOTE_PX, Palette.UMBER))
 	_dish_title = FarmUi.label("", FarmUi.BODY_PX, Palette.INK, true)
 	box.add_child(_dish_title)
@@ -362,12 +369,12 @@ func refresh() -> void:
 
 
 func _fill_stocks() -> void:
-	"""The stock rows (new ones at the end), the empty state, the stores and the spoiled row."""
-	_rows.extend(_pantry)
-	var hour: int = _sim.calendar.hour_index()
+	"""The stock rows (refigured in place, new ones at the end), the empty state, the stores and the
+	spoiled row."""
+	_rows.update(_pantry, _sim.calendar.hour_index())
 	_ensure_stock_rows(_rows.count())
 	for row: int in _stock_icons.size():
-		_fill_stock_row(row, hour)
+		_fill_stock_row(row)
 	var empty: bool = _rows.count() == 0
 	_empty.visible = empty
 	_stock_grid.visible = not empty
@@ -378,7 +385,7 @@ func _fill_stocks() -> void:
 	FarmUi.set_enabled(_compost, _pantry.spoiled_milli >= 2, "nothing has spoiled")
 
 
-func _fill_stock_row(row: int, hour: int) -> void:
+func _fill_stock_row(row: int) -> void:
 	"""One stock row's cells (a pooled row past the table's end is hidden)."""
 	var shown: bool = row < _rows.count()
 	var base: int = row * STOCK_HEADINGS.size()
@@ -390,7 +397,7 @@ func _fill_stock_row(row: int, hour: int) -> void:
 	var cells: PackedStringArray = stock_row_cells(row)
 	for column: int in cells.size():
 		_stock_cells[base + column].text = cells[column]
-	var soon: bool = _rows.is_soon(_pantry, row, hour)
+	var soon: bool = _rows.is_soon(row)
 	_stock_cells[base + 4].add_theme_color_override(&"font_color", Palette.CLAY if soon else Palette.INK)
 	if _goods != null:
 		_stock_icons[row].texture = _goods.icon_of(_rows.item[row])
@@ -436,10 +443,10 @@ func _fill_recipes() -> void:
 # --- readouts (tests and the scripted check) ---------------------------------------------------------
 
 func stock_row_cells(row: int) -> PackedStringArray:
-	"""Stock row `row` as its five cells: ingredient, in store, incoming, store, next to spoil."""
-	var hour: int = _sim.calendar.hour_index()
-	return PackedStringArray([Catalog.ITEM_LABELS[_rows.item[row]], _rows.available_text(_pantry, row),
-		_rows.incoming_text(_pantry, row), _rows.store_text(_pantry, row), _rows.spoil_text(_pantry, row, hour)])
+	"""Stock row `row` as its five cells, as last figured: ingredient, in store, incoming, store, next to
+	spoil."""
+	return PackedStringArray([Catalog.ITEM_LABELS[_rows.item[row]], _rows.available_text(row),
+		_rows.incoming_text(row), _rows.store_text(_pantry, row), _rows.spoil_text(_pantry, row)])
 
 
 func stock_row_count() -> int:
@@ -492,6 +499,11 @@ func tab_button(which: int) -> Button:
 func page_shown(which: int) -> bool:
 	"""Whether tab `which`'s page shows."""
 	return _pages[which].visible
+
+
+func recipe_heading() -> String:
+	"""The Recipe ideas tab's heading as drawn."""
+	return _recipe_heading.text
 
 
 func dishes_text() -> String:

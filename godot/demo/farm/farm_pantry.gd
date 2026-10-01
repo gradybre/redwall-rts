@@ -288,6 +288,11 @@ func is_hold(hold: int) -> bool:
 	return hold >= 0 and hold < MAX_HOLDS and _hold_live[hold] == 1
 
 
+func hold_item(hold: int) -> int:
+	"""The item hold `hold` keeps room for (FREE for a free row)."""
+	return _hold_item[hold] if is_hold(hold) else FREE
+
+
 func hold_milli(hold: int) -> int:
 	"""How much hold `hold` keeps room for, milli-U (0 for a free row)."""
 	return _hold_milli[hold] if is_hold(hold) else 0

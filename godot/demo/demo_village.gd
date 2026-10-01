@@ -35,7 +35,7 @@ extends Node3D
 ## calendar. MAP LAYERS (decision 0292, demo/map_lenses.gd): one shown at a time, each with one question
 ## and a legend -- Growing: soil moisture and ripeness (the farm's), Getting there: water range (whose:
 ## demo/waterplay/water_range.gd), Woods, Underground (U's view, followed). The Map layer picker on the
-## minimap's edge (demo/ui/demo_lens_picker.gd) picks them directly; V steps the same one active layer.
+## bottom left (demo/ui/demo_lens_picker.gd) picks them directly; V steps the same one active layer.
 ##   * ONE NOTICE FEED (demo_notices.gd): every farm, weather, tunnel and threat notice, date-stamped,
 ##     shown bottom centre (demo/ui/demo_news_strip.gd) and, per source, in the two panels. Nothing in
 ##     the demo raises a HUD alert card: the HUD shows the two earliest unresolved notices and demo
@@ -363,8 +363,8 @@ func _build_shared_ui() -> void:
 
 
 func _build_lens_picker() -> void:
-	"""The Underground layer (U's view, followed: map_lenses.gd) and the Map layer picker by the minimap,
-	clear of the news strip's band."""
+	"""The Underground layer (U's view, followed: map_lenses.gd) and the Map layer picker bottom left, clear
+	of the news strip's band (which the journal moves)."""
 	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
 	var under: int = _farm.lenses.add("Underground", "Tunnels", UNDERGROUND_LENS_QUESTION, show_underground)
 	_farm.lenses.follow_state(under, func() -> bool: return tool.view.on)
@@ -372,7 +372,7 @@ func _build_lens_picker() -> void:
 		PackedStringArray(["blue hatch: too wet to dig", "stone: building footings", "U: back to the surface"]))
 	_lens_picker = LensPickerScript.new()
 	add_child(_lens_picker)
-	_lens_picker.configure(_farm.lenses, _news.band_in)
+	_lens_picker.configure(_farm.lenses, _zone.journal_open)
 
 
 func show_underground(on: bool) -> void:

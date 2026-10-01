@@ -613,6 +613,38 @@ func test_a_basket_whose_walk_out_failed_goes_back_to_the_pile() -> void:
 	assert_equal(network.haul.on_heap_milli(network, m), heap_before + again, "called away: tipped on the heap")
 
 
+func test_a_basket_is_tipped_only_at_its_tip_spot() -> void:
+	"""F05 for P5's basket hauling: a member carrying its basket out that stands anywhere but its tip spot when its task
+	runs again -- here put up at the mouth, its trip marked arrived -- walks on to the spot; nothing is tipped there."""
+	var space := CastSpaceScript.new()
+	space.setup([], [] as Array[Vector3])
+	var network := space.tunnels
+	var ref := PackedInt32Array([-1, 0, -1])
+	assert_true(network.add_into(DIG_ROUTE, 2, 9, ref), "a dig")
+	network.advance(ref[0], ref[1], 3000000)
+	var member := _brain(space, network.mouth_at(network.spoil_mouth[ref[0]]) + Vector2(-1.0, 1.0), "Mouse")
+	member.set_carry_motion({"keys_xz": [[0.0, 0.0], [0.0, 1.3]], "mean_speed_m_s": 0.2, "period_s": 6.5})
+	var crew := CrewScript.new()
+	crew.set_resident(member.index, "Mouse")
+	crew.join(member.index, ref[0])
+	var task := CrewTaskScript.new(crew, network, ref[0], true, network.point_at(ref[0], 0.5),
+		func(_s: int) -> bool: return true, func(_s: int) -> float: return 1.5)
+	member.order_task(task)
+	var m: int = network.spoil_mouth[ref[0]]
+	assert_true(_run_until([member] as Array[BrainScript], func() -> bool: return network.haul.mouth_of.size() > member.index \
+		and network.haul.mouth_of[member.index] == m, 60.0), "at its post below")
+	network.add_spoil(ref[0], 2000)
+	assert_true(_run_until([member] as Array[BrainScript], func() -> bool: return task.haul_stage == CrewTaskScript.HAUL_OUT, 30.0),
+		"carrying a basket out")
+	member.task_surface_at(network.mouth_node[m])
+	member.state = BrainScript.State.TASK
+	member.trip_outcome = BrainScript.TRIP_ARRIVED
+	var dumped := network.haul.on_heap_milli(network, m)
+	task.step(member, DT)
+	assert_equal([task.haul_stage, network.haul.on_heap_milli(network, m)], [CrewTaskScript.HAUL_OUT, dumped], "not tipped at the mouth")
+	assert_true(member.state != BrainScript.State.TASK, "walking on to its tip spot: %d" % member.state)
+
+
 func _cancel_hauler(crew: CrewScript, network: GraphScript, brain: BrainScript, walk_failed: bool) -> void:
 	"""A crew place carrying its basket out, cancelled -- its walk given up, or called away."""
 	var task := CrewTaskScript.new(crew, network, 0, true, Vector2.ZERO, func(_s: int) -> bool: return true,

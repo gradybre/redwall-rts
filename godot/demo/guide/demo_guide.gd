@@ -70,6 +70,8 @@ var _menu_line: Label = null
 var _menu_skip: Button = null
 var _refresh_in: float = 0.0
 var _drawn: Vector3i = Vector3i(-1, -1, -1)
+## The target the marker was last aimed at (kind, id, x, z): re-aimed only when it changes.
+var _aimed: Vector4 = Vector4(-1, -1, 0, 0)
 
 
 func configure(p_world: WorldScript, notices: NoticesScript, jump: JumpScript, rig: Node3D,
@@ -121,11 +123,15 @@ func attach(menu: MenuScript, lab: LabScript, gate: GateScript, shell: UiShell) 
 	_menu = menu
 	if menu != null:
 		menu.add_extra(_menu_row(menu.text_width()))
-		menu.help.action_requested.connect(func(action: StringName) -> void: menu.close(); run_action(action))
+		menu.help.action_requested.connect(func(action: StringName) -> void:
+			if menu.close():
+				run_action(action))
 		menu.visibility_changed.connect(_refresh_menu_row)
 	if lab != null:
 		lab.add_trigger(Text.PRACTICE_TEXT, "Short practice situations, kept apart from the village", "Village guide",
-			open_window.bind(WindowScript.TAB_PRACTICE))
+			func() -> void:
+				lab.close()
+				open_window(WindowScript.TAB_PRACTICE))
 	if gate != null:
 		gate.watch_modal(window, window.frame(), window.close, [&"open_objectives"] as Array[StringName])
 		gate.set_modal_close(window, window.close_button())
@@ -145,7 +151,9 @@ func _menu_row(width: float) -> VBoxContainer:
 	verbs.add_child(_menu_skip)
 	for pair: Array in [[Text.WINDOW_TEXT, WindowScript.TAB_OBJECTIVES], [Text.PRACTICE_TEXT, WindowScript.TAB_PRACTICE]]:
 		var open_it: Button = FarmUi.button(String(pair[0]), FarmUi.SMALL_PX)
-		open_it.pressed.connect(func() -> void: _menu.close(); open_window(int(pair[1])))
+		open_it.pressed.connect(func() -> void:
+			if _menu.close():
+				open_window(int(pair[1])))
 		verbs.add_child(open_it)
 	_refresh_menu_row()
 	return row
@@ -163,7 +171,7 @@ func _refresh_menu_row() -> void:
 	else:
 		where = Text.MENU_STEP % [steps.current + 1, StepsScript.STEP_COUNT, Text.STEP_TITLES[steps.current]]
 	_menu_line.text = Text.MENU_ROW % where
-	_menu_skip.text = Text.REOPEN_TEXT if steps.hidden or steps.is_complete() else Text.SKIP_TEXT
+	_menu_skip.text = Text.REOPEN_TEXT if steps.hidden else Text.SKIP_TEXT
 
 
 func unlock_objectives(shell: UiShell) -> bool:
@@ -199,6 +207,8 @@ func _process(delta: float) -> void:
 		return
 	_refresh_in = REFRESH_S
 	projects.update(world, facts)
+	if window.visible and window.tab() == WindowScript.TAB_PROJECTS:
+		window.projects.refresh()
 	_redraw()
 
 
@@ -229,6 +239,10 @@ func _aim_beacon() -> void:
 	var kind: int = _status.target_kind
 	var id: int = _status.target_id
 	var fixed: Vector3 = _status.target_point
+	var aimed := Vector4(kind, id, fixed.x, fixed.z)
+	if aimed == _aimed and beacon.visible:
+		return
+	_aimed = aimed
 	if kind == NoticesScript.TARGET_RESIDENT:
 		beacon.aim(world.resident_point.bind(id), false)
 	else:
@@ -277,11 +291,9 @@ func reopen() -> void:
 
 
 func toggle_guide() -> void:
-	"""Skip, or reopen."""
-	if steps.hidden or steps.is_complete():
+	"""Skip, or reopen (the card's own state decides, complete or not)."""
+	if steps.hidden:
 		steps.reopen()
-		if steps.is_complete():
-			card.set_wanted(true)
 	else:
 		steps.hide_guide()
 	_redraw()

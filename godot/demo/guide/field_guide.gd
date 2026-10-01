@@ -356,7 +356,7 @@ static func _skill_digging() -> Entry:
 	"""The digging skill entry."""
 	return make(&"skill_digging", KIND_SKILL, DigSkills.NAME, "Tunnels and rooms", PackedStringArray([
 		"Digging tunnels, burrow homes and root cellars; widening a tunnel so otters and the badger fit.",
-		"A body that fits the bore: mice, moles and squirrels. Everyone learns as it digs; the skill speeds the crew.",
+		"A body that fits the bore: mice, moles and squirrels. Everyone learns as they dig; the skill speeds the crew.",
 		"The badger cannot fit a bore but breaks rock for a dig crew.",
 		"The moles start at %s %d." % [DigSkills.NAME, DigSkills.SKILLED_LEVEL]]), [&"station_tunnels", &"material_earth"])
 
@@ -375,7 +375,7 @@ static func _skill_bridges() -> Entry:
 	var level: int = int(sqrt(float(SwimRules.BRIDGEWRIGHT_XP / 5000)))
 	return make(&"skill_bridges", KIND_SKILL, "Bridge building", "Piers, beams, deck", PackedStringArray([
 		"Building a bridge: fetching its material, then piers, beams and deck.",
-		"Anybody can build one, at the woods' work rate and its skill.",
+		"Anybody can build one, at the woods' work rate and their skill.",
 		"Selecting nobody leaves a bridge to the bridgewright.", "The beaver bridgewright starts at level %d." % level]),
 		[&"station_bridges", &"material_planks"])
 
@@ -415,7 +415,7 @@ static func _safety_wading() -> Entry:
 	"""The wading entry."""
 	return make(&"safety_wading", KIND_SAFETY, "Wading and the ford", "Shallow water", PackedStringArray([
 		"Crossing shallow water on foot, carrying or not.",
-		"Water shallower than the resident's own wading depth; it walks at %d%% pace there." % (SwimRules.WADE_PERMILLE / 10),
+		"Water shallower than the resident's own wading depth; they walk at %d%% pace there." % (SwimRules.WADE_PERMILLE / 10),
 		"A bridge (full pace, dry).", "The ford where the east road meets the stream."]),
 		[&"station_bridges", &"safety_swimming"])
 
@@ -424,7 +424,7 @@ static func _safety_swimming() -> Entry:
 	"""Swimming stamina, cold water and the loaded rule, from swim_rules.gd."""
 	return make(&"safety_swimming", KIND_SAFETY, "Swimming and stamina", "Deep water", PackedStringArray([
 		"Crossing deep water by the swim links, quicker than a long way round.",
-		"No routine swim under %d%% stamina; it turns for the bank at %d%%; cold water (below %d °C) drains it %d times as fast. A loaded resident never swims." % [
+		"No routine swim under %d%% stamina; a swimmer turns for the bank at %d%%; cold water (below %d °C) drains stamina %d times as fast. A loaded resident never swims." % [
 			SwimRules.REST_ENTRY_MIN / 100, SwimRules.REST_RETURN / 100, SwimRules.COLD_WATER_TENTHS / 10, SwimRules.COLD_FACTOR],
 		"The ford or a bridge, always for a carrier.", "The stream and the pond; Swim shortcuts (Water panel) turns it off."]),
 		[&"skill_swimming", &"safety_rescue", &"safety_wading"])
@@ -445,7 +445,7 @@ static func _safety_rescue() -> Entry:
 	return make(&"safety_rescue", KIND_SAFETY, "Rescue", "A swimmer in difficulty", PackedStringArray([
 		"Bringing a resident in difficulty ashore: a diver for one held below, a swimmer to tow one at the surface.",
 		"A free rescuer: with no swimmer, anyone takes a line (%d m) to the nearest landing." % int(SwimRules.LINE_REACH_M),
-		"Nobody drowns: with nobody coming it washes ashore at a landing.",
+		"Nobody drowns: with nobody coming, they wash ashore at a landing.",
 		"The Water panel pins every resident in difficulty at its top."]), [&"safety_swimming", &"skill_swimming"])
 
 

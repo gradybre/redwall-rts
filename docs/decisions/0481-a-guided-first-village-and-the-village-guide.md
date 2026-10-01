@@ -1,5 +1,6 @@
 # 0481 — A guided first village, and the village guide: help, field guide, practice stories, projects
-Date: 2026-10-01 · Status: Accepted (the objective texts await Brendan's review: see "For Brendan")
+Date: 2026-10-01 · Status: Accepted. The objective texts were approved by Brendan on 2026-10-01, with one change:
+residents are "they", not "it" (see "For Brendan"). The independent review's findings are fixed (see "Review").
 
 Numbered 0481: the highest records on any branch or worktree were 0471 and 0491; 0481 was free, inside the 0481-0489
 band the brief gave.
@@ -27,8 +28,8 @@ latched:
 |---|---|---|---|
 | 1 | Meet a villager | a resident selected (the party panel then inspects it) | Show me (it only centres the camera) |
 | 2 | Bring in a harvest | a delivery shelving food in a store: `farm_pantry.gd delivered_milli` grows (`store_upto_into`, called only by the farm crew's drop) | the order on the board, the crop cut, a load in hand, food stocked by `add_into` |
-| 3 | Serve the first supper | a supper tallied at its end (`kitchen.gd` meal log) with at least one cooked portion eaten | the plan, the cooking, the call, the pot on the table, breakfast, a supper nobody ate |
-| 4 | Ready the village for the frost | the FIRST of: someone over the middle of an OPEN bridge's deck on its crossing leg, out of the water; someone going below and coming up `WALKED_THROUGH_M` (6 m) away without digging on the way; a bed with a crop standing covered, raised, banked, ditched or drained by a tunnel | a bridge planned or half built, a swimmer under it, a dig crew coming up where it went down, an empty bed covered |
+| 3 | Serve the first supper | a resident FINISHING a cooked supper portion: their own record (`nourishment.gd ate_meal`, written as the kitchen consumes the portion) | the plan, the cooking, the call, the pot on the table, a portion still held, raw food, breakfast, a supper nobody ate |
+| 4 | Ready the village for the frost | the FIRST of: someone over the middle of an OPEN bridge's deck on its crossing leg, out of the water; someone going below and coming up `WALKED_THROUGH_M` (6 m) away without working the tunnels on the way; a bed with a crop standing covered, raised, banked, ditched or drained by a tunnel | a bridge planned or half built, a swimmer under it, the digger, a dig crew's member or a tunnel job's worker (wherever they come up), an empty bed covered |
 
 Why these: they are P7's journey (inspect a resident, bring a ripe harvest into store, serve the first supper, then one
 improvement of three -- "safe bridge, useful dry route, or better field preparation" -- before a foreseeable seasonal
@@ -38,9 +39,12 @@ metres of where it went down. The **foreseeable threat** is the farm's own frost
 into Spring 11, announced at noon on Spring 10); once it passes, the card names the next frost night. The wet spell
 before it is named in the field way's line ("The carrot bed is wet: click it and press Drain").
 
-Supper completes at its tally (19:00), not the first spoonful, because the tally is the kitchen's own record of who
-ate; the card says "Supper is on the table until 19:00" meanwhile. A supper of porridge (the kitchen cooks the other
-dish when soup's roots are short) is still the supper.
+Supper completes when the first resident FINISHES a cooked supper portion -- their own record, which the kitchen writes
+as it consumes the portion. It was first the meal's tally (19:00), but the tally counts residents still holding a
+portion as served, and the kitchen corrects that row later if one gives the food back; and the tally log keeps only its
+latest 64 rows (see Review). A supper of porridge (the kitchen cooks the other dish when soup's roots are short) is
+still the supper; raw food eaten when a meal is missed is not. Missed suppers are still read from the tally log, by
+meal key.
 
 ## The card: one at a time, teach / try / confirm
 
@@ -85,7 +89,7 @@ lands on the first objective not done. A hidden guide that completes is still ch
 The HUD's Objectives command (UI-SET-033, O) is drawn locked by the game's shell (its Charter panel is not built); the
 guide unlocks it as the work board unlocks Jobs: enabled, the painted goals icon, a tooltip in the command strip's form,
 and O (which the shell presses on an enabled command) toggles the window. A modal (scrim, focus trapped, Esc / O / ×
-close it). **While open it holds the clock's MENU pause reason**, as the game menu does, so the village waits while the
+close it; O types in its text fields, so its × says Esc). **While open it holds the clock's MENU pause reason**, as the game menu does, so the village waits while the
 player reads, and a practice story's run cannot race it; closing releases only that reason. Five tabs: Objectives (each
 done ✓ with what happened, current ▸ with its cause, ahead ·; Show/Hide the card; the Charter's line), Projects, Field
 guide, Help, Practice. The Charter remains the long-term, community-authored goal; the window says this demo does not
@@ -102,8 +106,10 @@ tab, Work, Village news, Residents, the Water panel, the Dig tool, a guide tab).
 (`PAGE_CONTROLS`), so Esc's way back and focus return are unchanged; Help's first focus is its search field.
 
 **Typing inside a modal (`demo_input_gate.gd`)**: a modal swallowed every letter. Now, while an editable text field
-inside the top modal has the focus, every press but Esc and Tab goes to it -- letters, Space, Enter, Backspace, their
-repeats, and the modal's own letter close keys (which then type rather than close). Text fields are Tab stops.
+inside the top modal has the focus, every press but Esc, Tab and Enter goes to it -- letters, Space, Backspace, their
+repeats, and the modal's own letter close keys (which then type rather than close). **Enter is swallowed**: no field
+submits, and a passed Enter reached the Dig tool's `_input` (which runs before the GUI) and dug the piece laid behind
+the modal (review, HIGH). Text fields are Tab stops.
 
 ## The field guide (UX-018): only what the demo has
 
@@ -160,11 +166,14 @@ until removed. UX-020's "before/after image" is the before/after figures; an ima
 
 From `godot/demo/guide/guide_text.gd`; `%s` / `%d` are filled from the village.
 
-1. **Meet a villager** -- "Every resident has a trade, needs and work of its own. Selecting one shows what it is doing,
-   what it can do and how well fed it is." Try: "Nobody is selected yet." / "Next: Click the resident under the brass
+**Approved by Brendan, 2026-10-01, with one change: residents are "they", not "it"** -- applied below, in
+`guide_text.gd`, the help topics and the field guide.
+
+1. **Meet a villager** -- "Every resident has a trade, needs and work of their own. Selecting one shows what they are
+   doing, what they can do and how well fed they are." Try: "Nobody is selected yet." / "Next: Click the resident under the brass
    marker, or open Residents (L) and click a row." (Nobody up: "Everyone is indoors or below ground just now." / "Open
    Residents (L) and click a row to select a resident.") Confirm: "%s is selected. The Demo party panel (left) shows
-   what it is doing, its skills and what you can order it to do."
+   what they are doing, their skills and what you can order them to do."
 2. **Bring in a harvest** -- "Food only counts once it is in store. A ripe bed is cut, carried and shelved; nothing is
    credited from afar." Try lines: "The %s is ripe." / "Select a resident and right-click the bed, or click the bed and
    press Harvest."; "Under way: %s is harvesting the %s." / "Under way: %s is carrying %s of %s to store." / "It counts
@@ -180,7 +189,7 @@ From `godot/demo/guide/guide_text.gd`; `%s` / `%d` are filled from the village.
    is planned: %s for the village. It is cooked from 15:00 and called at 17:00 (now %02d:00)." / "Watch it in the
    Pantry's Kitchen tab (K). Speed time up (2x, 4x) to reach the evening sooner."; "Can't now: %s." / "To fix: %s."
    (the kitchen's own words); "Supper, day %d: nobody ate. The next supper is tomorrow at 17:00." Confirm: "%s. The
-   village ate what it grew." (with the kitchen's tally, e.g. "Supper, day 2: everyone ate (9)").
+   village ate what it grew." (e.g. "Supper, day 2 was eaten (Mouse keeper first). The village ate what it grew.").
 4. **Ready the village for the frost** -- "A frost is coming. Choose one way to be ready -- a bridge over the stream, a
    dry tunnel route, or fields made safe." Try: "Frost comes on the night into %s (in about %d h)." / "Frost is due
    tonight, 02:00 to 05:59." / "No frost is forecast this year: any of the three still readies the village." and "Do
@@ -212,18 +221,53 @@ village readied for the frost (with a bridge)."
 
 ## Verified
 
-`test/test_demo_guide.gd` (21: each objective only on its real outcome, a real kitchen's supper over real brains,
-pre-completion, no softlock, skip and reopen, pause, completion once), `test/test_demo_guide_pages.gd` (20: help search,
+`test/test_demo_guide.gd` (26: each objective only on its real outcome, a real kitchen's supper over real brains, a
+held or raw portion not a supper, meals seen past the log's 64 rows, dig crews and tunnel jobs not walkers, a partial
+delivery counted as what fitted, pre-completion, no softlock, skip and reopen, the owner's pause and its one
+chronicle, hiding the finished card), `test/test_demo_guide_pages.gd` (20: help search,
 the menu's Help, the field guide against its tables, story isolation and restart, projects into the chronicle, typing
 in a modal), `test/test_demo_guide_live.gd` (the real scene at 1280x720 and 1920x1080: objective 1 done by a real click
 on the marked resident, Show me, Hide and the menu's Reopen granting nothing, help typed into, a field-guide entry, a
-practice story leaving the village alone, a project typed and pinned, the card above the picker at 125 %), and the
-layout harness's guide-card checks at every scale. Mutation testing of the new logic: 38 mutants, 38 killed.
+practice story leaving the village alone, a project typed and pinned, the card above the picker at 125 %, Enter in
+a search never reaching the Dig tool, the Lab's Practice stories on top, the card's Help focusing the search), and the
+layout harness's guide-card checks at every scale. Mutation testing: 38 mutants killed before the review; after it, 49
+of 49 against the unit suites (the facts, steps, status, projects, search, stories, field guide, the owner's pause and
+chronicle, the gate's typing and the pantry's counter) and 3 of 3 live-only ones against the live harness (the Lab, the
+Help focus, Enter).
+
+After the review fixes: `./tools/run_tests.sh` -- first run `7130 test(s), 563057 assertion(s), 1 failure(s)`, the one
+the wall-clock `test_twenty_workers_at_four_x_cost_little_per_frame` (sound cost, p99 979 us under 500 us, load
+average 22 on the machine); rerun `7130 test(s), 563061 assertion(s), 0 failure(s)`. Live, headless: guide 50/0 and
+50/0, input 183/0 and 191/0, layout 153/0 and 226/0 (checks/failures at 1280x720 and 1920x1080).
+
+## Review (2026-10-01)
+
+Two independent `code-reviewer` runs over `git diff c228d90..HEAD`. Every CRITICAL and HIGH finding is fixed with a
+test; so are the cheap MEDIUM and LOW ones.
+
+| Severity | Finding | Fix | Test |
+|---|---|---|---|
+| HIGH | Enter typed in a modal's text field passed the gate and the Dig tool's `_input` dug the piece laid behind the modal | the gate swallows Enter (and keypad Enter) in a text field | gate unit test; live: Dig tool open, guide open, Enter in the search, the tool's notice untouched |
+| HIGH | The guide read the kitchen's meal log by position; the log keeps its latest 64 rows, so after 32 days no meal was seen again (objective 3 and "Suppers eaten" projects stuck) | suppers eaten read from each resident's own record; missed suppers from the log by meal key | 40 days of tallies through the kitchen's own `_record_meal` |
+| HIGH | The tunnel way counted dig-crew members: a crew member is ORDER_TASK, which `activity()` reports before DIG, so "not while digging" never fired for them | `working_below`: the digger (State.DIG, ORDER_DIG), a dig crew's task, a tunnel job's task; a farm or woods task walked through a tunnel still counts | crew and tunnel-job cases |
+| HIGH | The Demo Lab's Practice stories opened the guide underneath the still-open Lab (same layer; the Lab later in the tree) | the trigger closes the Lab first | live |
+| CRITICAL (rubric) | per-frame allocations: the selection array every frame until someone was selected; an `Array[bool]` per bed per frame; the Projects tab refreshed every render frame | `first_selected()` (no array); an if-chain; the Projects tab refreshed at the guide's 0.25 s cadence | (behaviour unchanged; covered by the existing tests) |
+| MEDIUM | the tally counted a held portion as eaten | see objective 3 (the resident's own record) | held / raw / breakfast cases |
+| MEDIUM | the finished card could not be hidden | toggling follows `hidden` alone | unit |
+| MEDIUM | "× Close (O)" typed an "o" on the tabs with a field | the × says Esc | -- |
+| MEDIUM | the card's Help opened the guide with focus on a tab, not the search | focus goes to the tab's first control after the window shows | live |
+| MEDIUM | each 0.25 s redraw re-set every label's colour override | set only when it differs; the marker re-aimed only when its target changes | -- |
+| LOW | the window hid itself even if the clock refused to release its pause; the menu row opened the window without checking the menu closed | the window stays open on a refusal, as the menu does; the row and Help links open only after the menu closed | -- |
+| LOW | the isolation test never handed the stories the one shared object | the test hands them the water map and checks it unchanged | unit |
+| LOW | a constant live check; `_button_of` fell back to the first entry; deferred focus captured a node that a test could free | real check; null and skipped; the focus target held weakly | -- |
+
+Not changed: the completion chronicle has no protection from the news feed's 128-entry overflow (it is a note, and it
+is also the card's last state); "Supper is planned" always names soup, though the kitchen may cook porridge when roots
+are short (LOW); a practice story's first click costs about 83 ms while the window holds the pause.
 
 ## Open
 
-- The objective texts and the fixture conditions of the practice stories await Brendan's review (P7: "Approve exact
-  objective text and deterministic fixture conditions").
+- The practice stories' fixture conditions are as described above; only the objective texts were reviewed.
 - P7's evaluation data (task success, time spent searching, mistaken clicks) is not recorded; P7 says thresholds should
   follow baseline sessions.
 - UX-017's "a mild setback shows two remedies" is met only as the blocked lines and the three ways; no setback is staged.

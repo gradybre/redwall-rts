@@ -29,7 +29,7 @@ const ACTION_LABELS: Dictionary = {
 
 ## [title, key(s), what it does, keywords, action]. The how-to topics first, then one per key.
 const TOPICS: Array = [
-	["Select and inspect a resident", "Left click", "Click a resident to select it: the Demo party panel (left) shows what it is doing, its skills, how well fed it is and what you can order it to do. Shift+click adds or removes one; drag a box to select several.", "select inspect resident villager party panel who", ACTION_RESIDENTS],
+	["Select and inspect a resident", "Left click", "Click a resident to select them: the Demo party panel (left) shows what they are doing, their skills, how well fed they are and what you can order them to do. Shift+click adds or removes one; drag a box to select several.", "select inspect resident villager party panel who", ACTION_RESIDENTS],
 	["Bring in a harvest", "Right click a bed", "A ripe bed is harvested by a resident: select one and right-click the bed, or click the bed and press Harvest. Food counts once it is carried and shelved in a store; the Pantry shows what arrived and when it spoils.", "harvest ripe bed crop pantry store food", ACTION_PANTRY],
 	["Plant a bed", "Click a bed, Plant…", "Click an empty bed and press Plant…: the crop picker lists every crop, the ones that can be sown now first, with how long each takes and what it yields. Radish ripens soonest.", "plant sow seed bed crop grow", ACTION_NONE],
 	["Feed the village: the kitchen", "K, Kitchen tab", "The cook makes porridge for breakfast (07:00) and vegetable soup for supper (17:00) from the pantry's grain and roots, with water from the butt and a little wood. The Kitchen tab shows the plan, what is short and how to fix it.", "kitchen supper breakfast cook meal eat porridge soup fed hungry", ACTION_KITCHEN],
@@ -40,7 +40,7 @@ const TOPICS: Array = [
 	["Protect beds from frost and wet", "Click a bed", "Frost nights are announced at noon the day before: Cover a bed with a crop (4 °C warmer for the night). A waterlogged bed stops growing: Drain it, raise it with tunnel earth, or run a tunnel under it.", "frost cover drain wet waterlogged raise bank bed weather", ACTION_NONE],
 	["Pause and speed", "Space, 1x 2x 4x", "Space pauses and resumes; the HUD's 1x, 2x and 4x buttons set the speed. Paused, you can still select, inspect and give orders: they are carried out on resume.", "pause speed time fast slow", ACTION_NONE],
 	["What happened? Village news", "N", "Village news keeps every warning and report, newest first, with Go to for its place; Needs attention lists what is still open.", "news history warning happened incident notice", ACTION_NEWS],
-	["Find a resident", "L", "Residents (L) lists everyone: where it is, what it is doing, what it goes back to. Click a row to select it and centre the camera on it.", "residents list find who where roster", ACTION_RESIDENTS],
+	["Find a resident", "L", "Residents (L) lists everyone: where they are, what they are doing, what they go back to. Click a row to select them and centre the camera on them.", "residents list find who where roster", ACTION_RESIDENTS],
 	["Map layers", "V, the Map layer picker", "One map layer shows at a time, each answering one question: soil moisture, ripeness, where they can wade, swim or dive, the woods' zones, the tunnels below. V steps through them.", "map layer overlay moisture ripeness water range woods", ACTION_NONE],
 	["Name a project of your own", "Village guide (O), Projects", "Pin up to three projects: a name, the places it is about and a simple measure (ready food, wood, bridges ...). When its measure is reached the village news records it.", "project goal pin measure chronicle", ACTION_PROJECTS],
 	["Look something up: the field guide", "Village guide (O), Field guide", "The field guide lists the demo's crops and dishes, materials, buildings and stations, residents' skills and water safety: what each is for, what it needs, alternatives and where it is here.", "field guide almanac crop dish material building skill water safety", ACTION_FIELD_GUIDE],
@@ -50,7 +50,7 @@ const TOPICS: Array = [
 ]
 ## The demo's keys and clicks, one topic each (they were the Controls page).
 const KEY_ROWS: Array = [
-	["Left click", "Select a resident (Shift: add or take it out); a bed, tunnel, tree or bridge site opens its panel"],
+	["Left click", "Select a resident (Shift: add or take them out); a bed, tunnel, tree or bridge site opens its panel"],
 	["Left drag", "Box-select residents (Shift: add to the selection)"],
 	["Right click", "Order the selection: move there, or work the spot, bed, tree, heap or water clicked"],
 	["Shift + right click", "Queue the order at the end of the selection's order lists"],

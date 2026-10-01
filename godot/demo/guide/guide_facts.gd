@@ -10,8 +10,9 @@ extends RefCounted
 ##   * MET        a resident has been selected (the party panel then inspects it);
 ##   * HARVESTED  a delivery has shelved food in a store (farm_pantry.gd `delivered_milli`: a harvest carried and put
 ##                on the shelf -- an order given, a crop cut, a load in hand are not yet a harvest in store);
-##   * SUPPER     a supper was tallied with someone having eaten a cooked portion (kitchen.gd's meal log: at the meal's
-##                end, with those holding their portion counted as served -- never the plan, the pot or the call);
+##   * SUPPER     a resident has FINISHED a cooked portion of a supper (nourishment.gd's own record, written as the
+##                portion is consumed -- never the plan, the pot, the call or a portion still held; raw food is not
+##                a supper served);
 ##   * BRIDGE     someone walked over the middle of an OPEN bridge's deck (on its crossing leg, out of the water);
 ##   * TUNNEL     someone went below at one place and came up at another at least WALKED_THROUGH_M away, without
 ##                digging on the way: a tunnel dug AND walked as a route (a dig crew comes up where it went down);
@@ -25,6 +26,9 @@ const SimScript := preload("res://demo/farm/farm_sim.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const Rules := preload("res://demo/kitchen/meal_rules.gd")
 const Words := preload("res://demo/kitchen/kitchen_text.gd")
+const FedScript := preload("res://demo/kitchen/nourishment.gd")
+const CrewTaskScript := preload("res://demo/tunnel/tunnel_crew_task.gd")
+const JobTaskScript := preload("res://demo/tunnel/tunnel_job_task.gd")
 
 const CHOICE_NONE: int = -1
 const CHOICE_BRIDGE: int = 0
@@ -41,6 +45,8 @@ const DECK_MIDDLE_TO: float = 0.7
 const DECK_HALF_WIDTH_M: float = 1.0
 const NOBODY: int = -1
 const FIELD_HOW: Array[String] = ["covered", "raised", "banked", "ditched", "drained by a tunnel"]
+## The supper fact's words: the meal ("Supper, day 2") and who finished the first bowl.
+const SUPPER_EATEN: String = "%s was eaten (%s first)"
 
 var met: bool = false
 var met_who: int = NOBODY
@@ -63,7 +69,9 @@ var revision: int = 0
 var _below_from: PackedVector2Array = PackedVector2Array()
 var _was_below: PackedByteArray = PackedByteArray()
 var _dug_below: PackedByteArray = PackedByteArray()
-var _meals_seen: int = 0
+## The latest supper counted as eaten, and the latest meal key read from the tally log.
+var _last_supper: int = -1
+var _last_tallied: int = -1
 
 
 func observe(world: WorldScript) -> void:
@@ -95,11 +103,11 @@ func _observe_met(world: WorldScript) -> void:
 	"""MET: a resident is selected."""
 	if met:
 		return
-	var chosen: PackedInt32Array = world.selection()
-	if chosen.is_empty():
+	var who: int = world.first_selected()
+	if who < 0:
 		return
 	met = true
-	met_who = chosen[0]
+	met_who = who
 	revision += 1
 
 
@@ -113,28 +121,38 @@ func _observe_harvest(world: WorldScript) -> void:
 
 
 func _observe_suppers(world: WorldScript) -> void:
-	"""SUPPER: each meal tallied since the last look; the first supper someone ate latches it, one nobody ate is
-	remembered (the card says when the next one is)."""
+	"""SUPPER, from each resident's own record (nourishment.gd, written when a cooked portion is finished: `ate_meal`):
+	the first resident to have eaten a supper latches it, and each new supper eaten counts. A supper whose tally says
+	nobody ate is remembered from the meal log (the card says when the next one is)."""
 	if world.kitchen == null:
 		return
-	var log_size: int = world.kitchen.meal_keys.size()
-	if log_size < _meals_seen:
-		_meals_seen = 0
-	for k: int in range(_meals_seen, log_size):
-		var key: int = world.kitchen.meal_keys[k]
-		if key % 2 != Rules.MEAL_SUPPER:
+	var fed: FedScript = world.kitchen.fed
+	for i: int in fed.last_meal.size():
+		var key: int = fed.last_meal[i]
+		if key <= _last_supper or posmod(key, 2) != Rules.MEAL_SUPPER or fed.last_outcome[i] != FedScript.OUTCOME_ATE:
 			continue
-		if world.kitchen.meal_ate[k] > 0:
-			suppers_eaten += 1
-		if world.kitchen.meal_ate[k] > 0 and not supper_eaten:
+		_last_supper = key
+		suppers_eaten += 1
+		revision += 1
+		if not supper_eaten:
 			supper_eaten = true
-			supper_line = Words.tally_line(key, world.kitchen.meal_ate[k] + world.kitchen.meal_raw[k],
-				world.kitchen.meal_without[k])
+			supper_line = SUPPER_EATEN % [Words.meal_title(key), world.resident_name(i)]
+	_observe_missed(world)
+
+
+func _observe_missed(world: WorldScript) -> void:
+	"""The meal log's suppers tallied since the last look, read by their KEYS (which only grow: the log is trimmed to
+	its latest MAX_MEAL_LOG rows, so a position would go blind once it is full); one with nobody eating is a missed
+	supper."""
+	var keys: PackedInt32Array = world.kitchen.meal_keys
+	var k: int = keys.size() - 1
+	while k >= 0 and keys[k] > _last_tallied:
+		k -= 1
+	for row: int in range(k + 1, keys.size()):
+		_last_tallied = keys[row]
+		if posmod(keys[row], 2) == Rules.MEAL_SUPPER and world.kitchen.meal_ate[row] <= 0:
+			supper_missed_day = keys[row] / 2 + 1
 			revision += 1
-		elif world.kitchen.meal_ate[k] <= 0:
-			supper_missed_day = key / 2 + 1
-			revision += 1
-	_meals_seen = log_size
 
 
 func _observe_walkers(world: WorldScript) -> void:
@@ -164,13 +182,22 @@ func _follow_below(i: int, brain: BrainScript) -> void:
 	if below and _was_below[i] == 0:
 		_below_from[i] = brain.position
 		_dug_below[i] = 0
-	if below and brain.activity() == BrainScript.ACTIVITY_DIGGING:
+	if below and working_below(brain):
 		_dug_below[i] = 1
 	if not below and _was_below[i] == 1 and _dug_below[i] == 0 and tunnel_walker == NOBODY \
 			and brain.position.distance_to(_below_from[i]) >= WALKED_THROUGH_M:
 		tunnel_walker = i
 		_latch_choice(CHOICE_TUNNEL)
 	_was_below[i] = 1 if below else 0
+
+
+static func working_below(brain: BrainScript) -> bool:
+	"""Whether `brain` is below on a dig or the tunnels' own work rather than walking a route: the digger (ORDER_DIG,
+	State.DIG), a dig crew's member (tunnel_crew_task.gd: an ORDER_TASK, which `activity()` reports before DIG) or a
+	tunnel job (widen, brace, lanterns, repair: tunnel_job_task.gd). A farm or woods task walked through a tunnel is a
+	route, and counts."""
+	return brain.state == BrainScript.State.DIG or brain.order == BrainScript.ORDER_DIG \
+		or brain.task is CrewTaskScript or brain.task is JobTaskScript
 
 
 static func _on_deck_middle(world: WorldScript, brain: BrainScript) -> bool:
@@ -209,9 +236,14 @@ static func readied_how(sim: SimScript, bed: int) -> String:
 	var stage: int = sim.stage_of(bed)
 	if stage < SimScript.STAGE_SOWN or stage > SimScript.STAGE_RIPE:
 		return ""
-	var flags: Array[bool] = [sim.is_covered(bed), sim.is_raised(bed), sim.is_banked(bed), sim.is_ditched(bed),
-		sim.is_drained(bed)]
-	for k: int in flags.size():
-		if flags[k]:
-			return FIELD_HOW[k]
+	if sim.is_covered(bed):
+		return FIELD_HOW[0]
+	if sim.is_raised(bed):
+		return FIELD_HOW[1]
+	if sim.is_banked(bed):
+		return FIELD_HOW[2]
+	if sim.is_ditched(bed):
+		return FIELD_HOW[3]
+	if sim.is_drained(bed):
+		return FIELD_HOW[4]
 	return ""

@@ -74,6 +74,8 @@ func search(query: String) -> void:
 		button.visible = false
 	for place: int in found.size():
 		var button: Button = _button_of(found[place])
+		if button == null:
+			continue
 		button.visible = true
 		if not words.is_empty():
 			_list.move_child(button, place)
@@ -91,7 +93,7 @@ func _button_of(k: int) -> Button:
 			if entry_k == k:
 				return _buttons[at]
 			at += 1
-	return _buttons[0]
+	return null
 
 
 func _restore_order() -> void:

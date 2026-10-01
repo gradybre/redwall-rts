@@ -18,12 +18,15 @@ extends Node
 ##   * focus is TRAPPED: it lands on the modal's first control when it opens, Tab and Shift+Tab cycle its
 ##     controls, and when it closes focus goes back where it was (or to the world);
 ##   * TYPING (decision 0481): while a text field inside the top modal has the focus (the help and field-guide
-##     search, a project's name), every press but Esc and Tab goes to the field -- letters, Space, Enter, Backspace,
-##     their repeats, and the modal's own letter close keys, which then type rather than close.
+##     search, a project's name), every press but Esc, Tab and Enter goes to the field -- letters, Space, Backspace,
+##     their repeats, and the modal's own letter close keys, which then type rather than close. ENTER IS SWALLOWED:
+##     no field submits, and a passed Enter would reach the Dig tool's `_input` (which runs before the GUI) and dig
+##     the piece laid behind the modal.
 ## This node is added LAST under the demo's root, so its `_input` and `_unhandled_input` run before every
 ## other demo node's (Godot calls them in reverse tree order) -- its `_input` before the Dig tool's and the
 ## HUD's. The HUD's `_unhandled_key_input` (its command keys, N) runs before any `_unhandled_input`, but the
-## only presses a modal lets past `_input` are navigation, activation and F11, none of which it reads.
+## only presses a modal lets past `_input` are navigation, activation, F11 and a text field's typing (letters,
+## Space, Backspace), none of which it reads while the field takes them.
 ##
 ## FOCUS OUTSIDE A MODAL. The demo's panels are REGIONS (`add_region`): the right column (its tab strip
 ## and the four panels), the left column (the party panel's buttons) and the Map layer picker (decision 0391).
@@ -331,7 +334,7 @@ func _route_modal(key: InputEventKey, focus: Focus) -> int:
 	if typing(focus.control):
 		if code == KEY_TAB and not key.ctrl_pressed and not key.echo:
 			return ROUTE_PREVIOUS if key.shift_pressed else ROUTE_NEXT
-		return ROUTE_PASS
+		return ROUTE_CONSUME if ENTER_KEYS.has(code) else ROUTE_PASS
 	if key.echo:
 		return ROUTE_CONSUME
 	if closes_top(key):

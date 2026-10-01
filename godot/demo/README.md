@@ -200,7 +200,7 @@ take keyboard focus and wear the HUD's brass focus ring while they have it (a cl
 | Tab / Shift+Tab | Next / previous button where the focus is (in a pop-up: its buttons only) |
 | Enter / Space | Press the focused button. Only the keyboard's focus takes them: after a click, Enter still digs the piece the Dig tool has laid, Space still pauses and the arrows still pan the camera |
 | Esc | With focus in a panel: back to the world. Otherwise the pop-up, tool or selection ladder below, then the game menu |
-| (typing) | In a pop-up's text field (the help or field-guide search, a project's name) every key but Esc and Tab types (decision 0481) |
+| (typing) | In a pop-up's text field (the help or field-guide search, a project's name) every key but Esc, Tab and Enter types; Enter is swallowed, so it never reaches the Dig tool (decision 0481) |
 
 **The top bar tells the village's truth** (decision 0251, review group E). One read model
 (`ui/demo_hud_model.gd`, painted by `ui/demo_hud_counters.gd`) gives every cell exactly one owner, the
@@ -369,8 +369,8 @@ centre under the alerts), each completed **only by what really happens in the vi
 |---|---|---|
 | 1 | Meet a villager | a resident is selected (a click, a box, the roster) |
 | 2 | Bring in a harvest | a harvest is shelved in a store (the pantry's delivered total; an order, a cut crop or a load in hand is not) |
-| 3 | Serve the first supper | a supper's tally says someone ate a cooked portion (19:00; the plan, the pot, breakfast are not) |
-| 4 | Ready the village for the frost | the first of: someone over the middle of an open bridge; someone walking through a tunnel and up 6 m or more from where they went down (not digging); a bed with a crop covered, raised, banked, ditched or tunnel-drained |
+| 3 | Serve the first supper | a resident finishes a cooked supper portion (their own record; the plan, the pot, a portion held, raw food, breakfast are not) |
+| 4 | Ready the village for the frost | the first of: someone over the middle of an open bridge; someone walking through a tunnel and up 6 m or more from where they went down (not the digger, a dig crew or a tunnel job's worker); a bed with a crop covered, raised, banked, ditched or tunnel-drained |
 
 - **The card** teaches (what and why), says the current cause or blocker and the next legal action, and confirms the
   real outcome ("5.1 U of carrot came into store") for 10 s of unpaused time or until Next; one already done before its

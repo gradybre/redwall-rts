@@ -32,6 +32,7 @@ const CastRoutines := preload("res://demo/cast/cast_routines.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const MenuScript := preload("res://demo/ui/demo_menu.gd")
 const GateScript := preload("res://demo/ui/demo_input_gate.gd")
+const WaterLayout := preload("res://demo/water/water_layout.gd")
 
 var _nodes: Array[Node] = []
 var _read: IntMath.IntResult = IntMath.IntResult.new()
@@ -249,7 +250,10 @@ func test_practice_stories_never_touch_the_village() -> void:
 	"""Every story, every choice, and a restart between: the village's figures are exactly as before."""
 	var village: Array = _main_village()
 	var before: Array = _digest(village)
+	var map: RefCounted = WaterLayout.make_map()
+	var shape: Array = _shape(map)
 	var stories := StoriesScript.new()
+	stories.water_map = map
 	for s: int in StoriesScript.STORY_COUNT:
 		stories.start(s)
 		for c: int in (StoriesScript.CHOICES[s] as Array).size():
@@ -257,6 +261,17 @@ func test_practice_stories_never_touch_the_village() -> void:
 			assert_false(stories.outcome.is_empty(), "story %d choice %d told" % [s, c])
 			stories.restart()
 	assert_equal(_digest(village), before, "the village unchanged")
+	assert_equal(_shape(map), shape, "and the one thing a story is handed, the stream's shape, unchanged")
+
+
+func _shape(map: RefCounted) -> Array:
+	"""The water map's crossings and shore, as a story could change them."""
+	var out: Array = [map.call(&"crossing_count"), map.call(&"shore_count"), map.call(&"landing_count")]
+	for c: int in int(map.call(&"crossing_count")):
+		out.append([map.call(&"crossing_kind", c), map.call(&"crossing_a", c), map.call(&"crossing_b", c)])
+	for k: int in mini(int(map.call(&"shore_count")), 64):
+		out.append(map.call(&"shore_point", k))
+	return out
 
 
 func test_a_story_restarts_to_the_same_start() -> void:
@@ -418,8 +433,11 @@ func test_a_text_field_in_the_top_modal_takes_the_keys() -> void:
 	var focus := GateScript.Focus.new()
 	focus.control = field
 	assert_true(gate.typing(field), "typing")
-	for code: Key in [KEY_A, KEY_K, KEY_SPACE, KEY_ENTER, KEY_BACKSPACE, KEY_O]:
+	for code: Key in [KEY_A, KEY_K, KEY_SPACE, KEY_BACKSPACE, KEY_O]:
 		assert_equal(gate.route(_key(code), focus), GateScript.ROUTE_PASS, "%s types" % OS.get_keycode_string(code))
+	for code: Key in [KEY_ENTER, KEY_KP_ENTER]:
+		assert_equal(gate.route(_key(code), focus), GateScript.ROUTE_CONSUME,
+			"%s is swallowed: no field submits, and it must not reach the Dig tool" % OS.get_keycode_string(code))
 	assert_equal(gate.route(_key(KEY_BACKSPACE, false, true), focus), GateScript.ROUTE_PASS, "a held Backspace repeats")
 	assert_equal(gate.route(_key(KEY_ESCAPE), focus), GateScript.ROUTE_CLOSE, "Esc closes")
 	assert_equal(gate.route(_key(KEY_TAB), focus), GateScript.ROUTE_NEXT, "Tab moves on")
@@ -430,3 +448,12 @@ func test_a_text_field_in_the_top_modal_takes_the_keys() -> void:
 	assert_equal(gate.route(_key(KEY_K), focus), GateScript.ROUTE_CLOSE, "K closes from a button")
 	var ring: Array[Control] = GateScript.focusables([layer] as Array[Node])
 	assert_true(ring.has(field), "a text field is a Tab stop")
+	field.editable = false
+	assert_false(gate.typing(field), "a read-only field does not type")
+	field.editable = true
+	var outside := LineEdit.new()
+	_keep(outside)
+	assert_false(gate.typing(outside), "a field outside the top modal does not type")
+	focus.control = outside
+	focus.button = false
+	assert_equal(gate.route(_key(KEY_A), focus), GateScript.ROUTE_CONSUME, "so its letters are swallowed")

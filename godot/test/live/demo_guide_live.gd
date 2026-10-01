@@ -19,6 +19,7 @@ const StepsScript := preload("res://demo/guide/guide_steps.gd")
 const WindowScript := preload("res://demo/guide/guide_window.gd")
 const Text := preload("res://demo/guide/guide_text.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
+const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
 
 const BOOT_FRAMES: int = 12
 const STEP_FRAMES: int = 2
@@ -58,7 +59,9 @@ func _initialize() -> void:
 		_o_opens_the_village_guide, _open_the_help_tab, _type_into_the_help, _the_help_found_it, _open_the_field_guide_tab, _search_the_field_guide,
 		_open_a_field_guide_entry, _open_the_practice_tab, _start_a_story, _choose_in_the_story,
 		_practice_left_the_village_alone, _open_the_projects_tab, _name_and_pin_a_project, _esc_closes_the_guide,
-		_the_card_clears_the_side_columns, _scale_up_with_a_legend, _the_card_keeps_above_the_picker, _back_to_100]
+		_the_card_clears_the_side_columns, _scale_up_with_a_legend, _the_card_keeps_above_the_picker, _back_to_100,
+		_dig_tool_then_the_guide, _enter_in_the_search_never_digs, _close_both, _the_lab_s_practice_stories,
+		_the_practice_window_is_on_top, _the_card_s_help_focuses_the_search, _the_search_has_the_focus]
 
 
 func _process(_delta: float) -> bool:
@@ -458,4 +461,63 @@ func _back_to_100() -> void:
 	"""The layer off and 100 % again (after the frame above is saved)."""
 	_village.get("_lens_picker").call(&"choose", 0)
 	_village.call(&"set_ui_scale", 100)
-	_check("back to 100 %", true)
+	_check("back to 100 % and no layer", DemoUiScale.percent == 100 and not _card().get("_cramped"))
+
+
+func _dig_tool_then_the_guide() -> void:
+	"""B opens the Dig tool; O opens the guide over it, on Help."""
+	_key(KEY_B)
+	var tool: Object = _village.get("_command").call(&"tunnels")
+	_check("B opens the Dig tool", bool(tool.get("planning")))
+	tool.set("_last_notice", "")
+	_key(KEY_O)
+	_window().call(&"show_tab", WindowScript.TAB_HELP)
+
+
+func _enter_in_the_search_never_digs() -> void:
+	"""Enter typed in the help's search goes nowhere: the Dig tool behind the modal never sees it (review, HIGH)."""
+	var tool: Object = _village.get("_command").call(&"tunnels")
+	var field: LineEdit = _window().get("help").call(&"field")
+	field.grab_focus()
+	_type("tunnel")
+	_key(KEY_ENTER)
+	_check("Enter in the search does not reach the Dig tool", String(tool.call(&"notice")).is_empty(),
+		String(tool.call(&"notice")))
+	_check("the guide is still open over it", _window().visible and _gate().top_layer() == _window())
+
+
+func _close_both() -> void:
+	"""Esc closes the guide; B closes the Dig tool."""
+	_key(KEY_ESCAPE)
+	_key(KEY_B)
+	_check("the guide and the Dig tool closed", not _window().visible
+		and not bool(_village.get("_command").call(&"tunnels").get("planning")))
+
+
+func _the_lab_s_practice_stories() -> void:
+	"""F8 opens the Lab; its Practice stories (clicked, next step once laid out)."""
+	_key(KEY_F8)
+
+
+func _the_practice_window_is_on_top() -> void:
+	"""Practice stories closes the Lab and opens the guide on Practice, on top (review, HIGH)."""
+	var lab: CanvasLayer = _village.call(&"lab")
+	_click_control(_find_button(lab, Text.PRACTICE_TEXT))
+	_check("the Lab closed", not lab.visible)
+	_check("the guide is the top modal, on Practice", _window().visible and _gate().top_layer() == _window()
+		and int(_window().call(&"tab")) == WindowScript.TAB_PRACTICE)
+	_key(KEY_ESCAPE)
+
+
+func _the_card_s_help_focuses_the_search() -> void:
+	"""The card's Help (clicked) opens the guide on this objective's help."""
+	_click_control(_card().call(&"button", Text.HELP) as Control)
+	_wait = 4
+
+
+func _the_search_has_the_focus() -> void:
+	"""Its search field has the focus, holding this objective's query (review, MEDIUM)."""
+	var field: LineEdit = _window().get("help").call(&"field")
+	_check("Help opens with the search focused", root.gui_get_focus_owner() == field, str(root.gui_get_focus_owner()))
+	_check("on this objective's topic", not field.text.is_empty(), field.text)
+	_key(KEY_ESCAPE)

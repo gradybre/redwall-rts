@@ -14,13 +14,13 @@ const STEP_TITLES: Array[String] = [
 	"Ready the village for the frost",
 ]
 const STEP_TEACH: Array[String] = [
-	"Every resident has a trade, needs and work of its own. Selecting one shows what it is doing, what it can do and how well fed it is.",
+	"Every resident has a trade, needs and work of their own. Selecting one shows what they are doing, what they can do and how well fed they are.",
 	"Food only counts once it is in store. A ripe bed is cut, carried and shelved; nothing is credited from afar.",
 	"The cook makes supper from 15:00 and calls everyone at 17:00. It needs roots or grain, water in the butt and a little wood.",
 	"A frost is coming. Choose one way to be ready -- a bridge over the stream, a dry tunnel route, or fields made safe.",
 ]
 const STEP_CONFIRM: Array[String] = [
-	"%s is selected. The Demo party panel (left) shows what it is doing, its skills and what you can order it to do.",
+	"%s is selected. The Demo party panel (left) shows what they are doing, their skills and what you can order them to do.",
 	"%s of %s came into store. The Pantry (K) shows every lot and when it spoils.",
 	"%s. The village ate what it grew.",
 	"%s",

@@ -34,6 +34,12 @@ const NoticesScript := preload("res://demo/demo_notices.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const FarmWeather := preload("res://demo/farm/farm_weather.gd")
+const CrewTaskScript := preload("res://demo/tunnel/tunnel_crew_task.gd")
+const JobTaskScript := preload("res://demo/tunnel/tunnel_job_task.gd")
+const TunnelJobsScript := preload("res://demo/tunnel/tunnel_jobs.gd")
+const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
+const GuideScript := preload("res://demo/guide/demo_guide.gd")
+const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 
 const CARROT: int = 2
 const OATS: int = 15
@@ -275,24 +281,74 @@ func _run_until(v: Village, world: WorldScript, facts: FactsScript, hour: int) -
 		facts.observe(world)
 
 
-func test_supper_counts_only_once_the_village_has_eaten_it() -> void:
-	"""Carrots in store at 14:00: the plan, the cooking, the call and the pot on the table do not complete it; the
-	supper's tally with residents having eaten does."""
+func test_supper_counts_only_once_a_resident_has_eaten_it() -> void:
+	"""Carrots in store at 14:00: the plan, the cooking, the call and the pot on the table do not complete it -- frame by
+	frame, until the first supper portion is finished; then it is done, naming who ate first."""
 	var v := _village(3, tick_at(1, 14))
 	assert_true(v.pantry.add_into(CARROT, 12000, 0, _read), "carrots in store")
 	_open(v)
 	var world := WorldScript.new()
 	world.kitchen = v.kitchen
 	world.calendar = v.calendar
+	world.name_of = func(i: int) -> String: return "resident %d" % i
 	var facts := FactsScript.new()
-	_run_until(v, world, facts, 18)
-	assert_true(v.kitchen.batches_cooked > 0, "supper cooked by 18:00")
-	assert_false(StepsScript.is_done(StepsScript.STEP_SUPPER, facts), "cooked, served, not yet tallied: not done")
-	_run_until(v, world, facts, 20)
-	assert_true(StepsScript.is_done(StepsScript.STEP_SUPPER, facts), "done once the supper was eaten")
-	assert_true(facts.supper_line.begins_with("Supper, day 2"), facts.supper_line)
+	var early: int = 0
+	for f: int in 6 * FRAMES_PER_HOUR:
+		v.calendar.tick += 1
+		for brain: BrainScript in v.brains:
+			brain.step(DT)
+		v.kitchen.update()
+		facts.observe(world)
+		if v.kitchen.portions_eaten == 0 and facts.supper_eaten:
+			early += 1
+		if v.kitchen.portions_eaten > 0:
+			break
+	assert_equal(early, 0, "never done before a portion was eaten")
+	assert_true(v.kitchen.batches_cooked > 0 and v.kitchen.portions_eaten > 0, "supper cooked and eaten")
+	assert_true(StepsScript.is_done(StepsScript.STEP_SUPPER, facts), "done once a portion was eaten")
+	assert_true(facts.supper_line.begins_with("Supper, day 2 was eaten (resident "), facts.supper_line)
+	assert_equal(facts.suppers_eaten, 1, "one supper eaten")
 	assert_true(StatusScript.confirm_text(StepsScript.STEP_SUPPER, world, facts).ends_with("The village ate what it grew."),
 		"the confirmation")
+
+
+func test_a_portion_held_or_raw_food_is_not_a_supper_eaten() -> void:
+	"""The record says how each resident's last meal went: a supper missed, or eaten raw, is not a supper served; a
+	breakfast eaten is not supper; a cooked supper finished is."""
+	var world := WorldScript.new()
+	world.kitchen = KitchenScript.new()
+	world.kitchen.fed.configure(PackedStringArray(["mouse", "mouse"]))
+	var facts := FactsScript.new()
+	var supper: int = Rules.meal_key(1, Rules.MEAL_SUPPER)
+	world.kitchen.fed.missed(0, supper)
+	world.kitchen.fed.ate_raw(1, supper, 800)
+	facts.observe(world)
+	assert_false(facts.supper_eaten, "missed and raw")
+	world.kitchen.fed.ate_meal(0, Rules.meal_key(2, Rules.MEAL_BREAKFAST), Rules.DISH_PORRIDGE, 0)
+	facts.observe(world)
+	assert_false(facts.supper_eaten, "breakfast")
+	world.kitchen.fed.ate_meal(1, Rules.meal_key(2, Rules.MEAL_SUPPER), Rules.DISH_SOUP, 0)
+	facts.observe(world)
+	assert_true(facts.supper_eaten, "a cooked supper finished")
+
+
+func test_meals_are_still_seen_after_the_log_is_full() -> void:
+	"""Forty days of tallies through the kitchen's own record (its log keeps the latest 64) and forty suppers eaten:
+	every missed supper is still seen on day 40, and every supper eaten counted -- the log read by meal key, the
+	eating by each resident's record."""
+	var world := WorldScript.new()
+	world.kitchen = KitchenScript.new()
+	world.kitchen.fed.configure(PackedStringArray(["mouse"]))
+	var facts := FactsScript.new()
+	for day: int in 40:
+		for meal: int in 2:
+			world.kitchen.call(&"_record_meal", Rules.meal_key(day, meal), 1)
+			facts.observe(world)
+		world.kitchen.fed.ate_meal(0, Rules.meal_key(day, Rules.MEAL_SUPPER), Rules.DISH_SOUP, 0)
+		facts.observe(world)
+	assert_true(world.kitchen.meal_keys.size() <= KitchenScript.MAX_MEAL_LOG, "the log was trimmed")
+	assert_equal(facts.supper_missed_day, 40, "the latest missed supper, day 40")
+	assert_equal(facts.suppers_eaten, 40, "forty suppers eaten")
 
 
 func test_breakfast_or_a_supper_nobody_ate_is_not_the_supper() -> void:
@@ -369,6 +425,16 @@ func test_a_tunnel_counts_once_walked_through_to_somewhere_else() -> void:
 	assert_false(facts.done_choice(FactsScript.CHOICE_TUNNEL), "up where it went down")
 	_go_below(facts, world, walker, Vector2(12.0, 0.0), true)
 	assert_false(facts.done_choice(FactsScript.CHOICE_TUNNEL), "a digger coming up is not a walker")
+	walker.order = BrainScript.ORDER_TASK
+	walker.task = CrewTaskScript.new(null, null, 0, true, Vector2.ZERO, Callable(), Callable())
+	_go_below(facts, world, walker, Vector2(-12.0, 0.0), false)
+	assert_false(facts.done_choice(FactsScript.CHOICE_TUNNEL), "a dig crew's member coming up is not a walker")
+	var network := GraphScript.new()
+	walker.task = JobTaskScript.new(TunnelJobsScript.new(network, StoresScript.new()), network, 0)
+	_go_below(facts, world, walker, Vector2(12.0, 0.0), false)
+	assert_false(facts.done_choice(FactsScript.CHOICE_TUNNEL), "a tunnel job's worker is not a walker")
+	walker.order = BrainScript.ORDER_NONE
+	walker.task = null
 	walker.position = Vector2.ZERO
 	_go_below(facts, world, walker, Vector2(0.0, FactsScript.WALKED_THROUGH_M + 1.0), false)
 	assert_true(facts.done_choice(FactsScript.CHOICE_TUNNEL), "walked through")
@@ -428,6 +494,7 @@ func _all_done(world: WorldScript, facts: FactsScript) -> void:
 	world.sim.raise_bed(CARROT_BED)
 	facts.observe(world)
 	facts.supper_eaten = true
+	facts.revision += 1
 
 
 func test_one_objective_at_a_time_in_order_with_its_confirmation() -> void:
@@ -597,3 +664,65 @@ func test_an_empty_pantry_says_the_kitchen_s_own_blocker() -> void:
 	assert_equal(d.code, KitchenScript.NO_FOOD, "the kitchen has no food")
 	assert_equal(status.state, Text.SUPPER_CANT % d.reason, "its reason")
 	assert_equal(status.next, Text.NEXT_SUPPER_FIX % d.fix, "its fix")
+
+
+func test_a_partial_delivery_counts_what_was_shelved() -> void:
+	"""A load bigger than the room left: the pantry's delivered total grows by what fitted, not the load."""
+	var pantry := PantryScript.new(StorageScript.new(Vector2.ZERO))
+	pantry.add_into(OATS, StorageScript.STORE_CAPACITY_U * 1000 - 2000, 0, _read)
+	assert_true(pantry.store_upto_into(CARROT, 5000, 0, -1, _read), "a delivery")
+	assert_equal(_read.value, 2000, "2.0 U fitted")
+	assert_equal(pantry.delivered_milli, 2000, "and only that is counted")
+
+
+func _owner(world: WorldScript, notices: NoticesScript, manager: GameManagerScript) -> GuideScript:
+	"""The guide's owner over `world`, off-tree (no camera, no jump)."""
+	var guide := GuideScript.new()
+	guide.configure(world, notices, null, null, manager)
+	return guide
+
+
+func test_the_owner_counts_confirmations_in_unpaused_time_and_chronicles_once() -> void:
+	"""The owner's frame: paused, a confirmation never runs out; running, it does; all four done and confirmed, the
+	completion goes into the history once, under the Village source."""
+	var manager := GameManagerScript.new()
+	manager.start_game()
+	var world := _world()
+	var notices := NoticesScript.new()
+	var guide := _owner(world, notices, manager)
+	_all_done(world, guide.facts)
+	assert_true(manager.pause_game(), "paused")
+	for k: int in 50:
+		guide._process(1.0)
+	assert_equal(guide.steps.phase, StepsScript.PHASE_CONFIRM, "paused: the first confirmation holds")
+	assert_equal(guide.steps.current, StepsScript.STEP_MEET, "on objective 1")
+	manager.resume_game()
+	for k: int in 12:
+		guide._process(StepsScript.CONFIRM_S)
+	assert_true(guide.steps.is_complete(), "running: complete")
+	var village: int = 0
+	for k: int in notices.count():
+		village += 1 if notices.source(k) == NoticesScript.SOURCE_VILLAGE else 0
+	assert_equal(village, 1, "chronicled once")
+	guide._process(1.0)
+	assert_equal(notices.count(), village, "and only once")
+	guide.free()
+	manager.free()
+
+
+func test_hiding_the_finished_guide_card_hides_it() -> void:
+	"""Complete and shown, the Show/Hide toggle hides the card (and shows it again)."""
+	var manager := GameManagerScript.new()
+	manager.start_game()
+	var world := _world()
+	var guide := _owner(world, NoticesScript.new(), manager)
+	_all_done(world, guide.facts)
+	for k: int in 12:
+		guide._process(StepsScript.CONFIRM_S)
+	assert_true(guide.steps.is_complete() and not guide.steps.hidden, "complete, shown")
+	guide.toggle_guide()
+	assert_true(guide.steps.hidden, "hidden")
+	guide.toggle_guide()
+	assert_false(guide.steps.hidden, "shown again")
+	guide.free()
+	manager.free()

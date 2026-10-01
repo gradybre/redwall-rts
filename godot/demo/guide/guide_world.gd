@@ -20,8 +20,10 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 
-## `selected() -> PackedInt32Array` (the command layer's selection), `name_of(i) -> String`.
+## `selected() -> PackedInt32Array` (the command layer's selection; allocates, so read on a click, not each frame),
+## `first() -> int` (the first selected, -1 for none; the per-frame read), `name_of(i) -> String`.
 var selected: Callable = Callable()
+var first: Callable = Callable()
 var name_of: Callable = Callable()
 ## The cast's brains, by resident index (read: state, position, underground, in_water, resting, indoors).
 var brains: Array[BrainScript] = []
@@ -52,6 +54,14 @@ var _read: IntMath.IntResult = IntMath.IntResult.new()
 func selection() -> PackedInt32Array:
 	"""The selected residents (none unbound)."""
 	return selected.call() as PackedInt32Array if selected.is_valid() else PackedInt32Array()
+
+
+func first_selected() -> int:
+	"""The first selected resident (-1 for none) -- through `first` when bound (no allocation), else the selection."""
+	if first.is_valid():
+		return int(first.call())
+	var chosen: PackedInt32Array = selection()
+	return chosen[0] if not chosen.is_empty() else -1
 
 
 func resident_name(i: int) -> String:

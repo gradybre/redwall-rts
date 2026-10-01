@@ -33,7 +33,7 @@ const WIDTH: float = 680.0
 const RESERVE_H: float = 170.0
 const SCROLLBAR_W: float = 18.0
 const TITLE: String = "Village guide"
-const CLOSE_TEXT: String = "× Close (O)"
+const CLOSE_TEXT: String = "× Close (Esc)"
 const PAUSED_LINE: String = "The village waits while the guide is open."
 const CHARTER_LINE: String = "The Hearth Charter -- the village's long-term goal, set by its own community -- is beyond this demo; these first objectives are the demo's."
 
@@ -154,14 +154,21 @@ func open(tab: int = -1) -> void:
 	refresh()
 	visible = true
 	_place.call_deferred()
+	GuideUi.focus_later(_first_focus())
 
 
-func close() -> void:
-	"""Hide the window and release the MENU pause (the village comes back at its speed)."""
+func close() -> bool:
+	"""Release the MENU pause (the village comes back at its speed) and hide the window. If the clock refuses the
+	release (a load holds its barrier) the window stays open, as the game menu does, so a pause is never left with
+	nothing to explain it. Returns whether it closed."""
 	if not visible:
-		return
+		return true
 	_hold(false)
+	if _holding:
+		push_warning("the clock refused to release the guide's pause; the guide stays open")
+		return false
 	visible = false
+	return true
 
 
 func toggle() -> void:
@@ -224,12 +231,6 @@ func _hold(held: bool) -> void:
 		_holding = held
 
 
-func _process(_delta: float) -> void:
-	"""While open on Projects, keep its figures current (they redraw rows only when a project changed)."""
-	if visible and _tab == TAB_PROJECTS:
-		projects.refresh()
-
-
 # --- checks and the gate -----------------------------------------------------------------------------
 
 func frame() -> PanelContainer:
@@ -271,8 +272,10 @@ func _place() -> void:
 	var width: float = minf(WIDTH, zone.size.x - 2.0 * FarmUi.FRAME_EXPAND)
 	var text_w: float = width - FarmUi.CONTENT_MARGINS[0] - FarmUi.CONTENT_MARGINS[2] - SCROLLBAR_W
 	var list_h: float = maxf(140.0, zone.size.y - RESERVE_H)
-	for page: Variant in [help, field_guide, practice, projects]:
-		page.set_text_width(text_w)
+	help.set_text_width(text_w)
+	field_guide.set_text_width(text_w)
+	practice.set_text_width(text_w)
+	projects.set_text_width(text_w)
 	for label: Label in _objective_labels:
 		label.custom_minimum_size.x = text_w
 	help.set_list_height(list_h - 70.0)

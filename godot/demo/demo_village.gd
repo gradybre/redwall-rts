@@ -504,6 +504,7 @@ func _guide_world() -> GuideWorldScript:
 	var world := GuideWorldScript.new()
 	var command: DemoCommandScript = _command as DemoCommandScript
 	world.selected = command.selected
+	world.first = command.first_selected
 	world.name_of = func(i: int) -> String: return (_cast.actor(i) as DemoActorScript).display_name \
 		if i >= 0 and i < _cast.actor_count() else "a resident"
 	for i: int in _cast.actor_count():

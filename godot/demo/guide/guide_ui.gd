@@ -64,8 +64,11 @@ static func row(separation: int = 8) -> HFlowContainer:
 
 
 static func focus_later(control: Control) -> void:
-	"""Give `control` the focus once the frame's layout has settled -- if it is in the tree by then."""
+	"""Give `control` the focus once the frame's layout has settled -- if it is still there and in the tree by then
+	(held weakly: a page freed meanwhile is simply skipped)."""
+	var held: WeakRef = weakref(control)
 	var take: Callable = func() -> void:
-		if is_instance_valid(control) and control.is_inside_tree() and control.is_visible_in_tree():
-			control.grab_focus()
+		var target := held.get_ref() as Control
+		if target != null and target.is_inside_tree() and target.is_visible_in_tree():
+			target.grab_focus()
 	take.call_deferred()

@@ -178,7 +178,8 @@ func _put(line: Label, text: String, colour: Color) -> void:
 		if not _replace_queued:
 			_replace_queued = true
 			_place.call_deferred()
-	line.add_theme_color_override(&"font_color", colour)
+	if line.get_theme_color(&"font_color") != colour:
+		line.add_theme_color_override(&"font_color", colour)
 	_apply_density()
 
 

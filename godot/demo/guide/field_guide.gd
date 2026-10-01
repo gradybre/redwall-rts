@@ -18,6 +18,8 @@ const SearchScript := preload("res://demo/guide/guide_search.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const Rules := preload("res://demo/kitchen/meal_rules.gd")
+const KitchenWords := preload("res://demo/kitchen/kitchen_text.gd")
+const Tastes := preload("res://demo/kitchen/dish_favourites.gd")
 const StockAge := preload("res://scripts/core/stock_age.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const KitchenNode := preload("res://demo/kitchen/demo_kitchen.gd")
@@ -45,7 +47,9 @@ const KIND_NAMES: Array[String] = ["Crops", "Dishes", "Materials", "Buildings an
 ## The crop rows' names as the guide says them (farming.gd's rows: roots, cabbage, beans, grain).
 const ROW_WORDS: Dictionary = {FarmingScript.CROP_ROOTS: "Root crop", FarmingScript.CROP_CABBAGE: "Leaf crop",
 	FarmingScript.CROP_BEANS: "Pulse", FarmingScript.CROP_GRAIN: "Grain"}
-const DISH_IDS: Array[StringName] = [&"dish_porridge", &"dish_soup", &"dish_fish_stew"]
+## Each dish's entry id, `dish_<key>` from the kitchen's recipe book (meal_rules.gd DISH_KEYS; decision 0601), built
+## when this script loads.
+static var DISH_IDS: Array[StringName] = []
 ## The catch's waters, by item from Catalog.FIRST_CATCH (fishing_driver.gd HABITATS: the stream is the river habitat,
 ## the pond the lake's).
 const CATCH_WATERS: Array[String] = ["the stream", "the stream", "the stream", "the pond", "the pond", "the pond"]
@@ -170,14 +174,43 @@ static func _grown_here(item: int) -> String:
 	return "Any of the six crop beds can be sown with it."
 
 
+static func _static_init() -> void:
+	"""The dish entry ids, one per recipe-book dish."""
+	for dish: int in Rules.DISH_COUNT:
+		DISH_IDS.append(StringName("dish_%s" % Rules.DISH_KEYS[dish]))
+
+
 static func meal_of(dish: int) -> int:
-	"""The meal `dish` is cooked for: porridge at breakfast; the soup, and the fish stew in its place, at supper."""
-	return Rules.MEAL_BREAKFAST if dish == Rules.DISH_PORRIDGE else Rules.MEAL_SUPPER
+	"""The meal `dish` is cooked for (its recipe-book row's)."""
+	return Rules.DISH_MEAL[dish]
 
 
 static func input_milli(dish: int, item: int) -> int:
-	"""How much of `item`'s category a batch of `dish` takes: its main input's, else its second's."""
-	return Rules.INPUT_MILLI[dish] if Catalog.category_of(item) == Rules.INPUT_CROP[dish] else Rules.SIDE_MILLI[dish]
+	"""How much a batch of `dish` takes of the input `item` fills (0: none)."""
+	var k: int = Rules.input_of(dish, item)
+	return Rules.input_milli(dish, k) if k >= 0 else 0
+
+
+static func _tastes_text(dish: int) -> String:
+	"""Which species like or dislike `dish` (dish_favourites.gd; decision 0601): " A favourite of moles and badgers."."""
+	var text: String = ""
+	var liked: PackedStringArray = Tastes.species_with(Rules.DISH_KEYS[dish], Tastes.LIKE)
+	if not liked.is_empty():
+		text += " A favourite of %s." % _plural_list(liked)
+	var disliked: PackedStringArray = Tastes.species_with(Rules.DISH_KEYS[dish], Tastes.DISLIKE)
+	if not disliked.is_empty():
+		text += " Not liked by %s." % _plural_list(disliked)
+	return text
+
+
+static func _plural_list(species: PackedStringArray) -> String:
+	"""Species keys as plural words: "moles and badgers", "mice"."""
+	var words := PackedStringArray()
+	for key: String in species:
+		words.append("mice" if key == "mouse" else key + "s")
+	if words.size() < 2:
+		return "".join(words)
+	return "%s and %s" % [", ".join(words.slice(0, words.size() - 1)), words[words.size() - 1]]
 
 
 static func item_id(item: int) -> StringName:
@@ -186,26 +219,21 @@ static func item_id(item: int) -> StringName:
 
 
 func _dish(dish: int) -> Entry:
-	"""One of the kitchen's three dishes: its meal, portions, inputs, work and the other dish."""
+	"""One of the kitchen's dishes: its meal, portions, inputs, work and how the cook comes to cook it."""
 	var links: Array[StringName] = [&"station_kitchen", &"material_water", &"material_wood"]
 	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		if Rules.is_input(dish, item):
 			links.append(item_id(item))
 	links.append(DISH_IDS[Rules.other(dish)])
 	var meal: int = meal_of(dish)
-	var uses: String = "%s: each batch is %d portions of %d NP, keeping %d game hours." % [Rules.MEAL_TITLES[meal],
-		Rules.PORTIONS_PER_BATCH[dish], Rules.NP_PER_PORTION[dish], Rules.SHELF_HOURS[dish]]
-	var food: String = "%s of %s (%s)" % [FarmText.units_text(Rules.INPUT_MILLI[dish]), Rules.INPUT_WORDS[dish],
-		Rules.INPUT_CROPS_TEXT[dish]]
-	if Rules.SIDE_MILLI[dish] > 0:
-		food += " and %s of %s" % [FarmText.units_text(Rules.SIDE_MILLI[dish]), Rules.SIDE_WORDS[dish]]
+	var uses: String = "%s: each batch is %d portions of %d NP, keeping %d game hours.%s" % [Rules.MEAL_TITLES[meal],
+		Rules.PORTIONS_PER_BATCH[dish], Rules.NP_PER_PORTION[dish], Rules.SHELF_HOURS[dish], _tastes_text(dish)]
+	var food: String = KitchenWords.inputs_text(dish, 1).replace(" + ", " and ")
 	var requires: String = "%s, %s of water and %s of wood a batch; %d WU of cooking at the cauldron." % [food,
 		FarmText.units_text(Rules.WATER_MILLI[dish]), FarmText.units_text(Rules.WOOD_MILLI_PER_BATCH),
 		Rules.WORK_MWU[dish] / 1000]
-	var other: String = "When its food is short the cook makes %s instead." % Rules.DISH_NAMES[Rules.other(dish)]
-	if dish == Rules.DISH_FISH_STEW:
-		other = "Cooked at supper in the soup's place while the stores hold a batch's fresh fish and roots; otherwise %s." \
-			% Rules.DISH_NAMES[Rules.other(dish)]
+	var other: String = "The cook picks it when the stores hold its food: a dish that feeds everyone first, then the food that keeps least long, then what the village likes most. When no %s can be made, the cook makes %s." % [
+		Rules.MEAL_NAMES[meal], Rules.DISH_NAMES[Rules.other(dish)]]
 	return make(DISH_IDS[dish], KIND_DISH, Rules.DISH_NAMES[dish], "Cooked for %s" % Rules.MEAL_NAMES[meal],
 		PackedStringArray([uses, requires, other, "Cooked at the cauldron by the keeper, served at the hall's tables."]),
 		links)

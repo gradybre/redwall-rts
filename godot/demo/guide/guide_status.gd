@@ -241,9 +241,14 @@ static func _supper(world: WorldScript, facts: FactsScript, out: Status) -> void
 		_aim_food(world, d, out)
 		return
 	out.state = Text.SUPPER_MISSED % facts.supper_missed_day if facts.supper_missed_day > 0 \
-		else Text.SUPPER_PLANNED % [Rules.DISH_NAMES[d.dish if d.dish == Rules.DISH_FISH_STEW else Rules.DISH_SOUP].to_lower(),
-			world.hour()]
+		else Text.SUPPER_PLANNED % [Rules.DISH_NAMES[_supper_dish(d.dish)].to_lower(), world.hour()]
 	out.next = Text.NEXT_SUPPER_WAIT
+
+
+static func _supper_dish(dish: int) -> int:
+	"""The dish to name for supper: the next meal's when it is a supper dish (decision 0601's recipe book), else the
+	soup."""
+	return dish if dish >= 0 and Rules.DISH_MEAL[dish] == Rules.MEAL_SUPPER else Rules.DISH_SOUP
 
 
 static func _aim_food(world: WorldScript, d: KitchenScript.Decision, out: Status) -> void:

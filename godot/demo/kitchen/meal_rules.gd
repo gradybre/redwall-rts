@@ -3,8 +3,10 @@ extends RefCounted
 ## when the village eats. Decision 0381 (review F21, UX-027; Brendan's rulings of 2026-09-30). Presentation only:
 ## nothing here touches the settlement simulation. Every number is cited; the demo values are named as such.
 ##
-## THE DISHES (ruling 1: two, alternating). Each is a content-library recipe COOKED AS a GDD §5.7 recipe row, with
-## the row's numbers exactly (docs/game_gdd.md §5.7; docs/gameplay_balance.md §3.1-3.2):
+## THE DISHES (ruling 1: two, alternating; since decision 0601, the recipe book's eight -- dish_book.gd -- chosen by
+## the kitchen from the food in store, the meal and the village's favourites: kitchen.gd THE CHOICE). Each is a
+## content-library recipe COOKED AS a GDD §5.7 recipe row, with the row's numbers exactly (docs/game_gdd.md §5.7;
+## docs/gameplay_balance.md §3.1-3.2). The first two:
 ##   Wild oat porridge (salamandastron::SAL_recipe_wild_oat_porridge) as `porridge`:
 ##       grain 2 + water 2 -> meal_porridge 2 x 1800 NP, 12 WU, Kitchen/COOK, shelf 24 h
 ##   Togget's vegetable soup (outcast::OUT_recipe_togget_s_vegetable_soup) as `root_stew`:
@@ -60,40 +62,65 @@ extends RefCounted
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
+const Book := preload("res://demo/kitchen/dish_book.gd")
+const TakesScript := preload("res://demo/kitchen/ingredient_takes.gd")
 
 const DISH_PORRIDGE: int = 0
 const DISH_SOUP: int = 1
-## THE THIRD DISH (water part B, decision 0436): the library's "Requested perch or trout"
-## (taggerung::TAG_recipe_requested_perch_or_trout, a poached perch proposal) COOKED AS §5.7's `fish_stew` row exactly:
-## "fish 2, roots 2, water 2 | meal_fish_stew 3x2200 | 20 | Kitchen/COOK | 24 | Start". Its fish is §5.7's `fish`
-## selector -- the six fresh species the village catches (never dried fish: that is its own item, the reserve) -- and
-## its second input is the roots row. It is cooked at SUPPER in place of the soup whenever the stores hold a batch's fresh
-## fish and roots nobody has set aside (fresh fish keeps 48 h: it is used while fresh); otherwise the alternation runs as
-## ruling 1 has it.
+## THE THIRD DISH (water part B, decision 0436): the library's "Requested perch or trout" COOKED AS §5.7's `fish_stew`
+## row, cooked at supper whenever the stores hold a batch's fresh fish and roots nobody has set aside (fresh fish keeps
+## 48 h: it is used while fresh -- `fresher_first` below keeps that rule for every dish).
 const DISH_FISH_STEW: int = 2
-const DISH_COUNT: int = 3
+## THE DISHES OF DECISION 0601 (feature 16): dish_book.gd's rows 3..7, each a library dish cooked as its §5.7 row.
+const DISH_BARLEYMEAL: int = 3
+const DISH_BEETROOT_SOUP: int = 4
+const DISH_VOLE_STEW: int = 5
+const DISH_POACHED_DACE: int = 6
+const DISH_BEAN_HOTPOT: int = 7
 const NO_DISH: int = -1
-const DISH_NAMES: Array[String] = ["Wild oat porridge", "Togget's vegetable soup", "Poached perch or trout"]
-const DISH_SHORT: Array[String] = ["porridge", "soup", "fish stew"]
-const LIBRARY_IDS: Array[String] = ["salamandastron::SAL_recipe_wild_oat_porridge",
-	"outcast::OUT_recipe_togget_s_vegetable_soup", "taggerung::TAG_recipe_requested_perch_or_trout"]
-## The GDD §5.7 rows they are cooked as.
-const GDD_ROWS: Array[String] = ["porridge", "root_stew", "fish_stew"]
-## Each dish's food input: its §5.6 crop row (or the pantry's fish category), and how much a batch takes.
-const INPUT_CROP: Array[int] = [FarmingScript.CROP_GRAIN, FarmingScript.CROP_ROOTS, Catalog.CAT_FISH]
-const INPUT_WORDS: Array[String] = ["grain", "roots", "fresh fish"]
-const INPUT_CROPS_TEXT: Array[String] = ["oats, wheat or barley", "carrot, turnip, radish, beetroot, parsnip or onion",
-	"trout, dace, salmon, perch, carp or whitefish"]
-const INPUT_MILLI: Array[int] = [2000, 3000, 2000]
-## A dish's second food input (§5.7's fish_stew: "fish 2, roots 2"): its row and a batch's milli-U; -1: none.
-const SIDE_CROP: Array[int] = [-1, -1, FarmingScript.CROP_ROOTS]
-const SIDE_WORDS: Array[String] = ["", "", "roots"]
-const SIDE_MILLI: Array[int] = [0, 0, 2000]
-const WATER_MILLI: Array[int] = [2000, 1000, 2000]
-const PORTIONS_PER_BATCH: Array[int] = [2, 2, 3]
-const NP_PER_PORTION: Array[int] = [1800, 1800, 2200]
-const WORK_MWU: Array[int] = [12000, 16000, 20000]
-const SHELF_HOURS: Array[int] = [24, 24, 24]
+
+## THE RECIPE BOOK'S COLUMNS (dish_book.gd: one row a dish; adding a recipe is adding a row there). Built once, when this
+## script loads (`_static_init`); read-only after. Per dish: its key, names, library id, §5.7 row (and that row's index
+## among the book's distinct rows, for variety), meal, outputs and work, and its INPUTS as a run [INPUT_FIRST, +INPUT_N)
+## of the input columns: each input's SELECTOR (ingredient_takes.gd: its category, or its own items), category and
+## milli-U a batch.
+static var DISH_COUNT: int = 0
+static var DISH_KEYS: Array[StringName] = []
+static var DISH_NAMES: Array[String] = []
+static var DISH_SHORT: Array[String] = []
+static var LIBRARY_IDS: Array[String] = []
+## The GDD §5.7 rows they are cooked as, and each one's index among the distinct rows (ROW_COUNT of them).
+static var GDD_ROWS: Array[String] = []
+static var ROW_OF: PackedInt32Array = PackedInt32Array()
+static var ROW_COUNT: int = 0
+static var DISH_MEAL: PackedInt32Array = PackedInt32Array()
+static var PORTIONS_PER_BATCH: PackedInt32Array = PackedInt32Array()
+static var NP_PER_PORTION: PackedInt32Array = PackedInt32Array()
+static var WORK_MWU: PackedInt32Array = PackedInt32Array()
+static var SHELF_HOURS: PackedInt32Array = PackedInt32Array()
+static var WATER_MILLI: PackedInt32Array = PackedInt32Array()
+static var INPUT_FIRST: PackedInt32Array = PackedInt32Array()
+static var INPUT_N: PackedInt32Array = PackedInt32Array()
+## Per input (all dishes' inputs, in dish order).
+static var IN_SELECTOR: PackedInt32Array = PackedInt32Array()
+static var IN_CATEGORY: PackedInt32Array = PackedInt32Array()
+static var IN_MILLI: PackedInt32Array = PackedInt32Array()
+## Per dish: the shortest base shelf life among its inputs' categories (`fresher_first`).
+## Per dish: 1 when every input is a whole category (the meal's plain dish of its §5.7 row: porridge, Togget's soup,
+## the perch-or-trout stew, the hotpot) -- the Ready food estimate counts these (kitchen.gd THE READY-FOOD ESTIMATE).
+static var PLAIN: PackedByteArray = PackedByteArray()
+static var FRESHEST_HOURS: PackedInt32Array = PackedInt32Array()
+## VIEWS OF THE FIRST TWO INPUTS for the readers written before inputs were a list (the guide's practice stories, the
+## older tests): a dish's first input's category and milli-U, and its second's (-1 and 0: none).
+static var INPUT_CROP: PackedInt32Array = PackedInt32Array()
+static var INPUT_MILLI: PackedInt32Array = PackedInt32Array()
+static var SIDE_CROP: PackedInt32Array = PackedInt32Array()
+static var SIDE_MILLI: PackedInt32Array = PackedInt32Array()
+
+## What a recipe calls each category, by farm_catalog.gd category id (beans, cabbage, flax, grain, roots, fish, dried
+## fish, flour). §5.7's `cabbage` input is the cabbage row -- cabbage, lettuce, spinach, leek and celery -- so it is
+## "greens" to the player.
+const CATEGORY_WORDS: Array[String] = ["beans", "greens", "flax", "grain", "roots", "fresh fish", "dried fish", "flour"]
 ## BAL-SUPPLY-004: "wood 100 milli-U/batch".
 const WOOD_MILLI_PER_BATCH: int = 100
 ## A portion's mass and spoiled food's (§5.7: 500 g and 250 g a unit): a spoiled portion is twice its milli-U.
@@ -150,31 +177,142 @@ const RAW_NP_PER_U: Dictionary = {FarmingScript.CROP_ROOTS: 800, FarmingScript.C
 	Catalog.CAT_DRIED_FISH: 1800}
 
 
+static func _static_init() -> void:
+	"""Build the recipe book's columns from dish_book.gd DISHES, once."""
+	DISH_COUNT = Book.DISHES.size()
+	for dish: int in DISH_COUNT:
+		var row: Dictionary = Book.DISHES[dish]
+		DISH_KEYS.append(StringName(row["key"]))
+		DISH_NAMES.append(String(row["name"]))
+		DISH_SHORT.append(String(row["short"]))
+		LIBRARY_IDS.append(String(row["library"]))
+		_add_row(String(row["gdd_row"]))
+		DISH_MEAL.append(int(row["meal"]))
+		PORTIONS_PER_BATCH.append(int(row["portions"]))
+		NP_PER_PORTION.append(int(row["np"]))
+		WORK_MWU.append(int(row["work_mwu"]))
+		SHELF_HOURS.append(int(row["shelf_hours"]))
+		WATER_MILLI.append(int(row["water_milli"]))
+		_add_inputs(row["inputs"])
+		INPUT_CROP.append(IN_CATEGORY[INPUT_FIRST[dish]])
+		INPUT_MILLI.append(IN_MILLI[INPUT_FIRST[dish]])
+		SIDE_CROP.append(IN_CATEGORY[INPUT_FIRST[dish] + 1] if INPUT_N[dish] > 1 else -1)
+		SIDE_MILLI.append(IN_MILLI[INPUT_FIRST[dish] + 1] if INPUT_N[dish] > 1 else 0)
+
+
+static func _add_row(gdd_row: String) -> void:
+	"""Record a dish's §5.7 row and its index among the distinct rows."""
+	var at: int = GDD_ROWS.find(gdd_row)
+	GDD_ROWS.append(gdd_row)
+	if at < 0:
+		ROW_OF.append(ROW_COUNT)
+		ROW_COUNT += 1
+	else:
+		ROW_OF.append(ROW_OF[at])
+
+
+static func _add_inputs(inputs: Array) -> void:
+	"""Append a dish's inputs to the input columns: each its selector, category and milli-U; and whether the dish is
+	plain and its freshest input's shelf hours."""
+	INPUT_FIRST.append(IN_SELECTOR.size())
+	INPUT_N.append(inputs.size())
+	var freshest: int = 1 << 30
+	var plain: int = 1
+	for input: Variant in inputs:
+		var category: int = int(input[0])
+		var items := PackedInt32Array()
+		for key: Variant in input[2]:
+			items.append(Catalog.ITEM_KEYS.find(StringName(key)))
+		IN_SELECTOR.append(category if items.is_empty() else TakesScript.items_selector(items))
+		plain = plain if items.is_empty() else 0
+		IN_CATEGORY.append(category)
+		IN_MILLI.append(int(input[1]))
+		freshest = mini(freshest, category_shelf_hours(category))
+	FRESHEST_HOURS.append(freshest)
+	PLAIN.append(plain)
+
+
+static func category_shelf_hours(category: int) -> int:
+	"""§5.7's base shelf hours of a category's items (crop rows from CROP_SHELF_HOURS, goods from GOODS_SHELF_HOURS)."""
+	if category >= 0 and category < Catalog.CROP_SHELF_HOURS.size():
+		return Catalog.CROP_SHELF_HOURS[category]
+	var goods: int = Catalog.GOODS_CATEGORY.find(category)
+	return Catalog.GOODS_SHELF_HOURS[goods] if goods >= 0 else 0
+
+
 static func batch_ticks(dish: int) -> int:
 	"""Calendar ticks one batch of `dish` takes at the step rate (12 WU: 150 ticks)."""
 	return WORK_MWU[dish] / MWU_PER_TICK
 
 
+static func input_selector(dish: int, k: int) -> int:
+	"""`dish`'s input `k`'s selector (ingredient_takes.gd: its category, or its own items)."""
+	return IN_SELECTOR[INPUT_FIRST[dish] + k]
+
+
+static func input_category(dish: int, k: int) -> int:
+	"""`dish`'s input `k`'s category (§5.7's input)."""
+	return IN_CATEGORY[INPUT_FIRST[dish] + k]
+
+
+static func input_milli(dish: int, k: int) -> int:
+	"""Milli-U of `dish`'s input `k` a batch takes."""
+	return IN_MILLI[INPUT_FIRST[dish] + k]
+
+
+static func input_of(dish: int, item: int) -> int:
+	"""Which of `dish`'s inputs pantry `item` fills (-1: none)."""
+	for k: int in INPUT_N[dish]:
+		if TakesScript.matches(input_selector(dish, k), item):
+			return k
+	return -1
+
+
 static func is_input(dish: int, item: int) -> bool:
-	"""Whether pantry `item` is in one of `dish`'s food categories (see THE CROPS IN EACH CATEGORY)."""
-	var category: int = Catalog.category_of(item)
-	return category >= 0 and (category == INPUT_CROP[dish] or category == SIDE_CROP[dish])
+	"""Whether pantry `item` is one `dish` takes (its category, narrowed to the dish's own ingredients)."""
+	return input_of(dish, item) >= 0
 
 
 static func batch_food_milli(dish: int) -> int:
-	"""All the food a batch of `dish` takes, milli-U (its input and any second one)."""
-	return INPUT_MILLI[dish] + SIDE_MILLI[dish]
+	"""All the food a batch of `dish` takes, milli-U (every input)."""
+	var total: int = 0
+	for k: int in INPUT_N[dish]:
+		total += input_milli(dish, k)
+	return total
 
 
 static func dish_for_meal(meal: int) -> int:
-	"""The alternation (ruling 1): porridge at breakfast, soup at supper -- the meals alternate, so the dishes do."""
+	"""The meal's first dish, cooked when nothing is (ruling 1's: porridge at breakfast, soup at supper)."""
 	return DISH_PORRIDGE if meal == MEAL_BREAKFAST else DISH_SOUP
 
 
 static func other(dish: int) -> int:
-	"""The dish the alternation turns to when `dish`'s food is short (ruling 1): porridge and soup each other; the fish
-	stew, the soup it stands in for."""
-	return DISH_PORRIDGE if dish == DISH_SOUP else DISH_SOUP
+	"""The other meal's first dish -- what a meal turns to when none of its own dishes has food (ruling 1)."""
+	return DISH_SOUP if DISH_MEAL[dish] == MEAL_BREAKFAST else DISH_PORRIDGE
+
+
+static func fresher_first(a: int, b: int) -> int:
+	"""Which of two dishes uses the food that keeps less long (§5.7's base shelf hours of its inputs' categories):
+	negative for `a`, positive for `b`, 0 alike. Fresh fish (48 h) before greens (144 h), roots (240 h) and grain
+	(720 h): decision 0436's "fresh fish is cooked while it is fresh", for every dish."""
+	return FRESHEST_HOURS[a] - FRESHEST_HOURS[b]
+
+
+static func same_recipe(a: int, b: int) -> bool:
+	"""Whether two dishes are one §5.7 recipe (§5.7: "Ingredient differences inside the same recipe do not fake
+	variety")."""
+	return a >= 0 and b >= 0 and ROW_OF[a] == ROW_OF[b]
+
+
+static func items_text(selector: int) -> String:
+	"""The items a selector takes, in words: "beetroot or onion"."""
+	var names := PackedStringArray()
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
+		if TakesScript.matches(selector, item):
+			names.append(Catalog.ITEM_LABELS[item].to_lower())
+	if names.size() < 2:
+		return "".join(names)
+	return "%s or %s" % [", ".join(names.slice(0, names.size() - 1)), names[names.size() - 1]]
 
 
 static func raw_np_per_u(item: int) -> int:

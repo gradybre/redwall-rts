@@ -70,11 +70,11 @@ func _json(path: String) -> Variant:
 
 func test_every_item_is_a_pantry_leaf_with_a_crop_row() -> void:
 	"""Sixteen ingredients, each a pantry LEAF in the committed index (same order), each on one of
-	the four food rows of §5.6 -- never flax."""
+	the four food rows of §5.6 -- never flax. The index goes on to the pantry's other goods (decision 0602)."""
 	var index: Dictionary = _json("res://demo/farm/pantry_index.json")
 	var items: Array = index["items"]
 	assert_equal(Catalog.ITEM_COUNT, 16, "sixteen ingredients")
-	assert_equal(items.size(), 16, "the index lists them all")
+	assert_equal(items.size(), Catalog.PANTRY_ITEM_COUNT, "the index lists every pantry item")
 	assert_equal(index["activation"], "NOT_RUNTIME_ACTIVE", "the library stays inactive")
 	for item: int in Catalog.ITEM_COUNT:
 		assert_equal(String((items[item] as Dictionary)["leaf_id"]), Catalog.ITEM_LEAVES[item], "leaf %d" % item)

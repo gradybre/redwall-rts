@@ -10,9 +10,15 @@ extends RefCounted
 ##
 ## MEALS are remembered: the last HISTORY recipe ids (§5.7's variety), the last meal and whether it was eaten, skipped
 ## or eaten raw, and §5.7's MONOTONOUS MEMORY when it applies -- its value and the hour it lapses (a readout: the demo
-## has no mood).
+## has no mood). Variety counts §5.7 RECIPES, not dishes (decision 0601): two dishes cooked as one §5.7 row are the same
+## recipe -- "Ingredient differences inside the same recipe do not fake variety".
+##
+## TASTES (decision 0601; dish_favourites.gd): each resident's species' likes and dislikes, per dish, and whether the
+## last portion it ate was a FAVOURITE -- noted on its card, counted, and summed for the cook's choice. Data and display
+## only: a favourite adds no NP, mood or memory.
 
 const Rules := preload("res://demo/kitchen/meal_rules.gd")
+const Tastes := preload("res://demo/kitchen/dish_favourites.gd")
 const FamilyRules := preload("res://scripts/core/family_rules.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 
@@ -38,10 +44,15 @@ var monotony_until: PackedInt32Array = PackedInt32Array()
 ## Meals eaten and missed so far, per resident.
 var eaten: PackedInt32Array = PackedInt32Array()
 var skipped: PackedInt32Array = PackedInt32Array()
+## Per resident: 1 when the last portion it ate was one of its favourites (0 after anything else); favourites eaten.
+var last_favourite: PackedByteArray = PackedByteArray()
+var favourites_eaten: PackedInt32Array = PackedInt32Array()
 
 var _accumulated: PackedInt64Array = PackedInt64Array()
 ## HISTORY recipe ids a resident, oldest first; NOTHING where none.
 var _history: PackedInt32Array = PackedInt32Array()
+## Per resident and dish (who x DISH_COUNT + dish): its species' taste, Tastes.LIKE, DISLIKE or 0.
+var _taste: PackedInt32Array = PackedInt32Array()
 var _day: int = 0
 var _family: FamilyRules = FamilyRules.new()
 var _read: IntMath.IntResult = IntMath.IntResult.new()
@@ -51,8 +62,10 @@ func configure(species: PackedStringArray) -> void:
 	"""One resident per species name (meal_rules.gd SIZE CLASS), each starting fed."""
 	var n: int = species.size()
 	for column: PackedInt32Array in [hunger, today_np, last_meal, prev_meal, last_outcome, last_dish, monotony,
-			monotony_until, eaten, skipped]:
+			monotony_until, eaten, skipped, favourites_eaten]:
 		column.resize(n)
+	last_favourite.resize(n)
+	_configure_tastes(species)
 	hunger.fill(Rules.START_HUNGER)
 	last_meal.fill(NOTHING)
 	prev_meal.fill(NOTHING)
@@ -66,9 +79,39 @@ func configure(species: PackedStringArray) -> void:
 	_history.fill(NOTHING)
 
 
+func _configure_tastes(species: PackedStringArray) -> void:
+	"""Each resident's taste for each dish, from its species (dish_favourites.gd)."""
+	_taste.resize(species.size() * Rules.DISH_COUNT)
+	for i: int in species.size():
+		var row: int = Tastes.species_row(species[i])
+		for dish: int in Rules.DISH_COUNT:
+			_taste[i * Rules.DISH_COUNT + dish] = Tastes.taste(row, Rules.DISH_KEYS[dish])
+
+
 func count() -> int:
 	"""How many residents."""
 	return hunger.size()
+
+
+func taste_of(who: int, dish: int) -> int:
+	"""Resident `who`'s taste for `dish`: Tastes.LIKE, DISLIKE or 0 (none for no dish)."""
+	return _taste[who * Rules.DISH_COUNT + dish] if dish >= 0 and dish < Rules.DISH_COUNT else 0
+
+
+func village_taste(dish: int) -> int:
+	"""Everyone's tastes for `dish` summed: likes less dislikes (the cook's choice weighs it)."""
+	var total: int = 0
+	for i: int in count():
+		total += taste_of(i, dish)
+	return total
+
+
+func likers_of(dish: int) -> int:
+	"""How many residents like `dish`."""
+	var n: int = 0
+	for i: int in count():
+		n += 1 if taste_of(i, dish) == Tastes.LIKE else 0
+	return n
 
 
 func hourly_milli(who: int, winter: bool) -> int:
@@ -122,6 +165,9 @@ func ate_meal(who: int, meal_key: int, dish: int, hour_index: int) -> void:
 	_remember(who, dish)
 	_outcome(who, meal_key, OUTCOME_ATE, dish)
 	eaten[who] += 1
+	if taste_of(who, dish) == Tastes.LIKE:
+		last_favourite[who] = 1
+		favourites_eaten[who] += 1
 
 
 func ate_raw(who: int, meal_key: int, np: int) -> void:
@@ -144,6 +190,7 @@ func _outcome(who: int, meal_key: int, outcome: int, dish: int) -> void:
 	last_meal[who] = meal_key
 	last_outcome[who] = outcome
 	last_dish[who] = dish
+	last_favourite[who] = 0
 
 
 func had(who: int, meal_key: int) -> bool:
@@ -165,11 +212,11 @@ func _remember(who: int, dish: int) -> void:
 
 
 func repeats_of(who: int, dish: int) -> int:
-	"""How many of resident `who`'s last HISTORY meals were `dish`."""
+	"""How many of resident `who`'s last HISTORY meals were `dish`'s §5.7 recipe (see MEALS)."""
 	var n: int = 0
 	var base: int = who * Rules.HISTORY
 	for k: int in Rules.HISTORY:
-		n += 1 if _history[base + k] == dish else 0
+		n += 1 if Rules.same_recipe(_history[base + k], dish) else 0
 	return n
 
 

@@ -138,24 +138,28 @@ func cook_text() -> String:
 
 
 func meals_text() -> String:
-	"""The planned meals, a line each."""
+	"""The planned meals, a line each, with how many residents like the dish (decision 0601)."""
 	var lines := PackedStringArray()
 	for key: int in _kitchen.planned_keys():
 		var plan: PackedInt32Array = _kitchen.plan_of(key)
-		lines.append("%s — %s: %d of %d batches cooked, %d more with food reserved%s" % [Words.meal_title(key),
-			Rules.DISH_NAMES[plan[0]], plan[2], plan[1], plan[3], " (one cooking)" if plan[4] > 0 else ""])
+		var liked: int = _kitchen.fed.likers_of(plan[0])
+		lines.append("%s — %s%s: %d of %d batches cooked, %d more with food reserved%s" % [Words.meal_title(key),
+			Rules.DISH_NAMES[plan[0]], " (liked by %d)" % liked if liked > 0 else "", plan[2], plan[1], plan[3],
+			" (one cooking)" if plan[4] > 0 else ""])
 	if lines.is_empty():
 		return "Next meals: none planned"
 	return "Next meals:\n" + "\n".join(lines)
 
 
 func pot_text() -> String:
-	"""Portions in the pot and at the table."""
+	"""Portions in the pot and at the table, by dish: porridge and soup always, any other dish while it has some."""
 	var store: StoreScript = _kitchen.store
-	var line: String = "Portions: %d in the pot, %d at the table (porridge %d, soup %d" % [store.in_pot(), store.at_table(),
-		store.portions_of(Rules.DISH_PORRIDGE), store.portions_of(Rules.DISH_SOUP)]
-	var stew: int = store.portions_of(Rules.DISH_FISH_STEW)
-	return line + (", fish stew %d)" % stew if stew > 0 else ")")
+	var parts := PackedStringArray()
+	for dish: int in Rules.DISH_COUNT:
+		var held: int = store.portions_of(dish)
+		if held > 0 or dish == Rules.DISH_PORRIDGE or dish == Rules.DISH_SOUP:
+			parts.append("%s %d" % [Rules.DISH_SHORT[dish], held])
+	return "Portions: %d in the pot, %d at the table (%s)" % [store.in_pot(), store.at_table(), ", ".join(parts)]
 
 
 func water_text() -> String:

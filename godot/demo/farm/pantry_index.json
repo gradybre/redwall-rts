@@ -1,12 +1,16 @@
 {
- "schema": "demo_pantry_index_v1",
+ "schema": "demo_pantry_index_v2",
  "activation": "NOT_RUNTIME_ACTIVE",
  "source": "docs/redwall-content-library/shared/pantry.json",
  "source_sha256": "321291472aec3b123a05161ed05bed3823e201f52e1ab4326363a122e299810c",
  "max_listed": 40,
  "items": [
   {
+   "item_key": "radish",
    "leaf_id": "LEAF_radish",
+   "targets": [
+    "LEAF_radish"
+   ],
    "direct_count": 17,
    "component_count": 1,
    "dishes": [
@@ -103,7 +107,11 @@
    ]
   },
   {
+   "item_key": "turnip",
    "leaf_id": "LEAF_turnip",
+   "targets": [
+    "LEAF_turnip"
+   ],
    "direct_count": 70,
    "component_count": 14,
    "dishes": [
@@ -310,7 +318,11 @@
    ]
   },
   {
+   "item_key": "carrot",
    "leaf_id": "LEAF_carrot",
+   "targets": [
+    "LEAF_carrot"
+   ],
    "direct_count": 109,
    "component_count": 15,
    "dishes": [
@@ -517,7 +529,11 @@
    ]
   },
   {
+   "item_key": "beetroot",
    "leaf_id": "LEAF_beetroot",
+   "targets": [
+    "LEAF_beetroot"
+   ],
    "direct_count": 19,
    "component_count": 1,
    "dishes": [
@@ -624,7 +640,11 @@
    ]
   },
   {
+   "item_key": "parsnip",
    "leaf_id": "LEAF_parsnip",
+   "targets": [
+    "LEAF_parsnip"
+   ],
    "direct_count": 3,
    "component_count": 0,
    "dishes": [
@@ -646,7 +666,11 @@
    ]
   },
   {
+   "item_key": "onion",
    "leaf_id": "LEAF_onion",
+   "targets": [
+    "LEAF_onion"
+   ],
    "direct_count": 128,
    "component_count": 9,
    "dishes": [
@@ -853,7 +877,11 @@
    ]
   },
   {
+   "item_key": "cabbage",
    "leaf_id": "LEAF_cabbage",
+   "targets": [
+    "LEAF_cabbage"
+   ],
    "direct_count": 8,
    "component_count": 4,
    "dishes": [
@@ -920,7 +948,11 @@
    ]
   },
   {
+   "item_key": "lettuce",
    "leaf_id": "LEAF_lettuce",
+   "targets": [
+    "LEAF_lettuce"
+   ],
    "direct_count": 34,
    "component_count": 1,
    "dishes": [
@@ -1102,7 +1134,11 @@
    ]
   },
   {
+   "item_key": "spinach",
    "leaf_id": "LEAF_spinach",
+   "targets": [
+    "LEAF_spinach"
+   ],
    "direct_count": 1,
    "component_count": 0,
    "dishes": [
@@ -1114,7 +1150,11 @@
    ]
   },
   {
+   "item_key": "leek",
    "leaf_id": "LEAF_leek",
+   "targets": [
+    "LEAF_leek"
+   ],
    "direct_count": 78,
    "component_count": 6,
    "dishes": [
@@ -1321,7 +1361,11 @@
    ]
   },
   {
+   "item_key": "celery",
    "leaf_id": "LEAF_celery",
+   "targets": [
+    "LEAF_celery"
+   ],
    "direct_count": 40,
    "component_count": 0,
    "dishes": [
@@ -1528,7 +1572,11 @@
    ]
   },
   {
+   "item_key": "pea",
    "leaf_id": "LEAF_pea",
+   "targets": [
+    "LEAF_pea"
+   ],
    "direct_count": 3,
    "component_count": 2,
    "dishes": [
@@ -1560,7 +1608,11 @@
    ]
   },
   {
+   "item_key": "broad_bean",
    "leaf_id": "LEAF_broad_bean",
+   "targets": [
+    "LEAF_broad_bean"
+   ],
    "direct_count": 1,
    "component_count": 0,
    "dishes": [
@@ -1572,7 +1624,11 @@
    ]
   },
   {
+   "item_key": "wheat",
    "leaf_id": "LEAF_wheat",
+   "targets": [
+    "LEAF_wheat"
+   ],
    "direct_count": 3,
    "component_count": 382,
    "dishes": [
@@ -1779,7 +1835,11 @@
    ]
   },
   {
+   "item_key": "barley",
    "leaf_id": "LEAF_barley",
+   "targets": [
+    "LEAF_barley"
+   ],
    "direct_count": 47,
    "component_count": 167,
    "dishes": [
@@ -1986,7 +2046,11 @@
    ]
   },
   {
+   "item_key": "oats",
    "leaf_id": "LEAF_oats",
+   "targets": [
+    "LEAF_oats"
+   ],
    "direct_count": 92,
    "component_count": 413,
    "dishes": [
@@ -2188,6 +2252,528 @@
     {
      "label": "Honey-nut oatloaf",
      "id": "triss::TRI_recipe_honey_nut_oatloaf",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "item_key": "trout",
+   "leaf_id": "",
+   "targets": [
+    "LEAF_trout"
+   ],
+   "direct_count": 15,
+   "component_count": 3,
+   "dishes": [
+    {
+     "label": "Fire-cooked trout",
+     "id": "marlfox::MF_RECIPE_fire_cooked_trout",
+     "use": "direct"
+    },
+    {
+     "label": "Fresh trout salad with mustard and cress",
+     "id": "redwall::RW-RECIPE-fresh-trout-salad-with-mustard-and-cress",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Remembered trout meal",
+     "id": "lord_brocktree::LB-RECIPE-remembered-grayling-meal",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Baked fish",
+     "id": "martin_warrior::MW_RECIPE_baked_fish",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Dried fish",
+     "id": "martin_warrior::MW_RECIPE_dried_fish",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Grimjaw grayling feast proposal",
+     "id": "pearls_lutra::PL_RECIPE_grimjaw_grayling_feast_proposal",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Rebel roasted fish",
+     "id": "pearls_lutra::PL_RECIPE_rebel_roasted_fish",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Roasted fish",
+     "id": "martin_warrior::MW_RECIPE_roasted_fish",
+     "use": "direct"
+    },
+    {
+     "label": "Guosim pit-baked trout",
+     "id": "rakkety_tam::RAK_recipe_guosim_pit_baked_trout",
+     "use": "direct"
+    },
+    {
+     "label": "Plant-pantry game version of Megraw's grayling",
+     "id": "marlfox::MF_RECIPE_megraw_s_grayling",
+     "use": "direct"
+    },
+    {
+     "label": "Plant-pantry game version of Netted fish (ordered)",
+     "id": "marlfox::MF_RECIPE_netted_fish_ordered",
+     "use": "direct"
+    },
+    {
+     "label": "Plant-pantry game version of Rats' fire-cooked fish",
+     "id": "marlfox::MF_RECIPE_rats_fire_cooked_fish",
+     "use": "direct"
+    },
+    {
+     "label": "Refuge trout with gooseberry wine and herbs",
+     "id": "redwall::RW-RECIPE-grayling-la-redwall",
+     "use": "direct"
+    },
+    {
+     "label": "Remembered trout meal",
+     "id": "lord_brocktree::LB-RECIPE-remembered-trout-meal",
+     "use": "direct"
+    },
+    {
+     "label": "Woodland grill with trout, hazelnut oil",
+     "id": "mossflower::MF_recipe_baby_trout_grilled_in_butter",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Durral's dried-fish biscuit soup",
+     "id": "pearls_lutra::PL_RECIPE_durral_s_dried_fish_biscuit_soup",
+     "use": "component"
+    },
+    {
+     "label": "Game adaptation: Fish guts boiled in old tallowfat",
+     "id": "pearls_lutra::PL_RECIPE_fish_guts_boiled_in_old_tallowfat",
+     "use": "component"
+    },
+    {
+     "label": "Game dry: trout fry, mussel",
+     "id": "salamandastron::SAL_recipe_sun_dried_trout_fry_and_shrimp",
+     "use": "component"
+    }
+   ]
+  },
+  {
+   "item_key": "dace",
+   "leaf_id": "",
+   "targets": [
+    "LEAF_dace"
+   ],
+   "direct_count": 10,
+   "component_count": 0,
+   "dishes": [
+    {
+     "label": "Baked dace",
+     "id": "taggerung::TAG_recipe_baked_elvers",
+     "use": "direct"
+    },
+    {
+     "label": "Camp dace",
+     "id": "triss::TRI_recipe_rudd_camp_fish",
+     "use": "direct"
+    },
+    {
+     "label": "Cavemob-style dace and herb pie",
+     "id": "taggerung::TAG_recipe_snakeyfish_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Fried dace",
+     "id": "taggerung::TAG_recipe_fried_elvers",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Grandmother Brookback's crusted dace",
+     "id": "lord_brocktree::LB-RECIPE-grandmother-brookback-s-crusted-dace",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Smelts (Highbeast catch)",
+     "id": "martin_warrior::MW_RECIPE_smelts_highbeast_catch",
+     "use": "direct"
+    },
+    {
+     "label": "Poached dace",
+     "id": "taggerung::TAG_recipe_poached_dace",
+     "use": "direct"
+    },
+    {
+     "label": "Roasted dace",
+     "id": "taggerung::TAG_recipe_roasted_elvers",
+     "use": "direct"
+    },
+    {
+     "label": "Stewed dace",
+     "id": "taggerung::TAG_recipe_stewed_elvers",
+     "use": "direct"
+    },
+    {
+     "label": "Tent-canvas river fish catch",
+     "id": "outcast::OUT_recipe_tent_canvas_river_fish_catch",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "item_key": "salmon",
+   "leaf_id": "",
+   "targets": [],
+   "direct_count": 0,
+   "component_count": 0,
+   "dishes": []
+  },
+  {
+   "item_key": "perch",
+   "leaf_id": "",
+   "targets": [
+    "LEAF_perch"
+   ],
+   "direct_count": 14,
+   "component_count": 0,
+   "dishes": [
+    {
+     "label": "Baked fish",
+     "id": "mossflower::MF_recipe_baked_fish",
+     "use": "direct"
+    },
+    {
+     "label": "Charcoal-cooked fish",
+     "id": "long_patrol::LP-RECIPE-charcoal-cooked-fish",
+     "use": "direct"
+    },
+    {
+     "label": "Cooked fish and loaf for Grubwhacker",
+     "id": "mossflower::MF_recipe_cooked_fish_and_loaf_for_grubwhacker",
+     "use": "direct"
+    },
+    {
+     "label": "Cooked fish ration",
+     "id": "long_patrol::LP-RECIPE-cooked-fish-ration",
+     "use": "direct"
+    },
+    {
+     "label": "Fresh-catch perch meal",
+     "id": "long_patrol::LP-RECIPE-scavenged-perch",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Shannies (Highbeast catch)",
+     "id": "martin_warrior::MW_RECIPE_shannies_highbeast_catch",
+     "use": "direct"
+    },
+    {
+     "label": "Herbed perch meal",
+     "id": "long_patrol::LP-RECIPE-tench-meal",
+     "use": "direct"
+    },
+    {
+     "label": "Perch and watercress broth",
+     "id": "long_patrol::LP-RECIPE-gudgeon-with-frogspawn-broth",
+     "use": "direct"
+    },
+    {
+     "label": "Perch camp fish",
+     "id": "rakkety_tam::RAK_recipe_gulo_s_pike",
+     "use": "direct"
+    },
+    {
+     "label": "Poached perch proposal",
+     "id": "taggerung::TAG_recipe_requested_perch_or_trout",
+     "use": "direct"
+    },
+    {
+     "label": "River-rat fish",
+     "id": "rakkety_tam::RAK_recipe_river_rat_fish",
+     "use": "direct"
+    },
+    {
+     "label": "Rulango's fish meal",
+     "id": "lord_brocktree::LB-RECIPE-rulango-s-fish-meal",
+     "use": "direct"
+    },
+    {
+     "label": "Tent-canvas river fish catch",
+     "id": "outcast::OUT_recipe_tent_canvas_river_fish_catch",
+     "use": "direct"
+    },
+    {
+     "label": "Woodland grill with perch, bread, cress",
+     "id": "mossflower::MF_recipe_reed_grilled_bream_with_toast_and_cress",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "item_key": "carp",
+   "leaf_id": "",
+   "targets": [],
+   "direct_count": 0,
+   "component_count": 0,
+   "dishes": []
+  },
+  {
+   "item_key": "whitefish",
+   "leaf_id": "",
+   "targets": [
+    "LEAF_whitefish"
+   ],
+   "direct_count": 4,
+   "component_count": 0,
+   "dishes": [
+    {
+     "label": "Game adaptation: Butterfish (Highbeast catch)",
+     "id": "martin_warrior::MW_RECIPE_butterfish_highbeast_catch",
+     "use": "direct"
+    },
+    {
+     "label": "Grilled whitefish",
+     "id": "taggerung::TAG_recipe_grilled_burbot",
+     "use": "direct"
+    },
+    {
+     "label": "Whitefish with young seaweed",
+     "id": "taggerung::TAG_recipe_baby_sole_with_seaweed",
+     "use": "direct"
+    },
+    {
+     "label": "Willow-roasted whitefish",
+     "id": "taggerung::TAG_recipe_fire_roasted_vendace",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "item_key": "dried_fish",
+   "leaf_id": "",
+   "targets": [
+    "COMPONENT_shared_dried_trout"
+   ],
+   "direct_count": 1,
+   "component_count": 0,
+   "dishes": [
+    {
+     "label": "Game adaptation: Durral's dried-fish biscuit soup",
+     "id": "pearls_lutra::PL_RECIPE_durral_s_dried_fish_biscuit_soup",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "item_key": "flour",
+   "leaf_id": "",
+   "targets": [
+    "COMPONENT_shared_barley_flour",
+    "COMPONENT_shared_oat_flour",
+    "COMPONENT_shared_selected_flour",
+    "COMPONENT_shared_wheat_flour",
+    "COMPONENT_shared_wholegrain_oat_flour",
+    "COMPONENT_shared_wholemeal_wheat_flour"
+   ],
+   "direct_count": 562,
+   "component_count": 92,
+   "dishes": [
+    {
+     "label": "Abbey Trifle",
+     "id": "long_patrol::LP-RECIPE-abbey-trifle",
+     "use": "direct"
+    },
+    {
+     "label": "Almond and chestnut slices with redcurrant preserve",
+     "id": "outcast::OUT_recipe_almond_and_chestnut_slices_with_redcurrant_preserve",
+     "use": "direct"
+    },
+    {
+     "label": "Almond slice",
+     "id": "rakkety_tam::RAK_recipe_almond_slice",
+     "use": "direct"
+    },
+    {
+     "label": "Almond wafers",
+     "id": "marlfox::MF_RECIPE_almond_wafers",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and blackberry crumble with arrowroot sauce",
+     "id": "outcast::OUT_recipe_apple_and_blackberry_crumble_with_arrowroot_sauce",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and blackberry pudding",
+     "id": "martin_warrior::MW_RECIPE_apple_and_blackberry_pudding",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and damson pie",
+     "id": "pearls_lutra::PL_RECIPE_apple_and_damson_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and greengage crumble with honey",
+     "id": "outcast::OUT_recipe_apple_and_greengage_crumble_with_honey",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and redcurrant pie",
+     "id": "long_patrol::LP-RECIPE-apple-and-redcurrant-pie",
+     "use": "direct"
+    },
+    {
+     "label": "Apple blackberry and plum crumble with greensap maple sauce",
+     "id": "long_patrol::LP-RECIPE-apple-blackberry-and-plum-crumble-with-greensap-maple-sauce",
+     "use": "direct"
+    },
+    {
+     "label": "Apple cream flan — plant/approved-fish game adaptation",
+     "id": "taggerung::TAG_recipe_apple_cream_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Apple flan",
+     "id": "taggerung::TAG_recipe_apple_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Apple oat-cream pudding",
+     "id": "long_patrol::LP-RECIPE-apple-and-cream-pudding",
+     "use": "direct"
+    },
+    {
+     "label": "Apple pie",
+     "id": "lord_brocktree::LB-RECIPE-apple-pie",
+     "use": "direct"
+    },
+    {
+     "label": "Apple pie of Burdilo's poem",
+     "id": "triss::TRI_recipe_apple_pie_of_burdilo_s_poem",
+     "use": "direct"
+    },
+    {
+     "label": "Apple turnover",
+     "id": "salamandastron::SAL_recipe_apple_turnover",
+     "use": "direct"
+    },
+    {
+     "label": "Apple turnover with maple syrup",
+     "id": "marlfox::MF_RECIPE_apple_turnover_with_maple_syrup",
+     "use": "direct"
+    },
+    {
+     "label": "Apple turnovers",
+     "id": "martin_warrior::MW_RECIPE_apple_turnovers",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-and-blackberry crumble",
+     "id": "marlfox::MF_RECIPE_apple_and_blackberry_crumble",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-and-blackcurrant flan",
+     "id": "marlfox::MF_RECIPE_apple_and_blackcurrant_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-and-strawberry crumble",
+     "id": "marlfox::MF_RECIPE_apple_and_strawberry_crumble",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-blackcurrant flan",
+     "id": "triss::TRI_recipe_apple_blackcurrant_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-pear turnover",
+     "id": "triss::TRI_recipe_apple_pear_turnover",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-raspberry flan with mint cream pattern — plant/approved-fish game adaptation",
+     "id": "taggerung::TAG_recipe_apple_raspberry_flan_with_mint_cream_pattern",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-whortleberry pudding",
+     "id": "triss::TRI_recipe_apple_whortleberry_pudding",
+     "use": "direct"
+    },
+    {
+     "label": "Apples and scones",
+     "id": "marlfox::MF_RECIPE_apples_and_scones",
+     "use": "direct"
+    },
+    {
+     "label": "Applescones",
+     "id": "martin_warrior::MW_RECIPE_applescones",
+     "use": "direct"
+    },
+    {
+     "label": "Arrowroot and almond slices",
+     "id": "outcast::OUT_recipe_arrowroot_and_almond_slices",
+     "use": "direct"
+    },
+    {
+     "label": "Arrowroot biscuits with honey",
+     "id": "outcast::OUT_recipe_arrowroot_biscuits_with_honey",
+     "use": "direct"
+    },
+    {
+     "label": "Arrowroot wafers",
+     "id": "salamandastron::SAL_recipe_arrowroot_wafers",
+     "use": "direct"
+    },
+    {
+     "label": "Arven's hard scones",
+     "id": "pearls_lutra::PL_RECIPE_arven_s_hard_scones",
+     "use": "direct"
+    },
+    {
+     "label": "Bad-cook hard scones",
+     "id": "rakkety_tam::RAK_recipe_bad_cook_hard_scones",
+     "use": "direct"
+    },
+    {
+     "label": "Baked fruit loaf",
+     "id": "triss::TRI_recipe_baked_fruit_loaf",
+     "use": "direct"
+    },
+    {
+     "label": "Banquet cakes",
+     "id": "rakkety_tam::RAK_recipe_banquet_cakes",
+     "use": "direct"
+    },
+    {
+     "label": "Banquet tarts",
+     "id": "rakkety_tam::RAK_recipe_banquet_tarts",
+     "use": "direct"
+    },
+    {
+     "label": "Banquet turnovers",
+     "id": "rakkety_tam::RAK_recipe_banquet_turnovers",
+     "use": "direct"
+    },
+    {
+     "label": "Barley and beet soup with corn dumplings",
+     "id": "long_patrol::LP-RECIPE-barley-and-beet-soup-with-corn-dumplings",
+     "use": "direct"
+    },
+    {
+     "label": "Barley and honey scones",
+     "id": "long_patrol::LP-RECIPE-barley-and-honey-scones",
+     "use": "direct"
+    },
+    {
+     "label": "Barley bread",
+     "id": "marlfox::MF_RECIPE_barley_bread",
+     "use": "direct"
+    },
+    {
+     "label": "Barley feast bread",
+     "id": "outcast::OUT_recipe_barley_feast_bread",
      "use": "direct"
     }
    ]

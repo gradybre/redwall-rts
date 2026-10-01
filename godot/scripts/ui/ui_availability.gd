@@ -57,9 +57,12 @@ const UiRegistry := preload("res://scripts/ui/ui_registry.gd")
 
 ## The element is built and driven by real state.
 const REASON_WIRED: int = 0
-const REASON_NO_BUILDING_STORE: int = 1
-const REASON_NO_TRANSFORM_STORE: int = 2
-const REASON_NO_SAVE_CODEC: int = 3
+## Decision 0511 renamed indices 1-3 and replaced 14, because each NAMED something that has
+## since landed: the Building/Room/Furniture stores, the Transform store and the save codec
+## all exist on master. The index is kept and the claim now names the gap that remains.
+const REASON_NO_BUILDINGS_PLACED: int = 1
+const REASON_NO_WORLD_PICKING: int = 2
+const REASON_NO_SAVE_FILES: int = 3
 const REASON_NO_MANUAL_TASK_STORE: int = 4
 const REASON_NO_HEATING_DEMAND: int = 5
 const REASON_NO_RECIPE_ORDER_STORE: int = 6
@@ -70,14 +73,16 @@ const REASON_NO_TUTORIAL_STATE: int = 10
 const REASON_NO_FORECAST_MODEL: int = 11
 const REASON_PANEL_NOT_BUILT: int = 12
 const REASON_NO_WORLD_CAMERA: int = 13
-const REASON_NO_NOTICE_STORE: int = 14
-const REASON_COUNT: int = 15
+const REASON_NO_RELATIONSHIP_STORE: int = 14
+const REASON_NO_RELIEF_SEED_POLICY: int = 15
+const REASON_NO_PIN_OWNER: int = 16
+const REASON_COUNT: int = 17
 
 const REASON_KEYS: Array[StringName] = [
 	&"WIRED",
-	&"UI_NO_BUILDING_STORE",
-	&"UI_NO_TRANSFORM_STORE",
-	&"UI_NO_SAVE_CODEC",
+	&"UI_NO_BUILDINGS_PLACED",
+	&"UI_NO_WORLD_PICKING",
+	&"UI_NO_SAVE_FILES",
 	&"UI_NO_MANUAL_TASK_STORE",
 	&"UI_NO_HEATING_DEMAND",
 	&"UI_NO_RECIPE_ORDER_STORE",
@@ -88,7 +93,9 @@ const REASON_KEYS: Array[StringName] = [
 	&"UI_NO_FORECAST_MODEL",
 	&"UI_PANEL_NOT_BUILT",
 	&"UI_NO_WORLD_CAMERA",
-	&"UI_NO_NOTICE_STORE",
+	&"UI_NO_RELATIONSHIP_STORE",
+	&"UI_NO_RELIEF_SEED_POLICY",
+	&"UI_NO_PIN_OWNER",
 ]
 
 ## §2.2's disabled wording. Every unavailable element's accessible description starts with it.
@@ -103,9 +110,9 @@ const COMPACT_REASON_LIMIT: int = 40
 ## full-size unavailable page, so the row prints THIS and the long sentence stays in inspection.
 const COMPACT_TEXTS: Array[String] = [
 	"",
-	"needs the Building store (task 06)",
-	"needs the movement store (task 05)",
-	"needs the save codec (task 09)",
+	"no buildings placed or commands wired",
+	"needs camera picking and multi-select",
+	"no save files written yet (task 09)",
 	"needs the ManualTask store",
 	"no system supplies heating demand",
 	"needs the recipe order store",
@@ -113,17 +120,22 @@ const COMPACT_TEXTS: Array[String] = [
 	"needs milestone state",
 	"needs the immigration queue",
 	"needs tutorial state",
-	"needs the forecast model",
+	"needs a harvest forecast model",
 	"panel not built this milestone",
 	"no camera is bound",
-	"needs the notice history store",
+	"needs the relationship store",
+	"needs the relief seed policy",
+	"needs a pin/promotion owner",
 ]
 
 const REASON_TEXTS: Array[String] = [
 	"",
-	"no Building, Furniture or Room store exists; task 06 owns those contracts",
-	"no Transform or route store exists; task 05 and SET-MOVE-001 own movement",
-	"no save codec exists; task 09 owns it",
+	"the Building, Room and Furniture stores exist, but no building is placed and no build, room"
+		+ " or bed command is wired; task 06 owns both",
+	"resident poses are stored, but the interface binds no camera to pick or project them and"
+		+ " keeps no multi-selection",
+	"the save codec encodes sections in memory, but some sections are still unwritten and nothing"
+		+ " writes or reads a save file on disk; task 09 owns it",
 	"no ManualTask store exists; blocker U6 leaves its indexing unspecified",
 	"no implemented system supplies a daily heating demand to divide fuel by",
 	"no recipe order or production station store exists",
@@ -131,10 +143,14 @@ const REASON_TEXTS: Array[String] = [
 	"no milestone or Hearth Charter progression state exists",
 	"no immigration candidate queue exists",
 	"no tutorial disclosure state exists",
-	"no forecast model exists; potential harvest must never be drawn as ready food",
+	"no food or harvest forecast model exists (only weather is forecast); potential harvest"
+		+ " must never be drawn as ready food",
 	"the owning store exists, but this panel is not built in this milestone",
 	"the interface binds no camera; the prototype scene's fixed camera is not §6's contract",
-	"no notification history store exists; only the live alert is kept",
+	"no Relationship store exists; residents carry no affinity or contact rows yet",
+	"no relief-seed policy exists; the REQUEST_RELIEF_SEEDS command still refuses",
+	"no pin owner exists: REQ-SET-042's promotion to a generated name awaits the READY_07 I2"
+		+ " naming/catalog compatibility gate, and no ledger-favorites store exists",
 ]
 
 # --- the claim ------------------------------------------------------------------------------------
@@ -147,7 +163,7 @@ const REASON_OF: Array[int] = [
 	REASON_WIRED,                     # 004 Wood counter
 	REASON_WIRED,                     # 005 Stone counter
 	REASON_WIRED,                     # 006 Population counter
-	REASON_NO_BUILDING_STORE,         # 007 Bed counter
+	REASON_NO_BUILDINGS_PLACED,       # 007 Bed counter
 	REASON_WIRED,                     # 008 Expand resources
 	REASON_WIRED,                     # 009 Resource ledger
 	REASON_WIRED,                     # 010 Alert stack
@@ -164,18 +180,18 @@ const REASON_OF: Array[int] = [
 	REASON_WIRED,                     # 021 Minimap view
 	REASON_WIRED,                     # 022 Map layers
 	REASON_WIRED,                     # 023 World surface
-	REASON_NO_TRANSFORM_STORE,        # 024 Selection ring
-	REASON_NO_TRANSFORM_STORE,        # 025 Box selection
+	REASON_NO_WORLD_PICKING,          # 024 Selection ring
+	REASON_NO_WORLD_PICKING,          # 025 Box selection
 	REASON_WIRED,                     # 026 Command strip
-	REASON_NO_BUILDING_STORE,         # 027 Build command
+	REASON_NO_BUILDINGS_PLACED,       # 027 Build command
 	REASON_WIRED,                     # 028 Zone command
 	REASON_PANEL_NOT_BUILT,           # 029 Jobs command
 	REASON_NO_RECIPE_ORDER_STORE,     # 030 Food command
 	REASON_WIRED,                     # 031 Residents command
 	REASON_NO_MILESTONE_STATE,        # 032 Feast command
 	REASON_NO_MILESTONE_STATE,        # 033 Objectives command
-	REASON_NO_BUILDING_STORE,         # 034 Demolish command
-	REASON_NO_BUILDING_STORE,         # 035 Upgrade command
+	REASON_NO_BUILDINGS_PLACED,       # 034 Demolish command
+	REASON_NO_BUILDINGS_PLACED,       # 035 Upgrade command
 	REASON_WIRED,                     # 036 Context detail
 	REASON_WIRED,                     # 037 Detail title
 	REASON_WIRED,                     # 038 Detail tabs
@@ -187,18 +203,18 @@ const REASON_OF: Array[int] = [
 	REASON_NO_RECIPE_ORDER_STORE,     # 044 Order row
 	REASON_PANEL_NOT_BUILT,           # 045 Fish stock row
 	REASON_PANEL_NOT_BUILT,           # 046 Crop stat row
-	REASON_NO_BUILDING_STORE,         # 047 Room row
-	REASON_PANEL_NOT_BUILT,           # 048 Relationship row
+	REASON_NO_BUILDINGS_PLACED,       # 047 Room row
+	REASON_NO_RELATIONSHIP_STORE,     # 048 Relationship row
 	REASON_PANEL_NOT_BUILT,           # 049 Danger consent
 	REASON_PANEL_NOT_BUILT,           # 050 Quota slider
 	REASON_WIRED,                     # 051 Workspace frame
-	REASON_NO_BUILDING_STORE,         # 052 Build catalog
-	REASON_NO_BUILDING_STORE,         # 053 Building card
-	REASON_NO_BUILDING_STORE,         # 054 Placement ghost
-	REASON_NO_BUILDING_STORE,         # 055 Placement cost strip
-	REASON_NO_BUILDING_STORE,         # 056 Rotate placement
-	REASON_NO_BUILDING_STORE,         # 057 Room tool
-	REASON_NO_BUILDING_STORE,         # 058 Furniture palette
+	REASON_NO_BUILDINGS_PLACED,       # 052 Build catalog
+	REASON_NO_BUILDINGS_PLACED,       # 053 Building card
+	REASON_NO_BUILDINGS_PLACED,       # 054 Placement ghost
+	REASON_NO_BUILDINGS_PLACED,       # 055 Placement cost strip
+	REASON_NO_BUILDINGS_PLACED,       # 056 Rotate placement
+	REASON_NO_BUILDINGS_PLACED,       # 057 Room tool
+	REASON_NO_BUILDINGS_PLACED,       # 058 Furniture palette
 	REASON_WIRED,                     # 059 Zone brush
 	REASON_NO_RECIPE_ORDER_STORE,     # 060 Recipe list
 	REASON_NO_RECIPE_ORDER_STORE,     # 061 Recipe card
@@ -216,8 +232,8 @@ const REASON_OF: Array[int] = [
 	REASON_WIRED,                     # 073 Tooltip
 	REASON_WIRED,                     # 074 Focus outline
 	REASON_PANEL_NOT_BUILT,           # 075 Search filter
-	REASON_NO_SAVE_CODEC,             # 076 Save browser
-	REASON_NO_SAVE_CODEC,             # 077 Save row
+	REASON_NO_SAVE_FILES,             # 076 Save browser
+	REASON_NO_SAVE_FILES,             # 077 Save row
 	REASON_NO_SETTINGS_STORE,         # 078 Settings menu
 	REASON_NO_SETTINGS_STORE,         # 079 Setting control
 	REASON_NO_SETTINGS_STORE,         # 080 Key binding row
@@ -228,7 +244,7 @@ const REASON_OF: Array[int] = [
 	REASON_WIRED,                     # 085 Error panel
 	REASON_WIRED,                     # 086 Pause label
 	REASON_PANEL_NOT_BUILT,           # 087 World access list
-	REASON_NO_TRANSFORM_STORE,        # 088 Cycle selection
+	REASON_NO_WORLD_PICKING,          # 088 Cycle selection
 	REASON_NO_WORLD_CAMERA,           # 089 Zoom buttons
 	REASON_NO_WORLD_CAMERA,           # 090 Pitch slider
 	REASON_PANEL_NOT_BUILT,           # 091 Schedule template
@@ -237,8 +253,8 @@ const REASON_OF: Array[int] = [
 	REASON_WIRED,                     # 094 Scroll bar
 	REASON_PANEL_NOT_BUILT,           # 095 Tab navigation
 	REASON_WIRED,                     # 096 Context quick menu
-	REASON_PANEL_NOT_BUILT,           # 097 Relief seed action
-	REASON_PANEL_NOT_BUILT,           # 098 Pin resident
+	REASON_NO_RELIEF_SEED_POLICY,     # 097 Relief seed action
+	REASON_NO_PIN_OWNER,              # 098 Pin resident
 	REASON_NO_MILESTONE_STATE,        # 099 Ration reserve
 	REASON_WIRED,                     # 100 Work policy
 	REASON_WIRED,                     # 101 Date trigger

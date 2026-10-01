@@ -36,6 +36,7 @@ const SimClockScript := preload("res://scripts/core/sim_clock.gd")
 ## ARCH-CMD-003's 24 kind ids, transcribed from the architecture's sorted list rather than read
 ## back out of `catalog.gd`: a renumbering must fail here, not agree with itself.
 const KIND_ACCEPT_CANDIDATES: int = 0
+const KIND_APPOINT_WARDEN: int = 1
 const KIND_CANCEL_JOB: int = 3
 const KIND_CANCEL_MANUAL: int = 4
 const KIND_DESIGNATE_ZONE: int = 8
@@ -551,13 +552,13 @@ func test_every_unimplemented_kind_refuses_with_the_unsupported_feature_code() -
 		assert_equal(_last_code(), CommandDispatchScript.RESULT_UNSUPPORTED_FEATURE,
 			"kind %d refuses as an unsupported feature" % kind)
 		refused += 1
-	assert_equal(refused, 18, "eighteen of ARCH-CMD-003's 24 kinds have no owning store here")
+	assert_equal(refused, 17, "seventeen of ARCH-CMD-003's 24 kinds have no owning store here")
 
 
-func test_exactly_six_kinds_are_implemented_and_they_are_the_named_six() -> void:
+func test_exactly_seven_kinds_are_implemented_and_they_are_the_named_seven() -> void:
 	"""The supported set is asserted by NAME, so adding a kind cannot pass by changing a count."""
-	assert_equal(_dispatch.supported_kind_count(), 6, "six kinds have an owning store")
-	for kind: int in [KIND_CANCEL_JOB, KIND_DESIGNATE_ZONE, KIND_NAME_RESIDENT,
+	assert_equal(_dispatch.supported_kind_count(), 7, "seven kinds have an owning store")
+	for kind: int in [KIND_APPOINT_WARDEN, KIND_CANCEL_JOB, KIND_DESIGNATE_ZONE, KIND_NAME_RESIDENT,
 			KIND_SET_ACTIVITY_SCHEDULE, KIND_SET_JOB_PRIORITIES, KIND_SET_POLICY]:
 		assert_true(_dispatch.is_supported_kind(kind), "kind %d is implemented" % kind)
 

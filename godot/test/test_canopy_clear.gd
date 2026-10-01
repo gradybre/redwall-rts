@@ -11,6 +11,8 @@ const ViewScript := preload("res://demo/forestry/forest_view.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
+const CommandScript := preload("res://demo/control/demo_command.gd")
 
 const WOOD: int = 60
 const EPS: float = 0.001
@@ -325,3 +327,127 @@ func test_the_silhouette_goes_on_the_body_only() -> void:
 	var capsule := MeshInstance3D.new()
 	placeholder.add_child(capsule)
 	assert_equal(CanopyScript.set_xray(placeholder, overlay), 1, "a placeholder's mesh")
+
+
+# --- the live frame (the game's own path: _process, the selection, the U view, the prewarm) ---------
+
+func _live(trees: Array[Dictionary]) -> Array:
+	"""[canopy, rig, stand, view, cast, command]: _canopy's trees, a placeholder cast and a real command
+	layer (outside the tree, the frame reads the rig's and the actors' own transforms)."""
+	var made: Array = _canopy(trees)
+	var world := _keep(DemoWorldScript.new()) as DemoWorldScript
+	var cast := _keep(DemoCastScript.new()) as DemoCastScript
+	cast.build({}, world.points_of_interest(), world.obstacles())
+	cast.set_bounds(world.bounds())
+	var command := _keep(CommandScript.new()) as CommandScript
+	command.configure(cast, _keep(Camera3D.new()) as Camera3D, null, ServicesScript.new())
+	(made[0] as CanopyScript).configure(made[1], made[2], made[3], cast, command)
+	return [made[0], made[1], made[2], made[3], cast, command]
+
+
+static func _pose(rig: CameraScript, focus: Vector3, yaw_deg: float, pitch_deg: float, distance: float) -> void:
+	"""Snap the rig to a pose."""
+	rig._target_focus = focus
+	rig._target_yaw = deg_to_rad(yaw_deg)
+	rig._target_pitch = deg_to_rad(pitch_deg)
+	rig._target_distance = distance
+	rig.snap()
+
+
+func test_the_frame_thins_a_crown_over_a_selected_resident() -> void:
+	"""_process aims a sight line at each selected resident's chest: an oak between the eye and a selected
+	mouse thins though the line to the focus passes clear of it; unselected, it does not."""
+	var made: Array = _live([_oak_at(Vector2(20.0, 10.0), 1.0)])
+	var canopy: CanopyScript = made[0]
+	var cast: DemoCastScript = made[4]
+	var command: CommandScript = made[5]
+	_pose(made[1], Vector3(50.0, 0.0, -5.0), -45.0, 10.4, 43.1)
+	cast.actor(0).position = Vector3(20.0, 0.0, 0.0)
+	for frame: int in 10:
+		canopy._process(0.1)
+	assert_almost_equal(canopy.fade_of(0), 0.0, "nobody selected: the focus's line is clear of it")
+	command.select(PackedInt32Array([0]))
+	for frame: int in 10:
+		canopy._process(0.1)
+	assert_equal(canopy._target_count, 1, "one resident aimed at")
+	assert_almost_equal(canopy.fade_of(0), 1.0, "the crown over the selected mouse")
+
+
+func test_the_silhouette_follows_the_selection_and_the_underground_view() -> void:
+	"""A selected resident wears the silhouette; in the underground view nobody does; out of it, again."""
+	var made: Array = _live([_oak_at(Vector2(60.0, 60.0), 1.0)])
+	var canopy: CanopyScript = made[0]
+	var cast: DemoCastScript = made[4]
+	var command: CommandScript = made[5]
+	command.select(PackedInt32Array([1]))
+	canopy._process(0.1)
+	assert_true(canopy.xray_on(1) and not canopy.xray_on(0), "the selected one")
+	assert_not_null(CanopyScript._first_mesh(cast.actor(1)).material_overlay, "wearing it")
+	command.tunnels().view.on = true
+	canopy._process(0.1)
+	assert_false(canopy.xray_on(1), "none in the underground view")
+	assert_null(CanopyScript._first_mesh(cast.actor(1)).material_overlay, "taken off")
+	command.tunnels().view.on = false
+	canopy._process(0.1)
+	assert_true(canopy.xray_on(1), "back on the surface")
+
+
+func test_the_prewarm_leaves_only_the_selected_wearing_the_silhouette() -> void:
+	"""begin_prewarm puts the silhouette on every resident; end_prewarm takes it off all but the selected."""
+	var made: Array = _live([_oak_at(Vector2(0.0, 10.0), 1.0)])
+	var canopy: CanopyScript = made[0]
+	var cast: DemoCastScript = made[4]
+	var command: CommandScript = made[5]
+	command.select(PackedInt32Array([1]))
+	canopy._process(0.1)
+	canopy.begin_prewarm()
+	for i: int in cast.actor_count():
+		assert_not_null(CanopyScript._first_mesh(cast.actor(i)).material_overlay, "resident %d drawn with it" % i)
+	canopy.end_prewarm()
+	for i: int in cast.actor_count():
+		var overlay: Material = CanopyScript._first_mesh(cast.actor(i)).material_overlay
+		assert_true((overlay != null) == (i == 1), "resident %d %s" % [i, "keeps it" if i == 1 else "has none"])
+
+
+func test_a_hidden_faded_tree_is_handed_back() -> void:
+	"""A faded tree hidden (felled, replaced) gives its mesh its own material back the next frame."""
+	var made: Array = _live([_oak_at(Vector2(0.0, 10.0), 1.0)])
+	var canopy: CanopyScript = made[0]
+	var view: ViewScript = made[3]
+	for frame: int in 5:
+		canopy.update(Vector3(0.0, 6.0, 25.0), Vector3.ZERO, 0.1)
+	assert_equal(canopy.faded_count(), 1, "fading")
+	view.tree_node(0).visible = false
+	canopy.update(Vector3(0.0, 6.0, 25.0), Vector3.ZERO, 0.1)
+	assert_equal(canopy.faded_count(), 0, "released")
+	assert_null(CanopyScript._first_mesh(view.tree_node(0)).material_override, "its own material")
+
+
+func test_a_felled_tree_leaves_the_crowns_on_the_next_frame() -> void:
+	"""The stand's revision moving is enough: the next update reads the crowns afresh (a felled oak's crown
+	holds nothing), without waiting for the periodic refresh."""
+	var made: Array = _live([_oak_at(Vector2(0.0, 0.0), 1.0)])
+	var canopy: CanopyScript = made[0]
+	var stand: StandScript = made[2]
+	var inside := Vector3(0.0, Math.CROWN_CENTRE_M[0], 0.0)
+	canopy.update(Vector3(30.0, 6.0, 30.0), Vector3(30.0, 0.0, 0.0), 0.01)
+	assert_true(canopy.crown_holding(inside) == 0, "standing: its crown")
+	assert_true(stand.fell_into(0, 1, Vector2.RIGHT, false, _read), "felled")
+	canopy.update(Vector3(30.0, 6.0, 30.0), Vector3(30.0, 0.0, 0.0), 0.01)
+	assert_equal(canopy.crown_holding(inside), -1, "gone")
+
+
+func test_the_rigs_own_frame_keeps_the_eye_out_of_a_crown() -> void:
+	"""demo_camera.gd step(): the clearance applies every frame, not only on a snap."""
+	var made: Array = _live([_oak_at(Vector2(0.0, 0.0), 1.0)])
+	var canopy: CanopyScript = made[0]
+	var rig: CameraScript = made[1]
+	rig._target_focus = Vector3.ZERO
+	rig._focus = Vector3.ZERO
+	for value: Array in [[&"_target_yaw", PI / 2.0], [&"_yaw", PI / 2.0], [&"_target_pitch", deg_to_rad(30.0)],
+			[&"_pitch", deg_to_rad(30.0)], [&"_target_distance", 7.0], [&"_distance", 7.0]]:
+		rig.set(value[0], value[1])
+	assert_true(canopy.crown_holding(Math.eye_direction(PI / 2.0, deg_to_rad(30.0)) * 7.0) >= 0, "7 m: inside")
+	rig.step(1.0 / 60.0)
+	var eye: Vector3 = Math.eye_direction(rig._yaw, rig._pitch) * rig.distance()
+	assert_true(rig.distance() > 7.0 and canopy.crown_holding(eye) < 0, "the frame cleared it (%.2f)" % rig.distance())

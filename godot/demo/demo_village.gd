@@ -130,6 +130,7 @@ const SHADOW_REFIT_M: float = 0.5
 ## Frames the canopy's fade and silhouette samples, and the frost and snow overlay, are drawn for at boot
 ## (as the U view's, decision 0206).
 const CANOPY_PREWARM_FRAMES: int = 2
+const COVER_PREWARM_FRAMES: int = 2
 
 @onready var _game: Node = $Game
 
@@ -197,7 +198,7 @@ func _warm_and_open() -> void:
 	_prewarm.add_frame_step("underground view", UndergroundPrewarmScript.FRAMES, view.begin_prewarm, view.end_prewarm)
 	_prewarm.add_frame_step("canopy fade and silhouette", CANOPY_PREWARM_FRAMES, _canopy.begin_prewarm, _canopy.end_prewarm)
 	var weather_view: WeatherViewScript = (_command as DemoCommandScript).tunnels().ext.weather_view
-	_prewarm.add_frame_step("frost and snow overlay", CANOPY_PREWARM_FRAMES, weather_view.begin_prewarm, weather_view.end_prewarm)
+	_prewarm.add_frame_step("frost and snow overlay", COVER_PREWARM_FRAMES, weather_view.begin_prewarm, weather_view.end_prewarm)
 	_prewarm.warm()
 	_prewarm.release_after_frames(_open_running)
 

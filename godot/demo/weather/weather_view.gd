@@ -67,6 +67,8 @@ var _overlay: ShaderMaterial = null
 ## The village's buildings and props, which wear the overlay while a cover lies.
 var _overlaid: Array[GeometryInstance3D] = []
 var _overlay_on: bool = false
+## While the boot prewarm's frame step runs, the overlay stays on whatever the cover (see begin_prewarm).
+var _prewarming: bool = false
 var _share: float = 1.0
 var _fog_add: float = 0.0
 var _cover: float = 0.0
@@ -250,17 +252,19 @@ func _apply_targets(weight: float) -> void:
 func begin_prewarm() -> void:
 	"""The boot prewarm's frame step (demo_prewarm.gd, decisions 0205/0206): the village wears the overlay
 	for its frames -- drawn, so its pipelines compile, but with no cover, so nothing shows."""
+	_prewarming = true
 	_set_overlay(true)
 
 
 func end_prewarm() -> void:
 	"""Back to what the weather says (no overlay on a clear day)."""
+	_prewarming = false
 	_set_overlay(_cover > COVER_OFF)
 
 
 func _wear_overlay(on: bool) -> void:
 	"""Put the cover's overlay on the village's buildings and props, or take it off (only on a change)."""
-	if on != _overlay_on:
+	if on != _overlay_on and not _prewarming:
 		_set_overlay(on)
 
 

@@ -32,10 +32,7 @@ uniform float clearing_wobble = 2.5;
 uniform float south_opening = 15.0;
 uniform float forest_blend = 9.0;
 
-uniform float snow_cover = 0.0;
-uniform float frost_cover = 0.0;
-uniform vec3 snow_color : source_color = vec3(0.93, 0.95, 0.98);
-uniform float water_level_y = -0.18;
+#include "res://demo/weather/cover.gdshaderinc"
 
 varying vec2 world_xz;
 varying float world_y;
@@ -45,12 +42,12 @@ void vertex() {
 	vec4 world = MODEL_MATRIX * vec4(VERTEX, 1.0);
 	world_xz = world.xz;
 	world_y = world.y;
-	world_up = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz).y;
+	world_up = cover_up(MODEL_NORMAL_MATRIX, NORMAL);
 }
 
 // How much frost or snow lies here, 0..1 (see FROST AND SNOW): `path` is the worn-path share.
 float lying(float path, float fine, float mid) {
-	float dry = smoothstep(water_level_y + 0.04, water_level_y + 0.16, world_y);
+	float dry = cover_dry(world_y);
 	float flat_ = smoothstep(0.6, 0.92, world_up);
 	float patchy = smoothstep(0.25, 0.7, fine * 0.55 + mid * 0.55 + snow_cover * 0.35 - frost_cover * 0.2);
 	float amount = snow_cover * dry * flat_ * mix(1.0, 0.45, path);
@@ -110,8 +107,8 @@ void fragment() {
 	dirt *= mix(0.94, 1.04, fine) * mix(0.97, 1.02, detail);
 
 	float cover = lying(path, fine, mid);
-	ALBEDO = mix(mix(grass, dirt, path), snow_color, cover * mix(0.92, 0.55, frost_cover));
-	ROUGHNESS = mix(mix(0.93, 0.88, path), mix(0.78, 0.5, frost_cover), cover);
+	ALBEDO = cover_albedo(mix(grass, dirt, path), cover);
+	ROUGHNESS = cover_roughness(mix(0.93, 0.88, path), cover);
 	SPECULAR = 0.3;
 	NORMAL_MAP = texture(detail_normal, world_xz * 0.33).rgb;
 	NORMAL_MAP_DEPTH = mix(mix(0.55, 1.0, path), 0.25, cover * (1.0 - frost_cover));

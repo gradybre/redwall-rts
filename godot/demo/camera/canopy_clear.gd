@@ -82,7 +82,7 @@ var _wanted_list: PackedInt32Array = PackedInt32Array()
 var _wanted: int = 0
 var _faded_mesh: Array[MeshInstance3D] = []
 ## Source material -> its fade material; and the same fade materials as a list (no per-frame Array).
-var _materials: Dictionary = {}
+var _materials: Dictionary[Material, ShaderMaterial] = {}
 var _material_list: Array[ShaderMaterial] = []
 var _xray: ShaderMaterial = null
 var _xray_on: PackedByteArray = PackedByteArray()
@@ -211,7 +211,7 @@ func _process(delta: float) -> void:
 	_target_count = 0
 	if not below:
 		_aim_at_selected()
-	update(_rig.camera().global_position, _rig.focus(), delta, below)
+	update(eye_of(_rig), _rig.focus(), delta, below)
 	_keep_xray(below)
 
 
@@ -241,8 +241,20 @@ func _aim_at_selected() -> void:
 	for i: int in mini(_cast.actor_count(), _targets.size()):
 		if _command.is_selected(i):
 			var actor := _cast.actor(i) as DemoActorScript
-			_targets[_target_count] = actor.global_position + Vector3.UP * actor.height_m * 0.5
+			_targets[_target_count] = placed_at(actor) + Vector3.UP * actor.height_m * 0.5
 			_target_count += 1
+
+
+static func eye_of(rig: DemoCameraScript) -> Vector3:
+	"""Where the rig's camera is: its world position in the tree, else through the rig's own transform (the
+	rig stands at the village's origin)."""
+	var camera: Camera3D = rig.camera()
+	return camera.global_position if camera.is_inside_tree() else rig.transform * camera.position
+
+
+static func placed_at(node: Node3D) -> Vector3:
+	"""A node's world position in the tree, else its own (the cast stands at the village's origin)."""
+	return node.global_position if node.is_inside_tree() else node.position
 
 
 func set_targets(points: PackedVector3Array) -> void:
@@ -262,7 +274,7 @@ func _want_crowns_between(eye: Vector3, target: Vector3) -> void:
 	for cz: int in range(z0, z1 + 1):
 		for cx: int in range(x0, x1 + 1):
 			var cell: int = _cell_of(cx, cz)
-			if cell < 0:
+			if cell < 0 or _wanted >= MAX_FADED:
 				continue
 			for k: int in _cell_count[cell]:
 				var t: int = _cell_trees[cell * PER_CELL + k]
@@ -284,8 +296,9 @@ func _in_the_way(t: int, eye: Vector3, target: Vector3) -> bool:
 
 func _activate(t: int) -> void:
 	"""Start fading tree `t` (its mesh drawn with its look's fade material), if it is not already."""
-	if _faded_mesh[t] != null or _active_count >= _active.size():
+	if is_instance_valid(_faded_mesh[t]) or _active_count >= _active.size():
 		return
+	_drop_stale(t)
 	var node: Node3D = _view.tree_node(t) if _view != null else null
 	var mesh: MeshInstance3D = _first_mesh(node)
 	if mesh == null or not shown(mesh):
@@ -297,6 +310,14 @@ func _activate(t: int) -> void:
 	_fade[t] = 0.0
 	_active[_active_count] = t
 	_active_count += 1
+
+
+func _drop_stale(t: int) -> void:
+	"""Forget tree `t`'s live fade whose mesh was freed (its node replaced), before it is faded afresh."""
+	for k: int in _active_count:
+		if _active[k] == t:
+			_deactivate(k)
+			return
 
 
 func _ease_fades(eye: Vector3, delta: float) -> void:

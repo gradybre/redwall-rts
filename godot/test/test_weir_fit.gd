@@ -112,12 +112,26 @@ func test_the_ends_move_and_the_plain_wall_fills_the_gaps() -> void:
 	assert_true((out[Mesh.ARRAY_TEX_UV] as PackedVector2Array).size() == v.size(), "UVs carried")
 
 
-func test_a_stretched_copy_keeps_unit_normals() -> void:
-	"""Normals follow the stretch and stay unit length."""
+func test_a_stretched_copy_turns_its_normals_and_tangents_with_it() -> void:
+	"""A copy stretched along x by s: a slanted normal's x shrinks by 1/s (then unit length), a tangent's
+	x grows by s (then unit length, its binormal sign kept)."""
 	var source: Array = _tri_arrays([_tri(Fit.PLAIN_FROM, Fit.PLAIN_TO, 0.3)])
-	var out: Array = Fit.spread(source, Vector2(0.33, 0.0))
-	for n: Vector3 in (out[Mesh.ARRAY_NORMAL] as PackedVector3Array):
-		assert_almost_equal(n.length(), 1.0, "unit")
+	var tangents := PackedFloat32Array()
+	for k: int in 3:
+		tangents.append_array(PackedFloat32Array([0.6, 0.8, 0.0, -1.0]))
+	source[Mesh.ARRAY_TANGENT] = tangents
+	var gap: float = 0.33
+	var out: Array = Fit.spread(source, Vector2(gap, 0.0))
+	var stretch: float = gap / (float(Fit.copies_for(gap)) * (Fit.PLAIN_TO - Fit.PLAIN_FROM))
+	assert_true(absf(stretch - 1.0) > 0.05, "a real stretch (%.3f)" % stretch)
+	var normal: Vector3 = (out[Mesh.ARRAY_NORMAL] as PackedVector3Array)[3]
+	assert_true(normal.is_equal_approx(Vector3(0.6 / stretch, 0.8, 0.0).normalized()), "the normal (%s)" % normal)
+	var t: PackedFloat32Array = out[Mesh.ARRAY_TANGENT]
+	var tangent := Vector3(t[12], t[13], t[14])
+	assert_true(tangent.is_equal_approx(Vector3(0.6 * stretch, 0.8, 0.0).normalized()), "the tangent (%s)" % tangent)
+	assert_almost_equal(t[15], -1.0, "its sign kept")
+	var original: Vector3 = (out[Mesh.ARRAY_NORMAL] as PackedVector3Array)[0]
+	assert_true(original.is_equal_approx(Vector3(0.6, 0.8, 0.0)), "the wall itself unturned")
 
 
 func test_no_gap_no_copies() -> void:

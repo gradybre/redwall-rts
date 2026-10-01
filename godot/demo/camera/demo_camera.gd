@@ -170,9 +170,13 @@ func set_clearance(clearance: Callable) -> void:
 
 
 func _clear_view() -> void:
-	"""Move the drawn distance to where the clearance provider allows (nothing without one)."""
-	if _clearance.is_valid():
-		_distance = float(_clearance.call(_focus, _yaw, _pitch, _distance))
+	"""Move the drawn distance to where the clearance provider allows (nothing without one, nor for an
+	answer that is not a finite distance)."""
+	if not _clearance.is_valid():
+		return
+	var allowed: float = float(_clearance.call(_focus, _yaw, _pitch, _distance))
+	if is_finite(allowed):
+		_distance = allowed
 
 
 func _unhandled_input(event: InputEvent) -> void:

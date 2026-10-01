@@ -15,10 +15,7 @@ uniform vec3 mud_dry : source_color;
 uniform vec3 mud_wet : source_color;
 uniform vec3 bed_color : source_color;
 uniform sampler2D noise : filter_linear_mipmap, repeat_enable;
-uniform float snow_cover = 0.0;
-uniform float frost_cover = 0.0;
-uniform vec3 snow_color : source_color = vec3(0.93, 0.95, 0.98);
-uniform float water_level_y = -0.18;
+#include "res://demo/weather/cover.gdshaderinc"
 
 varying vec2 world_xz;
 varying float world_y;
@@ -40,10 +37,10 @@ void fragment() {
 	vec3 colour = mix(mud_dry, mud_wet, smoothstep(0.45, 0.95, wet));
 	colour = mix(colour, bed_color, smoothstep(0.0, 0.5, v_depth));
 	colour *= mix(0.88, 1.08, fine);
-	float dry = (1.0 - smoothstep(0.55, 0.85, wet)) * smoothstep(water_level_y + 0.04, water_level_y + 0.16, world_y);
+	float dry = (1.0 - smoothstep(0.55, 0.85, wet)) * cover_dry(world_y);
 	float cover = clamp(snow_cover * dry * mix(smoothstep(0.3, 0.7, broad * 0.7 + fine * 0.5), 1.0, (1.0 - frost_cover) * 0.6), 0.0, 1.0);
-	ALBEDO = mix(colour, snow_color, cover * mix(0.92, 0.55, frost_cover));
-	ROUGHNESS = mix(mix(0.95, 0.45, smoothstep(0.75, 1.0, wet)), mix(0.78, 0.5, frost_cover), cover);
+	ALBEDO = cover_albedo(colour, cover);
+	ROUGHNESS = cover_roughness(mix(0.95, 0.45, smoothstep(0.75, 1.0, wet)), cover);
 	SPECULAR = 0.35;
 	ALPHA = smoothstep(0.3, 0.72, v_wet + (broad - 0.5) * 0.35);
 }

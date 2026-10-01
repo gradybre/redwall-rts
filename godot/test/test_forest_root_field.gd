@@ -266,3 +266,17 @@ func _proud_piece(piece_name: String, p: Dictionary) -> Node3D:
 	piece.transform = Transform3D(Basis.IDENTITY, Vector3(at.x, 0.0, at.y))
 	_nodes.append(piece)
 	return piece
+
+
+func test_a_model_is_baked_once() -> void:
+	"""baked(): two pieces drawing the same mesh (the woods' obstacles, then the view) share one field; a
+	different mesh gets its own."""
+	var p: Dictionary = {"key": &"oak_mature", "at": Vector2(3.0, 0.0), "yaw": 0.0, "size": 1.0}
+	var a: MeshInstance3D = _proud_piece("A", p)
+	var b := MeshInstance3D.new()
+	b.mesh = a.mesh
+	_nodes.append(b)
+	var c: MeshInstance3D = _proud_piece("C", p)
+	var first: FieldScript = FieldScript.baked(a, a.transform, 0.0, 1.0, 4.5, 1.1)
+	assert_true(is_same(FieldScript.baked(b, b.transform, 0.0, 1.0, 4.5, 1.1), first), "the same mesh: the same field")
+	assert_false(is_same(FieldScript.baked(c, c.transform, 0.0, 1.0, 4.5, 1.1), first), "another mesh: its own")

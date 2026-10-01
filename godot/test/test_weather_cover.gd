@@ -153,6 +153,21 @@ func test_the_cover_eases_in_on_the_demo_clock() -> void:
 	assert_almost_equal(view.cover(), 0.5, "half way")
 
 
+func test_the_prewarm_keeps_the_overlay_on_through_its_frames() -> void:
+	"""begin_prewarm: the village wears the overlay on a clear day, and the view's own frames do not take it
+	off until end_prewarm (demo_prewarm.gd draws the step over several frames)."""
+	var made: Array = _village()
+	var view: WeatherViewScript = made[2]
+	_weather_is(made[3], view, WeatherScript.COND_CLEAR)
+	view.begin_prewarm()
+	assert_true(view.overlaid_count() > 10, "on for the prewarm")
+	view._apply_targets(1.0)
+	view._apply_targets(1.0)
+	assert_true(view.overlaid_count() > 10, "still on through its frames")
+	view.end_prewarm()
+	assert_equal(view.overlaid_count(), 0, "off again on a clear day")
+
+
 func test_configuring_again_keeps_one_set_of_falls() -> void:
 	"""tunnel_ext.gd configures the view twice (without, then with, the world): one rain and one snow."""
 	var made: Array = _village()

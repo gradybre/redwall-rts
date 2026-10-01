@@ -50,6 +50,8 @@ var side: int = 0
 var heights: PackedFloat32Array = PackedFloat32Array()
 ## Root obstacle circles in tree-local metres at size 1: (x, z, radius).
 var obstacles: PackedVector3Array = PackedVector3Array()
+## Every field baked, by model (see `baked`): the woods' obstacles and the view share one bake a model.
+static var _baked: Dictionary[String, Self] = {}
 
 
 func bake(faces: PackedVector3Array, reach: float, trunk_radius: float) -> void:
@@ -103,7 +105,7 @@ func _cover_obstacles(trunk_radius: float) -> void:
 	"""The flare circle, then greedy circles over the proud cells it leaves: the proudest first (see
 	ROOT OBSTACLES)."""
 	obstacles.clear()
-	var proud: Array = []
+	var proud: Array[int] = []
 	var flare: float = trunk_radius
 	for k: int in heights.size():
 		var d: float = _cell_at(k).length()
@@ -217,10 +219,30 @@ static func _collect_mesh(node: Node, xform: Transform3D, out: PackedVector3Arra
 
 static func baked(piece: Node3D, standing: Transform3D, yaw: float, size: float, reach: float,
 		trunk_radius: float) -> Self:
-	"""A field baked from a placed tree piece standing at `standing` (see `faces_of`, `bake`)."""
+	"""A field baked from a placed tree piece standing at `standing` (see `faces_of`, `bake`) -- once per
+	model: a second piece drawing the same mesh (the woods' obstacles, then the view) gets the same field."""
+	var key: String = _cache_key(piece, reach, trunk_radius)
+	if not key.is_empty() and _baked.has(key):
+		return _baked[key]
 	var field: Self = Self.new()
 	field.bake(faces_of(piece, standing, yaw, size), reach, trunk_radius)
+	if not key.is_empty():
+		_baked[key] = field
 	return field
+
+
+static func _cache_key(piece: Node3D, reach: float, trunk_radius: float) -> String:
+	"""The model a piece draws, as a cache key: its first mesh resource and the bake's bounds ("" when it
+	draws none: never cached)."""
+	var mesh_node := piece as MeshInstance3D
+	if mesh_node == null:
+		for child: Node in piece.get_children():
+			mesh_node = child as MeshInstance3D
+			if mesh_node != null:
+				break
+	if mesh_node == null or mesh_node.mesh == null:
+		return ""
+	return "%d:%.3f:%.3f" % [mesh_node.mesh.get_instance_id(), reach, trunk_radius]
 
 
 static func root_obstacles(trees: Array[Dictionary], node_of: Callable, reach: float) -> Array[Vector3]:

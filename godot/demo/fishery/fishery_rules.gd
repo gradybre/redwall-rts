@@ -110,8 +110,8 @@ const CANCEL_SPOIL_PERMILLE: int = 500
 
 static func work_ticks(mwu: int, level: int) -> int:
 	"""Calendar ticks `mwu` milli-WU take one worker at FISH `level` (§5.2: 80 x factor / 1000 a tick), rounded up."""
-	var per_tick: int = MWU_PER_TICK * ForestRules.skill_factor_permille(level) / PERMILLE
-	return (mwu + per_tick - 1) / per_tick
+	@warning_ignore("integer_division") var per_tick: int = MWU_PER_TICK * ForestRules.skill_factor_permille(level) / PERMILLE
+	@warning_ignore("integer_division") return (mwu + per_tick - 1) / per_tick
 
 
 static func work_usec(mwu: int, level: int) -> int:

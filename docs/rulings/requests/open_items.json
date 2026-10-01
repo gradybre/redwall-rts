@@ -169,6 +169,20 @@
       "cycle": 4,
       "implementation_complete": false,
       "ruling": "docs/rulings/2026-09-19_cycle04_resumption.md"
+    },
+    {
+      "anchor": "demolition-containment-contract",
+      "title": "Who proves a container is physically inside a demolition footprint",
+      "blocks": [],
+      "asked": "2026-10-01",
+      "question": "INV-GOODS-R01 and decision 0145 make request_demolition() refuse MISSING_CONTAINMENT_CONTRACT at stage 5 because an InventoryContainer row carries no position and nothing maps a tile to a container. Which owner publishes container placement, in what shape, how is it saved and budgeted, and what are the ground-pile, removal-order and furniture-return rules the composed demolition needs?",
+      "why_we_cannot_decide": "Any placement binding is new authoritative state (a saved, hashed column and a memory row), and the ground-pile and furniture-return answers are new rules no document authored. Decision 0511 left the gate refusing rather than invent them.",
+      "impact": "Answered by Brendan on 2026-10-01 (DEC-043): answers 1-9 approved as recommended, furniture removal returns 50% of its materials, full path approved. D1 lands the Inventory anchor column, section 7 owner schema 4 / section schema 5 and the memory row; stage 5 still refuses until D4. Steps D2-D9 are queued as DEMOLITION-D2..D9.",
+      "answered": "2026-10-01",
+      "answered_by": "Brendan (DEC-043), not an Astra cycle",
+      "cycle": null,
+      "implementation_complete": false,
+      "ruling": "docs/rulings/2026-10-01_demolition_containment.md#DEMO-CONTAIN-R01"
     }
   ]
 }

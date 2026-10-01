@@ -497,6 +497,9 @@ func test_the_panel_words_come_from_the_rules() -> void:
 	assert_equal(Text.soil_line(sim, BED_CARROTS), "Soil: Sand", "soil")
 	assert_equal(Text.fertility_line(sim, BED_CARROTS), "Fertility: 70%", "fertility")
 	assert_equal(Text.fertility_effect_line(sim, BED_CARROTS), "Fertility effect on yield: −15%", "its effect")
+	# A frost between 0 and -1 °C kept no minus sign: the whole part is 0 (decision 0501).
+	assert_equal([Text._tenths(-5), Text._tenths(-15), Text._tenths(-30), Text._tenths(125), Text._tenths(0)],
+		["-0.5", "-1.5", "-3", "12.5", "0"], "a temperature keeps its sign below one degree")
 	assert_equal(Text.health_line(sim, BED_CARROTS), "Crop health: 100%", "health")
 	assert_equal(Text.stage_line(sim, BED_CARROTS, _read), "Growing 80% — ripe in about 24 h", "growing")
 	assert_equal(Text.yield_line(sim, BED_CARROTS, _read), "Expected harvest: 5.1 U of carrot", "yield")

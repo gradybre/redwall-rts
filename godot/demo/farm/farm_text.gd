@@ -60,10 +60,12 @@ static func clock_line(sim: SimScript) -> String:
 
 
 static func _tenths(tenths: int) -> String:
-	"""Tenths of a degree as whole degrees when whole, else one decimal."""
+	"""Tenths of a degree as whole degrees when whole, else one decimal. The sign is written apart: -5 tenths is
+	"-0.5", which the whole part alone (0) cannot carry (decision 0501)."""
 	if tenths % 10 == 0:
-		return "%d" % (tenths / 10)
-	return "%d.%d" % [tenths / 10, absi(tenths % 10)]
+		@warning_ignore("integer_division") return "%d" % (tenths / 10)
+	var sign_text: String = "-" if tenths < 0 else ""
+	@warning_ignore("integer_division") return "%s%d.%d" % [sign_text, absi(tenths) / 10, absi(tenths) % 10]
 
 
 static func window_text(crop: int) -> String:
@@ -231,8 +233,8 @@ static func percent_text(scale_value: int) -> String:
 static func change_text(factor: int) -> String:
 	"""A factor per 1000 as the change it makes: 810 -> '−19%', 815 -> '−18.5%', 1100 -> '+10%', 1000 -> '±0%'."""
 	var delta: int = factor - FarmingScript.FACTOR_DENOMINATOR
-	var sign: String = "+" if delta > 0 else ("−" if delta < 0 else "±")
-	return "%s%s%%" % [sign, points_text(absi(delta) * 10, false)]
+	var sign_text: String = "+" if delta > 0 else ("−" if delta < 0 else "±")
+	return "%s%s%%" % [sign_text, points_text(absi(delta) * 10, false)]
 
 
 static func points_text(scale_value: int, signed: bool) -> String:

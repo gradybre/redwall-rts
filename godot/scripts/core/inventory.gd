@@ -129,8 +129,30 @@ extends RefCounted
 ##
 ##    IT PROVES OWNERSHIP AND NOT CONTAINMENT. Equality with a Building ref says a container is
 ##    keyed to that Building; it says nothing about what physically stands inside its footprint,
-##    because a container row carries no position at all. The demolition gate that needs
-##    containment is `settlement_system.gd::request_demolition()`, and it refuses.
+##    because ownership alone carries no position. The demolition gate that needs containment is
+##    `settlement_system.gd::request_demolition()`; invariant 9 is the placement half it will read
+##    once DEMO-CONTAIN-R01's step D4 lands.
+##
+## 9. A CONTAINER MAY BE ANCHORED TO ONE TILE, AND "UNPLACED" IS -1 (DEMO-CONTAIN-R01 answers
+##    1, 2 and 8; decision 0531). `_c_anchor_tile` is one I32 per container row beside the owner
+##    columns: `UNPLACED_TILE` (-1) for a container that sits on no tile -- a satchel, an
+##    expedition pack -- else a placement cell in `0..ANCHOR_TILE_COUNT-1`, GDD §5.1's `z*128+x`.
+##    It is container -> tile, never tile -> container: a tile may carry a building store, a
+##    project container and a ground pile at once, and a reverse map could hold only one of them.
+##    The I32 is a placement CELL rather than a bare tile so MOVE-G02's later level-plus-tile
+##    encoding fits the same width; no level is stored or inferred today.
+##
+##    WRITTEN ONLY HERE. `create_container()` takes an optional anchor and
+##    `set_container_anchor()` moves one; both refuse an out-of-domain tile or a dead container
+##    before writing anything, and both are journaled, so a poisoned transaction restores the
+##    anchor byte for byte. Nothing here writes it per tick: a satchel stays unplaced precisely so
+##    its anchor never needs to follow a walking resident (#3d).
+##
+##    READ BY ONE BOUNDED COLD QUERY. `containers_anchored_in_into()` is the same two-pass shape
+##    as `containers_by_owner_into()`: a caller-owned tile mask in, complete container refs out,
+##    an undersized buffer refused without truncation, unplaced rows never reported. It proves
+##    PLACEMENT, not ownership, and the demolition gate needs both to agree (#3a). It saves no
+##    reverse index and is never called from a tick.
 ##
 ## ARCH-MEM-001: every column is a packed array allocated once in _init(). No GDScript Array is
 ## allocated per row; a container's lots are an intrusive doubly linked list threaded through
@@ -270,6 +292,7 @@ const CON_F_FILTERS: int = 8
 const CON_F_RESERVED_MASS: int = 9
 const CON_F_USED_MASS: int = 10
 const CON_F_REACHABLE: int = 11
+const CON_F_ANCHOR: int = 12
 
 ## Refusal codes. Every refusal is explicit and named; nothing is clamped into a plausible
 ## looking success (ARCH-ID-004 style `CAPACITY_<STORE>` for the two row stores).
@@ -359,6 +382,23 @@ const SEED_EXPIRY_ATTESTATION_METHOD: StringName = &"refuses_seed_consumption"
 const REFUSE_INVALID_OWNER_REF: StringName = &"INVALID_OWNER_REF"
 const REFUSE_OWNER_OUTPUT_TOO_SMALL: StringName = &"OWNER_OUTPUT_TOO_SMALL"
 
+## DEMO-CONTAIN-R01 #2: a container that sits on no tile. Satchels and expedition packs carry it,
+## and so does every row nobody has placed. It is the column's clear value and the canonical
+## unused value of an inactive row.
+const UNPLACED_TILE: int = -1
+## The placement-cell domain is `0..ANCHOR_TILE_COUNT-1`: GDD §5.1's 128 x 128 grid, `z*128+x`,
+## which interiors share (`buildings.gd::_is_interior_tile()`). Written here rather than read from
+## `buildings.gd` so this store gains no dependency on Buildings; `test_inventory_anchor.gd` pins
+## it to `buildings.gd`'s TILE_COUNT so the two cannot drift apart silently.
+const ANCHOR_TILE_COUNT: int = 16384
+## An anchor outside `UNPLACED_TILE` and `0..ANCHOR_TILE_COUNT-1`.
+const REFUSE_INVALID_ANCHOR_TILE: StringName = &"INVALID_ANCHOR_TILE"
+## A tile mask that is not exactly ANCHOR_TILE_COUNT bytes: a shorter mask would silently treat
+## every tile past its end as unaffected, which is a truncated containment proof.
+const REFUSE_ANCHOR_MASK_SHAPE: StringName = &"ANCHOR_MASK_SHAPE"
+## `audit()`: a live container whose anchor is outside the domain above.
+const REFUSE_AUDIT_ANCHOR: StringName = &"AUDIT_ANCHOR_OUT_OF_RANGE"
+
 
 class OpResult:
 	"""Outcome of one inventory operation: success flag, refusal code, produced ref and value.
@@ -398,6 +438,8 @@ class TransferPlan:
 # Container columns (ARCH-MEM-001: separate contiguous packed columns, allocated once).
 var _c_owner_slot: PackedInt32Array = PackedInt32Array()
 var _c_owner_generation: PackedInt32Array = PackedInt32Array()
+## DEMO-CONTAIN-R01 #1: the container's placement cell, or UNPLACED_TILE. Invariant 9.
+var _c_anchor_tile: PackedInt32Array = PackedInt32Array()
 var _c_policy: PackedInt32Array = PackedInt32Array()
 var _c_generation: PackedInt32Array = PackedInt32Array()
 var _c_lot_count: PackedInt32Array = PackedInt32Array()
@@ -542,6 +584,7 @@ func _allocate_container_columns() -> void:
 	"""Size every container column to the container capacity, once."""
 	_c_owner_slot.resize(_c_capacity)
 	_c_owner_generation.resize(_c_capacity)
+	_c_anchor_tile.resize(_c_capacity)
 	_c_policy.resize(_c_capacity)
 	_c_generation.resize(_c_capacity)
 	_c_lot_count.resize(_c_capacity)
@@ -616,6 +659,7 @@ func _clear_container_rows() -> void:
 	"""Reset container columns and refill the free stack so pops ascend from slot 0."""
 	_c_owner_slot.fill(NULL_SLOT)
 	_c_owner_generation.fill(NULL_GENERATION)
+	_c_anchor_tile.fill(UNPLACED_TILE)
 	_c_policy.fill(UNSET_POLICY)
 	_c_lot_count.fill(0)
 	_c_first_lot.fill(NULL_SLOT)
@@ -999,6 +1043,7 @@ func _journal_container(slot: int) -> void:
 	_j_row[base + CON_F_RESERVED_MASS] = _c_reserved_mass_g[slot]
 	_j_row[base + CON_F_USED_MASS] = _c_used_mass_g[slot]
 	_j_row[base + CON_F_REACHABLE] = _c_reachable[slot]
+	_j_row[base + CON_F_ANCHOR] = _c_anchor_tile[slot]
 	_j_count += 1
 
 
@@ -1016,6 +1061,7 @@ func _restore_container(slot: int, base: int) -> void:
 	_c_reserved_mass_g[slot] = _j_row[base + CON_F_RESERVED_MASS]
 	_c_used_mass_g[slot] = _j_row[base + CON_F_USED_MASS]
 	_c_reachable[slot] = _j_row[base + CON_F_REACHABLE]
+	_c_anchor_tile[slot] = _j_row[base + CON_F_ANCHOR]
 
 
 func _journal_scalar(kind: int, index: int, old_value: int) -> void:
@@ -1082,13 +1128,21 @@ func _free_container_slot(slot: int) -> void:
 
 # --- Container operations -------------------------------------------------------------------
 
-func create_container(owner_ref: Vector2i, max_mass_g: int, filters: int, policy: int, reachable: bool) -> OpResult:
-	"""Create an InventoryContainer row and return its `(slot, generation)` ref."""
+func create_container(owner_ref: Vector2i, max_mass_g: int, filters: int, policy: int,
+		reachable: bool, anchor_tile: int = UNPLACED_TILE) -> OpResult:
+	"""Create an InventoryContainer row and return its `(slot, generation)` ref.
+
+	`anchor_tile` is DEMO-CONTAIN-R01's placement cell (invariant 9). Leaving it out creates an
+	UNPLACED container, which is what every caller before decision 0531 created; an anchor
+	outside `UNPLACED_TILE` and `0..ANCHOR_TILE_COUNT-1` refuses INVALID_ANCHOR_TILE.
+	"""
 	var owned: bool = _enter()
-	return _leave(owned, _create_container_checked(owner_ref, max_mass_g, filters, policy, reachable))
+	return _leave(owned, _create_container_checked(owner_ref, max_mass_g, filters, policy,
+		reachable, anchor_tile))
 
 
-func _create_container_checked(owner_ref: Vector2i, max_mass_g: int, filters: int, policy: int, reachable: bool) -> StringName:
+func _create_container_checked(owner_ref: Vector2i, max_mass_g: int, filters: int, policy: int,
+		reachable: bool, anchor_tile: int) -> StringName:
 	"""Validate then allocate one container row. Refuses before writing anything."""
 	var guard: StringName = _guard()
 	if guard != REFUSE_NONE:
@@ -1097,11 +1151,14 @@ func _create_container_checked(owner_ref: Vector2i, max_mass_g: int, filters: in
 		return REFUSE_INVALID_MASS
 	if not IntMath.fits_int32(policy):
 		return REFUSE_OVERFLOW
+	if not is_anchor_tile_in_domain(anchor_tile):
+		return REFUSE_INVALID_ANCHOR_TILE
 	if _c_free_count == 0:
 		return REFUSE_CAPACITY_INVENTORY_CONTAINER
 	var slot: int = _alloc_container_slot()
 	_journal_container(slot)
 	_write_new_container(slot, owner_ref, max_mass_g, filters, policy, reachable)
+	_c_anchor_tile[slot] = anchor_tile
 	_c_live_count += 1
 	return _succeed(Vector2i(slot, _c_generation[slot]), 0)
 
@@ -1168,6 +1225,41 @@ func _set_reachable_checked(container_ref: Vector2i, reachable: bool) -> StringN
 	_journal_container(container_ref.x)
 	_c_reachable[container_ref.x] = 1 if reachable else 0
 	return _succeed(NULL_REF, 0)
+
+
+func set_container_anchor(container_ref: Vector2i, tile: int) -> OpResult:
+	"""Place a live container on one placement cell, or unplace it with UNPLACED_TILE.
+
+	DEMO-CONTAIN-R01 #1: Inventory is the only writer of the anchor. Refuses, before writing
+	anything, a dead or stale container (INVALID_CONTAINER) and a tile outside `UNPLACED_TILE`
+	and `0..ANCHOR_TILE_COUNT-1` (INVALID_ANCHOR_TILE). Inside a transaction the write is
+	journaled like every other container write, so a poisoned sequence restores the old anchor.
+
+	It checks the DOMAIN, not the world: whether the tile is passable, inside a footprint or free
+	of another pile is the composing owner's question (D2's ground-pile door, D4's gate), because
+	this store holds no map. Cold path; never call it per tick.
+	"""
+	var owned: bool = _enter()
+	return _leave(owned, _set_anchor_checked(container_ref, tile))
+
+
+func _set_anchor_checked(container_ref: Vector2i, tile: int) -> StringName:
+	"""Validate then write the anchor cell."""
+	var guard: StringName = _guard()
+	if guard != REFUSE_NONE:
+		return guard
+	if not is_container_valid(container_ref):
+		return REFUSE_INVALID_CONTAINER
+	if not is_anchor_tile_in_domain(tile):
+		return REFUSE_INVALID_ANCHOR_TILE
+	_journal_container(container_ref.x)
+	_c_anchor_tile[container_ref.x] = tile
+	return _succeed(NULL_REF, 0)
+
+
+static func is_anchor_tile_in_domain(tile: int) -> bool:
+	"""True for UNPLACED_TILE and for every placement cell in `0..ANCHOR_TILE_COUNT-1`."""
+	return tile == UNPLACED_TILE or (tile >= 0 and tile < ANCHOR_TILE_COUNT)
 
 
 func reserve_container_mass(container_ref: Vector2i, mass_g: int) -> OpResult:
@@ -2913,6 +3005,96 @@ func _write_containers_of_owner(owner_ref: Vector2i, out_pairs: PackedInt32Array
 		cell += 2
 
 
+func container_anchor_tile(container_ref: Vector2i) -> int:
+	"""A live container's placement cell, or UNPLACED_TILE -- also for a dead or stale ref.
+
+	-1 is a REAL answer here (a satchel is unplaced), so this plain reader cannot tell "unplaced"
+	from "no such container". DIAGNOSTIC AND TEST USE ONLY: for a demolition gate "unplaced" means
+	"outside every footprint", so a stale ref answered -1 would read as a pass. The gate (D4) and
+	every other decision-making caller use `container_anchor_tile_into()`, which refuses.
+	"""
+	return _c_anchor_tile[container_ref.x] if is_container_valid(container_ref) else UNPLACED_TILE
+
+
+func container_anchor_tile_into(container_ref: Vector2i, out: IntMath.IntResult) -> bool:
+	"""Write a live container's placement cell into `out`, or refuse with a zeroed value.
+
+	The refusal-carrying form: an invalid ref refuses INVALID_CONTAINER instead of answering
+	UNPLACED_TILE, so an unplaced container and a missing one are never the same answer.
+	"""
+	if not is_container_valid(container_ref):
+		return out.refuse(String(REFUSE_INVALID_CONTAINER))
+	return out.succeed(_c_anchor_tile[container_ref.x])
+
+
+func anchor_query_mask_bytes() -> int:
+	"""How many bytes the caller's tile mask for `containers_anchored_in_into()` must hold."""
+	return ANCHOR_TILE_COUNT
+
+
+func containers_anchored_in_into(tile_mask: PackedByteArray, out_pairs: PackedInt32Array,
+		out: IntMath.IntResult) -> bool:
+	"""Write every live container anchored on a marked tile into the caller's buffer.
+
+	DEMO-CONTAIN-R01 #1's bounded cold-path scan, the placement twin of
+	`containers_by_owner_into()`. `tile_mask` is exactly `anchor_query_mask_bytes()` bytes, one per
+	placement cell; any nonzero byte marks that cell as affected. The pairs written are complete
+	INVENTORY-CONTAINER refs, flat as `slot, generation, ...`, in ascending container-slot order;
+	`out.value` is the number of pairs and nothing past `2 * out.value` is read or cleared.
+
+	UNPLACED CONTAINERS ARE NEVER REPORTED. A satchel or an expedition pack sits on no tile, so no
+	mask can select it (#3d); the occupant gate covers those.
+
+	IT REFUSES RATHER THAN MISLEADS. A mask of the wrong length refuses ANCHOR_MASK_SHAPE -- a
+	short one would read every tile past its end as unaffected. A buffer too small for the
+	COMPLETE result refuses OWNER_OUTPUT_TOO_SMALL and writes nothing, which is why the count is
+	taken in a first pass. Both zero `out.value`. Size the buffer with `owner_query_cells()`:
+	every container could be anchored inside one footprint.
+
+	Read-only, allocation-free, no index built or kept. One pass over the occupied container rows
+	per pass; a destructive edit runs it once, and nothing runs it on a tick.
+	"""
+	if tile_mask.size() != ANCHOR_TILE_COUNT:
+		return out.refuse(String(REFUSE_ANCHOR_MASK_SHAPE))
+	var found: int = _count_containers_anchored_in(tile_mask)
+	if out_pairs.size() < found * 2:
+		return out.refuse(String(REFUSE_OWNER_OUTPUT_TOO_SMALL))
+	_write_containers_anchored_in(tile_mask, out_pairs)
+	return out.succeed(found)
+
+
+func _anchored_in(slot: int, tile_mask: PackedByteArray) -> bool:
+	"""Whether one LIVE container row is placed on a tile the mask marks.
+
+	Liveness first: `destroy_container()` clears only `_c_live`, so a retired row keeps the
+	anchor it had and must not be reported as goods still standing on that tile.
+	"""
+	if _c_live[slot] != 1:
+		return false
+	var tile: int = _c_anchor_tile[slot]
+	return tile != UNPLACED_TILE and tile_mask[tile] != 0
+
+
+func _count_containers_anchored_in(tile_mask: PackedByteArray) -> int:
+	"""Count the live containers placed on marked tiles, bounded by the slot high-water mark."""
+	var found: int = 0
+	for slot: int in range(_c_slot_high_water):
+		if _anchored_in(slot, tile_mask):
+			found += 1
+	return found
+
+
+func _write_containers_anchored_in(tile_mask: PackedByteArray, out_pairs: PackedInt32Array) -> void:
+	"""Write the placed containers' refs as flat ascending pairs. Capacity is checked by then."""
+	var cell: int = 0
+	for slot: int in range(_c_slot_high_water):
+		if not _anchored_in(slot, tile_mask):
+			continue
+		out_pairs[cell] = slot
+		out_pairs[cell + 1] = _c_generation[slot]
+		cell += 2
+
+
 func container_reachable(container_ref: Vector2i) -> bool:
 	"""True when a container is currently reachable for hauling."""
 	return _c_reachable[container_ref.x] == 1 if is_container_valid(container_ref) else false
@@ -3267,6 +3449,8 @@ func _audit_container_row(slot: int) -> StringName:
 		return REFUSE_AUDIT_LOT_COUNT
 	if mass != _c_used_mass_g[slot]:
 		return REFUSE_AUDIT_MASS
+	if not is_anchor_tile_in_domain(_c_anchor_tile[slot]):
+		return REFUSE_AUDIT_ANCHOR
 	return _audit_container_capacity(slot)
 
 
@@ -3368,6 +3552,7 @@ func _append_container_state(out: PackedByteArray) -> void:
 	out.append_array(var_to_bytes(_c_used_mass_g))
 	out.append_array(var_to_bytes(_c_live))
 	out.append_array(var_to_bytes(_c_reachable))
+	out.append_array(var_to_bytes(_c_anchor_tile))
 	out.append_array(var_to_bytes(_c_free))
 
 
@@ -3426,9 +3611,13 @@ func _refuse(code: StringName) -> OpResult:
 # claim, which is one claim and not two: occupancy is decisive. External Reservation rows are a
 # different store and still need their own retargeting and cross-store validation.
 
-## INV-CANON-R01 adopts `(section 7, inventory)` owner schema 3. Declared here, beside the
-## projection it describes, and READ by `save_section_inventories.gd` rather than restated there.
-const CANONICAL_OWNER_SCHEMA_VERSION: int = 3
+## INV-CANON-R01 adopted `(section 7, inventory)` owner schema 3. DEMO-CONTAIN-R01 #8 (decision
+## 0531) takes it to **4** by APPENDING `_c_anchor_tile` as ordinal 30; no earlier ordinal moves.
+## Schema 3 is refused, not migrated, because ruling #8 says so and FISH-ID-R01 set the precedent:
+## an old-layout body is never reinterpreted. (Every pre-0531 container really was unplaced, so a
+## -1 default would lose nothing today; the refusal is the format rule, not a rescue.) Declared
+## here, beside the projection it describes, and READ by `save_section_inventories.gd`.
+const CANONICAL_OWNER_SCHEMA_VERSION: int = 4
 
 ## Every instantiated inventory generation is in 1..INT32_MAX: `_init()` calls `clear()`, which
 ## steps each column from 0 to 1. A zero-generation inactive row passed the older loose codec
@@ -3467,6 +3656,7 @@ class CanonicalColumns:
 	var c_generation: PackedInt32Array = PackedInt32Array()
 	var c_owner_slot: PackedInt32Array = PackedInt32Array()
 	var c_owner_generation: PackedInt32Array = PackedInt32Array()
+	var c_anchor_tile: PackedInt32Array = PackedInt32Array()
 	var c_policy: PackedInt32Array = PackedInt32Array()
 	var c_lot_count: PackedInt32Array = PackedInt32Array()
 	var c_first_lot: PackedInt32Array = PackedInt32Array()
@@ -3492,19 +3682,20 @@ class CanonicalColumns:
 	var l_age_remainder: PackedInt64Array = PackedInt64Array()
 
 	func _init(p_container_capacity: int, p_lot_capacity: int) -> void:
-		"""Allocate all 28 columns at the two declared capacities. The only resize here."""
+		"""Allocate all 29 columns at the two declared capacities. The only resize here."""
 		container_capacity = p_container_capacity
 		lot_capacity = p_lot_capacity
 		_allocate_container_columns()
 		_allocate_lot_columns()
 
 	func _allocate_container_columns() -> void:
-		"""Size the thirteen container columns to the container capacity, once."""
+		"""Size the fourteen container columns to the container capacity, once."""
 		c_live.resize(container_capacity)
 		c_reachable.resize(container_capacity)
 		c_generation.resize(container_capacity)
 		c_owner_slot.resize(container_capacity)
 		c_owner_generation.resize(container_capacity)
+		c_anchor_tile.resize(container_capacity)
 		c_policy.resize(container_capacity)
 		c_lot_count.resize(container_capacity)
 		c_first_lot.resize(container_capacity)
@@ -3696,6 +3887,7 @@ func _project_container_row(out: CanonicalColumns, slot: int) -> void:
 		out.c_reserved_mass_g[slot] = _c_reserved_mass_g[slot]
 		out.c_used_mass_g[slot] = _c_used_mass_g[slot]
 		out.c_reachable[slot] = _c_reachable[slot]
+		out.c_anchor_tile[slot] = _c_anchor_tile[slot]
 		return
 	out.c_owner_slot[slot] = NULL_SLOT
 	out.c_owner_generation[slot] = NULL_GENERATION
@@ -3707,6 +3899,7 @@ func _project_container_row(out: CanonicalColumns, slot: int) -> void:
 	out.c_reserved_mass_g[slot] = 0
 	out.c_used_mass_g[slot] = 0
 	out.c_reachable[slot] = 0
+	out.c_anchor_tile[slot] = UNPLACED_TILE
 
 
 func _project_lots_into(out: CanonicalColumns) -> void:
@@ -3850,7 +4043,8 @@ func _canonical_inactive_refusal(cols: CanonicalColumns) -> StringName:
 				or cols.c_policy[slot] != UNSET_POLICY \
 				or cols.c_first_lot[slot] != NULL_SLOT or cols.c_max_mass_g[slot] != 0 \
 				or cols.c_filters[slot] != 0 or cols.c_reserved_mass_g[slot] != 0 \
-				or cols.c_used_mass_g[slot] != 0 or cols.c_reachable[slot] != 0:
+				or cols.c_used_mass_g[slot] != 0 or cols.c_reachable[slot] != 0 \
+				or cols.c_anchor_tile[slot] != UNPLACED_TILE:
 			_canonical_detail = "inactive container %d carries a noncanonical payload" % slot
 			return REFUSE_CANONICAL_INACTIVE_PAYLOAD
 	for slot: int in range(cols.lot_capacity):
@@ -3875,7 +4069,25 @@ func _canonical_lot_is_masked(cols: CanonicalColumns, slot: int) -> bool:
 
 
 func _canonical_live_refusal(cols: CanonicalColumns) -> StringName:
-	"""Live rows keep GDD §4.2's own domains: a bounded item, provenance, quantity and age."""
+	"""Live rows keep their own domains: a placed or unplaced anchor, then each lot's fields."""
+	var anchors: StringName = _canonical_live_anchor_refusal(cols)
+	if anchors != REFUSE_NONE:
+		return anchors
+	return _canonical_live_lot_refusal(cols)
+
+
+func _canonical_live_anchor_refusal(cols: CanonicalColumns) -> StringName:
+	"""DEMO-CONTAIN-R01: a live container is UNPLACED_TILE or on a cell in the anchor domain."""
+	for slot: int in range(cols.container_capacity):
+		if cols.c_live[slot] == 1 and not is_anchor_tile_in_domain(cols.c_anchor_tile[slot]):
+			_canonical_detail = "live container %d is anchored at %d, outside %d and 0..%d" \
+				% [slot, cols.c_anchor_tile[slot], UNPLACED_TILE, ANCHOR_TILE_COUNT - 1]
+			return REFUSE_CANONICAL_LIVE_ROW
+	return REFUSE_NONE
+
+
+func _canonical_live_lot_refusal(cols: CanonicalColumns) -> StringName:
+	"""Live lots keep GDD §4.2's own domains: a bounded item, provenance, quantity and age."""
 	for slot: int in range(cols.lot_capacity):
 		if cols.l_live[slot] != 1:
 			continue
@@ -3896,12 +4108,13 @@ func _canonical_live_refusal(cols: CanonicalColumns) -> StringName:
 
 
 func _restore_container_columns(cols: CanonicalColumns) -> void:
-	"""Adopt the thirteen decoded container columns verbatim, generations and prefix included."""
+	"""Adopt the fourteen decoded container columns verbatim, generations and prefix included."""
 	_c_live = cols.c_live.duplicate()
 	_c_reachable = cols.c_reachable.duplicate()
 	_c_generation = cols.c_generation.duplicate()
 	_c_owner_slot = cols.c_owner_slot.duplicate()
 	_c_owner_generation = cols.c_owner_generation.duplicate()
+	_c_anchor_tile = cols.c_anchor_tile.duplicate()
 	_c_policy = cols.c_policy.duplicate()
 	_c_lot_count = cols.c_lot_count.duplicate()
 	_c_first_lot = cols.c_first_lot.duplicate()

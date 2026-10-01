@@ -52,6 +52,47 @@ rather than reporting success. Prefer the script over the bare command; a count
 is deliberately not quoted here, because a hardcoded one goes stale the next
 time a test is added.
 
+## Reading the test log
+
+`./tools/run_tests.sh` ends with three lines (decision 0501):
+
+```text
+7085 test(s), 562012 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 50 expected, 290 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+```
+
+The numbers above are from 2026-10-01; read your own. In CI, where the demo's assets are not staged, the tolerated
+count is higher (the sound cues that warn they play silent). **The run fails if any unexpected count or leak count is above
+zero**, even with 0 failures.
+
+- **A line that starts `ERROR:` or `WARNING:` is a finding.** Nothing declared it.
+- **`EXPECTED ERROR: ...` / `EXPECTED WARNING: ...`** is a negative test's refusal, declared with
+  `expect_diagnostic("fragment")` (test/framework/test_case.gd). If the declared line never appears, the test fails.
+  So when you add a test that provokes `push_error`/`push_warning` on purpose, declare it first.
+- **`TOLERATED ...`** is one of two kinds of line, and none is required:
+  - One of the engine's two notices for a node outside the scene tree: a `!is_inside_tree()` global-transform read
+    (a particle emitter restarting does one too) and `Camera is not inside scene.`. The worker runs every suite
+    before the root is in the tree (see "Real input in a headless run"), so a suite that builds node fixtures sees
+    them. Only suites that override `tolerates_outside_tree()` tolerate them, and only when the next `at:` line names
+    the 3D `get_global_transform` or the camera. The same message from anything else is a finding.
+  - A line that depends on the machine, not the code, declared by its test with `tolerate_diagnostic("fragment")`.
+    For example, the real sound cues warn that they play silent where the demo's assets are not staged, as in CI.
+- **`leaked at exit`** counts the worker's own shutdown report: objects and resources nothing freed. The usual
+  cause is a reference cycle, which GDScript never collects. A lambda that uses a member or `self` holds the object
+  it was made in. A lambda that captures a local holds that local. A plain method Callable (`obj.method`) holds only
+  an id. Break the cycle in `after_each`, or in production code when the cycle is the game's own (the tunnel router
+  and the resident brain each had one).
+- **Find which suite leaks** with a focus runner that extends `res://test/run_tests.gd` and overrides
+  `_discover_suites()`; run each suite in its own process and read its `leaked at exit` line. Add `--verbose` to a
+  bare worker run (`... --script <focus>.gd -- --run-suites`) to list every leaked instance by class.
+- **GDScript warnings never reach this log.** A headless run prints nothing for an integer division or a shadowed
+  variable. `python3 tools/gdscript_warnings.py` lists them through the editor's language server (about 2.5 minutes),
+  and CI fails on any. An integer division that is meant goes in as
+  `@warning_ignore("integer_division") var half: int = n / 2`, on the statement itself. `int(a / b)` does not silence
+  the warning, an annotation on the `func` line does not cover its body, and an `elif` condition needs
+  `@warning_ignore_start`/`@warning_ignore_restore` around it.
+
 ## The Windows demo build
 
 One command, run on the Mac from the repository root, builds the standalone Windows live demo

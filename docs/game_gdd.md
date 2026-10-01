@@ -27,7 +27,8 @@ Ruleset `settlement_rules_v2` adopts DEC-005/006. [setting_rules_amendment.md](s
 **Creature autonomy.** Every resident has persistent identity, five needs, health, skills, preferences, relationships, and an explicit schedule. Anonymous presentation does not mean disposable simulation. The player sets priorities and policies; residents find eligible work, eat, sleep, socialize, seek treatment, and react to sustained hardship. Growth comes through immigration. DEC-032 supersedes the historical exclusion
 of child care: fixed CHILD/ADULT/ELDER residents, shared care and active elder roles
 are required release scope. Births, reproduction, aging and age-related death
-remain outside release1. PC-04 still owns exact dependent-resident coefficients.
+remain outside release1. PC-04 supplies the exact dependent-resident coefficients and was
+adopted under DEC-044 (2026-10-01) with children kept inactive; see "PC-04 family amendment" below.
 [MOVE-DEP-R02](rulings/2026-09-12_movement_dependency_rulings.md) supplies the
 authoritative stage encoding/storage, not those missing behavior formulas.
 
@@ -297,7 +298,7 @@ Exact tile masks and coordinates above override this coarse overview.
 
 | Need | Baseline decay/game hour | Restoration | Thresholds |
 |---|---:|---|---|
-| Hunger/fullness |250×size multiplier; winter×1.20 | Food adds its NP×quality factor | Eat≤3500; urgent≤1500; starving=0 |
+| Hunger/fullness |250×size multiplier×life-stage multiplier; winter×1.20 (stage ADULT 1000, CHILD 750, ELDER 1000, /1000; PC-04) | Food adds its NP×quality factor | Eat≤3500; urgent≤1500; starving=0 |
 | Rest |375 while awake; no awake decay while asleep | Sleep+1200/hour in bed; +750/hour on floor | Seek sleep≤2500; collapse≤500 |
 | Comfort |100/hour | +300/hour in valid heated room; +100/hour outdoors at 10–24°C | Low<3000; content≥6000 |
 | Social |100/hour | +1200/hour of paired social activity; dining+200 per shared meal | Lonely<2500 |
@@ -977,3 +978,45 @@ See [DEC-040](setting_decisions.md#dec-040--excavation-spoil-and-preventable-mov
 ## SET-MOVE-ECON-001 — numerical excavation and hazard amendment
 
 Adopt [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) as the owning numerical supplement under DEC-040. ECON-001–006 define volume-priced excavation, real spoil, tip/reuse accounts, coupled closure and the explicit modular-phase exception to REQ-SET-126; ordinary surface-building refunds retain their rules. HAZ-001–006 define air/exhaustion/fall/rescue values and shared health ordering using the existing InjuryKind domain. These scoped parameters are author-adopted for implementation, replacing their earlier pending-authoring status. Four levels at4m spacing remain a candidate; all unsupplied G01 inputs and G02–G05 remain open.
+
+## PC-04 family amendment — DEC-044
+
+[DEC-044](setting_decisions.md#dec-044--pc-04-adopted-with-children-kept-inactive) adopts
+[FAMILY-C4-R01](planning/family_execution_package.md) with its lifecycle
+([FAMILY-LIFE-R01](planning/family_lifecycle_contract.md)) and state
+([FAMILY-STATE-R01](planning/family_state_schema.md)) companions, **with children kept
+inactive**: no scenario spawns a CHILD, the refuge start stays twelve adults, and PC-04's
+engineering gates 1–6 stay open ([decision 0521](decisions/0521-pc04-adopted-with-children-inactive.md)).
+
+**In force now, for every stage.** §5.2's hunger rate and §5.8's daily demand carry the life-stage
+multiplier: hunger milli-points/hour = floor(250000×size×season×stage/10^9) and
+NP/day = floor(6000×size×season×stage/10^9), summed per resident, with stage ADULT 1000,
+CHILD 750 and ELDER 1000 (FAMILY-RULES-R01). ADULT and ELDER keep every previous value exactly,
+so an all-adult world is unchanged.
+
+**Adopted amendments that apply only when children are active.** They are recorded here so the
+protected rules name them; none changes current behaviour.
+- **REQ-SET-020 mood, applies when children are active.** A CHILD's mood is
+  `clamp(floor((3*hunger+2*rest+2*comfort+social+2*purpose+2*care)/12)+memories,0,10000)`; the
+  weights sum to 12 (DEC-044). ADULT and ELDER keep the /10 formula above. Zero care lowers mood
+  and raises warnings; it causes no direct health loss.
+- **Relationship eviction (the paragraph after REQ-SET-038), applies when children are active.**
+  Paired care and social contact share one per-pair, per-day accumulator capped at 750 ticks,
+  which is also the once-per-day +2 affinity award latch. To create a ninth link, choose only
+  nonfriend edges whose last contact is strictly before today, keeping the existing
+  lowest-absolute-affinity / oldest-contact / pair-ID order; if none qualifies, grant the need
+  benefit without creating an edge. Household membership and caregiver preferences never
+  consume a degree-8 link.
+- **REQ-SET-036 care affinity, applies when children are active.** Its +8 care event is reserved
+  for completed medical treatment or rescue. Daily companionship care is ordinary paired social
+  contact and earns only the shared +2/day award above; there is no per-turn or per-hour payout.
+- **REQ-SET-038 conflict at every stage.** The ordinary daily pair-conflict rule applies to
+  children too: a non-violent argument with its existing memory and affinity consequences, and no
+  injury or combat (DEC-044, confirming the draft).
+- **Grief** reuses `friend_died` (−1800, 72 h) for a named caregiver or household member and
+  otherwise chooses `friend_died` or `stranger_died` (−300, 24 h) by actual friendship; at most one
+  grief memory per observer and loss.
+- **Protected domains** CHILL=6 (InjuryKind), PLAY=4/LEARNING=5 (Activity), schedule template
+  `young_day` (ID 3) and SET_POLICY selectors 2 CARE_WILLING / 3 CARE_PREFERRED are adopted and
+  enter one versioned rules/catalog fingerprint at activation. Existing ordinals do not move, and a
+  pre-family file refuses rather than migrating.

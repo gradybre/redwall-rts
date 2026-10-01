@@ -1,8 +1,11 @@
 # PC-04 lifecycle, illness and command closure draft
 
-FAMILY-LIFE-R01 · version3 draft · 2026-09-19 · Astra. Not active rules.
-This companion supplies proposed resolutions for the remaining gameplay choices;
-independent review and owning-spec amendments are required before activation.
+FAMILY-LIFE-R01 · version3 · 2026-09-19 · Astra · **ADOPTED 2026-10-01 (DEC-044)**.
+Adopted with children kept inactive: Brendan confirmed these choices as his own
+decisions ([decision 0521](../decisions/0521-pc04-adopted-with-children-inactive.md)).
+They are adopted design, not active rules: CHILL (gate 1), departure/separation
+(gate 2), the command wire activation (gate 3) and the schedule/activity domains
+take effect only with the activation packet and its rules fingerprint.
 
 ## Finite illness model
 

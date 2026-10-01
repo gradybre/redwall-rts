@@ -1,5 +1,5 @@
 # 0581 — Map layers get legends with units, a hover readout and a compared layer drawn as outlines
-Date: 2026-10-01 · Status: Accepted (feature #40, approved by Brendan 2026-10-01); the PROPOSALS below await his ruling
+Date: 2026-10-01 · Status: Accepted (feature #40, approved by Brendan 2026-10-01; all eight of its proposals approved as built, 2026-10-01)
 
 Feature #40, "better map layers", over the layers decision 0292 built (`demo/map_lenses.gd`, the Map layer picker):
 a legend with units and thresholds, a hover readout of the exact value under the pointer, a way to compare two
@@ -108,29 +108,24 @@ ramp passes it. The harness's capture also renders a stand-in night (that satura
 
 No key is added. V still steps the shown layer, U still follows the underground; compare is in the picker only.
 
-## PROPOSALS for Brendan
+## Brendan's rulings (2026-10-01)
 
-1. **Compare as outlines** (built). Options: (a) outlines of the second layer's areas over the first's fills -- built;
-   (b) a draggable screen split; (c) a quick toggle that flips between the two layers. Recommendation: (a); (c) could
-   be added as a key later if wanted.
-2. **The outline's colours.** UI §2.2 says world shapes are "outlined INK then GOLD"; GOLD is the selection colour,
-   so the outlines use INK then the area's own legend colour. Options: keep, or add a GOLD rim. Recommendation: keep.
-3. **The readout beside the pointer** (built) rather than a fixed line in the picker card. Options: beside the
-   pointer; in the card; both. Recommendation: beside the pointer (it is where the eye is), as built.
-4. **The colour-blind floors** (delta E 76 of 10 by day, 8 by night; Machado full severity). No document sets them.
-   Recommendation: keep; tighten to CIEDE2000 if a reviewer wants a perceptual metric.
-5. **The new moisture and ripeness colours** (orange / pale tan / sage / periwinkle / indigo; blue-grey growing, gold
-   ripe, plum past its best). An art call: growing is no longer green, because green against red is the classic
-   protanopia confusion. Recommendation: keep; any replacement must pass `test_every_ramp_passes_the_colour_blind_check`.
-6. **No readout for Routes and Underground.** Routes are lines, not areas; a readout could name the nearest drawn
-   stretch. Recommendation: leave until asked.
-7. **"Not served" and "empty" are outlined too** (in their dull colour), so every bed is ringed when the leat's
-   service or the ripeness is compared. Options: outline them; leave them out. Recommendation: outline (it says
-   "not on the leat" rather than leaving a gap).
-8. **No keyboard or gamepad route to the readout** (UI §8 asks keyboard alternatives for world picks). Options: read
-   at the camera's centre when no pointer is in use; read at the keyboard-focused object (the F6 object list); leave
-   it to the bed, water and woods panels, which give the same figures. Recommendation: the camera's centre, behind a
-   setting, if wanted.
+These were the record's eight proposals. Brendan approved all eight **as built** on 2026-10-01; nothing changed.
+
+1. **Compare as outlines: approved.** The second layer's areas are outlined over the first layer's fills. Rejected:
+   a draggable screen split, and a toggle that flips between the two layers.
+2. **The outline's colours: approved.** INK, then the area's own legend colour. No GOLD rim: GOLD stays the
+   selection colour, a divergence from UI §2.2's "outlined INK then GOLD".
+3. **The readout beside the pointer: approved,** rather than a line in the picker card.
+4. **The colour-blind floors: approved.** CIE76 delta E of at least 10 in the legend and by day, and 8 by night,
+   with Machado's full-severity deuteranopia and protanopia.
+5. **The new moisture and ripeness colours: approved.** Moisture runs orange, pale tan, sage, periwinkle, indigo;
+   ripeness is blue-grey growing, gold ripe, plum past its best. Any replacement must pass
+   `test_every_ramp_passes_the_colour_blind_check`.
+6. **No readout for Routes or Underground: approved.** Left until asked.
+7. **"Not served" and "empty" outlined too: approved,** in their dull colour.
+8. **No keyboard or gamepad route to the readout: approved as built.** The bed, water and woods panels give the
+   same figures. Reading at the camera's centre, behind a setting, stays an option for later.
 
 ## Not done, and why
 

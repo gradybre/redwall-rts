@@ -141,9 +141,10 @@ Implemented 2026-09-10 by `scripts/core/command_dispatch.gd`
 ([decision 0043](../decisions/0043-command-dispatch-commits-per-kind-schemas.md)),
 run as `settlement_system.gd`'s first stage. **Six of the 24 kinds commit**
 (CANCEL_JOB, DESIGNATE_ZONE, NAME_RESIDENT, SET_ACTIVITY_SCHEDULE,
-SET_JOB_PRIORITIES, SET_POLICY); the other eighteen refuse
-`COMMAND_UNSUPPORTED_FEATURE` and name the missing owner. **SET_MANUAL_TASK and
-CANCEL_MANUAL are among the eighteen: there is no ManualTask store (blocker U6).**
+SET_JOB_PRIORITIES, SET_POLICY); the other eighteen refused
+`COMMAND_UNSUPPORTED_FEATURE` and named the missing owner. *2026-10-01: APPOINT_WARDEN is
+the seventh (decision 0511), so seventeen now refuse.* **SET_MANUAL_TASK and
+CANCEL_MANUAL are among them: there is no ManualTask store (blocker U6).**
 Still outstanding within 04.2: pending-command PERSISTENCE (no save module, task
 09 owns the codec). The named handoff is **closed**: `settlement_system.gd` calls
 `command_dispatch.bind_ecology()` during composition as of 04.4 below, so all six

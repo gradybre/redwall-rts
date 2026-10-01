@@ -35,18 +35,20 @@ const MUST_BE_WIRED: Array[int] = [
 	62, 66, 67,  # the brush stepper and the confirm/cancel actions
 ]
 
-## Elements whose owning store genuinely does not exist, with the owner each is waiting on.
+## Elements that are genuinely not operable, with the gap each is waiting on. Decision 0511: the
+## Building/Room/Furniture stores, the Transform store and the save codec now EXIST, so their
+## rows name what is still missing (placement and commands, world picking, save files), not them.
 const MUST_BE_UNAVAILABLE: Array = [
-	[7, UiAvailability.REASON_NO_BUILDING_STORE],
-	[27, UiAvailability.REASON_NO_BUILDING_STORE],
-	[34, UiAvailability.REASON_NO_BUILDING_STORE],
-	[47, UiAvailability.REASON_NO_BUILDING_STORE],
-	[52, UiAvailability.REASON_NO_BUILDING_STORE],
+	[7, UiAvailability.REASON_NO_BUILDINGS_PLACED],
+	[27, UiAvailability.REASON_NO_BUILDINGS_PLACED],
+	[34, UiAvailability.REASON_NO_BUILDINGS_PLACED],
+	[47, UiAvailability.REASON_NO_BUILDINGS_PLACED],
+	[52, UiAvailability.REASON_NO_BUILDINGS_PLACED],
 	[3, UiAvailability.REASON_NO_HEATING_DEMAND],
-	[24, UiAvailability.REASON_NO_TRANSFORM_STORE],
-	[25, UiAvailability.REASON_NO_TRANSFORM_STORE],
-	[76, UiAvailability.REASON_NO_SAVE_CODEC],
-	[77, UiAvailability.REASON_NO_SAVE_CODEC],
+	[24, UiAvailability.REASON_NO_WORLD_PICKING],
+	[25, UiAvailability.REASON_NO_WORLD_PICKING],
+	[76, UiAvailability.REASON_NO_SAVE_FILES],
+	[77, UiAvailability.REASON_NO_SAVE_FILES],
 	[78, UiAvailability.REASON_NO_SETTINGS_STORE],
 	[30, UiAvailability.REASON_NO_RECIPE_ORDER_STORE],
 	[63, UiAvailability.REASON_NO_MILESTONE_STATE],
@@ -57,6 +59,9 @@ const MUST_BE_UNAVAILABLE: Array = [
 	[87, UiAvailability.REASON_PANEL_NOT_BUILT],
 	[89, UiAvailability.REASON_NO_WORLD_CAMERA],
 	[90, UiAvailability.REASON_NO_WORLD_CAMERA],
+	[48, UiAvailability.REASON_NO_RELATIONSHIP_STORE],
+	[97, UiAvailability.REASON_NO_RELIEF_SEED_POLICY],
+	[98, UiAvailability.REASON_NO_PIN_OWNER],
 ]
 
 ## §2.2's disabled wording, stated independently of the module under test.
@@ -122,11 +127,12 @@ func test_elements_with_no_owning_store_name_the_owner_they_wait_on() -> void:
 
 
 func test_the_bed_counter_is_not_drawn_as_a_zero() -> void:
-	"""The Bed counter's store does not exist, so it must be excused rather than shown empty."""
+	"""No building is placed, so the Bed counter must be excused rather than shown as 0 beds."""
 	assert_false(_availability.is_wired(7), "UI-SET-007 is not claimed as working")
 	var label: String = _availability.unavailable_label(7)
 	assert_true(label.begins_with(UNAVAILABLE_WORD), "it reads as unavailable: '%s'" % label)
-	assert_true(label.contains("Building"), "and names the Building store it needs")
+	assert_true(label.contains("Building"), "and names the Building stores")
+	assert_true(label.contains("no building is placed"), "and the placement they still lack")
 	assert_true(label.contains("task 06"), "and the task that owns that contract")
 	assert_false(label.ends_with("0"), "the label is a reason, not a count ending in a figure")
 
@@ -154,7 +160,7 @@ func test_asking_a_wired_element_for_an_excuse_refuses() -> void:
 
 
 func test_the_wired_reason_carries_no_sentence_and_every_other_one_does() -> void:
-	"""REASON_WIRED is the absence of an excuse; all twelve others are real sentences."""
+	"""REASON_WIRED is the absence of an excuse; every other one is a real sentence."""
 	assert_equal(_availability.reason_text(UiAvailability.REASON_WIRED), "",
 		"a wired element has no reason text")
 	for reason: int in range(1, UiAvailability.REASON_COUNT):
@@ -164,7 +170,7 @@ func test_the_wired_reason_carries_no_sentence_and_every_other_one_does() -> voi
 
 
 func test_an_undefined_reason_index_is_refused() -> void:
-	"""There is no thirteenth reason, and asking for one does not return an empty excuse."""
+	"""There is no reason past the last, and asking for one does not return an empty excuse."""
 	assert_equal(_availability.reason_text(UiAvailability.REASON_COUNT), "", "no such reason")
 	assert_equal(_availability.last_refusal(), UiAvailability.REFUSE_UNKNOWN_REASON,
 		"and it refuses with UNKNOWN_REASON")
@@ -185,13 +191,49 @@ func test_the_claim_is_a_minority_of_the_registry_and_says_so() -> void:
 func test_blocked_elements_group_under_the_owners_that_are_missing() -> void:
 	"""The largest blocked groups must be the stores the task names as out of scope."""
 	var buildings: int = _availability.count_with_reason(
-		UiAvailability.REASON_NO_BUILDING_STORE).value
+		UiAvailability.REASON_NO_BUILDINGS_PLACED).value
 	var movement: int = _availability.count_with_reason(
-		UiAvailability.REASON_NO_TRANSFORM_STORE).value
-	assert_true(buildings >= 10, "task 06's building contracts block a whole family of panels")
-	assert_true(movement >= 2, "task 05's movement blocks world selection")
+		UiAvailability.REASON_NO_WORLD_PICKING).value
+	assert_true(buildings >= 10, "task 06's unplaced buildings block a whole family of panels")
+	assert_true(movement >= 2, "world picking blocks world selection")
 	assert_equal(_availability.count_with_reason(UiAvailability.REASON_WIRED).value,
 		_availability.wired_count(), "counting by reason agrees with the wired total")
+
+
+func test_no_reason_claims_a_store_that_now_exists_is_missing() -> void:
+	"""Decision 0511: the Building, Transform, save-codec and weather-forecast owners landed later.
+
+	These phrases are the stale claims the review found (REVIEW.md UI-076/077's "needs the save
+	codec"). Each owner exists on master, so no sentence and no compact phrase may say otherwise.
+	"""
+	var stale: PackedStringArray = PackedStringArray([
+		"no save codec", "needs the save codec", "no Building, Furniture or Room store",
+		"needs the Building store", "no Transform or route store", "needs the movement store",
+		"no notification history store", "no forecast model exists", "needs the forecast model",
+		"no Transform", "no Building", "no save codec", "no notification history"])
+	for reason: int in range(1, UiAvailability.REASON_COUNT):
+		for phrase: String in stale:
+			assert_false(UiAvailability.REASON_TEXTS[reason].contains(phrase),
+				"reason %d does not claim '%s'" % [reason, phrase])
+			assert_false(UiAvailability.COMPACT_TEXTS[reason].contains(phrase),
+				"compact %d does not claim '%s'" % [reason, phrase])
+
+
+func test_the_save_rows_name_the_missing_save_files_not_a_missing_codec() -> void:
+	"""UI-SET-076/077: the codec exists; nothing writes or reads a save file on disk yet."""
+	for id: int in [76, 77]:
+		var label: String = _availability.unavailable_label(id)
+		assert_true(label.contains("save file on disk"), "UI-SET-%03d names the file gap" % id)
+		assert_true(label.contains("task 09"), "UI-SET-%03d names task 09" % id)
+
+
+func test_every_defined_reason_is_claimed_by_at_least_one_element() -> void:
+	"""A reason no element uses is a sentence nobody can read, and the old notice one was false."""
+	for reason: int in range(UiAvailability.REASON_COUNT):
+		if reason == UiAvailability.REASON_NO_MANUAL_TASK_STORE:
+			continue  # true, but no rendered or specified row claims it today (decision 0511)
+		assert_true(_availability.count_with_reason(reason).value > 0,
+			"reason %s is claimed by some element" % UiAvailability.REASON_KEYS[reason])
 
 
 # --- UXV-001: the 103-entry registry is not expanded wholesale into panels -------------------------

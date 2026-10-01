@@ -86,10 +86,10 @@ activity half, 010 and 013. The other seventeen are declared and idle.
 The missing links for the player-driven loop:
 
 - **ARCH-SYS-002 CommandCommit — NOW RUNNING** (`scripts/core/command_dispatch.gd`,
-  decision 0043), on top of the ordered economic queue decision 0042 built. Six of
-  ARCH-CMD-003's 24 kinds commit into a real store: CANCEL_JOB, DESIGNATE_ZONE,
-  NAME_RESIDENT, SET_ACTIVITY_SCHEDULE, SET_JOB_PRIORITIES and SET_POLICY. **The
-  other eighteen refuse an explicit unsupported-feature code and name the missing
+  decision 0043), on top of the ordered economic queue decision 0042 built. Seven of
+  ARCH-CMD-003's 24 kinds commit into a real store: APPOINT_WARDEN (decision 0511),
+  CANCEL_JOB, DESIGNATE_ZONE, NAME_RESIDENT, SET_ACTIVITY_SCHEDULE, SET_JOB_PRIORITIES
+  and SET_POLICY. **The other seventeen refuse an explicit unsupported-feature code and name the missing
   owner**; SET_MANUAL_TASK/CANCEL_MANUAL have no ManualTask store at all (blocker
   U6). A player action reaches the simulation for the first time.
   Two things it still does not do:

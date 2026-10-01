@@ -328,6 +328,14 @@ const REFUSE_RIG_STAGE_UNBOUND: StringName = &"RIG_STAGE_VARIANT_UNBOUND"
 const REFUSE_RIG_CATALOG: StringName = &"RIG_CATALOG_INVALID"
 ## The key is not one of the sixteen compiled rig identities.
 const REFUSE_UNKNOWN_RIG: StringName = &"UNKNOWN_RIG"
+## REQ-SET-157 (decision 0511): the appointee is a retained row whose resident has died.
+const REFUSE_WARDEN_CANDIDATE_NOT_LIVING: StringName = &"WARDEN_CANDIDATE_NOT_LIVING"
+## REQ-SET-157 says "any living resident"; §5.11 prose says "another adult". Only ADULT satisfies
+## both, so CHILD and ELDER refuse until a ruling settles them. Not a policy invented here.
+const REFUSE_WARDEN_CANDIDATE_STAGE: StringName = &"WARDEN_CANDIDATE_STAGE_UNRULED"
+## REQ-SET-157 enables appointment when the Warden "dies/leaves". Replacing a LIVING Warden is
+## not specified anywhere, so it refuses rather than deposing anybody.
+const REFUSE_WARDEN_SEAT_OCCUPIED: StringName = &"WARDEN_SEAT_OCCUPIED"
 
 ## GDD §4.2 `Equipment`: four of its five I32 columns at length 512 (`clothing_tier` stays in
 ## `needs.gd`; see the header). Re-derived by `equipment_payload_bytes()`.
@@ -1362,6 +1370,41 @@ func set_role(slot: int, role: int) -> OpResult:
 		return _refuse(REFUSE_INVALID_ROLE)
 	_role[slot] = role
 	return _succeed(role, ref_of(slot))
+
+
+func appoint_warden(slot: int) -> OpResult:
+	"""REQ-SET-157: make a living ADULT the Warden while no living Warden serves (decision 0511).
+
+	THE ONLY WRITE IS THE ROLE BYTE -- §5.11: "player can appoint another adult, with no stat
+	change". Skills, XP, needs, name and stage are untouched. Refusals, in order: a free row, a
+	dead resident, a stage the documents do not agree on, and a living Warden already serving
+	(the target itself included). A refusal writes nothing. The previous Warden's retained dead
+	row keeps its WARDEN byte: it is history, and nothing counts a dead row as serving.
+	"""
+	if not is_present(slot):
+		return _refuse(REFUSE_NOT_PRESENT)
+	if not is_alive(slot):
+		return _refuse(REFUSE_WARDEN_CANDIDATE_NOT_LIVING)
+	if _life_stage[slot] != LIFE_STAGE_ADULT:
+		return _refuse(REFUSE_WARDEN_CANDIDATE_STAGE)
+	if serving_warden_slot() != EntityDirectory.NULL_SLOT:
+		return _refuse(REFUSE_WARDEN_SEAT_OCCUPIED)
+	_role[slot] = ROLE_WARDEN
+	return _succeed(slot, ref_of(slot))
+
+
+func serving_warden_slot() -> int:
+	"""The lowest living row holding the WARDEN role, or NULL_SLOT when the seat is vacant.
+
+	"Serving" means LIVING: a Warden whose health reached 0 keeps the role byte on the retained
+	row and no longer serves. Departure has no owner yet (needs.gd leaves it unwritten), so a
+	departed row cannot be told apart here; decision 0511 records that gap.
+	"""
+	for index: int in _live_count:
+		var slot: int = _live_slots[index]
+		if _role[slot] == ROLE_WARDEN and is_alive(slot):
+			return slot
+	return EntityDirectory.NULL_SLOT
 
 
 func set_name(slot: int, name_value: StringName) -> OpResult:

@@ -86,12 +86,13 @@ extends Node
 ##
 ## WHAT ARCH-SYS-002 NOW DOES, AND WHAT IT STILL DOES NOT. It drains `commands.gd`'s ordered
 ## next-tick queue and commits each drained record through `command_dispatch.gd`. In THIS node's
-## composition that now reaches ALL SIX implemented kinds. Four of them -- CANCEL_JOB,
+## composition that now reaches ALL SEVEN implemented kinds. Four of them -- CANCEL_JOB,
 ## NAME_RESIDENT, SET_ACTIVITY_SCHEDULE and SET_JOB_PRIORITIES -- always did, because this node
-## composes the resident-side stores. DESIGNATE_ZONE and SET_POLICY refused COMMAND_STORE_NOT_BOUND
+## composes the resident-side stores, and APPOINT_WARDEN (decision 0511) reaches the same
+## `residents.gd` for the same reason. DESIGNATE_ZONE and SET_POLICY refused COMMAND_STORE_NOT_BOUND
 ## until task 04.4, because they need `forage.gd` and `job_planner.gd`; `_bind_ecology_to_commands()`
 ## is the named handoff task 04.2 reserved for it and it runs during composition, so a player's
-## zone and policy edits now reach real stores in the running game. The remaining eighteen
+## zone and policy edits now reach real stores in the running game. The remaining seventeen
 ## ARCH-CMD-003 kinds refuse COMMAND_UNSUPPORTED_FEATURE and name their missing owner.
 ##
 ## ONE PLAYER COMMAND CANNOT PRODUCE TWO DESIGNATIONS. `command_dispatch.gd` records
@@ -2561,11 +2562,11 @@ func commands() -> CommandsScript:
 
 
 func command_dispatch() -> CommandDispatchScript:
-	"""ARCH-SYS-002's commit stage, WITH the ecology bound: all six implemented kinds commit here.
+	"""ARCH-SYS-002's commit stage, WITH the ecology bound: all seven implemented kinds commit here.
 
 	`_bind_ecology_to_commands()` calls `bind_ecology()` during composition, so DESIGNATE_ZONE and
 	SET_POLICY reach `forage.gd` and `job_planner.gd` instead of refusing COMMAND_STORE_NOT_BOUND.
-	The other eighteen ARCH-CMD-003 kinds still refuse COMMAND_UNSUPPORTED_FEATURE and name the
+	The other seventeen ARCH-CMD-003 kinds still refuse COMMAND_UNSUPPORTED_FEATURE and name the
 	store they are waiting for.
 	"""
 	return _dispatch

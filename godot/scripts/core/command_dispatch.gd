@@ -39,10 +39,11 @@ extends RefCounted
 ## That is not policy and not goods; it is recorded here rather than hidden.
 ##
 ## ---------------------------------------------------------------------------------------
-## WHICH KINDS ARE IMPLEMENTED, AND WHY THE OTHER EIGHTEEN REFUSE. ARCH-CMD-003 fixes 24 kinds.
+## WHICH KINDS ARE IMPLEMENTED, AND WHY THE OTHER SEVENTEEN REFUSE. ARCH-CMD-003 fixes 24 kinds.
 ## Task 04.2 implements them "where their owning stores/contracts exist" and requires the rest to
-## reach an "explicit unsupported-feature refusal, never silent success". Six exist:
+## reach an "explicit unsupported-feature refusal, never silent success". Seven exist:
 ##
+##   APPOINT_WARDEN         `residents.gd` appoint_warden(), REQ-SET-157 (decision 0511)
 ##   CANCEL_JOB             `jobs.gd`      set_state(CANCELLED), after release_worker()
 ##   DESIGNATE_ZONE         `forage.gd` + `job_planner.gd`   create_zone/set_basin/add_tile,
 ##                                          then enable_forage_demand()
@@ -76,8 +77,13 @@ extends RefCounted
 ##                          bytes, under ARCH-SAVE-005's 2-32 character, no-control-character rule.
 ##   CANCEL_JOB             target = the Job. No payload and no argument: the identity IS the whole
 ##                          command, so a nonempty payload is refused rather than ignored.
+##   APPOINT_WARDEN         decision 0511, not 0043. target = the appointee resident; no payload;
+##                          arg0 = arg1 = 0. REQ-SET-157 names a person and nothing else, so the
+##                          identity is the whole command and a nonzero argument or payload refuses.
+##                          Every eligibility rule is `residents.gd`'s and reaches the ledger as
+##                          COMMAND_STORE_REFUSED carrying the store's own code.
 ##
-## The other eighteen refuse COMMAND_UNSUPPORTED_FEATURE and name their missing owner in
+## The other seventeen refuse COMMAND_UNSUPPORTED_FEATURE and name their missing owner in
 ## `unsupported_reason()`. SET_MANUAL_TASK and CANCEL_MANUAL are among them: THERE IS NO ManualTask
 ## STORE, because blocker U6 records that "owner-major indexing for the 8-per-resident store is
 ## unspecified" -- `jobs.gd` and `schedule.gd` both say so in their own headers, and `manual_until`
@@ -178,6 +184,7 @@ const SimClock := preload("res://scripts/core/sim_clock.gd")
 # --- ARCH-CMD-003's 24 kind ids, read from the compiled catalog and never respelled -------------
 
 const KIND_ACCEPT_CANDIDATES: int = Catalog.COMMAND_KIND["ACCEPT_CANDIDATES"]
+const KIND_APPOINT_WARDEN: int = Catalog.COMMAND_KIND["APPOINT_WARDEN"]
 const KIND_CANCEL_JOB: int = Catalog.COMMAND_KIND["CANCEL_JOB"]
 const KIND_CANCEL_MANUAL: int = Catalog.COMMAND_KIND["CANCEL_MANUAL"]
 const KIND_DESIGNATE_ZONE: int = Catalog.COMMAND_KIND["DESIGNATE_ZONE"]
@@ -193,7 +200,7 @@ const KIND_COUNT: int = 24
 ## rather than being told only that something is unsupported.
 const UNSUPPORTED_REASON: Array[StringName] = [
 	&"NO_IMMIGRATION_CANDIDATE_STORE",
-	&"NO_WARDEN_APPOINTMENT_CONTRACT",
+	&"",
 	&"NO_FURNITURE_OR_BED_STORE",
 	&"",
 	&"NO_MANUAL_TASK_STORE_BLOCKER_U6",
@@ -613,6 +620,8 @@ func _dispatch(command: CommandsScript.Command) -> int:
 	"""
 	_store_code = REFUSE_NONE
 	_math.refuse(String(REFUSE_INVALID_RESULT_ID))
+	if command.kind == KIND_APPOINT_WARDEN:
+		return _commit_appoint_warden(command)
 	if command.kind == KIND_CANCEL_JOB:
 		return _commit_cancel_job(command)
 	if command.kind == KIND_DESIGNATE_ZONE:
@@ -988,6 +997,33 @@ func _write_priority_rows(slot: int, rows: int, fallback: int, dangerous: int) -
 func _is_toggle(value: int) -> bool:
 	"""True for the three legal toggle values: leave unchanged, off, on."""
 	return value == TOGGLE_UNCHANGED or value == TOGGLE_OFF or value == TOGGLE_ON
+
+
+# --- APPOINT_WARDEN -----------------------------------------------------------------------------
+
+func _commit_appoint_warden(command: CommandsScript.Command) -> int:
+	"""REQ-SET-157: appoint the targeted resident Warden. Decision 0511's schema; target only.
+
+	Revalidates the target NOW, refuses any argument or payload rather than ignoring it, then
+	asks `residents.gd`, which owns the role column and every eligibility rule: living, ADULT,
+	and no living Warden already serving. A store refusal is ledgered with its own code.
+	"""
+	if _residents == null:
+		return RESULT_STORE_NOT_BOUND
+	var resolved: int = _resolve_target(command, EntityDirectory.KIND_RESIDENT)
+	if resolved != RESULT_COMMITTED:
+		return resolved
+	if command.arg0 != 0 or command.arg1 != 0:
+		return RESULT_ARGUMENT_RANGE
+	var empty: int = _load_payload(command, 0)
+	if empty != RESULT_COMMITTED:
+		return empty
+	var appointed: ResidentsScript.OpResult = _residents.appoint_warden(_target_row)
+	if not appointed.ok:
+		_store_code = appointed.error
+		return RESULT_STORE_REFUSED
+	_math.succeed(_target_row)
+	return RESULT_COMMITTED
 
 
 # --- NAME_RESIDENT ------------------------------------------------------------------------------

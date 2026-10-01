@@ -58,7 +58,17 @@ func read_into(point_m: Vector2, out: Reading) -> bool:
 		out.who = _tree.value
 	if out.entry < 0:
 		return false
-	out.value = _zones.revision * ZONE_WHO + _stand.revision
+	out.value = 0
+	return true
+
+
+func area_at_into(point_m: Vector2, out: Reading) -> bool:
+	"""The zone's class only (the outlines trace zones; no tree search per grid corner)."""
+	out.clear()
+	var zone: int = zone_at(point_m)
+	if zone < 0:
+		return false
+	out.area = ENTRY_FORESTRY if _zones.kind[zone] == ZonesScript.KIND_FORESTRY else ENTRY_CONSERVATION
 	return true
 
 
@@ -82,6 +92,11 @@ func field_bounds_m() -> Rect2:
 func field_revision() -> int:
 	"""Moves when the zones change."""
 	return _zones.revision
+
+
+func words_revision() -> int:
+	"""Moves also when a tree changes (a fell moves a zone's floor and what may still be felled)."""
+	return _zones.revision * 1000003 + _stand.revision
 
 
 func describe(reading: Reading) -> String:

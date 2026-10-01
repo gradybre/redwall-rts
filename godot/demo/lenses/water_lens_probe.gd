@@ -74,8 +74,13 @@ func field_bounds_m() -> Rect2:
 
 
 func field_revision() -> int:
-	"""Moves when the painted body or the ice changes."""
-	return (_overlay.body_height_u * 3 + _overlay.ice_state) * 10000 + _overlay.ice_mm
+	"""Moves when the zones' areas change: another body height painted, the pond iced or open."""
+	return _overlay.body_height_u * 3 + _overlay.ice_state
+
+
+func words_revision() -> int:
+	"""Moves also with the body's name and the ice's thickness (words only: no outline is redrawn for them)."""
+	return (field_revision() * 10000 + _overlay.ice_mm) ^ _overlay.body_label.hash()
 
 
 func describe(reading: Reading) -> String:

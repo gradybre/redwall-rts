@@ -171,6 +171,22 @@ func test_the_reading_follows_the_sim_and_the_field_moves_only_on_a_new_colour()
 	assert_true(probe.field_revision() > field, "the outline is redrawn")
 
 
+func test_choosing_a_crop_re_words_the_bed_with_its_moisture_unchanged() -> void:
+	"""Bed 1 empty, then carrots chosen: same moisture, same band, new band edges -- the words revision moves."""
+	var sim := SimScript.new()
+	var probe := BedProbe.new(sim, BedProbe.MODE_MOISTURE)
+	probe.read_into(Catalog.bed_centre_m(BED_EMPTY), _reading)
+	var words: int = probe.words_revision()
+	var field: int = probe.field_revision()
+	assert_true(sim.choose(BED_EMPTY, sim.item_of(BED_CARROTS)).ok, "carrots chosen")
+	var after := ProbeScript.Reading.new()
+	probe.read_into(Catalog.bed_centre_m(BED_EMPTY), after)
+	assert_true(after.same_as(_reading), "the same reading")
+	assert_true(probe.words_revision() != words, "the words revision moved")
+	assert_equal(probe.field_revision(), field, "the outline stands")
+	assert_true(probe.describe(after).contains("good 25–70%"), probe.describe(after))
+
+
 func test_ripeness_entries_split_at_the_grace_and_the_loss() -> void:
 	"""Growing; ripe under 48 h; at 48 h past its best; withered and blighted lost; empty."""
 	assert_equal(BedProbe.ripeness_entry(SimScript.STAGE_GROWING, 0), BedProbe.RIPENESS_GROWING, "growing")
@@ -304,6 +320,15 @@ func test_the_water_legend_and_field_follow_the_painted_body_and_the_ice() -> vo
 	overlay.ice_state = WaterProbe.ICE_THIN
 	overlay.ice_mm = 40
 	assert_true(probe.field_revision() != field, "the ice")
+	field = probe.field_revision()
+	var words: int = probe.words_revision()
+	overlay.ice_mm = 41
+	assert_equal(probe.field_revision(), field, "a millimetre more: no outline redrawn")
+	assert_true(probe.words_revision() != words, "but new words")
+	words = probe.words_revision()
+	overlay.body_label = "Mouse keeper (1.00 m)"
+	assert_true(probe.words_revision() != words, "another body of the same height: new words")
+	overlay.ice_mm = 40
 	var reading := ProbeScript.Reading.new()
 	reading.entry = WaterProbe.ENTRY_THIN_ICE
 	assert_equal(probe.describe(reading), "Pond ice 40 mm · thin\nkeep off", "thin ice")
@@ -364,6 +389,21 @@ func test_a_tree_and_its_zone_are_read() -> void:
 	assert_equal(probe.describe(_reading).get_slice("\n", 0), "Young oak", "a young tree by its own name")
 	assert_equal(_reading.entry, 3, "the legend's young tree")
 	assert_false(probe.read_into(Vector2(40.0, 40.0), _reading), "open ground")
+
+
+func test_the_woods_outline_samples_zones_only_and_a_fell_re_words() -> void:
+	"""`area_at_into` over the oak: its zone's class, no tree; a fell moves the words revision, not the field."""
+	var woods: Array = _woods()
+	var stand: StandScript = woods[0]
+	var probe := WoodsProbe.new(stand, woods[1])
+	assert_true(probe.area_at_into(Vector2(-10.0, -24.0), _reading), "in the zone")
+	assert_equal([_reading.area, _reading.entry, _reading.who], [WoodsProbe.ENTRY_FORESTRY, -1, -1], "the zone only")
+	assert_false(probe.area_at_into(Vector2(0.0, -24.0), _reading), "the beech: no zone")
+	var field: int = probe.field_revision()
+	var words: int = probe.words_revision()
+	assert_true(stand.fell_into(0, 2, Vector2(1.0, 0.0), false, _read), "the oak felled")
+	assert_equal(probe.field_revision(), field, "the zones stand")
+	assert_true(probe.words_revision() != words, "the words move")
 
 
 func test_the_woods_field_is_its_zones() -> void:

@@ -7,12 +7,15 @@ extends RefCounted
 ## TWO HALVES, so that the pointer costs nothing. `read_into` is called up to ten times a second and must not
 ## allocate: it fills a caller-owned Reading with integers -- which legend entry is under the point, which AREA class
 ## the outlines trace, the exact value, and whose it is (a bed, a tree, a zone, a body height). `describe` turns a
-## Reading into words and is called only when the Reading (or the probe's `field_revision`) changes, so its string
+## Reading into words and is called only when the Reading (or the probe's `words_revision`) changes, so its string
 ## formatting happens on a change, never per frame.
 ##
 ## THE FIELD. A probe that can be outlined (`can_outline`) names the ground its areas lie in (`field_bounds_m`), the
-## grid step to sample it at (`field_cell_m`), how high its marks are drawn (`draw_y_m`), and a number that moves
-## whenever its areas may have changed (`field_revision`) -- the outlines are redrawn only then.
+## grid step to sample it at (`field_cell_m`), how high its marks are drawn (`draw_y_m`), the area class at a point
+## (`area_at_into`: the outlines' sampling, as cheap as the probe can make it), and a number that moves whenever its
+## areas may have changed (`field_revision`) -- the outlines are redrawn only then. A second number moves whenever
+## what `describe` would say may have changed without the Reading changing (`words_revision`: a crop chosen, another
+## body named, the ice thickening) -- the readout is re-worded then; it is never cheaper to move than the field's.
 ##
 ## The base probe has nothing to say: a layer without a probe (Routes, Underground) shows no readout and is not
 ## offered for comparison.
@@ -60,6 +63,12 @@ func read_into(_point_m: Vector2, out: Reading) -> bool:
 	return false
 
 
+func area_at_into(point_m: Vector2, out: Reading) -> bool:
+	"""The area class at the point, into `out.area` (the outlines' sampling); by default a full read. Must not
+	allocate."""
+	return read_into(point_m, out)
+
+
 func describe(_reading: Reading) -> String:
 	"""The Reading in words, for the readout (called on a change only)."""
 	return ""
@@ -86,8 +95,14 @@ func draw_y_m() -> float:
 
 
 func field_revision() -> int:
-	"""Moves whenever the areas -- or what `describe` would say -- may have changed."""
+	"""Moves whenever the areas may have changed."""
 	return 0
+
+
+func words_revision() -> int:
+	"""Moves whenever what `describe` would say may have changed with the Reading unchanged (by default: with the
+	field)."""
+	return field_revision()
 
 
 func legend_ticks() -> PackedStringArray:

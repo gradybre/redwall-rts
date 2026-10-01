@@ -54,8 +54,8 @@ var _main_seen: ProbeScript.Reading = ProbeScript.Reading.new()
 var _second: ProbeScript.Reading = ProbeScript.Reading.new()
 var _second_seen: ProbeScript.Reading = ProbeScript.Reading.new()
 ## What the words were last made for: the two lenses, whether each read anything, and their field revisions.
-var _seen_key: PackedInt64Array = PackedInt64Array([-1, -1, -1, -1, -1, -1])
-var _key: PackedInt64Array = PackedInt64Array([0, 0, 0, 0, 0, 0])
+var _seen_key: PackedInt64Array = PackedInt64Array([-1, -1, -1, -1, -1])
+var _key: PackedInt64Array = PackedInt64Array([0, 0, 0, 0, 0])
 var _traced_lens: int = LensesScript.OFF
 var _traced_field: int = -1
 ## Per lens, the field revision its legend's ticks were last taken at.
@@ -89,6 +89,16 @@ func _probe_for(group: String, label: String, probe: ProbeScript) -> void:
 		_lenses.set_probe(lens, probe)
 
 
+func _ready() -> void:
+	"""Forget the pointer when it leaves the window."""
+	get_window().mouse_exited.connect(forget_pointer)
+
+
+func forget_pointer() -> void:
+	"""No pointer over the world: the readout goes until it comes back."""
+	_pointer = Vector2.INF
+
+
 func _input(event: InputEvent) -> void:
 	"""Follow the pointer (it is never consumed here)."""
 	var motion := event as InputEventMouseMotion
@@ -118,6 +128,8 @@ func _process(_delta: float) -> void:
 
 func follow_compare() -> void:
 	"""Trace the compared layer when it changes or its areas may have; clear the outline when there is none."""
+	if _lenses.compare != LensesScript.OFF and not _lenses.is_compare_candidate(_lenses.compare):
+		_lenses.settle_compare()
 	var lens: int = _lenses.compare
 	if lens == LensesScript.OFF:
 		if _traced_lens != LensesScript.OFF:
@@ -179,9 +191,8 @@ func read_point(point: Vector2, main: ProbeScript, second: ProbeScript) -> bool:
 	_key[0] = _lenses.active
 	_key[1] = _lenses.compare
 	_key[2] = int(has_main) + 2 * int(has_second)
-	_key[3] = main.field_revision() if main != null else 0
-	_key[4] = second.field_revision() if second != null else 0
-	_key[5] = 0
+	_key[3] = main.words_revision() if main != null else 0
+	_key[4] = second.words_revision() if second != null else 0
 	if _key == _seen_key and _main.same_as(_main_seen) and _second.same_as(_second_seen):
 		readout.show_again()
 		return true

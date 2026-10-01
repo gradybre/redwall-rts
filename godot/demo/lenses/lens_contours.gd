@@ -11,7 +11,8 @@ extends MeshInstance3D
 ## is cut off on its own). Each segment becomes a strip STRIP_M wide on the class's side and an INK_M ink core.
 ##
 ## WHEN, AND HOW MUCH. A trace starts on `start` (a new compared layer, its field revision moved) and runs a slice at
-## a time (`step`, at most `budget_usec` a frame: sampling rows, then tracing rows, then one mesh commit); the old
+## a time (`step`, about `budget_usec` a frame: sampling corners -- the clock read every SAMPLE_CHUNK of them, through
+## the probe's cheap `area_at_into` -- then tracing rows, then one mesh commit); the old
 ## outline stays drawn until the new one is committed. Nothing is allocated per frame while idle; a trace writes into
 ## buffers kept between traces and grows them only when an outline is longer than any before. Grids larger than
 ## MAX_CORNERS are sampled coarser.
@@ -32,6 +33,8 @@ const RENDER_PRIORITY: int = 6
 const MAX_CORNERS: int = 40000
 ## The most area classes traced.
 const MAX_CLASSES: int = 16
+## Corners sampled between two looks at the clock.
+const SAMPLE_CHUNK: int = 16
 ## A frame's default slice of work.
 const BUDGET_USEC: int = 1000
 const PHASE_IDLE: int = 0
@@ -63,6 +66,7 @@ var _classes: PackedInt32Array = PackedInt32Array()
 var _present: PackedByteArray = PackedByteArray()
 var _phase: int = PHASE_IDLE
 var _row: int = 0
+var _col: int = 0
 var _class: int = 0
 var _verts: PackedVector3Array = PackedVector3Array()
 var _cols: PackedColorArray = PackedColorArray()
@@ -109,6 +113,7 @@ func start(probe: ProbeScript, colours: PackedColorArray) -> void:
 	_present.fill(0)
 	_used = 0
 	_row = 0
+	_col = 0
 	_class = 0
 	segments = 0
 	_phase = PHASE_SAMPLE if bounds.has_area() else PHASE_IDLE
@@ -130,11 +135,12 @@ func is_working() -> bool:
 
 
 func step(budget_usec: int = BUDGET_USEC) -> bool:
-	"""Work on the trace for at most `budget_usec` (whole rows); returns whether it is still under way."""
+	"""Work on the trace for about `budget_usec` (corners in chunks, cells in rows); returns whether it is still under
+	way."""
 	var until: int = Time.get_ticks_usec() + budget_usec
 	while _phase != PHASE_IDLE and Time.get_ticks_usec() < until:
 		if _phase == PHASE_SAMPLE:
-			_sample_row()
+			_sample_chunk()
 		else:
 			_trace_row()
 	return _phase != PHASE_IDLE
@@ -146,24 +152,31 @@ func finish() -> void:
 		step(1000000)
 
 
-func _sample_row() -> void:
-	"""One row of corners: each corner's area class."""
-	var row_at: int = _row * (_nx + 1)
-	var z: float = _origin.y + float(_row) * _cell
-	for i: int in _nx + 1:
+func _sample_chunk() -> void:
+	"""Up to SAMPLE_CHUNK corners, row by row: each corner's area class."""
+	for n: int in SAMPLE_CHUNK:
 		var area: int = -1
-		if _probe.read_into(Vector2(_origin.x + float(i) * _cell, z), _reading) and _reading.area < MAX_CLASSES:
+		var at := Vector2(_origin.x + float(_col) * _cell, _origin.y + float(_row) * _cell)
+		if _probe.area_at_into(at, _reading) and _reading.area >= 0 and _reading.area < MAX_CLASSES:
 			area = _reading.area
-		_classes[row_at + i] = area
-		if area >= 0:
 			_present[area] = 1
-	_row += 1
-	if _row > _nz:
-		_row = 0
-		_class = _next_class(0)
-		_phase = PHASE_TRACE if _class < MAX_CLASSES else PHASE_IDLE
-		if _phase == PHASE_IDLE:
-			_commit()
+		_classes[_row * (_nx + 1) + _col] = area
+		_col += 1
+		if _col > _nx:
+			_col = 0
+			_row += 1
+			if _row > _nz:
+				_end_sampling()
+				return
+
+
+func _end_sampling() -> void:
+	"""Every corner sampled: trace the first class present (none: an empty outline)."""
+	_row = 0
+	_class = _next_class(0)
+	_phase = PHASE_TRACE if _class < MAX_CLASSES else PHASE_IDLE
+	if _phase == PHASE_IDLE:
+		_commit()
 
 
 func _next_class(from: int) -> int:

@@ -116,6 +116,11 @@ func field_revision() -> int:
 	return _area_revision
 
 
+func words_revision() -> int:
+	"""Moves with the sim: a crop chosen or sown changes a bed's band edges and name with its moisture unchanged."""
+	return _sim.revision
+
+
 func _sync() -> void:
 	"""Re-read every bed when the sim's revision has moved."""
 	if _sim.revision == _seen_revision:

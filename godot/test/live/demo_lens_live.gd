@@ -264,7 +264,7 @@ func _tree_readout() -> void:
 	"""The Woods over the first tree: what stands there."""
 	var stand: RefCounted = _village.get("_forestry").get("stand")
 	if int(stand.call(&"count")) == 0:
-		_check("readout: a tree (none in this village)", true)
+		print("LIVE-SKIP %dx%d readout: a tree (this village has none)" % [_size.x, _size.y])
 		return
 	var at: Vector2 = (stand.get("at") as PackedVector2Array)[0]
 	var words: String = await _words_after(_lens("Woods", "Zones and trees"), at)

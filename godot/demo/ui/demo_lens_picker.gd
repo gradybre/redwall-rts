@@ -365,7 +365,8 @@ func _fill_compare() -> void:
 		_compare_buttons[k].set_pressed_no_signal(k + 1 == compare)
 		any = any or candidate
 	_compare_list.visible = _compare_list.visible and any and _card.visible
-	FarmUi.set_enabled(_compare_button, any and _card.visible, "No other layer can be outlined over this one")
+	FarmUi.set_enabled(_compare_button, any and _card.visible,
+		"Show a map layer first" if not _card.visible else "No other layer can be outlined over this one")
 	_compare_button.set_pressed_no_signal(compare != LensesScript.OFF or _compare_list.visible)
 	_compare_row.visible = compare != LensesScript.OFF
 	_outline_box.visible = _compare_row.visible

@@ -5,7 +5,8 @@ extends CanvasLayer
 ## else. Its words come from the layers' probes (demo/lenses/), chosen and throttled by demo/lenses/demo_lens_kit.gd.
 ##
 ## WHERE. Beside the pointer (OFFSET_PX below and right of it), kept inside the window: flipped to the pointer's left
-## or above it near an edge. It takes no input (UI §3: a tooltip-like layer that ignores the mouse) and is hidden while
+## or above it near an edge, on UI §3's tooltip layer (LAYER), so no panel draws over it. Text 16 px (the OVERLAY
+## profile's), the compared layer's at 14. It takes no input (UI §3: a tooltip-like layer that ignores the mouse) and is hidden while
 ## the pointer is over any panel, so it never covers a control the player is using. It draws on the parchment of the
 ## demo's tooltips (woodland_styles.gd PIECE_MAP, the theme's TooltipPanel), ink on parchment, at the HUD's scale.
 ##
@@ -21,9 +22,11 @@ const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
 
 ## From the pointer to the readout's corner, logical px; its text sizes (UI §2: 14 px floor).
 const OFFSET_PX: Vector2 = Vector2(18.0, 20.0)
-const MAIN_PX: int = 15
+const MAIN_PX: int = 16
 const SECOND_PX: int = 14
 const MARGINS: PackedFloat32Array = [12.0, 8.0, 12.0, 9.0]
+## UI §3's tooltip layer: over every demo panel and card (it is hidden whenever the pointer is over one of them).
+const LAYER: int = 60
 ## UI §2.2 OVERLAY: an 80 ms fade unless reduced motion.
 const FADE_S: float = 0.08
 
@@ -36,7 +39,7 @@ var _target: float = 0.0
 func _init() -> void:
 	"""The parchment card and its two lines, hidden."""
 	name = "DemoLensReadout"
-	layer = 0
+	layer = LAYER
 	_panel = PanelContainer.new()
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.add_theme_stylebox_override(&"panel", Styles.box(Styles.PIECE_MAP, MARGINS))

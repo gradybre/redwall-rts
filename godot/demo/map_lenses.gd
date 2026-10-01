@@ -133,7 +133,9 @@ func set_ticks(lens: int, ticks: PackedStringArray, caption: String) -> void:
 
 
 func set_probe(lens: int, probe: ProbeScript) -> void:
-	"""What a lens says about a ground point (null: nothing -- no readout, not comparable)."""
+	"""What a lens says about a ground point (null: nothing -- no readout, not comparable). OFF never has one."""
+	if lens <= OFF or lens >= count():
+		return
 	_probes[lens] = probe
 	_settle_compare()
 	revision += 1
@@ -330,6 +332,12 @@ func sync() -> bool:
 			revision += 1
 			return true
 	return false
+
+
+func settle_compare() -> void:
+	"""Drop the compared lens if it may no longer be compared (its probe lost its field: the last zone removed)."""
+	_settle_compare()
+	revision += 1
 
 
 func _settle_compare() -> void:

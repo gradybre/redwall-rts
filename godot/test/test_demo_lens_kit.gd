@@ -34,6 +34,7 @@ class SquareProbe extends "res://demo/lenses/lens_probe.gd":
 	var bounds: Rect2 = Rect2(-3.0, -3.0, 6.0, 6.0)
 	var cell: float = 0.5
 	var revision: int = 0
+	var words: int = 0
 	var reads: int = 0
 
 	func read_into(point_m: Vector2, out: Reading) -> bool:
@@ -70,6 +71,10 @@ class SquareProbe extends "res://demo/lenses/lens_probe.gd":
 	func field_revision() -> int:
 		"""As set."""
 		return revision
+
+	func words_revision() -> int:
+		"""As set, apart from the field's."""
+		return words
 
 
 var _nodes: Array[Node] = []
@@ -120,8 +125,7 @@ func _lenses() -> LensesScript:
 # --- the layers as data -----------------------------------------------------------------------------------
 
 func test_a_layer_added_as_a_record_carries_everything() -> void:
-	"""add_def: on V's cycle after the rest, its legend, scale, areas, ground, probe and subject; with a follow switch,
-	off V's cycle."""
+	"""add_def: on V's cycle after the rest, its legend, scale, areas, ground and probe."""
 	var lenses := _lenses()
 	var def := DefScript.new()
 	def.group = "Woods"
@@ -140,14 +144,26 @@ func test_a_layer_added_as_a_record_carries_everything() -> void:
 	var lens: int = lenses.add_def(def)
 	assert_equal(lens, lenses.count() - 1, "the last row")
 	assert_equal(lenses.find("Woods", "Leaf fall"), lens, "found by group and label")
-	assert_equal(lenses.find("Woods", "Nothing"), LensesScript.OFF, "nothing else")
-	assert_true(lenses.is_on_cycle(lens), "V reaches it")
+	assert_true(lenses.find("Woods", "Nothing") == LensesScript.OFF and lenses.is_on_cycle(lens), "nothing else; V reaches it")
 	assert_equal(lenses.words_of(lens), def.words, "its words")
 	assert_equal([lenses.ramp_from_of(lens), lenses.ramp_count_of(lens)], [0, 2], "its ramp")
 	assert_equal(lenses.ticks_of(lens), def.ticks, "its thresholds")
 	assert_equal(lenses.caption_of(lens), "Leaf cover %", "its caption")
 	assert_equal(lenses.area_colours(lens), PackedColorArray([LensPalette.RIPE]), "its area colours, as set")
 	assert_equal(lenses.area_words(lens), PackedStringArray(["turning"]), "and words")
+	assert_true(lenses.probe_of(lens) == def.probe and lenses.can_compare(lens), "its probe")
+	lenses.set_probe(LensesScript.OFF, def.probe)
+	assert_true(lenses.probe_of(LensesScript.OFF) == null, "Off never gets a probe")
+
+
+func test_find_tells_groups_apart_and_a_followed_record_is_off_the_cycle() -> void:
+	"""The same label in two groups is two layers; a record with a follow switch is off V's cycle."""
+	var lenses := _lenses()
+	var def := DefScript.new()
+	def.group = "Woods"
+	def.label = "Leaf fall"
+	def.show = _show.bind("leaf")
+	var lens: int = lenses.add_def(def)
 	var other := DefScript.new()
 	other.group = "Growing"
 	other.label = "Leaf fall"
@@ -155,7 +171,6 @@ func test_a_layer_added_as_a_record_carries_everything() -> void:
 	var second: int = lenses.add_def(other)
 	assert_equal(lenses.find("Growing", "Leaf fall"), second, "the same label in another group is another layer")
 	assert_equal(lenses.find("Woods", "Leaf fall"), lens, "and the first still its own")
-	assert_true(lenses.probe_of(lens) == def.probe and lenses.can_compare(lens), "its probe")
 	var followed := DefScript.new()
 	followed.follow = func() -> bool: return false
 	followed.show = _show.bind("f")
@@ -394,6 +409,13 @@ func test_the_readout_words_fade_and_go() -> void:
 	assert_almost_equal(readout.opacity(), 0.0, "gone")
 
 
+func test_the_readout_draws_on_the_tooltip_layer() -> void:
+	"""UI §3: over every panel and card, never under the picker."""
+	assert_equal(_readout().layer, ReadoutScript.LAYER, "its layer")
+	var picker: PickerScript = _picker(_lenses())
+	assert_true(ReadoutScript.LAYER > picker.layer + 2, "above the demo's panels and cards (layers 0-2)")
+
+
 func test_reduced_motion_shows_and_hides_the_readout_at_once() -> void:
 	"""UI §2.2: no fade with reduced motion."""
 	Access.set_flag(Access.SET_MOTION, true)
@@ -461,6 +483,21 @@ func test_a_long_ramp_flows_rather_than_widening_the_card() -> void:
 		legend.get_combined_minimum_size().x)
 
 
+func test_a_rebuilt_legend_leaves_no_orphan() -> void:
+	"""A rebuild frees the old caption, bar and keys: rebuilt to three entries and back to two, the node count is as
+	it was."""
+	var lenses := _lenses()
+	var legend := _legend(lenses, 1, false)
+	var children: int = legend.get_child_count()
+	var orphans: int = int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT))
+	lenses.set_scale(1, 0, 3, PackedStringArray(["x", "y", "z"]), "Now three")
+	legend.retext()
+	lenses.set_scale(1, 0, 2, PackedStringArray(["up to 1 m", "past 1 m"]), "Depth in metres")
+	legend.retext()
+	assert_equal(legend.get_child_count(), children, "the same parts")
+	assert_equal(int(Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)), orphans, "none left over")
+
+
 func test_the_outlined_legend_is_compact() -> void:
 	"""Every entry a chip; no caption, no thresholds."""
 	var legend := _legend(_lenses(), 1, true)
@@ -517,6 +554,42 @@ func test_the_kit_words_the_readout_only_on_a_change() -> void:
 	lenses.select(2)
 	kit.read_point(Vector2.ZERO, lenses.probe_of(2), null)
 	assert_equal(kit.rewords, before + 1, "another layer reading the same: its own words")
+
+
+func test_new_words_without_a_new_reading_re_word_the_readout() -> void:
+	"""The probe's words revision moves (a crop chosen, another body named): new words though the Reading is the
+	same; the pointer forgotten (it left the window), nothing is read."""
+	var lenses := _lenses()
+	var kit := _kit(lenses)
+	lenses.select(1)
+	var probe := lenses.probe_of(1) as SquareProbe
+	kit.read_point(Vector2.ZERO, probe, null)
+	probe.revision += 1
+	kit.read_point(Vector2.ZERO, probe, null)
+	assert_equal(kit.rewords, 1, "the field alone: the same words")
+	probe.words += 1
+	kit.read_point(Vector2.ZERO, probe, null)
+	assert_equal(kit.rewords, 2, "new words: re-worded")
+	var motion := InputEventMouseMotion.new()
+	motion.position = Vector2(40.0, 30.0)
+	kit._input(motion)
+	assert_true(KitScript.may_read(true, false, true, kit.get("_pointer"), Vector2(100.0, 100.0)), "the pointer followed")
+	kit.forget_pointer()
+	assert_false(KitScript.may_read(true, false, true, kit.get("_pointer"), Vector2(100.0, 100.0)), "forgotten")
+
+
+func test_a_compared_layer_that_loses_its_field_is_dropped() -> void:
+	"""Its last zone gone (the probe's field empty): the kit settles the compare off and clears the outline."""
+	var lenses := _lenses()
+	var kit := _kit(lenses)
+	lenses.select(1)
+	lenses.set_compare(2)
+	kit.follow_compare()
+	kit.contours.finish()
+	(lenses.probe_of(2) as SquareProbe).bounds = Rect2()
+	kit.follow_compare()
+	assert_equal(lenses.compare, LensesScript.OFF, "dropped")
+	assert_equal(kit.contours.vertex_count(), 0, "and its outline cleared")
 
 
 func test_the_pointer_is_read_only_over_the_world_inside_the_window() -> void:
@@ -649,6 +722,15 @@ func test_the_picker_offers_compare_and_turns_it_on_and_off() -> void:
 	assert_true(picker.compare_button().button_pressed, "the button stays pressed")
 	assert_equal(picker.compare_text(), "Outlined: Group: Layer 1", "the Outlined line")
 	assert_true(picker.outline_legend(2).visible and picker.compare_lens_button(2).button_pressed, "its legend, pressed")
+
+
+
+func test_the_picker_turns_compare_off_by_the_same_pick_or_x() -> void:
+	"""Picking the outlined layer again releases the button; ✕ turns it off and the Outlined line goes."""
+	var lenses := _lenses()
+	var picker := _picker(lenses)
+	picker.choose(1)
+	picker.choose_compare(2)
 	picker.choose_compare(2)
 	assert_equal(lenses.compare, LensesScript.OFF, "the same again: off")
 	assert_false(picker.compare_button().button_pressed, "released")

@@ -127,6 +127,10 @@ No key is added. V still steps the shown layer, U still follows the underground;
 7. **"Not served" and "empty" are outlined too** (in their dull colour), so every bed is ringed when the leat's
    service or the ripeness is compared. Options: outline them; leave them out. Recommendation: outline (it says
    "not on the leat" rather than leaving a gap).
+8. **No keyboard or gamepad route to the readout** (UI §8 asks keyboard alternatives for world picks). Options: read
+   at the camera's centre when no pointer is in use; read at the keyboard-focused object (the F6 object list); leave
+   it to the bed, water and woods panels, which give the same figures. Recommendation: the camera's centre, behind a
+   setting, if wanted.
 
 ## Not done, and why
 
@@ -137,6 +141,23 @@ No key is added. V still steps the shown layer, U still follows the underground;
   zone's colour and the young tree's (a zone is an outline, a tree a disc).
 - **The lighting branch is not merged here**; the night is checked numerically against its published curves and
   rendered with a stand-in, not with its own nodes.
+
+## The independent review, and what changed
+
+The code review (HIGH findings, all fixed): (1) the moisture readout kept the old band edges after a crop was chosen
+-- the moisture and band were unchanged, so the Reading was; probes now have a `words_revision` (the bed probe's is
+the sim's revision) and the readout re-words when it moves; (2) the water readout kept an old body's name at the same
+height, and every millimetre of ice re-traced the outline -- the water's `field_revision` is now the areas' alone
+(height, ice state) and its `words_revision` adds the ice's thickness and the body's name; (3) a slice could overrun
+its millisecond by tens of milliseconds, because a whole row was sampled between looks at the clock and the Woods
+probe searched every tree for every grid corner -- sampling now looks at the clock every 16 corners, through a new
+cheap `area_at_into` (the Woods': zones only); (4) the readout drew on canvas layer 0, under the picker -- it is on UI
+§3's tooltip layer (60), at the OVERLAY profile's 16 px. Also fixed: a compared layer that loses its field (the last
+zone removed) is dropped (`settle_compare`); the pointer is forgotten when it leaves the window; Off can never take a
+probe; a treeless village skips the tree check instead of passing it. Not changed: outlines over the stream are drawn
+at y 0.05 while its paint lies about 0.14 m lower (about a strip's width of parallax at the camera's pitch), and the
+readout picks the y = 0 plane; the colour check composites in sRGB where the renderer blends in linear, so its
+figures are approximate (both recorded here).
 
 ## Consequences
 
@@ -158,7 +179,12 @@ No key is added. V still steps the shown layer, U still follows the underground;
   restore): 57 killed at first; the 8 survivors (an area past its swatches, `find` ignoring the group, a record's
   areas, the pond's ice, the woods' tree entries, the readout's second line, the over-a-panel check -- masked off-tree
   by the missing camera, so it became its own `may_read` -- and a new shown layer with the same reading) each got a
-  test, and all 65 are now killed.
+  test, and all 65 were killed. The review's fixes added 14 more (the words and field revisions, the zone-only
+  sampling, the per-corner slicing, settling, the forgotten pointer, the readout's layer, the legend's freeing): 12
+  killed at first, the 2 survivors (a test probe whose words and field revisions were the same; a pointer never set
+  before it was forgotten) got sharper tests, and all 14 are killed. One known survivor: reading at once on a layer
+  change rather than on the next tenth of a second (`_process` needs a live tree; the live harness exercises it but
+  would pass either way).
 
 ## Source
 

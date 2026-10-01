@@ -29,6 +29,7 @@ const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const SleepTaskScript := preload("res://demo/burrow/sleep_task.gd")
 const NightScript := preload("res://demo/burrow/night_routine.gd")
 const BoardScript := preload("res://demo/work/work_board.gd")
+const SourceScript := preload("res://demo/work/work_source.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
 const TaskScript := preload("res://demo/work/work_task.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
@@ -62,6 +63,9 @@ var _texts: PackedStringArray = PackedStringArray()
 var _seen_revision: int = -1
 var _since_read: float = 0.0
 var _task: TaskScript = TaskScript.new()
+## Who holds a board task that is WORKING or HAULING, marked in one pass over the board's rows by `read_contexts`
+## (`_mark_board_working`, decision 0561).
+var _board_busy: PackedByteArray = PackedByteArray()
 ## How many phrases have been asked of the hum (a line begun by a seen singer, songs on; checks).
 var hums_asked: int = 0
 
@@ -135,21 +139,45 @@ func _process(delta: float) -> void:
 func read_contexts() -> void:
 	"""Every resident's context and ground position now (see A RESIDENT'S CONTEXT)."""
 	var hour: int = _calendar.now().hour if _calendar != null else 12
+	_mark_board_working()
 	for i: int in _contexts.size():
 		var actor := _cast.actor(i) as DemoActorScript
-		_contexts[i] = context_of(actor, i, hour)
+		_contexts[i] = _context(actor, i, hour, true)
 		_positions[i] = actor.brain.position
 
 
+func _mark_board_working() -> void:
+	"""Mark in `_board_busy` every resident holding a work-board task that is WORKING or HAULING, in ONE pass over the
+	board's rows -- what `_board_working` answers for one resident, for all of them at once (decision 0561: a scan per
+	resident was O(residents x rows), 20-30 ms a read at 100 residents)."""
+	_board_busy.resize(_contexts.size())
+	_board_busy.fill(0)
+	if _board == null:
+		return
+	for source: int in WorkIds.SOURCE_COUNT:
+		var src: SourceScript = _board.source(source)
+		if src == null:
+			continue
+		for row: int in src.capacity():
+			var who: int = src.worker(row) if src.live(row) else -1
+			if who >= 0 and who < _board_busy.size() and _board_busy[who] == 0 and _row_busy(source, row):
+				_board_busy[who] = 1
+
+
 func context_of(actor: DemoActorScript, i: int, hour: int) -> int:
-	"""Resident `i`'s context at `hour` (see A RESIDENT'S CONTEXT)."""
+	"""Resident `i`'s context at `hour` (see A RESIDENT'S CONTEXT), the board read for it alone."""
+	return _context(actor, i, hour, false)
+
+
+func _context(actor: DemoActorScript, i: int, hour: int, marked: bool) -> int:
+	"""`context_of`, the board read from `_board_busy` when `marked` (`read_contexts`), else scanned for `i`."""
 	var brain: BrainScript = actor.brain
 	if not actor.visible or brain.underground or brain.indoors or brain.lying:
 		return BookScript.CONTEXT_NONE
 	if _at_supper(i):
 		return BookScript.CONTEXT_SUPPER
 	var going_home: bool = brain.task is SleepTaskScript and (brain.task as SleepTaskScript).stage == SleepTaskScript.STAGE_GOING
-	if not NightScript.is_night_hour(hour) and hour >= DAY_FROM_HOUR and _working(brain, i):
+	if not NightScript.is_night_hour(hour) and hour >= DAY_FROM_HOUR and _working(brain, i, marked):
 		return BookScript.CONTEXT_WORK
 	var evening: bool = hour >= EVENING_FROM_HOUR and hour < EVENING_TO_HOUR
 	if evening and (going_home or brain.activity() == BrainScript.ACTIVITY_WANDERING):
@@ -165,12 +193,15 @@ func _at_supper(i: int) -> bool:
 	return at_table and _kitchen.meal_of(i) % 2 == MealRules.MEAL_SUPPER
 
 
-func _working(brain: BrainScript, i: int) -> bool:
-	"""Whether resident `i` is actually working now, not walking to it (see WORK)."""
+func _working(brain: BrainScript, i: int, marked: bool) -> bool:
+	"""Whether resident `i` is actually working now, not walking to it (see WORK); the board from the mark when
+	`marked`."""
 	if brain.carrying or brain.activity() == BrainScript.ACTIVITY_WORKING:
 		return true
 	if _kitchen != null and _kitchen.role_of(i) != KitchenTask.ROLE_EAT and _kitchen.step_of(i) >= KitchenTask.WORK_FIRST:
 		return true
+	if marked:
+		return i >= 0 and i < _board_busy.size() and _board_busy[i] == 1
 	return _board_working(i)
 
 
@@ -183,10 +214,15 @@ func _board_working(who: int) -> bool:
 		if src == null:
 			continue
 		for row: int in src.capacity():
-			if src.live(row) and src.worker(row) == who and _board.fill(source, row, _task) \
-					and (_task.state == WorkIds.STATE_WORKING or _task.state == WorkIds.STATE_HAULING):
+			if src.live(row) and src.worker(row) == who and _row_busy(source, row):
 				return true
 	return false
+
+
+func _row_busy(source: int, row: int) -> bool:
+	"""Whether the board's task in `row` of `source` is WORKING or HAULING now."""
+	return _board.fill(source, row, _task) \
+		and (_task.state == WorkIds.STATE_WORKING or _task.state == WorkIds.STATE_HAULING)
 
 
 func draw() -> void:

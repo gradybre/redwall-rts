@@ -463,6 +463,53 @@ func test_supper_seats_and_working_board_tasks_are_read_as_contexts() -> void:
 	assert_equal(songs.context_of(actor, 0, 16), WORK, "the cook at the pot")
 
 
+func test_read_contexts_marks_the_board_in_one_pass_as_the_scan_would() -> void:
+	"""Decision 0561's fix: `read_contexts` marks who is working on the board in one pass over its rows. Three residents
+	by day -- one holding a WORKING task, one holding a TRAVELLING one and a HAULING one, one holding none -- and rows
+	with no worker: the read gives each the context the per-resident scan (`context_of`) gives. The mark is the read's
+	own: a task that stops working afterwards is seen at once by `context_of`, and by the next read."""
+	var songs := SongsScript.new()
+	_nodes.append(songs)
+	var cast := DemoCastScript.new()
+	_nodes.append(cast)
+	var brains: Array[BrainScript] = []
+	for _k: int in 3:
+		var actor := DemoActorScript.new()
+		_nodes.append(actor)
+		actor.brain = BrainScript.new()
+		brains.append(actor.brain)
+		cast._actors.append(actor)
+	var board := BoardScript.new()
+	board.bind(brains, PackedStringArray(["r0", "r1", "r2"]),
+		[&"otter_fisher", &"mole_digger", &"mouse_keeper"] as Array[StringName])
+	var sources: Array[StubSource] = []
+	for row: Array in [[0, 2, WorkIds.STATE_WORKING], [1, 0, WorkIds.STATE_TRAVELLING], [2, 0, WorkIds.STATE_HAULING],
+			[3, -1, WorkIds.STATE_WORKING], [4, 7, WorkIds.STATE_WORKING]]:
+		var src := StubSource.new()
+		src.id = row[0]
+		src.who = row[1]
+		src.state = row[2]
+		board.add_source(src)
+		sources.append(src)
+	songs._cast = cast
+	songs._contexts.resize(3)
+	songs._positions.resize(3)
+	songs.follow(null, board)
+	songs.read_contexts()
+	var scanned: Array[int] = []
+	for who: int in 3:
+		scanned.append(songs.context_of(cast.actor(who) as DemoActorScript, who, 12))
+	assert_equal(scanned, [WORK, NONE, WORK] as Array[int], "the per-resident scan")
+	var read: Array[int] = []
+	for context: int in songs._contexts:
+		read.append(context)
+	assert_equal(read, scanned, "the one-pass read gives the same contexts")
+	sources[0].state = WorkIds.STATE_TRAVELLING
+	assert_equal(songs.context_of(cast.actor(2) as DemoActorScript, 2, 12), NONE, "context_of reads the board now")
+	songs.read_contexts()
+	assert_equal(songs._contexts[2], NONE, "and so does the next read")
+
+
 func test_a_line_begun_asks_the_hum_once_and_never_with_songs_off() -> void:
 	"""Over the placeholder cast: a line begun asks one phrase; the same line again, none; the next line, one more;
 	songs off, none."""

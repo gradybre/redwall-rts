@@ -8,7 +8,8 @@ extends CanvasLayer
 ## PAGES, one at a time in one carved frame, centred in the HUD's modal rectangle:
 ##   * the MENU: Resume, Restart demo…, Controls, Settings, Demo Lab, Quit… -- and, always shown, the
 ##     line that the demo cannot save yet;
-##   * CONTROLS: the demo's keys and clicks (DEMO_CONTROLS);
+##   * HELP (PAGE_CONTROLS, which it replaced -- decision 0481): one searchable page of how-tos and the demo's keys
+##     and clicks (demo/guide/help_page.gd), each topic a command answers carrying that command as a button;
 ##   * SETTINGS: only what works -- the interface scale (100/125/150 %, UI §8.1's `ui_scale`, each size
 ##     offered only where the layout fits it), full screen, and the sound (demo/sound/sound_settings_ui.gd,
 ##     decision 0351: each bus's volume and mute, and the mixes), scrolling in the modal rectangle when the
@@ -22,10 +23,13 @@ extends CanvasLayer
 ## pause held before stays held. Drawn above the HUD (LAYER), below the stall banner.
 ##
 ## ACTIONS are the host's Callables (`on_restart`, `on_quit`, `on_lab`, `on_scale`, `on_fullscreen`,
-## ...), so the menu decides nothing about the scene; demo_village.gd wires them.
+## ...), so the menu decides nothing about the scene; demo_village.gd wires them. The help page's commands
+## (`help.action_requested`) and the first-village guide's row (`add_extra`, under the buttons) are the guide's
+## (demo/guide/demo_guide.gd, decision 0481).
 
 const FarmUi := preload("res://demo/farm/farm_ui.gd")
 const SoundSettingsScript := preload("res://demo/sound/sound_settings_ui.gd")
+const HelpPageScript := preload("res://demo/guide/help_page.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
@@ -44,17 +48,19 @@ const RETURN_BUTTON: Array[int] = [0, 2, 3, BUTTON_RESTART]
 ## Above the HUD's CanvasLayer (1), with the Pantry; the stall banner draws at 3, above it.
 const LAYER: int = 2
 const WIDTH: float = 560.0
-## The Controls list scrolls within the modal rectangle less this (title, Back, margins).
-const LIST_RESERVE_H: float = 150.0
+## The Help list scrolls within the modal rectangle less this (title, search, count, Back, margins).
+const LIST_RESERVE_H: float = 210.0
+## The help list's lines wrap this much inside the frame's text width (its scrollbar).
+const SCROLLBAR_W: float = 18.0
 
 const TITLE: String = "Game menu"
 const PAUSED_LINE: String = "The village is paused while this menu is open."
 const NO_SAVE_LINE: String = "The demo can't save yet: quitting or restarting loses this village."
-const MENU_BUTTONS: Array[String] = ["Resume", "Restart demo…", "Controls", "Settings", "Demo Lab (F8)", "Quit…"]
+const MENU_BUTTONS: Array[String] = ["Resume", "Restart demo…", "Help", "Settings", "Demo Lab (F8)", "Quit…"]
 const MENU_TIPS: Array[String] = [
 	"Close the menu and carry on at the speed you had (Esc)",
 	"Start the demo again from its first morning (asks first)",
-	"The demo's keys and clicks",
+	"How-tos and the demo's keys, searchable",
 	"Interface scale, full screen and sound",
 	"Test triggers -- weather, a tunnel threat, a storm gust, a swimmer's cramp",
 	"Leave the demo (asks first)",
@@ -67,31 +73,6 @@ const SCALE_TOO_SMALL: String = "%d%% needs a larger window"
 const SCALES_TOO_SMALL: String = "%s need a larger window"
 const FULLSCREEN_TEXT: String = "Full screen (F11): %s"
 const BACK_TEXT: String = "Back"
-## The demo's keys and clicks, as the Controls page lists them (README "Commanding the residents").
-const DEMO_CONTROLS: Array = [
-	["Left click", "Select a resident (Shift: add or take it out); a bed, tunnel, tree or bridge site opens its panel"],
-	["Left drag", "Box-select residents (Shift: add to the selection)"],
-	["Right click", "Order the selection: move there, or work the spot, bed, tree, heap or water clicked"],
-	["R", "Release the selection to its own routine"],
-	["Esc", "Close the top pop-up; then clear the selection; then open this menu"],
-	["W A S D, arrows", "Pan the camera"],
-	["Q / E, middle drag", "Turn the camera (middle drag also tilts it)"],
-	["Wheel, Page Up / Down", "Zoom"],
-	["Home", "Reset the view"],
-	["Space", "Pause or resume"],
-	["B or T", "Dig tool: drag a tunnel (Enter digs a piece laid by clicks; Backspace takes a point back)"],
-	["H / C in the Dig tool", "Place a burrow home / a root cellar"],
-	["U", "Underground view"],
-	["V", "Cycle the map overlays"],
-	["K", "The Pantry"],
-	["N", "Notification history"],
-	["F7", "Keyboard focus: world, then the right column, then the left column, then the world"],
-	["Tab / Shift+Tab", "Next / previous button where the focus is"],
-	["Enter / Space", "Press the focused button"],
-	["F8", "Demo Lab"],
-	["F11", "Full screen"],
-]
-
 ## Host actions (see ACTIONS). `scale_fits(percent) -> bool`; `is_fullscreen() -> bool`.
 var on_restart: Callable = Callable()
 var on_quit: Callable = Callable()
@@ -103,6 +84,8 @@ var is_fullscreen: Callable = Callable()
 var scale_percent: int = UiLayout.USER_SCALE_100
 ## The Settings page's sound section; the host sets its `apply` (the demo's mix).
 var sound: SoundSettingsScript = SoundSettingsScript.new()
+## The Help page (decision 0481); the host answers its `action_requested`.
+var help: HelpPageScript = HelpPageScript.new()
 
 var _manager: GameManagerScript = null
 var _holding: bool = false
@@ -114,7 +97,6 @@ var _menu_buttons: Array[Button] = []
 var _scale_buttons: Array[Button] = []
 var _scale_note: Label = null
 var _fullscreen: Button = null
-var _controls_scroll: ScrollContainer = null
 var _settings_scroll: ScrollContainer = null
 var _settings_body: VBoxContainer = null
 var _confirm_title: Label = null
@@ -176,25 +158,11 @@ func _build_menu() -> VBoxContainer:
 
 
 func _build_controls() -> VBoxContainer:
-	"""The demo's keys, two columns in a scroll, and Back."""
+	"""The Help page: its search over the how-tos and keys (help_page.gd), and Back."""
 	var page := VBoxContainer.new()
-	page.add_child(FarmUi.label("Controls", FarmUi.TITLE_PX, Palette.INK, true))
-	_controls_scroll = ScrollContainer.new()
-	_controls_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	page.add_child(_controls_scroll)
-	var grid := GridContainer.new()
-	grid.columns = 2
-	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	grid.add_theme_constant_override(&"h_separation", 14)
-	grid.add_theme_constant_override(&"v_separation", 4)
-	_controls_scroll.add_child(grid)
-	for row: Array in DEMO_CONTROLS:
-		var key: Label = FarmUi.label(String(row[0]), FarmUi.BODY_PX, Palette.INK, true)
-		key.autowrap_mode = TextServer.AUTOWRAP_OFF
-		grid.add_child(key)
-		var does: Label = FarmUi.label(String(row[1]), FarmUi.BODY_PX, Palette.INK)
-		does.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		grid.add_child(does)
+	page.add_child(FarmUi.label("Help", FarmUi.TITLE_PX, Palette.INK, true))
+	help.set_text_width(WIDTH - FarmUi.CONTENT_MARGINS[0] - FarmUi.CONTENT_MARGINS[2] - SCROLLBAR_W)
+	page.add_child(help)
 	page.add_child(_back_button())
 	return page
 
@@ -344,7 +312,7 @@ func _show_page(index: int) -> void:
 	_place.call_deferred()
 	if not visible or not is_inside_tree():
 		return
-	var target: Button = _first_button(index)
+	var target: Control = _first_button(index)
 	if index == PAGE_MENU and from != PAGE_MENU:
 		target = _menu_buttons[RETURN_BUTTON[from] if from != PAGE_CONFIRM or _confirming == CONFIRM_RESTART else BUTTON_QUIT]
 	target.grab_focus(not keyboard)
@@ -358,11 +326,12 @@ func _keyboard_focus() -> bool:
 	return owner != null and owner.has_focus(true)
 
 
-func _first_button(index: int) -> Button:
-	"""The page's first focus: the menu's Resume, a page's Back, the confirmation's Cancel."""
+func _first_button(index: int) -> Control:
+	"""The page's first focus: the menu's Resume, Help's search field, Settings' first size, the confirmation's
+	Cancel."""
 	match index:
 		PAGE_CONTROLS:
-			return _pages[PAGE_CONTROLS].get_child(_pages[PAGE_CONTROLS].get_child_count() - 1) as Button
+			return help.field()
 		PAGE_SETTINGS:
 			return _scale_buttons[0]
 		PAGE_CONFIRM:
@@ -450,6 +419,17 @@ func frame() -> PanelContainer:
 	return _frame
 
 
+func add_extra(control: Control) -> void:
+	"""A host's row under the menu's buttons (the first-village guide's, decision 0481), as wide as the frame's text."""
+	control.custom_minimum_size.x = WIDTH - FarmUi.CONTENT_MARGINS[0] - FarmUi.CONTENT_MARGINS[2]
+	_pages[PAGE_MENU].add_child(control)
+
+
+func text_width() -> float:
+	"""The frame's text width (a host row wraps at it)."""
+	return WIDTH - FarmUi.CONTENT_MARGINS[0] - FarmUi.CONTENT_MARGINS[2]
+
+
 func menu_button(k: int) -> Button:
 	"""The menu page's button `k` (MENU_BUTTONS order)."""
 	return _menu_buttons[k]
@@ -501,7 +481,7 @@ func _place() -> void:
 	FarmUi.geometry_for(get_viewport().get_visible_rect().size, _layout, _geometry)
 	var zone: Rect2 = _geometry.modal
 	var width: float = minf(WIDTH, zone.size.x - 2.0 * FarmUi.FRAME_EXPAND)
-	_controls_scroll.custom_minimum_size = Vector2(0.0, maxf(120.0, zone.size.y - LIST_RESERVE_H))
+	help.set_list_height(maxf(120.0, zone.size.y - LIST_RESERVE_H))
 	_settings_scroll.custom_minimum_size = Vector2(0.0, minf(_settings_body.get_combined_minimum_size().y,
 		maxf(120.0, zone.size.y - LIST_RESERVE_H)))
 	_frame.reset_size()

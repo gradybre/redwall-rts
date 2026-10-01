@@ -448,8 +448,10 @@ func _scale_checks() -> void:
 	keep apart."""
 	var s: float = _effective()
 	var incidents: Object = _village.get("_services").get("incidents")
-	incidents.call(&"raise", "layout:card", 2, 2, "A layout check: the stream is rising fast at the weir")
 	_village.get("_lens_picker").call(&"choose", 1)
+	await _frames(SETTLE_FRAMES)
+	_guide_room()
+	incidents.call(&"raise", "layout:card", 2, 2, "A layout check: the stream is rising fast at the weir")
 	await _frames(SETTLE_FRAMES)
 	var card_frame: Control = _village.get("_cards").get("_frame")
 	for k: int in 240:
@@ -460,7 +462,7 @@ func _scale_checks() -> void:
 		"water": _water().get("_frame"), "bed": _farm().get("bed_panel").get("_frame"),
 		"lens picker": _village.get("_lens_picker").get("_frame"), "card": _village.get("_cards").get("_frame"),
 		"news strip": _village.get("_news").get("_frame"), "news window": _village.get("_history").get("_frame"),
-		"pantry": _farm().get("pantry_panel").get("_frame")}
+		"pantry": _farm().get("pantry_panel").get("_frame"), "guide card": _village.call(&"guide").get("card").call(&"frame")}
 	var off: PackedStringArray = PackedStringArray()
 	for key: String in frames:
 		var frame: Control = frames[key]
@@ -517,3 +519,31 @@ func _apart(frames: Dictionary) -> void:
 	_check("the incident card shows", card.is_visible_in_tree())
 	_check("the card clear of the party panel and the tab strip", not card.get_global_rect().intersects(party)
 		and not card.get_global_rect().intersects(strip), "%s" % card.get_global_rect())
+	_guide_apart(frames, party, strip, right, picker)
+
+
+func _guide_apart(frames: Dictionary, party: Rect2, strip: Rect2, right: Rect2, picker: Rect2) -> void:
+	"""With a critical incident's card up, the guide's objective card (decision 0481) yields to it: one card at the top
+	centre."""
+	_check("the guide card yields to the incident card", not (frames["guide card"] as Control).is_visible_in_tree())
+
+
+func _guide_room() -> void:
+	"""With a map layer's legend unfolded, the guide's objective card is above the Map layer picker and clear of the
+	side columns and the tab strip -- or, where no density of it fits, waits (never overlapping)."""
+	var card: Control = _village.call(&"guide").get("card").call(&"frame")
+	var picker: Rect2 = (_village.get("_lens_picker").get("_frame") as Control).get_global_rect()
+	var party: Rect2 = (_party().get("_frame") as Control).get_global_rect()
+	var strip: Rect2 = (_village.get("_zone").get("_strip") as Control).get_global_rect()
+	var rect: Rect2 = card.get_global_rect()
+	var shown: bool = card.is_visible_in_tree()
+	var incident: bool = bool(_village.get("_cards").call(&"is_shown"))
+	var cramped: bool = bool(_village.call(&"guide").get("card").get("_cramped"))
+	var why: String = "shown" if shown else ("yielding to the incident card" if incident else "waiting for room")
+	_check("the guide card clear of the Map layer picker", not shown or not rect.intersects(picker),
+		"%s %s %s" % [why, rect, picker])
+	_check("the guide card clear of the party panel and the tab strip", not shown or (not rect.intersects(party)
+		and not rect.intersects(strip)), "%s" % rect)
+	_check("the guide card hidden only to yield or for room", shown or incident or cramped, why)
+	_check("the guide card shows at 100 %", shown or incident or DemoUiScale.percent != 100, why)
+	_capture("guide_room")

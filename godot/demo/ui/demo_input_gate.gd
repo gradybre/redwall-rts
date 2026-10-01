@@ -16,7 +16,10 @@ extends Node
 ##     one step (its `close` Callable) and is consumed, so the same press never also clears the
 ##     selection (UI §3: "Closing a modal does not also clear selection in the same key press");
 ##   * focus is TRAPPED: it lands on the modal's first control when it opens, Tab and Shift+Tab cycle its
-##     controls, and when it closes focus goes back where it was (or to the world).
+##     controls, and when it closes focus goes back where it was (or to the world);
+##   * TYPING (decision 0481): while a text field inside the top modal has the focus (the help and field-guide
+##     search, a project's name), every press but Esc and Tab goes to the field -- letters, Space, Enter, Backspace,
+##     their repeats, and the modal's own letter close keys, which then type rather than close.
 ## This node is added LAST under the demo's root, so its `_input` and `_unhandled_input` run before every
 ## other demo node's (Godot calls them in reverse tree order) -- its `_input` before the Dig tool's and the
 ## HUD's. The HUD's `_unhandled_key_input` (its command keys, N) runs before any `_unhandled_input`, but the
@@ -253,15 +256,16 @@ static func focusables(roots: Array[Node]) -> Array[Control]:
 
 
 static func _collect(node: Node, out: Array[Control]) -> void:
-	"""Depth-first: `node`'s focusable, visible buttons (a hidden branch is skipped whole). Only buttons:
-	the action controls; a scroll box that happens to take focus is not a stop."""
+	"""Depth-first: `node`'s focusable, visible buttons and text fields (a hidden branch is skipped whole). Only
+	those: the action controls and the fields typed into (decision 0481); a scroll box that happens to take focus is
+	not a stop."""
 	for child: Node in node.get_children():
 		var item := child as CanvasItem
 		if item != null and not item.visible:
 			continue
-		var button := child as BaseButton
-		if button != null and button.focus_mode == Control.FOCUS_ALL:
-			out.append(button)
+		var stop := child as Control
+		if (child is BaseButton or child is LineEdit) and stop.focus_mode == Control.FOCUS_ALL:
+			out.append(stop)
 		_collect(child, out)
 
 
@@ -324,6 +328,10 @@ func _route_modal(key: InputEventKey, focus: Focus) -> int:
 		return ROUTE_CLOSE if not key.echo else ROUTE_CONSUME
 	if NAVIGATION_KEYS.has(code):
 		return ROUTE_PASS
+	if typing(focus.control):
+		if code == KEY_TAB and not key.ctrl_pressed and not key.echo:
+			return ROUTE_PREVIOUS if key.shift_pressed else ROUTE_NEXT
+		return ROUTE_PASS
 	if key.echo:
 		return ROUTE_CONSUME
 	if closes_top(key):
@@ -365,6 +373,12 @@ func closes_top(key: InputEventKey) -> bool:
 		if key.is_action_pressed(action, false, true):
 			return true
 	return false
+
+
+func typing(control: Control) -> bool:
+	"""Whether `control` is an editable text field inside the top modal (see TYPING)."""
+	var field := control as LineEdit
+	return field != null and field.editable and in_top_modal(field)
 
 
 static func is_activation(key: InputEventKey) -> bool:

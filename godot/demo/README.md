@@ -626,17 +626,34 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
   treading water when it stops, angling into the flow and swept by what it cannot hold; the tail floats.
   Stamina (HAZ-001/003): no routine swim under 40%, turn for the bank at 15%, in difficulty at 0; cold
   water (below 10.0 °C) doubles the drain; a flood doubles the flow.
+- **The bank recheck** (review F07, decision 0231). A route's swim is checked again at the water, every
+  step down the bank until the swimmer goes in: swim shortcuts, stamina, a load, and whether it can still
+  swim against the flow there. Refused, it climbs back up, plans again from land (round, the ford, a
+  bridge -- or still water it may swim) and the water's news says why ("Mole won't swim across: swim
+  shortcuts are off — going round by land"). One already swimming is never pulled out: it finishes the
+  crossing to the far bank (or turns back tiring, or is rescued), and its next trip is planned by land.
 - **Diving** (otters): a planned dive needs the descent, 8 s of search, the ascent and a 300-tick reserve
   in air (HAZ-002: 1200, 1 a tick below, 4 back); it turns for the surface when the air says so. Each
   dive's find is drawn from the dive's number (a stone, a hook, silt, a relic, ...); a relic joins the
   stores' finds, a stone 0.25 U of stone. Bubbles rise from a diver; the party panel shows breath and
-  stamina.
+  stamina. **Low air (450) and air out (0) are said once each** as the air crosses them (review F38,
+  decision 0231), not once a tick: they re-arm only back at the surface with 600 air, so one dive says
+  "low on air" at most once and the next dive can say it again. The breath itself is a meter the panels
+  update in place; the news keeps its history.
 - **Rescue** (REQ-SET-054): a resident in difficulty is warned in the feed and drifts, treading hard.
-  The nearest free swimmer goes in and tows it (60% of its speed) to a landing it can reach against the
-  flow; with none free, anyone throws a line (8 m) from the nearest landing and hauls it in. Nobody
-  drowns: with nobody coming after 90 s (or a rescuer on the way but not there after 240 s, who then
-  stands down) it washes ashore at a landing. It then rests 20 s, recovering three times
-  as fast. Cramp (demo) in the Water panel starts one on demand.
+  **By capability** (review F39, decision 0231): one held below goes to the nearest free *diver* whose air
+  covers the way down, back up with it and a 300 reserve; one at the surface to the nearest free swimmer,
+  who tows it (60% of its speed) to a landing it can reach against the flow. Fallbacks say why in the
+  feed: with no diver for one below, a swimmer treads above it, ready to tow the moment its air runs out
+  and it floats up; with no swimmer at all, anyone takes a line (8 m) to the nearest landing and hauls it
+  in once it is within reach. A fallback is looked at again every second: a diver come free takes over
+  from one waiting above or on the bank, and it stands down (an otter sent to wait above because it was
+  short of air goes down itself once it has breathed). One rescuer answers a victim at a time; one the
+  player calls away frees it at once and is not sent back to it, and one whose swim shortcuts are turned
+  off on its way lets the victim go at the water rather than going in. Nobody drowns: with nobody coming
+  after 90 s (or a rescuer on the way but not there after 240 s, who then stands down) it washes ashore
+  at a landing. It then rests 20 s, recovering three times as fast. Cramp (demo) in the Water panel
+  starts one on demand.
 - **Bridges.** The Water panel steps through the map's three bridge candidates or spans any two banks
   you click. A plank footbridge costs 1.0 U of planks a metre of deck (and 1.0 U of wood a pier, one per
   started 2.5 m of span over 3.5 m); a log bridge costs one 6.0 U log -- a felled trunk lying ready, else
@@ -648,9 +665,12 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
 - **Who goes in to rescue** is the nearest by route to where it goes in, not in a straight line (decision
   0205): a swimmer across the stream with a long way round loses to one a little farther on the near bank.
 - **Water tab** (right column): conditions, alerts, who is swimming, the chosen site and its costs,
-  bridges, stores and the water's news. **V** paints the zones for the first selected resident's own
-  height, the bridge candidates, the swim links and the landings; the fishery's site labels are two
-  lines each (quota and slots; each species' stock and state), laid out so they never overlap.
+  bridges, stores and the water's news. The alert line is one incident per victim, updated in place:
+  where it is and its breath, who is answering and at what, the landing once it is settled, and why
+  nothing better went -- or, with nobody, when the water will bring it ashore. **V** paints the zones
+  for the first selected resident's own height, the bridge candidates, the swim links and the landings;
+  the fishery's site labels are two lines each (quota and slots; each species' stock and state), laid
+  out so they never overlap.
 
 ## Spoil heaps
 

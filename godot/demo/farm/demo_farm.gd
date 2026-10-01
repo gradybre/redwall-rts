@@ -84,6 +84,10 @@ var sim: SimScript = SimScript.new()
 var tunnels: TunnelsScript = TunnelsScript.new()
 var crew: CrewScript = CrewScript.new()
 var alerts: AlertsScript = AlertsScript.new()
+## farm_alerts.gd COND_DRY, COND_WET, COND_WORN, COND_BLIGHT -> the job that answers it.
+const REMEDY_KINDS: PackedInt32Array = [JobsScript.KIND_WATER, JobsScript.KIND_DRAIN, JobsScript.KIND_COMPOST,
+	JobsScript.KIND_CLEAR]
+var _remedy_read: IntMath.IntResult = IntMath.IntResult.new()
 var recipes: RecipesScript = RecipesScript.new()
 var hud: HudScript = HudScript.new()
 var storage: StorageScript = null
@@ -133,6 +137,8 @@ func configure(manifest: Dictionary, world: DemoWorldScript, cast: DemoCastScrip
 	pantry = PantryScript.new(storage)
 	crew.configure(cast, sim, pantry, tunnels, well_position(), services.notices.poster(
 		NoticesScript.SOURCE_CREW, NoticesScript.LEVEL_NOTE))
+	alerts.bind_incidents(services.incidents, remedy_on)
+	crew.set_incidents(services.incidents)
 	recipes.load_index()
 	goods = GoodsScript.new(services.props)
 	_build_view(manifest, world, command)
@@ -319,7 +325,16 @@ func _hourly() -> void:
 	_levels.clear()
 	alerts.collect_into(sim, _events, _spoiled, _lines, _levels)
 	for k: int in _lines.size():
-		services.notices.post(NoticesScript.SOURCE_FARM, _levels[k], _lines[k])
+		var bed: int = alerts.targets[k]
+		services.notices.post(NoticesScript.SOURCE_FARM, _levels[k], _lines[k], "",
+			NoticesScript.TARGET_BED if bed >= 0 else NoticesScript.TARGET_NONE, bed, alerts.serials[k])
+
+
+func remedy_on(bed: int, cond: int) -> bool:
+	"""Whether a job answering a bed's condition (farm_alerts.gd COND_*) is on it: Water a dry bed, Drain a
+	waterlogged one, Compost a worn-out one, Clear a blighted one (decision 0331: the incident's ASSIGNED)."""
+	var kind: int = REMEDY_KINDS[cond] if cond >= 0 and cond < REMEDY_KINDS.size() else -1
+	return kind >= 0 and crew.jobs.job_on_bed_into(kind, bed, _remedy_read)
 
 
 # --- the player's verbs -----------------------------------------------------------------------------

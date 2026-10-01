@@ -17,6 +17,14 @@ extends RefCounted
 ## commitment, which is REQ-SET-071's productive START. A resident the player orders elsewhere (or
 ## releases) drops the job back on the board where it had got to, load and all; a step that cannot
 ## be done any more (the crop withered on the way, a spot out of reach) ends the job with a notice.
+##
+## INCIDENTS (decision 0331, review UX-011). Two of those endings are conditions that stay true after the
+## notice, so they are also incidents (demo_incidents.gd) when the crew is bound to them (`set_incidents`):
+##   * a STUCK JOB -- nobody could get to the bed, or no way through to it: "farm:stuck:<bed>:<kind>", on
+##     the bed, ASSIGNED while that job is on the board again, RESOLVED once the bed no longer wants it
+##     (`JobsScript.refusal_for` refuses it: harvested, watered, cleared...);
+##   * a FULL STORE -- no store had room for a harvest: "farm:store_full", RESOLVED once a store has room for
+##     STORE_ROOM_MILLI again.
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const SimScript := preload("res://demo/farm/farm_sim.gd")
@@ -48,6 +56,13 @@ const HEAP_STAND_M: float = 0.55
 const WELL_STAND_M: float = 1.6
 ## The routine crew looks at the board this often (cast time).
 const PICKUP_USEC: int = 500000
+const IncidentsScript := preload("res://demo/demo_incidents.gd")
+const NoticesScript := preload("res://demo/demo_notices.gd")
+const STORE_FULL_KEY: String = "farm:store_full"
+const STORE_FULL_TEXT: String = "The stores are full: a harvest has nowhere to go — dig a root cellar or eat from the Pantry"
+## A full store counts as resolved once there is room for this much (one unit) somewhere.
+const STORE_ROOM_MILLI: int = 1000
+const STUCK_TEXT: String = "%s on bed %d is stuck: nobody can get to it — clear the way or order it again"
 
 var jobs: JobsScript = JobsScript.new()
 
@@ -66,6 +81,8 @@ var _no_taken: PackedVector2Array = PackedVector2Array()
 var _idle: PackedInt32Array = PackedInt32Array()
 ## Where the last target/spot search landed (presentation positions).
 var _found: Vector2 = Vector2.ZERO
+var _incidents: IncidentsScript = null
+var _room_read: IntMath.IntResult = IntMath.IntResult.new()
 
 
 func configure(cast: DemoCastScript, sim: SimScript, pantry: PantryScript, tunnels: TunnelsScript,
@@ -82,6 +99,45 @@ func configure(cast: DemoCastScript, sim: SimScript, pantry: PantryScript, tunne
 	for i: int in cast.actor_count():
 		if CREW_KEYS.has((cast.actor(i) as DemoActorScript).creature_key):
 			_crew.append(i)
+
+
+func set_incidents(incidents: IncidentsScript) -> void:
+	"""Raise stuck jobs and full stores as incidents in `incidents` (see INCIDENTS)."""
+	_incidents = incidents
+
+
+func _raise_stuck(row: int) -> void:
+	"""Job `row` could not be reached: its bed's stuck-job incident."""
+	if _incidents == null:
+		return
+	var bed: int = jobs.bed[row]
+	var kind: int = jobs.kind[row]
+	_incidents.raise("farm:stuck:%d:%d" % [bed, kind], NoticesScript.SOURCE_FARM, IncidentsScript.SEVERITY_WARNING,
+		STUCK_TEXT % [JobsScript.KIND_NAMES[kind], bed + 1], NoticesScript.TARGET_BED, bed, stuck_state.bind(bed, kind))
+
+
+func stuck_state(bed: int, kind: int) -> int:
+	"""A stuck job's incident state: RESOLVED once the bed no longer wants it, ASSIGNED while it is on the board
+	again, else needing a decision."""
+	if JobsScript.refusal_for(_sim, kind, bed, max_heap_spoil()) != &"":
+		return IncidentsScript.STATE_RESOLVED
+	if jobs.job_on_bed_into(kind, bed, _room_read):
+		return IncidentsScript.STATE_ASSIGNED
+	return IncidentsScript.STATE_NEEDS_DECISION
+
+
+func _raise_store_full() -> void:
+	"""A harvest found no room: the full-store incident."""
+	if _incidents != null:
+		_incidents.raise(STORE_FULL_KEY, NoticesScript.SOURCE_FARM, IncidentsScript.SEVERITY_WARNING, STORE_FULL_TEXT,
+			NoticesScript.TARGET_NONE, -1, store_state)
+
+
+func store_state() -> int:
+	"""The full store's incident state: RESOLVED once some store has room for STORE_ROOM_MILLI."""
+	if _pantry.location_near_into(STORE_ROOM_MILLI, _well_at, _room_read):
+		return IncidentsScript.STATE_RESOLVED
+	return IncidentsScript.STATE_NEEDS_DECISION
 
 
 func set_crew(members: PackedInt32Array) -> void:
@@ -224,6 +280,7 @@ func _step_walk(row: int, code: int) -> void:
 	jobs.tries[row] += 1
 	jobs.issued[row] = 0
 	if jobs.tries[row] >= JobsScript.MAX_TRIES:
+		_raise_stuck(row)
 		_finish(row, "%s: %s couldn't get there" % [JobsScript.KIND_NAMES[jobs.kind[row]], _name_of(jobs.worker[row])])
 
 
@@ -237,6 +294,7 @@ func _issue_walk(row: int, code: int, brain: BrainScript) -> void:
 		return
 	var target: Vector2 = _found
 	if not _spot_near(target, _stand_of(row, code), brain):
+		_raise_stuck(row)
 		_finish(row, "%s: no way through to it" % JobsScript.KIND_NAMES[jobs.kind[row]])
 		return
 	jobs.goal[row] = _found
@@ -402,6 +460,7 @@ func _end_harvest(row: int) -> String:
 	jobs.load_item[row] = item
 	jobs.load_milli[row] = cut.value
 	if not _pantry.location_near_into(cut.value, Catalog.bed_centre_m(bed), _read):
+		_raise_store_full()
 		return "No room in any store for the %s" % Catalog.ITEM_LABELS[item].to_lower()
 	jobs.location[row] = _read.value
 	return ""
@@ -419,6 +478,7 @@ func _end_drop(row: int) -> String:
 	"""The harvest goes into the pantry at its store, as its own item; the job ends saying how much."""
 	var what: String = _done_text(row)
 	if not _deliver_load(row):
+		_raise_store_full()
 		return "The store had no room: the %s was lost" % Catalog.ITEM_LABELS[jobs.load_item[row]].to_lower()
 	_say(what)
 	return ""

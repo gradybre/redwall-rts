@@ -95,12 +95,43 @@ that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
   water: "a tunnel cannot pass under the stream or the pond"). The three reaches are demo values,
   each the one the placeholder it replaced used; the placeholders -- the farm's reed pond and the
   tunnels' stream table and flood sheet -- are gone.
-- **One notice feed** (`demo_notices.gd`). Every farm warning, weather change, tunnel happening, threat
-  and crew report is posted there with its date; the newest show bottom centre as **Village news
-  (demo)** (`ui/demo_news_strip.gd`: notes 12 s, warnings 30 s, warnings worded and in clay), and the
+- **One notice feed** (`demo_notices.gd`, 128 entries since decision 0331). Every farm warning, weather change,
+  tunnel happening, threat and crew report is posted there with its date; the newest show bottom centre as
+  **Village news (demo)** (`ui/demo_news_strip.gd`: notes 12 s, warnings 30 s of *unpaused* time --
+  the news clock, `demo_news_clock.gd`, stands still while paused -- warnings worded and in clay), and the
   tunnels' own latest stay in their panel (the farm's bed panel shows only its bed: decision 0205). Nothing in the demo raises a HUD alert card
   any more: the HUD shows the two earliest unresolved notices, and demo lines, which nothing resolves,
-  held both cards for good.
+  held both cards for good. A toast is only the transient view; see **Village news** below.
+
+## Village news: the history, incidents and the top-centre card (decision 0331)
+
+- **The history** (`ui/demo_news_history.gd`): every kept entry, newest first, "date · place · Warning: text",
+  filtered by place (*All*, *Farm*, *Woods*, *Tunnels*, *Water*, *Village* -- weather, threats and the crew's
+  reports; the first place picked shows it alone, more add to it) and by severity (*All*, *Warnings*, *Notes*).
+  An entry about a bed, tree, tunnel, resident or bridge has **Go to**: it selects the target as a click would,
+  brings its panel and eases the camera over it (`ui/demo_news_jump.gd`), closing the window. Above the
+  history, **Needs attention** lists every open or pinned incident ("No active problems" erases nothing below).
+  Open it with **N**, the HUD's own history trigger (the window stands in for the shell's history in the
+  top-centre zone; *Settlement notices* in its header opens the shell's), the news strip's button or the
+  card's *All news*. Esc or × closes it. It draws the newest 40 rows; *Show older* draws 40 more. When the feed
+  is full the oldest entry goes -- but never an open or pinned incident's newest entry.
+- **Incidents** (`demo_incidents.gd`): a warning that stays true until dealt with -- a waterlogged or dry bed,
+  a worn-out bed, blight, tonight's frost, a farm job nobody could reach, a full store, a flooded or collapsed
+  tunnel, a blown-down tree, no bed, a threat, a resident in difficulty. Each is *Needs a decision*,
+  *Assigned* (a Drain, Water, Clear, haul or pump job is on it; a rescuer is on the way), *Recovering* (a bed
+  back in band waiting to be sure; a victim being brought ashore) or *Resolved*. A repeat while open merges
+  into the same card, counted "(×3)"; a recurrence after it resolved reopens it, counted, and announces again.
+  The strip counts the open ones ("2 need attention") until they resolve; *Dismiss* on a routine one (a worn-out
+  bed left fallow) stops it asking, while a dismissed warning still counts until it resolves.
+- **The card** (`ui/demo_incident_cards.gd`): critical incidents (a threat, a resident in difficulty) queue at
+  the top centre under the HUD's alert zone, ONE card drawn with "1 of 3"; *Pin* puts any incident at the front
+  and keeps it there, resolved or not; *Snooze 2 min* (unpaused time) and *Dismiss* step to the next.
+  A resolved critical card says so for 6 s, then goes. Warnings and routine incidents stay in the history.
+- **The farm re-alerts** (review F37): a bed waterlogged, drained and waterlogged again in the same season is
+  warned of again -- once it had stayed back in its band for 2 farm hours (`farm_alerts.gd` STANDING
+  CONDITIONS); back within those 2 hours it is the same occurrence, said once. Dry and worn out alike.
+- **The sound hook**: `demo_incidents.gd` emits `incident_cue(cue, serial, severity)` when a critical
+  incident is raised or recurs and when any incident resolves, never for a merged repeat.
 
 **One stores** (`demo_services.gd` `stores`, `tunnel/tunnel_stores.gd`): the demo's wood, stone, planks
 and finds. The woods put their wood in and saw their planks from it; the tunnels' bracing and lanterns
@@ -116,8 +147,9 @@ tabs switch by hand; all hide while the resident journal is open.
 ## The HUD
 
 The action bar's commands each have a hover tooltip -- what it does and its key, read from the input
-map (`ui/demo_command_tips.gd`); an enabled command answers its key. The notification history has its
-own "×" (Esc closes it, N toggles it). The Pantry draws above the HUD, so its "×" is reachable at
+map (`ui/demo_command_tips.gd`); an enabled command answers its key. In the demo, N and the history
+trigger open the **Village news** window (see above); the shell's own notification history, which has its
+own "×" (Esc closes it), is reached from that window's *Settlement notices*. The Pantry draws above the HUD, so its "×" is reachable at
 1280x720. The Village news strip is centred on the action bar and follows it.
 
 The top-left **Sim beds** cell is the settlement simulation's bed count, which the demo does not run, so it
@@ -694,6 +726,7 @@ A heap still growing under a dig is refused. The party panel says who is "Cleari
 | `control/` | Selecting and ordering residents, and the demo party panel |
 | `tunnel/` | Player-dug tunnels: rules, the tunnel network and planner, planning, drawing, the underground view; and their extensions -- ground, queues, crews, jobs, hazards, finds, the demo stores, the tunnel panel; the construction theatre -- the warren's particle budget, the dig face, the baskets, the hazards' warnings, the surface signs |
 | `demo_calendar.gd`, `demo_services.gd`, `village_water.gd`, `demo_notices.gd` | The one calendar, the shared set, the one water adapter (over `water/water_map.gd`), the one notice feed |
+| `demo_incidents.gd`, `demo_news_clock.gd` | The incidents (open conditions, the card queue, the sound hook) and the news clock that stands still while paused |
 | `weather/` | The demo's one weather (read from the farm's real §5.10 row) and its rain, snow and light |
 | `burrow/` | Rooms as their own structures: the templates, sockets and refusals (`underground_rooms.gd`), placing one and its passage (`room_plan.gd`, `room_tool.gd`), drawing it (`room_view.gd`, `room_mesh.gd`); the cellar API; the fit-out (`room_fixtures.gd`, `fixture_crew.gd`, `install_task.gd`, `fixture_view.gd`, `fixture_kit.gd`, `room_text.gd`) and the night (`night_routine.gd`, `bed_allocation.gd`, `sleep_task.gd`) |
 | `events/` | Seeded threats (a flood, a fire) and evacuation |
@@ -705,6 +738,6 @@ A heap still growing under a dig is refused. The party panel says who is "Cleari
 | `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens; then the underground view drawn once |
 | `demo_layers.gd` | The four render layers every drawn node is on, and the plane each view picks on (decision 0206) |
 | `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |
-| `ui/` | The woodland HUD skin; the HUD date, the news strip and the right column's tabs; the Sim beds relabel |
+| `ui/` | The woodland HUD skin; the HUD date, the news strip, the village-news history, the incident card and "Go to", and the right column's tabs; the Sim beds relabel |
 | `camera/` | The RTS camera |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

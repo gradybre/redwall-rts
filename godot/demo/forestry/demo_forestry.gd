@@ -26,7 +26,9 @@ extends Node3D
 ##
 ## TIME is the demo's one calendar and clock: the calendar's midnights regrow stumps and saplings and
 ## drop deadfall; a storm day (§5.10's heavy rain) blows a tree down and drops more; work runs on the
-## demo clock, so pause and 2x / 4x apply. What happens goes to the one notice feed (source Woods).
+## demo clock, so pause and 2x / 4x apply. What happens goes to the one notice feed (source Woods). A
+## blown-down tree is also an incident (decision 0331: "woods:windthrow:<tree>", on the tree) until its trunk is
+## hauled clear (`windthrow_state`).
 ##
 ## THE WOOD goes into the demo's ONE stores (demo_services.gd `stores`, tunnel_stores.gd): the same
 ## wood the tunnels' bracing and lanterns spend; planks are sawn from it into the same stores.
@@ -49,6 +51,7 @@ const LiftScript := preload("res://demo/forestry/forest_lift.gd")
 const Yard := preload("res://demo/forestry/forest_yard.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
+const IncidentsScript := preload("res://demo/demo_incidents.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoCommandScript := preload("res://demo/control/demo_command.gd")
@@ -275,10 +278,21 @@ func storm(what: String) -> int:
 	if t < 0 or not stand.blow_down_into(t, _day, wind, _read):
 		_post(NoticesScript.LEVEL_NOTE, "%s shook the woods: deadfall is down" % what)
 		return -1
-	_post(NoticesScript.LEVEL_WARNING, "%s blew down %s: %s of wood lie across the ground — clear it" %
-		[what, text.where_tree(t), Rules.units_text(_read.value)], "A tree blew down — haul it clear")
+	services.incidents.report("woods:windthrow:%d" % t, NoticesScript.SOURCE_WOODS, IncidentsScript.SEVERITY_WARNING,
+		"%s blew down %s: %s of wood lie across the ground — clear it" % [what, text.where_tree(t),
+		Rules.units_text(_read.value)], "A tree blew down — haul it clear", NoticesScript.TARGET_TREE, t,
+		windthrow_state.bind(t))
 	crew.raise_routine_jobs()
 	return t
+
+
+func windthrow_state(t: int) -> int:
+	"""A blown-down tree's incident (decision 0331): RESOLVED once its trunk is hauled clear, ASSIGNED while a
+	haul is on it."""
+	if not stand.is_tree(t) or stand.trunk_milli[t] <= 0:
+		return IncidentsScript.STATE_RESOLVED
+	return IncidentsScript.STATE_ASSIGNED if crew.jobs.on_target(JobsScript.KIND_HAUL, t) > 0 \
+		else IncidentsScript.STATE_NEEDS_DECISION
 
 
 func _storm_victim() -> int:

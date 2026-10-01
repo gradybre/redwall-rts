@@ -138,6 +138,12 @@ func reset_view() -> void:
 	snap()
 
 
+func centre_on(point: Vector3) -> void:
+	"""Ease the view over `point` (held inside the ground box), keeping the yaw, pitch and zoom: the news's
+	"Go to" (decision 0331)."""
+	_target_focus = clamp_focus(point, _bounds)
+
+
 func make_current() -> void:
 	"""Make this rig's camera the viewport's active camera."""
 	if _camera.is_inside_tree():

@@ -2214,6 +2214,19 @@ func task_walk_to(point: Vector2) -> void:
 	_set_off(true, false, false)
 
 
+func task_carry_to(point: Vector2) -> void:
+	"""For a task: `task_walk_to` with a load -- the carry clip when this creature has one, and a route through a tunnel
+	planned again LOADED, as `order_carry`'s is (HAULING): the kitchen's cook with the food or the pot, a drawer with
+	water (decision 0381)."""
+	carrying = can_carry() and not underground
+	task_walk_to(point)
+	if state != State.TURN and state != State.WALK:
+		carrying = false
+	elif carrying and crosses_tunnel():
+		_plan_loaded(INF)
+		_begin_leg()
+
+
 func task_walk_to_node(node: int) -> void:
 	"""For a task: walk to network node `node` -- a mouth on the surface, or a node underground reached
 	through the network; the task's arrived() is called there."""

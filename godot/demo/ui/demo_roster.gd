@@ -9,7 +9,7 @@ extends Node
 ## THE ADAPTER. The same rows, the same workspace, filled from the demo's cast, one row per resident in cast order
 ## (`actor_of(row)` is that row's cast index):
 ##   line 1   name -- species, trade · where it is (on the surface, in the water, indoors, underground and on
-##            which level)
+##            which level) · how fed it is (fed, peckish, hungry: the kitchen's, decision 0381, when one is bound)
 ##   line 2   what it is doing now (the party panel's own words, demo_command.gd `activity_text`) and the saved
 ##            work it will go back to ("Then back to: ...", the party panel's line)
 ## The workspace's title says "Residents". Rows refresh twice a second while the roster is open, and only when a
@@ -47,6 +47,8 @@ var _shell: UiShell = null
 var _cast: DemoCastScript = null
 ## The command layer: the selection and each resident's activity words.
 var _command: CommandScript = null
+## (who: int) -> String: a resident's fed state in a word (demo/kitchen/kitchen.gd `fed_word`; unset: not shown).
+var _fed_text: Callable = Callable()
 ## The camera rig: `centre_on`.
 var _rig: CameraScript = null
 var _rows: PackedStringArray = PackedStringArray()
@@ -68,6 +70,11 @@ func configure(shell: UiShell, cast: DemoCastScript, command: CommandScript, rig
 			_shell.resident_row_picked.disconnect(connection["callable"])
 	_shell.resident_row_picked.connect(pick_row)
 	_shell.shell_action.connect(_on_shell_action)
+
+
+func set_fed_text(fed_text: Callable) -> void:
+	"""Show each resident's fed state on its row (see THE ADAPTER)."""
+	_fed_text = fed_text
 
 
 func _on_shell_action(element_id: int) -> void:
@@ -143,7 +150,10 @@ func row_text(i: int) -> String:
 	var actor := _cast.actor(i) as DemoActorScript
 	var brain: BrainScript = actor.brain
 	var doing: String = _command.activity_text(i) if _command != null else ""
-	return row_words(actor.display_name, actor.species, trade_of(actor.creature_key), location_text(brain), doing,
+	var where: String = location_text(brain)
+	if _fed_text.is_valid():
+		where += " · " + String(_fed_text.call(i))
+	return row_words(actor.display_name, actor.species, trade_of(actor.creature_key), where, doing,
 		brain.unfinished_labels())
 
 

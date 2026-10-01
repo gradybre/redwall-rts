@@ -1,0 +1,304 @@
+extends RefCounted
+## The kitchen's words: what a resident is doing for it, its news lines, its refusals and their fixes, and the panels'
+## lines. Decision 0381. Presentation only; every quantity in the stores' one units form (tunnel_stores.gd
+## `units_text`, the HUD's), and the command grammar is the action cards' (demo/ui/action_card.gd, decision 0332).
+
+const Rules := preload("res://demo/kitchen/meal_rules.gd")
+const Catalog := preload("res://demo/farm/farm_catalog.gd")
+const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
+const SimClock := preload("res://scripts/core/sim_clock.gd")
+
+const NOTHING_PLANNED: String = "No meal is planned yet"
+const TAB_NOTE: String = "Breakfast is called at 06:00 and supper at 13:00. The cook is up at 01:00 to cook breakfast, and cooks supper from 09:00; each pot goes to the hall's table as it is cooked, and between meals the cook fetches the next day's food from the stores. The village is called once a meal is on its way. A portion is 1800 NP; a small resident needs 6000 a day."
+const ROUND_LABEL: String = "Cooking the village's meals"
+const DRAW_LABEL: String = "Drawing water for the kitchen"
+const NO_COOK_REASON: String = "nobody is free to cook"
+const QUEUE_DRAW: String = "Queue for anyone free: whoever is nearest the well, when someone is"
+const FIX_FOOD: String = "Farm ▸ Harvest a ripe grain or roots bed (or Plant… one)"
+const FIX_WATER: String = "Pantry (K) ▸ Kitchen ▸ Draw water"
+const FIX_FUEL: String = "Woods ▸ Gather deadfall or Haul logs"
+const FIX_COOK: String = "select a resident and press Cook"
+const SIT_CLIP: StringName = &"chair_sit_idle"
+const EAT_CLIP: StringName = &"stand_and_drink"
+const WORK_CLIP: StringName = &"collect_object"
+const DRAW_CLIP: StringName = &"pull_radish"
+const IDLE_CLIP: StringName = &"idle"
+const Steps := preload("res://demo/kitchen/kitchen_task.gd")
+## kitchen_task.gd's steps, as local constants for `match`.
+const WALK_STORE: int = Steps.WALK_STORE
+const WALK_KITCHEN: int = Steps.WALK_KITCHEN
+const WALK_TABLE: int = Steps.WALK_TABLE
+const WALK_WELL: int = Steps.WALK_WELL
+const WALK_BUTT: int = Steps.WALK_BUTT
+const WALK_SEAT: int = Steps.WALK_SEAT
+const WALK_RAW: int = Steps.WALK_RAW
+const WORK_PICK: int = Steps.WORK_PICK
+const WORK_PUT_DOWN: int = Steps.WORK_PUT_DOWN
+const WORK_COOK: int = Steps.WORK_COOK
+const WORK_PUT_OUT: int = Steps.WORK_PUT_OUT
+const WORK_DRAW: int = Steps.WORK_DRAW
+const WORK_POUR: int = Steps.WORK_POUR
+const WORK_WAIT: int = Steps.WORK_WAIT
+const WORK_EAT: int = Steps.WORK_EAT
+const WORK_EAT_RAW: int = Steps.WORK_EAT_RAW
+
+static func units(milli: int) -> String:
+	"""A quantity in the HUD's form ("2.0 U")."""
+	return StoresScript.units_text(milli)
+
+
+static func meal_words(key: int) -> String:
+	"""A meal by its key: "breakfast", "supper"."""
+	return Rules.MEAL_NAMES[posmod(key, 2)] if key >= 0 else "the next meal"
+
+
+static func meal_title(key: int) -> String:
+	"""A meal by its key with its day: "Breakfast, day 3"."""
+	return "%s, day %d" % [Rules.MEAL_TITLES[posmod(key, 2)], key / 2 + 1] if key >= 0 else "The next meal"
+
+
+static func clip_for(step: int, brain: RefCounted) -> StringName:
+	"""The clip for a work step: stirring and handling the work clip, drawing a heave, a seated diner
+	`chair_sit_idle` when staged (else idle while waiting and a simple eat pose, `stand_and_drink`, eating)."""
+	match step:
+		WORK_DRAW:
+			return DRAW_CLIP
+		WORK_WAIT:
+			return SIT_CLIP if bool(brain.call(&"has_clip", SIT_CLIP)) else IDLE_CLIP
+		WORK_EAT:
+			return SIT_CLIP if bool(brain.call(&"has_clip", SIT_CLIP)) else EAT_CLIP
+		WORK_EAT_RAW:
+			return EAT_CLIP
+	return WORK_CLIP
+
+
+static func doing(kitchen: RefCounted, i: int) -> String:
+	"""What resident `i` is doing for the kitchen, in the party panel's words."""
+	var step: int = int(kitchen.call(&"step_of", i))
+	var meal: String = meal_words(int(kitchen.call(&"meal_of", i)))
+	match step:
+		WALK_STORE, WORK_PICK:
+			return "Fetching food for the kitchen from the %s" % _store_name(kitchen, i)
+		WALK_KITCHEN:
+			return "Carrying food to the kitchen" if bool(kitchen.call(&"food_in_hand")) else "Going to the kitchen"
+		WORK_PUT_DOWN:
+			return "Putting the food down at the kitchen"
+		WORK_COOK:
+			return _cooking_text(kitchen)
+		WALK_TABLE, WORK_PUT_OUT:
+			return "Carrying the pot to the table"
+		WALK_WELL:
+			return "Going to the well for water"
+		WORK_DRAW:
+			return "Drawing water at the well"
+		WALK_BUTT, WORK_POUR:
+			return "Pouring water into the butt by the well"
+		WALK_SEAT:
+			return "Going to the table for %s" % meal
+		WORK_WAIT:
+			return "At the table, waiting for %s" % meal
+		WORK_EAT:
+			return "Eating %s" % meal
+		WALK_RAW, WORK_EAT_RAW:
+			return "No %s: eating raw %s (hungry)" % [meal, _item_word(int(kitchen.call(&"raw_item_of", i)))]
+	return "Helping in the kitchen"
+
+
+static func _store_name(kitchen: RefCounted, i: int) -> String:
+	"""The store resident `i` fetches from, lower case ("covered store")."""
+	var pantry: RefCounted = kitchen.get(&"pantry")
+	return String(pantry.get(&"storage").call(&"label_of", int(kitchen.call(&"location_of", i)))).to_lower()
+
+
+static func _cooking_text(kitchen: RefCounted) -> String:
+	"""'Cooking wild oat porridge for breakfast'."""
+	var key: int = int(kitchen.call(&"wip_key"))
+	var store: RefCounted = kitchen.get(&"store")
+	var dish: int = int(kitchen.call(&"wip_dish"))
+	if key < 0 or dish < 0:
+		return "At the cauldron"
+	return "Cooking %s for %s (%d portions in the pot)" % [Rules.DISH_NAMES[dish].to_lower(), meal_words(key),
+		int(store.call(&"in_pot"))]
+
+
+static func _item_word(item: int) -> String:
+	"""A pantry item in lower case."""
+	return Catalog.ITEM_LABELS[item].to_lower() if Catalog.is_item(item) else "food"
+
+
+# --- news ---------------------------------------------------------------------------------------------
+
+static func call_line(key: int) -> String:
+	"""A meal is called."""
+	return "%s: the village comes to the tables" % meal_title(key)
+
+
+static func cooked_line(key: int, dish: int, portions: int) -> String:
+	"""A meal's batches are all cooked."""
+	return "%s is cooked: %d portions of %s" % [meal_title(key), portions, Rules.DISH_NAMES[dish].to_lower()]
+
+
+static func out_line(portions: int, serving: int) -> String:
+	"""The pot is at the table."""
+	var when: String = "" if serving < 0 else " for %s" % meal_words(serving)
+	return "The cook put %d portions out on the hall's table%s" % [portions, when]
+
+
+static func tally_line(key: int, ate: int, without: int) -> String:
+	"""A meal's tally at its end."""
+	if without == 0:
+		return "%s: everyone ate (%d)" % [meal_title(key), ate]
+	return "%s: %d ate, %d went without" % [meal_title(key), ate, without]
+
+
+static func raw_line(name: String, milli: int, item: int, key: int) -> String:
+	"""A raw emergency meal (REQ-SET-013)."""
+	return "%s, hungry with no %s, ate %s of raw %s" % [name, meal_words(key), units(milli), _item_word(item)]
+
+
+static func no_meal_line(key: int, reason: String, fix: String) -> String:
+	"""The incident's line: "No supper tonight: <reason>. To fix: <fix>"."""
+	var head: String = "No supper tonight" if posmod(key, 2) == Rules.MEAL_SUPPER else "No breakfast this morning"
+	return "%s: %s%s" % [head, reason, (". To fix: " + fix) if not fix.is_empty() else ""]
+
+
+static func no_meal_short(key: int) -> String:
+	"""The incident's card title."""
+	return "No supper tonight" if posmod(key, 2) == Rules.MEAL_SUPPER else "No breakfast this morning"
+
+
+static func unreachable_line(name: String, store: String) -> String:
+	"""The cook could not get to a store."""
+	return "%s couldn't get to the %s for the kitchen's food" % [name, store.to_lower()]
+
+
+static func enough_reason(key: int) -> String:
+	"""Nothing left to cook for the next meal."""
+	return "%s has all it needs: its portions are cooked or left over" % meal_title(key).to_lower()
+
+
+static func cancelled_line(key: int) -> String:
+	"""The player's cancel."""
+	return "%s is cancelled: its food is not cooked (what was fetched stays at the kitchen for the next meal)" % meal_title(key)
+
+
+# --- refusals ------------------------------------------------------------------------------------------
+
+static func no_food_reason(dish: int, other_free: int) -> String:
+	"""No food for a batch of `dish` (nor of the other dish when `other_free` is short of a batch too)."""
+	var other: int = Rules.other(dish)
+	var line: String = "the pantry has no %s for %s (%s a batch: %s)" % [Rules.INPUT_WORDS[dish],
+		Rules.DISH_NAMES[dish].to_lower(), units(Rules.INPUT_MILLI[dish]), Rules.INPUT_CROPS_TEXT[dish]]
+	if other_free < Rules.INPUT_MILLI[other]:
+		line += ", nor %s for %s" % [Rules.INPUT_WORDS[other], Rules.DISH_NAMES[other].to_lower()]
+	return line
+
+
+static func no_water_reason(dish: int, have: int, need: int) -> String:
+	"""Not a batch's water in the butt."""
+	return "the water butt holds %s; %s needs %s a batch (%s for the meal)" % [units(have),
+		Rules.DISH_NAMES[dish].to_lower(), units(Rules.WATER_MILLI[dish]), units(need)]
+
+
+static func no_fuel_reason(have: int, need: int) -> String:
+	"""Not a batch's wood in the stores."""
+	return "the stores hold %s of wood; the meal needs %s (0.1 U a batch)" % [units(have), CardScript.need_text(need)]
+
+
+static func butt_full_reason(have: int, coming: int) -> String:
+	"""The butt is full, or will be."""
+	if coming > 0:
+		return "the butt will be full: it holds %s and %s is on its way" % [units(have), units(coming)]
+	return "the butt is full (%s)" % units(have)
+
+
+static func cant(reason: String, fix: String) -> String:
+	"""An order refused, in the cards' words."""
+	return CardScript.CANT + reason + (("\n" + CardScript.FIX + fix) if not fix.is_empty() else "")
+
+
+static func assign_selected(name: String, selected: int) -> String:
+	"""The cards' grammar for a selected resident sent."""
+	return CardScript.assign_selected(name, selected, selected)
+
+
+static func under_way(name: String) -> String:
+	"""The cook is already at it."""
+	return CardScript.under_way(name)
+
+
+static func queue_cook(name: String, village_cook: bool) -> String:
+	"""Queued for the cook: "Queue for the cook: Mouse keeper (the village cook)"."""
+	if name.is_empty():
+		return "Queue for the cook: nobody is free — select residents to do it"
+	return "Queue for the cook: %s (%s)" % [name, "the village cook" if village_cook else "standing in"]
+
+
+static func draw_by(name: String) -> String:
+	"""Queued for the nearest free resident."""
+	return "Queue for anyone free: %s (nearest the well)" % name
+
+
+static func cook_ordered(key: int, dish: int, batches: int, who: String) -> String:
+	"""The Cook order's answer."""
+	return "Cook %s now: %d batches of %s · %s" % [meal_words(key), batches, Rules.DISH_NAMES[dish].to_lower(), who]
+
+
+static func draw_ordered(amount: int, who: String) -> String:
+	"""The Draw water order's answer."""
+	return "Draw %s of water for the kitchen · %s" % [units(amount), who]
+
+
+# --- the resident panel and the roster ---------------------------------------------------------------
+
+static func fed_line(state: int, hunger: int, today: int, need: int, last: String) -> String:
+	"""The resident panel's lines, short enough for its width: "Fed · 72% full · 1800/6000 NP today", then "Last
+	meal: breakfast, porridge"."""
+	var line: String = "%s · %d%% full · %d/%d NP today" % [Rules.FED_WORDS[state].capitalize(),
+		hunger * 100 / Rules.NEED_MAX, today, need]
+	return line + ("\nLast meal: " + last if not last.is_empty() else "")
+
+
+static func monotony_line(dish: int, repeats: int, value: int, hours: int) -> String:
+	"""§5.7's monotonous memory, shown (as short as the panel is narrow): "Monotony -200 (6 h): porridge 3 of last 6"."""
+	return "Monotony %d (%d h): %s %d of last %d" % [value, hours, Rules.DISH_SHORT[dish], repeats, Rules.HISTORY]
+
+
+static func day_hour(hour_index: int) -> String:
+	"""A calendar hour as "day 3, 14:00"."""
+	return "day %d, %02d:00" % [hour_index / SimClock.HOURS_PER_DAY + 1, hour_index % SimClock.HOURS_PER_DAY]
+
+
+static func days_value(milli_days: int) -> String:
+	"""Thousandths of a day in tenths, floored -- "4.5 days", "<0.1 days", "0 days" (the top bar's cell too)."""
+	if milli_days <= 0:
+		return "0 days"
+	if milli_days < 100:
+		return "<0.1 days"
+	return "%d.%d days" % [milli_days / 1000, (milli_days % 1000) / 100]
+
+
+static func days_text(milli_days: int) -> String:
+	"""Days of meals: "4.5 days of meals"."""
+	return days_value(milli_days) + " of meals"
+
+
+static func cookable_line(dish: int) -> String:
+	"""The Recipes tab's mark: "Cookable (active): Wild oat porridge — the GDD's porridge: grain 2 + water 2 -> 2
+	portions of 1800 NP, 12 WU, keeps 24 h; the kitchen cooks it in turn"."""
+	return "Cookable (active): %s — cooked as the GDD's %s: %s %s + water %s → %d portions of %d NP, %d WU, keeps %d h. The kitchen cooks it in turn with %s." % [
+		Rules.DISH_NAMES[dish], Rules.GDD_ROWS[dish], Rules.INPUT_WORDS[dish], units(Rules.INPUT_MILLI[dish]),
+		units(Rules.WATER_MILLI[dish]), Rules.PORTIONS_PER_BATCH[dish], Rules.NP_PER_PORTION[dish],
+		Rules.WORK_MWU[dish] / 1000, Rules.SHELF_HOURS[dish], Rules.DISH_NAMES[Rules.other(dish)].to_lower()]
+
+
+static func meal_record(key: int, dish: int, ate: int, raw: int, without: int) -> String:
+	"""One meal's line: "Supper, day 2: togget's vegetable soup — 8 ate, 1 went without"."""
+	var what: String = Rules.DISH_NAMES[dish].to_lower() if dish >= 0 else "nothing cooked"
+	var tally: String = "%d ate" % ate
+	if raw > 0:
+		tally += ", %d ate raw" % raw
+	if without > 0:
+		tally += ", %d went without" % without
+	return "%s: %s — %s" % [meal_title(key), what, tally]

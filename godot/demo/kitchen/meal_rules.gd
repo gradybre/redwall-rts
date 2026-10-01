@@ -1,0 +1,195 @@
+extends RefCounted
+## THE FIRST MEAL LOOP'S NUMBERS: the two dishes, what they take, how long the work is, what a resident needs, and
+## when the village eats. Decision 0381 (review F21, UX-027; Brendan's rulings of 2026-09-30). Presentation only:
+## nothing here touches the settlement simulation. Every number is cited; the demo values are named as such.
+##
+## THE DISHES (ruling 1: two, alternating). Each is a content-library recipe COOKED AS a GDD §5.7 recipe row, with
+## the row's numbers exactly (docs/game_gdd.md §5.7; docs/gameplay_balance.md §3.1-3.2):
+##   Wild oat porridge (salamandastron::SAL_recipe_wild_oat_porridge) as `porridge`:
+##       grain 2 + water 2 -> meal_porridge 2 x 1800 NP, 12 WU, Kitchen/COOK, shelf 24 h
+##   Togget's vegetable soup (outcast::OUT_recipe_togget_s_vegetable_soup) as `root_stew`:
+##       roots 3 + water 1 -> meal_root_stew 2 x 1800 NP, 16 WU, Kitchen/COOK, shelf 24 h
+## and BAL-SUPPLY-004's fuel, 100 milli-U of wood a batch. A portion is 1 U (balance: outputs 2000 milli-U = 2
+## portions), 500 g (§5.7: "prepared meal ... units weigh 500 g").
+##
+## THE CROPS IN EACH CATEGORY. The GDD has one `grain` item and one `roots` item; the demo grows sixteen fine-grained
+## crops, each by ONE §5.6 row (farm_catalog.gd ITEM_CROP), which also sets its shelf life. A recipe's category is
+## therefore that row: grain = wheat, barley, oats (the §5.6 grain row; §5.7's "Grain/flour"); roots = radish,
+## turnip, carrot, beetroot, parsnip, onion (the §5.6 roots row). The porridge's book ingredient is "wild oats" and the
+## soup's is only "vegetables" (the library's carrot and turnip are its AI-authored selection), so every crop of the
+## category is accepted, as the GDD's category is.
+##
+## THE NEED (§5.2): hunger 0..10000 falls 250 x size multiplier / 1000 an hour (x1.2 in winter) -- scripts/core/
+## family_rules.gd's own table, called, never retyped: 6000 NP a day for a small resident (GDD §2 glossary: "small
+## resident requires 6000/day"; §7.1: `(small + 1.2 medium + 1.6 large) x 6000`). A portion adds its NP (PLAIN quality,
+## factor 1000), the fullness clamped at 10000 without refund (§5.2). The readable state is §5.2's thresholds: "Eat
+## <= 3500; urgent <= 1500" -- above 3500 FED, 1501..3500 PECKISH, 1500 and below HUNGRY. Two meals are 3600 NP, 60% of
+## a small resident's 6000: the rest is left for later food work, and the demo applies no penalty (REQ-SET-014's
+## health loss and the mood memories are not modelled here).
+##
+## SIZE CLASS by species (scripts/core/residents.gd SPECIES_*_KEYS: mouse, mole, squirrel small; otter medium; badger
+## large). The BEAVER is not in the GDD's sixteen; DEC-041 puts it between the squirrel and the otter "but stockier",
+## so it is MEDIUM here -- a demo value.
+##
+## THE DAY (ruling 4: breakfast and supper). Night is 18:00-05:59 (decision 0210). BREAKFAST is called at 06:00, on
+## waking, and served until 12:59; SUPPER is called at 13:00 and served until 16:59 -- its end, with the raw emergency
+## meals it starts, comes an hour before bedtime, so they are eaten before the night takes anyone. The cook is up at
+## COOK_RISE_HOUR (01:00) to cook breakfast; SUPPER is cooked from 09:00 (COOK_FROM_HOUR). Portions keep 24 h in
+## the pot at the covered factor, but out on the table they age at the open-pile one (§5.8, 1500) -- times summer's 1500,
+## 10.7 h -- so a supper put out at dawn would spoil before its end; cooked from 09:00 and put out as it is cooked, it
+## lasts to 17:00 in any season. These hours are demo values.
+##
+## THE WORK RATE (§5.2): "Each work tick produces 80 milli-WU x factor/1000"; the demo has no cooking skill, mood or
+## health model, so the factor is 1000 (skill 0, PLAIN): 80 milli-WU each calendar tick, 60 WU a game hour. Eating is
+## "60 WU/game hour ... a 12-WU eating task" (§5.2, REQ-SET-012); drawing water is "10000 milli-U per 10000 milli-WU"
+## (BAL-SUPPLY-004): a WU a unit. Picking food up, putting it down and putting the portions out are 1 WU each, as the
+## farm's drop (farm_jobs.gd WORK_DROP) -- demo values.
+##
+## VARIETY (§5.7): "Meal variety uses last 6 recipe IDs: repeat count 0-1 no penalty; 2-3 applies monotonous memory
+## -200; 4-6 applies -400" (6 hours: §5.2's memory catalog). Shown as a readout; the demo models no mood.
+##
+## RAW EMERGENCY FOOD (REQ-SET-013, WorldPolicy raw_emergency_food default true): with no portion, a resident at
+## hunger 1500 or less may eat raw-edible food nobody has reserved, "enough quantity to add at most 3000 NP", in the
+## same 12 WU. Raw-edible are the roots row (800 NP/U) and the cabbage row (600 NP/U); grain and beans are not (§5.7:
+## "Raw ingredients marked 'No' cannot be consumed even in emergency").
+
+const Catalog := preload("res://demo/farm/farm_catalog.gd")
+const FarmingScript := preload("res://scripts/core/farming.gd")
+const ResidentsScript := preload("res://scripts/core/residents.gd")
+
+const DISH_PORRIDGE: int = 0
+const DISH_SOUP: int = 1
+const DISH_COUNT: int = 2
+const NO_DISH: int = -1
+const DISH_NAMES: Array[String] = ["Wild oat porridge", "Togget's vegetable soup"]
+const DISH_SHORT: Array[String] = ["porridge", "soup"]
+const LIBRARY_IDS: Array[String] = ["salamandastron::SAL_recipe_wild_oat_porridge",
+	"outcast::OUT_recipe_togget_s_vegetable_soup"]
+## The GDD §5.7 rows they are cooked as.
+const GDD_ROWS: Array[String] = ["porridge", "root_stew"]
+## Each dish's food input: its §5.6 crop row, and how much a batch takes.
+const INPUT_CROP: Array[int] = [FarmingScript.CROP_GRAIN, FarmingScript.CROP_ROOTS]
+const INPUT_WORDS: Array[String] = ["grain", "roots"]
+const INPUT_CROPS_TEXT: Array[String] = ["oats, wheat or barley", "carrot, turnip, radish, beetroot, parsnip or onion"]
+const INPUT_MILLI: Array[int] = [2000, 3000]
+const WATER_MILLI: Array[int] = [2000, 1000]
+const PORTIONS_PER_BATCH: Array[int] = [2, 2]
+const NP_PER_PORTION: Array[int] = [1800, 1800]
+const WORK_MWU: Array[int] = [12000, 16000]
+const SHELF_HOURS: Array[int] = [24, 24]
+## BAL-SUPPLY-004: "wood 100 milli-U/batch".
+const WOOD_MILLI_PER_BATCH: int = 100
+## A portion's mass and spoiled food's (§5.7: 500 g and 250 g a unit): a spoiled portion is twice its milli-U.
+const PORTION_G: int = 500
+const SPOILED_G: int = 250
+const MILLI_PER_U: int = 1000
+
+## §5.2's work arithmetic (see THE WORK RATE).
+const MWU_PER_TICK: int = 80
+const EAT_MWU: int = 12000
+const DRAW_MWU_PER_MILLI: int = 1
+const HANDLE_MWU: int = 1000
+
+## The meals (see THE DAY).
+const MEAL_BREAKFAST: int = 0
+const MEAL_SUPPER: int = 1
+const MEAL_NAMES: Array[String] = ["breakfast", "supper"]
+const MEAL_TITLES: Array[String] = ["Breakfast", "Supper"]
+const CALL_HOUR: Array[int] = [6, 13]
+const END_HOUR: Array[int] = [13, 17]
+const COOK_RISE_HOUR: int = 1
+## The hour of its day each meal may be cooked from: breakfast at the cook's rising, supper from 09:00.
+const COOK_FROM_HOUR: Array[int] = [COOK_RISE_HOUR, 9]
+
+## §5.2's hunger need and its thresholds.
+const NEED_MAX: int = 10000
+const EAT_AT: int = 3500
+const URGENT_AT: int = 1500
+## The demo opens with everyone fed (a demo value).
+const START_HUNGER: int = 10000
+const FED: int = 0
+const PECKISH: int = 1
+const HUNGRY: int = 2
+const FED_WORDS: Array[String] = ["fed", "peckish", "hungry"]
+const SIZE_SMALL: int = 0
+const SIZE_MEDIUM: int = 1
+const SIZE_LARGE: int = 2
+## GDD §5.2: carry capacities 12000 / 16000 / 24000 g -- water is 1000 g a unit, so that many milli-U of it.
+const CARRY_G: Array[int] = [12000, 16000, 24000]
+
+## §5.7 variety.
+const HISTORY: int = 6
+const MONOTONY_LOW_FROM: int = 2
+const MONOTONY_HIGH_FROM: int = 4
+const MONOTONY_LOW: int = -200
+const MONOTONY_HIGH: int = -400
+const MONOTONY_HOURS: int = 6
+
+## REQ-SET-013 and §5.7's raw table.
+const RAW_NP_CAP: int = 3000
+const RAW_NP_PER_U: Dictionary = {FarmingScript.CROP_ROOTS: 800, FarmingScript.CROP_CABBAGE: 600}
+
+
+static func batch_ticks(dish: int) -> int:
+	"""Calendar ticks one batch of `dish` takes at the step rate (12 WU: 150 ticks)."""
+	return WORK_MWU[dish] / MWU_PER_TICK
+
+
+static func is_input(dish: int, item: int) -> bool:
+	"""Whether pantry `item` is in `dish`'s food category (see THE CROPS IN EACH CATEGORY)."""
+	return Catalog.is_item(item) and Catalog.ITEM_CROP[item] == INPUT_CROP[dish]
+
+
+static func dish_for_meal(meal: int) -> int:
+	"""The alternation (ruling 1): porridge at breakfast, soup at supper -- the meals alternate, so the dishes do."""
+	return DISH_PORRIDGE if meal == MEAL_BREAKFAST else DISH_SOUP
+
+
+static func other(dish: int) -> int:
+	"""The dish the alternation turns to after `dish` (ruling 1)."""
+	return DISH_SOUP if dish == DISH_PORRIDGE else DISH_PORRIDGE
+
+
+static func raw_np_per_u(item: int) -> int:
+	"""NP a unit of `item` gives eaten raw (0: not raw-edible, never eaten in an emergency)."""
+	if not Catalog.is_item(item):
+		return 0
+	return int(RAW_NP_PER_U.get(Catalog.ITEM_CROP[item], 0))
+
+
+static func size_of_species(species: String) -> int:
+	"""A species' §5.2 size class (see SIZE CLASS), by its name in any case (the cast's actors say "Badger"); an
+	unknown one (a placeholder) is small."""
+	var key := StringName(species.to_lower())
+	if ResidentsScript.SPECIES_LARGE_KEYS.has(key):
+		return SIZE_LARGE
+	if ResidentsScript.SPECIES_MEDIUM_KEYS.has(key) or key == &"beaver":
+		return SIZE_MEDIUM
+	return SIZE_SMALL
+
+
+static func fed_state(hunger: int) -> int:
+	"""FED above EAT_AT, PECKISH down to URGENT_AT exclusive, HUNGRY at it and below."""
+	if hunger > EAT_AT:
+		return FED
+	return PECKISH if hunger > URGENT_AT else HUNGRY
+
+
+static func monotony_for(repeats: int) -> int:
+	"""§5.7's monotonous memory for a dish eaten `repeats` times among the last HISTORY meals (0: none)."""
+	if repeats >= MONOTONY_HIGH_FROM:
+		return MONOTONY_HIGH
+	return MONOTONY_LOW if repeats >= MONOTONY_LOW_FROM else 0
+
+
+static func meal_key(day: int, meal: int) -> int:
+	"""One number per meal of the calendar: day x 2 + meal."""
+	return day * 2 + meal
+
+
+static func meal_of_hour(hour: int) -> int:
+	"""The meal whose serving window holds `hour` (0..23), or -1."""
+	for meal: int in 2:
+		if hour >= CALL_HOUR[meal] and hour < END_HOUR[meal]:
+			return meal
+	return -1

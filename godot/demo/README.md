@@ -140,9 +140,9 @@ that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
 - **The sound hook**: `demo_incidents.gd` emits `incident_cue(cue, serial, severity)` when a critical
   incident is raised or recurs and when any incident resolves, never for a merged repeat.
 
-**One stores** (`demo_services.gd` `stores`, `tunnel/tunnel_stores.gd`): the village's wood, stone, planks
-and finds. The woods put their wood in and saw their planks from it; the tunnels' bracing and lanterns
-are paid from it. The top bar's Wood, Stone and Planks are these figures (below); the settlement
+**One stores** (`demo_services.gd` `stores`, `tunnel/tunnel_stores.gd`): the village's wood, stone, planks,
+finds and water (the kitchen's butt by the well, 40 U at most; decision 0381). The woods put their wood in and saw
+their planks from it; the tunnels' bracing and lanterns are paid from it; the kitchen burns 0.1 U of its wood a batch. The top bar's Wood, Stone and Planks are these figures (below); the settlement
 simulation's own stock is never written.
 
 **The right column holds one demo panel at a time** (`ui/demo_detail_zone.gd`): a tab strip, *Farm*,
@@ -203,7 +203,7 @@ same object its panel reads, and writes nothing into the settlement simulation:
 
 | Cell | Figure | Owner (and where else it shows) |
 |---|---|---|
-| Ready food | U, one decimal (summed in milli-U first; decision 0222) | the pantry's total (the Pantry's headline, K) |
+| Ready food | days of meals, one decimal, floored (`2.5 days`; decision 0381) | the kitchen: portions held plus the portions the stores' grain and roots would cook, over the portions the village eats a day; the ledger adds one line of the stock behind it, the portions, grain and roots (the Pantry's Kitchen tab, K) |
 | Planks (Fuel's slot) | U, one decimal | the village stores (Tunnels, Woods, Water panels) |
 | Wood / Stone | U, one decimal | the village stores (the same panels) |
 | Residents | count | the cast (the Residents roster) |
@@ -617,7 +617,8 @@ hand (it takes it up in the morning), crosses the floor to its bed and lies down
 `sleep_normally` clip, seated on the mattress by its body's lowest point). Beds go by REQ-SET-132 (its own bed,
 else the nearest free one of its size -- a large bed for a big resident, a burrow bed for a small one; ties to the
 lower room, then place). At 06:00 they get up and go back to work; whoever
-is still on the way home turns back. **No bed** (or none of its size) -- it sleeps on the hall's floor
+is still on the way home turns back. The kitchen's cook is the **early riser** (`set_early_riser`): it gets up at 01:00
+while it has the day's meals to cook (see The kitchen). **No bed** (or none of its size) -- it sleeps on the hall's floor
 (REQ-SET-133; it goes in at the hall's steps and is not drawn), the panel says "No bed", and dusk's news names who.
 A direct order wakes a sleeper; free again, it goes back to bed. Nothing parked is taken up before morning. A threat gets sleepers up by their beds until it
 clears; one in the water or held by its rescue is left be. Paused, nobody moves; at 2x and 4x the night runs faster.
@@ -713,7 +714,8 @@ it belongs to (roots, cabbage, beans or grain), on the demo's one calendar (abov
 the **pantry**, counted per item, at the slowest-spoiling store with room -- a **root cellar**, delivered
 at its hatch (spoilage 350 per mille, the GDD's cellar) before the covered store (1000), and of two cellars
 the one nearer the bed (`farm/farm_cellars.gd` turns `underground_rooms.cellars()` into pantry stores);
-the top bar's Ready food cell shows the pantry total, and the Food command (or K) opens the Pantry (decision 0292):
+the kitchen pantry (750) comes between a cool cellar and the covered store (see The kitchen); the Food command (or K)
+opens the Pantry (decision 0292), whose headline is the pantry total:
 
 - **Stocks** (first, and what it opens on): a table, one row per ingredient per store -- **In store**,
   **Incoming** (a harvest on its way there, its room reserved), the **Store**, and **Next to spoil** there ("all
@@ -725,9 +727,11 @@ the top bar's Ready food cell shows the pantry total, and the Food command (or K
   reserved for harvests, free, capacity and how fast it ages food; then spoiled food and its compost button.
   An empty pantry says so and names a real source from the beds -- a ripe bed to harvest, else the bed that
   ripens soonest, else an empty bed to plant -- with an **Open bed N** button.
-- **Recipe ideas (not cookable yet)**: every ingredient in catalog order with its stock, and the content
-  library's dishes the picked one feeds -- candidates for a kitchen that does not exist. There is no Orders
-  tab: nothing in the demo cooks or orders food yet.
+  A row with food reserved for the kitchen says so ("· 2.0 U for the kitchen"); the table ends with each dish's
+  portions, as ready food, and the water in the butt.
+- **Recipes**: every ingredient in catalog order with its stock, and the content library's dishes the picked one
+  feeds. The two the kitchen cooks are marked **Cookable (active)** on their crops; the rest are ideas.
+- **Kitchen**: see The kitchen, below.
 
 **Nothing harvested is lost or credited from afar** (decision 0222, the review's F19/F24/F27/F28):
 
@@ -742,8 +746,7 @@ the top bar's Ready food cell shows the pantry total, and the Food command (or K
   becomes its **delivery**: the carrier walks on and the store is credited when it gets there. A carrier
   ordered elsewhere keeps the load with the job and comes back to it (its resume queue); released, the
   field crew takes it.
-- **The Pantry's figures.** Every quantity -- stock, totals, capacity, yield, a load carried, the top bar's
-  Ready food cell -- is one form, tenths of a unit floored (`5.1 U`, `400.0 U`, never `0 U` for something:
+- **The Pantry's figures.** Every quantity -- stock, totals, capacity, yield, a load carried -- is one form, tenths of a unit floored (`5.1 U`, `400.0 U`, never `0 U` for something:
   `<0.1 U`), and totals are summed in milli-units first. Each row names the **first lot to spoil**, its
   store and the **game hours** until it does, at that store's rate and each season's, a season change
   included -- the very sum the hourly ageing makes.
@@ -769,6 +772,39 @@ the next beds at midnight unless the blighted bed is cleared, and a ripe crop st
 48 hours and withers at 120. A finished tunnel under a bed drains it; a tunnel with a mouth at the
 real stream's edge (dry ground within 2.5 m of its waterline -- inside the square, by the ford or at
 x 19.5 m, z 4) irrigates the beds it runs under. Details and every number's source: `farm/*.gd` headers.
+
+## The kitchen (decision 0381)
+
+Breakfast and supper, cooked from the pantry's real stock (`kitchen/`). Two dishes, alternating: **wild oat
+porridge** at breakfast (the GDD's `porridge` row: grain 2 U + water 2 U, 12 WU) and **Togget's vegetable soup** at
+supper (its `root_stew` row: roots 3 U + water 1 U, 16 WU), each batch 2 portions of 1800 NP that keep 24 h, and 0.1 U
+of wood. Grain is wheat, barley or oats; roots are radish, turnip, carrot, beetroot, parsnip or onion (each crop's
+§5.6 row). If one dish's food is short the other is cooked.
+
+- **The day.** Breakfast is called at 06:00 and served until 12:59; supper at 13:00 until 16:59, an hour before bed
+  (so whoever goes to eat raw food at its end has eaten before dusk). The
+  cook (the keeper; a free resident stands in) rises at 01:00 for breakfast and cooks supper from 09:00 (out on
+  the table a portion ages fast: see decision 0381). It fetches the planned meals' food -- reserved from real
+  lots, soonest to spoil first, and only withdrawn when a batch starts -- from the **kitchen pantry** at the path's
+  end (10.5, -2.6; 120 U, 750 per mille) or wherever it is, cooks at the cauldron (steam rises), carries each meal's
+  pot to the hall's east table and puts the bowls out. Diners are called once a meal is on its way (their work is
+  parked and taken up after), sit at the hall's tables (`chair_sit_idle` when staged) and eat one portion each.
+- **Water** is drawn at the well into the butt beside it (1 WU a unit). **Keep water drawn** (on) keeps the butt
+  full: whoever is free and not due at a table draws, two at most.
+- **Fed.** Each resident's need is the GDD's NP a day (6000 small, 7200 medium, 9600 large). The resident panel
+  reads "Fed · 72% full · 1800/6000 NP today" and "Last meal: breakfast, porridge" (fed above 3500, peckish to
+  1501, hungry below), the monotony memory when it applies; the roster shows the word. No penalties.
+- **Short.** A meal called with nothing coming raises "No supper tonight: <why>. To fix: <where>" in the village
+  news; at its end anyone hungry eats raw roots or cabbage nobody has reserved (at most 3000 NP), the rest go
+  without, and the tally is posted ("Supper, day 2: 8 ate, 1 went without").
+- **The Kitchen tab** (Pantry, K): the cook and what it is doing, any refusal and its fix, the next meals, the pot
+  and table, the butt and fuel, how the village is fed, the last meals; **Cook now** and **Draw water** (each with
+  its action card, from the same decision as the order), **Keep water drawn**, **Cancel the next meal** (a batch
+  already cooking yields half its food as spoiled food; fetched food stays in the larder).
+
+Interrupted work loses nothing and makes nothing fresher: a cook called away leaves the batch at the cauldron for
+whoever cooks next; a load in hand is delivered before bed. Details and every number's source: `kitchen/*.gd`
+headers and decision 0381.
 
 ## Weather, upgrades, hazards, finds, crews and threats
 
@@ -1118,6 +1154,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the water overlay (the Water range map layer) |
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel; whose water range the map layer paints (`water_range.gd`) |
 | `farm/` | The farm: real FarmPlot rows, the pantry and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves |
+| `kitchen/` | The meal loop: the dishes and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |
 | `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens; then the underground view drawn once |

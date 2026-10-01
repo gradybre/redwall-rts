@@ -17,6 +17,11 @@ extends RefCounted
 ## THE FIT-OUT (demo/burrow/room_fixtures.gd, decision 0210) pays its fixtures with `pay_all` (wood, stone and planks,
 ## all or nothing) and takes a fixture's cost back with `refund`.
 ##
+## WATER (decision 0381, the kitchen): drawn at the village well by a resident (1 WU a unit, BAL-SUPPLY-004) and
+## poured into the village's water butt beside the well, where it is this stock, `water_milli_u` -- credited only when it is poured in
+## (`add_water`) and spent only by a cooking batch (`take_water`, all or nothing). It never spoils (§5.7: water has no
+## shelf life). The butt holds WATER_CAP_MILLI_U (a demo value); `water_room` is what it can still take.
+##
 ## FINDS. Every find dug up (tunnel_finds.gd) is tallied here by kind; relics also advance the story
 ## notices. A refused spend changes nothing (no partial debit).
 
@@ -24,10 +29,15 @@ const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
 
 const START_WOOD_MILLI_U: int = 40000
 const START_STONE_MILLI_U: int = 20000
+## The water butt by the well (see WATER): 40 U, over two days of both meals' water for nine residents (15 U a day;
+## a demo value), so a day the drawers fall behind does not stop the cooking.
+const WATER_CAP_MILLI_U: int = 40000
 
 var wood_milli_u: int = START_WOOD_MILLI_U
 var stone_milli_u: int = START_STONE_MILLI_U
 var plank_milli_u: int = 0
+## Water in the butt by the well (see WATER).
+var water_milli_u: int = 0
 ## Per find kind (FindsScript.FIND_*): how many have been dug up.
 var finds: PackedInt32Array = PackedInt32Array()
 ## Bumped on every change, so the panel redraws only when something changed.
@@ -91,6 +101,29 @@ func take_wood(milli_u: int) -> bool:
 	if milli_u <= 0 or wood_milli_u < milli_u:
 		return false
 	wood_milli_u -= milli_u
+	revision += 1
+	return true
+
+
+func water_room() -> int:
+	"""How much more water the butt can take (milli-U)."""
+	return maxi(0, WATER_CAP_MILLI_U - water_milli_u)
+
+
+func add_water(milli_u: int) -> int:
+	"""Water poured into the butt (milli-U): what fits is taken and returned (the rest is not stock)."""
+	var taken: int = mini(maxi(milli_u, 0), water_room())
+	if taken > 0:
+		water_milli_u += taken
+		revision += 1
+	return taken
+
+
+func take_water(milli_u: int) -> bool:
+	"""Take this much water (milli-U) for a cooking batch -- all of it, or (false) none."""
+	if milli_u <= 0 or water_milli_u < milli_u:
+		return false
+	water_milli_u -= milli_u
 	revision += 1
 	return true
 

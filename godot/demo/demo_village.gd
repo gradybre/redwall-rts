@@ -224,6 +224,8 @@ const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 const ForestSkills := preload("res://demo/forestry/forest_skills.gd")
 const DigSkills := preload("res://demo/tunnel/dig_skills.gd")
 const BridgeCrew := preload("res://demo/waterplay/bridge_crew.gd")
+const PlaytestLog := preload("res://demo/playtest/playtest_log.gd")
+const PlaytestTaps := preload("res://demo/playtest/playtest_taps.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -310,7 +312,9 @@ var _fishery: FisheryNodeScript = null
 
 func _ready() -> void:
 	"""The game has booted (children ready first); build the demo over it. The village processes after
-	its children, so the HUD's date is painted after the farm has advanced the calendar this frame."""
+	its children, so the HUD's date is painted after the farm has advanced the calendar this frame. The playtest
+	log (decision 0562) starts first, so its logger hears the rest of the boot."""
+	PlaytestLog.ensure(get_tree())
 	process_priority = PROCESS_AFTER_CHILDREN
 	_quiet_game_presentation()
 	var manifest: Dictionary = DemoManifestScript.load_manifest()
@@ -345,6 +349,8 @@ func _ready() -> void:
 	_hold_restart_open()
 	_warm_and_open()
 	_build_input()
+	PlaytestTaps.wire(self, _gate, _zone, _farm.lenses, _command as DemoCommandScript, _services.notices,
+		_services.calendar)
 
 
 func _warm_and_open() -> void:
@@ -622,6 +628,7 @@ func _build_guide() -> void:
 		HelpTopics.ACTION_RESIDENTS: _open_residents,
 		HelpTopics.ACTION_WATER: _zone.show_panel.bind(DetailZoneScript.PANEL_WATER),
 		HelpTopics.ACTION_DIG: _open_dig_tool.bind(tool),
+		HelpTopics.ACTION_LOGS: PlaytestLog.open_folder,
 	}
 
 
@@ -972,6 +979,7 @@ func _open_running() -> void:
 		_held_open = false
 		GameManager.resume_game()
 	_time.opened = true
+	PlaytestTaps.opened()
 
 
 func _hold_restart_open() -> void:
@@ -1302,6 +1310,7 @@ func _swimmer_selected() -> bool:
 
 func restart() -> void:
 	"""The menu's confirmed Restart: the demo scene again from its first morning (nothing is saved)."""
+	PlaytestTaps.restarting()
 	get_tree().reload_current_scene.call_deferred()
 
 

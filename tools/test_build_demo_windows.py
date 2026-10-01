@@ -17,6 +17,7 @@ unsigned); the README template's placeholders are all filled.
 
 from __future__ import annotations
 
+import json
 import pathlib
 import re
 import sys
@@ -58,7 +59,8 @@ binary_format/architecture="x86_64"
 GOOD_REPORT = {"error": "", "main_scene": "res://demo/demo_village.tscn", "feature_demo_build": True,
 	"pack": {"manifest": True, "raw_png": 44, "s3tc_ctex": 337}, "stall_clock": 'PAUSED ["CRITICAL"]',
 	"stall_banner_shown": True, "after_resume_clock": "PLAYING []", "after_resume_banner_shown": False,
-	"ticks_after_resume": 30}
+	"ticks_after_resume": 30, "build_info": '{"commit": "abc1234"}',
+	"playtest_log": "playtest-2026-10-01_10-00-00-p1.log"}
 
 
 def check(name: str, condition: bool) -> None:
@@ -118,6 +120,26 @@ def test_n03_the_stall_resume_must_work() -> None:
 		check(f"N03 stall check {key}={value} fails", build.verification_problems({**GOOD_REPORT, key: value}, "") != [])
 	missing = {key: value for key, value in GOOD_REPORT.items() if not key.startswith(("stall", "after", "ticks"))}
 	check("N03 a report without the stall check fails", build.verification_problems(missing, "") != [])
+
+
+def test_n03_the_version_and_the_playtest_log_must_be_in_the_pack() -> None:
+	for key in ["build_info", "playtest_log"]:
+		check(f"N03 no {key} fails", build.verification_problems({**GOOD_REPORT, key: ""}, "") != [])
+		missing = dict(GOOD_REPORT)
+		del missing[key]
+		check(f"N03 a report without {key} fails", build.verification_problems(missing, "") != [])
+
+
+def test_the_build_info_names_the_commit() -> None:
+	with tempfile.TemporaryDirectory() as tmp:
+		path = build.write_build_info({"commit": "abc1234-dirty", "built": "2026-10-01 18:00 UTC",
+			"godot": "4.7.2.stable"}, pathlib.Path(tmp) / "build_info.json")
+		info = json.loads(path.read_text())
+		check("the build info holds the commit", info["commit"] == "abc1234-dirty")
+		check("and the build time and Godot", info["built"] == "2026-10-01 18:00 UTC" and info["godot"] == "4.7.2.stable")
+	check("it is written where the export packs it", build.BUILD_INFO == build.PROJECT / "demo/build_info.json")
+	ignored = (build.ROOT / ".gitignore").read_text()
+	check("and it is gitignored", "godot/demo/build_info.json" in ignored)
 
 
 def test_engine_lines_are_read() -> None:

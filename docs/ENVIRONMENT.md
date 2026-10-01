@@ -83,6 +83,14 @@ python3 tools/demo_texture_imports.py --godot godot         # the compression st
   `scenes/main.tscn` from a correct pack.
 - **Touch a GLB to make Godot re-check it.** `--import` skips files whose modification time is
   unchanged, even with their `.md5` deleted.
+- **The release template hides script errors, and a null call kills it** (decision 0562). This was measured on the
+  4.7.2 macOS release template, which runs the same GDScript VM as Windows'. An out-of-range index raises nothing.
+  A method called on null ends the process with signal 11 and leaves no message, not even in `godot.log`, which a
+  release export flushes only on error lines. The debug template reports both as SCRIPT ERROR and carries on. The
+  demo's playtest log (`user://logs/playtest-*.log`, beside `godot.log`) flushes every line, for this reason. On
+  Windows it is in `%APPDATA%\Godot\app_userdata\Redwall Demo\logs`.
+- **A script `Logger` held in a static var aborts the process at exit** (`recursive_mutex lock failed`, status 134):
+  remove it with `OS.remove_logger` and drop the last reference while the tree is still up.
 - **A screenshot stalls the clock into a CRITICAL pause.** Reading back and PNG-encoding a HiDPI frame
   takes longer than the clock's overload limit (a quarter second of debt at 1x); nothing in the game HUD
   acknowledges an overload -- the demo's stall banner does (`demo/ui/demo_stall_banner.gd`). Harness

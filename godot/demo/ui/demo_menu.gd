@@ -13,7 +13,8 @@ extends CanvasLayer
 ##   * SETTINGS: only what works -- the interface scale (100/125/150 %, UI §8.1's `ui_scale`, each size
 ##     offered only where the layout fits it), full screen, accessibility and time (demo/access/access_settings_ui.gd,
 ##     decision 0471: the four presets, each setting, the auto-pauses, Restore defaults), and the sound
-##     (demo/sound/sound_settings_ui.gd, decision 0351: each bus's volume and mute, and the mixes), scrolling in the
+##     (demo/sound/sound_settings_ui.gd, decision 0351: each bus's volume and mute, and the mixes), and the playtest
+##     log (demo/playtest/playtest_settings_ui.gd, decision 0562: the log folder, Copy report, Mark), scrolling in the
 ##     modal rectangle when the window is short (in its own pixels at any scale: demo_scroll.gd);
 ##   * CONFIRM: Restart and Quit both ask first, and say again that the village will be lost. Focus lands
 ##     on Cancel.
@@ -33,6 +34,7 @@ extends CanvasLayer
 const FarmUi := preload("res://demo/farm/farm_ui.gd")
 const SoundSettingsScript := preload("res://demo/sound/sound_settings_ui.gd")
 const AccessSettingsScript := preload("res://demo/access/access_settings_ui.gd")
+const PlaytestSettingsScript := preload("res://demo/playtest/playtest_settings_ui.gd")
 const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
 const HelpPageScript := preload("res://demo/guide/help_page.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
@@ -66,7 +68,7 @@ const MENU_TIPS: Array[String] = [
 	"Close the menu and carry on at the speed you had (Esc)",
 	"Start the demo again from its first morning (asks first)",
 	"How-tos and the demo's keys, searchable",
-	"Interface scale, full screen, accessibility, time and sound",
+	"Interface scale, full screen, accessibility, time, sound and the playtest log",
 	"Test triggers -- weather, a tunnel threat, a storm gust, a swimmer's cramp",
 	"Leave the demo (asks first)",
 ]
@@ -91,6 +93,8 @@ var scale_percent: int = UiLayout.USER_SCALE_100
 var sound: SoundSettingsScript = SoundSettingsScript.new()
 ## The Settings page's accessibility and time section; the host sets its actions (decision 0471).
 var access: AccessSettingsScript = AccessSettingsScript.new()
+## The Settings page's playtest log section: the log folder, Copy report, Mark (decision 0562).
+var playtest: PlaytestSettingsScript = PlaytestSettingsScript.new()
 ## `(held: bool) -> bool`: hold the MENU pause through the host's pause ledger (unset: on the clock directly).
 var hold_pause: Callable = Callable()
 ## The Help page (decision 0481); the host answers its `action_requested`.
@@ -198,6 +202,7 @@ func _build_settings() -> VBoxContainer:
 	body.add_child(_fullscreen)
 	body.add_child(access)
 	body.add_child(sound)
+	body.add_child(playtest)
 	page.add_child(_back_button())
 	return page
 
@@ -416,6 +421,7 @@ func _refresh_settings() -> void:
 	_fullscreen.text = FULLSCREEN_TEXT % ("on" if full else "off")
 	access.refresh()
 	sound.refresh()
+	playtest.refresh()
 
 
 static func refused_note(refused: PackedStringArray) -> String:

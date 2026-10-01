@@ -21,6 +21,10 @@ the export and verification logs beside them.
      the beaver's flat tail is bound; screenshots of it.
   6. Write README.txt (tools/demo_build/README.txt, with this build's facts) and zip the folder.
 
+Before the export it writes godot/demo/build_info.json (gitignored) -- the commit, the build time and Godot's
+version -- which the export packs (include_filter "*.json") and the playtest log's header quotes (decision 0562);
+it is removed again when the build ends, so a run from the project never reads a stale one.
+
 The export log is scanned: any `ERROR:` line fails the build. Export warnings are kept in build.json.
 """
 
@@ -44,6 +48,7 @@ PROJECT = ROOT / "godot"
 PRESET_SOURCE = ROOT / "tools/demo_build/windows_export_preset.cfg"
 README_SOURCE = ROOT / "tools/demo_build/README.txt"
 VERIFY_SCRIPT = ROOT / "tools/godot/verify_demo_pack.gd"
+BUILD_INFO = PROJECT / "demo/build_info.json"
 PRESET_NAME = "Windows Desktop (demo)"
 FOLDER = "redwall-demo-windows"
 EXE = "RedwallDemo.exe"
@@ -221,6 +226,10 @@ def verification_problems(found: dict, output: str, kept: int = 1) -> list[str]:
 	problems += stall_problems(found)
 	if "did not load" in output:
 		problems.append("a card atlas or icon did not load from the pack")
+	if not found.get("build_info"):
+		problems.append("the pack carries no demo/build_info.json: the playtest log would not know its version")
+	if not found.get("playtest_log"):
+		problems.append("the playtest log did not start in the pack (decision 0562)")
 	return problems
 
 
@@ -233,6 +242,14 @@ def git_commit() -> str:
 	dirty = subprocess.run(["git", "-C", str(ROOT), "status", "--porcelain", "--untracked-files=no"],
 		capture_output=True, text=True, check=False).stdout.strip()
 	return head + ("-dirty" if dirty else "")
+
+
+def write_build_info(facts: dict[str, str], path: pathlib.Path = BUILD_INFO) -> pathlib.Path:
+	"""godot/demo/build_info.json: the commit, build time and Godot version the playtest log's header quotes."""
+	info = {"schema": "redwall-demo-build-info-v1", "commit": facts["commit"], "built": facts["built"],
+		"godot": facts["godot"]}
+	path.write_text(json.dumps(info, indent=1) + "\n")
+	return path
 
 
 def write_readme(folder: pathlib.Path, facts: dict[str, str]) -> None:
@@ -306,10 +323,14 @@ def main() -> int:
 	textures = demo_texture_imports.settle(args.godot)
 	preset = install_preset()
 	pack = folder / EXE.replace(".exe", ".pck")
-	exported = export(args.godot, pack if args.pack_only else folder / EXE, logs, args.pack_only)
+	facts = {"built": started.strftime("%Y-%m-%d %H:%M UTC"), "commit": git_commit(), "godot": version}
+	write_build_info(facts)
+	try:
+		exported = export(args.godot, pack if args.pack_only else folder / EXE, logs, args.pack_only)
+	finally:
+		BUILD_INFO.unlink(missing_ok=True)
 	verified = {} if args.skip_verify else verify(args.godot, pack, logs, textures[demo_texture_imports.ROLE_RAW])
-	facts = {"built": started.strftime("%Y-%m-%d %H:%M UTC"), "commit": git_commit(), "godot": version,
-		"pck_mib": str(mib(pack))}
+	facts["pck_mib"] = str(mib(pack))
 	write_readme(folder, facts)
 	archive = out / f"{FOLDER}.zip"
 	if not args.pack_only:

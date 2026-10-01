@@ -37,6 +37,8 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const CastRoutinesScript := preload("res://demo/cast/cast_routines.gd")
 const DemoClockScript := preload("res://demo/demo_clock.gd")
+const StressCastScript := preload("res://demo/stress/stress_cast.gd")
+const ScaleProbeScript := preload("res://demo/stress/scale_probe.gd")
 
 const PLACEHOLDER_COUNT: int = 6
 ## No planning area: routes may go anywhere (cast_nav.gd THE PLANNING AREA).
@@ -57,6 +59,8 @@ var clock: DemoClockScript = DemoClockScript.new()
 var route_budget_usec: int = 0
 ## Called at the end of each frame's routing window, before it closes (see ROUTING): none by default.
 var window_tail: Callable = Callable()
+## The scale test's timers (demo/stress/scale_probe.gd, decision 0561): null -- off -- except in a measuring run.
+var probe: ScaleProbeScript = null
 
 
 func _init() -> void:
@@ -84,17 +88,52 @@ func _process(delta: float) -> void:
 func advance(real_delta: float) -> void:
 	"""Read the clock for a frame of `real_delta` real seconds, serve the residents waiting for a route (see ROUTING) and
 	step every actor by its demo time; then carry the navigation's rebuilds on a slice (cast_nav.gd REBUILT IN SLICES)
-	and close the frame's routing window."""
+	and close the frame's routing window. With the scale test's `probe` set, each part's time is booked to it (decision
+	0561); without, no clock is read."""
 	clock.advance(real_delta)
+	var lap: int = Time.get_ticks_usec() if probe != null else 0
 	if _space != null:
 		_space.routes.serve()
-	for actor in _actors:
-		(actor as DemoActorScript).advance(clock)
+	lap = _lap(lap, &"cast.route_serve")
+	var brains: int = _step_actors()
+	if probe != null:
+		probe.add(&"cast.brains", brains)
+		lap = _lap(lap + brains, &"cast.actor_draw")
 	if _space != null:
 		_space.nav.advance_builds(CastNavScript.BUILD_BUDGET_USEC)
+		lap = _lap(lap, &"cast.nav_builds")
 		if window_tail.is_valid():
 			window_tail.call()
+		lap = _lap(lap, &"cast.window_tail")
+		if probe != null:
+			probe.add(&"cast.route_spend", _space.routes.spent_usec())
 		_space.routes.end_window()
+
+
+func _step_actors() -> int:
+	"""Each actor's brain and then its drawing, in turn (demo_actor.gd `advance`). Returns the brains' microseconds
+	with a probe set (0 without: no clock is read)."""
+	var brains: int = 0
+	for member: Node3D in _actors:
+		var resident := member as DemoActorScript
+		if probe == null:
+			resident.advance(clock)
+			continue
+		var before: int = Time.get_ticks_usec()
+		resident.step_brain(clock)
+		brains += Time.get_ticks_usec() - before
+		resident.draw(clock)
+	return brains
+
+
+func _lap(since: int, section: StringName) -> int:
+	"""The scale test's timer (decision 0561): with a probe, book the time since `since` to `section` and return now;
+	without, 0."""
+	if probe == null:
+		return 0
+	var now: int = Time.get_ticks_usec()
+	probe.add(section, now - since)
+	return now
 
 
 func build(manifest: Dictionary, points: Array[Dictionary], obstacles: Array[Vector3],
@@ -106,16 +145,21 @@ func build(manifest: Dictionary, points: Array[Dictionary], obstacles: Array[Vec
 	_space.nav.area = plan_area
 	_space.setup(points, obstacles)
 	_space.routes.budget_usec = route_budget_usec
-	var cast: Dictionary = manifest.get("cast", {})
+	# A stress run (decision 0561) grows the cast to N: clones keep their row's creature key, with their own names.
+	var cast: Dictionary = StressCastScript.expand(manifest.get("cast", {}), StressCastScript.requested_count())
 	var keys: Array = cast.keys()
-	var count := keys.size() if not keys.is_empty() else PLACEHOLDER_COUNT
+	var count := keys.size() if not keys.is_empty() else StressCastScript.placeholder_count(PLACEHOLDER_COUNT)
 	for i in count:
 		var actor: DemoActorScript = DemoActorScript.new()
 		if keys.is_empty():
 			actor.setup_placeholder(i, _space, BASE_SEED + i * SEED_STRIDE)
+			actor.name = String(actor.creature_key)
 		else:
-			actor.setup_creature(i, StringName(keys[i]), cast[keys[i]], _space, BASE_SEED + i * SEED_STRIDE)
-		actor.name = String(actor.creature_key)
+			var row: Dictionary = cast[keys[i]]
+			actor.setup_creature(i, StressCastScript.creature_key_of(StringName(keys[i]), row), row, _space,
+				BASE_SEED + i * SEED_STRIDE)
+			actor.display_name = StressCastScript.display_name_of(row, actor.display_name)
+			actor.name = String(keys[i])
 		actor.brain.homes = CastRoutinesScript.homes_for(actor.creature_key, _space.poi_names)
 		actor.brain.socials = CastRoutinesScript.socials_for(_space.poi_names)
 		_place(actor, i, count)

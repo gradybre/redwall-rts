@@ -39,6 +39,11 @@ var _charged: int = -1
 var last_window_usec: int = 0
 var max_window_usec: int = 0
 var served: int = 0
+## Measurement, off by default (the scale test, decision 0561): with `tally` on, each resident's plans charged and their
+## microseconds, by resident index.
+var tally: bool = false
+var plans_of: PackedInt32Array = PackedInt32Array()
+var plan_usec_of: PackedInt64Array = PackedInt64Array()
 
 
 func register(index: int, turn: Callable) -> void:
@@ -90,9 +95,20 @@ func charge(index: int, usec: int) -> void:
 	formation's search)."""
 	_spent_usec += maxi(usec, 0)
 	_charged = index
+	if tally and index >= 0:
+		_tally(index, maxi(usec, 0))
 	if index >= 0:
 		estimate_usec = (3 * estimate_usec + maxi(usec, 0)) / 4
 		forget(index)
+
+
+func _tally(index: int, usec: int) -> void:
+	"""Count a plan of resident `index` (see `tally`); the columns grow on first use."""
+	if plans_of.size() <= index:
+		plans_of.resize(index + 1)
+		plan_usec_of.resize(index + 1)
+	plans_of[index] += 1
+	plan_usec_of[index] += usec
 
 
 func forget(index: int) -> void:

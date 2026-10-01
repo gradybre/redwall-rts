@@ -32,7 +32,7 @@ const WHEAT: int = 13
 const BARLEY: int = 14
 const COVERED: int = 0
 const CELLAR: int = 1
-const HOUR_USEC: int = 2500000
+const HOUR_USEC: int = preload("res://demo/demo_calendar.gd").HOUR_USEC
 const BED_CARROTS: int = 2
 
 var _nodes: Array[Node] = []

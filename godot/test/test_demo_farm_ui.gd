@@ -46,7 +46,7 @@ const NoticesScript := preload("res://demo/demo_notices.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 
 const DT: float = 1.0 / 60.0
-const HOUR_USEC: int = 2500000
+const HOUR_USEC: int = preload("res://demo/demo_calendar.gd").HOUR_USEC
 const CARROT: int = 2
 const RADISH: int = 0
 const PEA: int = 11

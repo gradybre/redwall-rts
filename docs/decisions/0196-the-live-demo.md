@@ -1,6 +1,10 @@
 # 0196 — The live demo
 Date: 2026-09-30 · Status: Accepted
 
+> **Superseded in part by [0421](0421-a-game-day-lasts-ten-minutes.md) (2026-10-01):** the calendar no longer
+> compresses time. `HOUR_USEC` is 25 000 000 -- 25 s a game hour, a day ten minutes at 1x, the GDD's own rate -- by
+> Brendan's ruling. Item 6's "2.5 s a game hour, a day a minute at 1x" is history.
+
 The number was reserved when the live demo began and is cited in the headers of `godot/demo/*.gd`
 and in `godot/demo/README.md`; this record collects what every build step decided. Values are as
 built on `feat/live-demo` (commit 114a902). Where the playtest fix pass later changed one, it is

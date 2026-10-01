@@ -1,6 +1,9 @@
 # 0332 — Every demo action shows its card, filled by the order's own decision
 Date: 2026-09-30 · Status: Accepted
 
+> **Superseded in part by [0421](0421-a-game-day-lasts-ten-minutes.md) (2026-10-01):** a game hour is now 25 s, so a
+> card's work under an hour reads in whole game minutes ("about 29 game minutes"); from an hour, tenths as before.
+
 Review group H, "action previews": findings F33 (action buttons omit costs, consequences and useful disabled
 reasons) and F44 (selection changes assignment semantics without a common preview) of the live-demo review
 (`/Users/brendan/Developer/redwall-review/REVIEW.md`, written against 157a3a4; P1's bridge planner and bed rows with

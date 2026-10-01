@@ -45,7 +45,7 @@ const CardScript := preload("res://demo/ui/action_card.gd")
 const SourceScript := preload("res://demo/work/work_source.gd")
 
 const DT: float = 0.1
-const HOUR_USEC: int = 2500000
+const HOUR_USEC: int = preload("res://demo/demo_calendar.gd").HOUR_USEC
 const BED_CARROTS: int = 2
 const CARROT: int = 2
 const CARROT_YIELD: int = 5100

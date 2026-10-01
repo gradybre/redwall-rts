@@ -25,8 +25,8 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 
-## Demo microseconds per farm hour (demo_calendar.HOUR_USEC), written out.
-const HOUR_USEC: int = 2500000
+## Demo microseconds per farm hour: the calendar's own (decision 0421: 25 s).
+const HOUR_USEC: int = preload("res://demo/demo_calendar.gd").HOUR_USEC
 const RADISH: int = 0
 const CARROT: int = 2
 const CABBAGE: int = 6
@@ -130,12 +130,12 @@ func test_a_bed_is_found_under_a_point() -> void:
 # --- calendar and weather ---------------------------------------------------------------------
 
 func test_the_calendar_turns_demo_microseconds_into_ticks_exactly() -> void:
-	"""2.5 s is 750 ticks; a microsecond carries 750 over; 3333 more brings one tick, 500 over."""
+	"""25 s is 750 ticks; a microsecond carries 750 over; 33333 more brings one tick, 500 over."""
 	var calendar := CalendarScript.new()
 	assert_equal(calendar.ticks_for_usec(HOUR_USEC), 750, "an hour")
 	assert_equal(calendar.ticks_for_usec(1), 0, "a microsecond: no tick")
 	assert_equal(calendar.remainder(), 750, "but kept")
-	assert_equal(calendar.ticks_for_usec(3333), 1, "carried over")
+	assert_equal(calendar.ticks_for_usec(33333), 1, "carried over")
 	assert_equal(calendar.remainder(), 500, "the rest kept")
 	assert_equal(calendar.ticks_for_usec(-5), 0, "never backwards")
 

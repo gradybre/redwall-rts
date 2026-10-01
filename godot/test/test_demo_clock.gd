@@ -14,6 +14,8 @@ const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const OverlayScript := preload("res://demo/tunnel/tunnel_overlay.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
+const CalendarScript := preload("res://demo/demo_calendar.gd")
+const SimClock := preload("res://scripts/core/sim_clock.gd")
 
 const DT: float = 1.0 / 60.0
 ## One 60 Hz frame, rounded to whole microseconds once.
@@ -262,3 +264,26 @@ func test_the_mound_holds_still_while_paused() -> void:
 		overlay._process(DT)
 	assert_equal((overlay.mound(site[2]).get_child(0) as Node3D).scale.y, bob, "the bob holds")
 	assert_equal(overlay.mound(site[2]).get_child_count(), 1, "its clods are the warren's pool's (test_demo_theatre.gd)")
+
+
+func test_a_game_hour_is_25_seconds_at_1x_and_a_day_ten_minutes() -> void:
+	"""Decision 0421 (Brendan's ruling; the GDD's §5.1 "At 1x: day 10 minutes"): the ONE calendar's game hour is 25 s
+	of demo time -- 750 ticks, the settlement's 30 a second -- and its day 600 s; a real second of 60 Hz frames through
+	the demo clock is 30, 60 and 120 calendar ticks at 1x, 2x and 4x."""
+	assert_equal(CalendarScript.HOUR_USEC, 25000000, "25 s a game hour")
+	assert_equal(CalendarScript.DAY_USEC, 600000000, "ten minutes a game day")
+	var calendar := CalendarScript.new()
+	assert_equal(calendar.ticks_for_usec(1000000), SimClock.TICKS_PER_SECOND, "a second is 30 ticks")
+	assert_equal(calendar.ticks_for_usec(CalendarScript.HOUR_USEC - 1000000), 720, "the rest of the hour")
+	assert_equal(calendar.ticks_for_usec(CalendarScript.DAY_USEC), SimClock.TICKS_PER_DAY, "a day is 18000 more")
+	var manager := _manager()
+	for speed: int in [1, 2, 4]:
+		var timed := CalendarScript.new()
+		var clock := DemoClockScript.new()
+		clock.bind(manager)
+		manager.set_speed(speed)
+		var ticks: int = 0
+		for frame: int in 60:
+			clock.advance(DT)
+			ticks += timed.ticks_for_usec(clock.frame_usec)
+		assert_equal(ticks, SimClock.TICKS_PER_SECOND * speed, "a real second at %dx" % speed)

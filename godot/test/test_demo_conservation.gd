@@ -36,7 +36,7 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const ActionCard := preload("res://demo/ui/action_card.gd")
 
 const DT: float = 1.0 / 60.0
-const HOUR_USEC: int = 2500000
+const HOUR_USEC: int = preload("res://demo/demo_calendar.gd").HOUR_USEC
 const CARROT: int = 2
 const WHEAT: int = 13
 const BED_CARROTS: int = 2

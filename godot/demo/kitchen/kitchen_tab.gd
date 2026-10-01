@@ -59,7 +59,7 @@ func configure(kitchen: KitchenScript, members: Callable, interrupt: Callable) -
 	_village = _line(FarmUi.BODY_PX, Palette.INK)
 	_history = _line(NOTE_PX, Palette.UMBER)
 	add_child(_buttons())
-	add_child(FarmUi.label(Words.TAB_NOTE, NOTE_PX, Palette.UMBER))
+	add_child(FarmUi.label(Words.tab_note(), NOTE_PX, Palette.UMBER))
 
 
 func _line(px: int, colour: Color) -> Label:

@@ -21,6 +21,8 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
+const DemoClockScript := preload("res://demo/demo_clock.gd")
+const SimClock := preload("res://scripts/core/sim_clock.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const Layers := preload("res://demo/demo_layers.gd")
@@ -35,10 +37,14 @@ const S: int = AllocationScript.SIZE_SMALL
 const B: int = AllocationScript.SIZE_BIG
 const HOME_AT: Vector2i = Vector2i(0, 8192)
 const HALL_AT: Vector2 = Vector2(0.0, -6.0)
-## Calendar ticks at hours of the first day (tick 0 is 06:00): 17:00, dusk at 18:00, and dawn at 06:00 the next morning.
-const TICK_1800: int = 11 * 750
-const TICK_1900: int = 12 * 750
+## Calendar ticks at hours of the first day (tick 0 is 06:00): the hour before dusk (19:00), dusk at 20:00
+## (night_routine.gd DUSK_HOUR, decision 0421), and dawn at 06:00 the next morning.
+const TICK_EVENING: int = (NightScript.DUSK_HOUR - 7) * 750
+const TICK_DUSK: int = (NightScript.DUSK_HOUR - 6) * 750
 const TICK_MORNING: int = 24 * 750
+## The slowest resident's walk (decision 0205: the mole digger, 0.72 m/s), and what it covers in a game hour at 25 s.
+const MOLE_WALK_M_S: float = 0.72
+const MOLE_M_PER_HOUR: float = 18.0
 
 
 ## A task that runs `frames` steps and ends; called away, it is kept and taken back by ordering it again.
@@ -89,7 +95,7 @@ func _lengths() -> Dictionary:
 
 
 func _village(heights: Array[int], beds: int, hall: bool = true) -> Village:
-	"""A village of residents this tall (u), standing in a row south of a dug home with `beds` beds in, at 17:00."""
+	"""A village of residents this tall (u), standing in a row south of a dug home with `beds` beds in, at 19:00."""
 	var v := Village.new()
 	v.space = CastSpaceScript.new()
 	var points: Array[Dictionary] = [{"name": NightScript.HALL_POI, "position": Vector3(HALL_AT.x, 0.0, HALL_AT.y),
@@ -106,7 +112,7 @@ func _village(heights: Array[int], beds: int, hall: bool = true) -> Village:
 		v.graph.set_body(brain.index, heights[i], 256)
 		v.brains.append(brain)
 		names.append("resident %d" % i)
-	v.calendar.tick = TICK_1800
+	v.calendar.tick = TICK_EVENING
 	v.night.configure(v.graph, v.brains, names, PackedInt32Array(heights), v.calendar, v.notices)
 	var alarm := v.alarm
 	v.night.set_alarm(func() -> bool: return alarm[0])
@@ -251,25 +257,70 @@ func test_the_night_allocates_the_home_s_beds_by_place() -> void:
 # --- the hours --------------------------------------------------------------------------------------
 
 func test_night_runs_from_dusk_to_dawn_and_the_hearths_from_evening() -> void:
-	"""Night is 18:00 to 05:59; the hearths burn 17:00 to 06:59."""
+	"""Night is 20:00 to 05:59 (decision 0421: a walk home fits an hour, so dusk is the GDD schedule's 20:00); the
+	hearths burn 19:00 to 06:59."""
 	var night: Array[bool] = []
 	var hearth: Array[bool] = []
-	for hour: int in [5, 6, 17, 18, 0]:
+	for hour: int in [5, 6, 18, 19, 20, 23, 0]:
 		night.append(NightScript.is_night_hour(hour))
-	for hour: int in [6, 7, 16, 17]:
+	for hour: int in [6, 7, 18, 19]:
 		hearth.append(NightScript.is_hearth_hour(hour))
-	assert_equal(night, [true, false, false, true, true] as Array[bool], "night")
+	assert_equal(night, [true, false, false, false, true, true, true] as Array[bool], "night")
 	assert_equal(hearth, [true, false, false, true] as Array[bool], "hearths")
 
 
+func _run_timed(v: Village, frames: int, until: Callable) -> int:
+	"""Step the night and every brain on a 1x demo clock, the calendar advancing by the frame's demo time as the farm
+	advances it (decision 0421: 30 ticks a second); stop once `until() -> bool`. Returns the calendar ticks run."""
+	var clock := DemoClockScript.new()
+	var start: int = v.calendar.tick
+	for f in frames:
+		clock.advance(DT)
+		v.calendar.tick += v.calendar.ticks_for_usec(clock.frame_usec)
+		v.night.step()
+		for brain in v.brains:
+			brain.step(clock.delta_s())
+		if bool(until.call()):
+			break
+	return v.calendar.tick - start
+
+
+func test_a_walk_of_18_m_takes_about_a_game_hour() -> void:
+	"""Decision 0421: at 25 s a game hour the slowest walker (0.72 m/s) covers 18 m in a game hour -- the walk takes
+	about 750 calendar ticks, give or take its start and its route (on the old day of a minute it took ten hours)."""
+	var v := _village([MOUSE_U] as Array[int], 1)
+	var brain: BrainScript = v.brains[0]
+	brain.walk_speed = MOLE_WALK_M_S
+	brain.start_at(Vector2(-9.0, -2.5), 0.0, -1, -1)
+	var goal := Vector2(-9.0 + MOLE_M_PER_HOUR, -2.5)
+	brain.order_move(goal)
+	var ticks: int = _run_timed(v, 60 * 60, func() -> bool: return brain.position.distance_to(goal) < 0.3)
+	assert_true(brain.position.distance_to(goal) < 0.3, "arrived: %s" % brain.position)
+	assert_true(ticks >= 720 and ticks <= 810, "about a game hour of calendar ticks: %d" % ticks)
+
+
+func test_a_resident_15_m_from_home_is_in_bed_within_an_hour_of_dusk() -> void:
+	"""Decision 0421: sent home at dusk (20:00) from the square, about 15 m of walk to its bed (to the home's door and
+	through the room) at the slowest pace, a resident lies down before 21:00 -- before the GDD schedule's 22:00 sleep,
+	far short of deep night. (On the old day of a minute this walk took six game hours.)"""
+	var v := _village([MOUSE_U] as Array[int], 1)
+	var brain: BrainScript = v.brains[0]
+	brain.walk_speed = MOLE_WALK_M_S
+	brain.start_at(Vector2(-6.0, -4.0), 0.0, -1, -1)
+	v.calendar.tick = TICK_DUSK
+	var ticks: int = _run_timed(v, 60 * 120, func() -> bool: return brain.lying)
+	assert_true(brain.lying, "in bed")
+	assert_true(ticks < SimClock.TICKS_PER_HOUR, "before 21:00: %d ticks after dusk" % ticks)
+
+
 func test_residents_rest_all_night_and_only_then() -> void:
-	"""`resting` is set at dusk (18:00) for everyone and cleared at dawn (06:00)."""
+	"""`resting` is set at dusk (20:00) for everyone and cleared at dawn (06:00)."""
 	var v := _village([MOUSE_U] as Array[int], 1)
 	v.night.step()
-	assert_false(v.brains[0].resting or v.night.is_night(), "17:00: up")
-	v.calendar.tick = TICK_1900
+	assert_false(v.brains[0].resting or v.night.is_night(), "19:00: up")
+	v.calendar.tick = TICK_DUSK
 	v.night.step()
-	assert_true(v.brains[0].resting and v.night.is_night(), "18:00: resting")
+	assert_true(v.brains[0].resting and v.night.is_night(), "20:00: resting")
 	v.calendar.tick = TICK_MORNING
 	v.night.step()
 	assert_false(v.brains[0].resting or v.night.is_night(), "06:00: up")
@@ -282,7 +333,7 @@ func test_at_dusk_they_walk_home_and_lie_down_in_their_beds() -> void:
 	mattress under it, its body's middle on the bed's, head to the pillow; the panel says so; the feed says dusk."""
 	var v := _village([MOUSE_U, MOUSE_U, MOUSE_U] as Array[int], 3)
 	_run(v, 1)
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 1)
 	for i in 3:
 		assert_true(v.brains[i].task is SleepTaskScript, "resident %d sent to bed" % i)
@@ -306,7 +357,7 @@ func test_in_the_morning_they_get_up_and_take_up_the_parked_job() -> void:
 	var v := _village([MOUSE_U] as Array[int], 1)
 	var job := CountedTask.new(1000000)
 	v.brains[0].order_task(job)
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 1)
 	assert_true(v.brains[0].task is SleepTaskScript, "to bed")
 	assert_equal(v.brains[0].unfinished_labels(), PackedStringArray(["the counted job"]), "the job parked")
@@ -323,7 +374,7 @@ func test_at_dawn_one_still_on_the_way_home_turns_back_to_its_job() -> void:
 	var v := _village([MOUSE_U] as Array[int], 1)
 	var job := CountedTask.new(1000000)
 	v.brains[0].order_task(job)
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 3)
 	assert_equal((v.brains[0].task as SleepTaskScript).stage, SleepTaskScript.STAGE_GOING, "on its way")
 	v.calendar.tick = TICK_MORNING
@@ -335,7 +386,7 @@ func test_a_work_order_at_a_spot_is_parked_and_taken_up() -> void:
 	"""Ordered to work at a spot, at dusk its work there is kept ("Work at here"); in the morning it goes back to it."""
 	var v := _village([MOUSE_U] as Array[int], 1)
 	v.brains[0].order_work(1, 0)
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 1)
 	assert_equal(v.brains[0].unfinished_labels(), PackedStringArray(["Work at here"]), "kept")
 	_run(v, 2400, _all_asleep.bind(v, 1))
@@ -349,7 +400,7 @@ func test_an_order_wakes_a_sleeper_and_once_free_it_goes_back_to_bed() -> void:
 	"""An order to a sleeper gets it up and away (no longer lying, the sleep over, nothing kept); released at night,
 	it is sent to bed again."""
 	var v := _village([MOUSE_U] as Array[int], 1)
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 2400, _all_asleep.bind(v, 1))
 	var brain := v.brains[0]
 	brain.order_move(Vector2(3.0, -3.0))
@@ -370,7 +421,7 @@ func test_the_alarm_gets_sleepers_up_until_it_clears() -> void:
 	"""While a threat is under way a sleeper stands by its bed ("Up by the bed: the alarm"); once it clears, it lies
 	down again."""
 	var v := _village([MOUSE_U] as Array[int], 1)
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 2400, _all_asleep.bind(v, 1))
 	v.alarm[0] = true
 	_run(v, 2)
@@ -391,7 +442,7 @@ func test_emergencies_and_the_water_are_left_alone_at_dusk() -> void:
 	v.brains[1].water_hold = true
 	v.brains[2].in_water = true
 	v.brains[3].order_task(CountedTask.new(1000000))
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 1)
 	assert_true(v.brains[0].task == urgent, "the emergency goes on")
 	assert_false(v.brains[1].task is SleepTaskScript or v.brains[2].task is SleepTaskScript, "the water's are left")
@@ -404,7 +455,7 @@ func test_the_bedless_sleep_in_the_hall_and_come_out_in_the_morning() -> void:
 	out."""
 	var v := _village([MOUSE_U, MOUSE_U, BADGER_U] as Array[int], 1)
 	v.brains[1].start_at(Vector2(6.0, -4.0), 0.0, -1, -1)
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 1)
 	assert_true(v.night.bed_of[0] >= 0 and v.night.bed_of[1] == -1 and v.night.bed_of[2] == -1, "one bed")
 	assert_true(v.notices.has_text(NightScript.NO_BED_WARNING % "resident 1, resident 2"), "the housing deficit said")
@@ -430,7 +481,7 @@ func test_the_badger_sleeps_in_the_large_bed_in_its_nook() -> void:
 	for f in 2:
 		v.graph.fit.phase[v.home * FixturesScript.PLACES + f] = FixturesScript.INSTALLED
 	v.graph.fit.revision += 1
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	var took := _run(v, 60 * 120, func() -> bool: return _all_asleep(v, 2))
 	assert_equal(v.night.bed_of[0], v.home * FixturesScript.PLACES, "the badger: the large bed")
 	assert_equal(v.night.bed_of[1], v.home * FixturesScript.PLACES + 1, "the mouse: the burrow bed")
@@ -444,7 +495,7 @@ func test_the_badger_sleeps_in_the_large_bed_in_its_nook() -> void:
 func test_without_a_hall_the_bedless_stay_up() -> void:
 	"""With no hall and no bed a resident is not sent anywhere, and the deficit is not said."""
 	var v := _village([MOUSE_U] as Array[int], 0, false)
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 1)
 	assert_null(v.brains[0].task, "stays up")
 	assert_false(v.night.send(0), "nowhere to send it")
@@ -455,7 +506,7 @@ func test_a_bed_it_cannot_reach_is_no_bed_tonight() -> void:
 	"""A short, broad resident permitted a bed but fitting no bore cannot reach its home: it sleeps in the hall."""
 	var v := _village([MOUSE_U] as Array[int], 1)
 	v.graph.set_body(v.brains[0].index, MOUSE_U, 1400)
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 1)
 	assert_true(v.night.bed_of[0] >= 0, "it has a bed")
 	var task := v.brains[0].task as SleepTaskScript
@@ -595,7 +646,7 @@ func test_a_badger_cannot_haul_below() -> void:
 func test_a_sleeper_or_one_on_a_crossing_is_not_sent_again() -> void:
 	"""Already asleep (a sleep task), or on a crossing: may not be sent."""
 	var v := _village([MOUSE_U, MOUSE_U] as Array[int], 1)
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 1)
 	assert_false(v.night.may_send(0), "in bed already")
 	v.brains[1].release()
@@ -606,7 +657,7 @@ func test_a_sleeper_or_one_on_a_crossing_is_not_sent_again() -> void:
 func test_the_alarm_leaves_the_hall_s_sleepers_inside() -> void:
 	"""Asleep in the hall, the alarm does not get it up (a threat there evacuates it instead)."""
 	var v := _village([MOUSE_U] as Array[int], 0)
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 1200, func() -> bool: return v.brains[0].indoors)
 	v.alarm[0] = true
 	_run(v, 2)
@@ -618,7 +669,7 @@ func test_the_alarm_leaves_the_hall_s_sleepers_inside() -> void:
 func test_in_the_morning_a_sleeper_walks_to_the_middle_before_its_night_ends() -> void:
 	"""Its night ends at the room's middle (from there the brain walks it out), not where it rose."""
 	var v := _village([MOUSE_U] as Array[int], 1)
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 2400, _all_asleep.bind(v, 1))
 	var task := v.brains[0].task as SleepTaskScript
 	v.calendar.tick = TICK_MORNING
@@ -630,7 +681,7 @@ func test_a_night_lost_on_the_way_goes_back_to_the_routine() -> void:
 	"""A sleep task whose walk is given up leaves the resident on its own (not holding as under an order), so the
 	night sends it again; an ordinary task given up holds."""
 	var v := _village([MOUSE_U, MOUSE_U] as Array[int], 1)
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 1)
 	v.brains[0]._abandon_trip()
 	assert_equal(v.brains[0].order, BrainScript.ORDER_NONE, "on its own again")
@@ -686,7 +737,7 @@ func test_a_planned_bed_is_no_bed_yet() -> void:
 func test_a_player_s_order_at_night_is_carried_out_not_undone() -> void:
 	"""A resident ordered to move at night keeps its order however long the night runs; only free ones are sent."""
 	var v := _village([MOUSE_U] as Array[int], 1)
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 1)
 	v.brains[0].order_move(Vector2(3.0, -3.0))
 	v.calendar.tick += NightScript.RESEND_TICKS * 3
@@ -699,7 +750,7 @@ func test_one_held_by_the_rescue_is_not_parked() -> void:
 	var v := _village([MOUSE_U] as Array[int], 1)
 	v.brains[0].order_work(1, 0)
 	v.brains[0].water_hold = true
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 1)
 	assert_equal(v.brains[0].unfinished_labels().size(), 0, "nothing parked")
 	assert_equal(v.brains[0].order, BrainScript.ORDER_WORK, "still at work")
@@ -717,7 +768,7 @@ func test_the_bedless_go_in_at_the_hall_side_by_side() -> void:
 func test_at_dawn_a_sleeper_gets_up_and_walks_across_its_floor() -> void:
 	"""A frame after dawn a sleeper is up (not lying) but its night not over: it walks to the room's middle first."""
 	var v := _village([MOUSE_U] as Array[int], 1)
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 2400, _all_asleep.bind(v, 1))
 	var task := v.brains[0].task as SleepTaskScript
 	v.calendar.tick = TICK_MORNING
@@ -731,7 +782,7 @@ func test_at_dawn_a_sleeper_gets_up_and_walks_across_its_floor() -> void:
 func test_a_sleeper_crosses_the_floor_before_lying_down() -> void:
 	"""Arrived in the home, it walks to its bedside first; it gets in only there -- FOOT_M off the bed's foot."""
 	var v := _village([MOUSE_U] as Array[int], 1)
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 2400, func() -> bool: return (v.brains[0].task as SleepTaskScript).stage == SleepTaskScript.STAGE_TO_BED)
 	var task := v.brains[0].task as SleepTaskScript
 	assert_equal(task.stage, SleepTaskScript.STAGE_TO_BED, "arrived")
@@ -874,7 +925,7 @@ func test_an_evacuee_home_at_night_goes_to_bed_and_keeps_its_job_for_morning() -
 	v.brains[0].order_task(job)
 	v.brains[0].order_task(CountedTask.new(3, true))
 	assert_equal(v.brains[0].unfinished_labels(), PackedStringArray(["the counted job"]), "parked by the emergency")
-	v.calendar.tick = TICK_1900
+	v.calendar.tick = TICK_DUSK
 	_run(v, 1)
 	assert_false(v.brains[0].task is SleepTaskScript, "an emergency is left be at dusk")
 	v.calendar.tick += NightScript.RESEND_TICKS
@@ -959,3 +1010,12 @@ func test_a_fixture_taken_out_before_its_installer_arrives_leaves_nothing_to_com
 	var task := v.brains[0].task as InstallTaskScript
 	v.graph.fit.take_out(v.graph, v.home, RoomsScript.FIX_TABLE, pack[2])
 	assert_null(task.unfinished(), "nothing to come back to")
+
+
+func test_a_kept_place_outlasts_the_night() -> void:
+	"""Decision 0421: a fixture place kept for a resident called to bed waits a game day of demo time -- the calendar's
+	own -- so it outlasts the night (20:00-05:59) and its installer comes back to it in the morning (at the old 60 s it
+	would have lapsed at about 02:00)."""
+	assert_equal(CrewScript.KEEP_USEC, CalendarScript.DAY_USEC, "a game day")
+	var night_hours: int = SimClock.HOURS_PER_DAY - NightScript.DUSK_HOUR + NightScript.DAWN_HOUR
+	assert_true(CrewScript.KEEP_USEC > night_hours * CalendarScript.HOUR_USEC, "longer than the night")

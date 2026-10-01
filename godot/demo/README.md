@@ -73,8 +73,10 @@ The farm and the tunnel works were built apart; in the demo they are one village
 that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
 
 - **One calendar** (`demo_calendar.gd`). Farm time, the weather's hour and the **date the HUD shows**
-  are one tick counter on the real offset calendar, run on the demo clock at a game hour every 2.5 demo
-  seconds (a day a minute at 1x) -- the one demo compression, applied to all three. The farm's model
+  are one tick counter on the real offset calendar, run on the demo clock at the GDD's own rate: a game hour
+  every 25 demo seconds, 30 ticks a second, a day ten minutes at 1x (decision 0421, Brendan's ruling; it was a day
+  a minute until then). Everything on the calendar reads its time from it and keeps no conversion of its own;
+  walking and work run on the same demo seconds, so a resident covers 18-26 m a game hour. The farm's model
   advances it; the HUD's date trigger prints its day (`ui/demo_hud_date.gd`, through the shell's
   public `set_status_line`, so the settlement's own clock runs on apart, unwritten) -- "Spring 3": the
   trigger's 88 px hold no hour, so its tooltip carries the full `Y1 Spring 3, 14:00` -- and the farm
@@ -278,7 +280,7 @@ Can't now: it needs 4.7 U planks; the stores hold 0.0 U planks and 76.0 U wood
 To fix: Woods ▸ Saw planks (2.0 U wood makes 2.0 U planks)
 3.4 m of water bridged (neck bridge): anyone may cross, carrying or not
 Planks: have 0.0 U · need 4.7 U
-Work: about 6.7 game hours, plus the walk
+Work: about 40 game minutes, plus the walk
 Who: Assign selected: Squirrel forester (nearest of 2)
 Interrupts: Felling the oak — goes back to it after
 Needs: a site both banks take; planks (sawn at the sawhorse) and wood for any piers
@@ -293,8 +295,8 @@ Needs: a site both banks take; planks (sawn at the sawhorse) and wood for any pi
   exactly when its card allows it. The bridge, tunnel and fixture buttons now refuse a short store before
   they are pressed, not after.
 - **Costs** are have / need from the stores the HUD reads (wood, stone, planks), the farm's compost store,
-  and the earth on the fullest spoil heap or in the stores (Raise, Bank; decision 0401). **Work** is in game hours of the demo calendar (2.5 demo seconds a game
-  hour); the walk is not counted, and a mole job's card says a crew is quicker.
+  and the earth on the fullest spoil heap or in the stores (Raise, Bank; decision 0401). **Work** is in game time of the demo calendar (25 demo seconds a game
+  hour): whole game minutes under an hour, hours to the tenth from one; the walk is not counted, and a mole job's card says a crew is quicker.
 - **Who**, in one grammar everywhere: "Assign selected: X (nearest of 3)" (farm, woods, bridges);
   "Assign selected: X (first of 3 who fits the bore)" and "Assign X (the nearest free resident who fits
   the bore)" (tunnels); "Lead: X (nearest of 3) + 2 waiting to haul" (felling); "Queue for the Field crew:
@@ -347,7 +349,7 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
   for it, as Food is for the Pantry -- opens it over the HUD (Esc, J or × close it; Tab and Enter work inside it).
   **Tasks**: every task, blocked first, then under way, queued, paused: "Harvest — the carrot bed · Mouse
   fieldworker", its state and why it waits ("Blocked: no store has room for 5.1 U of carrot — make room in the
-  Pantry (K)", "Travelling: finding a route", "can't reach it"), the work left in game hours and who means to come
+  Pantry (K)", "Travelling: finding a route", "can't reach it"), the work left in game time and who means to come
   back to it; with **Go to**, **Pause/Resume**, **Cancel this task**, **Reassign…** (every resident, each with its
   eligibility; with residents selected, the group previewed member by member), **▲/▼ Priority** and **Urgent**. A
   command a task cannot take is disabled saying why. **Residents and crews**: each crew, its members' status, what each
@@ -450,9 +452,9 @@ dig, for the next piece.
   it in a T.
 - **The ghost.** While laying, the piece is drawn to the pointer as its bore will curve: chalk-cream while it
   may be dug, clay with the reason beside the pointer when it may not. Beside it, the **cost readout**
-  (`tunnel/dig_readout.gd`): e.g. "14.0 m · 14 quanta · 5.2 h (crew of 3)" over "28 U spoil · clay 4 m
-  (slow), sand 2 m (weak: brace)" -- length, the metres the network will cut, hours of the demo calendar for
-  the crew that would dig it, the spoil, and the ground that slows or weakens it.
+  (`tunnel/dig_readout.gd`): e.g. "14.0 m · 14 quanta · 32 min (crew of 3)" over "28 U spoil · clay 4 m
+  (slow), sand 2 m (weak: brace)" -- length, the metres the network will cut, the time on the demo calendar
+  (minutes under an hour, else hours to the tenth; decision 0421) for the crew that would dig it, the spoil, and the ground that slows or weakens it.
 - **Refused, in words** (demo values, `tunnel/tunnel_rules.gd`): a point off the map or on top of the last;
   a new mouth inside an obstacle or heap, on a work spot or another mouth, or with someone standing on it
   or no way for the digger to reach it; a leg under a building or the well, or under the water; a piece
@@ -653,7 +655,7 @@ words: "the demo stores are short: the bed needs 2 planks (they hold ...)"); tak
 
 A planned fixture shows as a chalk ring; a resident **walks in and puts it in** (the work clip, 0.15 s of demo
 time a WU): the residents selected when it was ordered, else the nearest one wandering on its own, three at
-most at once, never at night. One called away (to bed at dusk, say) keeps the place for a game day and comes back
+most at once, never at night. One called away (to bed at dusk, say) keeps the place for a game day (ten minutes at 1x) and comes back
 to it (`burrow/fixture_crew.gd`). Since P7 the root bin, the hanging stores, the rug, the chimney pot and the large
 bed are the library's (below); each keeps its procedural stand-in for a demo with nothing staged.
 
@@ -661,18 +663,19 @@ bed are the library's (below); each keeps its procedural stand-in for a demo wit
 GDD's dormitory target), and 250 a decoration up to 1000 -- the suggested layout reads 7000, "cozy". A readout
 only (`burrow/room_fixtures.gd` COMFORT).
 
-**The night** (`burrow/night_routine.gd`, on the demo calendar): at dusk, 18:00, everybeast not in an emergency or
+**The night** (`burrow/night_routine.gd`, on the demo calendar): at dusk, 20:00, everybeast not in an emergency or
 the water goes home to bed -- through the round front door or the tunnels, whichever is cheaper -- parking the job in
 hand (it takes it up in the morning), crosses the floor to its bed and lies down in it (the staged
 `sleep_normally` clip, seated on the mattress by its body's lowest point). Beds go by REQ-SET-132 (its own bed,
 else the nearest free one of its size -- a large bed for a big resident, a burrow bed for a small one; ties to the
 lower room, then place). At 06:00 they get up and go back to work; whoever
-is still on the way home turns back. The kitchen's cook is the **early riser** (`set_early_riser`): it gets up at 01:00
+is still on the way home turns back. The kitchen's cook is the **early riser** (`set_early_riser`): it gets up at 05:00
 while it has the day's meals to cook (see The kitchen). **No bed** (or none of its size) -- it sleeps on the hall's floor
 (REQ-SET-133; it goes in at the hall's steps and is not drawn), the panel says "No bed", and dusk's news names who.
 A direct order wakes a sleeper; free again, it goes back to bed. Nothing parked is taken up before morning. A threat gets sleepers up by their beds until it
 clears; one in the water or held by its rescue is left be. Paused, nobody moves; at 2x and 4x the night runs faster.
-A home's hearth glows from 17:00 to 07:00 and its chimney smokes (at most 16 puffs a home).
+A walk home across the village takes under a game hour, so everyone is in bed by about 21:00 (the GDD's schedule
+sleeps from 22:00). A home's hearth glows from 19:00 to 07:00 and its chimney smokes (at most 16 puffs a home).
 
 **Cellars**: a cellar's capacity is its racks' (a bare cellar is no store); it is **cool** (the GDD's cellar,
 350 per mille) while it is 1 m or more down, racked, and no hearth is within 3 m of it or in a room its passages
@@ -831,10 +834,10 @@ supper (its `root_stew` row: roots 3 U + water 1 U, 16 WU), each batch 2 portion
 of wood. Grain is wheat, barley or oats; roots are radish, turnip, carrot, beetroot, parsnip or onion (each crop's
 §5.6 row). If one dish's food is short the other is cooked.
 
-- **The day.** Breakfast is called at 06:00 and served until 12:59; supper at 13:00 until 16:59, an hour before bed
-  (so whoever goes to eat raw food at its end has eaten before dusk). The
-  cook (the keeper; a free resident stands in) rises at 01:00 for breakfast and cooks supper from 09:00 (out on
-  the table a portion ages fast: see decision 0381). It fetches the planned meals' food -- reserved from real
+- **The day** (decision 0421). Breakfast is called at 07:00 and served until 08:59; supper at 17:00 until 18:59, an
+  hour before dusk (so whoever goes to eat raw food at its end has eaten before bed). The cook (the keeper; a free
+  resident stands in) rises at 05:00 for breakfast and cooks supper from 15:00 (out on the table a portion ages
+  fast: see decision 0381). It fetches the planned meals' food -- reserved from real
   lots, soonest to spoil first, and only withdrawn when a batch starts -- from the **kitchen pantry** at the path's
   end (10.5, -2.6; 120 U, 750 per mille) or wherever it is, cooks at the cauldron (steam rises), carries each meal's
   pot to the hall's east table and puts the bowls out. Diners are called once a meal is on its way (their work is

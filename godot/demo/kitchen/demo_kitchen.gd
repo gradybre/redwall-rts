@@ -6,9 +6,10 @@ extends Node3D
 ## THE KITCHEN PANTRY. The kitchen keeps a store of its own at its door: a pantry location (farm_storage.gd's
 ## provider API, `pantry_provider`) at GDD §5.8's PANTRY factor (750 per mille), PANTRY_CAPACITY_U (a demo value).
 ## Harvests go to the slowest-spoiling store with room (farm_pantry.gd): a cool root cellar first, then this pantry,
-## then the covered store. On the demo's calendar a metre of walking is about 0.4 game hours, and the covered store is
-## 9 m from the cauldron: the cook's round to it and back is most of a day. A pantry at the kitchen's door makes the
-## two meals a day possible; a cellar dug near the kitchen keeps the food longer for the same walk.
+## then the covered store. The covered store is 9 m from the cauldron: on the demo calendar since decision 0421 (25 s a
+## game hour) the cook's round to it and back is under a game hour, but each meal's fetch is a trip; a pantry at the
+## kitchen's door keeps the round short (it was made when a metre of walking cost 0.4 game hours and that round took
+## most of a day); a cellar dug near the kitchen keeps the food longer for the same walk.
 
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
 const PlacesScript := preload("res://demo/kitchen/kitchen_places.gd")

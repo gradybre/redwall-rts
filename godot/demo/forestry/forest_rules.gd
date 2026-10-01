@@ -13,10 +13,12 @@ extends RefCounted
 ##   §5.10  Heavy rain/storm: "outdoor work x0.80".
 ##
 ## DEMO VALUES (no document states them; each is named here and nowhere else):
-##   * USEC_PER_WU: a WU is "one game minute of base-speed productive labor" (§4.1). On the demo
-##     calendar a game minute is 42 ms, too quick to see an axe swing; the farm's 1.5 s a WU would
-##     make one 120-WU felling three minutes. Forestry shows a WU as 0.1 s of demo time: a felling
-##     is 12 s at 1x. MIN_WORK_USEC keeps a 4-WU planting on screen long enough to read.
+##   * USEC_PER_WU: a WU is "one game minute of base-speed productive labor" (§4.1). When the demo
+##     calendar ran a day a minute a game minute was 42 ms, too quick to see an axe swing; the farm's
+##     1.5 s a WU would make one 120-WU felling three minutes. Forestry shows a WU as 0.1 s of demo
+##     time: a felling is 12 s at 1x. Decision 0421 made a game minute 0.42 s and kept this rate in
+##     real seconds (a felling is now about 29 game minutes). MIN_WORK_USEC keeps a 4-WU planting on
+##     screen long enough to read.
 ##   * WINTER_WORK_PERMILLE: winter felling goes quicker (no sap) -- the time is 80% of the rest.
 ##   * CARRY_LOAD_MILLI: a hauler carries 6 U of logs a trip (two trips a tree; the carry walk is slow).
 ##   * Deadfall: a pile is 1.0..2.0 U, gathered at 20 WU a U (a felled tree is 10 WU a U).

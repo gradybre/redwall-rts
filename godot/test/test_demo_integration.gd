@@ -43,7 +43,7 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const VillageScript := preload("res://demo/demo_village.gd")
 
 const DT: float = 1.0 / 60.0
-const HOUR_USEC: int = 2500000
+const HOUR_USEC: int = preload("res://demo/demo_calendar.gd").HOUR_USEC
 const CARROT: int = 2
 const BED_LOAM: int = 0
 const BED_CARROTS: int = 2

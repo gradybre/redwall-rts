@@ -12,14 +12,16 @@ extends RefCounted
 ##     To fix: Woods ▸ Saw planks ...                 and how to put it right (a panel ▸ button where one does it)
 ##     Braced: no seep, no roof fall                  the result
 ##     Wood: have 40.0 U · need 2.0 U                 each cost, have / need, from the stores the HUD reads
-##     Work: about 1.3 game hours, plus the walk      the work in game hours on the demo calendar
+##     Work: about 20 game minutes, plus the walk     the work in game time on the demo calendar
 ##     Who: Assign selected: Mouse keeper (nearest of 3)        the assignment (F44: the system's real rule)
 ##     Interrupts: Felling the oak — goes back to it after      what that resident stops, and whether it resumes
 ##     Needs: a finished tunnel; a resident who fits its bore   prerequisites
 ##
-## THE WORK in game hours: every system's work runs on demo microseconds, the same microseconds the ONE calendar
-## turns into hours (demo_calendar.gd HOUR_USEC), so a work time in demo microseconds is exactly that many game hours
-## of the clock the HUD shows. Walking is not counted (it depends on the route); the card says so.
+## THE WORK in game time: every system's work runs on demo microseconds, the same microseconds the ONE calendar
+## turns into hours (demo_calendar.gd HOUR_USEC), so a work time in demo microseconds is exactly that much game time
+## of the clock the HUD shows. A game hour is 25 s at 1x (decision 0421), so most work is minutes of it: under an hour
+## the card says whole game minutes, rounded up; from an hour, hours to the tenth. Walking is not counted (it depends
+## on the route); the card says so.
 ##
 ## THE SIZE. UI-SET-073 bounds a tooltip to 360 x 240 logical px. Godot's tooltip label does not wrap, so the card
 ## breaks its own lines at LINE_CHARS (about 340 px at the tooltip's type) and keeps to the lines above.
@@ -32,6 +34,7 @@ extends RefCounted
 
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
+const SimClock := preload("res://scripts/core/sim_clock.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 
@@ -295,8 +298,12 @@ static func need_text(milli: int) -> String:
 
 
 static func hours_text(usec: int) -> String:
-	"""Demo microseconds as game hours on the demo calendar, to the tenth, rounded up (a sliver of work is never
-	"0.0"): "about 2.4 game hours", "about 1 game hour"."""
+	"""Demo microseconds as game time on the demo calendar, rounded up (a sliver of work is never nothing): under an
+	hour in whole game minutes ("about 20 game minutes", "about 1 game minute"), from an hour in hours to the tenth
+	("about 1 game hour", "about 2.4 game hours"); no work at all is "about 0 game minutes"."""
+	var minutes: int = (usec * SimClock.MINUTES_PER_HOUR + CalendarScript.HOUR_USEC - 1) / CalendarScript.HOUR_USEC
+	if minutes < SimClock.MINUTES_PER_HOUR:
+		return "about 1 game minute" if minutes == 1 else "about %d game minutes" % minutes
 	var tenths: int = (usec * 10 + CalendarScript.HOUR_USEC - 1) / CalendarScript.HOUR_USEC
 	if tenths == 10:
 		return "about 1 game hour"

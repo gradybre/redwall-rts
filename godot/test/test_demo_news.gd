@@ -40,7 +40,7 @@ const ForestryScript := preload("res://demo/forestry/demo_forestry.gd")
 const NightScript := preload("res://demo/burrow/night_routine.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 
-const HOUR_USEC: int = 2500000
+const HOUR_USEC: int = preload("res://demo/demo_calendar.gd").HOUR_USEC
 const RADISH: int = 0
 ## Bed 4, the opening radish bed (decision 0205's F37 probe: 9800 -> 6000 -> 9800).
 const BED_RADISH: int = 3
@@ -719,7 +719,7 @@ func test_no_bed_is_one_incident_counting_the_nights_until_everyone_has_a_bed() 
 	var incidents := IncidentsScript.new()
 	incidents.bind(v.notices, v.calendar, null)
 	v.night.set_incidents(incidents)
-	v.calendar.tick = NightFixture.TICK_1900
+	v.calendar.tick = NightFixture.TICK_DUSK
 	fx._run(v, 1)
 	var serial: int = incidents.serial_of(NightScript.NO_BED_KEY)
 	assert_true(incidents.is_unresolved(serial), "raised at dusk")

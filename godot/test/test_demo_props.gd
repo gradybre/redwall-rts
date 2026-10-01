@@ -41,7 +41,7 @@ const CastRoutinesScript := preload("res://demo/cast/cast_routines.gd")
 const Layers := preload("res://demo/demo_layers.gd")
 
 const DT: float = 1.0 / 60.0
-const HOUR_USEC: int = 2500000
+const HOUR_USEC: int = preload("res://demo/demo_calendar.gd").HOUR_USEC
 const CARROT: int = 2
 const PARSNIP: int = 4
 const BED_CARROTS: int = 2

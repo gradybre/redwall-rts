@@ -33,7 +33,7 @@ const FarmWork := preload("res://demo/work/farm_work.gd")
 
 const BED_CARROTS: int = 2
 const NORTH_OAK: int = 32
-const HOUR_USEC: int = 2500000
+const HOUR_USEC: int = preload("res://demo/demo_calendar.gd").HOUR_USEC
 const CARROT: int = 2
 
 var _suite: WorkTest = null

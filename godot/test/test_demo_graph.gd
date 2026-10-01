@@ -764,7 +764,7 @@ func test_a_full_network_refuses_in_words() -> void:
 	var ref := PackedInt32Array([-1, 0, -1])
 	for k in Rules.MAX_MOUTHS / 2:
 		graph.add_into(_route([Vector2i(-18000, 1500 * k - 18000), Vector2i(-8000, 1500 * k - 18000)]), 2, k, ref)
-	assert_equal(_reason(graph, [Vector2i(5000, 15000), Vector2i(15000, 15000)]), Rules.REFUSE_NETWORK_FULL, "no room")
+	assert_equal(_reason(graph, [Vector2i(5000, 15000), Vector2i(15000, 15000)]), Rules.REFUSE_NO_MOUTH_ROWS, "no mouth row: refused naming the mouths")
 
 
 # --- the digging skill ------------------------------------------------------------------------

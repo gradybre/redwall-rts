@@ -112,6 +112,22 @@ extends RefCounted
 ## so the clip, playing at the stride rate, keeps the feet on it; and `pitch` tilts the body with the
 ## slope (the actor leans the spine half of it back).
 ##
+## ARRIVAL AND REFUSAL (decision 0361, the review's F02/F05). How the current trip ended is explicit: `trip_outcome` is
+## TRIP_UNDERWAY from the moment a trip is started, TRIP_ARRIVED only in `_arrive()` -- at its goal -- and TRIP_FAILED
+## when it is given up (`_abandon_trip`). Holding is no evidence of arrival: a walker that gave a trip up holds too, its
+## goal unchanged. A job's owner asks `arrived_near(spot, reach)` -- arrived AND standing within reach of the spot it
+## reserved -- before it credits any work there. A route that does not exist at all (an empty plan: a node below cut
+## off, a refusal of every way in) is never walked: `_begin_leg` refuses it and the trip is given up at once, the job
+## suspended (kept to come back to) and its reservations released. Either way `route_refusal()` says why, in words the
+## party panel shows beside "holding".
+##
+## ROUTING (decision 0361, the review's F06). Planning costs real time (a group order through the village ran 5-26 ms),
+## so trip starts go through the space's routing desk (route_desk.gd): an order, a task's walk or a replan plans at
+## once while the frame's routing budget lasts, else the resident stands in ROUTE -- "finding a route" in the party
+## panel -- until its turn comes, first come first served, on a later frame (DemoCast serves the desk each frame). A
+## routine departure that finds the budget spent just idles a moment longer. Out of the live scene the desk has no
+## budget and every plan runs at once.
+##
 ## Yaw 0 faces +Z, the way the models face: forward is Vector2(sin(yaw), cos(yaw)) in (x, z).
 ## Deterministic: every random choice comes from this resident's own seeded generator.
 
@@ -127,7 +143,7 @@ const BoreCurveScript := preload("res://demo/tunnel/bore_curve.gd")
 const GraphPathsScript := preload("res://demo/tunnel/graph_paths.gd")
 const LayersScript := preload("res://demo/demo_layers.gd")
 
-enum State { IDLE, TURN, WALK, FACE, ACT, HOLD, TUNNEL, DIG, QUEUE, TASK, CROSS }
+enum State { IDLE, TURN, WALK, FACE, ACT, HOLD, TUNNEL, DIG, QUEUE, TASK, CROSS, ROUTE }
 
 const ORDER_NONE: int = 0
 const ORDER_MOVE: int = 1
@@ -145,6 +161,17 @@ const ACTIVITY_DIGGING: int = 5
 const ACTIVITY_TASK: int = 6
 const ACTIVITY_QUEUE: int = 7
 const ACTIVITY_CROSSING: int = 8
+const ACTIVITY_ROUTING: int = 9
+
+## How the current trip ended (see ARRIVAL AND REFUSAL).
+const TRIP_UNDERWAY: int = 0
+const TRIP_ARRIVED: int = 1
+const TRIP_FAILED: int = 2
+## Why a trip was given up (see ARRIVAL AND REFUSAL).
+const REFUSED_NO_ROUTE: String = "can't find a way there"
+const REFUSED_BLOCKED: String = "gave up: the way there stayed blocked"
+## A routine departure that finds the frame's routing budget spent idles this long before it tries again (see ROUTING).
+const ROUTE_RETRY_S: float = 0.2
 
 const CLIP_IDLE: StringName = &"idle"
 const CLIP_WALK: StringName = &"walk"
@@ -270,6 +297,8 @@ var indoors: bool = false
 var lie_middle_m: Vector2 = Vector2.ZERO
 ## The unfinished jobs it will come back to, oldest first (see RESUMING).
 var _unfinished: Array[UnfinishedScript] = []
+## How the current trip ended: TRIP_* (see ARRIVAL AND REFUSAL).
+var trip_outcome: int = TRIP_ARRIVED
 
 var _space: CastSpaceScript = null
 var _clip_lengths: Dictionary = {}
@@ -330,6 +359,17 @@ var _stranded_s: float = -1.0
 var _step_out_on_surface: bool = false
 ## Scratch: the segments of a walk through the network.
 var _segments: PackedInt32Array = PackedInt32Array()
+## Why the last trip was given up ("" when it was not; see ARRIVAL AND REFUSAL).
+var _refusal: String = ""
+## A dig's piece done and the digger stepping clear of the hole: once it holds, it takes up its saved job (RESUMING).
+var _resume_after_dig: bool = false
+## Waiting at the routing desk (see ROUTING): how the trip it waits for is planned -- through tunnels, loaded -- and
+## whether it then sets off carrying (an ordered carry), as `order_carry` and `order_carry_below` start one.
+var _route_tunnels: bool = true
+var _route_loaded: bool = false
+var _route_carry: bool = false
+## Set while `order_carry` (or `order_carry_below`) starts its trip: the trip sets off carrying.
+var _carry_order: bool = false
 
 
 func configure(space: CastSpaceScript, speed_m_s: float, body_radius: float, seed: int, clip_lengths: Dictionary) -> void:
@@ -340,6 +380,7 @@ func configure(space: CastSpaceScript, speed_m_s: float, body_radius: float, see
 	rng.seed = seed
 	_clip_lengths = clip_lengths
 	index = space.add_resident(position, radius)
+	space.routes.register(index, route_turn)
 
 
 func space() -> CastSpaceScript:
@@ -439,6 +480,8 @@ func step(delta: float) -> void:
 			_step_task(delta)
 		State.CROSS:
 			_step_cross(delta)
+		State.ROUTE:
+			pass
 	if state == State.TURN or state == State.WALK or state == State.TUNNEL or state == State.CROSS:
 		_trip_s += delta
 	_space.set_walking(index, state == State.WALK)
@@ -539,6 +582,8 @@ func _depart() -> void:
 	"""Pick the next POI with room, plan the route, swap reservations and start turning toward it. When
 	no route exists -- someone standing across the only way out of a tight slot -- it stays put and
 	tries again after RETRY_S, rather than walking the planner's straight-line fallback into a wall."""
+	if _routing_spent():
+		return
 	var next := _choose_next()
 	if next < 0:
 		_enter_idle(RETRY_S)
@@ -562,7 +607,16 @@ func _depart() -> void:
 		_plan_loaded(CARRY_MAX_TRIP_M)
 	_replans = 0
 	_trip_s = 0.0
+	_start_trip_record()
 	_begin_leg()
+
+
+func _routing_spent() -> bool:
+	"""A routine departure finding the frame's routing budget spent (see ROUTING) idles a moment longer instead."""
+	if _space.routes.may_plan(index):
+		return false
+	_enter_idle(ROUTE_RETRY_S)
+	return true
 
 
 func _plan_loaded(max_surface_m: float) -> void:
@@ -614,7 +668,11 @@ func _surface_length() -> float:
 
 func _begin_leg() -> void:
 	"""Start following `path` from its first waypoint: turn on the spot first -- or, standing at a
-	tunnel's mouth already, go straight down it."""
+	tunnel's mouth already, go straight down it. An empty route -- no way at all -- is never walked: the trip
+	is given up, saying why (see ARRIVAL AND REFUSAL)."""
+	if path.is_empty():
+		_route_failed()
+		return
 	_leave_line()
 	path_index = 0
 	_flips = 0
@@ -797,8 +855,7 @@ func _wait_for_mouth() -> bool:
 		_holds_grant = true
 		return false
 	if not queue.join(mouth, index):
-		_plan_trip(false, carrying)
-		_begin_leg()
+		_set_off(false, carrying, false)
 		return true
 	state = State.QUEUE
 	_queue_mouth = mouth
@@ -820,8 +877,7 @@ func _step_queue(delta: float) -> void:
 		return
 	if _queue_waited >= QUEUE_GIVE_UP_S or not queue.is_queued(_queue_mouth, index):
 		queue.leave(index)
-		_plan_trip(false, carrying)
-		_begin_leg()
+		_set_off(false, carrying, false)
 		return
 	_shuffle_to(queue.place(_queue_mouth, queue.position_of(_queue_mouth, index)), delta)
 
@@ -874,8 +930,10 @@ func _bore_clip_speed() -> float:
 
 func _arrive() -> void:
 	"""At the slot: turn to the POI's face direction, and plan one or two bouts of work. At an ordered
-	point with no POI, hold instead, facing the way it came. At a dig site, start digging."""
+	point with no POI, hold instead, facing the way it came. At a dig site, start digging. The trip has
+	ARRIVED (see ARRIVAL AND REFUSAL)."""
 	carrying = false
+	trip_outcome = TRIP_ARRIVED
 	if order == ORDER_TASK:
 		state = State.TASK
 		task.arrived(self)
@@ -927,20 +985,21 @@ func _replan_or_abandon() -> void:
 		return
 	_replans += 1
 	if _replans > MAX_REPLANS:
+		_refusal = REFUSED_BLOCKED
 		_abandon_trip()
 		return
-	_plan_trip(true, carrying)
-	if path.is_empty():
-		_abandon_trip()
-		return
-	_begin_leg()
+	_set_off(true, carrying, false)
 
 
 func _abandon_trip() -> void:
 	"""Give the slot back and stand a moment before choosing somewhere else -- or, under an order,
 	hold right here (a routine task lost on the way -- its bed, a fixture -- is no order: it goes back to its own
 	routine). Underground it never stands: it walks out to the nearest mouth. A dig it could not
-	walk to is left paused as a plan (underground_graph.hold_unreached), never deleted."""
+	walk to is left paused as a plan (underground_graph.hold_unreached), never deleted. The trip has FAILED, and
+	says why (see ARRIVAL AND REFUSAL)."""
+	trip_outcome = TRIP_FAILED
+	if _refusal.is_empty():
+		_refusal = REFUSED_BLOCKED
 	_leave_dig(true)
 	_leave_line()
 	var routine := order == ORDER_TASK and task != null and not task.holds_when_lost()
@@ -958,6 +1017,75 @@ func _abandon_trip() -> void:
 		_hold_here()
 	else:
 		_enter_idle(RETRY_S)
+
+
+func _route_failed() -> void:
+	"""No route at all -- an empty plan: give the trip up now, saying so (see ARRIVAL AND REFUSAL)."""
+	_refusal = REFUSED_NO_ROUTE
+	_abandon_trip()
+
+
+func _start_trip_record() -> void:
+	"""A trip starts: under way, with nothing refused yet (see ARRIVAL AND REFUSAL)."""
+	trip_outcome = TRIP_UNDERWAY
+	_refusal = ""
+
+
+func trip_failed() -> bool:
+	"""Whether its last trip was given up (see ARRIVAL AND REFUSAL)."""
+	return trip_outcome == TRIP_FAILED
+
+
+func arrived_near(spot: Vector2, reach_m: float) -> bool:
+	"""Whether its last trip ARRIVED and it stands on the surface within `reach_m` of `spot` -- the test a job's owner
+	makes before crediting work or a delivery there (see ARRIVAL AND REFUSAL)."""
+	return trip_outcome == TRIP_ARRIVED and not underground and position.distance_to(spot) <= reach_m
+
+
+func route_refusal() -> String:
+	"""Why its last trip was given up, in words ("" when it was not)."""
+	return _refusal
+
+
+# --- the routing desk (see ROUTING) ----------------------------------------------------------------
+
+func _set_off(tunnels: bool, loaded: bool, carry: bool) -> void:
+	"""Plan the trip to its goal (`tunnels`: through them when quicker; `loaded`: with its load) and start along it --
+	now while the frame's routing budget lasts and nobody waits before it, else in ROUTE until its turn (see ROUTING).
+	`carry`: an ordered carry, which sets off carrying."""
+	_route_tunnels = tunnels
+	_route_loaded = loaded
+	_route_carry = carry
+	if _space.routes.may_plan(index):
+		_plan_and_go()
+		return
+	_space.routes.wait(index)
+	state = State.ROUTE
+	_set_clip(CLIP_IDLE, 1.0)
+
+
+func route_turn() -> void:
+	"""Its turn at the routing desk (DemoCast serves it, first come first served): plan and set off. Taken off the trip
+	meanwhile (another order, a release), it gives its place up."""
+	if state != State.ROUTE:
+		_space.routes.forget(index)
+		return
+	_plan_and_go()
+
+
+func _plan_and_go() -> void:
+	"""Plan the waiting trip and set off along it; an ordered carry sets off carrying, its route planned again LOADED
+	when it goes through a tunnel (HAULING)."""
+	var carry := _route_carry
+	_route_carry = false
+	_plan_trip(_route_tunnels, _route_loaded)
+	_begin_leg()
+	if not carry:
+		return
+	carrying = can_carry() and not underground and (state == State.TURN or state == State.WALK)
+	if carrying and crosses_tunnel():
+		_plan_loaded(INF)
+		_begin_leg()
 
 
 # --- orders ---------------------------------------------------------------------------------
@@ -1023,6 +1151,7 @@ func work_done() -> void:
 func _let_go() -> void:
 	"""Back to wandering. Holding or walking under a move order, it stops and idles a moment first;
 	working under an order, it finishes the bout in hand."""
+	_resume_after_dig = false
 	if order == ORDER_NONE:
 		return
 	var was_move := order == ORDER_MOVE or state == State.HOLD or order == ORDER_TASK
@@ -1073,15 +1202,18 @@ func _leave_below() -> void:
 func _start_ordered_trip(goal: Vector2) -> void:
 	"""Plan to `goal` and set off (turning first); an order never carries. Underground, it finishes
 	the tunnel first and plans from the mouth it comes up at. A new order overrides an earlier
-	release's idling on the surface."""
+	release's idling on the surface (and a finished dig's taking its saved job up once clear of the hole). On the
+	surface it sets off through the routing desk (see ROUTING)."""
 	_idle_on_surface = false
 	_resume_on_surface = false
+	_resume_after_dig = false
 	_leave_line()
 	carrying = false
 	_bouts_left = 0
 	_goal = goal
 	_goal_node = -1
 	_replans = 0
+	_start_trip_record()
 	if underground or state == State.CROSS:
 		_leave_below()
 		return
@@ -1091,17 +1223,20 @@ func _start_ordered_trip(goal: Vector2) -> void:
 	if position.distance_to(goal) <= ARRIVE_RADIUS_M:
 		_arrive()
 		return
-	_plan_trip(true, false)
-	_begin_leg()
+	_set_off(true, false, _carry_order)
 
 
 func _hold_here() -> void:
-	"""Hold where it stands -- after turning to face _hold_face, when the order gave one."""
+	"""Hold where it stands -- after turning to face _hold_face, when the order gave one. A digger that has stepped
+	clear of the hole its finished piece left takes up its saved job now (RESUMING; at night it keeps it)."""
 	if _faces_on_hold and _hold_face.distance_to(position) > 0.05:
 		_enter_turn(yaw_of(_hold_face - position), CLIP_WALK)
 		state = State.FACE
 	else:
 		_enter_hold()
+	if _resume_after_dig:
+		_resume_after_dig = false
+		take_up_unfinished()
 
 
 func _enter_hold() -> void:
@@ -1117,12 +1252,10 @@ func order_carry(goal: Vector2, face_toward: Vector2 = Vector2.INF) -> void:
 	"""order_move(), walking with the carry clip when this resident has one -- the farm's harvest to
 	the store, and water or spoil to a bed. A route through a tunnel is planned again LOADED (HAULING:
 	the routine's own rule, `_plan_loaded`), so the load goes below only through a bore it fits, and
-	on the surface otherwise. Arriving drops the load."""
+	on the surface otherwise. Arriving drops the load. It sets off carrying when its route is planned (see ROUTING)."""
+	_carry_order = true
 	order_move(goal, face_toward)
-	carrying = can_carry() and not underground and (state == State.TURN or state == State.WALK)
-	if carrying and crosses_tunnel():
-		_plan_loaded(INF)
-		_begin_leg()
+	_carry_order = false
 
 
 func order_carry_below(node: int, face_toward: Vector2) -> void:
@@ -1138,11 +1271,9 @@ func order_carry_below(node: int, face_toward: Vector2) -> void:
 	order = ORDER_MOVE
 	_faces_on_hold = true
 	_hold_face = face_toward
+	_carry_order = true
 	_start_trip_below(node)
-	carrying = can_carry() and not underground and (state == State.TURN or state == State.WALK)
-	if carrying:
-		_plan_loaded(INF)
-		_begin_leg()
+	_carry_order = false
 
 
 func can_haul_below(node: int) -> bool:
@@ -1164,6 +1295,8 @@ func play_in_place(name: StringName) -> bool:
 func activity() -> int:
 	"""ACTIVITY_*: digging, in a tunnel, holding, wandering on its own, walking under an order, or
 	working under one."""
+	if state == State.ROUTE:
+		return ACTIVITY_ROUTING
 	if order == ORDER_TASK:
 		return ACTIVITY_TASK
 	if state == State.QUEUE:
@@ -1482,8 +1615,7 @@ func _go_on_from_mouth() -> void:
 	elif position.distance_to(_goal) <= ARRIVE_RADIUS_M and _goal_node < 0:
 		_arrive()
 	else:
-		_plan_trip(true, carrying)
-		_begin_leg()
+		_set_off(true, carrying, false)
 
 
 func turn_back(slot_index: int, to_m: float) -> void:
@@ -1659,9 +1791,12 @@ func _route_between(from_node: int, to_node: int) -> bool:
 
 
 func _plan_trip(allow_tunnels: bool, loaded: bool) -> void:
-	"""Plan the trip from here to its goal -- on the surface, or to its node underground -- into the route."""
+	"""Plan the trip from here to its goal -- on the surface, or to its node underground -- into the route; its time
+	is charged to this frame's routing budget (see ROUTING)."""
+	var began := Time.get_ticks_usec()
 	_space.plan_path(index, position, _goal, radius, path, path_tunnel, allow_tunnels or _goal_node >= 0, loaded, _goal_node)
 	_route_topology = _space.tunnels.topology
+	_space.routes.charge(index, Time.get_ticks_usec() - began)
 
 
 # --- digging --------------------------------------------------------------------------------
@@ -1690,12 +1825,14 @@ func _start_trip_below(node: int) -> void:
 	"""Walk to `node` underground: through the network from the surface, or on through it from below."""
 	_idle_on_surface = false
 	_resume_on_surface = false
+	_resume_after_dig = false
 	_leave_line()
 	carrying = false
 	_bouts_left = 0
 	_goal = _space.tunnels.node_m(node)
 	_goal_node = node
 	_replans = 0
+	_start_trip_record()
 	if underground and _is_at_node(node):
 		_goal_node = -1
 		_arrive()
@@ -1703,11 +1840,7 @@ func _start_trip_below(node: int) -> void:
 	if underground:
 		_reroute_below_from_here(node)
 		return
-	_plan_trip(true, false)
-	if path.is_empty():
-		_abandon_trip()
-		return
-	_begin_leg()
+	_set_off(true, false, _carry_order)
 
 
 func _is_at_node(node: int) -> bool:
@@ -1873,9 +2006,11 @@ func _step_clear(outward: Vector2) -> void:
 		var clear := position + outward.rotated(turn) * STEP_OUT_M
 		if step_out_ok(clear):
 			order_move(clear)
+			_resume_after_dig = true
 			return
 	_faces_on_hold = false
-	_enter_hold()
+	_resume_after_dig = true
+	_hold_here()
 
 
 func step_out_ok(at: Vector2) -> bool:
@@ -2065,11 +2200,11 @@ func task_walk_to(point: Vector2) -> void:
 	_goal = point
 	_goal_node = -1
 	_replans = 0
+	_start_trip_record()
 	if position.distance_to(point) <= ARRIVE_RADIUS_M:
 		_arrive()
 		return
-	_plan_trip(true, false)
-	_begin_leg()
+	_set_off(true, false, false)
 
 
 func task_walk_to_node(node: int) -> void:
@@ -2123,6 +2258,7 @@ func task_tunnel_to(from_node: int, to_node: int) -> bool:
 	_route_topology = tunnels.topology
 	_goal = tunnels.node_m(to_node)
 	_goal_node = -1
+	_start_trip_record()
 	_start_leg(path_tunnel[0])
 	return true
 
@@ -2154,6 +2290,7 @@ func task_haul_out(m: int, to: Vector2) -> bool:
 	_goal_node = -1
 	_replans = 0
 	_travel_for_task = false
+	_start_trip_record()
 	_start_travel(slot_index, _travel_m, tunnels.length_m(slot_index) if end == 1 else 0.0)
 	return true
 
@@ -2253,6 +2390,7 @@ func interrupt_to_task(new_task: TaskScript) -> void:
 	_leave_dig()
 	_leave_line()
 	_drop_task()
+	_resume_after_dig = false
 	_idle_on_surface = false
 	carrying = false
 	path.clear()

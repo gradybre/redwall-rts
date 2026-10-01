@@ -622,6 +622,11 @@ const REFUSE_LINK_BEND: int = 119
 const REFUSE_LOWER_START: int = 120
 const REFUSE_JOIN_LINK: int = 121
 const REFUSE_LOWER_JOIN: int = 122
+## The network's capacity, by what ran out (decision 0361, the review's F08): the Dig tool opens whenever some piece
+## could still fit, and the piece as laid is refused naming the capacity it would exhaust.
+const REFUSE_NO_MOUTH_ROWS: int = 123
+const REFUSE_NO_NODE_ROWS: int = 124
+const REFUSE_NO_SEGMENT_ROWS: int = 125
 ## A socket's passage runs straight out of the wall this far (u) before it may bend, within the MEETING angle
 ## of straight out (design §3 rule 5: "a passage leaves a socket straight for >= 1 m").
 const SOCKET_STRAIGHT_U: int = 1024
@@ -649,6 +654,9 @@ const LINK_REASONS: Array[String] = [
 	"on the second level a tunnel starts from the network: from a stair's or ramp's foot, a junction or a bore",
 	"stairs or a ramp between the levels cannot be joined on the slope: join it at its head or its foot",
 	"a room on the second level is reached only through the tunnels: it needs a passage to the network",
+	"all 24 mouths in this demo are open: join the tunnels you have instead of opening a new mouth",
+	"all 96 junctions and ends in this demo are used: join at an existing junction or end",
+	"all 96 bores in this demo are laid: no room for another",
 ]
 
 

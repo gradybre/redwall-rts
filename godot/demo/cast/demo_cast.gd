@@ -22,6 +22,11 @@ extends Node3D
 ## while the game is paused -- so the HUD's pause and speed buttons govern the residents, their
 ## digging and their clips. It runs before the rest of the demo (process_priority), which reads the
 ## same frame's clock.
+##
+## ROUTING (decision 0361). In the live scene (once in the tree) the cast gives its space's routing desk
+## (route_desk.gd) a budget of ROUTE_BUDGET_USEC a frame: residents whose trips find it spent wait, "finding a route",
+## and are served first come first served at the start of a later frame's step -- paused or not -- and the frame's
+## window closes after the step. Out of the tree (the suites' casts) there is no budget: every plan runs at once.
 
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
@@ -37,17 +42,34 @@ const UNBOUNDED: Rect2 = Rect2(-1e6, -1e6, 2e6, 2e6)
 const BASE_SEED: int = 196
 const SEED_STRIDE: int = 7919
 const NO_POI_RING_M: float = 1.5
+## The routing a frame may spend on route planning in the live scene (see ROUTING): the review's ~4 ms frame bound,
+## less a little for the plan the desk's estimate undercounts.
+const ROUTE_BUDGET_USEC: int = 3500
 
 var _space: CastSpaceScript = null
 var _actors: Array[Node3D] = []
 var _bounds: Rect2 = Rect2(-1e4, -1e4, 2e4, 2e4)
 ## The demo's presentation clock (see TIME).
 var clock: DemoClockScript = DemoClockScript.new()
+## The routing budget the space's desk is given (see ROUTING): 0 until the cast is in the tree.
+var route_budget_usec: int = 0
 
 
 func _init() -> void:
 	"""Step before the rest of the demo, so everything reads this frame's clock."""
 	process_priority = -10
+
+
+func _ready() -> void:
+	"""In the live scene: give the routing desk its budget (see ROUTING)."""
+	set_route_budget(ROUTE_BUDGET_USEC)
+
+
+func set_route_budget(usec: int) -> void:
+	"""The routing a frame may spend (see ROUTING; 0: none -- every plan at once)."""
+	route_budget_usec = maxi(usec, 0)
+	if _space != null:
+		_space.routes.budget_usec = route_budget_usec
 
 
 func _process(delta: float) -> void:
@@ -56,13 +78,17 @@ func _process(delta: float) -> void:
 
 
 func advance(real_delta: float) -> void:
-	"""Read the clock for a frame of `real_delta` real seconds and step every actor by its demo time; then carry
-	the navigation's rebuilds on a slice (cast_nav.gd REBUILT IN SLICES)."""
+	"""Read the clock for a frame of `real_delta` real seconds, serve the residents waiting for a route (see ROUTING) and
+	step every actor by its demo time; then carry the navigation's rebuilds on a slice (cast_nav.gd REBUILT IN SLICES)
+	and close the frame's routing window."""
 	clock.advance(real_delta)
+	if _space != null:
+		_space.routes.serve()
 	for actor in _actors:
 		(actor as DemoActorScript).advance(clock)
 	if _space != null:
 		_space.nav.advance_builds(CastNavScript.BUILD_BUDGET_USEC)
+		_space.routes.end_window()
 
 
 func build(manifest: Dictionary, points: Array[Dictionary], obstacles: Array[Vector3],
@@ -73,6 +99,7 @@ func build(manifest: Dictionary, points: Array[Dictionary], obstacles: Array[Vec
 	_space = CastSpaceScript.new()
 	_space.nav.area = plan_area
 	_space.setup(points, obstacles)
+	_space.routes.budget_usec = route_budget_usec
 	var cast: Dictionary = manifest.get("cast", {})
 	var keys: Array = cast.keys()
 	var count := keys.size() if not keys.is_empty() else PLACEHOLDER_COUNT
@@ -96,7 +123,11 @@ func actors() -> Array[Node3D]:
 
 
 func actor(i: int) -> Node3D:
-	"""Actor `i` in spawn order, without copying the list (per-frame safe)."""
+	"""Actor `i` in spawn order, without copying the list (per-frame safe). An index out of range is refused (null,
+	and an error): -1 must never read as the last actor (the review's F15)."""
+	if i < 0 or i >= _actors.size():
+		push_error("demo cast: no actor %d (of %d)" % [i, _actors.size()])
+		return null
 	return _actors[i]
 
 

@@ -29,6 +29,8 @@ const SELECTED_TEXT: String = "Spoil heap: %.1f U of spoil. Right-click it (or C
 const EMPTY_TEXT: String = "Spoil heap: cleared"
 const CLEARING_TEXT: String = "Clearing a spoil heap"
 const HAULING_TEXT: String = "Hauling spoil to the compost"
+## A worker whose walk failed, waiting to try again (spoil_crew.gd ARRIVING IS EXPLICIT; decision 0361).
+const BLOCKED_TEXT: String = "%s — can't reach it, trying again"
 
 var crew: CrewScript = CrewScript.new()
 ## The selected heap (a mouth row of the network), or NOTHING.
@@ -72,7 +74,8 @@ func task_text(actor_index: int) -> String:
 	var row: int = crew.row_of(actor_index)
 	if row < 0:
 		return ""
-	return HAULING_TEXT if crew.step[row] >= CrewScript.STEP_CARRY else CLEARING_TEXT
+	var doing: String = HAULING_TEXT if crew.step[row] >= CrewScript.STEP_CARRY else CLEARING_TEXT
+	return BLOCKED_TEXT % doing if crew.blocked[row] == 1 else doing
 
 
 func heap_at_point(at: Vector2) -> int:

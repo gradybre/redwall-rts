@@ -257,6 +257,15 @@ var _piece_count: int = 0
 var _family: PackedInt32Array = PackedInt32Array()
 var _chain_node: PackedInt32Array = PackedInt32Array()
 var _chain_along: PackedInt32Array = PackedInt32Array()
+## THE PIECE CHAINS (see `piece_offset_m`): every live piece's segments in dig order, each piece's run contiguous in
+## `_order`, from `_order_first[p]`, `_order_count[p]` long; where each segment begins along its piece; the topology
+## they were read for (-1: never); and the scratch they are read through.
+var _order: PackedInt32Array = PackedInt32Array()
+var _order_first: PackedInt32Array = PackedInt32Array()
+var _order_count: PackedInt32Array = PackedInt32Array()
+var _offset_m: PackedFloat32Array = PackedFloat32Array()
+var _order_topology: int = -1
+var _order_scratch: PackedInt32Array = PackedInt32Array()
 
 
 func _init() -> void:
@@ -326,6 +335,11 @@ func _size_pieces() -> void:
 	piece_digger.fill(-1)
 	piece_room.fill(-1)
 	piece_adopter.fill(-1)
+	_order.resize(Rules.MAX_SEGMENTS)
+	_order_first.resize(Rules.MAX_PIECES)
+	_order_count.resize(Rules.MAX_PIECES)
+	_offset_m.resize(Rules.MAX_SEGMENTS)
+	_order_scratch.resize(Rules.MAX_SEGMENTS)
 
 
 func set_ground(value: GroundScript) -> void:
@@ -589,14 +603,30 @@ func mouth_occupied(m: int, body: float, standing: PackedVector3Array, residents
 func room_for(spec: SpecScript) -> bool:
 	"""Whether the network has the rows a piece needs: its mouths, their ramps' feet, a junction and a
 	split per end on a segment and per crossing, and its segments."""
+	return rows_refusal(spec) == Rules.REFUSE_NONE
+
+
+func rows_refusal(spec: SpecScript) -> int:
+	"""REFUSE_NONE when the network has the rows a piece needs (see `room_for`), else which capacity it would exhaust
+	(decision 0361, the review's F08): its mouths, its nodes, or its segments (a piece row never runs out first:
+	MAX_PIECES)."""
 	var mouths := (1 if spec.starts_at_mouth() else 0) + (1 if spec.ends_at_mouth() else 0)
 	var on_route := (1 if spec.start_kind == SpecScript.END_ON_SEGMENT else 0) \
 			+ (1 if spec.end_kind == SpecScript.END_ON_SEGMENT else 0)
 	var crossings := spec.crossing_count()
-	var nodes := 2 * mouths + on_route + crossings + spec.blind_ends()
-	var segments := 1 + mouths + 2 * crossings + on_route
-	return node_kind.count(NODE_FREE) >= nodes and phase.count(PHASE_FREE) >= segments \
-			and mouth_node.count(-1) >= mouths and piece_live.count(0) >= 1
+	if mouth_node.count(-1) < mouths:
+		return Rules.REFUSE_NO_MOUTH_ROWS
+	if node_kind.count(NODE_FREE) < 2 * mouths + on_route + crossings + spec.blind_ends():
+		return Rules.REFUSE_NO_NODE_ROWS
+	if phase.count(PHASE_FREE) < 1 + mouths + 2 * crossings + on_route or piece_live.count(0) < 1:
+		return Rules.REFUSE_NO_SEGMENT_ROWS
+	return Rules.REFUSE_NONE
+
+
+func any_piece_refusal() -> int:
+	"""REFUSE_NONE when SOME piece could still be laid -- the smallest, a bore between two nodes the network has, takes
+	one segment row and no mouth or node -- else REFUSE_NO_SEGMENT_ROWS (the Dig tool's gate; decision 0361)."""
+	return Rules.REFUSE_NONE if phase.count(PHASE_FREE) >= 1 and piece_live.count(0) >= 1 else Rules.REFUSE_NO_SEGMENT_ROWS
 
 
 func add_piece(spec: SpecScript, out_ref: PackedInt32Array) -> bool:
@@ -1845,15 +1875,41 @@ func leads_on(m: int, fit_class: int, goal_node: int) -> bool:
 # --- places along a piece (the crews, presentation) -----------------------------------------
 
 func piece_offset_m(slot: int) -> float:
-	"""How far along its piece (m) segment `slot` begins: the lengths of the segments dug before it."""
+	"""How far along its piece (m) segment `slot` begins: the lengths of the segments dug before it. Read from the
+	piece chains, kept per topology (decision 0361, the review's F01: a crew member following the dig asks this every
+	frame, which must neither make an array nor walk the segment table)."""
+	_ensure_chains()
+	return _offset_m[slot]
+
+
+func _ensure_chains() -> void:
+	"""Read every live piece's chain again when the network's shape changed since (`topology`: a piece added or
+	dropped, a segment split) -- never per frame."""
+	if _order_topology == topology:
+		return
+	_order_topology = topology
+	var at := 0
+	for p in Rules.MAX_PIECES:
+		_order_first[p] = at
+		_order_count[p] = 0
+		if piece_live[p] == 1:
+			at = _read_chain(p, at)
+
+
+func _read_chain(p: int, at: int) -> int:
+	"""Piece `p`'s chain into the order from `at`, and where each of its segments begins along it (a segment of the
+	piece its chain does not reach is put at the chain's end, as a walk of the chain would); where the next begins."""
+	piece_segments_into(p, _order_scratch)
 	var total := 0.0
-	var chain := PackedInt32Array()
-	piece_segments_into(piece[slot], chain)
-	for other in chain:
-		if other == slot:
-			return total
-		total += length_m(other)
-	return total
+	for slot in _order_scratch:
+		_order[at + _order_count[p]] = slot
+		_order_count[p] += 1
+		_offset_m[slot] = total
+		total += length_m(slot)
+	for slot in Rules.MAX_SEGMENTS:
+		if phase[slot] != PHASE_FREE and piece[slot] == p and not _order_scratch.has(slot):
+			_offset_m[slot] = total
+	return at + _order_count[p]
 
 
 func way_in_m(p: int) -> Vector2:
@@ -1867,12 +1923,13 @@ func way_in_m(p: int) -> Vector2:
 
 func piece_locate_into(p: int, along_m: float, out: PackedFloat32Array) -> void:
 	"""Where the point `along_m` metres along piece `p` lies: out[0] its segment, out[1] how far along that
-	segment (clamped to the piece)."""
-	var chain := PackedInt32Array()
-	piece_segments_into(p, chain)
+	segment (clamped to the piece). From the piece chains (see `piece_offset_m`): nothing made, per frame."""
+	_ensure_chains()
+	var count := _order_count[p]
 	var left := maxf(along_m, 0.0)
-	for slot in chain:
-		if left <= length_m(slot) or slot == chain[chain.size() - 1]:
+	for k in count:
+		var slot := _order[_order_first[p] + k]
+		if left <= length_m(slot) or k == count - 1:
 			out[0] = slot
 			out[1] = minf(left, length_m(slot))
 			return

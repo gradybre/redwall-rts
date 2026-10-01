@@ -640,13 +640,15 @@ func toggle_plan() -> bool:
 
 func begin_plan() -> bool:
 	"""Open the Dig tool (see CONTROLS), showing the cutaway -- turned on before the plan takes its level, so it lays
-	on the level shown -- or refuse, saying why: nobody in the village can dig, or the network is full. Any HUD button's focus is released, so nothing but the tool hears the
-	Enter that digs."""
+	on the level shown -- or refuse, saying why: nobody in the village can dig, or no piece at all could fit (decision 0361:
+	a network with no mouth left still takes a connection; the piece as laid is refused for the capacity it would
+	exhaust). Any HUD button's focus is released, so nothing but the tool hears the Enter that digs."""
 	if not _any_digger():
 		_refuse(Rules.REFUSE_NOT_A_DIGGER)
 		return false
-	if not network.has_room():
-		_refuse(Rules.REFUSE_NETWORK_FULL)
+	var full: int = network.any_piece_refusal()
+	if full != Rules.REFUSE_NONE:
+		_refuse(full)
 		return false
 	if is_inside_tree():
 		get_viewport().gui_release_focus()
@@ -872,7 +874,8 @@ func confirm() -> bool:
 	if reason == Rules.REFUSE_NONE and now and plan.starts_at_mouth() and not _entrance_reachable(digger):
 		reason = Rules.REFUSE_UNREACHABLE
 	if reason == Rules.REFUSE_NONE and not network.add_piece(plan.spec_of(digger), _ref):
-		reason = Rules.REFUSE_NETWORK_FULL
+		reason = network.rows_refusal(plan.spec_of(digger))
+		reason = Rules.REFUSE_NETWORK_FULL if reason == Rules.REFUSE_NONE else reason
 	if reason != Rules.REFUSE_NONE:
 		_refuse(reason)
 		return false

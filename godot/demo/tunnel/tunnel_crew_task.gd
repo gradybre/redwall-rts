@@ -11,7 +11,11 @@ extends "res://demo/tunnel/tunnel_task.gd"
 ## member who does not fit stays a surface hand. Either way it counts as at its post only once there
 ## (tunnel_crew.set_present). The place ends when the Foremole's work on the dig does (`active` answers
 ## false): a member below walks out to the nearest mouth, and everyone goes back to their routine. Its site
-## is read from the crew each frame (tunnel_crew.gd `member_site`), so a crew moved on is followed.
+## is read from the crew each frame (tunnel_crew.gd `member_site`), so a crew moved on is followed -- and moved on HERE
+## when the Foremole got there first (decision 0361, the review's F03): stepped before its crew, the Foremole opens a
+## segment and starts the next of its piece in its own update, and the works move the crew only after every resident
+## has stepped. A member whose crew's segment is open with its piece dug on beyond it resolves the piece's active
+## segment itself and moves the crew there (`_site_now`), in either cast order, whatever the sub-steps.
 ##
 ## THE BASKETS (decision 0211; design §4 "Behind the face"). A member at its post below HAULS for the dig's spoil
 ## mouth (spoil_haul.gd): once a basketful (MIN_LOAD_MILLI) lies cut behind the face and nobody else of that mouth is
@@ -87,7 +91,7 @@ func site(_brain: RefCounted) -> Vector2:
 func step(brain: RefCounted, delta: float) -> bool:
 	"""Keep to its post while the Foremole works, hauling baskets (see the header). False when the work is over."""
 	var member := brain as BrainScript
-	var at := _crew.member_site[member.index]
+	var at := _site_now(member.index)
 	if at >= 0:
 		slot = at
 	var active := at >= 0 and bool(_active.call(slot))
@@ -110,6 +114,24 @@ func step(brain: RefCounted, delta: float) -> bool:
 	_crew.set_present(member.index, true)
 	_at_post(member, MIN_LOAD_MILLI)
 	return true
+
+
+func _site_now(who: int) -> int:
+	"""The segment resident `who`'s crew works now (-1: none). Its crew's site -- moved on along the piece, with the
+	whole crew, when that segment is open and the dig goes on in the next of the piece (see the header): the works'
+	move, made before they see it."""
+	var at := _crew.member_site[who]
+	if at < 0 or bool(_active.call(at)) or not _network.is_open(at):
+		return at
+	var next := _network.next_in_piece(at)
+	for k in Rules.MAX_SEGMENTS:
+		if next < 0 or not _network.is_open(next):
+			break
+		next = _network.next_in_piece(next)
+	if next < 0 or not bool(_active.call(next)):
+		return at
+	_crew.move_site(at, next)
+	return next
 
 
 func _hand(member: BrainScript, delta: float) -> void:

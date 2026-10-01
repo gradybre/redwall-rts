@@ -135,6 +135,8 @@ var _refresh_in: float = 0.0
 var _panel_was_shown: bool = false
 var _cold_said: int = -1
 var _overlay_who: int = -2
+## The selection revision `_follow_selection` last read (-1: none yet).
+var _selection_seen: int = -1
 var _point: Vector2 = Vector2.ZERO
 
 
@@ -285,11 +287,15 @@ func _follow_conditions() -> void:
 
 
 func _follow_selection() -> void:
-	"""The overlay's zones follow the first selected resident's height (the mouse's with none)."""
+	"""The overlay's zones follow the first selected resident's height (the mouse's with none). Read only when the
+	selection changed (its revision: decision 0361, the review's F01) -- nothing is made per frame."""
 	if _water == null or _command == null:
 		return
-	var picked: PackedInt32Array = _command.selected()
-	var who: int = picked[0] if not picked.is_empty() else -1
+	var revision: int = _command.selection_revision()
+	if revision == _selection_seen:
+		return
+	_selection_seen = revision
+	var who: int = _command.first_selected()
 	if who == _overlay_who:
 		return
 	_overlay_who = who

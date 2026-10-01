@@ -8,6 +8,9 @@ extends Node3D
 ##   left click empty ground      clear the selection
 ##   right click ground           move the selection there, spread into a formation, then hold
 ##   right click a POI's spot     work there (its free slots; the rest hold behind it)
+##   shift + right click          APPEND the order to the selection's order lists instead (decision 0411, UI §3's
+##                                `command_queue`): a bed, a tree or the like queues its job, open ground a walk --
+##                                the work board's `queue_at` (demo/work/work_orders.gd); not in the underground view
 ##   R                            release the selection back to wandering
 ##   Esc (`selection_clear`)      clear the selection
 ##   B (or T) / U                 the Dig tool (the cutaway, drag a tunnel) / underground view -- the
@@ -62,11 +65,14 @@ const Layers := preload("res://demo/demo_layers.gd")
 const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
 const InterruptScript := preload("res://demo/control/work_interrupt.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
+const OrderList := preload("res://demo/work/order_list.gd")
 
 const RING_GAP_M: float = 0.12
 const PULSE_HZ: float = 1.1
 const PULSE_SCALE: float = 0.06
 const MARKER_POOL: int = 4
+## How a queued order's refusal begins (demo/work/work_orders.gd REFUSED, the owners' own "Can't ...").
+const QUEUE_REFUSED: String = "Can't"
 const MARKER_S: float = 1.2
 const MARKER_RADIUS_M: float = 0.6
 const MARKER_GROWTH: float = 0.8
@@ -128,6 +134,8 @@ var _input_hooks: Array[Callable] = []
 var _skill_texts: Array[Callable] = []
 ## The job owners' resume rules (work_interrupt.gd; see add_resume_rule).
 var _resume_rules: Array[Callable] = []
+## Shift+right-click's handler (`queue(screen, ground, members) -> String`; see set_queue_handler).
+var _queue: Callable = Callable()
 ## The tool buttons' action card (reused; _refresh_tool_cards).
 var _tool_card_data: CardScript = CardScript.new()
 ## The party panel's notice line, per resident (see say): its text, and when it was said (0: never).
@@ -426,9 +434,32 @@ func _on_button(event: InputEventMouseButton) -> bool:
 			_finish_select(event.position)
 		return true
 	if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed and selection_count() > 0:
-		order_at(event.position)
+		if event.shift_pressed and _queue.is_valid() and not underground_view():
+			queue_at(event.position)
+		else:
+			order_at(event.position)
 		return true
 	return false
+
+
+func set_queue_handler(queue: Callable) -> void:
+	"""`queue(screen: Vector2, ground: Vector2, members: PackedInt32Array) -> String`: Shift+right-click appends the
+	order to the selection's order lists (the work board, decision 0411) and says what happened."""
+	_queue = queue
+
+
+func queue_at(at: Vector2) -> bool:
+	"""Shift+right-click at screen point `at`: the order appended to the selection's lists (see set_queue_handler),
+	marked where it landed and said in the party panel. True when something was queued."""
+	var ground: Vector2 = Layers.pick_ground(_camera.project_ray_origin(at), _camera.project_ray_normal(at),
+		Layers.pick_y(false, Layers.active_level))
+	var said: String = String(_queue.call(at, ground, selected()))
+	var ok: bool = not said.is_empty() and not said.begins_with(QUEUE_REFUSED)
+	if ground.is_finite():
+		mark(Vector3(ground.x, 0.0, ground.y), ok)
+	say(said)
+	_refresh_in = 0.0
+	return ok
 
 
 func _on_motion(at: Vector2) -> bool:
@@ -781,7 +812,7 @@ func _refresh_panel() -> void:
 			_signature.append(_dug_percent(brain))
 			_signature.append(doing_text(i).hash())
 			_signature.append(skills_text(i).hash())
-			_signature.append(brain.unfinished_labels().size())
+			_signature.append(brain.queue_revision)
 	if _signature == _shown:
 		return
 	_shown = _signature.duplicate()
@@ -797,7 +828,7 @@ func party_entries() -> Array[Dictionary]:
 		entries.append({"name": actor.display_name, "species": actor.species, "colour": actor.chip_colour,
 			"digger": _tunnels.is_digger(i), "state": activity_text(i), "skills": skills_text(i),
 			"abilities": AbilitiesScript.lines_for(actor.species, actor.height_m, brain.radius, brain.can_carry()),
-			"then": brain.unfinished_labels()})
+			"then": OrderList.items_into(brain, PackedStringArray())})
 	return entries
 
 

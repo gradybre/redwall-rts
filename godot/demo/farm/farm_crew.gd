@@ -5,18 +5,22 @@ extends RefCounted
 ##
 ## WHO WORKS. A job the player orders with residents selected goes to the nearest of them, whatever
 ## they were doing. Any job left on the board -- queued from the bed panel with nobody selected, or
-## raised by the farm itself -- is picked up by the ROUTINE crew (CREW_KEYS: the fieldworker and the
-## gatherer) when one of them is wandering on its own: their daily routine now includes the farm.
+## raised by the farm itself -- is CLAIMED: in the live demo by the village's work board (demo/work/work_board.gd,
+## decision 0411: any idle eligible resident, the Field crew first), through `claim`; without one (a suite's crew
+## alone) by the ROUTINE crew (CREW_KEYS: the fieldworker and the gatherer) when one of them is wandering on its own.
 ## The farm raises REQ-SET-073's harvest job for every ripe bed and REQ-SET-085's clearing job for
 ## every withered one; everything else waits for the player.
 ##
 ## HOW A STEP RUNS. A walk issues `order_move()` (or `order_carry()`, the carry walk, for a harvest
 ## to the store and water or spoil to a bed) to a standable spot beside its target, facing it, and
-## is done when the brain holds there. A work step plays the work clip in place for its WU
+## is done when the brain has ARRIVED there (decision 0361: `arrived_near`, never merely holding -- a walk given up
+## holds too). A work step plays the work clip in place for its WU
 ## (farm_jobs.gd) of the cast's time, applying its effect at the end -- except sowing's seed
 ## commitment, which is REQ-SET-071's productive START. A resident the player orders elsewhere (or
 ## releases) drops the job back on the board where it had got to, load and all; a step that cannot
 ## be done any more (the crop withered on the way, a spot out of reach) ends the job with a notice.
+## Arrival is RECHECKED every frame of work: a worker no longer at its spot credits nothing there -- the job goes back
+## to its walk, keeping the work done (decision 0411, closing 0361's open farm case of the review's F05).
 ##
 ## CONSERVATION (decision 0222; the review's F19 and F24). A harvest is the one job that makes stock,
 ## and none of it is ever lost or credited from afar:
@@ -60,6 +64,7 @@ const Text := preload("res://demo/farm/farm_text.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const FarmCard := preload("res://demo/farm/farm_card.gd")
 const InterruptScript := preload("res://demo/control/work_interrupt.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
 
 ## THE DECISION (decision 0332, review F33/F44). `decide` answers what an order of a verb on a bed would do now --
 ## its refusal, the same job already on the board, and who takes it -- and is the ONE function both `order` and the
@@ -134,6 +139,20 @@ var _idle: PackedInt32Array = PackedInt32Array()
 var _found: Vector2 = Vector2.ZERO
 var _incidents: IncidentsScript = null
 var _room_read: IntMath.IntResult = IntMath.IntResult.new()
+## Per job row: 1 while its walk goes DOWN into a root cellar (its arrival is below, see `_arrived`).
+var _below: PackedByteArray = PackedByteArray()
+## Per job row: the serial of the job the player paused there (0: none) -- a reused row is never paused.
+var _paused_serial: PackedInt64Array = PackedInt64Array()
+## The work board claims the waiting jobs (decision 0411): the routine crew's own hand-out stands down.
+var _claimed_outside: bool = false
+## The board's "who" for a job left on the board, for the action card (`func(activity, selected) -> String`).
+var _queue_words: Callable = Callable()
+
+
+func _init() -> void:
+	"""Size the crew's own per-row columns."""
+	_below.resize(JobsScript.MAX_JOBS)
+	_paused_serial.resize(JobsScript.MAX_JOBS)
 
 
 func configure(cast: DemoCastScript, sim: SimScript, pantry: PantryScript, tunnels: TunnelsScript,
@@ -226,6 +245,8 @@ func order(kind: int, bed: int, members: PackedInt32Array, origin: int) -> Strin
 		return _wait_for_room(row, queued)
 	if queued:
 		jobs.blocked[row] = JobsScript.BLOCK_NONE
+	if who < 0 and _claimed_outside:
+		return ("%s is already queued" if queued else "%s queued: the first free resident who can takes it") % what
 	if who < 0:
 		return ("%s is already queued for the field crew" if queued else "%s queued: the field crew will see to it") % what
 	_take_over(row, who)
@@ -320,6 +341,22 @@ func preview_into(card: CardScript, kind: int, bed: int, members: PackedInt32Arr
 	var kept: int = jobs.elapsed_usec[d.row] if d.row >= 0 else 0
 	card.work_usec = maxi(JobsScript.plan_work_usec(kind, source, from_step) - kept, 0)
 	_preview_who(card, d)
+	card.members = members_line(members)
+
+
+func members_line(members: PackedInt32Array) -> String:
+	"""A group order's preview, member by member (decision 0411, review UX-001): who of the selection could take a farm
+	job -- not one with a farm job already, nor one the water's rescue holds (it takes no order)."""
+	if members.size() <= 1:
+		return ""
+	var names := PackedStringArray()
+	var why := PackedStringArray()
+	for who: int in members:
+		if who < 0 or who >= _cast.actor_count():
+			continue
+		names.append(_name_of(who))
+		why.append("has a farm job" if not _is_free(who) else ("held by the rescue" if _brain(who).water_hold else ""))
+	return CardScript.each_member(names, why)
 
 
 func _preview_who(card: CardScript, d: Decision) -> void:
@@ -331,6 +368,8 @@ func _preview_who(card: CardScript, d: Decision) -> void:
 	elif d.worker >= 0:
 		card.who = CardScript.assign_selected(_name_of(d.worker), d.free, d.selected)
 		card.worker = d.worker
+	elif _queue_words.is_valid():
+		card.who = String(_queue_words.call(WorkIds.ACT_FARM, d.selected))
 	else:
 		card.who = CardScript.queue_for("the field crew", crew_names(), d.selected)
 
@@ -414,14 +453,15 @@ func update(usec: int) -> void:
 	_pickup_usec += usec
 	if _pickup_usec >= PICKUP_USEC:
 		_pickup_usec = 0
-		_hand_out()
+		if not _claimed_outside:
+			_hand_out()
 	for row: int in JobsScript.MAX_JOBS:
 		if jobs.is_live(row) and jobs.worker[row] != JobsScript.NOBODY:
 			_step(row, usec)
 
 
 func _hand_out() -> void:
-	"""Give each waiting job, oldest row first, to the nearest crew member wandering on its own."""
+	"""Give each waiting job, oldest row first, to the nearest crew member wandering on its own (no work board)."""
 	for row: int in JobsScript.MAX_JOBS:
 		if not jobs.is_live(row) or jobs.worker[row] != JobsScript.NOBODY or not _ready(row):
 			continue
@@ -444,7 +484,8 @@ func _step(row: int, usec: int) -> void:
 
 
 func _step_walk(row: int, code: int) -> void:
-	"""Issue the walk, then wait for the brain to hold at its spot (or give the job back)."""
+	"""Issue the walk, then wait for the brain to ARRIVE at its spot (or give the job back). A walk given up holds too:
+	that is a failed try, never arrival (decision 0361)."""
 	var brain: BrainScript = _brain(jobs.worker[row])
 	if jobs.issued[row] == 0:
 		_issue_walk(row, code, brain)
@@ -454,7 +495,7 @@ func _step_walk(row: int, code: int) -> void:
 		return
 	if brain.state != BrainScript.State.HOLD:
 		return
-	if brain.position.distance_to(jobs.goal[row]) <= ARRIVE_M:
+	if _arrived(row, brain):
 		jobs.advance(row)
 		return
 	jobs.tries[row] += 1
@@ -467,6 +508,7 @@ func _step_walk(row: int, code: int) -> void:
 func _issue_walk(row: int, code: int, brain: BrainScript) -> void:
 	"""Send the worker to a spot beside this step's target, carrying on a carry step -- into a root cellar, down to its
 	middle to shelve the harvest (farm_cellars.gd CARRIED IN)."""
+	_below[row] = 0
 	if code == JobsScript.STEP_CARRY_STORE:
 		_aim_delivery(row, brain)
 		if _carry_into_cellar(row, brain):
@@ -499,8 +541,19 @@ func _carry_into_cellar(row: int, brain: BrainScript) -> bool:
 		return false
 	jobs.goal[row] = _network.node_m(node)
 	jobs.issued[row] = 1
+	_below[row] = 1
 	brain.order_carry_below(node, FarmCellars.rack_at(_network, ref.x))
 	return true
+
+
+func _arrived(row: int, brain: BrainScript) -> bool:
+	"""ARRIVAL (decision 0361): the walk's trip ARRIVED and the worker stands within ARRIVE_M of its spot -- on the
+	surface (`arrived_near`), or, carried down into a root cellar, below at the cellar's middle. Holding alone is not
+	arriving."""
+	if _below[row] == 1:
+		return brain.underground and brain.trip_outcome == BrainScript.TRIP_ARRIVED \
+			and brain.position.distance_to(jobs.goal[row]) <= ARRIVE_M
+	return brain.arrived_near(jobs.goal[row], ARRIVE_M)
 
 
 func _target_into(row: int, code: int) -> bool:
@@ -557,12 +610,16 @@ func _spot_near(target: Vector2, first_ring: float, brain: BrainScript) -> bool:
 
 func _step_work(row: int, work: int, usec: int) -> void:
 	"""Start the work (its opening effect once, the clip), count its WU, and apply its effect at the
-	end. Work done by an earlier worker is kept (see farm_jobs.rewind_to_walk)."""
+	end. Work done by an earlier worker is kept (see farm_jobs.rewind_to_walk). Every frame the worker must still be
+	ARRIVED at its spot (decision 0411): one that is not goes back to the walk, crediting nothing, its work kept."""
 	var brain: BrainScript = _brain(jobs.worker[row])
-	if jobs.issued[row] == 0 and not _start_work(row, work, brain):
-		return
 	if brain.state != BrainScript.State.HOLD or brain.order != BrainScript.ORDER_MOVE:
 		_drop(row)
+		return
+	if not _arrived(row, brain):
+		jobs.rewind_to_walk(row)
+		return
+	if jobs.issued[row] == 0 and not _start_work(row, work, brain):
 		return
 	jobs.elapsed_usec[row] += usec
 	if jobs.elapsed_usec[row] < jobs.work_usec(work):
@@ -719,8 +776,7 @@ func _drop(row: int) -> void:
 	jobs.unassign(row)
 	jobs.rewind_to_walk(row)
 	if who >= 0 and who < _cast.actor_count() and _brain(who).order != BrainScript.ORDER_NONE:
-		_brain(who).remember_unfinished(UnfinishedScript.new(take_back.bind(row, jobs.serial[row]),
-			"%s, bed %d" % [JobsScript.KIND_NAMES[jobs.kind[row]], jobs.bed[row] + 1]))
+		_brain(who).remember_unfinished(unfinished_of(row))
 	_say("%s left the %s job" % [_name_of(who), JobsScript.KIND_NAMES[jobs.kind[row]].to_lower()])
 
 
@@ -768,6 +824,132 @@ func take_back(brain: RefCounted, row: int, serial: int) -> bool:
 		return false
 	_take_over(row, who)
 	return true
+
+
+func unfinished_of(row: int) -> UnfinishedScript:
+	"""Job `row` as an order-list entry: taken back by `take_back` while it is still the same job, naming the work
+	board task it is (decision 0411)."""
+	return UnfinishedScript.new(take_back.bind(row, jobs.serial[row]), job_words(row), WorkIds.SOURCE_FARM,
+		jobs.serial[row])
+
+
+func job_words(row: int) -> String:
+	"""A job in a few words, as the order list says it: "Harvest, bed 3"."""
+	return "%s, bed %d" % [JobsScript.KIND_NAMES[jobs.kind[row]], jobs.bed[row] + 1]
+
+
+# --- the work board's hands (decision 0411) ---------------------------------------------------------
+
+func set_claimer(queue_words: Callable) -> void:
+	"""The village's work board claims the waiting jobs from now on (the routine crew's hand-out stands down);
+	`queue_words(activity, selected) -> String` is its "who" for a job left on the board, the action card's."""
+	_claimed_outside = true
+	_queue_words = queue_words
+
+
+func claims_outside() -> bool:
+	"""Whether the work board claims the waiting jobs."""
+	return _claimed_outside
+
+
+func waiting(row: int) -> bool:
+	"""Whether job `row` waits on the board for a worker and could be handed out now (not paused, not waiting for a
+	way or for store room)."""
+	return jobs.is_live(row) and jobs.worker[row] == JobsScript.NOBODY and _ready(row)
+
+
+func claim(row: int, who: int) -> bool:
+	"""The work board hands waiting job `row` to resident `who`, who sets off at once. False when the job is not
+	waiting or `who` has a farm job already."""
+	if not waiting(row) or not _is_free(who):
+		return false
+	_take_over(row, who)
+	_step(row, 0)
+	return true
+
+
+func is_paused(row: int) -> bool:
+	"""Whether the player paused job `row`."""
+	return jobs.is_live(row) and _paused_serial[row] == jobs.serial[row]
+
+
+func pause(row: int, on: bool) -> String:
+	"""The player pauses job `row` (its worker let go, the work done kept; nobody takes it until it is resumed) or
+	resumes it. A load in hand is never paused: its carrier finishes the delivery first. "" when done, else why not."""
+	if not jobs.is_live(row):
+		return WorkIds.NOT_FOUND
+	if not on:
+		_paused_serial[row] = 0
+		return ""
+	if is_paused(row):
+		return WorkIds.PAUSED_ALREADY
+	if _holds_load(row):
+		return WorkIds.CARRYING % _carrier_words(row)
+	_paused_serial[row] = jobs.serial[row]
+	if jobs.worker[row] != JobsScript.NOBODY:
+		_park(row, "", jobs.blocked[row])
+	return ""
+
+
+func cancel_row(row: int) -> String:
+	"""The player cancels job `row` alone: closed, its reservation let go -- or, a harvest already cut, it becomes its
+	delivery and is carried on (CONSERVATION: cancel is not delivery). A delivery is not cancelled. "" when done."""
+	if not jobs.is_live(row):
+		return WorkIds.NOT_FOUND
+	if jobs.kind[row] == JobsScript.KIND_DELIVER:
+		return WorkIds.DELIVERY_GOES_ON
+	_paused_serial[row] = 0
+	if not _holds_load(row):
+		_finish(row, "")
+		return ""
+	jobs.become_delivery(row)
+	_say("Harvest cancelled: %s carries the %s of %s on to store" % [_carrier_words(row), Text.units_text(jobs.load_milli[row]),
+		_item_word(row)])
+	return ""
+
+
+func reassign(row: int, who: int) -> String:
+	"""The player gives job `row` to resident `who` instead, taken off whatever it was doing; the one on it is let go
+	(the work done stays with the job). A load in hand stays with its carrier (no load changes hands from afar). ""
+	when done, else why not."""
+	if not jobs.is_live(row):
+		return WorkIds.NOT_FOUND
+	if who < 0 or who >= _cast.actor_count():
+		return "nobody to give it to"
+	if _holds_load(row):
+		return WorkIds.CARRYING % _carrier_words(row)
+	if jobs.job_of_worker_into(who, _busy) and _busy.value != row:
+		return "has another farm job"
+	if jobs.worker[row] == who:
+		return ""
+	if jobs.worker[row] != JobsScript.NOBODY:
+		_park(row, "", JobsScript.BLOCK_NONE)
+	_paused_serial[row] = 0
+	jobs.blocked[row] = JobsScript.BLOCK_NONE
+	_take_over(row, who)
+	_step(row, 0)
+	return ""
+
+
+func holds_load(row: int) -> bool:
+	"""Whether job `row` has a harvest in hand (see CONSERVATION)."""
+	return jobs.is_live(row) and _holds_load(row)
+
+
+func blocked_words(row: int) -> String:
+	"""Why waiting job `row` cannot be handed out, in the order's own words ("" when it can): a harvest's shortage of
+	store room (CONSERVATION), or nobody able to get to it (lifted at the farm's next hour)."""
+	if jobs.blocked[row] == JobsScript.BLOCK_ROOM or not _can_store(row):
+		return _shortage_words(row)
+	if jobs.blocked[row] == JobsScript.BLOCK_WAY:
+		return "can't reach it — tried again at the farm's next hour"
+	return ""
+
+
+func _carrier_words(row: int) -> String:
+	"""Who carries job `row`'s load ("the crew" while it waits on the board)."""
+	var who: String = worker_name(row)
+	return who if who != "" else "the crew"
 
 
 func _done_text(row: int) -> String:
@@ -856,9 +1038,9 @@ func _can_store(row: int) -> bool:
 
 
 func _ready(row: int) -> bool:
-	"""Whether a waiting job can be handed out: not waiting for a way (lifted hourly), and with room for
-	its harvest -- a shortage newly found is said once."""
-	if jobs.blocked[row] == JobsScript.BLOCK_WAY:
+	"""Whether a waiting job can be handed out (or taken back): not paused by the player, not waiting for a way (lifted
+	hourly), and with room for its harvest -- a shortage newly found is said once."""
+	if jobs.blocked[row] == JobsScript.BLOCK_WAY or is_paused(row):
 		return false
 	if _can_store(row):
 		jobs.blocked[row] = JobsScript.BLOCK_NONE
@@ -982,6 +1164,11 @@ func _say(text: String) -> void:
 func _brain(who: int) -> BrainScript:
 	"""Resident `who`'s brain."""
 	return (_cast.actor(who) as DemoActorScript).brain
+
+
+func brain_of(who: int) -> BrainScript:
+	"""Resident `who`'s brain (the work board's read)."""
+	return _brain(who)
 
 
 func _name_of(who: int) -> String:

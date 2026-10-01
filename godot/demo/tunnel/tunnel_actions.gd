@@ -58,6 +58,9 @@ const NOTHING_TO_REPAIR: String = "tunnel %d needs no repair"
 const NO_MOLE: String = "nobody free who fits a bore can dig it"
 const NO_WORKER: String = "nobody who fits tunnel %d's bore is free"
 const SHORT: String = "the demo stores are short (need wood %s, stone %s)"
+## A member's refusal in a group order's preview (`members_line`).
+const NOT_A_DIGGER: String = "can't dig, or is digging"
+const NOT_FITTING: String = "does not fit the bore, or is below"
 const POSTED: String = "%s: %s is on the way to tunnel %d"
 ## THE DECISION's checks, and the codes an action card gives them.
 const REFUSED_BY_NONE: int = 0
@@ -216,6 +219,25 @@ func preview_into(card: CardScript, job: int, selection: PackedInt32Array) -> vo
 	if _mole_job(job):
 		card.work_note = MOLE_NOTE
 	_preview_who(card, job, selection)
+	card.members = members_line(job, selection)
+
+
+func members_line(job: int, selection: PackedInt32Array) -> String:
+	"""A group order's preview, member by member (decision 0411, review UX-001): who of the selection could work `job`
+	on the selected tunnel -- the Foremole's digging or the bore's fit, `_choose_worker`'s own tests -- and why not the
+	others. (A mole job's other members join its crew: they are shown as able when they could dig it.)"""
+	if selection.size() <= 1:
+		return ""
+	var names := PackedStringArray()
+	var why := PackedStringArray()
+	var below := job != JobsScript.JOB_PUMP
+	for i: int in selection:
+		names.append(_names[i])
+		if _mole_job(job):
+			why.append("" if _free_digger(i) else NOT_A_DIGGER)
+		else:
+			why.append("" if _can_work(i, below, false) else NOT_FITTING)
+	return CardScript.each_member(names, why)
 
 
 func _cost_rows(card: CardScript, job: int) -> void:

@@ -11,7 +11,7 @@ extends Node
 ##   line 1   name -- species, trade · where it is (on the surface, in the water, indoors, underground and on
 ##            which level)
 ##   line 2   what it is doing now (the party panel's own words, demo_command.gd `activity_text`) and the saved
-##            work it will go back to ("Then back to: ...", the party panel's line)
+##            work it will go back to and its queued orders ("Next: ...", the party panel's line)
 ## The workspace's title says "Residents". Rows refresh twice a second while the roster is open, and only when a
 ## row's words changed (the shell relays out on every `set_roster`).
 ##
@@ -31,10 +31,13 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const CommandScript := preload("res://demo/control/demo_command.gd")
 const CameraScript := preload("res://demo/camera/demo_camera.gd")
+const OrderList := preload("res://demo/work/order_list.gd")
 
 const TITLE: String = "Residents"
 const REFRESH_S: float = 0.5
-const THEN: String = "Then back to: %s"
+## The order list (decision 0411, UX-002), in the party panel's words.
+const THEN: String = "Next: %s"
+const THEN_JOINER: String = " → "
 const ON_SURFACE: String = "On the surface"
 const IN_WATER: String = "In the water"
 const INDOORS: String = "Indoors"
@@ -144,16 +147,16 @@ func row_text(i: int) -> String:
 	var brain: BrainScript = actor.brain
 	var doing: String = _command.activity_text(i) if _command != null else ""
 	return row_words(actor.display_name, actor.species, trade_of(actor.creature_key), location_text(brain), doing,
-		brain.unfinished_labels())
+		OrderList.items_into(brain, PackedStringArray()))
 
 
 static func row_words(who: String, species: String, trade: String, where: String, doing: String,
 		then: PackedStringArray) -> String:
-	"""'Mole digger — Mole, digger · Underground, level 1' over 'Digging tunnel — 43% · Then back to: ...'."""
+	"""'Mole digger — Mole, digger · Underground, level 1' over 'Digging tunnel — 43% · Next: back to ...'."""
 	var first: String = "%s — %s%s · %s" % [who, species, ", " + trade if not trade.is_empty() else "", where]
 	var second: String = doing.left(1).to_upper() + doing.substr(1)
 	if not then.is_empty():
-		second += (" · " if not second.is_empty() else "") + THEN % ", ".join(then)
+		second += (" · " if not second.is_empty() else "") + THEN % THEN_JOINER.join(then)
 	return first if second.is_empty() else first + "\n" + second
 
 

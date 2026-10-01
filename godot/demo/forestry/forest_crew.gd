@@ -7,13 +7,16 @@ extends RefCounted
 ## WHO WORKS. An order given with residents selected goes to the nearest of them; felling with several
 ## selected, the others wait by the tree to haul it. Anything left on the board -- queued from the
 ## Woods panel with nobody selected, a storm's fallen tree to clear, an auto-fell zone's next tree --
-## is taken by the ROUTINE forestry crew (CREW_KEYS: the squirrel forester and the beaver) when one of
-## them is wandering on its own. Anybeast can do any of it (LORE-P12); skill only changes how long it
-## takes (forest_skills.gd).
+## is CLAIMED: in the live demo by the village's work board (demo/work/work_board.gd, decision 0411: any idle eligible
+## resident, the Woods crew first) through `claim`; without one (a suite's crew alone) by the ROUTINE forestry crew
+## (CREW_KEYS: the squirrel forester and the beaver) when one of them is wandering on its own. Anybeast can do any of
+## it (LORE-P12); skill only changes how long it takes (forest_skills.gd).
 ##
 ## HOW A STEP RUNS. A walk is `order_move()` -- or `order_carry()`, the carry walk, for logs, planks and
-## a sapling basket -- to a standable spot beside its target, facing it; it is done when the brain
-## holds there. A work step plays its clip in place for its WU (forest_rules.gd `work_usec`: skill,
+## a sapling basket -- to a standable spot beside its target, facing it; it is done when the brain has ARRIVED there
+## (decision 0361's `arrived_near`; a walk given up holds too, and is a failed try). Every frame of work rechecks it: a
+## worker no longer at its spot credits nothing and walks back first (decision 0411, closing 0361's open woods case of
+## the review's F05). A work step plays its clip in place for its WU (forest_rules.gd `work_usec`: skill,
 ## season and weather), the axe in hand for felling (the beaver gnaws, with none) and the spade for
 ## grubbing and planting, and applies its effect at the end. A resident ordered elsewhere drops the
 ## job back on the board where it had got to, load and all, and comes back to it (resident_brain.gd
@@ -48,6 +51,7 @@ const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const ForestCard := preload("res://demo/forestry/forest_card.gd")
 const InterruptScript := preload("res://demo/control/work_interrupt.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
 
 ## THE DECISION (decision 0332, review F33/F44). `decide` answers what an order would do now -- the same job already
 ## on the board (joined), the refusal, who takes it and how many wait to haul -- and is the ONE function both the
@@ -132,6 +136,17 @@ var _pick: IntMath.IntResult = IntMath.IntResult.new()
 ## The crew whose names `_names_of_crew` holds (_crew_names).
 var _named_crew: PackedInt32Array = PackedInt32Array()
 var _names_of_crew: PackedStringArray = PackedStringArray()
+## Per job row: the serial of the job the player paused there (0: none) -- a reused row is never paused.
+var _paused_serial: PackedInt64Array = PackedInt64Array()
+## The work board claims the waiting jobs (decision 0411): the routine crew's own hand-out stands down.
+var _claimed_outside: bool = false
+## The board's "who" for a job left on the board, for the action card (`func(activity, selected) -> String`).
+var _queue_words: Callable = Callable()
+
+
+func _init() -> void:
+	"""Size the crew's own per-row column."""
+	_paused_serial.resize(JobsScript.MAX_JOBS)
 
 
 func configure(cast: DemoCastScript, stand: StandScript, zones: ZonesScript, deadfall: DeadfallScript,
@@ -194,6 +209,8 @@ func order(kind: int, target: int, gen: int, members: PackedInt32Array, origin: 
 		return "Can't %s: %s" % [what.to_lower(), reason_text(_read.error, target)]
 	var row: int = _read.value
 	var who: int = d.worker
+	if who < 0 and _claimed_outside:
+		return "%s queued: the first free resident who can takes it" % what
 	if who < 0:
 		return "%s queued: the forestry crew will see to it" % what
 	jobs.assign(row, who)
@@ -209,7 +226,7 @@ func _join_queued(d: Decision, what: String) -> String:
 	if d.busy:
 		return "%s is already under way: %s is on it" % [what, name_of(d.worker)]
 	if d.worker < 0:
-		return "%s is already queued for the forestry crew" % what
+		return ("%s is already queued" if _claimed_outside else "%s is already queued for the forestry crew") % what
 	jobs.assign(d.row, d.worker)
 	return "%s: %s is on it" % [what, name_of(d.worker)]
 
@@ -474,16 +491,17 @@ func update(usec: int) -> void:
 	_pickup_usec += usec
 	if _pickup_usec >= PICKUP_USEC:
 		_pickup_usec = 0
-		_hand_out()
+		if not _claimed_outside:
+			_hand_out()
 	for row: int in JobsScript.MAX_JOBS:
 		if jobs.is_live(row) and jobs.worker[row] != JobsScript.NOBODY:
 			_step(row, usec)
 
 
 func _hand_out() -> void:
-	"""Give each waiting job, oldest row first, to the nearest crew member wandering on its own."""
+	"""Give each waiting job, oldest row first, to the nearest crew member wandering on its own (no work board)."""
 	for row: int in JobsScript.MAX_JOBS:
-		if not jobs.is_live(row) or jobs.worker[row] != JobsScript.NOBODY or jobs.blocked[row] == 1:
+		if not waiting(row):
 			continue
 		_idle.clear()
 		for who: int in _crew:
@@ -514,7 +532,7 @@ func _step_walk(row: int, code: int) -> void:
 		return
 	if brain.state != BrainScript.State.HOLD:
 		return
-	if brain.position.distance_to(jobs.goal[row]) <= ARRIVE_M:
+	if brain.arrived_near(jobs.goal[row], ARRIVE_M):
 		jobs.advance(row)
 		return
 	jobs.tries[row] += 1
@@ -638,6 +656,8 @@ func _step_work(row: int, work: int, usec: int) -> void:
 	if brain.state != BrainScript.State.HOLD or brain.order != BrainScript.ORDER_MOVE:
 		_drop(row)
 		return
+	if _off_spot(row, brain):
+		return
 	if jobs.issued[row] == 0:
 		if work == JobsScript.WORK_LOAD and _waiting_for_fall(row):
 			return
@@ -658,6 +678,16 @@ func _step_work(row: int, work: int, usec: int) -> void:
 		return  # the feller turned hauler (`_end_fell`), from its first step
 	elif not jobs.advance(row):
 		_plan_done(row)
+
+
+func _off_spot(row: int, brain: BrainScript) -> bool:
+	"""ARRIVAL, rechecked every frame of work (decision 0411): a worker no longer ARRIVED at its spot credits nothing
+	there -- its tool put away, the job back to its walk. True when it was off its spot."""
+	if brain.arrived_near(jobs.goal[row], ARRIVE_M):
+		return false
+	_stop_work(row, brain)
+	jobs.rewind_to_walk(row)
+	return true
 
 
 func _waiting_for_fall(row: int) -> bool:
@@ -899,12 +929,31 @@ func preview_into(card: CardScript, kind: int, target: int, gen: int, members: P
 	elif kind == JobsScript.KIND_HAUL:
 		card.work_note = ForestCard.HAUL_NOTE
 	_preview_who(card, kind, d)
+	card.members = members_line(members)
+
+
+func members_line(members: PackedInt32Array) -> String:
+	"""A group order's preview, member by member (decision 0411, review UX-001): who of the selection could take a woods
+	job -- not one with a woods job already, nor one the water's rescue holds (it takes no order)."""
+	if members.size() <= 1:
+		return ""
+	var names := PackedStringArray()
+	var why := PackedStringArray()
+	for who: int in members:
+		if who < 0 or who >= _cast.actor_count():
+			continue
+		names.append(name_of(who))
+		why.append("has a woods job" if not _is_free(who) else ("held by the rescue" if brain_of(who).water_hold else ""))
+	return CardScript.each_member(names, why)
 
 
 func _preview_who(card: CardScript, kind: int, d: Decision) -> void:
 	"""The card's assignment in the one command grammar (action_card.gd)."""
 	if d.busy:
 		card.who = CardScript.under_way(name_of(d.worker))
+		return
+	if d.worker < 0 and _queue_words.is_valid():
+		card.who = String(_queue_words.call(activity_of(kind), d.selected))
 		return
 	if d.worker < 0:
 		card.who = CardScript.queue_for("the forestry crew", _crew_names(), d.selected)
@@ -986,8 +1035,7 @@ func _drop(row: int) -> void:
 	jobs.unassign(row)
 	jobs.rewind_to_walk(row)
 	if brain_of(who).order != BrainScript.ORDER_NONE:
-		brain_of(who).remember_unfinished(UnfinishedScript.new(take_back.bind(row, jobs.serial[row]),
-			"%s (woods)" % JobsScript.KIND_NAMES[jobs.kind[row]]))
+		brain_of(who).remember_unfinished(unfinished_of(row))
 	_say("%s left the %s job" % [name_of(who), JobsScript.KIND_NAMES[jobs.kind[row]].to_lower()])
 
 
@@ -1023,12 +1071,160 @@ func take_back(brain: RefCounted, row: int, serial: int) -> bool:
 	still the same job (its serial: a haul become a delivery still is), waiting for someone and not for a
 	way there."""
 	var who: int = int(brain.get(&"index"))
-	if not jobs.is_live(row) or jobs.serial[row] != serial:
+	if not jobs.is_live(row) or jobs.serial[row] != serial or is_paused(row):
 		return false
 	if jobs.worker[row] != JobsScript.NOBODY or jobs.blocked[row] == 1 or jobs.of_worker_into(who, _probe):
 		return false
 	jobs.assign(row, who)
 	return true
+
+
+func unfinished_of(row: int) -> UnfinishedScript:
+	"""Job `row` as an order-list entry: taken back by `take_back` while it is still the same job, naming the work
+	board task it is (decision 0411)."""
+	return UnfinishedScript.new(take_back.bind(row, jobs.serial[row]), job_words(row), WorkIds.SOURCE_WOODS,
+		jobs.serial[row])
+
+
+func job_words(row: int) -> String:
+	"""A job in a few words, as the order list says it: "Fell (woods)"."""
+	return "%s (woods)" % JobsScript.KIND_NAMES[jobs.kind[row]]
+
+
+# --- the work board's hands (decision 0411) ---------------------------------------------------------
+
+func set_claimer(queue_words: Callable) -> void:
+	"""The village's work board claims the waiting jobs from now on (the routine crew's hand-out stands down);
+	`queue_words(activity, selected) -> String` is its "who" for a job left on the board, the action card's."""
+	_claimed_outside = true
+	_queue_words = queue_words
+
+
+func claims_outside() -> bool:
+	"""Whether the work board claims the waiting jobs."""
+	return _claimed_outside
+
+
+func waiting(row: int) -> bool:
+	"""Whether job `row` waits on the board for a worker and could be handed out now (not paused, not waiting for a
+	way)."""
+	return jobs.is_live(row) and jobs.worker[row] == JobsScript.NOBODY and jobs.blocked[row] == 0 and not is_paused(row)
+
+
+func claim(row: int, who: int) -> bool:
+	"""The work board hands waiting job `row` to resident `who`, who sets off at once. False when the job is not
+	waiting or `who` has a woods job already."""
+	if not waiting(row) or not _is_free(who):
+		return false
+	jobs.assign(row, who)
+	_step(row, 0)
+	return true
+
+
+func is_paused(row: int) -> bool:
+	"""Whether the player paused job `row`."""
+	return jobs.is_live(row) and _paused_serial[row] == jobs.serial[row]
+
+
+func pause(row: int, on: bool) -> String:
+	"""The player pauses job `row` (its worker let go; nobody takes it until it is resumed) or resumes it. A load in
+	hand is never paused: its carrier finishes the delivery first. "" when done, else why not."""
+	if not jobs.is_live(row):
+		return WorkIds.NOT_FOUND
+	if not on:
+		_paused_serial[row] = 0
+		return ""
+	if is_paused(row):
+		return WorkIds.PAUSED_ALREADY
+	if jobs.load_milli[row] > 0:
+		return WorkIds.CARRYING % _carrier_words(row)
+	_paused_serial[row] = jobs.serial[row]
+	_let_job_go(row)
+	return ""
+
+
+func cancel_row(row: int) -> String:
+	"""The player cancels job `row` alone (`_cancel`: a load in hand becomes its delivery, carried on; see
+	CONSERVATION). A delivery is not cancelled. "" when done."""
+	if not jobs.is_live(row):
+		return WorkIds.NOT_FOUND
+	if jobs.is_delivery(row):
+		return WorkIds.DELIVERY_GOES_ON
+	_paused_serial[row] = 0
+	_cancel(row)
+	return ""
+
+
+func reassign(row: int, who: int) -> String:
+	"""The player gives job `row` to resident `who` instead, taken off whatever it was doing; the one on it is let go.
+	A load in hand stays with its carrier (no load changes hands from afar). "" when done, else why not."""
+	if not jobs.is_live(row):
+		return WorkIds.NOT_FOUND
+	if who < 0 or who >= _cast.actor_count():
+		return "nobody to give it to"
+	if jobs.load_milli[row] > 0:
+		return WorkIds.CARRYING % _carrier_words(row)
+	if jobs.of_worker_into(who, _probe) and _probe.value != row:
+		return "has another woods job"
+	if jobs.worker[row] == who:
+		return ""
+	_let_job_go(row)
+	_paused_serial[row] = 0
+	jobs.assign(row, who)
+	_step(row, 0)
+	return ""
+
+
+func _let_job_go(row: int) -> void:
+	"""Job `row`'s worker, if any, is let go (back to its order list or routine); the job waits where it had got to."""
+	var who: int = jobs.worker[row]
+	if who == JobsScript.NOBODY:
+		return
+	jobs.unassign(row)
+	jobs.rewind_to_walk(row)
+	_free_worker(who)
+
+
+static func activity_of(job_kind: int) -> int:
+	"""Which crew activity a woods job is (decision 0411): carrying and gathering wood is HAULING, the rest WOODS."""
+	match job_kind:
+		JobsScript.KIND_HAUL, JobsScript.KIND_GATHER, JobsScript.KIND_CARRY_LOGS, JobsScript.KIND_CARRY_PLANKS:
+			return WorkIds.ACT_HAUL
+	return WorkIds.ACT_WOODS
+
+
+func target_words(row: int) -> String:
+	"""A job's target as the Work screen names it: "the oak in the North stand", "the sawhorse", "the log stack"."""
+	var t: int = jobs.target[row]
+	match jobs.kind[row]:
+		JobsScript.KIND_FELL, JobsScript.KIND_HAUL:
+			return "the %s %s" % [_tree_name(t), _where(t)]
+		JobsScript.KIND_SAW:
+			return "the sawhorse"
+		JobsScript.KIND_GATHER:
+			return "a deadfall pile"
+		JobsScript.KIND_CARRY_LOGS:
+			return "the log stack"
+		JobsScript.KIND_CARRY_PLANKS:
+			return "the plank stack"
+	return "%s %s" % [_stand.label_of(t).to_lower(), _where(t)]
+
+
+func remaining_usec(row: int) -> int:
+	"""The work left in job `row`'s plan from its current step (a haul's: this trip's), at its worker's skill -- the
+	work steps' `step_usec`, the walks not counted."""
+	var plan: Array = JobsScript.PLANS[jobs.kind[row]]
+	var usec: int = 0
+	for k: int in range(jobs.step[row], plan.size()):
+		if int(plan[k]) >= JobsScript.STEP_WORK:
+			usec += step_usec(int(plan[k]) - JobsScript.STEP_WORK, jobs.target[row], jobs.worker[row])
+	return maxi(usec - jobs.elapsed_usec[row], 0)
+
+
+func _carrier_words(row: int) -> String:
+	"""Who carries job `row`'s load ("the crew" while it waits on the board)."""
+	var who: String = worker_name(row)
+	return who if not who.is_empty() else "the crew"
 
 
 # --- routine work -------------------------------------------------------------------------------

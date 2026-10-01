@@ -11,7 +11,9 @@ extends RefCounted
 ## the ford or crosses a bridge), and WORK the stages there -- piers, beams (the log), deck.
 ##
 ## WHO. An order given with residents selected goes to the nearest of them; with nobody selected the
-## bridge waits for the routine BRIDGEWRIGHT (the beaver, DEC-041) to take it while wandering. Anybeast
+## bridge waits to be CLAIMED: in the live demo by the village's work board (demo/work/work_board.gd, decision 0411:
+## any idle resident on land, the Builders crew -- the bridgewright's -- first) through `claim`; without one by the
+## routine BRIDGEWRIGHT (the beaver, DEC-041) while wandering. Anybeast
 ## can build (LORE-P12); SKILL changes only how long each WU takes: bridge building is a demo skill
 ## (like felling; §4.3 names none), §5.3's arithmetic -- 10 XP a WU, the level curve, a work time
 ## divided by 1000 + 50 x level -- shown in the party panel. The beaver starts at level 6. A storm day
@@ -37,6 +39,7 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const InterruptScript := preload("res://demo/control/work_interrupt.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
 
 const NOBODY: int = -1
 const STEP_WAITING: int = 0
@@ -104,6 +107,10 @@ var _pick: IntMath.IntResult = IntMath.IntResult.new()
 ## `builder_for`'s own answer (never `_pick`, which `start` reads).
 var _probe: IntMath.IntResult = IntMath.IntResult.new()
 var _no_taken: PackedVector2Array = PackedVector2Array()
+## Per bridge row: the generation of the bridge the player paused there (-1: none).
+var _paused_gen: PackedInt32Array = PackedInt32Array()
+## The work board claims the waiting bridges (decision 0411): the routine bridgewright's own hand-out stands down.
+var _claimed_outside: bool = false
 
 
 func configure(cast: DemoCastScript, bridges: BridgesScript, weather: WeatherScript, props: PropsScript,
@@ -124,6 +131,8 @@ func configure(cast: DemoCastScript, bridges: BridgesScript, weather: WeatherScr
 	elapsed_usec.resize(BridgesScript.MAX_BRIDGES)
 	source.resize(BridgesScript.MAX_BRIDGES)
 	source_at.resize(BridgesScript.MAX_BRIDGES)
+	_paused_gen.resize(BridgesScript.MAX_BRIDGES)
+	_paused_gen.fill(-1)
 	xp.resize(cast.actor_count())
 	_crew.clear()
 	for who: int in cast.actor_count():
@@ -228,16 +237,17 @@ func update(usec: int) -> void:
 		unreached_usec[row] = maxi(unreached_usec[row] - usec, 0)
 	if _pickup_usec >= PICKUP_USEC:
 		_pickup_usec = 0
-		_hand_out()
+		if not _claimed_outside:
+			_hand_out()
 	for row: int in BridgesScript.MAX_BRIDGES:
 		if _bridges.is_planned(row) and builder[row] != NOBODY:
 			_step_row(row, usec)
 
 
 func _hand_out() -> void:
-	"""Give each waiting bridge to the nearest crew member wandering on its own."""
+	"""Give each waiting bridge to the nearest crew member wandering on its own (no work board)."""
 	for row: int in BridgesScript.MAX_BRIDGES:
-		if not _bridges.is_planned(row) or builder[row] != NOBODY or unreached_usec[row] > 0:
+		if not waiting(row):
 			continue
 		var idle := PackedInt32Array()
 		for who: int in _crew:
@@ -253,6 +263,100 @@ func _busy(who: int) -> bool:
 	"""Whether `who` builds another bridge already."""
 	return builder.has(who)
 
+
+# --- the work board's hands (decision 0411) ---------------------------------------------------------
+
+func set_claimer() -> void:
+	"""The village's work board claims the waiting bridges from now on (the routine bridgewright's hand-out stands
+	down)."""
+	_claimed_outside = true
+
+
+func claims_outside() -> bool:
+	"""Whether the work board claims the waiting bridges."""
+	return _claimed_outside
+
+
+func waiting(row: int) -> bool:
+	"""Whether bridge `row` is planned and waits for a builder now (not paused, not left after a failed walk)."""
+	return _bridges.is_planned(row) and builder[row] == NOBODY and unreached_usec[row] <= 0 and not is_paused(row)
+
+
+func can_build(who: int) -> bool:
+	"""Whether `who` could take a bridge now: on land, free of the water's rescue, building no other bridge."""
+	var brain: BrainScript = brain_of(who)
+	return not brain.water_hold and not brain.in_water and not _busy(who)
+
+
+func claim(row: int, who: int) -> bool:
+	"""The work board hands waiting bridge `row` to resident `who`, who sets off at once."""
+	if not waiting(row) or who < 0 or who >= _cast.actor_count() or not can_build(who):
+		return false
+	_assign(row, who)
+	_step_row(row, 0)
+	_note("%s takes up the %s" % [name_of(who), _bridges.names[row]])
+	return true
+
+
+func is_paused(row: int) -> bool:
+	"""Whether the player paused bridge `row`."""
+	return _bridges.is_planned(row) and _paused_gen[row] == _bridges.generation[row]
+
+
+func pause(row: int, on: bool) -> String:
+	"""The player pauses bridge `row` (its builder let go, a load back at its source, the work done kept) or resumes
+	it. "" when done, else why not."""
+	if not _bridges.is_planned(row):
+		return WorkIds.NOT_FOUND
+	if not on:
+		_paused_gen[row] = -1
+		return ""
+	if is_paused(row):
+		return WorkIds.PAUSED_ALREADY
+	_paused_gen[row] = _bridges.generation[row]
+	_let_go_of(row)
+	return ""
+
+
+func reassign(row: int, who: int) -> String:
+	"""The player gives bridge `row` to resident `who` instead (taken off whatever it was doing); the builder on it is
+	let go, a load it carried put back at its source. "" when done, else why not."""
+	if not _bridges.is_planned(row):
+		return WorkIds.NOT_FOUND
+	if who < 0 or who >= _cast.actor_count():
+		return "nobody to give it to"
+	if builder[row] == who:
+		return ""
+	if brain_of(who).water_hold or brain_of(who).in_water:
+		return "in the water"
+	if _busy(who):
+		return "builds another bridge"
+	_let_go_of(row)
+	_paused_gen[row] = -1
+	unreached_usec[row] = 0
+	_assign(row, who)
+	_step_row(row, 0)
+	return ""
+
+
+func remaining_usec(row: int) -> int:
+	"""The building work left on bridge `row` at its builder's skill (base skill with nobody on it): every stage's WU
+	still to do, and a plank load's LOAD_WU while the material is not at the site -- `build_usec`'s arithmetic."""
+	var wu: int = LOAD_WU if _bridges.kind[row] == Rules.KIND_PLANK and at_site[row] == 0 else 0
+	for stage: int in Rules.STAGE_COUNT:
+		wu += _bridges.stage_left_wu(row, stage)
+	return wu * _usec_per_wu(level_of(builder[row]) if builder[row] != NOBODY else 0)
+
+
+func _let_go_of(row: int) -> void:
+	"""Bridge `row`'s builder, if any, is let go (back to its order list or routine); the bridge waits where it got to."""
+	var who: int = builder[row]
+	if who == NOBODY:
+		return
+	_drop(row, false)
+	var brain: BrainScript = brain_of(who)
+	brain.play_in_place(BrainScript.CLIP_IDLE)
+	brain.work_done()
 
 func _step_row(row: int, usec: int) -> void:
 	"""One frame of bridge `row`'s current step."""

@@ -98,6 +98,13 @@ extends RefCounted
 ## done, cancelled or taken by someone else meanwhile is dropped. The player's R (`release`) forgets
 ## them all: released means back to its own routine.
 ##
+## THE ORDER LIST (decision 0411, review UX-002; UI §3's eight-task queue). The same list holds the player's QUEUED
+## orders: Shift+right-click appends one (`append_queued`) to the END of the list -- taken after everything already on
+## it -- where a job kept from an interruption goes to the front, taken next. So the list in TAKE ORDER (`queue_*`,
+## index 0 next) reads Now -> Next ... -> then back to its routine. At most QUEUE_MAX entries; of those kept from
+## interruptions at most RESUME_MAX (the oldest goes). The player may remove an entry or move it up or down. Nothing
+## else is a queue: every entry is taken up by the one path above (`take_up_unfinished`).
+##
 ## THE NIGHT (decision 0210, demo/burrow/night_routine.gd). At dusk the night routine hands each resident a sleep
 ## task (sleep_task.gd): home through the network to its own bed, lie down, sleep, and in the morning up and back to
 ## the job it parked (RESUMING). While it is night `resting` is set, so the crews' routine pick-ups pass it by; a task
@@ -249,6 +256,8 @@ const CARRY_MAX_RATE: float = 4.2
 const DEFAULT_CLIP_S: float = 3.0
 ## How many unfinished jobs a resident keeps to come back to (see RESUMING; demo value, 0205).
 const RESUME_MAX: int = 3
+## How many entries its order list holds in all (see THE ORDER LIST; UI §3: "Append up to 8 manual tasks per resident").
+const QUEUE_MAX: int = 8
 
 var index: int = -1
 var position: Vector2 = Vector2.ZERO
@@ -298,6 +307,8 @@ var indoors: bool = false
 var lie_middle_m: Vector2 = Vector2.ZERO
 ## The unfinished jobs it will come back to, oldest first (see RESUMING).
 var _unfinished: Array[UnfinishedScript] = []
+## Bumped whenever its order list changes (an entry kept, queued, taken up, removed or moved; see THE ORDER LIST).
+var queue_revision: int = 0
 ## How the current trip ended: TRIP_* (see ARRIVAL AND REFUSAL).
 var trip_outcome: int = TRIP_ARRIVED
 
@@ -1135,6 +1146,7 @@ func release() -> void:
 		return
 	_let_go()
 	_unfinished.clear()
+	queue_revision += 1
 
 
 func work_done() -> void:
@@ -2097,16 +2109,94 @@ class DigBack extends RefCounted:
 
 
 func remember_unfinished(job: UnfinishedScript) -> void:
-	"""Keep an unfinished job to come back to (see RESUMING): the latest RESUME_MAX are kept, and one kept
-	again (the same words: the same job) moves to the latest place rather than twice."""
+	"""Keep an unfinished job to come back to (see RESUMING), taken next: the latest RESUME_MAX are kept, and one kept
+	again (the same words: the same job) moves to the latest place rather than twice. A player's queued entries are
+	kept (see THE ORDER LIST); the list never holds more than QUEUE_MAX."""
 	if job == null:
 		return
-	for k: int in range(_unfinished.size() - 1, -1, -1):
-		if _unfinished[k].label() == job.label():
-			_unfinished.remove_at(k)
+	_forget_label(job.label())
 	_unfinished.append(job)
-	if _unfinished.size() > RESUME_MAX:
-		_unfinished.remove_at(0)
+	while _returns() > RESUME_MAX or _unfinished.size() > QUEUE_MAX:
+		_unfinished.remove_at(_oldest_return())
+	queue_revision += 1
+
+
+func append_queued(job: UnfinishedScript) -> bool:
+	"""THE ORDER LIST: the player's queued order, taken after everything already on the list. False -- nothing kept --
+	when the list holds QUEUE_MAX already or that very entry (the same words) is on it."""
+	if job == null or _unfinished.size() >= QUEUE_MAX:
+		return false
+	for kept: UnfinishedScript in _unfinished:
+		if kept.label() == job.label():
+			return false
+	job.queued = true
+	_unfinished.insert(0, job)
+	queue_revision += 1
+	return true
+
+
+func _forget_label(words: String) -> void:
+	"""Drop every entry with these words (the same job kept again)."""
+	for k: int in range(_unfinished.size() - 1, -1, -1):
+		if _unfinished[k].label() == words:
+			_unfinished.remove_at(k)
+
+
+func _returns() -> int:
+	"""How many entries were kept from interruptions (not queued by the player)."""
+	var n: int = 0
+	for kept: UnfinishedScript in _unfinished:
+		n += 0 if kept.queued else 1
+	return n
+
+
+func _oldest_return() -> int:
+	"""The list index of the oldest entry kept from an interruption -- else of the entry taken last."""
+	for k: int in _unfinished.size():
+		if not _unfinished[k].queued:
+			return k
+	return 0
+
+
+func queue_size() -> int:
+	"""How many entries its order list holds (see THE ORDER LIST)."""
+	return _unfinished.size()
+
+
+func queue_entry(k: int) -> UnfinishedScript:
+	"""Entry `k` of its order list in take order (0: taken next); null out of range."""
+	if k < 0 or k >= _unfinished.size():
+		return null
+	return _unfinished[_unfinished.size() - 1 - k]
+
+
+func remove_queued(k: int) -> bool:
+	"""The player removes entry `k` (take order) from its order list. False out of range."""
+	if k < 0 or k >= _unfinished.size():
+		return false
+	_unfinished.remove_at(_unfinished.size() - 1 - k)
+	queue_revision += 1
+	return true
+
+
+func move_queued(k: int, by: int) -> bool:
+	"""The player moves entry `k` (take order) `by` places later (negative: sooner). False when it cannot move."""
+	var to: int = k + by
+	if k < 0 or k >= _unfinished.size() or to < 0 or to >= _unfinished.size() or by == 0:
+		return false
+	var job: UnfinishedScript = _unfinished[_unfinished.size() - 1 - k]
+	_unfinished.remove_at(_unfinished.size() - 1 - k)
+	_unfinished.insert(_unfinished.size() - to, job)
+	queue_revision += 1
+	return true
+
+
+func promises(task_source: int, task_key: int) -> bool:
+	"""Whether its order list means to take up that work board task (see THE ORDER LIST)."""
+	for kept: UnfinishedScript in _unfinished:
+		if kept.names_task(task_source, task_key):
+			return true
+	return false
 
 
 func take_up_unfinished() -> bool:
@@ -2117,6 +2207,7 @@ func take_up_unfinished() -> bool:
 		return false
 	while not _unfinished.is_empty():
 		var job: UnfinishedScript = _unfinished.pop_back()
+		queue_revision += 1
 		if job.resume(self):
 			return true
 	return false

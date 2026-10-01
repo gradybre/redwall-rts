@@ -66,7 +66,9 @@ const NOBODY: String = "No one selected"
 ## fit's levels, fullest first (see fit).
 const FIT_LEVELS: int = 4
 ## The unfinished jobs a resident will go back to (resident_brain.gd RESUMING), latest first.
-const THEN: String = "Then back to: %s"
+## The order list (decision 0411, UX-002: resident_brain.gd THE ORDER LIST; demo/work/order_list.gd's words).
+const THEN: String = "Next: %s"
+const THEN_JOINER: String = " → "
 ## A resident waiting for its route to be planned (resident_brain.gd ROUTING), and one holding where a trip it could not
 ## finish left it, with why (ARRIVAL AND REFUSAL; decision 0361).
 const FINDING_ROUTE: String = "finding a route"
@@ -432,7 +434,7 @@ static func party_lines(entries: Array[Dictionary]) -> PackedStringArray:
 		lines.append(String(entries[0]["state"]))
 		var then: PackedStringArray = entries[0].get("then", PackedStringArray())
 		if not then.is_empty():
-			lines.append(THEN % ", ".join(then))
+			lines.append(THEN % THEN_JOINER.join(then))
 		for skill: String in String(entries[0].get("skills", "")).split("\n", false):
 			lines.append(skill)
 	else:

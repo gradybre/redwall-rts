@@ -463,10 +463,11 @@ func test_the_orders_fold_into_one_paragraph() -> void:
 
 
 func test_the_panel_says_what_a_resident_will_go_back_to() -> void:
-	"""One resident with unfinished jobs: a "Then back to:" line, latest first."""
+	"""One resident with unfinished jobs and a queued order: its order list, "Next: ... → ...", in take order (decision
+	0411)."""
 	var one: Array[Dictionary] = [{"name": "Mole digger", "species": "Mole", "state": "raising bed 3",
-		"then": PackedStringArray(["Hang lanterns, tunnel 1"])}]
-	assert_equal(PanelScript.party_lines(one)[3], PanelScript.THEN % "Hang lanterns, tunnel 1", "the line")
+		"then": PackedStringArray(["back to Hang lanterns, tunnel 1", "Harvest, bed 3"])}]
+	assert_equal(PanelScript.party_lines(one)[3], "Next: back to Hang lanterns, tunnel 1 → Harvest, bed 3", "the line")
 
 
 func test_the_dig_button_says_what_it_does_and_its_key() -> void:

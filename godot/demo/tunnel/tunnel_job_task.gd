@@ -15,6 +15,9 @@ const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const PathsScript := preload("res://demo/tunnel/graph_paths.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
+## The work board's names (decision 0411): an order-list entry names its job by SOURCE_TUNNELS and the job's key, the
+## segment's generation x 8 + the job's kind (demo/work/tunnel_work.gd `key`).
+const WorkIds := preload("res://demo/work/work_ids.gd")
 
 ## A pump stands this far out from its mouth's centre, off the hole.
 const PUMP_STAND_M: float = 1.1
@@ -124,7 +127,8 @@ func unfinished() -> RefCounted:
 	this same job, taken back while it still waits for a worker."""
 	if not is_valid() or _jobs.is_done(slot):
 		return null
-	return UnfinishedScript.new(take_back, "%s, tunnel %d" % [JobsScript.NAMES[_kind], slot + 1])
+	return UnfinishedScript.new(take_back, "%s, tunnel %d" % [JobsScript.NAMES[_kind], slot + 1], WorkIds.SOURCE_TUNNELS,
+		_gen * 8 + _kind)
 
 
 func take_back(brain: RefCounted) -> bool:

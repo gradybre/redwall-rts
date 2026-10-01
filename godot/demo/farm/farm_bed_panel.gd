@@ -29,6 +29,9 @@ extends CanvasLayer
 ## THE WEIR (decision 0441): clicking the weir, or a bed's "Sluice…", shows the sluice's controls here instead of a bed
 ## (farm_sluice_box.gd: the setting, three cards and the affected-bed preview); a bed the garden leat serves says its
 ## service under its moisture.
+## COMPARE… (decision 0451, UX-008) swaps the readout and the verbs for every bed side by side, sortable, each ringed
+## and ranked on the map (farm_compare_view.gd), its title in the head and Back in the foot as the picker's; a row opens
+## that bed and the view stays. "Planner (G)" in the head opens the seasonal planner (farm_planner.gd).
 ##
 ## The panel only shows and asks: pressing emits a signal and demo_farm.gd orders the work.
 
@@ -50,6 +53,7 @@ const FarmingScript := preload("res://scripts/core/farming.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const SluiceBox := preload("res://demo/farm/farm_sluice_box.gd")
 const LeatScript := preload("res://demo/farm/farm_leat.gd")
+const CompareScript := preload("res://demo/farm/farm_compare_view.gd")
 
 signal verb_requested(kind: int)
 signal crop_picked(item: int)
@@ -61,10 +65,16 @@ signal pantry_requested
 signal sluice_requested
 ## A sluice setting was pressed (weir_sluice.gd SLUICE_*).
 signal sluice_chosen(setting: int)
+## "Planner (G)" was pressed (decision 0451).
+signal planner_requested
+## The Compare view opened, closed or re-sorted: the map's compare marks should follow (`compare_marks`).
+signal compare_changed
+## A compared bed's row was pressed: open that bed (the Compare view stays).
+signal compare_bed_picked(bed: int)
 
 const WEIR_TITLE: String = "Weir sluice · garden leat"
 const SLUICE_TIP: String = "Show the weir sluice that feeds the garden leat (Bed 2, Bed 4 and Bed 6) and what each setting does"
-const HINT: String = "Click a crop bed to tend it · right-click it with residents selected to set them to its most pressing work · V or the Map layer picker: map layers · K: pantry"
+const HINT: String = "Click a crop bed to tend it · right-click it with residents selected to set them to its most pressing work · V or the Map layer picker: map layers · K: pantry · G: planner"
 ## The verbs with a button of their own, in order (sowing is "Plant…"): with Plant… and the two
 ## moisture verbs on the first row, four rows of three.
 const VERB_KINDS: Array[int] = [JobsScript.KIND_WATER, JobsScript.KIND_DRAIN, JobsScript.KIND_HARVEST,
@@ -86,6 +96,8 @@ var bed: int = -1
 var picking: bool = false
 ## Whether the weir's sluice is shown instead of a bed (THE WEIR).
 var showing_weir: bool = false
+## Whether the Compare view shows (decision 0451).
+var comparing: bool = false
 
 var _sim: SimScript = null
 var _crew: CrewScript = null
@@ -139,6 +151,8 @@ var _leat: LeatScript = null
 var _sluice_box: SluiceBox = null
 var _leat_line: Label = null
 var _sluice: Button = null
+var _compare: CompareScript = null
+var _compare_button: Button = null
 
 
 func configure(sim: SimScript, crew: CrewScript) -> void:
@@ -208,6 +222,11 @@ func _build() -> void:
 	_picker = _build_picker()
 	column.add_child(_picker)
 	_build_sluice(column)
+	_compare = CompareScript.new()
+	_compare.configure(_sim)
+	_compare.bed_picked.connect(_on_compare_pick)
+	_compare.marks_changed.connect(func() -> void: compare_changed.emit())
+	column.add_child(_compare)
 	_hint = FarmUi.label(HINT, FarmUi.SMALL_PX, Palette.UMBER)
 	column.add_child(_hint)
 
@@ -289,6 +308,10 @@ func _header() -> HBoxContainer:
 	_title.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(_title)
+	var planner: Button = FarmUi.button("Planner (G)", FarmUi.SMALL_PX)
+	planner.tooltip_text = "The seasonal planner: every bed at a glance, the season's calendar, soil plans and the record"
+	planner.pressed.connect(func() -> void: planner_requested.emit())
+	row.add_child(planner)
 	var close := FarmUi.button("×", FarmUi.BODY_PX)
 	close.tooltip_text = "Close the bed panel (Esc)"
 	close.pressed.connect(func() -> void: close_requested.emit())
@@ -320,6 +343,10 @@ func _build_actions() -> GridContainer:
 	_sluice.tooltip_text = SLUICE_TIP
 	_sluice.pressed.connect(func() -> void: sluice_requested.emit())
 	grid.add_child(_sluice)
+	_compare_button = FarmUi.button("Compare…")
+	_compare_button.tooltip_text = "Every bed side by side, sortable, ringed and ranked on the map (Back returns here)"
+	_compare_button.pressed.connect(open_compare)
+	grid.add_child(_compare_button)
 	for child: Node in grid.get_children():
 		(child as Control).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return grid
@@ -335,7 +362,7 @@ func _build_picker() -> VBoxContainer:
 	_head.add_child(_picker_title)
 	_back = FarmUi.button("Back")
 	_back.tooltip_text = "Back to the bed's verbs"
-	_back.pressed.connect(close_picker)
+	_back.pressed.connect(_on_back)
 	_foot.add_child(_back)
 	_picker_rows = VBoxContainer.new()
 	_picker_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -347,18 +374,23 @@ func _build_picker() -> VBoxContainer:
 # --- what it shows ------------------------------------------------------------------------------
 
 func show_nothing() -> void:
-	"""No bed: the farm calendar and how to start."""
+	"""No bed: the farm calendar and how to start (the Compare view closes with the bed)."""
 	bed = -1
 	picking = false
 	showing_weir = false
+	if comparing:
+		close_compare()
 	refresh()
 
 
 func show_weir() -> void:
-	"""The weir's sluice instead of a bed (THE WEIR)."""
+	"""The weir's sluice instead of a bed (THE WEIR); the Compare view closes, as with no bed."""
 	bed = -1
 	picking = false
 	showing_weir = true
+	if comparing:
+		comparing = false
+		_compare.close()
 	show_message("")
 	refresh()
 
@@ -387,36 +419,40 @@ func refresh() -> void:
 		_message.visible = false
 	var has_bed: bool = Catalog.is_bed(bed)
 	var weir: bool = showing_weir and not has_bed and _leat != null
+	var reading: bool = has_bed and not picking and not comparing
 	_title.text = _bed_title() if has_bed else (WEIR_TITLE if weir else "Farm")
 	_clock.text = Text.clock_line(_sim)
-	_show_parts(has_bed, weir)
+	_show_parts(has_bed, weir, reading)
 	if weir:
 		_sluice_box.refresh()
-	if has_bed and not picking:
+	if reading:
 		_fill_needs()
 		_fill_lines()
 		_fill_buttons()
-	elif has_bed:
+	elif has_bed and picking:
 		refresh_picker()
+	elif has_bed:
+		_picker_title.text = _compare.title()
+		_compare.refresh(bed)
 	_queue_place()
 
 
-func _show_parts(has_bed: bool, weir: bool) -> void:
-	"""Which parts show: a bed's readout and verbs (or its picker), the date and hint with nothing chosen, the weir's
-	controls for the weir; the lines filled later start hidden."""
+func _show_parts(has_bed: bool, weir: bool, reading: bool) -> void:
+	"""Which parts show: a bed's readout and verbs (or its picker, or the Compare view), the date and hint with nothing
+	chosen, the weir's controls for the weir; the lines filled later start hidden."""
 	_clock.visible = not has_bed
 	for label: Label in _lines:
-		label.visible = has_bed and not picking
-	_meter.visible = has_bed and not picking
-	_details_button.visible = has_bed and not picking
-	_details.visible = has_bed and not picking and _details_open
+		label.visible = reading
+	_meter.visible = reading
+	_details_button.visible = reading
+	_details.visible = reading and _details_open
 	_needs.visible = false
 	_shortage.visible = false
 	_make_room.visible = false
-	_actions.visible = has_bed and not picking
+	_actions.visible = reading
 	_picker.visible = has_bed and picking
-	_picker_title.visible = _picker.visible
-	_foot.visible = _picker.visible
+	_picker_title.visible = _picker.visible or (has_bed and comparing)
+	_foot.visible = _picker_title.visible
 	_hint.visible = not has_bed and not weir
 	_sluice_box.visible = weir
 	_leat_line.visible = false
@@ -570,6 +606,9 @@ func open_picker() -> void:
 	crop that becomes sowable while the picker is open is enabled where it stands (refresh_picker)."""
 	if not Catalog.is_bed(bed):
 		return
+	if comparing:
+		comparing = false
+		_compare.close()
 	picking = true
 	for child: Node in _picker_rows.get_children():
 		_picker_rows.remove_child(child)
@@ -652,6 +691,47 @@ func close_picker() -> void:
 	refresh()
 
 
+func open_compare() -> void:
+	"""Every bed side by side in place of the readout (see COMPARE…); the picker closes."""
+	if not Catalog.is_bed(bed):
+		return
+	picking = false
+	comparing = true
+	_compare.open()
+	_body.scroll_vertical = 0
+	refresh()
+
+
+func close_compare() -> void:
+	"""Back to the bed's readout and verbs; the map's marks go."""
+	comparing = false
+	_compare.close()
+	refresh()
+
+
+func _on_back() -> void:
+	"""Back from the picker or the Compare view, whichever shows."""
+	if comparing:
+		close_compare()
+	else:
+		close_picker()
+
+
+func _on_compare_pick(picked: int) -> void:
+	"""A compared bed's row: open that bed, the view staying (demo_farm.gd selects it and rings it)."""
+	compare_bed_picked.emit(picked)
+
+
+func compare_view() -> CompareScript:
+	"""The Compare view (checks)."""
+	return _compare
+
+
+func compare_marks() -> PackedStringArray:
+	"""Each bed's mark on the map while Compare shows ('' each when it does not)."""
+	return _compare.marks()
+
+
 func picker_row_count() -> int:
 	"""How many ingredients the picker lists (tests)."""
 	return _picker_rows.get_child_count()
@@ -692,6 +772,8 @@ func set_zone(shown: bool, top_inset: float) -> void:
 	shown for the first time still carries a hidden-state height)."""
 	_zone_shown = shown
 	_zone_inset = top_inset
+	if not shown and comparing:
+		close_compare()
 	_place()
 	_queue_place()
 

@@ -816,6 +816,8 @@ opens the Pantry (decision 0292), whose headline is the pantry total:
 | Rest | Rest the bed fallow (+0.5 fertility points a day; nothing is sown) |
 | V | Map layer: moisture, then ripeness, then the water range, then the woods, then off -- or pick one on the Map layer picker (see Map layers) |
 | K / Food | The Pantry |
+| G / Planner (G) (bed panel) | The seasonal planner (below) |
+| Compare… (bed panel) | Every bed side by side, sortable, ringed and ranked on the map (below) |
 
 Threats: spring is wet (beds waterlog and stop growing -- Drain them, run a tunnel under them, or raise
 them; every bed sheds up to 500 a day above its band's top, so in the first spring only the Ideal spell
@@ -826,6 +828,44 @@ the next beds at midnight unless the blighted bed is cleared, and a ripe crop st
 48 hours and withers at 120. A finished tunnel under a bed drains it; a tunnel with a mouth at the
 real stream's edge (dry ground within 2.5 m of its waterline -- inside the square, by the ford or at
 x 19.5 m, z 4) irrigates the beds it runs under. Details and every number's source: `farm/*.gd` headers.
+
+## The seasonal planner (decision 0451)
+
+Review group O (F45, UX-008, ECO-005's presentation, P1's "Seasonal forecast", P4). **G**, or **Planner (G)** in the
+Farm panel's head, opens it (`farm/farm_planner.gd`): a modal of the input gate in the HUD's modal rectangle, like the
+Work screen -- G, Esc or its "×" close it, Tab stays inside, focus goes back where it was -- at the interface scale.
+(UI §5's calendar key T is the Dig tool's alias here, so the planner takes G.) Four tabs:
+
+- **Farm overview** (`farm/farm_plan_rows.gd`): one row a bed -- bed, crop, stage (and the verb when it needs attention:
+  "Needs: Drain"), harvest when and how much, soil moisture in the bed panel's words ("Good · 66%"), the work on it and
+  who has it (or queued, paused, blocked), the next sowing. **Needs attention** (a warning Needs line, a harvest waiting
+  for store room, a job nobody can reach) and **Harvest soon** (ripe, or within 24 game hours at today's rate) filter
+  it, counted on their buttons. A growing crop's date is the bed panel's own "ripe in about N h" dated on the one
+  calendar -- "≈ Spring 9, 14:00 · about 5.1 U", an estimate at this hour's growth rate; a ripe crop's dates are the
+  rules' (full yield until 48 h after it ripened, withers at 120). A row (click or Enter) closes the planner, opens that
+  bed and centres the camera on it -- the news' "Go to".
+- **Season calendar** (`farm/farm_season.gd`, `farm/farm_timeline.gd`): this season or the next, as a timeline of lanes
+  (the four crop rows, weather, frost, blight, beds, meals) or as a **Table** of the same entries in words. Each entry is
+  **Scheduled** (solid bar: §5.6 planting windows, the season's §5.10 baseline, the demo's frost and blight schedule,
+  the season event once announced -- three days ahead, never before -- a ripe bed's grace and withering, the kitchen's
+  planned meals), **Recorded** (small square: each past day's weather), **Now** (ringed diamond: today's) or **Estimate**
+  (outlined bar: when crops sown in their window would ripen at a full rate, each bed's ripening, until when the food in
+  store makes meals -- the HUD's Ready food from today). What is not known is said in words. Today is the HUD's date.
+- **Soil plans** (`farm/farm_soil_plans.gd`, ECO-005): for one bed over one season, **Compost, then sow**, **A legume in
+  rotation** and **Rest it fallow** side by side -- what each sows and when, this season's harvest, the fertility at the
+  season's end, what the next crop would then yield, and the staff time (the jobs' own work, and staff-days of 10 game
+  work hours, GDD §5.3), from GDD §5.6's own rules; presentation only (the bed's own buttons act).
+- **Record** (`farm/farm_record.gd`): yesterday, this season's days as a table and the season's totals -- harvested,
+  food used (cooked and raw), portions eaten, spoiled (in store, on the table, a cancelled batch), who went without and
+  crops lost -- read only from committed outcomes: the pantry's ledger of food stored, withdrawn and spoiled (never
+  reset), the kitchen's counters and meal log, and the crops that withered. Each day is closed at the farm's hour after
+  its midnight (once the kitchen has tallied its supper) and posted to the village news (place Farm), each season's
+  totals at its last day.
+
+**Compare…** in the bed panel (UX-008, `farm/farm_compare_view.gd`) swaps the readout for every bed side by side --
+ready, harvest, moisture, fertility -- sortable by Harvest, Ready, Moisture, Fertility or Bed; the order holds while it
+shows (press a sort to sort again), a row opens that bed with the view kept, and the beds wear a cream ring and their
+rank under their label ("#2 by harvest") until Back. There is no bulk bed order to preview.
 
 ## The kitchen (decision 0381)
 
@@ -1268,7 +1308,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `events/` | Seeded threats (a flood, a fire) and evacuation |
 | `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the water overlay (the Water range map layer), the weir's sluice table and its gate and leat head (decision 0441) |
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel; whose water range the map layer paints (`water_range.gd`) |
-| `farm/` | The farm: real FarmPlot rows, the pantry and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves |
+| `farm/` | The farm: real FarmPlot rows, the pantry (and its ledger) and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves; the seasonal planner -- its overview rows, season calendar and timeline, soil plans, the after-action record and its tables (`farm_planner*.gd`, `farm_plan_rows.gd`, `farm_season.gd`, `farm_timeline.gd`, `farm_soil_plan*.gd`, `farm_record*.gd`) -- and the bed panel's Compare view (`farm_compare_view.gd`) |
 | `kitchen/` | The meal loop: the dishes and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |

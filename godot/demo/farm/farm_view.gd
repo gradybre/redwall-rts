@@ -51,6 +51,8 @@ var _shown: PackedInt64Array = PackedInt64Array()
 ## Per heap: the earth taken from it when it was last drawn here (decision 0401: earth carried back is drawn again).
 var _drawn_taken: PackedInt64Array = PackedInt64Array()
 var _selected: int = -1
+## The bed panel's Compare view's marks, one a bed ('' unmarked; decision 0451): a cream ring and the rank under the label.
+var _compare: PackedStringArray = PackedStringArray()
 ## What the beds were last drawn for: the sim's revision and the marks (selection, overlay).
 var _seen_revision: int = -1
 var _seen_marks: int = -1
@@ -152,9 +154,12 @@ func _draw(bed: int) -> void:
 	var band: int = _sim.band_of(bed)
 	var ripe_hours: int = _ripe_hours(bed)
 	var visual: BedVisualScript = beds[bed]
+	var status: String = Look.status(stage, _sim.chosen_of(bed), growth, band, ripe_hours)
+	var mark: String = _compare[bed] if bed < _compare.size() else ""
 	visual.show_state(stage, item, growth, band, ripe_hours, Look.title(item, _sim.chosen_of(bed), stage),
-		Look.status(stage, _sim.chosen_of(bed), growth, band, ripe_hours))
+		status if mark.is_empty() else "%s\n%s" % [status, mark])
 	visual.set_selected(_selected == bed)
+	visual.set_compared(not mark.is_empty())
 	visual.show_works(_sim.is_covered(bed), _sim.is_raised(bed), _sim.is_banked(bed), _sim.is_ditched(bed))
 	visual.show_overlay(_overlay_colour(stage, band, ripe_hours, _sim.leat_service_of(bed)))
 
@@ -174,6 +179,20 @@ func _overlay_colour(stage: int, band: int, ripe_hours: int, service: int) -> Co
 func select_bed(bed: int) -> void:
 	"""Ring one bed (-1: none)."""
 	_selected = bed
+
+
+func set_compare(marks: PackedStringArray) -> void:
+	"""The Compare view's marks, a bed each ('' for none; an empty array clears them): every bed redraws."""
+	if marks == _compare:
+		return
+	_compare = marks.duplicate()
+	_shown.fill(-1)
+	_seen_marks = -1
+
+
+func compare_mark(bed: int) -> String:
+	"""A bed's Compare mark as drawn ('' none; checks)."""
+	return _compare[bed] if bed < _compare.size() else ""
 
 
 func cycle_overlay() -> int:

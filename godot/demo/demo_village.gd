@@ -387,6 +387,7 @@ func _build_kitchen() -> void:
 	var tab := _kitchen.build_tab(command.selected, command.interrupt_text)
 	tab.said.connect(command.say)
 	_farm.pantry_panel.set_kitchen(_kitchen.kitchen, tab)
+	_farm.bind_kitchen(_kitchen.kitchen)
 
 
 func kitchen() -> KitchenNodeScript:
@@ -542,6 +543,7 @@ func _build_news() -> void:
 	_news.bind_news(_services.incidents, _services.news_clock, (GameManager as GameManagerScript).is_paused)
 	_jump.bind_camera(_camera as DemoCameraScript)
 	_register_jumps()
+	_farm.set_bed_jump(func(bed: int) -> bool: return _jump.jump(NoticesScript.TARGET_BED, bed))
 	_history = NewsHistoryScript.new()
 	add_child(_history)
 	_history.configure(_services.notices, _services.incidents, _jump)
@@ -807,6 +809,9 @@ func _build_input() -> void:
 	_gate.watch_modal(_lab, _lab, _lab.close, [] as Array[StringName], [LabScript.KEY] as Array[Key])
 	_gate.watch_modal(_work.screen, _work.screen, _work.screen.close, [&"open_jobs"] as Array[StringName])
 	_gate.set_modal_close(_work.screen, _work.screen.close_button())
+	_gate.watch_modal(_farm.planner, _farm.planner, _farm.planner.close, [] as Array[StringName],
+		[_farm.planner.KEY] as Array[Key])
+	_gate.set_modal_close(_farm.planner, _farm.planner.close_button())
 	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
 	_gate.add_region("right column", [_zone, _farm.bed_panel, ext.panel, _forestry.panel, _waterplay.panel] as Array[Node])
 	_gate.add_region("left column", [(_command as DemoCommandScript).panel()] as Array[Node])

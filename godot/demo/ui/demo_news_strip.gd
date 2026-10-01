@@ -22,6 +22,7 @@ extends CanvasLayer
 ## rebuilds nothing, only rewrites LINES labels.
 
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
+const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
@@ -199,7 +200,7 @@ static func band_placement(width: int, height: int, layout: UiLayout, geometry: 
 	just above the command strip (the strip sits on its bottom edge, as tall as its lines). Fills
 	`geometry`."""
 	if not layout.compute_into(maxi(width, UiLayout.SUPPORTED_MIN_WIDTH), maxi(height, UiLayout.SUPPORTED_MIN_HEIGHT),
-			UiLayout.USER_SCALE_100, journal_open, geometry):
+			DemoUiScale.percent, journal_open, geometry):
 		geometry.scale = 1.0
 	var centre: float = geometry.commands.get_center().x
 	var half: float = minf(centre - (geometry.minimap.end.x + GAP), geometry.detail.position.x - GAP - centre)

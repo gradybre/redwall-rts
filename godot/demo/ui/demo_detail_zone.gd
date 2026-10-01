@@ -28,9 +28,11 @@ extends CanvasLayer
 ## take their rectangle from `panel_placement`: below the strip, and -- at 1280x720, where UI §1.2's
 ## command strip (laid out for a closed journal) runs under the zone's foot -- above that strip, so
 ## no demo panel hides under a HUD control; what does not fit scrolls inside the panel. It draws on
-## the demo panels' layer, below the HUD's, so a true modal covers it. No tab takes focus.
+## the demo panels' layer, below the HUD's, so a true modal covers it. The tabs and the "×" take keyboard
+## focus (decision 0261: Tab, Shift+Tab and F7, demo/ui/demo_input_gate.gd).
 
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
+const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 
@@ -101,12 +103,12 @@ func build() -> void:
 
 
 func _close_button() -> Button:
-	"""The strip's "×": collapses the zone (`collapse`); never takes focus, as the tabs."""
+	"""The strip's "×": collapses the zone (`collapse`); takes keyboard focus, as the tabs (decision 0261)."""
 	var close := Button.new()
 	close.name = "Close"
 	close.text = CLOSE_TEXT
 	close.tooltip_text = CLOSE_TIP
-	close.focus_mode = Control.FOCUS_NONE
+	Styles.focusable(close, TAB_MARGINS)
 	close.custom_minimum_size = Vector2(CLOSE_W, 0.0)
 	close.add_theme_font_size_override(&"font_size", TAB_PX)
 	close.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, TAB_MARGINS))
@@ -119,11 +121,11 @@ func _close_button() -> Button:
 
 
 func _tab(k: int) -> Button:
-	"""One wood tab: brass while its panel is shown; never takes focus."""
+	"""One wood tab: brass while its panel is shown; takes keyboard focus (decision 0261)."""
 	var tab := Button.new()
 	tab.text = TAB_TEXT[k]
 	tab.tooltip_text = TAB_TIPS[k]
-	tab.focus_mode = Control.FOCUS_NONE
+	Styles.focusable(tab, TAB_MARGINS)
 	tab.toggle_mode = true
 	tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tab.add_theme_font_size_override(&"font_size", TAB_PX)
@@ -236,7 +238,7 @@ static func strip_placement(width: int, height: int, layout: UiLayout, geometry:
 	"""The strip's rectangle in the HUD's logical pixels: the detail zone's top STRIP_H. Fills `geometry`
 	(scale 1 below the supported floor)."""
 	if not layout.compute_into(maxi(width, UiLayout.SUPPORTED_MIN_WIDTH), maxi(height, UiLayout.SUPPORTED_MIN_HEIGHT),
-			UiLayout.USER_SCALE_100, false, geometry):
+			DemoUiScale.percent, false, geometry):
 		geometry.scale = 1.0
 	return Rect2(geometry.detail.position, Vector2(geometry.detail.size.x, STRIP_H))
 

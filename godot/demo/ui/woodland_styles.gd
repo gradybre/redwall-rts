@@ -162,6 +162,15 @@ static func box(name: StringName, margins: PackedFloat32Array) -> StyleBoxTextur
 	return style
 
 
+static func focusable(control: Control, margins: PackedFloat32Array) -> void:
+	"""Let a demo action control take keyboard focus (Tab, Shift+Tab, F7) and wear the HUD's focus ring
+	while it has it (decision 0261). The ring is the control's own `focus` StyleBox, so it goes when the
+	control does (decision 0198); a click's focus is hidden in Godot 4.7, so the ring shows for the
+	keyboard only."""
+	control.focus_mode = Control.FOCUS_ALL
+	control.add_theme_stylebox_override(&"focus", ring_box(margins))
+
+
 static func ring_box(margins: PackedFloat32Array) -> StyleBoxTexture:
 	"""The focus ring as a StyleBox: drawn just outside the control, never over its content."""
 	if _ring == null:

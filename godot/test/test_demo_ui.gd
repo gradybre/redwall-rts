@@ -756,14 +756,15 @@ func test_the_bed_panel_s_close_button_collapses_the_zone() -> void:
 
 
 func test_the_zone_close_sits_on_the_strip_after_the_tabs() -> void:
-	"""The × is the strip's last child and never takes focus, as the tabs."""
+	"""The × is the strip's last child and takes keyboard focus with the focus ring, as the tabs (decision 0261)."""
 	var zone := DetailZoneScript.new()
 	_nodes.append(zone)
 	zone.build()
 	var close: Button = zone.close_button()
 	assert_equal(close.get_index(), close.get_parent().get_child_count() - 1, "after the four tabs")
 	assert_true(close.get_parent() == zone.tab(0).get_parent(), "on the strip")
-	assert_equal(close.focus_mode, Control.FOCUS_NONE, "no focus")
+	assert_equal(close.focus_mode, Control.FOCUS_ALL, "keyboard focus")
+	assert_true(close.get_theme_stylebox(&"focus") is StyleBoxTexture, "the woodland focus ring")
 	assert_equal(close.text, DetailZoneScript.CLOSE_TEXT, "×")
 
 

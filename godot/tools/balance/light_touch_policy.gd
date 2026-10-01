@@ -1,5 +1,5 @@
 extends RefCounted
-## THE "LIGHT-TOUCH" SCRIPTED PLAYER of the balance harness (decision 0571). Each morning at 06:00 it queues the work a
+## THE "LIGHT-TOUCH" SCRIPTED PLAYER of the balance harness (decision 0911). Each morning at 06:00 it queues the work a
 ## sensible player would, through the same verbs the panels call with NOBODY selected -- so every order goes on the
 ## work board for the crews, exactly as the player's Farm, Woods and Water panels queue it. It never moves a resident,
 ## never time-skips, and never touches a stock.
@@ -13,7 +13,8 @@ extends RefCounted
 ##   water  one fishing trip authorised when none is open and the pantry holds under FISH_STOCK_HIGH of fresh fish (more
 ##          would only spoil: fresh fish keeps 48 h): the first of hand net, trap, then ice that the water, the
 ##          weather, the gear and the crew allow, at the first site and species that do.
-## THE AFTERNOON (13:00): a bed with a living crop that a frost is due on (announced from noon the day before) is covered --
+## THE AFTERNOON (13:00): a bed with a living crop that a frost is due on (announced from noon the day before) is
+## covered --
 ## the player reading the farm's frost warning.
 ## Every order is skipped when the same job is already on the board. Orders are counted by verb for the day's record.
 

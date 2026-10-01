@@ -1,5 +1,5 @@
 extends RefCounted
-## THE BALANCE HARNESS'S VILLAGE WATCH (decision 0571): the stores' material flows, the threats, the incidents, the
+## THE BALANCE HARNESS'S VILLAGE WATCH (decision 0911): the stores' material flows, the threats, the incidents, the
 ## rescues and the pauses the harness lifted. Measurement only, read every frame.
 ##
 ## MATERIALS. The stores keep no ledger of their own (tunnel_stores.gd), so each frame's change of each stock is
@@ -7,7 +7,8 @@ extends RefCounted
 ## ticks at 4x and 30 frames a second); the end-of-day stock is exact.
 ##
 ## INCIDENTS (demo_incidents.gd), three counts on stated bases:
-##   occurrences      every raise that is not a merged repeat -- a new incident or one that came back (its `occurrences`);
+##   occurrences      every raise that is not a merged repeat -- a new incident or one that came back (the store's
+##                    `occurrences`);
 ##   first_by_source  each NEW incident (a serial issued) by its key's first part ("water", "woods", "farm", ...): the
 ##                    serials between the last look and the store's own next serial (read, never written);
 ##   critical         every critical raise or recurrence, from the store's own `incident_cue` (each autopauses).

@@ -33,7 +33,7 @@ godot --headless --path godot --editor --quit
 # Boot the game headlessly
 godot --headless --path godot --quit-after 120
 
-# Balance harness (decision 0571): a game year of the real village per run, then the report.
+# Balance harness (decision 0911): a game year of the real village per run, then the report.
 # --fixed-fps 30 is required (the run checks it); success is the log's "BALANCE-RUN ok" line, not exit 0.
 python3 tools/run_balance_matrix.py --out-dir <dir> --seeds 1 2 3 --days 48 --jobs 3
 python3 tools/balance_report.py --out docs/balance/<name>.md --svg-dir docs/balance/<name> <dir>/*.json

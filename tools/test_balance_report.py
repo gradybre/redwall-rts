@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Self-test for balance_report.py (decision 0571): its definitions and flags on hand-built runs.
+"""Self-test for balance_report.py (decision 0911): its definitions and flags on hand-built runs.
 
     python3 tools/test_balance_report.py
 

@@ -1,9 +1,9 @@
 extends "res://test/framework/test_case.gd"
-## The balance harness (godot/tools/balance/, decision 0571): its roll-up and CSV rules, the labour classes and the
+## The balance harness (godot/tools/balance/, decision 0911): its roll-up and CSV rules, the labour classes and the
 ## work board's waits on hand-built residents and a hand-built source, the policy's tally, the runner's refusal of a bad
 ## command line (its own headless process, no village booted) -- and, only with REDWALL_SLOW_TESTS=1, ONE SEASON of the
 ## real village run twice at once from the same seed, whose day records must be identical (about five minutes; the
-## suite skips it otherwise, decision 0571).
+## suite skips it otherwise, decision 0911).
 
 const Rollup := preload("res://tools/balance/balance_rollup.gd")
 const Csv := preload("res://tools/balance/balance_csv.gd")
@@ -382,6 +382,16 @@ func test_the_policy_counts_its_orders_by_verb_and_refusals_apart() -> void:
 	policy._count("Drain", "Can't drain: not wet")
 	assert_equal(policy.take_orders(), {"Sow": 2, "refused": 1}, "two sowings and a refusal")
 	assert_equal(policy.take_orders(), {}, "cleared")
+
+
+func test_unknown_flags_and_a_bad_seed_are_refused_wherever_they_stand() -> void:
+	"""A misspelt flag (last on the line too) and a seed that is not an integer stop the run before it boots."""
+	var run := RunScript.new()
+	run._read_args(PackedStringArray(["--out", "/tmp/x.json", "--hourz"]))
+	assert_true(run._error.begins_with("unknown argument --hourz"), "a trailing unknown flag: %s" % run._error)
+	run = RunScript.new()
+	run._read_args(PackedStringArray(["--seed", "seven", "--out", "/tmp/x.json"]))
+	assert_true(run._error.begins_with("--seed must be an integer"), "a non-integer seed: %s" % run._error)
 
 
 func test_the_runner_refuses_a_bad_command_line() -> void:

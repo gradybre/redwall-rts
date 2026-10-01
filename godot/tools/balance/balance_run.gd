@@ -1,6 +1,6 @@
 extends RefCounted
 ## THE BALANCE HARNESS: a game year (or any number of days) of the REAL demo village, headless, at 4x, measured day by
-## day. Decision 0571. Measurement only -- see HARNESS-ONLY SETTINGS for everything it sets.
+## day. Decision 0911. Measurement only -- see HARNESS-ONLY SETTINGS for everything it sets.
 ##
 ##     godot --headless --path godot --fixed-fps 30 --script res://tools/balance/year_runner.gd -- \
 ##         --seed 1 --policy hands_off --days 48 --out /abs/run.json [--csv /abs/run.csv] [--hours N] [--fps 30]
@@ -160,8 +160,8 @@ func _settle() -> void:
 
 func _read_args(args: PackedStringArray) -> void:
 	"""--seed, --policy, --days, --hours, --out, --csv (see the header); the first problem into `_error`."""
-	for k: int in args.size() - 1:
-		var value: String = args[k + 1]
+	for k: int in args.size():
+		var value: String = args[k + 1] if k + 1 < args.size() else ""
 		if args[k].begins_with("--") and not args[k] in FLAGS:
 			_error = "unknown argument %s (one of %s)" % [args[k], ", ".join(FLAGS)]
 			return
@@ -310,9 +310,10 @@ func _board() -> BoardScript:
 func _keep_running() -> void:
 	"""Lift a critical incident's autopause as the player's Resume does, and hold 4x; fail on a pause Resume cannot lift
 	(a menu, a stall) that lasts, or a calendar that has stopped advancing."""
-	if _gm.is_paused():
-		if _time_control().ledger.resume() != 0:
-			_events.lifted_pause()
+	if _gm.is_paused() and _time_control().ledger.resume() != 0:
+		_events.lifted_pause()
+		_paused_frames = 0
+	elif _gm.is_paused():
 		_paused_frames += 1
 	else:
 		_paused_frames = 0
@@ -395,6 +396,7 @@ func _meta(real_s: float) -> Dictionary:
 		names.append(_board().name_of(who))
 	return {"seed": _seed, "policy": _policy_name, "end_hour": _end_hour, "fixed_fps": _fps, "speed": SPEED,
 		"staged_assets": _staged, "engine": Engine.get_version_info().get("string", ""), "residents": names,
-		"frames": _frame - _start_frame, "ticks_before_start": _ticks_before_start, "real_seconds": snappedf(real_s, 0.1), "ticks_per_hour": TICKS_PER_HOUR,
+		"frames": _frame - _start_frame, "ticks_before_start": _ticks_before_start,
+		"real_seconds": snappedf(real_s, 0.1), "ticks_per_hour": TICKS_PER_HOUR,
 		"harness_settings": ["route budget 0", "nav rebuilds finished inside each frame", "GameManager processing stopped",
 			"critical autopause lifted by the ledger's Resume", "weather and resident rngs re-seeded"]}

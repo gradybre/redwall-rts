@@ -1,5 +1,5 @@
 extends RefCounted
-## THE BALANCE HARNESS'S SHORT CSV (decision 0571): one row a day of the headline figures, for a spreadsheet or a quick
+## THE BALANCE HARNESS'S SHORT CSV (decision 0911): one row a day of the headline figures, for a spreadsheet or a quick
 ## look. The JSON holds everything; this is a view of it. Each column is a path into the day record ("/"-separated);
 ## a number that is not there is written 0.
 

@@ -1,9 +1,8 @@
-# 0571 — A balance harness measures a game year of the real village, headless and deterministic
+# 0911 — A balance harness measures a game year of the real village, headless and deterministic
 Date: 2026-10-01 · Status: Accepted
 
-Numbered 0571: decisions 0531–0533 (demolition), 0541 (lighting), 0561–0562 (scale test), 0611 and 0621 were taken on
-the branches and worktrees in flight when this was written; 0571 was free on all of them. The parallel ferry and regatta
-work had no number on disk yet; if it takes 0571 first, this record is the one to renumber.
+Numbered 0911: this record was first written as 0571, but 0571–0579 were already assigned to the winter-fuel lane.
+The coordinator moved it to 0911; no record numbered 09xx existed on any branch or worktree when it was renumbered.
 
 ## The question
 
@@ -184,6 +183,10 @@ as the opening.
   living crops. **LOW** fixed: a queued sowing keeps its crop, the headline's spoilage honours the floor, CSV quotes
   doubled, unknown arguments and a non-integer seed refused, the tick rate from `SimClock`, the slow test kills its
   children, dead code removed, and the GameManager setting described as the guard it is.
+- The confirming re-review found no CRITICAL or HIGH issue left. Its LOW items are fixed: a lifted autopause resets the
+  stuck-pause count, a flag in the last position is checked, and four long lines are wrapped. It left one as
+  acceptable: `balance_events.gd` reads the incident store's private `_next_serial` (a rename would raise script
+  errors, which the matrix's error scan fails on).
 - **Left as they are (LOW):** day 0 covers 18 hours (the demo opens at 06:00) and is not marked partial; the incident
   store evicts resolved rows by its real-time news clock (presentation; it only decides whether a long-resolved
   incident's return counts as new or as a recurrence).

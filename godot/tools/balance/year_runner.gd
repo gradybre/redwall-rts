@@ -1,5 +1,5 @@
 extends SceneTree
-## THE BALANCE HARNESS's command line (decision 0571). Everything is in balance_run.gd -- read its header for the
+## THE BALANCE HARNESS's command line (decision 0911). Everything is in balance_run.gd -- read its header for the
 ## arguments, the settings and the output:
 ##
 ##     godot --headless --path godot --fixed-fps 30 --script res://tools/balance/year_runner.gd -- \

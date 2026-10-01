@@ -1,5 +1,5 @@
 extends RefCounted
-## THE BALANCE HARNESS'S ROLL-UP (decision 0571): days into seasons, and seasons into a run's totals, by one rule for
+## THE BALANCE HARNESS'S ROLL-UP (decision 0911): days into seasons, and seasons into a run's totals, by one rule for
 ## every figure, so a new figure needs no new code. Pure functions over the day records the runner writes.
 ##
 ## THE RULE, by the field's name:

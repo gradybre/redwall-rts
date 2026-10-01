@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the balance harness over seeds x policies, several at once (decision 0571).
+"""Run the balance harness over seeds x policies, several at once (decision 0911).
 
     python3 tools/run_balance_matrix.py --out-dir <dir> [--seeds 1 2 3] [--policies hands_off light_touch] \
         [--days 48] [--jobs 3] [--godot godot]

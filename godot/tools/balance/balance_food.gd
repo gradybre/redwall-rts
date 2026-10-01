@@ -1,5 +1,5 @@
 extends RefCounted
-## THE BALANCE HARNESS'S FOOD WATCH (decision 0571): what was produced, used, eaten and spoiled, the stock and its
+## THE BALANCE HARNESS'S FOOD WATCH (decision 0911): what was produced, used, eaten and spoiled, the stock and its
 ## reserve, the meals and how fed the residents were. Measurement only.
 ##
 ## WHERE EACH FIGURE COMES FROM -- ledgers only a committed change moves (decision 0451's record reads the same ones):

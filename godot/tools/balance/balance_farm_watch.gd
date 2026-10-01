@@ -1,5 +1,5 @@
 extends RefCounted
-## THE BALANCE HARNESS'S FARM WATCH (decision 0571): the beds and the weather, read once a farm hour. Measurement only.
+## THE BALANCE HARNESS'S FARM WATCH (decision 0911): the beds and the weather, read once a farm hour. Measurement only.
 ##
 ## WEATHER per day: §5.10's event active at noon (weather.gd EVENT_*, by name), whether the demo's frost night or
 ## blight outbreak falls on the day (farm_weather.gd's fixed schedule), the air temperature the crops felt (min and the
@@ -11,7 +11,8 @@ extends RefCounted
 ## withered bed loses its blight mark in the same step that killed it, `_sync_blight`, so the stage before counts too),
 ## FROST when the elapsed hour was cold (a frost-night hour, or air at or below 0 °C), else OTHER (moisture out of its
 ## band, standing ripe). A crop that WITHERS is charged the same way, except one that stood RIPE the hour before
-## (OVERRIPE: left past its grace). Health is 0..10000 as farming.gd keeps it; the figures are bed-health points, not food.
+## (OVERRIPE: left past its grace). Health is 0..10000 as farming.gd keeps it; the figures are bed-health points, not
+## food.
 ## SOWN and HARVESTED count beds leaving EMPTY for a crop, and RIPE beds emptied without withering.
 
 const SimScript := preload("res://demo/farm/farm_sim.gd")

@@ -1,5 +1,5 @@
 extends RefCounted
-## THE BALANCE HARNESS'S LABOUR AND WORK-BOARD WATCH (decision 0571). Measurement only: it reads the work board, the
+## THE BALANCE HARNESS'S LABOUR AND WORK-BOARD WATCH (decision 0911). Measurement only: it reads the work board, the
 ## kitchen and each resident's brain and writes nothing back.
 ##
 ## LABOUR. At every sample each resident is put in ONE class, first match wins:

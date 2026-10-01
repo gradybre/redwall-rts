@@ -17,7 +17,9 @@ extends Node3D
 ## LIT (`lit() -> bool`: the night routine's hearth hours) a home's hearth glows: its embers show and one of the pooled
 ## lights (tunnel_lanterns.gd `set_hearth_spots`) burns deep orange over its firebox; a lantern hung in a room lights too
 ## (`set_fit_spots`). ON THE GROUND a home with a hearth has a chimney pot on its mound over the hearth, SMOKING while
-## it is lit; the smoke runs on the demo clock (paused, it stands still; at 4x it rises four times as fast).
+## it is lit; the smoke runs on the demo clock (paused, it stands still; at 4x it rises four times as fast). A home on
+## LEVEL 2 (decision 0212) has no mound, so no chimney and no smoke: its fixtures stand on its own level's floor and
+## layer.
 ##
 ## FILLING (`fill(r) -> permille`: how full the pantry holds cellar `r`, demo_farm.gd `cellar_fill`): a cellar's
 ## storage fixtures' slots show in order across the cellar -- its shelves' sacks, its rack's jars and sacks, its hanging
@@ -182,7 +184,7 @@ func _build_place(r: int, f: int, phase: int) -> void:
 		_pieces[row].queue_free()
 		_pieces[row] = null
 	(_slots[row] as Array).clear()
-	_ground[r].visible = _graph.fit.has_hearth(_graph, r)
+	_ground[r].visible = _graph.fit.has_hearth(_graph, r) and _graph.rooms.level[r] == Rules.TOP_LEVEL
 	if f == _hearth_place(r) and phase != FixturesScript.INSTALLED:
 		_embers[r] = null
 	if phase == FixturesScript.EMPTY:
@@ -199,7 +201,7 @@ func _build_place(r: int, f: int, phase: int) -> void:
 			_start_rising(r, f, piece)
 	else:
 		_install(r, f, piece)
-	Layers.set_layers(piece, Layers.UNDERGROUND)
+	Layers.set_layers(piece, Layers.below(_graph.rooms.level[r]))
 	builds += 1
 	_fit_lights(r)
 
@@ -248,7 +250,7 @@ func _rise(row: int, fit: FixturesScript) -> void:
 func _puff_at(r: int, f: int) -> void:
 	"""A puff of dust where place `f` of room `r`'s fixture has just gone in."""
 	if _particles != null:
-		_particles.puff(place_transform(r, f).origin + Vector3(0.0, 0.2, 0.0), Layers.UNDERGROUND)
+		_particles.puff(place_transform(r, f).origin + Vector3(0.0, 0.2, 0.0), Layers.below(_graph.rooms.level[r]))
 
 
 func rising(r: int, f: int) -> Node3D:
@@ -269,7 +271,7 @@ func _install(r: int, f: int, piece: Node3D) -> void:
 			KitScript.hanging(piece, slots)
 			_fill_all(slots, _graph.rooms.template[r] == RoomsScript.TEMPLATE_HOME)
 		RoomsScript.FIX_RUG:
-			(KitScript.rug(piece) as Decal).cull_mask = Layers.UNDERGROUND
+			(KitScript.rug(piece) as Decal).cull_mask = Layers.below(_graph.rooms.level[r])
 		RoomsScript.FIX_LANTERN:
 			_hang_lantern(piece)
 		RoomsScript.FIX_BIG_BED:
@@ -307,7 +309,7 @@ func place_transform(r: int, f: int) -> Transform3D:
 	var face := RoomsScript.rotate_u(Vector2i(RoomsScript.fixture_field(template, f, 3), RoomsScript.fixture_field(template, f, 4)),
 		rooms.turns[r])
 	return Transform3D(Basis(Vector3.UP, atan2(float(face.x), float(face.y))),
-		Vector3(Rules.to_m(at.x), Layers.FLOOR_Y_M + FLOOR_LIFT_M, Rules.to_m(at.y)))
+		Vector3(Rules.to_m(at.x), Layers.floor_y(_graph.rooms.level[r]) + FLOOR_LIFT_M, Rules.to_m(at.y)))
 
 
 func _hearth_place(r: int) -> int:
@@ -329,7 +331,7 @@ func _light(r: int, lit: bool) -> void:
 	_lit_now[r] = now
 	if _embers[r] != null:
 		_embers[r].visible = lit
-	_smoke[r].emitting = lit
+	_smoke[r].emitting = lit and _graph.rooms.level[r] == Rules.TOP_LEVEL
 	_fit_lights(r)
 
 

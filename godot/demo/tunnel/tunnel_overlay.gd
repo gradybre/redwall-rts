@@ -324,6 +324,16 @@ func _make_mound() -> Node3D:
 	return mound
 
 
+func set_plan_level(level: int) -> void:
+	"""The ghost's U-view set on `level`'s floor and marks layer (decision 0212: the Dig tool lays on the level the U
+	view shows)."""
+	_plan_below.position.y = Layers.floor_y(level)
+	for node: VisualInstance3D in [_plan_ribbon_below, _label_below, _snap_ring_below]:
+		node.layers = Layers.marks(level)
+	for ring: MeshInstance3D in _plan_rings_below:
+		ring.layers = Layers.marks(level)
+
+
 func _build_plan_marks() -> void:
 	"""The ghost, a set per view (see THE GHOST): its ribbon, a ring per point, the snap ring and the words,
 	all drawn on top -- on the ground, and on the level's floor, sharing one ribbon mesh."""
@@ -466,7 +476,8 @@ func dug_m(slot: int) -> float:
 func _state_key(slot: int) -> int:
 	"""What a segment's state adds to its mesh key: bore class, closed, the widening, its generation, its
 	route's length (a split changes both ends' routes) and whether a hub stands at either end (a branch
-	breaking ground at a junction makes one, and the bores meeting there must drop what lies inside it);
+	breaking ground at a junction makes one, and the bores meeting there must drop what lies inside it) and whether it
+	ends blind (bore_view.gd `hub_bits`);
 	lanterns and braces are tunnel_marks.gd's."""
 	var bits := int(_network.bore[slot]) + 4 * int(_network.closed[slot])
 	return bits + 32 * floori(widen_m[slot] / BORE_STEP_M) + 32768 * (_network.generation[slot] % 256) \
@@ -675,13 +686,15 @@ func _place_heap(m: int, spoil_milli_u: int) -> void:
 
 
 func _update_mound(slot: int) -> void:
-	"""Over a digger underground, a mound follows it, bobbing on the demo clock (its clods: dig_theatre.gd), and
-	grows as the camera pulls back."""
+	"""Over a digger underground on level 1, a mound follows it, bobbing on the demo clock (its clods: dig_theatre.gd),
+	and grows as the camera pulls back (a digger on level 2 or on a link down to it is too deep to heave the turf:
+	decision 0212, the surface's signs are the top level's)."""
 	var mound_node := _mounds[slot]
 	if mound_node == null:
 		return
 	var digger := _network.digger[slot] if _network.phase[slot] == GraphScript.PHASE_DIGGING else job_digger[slot]
-	var below := digger >= 0 and digger < _space.resident_underground.size() and _space.resident_underground[digger] == 1
+	var below := digger >= 0 and digger < _space.resident_underground.size() and _space.resident_underground[digger] == 1 \
+			and _network.seg_level[slot] == Rules.TOP_LEVEL and _network.seg_kind[slot] != GraphScript.SEG_LINK
 	mound_node.visible = below
 	if not below:
 		return
@@ -706,11 +719,11 @@ func _camera_distance(at: Vector3) -> float:
 
 # --- underground ----------------------------------------------------------------------------
 
-func set_view(cap: CapScript, prewarm: PrewarmScript) -> void:
-	"""The underground view's cap (whose void mask the dug bores open) and its prewarm registry, which
-	learns everything this overlay draws in the U view (decision 0206)."""
+func set_view(cap: CapScript, prewarm: PrewarmScript, deep_cap: CapScript = null) -> void:
+	"""The underground view's caps (whose void masks the dug bores open: level 1's, and level 2's when given) and its
+	prewarm registry, which learns everything this overlay draws in the U view (decisions 0206, 0212)."""
 	_mesh_key.fill(-1)
-	bores.set_view(cap, prewarm)
+	bores.set_view(cap, prewarm, deep_cap)
 	for colour: Color in [PLAN, PREVIEW, REFUSED_GHOST]:
 		prewarm.add_mesh(immediate_sample(), _on_top(colour))
 	for ring: MeshInstance3D in _plan_rings_below:

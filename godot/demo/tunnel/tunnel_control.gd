@@ -60,6 +60,17 @@ extends Node3D
 ##
 ## THE EXTENSIONS (tunnel_ext.gd: weather, hauling, upgrades, hazards, finds, ground, crews, threats) are
 ## built here and handed what this tool does not take.
+##
+## THE SECOND LEVEL (decision 0212). In the U view, PgUp and PgDn show level 1 and level 2 (tunnel_view.gd THE
+## LEVELS) -- read before the HUD and the camera (`takes_before_gui`), so in the U view they never zoom; on the
+## surface they stay the camera's zoom keys (the wheel zooms everywhere), and U stays the view's switch. The Dig
+## tool lays pieces and rooms on the level shown: a piece on level 2 starts on its network (a stair's or ramp's
+## foot, a junction, a bore) and may end blind. L in the tool lays a LINK down between the levels instead -- L once
+## a RAMP, again STAIRS, again back to tunnels: click (or press) its head on level 1's network and release (or
+## click) its foot, which snaps onto level 2's network or ends blind there; the ghost's words give its run and
+## slope, quanta, hours, spoil, grade and ground, or the refusal in words (tunnel_plan.gd LEVELS AND LINKS). Both
+## points are picked on the shown level's floor; each snaps onto its own level. With the U view off the tool lays on
+## level 1 (`laying_level`): switching the view with U while laying re-lays on the level it now shows.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
@@ -99,6 +110,8 @@ const PLAN_DROPPED: String = "Piece dropped -- lay another, or Esc to close the 
 ## What a dig costs through its own ground (at one F1000 worker; a crew is quicker).
 const DIG_STARTED: String = "Digging a %s tunnel: %d m³ to cut, %d U of spoil, about %d s"
 const DIG_QUEUED: String = "Queued a %s tunnel: %s digs it after its present dig"
+## A link's (see THE SECOND LEVEL): its kind for "tunnel", e.g. "Digging a 5.0 m stairs down".
+const LINK_WORD: Array[String] = ["tunnel", "ramp down", "stairs down"]
 const DIG_RESUMED: String = "Resuming the tunnel at %d%%"
 const DIG_KEPT: String = "Already digging this tunnel (%d%%)"
 ## A tunnel's bore fits the small; a room and its front door or hatch fit everybeast (decision 0209), and the
@@ -109,10 +122,15 @@ const DIG_UNREACHED: String = "The digger couldn't reach the start — tunnel pa
 const DIG_DROPPED: String = "Dig called off before any ground was broken"
 const REFUSED: String = "Can't dig: %s"
 const VIEW_ON: String = "Underground view (U to return)"
+const LEVEL_SHOWN: String = "Underground view: level %d of 2 -- PgUp / PgDn to switch, U to return"
+const LINK_FIRST: String = "Dig %s down: press on the first level's network where it starts and release where its foot lands on the second -- L: %s · Esc: back to tunnels"
+const LINK_OPEN: Array[String] = ["", "Ramp down open: a walk down to the second level at 1:2.5", "Stairs down open: 16 timber risers down to the second level -- steep, and slower to climb"]
 const ROOM_OPEN: Array[String] = ["", "Burrow home dug: everybeast fits and stands upright in it -- in at its round door or a tunnel",
 	"Root cellar dug: the pantry stores harvests in it; everybeast stands in it, in at its hatch"]
 
 var planning: bool = false
+## The link the tool lays now (tunnel_rules.gd LINK_*; LINK_NONE: tunnels) -- see THE SECOND LEVEL.
+var link_kind: int = Rules.LINK_NONE
 ## The pieces said to be dug through in this look at the network (so each is said once).
 var _opened: PackedInt32Array = PackedInt32Array()
 var plan: PlanScript = PlanScript.new()
@@ -202,7 +220,7 @@ func _build_parts(cast: DemoCastScript, camera: Camera3D, selection: Callable, m
 	view = ViewScript.new()
 	add_child(view)
 	view.configure(camera, ext.works.ground, ext.works.water)
-	overlay.set_view(view.cap, view.prewarm)
+	overlay.set_view(view.cap, view.prewarm, view.caps[Rules.LEVEL_2])
 	overlay.set_calendar(services.calendar if services != null else null)
 	ext.set_view(view)
 	DemoActorScript.register_marker(view.prewarm)
@@ -270,6 +288,8 @@ func notice() -> String:
 
 func handle_input(event: InputEvent) -> bool:
 	"""Apply one event; true when it was a tunnel input (and so consumed)."""
+	if _level_key(event):
+		return true
 	if planning:
 		return _plan_input(event)
 	if event is InputEventKey and event.is_pressed() and not event.is_echo():
@@ -295,6 +315,8 @@ static func is_confirm_key(event: InputEvent) -> bool:
 func takes_before_gui(event: InputEvent) -> bool:
 	"""Whether the tool must see `event` before any HUD control: Enter while laying, and a drag's motion and
 	release (so a drag ending over the HUD still ends here)."""
+	if view.on and is_level_key(event):
+		return true
 	if not planning:
 		return false
 	if is_confirm_key(event):
@@ -303,6 +325,85 @@ func takes_before_gui(event: InputEvent) -> bool:
 	if _pressing and button != null and button.button_index == MOUSE_BUTTON_LEFT and not button.pressed:
 		return true
 	return _pressing and event is InputEventMouseMotion
+
+
+static func level_step(event: InputEvent) -> int:
+	"""The level step an unmodified PgDn (+1) or PgUp (-1) press asks for (0: neither; see THE SECOND LEVEL)."""
+	var key := event as InputEventKey
+	if key == null or not key.is_pressed() or key.is_echo() or _modified(key):
+		return 0
+	if key_of(key) == KEY_PAGEDOWN:
+		return 1
+	return -1 if key_of(key) == KEY_PAGEUP else 0
+
+
+static func is_level_key(event: InputEvent) -> bool:
+	"""Whether `event` presses PgUp or PgDn, unmodified, its key's repeats too (Alt+PgUp/PgDn stay the camera's
+	pitch): in the U view every one is the tool's, so a held key never reaches the camera's zoom."""
+	var key := event as InputEventKey
+	return key != null and key.is_pressed() and not _modified(key) \
+			and (key_of(key) == KEY_PAGEDOWN or key_of(key) == KEY_PAGEUP)
+
+
+func _level_key(event: InputEvent) -> bool:
+	"""In the U view, a PgUp or PgDn press: show the level up or down (see THE SECOND LEVEL); its repeats are taken
+	and do nothing. True when taken."""
+	if not view.on or not is_level_key(event):
+		return false
+	var step := level_step(event)
+	if step != 0:
+		show_level(view.level + step)
+	return true
+
+
+func show_level(level: int) -> void:
+	"""Show `level` in the U view; the tool, open, lays on it now (a piece half laid on the other is dropped)."""
+	if not view.set_level(level):
+		return
+	_say(LEVEL_SHOWN % view.level)
+	_relay()
+
+
+func laying_level() -> int:
+	"""The level the tool lays on: the U view's, or with the view off level 1 (see THE SECOND LEVEL)."""
+	return view.level if view.on else Rules.TOP_LEVEL
+
+
+func _relay() -> void:
+	"""The level laid on changed: the tool, open, drops a piece half laid and lays on `laying_level` now."""
+	if not planning:
+		return
+	plan.clear()
+	_ghost_at = Vector2.INF
+	_sync_plan_level()
+	if room.active:
+		room.set_level(laying_level())
+	_redraw()
+
+
+func _sync_plan_level() -> void:
+	"""The plan's level and link from the tool's: a link's head is always on level 1; the ghost on the level laid on."""
+	plan.link_kind = link_kind
+	plan.level = Rules.TOP_LEVEL if link_kind != Rules.LINK_NONE else laying_level()
+	overlay.set_plan_level(laying_level())
+
+
+func cycle_link() -> int:
+	"""L in the tool: tunnels -> a ramp down -> stairs down -> tunnels (see THE SECOND LEVEL). Returns the kind now."""
+	link_kind = (link_kind + 1) % (Rules.LINK_STAIRS + 1)
+	plan.clear()
+	_ghost_at = Vector2.INF
+	_sync_plan_level()
+	_say(plan_status())
+	_redraw()
+	return link_kind
+
+
+static func _shift_only_non_letter(event: InputEventKey) -> bool:
+	"""Whether only Shift is held with a key that is not a letter (Shift+Enter still digs)."""
+	var key := key_of(event)
+	return event.shift_pressed and not (event.ctrl_pressed or event.alt_pressed or event.meta_pressed) \
+			and not (key >= KEY_A and key <= KEY_Z)
 
 
 static func _modified(event: InputEventKey) -> bool:
@@ -349,7 +450,10 @@ func _plan_input(event: InputEvent) -> bool:
 
 func _plan_key(event: InputEventKey) -> bool:
 	"""Enter digs, Backspace takes a point back, Esc drops the piece (or closes the tool), B or T closes it,
-	U switches the view, Shift while dragging drops a bend."""
+	U switches the view, Shift while dragging drops a bend. A key held with Ctrl, Cmd or Alt -- or a letter with Shift --
+	is not the tool's."""
+	if _modified(event) and not (key_of(event) == KEY_SHIFT or _shift_only_non_letter(event)):
+		return false
 	match key_of(event):
 		KEY_ENTER, KEY_KP_ENTER:
 			confirm()
@@ -365,6 +469,8 @@ func _plan_key(event: InputEventKey) -> bool:
 			begin_room(RoomsScript.TEMPLATE_HOME)
 		KEY_C:
 			begin_room(RoomsScript.TEMPLATE_CELLAR)
+		KEY_L:
+			cycle_link()
 		KEY_SHIFT:
 			return _bend_here()
 		_:
@@ -400,6 +506,8 @@ func begin_room(kind: int) -> bool:
 	if room.active and room.plan.kind == kind:
 		end_room()
 		return false
+	link_kind = Rules.LINK_NONE
+	_sync_plan_level()
 	plan.clear()
 	overlay.hide_plan()
 	room.begin(kind, room_site())
@@ -439,6 +547,12 @@ func room_site() -> RoomsScript.Site:
 
 func _escape() -> void:
 	"""Esc: drop the piece being laid, or close the tool when there is none."""
+	if plan.count == 0 and link_kind != Rules.LINK_NONE:
+		link_kind = Rules.LINK_NONE
+		_sync_plan_level()
+		_say(PLAN_FIRST)
+		_redraw()
+		return
 	if plan.count == 0:
 		cancel_plan()
 		return
@@ -501,12 +615,15 @@ func _hover(screen: Vector2) -> void:
 
 func toggle_view() -> void:
 	"""Switch the underground view (one cull-mask write, tunnel_view.gd); switched back, the notice it
-	replaced returns."""
+	replaced returns. The tool, open, lays on the level now shown (`laying_level`)."""
+	var was := laying_level()
 	if view.toggle():
 		_before_view = _last_notice
 		_say(VIEW_ON)
-	elif _last_notice == VIEW_ON:
+	elif _last_notice == VIEW_ON or _last_notice.begins_with(LEVEL_SHOWN.left(20)):
 		_say(_before_view)
+	if laying_level() != was:
+		_relay()
 
 
 # --- the tool -------------------------------------------------------------------------------
@@ -522,8 +639,8 @@ func toggle_plan() -> bool:
 
 
 func begin_plan() -> bool:
-	"""Open the Dig tool (see CONTROLS), showing the cutaway -- or refuse, saying why: nobody in the village
-	can dig, or the network is full. Any HUD button's focus is released, so nothing but the tool hears the
+	"""Open the Dig tool (see CONTROLS), showing the cutaway -- turned on before the plan takes its level, so it lays
+	on the level shown -- or refuse, saying why: nobody in the village can dig, or the network is full. Any HUD button's focus is released, so nothing but the tool hears the
 	Enter that digs."""
 	if not _any_digger():
 		_refuse(Rules.REFUSE_NOT_A_DIGGER)
@@ -535,12 +652,14 @@ func begin_plan() -> bool:
 		get_viewport().gui_release_focus()
 	planning = true
 	ext.set_planning(true)
-	plan.clear()
-	_refresh_clearances()
-	_has_cursor = false
 	_view_before_tool = view.on
 	if not view.on:
 		view.set_on(true)
+	link_kind = Rules.LINK_NONE
+	_sync_plan_level()
+	plan.clear()
+	_refresh_clearances()
+	_has_cursor = false
 	_redraw()
 	_say(PLAN_FIRST)
 	return true
@@ -574,7 +693,7 @@ func lay_at(screen: Vector2) -> bool:
 func lay_ground(at: Vector2) -> bool:
 	"""Lay the next point at (x, z) metres, snapped to the network where it lies on or near it (see SNAPPING
 	AND THE GHOST); a refused point is marked clay with its reason."""
-	var kind := PlanScript.snap_into(network, Vector2i(Rules.to_u(at.x), Rules.to_u(at.y)), _snap)
+	var kind := PlanScript.snap_into(network, Vector2i(Rules.to_u(at.x), Rules.to_u(at.y)), _snap, plan.level_of_point(plan.count))
 	var reason := plan.try_add_snapped(_snap[2], _snap[3], kind, _snap[1], _bounds_u, _circles_u, _spots_u, _under_u)
 	if reason != Rules.REFUSE_NONE:
 		_mark.call(Vector3(at.x, 0.0, at.y), false)
@@ -588,11 +707,13 @@ func lay_ground(at: Vector2) -> bool:
 
 func plan_status() -> String:
 	"""What the panel says while a piece is being laid."""
+	if plan.count == 0 and link_kind != Rules.LINK_NONE:
+		return LINK_FIRST % [Rules.LINK_NAMES[link_kind], "stairs" if link_kind == Rules.LINK_RAMP else "back to tunnels"]
 	if plan.count == 0:
 		return PLAN_FIRST
 	var points := "1 point" if plan.count == 1 else "%d points" % plan.count
 	var status := PLAN_MORE % [points, PlanScript.length_text(plan.length_u())]
-	return status if plan.count < 2 else "%s · %s" % [status, ext.route_ground(plan.points_u, plan.count)]
+	return status if plan.count < 2 else "%s · %s" % [status, ext.route_ground(plan.points_u, plan.count, plan.level)]
 
 
 func undo_point() -> void:
@@ -653,7 +774,8 @@ func _redraw() -> void:
 	var snap := SpecScript.END_NEW_MOUTH
 	var cursor := _cursor
 	if _has_cursor:
-		snap = PlanScript.snap_into(network, Vector2i(Rules.to_u(_cursor.x), Rules.to_u(_cursor.y)), _snap)
+		snap = PlanScript.snap_into(network, Vector2i(Rules.to_u(_cursor.x), Rules.to_u(_cursor.y)), _snap,
+			plan.level_of_point(plan.count))
 		cursor = Vector2(Rules.to_m(_snap[2]), Rules.to_m(_snap[3]))
 		_check_ghost(cursor, snap)
 	overlay.show_ghost(plan, cursor, _has_cursor, snap, _ghost_refusal != Rules.REFUSE_NONE, _ghost_words)
@@ -769,7 +891,7 @@ func _send(digger: int, now: bool) -> void:
 	var length := PlanScript.length_text(_piece_length_u(_ref[2]))
 	if not now:
 		_sync_seen()
-		_say(DIG_QUEUED % [length, (_cast.actor(digger) as DemoActorScript).display_name])
+		_say(_link_worded(DIG_QUEUED % [length, (_cast.actor(digger) as DemoActorScript).display_name]))
 		return
 	network.start_dig(first, _ref[1], digger)
 	_brain(digger).order_dig(first, _ref[1])
@@ -779,7 +901,14 @@ func _send(digger: int, now: bool) -> void:
 	_mark.call(_start3(first), true)
 	var ticks := PackedInt32Array([0, 0])
 	network.piece_ticks_into(_ref[2], ticks)
-	_say(DIG_STARTED % [length, _piece_quanta(_ref[2]), _finished_spoil_u(_ref[2]), ticks[1] / Rules.TICKS_PER_SECOND])
+	_say(_link_worded(DIG_STARTED % [length, _piece_quanta(_ref[2]), _finished_spoil_u(_ref[2]), ticks[1] / Rules.TICKS_PER_SECOND]))
+
+
+func _link_worded(words: String) -> String:
+	"""A dig's notice naming what the piece just stored is: a tunnel, or a ramp or stairs down (`_ref`'s first
+	segment's link kind)."""
+	var kind: int = network.seg_link[_ref[0]]
+	return words if kind == Rules.LINK_NONE else words.replace(" tunnel", " " + LINK_WORD[kind])
 
 
 func _piece_length_u(p: int) -> int:
@@ -986,12 +1115,14 @@ func select_tunnel_at(screen: Vector2) -> bool:
 
 
 func entrance_near(at: Vector2) -> int:
-	"""The unfinished segment, next of its piece to dig, whose start is nearest `at` within RESUME_PICK_M, or
-	-1."""
+	"""The unfinished segment, next of its piece to dig, whose start -- on the level the view shows (decision 0212) -- is
+	nearest `at` within RESUME_PICK_M, or -1."""
 	var best := -1
 	var best_d := RESUME_PICK_M
+	var level := laying_level()
 	for slot in Rules.MAX_SEGMENTS:
-		if not network.is_unfinished(slot) or not _next_to_dig(slot):
+		if not network.is_unfinished(slot) or not _next_to_dig(slot) \
+				or not PlanScript.on_level_or_mouth(network, network.node_a[slot], level):
 			continue
 		var d := network.end_at(slot, false).distance_to(at)
 		if d <= best_d:
@@ -1052,7 +1183,8 @@ func _announce(slot: int, was: int, now: int) -> void:
 	if now == GraphScript.PHASE_OPEN and was != GraphScript.PHASE_FREE and network.piece_done(network.piece[slot]):
 		_opened.append(network.piece[slot])
 		var r: int = network.seg_room[slot]
-		_say_about(ROOM_OPEN[network.rooms.template[r]] if r >= 0 else DIG_OPEN, slot)
+		var words := LINK_OPEN[network.seg_link[slot]] if network.seg_kind[slot] == GraphScript.SEG_LINK else DIG_OPEN
+		_say_about(ROOM_OPEN[network.rooms.template[r]] if r >= 0 else words, slot)
 	elif now == GraphScript.PHASE_PAUSED and network.pause_reason[slot] == GraphScript.PAUSED_UNREACHED:
 		_say_about(DIG_UNREACHED % network.piece_percent(network.piece[slot]), slot)
 	elif now == GraphScript.PHASE_PAUSED:

@@ -89,13 +89,13 @@ func set_under(under_u: PackedInt32Array) -> void:
 
 # --- selecting ------------------------------------------------------------------------------
 
-func pick_into(at: Vector2, out: PackedInt32Array) -> bool:
-	"""The finished segment nearest `at` within PICK_M of its route (or MOUTH_PICK_M of a mouth it opens
-	at), into out[0]. False when none is that near."""
+func pick_into(at: Vector2, out: PackedInt32Array, level: int = Rules.TOP_LEVEL) -> bool:
+	"""The finished segment on `level` nearest `at` within PICK_M of its route (or MOUTH_PICK_M of a mouth it opens
+	at), into out[0] -- a link down is on both levels it joins (decision 0212). False when none is that near."""
 	var best_d := PICK_M
 	var found := false
 	for slot in Rules.MAX_SEGMENTS:
-		if not _network.is_open(slot) or _network.seg_room[slot] >= 0:
+		if not _network.is_open(slot) or _network.seg_room[slot] >= 0 or not on_level(slot, level):
 			continue
 		var d := _network.distance_to_route(slot, at)
 		for end in 2:
@@ -108,9 +108,15 @@ func pick_into(at: Vector2, out: PackedInt32Array) -> bool:
 	return found
 
 
-func select_at(at: Vector2) -> bool:
-	"""Select the finished tunnel under `at`. False (the selection kept) when none is there."""
-	if not pick_into(at, _pick):
+func on_level(slot: int, level: int) -> bool:
+	"""Whether segment `slot` is seen on `level`: its own, or -- a link -- either it joins."""
+	var own: int = _network.seg_level[slot]
+	return own == level or (_network.seg_kind[slot] == GraphScript.SEG_LINK and own + 1 == level)
+
+
+func select_at(at: Vector2, level: int = Rules.TOP_LEVEL) -> bool:
+	"""Select the finished tunnel on `level` under `at`. False (the selection kept) when none is there."""
+	if not pick_into(at, _pick, level):
 		return false
 	select(_pick[0])
 	return true

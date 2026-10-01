@@ -24,6 +24,9 @@ extends Node3D
 ## bubbles -- their own pools from before the revamp, sized for the whole sky or a felled tree, not the warren's.
 ##
 ## Everything runs on the demo clock (`set_speed`): paused, a clod hangs where it is.
+## THE BUDGET IS VILLAGE-WIDE (decision 0212): the second level shares these pools -- its faces take the same
+## FACE_SLOTS, its hazards the same HAZARD_SLOTS. An emitter below is put on the layer of the level it emits on
+## (demo_layers.gd `level_at`) each time it is given a place, so each level's view draws only its own.
 
 const Layers := preload("res://demo/demo_layers.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
@@ -274,6 +277,7 @@ static func meshes() -> Array[Mesh]:
 func burst_clods(slot: int, at: Vector3, toward: Vector3) -> void:
 	"""Face slot `slot` throws a burst of clods off the face at `at`, back along `toward` (the way out of the bore)."""
 	var p := _clods[slot]
+	p.layers = Layers.below(Layers.level_at(at.y))
 	p.position = at
 	p.direction = (toward + Vector3.UP * 0.8).normalized()
 	p.restart()
@@ -304,6 +308,7 @@ func set_hazard(slot: int, sand: bool, at: Vector3, along: Vector3, half_m: floa
 	bore's heading `along` (off: none)."""
 	var p := _sand[slot] if sand else _drips[slot]
 	if on:
+		p.layers = Layers.below(Layers.level_at(at.y))
 		p.position = at
 		p.rotation = Vector3(0.0, atan2(along.x, along.z), 0.0)
 		p.emission_box_extents = Vector3(0.18, 0.02, maxf(half_m, 0.1))

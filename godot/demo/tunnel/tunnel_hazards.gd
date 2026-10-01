@@ -3,7 +3,9 @@ extends RefCounted
 ##
 ## Per SEGMENT of the network (underground_graph.gd, decision 0208): each is surveyed when it opens, a
 ## segment split by a new junction keeps its pressures on both halves (`split`), and a flood or a fall
-## closes the one segment it strikes.
+## closes the one segment it strikes. Each quantum is surveyed in the ground of its own level (decision 0212:
+## tunnel_ground.gd THE GROUND AT DEPTH), so a level-2 bore seeps only near the water table and strains only
+## through its sand.
 ##
 ## ---------------------------------------------------------------------------------------
 ## DETERMINISTIC, WARNED AND PREVENTABLE (DEC-040: "warned, preventable hazards ... rather than
@@ -88,7 +90,7 @@ func survey(slot: int) -> void:
 	for k in _network.timeline_count(slot):
 		var at := _network.quantum_point_u(slot, k)
 		var weak := _network.quantum_kind(slot, k) == GroundScript.SAND
-		wet_quanta[slot] += 1 if ground != null and ground.wet_at(at.x, at.y) else 0
+		wet_quanta[slot] += 1 if ground != null and ground.wet_at_level(at.x, at.y, _network.quantum_level(slot, k)) else 0
 		weak_quanta[slot] += 1 if weak else 0
 		run = run + 1 if weak else 0
 		if run > best_run:

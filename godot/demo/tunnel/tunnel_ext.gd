@@ -313,7 +313,7 @@ func set_view(view: ViewScript) -> void:
 	"""The underground view (decision 0206): its plane for every click, its cap for the rooms dug, and
 	its prewarm registry for everything these drawings show in it."""
 	_view = view
-	room_view.set_cap(view.cap)
+	room_view.set_cap(view.cap, view.caps[Rules.LEVEL_2])
 	marks.register(view.prewarm)
 	marks.lights.follow(func() -> bool: return view.on, view.focus)
 	room_view.register(view.prewarm)
@@ -421,10 +421,11 @@ func select_at_screen(screen: Vector2) -> bool:
 	tunnel under it, if any."""
 	if not _ground_at(screen):
 		return false
-	var r := room_at(_ground)
+	var level := shown_level()
+	var r := room_at(_ground, level)
 	if r >= 0:
 		select_room(r)
-	elif actions.select_at(_ground):
+	elif actions.select_at(_ground, level):
 		selected_room = -1
 	else:
 		return false
@@ -434,11 +435,16 @@ func select_at_screen(screen: Vector2) -> bool:
 	return true
 
 
-func room_at(at: Vector2) -> int:
-	"""The dug room whose void lies under `at` (m; -1: none)."""
+func shown_level() -> int:
+	"""The level a click picks on (decision 0212): the U view's, or on the surface level 1 (its mounds)."""
+	return _view.level if _view != null and _view.on else Rules.TOP_LEVEL
+
+
+func room_at(at: Vector2, level: int = Rules.TOP_LEVEL) -> int:
+	"""The dug room on `level` whose void lies under `at` (m; -1: none)."""
 	var rooms: RoomsScript = _network.rooms
 	for r in RoomsScript.MAX_ROOMS:
-		if rooms.is_done(_network, r) and rooms.gap_of(r, Vector2i(Rules.to_u(at.x), Rules.to_u(at.y))) == 0:
+		if rooms.is_done(_network, r) and rooms.level[r] == level and rooms.gap_of(r, Vector2i(Rules.to_u(at.x), Rules.to_u(at.y))) == 0:
 			return r
 	return -1
 
@@ -533,9 +539,9 @@ func crew_on_dig(slot: int, lead: int) -> int:
 	return actions.add_crew(slot, _selection.call() as PackedInt32Array, lead)
 
 
-func route_ground(points_u: PackedInt32Array, count: int) -> String:
-	"""What a route laid so far runs through, metre by metre: e.g. "through loam 6 m, rock 2 m -- rock
-	needs the badger"."""
+func route_ground(points_u: PackedInt32Array, count: int, level: int = Rules.TOP_LEVEL) -> String:
+	"""What a route laid so far on `level` runs through, metre by metre (that level's ground, decision 0212): e.g.
+	"through loam 6 m, rock 2 m -- rock needs the badger"."""
 	var metres := PackedInt32Array([0, 0, 0, 0])
 	for k in range(1, count):
 		var a := Vector2i(points_u[2 * k - 2], points_u[2 * k - 1])
@@ -543,7 +549,7 @@ func route_ground(points_u: PackedInt32Array, count: int) -> String:
 		var steps := maxi(1, Rules.isqrt(Rules.leg_squared_u(points_u, k)) / Rules.QUANTUM_U)
 		for s in steps:
 			var at := a + (b - a) * (2 * s + 1) / (2 * steps)
-			metres[works.ground.type_at(at.x, at.y)] += 1
+			metres[works.ground.type_at_level(at.x, at.y, level)] += 1
 	var parts := PackedStringArray()
 	for kind in 4:
 		if metres[kind] > 0:

@@ -66,8 +66,9 @@ func _draw(k: int) -> void:
 		return
 	var at := Vector2(Rules.to_m(_works.found_x_u[k]), Rules.to_m(_works.found_z_u[k]))
 	piece.mesh = _props.mesh_of(model)
-	piece.transform = Transform3D(Basis(Vector3.UP, TURN_PER_FIND * k), Vector3(at.x, floor_y(k, at), at.y)) \
-			* _props.fit_of(model)
+	var y := floor_y(k, at)
+	piece.transform = Transform3D(Basis(Vector3.UP, TURN_PER_FIND * k), Vector3(at.x, y, at.y)) * _props.fit_of(model)
+	piece.layers = Layers.below(Layers.level_at(y))
 
 
 func floor_y(k: int, at: Vector2) -> float:

@@ -139,6 +139,8 @@ panel, the Tunnels panel's "Burrow homes: 1 (3 demo beds)"). The demo relabels i
 | B (or T, or "Dig tunnel (B)") | The Dig tool: lay out tunnels and branches (below); again: close it. (B is the HUD's Build key, locked in the demo, so the demo takes it; the command strip says so) |
 | H / C in the Dig tool (or "Burrow home (H)" / "Root cellar (C)") | The room tools: place a burrow home or a root cellar as its own structure (see Burrow homes and root cellars) |
 | U | Underground view: a top-down section cut at the tunnels' level (see The underground view) |
+| PgUp / PgDn in the U view | Show level 1 / level 2 (see The second level). On the surface they stay the camera's zoom; Alt+PgUp/PgDn its pitch |
+| L in the Dig tool | Lay a link down to level 2: once a ramp, again stairs, again back to tunnels (see The second level) |
 | Left click a finished tunnel | Select it for the "Tunnels & burrows (demo)" panel (see below) |
 | Left click a dug home or cellar | Select it for its fit-out in the same panel (see Fit-out and living) |
 | Right click a tree, trunk, deadfall, stump, cleared spot or the sawhorse | The woods' verb for it (see The woods) |
@@ -264,8 +266,52 @@ Mac with a lit tunnel, from 278 ms).
   woods, the water and the spoil heaps are surface things.
 - **Prewarmed**: everything it can draw registers with `tunnel/underground_prewarm.gd` as it is built,
   and a sample of each is drawn for two frames behind the opening pause.
-- Later phases: the switch's crossfade and the second level (P6); the generated arch, door, chimney pot, root
-  bin, hanging stores, rug and crouch-walk clips replace the procedural ones (P7).
+- Later phases: the switch's crossfade; the generated arch, door, chimney pot, root bin, hanging stores, rug and
+  crouch-walk clips replace the procedural ones (P7). The second level is P6's (below).
+
+## The second level (decision 0212)
+
+The warren goes down a second level (design §3, §5 and §8 P6; Brendan's ruling: "Second level: build it in the
+demo now at the candidate 4 m spacing"). Its floor is **5.25 m** down -- level 1's 1.25 m and DEC-040's
+**candidate** 4 m spacing (`tunnel/tunnel_rules.gd LEVEL_SPACING_U`), a demo value that MOVE-G01..05 have not
+settled. Nothing opens onto it from the surface: it is reached only by a **link**.
+
+- **Links** (`tunnel_rules.gd` LINKS): in the Dig tool press **L** for a **ramp** down (L again: **stairs**; again:
+  back to tunnels). Press on level 1's network where it starts -- a junction, a ramp's foot, a room's free socket
+  or a bore's side -- and release where its foot lands: it snaps onto level 2's network there, or ends in a new
+  blind end to dig on from. A link is straight. A **ramp** is no steeper than 1:2.5 (eased at both ends): at least
+  10.9 m of run, at most 16 m, walked at walk pace along its slope. **Stairs** are 16 timber-fronted treads of
+  0.25 m rise: 5-8 m of run (4:5 at the steepest, 38.7°), less to dig but walked at half pace, and each quantum is a
+  quarter more work (the risers). Both are cut and costed by their slope. The ghost's words give its kind, run and
+  slope, quanta, hours, spoil and its risers or grade (`tunnel/dig_readout.gd`); refusals say why (its head off
+  level 1's network, a bend, too short or too long, a tunnel joining its slope, earth to keep from the tunnels it
+  passes while it is near their height).
+- **Level 2** (PgDn in the U view): the Dig tool lays tunnels on the level shown. A piece there starts on its
+  network (a link's foot, a junction, a bore) and may end blind; it keeps its pillar from level 2's voids and
+  crosses only level 2's bores. **Rooms** too (H, C): a level-2 room has no mound, no door or hatch on the
+  surface, no ramp -- its door is a socket its passage joins, and it is placed only with that passage (dug first;
+  call the digger away before either is begun and both are dropped, or the room alone and its door is left as the
+  passage's blind end). With the U view off the tool lays on level 1; U or PgUp/PgDn with the tool open re-lays on the
+  level now shown.
+  Voids on different levels never meet: the spacing keeps 1 m of earth or more between them; a link keeps its pillar
+  from each level only where its slope comes near that level's height.
+- **Deeper ground** (`tunnel/tunnel_ground.gd` THE GROUND AT DEPTH, demo values): level 2 has more clay and rock and
+  less sand, and is wet only within 2.5 m of the water (the water table) rather than 4.5 m -- so its bores seep only
+  near the water and strain only through their sand.
+- **Walking** (`tunnel/graph_paths.gd`): the routes' Dijkstra walks across the levels as through any segment; a
+  link's cost is its slope over its pace. Residents go down ramps and stairs with their feet planted (the walk at
+  the slope's pace, the body pitched with it, P1's), stooping by the bore; the night sends them to beds on level 2,
+  crews haul baskets up the links to the heap, evacuees and called-away diggers walk out up them, and a paused
+  level-2 dig is resumed through them. A cellar on level 2 is deep for the cool rule; a hearth warms it only on its
+  own level (never up or down a link).
+- **The view** (`tunnel/tunnel_view.gd` THE LEVELS): **PgUp/PgDn** show level 1 or level 2 -- one cull-mask write,
+  nothing built or re-materialed (each level has its own layers, `demo_layers.gd`). Each level has its own cap at its
+  own section with its own void mask and strata, and draws the **other level as a faint outline** only. A link is
+  drawn on both levels, each copy cut at its level's section; from level 1 its head is seen going down under the
+  cut, from level 2 its foot coming up through it. Clicks land on the shown level's floor. A strip under the alerts
+  says which level is shown; holding PgUp/PgDn never zooms in the U view. The camera's pivot stays at the ground. Residents on the other level, or on a link's hidden middle, are cream markers. The
+  surface's seams and vents, and a digger's mound, are level 1's only. Particles share P5's 200-particle budget and
+  face slots; lights go to the level shown.
 
 ## Burrow homes and root cellars
 
@@ -289,7 +335,7 @@ Rooms are their own structures on the network (decision 0209, `burrow/undergroun
   band; over the crop beds; under a building or the well; within 1 m of earth of another room; within 1 m
   of a tunnel, or its door ramp within a pillar of another's (join a tunnel at a socket instead); its mound,
   cutting or door on a tree, a heap, a prop, a work spot or a mouth;
-  off the village; and the second level (P6).
+  off the village. On level 2 only the void is tested, and it needs its passage (see The second level).
 - **Digging**: a room is one piece in the digger's job list, dug by the same diggers and crews as a
   tunnel: its door ramp and shaft, then its 24 quanta cell by cell out from the door, a crew at three
   faces; spoil heaps by its door. The shell grows in stages from the door as it is dug, and its name

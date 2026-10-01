@@ -24,6 +24,17 @@ extends RefCounted
 ##   * WEAK: sand is weak ground -- an unbraced bore through it can partly collapse
 ##     (tunnel_hazards.gd). WET ground can flood an unbraced bore in rain.
 ## Allocation: the grid is allocated once in _init(); every query is integer and allocates nothing.
+##
+## THE GROUND AT DEPTH (decision 0212, the second level). Level 2's floor lies the candidate 4 m lower
+## (tunnel_rules.gd LEVELS), and it has its own grid, `deep_cells`, laid the same way from its own patches --
+## DEMO VALUES, chosen so deeper means more clay and rock and less sand:
+##   * rock: the level-1 pockets at DEEP_ROCK_PERMILLE of their radius, and DEEP_ROCK_PATCHES more;
+##   * clay: the level-1 beds at DEEP_CLAY_PERMILLE, and DEEP_CLAY_PATCHES more;
+##   * sand: the level-1 lenses at DEEP_SAND_PERMILLE (the loose sand is a near-surface deposit);
+##   * WET only within DEEP_WET_REACH_U (2.5 m) of the waterline -- the water table -- rather than the surface's 4.5
+##     m: less seep near water unless close to it. The hazards read it (tunnel_hazards.gd): a level-2 bore floods
+##     only where it runs this close to the water, and strains only through its sand.
+## `type_at_level` / `wet_at_level` answer for a level; `type_at` / `wet_at` stay level 1's.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const WaterScript := preload("res://demo/village_water.gd")
@@ -52,11 +63,23 @@ const CLAY_PATCHES: Array[Vector3i] = [Vector3i(7168, -2048, 4096), Vector3i(-71
 const SAND_PATCHES: Array[Vector3i] = [Vector3i(-16384, 10240, 4608), Vector3i(12288, 12288, 3584),
 	Vector3i(-3072, 16384, 3072)]
 
+## THE GROUND AT DEPTH (see the header; demo values).
+const DEEP_ROCK_PERMILLE: int = 1500
+const DEEP_CLAY_PERMILLE: int = 1400
+const DEEP_SAND_PERMILLE: int = 500
+const DEEP_ROCK_PATCHES: Array[Vector3i] = [Vector3i(0, -8192, 2048), Vector3i(-12288, 2048, 2560),
+	Vector3i(14336, -6144, 2048)]
+const DEEP_CLAY_PATCHES: Array[Vector3i] = [Vector3i(0, 6144, 5120), Vector3i(-10240, -16384, 4096),
+	Vector3i(12288, 4096, 4608)]
+const DEEP_WET_REACH_U: int = 2560
+
 var origin_u: Vector2i = Vector2i.ZERO
 var columns: int = 0
 var rows: int = 0
 ## One byte per cell, row-major from origin_u (see the header).
 var cells: PackedByteArray = PackedByteArray()
+## Level 2's cells, the same layout (see THE GROUND AT DEPTH).
+var deep_cells: PackedByteArray = PackedByteArray()
 
 var _water: WaterScript = null
 
@@ -69,9 +92,11 @@ func _init(bounds_u: Rect2i = Rect2i(-20480, -20480, 40960, 40960), water: Water
 	columns = Rules.ceil_div(bounds_u.size.x, CELL_U)
 	rows = Rules.ceil_div(bounds_u.size.y, CELL_U)
 	cells.resize(columns * rows)
+	deep_cells.resize(columns * rows)
 	for r in rows:
 		for c in columns:
 			cells[r * columns + c] = _classify(_centre(c, r))
+			deep_cells[r * columns + c] = _classify_deep(_centre(c, r))
 
 
 func _centre(c: int, r: int) -> Vector2i:
@@ -89,6 +114,29 @@ func _classify(at: Vector2i) -> int:
 	elif _in_any(at, SAND_PATCHES):
 		kind = SAND
 	return kind | (WET_BIT if _water.near_water(at.x, at.y) else 0)
+
+
+func _classify_deep(at: Vector2i) -> int:
+	"""The byte for a level-2 cell centred at `at` (see THE GROUND AT DEPTH)."""
+	var kind := LOAM
+	if _in_any_scaled(at, ROCK_PATCHES, DEEP_ROCK_PERMILLE) or _in_any(at, DEEP_ROCK_PATCHES):
+		kind = ROCK
+	elif _in_any_scaled(at, CLAY_PATCHES, DEEP_CLAY_PERMILLE) or _in_any(at, DEEP_CLAY_PATCHES):
+		kind = CLAY
+	elif _in_any_scaled(at, SAND_PATCHES, DEEP_SAND_PERMILLE):
+		kind = SAND
+	return kind | (WET_BIT if _water.map().inside_margin_u(at) > -DEEP_WET_REACH_U else 0)
+
+
+static func _in_any_scaled(at: Vector2i, patches: Array[Vector3i], permille: int) -> bool:
+	"""Whether `at` lies inside any patch's roughened disc, its radius scaled by `permille`."""
+	for patch in patches:
+		var reach := patch.z * permille / Rules.PERMILLE + wobble_u(at)
+		var dx := at.x - patch.x
+		var dz := at.y - patch.y
+		if dx * dx + dz * dz < reach * reach:
+			return true
+	return false
 
 
 static func wobble_u(at: Vector2i) -> int:
@@ -126,6 +174,21 @@ func type_at(x_u: int, z_u: int) -> int:
 func wet_at(x_u: int, z_u: int) -> bool:
 	"""Whether the ground at (x_u, z_u) is wet."""
 	return cells[cell_of(x_u, z_u)] & WET_BIT != 0
+
+
+func cell_byte(x_u: int, z_u: int, level: int) -> int:
+	"""The whole byte (type and wet bit) at (x_u, z_u) on `level` (level 2 its own grid; any other level 1's)."""
+	return (deep_cells if level == Rules.LEVEL_2 else cells)[cell_of(x_u, z_u)]
+
+
+func type_at_level(x_u: int, z_u: int, level: int) -> int:
+	"""The ground type at (x_u, z_u) on `level` (see THE GROUND AT DEPTH)."""
+	return cell_byte(x_u, z_u, level) & TYPE_MASK
+
+
+func wet_at_level(x_u: int, z_u: int, level: int) -> bool:
+	"""Whether the ground at (x_u, z_u) on `level` is wet (see THE GROUND AT DEPTH)."""
+	return cell_byte(x_u, z_u, level) & WET_BIT != 0
 
 
 static func dig_ticks(kind: int) -> int:

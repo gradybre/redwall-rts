@@ -149,6 +149,7 @@ func _show(k: int) -> void:
 		lantern_at.y = _network.floor_y_at(slot, maxf(_network.face_m(slot) - LANTERN_BACK_M, 0.0))
 	_lanterns[k].position = lantern_at
 	_lanterns[k].rotation = Vector3(0.0, atan2(_back.x, _back.z), 0.0)
+	_lanterns[k].layers = Layers.below(Layers.level_at(lantern_at.y))
 	_lanterns[k].visible = true
 	_lights.set_face_spot(k, lantern_at + Vector3(0.0, LIGHT_LIFT_M, 0.0), true)
 	var cuts := _network.cut_count(slot)
@@ -167,7 +168,7 @@ func _face_frame(slot: int) -> void:
 		var digger := _space.resident_position[d]
 		var door := _network.node_m(_network.node_a[slot])
 		var back := (door - digger).normalized() if door.distance_to(digger) > 0.01 else Vector2(0.0, -1.0)
-		_at = Vector3(digger.x, Layers.FLOOR_Y_M, digger.y)
+		_at = Vector3(digger.x, Layers.floor_y(_network.seg_level[slot]), digger.y)
 		_back = Vector3(back.x, 0.0, back.y)
 	else:
 		var along := _network.face_m(slot)
@@ -181,7 +182,7 @@ func _clod_at(slot: int) -> Vector3:
 	"""Where a cut's clods burst from: a room's cell being cut, else just off the bore's face, CLOD_LIFT_M up."""
 	if _network.is_room_body(slot):
 		var cell := _network.quantum_point_u(slot, mini(_network.face_quantum(slot), _network.timeline_count(slot) - 1))
-		return Vector3(Rules.to_m(cell.x), Layers.FLOOR_Y_M + CLOD_LIFT_M, Rules.to_m(cell.y))
+		return Vector3(Rules.to_m(cell.x), Layers.floor_y(_network.seg_level[slot]) + CLOD_LIFT_M, Rules.to_m(cell.y))
 	return _at + _back * CLOD_OFF_M + Vector3(0.0, CLOD_LIFT_M, 0.0)
 
 

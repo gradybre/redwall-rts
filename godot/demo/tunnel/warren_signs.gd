@@ -14,6 +14,9 @@ extends Node3D
 ## VENT_SPACING_M of its stretch under the ground, evenly spaced, none within VENT_CLEAR_M of its ends or on a crop bed
 ## (farm_catalog.gd's beds). They stand as long as the tunnel does: one MultiMesh for every vent, placed again only when
 ## the network changes. (The mouths' hung lanterns are tunnel_mouth.gd's.)
+##
+## THE TOP LEVEL ONLY (decision 0212). Seams and vents are the signs of level 1's tunnels (`signed`): a tunnel on the
+## second level, or a link down to it, lies too deep to mark the turf, and its signs are never drawn over level 1's.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
@@ -185,10 +188,16 @@ func _refresh_seam(slot: int, today: float) -> void:
 		_build_seam(slot, today)
 
 
+func signed(slot: int) -> bool:
+	"""Whether segment `slot` shows on the surface (see THE TOP LEVEL ONLY): a tunnel on level 1, not a link."""
+	return _network.is_tunnel(slot) and _network.seg_level[slot] == Rules.TOP_LEVEL \
+			and _network.seg_kind[slot] != GraphScript.SEG_LINK
+
+
 func seam_key(slot: int) -> int:
 	"""What a segment's seam depends on but its age, as one number (-1: no seam -- no tunnel, or none of it dug): its
 	generation, class, length and how far it is dug, by SEAM_STEP_M."""
-	if not _network.is_tunnel(slot) or _network.done(slot) <= 0:
+	if not signed(slot) or _network.done(slot) <= 0:
 		return -1
 	var steps := floori(dug_m(slot) / SEAM_STEP_M)
 	return ((_network.generation[slot] * 4 + int(_network.bore[slot])) * 65536 + _network.length_u[slot]) * 256 + steps % 256
@@ -276,7 +285,7 @@ func _place_vents() -> void:
 	"""Every open tunnel's vents (see AIR VENTS)."""
 	var count := 0
 	for slot in Rules.MAX_SEGMENTS:
-		if not _network.is_tunnel(slot) or not _network.is_open(slot) or _network.length_m(slot) < VENT_MIN_M:
+		if not signed(slot) or not _network.is_open(slot) or _network.length_m(slot) < VENT_MIN_M:
 			continue
 		var span := _stretch(slot)
 		var usable := span.y - span.x - 2.0 * VENT_CLEAR_M

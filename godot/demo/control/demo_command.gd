@@ -305,7 +305,7 @@ func _build_marks(count: int) -> void:
 func _mark_node(colour: Color, below: bool) -> MeshInstance3D:
 	"""One ring mark on the surface's marks layer -- or, `below`, the U view's, drawn over the cap."""
 	var ring := MarksScript.make_ring(colour)
-	ring.layers = Layers.UNDERGROUND_MARKS if below else Layers.SURFACE_MARKS
+	ring.layers = Layers.MARKS_ALL if below else Layers.SURFACE_MARKS
 	if below:
 		var material := ring.material_override as StandardMaterial3D
 		material.no_depth_test = true
@@ -550,9 +550,9 @@ static func proxy_into(brain: BrainScript, foot: Vector3, height: float, below_s
 		out: PackedFloat32Array) -> void:
 	"""One resident's pick proxy where it is seen (see PICKING) into out: foot x, y, z, height, radius.
 	On the surface, or underground in the underground view: its body where it is drawn -- except a
-	resident on the surface in the underground view, which is its marker on the level's floor.
-	Underground otherwise: a digging mole as its mound -- on the ground, the mound's drawn radius from
-	`eye` -- and anyone else not at all (radius 0). Asleep inside the hall (not drawn), not at all."""
+	resident on the surface, or on another level than the U view shows (decision 0212), which is its marker on the
+	shown level's floor. Underground otherwise: a digging mole as its mound -- on the ground, the mound's drawn
+	radius from `eye` -- and anyone else not at all (radius 0). Asleep inside the hall (not drawn), not at all."""
 	out[0] = foot.x
 	out[1] = foot.y
 	out[2] = foot.z
@@ -560,8 +560,8 @@ static func proxy_into(brain: BrainScript, foot: Vector3, height: float, below_s
 	out[4] = brain.radius if not brain.indoors else 0.0
 	if brain.indoors:
 		return
-	if below_seen and not brain.underground:
-		out[1] = Layers.FLOOR_Y_M
+	if below_seen and brain.view_level() != Layers.active_level:
+		out[1] = Layers.view_floor_y()
 		out[3] = MARKER_PICK_HEIGHT_M
 		out[4] = DemoActorScript.MARKER_RADIUS_M + DemoActorScript.MARKER_EDGE_M
 		return
@@ -599,7 +599,7 @@ func order_at(at: Vector2) -> bool:
 func order_along(origin: Vector3, direction: Vector3) -> bool:
 	"""Order the selection to where a unit ray meets the view's plane -- the ground, or the level's floor
 	in the underground view (see PICKING). False when it misses the plane."""
-	var ground: Vector2 = Layers.pick_ground(origin, direction, Layers.pick_y(underground_view()))
+	var ground: Vector2 = Layers.pick_ground(origin, direction, Layers.pick_y(underground_view(), Layers.active_level))
 	if ground == Vector2.INF:
 		return false
 	return order_to(Vector3(ground.x, 0.0, ground.y))
@@ -629,7 +629,7 @@ func mark(at: Vector3, accepted: bool) -> void:
 	_marker_colour[i] = MarksScript.ORDERED if accepted else MarksScript.REFUSED
 	_markers[i].position = Vector3(at.x, MarksScript.LIFT_M, at.z)
 	_markers[i].visible = true
-	_markers_below[i].position = Vector3(at.x, Layers.FLOOR_Y_M + Layers.MARK_LIFT_M, at.z)
+	_markers_below[i].position = Vector3(at.x, Layers.view_floor_y() + Layers.MARK_LIFT_M, at.z)
 	_markers_below[i].visible = true
 
 
@@ -687,10 +687,10 @@ func _put_ring(ring: MeshInstance3D, at: Vector3, brain: BrainScript, pulse: flo
 
 
 static func _put_ring_below(ring: MeshInstance3D, brain: BrainScript, pulse: float) -> void:
-	"""The U view's ring under a resident: on the bore floor it stands on, or -- on the surface -- round
-	its marker on the level's floor (see MARKS)."""
+	"""The U view's ring under a resident: on the bore floor it stands on, or -- on the surface or another level
+	than the U view shows -- round its marker on the shown level's floor (see MARKS)."""
 	var r := (brain.radius + RING_GAP_M) * pulse
-	var floor_y: float = brain.ground_y_m if brain.underground else Layers.FLOOR_Y_M
+	var floor_y: float = brain.ground_y_m if brain.view_level() == Layers.active_level else Layers.view_floor_y()
 	ring.position = Vector3(brain.position.x, floor_y + Layers.MARK_LIFT_M, brain.position.y)
 	ring.scale = Vector3(r, 1.0, r)
 

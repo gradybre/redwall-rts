@@ -276,16 +276,19 @@ func test_the_fixture_home_may_be_dug() -> void:
 	"""5 m from the main tunnel, its door facing away: nothing refuses it."""
 	var graph := GraphScript.new()
 	_main(graph)
-	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, HOME_AT, HOME_TURNS, Rules.BUILDABLE_LEVEL),
+	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, HOME_AT, HOME_TURNS, Rules.TOP_LEVEL),
 		RoomsScript.REFUSE_NONE, "may be dug")
 
 
-func test_only_the_first_level_is_dug() -> void:
-	"""A room carries a level; level 2 (P6) is refused in words."""
+func test_only_the_two_levels_are_dug() -> void:
+	"""A room carries a level; level 1 and level 2 may be dug (decision 0212), and no other, refused in words."""
 	var graph := GraphScript.new()
-	var reason := graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, HOME_AT, HOME_TURNS, Rules.LEVEL_2)
-	assert_equal(reason, RoomsScript.REFUSE_LEVEL, "level 2")
-	assert_true(RoomsScript.reason_text(reason).contains("first level"), "said")
+	for bad: int in [Rules.LEVEL_SURFACE, Rules.LEVEL_2 + 1]:
+		var reason := graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, HOME_AT, HOME_TURNS, bad)
+		assert_equal(reason, RoomsScript.REFUSE_LEVEL, "level %d" % bad)
+		assert_true(RoomsScript.reason_text(reason).contains("first or the second"), "said")
+	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, HOME_AT, HOME_TURNS, Rules.LEVEL_2),
+		RoomsScript.REFUSE_NONE, "level 2 may be dug")
 
 
 func test_eight_rooms_fill_the_rooms_and_twenty_four_mouths_the_network() -> void:
@@ -294,12 +297,12 @@ func test_eight_rooms_fill_the_rooms_and_twenty_four_mouths_the_network() -> voi
 	for k in RoomsScript.MAX_ROOMS:
 		_home(graph, Vector2i(-18000 + 4600 * k, -15000), 0)
 	var at := Vector2i(0, 12000)
-	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, at, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_FULL, "full")
+	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, at, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_FULL, "full")
 	var full := GraphScript.new()
 	var ref := PackedInt32Array([-1, 0, -1])
 	for k in Rules.MAX_MOUTHS / 2:
 		assert_true(full.add_into(_route([Vector2i(-19000, -19000 + 1500 * k), Vector2i(-10808, -19000 + 1500 * k)]), 2, 0, ref), "tunnel %d" % k)
-	assert_equal(full.rooms.refusal(full, _site(), RoomsScript.TEMPLATE_HOME, at, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_NETWORK_FULL,
+	assert_equal(full.rooms.refusal(full, _site(), RoomsScript.TEMPLATE_HOME, at, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_NETWORK_FULL,
 		"no mouth row left")
 	assert_false(full.add_room(RoomsScript.TEMPLATE_HOME, at, 0, 0, PackedInt32Array([0, 0, 0, 0, 0])), "add_room refuses it too")
 
@@ -308,13 +311,13 @@ func test_a_room_keeps_inside_the_village() -> void:
 	"""Its mound (void and skirt) must lie inside the bounds, and its door too."""
 	var graph := GraphScript.new()
 	var edge := Vector2i(BOUNDS_U.end.x - 2764 + 1, 0)
-	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, edge, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_OUT_OF_BOUNDS,
+	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, edge, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_OUT_OF_BOUNDS,
 		"the mound over the edge by a unit")
 	var inside := Vector2i(BOUNDS_U.end.x - 2764, 0)
-	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, inside, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_NONE,
+	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, inside, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_NONE,
 		"just inside")
 	var low := Vector2i(0, BOUNDS_U.position.y + 2764)
-	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, low, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_OUT_OF_BOUNDS,
+	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, low, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_OUT_OF_BOUNDS,
 		"the mound inside, its door 6 m out over the edge")
 
 
@@ -323,9 +326,9 @@ func test_a_turned_cellar_keeps_its_length_inside_the_village() -> void:
 	its width's 1689 + 512), its door turned inward."""
 	var graph := GraphScript.new()
 	var edge := Vector2i(BOUNDS_U.end.x - 2560 + 1, 0)
-	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_CELLAR, edge, 3, Rules.BUILDABLE_LEVEL),
+	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_CELLAR, edge, 3, Rules.TOP_LEVEL),
 		RoomsScript.REFUSE_OUT_OF_BOUNDS, "over the edge by a unit")
-	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_CELLAR, edge - Vector2i(1, 0), 3, Rules.BUILDABLE_LEVEL),
+	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_CELLAR, edge - Vector2i(1, 0), 3, Rules.TOP_LEVEL),
 		RoomsScript.REFUSE_NONE, "just inside")
 
 
@@ -339,9 +342,9 @@ func test_a_room_needs_a_node_row_for_every_socket() -> void:
 			graph.node_kind[n] = GraphScript.NODE_JUNCTION
 			free -= 1
 	var at := Vector2i(0, 12000)
-	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_CELLAR, at, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_NONE,
+	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_CELLAR, at, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_NONE,
 		"a cellar fits")
-	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, at, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_NETWORK_FULL,
+	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, at, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_NETWORK_FULL,
 		"a home does not")
 
 
@@ -352,16 +355,16 @@ func test_a_room_is_not_dug_under_water_or_its_no_dig_band() -> void:
 	var site := _site()
 	var reach := 2252 + 512 + 1536
 	site.water = _pond(Vector2i(reach - 1, 0), 1536)
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_UNDER_WATER,
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_UNDER_WATER,
 		"the band reached")
 	site.water = _pond(Vector2i(reach, 0), 1536)
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_NONE,
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_NONE,
 		"a unit clear")
 	site.water = _pond(Vector2i(0, -4096), 600)
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_UNDER_WATER,
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_UNDER_WATER,
 		"its door ramp over water")
 	site.water = _pond(Vector2i(2200, 0), 100)
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_CELLAR, Vector2i.ZERO, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_UNDER_WATER,
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_CELLAR, Vector2i.ZERO, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_UNDER_WATER,
 		"a cellar's side")
 
 
@@ -371,16 +374,16 @@ func test_a_room_is_not_dug_under_the_crop_beds() -> void:
 	var graph := GraphScript.new()
 	var site := _site()
 	site.beds_u = PackedInt32Array([2252 + 512 + 1536 - 1, 1536, 0])
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_OVER_CROPS,
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_OVER_CROPS,
 		"over a bed")
 	site.beds_u = PackedInt32Array([2252 + 512 + 1536, 1536, 0])
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_NONE,
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_NONE,
 		"beside it")
 	site.beds_u = PackedInt32Array([0, 1536, -5500])
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_OVER_CROPS,
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_OVER_CROPS,
 		"the hood over a bed")
 	site.beds_u = PackedInt32Array([0, 1536, 1689 + 512 + 1536 - 1])
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_CELLAR, Vector2i.ZERO, 1, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_OVER_CROPS,
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_CELLAR, Vector2i.ZERO, 1, Rules.TOP_LEVEL), RoomsScript.REFUSE_OVER_CROPS,
 		"a turned cellar's side")
 
 
@@ -389,13 +392,13 @@ func test_a_room_is_not_dug_under_a_building() -> void:
 	var graph := GraphScript.new()
 	var site := _site()
 	site.under_u = PackedInt32Array([2252 + 512 + 2000 - 1, 2000, 0])
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_UNDER_BUILDING,
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_UNDER_BUILDING,
 		"under a building")
 	site.under_u = PackedInt32Array([2252 + 512 + 2000, 2000, 0])
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_NONE,
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_NONE,
 		"clear")
 	site.under_u = PackedInt32Array([1024 + 1000 - 1, 1000, -5000])
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_UNDER_BUILDING,
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_UNDER_BUILDING,
 		"the hood under it")
 
 
@@ -404,16 +407,16 @@ func test_a_room_keeps_a_metre_of_earth_from_another() -> void:
 	var graph := GraphScript.new()
 	_home(graph, Vector2i.ZERO, 0)
 	var rooms := graph.rooms
-	assert_equal(rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(2 * 2252 + 1023, 0), 0, Rules.BUILDABLE_LEVEL),
+	assert_equal(rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(2 * 2252 + 1023, 0), 0, Rules.TOP_LEVEL),
 		RoomsScript.REFUSE_NEAR_ROOM, "1023 of earth")
-	assert_equal(rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(2 * 2252 + 1024, 0), 0, Rules.BUILDABLE_LEVEL),
+	assert_equal(rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(2 * 2252 + 1024, 0), 0, Rules.TOP_LEVEL),
 		RoomsScript.REFUSE_NONE, "1024")
-	assert_equal(rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(3500, -5000), 0, Rules.BUILDABLE_LEVEL),
+	assert_equal(rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(3500, -5000), 0, Rules.TOP_LEVEL),
 		RoomsScript.REFUSE_NEAR_ROOM, "beside the other's door ramp")
 	assert_true(RoomsScript.reason_text(RoomsScript.REFUSE_NEAR_ROOM).contains("1 m of earth"), "said")
-	assert_equal(rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(6000, 3000), 3, Rules.BUILDABLE_LEVEL),
+	assert_equal(rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(6000, 3000), 3, Rules.TOP_LEVEL),
 		RoomsScript.REFUSE_NEAR_ROOM, "its own door ramp run past the other's void (3 m off its middle)")
-	assert_equal(rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(6000, 3000), 0, Rules.BUILDABLE_LEVEL),
+	assert_equal(rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(6000, 3000), 0, Rules.TOP_LEVEL),
 		RoomsScript.REFUSE_NONE, "turned away, it may go")
 
 
@@ -423,9 +426,9 @@ func test_a_room_s_door_ramp_keeps_a_metre_of_earth_from_another_s() -> void:
 	not."""
 	var graph := GraphScript.new()
 	_home(graph, Vector2i.ZERO, 1)
-	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(6144, 4608), 0, Rules.BUILDABLE_LEVEL),
+	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(6144, 4608), 0, Rules.TOP_LEVEL),
 		RoomsScript.REFUSE_NEAR_ROOM, "ramp across ramp")
-	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(6144, 9216), 0, Rules.BUILDABLE_LEVEL),
+	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(6144, 9216), 0, Rules.TOP_LEVEL),
 		RoomsScript.REFUSE_NONE, "its mouth 3 m clear of the other's")
 
 
@@ -435,10 +438,10 @@ func test_a_room_s_door_ramp_keeps_off_trees() -> void:
 	var graph := GraphScript.new()
 	var site := _site()
 	site.circles_u = PackedInt32Array([1200, 300, -4096])
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.BUILDABLE_LEVEL),
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.TOP_LEVEL),
 		RoomsScript.REFUSE_SURFACE_BLOCKED, "over the cutting")
 	site.circles_u = PackedInt32Array([1400, 300, -4096])
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.BUILDABLE_LEVEL),
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.TOP_LEVEL),
 		RoomsScript.REFUSE_NONE, "beside it")
 
 
@@ -448,10 +451,10 @@ func test_a_room_s_mound_keeps_off_work_spots() -> void:
 	var graph := GraphScript.new()
 	var site := _site()
 	site.spots_u = PackedInt32Array([2560, 410, 0])
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.BUILDABLE_LEVEL),
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.TOP_LEVEL),
 		RoomsScript.REFUSE_SURFACE_BLOCKED, "under the mound")
 	site.spots_u = PackedInt32Array([3277, 410, 0])
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.BUILDABLE_LEVEL),
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.TOP_LEVEL),
 		RoomsScript.REFUSE_NONE, "clear")
 
 
@@ -462,11 +465,11 @@ func test_a_room_keeps_a_metre_of_earth_from_a_tunnel() -> void:
 	_main(graph)
 	var rooms := graph.rooms
 	var clear := 2252 + 1024 + 512
-	assert_equal(rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(6144, clear - 1), 2, Rules.BUILDABLE_LEVEL),
+	assert_equal(rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(6144, clear - 1), 2, Rules.TOP_LEVEL),
 		RoomsScript.REFUSE_NEAR_TUNNEL, "a unit too near")
-	assert_equal(rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(6144, clear), 2, Rules.BUILDABLE_LEVEL),
+	assert_equal(rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(6144, clear), 2, Rules.TOP_LEVEL),
 		RoomsScript.REFUSE_NONE, "clear")
-	assert_equal(rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(6144, 5120), 0, Rules.BUILDABLE_LEVEL),
+	assert_equal(rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, Vector2i(6144, 5120), 0, Rules.TOP_LEVEL),
 		RoomsScript.REFUSE_NEAR_TUNNEL, "its door ramp across the tunnel")
 
 
@@ -475,14 +478,14 @@ func test_a_room_s_mound_and_door_keep_off_trees_heaps_and_spots() -> void:
 	var graph := GraphScript.new()
 	var site := _site()
 	site.circles_u = PackedInt32Array([2252 + 512 + 300 - 1, 300, 0])
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_SURFACE_BLOCKED,
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_SURFACE_BLOCKED,
 		"a tree under the mound")
 	site.circles_u = PackedInt32Array()
 	site.spots_u = PackedInt32Array([0, 512, -6144])
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_SURFACE_BLOCKED,
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_SURFACE_BLOCKED,
 		"a work spot on the door")
 	site.spots_u = PackedInt32Array([0, 512, -8000])
-	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.BUILDABLE_LEVEL), RoomsScript.REFUSE_NONE,
+	assert_equal(graph.rooms.refusal(graph, site, RoomsScript.TEMPLATE_HOME, Vector2i.ZERO, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_NONE,
 		"clear of it")
 
 
@@ -493,7 +496,7 @@ func test_every_refusal_has_its_own_words() -> void:
 		var words := RoomsScript.reason_text(code)
 		assert_false(words.is_empty() or seen.has(words), "code %d: its own words" % code)
 		seen.append(words)
-	assert_equal(RoomsScript.REASONS.size(), RoomsScript.REFUSE_SURFACE_BLOCKED + 1, "one per code")
+	assert_equal(RoomsScript.REASONS.size(), RoomsScript.REFUSE_NEEDS_PASSAGE + 1, "one per code")
 
 
 # --- a tunnel joins a room at a free socket (tunnel_plan.gd ROOMS) -----------------------------

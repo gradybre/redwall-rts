@@ -27,6 +27,12 @@ extends Node3D
 ## else the most skilled); the rest of the selection crews it. Its door must be clear of residents and, when
 ## the digger starts now, within its reach -- a tunnel's entrance's rules. Should its passage fail the rules
 ## once the room is laid (the network's last rows, say), the room stands alone and the notice says why.
+##
+## ON LEVEL 2 (decision 0212). The tool places rooms on the level the U view shows (PgUp/PgDn switches it and the
+## ghost with it). A room on level 2 has no door to the surface: its passage joins its door (room_plan.gd ON LEVEL
+## 2), is laid with it and dug FIRST (underground_graph.gd `adopt_passage`), the room after; it cannot stand
+## alone, so Shift+click is refused there, and a passage failing once the room is laid drops the room again. Its
+## ghost and words lie on level 2's floor on level 2's marks layer, and its outline has no door ramp.
 
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const RoomPlanScript := preload("res://demo/burrow/room_plan.gd")
@@ -60,6 +66,7 @@ const WITH_PASSAGE: String = ", then its passage"
 const WITHOUT_PASSAGE: String = " -- standalone: its passage may not be dug (%s)"
 const QUEUED: String = " after its present dig"
 const REFUSED: String = "Can't dig a room there: %s"
+const LOWER_PASSAGE: String = ", its passage first"
 
 var active: bool = false
 var plan: RoomPlanScript = RoomPlanScript.new()
@@ -185,11 +192,30 @@ func begin(kind: int, site: RoomsScript.Site) -> void:
 	"""Open the tool for rooms of template `kind`, over `site` (what a room must keep clear of)."""
 	active = true
 	plan.kind = kind
+	set_level(_control.laying_level())
 	_site = site
 	_site_key = _control.site_key()
 	_site_serial += 1
 	_checked = Vector4i(0, 0, 0, -1)
 	_control.say(PROMPT % RoomsScript.NAMES[kind])
+	_redraw()
+
+
+func set_level(level: int) -> void:
+	"""Place rooms on `level` (the U view's): the ghost's U-view copies on its floor and marks layer, checked afresh
+	(see ON LEVEL 2)."""
+	plan.level = level
+	var lift := Layers.floor_y(level)
+	for node: Node3D in [_ghost_below, _passage_below]:
+		node.position.y = lift
+		(node as VisualInstance3D).layers = Layers.marks(level)
+	for k in _rings.size():
+		if k % 2 == 1:
+			_rings[k].position.y = lift
+			_rings[k].layers = Layers.marks(level)
+	_label_below.position.y = lift + 0.6
+	_label_below.layers = Layers.marks(level)
+	_checked = Vector4i(0, 0, 0, -1)
 	_redraw()
 
 
@@ -280,7 +306,8 @@ func _ghost_words() -> String:
 	var digger: int = _control.choose_digger()
 	var to := _join_name() if plan.passage.count >= 2 else ""
 	return ReadoutScript.room_text(plan.kind, plan.centre_u, plan.turns, plan.passage, _control.ext.works.ground,
-		_control.crew_rate(digger, 1), _control.crew_rate(digger, RoomsScript.ROOM_FACES), _control.crew_size(digger), to)
+		_control.crew_rate(digger, 1), _control.crew_rate(digger, RoomsScript.ROOM_FACES), _control.crew_size(digger), to,
+		plan.level)
 
 
 func _join_name() -> String:
@@ -290,6 +317,8 @@ func _join_name() -> String:
 	var node := plan.passage.snap_ref[0]
 	if _network.is_node(node) and _network.node_kind[node] == GraphScript.NODE_RAMP_END:
 		return "a ramp's foot"
+	if _network.is_node(node) and _network.node_kind[node] == GraphScript.NODE_END:
+		return "a tunnel's end"
 	return "a junction"
 
 
@@ -299,7 +328,8 @@ func _draw_ghost() -> void:
 	var refused := plan.refusal != RoomsScript.REFUSE_NONE
 	var centre := Vector2(Rules.to_m(plan.centre_u.x), Rules.to_m(plan.centre_u.y))
 	var material := _materials[1 if refused else 0]
-	RoomViewScript.outline_into(_ghost.mesh as ImmediateMesh, material, plan.kind, centre, plan.turns, MarksScript.LIFT_M)
+	RoomViewScript.outline_into(_ghost.mesh as ImmediateMesh, material, plan.kind, centre, plan.turns, MarksScript.LIFT_M,
+		plan.level == Rules.TOP_LEVEL)
 	for node: MeshInstance3D in [_ghost, _ghost_below]:
 		node.material_override = material
 		node.visible = true
@@ -348,18 +378,44 @@ func place(standalone: bool) -> bool:
 	var digger: int = _control.choose_digger()
 	if refusal != RoomsScript.REFUSE_NONE:
 		return _refuse(RoomsScript.reason_text(refusal))
-	var hole := RoomsScript.mouth_at(plan.kind, plan.centre_u, plan.turns)
-	var entrance: int = _control.entrance_refusal(digger, Vector2(Rules.to_m(hole.x), Rules.to_m(hole.y)))
+	var entrance := _entrance_refusal(digger)
 	if entrance != Rules.REFUSE_NONE:
 		return _refuse(Rules.link_text(entrance, ""))
 	var ref := PackedInt32Array([0, 0, 0, 0, 0])
-	if not _network.add_room(plan.kind, plan.centre_u, plan.turns, digger, ref):
+	if not _network.add_room(plan.kind, plan.centre_u, plan.turns, digger, ref, plan.level):
 		return _refuse(RoomsScript.reason_text(RoomsScript.REFUSE_NETWORK_FULL))
 	var joined := _lay_passage(ref[0], digger)
+	if plan.level != Rules.TOP_LEVEL:
+		return _place_lower(ref, joined, digger)
 	_control.room_laid(ref[2], joined)
 	var now: bool = _control.start_room(ref[3], ref[4], digger)
 	_control.say(LAID % [RoomsScript.NAMES[plan.kind], ref[0] + 1, _control.digger_name(digger),
 		(WITH_PASSAGE if joined >= 0 else _passage_words) + ("" if now else QUEUED)])
+	_redraw()
+	return true
+
+
+func _entrance_refusal(digger: int) -> int:
+	"""Why the room's own way in may not be dug by `digger` (a tunnel's entrance's rules for its door or hatch on
+	level 1; on level 2, only that someone can dig -- its passage is checked as a piece)."""
+	if plan.level != Rules.TOP_LEVEL:
+		return Rules.REFUSE_NOT_A_DIGGER if digger < 0 else Rules.REFUSE_NONE
+	var hole := RoomsScript.mouth_at(plan.kind, plan.centre_u, plan.turns)
+	return _control.entrance_refusal(digger, Vector2(Rules.to_m(hole.x), Rules.to_m(hole.y)))
+
+
+func _place_lower(ref: PackedInt32Array, joined: int, digger: int) -> bool:
+	"""A room just laid on level 2 (see ON LEVEL 2): with its passage, the passage goes first and is started; without
+	one the room is dropped again and refused."""
+	if joined < 0:
+		_network.drop_unbroken(ref[2])
+		return _refuse(RoomsScript.reason_text(RoomsScript.REFUSE_NEEDS_PASSAGE) + _passage_words)
+	_network.adopt_passage(ref[2], joined)
+	_control.room_laid(ref[2], joined)
+	var first := _network.first_of_piece(joined)
+	var now: bool = _control.start_room(first, _network.generation[first], digger)
+	_control.say(LAID % [RoomsScript.NAMES[plan.kind], ref[0] + 1, _control.digger_name(digger),
+		LOWER_PASSAGE + ("" if now else QUEUED)])
 	_redraw()
 	return true
 
@@ -370,7 +426,8 @@ func _lay_passage(r: int, digger: int) -> int:
 	_passage_words = ""
 	if plan.passage.count < 2 or plan.passage_socket < 0:
 		return -1
-	plan.passage.snap_ref[1] = _network.rooms.socket_of(r, plan.passage_socket)
+	plan.passage.snap_ref[1] = _network.rooms.socket_of(r, plan.passage_socket) if plan.level == Rules.TOP_LEVEL \
+			else _network.rooms.door[r]
 	var reason := plan.passage.piece_reason(_network, _site.bounds_u, _site.circles_u, _site.spots_u, _site.under_u)
 	if reason == Rules.REFUSE_NONE:
 		var ref := PackedInt32Array([-1, 0, -1])

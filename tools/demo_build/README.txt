@@ -1,7 +1,8 @@
 REDWALL DEMO -- a small Mossflower village (Windows build)
 ==========================================================
 
-Built {built} from commit {commit} with Godot {godot}.
+Built {built} from commit {commit} with Godot {godot}: a {export} build.
+(A playtest build is a "debug" build: it reports errors into its log instead of closing.)
 
 
 HOW TO RUN

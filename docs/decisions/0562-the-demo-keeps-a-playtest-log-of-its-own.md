@@ -58,13 +58,14 @@ Windows build packs `demo/build_info.json`, so the header names the commit it wa
   structured: header, breadcrumbs, errors with their frames, heartbeats, freezes, marks and an end marker. Its rotation
   (`playtest-*`) never touches Godot's (`godot*.log`). The names sort by local start time and carry the process id,
   because live harnesses start in the same second.
-- **The ring allocates nothing per event.** It is six packed columns, sized once:
+- **The ring keeps no memory per event.** It is six packed columns, sized once:
   - real time, game tick, kind, and two ints;
   - a `StringName` tag, which is always an existing name, so storing it only takes a reference.
 
-  `test_recording_allocates_nothing` records 10,000 events after a warm-up and asserts zero change in static memory
-  and object count. Text is made only when lines are written: in a batch at most once a second, or in the dump after
-  a mark or a freeze.
+  `test_recording_retains_nothing` records 10,000 events after a warm-up and asserts zero change in static memory
+  and object count. That catches growth, not a temporary freed inside `record`: Godot has no allocation counter, so
+  "no allocation per event" rests on review of `record` (index writes into packed columns, no text). Text is made
+  only when lines are written: in a batch at most once a second, or in the dump after a mark or a freeze.
 - **Breadcrumbs come from public state, read each frame.** These are the input gate's `top_layer()`, the right
   column's `shown`, the underground view, the map layer, the notice feed's `revision`, and two new order counters on
   `demo_command.gd`. A change of value is one event. The alternative was to add a signal or hook to each owner.
@@ -92,16 +93,41 @@ Windows build packs `demo/build_info.json`, so the header names the commit it wa
   now fails without it, or when the log did not start. A project run asks git once; an export without the file says
   "unknown (no build info packed)".
 
+## Brendan's ruling: playtest builds are debug exports (2026-10-01)
+
+Brendan ruled that **playtest builds use the debug export**, while release stays available for final builds.
+
+- `tools/build_demo_windows.py` now exports with `--export-debug` on `windows_debug_x86_64.exe` by default. `--release`
+  exports on the release template. `build.json` records the mode (`export.mode`).
+- On the debug template a GDScript error is reported with its script frames and the game carries on, where release
+  ends the process at a null call with no word. `godot.log` is flushed on every line (`flush_stdout_on_print.debug`),
+  and the heartbeat's engine memory (`Performance.MEMORY_STATIC`, 0 in release) is real. The cost is GDScript speed:
+  a playtest build's frame times are not the release budget's.
+- The packed `demo/build_info.json` carries the mode (`"export": "debug"`), and the header quotes it ("abc1234 (built
+  ..., debug export)"). The pack's verification compares the packed commit and mode with the build's own and fails on
+  a mismatch: the verify step boots the pack with the editor binary, which is always a debug build, so the file is
+  the only witness of the template used.
+- **`always_track_call_stacks` stays off.** The debug template already gives every error its script frames; a release
+  build, which would need it, is a final build.
+- No Windows build or export was run for this; Brendan builds on request.
+
 ## Not done, and why
 
-- **The build still exports release.** A debug export (`--export-debug`, `windows_debug_x86_64.exe` is installed)
-  would turn a null call into a logged SCRIPT ERROR instead of a silent crash, and would add script frames to every
-  error. It would cost GDScript speed against the frame budgets, and the build verification has only ever been run
-  against release. That is Brendan's call for playtest builds. Until then, a release crash is explained by the
-  breadcrumbs, the last heartbeat and the next session's "did not end cleanly" line.
-- **`debug/settings/gdscript/always_track_call_stacks` was not turned on for `demo_build`.** It would give release
-  errors their script frames, at a cost on every call.
 - **No upload or crash reporter.** The tester sends the file.
+
+## After the independent review (8538e084)
+
+- **The freeze watch is tested as the process wires it.** Deleting `start_watch`'s `on_freeze`, `frame`'s beat or
+  `set_phase`'s threshold had left every test green. The thread test now goes through `start_watch` and `set_phase`
+  (with `running_freeze_usec` shortened), and a test checks that each frame beats the watch at the phase's threshold.
+- **The end marker is never dropped at the cap** (`write_final`), so a full file does not read as a crash.
+- **Headless runs log under `user://logs/headless`** (`PlaytestLog.default_dir`), so the live harnesses -- several
+  run at once on this machine -- never rotate a developer's own sessions away, nor each other's out from under a
+  check.
+- **A second `start_session` ends the first**, so its logger and thread never outlive it.
+- The live harness now writes the user-data and home folders into an error and checks both come out scrubbed.
+- The heartbeat says "n/a (release build)" for engine memory where Performance cannot count it, and reads the error
+  counts under their lock; rotation clamps `keep` to at least 1.
 
 ## Shared files touched
 
@@ -110,7 +136,8 @@ Windows build packs `demo/build_info.json`, so the header names the commit it wa
 - `demo/ui/demo_menu.gd`: the Settings section.
 - `demo/guide/help_topics.gd`: the topic, its command and F12.
 - `demo/control/demo_command.gd`: two order counters.
-- `tools/build_demo_windows.py`, `tools/godot/verify_demo_pack.gd`, `tools/demo_build/README.txt` and `.gitignore`.
+- `tools/build_demo_windows.py` (build info; the debug default and `--release`), `tools/godot/verify_demo_pack.gd`,
+  `tools/test_build_demo_windows.py`, `tools/demo_build/README.txt` and `.gitignore`.
 - `test/live/demo_input_live.gd`: five playtest-log steps (the mark over the menu, and the log surviving Restart).
 - `godot/demo/README.md` (For playtesters) and `docs/ENVIRONMENT.md` (the release-template findings).
 - `project.godot` is not touched.

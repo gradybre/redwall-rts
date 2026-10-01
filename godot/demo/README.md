@@ -23,7 +23,8 @@ Without staging it still runs, on placeholder shapes.
 
 ## Windows build
 
-`python3 tools/build_demo_windows.py --out <folder>` makes a standalone Windows copy -- a folder
+`python3 tools/build_demo_windows.py --out <folder>` makes a standalone Windows playtest copy (a debug export;
+`--release` for a final build, decision 0562) -- a folder
 with `RedwallDemo.exe`, its `.pck` and a README, zipped -- that boots straight into this scene
 (`docs/ENVIRONMENT.md` has the details and what it needs). Decision 0196 records the choices:
 
@@ -130,16 +131,17 @@ sends the file.
   fails if that file is missing, or if the log did not start.
 - The README in the zip says where the logs are.
 
-One finding matters for the build flag. On the 4.7.2 **release** template (measured with the macOS one, which runs the
-same engine code as Windows'):
+**Playtest builds are debug exports** (Brendan's ruling, 2026-10-01): `build_demo_windows.py` exports with
+`--export-debug` by default, and `--release` makes a final build on the release template. The reason, measured on the
+4.7.2 **release** template (the macOS one, which runs the same engine code as Windows'):
 
 - a method called on null **ends the process at once** (signal 11), with no message anywhere;
 - an out-of-range index raises nothing;
 - `print` output that has not been flushed is lost.
 
-The **debug** template reports both as SCRIPT ERRORs with script frames, and carries on. The build still exports
-release (`--export-release`); decision 0562 records the trade-off. With a release build, the breadcrumbs and the
-unclean-end note are what explain a crash.
+The **debug** template reports both as SCRIPT ERRORs with script frames, and carries on. The packed build info names
+the mode, the header quotes it, and the pack check fails when it is not the mode asked for (decision 0562). With a
+release build, the breadcrumbs and the unclean-end note are what explain a crash.
 
 ## Time
 

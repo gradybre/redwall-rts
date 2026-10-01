@@ -59,7 +59,7 @@ binary_format/architecture="x86_64"
 GOOD_REPORT = {"error": "", "main_scene": "res://demo/demo_village.tscn", "feature_demo_build": True,
 	"pack": {"manifest": True, "raw_png": 44, "s3tc_ctex": 337}, "stall_clock": 'PAUSED ["CRITICAL"]',
 	"stall_banner_shown": True, "after_resume_clock": "PLAYING []", "after_resume_banner_shown": False,
-	"ticks_after_resume": 30, "build_info": '{"commit": "abc1234"}',
+	"ticks_after_resume": 30, "build_info": '{"commit": "abc1234", "export": "debug"}',
 	"playtest_log": "playtest-2026-10-01_10-00-00-p1.log"}
 
 
@@ -130,12 +130,41 @@ def test_n03_the_version_and_the_playtest_log_must_be_in_the_pack() -> None:
 		check(f"N03 a report without {key} fails", build.verification_problems(missing, "") != [])
 
 
+def test_n03_the_packed_build_info_must_be_this_build() -> None:
+	expected = {"commit": "abc1234", "export": "debug"}
+	check("N03 this build's commit and mode pass", build.verification_problems(GOOD_REPORT, "", expected=expected) == [])
+	check("N03 another commit fails", build.verification_problems(GOOD_REPORT, "",
+		expected={**expected, "commit": "def5678"}) != [])
+	check("N03 a release pack for a debug build fails", build.verification_problems(GOOD_REPORT, "",
+		expected={**expected, "export": "release"}) != [])
+	check("N03 unreadable build info fails", build.verification_problems({**GOOD_REPORT, "build_info": "{"}, "",
+		expected=expected) != [])
+
+
+def test_playtest_builds_are_debug_and_release_is_asked_for() -> None:
+	check("the default is a debug export", build.export_mode(False) == "debug")
+	check("--release is a release export", build.export_mode(True) == "release")
+	check("debug exports with --export-debug", build.EXPORT_FLAGS["debug"] == "--export-debug")
+	check("release with --export-release", build.EXPORT_FLAGS["release"] == "--export-release")
+	check("each needs its own template", build.TEMPLATES == {"debug": "windows_debug_x86_64.exe",
+		"release": "windows_release_x86_64.exe"})
+	saved = sys.argv
+	try:
+		sys.argv = ["build_demo_windows.py", "--out", "x"]
+		check("no flag: a playtest build", build.parse_args().release is False)
+		sys.argv = ["build_demo_windows.py", "--out", "x", "--release"]
+		check("--release parses", build.parse_args().release is True)
+	finally:
+		sys.argv = saved
+
+
 def test_the_build_info_names_the_commit() -> None:
 	with tempfile.TemporaryDirectory() as tmp:
 		path = build.write_build_info({"commit": "abc1234-dirty", "built": "2026-10-01 18:00 UTC",
-			"godot": "4.7.2.stable"}, pathlib.Path(tmp) / "build_info.json")
+			"godot": "4.7.2.stable", "export": "debug"}, pathlib.Path(tmp) / "build_info.json")
 		info = json.loads(path.read_text())
 		check("the build info holds the commit", info["commit"] == "abc1234-dirty")
+		check("and the export mode", info["export"] == "debug")
 		check("and the build time and Godot", info["built"] == "2026-10-01 18:00 UTC" and info["godot"] == "4.7.2.stable")
 	check("it is written where the export packs it", build.BUILD_INFO == build.PROJECT / "demo/build_info.json")
 	ignored = (build.ROOT / ".gitignore").read_text()
@@ -214,11 +243,13 @@ def test_the_readme_template_is_filled() -> None:
 	with tempfile.TemporaryDirectory() as tmp:
 		folder = pathlib.Path(tmp)
 		build.write_readme(folder, {"built": "2026-09-29 18:00 UTC", "commit": "abc1234", "godot": "4.7.2.stable",
-			"pck_mib": "631.3"})
+			"pck_mib": "631.3", "export": "debug"})
 		text = (folder / "README.txt").read_bytes().decode("utf-8")
 		check("no placeholder left", re.search(r"\{[a-z_]+\}", text) is None)
 		check("Windows line ends", "\r\n" in text and "\n" not in text.replace("\r\n", ""))
 		check("it tells the reader about SmartScreen", "More info" in text and "Run anyway" in text)
+		check("it names the build's mode", "a debug build" in text)
+		check("and where the playtest logs are", "Redwall Demo\\logs" in text)
 
 
 def main() -> int:

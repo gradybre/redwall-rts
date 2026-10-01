@@ -60,7 +60,8 @@ to check it and zips it.
 
 ```bash
 python3 tools/stage_demo_assets.py                          # once: the demo's assets (gitignored)
-python3 tools/build_demo_windows.py --out <folder>          # -> <folder>/redwall-demo-windows.zip
+python3 tools/build_demo_windows.py --out <folder>          # -> <folder>/redwall-demo-windows.zip (debug: a playtest build)
+python3 tools/build_demo_windows.py --out <folder> --release  # on the release template (a final build; decision 0562)
 python3 tools/build_demo_windows.py --out <folder> --pack-only   # no Windows templates: just the .pck
 python3 tools/demo_texture_imports.py --godot godot         # the compression step on its own
 ```

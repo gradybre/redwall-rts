@@ -13,9 +13,12 @@ the export and verification logs beside them.
      nothing changes.
   3. Merge tools/demo_build/windows_export_preset.cfg into godot/export_presets.cfg (gitignored and
      local; other presets in it are kept) by preset name.
-  4. `godot --headless --path godot --export-release "Windows Desktop (demo)"`. Needs Godot's Windows
-     export templates (windows_release_x86_64.exe) for this Godot version; without them it stops and
-     says how to install them. `--pack-only` exports just the .pck (no template needed) to check it.
+  4. `godot --headless --path godot --export-debug "Windows Desktop (demo)"` -- a PLAYTEST build, on the
+     debug template, by Brendan's ruling of 2026-10-01 (decision 0562): a GDScript error is then reported
+     with its script frames and the game carries on, where the release template ends the process at a
+     null call with no word. `--release` exports on the release template instead (for a final build).
+     Needs Godot's Windows export templates (windows_debug_x86_64.exe, or windows_release_x86_64.exe) for
+     this Godot version; without them it stops and says how to install them. `--pack-only` exports just the .pck (no template needed) to check it.
   5. Verify the pack with the editor binary (`--main-pack`, tools/godot/verify_demo_pack.gd): the
      main scene resolves to the demo, the staged assets and raw atlases are packed, the demo boots,
      the beaver's flat tail is bound; screenshots of it.
@@ -53,7 +56,9 @@ PRESET_NAME = "Windows Desktop (demo)"
 FOLDER = "redwall-demo-windows"
 EXE = "RedwallDemo.exe"
 DEMO_SCENE = "res://demo/demo_village.tscn"
-TEMPLATE = "windows_release_x86_64.exe"
+## The template each export mode needs (decision 0562: playtest builds are debug, `--release` for a final build).
+TEMPLATES = {"debug": "windows_debug_x86_64.exe", "release": "windows_release_x86_64.exe"}
+EXPORT_FLAGS = {"debug": "--export-debug", "release": "--export-release"}
 EXPORT_TIMEOUT = 3600
 VERIFY_TIMEOUT = 600
 
@@ -159,19 +164,25 @@ def warning_lines(output: str) -> list[str]:
 	return sorted({line for line in output.splitlines() if line.startswith(("WARNING:", "USER WARNING:"))})
 
 
-def export(godot: str, target: pathlib.Path, logs: pathlib.Path, pack_only: bool) -> dict:
-	"""Export the preset to `target` (an .exe, or a .pck with pack_only); refuse on any error line."""
-	flag = "--export-pack" if pack_only else "--export-release"
+def export_mode(release: bool) -> str:
+	"""'debug' (a playtest build, the default) or 'release' (`--release`)."""
+	return "release" if release else "debug"
+
+
+def export(godot: str, target: pathlib.Path, logs: pathlib.Path, pack_only: bool, mode: str = "debug") -> dict:
+	"""Export the preset to `target` (an .exe on `mode`'s template, or a .pck with pack_only); refuse on any error
+	line."""
+	flag = "--export-pack" if pack_only else EXPORT_FLAGS[mode]
 	status, output = run([godot, "--headless", "--path", str(PROJECT), flag, PRESET_NAME, str(target)],
 		logs / "export.log", EXPORT_TIMEOUT)
 	errors = error_lines(output)
 	pack = target.with_suffix(".pck")
 	if status != 0 or errors or not target.is_file() or not pack.is_file():
 		raise RuntimeError(f"export failed (status {status}); see {logs / 'export.log'}:\n" + "\n".join(errors[:20]))
-	return {"command": flag, "status": status, "warnings": warning_lines(output)}
+	return {"command": flag, "mode": mode, "status": status, "warnings": warning_lines(output)}
 
 
-def verify(godot: str, pack: pathlib.Path, logs: pathlib.Path, kept: int) -> dict:
+def verify(godot: str, pack: pathlib.Path, logs: pathlib.Path, kept: int, expected: dict[str, str] | None = None) -> dict:
 	"""Boot the pack with the editor binary and read back what verify_demo_pack.gd found. `kept` is how
 	many pictures the demo reads itself (tools/demo_texture_imports.py); all of them must be packed."""
 	report = logs / "verify.json"
@@ -182,7 +193,7 @@ def verify(godot: str, pack: pathlib.Path, logs: pathlib.Path, kept: int) -> dic
 	if not report.is_file():
 		raise RuntimeError(f"pack verification did not run (status {status}); see {logs / 'verify.log'}")
 	found = json.loads(report.read_text())
-	problems = verification_problems(found, output, kept)
+	problems = verification_problems(found, output, kept, expected)
 	if status != 0:
 		problems.append(f"the check exited {status}")
 	if problems:
@@ -205,7 +216,22 @@ def stall_problems(found: dict) -> list[str]:
 	return problems
 
 
-def verification_problems(found: dict, output: str, kept: int = 1) -> list[str]:
+def build_info_problems(found: dict, expected: dict[str, str] | None) -> list[str]:
+	"""What is wrong with the packed demo/build_info.json: missing, unreadable, or (when `expected` is given) not this
+	build's commit or export mode."""
+	if not found.get("build_info"):
+		return ["the pack carries no demo/build_info.json: the playtest log would not know its version"]
+	try:
+		info = json.loads(found["build_info"])
+	except (TypeError, ValueError):
+		return [f"the packed demo/build_info.json is not JSON: {found['build_info']!r}"]
+	if expected is None:
+		return []
+	return [f"the packed build info says {key} {info.get(key)!r}, not {value!r}" for key, value in expected.items()
+		if info.get(key) != value]
+
+
+def verification_problems(found: dict, output: str, kept: int = 1, expected: dict[str, str] | None = None) -> list[str]:
 	"""What is wrong with a verification report, or nothing."""
 	problems = []
 	if found.get("error"):
@@ -226,8 +252,7 @@ def verification_problems(found: dict, output: str, kept: int = 1) -> list[str]:
 	problems += stall_problems(found)
 	if "did not load" in output:
 		problems.append("a card atlas or icon did not load from the pack")
-	if not found.get("build_info"):
-		problems.append("the pack carries no demo/build_info.json: the playtest log would not know its version")
+	problems += build_info_problems(found, expected)
 	if not found.get("playtest_log"):
 		problems.append("the playtest log did not start in the pack (decision 0562)")
 	return problems
@@ -245,9 +270,10 @@ def git_commit() -> str:
 
 
 def write_build_info(facts: dict[str, str], path: pathlib.Path = BUILD_INFO) -> pathlib.Path:
-	"""godot/demo/build_info.json: the commit, build time and Godot version the playtest log's header quotes."""
+	"""godot/demo/build_info.json: the commit, build time, Godot version and export mode the playtest log's header
+	quotes."""
 	info = {"schema": "redwall-demo-build-info-v1", "commit": facts["commit"], "built": facts["built"],
-		"godot": facts["godot"]}
+		"godot": facts["godot"], "export": facts["export"]}
 	path.write_text(json.dumps(info, indent=1) + "\n")
 	return path
 
@@ -285,6 +311,8 @@ def parse_args() -> argparse.Namespace:
 	parser.add_argument("--pack-only", action="store_true", help="export and verify just the .pck (no templates)")
 	parser.add_argument("--allow-unstaged", action="store_true", help="build even if the assets are not staged")
 	parser.add_argument("--skip-verify", action="store_true", help="do not boot the pack")
+	parser.add_argument("--release", action="store_true",
+		help="export on the release template (a final build); the default is a debug playtest build (decision 0562)")
 	return parser.parse_args()
 
 
@@ -293,7 +321,7 @@ def preflight(args: argparse.Namespace) -> str:
 	if not (demo_texture_imports.ASSETS / demo_texture_imports.MANIFEST).is_file() and not args.allow_unstaged:
 		raise SystemExit("the demo's assets are not staged: run python3 tools/stage_demo_assets.py first")
 	version = godot_version(args.godot)
-	template = templates_dir(version) / TEMPLATE
+	template = templates_dir(version) / TEMPLATES[export_mode(args.release)]
 	if not args.pack_only and not template.is_file():
 		raise SystemExit(f"no Windows export template at {template}.\nInstall Godot {version}'s export templates "
 			"(Godot editor: Editor > Manage Export Templates > Download and Install, or install the "
@@ -323,13 +351,17 @@ def main() -> int:
 	textures = demo_texture_imports.settle(args.godot)
 	preset = install_preset()
 	pack = folder / EXE.replace(".exe", ".pck")
-	facts = {"built": started.strftime("%Y-%m-%d %H:%M UTC"), "commit": git_commit(), "godot": version}
+	mode = export_mode(args.release)
+	facts = {"built": started.strftime("%Y-%m-%d %H:%M UTC"), "commit": git_commit(), "godot": version,
+		"export": mode}
 	write_build_info(facts)
 	try:
-		exported = export(args.godot, pack if args.pack_only else folder / EXE, logs, args.pack_only)
+		exported = export(args.godot, pack if args.pack_only else folder / EXE, logs, args.pack_only, mode)
 	finally:
 		BUILD_INFO.unlink(missing_ok=True)
-	verified = {} if args.skip_verify else verify(args.godot, pack, logs, textures[demo_texture_imports.ROLE_RAW])
+	expected = {"commit": facts["commit"], "export": mode}
+	verified = {} if args.skip_verify else verify(args.godot, pack, logs, textures[demo_texture_imports.ROLE_RAW],
+		expected)
 	facts["pck_mib"] = str(mib(pack))
 	write_readme(folder, facts)
 	archive = out / f"{FOLDER}.zip"

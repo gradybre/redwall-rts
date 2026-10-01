@@ -68,7 +68,9 @@ static func _read_version() -> String:
 	var info: Variant = JSON.parse_string(FileAccess.get_file_as_string(BUILD_INFO_PATH)) \
 		if FileAccess.file_exists(BUILD_INFO_PATH) else null
 	if info is Dictionary:
-		return "%s (built %s)" % [(info as Dictionary).get("commit", UNKNOWN), (info as Dictionary).get("built", UNKNOWN)]
+		var baked: Dictionary = info
+		return "%s (built %s, %s export)" % [baked.get("commit", UNKNOWN), baked.get("built", UNKNOWN),
+			baked.get("export", UNKNOWN)]
 	if OS.has_feature("template"):
 		return "%s (no build info packed)" % UNKNOWN
 	var output: Array = []

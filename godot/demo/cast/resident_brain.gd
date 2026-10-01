@@ -1151,6 +1151,14 @@ func release() -> void:
 	queue_revision += 1
 
 
+func drop_jobs() -> void:
+	"""Forget the task and every unfinished job without acting on either: the actor that owns this brain is being
+	freed. An unfinished job holds its owner (the kitchen, the tunnel works) and the owner holds the brains, a cycle no
+	reference count breaks, so a freed cast kept every such owner alive past a Restart (decision 0501)."""
+	task = null
+	_unfinished.clear()
+
+
 func work_done() -> void:
 	"""A crew's job for this resident is done: take up the latest unfinished job that still waits (see
 	RESUMING), else back to wandering as `release` does -- keeping the rest for later. In the water it

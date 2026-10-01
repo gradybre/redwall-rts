@@ -255,6 +255,13 @@ func _read_crouch_and_dig(row: Dictionary) -> void:
 		_strike.impact_s = float(dig.get("impact_s", _strike.impact_s))
 
 
+func _notification(what: int) -> void:
+	"""Freed: let the brain drop its jobs, which would otherwise keep their owners and this brain alive in a cycle
+	(resident_brain.gd `drop_jobs`)."""
+	if what == NOTIFICATION_PREDELETE and brain != null:
+		brain.drop_jobs()
+
+
 func _make_brain(space: CastSpaceScript, gait: float, radius: float, seed: int, lengths: Dictionary) -> void:
 	"""The brain, walking at WALK_PACE times its walk clip's gait speed, the clip sped to match."""
 	brain = BrainScript.new()

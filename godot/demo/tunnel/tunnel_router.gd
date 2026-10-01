@@ -246,9 +246,18 @@ func plan(nav: CastNavScript, from: Vector2, to: Vector2, body: float, standing:
 			break
 		if _refine() == 0:
 			_emit(out, legs)
+			_release()
 			return true
 	_fallback(from, to, out, legs, goal_node >= 0)
+	_release()
 	return false
+
+
+func _release() -> void:
+	"""Let go of this plan's network and surface planner. The network owns this router, so holding it past the
+	plan is a reference cycle that kept both alive after the world dropped them (decision 0501)."""
+	_graph = null
+	_nav = null
 
 
 func _fallback(from: Vector2, to: Vector2, out: PackedVector2Array, legs: PackedInt32Array, below: bool) -> void:

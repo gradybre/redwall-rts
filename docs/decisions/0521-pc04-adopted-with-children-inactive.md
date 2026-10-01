@@ -203,8 +203,9 @@ Three LOW items were left, deliberately:
   - The section also records three changes as adopted, each marked "applies when children are
     active": the child mood formula (/12 with care), the same-day relationship-eviction protection,
     and REQ-SET-036's +8 being reserved for medical care.
-- **Ledger.** +46352 in §3 and the ARCH-MEM-009 trail. The live world plus reserve is 78450787, with
-  21549213 headroom. The 288-byte FAMILY-RULES-R01 table, and Needs' hunger copy growing from 24 to
+- **Ledger.** +46352 in §3 and the ARCH-MEM-009 trail, stacked on decision 0531's +405533 when
+  master's demolition D1 merged in. Planned payload is 70467712, the live world plus reserve is
+  78856320, and headroom is 21143680. The rejected two-world peak is 143078835. The 288-byte FAMILY-RULES-R01 table, and Needs' hunger copy growing from 24 to
   72 bytes, are derived catalog values inside the existing read-only catalog arena, so they get no row.
 - **The resident panel already shows the staged rate.** `ui_resident_snapshot.gd` reads the
   captured resident's stage from Residents and calls `hunger_rate_milli_per_hour_for_stage()`, so

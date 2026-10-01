@@ -146,19 +146,19 @@ func test_store_count_and_owner_order_are_ascii() -> void:
 
 
 func test_owner_schema_versions_match_the_registry() -> void:
-	"""Inventory remains owner3; FISH-ID-R01 makes Fishing owner2, other four stay1.
+	"""Inventory is owner4 (DEMO-CONTAIN-R01); FISH-ID-R01 makes Fishing owner2, other four stay1.
 
-	UPDATED, NOT WEAKENED. This asserted 2 before the canonicalized unused payload landed, and
-	2 is now the wrong answer: a schema-2 reader would accept a retired row still carrying its
-	last live item, quantity and reserved quantity, which is the non-determinism the activation
-	removes. The number is read from `inventory.gd`, which owns it, rather than typed again.
+	UPDATED, NOT WEAKENED. This asserted 2 before the canonicalized unused payload landed and 3
+	before decision 0531 appended `_c_anchor_tile`; each older answer is now wrong, because an
+	older reader would accept a body with no placement column at all. The number is read from
+	`inventory.gd`, which owns it, rather than typed again.
 	"""
-	assert_equal(Section.OWNER_SCHEMA_VERSIONS[Section.OWNER_INVENTORY], 3,
-		"inventory declares owner schema 3")
-	assert_equal(InventoryScript.CANONICAL_OWNER_SCHEMA_VERSION, 3,
+	assert_equal(Section.OWNER_SCHEMA_VERSIONS[Section.OWNER_INVENTORY], 4,
+		"inventory declares owner schema 4")
+	assert_equal(InventoryScript.CANONICAL_OWNER_SCHEMA_VERSION, 4,
 		"the store declares the same owner schema version the codec writes")
-	assert_equal(Section.SECTION_SCHEMA_VERSION, 4,
-		"section7 schema4 adds the complete Fishing owner reference")
+	assert_equal(Section.SECTION_SCHEMA_VERSION, 5,
+		"section7 schema5 adds the container anchor (schema4 added the Fishing owner reference)")
 	for owner: int in Section.OWNER_COUNT:
 		if owner == Section.OWNER_INVENTORY:
 			continue
@@ -180,13 +180,14 @@ func test_section_opens_with_a_store_count_of_six() -> void:
 func test_default_capacity_section_has_the_declared_byte_vector() -> void:
 	"""Pin the real byte arithmetic at the compiled maxima with every slot free."""
 	var full: Section.Record = Section.empty_record()
-	var sizes: Array[int] = [14947, 434298, 688256, 7481637, 1212520, 608353]
+	# `inventory` grew by one I32 column at 101376 containers: 8 (element count) + 405504 = 405512.
+	var sizes: Array[int] = [14947, 434298, 688256, 7887149, 1212520, 608353]
 	for owner: int in Section.OWNER_COUNT:
 		assert_equal(Section.block_bytes_of(full.of(owner)), sizes[owner],
 			"owner '%s' block is %d bytes" % [Section.OWNER_KEYS[owner], sizes[owner]])
-	assert_equal(Section.section_bytes_of(full), 10440015,
-		"the whole empty section is 10440015 bytes")
-	assert_equal(Section.section_bytes_of(full), 4 + 14947 + 434298 + 688256 + 7481637
+	assert_equal(Section.section_bytes_of(full), 10845527,
+		"the whole empty section is 10845527 bytes")
+	assert_equal(Section.section_bytes_of(full), 4 + 14947 + 434298 + 688256 + 7887149
 		+ 1212520 + 608353, "the six blocks tile the section with no gaps")
 
 
@@ -483,20 +484,24 @@ func test_blocks_out_of_ascii_order_are_refused() -> void:
 
 
 func test_wrong_owner_schema_version_is_refused() -> void:
-	"""A stream declaring inventory schema 2 is the older layout and must not be read as 3.
+	"""A stream declaring inventory schema 3 or 2 is an older layout and must not be read as 4.
 
-	UPDATED WITH THE ACTIVATION. The old development stream is not reinterpreted: INV-CANON-R01
-	says an old save is refused unless an explicit migration validates it and writes the new
-	representation, and no such migration exists. So schema 2 on the wire refuses here.
+	UPDATED WITH EACH ACTIVATION. An old development stream is not reinterpreted: INV-CANON-R01
+	and DEMO-CONTAIN-R01 both refuse an old save unless an explicit migration validates it and
+	writes the new representation, and no such migration exists. Schema 3 has no anchor column,
+	so defaulting it would invent "unplaced" for every building store.
 	"""
 	var bytes: PackedByteArray = _encode(_record)
 	var offset: int = _block_offset(_record, Section.OWNER_INVENTORY) + 4 + 9
-	assert_equal(bytes[offset], 3, "inventory's wire schema version is 3")
-	bytes[offset] = 2
-	var back: Section.Record = Section.Record.new()
-	var refusal: SaveHeader.Refusal = Section.decode_into(bytes, 0, bytes.size(), back)
-	assert_equal(refusal.code, Section.REFUSE_OWNER_SCHEMA_VERSION,
-		"inventory schema 2 is refused under schema 3")
+	assert_equal(bytes[offset], 4, "inventory's wire schema version is 4")
+	for old: int in [3, 2]:
+		bytes[offset] = old
+		var back: Section.Record = _small_record()
+		var before: PackedByteArray = _encode(back)
+		var refusal: SaveHeader.Refusal = Section.decode_into(bytes, 0, bytes.size(), back)
+		assert_equal(refusal.code, Section.REFUSE_OWNER_SCHEMA_VERSION,
+			"inventory schema %d is refused under schema 4" % old)
+		assert_equal(_encode(back), before, "and the caller's record is untouched")
 
 
 func test_declared_payload_length_must_match_what_the_block_consumes() -> void:
@@ -608,7 +613,7 @@ func test_large_column_is_split_into_bounded_chunks() -> void:
 		count += 1
 	assert_equal(largest, Section.CHUNK_BYTES, "the largest chunk is exactly the 65536-byte bound")
 	assert_equal(cursor.emitted_bytes(), Section.section_bytes_of(full),
-		"the streamed section is the whole 10440015 bytes")
+		"the streamed section is the whole 10845527 bytes")
 
 
 # --- per-owner domain rules ---------------------------------------------------------------------
@@ -901,7 +906,7 @@ func test_meaningful_differences_still_change_the_canonical_stream() -> void:
 	"""
 	var baseline: PackedByteArray = _encode(_capture(_reserved_merge_store()))
 	for label: String in ["generation", "stack_order", "reachable", "quantity", "provenance",
-			"reserved"]:
+			"reserved", "anchor"]:
 		var store: InventoryScript = _reserved_merge_store()
 		_perturb(store, label)
 		assert_false(_encode(_capture(store)) == baseline,
@@ -924,6 +929,8 @@ func _perturb(store: InventoryScript, label: String) -> void:
 		store._sourced_milli[7] = 1500
 	elif label == "provenance":
 		store._l_provenance[0] = 2
+	elif label == "anchor":
+		store._c_anchor_tile[0] = 77
 	else:
 		store._l_reserved_milli[0] = 200
 
@@ -1006,15 +1013,19 @@ func test_generation_zero_on_an_inactive_row_is_refused_under_schema_three() -> 
 
 
 func test_every_noncanonical_inactive_value_is_refused_one_at_a_time() -> void:
-	"""All twenty-two unused values, each perturbed alone, each refused by name."""
+	"""All twenty-three unused values, each perturbed alone, each refused by name.
+
+	Twenty-two from INV-CANON-R01 plus DEMO-CONTAIN-R01's `_c_anchor_tile` at ordinal 30, a
+	CONTAINER column, so it is perturbed on the inactive container row 5 like ordinals 6..15.
+	"""
 	var ordinals: Array[int] = []
 	ordinals.append_array(Section.INVENTORY_UNUSED_CONTAINER_ORDINALS)
 	ordinals.append_array(Section.INVENTORY_UNUSED_LOT_ORDINALS)
-	assert_equal(ordinals.size(), 22, "the ruling's table has twenty-two unused values")
+	assert_equal(ordinals.size(), 23, "the ruling tables have twenty-three unused values")
 	for ordinal: int in ordinals:
 		var record: Section.Record = _capture(_reserved_merge_store())
 		var block: Section.OwnerRecord = record.of(Section.OWNER_INVENTORY)
-		var row: int = 5 if ordinal < 16 else 3
+		var row: int = 5 if ordinal < 16 or ordinal == 30 else 3
 		var canonical: int = Section._cell_of(block, ordinal, row)
 		_set_cell(block, ordinal, row, canonical + 1)
 		var refusal: SaveHeader.Refusal = Section.owner_refusal(block)
@@ -1203,7 +1214,7 @@ func _literal_old_fishing_owner_section_prefix() -> PackedByteArray:
 func test_fishing_old_owner_and_section_versions_refuse_without_publication() -> void:
 	var old: PackedByteArray = _literal_old_fishing_owner_section_prefix()
 	var before: PackedByteArray = _encode(_record)
-	var refused: SaveHeader.Refusal = Section.decode_into_versioned(old,0,old.size(),4,_record)
+	var refused: SaveHeader.Refusal = Section.decode_into_versioned(old,0,old.size(),Section.SECTION_SCHEMA_VERSION,_record)
 	assert_equal(refused.code,Section.REFUSE_OWNER_SCHEMA_VERSION,"old owner1 refuses before missing later owners")
 	assert_false(refused.detail.is_empty(),"old owner refusal explained")
 	assert_equal(_encode(_record),before,"owner version refusal preserves destination")
@@ -1212,9 +1223,9 @@ func test_fishing_old_owner_and_section_versions_refuse_without_publication() ->
 	assert_false(refused.detail.is_empty(),"old section refusal explained")
 	assert_equal(_encode(_record),before,"section version refusal preserves destination")
 	assert_equal(Section.decode_into_versioned(old,-1,old.size(),3,_record).code,Section.REFUSE_NEGATIVE_OFFSET,"invalid extent precedes schema")
-	assert_equal(Section.decode_into_versioned(old,0,old.size(),4,null).code,&"SAVE_INV_NULL_RECORD","null output refuses before owner parsing")
+	assert_equal(Section.decode_into_versioned(old,0,old.size(),Section.SECTION_SCHEMA_VERSION,null).code,&"SAVE_INV_NULL_RECORD","null output refuses before owner parsing")
 	assert_equal(Section.decode_into_versioned(old,0,old.size(),3,null).code,&"SAVE_INV_SECTION_SCHEMA_VERSION","schema precedes null output")
-	assert_true(Section.decode_into_versioned(before,0,before.size(),4,_record).is_ok(),"explicit current descriptor decodes")
+	assert_true(Section.decode_into_versioned(before,0,before.size(),Section.SECTION_SCHEMA_VERSION,_record).is_ok(),"explicit current descriptor decodes")
 	assert_equal(_encode(_record),before,"current version round trip")
 
 func test_eighth_fishing_column_has_independent_blank_and_slot_gates() -> void:
@@ -1233,3 +1244,138 @@ func test_eighth_fishing_column_has_independent_blank_and_slot_gates() -> void:
 	for slot: int in [-1,352418]:
 		_set_cell(block,7,0,slot)
 		assert_false(Section.owner_refusal(block).is_ok(),"active owner slot refuses outside Directory domain")
+
+
+# --- DEMO-CONTAIN-R01: the container anchor at owner schema 4, section schema 5 -----------------
+#
+# Decision 0531 APPENDS `_c_anchor_tile` as inventory ordinal 30. These pin the four things the
+# brief names: a save round trip at the new schema, an older schema refused (above, and the
+# section descriptor below), the codec's own domain gate, and the hash covering the anchor.
+
+func _anchored_store() -> InventoryScript:
+	"""The reserved-merge store plus a placed store, an unplaced satchel and a retired placed row.
+
+	Container 0 (the merge box) is unplaced; 1 is anchored at 16383, the last cell; 2 is an
+	unplaced satchel; 3 was anchored at 222 and then retired, leaving 222 as dead residue.
+	"""
+	var store: InventoryScript = _reserved_merge_store()
+	assert_true(store.create_container(Vector2i(9, 1), 100000, -1, 0, true, 16383).ok,
+		"a store anchored at the last cell")
+	assert_true(store.create_container(Vector2i(2, 1), 30000, -1, 0, true).ok, "an unplaced satchel")
+	var retired: Vector2i = store.create_container(Vector2i(9, 1), 100000, -1, 0, true, 222).ref
+	assert_true(store.destroy_container(retired).ok, "a placed row retires")
+	assert_equal(store._c_anchor_tile[3], 222, "leaving its anchor behind as live-column residue")
+	return store
+
+
+func test_the_anchor_column_is_appended_as_ordinal_thirty() -> void:
+	"""Ordinals 0..29 keep their wire positions; the anchor is an I32 container column after them."""
+	assert_equal(Section.field_count_of(Section.OWNER_INVENTORY), 31, "inventory declares 31 fields")
+	assert_equal(Section.KEYS_INVENTORY[30], &"_c_anchor_tile", "ordinal 30 is the anchor")
+	assert_equal(Section.KEYS_INVENTORY[28], &"_c_free", "the container stack has not moved")
+	assert_equal(Section.KEYS_INVENTORY[29], &"_l_free", "nor has the lot stack")
+	assert_equal(Section.field_type_of(Section.OWNER_INVENTORY, 30), Section.TYPE_I32, "I32")
+	assert_equal(Section.field_extent_of(Section.OWNER_INVENTORY, 30), Section.EXT_PRIMARY,
+		"one cell per container row")
+	assert_equal(Section.count_field_of(Section.OWNER_INVENTORY, 30), Section.NO_COUNT_FIELD,
+		"no count field governs it")
+	assert_equal(_record.of(Section.OWNER_INVENTORY).i32_column(30),
+		_filled_i32(SMALL_CONTAINERS, -1), "an empty record's anchors are all unplaced")
+
+
+func _filled_i32(length: int, value: int) -> PackedInt32Array:
+	"""A PackedInt32Array of `length` cells holding `value`."""
+	var column: PackedInt32Array = PackedInt32Array()
+	column.resize(length)
+	column.fill(value)
+	return column
+
+
+func test_anchors_round_trip_through_capture_encode_decode_and_publish() -> void:
+	"""Save -> load -> save at schema 5: live anchors exact, dead residue normalized, bytes equal."""
+	var store: InventoryScript = _anchored_store()
+	var record: Section.Record = _capture(store)
+	assert_equal(record.of(Section.OWNER_INVENTORY).i32_column(30),
+		PackedInt32Array([-1, 16383, -1, -1, -1, -1, -1, -1]),
+		"live anchors are copied and the retired 222 is written as -1")
+	var first: PackedByteArray = _encode(record)
+	# ADDED UP BY HAND, like INVENTORY_BLOCK_OFFSET: 449713 + 33 wrapper + 12 extents, then each
+	# of ordinals 0..29 as an 8-byte count plus its values at 8 containers / 4 lots, with the two
+	# free stacks persisted only to their counts here (5 containers free, 3 lots free), then the
+	# anchor's own 8-byte count. The codec's arithmetic must agree, but the value is read HERE.
+	var offset: int = 450786
+	assert_equal(_field_value_offset(record, Section.OWNER_INVENTORY, 30), offset,
+		"the hand-added `_c_anchor_tile` offset matches the codec's")
+	assert_equal(first.decode_s32(offset + 4), 16383, "the wire carries container 1's cell")
+	assert_equal(first.decode_s32(offset + 12), -1, "and the retired row's canonical -1")
+	var parsed: Section.Record = Section.Record.new()
+	var refusal: SaveHeader.Refusal = Section.decode_into_versioned(first, 0, first.size(), 5, parsed)
+	assert_equal(refusal.code, Section.REFUSE_NONE, "schema 5 decodes: %s" % refusal.detail)
+	var restored: InventoryScript = _live_store()
+	var columns: InventoryScript.CanonicalColumns = Section.inventory_columns_for(parsed)
+	var applied: SaveHeader.Refusal = Section.apply_inventory(parsed, restored, columns)
+	assert_equal(applied.code, Section.REFUSE_NONE, "publication: %s" % applied.detail)
+	assert_equal(restored.container_anchor_tile(Vector2i(1, 1)), 16383, "the store is re-anchored")
+	assert_equal(restored.container_anchor_tile(Vector2i(2, 1)), -1, "the satchel stays unplaced")
+	assert_true(restored.audit().ok, "the restored store audits")
+	assert_equal(_encode(_capture(restored)), first, "save -> load -> save is byte-identical")
+
+
+func test_a_section_schema_four_descriptor_is_refused_without_publication() -> void:
+	"""FISH-ID-R01's precedent: the stale descriptor refuses before a single owner is read."""
+	var bytes: PackedByteArray = _encode(_capture(_anchored_store()))
+	var before: PackedByteArray = _encode(_record)
+	for old: int in [4, 3]:
+		var refusal: SaveHeader.Refusal = Section.decode_into_versioned(bytes, 0, bytes.size(),
+			old, _record)
+		assert_equal(refusal.code, Section.REFUSE_SECTION_SCHEMA_VERSION,
+			"section schema %d is refused" % old)
+		assert_false(refusal.detail.is_empty(), "with a reason")
+		assert_equal(_encode(_record), before, "and the destination record is untouched")
+
+
+func test_the_codec_refuses_a_live_anchor_outside_the_grid() -> void:
+	"""-1 and 0..16383 decode; -2 and 16384 on a live container refuse SAVE_INV_SLOT_RANGE."""
+	var record: Section.Record = _capture(_anchored_store())
+	var block: Section.OwnerRecord = record.of(Section.OWNER_INVENTORY)
+	for good: int in [-1, 0, 16383]:
+		_set_cell(block, 30, 1, good)
+		assert_true(Section.owner_refusal(block).is_ok(), "a live anchor of %d is accepted" % good)
+	for bad: int in [-2, 16384, 2147483647]:
+		_set_cell(block, 30, 1, bad)
+		var refusal: SaveHeader.Refusal = Section.owner_refusal(block)
+		assert_equal(refusal.code, Section.REFUSE_SLOT_RANGE, "a live anchor of %d refuses" % bad)
+		assert_true(refusal.detail.contains("_c_anchor_tile"), "naming the anchor field")
+
+
+func test_a_refused_anchor_is_never_published_into_the_target_store() -> void:
+	"""Decision 0059: a bad anchor refuses the apply and leaves the destination byte-identical."""
+	var record: Section.Record = _capture(_anchored_store())
+	_set_cell(record.of(Section.OWNER_INVENTORY), 30, 1, 16384)
+	var target: InventoryScript = _live_store()
+	var before: PackedByteArray = target.state_bytes()
+	var columns: InventoryScript.CanonicalColumns = Section.inventory_columns_for(record)
+	assert_equal(Section.apply_inventory(record, target, columns).code, Section.REFUSE_SLOT_RANGE,
+		"the out-of-grid anchor refuses")
+	assert_true(target.state_bytes() == before, "and the target store is untouched")
+
+
+func test_the_digest_hashes_live_anchors_and_ignores_dead_anchor_residue() -> void:
+	"""Section 15 sees the anchor: a moved store changes the digest, retired residue does not."""
+	var adapter: Section.InventoryAdapter = Section.InventoryAdapter.new(
+		_capture(_anchored_store()).of(Section.OWNER_INVENTORY))
+	var values: Digest.FieldValues = Digest.FieldValues.new()
+	assert_true(adapter.canonical_field_values(&"_c_anchor_tile", values), "the anchor is supplied")
+	assert_equal(values.count, SMALL_CONTAINERS, "one value per container row")
+	var baseline: PackedByteArray = _digest_of(_anchored_store())
+	var moved: InventoryScript = _anchored_store()
+	assert_true(moved.set_container_anchor(Vector2i(1, 1), 16382).ok, "the store moves one cell")
+	assert_false(_digest_of(moved) == baseline, "a live anchor is hashed")
+	var unplaced: InventoryScript = _anchored_store()
+	assert_true(unplaced.set_container_anchor(Vector2i(1, 1), -1).ok, "the store is unplaced")
+	assert_false(_digest_of(unplaced) == baseline, "and unplacing it is a hashed difference too")
+	var residue: InventoryScript = _anchored_store()
+	residue._c_anchor_tile[3] = 9000
+	assert_false(residue.state_bytes() == _anchored_store().state_bytes(), "the raw images differ")
+	assert_equal(_digest_of(residue), baseline, "but dead anchor residue is not hashed")
+

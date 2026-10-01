@@ -2868,13 +2868,14 @@ func _recheck_demolition_residents(building_ref: Vector2i) -> StringName:
 
 
 func _footprint_binding_refusal() -> StringName:
-	"""Stage 5: refuse while nothing binds an inventory container to a footprint tile.
+	"""Stage 5: refuse until the footprint-containment success path lands (DEMO-CONTAIN-R01 D4).
 
-	AN InventoryContainer ROW CARRIES NO POSITION. GDD §4.2 gives it owner, max mass, filters,
-	reserved mass, policy and reachability, and `buildings.gd`'s tile maps name buildings, rooms
-	and furniture -- never a container. So a ground pile standing in the doorway, or another
-	entity's container physically inside this footprint, cannot be enumerated at all, and the
-	owner scan above proves OWNERSHIP rather than CONTAINMENT.
+	`inventory.gd` now carries a placement anchor per container and publishes the bounded
+	`containers_anchored_in_into()` query (decision 0531), but NOTHING ANCHORS A LIVE CONTAINER YET:
+	the starter stores are rebound and anchored in D3, ground piles arrive in D2, and the owner
+	scan / tile scan agreement this gate needs is D4. Until those land, a ground pile in the
+	doorway or another entity's container inside this footprint is still not provably absent,
+	and the owner scan above proves OWNERSHIP rather than CONTAINMENT.
 
 	Reporting the previous four stages as a pass would therefore report "I looked and found
 	nothing" when the truth is "I cannot see there" -- which is the one confusion INV-GOODS-R01

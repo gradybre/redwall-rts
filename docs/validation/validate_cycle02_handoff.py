@@ -40,7 +40,14 @@ def main():
     check(target['active_registry_mutated'] is False)
     registry=json.loads((ROOT/'docs/planning/canonical_state_registry.json').read_text())
     owner=next(o for o in registry['owners'] if o['owner_key']=='inventory')
-    check([(f['field_key'],f['ordinal'],f['type']) for f in owner['fields']]==[(f['field_key'],f['ordinal'],f['type']) for f in target['fields']])
+    # Cycle 2's target is a SNAPSHOT of owner schema 3. Its thirty fields must survive as the exact
+    # prefix; later owner schemas may only APPEND, and every append is named by its decision here.
+    # Decision 0531 (DEMO-CONTAIN-R01, owner schema 4) appends `_c_anchor_tile` as ordinal 30.
+    appended_since_cycle_02=[('_c_anchor_tile',30,'i32')]
+    declared=[(f['field_key'],f['ordinal'],f['type']) for f in owner['fields']]
+    snapshot=[(f['field_key'],f['ordinal'],f['type']) for f in target['fields']]
+    check(declared[:len(snapshot)]==snapshot)
+    check(declared[len(snapshot):]==appended_since_cycle_02)
     c=dict(target['inactive_values']['c'],live=0,generation=1)
     l=dict(target['inactive_values']['l'],live=0,generation=2)
     d={'c':[dict(c,live=1),c], 'l':[dict(l,live=1,_l_quantity_milli=2000,_l_reserved_milli=250),l],

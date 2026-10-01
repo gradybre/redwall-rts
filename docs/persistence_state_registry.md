@@ -356,7 +356,7 @@ Neither needs new state.
 | Borrowed destroyed-footprint mask | `_excluded` | 1 | never allocated | Empty outside a placement call | 3 | -- | The caller's 16384-byte mask, held by reference for one call so the site authority Inventory calls back into can refuse a destroyed footprint whose Building row is already gone. Released before the call returns. |
 | Refund ring sort keys | `_seed_keys` | 8 | `REFUND_SEED_CAPACITY` = 512 | `INT64_MAX` past the ring | 3 | -- | DEC-043's 2026-10-01 follow-up ruling: a doorless building's refund starts from its footprint's edge ring, nearest its front first. One `distance * 16384 + tile` key per ring tile, sorted in place; scratch for one `refund_seeds_into()` call. |
 | Single start tile | `_single_seed` | 4 | `1` = 1 | Overwritten per call | 3 | -- | Lets `place_lots_into_piles(start_tile, ...)` share the seeded walk without allocating a one-cell array per call. |
-| Composer bindings and cursor | -- | -- | -- | -- | 3 | -- | `_inventory`, `_buildings`, `_stock_age`, `_spatial` and `_world_ref` are borrowed wiring rebound by the composer's owner; `_queue_tail`, `_spec_row`, `_spec_remaining` and `_math` are call scratch. The module owns no simulation state: piles are Inventory rows and their storage class is StockAge's declaration. |
+| Composer bindings and cursor | -- | -- | -- | -- | 3 | -- | `_inventory`, `_buildings`, `_stock_age`, `_spatial` and `_world_ref` are borrowed wiring rebound by the composer's owner; `_queue_tail`, `_spec_row` and `_spec_remaining` are call scratch. The module owns no simulation state: piles are Inventory rows and their storage class is StockAge's declaration. |
 
 ### `godot/scripts/core/int_math.gd`
 

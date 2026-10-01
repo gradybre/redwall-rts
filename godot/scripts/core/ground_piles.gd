@@ -159,7 +159,6 @@ var _single_seed: PackedInt32Array = PackedInt32Array()
 ## Placement cursor: the spec row being placed and the quantity of it still unplaced.
 var _spec_row: int = 0
 var _spec_remaining: int = 0
-var _math: IntMath.IntResult = IntMath.IntResult.new()
 
 
 func _init() -> void:
@@ -241,7 +240,7 @@ func is_tile_passable(tile: int) -> bool:
 	if tile < 0 or tile >= TILE_COUNT:
 		return false
 	var x: int = tile % MAP_TILES_X
-	var z: int = tile / MAP_TILES_X
+	@warning_ignore("integer_division") var z: int = tile / MAP_TILES_X
 	if not WorldInit.is_walkable(x, z):
 		return false
 	if _spatial == null:
@@ -308,7 +307,7 @@ func _ring_seeds_into(type_id: int, origin: int, rotation: int, out_seeds: Packe
 	var extent_x: int = _buildings.extent_x_of(size_x, size_z, rotation)
 	var extent_z: int = _buildings.extent_z_of(size_x, size_z, rotation)
 	var x0: int = origin % MAP_TILES_X
-	var z0: int = origin / MAP_TILES_X
+	@warning_ignore("integer_division") var z0: int = origin / MAP_TILES_X
 	# The front ring segment's centre, in half tiles: the footprint centre pushed out past the
 	# front side by half the footprint plus one tile.
 	var centre: Vector2i = Vector2i(2 * x0 + extent_x - 1 + FRONT_DX[rotation] * (extent_x + 1),
@@ -342,9 +341,9 @@ func _hall_door_outside_into(origin_tile: int, out: IntMath.IntResult) -> bool:
 	var starter_origin: int = StarterStructures.BUILD_ORIGIN_Z[hall_row] * MAP_TILES_X \
 		+ StarterStructures.BUILD_ORIGIN_X[hall_row]
 	var dx: int = StarterStructures.EXIT_EXTERIOR_GLOBAL % MAP_TILES_X - starter_origin % MAP_TILES_X
-	var dz: int = StarterStructures.EXIT_EXTERIOR_GLOBAL / MAP_TILES_X - starter_origin / MAP_TILES_X
+	@warning_ignore("integer_division") var dz: int = StarterStructures.EXIT_EXTERIOR_GLOBAL / MAP_TILES_X - starter_origin / MAP_TILES_X
 	var x: int = origin_tile % MAP_TILES_X + dx
-	var z: int = origin_tile / MAP_TILES_X + dz
+	@warning_ignore("integer_division") var z: int = origin_tile / MAP_TILES_X + dz
 	if x < 0 or x >= MAP_TILES_X or z < 0 or z >= MAP_TILES_Z:
 		return out.refuse(String(REFUSE_DOOR_OFF_GRID))
 	return out.succeed(z * MAP_TILES_X + x)
@@ -441,7 +440,7 @@ func _placement_input_refusal(excluded_mask: PackedByteArray,
 		return REFUSE_MASK_SHAPE
 	if specs.size() == 0 or specs.size() % SPEC_STRIDE != 0:
 		return REFUSE_SPEC_SHAPE
-	for row: int in specs.size() / SPEC_STRIDE:
+	@warning_ignore("integer_division") for row: int in specs.size() / SPEC_STRIDE:
 		var item: int = specs[row * SPEC_STRIDE + SPEC_ITEM]
 		if specs[row * SPEC_STRIDE + SPEC_QUANTITY] <= 0 \
 				or not _inventory.is_item_registered(item):
@@ -457,7 +456,7 @@ func _place_breadth_first(seeds: PackedInt32Array, seed_count: int, specs: Packe
 		return start
 	_spec_row = 0
 	_spec_remaining = specs[SPEC_QUANTITY]
-	var rows: int = specs.size() / SPEC_STRIDE
+	@warning_ignore("integer_division") var rows: int = specs.size() / SPEC_STRIDE
 	var head: int = 0
 	while head < _queue_tail and _spec_row < rows and head < SPILL_TILE_CAP:
 		var tile: int = _queue[head]
@@ -492,7 +491,7 @@ func _enqueue_seeds(seeds: PackedInt32Array, seed_count: int) -> StringName:
 func _enqueue_neighbours(tile: int) -> void:
 	"""Append the unexamined N, E, S, W neighbours that pass the site rule, in that order."""
 	var x: int = tile % MAP_TILES_X
-	var z: int = tile / MAP_TILES_X
+	@warning_ignore("integer_division") var z: int = tile / MAP_TILES_X
 	for direction: int in NEIGHBOUR_DX.size():
 		var nx: int = x + NEIGHBOUR_DX[direction]
 		var nz: int = z + NEIGHBOUR_DZ[direction]
@@ -541,7 +540,7 @@ func _fitting_milli(item_id: int, free_g: int) -> int:
 	var mass_g: int = _inventory.item_mass_g(item_id)
 	if mass_g <= 0:
 		return _spec_remaining
-	return mini(_spec_remaining, free_g * InventoryScript.MILLI_PER_UNIT / mass_g)
+	@warning_ignore("integer_division") return mini(_spec_remaining, free_g * InventoryScript.MILLI_PER_UNIT / mass_g)
 
 
 func _create_part(pile: Vector2i, specs: PackedInt64Array, base: int, quantity: int) -> StringName:

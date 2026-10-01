@@ -66,8 +66,8 @@ not to be built without asking.
 
 Two other coverage gaps were ruled on 2026-10-01. The test hygiene work is running on `chore/test-hygiene` (0501).
 Four settlement loose ends were set to "fix all": starting demolition, APPOINT_WARDEN, stale availability labels and the
-family hunger helper. They are on `fix/settlement-loose-ends` (0511), with a PR open; demolition and the hunger helper
-were blocked there and continue below. The release gates were folded into the performance and playtest step: asset
+family hunger helper. They were built on `fix/settlement-loose-ends` (0511, merged to master as PR #205); demolition
+and the hunger helper were blocked there and continue below. The release gates were folded into the performance and playtest step: asset
 contact metadata, the silent-video work chain, graphics tiers with the GTX 1660 floor, and fresh-player sessions run by
 Brendan.
 
@@ -100,7 +100,7 @@ Brendan.
   - children may have non-violent arguments.
 
   Engineering gates 1–6 stay open. The work is running on `feat/family-pc04` (0521).
-- **The Warden** (2026-10-01; 0511 and DEC-042 on the settlement branch): adults and elders may be Warden, never
+- **The Warden** (2026-10-01; 0511 and DEC-042, on master since PR #205): adults and elders may be Warden, never
   children. A living Warden may be replaced with confirmation, and the old one steps down. Naming waits on READY_07 I2.
 
 ## Deferred, not to be built without asking

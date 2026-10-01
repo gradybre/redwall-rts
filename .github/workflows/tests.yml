@@ -20,7 +20,10 @@ jobs:
   godot:
     name: Godot headless suite
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    # The suite grew past 6,500 tests with the live demo: the last green run
+    # took 28.6 minutes and the next two were cut off at 30. A timeout is a
+    # hang guard, not a speed target, so it sits well above the real run time.
+    timeout-minutes: 60
     env:
       # docs/ENVIRONMENT.md: 4.7 is the only version anything has been run
       # against. Pin it rather than tracking latest, so an engine release

@@ -19,7 +19,9 @@ extends RefCounted
 ## changes do not reorder the focused row).
 ##
 ## STORES are rows too (`store_cells`): stored, reserved for harvests on their way, free, capacity and
-## how fast the store ages food.
+## how fast the store ages food. Under them, WHY (decision 0611): each store's own words for how it keeps food and how
+## many times as long food keeps there as in the covered store (`why_text`); and a row whose store has food in a
+## carrier's hands, on its way to a cooler store, says so (`moving_text`).
 ##
 ## EMPTY. With no row at all the Pantry suggests a real source from the beds (`suggest`): a ripe bed to
 ## harvest, else the bed that ripens soonest, else an empty bed to plant, else a dead crop to clear.
@@ -40,6 +42,10 @@ const NO_LOT: int = -1
 ## A row with nothing in store and nothing incoming (its stock gone while the Pantry was open).
 const NONE_TEXT: String = "—"
 const GONE_TEXT: String = "(store gone)"
+## WHY (decision 0611; see STORES).
+const WHY_HEADING: String = "Why food keeps longer in some stores:"
+const WHY_KEEPS: String = ": food keeps %s as long as in the %s"
+const MOVING: String = "%s being moved to a cooler store"
 
 ## The rows in display order: item, store index (GONE once its store has gone) and the store's id.
 var item: PackedInt32Array = PackedInt32Array()
@@ -216,6 +222,28 @@ static func store_cells(pantry: PantryScript, at: int) -> PackedStringArray:
 	return PackedStringArray([storage.label_of(at), Text.units_text(pantry.used_milli_of(at)),
 		Text.units_text(pantry.reserved_milli_of(at)), Text.units_text(pantry.room_milli_of(at)),
 		Text.units_text(storage.capacity_milli_of(at)), "×%d.%02d" % [permille / 1000, (permille % 1000) / 10]])
+
+
+static func why_text(pantry: PantryScript) -> String:
+	"""Why food keeps longer in some stores (see STORES): a heading, then a line a store -- 'Root cellar 1 — cool: deep,
+	racked and away from any hearth: food keeps 2.8× as long as in the covered store'."""
+	var storage := pantry.storage
+	var lines := PackedStringArray([WHY_HEADING])
+	for at: int in storage.count():
+		var line: String = "%s — %s" % [storage.label_of(at), storage.why_of(at)]
+		if storage.permille_of(at) != StorageScript.STORE_PERMILLE:
+			line += WHY_KEEPS % [Text.keeps_text(StorageScript.STORE_PERMILLE, storage.permille_of(at)),
+				StorageScript.STORE_LABEL.to_lower()]
+		lines.append(line)
+	return "\n".join(lines)
+
+
+func moving_text(pantry: PantryScript, row: int) -> String:
+	"""'5.0 U being moved to a cooler store' when some of the row's food is in a carrier's hands (see STORES), else ''."""
+	if location[row] == GONE:
+		return ""
+	var held: int = pantry.carried_milli_at(item[row], location[row])
+	return MOVING % Text.units_text(held) if held > 0 else ""
 
 
 func suggest(sim: SimScript) -> bool:

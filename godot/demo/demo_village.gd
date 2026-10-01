@@ -197,6 +197,7 @@ const NewsJumpScript := preload("res://demo/ui/demo_news_jump.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const SoundScript := preload("res://demo/sound/sound_director.gd")
 const DemoWorkScript := preload("res://demo/work/demo_work.gd")
+const StoresNodeScript := preload("res://demo/stores/demo_stores.gd")
 const WeirViewScript := preload("res://demo/water/weir_gate_view.gd")
 const SongsScript := preload("res://demo/songs/demo_songs.gd")
 const RoutesScript := preload("res://demo/routes/demo_routes.gd")
@@ -288,6 +289,8 @@ var _history: NewsHistoryScript = null
 var _cards: IncidentCardsScript = null
 var _jump: NewsJumpScript = NewsJumpScript.new()
 var _work: DemoWorkScript = null
+## The food stores at work: surplus food carried into a cool cellar (decision 0611).
+var _stores: StoresNodeScript = null
 var _weir_view: WeirViewScript = null
 var _songs: SongsScript = null
 ## The route and infrastructure previews (decision 0461) and their map layer's row.
@@ -336,6 +339,7 @@ func _ready() -> void:
 	_build_fishery()
 	_build_shared_ui()
 	_build_work()
+	_build_stores()
 	_build_routes()
 	_build_people()
 	_build_sound()
@@ -570,6 +574,26 @@ func _build_work() -> void:
 	command.set_queue_handler(_work.queue_at)
 	_work.unlock_jobs_command(_shell())
 	_work.screen.close_requested.connect(_work.screen.close)
+
+
+func _build_stores() -> void:
+	"""The food stores at work (demo/stores/, decision 0611): surplus food carried from a warmer store into a cool root
+	cellar -- the farm's pantry, the kitchen's reservations left alone, on the demo calendar -- its moves on the work
+	board as HAULING."""
+	_stores = StoresNodeScript.new()
+	add_child(_stores)
+	var takes: RefCounted = _kitchen.kitchen.takes
+	var pantry: RefCounted = _farm.pantry
+	_stores.configure(_cast as DemoCastScript, (_command as DemoCommandScript).tunnels().network, _farm.pantry,
+		func(lot: int) -> int: return int(takes.call(&"free_milli", pantry, lot)), _farm.sim.calendar.hour_index,
+		_farm.goods)
+	_work.add_stores(_stores.haul, _farm.pantry)
+	(_command as DemoCommandScript).add_task_text(_stores.haul.task_text)
+
+
+func stores() -> StoresNodeScript:
+	"""The food stores at work (demo/stores/demo_stores.gd)."""
+	return _stores
 
 
 func _build_routes() -> void:

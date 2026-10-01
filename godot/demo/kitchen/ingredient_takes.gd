@@ -73,21 +73,22 @@ func reserved_in(lot: int, serial: int) -> int:
 
 
 func free_milli(pantry: PantryScript, lot: int) -> int:
-	"""A live lot's milli-U nobody has reserved (0 for a free row)."""
+	"""A live lot's milli-U nobody has reserved (0 for a free row, and for one in a carrier's hands on its way to another
+	store: farm_pantry.gd MOVING FOOD BETWEEN STORES, decision 0611)."""
 	var serial: int = pantry.lot_serial(lot)
-	if serial == 0:
+	if serial == 0 or pantry.lot_carried(lot):
 		return 0
 	return maxi(0, pantry.lot_milli(lot) - reserved_in(lot, serial))
 
 
 func free_milli_of_crop(pantry: PantryScript, crop: int) -> int:
 	"""Unreserved milli-U of every item of §5.6 crop row `crop` in the pantry (one pass over the entries, one over the
-	lots)."""
+	lots), none of it in a carrier's hands (see `free_milli`)."""
 	_sum_per_lot(pantry, FREE, -1)
 	var total: int = 0
 	for lot: int in PantryScript.MAX_LOTS:
 		var item: int = pantry.lot_item(lot)
-		if item != PantryScript.FREE and Catalog.category_of(item) == crop:
+		if item != PantryScript.FREE and Catalog.category_of(item) == crop and not pantry.lot_carried(lot):
 			total += maxi(0, pantry.lot_milli(lot) - _per_lot[lot])
 	return total
 
@@ -209,7 +210,8 @@ func consume_into(pantry: PantryScript, take: int, milli: int, where: int, hour_
 	while left > 0:
 		var e: int = _soonest_at(pantry, take, where, hour_index, crop)
 		var part: int = mini(left, _milli[e])
-		pantry.withdraw_into(_lot[e], _serial[e], part, _read)
+		if not pantry.withdraw_into(_lot[e], _serial[e], part, _read):
+			return out.refuse(REFUSE_SHORT)  # unreachable after the trim; never count food that was not taken
 		_milli[e] -= part
 		left -= part
 		if _milli[e] == 0:
@@ -219,12 +221,14 @@ func consume_into(pantry: PantryScript, take: int, milli: int, where: int, hour_
 
 func _trim_to_lots(pantry: PantryScript, take: int, where: int) -> void:
 	"""Cut `take`'s entries at `where` down to what their lots still hold (food something else took is not there to
-	cook), so `consume_into`'s withdrawals can never be refused half-way: all or nothing."""
+	cook; a lot in a carrier's hands holds none for the kitchen: farm_pantry.gd MOVING FOOD BETWEEN STORES, decision
+	0611), so `consume_into`'s withdrawals can never be refused half-way: all or nothing."""
 	_sum_per_lot(pantry, take, where)
 	for e: int in MAX_ENTRIES:
 		if _take[e] != take or _where[e] != where or not _live(pantry, e):
 			continue
-		var over: int = _per_lot[_lot[e]] - pantry.lot_milli(_lot[e])
+		var held: int = 0 if pantry.lot_carried(_lot[e]) else pantry.lot_milli(_lot[e])
+		var over: int = _per_lot[_lot[e]] - held
 		if over <= 0:
 			continue
 		var cut: int = mini(over, _milli[e])

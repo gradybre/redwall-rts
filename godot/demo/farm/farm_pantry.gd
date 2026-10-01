@@ -40,7 +40,18 @@ extends RefCounted
 ## came IN (a delivery stored: `_lot_into`, the one place a lot grows), went OUT (`withdraw_into`) and SPOILED (`_spoil`).
 ## Committed outcomes only -- a reservation, a load in hand or a composting moves none of them -- so for every item
 ## `milli_of == stored_total_milli - withdrawn_total_milli - spoiled_total_milli` (test_demo_planner.gd checks it).
-
+##
+## MOVING FOOD BETWEEN STORES (decision 0611, the cool cellar). A lot is moved, never re-made: §5.8 "changing stores never
+## resets age", and REQ-SET-111 splits a carried quantity "exactly without cloning lots". `begin_carry_into` takes `milli`
+## of a lot into a carrier's hands -- the whole row, or an exact split into a new row (a new serial, the same item, age
+## and remainder) -- and marks it CARRIED. A carried lot stays booked AT ITS SOURCE (counted there, ageing at its rate,
+## its room kept) until it is set down: nothing is credited from afar (decision 0222). Nobody else may take from it --
+## `withdraw_into` refuses it, a delivery never merges into it, and the kitchen counts none of it free
+## (ingredient_takes.gd `free_milli`). `set_down_into` puts it in the store its hold (`reserve_at_into`) keeps room in:
+## what fits moves there whole -- the lot's location changes, its age with it -- or, when only part fits, split again;
+## the hold is spent. `put_back` ends a carry anywhere else: the lot was never booked away, so it simply stops being
+## carried. A carried lot that spoils frees its row (its serial no longer answers), like any other. None of this moves
+## the LEDGER: food that changes stores neither came in nor went out.
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const StockAge := preload("res://scripts/core/stock_age.gd")
@@ -48,8 +59,9 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 
 const MAX_LOTS: int = 128
-## Reservations held at once: the farm's job board is 24 rows, each with at most one.
-const MAX_HOLDS: int = 32
+## Reservations held at once: the farm's job board (24 rows) and the fishery's (24), each row with at most one, and the
+## food stores' moves (demo/stores/cellar_haul.gd MAX_ROWS, 4; decision 0611).
+const MAX_HOLDS: int = 52
 const FREE: int = -1
 const MILLI_PER_U: int = 1000
 const FACTOR_DENOMINATOR: int = 1000
@@ -69,6 +81,7 @@ const REFUSE_NO_STOCK: String = "NO_STOCK"
 const REFUSE_NO_HOLD: String = "NO_RESERVATION_ROW"
 const REFUSE_GONE: String = "STORAGE_LOCATION_GONE"
 const REFUSE_STALE_LOT: String = "LOT_NOT_THE_SAME"
+const REFUSE_IN_HAND: String = "LOT_BEING_CARRIED"
 ## A hold's location once its store has gone (never a location index).
 const GONE: int = -2
 
@@ -105,6 +118,10 @@ var _lot_probe: IntMath.IntResult = IntMath.IntResult.new()
 ## Each lot row's serial, new every time the row opens (see WITHDRAWALS); 0 on a row never opened.
 var _lot_serial: PackedInt32Array = PackedInt32Array()
 var _next_serial: int = 1
+## 1 while a lot row is in a carrier's hands (see MOVING FOOD BETWEEN STORES).
+var _lot_carried: PackedByteArray = PackedByteArray()
+## Every milli-U ever set down in another store by a move (see MOVING FOOD BETWEEN STORES), never reset.
+var moved_milli: int = 0
 
 
 func _init(p_storage: StorageScript) -> void:
@@ -115,6 +132,7 @@ func _init(p_storage: StorageScript) -> void:
 	for column: PackedInt64Array in [_lot_milli, _lot_age]:
 		column.resize(MAX_LOTS)
 	_lot_item.fill(FREE)
+	_lot_carried.resize(MAX_LOTS)
 	_item_milli.resize(Catalog.PANTRY_ITEM_COUNT)
 	for column: PackedInt64Array in [_in_milli, _out_milli, _spoiled_by_item]:
 		column.resize(Catalog.PANTRY_ITEM_COUNT)
@@ -167,13 +185,14 @@ func _open_lot(lot: int, item: int, location: int) -> void:
 	_lot_remainder[lot] = 0
 	_lot_serial[lot] = _next_serial
 	_next_serial += 1
+	_lot_carried[lot] = 0
 
 
 func _oldest_lot_into(item: int, location: int, out: IntMath.IntResult) -> bool:
 	"""The oldest live lot of `item` at `location`, into `out`; refuses NO_STOCK when none."""
 	var found: bool = false
 	for lot: int in MAX_LOTS:
-		if _lot_item[lot] == item and _lot_location[lot] == location:
+		if _lot_item[lot] == item and _lot_location[lot] == location and _lot_carried[lot] == 0:
 			if not found or _lot_age[lot] > _lot_age[out.value]:
 				found = out.succeed(lot)
 	if not found:
@@ -423,6 +442,7 @@ func _spoil(lot: int) -> void:
 	_spoiled_items.append(item)
 	_lot_item[lot] = FREE
 	_lot_milli[lot] = 0
+	_lot_carried[lot] = 0
 
 
 func compost_spoiled() -> int:
@@ -602,9 +622,12 @@ func lot_serial(lot: int) -> int:
 func withdraw_into(lot: int, serial: int, milli: int, out: IntMath.IntResult) -> bool:
 	"""Take `milli` out of lot `lot`, which must still be the lot opened with `serial` (see WITHDRAWALS): its item's
 	count falls by exactly that much and an emptied row is freed. How much was taken into `out`; refuses a stale or
-	free row (LOT_NOT_THE_SAME), a bad quantity or more than the lot holds (NO_STOCK), changing nothing."""
-	if lot < 0 or lot >= MAX_LOTS or _lot_item[lot] == FREE or _lot_serial[lot] != serial:
+	free row (LOT_NOT_THE_SAME), a carried one (LOT_BEING_CARRIED), a bad quantity or more than the lot holds
+	(NO_STOCK), changing nothing."""
+	if not is_lot(lot, serial):
 		return out.refuse(REFUSE_STALE_LOT)
+	if _lot_carried[lot] == 1:
+		return out.refuse(REFUSE_IN_HAND)
 	if milli <= 0:
 		return out.refuse(REFUSE_BAD_QUANTITY)
 	if milli > _lot_milli[lot]:
@@ -615,3 +638,113 @@ func withdraw_into(lot: int, serial: int, milli: int, out: IntMath.IntResult) ->
 	if _lot_milli[lot] == 0:
 		_lot_item[lot] = FREE
 	return out.succeed(milli)
+
+
+func is_lot(lot: int, serial: int) -> bool:
+	"""Whether row `lot` is live and still the lot opened with `serial`."""
+	return lot >= 0 and lot < MAX_LOTS and _lot_item[lot] != FREE and _lot_serial[lot] == serial
+
+
+# --- moving food between stores (see MOVING FOOD BETWEEN STORES) ------------------------------------
+
+func reserve_at_into(item: int, milli: int, location: int, out: IntMath.IntResult) -> bool:
+	"""Reserve room for `milli` of `item` at `location` itself (a move's destination). The hold's row into `out`; refuses
+	a bad item, quantity or location, NO_STORAGE_ROOM or a full hold table."""
+	if not Catalog.is_pantry_item(item):
+		return out.refuse(REFUSE_NOT_AN_ITEM)
+	if milli <= 0:
+		return out.refuse(REFUSE_BAD_QUANTITY)
+	if location < 0 or location >= storage.count():
+		return out.refuse(REFUSE_NO_LOCATION)
+	if room_milli_of(location) < milli:
+		return out.refuse(REFUSE_NO_ROOM)
+	var hold: int = _hold_live.find(0)
+	if hold < 0:
+		return out.refuse(REFUSE_NO_HOLD)
+	_hold_live[hold] = 1
+	_hold_location[hold] = location
+	_hold_milli[hold] = milli
+	_hold_item[hold] = item
+	return out.succeed(hold)
+
+
+func begin_carry_into(lot: int, serial: int, milli: int, out: IntMath.IntResult) -> bool:
+	"""Take `milli` of lot `lot` (still the one opened with `serial`) into a carrier's hands: the whole row, or an exact
+	split into a new row with the same age. The carried row into `out` (its serial is `lot_serial`); refuses a stale
+	row, one already carried, a bad quantity, more than it holds, or a split with no free row (NO_STORAGE_ROOM)."""
+	if not is_lot(lot, serial):
+		return out.refuse(REFUSE_STALE_LOT)
+	if _lot_carried[lot] == 1:
+		return out.refuse(REFUSE_IN_HAND)
+	if milli <= 0:
+		return out.refuse(REFUSE_BAD_QUANTITY)
+	if milli > _lot_milli[lot]:
+		return out.refuse(REFUSE_NO_STOCK)
+	var carried: int = lot
+	if milli < _lot_milli[lot]:
+		carried = _split(lot, milli, _lot_location[lot])
+		if carried == FREE:
+			return out.refuse(REFUSE_NO_ROOM)
+	_lot_carried[carried] = 1
+	return out.succeed(carried)
+
+
+func _split(lot: int, milli: int, location: int) -> int:
+	"""Move `milli` (less than it holds) of lot `lot` into a new row at `location` with its item, age and remainder;
+	the new row, or FREE when every row is taken."""
+	var row: int = _lot_item.find(FREE)
+	if row < 0:
+		return FREE
+	_open_lot(row, _lot_item[lot], location)
+	_lot_age[row] = _lot_age[lot]
+	_lot_remainder[row] = _lot_remainder[lot]
+	_lot_milli[row] = milli
+	_lot_milli[lot] -= milli
+	return row
+
+
+func set_down_into(lot: int, serial: int, hold: int, out: IntMath.IntResult) -> bool:
+	"""Set carried lot `lot` (opened with `serial`) down in the store hold `hold` keeps room in: what fits moves there,
+	its age with it -- the whole row, or a split; the rest stays carried. The hold is spent. How much moved into `out`
+	(0 when nothing fitted, or no row was free for a split); refuses a stale or uncarried row, or a hold that is not
+	live (NO_RESERVATION_ROW) or whose store has gone (STORAGE_LOCATION_GONE)."""
+	if not is_lot(lot, serial) or _lot_carried[lot] == 0:
+		return out.refuse(REFUSE_STALE_LOT)
+	if not hold_location_into(hold, out):
+		return false
+	var to: int = out.value
+	var fits: int = mini(_lot_milli[lot], storage.capacity_milli_of(to) - used_milli_of(to) - reserved_milli_of(to)
+		+ _hold_milli[hold])
+	release(hold)
+	if fits <= 0:
+		return out.succeed(0)
+	if fits == _lot_milli[lot]:
+		_lot_location[lot] = to
+		_lot_carried[lot] = 0
+	elif _split(lot, fits, to) == FREE:
+		return out.succeed(0)
+	moved_milli += fits
+	return out.succeed(fits)
+
+
+func put_back(lot: int, serial: int) -> bool:
+	"""End the carry of lot `lot` (opened with `serial`) anywhere but its destination: it was never booked away, so it
+	is simply in its store again. False for a stale or uncarried row."""
+	if not is_lot(lot, serial) or _lot_carried[lot] == 0:
+		return false
+	_lot_carried[lot] = 0
+	return true
+
+
+func lot_carried(lot: int) -> bool:
+	"""Whether lot row `lot` is in a carrier's hands."""
+	return lot >= 0 and lot < MAX_LOTS and _lot_item[lot] != FREE and _lot_carried[lot] == 1
+
+
+func carried_milli_at(item: int, location: int) -> int:
+	"""How much of `item` booked at `location` is in carriers' hands on its way elsewhere, milli-U."""
+	var held: int = 0
+	for lot: int in MAX_LOTS:
+		if _lot_carried[lot] == 1 and _lot_item[lot] == item and _lot_location[lot] == location:
+			held += _lot_milli[lot]
+	return held

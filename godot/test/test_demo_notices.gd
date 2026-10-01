@@ -358,6 +358,32 @@ func test_the_time_control_counts_a_warning_under_a_grouped_repeat() -> void:
 	assert_equal(control.warnings_seen(), before + 1, "the new warning counted once, under the moved repeat")
 
 
+func test_run_until_the_next_warning_skips_a_snoozed_kind_but_not_a_held_back_one() -> void:
+	"""Brendan's ruling (0591): a warning of a snoozed kind does not count as "the next warning"; one the toast budget
+	held back does (the strip's "N more" says why the run stopped); an urgent one of a snoozed kind does."""
+	_game = GameManagerScript.new()
+	_game.start_game()
+	var control := TimeControlScript.new()
+	_keep(control)
+	var feed := _feed()
+	var incidents := IncidentsScript.new()
+	incidents.bind(feed, null, null)
+	control.configure(_game, ClockScript.new(), feed, incidents)
+	feed.snooze_kind(CROWS, 6)
+	var before: int = control.warnings_seen()
+	_crows_on_bed(feed, 3)
+	assert_true(feed.is_snoozed_entry(0), "a snoozed kind's entry")
+	assert_equal(control.warnings_seen(), before, "a snoozed kind does not count")
+	for k: int in NoticesScript.TOAST_BURST + 1:
+		feed.post(NoticesScript.SOURCE_TUNNELS, NoticesScript.LEVEL_WARNING, "Tunnel %d flooded" % k)
+	assert_false(feed.is_announced(0), "the last was held back")
+	assert_false(feed.is_snoozed_entry(0), "but not snoozed")
+	assert_equal(control.warnings_seen(), before + NoticesScript.TOAST_BURST + 1, "every one counts, held back too")
+	feed.notify(NoticesScript.SOURCE_FARM, NoticesScript.TIER_URGENT, CROWS, "Crows tearing the barley up", "bed:9")
+	assert_false(feed.is_snoozed_entry(0), "an urgent entry is never snoozed")
+	assert_equal(control.warnings_seen(), before + NoticesScript.TOAST_BURST + 2, "an urgent one of the kind counts")
+
+
 # --- snooze -----------------------------------------------------------------------------------------------
 
 func test_a_snoozed_kind_is_kept_quiet_for_its_game_hours_and_wakes() -> void:

@@ -92,7 +92,7 @@ Review UX-022 (`session/`). **Every pause says why, and there is one Resume.**
   narrow profile), or **G**: a menu with the speed (1x / 2x / 4x) and six targets, each saying when or why not --
   **Dawn** (06:00, the night routine's), **Dusk** (20:00), **Next meal** (the kitchen's 07:00 or 17:00 call), **Project
   done** (the selected room being dug, else the selected tunnel being dug, else the bridge planned at the Water panel's
-  site), **Harvest window** (a bed coming ripe), **Next warning** (a new warning line or incident). The village runs at the
+  site), **Harvest window** (a bed coming ripe), **Next warning** (a new warning line, not of a snoozed kind, or a new or recurring incident; decision 0591). The village runs at the
   speed, then pauses saying where it got to. The calendar targets land **on the tick** (the demo clock's next frame is
   capped, `demo_clock.gd limit_usec`): from 05:40 at 4x, Run until dawn stops at 06:00:00. Any pause or critical event
   first cancels the run, and the card says so ("Run until dawn cancelled: paused (you paused)"); the button reads
@@ -193,6 +193,8 @@ Feature #39 (`demo_notices.gd`, `demo_notice_snoozes.gd`, `ui/demo_news_strip.gd
     *Dismiss*.
   - A line names the snoozed kinds, with *Wake all*.
   - Urgent notices are never snoozed or held back.
+- **Run until the next warning** skips warnings of a snoozed kind. A warning the budget held back still stops it, and
+  the strip's "N more" says why.
 - **No spam at 4x.** New toasts are budgeted: 4 at once, +1 per 2.5 s of unpaused real time, info and normal apart.
   The rest are kept in the history and counted on the strip.
 

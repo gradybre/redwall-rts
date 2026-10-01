@@ -115,10 +115,17 @@ findings, these were fixed:
 - Tests were added that catch a grouped repeat losing its new tier, `_remove` losing a column's place, a named notice
   joining an incident's line, and the urgent size.
 
-Left as they are, for a ruling if wanted:
-- **"Run until the next warning" counts every new warning row**, including rows of a snoozed kind and rows the budget
-  held back, so such a row can end a run without a toast to show why. Counting announced rows only would change
-  decision 0471's target.
+Brendan's ruling on the review's open question, 2026-10-01:
+- **"Run until the next warning" skips snoozed kinds.** A new warning row of a kind snoozed now no longer ends a run.
+  A warning the toast budget held back still does: the strip's "N more (N)" says why the run stopped. An urgent row
+  is never snoozed, so it always counts.
+  - Built in `session/time_control.gd` `_count_warnings`, reading the feed's new `is_snoozed_entry(k)`.
+  - **This narrows decision 0471's "Next warning" target.** It was "a new warning line or a new or recurring
+    incident"; it is now that, less warning lines of a snoozed kind.
+  - Incidents are counted apart (`demo_incidents.gd occurrences`). A new or recurring *incident* still ends the run
+    even when its line's kind is snoozed. The incident card's own Snooze is the control for those.
+
+Left as it is, for a ruling if wanted:
 - The `matches` / `filtered_into` filters (by level) and the history (by tier) disagree on a NOTE posted with a
   normal tier. No caller does that.
 

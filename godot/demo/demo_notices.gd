@@ -597,6 +597,11 @@ func is_announced(k: int) -> bool:
 	return _announced[_row(k)] == 1
 
 
+func is_snoozed_entry(k: int) -> bool:
+	"""Whether entry `k` is of a kind snoozed now (never an urgent one): what "Run until the next warning" skips."""
+	return _snoozed(_kind[_row(k)], _tier[_row(k)])
+
+
 func is_dismissed(k: int) -> bool:
 	"""Whether entry `k` was dismissed."""
 	return _dismissed[_row(k)] == 1

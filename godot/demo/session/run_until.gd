@@ -13,8 +13,8 @@ extends RefCounted
 ##     A project removed before it is done ends the run (END_GONE).
 ##   * HARVEST    -- a bed coming RIPE that was not ripe when the run began (farm_sim.gd STAGE_RIPE): the next
 ##     harvest window opening. Offered only while something grows toward one.
-##   * WARNING    -- a new warning line in the notice feed or a new or recurring incident (demo_notices.gd,
-##     demo_incidents.gd), the same count the sound's warning chime follows.
+##   * WARNING    -- a new warning line in the notice feed, not of a snoozed kind, or a new or recurring incident
+##     (demo_notices.gd, demo_incidents.gd; decision 0591: a line the toast budget held back still counts).
 ##
 ## EXACT ON THE CALENDAR. The three calendar targets know their tick in advance, so the run caps the demo clock's next
 ## frame (`usec_limit` -> demo_clock.gd `limit_usec`) at exactly the demo time that brings the calendar to it: under

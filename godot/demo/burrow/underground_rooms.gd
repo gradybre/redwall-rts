@@ -795,5 +795,5 @@ func cellars(graph: RefCounted) -> Array[Dictionary]:
 
 func housing_line(graph: RefCounted) -> String:
 	"""The panel's housing readout."""
-	return "Burrow homes: %d (%d demo beds) · Root cellars: %d" % [count_done(graph, TEMPLATE_HOME), beds(graph),
+	return "Burrow homes: %d (%d beds) · Root cellars: %d" % [count_done(graph, TEMPLATE_HOME), beds(graph),
 		cellar_count(graph)]

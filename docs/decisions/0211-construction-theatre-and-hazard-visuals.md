@@ -1,5 +1,5 @@
 # 0211 — The construction theatre, hazard warnings, surface signs and large beds
-Date: 2026-09-30 · Status: Accepted
+Date: 2026-09-30 · Status: Accepted · §10 (the "Sim beds" relabel) superseded by [0251](0251-the-demo-hud-reads-the-village.md)
 
 Phase P5 ("Construction theatre and hazard visuals") of the approved underground revamp
 ([`docs/design/underground_revamp.md`](../design/underground_revamp.md) §2 "Digging" and "Living", §6 "Hazards made

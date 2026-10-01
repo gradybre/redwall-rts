@@ -3,7 +3,7 @@ extends "res://test/framework/test_case.gd"
 ## cast (sowing, harvesting and hauling to the store, fetching water, raising a bed with tunnel spoil,
 ## a worker called away and the work kept), the farm's own routine jobs, the brain's two farm orders,
 ## the command layer's farm hooks, the bed visuals and view, the words (farm_look / farm_text), the
-## alerts, the recipe index, the HUD's Food cell and Food command, the bed panel and its crop picker,
+## alerts, the recipe index, the HUD's Food command, the bed panel and its crop picker,
 ## the Pantry, and demo_farm.gd's verbs and keys.
 ##
 ## No scene tree and no staged assets: the cast is the placeholder cast in the real village layout
@@ -482,19 +482,24 @@ func test_the_panel_words_come_from_the_rules() -> void:
 	assert_equal(Text.window_text(FarmingScript.CROP_ROOTS), "Spring 1–8; Summer 1–4", "roots")
 	assert_equal(Text.window_text(FarmingScript.CROP_GRAIN), "Spring 1–4", "grain")
 	assert_equal(Text.soils_text(FarmingScript.CROP_ROOTS), "loam or sand", "roots' soils")
-	assert_equal(Text.rotation_text(850), "same family again: yield ×0.85", "second")
-	assert_equal(Text.rotation_text(1100), "legume after a change: yield ×1.10", "legume")
+	assert_equal(Text.rotation_text(850), "same family again: harvest −15%", "second")
+	assert_equal(Text.rotation_text(1100), "legume after a change: harvest +10%", "legume")
+	assert_equal(Text.rotation_text(1000), "fresh rotation: no change to the harvest", "fresh")
 	var sim := SimScript.new()
-	assert_equal(Text.pick_row(sim, BED_LOAM, PEA), "legume · 144 h · 7.0 U · fresh rotation: yield ×1.00 · feeds the soil +8",
-		"a legume says it feeds the soil")
+	assert_equal(Text.pick_row(sim, BED_LOAM, PEA), "legume crop · matures in 6 days · this bed: about 5.9 U (base 7.0 U) · "
+		+ "fresh rotation: no change to the harvest · feeds the soil: +8 fertility points", "a legume says it feeds the soil")
 	assert_equal(Text.pick_reason(sim, BED_CLAY, RADISH), "needs loam or sand (this bed is clay)", "soil")
 	assert_equal(Text.pick_reason(sim, BED_LOAM, PEA), "sow in Spring 5–10; Summer 1–3", "window")
 	assert_equal(Text.pick_reason(sim, BED_LOAM, WHEAT), "", "sowable")
 	assert_equal(Text.clock_line(sim), "Y1 Spring 1, 06:00 · 12 °C", "the demo calendar's date, as the HUD prints it")
-	assert_equal(Text.moisture_line(sim, BED_CARROTS), "Moisture 6000 — good (2500–7000)", "moisture")
-	assert_equal(Text.soil_line(sim, BED_CARROTS), "Sand · fertility 70% (yield ×0.85) · health 100%", "soil")
+	assert_equal(Text.moisture_line(sim, BED_CARROTS), "Soil moisture: Good · 60%", "moisture")
+	assert_equal(Text.range_line(sim, BED_CARROTS), "Suitable for this crop: 25–70%", "its range")
+	assert_equal(Text.soil_line(sim, BED_CARROTS), "Soil: Sand", "soil")
+	assert_equal(Text.fertility_line(sim, BED_CARROTS), "Fertility: 70%", "fertility")
+	assert_equal(Text.fertility_effect_line(sim, BED_CARROTS), "Fertility effect on yield: −15%", "its effect")
+	assert_equal(Text.health_line(sim, BED_CARROTS), "Crop health: 100%", "health")
 	assert_equal(Text.stage_line(sim, BED_CARROTS, _read), "Growing 80% — ripe in about 24 h", "growing")
-	assert_equal(Text.yield_line(sim, BED_CARROTS, _read), "Expected yield: 5.1 U of carrot", "yield")
+	assert_equal(Text.yield_line(sim, BED_CARROTS, _read), "Expected harvest: 5.1 U of carrot", "yield")
 	assert_equal(Text.works_line(sim, BED_CARROTS), "Ground: as dug", "untouched")
 	sim.advance_usec(24 * HOUR_USEC)
 	assert_equal(Text.stage_line(sim, BED_CARROTS, _read), "Ripe — full yield for 48 h more, withers in 120 h", "just ripe")
@@ -590,24 +595,6 @@ func _fixture(path: String, data: Dictionary) -> String:
 	file.store_string(JSON.stringify(data))
 	file.close()
 	return path
-
-
-func test_the_food_cell_shows_the_pantry_total_and_takes_it_back() -> void:
-	"""The Food cell reads the pantry's milli-U total in the farm's one units form, "7.4 U" (decision
-	0222); when UIManager writes its own figure the next sync paints the total back; an unchanged frame
-	paints nothing."""
-	var shell := UiShell.new()
-	_nodes.append(shell)
-	shell.build()
-	var hud := HudScript.new()
-	hud.bind(shell)
-	assert_true(hud.sync(7400), "painted")
-	assert_equal(shell.counter_value_label(UiShell.ID_FOOD).text, "7.4 U", "the pantry total")
-	assert_false(hud.sync(7400), "nothing changed")
-	shell.set_counter_display(UiShell.ID_FOOD, "5.48")
-	assert_true(hud.sync(7400), "painted back")
-	assert_equal(shell.counter_value_label(UiShell.ID_FOOD).text, "7.4 U", "ours again")
-	assert_true(hud.sync(8000), "a new total")
 
 
 func test_the_food_command_opens_the_pantry() -> void:
@@ -798,7 +785,8 @@ func test_the_bed_panel_offers_only_what_the_bed_can_take() -> void:
 	assert_true(panel.verb_button(JobsScript.KIND_WATER).disabled, "water")
 	assert_equal(panel.verb_button(JobsScript.KIND_WATER).tooltip_text, "nothing growing", "why")
 	assert_true(panel.verb_button(JobsScript.KIND_HARVEST).disabled, "harvest")
-	assert_equal(panel.line_text(1), "Moisture 6000 — good (4000–8000)", "readout")
+	assert_equal(panel.line_text(1), "Soil moisture: Good · 60%", "readout")
+	assert_equal(panel.line_text(2), "Suitable for an empty bed: 40–80%", "the range it is judged by")
 	panel.show_bed(BED_CARROTS)
 	assert_true(panel.verb_button(JobsScript.KIND_SOW).disabled, "no planting over a crop")
 	panel.show_bed(BED_CLAY)

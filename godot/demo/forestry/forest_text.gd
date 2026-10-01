@@ -52,11 +52,11 @@ func remember(answer: String) -> void:
 
 
 func stores_line() -> String:
-	"""The one stock, and whose it is: "Demo stores: wood 40.0 U · planks 2.0 U" over "(shared with the
-	tunnels; the HUD's Wood is the settlement's)"."""
+	"""The village stores' wood and planks, the figures the top bar shows: "Village stores: wood 40.0 U · planks
+	2.0 U" (decision 0251: no line explains whose stock it is -- there is one)."""
 	var stores := _services.stores
-	return "Demo stores: wood %s · planks %s\n(shared with the tunnels; the HUD's Wood is the settlement's)" % [
-		Rules.units_text(stores.wood_milli_u), Rules.units_text(stores.plank_milli_u)]
+	return "Village stores: wood %s · planks %s" % [Rules.units_text(stores.wood_milli_u),
+		Rules.units_text(stores.plank_milli_u)]
 
 
 func counts_line() -> String:

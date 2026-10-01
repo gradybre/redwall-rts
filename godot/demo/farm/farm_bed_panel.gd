@@ -10,10 +10,13 @@ extends CanvasLayer
 ## repeated here (playtest 2026-09-29). With a bed, ONLY that bed: its title; one NEEDS line naming
 ## its most pressing condition and the verb that answers it (farm_text.gd -- hidden when nothing
 ## presses, clay only for a warning); its crop and stage with the hours to ripe or to withering,
-## moisture against the crop's band, soil fertility and health, what has been done to the ground, the
-## expected yield, and the jobs on it; then the verbs. A harvest waiting for store room (farm_crew.gd
-## CONSERVATION, decision 0222) adds a clay line saying how much has nowhere to go and a "Make room…"
-## button that opens the Pantry.
+## the soil moisture as a band and a percentage over a banded meter (farm_moisture_meter.gd) and the
+## crop's suitable range, the soil, its fertility and that fertility's effect on the yield, the crop's
+## health, what has been done to the ground, ONE expected harvest, and the jobs on it; then "Details",
+## which shows the harvest's multiplication and the raw 0..10000 readings (decision 0251, F34); then the
+## verbs, each enabled one's tooltip saying its effect in points (Rest: "+0.5 fertility points a day").
+## A harvest waiting for store room (farm_crew.gd CONSERVATION, decision 0222) adds a clay line saying
+## how much has nowhere to go and a "Make room…" button that opens the Pantry.
 ## A verb that cannot be done now is disabled, its reason in its tooltip. "Plant…" opens the PICKER:
 ## every ingredient, those sowable now first, each with its row's growth hours, yield, family and its
 ## rotation effect IN THIS BED (the same family again shows the penalty; legumes say they feed the
@@ -32,6 +35,8 @@ const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const DetailZone := preload("res://demo/ui/demo_detail_zone.gd")
 const GoodsScript := preload("res://demo/farm/farm_goods.gd")
+const MeterScript := preload("res://demo/farm/farm_moisture_meter.gd")
+const FarmingScript := preload("res://scripts/core/farming.gd")
 
 signal verb_requested(kind: int)
 signal crop_picked(item: int)
@@ -51,6 +56,11 @@ const PICKER_MAX_H: float = 520.0
 ## An order's answer stays under the readout this long (real time), then goes.
 const MESSAGE_MSEC: int = 8000
 const COLUMNS: int = 3
+## The readout lines, in order (see `_fill_lines`); the meter sits under LINE_MOISTURE.
+const LINE_COUNT: int = 10
+const LINE_MOISTURE: int = 1
+const DETAILS_SHOW: String = "Details ▸"
+const DETAILS_HIDE: String = "Details ▾"
 
 var bed: int = -1
 var picking: bool = false
@@ -67,6 +77,10 @@ var _title: Label = null
 var _clock: Label = null
 var _needs: Label = null
 var _lines: Array[Label] = []
+var _meter: MeterScript = null
+var _details_button: Button = null
+var _details: Label = null
+var _details_open: bool = false
 var _message: Label = null
 var _shortage: Label = null
 var _make_room: Button = null
@@ -118,9 +132,13 @@ func _build() -> void:
 	_needs = FarmUi.label("", FarmUi.BODY_PX, Palette.CLAY)
 	_needs.visible = false
 	column.add_child(_needs)
-	for k: int in 6:
+	for k: int in LINE_COUNT:
 		_lines.append(FarmUi.label("", FarmUi.BODY_PX, Palette.INK))
 		column.add_child(_lines[k])
+		if k == LINE_MOISTURE:
+			_meter = MeterScript.new()
+			column.add_child(_meter)
+	_build_details(column)
 	_message = FarmUi.label("", FarmUi.BODY_PX, Palette.CLAY)
 	_message.visible = false
 	column.add_child(_message)
@@ -142,6 +160,32 @@ func _build_shortage(column: VBoxContainer) -> void:
 	_make_room.visible = false
 	_make_room.pressed.connect(func() -> void: pantry_requested.emit())
 	column.add_child(_make_room)
+func _build_details(column: VBoxContainer) -> void:
+	"""The Details toggle and what it shows: the harvest's breakdown and the raw readings."""
+	_details_button = FarmUi.button(DETAILS_SHOW, FarmUi.SMALL_PX + 1)
+	_details_button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_details_button.tooltip_text = "How the expected harvest is worked out, and the raw readings"
+	_details_button.pressed.connect(toggle_details)
+	column.add_child(_details_button)
+	_details = FarmUi.label("", FarmUi.SMALL_PX + 1, Palette.UMBER)
+	_details.visible = false
+	column.add_child(_details)
+
+
+func toggle_details() -> void:
+	"""Show or hide the Details (the choice holds from bed to bed)."""
+	_details_open = not _details_open
+	refresh()
+
+
+func details_text() -> String:
+	"""The Details as shown ('' while hidden; tests)."""
+	return _details.text if _details.visible else ""
+
+
+func meter() -> MeterScript:
+	"""The moisture meter (tests)."""
+	return _meter
 
 
 func _build_frame() -> VBoxContainer:
@@ -253,6 +297,9 @@ func refresh() -> void:
 	_clock.visible = not has_bed
 	for label: Label in _lines:
 		label.visible = has_bed and not picking
+	_meter.visible = has_bed and not picking
+	_details_button.visible = has_bed and not picking
+	_details.visible = has_bed and not picking and _details_open
 	_needs.visible = false
 	_shortage.visible = false
 	_make_room.visible = false
@@ -318,13 +365,22 @@ func _shown_in_column(control: Control) -> bool:
 func _fill_lines() -> void:
 	"""The readout lines."""
 	var texts: PackedStringArray = [Text.stage_line(_sim, bed, _read), Text.moisture_line(_sim, bed),
-		Text.soil_line(_sim, bed), Text.works_line(_sim, bed), Text.yield_line(_sim, bed, _read), _jobs_line()]
+		Text.range_line(_sim, bed), Text.soil_line(_sim, bed), Text.fertility_line(_sim, bed),
+		Text.fertility_effect_line(_sim, bed), Text.health_line(_sim, bed), Text.works_line(_sim, bed),
+		Text.yield_line(_sim, bed, _read), _jobs_line()]
 	for k: int in _lines.size():
 		_lines[k].text = texts[k]
 		_lines[k].visible = not texts[k].is_empty()
 	_shortage.text = _crew.shortage_text(bed)
 	_shortage.visible = not _shortage.text.is_empty()
 	_make_room.visible = _shortage.visible
+	_meter.show_reading(_sim.moisture_of(bed), _sim.band_min_of(bed), _sim.band_max_of(bed),
+		FarmingScript.MOISTURE_NEAR_MARGIN)
+	_meter.accessibility_description = "%s. %s" % [texts[LINE_MOISTURE], texts[LINE_MOISTURE + 1]]
+	_details_button.text = DETAILS_HIDE if _details_open else DETAILS_SHOW
+	if _details_open:
+		var breakdown: String = Text.harvest_breakdown(_sim, bed, _read)
+		_details.text = (breakdown + "\n" if not breakdown.is_empty() else "") + Text.raw_line(_sim, bed)
 
 
 func _jobs_line() -> String:
@@ -343,10 +399,12 @@ func _fill_buttons() -> void:
 	var spoil: int = _crew.max_heap_spoil()
 	for k: int in VERB_KINDS.size():
 		_set_state(_verb_buttons[k], JobsScript.refusal_for(_sim, VERB_KINDS[k], bed, spoil))
+		if not _verb_buttons[k].disabled:
+			_verb_buttons[k].tooltip_text = Text.verb_tip(_sim, bed, VERB_KINDS[k])
 	var empty: bool = _sim.stage_of(bed) == SimScript.STAGE_EMPTY
 	_set_state(_plant, &"" if empty and not _sim.is_fallow(bed) else &"BED_NOT_EMPTY_OR_RESTING")
 	_fallow.text = "Unrest" if _sim.is_fallow(bed) else "Rest"
-	_fallow.tooltip_text = "Rest the bed fallow: nothing is sown; it regains 50 fertility a day"
+	_fallow.tooltip_text = Text.rest_tip()
 	_set_state(_cancel, &"" if _jobs_line() != "" else &"NO_JOBS")
 
 

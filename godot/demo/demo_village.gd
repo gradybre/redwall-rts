@@ -49,6 +49,11 @@ extends Node3D
 ## are the real GameManager's, and the demo follows them: the cast's clock (demo_clock.gd) reads
 ## GameManager.get_effective_speed() every frame.
 ##
+## THE HUD'S VILLAGE READ MODEL (decision 0251, `_build_village_hud`): the top bar's counters and their ledger read
+## the village's own stores, pantry, cast and homes (demo/ui/demo_hud_model.gd, demo_hud_counters.gd) -- the same
+## figures the panels show, never written into the simulation; the Residents command lists the cast
+## (demo/ui/demo_roster.gd); the minimap draws the village (demo/ui/demo_minimap.gd).
+##
 ## FARM (demo/farm/): the six crop beds grow individual pantry ingredients by the settlement's own
 ## crop arithmetic, worked by the residents; the HUD's Food cell shows the pantry total and its Food
 ## command opens the Pantry. `_build_farm()` wires it; `storage_providers()` hands it the tunnels'
@@ -97,7 +102,9 @@ const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const RoomViewScript := preload("res://demo/burrow/room_view.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const HudDateScript := preload("res://demo/ui/demo_hud_date.gd")
-const BedsLabelScript := preload("res://demo/ui/demo_beds_label.gd")
+const HudCountersScript := preload("res://demo/ui/demo_hud_counters.gd")
+const RosterScript := preload("res://demo/ui/demo_roster.gd")
+const MinimapScript := preload("res://demo/ui/demo_minimap.gd")
 const NewsStripScript := preload("res://demo/ui/demo_news_strip.gd")
 const DetailZoneScript := preload("res://demo/ui/demo_detail_zone.gd")
 const TunnelExtScript := preload("res://demo/tunnel/tunnel_ext.gd")
@@ -146,7 +153,9 @@ var _command: Node3D = null
 var _farm: DemoFarmScript = null
 var _services: ServicesScript = null
 var _hud_date: HudDateScript = HudDateScript.new()
-var _beds_label: BedsLabelScript = BedsLabelScript.new()
+var _counters: HudCountersScript = HudCountersScript.new()
+var _roster: RosterScript = null
+var _minimap: MinimapScript = null
 var _news: NewsStripScript = null
 var _stall_banner: StallBannerScript = null
 var _zone: DetailZoneScript = null
@@ -341,7 +350,7 @@ func _build_shared_ui() -> void:
 	stall banner (the player's Resume from the clock's REQ-SET-008 diagnostic pause, which stands in
 	for and resolves the HUD's overload card)."""
 	_hud_date.bind(_shell(), _services.calendar, GameManager as GameManagerScript)
-	_beds_label.bind(_shell())
+	_build_village_hud()
 	_stall_banner = StallBannerScript.new()
 	add_child(_stall_banner)
 	_stall_banner.bind(GameManager as GameManagerScript)
@@ -363,6 +372,40 @@ func _build_shared_ui() -> void:
 	ext.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_TUNNELS))
 	_forestry.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_WOODS))
 	_waterplay.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_WATER))
+
+
+func _build_village_hud() -> void:
+	"""The HUD's village read model (decision 0251): the counters and ledger from the village's stores, pantry,
+	cast and homes; the Residents command's roster from the cast; the minimap drawing the village."""
+	var network: GraphScript = (_command as DemoCommandScript).tunnels().network
+	_counters.model.bind_village(_services.stores, _farm.pantry, _cast as DemoCastScript, network)
+	_counters.bind(_shell())
+	_roster = RosterScript.new()
+	add_child(_roster)
+	_roster.configure(_shell(), _cast as DemoCastScript, _command as DemoCommandScript, _camera as DemoCameraScript)
+	var view: Control = _shell().control_for(UiShell.ID_MINIMAP_VIEW) if _shell() != null else null
+	if view == null:
+		return
+	_shell().set_minimap_display("")
+	_minimap = MinimapScript.new()
+	view.add_child(_minimap)
+	_minimap.configure(_cast as DemoCastScript, _camera as DemoCameraScript, _command as DemoCommandScript, _water.map())
+	_minimap.watch(network, _waterplay.bridges, _forestry.stand)
+
+
+func roster() -> RosterScript:
+	"""The Residents command's cast roster (demo/ui/demo_roster.gd)."""
+	return _roster
+
+
+func minimap() -> MinimapScript:
+	"""The HUD minimap's village map (demo/ui/demo_minimap.gd)."""
+	return _minimap
+
+
+func counters() -> HudCountersScript:
+	"""The top bar's village counters and ledger (demo/ui/demo_hud_counters.gd)."""
+	return _counters
 
 
 func _shell() -> UiShell:
@@ -541,10 +584,10 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _process(_delta: float) -> void:
-	"""Keep the HUD's date on the demo calendar and its Beds cell relabelled (demo_beds_label.gd), and the sun's
-	shadow range fitted to the zoom (only touched when the zoom moved)."""
+	"""Keep the HUD's date on the demo calendar and its counters and ledger the village's (demo_hud_counters.gd),
+	and the sun's shadow range fitted to the zoom (only touched when the zoom moved)."""
 	_hud_date.sync()
-	_beds_label.sync()
+	_counters.sync()
 	var view_m: float = _camera.distance()
 	if absf(view_m - _shadow_view_m) < SHADOW_REFIT_M:
 		return

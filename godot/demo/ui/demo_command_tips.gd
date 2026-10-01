@@ -31,7 +31,7 @@ const WHAT: Array[String] = [
 	"Paint a work zone on the map with the zone brush",
 	"Set which work each resident does first",
 	"Recipes and food orders for the kitchens",
-	"The resident roster: pick a resident to open their journal",
+	"Every resident and what they're doing; pick one to go there",
 	"Plan a feast for the settlement",
 	"The settlement's goals and how far along they are",
 ]

@@ -117,6 +117,6 @@ func _place(i: int, stage: int, permille: int) -> void:
 	var share := float(permille) / float(Rules.PERMILLE)
 	var fill := 1.0 - share if tipping else lerpf(FIRST_SPOIL, 1.0, share)
 	_spoil[i].scale = Vector3(1.0, maxf(fill, 0.01), 1.0)
-	var layer := Layers.UNDERGROUND if brain.underground else Layers.SURFACE
+	var layer := Layers.body_mask(brain.view_level())
 	if basket.get_child(0) is VisualInstance3D and (basket.get_child(0) as VisualInstance3D).layers != layer:
 		Layers.set_layers(basket, layer)

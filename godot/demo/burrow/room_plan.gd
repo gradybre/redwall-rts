@@ -16,6 +16,11 @@ extends RefCounted
 ## network ending END_NODE at the socket, starting where its join snapped (a node, or a point on a bore) and
 ## measured from there. None found, the room is standalone: it is dug from its own door and connected later
 ## by digging to one of its sockets.
+##
+## ON LEVEL 2 (decision 0212). A room on the second level has no door to the surface: its door is a SOCKET
+## (underground_graph.gd ROOMS), and its passage joins it THERE -- the room is dug from its door, so the passage
+## must reach it -- from level 2's network (its bores, junctions and blind ends, a link's foot among them). It may
+## not stand alone: with no passage found (or placed standalone) it is refused (REFUSE_NEEDS_PASSAGE).
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
@@ -29,6 +34,8 @@ const AUTO_REACH_U: int = 6144
 var kind: int = RoomsScript.TEMPLATE_HOME
 var centre_u: Vector2i = Vector2i.ZERO
 var turns: int = 0
+## The level the room is placed on (see ON LEVEL 2).
+var level: int = Rules.TOP_LEVEL
 ## Placed without a passage, even where one could join it.
 var standalone: bool = false
 ## The last `check`: the room's refusal (underground_rooms.gd REFUSE_*), and the passage proposed (count 0: none)
@@ -50,21 +57,40 @@ func rotate(by: int) -> void:
 func check(graph: GraphScript, site: RoomsScript.Site) -> int:
 	"""Whether the room may be dug where it stands (REFUSE_NONE, or why not), and -- when it may and is not
 	standalone -- its passage (see THE AUTO-PASSAGE)."""
-	refusal = graph.rooms.refusal(graph, site, kind, centre_u, turns, Rules.BUILDABLE_LEVEL)
+	refusal = graph.rooms.refusal(graph, site, kind, centre_u, turns, level)
 	passage.clear()
+	passage.level = level
 	passage_socket = -1
 	if refusal == RoomsScript.REFUSE_NONE and not standalone:
 		_propose(graph, site)
+	if refusal == RoomsScript.REFUSE_NONE and level != Rules.TOP_LEVEL and passage.count < 2:
+		refusal = RoomsScript.REFUSE_NEEDS_PASSAGE
 	return refusal
+
+
+func socket_count() -> int:
+	"""How many ways in the passage may take: every socket on level 1; on level 2 only the door (see ON LEVEL 2)."""
+	return RoomsScript.socket_count(kind) if level == Rules.TOP_LEVEL else 1
+
+
+func socket_point(k: int) -> Vector2i:
+	"""Where way in `k` stands (u): socket `k`, or on level 2 the door."""
+	return RoomsScript.socket_at(kind, centre_u, turns, k) if level == Rules.TOP_LEVEL \
+			else RoomsScript.door_at(kind, centre_u, turns)
+
+
+func socket_outward(k: int) -> Vector2i:
+	"""The way straight out of way in `k`: from the middle through it."""
+	return socket_point(k) - centre_u
 
 
 func _propose(graph: GraphScript, site: RoomsScript.Site) -> void:
 	"""The shortest passage the rules accept, from any socket (see THE AUTO-PASSAGE), laid into `passage`."""
 	var best_length := AUTO_REACH_U + 1
 	_best.clear()
-	for k in RoomsScript.socket_count(kind):
-		var socket := RoomsScript.socket_at(kind, centre_u, turns, k)
-		var outward := RoomsScript.outward(kind, turns, k)
+	for k in socket_count():
+		var socket := socket_point(k)
+		var outward := socket_outward(k)
 		for candidate in _candidates(graph, socket, outward):
 			if not _try(graph, site, candidate, socket, outward):
 				continue
@@ -75,8 +101,7 @@ func _propose(graph: GraphScript, site: RoomsScript.Site) -> void:
 	passage.clear()
 	if _best.is_empty():
 		return
-	var socket := RoomsScript.socket_at(kind, centre_u, turns, _best[4])
-	_lay(graph, Vector2i(_best[0], _best[1]), _best[2], _best[3], socket, RoomsScript.outward(kind, turns, _best[4]), site)
+	_lay(graph, Vector2i(_best[0], _best[1]), _best[2], _best[3], socket_point(_best[4]), socket_outward(_best[4]), site)
 	passage_socket = _best[4]
 
 
@@ -92,12 +117,13 @@ func _candidates(graph: GraphScript, socket: Vector2i, outward: Vector2i) -> Arr
 	junction and ramp's foot."""
 	var out: Array[Vector2i] = []
 	for slot in Rules.MAX_SEGMENTS:
-		if graph.is_tunnel(slot) and graph.is_usable(slot) and graph.seg_kind[slot] == GraphScript.SEG_BORE:
+		if graph.is_tunnel(slot) and graph.is_usable(slot) and graph.seg_kind[slot] == GraphScript.SEG_BORE \
+				and graph.seg_level[slot] == level:
 			_leg_candidates(graph, slot, socket, outward, out)
 	for node in Rules.MAX_NODES:
 		var node_kind: int = graph.node_kind[node] if graph.is_node(node) else GraphScript.NODE_FREE
-		if (node_kind == GraphScript.NODE_JUNCTION or node_kind == GraphScript.NODE_RAMP_END) \
-				and _length(graph.node_at(node), socket) <= AUTO_REACH_U:
+		if (node_kind == GraphScript.NODE_JUNCTION or node_kind == GraphScript.NODE_RAMP_END or node_kind == GraphScript.NODE_END) \
+				and graph.node_level[node] == level and _length(graph.node_at(node), socket) <= AUTO_REACH_U:
 			out.append(graph.node_at(node))
 	return out
 
@@ -128,7 +154,7 @@ func _try(graph: GraphScript, site: RoomsScript.Site, at: Vector2i, socket: Vect
 	"""Whether a passage from the network at `at` straight to `socket` passes the Dig tool's rules; its join
 	(PlanScript.snap_into: a node, or a point on a bore) kept in _best_kind, and the point it snapped to in
 	_snap[2..3] -- which is where the passage starts, and what it is measured from."""
-	var join := PlanScript.snap_into(graph, at, _snap)
+	var join := PlanScript.snap_into(graph, at, _snap, level)
 	if join == SpecScript.END_NEW_MOUTH:
 		return false
 	_best_kind[0] = join
@@ -142,6 +168,7 @@ func _lay(graph: GraphScript, at: Vector2i, join: int, ref: int, socket: Vector2
 	whether the rules accept it. Laying the best one again, as `_propose` does, repeats a lay that passed: it
 	depends on nothing but these and the graph, which a check does not change."""
 	passage.clear()
+	passage.level = level
 	passage.pending_outward = outward
 	if passage.try_add_snapped(at.x, at.y, join, ref, site.bounds_u, site.circles_u, site.spots_u, site.under_u) != Rules.REFUSE_NONE:
 		return false
@@ -160,7 +187,10 @@ func accepts(graph: GraphScript, site: RoomsScript.Site) -> bool:
 
 func clear_of_own_ramp() -> bool:
 	"""Whether the passage keeps a pillar of earth from the room's own door ramp -- which the Dig tool's rules
-	cannot see yet, the room not being laid -- as they will once it is (a wide bore beside a standard one)."""
+	cannot see yet, the room not being laid -- as they will once it is (a wide bore beside a standard one). A room
+	on level 2 has no ramp."""
+	if level != Rules.TOP_LEVEL:
+		return true
 	var hole := RoomsScript.mouth_at(kind, centre_u, turns)
 	var foot := RoomsScript.door_at(kind, centre_u, turns)
 	for k in range(1, passage.count):

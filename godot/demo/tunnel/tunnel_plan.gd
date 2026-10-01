@@ -43,6 +43,18 @@ extends RefCounted
 ## WATER. No bore may pass under water: every point and every leg is asked `water_crossing(a, b,
 ## clearance_u)` -- the village's water adapter (demo/village_water.gd `crosses_water`) -- with half a bore
 ## of clearance, and refused REFUSE_UNDER_WATER.
+##
+## LEVELS AND LINKS (decision 0212, the revamp's P6). A piece is laid on the plan's `level`: it snaps only to
+## that level's network (level 1's mouths count as its own), crosses only that level's bores, and keeps its
+## JUNCTION_GAP_U only from that level's nodes. Only level 1 opens mouths: on level 2 a piece STARTS on the
+## network (REFUSE_LOWER_START) and an end that joins nothing is a BLIND end, clear of every node there. Level
+## 2 lies deep enough that no building's footings reach it (UNDER BUILDINGS is level 1's). With `link_kind`
+## set, the piece is a LINK (tunnel_rules.gd LINKS): two points only (REFUSE_LINK_BEND), its HEAD snapped onto
+## level 1's network (REFUSE_LINK_START) and its FOOT onto level 2's or blind, its run within its kind's limits;
+## it crosses nothing, and no piece may join its slope (REFUSE_JOIN_LINK). THE PILLAR and the rooms' pillar
+## are kept in HEIGHT as well as in plan: two voids whose heights are a pillar apart or more
+## (tunnel_rules.gd `vertical_gap_u`) keep no pillar in plan -- so voids on different levels never meet, and a
+## link keeps its pillar from each level only where its slope comes near that level's height.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
@@ -76,6 +88,9 @@ var crossings: PackedInt32Array = PackedInt32Array()
 ## `(slot: int) -> bool`: whether a job is at work on a segment, so it may not be joined now (tunnel_jobs.gd;
 ## unset: none is).
 var job_busy: Callable = Callable()
+## The level the piece is laid on (a link's: its head's), and its link kind (see LEVELS AND LINKS).
+var level: int = Rules.TOP_LEVEL
+var link_kind: int = Rules.LINK_NONE
 
 var _snap: PackedInt32Array = PackedInt32Array([0, -1, 0, 0])
 var _cuts: PackedInt32Array = PackedInt32Array()
@@ -109,10 +124,13 @@ func try_add(x_u: int, z_u: int, bounds_u: Rect2i, circles_u: PackedInt32Array,
 func try_add_snapped(x_u: int, z_u: int, kind: int, ref: int, bounds_u: Rect2i, circles_u: PackedInt32Array,
 		spots_u: PackedInt32Array = PackedInt32Array(), under_u: PackedInt32Array = PackedInt32Array()) -> int:
 	"""Lay the next point, snapped as `kind` onto `ref` (see SNAPS): a snapped start opens no mouth, so the
-	mouth's checks are skipped for it. REFUSE_NONE when added, else the reason."""
+	mouth's checks are skipped for it -- as they are wherever no mouth opens (see LEVELS AND LINKS). A link takes
+	two points. REFUSE_NONE when added, else the reason."""
+	if is_link() and count >= 2:
+		return Rules.REFUSE_LINK_BEND
 	if _meets_water(Vector2i(x_u, z_u), Vector2i(x_u, z_u)):
 		return Rules.REFUSE_UNDER_WATER
-	var index := count if kind == SpecScript.END_NEW_MOUTH else maxi(count, 1)
+	var index := count if kind == SpecScript.END_NEW_MOUTH and opens_mouths() else maxi(count, 1)
 	var reason := Rules.validate_point(x_u, z_u, index, bounds_u, circles_u, spots_u)
 	if reason != Rules.REFUSE_NONE:
 		return reason
@@ -128,7 +146,7 @@ func _leg_reason_and_count(under_u: PackedInt32Array) -> int:
 	when it passes, count the point."""
 	if count > 0 and Rules.points_too_close(points_u, count):
 		return Rules.REFUSE_REPEATED_POINT
-	if count > 0 and Rules.leg_under(points_u, count, under_u):
+	if count > 0 and Rules.leg_under(points_u, count, _under_here(under_u)):
 		return Rules.REFUSE_UNDER_BUILDING
 	if count > 0 and _leg_meets_water(count):
 		return Rules.REFUSE_UNDER_WATER
@@ -144,6 +162,27 @@ func _meets_water(a: Vector2i, b: Vector2i) -> bool:
 func _leg_meets_water(k: int) -> bool:
 	"""Whether the leg into point `k` would pass under water."""
 	return _meets_water(point_u(k - 1), point_u(k))
+
+
+func is_link() -> bool:
+	"""Whether the piece being laid is a link between levels (see LEVELS AND LINKS)."""
+	return link_kind != Rules.LINK_NONE
+
+
+func opens_mouths() -> bool:
+	"""Whether an end of this piece that joins nothing opens a mouth: on level 1, and not a link."""
+	return level == Rules.TOP_LEVEL and not is_link()
+
+
+func level_of_point(k: int) -> int:
+	"""The level point `k` of the piece lies on (and snaps to): a link's second point is its foot, a level down."""
+	return level + (1 if is_link() and k >= 1 else 0)
+
+
+func _under_here(under_u: PackedInt32Array) -> PackedInt32Array:
+	"""The buildings' footings the piece must keep off: level 1's and a link's; none on a lower level (see LEVELS
+	AND LINKS)."""
+	return under_u if level == Rules.TOP_LEVEL else PackedInt32Array()
 
 
 func undo() -> bool:
@@ -205,21 +244,21 @@ static func length_text(length_u_value: int) -> String:
 
 # --- snapping -------------------------------------------------------------------------------
 
-static func snap_into(graph: GraphScript, at: Vector2i, out: PackedInt32Array) -> int:
-	"""Where a point laid at `at` joins the network (see SNAPS): out[0] its kind (piece_spec.gd END_*),
-	out[1] the node or segment, out[2..3] the point it snaps to (u). Returns the kind."""
+static func snap_into(graph: GraphScript, at: Vector2i, out: PackedInt32Array, on_level: int = Rules.TOP_LEVEL) -> int:
+	"""Where a point laid at `at` on `on_level` joins that level's network (see SNAPS): out[0] its kind
+	(piece_spec.gd END_*), out[1] the node or segment, out[2..3] the point it snaps to (u). Returns the kind."""
 	out[0] = SpecScript.END_NEW_MOUTH
 	out[1] = -1
 	out[2] = at.x
 	out[3] = at.y
-	var node := _nearest_node(graph, at)
+	var node := _nearest_node(graph, at, on_level)
 	if node >= 0:
 		out[0] = SpecScript.END_NODE
 		out[1] = node
 		out[2] = graph.node_x_u[node]
 		out[3] = graph.node_z_u[node]
 		return out[0]
-	var slot := _nearest_segment(graph, at)
+	var slot := _nearest_segment(graph, at, on_level)
 	if slot >= 0:
 		var on := _nearest_on_route(graph, slot, at)
 		out[0] = SpecScript.END_ON_SEGMENT
@@ -249,12 +288,12 @@ static func _nearest_on_route(graph: GraphScript, slot: int, at: Vector2i) -> Ve
 	return best
 
 
-static func _nearest_node(graph: GraphScript, at: Vector2i) -> int:
-	"""The underground node nearest `at` within SNAP_NODE_U (-1: none)."""
+static func _nearest_node(graph: GraphScript, at: Vector2i, on_level: int) -> int:
+	"""The underground node on `on_level` nearest `at` within SNAP_NODE_U (-1: none)."""
 	var best := -1
 	var best_d := SNAP_NODE_U * SNAP_NODE_U
 	for node in Rules.MAX_NODES:
-		if not _snaps_to_node(graph, node):
+		if not _snaps_to_node(graph, node) or graph.node_level[node] != on_level:
 			continue
 		var d := graph.node_at(node) - at
 		if d.x * d.x + d.y * d.y < best_d:
@@ -264,22 +303,27 @@ static func _nearest_node(graph: GraphScript, at: Vector2i) -> int:
 
 
 static func _snaps_to_node(graph: GraphScript, node: int) -> bool:
-	"""Whether a point may snap onto node `node`: a junction or a ramp's foot, or a room's free socket (never a
-	mouth, a room's middle or its door's foot)."""
+	"""Whether a point may snap onto node `node`: a junction, a ramp's foot or a blind end, or a room's free socket
+	(never a mouth, a room's middle or its door's foot)."""
 	if not graph.is_node(node):
 		return false
 	var kind := graph.node_kind[node]
 	if kind == GraphScript.NODE_SOCKET:
 		return graph.is_free_socket(node)
-	return kind == GraphScript.NODE_JUNCTION or kind == GraphScript.NODE_RAMP_END
+	return kind == GraphScript.NODE_JUNCTION or kind == GraphScript.NODE_RAMP_END or kind == GraphScript.NODE_END
 
 
-static func _nearest_segment(graph: GraphScript, at: Vector2i) -> int:
-	"""The planned or dug segment whose route passes nearest `at` within SNAP_U (-1: none)."""
+static func _nearest_segment(graph: GraphScript, at: Vector2i, on_level: int) -> int:
+	"""The planned or dug segment on `on_level` (a link's: its head's) whose route passes nearest `at` within
+	SNAP_U (-1: none) -- a link only where its void is still within a pillar of that level's floor (deeper, a point
+	laid over it passes over it)."""
 	var best := -1
 	var best_d := SNAP_U + 1
 	for slot in Rules.MAX_SEGMENTS:
-		if graph.phase[slot] == GraphScript.PHASE_FREE or graph.seg_kind[slot] == GraphScript.SEG_ROOM:
+		if graph.phase[slot] == GraphScript.PHASE_FREE or graph.seg_kind[slot] == GraphScript.SEG_ROOM \
+				or graph.seg_level[slot] != on_level:
+			continue
+		if graph.seg_kind[slot] == GraphScript.SEG_LINK and clear_in_height(graph, slot, at, Rules.level_floor_depth_u(on_level)):
 			continue
 		var d := _route_gap_u(graph, slot, at)
 		if d < best_d:
@@ -303,12 +347,17 @@ static func _route_gap_u(graph: GraphScript, slot: int, at: Vector2i) -> int:
 
 func starts_at_mouth() -> bool:
 	"""Whether the piece as laid opens a mouth at its start."""
-	return count > 0 and snap_kind[0] == SpecScript.END_NEW_MOUTH
+	return count > 0 and snap_kind[0] == SpecScript.END_NEW_MOUTH and opens_mouths()
 
 
 func ends_at_mouth() -> bool:
 	"""Whether the piece as laid opens a mouth at its end."""
-	return count > 0 and snap_kind[count - 1] == SpecScript.END_NEW_MOUTH
+	return count > 0 and snap_kind[count - 1] == SpecScript.END_NEW_MOUTH and opens_mouths()
+
+
+func ends_blind() -> bool:
+	"""Whether the piece as laid ends at a new blind end (see LEVELS AND LINKS)."""
+	return count > 0 and snap_kind[count - 1] == SpecScript.END_NEW_MOUTH and not opens_mouths()
 
 
 func piece_reason(graph: GraphScript, bounds_u: Rect2i, circles_u: PackedInt32Array,
@@ -318,17 +367,39 @@ func piece_reason(graph: GraphScript, bounds_u: Rect2i, circles_u: PackedInt32Ar
 	refused_slot = -1
 	refused_room = -1
 	crossings.clear()
-	var reason := Rules.validate_piece_route(points_u, count, bounds_u, circles_u, spots_u, under_u,
-		starts_at_mouth(), ends_at_mouth())
+	var reason := _level_reason()
+	if reason == Rules.REFUSE_NONE:
+		reason = Rules.validate_piece_route(points_u, count, bounds_u, circles_u, spots_u, _under_here(under_u),
+			starts_at_mouth(), ends_at_mouth())
 	for k in range(1, count):
 		if reason == Rules.REFUSE_NONE and _leg_meets_water(k):
 			reason = Rules.REFUSE_UNDER_WATER
-	for check: Callable in [_ramp_reason, _snap_reason.bind(graph), _crossing_reason.bind(graph),
+	for check: Callable in [_ramp_reason, _snap_reason.bind(graph), _blind_reason.bind(graph), _crossing_reason.bind(graph),
 			_bend_reason, _room_void_reason.bind(graph), _pillar_reason.bind(graph), _rows_reason.bind(graph)]:
 		if reason != Rules.REFUSE_NONE:
 			return reason
 		reason = int(check.call())
 	return reason
+
+
+func _level_reason() -> int:
+	"""Where a piece on a lower level, or a link, must start, and a link's shape (see LEVELS AND LINKS)."""
+	if count < 1 or opens_mouths():
+		return Rules.REFUSE_NONE
+	if snap_kind[0] == SpecScript.END_NEW_MOUTH:
+		return Rules.REFUSE_LINK_START if is_link() else Rules.REFUSE_LOWER_START
+	if not is_link() or count < 2:
+		return Rules.REFUSE_NONE
+	if count > 2:
+		return Rules.REFUSE_LINK_BEND
+	return Rules.link_refusal(link_kind, length_u())
+
+
+func _blind_reason(graph: GraphScript) -> int:
+	"""A blind end stands clear of every node on its level, as a junction would (see LEVELS AND LINKS)."""
+	if ends_blind() and _near_any_node(graph, point_u(count - 1), level_of_point(count - 1)):
+		return Rules.REFUSE_NEAR_NODE
+	return Rules.REFUSE_NONE
 
 
 func _ramp_reason() -> int:
@@ -426,9 +497,11 @@ func _host_reason(graph: GraphScript, slot: int, at: Vector2i, leaving: Vector2i
 		return Rules.REFUSE_INTO_ROOM
 	if graph.seg_kind[slot] == GraphScript.SEG_RAMP:
 		return Rules.REFUSE_JOIN_RAMP
+	if graph.seg_kind[slot] == GraphScript.SEG_LINK:
+		return Rules.REFUSE_JOIN_LINK
 	if not _quiet(graph, slot):
 		return Rules.REFUSE_HOST_BUSY
-	if _near_any_node(graph, at):
+	if _near_any_node(graph, at, graph.seg_level[slot]):
 		return Rules.REFUSE_NEAR_NODE
 	var route := graph.segment_route(slot)
 	var along := GraphScript.route_along_u(route, graph.point_count[slot], at)
@@ -445,22 +518,32 @@ func _quiet(graph: GraphScript, slot: int) -> bool:
 	return graph.is_usable(slot) and not (job_busy.is_valid() and bool(job_busy.call(slot)))
 
 
-static func _near_any_node(graph: GraphScript, at: Vector2i) -> bool:
-	"""Whether `at` lies within JUNCTION_GAP_U of any node."""
+static func _near_any_node(graph: GraphScript, at: Vector2i, on_level: int) -> bool:
+	"""Whether `at` lies within JUNCTION_GAP_U of any node on `on_level` (level 1's mouths count as its own)."""
 	for node in Rules.MAX_NODES:
-		if graph.is_node(node):
+		if graph.is_node(node) and on_level_or_mouth(graph, node, on_level):
 			var d := graph.node_at(node) - at
 			if d.x * d.x + d.y * d.y < Rules.JUNCTION_GAP_U * Rules.JUNCTION_GAP_U:
 				return true
 	return false
 
 
+static func on_level_or_mouth(graph: GraphScript, node: int, on_level: int) -> bool:
+	"""Whether node `node` counts as standing on `on_level`: its own level's, or a mouth on level 1's."""
+	var at_level: int = graph.node_level[node]
+	return at_level == on_level or (on_level == Rules.TOP_LEVEL and at_level == Rules.LEVEL_SURFACE)
+
+
 func _crossing_reason(graph: GraphScript) -> int:
-	"""Every open bore the piece crosses: a four-way junction there if the crossing is sound (see THE WHOLE
-	PIECE), gathered into `crossings` and put in route order."""
+	"""Every open bore on the piece's level the piece crosses: a four-way junction there if the crossing is sound
+	(see THE WHOLE PIECE), gathered into `crossings` and put in route order. A link crosses nothing (its pillar
+	keeps it off what it passes; see LEVELS AND LINKS), and nothing crosses a link."""
+	if is_link():
+		return Rules.REFUSE_NONE
 	for k in range(1, count):
 		for slot in Rules.MAX_SEGMENTS:
-			if graph.phase[slot] == GraphScript.PHASE_FREE or _is_end_host(slot) or graph.seg_kind[slot] == GraphScript.SEG_ROOM:
+			if graph.phase[slot] == GraphScript.PHASE_FREE or _is_end_host(slot) or graph.seg_kind[slot] == GraphScript.SEG_ROOM \
+					or graph.seg_kind[slot] == GraphScript.SEG_LINK or graph.seg_level[slot] != level:
 				continue
 			var reason := _leg_crossings(graph, k, slot)
 			if reason != Rules.REFUSE_NONE:
@@ -529,7 +612,7 @@ func _crossing_at(graph: GraphScript, slot: int, at: Vector2i, along_piece: Vect
 	var along := GraphScript.route_along_u(points_u, count, at)
 	var low := (Rules.RAMP_RUN_U if starts_at_mouth() else 0) + Rules.JUNCTION_GAP_U
 	var high := length_u() - (Rules.RAMP_RUN_U if ends_at_mouth() else 0) - Rules.JUNCTION_GAP_U
-	if _near_any_node(graph, at) or along < low or along > high:
+	if _near_any_node(graph, at, level) or along < low or along > high:
 		return Rules.REFUSE_NEAR_NODE
 	return Rules.REFUSE_NONE
 
@@ -607,11 +690,48 @@ func _pillar_reason(graph: GraphScript) -> int:
 			leg += 1
 			leg_end += Rules.isqrt(Rules.leg_squared_u(points_u, leg))
 		var at := GraphScript.route_point_u(points_u, count, along)
-		var reason := _pillar_at(graph, at, leg)
+		var reason := _pillar_at(graph, at, leg, depth_at_u(along))
 		if reason != Rules.REFUSE_NONE:
 			return reason
 		along += Rules.PILLAR_STEP_U
 	return Rules.REFUSE_NONE
+
+
+func depth_at_u(along_u: int) -> int:
+	"""How far below the ground the piece's floor lies `along_u` into it (u): its level's floor -- or, a link, its
+	head's floor and the drop there (tunnel_rules.gd `link_drop_u`). A mouth's ramp is kept at its level's floor
+	here: it is only tested against its own level, whose voids it rises from."""
+	var depth := Rules.level_floor_depth_u(level)
+	if is_link():
+		depth += Rules.link_drop_u(link_kind, along_u, length_u())
+	return depth
+
+
+static func other_band_u(graph: GraphScript, slot: int, at: Vector2i) -> Vector2i:
+	"""The depths below the ground (u) of segment `slot`'s void's top and floor where it passes nearest `at`: a
+	level bore's, or a mouth's ramp's or a link's at the point of its straight run nearest `at`."""
+	var crown: int = Rules.BORE_CROWNS_U[graph.bore[slot]]
+	var depth: int = graph.floor_depth_u_at(slot, _along_straight(graph, slot, at))
+	return Vector2i(depth - crown, depth)
+
+
+static func _along_straight(graph: GraphScript, slot: int, at: Vector2i) -> int:
+	"""How far along segment `slot`'s route its point nearest `at` lies (u), measured on its first leg (every link
+	and every mouth's ramp is straight -- the rules keep a ramp's first bend beyond it; a level bore's depth does not
+	depend on it)."""
+	var base := 2 * slot * Rules.MAX_POINTS
+	var a := Vector2i(graph.points_u[base], graph.points_u[base + 1])
+	var b := Vector2i(graph.points_u[base + 2], graph.points_u[base + 3])
+	var ab := b - a
+	var leg := maxi(Rules.isqrt(ab.x * ab.x + ab.y * ab.y), 1)
+	return clampi((ab.x * (at.x - a.x) + ab.y * (at.y - a.y)) / leg, 0, graph.length_u[slot])
+
+
+static func clear_in_height(graph: GraphScript, slot: int, at: Vector2i, depth: int) -> bool:
+	"""Whether a standard bore whose floor lies `depth` down at `at` keeps a pillar of earth in height from segment
+	`slot`'s void there (see LEVELS AND LINKS)."""
+	var band := other_band_u(graph, slot, at)
+	return Rules.vertical_gap_u(depth - Rules.BORE_CROWNS_U[Rules.BORE_STANDARD], depth, band.x, band.y) >= Rules.PILLAR_U
 
 
 func _near_segments(graph: GraphScript) -> void:
@@ -642,15 +762,16 @@ static func _route_box(graph: GraphScript, slot: int) -> Rect2i:
 	return box.grow(1)
 
 
-func _pillar_at(graph: GraphScript, at: Vector2i, leg: int) -> int:
-	"""One sample of THE PILLAR, on leg `leg` of the piece: clear of every nearby bore but near a node it
-	shares with it, and of the piece's own legs but the ones beside it."""
+func _pillar_at(graph: GraphScript, at: Vector2i, leg: int, depth: int) -> int:
+	"""One sample of THE PILLAR, on leg `leg` of the piece, its floor `depth` down: clear of every nearby bore not a
+	pillar away in height (see LEVELS AND LINKS) but near a node it shares with it, and of the piece's own legs but
+	the ones beside it."""
 	for i in _near.size():
 		if not _near_box[i].has_point(at):
 			continue
 		var slot := _near[i]
 		if _route_gap_u(graph, slot, at) < Rules.pillar_gap_u(Rules.BORE_STANDARD, graph.bore[slot]) \
-				and not _shares_near(graph, slot, at):
+				and not clear_in_height(graph, slot, at, depth) and not _shares_near(graph, slot, at):
 			refused_slot = slot
 			refused_room = graph.seg_room[slot]
 			return Rules.REFUSE_INTO_ROOM if refused_room >= 0 else Rules.REFUSE_PILLAR
@@ -710,6 +831,13 @@ func _room_void_reason(graph: GraphScript) -> int:
 	for r in RoomsScript.MAX_ROOMS:
 		if not rooms.is_room(r) or not box.grow(reach).intersects(RoomsScript.world_box(rooms.template[r], rooms.centre(r), rooms.turns[r], 0)):
 			continue
+		if is_link():
+			if _link_breaks_into(graph, r, reach):
+				refused_room = r
+				return Rules.REFUSE_INTO_ROOM
+			continue
+		if rooms.level[r] != level:
+			continue
 		var joins := _joins_room(graph, r)
 		for k in range(1, count):
 			if rooms.leg_gap_of(r, point_u(k - 1), point_u(k)) < reach and (not joins or _leg_breaks_into(graph, r, k, reach)):
@@ -743,6 +871,22 @@ func _leg_breaks_into(graph: GraphScript, r: int, k: int, reach: int) -> bool:
 	return false
 
 
+func _link_breaks_into(graph: GraphScript, r: int, reach: int) -> bool:
+	"""Whether the link being laid comes within `reach` of room `r`'s void where its slope passes within a pillar of
+	the room's height, but within ROOM_JOIN_U of a socket of that room it joins (sampled every PILLAR_STEP_U)."""
+	var room_floor: int = graph.rooms.floor_depth_u(r)
+	var length := length_u()
+	var along := 0
+	while along <= length:
+		var depth := depth_at_u(along)
+		var at := GraphScript.route_point_u(points_u, count, along)
+		if Rules.vertical_gap_u(depth - Rules.BORE_HEIGHT_U, depth, room_floor - Rules.ROOM_CROWN_U, room_floor) < Rules.PILLAR_U \
+				and graph.rooms.gap_of(r, at) < reach and not _near_own_socket(graph, r, at):
+			return true
+		along += Rules.PILLAR_STEP_U
+	return false
+
+
 func _near_own_socket(graph: GraphScript, r: int, at: Vector2i) -> bool:
 	"""Whether `at` lies within ROOM_JOIN_U of an end of the piece that joins room `r` at a socket."""
 	for k: int in [0, count - 1]:
@@ -770,10 +914,17 @@ func spec_of(digger_index: int) -> SpecScript:
 	(underground_graph.gd `add_piece`)."""
 	var spec := SpecScript.new()
 	spec.set_route(points_u, count)
-	spec.start_kind = snap_kind[0]
+	spec.start_kind = _spec_end(snap_kind[0])
 	spec.start_ref = snap_ref[0]
-	spec.end_kind = snap_kind[count - 1]
+	spec.end_kind = _spec_end(snap_kind[count - 1])
 	spec.end_ref = snap_ref[count - 1]
 	spec.crossings = crossings.duplicate()
 	spec.digger = digger_index
+	spec.level = level
+	spec.link_kind = link_kind
 	return spec
+
+
+func _spec_end(kind: int) -> int:
+	"""An end as the network stores it: one joining nothing opens a mouth on level 1, else it is blind."""
+	return SpecScript.END_BLIND if kind == SpecScript.END_NEW_MOUTH and not opens_mouths() else kind

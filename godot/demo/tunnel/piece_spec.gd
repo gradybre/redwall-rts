@@ -8,10 +8,18 @@ extends RefCounted
 ## ON an open SEGMENT's route, where the network splits that segment with a new junction. On the way it
 ## may CROSS open segments: each crossing (host segment, point) becomes a four-way junction. The network
 ## cuts the piece into segments at its ramps' feet and its junctions (see underground_graph.gd PIECES).
+##
+## LEVELS (decision 0212). A piece is laid on its LEVEL. Only level 1 opens mouths: on level 2 an end that
+## joins nothing is a BLIND end, a node the network may be dug on from later. A LINK piece (`link_kind`
+## RAMP or STAIRS) is one straight segment from its head on level `level` down to its foot on the level
+## below: its start joins the network there, its end joins level 2's or is a blind end.
+
+const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 
 const END_NEW_MOUTH: int = 0
 const END_NODE: int = 1
 const END_ON_SEGMENT: int = 2
+const END_BLIND: int = 3
 
 ## (x, z) pairs in u, start first; `count` of them.
 var points_u: PackedInt32Array = PackedInt32Array()
@@ -25,6 +33,10 @@ var end_ref: int = -1
 var crossings: PackedInt32Array = PackedInt32Array()
 ## The resident who will dig it (-1: nobody yet).
 var digger: int = -1
+## The level it is laid on (a link's: its head's), and its link kind (tunnel_rules.gd LINK_*; LINK_NONE: a
+## piece on one level).
+var level: int = Rules.TOP_LEVEL
+var link_kind: int = Rules.LINK_NONE
 
 
 func set_route(route_u: PackedInt32Array, point_count: int) -> void:
@@ -51,3 +63,18 @@ func starts_at_mouth() -> bool:
 func ends_at_mouth() -> bool:
 	"""Whether the piece opens a new mouth at its end."""
 	return end_kind == END_NEW_MOUTH
+
+
+func is_link() -> bool:
+	"""Whether the piece is a link down to the next level (see LEVELS)."""
+	return link_kind != Rules.LINK_NONE
+
+
+func end_level() -> int:
+	"""The level the piece's end lies on: a link's foot is one level down."""
+	return level + (1 if is_link() else 0)
+
+
+func blind_ends() -> int:
+	"""How many of its ends are blind (see LEVELS)."""
+	return (1 if start_kind == END_BLIND else 0) + (1 if end_kind == END_BLIND else 0)

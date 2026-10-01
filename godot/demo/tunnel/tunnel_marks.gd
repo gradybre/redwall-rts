@@ -26,6 +26,12 @@ extends Node3D
 ## when its state key changes, and otherwise moves nothing -- no per-frame allocation. A view switch
 ## changes nothing here.
 ##
+## LEVELS (decision 0212). A slot's marks below go on its segment's level (`_put_on_level`, when the slot's level
+## changes): its frames, lanterns and glows on that level's layer, its frames' cutaway cut over that level's floor,
+## its line and rings on that level's marks layer and floor (a ring at a link's foot on the level below), and its
+## dust on its level. A LINK's frames and lanterns stand on BOTH levels' layers, cut over the foot's floor: they are
+## seen where the link is seen from the level below (the upper frames, cut, show nothing there).
+##
 ## PUT UP ONE AT A TIME (decision 0211; design §4 "Frames placed per metre and lanterns hung one at a time, each with
 ## an install pop"). While a BRACE job is at work its frames stand only as far as the work has reached
 ## (tunnel_jobs.gd `along_m`), and each new one RISES from the floor over RISE_S with a puff of dust (the warren's
@@ -116,6 +122,9 @@ var _verts: PackedVector3Array = PackedVector3Array()
 ## The frame and glow meshes, built once and shared by every slot (one material each to prewarm).
 var _brace_mesh: Mesh = null
 var _brace_material: ShaderMaterial = null
+## Each level's brace cutaway (index 0 unused), and the level each slot's marks were last put on (see LEVELS).
+var _brace_materials: Array[ShaderMaterial] = [null, null, null]
+var _slot_level: PackedInt32Array = PackedInt32Array()
 var _glow: Mesh = null
 ## The ribbons' materials by colour and depth test, shared by every slot (so the prewarm's one line
 ## material is every selection line's).
@@ -146,7 +155,9 @@ func configure(network: GraphScript, hazards: HazardsScript, props: PropsScript 
 	_lantern_fit = _props.fit_of(LANTERN_KEY)
 	_rubble_fit = _props.fit_of(RUBBLE_KEY)
 	_brace_mesh = _props.mesh_of(BRACE_KEY) if _props.is_staged(BRACE_KEY) else _frame_mesh()
-	_brace_material = cutaway_of(_brace_mesh.surface_get_material(0))
+	for level in range(Rules.TOP_LEVEL, Rules.DEEPEST_LEVEL + 1):
+		_brace_materials[level] = cutaway_of(_brace_mesh.surface_get_material(0), level)
+	_brace_material = _brace_materials[Rules.TOP_LEVEL]
 	_glow = _glow_mesh()
 	lights = LanternsScript.new()
 	add_child(lights)
@@ -157,8 +168,9 @@ func configure(network: GraphScript, hazards: HazardsScript, props: PropsScript 
 		column.resize(Rules.MAX_SEGMENTS)
 	_rings.resize(2 * Rules.MAX_SEGMENTS)
 	_rings_below.resize(2 * Rules.MAX_SEGMENTS)
-	for column: Variant in [_frames_up, _lanterns_up, _rise_index, _rise_from, _rise_kind]:
+	for column: Variant in [_frames_up, _lanterns_up, _rise_index, _rise_from, _rise_kind, _slot_level]:
 		column.resize(Rules.MAX_SEGMENTS)
+	_slot_level.fill(-1)
 	_ensure(0)
 
 
@@ -306,12 +318,12 @@ func _frame_mesh() -> Mesh:
 	return mesh
 
 
-static func cutaway_of(source: Material) -> ShaderMaterial:
+static func cutaway_of(source: Material, level: int = Rules.TOP_LEVEL) -> ShaderMaterial:
 	"""The cutaway material (cutaway.gdshader) for a prop drawn with `source`: its albedo map, tint and
-	roughness, cut BRACE_CUT_M over the level's floor."""
+	roughness, cut BRACE_CUT_M over `level`'s floor."""
 	var material := ShaderMaterial.new()
 	material.shader = CUTAWAY_SHADER
-	material.set_shader_parameter(&"cut_y", Layers.FLOOR_Y_M + BRACE_CUT_M)
+	material.set_shader_parameter(&"cut_y", Layers.floor_y(level) + BRACE_CUT_M)
 	var standard := source as BaseMaterial3D
 	if standard != null:
 		material.set_shader_parameter(&"albedo_colour", standard.albedo_color)
@@ -358,6 +370,7 @@ func register(prewarm: PrewarmScript) -> void:
 	selection line through the cap -- for its prewarm (decision 0206)."""
 	for node: MultiMeshInstance3D in [_frames[0], _lanterns[0], _glows[0]]:
 		prewarm.add_multimesh(node.multimesh.mesh, node.material_override)
+	prewarm.add_multimesh(_brace_mesh, _brace_materials[Rules.LEVEL_2])
 	for colour: Color in [Palette.BRASS, Palette.CLAY, WATER]:
 		prewarm.add_mesh(MarksScript.ring_mesh(), _ring_below_material(colour))
 	prewarm.add_mesh(OverlayScript.immediate_sample(), _lines_below[0].material_override)
@@ -412,6 +425,7 @@ func _warned(slot: int) -> bool:
 
 func _draw_slot(slot: int) -> void:
 	"""Every mark of one slot, from its state."""
+	_put_on_level(slot)
 	var open := _network.is_open(slot)
 	var closed := _network.closed[slot] if open else GraphScript.CLOSED_NONE
 	_draw_line(_lines[slot], slot, LINE_WIDTH_M, open and slot == _selected)
@@ -421,6 +435,29 @@ func _draw_slot(slot: int) -> void:
 	_place_fall(slot, closed == GraphScript.CLOSED_COLLAPSED)
 	_place_frames(slot, open and _network.braced[slot] == 1, _going_up(slot, JobsScript.JOB_BRACE) - 1)
 	_place_lanterns(slot, open and _network.lit[slot] == 1, _going_up(slot, JobsScript.JOB_LANTERNS) - 1)
+
+
+func _put_on_level(slot: int) -> void:
+	"""Slot `slot`'s marks below on its segment's level (see LEVELS) -- a link's on both its levels, as it is selected
+	from either -- rewritten only when that changed."""
+	var level: int = _network.seg_level[slot]
+	var link := _network.seg_kind[slot] == GraphScript.SEG_LINK
+	var placed := level * 2 + (1 if link else 0)
+	if placed == _slot_level[slot]:
+		return
+	_slot_level[slot] = placed
+	var below := Layers.below(level) | (Layers.below(level + 1) if link else 0)
+	for node: MultiMeshInstance3D in [_frames[slot], _lanterns[slot], _glows[slot]]:
+		node.layers = below
+	_frames[slot].material_override = _brace_materials[level + 1 if link else level]
+	_lines_below[slot].layers = Layers.marks(level) | (Layers.marks(level + 1) if link else 0)
+	_lines_below[slot].position.y = Layers.floor_y(level)
+
+
+func _end_level(slot: int, at_b: bool) -> int:
+	"""The level an end of segment `slot` lies on: its node's (a mouth is the segment's own level's)."""
+	var level: int = _network.node_level[_network.end_node(slot, at_b)]
+	return level if level > Rules.LEVEL_SURFACE else int(_network.seg_level[slot])
 
 
 func _draw_line(node: MeshInstance3D, slot: int, width: float, show: bool) -> void:
@@ -461,7 +498,9 @@ func _place_rings(slot: int, open: bool) -> void:
 			ring.position = Vector3(at.x, MarksScript.LIFT_M, at.y)
 			ring.scale = Vector3(RING_M, 1.0, RING_M)
 			MarksScript.set_alpha(ring, colour, 1.0)
-			below.position = Vector3(at.x, Layers.FLOOR_Y_M + Layers.MARK_LIFT_M, at.y)
+			var level := _end_level(slot, end == 1)
+			below.position = Vector3(at.x, Layers.floor_y(level) + Layers.MARK_LIFT_M, at.y)
+			below.layers = Layers.marks(level)
 			below.scale = ring.scale
 			below.material_override = _ring_below_material(colour)
 
@@ -606,9 +645,9 @@ static func swell_share(t: float) -> float:
 
 
 func _puff(at: Vector3) -> void:
-	"""A puff of dust at `at`, below (none without the theatre)."""
+	"""A puff of dust at `at`, below on the level its height lies on (none without the theatre)."""
 	if _particles != null:
-		_particles.puff(at, Layers.UNDERGROUND)
+		_particles.puff(at, Layers.below(Layers.level_at(at.y)))
 
 
 func frames_up(slot: int) -> int:

@@ -49,11 +49,17 @@ extends RefCounted
 ## the pantry's 750 (§5.8) -- while it is DEEP (its floor at least COOL_DEPTH_U down), has at least one storage
 ## fixture, and no hearth warms it: none in a home whose void lies within HEAT_REACH_U of its void, and none in a room
 ## it OPENS ONTO (one whose socket a run of passages no longer than OPENS_ONTO_U, through no other room, reaches from
-## one of its sockets; two ramps' runs are longer, so no such run passes a mouth).
+## one of its sockets; two ramps' runs are longer, so no such run passes a mouth). DEPTH IS ITS LEVEL'S (decision 0212):
+## a cellar on level 2 is 5.25 m down, deep by any reckoning; a hearth warms a cellar through the earth only on its own
+## level (the candidate 4 m spacing keeps the levels apart), and a level-2 room's DOOR is one of its ways in (it is a
+## socket there, underground_rooms.gd `way_in_node`) -- and no run passes a LINK between the levels (a hearth's
+## warmth stays on its level: the stairs' 5 m run alone is shorter than OPENS_ONTO_U, so this is a rule, not a length).
 
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const AllocationScript := preload("res://demo/burrow/bed_allocation.gd")
+## underground_graph.gd SEG_LINK (not preloaded: the graph preloads this script).
+const LINK_KIND: int = RoomsScript.LINK_KIND
 
 const EMPTY: int = 0
 const PLANNED: int = 1
@@ -564,8 +570,8 @@ func _hearth_opens(graph: RefCounted, r: int) -> bool:
 	for h in RoomsScript.MAX_ROOMS:
 		if h == r or not has_hearth(graph, h):
 			continue
-		for k in RoomsScript.socket_count(rooms.template[h]):
-			var node := rooms.socket_of(h, k)
+		for k in rooms.way_in_count(h):
+			var node := rooms.way_in_node(h, k)
 			if node >= 0 and _dist[node] <= OPENS_ONTO_U:
 				return true
 	return false
@@ -578,8 +584,8 @@ func _walk_from_sockets(graph: RefCounted, r: int) -> void:
 	counts passes a mouth.)"""
 	_dist.fill(OPENS_ONTO_U + 1)
 	_queue.clear()
-	for k in RoomsScript.socket_count(graph.rooms.template[r]):
-		var node: int = graph.rooms.socket_of(r, k)
+	for k in graph.rooms.way_in_count(r):
+		var node: int = graph.rooms.way_in_node(r, k)
 		if node >= 0:
 			_dist[node] = 0
 			_queue.append(node)
@@ -590,10 +596,11 @@ func _walk_from_sockets(graph: RefCounted, r: int) -> void:
 
 
 func _relax(graph: RefCounted, node: int) -> void:
-	"""Shorten the way to every node one open passage on from `node` (see `_walk_from_sockets`)."""
+	"""Shorten the way to every node one open passage on from `node`, never through a room or down a link (see
+	`_walk_from_sockets`)."""
 	for j in Rules.JUNCTION_DEGREE:
 		var slot: int = graph.node_segment(node, j)
-		if slot < 0 or not graph.is_open(slot) or graph.seg_room[slot] >= 0:
+		if slot < 0 or not graph.is_open(slot) or graph.seg_room[slot] >= 0 or graph.seg_kind[slot] == LINK_KIND:
 			continue
 		var next: int = graph.other_end(slot, node)
 		var d: int = _dist[node] + graph.length_u[slot]

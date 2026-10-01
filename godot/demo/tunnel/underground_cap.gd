@@ -31,6 +31,14 @@ extends Node3D
 ##
 ## Built once, at boot; the masks are sized once and only their pixels change. The maps are shared with
 ## the bores' earth (`share_earth`).
+##
+## ONE CAP A LEVEL (decision 0212). A cap is built for a LEVEL: its plane at that level's section
+## (demo_layers.gd `cap_y`), on that level's layer (`below`), reading at that level's floor; its strata the
+## ground of that level (tunnel_ground.gd THE GROUND AT DEPTH); its void mask that level's alone -- a link is
+## stamped into each level's mask where its void reaches that level's section (bore_view.gd LEVELS); its rises
+## coded over RISE_RANGES_M (level 2's 4.25 m holds a link's whole drop); its backstop DEEP_YS_M under it and its own
+## fill light on its own layer. Footings and roots are level 1's (nothing on the surface reaches the second level). The other
+## level's mask is handed in (`set_other`), and the shader draws a faint OUTLINE of it (OTHER_STRENGTH).
 
 const Layers := preload("res://demo/demo_layers.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
@@ -79,6 +87,14 @@ const CROWN_RANGE_M: float = 2.0
 ## A floor within this of the level's counts as the level's floor (`is_dug`).
 const FLOOR_SLACK_M: float = 0.25
 const LIGHT_EULER_DEG: Vector3 = Vector3(-62.0, 35.0, 0.0)
+## ONE CAP A LEVEL: each level's rise range (m); the other level's outline.
+const RISE_RANGES_M: Array[float] = [RISE_RANGE_M, RISE_RANGE_M, 4.25]
+## Each level's backstop (m): as far under its floor as level 1's (DEEP_Y_M) is under level 1's.
+const DEEP_YS_M: Array[float] = [DEEP_Y_M, DEEP_Y_M, DEEP_Y_M - Rules.LEVEL_SPACING_U / 1024.0]
+const OTHER_STRENGTH: float = 0.28
+
+## The level this cap is for (see ONE CAP A LEVEL).
+var level: int = Rules.TOP_LEVEL
 
 var _ground_image: Image = null
 var _marks: PackedByteArray = PackedByteArray()
@@ -94,10 +110,12 @@ var _light: DirectionalLight3D = null
 var _material: ShaderMaterial = null
 
 
-func configure(ground: GroundScript, water: WaterScript) -> void:
-	"""Build the cap over this ground and water, its backstop and its light (see the header)."""
-	name = "UndergroundCap"
-	_ground_image = ground_image(ground, water)
+func configure(ground: GroundScript, water: WaterScript, at_level: int = Rules.TOP_LEVEL, water_from: Image = null) -> void:
+	"""Build the cap of `at_level` over this ground and water, its backstop and its light (see the header). A lower
+	level's cap reads the water's distance from `water_from` (level 1's ground image) instead of asking it again."""
+	level = at_level
+	name = "UndergroundCap" if level == Rules.TOP_LEVEL else "UndergroundCap%d" % level
+	_ground_image = ground_image(ground, water, level) if water_from == null else deep_image(ground, water_from)
 	var side: int = MAP_SIDE_M * MARKS_PX_PER_M
 	_marks.resize(side * side * 4)
 	_marks_texture = ImageTexture.create_from_image(Image.create_from_data(side, side, false, Image.FORMAT_RGBA8, _marks))
@@ -106,8 +124,8 @@ func configure(ground: GroundScript, water: WaterScript) -> void:
 	_void_image = Image.create_from_data(_void_side, _void_side, false, Image.FORMAT_RGBA8, _void)
 	_void_texture = ImageTexture.create_from_image(_void_image)
 	_material = _cap_material()
-	_cap = _plane(Layers.CAP_Y_M, _material)
-	_deep = _plane(DEEP_Y_M, _deep_material())
+	_cap = _plane(Layers.cap_y(level), _material)
+	_deep = _plane(DEEP_YS_M[level], _deep_material())
 	_light = _fill_light()
 
 
@@ -120,13 +138,34 @@ func _cap_material() -> ShaderMaterial:
 	material.set_shader_parameter(&"void_map", _void_texture)
 	material.set_shader_parameter(&"grain", _grain())
 	material.set_shader_parameter(&"map_rect", Vector3(-MAP_HALF_M, -MAP_HALF_M, 1.0 / float(MAP_SIDE_M)))
-	material.set_shader_parameter(&"floor_y", Layers.FLOOR_Y_M)
-	material.set_shader_parameter(&"rise_range", RISE_RANGE_M)
+	material.set_shader_parameter(&"floor_y", Layers.floor_y(level))
+	material.set_shader_parameter(&"rise_range", rise_range_m())
 	material.set_shader_parameter(&"crown_range", CROWN_RANGE_M)
 	material.set_shader_parameter(&"bulge", BoreMeshScript.BULGE)
 	material.set_shader_parameter(&"spring_share", BoreMeshScript.SPRING_SHARE)
 	material.set_shader_parameter(&"water_line", 0.5 + WATER_CLEARANCE_M / (2.0 * WATER_RANGE_M))
 	return material
+
+
+func rise_range_m() -> float:
+	"""The rise (m) the void mask's B channel codes up to on this level (see ONE CAP A LEVEL)."""
+	return RISE_RANGES_M[level]
+
+
+func set_other(other: Node3D) -> void:
+	"""The other level's cap, whose voids this cap outlines faintly (see ONE CAP A LEVEL)."""
+	_material.set_shader_parameter(&"other_void", other.void_texture())
+	_material.set_shader_parameter(&"other_strength", OTHER_STRENGTH)
+
+
+func void_texture() -> ImageTexture:
+	"""This level's void mask (the other level's cap outlines it)."""
+	return _void_texture
+
+
+func commit_other() -> void:
+	"""Nothing is drawn on a lower level's marks (footings and roots are level 1's); upload them blank once."""
+	_commit_marks()
 
 
 func share_earth(material: ShaderMaterial) -> void:
@@ -168,7 +207,7 @@ func _plane(y: float, material: Material) -> MeshInstance3D:
 	node.material_override = material
 	node.position.y = y
 	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	node.layers = Layers.UNDERGROUND
+	node.layers = Layers.below(level)
 	add_child(node)
 	return node
 
@@ -181,33 +220,58 @@ func _fill_light() -> DirectionalLight3D:
 	light.light_color = LIGHT_COLOUR
 	light.light_energy = LIGHT_ENERGY
 	light.shadow_enabled = false
-	light.layers = Layers.UNDERGROUND
-	light.light_cull_mask = Layers.UNDERGROUND
+	light.layers = Layers.below(level)
+	light.light_cull_mask = Layers.below(level)
 	add_child(light)
 	return light
 
 
 # --- the ground map ---------------------------------------------------------------------------
 
-static func ground_image(ground: GroundScript, water: WaterScript) -> Image:
-	"""The strata and the water's distance, a pixel a metre over the mapped square (see the shader)."""
+static func ground_image(ground: GroundScript, water: WaterScript, at_level: int = Rules.TOP_LEVEL) -> Image:
+	"""The strata of `at_level` and the water's distance, a pixel a metre over the mapped square (see the shader)."""
 	var image := Image.create(MAP_SIDE_M * GROUND_PX_PER_M, MAP_SIDE_M * GROUND_PX_PER_M, false, Image.FORMAT_RGBA8)
 	for r: int in image.get_height():
 		for c: int in image.get_width():
 			var at := Vector2i(Rules.to_u(-MAP_HALF_M + float(c) + 0.5), Rules.to_u(-MAP_HALF_M + float(r) + 0.5))
 			var margin_m: float = Rules.to_m(water.map().inside_margin_u(at))
-			image.set_pixel(c, r, Color(_ground_colour(ground, water, at), water_code(margin_m)))
+			image.set_pixel(c, r, Color(_ground_colour(ground, water, at, at_level), water_code(margin_m)))
 	return image
 
 
-static func _ground_colour(ground: GroundScript, water: WaterScript, at: Vector2i) -> Color:
-	"""The ground's colour at `at` (u): the grid's cell inside it, loam (wet by the water) outside."""
-	var inside: bool = at.x >= ground.origin_u.x and at.y >= ground.origin_u.y \
+static func deep_image(ground: GroundScript, water_from: Image) -> Image:
+	"""A lower level's strata over level 1's ground image's water distances (its alpha): the grid's level-2 cells
+	inside it, and outside it loam, wet within the water table's reach (tunnel_ground.gd THE GROUND AT DEPTH)."""
+	var image := Image.create(water_from.get_width(), water_from.get_height(), false, Image.FORMAT_RGBA8)
+	var table_code: float = water_code(-Rules.to_m(GroundScript.DEEP_WET_REACH_U))
+	for r: int in image.get_height():
+		for c: int in image.get_width():
+			var at := Vector2i(Rules.to_u(-MAP_HALF_M + float(c) + 0.5), Rules.to_u(-MAP_HALF_M + float(r) + 0.5))
+			var code: float = water_from.get_pixel(c, r).a
+			var byte: int = ground.cell_byte(at.x, at.y, Rules.LEVEL_2) if _in_grid(ground, at) \
+					else GroundScript.LOAM | (GroundScript.WET_BIT if code > table_code else 0)
+			image.set_pixel(c, r, Color(GroundViewScript.colour_of(byte), code))
+	return image
+
+
+static func _in_grid(ground: GroundScript, at: Vector2i) -> bool:
+	"""Whether `at` (u) lies inside the ground's grid."""
+	return at.x >= ground.origin_u.x and at.y >= ground.origin_u.y \
 			and at.x < ground.origin_u.x + ground.columns * GroundScript.CELL_U \
 			and at.y < ground.origin_u.y + ground.rows * GroundScript.CELL_U
-	if inside:
-		return GroundViewScript.colour_of(ground.cells[ground.cell_of(at.x, at.y)])
-	var wet: bool = water.near_water(at.x, at.y)
+
+
+func ground_map() -> Image:
+	"""This level's ground image (a lower level's cap reads its water distances from level 1's)."""
+	return _ground_image
+
+
+static func _ground_colour(ground: GroundScript, water: WaterScript, at: Vector2i, at_level: int) -> Color:
+	"""The ground's colour at `at` (u) on `at_level`: the grid's cell inside it, loam (wet by the water) outside."""
+	if _in_grid(ground, at):
+		return GroundViewScript.colour_of(ground.cell_byte(at.x, at.y, at_level))
+	var wet: bool = water.near_water(at.x, at.y) if at_level == Rules.TOP_LEVEL \
+			else water.map().inside_margin_u(at) > -GroundScript.DEEP_WET_REACH_U
 	return GroundViewScript.colour_of(GroundScript.LOAM | (GroundScript.WET_BIT if wet else 0))
 
 
@@ -326,7 +390,7 @@ func stamp_disc(centre: Vector2, radius: float, cut: Vector2 = Vector2.ZERO, ris
 	at the centre for the face's own disc, further on for a disc behind it). Uploaded by `commit_void`."""
 	var reach: int = ceili(radius * RHO_REACH * VOID_PX_PER_M) + 1
 	var middle: Vector2i = void_pixel(centre)
-	var rise: int = roundi(clampf(rise_m / RISE_RANGE_M, 0.0, 1.0) * 255.0)
+	var rise: int = roundi(clampf(rise_m / rise_range_m(), 0.0, 1.0) * 255.0)
 	var crown: int = roundi(clampf(crown_m / CROWN_RANGE_M, 0.0, 1.0) * 255.0)
 	for y: int in range(maxi(middle.y - reach, 0), mini(middle.y + reach + 1, _void_side)):
 		for x: int in range(maxi(middle.x - reach, 0), mini(middle.x + reach + 1, _void_side)):
@@ -387,7 +451,7 @@ func is_dug(at: Vector2) -> bool:
 	floor whose floor there is within FLOOR_SLACK_M of the level's (a ramp's higher end is not; checks)."""
 	if void_at(at, VOID_ROOM) > 0.5:
 		return true
-	return void_at(at, VOID_RHO) > 1.0 - 1.0 / RHO_RANGE and void_at(at, VOID_RISE) * RISE_RANGE_M <= FLOOR_SLACK_M
+	return void_at(at, VOID_RHO) > 1.0 - 1.0 / RHO_RANGE and void_at(at, VOID_RISE) * rise_range_m() <= FLOOR_SLACK_M
 
 
 # --- registry and checks ----------------------------------------------------------------------

@@ -267,7 +267,7 @@ func _bed_task(i: int, task: SleepTaskScript) -> bool:
 		RoomsScript.fixture_field(RoomsScript.TEMPLATE_HOME, f, 4)), rooms.turns[r])
 	var large: bool = _graph.fit.kind_at(_graph, r, f) == RoomsScript.FIX_BIG_BED
 	task.to_bed(room_name(r), middle, _graph.node_m(middle), Vector2(Rules.to_m(at.x), Rules.to_m(at.y)),
-		atan2(float(face.x), float(face.y)), Layers.FLOOR_Y_M + bed_top_m,
+		atan2(float(face.x), float(face.y)), Layers.floor_y(rooms.level[r]) + bed_top_m,
 		SleepTaskScript.LARGE_FOOT_M if large else SleepTaskScript.FOOT_M)
 	return true
 

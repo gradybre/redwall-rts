@@ -44,6 +44,12 @@ extends Node3D
 ## `refresh()` checks each room's key when the network or the rooms changed, and each room
 ## being dug when its percent dug did (a digging dig moves no revision) -- so its shell grows stage by stage and
 ## its name's "(digging N%)" keeps count; an idle frame costs a comparison a room.
+##
+## LEVELS (decision 0212). A room is drawn on its level: its shell in that level's earth (bore_view.gd
+## `hub_material(level)`), everything below on that level's layer and floor, its ribs cut at that level's section,
+## its void stamped into that level's cap, its outline and name on that level's marks layer and floor. A room on
+## level 2 has NOTHING on the ground -- no mound, no door or hatch, no obstacle, no surface outline or name (the
+## surface's signs are the top level's) -- and its door is a socket, opened where its passage comes in.
 
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const RoomMeshScript := preload("res://demo/burrow/room_mesh.gd")
@@ -124,6 +130,12 @@ var _props: PropsScript = null
 var _space: CastSpaceScript = null
 var _marks: MarksScript = null
 var _cap: CapScript = null
+## Each level's cap (index 0 unused; see LEVELS), and the one a room's stamps go to while it is stamped.
+var _caps: Array[CapScript] = [null, null, null]
+var _stamp_cap: CapScript = null
+## Each level's rib cutaway (index 0 unused), and the level each room row was last drawn on (-1: never).
+var _rib_materials: Array[ShaderMaterial] = [null, null, null]
+var _row_level: PackedInt32Array = PackedInt32Array()
 var _seen: Vector2i = Vector2i(-1, -1)
 var _key: PackedInt64Array = PackedInt64Array()
 ## Each room's percent dug when it was last looked at (-1: no room).
@@ -182,8 +194,7 @@ func configure(network: GraphScript, props: PropsScript, space: CastSpaceScript,
 	_outline_below_material = _flat(Palette.CREAM)
 	_outline_below_material.no_depth_test = true
 	_outline_below_material.render_priority = OUTLINE_BELOW_PRIORITY
-	_rib_material = MarksScript.cutaway_of(marks.brace_mesh().surface_get_material(0))
-	_rib_material.set_shader_parameter(&"cut_y", Layers.CAP_Y_M - 0.02)
+	_make_rib_materials(marks)
 	_beam_material = StandardMaterial3D.new()
 	_beam_material.albedo_color = TIMBER_RING
 	_beam_material.roughness = 1.0
@@ -196,6 +207,16 @@ func configure(network: GraphScript, props: PropsScript, space: CastSpaceScript,
 	_size_day_columns()
 	for r in RoomsScript.MAX_ROOMS:
 		_build_row()
+
+
+func _make_rib_materials(marks: MarksScript) -> void:
+	"""Each level's ribs' cutaway, cut just under its section (see LEVELS), and the rows' levels (none drawn yet)."""
+	for level in range(Rules.TOP_LEVEL, Rules.DEEPEST_LEVEL + 1):
+		_rib_materials[level] = MarksScript.cutaway_of(marks.brace_mesh().surface_get_material(0))
+		_rib_materials[level].set_shader_parameter(&"cut_y", Layers.cap_y(level) - 0.02)
+	_rib_material = _rib_materials[Rules.TOP_LEVEL]
+	_row_level.resize(RoomsScript.MAX_ROOMS)
+	_row_level.fill(-1)
 
 
 func _size_day_columns() -> void:
@@ -303,9 +324,12 @@ func _rough(colour: Color) -> StandardMaterial3D:
 	return _materials[colour]
 
 
-func set_cap(cap: CapScript) -> void:
-	"""The underground view's cap: every room dug opens it (those dug before too)."""
+func set_cap(cap: CapScript, deep_cap: CapScript = null) -> void:
+	"""The underground view's caps (level 1's; level 2's when given): every room dug opens its level's (those dug
+	before too)."""
 	_cap = cap
+	_caps[Rules.TOP_LEVEL] = cap
+	_caps[Rules.LEVEL_2] = deep_cap
 	_key.fill(-1)
 	_seen = Vector2i(-1, -1)
 
@@ -315,8 +339,9 @@ func register(prewarm: PrewarmScript) -> void:
 	hubs' material, the ribs' cutaway, the fit-out's props, the glow, the outline and the name."""
 	var sample := ArrayMesh.new()
 	RoomMeshScript.build_round(sample, Vector3.ZERO, 1.0, 1.0, PackedFloat32Array(), PackedFloat32Array(), 0.0, 1.0, 0.0)
-	prewarm.add_mesh(sample, BoreViewScript.hub_material())
-	prewarm.add_multimesh(_marks.brace_mesh(), _rib_material)
+	for level in range(Rules.TOP_LEVEL, Rules.DEEPEST_LEVEL + 1):
+		prewarm.add_mesh(sample, BoreViewScript.hub_material(level))
+		prewarm.add_multimesh(_marks.brace_mesh(), _rib_materials[level])
 	prewarm.add_mesh(_beam_mesh(RoomsScript.TEMPLATE_HOME), _beam_material)
 	prewarm.add_mesh(_props.mesh_of(LANTERN_KEY))
 	prewarm.add_mesh(_marks.glow_mesh())
@@ -403,8 +428,8 @@ func percent_dug(r: int) -> int:
 		return -1
 	var ramp := _rooms.ramp[r]
 	var body := _rooms.body[r]
-	var total := _network.total_ticks(ramp) + _network.total_ticks(body)
-	return (_network.done(ramp) + _network.done(body)) * 100 / maxi(total, 1)
+	var total := _network.total_ticks(body) + (_network.total_ticks(ramp) if ramp >= 0 else 0)
+	return (_network.done(body) + (_network.done(ramp) if ramp >= 0 else 0)) * 100 / maxi(total, 1)
 
 
 func room_key(r: int) -> int:
@@ -413,7 +438,7 @@ func room_key(r: int) -> int:
 	if not _rooms.is_room(r):
 		return -1
 	var paused := 1 if _network.phase[_rooms.body[r]] == GraphScript.PHASE_PAUSED \
-			or _network.phase[_rooms.ramp[r]] == GraphScript.PHASE_PAUSED else 0
+			or _network.phase[_rooms.first_segment(r)] == GraphScript.PHASE_PAUSED else 0
 	var key := (_rooms.generation[r] % 65536) * 4 + int(_rooms.turns[r])
 	key = ((key * 4 + int(_rooms.template[r])) * (STAGES + 1) + stage(r)) * 2 + paused
 	return (key * 16 + _joined_mask(r)) * 256 + _rooms.nooks[r]
@@ -454,6 +479,8 @@ func _draw(r: int, show: bool) -> void:
 	"""Room row `r` as it stands (see BELOW and ON THE GROUND)."""
 	var grown := stage(r) if show else 0
 	var done := grown == STAGES
+	var top := not show or _rooms.level[r] == Rules.TOP_LEVEL
+	_put_on_level(r)
 	_draw_marks(r, show and not done)
 	_below[r].visible = grown > 0
 	if grown > 0:
@@ -464,14 +491,34 @@ func _draw(r: int, show: bool) -> void:
 	_frames[r].visible = done
 	_beams[r].visible = done
 	_clear(_furniture[r])
-	_above[r].visible = done
+	_above[r].visible = done and top
 	_clear(_above[r])
 	if done:
 		_fit_out(r)
+	if done and top:
 		_build_mound(r)
 	_marks.lights.set_room_spots(r, _lantern_spots(r) if done else PackedVector3Array(),
 		HOME_LIGHT if show and _rooms.template[r] == RoomsScript.TEMPLATE_HOME else CELLAR_LIGHT)
-	_place_mound(r, show)
+	_place_mound(r, show and top)
+
+
+func _put_on_level(r: int) -> void:
+	"""Room row `r`'s nodes on its room's level (see LEVELS), rewritten only when the row's level changed: the shell's
+	earth, the layers below, the ribs' cutaway, and its outline and name's marks layer."""
+	var level: int = _rooms.level[r] if _rooms.is_room(r) else Rules.TOP_LEVEL
+	if level == _row_level[r]:
+		return
+	_row_level[r] = level
+	_shells[r].material_override = BoreViewScript.hub_material(level)
+	_frames[r].material_override = _rib_materials[level]
+	Layers.set_layers(_below[r], Layers.below(level))
+	_outlines_below[r].layers = Layers.marks(level)
+	_labels_below[r].layers = Layers.marks(level)
+
+
+func _floor_y(r: int) -> float:
+	"""Room `r`'s floor height (m): its level's."""
+	return Layers.floor_y(_rooms.level[r])
 
 
 func _place_mound(r: int, show: bool) -> void:
@@ -495,13 +542,14 @@ static func _clear(holder: Node3D) -> void:
 
 func _draw_marks(r: int, show: bool) -> void:
 	"""Room `r`'s outline in both views while it is laid and dug."""
-	_outlines[r].visible = show
+	var top := _rooms.level[r] == Rules.TOP_LEVEL
+	_outlines[r].visible = show and top
 	_outlines_below[r].visible = show
 	if show:
 		outline_into(_outlines[r].mesh as ImmediateMesh, _outline_material, _rooms.template[r], _rooms.centre_m(r),
-			_rooms.turns[r], LIFT_M)
+			_rooms.turns[r], LIFT_M, top)
 		_outlines_below[r].mesh = _outlines[r].mesh
-		_outlines_below[r].position.y = Layers.FLOOR_Y_M
+		_outlines_below[r].position.y = _floor_y(r)
 
 
 func _draw_names(r: int) -> void:
@@ -510,8 +558,9 @@ func _draw_names(r: int) -> void:
 	var at := _rooms.centre_m(r) if live else Vector2.ZERO
 	var text := status_text(r) if live else ""
 	var high := LABEL_ABOVE_M if live and _rooms.is_done(_network, r) else 0.6
-	_name(_labels[r], text, live, Vector3(at.x, high, at.y))
-	_name(_labels_below[r], text, live, Vector3(at.x, Layers.FLOOR_Y_M + LABEL_BELOW_LIFT_M, at.y))
+	var floor_y := _floor_y(r) if live else Layers.FLOOR_Y_M
+	_name(_labels[r], text, live and _rooms.level[r] == Rules.TOP_LEVEL, Vector3(at.x, high, at.y))
+	_name(_labels_below[r], text, live, Vector3(at.x, floor_y + LABEL_BELOW_LIFT_M, at.y))
 
 
 func status_text(r: int) -> String:
@@ -520,7 +569,7 @@ func status_text(r: int) -> String:
 	if _rooms.is_done(_network, r):
 		return name_text
 	var percent := percent_dug(r)
-	if percent <= 0 and _network.phase[_rooms.ramp[r]] != GraphScript.PHASE_DIGGING:
+	if percent <= 0 and _network.phase[_rooms.first_segment(r)] != GraphScript.PHASE_DIGGING:
 		return name_text + " (planned)"
 	return "%s (digging %d%%)" % [name_text, percent]
 
@@ -533,10 +582,11 @@ static func _name(label: Label3D, text: String, show: bool, at: Vector3) -> void
 		label.text = text
 
 
-static func outline_into(mesh: ImmediateMesh, material: Material, kind: int, centre: Vector2, turns: int, lift: float) -> void:
+static func outline_into(mesh: ImmediateMesh, material: Material, kind: int, centre: Vector2, turns: int, lift: float,
+		with_ramp: bool = true) -> void:
 	"""A room's outline on the ground plane (y = `lift` in the mesh's own frame): its void's edge -- a circle, or a
-	vault's box -- its door ramp's two sides out to its mouth, and a short tick at each socket. Also the room
-	tool's ghost (room_tool.gd)."""
+	vault's box -- its door ramp's two sides out to its mouth (`with_ramp`; a level-2 room's door is a socket, ticked
+	as one), and a short tick at each socket. Also the room tool's ghost (room_tool.gd)."""
 	mesh.clear_surfaces()
 	mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES, material)
 	mesh.surface_set_normal(Vector3.UP)
@@ -546,9 +596,12 @@ static func outline_into(mesh: ImmediateMesh, material: Material, kind: int, cen
 	var door := _m(RoomsScript.door_at(kind, _u(centre), turns))
 	var hole := _m(RoomsScript.mouth_at(kind, _u(centre), turns))
 	var side := (hole - door).normalized().orthogonal() * float(RoomsScript.HOOD_HALF_U) / float(Rules.UNITS_PER_M)
-	for edge: float in [-1.0, 1.0]:
-		_strip(mesh, door + side * edge, hole + side * edge, lift)
-	_strip(mesh, hole - side, hole + side, lift)
+	if with_ramp:
+		for edge: float in [-1.0, 1.0]:
+			_strip(mesh, door + side * edge, hole + side * edge, lift)
+		_strip(mesh, hole - side, hole + side, lift)
+	else:
+		_strip(mesh, door, door + (door - centre).normalized() * 0.45, lift)
 	for k in RoomsScript.socket_count(kind):
 		var socket := _m(RoomsScript.socket_at(kind, _u(centre), turns, k))
 		var out := (socket - centre).normalized()
@@ -715,7 +768,7 @@ func _build_round(r: int, mesh: ArrayMesh, share: float) -> void:
 	_collect_bays(r, middle, share >= 1.0)
 	var alcove := float(RoomsScript.ALCOVE_U) / float(RoomsScript.HALF_X_U[kind])
 	var nook := float(RoomsScript.NOOK_REACH_U) / float(RoomsScript.HALF_X_U[kind]) - 1.0
-	RoomMeshScript.build_round(mesh, Vector3(middle.x, Layers.FLOOR_Y_M, middle.y), radius, Rules.crown_m(Rules.BORE_ROOM),
+	RoomMeshScript.build_round(mesh, Vector3(middle.x, _floor_y(r), middle.y), radius, Rules.crown_m(Rules.BORE_ROOM),
 		_openings, _alcoves, alcove, 0.0, _day(), _nooks, nook)
 
 
@@ -745,7 +798,7 @@ func _build_vault(r: int, mesh: ArrayMesh, share: float) -> void:
 	var middle := grown_middle(r, share)
 	var half := Vector2(Rules.to_m(RoomsScript.HALF_X_U[kind]), Rules.to_m(RoomsScript.HALF_Z_U[kind]) * share)
 	_collect_openings(r, middle, share >= 1.0)
-	RoomMeshScript.build_vault(mesh, Vector3(middle.x, Layers.FLOOR_Y_M, middle.y), across, along, half,
+	RoomMeshScript.build_vault(mesh, Vector3(middle.x, _floor_y(r), middle.y), across, along, half,
 		Rules.crown_m(Rules.BORE_ROOM), _openings, 1.0, _day())
 
 
@@ -753,7 +806,7 @@ func _collect_openings(r: int, middle: Vector2, done: bool) -> void:
 	"""Where room `r`'s shell (centred at `middle`) opens: its door always, and -- dug -- every socket a tunnel
 	has broken through, each as (angle from the middle, floor half-width, crown)."""
 	_openings.clear()
-	_add_opening(middle, _m(_rooms.door_u(r)), Rules.BORE_WIDE)
+	_add_opening(middle, _m(_rooms.door_u(r)), Rules.BORE_WIDE if _rooms.level[r] == Rules.TOP_LEVEL else Rules.BORE_STANDARD)
 	if not done:
 		return
 	for k in RoomsScript.socket_count(_rooms.template[r]):
@@ -781,7 +834,8 @@ static func _dir(v: Vector2i) -> Vector2:
 func _stamp(r: int, grown: int) -> void:
 	"""Open the cap over room `r`'s shell at stage `grown`: a home's disc (and its alcoves, dug), a cellar's
 	floor box and discs along its axis."""
-	if _cap == null:
+	_stamp_cap = _caps[_rooms.level[r]]
+	if _stamp_cap == null:
 		return
 	var share := float(grown) / float(STAGES)
 	var kind := _rooms.template[r]
@@ -789,15 +843,15 @@ func _stamp(r: int, grown: int) -> void:
 	var crown := Rules.crown_m(Rules.BORE_ROOM)
 	if RoomsScript.SHAPE[kind] == RoomsScript.SHAPE_ROUND:
 		var radius := Rules.to_m(RoomsScript.HALF_X_U[kind])
-		_cap.stamp_disc(middle, radius * sqrt(share), Vector2.ZERO, 0.0, crown)
+		_stamp_cap.stamp_disc(middle, radius * sqrt(share), Vector2.ZERO, 0.0, crown)
 		for angle in _alcoves:
-			_cap.stamp_disc(middle + Vector2(cos(angle), sin(angle)) * radius, Rules.to_m(RoomsScript.ALCOVE_U) * 1.6,
+			_stamp_cap.stamp_disc(middle + Vector2(cos(angle), sin(angle)) * radius, Rules.to_m(RoomsScript.ALCOVE_U) * 1.6,
 				Vector2.ZERO, 0.0, crown)
 		for angle in _nooks:
 			_stamp_nook(middle, Vector2(cos(angle), sin(angle)), crown)
 	else:
 		_stamp_vault(r, middle, share, crown)
-	_cap.commit_void()
+	_stamp_cap.commit_void()
 
 
 func _stamp_nook(middle: Vector2, out: Vector2, crown: float) -> void:
@@ -806,7 +860,7 @@ func _stamp_nook(middle: Vector2, out: Vector2, crown: float) -> void:
 	var reach := Rules.to_m(RoomsScript.NOOK_REACH_U)
 	for k in NOOK_DISCS:
 		var along := lerpf(Rules.to_m(RoomsScript.HALF_X_U[RoomsScript.TEMPLATE_HOME]), reach, float(k) / float(NOOK_DISCS - 1))
-		_cap.stamp_disc(middle + out * along, along * sin(RoomsScript.NOOK_FLAT_RAD) + 0.2, Vector2.ZERO, 0.0, crown)
+		_stamp_cap.stamp_disc(middle + out * along, along * sin(RoomsScript.NOOK_FLAT_RAD) + 0.2, Vector2.ZERO, 0.0, crown)
 
 
 func _stamp_vault(r: int, middle: Vector2, share: float, crown: float) -> void:
@@ -815,11 +869,11 @@ func _stamp_vault(r: int, middle: Vector2, share: float, crown: float) -> void:
 	var along := _dir(RoomsScript.rotate_u(Vector2i(0, Rules.QUANTUM_U), _rooms.turns[r]))
 	var hx := Rules.to_m(RoomsScript.HALF_X_U[kind])
 	var hz := Rules.to_m(RoomsScript.HALF_Z_U[kind]) * share
-	_cap.stamp_box(middle, Vector2(absf(along.y) * hx + absf(along.x) * hz, absf(along.x) * hx + absf(along.y) * hz))
+	_stamp_cap.stamp_box(middle, Vector2(absf(along.y) * hx + absf(along.x) * hz, absf(along.x) * hx + absf(along.y) * hz))
 	var reach := maxf(hz - hx, 0.0)
 	var t := -reach
 	while t <= reach + 0.001:
-		_cap.stamp_disc(middle + along * t, minf(hx, hz), Vector2.ZERO, 0.0, crown)
+		_stamp_cap.stamp_disc(middle + along * t, minf(hx, hz), Vector2.ZERO, 0.0, crown)
 		t += 0.5
 
 
@@ -833,7 +887,7 @@ func _fit_out(r: int) -> void:
 	glow.mesh = _marks.glow_mesh()
 	glow.position = _glow_at(lantern)
 	_furniture[r].add_child(glow)
-	Layers.set_layers(_furniture[r], Layers.UNDERGROUND)
+	Layers.set_layers(_furniture[r], Layers.below(_rooms.level[r]))
 	_place_ribs(r)
 
 
@@ -850,7 +904,7 @@ func wall_lantern_transform(r: int) -> Transform3D:
 	var place: Array = RoomsScript.WALL_LANTERN[_rooms.template[r]]
 	var at := _m(_rooms.to_world_u(r, Vector2i(place[0], place[1])))
 	var face := _dir(RoomsScript.rotate_u(Vector2i(place[2], place[3]), _rooms.turns[r]))
-	return Transform3D(Basis(Vector3.UP, atan2(face.x, face.y)), Vector3(at.x, Layers.FLOOR_Y_M + 0.02, at.y))
+	return Transform3D(Basis(Vector3.UP, atan2(face.x, face.y)), Vector3(at.x, _floor_y(r) + 0.02, at.y))
 
 
 func lantern_transform(r: int) -> Transform3D:
@@ -860,7 +914,7 @@ func lantern_transform(r: int) -> Transform3D:
 	var inward := Vector2(placed.basis.z.x, placed.basis.z.z).normalized()
 	var reach: float = _props.drawn_bound(LANTERN_KEY).size.x * 0.5
 	var origin := Vector2(placed.origin.x, placed.origin.z) + inward * reach
-	return Transform3D(Basis(Vector3.UP, atan2(inward.y, -inward.x)), Vector3(origin.x, Layers.FLOOR_Y_M + LANTERN_LIFT_M, origin.y))
+	return Transform3D(Basis(Vector3.UP, atan2(inward.y, -inward.x)), Vector3(origin.x, _floor_y(r) + LANTERN_LIFT_M, origin.y))
 
 
 func _glow_at(lantern: Transform3D) -> Vector3:
@@ -880,17 +934,20 @@ func _place_ribs(r: int) -> void:
 	var kind := _rooms.template[r]
 	var centre := _rooms.centre_m(r)
 	var count := 0
+	var floor_y := _floor_y(r)
+	var door_bore := Rules.BORE_WIDE if _rooms.level[r] == Rules.TOP_LEVEL else Rules.BORE_STANDARD
 	node.multimesh.set_instance_transform(count, _frame_at(_m(_rooms.door_u(r)), _m(_rooms.door_u(r)) - centre,
-		BoreMeshScript.FLOOR_HALF_M[Rules.BORE_WIDE] * 2.0))
+		BoreMeshScript.FLOOR_HALF_M[door_bore] * 2.0, floor_y))
 	count += 1
 	for k in RoomsScript.socket_count(kind):
 		var socket := _m(_rooms.socket_u(r, k))
-		node.multimesh.set_instance_transform(count, _frame_at(socket, socket - centre, BoreMeshScript.FLOOR_HALF_M[Rules.BORE_STANDARD] * 2.0))
+		node.multimesh.set_instance_transform(count, _frame_at(socket, socket - centre, BoreMeshScript.FLOOR_HALF_M[Rules.BORE_STANDARD] * 2.0,
+			floor_y))
 		count += 1
 	node.multimesh.visible_instance_count = count
 	_beams[r].mesh = _beam_mesh(kind)
 	var frame := _mound_frame(r)
-	_beams[r].transform = Transform3D(frame.basis, frame.origin + Vector3(0.0, Layers.FLOOR_Y_M, 0.0))
+	_beams[r].transform = Transform3D(frame.basis, frame.origin + Vector3(0.0, floor_y, 0.0))
 
 
 static func _beam_mesh(kind: int) -> ArrayMesh:
@@ -905,12 +962,12 @@ static func _beam_mesh(kind: int) -> ArrayMesh:
 	return _shared[key]
 
 
-func _frame_at(at: Vector2, facing: Vector2, width: float) -> Transform3D:
-	"""A brace frame standing on the room's floor at `at`, `width` wide and RIB_TALL_M tall, its face turned along
-	`facing` (so it spans across it), in the brace model's fit."""
+func _frame_at(at: Vector2, facing: Vector2, width: float, floor_y: float) -> Transform3D:
+	"""A brace frame standing on the room's floor (at `floor_y`) at `at`, `width` wide and RIB_TALL_M tall, its face
+	turned along `facing` (so it spans across it), in the brace model's fit."""
 	var yaw := atan2(facing.x, facing.y)
 	var shape := Basis(Vector3.UP, yaw) * Basis.from_scale(Vector3(width, RIB_TALL_M / MarksScript.FRAME_POST_M, 1.0))
-	return Transform3D(shape, Vector3(at.x, Layers.FLOOR_Y_M, at.y)) * _marks.frame_mesh_fit()
+	return Transform3D(shape, Vector3(at.x, floor_y, at.y)) * _marks.frame_mesh_fit()
 
 
 # --- the mound ------------------------------------------------------------------------------
@@ -1126,3 +1183,8 @@ func label_below(r: int) -> Label3D:
 func outline_below(r: int) -> MeshInstance3D:
 	"""Room `r`'s outline as the U view draws it (for checks)."""
 	return _outlines_below[r]
+
+
+func outline(r: int) -> MeshInstance3D:
+	"""Room `r`'s outline on the ground, as the surface view draws it (for checks)."""
+	return _outlines[r]

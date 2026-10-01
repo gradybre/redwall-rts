@@ -8,6 +8,9 @@
 // and the bore's far wall or floor (bore_mesh.gd, inward-facing) is seen through it. Where the ray only
 // grazes a bore, a dark cut band edges the section. A dug room (P0's, still flat) opens where its floor
 // point is dug.
+// THE OTHER LEVEL (decision 0212): each level has its own cap and mask; `other_void` is the other level's mask,
+// read at this level's floor point, and its bores' floor edges and rooms' edges are drawn as a faint line
+// (`other_strength`) -- an outline only, nothing of it is seen through.
 shader_type spatial;
 render_mode cull_back, diffuse_lambert, specular_disabled;
 
@@ -33,6 +36,10 @@ uniform vec3 band_dark : source_color = vec3(0.22, 0.31, 0.42);
 uniform vec3 water_colour : source_color = vec3(0.16, 0.25, 0.36);
 uniform vec3 footing_colour : source_color = vec3(0.56, 0.54, 0.50);
 uniform vec3 cut_colour : source_color = vec3(0.06, 0.045, 0.035);
+uniform sampler2D other_void : filter_linear, repeat_disable, hint_default_black;
+uniform float other_strength = 0.0;
+uniform float other_line_rho = 0.14;
+uniform vec3 other_colour : source_color = vec3(0.86, 0.8, 0.66);
 
 const int VOID_STEPS = 10;
 
@@ -72,6 +79,16 @@ float ray_margin(vec3 eye, vec3 seen) {
 	return margin;
 }
 
+// THE OTHER LEVEL: how strongly the other level's outline shows at `at` (0..1): the rim of its bores' floors,
+// and its rooms' edges.
+float other_line(vec2 at) {
+	vec4 o = texture(other_void, earth_uv(at));
+	float rho = (1.0 - o.g) * 2.0;
+	float rim = o.g > 0.0 ? 1.0 - smoothstep(0.0, other_line_rho, abs(rho - 1.0)) : 0.0;
+	float room_edge = 1.0 - smoothstep(0.0, 0.3, abs(o.r - 0.5));
+	return max(rim, room_edge);
+}
+
 vec3 no_dig(vec3 earth, vec2 at, float water) {
 	float stripe = step(0.5, fract((at.x + at.y) / hatch_period_m));
 	vec3 band = mix(band_light, band_dark, stripe);
@@ -94,6 +111,7 @@ void fragment() {
 	earth = mix(earth, footing_colour, max(outline, step(0.0, footing) * 0.22));
 	float water = texture(ground_map, earth_uv(at)).a;
 	earth = water > 0.5 ? no_dig(earth, at, water) : earth;
+	earth = mix(earth, other_colour, other_strength * other_line(at));
 	ALBEDO = (room > cut_edge || margin < band_rho) ? cut_colour : earth;
 	ROUGHNESS = 1.0;
 }

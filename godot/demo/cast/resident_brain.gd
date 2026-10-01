@@ -125,6 +125,7 @@ const TaskScript := preload("res://demo/tunnel/tunnel_task.gd")
 const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const BoreCurveScript := preload("res://demo/tunnel/bore_curve.gd")
 const GraphPathsScript := preload("res://demo/tunnel/graph_paths.gd")
+const LayersScript := preload("res://demo/demo_layers.gd")
 
 enum State { IDLE, TURN, WALK, FACE, ACT, HOLD, TUNNEL, DIG, QUEUE, TASK, CROSS }
 
@@ -1310,6 +1311,29 @@ func slope_share() -> float:
 	on the level)."""
 	var grade := _space.tunnels.floor_grade_at(_travel_slot, _travel_m)
 	return 1.0 / sqrt(1.0 + grade * grade)
+
+
+## A resident on a link between the levels, out of both levels' sight (demo_layers.gd's, the one value).
+const BETWEEN_LEVELS: int = LayersScript.BETWEEN_LEVELS
+
+
+func view_level() -> int:
+	"""The level this resident is drawn on (decision 0212): 0 on the surface, else its segment's level -- on a link,
+	its head's while its floor is within a bore's crown of the head's floor (seen through level 1's section there),
+	its foot's once its floor lies under the foot's section (seen from level 2), and BETWEEN_LEVELS on the hidden
+	middle, where each level's section is solid earth over it (demo_layers.gd `body_mask`, `marker_mask`)."""
+	var at := _space.resident_tunnel[index] if underground else -1
+	if at < 0:
+		return TunnelRules.LEVEL_SURFACE
+	var tunnels := _space.tunnels
+	var level: int = tunnels.seg_level[at]
+	if tunnels.seg_kind[at] != CastSpaceScript.GraphScript.SEG_LINK:
+		return level
+	var floor_y: float = tunnels.floor_y_at(at, _space.resident_along[index])
+	if floor_y >= TunnelRules.level_floor_m(level) - TunnelRules.crown_m(TunnelRules.BORE_STANDARD):
+		return level
+	var foot_cut := TunnelRules.level_floor_m(level + 1) + TunnelRules.crown_m(TunnelRules.BORE_WIDE)
+	return level + 1 if floor_y <= foot_cut else BETWEEN_LEVELS
 
 
 func bore_class() -> int:

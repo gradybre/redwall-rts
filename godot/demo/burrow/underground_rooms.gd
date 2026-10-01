@@ -16,7 +16,10 @@ extends RefCounted
 ##
 ## FRAME. A room stands at a centre (u) turned `turns` quarter turns (rotate_u). In its own frame its door
 ## (or hatch) is at -Z, and its sockets and fixtures are where the template puts them. Every room carries
-## its LEVEL (MOVE-REQ-013); only Rules.BUILDABLE_LEVEL is dug (P6 adds level 2).
+## its LEVEL (MOVE-REQ-013). Level 1 and level 2 are dug (decision 0212). A room on LEVEL 2 -- its floor the
+## candidate 4 m lower, its crown 1.25 m under level 1's floor -- has no mound, no door or hatch on the surface
+## and no ramp: its door is a SOCKET in its wall that a passage from the network reaches (underground_graph.gd
+## ROOMS), and it is placed only with that passage (room_tool.gd).
 ##
 ## ON THE NETWORK (underground_graph.gd `add_room`) a room is one PIECE, laid in the job list like a tunnel:
 ##   * a MOUTH node on the surface (mouth kind DOOR or HATCH) and its RAMP down (a WIDE bore, so the badger
@@ -28,11 +31,16 @@ extends RefCounted
 ##
 ## WHERE ONE MAY GO (`refusal`, integer tests on the void -- the room's floor extent bowed out -- its MOUND
 ## (the void and SKIRT_U of turf) and its door ramp's HOOD):
-##   LEVEL the first level only; FULL MAX_ROOMS rooms; NETWORK_FULL the network's rows; OUT_OF_BOUNDS the
+##   LEVEL level 1 or 2; FULL MAX_ROOMS rooms; NETWORK_FULL the network's rows; OUT_OF_BOUNDS the
 ##   village; UNDER_WATER the stream, the pond and their no-dig band (half a bore, as tunnels); OVER_CROPS the
 ##   crop beds; UNDER_BUILDING the buildings and the well; NEAR_ROOM 1 m of earth from every other room;
 ##   NEAR_TUNNEL 1 m of earth from every tunnel (join one at a socket instead); SURFACE_BLOCKED the mound, the
 ##   hood and the door clear of trees, heaps, props, work spots and mouths.
+##   ON LEVEL 2 only the void is tested -- it has no mound, hood or door on the surface -- against the bounds,
+##   the water and its band (the water table is not dug under), and the voids on its own level. Voids on
+##   different levels are 1 m apart or more by construction (the candidate spacing), so they are never tested
+##   against each other; a LINK, which passes between the levels, is tested where its void comes within a
+##   pillar of the room's in height (`_link_near_void`).
 ##
 ## THE CELLAR API (the pantry: demo/farm/farm_cellars.gd): `cellars(graph)` lists every dug root cellar with a store
 ## in it as {"id": Vector2i(slot, generation), "position": Vector3 (its hatch, on the ground), "capacity_u": int,
@@ -126,8 +134,10 @@ const NOOK_A_U: int = 2355
 const NOOK_B_U: int = 3379
 const NOOK_HALF_U: int = 1843
 const LARGE_BED_MIDDLE_U: int = 2304
-## underground_graph.gd PHASE_FREE (a segment row holding nothing; the graph preloads this script, not the reverse).
+## underground_graph.gd PHASE_FREE (a segment row holding nothing) and SEG_LINK (a link between levels); the graph
+## preloads this script, not the reverse.
 const FREE_PHASE: int = 0
+const LINK_KIND: int = 3
 const NOOK_OK: int = 0
 const NOOK_NEAR_TUNNEL: int = 1
 const NOOK_NEAR_ROOM: int = 2
@@ -158,11 +168,13 @@ const REFUSE_UNDER_BUILDING: int = 7
 const REFUSE_NEAR_ROOM: int = 8
 const REFUSE_NEAR_TUNNEL: int = 9
 const REFUSE_SURFACE_BLOCKED: int = 10
+## A room on the second level has no door to the surface (decision 0212; room_plan.gd ON LEVEL 2).
+const REFUSE_NEEDS_PASSAGE: int = 11
 const REASONS: Array[String] = [
 	"",
 	"no more rooms can be dug in this demo (8 at most)",
 	"the tunnel network is full in this demo",
-	"only the first level can be dug in this demo (the second comes later)",
+	"there is no such level: rooms are dug on the first or the second",
 	"that is too near the edge of the village",
 	"a room cannot be dug under the stream or the pond, or the no-dig band beside them",
 	"a room cannot be dug under the crop beds",
@@ -170,6 +182,7 @@ const REASONS: Array[String] = [
 	"too near another room: keep 1 m of earth between them",
 	"too near a tunnel: keep 1 m of earth from it, or join it at a socket",
 	"its mound or its door would stand on a tree, a heap, a prop or a work spot",
+	"a room on the second level is reached only through the tunnels: no passage to it can be dug from its door to the second level's tunnels within 6 m",
 ]
 
 
@@ -415,6 +428,26 @@ func release(r: int) -> void:
 	revision += 1
 
 
+func way_in_count(r: int) -> int:
+	"""How many ways into room `r` a passage may join: its sockets, and on level 2 its door too (a socket there)."""
+	return socket_count(template[r]) + (0 if level[r] == Rules.TOP_LEVEL else 1)
+
+
+func way_in_node(r: int, k: int) -> int:
+	"""Way in `k` of room `r` (see `way_in_count`): socket `k`, or past the sockets its door."""
+	return socket_of(r, k) if k < socket_count(template[r]) else door[r]
+
+
+func first_segment(r: int) -> int:
+	"""Room `r`'s piece's first segment: its door ramp, or on level 2 (no ramp) its body."""
+	return ramp[r] if ramp[r] >= 0 else body[r]
+
+
+func floor_depth_u(r: int) -> int:
+	"""How far below the ground room `r`'s floor lies (u)."""
+	return Rules.level_floor_depth_u(level[r])
+
+
 func centre(r: int) -> Vector2i:
 	"""Room `r`'s centre (u)."""
 	return Vector2i(centre_u[2 * r], centre_u[2 * r + 1])
@@ -521,10 +554,12 @@ func nook_refusal(graph: RefCounted, r: int, f: int, site: Site) -> int:
 	if _nook_near_tunnel(graph, r, a, b):
 		return NOOK_NEAR_TUNNEL
 	for h in MAX_ROOMS:
-		if h != r and is_room(h) and leg_gap_of(h, a, b) < Rules.PILLAR_U + NOOK_HALF_U:
+		if h != r and is_room(h) and level[h] == level[r] and leg_gap_of(h, a, b) < Rules.PILLAR_U + NOOK_HALF_U:
 			return NOOK_NEAR_ROOM
 	if site.water.is_valid() and bool(site.water.call(a, b, NOOK_HALF_U + Rules.BORE_WIDTH_U / 2)):
 		return NOOK_UNDER_WATER
+	if level[r] != Rules.TOP_LEVEL:
+		return NOOK_OK
 	for i in site.under_u.size() / 3:
 		var c := Vector2i(site.under_u[3 * i], site.under_u[3 * i + 2])
 		if Rules.point_leg_u(c, a, b) < site.under_u[3 * i + 1] + NOOK_HALF_U:
@@ -538,7 +573,8 @@ func _nook_near_tunnel(graph: RefCounted, r: int, a: Vector2i, b: Vector2i) -> b
 	as a room (NOOK_NEAR_ROOM); its ramp is a tunnel here."""
 	for slot in Rules.MAX_SEGMENTS:
 		var h: int = graph.seg_room[slot]
-		if graph.phase[slot] == FREE_PHASE or h == r or (h >= 0 and ramp[h] != slot) or _joins_at_socket(graph, r, slot):
+		if graph.phase[slot] == FREE_PHASE or h == r or (h >= 0 and ramp[h] != slot) or _joins_at_socket(graph, r, slot) \
+				or (graph.seg_kind[slot] != LINK_KIND and graph.seg_level[slot] != level[r]):
 			continue
 		var reach: int = Rules.PILLAR_U + NOOK_HALF_U + Rules.BORE_WIDTHS_U[graph.bore[slot]] / 2
 		var base: int = 2 * slot * Rules.MAX_POINTS
@@ -579,21 +615,38 @@ func nooks_gap_of(r: int, kind: int, at: Vector2i, quarter_turns: int) -> int:
 func refusal(graph: RefCounted, site: Site, kind: int, at: Vector2i, quarter_turns: int, room_level: int) -> int:
 	"""REFUSE_NONE, or why a room of `kind` may not be dug at `at`, turned so, on `room_level` (see WHERE ONE
 	MAY GO), in that order. `graph` is the network (underground_graph.gd)."""
-	if room_level != Rules.BUILDABLE_LEVEL:
+	if not Rules.is_buildable_level(room_level):
 		return REFUSE_LEVEL
 	if not has_free_row():
 		return REFUSE_FULL
-	if not graph.has_rows_for_room(socket_count(kind)):
+	if not graph.has_rows_for_room(socket_count(kind), room_level):
 		return REFUSE_NETWORK_FULL
+	if room_level != Rules.TOP_LEVEL:
+		return _deep_refusal(graph, site, kind, at, quarter_turns, room_level)
 	var door_foot := door_at(kind, at, quarter_turns)
 	var hole := mouth_at(kind, at, quarter_turns)
 	for check: Callable in [_bounds_reason.bind(site, kind, at, quarter_turns, hole),
 			_water_reason.bind(site, kind, at, quarter_turns, hole, door_foot),
 			_crops_reason.bind(site, kind, at, quarter_turns, hole, door_foot),
 			_building_reason.bind(site, kind, at, quarter_turns, hole, door_foot),
-			_rooms_reason.bind(graph, kind, at, quarter_turns, hole, door_foot),
-			_tunnels_reason.bind(graph, kind, at, quarter_turns, hole, door_foot),
+			_rooms_reason.bind(graph, kind, at, quarter_turns, hole, door_foot, room_level),
+			_tunnels_reason.bind(graph, kind, at, quarter_turns, hole, door_foot, room_level),
 			_surface_reason.bind(site, kind, at, quarter_turns, hole, door_foot)]:
+		var reason: int = check.call()
+		if reason != REFUSE_NONE:
+			return reason
+	return REFUSE_NONE
+
+
+func _deep_refusal(graph: RefCounted, site: Site, kind: int, at: Vector2i, quarter_turns: int, room_level: int) -> int:
+	"""A room on a lower level (see WHERE ONE MAY GO): its void inside the village and off the water, and a pillar
+	from every void on its level -- nothing on the surface. Its door is a socket, so it has no ramp to test."""
+	var door_foot := door_at(kind, at, quarter_turns)
+	if not site.bounds_u.encloses(world_box(kind, at, quarter_turns, 0)):
+		return REFUSE_OUT_OF_BOUNDS
+	for check: Callable in [_void_water_reason.bind(site, kind, at, quarter_turns),
+			_rooms_reason.bind(graph, kind, at, quarter_turns, door_foot, door_foot, room_level),
+			_tunnels_reason.bind(graph, kind, at, quarter_turns, door_foot, door_foot, room_level)]:
 		var reason: int = check.call()
 		if reason != REFUSE_NONE:
 			return reason
@@ -616,6 +669,14 @@ static func _water_reason(site: Site, kind: int, at: Vector2i, quarter_turns: in
 	var band := Rules.BORE_WIDTH_U / 2
 	if bool(site.water.call(hole, door_foot, HOOD_HALF_U + band)):
 		return REFUSE_UNDER_WATER
+	return _void_water_reason(site, kind, at, quarter_turns)
+
+
+static func _void_water_reason(site: Site, kind: int, at: Vector2i, quarter_turns: int) -> int:
+	"""No part of the void under water or within half a bore of it (the no-dig band)."""
+	if not site.water.is_valid():
+		return REFUSE_NONE
+	var band := Rules.BORE_WIDTH_U / 2
 	var half := void_half(kind)
 	if SHAPE[kind] == SHAPE_ROUND:
 		return REFUSE_UNDER_WATER if bool(site.water.call(at, at, half.x + band)) else REFUSE_NONE
@@ -666,15 +727,17 @@ static func _building_reason(site: Site, kind: int, at: Vector2i, quarter_turns:
 
 
 func _rooms_reason(graph: RefCounted, kind: int, at: Vector2i, quarter_turns: int, hole: Vector2i,
-		door_foot: Vector2i) -> int:
-	"""1 m of earth between this room's void and every other room's, its ramp and every other room's void, and
-	its ramp and every other room's ramp."""
+		door_foot: Vector2i, room_level: int) -> int:
+	"""1 m of earth between this room's void and every other room's on its level, its ramp and every other
+	room's void, and its ramp and every other room's ramp (a lower level's rooms have no ramps)."""
 	for r in MAX_ROOMS:
-		if not is_room(r):
+		if not is_room(r) or level[r] != room_level:
 			continue
 		if voids_gap_u(kind, at, quarter_turns, template[r], centre(r), turns[r]) < Rules.PILLAR_U \
 				or nooks_gap_of(r, kind, at, quarter_turns) < Rules.PILLAR_U:
 			return REFUSE_NEAR_ROOM
+		if room_level != Rules.TOP_LEVEL:
+			continue
 		if leg_gap_of(r, hole, door_foot) < Rules.PILLAR_U + Rules.BORE_WIDTHS_U[Rules.BORE_WIDE] / 2:
 			return REFUSE_NEAR_ROOM
 		if legs_gap_u(hole, door_foot, mouth_u(r), door_u(r)) < Rules.pillar_gap_u(Rules.BORE_WIDE, Rules.BORE_WIDE):
@@ -686,16 +749,39 @@ func _rooms_reason(graph: RefCounted, kind: int, at: Vector2i, quarter_turns: in
 
 
 func _tunnels_reason(graph: RefCounted, kind: int, at: Vector2i, quarter_turns: int, hole: Vector2i,
-		door_foot: Vector2i) -> int:
-	"""1 m of earth between this room's void (and its ramp) and every tunnel of the network."""
+		door_foot: Vector2i, room_level: int) -> int:
+	"""1 m of earth between this room's void (and its ramp) and every tunnel of the network on its level -- and
+	every link where it passes the room's height (see WHERE ONE MAY GO)."""
 	var box := world_box(kind, at, quarter_turns, Rules.PILLAR_U + Rules.BORE_WIDTHS_U[Rules.BORE_WIDE])
 	box = box.expand(hole).grow(Rules.pillar_gap_u(Rules.BORE_WIDE, Rules.BORE_WIDE))
 	for slot in Rules.MAX_SEGMENTS:
 		if not graph.is_tunnel(slot) or not box.intersects(graph.route_box(slot)):
 			continue
+		if graph.seg_kind[slot] == LINK_KIND:
+			if _link_near_void(graph, slot, kind, at, quarter_turns, room_level):
+				return REFUSE_NEAR_TUNNEL
+			continue
+		if graph.seg_level[slot] != room_level:
+			continue
 		if _segment_near_void(graph, slot, kind, at, quarter_turns) or _segment_near_leg(graph, slot, hole, door_foot):
 			return REFUSE_NEAR_TUNNEL
 	return REFUSE_NONE
+
+
+static func _link_near_void(graph: RefCounted, slot: int, kind: int, at: Vector2i, quarter_turns: int,
+		room_level: int) -> bool:
+	"""Whether link `slot` comes within the pillar and its half-width of a room's void where it passes within a
+	pillar of the room's height -- sampled every PILLAR_STEP_U of its run (a link's void is a standard bore)."""
+	var room_floor := Rules.level_floor_depth_u(room_level)
+	var reach := Rules.PILLAR_U + Rules.BORE_WIDTH_U / 2
+	var along := 0
+	while along <= graph.length_u[slot]:
+		var depth: int = graph.floor_depth_u_at(slot, along)
+		var gap := Rules.vertical_gap_u(depth - Rules.BORE_HEIGHT_U, depth, room_floor - Rules.ROOM_CROWN_U, room_floor)
+		if gap < Rules.PILLAR_U and gap_u(kind, at, quarter_turns, graph.point_at_u(slot, along)) < reach:
+			return true
+		along += Rules.PILLAR_STEP_U
+	return false
 
 
 static func _segment_near_void(graph: RefCounted, slot: int, kind: int, at: Vector2i, quarter_turns: int) -> bool:
@@ -785,12 +871,21 @@ func cellars(graph: RefCounted) -> Array[Dictionary]:
 	for r in MAX_ROOMS:
 		if template[r] != TEMPLATE_CELLAR or not is_done(graph, r) or graph.fit.capacity_u(graph, r) <= 0:
 			continue
-		var hatch := mouth_u(r)
+		var hatch := entrance_u(graph, r)
 		var cool: bool = graph.fit.is_cool(graph, r)
 		out.append({"id": Vector2i(r, generation[r]), "position": Vector3(Rules.to_m(hatch.x), 0.0, Rules.to_m(hatch.y)),
 			"capacity_u": graph.fit.capacity_u(graph, r),
 			"spoilage_permille": CELLAR_SPOILAGE_PERMILLE if cool else WARM_CELLAR_SPOILAGE_PERMILLE})
 	return out
+
+
+func entrance_u(graph: RefCounted, r: int) -> Vector2i:
+	"""Where room `r` is gone into from the surface (u): its own door or hatch -- or, on a lower level, the mouth
+	its piece spoils at (the way in nearest it by the network when it was laid)."""
+	if level[r] == Rules.TOP_LEVEL:
+		return mouth_u(r)
+	var m: int = graph.piece_mouth[piece[r]]
+	return graph.node_at(graph.mouth_node[m]) if graph.is_mouth(m) else centre(r)
 
 
 func housing_line(graph: RefCounted) -> String:

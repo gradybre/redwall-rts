@@ -209,7 +209,9 @@ func _process(_delta: float) -> void:
 
 
 func update(focus: Vector3) -> void:
-	"""Give the lights to the spots nearest `focus` when the spots changed or the focus moved far."""
+	"""Give the lights to the spots nearest `focus` when the spots changed or the focus moved far (a level switch moves
+	the focus to the other floor, so the lights go to the level shown); each light on the layer of the level its spot is
+	on, lighting only it (decision 0212)."""
 	if not _dirty and focus.distance_to(_focus) < REASSIGN_M:
 		return
 	_dirty = false
@@ -220,6 +222,8 @@ func update(focus: Vector3) -> void:
 		if k < _found:
 			_lights[k].position = _best[k]
 			_lights[k].light_color = _best_tint[k]
+			_lights[k].layers = Layers.below(Layers.level_at(_best[k].y))
+			_lights[k].light_cull_mask = _lights[k].layers
 			_light_born[k] = _best_born[k]
 	assignments += 1
 

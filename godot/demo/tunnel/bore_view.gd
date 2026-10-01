@@ -34,6 +34,18 @@ extends Node3D
 ## THE VOID. Every dug step is stamped into the cap's void mask (underground_cap.gd `stamp_disc`): its floor
 ## half-width, its floor's rise over the level's (a ramp's) and its crown, and at a dig face only the half
 ## behind it. The stamps only grow: a segment is freed only while no ground is broken.
+##
+## LEVELS (decision 0212). A segment is drawn on its level's layer (demo_layers.gd `below`) in its level's earth
+## (`earth_material(level)`: the same shader, cut at that level's section and floored at its floor), and stamped
+## into its level's cap. A LINK is drawn on BOTH levels: each chunk has a TWIN sharing its mesh, on level 2's
+## layer in level 2's earth, so each level's view cuts it at its own section. Each level's cap is a true section:
+## a link's steps are stamped into level 2's at their real rise (it opens where the link has come down under level
+## 2's section), and into level 1's while its void still reaches above level 1's floor (its rise clamped to that
+## floor, its crown cut to what is left above it). So from level 1 its head is seen going down under the cut, from
+## level 2 its foot coming up through it; a resident on the hidden middle is a marker in both views
+## (resident_brain.gd `view_level`). A STAIR's swept floor lies half a riser
+## under its walking line, and its timber-fronted treads stand on it (stair_view.gd). A BLIND END (a node on level
+## 2 joining one segment) is closed by a dug face.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
@@ -45,6 +57,7 @@ const SimClock := preload("res://scripts/core/sim_clock.gd")
 const BoreMeshScript := preload("res://demo/tunnel/bore_mesh.gd")
 const BoreCurveScript := preload("res://demo/tunnel/bore_curve.gd")
 const DressingScript := preload("res://demo/tunnel/bore_dressing.gd")
+const StairScript := preload("res://demo/tunnel/stair_view.gd")
 const EARTH_SHADER := preload("res://demo/tunnel/bore_earth.gdshader")
 const HUB_SHADER := preload("res://demo/tunnel/hub_earth.gdshader")
 
@@ -61,11 +74,18 @@ const CELLS_SEED: int = 2072
 ## Stones and roots keep this far clear of a hub's rim.
 const HUB_DRESS_CLEAR_M: float = 0.3
 
-static var _material: ShaderMaterial = null
-static var _hub_material: ShaderMaterial = null
+## Each level's bore and hub earth (index 0 unused; see LEVELS).
+static var _materials: Array[ShaderMaterial] = [null, null, null]
+static var _hub_materials: Array[ShaderMaterial] = [null, null, null]
 
 var _network: GraphScript = null
 var _cap: CapScript = null
+## Each level's cap (index 0 unused; level 2's null until `set_view` is given one).
+var _caps: Array[CapScript] = [null, null, null]
+## A link's chunks' twins on level 2 (see LEVELS), made the first time the slot is drawn as a link.
+var _twins: Array[MeshInstance3D] = []
+## The level (and whether a link) each slot's chunks were last put on: level * 2 + link (-1: never).
+var _placed: PackedInt32Array = PackedInt32Array()
 var _calendar: CalendarScript = null
 var _builder: BoreMeshScript = BoreMeshScript.new()
 var _chunks: Array[MeshInstance3D] = []
@@ -84,6 +104,8 @@ var _openings: PackedFloat32Array = PackedFloat32Array()
 var _sample: PackedVector2Array = PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
 var _day_written: float = -1.0
 var dressing: DressingScript = null
+## The stairs' treads (stair_view.gd; see LEVELS).
+var stairs: StairScript = null
 ## Chunk sweeps and hub builds so far (measurement and the tests).
 var chunk_builds: int = 0
 var hub_builds: int = 0
@@ -95,6 +117,9 @@ func configure(network: GraphScript) -> void:
 	name = "Bores"
 	_network = network
 	_chunks.resize(Rules.MAX_SEGMENTS * CHUNKS)
+	_twins.resize(Rules.MAX_SEGMENTS * CHUNKS)
+	_placed.resize(Rules.MAX_SEGMENTS)
+	_placed.fill(-1)
 	_built_m.resize(Rules.MAX_SEGMENTS)
 	_state.resize(Rules.MAX_SEGMENTS)
 	_state.fill(-1)
@@ -111,15 +136,52 @@ func configure(network: GraphScript) -> void:
 	dressing = DressingScript.new()
 	add_child(dressing)
 	dressing.configure()
+	stairs = StairScript.new()
+	add_child(stairs)
+	stairs.configure(network)
 
 
 func _ensure(slot: int) -> void:
-	"""Segment `slot`'s chunks, made once: empty meshes in the earth material, on the UNDERGROUND layer,
-	hidden."""
-	if _chunks[slot * CHUNKS] != null:
+	"""Segment `slot`'s chunks, made once (empty meshes, hidden), and put on its level (see LEVELS) whenever the
+	slot's level or kind changed since."""
+	if _chunks[slot * CHUNKS] == null:
+		for k in CHUNKS:
+			_chunks[slot * CHUNKS + k] = _mesh_node(earth_material())
+	var level: int = _network.seg_level[slot]
+	var link := _network.seg_kind[slot] == GraphScript.SEG_LINK
+	var placed := level * 2 + (1 if link else 0)
+	if placed == _placed[slot]:
 		return
+	_placed[slot] = placed
 	for k in CHUNKS:
-		_chunks[slot * CHUNKS + k] = _mesh_node(earth_material())
+		var node := chunk(slot, k)
+		node.material_override = earth_material(level)
+		node.layers = Layers.below(level)
+		if link and _twins[slot * CHUNKS + k] == null:
+			_twins[slot * CHUNKS + k] = _twin_of(node)
+		if _twins[slot * CHUNKS + k] != null:
+			_twins[slot * CHUNKS + k].visible = link and node.visible
+
+
+func _twin_of(node: MeshInstance3D) -> MeshInstance3D:
+	"""A link chunk's twin on level 2 (see LEVELS): its mesh, level 2's earth and layer."""
+	var twin := _mesh_node(earth_material(Rules.LEVEL_2))
+	twin.mesh = node.mesh
+	twin.layers = Layers.below(Rules.LEVEL_2)
+	return twin
+
+
+func twin(slot: int, k: int) -> MeshInstance3D:
+	"""Chunk `k` of segment `slot`'s twin on level 2 (null: never drawn as a link; see LEVELS)."""
+	return _twins[slot * CHUNKS + k]
+
+
+func _show_chunk(slot: int, k: int, shown: bool) -> void:
+	"""Show or hide chunk `k` of segment `slot`, and its twin with it while it is a link."""
+	chunk(slot, k).visible = shown
+	var twin_node := _twins[slot * CHUNKS + k]
+	if twin_node != null:
+		twin_node.visible = shown and _network.seg_kind[slot] == GraphScript.SEG_LINK
 
 
 func _mesh_node(material: ShaderMaterial) -> MeshInstance3D:
@@ -134,29 +196,31 @@ func _mesh_node(material: ShaderMaterial) -> MeshInstance3D:
 	return node
 
 
-static func earth_material() -> ShaderMaterial:
-	"""THE bores' material, shared by every chunk: the underground's earth (see the header)."""
-	if _material != null:
-		return _material
-	_material = _earth(EARTH_SHADER)
-	return _material
+static func earth_material(level: int = Rules.TOP_LEVEL) -> ShaderMaterial:
+	"""THE bores' material on `level`, shared by every chunk there: the underground's earth (see the header and
+	LEVELS)."""
+	var at := clampi(level, Rules.TOP_LEVEL, Rules.DEEPEST_LEVEL)
+	if _materials[at] == null:
+		_materials[at] = _earth(EARTH_SHADER, at)
+	return _materials[at]
 
 
-static func hub_material() -> ShaderMaterial:
-	"""THE hubs' material, shared by every hub: the same earth, cut where the bores open (see HUBS)."""
-	if _hub_material != null:
-		return _hub_material
-	_hub_material = _earth(HUB_SHADER)
-	return _hub_material
+static func hub_material(level: int = Rules.TOP_LEVEL) -> ShaderMaterial:
+	"""THE hubs' material on `level`, shared by every hub (and room shell) there: the same earth, cut where the bores
+	open (see HUBS)."""
+	var at := clampi(level, Rules.TOP_LEVEL, Rules.DEEPEST_LEVEL)
+	if _hub_materials[at] == null:
+		_hub_materials[at] = _earth(HUB_SHADER, at)
+	return _hub_materials[at]
 
 
-static func _earth(shader: Shader) -> ShaderMaterial:
-	"""A material of the bores' earth over `shader`."""
+static func _earth(shader: Shader, level: int) -> ShaderMaterial:
+	"""A material of the bores' earth over `shader`, cut at `level`'s section and floored at its floor."""
 	var material := ShaderMaterial.new()
 	material.shader = shader
 	material.set_shader_parameter(&"cells", _noise(CELLS_SEED, FastNoiseLite.TYPE_CELLULAR, 0.02))
-	material.set_shader_parameter(&"cut_y", Layers.CAP_Y_M)
-	material.set_shader_parameter(&"level_floor_y", Layers.FLOOR_Y_M)
+	material.set_shader_parameter(&"cut_y", Layers.cap_y(level))
+	material.set_shader_parameter(&"level_floor_y", Layers.floor_y(level))
 	material.set_shader_parameter(&"bulge", BoreMeshScript.BULGE)
 	material.set_shader_parameter(&"spring_share", BoreMeshScript.SPRING_SHARE)
 	return material
@@ -179,17 +243,23 @@ static func _noise(seed: int, kind: FastNoiseLite.NoiseType, frequency: float) -
 	return texture
 
 
-func set_view(cap: CapScript, prewarm: PrewarmScript) -> void:
-	"""The cap whose void mask the bores open and whose soil they share, and the U view's prewarm, which learns
-	the bores' and hubs' vertex formats and materials and the dressing's meshes (decision 0206)."""
+func set_view(cap: CapScript, prewarm: PrewarmScript, deep_cap: CapScript = null) -> void:
+	"""The caps whose void masks the bores open and whose soil they share (level 1's; level 2's, when given), and
+	the U view's prewarm, which learns the bores' and hubs' vertex formats and every level's materials and the
+	dressing's meshes (decisions 0206, 0212)."""
 	_cap = cap
-	cap.share_earth(earth_material())
-	cap.share_earth(hub_material())
+	_caps[Rules.TOP_LEVEL] = cap
+	_caps[Rules.LEVEL_2] = deep_cap
+	for level in range(Rules.TOP_LEVEL, Rules.DEEPEST_LEVEL + 1):
+		var soil: CapScript = _caps[level] if _caps[level] != null else cap
+		soil.share_earth(earth_material(level))
+		soil.share_earth(hub_material(level))
+		prewarm.add_mesh(BoreMeshScript.sample_mesh(), earth_material(level))
+		prewarm.add_mesh(BoreMeshScript.sample_hub(), hub_material(level))
 	_void_m.fill(0.0)
 	_void_wide_m.fill(0.0)
-	prewarm.add_mesh(BoreMeshScript.sample_mesh(), earth_material())
-	prewarm.add_mesh(BoreMeshScript.sample_hub(), hub_material())
 	dressing.register(prewarm)
+	stairs.register(prewarm)
 
 
 func set_calendar(calendar: CalendarScript) -> void:
@@ -225,19 +295,22 @@ func set_hazard(slot: int, seep: float, seep_span: Vector2, strain: float, strai
 	if _chunks[slot * CHUNKS] == null:
 		return
 	for k in CHUNKS:
-		var node := chunk(slot, k)
-		node.set_instance_shader_parameter(&"seep_level", seep)
-		node.set_instance_shader_parameter(&"seep_span", seep_span)
-		node.set_instance_shader_parameter(&"strain_level", strain)
-		node.set_instance_shader_parameter(&"strain_span", strain_span)
+		for node: MeshInstance3D in [chunk(slot, k), _twins[slot * CHUNKS + k]]:
+			if node == null:
+				continue
+			node.set_instance_shader_parameter(&"seep_level", seep)
+			node.set_instance_shader_parameter(&"seep_span", seep_span)
+			node.set_instance_shader_parameter(&"strain_level", strain)
+			node.set_instance_shader_parameter(&"strain_span", strain_span)
 
 
 func hide_slot(slot: int) -> void:
 	"""Draw nothing of segment `slot` (a freed slot)."""
 	if _chunks[slot * CHUNKS] != null:
 		for k in CHUNKS:
-			chunk(slot, k).visible = false
+			_show_chunk(slot, k, false)
 	dressing.clear(slot)
+	stairs.clear(slot)
 	_state[slot] = -1
 	_built_m[slot] = 0.0
 	_widened_m[slot] = 0.0
@@ -257,8 +330,9 @@ func tick() -> void:
 	if absf(day - _day_written) < DAY_WRITE_STEP:
 		return
 	_day_written = day
-	earth_material().set_shader_parameter(&"now_days", day)
-	hub_material().set_shader_parameter(&"now_days", day)
+	for level in range(Rules.TOP_LEVEL, Rules.DEEPEST_LEVEL + 1):
+		earth_material(level).set_shader_parameter(&"now_days", day)
+		hub_material(level).set_shader_parameter(&"now_days", day)
 
 
 func dug_day(slot: int, step: int) -> float:
@@ -278,13 +352,13 @@ func _record_days(slot: int, from_m: float, to_m: float) -> void:
 
 func state_key(slot: int, widen_m: float) -> int:
 	"""Everything but the face a segment's bore depends on, as one number: its generation, class, closure (and
-	a fall's span), the widening's step, its route's length (a split) and the hubs at its ends. A change
-	rebuilds every chunk."""
+	a fall's span), the widening's step, its route's length (a split), the hubs at its ends and whether it ends
+	blind (its last chunk's dug face). A change rebuilds every chunk."""
 	var network := _network
 	var closed := int(network.closed[slot])
 	var fall := Vector2i(network.closed_from_u[slot], network.closed_to_u[slot]) if closed == GraphScript.CLOSED_COLLAPSED else Vector2i.ZERO
 	return absi([network.generation[slot], int(network.bore[slot]), closed, fall, floori(widen_m / RING_STEP_M),
-		network.length_u[slot], hub_cut(slot, false), hub_cut(slot, true)].hash())
+		network.length_u[slot], hub_cut(slot, false), hub_cut(slot, true), ends_blind(slot)].hash())
 
 
 func hub_cut(slot: int, at_b: bool) -> Vector4:
@@ -302,13 +376,14 @@ func hub_cut(slot: int, at_b: bool) -> Vector4:
 
 
 func room_cut(node: int) -> Vector4:
-	"""A bore ending at a room's door (once the room breaks ground) or a socket (once the room is dug) is cut by
-	a plane through the room's wall there (bore_surface.gdshaderinc: x, z the node, a radius of -1, the angle
-	into the room); zero before (decision 0209)."""
+	"""A bore ending at a room's door (once the room breaks ground: a ramp, or on level 2 the passage joined there) or
+	a socket (once the room is dug) is cut by a plane through the room's wall there (bore_surface.gdshaderinc: x, z
+	the node, a radius of -1, the angle into the room); zero before (decisions 0209, 0212)."""
 	var r: int = _network.node_room[node]
 	var rooms := _network.rooms
 	var kind := _network.node_kind[node]
-	var open := rooms.is_done(_network, r) if kind == GraphScript.NODE_SOCKET else rooms.dug_permille(_network, r) > 0
+	var door := node == rooms.door[r]
+	var open := rooms.dug_permille(_network, r) > 0 if door else rooms.is_done(_network, r)
 	if not open or (kind != GraphScript.NODE_SOCKET and kind != GraphScript.NODE_DOOR):
 		return Vector4.ZERO
 	var at := _network.node_m(node)
@@ -318,13 +393,13 @@ func room_cut(node: int) -> Vector4:
 
 func hub_bits(slot: int) -> int:
 	"""Which ends of segment `slot` have a hub its bore is cut at, and how: 0..15 (a base-4 digit an end: none,
-	standard, wide, a room's wall)."""
+	standard, wide, a room's wall), and 16 more when it ends blind (a dug face closes it: see `ends_blind`)."""
 	var bits := 0
 	for at_b: bool in [false, true]:
 		var cut := hub_cut(slot, at_b)
 		var digit := 0 if cut.z == 0.0 else (3 if cut.z < 0.0 else 1 + _widest_at(_network.end_node(slot, at_b)))
 		bits = bits * 4 + digit
-	return bits
+	return bits + (16 if ends_blind(slot) else 0)
 
 
 func _widest_at(node: int) -> int:
@@ -352,13 +427,14 @@ func build(slot: int, dug_m: float, widen_m: float) -> void:
 	var first := 0 if full else mini(last_chunk(ring_count(_built_m[slot])), last)
 	for k in CHUNKS:
 		if k > last:
-			chunk(slot, k).visible = false
+			_show_chunk(slot, k, false)
 		elif k >= first:
 			_build_chunk(slot, k, dug_m, widen_m)
 	dressing.place(slot, _network, 0.0 if full else _built_m[slot], dug_m, widen_m, _dress_clear(slot, false),
 		_dress_clear(slot, true))
 	_built_m[slot] = dug_m
 	_state[slot] = key
+	stairs.place(slot, dug_m)
 	_stamp_void(slot, dug_m, widen_m)
 
 
@@ -401,14 +477,27 @@ func _build_chunk(slot: int, k: int, dug_m: float, widen_m: float) -> void:
 	for ring in range(from, to + 1):
 		var along := ring_along(ring, rings, dug_m)
 		curve.sample(along, _sample)
-		var centre := Vector3(_sample[0].x, _network.floor_y_at(slot, along), _sample[0].y)
+		var centre := Vector3(_sample[0].x, _network.floor_y_at(slot, along) + floor_offset(slot), _sample[0].y)
 		_builder.add_ring(ring, centre, _sample[1], bore_class(slot, along, widen_m), _kind(slot, along),
 			dug_day(slot, floori(along / RING_STEP_M)), BoreMeshScript.jitter_at(along, length, clean_a, clean_b), along)
-	if to == rings - 1 and not _network.is_open(slot):
+	if to == rings - 1 and (not _network.is_open(slot) or ends_blind(slot)):
 		_builder.add_face(Vector3(_sample[0].x, _network.floor_y_at(slot, dug_m), _sample[0].y), _sample[1], bore_class(slot, dug_m, widen_m))
 	var node := chunk(slot, k)
-	node.visible = _builder.commit(node.mesh as ArrayMesh) > 0
+	_show_chunk(slot, k, _builder.commit(node.mesh as ArrayMesh) > 0)
 	chunk_builds += 1
+
+
+func ends_blind(slot: int) -> bool:
+	"""Whether segment `slot` ends at node B in a BLIND END (see LEVELS): the dug face closes it until a continuation
+	has broken ground there (a planned one is not dug yet)."""
+	var b: int = _network.node_b[slot]
+	return _network.node_kind[b] == GraphScript.NODE_END and _network.dug_degree(b) <= 1
+
+
+func floor_offset(slot: int) -> float:
+	"""How far a segment's swept floor lies under its walking line (m): half a riser under a stair's pitch line, so
+	its treads (stair_view.gd), whose tops the line passes through the middle of, stand on it; 0 elsewhere."""
+	return -0.5 * Rules.to_m(Rules.STAIR_RISE_U) if _network.seg_link[slot] == Rules.LINK_STAIRS else 0.0
 
 
 func bore_class(slot: int, along: float, widen_m: float) -> int:
@@ -477,6 +566,9 @@ func _draw_hub(node: int, show: bool) -> void:
 		return
 	if _hubs[node] == null:
 		_hubs[node] = _mesh_node(hub_material())
+	var level: int = _network.node_level[node]
+	_hubs[node].material_override = hub_material(level)
+	_hubs[node].layers = Layers.below(level)
 	_openings.clear()
 	for k in GraphScript.DEGREE:
 		var slot := _network.node_segment(node, k)
@@ -494,22 +586,30 @@ func _draw_hub(node: int, show: bool) -> void:
 	BoreMeshScript.build_hub(_hubs[node].mesh as ArrayMesh, centre, radius, Rules.crown_m(widest), _openings, _hub_day[node])
 	_hubs[node].visible = true
 	hub_builds += 1
-	if _cap != null:
-		_cap.stamp_disc(at, radius, Vector2.ZERO, 0.0, Rules.crown_m(widest))
-		_cap.commit_void()
+	_stamp_hub(level, at, radius, Rules.crown_m(widest))
+
+
+func _stamp_hub(level: int, at: Vector2, radius: float, crown: float) -> void:
+	"""Open `level`'s cap over a hub of `radius` at `at` (none without that level's cap)."""
+	var cap: CapScript = _caps[level]
+	if cap != null:
+		cap.stamp_disc(at, radius, Vector2.ZERO, 0.0, crown)
+		cap.commit_void()
 
 
 # --- the void ---------------------------------------------------------------------------------
 
 func _stamp_void(slot: int, dug_m: float, widen_m: float) -> void:
-	"""Open the cap over what is newly dug of segment `slot` (see THE VOID): the standard reach, and the wide
-	reach again at the wide width."""
+	"""Open the caps over what is newly dug of segment `slot` (see THE VOID and LEVELS): the standard reach, and the
+	wide reach again at the wide width."""
 	if _cap == null:
 		return
 	var wide := dug_m if _network.bore[slot] == Rules.BORE_WIDE else minf(widen_m, dug_m)
 	_void_wide_m[slot] = _stamp_run(slot, _void_wide_m[slot], wide, Rules.BORE_WIDE)
 	_void_m[slot] = _stamp_run(slot, _void_m[slot], dug_m, Rules.BORE_STANDARD)
-	_cap.commit_void()
+	for cap: CapScript in _caps:
+		if cap != null:
+			cap.commit_void()
 
 
 func _stamp_run(slot: int, from_m: float, to_m: float, bore: int) -> float:
@@ -530,8 +630,19 @@ func _stamp_run(slot: int, from_m: float, to_m: float, bore: int) -> float:
 
 
 func _stamp_at(slot: int, along: float, bore: int, face: Vector2, face_ahead_m: float) -> void:
-	"""One disc of class `bore` at `along` on the drawn centreline, at its floor's rise; with a `face`, cut
-	at the face line `face_ahead_m` on."""
+	"""One disc of class `bore` at `along` on the drawn centreline, at its floor's rise, into its level's cap -- a
+	link's into both, as far as each reaches (see LEVELS); with a `face`, cut at the face line `face_ahead_m` on."""
 	BoreCurveScript.of(_network, slot).sample(along, _sample)
-	var rise := _network.floor_y_at(slot, along) - Layers.FLOOR_Y_M
-	_cap.stamp_disc(_sample[0], BoreMeshScript.FLOOR_HALF_M[bore], face, rise, Rules.crown_m(bore), face_ahead_m)
+	var floor_y := _network.floor_y_at(slot, along)
+	var crown := Rules.crown_m(bore)
+	var level: int = _network.seg_level[slot]
+	if _network.seg_kind[slot] == GraphScript.SEG_LINK:
+		var lower: CapScript = _caps[level + 1]
+		if lower != null:
+			lower.stamp_disc(_sample[0], BoreMeshScript.FLOOR_HALF_M[bore], face, floor_y - Layers.floor_y(level + 1), crown,
+				face_ahead_m)
+	var rise := floor_y - Layers.floor_y(level)
+	if rise + crown <= 0.0 or _caps[level] == null:
+		return
+	_caps[level].stamp_disc(_sample[0], BoreMeshScript.FLOOR_HALF_M[bore], face, maxf(rise, 0.0), crown + minf(rise, 0.0),
+		face_ahead_m)

@@ -82,6 +82,7 @@ const StoopScript := preload("res://demo/cast/stoop_modifier.gd")
 const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
 const StrikeClockScript := preload("res://demo/cast/strike_clock.gd")
 const MouthScript := preload("res://demo/tunnel/tunnel_mouth.gd")
+const PeopleBook := preload("res://demo/people/people_book.gd")
 
 const CROSSFADE_S: float = 0.25
 const LIBRARY: StringName = &"cast"
@@ -136,8 +137,9 @@ const CHIP_COLOURS: Array[Color] = [Color("#B76545"), Color("#466647"), Color("#
 
 var brain: BrainScript = null
 var creature_key: StringName = &""
-## For the demo's select-and-command layer: friendly name, species, height (the picking capsule)
-## and panel chip colour.
+## For the demo's select-and-command layer: its name, species, height (the picking capsule) and panel chip colour. The
+## name is the person's own (demo/people/demo_people.json, decision 0491: "Wenna Tallowby"), or, for a key with no
+## person (a placeholder), the key's label ("Placeholder 3"). Every surface names a resident through it.
 var display_name: String = ""
 var species: String = ""
 var height_m: float = PLACEHOLDER_HEIGHT_M
@@ -197,14 +199,18 @@ var _in_cut: bool = false
 
 func setup_creature(index: int, key: StringName, row: Dictionary, space: CastSpaceScript, seed: int) -> bool:
 	"""Build a real creature from its manifest row. Returns false (and builds a placeholder, keeping
-	the manifest key and taking cast slot `index`'s colour) if its body cannot be loaded."""
+	the manifest key, its person's name and its species, and taking cast slot `index`'s colour) if its body cannot be
+	loaded."""
 	var body_path := String(row.get("body", ""))
 	var scene: PackedScene = load(body_path) as PackedScene if ResourceLoader.exists(body_path) else null
 	if scene == null:
 		push_warning("demo cast: %s has no loadable body; using a placeholder" % key)
 		setup_placeholder(index, space, seed)
 		creature_key = key
-		display_name = friendly_name(key)
+		display_name = name_for(key)
+		var kind: String = PeopleBook.species_of(key)
+		if not kind.is_empty():
+			species = kind.capitalize()
 		return false
 	creature_key = key
 	var body := scene.instantiate() as Node3D
@@ -289,7 +295,7 @@ func setup_placeholder(index: int, space: CastSpaceScript, seed: int) -> void:
 
 func _describe(index: int, key: StringName, kind: String, height: float) -> void:
 	"""The names, height and chip colour the command layer shows."""
-	display_name = friendly_name(key)
+	display_name = name_for(key)
 	species = kind.capitalize()
 	height_m = height
 	chip_colour = CHIP_COLOURS[index % CHIP_COLOURS.size()]
@@ -299,6 +305,22 @@ static func friendly_name(key: StringName) -> String:
 	"""`otter_boatwright` -> "Otter boatwright"; `placeholder_3` -> "Placeholder 3"."""
 	var words := String(key).replace("_", " ").strip_edges()
 	return words.left(1).to_upper() + words.substr(1)
+
+
+static func name_for(key: StringName) -> String:
+	"""A cast key's name: its person's (`mouse_keeper` -> "Wenna Tallowby"), else its label (`friendly_name`)."""
+	var person: String = PeopleBook.name_of(key)
+	return person if not person.is_empty() else friendly_name(key)
+
+
+func role() -> String:
+	"""This resident's trade, its role ("keeper"; "" for a placeholder)."""
+	return PeopleBook.role_of(creature_key)
+
+
+func name_with_role() -> String:
+	"""'Wenna Tallowby (mouse keeper)' -- where the role helps; the name alone for a placeholder."""
+	return PeopleBook.with_role(display_name, creature_key)
 
 
 static func body_radius(height: float) -> float:

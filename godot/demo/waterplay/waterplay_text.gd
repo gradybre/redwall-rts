@@ -301,12 +301,22 @@ func log_text() -> String:
 
 func skill_line(who: int, alone: bool) -> String:
 	"""The party panel's water words: bridge building, and swimming with breath and stamina."""
+	var swim: String = swim_line(who, alone)
+	return bridge_line(who, alone) + ("" if swim.is_empty() else ("\n" if alone else " · ") + swim)
+
+
+func bridge_line(who: int, alone: bool) -> String:
+	"""Bridge building: "Bridging 6 · XP .../..." alone, "bridge 6" in a list."""
+	return _crew.line_of(who) if alone else _crew.short_of(who)
+
+
+func swim_line(who: int, alone: bool) -> String:
+	"""Swimming with breath and stamina alone; in a list the breath only while in the water or short of air ("")."""
 	if alone:
-		return "%s\n%s\n%s" % [_crew.line_of(who), first_up(Rules.swim_words(_species(who))), first_up(_state.meter_text(who))]
-	var short: String = _crew.short_of(who)
+		return "%s\n%s" % [first_up(Rules.swim_words(_species(who))), first_up(_state.meter_text(who))]
 	if _brain(who).in_water or _state.air[who] < Rules.AIR_FULL:
-		short += " · breath %d%%" % (_state.air[who] * 100 / Rules.AIR_FULL)
-	return short
+		return "breath %d%%" % (_state.air[who] * 100 / Rules.AIR_FULL)
+	return ""
 
 
 static func first_up(words: String) -> String:

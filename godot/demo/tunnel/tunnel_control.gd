@@ -914,7 +914,7 @@ func _send(digger: int, now: bool) -> void:
 		return
 	network.start_dig(first, _ref[1], digger)
 	_brain(digger).order_dig(first, _ref[1])
-	ext.works.say(CrewScript.LINE_START)
+	ext.works.speak(CrewScript.SAY_START, digger)
 	ext.crew_on_dig(first, digger)
 	_sync_seen()
 	_mark.call(_start3(first), true)
@@ -1058,7 +1058,7 @@ func start_room(first: int, gen: int, digger: int) -> bool:
 	if now:
 		network.start_dig(first, gen, digger)
 		_brain(digger).order_dig(first, gen)
-		ext.works.say(CrewScript.LINE_START)
+		ext.works.speak(CrewScript.SAY_START, digger)
 		ext.crew_on_dig(first, digger)
 		_mark.call(_start3(first), true)
 	_sync_seen()

@@ -108,6 +108,14 @@ extends Node3D
 ## the selection's order lists. `_build_work()` wires it once every owner is built -- the kitchen's cook and water
 ## drawers listed too, and no work handed out to a resident at its meal (`add_kitchen`, decision 0381 with 0411).
 ##
+## PEOPLE (decision 0491, demo/people/; review group T: P6, SOC-001, SOC-014, SOC-028): the cast is an original
+## community, each resident named, with an interest, from ONE data file (demo/people/demo_people.json) through every
+## surface's `display_name`; trades stay roles. ONE people owner (demo_people.gd) records each COMMITTED deed -- a rescue
+## that succeeded, a bridge, tunnel or room built, a first harvest, a skill level, a first meal cooked for everyone --
+## and affinity from shared work and suppers (the GDD's own numbers), feeds the party panel's resident inspector, offers
+## a spotlight after a distinctive deed and a reflection at a season's end (people_card.gd), and posts at most one
+## light evening line a day. `_build_people()` wires it once the work board and the news are built.
+##
 ## SOUND (decision 0351, demo/sound/): ONE SOUND OWNER (sound_director.gd), scene-scoped rather than an autoload,
 ## hears the village's committed events (its event map, sound_taps.gd) and plays them through five buses with a
 ## bounded voice pool; its volumes and mixes are the game menu's Settings. No sound files are staged yet, so it
@@ -171,6 +179,12 @@ const NewsJumpScript := preload("res://demo/ui/demo_news_jump.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const SoundScript := preload("res://demo/sound/sound_director.gd")
 const DemoWorkScript := preload("res://demo/work/demo_work.gd")
+const PeopleScript := preload("res://demo/people/demo_people.gd")
+const PeopleCardScript := preload("res://demo/people/people_card.gd")
+const ForestRules := preload("res://demo/forestry/forest_rules.gd")
+const ForestSkills := preload("res://demo/forestry/forest_skills.gd")
+const DigSkills := preload("res://demo/tunnel/dig_skills.gd")
+const BridgeCrew := preload("res://demo/waterplay/bridge_crew.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -235,6 +249,8 @@ var _history: NewsHistoryScript = null
 var _cards: IncidentCardsScript = null
 var _jump: NewsJumpScript = NewsJumpScript.new()
 var _work: DemoWorkScript = null
+var _people: PeopleScript = null
+var _people_card: PeopleCardScript = null
 
 
 func _ready() -> void:
@@ -258,12 +274,13 @@ func _ready() -> void:
 	_build_spoil()
 	_build_forestry()
 	_build_canopy()
-	_command.add_skill_text(_command.tunnels().ext.skill_text)
+	_command.add_skill_text(_command.tunnels().ext.skill_text, true)
 	_command.add_skill_text(_command.tunnels().ext.night.home_text)
 	_command.set_fed_text(_kitchen.kitchen.fed_text)
 	_build_waterplay()
 	_build_shared_ui()
 	_build_work()
+	_build_people()
 	_build_sound()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
@@ -454,6 +471,62 @@ func _build_work() -> void:
 	command.set_queue_handler(_work.queue_at)
 	_work.unlock_jobs_command(_shell())
 	_work.screen.close_requested.connect(_work.screen.close)
+
+
+func _build_people() -> void:
+	"""The village's people (see PEOPLE): the ledger's taps on every owner, its skills, the inspector, the roster's
+	notable mark, the dig lead's voice, and the offer card under the incident card."""
+	_people = PeopleScript.new()
+	add_child(_people)
+	_people.configure(_cast as DemoCastScript, _services.notices, _services.calendar)
+	_people.bind_kitchen(_kitchen.kitchen)
+	var tool: TunnelControlScript = (_command as DemoCommandScript).tunnels()
+	_bind_people_taps(tool.ext)
+	_people.watch()
+	var command: DemoCommandScript = _command as DemoCommandScript
+	command.set_person_info(_people.inspector_info, _people.stamp_of)
+	command.panel().person_section().go_to.connect(func(kind: int, id: int) -> void: _jump.jump(kind, id))
+	command.panel().person_section().notable_pressed.connect(_people.pin_notable)
+	_roster.set_notable(_people.is_notable)
+	tool.ext.works.voice = _people.voice
+	_people_card = PeopleCardScript.new()
+	add_child(_people_card)
+	_people_card.configure(_people, _jump)
+	_people_card.hide_while(_cards.is_shown)
+	_people_card.hide_while(_history.is_open)
+	_people_card.hide_while(_stall_banner.is_shown)
+
+
+func _bind_people_taps(ext: TunnelExtScript) -> void:
+	"""The owners whose committed state the people read (people_taps.gd), and the four skills they watch."""
+	var taps := _people.taps
+	taps.bridges = _waterplay.bridges
+	taps.bridge_crew = _waterplay.crew
+	taps.rescue = _waterplay.rescue
+	taps.network = (_cast as DemoCastScript).space().tunnels
+	taps.tunnel_crew = ext.works.crew
+	taps.farm_crew = _farm.crew
+	taps.board = _work.board
+	_people.board = _work.board
+	var woods: ForestSkills = _forestry.crew.skills
+	taps.add_skill(ForestRules.SKILL_NAMES[ForestRules.SKILL_FELLING],
+		func(who: int) -> int: return woods.xp_of(who, ForestRules.SKILL_FELLING))
+	taps.add_skill(ForestRules.SKILL_NAMES[ForestRules.SKILL_SAWING],
+		func(who: int) -> int: return woods.xp_of(who, ForestRules.SKILL_SAWING))
+	var dig: DigSkills = ext.works.crew.skills
+	taps.add_skill(DigSkills.NAME, func(who: int) -> int: return dig.xp[who] if who < dig.xp.size() else 0)
+	var bridging: BridgeCrew = _waterplay.crew
+	taps.add_skill("Bridging", func(who: int) -> int: return bridging.xp[who] if who < bridging.xp.size() else 0)
+
+
+func people() -> PeopleScript:
+	"""The village's people (demo/people/demo_people.gd)."""
+	return _people
+
+
+func people_card() -> PeopleCardScript:
+	"""The people's offer card (demo/people/people_card.gd)."""
+	return _people_card
 
 
 func work_jump(kind: int, id: int, point: Vector2) -> bool:
@@ -758,6 +831,7 @@ func _build_input() -> void:
 	_gate.add_region("right column", [_zone, _farm.bed_panel, ext.panel, _forestry.panel, _waterplay.panel] as Array[Node])
 	_gate.add_region("left column", [(_command as DemoCommandScript).panel()] as Array[Node])
 	_gate.add_region("map layers", [_lens_picker] as Array[Node])
+	_gate.add_region("offer card", [_people_card] as Array[Node])
 	_sound.watch_buttons.call_deferred(get_tree().root)
 
 

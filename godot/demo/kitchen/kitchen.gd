@@ -266,9 +266,11 @@ var consumed_wood_milli: int = 0
 var poured_water_milli: int = 0
 var cancelled_spoil_milli: int = 0
 var batches_cooked: int = 0
-## Every batch finished, in order: its meal and its dish (the checks read which dish each meal was).
+## Every batch finished, in order: its meal, its dish (the checks read which dish each meal was) and who cooked it (the
+## cook at the cauldron as it finished; the people ledger's "cooked for everyone", decision 0491).
 var cooked_keys: PackedInt32Array = PackedInt32Array()
 var cooked_dishes: PackedInt32Array = PackedInt32Array()
+var cooked_by: PackedInt32Array = PackedInt32Array()
 ## Every meal's tally at its end, in order: its key, how many ate a portion, ate raw, went without.
 var meal_keys: PackedInt32Array = PackedInt32Array()
 var meal_ate: PackedInt32Array = PackedInt32Array()
@@ -618,9 +620,11 @@ func _finish_batch() -> void:
 	batches_cooked += 1
 	cooked_keys.append(_wip_key)
 	cooked_dishes.append(_wip_dish)
+	cooked_by.append(cook)
 	if cooked_keys.size() > MAX_BATCH_LOG:
 		cooked_keys.remove_at(0)
 		cooked_dishes.remove_at(0)
+		cooked_by.remove_at(0)
 	var s: int = _slot_index_of(_wip_key)
 	_wip_key = FREE
 	revision += 1

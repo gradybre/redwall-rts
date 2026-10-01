@@ -268,9 +268,9 @@ func test_the_sweep_is_kept_for_one_body_and_one_set_of_circles() -> void:
 	assert_true(open.nav.reaches(Vector2(-4.0, 0.0), Vector2(4.0, 3.0), BODY_M), "open ground")
 	var wall := PackedVector3Array()
 	for k in 4:
-		wall.append(Vector3(4.0 + cos(TAU * k / 4.0) * 0.9, 0.7, 3.0 + sin(TAU * k / 4.0) * 0.9))
+		wall.append(Vector3(-4.0 + cos(TAU * k / 4.0) * 0.9, 0.7, sin(TAU * k / 4.0) * 0.9))
 	open.set_mound(0, wall)
-	assert_false(open.nav.reaches(Vector2(-4.0, 0.0), Vector2(4.0, 3.0), BODY_M), "walled round since: swept again")
+	assert_false(open.nav.reaches(Vector2(-4.0, 0.0), Vector2(4.0, 3.0), BODY_M), "the start walled round since: swept again")
 
 
 func test_holding_is_no_arrival_after_a_trip_given_up() -> void:
@@ -316,6 +316,11 @@ func test_the_sweep_finds_the_way_into_a_pocket_and_out_of_one() -> void:
 	for k in range(1, 10):
 		out.append(Vector3(cos(TAU * k / 10.0) * 1.5, 0.45, sin(TAU * k / 10.0) * 1.5))
 	_reaches_as_planned(out, Vector2.ZERO, Vector2(8.0, 0.0), "out of a pocket")
+	var deep: Array[Vector3] = [Vector3(2.546054, 0.647975, 2.991942), Vector3(2.848869, 0.476906, 0.973824),
+		Vector3(4.000516, 0.460137, 1.872433), Vector3(2.707319, 0.485255, 3.407525), Vector3(2.082387, 0.701336, 2.700893),
+		Vector3(1.938211, 0.599003, 2.433081), Vector3(3.067106, 0.566013, 1.020725), Vector3(3.724117, 0.608098, 2.962777),
+		Vector3(3.974073, 0.806901, 2.461208)]
+	_reaches_as_planned(deep, Vector2(9.0, 9.0), Vector2(2.862436, 2.058102), "deep in a pocket, ring to ring")
 
 
 # --- the piece chains and the selection, read per frame without making anything ---------------------------

@@ -23,8 +23,9 @@ extends Node
 ## only presses a modal lets past `_input` are navigation, activation and F11, none of which it reads.
 ##
 ## FOCUS OUTSIDE A MODAL. The demo's panels are REGIONS (`add_region`): the right column (its tab strip
-## and the four panels) and the left column (the party panel's buttons). F7 moves focus world -> right
-## column -> left column -> world; Tab and Shift+Tab cycle within the focused region in reading order
+## and the four panels), the left column (the party panel's buttons) and the Map layer picker (decision 0391).
+## F7 moves focus world -> right column -> left column -> map layers -> world; Tab and Shift+Tab cycle within
+## the focused region in reading order
 ## (Godot's own traversal stops at each CanvasLayer); Esc with keyboard focus in a region gives it back
 ## to the world.
 ##
@@ -41,7 +42,10 @@ extends Node
 ## THE STALL BANNER comes first: while it shows (`yield_to`), the gate lets its Enter and Space through to
 ## it untouched; every other key is routed as ever, so an open modal still blocks the world and the HUD.
 ## THE HUD'S OWN WORKSPACE (`defer_to`: the shell's scrimmed workspace, UI-SET-051) is a modal the gate does
-## not own: while it holds the input the gate routes nothing to the demo's panels -- no F7, Tab or press.
+## not own: while it holds the input the gate routes nothing to the demo's panels -- no F7, Tab or press. An
+## ORDINARY workspace (the Residents roster) is not modal, but it draws over the right column at 1280x720:
+## `occlude_with` names it, and a control it covers is skipped by F7 and Tab and never pressed by Enter or
+## Space (decision 0391).
 
 const ROUTE_PASS: int = 0
 const ROUTE_CONSUME: int = 1
@@ -53,7 +57,8 @@ const ROUTE_TO_WORLD: int = 6
 const ROUTE_PRESS: int = 7
 const ROUTE_DROP_FOCUS: int = 8
 
-## F7: world -> right column -> left column -> world. F6 is UI §8.2's World list, F1-F5 and F9 are bound.
+## F7: world -> right column -> left column -> map layers -> world. F6 is UI §8.2's World list, F1-F5 and F9 are
+## bound.
 const FOCUS_SWITCH_KEY: Key = KEY_F7
 ## F11 is the demo's full-screen key (demo_window_keys.gd): it works over a modal.
 const PASS_KEYS: Array[Key] = [KEY_F11]
@@ -88,6 +93,7 @@ var _regions: Array = []
 var _region_names: PackedStringArray = PackedStringArray()
 var _yield_to: Callable = Callable()
 var _defer_to: Callable = Callable()
+var _cover: Callable = Callable()
 ## The one Focus the gate fills per key press (no allocation per event).
 var _focus_now: Focus = null
 ## Whether the last press was the pointer's: a modal opened by a click takes focus without the ring.
@@ -110,6 +116,29 @@ func defer_to(holds_input: Callable) -> void:
 	"""While `holds_input()` is true a modal the gate does not own (the HUD's workspace) has the input: the
 	gate routes nothing to the demo's panels."""
 	_defer_to = holds_input
+
+
+func occlude_with(cover: Callable) -> void:
+	"""`cover() -> Rect2`: where a HUD surface drawn over the demo's panels stands now, in viewport pixels (the
+	shell's ordinary workspace, which is not modal; an empty rect when none is open). A control under it is no
+	focus stop, and Enter or Space on one already focused goes on to the world instead (decision 0391)."""
+	_cover = cover
+
+
+func covered(control: Control) -> bool:
+	"""Whether `control` lies, even in part, under the cover (occlude_with)."""
+	if not _cover.is_valid() or control == null:
+		return false
+	var cover: Rect2 = _cover.call()
+	return cover.has_area() and screen_rect(control).intersects(cover)
+
+
+static func screen_rect(control: Control) -> Rect2:
+	"""A control's rectangle in viewport pixels, its frame's and its canvas layer's scale included (off-tree: its
+	parents' transforms alone)."""
+	var xform: Transform2D = control.get_global_transform_with_canvas() if control.is_inside_tree() \
+		else control.get_global_transform()
+	return Rect2(xform.origin, control.size * xform.get_scale())
 
 
 func yields(event: InputEvent) -> bool:
@@ -169,8 +198,16 @@ func top_layer() -> CanvasLayer:
 
 
 func region_controls(index: int) -> Array[Control]:
-	"""Region `index`'s focusable controls, in order, as they stand now."""
-	return focusables(_regions[index])
+	"""Region `index`'s focusable controls, in order, as they stand now -- less any the cover hides."""
+	var ring: Array[Control] = focusables(_regions[index])
+	var cover: Rect2 = _cover.call() if _cover.is_valid() else Rect2()
+	if not cover.has_area():
+		return ring
+	var open: Array[Control] = []
+	for control: Control in ring:
+		if not screen_rect(control).intersects(cover):
+			open.append(control)
+	return open
 
 
 func modal_controls() -> Array[Control]:
@@ -313,7 +350,7 @@ func _route_free(key: InputEventKey, focus: Focus) -> int:
 	if code == KEY_ESCAPE and focus.in_region and focus.keyboard:
 		return ROUTE_TO_WORLD
 	if is_activation(key) and focus.button:
-		return ROUTE_PRESS
+		return ROUTE_DROP_FOCUS if covered(focus.control) else ROUTE_PRESS
 	return ROUTE_PASS
 
 

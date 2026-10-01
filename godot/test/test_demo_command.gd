@@ -271,18 +271,19 @@ func test_matching_pairs_the_nearest_first() -> void:
 # --- the panel ------------------------------------------------------------------------------
 
 func test_panel_text_for_nobody_one_and_several() -> void:
-	"""Nobody; one resident's name, species and state; a count and one line each (capped)."""
+	"""Nobody; one resident's name, species and state; a count and one line for EVERY member (review F31: no
+	"+ n more")."""
 	assert_equal(PanelScript.party_lines([]), PackedStringArray([PanelScript.NOBODY]), "nobody")
 	var one: Array[Dictionary] = [{"name": "Otter boatwright", "species": "Otter", "state": "holding"}]
 	assert_equal(PanelScript.party_lines(one), PackedStringArray(["Otter boatwright", "Otter", "holding"]), "one")
 	var many: Array[Dictionary] = []
-	for i in 8:
+	for i in 9:
 		many.append({"name": "R%d" % i, "species": "Mouse", "state": "wandering"})
 	var lines := PanelScript.party_lines(many)
-	assert_equal(lines[0], "8 residents", "a count")
+	assert_equal(lines[0], "9 residents", "a count")
 	assert_equal(lines[1], "R0 — wandering", "a line each")
-	assert_equal(lines.size(), 1 + PanelScript.MAX_ROWS + 1, "capped, with a remainder line")
-	assert_equal(lines[lines.size() - 1], "+ 2 more", "the remainder")
+	assert_equal(lines.size(), 10, "every member, no remainder line")
+	assert_equal(lines[9], "R8 — wandering", "the ninth too")
 
 
 func test_state_words() -> void:
@@ -414,10 +415,10 @@ func test_one_resident_s_orders_are_listed_with_the_gated_ones_explained() -> vo
 	assert_true(mole.has(AbilitiesScript.CAN + AbilitiesScript.SPOIL_LINE), "a carrier hauls spoil")
 
 
-func test_the_panel_lists_one_resident_s_orders_and_makes_room() -> void:
-	"""Selected alone, a resident's orders are listed; in a group they are not. Where the column is too
-	short (1280x720) the panel gives up the least useful first: the hint, then the skill and species
-	lines, then it folds the orders into one paragraph, then drops them, before it would hide."""
+func test_the_panel_lists_one_resident_s_orders_in_full_and_never_hides() -> void:
+	"""Selected alone, a resident's orders are listed IN FULL -- each with what to right-click (review F31: never
+	folded away); in a group they are not. However short the column, the frame stays: the summary and actions sit
+	above the inspector where they leave it MIN_INSPECTOR_H, else at its top (decision 0391)."""
 	var panel := PanelScript.new()
 	panel.build()
 	var lines := PackedStringArray(["Orders (right-click):", "• Move or work — the ground, a work spot",
@@ -425,48 +426,90 @@ func test_the_panel_lists_one_resident_s_orders_and_makes_room() -> void:
 	var one: Array[Dictionary] = [{"name": "Otter fisher", "species": "Otter", "state": "holding",
 		"skills": "Felling 0\nSwims fast, dives", "abilities": lines}]
 	panel.show_party(one)
-	assert_equal(panel.abilities_text(), "\n".join(lines), "listed")
-	var two: Array[Dictionary] = [one[0], {"name": "Mole digger", "species": "Mole", "state": "holding", "abilities": lines}]
+	assert_equal(panel.abilities_text(), "\n".join(lines), "listed, every target kept")
+	var two: Array[Dictionary] = [one[0].merged({"index": 0}), {"index": 1, "name": "Mole digger", "species": "Mole",
+		"state": "holding", "abilities": lines}]
 	panel.show_party(two)
 	assert_equal(panel.abilities_text(), "", "a group: not listed")
 	panel.show_party(one)
-	var heights: Array[float] = []
-	for level: int in range(PanelScript.FIT_LEVELS - 1, -1, -1):
-		panel._show_extras(level)
-		heights.append(panel.needed_height())
-	for k: int in range(1, heights.size()):
-		assert_true(heights[k] < heights[k - 1], "level %d is shorter than the one before: %s" % [k, heights])
-	assert_true(panel.fit(heights[0] + 1.0), "room for everything")
-	assert_true(panel._hint.visible and panel._skill_rows[0].visible, "all shown")
-	assert_true(panel.fit(heights[1] + 1.0), "room once the hint goes")
-	assert_false(panel._hint.visible, "the hint went")
-	assert_true(panel._skill_rows[0].visible, "the skills stayed")
-	assert_true(panel.fit(heights[2] + 1.0), "room once the skills and species go")
-	assert_equal(panel._skill_rows.size(), 3, "two skill lines and the species line fold")
-	assert_false(panel._skill_rows[0].visible, "folded")
+	assert_true(panel.fit(2000.0), "a tall column: docked")
+	assert_true(panel.docked(), "the summary and actions above the inspector")
+	assert_false(panel.fit(1.0), "no room: the summary and actions go to the inspector's top")
+	assert_false(panel.docked(), "undocked")
 	assert_equal(panel.abilities_text(), "\n".join(lines), "the orders still listed in full")
-	assert_true(panel.fit(heights[3] + 1.0), "room for the folded orders")
-	assert_equal(panel.abilities_text(), PanelScript.compact_orders(lines), "folded into a paragraph")
-	assert_false(panel.fit(1.0), "no room at all")
-	assert_equal(panel.abilities_text(), "", "the orders went too")
+	assert_true(panel.fit(2000.0), "room again: docked again")
 	panel.free()
 
 
-func test_the_orders_fold_into_one_paragraph() -> void:
-	"""Folded: the heading, then each line without what to right-click, the bullets dropped and the
-	gates kept."""
-	var lines := PackedStringArray(["Orders (right-click):", "• Move or work — the ground, a work spot",
-		"× Digging: too big for a bore", "• Water: swim, dive — deep water"])
-	assert_equal(PanelScript.compact_orders(lines),
-		"Orders (right-click): Move or work · × Digging: too big for a bore · Water: swim, dive", "folded")
-	assert_equal(PanelScript.compact_orders(PackedStringArray(["Orders (right-click):"])), "", "nothing to fold")
+func test_a_state_splits_into_its_command_and_its_progress() -> void:
+	""""Digging tunnel — 43%" is the command "Digging tunnel" and the progress "43%" -- separate rows (F31)."""
+	assert_equal(PanelScript.command_of("Digging tunnel — 43%"), "Digging tunnel", "the command")
+	assert_equal(PanelScript.step_of("Digging tunnel — 43%"), "43%", "the progress")
+	assert_equal(PanelScript.command_of("holding"), "holding", "no progress: all command")
+	assert_equal(PanelScript.step_of("holding"), "", "and no progress")
+	var one: Array[Dictionary] = [{"name": "Mole digger", "species": "Mole", "state": "Watering bed 1 — to the well"}]
+	assert_equal(PanelScript.party_lines(one), PackedStringArray(["Mole digger", "Mole", "Watering bed 1",
+		PanelScript.PROGRESS % "to the well"]), "a row each")
+
+
+func test_a_group_summary_tallies_its_activities_most_first() -> void:
+	"""The group's common activity: each command and how many, most first, ties in selection order; one resident's
+	summary is its name and state; nobody's says so; the count reads "n selected"."""
+	var group: Array[Dictionary] = [{"name": "A", "state": "walking to well"}, {"name": "B", "state": "holding"},
+		{"name": "C", "state": "holding"}, {"name": "D", "state": "Digging tunnel — 10%"},
+		{"name": "E", "state": "Digging tunnel — 80%"}, {"name": "F", "state": "holding"}]
+	assert_equal(PanelScript.summary_text(group), "Holding ×3 · Digging tunnel ×2 · Walking to well ×1", "tallied")
+	assert_equal(PanelScript.summary_text([group[0]] as Array[Dictionary]), "A — walking to well", "one")
+	assert_equal(PanelScript.summary_text([] as Array[Dictionary]), PanelScript.NOBODY, "nobody")
+	assert_equal(PanelScript.count_text(6), "6 selected", "the count")
+	assert_equal(PanelScript.count_text(0), "", "no count for nobody")
+
+
+func test_every_member_is_a_row_that_picks_it() -> void:
+	"""Nine selected: nine member rows (no "+ n more"), each at least 32 px tall, cut with an ellipsis and whole in
+	its tooltip; pressing one emits its cast index (F20, F31). Release (R) shows for any selection."""
+	var panel := PanelScript.new()
+	panel.build()
+	var nine: Array[Dictionary] = []
+	for i: int in 9:
+		nine.append({"index": 10 + i, "name": "Resident %d with a long name" % i, "state": "wandering", "skills": "fell 0 · saw 0"})
+	panel.show_party(nine)
+	assert_equal(panel.member_row_count(), 9, "a row for every member")
+	var picked: Array[int] = []
+	panel.member_picked.connect(func(i: int) -> void: picked.append(i))
+	panel.member_row(8).pressed.emit()
+	assert_equal(picked, [18] as Array[int], "the row's cast index")
+	var row: Button = panel.member_row(3)
+	assert_true(row.custom_minimum_size.y >= 32.0, "a 32 px target")
+	assert_equal(row.text_overrun_behavior, TextServer.OVERRUN_TRIM_ELLIPSIS, "cut with an ellipsis")
+	assert_equal(row.tooltip_text, row.text, "whole in its tooltip")
+	assert_equal(panel.count_shown(), "9 selected", "the count")
+	assert_true(panel.release_button().visible, "Release (R) for any selection")
+	panel.show_party([] as Array[Dictionary])
+	assert_equal(panel.member_row_count(), 0, "nobody: no rows")
+	assert_false(panel.release_button().visible, "and nothing to release")
+	panel.free()
+
+
+func test_the_ledger_never_hides_the_panel() -> void:
+	"""Below an open ledger the column shrinks; where that leaves less than the fixed part, the column stays as it
+	was (the ledger draws over it until it closes) -- the frame is never hidden (F20)."""
+	var column := Rect2(26.0, 162.0, 320.0, 284.0)
+	var below: Rect2 = PanelScript.below_ledger(column, 200.0, 120.0)
+	assert_equal(below.position.y, 200.0 + PanelScript.LEDGER_GAP + PanelScript.FRAME_EXPAND, "moved below it")
+	assert_equal(below.end.y, column.end.y, "to the same foot")
+	assert_equal(PanelScript.below_ledger(column, 380.0, 120.0), column, "too little room: kept where it was")
 
 
 func test_the_panel_says_what_a_resident_will_go_back_to() -> void:
-	"""One resident with unfinished jobs: a "Then back to:" line, latest first."""
+	"""One resident with unfinished jobs: "Then back to:" and a row per job, latest first (F31: a list, not one
+	joined line)."""
 	var one: Array[Dictionary] = [{"name": "Mole digger", "species": "Mole", "state": "raising bed 3",
-		"then": PackedStringArray(["Hang lanterns, tunnel 1"])}]
-	assert_equal(PanelScript.party_lines(one)[3], PanelScript.THEN % "Hang lanterns, tunnel 1", "the line")
+		"then": PackedStringArray(["Hang lanterns, tunnel 1", "Brace tunnel 2"])}]
+	var lines: PackedStringArray = PanelScript.party_lines(one)
+	assert_equal(lines[3], PanelScript.THEN_HEAD, "the heading")
+	assert_equal(lines[4], PanelScript.BULLET + "Hang lanterns, tunnel 1", "the latest first")
+	assert_equal(lines[5], PanelScript.BULLET + "Brace tunnel 2", "a row each")
 
 
 func test_the_dig_button_says_what_it_does_and_its_key() -> void:

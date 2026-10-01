@@ -13,7 +13,8 @@ extends CanvasLayer
 ## minimap and the right column, 176 px left of the commands at 1280x720 and 200 px at 1920x1080). It
 ## stays clear of the minimap and the right column -- the one band UI §1.2 leaves free at every
 ## profile -- so it is as wide as it can be about that centre, no wider than MAX_W; at 1280x720, where
-## the commands run under the right column, that is narrower. The command strip moves left when the
+## the commands run under the right column, that is narrower; where that would leave less than MIN_W (the
+## narrow profile, 125 % on 1280x720) it takes the whole gap instead (decision 0391). The command strip moves left when the
 ## resident journal takes the right column; the strip follows it (`follow_journal`). Geometry is the
 ## HUD's own (`scripts/ui/ui_layout.gd`, read, never modified) in LOGICAL pixels at the HUD's scale.
 ## It ignores the mouse, so a click through it still reaches the world; it draws below the HUD.
@@ -45,12 +46,15 @@ const LINES: int = 3
 const NOTE_MSEC: int = 12000
 const WARNING_MSEC: int = 30000
 const MAX_W: float = 640.0
+## Narrower than this about the commands' centre (the NARROW profile: 125 % on 1280x720, where the commands run
+## under the right column), the band is the whole gap between the minimap and the right column (decision 0391).
+const MIN_W: float = 280.0
 const GAP: float = 12.0
-const TITLE_PX: int = 13
+const TITLE_PX: int = 14
 const LINE_PX: int = 14
 const REFRESH_S: float = 0.25
 const CONTENT_MARGINS: PackedFloat32Array = [14.0, 8.0, 14.0, 10.0]
-const HISTORY_PX: int = 13
+const HISTORY_PX: int = 14
 const HISTORY_WORDS: String = "Village news history (N)"
 const ATTENTION_WORDS: String = "%d need%s attention — Village news history (N)"
 
@@ -287,7 +291,11 @@ static func band_placement(width: int, height: int, layout: UiLayout, geometry: 
 	var half: float = minf(centre - (geometry.minimap.end.x + GAP), geometry.detail.position.x - GAP - centre)
 	var band_w: float = minf(MAX_W, 2.0 * maxf(half, 0.0))
 	var top: float = geometry.minimap.position.y
-	return Rect2(centre - band_w / 2.0, top, band_w, geometry.commands.position.y - GAP - top)
+	var left: float = centre - band_w / 2.0
+	if band_w < MIN_W:
+		left = geometry.minimap.end.x + GAP
+		band_w = minf(MAX_W, maxf(geometry.detail.position.x - GAP - left, 0.0))
+	return Rect2(left, top, band_w, geometry.commands.position.y - GAP - top)
 
 
 func frame_rect() -> Rect2:

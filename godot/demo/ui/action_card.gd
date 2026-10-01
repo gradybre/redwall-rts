@@ -52,6 +52,8 @@ const TIP_PX: int = 15
 const TIP_MARGINS: PackedFloat32Array = [12.0, 9.0, 12.0, 10.0]
 
 static var _tip_theme: Theme = null
+## The HUD's effective scale S the tooltips are drawn at (scale_tooltips; decision 0391).
+static var _tip_scale: float = 1.0
 
 ## The verb and its object ("Brace tunnel 3").
 var verb: String = ""
@@ -223,13 +225,37 @@ static func dress(button: Control) -> void:
 
 
 static func tooltip_theme() -> Theme:
-	"""The one theme holding the HUD skin's tooltip items (made once)."""
+	"""The one theme holding the HUD skin's tooltip items (made once), at the tooltips' scale."""
 	if _tip_theme == null:
 		_tip_theme = Theme.new()
-		_tip_theme.set_stylebox(&"panel", &"TooltipPanel", Styles.box(Styles.PIECE_MAP, TIP_MARGINS))
 		_tip_theme.set_color(&"font_color", &"TooltipLabel", Palette.INK)
-		_tip_theme.set_font_size(&"font_size", &"TooltipLabel", TIP_PX)
+		_apply_tip_scale()
 	return _tip_theme
+
+
+static func scale_tooltips(scale: float) -> void:
+	"""Draw every card's tooltip at the HUD's effective scale S (the interface scale included: demo_ui_scale.gd). A
+	tooltip is a pop-up of the viewport, not a child of its panel's scaled frame, so it does not grow with the panel:
+	its type and margins are scaled here instead (decision 0391, review F35)."""
+	if is_equal_approx(scale, _tip_scale):
+		return
+	_tip_scale = scale
+	if _tip_theme != null:
+		_apply_tip_scale()
+
+
+static func tip_px() -> int:
+	"""The tooltips' type size now: TIP_PX at the HUD's scale."""
+	return roundi(float(TIP_PX) * _tip_scale)
+
+
+static func _apply_tip_scale() -> void:
+	"""The theme's type size and panel margins at the current scale."""
+	var margins := PackedFloat32Array()
+	for margin: float in TIP_MARGINS:
+		margins.append(margin * _tip_scale)
+	_tip_theme.set_stylebox(&"panel", &"TooltipPanel", Styles.box(Styles.PIECE_MAP, margins))
+	_tip_theme.set_font_size(&"font_size", &"TooltipLabel", tip_px())
 
 
 static func amount_text(milli: int) -> String:

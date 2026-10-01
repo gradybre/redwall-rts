@@ -286,6 +286,7 @@ func _hook_command() -> void:
 	_command.add_resume_rule(crew.resume_rule)
 	_command.add_input_hook(handle_tool_input)
 	_command.add_skill_text(skill_text)
+	panel.resident_picked.connect(_command.pick_member)
 
 
 # --- per frame -------------------------------------------------------------------------------------
@@ -971,6 +972,7 @@ func refresh_panel() -> void:
 	"""Fill the Water panel from the state, the bridges, the stores and the feed."""
 	var members: PackedInt32Array = _command.selected() if _command != null else PackedInt32Array()
 	panel.show_water(text.conditions_line(), text.alert_line(), text.swimmers_title(), text.swimmers_text())
+	panel.set_selected(members)
 	var dive: CardScript = dive_card(members, pond_dive_spot())
 	panel.set_card(PanelScript.ACTION_DIVE, dive.text(), dive.is_ok())
 	panel.set_swim_buttons(consent_shown(members if not members.is_empty() else PackedInt32Array(range(state.count))),

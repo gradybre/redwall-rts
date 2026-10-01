@@ -65,7 +65,10 @@ const DETAIL_NAME: String = "UI-SET-036"
 const FRAME_EXPAND: float = 10.0
 const TITLE_PX: int = 19
 const BODY_PX: int = 14
-const SMALL_PX: int = 12
+## UI §2.1's minimum rendered text (12 px before decision 0391).
+const SMALL_PX: int = 14
+## UX-T03: every button at least 32 logical px tall (decision 0391).
+const BUTTON_H: float = 32.0
 ## The finds shelf under the finds line: an icon per kind of find with its count, then one per relic.
 const FIND_SLOTS: int = 10
 const FIND_ICON_PX: float = 30.0
@@ -294,6 +297,7 @@ func _button(key: StringName) -> Button:
 	button.text = BUTTON_TEXT[key] if BUTTON_TEXT.has(key) else _button_words[key]
 	Styles.focusable(button, BUTTON_MARGINS)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.custom_minimum_size.y = BUTTON_H
 	button.add_theme_font_size_override(&"font_size", BODY_PX)
 	button.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, BUTTON_MARGINS))
 	button.add_theme_stylebox_override(&"hover", Styles.box(Styles.PIECE_WOOD_HOVER, BUTTON_MARGINS))

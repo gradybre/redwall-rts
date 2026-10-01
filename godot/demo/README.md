@@ -158,7 +158,9 @@ The action bar's commands each have a hover tooltip -- what it does and its key,
 map (`ui/demo_command_tips.gd`); an enabled command answers its key. In the demo, N and the history
 trigger open the **Village news** window (see above); the shell's own notification history, which has its
 own "×" (Esc closes it), is reached from that window's *Settlement notices*. The Pantry draws above the HUD, so its "×" is reachable at
-1280x720. The Map layer picker sits bottom left (see Map layers). The Village news strip is centred on the action bar and follows it.
+1280x720. The Map layer picker sits bottom left (see Map layers). The Village news strip is centred on the action bar and follows it (at 125 % on 1280x720,
+where that leaves too little, it takes the gap between the minimap and the right column; the incident card narrows
+to the gap between the side columns: decision 0391).
 
 **Pop-ups own the input** (decision 0261, `ui/demo_input_gate.gd`). The Pantry, the game menu and the Demo Lab
 are modals: a light scrim covers the world and the HUD, so no click, drag or wheel outside the frame reaches
@@ -173,8 +175,9 @@ close, opens it -- Resume, Restart demo…, Controls (the keys below), Settings,
 line that **the demo can't save yet**. Restart and Quit ask first and say again that the village will be lost.
 Opening it holds the clock's MENU pause reason and closing releases only that, so the village comes back at
 the speed it had (and a pause of your own stays). Settings holds only what works: the interface scale
-(100 / 125 / 150 %, the HUD and every demo panel together; a size the window cannot show at 720 logical rows
-is disabled and says so -- at 1280x720 only 100 %), full screen, and the sound's volumes, mutes and mixes
+(100 / 125 / 150 %, the HUD and every demo panel, the level indicator and the action cards' tooltips together; a
+size the window cannot show at 576 logical rows and 1024 logical px wide is disabled and says so -- at 1280x720, 150 %;
+decision 0391), full screen, and the sound's volumes, mutes and mixes
 (see "Sound" below). The Menu button no longer opens the New Settlement form: its Create would discard the settlement the demo runs on.
 
 **The Demo Lab** (`ui/demo_lab.gd`, F8, or the menu's "Demo Lab"): the demo's test triggers, and only here --
@@ -189,7 +192,7 @@ take keyboard focus and wear the HUD's brass focus ring while they have it (a cl
 
 | Key | Does |
 |---|---|
-| F7 | Move focus: world -> the right column (its first tab) -> the left column (the party panel) -> world |
+| F7 | Move focus: world -> the right column (its first tab) -> the left column (the party panel) -> the Map layer picker -> world. A control the Residents workspace (L) covers is skipped, and Enter on one is not pressed (decision 0391) |
 | Tab / Shift+Tab | Next / previous button where the focus is (in a pop-up: its buttons only) |
 | Enter / Space | Press the focused button. Only the keyboard's focus takes them: after a click, Enter still digs the piece the Dig tool has laid, Space still pauses and the arrows still pan the camera |
 | Esc | With focus in a panel: back to the world. Otherwise the pop-up, tool or selection ladder below, then the game menu |
@@ -255,9 +258,10 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
   the whole group.
 - **Where** (UI §1.1 bottom left, "Minimap + layers"): just right of the party panel's column, so it can
   grow upward without meeting it -- down on the command strip where the space left of the news strip is wide
-  enough (1920x1080), else just above the bottom band (1280x720, and whenever the resident journal pushes the
-  news strip left). It is clear of the minimap, the news strip, the command strip and the party panel (which
-  at 1280x720 fills its column with anyone selected).
+  enough (1920x1080), else just above the bottom band (1280x720, 125 % there, and whenever the resident journal
+  pushes the news strip left), else right of the minimap. It is clear of the minimap, the news strip, the
+  command strip, the party panel and the right column; where its slot is short, its list and card scroll under
+  its header (decision 0391).
 
 ## Action cards: what a button will do, and who will do it (decision 0332)
 
@@ -333,12 +337,19 @@ Needs: a site both banks take; planks (sawn at the sawhorse) and wood for any pi
 | Right click a spoil heap (or C with it selected) | The selected residents who can carry dig it out and haul it to the farm's compost store (Clear; see Spoil heaps) |
 | V | Steps the one shown map layer (see Map layers): Growing: soil moisture, Growing: ripeness, Getting there: water range (wade / swim / dive, fords, bridge spans, landings, fish stocks), Woods: zones and trees, off -- the same layer the Map layer picker shows |
 
-The "Demo party" panel in the HUD's left column lists the selection. With one resident selected it
-also lists **what that resident can be ordered to do** (`control/resident_abilities.gd`): a short line
-a kind of work with what to right-click, the gated ones marked × with the rule -- anybeast who fits a
-bore digs (moles start skilled), the otters and the badger are too big for a bore until it is widened, only otters dive, the badger wades
-only and breaks rock, the beaver gnaws. At 1280x720 the list is folded into one paragraph (the hint,
-skills and species line go first). Its **notice line is each resident's own**: a prompt or answer is
+The "Demo party" panel in the HUD's left column lists the selection, and **never hides** (decision 0391,
+review F20/F31). Its header says how many are selected; a summary line says who and what -- one resident's name
+and what it is doing, or a group's common activity ("Holding ×3 · Walking to the well ×2"), cut with an
+ellipsis and whole in its tooltip; then the actions, always in view: **Release (R)**, and Dig tunnel (B),
+Burrow home (H) and Root cellar (C) with a digger selected. Below them a scrolling **inspector**: the notice
+line, then for one resident its species, what it is doing, the progress or step of that on its own row, "Then
+back to:" with a row per unfinished job, its skills, and **what it can be ordered to do**
+(`control/resident_abilities.gd`) in full -- a line a kind of work with what to right-click, the gated ones
+marked × with the rule: anybeast who fits a bore digs (moles start skilled), the otters and the badger are too
+big for a bore until it is widened, only otters dive, the badger wades only and breaks rock, the beaver gnaws.
+For a group, a row for **every** member (no "+ n more"): click one to select it alone and centre the camera
+on it. Where the column is too short for the header, summary and actions and a useful inspector (125 % at
+1280x720), the summary and actions go to the top of the inspector, reached by scrolling. Its **notice line is each resident's own**: a prompt or answer is
 kept for whoever was selected when it was said, so selecting someone else shows theirs. A resident
 called away from a job it had not finished (a tunnel job, a dig, a farm or a woods job, a spoil heap)
 **comes back to it** when the work that took it is done -- the latest three are kept, the panel says
@@ -741,7 +752,7 @@ the top bar's Ready food cell shows the pantry total, and the Food command (or K
 |---|---|
 | Left click a bed | Its panel -- that bed only: a "Needs:" line naming its most pressing work and why (clay when urgent), crop, stage (and why growth stalled), moisture band, soil, what was done to the ground, expected yield, jobs, and the verbs |
 | Right click a bed (residents selected) | The nearest selected resident does its most pressing work: clear, harvest, drain a waterlogged bed, water a dry bed, cover once a frost is announced, sow |
-| Plant… (bed panel) | The crop picker: every ingredient, sowable ones first, with growth hours, yield, family and its rotation effect in this bed; the rest say why not (soil, planting window) |
+| Plant… (bed panel) | The crop picker: every ingredient, sowable ones first, with growth hours, yield, family and its rotation effect in this bed; the rest say why not (soil, planting window). It stays current while open (decision 0391, review F36): when the calendar or the bed changes, each crop is enabled or refused where it stands -- no row moves, the focus and the scroll stay -- and its title has today's date. Its title and Back stay in view; only the list scrolls |
 | Water / Harvest / Clear / Compost / Cover | Given to the selected residents, or queued for the field crew (the fieldworker and gatherer take queued work while wandering) |
 | Drain | A wet or waterlogged bed: a resident digs a ditch round it (6 WU); its moisture drops at once to the top of its crop's band, and the ditch sheds up to 1000 a day for good (decision 0205) |
 | Raise / Bank | A resident fetches 2 U of tunnel spoil from a heap: a raised bed drains and is warmer at night; a banked bed keeps half of each dry day's loss |
@@ -1004,6 +1015,15 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
   after 90 s (or a rescuer on the way but not there after 240 s, who then stands down) it washes ashore
   at a landing. It then rests 20 s, recovering three times as fast. The Demo Lab's Cramp (F8) starts
   one on demand.
+- **The Water panel** (decision 0391, review F12) pins at its top, never scrolled away, every resident in
+  difficulty (the rescue incident's own line) and the selected residents' swimming (two, then "n more selected"
+  opening the list). Below, scrolling: **Swimmers** -- how many are in the water, the water today, Dive and Swim
+  shortcuts, and **All residents**, folded until opened, a row per resident that selects it and centres the
+  camera on it -- then **Bridges** -- the site, each kind's cost with the two Build buttons right under them,
+  ◀ Site / Site ▶ / Span two banks…, the bridges, the stores and the news. At 1280x720 Dive, Swim shortcuts and
+  both Builds are in view without scrolling; every button is at least 32 px tall, every line at least 14 px. The
+  pinned alert shows up to four lines (all of it in its tooltip), and where the pinned selection would squeeze the
+  sections below two button rows -- a rescue at 125 % -- it folds into All residents.
 - **Bridges.** The Water panel steps through the map's three bridge candidates or spans any two banks
   you click. A plank footbridge costs 1.0 U of planks a metre of deck (and 1.0 U of wood a pier, one per
   started 2.5 m of span over 3.5 m); a log bridge costs one 6.0 U log -- a felled trunk lying ready, else

@@ -1,15 +1,16 @@
 extends "res://test/framework/test_case.gd"
-## The live demo's input, menu and keyboard on the REAL scene with REAL Viewport input (decision 0261;
-## review F26, F29, F30, F50): runs test/live/demo_input_live.gd in its own headless process and asserts
-## every check it prints. A separate process because this runner's worker runs every suite inside
-## `_initialize`, before the root is in the tree -- there no Viewport can dispatch a click or a key. The
-## harness boots demo/demo_village.tscn, on placeholders when the demo's assets are not staged.
+## The demo's panels measured on the REAL scene (decision 0391; review F20, F31, F12, F36, F35): runs
+## test/live/demo_layout_live.gd in its own headless process at 1280x720, 1920x1080 and 2560x1440 (150 % there is
+## an effective 200 %), each at every interface scale the window offers, and asserts every check it prints. A
+## separate process because only an in-tree scene lays its Controls out, and this runner's worker runs every suite
+## before the root is in the tree. The harness boots demo/demo_village.tscn, on placeholders when the demo's
+## assets are not staged.
 
-const HARNESS: String = "res://test/live/demo_input_live.gd"
+const HARNESS: String = "res://test/live/demo_layout_live.gd"
 const CHECK_PREFIX: String = "LIVE "
 const SUMMARY_PREFIX: String = "LIVE-SUMMARY "
-## At least this many checks must run (the harness has more; fewer means it stopped early).
-const MIN_CHECKS: int = 80
+## At least this many checks must run per size (the harness has more; fewer means it stopped early).
+const MIN_CHECKS: int = 90
 
 
 func _run_harness(size: String) -> PackedStringArray:
@@ -41,11 +42,16 @@ func _assert_run(size: String) -> void:
 	assert_equal(lines[lines.size() - 1], "EXIT 0", "%s: the harness exited cleanly" % size)
 
 
-func test_the_real_scene_routes_input_menu_and_focus_at_1280x720() -> void:
-	"""The Pantry, the menu, focus and the Lab, clicked and keyed on the real village at 1280x720."""
+func test_the_panels_stay_usable_at_1280x720() -> void:
+	"""100 % and 125 % (150 % refused and stepped down) at the review's minimum window."""
 	_assert_run("1280x720")
 
 
-func test_the_real_scene_routes_input_menu_focus_and_scale_at_1920x1080() -> void:
-	"""The same at 1920x1080, where the harness also picks 150 %, restarts at it and shrinks the window."""
+func test_the_panels_stay_usable_at_1920x1080() -> void:
+	"""100 %, 125 % and 150 % at 1920x1080."""
 	_assert_run("1920x1080")
+
+
+func test_the_panels_stay_usable_at_an_effective_200_percent() -> void:
+	"""2560x1440: 133 %, 167 % and, at 150 %, an effective 200 % (S = 2)."""
+	_assert_run("2560x1440")

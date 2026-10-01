@@ -27,6 +27,7 @@ extends CanvasLayer
 ## Refreshed a few times a second on real time (it reads while paused); it re-texts labels and builds
 ## nothing after the legends are made (once per layer).
 
+const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
 const FarmUi := preload("res://demo/farm/farm_ui.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
@@ -42,6 +43,8 @@ const KEY_HINT: String = "V steps through the layers · U switches the undergrou
 ## Its width above the bottom band, and at most beside the minimap; the carved frame's overhang.
 const WIDTH: float = 340.0
 const MAX_WIDTH: float = 440.0
+## The narrowest it may be (decision 0391): the header's "Map layer: …" and Off on one row.
+const MIN_WIDTH: float = 280.0
 const FRAME_EXPAND: float = 10.0
 ## Kept clear of the minimap, the news band, the command strip and the party panel's column.
 const GAP: float = 8.0
@@ -58,6 +61,11 @@ var _frame: PanelContainer = null
 var _list_button: Button = null
 var _off: Button = null
 var _list: VBoxContainer = null
+var _header: HBoxContainer = null
+## The list and the card scroll under the header where the slot is shorter than they are (125 % and 150 % at
+## 1280x720; decision 0391).
+var _body: DemoScroll = null
+var _place_queued: bool = false
 var _lens_buttons: Array[Button] = []
 var _card: VBoxContainer = null
 var _question: Label = null
@@ -100,11 +108,19 @@ func _build() -> void:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override(&"separation", 6)
 	_frame.add_child(column)
-	column.add_child(_build_header())
+	_header = _build_header()
+	column.add_child(_header)
+	_body = DemoScroll.new()
+	column.add_child(_body)
+	var content := VBoxContainer.new()
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_theme_constant_override(&"separation", 6)
+	_body.add_child(content)
 	_list = _build_list()
-	column.add_child(_list)
+	content.add_child(_list)
 	_card = _build_card()
-	column.add_child(_card)
+	content.add_child(_card)
+	content.minimum_size_changed.connect(_queue_place)
 
 
 func _build_header() -> HBoxContainer:
@@ -355,11 +371,24 @@ func frame_rect() -> Rect2:
 
 # --- placement --------------------------------------------------------------------------------
 
+func _queue_place() -> void:
+	"""Place the frame again at the end of this frame, once (the list or the card changed size)."""
+	if not _place_queued:
+		_place_queued = true
+		_place.call_deferred()
+
+
 func _place() -> void:
-	"""In the bottom-left zone (see WHERE), as tall as its content; an unfolded list grows upward from it."""
+	"""In the bottom-left zone (see WHERE), as tall as its content up to the slot's height -- past that the list and
+	card scroll under the header; an unfolded list grows upward from it."""
+	_place_queued = false
 	if not is_inside_tree() or _frame == null:
 		return
 	var slot: Rect2 = slot_for(get_viewport().get_visible_rect().size)
+	var content: Control = _body.get_child(0) as Control
+	var fixed: float = _frame.get_theme_stylebox(&"panel").get_minimum_size().y + _header.get_combined_minimum_size().y + 6.0
+	_body.custom_minimum_size.y = clampf(content.get_combined_minimum_size().y, 0.0, maxf(slot.size.y - fixed, 0.0))
+	_body.visible = _list.visible or _card.visible
 	_frame.scale = Vector2(_geometry.scale, _geometry.scale)
 	_frame.custom_minimum_size = Vector2(slot.size.x, 0.0)
 	_frame.size = Vector2(slot.size.x, 0.0)
@@ -377,13 +406,24 @@ func slot_for(viewport_size: Vector2) -> Rect2:
 
 static func slot_rect(geometry: UiLayout.Geometry, news_band: Rect2) -> Rect2:
 	"""Where the picker goes, in logical pixels: its x and width, and its BOTTOM edge (it grows upward; the
-	height is all the room it has, up to the reserved band). Always right of the party panel's column, so
-	growing up never meets it: down on the command strip where the space left of the news band is at least
-	WIDTH (1920x1080), else just above the bottom band (1280x720, or the journal open). Chosen by the
-	viewport alone, never by what the card shows, so the picker does not jump when a layer changes."""
+	height is all the room it has, past which its list and card scroll). Chosen by the viewport alone, never by
+	what the card shows, so the picker does not jump when a layer changes; never over the detail zone (decision
+	0391: at 125 % and 150 % on 1280x720 it reached into the right column). The first that fits:
+	  * right of the party panel's column, down on the command strip, where the space left of the news band is
+	    at least WIDTH (1920x1080);
+	  * right of the party column, just above the bottom band, at least MIN_WIDTH wide (1280x720, the journal
+	    open, 125 %);
+	  * right of the minimap, below the party column, down on the command strip (150 % on 1280x720)."""
 	var left: float = UiLayout.SAFE_INSET + 2.0 * PartyScript.FRAME_EXPAND + PartyScript.WIDTH + GAP + FRAME_EXPAND
 	var top: float = geometry.management_top + FRAME_EXPAND
+	var detail_left: float = geometry.detail.position.x - GAP - FRAME_EXPAND
 	var right: float = news_band.position.x - GAP - FRAME_EXPAND if news_band.size.x > 0.0 else geometry.commands.end.x
+	right = minf(right, detail_left)
 	if right - left >= WIDTH:
 		return Rect2(left, top, minf(right - left, MAX_WIDTH), geometry.commands.position.y - GAP - FRAME_EXPAND - top)
-	return Rect2(left, top, WIDTH, geometry.minimap.position.y - GAP - FRAME_EXPAND - top)
+	if detail_left - left >= MIN_WIDTH:
+		return Rect2(left, top, minf(WIDTH, detail_left - left), geometry.minimap.position.y - GAP - FRAME_EXPAND - top)
+	var beside: float = geometry.minimap.end.x + GAP + FRAME_EXPAND
+	var under: float = geometry.minimap.position.y + FRAME_EXPAND
+	return Rect2(beside, under, minf(WIDTH, maxf(detail_left - beside, 0.0)),
+		geometry.commands.position.y - GAP - FRAME_EXPAND - under)

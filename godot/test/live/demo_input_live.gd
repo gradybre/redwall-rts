@@ -21,6 +21,7 @@ const ZoneScript := preload("res://demo/ui/demo_detail_zone.gd")
 const TunnelPanel := preload("res://demo/tunnel/tunnel_panel.gd")
 const ForestPanel := preload("res://demo/forestry/forest_panel.gd")
 const WaterPanel := preload("res://demo/waterplay/water_panel.gd")
+const CalendarScript := preload("res://demo/demo_calendar.gd")
 
 ## Frames to let the village boot (its prewarm releases the clock after its first frames).
 const BOOT_FRAMES: int = 12
@@ -67,7 +68,9 @@ func _initialize() -> void:
 		_f7_reaches_the_left_column_then_the_world, _enter_and_space_route_by_focus, _enter_goes_to_the_dig_tool,
 		_lab_holds_the_triggers, _lab_fires_and_panels_are_clean, _lab_from_the_menu, _history_click_does_not_leak,
 		_a_click_gives_the_arrows_back, _the_banner_over_the_lab, _the_banner_takes_enter,
-		_the_hud_workspace_keeps_the_keys, _scale_follows_the_choice,
+		_the_hud_workspace_keeps_the_keys, _the_workspace_covers_no_stop, _a_group_is_box_selected,
+		_a_member_row_selects_and_centres, _a_water_action_without_scrolling, _the_picker_opens_on_bed_1,
+		_the_picker_crosses_spring_5, _scale_follows_the_choice,
 		_restart_boots_again, _after_restart, _a_smaller_window_steps_the_scale_down]
 
 
@@ -532,7 +535,7 @@ func _focus_ring_off() -> void:
 
 func _f7_reaches_the_left_column_then_the_world() -> void:
 	"""With the whole cast selected (a digger among them, so the party panel's Dig and room buttons show):
-	F7, F7 -> the left column; F7 -> the world."""
+	F7, F7 -> the left column; F7 -> the Map layer picker (decision 0391); F7 -> the world."""
 	_command().call(&"select", PackedInt32Array(range(int(_village.get("_cast").call(&"actor_count")))))
 	_command().call(&"_refresh_panel")
 	var party: Node = _command().call(&"panel")
@@ -544,7 +547,10 @@ func _f7_reaches_the_left_column_then_the_world() -> void:
 	_key(KEY_TAB)
 	_check("Tab moves along the party panel", ring.size() < 2 or _focus() == ring[1])
 	_key(KEY_F7)
-	_check("F7 a third time: the world", _focus() == null)
+	_check("F7 a third time: the Map layer picker", _focus() != null
+		and _village.get("_lens_picker").is_ancestor_of(_focus()), str(_focus()))
+	_key(KEY_F7)
+	_check("F7 a fourth time: the world", _focus() == null)
 	_check("the selection is untouched", _command().call(&"selection_count") > 1)
 	_key(KEY_ESCAPE)
 
@@ -719,18 +725,232 @@ func _the_hud_workspace_keeps_the_keys() -> void:
 
 
 func _scale_follows_the_choice() -> void:
-	"""At 1920x1080: 125% scales the HUD, the right column and the stall banner together (and is kept
-	through a restart, below). At 1280x720 only 100% is offered, which the settings step checked."""
+	"""At 1920x1080: 150% scales the HUD, the right column, the party panel, the stall banner and the level indicator
+	together (and is kept through a restart, below). At 1280x720 150% is not offered, which the settings step
+	checked (decision 0391: 125% is)."""
 	if _size.y < 1080:
 		return
 	_menu().open()
 	_menu().menu_button(3).pressed.emit()
-	_menu().scale_button(1).pressed.emit()
-	_check("125% reaches the HUD", int(_shell().get("_user_scale")) == 125)
-	_check("and the right column", is_equal_approx((_village.get("_zone").get("_strip") as Control).scale.x, 1.25))
-	_check("and the stall banner", is_equal_approx((_village.get("_stall_banner").get("_frame") as Control).scale.x, 1.25))
+	_menu().scale_button(2).pressed.emit()
+	_chose_150 = true
+	_check("150% reaches the HUD", int(_shell().get("_user_scale")) == 150)
+	_check("and the right column", is_equal_approx((_village.get("_zone").get("_strip") as Control).scale.x, 1.5))
+	_check("and the party panel", is_equal_approx((_command().call(&"panel").get("_frame") as Control).scale.x, 1.5))
+	_check("and the stall banner", is_equal_approx((_village.get("_stall_banner").get("_frame") as Control).scale.x, 1.5))
+	_check("and the level indicator", is_equal_approx(float(_command().call(&"tunnels").get("view").call(&"indicator_scale")), 1.5))
 	_menu().back_or_close()
 	_menu().back_or_close()
+
+
+# --- group F: panels that stay usable (decision 0391) ----------------------------------------------
+
+## Wheat and peas in the farm catalogue (farm_catalog.gd ITEM_LABELS): wheat sows Spring 1-4, peas from Spring 5.
+const WHEAT: int = 13
+const PEA: int = 11
+var _picker_scroll: int = 0
+## Whether this run chose 150 % (the 1080p run), so the shrink to 1280x720 steps down to 125 %.
+var _chose_150: bool = false
+var _picker_title: String = ""
+
+
+func _the_workspace_covers_no_stop() -> void:
+	"""G's open item: with the Residents workspace (L) open, F7 and Tab through the right column never land on a
+	control it covers, and at 1280x720 it does cover some (decision 0391)."""
+	_key(KEY_L)
+	var cover: Rect2 = _village.call(&"_workspace_rect", _shell())
+	_check("the workspace is open", cover.has_area(), str(cover))
+	var covered: int = 0
+	for control: Control in GateScript.focusables(_gate().get("_regions")[0]):
+		covered += 1 if GateScript.screen_rect(control).intersects(cover) else 0
+	if _size.y < 1080:
+		_check("at 1280x720 it covers right-column buttons", covered > 0, "%d" % covered)
+	var landed: Array[Rect2] = []
+	_key(KEY_F7)
+	for k: int in 12:
+		if _focus() != null:
+			landed.append(GateScript.screen_rect(_focus()))
+		_key(KEY_TAB)
+	var under: int = 0
+	for rect: Rect2 in landed:
+		under += 1 if rect.intersects(cover) else 0
+	_check("F7 and Tab skip every covered stop", not landed.is_empty() and under == 0, "%d of %d" % [under, landed.size()])
+	_key(KEY_ESCAPE)
+	_shell().call(&"_on_back_pressed")
+
+
+func _a_group_is_box_selected() -> void:
+	"""A real drag over the residents on screen selects a group, and the party panel stays, with its count, its
+	summary and Release in view (F20: at 1280x720 it used to vanish)."""
+	_command().call(&"clear_selection")
+	var box: Rect2 = _cast_box()
+	_drag(box.position, box.end)
+	var picked: PackedInt32Array = _command().call(&"selected")
+	_check("the drag selected a group", picked.size() >= 2, "%d from %s" % [picked.size(), box])
+	_command().call(&"_refresh_panel")
+	_capture("group_selected")
+
+
+func _a_member_row_selects_and_centres() -> void:
+	"""(After the drag.) The party panel lists every member; a real click on the second row selects that resident
+	alone and eases the camera to it."""
+	var party: Node = _command().call(&"panel")
+	var picked: PackedInt32Array = _command().call(&"selected")
+	var frame: Control = party.get("_frame")
+	_check("the party panel shows for the group", frame.is_visible_in_tree(), str(party.call(&"frame_rect")))
+	_check("with its count", String(party.call(&"count_shown")) == "%d selected" % picked.size(), String(party.call(&"count_shown")))
+	_check("Release in view", _fraction(party.call(&"release_button")) >= 0.99)
+	_check("a row per member", int(party.call(&"member_row_count")) == picked.size())
+	if picked.size() < 2:
+		return
+	var row: Button = party.call(&"member_row", 1)
+	(party.call(&"inspector") as ScrollContainer).call(&"reveal", row)
+	_steps.push_front(_click_member_row.bind(picked[1]))
+
+
+func _click_member_row(who: int) -> void:
+	"""The click itself, once the row is scrolled into view."""
+	var row: Button = _command().call(&"panel").call(&"member_row", 1)
+	var camera: Node = _village.get("_camera")
+	var before: Vector3 = camera.get("_target_focus")
+	_check("the row is in view", _fraction(row) >= 0.99, str(row.get_global_rect()))
+	_click(_centre(row))
+	_check("the click selected that resident alone", _command().call(&"selected") == PackedInt32Array([who]),
+		str(_command().call(&"selected")))
+	var feet: Vector2 = _brain(who).get("position")
+	var after: Vector3 = camera.get("_target_focus")
+	_check("and centred the camera on it", absf(after.x - feet.x) < 1.0 and absf(after.z - feet.y) < 1.0,
+		"%s -> %s, feet %s" % [before, after, feet])
+
+
+func _a_water_action_without_scrolling() -> void:
+	"""F12: resident 0 selected, the Water panel open -- Swim shortcuts is in view without scrolling, no roster row
+	before it, and a real click on it toggles it."""
+	_command().call(&"select", PackedInt32Array([0]))
+	_village.get("_zone").call(&"show_panel", 3)
+	var water: Node = _village.get("_waterplay").get("panel")
+	_village.get("_waterplay").call(&"refresh_panel")
+	(water.call(&"sections") as ScrollContainer).scroll_vertical = 0
+	_steps.push_front(_click_swim_shortcuts)
+
+
+func _click_swim_shortcuts() -> void:
+	"""The click, a frame after the panel was laid out."""
+	var water: Node = _village.get("_waterplay").get("panel")
+	var consent: Button = water.call(&"button", WaterPanel.ACTION_CONSENT)
+	_check("Swim shortcuts in view, unscrolled", _fraction(consent) >= 0.99, str(consent.get_global_rect()))
+	_check("no resident row before it", not (water.call(&"roster_row", 0) as Control).is_visible_in_tree())
+	var presses: Array[int] = [0]
+	var count := func() -> void: presses[0] += 1
+	consent.pressed.connect(count)
+	_click(_centre(consent))
+	consent.pressed.disconnect(count)
+	_check("a real click presses it", presses[0] == 1, "%d" % presses[0])
+	_capture("water_action")
+	_click(_centre(consent))
+
+
+func _the_picker_opens_on_bed_1() -> void:
+	"""F36: bed 1's crop picker open, the keyboard's focus on Wheat, the list scrolled a little."""
+	var farm: Node = _village.get("_farm")
+	farm.call(&"select_bed", 0)
+	var bed: Node = farm.get("bed_panel")
+	bed.call(&"open_picker")
+	_gate().call(&"_focus", bed.call(&"picker_button", WHEAT), true)
+	var body: ScrollContainer = bed.call(&"body")
+	body.scroll_vertical = 40
+	_picker_title = String(bed.call(&"picker_title_text"))
+	_check("wheat sowable at the start", not (bed.call(&"picker_button", WHEAT) as Button).disabled)
+	_check("peas not yet", (bed.call(&"picker_button", PEA) as Button).disabled)
+
+
+func _the_picker_crosses_spring_5() -> void:
+	"""The real farm calendar crosses into Spring 5 with the picker open: wheat is refused with its reason, peas are
+	sowable, the title has today's date -- and the focus and the scroll are where they were."""
+	var farm: Node = _village.get("_farm")
+	var bed: Node = farm.get("bed_panel")
+	var body: ScrollContainer = bed.call(&"body")
+	_picker_scroll = body.scroll_vertical
+	var quarter: int = 6 * CalendarScript.HOUR_USEC
+	for k: int in 32:
+		if String(bed.call(&"picker_title")).contains("Spring 5"):
+			break
+		farm.call(&"advance_calendar", quarter)
+	_steps.push_front(_after_spring_5)
+
+
+func _after_spring_5() -> void:
+	"""(The farm's own refresh has run on the turned hour.)"""
+	var bed: Node = _village.get("_farm").get("bed_panel")
+	var wheat: Button = bed.call(&"picker_button", WHEAT)
+	_check("the picker is still open", bool(bed.get("picking")))
+	_check("wheat refused now", wheat.disabled, wheat.tooltip_text.left(80))
+	_check("with its reason", String(bed.call(&"picker_detail", WHEAT)).contains("can't: sow in"))
+	_check("peas sowable now", not (bed.call(&"picker_button", PEA) as Button).disabled)
+	var title: String = bed.call(&"picker_title_text")
+	_check("the title's date is today's", title.contains("Spring 5") and title != _picker_title, title)
+	_check("the focus stayed on Wheat", _focus() == wheat, str(_focus()))
+	_check("the scroll stayed", (bed.call(&"body") as ScrollContainer).scroll_vertical == _picker_scroll,
+		"%d -> %d" % [_picker_scroll, (bed.call(&"body") as ScrollContainer).scroll_vertical])
+	_capture("picker_spring_5")
+	_steps.push_front(_close_the_picker)
+
+
+func _close_the_picker() -> void:
+	"""(After the frame is saved.) Back to the bed's verbs, and focus to the world."""
+	_village.get("_farm").get("bed_panel").call(&"close_picker")
+	_key(KEY_ESCAPE)
+
+
+func _cast_box() -> Rect2:
+	"""A screen box round the residents in view (a box selects by screen position, under a panel too), its first
+	corner -- where the press lands -- on open ground (no panel under it)."""
+	var camera: Camera3D = get_viewport_camera()
+	var box := Rect2()
+	var first: bool = true
+	for i: int in int(_village.get("_cast").call(&"actor_count")):
+		var at: Vector3 = (_village.get("_cast").call(&"actor", i) as Node3D).global_position
+		if camera.is_position_behind(at):
+			continue
+		var p: Vector2 = camera.unproject_position(at)
+		if not Rect2(Vector2.ZERO, Vector2(_size)).has_point(p):
+			continue
+		box = Rect2(p, Vector2.ZERO) if first else box.expand(p)
+		first = false
+	box = box.grow(24.0)
+	for corner: Vector2 in [box.position, Vector2(box.end.x, box.position.y), box.end, Vector2(box.position.x, box.end.y)]:
+		if not _over_ui(corner):
+			return Rect2(corner, box.get_center() * 2.0 - corner - corner)
+	return box
+
+
+func get_viewport_camera() -> Camera3D:
+	"""The camera the world is drawn through."""
+	return root.get_camera_3d()
+
+
+func _over_ui(point: Vector2) -> bool:
+	"""Whether a shown control that stops the mouse is under `point`."""
+	for node: Node in root.find_children("*", "Control", true, false):
+		var control := node as Control
+		if control.mouse_filter == Control.MOUSE_FILTER_STOP and control.is_visible_in_tree() \
+				and GateScript.screen_rect(control).has_point(point):
+			return true
+	return false
+
+
+func _fraction(control: Control) -> float:
+	"""How much of `control` is on screen, cut by the window and every clipping ancestor (the review's probe)."""
+	if control == null or not control.is_visible_in_tree():
+		return 0.0
+	var rect: Rect2 = control.get_global_rect()
+	var clip := Rect2(Vector2.ZERO, Vector2(_size))
+	var at: Node = control.get_parent()
+	while at != null:
+		if at is Control and (at as Control).clip_contents:
+			clip = clip.intersection((at as Control).get_global_rect())
+		at = at.get_parent()
+	return rect.intersection(clip).get_area() / maxf(rect.get_area(), 0.0001)
 
 
 # --- restart ------------------------------------------------------------------------------------
@@ -763,14 +983,14 @@ func _after_restart() -> void:
 	_check("the restarted demo runs", not bool(_manager().call(&"is_paused")),
 		str(_manager().call(&"get_pause_reason_names")))
 	if _size.y >= 1080:
-		_check("the restart keeps 125% on the HUD", int(_shell().get("_user_scale")) == 125)
-		_check("and in the menu", _menu().scale_percent == 125)
+		_check("the restart keeps 150% on the HUD", int(_shell().get("_user_scale")) == 150)
+		_check("and in the menu", _menu().scale_percent == 150)
 		_size = Vector2i(1280, 720)
 
 
 func _a_smaller_window_steps_the_scale_down() -> void:
-	"""(After a 1080p run.) The window shrinks to 1280x720: 125% no longer fits, so the demo is at 100%."""
-	if _menu().scale_percent == 100 and int(_shell().get("_user_scale")) == 100 and _size.y >= 1080:
-		return
-	_check("the scale steps down to what the window fits", _menu().scale_percent == 100
-		and int(_shell().get("_user_scale")) == 100)
+	"""(After a 1080p run.) The window shrinks to 1280x720: 150% no longer fits, so the demo steps down to the largest
+	size that does, 125% (decision 0391)."""
+	var expected: int = 125 if _chose_150 else 100
+	_check("the scale steps down to what the window fits", _menu().scale_percent == expected
+		and int(_shell().get("_user_scale")) == expected, "%d%%" % _menu().scale_percent)

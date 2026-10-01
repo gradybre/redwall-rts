@@ -128,6 +128,8 @@ var _input_hooks: Array[Callable] = []
 var _skill_texts: Array[Callable] = []
 ## The job owners' resume rules (work_interrupt.gd; see add_resume_rule).
 var _resume_rules: Array[Callable] = []
+## The camera's "look at this point" (set_centre), for pick_member.
+var _centre: Callable = Callable()
 ## The tool buttons' action card (reused; _refresh_tool_cards).
 var _tool_card_data: CardScript = CardScript.new()
 ## The party panel's notice line, per resident (see say): its text, and when it was said (0: never).
@@ -165,10 +167,17 @@ func configure(cast: DemoCastScript, camera: Camera3D, hud_root: Control = null,
 	_tunnels.configure(cast, camera, selected, mark, say, services)
 	_tunnels.set_notice_about(say_about)
 	register_below(_tunnels.view.prewarm)
-	_panel.dig_requested.connect(_on_dig_requested)
-	_panel.room_requested.connect(_on_room_requested)
+	_connect_panel()
 	_tunnels.ext.set_hud(hud_root)
 	_tunnels.ext.set_interrupt(interrupt_text)
+
+
+func _connect_panel() -> void:
+	"""The party panel's buttons: the Dig and room tools, a member's row (pick_member), Release (R)."""
+	_panel.dig_requested.connect(_on_dig_requested)
+	_panel.room_requested.connect(_on_room_requested)
+	_panel.member_picked.connect(pick_member)
+	_panel.release_requested.connect(release_selection)
 
 
 func set_world(world: DemoWorldScript) -> void:
@@ -660,6 +669,22 @@ func order_to(point: Vector3) -> bool:
 	return bool(result["ok"])
 
 
+func set_centre(centre: Callable) -> void:
+	"""`centre(point: Vector3)`: ease the camera to look at a point (demo_camera.gd `centre_on`), for `pick_member`."""
+	_centre = centre
+
+
+func pick_member(actor_index: int) -> void:
+	"""A listed resident was picked (the party panel's member row, the Water panel's roster row): select it alone
+	and centre the camera on it (decision 0391)."""
+	if _cast == null or actor_index < 0 or actor_index >= _cast.actor_count():
+		return
+	select(PackedInt32Array([actor_index]))
+	if _centre.is_valid():
+		var at: Vector2 = (_cast.actor(actor_index) as DemoActorScript).brain.position
+		_centre.call(Vector3(at.x, 0.0, at.y))
+
+
 func release_selection() -> void:
 	"""Hand the selection back to wandering (it stays selected)."""
 	_cast.release(selected())
@@ -794,7 +819,7 @@ func party_entries() -> Array[Dictionary]:
 	for i in selected():
 		var actor := _cast.actor(i) as DemoActorScript
 		var brain := actor.brain
-		entries.append({"name": actor.display_name, "species": actor.species, "colour": actor.chip_colour,
+		entries.append({"index": i, "name": actor.display_name, "species": actor.species, "colour": actor.chip_colour,
 			"digger": _tunnels.is_digger(i), "state": activity_text(i), "skills": skills_text(i),
 			"abilities": AbilitiesScript.lines_for(actor.species, actor.height_m, brain.radius, brain.can_carry()),
 			"then": brain.unfinished_labels()})

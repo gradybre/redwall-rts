@@ -8,39 +8,56 @@ extends CanvasLayer
 ## zones leave that column empty at every supported profile: alerts and the workspace are centred,
 ## time and detail are on the right, the command strip starts right of the minimap. ONE transient
 ## HUD surface opens there -- UI-SET-009, the resource ledger, dropped under the resources when a
-## readout is clicked -- so while it is open the panel moves below it, or hides when there is no
-## room (1280x720). The rectangle comes from the HUD's own equations (`scripts/ui/ui_layout.gd`,
-## read, never modified) in LOGICAL pixels, and the panel draws at the HUD's effective scale S,
-## recomputed on every viewport resize -- so 1280x720, 1920x1080 and a HiDPI full screen line up.
-## It draws on a canvas layer BELOW the HUD's, so a true modal (which can span this column at
-## 1280x720) always covers it.
+## readout is clicked -- so while it is open the panel moves below it, or, where there is no room for
+## its header and actions below it (1280x720), stays where it is under the ledger (which draws over it
+## until it closes). The rectangle comes from the HUD's own equations (`scripts/ui/ui_layout.gd`,
+## read, never modified) in LOGICAL pixels, and the panel draws at the HUD's effective scale S -- the
+## interface scale included (demo_ui_scale.gd) -- recomputed on every viewport resize. It draws on a
+## canvas layer BELOW the HUD's, so a true modal (which can span this column at 1280x720) covers it.
+##
+## THE FRAME NEVER HIDES (decision 0391, review F20 and F31). It is three parts, top to bottom:
+##   * the HEADER: the title and the selected count ("6 selected");
+##   * the SUMMARY: one line saying who and what -- one resident's name and what it is doing, or a
+##     group's common activity ("Holding ×3 · Walking to the well ×2") -- cut with an ellipsis where it
+##     is too long, whole in its tooltip; and the ACTIONS, always shown: Release (R) for any selection, and
+##     Dig tunnel (B), Burrow home (H) and Root cellar (C) with a digger in it;
+##   * the INSPECTOR, a vertical scroll filling the rest of the column: first the notice line (the
+##     selection's own prompts and refusals, demo_command.gd `say`; a new one scrolls back to it), then for
+##     one resident its species,
+##     what it is doing now, the progress or the step of that (the words after " — "), what it will go
+##     back to -- a row a job -- its skills, its orders IN FULL (each with what to right-click: never
+##     folded away) and the hint; for a group, one row per member (every member: no "+ n more"), each a
+##     button that selects that resident alone and centres the camera on it (`member_picked`).
+## Where the column is too short for the header, summary and actions and a useful inspector (125 % and
+## 150 % at 1280x720), the summary and actions move to the top of the inspector -- reached by scrolling,
+## never hidden.
 ##
 ## STYLE. The woodland skin's own pieces (demo/ui/): carved-wood panel with parchment face, Noto
 ## Serif title, ink and umber text -- both >= 4.5:1 on the parchment (test_demo_command.gd checks).
-## The panel stops the mouse, so a click on it never selects or orders anything in the world.
+## The panel stops the mouse, so a click on it never selects or orders anything in the world. Text is at
+## least 14 logical px (UI §2.1) and every button at least 32 px tall (UX-T03).
 ##
-## TUNNELS (demo/tunnel/). With a digger in the party -- anybeast who fits a bore (decision 0208) -- a "Dig
-## tunnel" button shows (emits `dig_requested`, the same as B: it opens the Dig tool, and pressed while it is
-## open, closes it), and beside it "Burrow home (H)" and "Root cellar (C)" (emit `room_requested` with the
-## room's template: the Dig tool's room tools, decision 0209); none takes focus, so Enter while laying a piece digs rather than pressing it again. A NOTICE line under the party carries the tunnel tool's prompts, lengths
-## and refusals. The wood button's cream text and the notice's ink are checked for contrast
-## (test_demo_tunnel.gd).
-##
-## ORDERS (decision 0205, the playtest of 2026-09-29). With one resident selected, the panel lists what
-## it can be ordered to do (control/resident_abilities.gd, an entry's "abilities"): a line a kind of
-## work, the skill-gated ones saying why not. The notice line is the SELECTED residents' own (the
-## command layer keeps one per resident, demo_command.gd `say`). Where the column is too short for all
-## of it (1280x720), the hint goes first and then the orders, before the panel itself would.
+## TUNNELS (demo/tunnel/). With a digger in the party -- anybeast who fits a bore (decision 0208) -- "Dig
+## tunnel (B)" shows (emits `dig_requested`, the same as B), and beside it "Burrow home (H)" and "Root cellar
+## (C)" (emit `room_requested` with the room's template: decision 0209). They take keyboard focus only from Tab
+## and F7 (decision 0261), so Enter while laying a piece digs rather than pressing one again.
 
+const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
+const PickRow := preload("res://demo/ui/demo_pick_row.gd")
+const CardScript := preload("res://demo/ui/action_card.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 
 signal dig_requested
 signal room_requested(kind: int)
+## A member's row was pressed: select that resident alone and centre on it (demo_command.gd `pick_member`).
+signal member_picked(actor_index: int)
+## Release (R) was pressed: hand the selection back to its routine (demo_command.gd `release_selection`).
+signal release_requested
 
 const TITLE: String = "Demo party"
 const HINT: String = "Click or drag: select · Shift: add · Right-click: move / work · R: release · Esc: clear · B: dig tool · U: underground"
@@ -53,6 +70,8 @@ const ROOM_TIPS: Array[String] = [
 	"Burrow home (H) — a round home with its own front door, dug beside the tunnels: move it, R turns it, click to dig it with a passage to the nearest tunnel (Shift+click: none)",
 	"Root cellar (C) — a stone-lined cellar with a hatch, where the pantry stores harvests: move it, R turns it, click to dig it with a passage to the nearest tunnel (Shift+click: none)"]
 const ROOM_TEMPLATES: Array[int] = [RoomsScript.TEMPLATE_HOME, RoomsScript.TEMPLATE_CELLAR]
+const RELEASE_BUTTON: String = "Release (R)"
+const RELEASE_TIP: String = "Release (R) — hand the selected residents back to their own routine; they stay selected"
 const DIGGING: String = "Digging tunnel — %d%%"
 ## A room being dug names itself (decision 0209), e.g. "Digging Burrow home 1 — 43%".
 const DIGGING_ROOM: String = "Digging %s — %d%%"
@@ -63,45 +82,68 @@ const HAULING: String = "Hauling through tunnel"
 const IN_QUEUE: String = "Waiting at a tunnel mouth"
 const BUTTON_MARGINS: PackedFloat32Array = [12.0, 6.0, 12.0, 7.0]
 const NOBODY: String = "No one selected"
-## fit's levels, fullest first (see fit).
-const FIT_LEVELS: int = 4
-## The unfinished jobs a resident will go back to (resident_brain.gd RESUMING), latest first.
-const THEN: String = "Then back to: %s"
+const COUNT: String = "%d selected"
+const GROUP: String = "%d residents"
+## Where a state's progress or step starts ("Digging tunnel — 43%": the command, then "43%").
+const STEP_MARK: String = " — "
+const PROGRESS: String = "Progress: %s"
+## The unfinished jobs a resident will go back to (resident_brain.gd RESUMING), latest first: a row each.
+const THEN_HEAD: String = "Then back to:"
 ## A resident waiting for its route to be planned (resident_brain.gd ROUTING), and one holding where a trip it could not
 ## finish left it, with why (ARRIVAL AND REFUSAL; decision 0361).
 const FINDING_ROUTE: String = "finding a route"
 const HOLDING_REFUSED: String = "holding — %s"
-## The orders list folded for a short column (fit), e.g. at 1280x720.
-const COMPACT: String = "Orders (right-click): %s"
 const BULLET: String = "• "
-## One resident's species line: folded with the skills (its name already says it, "Mole digger").
-const SPECIES_ROW: int = 1
+## A group's common activity: each activity and how many are at it, most first.
+const TALLY: String = "%s ×%d"
 const WIDTH: float = 320.0
 ## The carved frame draws this far outside the panel rectangle (woodland_styles PIECE_PANEL).
 const FRAME_EXPAND: float = 10.0
 const MINIMAP_GAP: float = 8.0
-const MAX_ROWS: int = 6
 const TITLE_PX: int = 20
 const BODY_PX: int = 15
-const HINT_PX: int = 13
+## UI §2.1's minimum rendered text (was 13 px before decision 0391).
+const SMALL_PX: int = 14
+const BUTTON_H: float = 32.0
 const CHIP_PX: float = 12.0
 const CONTENT_MARGINS: PackedFloat32Array = [14.0, 10.0, 14.0, 12.0]
+const SEPARATION: int = 6
+## A wrapped line's least width leaves this much for the inspector's scroll bar.
+const SCROLLBAR_ALLOWANCE: float = 16.0
+## Below this much inspector the summary and actions move into it (see THE FRAME NEVER HIDES).
+const MIN_INSPECTOR_H: float = 72.0
 ## The HUD surface this panel yields to (see PLACEMENT).
 const LEDGER_NAME: String = "UI-SET-009"
 const LEDGER_GAP: float = 8.0
 
 var _frame: PanelContainer = null
-var _rows: VBoxContainer = null
+var _column: VBoxContainer = null
+var _count: Label = null
+var _top: VBoxContainer = null
+var _summary: Label = null
+var _chip: ColorRect = null
 var _notice: Label = null
-var _abilities: Label = null
-var _abilities_wanted: bool = false
-var _abilities_full: String = ""
-var _abilities_compact: String = ""
-var _skill_rows: Array[Control] = []
-var _hint: Label = null
+var _actions: HFlowContainer = null
+var _release: Button = null
 var _dig: Button = null
-var _room_row: HFlowContainer = null
+var _room_buttons: Array[Button] = []
+var _inspector: DemoScroll = null
+var _detail: VBoxContainer = null
+var _rows: VBoxContainer = null
+## One resident's lines and a group's member rows, each a pool re-worded in place (never rebuilt: a click, a
+## keyboard focus or a tooltip on a row survives the panel's refresh).
+var _line_box: VBoxContainer = null
+var _line_labels: Array[Label] = []
+var _member_box: VBoxContainer = null
+var _member_rows: Array[Button] = []
+## The cast index each member row selects, and how many rows are in use.
+var _member_index: PackedInt32Array = PackedInt32Array()
+var _member_count: int = 0
+var _abilities: Label = null
+var _hint: Label = null
+var _docked: bool = true
 var _pending_notice: String = ""
+var _place_queued: bool = false
 var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 var _hud_root: Control = null
@@ -118,6 +160,8 @@ func _ready() -> void:
 
 func build() -> void:
 	"""Build the widgets and show what is waiting: nobody, and any notice given before this was built."""
+	if _frame != null:
+		return
 	layer = 0
 	name = "DemoPartyPanel"
 	_build()
@@ -130,69 +174,135 @@ func dig_button() -> Button:
 	return _dig
 
 
+func release_button() -> Button:
+	"""The "Release (R)" button (null before build)."""
+	return _release
+
+
 func notice_label() -> Label:
 	"""The notice line (null before build)."""
 	return _notice
 
 
 func _build() -> void:
-	"""Frame, title, rows and hint."""
+	"""Frame; header; summary, notice and actions; the inspector."""
 	_frame = PanelContainer.new()
 	_frame.mouse_filter = Control.MOUSE_FILTER_STOP
 	_frame.add_theme_stylebox_override(&"panel", Styles.box(Styles.PIECE_PANEL, CONTENT_MARGINS))
+	_frame.theme = CardScript.tooltip_theme()
 	add_child(_frame)
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override(&"separation", 6)
-	_frame.add_child(column)
-	column.add_child(_label(TITLE, TITLE_PX, Palette.INK, Styles.heading_font()))
+	_column = VBoxContainer.new()
+	_column.add_theme_constant_override(&"separation", SEPARATION)
+	_frame.add_child(_column)
+	_column.add_child(_build_header())
+	_top = _build_top()
+	_column.add_child(_top)
+	_inspector = DemoScroll.new()
+	_inspector.name = "Inspector"
+	_column.add_child(_inspector)
+	_detail = VBoxContainer.new()
+	_detail.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_detail.add_theme_constant_override(&"separation", SEPARATION)
+	_inspector.add_child(_detail)
+	_build_detail()
+	_top.minimum_size_changed.connect(_queue_place)
+	_detail.minimum_size_changed.connect(_queue_place)
+
+
+func _queue_place() -> void:
+	"""Place the frame again at the end of this frame, once (a content change re-measures its parts)."""
+	if not _place_queued:
+		_place_queued = true
+		_place.call_deferred()
+
+
+func _build_header() -> HBoxContainer:
+	"""The title and, at its right, how many are selected."""
+	var header := HBoxContainer.new()
+	var title := _label(TITLE, TITLE_PX, Palette.INK, Styles.heading_font())
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(title)
+	_count = _label("", SMALL_PX, Palette.UMBER, null)
+	_count.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	header.add_child(_count)
+	return header
+
+
+func _build_top() -> VBoxContainer:
+	"""The summary line (a chip and an ellipsis-cut line) and the actions."""
+	var top := VBoxContainer.new()
+	top.name = "Summary"
+	top.add_theme_constant_override(&"separation", SEPARATION)
+	var line := HBoxContainer.new()
+	line.add_theme_constant_override(&"separation", 8)
+	_chip = ColorRect.new()
+	_chip.custom_minimum_size = Vector2(CHIP_PX, CHIP_PX)
+	_chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	line.add_child(_chip)
+	_summary = _label("", BODY_PX, Palette.INK, null)
+	_summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_summary.clip_text = true
+	_summary.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_summary.mouse_filter = Control.MOUSE_FILTER_PASS
+	line.add_child(_summary)
+	top.add_child(line)
+	_actions = _build_actions()
+	top.add_child(_actions)
+	return top
+
+
+func _build_actions() -> HFlowContainer:
+	"""Release (R) always; the Dig tool and the room tools, hidden until a digger is in the party."""
+	var row := HFlowContainer.new()
+	row.name = "Actions"
+	row.add_theme_constant_override(&"h_separation", SEPARATION)
+	row.add_theme_constant_override(&"v_separation", SEPARATION)
+	_release = _wood_button(RELEASE_BUTTON, RELEASE_TIP, func() -> void: release_requested.emit())
+	row.add_child(_release)
+	_dig = _wood_button(DIG_BUTTON, DIG_TIP, func() -> void: dig_requested.emit())
+	row.add_child(_dig)
+	for k in ROOM_BUTTONS.size():
+		var room := _wood_button(ROOM_BUTTONS[k], ROOM_TIPS[k], room_requested.emit.bind(ROOM_TEMPLATES[k]))
+		_room_buttons.append(room)
+		row.add_child(room)
+	return row
+
+
+func _build_detail() -> void:
+	"""The inspector's content: the notice, the rows, the orders and the hint."""
+	_notice = _wrapped("", BODY_PX, Palette.INK)
+	_notice.visible = false
+	_detail.add_child(_notice)
 	_rows = VBoxContainer.new()
 	_rows.add_theme_constant_override(&"separation", 3)
-	column.add_child(_rows)
-	_abilities = _label("", HINT_PX, Palette.UMBER, null)
-	_abilities.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_detail.add_child(_rows)
+	_line_box = VBoxContainer.new()
+	_line_box.add_theme_constant_override(&"separation", 3)
+	_rows.add_child(_line_box)
+	_member_box = VBoxContainer.new()
+	_member_box.add_theme_constant_override(&"separation", 1)
+	_rows.add_child(_member_box)
+	_abilities = _wrapped("", SMALL_PX, Palette.UMBER)
 	_abilities.visible = false
-	column.add_child(_abilities)
-	_notice = _label("", BODY_PX, Palette.INK, null)
-	_notice.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_notice.visible = false
-	column.add_child(_notice)
-	_dig = _build_dig_button()
-	column.add_child(_dig)
-	_room_row = _build_room_row()
-	column.add_child(_room_row)
-	_hint = _label(HINT, HINT_PX, Palette.UMBER, null)
-	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(_hint)
-
-
-func _build_dig_button() -> Button:
-	"""The wood "Dig tunnel" button: cream on wood, brass when pressed; never takes focus."""
-	var button := _wood_button(DIG_BUTTON, DIG_TIP, func() -> void: dig_requested.emit())
-	button.visible = false
-	return button
-
-
-func _build_room_row() -> HFlowContainer:
-	"""The room tools' wood buttons in a row, hidden until a digger is in the party."""
-	var row := HFlowContainer.new()
-	row.add_theme_constant_override(&"h_separation", 6)
-	row.visible = false
-	for k in ROOM_BUTTONS.size():
-		row.add_child(_wood_button(ROOM_BUTTONS[k], ROOM_TIPS[k], room_requested.emit.bind(ROOM_TEMPLATES[k])))
-	return row
+	_detail.add_child(_abilities)
+	_hint = _wrapped(HINT, SMALL_PX, Palette.UMBER)
+	_detail.add_child(_hint)
 
 
 func room_button(k: int) -> Button:
 	"""The room tool's button `k` (0 Burrow home, 1 Root cellar; null before build)."""
-	return _room_row.get_child(k) as Button if _room_row != null else null
+	return _room_buttons[k] if k >= 0 and k < _room_buttons.size() else null
 
 
 func _wood_button(text: String, tip: String, pressed: Callable) -> Button:
-	"""A wood button: cream on wood, brass when pressed; takes keyboard focus (decision 0261)."""
+	"""A wood button: cream on wood, brass when pressed, at least BUTTON_H tall; takes keyboard focus
+	(decision 0261)."""
 	var button := Button.new()
 	button.text = text
 	button.tooltip_text = tip
 	Styles.focusable(button, BUTTON_MARGINS)
+	button.custom_minimum_size.y = BUTTON_H
 	button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	button.add_theme_font_size_override(&"font_size", BODY_PX)
 	button.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, BUTTON_MARGINS))
@@ -209,7 +319,6 @@ func _label(text: String, px: int, colour: Color, font: Font) -> Label:
 	"""One label in the panel's type."""
 	var label := Label.new()
 	label.text = text
-	label.custom_minimum_size.x = WIDTH - CONTENT_MARGINS[0] - CONTENT_MARGINS[2]
 	label.add_theme_font_size_override(&"font_size", px)
 	label.add_theme_color_override(&"font_color", colour)
 	if font != null:
@@ -218,55 +327,114 @@ func _label(text: String, px: int, colour: Color, font: Font) -> Label:
 	return label
 
 
+func _wrapped(text: String, px: int, colour: Color) -> Label:
+	"""A label that wraps at the column's width (never cut)."""
+	var label := _label(text, px, colour, null)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.custom_minimum_size.x = inner_width() - SCROLLBAR_ALLOWANCE
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return label
+
+
+static func inner_width() -> float:
+	"""The column's width inside the frame's margins, logical px."""
+	return WIDTH - CONTENT_MARGINS[0] - CONTENT_MARGINS[2]
+
+
+# --- what it shows ----------------------------------------------------------------------------------
+
 func show_party(entries: Array[Dictionary]) -> void:
-	"""Show these residents: [{"name", "species", "state", "colour", "skills", "then", "abilities"}]."""
-	_fill_rows(entries)
+	"""Show these residents: [{"index", "name", "species", "state", "colour", "skills", "then", "abilities",
+	"digger"}] ("index" is the cast index a member's row selects)."""
+	_count.text = count_text(entries.size())
+	_summary.text = summary_text(entries)
+	_summary.tooltip_text = _summary.text
+	_chip.color = entries[0].get("colour", Palette.SAGE) if entries.size() == 1 else Color(0, 0, 0, 0)
+	_chip.visible = entries.size() == 1
+	_release.visible = not entries.is_empty()
 	_dig.visible = has_digger(entries)
-	_room_row.visible = _dig.visible
+	for room: Button in _room_buttons:
+		room.visible = _dig.visible
+	_actions.visible = _release.visible
+	_fill_rows(entries)
 	var abilities: PackedStringArray = entries[0].get("abilities", PackedStringArray()) if entries.size() == 1 \
 			else PackedStringArray()
-	_abilities_full = "\n".join(abilities)
-	_abilities_compact = compact_orders(abilities)
-	_abilities.text = _abilities_full
-	_abilities_wanted = not abilities.is_empty()
-	_abilities.visible = _abilities_wanted
-	_place.call_deferred()
+	_abilities.text = "\n".join(abilities)
+	_abilities.visible = not abilities.is_empty()
+	_queue_place()
 
 
 func _fill_rows(entries: Array[Dictionary]) -> void:
-	"""The party's lines, a chip on each resident's; one resident's skill lines and species line are kept
-	apart (fit may fold them away first)."""
-	for child in _rows.get_children():
-		_rows.remove_child(child)
-		child.queue_free()
-	_skill_rows.clear()
+	"""The inspector's rows: one resident's lines (after its name, which the summary says), or a member row
+	each (`member_picked` on press) -- from the pools, re-worded in place, the rows not wanted hidden."""
 	var lines := party_lines(entries)
-	var skills: int = String(entries[0].get("skills", "")).split("\n", false).size() if entries.size() == 1 else 0
-	for i in lines.size():
-		var chip: Color = Color(0, 0, 0, 0)
-		if entries.size() == 1 and i == 0:
-			chip = entries[0].get("colour", Palette.SAGE)
-		elif entries.size() > 1 and i > 0 and i - 1 < entries.size():
-			chip = entries[i - 1].get("colour", Palette.SAGE)
-		var row: Control = _row(lines[i], chip, i == 0)
-		_rows.add_child(row)
-		if i >= lines.size() - skills or (skills > 0 and i == SPECIES_ROW):
-			_skill_rows.append(row)
+	var group: bool = entries.size() > 1
+	_member_count = entries.size() if group else 0
+	_member_index.resize(_member_count)
+	for k: int in _member_count:
+		_member_index[k] = int(entries[k]["index"])
+		var row: Button = _member_row_at(k)
+		PickRow.set_text(row, lines[k + 1])
+		PickRow.set_chip(row, entries[k].get("colour", Palette.SAGE))
+	for k: int in _member_rows.size():
+		_member_rows[k].visible = k < _member_count
+	var shown: int = 0 if group else maxi(lines.size() - 1, 0)
+	for k: int in shown:
+		var label: Label = _line_at(k)
+		if label.text != lines[k + 1]:
+			label.text = lines[k + 1]
+	for k: int in _line_labels.size():
+		_line_labels[k].visible = k < shown
 
 
-static func compact_orders(lines: PackedStringArray) -> String:
-	"""The orders list folded into one wrapped paragraph for a short column: its lines after the heading,
-	each without what to right-click, joined ("Orders (right-click): • Move or work · • Farm: sow, ...")."""
-	if lines.size() <= 1:
-		return ""
-	var parts := PackedStringArray()
-	for k: int in range(1, lines.size()):
-		parts.append(lines[k].get_slice(" —", 0).trim_prefix(BULLET))
-	return COMPACT % " · ".join(parts)
+func _member_row_at(k: int) -> Button:
+	"""Member row `k` of the pool (made, and connected once, when missing)."""
+	while _member_rows.size() <= k:
+		var row: Button = PickRow.make("", Palette.SAGE, SMALL_PX, Palette.INK)
+		row.pressed.connect(_on_member_pressed.bind(_member_rows.size()))
+		_member_rows.append(row)
+		_member_box.add_child(row)
+	return _member_rows[k]
+
+
+func _on_member_pressed(k: int) -> void:
+	"""Member row `k` was pressed: the resident it lists now."""
+	if k < _member_count:
+		member_picked.emit(_member_index[k])
+
+
+func _line_at(k: int) -> Label:
+	"""One resident's line `k` (after its name) from the pool: what it is doing in body ink, the rest in umber."""
+	while _line_labels.size() <= k:
+		var lead: bool = _line_labels.size() == 1
+		var label: Label = _wrapped("", BODY_PX if lead else SMALL_PX, Palette.INK if lead else Palette.UMBER)
+		_line_labels.append(label)
+		_line_box.add_child(label)
+	return _line_labels[k]
+
+
+func member_row(k: int) -> Button:
+	"""A group's member row `k` (null when there is none: one resident, or nobody)."""
+	return _member_rows[k] if k >= 0 and k < _member_count else null
+
+
+func member_row_count() -> int:
+	"""How many member rows the inspector lists (0 unless a group is selected)."""
+	return _member_count
+
+
+func summary() -> String:
+	"""The summary line as shown."""
+	return _summary.text if _summary != null else ""
+
+
+func count_shown() -> String:
+	"""The header's count ("6 selected"; "" for nobody)."""
+	return _count.text if _count != null else ""
 
 
 func abilities_text() -> String:
-	"""The orders list as shown ("" when hidden: nobody, a group, or no room)."""
+	"""The orders list as shown ("" when hidden: nobody, or a group)."""
 	return _abilities.text if _abilities != null and _abilities.visible else ""
 
 
@@ -279,14 +447,16 @@ static func has_digger(entries: Array[Dictionary]) -> bool:
 
 
 func show_notice(text: String) -> void:
-	"""One line under the party for the tunnel tool: a prompt, a length or a refusal ("" hides it).
-	Before the panel is built (out of the tree) the text waits for it."""
+	"""The selection's notice line -- a prompt, a length or a refusal ("" hides it) -- first in the inspector,
+	which a new notice scrolls back to. Before the panel is built (out of the tree) the text waits for it."""
 	_pending_notice = text
 	if _notice == null:
 		return
+	if _notice.text != text and not text.is_empty():
+		_inspector.scroll_vertical = 0
 	_notice.text = text
 	_notice.visible = not text.is_empty()
-	_place.call_deferred()
+	_queue_place()
 
 
 func notice() -> String:
@@ -294,155 +464,93 @@ func notice() -> String:
 	return _pending_notice
 
 
-func _row(text: String, chip: Color, lead: bool) -> Control:
-	"""A chip (when coloured) and a line of text."""
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override(&"separation", 8)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if chip.a > 0.0:
-		var swatch := ColorRect.new()
-		swatch.color = chip
-		swatch.custom_minimum_size = Vector2(CHIP_PX, CHIP_PX)
-		swatch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		row.add_child(swatch)
-	var label := _label(text, BODY_PX, Palette.INK if lead else Palette.UMBER, null)
-	label.custom_minimum_size.x = 0.0
-	label.clip_text = true
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(label)
-	return row
+# --- the words ----------------------------------------------------------------------------------------
+
+static func count_text(selected: int) -> String:
+	"""The header's count: "6 selected" ("" for nobody)."""
+	return "" if selected == 0 else COUNT % selected
 
 
-func watch_hud(hud_root: Control) -> void:
-	"""Yield to the HUD's resource ledger (found by its UI id under `hud_root`), if it has one."""
-	_hud_root = hud_root
-	_find_ledger()
+static func summary_text(entries: Array[Dictionary]) -> String:
+	"""The summary line: nobody; one resident's name and what it is doing; or a group's common activity."""
+	if entries.is_empty():
+		return NOBODY
+	if entries.size() == 1:
+		return "%s — %s" % [entries[0]["name"], entries[0]["state"]]
+	return activity_tally(entries)
 
 
-func _find_ledger() -> void:
-	"""Look the ledger up (the HUD may build it after the demo starts)."""
-	if _hud_root != null and is_instance_valid(_hud_root):
-		_ledger = _hud_root.find_child(LEDGER_NAME, true, false) as Control
+static func activity_tally(entries: Array[Dictionary]) -> String:
+	"""What a group is doing, each command (a state before its progress) with how many, most first, ties in
+	selection order: "Holding ×3 · Walking to the well ×2 · Wandering ×1"."""
+	var names := PackedStringArray()
+	var counts := PackedInt32Array()
+	for entry: Dictionary in entries:
+		var what: String = first_up(command_of(String(entry["state"])))
+		var at: int = names.find(what)
+		if at < 0:
+			names.append(what)
+			counts.append(1)
+		else:
+			counts[at] += 1
+	var parts := PackedStringArray()
+	for most: int in range(entries.size(), 0, -1):
+		for k: int in names.size():
+			if counts[k] == most:
+				parts.append(TALLY % [names[k], most])
+	return " · ".join(parts)
 
 
-func follow_hud() -> void:
-	"""Re-place the panel when the ledger opens or closes. Cheap; call a few times a second."""
-	if _ledger == null:
-		_find_ledger()
-	var open := _ledger != null and is_instance_valid(_ledger) and _ledger.is_visible_in_tree()
-	if open != _ledger_open:
-		_ledger_open = open
-		_place()
+static func command_of(state: String) -> String:
+	"""A state's command: its words before the first " — " ("Digging tunnel — 43%": "Digging tunnel")."""
+	var at: int = state.find(STEP_MARK)
+	return state if at < 0 else state.left(at)
 
 
-func _place() -> void:
-	"""Lay the frame out in the HUD's logical space and draw it at the HUD's scale (in the tree only:
-	built for a check out of it, there is no viewport to fit)."""
-	if not is_inside_tree():
-		return
-	var size_px := get_viewport().get_visible_rect().size
-	var rect := placement(int(size_px.x), int(size_px.y), _layout, _geometry)
-	if _ledger_open:
-		var below := _ledger.get_global_rect().end.y / _geometry.scale + LEDGER_GAP + FRAME_EXPAND
-		rect = Rect2(rect.position.x, below, rect.size.x, rect.end.y - below)
-	_frame.scale = Vector2(_geometry.scale, _geometry.scale)
-	_frame.position = rect.position * _geometry.scale
-	_frame.custom_minimum_size = Vector2(rect.size.x, 0.0)
-	_frame.visible = fit(rect.size.y)
-	_frame.size = Vector2(rect.size.x, 0.0)
-	_shrink.call_deferred(rect.size.x)
+static func step_of(state: String) -> String:
+	"""A state's progress or step: its words after the first " — " ("" when it has none)."""
+	var at: int = state.find(STEP_MARK)
+	return "" if at < 0 else state.substr(at + STEP_MARK.length())
 
 
-func _shrink(width: float) -> void:
-	"""Once the column has measured what `fit` left shown (a frame later), take the frame down to it."""
-	if _frame != null:
-		_frame.size = Vector2(width, 0.0)
-
-
-func fit(height: float) -> bool:
-	"""Make the frame fit `height` logical pixels, giving up the least useful first: everything; else no
-	hint; else no skill lines either; else the orders folded into one paragraph; else no orders. False
-	when even that is too tall (the panel then hides)."""
-	for level: int in range(FIT_LEVELS - 1, -1, -1):
-		_show_extras(level)
-		if needed_height() <= height:
-			return true
-	_abilities.visible = false
-	return needed_height() <= height
-
-
-func _show_extras(level: int) -> void:
-	"""What `fit` shows at `level` (see fit): 3 all, 2 no hint, 1 no skills, 0 folded orders."""
-	_hint.visible = level >= 3
-	for row: Control in _skill_rows:
-		row.visible = level >= 2
-	_abilities.visible = _abilities_wanted
-	_abilities.text = _abilities_full if level >= 1 else _abilities_compact
-
-
-func needed_height() -> float:
-	"""The frame's height with what is shown now, summed from its column's visible children (the
-	containers' cached minimum sizes follow a visibility change only a frame later)."""
-	var box: StyleBox = _frame.get_theme_stylebox(&"panel")
-	return stack_height(_hint.get_parent() as VBoxContainer) + (box.get_minimum_size().y if box != null else 0.0)
-
-
-static func _own_height(control: Control) -> float:
-	"""A control's height from its own measure now (a label re-shapes on a text change at once; its cached
-	combined size may not have caught up)."""
-	return maxf(control.get_minimum_size().y, control.custom_minimum_size.y)
-
-
-static func stack_height(stack: VBoxContainer) -> float:
-	"""A column's height from its visible children, each measured by itself now, and its separation
-	between them."""
-	var total: float = 0.0
-	var shown: int = 0
-	for child: Node in stack.get_children():
-		var control := child as Control
-		if control == null or not control.visible:
-			continue
-		total += _own_height(control)
-		shown += 1
-	return total + float(stack.get_theme_constant(&"separation") * maxi(shown - 1, 0))
-
-
-static func placement(width: int, height: int, layout: UiLayout, geometry: UiLayout.Geometry) -> Rect2:
-	"""The panel's rectangle in the HUD's logical pixels: the left column between the reserved band
-	and the minimap, inset by the carved frame. Fills `geometry` (scale 1 when the viewport is
-	below the supported floor and the HUD refuses to lay out)."""
-	if not layout.compute_into(maxi(width, UiLayout.SUPPORTED_MIN_WIDTH), maxi(height, UiLayout.SUPPORTED_MIN_HEIGHT),
-			DemoUiScale.percent, false, geometry):
-		geometry.scale = 1.0
-	var top := geometry.management_top + FRAME_EXPAND
-	var bottom := geometry.minimap.position.y - MINIMAP_GAP - FRAME_EXPAND
-	return Rect2(UiLayout.SAFE_INSET + FRAME_EXPAND, top, WIDTH, maxf(bottom - top, 0.0))
+static func first_up(words: String) -> String:
+	"""`words` with a capital first letter."""
+	return words.left(1).to_upper() + words.substr(1)
 
 
 static func party_lines(entries: Array[Dictionary]) -> PackedStringArray:
-	"""The panel's body lines: nobody; one resident's name, species, state and -- when it has any
-	(an entry's "skills", demo/forestry/ and demo/waterplay/) -- its skills, a line for each line of them; or a count and a line per resident, its short
-	skills after its state (at most MAX_ROWS, then "+ n more")."""
+	"""What the panel says, in reading order. Nobody: NOBODY. One resident: its name (the summary's lead),
+	species, what it is doing, the progress or step of that (when its state has one), "Then back to:" and a
+	row per unfinished job, then its skills, a line for each line of them. A group: "n residents", then a line
+	per member -- every member -- with its short skills after its state."""
 	var lines := PackedStringArray()
 	if entries.is_empty():
 		lines.append(NOBODY)
 	elif entries.size() == 1:
-		lines.append(String(entries[0]["name"]))
-		lines.append(String(entries[0]["species"]))
-		lines.append(String(entries[0]["state"]))
-		var then: PackedStringArray = entries[0].get("then", PackedStringArray())
-		if not then.is_empty():
-			lines.append(THEN % ", ".join(then))
-		for skill: String in String(entries[0].get("skills", "")).split("\n", false):
-			lines.append(skill)
+		_one_lines(entries[0], lines)
 	else:
-		lines.append("%d residents" % entries.size())
-		for i in mini(entries.size(), MAX_ROWS):
-			var skills: String = String(entries[i].get("skills", ""))
-			lines.append("%s — %s%s" % [entries[i]["name"], entries[i]["state"], "" if skills.is_empty() else " · " + skills])
-		if entries.size() > MAX_ROWS:
-			lines.append("+ %d more" % (entries.size() - MAX_ROWS))
+		lines.append(GROUP % entries.size())
+		for entry: Dictionary in entries:
+			var skills: String = String(entry.get("skills", ""))
+			lines.append("%s — %s%s" % [entry["name"], entry["state"], "" if skills.is_empty() else " · " + skills])
 	return lines
+
+
+static func _one_lines(entry: Dictionary, lines: PackedStringArray) -> void:
+	"""One resident's lines (see party_lines)."""
+	var state: String = String(entry["state"])
+	lines.append(String(entry["name"]))
+	lines.append(String(entry["species"]))
+	lines.append(command_of(state))
+	if not step_of(state).is_empty():
+		lines.append(PROGRESS % step_of(state))
+	var then: PackedStringArray = entry.get("then", PackedStringArray())
+	if not then.is_empty():
+		lines.append(THEN_HEAD)
+		for job: String in then:
+			lines.append(BULLET + job)
+	for skill: String in String(entry.get("skills", "")).split("\n", false):
+		lines.append(skill)
 
 
 static func state_text(activity: int, clip: StringName, place: String, dug_percent: int = 0) -> String:
@@ -470,6 +578,124 @@ static func state_text(activity: int, clip: StringName, place: String, dug_perce
 			return "working at " + place
 		return "working: " + String(clip).replace("_", " ")
 	return "wandering"
+
+
+# --- placement ----------------------------------------------------------------------------------------
+
+func watch_hud(hud_root: Control) -> void:
+	"""Yield to the HUD's resource ledger (found by its UI id under `hud_root`), if it has one."""
+	_hud_root = hud_root
+	_find_ledger()
+
+
+func _find_ledger() -> void:
+	"""Look the ledger up (the HUD may build it after the demo starts)."""
+	if _hud_root != null and is_instance_valid(_hud_root):
+		_ledger = _hud_root.find_child(LEDGER_NAME, true, false) as Control
+
+
+func follow_hud() -> void:
+	"""Re-place the panel when the ledger opens or closes. Cheap; call a few times a second."""
+	if _ledger == null:
+		_find_ledger()
+	var open := _ledger != null and is_instance_valid(_ledger) and _ledger.is_visible_in_tree()
+	if open != _ledger_open:
+		_ledger_open = open
+		_place()
+
+
+func _place() -> void:
+	"""Lay the frame out in the HUD's logical space and draw it at the HUD's scale (in the tree only:
+	built for a check out of it, there is no viewport to fit). A content change queues it again once its parts
+	have measured themselves (`_queue_place`)."""
+	_place_queued = false
+	if not is_inside_tree() or _frame == null:
+		return
+	var size_px := get_viewport().get_visible_rect().size
+	var rect := placement(int(size_px.x), int(size_px.y), _layout, _geometry)
+	if _ledger_open:
+		rect = below_ledger(rect, _ledger.get_global_rect().end.y / _geometry.scale, fixed_height())
+	_frame.scale = Vector2(_geometry.scale, _geometry.scale)
+	_frame.position = rect.position * _geometry.scale
+	_frame.custom_minimum_size = Vector2(rect.size.x, 0.0)
+	fit(rect.size.y)
+	_frame.size = Vector2(rect.size.x, 0.0)
+	_frame.visible = true
+
+
+static func below_ledger(column: Rect2, ledger_bottom: float, least: float) -> Rect2:
+	"""The column below an open ledger whose foot is at `ledger_bottom` (logical px) -- or, where that leaves
+	less than `least` (the header, summary and actions), the column as it was (the ledger draws over it until it
+	closes: the panel is never hidden)."""
+	var top: float = ledger_bottom + LEDGER_GAP + FRAME_EXPAND
+	if column.end.y - top < least:
+		return column
+	return Rect2(column.position.x, top, column.size.x, column.end.y - top)
+
+
+func fit(height: float) -> bool:
+	"""Fit the frame to `height` logical px: the header, summary and actions fixed above an inspector as tall as
+	its content or the rest of the column -- or, where that would leave the inspector less than
+	MIN_INSPECTOR_H, the summary and actions at the inspector's top (`docked` false). True when docked."""
+	var box: StyleBox = _frame.get_theme_stylebox(&"panel")
+	var frame_h: float = box.get_minimum_size().y if box != null else 0.0
+	var header_h: float = (_column.get_child(0) as Control).get_combined_minimum_size().y
+	var top_h: float = _top.get_combined_minimum_size().y
+	var rest_h: float = _detail.get_combined_minimum_size().y - (0.0 if _docked else top_h + SEPARATION)
+	var room_docked: float = height - frame_h - header_h - top_h - 2.0 * SEPARATION
+	_dock(room_docked >= MIN_INSPECTOR_H or room_docked >= rest_h)
+	var room: float = room_docked if _docked else height - frame_h - header_h - SEPARATION
+	var content: float = rest_h if _docked else rest_h + top_h + SEPARATION
+	_inspector.custom_minimum_size.y = clampf(content, 0.0, maxf(room, 0.0))
+	return _docked
+
+
+func _dock(docked: bool) -> void:
+	"""Put the summary and actions above the inspector (`docked`) or at its top; a button of theirs that had the
+	focus keeps it (moving a node drops its focus)."""
+	if docked == _docked:
+		return
+	_docked = docked
+	var focused: Control = get_viewport().gui_get_focus_owner() if is_inside_tree() else null
+	var keyboard: bool = focused != null and _top.is_ancestor_of(focused) and focused.has_focus(true)
+	_top.get_parent().remove_child(_top)
+	if docked:
+		_column.add_child(_top)
+		_column.move_child(_top, 1)
+	else:
+		_detail.add_child(_top)
+		_detail.move_child(_top, 0)
+	if focused != null and _top.is_ancestor_of(focused) and focused.is_inside_tree():
+		focused.grab_focus(not keyboard)
+
+
+func docked() -> bool:
+	"""Whether the summary and actions sit above the inspector (false: at its top, see fit)."""
+	return _docked
+
+
+func fixed_height() -> float:
+	"""The header, summary and actions' height with the frame's margins, logical px."""
+	var box: StyleBox = _frame.get_theme_stylebox(&"panel")
+	return (box.get_minimum_size().y if box != null else 0.0) + (_column.get_child(0) as Control).get_combined_minimum_size().y \
+		+ _top.get_combined_minimum_size().y + SEPARATION
+
+
+func inspector() -> ScrollContainer:
+	"""The scrolling inspector (checks)."""
+	return _inspector
+
+
+static func placement(width: int, height: int, layout: UiLayout, geometry: UiLayout.Geometry) -> Rect2:
+	"""The panel's rectangle in the HUD's logical pixels: the left column between the reserved band
+	and the minimap, inset by the carved frame. Fills `geometry` (scale 1 when the viewport is
+	below the supported floor and the HUD refuses to lay out)."""
+	if not layout.compute_into(maxi(width, UiLayout.SUPPORTED_MIN_WIDTH), maxi(height, UiLayout.SUPPORTED_MIN_HEIGHT),
+			DemoUiScale.percent, false, geometry):
+		geometry.scale = 1.0
+	var top := geometry.management_top + FRAME_EXPAND
+	var bottom := geometry.minimap.position.y - MINIMAP_GAP - FRAME_EXPAND
+	return Rect2(UiLayout.SAFE_INSET + FRAME_EXPAND, top, WIDTH, maxf(bottom - top, 0.0))
 
 
 func frame_rect() -> Rect2:

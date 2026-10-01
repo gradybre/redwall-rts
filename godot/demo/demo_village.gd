@@ -99,6 +99,11 @@ extends Node3D
 ## the Demo Lab (demo/ui/demo_lab.gd) -- and keyboard focus in the panels (F7, Tab, Enter/Space by focused
 ## context). The HUD's Menu button, and Esc once nothing else takes it (`_unhandled_input`, which runs
 ## after every child's), open the game menu; F8 opens the Lab, which holds the demo's test triggers.
+##
+## SOUND (decision 0351, demo/sound/): ONE SOUND OWNER (sound_director.gd), scene-scoped rather than an autoload,
+## hears the village's committed events (its event map, sound_taps.gd) and plays them through five buses with a
+## bounded voice pool; its volumes and mixes are the game menu's Settings. No sound files are staged yet, so it
+## plays silent; its streams load in the boot prewarm.
 
 const DemoManifestScript := preload("res://demo/demo_manifest.gd")
 const DemoWorldScript := preload("res://demo/world/demo_world.gd")
@@ -154,6 +159,7 @@ const NewsHistoryScript := preload("res://demo/ui/demo_news_history.gd")
 const IncidentCardsScript := preload("res://demo/ui/demo_incident_cards.gd")
 const NewsJumpScript := preload("res://demo/ui/demo_news_jump.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
+const SoundScript := preload("res://demo/sound/sound_director.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -201,6 +207,7 @@ var _shadow_view_m: float = -1.0
 var _gate: InputGateScript = InputGateScript.new()
 var _menu: MenuScript = MenuScript.new()
 var _lab: LabScript = LabScript.new()
+var _sound: SoundScript = SoundScript.new()
 ## Whether this boot holds its own PLAYER pause until the first frames are drawn (a restart: UI-SET-103's
 ## opening pause is held only once per process).
 var _held_open: bool = false
@@ -235,6 +242,7 @@ func _ready() -> void:
 	_command.add_skill_text(_command.tunnels().ext.night.home_text)
 	_build_waterplay()
 	_build_shared_ui()
+	_build_sound()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
 	_hold_restart_open()
@@ -250,6 +258,7 @@ func _warm_and_open() -> void:
 	_prewarm.add_step("props and icons", _services.props.warm_all)
 	_prewarm.add_step("plant atlases", _farm.view.assets.ensure_all_loaded)
 	_prewarm.add_step("woods: stumps, saplings, splits", _forestry.view.prewarm)
+	_prewarm.add_step("sound streams", _sound.warm)
 	var view: TunnelViewScript = (_command as DemoCommandScript).tunnels().view
 	var rooms: RoomViewScript = (_command as DemoCommandScript).tunnels().ext.room_view
 	_prewarm.add_frame_step("rooms on the ground", UndergroundPrewarmScript.FRAMES, rooms.begin_surface_prewarm,
@@ -642,6 +651,21 @@ func rooms() -> RoomsScript:
 	return _command.tunnels().network.rooms
 
 
+func _build_sound() -> void:
+	"""The demo's sound owner (see SOUND): its table, buses and voices, listening to the camera, the clock, the U
+	view and the village's models."""
+	add_child(_sound)
+	_sound.configure()
+	var tunnels: TunnelControlScript = (_command as DemoCommandScript).tunnels()
+	_sound.bind(_camera as DemoCameraScript, GameManager as GameManagerScript, func() -> bool: return tunnels.view.on)
+	_sound.follow_demo(_cast as DemoCastScript, _forestry, tunnels.network, _waterplay, _services, _water.map())
+
+
+func sound() -> SoundScript:
+	"""The demo's sound owner (demo/sound/sound_director.gd)."""
+	return _sound
+
+
 func _build_input() -> void:
 	"""The game menu, the Demo Lab and, last of all the village's children, the input gate over them, the
 	Pantry and the panels (see INPUT, MENU AND KEYBOARD)."""
@@ -660,6 +684,7 @@ func _build_input() -> void:
 	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
 	_gate.add_region("right column", [_zone, _farm.bed_panel, ext.panel, _forestry.panel, _waterplay.panel] as Array[Node])
 	_gate.add_region("left column", [(_command as DemoCommandScript).panel()] as Array[Node])
+	_sound.watch_buttons.call_deferred(get_tree().root)
 
 
 func _build_menu() -> void:
@@ -680,6 +705,8 @@ func _build_menu() -> void:
 		if DemoUiScale.percent != DemoUiScale.UiLayout.USER_SCALE_100:
 			shell.apply_user_scale.call_deferred(DemoUiScale.percent)
 	_menu.scale_percent = DemoUiScale.percent
+	_menu.sound.apply = _sound.mix.apply
+	_menu.sound.set_silent(_sound.is_silent())
 
 
 func _build_lab() -> void:

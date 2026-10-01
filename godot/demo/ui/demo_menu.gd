@@ -10,7 +10,9 @@ extends CanvasLayer
 ##     line that the demo cannot save yet;
 ##   * CONTROLS: the demo's keys and clicks (DEMO_CONTROLS);
 ##   * SETTINGS: only what works -- the interface scale (100/125/150 %, UI §8.1's `ui_scale`, each size
-##     offered only where the layout fits it) and full screen; sound is marked as not in the demo;
+##     offered only where the layout fits it), full screen, and the sound (demo/sound/sound_settings_ui.gd,
+##     decision 0351: each bus's volume and mute, and the mixes), scrolling in the modal rectangle when the
+##     window is short;
 ##   * CONFIRM: Restart and Quit both ask first, and say again that the village will be lost. Focus lands
 ##     on Cancel.
 ## Esc goes back one page, and from the menu closes it (the input gate calls `back_or_close`).
@@ -23,6 +25,7 @@ extends CanvasLayer
 ## ...), so the menu decides nothing about the scene; demo_village.gd wires them.
 
 const FarmUi := preload("res://demo/farm/farm_ui.gd")
+const SoundSettingsScript := preload("res://demo/sound/sound_settings_ui.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
@@ -52,7 +55,7 @@ const MENU_TIPS: Array[String] = [
 	"Close the menu and carry on at the speed you had (Esc)",
 	"Start the demo again from its first morning (asks first)",
 	"The demo's keys and clicks",
-	"Interface scale and full screen",
+	"Interface scale, full screen and sound",
 	"Test triggers -- weather, a tunnel threat, a storm gust, a swimmer's cramp",
 	"Leave the demo (asks first)",
 ]
@@ -63,7 +66,6 @@ const SCALE_TITLE: String = "Interface scale"
 const SCALE_TOO_SMALL: String = "%d%% needs a larger window"
 const SCALES_TOO_SMALL: String = "%s need a larger window"
 const FULLSCREEN_TEXT: String = "Full screen (F11): %s"
-const SOUND_LINE: String = "Sound: the demo has no sound yet, so there is nothing to set."
 const BACK_TEXT: String = "Back"
 ## The demo's keys and clicks, as the Controls page lists them (README "Commanding the residents").
 const DEMO_CONTROLS: Array = [
@@ -99,6 +101,8 @@ var scale_fits: Callable = Callable()
 var on_fullscreen: Callable = Callable()
 var is_fullscreen: Callable = Callable()
 var scale_percent: int = UiLayout.USER_SCALE_100
+## The Settings page's sound section; the host sets its `apply` (the demo's mix).
+var sound: SoundSettingsScript = SoundSettingsScript.new()
 
 var _manager: GameManagerScript = null
 var _holding: bool = false
@@ -111,6 +115,8 @@ var _scale_buttons: Array[Button] = []
 var _scale_note: Label = null
 var _fullscreen: Button = null
 var _controls_scroll: ScrollContainer = null
+var _settings_scroll: ScrollContainer = null
+var _settings_body: VBoxContainer = null
 var _confirm_title: Label = null
 var _confirm_cancel: Button = null
 var _confirm_ok: Button = null
@@ -194,13 +200,14 @@ func _build_controls() -> VBoxContainer:
 
 
 func _build_settings() -> VBoxContainer:
-	"""Interface scale, full screen, the sound line, and Back."""
+	"""Interface scale, full screen and the sound, in a scroll (see _place), and Back."""
 	var page := VBoxContainer.new()
 	page.add_child(FarmUi.label("Settings", FarmUi.TITLE_PX, Palette.INK, true))
-	page.add_child(FarmUi.label(SCALE_TITLE, FarmUi.BODY_PX, Palette.INK, true))
+	var body: VBoxContainer = _settings_scroll_body(page)
+	body.add_child(FarmUi.label(SCALE_TITLE, FarmUi.BODY_PX, Palette.INK, true))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override(&"separation", 8)
-	page.add_child(row)
+	body.add_child(row)
 	for percent: int in UiLayout.USER_SCALES:
 		var button: Button = FarmUi.button("%d%%" % percent)
 		button.toggle_mode = true
@@ -208,13 +215,26 @@ func _build_settings() -> VBoxContainer:
 		row.add_child(button)
 		_scale_buttons.append(button)
 	_scale_note = _line("", FarmUi.SMALL_PX, Palette.UMBER)
-	page.add_child(_scale_note)
+	body.add_child(_scale_note)
 	_fullscreen = FarmUi.button("")
 	_fullscreen.pressed.connect(toggle_fullscreen)
-	page.add_child(_fullscreen)
-	page.add_child(_line(SOUND_LINE, FarmUi.BODY_PX, Palette.UMBER))
+	body.add_child(_fullscreen)
+	body.add_child(sound)
 	page.add_child(_back_button())
 	return page
+
+
+func _settings_scroll_body(page: VBoxContainer) -> VBoxContainer:
+	"""The Settings page's scroll (sized in _place) and the column inside it."""
+	_settings_scroll = ScrollContainer.new()
+	_settings_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_settings_scroll.follow_focus = true
+	page.add_child(_settings_scroll)
+	_settings_body = VBoxContainer.new()
+	_settings_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_settings_body.add_theme_constant_override(&"separation", 8)
+	_settings_scroll.add_child(_settings_body)
+	return _settings_body
 
 
 func _build_confirm() -> VBoxContainer:
@@ -411,6 +431,7 @@ func _refresh_settings() -> void:
 	_scale_note.visible = not refused.is_empty()
 	var full: bool = is_fullscreen.is_valid() and bool(is_fullscreen.call())
 	_fullscreen.text = FULLSCREEN_TEXT % ("on" if full else "off")
+	sound.refresh()
 
 
 static func refused_note(refused: PackedStringArray) -> String:
@@ -481,6 +502,8 @@ func _place() -> void:
 	var zone: Rect2 = _geometry.modal
 	var width: float = minf(WIDTH, zone.size.x - 2.0 * FarmUi.FRAME_EXPAND)
 	_controls_scroll.custom_minimum_size = Vector2(0.0, maxf(120.0, zone.size.y - LIST_RESERVE_H))
+	_settings_scroll.custom_minimum_size = Vector2(0.0, minf(_settings_body.get_combined_minimum_size().y,
+		maxf(120.0, zone.size.y - LIST_RESERVE_H)))
 	_frame.reset_size()
 	var height: float = minf(_frame.get_combined_minimum_size().y, zone.size.y - 2.0 * FarmUi.FRAME_EXPAND)
 	var rect := Rect2(zone.position + Vector2((zone.size.x - width) / 2.0, (zone.size.y - height) / 2.0),

@@ -74,6 +74,9 @@ const NO_INCIDENT: int = -1
 
 ## Bumped by every post.
 var revision: int = 0
+## Rows ever written: bumped by every post that is not folded into the newest (a reader counts new rows by it;
+## the demo's sound, decision 0351).
+var rows_posted: int = 0
 
 var _calendar: CalendarScript = null
 var _clock: NewsClockScript = null
@@ -131,6 +134,7 @@ func post(source: int, level: int, text: String, summary: String = "", to_kind: 
 			_remove(_victim())
 		_append(source, level, text, summary, to_kind, to_id, serial)
 		row = _source.size() - 1
+		rows_posted += 1
 	_stamp[row] = _calendar.date_text() if _calendar != null else UNDATED
 	_posted_msec[row] = now_msec()
 	revision += 1

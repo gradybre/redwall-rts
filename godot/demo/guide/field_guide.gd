@@ -31,6 +31,8 @@ const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const FarmText := preload("res://demo/farm/farm_text.gd")
 const FisheryRules := preload("res://demo/fishery/fishery_rules.gd")
 const GearLocker := preload("res://demo/fishery/gear_locker.gd")
+const FerryRules := preload("res://demo/ferry/ferry_rules.gd")
+const RegattaRules := preload("res://demo/regatta/regatta_rules.gd")
 
 const KIND_CROP: int = 0
 const KIND_DISH: int = 1
@@ -45,7 +47,7 @@ const KIND_NAMES: Array[String] = ["Crops", "Dishes", "Materials", "Buildings an
 ## The crop rows' names as the guide says them (farming.gd's rows: roots, cabbage, beans, grain).
 const ROW_WORDS: Dictionary = {FarmingScript.CROP_ROOTS: "Root crop", FarmingScript.CROP_CABBAGE: "Leaf crop",
 	FarmingScript.CROP_BEANS: "Pulse", FarmingScript.CROP_GRAIN: "Grain"}
-const DISH_IDS: Array[StringName] = [&"dish_porridge", &"dish_soup", &"dish_fish_stew"]
+const DISH_IDS: Array[StringName] = [&"dish_porridge", &"dish_soup", &"dish_fish_stew", &"dish_bean_hotpot"]
 ## The catch's waters, by item from Catalog.FIRST_CATCH (fishing_driver.gd HABITATS: the stream is the river habitat,
 ## the pond the lake's).
 const CATCH_WATERS: Array[String] = ["the stream", "the stream", "the stream", "the pond", "the pond", "the pond"]
@@ -206,9 +208,20 @@ func _dish(dish: int) -> Entry:
 	if dish == Rules.DISH_FISH_STEW:
 		other = "Cooked at supper in the soup's place while the stores hold a batch's fresh fish and roots; otherwise %s." \
 			% Rules.DISH_NAMES[Rules.other(dish)]
+	if dish == Rules.DISH_BEAN_HOTPOT:
+		return _feast_dish(dish, uses, requires, links)
 	return make(DISH_IDS[dish], KIND_DISH, Rules.DISH_NAMES[dish], "Cooked for %s" % Rules.MEAL_NAMES[meal],
 		PackedStringArray([uses, requires, other, "Cooked at the cauldron by the keeper, served at the hall's tables."]),
 		links)
+
+
+func _feast_dish(dish: int, uses: String, requires: String, links: Array[StringName]) -> Entry:
+	"""The feast's bean hotpot (decision 0438): cooked only for a feast's supper, never in the everyday alternation."""
+	links.append(&"occasion_regatta")
+	return make(DISH_IDS[dish], KIND_DISH, Rules.DISH_NAMES[dish], "Cooked for a feast",
+		PackedStringArray([uses + " The Hearth feast's main course: one portion for every resident.", requires,
+		"Only for a feast (the regatta's), at its day's supper; the everyday meals never turn to it.",
+		"Cooked at the cauldron by the keeper, served at the hall's tables on the feast's day."]), links)
 
 
 # --- fish and preserved food -------------------------------------------------------------------------
@@ -360,6 +373,8 @@ func _add_stations() -> void:
 	_add(_station_bridges())
 	_add(_station_fishing())
 	_add(_station_rack_mill())
+	_add(_station_ferry())
+	_add(_occasion_regatta())
 
 
 static func _station_beds() -> Entry:
@@ -459,6 +474,30 @@ static func _station_rack_mill() -> Entry:
 			FarmText.units_text(FisheryRules.DRY_IN_MILLI), FarmText.units_text(FisheryRules.MILL_IN_MILLI)],
 		"Cook fresh fish in the stew instead of drying it.", "The Water panel's Drying rack and mill: Dry fish, Mill grain."]),
 		[&"goods_dried_fish", &"goods_flour", &"station_store"])
+
+
+static func _station_ferry() -> Entry:
+	"""The ferry and the far copse (decision 0437), from ferry_rules.gd."""
+	return make(&"station_ferry", KIND_STATION, "The ferry", "The far copse's wood across the run", PackedStringArray([
+		"Carrying the far copse's windfall from the far stage to the ferry stage, %s a crossing; a passenger may ride in its second seat when the boat is the quicker way." %
+			FarmText.units_text(FerryRules.BOAT_CARGO_MILLI),
+		"A helm (fishing %d), open water -- no storm, hard freeze, flood or pond ice -- and its boat free; it departs %02d:00-%02d:00 every %d game hours when anything waits, or at once at %s on the far stage." % [
+			FisheryRules.HELM_MIN_LEVEL, FerryRules.FIRST_DEPARTURE_HOUR, FerryRules.LAST_DEPARTURE_HOUR, FerryRules.EVERY_HOURS,
+			FarmText.units_text(FerryRules.THRESHOLD_MILLI)],
+		"Carry the wood round by the ford, or build a bridge.",
+		"The ferry stage on the run below the fisher shelter; the far stage at the stream's mouth; the Water panel's Ferry."]),
+		[&"material_wood", &"station_fishing", &"station_bridges", &"occasion_regatta"])
+
+
+static func _occasion_regatta() -> Entry:
+	"""The regatta and its feast (decision 0438), from regatta_rules.gd."""
+	return make(&"occasion_regatta", KIND_STATION, "The regatta", "A race and a feast, once a season", PackedStringArray([
+		"Once a season, the first in summer: a race between the two rowboats and the %s feast at the day's supper, remembered in the chronicle." % RegattaRules.THEME_NAME,
+		"A day and a host; two helms; the main course's beans and cabbage (bean hotpot); %s of wood for its service; 3 days of food and wood after it, or your override." %
+			FarmText.units_text(RegattaRules.service_wood_milli(9)),
+		"Skip the season: no penalty, nothing withheld.",
+		"The pond and the boathouse jetty; the hall's tables; the Water panel's Regatta, or the Feast command."]),
+		[&"dish_bean_hotpot", &"station_fishing", &"station_kitchen", &"station_ferry"])
 
 
 # --- residents' skills -------------------------------------------------------------------------------

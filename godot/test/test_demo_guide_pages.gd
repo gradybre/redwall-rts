@@ -217,7 +217,8 @@ func test_field_guide_links_resolve_and_nothing_absent_is_described() -> void:
 		for section: String in [entry.uses, entry.requires, entry.alternatives, entry.here]:
 			assert_false(section.is_empty(), "%s: a section" % entry.id)
 		var all: String = (entry.title + entry.uses + entry.requires + entry.alternatives + entry.here).to_lower()
-		for absent: String in ["mead", "hunt", "feast", "charter", "ferry", "regatta"]:
+		# The ferry, the regatta and its feast exist since decisions 0437 and 0438.
+		for absent: String in ["mead", "hunt", "charter"]:
 			assert_false(all.contains(absent), "%s mentions %s" % [entry.id, absent])
 
 

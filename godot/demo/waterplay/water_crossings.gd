@@ -3,9 +3,15 @@ extends "res://demo/cast/crossing_hook.gd"
 ## resident walks or swims one. Decision 0196 (live demo). Presentation around integer rules.
 ##
 ## ---------------------------------------------------------------------------------------
-## ROWS. A crossing row is a bridge (rows 0 .. Bridges.MAX_BRIDGES - 1, offered once OPEN) or a swim
-## link (water_links.gd, rows from LINK_ROW0). The tunnel router gives crossings their own leg codes
-## (tunnel_router.gd CROSSINGS), so a route can mix tunnels, bridges and swims.
+## ROWS. A crossing row is a bridge (rows 0 .. Bridges.MAX_BRIDGES - 1, offered once OPEN), a swim
+## link (water_links.gd, rows from LINK_ROW0) or THE FERRY (FERRY_ROW, its own row and leg code: decision 0437,
+## demo/ferry/ferry.gd). The tunnel router gives crossings their own leg codes (tunnel_router.gd CROSSINGS), so a route
+## can mix tunnels, bridges, swims and the ferry.
+##
+## THE FERRY ROW. Offered to any trip that crosses the water -- loaded or not, swimmer or not -- while the ferry is open,
+## staffed and boardable within its longest wait (ferry.gd `offer_cost_m`: both decks, the row and the wait for the next
+## boarding, as metres at the walker's pace). Its leg is the ferry's (`begin_passenger` / `step_passenger`): wait at the
+## stage, board, ride, step off -- and any refusal while it waits ends the leg there, so it plans again by land.
 ##
 ## WHAT A TRIP IS OFFERED (`offers_for` / `offer_into`). Nothing when the straight line from start to
 ## goal meets no water (water_map.gd `segment_crosses_water`): a trip in the village plans exactly as
@@ -42,6 +48,7 @@ const Rules := preload("res://demo/waterplay/swim_rules.gd")
 const WaterRules := preload("res://demo/water/water_rules.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
 const LinksScript := preload("res://demo/waterplay/water_links.gd")
+const FerryScript := preload("res://demo/ferry/ferry.gd")
 const BridgesScript := preload("res://demo/waterplay/bridges.gd")
 const StateScript := preload("res://demo/waterplay/swim_state.gd")
 const MotionScript := preload("res://demo/waterplay/swim_motion.gd")
@@ -52,6 +59,9 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const LINK_ROW0: int = BridgesScript.MAX_BRIDGES
 ## The row of a swim to the nearest connection (never offered to a plan).
 const ASHORE_ROW: int = 4000
+## The ferry's row (decision 0437): its own, clear of the bridges', the links', the route preview's proposed bridge
+## (preview_crossings.gd PROPOSAL_ROW, 3000) and ASHORE_ROW.
+const FERRY_ROW: int = 3500
 ## Swim links offered to one trip, at most.
 const SWIM_OFFERS: int = 3
 ## Climbing in and out of the water costs this much walking on top of the bank walks (m, demo).
@@ -74,6 +84,8 @@ var state: StateScript = null
 var motion: MotionScript = null
 ## `(who: int, why: StringName) -> void`, told when a swimmer is refused at the bank (THE BANK RECHECK).
 var on_refused: Callable = Callable()
+## The ferry (decision 0437; none: no ferry row is offered).
+var ferry: FerryScript = null
 
 var _cast: DemoCastScript = null
 var _leg_row: PackedInt32Array = PackedInt32Array()
@@ -134,7 +146,20 @@ func offers_for(walker: int, from: Vector2, to: Vector2, loaded: bool) -> bool:
 	_pick_bridges()
 	if state.swim_refusal(walker, loaded) == Rules.REFUSE_NONE:
 		_pick_links(walker, from, to)
+	_pick_ferry(walker, from, loaded)
 	return _pick_count > 0
+
+
+func _pick_ferry(walker: int, from: Vector2, loaded: bool) -> void:
+	"""The ferry, at its cost now (see THE FERRY ROW), when it is offered and a pair is left."""
+	if ferry == null or _pick_count >= RouterScript.MAX_CROSSING_PAIRS:
+		return
+	var cost: float = ferry.offer_cost_m(walker, from, loaded)
+	if cost == INF:
+		return
+	_pick_rows[_pick_count] = FERRY_ROW
+	_pick_cost[_pick_count] = cost
+	_pick_count += 1
 
 
 func offer_into(router: RefCounted, walker: int, from: Vector2, to: Vector2, loaded: bool) -> void:
@@ -200,8 +225,10 @@ func link_cost_m(walker: int, k: int) -> float:
 
 
 func end_point(row: int, far: bool) -> Vector2:
-	"""Where crossing `row` is stepped onto (its end b when `far`): a bridge's approach, or a link's
-	land end."""
+	"""Where crossing `row` is stepped onto (its end b when `far`): a bridge's approach, a link's land end, or a
+	ferry stage's land end."""
+	if row == FERRY_ROW and ferry != null:
+		return ferry.end_point(far)
 	if row < LINK_ROW0:
 		return bridges.approach(row, far)
 	var k: int = row - LINK_ROW0
@@ -216,6 +243,8 @@ func begin_leg(brain: RefCounted, row: int, reverse: bool) -> void:
 	_leg_row[who] = row
 	_leg_reverse[who] = 1 if reverse else 0
 	_leg_phase[who] = PHASE_ON
+	if row == FERRY_ROW and ferry != null:
+		ferry.begin_passenger(brain as BrainScript, reverse)
 
 
 func step_leg(brain: RefCounted, delta: float) -> bool:
@@ -224,6 +253,8 @@ func step_leg(brain: RefCounted, delta: float) -> bool:
 	var row: int = _leg_row[who]
 	if row == ASHORE_ROW:
 		return _step_ashore(brain, delta)
+	if row == FERRY_ROW:
+		return ferry == null or ferry.step_passenger(brain as BrainScript, delta)
 	if row < LINK_ROW0:
 		return _step_bridge(brain, row, delta)
 	return _step_link(brain, row - LINK_ROW0, delta)
@@ -341,6 +372,8 @@ func _step_ashore(brain: RefCounted, delta: float) -> bool:
 
 func abandon_leg(brain: RefCounted) -> void:
 	"""Forget `brain`'s leg (an emergency took it off where it is)."""
+	if _leg_row[brain.index] == FERRY_ROW and ferry != null:
+		ferry.abandon_passenger(brain as BrainScript)
 	_leg_row[brain.index] = -1
 
 
@@ -371,7 +404,7 @@ func turn_back(brain: RefCounted) -> bool:
 	there. True when it turned (it was mid-swim and the start was nearer)."""
 	var who: int = brain.index
 	var row: int = _leg_row[who]
-	if row < LINK_ROW0 or row == ASHORE_ROW or _leg_phase[who] != PHASE_ACROSS:
+	if row < LINK_ROW0 or row == ASHORE_ROW or row == FERRY_ROW or _leg_phase[who] != PHASE_ACROSS:
 		return false
 	var reverse: bool = _leg_reverse[who] == 1
 	var back: Vector2 = _leg_point(row, 1, reverse)
@@ -390,6 +423,8 @@ func leg_text(brain: RefCounted) -> String:
 	var row: int = _leg_row[brain.index]
 	if row == ASHORE_ROW:
 		return "swimming ashore"
+	if row == FERRY_ROW and ferry != null:
+		return ferry.passenger_text(brain.index)
 	if row >= 0 and row < LINK_ROW0:
 		return "crossing the %s" % bridges.names[row]
 	if row >= LINK_ROW0 and _leg_phase[brain.index] == PHASE_REFUSED:

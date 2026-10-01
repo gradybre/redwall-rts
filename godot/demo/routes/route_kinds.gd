@@ -14,6 +14,9 @@ extends RefCounted
 ## aboard (a fishing trip's seat or a boat rescue's helm) is placed by the boat (boat_fleet.gd), not walking a route.
 ## `boat_leg_into` reads the boat it sits in -- where it is now and the rest of its course, out to its station or back
 ## to its berth -- so the Routes layer draws it as BOAT ("by boat"), never as an unknown crossing or nothing.
+##
+## THE FERRY (decision 0437). The ferry IS a router crossing row (water_crossings.gd FERRY_ROW): a planned route's leg on
+## it is FERRY ("by ferry"), and a passenger or crew aboard the ferry boat reads as FERRY too (`boat_kind_of`).
 
 const RouterScript := preload("res://demo/tunnel/tunnel_router.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
@@ -32,9 +35,12 @@ const KIND_SWIM: int = 4
 ## A boat leg (see BOAT LEGS), and any other water crossing.
 const KIND_BOAT: int = 5
 const KIND_PROPOSED: int = 6
-const KIND_COUNT: int = 7
+## The ferry's crossing row, and anyone aboard the ferry boat (see THE FERRY).
+const KIND_FERRY: int = 7
+const KIND_COUNT: int = 8
 ## How each kind reads in a run ("wading 6 m") and in the overlay's legend.
-const KIND_WORDS: Array[String] = ["surface", "wading", "underground", "bridge", "swimming", "by boat", "new bridge"]
+const KIND_WORDS: Array[String] = ["surface", "wading", "underground", "bridge", "swimming", "by boat", "new bridge",
+	"by ferry"]
 ## A level that is between the two (a ramp or stairs down).
 const BETWEEN_LEVELS: int = 0
 
@@ -46,6 +52,8 @@ var swim_count: int = 0
 var hook: CrossingHookScript = CrossingHookScript.new()
 ## The village's boats (water part B; none: no boat legs).
 var fleet: FleetScript = null
+## The ferry's crossing row (water_crossings.gd FERRY_ROW; -1: no ferry).
+var ferry_row: int = -1
 
 
 func configure(water_hook: CrossingHookScript, first_swim_row: int, swim_rows: int) -> void:
@@ -64,6 +72,8 @@ func kind_of(code: int, a: Vector2, b: Vector2) -> int:
 	var row: int = RouterScript.crossing_row(code)
 	if row == PreviewScript.PROPOSAL_ROW:
 		return KIND_PROPOSED
+	if row == ferry_row:
+		return KIND_FERRY
 	if row < BridgesScript.MAX_BRIDGES:
 		return KIND_BRIDGE
 	if row >= swim_first and row < swim_first + swim_count:
@@ -97,6 +107,12 @@ func boat_leg_into(who: int, out: PackedVector2Array) -> bool:
 		for k: int in range(ahead.size() - 1, -1, -1):
 			out.append(ahead[k])
 	return out.size() > 1
+
+
+func boat_kind_of(who: int) -> int:
+	"""How a resident aboard a boat travels: FERRY in the ferry boat (boat_routes.gd FERRY_BOAT), else BOAT."""
+	var boat: int = fleet.boat_of_crew(who) if fleet != null else -1
+	return KIND_FERRY if boat == BoatRoutes.FERRY_BOAT else KIND_BOAT
 
 
 static func level_of(graph: GraphScript, code: int) -> int:

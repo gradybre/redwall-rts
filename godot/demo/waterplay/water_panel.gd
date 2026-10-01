@@ -33,6 +33,8 @@ extends CanvasLayer
 ## in its tooltip.
 
 const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
+## How many frames `scroll_to_line` keeps its line at the top while a panel just brought forward grows.
+const SCROLL_SETTLE_FRAMES: int = 10
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
@@ -69,6 +71,16 @@ const ACTION_MAKE_ICE_KIT: StringName = &"make_ice_kit"
 const ACTION_MEND: StringName = &"mend"
 const ACTION_DRY: StringName = &"dry_fish"
 const ACTION_MILL: StringName = &"mill_grain"
+## The Ferry section (decision 0437) and the Regatta section (decision 0438).
+const ACTION_FERRY_GATHER: StringName = &"ferry_gather"
+const ACTION_FERRY_SEND: StringName = &"ferry_send"
+const ACTION_FERRY_CANCEL: StringName = &"ferry_cancel"
+const ACTION_REGATTA_PREV_DAY: StringName = &"regatta_prev_day"
+const ACTION_REGATTA_NEXT_DAY: StringName = &"regatta_next_day"
+const ACTION_REGATTA_HOST: StringName = &"regatta_host"
+const ACTION_REGATTA_HOLD: StringName = &"regatta_hold"
+const ACTION_REGATTA_OVERRIDE: StringName = &"regatta_override"
+const ACTION_REGATTA_SKIP: StringName = &"regatta_skip"
 const BUTTON_TEXT: Dictionary = {
 	&"prev_site": "◀ Site", &"next_site": "Site ▶", &"span_tool": "Span two banks…",
 	&"build_plank": "Build footbridge", &"build_log": "Build log bridge", &"source": "Source ▸",
@@ -77,6 +89,9 @@ const BUTTON_TEXT: Dictionary = {
 	&"fish_authorise": "Authorise trip", &"fish_next_trip": "Next trip ▸", &"fish_cancel": "Cancel trip",
 	&"make_net": "Make net", &"make_trap": "Make trap", &"make_ice_kit": "Make ice kit", &"mend": "Mend gear",
 	&"dry_fish": "Dry fish", &"mill_grain": "Mill grain",
+	&"ferry_gather": "Gather the far copse", &"ferry_send": "Send the ferry", &"ferry_cancel": "Cancel crossing",
+	&"regatta_prev_day": "◀ Day", &"regatta_next_day": "Day ▶", &"regatta_host": "Host ▸",
+	&"regatta_hold": "Hold the regatta", &"regatta_override": "Override reserves", &"regatta_skip": "Skip this season",
 }
 ## What a button does, where its action card does not say it (decision 0391: every action has a hover text).
 const BUTTON_TIPS: Dictionary = {
@@ -87,12 +102,20 @@ const BUTTON_TIPS: Dictionary = {
 	&"fish_method": "The next method there: hand net, trap, boat, ice fishing",
 	&"fish_species": "The next fish of that water",
 	&"fish_next_trip": "Choose the next trip out (Cancel trip acts on it)",
+	&"regatta_prev_day": "An earlier day for the regatta, this season", &"regatta_next_day": "A later day for the regatta, this season",
+	&"regatta_host": "The next resident to host the regatta",
 }
 ## The Fishing, Boats and rack-and-mill sections' button rows (decision 0431).
 const CHOICE_ACTIONS: Array[StringName] = [&"fish_site", &"fish_method", &"fish_species"]
 const TRIP_ACTIONS: Array[StringName] = [&"fish_authorise", &"fish_next_trip", &"fish_cancel"]
 const GEAR_ACTIONS: Array[StringName] = [&"make_net", &"make_trap", &"make_ice_kit", &"mend"]
 const STATION_ACTIONS: Array[StringName] = [&"dry_fish", &"mill_grain"]
+const FERRY_ACTIONS: Array[StringName] = [&"ferry_gather", &"ferry_send", &"ferry_cancel"]
+const REGATTA_CHOICE_ACTIONS: Array[StringName] = [&"regatta_prev_day", &"regatta_next_day", &"regatta_host"]
+const REGATTA_ACTIONS: Array[StringName] = [&"regatta_hold", &"regatta_override", &"regatta_skip"]
+## The Ferry and Regatta sections' lines, in order (demo_ferry.gd and demo_regatta.gd fill them).
+const FERRY_LINES: Array[StringName] = [&"ferry_status", &"ferry_cargo", &"ferry_copse", &"ferry_benefit"]
+const REGATTA_LINES: Array[StringName] = [&"regatta_status", &"regatta_choice", &"regatta_preview"]
 ## Their lines, in order: what fishery.gd's panel text fills.
 const FISHERY_LINES: Array[StringName] = [&"fish_choice", &"fish_preview", &"fish_trips", &"fish_gear", &"boats",
 	&"stations"]
@@ -155,6 +178,9 @@ var _width: float = 316.0
 var _zone_shown: bool = false
 var _zone_inset: float = 0.0
 var _place_queued: bool = false
+## The line `scroll_to_line` keeps at the top while the panel settles (none: &""), and until which process frame.
+var _scroll_key: StringName = &""
+var _scroll_until_frame: int = 0
 ## Whether the pinned selection was folded away to leave the sections MIN_BODY_H (see _place).
 var _picked_folded: bool = false
 ## How many selected residents' lines are pinned, and whether "n more selected" is wanted (_fill_picked).
@@ -194,6 +220,8 @@ func build() -> void:
 	_build_swimmers()
 	_build_bridges()
 	_build_fishery()
+	_build_ferry()
+	_build_regatta()
 	_pinned.minimum_size_changed.connect(_queue_place)
 	_column.minimum_size_changed.connect(_queue_place)
 
@@ -272,6 +300,64 @@ func _build_fishery() -> void:
 	_set_line(&"stations_title", "Drying rack and mill")
 	_add_line(_column, &"stations", SMALL_PX, Palette.INK, null)
 	_column.add_child(_row(STATION_ACTIONS))
+
+
+func _build_ferry() -> void:
+	"""The Ferry (decision 0437): its state and timetable, the stacks, the far copse, its benefit; its orders."""
+	_add_line(_column, &"ferry_title", HEADING_PX, Palette.INK, Styles.heading_font())
+	_set_line(&"ferry_title", "Ferry")
+	for key: StringName in FERRY_LINES:
+		_add_line(_column, key, SMALL_PX, Palette.INK if key != &"ferry_benefit" else Palette.UMBER, null)
+	_column.add_child(_row(FERRY_ACTIONS))
+
+
+func _build_regatta() -> void:
+	"""The Regatta (decision 0438): the season's occasion, its day and host, the feast's preview; hold, override, skip."""
+	_add_line(_column, &"regatta_title", HEADING_PX, Palette.INK, Styles.heading_font())
+	_set_line(&"regatta_title", "Regatta")
+	_add_line(_column, &"regatta_status", SMALL_PX, Palette.INK, null)
+	_add_line(_column, &"regatta_choice", SMALL_PX, Palette.INK, null)
+	_column.add_child(_row(REGATTA_CHOICE_ACTIONS))
+	_add_line(_column, &"regatta_preview", SMALL_PX, Palette.UMBER, null)
+	_column.add_child(_row(REGATTA_ACTIONS))
+
+
+func show_ferry(lines: Dictionary) -> void:
+	"""The Ferry section: each FERRY_LINES key's text (missing keys keep theirs)."""
+	for key: StringName in FERRY_LINES:
+		if lines.has(key):
+			_set_line(key, String(lines[key]))
+
+
+func show_regatta(lines: Dictionary) -> void:
+	"""The Regatta section: each REGATTA_LINES key's text (missing keys keep theirs)."""
+	for key: StringName in REGATTA_LINES:
+		if lines.has(key):
+			_set_line(key, String(lines[key]))
+
+
+func scroll_to_line(key: StringName) -> void:
+	"""Scroll the sections so a line is at the top of the view (the HUD's Feast command brings the Regatta section).
+	A panel just brought forward is still growing to its full height (its scroll clamped short), so the scroll is set
+	again each time its range changes for SCROLL_SETTLE_FRAMES -- never after, so the player's own scrolling stands."""
+	if not _lines.has(key):
+		return
+	_scroll_key = key
+	_scroll_until_frame = Engine.get_process_frames() + SCROLL_SETTLE_FRAMES
+	var bar: VScrollBar = _body.get_v_scroll_bar()
+	if not bar.changed.is_connected(_settle_scroll):
+		bar.changed.connect(_settle_scroll)
+	_settle_scroll()
+
+
+func _settle_scroll() -> void:
+	"""Put the line asked for by `scroll_to_line` at the top, while its settling window lasts."""
+	if _scroll_key == &"" or Engine.get_process_frames() > _scroll_until_frame:
+		_scroll_key = &""
+		return
+	var top: float = _body.offset_in(_lines[_scroll_key] as Control)
+	if top >= 0.0:
+		_body.scroll_vertical = int(top)
 
 
 func show_fishery(lines: Dictionary) -> void:

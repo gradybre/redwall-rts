@@ -393,7 +393,7 @@ func _likely_crew() -> int:
 func _gear_condition() -> String:
 	"""REQ-SET-055's gear condition for the chosen method: its best free piece, or the free boat's hull."""
 	if choice_method == Rules.METHOD_BOAT:
-		for boat: int in fishery.fleet.count:
+		for boat: int in Routes.FISHING_BOATS:
 			if fishery.fleet.is_free(boat):
 				return "Boat: Rowboat %d %d/1000 (%d trips left)" % [boat + 1, fishery.fleet.durability[boat],
 					fishery.fleet.durability[boat] / FleetScript.WEAR_PER_CYCLE]

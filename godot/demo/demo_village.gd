@@ -134,6 +134,17 @@ extends Node3D
 ## (the button in the time cluster, G) runs the village to dawn, dusk, the next meal, a project, a harvest or a warning
 ## and pauses saying so. `_build_session()` wires it; the game menu holds its pause through the ledger.
 ##
+## THE FERRY (decision 0437, demo/ferry/; review ECO-041): one fixed two-landing cargo ferry from the ferry stage on the
+## run to the far stage at the stream's mouth -- the boat core's third boat on its fixed route, a staffed timetable, a
+## departure threshold, weather closure -- carrying the far copse's windfall to the log stack, with a passenger seat
+## the router may choose (water_crossings.gd FERRY_ROW). `_build_ferry()` wires it after the fishery, whose fleet,
+## skills and ice it shares; its section is the Water panel's, its jobs the work board's.
+##
+## THE REGATTA (decision 0438, demo/regatta/; review SOC-023, SOC-025, UX-028): once a season -- the first in summer -- a
+## boat race on the pond between the boathouse's two rowboats and the GDD's Hearth feast at the day's supper (the
+## kitchen's occasion), its day and host the player's, remembered in the chronicle. `_build_regatta()` wires it after the
+## people (the winners' deed, the feast's company); its section is the Water panel's, and the HUD's Feast command opens it.
+##
 ## ACCESSIBILITY (decision 0471, review UX-023, demo/access/): the four presets and their settings in the menu's
 ## Settings, applied live (`_on_access_changed`, access_effects.gd); the OBJECT LIST (F6) of every resident, bed, tree,
 ## bridge, tunnel mouth and room, and the rings that show them (village_targets.gd); the focus hints.
@@ -148,6 +159,9 @@ const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const KitchenNodeScript := preload("res://demo/kitchen/demo_kitchen.gd")
 const FisheryNodeScript := preload("res://demo/fishery/demo_fishery.gd")
+const FerryNodeScript := preload("res://demo/ferry/demo_ferry.gd")
+const RegattaNodeScript := preload("res://demo/regatta/demo_regatta.gd")
+const CrossingsScript := preload("res://demo/waterplay/water_crossings.gd")
 const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
@@ -306,6 +320,9 @@ var _people: PeopleScript = null
 var _people_card: PeopleCardScript = null
 ## Water part B (decision 0431): fishing trips, boats, gear, ice, the drying rack and the mill.
 var _fishery: FisheryNodeScript = null
+## Water part B lane 3 (decision 0437): the ferry. (Decision 0438): the regatta.
+var _ferry: FerryNodeScript = null
+var _regatta: RegattaNodeScript = null
 
 
 func _ready() -> void:
@@ -334,10 +351,12 @@ func _ready() -> void:
 	_command.set_fed_text(_kitchen.kitchen.fed_text)
 	_build_waterplay()
 	_build_fishery()
+	_build_ferry()
 	_build_shared_ui()
 	_build_work()
 	_build_routes()
 	_build_people()
+	_build_regatta()
 	_build_sound()
 	_build_guide()
 	_skin_hud.call_deferred()
@@ -556,6 +575,20 @@ func fishery() -> FisheryNodeScript:
 	return _fishery
 
 
+func _build_ferry() -> void:
+	"""THE FERRY (see the header), after the fishery: the boat core's ferry boat, the fishery's FISH skills and the pond's
+	ice, the water's crossings (its passenger row) and the Water panel's Ferry section; its jobs on the work board
+	(`_build_work`) and its line on the Routes layer (`_build_routes`)."""
+	_ferry = FerryNodeScript.new()
+	add_child(_ferry)
+	_ferry.configure(_cast as DemoCastScript, _command as DemoCommandScript, _services, _waterplay, _fishery)
+
+
+func ferry() -> FerryNodeScript:
+	"""The village's ferry (demo/ferry/demo_ferry.gd)."""
+	return _ferry
+
+
 func _build_work() -> void:
 	"""The village's work (see WORK): the board over every owner built so far, its screen behind the HUD's Jobs command,
 	and Shift+right-click's queue -- after the shared UI, whose "Go to" its screen uses."""
@@ -565,6 +598,7 @@ func _build_work() -> void:
 	_work.configure(_cast as DemoCastScript, _farm, _forestry, _waterplay, _spoil, tool.ext, tool.is_digger)
 	_work.add_kitchen(_kitchen.kitchen)
 	_work.add_fishery(_fishery.fishery)
+	_work.add_ferry(_ferry.ferry)
 	var command: DemoCommandScript = _command as DemoCommandScript
 	_work.set_readouts(command.activity_text, (GameManager as GameManagerScript).is_paused, work_jump, command.selected)
 	command.set_queue_handler(_work.queue_at)
@@ -582,6 +616,9 @@ func _build_routes() -> void:
 		_zone.show_panel.bind(DetailZoneScript.PANEL_WOODS))
 	_farm.lenses.set_subject(_routes_lens, _routes.subject)
 	_routes.kinds.fleet = _fishery.fishery.fleet
+	_routes.kinds.ferry_row = CrossingsScript.FERRY_ROW
+	_routes.overlay.ferry_course = _ferry.course_m()
+	_routes.overlay.ferry_status = _ferry.status_text
 	_cards.add_details(RescueCardScript.KEY_PREFIX, _routes.rescue_card.card_into)
 	_cards.set_centre((_camera as DemoCameraScript).centre_on)
 
@@ -693,6 +730,22 @@ func _build_people() -> void:
 	_people_card.hide_while(_cards.is_shown)
 	_people_card.hide_while(_history.is_open)
 	_people_card.hide_while(_stall_banner.is_shown)
+
+
+func _build_regatta() -> void:
+	"""THE REGATTA (see the header), after the people: the fishery's boats and skills, the kitchen's occasion, the
+	people's deed and company hooks, the Water panel's section, and the HUD's Feast command."""
+	_regatta = RegattaNodeScript.new()
+	add_child(_regatta)
+	_regatta.configure(_cast as DemoCastScript, _command as DemoCommandScript, _services, _waterplay, _fishery,
+		_kitchen.kitchen)
+	_regatta.bind_people(_people.record_regatta, _people.share_feast)
+	_regatta.unlock_feast_command(_shell())
+
+
+func regatta() -> RegattaNodeScript:
+	"""The village's regatta (demo/regatta/demo_regatta.gd)."""
+	return _regatta
 
 
 func _bind_people_taps(ext: TunnelExtScript) -> void:
@@ -1012,6 +1065,7 @@ func _build_songs() -> void:
 	if _songs.configure(_cast as DemoCastScript, _camera.camera(), _services.calendar, _services.notices):
 		_songs.follow(_kitchen.kitchen, _work.board)
 		_songs.set_deeds(village_deeds)
+		_songs.add_work_reader(_regatta.regatta.rowing)
 
 
 func village_deeds() -> PackedStringArray:

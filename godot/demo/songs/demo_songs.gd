@@ -11,6 +11,8 @@ extends Node
 ##            a kitchen step, or holding a work-board task that is WORKING or HAULING -- by day only;
 ##   EVENING  from EVENING_FROM_HOUR to EVENING_TO_HOUR, wandering free or walking home to bed (sleep_task.gd GOING).
 ## Lane 1's boats and fishing (Water part B) count as WORK through the same reads when they put a resident to work.
+## Lane 3's ferry does too (its crews' board tasks); the regatta's race crews, who are on no board, are read through
+## `add_work_reader` (decision 0438): rowing in the race is work for a song.
 ## DEEDS for a song's slot are what the village has recorded: each bridge it has opened ("the weir bridge") and, after
 ## a rescue, "the swimmer saved" (`set_deeds`); none recorded, the song's own fallback is sung.
 ## SETTINGS: sound_mix.gd `songs_on` (the game menu's "Residents sing") switches the singing; the Songs bus is the hum's.
@@ -51,6 +53,8 @@ var _cast: DemoCastScript = null
 var _camera: Camera3D = null
 var _calendar: CalendarScript = null
 var _kitchen: KitchenScript = null
+## Other owners' word that a resident is at work (`add_work_reader`).
+var _work_readers: Array[Callable] = []
 var _board: BoardScript = null
 var _notices: NoticesScript = null
 var _deeds: Callable = Callable()
@@ -107,6 +111,11 @@ func follow(kitchen: KitchenScript, board: BoardScript) -> void:
 	"""Read the kitchen (supper seats, cooks at work) and the work board (who is working) for the contexts."""
 	_kitchen = kitchen
 	_board = board
+
+
+func add_work_reader(reader: Callable) -> void:
+	"""`reader(who: int) -> bool`: one more owner's word that `who` is at work now (the regatta's rowing crews)."""
+	_work_readers.append(reader)
 
 
 func set_deeds(deeds: Callable) -> void:
@@ -171,6 +180,9 @@ func _working(brain: BrainScript, i: int) -> bool:
 		return true
 	if _kitchen != null and _kitchen.role_of(i) != KitchenTask.ROLE_EAT and _kitchen.step_of(i) >= KitchenTask.WORK_FIRST:
 		return true
+	for reader: Callable in _work_readers:
+		if bool(reader.call(i)):
+			return true
 	return _board_working(i)
 
 

@@ -13,7 +13,9 @@ extends RefCounted
 ##   durability  §5.4's installed boat gear, 0..1000, worn 15 a fishing cycle; no boat sets out below its wear
 ##   cargo       the catch aboard (item, milli-U), for the view and the panel: the trip's books own it
 ## Speed is ROW_SPEED_U_S whatever the crew (DEMO), on the demo clock: paused, the boats stop; at 4x they row four times
-## as fast. The ferry and regatta lane reuses this: a course is any validated water polyline from a berth.
+## as fast. The ferry and regatta lane reuses this: a course is any validated water polyline from a berth. A RACE
+## (decision 0438, the regatta) alone sets a boat's `pace_permille` above 1000 for its crew -- presentation of a
+## deterministic result; every other row rows at 1000 (exactly ROW_SPEED_U_S).
 
 const Routes := preload("res://demo/boats/boat_routes.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
@@ -35,6 +37,8 @@ const WEAR_PER_CYCLE: int = 15
 ## Seats along the hull from its centre (m, + toward the bow): the helm aft, the second forward (presentation).
 const SEAT_ALONG_M: Array[float] = [-0.75, 0.55]
 const NO_ITEM: int = -1
+## A boat's ordinary pace, per mille of ROW_SPEED_U_S (see `pace_permille`).
+const PACE_NORMAL: int = 1000
 
 var count: int = Routes.BERTH_COUNT
 var phase: PackedInt32Array = PackedInt32Array()
@@ -46,6 +50,8 @@ var owner: PackedInt32Array = PackedInt32Array()
 var durability: PackedInt32Array = PackedInt32Array()
 var cargo_item: PackedInt32Array = PackedInt32Array()
 var cargo_milli: PackedInt64Array = PackedInt64Array()
+## Per mille of ROW_SPEED_U_S each boat rows at (1000 unless a race set it; decision 0438).
+var pace_permille: PackedInt32Array = PackedInt32Array()
 ## Bumped whenever a boat's phase, crew, owner or wear changes (panels redraw then; positions move every frame).
 var revision: int = 0
 ## Distance every boat has rowed, all told, in u (a tally for tests and the ferry lane's checks).
@@ -56,8 +62,9 @@ var _carry: PackedInt64Array = PackedInt64Array()
 
 func _init() -> void:
 	"""BERTH_COUNT boats, each moored at its berth, unworn and unmanned."""
-	for column: PackedInt32Array in [phase, course_len_u, progress_u, owner, durability, cargo_item]:
+	for column: PackedInt32Array in [phase, course_len_u, progress_u, owner, durability, cargo_item, pace_permille]:
 		column.resize(count)
+	pace_permille.fill(PACE_NORMAL)
 	cargo_milli.resize(count)
 	_carry.resize(count)
 	crew.resize(count * SEATS)
@@ -96,6 +103,7 @@ func give_back(boat: int, serial: int) -> void:
 			crew[boat * SEATS + seat] = NOBODY
 		cargo_item[boat] = NO_ITEM
 		cargo_milli[boat] = 0
+		pace_permille[boat] = PACE_NORMAL
 		revision += 1
 
 
@@ -167,7 +175,7 @@ func step(usec: int) -> int:
 
 func _row(boat: int, usec: int) -> bool:
 	"""One boat's stroke: whole u along (or back down) its course, the fraction carried. True when it got there."""
-	_carry[boat] += usec * ROW_SPEED_U_S
+	@warning_ignore("integer_division") _carry[boat] += usec * ROW_SPEED_U_S * pace_permille[boat] / PACE_NORMAL
 	var moved: int = _carry[boat] / USEC_PER_SECOND
 	_carry[boat] -= moved * USEC_PER_SECOND
 	rowed_u += moved
@@ -255,6 +263,9 @@ func moving(boat: int) -> bool:
 
 
 func line_of(boat: int) -> String:
-	"""The Boats section's line: "Rowboat 1: rowing out · 940/1000 (62 trips left)"."""
-	return "Rowboat %d: %s · %d/%d (%d trips left)" % [boat + 1, PHASE_WORDS[phase[boat]], durability[boat], DURABILITY_CAP,
-		durability[boat] / WEAR_PER_CYCLE]
+	"""The Boats section's line: "Rowboat 1: rowing out · 940/1000 (62 trips left)" ("The ferry boat: ..." for the ferry's,
+	which never fishes, so it shows no trips)."""
+	if boat == Routes.FERRY_BOAT:
+		return "%s: %s · %d/%d" % [Routes.boat_name(boat), PHASE_WORDS[phase[boat]], durability[boat], DURABILITY_CAP]
+	@warning_ignore("integer_division") return "%s: %s · %d/%d (%d trips left)" % [Routes.boat_name(boat), PHASE_WORDS[phase[boat]], durability[boat],
+		DURABILITY_CAP, durability[boat] / WEAR_PER_CYCLE]

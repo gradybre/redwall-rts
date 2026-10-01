@@ -339,7 +339,7 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
 | Growing: Ripeness | Which beds are ready to harvest? | growing, ripe, past its best or lost, empty |
 | Growing: Water service | Which beds does the weir's garden leat water? | not served, dry (leat empty), normal, wet (decision 0441) |
 | Getting there: Water range | Where can they wade, swim, dive or cross? | wade, swim, dive, ford, bridge site, swim link, landing |
-| Getting there: Routes | How do they get there, and what holds them up? | surface, wading, underground, bridge, swimming (optional), by boat, the posts (waiting, blocked); public ways never swim (decision 0461) |
+| Getting there: Routes | How do they get there, and what holds them up? | surface, wading, underground, bridge, swimming (optional), by boat, by ferry (decision 0437), the posts (waiting, blocked); public ways never swim (decision 0461) |
 | Woods: Zones and trees | Which trees may be felled, which must stay? | forestry and conservation zones; mature, young, stump, cleared |
 | Underground: Tunnels | What lies under the village? | the U view's cut (U switches it too) |
 
@@ -398,10 +398,12 @@ Review group P (packet P5, ECO-039, ECO-045). `routes/`, wired by `demo_village.
 - **The Routes layer** (`routes/route_overlay.gd`): the selected residents' routes, each its own, coloured by stretch
   (`routes/route_kinds.gd`: surface, wading, underground dashed with its level, bridge, swimming, and **by boat** -- a
   crew member aboard, drawn along the boat's own course to its station or back to its berth, since a boat's legs are
-  its task's, not the router's), and a post with the
+  its task's, not the router's; and **by ferry** -- the ferry's crossing row, and anyone aboard the ferry boat: decision
+  0437), and a post with the
   words where one is held up (`routes/route_reasons.gd`, from the real cause): "finding a route", "waiting for mouth",
   "no safe exit", "closed by flood", "closed by a roof fall", "load too wide", "too big for the bore", "can't find a way
-  there", "gave up". The picker's notes give each member's stretches or hold-up. With nobody selected (ECO-039): each
+  there", "gave up", "waiting for the ferry". The ferry's course is drawn with its line ("Ferry: open · next departure
+  10:00", or "closed: a storm"). The picker's notes give each member's stretches or hold-up. With nobody selected (ECO-039): each
   work district's **public way** from the square for the public walker (the widest body, carrying -- so never swimming),
   labelled with its time; a narrow body's tunnel **shortcut** beside it where there is one, marked optional; and the swim
   links drawn as what they are -- optional crossings for swimmers (a swimmer's whole trip is not estimated for the layer:
@@ -467,8 +469,9 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
 - **The work board** (`work/work_board.gd`) is the one common owner of who does what. Each job owner keeps its own
   board -- the farm's, the woods', the bridges', the tunnels' jobs, the rooms' fit-out, the spoil heaps' -- read
   through one adapter each (`farm_work.gd`, `woods_work.gd`, `bridge_work.gd`, `tunnel_work.gd`, `fit_out_work.gd`,
-  `spoil_work.gd`, and water part B's `fishery_work.gd`: trips' seats, traps, the rack, the mill and the gear, decision
-  0431); every command goes to the owner's own function, so its conservation rules hold (decision 0222:
+  `spoil_work.gd`, water part B's `fishery_work.gd`: trips' seats, traps, the rack, the mill and the gear, decision
+  0431, and `ferry_work.gd`: the far copse's gathering, ferried wood's hauls and the crossings' crews, decision 0437);
+  every command goes to the owner's own function, so its conservation rules hold (decision 0222:
   a load in hand is carried on, never paused or handed over from afar -- earth too: a farm job carrying earth back
   to its heap reads "Carry earth back", a delivery, and Cancel refuses it; decision 0401). The kitchen's cook and
   water drawers are listed as well (`kitchen_work.gd`; the kitchen hands them out itself), and the board hands no
@@ -536,12 +539,14 @@ centre under the alerts), each completed **only by what really happens in the vi
 - **The village guide** (O, the HUD's Objectives command, unlocked for it): a modal that holds a menu pause through the
   pause ledger, "The village guide is open" (the village waits) with five tabs -- **Objectives** (done, current with its cause, ahead), **Projects**, **Field guide**, **Help**
   and **Practice**.
-- **Help** (also the game menu's Help page, in place of the 21-key Controls wall): 22 how-to topics and the 28 keys,
+- **Help** (also the game menu's Help page, in place of the 21-key Controls wall): 23 how-to topics (the ferry and the
+  regatta among them: decisions 0437, 0438) and the 28 keys,
   searched in plain words ("how do I cross the stream", "eat", "why is my job waiting"), each topic a command answers
   with that command as a button.
-- **Field guide**: 53 entries built from the demo's own tables -- the 16 crops (which dish each feeds), the three dishes
-  (the fish stew at supper among them), 7 materials (fishing gear among them), 10 buildings and stations (fishing and
-  the boats, the drying rack and mill among them), 5 skills, 4 water-safety entries, and 8 fish and preserved foods (the
+- **Field guide**: 56 entries built from the demo's own tables -- the 16 crops (which dish each feeds), the four dishes
+  (the fish stew at supper and the feast's bean hotpot among them), 7 materials (fishing gear among them), 12 buildings,
+  stations and occasions (fishing and the boats, the drying rack and mill, the ferry and the regatta among them), 5
+  skills, 4 water-safety entries, and 8 fish and preserved foods (the
   six fish, dried fish, flour) -- each with Uses, Requires, Alternatives and
   Available here, linked, a crop's pantry stock live; nothing the demo lacks.
 - **Practice stories**: a loaded crew at the stream, a delivery with nowhere to go, a winter pantry -- three choices each,
@@ -1075,7 +1080,9 @@ supper, whenever the stores hold a batch's fresh fish and roots nobody has set a
 or trout** instead of the soup -- the GDD's `fish_stew` row: fresh fish 2 U (any of the six species) + roots 2 U + water
 2 U, 20 WU, 3 portions of 2200 NP that keep 24 h; both inputs reserved from real lots and withdrawn together. Dried fish is
 not the stew's `fish`: it is the village's reserve, eaten as it is by a hungry resident (1800 NP a unit, after anything
-spoiling sooner).
+spoiling sooner). **The feast's dish** (decision 0438): the GDD's `bean_hotpot` row (beans 2 U + cabbage 2 U + water 2 U,
+20 WU, 3 portions of 2100 NP, keeping 36 h), cooked only for an **occasion** -- the regatta's supper -- from the food the
+regatta reserved, never by the everyday alternation.
 
 - **The day** (decision 0421). Breakfast is called at 07:00 and served until 08:59; supper at 17:00 until 18:59, an
   hour before dusk (so whoever goes to eat raw food at its end has eaten before bed). The cook (the keeper; a free
@@ -1402,7 +1409,7 @@ Fishing trips feed the pantry through the real fishery (`fishery/`, `boats/`): t
   in a store for the catch), the work is done, the store's catch is taken, and the catch is carried to the store. **Cancel
   trip** releases everything at once; a catch out of the water is always landed. One called away sets its catch down
   where it stands, for the next to fetch. A trip two game hours past its estimate is an OVERDUE warning.
-- **Boats** (Water panel ▸ Boats): two rowboats kept at the boathouse, moored at the **jetty** on the pond's west bank
+- **Boats** (Water panel ▸ Boats): two rowboats kept at the boathouse (and a third, the ferry boat: see The ferry), moored at the **jetty** on the pond's west bank
   (outside the boathouse). The crew wait at the jetty, board, row a **fixed route** to a fishing station and back, and
   step off; out on the water they are held (nothing calls them off mid-pond). A boat wears 15 a trip and none sets out
   below its wear (Mend gear). **Boat rescue**: a resident in difficulty at the pond's surface may be answered by a boat
@@ -1424,6 +1431,64 @@ Fishing trips feed the pantry through the real fishery (`fishery/`, `boats/`): t
 - **The Pantry's Stocks** lists each fish species, dried fish and flour like the crops (the Recipes tab still lists the
   16 farm ingredients: its library index has no fish yet). The sound: a splash where a net
   or trap goes in, a boat pushes off or a hole is cut, and the oars' knock as a boat rows.
+
+## The ferry and the regatta (water part B lane 3; decisions 0437-0439)
+
+Brendan approved ferries and the regatta feast with the rest of water part B (decision 0493, group K), though the review
+rated the ferry "Stretch" and moving vessels lie outside the adopted movement scope (MOVE-G01–05 stay open): decision
+0439 records that authority. `ferry/`, `regatta/`.
+
+**The ferry** (`ferry/ferry.gd`; numbers in `ferry_rules.gd`; decision 0437) -- one fixed two-landing cargo ferry:
+
+- **Two landings**, the boathouse jetty's pattern, outside every building: **the ferry stage** on the run's west bank
+  below the fisher shelter, and **the far stage** on the stream's far bank at its mouth. A **third boat**, the ferry
+  boat, lies off the ferry stage and rows **one fixed route** (10.1 m) down the run into the pond's north-east lobe and
+  back. No free sailing; fishing never takes it; the regatta races the boathouse's two.
+- **Its reason, the far copse**: windfall at the east woods' edge across the run (the woods' deadfall numbers: 1.0–2.0 U a
+  pile, 20 WU a U; two lie at the start, one falls each midnight). By land it is over the ford; carried to the log stack
+  it is about 3.2 game hours that way and 2.3 by ferry -- the Ferry section's benefit line, from the cast's own planner.
+- **Water panel ▸ Ferry**: its state and timetable, the stacks, the copse, the benefit; **Gather the far copse** (each pile
+  on the work board, to the selected first), **Send the ferry** (a crossing now), **Cancel crossing** (only before its crew
+  is aboard) -- each with its action card.
+- **A staffed timetable**: departures 06:00–18:00 every 2 game hours when anything waits to be carried, or at once when
+  **4.0 U** waits at the far stage; the crew is a **helm, fishing 1** (the boatwright or the fisher; anyone who learns).
+  The crew walks to the stage, boards, **loads** the far stage's stack (1 WU a unit, up to **12 U**), rows, **unloads** at
+  the ferry stage, steps ashore and **gives the boat back** -- free between crossings, so a boat rescue may take it (a
+  rescue in it walks to the ferry stage). A hauler carries the landed wood to the log stack: **the stores' wood rises**.
+- **Closure**: a storm, a hard freeze, the stream in flood or ice on the pond. Nothing departs; a crossing under way
+  **finishes its leg and holds** -- at the far stage its crew steps ashore and the boat waits there until the ferry opens, when a crew walks round to
+  bring it home (none can reach it: the job stays on the board, never ended with the boat out; Cancel is refused).
+  Wood stranded at the far stage or aboard while closed is the incident **"The ferry is closed: …"** (Village news ▸
+  Needs attention). The Routes layer and the Water panel say it.
+- **Passengers**: the router offers the ferry to any trip across the water while it is open, staffed and boardable
+  within 2 game hours, costed as its decks, its row and **the wait for its next boarding** -- so it is chosen only when it
+  is quicker. A passenger waits at the stage ("waiting for the ferry" on the Routes layer), boards the second seat, rides
+  (held: no order takes it off; its panel says "aboard a boat") and steps off at the other stage. Any refusal while it waits -- closed, too long a wait,
+  the seat taken, another order -- ends the leg where it stands, and it goes by land.
+- **The books**: every unit that fell in the copse is lying there, in a hand (or set down for the next), on a stack,
+  aboard, or in the stores -- at every frame, through cancel, closure and interruption.
+
+**The regatta** (`regatta/regatta.gd`; numbers in `regatta_rules.gd`; decision 0438) -- a once-a-season occasion, the
+first in summer:
+
+- **Water panel ▸ Regatta** (or the HUD's **Feast** command, unlocked for it): **◀ Day / Day ▶** (the season's days from
+  tomorrow; before summer, summer's), **Host ▸** (anyone but the village cook), and the **preview** -- the GDD's Hearth
+  feast for every resident: bean hotpot ×ceil(E/3) (beans and cabbage, free in the pantry), the second course (nut loaf)
+  and the warm infusion **declared unservable: the village has no nuts or herb**, so no Shared Warmth; seats, staffing,
+  the 1 U of service wood, the reserves after it, and the race's crews and paces. **Hold the regatta** refuses what is
+  invalid with its fix; under 3 days of ready food or wood it needs **Override reserves** (REQ-SET-101). Held, the feast's
+  beans and cabbage are reserved at once and its wood set aside. **Skip this season** costs nothing and gives everything
+  back. Once a season: held or skipped, the season is done.
+- **The day**: crews called at 13:00 to the boathouse jetty; at 15:00 both rowboats race out to a floating barrel and
+  home, each at its crew's fishing-skill pace (deterministic; equal paces a dead heat); the otters sing their work songs
+  as they row. A storm or a crew not aboard by 16:00 calls the race off; the feast goes on.
+- **The feast** is the day's supper: the kitchen cooks the occasion's bean hotpot from the reserved food and serves it at
+  the hall's tables at 17:00 (the supper song is sung there); the service wood burns.
+- **Remembered**: at the supper's end the chronicle (Village news, Village): the day, the host, the race, who shared the
+  feast and **one moment** (the finish); the winners' deed in their own histories, pinned to the chronicle; +5 affinity
+  for every pair who shared the feast (REQ-SET-036).
+- Checked by `test_demo_ferry.gd` and `test_demo_regatta.gd` (the placeholder cast on the real layout and water, the real
+  kitchen at the hall's tables: no staged assets).
 
 ## Spoil heaps
 
@@ -1559,7 +1624,9 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `events/` | Seeded threats (a flood, a fire) and evacuation |
 | `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the water overlay (the Water range map layer), the weir's sluice table and its gate and leat head (decision 0441) |
 | `fishery/` | Water part B: the trips, jobs and stations (`fishery.gd`, its rows `fishery_tables.gd`, its task), the numbers (`fishery_rules.gd`), the real gear locker over gear.gd, the FISH skill, the pond's ice, the words, the drawing and the node wiring it into the village (`demo_fishery.gd`) |
-| `boats/` | The boat core: the jetty, berths and fixed routes (`boat_routes.gd`), the boats as integer rows (`boat_fleet.gd`), their drawing, and the boat as a rescue rank (`boat_rescue.gd`) |
+| `boats/` | The boat core: the jetties, berths and fixed routes (`boat_routes.gd`; the ferry's stages and third boat, decision 0437), the boats as integer rows (`boat_fleet.gd`), their drawing, and the boat as a rescue rank (`boat_rescue.gd`) |
+| `ferry/` | The ferry (decision 0437): its rules, the crossings, the far copse, the stacks, the passengers and the books (`ferry.gd`), its task, its drawing, and the node wiring it into the village, the Water panel and the incidents (`demo_ferry.gd`) |
+| `regatta/` | The regatta (decision 0438): its rules (the GDD's Hearth feast, the race), the occasion, race and tally (`regatta.gd`), the crews' task, and the node wiring it into the village, the Water panel and the HUD's Feast command (`demo_regatta.gd`) |
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel; whose water range the map layer paints (`water_range.gd`) |
 | `farm/` | The farm: real FarmPlot rows, the pantry (and its ledger) and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves; the seasonal planner -- its overview rows, season calendar and timeline, soil plans, the after-action record and its tables (`farm_planner*.gd`, `farm_plan_rows.gd`, `farm_season.gd`, `farm_timeline.gd`, `farm_soil_plan*.gd`, `farm_record*.gd`) -- and the bed panel's Compare view (`farm_compare_view.gd`) |
 | `kitchen/` | The meal loop: the dishes and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |

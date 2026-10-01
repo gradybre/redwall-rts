@@ -49,6 +49,8 @@ const WHY_DRAW: String = "Why: keeping the kitchen's water drawn"
 const WHY_MEAL: String = "Why: mealtime"
 const WHY_NIGHT: String = "Why: night — the village sleeps"
 const WHY_HELD: String = "Why: in difficulty in the water — the rescue comes first"
+## Held on the water but not in it: aboard a boat (a ferry passenger or crew, a race crew, a fishing or rescue boat).
+const WHY_ABOARD: String = "Why: aboard a boat — it lands before it takes an order"
 const WHY_URGENT: String = "Why: an emergency comes first (a rescue, a shelter)"
 const WHY_OWN: String = "Why: the %s crew's own work (%s)"
 const WHY_HELP: String = "Why: %s work — the %s crew lends a hand where needed"
@@ -218,6 +220,32 @@ func pin_notable(who: int, on: bool) -> bool:
 			offer_deed.remove_at(k)
 	revision += 1
 	return true
+
+
+func record_regatta(winners: PackedInt32Array, subject: String) -> int:
+	"""The regatta's race won (decision 0438, through the ledger's own hooks): one KIND_REGATTA deed, each winner's
+	event naming the other, PINNED to the chronicle and posted as every pinned deed is. Its serial (-1: none)."""
+	if winners.is_empty() or _calendar == null:
+		return -1
+	var deed: int = ledger.begin_deed(Ledger.KIND_REGATTA, _calendar.tick, taps.season_index(), winners[0])
+	if deed < 0:
+		return -1
+	for k: int in winners.size():
+		var other: int = winners[1 - k] if winners.size() == 2 else Ledger.NOBODY
+		ledger.add_event(deed, Ledger.KIND_REGATTA, winners[k], other, NoticesScript.TARGET_RESIDENT, winners[k], subject)
+	ledger.curate(deed, Ledger.CURATION_PINNED)
+	_post_chronicle(deed)
+	revision += 1
+	return deed
+
+
+func share_feast(attendees: PackedInt32Array) -> void:
+	"""REQ-SET-036: every pair who shared the feast gains FEAST_GAIN, once for this feast."""
+	var day: int = _calendar.now().absolute_day if _calendar != null else 0
+	for a: int in attendees.size():
+		for b: int in range(a + 1, attendees.size()):
+			ledger.add_feast(attendees[a], attendees[b], day)
+	revision += 1
 
 
 func is_notable(who: int) -> bool:
@@ -440,7 +468,7 @@ func why_of(who: int) -> String:
 	(its crew's own work, or a hand lent), the player's order -- or free."""
 	var brain: BrainScript = (_cast.actor(who) as DemoActorScript).brain
 	if brain.water_hold:
-		return WHY_HELD
+		return WHY_HELD if brain.in_water else WHY_ABOARD
 	if brain.task != null and brain.task.urgent():
 		return WHY_URGENT
 	var kitchen: String = _kitchen_why(who)

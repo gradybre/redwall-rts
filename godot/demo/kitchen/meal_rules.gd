@@ -71,29 +71,35 @@ const DISH_SOUP: int = 1
 ## fish and roots nobody has set aside (fresh fish keeps 48 h: it is used while fresh); otherwise the alternation runs as
 ## ruling 1 has it.
 const DISH_FISH_STEW: int = 2
-const DISH_COUNT: int = 3
+## THE FEAST'S DISH (decision 0438, the regatta): the GDD's Hearth feast main course, §5.7's `bean_hotpot` row exactly --
+## "beans 2, cabbage 2, water 2 | meal_bean_hotpot 3x2100 | 20 | Kitchen/COOK | 36 | M1". Its beans are §5.6's beans row
+## (pea, broad bean), its cabbage the cabbage row (cabbage, lettuce, spinach, leek, celery). It is never in the
+## alternation: the kitchen cooks it only for an OCCASION (kitchen.gd `set_occasion`), the feast's own batches.
+const DISH_BEAN_HOTPOT: int = 3
+const DISH_COUNT: int = 4
 const NO_DISH: int = -1
-const DISH_NAMES: Array[String] = ["Wild oat porridge", "Togget's vegetable soup", "Poached perch or trout"]
-const DISH_SHORT: Array[String] = ["porridge", "soup", "fish stew"]
+const DISH_NAMES: Array[String] = ["Wild oat porridge", "Togget's vegetable soup", "Poached perch or trout", "Bean hotpot"]
+const DISH_SHORT: Array[String] = ["porridge", "soup", "fish stew", "bean hotpot"]
+## The content library's recipe each is cooked as ("" for the feast's GDD row, which has no library recipe).
 const LIBRARY_IDS: Array[String] = ["salamandastron::SAL_recipe_wild_oat_porridge",
-	"outcast::OUT_recipe_togget_s_vegetable_soup", "taggerung::TAG_recipe_requested_perch_or_trout"]
+	"outcast::OUT_recipe_togget_s_vegetable_soup", "taggerung::TAG_recipe_requested_perch_or_trout", ""]
 ## The GDD §5.7 rows they are cooked as.
-const GDD_ROWS: Array[String] = ["porridge", "root_stew", "fish_stew"]
+const GDD_ROWS: Array[String] = ["porridge", "root_stew", "fish_stew", "bean_hotpot"]
 ## Each dish's food input: its §5.6 crop row (or the pantry's fish category), and how much a batch takes.
-const INPUT_CROP: Array[int] = [FarmingScript.CROP_GRAIN, FarmingScript.CROP_ROOTS, Catalog.CAT_FISH]
-const INPUT_WORDS: Array[String] = ["grain", "roots", "fresh fish"]
+const INPUT_CROP: Array[int] = [FarmingScript.CROP_GRAIN, FarmingScript.CROP_ROOTS, Catalog.CAT_FISH, FarmingScript.CROP_BEANS]
+const INPUT_WORDS: Array[String] = ["grain", "roots", "fresh fish", "beans"]
 const INPUT_CROPS_TEXT: Array[String] = ["oats, wheat or barley", "carrot, turnip, radish, beetroot, parsnip or onion",
-	"trout, dace, salmon, perch, carp or whitefish"]
-const INPUT_MILLI: Array[int] = [2000, 3000, 2000]
+	"trout, dace, salmon, perch, carp or whitefish", "pea or broad bean"]
+const INPUT_MILLI: Array[int] = [2000, 3000, 2000, 2000]
 ## A dish's second food input (§5.7's fish_stew: "fish 2, roots 2"): its row and a batch's milli-U; -1: none.
-const SIDE_CROP: Array[int] = [-1, -1, FarmingScript.CROP_ROOTS]
-const SIDE_WORDS: Array[String] = ["", "", "roots"]
-const SIDE_MILLI: Array[int] = [0, 0, 2000]
-const WATER_MILLI: Array[int] = [2000, 1000, 2000]
-const PORTIONS_PER_BATCH: Array[int] = [2, 2, 3]
-const NP_PER_PORTION: Array[int] = [1800, 1800, 2200]
-const WORK_MWU: Array[int] = [12000, 16000, 20000]
-const SHELF_HOURS: Array[int] = [24, 24, 24]
+const SIDE_CROP: Array[int] = [-1, -1, FarmingScript.CROP_ROOTS, FarmingScript.CROP_CABBAGE]
+const SIDE_WORDS: Array[String] = ["", "", "roots", "cabbage"]
+const SIDE_MILLI: Array[int] = [0, 0, 2000, 2000]
+const WATER_MILLI: Array[int] = [2000, 1000, 2000, 2000]
+const PORTIONS_PER_BATCH: Array[int] = [2, 2, 3, 3]
+const NP_PER_PORTION: Array[int] = [1800, 1800, 2200, 2100]
+const WORK_MWU: Array[int] = [12000, 16000, 20000, 20000]
+const SHELF_HOURS: Array[int] = [24, 24, 24, 36]
 ## BAL-SUPPLY-004: "wood 100 milli-U/batch".
 const WOOD_MILLI_PER_BATCH: int = 100
 ## A portion's mass and spoiled food's (§5.7: 500 g and 250 g a unit): a spoiled portion is twice its milli-U.
@@ -173,7 +179,7 @@ static func dish_for_meal(meal: int) -> int:
 
 static func other(dish: int) -> int:
 	"""The dish the alternation turns to when `dish`'s food is short (ruling 1): porridge and soup each other; the fish
-	stew, the soup it stands in for."""
+	stew, the soup it stands in for; the feast's bean hotpot, the supper's soup."""
 	return DISH_PORRIDGE if dish == DISH_SOUP else DISH_SOUP
 
 

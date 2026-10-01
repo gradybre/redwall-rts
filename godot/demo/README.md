@@ -534,7 +534,7 @@ centre under the alerts), each completed **only by what really happens in the vi
 - **Done**: "The first village stands", and a chronicle entry in Village news under the new **Village** source. Free
   play goes on; the Hearth Charter, the long-term goal, is beyond the demo.
 - **The village guide** (O, the HUD's Objectives command, unlocked for it): a modal that holds a menu pause through the
-  pause ledger, "The village guide is open" (the village waits) with five tabs -- **Objectives** (done, current with its cause, ahead), **Projects**, **Field guide**, **Help**
+  pause ledger, "The village guide is open" (the village waits) with six tabs -- **Objectives** (done, current with its cause, ahead), **Goals** (decision 0781, below), **Projects**, **Field guide**, **Help**
   and **Practice**.
 - **Help** (also the game menu's Help page, in place of the 21-key Controls wall): 22 how-to topics and the 28 keys,
   searched in plain words ("how do I cross the stream", "eat", "why is my job waiting"), each topic a command answers
@@ -551,6 +551,48 @@ centre under the alerts), each completed **only by what really happens in the vi
 - **Projects**: up to three, your name, the places selected when pinned (with Go to) and one measure with a target --
   wood, planks, stone, ready food, harvested or suppers eaten from now, bridges or tunnel stretches open. Reached, it is
   ticked and Village news records it once with before and after. Session only (no save).
+
+## Village goals and milestones (decision 0781)
+
+`goals/`: optional goals that guide play once the first-village guide is done, in the village guide's **Goals** tab (O,
+the second tab; the Objectives tab's *Goals for after the guide* opens it). No new key. The guide's four objectives and
+its completion are unchanged; once it completes, one Village news note (at the next game hour, after the guide's own
+line) points at the tab.
+
+- **Each goal** has a title, a short *why*, its parts' progress ("Harvested into store: 12.0 U of 40.0 U") and, reached,
+  the date ("✓ Wood for the cold -- reached Y1 Spring 5, 03:00"). Its reward is **a Village news note** ("Goal reached:
+  ...") -- the news strip shows it while fresh and the history keeps it. Nothing else is granted: no resource, unlock or
+  mood. A reached goal stays reached.
+- **Evaluated on the game hour**, never per frame: `demo_goals.gd update()` costs an integer compare until the calendar's
+  hour index changes; then the ledger reads the kitchen's and the planner record's logs (a supper's tally once its day is over) and every measure
+  is read once.
+- **Village goals** (all PROPOSALS, decision 0781): Harvest home (40.0 U into store), Every dish on the table (each of the
+  kitchen's dishes cooked), A table for everyone (a supper where every resident ate cooked), A full larder (4.0 days of
+  Ready food), Wood for the cold (60.0 U), Over the water (a bridge open), A way below (3 tunnel stretches), A clean
+  season (a whole season in the planner's record with food harvested and no crop lost), The first winter weathered.
+- **Milestones**: the GDD's M1-M4 (§5.11), every condition a part worded as the GDD states it. What the demo models is
+  measured (day, residents, portions prepared, year, winters, Ready food); the rest -- mastery, feasts, specialists,
+  mood, warm beds, deaths, winter fuel, the three-day hold -- reads "not in this demo yet" and blocks its milestone. With
+  nine residents and no arrivals none is reachable here; they show the road ahead and would grant nothing.
+
+**Adding a goal from a later feature** (`goals/goal_book.gd`, THE REGISTRATION API). Reach the book through the guide
+(`demo_village.guide().goals.book`) and register a data entry with a measure -- a cheap, allocation-free `() -> int`
+read once a game hour, met at or above its target:
+
+```gdscript
+const GoalBook := preload("res://demo/goals/goal_book.gd")
+var book: GoalBook = village.guide().goals.book
+var parts: Array[GoalBook.Part] = [GoalBook.part(&"winters", "Winters with no one chilled", 1,
+	GoalBook.UNIT_COUNT, warmth.unchilled_winters)]   # a latched count your model keeps
+book.register(&"warm_first_winter", "A warm first winter", "Why it matters, in a sentence.", parts,
+	GoalBook.GROUP_VILLAGE, "no one was chilled all winter.")   # "" when taken, else why not
+book.bind_measure(&"m4_hearth_charter", &"fuel", warmth.fuel_winter_days_milli)   # M4's fuel>=18 winter days, milli-days
+book.keep(warmth)   # if nothing else holds the measuring object (a Callable does not keep it alive)
+```
+
+Units: `UNIT_COUNT`, `UNIT_MILLI` (thousandths, "12.0 U"), `UNIT_DAYS` (thousandths of a day) and `UNIT_FLAG` (1 or more
+is "yes"). A "none of X" goal measures a latch the feature keeps (1 once a winter ended with nobody chilled), since every
+part is read as at-least. Register before the first hour or after; a goal is first measured at the next hour.
 
 ## Commanding the residents
 
@@ -1567,6 +1609,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |
 | `routes/` | Route and infrastructure previews (decision 0461): the estimate on copies of the network through the routing desk, the proposal's crossing, the stretches and hold-ups, the work places, a dig's stages, a bridge's project words, the Routes map layer and its subject, the rescue card's details, and the controller over the Water and Tunnels panels |
 | `guide/` | The first-village guide (decision 0481): the outcome ledger, the objectives' progress and words, the card and its world marker, the village guide window and its pages -- help, field guide, practice stories, projects |
+| `goals/` | The village goals and milestones (decision 0781): the goal book and its registration API, the built-in goals as data with their evaluator, the ledger of running counts, the owner (hour tick, Village news) and the Goals tab's page |
 | `work/` | The work board over every job owner (one adapter each), the claim, the named crews and presets, the order lists' entries, Shift+right-click's queue and the Work screen (decision 0411) |
 | `session/` | The time controls: the pause ledger (the kinds, their words, the one Resume), "Run until…" (its targets read from the calendar, the kitchen, the projects, the beds and the news) and the frame-by-frame control (Space, G, the HUD's pause button, the planning surfaces, the critical incidents) (decision 0471) |
 | `access/` | Accessibility: the settings and presets, their effects on the village, reduced motion, the world's interactive targets (the object list, F6, and their rings), the focus hint, the Settings section (decision 0471) |

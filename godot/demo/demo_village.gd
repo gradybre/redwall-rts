@@ -651,6 +651,7 @@ func _guide_world() -> GuideWorldScript:
 	world.site_name = _waterplay.site_name
 	world.network = command.tunnels().network
 	world.calendar = _services.calendar
+	world.record = _farm.record
 	world.stores = _services.stores
 	world.focus = (_camera as DemoCameraScript).focus
 	world.selected_bed = func() -> int: return _farm.selected_bed

@@ -1,8 +1,9 @@
 extends CanvasLayer
 ## THE VILLAGE GUIDE (decision 0481): one modal window behind the HUD's Objectives command (UI-SET-033, O), the guide
-## card's Help, the game menu's guide row and the Demo Lab's "Practice stories". Five tabs:
+## card's Help, the game menu's guide row and the Demo Lab's "Practice stories". Six tabs:
 ##   * OBJECTIVES  the four first-village objectives, each done, current (with its cause or blocker) or ahead;
 ##                 Show / Hide the guide card (skip and reopen: nothing granted or lost); the Charter's line;
+##   * GOALS       the GDD's milestones and the village goals, for play after the guide (demo/goals/, decision 0781);
 ##   * PROJECTS    up to three player-named projects (projects_page.gd);
 ##   * FIELD GUIDE the almanac of what the demo has (field_guide_page.gd);
 ##   * HELP        the searchable help (help_page.gd, as the game menu's);
@@ -22,13 +23,15 @@ const HelpPageScript := preload("res://demo/guide/help_page.gd")
 const FieldPageScript := preload("res://demo/guide/field_guide_page.gd")
 const PracticePageScript := preload("res://demo/guide/practice_page.gd")
 const ProjectsPageScript := preload("res://demo/guide/projects_page.gd")
+const GoalsPageScript := preload("res://demo/goals/goals_page.gd")
 
 const TAB_OBJECTIVES: int = 0
-const TAB_PROJECTS: int = 1
-const TAB_FIELD_GUIDE: int = 2
-const TAB_HELP: int = 3
-const TAB_PRACTICE: int = 4
-const TAB_NAMES: Array[String] = ["Objectives", "Projects", "Field guide", "Help", "Practice"]
+const TAB_GOALS: int = 1
+const TAB_PROJECTS: int = 2
+const TAB_FIELD_GUIDE: int = 3
+const TAB_HELP: int = 4
+const TAB_PRACTICE: int = 5
+const TAB_NAMES: Array[String] = ["Objectives", "Goals", "Projects", "Field guide", "Help", "Practice"]
 const LAYER: int = 2
 const WIDTH: float = 680.0
 ## The pages scroll within the modal rectangle less this (title, tabs, margins).
@@ -38,11 +41,13 @@ const TITLE: String = "Village guide"
 const CLOSE_TEXT: String = "× Close (Esc)"
 const PAUSED_LINE: String = "The village waits while the guide is open."
 const CHARTER_LINE: String = "The Hearth Charter -- the village's long-term goal, set by its own community -- is beyond this demo; these first objectives are the demo's."
+const GOALS_TEXT: String = "Goals for after the guide"
 
 var help: HelpPageScript = HelpPageScript.new()
 var field_guide: FieldPageScript = FieldPageScript.new()
 var practice: PracticePageScript = PracticePageScript.new()
 var projects: ProjectsPageScript = ProjectsPageScript.new()
+var goals: GoalsPageScript = GoalsPageScript.new()
 ## `objective_lines() -> PackedStringArray` (the guide's four lines), `guide_hidden() -> bool`, `toggle_guide()`.
 var objective_lines: Callable = Callable()
 var guide_hidden: Callable = Callable()
@@ -103,22 +108,22 @@ func _build_tabs(column: VBoxContainer) -> void:
 
 
 func _build_pages(column: VBoxContainer) -> void:
-	"""The objectives page and the four others, one shown at a time."""
+	"""The objectives page and the five others, one shown at a time."""
 	_objectives = _build_objectives()
-	for page: Control in [_objectives, projects, field_guide, help, practice]:
+	for page: Control in [_objectives, goals, projects, field_guide, help, practice]:
 		page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_pages.append(page)
 	var parts: Array = GuideUi.scroll_column(8)
 	_scroll = parts[0]
 	column.add_child(_scroll)
-	for page: Control in [_objectives, projects, practice]:
+	for page: Control in [_objectives, goals, projects, practice]:
 		(parts[1] as VBoxContainer).add_child(page)
 	for page: Control in [field_guide, help]:
 		column.add_child(page)
 
 
 func _build_objectives() -> VBoxContainer:
-	"""Four objective lines, the card's Show / Hide, the Charter's line."""
+	"""Four objective lines, the card's Show / Hide, the Charter's line and the way to the goals."""
 	var page := VBoxContainer.new()
 	page.add_theme_constant_override(&"separation", 6)
 	for k: int in 4:
@@ -133,6 +138,10 @@ func _build_objectives() -> VBoxContainer:
 		refresh())
 	page.add_child(_guide_toggle)
 	page.add_child(FarmUi.label(CHARTER_LINE, FarmUi.SMALL_PX, Palette.UMBER))
+	var to_goals: Button = FarmUi.button(GOALS_TEXT, FarmUi.BODY_PX)
+	to_goals.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	to_goals.pressed.connect(show_tab.bind(TAB_GOALS))
+	page.add_child(to_goals)
 	return page
 
 
@@ -190,7 +199,7 @@ func show_tab(tab: int) -> void:
 	for k: int in _pages.size():
 		_pages[k].visible = k == _tab
 		_tabs[k].set_pressed_no_signal(k == _tab)
-	_scroll.visible = _tab in [TAB_OBJECTIVES, TAB_PROJECTS, TAB_PRACTICE]
+	_scroll.visible = _tab in [TAB_OBJECTIVES, TAB_GOALS, TAB_PROJECTS, TAB_PRACTICE]
 	refresh()
 	if visible and is_inside_tree():
 		var first: Control = _first_focus()
@@ -208,7 +217,7 @@ func _first_focus() -> Control:
 
 
 func refresh() -> void:
-	"""The objectives' lines and the card's Show / Hide, the projects' figures."""
+	"""The objectives' lines and the card's Show / Hide, the projects' and the goals' figures."""
 	var lines: PackedStringArray = objective_lines.call() if objective_lines.is_valid() else PackedStringArray()
 	for k: int in _objective_labels.size():
 		_objective_labels[k].text = lines[k] if k < lines.size() else ""
@@ -216,6 +225,8 @@ func refresh() -> void:
 	_guide_toggle.text = "Show the guide card" if hidden else "Hide the guide card"
 	if _tab == TAB_PROJECTS:
 		projects.refresh()
+	if _tab == TAB_GOALS:
+		goals.refresh()
 
 
 func tab() -> int:
@@ -286,6 +297,7 @@ func _place() -> void:
 	field_guide.set_text_width(text_w)
 	practice.set_text_width(text_w)
 	projects.set_text_width(text_w)
+	goals.set_text_width(text_w)
 	for label: Label in _objective_labels:
 		label.custom_minimum_size.x = text_w
 	help.set_list_height(list_h - 70.0)

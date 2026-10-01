@@ -15,6 +15,7 @@ const BridgesScript := preload("res://demo/waterplay/bridges.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
+const RecordScript := preload("res://demo/farm/farm_record.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
@@ -39,6 +40,8 @@ var bridge_refusal: Callable = Callable()
 var site_name: Callable = Callable()
 var network: GraphScript = null
 var calendar: CalendarScript = null
+## The seasonal planner's after-action record (farm_record.gd, decision 0451): the village goals read its closed seasons.
+var record: RecordScript = null
 var stores: StoresScript = null
 ## `focus() -> Vector3`: where the camera looks (the resident marker picks the nearest to it).
 var focus: Callable = Callable()

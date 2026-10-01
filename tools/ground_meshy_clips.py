@@ -551,7 +551,7 @@ def _slide(worlds: list[dict], legs: dict) -> float:
 #   - a foot is PLANTED, in a clip that stands in place, while its contact point is within
 #     CONTACT_HEIGHT_M of the ground. A step lifts it: each landing starts a new contact, which is kept
 #     where the clip puts it. Only the drift within a contact is taken out;
-#   - in a GAIT (GAIT_CLIPS: the walk, the run, the carry walks) a foot is planted while it moves with the
+#   - in a GAIT (GAIT_CLIPS: the walk, the run, the carry walks, the crouch walk) a foot is planted while it moves with the
 #     ground, slower than STANCE_SPEED_FRACTION of the gait's speed, for MIN_STANCE_KEYS keys. Meshy's gaits
 #     drag the swinging foot along the ground and hold the planted one up to 22 cm above it, so height
 #     cannot tell them apart. An in-place gait's ground moves back at the gait's own speed, found from its
@@ -571,7 +571,8 @@ STANCE_SPEED_FRACTION = 0.5  # in a gait, a foot moving with the ground slower t
 MIN_STANCE_KEYS = 3          # ...for at least this many keys
 PIN_TOLERANCE_M = 0.002      # a pinned foot, posed from the rewritten keys, may stray no further than this
 PIN_PASSES = 4               # the IK moves the ankle exactly; a sole vertex partly on the shin needs a pass or two more
-GAIT_CLIPS = ("anim_walk", "anim_run", "anim_carry_heavy_object_walk", "anim_carry_water_bucket_walk")
+GAIT_CLIPS = ("anim_walk", "anim_run", "anim_carry_heavy_object_walk", "anim_carry_water_bucket_walk",
+	"anim_cautious_crouch_walk_forward")   # the crouch walk: the underground pass, 2026-09-29
 GAIT_ITERATIONS = 50
 GAIT_SEEDS = (0.8, 0.9, 1.0, 1.1, 1.2)   # times the median backward speed
 PIN_DROP_MAX_M = 0.03        # the hips may come down this far for a leg to reach its pinned foot

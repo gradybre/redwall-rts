@@ -172,6 +172,27 @@ func _ready() -> void:
 	listener.make_current()
 
 
+func _exit_tree() -> void:
+	"""Leaving the tree (a Restart, or the quit): stop every voice and loop, so no playback is left running in the
+	audio server once its player is freed (the headless quit's "resources still in use")."""
+	silence()
+
+
+func silence() -> int:
+	"""Stop the one-shot voices and the ambience loops now, their levels back to 0 (they ease in again from silence
+	if the owner is used again). Returns how many players were still playing."""
+	var stopped: int = voices.silence()
+	for k: int in LOOP_IDS.size():
+		_loop_level[k] = 0.0
+		var player: Node = _loop_placed if k == LOOP_STREAM else _loop_flat[k]
+		if player == null:
+			continue
+		if bool(player.get(&"playing")):
+			stopped += 1
+		player.call(&"stop")
+	return stopped
+
+
 func _process(delta: float) -> void:
 	"""One frame of sound (see EACH FRAME), timed."""
 	var started: int = Time.get_ticks_usec()

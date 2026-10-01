@@ -495,6 +495,26 @@ func test_pausing_ducks_ambience_stops_work_and_keeps_cues() -> void:
 	assert_equal(director.cue(chop, Vector3.ZERO, false, 3000), VoicesScript.PLAYED, "work again")
 
 
+func test_leaving_the_tree_silences_every_voice_and_loop() -> void:
+	"""The owner leaving the tree (a Restart, the quit) stops every one-shot voice -- the Cues' too, which a pause keeps
+	-- and every ambience loop, its level back to 0, so no playback outlives its player (the headless quit's
+	"resources still in use"). That a playing player really stops is the 600-frame boot's: the runner has no tree."""
+	var director := _director()
+	var rows: Array[int] = [director.table.row(&"chop"), director.table.row(&"splash"), director.table.row(&"warning")]
+	for row: int in rows:
+		assert_equal(director.cue(row, Vector3.ZERO, false, 1000), VoicesScript.PLAYED, "cue %d sounds" % row)
+	director.taps.wind_permille = 1000
+	director.taps.stream_permille = 1000
+	director.update(1000, 1.0)
+	assert_true(director.loop_level(DirectorScript.LOOP_WIND) > 0.0, "the wind eased in")
+	director.call(&"_exit_tree")
+	for bus: int in [SoundMix.BUS_WORK, SoundMix.BUS_WATER, SoundMix.BUS_CUES]:
+		assert_equal(director.voices.busy(bus, 1001), 0, "bus %d: every voice stopped" % bus)
+	for k: int in DirectorScript.LOOP_IDS.size():
+		assert_almost_equal(director.loop_level(k), 0.0, "loop %d back to silence" % k)
+	assert_equal(director.cue(rows[0], Vector3.ZERO, false, 5000), VoicesScript.PLAYED, "and it can sound again")
+
+
 func test_the_clock_drives_the_pause() -> void:
 	"""Bound to a clock, the director follows its effective speed: 0 ducks, any other speed does not."""
 	var director := _director()

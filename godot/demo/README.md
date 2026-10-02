@@ -708,9 +708,9 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
   board -- the farm's, the woods', the bridges', the tunnels' jobs, the rooms' fit-out, the spoil heaps' -- read
   through one adapter each (`farm_work.gd`, `woods_work.gd`, `bridge_work.gd`, `tunnel_work.gd`, `fit_out_work.gd`,
   `spoil_work.gd`, water part B's `fishery_work.gd`: trips' seats, traps, the rack, the mill and the gear, decision
-  0431, `ferry_work.gd`: the far copse's gathering, ferried wood's hauls and the crossings' crews, decision 0437; and
-  the hall's `hall_work.gd`, decision 0771); every command goes to the owner's own function, so its conservation rules
-  hold (decision 0222:
+  0431, `ferry_work.gd`: the far copse's gathering, ferried wood's hauls and the crossings' crews, decision 0437;
+  the hall's `hall_work.gd`, decision 0771; and the orchard's `orchard_work.gd`, decision 0671); every command goes to
+  the owner's own function, so its conservation rules hold (decision 0222:
   a load in hand is carried on, never paused or handed over from afar -- earth too: a farm job carrying earth back
   to its heap reads "Carry earth back", a delivery, and Cancel refuses it; decision 0401). The kitchen's cook and
   water drawers are listed as well (`kitchen_work.gd`; the kitchen hands them out itself), and the board hands no
@@ -1901,6 +1901,48 @@ haul" (berries too, at the dishes lane's request). `forage/`:
   forage grounds**; the field guide has the four goods and "Foraging trips".
 - Checked by `test_demo_forage.gd` (the placeholder cast on the real layout; no staged assets).
 
+## The orchard (decisions 0671-0677)
+
+Feature #20 and the review's group Y (ECO-008, 009, 010, 015): perennial fruit that takes years to mature, with fruit
+seasons (`orchard/`). Presentation only; every number not the GDD's is named in `orchard/orchard_rules.gd`.
+
+- **The trees are real OrchardPlot rows** (`scripts/core/orchard_hive.gd`, GDD §5.6): apple 96 days to maturity and
+  80 U a year in Autumn 1-6, pear 144 days and 110 U in Autumn 3-8; 20 WU of care a day in spring and summer (2 U of
+  the butt's water in a drought); an untended spring or summer day costs 100 health, a tended one restores 50; fewer
+  than 6 winter chill days give 75%; picked once a year (REQ-SET-079/080). Each midnight closes the day just ended.
+- **The inherited old orchard** (decision 0672, the M3 timing change): an old apple and an old pear south of the field
+  beds, neglected (35% health) -- tend them and their first autumn gives four times what neglect does. **Early yield**:
+  a young tree a year old gives a fifth of a crop once a year in its window until it matures. The M3 grant (2 apple + 2
+  pear saplings) waits in the nursery from the start.
+- **The east orchard**: two empty 8 m blocks (brass pegs) by the south road, and the **berry hedge** -- raspberry
+  canes, a blackberry bramble and a strawberry bed sharing one §5.5 Berries patch (decision 0676): fruit in summer and
+  less in autumn, none in spring or winter, never picked below a fifth. Whichever bush is picked, the pantry gets the
+  one generic **Berries** item (the foraging lane's `berries`, item 29); apples and pears are their own items (30 and
+  31, after the forage, since the batch 8 integration).
+- **Eaten raw** (decision 0671, proposal 9): a hungry resident with no portion may eat fruit (900 NP a unit) or berries
+  (700) raw, as GDD §5.7 allows -- from a store, never from a basket stand.
+- **Groups** (decision 0674): each orchard gathers its picking at its **basket stand** (a pantry store 120 U, never a
+  destination for other harvests), and the Haulers carry the baskets on, 10 U a trip, to the **kitchen pantry** or the
+  **best keeping store**, the food keeping its age. Timing: *as each ripens* or *all together* (the apple waits for the
+  pear). A share (0, 4 or 8 U of each fruit) stays at the stand for the nursery.
+- **The nursery** (decision 0673): a plan promises a sapling to an empty site; the routine propagates it once the
+  baskets hold the fruit (4 U; the kitchen never reserves food waiting at a stand), compost (2) and water (2) -- 120 WU and 12 days -- and plants it. Every empty site and
+  plan shows when its tree would first fruit (REQ-SET-081).
+- **The North hollow** (decision 0675): a protected grove in the North stand (a sage ring, a mossy stone): the woods
+  never fell its trees (no order, no auto-fell, no firewood), and once a season someone observes it -- a line in its
+  record and the news.
+- **The seasons** (decision 0677): the fruit trees and bushes are season trees -- blossom (pink-white apples, white
+  pears) in spring, green fruit swelling in late summer, red apples and yellow pears in autumn until picked, bare
+  boughs in winter. No new art: the trees are the staged oak drawn small (0671's art gap).
+- **The work** is on the work board as source 13 since the batch 8 integration (decision 0903), **Orchard** (`work/orchard_work.gd`): tend, harvest, pick berries, haul
+  baskets, plant, propagate, observe -- each conserving its load (a delivery always finishes).
+
+| Input | Does |
+|---|---|
+| Left click an orchard tree, a site's pegs, a bush, the baskets, the nursery or the grove's stone | Select it: the **Orchard (demo)** panel takes the right column (it has no tab; any tab takes the column back) -- the thing's readout and verbs (each with its action card), its group's policy, the nursery's plans, the grove's record |
+| Right click one (residents selected) | The nearest does its most pressing work: a tree's harvest (else its tending), an empty site's planting, a bush's picking, the baskets' haul, the grove's observation |
+| Orchard panel | Tend, Harvest, Pick berries, Send baskets on, Plant apple/pear, Plan an apple/pear, Drop the plan, Observe now -- with nobody selected, queued for the Field crew; Timing, To, Keep (the group's policy); Protected (the grove) |
+
 ## Water
 
 A stream runs down the village's east edge -- narrowing to a neck at the north-east corner, past
@@ -2413,6 +2455,7 @@ ruled). No illness is modelled: the family illnesses (CHILL) are a draft.
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel; whose water range the map layer paints (`water_range.gd`) |
 | `farm/` | The farm: real FarmPlot rows, the pantry (and its ledger) and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves; the seasonal planner -- its overview rows, season calendar and timeline, soil plans, the after-action record and its tables (`farm_planner*.gd`, `farm_plan_rows.gd`, `farm_season.gd`, `farm_timeline.gd`, `farm_soil_plan*.gd`, `farm_record*.gd`) -- and the bed panel's Compare view (`farm_compare_view.gd`); the crop plans -- crop roles (`farm_crop_roles.gd`), the kitchen garden (`farm_garden*.gd`), harvest plans (`farm_harvest_*.gd`), tending policies (`farm_tending*.gd`) and the tunnel outlet box (`farm_outlet_box.gd`) |
 | `kitchen/` | The meal loop: the recipe book (`dish_book.gd`) and each species' favourites (`dish_favourites.gd`), the dishes' columns and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |
+| `orchard/` | The orchard (decisions 0671-0677): its numbers (`orchard_rules.gd`), the trees as real rows with the hedge, nursery plans, groups and the grove (`orchard_model.gd`), the jobs and their task (`orchard_jobs.gd`, `orchard_task.gd`), the words and cards (`orchard_text.gd`, `orchard_cards.gd`), the panel, the drawing, and the node wiring it into the village (`demo_orchard.gd`) |
 | `seasons/` | The seasons on the woods and ground (decision 0551): the sampling (`season_look.gd`), the view that writes it to every tree, the ground and the tufts (`season_view.gd`), the leaf shader include and the in-leaf tree shader, the bare boughs and the falling leaves |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |

@@ -478,15 +478,16 @@ func test_a_cancelled_harvest_is_still_shelved_in_the_cellar_on_arrival() -> voi
 
 func test_the_village_hands_the_tunnels_cellars_to_the_farm() -> void:
 	"""demo_village.storage_providers() is the network's dug root cellars, as pantry stores, then the kitchen's
-	pantry (decision 0381)."""
+	pantry (decision 0381), then the orchard's two basket stands (decision 0674)."""
 	_village(false)
 	var village := VillageScript.new()
 	_nodes.append(village)
 	_keep_detached_members(village)
 	village._command = _command
 	var providers: Array[Callable] = village.storage_providers()
-	assert_equal(providers.size(), 2, "the cellars and the kitchen pantry")
+	assert_equal(providers.size(), 3, "the cellars, the kitchen pantry and the orchard's stands")
 	assert_equal((providers[1].call() as Array).size(), 1, "the kitchen pantry is one store")
+	assert_equal((providers[2].call() as Array).size(), 2, "two basket stands")
 	assert_equal((providers[0].call() as Array).size(), 0, "no cellar yet")
 	_dig_cellar(_command.tunnels().network, Vector2(-6.0, 12.8))
 	var entries: Array = providers[0].call()

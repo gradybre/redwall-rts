@@ -6,6 +6,11 @@
 //                 luminance (so the texture's light and shade stay); a: how far the leaves take it (0: summer).
 //   leaf_bare     the share of leaf texels dropped: an opaque-pass discard by UV cell, so whole clumps go.
 //   leaf_blossom  the share of the spring flowering speckle shown.
+//   leaf_blossom_tint  rgb: a tree's own blossom colour, a: the share of leaf cells it flowers in (0 for the woods: the
+//                 material's catkin colour on BLOSSOM_SHARE of them; the orchard's fruit trees write their blossom and
+//                 its fuller share here -- decision 0677).
+//   leaf_fruit    rgb: the fruit's colour, a: the share of the fruit speckle shown (0 for every tree but the orchard's
+//                 fruit trees in their fruiting weeks; demo/orchard/orchard_view.gd writes it; decision 0677).
 // Per material: the weather's frost and snow (cover.gdshaderinc), lying on what faces up -- the bare limbs in
 // winter, the leaves of a tree that keeps them.
 //
@@ -21,6 +26,8 @@
 instance uniform vec4 leaf_tint = vec4(1.0, 1.0, 1.0, 0.0);
 instance uniform float leaf_bare = 0.0;
 instance uniform float leaf_blossom = 0.0;
+instance uniform vec4 leaf_blossom_tint = vec4(1.0, 1.0, 1.0, 0.0);
+instance uniform vec4 leaf_fruit = vec4(0.7, 0.15, 0.1, 0.0);
 uniform vec3 blossom_color : source_color = vec3(0.86, 0.84, 0.6);
 
 const float LEAF_RATIO_LO = 1.08;
@@ -31,6 +38,10 @@ const float BLOSSOM_CELLS = 220.0;
 const float BLOSSOM_SHARE = 0.12;
 // A flower is a round dot this wide in its cell (a share of the cell).
 const float BLOSSOM_RADIUS = 0.32;
+// The fruit speckle: coarser cells than the blossom's, a round dot in a few of them (a share of the leaf texels).
+const float FRUIT_CELLS = 64.0;
+const float FRUIT_SHARE = 0.2;
+const float FRUIT_RADIUS = 0.38;
 // Below x (the mesh's own height) a texel is root or trunk foot (moss, not leaf), easing to leaf over y.
 uniform vec2 roots_y = vec2(-100000.0, 1.0);
 // How much of the weather's cover lies on a tree's upward faces.
@@ -58,7 +69,13 @@ vec3 season_albedo(vec3 albedo, float leaf, vec2 uv, float up) {
 	vec3 colour = mix(albedo, leaf_tint.rgb * luma, leaf_tint.a * leaf);
 	vec2 cell = uv * BLOSSOM_CELLS;
 	float dot_ = 1.0 - smoothstep(BLOSSOM_RADIUS * 0.6, BLOSSOM_RADIUS, length(fract(cell) - 0.5));
-	float bloom = leaf_blossom * leaf * dot_ * step(season_hash(floor(cell) + 17.0), BLOSSOM_SHARE);
-	colour = mix(colour, blossom_color, bloom);
+	bool own = leaf_blossom_tint.a > 0.0;
+	float share = own ? leaf_blossom_tint.a : BLOSSOM_SHARE;
+	float bloom = leaf_blossom * leaf * dot_ * step(season_hash(floor(cell) + 17.0), share);
+	colour = mix(colour, own ? leaf_blossom_tint.rgb : blossom_color, bloom);
+	vec2 fruit_cell = uv * FRUIT_CELLS;
+	float fruit_dot = 1.0 - smoothstep(FRUIT_RADIUS * 0.7, FRUIT_RADIUS, length(fract(fruit_cell) - 0.5));
+	float fruit = leaf_fruit.a * leaf * fruit_dot * step(season_hash(floor(fruit_cell) + 41.0), FRUIT_SHARE);
+	colour = mix(colour, leaf_fruit.rgb, fruit);
 	return cover_albedo(colour, snow_cover * TREE_COVER * smoothstep(0.45, 0.85, up));
 }

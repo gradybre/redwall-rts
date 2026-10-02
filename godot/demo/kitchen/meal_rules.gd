@@ -55,8 +55,10 @@ extends RefCounted
 ##
 ## RAW EMERGENCY FOOD (REQ-SET-013, WorldPolicy raw_emergency_food default true): with no portion, a resident at
 ## hunger 1500 or less may eat raw-edible food nobody has reserved, "enough quantity to add at most 3000 NP", in the
-## same 12 WU. Raw-edible are the roots row (800 NP/U), the cabbage row (600 NP/U) and dried fish (1800 NP/U, decision
-## 0431), nuts (1600 NP/U) and berries (700 NP/U, decision 0681); grain, beans, flour, fresh fish, mushrooms and herb are not (§5.7:
+## same 12 WU. Raw-edible are the roots row (800 NP/U), the cabbage row (600 NP/U), dried fish (1800 NP/U, decision
+## 0431), nuts (1600 NP/U) and berries (700 NP/U, decision 0681), and the orchard's fruit (§5.7 "Fruit | 900 | Yes",
+## 900 NP/U; decision 0671's proposal 9, approved 2026-10-01; the hedge's berries are the same 700 NP/U item); grain,
+## beans, flour, fresh fish, mushrooms and herb are not (§5.7:
 ## "Raw ingredients marked 'No' cannot be consumed even in emergency").
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
@@ -152,7 +154,7 @@ static var SIDE_MILLI: PackedInt32Array = PackedInt32Array()
 ## fish, flour, honey, and the woods' forage: nuts, mushrooms, herbs, berries). §5.7's `cabbage` input is the cabbage
 ## row -- cabbage, lettuce, spinach, leek and celery -- so it is "greens" to the player.
 const CATEGORY_WORDS: Array[String] = ["beans", "greens", "flax", "grain", "roots", "fresh fish", "dried fish", "flour",
-	"honey", "nuts", "mushrooms", "herbs", "berries"]
+	"honey", "nuts", "mushrooms", "herbs", "berries", "fruit"]
 ## BAL-SUPPLY-004: "wood 100 milli-U/batch".
 const WOOD_MILLI_PER_BATCH: int = 100
 ## A portion's mass and spoiled food's (§5.7: 500 g and 250 g a unit): a spoiled portion is twice its milli-U.
@@ -209,9 +211,10 @@ const RAW_NP_CAP: int = 3000
 ## the village's reserve, eaten this way or in the biscuit soup (decision 0603) -- §5.7's `fish` selector names the nine species, not their dried form.
 ## Honey is §5.7's "Honey | 1200 | Yes" (decision 0603's item; no source yet). Nuts and berries are §5.7's "Nuts | 1600
 ## | Yes" and "Berries | 700 | Yes" (decision 0681): raw edible, so a hungry resident may eat them when nobody has set
-## them aside.
+## them aside. The orchard's fruit is §5.7's "Fruit | 900 | Yes" (decision 0671).
 const RAW_NP_PER_U: Dictionary = {FarmingScript.CROP_ROOTS: 800, FarmingScript.CROP_CABBAGE: 600,
-	Catalog.CAT_DRIED_FISH: 1800, Catalog.CAT_HONEY: 1200, Catalog.CAT_NUTS: 1600, Catalog.CAT_BERRIES: 700}
+	Catalog.CAT_DRIED_FISH: 1800, Catalog.CAT_HONEY: 1200, Catalog.CAT_NUTS: 1600, Catalog.CAT_BERRIES: 700,
+	Catalog.CAT_FRUIT: 900}
 
 
 static func _static_init() -> void:

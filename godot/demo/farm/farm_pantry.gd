@@ -227,10 +227,11 @@ func _near_into(milli: int, item: int, from: Vector2, out: IntMath.IntResult) ->
 
 func _best_location_into(milli: int, item: int, by_distance: bool, from_u: Vector2i, out: IntMath.IntResult) -> bool:
 	"""The lowest-permille location with room (and, for an `item`, a lot to keep it in); ties to the
-	nearest `from_u` (by_distance) or the lowest index. Refuses NO_STORAGE_ROOM."""
+	nearest `from_u` (by_distance) or the lowest index. A gathering place (farm_storage.gd KEY_STAGING) is never one.
+	Refuses NO_STORAGE_ROOM."""
 	var best: int = FREE
 	for location: int in storage.count():
-		if room_milli_of(location) < milli or not _lot_row_for(item, location):
+		if storage.is_staging(location) or room_milli_of(location) < milli or not _lot_row_for(item, location):
 			continue
 		if best == FREE or storage.permille_of(location) < storage.permille_of(best):
 			best = location
@@ -619,6 +620,52 @@ func lot_serial(lot: int) -> int:
 	return _lot_serial[lot] if _lot_item[lot] != FREE else 0
 
 
+func move_upto_into(lot: int, serial: int, milli: int, location: int, hold: int, out: IntMath.IntResult) -> bool:
+	"""MOVING FOOD (decision 0674: the orchard's hauls from its basket stand to a store). Up to `milli` of lot `lot`
+	(still the one opened with `serial`) carried to `location`, against hold `hold` when it is there: WHAT FITS -- the
+	free room plus the hold's own -- leaves the lot and joins a lot there that keeps the moved food's AGE (a fresh row
+	opened at that age, or merged into the oldest lot of the item there keeping the older age: moving never makes food
+	fresher). The ledger is untouched: moved food was stored once and is not used. How much moved into `out` (0 when
+	nothing fitted or no row was to be had); refuses a stale or free lot, a bad quantity or location -- a gathering place
+	(farm_storage.gd KEY_STAGING) is never a move's destination."""
+	if lot < 0 or lot >= MAX_LOTS or _lot_item[lot] == FREE or _lot_serial[lot] != serial:
+		return out.refuse(REFUSE_STALE_LOT)
+	if milli <= 0:
+		return out.refuse(REFUSE_BAD_QUANTITY)
+	if location < 0 or location >= storage.count() or location == _lot_location[lot] or storage.is_staging(location):
+		return out.refuse(REFUSE_NO_LOCATION)
+	var own: int = _hold_milli[hold] if _holds_place(hold) and _hold_location[hold] == location else 0
+	var free: int = storage.capacity_milli_of(location) - used_milli_of(location) - reserved_milli_of(location) + own
+	var fits: int = mini(mini(milli, _lot_milli[lot]), free)
+	var item: int = _lot_item[lot]
+	if fits <= 0 or not _moved_lot_into(item, location, lot, _read):
+		return out.succeed(0)
+	_lot_milli[_read.value] += fits
+	_lot_milli[lot] -= fits
+	if _lot_milli[lot] == 0:
+		_lot_item[lot] = FREE
+	if own > 0:
+		_hold_milli[hold] = maxi(0, own - fits) if fits == milli else 0
+	return out.succeed(fits)
+
+
+func _moved_lot_into(item: int, location: int, from_lot: int, out: IntMath.IntResult) -> bool:
+	"""The lot moved food of `from_lot` joins at `location`: a free row opened at its age, else the oldest lot of
+	`item` there, aged to the older of the two. Refuses NO_STORAGE_ROOM when neither."""
+	var lot: int = _lot_item.find(FREE)
+	if lot >= 0:
+		_open_lot(lot, item, location)
+		_lot_age[lot] = _lot_age[from_lot]
+		_lot_remainder[lot] = _lot_remainder[from_lot]
+		return out.succeed(lot)
+	if not _oldest_lot_into(item, location, out):
+		return out.refuse(REFUSE_NO_ROOM)
+	if _lot_age[from_lot] > _lot_age[out.value]:
+		_lot_age[out.value] = _lot_age[from_lot]
+		_lot_remainder[out.value] = _lot_remainder[from_lot]
+	return true
+
+
 func withdraw_into(lot: int, serial: int, milli: int, out: IntMath.IntResult) -> bool:
 	"""Take `milli` out of lot `lot`, which must still be the lot opened with `serial` (see WITHDRAWALS): its item's
 	count falls by exactly that much and an emptied row is freed. How much was taken into `out`; refuses a stale or
@@ -648,15 +695,17 @@ func is_lot(lot: int, serial: int) -> bool:
 # --- moving food between stores (see MOVING FOOD BETWEEN STORES) ------------------------------------
 
 func reserve_at_into(item: int, milli: int, location: int, out: IntMath.IntResult) -> bool:
-	"""Reserve room for `milli` of `item` at `location` itself (a move's destination). The hold's row into `out`; refuses
-	a bad item, quantity or location, NO_STORAGE_ROOM or a full hold table."""
+	"""Reserve room for `milli` of `item` at `location` itself (a move's destination; the orchard's basket stand or a
+	chosen store, decision 0674), where a lot of it can be kept (one function for both since the batch 8 integration,
+	decision 0903). The hold's row into `out`; refuses a bad item, quantity or location, NO_STORAGE_ROOM or a full hold
+	table."""
 	if not Catalog.is_pantry_item(item):
 		return out.refuse(REFUSE_NOT_AN_ITEM)
 	if milli <= 0:
 		return out.refuse(REFUSE_BAD_QUANTITY)
 	if location < 0 or location >= storage.count():
 		return out.refuse(REFUSE_NO_LOCATION)
-	if room_milli_of(location) < milli:
+	if room_milli_of(location) < milli or not _lot_row_for(item, location):
 		return out.refuse(REFUSE_NO_ROOM)
 	var hold: int = _hold_live.find(0)
 	if hold < 0:

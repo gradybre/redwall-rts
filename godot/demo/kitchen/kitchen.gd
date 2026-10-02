@@ -1656,13 +1656,21 @@ func _raw_meal(i: int, key: int) -> bool:
 	return true
 
 
+func _raw_candidate(lot: int) -> bool:
+	"""Whether lot `lot` may be eaten raw: a raw-edible item nobody has reserved, and stored -- never one waiting at a
+	gathering place (the orchard's basket stands, decision 0674), which a haul is moving on."""
+	var item: int = pantry.lot_item(lot)
+	if item == PantryScript.FREE or Rules.raw_np_per_u(item) == 0 or takes.free_milli(pantry, lot) <= 0:
+		return false
+	return not pantry.storage.is_staging(pantry.lot_location(lot))
+
+
 func _reserve_raw(i: int) -> bool:
 	"""Reserve resident `i`'s raw emergency meal (REQ-SET-013): the raw-edible lot nobody reserved that spoils first,
 	enough for at most RAW_NP_CAP. False when there is none."""
 	var best: int = FREE
 	for lot: int in PantryScript.MAX_LOTS:
-		var candidate: int = pantry.lot_item(lot)
-		if candidate == PantryScript.FREE or Rules.raw_np_per_u(candidate) == 0 or takes.free_milli(pantry, lot) <= 0:
+		if not _raw_candidate(lot):
 			continue
 		if best == FREE or pantry.lot_spoil_hours(lot, _hour_seen) < pantry.lot_spoil_hours(best, _hour_seen):
 			best = lot

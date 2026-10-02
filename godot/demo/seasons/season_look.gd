@@ -44,13 +44,16 @@ const KIND_OAK: int = 0
 const KIND_BEECH: int = 1
 const KIND_YOUNG_OAK: int = 2
 const KIND_EVERGREEN: int = 3
+## The orchard's fruit trees (decision 0677, demo/orchard/): deciduous, never holding dry leaves, in full blossom in
+## spring (their own blossom colour: orchard_view.gd writes it per tree), bare in winter.
+const KIND_FRUIT: int = 4
 ## Whether each kind drops its leaves.
-const DECIDUOUS: Array[bool] = [true, true, true, false]
+const DECIDUOUS: Array[bool] = [true, true, true, false, true]
 ## The share of each kind's trees that keep dry leaves through winter, and how much of them they keep.
-const MARCESCENT_SHARE: PackedFloat32Array = [0.12, 0.35, 0.8, 0.0]
+const MARCESCENT_SHARE: PackedFloat32Array = [0.12, 0.35, 0.8, 0.0, 0.0]
 const MARCESCENT_KEEP: float = 0.3
 ## How much catkin or blossom speckle each kind shows at its spring peak.
-const BLOSSOM_PEAK: PackedFloat32Array = [1.0, 0.0, 0.6, 0.0]
+const BLOSSOM_PEAK: PackedFloat32Array = [1.0, 0.0, 0.6, 0.0, 1.0]
 
 const DAYS_PER_SEASON: float = float(SimClock.DAYS_PER_SEASON)
 ## A season's look eases in over this many days after its (staggered) start ...

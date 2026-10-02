@@ -557,7 +557,9 @@ centre under the alerts), each completed **only by what really happens in the vi
 | Input | Does |
 |---|---|
 | Left click a resident | Select it alone (Shift: toggle it in the selection) |
-| Left drag | Box-select by screen position (Shift: add to the selection) |
+| Left drag | Box-select by screen position (Shift: add to the selection); "Selecting residents: n" beside the box says how many it holds (decision 0791) |
+| Double left click a resident | Select every resident of its kind in view (UI §5 `select_similar`; decision 0791) |
+| Ctrl+0–9 / 0–9 | Keep the selection as control group N / select group N again; the digit twice quickly also goes to it (UI §5; decision 0791) |
 | Left click empty ground | Clear the selection |
 | Right click ground | Move there in a formation, then hold |
 | Right click a work spot | Work there; anyone beyond its free slots holds behind it |
@@ -604,6 +606,20 @@ called away from a job it had not finished (a tunnel job, a dig, a farm or a woo
 finished dig takes its saved job back up once the
 digger has stepped clear of the hole (at night it keeps it for the morning). Orders move the demo cast only,
 never the simulation.
+
+**Selecting a group** (decision 0791, `control/group_select.gd`). **Select idle (n)**, under the party panel's actions
+and shown with or without a selection, selects every resident the Work screen calls *available* (no key: UI §5 has
+none). With two or more selected, the inspector opens with a **group section** (`control/group_panel.gd`): what they
+are doing ("Doing: Wandering ×4 · Drawing water at the well ×1", whole), **Needs attention** -- each warning they hold,
+"Hungry ×1 — Tobit" -- then the notes ("No bed ×2 — Hulda, Elstan") and who is idle; a **tile** per member (its colour,
+first name and first warning, else what it is doing: click centres the view on it and keeps the group, Shift+click drops
+it from the selection; the tiles are colour marks, not portraits -- the demo has no portrait art); **Crews** -- one
+press puts them all on Field, Woods, Diggers, Haulers or Builders (a crew they are all on already is disabled; the
+tooltip says who joins); **Send to…** -- the next left click on the world orders them there, as a right-click would
+(Esc cancels; in the U view right-click instead); and their control group's line. **Statuses come by data**
+(`control/group_status.gd`): a status is one row -- id, word, WARN or NOTE, and its owner's existing query -- added
+with `village.group_select().statuses.add(...)` where the owner is wired; the section shows it with no code of its own
+(built in: Can't get there, Hungry, Peckish, No bed, Idle). The single-resident inspector is unchanged.
 
 **Finding a route, and giving one up** (decision 0361). Route planning is spread over frames: a group order
 picks its formation at once, and its residents' routes are planned a few a frame -- one waiting for its turn
@@ -1549,7 +1565,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `demo_clock.gd` | The presentation clock that follows the HUD's pause and speed |
 | `world/` | Terrain, lighting, village layout, points of interest |
 | `cast/` | The residents: body, clips, live tail, job routines, orders |
-| `control/` | Selecting and ordering residents, and the demo party panel |
+| `control/` | Selecting and ordering residents, the demo party panel, and group selection (control groups, the group section and its status registry) |
 | `people/` | The cast's names and interests (`demo_people.json`, `people_book.gd`), the committed deeds, curation and affinity (`people_ledger.gd`, written by `people_taps.gd`), the spotlight, reflection, evening lines and inspector info (`demo_people.gd`), the inspector's person section and the offer card (decision 0491) |
 | `tunnel/` | Player-dug tunnels: rules, the tunnel network and planner, planning, drawing, the underground view; and their extensions -- ground, queues, crews, jobs, hazards, finds, the demo stores, the tunnel panel; the construction theatre -- the warren's particle budget, the dig face, the baskets, the hazards' warnings, the surface signs |
 | `demo_calendar.gd`, `demo_services.gd`, `village_water.gd`, `demo_notices.gd` | The one calendar, the shared set, the one water adapter (over `water/water_map.gd`), the one notice feed |

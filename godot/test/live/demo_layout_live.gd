@@ -321,7 +321,8 @@ func _dock_keeps_focus(party: CanvasLayer) -> void:
 	party.call(&"fit", 4000.0)
 	_check("docking again keeps it", root.gui_get_focus_owner() == release)
 	release.release_focus()
-	party.call(&"fit", 4000.0 if was else 1.0)
+	party.call(&"_place")
+	_check("placed again, docked as before", bool(party.call(&"docked")) == was)
 	await _frames(SETTLE_FRAMES)
 
 

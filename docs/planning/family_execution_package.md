@@ -218,7 +218,7 @@ family_lifecycle_contract.md drafts command wire selectors. Exact method paramet
 records, cross-owner transaction binding and review remain required.
 Do not add arrays to the memory ledger or registry until that complete table is
 independently reviewed. (Satisfied 2026-10-01: Brendan signed the table off under
-DEC-044, and decision 0521 adds the 46352-byte owner to the ledger and its registry
+DEC-044, and decision 0521 adds the family owner to the ledger -- 46352 bytes as built, 48400 since decision 0996 added the bound resident slot column -- and its registry
 rows, UNRESOLVED until the §4/§5 owner registration of gate 3.) The existing affinity store can be designed independently
 once household/affinity separation above is accepted; no degree cap expansion is
 required to preserve a child's care network.
@@ -353,7 +353,7 @@ strictlybeforetoday; if none qualify, do not create a newedge. Keep its existing
 lowest-absolute-affinity/oldest-contact/pair-ID order among eligible edges. A
 pair without an edge cannot satisfy affinity<0 and cannot enter the conflict roll.
 The independent implementation packet must budget this row extension, not claim
-it is included in the family owner's46352bytes. Household/preferenceedges never
+it is included in the family owner's 48400 bytes (46352 before decision 0996). Household/preferenceedges never
 consume or alter the degree8affinity graph themselves.
 
 ## Version3 review disposition

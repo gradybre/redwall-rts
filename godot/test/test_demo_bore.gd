@@ -59,7 +59,7 @@ static func _open_network(points: PackedInt32Array) -> GraphScript:
 	row 1 at node B) -- or, at exactly 8 m, two ramps (0 and 1) sharing a foot."""
 	var network := GraphScript.new()
 	var ref := PackedInt32Array([-1, 0, -1])
-	network.add_into(points, points.size() / 2, 0, ref)
+	@warning_ignore("integer_division") network.add_into(points, points.size() / 2, 0, ref)
 	_dig_piece(network, ref[2])
 	return network
 
@@ -69,7 +69,7 @@ static func _open_space(points: PackedInt32Array) -> CastSpaceScript:
 	var space := CastSpaceScript.new()
 	space.setup([], [])
 	var ref := PackedInt32Array([-1, 0, -1])
-	space.tunnels.add_into(points, points.size() / 2, 0, ref)
+	@warning_ignore("integer_division") space.tunnels.add_into(points, points.size() / 2, 0, ref)
 	_dig_piece(space.tunnels, ref[2])
 	return space
 
@@ -153,7 +153,7 @@ func test_a_swept_bore_holds_its_rings_and_faces_in() -> void:
 	assert_equal(indices.size(), 8 * 16 * 6 + (face_rings - 1) * 16 * 6 + 16 * 3, "8 bands, the face's bands and its fan")
 	assert_equal((arrays[Mesh.ARRAY_TEX_UV2] as PackedVector2Array).size(), points.size(), "a dig day a point")
 	var wrong := 0
-	for t in indices.size() / 3:
+	@warning_ignore("integer_division") for t in indices.size() / 3:
 		var a := points[indices[3 * t]]
 		var face := (points[indices[3 * t + 1]] - a).cross(points[indices[3 * t + 2]] - a)
 		if face.length_squared() > 1e-12 and face.dot(normals[indices[3 * t]]) >= 0.0:
@@ -187,7 +187,7 @@ func test_a_32_m_bore_builds_in_under_2_ms() -> void:
 		times.append(Time.get_ticks_usec() - start)
 	times.sort()
 	assert_equal(mesh.surface_get_array_len(0), 129 * 16, "129 rings of 16")
-	assert_less_than(float(times[BUILD_TRIALS / 2]), float(BUILD_BUDGET_USEC), "median build %d us" % times[BUILD_TRIALS / 2])
+	@warning_ignore("integer_division") assert_less_than(float(times[BUILD_TRIALS / 2]), float(BUILD_BUDGET_USEC), "median build %d us" % times[BUILD_TRIALS / 2])
 
 
 # --- the drawn centreline -------------------------------------------------------------------------
@@ -279,9 +279,9 @@ func test_each_species_stoops_by_its_height_in_a_standard_bore() -> void:
 	assert_equal(squirrel, 256, "a squirrel more (0.25 m)")
 	for height: float in [1.49, 1.4, 2.55]:
 		var drop := Rules.stoop_drop_u(Rules.to_u(height), crown)
-		assert_equal(drop, Rules.to_u(height) * Rules.STOOP_MAX_PERMILLE / 1000, "%.2f m stoops as far as it can" % height)
+		@warning_ignore("integer_division") assert_equal(drop, Rules.to_u(height) * Rules.STOOP_MAX_PERMILLE / 1000, "%.2f m stoops as far as it can" % height)
 		assert_true(drop > squirrel, "more than a squirrel")
-	assert_equal(Rules.stoop_drop_u(Rules.to_u(2.55), Rules.BORE_CROWNS_U[Rules.BORE_WIDE]), Rules.to_u(2.55) * 350 / 1000,
+	@warning_ignore("integer_division") assert_equal(Rules.stoop_drop_u(Rules.to_u(2.55), Rules.BORE_CROWNS_U[Rules.BORE_WIDE]), Rules.to_u(2.55) * 350 / 1000,
 		"the badger stoops hard even widened: the level's cover holds the crown down")
 	assert_equal(Rules.stoop_drop_u(Rules.to_u(1.0), Rules.BORE_CROWNS_U[Rules.BORE_WIDE]), 0, "a mouse upright in a widened bore")
 
@@ -893,7 +893,7 @@ func _turned_floor_triangles(network: GraphScript, slot: int) -> Vector2i:
 	var points: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
 	var counts := Vector2i.ZERO
-	for t in indices.size() / 3:
+	@warning_ignore("integer_division") for t in indices.size() / 3:
 		var a := points[indices[3 * t]]
 		var b := points[indices[3 * t + 1]]
 		var c := points[indices[3 * t + 2]]
@@ -976,6 +976,7 @@ func test_only_steps_whose_roots_stay_under_the_cut_are_dressed() -> void:
 
 func test_a_build_holds_at_most_max_rings() -> void:
 	"""Past MAX_RINGS a build takes no more rings."""
+	expect_diagnostic("bore_mesh: more than")
 	var builder := BoreMeshScript.new()
 	builder.begin()
 	for ring in BoreMeshScript.MAX_RINGS + 3:

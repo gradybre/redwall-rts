@@ -924,7 +924,7 @@ func _size_index_and_scratch_columns() -> void:
 	_assembly_slot.fill(EntityDirectoryScript.NULL_SLOT)
 	_demolition = DemolitionReport.new(InventoryScript.LOT_CAPACITY)
 	_demolition_pairs.resize(_inventory.owner_query_cells())
-	_demolition_seen.resize(_inventory.owner_query_cells() / 2)
+	@warning_ignore("integer_division") _demolition_seen.resize(_inventory.owner_query_cells() / 2)
 
 
 func _compose_stock_layer() -> void:
@@ -991,37 +991,37 @@ func _assert_assembly_row() -> void:
 	numbers alone would let the two drift apart silently, so both halves are checked here and the
 	build fails loudly rather than spawning a cohort inside a wall.
 	"""
-	assert(ASSEMBLY_FIRST_TILE_X == WorldInitScript.HALL_ORIGIN_X,
+	@warning_ignore("assert_always_true") assert(ASSEMBLY_FIRST_TILE_X == WorldInitScript.HALL_ORIGIN_X,
 		"the row starts at the hall's own west edge")
-	assert(ASSEMBLY_TILE_Z == WorldInitScript.HALL_ORIGIN_Z + WorldInitScript.HALL_SIZE_Z,
+	@warning_ignore("assert_always_true") assert(ASSEMBLY_TILE_Z == WorldInitScript.HALL_ORIGIN_Z + WorldInitScript.HALL_SIZE_Z,
 		"and one tile SOUTH of its footprint, which occupies z=59..68")
-	assert(ASSEMBLY_COHORT_SIZE == WorldInitScript.HALL_SIZE_X
+	@warning_ignore("assert_always_true") assert(ASSEMBLY_COHORT_SIZE == WorldInitScript.HALL_SIZE_X
 			and ASSEMBLY_COHORT_SIZE == ResidentsScript.INITIAL_POPULATION,
 		"§5.1's twelve residents fill exactly one row of §5.9's twelve-tile-wide hall")
 	assert(ASSEMBLY_FIRST_TILE_INDEX
 			== WorldInitScript.tile_index_of(ASSEMBLY_FIRST_TILE_X, ASSEMBLY_TILE_Z),
 		"the authored tile index must be z*128+x of the authored tile")
-	assert(ASSEMBLY_ROOT_X_STEP_UNITS == WorldInitScript.TILE_SIZE_UNITS,
+	@warning_ignore("assert_always_true") assert(ASSEMBLY_ROOT_X_STEP_UNITS == WorldInitScript.TILE_SIZE_UNITS,
 		"adjacent roots are one tile pitch apart")
 	assert(ASSEMBLY_FIRST_ROOT_X_UNITS
 			== WorldInitScript.tile_center_x_units(ASSEMBLY_FIRST_TILE_X)
 			and ASSEMBLY_ROOT_Z_UNITS == WorldInitScript.tile_center_z_units(ASSEMBLY_TILE_Z),
 		"the authored roots are the authored tile's centre")
-	assert(ASSEMBLY_ROOT_Y_UNITS == WorldInitScript.LAND_Y_UNITS,
+	@warning_ignore("assert_always_true") assert(ASSEMBLY_ROOT_Y_UNITS == WorldInitScript.LAND_Y_UNITS,
 		"y is §5.1's authored land elevation, not a guessed ground height")
 
 
 func _assert_shared_contracts() -> void:
 	"""Prove the capacities and the season index this file reads out of other modules."""
-	assert(ResidentsScript.RESIDENT_CAPACITY == NeedsScript.RESIDENT_CAPACITY,
+	@warning_ignore("assert_always_true") assert(ResidentsScript.RESIDENT_CAPACITY == NeedsScript.RESIDENT_CAPACITY,
 		"the resident and needs stores must share one row capacity")
-	assert(ResidentsScript.RESIDENT_CAPACITY == ScheduleScript.SCHEDULE_CAPACITY,
+	@warning_ignore("assert_always_true") assert(ResidentsScript.RESIDENT_CAPACITY == ScheduleScript.SCHEDULE_CAPACITY,
 		"the schedule store must share the resident row capacity")
-	assert(ResidentsScript.RESIDENT_CAPACITY == PrioritiesScript.PRIORITY_CAPACITY,
+	@warning_ignore("assert_always_true") assert(ResidentsScript.RESIDENT_CAPACITY == PrioritiesScript.PRIORITY_CAPACITY,
 		"the priorities store must share the resident row capacity")
 	assert(SimClockScript.SEASON_NAMES.size() == SEASON_COUNT,
 		"the calendar must publish exactly four seasons")
-	assert(SimClockScript.SEASON_NAMES[SEASON_WINTER] == "winter",
+	@warning_ignore("assert_always_true") assert(SimClockScript.SEASON_NAMES[SEASON_WINTER] == "winter",
 		"SEASON_WINTER must index the calendar's winter, which REQ-SET-143 hangs off")
 	assert(_ecology.directory() == _directory,
 		"the ecology stores must validate references through this settlement's one directory")
@@ -1031,7 +1031,7 @@ func _assert_shared_contracts() -> void:
 		"ARCH-SYS-006 must borrow ARCH-SYS-005's hives, not compose a second orchard store")
 	assert(_crop_weather.rng() == _rng,
 		"ARCH-SYS-006 must consume this settlement's one ARCH-RNG-002 stream set")
-	assert(DAILY_LEG_CAPACITY == LEG_PROGRESSION + 1,
+	@warning_ignore("assert_always_true") assert(DAILY_LEG_CAPACITY == LEG_PROGRESSION + 1,
 		"the leg log must hold exactly REQ-SET-007's legs plus the season handover")
 	assert(_planner.forage() == _ecology.forage(),
 		"ARCH-SYS-009 must plan over ARCH-SYS-005's own HarvestZone store, not a second one")
@@ -1047,7 +1047,7 @@ func _assert_shared_contracts() -> void:
 		"the Building/Room/Furniture store must share this settlement's one directory")
 	assert(_construction.buildings() == _buildings and _construction.directory() == _directory,
 		"REQ-SET-124's projects must act on THIS settlement's buildings and one directory")
-	assert(BuildingsScript.MAP_TILES_X == WorldInitScript.MAP_TILES_X
+	@warning_ignore("assert_always_true") assert(BuildingsScript.MAP_TILES_X == WorldInitScript.MAP_TILES_X
 			and BuildingsScript.MAP_TILES_Z == WorldInitScript.MAP_TILES_Z,
 		"the building tile maps and REQ-SET-009's ground map must index the same §5.1 grid")
 	assert(TICK_STAGE_KEYS.size() == TICK_STAGE_COUNT,
@@ -1214,8 +1214,8 @@ func create_initial_settlement() -> bool:
 
 # --- INIT-POSE-R01: the authored starter placement ---------------------------------------------
 
-func create_placed_cohort_on(world: WorldInitScript) -> bool:
-	"""Spawn §5.1's cohort AND stand it on the apron of `world`'s prepared plan. All or nothing.
+func create_placed_cohort_on(target_world: WorldInitScript) -> bool:
+	"""Spawn §5.1's cohort AND stand it on the apron of `target_world`'s prepared plan. All or nothing.
 
 	THE CREATE BUTTON'S COHORT STEP. `UiWorldSession` prepares its own WorldInit and hands it
 	here between its seed and its publish, which is exactly where the boot transaction places.
@@ -1228,7 +1228,7 @@ func create_placed_cohort_on(world: WorldInitScript) -> bool:
 	"""
 	if not create_initial_settlement():
 		return false
-	if _place_initial_cohort_on(world):
+	if _place_initial_cohort_on(target_world):
 		return true
 	var code: StringName = _last_refusal
 	reset()
@@ -1244,7 +1244,7 @@ func _place_initial_cohort() -> bool:
 	return _place_initial_cohort_on(_world)
 
 
-func _place_initial_cohort_on(world: WorldInitScript) -> bool:
+func _place_initial_cohort_on(target_world: WorldInitScript) -> bool:
 	"""Stand §5.1's twelve on the hall's south apron, inside the generation transaction.
 
 	VALIDATE EVERYTHING FIRST, THEN PLACE. The ruling is explicit that a failure on resident
@@ -1256,7 +1256,7 @@ func _place_initial_cohort_on(world: WorldInitScript) -> bool:
 	`publish_prepared()` creates a single world entity -- so the ground it proves clear is the
 	ground the world is about to be published onto.
 	"""
-	var code: StringName = _refuse_assembly_row_on(world)
+	var code: StringName = _refuse_assembly_row_on(target_world)
 	if code != REFUSE_NONE:
 		return _refuse(code)
 	for index: int in ASSEMBLY_COHORT_SIZE:
@@ -1277,9 +1277,9 @@ static func assembly_tile_index(index: int) -> int:
 	return ASSEMBLY_FIRST_TILE_INDEX + index
 
 
-func _refuse_assembly_row_on(world: WorldInitScript) -> StringName:
-	"""Every INIT-POSE-R01 input against `world`, decided before the first write."""
-	if world == null or not world.has_prepared_plan():
+func _refuse_assembly_row_on(target_world: WorldInitScript) -> StringName:
+	"""Every INIT-POSE-R01 input against `target_world`, decided before the first write."""
+	if target_world == null or not target_world.has_prepared_plan():
 		return REFUSE_POSE_NO_PLAN
 	var identities: StringName = _resolve_assembly_slots()
 	if identities != REFUSE_NONE:
@@ -1287,10 +1287,10 @@ func _refuse_assembly_row_on(world: WorldInitScript) -> StringName:
 	var ground: StringName = _refuse_assembly_ground()
 	if ground != REFUSE_NONE:
 		return ground
-	return refuse_assembly_occupancy(world)
+	return refuse_assembly_occupancy(target_world)
 
 
-static func resolve_assembly_order_into(residents: ResidentsScript,
+static func resolve_assembly_order_into(resident_store: ResidentsScript,
 		out: PackedInt32Array) -> StringName:
 	"""Map persistent ids 1..12 onto resident rows, refusing any cohort that is not exactly that.
 
@@ -1304,15 +1304,15 @@ static func resolve_assembly_order_into(residents: ResidentsScript,
 	production-world test alone cannot tell this rule apart from `out[slot] = slot`.
 	`out` must already be sized to ASSEMBLY_COHORT_SIZE; nothing is resized here.
 	"""
-	if residents == null or out.size() != ASSEMBLY_COHORT_SIZE:
+	if resident_store == null or out.size() != ASSEMBLY_COHORT_SIZE:
 		return REFUSE_POSE_IDENTITY
-	if residents.living_count() != ASSEMBLY_COHORT_SIZE:
+	if resident_store.living_count() != ASSEMBLY_COHORT_SIZE:
 		return REFUSE_POSE_IDENTITY
 	out.fill(EntityDirectoryScript.NULL_SLOT)
 	for slot: int in ResidentsScript.RESIDENT_CAPACITY:
-		if not residents.is_alive(slot):
+		if not resident_store.is_alive(slot):
 			continue
-		var persistent: IntMath.IntResult = residents.persistent_id_of(slot)
+		var persistent: IntMath.IntResult = resident_store.persistent_id_of(slot)
 		if not persistent.ok or persistent.value < 1 or persistent.value > ASSEMBLY_COHORT_SIZE:
 			return REFUSE_POSE_IDENTITY
 		if out[persistent.value - 1] != EntityDirectoryScript.NULL_SLOT:
@@ -1373,7 +1373,7 @@ func _refuse_assembly_ground() -> StringName:
 	return REFUSE_NONE
 
 
-static func refuse_assembly_occupancy(world: WorldInitScript) -> StringName:
+static func refuse_assembly_occupancy(target_world: WorldInitScript) -> StringName:
 	"""Prove no static footprint and no PLANNED resource node stands on the apron row.
 
 	The tree half reads the HELD PLAN -- `planned_tree_centre_at()` and `planned_grove_at()` are
@@ -1386,7 +1386,7 @@ static func refuse_assembly_occupancy(world: WorldInitScript) -> StringName:
 	ground -- so the refusing branch is unreachable through generation and would otherwise never
 	be executed by any test at all.
 	"""
-	if world == null:
+	if target_world == null:
 		return REFUSE_POSE_OCCUPIED
 	for index: int in ASSEMBLY_COHORT_SIZE:
 		var tile_x: int = ASSEMBLY_FIRST_TILE_X + index
@@ -1394,12 +1394,12 @@ static func refuse_assembly_occupancy(world: WorldInitScript) -> StringName:
 			return REFUSE_POSE_OCCUPIED
 		if _is_deposit_tile(tile_x, ASSEMBLY_TILE_Z):
 			return REFUSE_POSE_OCCUPIED
-	for index: int in world.planned_tree_centre_count():
-		var centre: IntMath.IntResult = world.planned_tree_centre_at(index)
+	for index: int in target_world.planned_tree_centre_count():
+		var centre: IntMath.IntResult = target_world.planned_tree_centre_at(index)
 		if not centre.ok or assembly_covers_tile(centre.value):
 			return REFUSE_POSE_OCCUPIED
-	for index: int in world.planned_grove_count():
-		var grove: IntMath.IntResult = world.planned_grove_at(index)
+	for index: int in target_world.planned_grove_count():
+		var grove: IntMath.IntResult = target_world.planned_grove_at(index)
 		if not grove.ok or assembly_covers_tile(grove.value):
 			return REFUSE_POSE_OCCUPIED
 	return REFUSE_NONE
@@ -1484,13 +1484,13 @@ func _attach_resident(slot: int) -> bool:
 	var template: IntMath.IntResult = _schedule.default_template_id()
 	if not template.ok:
 		return _refuse(StringName(template.error))
-	var priorities: PrioritiesScript.OpResult = _priorities.spawn(slot)
-	if not priorities.ok:
-		return _refuse(priorities.error)
-	var schedule: ScheduleScript.OpResult = _schedule.spawn(slot, template.value)
-	if not schedule.ok:
+	var priorities_result: PrioritiesScript.OpResult = _priorities.spawn(slot)
+	if not priorities_result.ok:
+		return _refuse(priorities_result.error)
+	var schedule_result: ScheduleScript.OpResult = _schedule.spawn(slot, template.value)
+	if not schedule_result.ok:
 		_priorities.despawn(slot)
-		return _refuse(schedule.error)
+		return _refuse(schedule_result.error)
 	var agent: JobsScript.OpResult = _jobs.spawn_agent(slot)
 	if not agent.ok:
 		_schedule.despawn(slot)

@@ -486,12 +486,12 @@ func test_village_crossings_ford_at_the_road_and_bridge_at_the_neck() -> void:
 	var map := _village()
 	assert_equal(map.crossing_kind(0), WaterMapScript.CROSSING_FORD, "a ford")
 	assert_true(map.crossing_depth_u(0) <= 256, "a mouse wades it")
-	var ford_z: int = (map.crossing_a(0).y + map.crossing_b(0).y) / 2
+	@warning_ignore("integer_division") var ford_z: int = (map.crossing_a(0).y + map.crossing_b(0).y) / 2
 	assert_true(ford_z >= -3174 and ford_z <= 1536, "ford z %d in the ford reach" % ford_z)
 	assert_equal(map.crossing_kind(1), WaterMapScript.CROSSING_BRIDGE, "then a bridge")
 	var neck: int = map.crossing_width_u(1)
 	assert_true(neck >= 3400 and neck <= 3584, "neck span %d" % neck)
-	var neck_z: int = (map.crossing_a(1).y + map.crossing_b(1).y) / 2
+	@warning_ignore("integer_division") var neck_z: int = (map.crossing_a(1).y + map.crossing_b(1).y) / 2
 	assert_true(neck_z >= -27648 and neck_z <= -24576, "neck z %d" % neck_z)
 
 
@@ -592,10 +592,10 @@ func test_woods_blockers_cover_the_water_and_the_dressing() -> void:
 	"""Every stream vertex, pond centre and dressing placement lies inside some blocker."""
 	var blockers: Array[Vector3] = WaterDressing.woods_blockers()
 	var probes: Array[Vector2] = []
-	for k: int in WaterLayout.STREAM_VERTICES.size() / 4:
+	@warning_ignore("integer_division") for k: int in WaterLayout.STREAM_VERTICES.size() / 4:
 		probes.append(Vector2(Rules.to_m(WaterLayout.STREAM_VERTICES[k * 4]),
 			Rules.to_m(WaterLayout.STREAM_VERTICES[k * 4 + 1])))
-	for k: int in WaterLayout.POND_CIRCLES.size() / 4:
+	@warning_ignore("integer_division") for k: int in WaterLayout.POND_CIRCLES.size() / 4:
 		probes.append(Vector2(Rules.to_m(WaterLayout.POND_CIRCLES[k * 4]),
 			Rules.to_m(WaterLayout.POND_CIRCLES[k * 4 + 1])))
 	for probe: Vector2 in probes:
@@ -1061,12 +1061,12 @@ func test_a_flood_raises_the_stream_up_its_banks() -> void:
 	var water: DemoWater = _built()[1]
 	assert_equal(water.flood_rise_m(), 0.0, "at its level")
 	water.set_flood_rise(1.0)
-	assert_almost_equal(water.flood_rise_m(), Rules.to_m(184 * 900 / 1000), "brim-full")
+	@warning_ignore("integer_division") assert_almost_equal(water.flood_rise_m(), Rules.to_m(184 * 900 / 1000), "brim-full")
 	for node: MeshInstance3D in water.surface().nodes:
 		var stream: bool = node.name == "WaterSurface_stream"
 		assert_equal(node.position.y > 0.0, stream, "%s raised: %s" % [node.name, stream])
 	water.set_flood_rise(0.5)
-	assert_almost_equal(water.flood_rise_m(), Rules.to_m(184 * 900 / 1000) * 0.5, "half")
+	@warning_ignore("integer_division") assert_almost_equal(water.flood_rise_m(), Rules.to_m(184 * 900 / 1000) * 0.5, "half")
 	water.set_flood_rise(0.0)
 	assert_equal(water.flood_rise_m(), 0.0, "drained away")
 
@@ -1343,6 +1343,7 @@ func test_stacked_labels_rise_clear_of_each_other_lowest_first() -> void:
 func test_a_site_whose_landing_the_map_lacks_is_not_labelled() -> void:
 	"""A map with no landings: every site's label stays hidden and out of the layout -- none falls to the
 	world origin (over the well) as it used to. On the village's map all three sit over their landings."""
+	expect_diagnostic("WATER_UNKNOWN_LANDING")
 	var overlay := Overlay.new()
 	_nodes.append(overlay)
 	overlay.set_driver(_driver(), _straight_stream())

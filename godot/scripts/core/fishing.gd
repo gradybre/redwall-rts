@@ -626,10 +626,10 @@ func _init(p_directory: EntityDirectory = null, p_zones: ForageScript = null,
 	are supplied they MUST already share this store's directory, because every reference crossing
 	the boundary is validated in it.
 	"""
-	assert(FISH_HABITAT_CAPACITY
+	@warning_ignore("assert_always_true") assert(FISH_HABITAT_CAPACITY
 			== EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_FISH_HABITAT],
 		"fish-habitat columns must match the directory's FISH_HABITAT row capacity")
-	assert(FISHING_EFFORT_CLAIM_CAPACITY
+	@warning_ignore("assert_always_true") assert(FISHING_EFFORT_CLAIM_CAPACITY
 			== EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_EXPEDITION],
 		"the effort-claim slice must be one row per directory Expedition row")
 	assert(SPECIES_KEYS.size() == SPECIES_COUNT, "GDD §5.4 lists exactly nine fish species")
@@ -671,11 +671,11 @@ func _assert_gear_binding() -> void:
 	"""Assert §5.4's effort-slot column against the NAMED gear row, never a bare position."""
 	assert(GEAR_KEYS.size() == GEAR_COUNT, "§5.4's gear table has five rows")
 	assert(GEAR_EFFORT_SLOTS.size() == GEAR_COUNT, "one effort-slot count per §5.4 gear row")
-	assert(GEAR_EFFORT_SLOTS[GEAR_HAND_NET] == BASIC_GEAR_EFFORT_SLOTS, "§5.4: hand net 1/1")
-	assert(GEAR_EFFORT_SLOTS[GEAR_TRAP] == BASIC_GEAR_EFFORT_SLOTS, "§5.4: trap 1/1")
-	assert(GEAR_EFFORT_SLOTS[GEAR_ICE_KIT] == BASIC_GEAR_EFFORT_SLOTS, "§5.4: ice kit as net")
-	assert(GEAR_EFFORT_SLOTS[GEAR_WEIR] == HEAVY_GEAR_EFFORT_SLOTS, "§5.4: weir 1/2")
-	assert(GEAR_EFFORT_SLOTS[GEAR_BOAT] == HEAVY_GEAR_EFFORT_SLOTS, "§5.4: boat 2/2")
+	@warning_ignore("assert_always_true") assert(GEAR_EFFORT_SLOTS[GEAR_HAND_NET] == BASIC_GEAR_EFFORT_SLOTS, "§5.4: hand net 1/1")
+	@warning_ignore("assert_always_true") assert(GEAR_EFFORT_SLOTS[GEAR_TRAP] == BASIC_GEAR_EFFORT_SLOTS, "§5.4: trap 1/1")
+	@warning_ignore("assert_always_true") assert(GEAR_EFFORT_SLOTS[GEAR_ICE_KIT] == BASIC_GEAR_EFFORT_SLOTS, "§5.4: ice kit as net")
+	@warning_ignore("assert_always_true") assert(GEAR_EFFORT_SLOTS[GEAR_WEIR] == HEAVY_GEAR_EFFORT_SLOTS, "§5.4: weir 1/2")
+	@warning_ignore("assert_always_true") assert(GEAR_EFFORT_SLOTS[GEAR_BOAT] == HEAVY_GEAR_EFFORT_SLOTS, "§5.4: boat 2/2")
 
 
 func _assert_habitat_binding() -> void:
@@ -690,9 +690,9 @@ func _assert_habitat_binding() -> void:
 	assert(Catalog.HABITAT_TYPE.size() == HABITAT_TYPE_COUNT, "§5.4 defines three habitats")
 	assert(SPECIES_HABITAT_TYPE.size() == SPECIES_COUNT, "one habitat per §5.4 species row")
 	assert(HABITAT_SPECIES_ROWS.size() == SPECIES_COUNT, "three species per §5.4 habitat")
-	assert(EFFORT_SLOTS_BY_TYPE[HABITAT_RIVER] == RIVER_EFFORT_SLOTS, "§5.4: river 4")
-	assert(EFFORT_SLOTS_BY_TYPE[HABITAT_LAKE] == LAKE_EFFORT_SLOTS, "§5.4: lake 6")
-	assert(EFFORT_SLOTS_BY_TYPE[HABITAT_COAST] == COAST_EFFORT_SLOTS, "§5.4: coast 6")
+	@warning_ignore("assert_always_true") assert(EFFORT_SLOTS_BY_TYPE[HABITAT_RIVER] == RIVER_EFFORT_SLOTS, "§5.4: river 4")
+	@warning_ignore("assert_always_true") assert(EFFORT_SLOTS_BY_TYPE[HABITAT_LAKE] == LAKE_EFFORT_SLOTS, "§5.4: lake 6")
+	@warning_ignore("assert_always_true") assert(EFFORT_SLOTS_BY_TYPE[HABITAT_COAST] == COAST_EFFORT_SLOTS, "§5.4: coast 6")
 	for habitat_type: int in HABITAT_TYPE_COUNT:
 		for species_index: int in SPECIES_PER_HABITAT:
 			var species: int = HABITAT_SPECIES_ROWS[habitat_type * SPECIES_PER_HABITAT
@@ -935,7 +935,7 @@ static func _percent_of(value_milli: int, percent: int) -> int:
 	or from their sum (at most 3100000), and every percent here is at most 100, so the product
 	is at most 310000000. Checked arithmetic is reserved for the caller-supplied catch path.
 	"""
-	return value_milli * percent / PERCENT_DENOMINATOR
+	@warning_ignore("integer_division") return value_milli * percent / PERCENT_DENOMINATOR
 
 
 # --- FishHabitat lifecycle ---------------------------------------------------------------------------
@@ -1040,7 +1040,7 @@ func _write_created_stocks(slot: int, ref: Vector2i, habitat_type: int,
 		_stock_habitat_generation[row] = ref.y
 		_stock_species_id[row] = species_ids[species_index]
 		_stock_capacity_milli[row] = capacity
-		_stock_population_milli[row] = \
+		@warning_ignore("integer_division") _stock_population_milli[row] = \
 			capacity * INITIAL_STOCK_NUMERATOR / INITIAL_STOCK_DENOMINATOR
 		_stock_harvested_today_milli[row] = 0
 		_stock_closed[row] = 0
@@ -1956,7 +1956,7 @@ func _species_of_row(row: int) -> int:
 	The stock row is decomposed with `SPECIES_PER_HABITAT` because stock storage IS owner-major;
 	the species then comes from HABITAT_SPECIES_ROWS, not from the habitat id's arithmetic.
 	"""
-	var habitat_slot: int = row / SPECIES_PER_HABITAT
+	@warning_ignore("integer_division") var habitat_slot: int = row / SPECIES_PER_HABITAT
 	var species_index: int = row % SPECIES_PER_HABITAT
 	var habitat_type: int = _habitat_type[habitat_slot]
 	return HABITAT_SPECIES_ROWS[habitat_type * SPECIES_PER_HABITAT + species_index]
@@ -2242,7 +2242,7 @@ func daily_recovery_milli_into(row: int, season: int, season_day: int,
 		return out.succeed(0)
 	if not _logistic_growth_into(row, capacity, room, out):
 		return false
-	var grown: int = out.value + capacity / RECRUITMENT_DIVISOR
+	@warning_ignore("integer_division") var grown: int = out.value + capacity / RECRUITMENT_DIVISOR
 	grown += _salmon_restock_milli(_species_of_row(row), season, season_day)
 	return out.succeed(mini(grown, room))
 
@@ -2401,7 +2401,7 @@ func floor_percent_for(row: int, season: int, season_day: int) -> IntMath.IntRes
 
 func _floor_percent_for(row: int, season: int, season_day: int) -> int:
 	"""§5.4's floor percentage for a validated stock row, 30 by default and 10 intensively."""
-	var habitat_slot: int = row / SPECIES_PER_HABITAT
+	@warning_ignore("integer_division") var habitat_slot: int = row / SPECIES_PER_HABITAT
 	if _habitat_intensive[habitat_slot] != 1:
 		return MIN_STOCK_PERCENT
 	if _is_closure_window(_species_of_row(row), season, season_day):
@@ -2641,7 +2641,7 @@ func catch_milli_into(row: int, base_catch_milli: int, skill: int, season: int, 
 	if not formula_catch_milli_into(row, base_catch_milli, skill, season, season_day, out):
 		return false
 	var caught: int = out.value
-	if not remaining_quota_milli_into(row / SPECIES_PER_HABITAT, out):
+	@warning_ignore("integer_division") if not remaining_quota_milli_into(row / SPECIES_PER_HABITAT, out):
 		return false
 	caught = mini(caught, out.value)
 	if not allowed_stock_milli_into(row, season, season_day, out):
@@ -2700,7 +2700,7 @@ func _check_harvest(row: int, amount_milli: int, season: int, season_day: int) -
 		return StringName(_math_b.error)
 	if amount_milli > _math_b.value:
 		return REFUSE_BELOW_STOCK_FLOOR
-	if not remaining_quota_milli_into(row / SPECIES_PER_HABITAT, _math_b):
+	@warning_ignore("integer_division") if not remaining_quota_milli_into(row / SPECIES_PER_HABITAT, _math_b):
 		return StringName(_math_b.error)
 	if amount_milli > _math_b.value:
 		return REFUSE_QUOTA_REACHED
@@ -2723,7 +2723,7 @@ func _harvest_block_code(row: int, season: int, season_day: int) -> StringName:
 		return REFUSE_SPECIES_UNAVAILABLE
 	if _stock_restocking[row] != 1:
 		return REFUSE_NONE
-	if _habitat_intensive[row / SPECIES_PER_HABITAT] == 1:
+	@warning_ignore("integer_division") if _habitat_intensive[row / SPECIES_PER_HABITAT] == 1:
 		return REFUSE_NONE
 	return REFUSE_RESTOCKING
 
@@ -3281,7 +3281,7 @@ static func _columns_stock_refusal(image: Columns) -> StringName:
 
 static func _columns_stock_row_refusal(image: Columns, row: int) -> StringName:
 	"""One stock row against its owning habitat row/3 and species position row%3."""
-	var parent: int = row / SPECIES_PER_HABITAT
+	@warning_ignore("integer_division") var parent: int = row / SPECIES_PER_HABITAT
 	if image.stock_present[row] != image.habitat_present[parent]:
 		return REFUSE_COLUMN_STOCK_LINK
 	if image.stock_present[row] != 1:
@@ -3327,7 +3327,7 @@ static func _columns_stock_value_refusal(image: Columns, row: int, parent: int) 
 	if population < _percent_of(capacity, HARD_FLOOR_PERCENT) or population > capacity:
 		return REFUSE_COLUMN_STOCK_VALUE
 	var harvested: int = image.stock_harvested_today_milli[row]
-	if harvested < 0 or harvested > image.habitat_capacity_milli[parent] / DAILY_QUOTA_DIVISOR:
+	@warning_ignore("integer_division") if harvested < 0 or harvested > image.habitat_capacity_milli[parent] / DAILY_QUOTA_DIVISOR:
 		return REFUSE_COLUMN_STOCK_VALUE
 	return REFUSE_NONE
 
@@ -3364,7 +3364,7 @@ static func _columns_species_quota_refusal(image: Columns) -> StringName:
 		var taken: int = 0
 		for index: int in SPECIES_PER_HABITAT:
 			taken += image.stock_harvested_today_milli[base + index]
-		if taken > image.habitat_capacity_milli[slot] / DAILY_QUOTA_DIVISOR:
+		@warning_ignore("integer_division") if taken > image.habitat_capacity_milli[slot] / DAILY_QUOTA_DIVISOR:
 			return REFUSE_COLUMN_QUOTA
 	return REFUSE_NONE
 

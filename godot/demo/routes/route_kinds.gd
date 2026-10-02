@@ -84,7 +84,7 @@ func boat_leg_into(who: int, out: PackedVector2Array) -> bool:
 	var start: int = 0
 	var outward: bool = fleet.phase[boat] == FleetScript.PHASE_OUT
 	var ahead := PackedVector2Array()
-	for k: int in range(1, points.size() / 2):
+	@warning_ignore("integer_division") for k: int in range(1, points.size() / 2):
 		var a := Vector2i(points[k * 2 - 2], points[k * 2 - 1])
 		var b := Vector2i(points[k * 2], points[k * 2 + 1])
 		var length: int = BoatRoutes.leg_length_u(a, b)

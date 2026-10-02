@@ -91,7 +91,7 @@ func _both_images(slot: int) -> PackedByteArray:
 	return image
 
 
-func _tick(slot: int, count: int) -> void:
+func _tick(_slot: int, count: int) -> void:
 	"""Advance both stores by `count` fixed ticks, in the order a scheduler phase would."""
 	for _i: int in count:
 		_injury.tick_all(_needs)

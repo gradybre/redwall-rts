@@ -82,7 +82,7 @@ func _fall_into_row(row: int, sources: PackedVector2Array, standable: Callable) 
 	for attempt: int in ATTEMPTS_PER_PILE:
 		var source: Vector2 = sources[_rng.randi_range(0, sources.size() - 1)]
 		var spot: Vector2 = source + Vector2.from_angle(_rng.randf_range(-PI, PI)) * _rng.randf_range(FALL_MIN_M, FALL_MAX_M)
-		var steps: int = (Rules.DEADFALL_MAX_MILLI - Rules.DEADFALL_MIN_MILLI) / Rules.DEADFALL_STEP_MILLI
+		@warning_ignore("integer_division") var steps: int = (Rules.DEADFALL_MAX_MILLI - Rules.DEADFALL_MIN_MILLI) / Rules.DEADFALL_STEP_MILLI
 		var amount: int = Rules.DEADFALL_MIN_MILLI + _rng.randi_range(0, steps) * Rules.DEADFALL_STEP_MILLI
 		var turn: float = _rng.randf_range(-PI, PI)
 		if not bool(standable.call(spot)):

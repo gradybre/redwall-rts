@@ -294,20 +294,20 @@ static func need_text(milli: int) -> String:
 	would understate what is needed)."""
 	if milli % 100 == 0:
 		return amount_text(milli)
-	return "%d.%02d U" % [milli / 1000, (milli % 1000) / 10]
+	@warning_ignore("integer_division") return "%d.%02d U" % [milli / 1000, (milli % 1000) / 10]
 
 
 static func hours_text(usec: int) -> String:
 	"""Demo microseconds as game time on the demo calendar, rounded up (a sliver of work is never nothing): under an
 	hour in whole game minutes ("about 20 game minutes", "about 1 game minute"), from an hour in hours to the tenth
 	("about 1 game hour", "about 2.4 game hours"); no work at all is "about 0 game minutes"."""
-	var minutes: int = (usec * SimClock.MINUTES_PER_HOUR + CalendarScript.HOUR_USEC - 1) / CalendarScript.HOUR_USEC
+	@warning_ignore("integer_division") var minutes: int = (usec * SimClock.MINUTES_PER_HOUR + CalendarScript.HOUR_USEC - 1) / CalendarScript.HOUR_USEC
 	if minutes < SimClock.MINUTES_PER_HOUR:
 		return "about 1 game minute" if minutes == 1 else "about %d game minutes" % minutes
-	var tenths: int = (usec * 10 + CalendarScript.HOUR_USEC - 1) / CalendarScript.HOUR_USEC
+	@warning_ignore("integer_division") var tenths: int = (usec * 10 + CalendarScript.HOUR_USEC - 1) / CalendarScript.HOUR_USEC
 	if tenths == 10:
 		return "about 1 game hour"
-	return "about %d.%d game hours" % [tenths / 10, tenths % 10]
+	@warning_ignore("integer_division") return "about %d.%d game hours" % [tenths / 10, tenths % 10]
 
 
 static func wrap_lines(lines: PackedStringArray) -> String:

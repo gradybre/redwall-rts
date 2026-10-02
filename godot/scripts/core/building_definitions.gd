@@ -334,11 +334,11 @@ func _assert_station_binding() -> void:
 	"""
 	assert(STATION_PROVIDER_KEYS.size() == _station_count,
 		"every Station key must have exactly one exterior building provider")
-	assert(int(Catalog.STATION[KITCHEN_STATION_KEY]) == 3, "kitchen service must be 3")
-	assert(int(Catalog.BUILDING_DEFINITION[KITCHEN_STATION_KEY]) == 14,
+	@warning_ignore("assert_always_true") assert(int(Catalog.STATION[KITCHEN_STATION_KEY]) == 3, "kitchen service must be 3")
+	@warning_ignore("assert_always_true") assert(int(Catalog.BUILDING_DEFINITION[KITCHEN_STATION_KEY]) == 14,
 		"the exterior kitchen building must be 14")
-	assert(int(Catalog.BUILDING_DEFINITION["hall"]) == 12, "the hall building must be 12")
-	assert(int(Catalog.FURNITURE_DEFINITION[KITCHEN_BENCH_KEY]) == 5,
+	@warning_ignore("assert_always_true") assert(int(Catalog.BUILDING_DEFINITION["hall"]) == 12, "the hall building must be 12")
+	@warning_ignore("assert_always_true") assert(int(Catalog.FURNITURE_DEFINITION[KITCHEN_BENCH_KEY]) == 5,
 		"kitchen_bench furniture must be 5")
 
 

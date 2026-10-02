@@ -18,7 +18,7 @@ func _empty() -> Array:
 	"""Cleared source-owned defaults include a null rescuer slot rather than raw zero."""
 	var c: Array = []
 	for field: int in 11:
-		var values: Variant = PackedByteArray() if field < 5 else (PackedInt32Array() if field < 8 else PackedInt64Array())
+		var values: Variant = (PackedByteArray() as Variant) if field < 5 else ((PackedInt32Array() as Variant) if field < 8 else (PackedInt64Array() as Variant))
 		values.resize(512)
 		if field == 6: values.fill(-1)
 		c.append(values)
@@ -223,10 +223,10 @@ func _fault(c: Array, gate: int, row: int) -> StringName:
 func test_global_gate_priority_and_inactive_before_duplicate() -> void:
 	"""Earlier gate on the tail wins; duplicate ordering uses separate present rows."""
 	for gate: int in 10:
-		var c: Array = _empty()
-		var code: StringName = _fault(c,gate,511)
-		_fault(c,gate+1,0)
-		_expect(c,code)
+		var cols: Array = _empty()
+		var code: StringName = _fault(cols,gate,511)
+		_fault(cols,gate+1,0)
+		_expect(cols,code)
 	var c: Array = _empty()
 	_bound(c,0,0,1)
 	_bound(c,1,0,1)

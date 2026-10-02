@@ -84,9 +84,9 @@ func _init() -> void:
 	_add_stations()
 	_add_skills()
 	_add_safety()
-	for entry: Entry in _entries:
-		_index.append(SearchScript.Entry.new(entry.title, "%s %s" % [KIND_NAMES[entry.kind], entry.summary],
-			" ".join([entry.uses, entry.requires, entry.alternatives, entry.here])))
+	for listed: Entry in _entries:
+		_index.append(SearchScript.Entry.new(listed.title, "%s %s" % [KIND_NAMES[listed.kind], listed.summary],
+			" ".join([listed.uses, listed.requires, listed.alternatives, listed.here])))
 
 
 func bind_pantry(pantry: PantryScript) -> void:
@@ -94,26 +94,26 @@ func bind_pantry(pantry: PantryScript) -> void:
 	_pantry = pantry
 
 
-func _add(entry: Entry) -> void:
+func _add(filed: Entry) -> void:
 	"""File one entry under its id."""
-	_by_id[entry.id] = _entries.size()
-	_entries.append(entry)
+	_by_id[filed.id] = _entries.size()
+	_entries.append(filed)
 
 
 static func make(id: StringName, kind: int, title: String, summary: String, fields: PackedStringArray,
 		links: Array[StringName]) -> Entry:
 	"""An entry from [uses, requires, alternatives, here]."""
-	var entry := Entry.new()
-	entry.id = id
-	entry.kind = kind
-	entry.title = title
-	entry.summary = summary
-	entry.uses = fields[0]
-	entry.requires = fields[1]
-	entry.alternatives = fields[2]
-	entry.here = fields[3]
-	entry.links = links
-	return entry
+	var made := Entry.new()
+	made.id = id
+	made.kind = kind
+	made.title = title
+	made.summary = summary
+	made.uses = fields[0]
+	made.requires = fields[1]
+	made.alternatives = fields[2]
+	made.here = fields[3]
+	made.links = links
+	return made
 
 
 static func crop_id(item: int) -> StringName:
@@ -129,12 +129,12 @@ func _crop(item: int) -> Entry:
 	var links: Array[StringName] = [&"station_beds", &"station_store", &"station_cellar"]
 	var uses: String = _crop_uses(item, links)
 	var shelf: int = Catalog.CROP_SHELF_HOURS[row]
-	var requires: String = "A crop bed, sown in its planting window (the bed's Plant… says when). Keeps %d game hours in the covered store, about %d in a cool root cellar." % [shelf, shelf * StockAge.STORE_FACTOR[StockAge.STORAGE_COVERED_STORE] / StockAge.STORE_FACTOR[StockAge.STORAGE_CELLAR]]
-	var entry: Entry = make(crop_id(item), KIND_CROP, Catalog.ITEM_LABELS[item],
+	@warning_ignore("integer_division") var requires: String = "A crop bed, sown in its planting window (the bed's Plant… says when). Keeps %d game hours in the covered store, about %d in a cool root cellar." % [shelf, shelf * StockAge.STORE_FACTOR[StockAge.STORAGE_COVERED_STORE] / StockAge.STORE_FACTOR[StockAge.STORAGE_CELLAR]]
+	var made: Entry = make(crop_id(item), KIND_CROP, Catalog.ITEM_LABELS[item],
 		String(ROW_WORDS.get(row, "Crop")),
 		PackedStringArray([uses, requires, _row_mates(item), _grown_here(item)]), links)
-	entry.item = item
-	return entry
+	made.item = item
+	return made
 
 
 func _crop_uses(item: int, links: Array[StringName]) -> String:
@@ -199,7 +199,7 @@ func _dish(dish: int) -> Entry:
 		Rules.INPUT_CROPS_TEXT[dish]]
 	if Rules.SIDE_MILLI[dish] > 0:
 		food += " and %s of %s" % [FarmText.units_text(Rules.SIDE_MILLI[dish]), Rules.SIDE_WORDS[dish]]
-	var requires: String = "%s, %s of water and %s of wood a batch; %d WU of cooking at the cauldron." % [food,
+	@warning_ignore("integer_division") var requires: String = "%s, %s of water and %s of wood a batch; %d WU of cooking at the cauldron." % [food,
 		FarmText.units_text(Rules.WATER_MILLI[dish]), FarmText.units_text(Rules.WOOD_MILLI_PER_BATCH),
 		Rules.WORK_MWU[dish] / 1000]
 	var other: String = "When its food is short the cook makes %s instead." % Rules.DISH_NAMES[Rules.other(dish)]
@@ -222,7 +222,7 @@ func _goods(item: int) -> Entry:
 	if item == Catalog.ITEM_DRIED_FISH:
 		summary = "Fish smoked at the rack"
 		links = [&"station_rack_mill", &"station_store"]
-		fields = PackedStringArray([
+		@warning_ignore("integer_division") fields = PackedStringArray([
 			"The village's reserve: eaten raw by a hungry resident when a meal is missed (%d NP a unit)." % Rules.raw_np_per_u(item),
 			"Drying fresh fish at the rack: %s of fish makes %s, %d WU and %d hours' curing." % [
 				FarmText.units_text(FisheryRules.DRY_IN_MILLI), FarmText.units_text(FisheryRules.DRY_OUT_MILLI),
@@ -232,7 +232,7 @@ func _goods(item: int) -> Entry:
 	elif item == Catalog.ITEM_FLOUR:
 		summary = "Grain ground at the mill"
 		links = [&"station_rack_mill", &"station_store", &"crop_oats"]
-		fields = PackedStringArray([
+		@warning_ignore("integer_division") fields = PackedStringArray([
 			"Kept as stock for later baking: none of the demo's dishes uses it yet, and it is not eaten raw.",
 			"Milling grain: %s of grain makes %s, %d WU." % [FarmText.units_text(FisheryRules.MILL_IN_MILLI),
 				FarmText.units_text(FisheryRules.MILL_OUT_MILLI), FisheryRules.MILL_WORK_MWU / 1000],
@@ -249,9 +249,9 @@ func _goods(item: int) -> Entry:
 			"An authorised fishing trip (the Water panel's Fishing) and its gear; keeps only %d game hours, and is never eaten raw." % shelf,
 			"The other fish of the catch; dried fish keeps far longer.",
 			"Fished in %s." % water])
-	var entry: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], summary, fields, links)
-	entry.item = item
-	return entry
+	var made: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], summary, fields, links)
+	made.item = item
+	return made
 
 
 # --- materials ---------------------------------------------------------------------------------------
@@ -335,10 +335,10 @@ static func _material_gear() -> Entry:
 	"""Fishing gear, from gear_locker.gd: what each piece is made of, and mending."""
 	var parts := PackedStringArray()
 	for kind: int in [GearLocker.KIND_NET, GearLocker.KIND_TRAP, GearLocker.KIND_ICE_KIT]:
-		parts.append("a %s (%s of wood, %s of %s, %d WU)" % [GearLocker.KIND_NAMES[kind],
+		@warning_ignore("integer_division") parts.append("a %s (%s of wood, %s of %s, %d WU)" % [GearLocker.KIND_NAMES[kind],
 			FarmText.units_text(GearLocker.MAKE_WOOD_MILLI[kind]), FarmText.units_text(GearLocker.MAKE_MATERIAL_MILLI[kind]),
 			GearLocker.MAT_NAMES[GearLocker.MAKE_MATERIAL[kind]], GearLocker.MAKE_MWU[kind] / 1000])
-	return make(&"material_gear", KIND_MATERIAL, "Fishing gear", "Nets, traps and ice kits", PackedStringArray([
+	@warning_ignore("integer_division") return make(&"material_gear", KIND_MATERIAL, "Fishing gear", "Nets, traps and ice kits", PackedStringArray([
 		"A trip takes its method's gear: a hand net, a trap, the boat, or an ice kit with a winter outfit; each wears with use.",
 		"Made at the gear locker: %s." % "; ".join(parts),
 		"Mend gear instead of making it again (%s of wood and %s of rope, %d WU)." % [FarmText.units_text(GearLocker.MEND_WOOD_MILLI),
@@ -428,7 +428,7 @@ static func _station_tunnels() -> Entry:
 
 static func _station_bridges() -> Entry:
 	"""The station bridges entry."""
-	return make(&"station_bridges", KIND_STATION, "Bridges", "Dry ways over the stream", PackedStringArray([
+	@warning_ignore("integer_division") return make(&"station_bridges", KIND_STATION, "Bridges", "Dry ways over the stream", PackedStringArray([
 		"Crossing the stream dry, carrying or not, the badger too.",
 		"A plank footbridge: %s a metre of deck (and a pier per 2.5 m over 3.5 m). A log bridge: one %s log, at most 5.5 m of deck." % [
 			FarmText.units_text(SwimRules.PLANK_MILLI_PER_M), FarmText.units_text(SwimRules.LOG_WOOD_MILLI)],
@@ -492,7 +492,7 @@ static func _skill_felling() -> Entry:
 
 static func _skill_bridges() -> Entry:
 	"""The bridge-building skill entry."""
-	var level: int = int(sqrt(float(SwimRules.BRIDGEWRIGHT_XP / 5000)))
+	@warning_ignore("integer_division") var level: int = int(sqrt(float(SwimRules.BRIDGEWRIGHT_XP / 5000)))
 	return make(&"skill_bridges", KIND_SKILL, "Bridge building", "Piers, beams, deck", PackedStringArray([
 		"Building a bridge: fetching its material, then piers, beams and deck.",
 		"Anybody can build one, at the woods' work rate and their skill.",
@@ -533,7 +533,7 @@ func _add_safety() -> void:
 
 static func _safety_wading() -> Entry:
 	"""The wading entry."""
-	return make(&"safety_wading", KIND_SAFETY, "Wading and the ford", "Shallow water", PackedStringArray([
+	@warning_ignore("integer_division") return make(&"safety_wading", KIND_SAFETY, "Wading and the ford", "Shallow water", PackedStringArray([
 		"Crossing shallow water on foot, carrying or not.",
 		"Water shallower than the resident's own wading depth; they walk at %d%% pace there." % (SwimRules.WADE_PERMILLE / 10),
 		"A bridge (full pace, dry).", "The ford where the east road meets the stream."]),
@@ -542,7 +542,7 @@ static func _safety_wading() -> Entry:
 
 static func _safety_swimming() -> Entry:
 	"""Swimming stamina, cold water and the loaded rule, from swim_rules.gd."""
-	return make(&"safety_swimming", KIND_SAFETY, "Swimming and stamina", "Deep water", PackedStringArray([
+	@warning_ignore("integer_division") return make(&"safety_swimming", KIND_SAFETY, "Swimming and stamina", "Deep water", PackedStringArray([
 		"Crossing deep water by the swim links, quicker than a long way round.",
 		"No routine swim under %d%% stamina; a swimmer turns for the bank at %d%%; cold water (below %d °C) drains stamina %d times as fast. A loaded resident never swims." % [
 			SwimRules.REST_ENTRY_MIN / 100, SwimRules.REST_RETURN / 100, SwimRules.COLD_WATER_TENTHS / 10, SwimRules.COLD_FACTOR],

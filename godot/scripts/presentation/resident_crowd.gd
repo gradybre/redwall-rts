@@ -127,16 +127,16 @@ func _reset_buffer() -> void:
 	_drawn_count = 0
 
 
-func bind_stores(residents: ResidentsScript, transforms: TransformsScript) -> bool:
+func bind_stores(residents: ResidentsScript, transform_store: TransformsScript) -> bool:
 	"""Adopt the two READERS this crowd draws from. Refuses either being absent.
 
 	Borrowed, never owned: this object does not create, clear or reset a store, and unbinding
 	drops its references without touching a column.
 	"""
-	if residents == null or transforms == null:
+	if residents == null or transform_store == null:
 		return _refuse(REFUSE_NOT_BOUND)
 	_residents = residents
-	_transforms = transforms
+	_transforms = transform_store
 	_last_refusal = REFUSE_NONE
 	return true
 

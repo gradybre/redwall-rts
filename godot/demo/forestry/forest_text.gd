@@ -77,11 +77,11 @@ func season_line() -> String:
 	var season: int = _services.calendar.now().season
 	var line: String = "%s: " % CalendarScript.SEASON_TITLES[season]
 	if season == WeatherCore.SEASON_WINTER:
-		line += "no sap — felling takes %d%% of the time" % (Rules.WINTER_WORK_PERMILLE / 10)
+		@warning_ignore("integer_division") line += "no sap — felling takes %d%% of the time" % (Rules.WINTER_WORK_PERMILLE / 10)
 	else:
 		line += "sap running (felling is quicker in winter)"
 	if _services.weather.event() == WeatherCore.EVENT_HEAVY_RAIN:
-		line += "\nStorm: outdoor work at %d%% (GDD §5.10); trees may blow down" % (Rules.STORM_WORK_PERMILLE / 10)
+		@warning_ignore("integer_division") line += "\nStorm: outdoor work at %d%% (GDD §5.10); trees may blow down" % (Rules.STORM_WORK_PERMILLE / 10)
 	return line
 
 

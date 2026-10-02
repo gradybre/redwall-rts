@@ -579,7 +579,7 @@ func _assert_season_tables() -> void:
 	assert(SEASON_DAYLIGHT_END_HOUR.size() == SEASON_COUNT, "one daylight end per season")
 	assert(SEASON_TEMPERATURE_TENTHS.size() == SEASON_COUNT, "one baseline temperature per season")
 	assert(SEASON_RAIN.size() == SEASON_COUNT, "one baseline rain per season")
-	assert(DAYS_PER_SEASON * SEASON_COUNT == SimClock.DAYS_PER_YEAR,
+	@warning_ignore("assert_always_true") assert(DAYS_PER_SEASON * SEASON_COUNT == SimClock.DAYS_PER_YEAR,
 		"absolute_season % 4 is the §4.3 ordinal only if a year is exactly four 12-day seasons")
 	for event: int in EVENT_COUNT:
 		assert(EVENT_START_DAY[event] - FORECAST_DAYS >= FIRST_SEASON_DAY,
@@ -1227,7 +1227,7 @@ static func _evaporation_for(season: int, event: int) -> int:
 	"""
 	var loss: int = MOISTURE_EVAPORATION_PER_DAY
 	if season == SEASON_SUMMER:
-		loss = loss * SUMMER_EVAPORATION_NUMERATOR / EVAPORATION_DENOMINATOR
+		@warning_ignore("integer_division") loss = loss * SUMMER_EVAPORATION_NUMERATOR / EVAPORATION_DENOMINATOR
 	if event != EVENT_NONE:
 		loss += EVENT_EXTRA_EVAPORATION[event]
 	return loss
@@ -1461,8 +1461,8 @@ func end_event(absolute_season: int) -> OpResult:
 	return _succeed(removed)
 
 
-func adopt_snapshot_identity(version: int, scheduled_absolute_season: int,
-		forecast_absolute_season: int) -> OpResult:
+func adopt_snapshot_identity(version: int, p_scheduled_absolute_season: int,
+		p_forecast_absolute_season: int) -> OpResult:
 	"""Ruling §4.2's codec rule: accept a snapshot's temporal identity, or REFUSE the snapshot.
 
 	The codec itself does not exist (ARCH-SYS-022 has no save stream), so this is the rule alone,
@@ -1476,20 +1476,20 @@ func adopt_snapshot_identity(version: int, scheduled_absolute_season: int,
 		if version == SCHEMA_VERSION_NO_SEASON_IDENTITY:
 			return _refuse(REFUSE_AMBIGUOUS_SNAPSHOT_SEASON)
 		return _refuse(REFUSE_UNKNOWN_SCHEMA_VERSION)
-	if not _is_storable_identity(scheduled_absolute_season):
+	if not _is_storable_identity(p_scheduled_absolute_season):
 		return _refuse(REFUSE_INVALID_ABSOLUTE_SEASON)
-	if not _is_storable_identity(forecast_absolute_season):
+	if not _is_storable_identity(p_forecast_absolute_season):
 		return _refuse(REFUSE_INVALID_ABSOLUTE_SEASON)
-	if is_event_scheduled() and scheduled_absolute_season == ABSOLUTE_SEASON_NONE:
+	if is_event_scheduled() and p_scheduled_absolute_season == ABSOLUTE_SEASON_NONE:
 		return _refuse(REFUSE_AMBIGUOUS_SNAPSHOT_SEASON)
-	if is_forecast_disclosed() and forecast_absolute_season == ABSOLUTE_SEASON_NONE:
+	if is_forecast_disclosed() and p_forecast_absolute_season == ABSOLUTE_SEASON_NONE:
 		return _refuse(REFUSE_AMBIGUOUS_SNAPSHOT_SEASON)
-	if not _snapshot_seasons_admit_their_events(scheduled_absolute_season,
-			forecast_absolute_season):
+	if not _snapshot_seasons_admit_their_events(p_scheduled_absolute_season,
+			p_forecast_absolute_season):
 		return _refuse(REFUSE_EVENT_NOT_ELIGIBLE)
-	_row64[COL64_SCHEDULED_ABSOLUTE_SEASON] = scheduled_absolute_season
-	_row64[COL64_FORECAST_ABSOLUTE_SEASON] = forecast_absolute_season
-	return _succeed(scheduled_absolute_season)
+	_row64[COL64_SCHEDULED_ABSOLUTE_SEASON] = p_scheduled_absolute_season
+	_row64[COL64_FORECAST_ABSOLUTE_SEASON] = p_forecast_absolute_season
+	return _succeed(p_scheduled_absolute_season)
 
 
 func _is_storable_identity(absolute_season: int) -> bool:
@@ -1861,23 +1861,23 @@ func section_1_local_refusal(row: PackedInt32Array, row64: PackedInt64Array) -> 
 	return _section_1_identity_refusal(row, row64)
 
 
-func _section_1_tuple_refusal(event: int, start_day: int, duration: int,
+func _section_1_tuple_refusal(event: int, p_start_day: int, duration: int,
 		role: String) -> StringName:
 	"""One (event, start_day, duration_days) tuple: absent is exactly (-1,0,0), present is §5.10's."""
 	if event == EVENT_NONE:
-		if start_day != ABSENT_TUPLE_DAY or duration != ABSENT_TUPLE_DURATION:
+		if p_start_day != ABSENT_TUPLE_DAY or duration != ABSENT_TUPLE_DURATION:
 			return _refuse_section_1_code(COLUMN_REFUSE_TUPLE,
 				"absent %s carries (%d,%d,%d), not (%d,%d,%d)"
-					% [role, event, start_day, duration, EVENT_NONE, ABSENT_TUPLE_DAY,
+					% [role, event, p_start_day, duration, EVENT_NONE, ABSENT_TUPLE_DAY,
 						ABSENT_TUPLE_DURATION])
 		return COLUMN_REFUSE_NONE
 	if not is_event(event):
 		return _refuse_section_1_code(COLUMN_REFUSE_EVENT_ID,
 			"%s id %d is neither %d nor 0..%d" % [role, event, EVENT_NONE, EVENT_COUNT - 1])
-	if start_day != EVENT_START_DAY[event] or duration != EVENT_DURATION_DAYS[event]:
+	if p_start_day != EVENT_START_DAY[event] or duration != EVENT_DURATION_DAYS[event]:
 		return _refuse_section_1_code(COLUMN_REFUSE_TUPLE,
 			"%s %d carries start/duration (%d,%d), not the compiled (%d,%d)"
-				% [role, event, start_day, duration, EVENT_START_DAY[event],
+				% [role, event, p_start_day, duration, EVENT_START_DAY[event],
 					EVENT_DURATION_DAYS[event]])
 	return COLUMN_REFUSE_NONE
 
@@ -1890,11 +1890,11 @@ func _section_1_measured_refusal(row: PackedInt32Array) -> StringName:
 		return _refuse_section_1_code(COLUMN_REFUSE_TEMPERATURE,
 			"temperature %d outside the reachable %d..%d" % [temperature,
 				section_1_temperature_minimum(), section_1_temperature_maximum()])
-	var rain: int = row[COL_RAIN]
-	if rain < section_1_rain_minimum() or rain > section_1_rain_maximum():
+	var rain_value: int = row[COL_RAIN]
+	if rain_value < section_1_rain_minimum() or rain_value > section_1_rain_maximum():
 		return _refuse_section_1_code(COLUMN_REFUSE_RAIN,
 			"rain %d outside the reachable %d..%d"
-				% [rain, section_1_rain_minimum(), section_1_rain_maximum()])
+				% [rain_value, section_1_rain_minimum(), section_1_rain_maximum()])
 	return COLUMN_REFUSE_NONE
 
 

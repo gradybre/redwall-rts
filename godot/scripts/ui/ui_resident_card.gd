@@ -160,12 +160,12 @@ static func percent_text(basis_points: int) -> String:
 	asserts rather than inventing a printable number for it.
 	"""
 	assert(is_basis_points(basis_points), "percent_text() requires 0-10000 basis points")
-	var whole: int = basis_points / BASIS_POINTS_PER_PERCENT
+	@warning_ignore("integer_division") var whole: int = basis_points / BASIS_POINTS_PER_PERCENT
 	var fraction: int = basis_points % BASIS_POINTS_PER_PERCENT
 	if fraction == 0:
 		return "%d%%" % whole
 	if fraction % 10 == 0:
-		return "%d.%d%%" % [whole, fraction / 10]
+		@warning_ignore("integer_division") return "%d.%d%%" % [whole, fraction / 10]
 	return "%d.%02d%%" % [whole, fraction]
 
 
@@ -176,7 +176,7 @@ static func rate_hundredths(milli_points_per_hour: int) -> int:
 	-250 hundredths, which prints as -2.50 pp/h -- the amendment's own worked example.
 	"""
 	var magnitude: int = absi(milli_points_per_hour)
-	var rounded: int = (magnitude + MILLI_PER_RATE_HUNDREDTH / 2) / MILLI_PER_RATE_HUNDREDTH
+	@warning_ignore("integer_division") var rounded: int = (magnitude + MILLI_PER_RATE_HUNDREDTH / 2) / MILLI_PER_RATE_HUNDREDTH
 	return -rounded if milli_points_per_hour < 0 else rounded
 
 
@@ -184,7 +184,7 @@ static func rate_text(milli_points_per_hour: int) -> String:
 	"""A signed per-simulated-hour change in percentage points, to two decimals."""
 	var hundredths: int = rate_hundredths(milli_points_per_hour)
 	var magnitude: int = absi(hundredths)
-	var body: String = "%d.%02d pp/h" % [magnitude / HUNDREDTHS, magnitude % HUNDREDTHS]
+	@warning_ignore("integer_division") var body: String = "%d.%02d pp/h" % [magnitude / HUNDREDTHS, magnitude % HUNDREDTHS]
 	if hundredths == 0:
 		return body
 	return ("-" if hundredths < 0 else "+") + body
@@ -346,14 +346,14 @@ func fill_needs_for(directory: EntityDirectoryScript, residents: ResidentsScript
 	return true
 
 
-func _copy_row(row: Row, captured: UiResidentSnapshot.NeedRow) -> void:
+func _copy_row(target_row: Row, captured: UiResidentSnapshot.NeedRow) -> void:
 	"""Copy one captured row into the card's own row. Nothing is recomputed in the transfer."""
-	row.label = captured.label
-	row.basis_points = captured.basis_points
-	row.value_text = captured.value_text
-	row.has_rate = captured.has_rate
-	row.rate_text = captured.rate_text
-	row.accessible = captured.accessible
+	target_row.label = captured.label
+	target_row.basis_points = captured.basis_points
+	target_row.value_text = captured.value_text
+	target_row.has_rate = captured.has_rate
+	target_row.rate_text = captured.rate_text
+	target_row.accessible = captured.accessible
 
 
 func row(index: int) -> Row:

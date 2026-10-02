@@ -68,8 +68,8 @@ const FRAME_POST_M: float = 0.7
 const LANTERN_GLOW: Color = Color(1.0, 0.78, 0.38)
 ## The glow blooms in the U view's environment (tunnel_view.gd): emission over 1.
 const GLOW_ENERGY: float = 3.0
-const MAX_FRAMES: int = Rules.MAX_LENGTH_U / Rules.QUANTUM_U + 1
-const MAX_LANTERNS: int = Rules.MAX_LENGTH_U / (JobsScript.LANTERN_SPACING_M * Rules.QUANTUM_U) + 1
+@warning_ignore("integer_division") const MAX_FRAMES: int = Rules.MAX_LENGTH_U / Rules.QUANTUM_U + 1
+@warning_ignore("integer_division") const MAX_LANTERNS: int = Rules.MAX_LENGTH_U / (JobsScript.LANTERN_SPACING_M * Rules.QUANTUM_U) + 1
 ## A frame stands as tall as this share of the crown (inside the horseshoe's arch), and is cut away above
 ## BRACE_CUT_M over the level's floor (a fixed height: on a ramp's deep end less of a post shows) -- under
 ## its cap beam (see UNDERGROUND).
@@ -118,7 +118,6 @@ var _lantern_fit: Transform3D = Transform3D.IDENTITY
 var _rubble_fit: Transform3D = Transform3D.IDENTITY
 ## The lanterns' light (pooled; tunnel_lanterns.gd).
 var lights: LanternsScript = null
-var _verts: PackedVector3Array = PackedVector3Array()
 ## The frame and glow meshes, built once and shared by every slot (one material each to prewarm).
 var _brace_mesh: Mesh = null
 var _brace_material: ShaderMaterial = null
@@ -214,21 +213,21 @@ func _ensure(slot: int) -> void:
 
 func _fall_node() -> MeshInstance3D:
 	"""A fall's rubble (the library's, else a dark heap), hidden."""
-	var fall := MeshInstance3D.new()
-	fall.mesh = _props.mesh_of(RUBBLE_KEY)
+	var fall_node := MeshInstance3D.new()
+	fall_node.mesh = _props.mesh_of(RUBBLE_KEY)
 	if not _props.is_staged(RUBBLE_KEY):
-		fall.mesh = OverlayScript.heap_mesh()
-		fall.material_override = _plain(FALL_COLOUR)
-	fall.visible = false
-	add_child(fall)
-	return fall
+		fall_node.mesh = OverlayScript.heap_mesh()
+		fall_node.material_override = _plain(FALL_COLOUR)
+	fall_node.visible = false
+	add_child(fall_node)
+	return fall_node
 
 
-func _line_below(line: MeshInstance3D) -> MeshInstance3D:
+func _line_below(source: MeshInstance3D) -> MeshInstance3D:
 	"""The U view's copy of a selection line: its mesh and material, on the level's floor, hidden."""
 	var below := MeshInstance3D.new()
-	below.mesh = line.mesh
-	below.material_override = line.material_override
+	below.mesh = source.mesh
+	below.material_override = source.material_override
 	below.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	below.layers = Layers.UNDERGROUND_MARKS
 	below.position.y = Layers.FLOOR_Y_M
@@ -460,12 +459,12 @@ func _end_level(slot: int, at_b: bool) -> int:
 	return level if level > Rules.LEVEL_SURFACE else int(_network.seg_level[slot])
 
 
-func _draw_line(node: MeshInstance3D, slot: int, width: float, show: bool) -> void:
+func _draw_line(node: MeshInstance3D, slot: int, width: float, shown: bool) -> void:
 	"""A ribbon along tunnel `slot`'s route, or hidden."""
-	node.visible = show
+	node.visible = shown
 	var mesh := node.mesh as ImmediateMesh
 	mesh.clear_surfaces()
-	if not show:
+	if not shown:
 		return
 	mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
 	mesh.surface_set_normal(Vector3.UP)
@@ -481,20 +480,20 @@ func _draw_line(node: MeshInstance3D, slot: int, width: float, show: bool) -> vo
 func _place_rings(slot: int, open: bool) -> void:
 	"""Rings at the mouths: brass when selected, blue when flooded, clay under a warning."""
 	var colour := Palette.BRASS
-	var show := open and slot == _selected
+	var shown := open and slot == _selected
 	if open and _network.closed[slot] == GraphScript.CLOSED_FLOODED:
 		colour = WATER
-		show = true
+		shown = true
 	elif open and _warned(slot):
 		colour = Palette.CLAY
-		show = true
+		shown = true
 	for end in 2:
 		var at := _network.end_at(slot, end == 1)
 		var ring := _rings[2 * slot + end]
 		var below := _rings_below[2 * slot + end]
-		ring.visible = show
-		below.visible = show
-		if show:
+		ring.visible = shown
+		below.visible = shown
+		if shown:
 			ring.position = Vector3(at.x, MarksScript.LIFT_M, at.y)
 			ring.scale = Vector3(RING_M, 1.0, RING_M)
 			MarksScript.set_alpha(ring, colour, 1.0)
@@ -505,13 +504,13 @@ func _place_rings(slot: int, open: bool) -> void:
 			below.material_override = _ring_below_material(colour)
 
 
-func _place_fall(slot: int, show: bool) -> void:
+func _place_fall(slot: int, shown: bool) -> void:
 	"""A sunken patch of fallen earth, ringed in clay, over a collapsed section."""
-	_falls[slot].visible = show
-	_fall_rings[slot].visible = show
-	if not show:
+	_falls[slot].visible = shown
+	_fall_rings[slot].visible = shown
+	if not shown:
 		return
-	var mid_m := Rules.to_m((_network.closed_from_u[slot] + _network.closed_to_u[slot]) / 2)
+	@warning_ignore("integer_division") var mid_m := Rules.to_m((_network.closed_from_u[slot] + _network.closed_to_u[slot]) / 2)
 	var at := _network.point_at(slot, mid_m)
 	if _props.is_staged(RUBBLE_KEY):
 		_falls[slot].transform = Transform3D(Basis(Vector3.UP, float(slot)), Vector3(at.x, -RUBBLE_SINK_M, at.y)) * _rubble_fit
@@ -532,8 +531,8 @@ func _bore_transform(slot: int, along: float, lift: float) -> Transform3D:
 	var bore := int(_network.bore[slot])
 	var width := BoreMeshScript.FLOOR_HALF_M[bore] * 2.0
 	var tall := Rules.crown_m(bore) * FRAME_CROWN_SHARE
-	var basis := Basis(Vector3.UP, atan2(ahead.x, ahead.y)).scaled(Vector3(width, tall / FRAME_POST_M, 1.0))
-	return Transform3D(basis, Vector3(at.x, _network.floor_y_at(slot, along) + lift, at.y))
+	var frame_basis := Basis(Vector3.UP, atan2(ahead.x, ahead.y)).scaled(Vector3(width, tall / FRAME_POST_M, 1.0))
+	return Transform3D(frame_basis, Vector3(at.x, _network.floor_y_at(slot, along) + lift, at.y))
 
 
 func _deep_enough(slot: int, along: float) -> bool:

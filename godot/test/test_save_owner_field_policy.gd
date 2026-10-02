@@ -288,7 +288,7 @@ func _expect(c: Owner.Columns, code: StringName, label: String) -> void:
 		assert_true(result.detail.contains(String(code)),label+" raw code")
 	for field: int in 20:
 		assert_true(c.get(FIELDS[field]) == before[field],label+" original unchanged")
-		var held: Variant = f.u8_column(field) if TYPES[field] == 0 else f.i32_column(field)
+		var held: Variant = (f.u8_column(field) as Variant) if TYPES[field] == 0 else (f.i32_column(field) as Variant)
 		assert_true(held == before[field],label+" framed unchanged")
 
 func test_canonical_layout_and_clear_defaults() -> void:
@@ -425,12 +425,12 @@ func test_full_plot_capacity_and_counter_boundary() -> void:
 func test_accepted_scalar_endpoints_do_not_normalize_history() -> void:
 	for crop: int in range(-1,5):
 		for cursor: int in 3:
-			var c: Owner.Columns = _image("idle")
-			c.rotation_ids.fill(crop)
-			c.rotation_cursor[127] = cursor
-			c.auto_rotation[127] = 1
-			c.seed_reserve[127] = 0
-			_expect(c,&"","crop/cursor and flag endpoints")
+			var cols: Owner.Columns = _image("idle")
+			cols.rotation_ids.fill(crop)
+			cols.rotation_cursor[127] = cursor
+			cols.auto_rotation[127] = 1
+			cols.seed_reserve[127] = 0
+			_expect(cols,&"","crop/cursor and flag endpoints")
 	var c: Owner.Columns = _image("inactive_cancelled")
 	c.cycle_ordinal[127] = 2147483647
 	c.cancelled_cycles[127] = 2147483647

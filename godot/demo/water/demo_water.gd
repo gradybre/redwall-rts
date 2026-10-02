@@ -89,7 +89,7 @@ func build(manifest: Dictionary, world: Node3D, props: PropsScript = null) -> vo
 		add_child(_surface.nodes[body])
 		if _map.body_kind(body) == WaterMapScript.KIND_STREAM:
 			_stream_surface = _surface.nodes[body]
-			_flood_rise_m = Rules.to_m(_map.body_level_drop_u(body) * FLOOD_RISE_PERMILLE / 1000)
+			@warning_ignore("integer_division") _flood_rise_m = Rules.to_m(_map.body_level_drop_u(body) * FLOOD_RISE_PERMILLE / 1000)
 	var village: Node3D = world.get_node_or_null(VILLAGE_NODE) as Node3D if world != null else null
 	WaterDressing.build(village if village != null else self, manifest.get("world", {}), _map, props)
 	if world != null:

@@ -91,7 +91,7 @@ func pass_hour(day: int, winter: bool, hour_index: int) -> void:
 		today_np.fill(0)
 	for i: int in count():
 		_accumulated[i] += hourly_milli(i, winter)
-		var whole: int = int(_accumulated[i] / MILLI)
+		@warning_ignore("integer_division") var whole: int = int(_accumulated[i] / MILLI)
 		_accumulated[i] -= whole * MILLI
 		hunger[i] = maxi(0, hunger[i] - whole)
 		if hunger[i] == 0:

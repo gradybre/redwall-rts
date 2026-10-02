@@ -1848,9 +1848,9 @@ func _remove_quantity(lot_ref: Vector2i, quantity_milli: int, from_reserved: boo
 	var check: StringName = _check_removal(lot_ref, quantity_milli, from_reserved)
 	if check != REFUSE_NONE:
 		return check
-	var seed: StringName = _seed_removal_refusal(lot_ref, quantity_milli, from_reserved)
-	if seed != REFUSE_NONE:
-		return seed
+	var seed_refusal: StringName = _seed_removal_refusal(lot_ref, quantity_milli, from_reserved)
+	if seed_refusal != REFUSE_NONE:
+		return seed_refusal
 	var slot: int = lot_ref.x
 	var item_id: int = _l_item_id[slot]
 	if not IntMath.checked_add_into(_sunk_milli[item_id], quantity_milli, _math):
@@ -2479,9 +2479,9 @@ func _change_reservation(lot_ref: Vector2i, delta_milli: int) -> StringName:
 	if delta_milli < -held:
 		return REFUSE_INSUFFICIENT_RESERVED
 	if delta_milli > 0:
-		var seed: StringName = _seed_consumption_refusal(lot_ref)
-		if seed != REFUSE_NONE:
-			return seed
+		var seed_refusal: StringName = _seed_consumption_refusal(lot_ref)
+		if seed_refusal != REFUSE_NONE:
+			return seed_refusal
 	var next: int = held + delta_milli
 	_journal_lot(slot)
 	_l_reserved_milli[slot] = next
@@ -2682,7 +2682,7 @@ func _advance_age_checked(lot_ref: Vector2i, store_factor: int,
 	if released != REFUSE_NONE:
 		return released
 	var total: int = _math.value
-	if not IntMath.checked_add_into(_l_age_milli_hours[slot],
+	@warning_ignore("integer_division") if not IntMath.checked_add_into(_l_age_milli_hours[slot],
 			total / AGE_FACTOR_DENOMINATOR, _math):
 		return REFUSE_OVERFLOW
 	var aged: int = _math.value
@@ -2750,9 +2750,9 @@ func _transform_checked(lot_ref: Vector2i, new_item_id: int,
 	var check: StringName = _check_transform(lot_ref, new_item_id, new_quantity_milli)
 	if check != REFUSE_NONE:
 		return check
-	var seed: StringName = _seed_transform_refusal(lot_ref)
-	if seed != REFUSE_NONE:
-		return seed
+	var seed_refusal: StringName = _seed_transform_refusal(lot_ref)
+	if seed_refusal != REFUSE_NONE:
+		return seed_refusal
 	var slot: int = lot_ref.x
 	var costed: StringName = _transform_delta_g(slot, new_item_id, new_quantity_milli)
 	if costed != REFUSE_NONE:

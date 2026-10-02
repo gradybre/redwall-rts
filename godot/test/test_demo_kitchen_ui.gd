@@ -101,7 +101,7 @@ func test_ready_food_is_days_of_meals() -> void:
 	for k in 3:
 		kitchen.store.add(Rules.DISH_PORRIDGE, 2, 0)
 	assert_equal(kitchen.cookable_batches(), 20, "ten of each")
-	assert_equal(kitchen.days_of_meals_milli(), (6 + 40) * 1000 / 18, "46 portions over 18 a day")
+	@warning_ignore("integer_division") assert_equal(kitchen.days_of_meals_milli(), (6 + 40) * 1000 / 18, "46 portions over 18 a day")
 	assert_equal(model.value_text(ModelScript.CELL_FOOD, model.food.call()), "2.5 days", "floored to a tenth")
 	stores.wood_milli_u = 500
 	assert_equal(kitchen.cookable_batches(), 5, "five batches of wood")
@@ -203,7 +203,7 @@ func test_the_cook_card_is_the_orders_decision() -> void:
 	assert_equal(card.verb, "Cook supper now", "the verb")
 	assert_equal(card.result, "2 batches of togget's vegetable soup: 4 portions of 1800 NP", "what it makes")
 	assert_equal(card.who, "Queue for the cook: Mouse 0 (the village cook)", "who")
-	assert_equal(card.work_usec, 2 * 200 * CalendarScript.HOUR_USEC / SimClock.TICKS_PER_HOUR, "two batches at the step rate")
+	@warning_ignore("integer_division") assert_equal(card.work_usec, 2 * 200 * CalendarScript.HOUR_USEC / SimClock.TICKS_PER_HOUR, "two batches at the step rate")
 	assert_equal(kitchen.order_cook(PackedInt32Array()), "Cook supper now: 2 batches of togget's vegetable soup · Queue for the cook: Mouse 0 (the village cook)", "the order says the same")
 
 

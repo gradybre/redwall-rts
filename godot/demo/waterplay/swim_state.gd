@@ -237,7 +237,7 @@ func swim_refusal(who: int, loaded: bool) -> StringName:
 
 func rest_percent(who: int) -> int:
 	"""Stamina as a whole percentage (floored)."""
-	return rest[who] * 100 / Rules.REST_MAX
+	@warning_ignore("integer_division") return rest[who] * 100 / Rules.REST_MAX
 
 
 func meter_text(who: int) -> String:

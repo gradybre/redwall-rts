@@ -424,7 +424,7 @@ static func elements_per_fragment(width: int) -> int:
 	"""Whole elements of this width that fit the 65536-byte window. No fragment crosses a field."""
 	if width <= 0:
 		return 0
-	return Schema.CHUNK_BYTES / width
+	@warning_ignore("integer_division") return Schema.CHUNK_BYTES / width
 
 
 static func value_fragment_bytes(owner: int, field: int, element: int) -> int:
@@ -898,7 +898,7 @@ class DecodeCursor:
 			_drop()
 			return refusal()
 		_pending.append_array(bytes)
-		_element += bytes.size() / width
+		@warning_ignore("integer_division") _element += bytes.size() / width
 		_consumed += bytes.size()
 		if _element < Schema.element_count(_owner, _field):
 			return SaveHeader.Refusal.new(REFUSE_NONE, "")

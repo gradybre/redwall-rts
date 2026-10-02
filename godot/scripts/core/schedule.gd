@@ -228,7 +228,7 @@ func _init(p_needs: NeedsScript = null) -> void:
 	Passing an existing needs store shares it; passing nothing creates a private one, which is
 	what a test or a standalone settlement wants.
 	"""
-	assert(SCHEDULE_CAPACITY == NeedsScript.RESIDENT_CAPACITY,
+	@warning_ignore("assert_always_true") assert(SCHEDULE_CAPACITY == NeedsScript.RESIDENT_CAPACITY,
 		"schedule columns must match the needs store's resident capacity")
 	assert(Catalog.ACTIVITY.size() == ACTIVITY_COUNT,
 		"GDD §4.3 Activity has exactly four values")
@@ -589,7 +589,7 @@ func inactive_row_is_clear(slot: int) -> bool:
 		_resolved, slot)
 
 
-static func _free_row_is_clear(hourly_activity: PackedByteArray, template_ids: PackedInt32Array,
+static func _free_row_is_clear(hourly_activity: PackedByteArray, template_column: PackedInt32Array,
 		current_activity: PackedInt32Array, sleep_satisfied: PackedByteArray,
 		resolved: PackedByteArray, slot: int) -> bool:
 	"""The inactive-row rule for one slot, shared by the reader above and the validator below.
@@ -597,7 +597,7 @@ static func _free_row_is_clear(hourly_activity: PackedByteArray, template_ids: P
 	No presence or address guard lives here: the caller must supply correctly sized columns and
 	a slot in 0..SCHEDULE_CAPACITY-1 it has already validated.
 	"""
-	if template_ids[slot] != 0 or current_activity[slot] != ACTIVITY_ANYTHING:
+	if template_column[slot] != 0 or current_activity[slot] != ACTIVITY_ANYTHING:
 		return false
 	if resolved[slot] != 0 or sleep_satisfied[slot] != 0:
 		return false
@@ -611,7 +611,7 @@ static func _free_row_is_clear(hourly_activity: PackedByteArray, template_ids: P
 # --- SCHEDULE-S4-VALIDATE-R01 saved-column validation -------------------------------------------
 
 static func columns_refusal(present: PackedByteArray, hourly_activity: PackedByteArray,
-		template_ids: PackedInt32Array, current_activity: PackedInt32Array,
+		template_column: PackedInt32Array, current_activity: PackedInt32Array,
 		sleep_satisfied: PackedByteArray, resolved: PackedByteArray) -> StringName:
 	"""Judge six saved Schedule columns: REFUSE_NONE, or the first failing gate's column code.
 
@@ -623,18 +623,18 @@ static func columns_refusal(present: PackedByteArray, hourly_activity: PackedByt
 	"""
 	if present.size() != SCHEDULE_CAPACITY or sleep_satisfied.size() != SCHEDULE_CAPACITY \
 			or resolved.size() != SCHEDULE_CAPACITY \
-			or template_ids.size() != SCHEDULE_CAPACITY \
+			or template_column.size() != SCHEDULE_CAPACITY \
 			or current_activity.size() != SCHEDULE_CAPACITY \
 			or hourly_activity.size() != SCHEDULE_CAPACITY * HOURS_PER_DAY:
 		return REFUSE_COLUMN_SHAPE
 	var flags: StringName = _flag_columns_refusal(present, sleep_satisfied, resolved)
 	if flags != REFUSE_NONE:
 		return flags
-	var domains: StringName = _domain_columns_refusal(hourly_activity, template_ids,
+	var domains: StringName = _domain_columns_refusal(hourly_activity, template_column,
 		current_activity)
 	if domains != REFUSE_NONE:
 		return domains
-	return _row_state_refusal(present, hourly_activity, template_ids, current_activity,
+	return _row_state_refusal(present, hourly_activity, template_column, current_activity,
 		sleep_satisfied, resolved)
 
 
@@ -651,13 +651,13 @@ static func _flag_columns_refusal(present: PackedByteArray, sleep_satisfied: Pac
 
 
 static func _domain_columns_refusal(hourly_activity: PackedByteArray,
-		template_ids: PackedInt32Array, current_activity: PackedInt32Array) -> StringName:
+		template_column: PackedInt32Array, current_activity: PackedInt32Array) -> StringName:
 	"""Gates 5-7: all 12288 hourly bytes, then all template IDs, then all current activities."""
 	for index: int in hourly_activity.size():
 		if hourly_activity[index] >= ACTIVITY_COUNT:
 			return REFUSE_COLUMN_HOURLY_ACTIVITY
 	for slot: int in SCHEDULE_CAPACITY:
-		if template_ids[slot] < 0 or template_ids[slot] >= TEMPLATE_COUNT:
+		if template_column[slot] < 0 or template_column[slot] >= TEMPLATE_COUNT:
 			return REFUSE_COLUMN_TEMPLATE_ID
 	for slot: int in SCHEDULE_CAPACITY:
 		if current_activity[slot] < 0 or current_activity[slot] >= ACTIVITY_COUNT:
@@ -666,14 +666,14 @@ static func _domain_columns_refusal(hourly_activity: PackedByteArray,
 
 
 static func _row_state_refusal(present: PackedByteArray, hourly_activity: PackedByteArray,
-		template_ids: PackedInt32Array, current_activity: PackedInt32Array,
+		template_column: PackedInt32Array, current_activity: PackedInt32Array,
 		sleep_satisfied: PackedByteArray, resolved: PackedByteArray) -> StringName:
 	"""Gates 8-10: inactive residue, then unresolved rows, then latched rows, each globally.
 
 	Gate 9 already leaves a latched row resolved 1, so gate 10 only pins its current activity.
 	"""
 	for slot: int in SCHEDULE_CAPACITY:
-		if present[slot] == 0 and not _free_row_is_clear(hourly_activity, template_ids,
+		if present[slot] == 0 and not _free_row_is_clear(hourly_activity, template_column,
 				current_activity, sleep_satisfied, resolved, slot):
 			return REFUSE_COLUMN_FREE_ROW
 	for slot: int in SCHEDULE_CAPACITY:

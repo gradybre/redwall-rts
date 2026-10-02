@@ -34,6 +34,12 @@ extends SceneTree
 ##
 ## `push_error()` output (`ERROR:` / `USER ERROR:`) is deliberately NOT treated as an abort. It
 ## does not stop execution, and the suite contains deliberate negative tests that provoke it.
+##
+## It is not ignored either (decision 0501). Every `ERROR:`/`WARNING:` line is classified: one a test declared with
+## `expect_diagnostic()` is reprinted `EXPECTED ...` (and the test fails if its declared line never came), an
+## outside-the-tree notice in a suite that `tolerates_outside_tree()` is reprinted `TOLERATED ...`, and the rest stay
+## as printed. A second summary line counts the unexpected ones and the worker's leaks at exit; tools/run_tests.sh fails
+## the run on them, so a clean log is something the suite asserts rather than something a reader hopes for.
 
 const TestCaseScript := preload("res://test/framework/test_case.gd")
 
@@ -58,6 +64,14 @@ const ABORT_PREFIXES: Array[String] = ["SCRIPT ERROR:", "USER SCRIPT ERROR:"]
 const NO_ASSERTIONS_MESSAGE: String = \
 	"made no assertions (vacuous, or aborted before reaching its first one)"
 
+## Engine diagnostics, as the engine prints them at the start of a line (push_error/push_warning and C++ alike).
+const DIAGNOSTIC_PREFIXES: Array[String] = ["ERROR:", "USER ERROR:", "WARNING:", "USER WARNING:"]
+const EXPECTED_PREFIX: String = "EXPECTED "
+const TOLERATED_PREFIX: String = "TOLERATED "
+## The worker's exit report, when objects or resources outlived it.
+const LEAKED_OBJECTS_PATTERN: String = "(\\d+) ObjectDB instances were leaked"
+const LEAKED_RESOURCES_PATTERN: String = "(\\d+) resources still in use at exit"
+
 # --- supervisor tally ------------------------------------------------------------------------
 
 var _tests: int = 0
@@ -70,6 +84,21 @@ var _stray_aborts: int = 0
 var _test_name: String = ""
 var _test_aborts: int = 0
 var _pending_failures: PackedStringArray = PackedStringArray()
+var _expected: PackedStringArray = PackedStringArray()
+var _expected_seen: PackedByteArray = PackedByteArray()
+var _tolerated: PackedStringArray = PackedStringArray()
+var _tolerated_sources: PackedStringArray = PackedStringArray()
+## A tolerated line waiting for its `at:` line, which must name `_held_source` (test_case.gd TOLERATE_SOURCE_SEPARATOR).
+var _held: String = ""
+var _held_source: String = ""
+var _unexpected_errors: int = 0
+var _unexpected_warnings: int = 0
+var _expected_count: int = 0
+var _tolerated_count: int = 0
+var _leaked_objects: int = 0
+var _leaked_resources: int = 0
+var _leaked_objects_re: RegEx = RegEx.create_from_string(LEAKED_OBJECTS_PATTERN)
+var _leaked_resources_re: RegEx = RegEx.create_from_string(LEAKED_RESOURCES_PATTERN)
 
 
 func _initialize() -> void:
@@ -157,6 +186,9 @@ func _run_test(suite: TestCaseScript, method_name: String) -> bool:
 	suite.failures = PackedStringArray()
 	var before: int = suite.assertions
 	_emit(MARK_TEST + method_name)
+	if suite.tolerates_outside_tree():
+		for fragment: String in TestCaseScript.OUTSIDE_TREE_DIAGNOSTICS:
+			_emit(TestCaseScript.MARK_TOLERATE + fragment)
 	suite.before_each()
 	suite.call(method_name)
 	suite.after_each()
@@ -182,6 +214,9 @@ func _run_supervisor() -> int:
 		_audit(_capture_text(output), exit_code)
 	print("")
 	print("%d test(s), %d assertion(s), %d failure(s)" % [_tests, _assertions, _failures])
+	print("diagnostics: %d unexpected error(s), %d unexpected warning(s), %d expected, %d tolerated; "
+		% [_unexpected_errors, _unexpected_warnings, _expected_count, _tolerated_count]
+		+ "leaked at exit: %d object(s), %d resource(s)" % [_leaked_objects, _leaked_resources])
 	return 1 if _failures > 0 else 0
 
 
@@ -207,6 +242,8 @@ func _audit(text: String, exit_code: int) -> void:
 	"""Replay the worker's output line by line, printing the report and tallying failures."""
 	for line: String in text.split("\n"):
 		_audit_line(line)
+	if _held != "":
+		_resolve_held("")
 	if _test_name != "":
 		_pending_failures.append("worker stopped before reporting a result for this method")
 		_finish_test(VERDICT_FAIL)
@@ -229,6 +266,8 @@ func _cross_check(exit_code: int) -> void:
 
 func _audit_line(line: String) -> void:
 	"""Interpret one line of worker output: protocol marker, script error, or pass-through."""
+	if _held != "":
+		_resolve_held(line)
 	if line.begins_with(MARK_SUITE):
 		print(line.substr(MARK_SUITE.length()))
 	elif line.begins_with(MARK_TEST):
@@ -239,10 +278,89 @@ func _audit_line(line: String) -> void:
 		_finish_test(line.substr(MARK_RESULT.length()))
 	elif line.begins_with(MARK_TOTALS):
 		_read_totals(line.substr(MARK_TOTALS.length()))
+	elif line.begins_with(TestCaseScript.MARK_EXPECT):
+		_expect(line.substr(TestCaseScript.MARK_EXPECT.length()))
+	elif line.begins_with(TestCaseScript.MARK_TOLERATE):
+		_tolerate(line.substr(TestCaseScript.MARK_TOLERATE.length()))
 	elif _is_abort(line):
 		_record_abort(line)
+	elif _is_diagnostic(line):
+		_record_diagnostic(line)
 	else:
 		print(line)
+
+
+func _expect(fragment: String) -> void:
+	"""The running method declared a diagnostic it provokes on purpose (test_case.gd `expect_diagnostic`)."""
+	_expected.append(fragment)
+	_expected_seen.append(0)
+
+
+func _is_diagnostic(line: String) -> bool:
+	"""True for an engine ERROR or WARNING line (an abort is a SCRIPT ERROR and is checked first)."""
+	for prefix: String in DIAGNOSTIC_PREFIXES:
+		if line.begins_with(prefix):
+			return true
+	return false
+
+
+func _record_diagnostic(line: String) -> void:
+	"""Print a diagnostic marked by what declared it, or count it as unexpected; read the worker's leak report."""
+	if _test_name != "":
+		for k: int in _expected.size():
+			if line.contains(_expected[k]):
+				_expected_seen[k] = 1
+				_expected_count += 1
+				print(EXPECTED_PREFIX + line)
+				return
+		for k: int in _tolerated.size():
+			if line.contains(_tolerated[k]):
+				if _tolerated_sources[k] == "":
+					_tolerated_count += 1
+					print(TOLERATED_PREFIX + line)
+				else:
+					_held = line
+					_held_source = _tolerated_sources[k]
+				return
+	_count_unexpected(line)
+
+
+func _count_unexpected(line: String) -> void:
+	"""Print a diagnostic nothing declared and count it; read the worker's leak report from it."""
+	_read_leaks(line)
+	if line.begins_with("ERROR:") or line.begins_with("USER ERROR:"):
+		_unexpected_errors += 1
+	else:
+		_unexpected_warnings += 1
+	print(line)
+
+
+func _tolerate(payload: String) -> void:
+	"""The running method may print `fragment`, from the engine function named after the separator if one is."""
+	var parts: PackedStringArray = payload.split(TestCaseScript.TOLERATE_SOURCE_SEPARATOR, true, 1)
+	_tolerated.append(parts[0])
+	_tolerated_sources.append(parts[1] if parts.size() > 1 else "")
+
+
+func _resolve_held(next_line: String) -> void:
+	"""A held line is tolerated only when the line after it is its `at:` line naming the allowed source."""
+	var held: String = _held
+	_held = ""
+	if next_line.strip_edges().begins_with("at:") and next_line.contains(_held_source):
+		_tolerated_count += 1
+		print(TOLERATED_PREFIX + held)
+	else:
+		_count_unexpected(held)
+
+
+func _read_leaks(line: String) -> void:
+	"""Add the counts of the worker's exit report (objects and resources it never freed)."""
+	var objects: RegExMatch = _leaked_objects_re.search(line)
+	if objects != null:
+		_leaked_objects += int(objects.get_string(1))
+	var resources: RegExMatch = _leaked_resources_re.search(line)
+	if resources != null:
+		_leaked_resources += int(resources.get_string(1))
 
 
 func _is_abort(line: String) -> bool:
@@ -267,15 +385,19 @@ func _begin_test(method_name: String) -> void:
 	if _test_name != "":
 		_pending_failures.append("worker began the next method without reporting this one")
 		_finish_test(VERDICT_FAIL)
+	_clear_span()
 	_test_name = method_name
-	_test_aborts = 0
-	_pending_failures = PackedStringArray()
 
 
 func _finish_test(payload: String) -> void:
-	"""Close a method's span and print its verdict. A script error inside it overrides a PASS."""
+	"""Close a method's span and print its verdict. A script error inside it, or a declared diagnostic that never
+	came, overrides a PASS."""
 	var verdict: PackedStringArray = payload.split(" ")
-	var passed: bool = verdict.size() > 0 and verdict[0] == VERDICT_PASS and _test_aborts == 0
+	for k: int in _expected.size():
+		if _expected_seen[k] == 0:
+			_pending_failures.append("expected an engine diagnostic containing '%s'; none was printed" % _expected[k])
+	var passed: bool = verdict.size() > 0 and verdict[0] == VERDICT_PASS and _test_aborts == 0 \
+		and _pending_failures.is_empty()
 	_tests += 1
 	if passed:
 		print("  PASS  %s" % _test_name)
@@ -288,9 +410,18 @@ func _finish_test(payload: String) -> void:
 				% _test_aborts)
 			print("        assertions after that point never ran")
 		_failures += 1
+	_clear_span()
+
+
+func _clear_span() -> void:
+	"""Forget everything recorded for the method whose span is closing (or opening)."""
 	_test_name = ""
 	_test_aborts = 0
 	_pending_failures = PackedStringArray()
+	_expected = PackedStringArray()
+	_expected_seen = PackedByteArray()
+	_tolerated = PackedStringArray()
+	_tolerated_sources = PackedStringArray()
 
 
 func _read_totals(payload: String) -> void:

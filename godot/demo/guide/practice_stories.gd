@@ -166,7 +166,7 @@ func _run_crossing(which: int, lines: PackedStringArray) -> String:
 		return "refused at the water -- 0 U delivered"
 	if which == 1:
 		var trip_s: float = _ford_round_s(map, pile, stack)
-		lines.append("Each round trip by the ford: %s (wading at %d%% pace, carrying at %d%%)." % [
+		@warning_ignore("integer_division") lines.append("Each round trip by the ford: %s (wading at %d%% pace, carrying at %d%%)." % [
 			CardScript.hours_text(int(trip_s * 1.0e6)), SwimRules.WADE_PERMILLE / 10, int(BrainScript.CARRY_WALK_FRACTION * 100.0)])
 		lines.append("%d rounds for %s: %s in all." % [rounds, FarmText.units_text(LOGS_MILLI), CardScript.hours_text(int(trip_s * rounds * 1.0e6))])
 		return "%s delivered, %s" % [FarmText.units_text(LOGS_MILLI), CardScript.hours_text(int(trip_s * rounds * 1.0e6))]
@@ -206,7 +206,7 @@ static func _build_usec(survey: BridgesScript.Survey) -> int:
 	var wu: int = 0
 	for stage: int in SwimRules.STAGE_COUNT:
 		wu += SwimRules.stage_wu(SwimRules.KIND_PLANK, stage, survey.deck_u, survey.piers)
-	return wu * SwimRules.USEC_PER_WU * 1000 / (1000 + SKILL_PERMILLE_PER_LEVEL * BRIDGEWRIGHT_LEVEL)
+	@warning_ignore("integer_division") return wu * SwimRules.USEC_PER_WU * 1000 / (1000 + SKILL_PERMILLE_PER_LEVEL * BRIDGEWRIGHT_LEVEL)
 
 
 static func _ford_round_s(map: WaterMapScript, pile: Vector2, stack: Vector2) -> float:
@@ -287,7 +287,7 @@ func _cook_room(pantry: PantryScript, lines: PackedStringArray) -> void:
 		var take: int = mini(left, pantry.lot_milli(lot))
 		if pantry.withdraw_into(lot, pantry.lot_serial(lot), take, _read):
 			left -= take
-	lines.append("The kitchen cooks %s of oats into porridge (%d portions): that much room is free." % [
+	@warning_ignore("integer_division") lines.append("The kitchen cooks %s of oats into porridge (%d portions): that much room is free." % [
 		FarmText.units_text(COOK_ROOM_MILLI - left), (COOK_ROOM_MILLI - left) / Rules.INPUT_MILLI[Rules.DISH_PORRIDGE] * 2])
 
 
@@ -301,7 +301,7 @@ func _deliver(pantry: PantryScript, crop: int, lines: PackedStringArray) -> Stri
 	var where: int = _read.value
 	pantry.store_upto_into(CARROT, crop, where, hold, _read)
 	pantry.release(hold)
-	var hours: int = Catalog.shelf_hours_of(CARROT) * 1000 / pantry.storage.permille_of(where)
+	@warning_ignore("integer_division") var hours: int = Catalog.shelf_hours_of(CARROT) * 1000 / pantry.storage.permille_of(where)
 	lines.append("The carrots are cut, carried and shelved in the %s: %s, keeping about %d hours there." % [
 		pantry.storage.label_of(where).to_lower(), FarmText.units_text(_read.value), hours])
 	return "%s stored in the %s" % [FarmText.units_text(_read.value), pantry.storage.label_of(where).to_lower()]
@@ -313,11 +313,11 @@ func _run_pantry(which: int, lines: PackedStringArray) -> String:
 	"""Lay the harvest in where the choice says, then age and eat it day by day to the end of winter."""
 	var pantry := PantryScript.new(StorageScript.new(Vector2.ZERO))
 	if which > 0:
-		pantry.storage.add_provider(func() -> Array: return [{"id": CELLAR_ID, "position": Vector2(2.0, 0.0),
+		@warning_ignore("integer_division") pantry.storage.add_provider(func() -> Array: return [{"id": CELLAR_ID, "position": Vector2(2.0, 0.0),
 			"capacity_u": ROOTS_MILLI / 1000, "spoilage_permille": StockAge.STORE_FACTOR[StockAge.STORAGE_CELLAR],
 			"label": "Root cellar"}])
 		pantry.refresh_locations()
-	var in_cellar: int = 0 if which == 0 else (ROOTS_MILLI if which == 1 else ROOTS_MILLI / 2)
+	@warning_ignore("integer_division") var in_cellar: int = 0 if which == 0 else (ROOTS_MILLI if which == 1 else ROOTS_MILLI / 2)
 	pantry.add_into(ROOTS_ITEM, ROOTS_MILLI - in_cellar, 0, _read)
 	if in_cellar > 0:
 		pantry.add_into(ROOTS_ITEM, in_cellar, 1, _read)
@@ -384,7 +384,7 @@ static func _soonest_lot(pantry: PantryScript, dish: int) -> int:
 	for lot: int in PantryScript.MAX_LOTS:
 		if pantry.lot_milli(lot) <= 0 or not Rules.is_input(dish, pantry.lot_item(lot)):
 			continue
-		var left: int = (Catalog.shelf_hours_of(pantry.lot_item(lot)) * 1000 - pantry.lot_age(lot)) * 1000 \
+		@warning_ignore("integer_division") var left: int = (Catalog.shelf_hours_of(pantry.lot_item(lot)) * 1000 - pantry.lot_age(lot)) * 1000 \
 			/ maxi(pantry.storage.permille_of(pantry.lot_location(lot)), 1)
 		if best < 0 or left < best_left:
 			best = lot

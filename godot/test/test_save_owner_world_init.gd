@@ -13,7 +13,7 @@ func _empty() -> Array:
 	"""Independent canonical constants; these are not a capture of private owner columns."""
 	var columns: Array = []
 	for field: int in 9:
-		var values: Variant = PackedInt64Array() if field == 8 else PackedInt32Array()
+		var values: Variant = (PackedInt64Array() as Variant) if field == 8 else (PackedInt32Array() as Variant)
 		values.resize(384)
 		if field == 0: values.fill(-1)
 		columns.append(values)
@@ -52,7 +52,7 @@ func _expect(c: Array, code: StringName) -> void:
 		assert_true(result.detail.contains(String(code)),"raw column code")
 	for field: int in 9:
 		assert_true(c[field] == before[field],"caller input unchanged")
-		var held: Variant = frame.i64_column(field) if field == 8 else frame.i32_column(field)
+		var held: Variant = (frame.i64_column(field) as Variant) if field == 8 else (frame.i32_column(field) as Variant)
 		assert_true(held == before[field],"frame input unchanged")
 
 func test_exact_layout_and_only_canonical_empty_image() -> void:
@@ -157,7 +157,7 @@ func test_actual_owner_readers_and_section1_diagnostics_are_preserved() -> void:
 	var code: StringName = owner.section_1_code()
 	var detail: String = owner.section_1_detail()
 	var published: bool = owner.section_1_is_published()
-	var seed: int = owner.section_1_published_seed()
+	var seed_value: int = owner.section_1_published_seed()
 	_expect(_empty(),&"")
 	var invalid: Array = _empty()
 	_put(invalid,8,0,I64_MAX)
@@ -166,4 +166,4 @@ func test_actual_owner_readers_and_section1_diagnostics_are_preserved() -> void:
 	assert_equal(owner.section_1_code(),code,"no section1 code write")
 	assert_equal(owner.section_1_detail(),detail,"no section1 detail write")
 	assert_equal(owner.section_1_is_published(),published,"no publication")
-	assert_equal(owner.section_1_published_seed(),seed,"no seed mutation")
+	assert_equal(owner.section_1_published_seed(),seed_value,"no seed mutation")

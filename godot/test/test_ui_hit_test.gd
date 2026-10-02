@@ -72,7 +72,7 @@ func _world_point(index: int) -> Vector2:
 	detail at 1280x720 and follows the geometry instead of restating one of its old values."""
 	var columns: int = 40
 	var x: float = 240.0 + float(index % columns) * 16.0
-	var y: float = _geometry.management_top + float(index / columns) * 16.0
+	@warning_ignore("integer_division") var y: float = _geometry.management_top + float(index / columns) * 16.0
 	return Vector2(x, y)
 
 

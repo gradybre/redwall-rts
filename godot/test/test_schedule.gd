@@ -21,7 +21,7 @@ const SOCIAL: int = ScheduleScript.ACTIVITY_SOCIAL
 ## §5.2's rest decay in whole need-points per hour, read from needs.gd rather than restated as
 ## a literal: if the specified rate ever changes, this suite must decay at the new rate or stop
 ## claiming to model it. Two constants divide exactly (375000/1000), so this stays integer.
-const REST_DECAY_PER_HOUR: int = (
+@warning_ignore("integer_division") const REST_DECAY_PER_HOUR: int = (
 	NeedsScript.REST_DECAY_MILLI_PER_HOUR / NeedsScript.MILLI_PER_POINT
 )
 

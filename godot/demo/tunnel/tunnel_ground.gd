@@ -101,7 +101,7 @@ func _init(bounds_u: Rect2i = Rect2i(-20480, -20480, 40960, 40960), water: Water
 
 func _centre(c: int, r: int) -> Vector2i:
 	"""The centre of cell (c, r) in u."""
-	return Vector2i(origin_u.x + c * CELL_U + CELL_U / 2, origin_u.y + r * CELL_U + CELL_U / 2)
+	@warning_ignore("integer_division") return Vector2i(origin_u.x + c * CELL_U + CELL_U / 2, origin_u.y + r * CELL_U + CELL_U / 2)
 
 
 func _classify(at: Vector2i) -> int:
@@ -131,7 +131,7 @@ func _classify_deep(at: Vector2i) -> int:
 static func _in_any_scaled(at: Vector2i, patches: Array[Vector3i], permille: int) -> bool:
 	"""Whether `at` lies inside any patch's roughened disc, its radius scaled by `permille`."""
 	for patch in patches:
-		var reach := patch.z * permille / Rules.PERMILLE + wobble_u(at)
+		@warning_ignore("integer_division") var reach := patch.z * permille / Rules.PERMILLE + wobble_u(at)
 		var dx := at.x - patch.x
 		var dz := at.y - patch.y
 		if dx * dx + dz * dz < reach * reach:
@@ -161,8 +161,8 @@ static func _in_any(at: Vector2i, patches: Array[Vector3i]) -> bool:
 func cell_of(x_u: int, z_u: int) -> int:
 	"""The cell index holding (x_u, z_u), clamped into the grid (a point before the origin truncates
 	toward it and clamps to the first cell, as flooring would)."""
-	var c := clampi((x_u - origin_u.x) / CELL_U, 0, columns - 1)
-	var r := clampi((z_u - origin_u.y) / CELL_U, 0, rows - 1)
+	@warning_ignore("integer_division") var c := clampi((x_u - origin_u.x) / CELL_U, 0, columns - 1)
+	@warning_ignore("integer_division") var r := clampi((z_u - origin_u.y) / CELL_U, 0, rows - 1)
 	return r * columns + c
 
 

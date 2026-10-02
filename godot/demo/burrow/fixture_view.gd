@@ -195,32 +195,32 @@ func _build_place(r: int, f: int, phase: int) -> void:
 	if phase == FixturesScript.EMPTY:
 		_fit_lights(r)
 		return
-	var piece := Node3D.new()
-	piece.transform = place_transform(r, f)
-	_below[r].add_child(piece)
-	_pieces[row] = piece
+	var holder := Node3D.new()
+	holder.transform = place_transform(r, f)
+	_below[r].add_child(holder)
+	_pieces[row] = holder
 	_rising[row] = null
 	if phase == FixturesScript.PLANNED:
-		KitScript.planned(piece)
+		KitScript.planned(holder)
 		if _graph.fit.work_usec[row] > 0:
-			_start_rising(r, f, piece)
+			_start_rising(r, f, holder)
 	else:
-		_install(r, f, piece)
-	Layers.set_layers(piece, Layers.below(_graph.rooms.level[r]))
+		_install(r, f, holder)
+	Layers.set_layers(holder, Layers.below(_graph.rooms.level[r]))
 	builds += 1
 	_fit_lights(r)
 
 
 # --- putting it in (see PUT IN) ------------------------------------------------------------------
 
-func _start_rising(r: int, f: int, piece: Node3D) -> void:
-	"""The fixture being put in at place `f` of room `r`, built under `piece` below its floor, to rise as it is worked."""
-	var rising := Node3D.new()
-	piece.add_child(rising)
-	_install(r, f, rising)
+func _start_rising(r: int, f: int, holder: Node3D) -> void:
+	"""The fixture being put in at place `f` of room `r`, built under `holder` below its floor, to rise as it is worked."""
+	var riser := Node3D.new()
+	holder.add_child(riser)
+	_install(r, f, riser)
 	var row := r * PLACES + f
-	_rising[row] = rising
-	_rise_tall[row] = _tallness(rising)
+	_rising[row] = riser
+	_rise_tall[row] = _tallness(riser)
 
 
 static func _tallness(root: Node3D) -> float:
@@ -237,17 +237,17 @@ static func _tallness(root: Node3D) -> float:
 func _rise(row: int, fit: FixturesScript) -> void:
 	"""The fixture being put in at place row `row` stands as far up as its work is done: a floor fixture risen that
 	share of its height out of the floor, a hung one swollen to that share of its size, a rug that share come up."""
-	var r := row / PLACES
+	@warning_ignore("integer_division") var r := row / PLACES
 	var kind := fit.kind_at(_graph, r, row % PLACES)
 	var need := FixturesScript.install_usec(kind)
 	var share := lerpf(FIRST_RISE, 1.0, clampf(float(fit.work_usec[row]) / float(maxi(need, 1)), 0.0, 1.0))
-	var rising := _rising[row]
+	var riser := _rising[row]
 	if kind == RoomsScript.FIX_LANTERN or kind == RoomsScript.FIX_HANGING:
-		rising.scale = Vector3.ONE * share
-	elif kind == RoomsScript.FIX_RUG and rising.get_child_count() > 0 and rising.get_child(0) is Decal:
-		(rising.get_child(0) as Decal).modulate = Color(1.0, 1.0, 1.0, share)
+		riser.scale = Vector3.ONE * share
+	elif kind == RoomsScript.FIX_RUG and riser.get_child_count() > 0 and riser.get_child(0) is Decal:
+		(riser.get_child(0) as Decal).modulate = Color(1.0, 1.0, 1.0, share)
 	else:
-		rising.position.y = -_rise_tall[row] * (1.0 - share)
+		riser.position.y = -_rise_tall[row] * (1.0 - share)
 
 
 func _puff_at(r: int, f: int) -> void:
@@ -261,49 +261,49 @@ func rising(r: int, f: int) -> Node3D:
 	return _rising[r * PLACES + f]
 
 
-func _install(r: int, f: int, piece: Node3D) -> void:
-	"""The installed fixture at place `f` of room `r` into `piece` (see fixture_kit.gd)."""
+func _install(r: int, f: int, holder: Node3D) -> void:
+	"""The installed fixture at place `f` of room `r` into `holder` (see fixture_kit.gd)."""
 	var kind: int = _graph.fit.kind_at(_graph, r, f)
 	var slots: Array[Node3D] = _slots[r * PLACES + f]
 	match kind:
 		RoomsScript.FIX_RACK:
-			KitScript.rack(piece, _props, slots)
+			KitScript.rack(holder, _props, slots)
 		RoomsScript.FIX_BIN:
-			KitScript.root_bin(piece, slots, _props)
+			KitScript.root_bin(holder, slots, _props)
 		RoomsScript.FIX_HANGING:
 			var back := hang_back_m(_graph.rooms.template[r], f)
-			KitScript.hanging(piece, slots, _props, KitScript.hang_at(_props, HANG_TOP_M, back) if back >= 0.0 else Transform3D.IDENTITY)
+			KitScript.hanging(holder, slots, _props, KitScript.hang_at(_props, HANG_TOP_M, back) if back >= 0.0 else Transform3D.IDENTITY)
 			_fill_all(slots, _graph.rooms.template[r] == RoomsScript.TEMPLATE_HOME)
 		RoomsScript.FIX_RUG:
-			var rug := KitScript.rug(piece, _props)
+			var rug := KitScript.rug(holder, _props)
 			if rug is Decal:
 				(rug as Decal).cull_mask = Layers.below(_graph.rooms.level[r])
 		RoomsScript.FIX_LANTERN:
-			_hang_lantern(piece)
+			_hang_lantern(holder)
 		RoomsScript.FIX_BIG_BED:
-			KitScript.large_bed(piece, _props)
+			KitScript.large_bed(holder, _props)
 		_:
-			_stand_prop(r, f, kind, piece)
+			_stand_prop(r, f, kind, holder)
 
 
-func _stand_prop(r: int, f: int, kind: int, piece: Node3D) -> void:
+func _stand_prop(r: int, f: int, kind: int, holder: Node3D) -> void:
 	"""A library prop fixture: the bed, the hearth (and its embers), the table, the shelf (and its sacks)."""
 	var key: StringName = [&"bed", &"hearth", &"table_stools", &"pantry_shelf"][kind]
-	KitScript.prop(piece, _props, key, Transform3D.IDENTITY)
+	KitScript.prop(holder, _props, key, Transform3D.IDENTITY)
 	var bound: AABB = _props.drawn_bound(key)
 	if kind == RoomsScript.FIX_HEARTH:
-		_embers[r] = KitScript.embers(piece, Vector3(0.0, FIRE_Y_M, bound.size.z * FIRE_OUT_SHARE))
+		_embers[r] = KitScript.embers(holder, Vector3(0.0, FIRE_Y_M, bound.size.z * FIRE_OUT_SHARE))
 		_place_chimney(r, f)
 	elif kind == RoomsScript.FIX_SHELF and _graph.rooms.template[r] == RoomsScript.TEMPLATE_CELLAR:
-		KitScript.shelf_slots(piece, _props, bound.size.z, _slots[r * PLACES + f])
+		KitScript.shelf_slots(holder, _props, bound.size.z, _slots[r * PLACES + f])
 
 
-func _hang_lantern(piece: Node3D) -> void:
+func _hang_lantern(holder: Node3D) -> void:
 	"""A hung lantern: the wall lantern on the wall at its place (its plate at +X, turned to the wall, its cage out
 	over the room), LANTERN_LIFT_M up, glowing."""
 	var reach: float = _props.drawn_bound(&"wall_lantern").size.x * 0.5
 	var hung := Transform3D(Basis(Vector3.UP, PI * 0.5), Vector3(0.0, LANTERN_LIFT_M, reach))
-	KitScript.prop(piece, _props, &"wall_lantern", hung)
+	KitScript.prop(holder, _props, &"wall_lantern", hung)
 
 
 static func hang_back_m(template: int, f: int) -> float:

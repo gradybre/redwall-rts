@@ -54,19 +54,19 @@ func _init() -> void:
 
 func _process(_delta: float) -> void:
 	"""Follow the keyboard's focus."""
-	var owner: Control = get_viewport().gui_get_focus_owner() if enabled else null
-	if owner != null and not owner.has_focus(true):
-		owner = null
-	if owner == null:
+	var focus_owner: Control = get_viewport().gui_get_focus_owner() if enabled else null
+	if focus_owner != null and not focus_owner.has_focus(true):
+		focus_owner = null
+	if focus_owner == null:
 		_for = null
 		_frame.visible = false
 		return
-	var rect: Rect2 = GateScript.screen_rect(owner)
-	if owner == _for and rect == _rect and _frame.visible:
+	var rect: Rect2 = GateScript.screen_rect(focus_owner)
+	if focus_owner == _for and rect == _rect and _frame.visible:
 		return
-	_for = owner
+	_for = focus_owner
 	_rect = rect
-	_line.text = hint_text(owner, modal_open.is_valid() and bool(modal_open.call()))
+	_line.text = hint_text(focus_owner, modal_open.is_valid() and bool(modal_open.call()))
 	_frame.visible = true
 	_place(rect)
 
@@ -90,13 +90,13 @@ func _place(rect: Rect2) -> void:
 	"""Under the control, or above it near the bottom, held on screen, at the HUD's scale."""
 	var view: Vector2 = get_viewport().get_visible_rect().size
 	FarmUi.geometry_for(view, _layout, _geometry)
-	var scale: float = _geometry.scale
-	_frame.scale = Vector2(scale, scale)
+	var ui_scale: float = _geometry.scale
+	_frame.scale = Vector2(ui_scale, ui_scale)
 	_frame.reset_size()
-	var size: Vector2 = _frame.get_combined_minimum_size() * scale
-	var at := Vector2(rect.position.x, rect.end.y + GAP * scale)
+	var size: Vector2 = _frame.get_combined_minimum_size() * ui_scale
+	var at := Vector2(rect.position.x, rect.end.y + GAP * ui_scale)
 	if at.y + size.y > view.y:
-		at.y = rect.position.y - GAP * scale - size.y
+		at.y = rect.position.y - GAP * ui_scale - size.y
 	at.x = clampf(at.x, 0.0, maxf(view.x - size.x, 0.0))
 	at.y = clampf(at.y, 0.0, maxf(view.y - size.y, 0.0))
 	_frame.position = at

@@ -356,7 +356,7 @@ Neither needs new state.
 | Borrowed destroyed-footprint mask | `_excluded` | 1 | never allocated | Empty outside a placement call | 3 | -- | The caller's 16384-byte mask, held by reference for one call so the site authority Inventory calls back into can refuse a destroyed footprint whose Building row is already gone. Released before the call returns. |
 | Refund ring sort keys | `_seed_keys` | 8 | `REFUND_SEED_CAPACITY` = 512 | `INT64_MAX` past the ring | 3 | -- | DEC-043's 2026-10-01 follow-up ruling: a doorless building's refund starts from its footprint's edge ring, nearest its front first. One `distance * 16384 + tile` key per ring tile, sorted in place; scratch for one `refund_seeds_into()` call. |
 | Single start tile | `_single_seed` | 4 | `1` = 1 | Overwritten per call | 3 | -- | Lets `place_lots_into_piles(start_tile, ...)` share the seeded walk without allocating a one-cell array per call. |
-| Composer bindings and cursor | -- | -- | -- | -- | 3 | -- | `_inventory`, `_buildings`, `_stock_age`, `_spatial` and `_world_ref` are borrowed wiring rebound by the composer's owner; `_queue_tail`, `_spec_row`, `_spec_remaining` and `_math` are call scratch. The module owns no simulation state: piles are Inventory rows and their storage class is StockAge's declaration. |
+| Composer bindings and cursor | -- | -- | -- | -- | 3 | -- | `_inventory`, `_buildings`, `_stock_age`, `_spatial` and `_world_ref` are borrowed wiring rebound by the composer's owner; `_queue_tail`, `_spec_row` and `_spec_remaining` are call scratch. The module owns no simulation state: piles are Inventory rows and their storage class is StockAge's declaration. |
 
 ### `godot/scripts/core/households.gd`
 
@@ -615,7 +615,7 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Resident active list | `_live_slots` | 4 | `RESIDENT_CAPACITY` = 512 | Only `[0, _live_count)` is meaningful | 2 | §4 COMPONENT_COLUMNS | Rebuilt ascending. |
 | Cohort rollback scratch | `_cohort_slots` | 4 | `INITIAL_POPULATION` = 12 | Only the current synchronous spawn/rollback call owns meaningful entries | 3 | -- | STATE-COHORT-R01: written by spawn_initial_settlement and read only by _rollback_cohort. Successful-call residue has no future meaning; bare reusable slots cannot record founder identity after death. No save/digest membership; save cannot observe an in-flight call. See rulings/2026-09-11_focus_and_rollback_state.md. |
 | Resident catalog and counters | -- | -- | -- | -- | 2 | §2 CATALOG_IDS | `_species_ids` and `_catalog_error` are rebuilt by reloading the catalog; `_live_count` is recomputed with the active list. |
-| Resident scratch | -- | -- | -- | -- | 3 | -- | `_math` and the `_owns_collaborators` construction flag. `_last_column_refusal` [decision 0132] is the StringName code from the most recent `restore_columns()` refusal: a diagnostic scalar, excluded from `state_bytes()`, owing no ledger byte. |
+| Resident scratch | -- | -- | -- | -- | 3 | -- | The `_owns_collaborators` construction flag (the unused `_math` scratch was deleted, decision 0501). `_last_column_refusal` [decision 0132] is the StringName code from the most recent `restore_columns()` refusal: a diagnostic scalar, excluded from `state_bytes()`, owing no ledger byte. |
 
 ### `godot/scripts/core/resource_catalog_binding.gd`
 

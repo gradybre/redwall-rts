@@ -369,7 +369,7 @@ func _hold_hunger_and_rest_steady(slot: int) -> void:
 func _assert_closed_form(tick: int, need: int, rate_milli: int) -> void:
 	"""Assert a decaying need equals 7500 - floor(T*R/D) with remainder -((T*R) mod D)."""
 	var total: int = tick * rate_milli
-	var released: int = total / NeedsScript.NEED_DENOMINATOR
+	@warning_ignore("integer_division") var released: int = total / NeedsScript.NEED_DENOMINATOR
 	assert_equal(_need(0, need), 7500 - released,
 		"need %d after %d ticks is the closed-form value" % [need, tick])
 	assert_equal(_remainder(0, need), -(total % NeedsScript.NEED_DENOMINATOR),
@@ -622,7 +622,7 @@ func test_tier_one_clothing_accumulates_one_exposure_hour_per_hour() -> void:
 	_tick(0, HOUR)
 	assert_equal(_needs.cold_milli_hours_of(0).value, 1000, "1000 milli-hours per hour")
 	assert_equal(_needs.cold_hours_of(0).value, 1, "cold_hours is the floor/1000 display value")
-	_tick(0, HOUR / 2)
+	@warning_ignore("integer_division") _tick(0, HOUR / 2)
 	assert_equal(_needs.cold_milli_hours_of(0).value, 1500, "the half hour is tracked exactly")
 	assert_equal(_needs.cold_hours_of(0).value, 1, "but the display value floors")
 
@@ -1185,7 +1185,7 @@ const RATE_WARMUP_TICKS: int = 100
 
 func _trunc_div(numerator: int, denominator: int) -> int:
 	"""Integer division truncated toward zero, written out rather than assumed of `/`."""
-	var quotient: int = absi(numerator) / denominator
+	@warning_ignore("integer_division") var quotient: int = absi(numerator) / denominator
 	return -quotient if numerator < 0 else quotient
 
 

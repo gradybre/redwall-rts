@@ -80,6 +80,7 @@ func test_every_prop_has_a_positive_demo_size_and_a_rule() -> void:
 func test_scale_measures_height_or_the_longest_side_by_rule() -> void:
 	"""A lantern (by height) 1.9 units tall draws 0.36 m; a trout (by length) 1.9 long and 0.5 tall
 	draws 0.45 m long; a flat bound refuses to scale (1.0)."""
+	expect_diagnostic("has a flat or inverted bound")
 	var tall := PropsScript.scale_for(&"wall_lantern", Vector3(-0.3, 0.0, -0.3), Vector3(0.3, 1.9, 0.3))
 	assert_almost_equal(tall * 1.9, 0.36, "lantern height")
 	var fish := PropsScript.scale_for(&"item_trout", Vector3(-0.95, 0.0, -0.2), Vector3(0.95, 0.5, 0.2))
@@ -117,9 +118,9 @@ func test_a_missing_icon_is_a_roundel_in_the_swatch_ringed_in_brass() -> void:
 	var props := PropsScript.new()
 	var swatch := Color(0.2, 0.4, 0.22)
 	var image: Image = PropsScript.roundel_image(swatch)
-	var middle: Color = image.get_pixel(PropsScript.ROUNDEL_PX / 2, PropsScript.ROUNDEL_PX / 2)
+	@warning_ignore("integer_division") var middle: Color = image.get_pixel(PropsScript.ROUNDEL_PX / 2, PropsScript.ROUNDEL_PX / 2)
 	assert_less_than(absf(middle.g - swatch.g), 0.08, "the swatch at the middle")
-	var rim: Color = image.get_pixel(PropsScript.ROUNDEL_PX / 2, 1)
+	@warning_ignore("integer_division") var rim: Color = image.get_pixel(PropsScript.ROUNDEL_PX / 2, 1)
 	assert_less_than(absf(rim.r - Palette.BRASS.r) + absf(rim.g - Palette.BRASS.g) + absf(rim.b - Palette.BRASS.b), 0.02,
 		"brass at the rim")
 	assert_almost_equal(image.get_pixel(0, 0).a, 0.0, "clear at the corner")

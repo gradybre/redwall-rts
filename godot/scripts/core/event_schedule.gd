@@ -210,21 +210,21 @@ func _assert_contracts() -> void:
 	"""Prove the eight declared fields, their ordinals and SAVE-R09-005's 32-byte stride."""
 	assert(FIELD_KEYS.size() == 8 and FIELD_TYPE_CODES.size() == 8,
 		"REG-R01 declares exactly eight fields for section 11 owner event_schedule")
-	assert(FIELD_KEYS[ORDINAL_NEXT_SEQUENCE] == "_next_sequence"
+	@warning_ignore("assert_always_true") assert(FIELD_KEYS[ORDINAL_NEXT_SEQUENCE] == "_next_sequence"
 		and FIELD_KEYS[ORDINAL_COUNT] == "_count" and FIELD_KEYS[ORDINAL_KIND] == "_kind"
 		and FIELD_KEYS[ORDINAL_SOURCE_ID] == "_source_id"
 		and FIELD_KEYS[ORDINAL_ARG0] == "_arg0" and FIELD_KEYS[ORDINAL_ARG1] == "_arg1"
 		and FIELD_KEYS[ORDINAL_DUE_TICK] == "_due_tick"
 		and FIELD_KEYS[ORDINAL_SEQUENCE] == "_sequence",
 		"the declared ordinals 0..7 must not be renumbered by this module")
-	assert(FIELD_TYPE_CODES[ORDINAL_NEXT_SEQUENCE] == TYPE_CODE_I64
+	@warning_ignore("assert_always_true") assert(FIELD_TYPE_CODES[ORDINAL_NEXT_SEQUENCE] == TYPE_CODE_I64
 		and FIELD_TYPE_CODES[ORDINAL_COUNT] == TYPE_CODE_U32
 		and FIELD_TYPE_CODES[ORDINAL_DUE_TICK] == TYPE_CODE_I64
 		and FIELD_TYPE_CODES[ORDINAL_SEQUENCE] == TYPE_CODE_I64,
 		"_next_sequence, _due_tick and _sequence are i64; _count is u32")
-	assert(OFFSET_SEQUENCE + TICK_FIELD_BYTES == RECORD_BYTES,
+	@warning_ignore("assert_always_true") assert(OFFSET_SEQUENCE + TICK_FIELD_BYTES == RECORD_BYTES,
 		"the record's last field must end exactly at the frozen 32-byte stride")
-	assert(OFFSET_DUE_TICK == 4 * FIELD_BYTES,
+	@warning_ignore("assert_always_true") assert(OFFSET_DUE_TICK == 4 * FIELD_BYTES,
 		"four i32 fields precede due_tick in SAVE-R09-005's record order")
 
 

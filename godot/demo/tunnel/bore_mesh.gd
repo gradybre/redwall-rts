@@ -213,7 +213,7 @@ static func _jittered(base: PackedVector3Array, normals: PackedVector3Array, off
 
 static func variant_of(ring: int) -> int:
 	"""Which jittered variant ring `ring` (its index along the bore) is drawn with."""
-	return (ring * 5 + (ring / JITTER_VARIANTS) * 3) % JITTER_VARIANTS
+	@warning_ignore("integer_division") return (ring * 5 + (ring / JITTER_VARIANTS) * 3) % JITTER_VARIANTS
 
 
 static func width_jitter(ring: int, jitter: int = JITTER_FULL) -> float:
@@ -398,7 +398,7 @@ static func hub_rows() -> PackedVector2Array:
 	half-widths out, crowns up)."""
 	var rows := PackedVector2Array()
 	var uv := profile_uv()
-	for k in range(2, PROFILE_VERTS / 2 + 1):
+	@warning_ignore("integer_division") for k in range(2, PROFILE_VERTS / 2 + 1):
 		rows.append(uv[k])
 	return rows
 
@@ -455,13 +455,13 @@ static func _hub_wall(hub: HubArrays, centre: Vector3, floor_radius: float, crow
 	"""The hub's wall: every profile row round HUB_SECTORS angles (a seam column repeated to close it), its
 	normals inward, its triangles wound to face in."""
 	var rows := hub_rows()
-	var row_normals := row_normals(rows, floor_radius, crown)
+	var row_inward := row_normals(rows, floor_radius, crown)
 	for r in rows.size():
 		for sector in HUB_SECTORS + 1:
 			var angle := TAU * float(sector) / float(HUB_SECTORS)
 			var out := Vector3(cos(angle), 0.0, sin(angle))
 			hub.add(centre + out * (rows[r].x * floor_radius) + Vector3.UP * (rows[r].y * crown),
-				(out * row_normals[r].x + Vector3.UP * row_normals[r].y).normalized(), rows[r], Vector2(day, 1.0))
+				(out * row_inward[r].x + Vector3.UP * row_inward[r].y).normalized(), rows[r], Vector2(day, 1.0))
 	for r in rows.size() - 1:
 		for sector in HUB_SECTORS:
 			var a := r * (HUB_SECTORS + 1) + sector
@@ -503,7 +503,7 @@ static func hub_custom(arrays: Array, centre_radius: Vector3, crown: float, open
 	"""The hub's custom channels (see HUBS): centre and crown; the openings' angles, half-widths and crowns."""
 	var channels: Array[Vector4] = [Vector4(centre_radius.x, centre_radius.z, centre_radius.y, crown), Vector4.ZERO,
 		Vector4.ZERO, Vector4.ZERO]
-	for k in mini(openings.size() / 3, HUB_OPENINGS):
+	@warning_ignore("integer_division") for k in mini(openings.size() / 3, HUB_OPENINGS):
 		for c in 3:
 			channels[1 + c][k] = openings[3 * k + c]
 	for c in 4:

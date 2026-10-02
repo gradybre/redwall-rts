@@ -434,7 +434,7 @@ const RIPE_WITHER_HOURS: int = RIPE_WITHER_DAYS * HOURS_PER_DAY
 ## The most 24-hour decay intervals a crop that can still be harvested has completed: at 119
 ## hours `floor((119-48)/24)` is 2, and at 120 the crop is WITHERED. READY_06 §6.4: "Do not apply
 ## a third harvestable decay step at 120." Derived from the two stated boundaries, not chosen.
-const MAX_HARVEST_DECAY_DAYS: int = (RIPE_WITHER_HOURS - 1 - RIPE_GRACE_HOURS) / HOURS_PER_DAY
+@warning_ignore("integer_division") const MAX_HARVEST_DECAY_DAYS: int = (RIPE_WITHER_HOURS - 1 - RIPE_GRACE_HOURS) / HOURS_PER_DAY
 
 # --- REQ-SET-076 compost, REQ-SET-078 fallow ------------------------------------------------------------------
 
@@ -591,7 +591,7 @@ func _init(p_directory: EntityDirectory = null) -> void:
 	Passing an existing directory shares it; passing none creates a private one, which is what a
 	test or a standalone fixture wants.
 	"""
-	assert(FARM_PLOT_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_FARM_PLOT],
+	@warning_ignore("assert_always_true") assert(FARM_PLOT_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_FARM_PLOT],
 		"FarmPlot columns must match the directory's FARM_PLOT row capacity")
 	assert(Catalog.SOIL.size() == SOIL_COUNT, "GDD §4.3 Soil has exactly three values")
 	assert(Catalog.CROP_STATE.size() == STATE_COUNT, "GDD §4.3 CropState has exactly five values")
@@ -660,11 +660,11 @@ func _assert_stated_relations() -> void:
 			"§5.6's soil names and BAL-CROP-001's mask must describe the same soils")
 		assert(CROP_MOISTURE_MIN[crop] < CROP_MOISTURE_MAX[crop],
 			"§5.6's moisture minimum must be below its maximum")
-	assert(BLIGHT_HEALTH_LOSS_PER_DAY / BLIGHT_TENDED_DIVISOR == BLIGHT_TENDED_HEALTH_LOSS_PER_DAY,
+	@warning_ignore("assert_always_true", "integer_division") assert(BLIGHT_HEALTH_LOSS_PER_DAY / BLIGHT_TENDED_DIVISOR == BLIGHT_TENDED_HEALTH_LOSS_PER_DAY,
 		"§5.6's 50% blight reduction must equal REQ-SET-087's stated 200/day")
-	assert(FERTILITY_FACTOR_BASE + FERTILITY_MAX / FERTILITY_FACTOR_DIVISOR == FERTILITY_FACTOR_MAX,
+	@warning_ignore("assert_always_true", "integer_division") assert(FERTILITY_FACTOR_BASE + FERTILITY_MAX / FERTILITY_FACTOR_DIVISOR == FERTILITY_FACTOR_MAX,
 		"§5.6's fertility factor must reach exactly 1000 at the stated 10000 fertility cap")
-	assert(HEALTH_MAX / HEALTH_FACTOR_DIVISOR == FACTOR_DENOMINATOR,
+	@warning_ignore("assert_always_true", "integer_division") assert(HEALTH_MAX / HEALTH_FACTOR_DIVISOR == FACTOR_DENOMINATOR,
 		"§5.6's health factor must reach exactly 1000 at full health")
 
 
@@ -1500,7 +1500,7 @@ func _release_growth_milli_hours(tile: int, temperature_factor: int, moisture_fa
 	var total: int = _tile_growth_remainder[tile] \
 		+ MILLI_HOURS_PER_HOUR * temperature_factor * moisture_factor
 	_tile_growth_remainder[tile] = total % GROWTH_FACTOR_DENOMINATOR
-	return total / GROWTH_FACTOR_DENOMINATOR
+	@warning_ignore("integer_division") return total / GROWTH_FACTOR_DENOMINATOR
 
 
 func _ripen_if_complete(slot: int, tick: int) -> void:
@@ -1530,7 +1530,7 @@ func fertility_factor_of(slot: int) -> IntMath.IntResult:
 	if not is_present(slot):
 		out.refuse(String(REFUSE_NOT_PRESENT))
 		return out
-	var factor: int = FERTILITY_FACTOR_BASE + _fertility[slot] / FERTILITY_FACTOR_DIVISOR
+	@warning_ignore("integer_division") var factor: int = FERTILITY_FACTOR_BASE + _fertility[slot] / FERTILITY_FACTOR_DIVISOR
 	out.succeed(clampi(factor, FERTILITY_FACTOR_MIN, FERTILITY_FACTOR_MAX))
 	return out
 
@@ -1541,7 +1541,7 @@ func health_factor_of(slot: int) -> IntMath.IntResult:
 	if not is_present(slot):
 		out.refuse(String(REFUSE_NOT_PRESENT))
 		return out
-	out.succeed(_health[slot] / HEALTH_FACTOR_DIVISOR)
+	@warning_ignore("integer_division") out.succeed(_health[slot] / HEALTH_FACTOR_DIVISOR)
 	return out
 
 
@@ -1602,7 +1602,7 @@ func formula_yield_milli_into(slot: int, pollination_factor: int, out: IntMath.I
 	if not IntMath.floor_div_into(out.value, YIELD_DENOMINATOR, out):
 		return false
 	var base: int = CROP_BASE_YIELD_MILLI[_crop_id[slot]]
-	return out.succeed(mini(out.value, base * YIELD_CAP_NUMERATOR / YIELD_CAP_DENOMINATOR))
+	@warning_ignore("integer_division") return out.succeed(mini(out.value, base * YIELD_CAP_NUMERATOR / YIELD_CAP_DENOMINATOR))
 
 
 func _yield_product_into(slot: int, pollination_factor: int, out: IntMath.IntResult) -> bool:
@@ -1611,11 +1611,11 @@ func _yield_product_into(slot: int, pollination_factor: int, out: IntMath.IntRes
 		return out.refuse(String(REFUSE_NOT_PRESENT))
 	if not is_crop(_crop_id[slot]):
 		return out.refuse(String(REFUSE_NO_CROP))
-	var factor: int = clampi(FERTILITY_FACTOR_BASE + _fertility[slot] / FERTILITY_FACTOR_DIVISOR,
+	@warning_ignore("integer_division") var factor: int = clampi(FERTILITY_FACTOR_BASE + _fertility[slot] / FERTILITY_FACTOR_DIVISOR,
 		FERTILITY_FACTOR_MIN, FERTILITY_FACTOR_MAX)
 	if not IntMath.checked_mul_into(CROP_BASE_YIELD_MILLI[_crop_id[slot]], factor, out):
 		return false
-	if not IntMath.checked_mul_into(out.value, _health[slot] / HEALTH_FACTOR_DIVISOR, out):
+	@warning_ignore("integer_division") if not IntMath.checked_mul_into(out.value, _health[slot] / HEALTH_FACTOR_DIVISOR, out):
 		return false
 	factor = _rotation_factor(CROP_FAMILY[_crop_id[slot]], _last_family[slot], _family_streak[slot])
 	if not IntMath.checked_mul_into(out.value, factor, out):
@@ -1992,7 +1992,7 @@ func frost_damage_per_hour_into(slot: int, temperature_tenths: int,
 		return out.succeed(0)
 	var damage: int = CROP_FROST_DAMAGE_PER_HOUR[_crop_id[slot]]
 	if _crop_id[slot] == CROP_CABBAGE and _tile_tended_today[_tile[slot]] == 1:
-		damage = damage / CABBAGE_TENDED_FROST_DIVISOR
+		@warning_ignore("integer_division") damage = damage / CABBAGE_TENDED_FROST_DIVISOR
 	return out.succeed(damage)
 
 

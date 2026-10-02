@@ -21,6 +21,11 @@ var _nodes: Array[Object] = []
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 
 
+func tolerates_outside_tree() -> bool:
+	"""Its node fixtures are never inside the scene tree (test_case.gd ENGINE DIAGNOSTICS)."""
+	return true
+
+
 func after_each() -> void:
 	"""Free every node a test made."""
 	for node: Object in _nodes:

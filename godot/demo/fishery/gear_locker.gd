@@ -194,7 +194,7 @@ func wear_of_kind(kind: int) -> int:
 func cycles_left(index: int) -> int:
 	"""Whole cycles a piece has left before it must be mended (§5.4: none may start below its wear)."""
 	var wear: int = wear_of_kind(_kind[index])
-	return durability_of(index) / wear if wear > 0 else 0
+	@warning_ignore("integer_division") return durability_of(index) / wear if wear > 0 else 0
 
 
 func is_free(index: int) -> bool:

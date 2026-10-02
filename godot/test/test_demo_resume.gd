@@ -82,10 +82,10 @@ func _run(brain: BrainScript, frames: int) -> void:
 		brain.step(DT)
 
 
-func _job(log: Array[String], job_name: String, still_waits: bool) -> UnfinishedScript:
+func _job(job_log: Array[String], job_name: String, still_waits: bool) -> UnfinishedScript:
 	"""A remembered job that logs being taken back and answers `still_waits`."""
-	return UnfinishedScript.new(func(_brain: RefCounted) -> bool:
-		log.append(job_name)
+	return UnfinishedScript.new(func(_resident: RefCounted) -> bool:
+		job_log.append(job_name)
 		return still_waits, job_name)
 
 
@@ -93,16 +93,16 @@ func test_the_latest_unfinished_jobs_are_kept_latest_first() -> void:
 	"""At most RESUME_MAX are kept (the oldest goes); taken up latest first; a stale one (no longer
 	waiting) is dropped on the way to the next."""
 	var brain := _brain(_space())
-	var log: Array[String] = []
+	var job_log: Array[String] = []
 	for k: int in 4:
-		brain.remember_unfinished(_job(log, "job %d" % k, k != 2))
+		brain.remember_unfinished(_job(job_log, "job %d" % k, k != 2))
 	brain.remember_unfinished(null)
 	assert_equal(BrainScript.RESUME_MAX, 3, "three kept")
 	assert_equal(brain.unfinished_labels(), PackedStringArray(["job 3", "job 2", "job 1"]), "latest first, oldest gone")
 	assert_true(brain.take_up_unfinished(), "job 3 taken up")
-	assert_equal(log, ["job 3"] as Array[String], "only it")
+	assert_equal(job_log, ["job 3"] as Array[String], "only it")
 	assert_true(brain.take_up_unfinished(), "job 2 was stale; job 1 taken up")
-	assert_equal(log, ["job 3", "job 2", "job 1"] as Array[String], "the stale one asked on the way")
+	assert_equal(job_log, ["job 3", "job 2", "job 1"] as Array[String], "the stale one asked on the way")
 	assert_false(brain.take_up_unfinished(), "nothing left")
 
 
@@ -188,12 +188,12 @@ func test_no_job_is_taken_up_in_the_water() -> void:
 	"""A crew's job done while its worker is in the water: it swims ashore first (as release), keeping
 	the job for later."""
 	var brain := _brain(_space())
-	var log: Array[String] = []
-	brain.remember_unfinished(_job(log, "lanterns", true))
+	var job_log: Array[String] = []
+	brain.remember_unfinished(_job(job_log, "lanterns", true))
 	brain.order_move(Vector2(-2.0, -2.0))
 	brain.in_water = true
 	brain.work_done()
-	assert_equal(log.size(), 0, "not taken up in the water")
+	assert_equal(job_log.size(), 0, "not taken up in the water")
 	assert_equal(brain.unfinished_labels().size(), 1, "kept")
 
 
@@ -216,8 +216,8 @@ func test_a_kept_dig_does_not_keep_its_brain_alive() -> void:
 func test_the_same_job_kept_twice_is_kept_once() -> void:
 	"""A job kept again (the same words) moves to the latest place rather than filling a second one."""
 	var brain := _brain(_space())
-	var log: Array[String] = []
-	brain.remember_unfinished(_job(log, "lanterns", true))
-	brain.remember_unfinished(_job(log, "raise bed 3", true))
-	brain.remember_unfinished(_job(log, "lanterns", true))
+	var job_log: Array[String] = []
+	brain.remember_unfinished(_job(job_log, "lanterns", true))
+	brain.remember_unfinished(_job(job_log, "raise bed 3", true))
+	brain.remember_unfinished(_job(job_log, "lanterns", true))
 	assert_equal(brain.unfinished_labels(), PackedStringArray(["lanterns", "raise bed 3"]), "once, latest first")

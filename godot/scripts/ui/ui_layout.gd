@@ -485,7 +485,7 @@ func counter_cell(profile: int, resource_width: float, index: int) -> Rect2:
 			NARROW_COUNTER_WIDTH, RESOURCE_CELL_HEIGHT)
 	var width: float = counter_width(resource_width)
 	var column: int = index % COUNTER_COLUMNS
-	return Rect2(FRAME_PADDING + float(column) * (width + COUNTER_GAP),
+	@warning_ignore("integer_division") return Rect2(FRAME_PADDING + float(column) * (width + COUNTER_GAP),
 		float(RESOURCE_ROW_Y[index / COUNTER_COLUMNS]), width, RESOURCE_CELL_HEIGHT)
 
 

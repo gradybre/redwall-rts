@@ -24,9 +24,9 @@ func setup(keys: Array[StringName]) -> void:
 	_mwu_carry.resize(keys.size())
 	_mwu_carry.fill(0)
 	for who: int in keys.size():
-		var seed: int = Rules.FISH_SEED_KEYS.find(keys[who])
-		if seed >= 0:
-			xp[who] = ForestRules.xp_of_level(Rules.FISH_SEED_LEVELS[seed])
+		var seed_row: int = Rules.FISH_SEED_KEYS.find(keys[who])
+		if seed_row >= 0:
+			xp[who] = ForestRules.xp_of_level(Rules.FISH_SEED_LEVELS[seed_row])
 	revision += 1
 
 
@@ -50,7 +50,7 @@ func add_work(who: int, mwu: int) -> void:
 	if not is_resident(who) or mwu <= 0:
 		return
 	_mwu_carry[who] += mwu
-	var whole: int = _mwu_carry[who] / Rules.MILLI_PER_U
+	@warning_ignore("integer_division") var whole: int = _mwu_carry[who] / Rules.MILLI_PER_U
 	_mwu_carry[who] -= whole * Rules.MILLI_PER_U
 	if whole > 0:
 		xp[who] += whole * Rules.XP_PER_WU
@@ -64,7 +64,7 @@ static func group_level(levels: PackedInt32Array) -> int:
 	var total: int = 0
 	for level: int in levels:
 		total += level
-	return total / levels.size()
+	@warning_ignore("integer_division") return total / levels.size()
 
 
 func line_of(who: int) -> String:

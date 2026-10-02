@@ -640,10 +640,10 @@ func test_clear_releases_every_directory_slot() -> void:
 func test_live_habitat_list_is_ascending_and_bounded() -> void:
 	"""A daily sweep iterates habitats in slot order, not in creation or hash order."""
 	var first: Vector2i = _river()
-	var second: Vector2i = _fishing.create_habitat(LAKE, EntityDirectory.NULL_REF, _lake_ids(),
+	var _second: Vector2i = _fishing.create_habitat(LAKE, EntityDirectory.NULL_REF, _lake_ids(),
 		0, 0, 0).ref
 	_fishing.destroy_habitat(first)
-	var third: Vector2i = _fishing.create_habitat(COAST, EntityDirectory.NULL_REF, _coast_ids(),
+	var _third: Vector2i = _fishing.create_habitat(COAST, EntityDirectory.NULL_REF, _coast_ids(),
 		0, 0, 0).ref
 	assert_equal(_fishing.habitat_count(), 2, "two habitats remain live")
 	var previous: int = -1
@@ -1461,9 +1461,9 @@ func test_habitat_refuge_is_twenty_five_percent_and_applies_to_nothing() -> void
 		_river_ids(), 0, 0, 0)
 	var marked: Fishing.OpResult = _fishing.create_habitat(RIVER, EntityDirectory.NULL_REF,
 		_river_ids(), 0, 0, 999)
-	assert_equal(_fishing.habitat_refuge_milli_of(plain.value).value,
+	@warning_ignore("integer_division") assert_equal(_fishing.habitat_refuge_milli_of(plain.value).value,
 		RIVER_K_TOTAL * REFUGE_PERCENT / 100, "25% of the river's 2100000 milli-U capacity")
-	assert_equal(_fishing.habitat_refuge_milli_of(marked.value).value,
+	@warning_ignore("integer_division") assert_equal(_fishing.habitat_refuge_milli_of(marked.value).value,
 		RIVER_K_TOTAL * REFUGE_PERCENT / 100,
 		"protected_fraction does not change it: its unit is unstated")
 	assert_equal(_fishing.allowed_stock_milli(_row(marked.ref, 0), SPRING, 1).value,
@@ -1707,12 +1707,12 @@ func test_catch_refuses_overflow_at_the_maximum_skill() -> void:
 		IntMath.INT64_MAX, MAX_SKILL, SPRING, 1)
 	assert_false(overflowed.ok, "int64 maximum times 1500 cannot be represented")
 	assert_equal(overflowed.value, 0, "and a refusal carries no usable number")
-	assert_false(_fishing.formula_catch_milli(trout_row, IntMath.INT64_MAX / 1000, MAX_SKILL,
+	@warning_ignore("integer_division") assert_false(_fishing.formula_catch_milli(trout_row, IntMath.INT64_MAX / 1000, MAX_SKILL,
 		SPRING, 1).ok, "nor can a base catch a thousandth of that")
 	var large: IntMath.IntResult = _fishing.formula_catch_milli(trout_row, 1000000000, MAX_SKILL,
 		SPRING, 1)
 	assert_true(large.ok, "a base catch of a million units still computes")
-	assert_equal(large.value, 1000000000 * 1500 * 800 * 1000 / 1000000000,
+	@warning_ignore("integer_division") assert_equal(large.value, 1000000000 * 1500 * 800 * 1000 / 1000000000,
 		"exactly, with no wrap")
 
 

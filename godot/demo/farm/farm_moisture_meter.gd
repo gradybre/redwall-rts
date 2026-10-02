@@ -68,7 +68,7 @@ func _draw() -> void:
 	for edge: int in [band_min, band_max]:
 		var x: float = x_of(edge, size.x)
 		draw_line(Vector2(x, 0.0), Vector2(x, BAR_PX + 3.0), Palette.INK, 1.0)
-		var words: String = "%d%%" % (edge / 100)
+		@warning_ignore("integer_division") var words: String = "%d%%" % (edge / 100)
 		var width: float = font.get_string_size(words, HORIZONTAL_ALIGNMENT_LEFT, -1.0, LABEL_PX).x
 		var at_x: float = clampf(x - width * 0.5, 0.0, maxf(size.x - width, 0.0))
 		draw_string(font, Vector2(at_x, HEIGHT_PX - 2.0), words, HORIZONTAL_ALIGNMENT_LEFT, -1.0, LABEL_PX, Palette.UMBER)

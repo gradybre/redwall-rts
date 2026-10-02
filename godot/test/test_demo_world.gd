@@ -455,6 +455,7 @@ func test_card_build_needs_no_staged_assets() -> void:
 
 func test_a_carded_entry_whose_files_are_missing_falls_back_to_a_placeholder() -> void:
 	"""A manifest naming a bed and cards that are not on disk still builds the whole village."""
+	expect_diagnostic("is staged but did not load; using a placeholder")
 	var world: Dictionary = {"crop_grain_ripe": {"category": "environment",
 		"path": "res://demo/assets/world/missing_bed.glb", "aabb_min": [-0.95, 0.0, -0.95],
 		"aabb_max": [0.95, 0.18, 0.95], "cards": _grain_cards()}}

@@ -101,7 +101,7 @@ func bind_shell(shell: UiShell) -> void:
 	_sync_shell(is_shown())
 
 
-func _on_diagnostic_pause(_diagnostic: String) -> void:
+func _on_diagnostic_pause(_reason: String) -> void:
 	"""The clock reported its 1x diagnostic pause. The game's scheduler queues that rung to land at
 	its next barrier (the next frame), but UIManager raises the card in this same call -- so the
 	banner takes the condition over from the card NOW and the card is never drawn. A pause that has

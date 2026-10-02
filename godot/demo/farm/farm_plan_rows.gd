@@ -82,7 +82,7 @@ static func crop_text(sim: SimScript, bed: int) -> String:
 static func stage_text(sim: SimScript, crew: CrewScript, bed: int, read: IntMath.IntResult) -> String:
 	"""'Growing 45%', with a second line naming the verb when the bed needs attention ('Needs: Drain')."""
 	var stage: int = sim.stage_of(bed)
-	var growth: int = sim.growth_permille(bed) / 10
+	@warning_ignore("integer_division") var growth: int = sim.growth_permille(bed) / 10
 	var words: String = ["Empty", "Being sown", "Growing %d%%" % growth, "Growing %d%%" % growth, "Ripe", "Withered",
 		"Blighted, %d%%" % growth][stage]
 	if stage == SimScript.STAGE_EMPTY and sim.is_fallow(bed):
@@ -199,7 +199,7 @@ static func sown_hours_into(sim: SimScript, bed: int, item: int, out: IntMath.In
 	if out.value <= 0:
 		return out.refuse(String(SimScript.REFUSE_STALLED))
 	var target: int = FarmingScript.CROP_GROWTH_HOURS[crop] * FarmingScript.MILLI_HOURS_PER_HOUR
-	return out.succeed((target + out.value - 1) / out.value)
+	@warning_ignore("integer_division") return out.succeed((target + out.value - 1) / out.value)
 
 
 static func moisture_text(sim: SimScript, bed: int) -> String:
@@ -336,7 +336,7 @@ static func sort_key(sim: SimScript, bed: int, sort: int, read: IntMath.IntResul
 				return 0
 			return read.value if sim.hours_to_ripe_into(bed, read) else NEVER
 		SORT_MOISTURE:
-			return -absi(sim.band_of(bed) - SimScript.BAND_GOOD) * 100000 - absi(sim.moisture_of(bed) - (sim.band_min_of(bed)
+			@warning_ignore("integer_division") return -absi(sim.band_of(bed) - SimScript.BAND_GOOD) * 100000 - absi(sim.moisture_of(bed) - (sim.band_min_of(bed)
 				+ sim.band_max_of(bed)) / 2)
 		SORT_FERTILITY:
 			return sim.fertility_of(bed)

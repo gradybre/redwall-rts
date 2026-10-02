@@ -15,7 +15,7 @@ func _empty() -> Array:
 	"""Independent exact-size fixture, with ANYTHING1 in both activity columns."""
 	var image: Array = []
 	for field: int in 6:
-		var values: Variant = PackedInt32Array() if TYPES[field] == 2 else PackedByteArray()
+		var values: Variant = (PackedInt32Array() as Variant) if TYPES[field] == 2 else (PackedByteArray() as Variant)
 		values.resize(COUNTS[field])
 		if field == 1 or field == 3: values.fill(1)
 		image.append(values)
@@ -62,7 +62,7 @@ func _expect(image: Array, code: StringName) -> void:
 		assert_true(refusal.detail.contains(String(code)),"column identity")
 	for field: int in 6:
 		assert_true(image[field] == before[field],"static input unchanged")
-		var held: Variant = frame.i32_column(field) if TYPES[field] == 2 else frame.u8_column(field)
+		var held: Variant = (frame.i32_column(field) as Variant) if TYPES[field] == 2 else (frame.u8_column(field) as Variant)
 		assert_true(held == before[field],"framed input unchanged")
 
 func _from_owner(owner: Schedule) -> Array:

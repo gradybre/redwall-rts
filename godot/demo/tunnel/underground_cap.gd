@@ -171,8 +171,8 @@ func commit_other() -> void:
 func share_earth(material: ShaderMaterial) -> void:
 	"""Give another earth material (the bores', bore_earth.gdshader) the cap's maps, so a wall and the cut
 	it meets are the same soil (underground_earth.gdshaderinc)."""
-	for name: StringName in [&"ground_map", &"marks_map", &"grain", &"map_rect"]:
-		material.set_shader_parameter(name, _material.get_shader_parameter(name))
+	for param_name: StringName in [&"ground_map", &"marks_map", &"grain", &"map_rect"]:
+		material.set_shader_parameter(param_name, _material.get_shader_parameter(param_name))
 
 
 static func _grain() -> NoiseTexture2D:
@@ -214,16 +214,16 @@ func _plane(y: float, material: Material) -> MeshInstance3D:
 
 func _fill_light() -> DirectionalLight3D:
 	"""The underground's own light: lights the UNDERGROUND layer only, and is culled with it."""
-	var light := DirectionalLight3D.new()
-	light.name = "UndergroundLight"
-	light.rotation_degrees = LIGHT_EULER_DEG
-	light.light_color = LIGHT_COLOUR
-	light.light_energy = LIGHT_ENERGY
-	light.shadow_enabled = false
-	light.layers = Layers.below(level)
-	light.light_cull_mask = Layers.below(level)
-	add_child(light)
-	return light
+	var fill := DirectionalLight3D.new()
+	fill.name = "UndergroundLight"
+	fill.rotation_degrees = LIGHT_EULER_DEG
+	fill.light_color = LIGHT_COLOUR
+	fill.light_energy = LIGHT_ENERGY
+	fill.shadow_enabled = false
+	fill.layers = Layers.below(level)
+	fill.light_cull_mask = Layers.below(level)
+	add_child(fill)
+	return fill
 
 
 # --- the ground map ---------------------------------------------------------------------------

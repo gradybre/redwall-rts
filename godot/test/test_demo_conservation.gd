@@ -424,14 +424,14 @@ func test_cancelling_a_haul_mid_carry_stacks_it_on_arrival() -> void:
 	var carrying := func() -> bool: return forestry.crew.jobs.load_milli[0] > 0 \
 		and forestry.crew.jobs.current_step(0) == ForestJobs.STEP_CARRY_STACK and forestry.crew.jobs.issued[0] == 1
 	assert_true(_woods_run(forestry, carrying), "a load on its way")
-	var load: int = forestry.crew.jobs.load_milli[0]
+	var carried_milli: int = forestry.crew.jobs.load_milli[0]
 	assert_equal(forestry.crew.cancel_all(), 1, "the haul cancelled")
 	assert_equal(forestry.crew.cancel_all(), 0, "a delivery is not cancelled")
 	assert_equal(_services.stores.wood_milli_u, stores, "nothing credited at the cancel")
-	assert_equal(_wood_carried(forestry), load, "still carried")
+	assert_equal(_wood_carried(forestry), carried_milli, "still carried")
 	assert_true(_woods_run(forestry, func() -> bool: return forestry.crew.jobs.live_count() == 0), "stacked")
-	assert_equal(_services.stores.wood_milli_u, stores + load, "on arrival")
-	assert_equal(forestry.stand.trunk_milli[WEST_OAK], trunk - load, "no second load taken")
+	assert_equal(_services.stores.wood_milli_u, stores + carried_milli, "on arrival")
+	assert_equal(forestry.stand.trunk_milli[WEST_OAK], trunk - carried_milli, "no second load taken")
 	var brain: BrainScript = forestry.crew.brain_of(2)
 	assert_true(brain.position.distance_to(Yard.log_stack_at()) < 4.0, "at the log stack")
 
@@ -815,11 +815,11 @@ func test_a_woods_job_that_cannot_get_through_keeps_its_load() -> void:
 	forestry.order_on(PickScript.KIND_TRUNK, WEST_OAK, PackedInt32Array([2]))
 	var carrying := func() -> bool: return forestry.crew.jobs.load_milli[0] > 0 and forestry.crew.jobs.issued[0] == 1
 	assert_true(_woods_run(forestry, carrying), "carrying")
-	var load: int = forestry.crew.jobs.load_milli[0]
+	var carried_milli: int = forestry.crew.jobs.load_milli[0]
 	forestry.crew.set_crew(PackedInt32Array([1]))
 	forestry.crew.finish(0, "Haul logs: no way through to it")
 	assert_true(forestry.crew.jobs.is_live(0), "the job kept")
-	assert_equal(forestry.crew.jobs.load_milli[0], load, "with its load")
+	assert_equal(forestry.crew.jobs.load_milli[0], carried_milli, "with its load")
 	assert_equal(_services.stores.wood_milli_u, stores, "nothing credited")
 	assert_false(forestry.crew.take_back(forestry.crew.brain_of(2), 0, forestry.crew.jobs.serial[0]),
 		"nor taken back before the hour")

@@ -179,18 +179,18 @@ func _put_on_level(slot: int, network: GraphScript) -> void:
 		node.layers = mask
 
 
-func _dress_step(slot: int, seed: int, centre: Vector3, heading: Vector2, bore: int, rooted: bool = true) -> void:
+func _dress_step(slot: int, seed_value: int, centre: Vector3, heading: Vector2, bore: int, rooted: bool = true) -> void:
 	"""One step's stones and -- `rooted`: near the surface, on level 1 -- roots (see the header)."""
 	var side := Vector3(-heading.y, 0.0, heading.x)
 	for wall: float in [-1.0, 1.0]:
-		if unit(seed, 1 + int(wall)) < STONE_CHANCE:
-			_add_stone(slot, seed + int(wall) * 31, centre, side * wall, bore)
+		if unit(seed_value, 1 + int(wall)) < STONE_CHANCE:
+			_add_stone(slot, seed_value + int(wall) * 31, centre, side * wall, bore)
 	if not rooted:
 		return
 	var near := root_chance(Vector2(centre.x, centre.z))
 	for k in ROOTS_PER_STEP:
-		if unit(seed, 10 + k) < near * ROOT_CHANCE:
-			_add_root(slot, seed + k * 57, centre, side * (1.0 if unit(seed, 20 + k) < 0.5 else -1.0), bore)
+		if unit(seed_value, 10 + k) < near * ROOT_CHANCE:
+			_add_root(slot, seed_value + k * 57, centre, side * (1.0 if unit(seed_value, 20 + k) < 0.5 else -1.0), bore)
 
 
 func root_chance(at: Vector2) -> float:
@@ -202,44 +202,44 @@ func root_chance(at: Vector2) -> float:
 	return clampf(best, 0.0, 1.0)
 
 
-static func unit(seed: int, salt: int) -> float:
+static func unit(seed_value: int, salt: int) -> float:
 	"""A repeatable number in [0, 1) from a seed and a salt (an integer hash)."""
-	var h := (seed * 73856093) ^ (salt * 19349663) ^ 0x5bd1e995
+	var h := (seed_value * 73856093) ^ (salt * 19349663) ^ 0x5bd1e995
 	h = (h ^ (h >> 13)) * 1274126177
 	h = h ^ (h >> 16)
 	return float(h & 0xFFFFFF) / float(0x1000000)
 
 
-func _add_stone(slot: int, seed: int, centre: Vector3, out: Vector3, bore: int) -> void:
+func _add_stone(slot: int, seed_value: int, centre: Vector3, out: Vector3, bore: int) -> void:
 	"""A stone bedded half into the wall on the `out` side, part way up it."""
 	var node := _stones[slot]
 	var count := node.multimesh.visible_instance_count
 	if count >= MAX_STONES:
 		return
-	var t := lerpf(0.08, 0.7, unit(seed, 3))
+	var t := lerpf(0.08, 0.7, unit(seed_value, 3))
 	var reach := BoreMeshScript.FLOOR_HALF_M[bore] * BoreMeshScript.width_share(t)
-	var size := lerpf(STONE_MIN_M, STONE_MAX_M, unit(seed, 4))
-	var basis := Basis(Vector3(unit(seed, 5), unit(seed, 6), unit(seed, 7)).normalized(), unit(seed, 8) * TAU).scaled(Vector3(size, size * 0.8, size))
-	node.multimesh.set_instance_transform(count, Transform3D(basis, centre + out * (reach + size * STONE_BEDDED) + Vector3.UP * (t * Rules.crown_m(bore))))
-	node.multimesh.set_instance_color(count, STONE_COLOUR * lerpf(0.8, 1.15, unit(seed, 9)))
+	var size := lerpf(STONE_MIN_M, STONE_MAX_M, unit(seed_value, 4))
+	var facing := Basis(Vector3(unit(seed_value, 5), unit(seed_value, 6), unit(seed_value, 7)).normalized(), unit(seed_value, 8) * TAU).scaled(Vector3(size, size * 0.8, size))
+	node.multimesh.set_instance_transform(count, Transform3D(facing, centre + out * (reach + size * STONE_BEDDED) + Vector3.UP * (t * Rules.crown_m(bore))))
+	node.multimesh.set_instance_color(count, STONE_COLOUR * lerpf(0.8, 1.15, unit(seed_value, 9)))
 	node.multimesh.visible_instance_count = count + 1
 
 
-func _add_root(slot: int, seed: int, centre: Vector3, out: Vector3, bore: int) -> void:
+func _add_root(slot: int, seed_value: int, centre: Vector3, out: Vector3, bore: int) -> void:
 	"""A root out of the upper wall on the `out` side, reaching into the bore and hanging down."""
 	var node := _roots[slot]
 	var count := node.multimesh.visible_instance_count
 	if count >= MAX_ROOTS:
 		return
-	var t := lerpf(ROOT_FROM_T, ROOT_TO_T, unit(seed, 11))
+	var t := lerpf(ROOT_FROM_T, ROOT_TO_T, unit(seed_value, 11))
 	var reach := BoreMeshScript.FLOOR_HALF_M[bore] * BoreMeshScript.width_share(t)
-	var length := lerpf(ROOT_MIN_M, ROOT_MAX_M, unit(seed, 12))
+	var length := lerpf(ROOT_MIN_M, ROOT_MAX_M, unit(seed_value, 12))
 	var inward := -out
-	var along := Vector3(-out.z, 0.0, out.x) * (unit(seed, 13) - 0.5)
-	var basis := Basis(inward, Vector3.UP, inward.cross(Vector3.UP)).rotated(Vector3.UP, (unit(seed, 14) - 0.5) * 0.8)
+	var along := Vector3(-out.z, 0.0, out.x) * (unit(seed_value, 13) - 0.5)
+	var facing := Basis(inward, Vector3.UP, inward.cross(Vector3.UP)).rotated(Vector3.UP, (unit(seed_value, 14) - 0.5) * 0.8)
 	var at := centre + out * (reach + 0.02) + Vector3.UP * (t * Rules.crown_m(bore)) + along * 0.2
-	node.multimesh.set_instance_transform(count, Transform3D(basis.scaled(Vector3.ONE * length), at))
-	node.multimesh.set_instance_color(count, ROOT_COLOUR * lerpf(0.85, 1.2, unit(seed, 15)))
+	node.multimesh.set_instance_transform(count, Transform3D(facing.scaled(Vector3.ONE * length), at))
+	node.multimesh.set_instance_color(count, ROOT_COLOUR * lerpf(0.85, 1.2, unit(seed_value, 15)))
 	node.multimesh.visible_instance_count = count + 1
 
 

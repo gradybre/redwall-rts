@@ -1024,11 +1024,11 @@ func _assert_shared_contracts() -> void:
 		"the farm plots and the jobs must be allocated from one entity directory")
 	assert(OWNER_CAPACITY == _directory.capacity_of_kind(EntityDirectory.KIND_FARM_PLOT),
 		"the owner class must match the directory's KIND_FARM_PLOT capacity")
-	assert(SERVICE_ROW_COUNT == OWNER_CAPACITY * OPERATION_COUNT,
+	@warning_ignore("assert_always_true") assert(SERVICE_ROW_COUNT == OWNER_CAPACITY * OPERATION_COUNT,
 		"the pending-service table is one row per (owner, operation) pair")
-	assert(TENDING_JOB_KIND == JobsScript.JOB_KIND_FARM,
+	@warning_ignore("assert_always_true") assert(TENDING_JOB_KIND == JobsScript.JOB_KIND_FARM,
 		"a tending service is a FARM job")
-	assert(FarmingScript.TEND_WORK_MILLI_WU == 1000,
+	@warning_ignore("assert_always_true") assert(FarmingScript.TEND_WORK_MILLI_WU == 1000,
 		"R06-JOB-007's tending service is one WU, which is 1000 milli-WU")
 	_assert_sowing_contracts()
 	_assert_forage_contracts()
@@ -1060,14 +1060,14 @@ func _assert_hive_contracts() -> void:
 		"the hives and the jobs must be allocated from one entity directory")
 	assert(HIVE_OWNER_CAPACITY == _directory.capacity_of_kind(EntityDirectory.KIND_HIVE),
 		"the hive owner class must match the directory's KIND_HIVE capacity")
-	assert(HIVE_SERVICE_WORK_MILLI_WU == 20000,
+	@warning_ignore("assert_always_true") assert(HIVE_SERVICE_WORK_MILLI_WU == 20000,
 		"R06-JOB-006's service is twenty WU, which is 20000 milli-WU")
-	assert(HIVE_SERVICE_JOB_KIND == JobsScript.JOB_KIND_KEEP, "a hive service is a KEEP job")
-	assert(OPERATION_HIVE_KEEP >= OPERATION_COUNT,
+	@warning_ignore("assert_always_true") assert(HIVE_SERVICE_JOB_KIND == JobsScript.JOB_KIND_KEEP, "a hive service is a KEEP job")
+	@warning_ignore("assert_always_true") assert(OPERATION_HIVE_KEEP >= OPERATION_COUNT,
 		"the hive operation has its own owner class and must not address the FarmPlot table")
 	assert(HIVE_BLOCKER_REFUSALS.size() == HIVE_BLOCKER_COUNT,
 		"every hive blocker must map to exactly one refusal code")
-	assert(SEASON_WINTER == OrchardHiveScript.SEASON_WINTER,
+	@warning_ignore("assert_always_true") assert(SEASON_WINTER == OrchardHiveScript.SEASON_WINTER,
 		"the excluded season is the owning store's own Season ordinal")
 
 
@@ -1079,13 +1079,13 @@ func _assert_forage_contracts() -> void:
 		"a forage claim is indexed by its owning Job's typed row, so both stores must be one")
 	assert(ZONE_OWNER_CAPACITY == _directory.capacity_of_kind(EntityDirectory.KIND_HARVEST_ZONE),
 		"the demand owner class must match the directory's KIND_HARVEST_ZONE capacity")
-	assert(DEMAND_ROW_COUNT == ZONE_OWNER_CAPACITY * PATCH_KIND_COUNT,
+	@warning_ignore("assert_always_true") assert(DEMAND_ROW_COUNT == ZONE_OWNER_CAPACITY * PATCH_KIND_COUNT,
 		"the demand table is one row per (designation, kind) pair")
 	assert(not is_daily_service_operation(OPERATION_FORAGE_HARVEST),
 		"repeat forage demand must not sit among the operations midnight reopens and settles")
-	assert(OPERATION_FORAGE_HARVEST >= OPERATION_COUNT,
+	@warning_ignore("assert_always_true") assert(OPERATION_FORAGE_HARVEST >= OPERATION_COUNT,
 		"the forage operation has its own owner class and must not address the FarmPlot table")
-	assert(FORAGE_JOB_KIND == JobsScript.JOB_KIND_FORAGE, "a harvest is a FORAGE job")
+	@warning_ignore("assert_always_true") assert(FORAGE_JOB_KIND == JobsScript.JOB_KIND_FORAGE, "a harvest is a FORAGE job")
 	assert(DEMAND_BLOCKER_REFUSALS.size() == BLOCKER_COUNT,
 		"every demand blocker must map to exactly one refusal code")
 
@@ -1094,14 +1094,14 @@ func _assert_sowing_contracts() -> void:
 	"""Prove R06-JOB-004's borrowed constants and that sowing is not a daily service operation."""
 	assert(not is_daily_service_operation(OPERATION_FARM_SOW),
 		"sowing must not sit among the operations midnight reopens and settles")
-	assert(OPERATION_FARM_SOW < OPERATION_COUNT,
+	@warning_ignore("assert_always_true") assert(OPERATION_FARM_SOW < OPERATION_COUNT,
 		"every implemented operation must have a row in the table")
-	assert(SOWING_JOB_KIND == JobsScript.JOB_KIND_FARM, "a sowing cycle is a FARM job")
-	assert(FarmingScript.SOW_WORK_MILLI_WU == 4000,
+	@warning_ignore("assert_always_true") assert(SOWING_JOB_KIND == JobsScript.JOB_KIND_FARM, "a sowing cycle is a FARM job")
+	@warning_ignore("assert_always_true") assert(FarmingScript.SOW_WORK_MILLI_WU == 4000,
 		"§5.6's sowing is four WU, which is 4000 milli-WU")
 	assert(REASON_REFUSALS.size() == REASON_COUNT,
 		"every gate reason must map to exactly one refusal code")
-	assert(NO_CROP == FarmingScript.CROP_NONE, "the empty crop id is farming.gd's own")
+	@warning_ignore("assert_always_true") assert(NO_CROP == FarmingScript.CROP_NONE, "the empty crop id is farming.gd's own")
 
 
 func _allocate_columns() -> void:
@@ -1547,7 +1547,7 @@ func mark_capacity_released() -> int:
 	for row: int in SERVICE_ROW_COUNT:
 		if _status[row] != STATUS_UNMET:
 			continue
-		var owner_slot: int = row / OPERATION_COUNT
+		@warning_ignore("integer_division") var owner_slot: int = row / OPERATION_COUNT
 		if _is_dirty[owner_slot] == 0:
 			marked += 1
 		mark_plot_dirty(owner_slot)
@@ -1572,7 +1572,7 @@ func _mark_unmet_zones_dirty() -> int:
 	for row: int in DEMAND_ROW_COUNT:
 		if _demand_status[row] != STATUS_UNMET:
 			continue
-		var zone_slot: int = row / PATCH_KIND_COUNT
+		@warning_ignore("integer_division") var zone_slot: int = row / PATCH_KIND_COUNT
 		if _is_zone_dirty[zone_slot] == 0:
 			marked += 1
 		mark_zone_dirty(zone_slot)
@@ -3104,7 +3104,7 @@ func _forage_quantity(zone_slot: int, kind: int, season: int, out: IntMath.IntRe
 	var zone_ref: Vector2i = _forage.zone_ref_of(zone_slot)
 	if not _forage.patch_row_for_zone_into(zone_ref, kind, out):
 		return BLOCKER_PATCH_NOT_PRESENT
-	var basin_slot: int = out.value / PATCH_KIND_COUNT
+	@warning_ignore("integer_division") var basin_slot: int = out.value / PATCH_KIND_COUNT
 	if not _forage.stock_available_milli_into(basin_slot, kind, INTENSIVE_HARVEST, out):
 		return BLOCKER_SOURCE_REFUSED
 	var stock_milli: int = out.value
@@ -4083,17 +4083,17 @@ func _assert_column_contracts() -> void:
 	Every assertion here reads MODULE CONSTANTS only: a malformed record is refused, never
 	asserted on. Both public entry points check the shared layout.
 	"""
-	assert(STATUS_COUNT == STATUS_REQUESTED + 1, "the status domain must end at its last member")
-	assert(REASON_COUNT == REASON_SOIL_INCOMPATIBLE + 1,
+	@warning_ignore("assert_always_true") assert(STATUS_COUNT == STATUS_REQUESTED + 1, "the status domain must end at its last member")
+	@warning_ignore("assert_always_true") assert(REASON_COUNT == REASON_SOIL_INCOMPATIBLE + 1,
 		"the gate reason domain must end at its last ordinal")
-	assert(BLOCKER_COUNT == BLOCKER_SOURCE_REFUSED + 1,
+	@warning_ignore("assert_always_true") assert(BLOCKER_COUNT == BLOCKER_SOURCE_REFUSED + 1,
 		"the demand blocker domain must end at its last ordinal")
-	assert(HIVE_BLOCKER_COUNT == HIVE_BLOCKER_ALREADY_SERVICED + 1,
+	@warning_ignore("assert_always_true") assert(HIVE_BLOCKER_COUNT == HIVE_BLOCKER_ALREADY_SERVICED + 1,
 		"the hive blocker domain must end at its last ordinal")
-	assert(JobIndexSchema.FIELD_COUNT == 35, "section 8 declares exactly 35 fields")
-	assert(JobIndexSchema.FIELD_DIRTY_HIVE_COUNT == JobIndexSchema.FIELD_COUNT - 1,
+	@warning_ignore("assert_always_true") assert(JobIndexSchema.FIELD_COUNT == 35, "section 8 declares exactly 35 fields")
+	@warning_ignore("assert_always_true") assert(JobIndexSchema.FIELD_DIRTY_HIVE_COUNT == JobIndexSchema.FIELD_COUNT - 1,
 		"the last declared ordinal must be the hive dirty count")
-	assert(COLUMN_DIAGNOSTIC_COUNT == 21,
+	@warning_ignore("assert_always_true") assert(COLUMN_DIAGNOSTIC_COUNT == 21,
 		"state_bytes must emit every diagnostic _reset_counters assigns")
 	assert(PackedInt32Array([JobIndexSchema.BYTE_ORDER_PROBE]).to_byte_array()
 		== PackedByteArray([4, 3, 2, 1]), "the diagnostic image is little-endian")
@@ -4283,7 +4283,7 @@ func _service_references_are_legal(record: JobIndexSchema.Record) -> bool:
 	var job_slot: PackedInt32Array = record.i32_column(JobIndexSchema.FIELD_JOB_SLOT)
 	var job_generation: PackedInt32Array = record.i32_column(JobIndexSchema.FIELD_JOB_GENERATION)
 	for row: int in SERVICE_ROW_COUNT:
-		if not _reference_is_legal(owner_slot[row], owner_generation[row],
+		@warning_ignore("integer_division") if not _reference_is_legal(owner_slot[row], owner_generation[row],
 				EntityDirectory.KIND_FARM_PLOT, row / OPERATION_COUNT):
 			return false
 		if not _reference_is_legal(job_slot[row], job_generation[row],

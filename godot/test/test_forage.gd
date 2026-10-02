@@ -1175,12 +1175,12 @@ func test_each_roll_injures_exactly_when_the_draw_is_below_the_chance() -> void:
 	"""Seed 20260905's FORAGE stream, replayed independently. Chance at danger 2, level 0 is 16."""
 	var rng: Rng = Rng.new()
 	rng.seed_world(TUTORIAL_SEED)
-	var reference: Rng = Rng.new()
-	reference.seed_world(TUTORIAL_SEED)
-	var basin: Vector2i = _make_basin(2, 1000000)
+	var reference_rng: Rng = Rng.new()
+	reference_rng.seed_world(TUTORIAL_SEED)
+	var _basin: Vector2i = _make_basin(2, 1000000)
 	var scratch: IntMath.IntResult = IntMath.IntResult.new()
 	for index: int in 40:
-		var expected_draw: int = reference.draw_below(Rng.STREAM_FORAGE, 10000).value
+		var expected_draw: int = reference_rng.draw_below(Rng.STREAM_FORAGE, 10000).value
 		assert_true(_forage.roll_injury_into(rng, 2, 0, scratch), "roll %d succeeds" % index)
 		assert_equal(scratch.value, 1 if expected_draw < 16 else 0,
 			"roll %d agrees with draw %d against chance 16" % [index, expected_draw])

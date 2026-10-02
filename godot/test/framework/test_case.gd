@@ -14,6 +14,26 @@ extends RefCounted
 ## is otherwise invisible, and what the runner does to catch one that lands
 ## partway down a method.
 
+## ENGINE DIAGNOSTICS (decision 0501). An `ERROR:` or `WARNING:` line in the suite's log is a finding unless the test
+## that printed it declared it. A negative test that provokes one on purpose calls `expect_diagnostic()` first; the
+## runner then prints each matching line as `EXPECTED ERROR: ...` and FAILS the test if no such line appears, so a
+## refusal that stops reporting itself is caught. A suite whose node fixtures can never be inside the scene tree (the
+## worker runs before the root is, docs/ENVIRONMENT.md) overrides `tolerates_outside_tree()`, and a test whose output
+## depends on what is staged on the machine calls `tolerate_diagnostic()`; such lines are printed as `TOLERATED ...`
+## and none is required. Anything else stays a plain `ERROR:`/`WARNING:` line,
+## which tools/run_tests.sh counts and fails on.
+const MARK_EXPECT: String = "##EXPECT## "
+const MARK_TOLERATE: String = "##TOLERATE## "
+## A tolerance may name the engine function its next line (`   at: <function> (<file>)`) must come from, after this
+## separator: `!is_inside_tree()` alone is the message of every unguarded tree check, and only these are the harness.
+const TOLERATE_SOURCE_SEPARATOR: String = "\t"
+## What the engine prints for a node used outside the tree: a 3D global transform read (a particle emitter restarting
+## does one too) and a camera ray. Each is an artefact of the harness, not of the code.
+const OUTSIDE_TREE_DIAGNOSTICS: Array[String] = [
+	"Condition \"!is_inside_tree()\" is true.\tat: get_global_transform (scene/3d/node_3d.cpp",
+	"Camera is not inside scene.\t(scene/3d/camera_3d.cpp",
+]
+
 var failures: PackedStringArray = PackedStringArray()
 var assertions: int = 0
 
@@ -26,6 +46,24 @@ func before_each() -> void:
 func after_each() -> void:
 	"""Hook run after every test method. Override in a suite as needed."""
 	return
+
+
+func tolerates_outside_tree() -> bool:
+	"""Whether this suite drives node fixtures outside the scene tree (see ENGINE DIAGNOSTICS). Override to say so."""
+	return false
+
+
+func expect_diagnostic(fragment: String) -> void:
+	"""Declare that the running test provokes, on purpose, an engine `ERROR:` or `WARNING:` line containing `fragment`.
+	The runner fails the test when no such line follows (see ENGINE DIAGNOSTICS). Call it before provoking the line."""
+	printerr(MARK_EXPECT + fragment)
+
+
+func tolerate_diagnostic(fragment: String) -> void:
+	"""Declare that the running test may print an engine line containing `fragment` depending on the machine, not the
+	code: a sound cue whose files are not staged warns in CI and not where the demo's assets are staged. The runner
+	prints a matching line as `TOLERATED ...`; none is required (see ENGINE DIAGNOSTICS)."""
+	printerr(MARK_TOLERATE + fragment)
 
 
 func fail(message: String) -> void:

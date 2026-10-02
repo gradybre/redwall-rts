@@ -244,7 +244,7 @@ class Record:
 
 	func owed_ticks() -> int:
 		"""Whole ticks the restored debt still owes, matching `sim_clock.gd::owed_ticks()`."""
-		return debt / SimClockScript.TICK_COST
+		@warning_ignore("integer_division") return debt / SimClockScript.TICK_COST
 
 	func subtick_debt() -> int:
 		"""The sub-tick remainder of the restored debt, which a restore must not round away."""

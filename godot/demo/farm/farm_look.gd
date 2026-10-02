@@ -215,7 +215,7 @@ static func status(stage: int, chosen: int, growth_permille: int, band: int, rip
 			return "withered — clear it"
 		SimScript.STAGE_BLIGHTED:
 			return "BLIGHT — clear it"
-	var line: String = "%d%%" % (growth_permille / 10)
+	@warning_ignore("integer_division") var line: String = "%d%%" % (growth_permille / 10)
 	if band == SimScript.BAND_DRY:
 		return line + " · too dry"
 	if band == SimScript.BAND_LOW:

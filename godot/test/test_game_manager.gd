@@ -234,7 +234,7 @@ func test_first_midnight_raises_one_day_boundary() -> void:
 	"""The first 00:00 crossing is tick 13500, and it is published exactly once."""
 	_game.start_game()
 	_game.set_speed(SimClockScript.SPEED_DOUBLE)
-	_run_frames(SimClockScript.FIRST_MIDNIGHT_TICK / 6, SIX_TICK_FRAME_USEC)
+	@warning_ignore("integer_division") _run_frames(SimClockScript.FIRST_MIDNIGHT_TICK / 6, SIX_TICK_FRAME_USEC)
 	assert_equal(_game.get_completed_tick(), SimClockScript.FIRST_MIDNIGHT_TICK, "reached tick 13500")
 	assert_equal(_days, [2] as Array[int], "one boundary, into absolute day 2")
 	assert_equal(_game.get_clock_text(), "00:00", "the boundary tick reads midnight")
@@ -335,7 +335,7 @@ func test_the_day_boundary_runs_the_simulation_before_the_ui_signal() -> void:
 	_game.bind_simulation(_on_sim_tick, _on_sim_day_boundary)
 	_game.start_game()
 	_game.set_speed(SimClockScript.SPEED_DOUBLE)
-	_run_frames(SimClockScript.FIRST_MIDNIGHT_TICK / 6, SIX_TICK_FRAME_USEC)
+	@warning_ignore("integer_division") _run_frames(SimClockScript.FIRST_MIDNIGHT_TICK / 6, SIX_TICK_FRAME_USEC)
 	assert_equal(_sim_days, [2] as Array[int], "the simulation saw absolute day 2")
 	assert_equal(_sim_seasons, [0] as Array[int], "and the new day's season, spring")
 	assert_equal(_order, ["simulation", "signal"] as Array[String], "simulation first, UI second")

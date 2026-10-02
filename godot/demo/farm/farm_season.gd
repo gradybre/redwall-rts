@@ -82,9 +82,9 @@ func build(sim: SimScript, record: RecordScript, kitchen: KitchenScript, p_absol
 	_clear()
 	absolute_season = p_absolute_season
 	season = absolute_season % SimClock.SEASONS_PER_YEAR
-	year = absolute_season / SimClock.SEASONS_PER_YEAR + 1
+	@warning_ignore("integer_division") year = absolute_season / SimClock.SEASONS_PER_YEAR + 1
 	var now: SimClock.Calendar = sim.calendar.now()
-	var current: int = (now.absolute_day - 1) / DAYS
+	@warning_ignore("integer_division") var current: int = (now.absolute_day - 1) / DAYS
 	today = now.season_day if current == absolute_season else 0
 	today_hour = now.hour if today > 0 else 0
 	_add_windows()
@@ -162,7 +162,7 @@ func _add_windows() -> void:
 	from this season's windows and the last season's that ripen into it."""
 	for k: int in LANE_CROPS.size():
 		var crop: int = LANE_CROPS[k]
-		var grow_days: int = (FarmingScript.CROP_GROWTH_HOURS[crop] + SimClock.HOURS_PER_DAY - 1) / SimClock.HOURS_PER_DAY
+		@warning_ignore("integer_division") var grow_days: int = (FarmingScript.CROP_GROWTH_HOURS[crop] + SimClock.HOURS_PER_DAY - 1) / SimClock.HOURS_PER_DAY
 		for w: int in FarmingScript.PLANT_WINDOWS_PER_CROP:
 			var index: int = crop * FarmingScript.PLANT_WINDOWS_PER_CROP + w
 			var window_season: int = FarmingScript.CROP_WINDOW_SEASON[index]
@@ -250,7 +250,7 @@ func _add_recorded(record: RecordScript, sim: SimScript) -> void:
 	if record != null:
 		for k: int in record.day_count():
 			var day: int = record.value(k, RecordScript.F_DAY)
-			if day / DAYS == absolute_season and record.value(k, RecordScript.F_WEATHER_SEEN) == 1:
+			@warning_ignore("integer_division") if day / DAYS == absolute_season and record.value(k, RecordScript.F_WEATHER_SEEN) == 1:
 				_add(LANE_WEATHER, RECORDED, day % DAYS + 1, day % DAYS + 1, "Weather", _day_weather(record.value(k,
 					RecordScript.F_TEMPERATURE), record.value(k, RecordScript.F_RAIN), record.value(k, RecordScript.F_EVENT)))
 	if today > 0:
@@ -285,7 +285,7 @@ func _add_beds(sim: SimScript) -> void:
 func _add_bed_tick(sim: SimScript, bed: int, tick: int, how: int, words: String, more: String) -> void:
 	"""A bed entry on the day of `tick`, when that day falls in this season, its hour in the detail."""
 	var at: SimClock.Calendar = sim.calendar.calendar_at(tick)
-	if (at.absolute_day - 1) / DAYS == absolute_season:
+	@warning_ignore("integer_division") if (at.absolute_day - 1) / DAYS == absolute_season:
 		var hour: String = ("≈ %02d:00, " if how == ESTIMATE else "%02d:00, ") % at.hour
 		_add(LANE_BEDS, how, at.season_day, at.season_day, words, hour + more, "Bed %d" % (bed + 1))
 
@@ -297,8 +297,8 @@ func _add_meals(kitchen: KitchenScript, sim: SimScript) -> void:
 		return
 	for key: int in kitchen.planned_keys():
 		var plan: PackedInt32Array = kitchen.plan_of(key)
-		var day: int = key / 2
-		if plan.is_empty() or day / DAYS != absolute_season:
+		@warning_ignore("integer_division") var day: int = key / 2
+		@warning_ignore("integer_division") if plan.is_empty() or day / DAYS != absolute_season:
 			continue
 		_add(LANE_MEALS, SCHEDULED, day % DAYS + 1, day % DAYS + 1, "%s planned" % MealRules.MEAL_TITLES[key % 2],
 			"%s, %d batches for %d portions; food reserved for %d of them" % [MealRules.DISH_SHORT[plan[0]], plan[1],
@@ -306,11 +306,11 @@ func _add_meals(kitchen: KitchenScript, sim: SimScript) -> void:
 	_add_runway(kitchen, sim)
 
 
-func _add_runway(kitchen: KitchenScript, sim: SimScript) -> void:
+func _add_runway(kitchen: KitchenScript, _sim: SimScript) -> void:
 	"""The HUD's Ready food from today: the days of meals the stores make, at the village's portions a day."""
 	if today == 0:
 		return
-	var days: int = kitchen.days_of_meals_milli() / 1000
+	@warning_ignore("integer_division") var days: int = kitchen.days_of_meals_milli() / 1000
 	_add(LANE_MEALS, ESTIMATE, today, today + days, "Food in store",
 		"%s at %d portions a day (the HUD's Ready food: portions held and the grain and roots in store)" % [
 		kitchen.days_text(), kitchen.daily_portions()])

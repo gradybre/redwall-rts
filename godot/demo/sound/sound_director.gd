@@ -189,7 +189,7 @@ func silence() -> int:
 	var stopped: int = voices.silence()
 	for k: int in LOOP_IDS.size():
 		_loop_level[k] = 0.0
-		var player: Node = _loop_placed if k == LOOP_STREAM else _loop_flat[k]
+		var player: Node = (_loop_placed as Node) if k == LOOP_STREAM else (_loop_flat[k] as Node)
 		if player == null:
 			continue
 		if bool(player.get(&"playing")):

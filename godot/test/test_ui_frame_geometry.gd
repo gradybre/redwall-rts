@@ -390,6 +390,9 @@ func test_a_panel_shrunk_below_the_minimum_hides_the_frame_rather_than_clamping_
 
 func test_apply_refuses_instead_of_building_something_wrong() -> void:
 	"""No half-built holder is ever left on a panel that was refused."""
+	expect_diagnostic("UI_FRAME_NULL_PANEL")
+	expect_diagnostic("UI_FRAME_PANEL_TOO_SMALL")
+	expect_diagnostic("UI_FRAME_UNKNOWN_FRAME")
 	var panel: Control = _panel(20.0, 20.0)
 	assert_false(Builder.apply(panel, Builder.FRAME_RESOURCE_TRAY),
 		"a panel too small is refused")

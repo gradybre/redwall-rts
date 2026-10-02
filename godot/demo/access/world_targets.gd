@@ -54,7 +54,7 @@ func _init() -> void:
 	_sources.resize(KIND_COUNT)
 
 
-func register(kind: int, capacity: Callable, exists: Callable, label: Callable, point: Callable, pick: Callable) -> void:
+func register(kind: int, capacity: Callable, exists: Callable, label: Callable, point: Callable, on_pick: Callable) -> void:
 	"""How to list, name, find and select targets of `kind` (see KINDS)."""
 	if kind < 0 or kind >= KIND_COUNT:
 		return
@@ -63,7 +63,7 @@ func register(kind: int, capacity: Callable, exists: Callable, label: Callable, 
 	source.exists = exists
 	source.label = label
 	source.point = point
-	source.pick = pick
+	source.pick = on_pick
 	_sources[kind] = source
 
 

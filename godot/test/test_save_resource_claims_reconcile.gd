@@ -94,16 +94,16 @@ func _seed() -> void:
 	_sync()
 
 func _fingerprint() -> String:
-	var hash: HashingContext = HashingContext.new()
-	hash.start(HashingContext.HASH_SHA256)
+	var hasher: HashingContext = HashingContext.new()
+	hasher.start(HashingContext.HASH_SHA256)
 	var objects: Array[Object] = [_directory,_fish,_forage,_components.fish,_components.forage,_components.jobs]
 	for object: Object in objects:
 		if object == null: continue
 		for prop: Dictionary in object.get_property_list():
 			if (int(prop.usage) & PROPERTY_USAGE_SCRIPT_VARIABLE) == 0: continue
 			var value: Variant = object.get(prop.name)
-			if not value is Object: hash.update(var_to_bytes(value))
-	return hash.finish().hex_encode()
+			if not value is Object: hasher.update(var_to_bytes(value))
+	return hasher.finish().hex_encode()
 
 func _validate() -> Check.Result:
 	var before: String = _fingerprint()

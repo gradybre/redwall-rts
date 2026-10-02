@@ -519,7 +519,7 @@ func test_daily_demand_agrees_with_the_needs_hunger_rate() -> void:
 		for size: int in 3:
 			var hourly: IntMath.IntResult = _residents.needs().hunger_rate_milli_per_hour(size)
 			assert_true(hourly.ok, "needs publishes an hourly rate for size %d" % size)
-			var per_day: int = hourly.value * HOURS_PER_DAY / MILLI_PER_POINT
+			@warning_ignore("integer_division") var per_day: int = hourly.value * HOURS_PER_DAY / MILLI_PER_POINT
 			var demand: int = _residents.daily_demand_for_cohort(
 				1 if size == 0 else 0, 1 if size == 1 else 0, 1 if size == 2 else 0).value
 			assert_equal(demand, per_day, "size %d demand equals 24h of hunger decay" % size)

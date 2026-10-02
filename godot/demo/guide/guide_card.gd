@@ -120,11 +120,11 @@ func _build_verbs(column: VBoxContainer) -> void:
 
 func _verb(row: HFlowContainer, words: String, tip: String, said: Signal) -> Button:
 	"""One wood button that emits `said`."""
-	var button: Button = FarmUi.button(words, BODY_PX)
-	button.tooltip_text = tip
-	button.pressed.connect(func() -> void: said.emit())
-	row.add_child(button)
-	return button
+	var made: Button = FarmUi.button(words, BODY_PX)
+	made.tooltip_text = tip
+	made.pressed.connect(func() -> void: said.emit())
+	row.add_child(made)
+	return made
 
 
 func hide_while(query: Callable) -> void:
@@ -171,10 +171,10 @@ func show_complete() -> void:
 	_show_verbs(false, false, true)
 
 
-func _put(line: Label, text: String, colour: Color) -> void:
+func _put(line: Label, words: String, colour: Color) -> void:
 	"""A line's text and colour; an empty line takes no room. New words place the card again (its density may change)."""
-	if line.text != text:
-		line.text = text
+	if line.text != words:
+		line.text = words
 		if not _replace_queued:
 			_replace_queued = true
 			_place.call_deferred()

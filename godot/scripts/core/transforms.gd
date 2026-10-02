@@ -54,7 +54,7 @@ const TRANSFORM_CAPACITY: int = 87552
 
 ## ARCH-AUTH-002: "yaw is 65536 units/turn". The scale only; see the header on zero and handedness.
 const YAW_UNITS_PER_TURN: int = 65536
-const YAW_HALF_TURN: int = YAW_UNITS_PER_TURN / 2
+@warning_ignore("integer_division") const YAW_HALF_TURN: int = YAW_UNITS_PER_TURN / 2
 
 ## `base(kind)` for every directory kind, or NOT_POSITIONED. Ascending kind order, so the bases are
 ## the running sum of the four positioned capacities in `entity_directory.gd`'s KIND_CAPACITY.

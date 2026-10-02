@@ -331,7 +331,7 @@ func _assert_shared_contracts() -> void:
 		"every storage class must carry exactly one GDD §5.8 store factor")
 	assert(TEMPERATURE_FACTOR.size() == SimClock.SEASONS_PER_YEAR,
 		"every season must carry exactly one GDD §5.8 temperature factor")
-	assert(SimClock.SEASON_NAMES[SEASON_WINTER] == "winter",
+	@warning_ignore("assert_always_true") assert(SimClock.SEASON_NAMES[SEASON_WINTER] == "winter",
 		"the heated-interior exception must index the season the GDD calls winter")
 	assert(is_hour_boundary(SimClock.FIRST_MIDNIGHT_TICK),
 		"every midnight is also an hour crossing, which is what makes 'midnight first' one pass")
@@ -861,7 +861,7 @@ static func equal_mass_quantity_into(quantity_milli: int, source_mass_g: int,
 	var total_milli_g: int = out.value
 	if total_milli_g % target_mass_g != 0:
 		return out.refuse(String(REFUSE_MASS_NOT_CONVERTIBLE))
-	return out.succeed(total_milli_g / target_mass_g)
+	@warning_ignore("integer_division") return out.succeed(total_milli_g / target_mass_g)
 
 
 func _begin_lot_transaction() -> bool:

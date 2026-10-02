@@ -38,7 +38,6 @@ var _checks: int = 0
 var _failures: int = 0
 var _size: Vector2i = Vector2i(1280, 720)
 var _capture_dir: String = ""
-var _pressed_count: int = 0
 var _order_before: int = 0
 var _ids: Dictionary = {}
 var _pending_capture: String = ""
@@ -242,7 +241,7 @@ func _pantry_opens_as_a_modal() -> void:
 
 func _pantry_blocks_the_world() -> void:
 	"""An outside right-click, a drag, B, V and Space change nothing behind the Pantry."""
-	var paused: bool = bool(_manager().call(&"is_paused"))
+	var was_paused: bool = bool(_manager().call(&"is_paused"))
 	_click(_world_point(), MOUSE_BUTTON_RIGHT)
 	_check("outside right-click issues no order", int(_brain(0).get("order")) == _order_before,
 		"order %d" % int(_brain(0).get("order")))
@@ -254,7 +253,7 @@ func _pantry_blocks_the_world() -> void:
 	_key(KEY_SPACE)
 	_check("B does not open the Dig tool", not bool(_command().call(&"tunnels").get("planning")))
 	_check("V does not step the map layer", int(_village.get("_farm").get("lenses").get("active")) == overlay)
-	_check("Space does not toggle the pause", bool(_manager().call(&"is_paused")) == paused)
+	_check("Space does not toggle the pause", bool(_manager().call(&"is_paused")) == was_paused)
 	var camera: Node = _village.get("_camera")
 	var distance: float = float(camera.get("_target_distance"))
 	_key(KEY_PAGEUP)
@@ -458,7 +457,7 @@ func _loop_plays_and_stops(sound: Node, wav: AudioStreamWAV) -> void:
 	taps.set(&"rain_permille", level)
 
 
-func _a_late_button_clicks(sound: Node, table: RefCounted, voices: Node) -> void:
+func _a_late_button_clicks(_sound: Node, table: RefCounted, voices: Node) -> void:
 	"""A button added to the running scene now is hooked as it joins the tree, and clicks."""
 	var click: int = int(table.call(&"row", &"ui_click"))
 	var before: int = _offered(voices, click)
@@ -571,16 +570,16 @@ func _enter_and_space_route_by_focus() -> void:
 	_check("Tab reaches the Tunnels tab", _focus() == zone.tab(ZoneScript.PANEL_TUNNELS))
 	_key(KEY_ENTER)
 	_check("Enter presses it", zone.shown == ZoneScript.PANEL_TUNNELS)
-	var paused: bool = bool(_manager().call(&"is_paused"))
+	var was_paused: bool = bool(_manager().call(&"is_paused"))
 	_key(KEY_TAB)
 	_key(KEY_SPACE)
 	_check("Space presses the focused Woods tab", zone.shown == ZoneScript.PANEL_WOODS)
-	_check("and does not pause", bool(_manager().call(&"is_paused")) == paused)
+	_check("and does not pause", bool(_manager().call(&"is_paused")) == was_paused)
 	_key(KEY_ESCAPE)
 	_click(_centre(zone.tab(ZoneScript.PANEL_WATER)))
 	_check("a click opens Water", zone.shown == ZoneScript.PANEL_WATER, "%s at %s hovered %s" % [zone.shown, _centre(zone.tab(ZoneScript.PANEL_WATER)), root.gui_get_hovered_control()])
 	_key(KEY_SPACE)
-	_check("Space after a click pauses the world", bool(_manager().call(&"is_paused")) != paused)
+	_check("Space after a click pauses the world", bool(_manager().call(&"is_paused")) != was_paused)
 	_check("and drops the click's focus", _focus() == null)
 	_key(KEY_SPACE)
 

@@ -13,7 +13,7 @@ func _empty() -> Array:
 	"""Canonical null refs differ from a constructor's raw allzero wire image."""
 	var c: Array = []
 	for field: int in 9:
-		var values: Variant = PackedByteArray() if field == 8 else PackedInt32Array()
+		var values: Variant = (PackedByteArray() as Variant) if field == 8 else (PackedInt32Array() as Variant)
 		values.resize(6144 if field == 1 else 512)
 		if field == 4 or field == 6: values.fill(-1)
 		c.append(values)
@@ -59,7 +59,7 @@ func _expect(c: Array, code: StringName) -> void:
 		assert_true(result.detail.contains(String(code)),"raw code")
 	for field: int in 9:
 		assert_true(c[field] == before[field],"caller preserved")
-		var held: Variant = frame.u8_column(field) if field == 8 else frame.i32_column(field)
+		var held: Variant = (frame.u8_column(field) as Variant) if field == 8 else (frame.i32_column(field) as Variant)
 		assert_true(held == before[field],"frame preserved")
 
 func _dispose_fixture(f: Fixture) -> void:

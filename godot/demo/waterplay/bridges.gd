@@ -339,13 +339,13 @@ func percent(row: int) -> int:
 	for stage: int in Rules.STAGE_COUNT:
 		done += stage_done_wu[row * Rules.STAGE_COUNT + stage]
 		total += stage_total_wu[row * Rules.STAGE_COUNT + stage]
-	return 100 if total == 0 else done * 100 / total
+	@warning_ignore("integer_division") return 100 if total == 0 else done * 100 / total
 
 
 func stage_permille(row: int, stage: int) -> int:
 	"""How far one stage of bridge `row` is done, per mille (1000 for a stage with no work)."""
 	var total: int = stage_total_wu[row * Rules.STAGE_COUNT + stage]
-	return Rules.PERMILLE if total == 0 else stage_done_wu[row * Rules.STAGE_COUNT + stage] * Rules.PERMILLE / total
+	@warning_ignore("integer_division") return Rules.PERMILLE if total == 0 else stage_done_wu[row * Rules.STAGE_COUNT + stage] * Rules.PERMILLE / total
 
 
 # --- the deck ------------------------------------------------------------------------------------

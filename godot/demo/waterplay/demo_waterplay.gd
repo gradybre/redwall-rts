@@ -203,39 +203,39 @@ static func land_obstacles() -> Array[Vector3]:
 	return out
 
 
-static func make_links(map: WaterMapScript, obstacles: Array[Vector3]) -> LinksScript:
-	"""The band, swim links and connections for `map` among the walkers' land `obstacles`."""
+static func make_links(water_map: WaterMapScript, obstacles: Array[Vector3]) -> LinksScript:
+	"""The band, swim links and connections for `water_map` among the walkers' land `obstacles`."""
 	var out := LinksScript.new()
-	out.build(map, obstacles)
+	out.build(water_map, obstacles)
 	return out
 
 
-func configure(cast: DemoCastScript, command: DemoCommandScript, camera: Camera3D, shared: ServicesScript,
-		map: WaterMapScript, water_links: LinksScript, water: DemoWaterScript = null, stand: StandScript = null) -> void:
+func configure(village_cast: DemoCastScript, command: DemoCommandScript, camera: Camera3D, shared: ServicesScript,
+		water_map: WaterMapScript, water_links: LinksScript, water: DemoWaterScript = null, stand: StandScript = null) -> void:
 	"""Wire the water's gameplay into this village: its cast (already built on `water_links`' band over
-	`map`), command layer and camera (none: no player input), shared services (none: a fresh set), the
+	`water_map`), command layer and camera (none: no player input), shared services (none: a fresh set), the
 	water node (its flood and overlay; none: neither) and the woods' trees (a log bridge's trunk; none:
 	logs come from the log stack)."""
 	name = "DemoWaterplay"
 	services = shared if shared != null else ServicesScript.new()
-	_cast = cast
+	_cast = village_cast
 	_command = command
 	_camera = camera
-	_map = map
+	_map = water_map
 	_water = water
 	_stand = stand
 	links = water_links
 	finds.resize(FIND_NAMES.size())
 	_set_up_state()
 	water_range.configure(state, _name_of)
-	motion.configure(map, state)
-	bridges.configure(map, _bridge_obstacles(), links.area)
-	crossings.configure(cast, map, links, bridges, state, motion)
-	cast.space().crossings = crossings
+	motion.configure(water_map, state)
+	bridges.configure(water_map, _bridge_obstacles(), links.area)
+	crossings.configure(village_cast, water_map, links, bridges, state, motion)
+	village_cast.space().crossings = crossings
 	crossings.on_refused = _on_bank_refusal
-	rescue.configure(cast, crossings, _say)
-	crew.configure(cast, bridges, services.weather, services.props, _say.bind(false))
-	text.configure(cast, state, motion, bridges, crew, rescue, services, map)
+	rescue.configure(village_cast, crossings, _say)
+	crew.configure(village_cast, bridges, services.weather, services.props, _say.bind(false))
+	text.configure(village_cast, state, motion, bridges, crew, rescue, services, water_map)
 	_build_views()
 	_hook_command()
 
@@ -754,19 +754,19 @@ func site_name() -> String:
 	for a span of two banks the landing nearest it (SITE_NAMES), numbered when that name is taken."""
 	if not site_custom:
 		return "neck bridge" if site_candidate == 0 else "upper bridge %d" % site_candidate
-	var map: WaterMapScript = _map
+	var water_map: WaterMapScript = _map
 	var mid: Vector2 = (custom_a + custom_b) * 0.5
 	var best: int = 0
-	for k: int in map.landing_count():
-		if _m(map.landing_water(k)).distance_to(mid) < _m(map.landing_water(best)).distance_to(mid):
+	for k: int in water_map.landing_count():
+		if _m(water_map.landing_water(k)).distance_to(mid) < _m(water_map.landing_water(best)).distance_to(mid):
 			best = k
-	var base: String = String(SITE_NAMES.get(map.landing_name(best), "stream bridge"))
-	var name: String = base
+	var base: String = String(SITE_NAMES.get(water_map.landing_name(best), "stream bridge"))
+	var bridge_name: String = base
 	var n: int = 1
-	while bridges.names.has(name):
+	while bridges.names.has(bridge_name):
 		n += 1
-		name = "%s %d" % [base, n]
-	return name
+		bridge_name = "%s %d" % [base, n]
+	return bridge_name
 
 
 static func _m(at_u: Vector2i) -> Vector2:
@@ -966,10 +966,10 @@ func on_action(action_name: StringName) -> void:
 
 func pond_dive_spot() -> Vector2:
 	"""The pond's deepest point: its first circle's centre."""
-	var map: WaterMapScript = _map
-	for body: int in map.body_count():
-		if map.body_kind(body) == WaterMapScript.KIND_POND:
-			var seg: PackedInt32Array = map.segment(map.body_segment_range(body).x)
+	var water_map: WaterMapScript = _map
+	for body: int in water_map.body_count():
+		if water_map.body_kind(body) == WaterMapScript.KIND_POND:
+			var seg: PackedInt32Array = water_map.segment(water_map.body_segment_range(body).x)
 			return Vector2(WaterRules.to_m(seg[0]), WaterRules.to_m(seg[1]))
 	return Vector2.ZERO
 
@@ -984,9 +984,9 @@ func refresh_panel() -> void:
 	panel.set_swim_buttons(consent_shown(members if not members.is_empty() else PackedInt32Array(range(state.count))),
 		{PanelScript.ACTION_DIVE: dive.is_ok(), PanelScript.ACTION_CRAMP: text.any_in_water(members)})
 	var plank: BridgesScript.Survey = survey_site(Rules.KIND_PLANK)
-	var log: BridgesScript.Survey = survey_site(Rules.KIND_LOG)
+	var log_survey: BridgesScript.Survey = survey_site(Rules.KIND_LOG)
 	var about: String = text.standing_text(_found.value) if bridge_on_site_into(_found) \
-		else TextScript.site_text(plank, log, ready_trunk_into(log.shore_a, _found))
+		else TextScript.site_text(plank, log_survey, ready_trunk_into(log_survey.shore_a, _found))
 	var allowed: Dictionary = {}
 	for kind: int in BUILD_ACTIONS.size():
 		var card: CardScript = build_card(kind, members)

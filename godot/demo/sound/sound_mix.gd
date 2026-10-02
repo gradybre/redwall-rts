@@ -147,14 +147,14 @@ func ensure_buses() -> void:
 	_ensure_bus(WORK_UNDER, BUS_NAMES[BUS_WORK], true)
 
 
-static func _ensure_bus(bus_name: StringName, send: StringName, filtered: bool) -> void:
-	"""One bus sending to `send`; a filtered one carries a low-pass (made off) as its first effect."""
+static func _ensure_bus(bus_name: StringName, send: StringName, with_filter: bool) -> void:
+	"""One bus sending to `send`; a filtered one (`with_filter`) carries a low-pass (made off) as its first effect."""
 	if bus_index(bus_name) < 0:
 		AudioServer.add_bus()
 		AudioServer.set_bus_name(AudioServer.bus_count - 1, bus_name)
 	var index: int = bus_index(bus_name)
 	AudioServer.set_bus_send(index, send)
-	if filtered and AudioServer.get_bus_effect_count(index) == 0:
+	if with_filter and AudioServer.get_bus_effect_count(index) == 0:
 		var low_pass := AudioEffectLowPassFilter.new()
 		low_pass.cutoff_hz = LOW_PASS_HZ
 		AudioServer.add_bus_effect(index, low_pass, 0)

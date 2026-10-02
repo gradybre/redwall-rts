@@ -163,11 +163,11 @@ func refresh() -> bool:
 	"""Draw the front offer (the reflection first), or hide; returns whether the card shows."""
 	if _people == null or _frame == null:
 		return false
-	var mode: int = MODE_NONE
+	var wanted: int = MODE_NONE
 	if not _yielding():
-		mode = MODE_REFLECTION if _people.has_reflection() else (MODE_SPOTLIGHT if _people.has_offer() else MODE_NONE)
-	if mode != _mode or _people.revision != _drawn_revision:
-		_mode = mode
+		wanted = MODE_REFLECTION if _people.has_reflection() else (MODE_SPOTLIGHT if _people.has_offer() else MODE_NONE)
+	if wanted != _mode or _people.revision != _drawn_revision:
+		_mode = wanted
 		_drawn_revision = _people.revision
 		_draw()
 	return _frame.visible

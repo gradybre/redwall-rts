@@ -1306,7 +1306,7 @@ func _percent_text(row: int, code: int) -> String:
 	"""The " — 40%" after a timed step's words, while it is being worked."""
 	if code < JobsScript.STEP_WORK or jobs.issued[row] == 0 or jobs.work_usec[row] <= 0:
 		return ""
-	return " — %d%%" % mini(100, int(jobs.elapsed_usec[row] * 100 / jobs.work_usec[row]))
+	@warning_ignore("integer_division") return " — %d%%" % mini(100, int(jobs.elapsed_usec[row] * 100 / jobs.work_usec[row]))
 
 
 func _where(t: int) -> String:

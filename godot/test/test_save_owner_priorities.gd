@@ -88,9 +88,9 @@ func test_field_identity_and_all_zero_empty_frame() -> void:
 func test_independent_projection_witnesses_and_asymmetric_flags() -> void:
 	"""Exact codes kill each zero-substitution and the two swapped policy arguments."""
 	for field: int in 4:
-		var image: Array[PackedByteArray] = _base()
-		_put(image,field,0,5 if field == 1 else 2)
-		_expect(image,CODES[field])
+		var field_image: Array[PackedByteArray] = _base()
+		_put(field_image,field,0,5 if field == 1 else 2)
+		_expect(field_image,CODES[field])
 	_expect(_base(),&"")
 	var image: Array[PackedByteArray] = _base()
 	_put(image,2,0,2)

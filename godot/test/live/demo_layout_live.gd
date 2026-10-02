@@ -491,7 +491,7 @@ func _scale_checks() -> void:
 	for key: String in frames:
 		var frame: Control = frames[key]
 		if frame == null or not is_equal_approx(frame.scale.x, s):
-			off.append("%s %s" % [key, frame.scale.x if frame != null else "none"])
+			off.append("%s %s" % [key, (frame.scale.x as Variant) if frame != null else ("none" as Variant)])
 	var indicator: float = float(_command().call(&"tunnels").get("view").call(&"indicator_scale"))
 	if not is_equal_approx(indicator, s):
 		off.append("level indicator %s" % indicator)
@@ -546,7 +546,7 @@ func _apart(frames: Dictionary) -> void:
 	_guide_apart(frames, party, strip, right, picker)
 
 
-func _guide_apart(frames: Dictionary, party: Rect2, strip: Rect2, right: Rect2, picker: Rect2) -> void:
+func _guide_apart(frames: Dictionary, _party_rect: Rect2, _strip_rect: Rect2, _right_rect: Rect2, _picker_rect: Rect2) -> void:
 	"""With a critical incident's card up, the guide's objective card (decision 0481) yields to it: one card at the top
 	centre."""
 	_check("the guide card yields to the incident card", not (frames["guide card"] as Control).is_visible_in_tree())

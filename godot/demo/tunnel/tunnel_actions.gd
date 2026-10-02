@@ -213,7 +213,7 @@ func preview_into(card: CardScript, job: int, selection: PackedInt32Array) -> vo
 		return
 	var jobs := _works.jobs
 	var done := jobs.done_ticks(selected) if jobs.has_job(selected) and jobs.kind[selected] == job else 0
-	card.work_usec = maxi(jobs.ticks_for(selected, job) - done, 0) * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND
+	@warning_ignore("integer_division") card.work_usec = maxi(jobs.ticks_for(selected, job) - done, 0) * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND
 	if _mole_job(job):
 		card.work_note = MOLE_NOTE
 	_preview_who(card, job, selection)

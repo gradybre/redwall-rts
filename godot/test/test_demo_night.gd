@@ -240,7 +240,7 @@ func test_the_night_allocates_the_home_s_beds_by_place() -> void:
 	v.night.step()
 	var got := PackedInt32Array()
 	for i in 3:
-		assert_true(v.night.bed_of[i] / FixturesScript.PLACES == v.home, "resident %d has a bed in the home" % i)
+		@warning_ignore("integer_division") assert_true(v.night.bed_of[i] / FixturesScript.PLACES == v.home, "resident %d has a bed in the home" % i)
 		assert_false(got.has(v.night.bed_of[i]), "not shared")
 		got.append(v.night.bed_of[i])
 	assert_equal(v.night.home_text(0, true), "Bed: Burrow home %d · comfort 4000 (plain)" % (v.home + 1), "the panel's line")

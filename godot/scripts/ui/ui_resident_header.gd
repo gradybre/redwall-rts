@@ -139,16 +139,16 @@ static func close_rect(profile: int, panel_width: float) -> Rect2:
 	return Rect2(panel_width - INSET - CLOSE_SIZE, INSET, CLOSE_SIZE, CLOSE_SIZE)
 
 
-static func identity_height(profile: int, text_block_height: float) -> float:
+static func identity_height(profile: int, block_height: float) -> float:
 	"""The ruling's measurement: the MAXIMUM of medallion, whole text block and Close.
 
-	`text_block_height` is the complete name-plus-secondary block the shell measured, including
+	`block_height` is the complete name-plus-secondary block the shell measured, including
 	`TEXT_LINE_GAP`. Taking the maximum is what lets a three-line name grow the header rather
 	than run under the medallion or behind Close.
 	"""
 	if not is_profile(profile):
 		return 0.0
-	return maxf(maxf(float(MEDALLION_PIXELS[profile]), text_block_height), CLOSE_SIZE)
+	return maxf(maxf(float(MEDALLION_PIXELS[profile]), block_height), CLOSE_SIZE)
 
 
 static func text_block_height(heading_height: float, secondary_height: float) -> float:

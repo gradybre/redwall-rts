@@ -569,7 +569,7 @@ func test_party_members_are_checked_individually_not_against_a_crew_average() ->
 	var job: int = _make_job(JobsScript.JOB_KIND_FISH, 0, 6)
 	_grant_skill(expert, JobsScript.JOB_KIND_FISH, 10)
 	_grant_skill(novice, JobsScript.JOB_KIND_FISH, 2)
-	assert_equal((10 + 2) / 2, _jobs.required_skill_of(job).value,
+	@warning_ignore("integer_division") assert_equal((10 + 2) / 2, _jobs.required_skill_of(job).value,
 		"the crew average is exactly the required minimum")
 	assert_true(_jobs.skill_requirement_is_met(expert, job), "the expert passes on their own level")
 	assert_false(_jobs.skill_requirement_is_met(novice, job), "the novice fails on theirs")
@@ -878,7 +878,7 @@ func _assert_job_priority_outranks_skill_level() -> void:
 	"""With player priority tied, Job.priority decides before the resident's skill does."""
 	var worker: int = _spawn_worker()
 	var haul: int = _make_job(JobsScript.JOB_KIND_HAUL, 0)
-	var farm: int = _make_job(JobsScript.JOB_KIND_FARM, 9)
+	var _farm: int = _make_job(JobsScript.JOB_KIND_FARM, 9)
 	assert_true(_priorities.set_priority(worker, JobsScript.JOB_KIND_FARM, 2).ok, "priorities tie")
 	_grant_skill(worker, JobsScript.JOB_KIND_FARM, 6)
 	assert_equal(_select(worker).value, haul,
@@ -1736,16 +1736,16 @@ func test_the_into_tool_gate_read_allocates_nothing_across_a_tick_of_calls() -> 
 	var job: int = _make_job(JobsScript.JOB_KIND_CRAFT)
 	assert_true(_jobs.set_tool_gate(job, JobsScript.GATE_SATISFIED).ok, "the tool is in hand")
 	var held: Array[IntMath.IntResult] = []
-	var before_of: int = Performance.get_monitor(Performance.OBJECT_COUNT)
+	var before_of: int = int(Performance.get_monitor(Performance.OBJECT_COUNT))
 	for _index: int in 200:
 		held.append(_jobs.tool_gate_of(job))
-	var after_of: int = Performance.get_monitor(Performance.OBJECT_COUNT)
+	var after_of: int = int(Performance.get_monitor(Performance.OBJECT_COUNT))
 	assert_equal(after_of - before_of, 200, "200 allocating reads allocate 200 objects")
 	var out: IntMath.IntResult = IntMath.IntResult.new()
-	var before_into: int = Performance.get_monitor(Performance.OBJECT_COUNT)
+	var before_into: int = int(Performance.get_monitor(Performance.OBJECT_COUNT))
 	for _index: int in 200:
 		_jobs.tool_gate_into(job, out)
-	var after_into: int = Performance.get_monitor(Performance.OBJECT_COUNT)
+	var after_into: int = int(Performance.get_monitor(Performance.OBJECT_COUNT))
 	assert_equal(after_into - before_into, 0, "200 _into reads allocate nothing")
 	assert_equal(out.value, JobsScript.GATE_SATISFIED, "and the caller's own result was written")
 

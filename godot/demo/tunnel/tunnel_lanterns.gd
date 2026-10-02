@@ -91,17 +91,17 @@ func configure(clock: DemoClockScript = null) -> void:
 	name = "Lanterns"
 	_clock = clock
 	for k in MAX_LIGHTS:
-		var light := OmniLight3D.new()
-		light.light_color = COLOUR
-		light.light_energy = ENERGY
-		light.omni_range = RANGE_M
-		light.omni_attenuation = ATTENUATION
-		light.shadow_enabled = false
-		light.layers = Layers.UNDERGROUND
-		light.light_cull_mask = Layers.UNDERGROUND
-		light.visible = false
-		add_child(light)
-		_lights.append(light)
+		var lamp := OmniLight3D.new()
+		lamp.light_color = COLOUR
+		lamp.light_energy = ENERGY
+		lamp.omni_range = RANGE_M
+		lamp.omni_attenuation = ATTENUATION
+		lamp.shadow_enabled = false
+		lamp.layers = Layers.UNDERGROUND
+		lamp.light_cull_mask = Layers.UNDERGROUND
+		lamp.visible = false
+		add_child(lamp)
+		_lights.append(lamp)
 	for row in ALL_ROWS:
 		_spots.append(PackedVector3Array())
 		_born.append(PackedFloat32Array())

@@ -338,7 +338,7 @@ func build_ground() -> int:
 	var on_path: int = 0
 	for cell: int in _dirt.size():
 		var x: float = (float(cell % GROUND_SIDE) + 0.5) * GROUND_CELL_M - GROUND_HALF_M
-		var z: float = (float(cell / GROUND_SIDE) + 0.5) * GROUND_CELL_M - GROUND_HALF_M
+		@warning_ignore("integer_division") var z: float = (float(cell / GROUND_SIDE) + 0.5) * GROUND_CELL_M - GROUND_HALF_M
 		_dirt[cell] = 1 if WorldLayout.path_distance(Vector2(x, z)) < 0.0 else 0
 		on_path += _dirt[cell]
 	return on_path
@@ -375,9 +375,9 @@ func _beats_of(row: int) -> int:
 		return 0
 	match jobs.current_step(row) - JobsScript.STEP_WORK:
 		JobsScript.WORK_FELL, JobsScript.WORK_GRUB:
-			return jobs.elapsed_usec[row] / STRIKE_USEC
+			@warning_ignore("integer_division") return jobs.elapsed_usec[row] / STRIKE_USEC
 		JobsScript.WORK_SAW:
-			return jobs.elapsed_usec[row] / STROKE_USEC
+			@warning_ignore("integer_division") return jobs.elapsed_usec[row] / STROKE_USEC
 	return 0
 
 

@@ -165,7 +165,7 @@ func _init() -> void:
 	for i: int in range(1, STREAM_COUNT):
 		assert(STREAM_KEYS[i - 1] < STREAM_KEYS[i],
 			"ARCH-RNG-002 compiles the stream keys in ascending ASCII order")
-	assert(STREAM_KEYS[STREAM_HUNTING] == "HUNTING",
+	@warning_ignore("assert_always_true") assert(STREAM_KEYS[STREAM_HUNTING] == "HUNTING",
 		"the retired SET-AMEND-001 §3 slot must keep its original key and position")
 	_allocate_columns()
 	clear()

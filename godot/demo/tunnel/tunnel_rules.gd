@@ -61,7 +61,7 @@ const SPOIL_PER_QUANTUM_MILLI_U: int = 2000
 # --- demo -----------------------------------------------------------------------------------
 const BORE_WIDTH_U: int = 1024
 const BORE_HEIGHT_U: int = 1024
-const CROSS_SECTION_QUANTA: int = (BORE_WIDTH_U / QUANTUM_U) * (BORE_HEIGHT_U / QUANTUM_U)
+@warning_ignore("integer_division") const CROSS_SECTION_QUANTA: int = (BORE_WIDTH_U / QUANTUM_U) * (BORE_HEIGHT_U / QUANTUM_U)
 const SHAFT_QUANTA: int = 1
 const STOOP_PERMILLE: int = 850
 ## WIDE BORE (demo, the WIDEN upgrade): two quanta wide and three high -- the smallest lattice bore
@@ -85,7 +85,7 @@ const WIDE_EXTRA_QUANTA: int = WIDE_QUANTA - CROSS_SECTION_QUANTA
 ## across with its load -- through none.
 const LOAD_WIDTH_PERMILLE: int = 850
 ## A mouth must not cut into an obstacle: its centre stays half a bore clear of every circle.
-const MOUTH_CLEAR_U: int = BORE_WIDTH_U / 2
+@warning_ignore("integer_division") const MOUTH_CLEAR_U: int = BORE_WIDTH_U / 2
 ## Two consecutive points closer than this would make a leg with no direction.
 const MIN_POINT_GAP_U: int = 256
 const MIN_LENGTH_U: int = 2 * QUANTUM_U
@@ -103,7 +103,7 @@ const RAMP_GRADE_RISE: int = 2
 const RAMP_GRADE_RUN: int = 5
 const RAMP_FILLET_U: int = 896
 ## A ramp's whole run: the depth at the steepest grade, plus the easing (4096u, 4 m).
-const RAMP_RUN_U: int = BORE_FLOOR_DEPTH_U * RAMP_GRADE_RUN / RAMP_GRADE_RISE + RAMP_FILLET_U
+@warning_ignore("integer_division") const RAMP_RUN_U: int = BORE_FLOOR_DEPTH_U * RAMP_GRADE_RUN / RAMP_GRADE_RISE + RAMP_FILLET_U
 ## THE DRAWN BORE AND THE STOOP (see the header), per bore class.
 const BORE_CROWNS_U: Array[int] = [1024, 1126, 2816]
 ## HEADROOM (decision 0209): a room's drawn crown over its floor -- the badger (2.55 m) plus STOOP_CLEAR_U,
@@ -194,7 +194,7 @@ static func isqrt(n: int) -> int:
 
 static func ceil_div(a: int, b: int) -> int:
 	"""ceil(a / b) for a >= 0, b > 0."""
-	return (a + b - 1) / b
+	@warning_ignore("integer_division") return (a + b - 1) / b
 
 
 static func isqrt_ceil(n: int) -> int:
@@ -241,7 +241,7 @@ static func total_ticks(quanta: int) -> int:
 
 static func done_ticks(dig_usec: int, quanta: int) -> int:
 	"""Whole fixed ticks of digging in `dig_usec` microseconds of work, capped at the total."""
-	return mini(total_ticks(quanta), dig_usec * TICKS_PER_SECOND / USEC_PER_SECOND)
+	@warning_ignore("integer_division") return mini(total_ticks(quanta), dig_usec * TICKS_PER_SECOND / USEC_PER_SECOND)
 
 
 static func stage_of(done: int, quanta: int) -> int:
@@ -257,14 +257,14 @@ static func stage_of(done: int, quanta: int) -> int:
 
 static func percent(done: int, quanta: int) -> int:
 	"""Whole percent of the tunnel dug (floored, so 100 only when it is open)."""
-	return done * 100 / total_ticks(quanta)
+	@warning_ignore("integer_division") return done * 100 / total_ticks(quanta)
 
 
 static func cut_quanta(done: int) -> int:
 	"""Quanta whose CUT has completed after `done` ticks: every whole quantum, plus the current one
 	once its brace and cut phases are through."""
 	var partial := 1 if done % TICKS_PER_QUANTUM >= BRACE_TICKS + CUT_TICKS else 0
-	return done / TICKS_PER_QUANTUM + partial
+	@warning_ignore("integer_division") return done / TICKS_PER_QUANTUM + partial
 
 
 static func spoil_into(done: int, quanta: int, out: PackedInt64Array) -> void:
@@ -281,7 +281,7 @@ static func face_u(done: int, quanta: int, length_u: int) -> int:
 	"""How far along the route the dig face has reached after `done` ticks, in u (0 during the
 	entrance shaft, the whole length from the exit shaft on)."""
 	var into_bore := clampi(done - SHAFT_QUANTA * TICKS_PER_QUANTUM, 0, quanta * TICKS_PER_QUANTUM)
-	return into_bore * length_u / (quanta * TICKS_PER_QUANTUM)
+	@warning_ignore("integer_division") return into_bore * length_u / (quanta * TICKS_PER_QUANTUM)
 
 
 # --- who fits, who digs -----------------------------------------------------------------------
@@ -337,7 +337,7 @@ static func circles_to_u(circles: PackedVector3Array) -> PackedInt32Array:
 static func mouth_blocked(x_u: int, z_u: int, circles_u: PackedInt32Array) -> bool:
 	"""Whether a mouth centred here would cut into an obstacle: closer than its radius plus
 	MOUTH_CLEAR_U to any circle's centre."""
-	for i in circles_u.size() / 3:
+	@warning_ignore("integer_division") for i in circles_u.size() / 3:
 		var dx := x_u - circles_u[3 * i]
 		var dz := z_u - circles_u[3 * i + 2]
 		var reach := circles_u[3 * i + 1] + MOUTH_CLEAR_U
@@ -348,7 +348,7 @@ static func mouth_blocked(x_u: int, z_u: int, circles_u: PackedInt32Array) -> bo
 
 static func in_bounds(x_u: int, z_u: int, bounds_u: Rect2i) -> bool:
 	"""Whether a whole bore (half its width either side) at this point stays inside the bounds."""
-	var half := BORE_WIDTH_U / 2
+	@warning_ignore("integer_division") var half := BORE_WIDTH_U / 2
 	return x_u - half >= bounds_u.position.x and x_u + half <= bounds_u.end.x \
 			and z_u - half >= bounds_u.position.y and z_u + half <= bounds_u.end.y
 
@@ -437,10 +437,10 @@ static func leg_under(points_u: PackedInt32Array, k: int, under_u: PackedInt32Ar
 	var abx := points_u[2 * k] - ax
 	var abz := points_u[2 * k + 1] - az
 	var length_sq := abx * abx + abz * abz
-	for i in under_u.size() / 3:
+	@warning_ignore("integer_division") for i in under_u.size() / 3:
 		var acx := under_u[3 * i] - ax
 		var acz := under_u[3 * i + 2] - az
-		var reach := under_u[3 * i + 1] + BORE_WIDTH_U / 2
+		@warning_ignore("integer_division") var reach := under_u[3 * i + 1] + BORE_WIDTH_U / 2
 		var along := abx * acx + abz * acz
 		if along <= 0 and acx * acx + acz * acz < reach * reach:
 			return true
@@ -535,7 +535,7 @@ static func stoop_drop_u(height_u: int, crown_u: int) -> int:
 	"""How far (u) a walker `height_u` tall lowers its head in a bore with this drawn crown: to
 	STOOP_CLEAR_U under it, but at most STOOP_MAX_PERMILLE of its height (see the header)."""
 	var need := height_u - (crown_u - STOOP_CLEAR_U)
-	return clampi(need, 0, height_u * STOOP_MAX_PERMILLE / PERMILLE)
+	@warning_ignore("integer_division") return clampi(need, 0, height_u * STOOP_MAX_PERMILLE / PERMILLE)
 
 
 # --- the network's connection rules (decision 0208) -------------------------------------------
@@ -678,7 +678,7 @@ static func unit_of(dx: int, dz: int) -> Vector2i:
 	var length := isqrt(dx * dx + dz * dz)
 	if length == 0:
 		return Vector2i.ZERO
-	return Vector2i(dx * DIR_SCALE / length, dz * DIR_SCALE / length)
+	@warning_ignore("integer_division") return Vector2i(dx * DIR_SCALE / length, dz * DIR_SCALE / length)
 
 
 static func meets_squarely(a: Vector2i, b: Vector2i) -> bool:
@@ -714,7 +714,7 @@ static func fillet_reach_u(into: Vector2i, onward: Vector2i) -> int:
 	var c := ua.x * ub.x + ua.y * ub.y
 	if c <= -scale + TURN_BACK_SLACK * DIR_SCALE:
 		return MAX_LENGTH_U
-	return BEND_RADIUS_U * isqrt(2 * (scale - c) * scale) / (scale + c)
+	@warning_ignore("integer_division") return BEND_RADIUS_U * isqrt(2 * (scale - c) * scale) / (scale + c)
 
 
 static func bend_ok(points_u: PackedInt32Array, k: int) -> bool:
@@ -738,7 +738,7 @@ static func point_leg_u(p: Vector2i, a: Vector2i, b: Vector2i) -> int:
 	if along >= length_sq:
 		var bp := p - b
 		return isqrt(bp.x * bp.x + bp.y * bp.y)
-	return absi(ab.x * ap.y - ab.y * ap.x) / isqrt(length_sq)
+	@warning_ignore("integer_division") return absi(ab.x * ap.y - ab.y * ap.x) / isqrt(length_sq)
 
 
 static func _turn_sign(a: Vector2i, b: Vector2i, p: Vector2i) -> int:
@@ -758,13 +758,13 @@ static func crossing_point(a: Vector2i, b: Vector2i, c: Vector2i, d: Vector2i) -
 	var s := d - c
 	var den := r.x * s.y - r.y * s.x
 	var num := (c.x - a.x) * s.y - (c.y - a.y) * s.x
-	return Vector2i(a.x + r.x * num / den, a.y + r.y * num / den)
+	@warning_ignore("integer_division") return Vector2i(a.x + r.x * num / den, a.y + r.y * num / den)
 
 
 static func pillar_gap_u(bore_a: int, bore_b: int) -> int:
 	"""The least centreline gap (u) between two unjoined bores of these classes: both half-widths and the
 	pillar of earth between them."""
-	return BORE_WIDTHS_U[bore_a] / 2 + BORE_WIDTHS_U[bore_b] / 2 + PILLAR_U
+	@warning_ignore("integer_division") return BORE_WIDTHS_U[bore_a] / 2 + BORE_WIDTHS_U[bore_b] / 2 + PILLAR_U
 
 
 static func level_floor_depth_u(level: int) -> int:
@@ -795,11 +795,11 @@ static func ramp_depth_u(from_mouth_u: int) -> int:
 	var x := clampi(from_mouth_u, 0, RAMP_RUN_U)
 	var f := RAMP_FILLET_U
 	if x <= f:
-		return RAMP_GRADE_RISE * x * x / (RAMP_GRADE_RUN * 2 * f)
+		@warning_ignore("integer_division") return RAMP_GRADE_RISE * x * x / (RAMP_GRADE_RUN * 2 * f)
 	if x >= RAMP_RUN_U - f:
 		var left := RAMP_RUN_U - x
-		return BORE_FLOOR_DEPTH_U - RAMP_GRADE_RISE * left * left / (RAMP_GRADE_RUN * 2 * f)
-	return RAMP_GRADE_RISE * (2 * x - f) / (RAMP_GRADE_RUN * 2)
+		@warning_ignore("integer_division") return BORE_FLOOR_DEPTH_U - RAMP_GRADE_RISE * left * left / (RAMP_GRADE_RUN * 2 * f)
+	@warning_ignore("integer_division") return RAMP_GRADE_RISE * (2 * x - f) / (RAMP_GRADE_RUN * 2)
 
 
 # --- links between levels (decision 0212) --------------------------------------------------------
@@ -824,7 +824,7 @@ const LINK_STAIRS: int = 2
 const LINK_NAMES: Array[String] = ["", "ramp", "stairs"]
 const LINK_MAX_RAMP_RUN_U: int = 16384
 const STAIR_RISERS: int = 16
-const STAIR_RISE_U: int = LEVEL_SPACING_U / STAIR_RISERS
+@warning_ignore("integer_division") const STAIR_RISE_U: int = LEVEL_SPACING_U / STAIR_RISERS
 const STAIR_MIN_TREAD_U: int = 320
 const STAIR_MAX_TREAD_U: int = 512
 const STAIR_SPEED_PERMILLE: int = 500
@@ -836,7 +836,7 @@ static func link_min_run_u(kind: int) -> int:
 	their shortest treads (see LINKS)."""
 	if kind == LINK_STAIRS:
 		return STAIR_RISERS * STAIR_MIN_TREAD_U
-	return LEVEL_SPACING_U * RAMP_GRADE_RUN / RAMP_GRADE_RISE + RAMP_FILLET_U
+	@warning_ignore("integer_division") return LEVEL_SPACING_U * RAMP_GRADE_RUN / RAMP_GRADE_RISE + RAMP_FILLET_U
 
 
 static func link_max_run_u(kind: int) -> int:
@@ -870,15 +870,15 @@ static func link_drop_u(kind: int, along_u: int, run_u: int) -> int:
 	var x := clampi(along_u, 0, run_u)
 	var d := LEVEL_SPACING_U
 	if kind == LINK_STAIRS:
-		return d * x / maxi(run_u, 1)
+		@warning_ignore("integer_division") return d * x / maxi(run_u, 1)
 	var f := RAMP_FILLET_U
 	var span := maxi(run_u - f, 1)
 	if x <= f:
-		return d * x * x / (2 * f * span)
+		@warning_ignore("integer_division") return d * x * x / (2 * f * span)
 	if x >= run_u - f:
 		var left := run_u - x
-		return d - d * left * left / (2 * f * span)
-	return d * (2 * x - f) / (2 * span)
+		@warning_ignore("integer_division") return d - d * left * left / (2 * f * span)
+	@warning_ignore("integer_division") return d * (2 * x - f) / (2 * span)
 
 
 static func link_drop_m(kind: int, along_m: float, run_m: float) -> float:
@@ -915,8 +915,8 @@ static func link_slope(kind: int, along_m: float, run_m: float) -> float:
 static func link_grade_permille(kind: int, run_u: int) -> int:
 	"""A link's steepest grade, per mille (rise over run): a ramp's straight middle, stairs' pitch."""
 	if kind == LINK_STAIRS:
-		return LEVEL_SPACING_U * PERMILLE / maxi(run_u, 1)
-	return LEVEL_SPACING_U * PERMILLE / maxi(run_u - RAMP_FILLET_U, 1)
+		@warning_ignore("integer_division") return LEVEL_SPACING_U * PERMILLE / maxi(run_u, 1)
+	@warning_ignore("integer_division") return LEVEL_SPACING_U * PERMILLE / maxi(run_u - RAMP_FILLET_U, 1)
 
 
 static func link_speed_permille(kind: int) -> int:

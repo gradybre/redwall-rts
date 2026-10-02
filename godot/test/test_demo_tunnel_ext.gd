@@ -311,9 +311,9 @@ func test_the_edge_wobble_is_seeded_and_bounded() -> void:
 	var seen_low := false
 	var seen_high := false
 	for x in range(-20000, 20000, 997):
-		var w := GroundScript.wobble_u(Vector2i(x, x / 3))
+		@warning_ignore("integer_division") var w := GroundScript.wobble_u(Vector2i(x, x / 3))
 		assert_true(w >= -320 and w <= 320, "bounded at %d" % x)
-		assert_equal(GroundScript.wobble_u(Vector2i(x, x / 3)), w, "repeatable at %d" % x)
+		@warning_ignore("integer_division") assert_equal(GroundScript.wobble_u(Vector2i(x, x / 3)), w, "repeatable at %d" % x)
 		seen_low = seen_low or w < 0
 		seen_high = seen_high or w > 0
 	assert_true(seen_low and seen_high, "it varies both ways")

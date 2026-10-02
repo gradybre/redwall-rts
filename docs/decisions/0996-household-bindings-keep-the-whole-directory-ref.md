@@ -78,6 +78,8 @@ IDs, which are never reissued.
 The ledger figures above are as of this branch's base (d75d9d89). Merged with master's decisions 0536 and 0537
 (2026-10-02), the same +2048 lands on their totals: Auxiliary 25394928, planned payload 70726292, live 79114900,
 headroom 20885100, candidate 64481095, transactional peak 143595995 (−43595995); the trail row follows 0537's.
+Merged again with master's decision 1031 (+4096, store filters): Auxiliary 25399024, planned payload 70730388, live
+79118996, headroom 20881004, candidate 64485191, transactional peak 143604187 (−43604187); the trail row follows 1031's.
 
 `docs/systems_architecture.md` carries the new §3 row text, the Auxiliary and metric rows and an
 ARCH-MEM-009 trail line. `docs/validation/ready07_arithmetic.py` adds

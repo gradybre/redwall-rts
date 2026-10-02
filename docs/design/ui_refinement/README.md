@@ -10,7 +10,8 @@ Recheck current branch/diffs before assigning files. Preserve parallel work.
 [ART-LOCK-001](asset_generation_lock.md) answers all seven asset questions:16 rows,
 12 illustration pigments, lighting, silhouettes, contour variants, medallions and
 DEC-036 direct-reference permission. Use IMG-25 directly; do not request substitute
-references. Paid generation is not approved by this design lock.
+references. Paid generation is by request: ask Brendan with an itemised, costed list and proceed once
+he approves it (decision 0961).
 
 ## Visual quality correction
 

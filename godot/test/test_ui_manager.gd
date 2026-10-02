@@ -12,7 +12,9 @@ extends "res://test/framework/test_case.gd"
 ## instance. The runner loads suites at runtime, after the autoload globals are registered, so
 ## the singletons resolve here. `EconomySystem.reset()` runs in both hooks, which empties the
 ## stores AND drops the residents binding, so no state crosses a test boundary or leaves this
-## suite. GameManager is only read, never mutated.
+## suite. GameManager is only read, never mutated. Since decision 0533 the reset also CLOSES the
+## stores, so `before_each()` rebinds them to a `starter_colony_fixture.gd` colony; Create
+## (`create_world()`) rebinds them to its own generated colony instead.
 ##
 ## The UIManager under test is never added to the scene tree, so its `_ready()` -- and the
 ## system-signal wiring inside it -- does not run. Each test drives the handler it means to
@@ -31,6 +33,10 @@ const UiCommandBridgeScript := preload("res://scripts/ui/ui_command_bridge.gd")
 const UiWorldSessionScript := preload("res://scripts/ui/ui_world_session.gd")
 const UiShellScript := preload("res://scripts/ui/ui_shell.gd")
 const UiNoticesScript := preload("res://scripts/ui/ui_notices.gd")
+const ColonyFixture := preload("res://test/fixtures/starter_colony_fixture.gd")
+const StarterColonyScript := preload("res://scripts/core/starter_colony.gd")
+const CatalogScript := preload("res://scripts/core/catalog.gd")
+const BuildingsScript := preload("res://scripts/core/buildings.gd")
 
 const HUD_SCENE_PATH: String = "res://scenes/ui/hud.tscn"
 
@@ -97,11 +103,15 @@ const IDENTITY_CODE: String = "UI_ROSTER_IDENTITY_CHANGED"
 var _ui: UIManagerScript = null
 var _hud: HudScript = null
 var _residents: ResidentsScript = null
+var _colony: ColonyFixture = null
 
 
 func before_each() -> void:
-	"""Build a HUD and an off-tree UIManager over freshly reset autoload stores."""
+	"""Build a HUD and an off-tree UIManager over freshly reset, colony-bound autoload stores."""
 	EconomySystem.reset()
+	_colony = ColonyFixture.new()
+	if not EconomySystem.open_starter_stores(_colony.binding):
+		fail("the economy stores could not bind: %s" % EconomySystem.last_refusal())
 	var scene: PackedScene = load(HUD_SCENE_PATH) as PackedScene
 	_hud = scene.instantiate() as HudScript
 	_hud._ready()
@@ -112,6 +122,7 @@ func before_each() -> void:
 func after_each() -> void:
 	"""Free everything this test built and return the shared economy autoload to empty."""
 	_residents = null
+	_colony = null
 	if _ui != null:
 		_ui.free()
 		_ui = null
@@ -423,15 +434,119 @@ func test_a_generated_world_is_populated_and_beds_stay_unpopulated() -> void:
 	poorer path, so pressing it emptied the settlement it had just generated. The old assertion
 	is retired because the behaviour it described was wrong, not because it became inconvenient.
 
-	Beds are still UNPOPULATED, and that half is unchanged: the Building stores exist but nothing
-	places a building, so a bed count would be a fabricated zero. Residents and Beds are a §1.1 pair and
-	only one of them has an owner."""
+	Beds are still UNPOPULATED on the HUD. Since decision 0533 Create does place §5.9's twelve
+	beds -- the next test counts them -- but nothing routes a Beds figure from the building store
+	to this counter yet, so the counter keeps the marker rather than a number nobody wired."""
 	_ui.register_hud(_hud)
 	assert_true(_ui.create_world(), "Create succeeds")
 	assert_equal(SettlementSystem.residents().living_count(), 12,
 		"and §5.1's twelve residents live in the world it generated")
 	assert_true(_rendered_counters().contains("Beds %s" % UNPOPULATED),
 		"while beds stay unpopulated, not drawn as a zero nothing measured")
+	SettlementSystem.reset()
+
+
+func test_create_materialises_the_starter_colony_and_rebinds_the_stores_to_it() -> void:
+	"""Decision 0533 through UI-SET-103's Create: the colony stands and the stores follow it.
+
+	Create discards the previous settlement, so the stores' previous owners are gone with it. The
+	stores must be reopened on the NEW hall and stockpiles and reseeded with §5.1's inventory,
+	exactly as boot does -- not left owned by rows of a settlement that no longer exists.
+	"""
+	assert_true(_ui.create_world(), "Create succeeds: %s" % _ui.world_session().last_refusal())
+	var buildings: BuildingsScript = SettlementSystem.buildings()
+	assert_equal(buildings.live_building_count(), 7, "§5.9's seven structures stand")
+	assert_equal(buildings.live_room_count(), 4, "with the hall's four rooms")
+	assert_equal(buildings.live_furniture_count(), 31, "and thirty-one floor furniture")
+	assert_equal(buildings.live_furniture_of_kind(int(CatalogScript.FURNITURE_DEFINITION["bed"])),
+		12, "twelve of them beds")
+	assert_true(SettlementSystem.directory().is_valid_of_kind(SettlementSystem.world_ref(),
+		EntityDirectoryScript.KIND_WORLD), "the World row exists")
+	var hall: Vector2i = buildings.building_at_tile(59 * 128 + 58)
+	assert_equal(EconomySystem.inventory().container_owner(EconomySystem.pantry()), hall,
+		"the pantry is owned by the NEW hall")
+	assert_equal(EconomySystem.inventory().container_owner(EconomySystem.stockpile(0)),
+		buildings.building_at_tile(60 * 128 + 50), "and the first store by the new stockpile")
+	assert_equal(EconomySystem.stock_units(&"wood"), 180, "and §5.1's inventory was reseeded")
+	assert_equal(EconomySystem.ready_nutrition_points(), 408000, "food included")
+	assert_true(EconomySystem.inventory() == SettlementSystem.inventory(),
+		"in the settlement's own inventory, which EconomySystem adopted (decision 0534)")
+	assert_true(SettlementSystem.inventory().is_container_valid(EconomySystem.pantry()),
+		"so the demolition gate's store holds the pantry")
+	SettlementSystem.reset()
+
+
+func test_create_repaints_the_new_settlements_figures() -> void:
+	"""The first figures after Create are the NEW settlement's, not the closed stores' markers.
+
+	The repaint used to run before the stores were reopened and the residents rebound, so the
+	ledger read "Food-days --" and "Residents --" over a settlement holding 408000 NP and twelve
+	residents, until the next stock change repainted it.
+	"""
+	_ui.register_hud(_hud)
+	assert_true(_ui.create_world(), "Create succeeds: %s" % _ui.world_session().last_refusal())
+	var line: String = _rendered_counters()
+	assert_true(line.contains("Food-days %s" % STARTER_FOOD_DAYS_TEXT),
+		"the ledger shows the new settlement's food-days: '%s'" % line)
+	assert_true(line.contains("Residents %d / %d" % [STARTER_COHORT,
+		ResidentsScript.RESIDENT_LIVING_CAP]), "and its twelve residents")
+	SettlementSystem.reset()
+
+
+func test_a_create_refused_before_its_reset_keeps_the_running_stores() -> void:
+	"""A form refusal discards nothing, so the stores stay bound to the colony that owns them."""
+	assert_true(SettlementSystem.create_generated_settlement(EconomySystem.definitions()),
+		"a settlement boots first")
+	EconomySystem.reset()
+	var binding: StarterColonyScript.StoreBinding = StarterColonyScript.StoreBinding.new()
+	assert_true(SettlementSystem.starter_store_binding_into(binding), "its colony binds")
+	assert_true(EconomySystem.open_starter_stores(binding), "the stores open on it")
+	assert_true(EconomySystem.seed_initial_inventory(), "and are seeded")
+	_ui.world_session().set_architecture(ARCHITECTURE_HOLT)
+	assert_false(_ui.create_world(), "Create refuses at the form")
+	assert_true(EconomySystem.stores_open(), "the stores stay open")
+	assert_equal(EconomySystem.stock_units(&"wood"), 180, "with their stock")
+	SettlementSystem.reset()
+
+
+func test_a_create_that_loses_the_old_colony_drops_the_stores_it_owned() -> void:
+	"""#7: stores whose owning buildings are gone are closed, never left with stale owners."""
+	assert_true(SettlementSystem.create_generated_settlement(EconomySystem.definitions()),
+		"a settlement boots first")
+	EconomySystem.reset()
+	var binding: StarterColonyScript.StoreBinding = StarterColonyScript.StoreBinding.new()
+	assert_true(SettlementSystem.starter_store_binding_into(binding), "its colony binds")
+	assert_true(EconomySystem.open_starter_stores(binding), "the stores open on it")
+	SettlementSystem.reset()
+	_ui.world_session().set_architecture(ARCHITECTURE_HOLT)
+	assert_false(_ui.create_world(), "a refused Create over a settlement already gone")
+	assert_false(EconomySystem.stores_open(), "closes stores whose owners no longer exist")
+
+
+class RefusingPlacement extends RefCounted:
+	"""A placement authority that refuses every footprint tile, so the colony cannot be placed."""
+
+	func building_tile_refusal(_tile_index: int) -> StringName:
+		"""Refuse every tile with a code of its own."""
+		return &"TEST_COLONY_REFUSED"
+
+
+func test_a_create_whose_colony_refuses_leaves_nothing_half_made() -> void:
+	"""Decision 0533: a world without its colony is no §5.1 settlement. The settlement is reset,
+	the session forgets the map it published, the stores close, and the code reaches the player."""
+	_ui.register_hud(_hud)
+	var probe: RefusingPlacement = RefusingPlacement.new()
+	assert_true(SettlementSystem.buildings().set_placement_authority(probe).ok, "the probe binds")
+	var ok: bool = _ui.create_world()
+	SettlementSystem.buildings().set_placement_authority(SettlementSystem.ground_piles())
+	assert_false(ok, "Create refuses")
+	var report: UiWorldSessionScript.Report = _ui.world_session().last_report()
+	assert_equal(report.error, &"TEST_COLONY_REFUSED", "with the colony's own code")
+	assert_true(report.detail.length() > 0, "and a plain reason")
+	assert_equal(SettlementSystem.population(), 0, "the settlement was reset to empty")
+	assert_false(_ui.world_session().has_world(), "the session forgot the map it published")
+	assert_false(EconomySystem.stores_open(), "and the stores closed with their owners")
+	assert_true(SettlementSystem.buildings().has_placement_authority(), "the composer is rebound")
 	SettlementSystem.reset()
 
 
@@ -736,6 +851,25 @@ func test_create_still_succeeds_in_a_running_game() -> void:
 		var id: IntMath.IntResult = residents.persistent_id_of(index)
 		assert_equal(id.value, index + 1,
 			"and the cohort still takes id %d, so the fix did not cost R-INIT-ID-001" % [index + 1])
+	SettlementSystem.reset()
+
+
+func test_create_still_succeeds_while_a_demolition_is_admitted() -> void:
+	"""Decision 0534: admit publishes a KIND_CONSTRUCTION row, which the reset also clears.
+
+	Without KIND_CONSTRUCTION in `ui_world_session._caller_cleared_kinds` the generator's preflight
+	sees a live row it does not own and Create refuses WORLD_FOREIGN_LIVE_ROWS mid-demolition.
+	"""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_generated_settlement(EconomySystem.definitions()),
+		"a settlement boots with its colony")
+	var well: Vector2i = SettlementSystem.buildings().building_at_tile(54 * 128 + 64)
+	assert_true(SettlementSystem.request_demolition(well).ok, "the well's demolition is admitted")
+	assert_equal(SettlementSystem.directory().live_count(EntityDirectoryScript.KIND_CONSTRUCTION),
+		1, "so a construction row is live")
+	assert_true(_ui.create_world(), "and Create still succeeds")
+	assert_equal(SettlementSystem.directory().live_count(EntityDirectoryScript.KIND_CONSTRUCTION),
+		0, "the new settlement has no project")
 	SettlementSystem.reset()
 
 

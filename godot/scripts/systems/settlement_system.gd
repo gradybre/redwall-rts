@@ -315,15 +315,25 @@ extends Node
 ##     `test_a_shared_directory_is_not_cleared_by_this_store` pins that), which is why placing
 ##     the call in `_clear_stores()` alongside the ecology's is safe and leaks no slot.
 ##
-## WHAT THE COMPOSITION DOES NOT DO, stated because decision 0080's consequences are easy to
-## over-read. THERE IS NO STARTER SETTLEMENT. `live_building_count()`, `live_room_count()` and
-## `live_furniture_count()` are 0 after `create_generated_settlement()` as well as before it:
-## `world_init.gd` generates terrain, resource nodes, forage basins and the estuary, and §5.1's
-## hall, beds, hearth, pantry, well, stockpiles and workbench are NOT among them. So
-## `live_furniture_of_kind(bed)` answers 0 truthfully rather than answering §5.1's twelve, and a
-## HUD bed counter reading it would display a real 0 for a settlement with no beds in it. NOTHING
-## HERE PLACES A BUILDING TO MAKE THAT NUMBER LOOK RIGHT. The §7.2 starter build is a separate
-## piece of work with its own unresolved inputs, itemised in decision 0087.
+## THE STARTER COLONY IS NOW REAL (INIT-C live apply, DEMO-CONTAIN-R01 step D3, decision 0533).
+## `create_generated_settlement()` publishes the world and then, still inside its one transaction,
+## creates the World directory row and materialises `starter_structures.gd`'s validated plan
+## through `starter_colony.gd`: §5.9's hall, four open stockpiles, well and workbench, the hall's
+## dormitory/kitchen/common/pantry rooms and its thirty-one floor furniture, all ACTIVE at tier 1
+## and rotation 0, placed through `buildings.gd`'s ordinary doors and then re-read against the
+## plan. So `live_building_count()` is 7, `live_room_count()` 4, `live_furniture_count()` 31 and
+## `live_furniture_of_kind(bed)` 12 after generation -- measured rows, not a fixture. The eight
+## partition/door EDGES, room validity and building condition are NOT applied; decision 0533 and
+## `starter_colony.gd`'s header say why. UI-SET-103's Create reaches the same apply through
+## `materialize_starter_colony()`, which `ui_manager.gd` calls after its own publication.
+##
+## THE GROUND-PILE COMPOSER IS COMPOSED HERE AND OUTLIVES NOTHING IT SERVES (decision 0532's
+## obligation). `ground_piles.gd` is built in `_init()` over this settlement's inventory, buildings
+## and stock-age stores and kept in `_ground_piles` for the node's whole life, because Inventory
+## and Buildings each hold it only weakly. It is Inventory's site authority for
+## `create_ground_pile()` and Buildings' placement authority, so `place_building()` refuses a
+## footprint over a live pile by name (BUILDING_FOOTPRINT_OVER_GROUND_PILE, 0532's M4). Its World
+## binding is made each time the starter colony is materialised, from the row created there.
 ##
 ## NO STAGE IS ADDED TO THE TICK. The store is structural state edited by placement and
 ## demolition, not integrated per tick, and ARCH-SYS-016 RoomHeat -- the one §5 stage that would
@@ -339,19 +349,17 @@ extends Node
 ## `buildings()` actually owns, and `Building.construction` names a project `construction()`
 ## actually owns. A `Construction` built with its own allocator would refuse every real building.
 ##
-## `live_project_count()` is 0 after `create_generated_settlement()` for the same reason
-## `live_building_count()` is: nothing here places a blueprint, so nothing here opens a project.
+## `live_project_count()` is 0 after `create_generated_settlement()`: the starter colony is
+## placed ACTIVE (decision 0533), not as blueprints, and nothing here opens a project.
 ## ALSO ADDS NO TICK STAGE. `work.gd` owns the productive tick that would call `add_work_mwu()`
 ## and `jobs.gd` owns REQ-SET-124's delivery and build jobs; neither file calls this store yet,
 ## so `tick_stage_count()` is still 8 and every stage keeps its name.
 ##
 ## ---------------------------------------------------------------------------------------
-## `request_demolition()` IS REQ-SET-128'S COMPOSED GATE, AND TODAY IT ALWAYS REFUSES.
+## `request_demolition()` IS REQ-SET-128'S COMPOSED GATE PLUS BLOCKER 1's *ADMIT* (decision 0534).
 ## INV-GOODS-R01 puts the goods half of REQ-SET-128 exactly here, because this is the only place
-## `buildings()`, `construction()` and `inventory()` meet over one directory. The gate runs five
-## ordered stages and CHANGES NO STATE IN ANY OF THEM -- it never reaches
-## `construction().open_demolition()`, so no project is published and no building is moved to
-## DEMOLISHING by this path:
+## `buildings()`, `construction()` and `inventory()` meet over one directory. `preview_demolition()`
+## runs five ordered stages and CHANGES NO STATE IN ANY OF THEM:
 ##
 ##   1. SUBJECT. A stale ref, a building that is not ACTIVE, or one already carrying a project.
 ##   2. ENDPOINT PROOF. Walk the building, each of its rooms, each furniture in those rooms, and
@@ -362,24 +370,27 @@ extends Node
 ##   3. GOODS. `inventory().containers_by_owner_into()` per distinct endpoint owner, plus each
 ##      project's material container by handle, de-duplicated by container slot. Every live lot
 ##      is counted ONCE whatever its `reserved_milli`, and a container's `reserved_mass_g` is
-##      reported SEPARATELY as an outstanding capacity claim -- undelivered headroom is not a lot
-##      and no lot is invented to account for it.
-##   4. OCCUPANTS, RECHECKED AFTER stage 2 and from `construction()`'s own counters, so the
-##      resident half is re-read against the same rows the endpoint proof just walked.
-##   5. FOOTPRINT COVERAGE, which no store can supply -- see `_footprint_binding_refusal()`.
+##      reported SEPARATELY as an outstanding capacity claim.
+##   4. OCCUPANTS, RECHECKED AFTER stage 2 and from `construction()`'s own counters.
+##   5. FOOTPRINT CONTAINMENT (DEMO-CONTAIN-R01 #3a/#3c/#5/#7). The footprint, door tiles
+##      included, is marked once; every container the owner scan reached must be anchored ON it,
+##      and every container anchored on it must be one of those or a ground pile, whose goods
+##      join stage 3's totals. An anchored ownerless container refuses (#7). Satchels are unplaced
+##      and never seen here (#3d). Placement is read through `container_anchor_tile_into()`.
 ##
-## STAGE 5 IS WHY THIS CANNOT YET SUCCEED, AND SAYING SO IS THE POINT. An InventoryContainer row
-## carries owner, mass, filters, reserved mass, policy and reachability and NO POSITION, and
-## nothing maps a tile to a container, so a ground pile or another entity's container standing
-## inside the footprint cannot be enumerated at all. Owner equality proves OWNERSHIP; it does not
-## prove CONTAINMENT. Reporting stages 2-4 as a pass would therefore be reporting "I looked and
-## found nothing" when the truth is "I cannot see there". The evacuation/relocation half --
-## real hauling, then a retry that re-reads these same stores -- is a separate follow-up with its
-## own owner; nothing here teleports a lot, mints a ground pile, or unequips anybody.
+## *ADMIT* RUNS ONLY ON A PASSING PREVIEW, IN THE SAME CALL. It proves the store transition
+## (`construction().demolition_open_refusal()`), the admission record, the absence of a caller's
+## inventory transaction and an output plan -- the lowest surviving store with room for the whole
+## 50% return, else a rolled-back ground-pile placement (#9) -- BEFORE its first write. Then it
+## reserves that capacity and publishes the demolition project inside one inventory transaction,
+## records the admission and advances the building's destination revision in
+## `demolition_admissions()`. Removing the building and placing the return is D5's.
+## `cancel_demolition()` is the only cancellation: it releases that claim BEFORE retiring the
+## project, because `construction().close_refund()` cannot see Inventory.
 ##
-## THE WHOLE GATE IS READ-ONLY, WHICH IS ASSERTED IN BYTES. Every path returns a
-## `DemolitionReport` carrying exact counts and the exact stranded lot refs, and leaves Building,
-## Construction, Inventory and the directory byte-identical.
+## EVERY REFUSAL IS READ-ONLY, WHICH IS ASSERTED IN BYTES. Every path returns a
+## `DemolitionReport` carrying exact counts and the exact stranded lot refs, and a refusal leaves
+## Building, Construction, Inventory, the directory and the admission record byte-identical.
 ##
 ## THE WORLD SEED IS NO LONGER MISSING. `rng()` is composed here UNSEEDED and stays that way in a
 ## settlement nobody generated; `create_generated_settlement()` seeds it, because `world_init.gd`
@@ -392,12 +403,11 @@ extends Node
 ## THE STOCK LAYER IS OWNED, DRIVEN AND EMPTY, in the same three senses as the crop layer.
 ## `inventory.gd` is composed here with the §4.3 catalog registered into it, `stock_age.gd`
 ## (ARCH-SYS-004) is composed over it, and `run_tick()` drives its hourly leg at every hour
-## crossing. IT HOLDS NO LOTS, because nothing in this node creates one: §5.1's starter stock is
-## placed by `economy_system.gd`, which owns a SEPARATE `inventory.gd` instance of its own, and
-## `world_init.gd` creates no lot in this one. THAT DUPLICATION IS REAL AND IS REPORTED RATHER
-## THAN PAPERED OVER: two inventories are two authorities, and merging them means editing
-## `economy_system.gd` and `world_init.gd`, neither of which this work owns. Until they are one
-## store, `stock_age()` ages this settlement's lots and the autoload's food does not age.
+## crossing. §5.1's starter stock is placed INTO THIS STORE by `economy_system.gd`, which adopts
+## it through `bind_inventory()` before opening the colony's stores (decision 0534, closing
+## decision 0087's two-inventory split), so the demolition gate and section 7 see those lots.
+## The five starter stores carry no StockAge declaration yet, so they are counted undeclared and
+## not aged; declaring store classes stays with the building layer.
 ##
 ## THE RESERVATION POOL IS OWNED AND EMPTY. `reservations.gd` exists to hold job input claims
 ## (REQ-SET-030's all-or-nothing reservation), and there are no jobs. It is composed and cleared
@@ -535,6 +545,11 @@ const ConstructionScript := preload("res://scripts/core/construction.gd")
 const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 const StockAgeScript := preload("res://scripts/core/stock_age.gd")
+const GroundPilesScript := preload("res://scripts/core/ground_piles.gd")
+const DemolitionAdmissionsScript := preload("res://scripts/core/demolition_admissions.gd")
+const StarterStructuresScript := preload("res://scripts/core/starter_structures.gd")
+const StarterColonyScript := preload("res://scripts/core/starter_colony.gd")
+const MilestonesScript := preload("res://scripts/core/milestones.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const PerfTimerScript := preload("res://scripts/utils/perf_timer.gd")
 
@@ -647,6 +662,17 @@ const REFUSE_POSE_TRANSFORM: StringName = &"INITIAL_POSE_TRANSFORM_REFUSED"
 ## R-INIT-ID-001 step 5, tightened by INIT-POSE-R01 §2.5: replacement rollback does not exist, so
 ## a published world is never overwritten -- not even one with nobody standing in it.
 const REFUSE_WORLD_ALREADY_PUBLISHED: StringName = &"SETTLEMENT_WORLD_ALREADY_PUBLISHED"
+## INIT-C live apply (decision 0533). The colony is materialised once per settlement; a World row
+## or a live building already present means it has been, or that something else placed there.
+const REFUSE_STARTER_COLONY_PRESENT: StringName = &"STARTER_COLONY_ALREADY_PRESENT"
+const REFUSE_GROUND_PILES_BIND: StringName = &"GROUND_PILE_COMPOSER_BIND_REFUSED"
+const REFUSE_GROUND_PILE_WORLD_BIND: StringName = &"GROUND_PILE_WORLD_BIND_REFUSED"
+## GDD §5.11: "Active new worlds start with M0=0 and both masks=1". The starter structures all
+## carry unlock ordinal 0, so this is the mask they are placed under; no Progress store exists to
+## read it back from (decision 0087 blocker 2), so the authored value is named here once.
+const STARTER_UNLOCKED_MASK: int = MilestonesScript.INITIAL_MASK
+## The KIND_WORLD row is the directory's only one of its kind (capacity 1), so it is typed row 0.
+const WORLD_TYPED_ROW: int = 0
 
 ## REQ-SET-128's composed demolition gate (INV-GOODS-R01). Every one of these is a refusal that
 ## wrote nothing. The two resident refusals are `construction.gd`'s OWN codes, re-raised rather
@@ -664,12 +690,36 @@ const REFUSE_DEMOLITION_CAPACITY_CLAIM: StringName = &"DEMOLITION_BLOCKED_CAPACI
 ## never folded into "no goods found".
 const REFUSE_DEMOLITION_SCAN: StringName = &"DEMOLITION_GOODS_SCAN_REFUSED"
 const REFUSE_DEMOLITION_OVERFLOW: StringName = &"DEMOLITION_GOODS_TOTAL_OVERFLOW"
+## Stage 5, DEMO-CONTAIN-R01 #3a/#3c/#7 (decision 0534): the owner scan and the tile scan must
+## agree. An affected owner's container placed off the footprint (or nowhere) is one way they
+## disagree; a container on the footprint owned by somebody else is the other. An anchored
+## container with no well-formed owner is #7's own refusal.
+const REFUSE_DEMOLITION_OFF_FOOTPRINT: StringName = &"DEMOLITION_OWNED_CONTAINER_OFF_FOOTPRINT"
+const REFUSE_DEMOLITION_FOREIGN_CONTAINER: StringName = &"DEMOLITION_FOREIGN_CONTAINER_ON_FOOTPRINT"
+const REFUSE_DEMOLITION_ANCHORED_ORPHAN: StringName = &"DEMOLITION_ANCHORED_NULL_OWNER_CONTAINER"
+## The footprint itself could not be read (the composer is unbound, or the door is off the grid).
+const REFUSE_DEMOLITION_FOOTPRINT: StringName = &"DEMOLITION_FOOTPRINT_UNREADABLE"
+## Admit (blocker 1): a material key the item catalog cannot name, no surviving store and no
+## ground-pile fallback able to take the 50% return, or a caller's open inventory transaction.
+const REFUSE_DEMOLITION_RETURN_ITEM: StringName = &"DEMOLITION_RETURN_ITEM_UNKNOWN"
+const REFUSE_DEMOLITION_NO_OUTPUT: StringName = &"DEMOLITION_NO_OUTPUT_CAPACITY"
+const REFUSE_DEMOLITION_TRANSACTION: StringName = &"DEMOLITION_INVENTORY_TRANSACTION_OPEN"
+## `cancel_demolition()`: the building carries no demolition project to cancel, or the project is
+## already being refunded, or the recorded claim is no longer held where the record says.
+const REFUSE_DEMOLITION_NOT_ADMITTED: StringName = &"DEMOLITION_NOT_ADMITTED"
+const REFUSE_DEMOLITION_CANCEL_PHASE: StringName = &"DEMOLITION_CANCEL_WRONG_PHASE"
+const REFUSE_DEMOLITION_CLAIM_MISSING: StringName = &"DEMOLITION_RESERVATION_NOT_HELD"
+## `release_stranded_reservation()`: the row's claim still has a live project (cancel instead), or
+## the row records no claim at all.
+const REFUSE_DEMOLITION_NOT_STRANDED: StringName = &"DEMOLITION_RESERVATION_NOT_STRANDED"
 
 ## The two endpoint stages. Named rather than a boolean flag: ONE walk defines the affected
 ## endpoint set, and running it twice with different stages is what makes the goods scan
 ## provably cover exactly the endpoints the proof just validated.
 const ENDPOINT_STAGE_PROVE: int = 0
 const ENDPOINT_STAGE_SCAN: int = 1
+## Stage 5's first half: every container the owner scan reaches must be anchored on the footprint.
+const ENDPOINT_STAGE_CONTAIN: int = 2
 
 
 class DemolitionReport:
@@ -694,6 +744,16 @@ class DemolitionReport:
 	var claiming_container_count: int = 0
 	var occupant_count: int = 0
 	var furniture_user_count: int = 0
+	## Stage 5: containers the tile scan found on the footprint, and the one that disagreed.
+	var anchored_container_count: int = 0
+	var blocking_container: Vector2i = InventoryScript.NULL_REF
+	## Admit: the published project, where the return's capacity is reserved (an INVENTORY ref,
+	## null when it falls back to ground piles), its grams, and the building's new revision.
+	var project_ref: Vector2i = EntityDirectoryScript.NULL_REF
+	var output_container: Vector2i = InventoryScript.NULL_REF
+	var output_reserved_g: int = 0
+	var output_to_ground_piles: bool = false
+	var destination_revision: int = 0
 	var _lot_slot: PackedInt32Array = PackedInt32Array()
 	var _lot_generation: PackedInt32Array = PackedInt32Array()
 
@@ -715,6 +775,13 @@ class DemolitionReport:
 		claiming_container_count = 0
 		occupant_count = 0
 		furniture_user_count = 0
+		anchored_container_count = 0
+		blocking_container = InventoryScript.NULL_REF
+		project_ref = EntityDirectoryScript.NULL_REF
+		output_container = InventoryScript.NULL_REF
+		output_reserved_g = 0
+		output_to_ground_piles = false
+		destination_revision = 0
 
 	func record_lot(lot_ref: Vector2i) -> void:
 		"""Record one stranded lot ref. The count is the authority; the columns are the list."""
@@ -756,6 +823,11 @@ var _construction: ConstructionScript = null
 var _inventory: InventoryScript = null
 var _item_definitions: ItemDefinitionsScript = null
 var _stock_age: StockAgeScript = null
+## DEMO-CONTAIN-R01 #9's site and placement authority (decision 0532). Held STRONGLY here, for the
+## node's whole life, because Inventory and Buildings hold it only weakly.
+var _ground_piles: GroundPilesScript = null
+## Producer of the authored starter plan (decision 0184). Holds only its last refusal code.
+var _starter_producer: StarterStructuresScript = StarterStructuresScript.new()
 ## ARCH-SYS-001's ONE authoritative pose store, bound to the SAME directory as the resident store.
 ## The renderer borrows it through `transforms()`; presentation never constructs a second one and
 ## never writes a simulation pose. Movement, when it is composed, becomes its sole per-tick writer.
@@ -868,6 +940,20 @@ var _demolition: DemolitionReport = null
 var _demolition_pairs: PackedInt32Array = PackedInt32Array()
 var _demolition_seen: PackedByteArray = PackedByteArray()
 var _demolition_read: IntMath.IntResult = IntMath.IntResult.new()
+## Decision 0534's stage-5 and admit scratch, same lifetime. The footprint mask is the one
+## 16384-byte buffer decisions 0531 and 0532 told D4 to build for both the anchor query and the
+## refund seeds; `_demolition_outside` is its complement, for the surviving-store scan.
+var _demolition_footprint: PackedByteArray = PackedByteArray()
+var _demolition_outside: PackedByteArray = PackedByteArray()
+var _demolition_seeds: PackedInt32Array = PackedInt32Array()
+var _demolition_seed_count: int = 0
+var _demolition_keys: PackedInt32Array = PackedInt32Array()
+var _demolition_milli: PackedInt64Array = PackedInt64Array()
+var _demolition_specs: PackedInt64Array = PackedInt64Array()
+var _demolition_spec_rows: int = 0
+var _demolition_place: GroundPilesScript.PlaceResult = GroundPilesScript.PlaceResult.new()
+## The coordinator's per-building admission record and destination revision (decision 0534).
+var _admissions: DemolitionAdmissionsScript = null
 
 
 func _init() -> void:
@@ -898,8 +984,10 @@ func _init() -> void:
 		_commands)
 	_buildings = BuildingsScript.new(_directory)
 	_construction = ConstructionScript.new(_buildings)
+	_admissions = DemolitionAdmissionsScript.new(_directory)
 	_transforms = TransformsScript.new(_directory)
 	_compose_stock_layer()
+	_compose_ground_piles()
 	_bind_ecology_to_commands()
 	_size_index_and_scratch_columns()
 	_assert_shared_contracts()
@@ -925,6 +1013,11 @@ func _size_index_and_scratch_columns() -> void:
 	_demolition = DemolitionReport.new(InventoryScript.LOT_CAPACITY)
 	_demolition_pairs.resize(_inventory.owner_query_cells())
 	@warning_ignore("integer_division") _demolition_seen.resize(_inventory.owner_query_cells() / 2)
+	_demolition_footprint.resize(_inventory.anchor_query_mask_bytes())
+	_demolition_outside.resize(_inventory.anchor_query_mask_bytes())
+	_demolition_seeds.resize(GroundPilesScript.REFUND_SEED_CAPACITY)
+	_demolition_keys.resize(ConstructionScript.MATERIAL_SLOTS_PER_PROJECT)
+	_demolition_milli.resize(ConstructionScript.MATERIAL_SLOTS_PER_PROJECT)
 
 
 func _compose_stock_layer() -> void:
@@ -941,6 +1034,24 @@ func _compose_stock_layer() -> void:
 	_item_definitions.load_default(_inventory)
 	_stock_age = StockAgeScript.new(_inventory, _item_definitions)
 	_bind_seed_expiry_authority()
+
+
+func _compose_ground_piles() -> void:
+	"""Build decision 0532's composer and make it Inventory's site and Buildings' placement authority.
+
+	Runs once, after the stock layer exists. Both bindings are wiring, not state: `clear()` on
+	either store keeps them, so `reset()` does not rebind. A refused bind is fatal rather than
+	silent, because an unbound composer would let a building cover a pile.
+	"""
+	_ground_piles = GroundPilesScript.new()
+	@warning_ignore("assert_always_true")
+	assert(EntityDirectoryScript.KIND_CAPACITY[EntityDirectoryScript.KIND_WORLD] == WORLD_TYPED_ROW + 1,
+		"the World row is the directory's only row of its kind")
+	if _ground_piles.bind_stores(_inventory, _buildings, _stock_age) \
+			and _buildings.set_placement_authority(_ground_piles).ok:
+		return
+	_last_refusal = REFUSE_GROUND_PILES_BIND
+	push_error("SettlementSystem could not bind the ground-pile composer")
 
 
 func _bind_seed_expiry_authority() -> void:
@@ -1096,6 +1207,9 @@ func create_generated_settlement(items: ItemDefinitionsScript,
 	     directory allocator. They receive persistent ids 1-12 and Warden Rowan receives 1.
 	  4. PUBLISH THE WORLD from the SAME continuing counter, so the first world entity is 13.
 	     `publish_prepared()` clears and reseeds nothing.
+	  5. MATERIALISE THE STARTER COLONY (INIT-C live apply, decision 0533): the World row, then
+	     §5.9's seven buildings, four rooms and thirty-one furniture, from the same counter AFTER
+	     the world, so R-INIT-ID-001's "first world entity is 13" still holds.
 
 	ALLOCATE BEFORE CONSUME (decision 0059). A populated settlement refuses at step 1 and is
 	byte-identical afterwards, which is how "a refused initialization retains the previous valid
@@ -1113,6 +1227,8 @@ func create_generated_settlement(items: ItemDefinitionsScript,
 	if not planned.ok:
 		return _refuse(planned.error)
 	var cohort: StringName = _refuse_cohort_preflight()
+	if cohort == REFUSE_NONE and not _starter_producer.prepare_into(StarterStructuresScript.Plan.new()):
+		cohort = _starter_producer.last_refusal()
 	if cohort != REFUSE_NONE:
 		_world.discard_prepared_plan()
 		return _refuse(cohort)
@@ -1163,6 +1279,9 @@ func _run_initialization_transaction() -> bool:
 	var published: WorldInitScript.GenerateResult = _world.publish_prepared()
 	if not published.ok:
 		return _abandon_transaction(published.error)
+	var colony: StringName = _materialize_refusal()
+	if colony != REFUSE_NONE:
+		return _abandon_transaction(colony)
 	_last_refusal = REFUSE_NONE
 	return true
 
@@ -1210,6 +1329,80 @@ func create_initial_settlement() -> bool:
 		return false
 	_last_refusal = REFUSE_NONE
 	return true
+
+
+# --- INIT-C live apply: the starter colony (DEMO-CONTAIN-R01 D3, decision 0533) ---------------
+
+func materialize_starter_colony() -> bool:
+	"""Create the World row and §5.9's starter colony in a settlement that has neither. All or nothing.
+
+	THE CREATE BUTTON'S COLONY STEP. Boot runs the same body inside its own transaction, after
+	`publish_prepared()`; UI-SET-103's Create publishes through its own session and calls this
+	afterwards, so both routes place the same rows in the same order. A refusal found by the
+	preflight changes nothing. A refusal after the first write -- unreachable while the preflight
+	holds, because every later door is deterministic over an empty hall -- empties the settlement
+	with its code kept, exactly as a cohort refusal does, rather than leave a partial colony.
+	"""
+	var code: StringName = _materialize_refusal()
+	if code == REFUSE_NONE:
+		_last_refusal = REFUSE_NONE
+		return true
+	if _directory.live_count(EntityDirectoryScript.KIND_WORLD) != 0 \
+			and code != REFUSE_STARTER_COLONY_PRESENT:
+		reset()
+	return _refuse(code)
+
+
+func _materialize_refusal() -> StringName:
+	"""Preflight the plan and the empty site, then write: World row, binding, colony, re-read."""
+	if _buildings.live_building_count() != 0 \
+			or _directory.live_count(EntityDirectoryScript.KIND_WORLD) != 0:
+		return REFUSE_STARTER_COLONY_PRESENT
+	var plan: StarterStructuresScript.Plan = StarterStructuresScript.Plan.new()
+	if not _starter_producer.prepare_into(plan):
+		return _starter_producer.last_refusal()
+	var code: StringName = StarterColonyScript.preflight_refusal(_buildings, plan,
+		STARTER_UNLOCKED_MASK)
+	if code != REFUSE_NONE:
+		return code
+	var world_row: Vector2i = _directory.create(EntityDirectoryScript.KIND_WORLD)
+	if world_row == EntityDirectoryScript.NULL_REF:
+		return _directory.last_refusal()
+	if not _ground_piles.bind_world(world_row):
+		return REFUSE_GROUND_PILE_WORLD_BIND
+	var applied: StarterColonyScript.Applied = StarterColonyScript.Applied.new()
+	code = StarterColonyScript.apply_into(_buildings, plan, STARTER_UNLOCKED_MASK, applied)
+	if code != REFUSE_NONE:
+		return code
+	return StarterColonyScript.plan_mismatch_refusal(_buildings, plan, applied)
+
+
+func starter_store_binding_into(out: StarterColonyScript.StoreBinding) -> bool:
+	"""Answer #7's owners and #3a's anchors for EconomySystem, read back from the live buildings.
+
+	`out` names the hall as the pantry's owner and the four open stockpiles, in plan order, as the
+	material stores' owners, each anchored at its building's origin tile. Refuses -- `out`
+	cleared -- unless that colony is standing. Cold path: it prepares one plan to read the origins.
+	"""
+	var plan: StarterStructuresScript.Plan = StarterStructuresScript.Plan.new()
+	if not _starter_producer.prepare_into(plan):
+		out.clear()
+		return _refuse(_starter_producer.last_refusal())
+	var code: StringName = StarterColonyScript.store_binding_into(_buildings, plan, out)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	return true
+
+
+func world_ref() -> Vector2i:
+	"""The live World directory row, or the null ref before the starter colony is materialised."""
+	return _directory.ref_of_slot(_directory.owner_slot_of_typed_row(
+		EntityDirectoryScript.KIND_WORLD, WORLD_TYPED_ROW))
+
+
+func ground_piles() -> GroundPilesScript:
+	"""Decision 0532's ground-pile composer, bound to this settlement's stores and World row."""
+	return _ground_piles
 
 
 # --- INIT-POSE-R01: the authored starter placement ---------------------------------------------
@@ -1534,6 +1727,7 @@ func _clear_stores() -> void:
 	_world.clear()
 	_buildings.clear()
 	_construction.clear()
+	_admissions.clear()
 	_transforms.reset()
 	_rng.clear()
 
@@ -2600,10 +2794,9 @@ func reservations() -> ReservationsScript:
 func buildings() -> BuildingsScript:
 	"""GDD §4.2's Building, Room and Furniture rows, over THIS settlement's one directory.
 
-	Empty until something places a structure: `world_init.gd` generates terrain and ecology and
-	§5.1 lists no starter building among them, so a generated settlement still has 0 buildings.
-	What the composition buys is that a placement now allocates out of the same allocator every
-	other settlement reference lives in, so a `Furniture.user` can name a resident this store's
+	A generated settlement holds §5.9's starter colony: seven buildings, four rooms and thirty-one
+	furniture (decision 0533). Every placement allocates out of the same allocator every other
+	settlement reference lives in, so a `Furniture.user` can name a resident this store's
 	`residents()` owns and the mask, the tile maps and the directory cannot disagree.
 	"""
 	return _buildings
@@ -2626,7 +2819,7 @@ func construction() -> ConstructionScript:
 	"""REQ-SET-124-128/137's project lifecycle, over THIS settlement's one Building store.
 
 	Empty until something places a blueprint and opens a project: composition is not construction,
-	and `world_init.gd` places no building for one to be opened against. What the composition buys
+	and the starter colony stands ACTIVE with no project behind it. What the composition buys
 	is that `Building.construction` and this store's rows name each other through the same
 	allocator, so a project cannot outlive, or be orphaned by, the building it is building.
 	"""
@@ -2636,16 +2829,33 @@ func construction() -> ConstructionScript:
 # --- REQ-SET-128: the composed demolition gate (INV-GOODS-R01) ---------------------------------
 
 func request_demolition(building_ref: Vector2i) -> DemolitionReport:
-	"""REQ-SET-128 in full: prove the affected endpoints, then recheck goods, claims and occupants.
+	"""REQ-SET-128's composed gate, then blocker 1's *admit*, in one call with no yield.
 
-	CHANGES NOTHING ON ANY PATH. It never calls `construction().open_demolition()`, so no project
-	is published and no building is moved to DEMOLISHING here; what it returns is evidence. The
-	five stages run in the header's order and stop at the first refusal, and the occupant recheck
-	is deliberately AFTER the endpoint proof rather than before it.
+	`preview_demolition()` runs first and decides everything a refusal can depend on in the
+	affected stores. Only when it passes does *admit* run (decision 0534): it proves the store
+	transition, the return's output capacity and the admission record can all be written BEFORE
+	its first write, then reserves the capacity, publishes the demolition project (BUILD-C4-R01's
+	snapshot is taken inside that same write) and advances the building's destination revision.
 
-	`report.ok` would mean every stage passed. It is unreachable while stage 5 refuses, and even
-	then this gate would publish nothing: the hauling, relocation and publication half belongs to
-	the separate containment/evacuation integration.
+	`report.ok` means a demolition project now exists and the building is DEMOLISHING. Every
+	refusal -- the preview's or admit's -- leaves Building, Construction, Inventory, the directory
+	and the admission record byte-identical. Removing the building is D5's composed completion.
+	"""
+	preview_demolition(building_ref)
+	if not _demolition.ok:
+		return _demolition
+	var code: StringName = _admit_demolition(building_ref)
+	_demolition.error = code
+	_demolition.ok = code == REFUSE_NONE
+	return _demolition
+
+
+func preview_demolition(building_ref: Vector2i) -> DemolitionReport:
+	"""REQ-SET-128 in full, read-only: prove the endpoints, then recheck goods, occupants, footprint.
+
+	CHANGES NOTHING ON ANY PATH: the five stages run in the header's order and stop at the first
+	refusal, and the occupant recheck is deliberately AFTER the endpoint proof. `report.ok` here
+	means only that *admit* may run; nothing is published by a preview.
 	"""
 	_demolition.reset()
 	var code: StringName = _refuse_demolition_subject(building_ref)
@@ -2656,7 +2866,7 @@ func request_demolition(building_ref: Vector2i) -> DemolitionReport:
 	if code == REFUSE_NONE:
 		code = _recheck_demolition_residents(building_ref)
 	if code == REFUSE_NONE:
-		code = _footprint_binding_refusal()
+		code = _footprint_containment_refusal(building_ref)
 	_demolition.error = code
 	_demolition.ok = code == REFUSE_NONE
 	return _demolition
@@ -2731,6 +2941,8 @@ func _visit_owner(owner_ref: Vector2i, stage: int) -> StringName:
 		return REFUSE_NONE
 	if not _inventory.containers_by_owner_into(owner_ref, _demolition_pairs, _demolition_read):
 		return REFUSE_DEMOLITION_SCAN  # guard, not a reachable state: see the docstring
+	if stage == ENDPOINT_STAGE_CONTAIN:
+		return _owned_containers_on_footprint(_demolition_read.value)
 	return _accumulate_scanned_containers(_demolition_read.value)
 
 
@@ -2749,6 +2961,8 @@ func _visit_material_container(project_ref: Vector2i, stage: int) -> StringName:
 		return REFUSE_DEMOLITION_MISSING_CONTAINMENT
 	if stage == ENDPOINT_STAGE_PROVE:
 		return REFUSE_NONE
+	if stage == ENDPOINT_STAGE_CONTAIN:
+		return _on_footprint_refusal(handle)
 	return _accumulate_container(handle)
 
 
@@ -2867,24 +3081,334 @@ func _recheck_demolition_residents(building_ref: Vector2i) -> StringName:
 	return REFUSE_NONE
 
 
-func _footprint_binding_refusal() -> StringName:
-	"""Stage 5: refuse until the footprint-containment success path lands (DEMO-CONTAIN-R01 D4).
+func _footprint_containment_refusal(building_ref: Vector2i) -> StringName:
+	"""Stage 5 (DEMO-CONTAIN-R01 #3a/#3c/#5/#7): the owner scan and the tile scan must agree.
 
-	`inventory.gd` now carries a placement anchor per container and publishes the bounded
-	`containers_anchored_in_into()` query (decision 0531), but NOTHING ANCHORS A LIVE CONTAINER YET:
-	the starter stores are rebound and anchored in D3, ground piles arrive in D2, and the owner
-	scan / tile scan agreement this gate needs is D4. Until those land, a ground pile in the
-	doorway or another entity's container inside this footprint is still not provably absent,
-	and the owner scan above proves OWNERSHIP rather than CONTAINMENT.
-
-	Reporting the previous four stages as a pass would therefore report "I looked and found
-	nothing" when the truth is "I cannot see there" -- which is the one confusion INV-GOODS-R01
-	is written to prevent. BLOCKER: the footprint/placement binding owner must publish a
-	container-by-tile (or container-placement) binding before this gate can reach a success, and
-	the relocation half is the separate containment/evacuation integration. No constant, default
-	or allowance is invented here in the meantime.
+	The footprint (door tiles included, #5) is marked by the same call that yields the refund
+	seeds. First every container the owner scan reaches -- the building's, its rooms', its
+	furniture's and their projects', plus each material handle -- must be anchored ON it. Then
+	every container anchored on it must be one of those, or a ground pile, whose lots and claims
+	join the goods totals: an anchored ownerless container refuses (#7), one owned by anybody else
+	refuses as a disagreement, and nothing on the footprint is silently omitted.
 	"""
-	return REFUSE_DEMOLITION_MISSING_CONTAINMENT
+	_demolition_footprint.fill(0)
+	if not _ground_piles.refund_seeds_into(building_ref, _demolition_footprint,
+			_demolition_seeds, _demolition_read):
+		return REFUSE_DEMOLITION_FOOTPRINT
+	_demolition_seed_count = _demolition_read.value
+	var code: StringName = _walk_endpoints(building_ref, ENDPOINT_STAGE_CONTAIN)
+	if code == REFUSE_NONE:
+		code = _scan_footprint_anchors()
+	if code != REFUSE_NONE:
+		return code
+	if _demolition.stranded_lot_count > 0:
+		return REFUSE_DEMOLITION_STORED_GOODS
+	if _demolition.outstanding_reserved_mass_g > 0:
+		return REFUSE_DEMOLITION_CAPACITY_CLAIM
+	return REFUSE_NONE
+
+
+func _owned_containers_on_footprint(pair_count: int) -> StringName:
+	"""Every container the last owner query wrote must be anchored on the footprint."""
+	for index: int in pair_count:
+		var code: StringName = _on_footprint_refusal(Vector2i(_demolition_pairs[index * 2],
+			_demolition_pairs[index * 2 + 1]))
+		if code != REFUSE_NONE:
+			return code
+	return REFUSE_NONE
+
+
+func _on_footprint_refusal(container_ref: Vector2i) -> StringName:
+	"""Refuse an affected container anchored off the footprint or nowhere (#3a, #3c).
+
+	Read through `container_anchor_tile_into()` (decision 0531): its plain twin answers -1 for a
+	stale ref, which would read as "unplaced" when the truth is "no such container".
+	"""
+	if not _inventory.container_anchor_tile_into(container_ref, _demolition_read):
+		return REFUSE_DEMOLITION_MISSING_CONTAINMENT
+	var tile: int = _demolition_read.value
+	if tile != InventoryScript.UNPLACED_TILE and _demolition_footprint[tile] != 0:
+		return REFUSE_NONE
+	_demolition.blocking_container = container_ref
+	return REFUSE_DEMOLITION_OFF_FOOTPRINT
+
+
+func _scan_footprint_anchors() -> StringName:
+	"""The tile scan: classify every container anchored on the footprint."""
+	if not _inventory.containers_anchored_in_into(_demolition_footprint, _demolition_pairs,
+			_demolition_read):
+		return REFUSE_DEMOLITION_SCAN  # guard: the mask and buffer are sized from the store
+	var found: int = _demolition_read.value
+	_demolition.anchored_container_count = found
+	for index: int in found:
+		var code: StringName = _classify_anchored(Vector2i(_demolition_pairs[index * 2],
+			_demolition_pairs[index * 2 + 1]))
+		if code != REFUSE_NONE:
+			return code
+	return REFUSE_NONE
+
+
+func _classify_anchored(container_ref: Vector2i) -> StringName:
+	"""Agreed (seen by the owner scan), a ground pile (counted), or a refusal by name.
+
+	The seen mask was filled by stage 3's scan of exactly the endpoints stage 2 proved, and
+	nothing has written since, so slot equality is container identity here.
+	"""
+	if _demolition_seen[container_ref.x] == 1:
+		return REFUSE_NONE
+	_demolition.blocking_container = container_ref
+	if not InventoryScript.is_well_formed_owner(_inventory.container_owner(container_ref)):
+		return REFUSE_DEMOLITION_ANCHORED_ORPHAN
+	if not _inventory.is_ground_pile(container_ref):
+		return REFUSE_DEMOLITION_FOREIGN_CONTAINER
+	_demolition.blocking_container = InventoryScript.NULL_REF
+	return _accumulate_container(container_ref)
+
+
+# --- blocker 1: *admit* (decision 0534) ---------------------------------------------------------
+
+func _admit_demolition(building_ref: Vector2i) -> StringName:
+	"""Prove every write, then reserve, publish, record and advance -- in that order.
+
+	Every check runs before the first write: the store transition (`demolition_open_refusal()`),
+	the admission record, the open inventory transaction, and the output plan -- a surviving store
+	with room for the whole return, or else a rolled-back ground-pile placement that proves the
+	#9 fallback can take it.
+	"""
+	var code: StringName = _construction.demolition_open_refusal(building_ref)
+	if code == REFUSE_NONE:
+		code = _admissions.admit_refusal(building_ref)
+	if code == REFUSE_NONE and _inventory.is_transaction_open():
+		code = REFUSE_DEMOLITION_TRANSACTION
+	if code == REFUSE_NONE:
+		code = _plan_demolition_output(building_ref)
+	if code != REFUSE_NONE:
+		return code
+	return _commit_demolition_admission(building_ref)
+
+
+func _plan_demolition_output(building_ref: Vector2i) -> StringName:
+	"""Choose where the 50% return goes, writing nothing: one surviving store, else ground piles."""
+	if not _construction.demolition_return_preview_into(building_ref, _demolition_keys,
+			_demolition_milli, _demolition_read):
+		return StringName(_demolition_read.error)
+	var code: StringName = _compile_return_specs(_demolition_read.value)
+	if code != REFUSE_NONE or _demolition_spec_rows == 0:
+		return code
+	var store: Vector2i = _find_output_store(building_ref)
+	if store != InventoryScript.NULL_REF:
+		_demolition.output_container = store
+		return REFUSE_NONE
+	_demolition.output_reserved_g = 0
+	_demolition.output_to_ground_piles = true
+	if _ground_piles.preflight_lots_from_seeds(_demolition_seeds, _demolition_seed_count,
+			_demolition_footprint, _demolition_specs, _demolition_place):
+		return REFUSE_NONE
+	return REFUSE_DEMOLITION_NO_OUTPUT
+
+
+func _compile_return_specs(lines: int) -> StringName:
+	"""Turn the manifest into ground-pile spec rows and total its capacity charge in grams.
+
+	One row per nonzero line, the inventory's unset attributes, age 0: a return is new material.
+	The charge is each line's own `ceil(q * m / 1000)`, which is what one lot of it debits.
+	Resized here, on a cold path, because the placement helper reads every row it is given.
+	"""
+	var rows: int = 0
+	for index: int in lines:
+		rows += 1 if _demolition_milli[index] > 0 else 0
+	_demolition_spec_rows = rows
+	_demolition_specs.resize(rows * GroundPilesScript.SPEC_STRIDE)
+	_demolition_specs.fill(0)
+	_demolition.output_reserved_g = 0
+	var row: int = 0
+	for index: int in lines:
+		if _demolition_milli[index] <= 0:
+			continue
+		var code: StringName = _add_return_spec(row, index)
+		if code != REFUSE_NONE:
+			return code
+		row += 1
+	return REFUSE_NONE
+
+
+func _add_return_spec(row: int, line: int) -> StringName:
+	"""Write one spec row and add its lot's capacity debit to the planned reservation."""
+	var item: int = _item_definitions.compiled_id(
+		ConstructionScript.MATERIAL_KEYS[_demolition_keys[line]])
+	if item < 0 or not _inventory.is_item_registered(item):
+		return REFUSE_DEMOLITION_RETURN_ITEM
+	var base: int = row * GroundPilesScript.SPEC_STRIDE
+	_demolition_specs[base + GroundPilesScript.SPEC_ITEM] = item
+	_demolition_specs[base + GroundPilesScript.SPEC_QUANTITY] = _demolition_milli[line]
+	if not IntMath.inventory_capacity_debit_g_into(_demolition_milli[line],
+			_inventory.item_mass_g(item), _demolition_read):
+		return REFUSE_DEMOLITION_OVERFLOW
+	_demolition.output_reserved_g += _demolition_read.value
+	return REFUSE_NONE
+
+
+func _find_output_store(building_ref: Vector2i) -> Vector2i:
+	"""The lowest-slot surviving store that can take the WHOLE return, or the null ref.
+
+	One bounded anchor query over every tile off this footprint. A candidate is placed, owned by
+	a different ACTIVE building (a DEMOLISHING one's stores are about to go), reachable, not a
+	ground pile (#9's piles are the fallback, never the reservation), admits every returned item
+	and has free capacity for the whole planned charge. Brendan's ruling R1 (decision 0534).
+	"""
+	for tile: int in _demolition_outside.size():
+		_demolition_outside[tile] = 1 - _demolition_footprint[tile]
+	if not _inventory.containers_anchored_in_into(_demolition_outside, _demolition_pairs,
+			_demolition_read):
+		return InventoryScript.NULL_REF
+	for index: int in _demolition_read.value:
+		var candidate: Vector2i = Vector2i(_demolition_pairs[index * 2],
+			_demolition_pairs[index * 2 + 1])
+		if _is_output_store(candidate, building_ref):
+			return candidate
+	return InventoryScript.NULL_REF
+
+
+func _is_output_store(container_ref: Vector2i, building_ref: Vector2i) -> bool:
+	"""Whether one surviving container may hold this demolition's whole return."""
+	var owner_ref: Vector2i = _inventory.container_owner(container_ref)
+	if owner_ref == building_ref or _inventory.is_ground_pile(container_ref):
+		return false
+	if not _directory.is_valid_of_kind(owner_ref, EntityDirectoryScript.KIND_BUILDING):
+		return false
+	if _buildings.state_of_building(owner_ref).value != ConstructionScript.STATE_ACTIVE:
+		return false
+	if not _inventory.container_reachable(container_ref):
+		return false
+	if _inventory.container_free_mass_g(container_ref) < _demolition.output_reserved_g:
+		return false
+	var filters: int = _inventory.container_filters(container_ref)
+	for row: int in _demolition_spec_rows:
+		var item: int = _demolition_specs[row * GroundPilesScript.SPEC_STRIDE]
+		if (filters >> _inventory.item_category(item)) & 1 != 1:
+			return false
+	return true
+
+
+func _commit_demolition_admission(building_ref: Vector2i) -> StringName:
+	"""The writes, after every proof: reserve, publish, commit, record (revision +1).
+
+	Reservation and transition share one inventory transaction, so a transition that still
+	refused rolls the reservation back; the other refusals are guards (`_undo_admission()`).
+	"""
+	var store: Vector2i = _demolition.output_container
+	var grams: int = _demolition.output_reserved_g if store != InventoryScript.NULL_REF else 0
+	_demolition.output_container = InventoryScript.NULL_REF
+	_demolition.output_reserved_g = 0
+	if not _inventory.begin().ok:
+		return REFUSE_DEMOLITION_TRANSACTION
+	if grams > 0 and not _inventory.reserve_container_mass(store, grams).ok:
+		_inventory.abort()
+		return REFUSE_DEMOLITION_NO_OUTPUT
+	var opened: ConstructionScript.OpResult = _construction.open_demolition(building_ref)
+	if not opened.ok:
+		_inventory.abort()
+		return opened.error
+	var committed: InventoryScript.OpResult = _inventory.commit()
+	var code: StringName = committed.error if not committed.ok \
+		else _admissions.record(building_ref, opened.ref, store, grams)
+	if code != REFUSE_NONE:
+		_undo_admission(opened.ref, store, grams if committed.ok else 0)
+		return code
+	_demolition.project_ref = opened.ref
+	_demolition.output_container = store
+	_demolition.output_reserved_g = grams
+	_demolition.destination_revision = _admissions.destination_revision_of(building_ref)
+	return REFUSE_NONE
+
+
+func _undo_admission(project_ref: Vector2i, store: Vector2i, grams: int) -> void:
+	"""Unreachable guard: retire a just-published demolition and release its reservation.
+
+	`close_refund()` on a demolition returns the building to ACTIVE and frees the row; the
+	directory slot's generation has advanced, which is the one trace an allocator must leave.
+	"""
+	var undone: bool = _construction.begin_refund(project_ref).ok \
+		and _construction.close_refund(project_ref).ok
+	if grams > 0:
+		undone = _inventory.release_container_mass(store, grams).ok and undone
+	if not undone:
+		push_error("SettlementSystem: a demolition admission could not be undone (%s)" % project_ref)
+
+
+func cancel_demolition(building_ref: Vector2i) -> StringName:
+	"""Cancel an admitted demolition: release its reserved return capacity, then retire it.
+
+	The release comes FIRST and is the coordinator's, because `construction.close_refund()` sees
+	no inventory and a project retired with its claim still held would strand that headroom
+	(decision 0534, review H1). Every check runs before the first write; the building returns
+	to ACTIVE, the record is cleared and the destination revision advances.
+	"""
+	var project: Vector2i = _construction.project_of_building(building_ref)
+	var code: StringName = _cancel_refusal(building_ref, project)
+	if code != REFUSE_NONE:
+		return code
+	var grams: int = _admissions.unreleased_reserved_g_of(building_ref)
+	var done: bool = grams == 0 or _inventory.release_container_mass(
+		_admissions.unreleased_output_of(building_ref), grams).ok
+	done = _construction.begin_refund(project).ok and done
+	done = _construction.close_refund(project).ok and done
+	if not done:
+		push_error("SettlementSystem: a proved cancellation refused a write (%s)" % project)
+	return _admissions.release(building_ref)
+
+
+func _cancel_refusal(building_ref: Vector2i, project: Vector2i) -> StringName:
+	"""Why `cancel_demolition()` would refuse right now, or REFUSE_NONE. Writes nothing."""
+	if not _construction.purpose_into(project, _demolition_read) \
+			or _demolition_read.value != ConstructionScript.PURPOSE_DEMOLISH:
+		return REFUSE_DEMOLITION_NOT_ADMITTED
+	if not _construction.phase_into(project, _demolition_read) \
+			or _demolition_read.value == ConstructionScript.PHASE_REFUNDING:
+		return REFUSE_DEMOLITION_CANCEL_PHASE
+	if _admissions.project_of(building_ref) != project:
+		return REFUSE_DEMOLITION_NOT_ADMITTED
+	return _claim_release_refusal(building_ref)
+
+
+func _claim_release_refusal(building_ref: Vector2i) -> StringName:
+	"""The shared proof before a recorded claim is released: no caller transaction, claim held.
+
+	Inventory keeps one anonymous `reserved_mass_g` per container, so "held" can only mean the
+	store still carries AT LEAST the recorded grams; whose grams they are is the record's word.
+	"""
+	if _inventory.is_transaction_open():
+		return REFUSE_DEMOLITION_TRANSACTION
+	var grams: int = _admissions.unreleased_reserved_g_of(building_ref)
+	if grams > 0 and _inventory.container_reserved_mass_g(
+			_admissions.unreleased_output_of(building_ref)) < grams:
+		return REFUSE_DEMOLITION_CLAIM_MISSING
+	return _admissions.release_refusal(building_ref)
+
+
+func release_stranded_reservation(building_ref: Vector2i) -> StringName:
+	"""Release a recorded claim whose demolition project is gone without it (review M-A).
+
+	Only a project retired around the coordinator -- a store-level `close_refund()`, or a
+	completion that removed nothing -- leaves one. The record is per Building row, so any live
+	building on that row may ask; the claim is released from the recorded store and the record
+	cleared. Refuses NOT_STRANDED while a project is live (cancel it) or when no claim is recorded.
+	"""
+	if _admissions.project_of(building_ref) != EntityDirectoryScript.NULL_REF \
+			or _admissions.unreleased_reserved_g_of(building_ref) == 0:
+		return REFUSE_DEMOLITION_NOT_STRANDED
+	var code: StringName = _claim_release_refusal(building_ref)
+	if code != REFUSE_NONE:
+		return code
+	if not _inventory.release_container_mass(_admissions.unreleased_output_of(building_ref),
+			_admissions.unreleased_reserved_g_of(building_ref)).ok:
+		push_error("SettlementSystem: a proved stranded release refused (%s)" % building_ref)
+	return _admissions.release(building_ref)
+
+
+func demolition_admissions() -> DemolitionAdmissionsScript:
+	"""The coordinator's admission record and per-building destination revision (decision 0534)."""
+	return _admissions
 
 
 func building_definitions() -> BuildingDefinitionsScript:

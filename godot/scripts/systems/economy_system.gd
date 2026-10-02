@@ -39,17 +39,60 @@ extends Node
 ## whether a hearth burns 4, 2 or 0 wood per day. Building, Room and Weather stores do not exist
 ## in this milestone, so the heating demand has no input at all. Wood stock alone is a numerator
 ## with nothing to divide by.
+##
+## THE STORES ARE OWNED AND PLACED (DEMO-CONTAIN-R01 step D3, decision 0533). Answer #7 retired
+## the two ownerless containers this system used to open in `reset()`. Nothing is opened until
+## `open_starter_stores()` is handed a `StarterColony.StoreBinding` read back from a live
+## settlement's buildings: the pantry is then owned by the GDD §5.9 hall and anchored at the
+## hall's origin tile, and the material store is FOUR containers of 400000 g, each owned by one
+## open stockpile and anchored at its origin tile (#3a; decision 0531's anchor column). Pantry
+## shelves are NOT containers (#3b): the hall-owned pantry holds the four shelves' 200000 g.
+## `inventory.gd` now refuses an ownerless container outright, so there is no fallback store.
+##
+## §5.9's FILL ORDER IS NOW OBSERVABLE, so it is implemented rather than argued away: "all initial
+## items are assigned to legal containers by food first, then item ID, filling container IDs
+## ascending". A deposit fills its legal containers in ascending container order, splitting a
+## lot at the largest quantity whose per-lot ceiling charge still fits, and
+## `seed_initial_inventory()` deposits §5.1's list food first and then by compiled item id.
+##
+## THE STORES LIVE IN THE SETTLEMENT'S `inventory.gd` (decision 0534, closing decision 0087's
+## two-inventory split). `bind_inventory()` ADOPTS a borrowed store -- the settlement's -- before
+## the stores open, so the demolition gate, section 7 and the ground-pile composer see the very
+## lots this system deposits, and one inventory transaction can cover a demolition. The private
+## store remains the default, so a test-built instance touches no autoload state. `reset()` DROPS
+## a borrowed store rather than clearing it: the settlement owns those rows and clears them itself.
+## A store is adopted only when its item registry agrees, id for id, with this system's catalog.
 
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
+const StarterColonyScript := preload("res://scripts/core/starter_colony.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const PerfTimerScript := preload("res://scripts/utils/perf_timer.gd")
 
 ## GDD §5.9 starter fixture: "Four pantry shelves supply 200000g storage" and "Four stockpiles
-## provide 1600000g material storage; starting food fits the pantry."
+## provide 1600000g material storage; starting food fits the pantry." The material store is four
+## containers of BAL-CAT-006's 400000 g `base_store_g`, one per open stockpile.
 const PANTRY_MAX_MASS_G: int = 200000
-const MATERIAL_STORE_MAX_MASS_G: int = 1600000
+const STOCKPILE_COUNT: int = StarterColonyScript.STOCKPILE_COUNT
+const STOCKPILE_MAX_MASS_G: int = 400000
+const MATERIAL_STORE_MAX_MASS_G: int = STOCKPILE_MAX_MASS_G * STOCKPILE_COUNT
+
+## Store index 0 is the pantry; 1..STOCKPILE_COUNT are the stockpiles in plan order, which is the
+## order they are created in and therefore ascending container order.
+const PANTRY_STORE: int = 0
+const FIRST_STOCKPILE_STORE: int = 1
+const STORE_COUNT: int = FIRST_STOCKPILE_STORE + STOCKPILE_COUNT
+
+## GDD §5.1 initial inventory, in whole catalog units, copied verbatim from the specification line
+## "Initial inventory U: wood 180, stone 100, ...". Moved here from `main.gd` so boot and Create
+## seed one list; `seed_initial_inventory()` deposits it in §5.9's fill order, not in this order.
+const INITIAL_INVENTORY_U: Dictionary = {
+	&"wood": 180, &"stone": 100, &"iron": 20, &"rope": 20, &"tool": 24, &"cloth": 24,
+	&"water": 60, &"grain": 80, &"roots": 80, &"berries": 40, &"nuts": 40, &"dried_fish": 60,
+	&"ration": 60, &"seed_grain": 32, &"seed_roots": 32, &"seed_beans": 16,
+	&"seed_cabbage": 16, &"seed_flax": 16, &"herb": 12, &"compost": 32,
+}
 
 ## Category routing. Food, drink and seed stock go to the pantry; everything else to the
 ## material store. The filters are installed on the containers themselves, so the routing is
@@ -72,6 +115,11 @@ const REFUSE_NONE: StringName = &""
 const REFUSE_CATALOG_UNAVAILABLE: StringName = &"CATALOG_UNAVAILABLE"
 const REFUSE_NO_ELIGIBLE_STORE: StringName = &"NO_ELIGIBLE_STORE"
 const REFUSE_NO_RESIDENT_STORE: StringName = &"NO_RESIDENT_STORE"
+const REFUSE_STORES_NOT_OPEN: StringName = &"STORES_NOT_OPEN"
+const REFUSE_STORES_ALREADY_OPEN: StringName = &"STORES_ALREADY_OPEN"
+const REFUSE_INVALID_STORE_BINDING: StringName = &"INVALID_STORE_BINDING"
+const REFUSE_INVALID_INVENTORY: StringName = &"INVALID_INVENTORY_BINDING"
+const REFUSE_INVENTORY_CATALOG_MISMATCH: StringName = &"INVENTORY_CATALOG_MISMATCH"
 
 ## GDD §5.8 displays food-days to two decimals, so the integer figure is carried in hundredths.
 const FOOD_DAYS_SCALE: int = 100
@@ -88,10 +136,16 @@ const FUEL_DAYS_MISSING_INPUT: String = (
 signal stocks_changed()
 signal stock_depleted(item_key: StringName)
 
-var _inventory: InventoryScript = InventoryScript.new()
+## The private store, and the one in use: `_inventory` is either this or a borrowed store.
+var _own_inventory: InventoryScript = InventoryScript.new()
+var _inventory: InventoryScript = _own_inventory
+var _borrowed: bool = false
 var _definitions: ItemDefinitionsScript = ItemDefinitionsScript.new()
-var _pantry: Vector2i = InventoryScript.NULL_REF
-var _material_store: Vector2i = InventoryScript.NULL_REF
+## The open stores as slot/generation columns, sized STORE_COUNT once; `_store_count` is 0 while
+## closed and STORE_COUNT once `open_starter_stores()` has succeeded.
+var _store_slot: PackedInt32Array = PackedInt32Array()
+var _store_generation: PackedInt32Array = PackedInt32Array()
+var _store_count: int = 0
 var _pantry_filters: int = 0
 var _material_filters: int = 0
 var _ready_nutrition_points: int = 0
@@ -103,7 +157,9 @@ var _timer: PerfTimerScript = PerfTimerScript.new()
 
 
 func _init() -> void:
-	"""Load the catalog and open the starting stores so autoload and test instances match."""
+	"""Size the store columns and load the catalog; the stores stay closed until bound."""
+	_store_slot.resize(STORE_COUNT)
+	_store_generation.resize(STORE_COUNT)
 	reset()
 
 
@@ -115,7 +171,7 @@ func _ready() -> void:
 
 
 func reset(catalog_path: String = ItemDefinitionsScript.DEFAULT_JSON_PATH) -> void:
-	"""Empty every store, reload the catalog, and reopen the starting containers.
+	"""Empty every store, reload the catalog, and leave the stores CLOSED until rebound.
 
 	The residents binding is dropped too. It is a borrowed store belonging to the scene that
 	supplied it, and a reset that kept it would divide the reloaded (empty) stores by the
@@ -123,37 +179,81 @@ func reset(catalog_path: String = ItemDefinitionsScript.DEFAULT_JSON_PATH) -> vo
 
 	`catalog_path` exists so a test can open the stores against a fixture catalog; production
 	callers pass nothing and get the authoritative res://data/item_definitions.json.
+
+	THE STORES ARE NOT REOPENED. Their owners are the previous settlement's buildings, so a reset
+	that reopened them would mint containers for rows that may no longer exist; the next
+	`open_starter_stores()` binds them to whichever settlement the caller composes next.
+
+	A BORROWED STORE IS DROPPED, NEVER CLEARED (decision 0087): the private store is reloaded.
 	"""
+	_inventory = _own_inventory
+	_borrowed = false
 	_inventory.clear()
 	_definitions = ItemDefinitionsScript.new()
-	_pantry = InventoryScript.NULL_REF
-	_material_store = InventoryScript.NULL_REF
+	_close_stores()
 	_last_refusal = REFUSE_NONE
 	_residents = null
 	var load_result: ItemDefinitionsScript.LoadResult = _definitions.load_from_file(
 		catalog_path, _inventory)
 	_catalog_error = load_result.error
 	if load_result.ok:
-		_open_stores()
+		_compose_filters()
 	_recompute_summary()
 
 
-func _open_stores() -> void:
-	"""Create the pantry and material store with their GDD §5.9 masses and category filters."""
+func bind_inventory(store: InventoryScript) -> bool:
+	"""Adopt `store` -- the settlement's -- as the lot store, before the stores open (decision 0534).
+
+	Refuses STORES_ALREADY_OPEN once opened (call `reset()` first), INVALID_INVENTORY_BINDING for
+	null, CATALOG_UNAVAILABLE without a routable catalog, and INVENTORY_CATALOG_MISMATCH unless
+	every item id registers identically -- presence, mass and category -- in both stores, so a
+	compiled id here always names the same item there. Binding the private store unbinds.
+	"""
+	if _store_count != 0:
+		return _refuse(REFUSE_STORES_ALREADY_OPEN)
+	if store == null:
+		return _refuse(REFUSE_INVALID_INVENTORY)
+	if _catalog_error != "":
+		return _refuse(REFUSE_CATALOG_UNAVAILABLE)
+	if not _registry_agrees(store):
+		return _refuse(REFUSE_INVENTORY_CATALOG_MISMATCH)
+	_inventory = store
+	_borrowed = store != _own_inventory
+	_last_refusal = REFUSE_NONE
+	_recompute_summary()
+	return true
+
+
+func _registry_agrees(store: InventoryScript) -> bool:
+	"""True when every item id registers identically in `store` and in the private store."""
+	for item_id: int in InventoryScript.ITEM_CAPACITY:
+		var registered: bool = _own_inventory.is_item_registered(item_id)
+		if store.is_item_registered(item_id) != registered:
+			return false
+		if registered and (store.item_mass_g(item_id) != _own_inventory.item_mass_g(item_id)
+				or store.item_category(item_id) != _own_inventory.item_category(item_id)):
+			return false
+	return true
+
+
+func is_inventory_borrowed() -> bool:
+	"""True while a borrowed store -- the settlement's -- is adopted."""
+	return _borrowed
+
+
+func _close_stores() -> void:
+	"""Forget every store ref. The rows themselves went with `inventory.clear()`."""
+	_store_slot.fill(InventoryScript.NULL_SLOT)
+	_store_generation.fill(InventoryScript.NULL_GENERATION)
+	_store_count = 0
+
+
+func _compose_filters() -> void:
+	"""Compile the two category filters, or record why the catalog cannot route stock."""
 	_pantry_filters = _filters_for(PANTRY_CATEGORIES)
 	_material_filters = _filters_for(MATERIAL_CATEGORIES)
 	if _pantry_filters == 0 or _material_filters == 0:
 		_catalog_error = "category domain missing a routed category"
-		return
-	var pantry_result: InventoryScript.OpResult = _inventory.create_container(
-		InventoryScript.NULL_REF, PANTRY_MAX_MASS_G, _pantry_filters, InventoryScript.UNSET_POLICY, true)
-	var store: InventoryScript.OpResult = _inventory.create_container(
-		InventoryScript.NULL_REF, MATERIAL_STORE_MAX_MASS_G, _material_filters, InventoryScript.UNSET_POLICY, true)
-	if not pantry_result.ok or not store.ok:
-		_catalog_error = "store creation refused"
-		return
-	_pantry = pantry_result.ref
-	_material_store = store.ref
 
 
 func _filters_for(category_names: Array[StringName]) -> int:
@@ -167,55 +267,211 @@ func _filters_for(category_names: Array[StringName]) -> int:
 	return mask
 
 
-func deposit(item_key: StringName, quantity_milli: int) -> bool:
-	"""Introduce quantity of a catalog item into its store. All-or-nothing; false on refusal.
+func open_starter_stores(binding: StarterColonyScript.StoreBinding) -> bool:
+	"""Open the GDD §5.9 pantry and four stockpiles, owned and anchored as `binding` says.
 
-	Merges into an existing identical stack when one is present, so repeated deposits do not
-	consume a lot row each time.
+	All five containers are created in ONE inventory transaction -- the pantry first, then the
+	stockpiles in the binding's (plan) order -- so a refusal leaves the stores closed and the
+	inventory byte-identical. Refuses CATALOG_UNAVAILABLE without a routable catalog,
+	STORES_ALREADY_OPEN when bound already (call `reset()` first), and INVALID_STORE_BINDING for a
+	null or incomplete binding; Inventory's own refusals pass through, NESTED_TRANSACTION among
+	them when a caller holds a transaction open on `inventory()`.
+	"""
+	if _catalog_error != "":
+		return _refuse(REFUSE_CATALOG_UNAVAILABLE)
+	if _store_count != 0:
+		return _refuse(REFUSE_STORES_ALREADY_OPEN)
+	if binding == null or not binding.is_complete():
+		return _refuse(REFUSE_INVALID_STORE_BINDING)
+	var opened: InventoryScript.OpResult = _inventory.begin()
+	if not opened.ok:
+		return _refuse(opened.error)
+	var code: StringName = _create_store(PANTRY_STORE, binding.pantry_owner, PANTRY_MAX_MASS_G,
+		_pantry_filters, binding.pantry_anchor_tile)
+	for index: int in STOCKPILE_COUNT:
+		if code == REFUSE_NONE:
+			code = _create_store(FIRST_STOCKPILE_STORE + index, binding.stockpile_owner(index),
+				STOCKPILE_MAX_MASS_G, _material_filters, binding.stockpile_anchor_tile[index])
+	if code != REFUSE_NONE:
+		_inventory.abort()
+		_close_stores()
+		return _refuse(code)
+	var commit: InventoryScript.OpResult = _inventory.commit()
+	if not commit.ok:
+		_close_stores()
+		return _refuse(commit.error)
+	_store_count = STORE_COUNT
+	_last_refusal = REFUSE_NONE
+	_recompute_summary()
+	return true
+
+
+func _create_store(index: int, owner_ref: Vector2i, max_mass_g: int, filters: int,
+		anchor_tile: int) -> StringName:
+	"""Create one owned, anchored, reachable store into column `index`; its refusal or none."""
+	var made: InventoryScript.OpResult = _inventory.create_container(owner_ref, max_mass_g,
+		filters, InventoryScript.UNSET_POLICY, true, anchor_tile)
+	if not made.ok:
+		return made.error
+	_store_slot[index] = made.ref.x
+	_store_generation[index] = made.ref.y
+	return REFUSE_NONE
+
+
+func open_and_seed_starter_stores(binding: StarterColonyScript.StoreBinding) -> bool:
+	"""Boot's and Create's one entry: open the stores on `binding`, then seed §5.1's inventory.
+
+	False, with the refusal in `last_refusal()`, when either step refuses.
+	"""
+	return open_starter_stores(binding) and seed_initial_inventory()
+
+
+func seed_initial_inventory() -> bool:
+	"""Deposit GDD §5.1's initial inventory in §5.9's order: food first, then item ID.
+
+	Each deposit then fills its legal containers in ascending container order. Stops at the first
+	refusal and returns false with that refusal in `last_refusal()`; the deposits before it stay,
+	exactly as a caller depositing them one by one would see.
+	"""
+	var keys: Array[StringName] = []
+	keys.assign(INITIAL_INVENTORY_U.keys())
+	keys.sort_custom(_fills_before)
+	for item_key: StringName in keys:
+		if not deposit(item_key, int(INITIAL_INVENTORY_U[item_key]) * InventoryScript.MILLI_PER_UNIT):
+			return false
+	return true
+
+
+func _fills_before(a: StringName, b: StringName) -> bool:
+	"""§5.9's "food first, then item ID": pantry-routed items first, then ascending compiled id.
+
+	"Food" is read as the pantry's routing -- food, drink and seed stock alike -- because that is
+	the store §5.9 fills first. It does not make seed stock food (REQ-SET-013); nutrition never
+	reads this order. Pantry and material routes are disjoint today, so this clause cannot move a
+	lot yet; the item-id clause decides which stockpile each material fills.
+	"""
+	var a_id: int = _definitions.compiled_id(a)
+	var b_id: int = _definitions.compiled_id(b)
+	var a_food: bool = _routes_to_pantry(a_id)
+	if a_food != _routes_to_pantry(b_id):
+		return a_food
+	return a_id < b_id
+
+
+func _routes_to_pantry(item_id: int) -> bool:
+	"""True when the item's category routes it to the pantry. Ordering only; not "is food"."""
+	var category: int = _inventory.item_category(item_id) if item_id >= 0 else -1
+	return category >= 0 and (_pantry_filters >> category) & 1 == 1
+
+
+func deposit(item_key: StringName, quantity_milli: int) -> bool:
+	"""Introduce quantity of a catalog item into its stores. All-or-nothing; false on refusal.
+
+	GDD §5.9's fill order: the item's legal containers are filled in ascending container order,
+	each taking the largest part whose per-lot ceiling charge still fits, and a part merges into
+	an identical bare stack already in that container. Nothing is written unless every
+	milli-unit found a place; otherwise CAPACITY_EXCEEDED, with the stores unchanged.
 	"""
 	var item_id: int = _resolve(item_key)
 	if item_id < 0:
 		return false
 	if quantity_milli <= 0:
 		return _refuse(InventoryScript.REFUSE_INVALID_QUANTITY)
-	var container: Vector2i = _store_for(item_id)
-	if container == InventoryScript.NULL_REF:
+	if _store_count == 0:
+		return _refuse(REFUSE_STORES_NOT_OPEN)
+	var route: Vector2i = _route_of(item_id)
+	if route.x == route.y:
 		return _refuse(REFUSE_NO_ELIGIBLE_STORE)
 	var before: int = _inventory.total_live_milli(item_id)
-	if not _commit_deposit(container, item_id, quantity_milli):
+	if not _commit_deposit(route, item_id, quantity_milli):
 		return false
 	_publish(item_key, before, _inventory.total_live_milli(item_id))
 	return true
 
 
-func _commit_deposit(container: Vector2i, item_id: int, quantity_milli: int) -> bool:
-	"""Run one deposit inside a transaction so a refused merge rolls the new lot back too."""
-	var target: Vector2i = _find_stack(container, item_id)
-	_inventory.begin()
-	var created: InventoryScript.OpResult = _inventory.create_lot(
-		container, item_id, quantity_milli, UNSET_QUALITY, UNSET_PROVENANCE, NO_RECIPE,
-		FRESH_AGE_MILLI_HOURS, FRESH_AGE_REMAINDER)
-	if created.ok and target != InventoryScript.NULL_REF:
-		_inventory.merge_lots(target, created.ref)
+func _commit_deposit(route: Vector2i, item_id: int, quantity_milli: int) -> bool:
+	"""Place the whole quantity across `route`'s stores inside ONE transaction, or none of it.
+
+	A transaction a caller already holds on `inventory()` refuses NESTED_TRANSACTION here rather
+	than being joined: this operation's own commit or abort must never close someone else's.
+	"""
+	var opened: InventoryScript.OpResult = _inventory.begin()
+	if not opened.ok:
+		return _refuse(opened.error)
+	var remaining: int = quantity_milli
+	var code: StringName = REFUSE_NONE
+	for index: int in range(route.x, route.y):
+		if remaining == 0 or code != REFUSE_NONE:
+			break
+		var container: Vector2i = _store(index)
+		var part: int = _fitting_milli(container, item_id, remaining)
+		if part > 0:
+			code = _deposit_part(container, item_id, part)
+			remaining -= part
+	if code == REFUSE_NONE and remaining > 0:
+		code = InventoryScript.REFUSE_CAPACITY_EXCEEDED
+	if code != REFUSE_NONE:
+		_inventory.abort()
+		return _refuse(code)
 	var commit: InventoryScript.OpResult = _inventory.commit()
 	if not commit.ok:
 		return _refuse(commit.error)
 	return true
 
 
+func _deposit_part(container: Vector2i, item_id: int, quantity_milli: int) -> StringName:
+	"""Create one bare lot in `container` and merge it into an identical stack when one exists."""
+	var target: Vector2i = _find_stack(container, item_id)
+	var created: InventoryScript.OpResult = _inventory.create_lot(
+		container, item_id, quantity_milli, UNSET_QUALITY, UNSET_PROVENANCE, NO_RECIPE,
+		FRESH_AGE_MILLI_HOURS, FRESH_AGE_REMAINDER)
+	if not created.ok:
+		return created.error
+	if target == InventoryScript.NULL_REF:
+		return REFUSE_NONE
+	return _inventory.merge_lots(target, created.ref).error
+
+
+func _fitting_milli(container: Vector2i, item_id: int, remaining: int) -> int:
+	"""The most of `remaining` one new lot can carry into `container`.
+
+	A lot charges `ceil(q*m/1000)` grams, which fits `free` exactly when `q*m <= free*1000`, so
+	the largest quantity is `floor(free*1000/m)` -- the same split `ground_piles.gd` uses. A merge
+	never charges more than the two lots did apart, because the ceiling of a sum is at most the
+	sum of the ceilings. A full or over-claimed store answers 0 or less, and the caller skips it.
+	"""
+	var free_g: int = _inventory.container_max_mass_g(container) \
+		- _inventory.container_used_mass_g(container) \
+		- _inventory.container_reserved_mass_g(container)
+	var mass_g: int = _inventory.item_mass_g(item_id)
+	if mass_g <= 0:
+		return remaining
+	@warning_ignore("integer_division")
+	var fits: int = free_g * InventoryScript.MILLI_PER_UNIT / mass_g
+	return mini(remaining, fits)
+
+
 func withdraw(item_key: StringName, quantity_milli: int) -> bool:
-	"""Consume unreserved quantity of a catalog item. All-or-nothing; false on refusal."""
+	"""Consume unreserved quantity of a catalog item. All-or-nothing; false on refusal.
+
+	Draws from the pantry first and then the stockpiles in ascending container order.
+	"""
 	var item_id: int = _resolve(item_key)
 	if item_id < 0:
 		return false
 	if quantity_milli <= 0:
 		return _refuse(InventoryScript.REFUSE_INVALID_QUANTITY)
+	if _store_count == 0:
+		return _refuse(REFUSE_STORES_NOT_OPEN)
 	var before: int = _inventory.total_live_milli(item_id)
 	if available_milli(item_key) < quantity_milli:
 		return _refuse(InventoryScript.REFUSE_INSUFFICIENT_UNRESERVED)
-	_inventory.begin()
-	var remaining: int = _sink_from(_pantry, item_id, quantity_milli)
-	remaining = _sink_from(_material_store, item_id, remaining)
+	var opened: InventoryScript.OpResult = _inventory.begin()
+	if not opened.ok:
+		return _refuse(opened.error)
+	var remaining: int = quantity_milli
+	for index: int in _store_count:
+		remaining = _sink_from(_store(index), item_id, remaining)
 	if remaining > 0:
 		_inventory.abort()
 		return _refuse(InventoryScript.REFUSE_INSUFFICIENT_UNRESERVED)
@@ -261,7 +517,10 @@ func available_milli(item_key: StringName) -> int:
 	var item_id: int = _definitions.compiled_id(item_key)
 	if item_id < 0:
 		return 0
-	return _available_in(_pantry, item_id) + _available_in(_material_store, item_id)
+	var total: int = 0
+	for index: int in _store_count:
+		total += _available_in(_store(index), item_id)
+	return total
 
 
 func _available_in(container: Vector2i, item_id: int) -> int:
@@ -385,8 +644,8 @@ func _recompute_summary() -> void:
 	"""Walk every lot once and re-derive ready nutrition points, timed against the budget."""
 	_timer.start()
 	var total: int = 0
-	total += _ready_nutrition_in(_pantry)
-	total += _ready_nutrition_in(_material_store)
+	for index: int in _store_count:
+		total += _ready_nutrition_in(_store(index))
 	_ready_nutrition_points = total
 	_timer.stop()
 
@@ -434,13 +693,33 @@ func store_used_mass_g(container: Vector2i) -> int:
 
 
 func pantry() -> Vector2i:
-	"""Ref of the food store (GDD §5.9 pantry)."""
-	return _pantry
+	"""Ref of the hall-owned food store (GDD §5.9 pantry), or the null ref while closed."""
+	return _store(PANTRY_STORE) if _store_count != 0 else InventoryScript.NULL_REF
 
 
-func material_store() -> Vector2i:
-	"""Ref of the material store (GDD §5.9 stockpiles)."""
-	return _material_store
+func stockpile(index: int) -> Vector2i:
+	"""Ref of material store `index` (0..3, plan order), or the null ref while closed."""
+	if _store_count == 0 or index < 0 or index >= STOCKPILE_COUNT:
+		return InventoryScript.NULL_REF
+	return _store(FIRST_STOCKPILE_STORE + index)
+
+
+func stores_open() -> bool:
+	"""True once `open_starter_stores()` has bound the pantry and the four stockpiles."""
+	return _store_count != 0
+
+
+func material_used_mass_g() -> int:
+	"""Grams occupied across the four stockpiles, 0 while closed."""
+	var total: int = 0
+	for index: int in range(FIRST_STOCKPILE_STORE, _store_count):
+		total += _inventory.container_used_mass_g(_store(index))
+	return total
+
+
+func _store(index: int) -> Vector2i:
+	"""Store column `index` as a ref. Callers bound `index` by `_store_count`."""
+	return Vector2i(_store_slot[index], _store_generation[index])
 
 
 func inventory() -> InventoryScript:
@@ -490,16 +769,16 @@ func _resolve(item_key: StringName) -> int:
 	return item_id
 
 
-func _store_for(item_id: int) -> Vector2i:
-	"""The container whose filter admits this item, or NULL_REF when neither does."""
+func _route_of(item_id: int) -> Vector2i:
+	"""The half-open store index range whose filter admits this item; empty when none does."""
 	var category: int = _inventory.item_category(item_id)
 	if category < 0:
-		return InventoryScript.NULL_REF
+		return Vector2i.ZERO
 	if (_pantry_filters >> category) & 1 == 1:
-		return _pantry
+		return Vector2i(PANTRY_STORE, FIRST_STOCKPILE_STORE)
 	if (_material_filters >> category) & 1 == 1:
-		return _material_store
-	return InventoryScript.NULL_REF
+		return Vector2i(FIRST_STOCKPILE_STORE, STORE_COUNT)
+	return Vector2i.ZERO
 
 
 func _find_stack(container: Vector2i, item_id: int) -> Vector2i:

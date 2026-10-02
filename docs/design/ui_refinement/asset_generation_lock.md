@@ -2,7 +2,8 @@
 
 2026-09-11 · SET-UX-VIS-002 revision3 · ART-LOCK-001.
 **Sixteen asset identities and production directions settled by Astra as design lead.
-Direct-reference use USER_CONFIRMED under DEC-036. Paid generation NOT APPROVED.**
+Direct-reference use USER_CONFIRMED under DEC-036. Paid generation is BY REQUEST: allowed
+once Brendan approves an itemised, costed request (decision 0961).**
 
 This answers the seven questions and incorporates Brendan's correction. It
 refines ART-UI-03–08/11; functional UI tokens, layout and gameplay stay unchanged.
@@ -200,7 +201,9 @@ units, actual price and balance are not verified here. This message approves
 reference use and supplies design decisions, **not** that quote or any paid call.
 Keep the lead-only itemized-spending process in `docs/design/paid_asset_process.md`.
 Prepare references/prompts/sheets and other independent work now; paid generation
-requires Brendan's explicit approval of the relevant itemized tier.
+requires Brendan's explicit approval of the relevant itemized tier. Paid generation is not
+blocked by this lock: present the itemised, costed request and proceed once he approves it
+(decision 0961; first approved 2026-10-01 for the new-foods art pass).
 
 ## Exact next handoff
 

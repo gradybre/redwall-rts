@@ -690,3 +690,34 @@ func test_piles_round_trip_through_section_7_and_the_map_is_rebuilt() -> void:
 		assert_equal(restored.container_max_mass_g(pile), 400000, "400000 g")
 	assert_true(restored.audit().ok, "the restored store audits")
 	assert_equal(_encoded(restored), bytes, "save -> load -> save is byte-identical")
+
+
+# --- decision 0533: the composer as Buildings' placement authority (0532's M4) ------------------
+
+func test_the_composer_refuses_a_footprint_tile_that_holds_a_live_pile() -> void:
+	"""`building_tile_refusal()`: a pile tile refuses by name, a clear tile does not."""
+	assert_true(_place(_tile(40, 40), _spec(ITEM_STONE, 1000)), _out.error)
+	assert_equal(_piles.building_tile_refusal(_tile(40, 40)), GroundPilesScript.REFUSE_BUILDING_OVER_PILE,
+		"the pile tile is refused")
+	assert_equal(_piles.building_tile_refusal(_tile(41, 40)), GroundPilesScript.REFUSE_NONE,
+		"its neighbour is not")
+	assert_equal(GroundPilesScript.new().building_tile_refusal(_tile(41, 40)),
+		GroundPilesScript.REFUSE_NOT_BOUND, "an unbound composer waves nothing through")
+
+
+func test_bound_as_placement_authority_the_composer_stops_a_building_over_a_pile() -> void:
+	"""Bound through `set_placement_authority()`, every footprint tile is shown to the composer."""
+	assert_true(_place(_tile(40, 40), _spec(ITEM_STONE, 1000)), _out.error)
+	var well: int = int(Catalog.BUILDING_DEFINITION["well"])
+	assert_true(_buildings.set_placement_authority(_piles).ok, "the composer binds")
+	var refused: BuildingsScript.OpResult = _buildings.place_building(well, _tile(39, 39), 0,
+		START_MASK)
+	assert_equal(refused.error, GroundPilesScript.REFUSE_BUILDING_OVER_PILE,
+		"the well's far corner covers the pile")
+	assert_equal(_buildings.live_building_count(), 0, "and nothing was placed")
+	assert_true(_buildings.place_building(well, _tile(42, 40), 0, START_MASK).ok,
+		"the tile beside the pile is free")
+	assert_true(_buildings.set_placement_authority(null).ok, "unbinding is allowed")
+	assert_false(_buildings.has_placement_authority(), "and leaves no authority")
+	assert_true(_buildings.place_building(well, _tile(39, 39), 0, START_MASK).ok,
+		"an unguarded store places over the pile, which is why the settlement binds it")

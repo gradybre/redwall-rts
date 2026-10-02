@@ -11,8 +11,12 @@ not charged by us but are covered by step 1 anyway because tool choice is the de
 ## The rule
 
 **No tool that spends credits is called until Brendan has approved a specific,
-itemised list.** A subagent can never call one: subagents run unattended and cannot
-obtain consent, so their briefs say "forbidden" and the decision stays with the lead.
+itemised list with a credit cap.** The lead asks; a subagent never asks Brendan or
+widens the list itself. Once he has approved the list and the cap, the lead may hand
+those exact calls to a subagent, whose brief names the approved items, the hard cap and
+a balance check before and after each group; it stops at the cap and reports. Without
+such an approval in its brief, a subagent's paid calls stay forbidden. (Decision 0961,
+Brendan 2026-10-01.)
 This is not a judgement call an agent gets to make on cost grounds.
 
 ## Step 1 — Establish tool fit before asking for anything

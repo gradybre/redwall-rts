@@ -47,6 +47,12 @@ extends RefCounted
 ##     segment, measured in half tiles; ties go to the lower tile index.
 ## The search is one breadth-first walk seeded with every eligible start tile in that order.
 ##
+## BUILDINGS' PLACEMENT AUTHORITY (decision 0533, closing decision 0532's M4). `settlement_system.gd`
+## binds this composer with `buildings.set_placement_authority()`, and `building_tile_refusal()`
+## then refuses every footprint tile that carries a live pile, BUILDING_FOOTPRINT_OVER_GROUND_PILE.
+## Moving the pile out of the way is evacuation (D6); this only refuses. `bind_stores()` does not
+## make that binding itself, so a composer built for a test leaves its Buildings store unguarded.
+##
 ## STORAGE CLASS 1500. After the transaction commits, every pile on a visited tile that is not
 ## yet declared is declared STORAGE_OPEN_PILE (§5.8 factor 1500). Only after the commit, because
 ## a rolled-back pile's slot comes back with the same generation and would inherit a stale
@@ -97,6 +103,8 @@ const REFUSE_STALE_BUILDING: StringName = &"GROUND_PILE_STALE_BUILDING"
 const REFUSE_DOOR_OFF_GRID: StringName = &"GROUND_PILE_DOOR_OFF_GRID"
 const REFUSE_SEED_SHAPE: StringName = &"GROUND_PILE_START_TILES_SHAPE"
 const REFUSE_DECLARE: StringName = &"GROUND_PILE_STORAGE_CLASS_REFUSED"
+## Decision 0532's M4, refused by name: a building footprint may not cover a live ground pile.
+const REFUSE_BUILDING_OVER_PILE: StringName = &"BUILDING_FOOTPRINT_OVER_GROUND_PILE"
 
 ## N, E, S, W as (dx, dz) on the `z*128+x` grid. N is -Z.
 const NEIGHBOUR_DX: Array[int] = [0, 1, 0, -1]
@@ -233,6 +241,19 @@ func _footprint_refusal(tile: int) -> StringName:
 	if state.ok and state.value == Catalog.BUILDING_STATE["DEMOLISHING"]:
 		return REFUSE_DEMOLISHING_FOOTPRINT
 	return REFUSE_INACCESSIBLE_FOOTPRINT
+
+
+func building_tile_refusal(tile: int) -> StringName:
+	"""Buildings' placement authority: refuse a footprint tile that carries a live ground pile.
+
+	REFUSE_NOT_BOUND before `bind_stores()`, because an authority that cannot see the piles must
+	not wave a footprint through. Reads one cell of Inventory's derived tile -> pile map.
+	"""
+	if _inventory == null:
+		return REFUSE_NOT_BOUND
+	if _inventory.ground_pile_at_tile(tile) != InventoryScript.NULL_REF:
+		return REFUSE_BUILDING_OVER_PILE
+	return REFUSE_NONE
 
 
 func is_tile_passable(tile: int) -> bool:

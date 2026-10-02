@@ -43,7 +43,8 @@ extends RefCounted
 ## PANTRY-005). The demo uses the leaf IDENTITY and label as a presentation name, takes every
 ## number from §5.6/§5.7, and shows library dishes only as candidates (pantry_index.json).
 ##
-## BEDS. The six world crop beds (world/world_layout.gd CROPS), one FarmPlot row each. §5.1's soil
+## BEDS. The six world crop beds (world/world_layout.gd CROPS), the south field's six (decision 0886) and the kitchen
+## garden's four sites (decision 0883), one FarmPlot row each. §5.1's soil
 ## bands belong to the unbuilt world generator, so each bed's soil is a DEMO value, varied so the
 ## soil filter means something: sand refuses the loam/clay rows, clay refuses roots.
 
@@ -65,6 +66,8 @@ const ITEM_KEYS: Array[StringName] = [
 	&"wheat", &"barley", &"oats",
 	&"trout", &"dace", &"salmon", &"perch", &"carp", &"whitefish",
 	&"dried_fish", &"flour",
+	&"potato", &"honey",
+	&"nuts", &"mushrooms", &"herb", &"berries",
 ]
 const ITEM_LABELS: Array[String] = [
 	"Radish", "Turnip", "Carrot", "Beetroot", "Parsnip", "Onion",
@@ -73,6 +76,8 @@ const ITEM_LABELS: Array[String] = [
 	"Wheat", "Barley", "Oats",
 	"Trout", "Dace", "Salmon", "Perch", "Carp", "Whitefish",
 	"Dried fish", "Flour",
+	"Potato", "Honey",
+	"Nuts", "Mushrooms", "Herbs", "Berries",
 ]
 const ITEM_LEAVES: Array[String] = [
 	"LEAF_radish", "LEAF_turnip", "LEAF_carrot", "LEAF_beetroot", "LEAF_parsnip", "LEAF_onion",
@@ -101,17 +106,49 @@ const ITEM_COUNT: int = 16
 ##   * flour, §5.7's `flour` output: "Grain/flour | 1200 | No | 720/240" -- 240 h, not eaten raw.
 ## Their CATEGORY (what a recipe asks for) extends the §5.6 crop rows past FarmingScript's five: CAT_FISH is §5.7's
 ## `fish` selector over the species (BAL-CAT-004), CAT_DRIED_FISH and CAT_FLOUR their own items.
-const PANTRY_ITEM_COUNT: int = 24
+##   * potato and honey (decision 0603, DEC-045): ingredients of the kitchen's dishes that the demo has NO SOURCE for
+##     yet -- defined so a dish can name them and a source lane can fill them. Potato (pantry LEAF_potato) is a tuber,
+##     so it is in the §5.6 roots row, as the onion is (240 h; the GDD's roots are raw-edible -- the crops lane plants it
+##     and may revisit that); honey (LEAF_honey) is §5.7's `Honey | 1200 | Yes | 1440` (CAT_HONEY), the hives' output.
+## THE WOODS' FORAGE (decision 0681, foraging trips): four of §5.5's five forage items, gathered by a foraging trip from
+## the woods' forage basin (demo/forage/) -- each the compiled catalogue's own key (`data/item_definitions.json`, the
+## keys scripts/core/forage.gd PATCH_KEYS names), never a generic "forage" item:
+##   * nuts       §5.7 "Nuts | 1600 | Yes | 720" -- raw edible, keeps 720 h;
+##   * mushrooms  §5.7 "Mushrooms | 600 | No | 72" -- not eaten raw, keeps 72 h;
+##   * herb       §5.7 "Herb | 0 | No | 480 | Care ingredient; no nutritional replacement" -- keeps 480 h;
+##   * berries    §5.7 "Berries | 700 | Yes | 48" -- raw edible, keeps 48 h (added at the dishes lane's request: its
+##                cordial's raspberries are forage; the catalogue's key is `berries`).
+## Each is its own category (CAT_NUTS, CAT_MUSHROOMS, CAT_HERB, CAT_BERRIES): §5.7's recipes name them as inputs. Roots,
+## §5.5's fifth patch, are not gathered (the farm grows its roots). The dishes lane's hazelnut, mushroom and raspberry
+## are these nuts, mushrooms and berries (dish_book.gd; batch 7 integration, decision 0902), the items after potato and
+## honey.
+const PANTRY_ITEM_COUNT: int = 30
 const FIRST_CATCH: int = 16
 const CATCH_COUNT: int = 6
 const ITEM_DRIED_FISH: int = 22
 const ITEM_FLOUR: int = 23
+const ITEM_POTATO: int = 24
+const ITEM_HONEY: int = 25
+const ITEM_NUTS: int = 26
+const ITEM_MUSHROOMS: int = 27
+const ITEM_HERB: int = 28
+const ITEM_BERRIES: int = 29
+const FIRST_FORAGE: int = 26
+const FORAGE_COUNT: int = 4
 const CAT_FISH: int = 5
 const CAT_DRIED_FISH: int = 6
 const CAT_FLOUR: int = 7
+const CAT_HONEY: int = 8
+const CAT_NUTS: int = 9
+const CAT_MUSHROOMS: int = 10
+const CAT_HERB: int = 11
+const CAT_BERRIES: int = 12
 ## The goods' categories and §5.7 shelf hours, from FIRST_CATCH on.
-const GOODS_CATEGORY: Array[int] = [CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_DRIED_FISH, CAT_FLOUR]
-const GOODS_SHELF_HOURS: Array[int] = [48, 48, 48, 48, 48, 48, 720, 240]
+const GOODS_CATEGORY: Array[int] = [CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_DRIED_FISH, CAT_FLOUR,
+	FarmingScript.CROP_ROOTS, CAT_HONEY, CAT_NUTS, CAT_MUSHROOMS, CAT_HERB, CAT_BERRIES]
+const GOODS_SHELF_HOURS: Array[int] = [48, 48, 48, 48, 48, 48, 720, 240, 240, 1440, 720, 72, 480, 48]
+## scripts/core/forage.gd PATCH_KEYS row (berries, nuts, mushrooms, herb, roots) -> pantry item (NO_ITEM: not gathered).
+const PATCH_ITEM: Array[int] = [ITEM_BERRIES, ITEM_NUTS, ITEM_MUSHROOMS, ITEM_HERB, NO_ITEM]
 ## scripts/core/fishing.gd SPECIES_KEYS row -> pantry item (NO_ITEM: the coast's three, which the demo cannot catch).
 const SPECIES_ITEM: Array[int] = [16, 17, 18, 19, 20, 21, NO_ITEM, NO_ITEM, NO_ITEM]
 
@@ -195,6 +232,8 @@ const ITEM_PROP: Array[StringName] = [
 	&"", &"item_barley", &"item_oats",
 	&"item_trout", &"", &"", &"item_perch", &"", &"",
 	&"", &"",
+	&"", &"",
+	&"", &"", &"", &"",
 ]
 ## The fallback icon's colour: the item's own, from its produce (parsnip cream, spinach dark leaf).
 const ITEM_SWATCH: Array[Color] = [
@@ -207,23 +246,53 @@ const ITEM_SWATCH: Array[Color] = [
 	Color(0.62, 0.6, 0.5), Color(0.66, 0.7, 0.72), Color(0.86, 0.5, 0.42), Color(0.5, 0.6, 0.36),
 	Color(0.7, 0.58, 0.32), Color(0.84, 0.84, 0.8),
 	Color(0.56, 0.36, 0.22), Color(0.94, 0.9, 0.8),
+	Color(0.72, 0.6, 0.4), Color(0.9, 0.66, 0.22),
+	Color(0.62, 0.42, 0.22), Color(0.8, 0.7, 0.56), Color(0.44, 0.6, 0.34), Color(0.72, 0.16, 0.3),
 ]
 
-## The beds: world crop ids, one FarmPlot each, their demo soils.
+## The beds: the six first FIELD beds are world crop ids (BED_IDS); then the SOUTH FIELD's six (see THE SOUTH FIELD); then
+## the KITCHEN GARDEN's sites (see THE KITCHEN GARDEN'S SITES). One FarmPlot each, their demo soils.
 const BED_IDS: Array[StringName] = [
 	&"bed_cabbage_w", &"bed_cabbage_e", &"bed_roots_w", &"bed_roots_e", &"bed_grain_w", &"bed_grain_e",
 ]
-const BED_COUNT: int = 6
+const FIELD_BED_COUNT: int = 12
+const BED_COUNT: int = 16
 const BED_SOILS: Array[int] = [
 	FarmingScript.SOIL_LOAM, FarmingScript.SOIL_CLAY, FarmingScript.SOIL_SAND,
 	FarmingScript.SOIL_LOAM, FarmingScript.SOIL_CLAY, FarmingScript.SOIL_LOAM,
+	FarmingScript.SOIL_LOAM, FarmingScript.SOIL_CLAY, FarmingScript.SOIL_LOAM,
+	FarmingScript.SOIL_LOAM, FarmingScript.SOIL_CLAY, FarmingScript.SOIL_LOAM,
+	FarmingScript.SOIL_LOAM, FarmingScript.SOIL_LOAM, FarmingScript.SOIL_LOAM, FarmingScript.SOIL_LOAM,
 ]
+## THE SOUTH FIELD (Brendan's balance ruling E5, 2026-10-01: "12-18 farm beds instead of 6"; decision 0886). Six more
+## field beds, laid from the start, as ONE rectangular field of six §5.6 tiles -- three across, two deep, 2 m x 2 m each
+## (GDD §5.6: "field designation is 4-256 tiles, rectangular or painted connected area") -- on the open grass south of
+## the covered store, east of the workbench and north of the boulder. Every tile has an outer edge to work it from; the
+## tiles are not walking obstacles (the six world beds are). Checked clear of every obstacle (test_demo_sowing.gd).
+const SOUTH_FIRST: int = 6
+const SOUTH_BEDS: int = 6
+const SOUTH_AT: Array[Vector2] = [Vector2(12.6, 12.3), Vector2(14.6, 12.3), Vector2(16.6, 12.3), Vector2(12.6, 14.3),
+	Vector2(14.6, 14.3), Vector2(16.6, 14.3)]
+## THE KITCHEN GARDEN'S SITES (review ECO-004 and feature #48; decision 0883). Four places for small garden beds on the
+## open ground across the east road from the kitchen, between the square and the covered store, around a cross of
+## garden paths: the player LAYS OUT a bed on any of them (farm_garden.gd), and a site nobody has laid out grows
+## nothing. A garden bed is ONE §5.6 tile, 2 m x 2 m (GDD §5.6: "Fields use 2 m x 2 m tiles"), drawn at that size -- a
+## field bed is the same one plot drawn 3 m wide (BED_HALF_M). The four are authored, BOUNDED modules (the review:
+## "bounded modules plus grouping before arbitrary polygon simulation"); where they stand is a demo layout, checked
+## clear of every obstacle and footprint (test_demo_garden.gd). Free placement is decision 0883's proposal.
+const GARDEN_FIRST: int = 12
+const GARDEN_SITES: int = 4
+const GARDEN_AT: Array[Vector2] = [Vector2(5.4, 5.4), Vector2(8.0, 5.4), Vector2(5.4, 8.0), Vector2(8.0, 8.0)]
+const GARDEN_HALF_M: float = 1.0
+## The garden's work shelf (GDD §5.9's Shelf furniture) stands at the north end of the middle path, toward the kitchen.
+const GARDEN_SHELF_AT: Vector2 = Vector2(6.7, 3.9)
 const SOIL_NAMES: Array[String] = ["loam", "clay", "sand"]
 ## The demo's opening history (demo values): what already stands in each bed at 06:00 of day 1,
 ## sown and grown that many hours at spring's baseline before the demo opens -- carrots near ripe,
 ## a young radish row and a wheat bed; the rest empty for the player.
-const BED_START_ITEM: Array[int] = [NO_ITEM, NO_ITEM, 2, 0, NO_ITEM, 13]
-const BED_START_HOURS: Array[int] = [0, 0, 96, 36, 0, 60]
+const BED_START_ITEM: Array[int] = [NO_ITEM, NO_ITEM, 2, 0, NO_ITEM, 13, NO_ITEM, NO_ITEM, NO_ITEM, NO_ITEM, NO_ITEM,
+	NO_ITEM, NO_ITEM, NO_ITEM, NO_ITEM, NO_ITEM]
+const BED_START_HOURS: Array[int] = [0, 0, 96, 36, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 ## Two beds are neighbours (blight spreads between them) when their centres are this close.
 const NEIGHBOUR_M: float = 4.0
 ## A bed's half-width on the ground: every bed is drawn 3 m wide (world_sizes.gd CROP_BED_WIDTH_M).
@@ -259,13 +328,18 @@ static func category_of(item: int) -> int:
 	return -1
 
 
+static func item_of_patch(patch_kind: int) -> int:
+	"""The pantry item a forage.gd patch kind is gathered as (NO_ITEM: one the demo does not gather)."""
+	return PATCH_ITEM[patch_kind] if patch_kind >= 0 and patch_kind < PATCH_ITEM.size() else NO_ITEM
+
+
 static func item_of_species(species_row: int) -> int:
 	"""The pantry item a fishing.gd species row lands as (NO_ITEM: one the demo cannot catch)."""
 	return SPECIES_ITEM[species_row] if species_row >= 0 and species_row < SPECIES_ITEM.size() else NO_ITEM
 
 
 static func is_bed(bed: int) -> bool:
-	"""Whether `bed` names one of the six beds."""
+	"""Whether `bed` names one of the beds (the field's twelve and the kitchen garden's four sites)."""
 	return bed >= 0 and bed < BED_COUNT
 
 
@@ -286,9 +360,29 @@ static func shelf_hours_of(item: int) -> int:
 	return GOODS_SHELF_HOURS[item - ITEM_COUNT]
 
 
+static func is_garden(bed: int) -> bool:
+	"""Whether `bed` is one of the kitchen garden's sites (THE KITCHEN GARDEN'S SITES), not a field bed."""
+	return bed >= GARDEN_FIRST and bed < GARDEN_FIRST + GARDEN_SITES
+
+
+static func is_south_field(bed: int) -> bool:
+	"""Whether `bed` is one of the south field's beds (THE SOUTH FIELD)."""
+	return bed >= SOUTH_FIRST and bed < SOUTH_FIRST + SOUTH_BEDS
+
+
+static func bed_half_m(bed: int) -> float:
+	"""A bed's half-width on the ground: a garden or south-field bed's one 2 m tile, a first-field bed's 3 m drawing."""
+	return GARDEN_HALF_M if is_garden(bed) or is_south_field(bed) else BED_HALF_M
+
+
 static func bed_centre_m(bed: int) -> Vector2:
-	"""A bed's centre on the ground (x, z), in metres, from the world layout. Every BED_IDS entry is
-	a world crop id (test_demo_farm.gd checks), so an unknown one is a programming error."""
+	"""A bed's centre on the ground (x, z), in metres: a field bed's from the world layout, a garden site's from
+	GARDEN_AT. Every BED_IDS entry is a world crop id (test_demo_farm.gd checks), so an unknown one is a programming
+	error."""
+	if is_garden(bed):
+		return GARDEN_AT[bed - GARDEN_FIRST]
+	if is_south_field(bed):
+		return SOUTH_AT[bed - SOUTH_FIRST]
 	for entry: Dictionary in Layout.CROPS:
 		if entry["id"] == BED_IDS[bed]:
 			return entry["at"]
@@ -311,6 +405,7 @@ static func bed_at_into(point: Vector2, out: IntMath.IntResult) -> bool:
 	NO_BED_THERE when the point is on no bed. Presentation input: a click's ground point."""
 	for bed: int in BED_COUNT:
 		var d: Vector2 = (point - bed_centre_m(bed)).abs()
-		if d.x <= BED_HALF_M and d.y <= BED_HALF_M:
+		var half: float = bed_half_m(bed)
+		if d.x <= half and d.y <= half:
 			return out.succeed(bed)
 	return out.refuse(REFUSE_NO_BED)

@@ -44,6 +44,8 @@ extends RefCounted
 ## bed and a hearth reach the GDD's dormitory target 6000; and DECORATION_COMFORT for each rug, table, lantern and
 ## string of hanging stores (the design's "rug, lantern, hanging herbs", and the table), the decorations capped at
 ## DECORATION_CAP (the GDD: "decorations add up to 1000"); at most 10000. The suggested layout reads 7000, "cozy".
+## THE HEARTH'S COMFORT COUNTS ONLY WHILE IT IS FUELLED (decision 0571, Brendan's ruling 2): with the winter bound,
+## `hearth_cold(r) -> bool` says a home's hearth is out of fuel or let go out, and then it adds nothing.
 ##
 ## A ROOT CELLAR'S CAPACITY is the sum of its installed storage fixtures' (CAPACITY_U); a bare cellar holds nothing
 ## and is not a store. THE COOL RULE: a cellar is cool -- the GDD's cellar factor, 350 per mille, where a warm one is
@@ -134,6 +136,8 @@ var revision: int = 0
 ## Where a large bed's nook may not reach (underground_rooms.gd Site: the water and the buildings; tunnel_ext.gd sets
 ## it; null: nowhere), and why the last large bed was refused its nook (underground_rooms.gd NOOK_*, or NOOK_TAKEN).
 var nook_site: RefCounted = null
+## `(r: int) -> bool`: home row r's hearth gives no warmth now (see THE HEARTH'S COMFORT); unset: never.
+var hearth_cold: Callable = Callable()
 var nook_refused: int = NOOK_TAKEN
 ## Scratch for the cool rule's walk (sized once).
 var _dist: PackedInt32Array = PackedInt32Array()
@@ -525,7 +529,10 @@ func comfort(graph: RefCounted, r: int) -> int:
 	for kind: int in DECORATIONS:
 		decorations += count(graph, r, kind, INSTALLED)
 	var beds := count(graph, r, RoomsScript.FIX_BED, INSTALLED) + count(graph, r, RoomsScript.FIX_BIG_BED, INSTALLED)
-	return comfort_of(beds > 0, count(graph, r, RoomsScript.FIX_HEARTH, INSTALLED) > 0, decorations)
+	var fire: bool = count(graph, r, RoomsScript.FIX_HEARTH, INSTALLED) > 0
+	if fire and hearth_cold.is_valid() and bool(hearth_cold.call(r)):
+		fire = false
+	return comfort_of(beds > 0, fire, decorations)
 
 
 static func comfort_of(bed: bool, hearth: bool, decorations: int) -> int:

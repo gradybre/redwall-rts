@@ -1,0 +1,8 @@
+# Keep full local logs and downloaded/generated raw artifacts out of the commit.
+*.log
+pilot/
+shards/
+instrumented-full/
+method-counts.json
+live-assertion-probes.json
+runtime-*/

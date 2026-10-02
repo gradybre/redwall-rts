@@ -14,6 +14,7 @@ const Words := preload("res://demo/kitchen/kitchen_text.gd")
 const ModelScript := preload("res://demo/ui/demo_hud_model.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
+const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const SimScript := preload("res://demo/farm/farm_sim.gd")
 const RecipesScript := preload("res://demo/farm/farm_recipes.gd")
@@ -138,21 +139,37 @@ func _panel(kitchen: KitchenScript) -> PantryPanelScript:
 	return panel
 
 
-func test_the_pantry_shows_the_kitchen_tab_and_marks_two_dishes_cookable() -> void:
-	"""With the kitchen bound: tabs Stocks, Recipes, Kitchen; the Recipes tab marks wild oat porridge cookable on oats
-	(as the GDD's porridge) and Togget's soup on carrot, and nothing on cabbage."""
+func test_the_pantry_shows_the_kitchen_tab_and_marks_the_dishes_cookable() -> void:
+	"""With the kitchen bound: tabs Stocks, Recipes, Kitchen; the Recipes tab marks every recipe-book dish that takes the
+	item cookable -- oats: the two porridges (as the GDD's porridge), carrot: Togget's soup, the vole stew and both
+	fish stews' roots, cabbage: the bean hotpot (decision 0601) -- then how the cook picks."""
 	var kitchen := _kitchen(3, tick_at(1, 20), _pantry(), StoresScript.new())
 	var panel := _panel(kitchen)
 	assert_equal([panel.tab_button(0).text, panel.tab_button(1).text, panel.tab_button(2).text],
 		["Stocks", "Recipes", "Kitchen"], "three tabs")
 	panel.show_tab(PantryPanelScript.TAB_RECIPES)
 	panel.select_item(OATS)
-	assert_equal(panel.cookable_text(), "Cookable (active): Wild oat porridge — cooked as the GDD's porridge: grain 2.0 U + water 2.0 U → 2 portions of 1800 NP, 12 WU, keeps 24 h. The kitchen cooks it in turn with togget's vegetable soup.", "oats")
+	var oats: PackedStringArray = panel.cookable_text().split("\n")
+	assert_equal(oats[0], "Cookable (active): Wild oat porridge — cooked as the GDD's porridge: 2.0 U of grain (wheat, barley or oats) + water 2.0 U → 2 portions of 1800 NP, 12 WU, keeps 24 h; for breakfast.", "oats: the porridge")
+	assert_true(oats[1].begins_with("Cookable (active): Barleymeal porridge — cooked as the GDD's porridge: 2.0 U of grain (barley or oats)"), "and the barleymeal")
+	assert_equal(oats[oats.size() - 1], Words.CHOICE_NOTE, "then how the cook picks")
 	panel.select_item(CARROT)
-	assert_true(panel.cookable_text().begins_with("Cookable (active): Togget's vegetable soup — cooked as the GDD's root_stew: roots 3.0 U + water 1.0 U"), "carrot")
+	var carrot: String = panel.cookable_text()
+	for dish_name: String in ["Togget's vegetable soup", "Poached perch or trout", "Vole vegetable stew", "Poached dace"]:
+		assert_true(carrot.contains("Cookable (active): %s —" % dish_name), "carrot: " + dish_name)
+	assert_false(carrot.contains("Wild-beetroot soup"), "not the beetroot soup: it takes beetroot and onion")
 	panel.select_item(CABBAGE)
-	assert_equal(panel.cookable_text(), "", "cabbage feeds neither")
-	assert_equal(panel.recipe_heading(), PantryPanelScript.RECIPE_HEADING_COOKING, "the heading says two are cookable")
+	assert_true(panel.cookable_text().begins_with("Cookable (active): Bean hotpot — cooked as the GDD's bean_hotpot: 2.0 U of beans (pea or broad bean) + 2.0 U of greens"), "cabbage: the hotpot")
+	panel.select_item(Catalog.ITEM_FLOUR)
+	assert_true(panel.cookable_text().begins_with("Cookable (active): Haversack hardtack — cooked as a recipe from Rakkety Tam: 2.0 U of flour"),
+		"flour: the hardtack, its book named (decision 0603)")
+	assert_false(panel.cookable_text().contains("DEC-") or panel.cookable_text().contains("Brendan"),
+		"no ruling or person in player text")
+	assert_true(panel.cookable_text().contains("Rakkety Tam: 2.0 U of flour + water 0.5 U → 2 portions"),
+		"a category named by its one item is said once")
+	assert_true(panel.cookable_text().contains("Waiting (needs potato: grown in the fields, not yet planted in the demo): Turnip, potato and beetroot pie"),
+		"and the root pie, waiting and said why")
+	assert_equal(panel.recipe_heading(), PantryPanelScript.RECIPE_HEADING_COOKING, "the heading says the kitchen's dishes are cookable")
 	panel.show_tab(PantryPanelScript.TAB_KITCHEN)
 	assert_true(panel.page_shown(PantryPanelScript.TAB_KITCHEN), "the Kitchen tab")
 
@@ -240,6 +257,11 @@ func test_the_fed_line_and_the_roster_word() -> void:
 	for k in 4:
 		kitchen.fed.ate_meal(0, 3 + k, Rules.DISH_PORRIDGE if k % 2 == 1 else Rules.DISH_SOUP, kitchen.hour_index())
 	assert_true(kitchen.fed_text(0, true).ends_with("\nMonotony -200 (6 h): porridge 3 of last 6"), kitchen.fed_text(0, true))
+	kitchen.fed.ate_meal(0, 8, Rules.DISH_BEAN_HOTPOT, kitchen.hour_index())
+	assert_true(kitchen.fed_text(0, true).contains("\nLast meal: breakfast, bean hotpot — a favourite"),
+		"a mouse's favourite is noted (decision 0601): " + kitchen.fed_text(0, true))
+	kitchen.fed.ate_meal(0, 9, Rules.DISH_SOUP, kitchen.hour_index())
+	assert_false(kitchen.fed_text(0, true).contains("a favourite"), "not after a dish it does not like")
 
 
 # --- the cook rises early -----------------------------------------------------------------------

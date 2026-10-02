@@ -20,7 +20,11 @@ const FitOutWork := preload("res://demo/work/fit_out_work.gd")
 const SpoilWork := preload("res://demo/work/spoil_work.gd")
 const FisheryWork := preload("res://demo/work/fishery_work.gd")
 const FerryWork := preload("res://demo/work/ferry_work.gd")
+const ForageWork := preload("res://demo/work/forage_work.gd")
 const KitchenWork := preload("res://demo/work/kitchen_work.gd")
+const StoresWork := preload("res://demo/work/stores_work.gd")
+const CareWork := preload("res://demo/work/care_work.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
@@ -71,6 +75,7 @@ func _add_owners(farm: FarmScript, forestry: ForestryScript, waterplay: Waterpla
 	if farm != null:
 		board.add_source(FarmWork.new(farm.crew))
 		farm.crew.set_claimer(board.queue_words)
+		farm.garden.bind_claim_check(farm_claimable)
 	if forestry != null:
 		board.add_source(WoodsWork.new(forestry.crew))
 		forestry.crew.set_claimer(board.queue_words)
@@ -82,6 +87,12 @@ func _add_owners(farm: FarmScript, forestry: ForestryScript, waterplay: Waterpla
 		board.add_source(FitOutWork.new(_cast.space().tunnels, ext.fixture_crew, brains, board.name_of))
 	if spoil != null:
 		board.add_source(SpoilWork.new(spoil.crew, _cast.space().tunnels, brains))
+
+
+func farm_claimable(who: int) -> bool:
+	"""Whether the board could give `who` farm work now: idle by its own test, and farm work not forbidden to its crew
+	(the kitchen garden keeps its jobs for the cook only while this holds: farm_garden.gd `can_tend`, decision 0883)."""
+	return board.idle(who) and board.crews.priority_of(who, WorkIds.ACT_FARM) != WorkIds.PRIORITY_FORBIDDEN
 
 
 func add_fishery(fishery: RefCounted) -> void:
@@ -96,6 +107,12 @@ func add_ferry(ferry: RefCounted) -> void:
 	board.add_source(FerryWork.new(ferry))
 
 
+func add_forage(trips: RefCounted) -> void:
+	"""THE FORAGING TRIPS ON THE BOARD (decision 0681): each forager's seat (work/forage_work.gd) -- the Woods crew's work,
+	claimed like the farm's."""
+	board.add_source(ForageWork.new(trips))
+
+
 func add_kitchen(kitchen: KitchenScript) -> void:
 	"""THE MEALS ON THE BOARD (decision 0411 with 0381): the kitchen's cook and water drawers listed on the Work screen
 	(kitchen_work.gd: the kitchen hands them out itself, so nothing is claimed), and the board keeping its hands off a
@@ -105,6 +122,25 @@ func add_kitchen(kitchen: KitchenScript) -> void:
 		brains.append((_cast.actor(i) as DemoActorScript).brain)
 	board.add_source(KitchenWork.new(kitchen, brains))
 	board.set_needs_gate(kitchen.kept_for_meals)
+
+
+func add_stores(haul: RefCounted, pantry: RefCounted, builders: RefCounted = null) -> void:
+	"""THE FOOD STORES ON THE BOARD (decisions 0611, 0612): surplus food carried from a warmer store into a cool cellar
+	(demo/stores/cellar_haul.gd) and the cellar buildings' places (cellar_builders.gd), one source
+	(work/stores_work.gd), claimed like the farm's."""
+	var brains: Array[BrainScript] = []
+	for i: int in _cast.actor_count():
+		brains.append((_cast.actor(i) as DemoActorScript).brain)
+	board.add_source(StoresWork.new(haul, pantry, brains, builders))
+
+
+func add_care(builders: RefCounted) -> void:
+	"""THE INFIRMARY ON THE BOARD (decision 0623): the infirmary building's places (demo/infirmary/infirmary_builders.gd),
+	one source (work/care_work.gd), claimed like the farm's."""
+	var brains: Array[BrainScript] = []
+	for i: int in _cast.actor_count():
+		brains.append((_cast.actor(i) as DemoActorScript).brain)
+	board.add_source(CareWork.new(builders, brains))
 
 
 func set_readouts(activity: Callable, is_paused: Callable, jump: Callable, selection: Callable) -> void:

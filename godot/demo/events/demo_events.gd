@@ -9,8 +9,13 @@ extends RefCounted
 ## village's one water adapter over the real water map; the demo knows water only through it) -- or a
 ## FIRE at the covered store (the village has no barn, so the store stands in for one). Which comes next is SEEDED: kind = roll(count) mod 2, an integer hash of the
 ## event's ordinal and SEED, so every run meets the same sequence. They come on their own on a seeded
-## schedule (FIRST_AUTO_USEC, then every AUTO_EVERY_USEC plus a seeded jitter), and the tunnel
-## panel's "Test event (demo)" brings the next one at once.
+## schedule IN GAME DAYS OF DEMO TIME (decision 0912): the first FIRST_AUTO_DAYS game days into the demo, then
+## AUTO_EVERY_DAYS plus a seeded jitter under AUTO_JITTER_DAYS after the last one ENDED (the countdown waits while a
+## threat is under way) -- about one every nine game days, where it was nine real
+## minutes (about one a game day once decision 0421 made a day ten minutes). The schedule counts the demo time the
+## calendar runs on (demo_calendar.gd: a game day is DAY_USEC of it), so pause, 1x, 2x and 4x move both together. The
+## tunnel panel's "Test event (demo)" still brings the next one at once. A threat itself still lasts DURATION_USEC:
+## the evacuation is walking, in demo seconds.
 ##
 ## EVACUATION (`plan_escape`). Everyone on the surface inside the disc is sent away: in at the nearest
 ## usable mouth of the tunnel network (decision 0208) from which a walk they fit leads to a far mouth
@@ -25,6 +30,7 @@ const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const PathsScript := preload("res://demo/tunnel/graph_paths.gd")
 const WaterScript := preload("res://demo/village_water.gd")
+const CalendarScript := preload("res://demo/demo_calendar.gd")
 
 const KIND_FLOOD: int = 0
 const KIND_FIRE: int = 1
@@ -33,9 +39,14 @@ const KIND_NAMES: Array[String] = ["flood at the stream edge", "fire at the cove
 const FIRE_CENTRE_U: Vector2i = Vector2i(14336, 6349)
 const FIRE_RADIUS_U: int = 6144
 const DURATION_USEC: int = 40000000
-const FIRST_AUTO_USEC: int = 360000000
-const AUTO_EVERY_USEC: int = 540000000
-const AUTO_JITTER_USEC: int = 120000000
+## The schedule, in game days (see the header) and the demo microseconds they are: the first on day 6, then every
+## 9 days plus up to 2 (the old 6, 9 and 2 minutes, a game day each since decision 0421).
+const FIRST_AUTO_DAYS: int = 6
+const AUTO_EVERY_DAYS: int = 9
+const AUTO_JITTER_DAYS: int = 2
+const FIRST_AUTO_USEC: int = FIRST_AUTO_DAYS * CalendarScript.DAY_USEC
+const AUTO_EVERY_USEC: int = AUTO_EVERY_DAYS * CalendarScript.DAY_USEC
+const AUTO_JITTER_USEC: int = AUTO_JITTER_DAYS * CalendarScript.DAY_USEC
 const SEED: int = 5155
 ## A far mouth is safe this far outside the disc; a shelter stands this far beyond it or the edge.
 const SAFE_MARGIN_M: float = 1.0

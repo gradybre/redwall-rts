@@ -18,7 +18,9 @@ extends CanvasLayer
 ## resident journal takes the right column; the strip follows it (`follow_journal`). Geometry is the
 ## HUD's own (`scripts/ui/ui_layout.gd`, read, never modified) in LOGICAL pixels at the HUD's scale.
 ## Only its buttons take the mouse (see TIERS, GO TO AND DISMISS), so a click anywhere else still reaches the world; it
-## draws below the HUD.
+## draws below the HUD. While the camera's strip shows (demo/camera/camera_strip.gd, decision 0801) it keeps its own row
+## just above the commands, and this strip stands on top of it (`lift`), so neither covers the other; the band it keeps
+## to (see THE STRIP KEEPS TO ITS BAND) is then that row shorter.
 ##
 ## Refreshed a few times a second on real time (it must read while the village is paused); it
 ## rebuilds nothing, only rewrites LINES labels.
@@ -121,6 +123,9 @@ var _history_button: Button = null
 var _attention: int = 0
 ## Fewer toasts: warnings only, one line (see FEWER TOASTS).
 var quiet: bool = false
+## `() -> float`: logical px kept free just above the commands for the camera's strip (0 while it hides; see WHERE).
+var lift: Callable = Callable()
+var _lift_now: float = 0.0
 
 
 func configure(notices: NoticesScript) -> void:
@@ -277,6 +282,7 @@ func _label(text: String, px: int, colour: Color, font: Font) -> Label:
 func _process(delta: float) -> void:
 	"""Advance the news clock (every frame), and refresh a few times a second (real time) at the feed's time."""
 	tick_news(Time.get_ticks_msec())
+	_follow_lift()
 	_refresh_in -= delta
 	if _refresh_in > 0.0:
 		return
@@ -289,10 +295,7 @@ func refresh(now_msec: int) -> int:
 	count of unresolved incidents; returns how many entries are shown."""
 	if _notices == null or _frame == null:
 		return 0
-	if _journal_is_open() != _journal_open:
-		_journal_open = not _journal_open
-		_fit_lines = LINES
-		_place.call_deferred()
+	_follow_layout()
 	if _notices.revision != _seen_revision:
 		_fit_lines = LINES
 	var shown: int = _draw_lines(now_msec)
@@ -356,6 +359,29 @@ func _show_held(held: int) -> void:
 func held_shown() -> int:
 	"""How many held-back notices the title last counted (checks)."""
 	return _held
+
+
+func _follow_layout() -> void:
+	"""Place again when the journal moved the commands or the camera strip's row changed."""
+	if _journal_is_open() != _journal_open:
+		_journal_open = not _journal_open
+		_fit_lines = LINES
+		_place.call_deferred()
+	_follow_lift()
+
+
+func _follow_lift() -> void:
+	"""Every frame: stand on the camera strip's row as soon as it shows or hides (no lag behind it; allocates nothing)."""
+	var lifted: float = float(lift.call()) if lift.is_valid() else 0.0
+	if lifted != _lift_now:
+		_lift_now = lifted
+		_fit_lines = LINES
+		_place()
+
+
+func lifted_by() -> float:
+	"""The camera strip's row the news stands on now, logical px (checks)."""
+	return _lift_now
 
 
 func _show_attention(attention: int) -> void:
@@ -456,11 +482,11 @@ func _place() -> void:
 	_text_w = band.size.x - CONTENT_MARGINS[0] - CONTENT_MARGINS[2] - _close[0].get_combined_minimum_size().x - 6.0
 	for slot: int in LINES:
 		_size_line(slot)
-	var height: float = _fit(band.size.y)
+	var height: float = _fit(band.size.y - _lift_now)
 	_frame.scale = Vector2(_geometry.scale, _geometry.scale)
 	_frame.custom_minimum_size = Vector2(band.size.x, 0.0)
 	_frame.size = Vector2(band.size.x, 0.0)
-	_frame.position = Vector2(band.position.x, band.end.y - height) * _geometry.scale
+	_frame.position = Vector2(band.position.x, band.end.y - height - _lift_now) * _geometry.scale
 
 
 func _size_line(slot: int) -> void:

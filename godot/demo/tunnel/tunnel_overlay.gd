@@ -727,6 +727,25 @@ func _cut_hole(m: int, open: bool) -> void:
 		else PackedVector2Array())
 
 
+func lantern_spots_into(out: PackedVector3Array) -> int:
+	"""Where each standing mouth's lantern hangs (world metres) -- the staged arch's glow, else the procedural gateway's
+	lantern -- written into `out` from its start, at most its size; returns how many. The surface's night lights read it
+	(demo/world/night_lights.gd, decision 0541)."""
+	var count := 0
+	for m in _holes.size():
+		if count >= out.size():
+			break
+		var node := _holes[m]
+		var gateway := node.get_child(MOUTH_GATEWAY) as MeshInstance3D
+		if not node.visible or not gateway.visible:
+			continue
+		var glow := node.get_child(MOUTH_GLOW) as MeshInstance3D
+		var local := glow.position if glow.visible else gateway.transform * MouthScript.lantern_at()
+		out[count] = node.global_transform * local if node.is_inside_tree() else node.transform * local
+		count += 1
+	return count
+
+
 func door_built(m: int) -> bool:
 	"""Whether mouth row `m` is a room's door or hatch whose room is dug: room_view.gd draws its door (or hatch)
 	there, not a tunnel's gateway (decision 0209). While the room is dug its ramp opens as a tunnel's does."""

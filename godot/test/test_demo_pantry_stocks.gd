@@ -350,7 +350,8 @@ func test_an_empty_pantry_suggests_the_bed_that_ripens_first() -> void:
 
 
 func test_an_empty_pantry_with_nothing_growing_says_plant_then_clear() -> void:
-	"""No crop growing: plant the first empty bed; with every bed lost, clear the first."""
+	"""No crop growing: plant the first empty bed; with every bed lost, clear the first. The kitchen garden's bare sites
+	are no beds (farm_sim.gd STAGE_SITE, decision 0883): never suggested, never sown."""
 	var sim := SimScript.new()
 	_wither_growing(sim)
 	var rows := RowsScript.new()
@@ -370,7 +371,7 @@ func test_an_empty_pantry_with_nothing_growing_says_plant_then_clear() -> void:
 func _wither_growing(sim: SimScript) -> void:
 	"""Every bed with a crop withers."""
 	for bed: int in Catalog.BED_COUNT:
-		if sim.stage_of(bed) != SimScript.STAGE_EMPTY:
+		if sim.stage_of(bed) != SimScript.STAGE_EMPTY and sim.stage_of(bed) != SimScript.STAGE_SITE:
 			sim.farming().apply_health_loss(sim.slot_of(bed), 10000)
 			assert_equal(sim.stage_of(bed), SimScript.STAGE_WITHERED, "bed %d withered" % (bed + 1))
 

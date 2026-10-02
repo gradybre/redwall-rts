@@ -20,6 +20,7 @@ const LedgerScript := preload("res://demo/goals/goals_ledger.gd")
 const WorldScript := preload("res://demo/guide/guide_world.gd")
 const RecordScript := preload("res://demo/farm/farm_record.gd")
 const Rules := preload("res://demo/kitchen/meal_rules.gd")
+const OpeningPantry := preload("res://demo/farm/opening_pantry.gd")
 
 ## Not modelled in the demo: the part is declared without a measure.
 const M_NONE: int = -1
@@ -39,6 +40,9 @@ const M_CLEAN_SEASONS: int = 9
 const M_WOOD: int = 10
 const M_BRIDGES: int = 11
 const M_TUNNELS: int = 12
+## Ready food the village cooked or brought in: the Ready food less what the opening stock still in the pantry cooks
+## (opening_pantry.gd `portions_left`; Brendan's ruling on decision 0902's question 2, 2026-10-02).
+const M_OWN_FOOD_DAYS: int = 13
 
 const MILESTONE: int = BookScript.GROUP_MILESTONE
 const VILLAGE: int = BookScript.GROUP_VILLAGE
@@ -46,6 +50,10 @@ const COUNT: int = BookScript.UNIT_COUNT
 const MILLI: int = BookScript.UNIT_MILLI
 const DAYS: int = BookScript.UNIT_DAYS
 const FLAG: int = BookScript.UNIT_FLAG
+## A part's target that is the recipe book's count of everyday dishes (meal_rules.gd `everyday_dish_count`), read when the
+## goals are registered: "Every dish on the table" follows the book as dishes are added, as decision 0781 ruled, and counts
+## no occasion's course, drink or dish still waiting for an ingredient (decision 0902).
+const EVERYDAY_DISHES: int = -1
 
 const GOALS: Array = [
 	[&"m1_settled_hearth", MILESTONE, "M1 Settled Hearth",
@@ -79,16 +87,16 @@ const GOALS: Array = [
 		[[&"harvested", "Harvested into store", 40000, MILLI, M_HARVESTED]]],
 	[&"every_dish", VILLAGE, "Every dish on the table",
 		"Porridge wants grain, soup wants roots and the fish stew a catch from the stream: a village that can cook them all is not at the mercy of one crop.",
-		"each of the kitchen's dishes has been cooked.",
-		[[&"dishes", "Dishes cooked", Rules.DISH_COUNT, COUNT, M_DISHES]]],
+		"each of the kitchen's everyday dishes has been cooked.",
+		[[&"dishes", "Everyday dishes cooked", EVERYDAY_DISHES, COUNT, M_DISHES]]],
 	[&"full_table", VILLAGE, "A table for everyone",
 		"Supper is when the village gathers. Everyone eating a cooked portion means the harvest, the water butt, the woodpile and the cook all came together.",
 		"every resident ate a cooked supper.",
 		[[&"tables", "Suppers with everyone fed", 1, COUNT, M_FULL_TABLES]]],
 	[&"full_larder", VILLAGE, "A full larder",
 		"Four days of ready food is the margin the full game asks before newcomers may settle (GDD §5.11); below it one bad week empties the pot.",
-		"the larder holds four days of ready food.",
-		[[&"food_days", "Ready food", 4000, DAYS, M_FOOD_DAYS]]],
+		"the larder holds four days of ready food the village cooked or brought in.",
+		[[&"food_days", "Ready food of the village's own", 4000, DAYS, M_OWN_FOOD_DAYS]]],
 	[&"winter_wood", VILLAGE, "Wood for the cold",
 		"Every batch the kitchen cooks burns wood, and the tunnels' bracing and lanterns are paid in it: a woodpile laid in before winter keeps the pot on.",
 		"60 U of wood is stacked in store.",
@@ -133,7 +141,8 @@ func register_all(book: BookScript) -> int:
 		for spec: Array in row[5] as Array:
 			var kind: int = int(spec[4])
 			var measure: Callable = value.bind(kind) if kind != M_NONE else Callable()
-			parts.append(BookScript.part(StringName(spec[0]), String(spec[1]), int(spec[2]), int(spec[3]), measure))
+			var target: int = Rules.everyday_dish_count() if int(spec[2]) == EVERYDAY_DISHES else int(spec[2])
+			parts.append(BookScript.part(StringName(spec[0]), String(spec[1]), target, int(spec[3]), measure))
 		if book.register(StringName(row[0]), String(row[2]), String(row[3]), parts, int(row[1]), String(row[4])).is_empty():
 			taken += 1
 	return taken
@@ -146,11 +155,31 @@ func value(kind: int) -> int:
 		M_RESIDENTS: return residents()
 		M_WINTERS: return maxi(_calendar_value(M_YEAR) - 1, 0) if residents() > 0 else 0
 		M_FOOD_DAYS: return world.kitchen.days_of_meals_milli() if world != null and world.kitchen != null else 0
+		M_OWN_FOOD_DAYS: return _own_food_days()
 		M_HARVESTED: return world.pantry.delivered_milli if world != null and world.pantry != null else 0
 		M_WOOD: return world.stores.wood_milli_u if world != null and world.stores != null else 0
 		M_BRIDGES: return world.open_bridges() if world != null else 0
 		M_TUNNELS: return world.open_tunnels() if world != null else 0
 	return _ledger_value(kind)
+
+
+func _own_food_days() -> int:
+	"""M_OWN_FOOD_DAYS over the world (0 without a kitchen; the whole Ready food when it opened with no stock)."""
+	if world == null or world.kitchen == null:
+		return 0
+	var ready: int = world.kitchen.days_of_meals_milli()
+	if not world.opening_stock or world.pantry == null:
+		return ready
+	return own_days_milli(ready, world.kitchen.daily_portions(), OpeningPantry.portions_left(world.pantry))
+
+
+static func own_days_milli(ready_milli: int, daily_portions: int, opening_portions_left: int) -> int:
+	"""Ready food (milli-days) less what `opening_portions_left` portions are worth at `daily_portions` a day, never
+	below 0 (0 with no one to feed)."""
+	if daily_portions <= 0:
+		return 0
+	@warning_ignore("integer_division")
+	return maxi(0, ready_milli - opening_portions_left * 1000 / daily_portions)
 
 
 func _calendar_value(kind: int) -> int:

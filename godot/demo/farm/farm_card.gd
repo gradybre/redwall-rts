@@ -36,6 +36,10 @@ const WORDS: Dictionary = {
 	&"SOIL_INCOMPATIBLE": "the crop does not grow in this soil",
 	&"OUTSIDE_PLANT_WINDOW": "it is not the season to sow it",
 	&"JOB_BOARD_FULL": "the farm's job board is full",
+	&"NOT_LAID_OUT": "no bed is laid out on this garden site",
+	&"NO_TUNNEL_UNDER": "no finished tunnel runs under this bed",
+	&"NO_OUTLET_FITTED": "no outlet is fitted to this bed",
+	&"BED_IN_USE": "something stands in the bed",
 }
 ## How to put a refusal right, where something can.
 const FIXES: Dictionary = {
@@ -51,13 +55,17 @@ const FIXES: Dictionary = {
 	&"OUTSIDE_PLANT_WINDOW": "pick a crop sown now (Plant…)",
 	&"NOT_RIPE": "wait: the bed says when it ripens",
 	&"JOB_BOARD_FULL": "Cancel jobs on a bed",
+	&"NOT_LAID_OUT": "Lay out a bed here first (the garden site's panel)",
+	&"NO_TUNNEL_UNDER": "Dig tunnel (B) under the bed first",
+	&"NO_OUTLET_FITTED": "Fit outlet first",
+	&"BED_IN_USE": "harvest or clear the bed first",
 }
 ## What each verb needs (by farm_jobs.gd KIND_*).
 const NEEDS: Array[String] = ["an empty bed, not resting; the crop's soil and sowing season",
 	"a growing crop", "a ripe crop", "a withered or blighted crop", "once a season a bed; %s of compost",
 	"a crop standing, not yet covered", "%s of earth on one heap or in the stores",
 	"%s of earth on one heap or in the stores",
-	"a wet or waterlogged bed"]
+	"a wet or waterlogged bed", "a finished tunnel under the bed, no outlet fitted yet"]
 const COMPOST_STORE: String = "Compost (store)"
 const EARTH: String = "Earth (one heap or the stores)"
 
@@ -113,4 +121,6 @@ static func result_text(sim: SimScript, kind: int, bed: int, read: IntMath.IntRe
 			return "Cover with straw: frost spares the crop tonight (off at 06:00)"
 		JobsScript.KIND_RAISE:
 			return "Raise with tunnel earth: the bed drains and is warmer at night (earth adds no fertility)"
+		JobsScript.KIND_FIT_OUTLET:
+			return "Fit outlet: a boarded outlet down to the tunnel under the bed, shut (transport only) until you set it"
 	return "Bank with tunnel earth: the bed keeps half of each day's drying (earth adds no fertility)"

@@ -1,5 +1,5 @@
 # 0438 — The regatta feast: a once-a-season occasion, a deterministic race, and the GDD's Hearth feast as written
-Date: 2026-10-01 · Status: Accepted (the feast's missing courses: for Brendan's ruling, see below)
+Date: 2026-10-01 · Status: Accepted (the feast's missing courses: ruled 2026-10-01 — see the follow-up, decision 0682)
 
 Water part B, lane 3 (group K of decision 0493: "the regatta feast"). Review SOC-023 (feasts with an occasion and
 memory), SOC-025 (traditions: a graceful skip, no exclusive power item), UX-028 (feast dressing driven by real food).
@@ -84,3 +84,12 @@ gamble.
 GDD §5.7 feast table and rules, REQ-SET-036, REQ-SET-052, REQ-SET-099..106; review SOC-023, SOC-024 (not adopted),
 SOC-025, UX-028; decision 0421 (the demo's day); decision 0442 (the songs); Brendan's approval (decision 0493, group K;
 decision 0439).
+
+## Follow-up: Brendan's ruling on the missing courses (2026-10-01)
+
+**Brendan: "add nuts & herbs now".** The village now gathers nuts and herb on foraging trips (decision 0681) and mills
+flour (0434), so the feast serves the GDD's whole Hearth menu — the nut loaf as the kitchen's occasion second course and
+the warm infusion poured at the supper — and grants **Shared Warmth** at 80% coverage of every course (decision 0682,
+`demo/regatta/regatta_menu.gd`). The reading above survives only for a course the pantry still cannot make: the preview
+names its exact shortfall from real stock and the feast serves what it can, with no buff. `_feast_refusal` is unchanged
+(the main course remains the requirement to hold).

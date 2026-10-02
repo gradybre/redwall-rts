@@ -24,6 +24,10 @@ extends RefCounted
 ## keeps the occasion: its day, host, race and feast, and ONE MOMENT, the race's finish (or, with no race, the supper
 ## song). The winners' deed is recorded in their own histories through the people's ledger (`record_deed`, KIND_REGATTA,
 ## pinned to the chronicle); every pair who shared the feast gains REQ-SET-036's +5 affinity (`share_feast`).
+##
+## THE FULL MENU (decision 0682; Brendan's ruling of 2026-10-01: "add nuts & herbs now"): the second course (nut loaf) and
+## the warm infusion are regatta_menu.gd's -- reserved with the main course when the pantry holds them, cooked as the
+## occasion's second course, poured at the supper -- and with them Shared Warmth when 80% of E eat every course.
 
 const Rules := preload("res://demo/regatta/regatta_rules.gd")
 const RaceTask := preload("res://demo/regatta/race_task.gd")
@@ -47,6 +51,7 @@ const FarmingScript := preload("res://scripts/core/farming.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const ForestRules := preload("res://demo/forestry/forest_rules.gd")
+const MenuScript := preload("res://demo/regatta/regatta_menu.gd")
 
 const NONE: int = -1
 ## The regatta's state for its season.
@@ -110,6 +115,13 @@ var plan_day: int = NONE
 var plan_host: int = NONE
 var crews: PackedInt32Array = PackedInt32Array([NONE, NONE, NONE, NONE])
 var take: int = 0
+## The second course, the infusion and Shared Warmth (THE FULL MENU).
+var menu: MenuScript = MenuScript.new()
+## How many of E ate every course at the feast (THE FULL MENU's coverage).
+var every_course: int = 0
+## The feast's tally in words: what it served, and its Shared Warmth (or why none).
+var warmth_line: String = ""
+var _served_text: String = ""
 var wood_held_milli: int = 0
 var wood_burnt_milli: int = 0
 var eligible: int = 0
@@ -155,6 +167,7 @@ func configure(cast: DemoCastScript, p_fleet: FleetScript, p_skills: SkillsScrip
 	calendar = p_calendar
 	weather = p_weather
 	map = water_map
+	menu.configure(p_kitchen, p_stores)
 	_waits.clear()
 	for k: int in PLACES:
 		_waits.append(_standable(Routes.m_of(Routes.JETTY_LAND_U) + WAIT_M[k], _waits))
@@ -318,8 +331,8 @@ func food_days_milli() -> int:
 
 func fuel_days_milli(eligible_now: int) -> int:
 	"""Days of the kitchen's wood left after the feast's service and its batches (thousandths)."""
-	var after: int = stores.wood_milli_u - Rules.service_wood_milli(eligible_now) \
-		- Rules.main_batches(eligible_now) * MealRules.WOOD_MILLI_PER_BATCH
+	var batches: int = Rules.main_batches(eligible_now) + menu.second_batches_now(eligible_now)
+	var after: int = stores.wood_milli_u - Rules.service_wood_milli(eligible_now) - batches * MealRules.WOOD_MILLI_PER_BATCH
 	@warning_ignore("integer_division") var days: int = maxi(after, 0) * 1000 / daily_wood_milli()
 	return days
 
@@ -405,11 +418,7 @@ func preview_lines(day: int, host: int) -> PackedStringArray:
 		Rules.main_batches(e), Rules.main_batches(e) * MealRules.PORTIONS_PER_BATCH[MealRules.DISH_BEAN_HOTPOT],
 		_units(main_food_milli(e)), _units(free_beans()), _units(main_food_milli(e)), _units(free_cabbage()),
 		_units(Rules.main_batches(e) * MealRules.WATER_MILLI[MealRules.DISH_BEAN_HOTPOT])])
-	lines.append("Second: %s x%d and the warm infusion (herb %s): can't be made — the village has no %s or %s" % [
-		Rules.SECOND_COURSE, Rules.second_batches(e), _units(Rules.infusion_herb_milli(e)), Rules.SECOND_MISSING,
-		Rules.INFUSION_MISSING])
-	lines.append("So no %s (80%% must eat every course); each guest has the meal and the feast's company (+%d friendship a pair)" % [
-		Rules.BUFF_NAME, Rules.FEAST_GAIN])
+	lines.append_array(menu.preview_lines(e))
 	lines.append("Seats %d of %d needed · service wood %s set aside now · staffing: %s" % [
 		kitchen.places.seats.size() if kitchen != null else 0, Rules.seats_needed(e), _units(Rules.service_wood_milli(e)),
 		staffing_words(host)])
@@ -457,9 +466,11 @@ func hold(day: int, host: int, with_override: bool) -> String:
 	var at_hour: int = calendar.hour_index() if calendar != null else 0
 	kitchen.takes.reserve_into(kitchen.pantry, take, FarmingScript.CROP_BEANS, need, at_hour, _read)
 	kitchen.takes.reserve_into(kitchen.pantry, take, FarmingScript.CROP_CABBAGE, need, at_hour, _read)
+	menu.reserve(take, eligible, at_hour)
 	wood_held_milli = Rules.service_wood_milli(eligible)
 	stores.take_wood(wood_held_milli)
-	kitchen.set_occasion(Rules.feast_key(day), MealRules.DISH_BEAN_HOTPOT, Rules.main_batches(eligible), take)
+	kitchen.set_occasion(Rules.feast_key(day), MealRules.DISH_BEAN_HOTPOT, Rules.main_batches(eligible), take,
+		menu.second_dish(), Rules.second_batches(eligible) if menu.second_planned else 0)
 	state = ST_PLANNED
 	plan_season = Rules.season_of_day(day)
 	plan_day = day
@@ -505,6 +516,7 @@ func _release_plan() -> void:
 	stores.add_wood(wood_held_milli)
 	wood_held_milli = 0
 	take = 0
+	menu.release()
 
 
 # --- the day -------------------------------------------------------------------------------------------
@@ -532,7 +544,7 @@ func update() -> void:
 		_served_day = day
 		wood_burnt_milli += wood_held_milli
 		wood_held_milli = 0
-		_say("The regatta's feast is served at the hall: bean hotpot for everyone")
+		_say("The regatta's feast is served at the hall: %s for everyone" % served_words())
 
 
 func _open_next_season() -> void:
@@ -845,11 +857,11 @@ func _deck_walk(brain: BrainScript, target: Vector2, y_m: float, delta: float) -
 func _tally() -> void:
 	"""The supper is over: who ate the main course, the chronicle, the winners' deed, the feast's company; the kitchen's
 	occasion cleared; the season held."""
-	attendees.clear()
+	_count_attendees(Rules.feast_key(plan_day))
 	var key: int = Rules.feast_key(plan_day)
-	for who: int in residents():
-		if kitchen.fed.had_exact(who, key) and kitchen.fed.last_dish[who] == MealRules.DISH_BEAN_HOTPOT:
-			attendees.append(who)
+	_served_text = served_words()
+	warmth_line = menu.settle(eligible, attendees.size(), every_course, calendar.tick if calendar != null else 0,
+		calendar.hour_index() if calendar != null else 0)
 	if kitchen.occasion_key == key:
 		if not kitchen.occasion_adopted():
 			kitchen.takes.release(take)
@@ -866,19 +878,49 @@ func _tally() -> void:
 	revision += 1
 
 
+func _count_attendees(key: int) -> void:
+	"""Who shared the feast -- ate its main course at that supper -- and how many ate every course served."""
+	attendees.clear()
+	every_course = 0
+	var all_courses: int = KitchenScript.COURSE_MAIN | (KitchenScript.COURSE_SECOND if menu.second_planned else 0)
+	for who: int in residents():
+		var ate: int = kitchen.occasion_courses(who) if kitchen.occasion_key == key else 0
+		if kitchen.fed.had_exact(who, key) and ate & KitchenScript.COURSE_MAIN != 0:
+			attendees.append(who)
+			every_course += 1 if ate & all_courses == all_courses else 0
+
+
+func served_words() -> String:
+	"""'bean hotpot, nut loaf and the warm infusion' -- what the held feast serves."""
+	var parts := PackedStringArray(["bean hotpot"])
+	if menu.second_planned:
+		parts.append(Rules.SECOND_COURSE)
+	if menu.infusion_planned:
+		parts.append("the warm infusion")
+	if parts.size() == 1:
+		return parts[0]
+	return "%s and %s" % [", ".join(parts.slice(0, parts.size() - 1)), parts[parts.size() - 1]]
+
+
 func _remember() -> void:
 	"""THE CHRONICLE: the occasion's line and its one moment; the winners' deed; the feast's company."""
 	if moment_line.is_empty():
 		moment_line = "the supper song round the hall's tables" if not attendees.is_empty() else "the boats at rest on the pond"
 	var race: String = moment_words() if race_off.is_empty() else "no race (%s)" % race_off
-	chronicle_line = "The %s regatta (%s), hosted by %s: %s; %d of %d shared the feast (bean hotpot; no %s — no buff)" % [
-		_season_name(), day_text(plan_day), name_of(plan_host), race, attendees.size(), eligible, Rules.SECOND_COURSE]
+	chronicle_line = "The %s regatta (%s), hosted by %s: %s; %d of %d shared the feast (%s; %s)" % [
+		_season_name(), day_text(plan_day), name_of(plan_host), race, attendees.size(), eligible, _served_text, warmth_line]
 	if post.is_valid():
 		post.call("Chronicle: %s. The moment: %s" % [chronicle_line, moment_line], "Chronicle")
 	if winner >= 0 and winner < BOATS and record_deed.is_valid():
 		record_deed.call(PackedInt32Array([crews[winner * 2], crews[winner * 2 + 1]]), "%s regatta's race" % _season_name())
 	if share_feast.is_valid() and attendees.size() > 1:
 		share_feast.call(attendees)
+
+
+func warmth_status() -> String:
+	"""' · Shared Warmth: 31 h left' while it lasts ('' otherwise)."""
+	var now: int = calendar.tick if calendar != null else 0
+	return " · %s: %d h left" % [Rules.BUFF_NAME, menu.warmth_hours_left(now)] if menu.warmth_active(now) else ""
 
 
 func _season_name() -> String:
@@ -901,7 +943,7 @@ func status_line() -> String:
 		ST_SKIPPED:
 			return "Regatta: this season's is skipped (no penalty); the next season's opens when it begins"
 		ST_DONE:
-			return "Regatta: held. %s" % chronicle_line
+			return "Regatta: held. %s%s" % [chronicle_line, warmth_status()]
 	var at: String = day_text(plan_day)
 	var race: String = moment_line if not moment_line.is_empty() else (("off: " + race_off) if not race_off.is_empty() else "")
 	return "Regatta: %s for %s, hosted by %s%s" % [STATE_WORDS[state], at, name_of(plan_host), (" — " + race) if not race.is_empty() else ""]

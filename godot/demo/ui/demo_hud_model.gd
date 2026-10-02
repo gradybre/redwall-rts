@@ -11,15 +11,20 @@ extends RefCounted
 ##
 ##   cell (shell slot)       figure                    owner (and the panel that shows the same number)
 ##   Ready food (ID_FOOD)    milli-U                   the pantry's total, `food` (the Pantry's headline, K)
-##   Planks (ID_FUEL's slot) milli-U                   stores.plank_milli_u (Woods, Tunnels, Water panels)
+##   Heating fuel (ID_FUEL)  fuel-days, hundredths     the winter, `fuel` (the Heating fuel breakdown, its cell's click)
 ##   Wood (ID_WOOD)          milli-U                   stores.wood_milli_u  (the same panels)
 ##   Stone (ID_STONE)        milli-U                   stores.stone_milli_u (the same panels)
 ##   Residents               how many                  the cast, `residents` (the Residents roster)
 ##   Beds                    beds installed in homes   the fit-out, `beds` (the Tunnels panel's housing line)
 ##
-## FUEL'S SLOT HOLDS PLANKS. The village keeps no fuel (nothing burns it), so "Fuel: Unavailable" was a
-## genuinely unsupported summary; planks are a real, spent stock that had no place in the top bar. The slot is
-## relabelled rather than a seventh cell added: the shell's grid is six cells (UI-C3-R01 §1).
+## HEATING FUEL (decision 0571, Brendan's ruling 5; it restores UI-SET-003 over decision 0251's Planks). The hearths
+## burn wood now (demo/winter/), so Fuel's slot is UI-SET-003's own: "Heating fuel: N days" -- fuel-days, one decimal,
+## floored -- or, with no heat demanded, "No current heat demand" (the cell's short "No demand"); under 2 days it is
+## in its WARNING state (`is_warning`: UI §7's fuel warning). Its tooltip adds the breakdown (today's demand, the last
+## heated hour, the winter projection), which its click opens in full (demo/winter/fuel_panel.gd); its ledger line is the
+## one line, the shell's ledger being a fixed size. PLANKS, which held the slot, move to the ledger -- on Wood's line,
+## "Wood: 40.0 U · planks 2.5 U in store", short enough for the ledger's one line (296 px), so the ledger keeps its eight
+## lines -- and to the Wood cell's tooltip.
 ##
 ## UNAVAILABLE IS NOT ZERO. A figure whose owner is absent (a suite that builds no farm; `food` unset) is
 ## UNKNOWN, reported by `known()` and worded UNAVAILABLE -- never 0, which would read as an empty store.
@@ -42,24 +47,28 @@ const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const KitchenWords := preload("res://demo/kitchen/kitchen_text.gd")
+const WinterText := preload("res://demo/winter/winter_text.gd")
 
 const CELL_FOOD: int = 0
-const CELL_PLANKS: int = 1
+const CELL_FUEL: int = 1
 const CELL_WOOD: int = 2
 const CELL_STONE: int = 3
 const CELL_RESIDENTS: int = 4
 const CELL_BEDS: int = 5
 const CELL_COUNT: int = 6
 ## The captions, in the cells' order (the shell's COUNTER_IDS order).
-const CAPTIONS: Array[String] = ["Ready food", "Planks", "Wood", "Stone", "Residents", "Beds"]
+const CAPTIONS: Array[String] = ["Ready food", "Heating fuel", "Wood", "Stone", "Residents", "Beds"]
 ## What each figure is, for the ledger and the cell's tooltip.
-const WHERE: Array[String] = ["in the Pantry (K)", "in the village stores", "in the village stores",
+const WHERE: Array[String] = ["in the Pantry (K)", "of wood at today's demand", "in the village stores",
 	"in the village stores", "living in the village", "in the burrow homes"]
 const UNAVAILABLE: String = "Unavailable"
 const LEDGER_TITLE: String = "Village stores and residents"
 ## Ready food in days (see READY FOOD IS DAYS OF MEALS): tenths, floored (kitchen_text.gd `days_value`).
 const DAYS_WHERE: String = "of meals"
 const DAYS_TIP: String = "of meals (portions held and cookable, over a day's portions)"
+## Wood's ledger line with the planks on it, and the planks in the Wood tooltip (see HEATING FUEL).
+const WOOD_LINE: String = "Wood: %s · planks %s in store"
+const PLANKS_NOTE: String = " (planks: %s)"
 
 ## The village's one stores (wood, stone, planks); null: those three are unknown.
 var stores: StoresScript = null
@@ -70,6 +79,12 @@ var food: Callable = Callable()
 ## the lines behind it for the ledger.
 var food_days: bool = false
 var food_detail: Callable = Callable()
+## () -> int: the fuel-days in hundredths, -1 with no heat demand (demo_winter.gd `fuel_days_hundredths`); and
+## () -> PackedStringArray, its breakdown (`detail_lines`). Unset: unknown.
+var fuel: Callable = Callable()
+var fuel_detail: Callable = Callable()
+## () -> int: bumped whenever the fuel's breakdown may read differently (demo_winter.gd `stamp`). Unset: 0.
+var fuel_stamp: Callable = Callable()
 ## () -> int: how many residents live in the village (the cast). Unset: unknown.
 var residents: Callable = Callable()
 ## () -> int: beds installed in the dug homes. Unset: unknown.
@@ -95,12 +110,29 @@ func bind_meals(kitchen: RefCounted) -> void:
 	food_days = true
 
 
+func bind_fuel(winter: Object) -> void:
+	"""The Heating fuel cell reads the winter (see HEATING FUEL)."""
+	fuel = Callable(winter, &"fuel_days_hundredths")
+	fuel_detail = Callable(winter, &"detail_lines")
+	fuel_stamp = Callable(winter, &"stamp")
+
+
+func stamp() -> int:
+	"""What the ledger and the Heating fuel tooltip show beyond the six figures -- the planks and the fuel's breakdown --
+	as one integer that changes when they do (demo_hud_counters.gd repaints on it)."""
+	var planks: int = stores.plank_milli_u if stores != null else 0
+	var detail: int = int(fuel_stamp.call()) if fuel_stamp.is_valid() else 0
+	return planks ^ (detail << 32)
+
+
 func known(cell: int) -> bool:
 	"""Whether `cell`'s owner is present, so its figure is a reading rather than unknown."""
 	match cell:
 		CELL_FOOD:
 			return food.is_valid()
-		CELL_PLANKS, CELL_WOOD, CELL_STONE:
+		CELL_FUEL:
+			return fuel.is_valid()
+		CELL_WOOD, CELL_STONE:
 			return stores != null
 		CELL_RESIDENTS:
 			return residents.is_valid()
@@ -113,7 +145,7 @@ func read_into(out: PackedInt64Array) -> void:
 	"""Every cell's figure now, in the cells' order (0 for an unknown one -- ask `known()`; never shown as 0).
 	Allocates nothing: `out` is the caller's, sized CELL_COUNT."""
 	out[CELL_FOOD] = int(food.call()) if known(CELL_FOOD) else 0
-	out[CELL_PLANKS] = stores.plank_milli_u if stores != null else 0
+	out[CELL_FUEL] = int(fuel.call()) if known(CELL_FUEL) else 0
 	out[CELL_WOOD] = stores.wood_milli_u if stores != null else 0
 	out[CELL_STONE] = stores.stone_milli_u if stores != null else 0
 	out[CELL_RESIDENTS] = int(residents.call()) if known(CELL_RESIDENTS) else 0
@@ -131,7 +163,19 @@ func _text(cell: int, figure: int) -> String:
 	"""A known figure in its panel's words -- Ready food in days when it is days of meals."""
 	if cell == CELL_FOOD and food_days:
 		return KitchenWords.days_value(figure)
+	if cell == CELL_FUEL:
+		return WinterText.cell_value(figure)
 	return figure_text(cell, figure)
+
+
+func is_state(cell: int, figure: int) -> bool:
+	"""Whether a known cell's value is a state in words rather than a figure: Heating fuel's no demand."""
+	return cell == CELL_FUEL and known(cell) and figure == WinterText.Rules.NO_DEMAND
+
+
+func is_warning(cell: int, figure: int) -> bool:
+	"""Whether a cell is in its warning state: Heating fuel under 2 days (see HEATING FUEL)."""
+	return cell == CELL_FUEL and known(cell) and WinterText.is_warning(figure)
 
 
 static func figure_text(cell: int, figure: int) -> String:
@@ -139,7 +183,9 @@ static func figure_text(cell: int, figure: int) -> String:
 	match cell:
 		CELL_FOOD:
 			return FarmHud.food_text(figure)
-		CELL_PLANKS, CELL_WOOD, CELL_STONE:
+		CELL_FUEL:
+			return WinterText.cell_value(figure)
+		CELL_WOOD, CELL_STONE:
 			return StoresScript.units_text(figure)
 	return "%d" % figure
 
@@ -148,8 +194,17 @@ func tooltip(cell: int, figure: int) -> String:
 	"""A cell's hover and accessible text: "Wood: 40.0 U in the village stores. Click for the ledger."."""
 	if not known(cell):
 		return "%s: %s" % [CAPTIONS[cell], UNAVAILABLE]
+	if cell == CELL_FUEL:
+		return "%s. %s. Click for the ledger." % [WinterText.hud_line(figure), ". ".join(_fuel_lines())]
 	var where: String = DAYS_TIP if cell == CELL_FOOD and food_days else WHERE[cell]
+	if cell == CELL_WOOD and stores != null:
+		where += PLANKS_NOTE % StoresScript.units_text(stores.plank_milli_u)
 	return "%s: %s %s. Click for the ledger." % [CAPTIONS[cell], _text(cell, figure), where]
+
+
+func _fuel_lines() -> PackedStringArray:
+	"""The fuel's breakdown lines (none unbound)."""
+	return PackedStringArray(fuel_detail.call()) if fuel_detail.is_valid() else PackedStringArray()
 
 
 func _where(cell: int) -> String:
@@ -170,6 +225,10 @@ func ledger_line(cell: int, figure: int) -> String:
 	"""One ledger line: "Wood: 40.0 U in the village stores", "Beds: 3 in 1 burrow home", or "...: Unavailable"."""
 	if not known(cell):
 		return "%s: %s" % [CAPTIONS[cell], UNAVAILABLE]
+	if cell == CELL_FUEL:
+		return WinterText.hud_line(figure)
+	if cell == CELL_WOOD and stores != null:
+		return WOOD_LINE % [_text(cell, figure), StoresScript.units_text(stores.plank_milli_u)]
 	var where: String = _where(cell)
 	if cell == CELL_BEDS and homes.is_valid():
 		var count: int = int(homes.call())

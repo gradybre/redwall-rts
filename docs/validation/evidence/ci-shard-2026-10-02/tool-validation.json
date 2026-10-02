@@ -1,0 +1,144 @@
+{
+  "preserved_engine_gates": [
+    {
+      "name": "Runner diagnostics self-test",
+      "group": "analyzer",
+      "command": "python3 tools/test_run_tests_diagnostics.py"
+    },
+    {
+      "name": "GDScript analyzer warnings",
+      "group": "analyzer",
+      "command": "python3 tools/gdscript_warnings.py --max 0"
+    },
+    {
+      "name": "Component stream preflight fault injection",
+      "group": "metadata-c",
+      "command": "python3 tools/test_component_stream_preflights.py"
+    },
+    {
+      "name": "Needs metadata preflight fault injection",
+      "group": "metadata-a",
+      "command": "python3 tools/test_needs_metadata_preflights.py"
+    },
+    {
+      "name": "Priorities metadata preflight fault injection",
+      "group": "metadata-c",
+      "command": "python3 tools/test_priorities_metadata_preflights.py"
+    },
+    {
+      "name": "Schedule metadata preflight fault injection",
+      "group": "metadata-b",
+      "command": "python3 tools/test_schedule_metadata_preflights.py"
+    },
+    {
+      "name": "Transforms metadata preflight fault injection",
+      "group": "metadata-c",
+      "command": "python3 tools/test_transforms_metadata_preflights.py"
+    },
+    {
+      "name": "Fauna metadata preflight fault injection",
+      "group": "metadata-b",
+      "command": "python3 tools/test_fauna_metadata_preflights.py"
+    },
+    {
+      "name": "Work metadata preflight fault injection",
+      "group": "metadata-c",
+      "command": "python3 tools/test_work_metadata_preflights.py"
+    },
+    {
+      "name": "ResourceNodes metadata preflight fault injection",
+      "group": "metadata-a",
+      "command": "python3 tools/test_resource_nodes_metadata_preflights.py"
+    },
+    {
+      "name": "Injury metadata preflight fault injection",
+      "group": "metadata-b",
+      "command": "python3 tools/test_injury_metadata_preflights.py"
+    },
+    {
+      "name": "Residents metadata preflight fault injection",
+      "group": "metadata-a",
+      "command": "python3 tools/test_residents_metadata_preflights.py"
+    },
+    {
+      "name": "FieldPolicy metadata preflight fault injection",
+      "group": "metadata-b",
+      "command": "python3 tools/test_field_policy_metadata_preflights.py"
+    },
+    {
+      "name": "Farming metadata preflight fault injection",
+      "group": "metadata-b",
+      "command": "python3 tools/test_farming_metadata_preflights.py"
+    },
+    {
+      "name": "Fishing metadata preflight fault injection",
+      "group": "metadata-a",
+      "command": "python3 tools/test_fishing_metadata_preflights.py"
+    },
+    {
+      "name": "Movement metadata preflight fault injection",
+      "group": "metadata-c",
+      "command": "python3 tools/test_movement_metadata_preflights.py"
+    },
+    {
+      "name": "Buildings metadata preflight fault injection",
+      "group": "metadata-c",
+      "command": "python3 tools/test_buildings_metadata_preflights.py"
+    },
+    {
+      "name": "Buildings borrowed-buffer allocation discriminator",
+      "group": "metadata-a",
+      "command": "python3 tools/test_buildings_allocation.py"
+    },
+    {
+      "name": "Construction source and schema fault injection",
+      "group": "metadata-a",
+      "command": "python3 tools/test_construction_metadata_preflights.py"
+    },
+    {
+      "name": "Construction borrowed-buffer allocation discriminator",
+      "group": "metadata-b",
+      "command": "python3 tools/test_construction_allocation.py"
+    },
+    {
+      "name": "Starter structures metadata fault injection",
+      "group": "metadata-b",
+      "command": "python3 tools/test_starter_structures_metadata.py"
+    },
+    {
+      "name": "Demo audio staging self-test",
+      "group": "metadata-c",
+      "command": "python3 tools/test_stage_demo_audio.py"
+    },
+    {
+      "name": "UI refinement contract",
+      "group": "metadata-c",
+      "command": "python3 docs/validation/ui_refinement_contract.py"
+    },
+    {
+      "name": "Check the copied hash kernel against the engine",
+      "group": "metadata-c",
+      "command": "python3 docs/validation/ready07_addendum_checks.py --godot"
+    }
+  ],
+  "contracts_identical": true,
+  "aggregate_required_name_preserved": true,
+  "self_tests": {
+    "command": "python3 tools/test_ci_test_shards.py --godot",
+    "tests": 17,
+    "wall_seconds": 11.942,
+    "exit_code": 0
+  },
+  "shell_syntax": {
+    "command": "bash -n tools/run_tests.sh",
+    "exit_code": 0
+  },
+  "reviewed_candidate_sha256_before_rebase": {
+    ".github/workflows/tests.yml": "a9251d7b47a0e7fefd1a48f9777dc98f36de23a2b8a1dfb0402f01c534bd7eb5",
+    "tools/run_tests.sh": "9c6fa93648435aaf13a9be04667f438a709f7cc641df728782c42d8491f96d70",
+    "tools/ci_test_shard_runner.gd": "18e9a1c77dfa6a675e52d434704dfabbe4a7a8ed3707c0d00372f10f2a44b3c1",
+    "tools/ci_test_shards.py": "06006deab953ecce31dbde6bb411231b696eca540322ad912a0317de1a34f077",
+    "tools/test_ci_test_shards.py": "904d3f7b0156579e615fb4c8d8455e5c7f4036bf471dd74d8796ff8692995b06",
+    "tools/ci_test_shard_weights.json": "e5a6a812aad7f2b862750773fb9bb0d86bbccdb0ac130808ee2eed0f0c76c0eb"
+  }
+}

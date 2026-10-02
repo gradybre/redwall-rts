@@ -19,8 +19,10 @@ extends CanvasLayer
 ##   * the HEADER: the title and the selected count ("6 selected");
 ##   * the SUMMARY: one line saying who and what -- one resident's name and what it is doing, or a
 ##     group's common activity ("Holding ×3 · Walking to the well ×2") -- cut with an ellipsis where it
-##     is too long, whole in its tooltip; and the ACTIONS, always shown: Release (R) for any selection, and
-##     Dig tunnel (B), Burrow home (H) and Root cellar (C) with a digger in it;
+##     is too long, whole in its tooltip; and the ACTIONS, always shown: Release (R) and Follow (End) for any
+##     selection (Follow: the camera follows the primary resident, camera_modes.gd; "Stop following (End)" while it
+##     does -- UI §5's `camera_follow` "Detail title context action", decision 0801), and Dig tunnel (B), Burrow home (H)
+##     and Root cellar (C) with a digger in it;
 ##   * the INSPECTOR, a vertical scroll filling the rest of the column: first the notice line (the
 ##     selection's own prompts and refusals, demo_command.gd `say`; a new one scrolls back to it), then for
 ##     one resident its species, what it is doing now, the progress or the step of that (the words after
@@ -64,6 +66,8 @@ signal room_requested(kind: int)
 signal member_picked(actor_index: int)
 ## Release (R) was pressed: hand the selection back to its routine (demo_command.gd `release_selection`).
 signal release_requested
+## Follow (End) was pressed: the camera follows the primary resident, or stops (camera_modes.gd `toggle_follow`).
+signal follow_requested
 
 const TITLE: String = "Demo party"
 const HINT: String = "Click or drag: select · Shift: add · Right-click: move / work · R: release · Esc: clear · B: dig tool · U: underground"
@@ -78,6 +82,9 @@ const ROOM_TIPS: Array[String] = [
 const ROOM_TEMPLATES: Array[int] = [RoomsScript.TEMPLATE_HOME, RoomsScript.TEMPLATE_CELLAR]
 const RELEASE_BUTTON: String = "Release (R)"
 const RELEASE_TIP: String = "Release (R) — hand the selected residents back to their own routine; they stay selected"
+const FOLLOW_BUTTON: String = "Follow (End)"
+const FOLLOW_STOP: String = "Stop following (End)"
+const FOLLOW_TIP: String = "Follow (End) — the camera follows the first selected resident; a pan or End stops it"
 const DIGGING: String = "Digging tunnel — %d%%"
 ## A room being dug names itself (decision 0209), e.g. "Digging Burrow home 1 — 43%".
 const DIGGING_ROOM: String = "Digging %s — %d%%"
@@ -135,7 +142,10 @@ var _summary: Label = null
 var _chip: ColorRect = null
 var _notice: Label = null
 var _actions: HFlowContainer = null
+## Other owners' rows in the actions' flow (`add_top_row`).
+var _extra_rows: Array[Control] = []
 var _release: Button = null
+var _follow: Button = null
 var _dig: Button = null
 var _room_buttons: Array[Button] = []
 var _inspector: DemoScroll = null
@@ -189,6 +199,17 @@ func dig_button() -> Button:
 func release_button() -> Button:
 	"""The "Release (R)" button (null before build)."""
 	return _release
+
+
+func follow_button() -> Button:
+	"""The "Follow (End)" button (null before build)."""
+	return _follow
+
+
+func set_following(on: bool) -> void:
+	"""Word the follow button for whether the camera follows now (camera_modes.gd tells it)."""
+	if _follow != null:
+		_follow.text = FOLLOW_STOP if on else FOLLOW_BUTTON
 
 
 func notice_label() -> Label:
@@ -272,6 +293,8 @@ func _build_actions() -> HFlowContainer:
 	row.add_theme_constant_override(&"v_separation", SEPARATION)
 	_release = _wood_button(RELEASE_BUTTON, RELEASE_TIP, func() -> void: release_requested.emit())
 	row.add_child(_release)
+	_follow = _wood_button(FOLLOW_BUTTON, FOLLOW_TIP, func() -> void: follow_requested.emit())
+	row.add_child(_follow)
 	_dig = _wood_button(DIG_BUTTON, DIG_TIP, func() -> void: dig_requested.emit())
 	row.add_child(_dig)
 	for k in ROOM_BUTTONS.size():
@@ -303,6 +326,22 @@ func _build_detail() -> void:
 	_detail.add_child(_abilities)
 	_hint = _wrapped(HINT, SMALL_PX, Palette.UMBER)
 	_detail.add_child(_hint)
+
+
+func add_top_row(row: Control) -> void:
+	"""Another owner's row IN the actions' flow, after the room tools -- in view with them, docked with them, and beside
+	the last button where it fits -- so it adds no row of its own at 1280x720 (decision 0791's "Select idle" with 0801's
+	Follow (End) left the inspector too short to dock: batch 7 integration, decision 0902). The actions show while
+	such a row does."""
+	_extra_rows.append(row)
+	_actions.add_child(row)
+
+
+func add_section(section: Control) -> void:
+	"""Another owner's section in the inspector, right after the notice line: the group panel (control/group_panel.gd,
+	decision 0791). It shows and hides itself."""
+	_detail.add_child(section)
+	_detail.move_child(section, _notice.get_index() + 1)
 
 
 func room_button(k: int) -> Button:
@@ -367,10 +406,11 @@ func show_party(entries: Array[Dictionary]) -> void:
 	_chip.color = entries[0].get("colour", Palette.SAGE) if entries.size() == 1 else Color(0, 0, 0, 0)
 	_chip.visible = entries.size() == 1
 	_release.visible = not entries.is_empty()
+	_follow.visible = _release.visible
 	_dig.visible = has_digger(entries)
 	for room: Button in _room_buttons:
 		room.visible = _dig.visible
-	_actions.visible = _release.visible
+	_actions.visible = _release.visible or not _extra_rows.is_empty()
 	_fill_rows(entries)
 	var abilities: PackedStringArray = entries[0].get("abilities", PackedStringArray()) if entries.size() == 1 \
 			else PackedStringArray()

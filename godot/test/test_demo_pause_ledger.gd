@@ -356,6 +356,41 @@ func test_the_pause_card_hides_while_asked() -> void:
 	assert_false(card.refresh(), "hidden")
 
 
+func test_the_pause_card_places_again_when_its_minimum_changes() -> void:
+	"""Decision 0931: the panel's minimum changed (its words re-measured) queues one placing, however often asked."""
+	var card := CardScript.new()
+	_nodes.append(card)
+	assert_false(bool(card.get(&"_place_queued")), "nothing queued at first")
+	card.frame().minimum_size_changed.emit()
+	assert_true(bool(card.get(&"_place_queued")), "a placing queued")
+	card.call(&"_place")
+	assert_false(bool(card.get(&"_place_queued")), "placed (out of the tree: nothing to place against), unqueued")
+
+
+func test_the_pause_card_moves_when_what_it_sits_against_moves() -> void:
+	"""Decision 0931: the top card shown, gone or resized, or the HUD's cards shown or gone, since it was placed."""
+	var card := CardScript.new()
+	_nodes.append(card)
+	var top: Array[Rect2] = [Rect2()]
+	var cards: Array[bool] = [false]
+	card.avoid = func() -> Rect2: return top[0]
+	card.hud_cards_shown = func() -> bool: return cards[0]
+	assert_false(bool(card.call(&"_moved")), "as placed")
+	top[0] = Rect2(10.0, 130.0, 420.0, 217.0)
+	assert_true(bool(card.call(&"_moved")), "a top card shown")
+	card.set(&"_placed_clear", top[0])
+	assert_false(bool(card.call(&"_moved")), "placed against it")
+	top[0].size.y = 160.0
+	assert_true(bool(card.call(&"_moved")), "the top card resized")
+	card.set(&"_placed_clear", top[0])
+	cards[0] = true
+	assert_true(bool(card.call(&"_moved")), "the HUD's cards shown")
+	card.set(&"_placed_cards", true)
+	assert_false(bool(card.call(&"_moved")), "placed under them")
+	top[0] = Rect2()
+	assert_true(bool(card.call(&"_moved")), "the top card gone")
+
+
 func test_a_refused_release_keeps_the_hold() -> void:
 	"""Review M5: under a load barrier the clock refuses; the ledger keeps its hold, so the open menu keeps its pause."""
 	assert_true(_ledger.hold_menu(true), "held")

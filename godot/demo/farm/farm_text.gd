@@ -421,3 +421,13 @@ static func span_text(hours: int) -> String:
 	if hours >= 24 and hours % 24 == 0:
 		@warning_ignore("integer_division") return "1 day" if hours == 24 else "%d days" % (hours / 24)
 	return "%d h" % hours
+
+
+static func keeps_text(slower_than_permille: int, permille: int) -> String:
+	"""How many times as long food keeps at store factor `permille` as at `slower_than_permille` (§5.8's factors; decision
+	0611), to the tenth, floored: '2.8×' for a cool cellar (350) against the covered store (1000), '1.0×' for the same."""
+	@warning_ignore("integer_division")  # floored tenths by intent
+	var tenths: int = slower_than_permille * 10 / maxi(permille, 1)
+	@warning_ignore("integer_division")  # whole times by intent
+	var whole: int = tenths / 10
+	return "%d.%d×" % [whole, tenths % 10]

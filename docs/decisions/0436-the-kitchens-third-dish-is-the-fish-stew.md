@@ -1,6 +1,11 @@
 # 0436 — The kitchen's third dish is §5.7's fish stew, cooked from fresh fish
 Date: 2026-10-01 · Status: Accepted
 
+> **Extended by [0601](0601-the-recipe-book-favourites-and-the-cooks-choice.md) and
+> [0602](0602-the-recipes-tab-lists-every-pantry-item.md) (2026-10-01):** "fresh fish while it is fresh" is now the
+> cook's rule for every dish, second to "a dish that feeds the whole meal" (Brendan's ruling of 2026-10-01: a fish stew
+> that would feed only part of the meal waits); the Recipes tab lists the fish (the index was rebuilt).
+
 Water part B (0431); extends decision 0381's kitchen (Brendan's ruling 1 there: two dishes, alternating). Numbered in this
 lane's 0431–0439 range.
 

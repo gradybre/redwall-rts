@@ -95,9 +95,10 @@ static func is_clean(record: RecordScript, season: int) -> bool:
 
 
 func dishes_cooked() -> int:
-	"""How many different dishes have been cooked."""
+	"""How many different everyday dishes have been cooked (meal_rules.gd `is_everyday_dish`: an occasion's course, a
+	drink or a dish still waiting for an ingredient is not counted; decision 0902)."""
 	var n: int = 0
 	for dish: int in Rules.DISH_COUNT:
-		if dish_mask & (1 << dish) != 0:
+		if Rules.is_everyday_dish(dish) and dish_mask & (1 << dish) != 0:
 			n += 1
 	return n

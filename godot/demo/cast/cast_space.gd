@@ -81,6 +81,10 @@ const MAX_SLOTS: int = 16
 const CONSTRAIN_PASSES: int = 2
 ## A room's mound as obstacle circles: up to this many a room (see TUNNEL MOUTHS AND HEAPS).
 const MOUND_CIRCLES: int = 4
+## Surface structures placed during play: one circle each, at most this many. The cellar buildings take slots 0 and 1
+## (demo_stores.gd FIRST_STRUCTURE, decision 0612) and the infirmary the last (infirmary_building.gd STRUCTURE, decision
+## 0623); the two lanes' identical hunks were merged once at the batch 7 integration (decision 0902).
+const STRUCTURES: int = 4
 const STOCKPILE_WORDS: PackedStringArray = ["stockpile", "store", "storage", "pile", "crate", "sack", "log"]
 const CARRY_CLIP: StringName = &"carry_heavy_object_walk"
 const LOCOMOTION_CLIPS: Array[StringName] = [&"walk", &"carry_heavy_object_walk"]
@@ -127,6 +131,7 @@ var _standing: PackedVector3Array = PackedVector3Array()
 var _world_obstacles: PackedVector3Array = PackedVector3Array()
 var _heap_circles: PackedVector3Array = PackedVector3Array()
 var _mound_circles: PackedVector3Array = PackedVector3Array()
+var _structure_circles: PackedVector3Array = PackedVector3Array()
 
 
 func setup(points: Array[Dictionary], obstacle_list: Array[Vector3]) -> void:
@@ -142,6 +147,8 @@ func setup(points: Array[Dictionary], obstacle_list: Array[Vector3]) -> void:
 	_heap_circles.fill(Vector3.ZERO)
 	_mound_circles.resize(RoomsScript.MAX_ROOMS * MOUND_CIRCLES)
 	_mound_circles.fill(Vector3.ZERO)
+	_structure_circles.resize(STRUCTURES)
+	_structure_circles.fill(Vector3.ZERO)
 	nav.setup(obstacles)
 	_clear_pois()
 	for point in points:
@@ -185,6 +192,22 @@ func set_mound(r: int, circles: PackedVector3Array) -> void:
 	_rebuild_obstacles()
 
 
+func set_structure(s: int, circle: Vector3) -> void:
+	"""Surface structure `s` (0..STRUCTURES-1; a cellar building or the infirmary) now stands as this circle (x, radius,
+	z); radius 0 removes it. The obstacles are rebuilt as a heap's are."""
+	_structure_circles[s] = circle
+	_rebuild_obstacles()
+
+
+func structure_circles() -> PackedVector3Array:
+	"""Every standing structure's circle (x, radius, z): what a tunnel may not pass under (decision 0612)."""
+	var out := PackedVector3Array()
+	for circle in _structure_circles:
+		if circle.y > 0.0:
+			out.append(circle)
+	return out
+
+
 func _rebuild_obstacles() -> void:
 	"""The world's circles, every heap and every room's mound: the obstacles, and the navigation over them."""
 	obstacle_builds += 1
@@ -193,6 +216,9 @@ func _rebuild_obstacles() -> void:
 		if circle.y > 0.0:
 			obstacles.append(circle)
 	for circle in _mound_circles:
+		if circle.y > 0.0:
+			obstacles.append(circle)
+	for circle in _structure_circles:
 		if circle.y > 0.0:
 			obstacles.append(circle)
 	nav.setup(obstacles)

@@ -1,0 +1,46 @@
+{
+  "purpose": "initial source-size allocation; produces measured weights",
+  "runs": [
+    {
+      "index": 0,
+      "exit_code": 0,
+      "wall_seconds": 164.276
+    },
+    {
+      "index": 1,
+      "exit_code": 0,
+      "wall_seconds": 83.828
+    },
+    {
+      "index": 2,
+      "exit_code": 0,
+      "wall_seconds": 131.362
+    },
+    {
+      "index": 3,
+      "exit_code": 0,
+      "wall_seconds": 143.416
+    },
+    {
+      "index": 4,
+      "exit_code": 0,
+      "wall_seconds": 59.359
+    },
+    {
+      "index": 5,
+      "exit_code": 0,
+      "wall_seconds": 122.682
+    },
+    {
+      "index": 6,
+      "exit_code": 0,
+      "wall_seconds": 46.093
+    },
+    {
+      "index": 7,
+      "exit_code": 0,
+      "wall_seconds": 108.484
+    }
+  ],
+  "runtime_setup_restored": true
+}

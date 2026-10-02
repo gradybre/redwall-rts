@@ -18,7 +18,10 @@ extends RefCounted
 ## crew is held on the water (`water_hold`). At RACE_HOUR, both boats crewed, they push off; each turns at its mark and
 ## rows home; the first moored wins (equal paces: a dead heat). A storm, ice, or a crew not aboard by RACE_GIVE_UP_HOUR
 ## calls the race off; the feast goes on. The feast is the day's supper, cooked by the kitchen as the occasion's dish;
-## its service wood burns at the supper's call; its tally -- who ate the main course -- is taken at the supper's end.
+## its service wood burns at the supper's call; its tally -- who ate the main course -- is taken from the kitchen's
+## MEAL FINALIZED event for that supper (decision 0997; Brendan's ruling on review R05): published once every bowl of it
+## has been eaten or given back, so a guest served at 18:59 who finishes after 19:00 is counted, and one who gives its
+## bowl back is not. A supper the kitchen never served (a season skip over the day) is tallied with nobody.
 ##
 ## REMEMBERED (SOC-023: an occasion and its memory). The chronicle -- the village news, Village source, the history --
 ## keeps the occasion: its day, host, race and feast, and ONE MOMENT, the race's finish (or, with no race, the supper
@@ -151,6 +154,8 @@ var _called_day: int = NONE
 ## Residents who could not get to the jetty this race (not called again).
 var _unreached: PackedInt32Array = PackedInt32Array()
 var _served_day: int = NONE
+## The kitchen's published meal events already looked through (`kitchen.finals_published`).
+var _finals_seen: int = NONE
 
 
 func configure(cast: DemoCastScript, p_fleet: FleetScript, p_skills: SkillsScript, p_ice: IceScript,
@@ -534,10 +539,9 @@ func update() -> void:
 		return
 	var day: int = today()
 	var h: int = hour()
-	if day > plan_day or (day == plan_day and h >= MealRules.END_HOUR[Rules.FEAST_MEAL]):
-		_tally()
+	if day >= plan_day and _settle_feast():
 		return
-	if day < plan_day:
+	if day != plan_day or h >= MealRules.END_HOUR[Rules.FEAST_MEAL]:
 		return
 	_follow_race(h)
 	if h >= MealRules.CALL_HOUR[Rules.FEAST_MEAL] and _served_day != day:
@@ -854,11 +858,28 @@ func _deck_walk(brain: BrainScript, target: Vector2, y_m: float, delta: float) -
 
 # --- the feast's tally and the chronicle -------------------------------------------------------------------
 
-func _tally() -> void:
-	"""The supper is over: who ate the main course, the chronicle, the winners' deed, the feast's company; the kitchen's
-	occasion cleared; the season held."""
-	_count_attendees(Rules.feast_key(plan_day))
+func _settle_feast() -> bool:
+	"""Whether the feast's supper is settled, and if so tallied now: the kitchen has published its MEAL FINALIZED event
+	(every bowl eaten or given back), or the kitchen ran past it without serving it (`meal_lapsed`: tallied with nobody).
+	False while a guest still holds a bowl of it, or before it."""
 	var key: int = Rules.feast_key(plan_day)
+	if kitchen.finals_published != _finals_seen:
+		_finals_seen = kitchen.finals_published
+		var final: KitchenScript.MealFinal = kitchen.final_of(key)
+		if final != null:
+			_tally(final)
+			return true
+	if kitchen.meal_lapsed(key):
+		_tally(null)
+		return true
+	return false
+
+
+func _tally(final: KitchenScript.MealFinal) -> void:
+	"""The supper is settled (`final`: its event; null: never served): who ate the main course, the chronicle, the
+	winners' deed, the feast's company; the kitchen's occasion cleared; the season held."""
+	var key: int = Rules.feast_key(plan_day)
+	_count_attendees(key, final)
 	_served_text = served_words()
 	warmth_line = menu.settle(eligible, attendees.size(), every_course, calendar.tick if calendar != null else 0,
 		calendar.hour_index() if calendar != null else 0)
@@ -878,16 +899,20 @@ func _tally() -> void:
 	revision += 1
 
 
-func _count_attendees(key: int) -> void:
-	"""Who shared the feast -- ate its main course at that supper -- and how many ate every course served."""
+func _count_attendees(key: int, final: KitchenScript.MealFinal) -> void:
+	"""Who shared the feast -- of the supper's committed diners (`final`'s), those who ate its main course -- and how
+	many ate every course served; residents in order."""
 	attendees.clear()
 	every_course = 0
+	if final == null or kitchen.occasion_key != key:
+		return
 	var all_courses: int = KitchenScript.COURSE_MAIN | (KitchenScript.COURSE_SECOND if menu.second_planned else 0)
-	for who: int in residents():
-		var ate: int = kitchen.occasion_courses(who) if kitchen.occasion_key == key else 0
-		if kitchen.fed.had_exact(who, key) and ate & KitchenScript.COURSE_MAIN != 0:
+	for who: int in final.diners:
+		var ate: int = kitchen.occasion_courses(who)
+		if who < residents() and ate & KitchenScript.COURSE_MAIN != 0:
 			attendees.append(who)
 			every_course += 1 if ate & all_courses == all_courses else 0
+	attendees.sort()
 
 
 func served_words() -> String:

@@ -184,6 +184,10 @@ const REFUSED_BLOCKED: String = "gave up: the way there stayed blocked"
 const ROUTE_RETRY_S: float = 0.2
 
 const CLIP_IDLE: StringName = &"idle"
+## Which building a resident `indoors` is in (decision 0995: the winter reads the interior's own heat source).
+const INTERIOR_NONE: int = 0
+const INTERIOR_HALL: int = 1
+const INTERIOR_INFIRMARY: int = 2
 const CLIP_WALK: StringName = &"walk"
 const CLIP_CARRY: StringName = &"carry_heavy_object_walk"
 ## Asleep in bed (Meshy's Sleep_Normally, decision 0204; staged as sleep_normally, decision 0210).
@@ -306,6 +310,8 @@ var resting: bool = false
 var lying: bool = false
 var lie_top_y_m: float = 0.0
 var indoors: bool = false
+## While `indoors`: which building (INTERIOR_*); INTERIOR_NONE outside.
+var interior: int = INTERIOR_NONE
 var lie_middle_m: Vector2 = Vector2.ZERO
 ## ITS WORK PACE: how much of its work it does, per mille -- the village's one work pace (demo/work/work_pace.gd: the
 ## winter's Chilled factor times the infirmary's health factor), which the winter writes here each frame (decision 0902;
@@ -2518,10 +2524,11 @@ func task_rise(stand_at: Vector2) -> void:
 	_space.move_resident(index, position)
 
 
-func task_go_indoors(inside: bool) -> void:
-	"""For a task: into a building (not drawn, and off the walking surface, so it stands in nobody's way) or back out
-	of it."""
+func task_go_indoors(inside: bool, building: int) -> void:
+	"""For a task: into `building` (INTERIOR_*: not drawn, and off the walking surface, so it stands in nobody's way) or
+	back out of it (`building` is then ignored)."""
 	indoors = inside
+	interior = building if inside else INTERIOR_NONE
 	_space.set_underground(index, inside or underground)
 
 

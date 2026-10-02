@@ -10,6 +10,7 @@ const RecordScript := preload("res://demo/farm/farm_record.gd")
 const SimScript := preload("res://demo/farm/farm_sim.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const TakesScript := preload("res://demo/kitchen/ingredient_takes.gd")
 
 const PROBE: String = "res://test/live/opening_pantry_probe.gd"
 const WHEAT_MILLI: int = 40000
@@ -63,9 +64,9 @@ func test_a_store_without_room_is_not_forced() -> void:
 	assert_equal(pantry.milli_of(_item(&"carrot")), 0, "no carrots forced in")
 
 
-func test_what_is_left_of_the_opening_stock_is_counted_by_the_ledger() -> void:
-	"""Decision 0902: the opening stock left is its milli-U less every withdrawal and spoiling of its items since, as
-	plain-dish portions -- 72 at the start; 2 U of wheat withdrawn leaves 70; never below 0."""
+func test_what_is_left_of_the_opening_stock_is_counted_on_its_lots() -> void:
+	"""Decisions 0902 and 0994: the opening stock left is the opening share its lots still hold, as plain-dish portions
+	-- 72 at the start; 2 U of the opening wheat withdrawn leaves 70; food brought in is never counted."""
 	var pantry := PantryScript.new(StorageScript.new(Vector2.ZERO))
 	assert_equal(OpeningScript.portions_left(pantry), 0, "no stock, nothing left")
 	OpeningScript.stock(pantry, null, 6)
@@ -103,3 +104,132 @@ func test_the_real_village_opens_with_the_stock() -> void:
 	var ready_days: int = OPENING_PORTIONS * 1000 / (2 * maxi(residents, 1))
 	assert_equal(line, "OPENING wheat=%d carrot=%d ready_days_milli=%d harvested=0 residents=%d" % [WHEAT_MILLI,
 		CARROT_MILLI, ready_days, residents], "what the village opened with: %s" % line)
+
+
+# --- opening provenance on the lots (decision 0994; the review's R02) ------------------------------------------------
+
+const COVERED: int = 0
+const CELLAR: int = 1
+## Hours the opening carrots age in the covered store before they are moved, so they are the OLDER lot.
+const AGED_HOURS: int = 24
+
+
+func _cellar_pantry() -> PantryScript:
+	"""The covered store (1000 per mille) and a GDD cellar (350 per mille) with room for all the carrots."""
+	var storage := StorageScript.new(Vector2(-4.0, 0.0))
+	storage.add_provider(func() -> Array: return [{"id": &"cellar", "position": Vector2(4.0, 0.0), "capacity_u": 100,
+		"label": "Root cellar", "spoilage_permille": 350}])
+	return PantryScript.new(storage)
+
+
+func _lot_of(pantry: PantryScript, item: int, location: int) -> int:
+	"""The first lot row of `item` at `location` (-1: none)."""
+	for lot: int in PantryScript.MAX_LOTS:
+		if pantry.lot_item(lot) == item and pantry.lot_location(lot) == location:
+			return lot
+	return -1
+
+
+func _move(pantry: PantryScript, lot: int, milli: int, to: int) -> int:
+	"""Carry `milli` of lot `lot` into store `to` by the pantry's own move (decision 0611); the row set down."""
+	var read := IntMath.IntResult.new()
+	assert_true(pantry.reserve_at_into(pantry.lot_item(lot), milli, to, read), "room held at the destination")
+	var hold: int = read.value
+	assert_true(pantry.begin_carry_into(lot, pantry.lot_serial(lot), milli, read), "picked up")
+	var carried: int = read.value
+	assert_true(pantry.set_down_into(carried, pantry.lot_serial(carried), hold, read) and read.value == milli, "set down")
+	return carried
+
+
+func _opening_in_cellar_young_harvest_warm() -> PantryScript:
+	"""The review's case: the opening carrots aged a day, then moved into the cool cellar; 20 U of younger harvested
+	carrots then received into the warm covered store."""
+	var pantry := _cellar_pantry()
+	OpeningScript.stock(pantry, null, 6)
+	for _h: int in AGED_HOURS:
+		pantry.age_hour(0)
+	var carrot: int = _item(&"carrot")
+	_move(pantry, _lot_of(pantry, carrot, COVERED), CARROT_MILLI, CELLAR)
+	var read := IntMath.IntResult.new()
+	assert_true(pantry.add_into(carrot, 20000, COVERED, read), "a younger harvest in the warm store")
+	assert_true(pantry.lot_age(_lot_of(pantry, carrot, CELLAR)) > pantry.lot_age(read.value), "the opening lot older")
+	return pantry
+
+
+func test_the_kitchen_cooking_a_younger_warm_lot_first_leaves_the_opening_lot_counted() -> void:
+	"""The younger warm lot spoils first, so the cook's batch takes it (expiry first, decision 0381): the opening carrots
+	in the cellar are untouched and all 50 U still count -- the old ledger would have said 48."""
+	var pantry := _opening_in_cellar_young_harvest_warm()
+	var carrot: int = _item(&"carrot")
+	var takes := TakesScript.new()
+	var take: int = takes.new_take()
+	var read := IntMath.IntResult.new()
+	var selector: int = TakesScript.items_selector(PackedInt32Array([carrot]))
+	assert_true(takes.reserve_into(pantry, take, selector, 2000, AGED_HOURS, read) and read.value == 2000, "reserved")
+	assert_true(takes.consume_into(pantry, take, 2000, TakesScript.AT_STORE, AGED_HOURS, read), "cooked")
+	assert_equal(pantry.milli_at(carrot, COVERED), 18000, "taken from the younger warm lot")
+	assert_equal(pantry.milli_at(carrot, CELLAR), CARROT_MILLI, "the opening carrots untouched")
+	assert_equal(OpeningScript.left_milli(pantry, 1), CARROT_MILLI, "all 50 U of opening carrots still counted")
+	assert_equal(CARROT_MILLI - pantry.withdrawn_total_milli(carrot), 48000, "where the ledger would have said 48")
+
+
+func test_the_younger_warm_lot_spoiling_first_leaves_the_opening_lot_counted() -> void:
+	"""The younger warm lot spoils first: the opening carrots still in the cellar all still count; once they spoil too,
+	none do."""
+	var pantry := _opening_in_cellar_young_harvest_warm()
+	var carrot: int = _item(&"carrot")
+	var hours: int = 0
+	while pantry.milli_at(carrot, COVERED) > 0 and hours < 100000:
+		pantry.age_hour(0)
+		hours += 1
+	assert_equal(pantry.spoiled_total_milli(carrot), 20000, "the warm lot spoiled")
+	assert_equal(pantry.milli_at(carrot, CELLAR), CARROT_MILLI, "the opening lot not yet")
+	assert_equal(OpeningScript.left_milli(pantry, 1), CARROT_MILLI, "all of it still counted")
+	while pantry.milli_at(carrot, CELLAR) > 0 and hours < 100000:
+		pantry.age_hour(0)
+		hours += 1
+	assert_equal(OpeningScript.left_milli(pantry, 1), 0, "spoiled in turn: none left")
+	assert_equal(pantry.opening_milli_of(carrot), 0, "no opening share on a freed row")
+	var read := IntMath.IntResult.new()
+	assert_true(pantry.add_into(carrot, 3000, CELLAR, read), "a new harvest reuses a freed row")
+	assert_equal(pantry.opening_milli_of(carrot), 0, "and is not opening stock")
+
+
+func test_a_split_carry_and_a_withdrawal_move_the_opening_share_exactly() -> void:
+	"""A carry that splits a lot moves its share with it; a withdrawal from a wholly opening lot takes its own milli-U
+	of share; nothing is lost or made between the rows."""
+	var pantry := _cellar_pantry()
+	OpeningScript.stock(pantry, null, 6)
+	var carrot: int = _item(&"carrot")
+	var source: int = _lot_of(pantry, carrot, COVERED)
+	var moved: int = _move(pantry, source, 20000, CELLAR)
+	assert_equal([pantry.lot_opening_milli(moved), pantry.lot_opening_milli(source)], [20000, 30000], "split 20 / 30")
+	var read := IntMath.IntResult.new()
+	assert_true(pantry.withdraw_into(moved, pantry.lot_serial(moved), 7000, read), "7 U withdrawn")
+	assert_equal(pantry.opening_milli_of(carrot), 43000, "43 U of opening carrots left")
+	assert_true(pantry.withdraw_into(moved, pantry.lot_serial(moved), 13000, read), "the rest of that lot")
+	assert_equal(pantry.lot_opening_milli(moved), 0, "an emptied row holds no share")
+	assert_equal(OpeningScript.left_milli(pantry, 1), 30000, "30 U left")
+
+
+func test_a_delivery_merged_into_an_opening_lot_shares_its_withdrawals_proportionally() -> void:
+	"""With every row taken a delivery merges into the opening lot (§5.8): the lot is 50 U opening of 60; 6 U withdrawn
+	takes 5 U of opening share (proportional, floored), and the share never exceeds the lot."""
+	var pantry := _cellar_pantry()
+	OpeningScript.stock(pantry, null, 6)
+	var read := IntMath.IntResult.new()
+	var radish: int = _item(&"radish")
+	while pantry.lot_count() < PantryScript.MAX_LOTS:
+		assert_true(pantry.add_into(radish, 1, CELLAR, read), "a row taken")
+	var carrot: int = _item(&"carrot")
+	assert_true(pantry.add_into(carrot, 10000, COVERED, read), "merged into the opening lot")
+	var lot: int = read.value
+	assert_equal([pantry.lot_milli(lot), pantry.lot_opening_milli(lot)], [60000, 50000], "50 of 60 U opening")
+	assert_true(pantry.withdraw_into(lot, pantry.lot_serial(lot), 6000, read), "6 U withdrawn")
+	assert_equal(pantry.lot_opening_milli(lot), 45000, "5 U of it opening")
+	assert_true(pantry.withdraw_into(lot, pantry.lot_serial(lot), 1, read), "1 milli-U withdrawn")
+	assert_equal(pantry.lot_opening_milli(lot), 45000, "its share floors to nothing")
+	assert_equal(pantry.opening_share(lot, pantry.lot_milli(lot)), 45000, "the whole lot carries the whole share")
+	assert_equal(pantry.opening_share(lot, pantry.lot_milli(lot) + 5000), 45000, "more than the lot: no more than its share")
+	assert_equal(pantry.opening_share(lot, 0), 0, "nothing carries nothing")
+	assert_equal(pantry.opening_share(-1, 5), 0, "no such row")

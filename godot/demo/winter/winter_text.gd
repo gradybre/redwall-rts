@@ -18,6 +18,8 @@ const NO_DEMAND: String = "No current heat demand"
 const NO_DEMAND_SHORT: String = "No demand"
 const HALL_NAME: String = "the hall"
 const HALL_TITLE: String = "The hall"
+const INFIRMARY_NAME: String = "the infirmary"
+const INFIRMARY_TITLE: String = "The infirmary"
 const FIREWOOD: String = "Firewood"
 const CHILLED_WORD: String = "chilled"
 const WORKS_AT: String = "works at %d%% until warmed through at a heated hearth"
@@ -64,12 +66,16 @@ static func hour_text(hour_index: int) -> String:
 
 
 static func source_name(source: int) -> String:
-	"""A hearth's place: "Burrow home 2", or "the hall"."""
+	"""A hearth's place: "Burrow home 2", "the hall", or "the infirmary"."""
+	if source == FuelScript.INFIRMARY:
+		return INFIRMARY_NAME
 	return HALL_NAME if source == FuelScript.HALL else "Burrow home %d" % (source + 1)
 
 
 static func source_title(source: int) -> String:
-	"""A hearth's place, capitalised: "Burrow home 2", "The hall"."""
+	"""A hearth's place, capitalised: "Burrow home 2", "The hall", "The infirmary"."""
+	if source == FuelScript.INFIRMARY:
+		return INFIRMARY_TITLE
 	return HALL_TITLE if source == FuelScript.HALL else source_name(source)
 
 
@@ -130,7 +136,10 @@ static func out_line(out: PackedInt32Array, air_tenths: int) -> String:
 
 
 static func cold_home_line(source: int, tenths: int) -> String:
-	"""A home gone cold: below freezing inside."""
+	"""A home gone cold: below freezing inside (the infirmary: its patients, decision 0995)."""
+	if source == FuelScript.INFIRMARY:
+		return "The infirmary has gone cold (%s): its patients build up exposure — bring in wood (Heating fuel, the top bar)" % \
+			degrees(tenths)
 	return "%s has gone cold (%s): sleepers there build up exposure — bring in wood, or move them to a heated home (Heating fuel, the top bar)" % [
 		source_title(source), degrees(tenths)]
 

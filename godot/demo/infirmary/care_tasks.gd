@@ -97,7 +97,7 @@ class BedRest extends "res://demo/tunnel/tunnel_task.gd":
 			return
 		var walker := brain as BrainScript
 		if where == WHERE_INFIRMARY:
-			walker.task_go_indoors(true)
+			walker.task_go_indoors(true, BrainScript.INTERIOR_INFIRMARY)
 			walker.task_play(BrainScript.CLIP_IDLE)
 		else:
 			walker.task_lie(_field_at, FIELD_YAW, GROUND_Y_M)
@@ -124,7 +124,7 @@ class BedRest extends "res://demo/tunnel/tunnel_task.gd":
 		elif walker.lying:
 			walker.task_rise(_field_at + Vector2(FIELD_GAP_M, 0.0))
 		if where == WHERE_INFIRMARY and walker.indoors:
-			walker.task_go_indoors(false)
+			walker.task_go_indoors(false, BrainScript.INTERIOR_NONE)
 		_lying = false
 
 	func in_place() -> bool:
@@ -203,7 +203,7 @@ class Treat extends "res://demo/tunnel/tunnel_task.gd":
 			stage = STAGE_TO_SPOT
 			return
 		if rest.where == WHERE_INFIRMARY:
-			walker.task_go_indoors(true)
+			walker.task_go_indoors(true, BrainScript.INTERIOR_INFIRMARY)
 		stage = STAGE_WORKING
 
 	func step(brain: RefCounted, delta: float) -> bool:
@@ -236,7 +236,7 @@ class Treat extends "res://demo/tunnel/tunnel_task.gd":
 	func _end(walker: BrainScript) -> void:
 		"""Out of the infirmary's door, and the desk told, once."""
 		if walker.indoors:
-			walker.task_go_indoors(false)
+			walker.task_go_indoors(false, BrainScript.INTERIOR_NONE)
 		if _ended.is_valid():
 			_ended.call(healer, patient)
 			_ended = Callable()

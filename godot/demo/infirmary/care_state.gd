@@ -35,12 +35,19 @@ extends RefCounted
 ## SUPPLIES (REQ-SET-173's herb 1 + cloth 0.5, §5.1's starting 12 + 24 U) are paid once per injury at the treatment's
 ## WORK START (§5.3: "Input consumption occurs at WORK start"), so a healer called away and replaced never pays twice;
 ## the care work is the patient's (HAZ-004: "changing helpers retains WIP").
+##
+## THE CLOTH is the village's one cloth in the stores (tunnel_stores.gd CLOTH; Brendan's ruling on R01, decision 0993),
+## shared with the hall's upgrade and the infirmary building. A treatment RESERVES its 0.5 U there when its healer is sent
+## (`claim_cloth`), under the treatments' claim, so neither building can carry it off meanwhile; the reservation is lifted
+## at work start (`pay_treatment`) or given back when the healer stops unpaid (`release_cloth`). Unbound (`use_cloth`
+## never called, as in a unit test), the state keeps private stores of its own holding the same opening 24 U.
 
 const Rules := preload("res://demo/infirmary/care_rules.gd")
 const Needs := preload("res://scripts/core/needs.gd")
 const Injury := preload("res://scripts/core/injury.gd")
 const Rng := preload("res://scripts/core/rng.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 
 @warning_ignore_start("integer_division")
 
@@ -62,8 +69,14 @@ var floor_holds: int = 0
 var ticks_fast: int = 0
 ## The care supplies, milli-U (§5.1's starting stocks), and the herb patch's stock (§5.5).
 var herb_milli: int = Rules.START_HERB_MILLI
-var cloth_milli: int = Rules.START_CLOTH_MILLI
 var patch_milli: int = Rules.HERB_START_MILLI
+## The stores whose cloth the treatments draw on (see THE CLOTH).
+var cloth_store: StoresScript = StoresScript.new()
+## The village's cloth now, milli-U: the stores' one cloth, read through (see THE CLOTH; written only by the stores'
+## own API, so no claim can outgrow the stock).
+var cloth_milli: int:
+	get:
+		return cloth_store.cloth_milli_u
 ## Per resident: HEAL XP (§5.3), the incident ordinal last used (HAZ-004), the inputs paid for the open injury, whether
 ## it lies in an infirmary bed, whether it is airless (HAZ-002), its healer's retained work remainder and total HEAL
 ## work (milli-WU), care work not yet booked to the patient's injury row, and its foraging work total (milli-WU).
@@ -80,6 +93,8 @@ var _booked_mwu: PackedInt64Array = PackedInt64Array()
 ## The injury row's severity, mirrored at each incident and treatment so the per-frame readers allocate nothing.
 var _severity: PackedByteArray = PackedByteArray()
 var _forage_mwu: PackedInt64Array = PackedInt64Array()
+## Per resident: the cloth its treatment holds reserved in the stores (see THE CLOTH), milli-U.
+var _cloth_claim: PackedInt64Array = PackedInt64Array()
 
 var _needs: Needs = Needs.new()
 var _injury: Injury = Injury.new()
@@ -93,8 +108,11 @@ var _read: IntMath.IntResult = IntMath.IntResult.new()
 func configure(size_classes: PackedByteArray, herbalist: int) -> void:
 	"""One row per resident (its §5.2 size class), at full health and uninjured; `herbalist` (-1: none) starts at
 	CareRules.HERBALIST_LEVEL in HEAL (P3)."""
+	for i: int in _cloth_claim.size():
+		release_cloth(i)
 	_count = size_classes.size()
-	for column: PackedInt64Array in [_ordinal, _work_remainder, _heal_mwu, _pending_mwu, _booked_mwu, _forage_mwu]:
+	for column: PackedInt64Array in [_ordinal, _work_remainder, _heal_mwu, _pending_mwu, _booked_mwu, _forage_mwu,
+			_cloth_claim]:
 		column.resize(_count)
 		column.fill(0)
 	for column: PackedByteArray in [_paid, _infirmary, _airless, _severity]:
@@ -109,6 +127,12 @@ func configure(size_classes: PackedByteArray, herbalist: int) -> void:
 		heal_xp[herbalist] = Rules.xp_of_level(Rules.HERBALIST_LEVEL)
 	_rng.seed_world(Rules.WORLD_SEED)
 	revision += 1
+
+
+func use_cloth(stores: StoresScript) -> void:
+	"""Draw the treatments' cloth from these village stores (see THE CLOTH); before any treatment is sent."""
+	if stores != null:
+		cloth_store = stores
 
 
 func resident_count() -> int:
@@ -301,24 +325,56 @@ func treatment_refusal(i: int) -> String:
 		return REFUSE_NONE
 	if herb_milli < Rules.CARE_HERB_MILLI:
 		return REFUSE_NO_HERB
-	return REFUSE_NO_CLOTH if cloth_milli < Rules.CARE_CLOTH_MILLI else REFUSE_NONE
+	if _cloth_claim[i] >= Rules.CARE_CLOTH_MILLI:
+		return REFUSE_NONE
+	return REFUSE_NO_CLOTH if cloth_store.cloth_free() < Rules.CARE_CLOTH_MILLI else REFUSE_NONE
 
 
-func affords(treatments: int, cloth_kept: int = 0) -> bool:
-	"""Whether the shelf holds the inputs of `treatments` more treatments (healers sent but not yet paid count), with
-	`cloth_kept` milli-U of its cloth kept for the infirmary building (decision 0623, the review's M1)."""
-	return herb_milli >= Rules.CARE_HERB_MILLI * treatments \
-		and cloth_milli - cloth_kept >= Rules.CARE_CLOTH_MILLI * treatments
+func affords(treatments: int) -> bool:
+	"""Whether the shelf holds the herb of `treatments` more treatments (healers sent but not yet paid count). Their
+	cloth is reserved in the stores as each healer is sent (`claim_cloth`; see THE CLOTH)."""
+	return herb_milli >= Rules.CARE_HERB_MILLI * treatments
+
+
+func claim_cloth(i: int) -> bool:
+	"""Reserve resident `i`'s treatment cloth in the stores (see THE CLOTH): true when it holds it now -- reserved now,
+	or already, or its treatment paid -- false when the stores' free cloth is short (nothing reserved)."""
+	if not _valid(i):
+		return false
+	if _paid[i] == 1 or _cloth_claim[i] >= Rules.CARE_CLOTH_MILLI:
+		return true
+	if cloth_store.cloth_free() < Rules.CARE_CLOTH_MILLI - _cloth_claim[i]:
+		return false
+	_cloth_claim[i] += cloth_store.reserve_cloth(StoresScript.CLOTH_TREATMENT, Rules.CARE_CLOTH_MILLI - _cloth_claim[i])
+	revision += 1
+	return true
+
+
+func release_cloth(i: int) -> void:
+	"""Give resident `i`'s unpaid treatment cloth reservation back to the stores (its healer stopped before work)."""
+	if not _valid(i) or _cloth_claim[i] <= 0:
+		return
+	cloth_store.release_cloth(StoresScript.CLOTH_TREATMENT, _cloth_claim[i])
+	_cloth_claim[i] = 0
+	revision += 1
+
+
+func cloth_claim_of(i: int) -> int:
+	"""The cloth resident `i`'s treatment holds reserved in the stores, milli-U."""
+	return _cloth_claim[i] if _valid(i) else 0
 
 
 func pay_treatment(i: int) -> String:
-	"""Pay resident `i`'s treatment inputs at work start, once per injury (see SUPPLIES). REFUSE_NONE when paid now or
-	already."""
+	"""Pay resident `i`'s treatment inputs at work start, once per injury (see SUPPLIES): the herb off the shelf, the
+	cloth its reservation lifted from the stores -- released and taken -- or, with none held, taken from the free cloth
+	(see THE CLOTH). REFUSE_NONE when paid now or already."""
 	var why: String = treatment_refusal(i)
 	if why != REFUSE_NONE or _paid[i] == 1:
 		return why
+	release_cloth(i)
+	if not cloth_store.take_cloth(Rules.CARE_CLOTH_MILLI):
+		return REFUSE_NO_CLOTH
 	herb_milli -= Rules.CARE_HERB_MILLI
-	cloth_milli -= Rules.CARE_CLOTH_MILLI
 	_paid[i] = 1
 	revision += 1
 	return REFUSE_NONE

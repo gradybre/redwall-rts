@@ -4,10 +4,20 @@ FAMILY-STATE-R01 · version3 · 2026-09-19 · Astra · **ADOPTED 2026-10-01 (DEC
 
 Companion to family_execution_package.md. Brendan signed off this table on
 2026-10-01. [Decision 0521](../decisions/0521-pc04-adopted-with-children-inactive.md)
-implements the single-owner store (`godot/scripts/core/households.gd`, 46352 bytes)
+implements the single-owner store (`godot/scripts/core/households.gd`, now 48400 bytes)
 and records exactly where it stops: no settlement composes it, the §4/§5 owner
 registration and the cross-owner admission/lifecycle transaction remain gate 3,
 and the selection scratch waits for the service pass (gate 6).
+
+**Amended 2026-10-02 by [decision 0996](../decisions/0996-household-bindings-keep-the-whole-directory-ref.md)**
+(Brendan's ruling on independent-review finding R04). A dependent row was bound to
+the resident's directory *generation* alone. A generation belongs to a directory
+*slot*, and the directory allocates slots and typed rows independently, so a typed
+row reused under another slot at the same generation inherited the previous
+tenant's household, care and willingness. Each row now stores the resident's whole
+directory EntityRef: a `resident_slot` column joins `resident_generation`, adding
+2048 bytes (dependent payload 26632 -> 28680, owner 46352 -> 48400). Every figure
+below that this changes is updated in place.
 
 ## Household owner
 
@@ -40,8 +50,9 @@ may change one side without prevalidating and committing the other.
 
 ## Per-resident dependent and provider state
 
-Exactly512 rows indexed by resident typed row, bound to that resident's directory
-generation. `present` follows resident presence, not stage; stage stays solely
+Exactly512 rows indexed by resident typed row, bound to that resident's whole
+directory EntityRef `(resident_slot, resident_generation)`; neither half alone is an
+identity (decision 0996). `present` follows resident presence, not stage; stage stays solely
 in Residents. Live children hold care state, live ADULT/ELDER rows hold provider
 state. All stages may have household refs. Initial preferred caregivers are
 explicit persistent resident IDs,0meansnone; two entries ascending with0onlyatend.
@@ -52,6 +63,7 @@ preferences survive, and community fallback does not need a preference row.
 | Column | Storage/wire | Capacity | Bytes | Unused/nonapplicable |
 |---|---|---:|---:|---|
 | present, care_eligible, warning_bits, willing | four B8/u8 | 512 each | 2048 | all0 |
+| resident_slot | I32/i32 | 512 | 2048 | -1 |
 | resident_generation | I32/u32 | 512 | 2048 | 0 |
 | household_row, household_generation | two I32/i32,u32 | 512 each | 4096 | -1,0 |
 | preferred_caregiver_id_0, preferred_caregiver_id_1 | two I32/u32 | 512 each | 4096 | 0,0 |
@@ -62,7 +74,8 @@ preferences survive, and community fallback does not need a preference row.
 | provider_served_ticks_today | I32/u32 | 512 | 2048 | 0 |
 | served_day | scalar i64/u64 | 1 | 8 | current absolute world day |
 
-Dependent/provider payload=26632bytes; combined owner payload=46352bytes.
+Dependent/provider payload=28680bytes; combined owner payload=48400bytes
+(FAMILY-STATE-R01's 26632/46352 plus decision 0996's 2048-byte resident_slot).
 Care remainder magnitude<750000; at a bound the outward remainder is0.
 Warning bits0=low/1=critical, other bits0; critical implies low. Hysteresis
 latches permit low to remain untilcare>4000 and criticaluntilcare>2000.
@@ -79,7 +92,9 @@ care_remainder0, care_eligible0, warning_bits0, preferred caregiverIDs0 and
 providerrefnull and service_paired_ticks0. The child row alone owns the
 session counter. Live child's initial care6500, remainder0, eligible0, warnings0.
 No resident slot reuse may inherit the previous row's household, care or provider
-fairness. On restore, resident generation must match the directory and Residents.
+fairness. Every reader, mutator, recovery path and column validator compares the
+whole bound EntityRef, slot and generation, with the present tenant's directory ref;
+on restore, both must match the directory and Residents (decision 0996).
 
 No inverse provider->child array is authoritative: it is derived by bounded scan
 of the512 dependent rows. Duplicate provider refs refuse load/assignment. Every
@@ -93,14 +108,14 @@ interrupt; they do not erase received care or past provider time.
 One owner reserves scratch:256I64 sorted living-child keys(2048B),256I32 provider rows
 (1024B),512B provider occupancy(512B),512I32 turn-retired provider rows(2048B).
 Total5632B; no per-child object, dictionary
-or unbounded queue. Combined permanent payload including scratch51984B before
+or unbounded queue. Combined permanent payload including scratch54032B before
 engine allocator/object overhead. All buffers allocate once, no per-tickresize.
 
-A single candidate `Columns` snapshot requires46352B. Read/validate/copy APIs take
+A single candidate `Columns` snapshot requires48400B. Read/validate/copy APIs take
 caller-owned columns. Runtime never retains a second complete world. If a loader
 holds decoded family columns while the live store exists, the exact loader-wide
 snapshot plan must be recomputed with all owners, not inferred from one store.
-For this owner alone live+scratch+onefullsnapshot=98336B, before object overhead;
+For this owner alone live+scratch+onefullsnapshot=102432B, before object overhead;
 no claim is made for the world-level ARCH-MEM-006 limit. Do not allocate a second
 staging snapshot inside restore after a caller already supplied one.
 
@@ -186,13 +201,13 @@ are private, and expose checked scalar readers rather than mutable-array borrows
 All18cells must validate against the explicit formula before publication. Other
 fixed stage rates are literal scalar constants; no per-tick dictionaries or table
 rebuilds. Stagecount3 is only a bound, never a stored stage. Table bytes are
-immutable catalog memory, not added to the46352mutable ownerpayload.
+immutable catalog memory, not added to the48400mutable ownerpayload.
 
 
 ## Version3 cross-owner injury and social clarification
 
 Injury adds two B8[512] columns, chill_episode and chill_active:1024live bytes and
-1024snapshot bytes, outside this family's46352-byte payload. The latter bit
+1024snapshot bytes, outside this family's48400-byte payload. The latter bit
 tracks untreated chill and clears atomically with aggregate treatment; a later
 unrelated injury cannot recreate a chill warning. Active implies episode1 and
 a live aggregate. The lifecycle contract owns exact onset/rearm/retirement rules.

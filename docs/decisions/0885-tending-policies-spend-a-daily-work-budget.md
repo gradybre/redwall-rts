@@ -35,6 +35,10 @@ structural changes still require a chosen project. Notify exceptions, not every 
 - **Staff**: the garden's work goes to the cook between meals (0883); the field's to whoever is free, the Field crew
   first.
 
+## Brendan's ruling (2026-10-01)
+
+The tending defaults are **approved as built** (proposals 1–3 below). Recorded at the batch 7 integration (decision 0902); nothing changed in behaviour.
+
 ## Proposals for Brendan
 
 1. **Budget steps and the default** (0/4/8/16/32 WU, 16) are demo values; a cancelled job's WU is not refunded.

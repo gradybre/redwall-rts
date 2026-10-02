@@ -45,6 +45,10 @@ The review's problem is "discovering too late that all harvests need the same ha
 day (two hands, ten work hours) dwarfs a harvest's 7 WU of work, so the binding constraints a player actually meets
 are room and spoiling; all three are shown, from adopted numbers, with no hidden factor.
 
+## Brendan's ruling (2026-10-01)
+
+The harvest-plan defaults are **approved as built** (proposals 1–3 below). Recorded at the batch 7 integration (decision 0902); nothing changed in behaviour.
+
 ## Proposals for Brendan
 
 1. **Hands** are the field crew's two for ten work hours, the walks not counted. Options: count walking (an estimate

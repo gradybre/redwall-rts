@@ -76,6 +76,11 @@ beds near the well or near the shelf -- whose only difference is the walking, sa
 - The shelf is free and permanent, and at the pantry's factor (750) it is preferred over the covered store (1000) for
   any harvest when it has room (proposals 3 and 4).
 
+## Brendan's ruling (2026-10-01)
+
+The kitchen-garden choices are **approved as built** (proposals 1–6 below: four bounded sites, laying out free, the
+shelf free, field harvests may use it, no herb beds, the cook's garden hours). Recorded at the batch 7 integration (decision 0902); nothing changed in behaviour.
+
 ## Proposals for Brendan
 
 1. **Free placement** on a tile grid instead of four authored sites. **Recommendation:** after the general building

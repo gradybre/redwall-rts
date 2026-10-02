@@ -34,6 +34,10 @@ The review's player problem is "a transport project can change a garden's water 
 they designed or controlled the service." A per-bed outlet makes the service a choice, keeps a transport-only tunnel
 the default, and needs no hydrology: the effects are the existing moisture rules.
 
+## Brendan's ruling (2026-10-01)
+
+The tunnel-outlet defaults are **approved as built** (proposals 1–2 below). Recorded at the batch 7 integration (decision 0902); nothing changed in behaviour.
+
 ## Proposals for Brendan
 
 1. **Fitting is 6 WU and setting is instant**, as the sluice's order is (0441). **Recommendation:** keep.

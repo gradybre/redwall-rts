@@ -1169,6 +1169,28 @@ raw-edible.
 
 Engineering record, the confirmed table and the waiting ingredients: decision 0603.
 
+### DEC-046 — The demo village farms twelve field beds and sows them by default
+
+2026-10-01 · State: `USER_CONFIRMED`.
+
+Brendan's balance ruling **E5** (2026-10-01, relayed through the settlement coordinator): the live demo village gets
+**12–18 farm beds instead of 6**, and **hands-off play must sow** -- "a default policy that sows empty beds in season,
+unless the GDD forbids it". On decision 0886 he approved it as built:
+
+- **Twelve field beds** -- the six world beds and a south field of six GDD §5.6 tiles laid from the start -- with the
+  kitchen garden's four bounded sites on top (decision 0883), sixteen in all.
+- **A default sowing policy** (*Sow empty beds in season*): an empty laid bed is sown with the player's chosen crop,
+  else its §5.6 rotation's next crop (grain → beans → roots, as each soil allows), within the field group's daily work
+  budget (16 WU).
+- **An exception to the GDD's default for the demo village only.** GDD §4.2's FieldPolicy defaults `auto_rotation`
+  to `false`, and R06-JOB-005 has completion request no new sowing cycle then. The demo village turns its field's
+  sowing ON at its start; the kitchen garden's stays off. This ruling outranks the GDD's default (AGENTS.md's order)
+  for the live demo; the settlement simulation's FieldPolicy default is unchanged.
+
+Scope: the live demo's farm (`godot/demo/farm/`). Engineering record: decision 0886 (with 0881–0885 for the crop roles,
+harvest plans, kitchen garden, tunnel outlets and tending policies, approved with it). Recorded at the batch 7
+integration (decision 0902).
+
 ### DEC-040 engineering follow-through
 
 Brendan subsequently requested: “let's plan those as well, then give me what to send back to claude”. [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) records the resulting Astra-authored numeric economy/hazard choices. This is delegated engineering authoring, not a claim the user supplied every value. DEC-040's four-level candidate status remains unchanged. [Decision0092](decisions/0092-underground-economy-and-hazard-parameters.md) records adoption and its limits.

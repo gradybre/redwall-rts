@@ -62,6 +62,12 @@ allow, within the group's budget (a sowing is 4 WU, §5.6).
 - The minimap still draws only the six world beds (`demo/ui/demo_minimap.gd` reads `world_layout.gd CROPS`); the south
   field and the garden are not on it yet.
 
+## Brendan's ruling (2026-10-01)
+
+**E5 is approved as built**: twelve field beds and the default sowing policy, with the demo village's exception to
+FieldPolicy's `auto_rotation=false`. Proposal 1 is done: E5 is **DEC-046** in `docs/setting_decisions.md`. Proposals 2
+and 3 stay as recommended (not built). Recorded at the batch 7 integration (decision 0902); nothing changed in behaviour.
+
 ## Proposals for Brendan
 
 1. **Record E5 as a DEC** in `setting_decisions.md`, including the exception to FieldPolicy's `auto_rotation=false`

@@ -44,6 +44,18 @@ answer". The adopted rows already differ by 20–60% in exactly the dimensions t
 storage, recipe use), and AGENTS.md forbids inventing constants no document states. So no number changed; the
 difference is made *legible*.
 
+## Known gap (Brendan, 2026-10-01: "make a note of identical crops")
+
+**Sibling crops are identical until a culinary use separates them.** Every ingredient of one §5.6 row grows, keeps and
+yields by that row's numbers, so radish and parsnip (or turnip and carrot) differ only in their names and in which
+dishes take them. Proposal 1 below stays as built; the difference waits for a dish or a GDD row that sets them apart.
+
+## Brendan's rulings (2026-10-01)
+
+- **Proposal 1: approved as built** -- siblings stay equal; noted as the known gap above.
+- **Proposal 2, flax: "Add flax now".** A follow-up lane will add flax, the fibre crop, after review batch 7.
+  **Pending.** Recorded at the batch 7 integration (decision 0902); nothing changed in behaviour.
+
 ## Proposals for Brendan
 
 1. **A long-storing root apart from a quick fresh root** (the review's sixth role: radish quick, parsnip slow). It would

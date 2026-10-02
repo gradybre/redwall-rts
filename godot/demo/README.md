@@ -1776,6 +1776,14 @@ What changed on screen:
   or wading, more in a lit bore. A carrier walks at 65% of its walk, its carry clip sped to match (was
   about 37%: the playtest's mole was "way too slow with a log").
 
+## The food, plants and props pass (2026-10-01, staged only)
+
+`tools/make_demo_food_art.py` (run by staging) stages eleven models -- apple and pear trees, raspberry canes, a
+blackberry bramble, a hazel bush, strawberry, mushroom and herb patches, an apple basket, a bee skep and an infirmary --
+**prescaled to game height** (each manifest row has `prescaled`, `height_m` and `sink_m`), and 24 food and dish icons in
+the manifest's new top-level `"icons"` section. **Nothing draws them yet**: the orchards, foraging, infirmary and dishes
+branches wire them after integration, following `docs/art-reference/asset_library/food_art_mapping.json` (decision 0941).
+
 ## The woods
 
 Every tree in the village and its woods -- 173 oaks, beeches and saplings -- is a REAL ResourceNode row

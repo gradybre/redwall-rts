@@ -177,6 +177,27 @@ The root bin was tried twice (its roots split from its bin; its roots cut out) a
 budget: the plain L0 is used, full. `tools/stage_demo_assets.py` also re-pins the mouse keeper's crouch walk as it stages
 it (support tolerance 2 cm, `REPIN`): its two contacts left unpinned above pin, the library's grounded clip untouched.
 
+## Food, plants and props pass — 2026-10-01
+
+Eleven models and 24 icons for the orchards, foraging, infirmary, dishes and hives work. **431 credits**
+against Brendan's "Full pass, ~480 credits" and a hard cap of 520 (1,213 before, 782 after). Decision
+[0941](../../decisions/0941-the-food-plants-and-props-art-pass.md) records the approval, the choices and what was redone.
+
+- **Models**: a `nano-banana-2` concept from the style reference (6), then a `meshy-7` high-poly (30). L0s made free in
+  Blender by `tools/make_demo_food_art.py` (the infirmary from a 5-credit Meshy remesh), **prescaled** to game height.
+- **Icons**: three 3 x 3 `nano-banana-2` sheets (6 each) in the style of the existing pantry icons, cut to 128 px.
+- **What each replaces**: [`food_art_mapping.json`](food_art_mapping.json). Nothing is wired into gameplay yet.
+
+| Family | Keys |
+|---|---|
+| environment | `apple_tree`, `pear_tree`, `raspberry_canes`, `bramble_blackberry`, `hazel_bush`, `strawberry_patch`, `mushroom_forage`, `herb_patch` |
+| prop | `apple_basket`, `bee_skep` |
+| building | `infirmary_ward` (the 2026-09-24 `infirmary` is a different, unstaged design) |
+| icon | `sheet_foods_a`, `sheet_dishes_b`, `sheet_dishes_c` (`assets/library/icon/<sheet>/sheet.png`) |
+
+**Known problems:** the 2026-09-24 `bramble` shatters at 2,410 and 5,230 triangles too (hence `bramble_blackberry`); the
+first pear and infirmary concepts were rejected (`concept_v1_rejected.png`); the baked-fish icon shows lemon slices.
+
 ## What is in it
 
 Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceiling.

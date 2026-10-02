@@ -69,6 +69,13 @@ section, the desk's sickbay rules), and nothing in a home's beds is reserved any
   button is in the Pantry. The infirmary's is a section of the Tunnels panel, under the housing line. *Options:* (a) as
   built; (b) a Buildings panel shared with the cellar when both land (**recommended** for the merge).
 
+## Brendan's rulings on these proposals (2026-10-01)
+- **P1, P2 and P3 are approved as built:** the building's cloth from the care shelf, the own-bed or field-care fallback,
+  and the 8 beds with the building.
+- **P4 changed: "Build the buildings panel".** A shared Buildings panel for the cellar, the infirmary and the hall will
+  be built as a follow-up after review batch 7. **Pending**: until it lands, the infirmary's button stays in the Tunnels
+  panel's section, as built. Nothing changed in behaviour. Recorded at the batch 7 integration (decision 0902).
+
 ## Brendan's rulings on 0622 (recorded there too)
 P1 (health floor 16), P3 (the herbalist), P4 (up at 70), P6 (herb restocking), P7 (forage cuts) and P8 (cloth not
 restocked) are approved as built. P2 and P5 changed as above.

@@ -93,6 +93,12 @@ var _csv: String = ""
 ## The engine's --fixed-fps, as the run's own --fps states it (see TIME): every frame's delta must be 1/_fps.
 var _fps: int = DEFAULT_FPS
 var _error: String = ""
+## Frames between freeing the village and quitting (THE END): the audio server lets go of a freed player's stream on a
+## later mix, as the soak test found (soak_test.gd CLOSE_FRAMES) -- quitting with sounds still playing left the engine's
+## exit report "N resources still in use at exit", which the matrix counts as a failed run (batch 7 integration).
+const CLOSE_FRAMES: int = 30
+## Frames left before quitting once the run is written (-1: not closing).
+var _closing: int = -1
 ## The village: untyped, because demo_village.gd names the autoloads, which a main loop's script cannot see when it
 ## is compiled (they join the tree after `_initialize`); its parts are reached through its accessors below.
 var _village: Node = null
@@ -211,6 +217,11 @@ func frame(delta: float) -> bool:
 	"""One frame: boot, then keep the clock running, finish the routing's rebuilds, measure, and stop at the end.
 	Always false (the main loop goes on until `quit`)."""
 	_frame += 1
+	if _closing >= 0:
+		_closing -= 1
+		if _closing == 0:
+			_tree.quit(0)
+		return false
 	if _tree.root.size != SIZE:
 		_tree.root.size = SIZE
 	if not _error.is_empty():
@@ -361,7 +372,8 @@ func _close_day(day: int, partial: bool) -> void:
 
 
 func _finish() -> void:
-	"""Close a day the run ended inside, write the JSON (and CSV), print the summary line and quit."""
+	"""Close a day the run ended inside, write the JSON (and CSV), print the summary line, free the village and quit
+	CLOSE_FRAMES later."""
 	if _hour_seen % HOURS_PER_DAY != 0:
 		_close_day(quotient(_hour_seen, HOURS_PER_DAY), true)
 	var real_s: float = float(Time.get_ticks_usec() - _start_usec) / 1000000.0
@@ -373,7 +385,8 @@ func _finish() -> void:
 		return
 	print("BALANCE-RUN ok seed=%d policy=%s days=%d frames=%d real_s=%.1f out=%s" % [_seed, _policy_name, _days.size(),
 		_frame - _start_frame, real_s, _out])
-	_tree.quit(0)
+	_village.queue_free()
+	_closing = CLOSE_FRAMES
 
 
 func _write(path: String, text: String) -> bool:

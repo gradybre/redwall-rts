@@ -1784,6 +1784,6 @@ func test_a_resident_asleep_in_the_hall_cannot_be_picked() -> void:
 	var out := PackedFloat32Array([0, 0, 0, 0, 0])
 	DemoCommandScript.proxy_into(brain, Vector3.ZERO, 1.0, false, Vector3(0, 10, 10), out)
 	assert_true(out[4] > 0.0, "outdoors: pickable")
-	brain.task_go_indoors(true)
+	brain.task_go_indoors(true, BrainScript.INTERIOR_HALL)
 	DemoCommandScript.proxy_into(brain, Vector3.ZERO, 1.0, false, Vector3(0, 10, 10), out)
 	assert_equal(out[4], 0.0, "indoors: not")

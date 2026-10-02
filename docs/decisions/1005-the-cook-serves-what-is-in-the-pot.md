@@ -60,7 +60,7 @@ instrumented A/B runs on the loaded machine; the settlement clock runs on real t
   none). Supper fell from 8 to 7 at 9 and from about 22 to about 17 at 25. Total portions eaten were about the same at
   25 (19–22) and higher at 9. Serving breakfast shifts the cook's day, and at 25 supper is at the edge of what one cook
   can serve in the window.
-- **For Brendan:** keep the literal rule as it is (recommended: every meal now feeds someone, and at 50 and above,
+- **OPEN, for Brendan (via the handoff):** keep the literal rule as it is (recommended: every meal now feeds someone, and at 50 and above,
   supper is fed at all), or restrict it so 9 and 25 match exactly. The latter needs a different trigger, and none of
   the two tried did both.
 
@@ -73,6 +73,11 @@ instrumented A/B runs on the loaded machine; the settlement clock runs on real t
 - **Merging with the review-fix lane** (`fix/codex-review`, decision 0997's meal-finalized event). This change touches
   `_pot_due`, `_serve_early`, `_seat_for` / `_diner_spot`, `_eat_next`'s walk and `_face_of_seat` in kitchen.gd. It
   does not touch `_close_meal`, `_record_meal` or the finalization.
+
+## Not yet verified
+
+The new tests (`test_demo_bursts.gd`: the pot rule, the wait spots, the no-route wait) have not been mutation-tested,
+and this decision's code has not had an independent review. Decisions 1001-1004's were (51 mutants, the code-reviewer).
 
 ## Source
 

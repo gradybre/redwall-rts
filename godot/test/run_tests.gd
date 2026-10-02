@@ -68,8 +68,9 @@ const NO_ASSERTIONS_MESSAGE: String = \
 const DIAGNOSTIC_PREFIXES: Array[String] = ["ERROR:", "USER ERROR:", "WARNING:", "USER WARNING:"]
 const EXPECTED_PREFIX: String = "EXPECTED "
 const TOLERATED_PREFIX: String = "TOLERATED "
-## The worker's exit report, when objects or resources outlived it.
-const LEAKED_OBJECTS_PATTERN: String = "(\\d+) ObjectDB instances were leaked"
+## The worker's exit report, when objects or resources outlived it. The engine says "1 ObjectDB instance was leaked"
+## for one object, "N ObjectDB instances were leaked" for more: both are counted (decision 0998, Brendan's P1).
+const LEAKED_OBJECTS_PATTERN: String = "(\\d+) ObjectDB instances? (?:were|was) leaked"
 const LEAKED_RESOURCES_PATTERN: String = "(\\d+) resources still in use at exit"
 
 # --- supervisor tally ------------------------------------------------------------------------

@@ -435,6 +435,25 @@ func test_a_patient_ordered_away_lets_its_healer_go() -> void:
 	assert_true(_treated(v, 0), "treated in the end")
 
 
+func test_a_healer_sent_reserves_the_cloth_and_a_healer_stood_down_gives_it_back() -> void:
+	"""Decision 0993: the treatment's 0.5 U is reserved in the village stores when its healer is sent (so neither
+	building can carry it off), and given back when the healer is stood down before work; paid, it is taken."""
+	var v := _village(3)
+	v.desk.test_hurt(PackedInt32Array([0]), true)
+	_run(v, 100, func() -> bool: return v.desk.healer_of(0) != DeskScript.NOBODY)
+	assert_false(v.desk.state.is_paid(0), "on the way, not yet paid")
+	assert_equal(v.desk.state.cloth_claim_of(0), 500, "its cloth reserved")
+	assert_equal(v.desk.state.cloth_store.cloth_free(), 23500, "and not free to anyone else")
+	v.desk.state.herb_milli = 0
+	_run(v, 6000, func() -> bool: return v.desk.healer_of(0) == DeskScript.NOBODY)
+	assert_equal(v.desk.state.cloth_claim_of(0), 0, "stood down: the reservation given back")
+	assert_equal(v.desk.state.cloth_store.cloth_free(), 24000, "all of it free again")
+	v.desk.state.herb_milli = 12000
+	_run(v, 8000, _treated.bind(v, 0))
+	assert_true(_treated(v, 0), "treated in the end")
+	assert_equal([v.desk.state.cloth_milli, v.desk.state.cloth_store.cloth_claimed()], [23500, 0], "taken once, no claim left")
+
+
 # --- the review's cases (decision 0622) ------------------------------------------------------------------------------
 
 func test_one_treatment_s_herbs_send_one_healer_and_a_short_shelf_stands_one_down() -> void:
@@ -504,12 +523,19 @@ const INFIRMARY_AT: Vector2 = Vector2(6.0, -6.0)
 func _infirmary(v: Village, built: bool, residents: int = -1) -> ProjectScript:
 	"""An infirmary for the village at INFIRMARY_AT, built or only placed, its beds for `residents` (default the cast)."""
 	var stores := StoresScript.new()
-	var project := ProjectScript.new(stores, v.desk.state, residents if residents > 0 else v.brains.size())
+	v.desk.state.use_cloth(stores)
+	var project := ProjectScript.new(stores, residents if residents > 0 else v.brains.size())
 	project.plan_at(INFIRMARY_AT, 0.0)
 	if built:
 		project.state = ProjectScript.STATE_DONE
 	v.desk.infirmary = project
 	return project
+
+
+func _healer_inside(v: Village, p: int) -> bool:
+	"""Whether patient `p` has a healer and it is inside a building."""
+	var h: int = v.desk.healer_of(p)
+	return h != DeskScript.NOBODY and v.brains[h].indoors
 
 
 func test_built_the_hurt_go_into_the_infirmary_and_mend_twice_as_fast() -> void:
@@ -526,7 +552,12 @@ func test_built_the_hurt_go_into_the_infirmary_and_mend_twice_as_fast() -> void:
 	assert_equal(project.beds_free(), 7, "7 left")
 	_run(v, 4000, func() -> bool: return v.desk.state.in_infirmary(0))
 	assert_true(v.brains[0].indoors, "inside")
+	assert_equal(v.brains[0].interior, BrainScript.INTERIOR_INFIRMARY, "inside the infirmary, not the hall (decision 0995)")
 	assert_true(v.brains[0].task_label().begins_with("Resting in the infirmary"), v.brains[0].task_label())
+	_run(v, 6000, _healer_inside.bind(v, 0))
+	var healer: int = v.desk.healer_of(0)
+	assert_true(healer != DeskScript.NOBODY and v.brains[healer].interior == BrainScript.INTERIOR_INFIRMARY,
+		"its healer is inside the infirmary too (decision 0995)")
 	_run(v, 6000, _treated.bind(v, 0))
 	assert_true(_treated(v, 0), "treated there")
 	assert_equal(v.desk.state.rate_per_hour(0), 4, "+4 an hour inside")
@@ -624,3 +655,17 @@ func test_a_trip_to_the_infirmary_lost_before_it_got_in_rests_elsewhere_next() -
 	v.brains[0].release()
 	_run(v, 40)
 	assert_equal((v.brains[0].task as Tasks.BedRest).where, Tasks.WHERE_FIELD, "elsewhere this time")
+
+
+func test_a_healer_whose_brain_refuses_gives_the_cloth_back_at_once() -> void:
+	"""Decision 0993 (review M4): the treatment's cloth is reserved before the healer is ordered; a brain that will not
+	take the order (held by the water's rescue) leaves no reservation behind."""
+	var v := _village(3)
+	v.desk.test_hurt(PackedInt32Array([0]), true)
+	_run(v, 2)
+	assert_true(v.desk.resting(0), "resting")
+	v.brains[1].water_hold = true
+	assert_false(v.desk._send_healer(1, 0), "the brain refused")
+	assert_equal(v.desk.state.cloth_claim_of(0), 0, "no reservation left behind")
+	assert_equal(v.desk.state.cloth_store.cloth_free(), 24000, "all the cloth free")
+	v.brains[1].water_hold = false

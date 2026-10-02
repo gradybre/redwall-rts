@@ -459,14 +459,15 @@ func _bed_taken(bed: int, i: int) -> bool:
 
 func _dispatch_healers() -> void:
 	"""Every resting patient with no healer, whose treatment the shelf can pay for -- counting the healers already sent
-	and not yet paid (H1) -- is given the best healer (see HEALERS)."""
+	and not yet paid (H1); their cloth is reserved in the village stores as each is sent (care_state.gd THE CLOTH) --
+	is given the best healer (see HEALERS)."""
 	var owed: int = _unpaid_sent()
 	for p: int in _brains.size():
 		_no_healer[p] = 0
 		if _healer_of[p] != NOBODY or not state.is_hurt(p) or not resting(p):
 			continue
 		if not state.is_paid(p) and (state.treatment_refusal(p) != StateScript.REFUSE_NONE
-				or not state.affords(owed + 1, _cloth_for_building())):
+				or not state.affords(owed + 1)):
 			continue
 		if _rest[p].where == Tasks.WHERE_INFIRMARY and healers_inside() >= InfirmaryRules.healer_slots():
 			continue
@@ -483,16 +484,6 @@ func healers_inside() -> int:
 	for p: int in _healer_of.size():
 		n += 1 if _healer_of[p] != NOBODY and _rest[p] != null and _rest[p].where == Tasks.WHERE_INFIRMARY else 0
 	return n
-
-
-func _cloth_for_building() -> int:
-	"""Cloth the infirmary building has reserved or in arms (kept back from treatments; one ledger, the review's M1)."""
-	return infirmary.cloth_committed() if infirmary != null else 0
-
-
-func cloth_for_treatments() -> int:
-	"""Cloth the healers already sent will take (kept back from the building): `infirmary_project.gd cloth_held`."""
-	return _unpaid_sent() * Rules.CARE_CLOTH_MILLI
 
 
 func _unpaid_sent() -> int:
@@ -536,7 +527,10 @@ func may_heal(h: int) -> bool:
 
 
 func _send_healer(h: int, p: int) -> bool:
-	"""Healer `h` to patient `p`; false when the brain would not take it."""
+	"""Healer `h` to patient `p`, its treatment's cloth reserved in the stores first (care_state.gd `claim_cloth`); false
+	when the cloth is short or the brain would not take it (the reservation given back)."""
+	if not state.claim_cloth(p):
+		return false
 	var t := Tasks.Treat.new(h, _rest[p], _brains[p], state.is_hurt.bind(p), treat_words.bind(h, p), _on_treat_ended)
 	_healer_of[p] = h
 	_treat[p] = t
@@ -544,17 +538,26 @@ func _send_healer(h: int, p: int) -> bool:
 	if _brains[h].task != t:
 		_healer_of[p] = NOBODY
 		_treat[p] = null
+		_give_back_cloth(p)
 		return false
 	revision += 1
 	return true
 
 
+func _give_back_cloth(p: int) -> void:
+	"""Patient `p`'s treatment cloth back to the stores while its treatment is unpaid (paid, it was taken)."""
+	if not state.is_paid(p):
+		state.release_cloth(p)
+
+
 func _on_treat_ended(h: int, p: int) -> void:
-	"""A healer stopped (done or called away): the care work done stays the patient's; it may be sent again."""
+	"""A healer stopped (done or called away): the care work done stays the patient's, an unpaid treatment's cloth goes
+	back to the stores; it may be sent again."""
 	state.book_care(p)
 	if _healer_of[p] == h:
 		_healer_of[p] = NOBODY
 		_treat[p] = null
+		_give_back_cloth(p)
 	revision += 1
 
 

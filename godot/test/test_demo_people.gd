@@ -18,7 +18,7 @@ const NoticesScript := preload("res://demo/demo_notices.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
-const FedScript := preload("res://demo/kitchen/nourishment.gd")
+const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const FarmCrewScript := preload("res://demo/farm/farm_crew.gd")
 const BridgesScript := preload("res://demo/waterplay/bridges.gd")
 const BridgeCrewScript := preload("res://demo/waterplay/bridge_crew.gd")
@@ -823,9 +823,10 @@ func test_a_harvest_cancelled_after_it_was_cut_is_no_harvest() -> void:
 
 
 func test_a_meal_for_everyone_is_its_cooks_first_and_a_supper_is_shared() -> void:
-	"""The real kitchen, 14:00 to supper's end on day 0: every batch is the cook's; supper fed all four, so the cook's
-	first meal for everyone is remembered (once), and every pair at it shared a supper."""
+	"""The real kitchen, 14:00 to supper's finalized event on day 0: every batch is the cook's; supper fed all four, so
+	the cook's first meal for everyone is remembered (once), and every pair at it shared a supper."""
 	var suite: RefCounted = KitchenTest.new()
+	_borrowed.append(suite)
 	var v: RefCounted = suite.call(&"_village", 4, KitchenTest.tick_at(0, 14))
 	suite.call(&"_stock", v, KitchenTest.OATS, 20000)
 	suite.call(&"_stock", v, KitchenTest.CARROT, 30000)
@@ -838,12 +839,12 @@ func test_a_meal_for_everyone_is_its_cooks_first_and_a_supper_is_shared() -> voi
 	var deeds: Array[int] = [0]
 	suite.call(&"_run", v, 6 * KitchenTest.FRAMES_PER_HOUR, func() -> bool:
 		deeds[0] += taps.poll()
-		return not kitchen.meal_keys.is_empty())
-	assert_false(kitchen.meal_keys.is_empty(), "supper served and over")
+		return not kitchen.finals.is_empty())
+	assert_false(kitchen.finals.is_empty(), "supper served, eaten and finalized")
 	assert_equal(kitchen.cooked_by.size(), kitchen.cooked_keys.size(), "who cooked each batch")
 	for b: int in kitchen.cooked_by.size():
 		assert_equal(kitchen.cooked_by[b], kitchen.designated, "batch %d: the village cook" % b)
-	assert_equal(kitchen.meal_without[-1], 0, "nobody went without")
+	assert_equal(kitchen.finals[-1].without, 0, "nobody went without")
 	assert_equal(deeds[0], 1, "one deed")
 	var ledger: Ledger = taps.ledger
 	assert_equal([ledger.ev_kind[0], ledger.ev_who[0]], [Ledger.KIND_MEAL, kitchen.designated], "the cook's")
@@ -852,49 +853,161 @@ func test_a_meal_for_everyone_is_its_cooks_first_and_a_supper_is_shared() -> voi
 		for b: int in range(a + 1, 4):
 			assert_equal(ledger.suppers[ledger.pair(a, b)], 1, "%d and %d shared supper" % [a, b])
 			assert_equal(ledger.affinity_of(a, b), Ledger.SOCIAL_GAIN, "+2")
-	kitchen.meal_keys.append(kitchen.meal_keys[-1] + 1)
-	kitchen.meal_ate.append(4)
-	kitchen.meal_raw.append(0)
-	kitchen.meal_without.append(0)
-	kitchen.cooked_keys.append(kitchen.meal_keys[-1])
+	var next: int = kitchen.finals[-1].key + 1
+	kitchen.cooked_keys.append(next)
 	kitchen.cooked_by.append(kitchen.designated)
+	kitchen._publish(_final(PackedInt32Array([0, 1, 2, 3]), 0), next)
 	assert_equal(taps.poll(), 0, "a second meal for everyone is no first")
 
 
+func _final(diners: PackedInt32Array, without: int, raw: PackedInt32Array = PackedInt32Array()) -> KitchenScript.MealFinal:
+	"""A meal-finalized event with these committed diners, raw eaters and count gone without (its key set on publish:
+	kitchen.gd `_publish` reads `without` from the meal's tally row, so the count is set after)."""
+	var final := KitchenScript.MealFinal.new()
+	final.diners = diners
+	final.raw = raw
+	final.without = without
+	return final
+
+
+func _publish(kitchen: KitchenScript, key: int, final: KitchenScript.MealFinal) -> void:
+	"""Publish `final` for meal `key` as the kitchen would, keeping its own count gone without (no tally row here)."""
+	var without: int = final.without
+	kitchen._publish(final, key)
+	final.without = without
+
+
 func test_a_meal_someone_went_without_is_no_deed() -> void:
-	"""meal_without > 0: nobody's deed; a breakfast is not a supper shared."""
+	"""A finalized meal with someone gone without: nobody's deed; a breakfast is not a supper shared; only committed
+	diners share a supper; raw food alone is no meal for everyone."""
 	var kitchen := KitchenScript.new()
 	kitchen.fed.configure(PackedStringArray(["mouse", "mouse"]))
 	var taps := _taps(2)
 	taps.kitchen = kitchen
+	kitchen.cooked_keys.append(1)
+	kitchen.cooked_by.append(0)
+	_publish(kitchen, 1, _final(PackedInt32Array([0, 1]), 0))
 	taps.watch()
-	kitchen.meal_keys.append(2)
-	kitchen.meal_ate.append(1)
-	kitchen.meal_raw.append(0)
-	kitchen.meal_without.append(1)
+	assert_equal(taps.poll(), 0, "a meal finalized before the taps watched is the baseline, no deed")
 	kitchen.cooked_keys.append(2)
 	kitchen.cooked_by.append(0)
-	for who: int in 2:
-		kitchen.fed.last_meal[who] = 2
-		kitchen.fed.last_outcome[who] = FedScript.OUTCOME_ATE
+	_publish(kitchen, 2, _final(PackedInt32Array([0, 1]), 1))
 	assert_equal(taps.poll(), 0, "one went without: no deed")
 	assert_equal(taps.ledger.suppers[taps.ledger.pair(0, 1)], 0, "a breakfast (key 2) shares no supper")
-	kitchen.meal_keys.append(3)
-	kitchen.meal_ate.append(1)
-	kitchen.meal_raw.append(0)
-	kitchen.meal_without.append(0)
-	kitchen.fed.last_meal[0] = 3
-	kitchen.fed.last_meal[1] = 3
-	kitchen.fed.last_outcome[0] = FedScript.OUTCOME_SKIPPED
+	_publish(kitchen, 3, _final(PackedInt32Array([1]), 0))
 	assert_equal(taps.poll(), 0, "fed all but nobody cooked it: no deed")
-	assert_equal(taps.ledger.suppers[taps.ledger.pair(0, 1)], 0, "one skipped it: not shared")
-	kitchen.meal_keys.append(4)
-	kitchen.meal_ate.append(0)
-	kitchen.meal_raw.append(2)
-	kitchen.meal_without.append(0)
+	assert_equal(taps.ledger.suppers[taps.ledger.pair(0, 1)], 0, "only one ate it: not shared")
 	kitchen.cooked_keys.append(4)
 	kitchen.cooked_by.append(1)
+	_publish(kitchen, 4, _final(PackedInt32Array(), 0, PackedInt32Array([0, 1])))
 	assert_equal(taps.poll(), 0, "nobody ate a portion (raw food only): no meal for everyone")
+	_publish(kitchen, 5, _final(PackedInt32Array([1, 0]), 0))
+	taps.poll()
+	assert_equal(taps.ledger.suppers[taps.ledger.pair(0, 1)], 1, "both ate the supper: shared once")
+	_publish(kitchen, 6, _final(PackedInt32Array([0, 1]), 0))
+	_publish(kitchen, 8, _final(PackedInt32Array([1, 0]), 0))
+	taps.poll()
+	assert_equal(taps.ledger.suppers[taps.ledger.pair(0, 1)], 1,
+		"two later events (breakfasts) at one look: the supper before them is not read again (each event read once)")
+
+
+func _supper_held_at_its_end(v: RefCounted, suite: RefCounted, taps: TapsScript) -> int:
+	"""Run day 0's supper until resident `held` (returned) is eating it with every resident fed or holding a portion,
+	then move the calendar to the supper's end (19:00) with every bowl in hand still in hand -- the frame after, the
+	kitchen ends the serving. The resident still eating."""
+	var kitchen: KitchenScript = v.get(&"kitchen")
+	var key: int = MealRules.meal_key(0, MealRules.MEAL_SUPPER)
+	var held: Array[int] = [-1]
+	suite.call(&"_run", v, 6 * KitchenTest.FRAMES_PER_HOUR, func() -> bool:
+		taps.poll()
+		held[0] = _eating_with_all_served(kitchen, key)
+		return held[0] >= 0)
+	assert_true(held[0] >= 0, "a resident eating supper with everyone served")
+	var calendar: CalendarScript = v.get(&"calendar")
+	calendar.tick = KitchenTest.tick_at(0, MealRules.END_HOUR[MealRules.MEAL_SUPPER]) - 1
+	kitchen._credited.fill(calendar.tick)
+	suite.call(&"_run", v, 1)
+	assert_true(kitchen.final_pending(key), "the serving ended with bowls held")
+	return held[0]
+
+
+func _eating_with_all_served(kitchen: KitchenScript, key: int) -> int:
+	"""A resident at work eating supper `key`, not yet half through its bowl, while every resident has had it or holds a
+	portion of it (-1: not yet)."""
+	var eating: int = -1
+	for i: int in 4:
+		if not kitchen.fed.had_exact(i, key) and (kitchen.meal_of(i) != key or kitchen._portion[i] == KitchenScript.FREE):
+			return -1
+		if kitchen.meal_of(i) == key and kitchen.step_of(i) == KitchenScript.WORK_EAT and kitchen._at_work[i] == 1 \
+				and kitchen._mwu[i] * 2 <= MealRules.EAT_MWU:
+			eating = i
+	return eating
+
+
+func _kitchen_village(taps_out: Array) -> RefCounted:
+	"""The real kitchen of four on day 0 from 14:00, stocked for supper, with taps watching it (returned in `taps_out`)."""
+	var suite: RefCounted = KitchenTest.new()
+	_borrowed.append(suite)
+	var v: RefCounted = suite.call(&"_village", 4, KitchenTest.tick_at(0, 14))
+	suite.call(&"_stock", v, KitchenTest.OATS, 20000)
+	suite.call(&"_stock", v, KitchenTest.CARROT, 30000)
+	suite.call(&"_open", v)
+	var taps := _taps(4)
+	taps.kitchen = v.get(&"kitchen")
+	taps.calendar = v.get(&"calendar")
+	taps.watch()
+	taps_out.append(taps)
+	taps_out.append(suite)
+	return v
+
+
+func test_a_last_supper_bowl_eaten_after_its_end_is_shared_and_fed_everyone() -> void:
+	"""BOUNDARY (R05): supper's serving ends while a diner still eats. Nothing is remembered at the end; once the last bowl
+	is eaten the meal is finalized -- the cook's meal for everyone, and that diner shared the supper with every other."""
+	var out: Array = []
+	var v: RefCounted = _kitchen_village(out)
+	var taps: TapsScript = out[0]
+	var kitchen: KitchenScript = v.get(&"kitchen")
+	var held: int = _supper_held_at_its_end(v, out[1], taps)
+	assert_equal(taps.poll(), 0, "no deed at the serving's end")
+	var other: int = 0 if held != 0 else 1
+	assert_equal(taps.ledger.suppers[taps.ledger.pair(held, other)], 0, "no supper shared yet")
+	var deeds: Array[int] = [0]
+	out[1].call(&"_run", v, KitchenTest.FRAMES_PER_HOUR, func() -> bool:
+		deeds[0] += taps.poll()
+		return not kitchen.finals.is_empty())
+	assert_false(kitchen.finals.is_empty(), "finalized once the last bowl was eaten")
+	assert_true(kitchen.finals[-1].diners.has(held), "the late diner is a committed diner")
+	assert_equal(deeds[0], 1, "the cook's first meal for everyone")
+	for i: int in 4:
+		if i != held:
+			assert_equal(taps.ledger.suppers[taps.ledger.pair(mini(held, i), maxi(held, i))], 1, "%d shared with %d" % [held, i])
+
+
+func test_a_last_supper_bowl_given_back_after_its_end_is_no_meal_for_everyone() -> void:
+	"""BOUNDARY (R05): supper's serving ends while a diner still eats, and it is ordered away before it finishes: the
+	bowl goes back, the meal is finalized on that return with that diner gone without -- no "Cooked supper for everyone"
+	deed, and it shared no supper (the others did)."""
+	var out: Array = []
+	var v: RefCounted = _kitchen_village(out)
+	var taps: TapsScript = out[0]
+	var kitchen: KitchenScript = v.get(&"kitchen")
+	var held: int = _supper_held_at_its_end(v, out[1], taps)
+	assert_equal(taps.poll(), 0, "no deed at the serving's end")
+	var brains: Array = v.get(&"brains")
+	(brains[held] as BrainScript).order_move((brains[held] as BrainScript).position + Vector2(0.0, 3.0))
+	var deeds: Array[int] = [0]
+	out[1].call(&"_run", v, KitchenTest.FRAMES_PER_HOUR, func() -> bool:
+		deeds[0] += taps.poll()
+		return not kitchen.finals.is_empty())
+	assert_false(kitchen.finals.is_empty(), "finalized once the bowl came back")
+	assert_false(kitchen.finals[-1].diners.has(held), "the diner who gave its bowl back did not eat")
+	assert_true(kitchen.finals[-1].without >= 1, "it went without")
+	assert_equal(deeds[0], 0, "no meal for everyone")
+	assert_false(taps.ledger.has_kind(kitchen.designated, Ledger.KIND_MEAL), "the cook's deed not awarded")
+	for i: int in 4:
+		if i != held:
+			assert_equal(taps.ledger.suppers[taps.ledger.pair(mini(held, i), maxi(held, i))], 0, "%d shared nothing" % held)
 
 
 func test_a_skill_level_reached_by_real_work_is_a_deed_and_a_starting_level_is_not() -> void:

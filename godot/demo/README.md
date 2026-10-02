@@ -482,7 +482,8 @@ characters -- each with a name, an interest and a way of speaking, from ONE data
 - **Notable moments are committed deeds only** (`people/people_taps.gd` into `people/people_ledger.gd`): a rescue that
   succeeded (never a victim washed ashore), a bridge, tunnel or room built (a dig called away is paused, not built: no
   memory), a first harvest (a cancelled one carried in as its delivery is none), a skill level reached, and a first
-  meal cooked that fed everyone.
+  meal cooked that fed everyone. A meal's deed and its shared suppers are read from the kitchen's **meal finalized**
+  event, once every bowl of it has been eaten or given back (decision 0997), never from the tally at 19:00.
 - **The spotlight**: after a rescue or a build, a top-centre card offers to mark the resident notable (★ on the roster;
   nothing about the work changes) -- once per resident and kind; it waits behind any incident card and the guide's card,
   and while the Residents list is open.
@@ -842,7 +843,8 @@ line) points at the tab.
   is read once.
 - **Village goals** (approved by Brendan as built, 2026-10-01; decision 0781): Harvest home (40.0 U into store), Every dish on the table (each of the
   kitchen's dishes cooked), A table for everyone (a supper where every resident ate cooked), A full larder (4.0 days of
-  Ready food), Wood for the cold (60.0 U), Over the water (a bridge open), A way below (3 tunnel stretches), A clean
+  Ready food the village cooked or brought in: the opening wheat and carrots still held are left out, read off the
+  pantry's own lots, whose opening share follows every split, move, merge, meal and spoiling -- decision 0994), Wood for the cold (60.0 U), Over the water (a bridge open), A way below (3 tunnel stretches), A clean
   season (a whole season in the planner's record with food harvested and no crop lost), The first winter weathered.
 - **Milestones**: the GDD's M1-M4 (§5.11), every condition a part worded as the GDD states it. What the demo models is
   measured (day, residents, portions prepared, year, winters, Ready food); the rest -- mastery, feasts, specialists,
@@ -1616,6 +1618,9 @@ the field guide's dish entries say whose favourite each is. Monotony counts §5.
 - **Short.** A meal called with nothing coming raises "No supper tonight: <why>. To fix: <where>" in the village
   news; at its end anyone hungry eats raw roots or cabbage nobody has reserved (at most 3000 NP), the rest go
   without, and the tally is posted ("Supper, day 2: 8 ate, 1 went without").
+- **Finalized.** That tally is provisional while a diner still holds its bowl. Once nobody holds anything of the
+  meal, the kitchen publishes one **meal finalized** event with who actually ate it (`kitchen.gd` `finals`,
+  decision 0997); the regatta's feast and the people's memories read that, not the 19:00 tally.
 - **The Kitchen tab** (Pantry, K): the cook and what it is doing, any refusal and its fix, the next meals, the pot
   and table, the butt and fuel, how the village is fed, the last meals; **Cook now** and **Draw water** (each with
   its action card, from the same decision as the order), **Keep water drawn**, **Cancel the next meal** (a batch
@@ -1629,11 +1634,15 @@ headers and decision 0381.
 
 Brendan's rulings of 2026-10-01; `winter/`. Presentation only: the settlement simulation is never written.
 
-- **The hearths** (`winter/hearth_fuel.gd`): the hall's, and every burrow home's fitted hearth, burn the village stores'
-  wood by GDD §5.8's continuous demand -- **4 U a day in winter, 2 U on a spring or autumn day whose mean is under 10 °C,
+- **The hearths** (`winter/hearth_fuel.gd`): the hall's, every burrow home's fitted hearth, and -- once it is built --
+  **the infirmary's own** (decision 0995, Brendan's ruling on the review's R03: GDD §5.9 has the infirmary "heated", and
+  its 6×6 interior is one normal hearth's) burn the village stores' wood by GDD §5.8's continuous demand -- **4 U a day in winter, 2 U on a spring or autumn day whose mean is under 10 °C,
   nothing in summer** (1 U heats a hearth 6 hours) -- taken each game hour through a milli-U accumulator (166 or 167 milli
   an hour in winter; exactly 4 U a day, never a milli-U adrift). The homes take theirs first, in row order, then the
-  hall; each hour all or nothing. A heated room holds **18 °C**; a hearth **out of fuel** lets its room move halfway to
+  hall, then the infirmary; each hour all or nothing. A resident inside a building is read in **that** building's room
+  (`resident_brain.gd interior`): a patient in the infirmary warms at the infirmary's fire whether the hall's burns or
+  not, and the infirmary's demand counts in the fuel-days, the top bar's heating demand and the winter projection; with
+  a patient inside, an infirmary out of fuel and below freezing is reported as a cold home. A heated room holds **18 °C**; a hearth **out of fuel** lets its room move halfway to
   the outside air each hour (REQ-SET-131) until wood comes in -- then it burns again the next hour. A hearth glows and
   smokes while it burns (fuelled and demanded: `night_routine.gd hearth_lit(r)`, which the glow reads), and counts for
   its home's comfort while it is fuelled.
@@ -2123,7 +2132,8 @@ first in summer:
   sung there; the service wood burns. At its end, **Shared Warmth** for 48 h when 80% ate every course (never stacked or
   extended; shown in the chronicle and the Regatta section). The demo models no mood or cold exposure, so the buff is a
   readout (`regatta_menu.gd`) nothing consumes yet.
-- **Remembered**: at the supper's end the chronicle (Village news, Village): the day, the host, the race, who shared the
+- **Remembered**: once the supper is finalized -- its last bowl eaten or given back, which can be after 19:00 (decision
+  0997) -- the tally, the buff and the chronicle (Village news, Village): the day, the host, the race, who shared the
   feast and **one moment** (the finish); the winners' deed in their own histories, pinned to the chronicle; +5 affinity
   for every pair who shared the feast (REQ-SET-036).
 - Checked by `test_demo_ferry.gd` and `test_demo_regatta.gd` (the placeholder cast on the real layout and water, the real
@@ -2335,8 +2345,10 @@ grows by two and no more:
   REQ-SET-126's share: all of it before work begins, 80% rounded down after.
 - **Unlock (Brendan's ruling).** The GDD names none for the upgrade, and the adopted milestones need 12 residents; so one data
   constant, `hall_rules.gd UNLOCK_CONDITION`, opens it once **the first harvest is gathered into store**.
-- **The cloth.** Nothing else in the demo keeps cloth; the hall model keeps the village's opening 24 U (GDD §5.1), at the
-  stockpile with the stores.
+- **The cloth.** The village's **one** cloth, the GDD's opening 24 U (§5.1), is kept in the village stores
+  (`tunnel/tunnel_stores.gd` CLOTH; decision 0993, Brendan's ruling on the review's R01). The hall's upgrade, the
+  infirmary building and the treatments all **reserve** there before they take, so cloth one has reserved is never free
+  to another: build the infirmary (12 U) and upgrade the hall (8 U) and 4 U is left for dressings.
 - **What it gives** (the panel's first section): 12 seats for meals, songs and feasts -- a feast seats up to 36 (seats
   >= ceil(E / 3), §5.7); floor sleep for anyone without a bed (REQ-SET-133); the comfort target; a hearth's fuel.
 - **Seen.** Clicking the hall opens its panel (no key). While the upgrade is carried in, a stone heap, a timber stack
@@ -2376,8 +2388,9 @@ ruled). No illness is modelled: the family illnesses (CHILL) are a draft.
   herbs and cloth, the herb patch and the patients, with **Build the infirmary…**: a ghost follows the pointer, brass
   where it may stand, clay with the reason where not; a click places it (nothing taken), Esc or a right click puts the
   tool away. Residents then build it through the work board ("Infirmary" source, REQ-SET-124/125/126 as the cellar
-  building does): wood and stone fetched from the stores at the open stockpile, cloth from the care shelf at the hall's
-  steps, the books always adding up; **Cancel the infirmary** returns all before the work begins, 80% after. It is drawn
+  building does): wood and stone fetched from the stores at the open stockpile, cloth -- the village stores' one cloth,
+  shared with the hall and the treatments (decision 0993) -- fetched at the care shelf by the hall's steps, the books
+  always adding up; **Cancel the infirmary** returns all before the work begins, 80% after. It is drawn
   with the library's residence model at the infirmary's 5.5 m envelope, with herb strings and a shelf of remedies at its
   door (no infirmary model exists: an art gap), flat while fetched for, rising as it is built.
 - **A hurt resident rests** (`care_tasks.gd` BedRest): in the infirmary when it is built and has a bed -- in at its
@@ -2389,12 +2402,14 @@ ruled). No illness is modelled: the family illnesses (CHILL) are a draft.
 - **The healer** (`care_desk.gd`): the best free resident who can reach the patient -- the highest Healing level first
   (the squirrel gatherer, Linnet Whinberry, starts at level 2), then the nearest. Treatment pays herb 1 U and cloth 0.5 U
   once, at work start, and takes 60 WU of HEAL (an hour at level 0); its work stays with the patient if the healer is
-  called away. A healer goes only while the shelf covers every healer already sent.
+  called away. A healer goes only while the shelf covers every healer already sent; its treatment's 0.5 U of cloth is
+  **reserved** in the village stores as it is sent and given back if it stops before work (decision 0993).
 - **The resident card** (the party panel): "Hurt: a bite (minor) · health 80", its untreated hours and rate, who treats
   it and how far or what it waits for; then "Recovering · health 67 · +4 an hour in the infirmary · up at 70 in about 1
   h"; "Work at 85% (health 85%)" while health is under 70; the healer's "Healing · Level 2"; a builder's "Carrying wood
   to the infirmary".
-- **Herbs** (§5.5's herb row): the shelf starts with the GDD's 12 U of herb and 24 U of cloth. One herb patch grows by
+- **Herbs** (§5.5's herb row): the shelf starts with the GDD's 12 U of herb (the 24 U of cloth is the village stores'
+  one cloth). One herb patch grows by
   the south road (160 U, 128 at the start, regrowing each midnight, gathered down to 32 U); by day, while the shelf
   holds under 12 U, the idle herbalist gathers 4 U and carries it to the shelf. **One shelf, two sources** (decision
   0902): a treatment's herb is the pantry's `herb` item, the one foraging trips bring in, so while the shelf is short

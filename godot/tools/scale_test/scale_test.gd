@@ -46,6 +46,17 @@ extends SceneTree
 ##
 ## Prints `SCALE <key> <value>` lines and `SCALE-DONE <residents> <frames> <errors>`; exits 1 when the village failed to
 ## open, the plan did not finish or an invariant failed (scale_checks.gd).
+##
+## THE END FREES THE VILLAGE FIRST (decision 0998). Quitting with the village in the tree left the sounds still
+## playing (the footstep voices, amb_wind_01.wav, amb_stream_01.ogg) to the engine's exit report, as "3 resources still
+## in use at exit" and "6 ObjectDB instances were leaked" on some runs and nothing on others: the audio server lets a
+## stopped sound go on its next mix, which the headless dummy driver runs on its own thread about every 23 ms, and a
+## quit that comes first leaves the sound behind. So after SCALE-DONE the village is freed (as the soak's end does,
+## decision 0921 §7), and the run quits once the audio server has let go of every sound playing at the close (a WeakRef
+## to each playback) -- after at least CLOSE_FRAMES frames and CLOSE_MIN_MSEC, for a sound stopped just before the
+## close, and at most CLOSE_MAX_MSEC. A sound still held then is a SCALE-ERROR. As it quits the run prints
+## `SCALE close <sounds playing at the close> <still held> <frames> <ms>`. The exit report is then empty, and
+## test_scale_stress.gd fails on any exit-report line at all, and on a close line that is missing or still holds one.
 
 const StressCast := preload("res://demo/stress/stress_cast.gd")
 const ProbeScript := preload("res://demo/stress/scale_probe.gd")
@@ -83,6 +94,11 @@ const ORDER_GROUP: int = 16
 const ORDER_KINDS: Array[String] = ["routine", "order_move", "order_work", "order_dig", "order_task"]
 ## After the order is served, the residents stand this many frames before they are released.
 const ORDER_HOLD_FRAMES: int = 60
+## Between freeing the village and quitting (see THE END FREES THE VILLAGE FIRST): at least the soak's CLOSE_FRAMES
+## frames and about ten of the dummy audio driver's mixes, at most five seconds.
+const CLOSE_FRAMES: int = 30
+const CLOSE_MIN_MSEC: int = 250
+const CLOSE_MAX_MSEC: int = 5000
 const CAST_SECTIONS: PackedStringArray = ["cast.route_serve", "cast.brains", "cast.actor_draw", "cast.nav_builds",
 	"cast.window_tail", "cast.route_spend"]
 const BASE_COLUMNS: PackedStringArray = ["phase", "speed", "sim_speed", "tick", "frame_us", "process_us",
@@ -139,6 +155,12 @@ var _last_harness_us: int = 0
 var _prev_start: int = 0
 var virtual_usec: int = 0
 var _quitting: bool = false
+## The close (see THE END FREES THE VILLAGE FIRST): frames since the village was freed (-1: not yet), when (real usec),
+## the sounds then playing, and the code the run quits with.
+var _closed_frames: int = -1
+var _closed_usec: int = 0
+var _playing_at_close: Array[WeakRef] = []
+var _exit_code: int = 0
 
 
 func _initialize() -> void:
@@ -190,6 +212,7 @@ func _on_frame(delta: float) -> void:
 	var process_us: int = driver.process_end_usec - _prev_start
 	_prev_start = driver.frame_start_usec
 	if _quitting:
+		_count_close()
 		return
 	if _open_frame < 0:
 		_wait_for_open()
@@ -526,7 +549,7 @@ func _finish() -> void:
 	for line: String in errors:
 		print("SCALE-ERROR %s" % line)
 	print("SCALE-DONE %d %d %d" % [residents, record.row_count(), errors.size()])
-	quit(1 if not errors.is_empty() else 0)
+	_close(1 if not errors.is_empty() else 0)
 
 
 func _fail(why: String) -> void:
@@ -534,7 +557,59 @@ func _fail(why: String) -> void:
 	_quitting = true
 	print("SCALE-ERROR %s" % why)
 	print("SCALE-DONE %d %d 1" % [residents, record.row_count()])
-	quit(1)
+	_close(1)
+
+
+func _close(code: int) -> void:
+	"""Stop calling the village's scripts, note the sounds it is playing, free it, and quit with `code` once they are
+	let go (`_count_close`; see THE END FREES THE VILLAGE FIRST)."""
+	_exit_code = code
+	_closed_frames = 0
+	_closed_usec = Time.get_ticks_usec()
+	driver.active = false
+	if village != null and is_instance_valid(village):
+		_playing_at_close = playbacks_of(village)
+		village.queue_free()
+	village = null
+
+
+func _count_close() -> void:
+	"""A frame after the close: quit once the sounds playing at the close are let go and CLOSE_FRAMES and
+	CLOSE_MIN_MSEC have passed, or at CLOSE_MAX_MSEC with a SCALE-ERROR naming how many are still held."""
+	if _closed_frames < 0:
+		return
+	_closed_frames += 1
+	OS.delay_msec(1)
+	@warning_ignore("integer_division")
+	var waited_msec: int = (Time.get_ticks_usec() - _closed_usec) / 1000
+	var held: int = held_count(_playing_at_close)
+	if held > 0 and waited_msec >= CLOSE_MAX_MSEC:
+		print("SCALE-ERROR %d sound(s) still held %d ms after the village was freed" % [held, waited_msec])
+		_exit_code = 1
+	elif held > 0 or _closed_frames < CLOSE_FRAMES or waited_msec < CLOSE_MIN_MSEC:
+		return
+	print("SCALE close %d %d %d %d" % [_playing_at_close.size(), held, _closed_frames, waited_msec])
+	_closed_frames = -1
+	quit(_exit_code)
+
+
+static func playbacks_of(at: Node) -> Array[WeakRef]:
+	"""A WeakRef to the playback of every sound player under `at` that is playing."""
+	var out: Array[WeakRef] = []
+	for node: Node in at.find_children("*", "", true, false):
+		var player: bool = node is AudioStreamPlayer or node is AudioStreamPlayer2D or node is AudioStreamPlayer3D
+		if player and bool(node.get("playing")):
+			out.append(weakref(node.call(&"get_stream_playback")))
+	return out
+
+
+static func held_count(refs: Array[WeakRef]) -> int:
+	"""How many of `refs` are still alive."""
+	var held: int = 0
+	for ref: WeakRef in refs:
+		if ref.get_ref() != null:
+			held += 1
+	return held
 
 
 func calendar_tick() -> int:

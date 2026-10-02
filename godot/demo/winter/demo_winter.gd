@@ -8,8 +8,9 @@ extends Node
 ## kitchen's cooking is noted for the fuel-days, the fuel's incidents are kept, the Firewood order is kept on the woods'
 ## board, and the season's notes are posted.
 ##
-## EACH FRAME every resident's place is read -- outdoors (or in the water), in the hall, in a home (its room's void), or
-## below in a tunnel -- and its exposure integrated over the calendar ticks the frame brought (cold_exposure.gd), at the
+## EACH FRAME every resident's place is read -- outdoors (or in the water), inside a building (the hall or the infirmary:
+## the building it went into, `interior_source`, each with its own hearth; decision 0995), in a home (its room's void),
+## or below in a tunnel -- and its exposure integrated over the calendar ticks the frame brought (cold_exposure.gd), at the
 ## rate its place gives (winter_rules.gd ENV_*). A jump of more than an hour in one frame (a skip: the Lab's "Skip to
 ## next season", "Next weather") is NOT integrated -- the residents did not live it. A Chilled resident works at the
 ## Chilled rate -- the winter's factor on the village's one work pace (demo/work/work_pace.gd, composed by multiplying
@@ -31,6 +32,11 @@ extends Node
 ## -- REQ-SET-131's urgent refuel job when a hearth is out. It is a BUILT-IN STANDING ORDER (decision 0711): the
 ## standing orders' book (demo/orders/standing_orders.gd) holds it, with the winter's rule as its goal
 ## (goal_firewood.gd), and the winter keeps it on its own hour exactly as before; the player may switch it off.
+##
+## THE INFIRMARY (decision 0995; Brendan's ruling on the review's R03, 2026-10-02): its own heated interior with its own
+## hearth, burning the stores' wood by the homes' rules (hearth_fuel.gd THE SOURCES) -- demanded, burned, converging
+## toward the air when out of fuel, and its patients' exposure read off its own room. Its hearth stands while the building
+## is built (`bind_infirmary`); its demand counts in the fuel-days, the HUD's heating demand and the projection.
 ##
 ## THE EMERGENCY ACTIONS (GDD §5.10, "consolidate residents into heated halls"; never taken by themselves): `consolidate`
 ## -- beds allocated warm first now and the sleepers sent to them, and the hearths of homes nobody sleeps in let go out
@@ -106,6 +112,10 @@ var _board: BoardScript = null
 var _brains: Array[BrainScript] = []
 var _names: PackedStringArray = PackedStringArray()
 var _hall_door: Vector2 = Vector2.INF
+## `() -> bool`: whether the infirmary is built (its hearth stands); `() -> bool`: whether anyone lies in it. Unbound: no
+## infirmary (see THE INFIRMARY).
+var _infirmary_built: Callable = Callable()
+var _infirmary_occupied: Callable = Callable()
 var _hour_seen: int = -1
 var _last_tick: int = 0
 var _hard_freeze: bool = false
@@ -164,6 +174,19 @@ func _bind_homes() -> void:
 	var hall: int = _cast.space().poi_names.find(NightScript.HALL_POI)
 	if hall >= 0:
 		_hall_door = _cast.space().poi_position[hall]
+
+
+func bind_infirmary(built: Callable, occupied: Callable) -> void:
+	"""The infirmary building (see THE INFIRMARY): `built() -> bool` (its hearth stands) and `occupied() -> bool` (anyone
+	lies in it: a cold infirmary is then a cold home)."""
+	_infirmary_built = built
+	_infirmary_occupied = occupied
+	fuel.set_hearth(FuelScript.INFIRMARY, infirmary_built())
+
+
+func infirmary_built() -> bool:
+	"""Whether the infirmary is built (bound; false unbound)."""
+	return _infirmary_built.is_valid() and bool(_infirmary_built.call())
 
 
 func bind_kitchen(kitchen: KitchenScript) -> void:
@@ -249,11 +272,13 @@ func _day_tenths(season: int, event: int) -> int:
 
 
 func _refresh_hearths() -> void:
-	"""Which homes have a hearth installed: a dug burrow home's fit-out hearth (the hall's is always set)."""
+	"""Which homes have a hearth installed: a dug burrow home's fit-out hearth (the hall's is always set); the
+	infirmary's while it is built (see THE INFIRMARY)."""
 	var rooms: RoomsScript = _graph.rooms
 	for r: int in FuelScript.ROOMS:
 		var home: bool = rooms.is_done(_graph, r) and rooms.template[r] == RoomsScript.TEMPLATE_HOME
 		fuel.set_hearth(r, home and _graph.fit.has_hearth(_graph, r))
+	fuel.set_hearth(FuelScript.INFIRMARY, infirmary_built())
 
 
 func forecast_min_tenths(h: int) -> int:
@@ -317,9 +342,11 @@ func _keep_cold_home(s: int) -> void:
 
 
 func has_sleepers(s: int) -> bool:
-	"""Whether anyone's bed is in home `s` (the hall: anyone without a bed)."""
+	"""Whether anyone's bed is in home `s` (the hall: anyone without a bed; the infirmary: anyone lying in it)."""
 	if s == FuelScript.HALL:
 		return _night.first_bedless() >= 0
+	if s == FuelScript.INFIRMARY:
+		return _infirmary_occupied.is_valid() and bool(_infirmary_occupied.call())
 	return not _night.sleepers_of(s).is_empty()
 
 
@@ -461,7 +488,7 @@ func _note_place(i: int) -> void:
 	var b: BrainScript = _brains[i]
 	var source: int = ColdScript.OUTDOORS
 	if b.indoors:
-		source = FuelScript.HALL
+		source = interior_source(b)
 	elif b.underground and not b.in_water:
 		source = home_at(b)
 	if source == ColdScript.OUTDOORS:
@@ -471,6 +498,17 @@ func _note_place(i: int) -> void:
 	else:
 		cold.note_place(i, Rules.env_for(fuel.is_heated(source), fuel.temperature_of(source)), source,
 			fuel.temperature_of(source))
+
+
+static func interior_source(b: BrainScript) -> int:
+	"""The hearth source of the building a resident is inside (see THE INFIRMARY): the hall's row or the infirmary's --
+	the building it actually went into, never the hall by default; ColdScript.OUTDOORS when it names none."""
+	match b.interior:
+		BrainScript.INTERIOR_HALL:
+			return FuelScript.HALL
+		BrainScript.INTERIOR_INFIRMARY:
+			return FuelScript.INFIRMARY
+	return ColdScript.OUTDOORS
 
 
 func home_at(b: BrainScript) -> int:
@@ -679,6 +717,15 @@ func _bank_empty_homes() -> int:
 	return banked
 
 
+func homes_let_go(kept: PackedByteArray) -> int:
+	"""How many burning homes consolidation would let go out with these homes `kept` (a byte per room row): only home
+	rows are let go -- never the hall, nor the infirmary (Brendan's ruling P2, decision 0995)."""
+	var n: int = 0
+	for r: int in FuelScript.ROOMS:
+		n += 1 if fuel.hearth[r] == 1 and fuel.banked[r] == 0 and kept[r] == 0 else 0
+	return n
+
+
 func consolidate_preview() -> String:
 	"""What `consolidate` would do now, in words."""
 	var empty := PackedInt32Array()
@@ -686,8 +733,8 @@ func consolidate_preview() -> String:
 		if fuel.hearth[r] == 1 and fuel.banked[r] == 0 and not has_sleepers(r):
 			empty.append(r)
 	var kept: int = keep_homes(_preview)
+	var saving: int = homes_let_go(_preview) * fuel.day_rate_milli
 	_preview.fill(0)
-	var saving: int = maxi(fuel.burning_count() - 1 - kept, 0) * fuel.day_rate_milli
 	var now_empty: String = "no home is empty yet" if empty.is_empty() else "%s %s empty already" % [Text.names_of(empty),
 		"is" if empty.size() == 1 else "are"]
 	return "Packs the %d %s into the fewest homes with a hearth (%d), then lets the hearths of the homes left empty go out (saves about %s a day); %s" % [

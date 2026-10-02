@@ -66,6 +66,9 @@ class Rig:
 static var _map_cache: WaterMapScript = null
 
 var _nodes: Array[Object] = []
+## Every rig a test built: its regatta's hooks are lambdas that hold the rig, which holds the regatta -- a cycle
+## `after_each` breaks (decision 0501).
+var _rigs: Array[Rig] = []
 var _services: ServicesScript = null
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 
@@ -76,11 +79,17 @@ func before_each() -> void:
 
 
 func after_each() -> void:
-	"""Free every node a test built."""
+	"""Free every node a test built, and let each rig's regatta drop the hooks that hold the rig."""
 	for node: Object in _nodes:
 		if is_instance_valid(node) and node is Node:
 			node.free()
 	_nodes.clear()
+	for rig: Rig in _rigs:
+		if rig.regatta != null:
+			rig.regatta.post = Callable()
+			rig.regatta.record_deed = Callable()
+			rig.regatta.share_feast = Callable()
+	_rigs.clear()
 
 
 func _keep(node: Object) -> Object:
@@ -135,6 +144,7 @@ func _rig(day: int = SUMMER_1, hour: int = 8) -> Rig:
 		rig.deeds.append([who, subject])
 		return rig.deeds.size()
 	rig.regatta.share_feast = func(who: PackedInt32Array) -> void: rig.shared.append(who)
+	_rigs.append(rig)
 	return rig
 
 

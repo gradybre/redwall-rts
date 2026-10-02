@@ -62,6 +62,9 @@ class Rig:
 static var _map_cache: WaterMapScript = null
 
 var _nodes: Array[Object] = []
+## Every rig a test built: its ferry's `flooded` lambda holds the rig, which holds the ferry -- a cycle `after_each`
+## breaks (decision 0501).
+var _rigs: Array[Rig] = []
 var _services: ServicesScript = null
 ## Whether every frame of the last `_run` kept THE BOOKS.
 var _books_kept: bool = true
@@ -73,11 +76,15 @@ func before_each() -> void:
 
 
 func after_each() -> void:
-	"""Free every node a test built."""
+	"""Free every node a test built, and let each rig's ferry drop the lambda that holds the rig."""
 	for node: Object in _nodes:
 		if is_instance_valid(node) and node is Node:
 			node.free()
 	_nodes.clear()
+	for rig: Rig in _rigs:
+		if rig.ferry != null:
+			rig.ferry.flooded = Callable()
+	_rigs.clear()
 
 
 # --- fixtures -------------------------------------------------------------------------------------
@@ -115,6 +122,7 @@ func _rig(hour: int = 9) -> Rig:
 	rig.ferry.configure(rig.cast, rig.fishery.fleet, rig.fishery.skills, rig.fishery.ice, _services.stores, rig.calendar,
 		rig.weather, _map())
 	rig.ferry.flooded = func() -> bool: return rig.play.motion.flood_permille > 0
+	_rigs.append(rig)
 	rig.play.crossings.ferry = rig.ferry
 	return rig
 

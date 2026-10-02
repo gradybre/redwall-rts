@@ -142,6 +142,8 @@ var _summary: Label = null
 var _chip: ColorRect = null
 var _notice: Label = null
 var _actions: HFlowContainer = null
+## Other owners' rows in the actions' flow (`add_top_row`).
+var _extra_rows: Array[Control] = []
 var _release: Button = null
 var _follow: Button = null
 var _dig: Button = null
@@ -327,9 +329,12 @@ func _build_detail() -> void:
 
 
 func add_top_row(row: Control) -> void:
-	"""Another owner's row under the actions, in view with them (and docked into the inspector with them): the group
-	selection's "Select idle" (control/group_select.gd, decision 0791)."""
-	_top.add_child(row)
+	"""Another owner's row IN the actions' flow, after the room tools -- in view with them, docked with them, and beside
+	the last button where it fits -- so it adds no row of its own at 1280x720 (decision 0791's "Select idle" with 0801's
+	Follow (End) left the inspector too short to dock: batch 7 integration, decision 0902). The actions show while
+	such a row does."""
+	_extra_rows.append(row)
+	_actions.add_child(row)
 
 
 func add_section(section: Control) -> void:
@@ -405,7 +410,7 @@ func show_party(entries: Array[Dictionary]) -> void:
 	_dig.visible = has_digger(entries)
 	for room: Button in _room_buttons:
 		room.visible = _dig.visible
-	_actions.visible = _release.visible
+	_actions.visible = _release.visible or not _extra_rows.is_empty()
 	_fill_rows(entries)
 	var abilities: PackedStringArray = entries[0].get("abilities", PackedStringArray()) if entries.size() == 1 \
 			else PackedStringArray()

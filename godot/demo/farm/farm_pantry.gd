@@ -52,6 +52,15 @@ extends RefCounted
 ## the hold is spent. `put_back` ends a carry anywhere else: the lot was never booked away, so it simply stops being
 ## carried. A carried lot that spoils frees its row (its serial no longer answers), like any other. None of this moves
 ## the LEDGER: food that changes stores neither came in nor went out.
+##
+## OPENING PROVENANCE (decision 0994; Brendan's ruling on the review's R02, 2026-10-02). Each lot also keeps how much of it
+## is the demo's OPENING stock (`add_opening_into`: opening_pantry.gd's wheat and carrots), so "A full larder" can leave
+## exactly the opening food still held out of its count, whichever lot the kitchen takes or spoilage claims first. The
+## share follows the actual food: a fresh lot or a delivery adds none; a merge keeps the lot's share and adds the
+## delivery's; a split (a carry's, a set-down's) moves the moved part's proportional share, floored, the rest staying; a
+## withdrawal takes its proportional share the same way (all of it once the lot is emptied); a spoiled lot's share is
+## gone with it. A lot is wholly opening or wholly not unless a full table merged a delivery into an opening lot, so in
+## practice the share moves whole. `opening_milli_of` sums it per item.
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const StockAge := preload("res://scripts/core/stock_age.gd")
@@ -120,6 +129,8 @@ var _lot_serial: PackedInt32Array = PackedInt32Array()
 var _next_serial: int = 1
 ## 1 while a lot row is in a carrier's hands (see MOVING FOOD BETWEEN STORES).
 var _lot_carried: PackedByteArray = PackedByteArray()
+## Per lot row: how much of it is opening stock, milli-U (see OPENING PROVENANCE); never more than the lot holds.
+var _lot_opening: PackedInt64Array = PackedInt64Array()
 ## Every milli-U ever set down in another store by a move (see MOVING FOOD BETWEEN STORES), never reset.
 var moved_milli: int = 0
 
@@ -129,7 +140,7 @@ func _init(p_storage: StorageScript) -> void:
 	storage = p_storage
 	for column: PackedInt32Array in [_lot_item, _lot_location, _lot_remainder, _lot_serial]:
 		column.resize(MAX_LOTS)
-	for column: PackedInt64Array in [_lot_milli, _lot_age]:
+	for column: PackedInt64Array in [_lot_milli, _lot_age, _lot_opening]:
 		column.resize(MAX_LOTS)
 	_lot_item.fill(FREE)
 	_lot_carried.resize(MAX_LOTS)
@@ -160,6 +171,15 @@ func add_into(item: int, milli: int, location: int, out: IntMath.IntResult) -> b
 	return _lot_into(item, milli, location, out)
 
 
+func add_opening_into(item: int, milli: int, location: int, out: IntMath.IntResult) -> bool:
+	"""`add_into` for the demo's OPENING stock: the same lot, stored the same way, its quantity marked opening (see
+	OPENING PROVENANCE)."""
+	if not add_into(item, milli, location, out):
+		return false
+	_lot_opening[out.value] += milli
+	return true
+
+
 func _lot_into(item: int, milli: int, location: int, out: IntMath.IntResult) -> bool:
 	"""Put `milli` of `item` into a new lot at `location` (room already checked), or merge it into the
 	oldest such lot when the table is full. The lot into `out`; refuses NO_STORAGE_ROOM."""
@@ -186,6 +206,7 @@ func _open_lot(lot: int, item: int, location: int) -> void:
 	_lot_serial[lot] = _next_serial
 	_next_serial += 1
 	_lot_carried[lot] = 0
+	_lot_opening[lot] = 0
 
 
 func _oldest_lot_into(item: int, location: int, out: IntMath.IntResult) -> bool:
@@ -443,6 +464,7 @@ func _spoil(lot: int) -> void:
 	_lot_item[lot] = FREE
 	_lot_milli[lot] = 0
 	_lot_carried[lot] = 0
+	_lot_opening[lot] = 0
 
 
 func compost_spoiled() -> int:
@@ -632,6 +654,7 @@ func withdraw_into(lot: int, serial: int, milli: int, out: IntMath.IntResult) ->
 		return out.refuse(REFUSE_BAD_QUANTITY)
 	if milli > _lot_milli[lot]:
 		return out.refuse(REFUSE_NO_STOCK)
+	_lot_opening[lot] -= opening_share(lot, milli)
 	_lot_milli[lot] -= milli
 	_item_milli[_lot_item[lot]] -= milli
 	_out_milli[_lot_item[lot]] += milli
@@ -698,6 +721,9 @@ func _split(lot: int, milli: int, location: int) -> int:
 	_open_lot(row, _lot_item[lot], location)
 	_lot_age[row] = _lot_age[lot]
 	_lot_remainder[row] = _lot_remainder[lot]
+	var share: int = opening_share(lot, milli)
+	_lot_opening[row] = share
+	_lot_opening[lot] -= share
 	_lot_milli[row] = milli
 	_lot_milli[lot] -= milli
 	return row
@@ -734,6 +760,32 @@ func put_back(lot: int, serial: int) -> bool:
 		return false
 	_lot_carried[lot] = 0
 	return true
+
+
+# --- opening provenance (see OPENING PROVENANCE) --------------------------------------------------------------
+
+func opening_share(lot: int, milli: int) -> int:
+	"""The opening stock that `milli` taken out of lot `lot` carries with it: its proportional share, floored -- all of
+	it when the whole lot is taken (see OPENING PROVENANCE)."""
+	if lot < 0 or lot >= MAX_LOTS or _lot_milli[lot] <= 0 or milli <= 0:
+		return 0
+	if milli >= _lot_milli[lot]:
+		return _lot_opening[lot]
+	@warning_ignore("integer_division") return _lot_opening[lot] * milli / _lot_milli[lot]
+
+
+func lot_opening_milli(lot: int) -> int:
+	"""How much of lot `lot` is opening stock, milli-U (0 for a free row)."""
+	return _lot_opening[lot] if lot >= 0 and lot < MAX_LOTS and _lot_item[lot] != FREE else 0
+
+
+func opening_milli_of(item: int) -> int:
+	"""How much of `item` the pantry still holds that is opening stock, milli-U (see OPENING PROVENANCE)."""
+	var held: int = 0
+	for lot: int in MAX_LOTS:
+		if _lot_item[lot] == item:
+			held += _lot_opening[lot]
+	return held
 
 
 func lot_carried(lot: int) -> bool:

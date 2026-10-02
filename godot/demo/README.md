@@ -225,6 +225,8 @@ services.notices.notify(NoticesScript.SOURCE_CREW, NoticesScript.TIER_INFO, &"ch
   subject come from the key. "farm:wet:3" gives kind `farm:wet` and subject `3`, so key a new incident
   "<area>:<what>:<ids>". Only a critical incident pauses (and the ledger decides whether it does).
 - **Reading the history** (the chronicle):
+  - The village chronicle reads this way (decision 0631), and turns Village lines beginning `Chronicle: ` into the
+    season page's gatherings.
   - `count()` and per entry `k` (0 newest): `text`, `summary`, `stamp`, `tier`, `kind`, `subject`, `repeats`,
     `first_tick`, `said_tick`, `entry_id`, `is_dismissed`, `is_announced`.
   - `entry_id` is stable and never reused; `index_of(id)` finds it again.
@@ -391,6 +393,43 @@ characters -- each with a name, an interest and a way of speaking, from ONE data
   together or a supper shared (once a pair a day), +8 for a rescue; friends from 40. They change nothing mechanical.
 - **Evening lines**, at most one a day at 19:00: the next resident in turn who is free then, at its own pastime where
   it actually is -- with its own pleased words only after a deed of its own that day. A note in the news, nothing more.
+
+## The village chronicle (decision 0631)
+
+At each season's end the village writes **a page in a record-keeper's voice** (`chronicle/`). The page is drawn **only
+from what the village recorded**: the news (read by entry id), the incidents' lines, the farm's after-action record,
+the people's ledger and the songs. Nothing is invented. A section with nothing recorded is left out, and a bare season
+says so in one line.
+
+- **What a page tells**, in sections:
+  - **The harvest and the table**: food into store and its three largest items, portions eaten, meals missed and crops
+    withered. The village's first food and first meals are told once.
+  - **Weather and trouble**: the season's §5.10 event and its days; trees blown down, the garden flooded, tunnels
+    flooded or fallen in, shelter from a threat, residents in difficulty in the water, frost nights, blight, days
+    without a meal and nights without a bed (at most four lines).
+  - **Deeds**: rescues, bridges, tunnels, rooms, first harvests, meals and skills, best first, three shown. A village
+    first says so.
+  - **Friends and neighbours**: friendships made, friendships lapsed ("drifted apart"; the demo records no quarrel), and
+    the pair who worked side by side most.
+  - **Songs and gatherings**: the season's "Chronicle:" Village lines (the regatta's feast and later gatherings), the
+    first village standing, projects done, songs learned and the evenings the supper table sang.
+  - An opening by the season's mood, and a closing line.
+  - The wordings vary by season, deterministically per seed (`chronicle_text.gd` `pick`).
+- **When.** A page is written once the farm's record has closed the season's last day, so its totals are whole. It posts
+  a Village info line, "The chronicle's page for Spring, year 1 is written…".
+- **The player's curation holds.** A deed the season's reflection kept private or dismissed is never shown. A pinned one
+  comes first, even when it was answered after the page was written.
+- **The book** (`chronicle/chronicle_window.gd`) opens from a **Chronicle** button in **Village news (N)** and in the
+  **village guide (O)**; there is no key of its own.
+  - It shows one tab per page by season and **This season**, the season under way written so far, so a short playtest
+    still ends on a page.
+  - Earlier page and Later page step through it; Esc or × closes it.
+  - It is a modal and a planning surface. It sits at most 720 wide in the HUD's modal rectangle and reads at 1280x720.
+- **For other features.** To put a line on the season's page, post a Village notice beginning `Chronicle: `
+  (`notices.post(NoticesScript.SOURCE_VILLAGE, NoticesScript.LEVEL_NOTE, "Chronicle: ...")`). The great hall's tapestry
+  hooks in at one point, `village.chronicle().page_written = func(season: int, title: String, summary: String) -> void:`,
+  which is called once per page written.
+- Pages last the session (saving is deferred with UX-021) and are capped at 48.
 
 ## Map layers (decision 0292)
 
@@ -1642,5 +1681,6 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `ui/` | The woodland HUD skin; the HUD date, the news strip, the village-news history, the incident card and "Go to", and the right column's tabs; the HUD's village read model (counters and ledger), the Residents roster and the village map; the Map layer picker; the pause card and the "Run until…" button and menu (decision 0471) |
 | `camera/` | The RTS camera, and the canopy clearance: the eye kept out of crowns, the crowns in the way thinned, the selected shown through |
 | `sound/` | The sound pass: the cue table (data), the mix and its buses, the voice pool, the event map, the owner and the Settings section |
+| `chronicle/` | The village chronicle (decision 0631): one season's tally of the news (`chronicle_tally.gd`), the pages (`chronicle_book.gd`), their words and writer (`chronicle_text.gd`, `chronicle_writer.gd`), the owner that writes a page at each season's end (`demo_chronicle.gd`) and the book (`chronicle_window.gd`) |
 | `songs/` | The residents' songs: the repertoire (data), who sings what when, the bubbles, the hum (decision 0442) |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

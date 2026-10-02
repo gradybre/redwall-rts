@@ -828,3 +828,45 @@ func test_a_guest_giving_its_bowl_back_after_the_suppers_end_is_not_counted() ->
 	for company: PackedInt32Array in rig.shared:
 		assert_false(company.has(guest), "nor its company")
 	assert_equal(rig.kitchen.occasion_courses(guest), 0, "no course eaten")
+
+
+static func _eating_second(kitchen: KitchenScript, key: int) -> int:
+	"""A guest at work eating meal `key`'s SECOND course (its main eaten), not yet half through that bowl (-1: none)."""
+	for i: int in kitchen.fed.count():
+		if kitchen.meal_of(i) == key and kitchen.step_of(i) == KitchenScript.WORK_EAT and kitchen._at_work[i] == 1 \
+				and kitchen.occasion_courses(i) == KitchenScript.COURSE_MAIN and kitchen._mwu[i] * 2 <= MealRules.EAT_MWU:
+			return i
+	return -1
+
+
+func test_a_guest_giving_back_its_second_course_after_the_end_still_ate_the_feast() -> void:
+	"""The R05 review's H1: a guest who ate the hotpot and holds its second course at 19:00, then gives that bowl back,
+	ate the meal -- it is one of the committed diners and is not ALSO counted as gone without: every resident is counted
+	exactly once (diners + raw + without), so the people's "for everyone" deed is not wrongly withheld."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock_feast(rig)
+	_stock_menu(rig)
+	var day: int = SUMMER_1 + 1
+	assert_equal(r.hold(day, 2, true), "", "held")
+	rig.calendar.tick = tick_at(day, Rules.CREW_CALL_HOUR) - 30
+	rig.kitchen.update()
+	var key: int = Rules.feast_key(day)
+	var guest: Array[int] = [-1]
+	_run(rig, func() -> bool:
+		guest[0] = _eating_second(rig.kitchen, key)
+		return guest[0] >= 0, 30000)
+	assert_true(guest[0] >= 0, "a guest eating its second course (%s)" % r.status_line())
+	rig.calendar.tick = tick_at(day, MealRules.END_HOUR[Rules.FEAST_MEAL]) - 1
+	rig.kitchen._credited.fill(rig.calendar.tick)
+	_run(rig, func() -> bool: return false, 1)
+	assert_true(rig.kitchen.final_pending(key), "ended with the second bowl held")
+	r.brain_of(guest[0]).order_move(r.brain_of(guest[0]).position + Vector2(0.0, 1.0))
+	assert_true(_run(rig, func() -> bool: return rig.kitchen.final_of(key) != null, 3000), "finalized on the return")
+	var final: KitchenScript.MealFinal = rig.kitchen.final_of(key)
+	assert_true(final.diners.has(guest[0]), "the guest ate the meal (its hotpot)")
+	assert_equal(final.diners.size() + final.raw.size() + final.without, rig.kitchen.fed.count(),
+		"every resident counted once: %d diners, %d raw, %d without" % [final.diners.size(), final.raw.size(), final.without])
+	var at: int = rig.kitchen.meal_keys.rfind(key)
+	assert_equal(rig.kitchen.meal_ate[at] + rig.kitchen.meal_raw[at] + rig.kitchen.meal_without[at],
+		rig.kitchen.fed.count(), "and so is the kitchen's own tally")

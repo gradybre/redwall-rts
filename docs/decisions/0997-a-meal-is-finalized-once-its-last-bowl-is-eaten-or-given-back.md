@@ -48,7 +48,7 @@ require committed consumption; this decision gives them one event to read.
 - **The 19:00 tally is unchanged.** `meal_keys`/`meal_ate`/`meal_raw`/`meal_without` and the news line "Supper, day 2: 8
   ate, 1 went without" still post at the serving's end; only consumers that need the committed result moved.
 
-**The regatta** (`demo/regatta/regatta.gd`): the feast is settled by `feast_settled()` instead of the hour. Once the
+**The regatta** (`demo/regatta/regatta.gd`): the feast is settled by `_settle_feast()` instead of the hour. Once the
 kitchen has published the feast supper's event, `_tally(final)` counts the attendees from `final.diners` (those whose
 occasion courses include the main course; resident order) and every-course coverage from them, then settles the menu
 (Shared Warmth, the infusion's herb and water), writes the chronicle, the winners' deed and the feast's company (+5
@@ -67,6 +67,27 @@ the meal being served quietly, with no tally and so no event; a holder of it who
 never be published, and the next meal's end lets it go (`_forget_unfinalizable`). A meal already pending when a skip
 happens is published when its holders resolve. Every holder is released by bedtime at the latest (the night routine
 lets an eater finish its bowl, then calls the rest away), so a feast's tally comes before the night.
+
+## The independent review's findings, fixed
+
+- **H1 -- a two-course guest counted twice.** A guest who had eaten the occasion's main course and gave its second-course
+  bowl back after the end was counted both as a diner and as gone without (a 6-resident probe: 2 diners + 2 raw + 3
+  without = 7), so `people_taps` wrongly withheld the cook's deed. `_ate_a_course(i, key)` now says a guest has eaten
+  the meal; `_clear_role` gives such a bowl back without `_served_but_missed`, `_holding` does not count that guest's
+  second portion as a meal eaten at the end, and `_eat_portion`'s "first" reads the same helper. Test (regatta): the
+  second-course give-back after 19:00 -- every resident counted exactly once, in the event and in the kitchen's tally.
+- **M1 -- nothing guaranteed the event fires.** THE DEADLINE: when a later meal's serving ends, any earlier meal still
+  waiting on a holder is overdue (no diner holds a bowl through the next serving); each holder's part ends
+  (`_give_up_part`: its food back, it went without, its brain's kitchen task let go) and the meal is published at that
+  update's end. Test: a held meal settled and published when the next one ends, once.
+- **M2, M3** -- two assertions that could not fail now can (the cook's round under way holds nothing; two later events
+  at one look do not re-read the supper before them).
+- **LOW** -- `feast_settled()` renamed `_settle_feast()` (the regatta's own); `_building` typed
+  `Dictionary[int, MealFinal]`; a test for the next end letting go an event that can never be published (mutant M22).
+  Not done: `_publish` refusing a missing tally row -- the tests publish synthetic events on a bare kitchen, and every
+  real publication follows `_record_meal`. Two mutants survive as equivalent: the regatta's occasion-key guard in
+  `_count_attendees` (only the regatta clears the occasion, after counting) and the people's diner-index guard
+  (`people_ledger.gd pair` already refuses an out-of-range resident).
 
 ## PROPOSAL (needs Brendan's ruling)
 

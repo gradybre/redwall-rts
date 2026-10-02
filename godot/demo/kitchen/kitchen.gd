@@ -76,7 +76,10 @@ extends RefCounted
 ## kitchen publishes ONE event for it (`finals`, a `MealFinal`: the meal's key, who ate a cooked portion of it, who ate
 ## raw, how many went without -- all committed), at the end of the frame's update; a meal nobody held at its end is
 ## published in the update that ended it. Its consumers (the regatta's feast, the people's taps) read it there. A meal the
-## kitchen never ended (a season skip over it) has no event: `meal_lapsed` says so.
+## kitchen never ended (a season skip over it) has no event: `meal_lapsed` says so. THE DEADLINE (the R05 review's M1):
+## no diner holds a bowl through the next serving, so when a later meal ends, an earlier one still waiting on a holder
+## is overdue -- whatever is still held of it is given back (that resident went without it) and its event is published
+## at that update's end, so no consumer waits for good on a part that never ends.
 ##
 ## SHORTAGES are said exactly, with the way to fix them (action_card.gd's "Can't now: ... / To fix: ..."), from the
 ## SAME decision the Cook order and its card use (`decide_meal`); a meal called with nothing coming is the incident
@@ -373,7 +376,7 @@ var finals_published: int = 0
 ## The meals whose serving has ended with something of them still held (earliest first), and each meal's event being
 ## filled in as its diners eat, by key, until it is published.
 var _final_pending: PackedInt32Array = PackedInt32Array()
-var _building: Dictionary = {}
+var _building: Dictionary[int, MealFinal] = {}
 
 
 func configure(brains: Array[BrainScript], names: PackedStringArray, species: PackedStringArray,
@@ -1003,8 +1006,10 @@ func _start_role(i: int, role: int, cleared: bool = false) -> void:
 
 func _clear_role(i: int) -> void:
 	"""Resident `i`'s part ends: a diner's portion or raw food goes back (nothing eaten), the step state is reset;
-	what a cook or drawer carries stays with it."""
-	if (_portion[i] != FREE or _raw_take[i] > 0) and _meal[i] != FREE and _meal[i] <= _closed_key:
+	what a cook or drawer carries stays with it. An occasion's guest giving back its second course after the end has
+	eaten the meal already (its first course): it did not go without (decision 0997, the R05 review's H1)."""
+	if (_portion[i] != FREE or _raw_take[i] > 0) and _meal[i] != FREE and _meal[i] <= _closed_key \
+			and not _ate_a_course(i, _meal[i]):
 		_served_but_missed(i)
 	if _portion[i] != FREE:
 		store.release_one(_portion[i])
@@ -1491,7 +1496,7 @@ func _eat_portion(i: int) -> void:
 	_portion[i] = FREE
 	if dish == Rules.NO_DISH:
 		return
-	var first: bool = not (_meal[i] == occasion_key and _occasion_courses[i] != 0)
+	var first: bool = not _ate_a_course(i, _meal[i])
 	fed.ate_meal(i, _meal[i], dish, _hour_seen)
 	note_course(i, _meal[i], dish)
 	portions_eaten += 1
@@ -1641,6 +1646,7 @@ func _close_meal(key: int) -> void:
 			without += 1
 	_closed_key = key
 	_record_meal(key, without)
+	_settle_overdue(key)
 	_final_pending.append(key)
 	_forget_unfinalizable(key)
 
@@ -1668,12 +1674,20 @@ func _record_meal(key: int, without: int) -> void:
 
 
 func _holding(key: int, raw: bool) -> int:
-	"""How many residents hold food for meal `key` not yet eaten: raw food with `raw`, else a portion."""
+	"""How many residents hold food for meal `key` not yet eaten: raw food with `raw`, else a portion -- not counting an
+	occasion's guest holding its second course, already counted as having eaten the meal (its first course)."""
 	var n: int = 0
 	for i: int in _role.size():
-		if _meal[i] == key and ((_raw_take[i] > 0) if raw else (_portion[i] != FREE)):
+		if _meal[i] != key or (not raw and _ate_a_course(i, key)):
+			continue
+		if (_raw_take[i] > 0) if raw else (_portion[i] != FREE):
 			n += 1
 	return n
+
+
+func _ate_a_course(i: int, key: int) -> bool:
+	"""Whether resident `i` has eaten a course of meal `key` as an occasion (a portion of it already counted)."""
+	return key != FREE and key == occasion_key and _occasion_courses[i] != 0
 
 
 # --- the meal finalized (see THE MEAL FINALIZED) -------------------------------------------------------
@@ -1683,11 +1697,35 @@ func holders_of(key: int) -> int:
 	for it under way (walking to its seat, waiting there for a course, eating)."""
 	var n: int = 0
 	for i: int in _role.size():
-		if _meal[i] != key:
-			continue
-		if _portion[i] != FREE or _raw_take[i] > 0 or (_role[i] == ROLE_EAT and _step[i] != STEP_DONE):
-			n += 1
+		n += 1 if _holds(i, key) else 0
 	return n
+
+
+func _holds(i: int, key: int) -> bool:
+	"""Whether resident `i` holds something of meal `key` (see `holders_of`)."""
+	if _meal[i] != key:
+		return false
+	return _portion[i] != FREE or _raw_take[i] > 0 or (_role[i] == ROLE_EAT and _step[i] != STEP_DONE)
+
+
+func _settle_overdue(key: int) -> void:
+	"""Meal `key` has ended: every earlier meal still waiting on a holder is overdue (see THE DEADLINE) -- each holder's
+	part ends, what it holds goes back and it went without; the meal is published at this update's end."""
+	for earlier: int in _final_pending:
+		if earlier >= key:
+			continue
+		for i: int in _role.size():
+			if _holds(i, earlier):
+				_give_up_part(i)
+
+
+func _give_up_part(i: int) -> void:
+	"""Resident `i`'s kitchen part is ended from here: its food given back (`_clear_role`), and the task its brain still
+	runs for it let go (its own `called_away` then finds nothing to do)."""
+	var task: TaskScript = _tasks[i]
+	_clear_role(i)
+	if task != null and _brains[i].task == task:
+		_brains[i].work_done()
 
 
 func final_of(key: int) -> MealFinal:
@@ -1738,7 +1776,7 @@ func _publish(final: MealFinal, key: int) -> void:
 
 func _final_for(key: int) -> MealFinal:
 	"""Meal `key`'s event being filled in (made on its first diner)."""
-	var final: MealFinal = _building.get(key, null) as MealFinal
+	var final: MealFinal = _building.get(key, null)
 	if final == null:
 		final = MealFinal.new()
 		final.key = key
@@ -1749,8 +1787,8 @@ func _final_for(key: int) -> MealFinal:
 func _forget_unfinalizable(key: int) -> void:
 	"""Meal `key` has ended: an earlier meal's event still being filled in that will never be published (its serving
 	never ended -- a season skip over it) is let go."""
-	for earlier: Variant in _building.keys():
-		if int(earlier) < key and not _final_pending.has(int(earlier)):
+	for earlier: int in _building.keys():
+		if earlier < key and not _final_pending.has(earlier):
 			_building.erase(earlier)
 
 

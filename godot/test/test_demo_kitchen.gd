@@ -1174,7 +1174,9 @@ func test_a_holder_is_a_portion_raw_food_or_a_diners_part_for_that_meal() -> voi
 	k._raw_take[0] = 7
 	assert_equal(k.holders_of(key), 1, "raw food reserved")
 	k._raw_take[0] = 0
-	assert_equal(k.holders_of(key), 0, "the cook's round alone holds nothing of it")
+	k._step[0] = KitchenScript.WALK_KITCHEN
+	assert_equal(k.holders_of(key), 0, "the cook's round under way holds nothing of it")
+	k._step[0] = KitchenScript.STEP_DONE
 	k._meal[1] = key
 	k._role[1] = KitchenScript.ROLE_EAT
 	for step: int in [KitchenScript.WALK_SEAT, KitchenScript.WORK_WAIT]:
@@ -1517,3 +1519,33 @@ func test_a_store_walk_that_failed_goes_to_a_spot_clear_of_those_standing() -> v
 	assert_true(v.kitchen._store_spot(1, v.brains[1]).distance_to(STORE_AT) < 0.01, "first: the store's own spot")
 	v.kitchen._fails[1] = 1
 	assert_true(v.kitchen._store_spot(1, v.brains[1]).distance_to(STORE_AT) > 0.4, "after a failure: clear of resident 2")
+
+
+func test_an_earlier_meal_still_held_when_the_next_ends_is_settled_and_published() -> void:
+	"""THE DEADLINE (the R05 review's M1): a holder that never lets go (here: resident 1's part left hanging) cannot stall
+	a meal for good -- when the next meal's serving ends, what it still holds goes back, it went without, its part and
+	its brain's task end, and the earlier meal's event is published at that update's end, once."""
+	var v := _village(3, tick_at(1, 1))
+	var key: int = _eating_at_the_end(v)
+	var at: int = v.kitchen.meal_keys.find(key)
+	var without: int = v.kitchen.meal_without[at]
+	assert_true(v.kitchen.final_pending(key) and v.kitchen.holders_of(key) >= 1, "held at its end")
+	var next: int = key + 1
+	v.kitchen._final_for(key - 2).diners.append(0)
+	v.kitchen._serving = next
+	v.kitchen._close_meal(next)
+	assert_false(v.kitchen._building.has(key - 2), "an earlier event that can never be published let go at the end")
+	assert_equal(v.kitchen.holders_of(key), 0, "the next meal's end gave every held part of it back")
+	var task: Object = v.brains[1].task
+	assert_true(task == null or task.get_script() != KitchenScript.TaskScript, "resident 1's kitchen task let go")
+	v.kitchen._publish_finals()
+	var final: KitchenScript.MealFinal = v.kitchen.final_of(key)
+	assert_true(final != null, "the overdue meal published")
+	if final == null:
+		return
+	assert_false(final.diners.has(1), "resident 1 did not eat it")
+	assert_true(final.without > without, "it (with any other holder) went without it")
+	assert_equal(final.without, v.kitchen.meal_without[at], "as the corrected tally says")
+	assert_equal(final.diners.size() + final.raw.size() + final.without, 3, "every resident counted once")
+	assert_equal(_finals_of(v, key), 1, "once")
+	assert_true(v.kitchen.final_of(next) != null, "the next meal, held by nobody, published too")

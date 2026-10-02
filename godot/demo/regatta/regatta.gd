@@ -539,7 +539,7 @@ func update() -> void:
 		return
 	var day: int = today()
 	var h: int = hour()
-	if day >= plan_day and feast_settled():
+	if day >= plan_day and _settle_feast():
 		return
 	if day != plan_day or h >= MealRules.END_HOUR[Rules.FEAST_MEAL]:
 		return
@@ -858,7 +858,7 @@ func _deck_walk(brain: BrainScript, target: Vector2, y_m: float, delta: float) -
 
 # --- the feast's tally and the chronicle -------------------------------------------------------------------
 
-func feast_settled() -> bool:
+func _settle_feast() -> bool:
 	"""Whether the feast's supper is settled, and if so tallied now: the kitchen has published its MEAL FINALIZED event
 	(every bowl eaten or given back), or the kitchen ran past it without serving it (`meal_lapsed`: tallied with nobody).
 	False while a guest still holds a bowl of it, or before it."""

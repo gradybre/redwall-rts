@@ -904,10 +904,11 @@ func test_a_meal_someone_went_without_is_no_deed() -> void:
 	_publish(kitchen, 5, _final(PackedInt32Array([1, 0]), 0))
 	taps.poll()
 	assert_equal(taps.ledger.suppers[taps.ledger.pair(0, 1)], 1, "both ate the supper: shared once")
-	assert_equal(taps.poll(), 0, "an event is read once")
 	_publish(kitchen, 6, _final(PackedInt32Array([0, 1]), 0))
+	_publish(kitchen, 8, _final(PackedInt32Array([1, 0]), 0))
 	taps.poll()
-	assert_equal(taps.ledger.suppers[taps.ledger.pair(0, 1)], 1, "a later event does not re-read the supper before it")
+	assert_equal(taps.ledger.suppers[taps.ledger.pair(0, 1)], 1,
+		"two later events (breakfasts) at one look: the supper before them is not read again (each event read once)")
 
 
 func _supper_held_at_its_end(v: RefCounted, suite: RefCounted, taps: TapsScript) -> int:

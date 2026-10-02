@@ -3,7 +3,8 @@ extends "res://test/framework/test_case.gd"
 ## statistics -- and the real demo village booted headless with 25 residents for a short run (1x, a group order, 4x
 ## through the breakfast call), in its own process, asserting it finished with no error and its invariants held: every
 ## resident accounted for and the kitchen's food books balanced (tools/scale_test/scale_checks.gd). On placeholders
-## when the demo's assets are not staged.
+## when the demo's assets are not staged. Its exit report must be empty (decision 0998), and a fault-injected run that
+## retains one extra resource must fail that check.
 
 const StressCast := preload("res://demo/stress/stress_cast.gd")
 const ProbeScript := preload("res://demo/stress/scale_probe.gd")
@@ -15,13 +16,20 @@ const ChecksScript := preload("res://tools/scale_test/scale_checks.gd")
 const KitchenRules := preload("res://demo/kitchen/meal_rules.gd")
 
 const HARNESS: String = "res://tools/scale_test/scale_test.gd"
+## FAULT INJECTION (decision 0998): the same harness, a tiny plan, one extra resource retained at exit.
+const LEAK_FIXTURE: String = "res://test/fixtures/scale_exit_leak_fixture.gd"
 const RESIDENTS: int = 25
-## The engine's report of resources still referenced when the process exits. Tolerated, once, and nothing else: once
-## the kitchen has cooked (the harness stocks the pantry), the demo holds a RefCounted cycle across the cast's space,
-## the brains and the kitchen (`--verbose` lists the scripts). Found by the scale test (decision 0561) and reported
-## with it (docs/performance/2026-10-01-scale-test.md, "Also found"); runs in which nothing was cooked do not print it.
-## Remove this tolerance when the cycle is broken.
-const EXIT_LEAK: String = "^ERROR: \\d+ resources still in use at exit \\(run with --verbose for details\\)\\.$"
+## THE EXIT REPORT (decision 0998). The engine's report, as the process quits, of resources still cached and objects
+## never freed. NOTHING OF IT IS TOLERATED: the harness frees the village before it quits (scale_test.gd "THE END FREES
+## THE VILLAGE FIRST"), and its exit report is then empty.
+## (Decision 0561 tolerated one such line of any count, for a kitchen cycle decision 0922 has since broken; what still
+## printed it was the sounds playing as the harness quit with the village in the tree.) The counts are read to name a
+## finding, never to allow one, and a real run's report lines are passed on to the outer runner as printed, so they
+## count there as unexpected diagnostics and in its leak counts (and in tools/run_tests.sh's raw-log gate). The patterns
+## are run_tests.gd's, widened for the engine's singular: one leaked object is reported as "1 ObjectDB instance was
+## leaked at exit", which the outer leak count misses (its unexpected-warning count still fails it; decision 0998).
+const EXIT_RESOURCES_PATTERN: String = "(\\d+) resources? still in use at exit"
+const EXIT_OBJECTS_PATTERN: String = "(\\d+) ObjectDB instances? (?:were|was) leaked at exit"
 
 ## The kitchen's books, as scale_checks.gd reads them (duck-typed: `get` and `call`).
 class StubStore extends RefCounted:
@@ -53,10 +61,6 @@ class StubKitchen extends RefCounted:
 	func wip_dish() -> int:
 		"""Nothing cooking."""
 		return KitchenRules.NO_DISH
-
-
-## The engine's exit-time report, the whole line (see EXIT_LEAK).
-var _exit_leak: RegEx = RegEx.new()
 
 
 func after_each() -> void:
@@ -211,26 +215,129 @@ func test_the_kitchen_books_check_finds_each_imbalance() -> void:
 
 
 func test_twenty_five_residents_run_headless_with_their_invariants() -> void:
-	"""The real village, 25 residents, the short plan: it finishes, nothing errors, every invariant holds."""
+	"""The real village, 25 residents, the short plan: it finishes, nothing errors, every invariant holds, and nothing
+	is left at exit (see THE EXIT REPORT)."""
+	var run: Dictionary = _run_harness(HARNESS, PackedStringArray(["--plan", "short"]))
+	var lines: PackedStringArray = run["lines"]
+	var report: Dictionary = exit_report(lines)
+	for line: String in report["lines"]:
+		printerr(line)
+	for line: String in _errors_in(lines):
+		fail("the stress run printed: %s" % line)
+	var parts: PackedStringArray = _done_line(lines).split(" ")
+	assert_true(parts.size() > 3, "the run finished (SCALE-DONE printed)")
+	assert_equal(parts[1] if parts.size() > 3 else "", str(RESIDENTS), "with 25 residents")
+	assert_true(parts.size() > 3 and parts[2].to_int() > 600, "and ran its frames: %s" % " ".join(parts))
+	assert_equal(parts[3] if parts.size() > 3 else "", "0", "no invariant failed")
+	assert_equal(exit_report_findings(report), PackedStringArray(), "nothing left at exit: %s" % report["lines"])
+	assert_equal(_close_held(lines), 0, "the close let go of every sound (scale_test.gd, THE END)")
+	assert_equal(run["code"], 0, "exit 0")
+
+
+func test_one_extra_retained_resource_fails_the_exit_check() -> void:
+	"""FAULT INJECTION: the same harness and end, a tiny plan, and one resource retained at exit (the fixture). The run
+	itself is clean, the engine counts exactly that one resource and its one object, and the check fails both."""
+	var run: Dictionary = _run_harness(LEAK_FIXTURE, PackedStringArray())
+	var lines: PackedStringArray = run["lines"]
+	var report: Dictionary = exit_report(lines)
+	assert_equal(_errors_in(lines), PackedStringArray(), "the injected run printed no other error")
+	assert_true(_done_line(lines).ends_with(" 0"), "it finished, no invariant failed: %s" % _done_line(lines))
+	assert_equal(_close_held(lines), 0, "the close let go of every sound, so the one resource is the injected one")
+	assert_equal([report["resources"], report["objects"]], [1, 1], "exactly the injected one: %s" % report["lines"])
+	assert_equal(exit_report_findings(report).size(), 2, "the check fails it: %s" % exit_report_findings(report))
+	assert_equal(run["code"], 0, "exit 0: only the exit report tells")
+
+
+func test_the_exit_check_allows_no_count() -> void:
+	"""One resource and a thousand are both findings, an object leak is one too (the engine's singular included), and
+	their counts add up; a log with no exit report has none (see THE EXIT REPORT)."""
+	var one: Dictionary = exit_report(PackedStringArray(["SCALE-DONE 25 725 0",
+		"ERROR: 1 resources still in use at exit (run with --verbose for details).",
+		"   at: clear (core/io/resource.cpp:822)"]))
+	assert_equal([one["resources"], one["objects"], exit_report_findings(one).size()], [1, 0, 1], "one resource")
+	var single: Dictionary = exit_report(PackedStringArray([
+		"WARNING: 1 ObjectDB instance was leaked at exit (run with `--verbose` for details)."]))
+	assert_equal([single["resources"], single["objects"], exit_report_findings(single).size()], [0, 1, 1], "one object")
+	var many: Dictionary = exit_report(PackedStringArray([
+		"ERROR: 1000 resources still in use at exit (run with --verbose for details).",
+		"WARNING: 6 ObjectDB instances were leaked at exit (run with `--verbose` for details).",
+		"ERROR: 2 resources still in use at exit"]))
+	assert_equal([many["resources"], many["objects"]], [1002, 6], "counts add up")
+	assert_equal(exit_report_findings(many).size(), 2, "resources and objects, each a finding")
+	assert_equal((many["lines"] as PackedStringArray).size(), 3, "every report line kept, to pass on")
+	var clean: Dictionary = exit_report(PackedStringArray(["SCALE-DONE 25 725 0", "ERROR: something else"]))
+	assert_equal([clean["resources"], clean["objects"], exit_report_findings(clean)], [0, 0, PackedStringArray()],
+		"no exit report: no finding (other errors are _errors_in's)")
+
+
+func _run_harness(script: String, user_args: PackedStringArray) -> Dictionary:
+	"""Run `script` headless at the fixed 60 Hz step with RESIDENTS residents (and `user_args`): its exit code and its
+	merged output's lines."""
 	var args: PackedStringArray = ["--headless", "--fixed-fps", "60", "--path", ProjectSettings.globalize_path("res://"),
-		"--script", HARNESS, "--", "--residents", str(RESIDENTS), "--plan", "short"]
+		"--script", script, "--", "--residents", str(RESIDENTS)]
+	args.append_array(user_args)
 	var output: Array = []
 	var code: int = OS.execute(OS.get_executable_path(), args, output, true, false)
-	var lines: PackedStringArray = ("".join(PackedStringArray(output))).split("\n")
-	var done: String = ""
-	var exit_leaks: int = 0
-	_exit_leak.compile(EXIT_LEAK)
+	return {"code": code, "lines": ("".join(PackedStringArray(output))).split("\n")}
+
+
+func _done_line(lines: PackedStringArray) -> String:
+	"""The run's `SCALE-DONE <residents> <frames> <errors>` line ("" when it never finished)."""
 	for line: String in lines:
 		if line.begins_with("SCALE-DONE "):
-			done = line
-		elif _exit_leak.search(line.strip_edges()) != null:
-			exit_leaks += 1
-		elif line.contains("SCRIPT ERROR") or line.begins_with("ERROR:") or line.begins_with("SCALE-ERROR"):
-			fail("the stress run printed: %s" % line)
-	assert_false(done.is_empty(), "the run finished (SCALE-DONE printed)")
-	var parts: PackedStringArray = done.split(" ")
-	assert_equal(parts[1] if parts.size() > 3 else "", str(RESIDENTS), "with 25 residents")
-	assert_true(parts.size() > 3 and parts[2].to_int() > 600, "and ran its frames: %s" % done)
-	assert_equal(parts[3] if parts.size() > 3 else "", "0", "no invariant failed")
-	assert_true(exit_leaks <= 1, "at most the one exit-time leak report (see EXIT_LEAK)")
-	assert_equal(code, 0, "exit 0")
+			return line.strip_edges()
+	return ""
+
+
+func _close_held(lines: PackedStringArray) -> int:
+	"""The sounds still held as the harness quit, from its `SCALE close <playing> <held> <frames> <ms>` line (-1: no
+	such line, so the run did not close as scale_test.gd's THE END FREES THE VILLAGE FIRST says)."""
+	for line: String in lines:
+		var parts: PackedStringArray = line.strip_edges().split(" ")
+		if parts.size() == 6 and parts[0] == "SCALE" and parts[1] == "close":
+			return parts[3].to_int()
+	return -1
+
+
+func _errors_in(lines: PackedStringArray) -> PackedStringArray:
+	"""Every script error, engine error and harness error the run printed, the exit report apart (`exit_report`)."""
+	var report: PackedStringArray = exit_report(lines)["lines"]
+	var out := PackedStringArray()
+	for line: String in lines:
+		var text: String = line.strip_edges()
+		if report.has(text):
+			continue
+		if text.contains("SCRIPT ERROR") or text.begins_with("ERROR:") or text.begins_with("SCALE-ERROR"):
+			out.append(text)
+	return out
+
+
+static func exit_report(lines: PackedStringArray) -> Dictionary:
+	"""The engine's exit report in `lines` (see THE EXIT REPORT): the resources and objects it counted, and its lines
+	as printed."""
+	var resources_re: RegEx = RegEx.create_from_string(EXIT_RESOURCES_PATTERN)
+	var objects_re: RegEx = RegEx.create_from_string(EXIT_OBJECTS_PATTERN)
+	var resources: int = 0
+	var objects: int = 0
+	var report := PackedStringArray()
+	for line: String in lines:
+		var text: String = line.strip_edges()
+		var resource_match: RegExMatch = resources_re.search(text)
+		var object_match: RegExMatch = objects_re.search(text)
+		if resource_match != null:
+			resources += int(resource_match.get_string(1))
+		if object_match != null:
+			objects += int(object_match.get_string(1))
+		if resource_match != null or object_match != null:
+			report.append(text)
+	return {"resources": resources, "objects": objects, "lines": report}
+
+
+static func exit_report_findings(report: Dictionary) -> PackedStringArray:
+	"""Each thing the exit report says was left behind; empty only for a clean exit. No count is allowed."""
+	var out := PackedStringArray()
+	if int(report["resources"]) > 0:
+		out.append("%d resource(s) still in use at exit" % int(report["resources"]))
+	if int(report["objects"]) > 0:
+		out.append("%d object(s) leaked at exit" % int(report["objects"]))
+	return out

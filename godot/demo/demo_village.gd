@@ -837,6 +837,7 @@ func _build_care() -> void:
 	var world := _world as DemoWorldScript
 	if world.is_staged(HERB_PATCH_KEY):
 		_care.patch_view.use_model(world.make_piece(HERB_PATCH_KEY, Vector2.ZERO, 0.4, 1.0))
+	_winter.bind_infirmary(_care.building.project.is_done, _care.building.project.has_patients)
 
 
 func _cast_key_of(who: int) -> StringName:

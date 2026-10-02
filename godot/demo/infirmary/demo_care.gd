@@ -85,6 +85,7 @@ func configure(cast: DemoCastScript, services: ServicesScript, night: NightScrip
 	_fed = fed
 	_swim = swim
 	_configure_desk(night, graph)
+	desk.state.use_cloth(services.stores)
 	desk.bind_news(services.notices, services.incidents)
 	if pace != null:
 		desk.use_pace(pace)
@@ -99,7 +100,6 @@ func configure(cast: DemoCastScript, services: ServicesScript, night: NightScrip
 	add_child(building)
 	building.configure(cast, services.stores, desk.state, services.props, Vector2.ZERO, desk.shelf_at())
 	desk.infirmary = building.project
-	building.project.cloth_held = desk.cloth_for_treatments
 	section.on_press(_on_section_pressed)
 
 

@@ -24,6 +24,8 @@ REPO = Path(__file__).resolve().parent.parent
 WEIGHTS = REPO / "tools/ci_test_shard_weights.json"
 COUNTS = ("tests", "assertions", "failures", "unexpected_errors", "unexpected_warnings",
           "expected", "tolerated", "leaked_objects", "leaked_resources")
+# The engine's exit report of leaked objects, singular ("1 ObjectDB instance was leaked") or plural (decision 0998).
+LEAKED_OBJECTS = r"(\d+) ObjectDB instances? (?:were|was) leaked"
 ZERO_COUNTS = ("failures", "unexpected_errors", "unexpected_warnings", "leaked_objects", "leaked_resources")
 SUMMARY = re.compile(r"^(\d+) test\(s\), (\d+) assertion\(s\), (\d+) failure\(s\)$", re.M)
 DIAGNOSTICS = re.compile(
@@ -130,7 +132,7 @@ def parse_log(text: str) -> tuple[dict[str, int], list[str], dict[str, int]]:
     raw = (
         len(re.findall(r"^(?:USER )?ERROR:", text, re.M)),
         len(re.findall(r"^(?:USER )?WARNING:", text, re.M)),
-        sum(map(int, re.findall(r"(\d+) ObjectDB instances were leaked", text))),
+        sum(map(int, re.findall(LEAKED_OBJECTS, text))),
         sum(map(int, re.findall(r"(\d+) resources still in use at exit", text))),
     )
     require(raw == (0, 0, 0, 0), f"unexpected diagnostics or leaks in raw log: {raw}")

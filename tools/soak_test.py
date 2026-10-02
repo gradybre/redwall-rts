@@ -32,7 +32,8 @@ HARNESS = "res://tools/soak/soak_test.gd"
 SAMPLE_S = 5.0
 # The engine's exit-time report of leaked resources and objects (decision 0561 found one): its summary line, and under
 # --verbose (which the runner passes) one line per object or resource.
-EXIT_SUMMARY = re.compile(r"resources still in use at exit|ObjectDB instances (were )?leaked at exit")
+# The engine's singular for one object, "1 ObjectDB instance was leaked at exit", counts too (decision 0998, P1).
+EXIT_SUMMARY = re.compile(r"resources still in use at exit|ObjectDB instances? ((were|was) )?leaked at exit")
 EXIT_ITEM = re.compile(r"^(Leaked instance: (?P<cls>\w+):|Resource still in use: (?P<path>\S+) \((?P<rcls>\w+)\))")
 # A sound still playing as the process quits leaves its stream and playback to the exit report (decision 0921 §7):
 # the audio server lets them go on a mix that headless never runs. Not a leak of the village's.

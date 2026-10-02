@@ -70,7 +70,8 @@ are in [`docs/performance/2026-10-01-scale-test.md`](../performance/2026-10-01-s
   `--verbose` lists cast_space, cast_nav, route_desk, resident_brain, kitchen, kitchen_task, meal_store and
   farm_pantry. If "Restart demo" does not break the cycle, every restart leaks a whole cast.
   `test_scale_stress.gd EXIT_LEAK` tolerates exactly that one engine line, pinned to its full text. Remove the
-  tolerance when the cycle is broken.
+  tolerance when the cycle is broken. **Removed by decision 0998 (2026-10-02):** the cycle was broken (0922), the
+  residual line was sounds still playing at quit, and the exit report must now be empty.
 - **The harness's ORDER of the demo's scripts is the engine's, its TIMING is not.** The settlement clock runs on real
   host time (§4), and engine nodes run after every script. Neither moves the ranking. Both are stated in the
   performance note.

@@ -1248,6 +1248,60 @@ against the 1.00 m mouse anchor (DEC-039) at the demo's storybook scale:
 
 Assets, spend and reasoning: [decision 0971](decisions/0971-art-pass-3-preserving-brewing-digging-and-free-effects.md).
 
+### DEC-049 — Goods are shown in natural measures, in the demo and in the game
+
+2026-10-02 · State: `USER_CONFIRMED`: the measures table, P1–P8, and later the same day P9 (b) and P10 (b).
+
+Brendan, 2026-10-02, relayed through the settlement coordinator:
+
+- **Replace the "U" amount label with natural, per-good measures**: "40 logs", "12 sacks of barley", "5 bunches of
+  herbs".
+- **Each good's weight goes in its tooltip.**
+- **The HUD's quick readouts use plain words** ("plenty", "running low"). Heating fuel and Ready food stay in days.
+- **"The U view" is renamed "Underground"** in all text. The U key stays.
+
+On decision 1011 the same day, he approved the following:
+
+- **The measures table** in decision 1011 §1. Every good has a measure that one small resident can carry, with a
+  smaller measure below it, and its weight below that. Examples: a log and a block are 5 kg, a sack is 5 kg, a
+  basket of food is 1.25 kg, a bunch of herbs is 250 g, a bucket is 10 L, and one fish is one U.
+- **P1–P6 and P8 as recommended:**
+  - Stone is a count in blocks;
+  - a plank is 5 kg;
+  - every fish species counts one fish per U;
+  - onions are counted;
+  - capacities show no weight;
+  - the demo's Wood cell uses none / very low / running low / enough / plenty, on the winter's existing thresholds;
+  - water tooltips show litres and kg.
+- **P7, changed: "Apply to demo and game spec".** The natural measures apply to the release game's UI as well as the
+  live demo. `docs/ui_ux_controls.md` is amended to match (its "Amounts are shown in natural measures" section).
+
+Later the same day, on decision 1011, he ruled the following:
+
+- **P9 (b): the rest of the game catalogue's measures are approved** (decision 1011 §1a), with three smaller
+  measures, each 0.25 U:
+  - "a piece of wax";
+  - "a handful of flax";
+  - "a quarter log" of wood.
+- **P10 (b): the settlement HUD's Wood counter (UI-SET-004) also shows a plain-word level** (none / very low /
+  running low / enough / plenty), alongside its available and reserved counts. The level uses the game's existing
+  fuel thresholds:
+  - very low: fuel-days below 2 (GDD §5.8, UI §7 WARNING);
+  - running low and plenty: measured against REQ-SET-114's twelve-day winter projection.
+
+  Decision 1011 §4b gives the order the levels are checked in.
+
+What the ruling does not change:
+
+- **Display only.** GDD §4.1's `quantity_milli:int64` (1000 = one catalogue unit, U) stays the simulation's unit in
+  `docs/game_gdd.md` and `docs/gameplay_balance.md`. That covers every recipe, cost, rate, store, save field and
+  test.
+- **Only the words a player reads change.** U remains the engineering unit in the GDD, the balance tables,
+  diagnostics and code.
+
+Scope: the settlement UI (`docs/ui_ux_controls.md`, `godot/scripts/ui/`) and the live demo (`godot/demo/`).
+Engineering record, the full table, the wording rules and the phase-2 plan: decision 1011.
+
 ### DEC-040 engineering follow-through
 
 Brendan subsequently requested: “let's plan those as well, then give me what to send back to claude”. [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) records the resulting Astra-authored numeric economy/hazard choices. This is delegated engineering authoring, not a claim the user supplied every value. DEC-040's four-level candidate status remains unchanged. [Decision0092](decisions/0092-underground-economy-and-hazard-parameters.md) records adoption and its limits.

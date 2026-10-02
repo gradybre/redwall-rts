@@ -226,12 +226,23 @@ DECISION_0536_ADDED=DECISION_0536_RECORD+DECISION_0536_SCRATCH
 # coordinator's decision 0534 footprint mask, seed buffer and decision 0145 pair buffer.
 DECISION_0537_ADDED=4*4*1024
 assert DECISION_0537_ADDED==16384
+# Decision 1031: store_policy.gd implements §3's already-budgeted BuildingItemAllow (262144 B) and
+# BuildingItemMinimum (2097152 B) and adds one I32 binding stamp per Building row (1024), folded
+# into the Auxiliary payload row: no new allocation row.
+DECISION_1031_ADDED=4*1024
+assert DECISION_1031_ADDED==4096
+# Decision 0996 (review R04, Brendan's 2026-10-02 ruling): households.gd binds each dependent row
+# to the resident's WHOLE directory EntityRef, so it gains one I32[512] `resident_slot` column
+# beside `resident_generation`. It folds into the same §3 DependentCare row and the Auxiliary
+# payload allocation; no allocation row is added. The owner becomes 46352+2048=48400 bytes.
+DECISION_0996_ADDED=4*512
+assert DECISION_0996_ADDED==2048 and DECISION_0521_ADDED+DECISION_0996_ADDED==48400
 # Decision 0532 adds four allocation rows (34 -> 38); decision 0521 folds into the existing
-# Auxiliary payload row and adds none; decision 0534 adds one (38 -> 39).
-assert len(allocations)==39 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED
+# Auxiliary payload row and adds none; decision 0534 adds one (38 -> 39); decisions 0536, 0537, 1031 and 0996 add none.
+assert len(allocations)==39 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
-assert payload==70724244
-assert live==79112852 and candidate==64479047 and live+candidate==143591899
+assert payload==70730388
+assert live==79118996 and candidate==64485191 and live+candidate==143604187
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

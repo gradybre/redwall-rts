@@ -703,12 +703,17 @@ func test_a_raw_meal_at_supper_s_end_is_eaten_before_bed() -> void:
 	var at: int = v.kitchen.meal_keys.find(supper)
 	var counted: Array[int] = [v.kitchen.meal_raw[at], v.kitchen.meal_without[at]]
 	assert_true(counted[0] > 0, "the hungry set off to eat raw")
+	assert_true(v.kitchen.final_pending(supper), "the meal is not finalized while raw food is held (decision 0997)")
 	_run(v, 8 * FRAMES_PER_HOUR, func() -> bool: return v.calendar.hour_index() % 24 == 23)
 	var raw: int = 0
 	for i: int in 3:
 		raw += 1 if v.kitchen.fed.last_outcome[i] == FedScript.OUTCOME_RAW else 0
 	assert_equal(raw, counted[0], "everyone counted as eating raw ate raw, night or no night")
 	assert_equal([v.kitchen.meal_raw[at], v.kitchen.meal_without[at]], counted, "the tally stands")
+	var final: KitchenScript.MealFinal = v.kitchen.final_of(supper)
+	assert_true(final != null, "finalized once the raw meals were eaten")
+	if final != null:
+		assert_equal([final.raw.size(), final.diners.size(), final.without], [raw, 0, counted[1]], "its raw eaters, committed")
 
 
 func test_the_cook_takes_its_portion_when_it_decides_to_eat_and_never_waits() -> void:
@@ -1078,6 +1083,160 @@ func test_a_diner_called_away_after_the_end_went_without() -> void:
 	_assert_books(v, 20000, "called away after the end")
 
 
+# --- the meal finalized (decision 0997; Brendan's ruling on review R05) -----------------------------------------
+
+func _finals_of(v: Village, key: int) -> int:
+	"""How many events the kitchen has published for meal `key`."""
+	var n: int = 0
+	for final: KitchenScript.MealFinal in v.kitchen.finals:
+		n += 1 if final.key == key else 0
+	return n
+
+
+func test_a_last_bowl_eaten_after_the_end_finalizes_the_meal_with_its_diner() -> void:
+	"""BOUNDARY (R05): the serving has ended while resident 1 still eats. No event yet -- the meal waits on its holder;
+	once that bowl is eaten the meal is finalized, its committed diners including resident 1, once and only once."""
+	var v := _village(3, tick_at(1, 1))
+	var key: int = _eating_at_the_end(v)
+	assert_true(v.kitchen.final_pending(key), "ended with a bowl still held")
+	assert_true(v.kitchen.holders_of(key) >= 1, "resident 1 holds it")
+	var published: int = v.kitchen.finals_published
+	var seen: Array[int] = [0]
+	_run(v, 2 * FRAMES_PER_HOUR, func() -> bool:
+		if v.kitchen.final_of(key) != null and seen[0] == 0:
+			seen[0] = 1 if v.kitchen.fed.last_outcome[1] == FedScript.OUTCOME_ATE and v.kitchen.holders_of(key) == 0 else -1
+		return seen[0] != 0)
+	assert_equal(seen[0], 1, "published only once its last bowl was eaten")
+	var final: KitchenScript.MealFinal = v.kitchen.final_of(key)
+	assert_true(final != null and final.diners.has(1), "resident 1 among its committed diners")
+	assert_false(v.kitchen.final_pending(key), "no longer pending")
+	_run(v, FRAMES_PER_HOUR)
+	v.kitchen._close_meal(key)
+	v.kitchen._publish_finals()
+	assert_equal([_finals_of(v, key), v.kitchen.finals_published], [1, published + 1], "published exactly once")
+
+
+func test_a_last_bowl_given_back_after_the_end_finalizes_the_meal_without_its_diner() -> void:
+	"""BOUNDARY (R05): the serving has ended while resident 1 still eats, and it is ordered away before it finishes: the
+	bowl goes back, the meal is finalized on that return, resident 1 not among its diners and counted as gone without."""
+	var v := _village(3, tick_at(1, 1))
+	var key: int = _eating_at_the_end(v)
+	var at: int = v.kitchen.meal_keys.find(key)
+	var without: int = v.kitchen.meal_without[at]
+	assert_true(v.kitchen.final_of(key) == null, "no event while the bowl is held")
+	v.brains[1].order_move(v.brains[1].position + Vector2(0.0, 3.0))
+	_run(v, 2 * FRAMES_PER_HOUR, func() -> bool: return v.kitchen.final_of(key) != null)
+	var final: KitchenScript.MealFinal = v.kitchen.final_of(key)
+	assert_true(final != null, "finalized once the bowl came back")
+	if final == null:
+		return
+	assert_false(final.diners.has(1), "resident 1 did not eat it")
+	assert_equal(final.without, without + 1, "and went without, as the corrected tally says")
+	assert_equal(final.without, v.kitchen.meal_without[at], "the event carries the corrected tally")
+	assert_equal(_finals_of(v, key), 1, "one event")
+
+
+func test_a_meal_nobody_holds_at_its_end_is_finalized_at_its_end() -> void:
+	"""No food: breakfast ends with nobody holding anything, so its event is published in the very update that ended
+	it -- no diners, everyone gone without."""
+	var v := _open(_village(3, tick_at(1, 1)))
+	var ended: Array[bool] = [false]
+	_run(v, 10 * FRAMES_PER_HOUR, func() -> bool:
+		if v.kitchen.meal_keys.is_empty():
+			return false
+		ended[0] = v.kitchen.final_of(v.kitchen.meal_keys[-1]) != null
+		return true)
+	assert_true(ended[0], "published in the update that ended the meal")
+	var final: KitchenScript.MealFinal = v.kitchen.final_of(v.kitchen.meal_keys[-1])
+	if final == null:
+		return
+	assert_equal([final.diners.size(), final.raw.size(), final.without, final.serial], [0, 0, 3, 1], "nobody ate")
+	assert_equal(v.kitchen.holders_of(final.key), 0, "nobody holds it")
+
+
+static func tick_hour_of_end(key: int) -> int:
+	"""The calendar hour index meal `key`'s serving ends at."""
+	@warning_ignore("integer_division") var day: int = key / 2
+	return day * SimClock.HOURS_PER_DAY + Rules.END_HOUR[key % 2]
+
+
+func test_a_held_meal_waits_without_allocating_and_a_skipped_meal_has_lapsed() -> void:
+	"""Waiting on a holder costs no objects a frame; a meal a season skip passed over is lapsed (no event will come),
+	one ended and finalized is not, nor is one still ahead."""
+	var v := _village(3, tick_at(1, 1))
+	var key: int = _eating_at_the_end(v)
+	var before: int = int(Performance.get_monitor(Performance.OBJECT_COUNT))
+	for _frame: int in 200:
+		v.kitchen._publish_finals()
+	assert_equal(int(Performance.get_monitor(Performance.OBJECT_COUNT)) - before, 0, "200 waits allocate nothing")
+	assert_true(v.kitchen.final_pending(key) and not v.kitchen.meal_lapsed(key), "pending, not lapsed")
+	_run(v, 2 * FRAMES_PER_HOUR, func() -> bool: return v.kitchen.final_of(key) != null)
+	_run(v, 4 * FRAMES_PER_HOUR, func() -> bool: return v.kitchen.hour_index() >= tick_hour_of_end(key))
+	assert_true(v.kitchen.hour_index() >= tick_hour_of_end(key), "the kitchen has run past its end")
+	assert_false(v.kitchen.meal_lapsed(key), "finalized: not lapsed")
+	var supper: int = Rules.meal_key(1, Rules.MEAL_SUPPER)
+	assert_false(v.kitchen.meal_lapsed(supper), "a meal still ahead")
+	v.kitchen.skip_to_hour(3 * SimClock.HOURS_PER_DAY + 6)
+	assert_true(v.kitchen.meal_lapsed(supper), "skipped over: lapsed")
+	assert_true(v.kitchen.final_of(supper) == null, "and never published")
+
+
+func test_a_holder_is_a_portion_raw_food_or_a_diners_part_for_that_meal() -> void:
+	"""`holders_of`: the cook holding its portion, a raw eater's food (held after a blocked walk too), and a diner walking
+	to its seat or waiting for a course each hold the meal; a part over, or another meal's, does not."""
+	var v := _open(_village(3, tick_at(1, 1)))
+	var k: KitchenScript = v.kitchen
+	var key: int = Rules.meal_key(1, Rules.MEAL_BREAKFAST)
+	assert_equal(k.holders_of(key), 0, "nobody")
+	k._meal[0] = key
+	k._role[0] = KitchenScript.ROLE_COOK
+	k._portion[0] = 0
+	assert_equal(k.holders_of(key), 1, "the cook's portion in hand")
+	k._portion[0] = KitchenScript.FREE
+	k._raw_take[0] = 7
+	assert_equal(k.holders_of(key), 1, "raw food reserved")
+	k._raw_take[0] = 0
+	k._step[0] = KitchenScript.WALK_KITCHEN
+	assert_equal(k.holders_of(key), 0, "the cook's round under way holds nothing of it")
+	k._step[0] = KitchenScript.STEP_DONE
+	k._meal[1] = key
+	k._role[1] = KitchenScript.ROLE_EAT
+	for step: int in [KitchenScript.WALK_SEAT, KitchenScript.WORK_WAIT]:
+		k._step[1] = step
+		assert_equal(k.holders_of(key), 1, "a diner's part under way (step %d)" % step)
+	k._step[1] = KitchenScript.STEP_DONE
+	assert_equal(k.holders_of(key), 0, "its part over")
+	k._step[1] = KitchenScript.WORK_WAIT
+	assert_equal(k.holders_of(key + 1), 0, "another meal's holder is not this one's")
+	k._step[1] = KitchenScript.STEP_DONE
+	k._role[1] = KitchenScript.ROLE_NONE
+	k._role[0] = KitchenScript.ROLE_NONE
+
+
+func test_the_finalized_meals_log_is_bounded_and_counts_every_event() -> void:
+	"""At most MAX_MEAL_LOG events are kept, oldest dropped; each carries its serial in publication order."""
+	var kitchen := KitchenScript.new()
+	for key: int in KitchenScript.MAX_MEAL_LOG + 6:
+		kitchen._publish(KitchenScript.MealFinal.new(), key)
+	assert_equal(kitchen.finals.size(), KitchenScript.MAX_MEAL_LOG, "bounded")
+	assert_equal(kitchen.finals_published, KitchenScript.MAX_MEAL_LOG + 6, "every one counted")
+	assert_true(kitchen.final_of(0) == null and kitchen.final_of(KitchenScript.MAX_MEAL_LOG + 5) != null, "oldest dropped")
+	assert_equal(kitchen.finals[-1].serial, KitchenScript.MAX_MEAL_LOG + 6, "serial in order")
+
+
+func test_an_event_that_can_never_be_published_is_let_go_at_the_next_end() -> void:
+	"""A meal ended quietly by a season skip, whose held bowl is eaten afterwards, starts an event that will never be
+	published: the next meal's end lets it go; a meal still waiting on a holder keeps its own."""
+	var kitchen := KitchenScript.new()
+	kitchen._final_for(1).diners.append(0)
+	kitchen._final_for(3).diners.append(1)
+	kitchen._final_for(6).diners.append(2)
+	kitchen._final_pending.append(3)
+	kitchen._forget_unfinalizable(5)
+	assert_equal([kitchen._building.has(1), kitchen._building.has(3), kitchen._building.has(6)], [false, true, true],
+		"the skipped meal's let go; the pending and the later ones kept")
+
+
 func test_a_cancelled_meal_gives_its_food_back_and_spoils_half_a_batch_cooking() -> void:
 	"""Cancel with a batch cooking: REQ-SET-094 -- half its food's mass becomes spoiled food, no portions; the meal's
 	other food is given back untouched (no lot fresher), what was fetched stays fetched for the next meal."""
@@ -1382,3 +1541,40 @@ func test_a_store_walk_that_failed_goes_to_a_spot_clear_of_those_standing() -> v
 	assert_true(v.kitchen._store_spot(1, v.brains[1]).distance_to(STORE_AT) < 0.01, "first: the store's own spot")
 	v.kitchen._fails[1] = 1
 	assert_true(v.kitchen._store_spot(1, v.brains[1]).distance_to(STORE_AT) > 0.4, "after a failure: clear of resident 2")
+
+
+func test_an_earlier_meal_still_held_when_the_next_ends_is_settled_and_published() -> void:
+	"""THE DEADLINE (the R05 review's M1): a holder that never lets go (here: resident 1's part left hanging) cannot stall
+	a meal for good -- when the next meal's serving ends, what it still holds goes back, it went without, its part and
+	its brain's task end, and the earlier meal's event is published at that update's end, once."""
+	var v := _village(3, tick_at(1, 1))
+	var key: int = _eating_at_the_end(v)
+	var at: int = v.kitchen.meal_keys.find(key)
+	var without: int = v.kitchen.meal_without[at]
+	assert_true(v.kitchen.final_pending(key) and v.kitchen.holders_of(key) >= 1, "held at its end")
+	var next: int = key + 1
+	v.kitchen._final_for(key - 2).diners.append(0)
+	v.kitchen._serving = next
+	v.kitchen._close_meal(next)
+	assert_false(v.kitchen._building.has(key - 2), "an earlier event that can never be published let go at the end")
+	assert_equal(v.kitchen.holders_of(key), 0, "the next meal's end gave every held part of it back")
+	var task: Object = v.brains[1].task
+	assert_true(task == null or task.get_script() != KitchenScript.TaskScript, "resident 1's kitchen task let go")
+	v.kitchen._publish_finals()
+	var final: KitchenScript.MealFinal = v.kitchen.final_of(key)
+	assert_true(final != null, "the overdue meal published")
+	if final == null:
+		return
+	assert_false(final.diners.has(1), "resident 1 did not eat it")
+	assert_true(final.without > without, "it (with any other holder) went without it")
+	assert_equal(final.without, v.kitchen.meal_without[at], "as the corrected tally says")
+	assert_equal(final.diners.size() + final.raw.size() + final.without, 3, "every resident counted once")
+	assert_equal(_finals_of(v, key), 1, "once")
+	assert_true(v.kitchen.final_of(next) != null, "the next meal, held by nobody, published too")
+	var n: int = v.kitchen.meal_keys.find(next)
+	assert_equal(v.kitchen.meal_ate[n] + v.kitchen.meal_raw[n] + v.kitchen.meal_without[n], 3,
+		"the closing meal counts every resident, the one freed from the overdue meal too")
+	var later: KitchenScript.MealFinal = v.kitchen.final_of(next)
+	if later != null:
+		assert_equal(later.diners.size() + later.raw.size() + later.without, 3, "and so does its event")
+	assert_true(v.kitchen.fed.had_exact(1, next), "resident 1's own record holds the closing meal (eaten, raw or missed)")

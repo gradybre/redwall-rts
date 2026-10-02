@@ -10,8 +10,8 @@
   },
   "audited_source": {
     "module_sha256": {
-      "buildings": "de99d832267f3b8d3c9b96487ff6049b93c751af8c3b5fdb40d8d7e7d2de9e3f",
-      "command_dispatch": "9f77c215813e99a6396d4360b779a0820a822cf74e90118676ce4e6513914c0f",
+      "buildings": "31efd43988070519f4c77ca5224ff1a2ab21e598c694c6eacadb935c7d7c4b4b",
+      "command_dispatch": "191b5fa24ff06e18ccf20094e5fe9a44879db2d61c63554803a92905d3f5e87e",
       "construction": "3f5073b7b77429e1b2048cb26067043c95a5af65035aa4cce0ed12d24e000346",
       "entity_directory": "0a143ce501ee8d634536d45f1e105f19ff0de16ddba9c614b864fe0e9d3468a2",
       "farming": "3a8db3515288193f78ca52a6838eba235db4b07d4d40a036131ed17cf46f1539",
@@ -9383,7 +9383,7 @@
       "parsed_expression": "INTENT_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "INTENT_CAPACITY -> godot/scripts/core/command_dispatch.gd:344 `const INTENT_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "INTENT_CAPACITY -> godot/scripts/core/command_dispatch.gd:367 `const INTENT_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9395,7 +9395,7 @@
       "source_module": "command_dispatch",
       "source_relation": "eq",
       "source_resize_expression": "INTENT_CAPACITY",
-      "source_resize_line": 545,
+      "source_resize_line": 571,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -9407,7 +9407,7 @@
       "parsed_expression": "INTENT_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "INTENT_CAPACITY -> godot/scripts/core/command_dispatch.gd:344 `const INTENT_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "INTENT_CAPACITY -> godot/scripts/core/command_dispatch.gd:367 `const INTENT_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9419,7 +9419,7 @@
       "source_module": "command_dispatch",
       "source_relation": "eq",
       "source_resize_expression": "INTENT_CAPACITY",
-      "source_resize_line": 545,
+      "source_resize_line": 571,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -9431,7 +9431,7 @@
       "parsed_expression": "INTENT_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "INTENT_CAPACITY -> godot/scripts/core/command_dispatch.gd:344 `const INTENT_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "INTENT_CAPACITY -> godot/scripts/core/command_dispatch.gd:367 `const INTENT_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9443,7 +9443,7 @@
       "source_module": "command_dispatch",
       "source_relation": "eq",
       "source_resize_expression": "INTENT_CAPACITY",
-      "source_resize_line": 545,
+      "source_resize_line": 571,
       "source_value": 128,
       "status": "proved_equality"
     },
@@ -9455,7 +9455,7 @@
       "parsed_expression": "INTENT_CAPACITY",
       "proof_chain": [
         "ForageScript.HARVEST_ZONE_CAPACITY -> godot/scripts/core/forage.gd:259 `const HARVEST_ZONE_CAPACITY = 128` = 128",
-        "INTENT_CAPACITY -> godot/scripts/core/command_dispatch.gd:344 `const INTENT_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
+        "INTENT_CAPACITY -> godot/scripts/core/command_dispatch.gd:367 `const INTENT_CAPACITY = ForageScript.HARVEST_ZONE_CAPACITY` = 128"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9467,7 +9467,7 @@
       "source_module": "command_dispatch",
       "source_relation": "eq",
       "source_resize_expression": "INTENT_CAPACITY",
-      "source_resize_line": 545,
+      "source_resize_line": 571,
       "source_value": 128,
       "status": "proved_equality"
     },

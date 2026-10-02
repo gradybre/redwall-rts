@@ -12,7 +12,7 @@ extends RefCounted
 ##
 ## BUILDING IT (REQ-SET-124/125/126, the cellar building's flow, decision 0612): placing it deducts nothing; residents
 ## fetch each material -- wood and stone from the village stores at the open stockpile, CLOTH from the care shelf at the
-## hall's steps (the demo's only cloth: §5.1's starting 24 U, decision 0622 P8) -- reserved as they set off, taken only
+## hall's steps (the village stores' one cloth: §5.1's starting 24 U, decision 0993) -- reserved as they set off, taken only
 ## when lifted, at most their §5.2 carry over the material's §5.5 mass; once everything is delivered they build it,
 ## their work summed, a WU being decision 0210's 0.15 s of one builder's demo time. Cancelled before work begins, 100%
 ## of what was delivered goes back; after, 80%, floored to the milli-U.

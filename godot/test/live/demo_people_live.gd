@@ -17,6 +17,8 @@ const CardScript := preload("res://demo/people/people_card.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 
 const BOOT_FRAMES: int = 14
+## At most this many more frames for the village to open (see `_until_open`).
+const OPEN_FRAMES: int = 600
 const SETTLE_FRAMES: int = 4
 const FULL: float = 0.99
 
@@ -56,6 +58,7 @@ func _frames(count: int) -> void:
 func _run() -> void:
 	"""Every step, then the summary."""
 	await _frames(BOOT_FRAMES)
+	await _until_open()
 	_manager().call(&"pause_game")
 	_names_everywhere()
 	await _the_roster()
@@ -67,6 +70,15 @@ func _run() -> void:
 
 
 # --- helpers ------------------------------------------------------------------------------------------
+
+func _until_open() -> void:
+	"""Wait (at most OPEN_FRAMES) for the boot's prewarm to release the clock, so the pause below takes: the merged
+	village warms more steps (the night's light, the falling leaves) than BOOT_FRAMES covers (batch 7 integration)."""
+	for k: int in OPEN_FRAMES:
+		if bool(_village.call(&"time_control").get("opened")):
+			return
+		await _frames(1)
+
 
 func _check(check_name: String, ok: bool, detail: String = "") -> void:
 	"""Record one check, named with the size."""

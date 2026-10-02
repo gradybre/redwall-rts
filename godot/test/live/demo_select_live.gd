@@ -314,9 +314,7 @@ func _a_double_click_selects_its_kind() -> void:
 		if (_cast().call(&"actor", in_view[k]) as Node).get("species") == species:
 			expected.append(in_view[k])
 	expected.sort()
-	var at: Vector2 = _screen_of(who)
-	if not await _uncovered(at):
-		at = _screen_of(kin)
+	var at: Vector2 = await _point_on_one_of(who, kin)
 	_click_at(at)
 	_click_at(at)
 	await _frames(2)
@@ -324,6 +322,17 @@ func _a_double_click_selects_its_kind() -> void:
 		"%s vs %s (%s)" % [_selected(), expected, species])
 	_check("both of its kind were in view", expected.size() >= 2, str(expected))
 	await _not_a_double_click(at)
+
+
+func _point_on_one_of(who: int, kin: int) -> Vector2:
+	"""Where to click so the click lands on `who` or `kin`: its screen point, uncovered by any panel and with no other
+	resident drawn in front of it there (the pick says who is under it) -- `who`'s first. Batch 7 integration: the merged
+	village opens with another resident standing in front of the first mouse at 1280x720 and 1920x1080."""
+	for one: int in [who, kin]:
+		var at: Vector2 = _screen_of(one)
+		if await _uncovered(at) and int(_command().call(&"pick", at)) == one:
+			return at
+	return _screen_of(who)
 
 
 func _not_a_double_click(at: Vector2) -> void:

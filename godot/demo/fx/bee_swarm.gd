@@ -9,7 +9,7 @@ extends Node3D
 ## so the one shared material holds no swarm's state. The bee mesh is
 ## built once and shared by every swarm (`bee_mesh`); a swarm allocates nothing after `configure`.
 ##
-## SIZE (proposed, demo-only): a bee BEE_LENGTH_M long beside the 1.00 m mouse -- about half its true ratio to a mouse,
+## SIZE (DEC-048, demo-only): a bee BEE_LENGTH_M long beside the 1.00 m mouse -- about half its true ratio to a mouse,
 ## so a swarm still reads at the village camera as moving specks over the skep (bee_skep, 0.75 m) and never as birds.
 ##
 ## THE CLOCK. `set_speed` takes the demo clock's speed (0 paused: the bees hang where they are, wings still). With

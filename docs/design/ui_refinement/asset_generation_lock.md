@@ -12,8 +12,8 @@ rows, twelve pigment swatches and numeric rendering conventions for prompts.
 These are newly authored art parameters, not inherited GDD constants or user quotes.
 
 **Scope:** this lock governs UI illustrations. Its pigments, contours and lighting
-are not a global world-rendering specification. **Item, food and dish icons are outside it**: they use the 3D-render
-style (Brendan's ruling of 2026-10-02, below). See [DEC-037 alignment](../../art-reference/visual_direction_alignment.md)
+are not a global world-rendering specification. **List item, food and dish icons are outside it**: they use the
+3D-render style (Brendan's ruling of 2026-10-02, below). The top bar's icons stay in it. See [DEC-037 alignment](../../art-reference/visual_direction_alignment.md)
 for the whole-game reference synthesis and the approved world-finish example (DEC-038).
 
 ## Style scope: Brendan's ruling, 2026-10-02
@@ -35,10 +35,10 @@ in decision 0971:
   illustrative UI. That means the journal and chronicle art, the medallion frames and the species marks.
   §2–§5 below govern those unchanged.
 
-**Not settled by the ruling: the sixteen rows in §5.** These are the HUD's resource and command icons and the four
-medallions. The medallions are watercolour by the ruling. The resource and command rows are not item, food or dish
-icons, so they stay as locked here. One of them, RES-FOOD (a bowl of stew), overlaps the food icons in subject. If it
-should match the pantry's render instead, that is Brendan's to say; this amendment does not move it.
+**The top bar stays watercolour (Brendan's follow-up ruling, 2026-10-02).** The top bar's resource and command
+icons, including RES-FOOD's stew bowl, stay in the watercolour family. Only **list** item, food and dish icons (the
+pantry, stores and inventory lists) use the 3D-render style. The sixteen rows in §5 therefore stand as locked: the
+resource and command icons and the four medallions.
 
 ## 1. Reference permission: direct use is allowed
 

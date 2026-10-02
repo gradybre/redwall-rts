@@ -1145,6 +1145,34 @@ elder rule while children are inactive; the GDD amendments to mood, relationship
 REQ-SET-036 that the package proposes take effect only when children are active.
 Implementation and gate state: [decision 0521](decisions/0521-pc04-adopted-with-children-inactive.md).
 
+### DEC-048 — Sizes for the art pass 3 preserving, brewing and digging props, and the bee
+
+2026-10-02 · State: `USER_CONFIRMED` for the sizes below.
+
+Brendan approved the sizes that art pass 3 proposed, relayed through the coordinator on 2026-10-02. They are judged
+against the 1.00 m mouse anchor (DEC-039) at the demo's storybook scale:
+
+| Asset | Key | Size | m |
+| --- | --- | --- | ---: |
+| Stoneware crock | `crock_stoneware` | height | 0.50 |
+| Preserves shelf | `jar_shelf` | height | 0.95 |
+| Ale cask on its cradle | `ale_cask` | height | 0.80 |
+| Brew vat (mash tun) | `brew_vat` | height (rim at 0.80) | 0.95 |
+| Tunnel prop post | `tunnel_post` | height | 0.668 |
+| Tunnel lintel | `tunnel_lintel` | length (0.13 section) | 1.10 |
+| Timber set, standard bore | `tunnel_set` | height (1.10 wide) | 0.72 |
+| Rock face | `rock_face` | width (0.765 tall) | 1.00 |
+| Bee | `bee_swarm.gd` `BEE_LENGTH_M` | length | 0.09 |
+
+- **These are presentation sizes for the demo.** The models are staged prescaled at them (decision 0941's convention),
+  so a `demo_props.gd` size row draws each at scale 1.0.
+- **The timber kit follows the bore.** Its 0.72 m set is the existing frame height (0.72 of the standard 1.0 m crown),
+  and its 1.10 m lintel spans the springline. A wider bore takes more posts and lintels, not a stretched set.
+- **The bee is ambient presentation, not a species.** DEC-039's five heights are unchanged.
+- **Not visual acceptance.** Brendan's acceptance of the art itself still goes through `tools/art_gate.py`.
+
+Assets, spend and reasoning: [decision 0971](decisions/0971-art-pass-3-preserving-brewing-digging-and-free-effects.md).
+
 ### DEC-040 engineering follow-through
 
 Brendan subsequently requested: “let's plan those as well, then give me what to send back to claude”. [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) records the resulting Astra-authored numeric economy/hazard choices. This is delegated engineering authoring, not a claim the user supplied every value. DEC-040's four-level candidate status remains unchanged. [Decision0092](decisions/0092-underground-economy-and-hazard-parameters.md) records adoption and its limits.

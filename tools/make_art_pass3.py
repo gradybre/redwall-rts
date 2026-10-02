@@ -60,7 +60,8 @@ FAMILY = {
 }
 
 ## key: library source, family, triangle target, texture px, and its size at game scale -- `height_m`, or
-## `length_m` (the X extent: the rock face, sized across, not up). DEMO-ONLY sizes beside the 1.00 m mouse:
+## `length_m` (the X extent: the rock face, sized across, not up). DEMO-ONLY sizes beside the 1.00 m mouse, approved by
+## Brendan on 2026-10-02 as proposed (DEC-048):
 ##   crock        waist-high to a mouse, like the library's clay jars (0.55 m)
 ##   jar shelf    a mouse's chest high
 ##   ale cask     on its cradle, just under the village's upright barrel (0.95 m); at 0.7 m it read as a keg

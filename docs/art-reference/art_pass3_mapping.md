@@ -47,8 +47,8 @@ show can be remade with the tools above:
 - its origin is the ground centre, its bottom at y = 0;
 - it faces glTF +Z, as authored.
 
-So a `demo_props.gd` `SIZES` row of `[RULE_HEIGHT, height_m]` draws it at scale 1.0. **The sizes are proposals**
-(demo-only, beside the 1.00 m mouse) until Brendan rules on them, as he did for pass 2's (DEC-047).
+So a `demo_props.gd` `SIZES` row of `[RULE_HEIGHT, height_m]` draws it at scale 1.0. **The sizes are Brendan's**
+(approved 2026-10-02 as proposed; [DEC-048](../setting_decisions.md)): demo presentation sizes beside the 1.00 m mouse.
 
 ## Preserving, brewing and feasts: the kitchen's stations
 
@@ -56,7 +56,7 @@ Today the kitchen has one working point, the cauldron (`kitchen/kitchen_places.g
 is a position plus the spot a resident stands at to work it (`stand_*`), found on rings round the point. A station
 below is one more such point, and its model is drawn where the point is.
 
-| Key | Staged file | Height (proposed) | Size W×H×D (m) | Triangles / texture | Serves |
+| Key | Staged file | Height (DEC-048) | Size W×H×D (m) | Triangles / texture | Serves |
 |---|---|---|---|---|---|
 | `crock_stoneware` | `props/crock_stoneware.glb` | **0.50 m** | 0.46 × 0.50 × 0.42 | 1,150 / 1,024 (small prop) | **Preserving (#18): the pickling and salting crock.** A lidded salt-glazed crock beside the preserves shelf; several stand in a cellar. |
 | `jar_shelf` | `props/jar_shelf.glb` | **0.95 m** | 1.35 × 0.95 × 0.38 | 1,888 / 1,024 (furniture) | **Preserving (#18): the preserves store's face.** Two plank shelves of cloth-capped jars: jam, honey, pickles, fruit. |
@@ -148,7 +148,7 @@ the vertex shader.
 
 | | |
 |---|---|
-| Bee size (proposed) | `BEE_LENGTH_M` **0.09 m**: about half a bee's true ratio to a mouse, so a swarm reads as specks over the skep, never as birds |
+| Bee size (DEC-048) | `BEE_LENGTH_M` **0.09 m**: about half a bee's true ratio to a mouse, so a swarm reads as specks over the skep, never as birds |
 | Its hive | the library's `bee_skep` (pass 1, decision 0941, staged at 0.75 m) |
 | API | `configure(layer)`, `place(at)` (the skep's base), `set_speed(speed)` (the demo clock; 0 paused), `set_active(on)` (a hive in season), `set_reduced(on)` (reduced motion: closer, slower, wings blurred) |
 | Cost | ten instance transforms a frame per swarm. The mesh and wing material are shared by every swarm, and nothing is allocated after `configure` |

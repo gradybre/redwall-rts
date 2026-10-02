@@ -1,6 +1,6 @@
 # 0971 — Art pass 3: preserving and brewing, the digging revamp, and free effects
-Date: 2026-10-02 · Status: Accepted (Brendan's approval of the list; the sizes are proposals and visual acceptance is
-still his, through `tools/art_gate.py`)
+Date: 2026-10-02 · Status: Accepted (Brendan's approval of the list, the icon style and the sizes, DEC-048; visual
+acceptance is still his, through `tools/art_gate.py`)
 
 Numbered 0971: art pass 3 was given 0971–0979, and none was taken on any branch or worktree. Pass 1 is 0941 and pass 2
 is 0951.
@@ -42,8 +42,9 @@ This pass then:
   - Item, food and dish icons use the studio render that 0981 describes, and are outside ART-LOCK-001.
   - The watercolour with ink contours stays for portraits, emblems, medallions, the tapestry, and ceremonial or
     illustrative UI.
-  - The lock's sixteen HUD rows stand as locked. Whether RES-FOOD, a stew bowl, should match the pantry render
-    instead is left open for Brendan; the amendment does not move it.
+  - **Brendan's follow-up ruling (2026-10-02): the top bar stays watercolour.** The top bar's resource and command
+    icons, including RES-FOOD's stew bowl, stay in the watercolour family. Only list item, food and dish icons use
+    the 3D-render style. The lock's sixteen rows therefore stand as locked.
 
 ## Spend
 
@@ -122,7 +123,8 @@ All 14 tasks succeeded. The ledger's art-pass-3 rows sum to 228; the task IDs ar
      - one coin has a square hole.
    - Pass 1's `sheet_dishes_c` also holds an uncut cheese wedge in the same style, so there is an alternative cheese
      at no cost.
-9. **The sizes are proposals**, demo-only, beside the 1.00 m mouse:
+9. **The sizes are Brendan's ruling (2026-10-02).** They were proposed by this pass, judged against the 1.00 m
+   mouse, and approved as proposed; they are recorded as [DEC-048](../setting_decisions.md):
 
    | Asset | Proposed size |
    |---|---|
@@ -136,8 +138,8 @@ All 14 tasks succeeded. The ledger's art-pass-3 rows sum to 228; the task IDs ar
    | Rock face (`rock_face`) | 1.00 m across, 0.765 m tall |
    | Bee (`bee_swarm.gd` `BEE_LENGTH_M`) | 0.09 m long |
 
-   The kit's sizes follow from the bore profile; the rest are judgement. Brendan's ruling goes in
-   `setting_decisions.md` as pass 2's went into DEC-047.
+   The kit's sizes follow from the bore profile; the rest were judgement. They stay demo presentation sizes, like
+   pass 2's (DEC-047).
 
 ## What this does not do
 

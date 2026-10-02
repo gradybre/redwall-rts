@@ -237,7 +237,11 @@ func _built() -> void:
 	"""The infirmary is in the village: its factor on the work pace, the herb patch drawn, nobody hurt."""
 	_check("the infirmary is built", _care() != null)
 	var pace: RefCounted = _village.get("_services").get("work_pace")
-	_check("its health factor on the village's work pace", pace.call(&"name_of", 0) == "health", str(pace.call(&"count")))
+	var names: PackedStringArray = []
+	for k: int in int(pace.call(&"count")):
+		names.append(String(pace.call(&"name_of", k)))
+	_check("its health factor on the village's work pace, with the winter's Chilled (decision 0902)",
+		names.has("health") and names.has("chilled"), str(names))
 	var patch: Node = _care().get("patch_view")
 	_check("the herb patch drawn at its stock", int(patch.call(&"shown_clumps")) == 10, str(patch.call(&"shown_clumps")))
 	var hurt: int = 0

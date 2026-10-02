@@ -812,13 +812,15 @@ func _build_work() -> void:
 
 func _build_group_select() -> void:
 	"""GROUP SELECTION (decision 0791): over the command layer and the work board's crews, its needs read from the
-	kitchen and the night's beds; the winter's Chilled (decision 0571) one status row more."""
+	kitchen and the night's beds; the winter's Chilled (decision 0571) and the infirmary's Injured (decision 0622) a
+	status row each."""
 	_group_select = GroupSelectScript.new()
 	add_child(_group_select)
 	var command: DemoCommandScript = _command as DemoCommandScript
 	_group_select.configure(command, _cast as DemoCastScript, _work.board, (_camera as DemoCameraScript).centre_on)
 	_group_select.bind_needs(_kitchen.kitchen.fed_word, command.tunnels().ext.night)
 	_group_select.statuses.add(&"chilled", "Chilled", GroupStatusScript.SEVERITY_WARN, _winter.cold.is_chilled)
+	_group_select.statuses.add(&"injured", "Injured", GroupStatusScript.SEVERITY_WARN, _care.desk.state.is_hurt)
 
 
 func group_select() -> GroupSelectScript:

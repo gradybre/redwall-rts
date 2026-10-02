@@ -467,6 +467,28 @@ func test_a_resident_outdoors_in_winter_is_chilled_and_goes_to_warm_up() -> void
 	assert_equal(v.cast.actor(0).brain.work_permille, 1000, "back to full pace")
 
 
+func test_chilled_and_hurt_compose_on_the_one_work_pace() -> void:
+	"""Decision 0902: the winter's Chilled is a factor on the village's work pace (work_pace.gd), so an injury's health
+	factor and Chilled multiply -- 800 x 850 / 1000 = 680 -- into the one rate the crews credit (`work_permille`)."""
+	var v: Village = _village(_winter_tick())
+	var health: Array[int] = [850]
+	assert_true(v.services.work_pace.add_factor("health", func(who: int) -> int: return health[0] if who == 0 else 1000),
+		"the infirmary's factor")
+	v.services.stores.wood_milli_u = 100000
+	v.winter.catch_up()
+	v.services.calendar.tick += 25
+	v.winter.follow_exposure()
+	assert_equal(v.cast.actor(0).brain.work_permille, 850, "hurt, not yet Chilled")
+	for k: int in 4 * 30:
+		v.services.calendar.tick += 25
+		v.winter.follow_exposure()
+	assert_true(v.winter.cold.is_chilled(0), "Chilled")
+	assert_equal(v.services.work_pace.name_of(0), WinterScript.PACE_FACTOR, "the winter's factor first")
+	assert_equal(v.cast.actor(0).brain.work_permille, 680, "the two multiplied, once")
+	assert_equal(v.cast.actor(1).brain.work_permille, 800, "Chilled alone")
+	assert_equal(v.services.work_pace.slowed_text(0), "work at 68% (chilled 80%, health 85%)", "both named")
+
+
 func _dug_home(v: Village, at: Vector2i, places: int) -> int:
 	"""A burrow home laid at `at` (u) on the village's network, dug at once, its first `places` places installed (the
 	night test's way). Its room row."""

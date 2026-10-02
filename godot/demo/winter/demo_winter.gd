@@ -12,7 +12,9 @@ extends Node
 ## below in a tunnel -- and its exposure integrated over the calendar ticks the frame brought (cold_exposure.gd), at the
 ## rate its place gives (winter_rules.gd ENV_*). A jump of more than an hour in one frame (a skip: the Lab's "Skip to
 ## next season", "Next weather") is NOT integrated -- the residents did not live it. A Chilled resident works at the
-## Chilled rate (resident_brain.gd `work_permille`) and is sent, when it may be (not asleep, not in the water or an
+## Chilled rate -- the winter's factor on the village's one work pace (demo/work/work_pace.gd, composed by multiplying
+## with the infirmary's health factor; decision 0902), which each frame sets every resident's `work_permille`
+## (resident_brain.gd) -- and is sent, when it may be (not asleep, not in the water or an
 ## emergency), for a WARM-UP BREAK (warm_up_task.gd) at the nearest heated hearth: its own bed's home first, else the
 ## nearest heated home, else the hall. With none heated it keeps working, slowly.
 ##
@@ -83,6 +85,8 @@ const KEY_SUMMARY: String = "winter:prepared"
 ## The hour of a season's first day its notes are posted: the village's dawn (night_routine.gd DAWN_HOUR), the hour the
 ## demo opens and a season skip lands on.
 const NOTE_HOUR: int = NightScript.DAWN_HOUR
+## The winter's factor on the village's work pace (work_pace.gd `add_factor`; its name in "work at 80% (chilled 80%)").
+const PACE_FACTOR: String = "chilled"
 
 var fuel: FuelScript = FuelScript.new()
 var cold: ColdScript = ColdScript.new()
@@ -137,6 +141,7 @@ func configure(services: ServicesScript, cast: DemoCastScript, graph: GraphScrip
 	_row = weather_row
 	fuel.bind_stores(services.stores)
 	fuel.set_hearth(FuelScript.HALL, true)
+	services.work_pace.add_factor(PACE_FACTOR, cold.work_permille)
 	for i: int in cast.actor_count():
 		var actor := cast.actor(i) as DemoActorScript
 		_brains.append(actor.brain)
@@ -431,7 +436,8 @@ func _keep_firewood() -> void:
 # --- each frame: exposure -----------------------------------------------------------------------------
 
 func follow_exposure() -> void:
-	"""Integrate everyone's exposure over the ticks this frame brought (see EACH FRAME); Chilled sets the work rate."""
+	"""Integrate everyone's exposure over the ticks this frame brought (see EACH FRAME); each resident's work rate is the
+	village's work pace, Chilled one of its factors."""
 	var tick: int = _services.calendar.tick
 	var ticks: int = tick - _last_tick
 	_last_tick = tick
@@ -440,7 +446,7 @@ func follow_exposure() -> void:
 	for i: int in _brains.size():
 		_note_place(i)
 		cold.integrate(i, Rules.exposure_rate(cold.env[i], _hard_freeze), ticks)
-		_brains[i].work_permille = cold.work_permille(i)
+		_brains[i].work_permille = _services.work_pace.permille(i)
 	if not cold.entered.is_empty() or not cold.warmed.is_empty():
 		_say_changes()
 

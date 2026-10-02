@@ -462,9 +462,11 @@ func _built_in_statuses() -> void:
 
 
 func _owners_rows() -> void:
-	"""The rows the village's owners add where they are wired (demo_village.gd, decision 0902): the winter's Chilled."""
+	"""The rows the village's owners add where they are wired (demo_village.gd, decision 0902): the winter's Chilled and
+	the infirmary's Injured."""
 	var statuses: Object = _group().get("statuses")
 	_check("the winter's Chilled is a row", int(statuses.call(&"find", &"chilled")) >= 0)
+	_check("the infirmary's Injured is a row", int(statuses.call(&"find", &"injured")) >= 0)
 
 
 func _set_column(owner: Object, column: String, k: int, value: int) -> void:

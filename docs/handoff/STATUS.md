@@ -14,6 +14,23 @@ and compare with the two tables below. Branches that were never pushed exist onl
 (`/Users/brendan/Developer/redwall-rts`) and its worktrees under the session scratchpad; if that machine state is gone,
 those branches are gone too, and this file says so for each.
 
+
+> **Update at the end of the lead session (2026-10-02, later the same day).** Sections 1–2 below were
+> written before the final merges. Since then these PRs **merged to master**: #221 (Codex review fixes
+> R01–R06, decisions 0993–0998), #222 (batch 8: orchards and all three art passes wired, decision 0903),
+> #223 (this handoff), #224 (measures phase 1 docs, decision 1011, DEC-049), #225 (settlement hauling
+> H0–H2, decisions 1021–1024). Still open at handoff:
+> - **#226 `fix/follow-ups`** (decisions 1041–1049): seven fixes plus three write-ups. Merge it when CI is green.
+> - **`perf/route-planning`** (decisions 1001–1005): route planning, the meal and bedtime bursts, and the
+>   kitchen "cook serves what's in the pot" fix. It had a master merge in progress; if no PR exists, check the
+>   branch's working tree is clean against its HEAD, run the CI-style gates, open the PR and merge when green.
+>   1005's tests are not yet mutation-tested or independently reviewed: do both before merging if time allows.
+> - **The main checkout** `/Users/brendan/Developer/redwall-rts` is now on clean master. Its old working state
+>   (about 360 changes from mid-September on `docs/executor-followup-rulings`) is saved on the **local, unpushed**
+>   branch `backup/main-checkout-2026-10-02` and `stash@{0}`. `.codex/` and `.agents/` were left in place.
+>   Some untracked Astra cycle-2/3 rulings and validators from 2026-09-14 may be worth recovering from it (Q-F1).
+> Always confirm with `gh pr list --state all --limit 20` and `git log --oneline origin/master -20`.
+
 ## 1. Merged since 2026-09-30
 
 All into `master` at `github.com/gradybre/redwall-rts`. "Decisions" are `docs/decisions/` records unless marked DEC.

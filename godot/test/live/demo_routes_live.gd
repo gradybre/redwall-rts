@@ -29,7 +29,8 @@ const POND_BANK: Vector2 = Vector2(19.0, 29.8)
 const SETTLE_FRAMES: int = 4
 ## An estimate is a few steps, one a frame; it must finish well inside this.
 const ESTIMATE_FRAMES: int = 120
-## Candidate tunnels for the Dig tool (start, end, metres), the first the plan takes is laid.
+## Candidate tunnels for the Dig tool (start, end, metres), each tried either way round; the first the plan takes and
+## whose entrance is clear is laid.
 const DIG_ROUTES: Array[Vector4] = [Vector4(-8.0, 4.5, -8.0, -3.0), Vector4(-16.5, 0.0, -16.5, 8.0),
 	Vector4(6.0, 9.5, -2.0, 9.5), Vector4(17.0, -10.0, 17.0, -2.0)]
 
@@ -336,12 +337,9 @@ func _tunnel_project() -> void:
 	var text: String = ext.get("panel").call(&"line", &"project")
 	_check("dig: its benefit if dug", took >= 0 and text.contains("one end to the other"), text)
 	await _capture("routes_dig_laid")
-	# The village keeps moving while the harness waits, so a transient refusal is possible at the instant of
-	# the first try -- most likely a resident standing on the new entrance (ENTRANCE_OCCUPIED); the tool keeps
-	# the piece laid either way. Try again for a while, as a player would; a lasting refusal still fails.
-	# Seen once on the slower CI runner (PR #207); not reproduced locally.
-	var dug_after: int = await _until(func() -> bool: return bool(tool.call(&"confirm")), ESTIMATE_FRAMES)
-	_check("dig: dug", dug_after >= 0, "confirm refused for %d frames" % ESTIMATE_FRAMES)
+	# The game is paused, so nothing moves: the laid piece was chosen with nobody on its entrance and a way for the
+	# digger (`_lay_a_tunnel`), and the first confirm must take it. A refusal here is a real one, so it is not retried.
+	_check("dig: dug", bool(tool.call(&"confirm")), tool.call(&"notice"))
 	await _frames(SETTLE_FRAMES)
 	ext.call(&"refresh_panel")
 	text = ext.get("panel").call(&"line", &"project")
@@ -351,17 +349,35 @@ func _tunnel_project() -> void:
 
 
 func _lay_a_tunnel(tool: Node) -> bool:
-	"""Lay the first candidate tunnel the plan takes (start and end clicked on the ground)."""
+	"""Lay the first candidate tunnel, either way round, that the plan takes and whose new entrance the Dig tool would
+	open now (`_lay_one`)."""
 	for route: Vector4 in DIG_ROUTES:
-		if not bool(tool.get("planning")):
-			tool.call(&"begin_plan")
-		await _frames(2)
-		tool.call(&"lay_ground", Vector2(route.x, route.y))
-		tool.call(&"lay_ground", Vector2(route.z, route.w))
-		await _frames(2)
-		if int(tool.get("plan").get("count")) >= 2 and int(tool.call(&"laid_piece_reason")) == Rules.REFUSE_NONE:
-			return true
-		tool.get("plan").call(&"clear")
+		for reverse: bool in [false, true]:
+			var from: Vector2 = Vector2(route.z, route.w) if reverse else Vector2(route.x, route.y)
+			var to: Vector2 = Vector2(route.x, route.y) if reverse else Vector2(route.z, route.w)
+			if await _lay_one(tool, from, to):
+				return true
+	return false
+
+
+func _lay_one(tool: Node, from: Vector2, to: Vector2) -> bool:
+	"""Lay one tunnel (start and end clicked on the ground) and keep it when the plan takes it and its entrance passes the
+	confirm's own checks (`entrance_refusal`: nobody standing on it, a way for the digger); otherwise clear it. The
+	previous step sent three residents across the village and the game is paused, so one caught turning at a waypoint on
+	a candidate's entrance stands there -- not walking -- for as long as the pause lasts, and the confirm refuses it
+	(ENTRANCE_OCCUPIED). Which candidate that is depends on how far the group got, so on the runner's speed: the CI flake
+	of PRs #207 and #216 (decision 1041)."""
+	if not bool(tool.get("planning")):
+		tool.call(&"begin_plan")
+	await _frames(2)
+	tool.call(&"lay_ground", from)
+	tool.call(&"lay_ground", to)
+	await _frames(2)
+	var plan: Object = tool.get("plan")
+	if int(plan.get("count")) >= 2 and int(tool.call(&"laid_piece_reason")) == Rules.REFUSE_NONE \
+			and int(tool.call(&"entrance_refusal", int(tool.call(&"choose_digger")), plan.call(&"point_m", 0))) == Rules.REFUSE_NONE:
+		return true
+	plan.call(&"clear")
 	return false
 
 

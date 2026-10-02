@@ -1,5 +1,5 @@
 # 0711 — Standing orders keep goods by queueing the work the demo already has
-Date: 2026-10-01 · Status: Accepted (feature #38, approved by Brendan 2026-10-01); the PROPOSALS below await his ruling
+Date: 2026-10-01 · Status: Accepted (feature #38, approved by Brendan 2026-10-01); its five proposals ruled by Brendan 2026-10-01: all approved as built
 
 Numbered 0711 from the brief's range 0711–0719. No record numbered 071x exists on this branch, on any branch
 (`git log --all -- 'docs/decisions/071*'`) or in any sibling worktree.
@@ -54,24 +54,27 @@ re-raise after a cancel are the same: `test_demo_winter.gd` passes unchanged. (O
 is now said as such instead of "no deadfall".) The player may now **switch it off** -- switched on again it is kept at
 once rather than at the next hour; nothing else: its amount, priority and presence are the winter's. Without a book handed to it (a suite's village) the winter makes its own.
 
-## Derived choices and PROPOSALS (questions for Brendan)
+## Brendan's rulings (2026-10-01) and derived choices
 
-Each is the smallest sensible demo behaviour where the documents are silent.
+**Brendan approved all five proposals as built on 2026-10-01** (items 1, 2, 3, 4 and 10 below, each marked RULED); each took
+option (a), the recommendation. The other items are this record's derived choices.
 
-1. **PROPOSAL — the band (hysteresis).** On below the amount; off once the good reaches amount + band; between, it keeps
+Each was the smallest sensible demo behaviour where the documents are silent; the options are kept as the record of what was weighed.
+
+1. **RULED (Brendan, 2026-10-01: approved as built) — the band (hysteresis).** On below the amount; off once the good reaches amount + band; between, it keeps
    what it was. Bands: planks 2 U (one saw batch), wood 2 U (the largest deadfall pile), meals 0.5 day (one meal for
    the village), a crop 1 U. *Options*: (a) these fixed bands (recommended: simple, one batch's worth); (b) a percentage
    of the amount; (c) a player-set band.
-2. **PROPOSAL — jobs held at once.** Woods orders 2, farm orders 3, the Firewood 1 (decision 0571). *Options*: (a) these
+2. **RULED (Brendan, 2026-10-01: approved as built) — jobs held at once.** Woods orders 2, farm orders 3, the Firewood 1 (decision 0571). *Options*: (a) these
    (recommended: two sawyers share one sawhorse; three is one harvest per ripe bed in practice); (b) one each, as the
    Firewood; (c) unlimited within the committed-output test.
-3. **PROPOSAL — "days of meals" is fulfilled by harvesting, not by cooking.** The kitchen cooks every meal itself from
+3. **RULED (Brendan, 2026-10-01: approved as built) — "days of meals" is fulfilled by harvesting, not by cooking.** The kitchen cooks every meal itself from
    the stores (decision 0381), and its Ready food already counts what the stores would cook, so a cooking batch does not
    raise the figure (and portions keep only 24 h). What raises it is food into store: the order harvests ripe beds of
    any crop a dish takes. With no wood for the fire it is blocked. *Options*: (a) this (recommended); (b) also order
    extra cooking batches ahead (needs the kitchen to cook beyond its two planned days -- a kitchen change and spoilage);
    (c) count raw harvests only, not Ready food.
-4. **PROPOSAL — a crop not yet ripe is "Blocked", with one notice.** "No carrot bed is ripe yet (2 growing) — the order
+4. **RULED (Brendan, 2026-10-01: approved as built) — a crop not yet ripe is "Blocked", with one notice.** "No carrot bed is ripe yet (2 growing) — the order
    harvests it when it ripens" is shown as Blocked and raises one Village warning, resolved when a harvest is queued.
    *Options*: (a) this (recommended: it is true that nothing can be queued, and the brief says notices only when blocked);
    (b) a fourth state "Waiting for the crop" with no notice.
@@ -87,7 +90,7 @@ Each is the smallest sensible demo behaviour where the documents are silent.
 8. **Adopting** a farm harvest the farm's routine already queued (REQ-SET-073) rather than opening a second; a job is
    held by one order only (`tracked`).
 9. **Session only**: the demo cannot save, so orders are not saved.
-10. **PROPOSAL — committed output is the order's own jobs.** REQ-SET-098's count includes only what the order's own
+10. **RULED (Brendan, 2026-10-01: approved as built) — committed output is the order's own jobs.** REQ-SET-098's count includes only what the order's own
     jobs will bring, not other work bringing the same good (the Firewood's job, a routine haul of a felled trunk, a
     harvest the player ordered by hand). A "keep wood" order beside the Firewood can therefore queue a little more than
     needed, never less. *Options*: (a) this (recommended for the demo: simple, and over-queueing is bounded by the

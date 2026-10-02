@@ -8,8 +8,9 @@ extends RefCounted
 ## here. FIREWOOD is the winter's built-in order (decision 0571): listed, never offered to add.
 ##
 ## Every amount is integer: milli-U for goods, milli-days for meals (1000 = a day). The numbers below are demo values
-## (decision 0711's PROPOSALS): the first amount offered, the step of the − and + buttons, the most allowed, the
-## hysteresis BAND, and how many of its jobs an order keeps on the boards at once.
+## (decision 0711): the first amount offered, the step of the − and + buttons, the most allowed, the hysteresis BAND,
+## and how many of its jobs an order keeps on the boards at once -- the band and the jobs held at once approved as
+## built by Brendan's rulings of 2026-10-01.
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const FarmText := preload("res://demo/farm/farm_text.gd")

@@ -709,9 +709,9 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
   board -- the farm's, the woods', the bridges', the tunnels' jobs, the rooms' fit-out, the spoil heaps' -- read
   through one adapter each (`farm_work.gd`, `woods_work.gd`, `bridge_work.gd`, `tunnel_work.gd`, `fit_out_work.gd`,
   `spoil_work.gd`, water part B's `fishery_work.gd`: trips' seats, traps, the rack, the mill and the gear, decision
-  0431, `ferry_work.gd`: the far copse's gathering, ferried wood's hauls and the crossings' crews, decision 0437; and
-  the hall's `hall_work.gd`, decision 0771); every command goes to the owner's own function, so its conservation rules
-  hold (decision 0222:
+  0431, `ferry_work.gd`: the far copse's gathering, ferried wood's hauls and the crossings' crews, decision 0437;
+  the hall's `hall_work.gd`, decision 0771; and the orchard's `orchard_work.gd`, decision 0671); every command goes to
+  the owner's own function, so its conservation rules hold (decision 0222:
   a load in hand is carried on, never paused or handed over from afar -- earth too: a farm job carrying earth back
   to its heap reads "Carry earth back", a delivery, and Cancel refuses it; decision 0401). The kitchen's cook and
   water drawers are listed as well (`kitchen_work.gd`; the kitchen hands them out itself), and the board hands no
@@ -1785,6 +1785,41 @@ What changed on screen:
   or wading, more in a lit bore. A carrier walks at 65% of its walk, its carry clip sped to match (was
   about 37%: the playtest's mole was "way too slow with a log").
 
+## The art passes, wired (decision 0903)
+
+Three paid art passes -- the food, plants and props pass (decision 0941), art pass 2 (0951, DEC-047) and art pass 3
+(0971, DEC-048), with 0972's flax, linen and wax icons -- are staged by `tools/stage_demo_assets.py`
+(`--only art` restages them alone: `make_demo_food_art.py` and `stage_art_passes.py`, which runs `make_art_pass2.py` or
+`make_art_pass3.py` only when a pass's record is missing) and drawn by the demo. **Every one degrades to the stand-in it
+replaced** when it is not staged (CI, a fresh clone): the same code runs either way.
+
+| Art | Where it is drawn | Without it |
+|---|---|---|
+| `apple_tree`, `pear_tree` | the orchard's trees, at every age (a sapling 0.2-0.45, young 0.5, full-grown 1.0, the old trees 1.11 of the prescaled model; the pear let down its plate) | the oak and its sapling, drawn small |
+| `raspberry_canes`, `bramble_blackberry`, `strawberry_patch` | the orchard's berry hedge; the patch is a third season slot | the oak's crown knee-high; five strawberry plants |
+| `apple_basket` | the old orchard stand: one full basket per started third of its store while it holds apples most | baskets and the fruit heap |
+| `hazel_bush` (3), `mushroom_forage` (2), `herb_patch`, `bramble_blackberry` (2) | beside the four foraging spots (`forage_view.gd` THE SPOTS); the hazels and brambles are season slots | nothing drawn at the spots |
+| `infirmary_ward` | the infirmary (prescaled to its 5.5 m envelope, sunk its 0.33 m earth base; the door's herbs and shelf before its front) | the borrowed `residence` |
+| `herb_patch` | the infirmary's herb patch, smaller as its stock runs down | twelve procedural clumps |
+| `pine_scots`, `yew_ancient` | fifteen evergreens (ten pines, five yews) in the woods past the clearing (`world/evergreens.gd`: never felled; their trunks are obstacles either way) | none drawn |
+| `oak_mature_bare` | every bare oak in winter (`season_view.gd` THE AUTHORED BARE OAK) | the leaf triangles cut from the leafed oak |
+| `tunnel_set` | every brace frame (and the rooms' ribs) | the old `tunnel_brace`, else a box frame |
+| `rock_face` | the bore's walls where the ground is rock (`bore_dressing.gd` ROCK FACES) | nothing |
+| `hall_stage2`, `hall_banner`, the `_windows` models | the great hall at tier 2 (its roundels kept, its own chimney), its four banners, the homes' window glow (see The hall, Night lights) | the composed chimney and roundels; dark windows |
+| portraits, the tapestry's ground and emblems, the chronicle's page | the group tiles (two across while shown) and the inspector's person header; the tapestry panel; the chronicle | the drawn panels |
+| pass 1's and 3's icons | by key: an item's `item_<pantry key>` (apple, pear, berries, nuts, mushrooms, herb, potato, honey, flour, dried fish; jam, cider, flax, wax and the rest wait for their items), a dish's `dish_<recipe key>` in the Kitchen tab and on the Stocks rows | the item's model icon, else its roundel; no dish icon |
+
+**The modelled berries.** The bushes carry their berries in their texture, so the tree shader hides them
+(`season_leaves.gdshaderinc` `berry_hide`): a ripe red or dark purple texel is painted its bush's leaf colour as the
+hedge's (or the berry patch's) stock above its floor runs down, and every one while it is dormant; a hidden berry is
+leaf from then on, so it tints and falls with the leaves. The hazel's nuts are brown as its bark and stay drawn.
+
+**Mapped, not drawn yet** (their features are not built): the wildlife, the bee skep and the bees, flax's plant row,
+the preserving and brewing props, fire, lightning and the winter ice, the find icons for coins, an old map and a spring,
+and the herb infusion's icon. Each mapping file names the code that will draw them
+(`docs/art-reference/asset_library/food_art_mapping.json`, `docs/art-reference/art_pass2_mapping.md`,
+`docs/art-reference/art_pass3_mapping.md`).
+
 ## The woods
 
 Every tree in the village and its woods -- 173 oaks, beeches and saplings -- is a REAL ResourceNode row
@@ -1906,9 +1941,56 @@ haul" (berries too, at the dishes lane's request). `forage/`:
   48 h) -- the catalogue's keys, items 26–29 of the pantry (after the dishes' potato and honey). Nuts and herb are the
   regatta feast's (below); nuts and mushrooms also cook the pasty, the scones and the woodland pie, and the berries
   the cordial once there is honey (decision 0902). The herb is the infirmary's too: see The herbalist and the infirmary.
+- **The spots are drawn** where the food art is staged: three hazels round the hazel brake, ceps in the beech hollow,
+  the herb bank's patch and two brambles at the bramble edge. **The bramble edge** is at the south-west woods' edge,
+  west of the old orchard, (-25.0, 27.0) since the batch 8 integration (decision 0903): its lane's (8.0, 25.5) lay inside
+  the orchard's east planting block.
 - The party panel says what each forager is doing and its "Foraging N"; the Routes layer's public ways include **the
   forage grounds**; the field guide has the four goods and "Foraging trips".
 - Checked by `test_demo_forage.gd` (the placeholder cast on the real layout; no staged assets).
+
+## The orchard (decisions 0671-0677)
+
+Feature #20 and the review's group Y (ECO-008, 009, 010, 015): perennial fruit that takes years to mature, with fruit
+seasons (`orchard/`). Presentation only; every number not the GDD's is named in `orchard/orchard_rules.gd`.
+
+- **The trees are real OrchardPlot rows** (`scripts/core/orchard_hive.gd`, GDD §5.6): apple 96 days to maturity and
+  80 U a year in Autumn 1-6, pear 144 days and 110 U in Autumn 3-8; 20 WU of care a day in spring and summer (2 U of
+  the butt's water in a drought); an untended spring or summer day costs 100 health, a tended one restores 50; fewer
+  than 6 winter chill days give 75%; picked once a year (REQ-SET-079/080). Each midnight closes the day just ended.
+- **The inherited old orchard** (decision 0672, the M3 timing change): an old apple and an old pear south of the field
+  beds, neglected (35% health) -- tend them and their first autumn gives four times what neglect does. **Early yield**:
+  a young tree a year old gives a fifth of a crop once a year in its window until it matures. The M3 grant (2 apple + 2
+  pear saplings) waits in the nursery from the start.
+- **The east orchard**: two empty 8 m blocks (brass pegs) by the south road, and the **berry hedge** -- raspberry
+  canes, a blackberry bramble and a strawberry bed sharing one §5.5 Berries patch (decision 0676): fruit in summer and
+  less in autumn, none in spring or winter, never picked below a fifth. Whichever bush is picked, the pantry gets the
+  one generic **Berries** item (the foraging lane's `berries`, item 29); apples and pears are their own items (30 and
+  31, after the forage, since the batch 8 integration).
+- **Eaten raw** (decision 0671, proposal 9): a hungry resident with no portion may eat fruit (900 NP a unit) or berries
+  (700) raw, as GDD §5.7 allows -- from a store, never from a basket stand.
+- **Groups** (decision 0674): each orchard gathers its picking at its **basket stand** (a pantry store 120 U, never a
+  destination for other harvests), and the Haulers carry the baskets on, 10 U a trip, to the **kitchen pantry** or the
+  **best keeping store**, the food keeping its age. Timing: *as each ripens* or *all together* (the apple waits for the
+  pear). A share (0, 4 or 8 U of each fruit) stays at the stand for the nursery.
+- **The nursery** (decision 0673): a plan promises a sapling to an empty site; the routine propagates it once the
+  baskets hold the fruit (4 U; the kitchen never reserves food waiting at a stand), compost (2) and water (2) -- 120 WU and 12 days -- and plants it. Every empty site and
+  plan shows when its tree would first fruit (REQ-SET-081).
+- **The North hollow** (decision 0675): a protected grove in the North stand (a sage ring, a mossy stone): the woods
+  never fell its trees (no order, no auto-fell, no firewood), and once a season someone observes it -- a line in its
+  record and the news.
+- **The seasons** (decision 0677): the fruit trees and bushes are season trees -- blossom (pink-white apples, white
+  pears) in spring, green fruit swelling in late summer, red apples and yellow pears in autumn until picked, bare
+  boughs in winter. The trees are the food art's apple and pear where staged (see The art passes, wired), else the
+  staged oak drawn small (0671's art gap).
+- **The work** is on the work board as source 13 since the batch 8 integration (decision 0903), **Orchard** (`work/orchard_work.gd`): tend, harvest, pick berries, haul
+  baskets, plant, propagate, observe -- each conserving its load (a delivery always finishes).
+
+| Input | Does |
+|---|---|
+| Left click an orchard tree, a site's pegs, a bush, the baskets, the nursery or the grove's stone | Select it: the **Orchard (demo)** panel takes the right column (it has no tab; any tab takes the column back) -- the thing's readout and verbs (each with its action card), its group's policy, the nursery's plans, the grove's record |
+| Right click one (residents selected) | The nearest does its most pressing work: a tree's harvest (else its tending), an empty site's planting, a bush's picking, the baskets' haul, the grove's observation |
+| Orchard panel | Tend, Harvest, Pick berries, Send baskets on, Plant apple/pear, Plan an apple/pear, Drop the plan, Observe now -- with nobody selected, queued for the Field crew; Timing, To, Keep (the group's policy); Protected (the grove) |
 
 ## Water
 
@@ -2205,8 +2287,10 @@ the curves, allocating nothing.
   and snow cover stay lit by the moon, pale blue at night.
 - **Night lights** (`world/night_lights.gd`): a pool of at most 8 shadowless omni lights on the surface layer, given to
   the spots nearest the camera's focus. The spots are the five homes' doors (the hall, three residences, the kitchen)
-  and every standing tunnel mouth's lantern. The building models carry one baked material and no window slot, so homes
-  read lit by lamplight spilling from their fronts. Their windows do not glow. Which homes are lit is one query
+  and every standing tunnel mouth's lantern. Homes read lit by lamplight spilling from their fronts, and where a home's
+  `<key>_windows` model is staged (art pass 2, decision 0951; wired by decision 0903) its window mask glows: emission 0
+  by day, up to 1.5 x the lamps' level at night, on the same flag as its door lamp (the hall's goes dark with
+  `hearth_cold`); the residences' shutters carry almost no glass, so their door lamps remain. Which homes are lit is one query
   (`set_home_lit`); without one, every home is lit at night. While the lamps are lit, the surface
   environment's glow is on, so the lanterns' emissive glass blooms. The lamps flicker gently in real time while the
   village runs, stand still while paused, and hold steady with reduced motion. The underground keeps its own pool of 32 (decision 0207).
@@ -2337,8 +2421,9 @@ grows by two and no more:
   >= ceil(E / 3), §5.7); floor sleep for anyone without a bed (REQ-SET-133); the comfort target; a hearth's fuel.
 - **Seen.** Clicking the hall opens its panel (no key). While the upgrade is carried in, a stone heap, a timber stack
   and the cloth grow by the hall's east end; while it is built, a work rail of fence lengths stands before it; the great
-  hall has a second chimney pot and two woven roundels in its outer bays; each banner is a cloth hung in a bay, dyed in
-  the woodland palette. All composed from library models (`hall_view.gd`): the hall itself is never moved or scaled.
+  hall is the staged stone hall (`hall_stage2`, art pass 2) in the timber hall's place, at its own transform, with two
+  woven roundels in its outer bays (Brendan, decision 0903) -- without it, the same roundels and a second chimney pot; each banner is the linen `hall_banner` (its cloth
+  dyed in the woodland palette, its wood not), or a cloth stand-in. `hall_view.gd` never moves or scales the hall.
 - **The village tapestry** (`tapestry.gd`, `tapestry_panel.gd`; The tapestry, in the hall's panel): the village's
   history as a woven timeline -- oldest first, each entry a knot in its kind's colour on one thread -- with stage 1 at
   the start, the first harvest, the first winter, stage 2 and each banner, each woven once. An **original** community
@@ -2375,8 +2460,9 @@ ruled). No illness is modelled: the family illnesses (CHILL) are a draft.
   building does): wood and stone fetched from the stores at the open stockpile, cloth -- the village stores' one cloth,
   shared with the hall and the treatments (decision 0993) -- fetched at the care shelf by the hall's steps, the books
   always adding up; **Cancel the infirmary** returns all before the work begins, 80% after. It is drawn
-  with the library's residence model at the infirmary's 5.5 m envelope, with herb strings and a shelf of remedies at its
-  door (no infirmary model exists: an art gap), flat while fetched for, rising as it is built.
+  with the food art's infirmary ward (decision 0941; wired by decision 0903; else the library's residence) at the
+  infirmary's 5.5 m envelope, with herb strings and a shelf of remedies before its door, flat while fetched for, rising as
+  it is built. Its herb patch is the food art's herb patch where staged, else procedural clumps.
 - **A hurt resident rests** (`care_tasks.gd` BedRest): in the infirmary when it is built and has a bed -- in at its
   door, admitted to a bed, treated there, mending at +4 an hour, at most 2 healers inside at once; before it is built,
   or when it is full, in its own bed, else lying at its **field-care spot** before the hall's steps (decision 0623 P2).
@@ -2428,6 +2514,7 @@ ruled). No illness is modelled: the family illnesses (CHILL) are a draft.
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel; whose water range the map layer paints (`water_range.gd`) |
 | `farm/` | The farm: real FarmPlot rows, the pantry (and its ledger) and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves; the seasonal planner -- its overview rows, season calendar and timeline, soil plans, the after-action record and its tables (`farm_planner*.gd`, `farm_plan_rows.gd`, `farm_season.gd`, `farm_timeline.gd`, `farm_soil_plan*.gd`, `farm_record*.gd`) -- and the bed panel's Compare view (`farm_compare_view.gd`); the crop plans -- crop roles (`farm_crop_roles.gd`), the kitchen garden (`farm_garden*.gd`), harvest plans (`farm_harvest_*.gd`), tending policies (`farm_tending*.gd`) and the tunnel outlet box (`farm_outlet_box.gd`) |
 | `kitchen/` | The meal loop: the recipe book (`dish_book.gd`) and each species' favourites (`dish_favourites.gd`), the dishes' columns and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |
+| `orchard/` | The orchard (decisions 0671-0677): its numbers (`orchard_rules.gd`), the trees as real rows with the hedge, nursery plans, groups and the grove (`orchard_model.gd`), the jobs and their task (`orchard_jobs.gd`, `orchard_task.gd`), the words and cards (`orchard_text.gd`, `orchard_cards.gd`), the panel, the drawing, and the node wiring it into the village (`demo_orchard.gd`) |
 | `seasons/` | The seasons on the woods and ground (decision 0551): the sampling (`season_look.gd`), the view that writes it to every tree, the ground and the tufts (`season_view.gd`), the leaf shader include and the in-leaf tree shader, the bare boughs and the falling leaves |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |

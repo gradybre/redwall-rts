@@ -11,14 +11,21 @@ extends Node3D
 ##
 ## THE SPOTS:
 ##   * HOMES -- the hall, the three residences and the kitchen (daylight_curves.gd LIT_HOMES) -- lamplight at the door,
-##     HOME_GAP_M out from each front: the building models carry one baked material with no window slot, so the homes
-##     read lit by their spill rather than by glowing windows (no new assets);
+##     HOME_GAP_M out from each front, the spill that lights the doorway and the ground before it;
 ##     WHICH HOMES ARE LIT is one query, `set_home_lit(lit)` -- `lit(k: int) -> bool` for home k in LIT_HOMES order --
 ##     read with the mouths (every MOUTH_POLL_S). Without one every home is lit while the lamps are; the winter fuel
 ##     work wires it to its "fuelled and demanded" hearth (a home's `night_routine.hearth_lit(r)`, the hall's
 ##     `demo_winter.fuel.hearth_lit(HALL)`), so a cold, unfuelled home stands dark;
 ##   * TUNNEL MOUTHS -- each standing arch's lantern (tunnel_overlay.gd `lantern_spots_into`), read again every
 ##     MOUTH_POLL_S, since mouths come and go only as tunnels are dug.
+##
+## THE WINDOWS (art pass 2, decision 0951). Where a home's `<key>_windows` model is staged (demo_world.gd THE HOMES'
+## WINDOWS; the hall's stone stage 2 too), its window mask glows: `bind_windows(glow_of)` -- `glow_of(id: StringName)
+## -> Array` of BaseMaterial3D, demo_world.gd `window_glow` -- and each home's materials' emission_energy_multiplier is
+## WINDOW_GLOW x the level while that home is lit (the SAME flag as its door lamp), 0 by day or while it stands dark.
+## Written only when a home's value changes (the level easing at dawn and dusk, or its flag), never otherwise. Nothing
+## staged: empty lists, nothing glows.
+## The residence's mask is effectively empty (its windows are shutters) and the kitchen's small: their door lamps stay.
 ##
 ## THE LEVEL (`set_level`, the lighting cycle's LAMPS: 1 at night, 0 by day) scales every light's energy; at 0 the pool
 ## is hidden and nothing runs. Each light wavers FLICKER either side of its energy, gently and slowly, in REAL time so
@@ -41,6 +48,8 @@ const MAX_MOUTHS: int = Rules.MAX_MOUTHS
 ## A light's spot kinds.
 const KIND_HOME: int = 0
 const KIND_LANTERN: int = 1
+## The windows' emission at full night (I11 Ember's mask, art pass 2: "0 -> about 1.5").
+const WINDOW_GLOW: float = 1.5
 
 var _lights: Array[OmniLight3D] = []
 ## Per pooled light: its spot's kind (-1: unused).
@@ -70,6 +79,11 @@ var _best_kind: PackedInt32Array = PackedInt32Array()
 var _found: int = 0
 ## Assignments so far (checks and measurement).
 var assignments: int = 0
+## Per home (LIT_HOMES order): its window materials (THE WINDOWS; the world's own lists), and the energy last written.
+var _glow: Array[Array] = []
+var _glow_at: PackedFloat64Array = PackedFloat64Array()
+## Window energy writes so far (checks).
+var glow_writes: int = 0
 
 
 func configure(homes: PackedVector3Array, mouth_source: Callable, focus_source: Callable,
@@ -122,6 +136,8 @@ func set_level(lit: float) -> void:
 	_level = clampf(lit, 0.0, 1.0)
 	if _level > 0.0 and _level != was:
 		flicker()
+	if _level != was:
+		write_windows()
 	if (_level > 0.0) != was_lit:
 		_dirty = true
 		if _level <= 0.0:
@@ -151,7 +167,36 @@ func read_homes() -> bool:
 			changed = true
 	if changed:
 		_dirty = true
+		write_windows()
 	return changed
+
+
+func bind_windows(glow_of: Callable) -> void:
+	"""The homes' window materials (see THE WINDOWS): `glow_of(id)` for each home's LIT_HOMES id, kept by reference,
+	and written at once. After a world rebuild (its lists refilled dark) bind again, so every home is rewritten."""
+	_glow.clear()
+	for k in mini(_homes.size(), Curves.LIT_HOMES.size()):
+		_glow.append(glow_of.call(Curves.LIT_HOMES[k]) as Array)
+	_glow_at.resize(_glow.size())
+	_glow_at.fill(-1.0)
+	write_windows()
+
+
+func write_windows() -> void:
+	"""Each home's windows at WINDOW_GLOW x the level while it is lit, else dark -- written only where that changed."""
+	for k in _glow.size():
+		var energy: float = WINDOW_GLOW * _level if _home_on[k] == 1 else 0.0
+		if energy == _glow_at[k]:
+			continue
+		_glow_at[k] = energy
+		for material: BaseMaterial3D in _glow[k]:
+			material.emission_energy_multiplier = energy
+		glow_writes += 1
+
+
+func window_energy(k: int) -> float:
+	"""The energy home `k`'s windows were last written at (-1: never; checks)."""
+	return _glow_at[k] if k < _glow_at.size() else -1.0
 
 
 func set_mouth_source(source: Callable) -> void:

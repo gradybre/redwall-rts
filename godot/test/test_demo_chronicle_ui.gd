@@ -16,6 +16,7 @@ const Ledger := preload("res://demo/people/people_ledger.gd")
 const HistoryScript := preload("res://demo/ui/demo_news_history.gd")
 const GuideWindowScript := preload("res://demo/guide/guide_window.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const UiArt := preload("res://test/fixtures/ui_art_fixture.gd")
 
 const SUMMER_TICK: int = 12 * SimClock.TICKS_PER_DAY - SimClock.CALENDAR_OFFSET_TICKS
 
@@ -180,3 +181,71 @@ func test_the_village_guide_has_a_chronicle_button_that_closes_it_first() -> voi
 	assert_equal(opened.size(), 1, "the chronicle opened")
 	guide.set_chronicle(Callable())
 	assert_false(guide.chronicle_button().visible, "unset: hidden again")
+
+
+# --- the page art (art pass 2, decision 0951) ----------------------------------------------------------------------
+
+func test_with_no_page_staged_the_page_is_drawn_as_before() -> void:
+	"""CI's case (an empty manifest): the sheet has no box; the text takes the whole sheet."""
+	var book: WindowScript = _window(_chronicle(1))
+	book.set_art(UiArt.empty())
+	book.open(0)
+	assert_false(book.has_page_art(), "no page art")
+	assert_true(book.sheet().get_theme_stylebox(&"panel") is StyleBoxEmpty, "no box")
+	assert_equal(book.text_area_rect(), Rect2(), "no text area")
+	assert_equal(book.shown_lines()[0].custom_minimum_size.x, 600.0, "the whole sheet")
+
+
+func test_the_staged_page_lies_under_the_text_scaled_to_the_sheet() -> void:
+	"""Staged: a nine-patch whose margins are the text area's, scaled as one to the sheet's width; the lines exactly
+	the text area's width; the sheet at least the page's own height."""
+	var book: WindowScript = _window(_chronicle(1))
+	book.set_art(UiArt.staged([]))
+	book.open(0)
+	assert_true(book.has_page_art(), "the page art")
+	var box := book.sheet().get_theme_stylebox(&"panel") as StyleBoxTexture
+	assert_not_null(box, "a textured page")
+	var s: float = 600.0 / 752.0
+	assert_almost_equal(box.texture_margin_left, 130.0 * s, "left: the text area's, scaled")
+	assert_almost_equal(box.texture_margin_top, 150.0 * s, "top")
+	assert_almost_equal(box.texture_margin_right, (752.0 - 622.0) * s, "right")
+	assert_almost_equal(box.texture_margin_bottom, (1048.0 - 898.0) * s, "bottom")
+	assert_almost_equal(box.content_margin_left, box.texture_margin_left, "the text inside the left margin")
+	assert_almost_equal(box.content_margin_top, box.texture_margin_top, "and the top")
+	assert_equal(box.texture.get_size(), Vector2(roundf(752.0 * s), roundf(1048.0 * s)), "the page scaled as one")
+	assert_almost_equal(book.sheet().custom_minimum_size.y, 1048.0 * s, "at least the page's height")
+	for line: Label in book.shown_lines():
+		assert_almost_equal(line.custom_minimum_size.x, (622.0 - 130.0) * s, "%s: the text area's width" % line.text)
+
+
+func test_the_page_body_fills_the_text_area_and_the_shared_picture_keeps_its_size() -> void:
+	"""The page body -- the panel's content rect, what PanelContainer fits its child to (the live frames show it laid
+	out) -- is exactly the text area; the props table's own picture is never resized (the book scales its copy)."""
+	var props: UiArt.PropsScript = UiArt.staged([])
+	var book: WindowScript = _window(_chronicle(1))
+	book.set_art(props)
+	book.open(0)
+	var sheet: PanelContainer = book.sheet()
+	sheet.size = Vector2(600.0, sheet.get_combined_minimum_size().y)
+	var box := sheet.get_theme_stylebox(&"panel") as StyleBoxTexture
+	var body := Rect2(box.get_offset(), sheet.size - box.get_minimum_size())
+	var area: Rect2 = book.text_area_rect()
+	assert_true(area.size.x > 0.0 and area.size.y > 0.0, "a text area")
+	assert_true(area.is_equal_approx(body), "the body (the panel's content rect) is the text area: %s vs %s" % [body, area])
+	var path: String = String((props.ui_row("chronicle_page") as Dictionary)["path"])
+	assert_equal(props.ui_texture(path).get_size(), Vector2(752.0, 1048.0), "the shared picture unscaled")
+
+
+func test_a_page_laid_then_unstaged_is_drawn_plain_again() -> void:
+	"""Staged, then given a table with none: no box, no page height, the text the whole sheet once more."""
+	var book: WindowScript = _window(_chronicle(1))
+	book.set_art(UiArt.staged([]))
+	book.open(0)
+	book.set_art(UiArt.empty())
+	assert_false(book.has_page_art(), "plain again")
+	assert_true(book.sheet().get_theme_stylebox(&"panel") is StyleBoxEmpty, "no box")
+	assert_equal(book.sheet().custom_minimum_size.y, 0.0, "no page height")
+	assert_equal(book.shown_lines()[0].custom_minimum_size.x, 600.0, "the whole sheet")
+	book.set_art(UiArt.staged([]))
+	book.set_art(null)
+	assert_false(book.has_page_art(), "no props: plain")

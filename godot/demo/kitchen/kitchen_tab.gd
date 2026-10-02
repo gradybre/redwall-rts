@@ -13,6 +13,7 @@ const Palette := preload("res://demo/ui/woodland_palette.gd")
 const CardScript := preload("res://demo/ui/action_card.gd")
 const StoreScript := preload("res://demo/kitchen/meal_store.gd")
 const FedScript := preload("res://demo/kitchen/nourishment.gd")
+const PropsScript := preload("res://demo/props/demo_props.gd")
 
 signal said(text: String)
 
@@ -21,6 +22,9 @@ const NOTE_PX: int = 14
 ## How many meals the tab lists, newest first.
 const LAST_MEALS: int = 4
 const TARGET_PX: float = 32.0
+## The dishes' icons (decision 0903: the food art's dish icons, by key) -- the planned meals' and those in the pot --
+## at FarmUi's icon size, at most this many.
+const MEAL_ICONS: int = 8
 const KEEP_ON: String = "Keep water drawn: on"
 const KEEP_OFF: String = "Keep water drawn: off"
 const KEEP_TIP: String = "On: whoever is free draws the water the planned meals need. Off: only Draw water does."
@@ -43,6 +47,9 @@ var _cook: Button = null
 var _draw: Button = null
 var _keep: Button = null
 var _cancel: Button = null
+## The staged props (null: no icons), and the planned dishes' icons above the meal lines (hidden while none is staged).
+var _props: PropsScript = null
+var _meal_icons: HBoxContainer = null
 
 
 func configure(kitchen: KitchenScript, members: Callable, interrupt: Callable) -> void:
@@ -55,6 +62,7 @@ func configure(kitchen: KitchenScript, members: Callable, interrupt: Callable) -
 	add_theme_constant_override(&"separation", 6)
 	_cook_line = _line(FarmUi.BODY_PX, Palette.INK)
 	_shortage = _line(FarmUi.BODY_PX, Palette.CLAY)
+	_meal_icons = _icon_row()
 	_meals = _line(FarmUi.BODY_PX, Palette.INK)
 	_pot = _line(FarmUi.BODY_PX, Palette.INK)
 	_water = _line(FarmUi.BODY_PX, Palette.INK)
@@ -70,6 +78,65 @@ func _line(px: int, colour: Color) -> Label:
 	var made: Label = FarmUi.label("", px, colour)
 	add_child(made)
 	return made
+
+
+func _icon_row() -> HBoxContainer:
+	"""MEAL_ICONS pooled icons at FarmUi's icon size, added (hidden until a planned dish has a staged icon)."""
+	var row := HBoxContainer.new()
+	row.name = "MealIcons"
+	row.add_theme_constant_override(&"separation", 6)
+	for k: int in MEAL_ICONS:
+		var icon := TextureRect.new()
+		icon.custom_minimum_size = Vector2(FarmUi.ICON_PX, FarmUi.ICON_PX)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_PASS
+		row.add_child(icon)
+	row.visible = false
+	add_child(row)
+	return row
+
+
+func set_props(props: PropsScript) -> void:
+	"""Draw the planned dishes' staged icons from `props` (null: none; their lines are unchanged either way)."""
+	_props = props
+
+
+func _fill_meal_icons() -> void:
+	"""The icon of each dish planned (in the meal lines' order) and then each with portions in the pot, once each and
+	named in its tooltip; the row hidden when none has a staged icon (CI, or dishes the food art did not draw)."""
+	var shown: int = 0
+	for key: int in _kitchen.planned_keys():
+		shown = _show_dish_icon(_kitchen.plan_of(key)[0], shown)
+	for dish: int in Rules.DISH_COUNT:
+		if _kitchen.store.portions_of(dish) > 0:
+			shown = _show_dish_icon(dish, shown)
+	for k: int in range(shown, MEAL_ICONS):
+		(_meal_icons.get_child(k) as TextureRect).visible = false
+	_meal_icons.visible = shown > 0
+
+
+func _show_dish_icon(dish: int, shown: int) -> int:
+	"""Dish `dish`'s staged icon in the row's next cell, unless it has none or is shown already; the cells now used."""
+	var icon: Texture2D = _props.staged_icon(Rules.DISH_ICON_KEYS[dish]) if _props != null else null
+	if icon == null or shown >= MEAL_ICONS:
+		return shown
+	for k: int in shown:
+		if (_meal_icons.get_child(k) as TextureRect).texture == icon:
+			return shown
+	var cell := _meal_icons.get_child(shown) as TextureRect
+	cell.texture = icon
+	cell.tooltip_text = Rules.DISH_NAMES[dish]
+	cell.visible = true
+	return shown + 1
+
+
+func meal_icons_shown() -> int:
+	"""How many planned dishes' icons the row shows (checks)."""
+	var shown: int = 0
+	for k: int in MEAL_ICONS:
+		shown += 1 if _meal_icons.visible and (_meal_icons.get_child(k) as Control).visible else 0
+	return shown
 
 
 func _buttons() -> HFlowContainer:
@@ -107,6 +174,7 @@ func refresh() -> void:
 	_shortage.visible = not d.ok() and d.code != KitchenScript.NOTHING_TO_COOK
 	_shortage.text = Words.cant(d.reason, d.fix) if _shortage.visible else ""
 	_meals.text = meals_text()
+	_fill_meal_icons()
 	_pot.text = pot_text()
 	_water.text = water_text()
 	_village.text = village_text()

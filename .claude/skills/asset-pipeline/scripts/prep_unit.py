@@ -39,6 +39,10 @@ def parse_args() -> argparse.Namespace:
                         help="Target height in metres (see the tier table in SKILL.md)")
     parser.add_argument("--no-rotate", action="store_true",
                         help="Skip the Z-up correction (for an input already Y-up)")
+    parser.add_argument("--allow-flat", action="store_true",
+                        help="Skip the 'upright' check, for a model MEASURED Y-up that is deeper than "
+                             "it is tall (a ground patch, a basket, a wide building). The check cannot "
+                             "tell such a model from one lying on its back, so the measurement must")
     return parser.parse_args(argv)
 
 
@@ -113,7 +117,7 @@ def export_glb(obj: bpy.types.Object, path: str) -> None:
     )
 
 
-def verify(obj: bpy.types.Object, target: float) -> bool:
+def verify(obj: bpy.types.Object, target: float, allow_flat: bool = False) -> bool:
     """Report the finished state and whether it meets the pipeline contract."""
     bpy.context.view_layer.update()
     corners = [obj.matrix_world @ mathutils.Vector(c) for c in obj.bound_box]
@@ -128,7 +132,11 @@ def verify(obj: bpy.types.Object, target: float) -> bool:
     print("  dimensions X/Y/Z: %.4f %.4f %.4f" % (dims.x, dims.y, dims.z))
     print("  height: %.4f m (target %.4f)  %s" % (height, target, "OK" if at_height else "MISMATCH"))
     print("  feet at Z=0: %s  (min_z %.6f)" % ("OK" if at_origin else "NO", min_z))
-    print("  upright (Z >= Y): %s" % ("OK" if upright else "NO"))
+    if allow_flat:
+        print("  upright (Z >= Y): skipped (--allow-flat; Z %.4f, Y %.4f)" % (dims.z, dims.y))
+        upright = True
+    else:
+        print("  upright (Z >= Y): %s" % ("OK" if upright else "NO"))
     print("  triangles: %d" % len(obj.data.polygons))
     return at_height and at_origin and upright
 
@@ -150,7 +158,7 @@ def main() -> None:
     print("  scale factor: %.5f" % factor)
     origin_to_feet(obj)
 
-    ok = verify(obj, args.height)
+    ok = verify(obj, args.height, args.allow_flat)
     export_glb(obj, args.output)
     print("exported: %s (%d bytes)" % (args.output, os.path.getsize(args.output)))
     if not ok:

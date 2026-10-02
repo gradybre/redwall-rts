@@ -118,6 +118,10 @@ var _props: PropsScript = null
 var _notice: Callable = Callable()
 var _compost_left: Callable = Callable()
 var _compost_take: Callable = Callable()
+## THE PROTECTED GROVE (decision 0675, review ECO-015; demo/orchard/): `protected(at: Vector2) -> bool` -- whether a tree
+## standing there is in a protected grove. Every fell -- the player's, a zone's routine, the winter's firewood -- asks
+## `_fell_refusal`, which refuses such a tree (REFUSE_GROVE). Unset: no grove.
+var _protected: Callable = Callable()
 var _crew: PackedInt32Array = PackedInt32Array()
 var _reach: Rect2 = Rect2(-Rules.REACH_M, -Rules.REACH_M, 2.0 * Rules.REACH_M, 2.0 * Rules.REACH_M)
 ## Where the crew may be sent to stand: the reach and the margin beyond it.
@@ -175,6 +179,15 @@ func configure(cast: DemoCastScript, stand: StandScript, zones: ZonesScript, dea
 func set_notice(notice: Callable) -> void:
 	"""`notice(text)` reports what happened (the demo's notice feed, source Woods)."""
 	_notice = notice
+
+
+## A fell on a tree in a protected grove (see THE PROTECTED GROVE).
+const REFUSE_GROVE: String = "IN_PROTECTED_GROVE"
+
+
+func set_protected(protected: Callable) -> void:
+	"""THE PROTECTED GROVE's rule (`protected(at) -> bool`, demo_orchard.gd `grove_protects`)."""
+	_protected = protected
 
 
 func set_compost(left: Callable, take: Callable) -> void:
@@ -351,6 +364,8 @@ func _fell_refusal(t: int) -> String:
 		return StandScript.REFUSE_NOT_MATURE
 	if not _reach.has_point(_stand.at[t]):
 		return "BEYOND_REACH"
+	if _protected.is_valid() and bool(_protected.call(_stand.at[t])):
+		return REFUSE_GROVE
 	return _zones.fell_refusal(_stand, t, pending_fells_in_zone(t))
 
 
@@ -386,6 +401,8 @@ func reason_text(code: String, target: int) -> String:
 			return "%s must keep %s" % [_zone_name(target), _floor_words(target)]
 		"BEYOND_REACH":
 			return "it stands beyond the village's reach (%d m)" % int(Rules.REACH_M)
+		REFUSE_GROVE:
+			return "it stands in a protected grove — never felled (the Orchard panel's grove)"
 		"NO_COMPOST":
 			return "no compost to plant with (0.25 U needed)"
 		"NOT_ENOUGH_WOOD":

@@ -38,6 +38,7 @@ const FerryRules := preload("res://demo/ferry/ferry_rules.gd")
 const RegattaRules := preload("res://demo/regatta/regatta_rules.gd")
 const WinterRules := preload("res://demo/winter/winter_rules.gd")
 const ForageRules := preload("res://demo/forage/forage_rules.gd")
+const OrchardText := preload("res://demo/orchard/orchard_text.gd")
 
 const KIND_CROP: int = 0
 const KIND_DISH: int = 1
@@ -266,7 +267,9 @@ static func _choice_text(dish: int) -> String:
 
 func _goods(item: int) -> Entry:
 	"""One of the pantry's other goods (decision 0431): a fish of the catch, dried fish or flour -- or an ingredient with
-	no source yet (decision 0603: potato, honey)."""
+	no source yet (decision 0603: potato, honey), the woods' forage (decision 0681) or the orchard's fruit (0671)."""
+	if Catalog.category_of(item) == Catalog.CAT_FRUIT:
+		return _orchard_goods(item)
 	if item >= Catalog.FIRST_FORAGE:
 		return _forage_goods(item)
 	var links: Array[StringName] = [&"station_store", &"station_fishing"]
@@ -357,7 +360,18 @@ func _forage_goods(item: int) -> Entry:
 		PackedStringArray(["; ".join(uses) + ".",
 		"A foraging trip (the Woods panel's Foraging) while they are in season; the woods' daily quota and their stock above its floor bound it.",
 		"The other kinds of the woods; the fields for everyday food.",
-		"Gathered at %s; keeps %d game hours in store." % [ForageRules.SPOT_NAMES[k], Catalog.shelf_hours_of(item)]]), links)
+		"Gathered at %s%s; keeps %d game hours in store." % [ForageRules.SPOT_NAMES[k],
+			" and picked at the east orchard's berry hedge" if item == Catalog.ITEM_BERRIES else "",
+			Catalog.shelf_hours_of(item)]]), links)
+	made.item = item
+	return made
+
+
+func _orchard_goods(item: int) -> Entry:
+	"""The orchard's apple or pear (decision 0671): its summary and fields are the orchard's own text."""
+	var orchard: Array = OrchardText.guide_fields(item)
+	var links: Array[StringName] = [&"station_store"]
+	var made: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], orchard[0], orchard[1], links)
 	made.item = item
 	return made
 

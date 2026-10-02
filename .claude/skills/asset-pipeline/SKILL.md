@@ -167,7 +167,10 @@ blender --background --python .claude/skills/asset-pipeline/scripts/prep_unit.py
 ```
 
 It rotates the model upright, scales it to the target height, moves the pivot to
-the feet, exports a Y-up GLB, and verifies all three. **Exit code 1 means a
+the feet, exports a Y-up GLB, and verifies all three. Its `upright` check (height >= depth)
+fails a model that is wider than it is tall -- a ground patch, a basket, a broad
+building -- so pass `--allow-flat` for those, **only after measuring the input Y-up**
+(decision 0941). **Exit code 1 means a
 check failed — do not proceed.** Pass `--no-rotate` for input already Y-up —
 which, as of 2026-09-24, is current Meshy output. **Measure the input's axis
 first** (see the first gotcha); the rotation is fixed, not detected.

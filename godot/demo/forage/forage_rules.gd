@@ -37,8 +37,11 @@ const KIND_WORDS: Array[String] = ["nuts", "mushrooms", "herbs", "berries"]
 const NATURAL_DANGER: int = 1
 ## The spots (DEMO; metres, snapped to standable ground at configure): the hazel brake under the north woods' oaks and
 ## beeches, the beech hollow in the north-east shade, the herb bank at the sunny south-west edge, the bramble edge at the
-## south woods' edge by the road. By index into KINDS.
-const SPOT_AT: Array[Vector2] = [Vector2(-7.5, -29.4), Vector2(10.4, -30.4), Vector2(-12.0, 23.6), Vector2(8.0, 25.5)]
+## south woods' edge by the road. By index into KINDS. The bramble edge was (8.0, 25.5) on its lane, inside the orchard's
+## east planting block (orchard_rules.gd: x 6-14, z 22-30), where a planted tree would stand on it; since the batch 8
+## integration (decision 0903) it is west of the old orchard, at the south-west woods' edge (within the woods' 30 m
+## reach of the square, as every spot).
+const SPOT_AT: Array[Vector2] = [Vector2(-7.5, -29.4), Vector2(10.4, -30.4), Vector2(-12.0, 23.6), Vector2(-25.0, 27.0)]
 const SPOT_NAMES: Array[String] = ["the hazel brake", "the beech hollow", "the herb bank", "the bramble edge"]
 ## The party (DEMO).
 const PARTY_MIN: int = 1

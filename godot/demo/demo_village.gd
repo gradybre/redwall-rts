@@ -293,6 +293,9 @@ const WinterScript := preload("res://demo/winter/demo_winter.gd")
 const StandingScript := preload("res://demo/orders/demo_standing.gd")
 ## GameManager's host-clock field the season skip re-bases (see `forgive_host_time`).
 const HOST_USEC_FIELD: StringName = &"_last_host_usec"
+## The food art's herb patch (decision 0941), drawn for the infirmary's patch when staged (decision 0903).
+const HERB_PATCH_KEY: StringName = &"herb_patch"
+const EvergreensScript := preload("res://demo/world/evergreens.gd")
 const FuelPanelScript := preload("res://demo/winter/fuel_panel.gd")
 const DayNightScript := preload("res://demo/world/day_night.gd")
 const NightLightsScript := preload("res://demo/world/night_lights.gd")
@@ -302,6 +305,7 @@ const HearthFuelScript := preload("res://demo/winter/hearth_fuel.gd")
 const HallScript := preload("res://demo/hall/demo_hall.gd")
 const TapestryScript := preload("res://demo/hall/tapestry.gd")
 const CareScript := preload("res://demo/infirmary/demo_care.gd")
+const OrchardScript := preload("res://demo/orchard/demo_orchard.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -353,6 +357,8 @@ var _links: LinksScript = null
 var _spoil: SpoilScript = null
 var _canopy: CanopyScript = null
 var _seasons: SeasonViewScript = null
+## Art pass 2's pines and yews in the outer woods (demo/world/evergreens.gd; decision 0903).
+var _evergreens: EvergreensScript = null
 var _prewarm: PrewarmScript = PrewarmScript.new()
 var _shadow_view_m: float = -1.0
 var _gate: InputGateScript = InputGateScript.new()
@@ -411,6 +417,8 @@ var _hall: HallScript = null
 var _care: CareScript = null
 ## Feature #22 (decision 0681): the foraging trips.
 var _forage: ForageNodeScript = null
+## THE ORCHARD (decisions 0671-0677; demo/orchard/): built after the spoil heaps, before the woods (its clicks first).
+var _orchard: OrchardScript = null
 
 
 func _ready() -> void:
@@ -434,6 +442,7 @@ func _ready() -> void:
 	_build_farm(manifest)
 	_build_kitchen()
 	_build_spoil()
+	_build_orchard()
 	_build_forestry()
 	_build_canopy()
 	_build_winter()
@@ -524,6 +533,8 @@ func _build_cast(manifest: Dictionary) -> void:
 	obstacles.append_array(ForestryScript.extra_obstacles(_world as DemoWorldScript))
 	obstacles.append_array(WaterplayScript.land_obstacles())
 	obstacles.append_array(WeirViewScript.land_obstacles())
+	obstacles.append_array(OrchardScript.land_obstacles())
+	obstacles.append_array(EvergreensScript.land_obstacles((_world as DemoWorldScript).trees()))
 	_links = WaterplayScript.make_links(_water.map(), obstacles)
 	obstacles.append_array(_links.band)
 	_cast.build(manifest, _water.merged_points(_world.points_of_interest()), obstacles, _links.area)
@@ -615,6 +626,23 @@ func spoil() -> SpoilScript:
 	return _spoil
 
 
+func _build_orchard() -> void:
+	"""THE ORCHARD (demo/orchard/, decisions 0671-0677): the trees, the hedge, the nursery and the grove over the farm's
+	pantry (its basket stands are in `storage_providers`) and compost; its hooks into the woods, the seasons, the
+	right column and the work board are made as those are built."""
+	_orchard = OrchardScript.new()
+	add_child(_orchard)
+	_orchard.configure(_world as DemoWorldScript, _cast as DemoCastScript, _command as DemoCommandScript,
+		_camera.camera(), _services, _farm.pantry)
+	_orchard.set_compost(compost_left, take_compost)
+	_orchard.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
+
+
+func orchard() -> OrchardScript:
+	"""The village's orchard (demo/orchard/demo_orchard.gd)."""
+	return _orchard
+
+
 func _build_forestry() -> void:
 	"""The woods, after the farm (the calendar's owner): the world's trees bound to real rows with the
 	compiled `wood` item, the crew on the cast, planting's compost from the farm's store, and the woods'
@@ -626,6 +654,8 @@ func _build_forestry() -> void:
 	_forestry.configure(_world as DemoWorldScript, _cast as DemoCastScript, _command as DemoCommandScript,
 		_camera.camera(), _services, wood)
 	_forestry.crew.set_compost(compost_left, take_compost)
+	_forestry.crew.set_protected(_orchard.grove_protects)
+	_orchard.set_woods(_forestry.stand)
 	_forestry.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
 	var woods: int = _farm.add_overlay("Woods", "Zones and trees", WOODS_LENS_QUESTION, _forestry.set_overlay)
 	_farm.lenses.set_legend(woods, PackedColorArray([ForestMarks.FORESTRY_COLOUR, ForestMarks.CONSERVATION_COLOUR,
@@ -713,6 +743,15 @@ func _build_seasons() -> void:
 	add_child(_seasons)
 	_seasons.configure(_services.calendar, (_cast as DemoCastScript).clock, _world as DemoWorldScript, _forestry.stand,
 		_forestry.view, (_command as DemoCommandScript).tunnels().ext.weather_view, _canopy.fade_material_for)
+	_seasons.add_trees(_orchard.view)
+	var world := _world as DemoWorldScript
+	_evergreens = EvergreensScript.new()
+	add_child(_evergreens)
+	if _evergreens.build(world.make_piece, world.is_staged, world.trees()) > 0:
+		_seasons.add_trees(_evergreens)
+	var rows: Dictionary = DemoManifestScript.load_manifest()["world"]
+	_seasons.use_authored_bare(String((rows.get("oak_mature", {}) as Dictionary).get("path", "")),
+		String((rows.get("oak_mature_bare", {}) as Dictionary).get("path", "")))
 
 
 func seasons() -> SeasonViewScript:
@@ -795,7 +834,18 @@ func _build_care() -> void:
 	command.add_input_hook(_care.building.handle_input)
 	tool.ext.panel.add_section(_care.section)
 	_care.desk.pantry_herb = _pantry_herb
+	var world := _world as DemoWorldScript
+	if world.is_staged(HERB_PATCH_KEY):
+		_care.patch_view.use_model(world.make_piece(HERB_PATCH_KEY, Vector2.ZERO, 0.4, 1.0))
 	_winter.bind_infirmary(_care.building.project.is_done, _care.building.project.has_patients)
+
+
+func _cast_key_of(who: int) -> StringName:
+	"""Resident `who`'s cast key (its portrait's key, demo_props.gd `portrait`; decision 0903), or &"" when there is no
+	such resident."""
+	if who < 0 or who >= (_cast as DemoCastScript).actor_count():
+		return &""
+	return ((_cast as DemoCastScript).actor(who) as DemoActorScript).creature_key
 
 
 func _pantry_herb(milli: int) -> int:
@@ -815,6 +865,9 @@ func _build_forage() -> void:
 	_forage = ForageNodeScript.new()
 	add_child(_forage)
 	_forage.configure(_cast as DemoCastScript, _command as DemoCommandScript, _services, _farm.pantry, _forestry.panel)
+	var world := _world as DemoWorldScript
+	if _forage.place_spots(world.make_piece, world.is_staged) > 0:
+		_seasons.add_trees(_forage.view)
 
 
 func forage() -> ForageNodeScript:
@@ -837,6 +890,7 @@ func _build_work() -> void:
 	_work.add_care(_care.building.builders)
 	if _forage.is_ready():
 		_work.add_forage(_forage.trips)
+	_work.add_orchard(_orchard.jobs)
 	var command: DemoCommandScript = _command as DemoCommandScript
 	_work.set_readouts(command.activity_text, (GameManager as GameManagerScript).is_paused, work_jump, command.selected)
 	command.set_queue_handler(_work.queue_at)
@@ -853,6 +907,7 @@ func _build_group_select() -> void:
 	add_child(_group_select)
 	var command: DemoCommandScript = _command as DemoCommandScript
 	_group_select.configure(command, _cast as DemoCastScript, _work.board, (_camera as DemoCameraScript).centre_on)
+	_group_select.panel.set_portraits(_services.props, _cast_key_of)
 	_group_select.bind_needs(_kitchen.kitchen.fed_word, command.tunnels().ext.night)
 	_group_select.statuses.add(&"chilled", "Chilled", GroupStatusScript.SEVERITY_WARN, _winter.cold.is_chilled)
 	_group_select.statuses.add(&"injured", "Injured", GroupStatusScript.SEVERITY_WARN, _care.desk.state.is_hurt)
@@ -934,6 +989,7 @@ func _build_hall() -> void:
 	add_child(_hall)
 	var command: DemoCommandScript = _command as DemoCommandScript
 	_hall.configure(_cast as DemoCastScript, _services, _world, _camera.camera())
+	_hall.tapestry_panel.set_art(_services.props)
 	_hall.bind_board(_work.board)
 	_hall.bind_farm(_farm.crew)
 	_hall.set_selection(command.selected)
@@ -1135,6 +1191,7 @@ func _build_chronicle() -> void:
 	_chronicle_window = ChronicleWindowScript.new()
 	add_child(_chronicle_window)
 	_chronicle_window.configure(_chronicle)
+	_chronicle_window.set_art(_services.props)
 	_history.set_chronicle(_chronicle_window.open)
 	_guide.window.set_chronicle(_chronicle_window.open)
 
@@ -1170,6 +1227,7 @@ func _build_people() -> void:
 	command.set_person_info(_people.inspector_info, _people.stamp_of)
 	command.panel().person_section().go_to.connect(func(kind: int, id: int) -> void: _jump.jump(kind, id))
 	command.panel().person_section().notable_pressed.connect(_people.pin_notable)
+	command.panel().person_section().set_portraits(_services.props, _cast_key_of)
 	_roster.set_notable(_people.is_notable)
 	tool.ext.works.voice = _people.voice
 	_people_card = PeopleCardScript.new()
@@ -1276,6 +1334,8 @@ func _build_shared_ui() -> void:
 	_zone.add_panel(DetailZoneScript.PANEL_TUNNELS, ext.panel)
 	_zone.add_panel(DetailZoneScript.PANEL_WOODS, _forestry.panel)
 	_zone.add_panel(DetailZoneScript.PANEL_WATER, _waterplay.panel)
+	_zone.add_panel(DetailZoneScript.PANEL_ORCHARD, _orchard.panel)
+	_orchard.set_panel_shower(_zone.show_panel.bind(DetailZoneScript.PANEL_ORCHARD))
 	_build_lens_picker()
 	_farm.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_FARM))
 	ext.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_TUNNELS))
@@ -1298,6 +1358,7 @@ func _build_daylight() -> void:
 	_day_night.configure(_services.calendar, _world, tunnels.ext.weather_view, _night_lights)
 	_day_night.set_smoke_tinter(tunnels.ext.fixture_view.set_smoke_tint)
 	_night_lights.set_home_lit(home_lamp_lit)
+	_night_lights.bind_windows((_world as DemoWorldScript).window_glow)
 	var shell: UiShell = _shell()
 	if shell != null:
 		_day_night.set_date_button(shell.status_label())
@@ -1502,7 +1563,8 @@ func storage_providers() -> Array[Callable]:
 	network's dug root cellars (demo/farm/farm_cellars.gd over underground_rooms `cellars()`), delivered at
 	their hatches, and the kitchen's pantry at its door (demo/kitchen/demo_kitchen.gd, decision 0381)."""
 	var network: GraphScript = (_command as DemoCommandScript).tunnels().network
-	var providers: Array[Callable] = [FarmCellars.provider(network), KitchenNodeScript.pantry_provider()]
+	var providers: Array[Callable] = [FarmCellars.provider(network), KitchenNodeScript.pantry_provider(),
+		OrchardScript.stand_provider()]
 	return providers
 
 

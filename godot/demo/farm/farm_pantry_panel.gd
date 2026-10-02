@@ -48,6 +48,7 @@ const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const GoodsScript := preload("res://demo/farm/farm_goods.gd")
 const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
+const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 
 signal compost_requested
 signal close_requested
@@ -410,11 +411,12 @@ func _fill_stocks() -> void:
 	spoiled row."""
 	_rows.update(_pantry, _sim.calendar.hour_index())
 	var extra: Array = _kitchen.call(&"stock_rows") if _kitchen != null else []
+	var dishes: PackedInt32Array = _kitchen.call(&"stock_row_dishes") if _kitchen != null else PackedInt32Array()
 	_ensure_stock_rows(_rows.count() + extra.size())
 	for row: int in _stock_icons.size():
 		_fill_stock_row(row)
 	for k: int in extra.size():
-		_fill_kitchen_row(_rows.count() + k, extra[k])
+		_fill_kitchen_row(_rows.count() + k, extra[k], dishes[k] if k < dishes.size() else MealRules.NO_DISH)
 	var empty: bool = _rows.count() == 0
 	_empty.visible = empty
 	_stock_grid.visible = not empty or not extra.is_empty()
@@ -450,11 +452,13 @@ func _fill_stock_row(row: int) -> void:
 		_stock_icons[row].texture = _goods.icon_of(_rows.item[row])
 
 
-func _fill_kitchen_row(row: int, cells: PackedStringArray) -> void:
-	"""A kitchen stock row (see THE KITCHEN): its cells, no icon."""
+func _fill_kitchen_row(row: int, cells: PackedStringArray, dish: int) -> void:
+	"""A kitchen stock row (see THE KITCHEN): its cells, and its dish's staged icon by key (decision 0903; none for the
+	water, or while nothing is staged)."""
 	var base: int = row * STOCK_HEADINGS.size()
 	_stock_icons[row].get_parent().visible = true
-	_stock_icons[row].texture = null
+	_stock_icons[row].texture = _goods.props.staged_icon(MealRules.DISH_ICON_KEYS[dish]) \
+		if _goods != null and dish != MealRules.NO_DISH else null
 	for column: int in STOCK_HEADINGS.size():
 		_stock_cells[base + column].visible = true
 		_stock_cells[base + column].text = cells[column]

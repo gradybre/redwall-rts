@@ -35,6 +35,7 @@ void vertex() {
 
 void fragment() {
 	vec4 albedo = texture(albedo_texture, UV) * albedo_color;
+	albedo.rgb = season_berries(albedo.rgb, UV);
 	float leaf = leafness(albedo.rgb, model_y);
 	float up = (INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).y;
 	ALBEDO = season_albedo(albedo.rgb, leaf, UV, up);

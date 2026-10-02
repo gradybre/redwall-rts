@@ -17,6 +17,7 @@
 # zero; raising one needs a decision record that names what is allowed and why.
 #
 # Usable locally as well as in CI: ./tools/run_tests.sh
+# Optional CI selection: ./tools/run_tests.sh --shard 0/8 --output-dir artifacts/test-shards
 set -uo pipefail
 
 readonly MAX_UNEXPECTED_ERRORS=0
@@ -32,6 +33,26 @@ if ! command -v godot >/dev/null 2>&1; then
     exit 127
 fi
 
+# No arguments still use the original complete runner. Only explicit shard mode
+# selects its subclass; both paths pass through every guard below unchanged.
+godot_script="test/run_tests.gd"
+shard_spec=""
+shard_output_dir=""
+if [[ "$#" -gt 0 ]]; then
+    if [[ "$#" -ne 4 || "$1" != --shard || "$3" != --output-dir || -z "$4" ]]; then
+        echo "usage: $0 [--shard INDEX/COUNT --output-dir DIR]" >&2
+        exit 2
+    fi
+    shard_spec="$2"
+    shard_output_dir="$4"
+    REDWALL_TEST_SHARD_SUITES="$(python3 tools/ci_test_shards.py prepare \
+        --shard "$shard_spec" --output-dir "$shard_output_dir")" || exit 1
+    export REDWALL_TEST_SHARD_SUITES
+    shard_index="$((10#${shard_spec%%/*}))"
+    rm -f "$shard_output_dir/shard-$shard_index.json" "$shard_output_dir/shard-$shard_index.log"
+    godot_script="$repo_root/tools/ci_test_shard_runner.gd"
+fi
+
 # Task 09.1: the future-affecting-state registry is enforced, not merely written.
 # This fails when a store under godot/scripts/core has no row, a row names a column
 # that no longer exists, or a declared width/count stops matching the GDScript.
@@ -39,10 +60,22 @@ fi
 # failure whether or not the Godot suite is green.
 python3 "$repo_root/docs/validation/state_registry_coverage.py" || exit 1
 
-output_file="$(mktemp)"
-trap 'rm -f "$output_file"' EXIT
+if [[ -n "$shard_spec" ]]; then
+    output_file="$shard_output_dir/shard-$shard_index.log"
+else
+    output_file="$(mktemp)"
+    trap 'rm -f "$output_file"' EXIT
+fi
 
-godot --headless --path godot --script test/run_tests.gd 2>&1 | tee "$output_file"
+report_line() {
+    echo "$@"
+    if [[ -n "$shard_spec" ]]; then
+        echo "$@" >> "$output_file"
+    fi
+}
+
+shard_started_seconds="$SECONDS"
+godot --headless --path godot --script "$godot_script" 2>&1 | tee "$output_file"
 godot_status="${PIPESTATUS[0]}"
 
 summary="$(grep -E '^[0-9]+ test\(s\), [0-9]+ assertion\(s\), [0-9]+ failure\(s\)$' \
@@ -79,7 +112,7 @@ leaked_objects="$(grep -oE '[0-9]+ ObjectDB instances were leaked' "$output_file
     | awk '{ total += $1 } END { print total + 0 }')"
 leaked_resources="$(grep -oE '[0-9]+ resources still in use at exit' "$output_file" \
     | awk '{ total += $1 } END { print total + 0 }')"
-echo "log: ${unexpected_errors} unexpected error(s), ${unexpected_warnings} unexpected warning(s);" \
+report_line "log: ${unexpected_errors} unexpected error(s), ${unexpected_warnings} unexpected warning(s);" \
     "leaked at exit: ${leaked_objects} object(s), ${leaked_resources} resource(s)."
 
 dirty=0
@@ -97,4 +130,8 @@ if [[ "$dirty" -ne 0 ]]; then
     exit 1
 fi
 
-echo "ok: ${tests} tests, ${assertions} assertions, 0 failures."
+report_line "ok: ${tests} tests, ${assertions} assertions, 0 failures."
+if [[ -n "$shard_spec" ]]; then
+    python3 tools/ci_test_shards.py record --shard "$shard_spec" --output-dir "$shard_output_dir" \
+        --wall-seconds "$((SECONDS - shard_started_seconds))" || exit 1
+fi

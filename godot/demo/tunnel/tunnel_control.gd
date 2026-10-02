@@ -162,6 +162,9 @@ var _bounds_u: Rect2i = Rect2i()
 var _circles_u: PackedInt32Array = PackedInt32Array()
 var _spots_u: PackedInt32Array = PackedInt32Array()
 var _under_u: PackedInt32Array = PackedInt32Array()
+## The world's buildings alone; `_under_u` adds every structure placed since (a cellar building, decision 0612; the
+## infirmary, decision 0623).
+var _world_under_u: PackedInt32Array = PackedInt32Array()
 var _ground: Vector2 = Vector2.ZERO
 var _cursor: Vector2 = Vector2.ZERO
 var _has_cursor: bool = false
@@ -244,7 +247,8 @@ func set_world(world: DemoWorldScript) -> void:
 	_world = world
 	view.set_world(world, world.building_obstacles(), world.trees())
 	overlay.bores.set_trees(world.trees())
-	_under_u = Rules.circles_to_u(PackedVector3Array(world.building_obstacles()))
+	_world_under_u = Rules.circles_to_u(PackedVector3Array(world.building_obstacles()))
+	_under_u = _world_under_u.duplicate()
 	ext.set_world(world, _under_u)
 
 
@@ -545,6 +549,11 @@ func site_key() -> Vector2i:
 	return Vector2i(network.revision, _space.obstacle_builds)
 
 
+## `(bed: int) -> bool`: whether a bed is laid out (the farm's `is_laid`): a kitchen-garden site nobody has laid out keeps
+## no room off it (decision 0883). None: no garden site counts.
+var bed_laid: Callable = Callable()
+
+
 func room_site() -> RoomsScript.Site:
 	"""What a room must keep clear of now (underground_rooms.gd Site): the village, the obstacles, work spots and
 	mouths, the buildings, the crop beds and the water."""
@@ -555,8 +564,10 @@ func room_site() -> RoomsScript.Site:
 	site.spots_u = _spots_u.duplicate()
 	site.under_u = _under_u.duplicate()
 	for bed in FarmCatalog.BED_COUNT:
+		if FarmCatalog.is_garden(bed) and not (bed_laid.is_valid() and bool(bed_laid.call(bed))):
+			continue
 		var at: Vector2 = FarmCatalog.bed_centre_m(bed)
-		site.beds_u.append_array(PackedInt32Array([Rules.to_u(at.x), Rules.to_u(FarmCatalog.BED_HALF_M), Rules.to_u(at.y)]))
+		site.beds_u.append_array(PackedInt32Array([Rules.to_u(at.x), Rules.to_u(FarmCatalog.bed_half_m(bed)), Rules.to_u(at.y)]))
 	site.water = ext.works.water.crosses_water
 	return site
 
@@ -692,6 +703,8 @@ func _refresh_clearances() -> void:
 	"""What a new mouth must clear now: every obstacle and heap, and every work spot and mouth (see WHAT A
 	PIECE MUST CLEAR)."""
 	_circles_u = Rules.circles_to_u(_space.obstacles)
+	_under_u = _world_under_u.duplicate()
+	_under_u.append_array(Rules.circles_to_u(_space.structure_circles()))
 	_spots_u.clear()
 	for poi in _space.poi_position.size():
 		for k in _space.poi_capacity[poi]:

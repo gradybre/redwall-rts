@@ -10,6 +10,13 @@ const CardScript := preload("res://demo/ui/action_card.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 
 const NOTHING_PLANNED: String = "No meal is planned yet"
+## The content library's book keys (CONTENT-LIB-001 §2) as the player reads them.
+const BOOK_TITLES: Dictionary = {"redwall": "Redwall", "mossflower": "Mossflower", "salamandastron": "Salamandastron",
+	"martin_warrior": "Martin the Warrior", "outcast": "The Outcast of Redwall", "pearls_lutra": "Pearls of Lutra",
+	"long_patrol": "The Long Patrol", "marlfox": "Marlfox", "lord_brocktree": "Lord Brocktree",
+	"taggerung": "The Taggerung", "triss": "Triss", "rakkety_tam": "Rakkety Tam"}
+## THE CHOICE in words (kitchen.gd): the Recipes tab says how the cook picks among the cookable dishes.
+const CHOICE_NOTE: String = "The cook picks each meal's dish from the food in store: one that feeds everyone first, then the food that keeps least long, then what the village likes most, then the plainest dish."
 ## The Kitchen tab's note: its hours are filled from meal_rules.gd's own (`tab_note`), so they cannot drift.
 const TAB_NOTE: String = "Breakfast is called at %02d:00 and supper at %02d:00. The cook is up at %02d:00 to cook breakfast, and cooks supper from %02d:00; each pot goes to the hall's table as it is cooked, and between meals the cook fetches the next day's food from the stores. The village is called once a meal is on its way. A portion is 1800 NP; a small resident needs 6000 a day."
 const ROUND_LABEL: String = "Cooking the village's meals"
@@ -192,20 +199,42 @@ static func cancelled_line(key: int) -> String:
 
 # --- refusals ------------------------------------------------------------------------------------------
 
-static func no_food_reason(dish: int, other_free: int) -> String:
-	"""No food for a batch of `dish` (nor of the other dish when `other_free` is short of a batch too)."""
+static func no_food_reason(dish: int, other_has: bool) -> String:
+	"""No food for a batch of `dish`'s first input (nor for the other meal's first dish, unless `other_has`)."""
 	var other: int = Rules.other(dish)
-	var line: String = "the pantry has no %s for %s (%s a batch: %s)" % [Rules.INPUT_WORDS[dish],
-		Rules.DISH_NAMES[dish].to_lower(), units(Rules.INPUT_MILLI[dish]), Rules.INPUT_CROPS_TEXT[dish]]
-	if other_free < Rules.INPUT_MILLI[other]:
-		line += ", nor %s for %s" % [Rules.INPUT_WORDS[other], Rules.DISH_NAMES[other].to_lower()]
+	var line: String = "the pantry has no %s for %s (%s a batch: %s)" % [input_words(dish, 0),
+		Rules.DISH_NAMES[dish].to_lower(), units(Rules.input_milli(dish, 0)), Rules.items_text(Rules.input_selector(dish, 0))]
+	if not other_has:
+		line += ", nor %s for %s" % [input_words(other, 0), Rules.DISH_NAMES[other].to_lower()]
 	return line
 
 
-static func no_side_reason(dish: int, have: int) -> String:
-	"""Not a batch's second input (the fish stew's roots)."""
-	return "the pantry has %s of %s for %s; a batch takes %s" % [units(have), Rules.SIDE_WORDS[dish],
-		Rules.DISH_NAMES[dish].to_lower(), units(Rules.SIDE_MILLI[dish])]
+static func no_side_reason(dish: int, k: int, have: int) -> String:
+	"""Not a batch's input `k` (one past the first: the fish stew's roots, the hotpot's greens)."""
+	return "the pantry has %s of %s for %s; a batch takes %s" % [units(have), input_words(dish, k),
+		Rules.DISH_NAMES[dish].to_lower(), units(Rules.input_milli(dish, k))]
+
+
+static func input_words(dish: int, k: int) -> String:
+	"""What `dish`'s input `k` is called: its category's word ("roots", "greens", "fresh fish"), or its own items when
+	another lane defines them ("hazelnut")."""
+	return Rules.IN_WORDS[Rules.INPUT_FIRST[dish] + k]
+
+
+static func inputs_text(dish: int, batches: int) -> String:
+	"""All of `dish`'s food for `batches` batches: "2.0 U of fresh fish (dace) + 2.0 U of roots (radish, ... or onion)"."""
+	var parts := PackedStringArray()
+	for k: int in Rules.INPUT_N[dish]:
+		var words: String = input_words(dish, k)
+		var items: String = Rules.IN_ITEMS_TEXT[Rules.INPUT_FIRST[dish] + k]
+		parts.append("%s of %s" % [units(Rules.input_milli(dish, k) * batches), words] if words == items
+			else "%s of %s (%s)" % [units(Rules.input_milli(dish, k) * batches), words, items])
+	return " + ".join(parts)
+
+
+static func waiting_line(dish: int) -> String:
+	"""A dish waiting for an ingredient, and why: "Vegetable pasty — needs hazelnut: gathered by foragers"."""
+	return "%s — %s" % [Rules.DISH_NAMES[dish], Rules.DISH_WAITS[dish]]
 
 
 static func no_water_reason(dish: int, have: int, need: int) -> String:
@@ -267,15 +296,22 @@ static func draw_ordered(amount: int, who: String) -> String:
 
 static func fed_line(state: int, hunger: int, today: int, need: int, last: String) -> String:
 	"""The resident panel's lines, short enough for its width: "Fed · 72% full · 1800/6000 NP today", then "Last
-	meal: breakfast, porridge"."""
+	meal: breakfast, porridge" (" — a favourite" when it was one: `favourite_mark`)."""
 	@warning_ignore("integer_division") var line: String = "%s · %d%% full · %d/%d NP today" % [Rules.FED_WORDS[state].capitalize(),
 		hunger * 100 / Rules.NEED_MAX, today, need]
 	return line + ("\nLast meal: " + last if not last.is_empty() else "")
 
 
 static func monotony_line(dish: int, repeats: int, value: int, hours: int) -> String:
-	"""§5.7's monotonous memory, shown (as short as the panel is narrow): "Monotony -200 (6 h): porridge 3 of last 6"."""
-	return "Monotony %d (%d h): %s %d of last %d" % [value, hours, Rules.DISH_SHORT[dish], repeats, Rules.HISTORY]
+	"""§5.7's monotonous memory, shown (as short as the panel is narrow): "Monotony -200 (6 h): porridge 3 of last 6" --
+	counted by §5.7 recipe, so it names the recipe ("root stew"), whichever of its dishes was eaten."""
+	var what: String = Rules.GDD_ROWS[dish].replace("_", " ")
+	return "Monotony %d (%d h): %s %d of last %d" % [value, hours, what, repeats, Rules.HISTORY]
+
+
+static func favourite_mark(favourite: bool) -> String:
+	"""What the last meal line adds when it was a favourite."""
+	return " — a favourite" if favourite else ""
 
 
 static func day_hour(hour_index: int) -> String:
@@ -298,18 +334,35 @@ static func days_text(milli_days: int) -> String:
 
 
 static func cookable_line(dish: int) -> String:
-	"""The Recipes tab's mark: "Cookable (active): Wild oat porridge — the GDD's porridge: grain 2 + water 2 -> 2
-	portions of 1800 NP, 12 WU, keeps 24 h; the kitchen cooks it in turn" (the fish stew's: at supper, while there is
-	fresh fish, decision 0436)."""
-	if Rules.SIDE_CROP[dish] >= 0:
-		@warning_ignore("integer_division") return "Cookable (active): %s — cooked as the GDD's %s: %s %s + %s %s + water %s → %d portions of %d NP, %d WU, keeps %d h. The kitchen cooks it at supper, in place of %s, whenever the stores hold a batch's fresh fish." % [
-			Rules.DISH_NAMES[dish], Rules.GDD_ROWS[dish], Rules.INPUT_WORDS[dish], units(Rules.INPUT_MILLI[dish]),
-			Rules.SIDE_WORDS[dish], units(Rules.SIDE_MILLI[dish]), units(Rules.WATER_MILLI[dish]), Rules.PORTIONS_PER_BATCH[dish],
-			Rules.NP_PER_PORTION[dish], Rules.WORK_MWU[dish] / 1000, Rules.SHELF_HOURS[dish], Rules.DISH_NAMES[Rules.other(dish)].to_lower()]
-	@warning_ignore("integer_division") return "Cookable (active): %s — cooked as the GDD's %s: %s %s + water %s → %d portions of %d NP, %d WU, keeps %d h. The kitchen cooks it in turn with %s." % [
-		Rules.DISH_NAMES[dish], Rules.GDD_ROWS[dish], Rules.INPUT_WORDS[dish], units(Rules.INPUT_MILLI[dish]),
+	"""The Recipes tab's mark for one dish: "Cookable (active): Wild oat porridge — cooked as the GDD's porridge: 2.0 U of
+	grain (wheat, barley or oats) + water 2.0 U → 2 portions of 1800 NP, 12 WU, keeps 24 h; for breakfast." -- or
+	"Waiting (needs hazelnut: gathered by foragers): ..." for a dish an ingredient keeps waiting, and "a recipe
+	from The Outcast of Redwall" for a row confirmed outside the GDD (DEC-045, decision 0603: player text names the book,
+	never the ruling)."""
+	@warning_ignore("integer_division")
+	return "%s: %s — cooked as %s: %s + water %s → %d portions of %d NP, %d WU, keeps %d h; %s." % [
+		"Waiting (%s)" % Rules.DISH_WAITS[dish] if Rules.waits(dish) else "Cookable (active)", Rules.DISH_NAMES[dish],
+		"the GDD's %s" % Rules.GDD_ROWS[dish] if Rules.ROW_ADOPTED[dish] == 1 else _book_recipe(dish),
+		inputs_text(dish, 1),
 		units(Rules.WATER_MILLI[dish]), Rules.PORTIONS_PER_BATCH[dish], Rules.NP_PER_PORTION[dish],
-		Rules.WORK_MWU[dish] / 1000, Rules.SHELF_HOURS[dish], Rules.DISH_NAMES[Rules.other(dish)].to_lower()]
+		Rules.WORK_MWU[dish] / 1000, Rules.SHELF_HOURS[dish], _for_meal(dish)]
+
+
+static func _book_recipe(dish: int) -> String:
+	"""A non-GDD row in player words: "a recipe from Rakkety Tam" -- the book its library dish is from."""
+	var book: String = Rules.LIBRARY_IDS[dish].get_slice("::", 0)
+	return "a recipe from %s" % BOOK_TITLES.get(book, "the Redwall books")
+
+
+static func _for_meal(dish: int) -> String:
+	"""Which meal a dish is for: "for supper", or "a drink"."""
+	var meal: int = Rules.DISH_MEAL[dish]
+	return "for " + Rules.DISH_MEAL_WORDS[meal] if Rules.is_meal_dish(dish) else Rules.DISH_MEAL_WORDS[meal]
+
+
+static func choice_note() -> String:
+	"""How the cook picks a dish, for the Recipes tab (kitchen.gd THE CHOICE)."""
+	return CHOICE_NOTE
 
 
 static func meal_record(key: int, dish: int, ate: int, raw: int, without: int) -> String:

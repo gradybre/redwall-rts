@@ -2521,19 +2521,43 @@
     {
       "id": "DEMOLITION-D5",
       "title": "Composed demolition completion, furniture 50% return and pantry capacity recompute",
-      "status": "blocked",
+      "status": "done",
       "depends_on": [
         "DEMOLITION-D4"
       ],
       "owns": [
         "godot/scripts/systems/settlement_system.gd",
-        "godot/scripts/core/buildings.gd",
-        "godot/test/test_settlement_system.gd"
+        "godot/scripts/core/construction.gd",
+        "godot/scripts/core/ground_piles.gd",
+        "godot/scripts/core/inventory.gd",
+        "godot/scripts/core/demolition_admissions.gd",
+        "godot/test/test_settlement_demolition_complete.gd",
+        "godot/test/test_construction_demolition_completion.gd",
+        "godot/test/test_ground_piles.gd",
+        "godot/test/test_settlement_starter_colony.gd",
+        "godot/test/test_settlement_system.gd",
+        "godot/test/test_settlement_furniture_removal.gd",
+        "godot/test/test_inventory_capacity_reduction.gd",
+        "godot/test/test_construction.gd",
+        "godot/test/test_construction_retired_histories.gd",
+        "godot/test/test_construction_paid_ledger.gd",
+        "godot/test/test_settlement_demolition_admit.gd",
+        "godot/test/test_demolition_admissions.gd",
+        "docs/decisions/0535-demolition-completion-is-one-commit-and-furniture-refuses.md",
+        "docs/decisions/0536-furniture-returns-half-by-type-and-pieces-are-removed-alone.md",
+        "docs/tasks/lanes/06/2026-10-02-demolition-d5-furniture-rulings.md",
+        "docs/systems_architecture.md",
+        "docs/validation/ready07_arithmetic.py",
+        "docs/tasks/lanes/06/2026-10-02-demolition-d5-completion.md",
+        "docs/rulings/2026-10-01_demolition_containment.md",
+        "docs/persistence_state_registry.md",
+        "docs/planning/registry_capacity_audit.json"
       ],
       "agent": "game-coder",
       "gate": "none",
       "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
-      "acceptance": "Answer #6's one no-yield commit (containers, furniture, rooms, building, 50% return, retire project); furniture returns 50% of its own materials, not the intact item (DEC-043); #3b shelf capacity removal refusal; refusals byte-identical across stores."
+      "acceptance": "Answer #6's one no-yield commit (containers, furniture, rooms, building, 50% return, retire project); furniture returns 50% of its own materials, not the intact item (DEC-043); #3b shelf capacity removal refusal; refusals byte-identical across stores.",
+      "note": "Done with decisions 0535 and 0536. complete_demolition() is #6's one no-yield commit (proofs first; containers, furniture, rooms, building, combined 50% return, retire; the record released before the row goes; refusals byte-identical and commit-pending). Brendan ruled on 0535's P1-P3 (2026-10-02, decision 0536): each piece's package is derived from its type and returns 50% of its bill floored per item, its removal adds a quarter of its WU, admit reserves the combined return and the admission records its charge so a changed return refuses DEMOLITION_RESERVATION_MISMATCH; preview_/request_/complete_/cancel_furniture_removal() take one piece out of a standing building (one admission per building row), with #3b's pantry-shelf capacity reduction (inventory.reduce_container_capacity()); commit_completion()/close_refund() refuse a demolition or removal by name (DEMOLITION_COMPLETES_THROUGH_COORDINATOR). Only a piece with a live project of its own refuses (DEMOLITION_FURNITURE_UNDER_CONSTRUCTION). PURPOSE_REMOVE_FURNITURE sits outside ADR 0186's frozen enum; CONSTRUCTION-SAVED-BINDINGS must revisit that contract. D6/D7 complete and cancel only through the coordinator."
     },
     {
       "id": "DEMOLITION-D6",

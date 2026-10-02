@@ -1,0 +1,65 @@
+{
+  "max_concurrent_shards": 3,
+  "reason": "one additional instrumented full run uses the fourth local process slot",
+  "fresh_import_per_copy": true,
+  "runs": [
+    {
+      "index": 0,
+      "import_exit_code": 0,
+      "import_wall_seconds": 4.498,
+      "exit_code": 0,
+      "wall_seconds": 112.908
+    },
+    {
+      "index": 1,
+      "import_exit_code": 0,
+      "import_wall_seconds": 4.497,
+      "exit_code": 0,
+      "wall_seconds": 110.623
+    },
+    {
+      "index": 2,
+      "import_exit_code": 0,
+      "import_wall_seconds": 4.312,
+      "exit_code": 0,
+      "wall_seconds": 110.248
+    },
+    {
+      "index": 3,
+      "import_exit_code": 0,
+      "import_wall_seconds": 4.695,
+      "exit_code": 0,
+      "wall_seconds": 108.352
+    },
+    {
+      "index": 4,
+      "import_exit_code": 0,
+      "import_wall_seconds": 4.963,
+      "exit_code": 0,
+      "wall_seconds": 113.548
+    },
+    {
+      "index": 5,
+      "import_exit_code": 0,
+      "import_wall_seconds": 4.691,
+      "exit_code": 0,
+      "wall_seconds": 110.471
+    },
+    {
+      "index": 6,
+      "import_exit_code": 0,
+      "import_wall_seconds": 4.515,
+      "exit_code": 0,
+      "wall_seconds": 103.678
+    },
+    {
+      "index": 7,
+      "import_exit_code": 0,
+      "import_wall_seconds": 4.322,
+      "exit_code": 0,
+      "wall_seconds": 107.891
+    }
+  ],
+  "wall_seconds_all_shards_and_imports": 346.63,
+  "runtime_copies_removed": true
+}

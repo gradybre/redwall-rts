@@ -580,6 +580,22 @@ func select_box(corner_a: Vector2, corner_b: Vector2, additive: bool) -> void:
 	_refresh_in = 0.0
 
 
+func drag_rect() -> Rect2:
+	"""The box being dragged, in viewport pixels (an empty Rect2 while no box is): the group selection's "Selecting
+	residents: n" label (control/group_select.gd, decision 0791)."""
+	return Rect2(_box.position, _box.size) if _dragging and _box != null else Rect2()
+
+
+func box_into(corner_a: Vector2, corner_b: Vector2, out: PackedInt32Array) -> int:
+	"""The residents a box with these corners would select -- `select_box`'s own test -- into `out` (resized to the cast's
+	size only when it differs; the first n are they); how many. Selects nothing (decision 0791: the drag's count, and a
+	double-click's residents in view)."""
+	_update_screen()
+	if out.size() != _screen.size():
+		out.resize(_screen.size())
+	return PickScript.box_members(_screen, _on_screen, corner_a, corner_b, out)
+
+
 func select(members: PackedInt32Array) -> void:
 	"""Select exactly these actor indices (unknown ones are skipped)."""
 	_selected.fill(0)

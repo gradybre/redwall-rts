@@ -222,9 +222,10 @@ func _start_living(brains: Array[BrainScript], names: PackedStringArray, bounds_
 	fixture_view.set_lit(hearth_lit)
 
 
-func hearth_lit() -> bool:
-	"""Whether it is the hearths' hours on the calendar (night_routine.gd HEARTH_FROM_HOUR..HEARTH_TO_HOUR)."""
-	return NightScript.is_hearth_hour(_calendar.now().hour)
+func hearth_lit(r: int) -> bool:
+	"""Whether home row `r`'s hearth burns now: the night routine's query (night_routine.gd `hearth_lit` -- the winter's
+	fuelled-and-demanded hearth when bound, decision 0571; else the hearth hours)."""
+	return night.hearth_lit(r)
 
 
 func set_stored(stored: Callable) -> void:

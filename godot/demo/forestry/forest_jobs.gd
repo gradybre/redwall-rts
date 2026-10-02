@@ -74,6 +74,8 @@ const PLANS: Array[Array] = [
 
 const ORIGIN_PLAYER: int = 0
 const ORIGIN_ROUTINE: int = 1
+## The winter's automatic Firewood order (demo/winter/demo_winter.gd, decision 0571): a gather or a fell raised for fuel.
+const ORIGIN_FIREWOOD: int = 2
 const FREE: int = -1
 const NOBODY: int = -1
 const NO_TARGET: int = -1

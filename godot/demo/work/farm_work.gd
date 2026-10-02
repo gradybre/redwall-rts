@@ -64,10 +64,11 @@ func waiting(row: int) -> bool:
 
 
 func eligibility(row: int, who: int) -> String:
-	"""Anybeast may do farm work (LORE-P12); one farm job a resident (farm_crew.gd `reassign`'s own refusal)."""
+	"""Anybeast may do farm work (LORE-P12); one farm job a resident (farm_crew.gd `reassign`'s own refusal); a kitchen
+	garden job kept for the cook between meals is the cook's (farm_crew.gd `kept_from`, decision 0883)."""
 	if _crew.jobs.job_of_worker_into(who, _read) and _read.value != row:
 		return OTHER_JOB
-	return ""
+	return _crew.kept_from(row, who)
 
 
 func claim(row: int, who: int) -> bool:

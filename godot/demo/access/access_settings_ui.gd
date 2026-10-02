@@ -19,6 +19,7 @@ const Access := preload("res://demo/access/demo_access.gd")
 const TITLE: String = "Accessibility"
 const PRESETS_TITLE: String = "Presets (point at one to preview it)"
 const TIME_TITLE: String = "Time"
+const CAMERA_TITLE: String = "Camera"
 const TOGGLE_TEXT: String = "%s: %s"
 const PREVIEW_TEXT: String = "%s would change: %s"
 const APPLIED_TEXT: String = "Applied %s: %s"
@@ -29,10 +30,12 @@ const RESTORE_NONE: String = "Everything is at its default already."
 const RESTORE_OK: String = "Restore"
 const CANCEL_TEXT: String = "Cancel"
 const LINE_W: float = 500.0
-## The settings under "Accessibility" and under "Time" (SET_* order).
+## The settings under "Accessibility" and under "Time", in the order shown.
 const ACCESS_SETTINGS: PackedInt32Array = [Access.SET_TOOLTIPS, Access.SET_CONTRAST, Access.SET_FOCUS_HINTS,
-	Access.SET_TARGETS, Access.SET_MOTION, Access.SET_QUIET_TOASTS]
+	Access.SET_TARGETS, Access.SET_MOTION, Access.SET_BRIGHT_NIGHTS, Access.SET_QUIET_TOASTS]
 const TIME_SETTINGS: PackedInt32Array = [Access.SET_PAUSE_PLANNING, Access.SET_PAUSE_CRITICAL]
+## Under "Camera" (decision 0801): UI §8.1's `edge_scroll`.
+const CAMERA_SETTINGS: PackedInt32Array = [Access.SET_EDGE_SCROLL]
 
 var scale_to: Callable = Callable()
 var scale_fits: Callable = Callable()
@@ -67,6 +70,9 @@ func _init() -> void:
 		add_child(_toggle(setting))
 	add_child(FarmUi.label(TIME_TITLE, FarmUi.BODY_PX, Palette.INK, true))
 	for setting: int in TIME_SETTINGS:
+		add_child(_toggle(setting))
+	add_child(FarmUi.label(CAMERA_TITLE, FarmUi.BODY_PX, Palette.INK, true))
+	for setting: int in CAMERA_SETTINGS:
 		add_child(_toggle(setting))
 	_restore = FarmUi.button(RESTORE_TEXT, FarmUi.SMALL_PX)
 	_restore.pressed.connect(ask_restore)

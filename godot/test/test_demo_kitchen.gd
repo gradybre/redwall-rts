@@ -192,16 +192,16 @@ func test_a_supper_with_fresh_fish_is_the_fish_stew() -> void:
 	assert_equal(v.kitchen.consumed_food_milli, batches * 4000, "the books: both inputs")
 
 
-func test_without_roots_the_fish_waits_and_supper_is_what_there_is() -> void:
-	"""Fresh fish but no roots: no fish stew (both inputs or neither); with no roots for the soup either, the meal turns
-	to porridge as the alternation does; the fish is not touched."""
+func test_without_roots_the_fish_is_baked_not_left_to_rot() -> void:
+	"""Fresh fish but no roots: no fish stew (both inputs or neither) -- but since Brendan's tuning ruling E2 (decision
+	0603) the fish is baked, a fish dish needing no roots, rather than kept while porridge is cooked and the fish rots."""
 	var v := _open(_village(2, tick_at(0, 14)))
 	_stock(v, Catalog.FIRST_CATCH, 4000)
 	_stock(v, OATS, 4000)
 	v.stores.add_water(10000)
 	_run(v, FRAMES_PER_HOUR + 10)
-	assert_equal(v.kitchen.plan_of(Rules.meal_key(0, Rules.MEAL_SUPPER))[0], Rules.DISH_PORRIDGE, "porridge instead")
-	assert_equal(v.kitchen.takes.free_milli_of_crop(v.pantry, Catalog.CAT_FISH), 4000, "the fish untouched")
+	assert_equal(v.kitchen.plan_of(Rules.meal_key(0, Rules.MEAL_SUPPER))[0], Rules.DISH_BAKED_FISH, "baked fish")
+	assert_true(v.kitchen.takes.free_milli_of_crop(v.pantry, Catalog.CAT_FISH) < 4000, "the fish held for it")
 
 
 func test_the_ready_food_counts_each_dish_at_its_own_portions() -> void:
@@ -224,8 +224,9 @@ func test_the_dishes_are_the_gdd_rows() -> void:
 		Rules.NP_PER_PORTION[1], Rules.WORK_MWU[1], Rules.SHELF_HOURS[1]], ["root_stew", 3000, 1000, 2, 1800, 16000, 24], "soup")
 	assert_equal(Rules.WOOD_MILLI_PER_BATCH, 100, "0.1 U of wood a batch")
 	assert_equal([Rules.batch_ticks(0), Rules.batch_ticks(1)], [150, 200], "12 and 16 WU at 60 WU a game hour")
-	assert_equal(Rules.LIBRARY_IDS, ["salamandastron::SAL_recipe_wild_oat_porridge", "outcast::OUT_recipe_togget_s_vegetable_soup",
-		"taggerung::TAG_recipe_requested_perch_or_trout", ""], "the library's three recipes (the third: decision 0436); the feast's bean hotpot is the GDD's row alone (decision 0438)")
+	assert_equal(Rules.LIBRARY_IDS.slice(0, 3), ["salamandastron::SAL_recipe_wild_oat_porridge",
+		"outcast::OUT_recipe_togget_s_vegetable_soup", "taggerung::TAG_recipe_requested_perch_or_trout"],
+		"the library's first three recipes (the third: decision 0436; the rest: decision 0601, test_demo_dishes.gd)")
 	assert_equal([Rules.GDD_ROWS[2], Rules.INPUT_MILLI[2], Rules.SIDE_MILLI[2], Rules.WATER_MILLI[2], Rules.PORTIONS_PER_BATCH[2],
 		Rules.NP_PER_PORTION[2], Rules.WORK_MWU[2], Rules.SHELF_HOURS[2]], ["fish_stew", 2000, 2000, 2000, 3, 2200, 20000, 24],
 		"§5.7 fish_stew: fish 2 + roots 2 + water 2 -> 3 x 2200 NP, 20 WU, 24 h")
@@ -535,6 +536,22 @@ func test_an_unreachable_store_lets_go_only_what_is_still_there() -> void:
 	assert_equal([pantry.milli_of(OATS), takes.live_milli(pantry, take)], [1000, 1000], "cut to the lot, then 2 U")
 	assert_false(takes.consume_into(pantry, take, 2000, TakesScript.AT_KITCHEN, 0, read), "not another")
 	assert_equal(pantry.milli_of(OATS), 1000, "refused whole")
+
+
+func test_withdraw_free_takes_only_what_nobody_holds() -> void:
+	"""An owner outside the kitchen (the care shelf's herbs, decision 0902) takes away up to what it asks of a category's
+	UNRESERVED food: a take's reservation is untouched; nothing for none or a bad quantity."""
+	var pantry := PantryScript.new(StorageScript.new(STORE_AT))
+	var read := IntMath.IntResult.new()
+	var herb: int = Catalog.ITEM_HERB
+	pantry.add_into(herb, 3000, 0, read)
+	var takes := TakesScript.new()
+	var held := takes.new_take()
+	takes.reserve_into(pantry, held, Catalog.CAT_HERB, 1000, 0, read)
+	assert_equal(takes.withdraw_free(pantry, Catalog.CAT_HERB, 5000, 0), 2000, "the free 2 U, not the held one")
+	assert_equal([pantry.milli_of(herb), takes.live_milli(pantry, held)], [1000, 1000], "the held unit stays, still held")
+	assert_equal(takes.withdraw_free(pantry, Catalog.CAT_HERB, 1000, 0), 0, "none free")
+	assert_equal(takes.withdraw_free(pantry, Catalog.CAT_HERB, 0, 0), 0, "a bad quantity")
 
 
 func test_a_reserved_lot_that_spoils_is_no_longer_the_takes() -> void:

@@ -1,5 +1,6 @@
 # 0251 — The demo HUD reads the village: one read model, the cast's roster, a drawn map, farm figures in player terms
-Date: 2026-09-30 · Status: Accepted
+Date: 2026-09-30 · Status: Accepted · Fuel's slot holding Planks superseded by 0571 (the hearths burn wood: the slot is
+UI-SET-003's Heating fuel again, the planks on the ledger's Wood line and in Wood's tooltip)
 
 Review group E, "numbers and roster that tell the truth": findings F10, F14 and F34 of the live-demo review
 (`/Users/brendan/Developer/redwall-review/REVIEW.md`, written against 157a3a4; P1's HUD and bed rows and its

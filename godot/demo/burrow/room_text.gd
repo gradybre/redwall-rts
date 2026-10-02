@@ -49,7 +49,7 @@ static func _home_body(graph: RefCounted, r: int, night: RefCounted) -> String:
 	var sleepers: String = night.sleepers_of(r)
 	lines.append("Its beds are for: %s" % (sleepers if not sleepers.is_empty() else "nobody yet (no beds in)"))
 	if fit.has_hearth(graph, r):
-		lines.append("Hearth: %s" % ("lit, smoke from the chimney" if night.hearth_burns() else "cold until evening"))
+		lines.append("Hearth: %s" % night.hearth_words(r))
 	return "\n".join(lines)
 
 

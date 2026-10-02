@@ -68,15 +68,17 @@ func _settings(fits: Callable = Callable()) -> SettingsScript:
 # --- presets ------------------------------------------------------------------------------------------------
 
 func test_large_readable_previews_then_applies_its_settings() -> void:
-	"""Hovering previews the change (nothing applied); pressing applies 150 %, bigger tooltips, high contrast."""
+	"""Hovering previews the change (nothing applied); pressing applies 150 %, bigger tooltips, high contrast and brighter
+	nights (decision 0541)."""
 	var section := _settings()
 	var line: String = section.preview(Access.PRESET_LARGE)
 	assert_equal(line, "Large readable would change: Interface scale 100% → 150% · Bigger tooltips off → on · "
-		+ "High-contrast panels off → on", "the preview")
+		+ "High-contrast panels off → on · Brighter nights off → on", "the preview")
 	assert_false(Access.is_on(Access.SET_TOOLTIPS), "a preview applies nothing")
 	section.apply_preset(Access.PRESET_LARGE)
 	assert_equal(_scaled_to, 150, "the interface at 150 %")
-	assert_true(Access.is_on(Access.SET_TOOLTIPS) and Access.is_on(Access.SET_CONTRAST), "its two settings on")
+	assert_true(Access.is_on(Access.SET_TOOLTIPS) and Access.is_on(Access.SET_CONTRAST)
+		and Access.is_on(Access.SET_BRIGHT_NIGHTS), "its three settings on")
 	assert_equal(_applied, 1, "the effects applied once")
 	assert_true(section.toggle_button(Access.SET_CONTRAST).button_pressed, "its toggle shows it on")
 
@@ -157,7 +159,7 @@ func test_restore_defaults_asks_with_the_change_then_restores() -> void:
 	assert_true(Access.is_on(Access.SET_CONTRAST), "nothing restored yet")
 	var change: String = section.restore_defaults()
 	assert_equal(change, "Interface scale 150% → 100% · Mix Quiet focus → Balanced · Bigger tooltips on → off · "
-		+ "High-contrast panels on → off · Fewer news toasts on → off", "the change")
+		+ "High-contrast panels on → off · Fewer news toasts on → off · Brighter nights on → off", "the change")
 	assert_equal(Access.flags, Access.DEFAULTS, "flags at their defaults")
 	assert_equal(_scaled_to, 100, "100 %")
 	assert_equal(SoundMix.preset, SoundMix.PRESET_BALANCED, "Balanced")
@@ -191,7 +193,7 @@ func test_the_menu_shows_the_section_in_settings() -> void:
 	var text: String = menu.page_text(MenuScript.PAGE_SETTINGS)
 	game.free()
 	for words: String in ["Accessibility", "Large readable", "Keyboard planner", "Reduced motion", "Quiet focus",
-			"Pause while planning: off", "Pause on a critical incident: on", "Restore defaults"]:
+			"Pause while planning: off", "Pause on a critical incident: on", "Camera", "Edge scroll: on", "Restore defaults"]:
 		assert_true(text.contains(words), "Settings shows '%s'" % words)
 
 

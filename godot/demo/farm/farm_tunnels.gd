@@ -2,15 +2,16 @@ extends RefCounted
 ## What the moles' tunnels do for the farm. Decision 0196. Reads the tunnel network
 ## (demo/tunnel/underground_graph.gd) through its public columns and never writes to it.
 ##
-## DRAINAGE AND IRRIGATION. A FINISHED segment of the network whose bore passes under a bed drains it --
-## farm_sim.gd pulls its moisture toward its crop's low side each farm day. Water let in at a mouth at a
-## water edge runs on through the open bores joined to it (decision 0208: the network is one), so a
-## segment reached through usable bores from such a mouth carries water instead, and IRRIGATES every bed
-## it passes under: moisture is pulled toward the band's middle, up or down. "At a water edge" is `water_edge`, the one water query
+## DRAINAGE AND IRRIGATION. A FINISHED segment of the network whose bore passes under a bed is a DRY tunnel under it.
+## Water let in at a mouth at a water edge runs on through the open bores joined to it (decision 0208: the network is
+## one), so a segment reached through usable bores from such a mouth carries water instead: a WATERED tunnel under the
+## bed. These are facts about the tunnels; since decision 0884 (review ECO-006) a tunnel is transport only, and what it
+## does to a bed is the bed's fitted OUTLET's (farm_sim.gd TUNNEL OUTLETS): Drain sheds the bed into a dry tunnel,
+## Feed lets a watered one pull its moisture toward its band's middle, Shut does nothing. "At a water edge" is `water_edge`, the one water query
 ## (demo/village_water.gd `edge_query()`, the village's one water adapter: dry ground near the real
 ## stream's or pond's waterline). "Passes under" is an INTEGER test
-## in the network's own units (u, 1/1024 m): some leg of the route comes within UNDER_REACH_U of the
-## bed's centre. The beds' centres are imported from the layout once (float is import only).
+## in the network's own units (u, 1/1024 m): some leg of the route comes within the bed's half-width (UNDER_REACH_U
+## for a field bed, a garden bed's 1 m for its one tile) of the bed's centre. The beds' centres are imported from the layout once (float is import only).
 ##
 ## EARTH (decision 0401, which retires 0196's "spoil as soil"). What a tunnel digs out is EARTH (the adopted
 ## `excavated_earth`: a plain material -- never compost, never fertility). Each mouth's spoil heap holds the earth dug
@@ -50,6 +51,7 @@ var water_edge: Callable = _own_water.edge_query()
 
 var _bed_x: PackedInt32Array = PackedInt32Array()
 var _bed_z: PackedInt32Array = PackedInt32Array()
+var _bed_reach: PackedInt32Array = PackedInt32Array()
 var _taken: PackedInt64Array = PackedInt64Array()
 var _taken_generation: PackedInt32Array = PackedInt32Array()
 ## Earth built into beds by Raise and Bank, milli-U (see EARTH).
@@ -63,10 +65,12 @@ func _init() -> void:
 	"""Import the beds' centres into u, once."""
 	_bed_x.resize(Catalog.BED_COUNT)
 	_bed_z.resize(Catalog.BED_COUNT)
+	_bed_reach.resize(Catalog.BED_COUNT)
 	for bed: int in Catalog.BED_COUNT:
 		var at: Vector2 = Catalog.bed_centre_m(bed)
 		_bed_x[bed] = Rules.to_u(at.x)
 		_bed_z[bed] = Rules.to_u(at.y)
+		_bed_reach[bed] = Rules.to_u(Catalog.bed_half_m(bed))
 	_taken.resize(HEAPS)
 	_taken_generation.resize(HEAPS)
 
@@ -100,7 +104,7 @@ func passes_under(network: GraphScript, slot: int, bed: int) -> bool:
 		var a: int = 2 * (base + k - 1)
 		var b: int = 2 * (base + k)
 		if segment_near(_bed_x[bed], _bed_z[bed], network.points_u[a], network.points_u[a + 1],
-				network.points_u[b], network.points_u[b + 1], UNDER_REACH_U):
+				network.points_u[b], network.points_u[b + 1], _bed_reach[bed]):
 			return true
 	return false
 
@@ -121,7 +125,8 @@ func feeds_from_water(network: GraphScript, slot: int) -> bool:
 
 
 func water_of_into(network: GraphScript, bed: int, out: PackedByteArray) -> void:
-	"""Whether finished segments drain (out[0]) or irrigate (out[1]) bed `bed`."""
+	"""Whether a finished DRY segment (out[0]) or one carrying water (out[1]) runs under bed `bed` (see DRAINAGE AND
+	IRRIGATION: what either does is the bed's outlet's)."""
 	out[0] = 0
 	out[1] = 0
 	for slot: int in Rules.MAX_SEGMENTS:

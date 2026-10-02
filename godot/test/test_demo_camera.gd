@@ -312,3 +312,171 @@ func test_other_buttons_do_not_start_a_drag() -> void:
 		event.pressed = true
 		assert_false(_rig.handle_input(event), "button %d is not the camera's" % index)
 	assert_false(_rig.is_drag_turning(), "no drag")
+
+
+# --- the modes' hooks (decision 0801) ------------------------------------------------------------------
+
+func test_a_diagonal_pan_is_no_faster_than_a_straight_one() -> void:
+	"""W+D moves the centre as far as W alone in the same time (UI §5: "diagonal normalized")."""
+	_rig.handle_input(_action(DemoCamera.ACTION_PAN_FORWARD, true))
+	_rig.step(0.5)
+	var straight: float = _rig.target_focus().length()
+	_rig.handle_input(_action(DemoCamera.ACTION_PAN_FORWARD, false))
+	_rig.configure(VILLAGE, Vector3.ZERO)
+	_rig.handle_input(_action(DemoCamera.ACTION_PAN_FORWARD, true))
+	_rig.handle_input(_action(DemoCamera.ACTION_PAN_RIGHT, true))
+	_rig.step(0.5)
+	var diagonal: Vector3 = _rig.target_focus()
+	assert_almost_equal(diagonal.length(), straight, "as far")
+	assert_almost_equal(diagonal.x, -diagonal.z, "north-east, evenly")
+
+
+func test_the_players_pans_count_and_the_modes_moves_do_not() -> void:
+	"""A held pan, centre_on and Home move the pan revision; track and aim do not; neither touches the turn
+	revision."""
+	var pans: int = _rig.pan_revision()
+	_rig.track(Vector3(3.0, 0.0, 4.0))
+	_rig.aim(Vector3(1.0, 0.0, 1.0), 30.0, 40.0, 15.0)
+	_rig.turn_target(0.5)
+	_rig.step(FRAME)
+	assert_equal(_rig.pan_revision(), pans, "the modes' own moves are not the player's")
+	_rig.centre_on(Vector3(2.0, 0.0, 2.0))
+	assert_equal(_rig.pan_revision(), pans + 1, "centre_on is a pan (the minimap, the roster, a Go to)")
+	_rig.handle_input(_action(DemoCamera.ACTION_HOME, true))
+	assert_equal(_rig.pan_revision(), pans + 2, "Home is a pan")
+	_rig.handle_input(_action(DemoCamera.ACTION_PAN_LEFT, true))
+	_rig.step(FRAME)
+	_rig.step(FRAME)
+	assert_equal(_rig.pan_revision(), pans + 4, "each held frame counts")
+	_rig.handle_input(_action(DemoCamera.ACTION_PAN_LEFT, false))
+	_rig.step(FRAME)
+	assert_equal(_rig.pan_revision(), pans + 4, "released: no more")
+	assert_equal(_rig.turn_revision(), 0, "no turn")
+
+
+func test_the_players_turns_count() -> void:
+	"""A held rotate and a middle drag move the turn revision, a frame or an event at a time; a pan does not."""
+	_rig.handle_input(_action(DemoCamera.ACTION_ROTATE_LEFT, true))
+	_rig.step(FRAME)
+	assert_equal(_rig.turn_revision(), 1, "held Q")
+	_rig.handle_input(_action(DemoCamera.ACTION_ROTATE_LEFT, false))
+	_rig.step(FRAME)
+	assert_equal(_rig.turn_revision(), 1, "released")
+	_rig.handle_input(_middle(true))
+	_rig.handle_input(_drag(Vector2(10.0, 0.0), true))
+	assert_equal(_rig.turn_revision(), 2, "a drag across")
+	_rig.handle_input(_drag(Vector2(0.0, 25.0), true))
+	assert_equal(_rig.turn_revision(), 2, "a drag straight up or down only tilts")
+
+
+func test_track_moves_only_the_centre_and_is_held_in_the_box() -> void:
+	"""The follow's track sets the target centre's x and z (clamped), nothing else."""
+	_rig.track(Vector3(5.0, 9.0, -6.0))
+	assert_equal(_rig.target_focus(), Vector3(5.0, 0.0, -6.0), "x and z, on the ground")
+	_rig.track(Vector3(500.0, 0.0, 0.0))
+	assert_almost_equal(_rig.target_focus().x, VILLAGE.end.x, "held in the box")
+	assert_almost_equal(_rig.target_distance(), DemoCamera.DISTANCE_DEFAULT, "zoom untouched")
+	assert_almost_equal(_rig.target_pitch_degrees(), DemoCamera.PITCH_DEFAULT_DEGREES, "pitch untouched")
+
+
+func test_aim_sets_a_whole_view_inside_the_limits() -> void:
+	"""aim sets centre, heading, pitch and distance; pitch and distance are held in their limits and the
+	view eases there."""
+	_rig.aim(Vector3(4.0, 0.0, -3.0), 90.0, 60.0, 30.0)
+	assert_equal(_rig.target_focus(), Vector3(4.0, 0.0, -3.0), "centre")
+	assert_almost_equal(_rig.target_yaw_degrees(), 90.0, "heading")
+	assert_almost_equal(_rig.target_pitch_degrees(), 60.0, "pitch")
+	assert_almost_equal(_rig.target_distance(), 30.0, "distance")
+	_rig.step(SETTLE_SECONDS)
+	assert_almost_equal(_rig.yaw_degrees(), 90.0, "eased there")
+	_rig.aim(Vector3.ZERO, 0.0, 10.0, 1000.0)
+	assert_almost_equal(_rig.target_pitch_degrees(), DemoCamera.PITCH_MIN_DEGREES, "pitch limit")
+	assert_almost_equal(_rig.target_distance(), DemoCamera.DISTANCE_MAX, "zoom limit")
+	_rig.aim(Vector3.ZERO, 0.0, 89.0, 0.1)
+	assert_almost_equal(_rig.target_pitch_degrees(), DemoCamera.PITCH_MAX_DEGREES, "steep limit")
+	assert_almost_equal(_rig.target_distance(), DemoCamera.DISTANCE_MIN, "near limit")
+
+
+func test_aim_turns_the_shorter_way_round() -> void:
+	"""From a heading of 350 degrees, aiming at 10 turns 20 degrees on, not 340 back; from 0, aiming at 350 turns 10
+	back."""
+	_rig.aim(Vector3.ZERO, 350.0, 50.0, 22.0)
+	assert_almost_equal(_rig.target_yaw_degrees(), -10.0, "10 back, not 350 on")
+	_rig.turn_target(deg_to_rad(360.0))
+	_rig.aim(Vector3.ZERO, 10.0, 50.0, 22.0)
+	assert_almost_equal(_rig.target_yaw_degrees(), 370.0, "on round")
+	_rig.aim(Vector3.ZERO, 200.0, 50.0, 22.0)
+	assert_almost_equal(_rig.target_yaw_degrees(), 200.0, "170 back, not 190 on")
+	assert_almost_equal(DemoCamera.nearest_turn(0.0, deg_to_rad(181.0)), deg_to_rad(-179.0), "past half a turn")
+
+
+func test_turn_target_turns_without_counting() -> void:
+	"""The orbit's turn adds to the target heading; the drawn heading eases after it."""
+	_rig.turn_target(deg_to_rad(12.0))
+	assert_almost_equal(_rig.target_yaw_degrees(), 12.0, "turned left")
+	_rig.step(SETTLE_SECONDS)
+	assert_almost_equal(_rig.yaw_degrees(), 12.0, "eased")
+	assert_equal(_rig.turn_revision(), 0, "not the player's")
+
+
+func test_the_edge_push_pans_like_a_held_key_and_is_clamped() -> void:
+	"""set_edge_push moves the centre as the held keys do (and counts as the player's pan); a push and a key the
+	same way are no faster than one, along the view or across it."""
+	_rig.set_edge_push(0.0, 1.0)
+	_rig.step(0.5)
+	var edge: Vector3 = _rig.target_focus()
+	assert_true(edge.z < -EPSILON, "forward is north")
+	assert_equal(_rig.pan_revision(), 2, "configure, then one pushed frame")
+	_rig.configure(VILLAGE, Vector3.ZERO)
+	_rig.set_edge_push(0.0, 5.0)
+	_rig.handle_input(_action(DemoCamera.ACTION_PAN_FORWARD, true))
+	_rig.step(0.5)
+	assert_almost_equal(_rig.target_focus().z, edge.z, "a key and the edge together: no faster")
+	_rig.handle_input(_action(DemoCamera.ACTION_PAN_FORWARD, false))
+	_rig.configure(VILLAGE, Vector3.ZERO)
+	_rig.set_edge_push(1.0, 0.0)
+	_rig.handle_input(_action(DemoCamera.ACTION_PAN_RIGHT, true))
+	_rig.step(0.5)
+	assert_almost_equal(_rig.target_focus().x, -edge.z, "across too: no faster")
+	_rig.configure(VILLAGE, Vector3.ZERO)
+	_rig.handle_input(_action(DemoCamera.ACTION_PAN_FORWARD, true))
+	_rig.step(0.5)
+	var diagonal: Vector3 = _rig.target_focus()
+	assert_almost_equal(diagonal.x, -diagonal.z, "the edge and two keys: still due north-east")
+	_rig.handle_input(_action(DemoCamera.ACTION_PAN_FORWARD, false))
+	_rig.handle_input(_action(DemoCamera.ACTION_PAN_RIGHT, false))
+	_rig.set_edge_push(0.0, 0.0)
+	var held: Vector3 = _rig.target_focus()
+	_rig.step(0.5)
+	assert_equal(_rig.target_focus(), held, "no push, no pan")
+
+
+func test_the_drag_turns_per_logical_pixel_off_the_tree() -> void:
+	"""Off the tree there is no window, so a pixel is a logical pixel (S = 1): the rate is the 0205 one."""
+	_rig.handle_input(_middle(true))
+	_rig.handle_input(_drag(Vector2(10.0, 0.0), true))
+	assert_almost_equal(_rig.target_yaw_degrees(), -10.0 * DemoCamera.DRAG_YAW_DEGREES_PER_PX, "S = 1")
+
+
+func test_the_targets_read_back() -> void:
+	"""target_pitch_degrees and target_yaw_degrees give what input asked for, before the ease."""
+	_rig.handle_input(_action(DemoCamera.ACTION_PITCH_UP, true))
+	_rig.handle_input(_action(DemoCamera.ACTION_ROTATE_LEFT, true))
+	_rig.step(0.5)
+	assert_almost_equal(_rig.target_pitch_degrees(), DemoCamera.PITCH_DEFAULT_DEGREES + DemoCamera.PITCH_STEP_DEGREES,
+		"pitch asked for")
+	assert_almost_equal(_rig.target_yaw_degrees(), DemoCamera.ROTATE_SPEED_DEGREES * 0.5, "heading asked for")
+	assert_true(_rig.yaw_degrees() < _rig.target_yaw_degrees(), "the drawn heading lags it")
+
+
+func test_a_frame_of_motion_retains_nothing() -> void:
+	"""500 frames of held pan, turn, edge push and tracking create no object (the rig's step is per frame)."""
+	_rig.handle_input(_action(DemoCamera.ACTION_PAN_LEFT, true))
+	_rig.handle_input(_action(DemoCamera.ACTION_ROTATE_LEFT, true))
+	_rig.set_edge_push(1.0, -1.0)
+	_rig.step(FRAME)
+	var before: int = int(Performance.get_monitor(Performance.OBJECT_COUNT))
+	for frame: int in 500:
+		_rig.track(Vector3(float(frame % 7), 0.0, 1.0))
+		_rig.step(FRAME)
+	assert_equal(int(Performance.get_monitor(Performance.OBJECT_COUNT)) - before, 0, "no object retained")

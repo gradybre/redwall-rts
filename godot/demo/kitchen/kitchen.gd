@@ -70,6 +70,14 @@ extends RefCounted
 ## of the occasion eats one portion of each course (§5.7: "Each attendee receives one main and one second-course
 ## portion"), and the kitchen keeps which courses each ate (`occasion_courses`) for the occasion's tally.
 ##
+## THE MEAL FINALIZED (decision 0997; Brendan's ruling on review R05). A meal's tally at its serving's end is provisional:
+## a diner may still hold its portion (or raw food, or a seat waiting on an occasion's second course) and then eat it or
+## give it back. Once the serving has ended AND no resident holds anything of the meal any more (`holders_of`), the
+## kitchen publishes ONE event for it (`finals`, a `MealFinal`: the meal's key, who ate a cooked portion of it, who ate
+## raw, how many went without -- all committed), at the end of the frame's update; a meal nobody held at its end is
+## published in the update that ended it. Its consumers (the regatta's feast, the people's taps) read it there. A meal the
+## kitchen never ended (a season skip over it) has no event: `meal_lapsed` says so.
+##
 ## SHORTAGES are said exactly, with the way to fix them (action_card.gd's "Can't now: ... / To fix: ..."), from the
 ## SAME decision the Cook order and its card use (`decide_meal`); a meal called with nothing coming is the incident
 ## "kitchen:no_meal" ("No supper tonight: ..."), resolved when the village next eats.
@@ -223,6 +231,18 @@ class Decision extends RefCounted:
 		return self
 
 
+## THE MEAL FINALIZED's event: one per meal, published once every holder of it has eaten or given its food back.
+class MealFinal extends RefCounted:
+	## The meal (its key) and the order it was published in (the first is 1).
+	var key: int = -1
+	var serial: int = 0
+	## Who ate a cooked portion of it (each once, in the order they finished), and who ate raw at it -- committed.
+	var diners: PackedInt32Array = PackedInt32Array()
+	var raw: PackedInt32Array = PackedInt32Array()
+	## How many went without it, the tally's own count once every bowl came back or was eaten.
+	var without: int = 0
+
+
 var pantry: PantryScript = null
 var stores: StoresScript = null
 var calendar: CalendarScript = null
@@ -347,6 +367,13 @@ var meal_raw: PackedInt32Array = PackedInt32Array()
 var meal_without: PackedInt32Array = PackedInt32Array()
 var portions_eaten: int = 0
 var raw_eaten_milli: int = 0
+## THE MEAL FINALIZED: the events published, oldest first (at most MAX_MEAL_LOG), and how many ever were.
+var finals: Array[MealFinal] = []
+var finals_published: int = 0
+## The meals whose serving has ended with something of them still held (earliest first), and each meal's event being
+## filled in as its diners eat, by key, until it is published.
+var _final_pending: PackedInt32Array = PackedInt32Array()
+var _building: Dictionary = {}
 
 
 func configure(brains: Array[BrainScript], names: PackedStringArray, species: PackedStringArray,
@@ -454,6 +481,8 @@ func update() -> void:
 	if calendar.tick - _pickup_tick >= PICKUP_TICKS:
 		_pickup_tick = calendar.tick
 		_hand_out()
+	if not _final_pending.is_empty():
+		_publish_finals()
 
 
 func skip_to_hour(to_hour: int) -> int:
@@ -1466,6 +1495,8 @@ func _eat_portion(i: int) -> void:
 	fed.ate_meal(i, _meal[i], dish, _hour_seen)
 	note_course(i, _meal[i], dish)
 	portions_eaten += 1
+	if first:
+		_final_for(_meal[i]).diners.append(i)
 	if _meal[i] > _closed_key and first:
 		_ate_by_meal[_meal[i]] = int(_ate_by_meal.get(_meal[i], 0)) + 1
 	if not _wants_other_course(i, _meal[i]):
@@ -1538,6 +1569,7 @@ func _eat_raw(i: int) -> void:
 	var milli: int = takes.live_milli(pantry, _raw_take[i], TakesScript.AT_STORE)
 	if milli > 0 and takes.consume_into(pantry, _raw_take[i], milli, TakesScript.AT_STORE, _hour_seen, _read):
 		fed.ate_raw(i, _meal[i], _raw_np[i])
+		_final_for(_meal[i]).raw.append(i)
 		raw_eaten_milli += milli
 		if _meal[i] > _closed_key:
 			_raw_by_meal[_meal[i]] = int(_raw_by_meal.get(_meal[i], 0)) + 1
@@ -1609,6 +1641,8 @@ func _close_meal(key: int) -> void:
 			without += 1
 	_closed_key = key
 	_record_meal(key, without)
+	_final_pending.append(key)
+	_forget_unfinalizable(key)
 
 
 func _stop_waiting(i: int) -> void:
@@ -1640,6 +1674,84 @@ func _holding(key: int, raw: bool) -> int:
 		if _meal[i] == key and ((_raw_take[i] > 0) if raw else (_portion[i] != FREE)):
 			n += 1
 	return n
+
+
+# --- the meal finalized (see THE MEAL FINALIZED) -------------------------------------------------------
+
+func holders_of(key: int) -> int:
+	"""How many residents still hold something of meal `key`: a portion or raw food not yet eaten, or a diner's part
+	for it under way (walking to its seat, waiting there for a course, eating)."""
+	var n: int = 0
+	for i: int in _role.size():
+		if _meal[i] != key:
+			continue
+		if _portion[i] != FREE or _raw_take[i] > 0 or (_role[i] == ROLE_EAT and _step[i] != STEP_DONE):
+			n += 1
+	return n
+
+
+func final_of(key: int) -> MealFinal:
+	"""Meal `key`'s published event (null while it is not: still served, still held, never ended, or long gone from the
+	log)."""
+	for k: int in range(finals.size() - 1, -1, -1):
+		if finals[k].key == key:
+			return finals[k]
+	return null
+
+
+func final_pending(key: int) -> bool:
+	"""Whether meal `key`'s serving has ended and its event waits on someone still holding something of it."""
+	return _final_pending.has(key)
+
+
+func meal_lapsed(key: int) -> bool:
+	"""Whether meal `key` will never have an event: the kitchen has run past its serving's end without ending it (a
+	season skip over it, or a meal before the kitchen was configured) -- or its event has left the log."""
+	return _hour_seen >= _ends_at(key) and not final_pending(key) and final_of(key) == null
+
+
+func _publish_finals() -> void:
+	"""Each ended meal nobody holds anything of any more is finalized, earliest first: its event published, once."""
+	var k: int = 0
+	while k < _final_pending.size():
+		var key: int = _final_pending[k]
+		if holders_of(key) > 0:
+			k += 1
+			continue
+		_final_pending.remove_at(k)
+		_publish(_final_for(key), key)
+
+
+func _publish(final: MealFinal, key: int) -> void:
+	"""Publish meal `key`'s event: its committed diners as they ate, how many went without by its corrected tally."""
+	_building.erase(key)
+	final.key = key
+	var at: int = meal_keys.rfind(key)
+	final.without = meal_without[at] if at >= 0 else 0
+	finals_published += 1
+	final.serial = finals_published
+	finals.append(final)
+	if finals.size() > MAX_MEAL_LOG:
+		finals.remove_at(0)
+	revision += 1
+
+
+func _final_for(key: int) -> MealFinal:
+	"""Meal `key`'s event being filled in (made on its first diner)."""
+	var final: MealFinal = _building.get(key, null) as MealFinal
+	if final == null:
+		final = MealFinal.new()
+		final.key = key
+		_building[key] = final
+	return final
+
+
+func _forget_unfinalizable(key: int) -> void:
+	"""Meal `key` has ended: an earlier meal's event still being filled in that will never be published (its serving
+	never ended -- a season skip over it) is let go."""
+	for earlier: Variant in _building.keys():
+		if int(earlier) < key and not _final_pending.has(int(earlier)):
+			_building.erase(earlier)
 
 
 func _raw_meal(i: int, key: int) -> bool:

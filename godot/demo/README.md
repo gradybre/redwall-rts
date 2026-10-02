@@ -482,7 +482,8 @@ characters -- each with a name, an interest and a way of speaking, from ONE data
 - **Notable moments are committed deeds only** (`people/people_taps.gd` into `people/people_ledger.gd`): a rescue that
   succeeded (never a victim washed ashore), a bridge, tunnel or room built (a dig called away is paused, not built: no
   memory), a first harvest (a cancelled one carried in as its delivery is none), a skill level reached, and a first
-  meal cooked that fed everyone.
+  meal cooked that fed everyone. A meal's deed and its shared suppers are read from the kitchen's **meal finalized**
+  event, once every bowl of it has been eaten or given back (decision 0997), never from the tally at 19:00.
 - **The spotlight**: after a rescue or a build, a top-centre card offers to mark the resident notable (★ on the roster;
   nothing about the work changes) -- once per resident and kind; it waits behind any incident card and the guide's card,
   and while the Residents list is open.
@@ -1601,6 +1602,9 @@ the field guide's dish entries say whose favourite each is. Monotony counts §5.
 - **Short.** A meal called with nothing coming raises "No supper tonight: <why>. To fix: <where>" in the village
   news; at its end anyone hungry eats raw roots or cabbage nobody has reserved (at most 3000 NP), the rest go
   without, and the tally is posted ("Supper, day 2: 8 ate, 1 went without").
+- **Finalized.** That tally is provisional while a diner still holds its bowl. Once nobody holds anything of the
+  meal, the kitchen publishes one **meal finalized** event with who actually ate it (`kitchen.gd` `finals`,
+  decision 0997); the regatta's feast and the people's memories read that, not the 19:00 tally.
 - **The Kitchen tab** (Pantry, K): the cook and what it is doing, any refusal and its fix, the next meals, the pot
   and table, the butt and fuel, how the village is fed, the last meals; **Cook now** and **Draw water** (each with
   its action card, from the same decision as the order), **Keep water drawn**, **Cancel the next meal** (a batch
@@ -2112,7 +2116,8 @@ first in summer:
   sung there; the service wood burns. At its end, **Shared Warmth** for 48 h when 80% ate every course (never stacked or
   extended; shown in the chronicle and the Regatta section). The demo models no mood or cold exposure, so the buff is a
   readout (`regatta_menu.gd`) nothing consumes yet.
-- **Remembered**: at the supper's end the chronicle (Village news, Village): the day, the host, the race, who shared the
+- **Remembered**: once the supper is finalized -- its last bowl eaten or given back, which can be after 19:00 (decision
+  0997) -- the tally, the buff and the chronicle (Village news, Village): the day, the host, the race, who shared the
   feast and **one moment** (the finish); the winners' deed in their own histories, pinned to the chronicle; +5 affinity
   for every pair who shared the feast (REQ-SET-036).
 - Checked by `test_demo_ferry.gd` and `test_demo_regatta.gd` (the placeholder cast on the real layout and water, the real

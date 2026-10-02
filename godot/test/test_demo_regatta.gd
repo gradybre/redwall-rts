@@ -365,8 +365,8 @@ func test_the_kitchen_cooks_an_occasion_as_set_whatever_its_count_or_food() -> v
 
 
 func test_the_tally_counts_only_those_who_ate_the_main_course() -> void:
-	"""Attendance is who ate the feast's bean hotpot at that supper: one who ate another dish, or missed it, is not
-	counted."""
+	"""Attendance is who ate the feast's bean hotpot at that supper, read from the meal-finalized event's committed
+	diners (decision 0997): one who ate another dish, missed it, or is not among the event's diners is not counted."""
 	var rig: Rig = _rig()
 	var r: RegattaScript = rig.regatta
 	_stock_feast(rig)
@@ -374,14 +374,17 @@ func test_the_tally_counts_only_those_who_ate_the_main_course() -> void:
 	assert_equal(r.hold(day, 2, true), "", "held")
 	var key: int = Rules.feast_key(day)
 	var hour: int = day * SimClock.HOURS_PER_DAY + 17
-	for who: int in [1, 3]:
+	for who: int in [1, 3, 5]:
 		rig.kitchen.fed.ate_meal(who, key, MealRules.DISH_BEAN_HOTPOT, hour)
 		rig.kitchen.note_course(who, key, MealRules.DISH_BEAN_HOTPOT)
 	rig.kitchen.fed.ate_meal(2, key, MealRules.DISH_SOUP, hour)
 	rig.kitchen.note_course(2, key, MealRules.DISH_SOUP)
 	rig.kitchen.fed.missed(4, key)
-	r._tally()
-	assert_equal(r.attendees, PackedInt32Array([1, 3]), "the two who ate the hotpot, no one else")
+	var final := KitchenScript.MealFinal.new()
+	final.key = key
+	final.diners = PackedInt32Array([3, 2, 1])
+	r._tally(final)
+	assert_equal(r.attendees, PackedInt32Array([1, 3]), "the two diners who ate the hotpot, in resident order -- not 5, whom the event does not carry")
 	assert_equal(r.state, RegattaScript.ST_DONE, "the day over")
 
 
@@ -420,21 +423,29 @@ func test_a_race_under_way_cannot_be_skipped() -> void:
 
 
 func test_a_feast_never_served_gives_its_food_and_wood_back() -> void:
-	"""The calendar past the regatta's supper before it was served (the kitchen never planned it): the tally gives the
-	service wood and the reserved beans and cabbage back -- nothing stays held for good."""
+	"""A season skip past the regatta's supper before it was served (the kitchen never planned it, never ended it: no
+	meal-finalized event will come -- `meal_lapsed`): the tally, with nobody, gives the service wood and the reserved
+	beans and cabbage back -- nothing stays held for good."""
 	var rig: Rig = _rig()
 	var r: RegattaScript = rig.regatta
 	_stock_feast(rig)
 	var wood: int = _services.stores.wood_milli_u
 	var day: int = SUMMER_1 + 4
 	assert_equal(r.hold(day, 2, true), "", "held")
+	var take: int = r.take
 	assert_false(rig.kitchen.occasion_adopted(), "not planned by the kitchen")
 	rig.calendar.tick = tick_at(day + 1, 8)
 	r.update()
+	assert_equal(r.state, RegattaScript.ST_PLANNED, "the kitchen has not run past the supper: no tally yet")
+	rig.kitchen.skip_to_hour(rig.calendar.hour_index())
+	assert_true(rig.kitchen.meal_lapsed(Rules.feast_key(day)), "the supper lapsed")
+	r.update()
 	assert_equal(r.state, RegattaScript.ST_DONE, "the day is over")
+	assert_equal(r.attendees.size(), 0, "nobody shared it")
 	assert_equal(_services.stores.wood_milli_u, wood, "the unserved wood back")
-	assert_equal(r.free_beans(), 8000, "the beans back")
-	assert_equal(r.free_cabbage(), 8000, "the cabbage back")
+	for crop: int in [FarmingScript.CROP_BEANS, FarmingScript.CROP_CABBAGE]:
+		assert_equal(rig.kitchen.takes.live_milli(rig.pantry, take, -1, crop), 0, "the feast's category %d let go" % crop)
+	assert_equal([rig.pantry.milli_of(PEA), rig.pantry.milli_of(CABBAGE)], [8000, 8000], "none of it eaten")
 
 
 func test_skipping_a_plan_the_kitchen_has_not_planned_gives_the_food_back() -> void:
@@ -738,3 +749,82 @@ func test_a_second_course_that_cannot_come_is_not_waited_for_nor_doubled() -> vo
 	assert_equal(rig.kitchen.portions_eaten, r.attendees.size(), "one hotpot portion a guest, never two")
 	assert_false(r.menu.warmth_active(rig.calendar.tick), "no Shared Warmth without the second course")
 	assert_true(r.warmth_line.begins_with("no Shared Warmth"), r.warmth_line)
+
+
+# --- the feast's end is the kitchen's meal-finalized event (decision 0997; Brendan's ruling on review R05) -----------
+
+func _guest_eating_at_the_suppers_end(rig: Rig, day: int) -> int:
+	"""Hold the feast on `day` and run its supper until a guest is eating the hotpot (not yet half through its bowl) after
+	two others have eaten theirs;
+	then move the calendar to the supper's end (19:00) with every bowl in hand still in hand, and run the frame in which
+	the kitchen ends the serving. The guest."""
+	assert_equal(rig.regatta.hold(day, 2, true), "", "held")
+	rig.calendar.tick = tick_at(day, Rules.CREW_CALL_HOUR) - 30
+	rig.kitchen.update()
+	var key: int = Rules.feast_key(day)
+	var guest: Array[int] = [-1]
+	_run(rig, func() -> bool:
+		guest[0] = _eating(rig.kitchen, key) if _ate_main(rig.kitchen) >= 2 else -1
+		return guest[0] >= 0, 30000)
+	assert_true(guest[0] >= 0, "a guest eating the hotpot (%s)" % rig.regatta.status_line())
+	rig.calendar.tick = tick_at(day, MealRules.END_HOUR[Rules.FEAST_MEAL]) - 1
+	rig.kitchen._credited.fill(rig.calendar.tick)
+	_run(rig, func() -> bool: return false, 1)
+	assert_true(rig.kitchen.final_pending(key), "the supper's serving ended with a bowl held")
+	assert_true(rig.regatta.state != RegattaScript.ST_DONE, "no tally while a bowl is out")
+	return guest[0]
+
+
+static func _ate_main(kitchen: KitchenScript) -> int:
+	"""How many residents have eaten the occasion's main course."""
+	var n: int = 0
+	for i: int in kitchen.fed.count():
+		n += 1 if kitchen.occasion_courses(i) & KitchenScript.COURSE_MAIN != 0 else 0
+	return n
+
+
+static func _eating(kitchen: KitchenScript, key: int) -> int:
+	"""A resident at work eating meal `key`, not yet half through its bowl (-1: none)."""
+	for i: int in kitchen.fed.count():
+		if kitchen.meal_of(i) == key and kitchen.step_of(i) == KitchenScript.WORK_EAT and kitchen._at_work[i] == 1 \
+				and kitchen._mwu[i] * 2 <= MealRules.EAT_MWU:
+			return i
+	return -1
+
+
+func test_a_guest_eating_at_the_suppers_end_shares_the_feast_once_its_bowl_is_eaten() -> void:
+	"""BOUNDARY (R05): a guest still eating the hotpot when the supper's serving ends at 19:00 is counted -- the tally,
+	the chronicle's number, the feast's company (its affinity) and the buff's coverage are taken from the kitchen's
+	meal-finalized event, published only once that last bowl is eaten."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock_feast(rig)
+	var day: int = SUMMER_1 + 1
+	var guest: int = _guest_eating_at_the_suppers_end(rig, day)
+	assert_true(_run(rig, func() -> bool: return r.state == RegattaScript.ST_DONE, 3000), "tallied (%s)" % r.status_line())
+	var final: KitchenScript.MealFinal = rig.kitchen.final_of(Rules.feast_key(day))
+	assert_true(final != null and final.diners.has(guest), "the guest is a committed diner")
+	assert_true(r.attendees.has(guest), "and shared the feast")
+	assert_true(rig.posted.size() == 1 and rig.posted[0].contains("%d of %d shared" % [r.attendees.size(), r.eligible]),
+		"the chronicle counts it")
+	assert_equal(rig.shared.size(), 1, "the feast's company shared once")
+	var company: PackedInt32Array = rig.shared[0] if not rig.shared.is_empty() else PackedInt32Array()
+	assert_true(company.has(guest), "with the guest among it: %s" % company)
+
+
+func test_a_guest_giving_its_bowl_back_after_the_suppers_end_is_not_counted() -> void:
+	"""BOUNDARY (R05): a guest still eating at 19:00 is ordered away and gives its bowl back: the feast is tallied from
+	the event published on that return, without the guest."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock_feast(rig)
+	var day: int = SUMMER_1 + 1
+	var guest: int = _guest_eating_at_the_suppers_end(rig, day)
+	r.brain_of(guest).order_move(r.brain_of(guest).position + Vector2(0.0, 1.0))
+	assert_true(_run(rig, func() -> bool: return r.state == RegattaScript.ST_DONE, 3000), "tallied (%s)" % r.status_line())
+	var final: KitchenScript.MealFinal = rig.kitchen.final_of(Rules.feast_key(day))
+	assert_true(final != null and not final.diners.has(guest) and final.without >= 1, "the guest went without")
+	assert_false(r.attendees.has(guest), "and did not share the feast")
+	for company: PackedInt32Array in rig.shared:
+		assert_false(company.has(guest), "nor its company")
+	assert_equal(rig.kitchen.occasion_courses(guest), 0, "no course eaten")

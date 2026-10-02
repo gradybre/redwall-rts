@@ -308,3 +308,22 @@ func test_the_kitchen_tab_shows_the_dishes_icons_only_when_staged() -> void:
 	assert_equal(dishes[dishes.size() - 1], Rules.NO_DISH, "the water's row last")
 	assert_equal(dishes.size(), kitchen.stock_rows().size(), "a dish a stock row")
 	assert_equal(dishes[0], Rules.DISH_KEYS.find(&"pasty"), "the pasty first, in the book's order")
+
+
+func test_a_cooked_dish_row_in_the_stocks_carries_its_icon() -> void:
+	"""farm_pantry_panel.gd `_fill_kitchen_row` (decision 0903): a dish's Stocks row shows its staged icon by key; the
+	water's none."""
+	var kitchen := _kitchen(2, 6 * SimClock.TICKS_PER_HOUR, _pantry(), StoresScript.new())
+	var panel := _panel(kitchen)
+	DirAccess.make_dir_recursive_absolute("user://kitchen_icons")
+	Image.create(8, 8, false, Image.FORMAT_RGBA8).save_png("user://kitchen_icons/dish_pasty.png")
+	var props := preload("res://demo/props/demo_props.gd").new()
+	props.load_from({"icons": {"dish_pasty": {"icon": "user://kitchen_icons/dish_pasty.png"}}})
+	panel.set_goods(preload("res://demo/farm/farm_goods.gd").new(props))
+	kitchen.store.add(Rules.DISH_KEYS.find(&"pasty"), 2, 0)
+	panel.refresh()
+	var shown: Array = []
+	for icon: TextureRect in panel.get("_stock_icons"):
+		if icon.get_parent().visible and icon.texture != null:
+			shown.append(icon.texture)
+	assert_true(shown.has(props.staged_icon(&"dish_pasty")), "the pasty's row carries its icon")

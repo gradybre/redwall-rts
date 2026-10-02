@@ -22,6 +22,7 @@ const CareRules := preload("res://demo/infirmary/care_rules.gd")
 const InfirmaryView := preload("res://demo/infirmary/infirmary_view.gd")
 const Evergreens := preload("res://demo/world/evergreens.gd")
 const Layout := preload("res://demo/world/world_layout.gd")
+const WaterDressing := preload("res://demo/water/water_dressing.gd")
 const Scatter := preload("res://demo/world/world_scatter.gd")
 const SeasonView := preload("res://demo/seasons/season_view.gd")
 const LookScript := preload("res://demo/seasons/season_look.gd")
@@ -31,6 +32,10 @@ const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 const TunnelRules := preload("res://demo/tunnel/tunnel_rules.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
+const StorageScript := preload("res://demo/farm/farm_storage.gd")
+const PantryScript := preload("res://demo/farm/farm_pantry.gd")
+const OrchardNode := preload("res://demo/orchard/demo_orchard.gd")
 
 const DIR: String = "user://art_wiring_fixture"
 
@@ -49,6 +54,25 @@ func _keep(node: Object) -> Object:
 	"""Free `node` after the test."""
 	_nodes.append(node)
 	return node
+
+
+static func _scene(file: String) -> String:
+	"""A packed scene of one textured-surface mesh under DIR (a stand-in for a staged model); its path."""
+	DirAccess.make_dir_recursive_absolute(DIR)
+	var box := BoxMesh.new()
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, box.get_mesh_arrays())
+	var material := StandardMaterial3D.new()
+	material.albedo_texture = ImageTexture.create_from_image(Image.create(4, 4, false, Image.FORMAT_RGBA8))
+	mesh.surface_set_material(0, material)
+	var root := MeshInstance3D.new()
+	root.mesh = mesh
+	var packed := PackedScene.new()
+	packed.pack(root)
+	root.free()
+	var path: String = DIR.path_join(file + ".tscn")
+	ResourceSaver.save(packed, path)
+	return path
 
 
 static func _png(file: String) -> String:
@@ -98,6 +122,7 @@ func test_an_item_is_drawn_by_its_key_first_and_its_model_second() -> void:
 	props.load_from({"icons": {"item_berries": {"icon": _png("item_berries")}}})
 	var goods := GoodsScript.new(props)
 	assert_true(goods.has_staged_icon(Catalog.ITEM_BERRIES), "berries' own icon (not the strawberry model's)")
+	assert_true(goods.icon_of(Catalog.ITEM_BERRIES) == props.staged_icon(&"item_berries"), "drawn by its key")
 	assert_false(goods.has_staged_icon(Catalog.ITEM_APPLE), "the apple: nothing staged")
 	assert_true(goods.icon_of(Catalog.ITEM_APPLE) == props.roundel(Catalog.ITEM_SWATCH[Catalog.ITEM_APPLE]), "its roundel")
 
@@ -133,6 +158,12 @@ func test_the_orchard_draws_the_food_art_where_it_is_staged() -> void:
 	for slot: int in 3:
 		assert_true(view.bush_is_art(slot), "hedge slot %d is the food art" % slot)
 	assert_equal(view.season_tree_kind(OrchardRules.SITE_COUNT + 2), LookScript.KIND_FRUIT, "the patch: a fruit slot")
+	for slot: int in 3:
+		var mesh := _first_geometry(view.season_tree_node(OrchardRules.SITE_COUNT + slot))
+		var hide: Color = mesh.get_instance_shader_parameter(&"berry_hide")
+		assert_almost_equal(hide.a, 1.0, "spring: every modelled berry of slot %d hidden" % slot)
+		var speckle: Color = mesh.get_instance_shader_parameter(&"leaf_fruit")
+		assert_almost_equal(speckle.a, 0.0, "no speckle on the modelled berries")
 
 
 func test_without_the_food_art_the_orchard_draws_its_stand_ins() -> void:
@@ -155,6 +186,30 @@ func test_a_planted_fruit_tree_grows_through_the_food_arts_shares() -> void:
 	assert_almost_equal(view.tree_size(2), OrchardView.FRUIT_SAPLING_SIZES.x, "a sapling's share")
 
 
+func test_the_old_orchards_stand_shows_full_apple_baskets() -> void:
+	"""orchard_view.gd `_heap`: apples at the old orchard's stand show as the food art's full baskets (a started third
+	each), the empty baskets they replace hidden, no fruit heap; the east stand never touches them."""
+	var storage := StorageScript.new(Vector2.ZERO)
+	storage.add_provider(OrchardNode.stand_provider())
+	var pantry := PantryScript.new(storage)
+	var read := IntMath.IntResult.new()
+	assert_true(pantry.storage.index_of_id_into(OrchardRules.STAND_IDS[0], read), "the old orchard's stand")
+	assert_true(pantry.add_into(Catalog.ITEM_APPLE, 50000, read.value, read), "apples at it")
+	var props := PropsScript.new()
+	props.load_from({"world": {"apple_basket": {"path": _scene("apple_basket"), "aabb_min": [-0.5, 0, -0.5],
+		"aabb_max": [0.5, 0.4, 0.5]}}})
+	var model := OrchardModel.new()
+	model.today_hint = 1
+	var world := _keep(DemoWorldScript.new()) as DemoWorldScript
+	var view := _keep(OrchardView.new()) as OrchardView
+	view.configure(model, null, world.make_piece, props, null, pantry, CalendarScript.new(), _staged_all)
+	view.refresh(true)
+	assert_equal(view.full_baskets_shown(), 2, "50 of 120 U: two started thirds")
+	assert_equal(view.heap_count(0), 0, "no heap under full baskets")
+	view.call(&"_heap", 1)
+	assert_equal(view.full_baskets_shown(), 2, "the east stand leaves them alone")
+
+
 # --- the forage spots ---------------------------------------------------------------------------------------------------
 
 func test_the_forage_spots_draw_their_models_only_where_staged() -> void:
@@ -175,6 +230,25 @@ func test_the_forage_spots_draw_their_models_only_where_staged() -> void:
 		var spot: Vector2 = ForageRules.SPOT_AT[ForageView.PIECE_KIND[i]]
 		assert_less_than(at.distance_to(spot), 3.0, "piece %d beside its spot" % i)
 	view.show_berries(0.25)
+	var hidden: int = 0
+	for i: int in view.season_tree_count():
+		if ForageView.PIECE_KEY[i] == &"bramble_blackberry":
+			var mesh := _first_geometry(view.season_tree_node(i))
+			var value: Color = mesh.get_instance_shader_parameter(&"berry_hide")
+			assert_almost_equal(value.a, 0.75, "a quarter of the berries shown")
+			hidden += 1
+	assert_equal(hidden, 2, "both brambles")
+
+
+static func _first_geometry(node: Node) -> GeometryInstance3D:
+	"""The first mesh at or under `node`."""
+	if node is GeometryInstance3D:
+		return node
+	for child: Node in node.get_children():
+		var found := _first_geometry(child)
+		if found != null:
+			return found
+	return null
 
 
 func test_the_bramble_edge_is_clear_of_the_orchards_blocks() -> void:
@@ -207,6 +281,19 @@ func test_the_herb_patch_model_stands_for_its_clumps() -> void:
 	assert_true(patch.has_model(), "a null model changes nothing")
 
 
+func test_the_door_dressing_stands_before_the_bodys_front() -> void:
+	"""infirmary_view.gd: the herbs and the shelf stand DRESSING_OUT_M beyond the drawn body's front, whichever body."""
+	var props := PropsScript.new()
+	var root := _keep(InfirmaryView.body_node(props)) as Node3D
+	var parts: Array[Node] = root.get_children()
+	assert_equal(parts.size(), 3, "the body, the herbs and the shelf")
+	for k: int in 2:
+		var part := parts[k + 1] as Node3D
+		var key: StringName = InfirmaryView.HERBS_KEY if k == 0 else InfirmaryView.SHELF_KEY
+		var want: float = InfirmaryView.front_z() + InfirmaryView.DRESSING_OUT_M + props.fit_of(key).origin.z
+		assert_almost_equal(part.transform.origin.z, want, "%s before the front" % key)
+
+
 func test_the_infirmary_body_falls_back_to_its_stand_in() -> void:
 	"""infirmary_view.gd: the ward's row when staged, else the residence's, else none (CI: the box)."""
 	var row: Dictionary = InfirmaryView.body_row()
@@ -234,10 +321,14 @@ func test_the_evergreens_stand_in_the_woods_the_same_every_run() -> void:
 		keys[p["key"]] = true
 		assert_true(at.length() >= Scatter.clearing_edge(at), "in the woods")
 		assert_true(Layout.path_distance(at) >= Evergreens.PATH_CLEARANCE_M, "off the paths")
-		for spot: Vector2 in Evergreens.KEEP_CLEAR:
+		for spot: Vector2 in Evergreens.keep_clear():
 			assert_true(at.distance_to(spot) >= Evergreens.SPOT_CLEARANCE_M, "clear of the spots")
 	assert_true(keys.has(Evergreens.PINE_KEY) and keys.has(Evergreens.YEW_KEY), "pines and yews")
 	assert_equal(Evergreens.land_obstacles(world.trees()).size(), first.size(), "a trunk each")
+	var blockers: Array[Vector3] = WaterDressing.woods_blockers()
+	blockers.append_array(Layout.obstacles_for(Layout.placements()))
+	for p: Dictionary in first:
+		assert_true(Layout.clearance(p["at"], blockers) >= Evergreens.BLOCKER_CLEARANCE_M, "clear of the water and buildings")
 	var ever := _keep(Evergreens.new()) as Evergreens
 	assert_equal(ever.build(world.make_piece, _staged_none, world.trees()), 0, "nothing staged: none drawn")
 	assert_equal(ever.season_tree_kind(0), LookScript.KIND_EVERGREEN, "evergreen")
@@ -257,6 +348,11 @@ func test_the_authored_bare_oak_is_used_only_when_both_load() -> void:
 	assert_false(view.use_authored_bare("", ""), "nothing given")
 	assert_false(view.use_authored_bare("res://demo/assets/world/nowhere.glb", "res://demo/assets/world/none.glb"),
 		"nothing there")
+	var model_path: String = _scene("oak_model")
+	var bare_path: String = _scene("oak_bare")
+	assert_true(view.use_authored_bare(model_path, bare_path), "both load: the authored bare")
+	var model: Mesh = SeasonView.first_mesh_of(model_path)
+	assert_true(view.call(&"_bare_for", model) == SeasonView.first_mesh_of(bare_path), "worn for that model")
 
 
 # --- the tunnel ---------------------------------------------------------------------------------------------------------
@@ -266,6 +362,10 @@ func test_the_brace_is_the_timber_set_when_staged_else_the_old_brace() -> void:
 	var props := PropsScript.new()
 	assert_equal(MarksScript.brace_key(props), MarksScript.OLD_BRACE_KEY, "nothing staged: the old brace")
 	assert_equal(MarksScript.BRACE_KEY, &"tunnel_set", "the timber set's key")
+	var staged := PropsScript.new()
+	staged.load_from({"world": {"tunnel_set": {"path": _scene("tunnel_set"), "aabb_min": [-0.5, 0, -0.5],
+		"aabb_max": [0.5, 1, 0.5]}}})
+	assert_equal(MarksScript.brace_key(staged), &"tunnel_set", "staged: the timber set")
 	assert_true(PropsScript.is_known(&"tunnel_set"), "sized")
 
 
@@ -287,6 +387,12 @@ func test_rock_faces_stand_where_the_ground_is_rock() -> void:
 	dressing.call(&"_ensure", 0)
 	dressing.call(&"_dress_rock", 0, 12345, Vector3(1.0, -1.5, 2.0), Vector2(1.0, 0.0), TunnelRules.BORE_STANDARD)
 	assert_true(dressing.rocks(0).multimesh.visible_instance_count >= 1, "rock: a face against a wall")
+	var placed: Transform3D = DressingScript.rock_transform(12345, Vector3(1.0, -1.5, 2.0), Vector3(0.0, 0.0, 1.0),
+		TunnelRules.BORE_STANDARD)
+	var out: float = placed.origin.z - 2.0
+	assert_true(out > 0.3 and out < 0.5, "against the wall, not on the centre line (%.2f m out)" % out)
+	assert_almost_equal(placed.origin.y, -1.5, "its base on the floor")
+	assert_true(placed.basis.z.normalized().dot(Vector3(0.0, 0.0, -1.0)) > 0.9, "its face to the centre line")
 	var loam := _keep(DressingScript.new()) as DressingScript
 	loam.configure()
 	loam.set_rock(BoxMesh.new(), Transform3D.IDENTITY, _all_loam)

@@ -446,15 +446,15 @@ func _wear(i: int, wear: int) -> void:
 func use_authored_bare(model_path: String, bare_path: String) -> bool:
 	"""Wear the staged bare model at `bare_path` for every tree of the model at `model_path` once it is bare (THE
 	AUTHORED BARE OAK); false (the cut stays) when either does not load or has no textured surface."""
-	var model: Mesh = _first_mesh_of(model_path)
-	var bare: Mesh = _first_mesh_of(bare_path)
+	var model: Mesh = first_mesh_of(model_path)
+	var bare: Mesh = first_mesh_of(bare_path)
 	if model == null or bare == null or bare.get_surface_count() != 1:
 		return false
 	_authored[model] = bare
 	return true
 
 
-static func _first_mesh_of(path: String) -> Mesh:
+static func first_mesh_of(path: String) -> Mesh:
 	"""The first mesh of the staged model at `path` (null when it is not there or will not load)."""
 	if path.is_empty() or not ResourceLoader.exists(path):
 		return null
@@ -463,6 +463,8 @@ static func _first_mesh_of(path: String) -> Mesh:
 		return null
 	var root: Node = scene.instantiate()
 	var found: Array[Node] = root.find_children("*", "MeshInstance3D", true, false)
+	if root is MeshInstance3D:
+		found.push_front(root)
 	var mesh: Mesh = (found[0] as MeshInstance3D).mesh if not found.is_empty() else null
 	root.free()
 	return mesh
@@ -474,9 +476,20 @@ func _bare_for(own: Mesh) -> ArrayMesh:
 		return BoughsScript.bark_only(own)
 	var bare := _authored[own] as ArrayMesh
 	if bare != null and not _bare_material.has(bare):
-		var made: ShaderMaterial = CanopyScript.make_fade_material(bare.surface_get_material(0) as BaseMaterial3D)
-		_bare_material[bare] = _keep_material(made, bare)
+		_bare_material[bare] = _keep_material(_fade_material_of(bare), bare)
 	return bare
+
+
+func _fade_material_of(bare: ArrayMesh) -> ShaderMaterial:
+	"""The tree material for an authored bare model: the canopy's own for its glTF material (`material_for`, so a faded
+	bare oak wears the material the weather's cover is set on), else one made here (a check with no canopy)."""
+	if not _material_for.is_valid():
+		return CanopyScript.make_fade_material(bare.surface_get_material(0) as BaseMaterial3D)
+	var probe := MeshInstance3D.new()
+	probe.mesh = bare
+	var made := _material_for.call(probe) as ShaderMaterial
+	probe.free()
+	return made
 
 
 func prepare_bare() -> int:
@@ -485,6 +498,8 @@ func prepare_bare() -> int:
 	var made: int = 0
 	for i: int in _meshes.size():
 		var own: Mesh = _own_mesh[i]
+		if _kinds[i] == LookScript.KIND_EVERGREEN:
+			continue
 		if not _bare_of.has(own):
 			var bare: ArrayMesh = _bare_for(own)
 			_bare_of[own] = bare

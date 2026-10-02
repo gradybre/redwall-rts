@@ -67,6 +67,12 @@ static func body_node(props: PropsScript) -> Node3D:
 	return root
 
 
+static func front_z() -> float:
+	"""The drawn body's front face (+Z, m; checks): where the door's dressing stands before."""
+	_load_body()
+	return _front_z
+
+
 static func body_row() -> Dictionary:
 	"""The staged row the body is drawn from: the ward, else its stand-in ({} when neither is staged)."""
 	var world: Dictionary = ManifestScript.load_manifest()["world"]

@@ -260,13 +260,18 @@ func _add_rock(slot: int, seed_value: int, centre: Vector3, out: Vector3, bore: 
 	var count := node.multimesh.visible_instance_count
 	if count >= MAX_ROCKS:
 		return
+	node.multimesh.set_instance_transform(count, rock_transform(seed_value, centre, out, bore) * _rock_fit)
+	node.multimesh.visible_instance_count = count + 1
+
+
+static func rock_transform(seed_value: int, centre: Vector3, out: Vector3, bore: int) -> Transform3D:
+	"""Where one rock face stands (before its model's fit): its back to the wall on the `out` side, its face (+Z) to the
+	centre line, its base on the floor at `centre`, a little yawed and sized by its dice."""
 	var size := lerpf(ROCK_SIZE_MIN, ROCK_SIZE_MAX, unit(seed_value, 44))
 	var inward := -out
 	var facing := Basis(Vector3.UP.cross(inward), Vector3.UP, inward).rotated(Vector3.UP,
 		(unit(seed_value, 45) - 0.5) * 2.0 * ROCK_YAW_MAX).scaled(Vector3.ONE * size)
-	var at := centre + out * (BoreMeshScript.FLOOR_HALF_M[bore] - ROCK_HALF_DEPTH_M * size)
-	node.multimesh.set_instance_transform(count, Transform3D(facing, at) * _rock_fit)
-	node.multimesh.visible_instance_count = count + 1
+	return Transform3D(facing, centre + out * (BoreMeshScript.FLOOR_HALF_M[bore] - ROCK_HALF_DEPTH_M * size))
 
 
 func root_chance(at: Vector2) -> float:

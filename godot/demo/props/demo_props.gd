@@ -132,6 +132,8 @@ var _icon_paths: Dictionary = {}
 ## The manifest's `ui` section, and each UI picture read so far (res path -> Texture2D; null: it would not load).
 var _ui: Dictionary = {}
 var _ui_textures: Dictionary = {}
+## Icons whose file would not load (`staged_icon` tries each once).
+var _icon_failed: Dictionary = {}
 
 
 func load_from(manifest: Dictionary) -> void:
@@ -146,7 +148,8 @@ func load_from(manifest: Dictionary) -> void:
 		var path: String = String((icons[key] as Dictionary).get("icon", "")) if icons[key] is Dictionary else ""
 		if FileAccess.file_exists(path) or FileAccess.file_exists(path + ".import"):
 			_icon_paths[StringName(key)] = path
-	_ui = manifest.get("ui", {})
+	var ui: Variant = manifest.get("ui", {})
+	_ui = ui if ui is Dictionary else {}
 
 
 static func _parts_exist(row: Dictionary) -> bool:
@@ -431,7 +434,10 @@ func icon_of(key: StringName, swatch: Color) -> Texture2D:
 
 func staged_icon(key: StringName) -> Texture2D:
 	"""`key`'s staged icon, or null when none is staged (a panel that shows no roundel in its place)."""
-	if not has_icon(key) or (not _icons.has(key) and not _warm_icon(key)):
+	if not has_icon(key) or _icon_failed.has(key):
+		return null
+	if not _icons.has(key) and not _warm_icon(key):
+		_icon_failed[key] = true
 		return null
 	return _icons[key]
 

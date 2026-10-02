@@ -17,12 +17,14 @@ const Scatter := preload("res://demo/world/world_scatter.gd")
 const Layout := preload("res://demo/world/world_layout.gd")
 const WaterDressing := preload("res://demo/water/water_dressing.gd")
 const LookScript := preload("res://demo/seasons/season_look.gd")
+const ForageRules := preload("res://demo/forage/forage_rules.gd")
+const OrchardRules := preload("res://demo/orchard/orchard_rules.gd")
 
 const SEED: int = 1990
 const ATTEMPTS: int = 1600
 ## How many: pines and yews (a sensible scatter for the outer woods, decision 0903).
 const PINES: int = 10
-const YEWS: int = 6
+const YEWS: int = 5
 const PINE_KEY: StringName = &"pine_scots"
 const YEW_KEY: StringName = &"yew_ancient"
 ## Where: this far past the clearing's edge, out to OUTER_TO_M (from the square's middle).
@@ -30,8 +32,7 @@ const WOODS_IN_M: float = 5.0
 const OUTER_TO_M: float = 50.0
 ## Kept this far from the foraging spots and the orchard's grove (their own trees and bushes stand there).
 const SPOT_CLEARANCE_M: float = 7.0
-const KEEP_CLEAR: Array[Vector2] = [Vector2(-7.5, -29.4), Vector2(10.4, -30.4), Vector2(-12.0, 23.6), Vector2(-25.0, 27.0),
-	Vector2(-10.0, -25.5)]
+## (keep_clear(): forage_rules.gd SPOT_AT and orchard_rules.gd GROVE_AT, read, never copied.)
 ## Each trunk's radius at size 1.0 (art pass 2's proposal, decision 0951: pine 0.45 m, yew 0.9 m; the cast walks round).
 const TRUNK_RADIUS_M: Dictionary = {PINE_KEY: 0.45, YEW_KEY: 0.9}
 ## Trunk-to-trunk spacing at size 1.0 (a crown's spread: pine about 9 m across, yew 11); from another tree, the mean of
@@ -81,13 +82,20 @@ static func _site_ok(p: Vector2, blockers: Array[Vector3], taken: Array[Vector3]
 	"""Off the paths, clear of the water and the buildings, and keeping every tree's spacing (and its own)."""
 	if Layout.path_distance(p) < PATH_CLEARANCE_M or Layout.clearance(p, blockers) < BLOCKER_CLEARANCE_M:
 		return false
-	for spot: Vector2 in KEEP_CLEAR:
+	for spot: Vector2 in keep_clear():
 		if p.distance_to(spot) < SPOT_CLEARANCE_M:
 			return false
 	for t: Vector3 in taken:
 		if p.distance_to(Vector2(t.x, t.y)) < (t.z + spacing) * 0.5:
 			return false
 	return true
+
+
+static func keep_clear() -> Array[Vector2]:
+	"""Where no evergreen stands near: the foraging spots and the orchard's grove."""
+	var out: Array[Vector2] = ForageRules.SPOT_AT.duplicate()
+	out.append(OrchardRules.GROVE_AT)
+	return out
 
 
 static func land_obstacles(woods: Array[Dictionary]) -> Array[Vector3]:

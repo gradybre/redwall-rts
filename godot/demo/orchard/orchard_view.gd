@@ -236,7 +236,8 @@ func _build_hedge() -> void:
 		_bush_art.append(1 if art else 0)
 	if has_art(PATCH_KEY):
 		var patch: Node3D = _make_piece(PATCH_KEY, Rules.BUSH_AT[2], 1.3, 1.0)
-		add_child(patch)
+		if patch != null:
+			add_child(patch)
 		_bushes.append(patch)
 		_bush_art.append(1)
 		return
@@ -521,13 +522,16 @@ func _heap(group: int) -> void:
 	var multi: MultiMesh = _stand_fruit[group].multimesh
 	if _pantry == null or not _pantry.storage.index_of_id_into(Rules.STAND_IDS[group], _scratch):
 		multi.visible_instance_count = 0
+		if group == 0:
+			_show_full_baskets(0)
 		return
 	var at: int = _scratch.value
 	var used: int = _pantry.used_milli_of(at)
 	var share: float = float(used) / float(Rules.STAND_CAPACITY_U * 1000)
 	var item: int = _stand_item(at)
 	var full: int = ceili(3.0 * share) if group == 0 and item == Catalog.ITEM_APPLE and not _full_baskets.is_empty() else 0
-	_show_full_baskets(full)
+	if group == 0:
+		_show_full_baskets(full)
 	multi.visible_instance_count = 0 if full > 0 else mini(FRUIT_POOL, ceili(float(FRUIT_POOL) * share))
 	var colour: Color = Catalog.ITEM_SWATCH[item]
 	for k: int in multi.visible_instance_count:

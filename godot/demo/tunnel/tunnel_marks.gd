@@ -75,7 +75,11 @@ const GLOW_ENERGY: float = 3.0
 ## its cap beam (see UNDERGROUND).
 const FRAME_CROWN_SHARE: float = 0.72
 const BRACE_CUT_M: float = 0.62
-const BRACE_KEY: StringName = &"tunnel_brace"
+## The brace frame: art pass 3's timber set (two adzed posts and a cap beam, decision 0971; wired by the batch 8
+## integration, decision 0903) where it is staged, else the library's tunnel_brace (decision 0204), else a box frame.
+## `frame_fit` squeezes either to the unit frame, so it drops in.
+const BRACE_KEY: StringName = &"tunnel_set"
+const OLD_BRACE_KEY: StringName = &"tunnel_brace"
 const RUBBLE_KEY: StringName = &"tunnel_rubble"
 const LANTERN_KEY: StringName = &"wall_lantern"
 ## A lantern hangs this far up the wall (from the bore floor), its bracket on the wall this share of
@@ -153,7 +157,8 @@ func configure(network: GraphScript, hazards: HazardsScript, props: PropsScript 
 	_frame_fit = frame_fit(_props)
 	_lantern_fit = _props.fit_of(LANTERN_KEY)
 	_rubble_fit = _props.fit_of(RUBBLE_KEY)
-	_brace_mesh = _props.mesh_of(BRACE_KEY) if _props.is_staged(BRACE_KEY) else _frame_mesh()
+	var brace: StringName = brace_key(_props)
+	_brace_mesh = _props.mesh_of(brace) if _props.is_staged(brace) else _frame_mesh()
 	for level in range(Rules.TOP_LEVEL, Rules.DEEPEST_LEVEL + 1):
 		_brace_materials[level] = cutaway_of(_brace_mesh.surface_get_material(0), level)
 	_brace_material = _brace_materials[Rules.TOP_LEVEL]
@@ -332,15 +337,21 @@ static func cutaway_of(source: Material, level: int = Rules.TOP_LEVEL) -> Shader
 	return material
 
 
+static func brace_key(props: PropsScript) -> StringName:
+	"""The brace model drawn: the timber set when it is staged, else the old brace (see BRACE_KEY)."""
+	return BRACE_KEY if props.is_staged(BRACE_KEY) else OLD_BRACE_KEY
+
+
 static func frame_fit(props: PropsScript) -> Transform3D:
 	"""How the brace model fits the unit frame _bore_transform scales (1 m wide, FRAME_POST_M tall,
 	centred, its base at 0); the box frame already is that."""
-	if not props.is_staged(BRACE_KEY):
+	var brace: StringName = brace_key(props)
+	if not props.is_staged(brace):
 		return Transform3D.IDENTITY
-	var bound: AABB = props.drawn_bound(BRACE_KEY)
+	var bound: AABB = props.drawn_bound(brace)
 	var squeeze := Vector3(1.0 / bound.size.x, FRAME_POST_M / bound.size.y, 1.0 / bound.size.x)
 	return Transform3D(Basis.from_scale(squeeze), -bound.get_center() * squeeze + Vector3(0.0, FRAME_POST_M * 0.5, 0.0)) \
-			* props.fit_of(BRACE_KEY)
+			* props.fit_of(brace)
 
 
 func _glow_mesh() -> Mesh:

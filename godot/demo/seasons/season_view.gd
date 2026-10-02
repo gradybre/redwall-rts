@@ -27,6 +27,11 @@ extends Node3D
 ## (season_look.gd KIND_*), `season_tree_at(i) -> Vector2` and `season_trees_revision() -> int` (bumped whenever it
 ## makes or replaces a tree's node); they are dressed after the woods' own.
 ##
+## THE AUTHORED BARE OAK (art pass 2, decision 0951; wired by the batch 8 integration, decision 0903): where the
+## staged `oak_mature_bare` is given (`use_authored_bare`), a bare oak wears it instead of `bare_boughs.gd`'s cut of the
+## leafed oak -- the same scale and origin as the oak's model, so the oak's own transform draws it -- in the tree shader
+## made from ITS material (its leaf texels filled with bark, so the shader discards nothing). Without it, the cut.
+##
 ## Per frame it compares two integers (the calendar's hour, the stand's revision) and each owner's revision, the
 ## weather's cover and the view's focus, and allocates nothing. On an hour or a revision it writes each tree's three numbers; only when a
 ## tree's node itself was made or replaced (a fall, a shoot, a replanting) does it collect the trees afresh.
@@ -59,6 +64,7 @@ const TUFT_NODE: String = "Cover_grass_tuft"
 ## Each tree model's kind (season_look.gd KIND_*).
 const KIND_OF_KEY: Dictionary = {
 	&"oak_mature": LookScript.KIND_OAK, &"beech_mature": LookScript.KIND_BEECH, &"oak_sapling": LookScript.KIND_YOUNG_OAK,
+	&"pine_scots": LookScript.KIND_EVERGREEN, &"yew_ancient": LookScript.KIND_EVERGREEN,
 }
 ## The weather's cover is set on the trees in steps this fine.
 const COVER_STEP: float = 0.02
@@ -114,6 +120,9 @@ var _wearing: PackedByteArray = PackedByteArray()
 ## Per model mesh: its bare boughs (prepare_bare; null: it has none), and per bare boughs its model mesh.
 var _bare_of: Dictionary = {}
 var _own_of: Dictionary = {}
+## THE AUTHORED BARE OAK: model mesh -> its authored bare mesh, and per authored bare mesh its tree material.
+var _authored: Dictionary = {}
+var _bare_material: Dictionary = {}
 ## The world's own tree nodes, keys and spots (collected once), and each stand tree's nodes when last collected.
 var _world_nodes: Array[Node3D] = []
 var _world_keys: Array[StringName] = []
@@ -419,13 +428,55 @@ static func wear_for(bare: float, has_boughs: bool) -> int:
 
 
 func _wear(i: int, wear: int) -> void:
-	"""Dressed mesh `i` in `wear` (WEAR_*): its mesh and material, set only on a change."""
+	"""Dressed mesh `i` in `wear` (WEAR_*): its mesh and material, set only on a change (an authored bare oak in its own
+	material: THE AUTHORED BARE OAK)."""
 	if _wearing[i] == wear:
 		return
 	_wearing[i] = wear
 	var mesh := _meshes[i] as MeshInstance3D
 	mesh.mesh = _bare_mesh[i] if wear == WEAR_BARE else _own_mesh[i]
-	mesh.set_surface_override_material(0, _leafy[i] if wear == WEAR_LEAFY else _full[i])
+	var material: ShaderMaterial = _full[i]
+	if wear == WEAR_LEAFY:
+		material = _leafy[i]
+	elif wear == WEAR_BARE and _bare_material.has(_bare_mesh[i]):
+		material = _bare_material[_bare_mesh[i]]
+	mesh.set_surface_override_material(0, material)
+
+
+func use_authored_bare(model_path: String, bare_path: String) -> bool:
+	"""Wear the staged bare model at `bare_path` for every tree of the model at `model_path` once it is bare (THE
+	AUTHORED BARE OAK); false (the cut stays) when either does not load or has no textured surface."""
+	var model: Mesh = _first_mesh_of(model_path)
+	var bare: Mesh = _first_mesh_of(bare_path)
+	if model == null or bare == null or bare.get_surface_count() != 1:
+		return false
+	_authored[model] = bare
+	return true
+
+
+static func _first_mesh_of(path: String) -> Mesh:
+	"""The first mesh of the staged model at `path` (null when it is not there or will not load)."""
+	if path.is_empty() or not ResourceLoader.exists(path):
+		return null
+	var scene := load(path) as PackedScene
+	if scene == null:
+		return null
+	var root: Node = scene.instantiate()
+	var found: Array[Node] = root.find_children("*", "MeshInstance3D", true, false)
+	var mesh: Mesh = (found[0] as MeshInstance3D).mesh if not found.is_empty() else null
+	root.free()
+	return mesh
+
+
+func _bare_for(own: Mesh) -> ArrayMesh:
+	"""A model's bare boughs: its authored bare model (made a tree material once) or the cut of its leaves."""
+	if not _authored.has(own):
+		return BoughsScript.bark_only(own)
+	var bare := _authored[own] as ArrayMesh
+	if bare != null and not _bare_material.has(bare):
+		var made: ShaderMaterial = CanopyScript.make_fade_material(bare.surface_get_material(0) as BaseMaterial3D)
+		_bare_material[bare] = _keep_material(made, bare)
+	return bare
 
 
 func prepare_bare() -> int:
@@ -435,7 +486,7 @@ func prepare_bare() -> int:
 	for i: int in _meshes.size():
 		var own: Mesh = _own_mesh[i]
 		if not _bare_of.has(own):
-			var bare: ArrayMesh = BoughsScript.bark_only(own)
+			var bare: ArrayMesh = _bare_for(own)
 			_bare_of[own] = bare
 			if bare != null:
 				_own_of[bare] = own

@@ -14,6 +14,14 @@ extends Node3D
 ##
 ## The earth shader's bedded stones and root streaks (bore_earth.gdshader) are the fine grain; these are
 ## the pieces that stand proud of the wall.
+##
+## ROCK FACES (art pass 3's `rock_face`, decision 0971; wired by the batch 8 integration, decision 0903): where the
+## ground under a step is ROCK (tunnel_ground.gd, the badger's hard ground) and the rock face is staged (`set_rock`),
+## a slab of bedded rock stands against each wall, a metre a piece (every ROCK_EVERY rings), its back to the wall, its
+## face (+Z) to the bore's centre line, its base on the floor, turned to the wall's tangent; each rolls its own dice
+## (ROCK_CHANCE a wall, a little yaw and size), so a rock stretch is not a tiled wall. At 0.765 m it covers the wall
+## past the springline and stays under the section plane (`dressed_at`). Without the model nothing is added: rock
+## shows as the ground map and the dig readout say, as before.
 
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
@@ -23,6 +31,7 @@ const BoreMeshScript := preload("res://demo/tunnel/bore_mesh.gd")
 const BoreCurveScript := preload("res://demo/tunnel/bore_curve.gd")
 const RootsScript := preload("res://demo/forestry/forest_roots.gd")
 const StandScript := preload("res://demo/forestry/forest_stand.gd")
+const GroundScript := preload("res://demo/tunnel/tunnel_ground.gd")
 
 const MAX_STONES: int = 192
 const MAX_ROOTS: int = 96
@@ -48,11 +57,28 @@ const ROOT_COLOUR: Color = Color(0.24, 0.16, 0.1)
 const ROOT_SIDES: int = 5
 const ROOT_BENDS: int = 6
 
+## ROCK FACES: a wall piece every this many rings (a metre), a wall's chance of one, its drawn size spread and yaw.
+const MAX_ROCKS: int = 64
+const ROCK_EVERY: int = 4
+const ROCK_CHANCE: float = 0.85
+const ROCK_SIZE_MIN: float = 0.9
+const ROCK_SIZE_MAX: float = 1.08
+const ROCK_YAW_MAX: float = 0.18
+## The rock face's half depth (m, its staged bound): its back stands this far behind its origin.
+const ROCK_HALF_DEPTH_M: float = 0.118
+
 static var _stone: ArrayMesh = null
 static var _root: ArrayMesh = null
 
 var _stones: Array[MultiMeshInstance3D] = []
 var _roots: Array[MultiMeshInstance3D] = []
+var _rocks: Array[MultiMeshInstance3D] = []
+## ROCK FACES: the staged model and its fit (null: none), the ground's type query `(x_u, z_u, level) -> int`, and the
+## level the segment being dressed lies on.
+var _rock_mesh: Mesh = null
+var _rock_fit: Transform3D = Transform3D.IDENTITY
+var _rock_ground: Callable = Callable()
+var _rock_level: int = 0
 ## Mature trees as (x, root reach, z) metres.
 var _trees: PackedVector3Array = PackedVector3Array()
 var _sample: PackedVector2Array = PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
@@ -63,6 +89,7 @@ func configure() -> void:
 	name = "Dressing"
 	_stones.resize(Rules.MAX_SEGMENTS)
 	_roots.resize(Rules.MAX_SEGMENTS)
+	_rocks.resize(Rules.MAX_SEGMENTS)
 
 
 func _ensure(slot: int) -> void:
@@ -71,14 +98,16 @@ func _ensure(slot: int) -> void:
 		return
 	_stones[slot] = _multi(stone_mesh(), MAX_STONES)
 	_roots[slot] = _multi(root_mesh(), MAX_ROOTS)
+	if _rock_mesh != null:
+		_rocks[slot] = _multi(_rock_mesh, MAX_ROCKS, false)
 
 
-func _multi(mesh: Mesh, count: int) -> MultiMeshInstance3D:
-	"""A MultiMesh node for up to `count` of `mesh` (instance colours on), none shown, on the
-	UNDERGROUND layer."""
+func _multi(mesh: Mesh, count: int, colours: bool = true) -> MultiMeshInstance3D:
+	"""A MultiMesh node for up to `count` of `mesh` (instance colours on, unless `colours` is false: a staged model's
+	own material), none shown, on the UNDERGROUND layer."""
 	var multimesh := MultiMesh.new()
 	multimesh.transform_format = MultiMesh.TRANSFORM_3D
-	multimesh.use_colors = true
+	multimesh.use_colors = colours
 	multimesh.mesh = mesh
 	multimesh.instance_count = count
 	multimesh.visible_instance_count = 0
@@ -95,6 +124,19 @@ func register(prewarm: PrewarmScript) -> void:
 	"""The stone and the root, drawn instanced, for the U view's prewarm."""
 	prewarm.add_multimesh(stone_mesh())
 	prewarm.add_multimesh(root_mesh())
+
+
+func set_rock(mesh: Mesh, fit: Transform3D, ground_type: Callable) -> void:
+	"""The staged rock face (`mesh` drawn by `fit`) for the walls where `ground_type(x_u, z_u, level)` is rock (ROCK
+	FACES); before any segment is dressed. A null mesh: none."""
+	_rock_mesh = mesh
+	_rock_fit = fit
+	_rock_ground = ground_type
+
+
+func rocks(slot: int) -> MultiMeshInstance3D:
+	"""Segment `slot`'s rock faces (checks; null before it is dressed or with no rock face)."""
+	return _rocks[slot]
 
 
 func set_trees(trees: Array[Dictionary]) -> int:
@@ -123,9 +165,10 @@ func clear(slot: int) -> void:
 	"""No stones or roots in segment `slot`."""
 	if _stones[slot] == null:
 		return
-	for node: MultiMeshInstance3D in [_stones[slot], _roots[slot]]:
-		node.multimesh.visible_instance_count = 0
-		node.visible = false
+	for node: MultiMeshInstance3D in [_stones[slot], _roots[slot], _rocks[slot]]:
+		if node != null:
+			node.multimesh.visible_instance_count = 0
+			node.visible = false
 
 
 # --- placing ----------------------------------------------------------------------------------
@@ -143,6 +186,7 @@ func place(slot: int, network: GraphScript, from_m: float, to_m: float, widen_m:
 	var step := 0 if from_m <= 0.0 else floori(from_m / STEP_M) + 1
 	var cut_level := dress_level(network, slot)
 	var rooted := cut_level == Rules.TOP_LEVEL
+	_rock_level = network.seg_level[slot]
 	while float(step) * STEP_M <= to_m:
 		var along := float(step) * STEP_M
 		var bore := Rules.BORE_WIDE if network.bore[slot] == Rules.BORE_WIDE or along < widen_m else Rules.BORE_STANDARD
@@ -151,9 +195,13 @@ func place(slot: int, network: GraphScript, from_m: float, to_m: float, widen_m:
 			curve.sample(along, _sample)
 			_dress_step(slot, network.generation[slot] * 7919 + step, Vector3(_sample[0].x, floor_y, _sample[0].y), _sample[1], bore,
 				rooted)
+			if step % ROCK_EVERY == 0:
+				_dress_rock(slot, network.generation[slot] * 7919 + step, Vector3(_sample[0].x, floor_y, _sample[0].y),
+					_sample[1], bore)
 		step += 1
-	for node: MultiMeshInstance3D in [_stones[slot], _roots[slot]]:
-		node.visible = node.multimesh.visible_instance_count > 0
+	for node: MultiMeshInstance3D in [_stones[slot], _roots[slot], _rocks[slot]]:
+		if node != null:
+			node.visible = node.multimesh.visible_instance_count > 0
 
 
 static func dressed_at(floor_y: float, bore: int, level: int = Rules.TOP_LEVEL) -> bool:
@@ -175,8 +223,9 @@ func _put_on_level(slot: int, network: GraphScript) -> void:
 	var mask := Layers.below(level)
 	if network.seg_kind[slot] == GraphScript.SEG_LINK:
 		mask |= Layers.below(level + 1)
-	for node: MultiMeshInstance3D in [_stones[slot], _roots[slot]]:
-		node.layers = mask
+	for node: MultiMeshInstance3D in [_stones[slot], _roots[slot], _rocks[slot]]:
+		if node != null:
+			node.layers = mask
 
 
 func _dress_step(slot: int, seed_value: int, centre: Vector3, heading: Vector2, bore: int, rooted: bool = true) -> void:
@@ -191,6 +240,33 @@ func _dress_step(slot: int, seed_value: int, centre: Vector3, heading: Vector2, 
 	for k in ROOTS_PER_STEP:
 		if unit(seed_value, 10 + k) < near * ROOT_CHANCE:
 			_add_root(slot, seed_value + k * 57, centre, side * (1.0 if unit(seed_value, 20 + k) < 0.5 else -1.0), bore)
+
+
+func _dress_rock(slot: int, seed_value: int, centre: Vector3, heading: Vector2, bore: int) -> void:
+	"""A metre's rock faces, where the ground under it is rock and the face is staged (ROCK FACES)."""
+	if _rocks[slot] == null or not _rock_ground.is_valid():
+		return
+	if int(_rock_ground.call(Rules.to_u(centre.x), Rules.to_u(centre.z), _rock_level)) != GroundScript.ROCK:
+		return
+	var side := Vector3(-heading.y, 0.0, heading.x)
+	for wall: float in [-1.0, 1.0]:
+		if unit(seed_value, 40 + int(wall)) < ROCK_CHANCE:
+			_add_rock(slot, seed_value + int(wall) * 43, centre, side * wall, bore)
+
+
+func _add_rock(slot: int, seed_value: int, centre: Vector3, out: Vector3, bore: int) -> void:
+	"""One rock face against the wall on the `out` side: back to the wall, face to the centre line, base on the floor."""
+	var node := _rocks[slot]
+	var count := node.multimesh.visible_instance_count
+	if count >= MAX_ROCKS:
+		return
+	var size := lerpf(ROCK_SIZE_MIN, ROCK_SIZE_MAX, unit(seed_value, 44))
+	var inward := -out
+	var facing := Basis(Vector3.UP.cross(inward), Vector3.UP, inward).rotated(Vector3.UP,
+		(unit(seed_value, 45) - 0.5) * 2.0 * ROCK_YAW_MAX).scaled(Vector3.ONE * size)
+	var at := centre + out * (BoreMeshScript.FLOOR_HALF_M[bore] - ROCK_HALF_DEPTH_M * size)
+	node.multimesh.set_instance_transform(count, Transform3D(facing, at) * _rock_fit)
+	node.multimesh.visible_instance_count = count + 1
 
 
 func root_chance(at: Vector2) -> float:

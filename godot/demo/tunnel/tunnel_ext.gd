@@ -94,6 +94,8 @@ const NO_SKIP: String = "The weather follows the farm's calendar, which is not r
 ## top render). In the right hand bone's frame (+Y along the fingers) it is gripped PICK_GRIP_SHARE of
 ## its length from the handle's end, the handle across the fist and the head standing up.
 const PICK_KEY: StringName = &"mole_pick"
+## Art pass 3's rock face (decision 0971), against the walls where a bore meets rock (bore_dressing.gd ROCK FACES).
+const ROCK_FACE_KEY: StringName = &"rock_face"
 const PICK_GRIP_SHARE: float = 0.14
 const PICK_EULER_DEG: Vector3 = Vector3(0.0, 90.0, 90.0)
 ## The finds shelf's roundel colours for a find with no model icon: a root store, a relic.
@@ -265,6 +267,9 @@ func _build_views() -> void:
 	ground_view = GroundViewScript.new()
 	add_child(ground_view)
 	ground_view.configure(works.ground)
+	if _props.is_staged(ROCK_FACE_KEY):
+		_overlay.bores.dressing.set_rock(_props.mesh_of(ROCK_FACE_KEY), _props.fit_of(ROCK_FACE_KEY),
+			works.ground.type_at_level)
 	room_view = RoomViewScript.new()
 	add_child(room_view)
 	room_view.configure(_network, _props, _cast.space(), marks)

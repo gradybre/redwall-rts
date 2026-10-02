@@ -42,6 +42,8 @@ var network: GraphScript = null
 var calendar: CalendarScript = null
 ## The seasonal planner's after-action record (farm_record.gd, decision 0451): the village goals read its closed seasons.
 var record: RecordScript = null
+## Whether the pantry opened with opening_pantry.gd's stock (decision 0912): "A full larder" then leaves it out.
+var opening_stock: bool = false
 var stores: StoresScript = null
 ## `focus() -> Vector3`: where the camera looks (the resident marker picks the nearest to it).
 var focus: Callable = Callable()

@@ -7,12 +7,17 @@ extends RefCounted
 ## HOW EACH CELL IS PAINTED.
 ##   * Food, Wood, Stone, Residents -- counters the shell WIRES -- go through the shell's own public entry point,
 ##     `set_counter_display()`, which measures the value and draws "See ledger" when it cannot fit (UI-C3-R01 §2).
-##   * Planks (in Fuel's slot) and Beds are counters the shell does NOT wire in the game: there, no store exists,
-##     and the shell refuses a value by contract. In the demo a store DOES exist -- the village stores' planks,
-##     the homes' installed beds -- so the demo paints those two cells itself: caption, a line glyph in place of
+##   * Heating fuel and Beds are counters the shell does NOT wire in the game: there, no store exists, and the shell
+##     refuses a value by contract. In the demo the owners DO exist -- the winter's fuel-days (decision 0571; it restores
+##     UI-SET-003 over decision 0251's Planks), the homes' installed beds -- so the demo paints those two cells itself:
+##     caption, a line glyph in place of
 ##     the lock, the value in the shell's own value role (or "See ledger" when it does not measure inside the
 ##     cell, the shell's own rule), the cell enabled so it opens the ledger like the others. The shell's table
 ##     (ui_availability.gd) is untouched: the game's claim stays true for the game.
+##   * Heating fuel's no-demand STATE ("No demand") is words, not a figure: drawn in the 16 px disclosure role, as
+##     "Unavailable" is, so it fits the narrow cell (decision 0571).
+##   * Heating fuel's WARNING state (demo_hud_model.gd `is_warning`: under 2 days) draws its value in clay with the
+##     shell's warning glyph in place of the fuel one (UI §7's fuel warning).
 ##   * A figure whose owner is absent (demo_hud_model.gd UNAVAILABLE IS NOT ZERO) is drawn "Unavailable" in the
 ##     shell's 16 px disclosure role, as the shell draws its own unavailable cells -- never as a 0.
 ##   * Every cell's tooltip and accessible description is the model's: the figure and where it is.
@@ -21,14 +26,17 @@ extends RefCounted
 ## REPAINTING. UIManager repaints the wired cells and the ledger with the settlement's figures whenever the
 ## simulation's stock changes, and the shell repaints every cell on a relayout. `sync()` paints a cell again when
 ## its figure changed or when its drawn caption or value is no longer what the demo drew; the ledger likewise.
-## Per frame: six integer reads and compares and thirteen short string compares; formatting only on a change.
+## Per frame: six integer reads and compares, the model's stamp (the planks and the fuel's breakdown, decision 0571) and
+## thirteen short string compares; formatting only on a change.
 
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const ModelScript := preload("res://demo/ui/demo_hud_model.gd")
 
 ## The line glyphs the demo's own two cells wear (the shell's authored set; none generated here).
-const PLANKS_ICON: Texture2D = preload("res://ui/icons/build.svg")
+const FUEL_ICON: Texture2D = preload("res://ui/icons/fuel.svg")
+const WARNING_ICON: Texture2D = preload("res://ui/icons/warning.svg")
+const Palette := preload("res://demo/ui/woodland_palette.gd")
 const BEDS_ICON: Texture2D = preload("res://ui/icons/beds.svg")
 const LEDGER_LINE: NodePath = ^"Line"
 
@@ -43,6 +51,8 @@ var _descriptions: PackedStringArray = PackedStringArray()
 var _ledger_line: Label = null
 var _ledger: String = ""
 var _primed: bool = false
+## The model's `stamp` at the last paint: the planks and the fuel's breakdown, which no cell's figure carries.
+var _stamp: int = 0
 
 
 func _init() -> void:
@@ -69,14 +79,17 @@ func sync() -> bool:
 	if _shell == null or not is_instance_valid(_shell):
 		return false
 	model.read_into(_figures)
+	var stamp: int = model.stamp()
+	var restamped: bool = stamp != _stamp
+	_stamp = stamp
 	var painted: bool = false
 	for cell: int in ModelScript.CELL_COUNT:
-		if not _primed or _figures[cell] != _shown[cell] or _overwritten(cell):
+		if not _primed or _figures[cell] != _shown[cell] or _overwritten(cell) or (restamped and (cell == ModelScript.CELL_FUEL or cell == ModelScript.CELL_WOOD)):
 			_paint(cell)
 			painted = true
 	_primed = true
 	var line: Label = _ledger_line
-	if line != null and (painted or line.text != _ledger):
+	if line != null and (painted or restamped or line.text != _ledger):
 		_shell.set_ledger_display(model.ledger_text(_figures))
 		_ledger = line.text
 		painted = true
@@ -95,7 +108,7 @@ func _paint(cell: int) -> void:
 	"""Paint one cell from the model (see HOW EACH CELL IS PAINTED) and remember what it drew."""
 	var id: int = UiShell.COUNTER_IDS[cell]
 	var value: String = model.value_text(cell, _figures[cell])
-	if not model.known(cell):
+	if not model.known(cell) or model.is_state(cell, _figures[cell]):
 		_paint_own(cell, id, value, UiShell.DISCLOSURE_VARIATION)
 	elif not _shell.set_counter_display(id, value):
 		_paint_own(cell, id, value, UiShell.VALUE_VARIATION)
@@ -109,14 +122,19 @@ func _paint(cell: int) -> void:
 
 
 func _paint_own(cell: int, id: int, value: String, role: StringName) -> void:
-	"""A cell the demo paints itself: Planks (in Fuel's slot) and Beds, which the shell does not wire, and any cell
-	whose figure is unknown ("Unavailable" in the shell's 16 px disclosure role, as the shell draws it). Its caption
-	and glyph for the demo's own two, the value in `role` -- or, when it does not fit, See ledger in the disclosure
-	role, the shell's own rule -- and enabled."""
-	if cell == ModelScript.CELL_PLANKS or cell == ModelScript.CELL_BEDS:
+	"""A cell the demo paints itself: Heating fuel and Beds, which the shell does not wire, and any cell whose figure
+	is unknown ("Unavailable" in the shell's 16 px disclosure role, as the shell draws it). Its caption and glyph for the
+	demo's own two (Heating fuel's warning glyph and clay value in its warning state), the value in `role` -- or, when it
+	does not fit, See ledger in the disclosure role, the shell's own rule -- and enabled."""
+	var warning: bool = model.is_warning(cell, _figures[cell])
+	if cell == ModelScript.CELL_FUEL or cell == ModelScript.CELL_BEDS:
 		_shell.counter_caption_label(id).text = ModelScript.CAPTIONS[cell]
-		_shell.counter_icon(id).texture = PLANKS_ICON if cell == ModelScript.CELL_PLANKS else BEDS_ICON
+		_shell.counter_icon(id).texture = BEDS_ICON if cell == ModelScript.CELL_BEDS else (WARNING_ICON if warning else FUEL_ICON)
 	var label: Label = _shell.counter_value_label(id)
+	if warning:
+		label.add_theme_color_override(&"font_color", Palette.CLAY)
+	elif label.has_theme_color_override(&"font_color") and cell == ModelScript.CELL_FUEL:
+		label.remove_theme_color_override(&"font_color")
 	var cell_button := _shell.control_for(id) as Button
 	var shown: bool = fits(role_font(role), role_px(role), value, cell_button.size.x)
 	var drawn_role: StringName = role if shown else UiShell.DISCLOSURE_VARIATION

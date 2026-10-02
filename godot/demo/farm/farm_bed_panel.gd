@@ -33,6 +33,13 @@ extends CanvasLayer
 ## and ranked on the map (farm_compare_view.gd), its title in the head and Back in the foot as the picker's; a row opens
 ## that bed and the view stays. "Planner (T)" in the head opens the seasonal planner (farm_planner.gd).
 ##
+## CROP ROLES (decision 0881, review ECO-001): each crop in the picker also shows its ROLE, its two differences and its
+## uses (farm_crop_roles.gd), under its button.
+## THE KITCHEN GARDEN (decision 0883, review ECO-004): a garden site not laid out shows what it is, its walking and "Lay out
+## a bed here" in place of a bed's readout and verbs; a laid garden bed adds its walking, who tends it and "Take up"
+## (farm_garden_box.gd). TUNNEL OUTLETS (decision 0884, review ECO-006): a bed with a tunnel under it shows the tunnel,
+## Fit outlet (its action card the crew's) and, fitted, Shut / Drain / Feed with each one's effect (farm_outlet_box.gd).
+##
 ## The panel only shows and asks: pressing emits a signal and demo_farm.gd orders the work.
 
 const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
@@ -54,6 +61,12 @@ const CardScript := preload("res://demo/ui/action_card.gd")
 const SluiceBox := preload("res://demo/farm/farm_sluice_box.gd")
 const LeatScript := preload("res://demo/farm/farm_leat.gd")
 const CompareScript := preload("res://demo/farm/farm_compare_view.gd")
+const Roles := preload("res://demo/farm/farm_crop_roles.gd")
+const GardenBox := preload("res://demo/farm/farm_garden_box.gd")
+const OutletBox := preload("res://demo/farm/farm_outlet_box.gd")
+const GardenScript := preload("res://demo/farm/farm_garden.gd")
+const RotationBox := preload("res://demo/farm/farm_rotation_box.gd")
+const SowingScript := preload("res://demo/farm/farm_sowing.gd")
 
 signal verb_requested(kind: int)
 signal crop_picked(item: int)
@@ -71,6 +84,13 @@ signal planner_requested
 signal compare_changed
 ## A compared bed's row was pressed: open that bed (the Compare view stays).
 signal compare_bed_picked(bed: int)
+## The garden site shown is to be laid out, or the garden bed taken up (decision 0883).
+signal lay_out_requested
+signal take_up_requested
+## The bed's fitted outlet is to be set (farm_sim.gd OUTLET_*; decision 0884).
+signal outlet_chosen(mode: int)
+## The bed's rotation is to step to the next its soil can follow (farm_sowing.gd; decision 0886).
+signal rotation_step_requested
 
 const WEIR_TITLE: String = "Weir sluice · garden leat"
 const SLUICE_TIP: String = "Show the weir sluice that feeds the garden leat (Bed 2, Bed 4 and Bed 6) and what each setting does"
@@ -137,6 +157,11 @@ var _back: Button = null
 var _pick_buttons: Array[Button] = []
 ## Each crop's line under its button in the open picker (by item), re-worded in place (refresh_picker).
 var _pick_details: Array[Label] = []
+## Each crop's role line in the open picker (by item; farm_crop_roles.gd).
+var _pick_roles: Array[Label] = []
+var _garden_box: GardenBox = null
+var _outlet_box: OutletBox = null
+var _rotation_box: RotationBox = null
 var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 var _read: IntMath.IntResult = IntMath.IntResult.new()
@@ -221,7 +246,7 @@ func _build() -> void:
 	column.add_child(_actions)
 	_picker = _build_picker()
 	column.add_child(_picker)
-	_build_sluice(column)
+	_build_boxes(column)
 	_compare = CompareScript.new()
 	_compare.configure(_sim)
 	_compare.bed_picked.connect(_on_compare_pick)
@@ -229,6 +254,51 @@ func _build() -> void:
 	column.add_child(_compare)
 	_hint = FarmUi.label(HINT, FarmUi.SMALL_PX, Palette.UMBER)
 	column.add_child(_hint)
+
+
+func _build_boxes(column: VBoxContainer) -> void:
+	"""The kitchen garden's site box, the tunnel outlet box and the weir's controls, hidden until a bed (or the weir)
+	wants them; presses ask for orders."""
+	_garden_box = GardenBox.new()
+	_garden_box.lay_out_requested.connect(func() -> void: lay_out_requested.emit())
+	_garden_box.take_up_requested.connect(func() -> void: take_up_requested.emit())
+	column.add_child(_garden_box)
+	_outlet_box = OutletBox.new()
+	_outlet_box.bind(_sim)
+	_outlet_box.fit_requested.connect(func() -> void: verb_requested.emit(JobsScript.KIND_FIT_OUTLET))
+	_outlet_box.outlet_chosen.connect(func(mode: int) -> void: outlet_chosen.emit(mode))
+	column.add_child(_outlet_box)
+	_rotation_box = RotationBox.new()
+	_rotation_box.step_requested.connect(func() -> void: rotation_step_requested.emit())
+	column.add_child(_rotation_box)
+	_build_sluice(column)
+
+
+func set_garden(garden: GardenScript) -> void:
+	"""Show the kitchen garden's sites (decision 0883)."""
+	_garden_box.bind(garden, _sim)
+	refresh()
+
+
+func set_sowing(sowing: SowingScript) -> void:
+	"""Show each bed's rotation (decision 0886)."""
+	_rotation_box.bind(sowing)
+	refresh()
+
+
+func rotation_box() -> RotationBox:
+	"""The rotation line (checks)."""
+	return _rotation_box
+
+
+func garden_box() -> GardenBox:
+	"""The kitchen garden's box (checks)."""
+	return _garden_box
+
+
+func outlet_box() -> OutletBox:
+	"""The tunnel outlet's box (checks)."""
+	return _outlet_box
 
 
 func _build_sluice(column: VBoxContainer) -> void:
@@ -419,10 +489,14 @@ func refresh() -> void:
 		_message.visible = false
 	var has_bed: bool = Catalog.is_bed(bed)
 	var weir: bool = showing_weir and not has_bed and _leat != null
-	var reading: bool = has_bed and not picking and not comparing
+	var site: bool = has_bed and not _sim.is_laid(bed)
+	var reading: bool = has_bed and not picking and not comparing and not site
 	_title.text = _bed_title() if has_bed else (WEIR_TITLE if weir else "Farm")
 	_clock.text = Text.clock_line(_sim)
 	_show_parts(has_bed, weir, reading)
+	_garden_box.refresh(bed if has_bed and not picking and not comparing else -1)
+	_outlet_box.refresh(bed if reading else -1)
+	_rotation_box.refresh(bed if reading else -1)
 	if weir:
 		_sluice_box.refresh()
 	if reading:
@@ -459,7 +533,9 @@ func _show_parts(has_bed: bool, weir: bool, reading: bool) -> void:
 
 
 func _bed_title() -> String:
-	"""'Bed 3 · Carrot'."""
+	"""'Bed 3 · Carrot'; a garden site not laid out, 'Garden site 2'."""
+	if not _sim.is_laid(bed):
+		return GardenScript.SITE_TITLE % (bed - Catalog.GARDEN_FIRST + 1)
 	var item: int = _sim.item_of(bed)
 	var what: String = Catalog.ITEM_LABELS[item] if Catalog.is_item(item) else "empty"
 	return "Bed %d · %s" % [bed + 1, what]
@@ -548,6 +624,9 @@ func _fill_buttons() -> void:
 		_crew.preview_into(_card, VERB_KINDS[k], bed, members)
 		_show_card(_verb_buttons[k])
 	_fill_plant(members)
+	if _outlet_box.visible:
+		_crew.preview_into(_card, JobsScript.KIND_FIT_OUTLET, bed, members)
+		_show_card(_outlet_box.fit_button())
 	_fallow.text = "Unrest" if _sim.is_fallow(bed) else "Rest"
 	_fallow.tooltip_text = Text.rest_tip()
 	var jobs: bool = _jobs_line() != ""
@@ -615,6 +694,7 @@ func open_picker() -> void:
 		child.queue_free()
 	_pick_buttons.resize(Catalog.ITEM_COUNT)
 	_pick_details.resize(Catalog.ITEM_COUNT)
+	_pick_roles.resize(Catalog.ITEM_COUNT)
 	for pass_index: int in 2:
 		for item: int in Catalog.ITEM_COUNT:
 			if (Text.pick_reason(_sim, bed, item) == "") == (pass_index == 0):
@@ -634,6 +714,8 @@ func _pick_row(item: int) -> Control:
 	pick.pressed.connect(func() -> void: crop_picked.emit(item))
 	row.add_child(pick)
 	_pick_buttons[item] = pick
+	_pick_roles[item] = FarmUi.label(Roles.role_line(item), FarmUi.SMALL_PX, Palette.UMBER)
+	row.add_child(_pick_roles[item])
 	_pick_details[item] = FarmUi.label("", FarmUi.SMALL_PX, Palette.INK)
 	row.add_child(_pick_details[item])
 	return row
@@ -678,6 +760,11 @@ func picker_title_text() -> String:
 func picker_detail(item: int) -> String:
 	"""A crop's line in the open picker (tests)."""
 	return _pick_details[item].text
+
+
+func picker_role(item: int) -> String:
+	"""A crop's role line in the open picker (tests; farm_crop_roles.gd)."""
+	return _pick_roles[item].text
 
 
 func back_button() -> Button:

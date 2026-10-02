@@ -32,6 +32,9 @@ var village: VillageScript = null
 var post: Callable = Callable()
 ## `() -> bool`: whether the first-village guide is complete.
 var guide_done: Callable = Callable()
+## `(goal_id: StringName, title: String, said: String) -> void`: told of each goal reached after its news line -- the
+## village weaves it into the hall's tapestry (tapestry.gd KIND_MILESTONE; decision 0902). Unset: nothing more.
+var also_reached: Callable = Callable()
 ## Whether the after-the-guide note has been said.
 var pointed: bool = false
 ## The hour index the guide was first seen complete at (NOT_SEEN before).
@@ -84,9 +87,11 @@ func _point(hour: int) -> void:
 
 
 func _on_reached(goal: BookScript.Goal) -> void:
-	"""A goal reached: its line in Village news. (The Great Hall's tapestry, when it lands, records it here too.)"""
+	"""A goal reached: its line in Village news, and `also_reached` (the hall's tapestry) told."""
 	var form: String = MILESTONE_MET if goal.group == BookScript.GROUP_MILESTONE else REACHED
 	_say(form % [goal.title, goal.said])
+	if also_reached.is_valid():
+		also_reached.call(goal.id, goal.title, goal.said)
 
 
 func _say(text: String) -> void:

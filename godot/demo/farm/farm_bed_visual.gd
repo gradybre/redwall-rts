@@ -19,6 +19,10 @@ extends Node3D
 ## narrow dark trench with its spoil in a low lip outside it (the Drain job). A WATERLOGGED bed shows
 ## small standing puddles (one MultiMesh of flat ellipses, laid out once per bed) over its darkened
 ## soil (farm_look.gd).
+##
+## A KITCHEN GARDEN BED (decision 0883) is the same bed drawn at its one 2 m tile: the whole bed is scaled by
+## farm_catalog.gd `bed_half_m` against a field bed's 3 m, its label kept at the field's size. A garden SITE not laid
+## out shows only four pegs and a string round its square, and its label (`show_site`).
 
 const Look := preload("res://demo/farm/farm_look.gd")
 const SimScript := preload("res://demo/farm/farm_sim.gd")
@@ -114,6 +118,13 @@ const COMPARE_COLOUR: Color = Color(0.96, 0.94, 0.87, 0.9)
 const COMPARE_HALF_M: float = 1.74
 ## A growth change smaller than this (permille) keeps the plants as they stand.
 const GROWTH_STEP: int = 25
+## A garden site's pegs and string (see A KITCHEN GARDEN BED): peg size, the string's height and thickness, their
+## tones (demo values, the raised frame's weathered wood and a pale twine).
+const PEG_SIZE: Vector3 = Vector3(0.05, 0.36, 0.05)
+const STRING_Y_M: float = 0.24
+const STRING_THICK_M: float = 0.012
+const PEG_COLOR: Color = Color(0.42, 0.33, 0.24)
+const STRING_COLOR: Color = Color(0.86, 0.8, 0.64)
 
 var bed: int = 0
 ## The scale the plants were last drawn at (0: none drawn).
@@ -127,6 +138,8 @@ var straw: MeshInstance3D = null
 var raised_frame: Node3D = null
 var bank: Node3D = null
 var ditch: Node3D = null
+## A garden site's pegs and string (null for a field bed).
+var pegs: Node3D = null
 
 ## The wood materials (WOOD_TONES) and the earth speckle, made once for every bed.
 static var _wood_cache: Array[StandardMaterial3D] = []
@@ -160,6 +173,7 @@ func build(p_bed: int, assets: AssetsScript) -> void:
 	name = "FarmBed%d" % bed
 	var at: Vector2 = Catalog.bed_centre_m(bed)
 	position = Vector3(at.x, 0.0, at.y)
+	scale = Vector3.ONE * (Catalog.bed_half_m(bed) / Catalog.BED_HALF_M)
 	_units = Node3D.new()
 	_units.scale = Vector3.ONE * assets.bed_scale
 	add_child(_units)
@@ -173,8 +187,12 @@ func build(p_bed: int, assets: AssetsScript) -> void:
 	_puddles = _make_puddles()
 	_units.add_child(_puddles)
 	label = _make_label()
+	label.scale = Vector3.ONE / scale.x
 	add_child(label)
 	_build_works()
+	if Catalog.is_garden(bed):
+		pegs = _make_pegs()
+		add_child(pegs)
 
 
 func _build_works() -> void:
@@ -193,6 +211,39 @@ func _build_works() -> void:
 	add_child(bank)
 	ditch = _make_ditch()
 	add_child(ditch)
+
+
+func _make_pegs() -> Node3D:
+	"""Four pegs at the site's corners and a string between them, in bed units (hidden)."""
+	var group: Node3D = _hidden_node("SitePegs")
+	var half: float = Catalog.BED_HALF_M
+	var peg_material: StandardMaterial3D = _matte(PEG_COLOR, 1.0)
+	var string_material: StandardMaterial3D = _matte(STRING_COLOR, 1.0)
+	for side: int in 4:
+		var yaw: float = PI * 0.5 * side
+		var corner: Vector3 = Basis(Vector3.UP, yaw) * Vector3(half, 0.0, half)
+		var peg := MeshInstance3D.new()
+		peg.mesh = _box_mesh(PEG_SIZE, peg_material)
+		peg.position = corner + Vector3(0.0, PEG_SIZE.y * 0.5, 0.0)
+		group.add_child(peg)
+		var twine := MeshInstance3D.new()
+		twine.mesh = _box_mesh(Vector3(half * 2.0, STRING_THICK_M, STRING_THICK_M), string_material)
+		twine.transform = Transform3D(Basis(Vector3.UP, yaw), Basis(Vector3.UP, yaw) * Vector3(0.0, STRING_Y_M, half))
+		twine.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		group.add_child(twine)
+	return group
+
+
+func show_site(site: bool) -> void:
+	"""A garden site not laid out (pegs and string only) or a bed (see A KITCHEN GARDEN BED)."""
+	_units.visible = not site
+	if pegs != null:
+		pegs.visible = site
+
+
+func showing_site() -> bool:
+	"""Whether the bed is drawn as a bare garden site (checks)."""
+	return pegs != null and pegs.visible
 
 
 func _make_raised_frame() -> Node3D:

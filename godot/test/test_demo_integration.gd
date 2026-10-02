@@ -17,6 +17,7 @@ const CoreWeather := preload("res://scripts/core/weather.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
+const SimScript := preload("res://demo/farm/farm_sim.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const JobsScript := preload("res://demo/farm/farm_jobs.gd")
@@ -516,7 +517,8 @@ func test_every_water_query_goes_through_the_one_adapter_over_the_real_map() -> 
 
 func test_a_tunnel_from_the_stream_s_edge_irrigates_the_beds_it_runs_under() -> void:
 	"""A finished tunnel with its east mouth by the ford (at the real stream's edge) running under the
-	radish bed irrigates it; the same route from the run's bank (just too far) only drains it."""
+	radish bed carries water under it -- and, through an outlet set to Feed (decision 0884), irrigates it; the same
+	route from the run's bank (just too far) is a dry tunnel, which drains it through an outlet set to Drain."""
 	var farm := _village(false)
 	var network: GraphScript = farm._cast.space().tunnels
 	var ref := PackedInt32Array([-1, 0, -1])
@@ -525,6 +527,9 @@ func test_a_tunnel_from_the_stream_s_edge_irrigates_the_beds_it_runs_under() -> 
 	assert_true(network.add_into(route, 3, 0, ref), "the ford tunnel")
 	_dig_piece(network, ref[2])
 	farm.step(HOUR_USEC)
+	assert_true(farm.sim.wet_tunnel_under(BED_RADISH), "the stream's water under it")
+	assert_false(farm.sim.is_irrigated(BED_RADISH), "transport only until an outlet is set")
+	assert_true(farm.sim.fit_outlet(BED_RADISH).ok and farm.sim.set_outlet(BED_RADISH, SimScript.OUTLET_FEED).ok, "Feed")
 	assert_true(farm.sim.is_irrigated(BED_RADISH), "irrigated from the stream")
 	_services = ServicesScript.new()
 	var other := _village(false)
@@ -534,7 +539,10 @@ func test_a_tunnel_from_the_stream_s_edge_irrigates_the_beds_it_runs_under() -> 
 	assert_true(other_network.add_into(dry, 3, 0, ref), "the run tunnel")
 	_dig_piece(other_network, ref[2])
 	other.step(HOUR_USEC)
-	assert_false(other.sim.is_irrigated(BED_RADISH), "not from 2567 u away")
+	assert_false(other.sim.wet_tunnel_under(BED_RADISH), "not from 2567 u away")
+	assert_true(other.sim.dry_tunnel_under(BED_RADISH), "a dry tunnel instead")
+	assert_true(other.sim.fit_outlet(BED_RADISH).ok and other.sim.set_outlet(BED_RADISH, SimScript.OUTLET_DRAIN).ok,
+		"Drain")
 	assert_true(other.sim.is_drained(BED_RADISH), "it drains instead")
 
 

@@ -39,7 +39,7 @@ static func register(targets: TargetsScript, cast: CastScript, farm: FarmScript,
 		func(i: int) -> String: return String(cast.actor(i).get(&"display_name")),
 		func(i: int) -> Vector3: return _at(cast.actor(i)),
 		select_resident)
-	targets.register(TargetsScript.KIND_BED, func() -> int: return Catalog.BED_COUNT, func(_b: int) -> bool: return true,
+	targets.register(TargetsScript.KIND_BED, func() -> int: return Catalog.BED_COUNT, farm.sim.is_laid,
 		farm.crew.bed_label, JumpScript.bed_point, farm.select_bed)
 	var stand: StandScript = forestry.stand
 	targets.register(TargetsScript.KIND_TREE, stand.count, stand.is_tree, stand.label_of,

@@ -37,6 +37,8 @@ var _pot: Label = null
 var _water: Label = null
 var _village: Label = null
 var _history: Label = null
+## The dishes waiting for an ingredient the demo cannot produce yet, and why (decision 0603).
+var _waiting: Label = null
 var _cook: Button = null
 var _draw: Button = null
 var _keep: Button = null
@@ -60,6 +62,7 @@ func configure(kitchen: KitchenScript, members: Callable, interrupt: Callable) -
 	_history = _line(NOTE_PX, Palette.UMBER)
 	add_child(_buttons())
 	add_child(FarmUi.label(Words.tab_note(), NOTE_PX, Palette.UMBER))
+	_waiting = _line(NOTE_PX, Palette.UMBER)
 
 
 func _line(px: int, colour: Color) -> Label:
@@ -109,6 +112,7 @@ func refresh() -> void:
 	_village.text = village_text()
 	var meals: String = _kitchen.last_meals_text(LAST_MEALS)
 	_history.text = "Last meals:\n" + meals if not meals.is_empty() else ""
+	_waiting.text = _kitchen.waiting_text()
 	_keep.text = KEEP_ON if _kitchen.keep_water else KEEP_OFF
 	_keep.tooltip_text = KEEP_TIP
 	FarmUi.set_enabled(_cancel, not _kitchen.planned_keys().is_empty(), Words.NOTHING_PLANNED)
@@ -138,24 +142,28 @@ func cook_text() -> String:
 
 
 func meals_text() -> String:
-	"""The planned meals, a line each."""
+	"""The planned meals, a line each, with how many residents like the dish (decision 0601)."""
 	var lines := PackedStringArray()
 	for key: int in _kitchen.planned_keys():
 		var plan: PackedInt32Array = _kitchen.plan_of(key)
-		lines.append("%s — %s: %d of %d batches cooked, %d more with food reserved%s" % [Words.meal_title(key),
-			Rules.DISH_NAMES[plan[0]], plan[2], plan[1], plan[3], " (one cooking)" if plan[4] > 0 else ""])
+		var liked: int = _kitchen.fed.likers_of(plan[0])
+		lines.append("%s — %s%s: %d of %d batches cooked, %d more with food reserved%s" % [Words.meal_title(key),
+			Rules.DISH_NAMES[plan[0]], " (liked by %d)" % liked if liked > 0 else "", plan[2], plan[1], plan[3],
+			" (one cooking)" if plan[4] > 0 else ""])
 	if lines.is_empty():
 		return "Next meals: none planned"
 	return "Next meals:\n" + "\n".join(lines)
 
 
 func pot_text() -> String:
-	"""Portions in the pot and at the table."""
+	"""Portions in the pot and at the table, by dish: porridge and soup always, any other dish while it has some."""
 	var store: StoreScript = _kitchen.store
-	var line: String = "Portions: %d in the pot, %d at the table (porridge %d, soup %d" % [store.in_pot(), store.at_table(),
-		store.portions_of(Rules.DISH_PORRIDGE), store.portions_of(Rules.DISH_SOUP)]
-	var stew: int = store.portions_of(Rules.DISH_FISH_STEW)
-	return line + (", fish stew %d)" % stew if stew > 0 else ")")
+	var parts := PackedStringArray()
+	for dish: int in Rules.DISH_COUNT:
+		var held: int = store.portions_of(dish)
+		if held > 0 or dish == Rules.DISH_PORRIDGE or dish == Rules.DISH_SOUP:
+			parts.append("%s %d" % [Rules.DISH_SHORT[dish], held])
+	return "Portions: %d in the pot, %d at the table (%s)" % [store.in_pot(), store.at_table(), ", ".join(parts)]
 
 
 func water_text() -> String:
@@ -191,6 +199,11 @@ func keep_button() -> Button:
 func cancel_button() -> Button:
 	"""The Cancel button (checks)."""
 	return _cancel
+
+
+func waiting_shown() -> String:
+	"""The waiting dishes' lines as shown (checks)."""
+	return _waiting.text
 
 
 func history_text() -> String:

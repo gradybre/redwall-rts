@@ -1,5 +1,5 @@
 extends RefCounted
-## The demo farm's model: six beds as REAL FarmPlot rows, advanced by the REAL crop arithmetic on the
+## The demo farm's model: the beds (farm_catalog.gd: the field's twelve, the kitchen garden's four sites) as REAL FarmPlot rows, advanced by the REAL crop arithmetic on the
 ## demo's one calendar. Decision 0196. Presentation-only as a whole -- nothing here writes into the
 ## running settlement -- but every crop number is the settlement's own.
 ##
@@ -26,8 +26,9 @@ extends RefCounted
 ##     stage resets the tending flags, so watering that day halves it -- §5.6's own rule); an
 ##     outbreak spreads to the neighbours of a bed blighted since the previous midnight;
 ##   * per-bed moisture on top of the weather's, through `apply_moisture_delta()`: a DRAINED bed
-##     (a tunnel under it) sheds up to DRAIN_PER_DAY toward its crop's low side, an IRRIGATED bed (a
-##     tunnel from the pond under it) is pulled up to IRRIGATE_PER_DAY toward its band's middle, a
+##     (a dry tunnel under it, through a fitted outlet set to Drain) sheds up to DRAIN_PER_DAY toward its crop's low
+##     side, an IRRIGATED bed (a tunnel carrying water from the stream under it, through a fitted outlet set to Feed) is
+##     pulled up to IRRIGATE_PER_DAY toward its band's middle, a
 ##     RAISED bed (tunnel earth) sheds RAISED_DRAIN_PER_DAY and is warmer at night, a BANKED bed
 ##     keeps half of each day's weather loss, a DITCHED bed (the Drain job) sheds up to
 ##     DITCH_DRAIN_PER_DAY toward its crop's low side as a tunnel drain does; and EVERY bed above its
@@ -45,6 +46,17 @@ extends RefCounted
 ##     to the top of its crop's band, and the ditch dug round it keeps shedding (above) for good;
 ##   * CLEARING a blighted, still-growing crop is uprooting it: `apply_health_loss()` of its whole
 ##     health withers it and `clear_withered()` clears it, returning REQ-SET-085's 0.5 U compost.
+## TUNNEL OUTLETS (review ECO-006, decision 0884). A tunnel is TRANSPORT ONLY: one passing under a bed changes nothing
+## by being there. The player FITS AN OUTLET to a bed with a finished tunnel under it (the Fit outlet job, farm_jobs.gd
+## KIND_FIT_OUTLET) and sets it: SHUT (transport only, as before it was fitted), DRAIN (the bed sheds into a DRY tunnel
+## under it) or FEED (a tunnel carrying the stream's water waters it). `set_tunnel_water` records the tunnels' facts --
+## a dry tunnel under the bed, a watered one under it (farm_tunnels.gd decides) -- and the outlet decides what they
+## do: `drains` and `feeds`. A Drain outlet over a tunnel that now carries water drains nothing, and a Feed outlet over
+## a dry one feeds nothing; the bed panel says which (farm_outlet_box.gd).
+## THE KITCHEN GARDEN (decision 0883). A garden site (farm_catalog.gd `is_garden`) is a FarmPlot like any bed, but it
+## grows nothing until it is LAID OUT (`lay_out`; farm_garden.gd orders it): sowing on a site not laid out is refused
+## NOT_LAID_OUT, and so is every job (farm_jobs.gd `refusal_for`). Taking a bed up again keeps its soil's history --
+## fertility, the last family, the compost season (BAL-SAFE-014) -- because the plot row is never freed.
 ## COMPOST IS PLANT WASTE (decision 0401). The compost store (`compost_milli`) is filled only by plant waste -- a cleared
 ## crop's 0.5 U here, and the Pantry's spoiled food at §5.7's 4 : 2 (demo_farm.gd `compost_spoiled`) -- and `compost()`
 ## always pays its 2 U from it. Tunnel earth never composts and never adds fertility: raising and banking a bed only set
@@ -75,7 +87,9 @@ const STAGE_GROWING: int = 3
 const STAGE_RIPE: int = 4
 const STAGE_WITHERED: int = 5
 const STAGE_BLIGHTED: int = 6
-const STAGE_NAMES: Array[String] = ["empty", "sown", "sprouting", "growing", "ripe", "withered", "blighted"]
+## A kitchen-garden site nobody has laid out (decision 0883): not an empty bed -- it can be neither sown nor worked.
+const STAGE_SITE: int = 7
+const STAGE_NAMES: Array[String] = ["empty", "sown", "sprouting", "growing", "ripe", "withered", "blighted", "bare site"]
 const SPROUT_PERMILLE: int = 200
 
 ## A bed's moisture against its crop's §5.6 band: DRY and WATERLOGGED are the moisture factor's 0
@@ -132,6 +146,18 @@ const REFUSE_NO_CROP: StringName = &"NO_CROP_STANDING"
 const REFUSE_STALLED: StringName = &"GROWTH_STALLED"
 const REFUSE_CALENDAR_STARTED: StringName = &"CALENDAR_ALREADY_RUNNING"
 const REFUSE_NOT_TOO_WET: StringName = &"NOT_TOO_WET"
+const REFUSE_NOT_LAID: StringName = &"NOT_LAID_OUT"
+const REFUSE_NOT_A_SITE: StringName = &"NOT_A_GARDEN_SITE"
+const REFUSE_IN_USE: StringName = &"BED_IN_USE"
+const REFUSE_NO_TUNNEL: StringName = &"NO_TUNNEL_UNDER"
+const REFUSE_NO_OUTLET: StringName = &"NO_OUTLET_FITTED"
+const REFUSE_BAD_SETTING: StringName = &"NO_SUCH_OUTLET_SETTING"
+
+## A fitted outlet's settings (see TUNNEL OUTLETS).
+const OUTLET_SHUT: int = 0
+const OUTLET_DRAIN: int = 1
+const OUTLET_FEED: int = 2
+const OUTLET_NAMES: Array[String] = ["Shut", "Drain", "Feed"]
 
 var calendar: CalendarScript = CalendarScript.new()
 var compost_milli: int = START_COMPOST_MILLI
@@ -157,6 +183,10 @@ var _blighted: PackedByteArray = PackedByteArray()
 var _drained: PackedByteArray = PackedByteArray()
 var _irrigated: PackedByteArray = PackedByteArray()
 var _ditched: PackedByteArray = PackedByteArray()
+## Per bed: laid out (every field bed; a garden site once laid out), an outlet fitted, and its setting (OUTLET_*).
+var _laid: PackedByteArray = PackedByteArray()
+var _outlet: PackedByteArray = PackedByteArray()
+var _outlet_mode: PackedByteArray = PackedByteArray()
 ## Per bed, the garden leat's service (weir_sluice.gd SERVICE_*; decision 0441), and its moisture as the day left it
 ## (before the midnight's weather: the leat's basis).
 var _service: PackedByteArray = PackedByteArray()
@@ -170,7 +200,7 @@ var _absolute_day: int = OPENING_DAY
 
 
 func _init() -> void:
-	"""Compose the real crop/weather stage, prime day 1, and lay out the six beds."""
+	"""Compose the real crop/weather stage, prime day 1, and lay out every bed."""
 	var rng: RngScript = RngScript.new()
 	var seeded: bool = rng.seed_world(WEATHER_SEED).ok
 	assert(seeded, "the farm's weather stream must seed")
@@ -189,10 +219,13 @@ func _allocate() -> void:
 	"""Size every per-bed column once."""
 	for column: PackedInt32Array in [_slot, _tile, _item, _chosen, _blight_days, _day_start]:
 		column.resize(Catalog.BED_COUNT)
-	for column: PackedByteArray in [_covered, _raised, _banked, _fallow, _blighted, _drained, _irrigated, _ditched, _service]:
+	for column: PackedByteArray in [_covered, _raised, _banked, _fallow, _blighted, _drained, _irrigated, _ditched, _service,
+			_laid, _outlet, _outlet_mode]:
 		column.resize(Catalog.BED_COUNT)
 	_item.fill(NO_ITEM)
 	_chosen.fill(NO_ITEM)
+	for bed: int in Catalog.BED_COUNT:
+		_laid[bed] = 0 if Catalog.is_garden(bed) else 1
 
 
 func _create_bed(bed: int) -> void:
@@ -320,12 +353,12 @@ func day_delta(bed: int, weather_delta: int, service: int, before: int) -> int:
 		@warning_ignore("integer_division") delta += (-weather_delta) / 2
 	var low: int = band_min_of(bed)
 	var high: int = band_max_of(bed)
-	var watered: bool = _irrigated[bed] == 1 or Sluice.is_watering(service)
+	var watered: bool = is_irrigated(bed) or Sluice.is_watering(service)
 	if Sluice.is_watering(service):
 		delta += leat_delta(service, before, low, high)
-	elif _irrigated[bed] == 1:
+	elif is_irrigated(bed):
 		@warning_ignore("integer_division") delta += clampi((low + high) / 2 - (moisture + delta), -IRRIGATE_PER_DAY, IRRIGATE_PER_DAY)
-	elif _drained[bed] == 1:
+	elif is_drained(bed):
 		delta -= clampi(moisture + delta - (low + DRAIN_MARGIN), 0, DRAIN_PER_DAY)
 	if _raised[bed] == 1 and not watered:
 		delta -= clampi(moisture + delta - (low + DRAIN_MARGIN), 0, RAISED_DRAIN_PER_DAY)
@@ -484,12 +517,21 @@ func choose(bed: int, item: int) -> FarmingScript.OpResult:
 	return _succeed(item)
 
 
+func restore_choice(bed: int, item: int) -> void:
+	"""Put a bed's next choice back to `item` (NO_ITEM: none) -- an order that was refused undoes its choice."""
+	if Catalog.is_bed(bed) and (item == NO_ITEM or Catalog.is_item(item)) and _chosen[bed] != item:
+		_chosen[bed] = item
+		revision += 1
+
+
 func sow_refusal(bed: int, item: int) -> StringName:
 	"""Why `item` cannot be sown in `bed` right now, or REFUSE_NONE: fallow, occupied, soil, window."""
 	if not Catalog.is_bed(bed):
 		return REFUSE_NOT_A_BED
 	if not Catalog.is_item(item):
 		return REFUSE_NOT_AN_ITEM
+	if _laid[bed] == 0:
+		return REFUSE_NOT_LAID
 	if _fallow[bed] == 1:
 		return REFUSE_FALLOW
 	if _farming.state_of(_slot[bed]).value != FarmingScript.STATE_EMPTY:
@@ -645,7 +687,8 @@ func set_fallow(bed: int, resting: bool) -> FarmingScript.OpResult:
 
 
 func set_tunnel_water(bed: int, drained: bool, irrigated: bool) -> void:
-	"""What the tunnels under a bed do to it (farm_tunnels.gd decides; farm_sim applies it daily)."""
+	"""The tunnels under a bed (farm_tunnels.gd decides): a DRY one under it (`drained`), one carrying water under it
+	(`irrigated`). What they do to the bed is its outlet's (see TUNNEL OUTLETS: `drains`, `feeds`)."""
 	var drained_now: int = 1 if drained else 0
 	var irrigated_now: int = 1 if irrigated else 0
 	if drained_now == _drained[bed] and irrigated_now == _irrigated[bed]:
@@ -671,6 +714,116 @@ func leat_service_of(bed: int) -> int:
 	return _service[bed]
 
 
+# --- tunnel outlets (see TUNNEL OUTLETS) --------------------------------------------------------
+
+func outlet_refusal(bed: int) -> StringName:
+	"""Why an outlet cannot be fitted to a bed now: no bed, not laid out, already fitted, or no tunnel under it."""
+	if not Catalog.is_bed(bed):
+		return REFUSE_NOT_A_BED
+	if _laid[bed] == 0:
+		return REFUSE_NOT_LAID
+	if _outlet[bed] == 1:
+		return REFUSE_ALREADY
+	if _drained[bed] == 0 and _irrigated[bed] == 0:
+		return REFUSE_NO_TUNNEL
+	return REFUSE_NONE
+
+
+func fit_outlet(bed: int) -> FarmingScript.OpResult:
+	"""The Fit outlet job done: the bed's outlet is fitted, SHUT (transport only until the player sets it)."""
+	var code: StringName = outlet_refusal(bed)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	_outlet[bed] = 1
+	_outlet_mode[bed] = OUTLET_SHUT
+	revision += 1
+	return _succeed(1)
+
+
+func set_outlet(bed: int, mode: int) -> FarmingScript.OpResult:
+	"""Set a fitted outlet (OUTLET_*); a board in the outlet's mouth, no work. Refuses no outlet, an unknown setting or
+	the setting it has."""
+	if not Catalog.is_bed(bed):
+		return _refuse(REFUSE_NOT_A_BED)
+	if _outlet[bed] == 0:
+		return _refuse(REFUSE_NO_OUTLET)
+	if mode < OUTLET_SHUT or mode > OUTLET_FEED:
+		return _refuse(REFUSE_BAD_SETTING)
+	if _outlet_mode[bed] == mode:
+		return _refuse(REFUSE_ALREADY)
+	_outlet_mode[bed] = mode
+	revision += 1
+	return _succeed(mode)
+
+
+func has_outlet(bed: int) -> bool:
+	"""Whether an outlet is fitted to the bed."""
+	return _outlet[bed] == 1
+
+
+func outlet_of(bed: int) -> int:
+	"""The fitted outlet's setting (OUTLET_*; OUTLET_SHUT with none fitted)."""
+	return _outlet_mode[bed] if _outlet[bed] == 1 else OUTLET_SHUT
+
+
+func dry_tunnel_under(bed: int) -> bool:
+	"""Whether a finished DRY tunnel runs under the bed (the fact, whatever the outlet)."""
+	return _drained[bed] == 1
+
+
+func wet_tunnel_under(bed: int) -> bool:
+	"""Whether a finished tunnel carrying the stream's water runs under the bed (the fact, whatever the outlet)."""
+	return _irrigated[bed] == 1
+
+
+# --- the kitchen garden (see THE KITCHEN GARDEN) ------------------------------------------------
+
+func lay_out_refusal(bed: int) -> StringName:
+	"""Why a bed cannot be laid out: not a garden site, or laid out already."""
+	if not Catalog.is_garden(bed):
+		return REFUSE_NOT_A_SITE
+	return REFUSE_ALREADY if _laid[bed] == 1 else REFUSE_NONE
+
+
+func lay_out(bed: int) -> FarmingScript.OpResult:
+	"""Lay out a garden bed on its site (a designation: GDD §5.6 fields are designated, not built)."""
+	var code: StringName = lay_out_refusal(bed)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	_laid[bed] = 1
+	revision += 1
+	return _succeed(1)
+
+
+func take_up_refusal(bed: int) -> StringName:
+	"""Why a garden bed cannot be taken up: not a site, not laid out, or something stands in it (sown, growing, ripe,
+	withered)."""
+	if not Catalog.is_garden(bed):
+		return REFUSE_NOT_A_SITE
+	if _laid[bed] == 0:
+		return REFUSE_NOT_LAID
+	if _farming.state_of(_slot[bed]).value != FarmingScript.STATE_EMPTY:
+		return REFUSE_IN_USE
+	return REFUSE_NONE
+
+
+func take_up(bed: int) -> FarmingScript.OpResult:
+	"""Take a garden bed up (back to a bare site); its soil keeps its history. Its next choice is forgotten."""
+	var code: StringName = take_up_refusal(bed)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	_laid[bed] = 0
+	_chosen[bed] = NO_ITEM
+	_fallow[bed] = 0
+	revision += 1
+	return _succeed(0)
+
+
+func is_laid(bed: int) -> bool:
+	"""Whether a bed grows crops: every field bed, and a garden site once laid out."""
+	return Catalog.is_bed(bed) and _laid[bed] == 1
+
+
 func _set_flag(column: PackedByteArray, bed: int) -> FarmingScript.OpResult:
 	"""Set a once-only bed flag, refusing an unknown bed or a flag already set."""
 	if not Catalog.is_bed(bed):
@@ -685,7 +838,9 @@ func _set_flag(column: PackedByteArray, bed: int) -> FarmingScript.OpResult:
 # --- readouts -------------------------------------------------------------------------------
 
 func stage_of(bed: int) -> int:
-	"""STAGE_*: what a bed shows."""
+	"""STAGE_*: what a bed shows (STAGE_SITE: a garden site not laid out)."""
+	if _laid[bed] == 0:
+		return STAGE_SITE
 	var slot: int = _slot[bed]
 	var state: int = _farming.state_of(slot).value
 	if state == FarmingScript.STATE_SOWN:
@@ -811,13 +966,13 @@ func is_blighted(bed: int) -> bool:
 
 
 func is_drained(bed: int) -> bool:
-	"""Whether a tunnel drains the bed."""
-	return _drained[bed] == 1
+	"""Whether a tunnel drains the bed: a dry one under it, through an outlet set to Drain (see TUNNEL OUTLETS)."""
+	return _drained[bed] == 1 and outlet_of(bed) == OUTLET_DRAIN
 
 
 func is_irrigated(bed: int) -> bool:
-	"""Whether a tunnel from the pond waters the bed."""
-	return _irrigated[bed] == 1
+	"""Whether a tunnel waters the bed: one carrying water under it, through an outlet set to Feed."""
+	return _irrigated[bed] == 1 and outlet_of(bed) == OUTLET_FEED
 
 
 func is_ditched(bed: int) -> bool:

@@ -94,9 +94,9 @@ func test_each_setting_gives_each_bed_its_table_service() -> void:
 	"""Closed: the zone dry; Half: Bed 2 and 4 normal, Bed 6 dry; Open: Bed 2 and 4 wet, Bed 6 normal; every other bed
 	not served, and nothing for a setting that is not one."""
 	var expected: Array[PackedInt32Array] = [
-		PackedInt32Array([0, 1, 0, 1, 0, 1]),
-		PackedInt32Array([0, 2, 0, 2, 0, 1]),
-		PackedInt32Array([0, 3, 0, 3, 0, 2]),
+		PackedInt32Array([0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+		PackedInt32Array([0, 2, 0, 2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+		PackedInt32Array([0, 3, 0, 3, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
 	]
 	for setting: int in Sluice.SLUICE_COUNT:
 		for bed: int in Catalog.BED_COUNT:
@@ -158,6 +158,8 @@ func test_a_watered_bed_is_not_drained_and_a_dry_one_keeps_its_tunnels() -> void
 	var sim := SimScript.new()
 	_set_moisture(sim, BED_2, 5000)
 	sim.set_tunnel_water(BED_2, true, false)
+	assert_equal(sim.day_delta(BED_2, 0, Sluice.SERVICE_DRY, 5000), 0, "no outlet: the tunnel is transport only")
+	assert_true(sim.fit_outlet(BED_2).ok and sim.set_outlet(BED_2, SimScript.OUTLET_DRAIN).ok, "a Drain outlet fitted")
 	assert_equal(sim.day_delta(BED_2, 0, Sluice.SERVICE_DRY, 5000), -500, "dry: the tunnel drains")
 	assert_equal(sim.day_delta(BED_2, 0, Sluice.SERVICE_NONE, 5000), -500, "the same as no leat")
 	assert_equal(sim.day_delta(BED_2, 0, Sluice.SERVICE_WET, 5000), 1500, "wet: the leat, no drain")

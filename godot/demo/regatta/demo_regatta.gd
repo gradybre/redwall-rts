@@ -238,12 +238,23 @@ func hold_card() -> CardScript:
 	_card.result = "The race at %02d:00, the %s feast at supper for %d; remembered in the chronicle" % [Rules.RACE_HOUR,
 		Rules.THEME_NAME, e]
 	_card.prerequisites.append("a host who neither races nor cooks; two helms (fishing 1); the main course's food free")
+	_card.prerequisites.append("for every course and %s: the nut loaf's flour and nuts, the infusion's herb (%s)" % [
+		Rules.BUFF_NAME, regatta.served_words() if regatta.state != RegattaScript.ST_IDLE else _menu_now(e)])
 	var why: String = regatta.refusal(regatta.choice_day, regatta.choice_host, regatta.override)
 	if not why.is_empty():
 		_card.refuse(regatta.refused_code, why, regatta.refused_fix)
 		return _card
 	_card.who = "Host: %s; %s" % [regatta.name_of(regatta.choice_host), regatta.race_words(regatta.crews_for(regatta.choice_host))]
 	return _card
+
+
+func _menu_now(e: int) -> String:
+	"""What a regatta held now would serve beside its main course, from the pantry's real stock."""
+	var short := PackedStringArray()
+	for why: String in [regatta.menu.second_short(e), regatta.menu.infusion_short(e)]:
+		if not why.is_empty():
+			short.append(why)
+	return "all there now" if short.is_empty() else "short now: %s" % "; ".join(short)
 
 
 func override_card() -> CardScript:

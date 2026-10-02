@@ -1,0 +1,27 @@
+{
+  "_about": "Flag thresholds for tools/balance_report.py (decision 0911). Each value carries the reason it was chosen; change the value and its reason together. None of these is a GDD balance rule: they say when a measured season deserves a look.",
+  "reserve_min_days": {
+    "value": 2.0,
+    "why": "GDD §5.3 puts food jobs in urgency bucket 2 while the projected reserve is under 2 days, and gameplay_balance.md BAL-RUN-008 counts a village stabilised only with ready food of 2 days or more. A season whose lowest Ready food (the HUD's figure, kitchen.gd days_of_meals_milli) falls below 2 days is flagged; at 0 the report says the food RAN OUT (UI §8: food under 1 day is already CRITICAL)."
+  },
+  "spoilage_max_pct": {
+    "value": 10.0,
+    "why": "No GDD target exists. Shelf lives are 48 h for fresh fish, 144 h for leaves, 240 h for roots, 480 h for beans and 720 h for grain (GDD §5.7; farm_catalog.gd), so a pantry that is drawn on twice a day should lose little; one unit in ten of the food available in a season (its opening stock plus what was stored in it) spoiling in store is taken as the line past which spoilage is a balance problem rather than noise. Provisional: for Brendan to confirm."
+  },
+  "spoilage_min_u": {
+    "value": 1.0,
+    "why": "Spoilage is flagged only when at least this much (1 U, about two portions' worth of roots) spoiled in the season: a few hundred milli-U left over and spoiled reads 100% of nearly nothing, which is noise, not a balance problem."
+  },
+  "idle_max_pct": {
+    "value": 50.0,
+    "why": "Idle share = idle / (idle + work) resident-time, rest, meals and emergencies excluded. GDD §5.3's default day is 10 WORK hours of about 14 waking ones (BAL-SUPPLY-001), so a village with work to do should spend well under half its available time idle; above 50% the residents are idle more than they work and labour is not what limits the economy. Provisional: for Brendan to confirm."
+  },
+  "missed_meals_max_pct": {
+    "value": 0.0,
+    "why": "REQ-SET-012 and decision 0381: every resident is fed at each meal. Any resident going without at a meal is flagged; the percentage is of the diners counted at the season's meals."
+  },
+  "hungry_max_pct": {
+    "value": 5.0,
+    "why": "HUNGRY is need 1500 or below (meal_rules.gd: §5.2's urgent line). An occasional hungry hour (a late meal, a resident called away) is normal; more than one resident-hour in twenty spent hungry means meals are not keeping up."
+  }
+}

@@ -17,6 +17,8 @@ const CardScript := preload("res://demo/people/people_card.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 
 const BOOT_FRAMES: int = 14
+## At most this many more frames for the village to open (see `_until_open`).
+const OPEN_FRAMES: int = 600
 const SETTLE_FRAMES: int = 4
 const FULL: float = 0.99
 
@@ -56,6 +58,7 @@ func _frames(count: int) -> void:
 func _run() -> void:
 	"""Every step, then the summary."""
 	await _frames(BOOT_FRAMES)
+	await _until_open()
 	_manager().call(&"pause_game")
 	_names_everywhere()
 	await _the_roster()
@@ -67,6 +70,15 @@ func _run() -> void:
 
 
 # --- helpers ------------------------------------------------------------------------------------------
+
+func _until_open() -> void:
+	"""Wait (at most OPEN_FRAMES) for the boot's prewarm to release the clock, so the pause below takes: the merged
+	village warms more steps (the night's light, the falling leaves) than BOOT_FRAMES covers (batch 7 integration)."""
+	for k: int in OPEN_FRAMES:
+		if bool(_village.call(&"time_control").get("opened")):
+			return
+		await _frames(1)
+
 
 func _check(check_name: String, ok: bool, detail: String = "") -> void:
 	"""Record one check, named with the size."""
@@ -292,6 +304,10 @@ func _the_spotlight() -> void:
 	_check("the card is in the window", Rect2(Vector2.ZERO, Vector2(_size)).encloses(rect), str(rect))
 	var party: Rect2 = _command().call(&"panel").call(&"frame_rect")
 	_check("clear of the party panel", not rect.intersects(party), "%s / %s" % [rect, party])
+	var pause_card: CanvasLayer = _village.call(&"pause_card")
+	var pause: Rect2 = pause_card.call(&"frame_rect") if bool(pause_card.call(&"is_shown")) else Rect2()
+	_check("the pause card shows (paused)", bool(pause_card.call(&"is_shown")))
+	_check("clear of the pause card (decision 0931)", not rect.intersects(pause), "%s / %s" % [rect, pause])
 	_floors("the card", card)
 	await _capture("spotlight")
 	var fisher: int = maxi(_index_of(&"otter_fisher"), 0)

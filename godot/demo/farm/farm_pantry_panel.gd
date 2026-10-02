@@ -11,7 +11,9 @@ extends CanvasLayer
 ##     season's -- farm_pantry.gd THE FORECAST). Food that spoils within two game days comes first and
 ##     says "Soon" in clay; the order is set when the tab opens and kept while it is open (nothing moves
 ##     under the pointer). Under it, each store as a row: stored, reserved for harvests, free, capacity
-##     and how fast it ages food. Spoiled food can be sent to compost at §5.7's 4 : 2. An empty pantry
+##     and how fast it ages food, and under them WHY each keeps food as it does and how many times as long food keeps
+##     there (decision 0611); a row with food on its way to a cooler store says so in its In store cell. Spoiled food
+##     can be sent to compost at §5.7's 4 : 2. An empty pantry
 ##     names a real source from the beds -- a ripe bed to harvest, else the next to ripen, else one to
 ##     plant -- with a button that opens that bed.
 ##   Recipe ideas (not cookable yet): the content library's dishes each ingredient feeds
@@ -22,9 +24,10 @@ extends CanvasLayer
 ## KITCHEN (demo/kitchen/kitchen_tab.gd: the cook, the next meals, the pot and the table, the water butt, how the
 ## village is fed, and the Cook and Draw water orders with their action cards); the Stocks table ends with the
 ## kitchen's own stock -- each dish's cooked portions as ready food, and the water -- and a store's row says how much
-## of it the kitchen has reserved ("6.0 U · 2.0 U for the kitchen"); the second tab is RECIPES, marking the two dishes
+## of it the kitchen has reserved ("6.0 U · 2.0 U for the kitchen"); the second tab is RECIPES, marking the dishes
 ## the kitchen cooks as cookable (active) above the library's ideas. Without a kitchen (a suite that builds a farm
-## alone) it is as before.
+## alone) it is as before. The Recipes tab lists every pantry item -- the crops, then the catch, dried fish and flour
+## (decision 0602).
 ## Every quantity is the farm's one units form (farm_text.gd UNITS).
 ##
 ## LAYER. It is the Food command's pop-up and is drawn ABOVE the HUD (LAYER), as UI §3 draws a modal
@@ -73,8 +76,10 @@ const MIN_BODY_H: float = 160.0
 const TAB_KITCHEN: int = 2
 const RECIPES_TAB_COOKING: String = "Recipes"
 const KITCHEN_TAB: String = "Kitchen"
-const RECIPE_HEADING_COOKING: String = "Recipes — two are cookable"
-const RECIPE_NOTE_COOKING: String = "The kitchen cooks two dishes, in turn: they are marked cookable. The rest are dishes from the Redwall content library that use the ingredient — ideas, not cookable yet."
+const RECIPE_HEADING_COOKING: String = "Recipes — the kitchen's dishes are cookable"
+const RECIPE_NOTE_COOKING: String = "The dishes the kitchen cooks are marked cookable. The rest are dishes from the Redwall content library that use the ingredient — ideas, not cookable yet."
+## An item the content library's pantry does not name (salmon, carp).
+const NOT_IN_LIBRARY: String = "%s is not in the content library's pantry: it has no library dishes."
 ## The panel's height that is not a tab's page: header, tab strip, gaps and margins.
 const BODY_RESERVE_H: float = 110.0
 ## `_scrolls[STOCK_SCROLL]` is the stock table's; the rest are the Recipes tab's.
@@ -98,6 +103,8 @@ var _stock_cells: Array[Label] = []
 var _stock_icons: Array[TextureRect] = []
 var _store_grid: GridContainer = null
 var _store_cells: Array[Label] = []
+## Why each store keeps food as it does (decision 0611; farm_pantry_rows.gd `why_text`).
+var _why: Label = null
 var _empty: VBoxContainer = null
 var _suggestion: Label = null
 var _open_bed: Button = null
@@ -133,7 +140,7 @@ func configure(sim: SimScript, pantry: PantryScript, recipes: RecipesScript) -> 
 func set_goods(goods: GoodsScript) -> void:
 	"""Show each ingredient's icon from these goods."""
 	_goods = goods
-	for item: int in Catalog.ITEM_COUNT:
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		FarmUi.set_icon(_item_buttons[item], goods.icon_of(item))
 
 
@@ -211,6 +218,8 @@ func _build_stocks() -> VBoxContainer:
 	inner.add_child(_build_empty())
 	_store_grid = _grid(STORE_HEADINGS)
 	page.add_child(_store_grid)
+	_why = FarmUi.label("", NOTE_PX, Palette.UMBER)
+	page.add_child(_why)
 	page.add_child(_build_spoiled())
 	return page
 
@@ -316,7 +325,7 @@ func _build_recipes() -> HBoxContainer:
 	rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	rows.add_theme_constant_override(&"separation", 3)
 	list.add_child(rows)
-	for item: int in Catalog.ITEM_COUNT:
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		var row: Button = FarmUi.button("", FarmUi.BODY_PX)
 		row.custom_minimum_size.y = TARGET_PX
 		row.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -426,6 +435,9 @@ func _fill_stock_row(row: int) -> void:
 	if not shown:
 		return
 	var cells: PackedStringArray = stock_row_cells(row)
+	var moving: String = _rows.moving_text(_pantry, row)
+	if not moving.is_empty():
+		cells[1] += " · " + moving
 	if _kitchen != null:
 		var held: String = String(_kitchen.call(&"reserved_text", _rows.item[row], _rows.location[row]))
 		if not held.is_empty():
@@ -467,11 +479,12 @@ func _fill_stores() -> void:
 		var cells: PackedStringArray = RowsScript.store_cells(_pantry, at)
 		for column: int in cells.size():
 			_store_cells[at * STORE_HEADINGS.size() + column].text = cells[column]
+	_why.text = RowsScript.why_text(_pantry)
 
 
 func _fill_recipes() -> void:
 	"""Each ingredient's stock on its button, and the picked one's dish list."""
-	for item: int in Catalog.ITEM_COUNT:
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		var held: int = _pantry.milli_of(item)
 		_item_buttons[item].set_pressed_no_signal(item == selected_item)
 		_item_buttons[item].text = "%s · %s" % [Catalog.ITEM_LABELS[item],
@@ -483,6 +496,10 @@ func _fill_recipes() -> void:
 	if _recipes == null or not _recipes.is_loaded():
 		_dish_title.text = label
 		_dishes.text = "(the recipe index is missing)"
+		return
+	if not _recipes.in_library(selected_item):
+		_dish_title.text = NOT_IN_LIBRARY % label
+		_dishes.text = ""
 		return
 	_dish_title.text = "%s feeds %d dishes (and %d more through prepared parts)" % [label,
 		_recipes.direct_count(selected_item), _recipes.component_count(selected_item)]
@@ -562,6 +579,19 @@ func store_row_cells(at: int) -> PackedStringArray:
 	for column: int in STORE_HEADINGS.size():
 		out.append(_store_cells[at * STORE_HEADINGS.size() + column].text)
 	return out
+
+
+func add_store_control(control: Control) -> void:
+	"""Put `control` on the Stocks tab under the stores and why they keep food (the cellar buildings' line and Build
+	button, decision 0612); it is the caller's to fill."""
+	var page := _pages[TAB_STOCKS] as VBoxContainer
+	page.add_child(control)
+	page.move_child(control, _why.get_index() + 1)
+
+
+func why_text() -> String:
+	"""What the Stocks tab says under its stores about why each keeps food as it does (decision 0611)."""
+	return _why.text
 
 
 func empty_shown() -> bool:

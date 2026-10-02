@@ -1145,6 +1145,52 @@ elder rule while children are inactive; the GDD amendments to mood, relationship
 REQ-SET-036 that the package proposes take effect only when children are active.
 Implementation and gate state: [decision 0521](decisions/0521-pc04-adopted-with-children-inactive.md).
 
+### DEC-045 — Every Redwall dish family the kitchen lacked is added, as drafted recipes
+
+2026-10-01 · State: `USER_CONFIRMED` -- the families, and (his ruling on decision 0603, "Approve all") their drafted numbers.
+
+Brendan, on decision 0601's fifth proposal, relayed through the settlement coordinator on 2026-10-01:
+**"Approve, but add in everything for 5 now."** The dish families the live demo's kitchen had rejected for want of a
+GDD §5.7 recipe row -- pies, pasties and turnovers, scones, oatcakes, farls and hardtack, salads, cordials -- are
+added now, each a content-library dish cooked by a NEW recipe row written in §5.7's format. He also approved three
+balance-tuning experiments for the same work: a fish dish needing no roots (E2), dried fish and flour as kitchen
+inputs (E3), and a cabbage-and-bean pottage only if the bean hotpot leaves a gap (E4: it does not).
+
+- **The rows were drafts, now confirmed.** Their inputs, portions, NP, work and shelf life are authored inside the adopted §5.7 rows'
+  range; he confirmed them as drafted on decision 0603. They are his rows, not yet written into the GDD's §5.7 table.
+- **The setting exclusions stand**: joke, captive and cruelty contexts, shrimp and the fictional hotroot stay out --
+  they were excluded for setting reasons, not for want of a recipe.
+- **A dish whose ingredient has no source yet waits and says why**; the sources belong to their own lanes (foraging,
+  crops, hives).
+
+**Ruled on decision 0603 (2026-10-01): "Approve all".** The drafted recipe numbers are confirmed as drafted; moles
+favour the root pie (their deeper'n'ever pie, library-backed); oatcakes and farls are left to feature 17; potato stays
+raw-edible.
+
+Engineering record, the confirmed table and the waiting ingredients: decision 0603.
+
+### DEC-046 — The demo village farms twelve field beds and sows them by default
+
+2026-10-01 · State: `USER_CONFIRMED`.
+
+Brendan's balance ruling **E5** (2026-10-01, relayed through the settlement coordinator): the live demo village gets
+**12–18 farm beds instead of 6**, and **hands-off play must sow** -- "a default policy that sows empty beds in season,
+unless the GDD forbids it". On decision 0886 he approved it as built:
+
+- **Twelve field beds** -- the six world beds and a south field of six GDD §5.6 tiles laid from the start -- with the
+  kitchen garden's four bounded sites on top (decision 0883), sixteen in all.
+- **A default sowing policy** (*Sow empty beds in season*): an empty laid bed is sown with the player's chosen crop,
+  else its §5.6 rotation's next crop (grain → beans → roots, as each soil allows), within the field group's daily work
+  budget (16 WU).
+- **An exception to the GDD's default for the demo village only.** GDD §4.2's FieldPolicy defaults `auto_rotation`
+  to `false`, and R06-JOB-005 has completion request no new sowing cycle then. The demo village turns its field's
+  sowing ON at its start; the kitchen garden's stays off. This ruling outranks the GDD's default (AGENTS.md's order)
+  for the live demo; the settlement simulation's FieldPolicy default is unchanged.
+
+Scope: the live demo's farm (`godot/demo/farm/`). Engineering record: decision 0886 (with 0881–0885 for the crop roles,
+harvest plans, kitchen garden, tunnel outlets and tending policies, approved with it). Recorded at the batch 7
+integration (decision 0902).
+
 ### DEC-040 engineering follow-through
 
 Brendan subsequently requested: “let's plan those as well, then give me what to send back to claude”. [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) records the resulting Astra-authored numeric economy/hazard choices. This is delegated engineering authoring, not a claim the user supplied every value. DEC-040's four-level candidate status remains unchanged. [Decision0092](decisions/0092-underground-economy-and-hazard-parameters.md) records adoption and its limits.

@@ -20,6 +20,11 @@ extends RefCounted
 ##
 ## Other eaters respect the takes: `free_milli` is a lot's milli-U less what is reserved in it (the raw emergency food
 ## a hungry resident may eat; REQ-SET-013: "nonreserved").
+##
+## A SELECTOR says which pantry items a reservation may hold (decision 0601): a CATEGORY (farm_catalog.gd category_of: a
+## §5.6 crop row or a goods category -- §5.7's input), or SELECT_ITEMS plus a mask of item rows (bit n: item n) -- a
+## dish's own ingredients within its category (dish_book.gd); ANY (-1) takes every item. `matches` decides, with no
+## allocation; every parameter named `crop` below is a selector.
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
@@ -31,6 +36,10 @@ const AT_STORE: int = 0
 const IN_HAND: int = 1
 const AT_KITCHEN: int = 2
 const REFUSE_SHORT: String = "NOT_ENOUGH_RESERVED"
+const ANY: int = -1
+## A selector with this bit set is an item mask; the pantry's item rows fit beneath it (62 of them) (test_demo_dishes.gd checks).
+const SELECT_ITEMS: int = 1 << 62
+const MASK_BITS: int = 62
 
 var _take: PackedInt32Array = PackedInt32Array()
 var _lot: PackedInt32Array = PackedInt32Array()
@@ -57,6 +66,25 @@ func _init() -> void:
 	_where.resize(MAX_ENTRIES)
 
 
+static func matches(selector: int, item: int) -> bool:
+	"""Whether pantry `item` is one selector `selector` takes (see A SELECTOR); never for no item."""
+	if item < 0:
+		return false
+	if selector < 0:
+		return true
+	if (selector & SELECT_ITEMS) != 0:
+		return item < MASK_BITS and ((selector >> item) & 1) == 1
+	return Catalog.category_of(item) == selector
+
+
+static func items_selector(items: PackedInt32Array) -> int:
+	"""The selector taking exactly these item rows (each below MASK_BITS)."""
+	var selector: int = SELECT_ITEMS
+	for item: int in items:
+		selector |= 1 << item
+	return selector
+
+
 func new_take() -> int:
 	"""A fresh take id (nothing reserved under it yet)."""
 	_next_take += 1
@@ -73,21 +101,22 @@ func reserved_in(lot: int, serial: int) -> int:
 
 
 func free_milli(pantry: PantryScript, lot: int) -> int:
-	"""A live lot's milli-U nobody has reserved (0 for a free row)."""
+	"""A live lot's milli-U nobody has reserved (0 for a free row, and for one in a carrier's hands on its way to another
+	store: farm_pantry.gd MOVING FOOD BETWEEN STORES, decision 0611)."""
 	var serial: int = pantry.lot_serial(lot)
-	if serial == 0:
+	if serial == 0 or pantry.lot_carried(lot):
 		return 0
 	return maxi(0, pantry.lot_milli(lot) - reserved_in(lot, serial))
 
 
 func free_milli_of_crop(pantry: PantryScript, crop: int) -> int:
-	"""Unreserved milli-U of every item of §5.6 crop row `crop` in the pantry (one pass over the entries, one over the
-	lots)."""
+	"""Unreserved milli-U of every item selector `crop` takes in the pantry (one pass over the entries, one over the
+	lots), none of it in a carrier's hands (see `free_milli`)."""
 	_sum_per_lot(pantry, FREE, -1)
 	var total: int = 0
 	for lot: int in PantryScript.MAX_LOTS:
 		var item: int = pantry.lot_item(lot)
-		if item != PantryScript.FREE and Catalog.category_of(item) == crop:
+		if item != PantryScript.FREE and matches(crop, item) and not pantry.lot_carried(lot):
 			total += maxi(0, pantry.lot_milli(lot) - _per_lot[lot])
 	return total
 
@@ -103,7 +132,7 @@ func _sum_per_lot(pantry: PantryScript, take: int, where: int) -> void:
 
 func reserve_into(pantry: PantryScript, take: int, crop: int, milli: int, hour_index: int,
 		out: IntMath.IntResult) -> bool:
-	"""Reserve up to `milli` of crop row `crop`'s food under `take`, the lot that spoils first first (see RESERVE).
+	"""Reserve up to `milli` of selector `crop`'s food under `take`, the lot that spoils first first (see RESERVE).
 	How much was reserved into `out` (0 when there was none, or no entry row was free); refuses a bad quantity."""
 	if milli <= 0:
 		return out.refuse(PantryScript.REFUSE_BAD_QUANTITY)
@@ -130,12 +159,12 @@ func reserve_lot(pantry: PantryScript, take: int, lot: int, milli: int) -> int:
 
 
 func _candidates(pantry: PantryScript, crop: int, hour_index: int) -> void:
-	"""Every live lot of crop row `crop` with unreserved food, and its spoil hours, into the scratch arrays."""
+	"""Every live lot selector `crop` takes with unreserved food, and its spoil hours, into the scratch arrays."""
 	_rows.clear()
 	_hours.clear()
 	for lot: int in PantryScript.MAX_LOTS:
 		var item: int = pantry.lot_item(lot)
-		if item == PantryScript.FREE or Catalog.category_of(item) != crop or free_milli(pantry, lot) <= 0:
+		if item == PantryScript.FREE or not matches(crop, item) or free_milli(pantry, lot) <= 0:
 			continue
 		_rows.append(lot)
 		_hours.append(pantry.lot_spoil_hours(lot, hour_index))
@@ -172,7 +201,7 @@ func _live(pantry: PantryScript, e: int) -> bool:
 
 func live_milli(pantry: PantryScript, take: int, where: int = -1, crop: int = -1) -> int:
 	"""How much `take` holds in lots that are still its own (only at `where`, AT_* ; -1: anywhere; only of category
-	`crop`, -1: any -- a two-input dish's halves), milli-U."""
+	selector `crop`, -1: any -- one input of a dish), milli-U."""
 	var total: int = 0
 	for e: int in MAX_ENTRIES:
 		if _take[e] == take and _live(pantry, e) and (where < 0 or _where[e] == where) and _is_of(pantry, e, crop):
@@ -181,8 +210,8 @@ func live_milli(pantry: PantryScript, take: int, where: int = -1, crop: int = -1
 
 
 func _is_of(pantry: PantryScript, e: int, crop: int) -> bool:
-	"""Whether entry `e`'s lot is of category `crop` (any for -1)."""
-	return crop < 0 or Catalog.category_of(pantry.lot_item(_lot[e])) == crop
+	"""Whether entry `e`'s lot is one selector `crop` takes (any for -1)."""
+	return crop < 0 or matches(crop, pantry.lot_item(_lot[e]))
 
 
 func prune(pantry: PantryScript) -> int:
@@ -209,7 +238,8 @@ func consume_into(pantry: PantryScript, take: int, milli: int, where: int, hour_
 	while left > 0:
 		var e: int = _soonest_at(pantry, take, where, hour_index, crop)
 		var part: int = mini(left, _milli[e])
-		pantry.withdraw_into(_lot[e], _serial[e], part, _read)
+		if not pantry.withdraw_into(_lot[e], _serial[e], part, _read):
+			return out.refuse(REFUSE_SHORT)  # unreachable after the trim; never count food that was not taken
 		_milli[e] -= part
 		left -= part
 		if _milli[e] == 0:
@@ -217,14 +247,36 @@ func consume_into(pantry: PantryScript, take: int, milli: int, where: int, hour_
 	return out.succeed(milli)
 
 
+func withdraw_free(pantry: PantryScript, crop: int, milli: int, hour_index: int) -> int:
+	"""Withdraw up to `milli` of selector `crop`'s UNRESERVED food from its stores at once, the lot that spoils first
+	first, for an owner outside the kitchen taking it away for good (the care shelf's herbs: decision 0902). Nothing any
+	take holds is touched; returns the milli-U withdrawn (0 for none or a bad quantity)."""
+	if milli <= 0:
+		return 0
+	var take: int = new_take()
+	reserve_into(pantry, take, crop, milli, hour_index, _read)
+	var got: int = live_milli(pantry, take, AT_STORE, crop)
+	var taken: int = got if got > 0 and consume_into(pantry, take, got, AT_STORE, hour_index, _read, crop) else 0
+	release(take)
+	return taken
+
+
+func trim_to_lots(pantry: PantryScript, take: int, where: int) -> void:
+	"""Cut `take`'s entries at `where` down to what their lots still hold (see `_trim_to_lots`): a caller withdrawing
+	several selectors from one take checks them all after this, before the first withdrawal (kitchen.gd)."""
+	_trim_to_lots(pantry, take, where)
+
+
 func _trim_to_lots(pantry: PantryScript, take: int, where: int) -> void:
 	"""Cut `take`'s entries at `where` down to what their lots still hold (food something else took is not there to
-	cook), so `consume_into`'s withdrawals can never be refused half-way: all or nothing."""
+	cook; a lot in a carrier's hands holds none for the kitchen: farm_pantry.gd MOVING FOOD BETWEEN STORES, decision
+	0611), so `consume_into`'s withdrawals can never be refused half-way: all or nothing."""
 	_sum_per_lot(pantry, take, where)
 	for e: int in MAX_ENTRIES:
 		if _take[e] != take or _where[e] != where or not _live(pantry, e):
 			continue
-		var over: int = _per_lot[_lot[e]] - pantry.lot_milli(_lot[e])
+		var held: int = 0 if pantry.lot_carried(_lot[e]) else pantry.lot_milli(_lot[e])
+		var over: int = _per_lot[_lot[e]] - held
 		if over <= 0:
 			continue
 		var cut: int = mini(over, _milli[e])
@@ -360,24 +412,22 @@ func keep_fetched(pantry: PantryScript, from_take: int, to_take: int) -> int:
 
 
 func fetched_milli_of_crop(pantry: PantryScript, take: int, crop: int) -> int:
-	"""How much of crop row `crop`'s food `take` holds fetched (in hand or at the kitchen), milli-U."""
+	"""How much of selector `crop`'s food `take` holds fetched (in hand or at the kitchen), milli-U."""
 	var total: int = 0
 	for e: int in MAX_ENTRIES:
-		if _take[e] == take and _where[e] != AT_STORE and _live(pantry, e) \
-				and Catalog.category_of(pantry.lot_item(_lot[e])) == crop:
+		if _take[e] == take and _where[e] != AT_STORE and _live(pantry, e) and _is_of(pantry, e, crop):
 			total += _milli[e]
 	return total
 
 
 func draw_fetched(pantry: PantryScript, from_take: int, to_take: int, crop: int, milli: int) -> int:
-	"""Move up to `milli` of crop row `crop`'s fetched food (in hand or at the kitchen) from `from_take` (the larder)
+	"""Move up to `milli` of selector `crop`'s fetched food (in hand or at the kitchen) from `from_take` (the larder)
 	to `to_take` (a planned meal), splitting an entry where it must. How many milli-U."""
 	var left: int = milli
 	for e: int in MAX_ENTRIES:
 		if left == 0:
 			break
-		if _take[e] != from_take or _where[e] == AT_STORE or not _live(pantry, e) \
-				or Catalog.category_of(pantry.lot_item(_lot[e])) != crop:
+		if _take[e] != from_take or _where[e] == AT_STORE or not _live(pantry, e) or not _is_of(pantry, e, crop):
 			continue
 		if _milli[e] <= left:
 			_take[e] = to_take

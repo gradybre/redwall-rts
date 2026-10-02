@@ -343,6 +343,7 @@ func _deactivate(k: int) -> void:
 	var t: int = _active[k]
 	if is_instance_valid(_faded_mesh[t]):
 		_faded_mesh[t].material_override = null
+		_faded_mesh[t].set_instance_shader_parameter(PARAM_FADE, 0.0)
 	_faded_mesh[t] = null
 	_fade[t] = 0.0
 	_active_count -= 1
@@ -374,8 +375,10 @@ static func _first_mesh(node: Node) -> MeshInstance3D:
 
 
 func fade_material_for(mesh: MeshInstance3D) -> ShaderMaterial:
-	"""The fade material standing in for `mesh`'s own (one per source material, made once)."""
-	var source: Material = mesh.get_active_material(0)
+	"""The fade material standing in for `mesh`'s own (one per source material, made once). It is also the
+	material the seasons dress every staged tree in (demo/seasons/season_view.gd, decision 0551), so its source
+	is the mesh's own glTF material, under any surface override."""
+	var source: Material = own_material(mesh)
 	if not _materials.has(source):
 		var made: ShaderMaterial = make_fade_material(source as BaseMaterial3D)
 		_materials[source] = made
@@ -383,17 +386,24 @@ func fade_material_for(mesh: MeshInstance3D) -> ShaderMaterial:
 	return _materials[source]
 
 
-static func make_fade_material(source: BaseMaterial3D) -> ShaderMaterial:
-	"""canopy_fade.gdshader carrying `source`'s albedo, metallic-roughness and normal maps (a plain white
-	opaque look without one)."""
+static func own_material(mesh: MeshInstance3D) -> Material:
+	"""A mesh's own material: its mesh's first surface's (the glTF's), else whatever draws it."""
+	var own: Material = mesh.mesh.surface_get_material(0) if mesh.mesh != null else null
+	return own if own != null else mesh.get_active_material(0)
+
+
+static func make_fade_material(source: BaseMaterial3D, shader: Shader = FADE_SHADER) -> ShaderMaterial:
+	"""canopy_fade.gdshader (or `shader`, which takes the same parameters: the seasons' in-leaf variant,
+	decision 0551) carrying `source`'s albedo, metallic-roughness and normal maps (a plain white opaque look
+	without one)."""
 	var material := ShaderMaterial.new()
-	material.shader = FADE_SHADER
+	material.shader = shader
 	if source == null:
 		return material
 	material.set_shader_parameter(&"albedo_color", source.albedo_color)
 	material.set_shader_parameter(&"albedo_texture", source.albedo_texture)
 	material.set_shader_parameter(&"metallic", source.metallic)
-	material.set_shader_parameter(&"roughness", source.roughness)
+	material.set_shader_parameter(&"roughness_scale", source.roughness)
 	material.set_shader_parameter(&"metallic_texture", source.metallic_texture)
 	material.set_shader_parameter(&"roughness_texture", source.roughness_texture)
 	material.set_shader_parameter(&"metallic_channel", _channel(source.metallic_texture_channel))

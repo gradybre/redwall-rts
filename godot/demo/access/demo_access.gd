@@ -14,12 +14,17 @@ extends RefCounted
 ##   QUIET_TOASTS fewer news toasts: warnings only, one line (demo_news_strip.gd)
 ##   PAUSE_PLANNING pause while a planning surface is open (UI §8.1 `pause_management`, default OFF)
 ##   PAUSE_CRITICAL pause on a critical incident (UI §8.1 `critical_autopause`, default ON)
+##   BRIGHT_NIGHTS brighter nights: the night's ambient, moonlight and exposure raised (decision 0541,
+##                demo/world/daylight_curves.gd BRIGHT_*; the lighting cycle reads it, day_night.gd)
+##   EDGE_SCROLL  the camera's edge pan (UI §8.1 `edge_scroll`, default ON -- "On mouse"; the demo has no trackpad preset;
+##                demo/camera/edge_pan.gd; decision 0801)
 ## They live in STATIC vars, as the scale's and the mix's do: kept for the session and through Restart demo, never
 ## written to disk (the demo saves nothing yet).
 ##
 ## PRESETS SET INDIVIDUAL SETTINGS, which stay the player's to change one by one afterwards; a preset only turns
 ## its own settings on and leaves the rest as they are:
-##   LARGE     the interface at 150 % where the window offers it, else 125 %; bigger tooltips; high contrast
+##   LARGE     the interface at 150 % where the window offers it, else 125 %; bigger tooltips; high contrast;
+##             brighter nights (decision 0541)
 ##   KEYBOARD  focus hints; interactive targets shown
 ##   MOTION    reduced motion
 ##   QUIET     the sound's Quiet focus mix; fewer toasts
@@ -39,9 +44,12 @@ const SET_MOTION: int = 4
 const SET_QUIET_TOASTS: int = 5
 const SET_PAUSE_PLANNING: int = 6
 const SET_PAUSE_CRITICAL: int = 7
-const SET_COUNT: int = 8
+const SET_BRIGHT_NIGHTS: int = 8
+const SET_EDGE_SCROLL: int = 9
+const SET_COUNT: int = 10
 const SET_NAMES: Array[String] = ["Bigger tooltips", "High-contrast panels", "Focus hints", "Show interactive targets",
-	"Reduced motion", "Fewer news toasts", "Pause while planning", "Pause on a critical incident"]
+	"Reduced motion", "Fewer news toasts", "Pause while planning", "Pause on a critical incident", "Brighter nights",
+	"Edge scroll"]
 const SET_TIPS: Array[String] = [
 	"Tooltips drawn a quarter larger",
 	"A flat, opaque face under every panel's text, without the parchment's grain",
@@ -51,8 +59,10 @@ const SET_TIPS: Array[String] = [
 	"News toasts show warnings only, one at a time (everything stays in the village news)",
 	"Opening the Pantry, the Work screen, the village news, the Residents list, the object list or the Dig tool pauses",
 	"A resident in difficulty or a threat pauses the village and says why",
+	"The village by night is lit more brightly: more moonlight and ambient light, the lamps as they are",
+	"Resting the pointer at a window edge pans the camera that way (never over a panel or behind a pop-up)",
 ]
-const DEFAULTS: PackedByteArray = [0, 0, 0, 0, 0, 0, 0, 1]
+const DEFAULTS: PackedByteArray = [0, 0, 0, 0, 0, 0, 0, 1, 0, 1]
 
 const PRESET_LARGE: int = 0
 const PRESET_KEYBOARD: int = 1
@@ -61,14 +71,15 @@ const PRESET_QUIET: int = 3
 const PRESET_COUNT: int = 4
 const PRESET_NAMES: Array[String] = ["Large readable", "Keyboard planner", "Reduced motion", "Quiet focus"]
 const PRESET_TIPS: Array[String] = [
-	"The interface at 150 % (125 % where the window is smaller), bigger tooltips, high-contrast panels",
+	"The interface at 150 % (125 % where the window is smaller), bigger tooltips, high-contrast panels, brighter nights",
 	"Focus hints, and every clickable thing in the world ringed",
 	"No camera easing, still selection rings, fewer particles, calmer rain and snow",
 	"The Quiet focus sound mix, and news toasts for warnings only",
 ]
 ## Each preset's own flags, a bit per SET_* (the scale and mix are LARGE's and QUIET's own, below). A flat mask: a
 ## const Array[PackedInt32Array] of literals held untyped Arrays, and inside this script a loop over one ran no iteration.
-const PRESET_MASKS: PackedInt32Array = [(1 << SET_TOOLTIPS) | (1 << SET_CONTRAST), (1 << SET_FOCUS_HINTS) | (1 << SET_TARGETS),
+const PRESET_MASKS: PackedInt32Array = [(1 << SET_TOOLTIPS) | (1 << SET_CONTRAST) | (1 << SET_BRIGHT_NIGHTS),
+	(1 << SET_FOCUS_HINTS) | (1 << SET_TARGETS),
 	1 << SET_MOTION, 1 << SET_QUIET_TOASTS]
 ## LARGE's scales, most wanted first.
 const LARGE_SCALES: PackedInt32Array = [150, 125]

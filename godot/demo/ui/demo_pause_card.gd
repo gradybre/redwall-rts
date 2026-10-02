@@ -10,12 +10,22 @@ extends CanvasLayer
 ## reason as its tooltip, while only those stand ("Close the game menu to resume").
 ##
 ## WHERE: centred on the HUD's alert column, at its top (under the HUD's alert cards when they show), one row so it
-## stays inside the alert zone; it steps below the incident card if the two would meet. WHILE A POP-UP IS OPEN (the
+## stays inside the alert zone; it steps below the top card (the incident card, the guide's card or the people's offer
+## card: `avoid`) if the two would meet -- unless that covers the Map layer picker (`keep_clear`), when it stands at the
+## top of the alert column instead, over the HUD's alert cards (decision 0902). WHILE A POP-UP IS OPEN (the
 ## Pantry, the Work screen, the object list: `modal_open`) it rises above the pop-ups' layer and moves to the bottom
 ## centre, so a planning pause is said beside the panel that holds it, and its Resume runs the village with the panel
 ## still open. Hidden while the village runs, while the stall banner shows (that banner is the stall's surface and its
 ## Resume), while the game menu is open (the menu says the village is paused), and until the village has opened.
 ## Refreshed a few times a second on real time; it takes the mouse only on itself.
+##
+## ITS HEIGHT IS ITS WORDS' (decision 0931). The words wrap, and a wrapping Label's height is measured at the width it
+## last had: newly shown, that is its hidden 1 px, one character a line, and the card grew to some 435 px tall at 1080p
+## (windowed; a headless run never shapes it there). It was placed while that tall, and a Control keeps a size it was
+## given while its minimum was tall, so the card stayed tall. Now the card is placed again whenever its minimum changes,
+## so it is always exactly as tall as what it says. Shown, it is placed again the frame what it sits against moves: the
+## top card it steps below (the incident card, the guide's card or the people's offer card) shown, gone or resized, or
+## the HUD's cards.
 
 const FarmUi := preload("res://demo/farm/farm_ui.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
@@ -53,6 +63,10 @@ var hud_cards_shown: Callable = Callable()
 var modal_open: Callable = Callable()
 ## The Resume itself, `() -> int` (the ledger's `resume`).
 var on_resume: Callable = Callable()
+## `() -> Rect2`: a control the card must not cover once it has stepped below the top card -- the Map layer picker, in
+## viewport px (an empty rect: none). Where it would, the card falls back to its own place, UI-SET-086's, at the top of
+## the alert column over the HUD's alert cards (Brendan's ruling on decision 0902's question 4, 2026-10-02).
+var keep_clear: Callable = Callable()
 
 var _ledger: LedgerScript = null
 var _speed: Callable = Callable()
@@ -64,6 +78,13 @@ var _refresh_in: float = 0.0
 ## The kinds shown at the last refresh (a change is shown the same frame, not a refresh later).
 var _shown_kinds: int = -1
 var _layout: UiLayout = UiLayout.new()
+## Whether a `_place` is already queued for the end of this frame.
+var _place_queued: bool = false
+## What the card was last placed against: the rect it stepped below, and whether the HUD's cards showed.
+var _placed_clear: Rect2 = Rect2()
+var _placed_cards: bool = false
+## And the rect it kept clear of (`keep_clear`), as last placed.
+var _placed_keep: Rect2 = Rect2()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 
 
@@ -75,6 +96,7 @@ func _init() -> void:
 	_frame.mouse_filter = Control.MOUSE_FILTER_STOP
 	_frame.add_theme_stylebox_override(&"panel", Styles.box(Styles.PIECE_NOTICE, MARGINS))
 	_frame.visible = false
+	_frame.minimum_size_changed.connect(_queue_place)
 	add_child(_frame)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override(&"separation", int(ROW_GAP))
@@ -99,11 +121,14 @@ func configure(ledger: LedgerScript, speed: Callable) -> void:
 func _ready() -> void:
 	"""Follow the viewport's size; keep reading while anything pauses."""
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	get_viewport().size_changed.connect(_place)
+	get_viewport().size_changed.connect(_queue_place)
 
 
 func _process(delta: float) -> void:
-	"""A few times a second, and at once when the kinds standing change: show the reasons, or hide."""
+	"""A few times a second, and at once when the kinds standing change: show the reasons, or hide. Shown, it
+	steps at once when what it sits against moves."""
+	if _frame.visible and _moved():
+		_queue_place()
 	_refresh_in -= delta
 	if _refresh_in > 0.0 and (_ledger == null or _ledger.kinds() == _shown_kinds):
 		return
@@ -123,16 +148,44 @@ func refresh() -> bool:
 		var line: String = PAUSED_PREFIX + " · ".join(_reasons)
 		if line != _text.text:
 			_text.text = line
-			_place.call_deferred()
+			_queue_place()
 		_paint_resume()
 	var over: bool = shown and modal_open.is_valid() and bool(modal_open.call())
 	if (layer == MODAL_LAYER) != over:
 		layer = MODAL_LAYER if over else LAYER
-		_place.call_deferred()
+		_queue_place()
 	if shown != _frame.visible:
 		_frame.visible = shown
-		_place.call_deferred()
+		_queue_place()
 	return shown
+
+
+func _moved() -> bool:
+	"""Whether what the card sits against has changed since it was placed (the top card, the HUD's cards)."""
+	return _clear_rect() != _placed_clear or _cards_shown() != _placed_cards or _keep_rect() != _placed_keep
+
+
+func _clear_rect() -> Rect2:
+	"""The top card to keep clear of, in viewport px (none: an empty rect)."""
+	return avoid.call() if avoid.is_valid() else Rect2()
+
+
+func _step_below(alerts: Rect2) -> void:
+	"""Below the top card it would meet -- or, where that covers `keep_clear`'s control, back to the top of the alert
+	column (see `keep_clear`)."""
+	_frame.position.y = _placed_clear.end.y + GAP * _geometry.scale
+	if _placed_keep.has_area() and frame_rect().intersects(_placed_keep):
+		_frame.position.y = alerts.position.y * _geometry.scale
+
+
+func _keep_rect() -> Rect2:
+	"""The control to keep clear of once stepped down, in viewport px (none: an empty rect)."""
+	return keep_clear.call() if keep_clear.is_valid() else Rect2()
+
+
+func _cards_shown() -> bool:
+	"""Whether the HUD's own alert cards are showing."""
+	return hud_cards_shown.is_valid() and bool(hud_cards_shown.call())
 
 
 func _hidden() -> bool:
@@ -189,22 +242,42 @@ func frame_rect() -> Rect2:
 	return Rect2(_frame.position, _frame.size * _frame.scale)
 
 
+func text_label() -> Label:
+	"""The card's words."""
+	return _text
+
+
+func frame() -> PanelContainer:
+	"""The card's panel (the one Control that takes the mouse)."""
+	return _frame
+
+
+func _queue_place() -> void:
+	"""Place the card once at the end of this frame, however many things ask (its words, its layer, its minimum)."""
+	if _place_queued:
+		return
+	_place_queued = true
+	_place.call_deferred()
+
+
 func _place() -> void:
-	"""Top centre on the alert column (under the HUD's cards when they show; under the incident card if they meet)."""
+	"""Top centre on the alert column (under the HUD's cards when they show; under the incident card if they meet),
+	exactly as tall as its words at their width."""
+	_place_queued = false
 	if not is_inside_tree():
 		return
 	FarmUi.geometry_for(get_viewport().get_visible_rect().size, _layout, _geometry)
 	var alerts: Rect2 = _geometry.alerts
 	var width: float = minf(MAX_W, alerts.size.x)
-	var top: float = alerts.position.y
-	if hud_cards_shown.is_valid() and bool(hud_cards_shown.call()):
-		top = alerts.end.y + GAP
+	_placed_cards = _cards_shown()
+	var top: float = alerts.end.y + GAP if _placed_cards else alerts.position.y
 	_text.custom_minimum_size.x = width - MARGINS[0] - MARGINS[2] - ROW_GAP - RESUME_W
 	FarmUi.place(_frame, Rect2(alerts.get_center().x - width / 2.0, top, width, 0.0), _geometry.scale)
 	_frame.reset_size()
+	_placed_clear = _clear_rect()
+	_placed_keep = _keep_rect()
 	if layer == MODAL_LAYER:
 		_frame.position.y = get_viewport().get_visible_rect().size.y - (_frame.size.y + GAP) * _geometry.scale
 		return
-	var clear: Rect2 = avoid.call() if avoid.is_valid() else Rect2()
-	if clear.has_area() and frame_rect().intersects(clear):
-		_frame.position.y = clear.end.y + GAP * _geometry.scale
+	if _placed_clear.has_area() and frame_rect().intersects(_placed_clear):
+		_step_below(alerts)

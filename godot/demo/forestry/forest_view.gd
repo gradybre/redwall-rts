@@ -558,6 +558,12 @@ func tree_node(t: int) -> Node3D:
 	return _tree_nodes[t]
 
 
+func upper_part(t: int) -> MeshInstance3D:
+	"""The node drawing tree `t`'s cut-off upper part -- trunk and crown -- while it falls (null before its first
+	fall; the seasons dress its leaves, demo/seasons/season_view.gd)."""
+	return _upper_nodes[t]
+
+
 func crown_scale(t: int) -> float:
 	"""How large tree `t`'s crown is drawn now (demo/camera/canopy_clear.gd): 1 standing, the young tree's
 	share while one grows, 0 for a sapling, a shoot, a stump or a spot (and while it falls)."""

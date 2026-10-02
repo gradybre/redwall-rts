@@ -303,7 +303,8 @@ static func on_crop_bed(at: Vector2) -> bool:
 	"""Whether `at` (x, z m) lies on a crop bed or within a hand of one (farm_catalog.gd's beds)."""
 	for bed in Catalog.BED_COUNT:
 		var d := (at - Catalog.bed_centre_m(bed)).abs()
-		if d.x <= Catalog.BED_HALF_M + 0.3 and d.y <= Catalog.BED_HALF_M + 0.3:
+		var half: float = Catalog.bed_half_m(bed) + 0.3
+		if d.x <= half and d.y <= half:
 			return true
 	return false
 

@@ -261,3 +261,5 @@ jobs:
           python3 tools/test_ground_meshy_clips.py
           python3 tools/test_demo_texture_imports.py
           python3 tools/test_build_demo_windows.py
+          python3 tools/test_balance_report.py
+          python3 tools/test_soak_report.py

@@ -235,3 +235,29 @@ Recommendation: (a).
 - (b) No coins find.
 
 Recommendation: (a).
+
+
+## Added at the end of the lead session (2026-10-02)
+
+**Q-P1. Kitchen serving rule (decision 1005).** "The cook serves what is in the pot when the meal is called"
+was built literally. It feeds villages of 50–256, but supper at 9 residents went 8 → 7 and at 25 about 22 → 17
+(breakfast is now fed instead). [PERF]
+- (a) Keep the literal rule. Recommended.
+- (b) Find a trigger that keeps 9 and 25 identical; two variants were tried and failed (see 1005).
+
+**Q-F4. Woods mark colours (decision 1044).** The stump and young-tree colours were changed to pass the colour-blind
+floors. [FOLLOW-UPS]
+- (a) Keep the two new colours. Recommended.
+- (b) Add a SPRING pigment to the woodland palette instead. Also: should the zone washes pass on their own?
+
+**Q-F5. Water fitness (decision 1045).** A resident below health 70 or with an untreated injury never takes a rescue role. [FOLLOW-UPS]
+- (a) Keep them off every rescue role (built). Recommended.
+- (b) Only off roles that enter the water. Note HAZ-001's hunger > 3500 condition is not wired yet.
+
+**Q-F6. Fishing hazard roll (decision 1046, not built).** [FOLLOW-UPS]
+- Which crew member is hurt: (a) the helm, recommended; (b) a random crew member.
+- Injury kind for net, trap and weir: (a) BITE, recommended; (b) CUT.
+- Should the preview use the crew's group level?
+
+**Q-F7. Grass speckle and gait scrape (decision 1049, not built).** The speckle needs a screenshot or camera
+position from Brendan; the swing-foot scrape needs paid gait re-authoring (a credit request under decision 0961).

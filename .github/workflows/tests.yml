@@ -67,7 +67,20 @@ jobs:
         run: godot --headless --path godot --editor --quit
 
       - name: Run the suite
+        # Also fails on an ERROR/WARNING line no test declared and on objects or
+        # resources the worker leaked at exit (decision 0501).
         run: ./tools/run_tests.sh
+
+      - name: Runner diagnostics self-test
+        # The classification above (expected, tolerated, unexpected, leaked)
+        # checked on fixture suites that provoke each kind.
+        run: python3 tools/test_run_tests_diagnostics.py
+
+      - name: GDScript analyzer warnings
+        # A headless run never prints these (integer division, shadowing...);
+        # only the editor's language server reports them, so this drives one.
+        # Zero allowed: annotate an intended one where it stands (decision 0501).
+        run: python3 tools/gdscript_warnings.py --max 0
 
       - name: Component stream preflight fault injection
         run: python3 tools/test_component_stream_preflights.py

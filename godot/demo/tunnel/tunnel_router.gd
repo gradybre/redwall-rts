@@ -253,9 +253,18 @@ func plan(nav: CastNavScript, from: Vector2, to: Vector2, body: float, standing:
 			break
 		if _refine() == 0:
 			_emit(out, legs)
+			_release()
 			return true
 	_fallback(from, to, out, legs, goal_node >= 0)
+	_release()
 	return false
+
+
+func _release() -> void:
+	"""Let go of this plan's network and surface planner. The network owns this router, so holding it past the
+	plan is a reference cycle that kept both alive after the world dropped them (decision 0501)."""
+	_graph = null
+	_nav = null
 
 
 func _fallback(from: Vector2, to: Vector2, out: PackedVector2Array, legs: PackedInt32Array, below: bool) -> void:
@@ -489,7 +498,7 @@ func _emit(out: PackedVector2Array, legs: PackedInt32Array) -> void:
 				_emit_tunnel(_prev[node], node, out, legs)
 			VIA_CROSSING:
 				out.append(_node[node])
-				legs.append(crossing_code((_key[node] - Rules.MAX_MOUTHS) / 2, (_key[node] - Rules.MAX_MOUTHS) % 2 == 0))
+				@warning_ignore("integer_division") legs.append(crossing_code((_key[node] - Rules.MAX_MOUTHS) / 2, (_key[node] - Rules.MAX_MOUTHS) % 2 == 0))
 			_:
 				_emit_surface(_routes[_prev[node] * MAX_NODES + node], out, legs)
 

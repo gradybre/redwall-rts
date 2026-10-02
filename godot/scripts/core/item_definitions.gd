@@ -82,7 +82,7 @@ class _ValidatedItem:
 	var nutrition_per_u: int
 	var shelf_hours: int
 	var raw_edible: int
-	var seed: int
+	@warning_ignore("shadowed_global_identifier") var seed: int
 	var effect: String
 	var effect_value: int
 

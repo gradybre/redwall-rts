@@ -456,9 +456,7 @@ func stock_milli(item_key: StringName) -> int:
 
 func stock_units(item_key: StringName) -> int:
 	"""Whole catalog units of an item in store, rounded down (BAL-NUM-001 discounts down)."""
-	@warning_ignore("integer_division")
-	var units: int = stock_milli(item_key) / InventoryScript.MILLI_PER_UNIT
-	return units
+	@warning_ignore("integer_division") return stock_milli(item_key) / InventoryScript.MILLI_PER_UNIT
 
 
 func available_milli(item_key: StringName) -> int:
@@ -493,13 +491,13 @@ func ready_nutrition_points() -> int:
 	return _ready_nutrition_points
 
 
-func bind_residents(residents: ResidentsScript) -> void:
+func bind_residents(resident_store: ResidentsScript) -> void:
 	"""Adopt the residents store that supplies GDD §5.8's daily-demand divisor.
 
 	Binding null unbinds, which returns food-days to explicitly unpopulated. The store is read,
 	never mutated: this system owns stock, not population.
 	"""
-	_residents = residents
+	_residents = resident_store
 
 
 func residents() -> ResidentsScript:
@@ -561,9 +559,7 @@ func food_days_text() -> String:
 	# renders byte for byte by contract: a renderer that appends a unit is deriving a value it
 	# was given. The refused case keeps the bare marker -- "-- days" would read as a measured
 	# zero rather than an absent divisor.
-	@warning_ignore("integer_division")
-	var whole_days: int = centi.value / FOOD_DAYS_SCALE
-	return "%d.%02d days" % [whole_days, centi.value % FOOD_DAYS_SCALE]
+	@warning_ignore("integer_division") return "%d.%02d days" % [centi.value / FOOD_DAYS_SCALE, centi.value % FOOD_DAYS_SCALE]
 
 
 func fuel_days_text() -> String:
@@ -623,9 +619,7 @@ func _lot_nutrition_points(lot: Vector2i) -> int:
 	var per_unit: int = _definitions.nutrition_per_u(item_id)
 	if per_unit <= 0 or _is_expired(lot, item_id):
 		return 0
-	@warning_ignore("integer_division")
-	var points: int = _inventory.lot_available_milli(lot) * per_unit / InventoryScript.MILLI_PER_UNIT
-	return points
+	@warning_ignore("integer_division") return _inventory.lot_available_milli(lot) * per_unit / InventoryScript.MILLI_PER_UNIT
 
 
 func _is_expired(lot: Vector2i, item_id: int) -> bool:

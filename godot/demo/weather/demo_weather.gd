@@ -115,22 +115,22 @@ func sync() -> bool:
 	_synced = true
 	_hour_index = index
 	var at: SimClock.Calendar = _calendar.now()
-	var absolute_season: int = (at.absolute_day - 1) / SimClock.DAYS_PER_SEASON
+	@warning_ignore("integer_division") var absolute_season: int = (at.absolute_day - 1) / SimClock.DAYS_PER_SEASON
 	return observe(at.season, at.season_day, at.hour, _row.temperature_tenths(), _row.rain(),
 		_row.active_event_on(absolute_season, at.season_day))
 
 
-func observe(season: int, season_day: int, hour: int, day_tenths: int, rain_figure: int, event: int) -> bool:
-	"""Take one hour's reading: a day's §5.10 temperature, rain and event at `hour` (see HOW A DAY
+func observe(at_season: int, at_season_day: int, at_hour: int, day_tenths: int, rain_figure: int, event_id: int) -> bool:
+	"""Take one hour's reading: a day's §5.10 temperature, rain and event at `at_hour` (see HOW A DAY
 	READS). True when the condition changed."""
-	_season = season
-	_season_day = season_day
-	_hour = hour
+	_season = at_season
+	_season_day = at_season_day
+	_hour = at_hour
 	_day_tenths = day_tenths
 	_rain = rain_figure
-	_event = event
-	_air_tenths = FarmWeather.air_tenths(day_tenths, FarmWeather.is_frost_hour(season, season_day, hour))
-	var now: int = classify(_air_tenths, is_rain_hour(falling_rain(rain_figure, season, season_day), hour))
+	_event = event_id
+	_air_tenths = FarmWeather.air_tenths(day_tenths, FarmWeather.is_frost_hour(at_season, at_season_day, at_hour))
+	var now: int = classify(_air_tenths, is_rain_hour(falling_rain(rain_figure, at_season, at_season_day), at_hour))
 	if now == _condition:
 		return false
 	_condition = now
@@ -138,36 +138,36 @@ func observe(season: int, season_day: int, hour: int, day_tenths: int, rain_figu
 	return true
 
 
-static func is_wet_day(season: int, season_day: int) -> bool:
+static func is_wet_day(at_season: int, at_season_day: int) -> bool:
 	"""Whether this day is its spell's wet day (see SPELLS): the SPELL_WET_DAY-th of every SPELL_DAYS
 	days of the year (48 days, whole spells, so every year runs the same)."""
-	var day_of_year: int = season * DAYS_PER_SEASON + season_day
+	var day_of_year: int = at_season * DAYS_PER_SEASON + at_season_day
 	return day_of_year % SPELL_DAYS == SPELL_WET_DAY % SPELL_DAYS
 
 
-static func falling_rain(rain_figure: int, season: int, season_day: int) -> int:
+static func falling_rain(rain_figure: int, at_season: int, at_season_day: int) -> int:
 	"""The rain figure that falls on screen this day (see SPELLS): a downpour's own, a wet day's spell
 	of SPELL_DAYS days' worth, else none."""
 	if rain_figure >= DOWNPOUR_RAIN:
 		return rain_figure
-	return rain_figure * SPELL_DAYS if is_wet_day(season, season_day) else 0
+	return rain_figure * SPELL_DAYS if is_wet_day(at_season, at_season_day) else 0
 
 
 static func shower_hours(rain_figure: int) -> int:
 	"""Whole hours of rain a day's rain figure falls as (0..24)."""
-	return clampi(rain_figure / RAIN_PER_SHOWER_HOUR, 0, HOURS_PER_DAY)
+	@warning_ignore("integer_division") return clampi(rain_figure / RAIN_PER_SHOWER_HOUR, 0, HOURS_PER_DAY)
 
 
 static func first_shower_hour(rain_figure: int) -> int:
 	"""The hour a day's showers begin: centred on SHOWER_CENTRE_HOUR, kept inside the day."""
 	var hours: int = shower_hours(rain_figure)
-	return clampi(SHOWER_CENTRE_HOUR - hours / 2, 0, HOURS_PER_DAY - hours)
+	@warning_ignore("integer_division") return clampi(SHOWER_CENTRE_HOUR - hours / 2, 0, HOURS_PER_DAY - hours)
 
 
-static func is_rain_hour(rain_figure: int, hour: int) -> bool:
-	"""Whether rain falls in `hour` of a day with this rain figure."""
+static func is_rain_hour(rain_figure: int, at_hour: int) -> bool:
+	"""Whether rain falls in `at_hour` of a day with this rain figure."""
 	var first: int = first_shower_hour(rain_figure)
-	return hour >= first and hour < first + shower_hours(rain_figure)
+	return at_hour >= first and at_hour < first + shower_hours(rain_figure)
 
 
 static func classify(air_tenths: int, raining: bool) -> int:
@@ -255,15 +255,15 @@ func alert_line() -> String:
 	var speed: int = surface_speed_permille()
 	if speed == FULL_SPEED_PERMILLE:
 		return CONDITION_NAMES[_condition]
-	return "%s, walking %d%%" % [CONDITION_NAMES[_condition], speed / 10]
+	@warning_ignore("integer_division") return "%s, walking %d%%" % [CONDITION_NAMES[_condition], speed / 10]
 
 
 func readout() -> String:
 	"""The panels' weather line: sky, day and temperature, the day's showers, and walking."""
-	var sign: String = "-" if _air_tenths < 0 else ""
-	var degrees: String = "%s%d.%d °C" % [sign, absi(_air_tenths) / 10, absi(_air_tenths) % 10]
+	var sign_text: String = "-" if _air_tenths < 0 else ""
+	@warning_ignore("integer_division") var degrees: String = "%s%d.%d °C" % [sign_text, absi(_air_tenths) / 10, absi(_air_tenths) % 10]
 	var line: String = "%s — %s, %s · %s" % [CONDITION_NAMES[_condition], label(), degrees, showers_text()]
 	var speed: int = surface_speed_permille()
 	if speed == FULL_SPEED_PERMILLE:
 		return line + " · walking at full pace"
-	return line + " · walking outdoors at %d%%, tunnels unaffected" % (speed / 10)
+	@warning_ignore("integer_division") return line + " · walking outdoors at %d%%, tunnels unaffected" % (speed / 10)

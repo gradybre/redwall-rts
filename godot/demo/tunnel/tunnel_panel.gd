@@ -250,9 +250,9 @@ func _fit_row(kind: int) -> HBoxContainer:
 	row.add_child(words)
 	var what: String = RoomsScript.FIXTURE_NAMES[kind]
 	for verb: String in [RoomTextScript.FIT_ADD, RoomTextScript.FIT_TAKE]:
-		var sign := "+" if verb == RoomTextScript.FIT_ADD else "−"
+		var glyph := "+" if verb == RoomTextScript.FIT_ADD else "−"
 		var tip := "Plan a %s (a resident puts it in)" % what if verb == RoomTextScript.FIT_ADD else "Take a %s out" % what
-		var b := _fit_button(StringName("%s%s:%d" % [RoomTextScript.FIT_PREFIX, verb, kind]), sign, tip)
+		var b := _fit_button(StringName("%s%s:%d" % [RoomTextScript.FIT_PREFIX, verb, kind]), glyph, tip)
 		b.size_flags_horizontal = Control.SIZE_SHRINK_END
 		b.custom_minimum_size.x = 30.0
 		row.add_child(b)
@@ -321,23 +321,23 @@ func _label(text: String, px: int, colour: Color, font: Font) -> Label:
 
 func _button(key: StringName) -> Button:
 	"""A wood button that emits `action(key)`; takes keyboard focus (decision 0261)."""
-	var button := Button.new()
-	button.text = BUTTON_TEXT[key] if BUTTON_TEXT.has(key) else _button_words[key]
-	Styles.focusable(button, BUTTON_MARGINS)
-	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.custom_minimum_size.y = BUTTON_H
-	button.add_theme_font_size_override(&"font_size", BODY_PX)
-	button.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, BUTTON_MARGINS))
-	button.add_theme_stylebox_override(&"hover", Styles.box(Styles.PIECE_WOOD_HOVER, BUTTON_MARGINS))
-	button.add_theme_stylebox_override(&"pressed", Styles.box(Styles.PIECE_BRASS, BUTTON_MARGINS))
-	button.add_theme_stylebox_override(&"disabled", Styles.box(Styles.PIECE_WOOD_DISABLED, BUTTON_MARGINS))
+	var wood_button := Button.new()
+	wood_button.text = BUTTON_TEXT[key] if BUTTON_TEXT.has(key) else _button_words[key]
+	Styles.focusable(wood_button, BUTTON_MARGINS)
+	wood_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	wood_button.custom_minimum_size.y = BUTTON_H
+	wood_button.add_theme_font_size_override(&"font_size", BODY_PX)
+	wood_button.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, BUTTON_MARGINS))
+	wood_button.add_theme_stylebox_override(&"hover", Styles.box(Styles.PIECE_WOOD_HOVER, BUTTON_MARGINS))
+	wood_button.add_theme_stylebox_override(&"pressed", Styles.box(Styles.PIECE_BRASS, BUTTON_MARGINS))
+	wood_button.add_theme_stylebox_override(&"disabled", Styles.box(Styles.PIECE_WOOD_DISABLED, BUTTON_MARGINS))
 	for item: StringName in [&"font_color", &"font_hover_color"]:
-		button.add_theme_color_override(item, Palette.text_on(Palette.SURFACE_WOOD))
-	button.add_theme_color_override(&"font_pressed_color", Palette.text_on(Palette.SURFACE_BRASS))
-	button.add_theme_color_override(&"font_disabled_color", Palette.text_on(Palette.SURFACE_WOOD_DISABLED))
-	button.pressed.connect(func() -> void: action.emit(key))
-	_buttons[key] = button
-	return button
+		wood_button.add_theme_color_override(item, Palette.text_on(Palette.SURFACE_WOOD))
+	wood_button.add_theme_color_override(&"font_pressed_color", Palette.text_on(Palette.SURFACE_BRASS))
+	wood_button.add_theme_color_override(&"font_disabled_color", Palette.text_on(Palette.SURFACE_WOOD_DISABLED))
+	wood_button.pressed.connect(func() -> void: action.emit(key))
+	_buttons[key] = wood_button
+	return wood_button
 
 
 func has_button(key: StringName) -> bool:
@@ -355,13 +355,13 @@ func line(key: StringName) -> String:
 	return (_lines[key] as Label).text
 
 
-func show_status(weather: String, stores: String, housing: String, finds: String, log: String) -> void:
+func show_status(weather: String, stores: String, housing: String, finds: String, log_line: String) -> void:
 	"""The panel's standing lines."""
 	_set_line(&"weather", weather)
 	_set_line(&"stores", stores)
 	_set_line(&"housing", housing)
 	_set_line(&"finds", finds)
-	_set_line(&"log", log)
+	_set_line(&"log", log_line)
 
 
 func show_tunnel(title: String, text: String, repair: String, enabled: Dictionary) -> void:

@@ -236,7 +236,7 @@ func _fill(c: Owner.Columns, row: int, kind: int, self_slot: int, generation: in
 		c.stock_habitat_generation[stock] = generation
 		c.stock_species_id[stock] = 101+index
 		c.stock_capacity_milli[stock] = int(capacities[kind][index])
-		c.stock_population_milli[stock] = int(capacities[kind][index])*8/10
+		@warning_ignore("integer_division") c.stock_population_milli[stock] = int(capacities[kind][index])*8/10
 func _image(name: String) -> Owner.Columns:
 	var c: Owner.Columns = Owner.Columns.new()
 	if name == "clear": return c
@@ -248,8 +248,8 @@ func _image(name: String) -> Owner.Columns:
 		c.habitat_protected_fraction[31] = 2147483647
 		c.habitat_danger[31] = 3
 		return c
-	var kind: int = {"coast":0,"lake":1,"river":2}.get(name,0)
-	_fill(c,31,kind,31,1)
+	var kind_id: int = {"coast":0,"lake":1,"river":2}.get(name,0)
+	_fill(c,31,kind_id,31,1)
 	if name in ["two-coast","duplicate-self","duplicate-self-newgen","duplicate-zone","zone-newgen","duplicate-self-zone"]:
 		_fill(c,0,0,0,1)
 	if name in ["duplicate-self","duplicate-self-newgen","duplicate-self-zone"]:

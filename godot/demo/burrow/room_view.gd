@@ -245,21 +245,21 @@ func _size_day_columns() -> void:
 
 func _build_row() -> void:
 	"""One room row's nodes, hidden: below, above, outlines and names."""
-	var below := Node3D.new()
-	below.visible = false
-	add_child(below)
-	_below.append(below)
-	_shells.append(_child_mesh(below, BoreViewScript.hub_material()))
-	_frames.append(_rib_node(below))
-	_beams.append(_child_mesh(below, _beam_material))
-	var furniture := Node3D.new()
-	below.add_child(furniture)
-	_furniture.append(furniture)
-	Layers.set_layers(below, Layers.UNDERGROUND)
-	var above := Node3D.new()
-	above.visible = false
-	add_child(above)
-	_above.append(above)
+	var below_root := Node3D.new()
+	below_root.visible = false
+	add_child(below_root)
+	_below.append(below_root)
+	_shells.append(_child_mesh(below_root, BoreViewScript.hub_material()))
+	_frames.append(_rib_node(below_root))
+	_beams.append(_child_mesh(below_root, _beam_material))
+	var furniture_root := Node3D.new()
+	below_root.add_child(furniture_root)
+	_furniture.append(furniture_root)
+	Layers.set_layers(below_root, Layers.UNDERGROUND)
+	var above_root := Node3D.new()
+	above_root.visible = false
+	add_child(above_root)
+	_above.append(above_root)
 	_outlines.append(_outline_node(_outline_material, Layers.SURFACE_MARKS))
 	_outlines_below.append(_outline_node(_outline_below_material, Layers.UNDERGROUND_MARKS))
 	_labels.append(_label(Layers.SURFACE_MARKS))
@@ -268,16 +268,16 @@ func _build_row() -> void:
 
 func _rib_node(parent: Node3D) -> MultiMeshInstance3D:
 	"""A room's ribs under `parent`: up to MAX_FRAMES brace frames, in the ribs' cutaway, none shown yet."""
-	var frames := MultiMeshInstance3D.new()
-	frames.multimesh = MultiMesh.new()
-	frames.multimesh.transform_format = MultiMesh.TRANSFORM_3D
-	frames.multimesh.mesh = _marks.brace_mesh()
-	frames.multimesh.instance_count = MAX_FRAMES
-	frames.multimesh.visible_instance_count = 0
-	frames.material_override = _rib_material
-	frames.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	parent.add_child(frames)
-	return frames
+	var rib_set := MultiMeshInstance3D.new()
+	rib_set.multimesh = MultiMesh.new()
+	rib_set.multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	rib_set.multimesh.mesh = _marks.brace_mesh()
+	rib_set.multimesh.instance_count = MAX_FRAMES
+	rib_set.multimesh.visible_instance_count = 0
+	rib_set.material_override = _rib_material
+	rib_set.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(rib_set)
+	return rib_set
 
 
 func _child_mesh(parent: Node3D, material: Material) -> MeshInstance3D:
@@ -304,19 +304,19 @@ func _outline_node(material: Material, layer: int) -> MeshInstance3D:
 
 func _label(layer: int) -> Label3D:
 	"""A room's name on `layer`, hidden until drawn."""
-	var label := Label3D.new()
-	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label.fixed_size = true
-	label.pixel_size = LABEL_PIXEL
-	label.font_size = LABEL_PX
-	label.outline_size = 8
-	label.modulate = Palette.CREAM
-	label.outline_modulate = Palette.DEEP_SHADE
-	label.no_depth_test = true
-	label.layers = layer
-	label.visible = false
-	add_child(label)
-	return label
+	var tag := Label3D.new()
+	tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	tag.fixed_size = true
+	tag.pixel_size = LABEL_PIXEL
+	tag.font_size = LABEL_PX
+	tag.outline_size = 8
+	tag.modulate = Palette.CREAM
+	tag.outline_modulate = Palette.DEEP_SHADE
+	tag.no_depth_test = true
+	tag.layers = layer
+	tag.visible = false
+	add_child(tag)
+	return tag
 
 
 static func _flat(colour: Color) -> StandardMaterial3D:
@@ -442,7 +442,7 @@ func percent_dug(r: int) -> int:
 	var ramp := _rooms.ramp[r]
 	var body := _rooms.body[r]
 	var total := _network.total_ticks(body) + (_network.total_ticks(ramp) if ramp >= 0 else 0)
-	return (_network.done(body) + (_network.done(ramp) if ramp >= 0 else 0)) * 100 / maxi(total, 1)
+	@warning_ignore("integer_division") return (_network.done(body) + (_network.done(ramp) if ramp >= 0 else 0)) * 100 / maxi(total, 1)
 
 
 func room_key(r: int) -> int:
@@ -463,7 +463,7 @@ func stage(r: int) -> int:
 	if _rooms.is_done(_network, r):
 		return STAGES
 	var dug := _rooms.dug_permille(_network, r)
-	return 0 if dug <= 0 else clampi(dug * STAGES / Rules.PERMILLE, 1, STAGES - 1)
+	@warning_ignore("integer_division") return 0 if dug <= 0 else clampi(dug * STAGES / Rules.PERMILLE, 1, STAGES - 1)
 
 
 func _joined_mask(r: int) -> int:
@@ -488,13 +488,13 @@ func joined_at(r: int, k: int) -> int:
 	return -1
 
 
-func _draw(r: int, show: bool) -> void:
+func _draw(r: int, shown: bool) -> void:
 	"""Room row `r` as it stands (see BELOW and ON THE GROUND)."""
-	var grown := stage(r) if show else 0
+	var grown := stage(r) if shown else 0
 	var done := grown == STAGES
-	var top := not show or _rooms.level[r] == Rules.TOP_LEVEL
+	var top := not shown or _rooms.level[r] == Rules.TOP_LEVEL
 	_put_on_level(r)
-	_draw_marks(r, show and not done)
+	_draw_marks(r, shown and not done)
 	_below[r].visible = grown > 0
 	if grown > 0:
 		_record_days(r, grown)
@@ -512,8 +512,8 @@ func _draw(r: int, show: bool) -> void:
 	if done and top:
 		_build_mound(r)
 	_marks.lights.set_room_spots(r, _lantern_spots(r) if done else PackedVector3Array(),
-		HOME_LIGHT if show and _rooms.template[r] == RoomsScript.TEMPLATE_HOME else CELLAR_LIGHT)
-	_place_mound(r, show and top)
+		HOME_LIGHT if shown and _rooms.template[r] == RoomsScript.TEMPLATE_HOME else CELLAR_LIGHT)
+	_place_mound(r, shown and top)
 
 
 func _put_on_level(r: int) -> void:
@@ -535,14 +535,14 @@ func _floor_y(r: int) -> float:
 	return Layers.floor_y(_rooms.level[r])
 
 
-func _place_mound(r: int, show: bool) -> void:
+func _place_mound(r: int, shown: bool) -> void:
 	"""Room `r`'s mound and door ramp stand as obstacles from the moment it is laid -- the heaps are placed off them
 	and nobody walks over the dig -- and go with it; the navigation is rebuilt only when that changes."""
-	var stands := _rooms.generation[r] + 1 if show else 0
+	var stands := _rooms.generation[r] + 1 if shown else 0
 	if stands == _mound_gen[r]:
 		return
 	_mound_gen[r] = stands
-	_space.set_mound(r, mound_circles(r) if show else PackedVector3Array())
+	_space.set_mound(r, mound_circles(r) if shown else PackedVector3Array())
 
 
 static func _clear(holder: Node3D) -> void:
@@ -554,12 +554,12 @@ static func _clear(holder: Node3D) -> void:
 
 # --- names and outlines -----------------------------------------------------------------------
 
-func _draw_marks(r: int, show: bool) -> void:
+func _draw_marks(r: int, shown: bool) -> void:
 	"""Room `r`'s outline in both views while it is laid and dug."""
 	var top := _rooms.level[r] == Rules.TOP_LEVEL
-	_outlines[r].visible = show and top
-	_outlines_below[r].visible = show
-	if show:
+	_outlines[r].visible = shown and top
+	_outlines_below[r].visible = shown
+	if shown:
 		outline_into(_outlines[r].mesh as ImmediateMesh, _outline_material, _rooms.template[r], _rooms.centre_m(r),
 			_rooms.turns[r], LIFT_M, top)
 		_outlines_below[r].mesh = _outlines[r].mesh
@@ -588,12 +588,12 @@ func status_text(r: int) -> String:
 	return "%s (digging %d%%)" % [name_text, percent]
 
 
-static func _name(label: Label3D, text: String, show: bool, at: Vector3) -> void:
+static func _name(tag: Label3D, text: String, is_shown: bool, at: Vector3) -> void:
 	"""A room's name at `at`, shown while its row holds a room (written only when it changed)."""
-	label.visible = show
-	label.position = at
-	if label.text != text:
-		label.text = text
+	tag.visible = is_shown
+	tag.position = at
+	if tag.text != text:
+		tag.text = text
 
 
 static func outline_into(mesh: ImmediateMesh, material: Material, kind: int, centre: Vector2, turns: int, lift: float,

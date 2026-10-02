@@ -281,7 +281,7 @@ func growth_permille(t: int, day: int, hour: int) -> int:
 		return 0
 	var planted: IntMath.IntResult = nodes.planted_day_of(node_slot[t])
 	var since: int = (day - planted.value) * 24 + hour if planted.ok else 0
-	return clampi(since * 1000 / (Rules.REGROW_DAYS * 24), 0, 999)
+	@warning_ignore("integer_division") return clampi(since * 1000 / (Rules.REGROW_DAYS * 24), 0, 999)
 
 
 func days_left(t: int, day: int) -> int:

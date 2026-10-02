@@ -102,7 +102,7 @@ func survey(slot: int) -> void:
 func _place_fall(slot: int, start: int, run: int) -> void:
 	"""The collapse section: COLLAPSE_QUANTA quanta (or the whole run, if shorter) centred on the run."""
 	var take := mini(run, COLLAPSE_QUANTA)
-	var first := start + (run - take) / 2
+	@warning_ignore("integer_division") var first := start + (run - take) / 2
 	fall_from_u[slot] = _network.quantum_along_u(slot, first)
 	fall_to_u[slot] = _network.quantum_along_u(slot, maxi(first + take - 1, first))
 
@@ -167,12 +167,12 @@ func _verdict(slot: int) -> int:
 
 func seep_permille(slot: int) -> int:
 	"""How near flooding tunnel `slot` is, per mille (capped at 1000)."""
-	return mini(Rules.PERMILLE, seep_usec[slot] * Rules.PERMILLE / SEEP_FULL_USEC)
+	@warning_ignore("integer_division") return mini(Rules.PERMILLE, seep_usec[slot] * Rules.PERMILLE / SEEP_FULL_USEC)
 
 
 func strain_permille(slot: int) -> int:
 	"""How near collapse tunnel `slot` is, per mille (capped at 1000)."""
-	return mini(Rules.PERMILLE, strain_usec[slot] * Rules.PERMILLE / STRAIN_FULL_USEC)
+	@warning_ignore("integer_division") return mini(Rules.PERMILLE, strain_usec[slot] * Rules.PERMILLE / STRAIN_FULL_USEC)
 
 
 func flood(slot: int) -> void:
@@ -200,5 +200,5 @@ func in_fall(slot: int, along_m: float) -> bool:
 	"""Whether a point `along_m` metres into tunnel `slot` lies under its collapse section (with half a
 	quantum's margin either side)."""
 	var along := Rules.to_u(along_m)
-	var margin := Rules.QUANTUM_U / 2
+	@warning_ignore("integer_division") var margin := Rules.QUANTUM_U / 2
 	return along >= fall_from_u[slot] - margin and along <= fall_to_u[slot] + margin

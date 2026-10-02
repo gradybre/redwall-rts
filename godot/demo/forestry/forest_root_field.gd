@@ -124,7 +124,7 @@ func _cover_obstacles(trunk_radius: float) -> void:
 
 func _cell_at(k: int) -> Vector2:
 	"""Cell `k`'s centre in tree-local metres (x, z)."""
-	return Vector2(centre_of(k % side), centre_of(k / side))
+	@warning_ignore("integer_division") return Vector2(centre_of(k % side), centre_of(k / side))
 
 
 func _covered(at: Vector2) -> bool:

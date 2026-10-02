@@ -63,8 +63,8 @@ const HUB_SHADER := preload("res://demo/tunnel/hub_earth.gdshader")
 
 const RING_STEP_M: float = BoreMeshScript.RING_STEP_M
 const CHUNK_RINGS: int = 64
-const CHUNKS: int = Rules.MAX_LENGTH_U / Rules.QUANTUM_U / 16 + 1
-const MAX_STEPS: int = Rules.MAX_LENGTH_U / Rules.QUANTUM_U * 4 + 2
+@warning_ignore("integer_division") const CHUNKS: int = Rules.MAX_LENGTH_U / Rules.QUANTUM_U / 16 + 1
+@warning_ignore("integer_division") const MAX_STEPS: int = Rules.MAX_LENGTH_U / Rules.QUANTUM_U * 4 + 2
 ## A dig face this close past a lattice ring is that ring (no sliver of a band).
 const FACE_SLACK_M: float = 0.01
 ## `now_days` is written when the calendar has moved this many days since the last write.
@@ -165,10 +165,10 @@ func _ensure(slot: int) -> void:
 
 func _twin_of(node: MeshInstance3D) -> MeshInstance3D:
 	"""A link chunk's twin on level 2 (see LEVELS): its mesh, level 2's earth and layer."""
-	var twin := _mesh_node(earth_material(Rules.LEVEL_2))
-	twin.mesh = node.mesh
-	twin.layers = Layers.below(Rules.LEVEL_2)
-	return twin
+	var made := _mesh_node(earth_material(Rules.LEVEL_2))
+	made.mesh = node.mesh
+	made.layers = Layers.below(Rules.LEVEL_2)
+	return made
 
 
 func twin(slot: int, k: int) -> MeshInstance3D:
@@ -226,10 +226,10 @@ static func _earth(shader: Shader, level: int) -> ShaderMaterial:
 	return material
 
 
-static func _noise(seed: int, kind: FastNoiseLite.NoiseType, frequency: float) -> NoiseTexture2D:
+static func _noise(seed_value: int, kind: FastNoiseLite.NoiseType, frequency: float) -> NoiseTexture2D:
 	"""A seamless, mipmapped 256 px noise texture."""
 	var noise := FastNoiseLite.new()
-	noise.seed = seed
+	noise.seed = seed_value
 	noise.noise_type = kind
 	noise.frequency = frequency
 	noise.fractal_octaves = 3
@@ -455,7 +455,7 @@ static func ring_count(dug_m: float) -> int:
 
 static func last_chunk(rings: int) -> int:
 	"""The chunk holding a bore's last band (-1: none)."""
-	return -1 if rings < 2 else mini((rings - 2) / CHUNK_RINGS, CHUNKS - 1)
+	@warning_ignore("integer_division") return -1 if rings < 2 else mini((rings - 2) / CHUNK_RINGS, CHUNKS - 1)
 
 
 func ring_along(ring: int, rings: int, dug_m: float) -> float:
@@ -510,7 +510,7 @@ func _kind(slot: int, along: float) -> int:
 	var closed := _network.closed[slot]
 	if closed == GraphScript.CLOSED_COLLAPSED:
 		var at := Rules.to_u(along)
-		if at >= _network.closed_from_u[slot] - Rules.QUANTUM_U / 2 and at <= _network.closed_to_u[slot] + Rules.QUANTUM_U / 2:
+		@warning_ignore("integer_division") if at >= _network.closed_from_u[slot] - Rules.QUANTUM_U / 2 and at <= _network.closed_to_u[slot] + Rules.QUANTUM_U / 2:
 			return BoreMeshScript.RUBBLE
 	if closed == GraphScript.CLOSED_FLOODED:
 		return BoreMeshScript.FLOODED
@@ -558,9 +558,9 @@ func _opens(slot: int, node: int) -> bool:
 	return _network.is_open(slot) or (_network.node_a[slot] == node and _network.done(slot) > 0)
 
 
-func _draw_hub(node: int, show: bool) -> void:
+func _draw_hub(node: int, shown: bool) -> void:
 	"""Build node `node`'s hub from the segments opening into it and stamp it into the cap, or hide it."""
-	if not show:
+	if not shown:
 		if _hubs[node] != null:
 			_hubs[node].visible = false
 		return

@@ -299,9 +299,9 @@ func _cancel_words() -> String:
 	var t: int = _chosen_live_trip()
 	if t < 0:
 		return "No trip is out"
-	var name: String = fishery.trip_name(t)
+	var trip: String = fishery.trip_name(t)
 	var why: String = fishery.cancel_trip(t)
-	return "%s: called off" % name if why.is_empty() else "%s: can't call it off — %s" % [name, why]
+	return "%s: called off" % trip if why.is_empty() else "%s: can't call it off — %s" % [trip, why]
 
 
 func authorise_words(why: String) -> String:
@@ -395,7 +395,7 @@ func _gear_condition() -> String:
 	if choice_method == Rules.METHOD_BOAT:
 		for boat: int in fishery.fleet.count:
 			if fishery.fleet.is_free(boat):
-				return "Boat: Rowboat %d %d/1000 (%d trips left)" % [boat + 1, fishery.fleet.durability[boat],
+				@warning_ignore("integer_division") return "Boat: Rowboat %d %d/1000 (%d trips left)" % [boat + 1, fishery.fleet.durability[boat],
 					fishery.fleet.durability[boat] / FleetScript.WEAR_PER_CYCLE]
 		return "Boat: both are out"
 	var kind: int = FisheryScript.GEAR_OF_METHOD[choice_method]

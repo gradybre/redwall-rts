@@ -151,7 +151,7 @@ func _observe_missed(world: WorldScript) -> void:
 	for row: int in range(k + 1, keys.size()):
 		_last_tallied = keys[row]
 		if posmod(keys[row], 2) == Rules.MEAL_SUPPER and world.kitchen.meal_ate[row] <= 0:
-			supper_missed_day = keys[row] / 2 + 1
+			@warning_ignore("integer_division") supper_missed_day = keys[row] / 2 + 1
 			revision += 1
 
 

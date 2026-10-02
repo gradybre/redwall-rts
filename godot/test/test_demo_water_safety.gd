@@ -217,7 +217,7 @@ func test_the_air_advisory_and_air_out_rearm_only_back_at_the_surface() -> void:
 	assert_equal(bits, StateScript.EVENT_LOW_AIR, "450: the advisory, once")
 	assert_equal(_ticks(state, 460), StateScript.EVENT_AIR_OUT, "0: air out, once, and no advisory again")
 	state.set_mode(0, StateScript.MODE_SWIM)
-	_ticks(state, (Rules.AIR_LOW_REARM - 4) / Rules.AIR_RECOVERY_PER_TICK)
+	@warning_ignore("integer_division") _ticks(state, (Rules.AIR_LOW_REARM - 4) / Rules.AIR_RECOVERY_PER_TICK)
 	assert_equal(state.air[0], Rules.AIR_LOW_REARM - 4, "breathing: 596")
 	assert_equal(state.air_latch[0], StateScript.LATCH_LOW_AIR | StateScript.LATCH_AIR_OUT, "still latched under 600")
 	_ticks(state, 1)
@@ -248,7 +248,7 @@ func _ticks(state: StateScript, n: int) -> int:
 	"""Advance `state` `n` fixed ticks; the events raised meanwhile."""
 	var bits: int = 0
 	for k: int in n:
-		state.advance_usec(Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND + 1)
+		@warning_ignore("integer_division") state.advance_usec(Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND + 1)
 		bits |= state.take_events(0)
 	return bits
 

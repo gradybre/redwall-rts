@@ -258,6 +258,7 @@ func test_register_hud_refuses_null_and_stays_unbound() -> void:
 
 	The refusal is a push_error, so this test deliberately prints one ERROR line to the runner.
 	"""
+	expect_diagnostic("register_hud() was given null")
 	_ui.register_hud(null)
 	_ui.push_alert("Mossflower stirs.")
 	assert_equal(_rendered_alert(), "", "nothing was painted into an unbound HUD")

@@ -48,7 +48,8 @@ func before_each() -> void:
 
 
 func after_each() -> void:
-	"""Free any clock or node a test built."""
+	"""Free any clock or node a test built, and drop the run: its lambdas capture this suite, which holds it (a
+	cycle)."""
 	for node: Node in _nodes:
 		if is_instance_valid(node):
 			node.free()
@@ -56,6 +57,7 @@ func after_each() -> void:
 	if _game != null:
 		_game.free()
 	_game = null
+	_run = null
 
 
 func _frame(real_s: float, speed: int) -> void:
@@ -138,7 +140,7 @@ func test_dusk_fires_at_twenty_exactly_with_ragged_frames() -> void:
 
 func test_the_next_meal_fires_at_the_call() -> void:
 	"""From 08:30, the next meal is supper's call, 17:00."""
-	_calendar.tick = 2 * SimClock.TICKS_PER_HOUR + SimClock.TICKS_PER_HOUR / 2
+	@warning_ignore("integer_division") _calendar.tick = 2 * SimClock.TICKS_PER_HOUR + SimClock.TICKS_PER_HOUR / 2
 	_run.start(RunScript.TARGET_MEAL)
 	_run_frames(2, true)
 	var at := SimClock.Calendar.new(_calendar.tick)

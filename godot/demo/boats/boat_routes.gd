@@ -58,21 +58,21 @@ static func route(route_index: int) -> PackedInt32Array:
 	return PackedInt32Array(ROUTES[route_index])
 
 
-static func route_point(route: int, k: int) -> Vector2i:
-	"""Point `k` of route `route` (u)."""
-	return Vector2i(ROUTES[route][k * 2], ROUTES[route][k * 2 + 1])
+static func route_point(route_index: int, k: int) -> Vector2i:
+	"""Point `k` of route `route_index` (u)."""
+	return Vector2i(ROUTES[route_index][k * 2], ROUTES[route_index][k * 2 + 1])
 
 
-static func route_points(route: int) -> int:
-	"""How many points route `route` has."""
-	return ROUTES[route].size() / 2
+static func route_points(route_index: int) -> int:
+	"""How many points route `route_index` has."""
+	@warning_ignore("integer_division") return ROUTES[route_index].size() / 2
 
 
-static func route_length_u(route: int) -> int:
-	"""Route `route`'s length, berth to station, in whole u (each leg's length rounded down)."""
+static func route_length_u(route_index: int) -> int:
+	"""Route `route_index`'s length, berth to station, in whole u (each leg's length rounded down)."""
 	var total: int = 0
-	for k: int in range(1, route_points(route)):
-		total += leg_length_u(route_point(route, k - 1), route_point(route, k))
+	for k: int in range(1, route_points(route_index)):
+		total += leg_length_u(route_point(route_index, k - 1), route_point(route_index, k))
 	return total
 
 
@@ -96,9 +96,9 @@ static func isqrt(n: int) -> int:
 static func leg_is_water(map: WaterMapScript, a: Vector2i, b: Vector2i) -> bool:
 	"""Whether every sample along a leg (SAMPLE_U apart, both ends included) is water BOAT_DRAFT_U deep."""
 	var length: int = leg_length_u(a, b)
-	var steps: int = maxi(1, length / SAMPLE_U)
+	@warning_ignore("integer_division") var steps: int = maxi(1, length / SAMPLE_U)
 	for s: int in steps + 1:
-		var at: Vector2i = a + (b - a) * s / steps
+		@warning_ignore("integer_division") var at: Vector2i = a + (b - a) * s / steps
 		if map.depth_at(at) < BOAT_DRAFT_U:
 			return false
 	return true
@@ -110,12 +110,12 @@ static func validate(map: WaterMapScript) -> String:
 		return "the jetty's land end is in the water"
 	if not map.is_water(JETTY_END_U):
 		return "the jetty's end is not over water"
-	for route: int in ROUTES.size():
-		if route_point(route, 0) != BERTH_U[route]:
-			return "route %d does not start at its berth" % route
-		for k: int in range(1, route_points(route)):
-			if not leg_is_water(map, route_point(route, k - 1), route_point(route, k)):
-				return "route %d leg %d runs aground" % [route, k]
+	for route_index: int in ROUTES.size():
+		if route_point(route_index, 0) != BERTH_U[route_index]:
+			return "route %d does not start at its berth" % route_index
+		for k: int in range(1, route_points(route_index)):
+			if not leg_is_water(map, route_point(route_index, k - 1), route_point(route_index, k)):
+				return "route %d leg %d runs aground" % [route_index, k]
 	return ""
 
 

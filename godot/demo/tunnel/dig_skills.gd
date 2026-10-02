@@ -57,7 +57,7 @@ func is_resident(who: int) -> bool:
 
 static func xp_of_ticks(ticks: int) -> int:
 	"""The XP a stretch of face work earns (see THE ARITHMETIC): its WU (ticks over a game minute's) x 10."""
-	return ticks * ForestRules.XP_PER_WU * MINUTES_PER_HOUR / TICKS_PER_HOUR
+	@warning_ignore("integer_division") return ticks * ForestRules.XP_PER_WU * MINUTES_PER_HOUR / TICKS_PER_HOUR
 
 
 func level_of(who: int) -> int:

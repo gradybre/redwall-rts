@@ -174,7 +174,7 @@ func test_the_validation_anchor_puts_the_river_at_exactly_24_metres() -> void:
 	which is 25600 units -- 25 m -- and fails. From tile (64,64) it is exactly 24576 units.
 	"""
 	var nearest_river_centre: int = WorldInit.tile_center_x_units(WorldInit.RIVER_FIRST_X)
-	var midpoint_units: int = WorldInit.MAP_TILES_X * WorldInit.TILE_SIZE_UNITS / 2
+	@warning_ignore("integer_division") var midpoint_units: int = WorldInit.MAP_TILES_X * WorldInit.TILE_SIZE_UNITS / 2
 	assert_equal(nearest_river_centre - midpoint_units, 25600, "25 m from the map mid-point")
 	assert_true(25600 > WorldInit.RIVER_EDGE_MAX_METRES * WorldInit.UNITS_PER_METRE,
 		"the mid-point reading fails the 24 m guarantee")
@@ -800,7 +800,7 @@ func test_every_forest_basin_carries_five_patches_at_80_percent() -> void:
 			var capacity: int = ForageScript.PATCH_CAPACITY_U[kind] * 1000
 			assert_equal(_forage.patch_capacity_milli_of(row).value, capacity,
 				"patch kind %d capacity" % kind)
-			assert_equal(_forage.stock_milli_of(row).value, capacity * 8 / 10,
+			@warning_ignore("integer_division") assert_equal(_forage.stock_milli_of(row).value, capacity * 8 / 10,
 				"patch kind %d is stocked at floor(0.8 x capacity)" % kind)
 
 
@@ -1138,7 +1138,7 @@ func test_fish_stocks_start_at_80_percent() -> void:
 		for species_index: int in FishingScript.SPECIES_PER_HABITAT:
 			var row: int = slot * FishingScript.SPECIES_PER_HABITAT + species_index
 			var capacity: int = _fishing.stock_capacity_milli_of(row).value
-			assert_equal(_fishing.population_milli_of(row).value, capacity * 8 / 10,
+			@warning_ignore("integer_division") assert_equal(_fishing.population_milli_of(row).value, capacity * 8 / 10,
 				"stock row %d starts at 80%%" % row)
 
 

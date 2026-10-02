@@ -188,7 +188,7 @@ func _forecast_line(sim: SimScript, out: PackedStringArray) -> void:
 	var event: int = sim.forecast_event()
 	if event < 0 or event >= EVENT_NAMES.size():
 		return
-	_once(out, "forecast:%d:%d" % [event, (sim.absolute_day() - 1) / SimClock.DAYS_PER_SEASON],
+	@warning_ignore("integer_division") _once(out, "forecast:%d:%d" % [event, (sim.absolute_day() - 1) / SimClock.DAYS_PER_SEASON],
 		"Forecast: %s coming in the next days" % EVENT_NAMES[event].to_lower(), NOTE)
 
 
@@ -210,7 +210,7 @@ func _bed_lines(sim: SimScript, bed: int, day: int, out: PackedStringArray) -> v
 	_condition(out, bed, COND_WET, growing, growing and band == SimScript.BAND_WATERLOGGED, hour,
 		"%s is waterlogged and has stopped growing — Drain it" % what, WARNING)
 	var empty: bool = stage == SimScript.STAGE_EMPTY
-	_condition(out, bed, COND_WORN, empty, empty and sim.fertility_of(bed) < LOW_FERTILITY, hour,
+	@warning_ignore("integer_division") _condition(out, bed, COND_WORN, empty, empty and sim.fertility_of(bed) < LOW_FERTILITY, hour,
 		"Bed %d is worn out (fertility %d%%) — compost it or rest it fallow" % [bed + 1, sim.fertility_of(bed) / 100],
 		NOTE)
 	if _blight_open[bed] == 1 and stage != SimScript.STAGE_BLIGHTED:
@@ -221,7 +221,7 @@ func _bed_lines(sim: SimScript, bed: int, day: int, out: PackedStringArray) -> v
 
 static func _farm_hour(sim: SimScript) -> int:
 	"""The farm's hour count since its calendar began (what REARM_HOURS is measured in)."""
-	return sim.calendar.tick / SimClock.TICKS_PER_HOUR
+	@warning_ignore("integer_division") return sim.calendar.tick / SimClock.TICKS_PER_HOUR
 
 
 func _condition(out: PackedStringArray, bed: int, cond: int, applies: bool, present: bool, hour: int,

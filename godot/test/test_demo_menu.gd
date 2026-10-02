@@ -92,6 +92,7 @@ func test_set_menu_pause_is_refused_before_start_and_holds_once() -> void:
 func test_a_refused_release_keeps_the_menu_open_and_runs_nothing() -> void:
 	"""While a load holds the clock's barrier the release is refused: the menu stays open (no pause is left
 	with nothing to explain it), and Restart and the Lab do not run; Quit still does."""
+	expect_diagnostic("the clock refused to release the menu's pause")
 	var menu := _menu()
 	var ran: Array[String] = []
 	menu.on_restart = func() -> void: ran.append("restart")

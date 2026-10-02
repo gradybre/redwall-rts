@@ -213,7 +213,7 @@ func _init() -> void:
 		"forage.gd's PATCH_KEYS must still hold one key per patch row")
 	assert(FishingScript.SPECIES_KEYS.size() == FISH_BINDING_COUNT,
 		"fishing.gd's SPECIES_KEYS must still hold one key per species row")
-	assert(BINDING_COUNT == 17, "ruling §2: three scalars plus arrays of five and nine")
+	@warning_ignore("assert_always_true") assert(BINDING_COUNT == 17, "ruling §2: three scalars plus arrays of five and nine")
 
 
 # --- the required keys, borrowed from the modules that own the rows ------------------------------
@@ -244,7 +244,7 @@ static func expected_keys() -> Array[StringName]:
 # --- opening the boundary ------------------------------------------------------------------------
 
 static func open(items: ItemDefinitionsScript,
-		artifact_path: String = DEFAULT_ARTIFACT_PATH) -> OpenResult:
+		artifact_file: String = DEFAULT_ARTIFACT_PATH) -> OpenResult:
 	"""Verify the committed catalog artifact and return a boundary bound to `items`, or refuse.
 
 	Cold path, called once per world construction: it reads and recompiles the whole catalog. This
@@ -257,21 +257,21 @@ static func open(items: ItemDefinitionsScript,
 		return OpenResult.new(false, REFUSE_REGISTRY_NOT_LOADED,
 			"the item registry has not loaded a catalog", null)
 	var bytes: PackedByteArray = PackedByteArray()
-	var readable: OpenResult = _read_artifact(artifact_path, bytes)
+	var readable: OpenResult = _read_artifact(artifact_file, bytes)
 	if readable != null:
 		return readable
 	var parsed: CatalogIds.ParseResult = CatalogIds.parse_canonical(bytes)
-	var shaped: OpenResult = _refuse_artifact_shape(artifact_path, parsed)
+	var shaped: OpenResult = _refuse_artifact_shape(artifact_file, parsed)
 	if shaped != null:
 		return shaped
 	var verified: CatalogIds.VerifyResult = CatalogIds.verify_bytes(bytes)
 	if not verified.ok:
 		return OpenResult.new(false, REFUSE_ARTIFACT,
-			"%s: %s (%s)" % [artifact_path, verified.error, verified.detail], null)
+			"%s: %s (%s)" % [artifact_file, verified.error, verified.detail], null)
 	var boundary := new()
 	boundary._items = items
 	boundary._artifact_ids = parsed.domains[ITEM_DEFINITION_DOMAIN]
-	boundary._artifact_path = artifact_path
+	boundary._artifact_path = artifact_file
 	boundary._opened = true
 	return OpenResult.new(true, REFUSE_NONE, "", boundary)
 

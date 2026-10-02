@@ -69,6 +69,11 @@ var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _services: ServicesScript = ServicesScript.new()
 
 
+func tolerates_outside_tree() -> bool:
+	"""Its node fixtures are never inside the scene tree (test_case.gd ENGINE DIAGNOSTICS)."""
+	return true
+
+
 func before_each() -> void:
 	"""A fresh set of demo services per test."""
 	_services = ServicesScript.new()
@@ -492,6 +497,9 @@ func test_the_panel_words_come_from_the_rules() -> void:
 	assert_equal(Text.pick_reason(sim, BED_LOAM, PEA), "sow in Spring 5–10; Summer 1–3", "window")
 	assert_equal(Text.pick_reason(sim, BED_LOAM, WHEAT), "", "sowable")
 	assert_equal(Text.clock_line(sim), "Y1 Spring 1, 06:00 · 12 °C", "the demo calendar's date, as the HUD prints it")
+	# A frost between 0 and -1 °C kept no minus sign: the whole part is 0 (decision 0501).
+	assert_equal([Text._tenths(-5), Text._tenths(-15), Text._tenths(-30), Text._tenths(125), Text._tenths(0)],
+		["-0.5", "-1.5", "-3", "12.5", "0"], "a temperature keeps its sign below one degree")
 	assert_equal(Text.moisture_line(sim, BED_CARROTS), "Soil moisture: Good · 60%", "moisture")
 	assert_equal(Text.range_line(sim, BED_CARROTS), "Suitable for this crop: 25–70%", "its range")
 	assert_equal(Text.soil_line(sim, BED_CARROTS), "Soil: Sand", "soil")

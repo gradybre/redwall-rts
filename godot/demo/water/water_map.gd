@@ -190,11 +190,11 @@ var _walk_x: int = 0
 var _walk_z: int = 0
 
 
-func _init(bank_run_u: int) -> void:
-	"""Allocate every column once. `bank_run_u` (> 0) is how far outside the waterline the bank
+func _init(run_u: int) -> void:
+	"""Allocate every column once. `run_u` (> 0) is how far outside the waterline the bank
 	starts to fall towards the water."""
-	assert(bank_run_u > 0, "the bank needs a positive run")
-	_bank_run_u = bank_run_u
+	assert(run_u > 0, "the bank needs a positive run")
+	_bank_run_u = run_u
 	_allocate_bodies()
 	_allocate_stations()
 	_allocate_landings()
@@ -267,7 +267,7 @@ func add_stream(name: StringName, vertices: PackedInt32Array, level_drop_u: int,
 	var code: StringName = _refuse_body(vertices, level_drop_u, ramp_u, flow_speed_u_s)
 	if code == &"" and vertices.size() < 8:
 		code = REFUSE_SHAPE
-	if code == &"" and _seg_count + vertices.size() / 4 - 1 > MAX_SEGMENTS:
+	@warning_ignore("integer_division") if code == &"" and _seg_count + vertices.size() / 4 - 1 > MAX_SEGMENTS:
 		code = REFUSE_SEGMENT_CAPACITY
 	if code == &"" and not _stream_legs_ok(vertices):
 		code = REFUSE_SHAPE
@@ -275,7 +275,7 @@ func add_stream(name: StringName, vertices: PackedInt32Array, level_drop_u: int,
 		out.refuse(String(code))
 		return out
 	var body: int = _open_body(name, KIND_STREAM, level_drop_u, ramp_u, flow_speed_u_s)
-	for k: int in range(1, vertices.size() / 4):
+	@warning_ignore("integer_division") for k: int in range(1, vertices.size() / 4):
 		var a: int = (k - 1) * 4
 		var b: int = k * 4
 		_append_segment(body, vertices[a], vertices[a + 1], vertices[b], vertices[b + 1],
@@ -292,13 +292,13 @@ func add_pond(name: StringName, circles: PackedInt32Array, level_drop_u: int,
 	var code: StringName = _refuse_body(circles, level_drop_u, ramp_u, 0)
 	if code == &"" and circles.size() < 4:
 		code = REFUSE_SHAPE
-	if code == &"" and _seg_count + circles.size() / 4 > MAX_SEGMENTS:
+	@warning_ignore("integer_division") if code == &"" and _seg_count + circles.size() / 4 > MAX_SEGMENTS:
 		code = REFUSE_SEGMENT_CAPACITY
 	if code != &"":
 		out.refuse(String(code))
 		return out
 	var body: int = _open_body(name, KIND_POND, level_drop_u, ramp_u, 0)
-	for k: int in circles.size() / 4:
+	@warning_ignore("integer_division") for k: int in circles.size() / 4:
 		var c: int = k * 4
 		_append_segment(body, circles[c], circles[c + 1], circles[c], circles[c + 1],
 			circles[c + 2], circles[c + 2], circles[c + 3], circles[c + 3])
@@ -317,7 +317,7 @@ func _refuse_body(quads: PackedInt32Array, level_drop_u: int, ramp_u: int,
 		return REFUSE_SHAPE
 	if level_drop_u < 0 or ramp_u <= 0 or flow_speed_u_s < 0:
 		return REFUSE_VALUE
-	for k: int in quads.size() / 4:
+	@warning_ignore("integer_division") for k: int in quads.size() / 4:
 		if quads[k * 4 + 2] <= 0 or quads[k * 4 + 3] <= 0:
 			return REFUSE_VALUE
 	return &""
@@ -325,7 +325,7 @@ func _refuse_body(quads: PackedInt32Array, level_drop_u: int, ramp_u: int,
 
 func _stream_legs_ok(vertices: PackedInt32Array) -> bool:
 	"""Every leg of a stream has a length: no two consecutive vertices coincide."""
-	for k: int in range(1, vertices.size() / 4):
+	@warning_ignore("integer_division") for k: int in range(1, vertices.size() / 4):
 		if vertices[k * 4] == vertices[k * 4 - 4] and vertices[k * 4 + 1] == vertices[k * 4 - 3]:
 			return false
 	return true
@@ -493,15 +493,15 @@ func _eval_segment(i: int, px: int, pz: int) -> void:
 		num = clampi((px - _ax[i]) * dx + (pz - _az[i]) * dz, 0, den)
 	else:
 		den = 1
-	_ev_cx = _ax[i] + dx * num / den
-	_ev_cz = _az[i] + dz * num / den
+	@warning_ignore("integer_division") _ev_cx = _ax[i] + dx * num / den
+	@warning_ignore("integer_division") _ev_cz = _az[i] + dz * num / den
 	var ex: int = px - _ev_cx
 	var ez: int = pz - _ev_cz
-	var radius: int = _ra[i] + (_rb[i] - _ra[i]) * num / den
+	@warning_ignore("integer_division") var radius: int = _ra[i] + (_rb[i] - _ra[i]) * num / den
 	_ev_e = radius - Rules.isqrt(ex * ex + ez * ez)
 	_ev_depth = 0
 	if _ev_e > 0:
-		var full: int = _da[i] + (_db[i] - _da[i]) * num / den
+		@warning_ignore("integer_division") var full: int = _da[i] + (_db[i] - _da[i]) * num / den
 		var ramp: int = _body_ramp[_seg_body[i]]
 		_ev_depth = Rules.ceil_div(full * mini(_ev_e, ramp), ramp)
 
@@ -611,7 +611,7 @@ func _ground_from_field() -> int:
 	if _f_e > 0:
 		return -(drop + _f_depth)
 	if _f_e > -_bank_run_u:
-		return -(drop * (_bank_run_u + _f_e) / _bank_run_u)
+		@warning_ignore("integer_division") return -(drop * (_bank_run_u + _f_e) / _bank_run_u)
 	return 0
 
 
@@ -624,7 +624,7 @@ func _flow_from_field() -> Vector2i:
 	var dz: int = _bz[_f_seg] - _az[_f_seg]
 	var length: int = Rules.isqrt(dx * dx + dz * dz)
 	var speed: int = _body_speed[body]
-	return Vector2i(dx * speed / length, dz * speed / length)
+	@warning_ignore("integer_division") return Vector2i(dx * speed / length, dz * speed / length)
 
 
 # --- banks and edges ---------------------------------------------------------------------------
@@ -683,11 +683,11 @@ func _sample_edges(i: int) -> void:
 	var length: int = Rules.isqrt(dx * dx + dz * dz)
 	var steps: int = maxi(1, Rules.ceil_div(length, SHORE_STEP_U))
 	for k: int in steps + 1:
-		var cx: int = _ax[i] + dx * k / steps
-		var cz: int = _az[i] + dz * k / steps
-		var radius: int = _ra[i] + (_rb[i] - _ra[i]) * k / steps
-		var ox: int = -dz * radius / length
-		var oz: int = dx * radius / length
+		@warning_ignore("integer_division") var cx: int = _ax[i] + dx * k / steps
+		@warning_ignore("integer_division") var cz: int = _az[i] + dz * k / steps
+		@warning_ignore("integer_division") var radius: int = _ra[i] + (_rb[i] - _ra[i]) * k / steps
+		@warning_ignore("integer_division") var ox: int = -dz * radius / length
+		@warning_ignore("integer_division") var oz: int = dx * radius / length
 		_try_shore(cx + ox, cz + oz, _seg_body[i])
 		_try_shore(cx - ox, cz - oz, _seg_body[i])
 
@@ -700,7 +700,7 @@ func _sample_cap(i: int, cx: int, cz: int, radius: int, away_x: int, away_z: int
 		var uz: int = Rules.DIRECTIONS_1024[k * 2 + 1]
 		if ux * away_x + uz * away_z < 0:
 			continue
-		_try_shore(cx + ux * radius / Rules.DIRECTION_SCALE,
+		@warning_ignore("integer_division") _try_shore(cx + ux * radius / Rules.DIRECTION_SCALE,
 			cz + uz * radius / Rules.DIRECTION_SCALE, _seg_body[i])
 
 
@@ -733,7 +733,7 @@ func _measure_stations() -> void:
 			var length: int = Rules.isqrt(dx * dx + dz * dz)
 			var steps: int = maxi(1, Rules.ceil_div(length, CROSSING_STEP_U))
 			for k: int in steps:
-				_measure_station(body, i, dx * k / steps, dz * k / steps, length,
+				@warning_ignore("integer_division") _measure_station(body, i, dx * k / steps, dz * k / steps, length,
 					along + length * k / steps)
 			along += length
 
@@ -783,7 +783,7 @@ func _bisect_dry(cx: int, cz: int, nx: int, nz: int, length: int, wet_t: int, dr
 	var lo: int = wet_t
 	var hi: int = dry_t
 	while hi - lo > 1:
-		var mid: int = (lo + hi) / 2
+		@warning_ignore("integer_division") var mid: int = (lo + hi) / 2
 		if _dry_at_distance(cx, cz, nx, nz, length, mid):
 			hi = mid
 		else:
@@ -794,8 +794,8 @@ func _bisect_dry(cx: int, cz: int, nx: int, nz: int, length: int, wet_t: int, dr
 func _dry_at_distance(cx: int, cz: int, nx: int, nz: int, length: int, t: int) -> bool:
 	"""Whether the point `t` u from (cx, cz) along (nx, nz)/length is dry; it is left in
 	(_walk_x, _walk_z)."""
-	_walk_x = cx + nx * t / length
-	_walk_z = cz + nz * t / length
+	@warning_ignore("integer_division") _walk_x = cx + nx * t / length
+	@warning_ignore("integer_division") _walk_z = cz + nz * t / length
 	_field(_walk_x, _walk_z)
 	return _f_e <= 0
 
@@ -867,8 +867,8 @@ func stream_width_at_into(p: Vector2i, out: IntMath.IntResult) -> bool:
 	var best: int = 0
 	var best_sq: int = 0
 	for s: int in _station_count:
-		var dx: int = (_st_ax[s] + _st_bx[s]) / 2 - p.x
-		var dz: int = (_st_az[s] + _st_bz[s]) / 2 - p.y
+		@warning_ignore("integer_division") var dx: int = (_st_ax[s] + _st_bx[s]) / 2 - p.x
+		@warning_ignore("integer_division") var dz: int = (_st_az[s] + _st_bz[s]) / 2 - p.y
 		var sq: int = dx * dx + dz * dz
 		if s == 0 or sq < best_sq:
 			best = s
@@ -954,8 +954,8 @@ func _resolve_landings() -> void:
 		var nx: int = _bank_scratch.x - _f_cx
 		var nz: int = _bank_scratch.z - _f_cz
 		var length: int = maxi(1, Rules.isqrt(nx * nx + nz * nz))
-		var land_x: int = _bank_scratch.x + nx * _landing_setback[k] / length
-		var land_z: int = _bank_scratch.z + nz * _landing_setback[k] / length
+		@warning_ignore("integer_division") var land_x: int = _bank_scratch.x + nx * _landing_setback[k] / length
+		@warning_ignore("integer_division") var land_z: int = _bank_scratch.z + nz * _landing_setback[k] / length
 		_landing_resolved[k] = 1 if _walk_dry(land_x, land_z, nx, nz, length) else 0
 		_landing_land_x[k] = _walk_x
 		_landing_land_z[k] = _walk_z
@@ -1030,8 +1030,8 @@ static func point_segment_distance_u(p: Vector2i, a: Vector2i, b: Vector2i) -> i
 		num = clampi((p.x - a.x) * dx + (p.y - a.y) * dz, 0, den)
 	else:
 		den = 1
-	var ex: int = p.x - (a.x + dx * num / den)
-	var ez: int = p.y - (a.y + dz * num / den)
+	@warning_ignore("integer_division") var ex: int = p.x - (a.x + dx * num / den)
+	@warning_ignore("integer_division") var ez: int = p.y - (a.y + dz * num / den)
 	return Rules.isqrt(ex * ex + ez * ez)
 
 

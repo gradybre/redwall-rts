@@ -80,7 +80,7 @@ func ground_y_m(at: Vector2) -> float:
 func flow_m_s(at: Vector2) -> Vector2:
 	"""The flow at `at` in m/s, sped by a flood."""
 	var flow: Vector2i = map.flow_at(u_of(at))
-	var factor: float = float(Rules.PERMILLE + Rules.FLOOD_FLOW_PERMILLE * flood_permille / Rules.PERMILLE) / float(Rules.PERMILLE)
+	@warning_ignore("integer_division") var factor: float = float(Rules.PERMILLE + Rules.FLOOD_FLOW_PERMILLE * flood_permille / Rules.PERMILLE) / float(Rules.PERMILLE)
 	return Vector2(flow) * factor / float(Rules.UNITS_PER_M)
 
 
@@ -122,7 +122,7 @@ func swim(brain: RefCounted, target: Vector2, delta: float, speed_permille: int 
 	var at: Vector2 = brain.position
 	if zone_for(who, at) <= WaterRules.ZONE_WADE:
 		return walk_bank(brain, target, delta)
-	var s_mm: int = state.swim_mm_s[who] * speed_permille / Rules.PERMILLE
+	@warning_ignore("integer_division") var s_mm: int = state.swim_mm_s[who] * speed_permille / Rules.PERMILLE
 	var s: float = float(s_mm) / 1000.0
 	var rate: float = maxf(SWIM_CLIP_RATE * Rules.stroke_rate(s_mm, state.stroke_mm_s[who]), MIN_CLIP_RATE)
 	var flow: Vector2 = flow_m_s(at)

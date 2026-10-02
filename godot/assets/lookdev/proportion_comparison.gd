@@ -157,7 +157,7 @@ static func species_count() -> int:
 
 static func landmark_mm(permille_column: Array[int], row: int, height_mm: int) -> int:
 	"""One landmark in integer millimetres: permille of the species' standing height."""
-	return permille_column[row] * height_mm / PERMILLE
+	@warning_ignore("integer_division") return permille_column[row] * height_mm / PERMILLE
 
 
 static func crown_mm(row: int, pose: int) -> int:
@@ -176,7 +176,7 @@ static func _crouch_drop_mm(row: int) -> int:
 	"""How far the whole upper body lowers when a species crouches, in millimetres."""
 	var height: int = Dimensions.SPECIES_HEIGHT_MM[row]
 	var hip: int = landmark_mm(HIP_PERMILLE, row, height)
-	return hip - CROUCH_HIP_PERMILLE * hip / PERMILLE
+	@warning_ignore("integer_division") return hip - CROUCH_HIP_PERMILLE * hip / PERMILLE
 
 
 static func measured_bounds_mm(node: Node3D) -> AABB:
@@ -213,7 +213,7 @@ static func bay_x_mm(row: int) -> int:
 	The first species sits at +X. The front elevation is taken from -Z, where +X falls on
 	the left of frame, so the sheet reads mouse to badger left to right as a reader expects.
 	"""
-	return ((species_count() - 1) / 2 - row) * BAY_PITCH_MM
+	@warning_ignore("integer_division") return ((species_count() - 1) / 2 - row) * BAY_PITCH_MM
 
 
 static func station_z_mm(pose: int) -> int:
@@ -276,14 +276,14 @@ static func _build_doorway() -> Node3D:
 	var node := Node3D.new()
 	node.name = "doorway"
 	node.position = Vector3(0.0, 0.0, PROP_BEHIND_Z_MM / MM_PER_METRE)
-	var jamb: int = (DOOR_PANEL_WIDTH_MM - DOOR_OPENING_WIDTH_MM) / 2
-	var offset: int = (DOOR_OPENING_WIDTH_MM + jamb) / 2
+	@warning_ignore("integer_division") var jamb: int = (DOOR_PANEL_WIDTH_MM - DOOR_OPENING_WIDTH_MM) / 2
+	@warning_ignore("integer_division") var offset: int = (DOOR_OPENING_WIDTH_MM + jamb) / 2
 	var header: int = DOOR_PANEL_HEIGHT_MM - DOOR_OPENING_HEIGHT_MM
-	_add_box(node, "jamb_w", Vector3i(jamb, DOOR_PANEL_HEIGHT_MM, DOOR_PANEL_DEPTH_MM),
+	@warning_ignore("integer_division") _add_box(node, "jamb_w", Vector3i(jamb, DOOR_PANEL_HEIGHT_MM, DOOR_PANEL_DEPTH_MM),
 		Vector3i(-offset, DOOR_PANEL_HEIGHT_MM / 2, 0))
-	_add_box(node, "jamb_e", Vector3i(jamb, DOOR_PANEL_HEIGHT_MM, DOOR_PANEL_DEPTH_MM),
+	@warning_ignore("integer_division") _add_box(node, "jamb_e", Vector3i(jamb, DOOR_PANEL_HEIGHT_MM, DOOR_PANEL_DEPTH_MM),
 		Vector3i(offset, DOOR_PANEL_HEIGHT_MM / 2, 0))
-	_add_box(node, "header", Vector3i(DOOR_OPENING_WIDTH_MM, header, DOOR_PANEL_DEPTH_MM),
+	@warning_ignore("integer_division") _add_box(node, "header", Vector3i(DOOR_OPENING_WIDTH_MM, header, DOOR_PANEL_DEPTH_MM),
 		Vector3i(0, DOOR_OPENING_HEIGHT_MM + header / 2, 0))
 	return node
 
@@ -293,16 +293,16 @@ static func _build_surface(surface_name: String, length_mm: int, depth_mm: int) 
 	var node := Node3D.new()
 	node.name = surface_name
 	node.position = Vector3(0.0, 0.0, PROP_AHEAD_Z_MM / MM_PER_METRE)
-	var slab_centre: int = WORK_SURFACE_TOP_MM - SURFACE_SLAB_MM / 2
+	@warning_ignore("integer_division") var slab_centre: int = WORK_SURFACE_TOP_MM - SURFACE_SLAB_MM / 2
 	_add_box(node, "top", Vector3i(length_mm, SURFACE_SLAB_MM, depth_mm),
 		Vector3i(0, slab_centre, 0))
 	var leg_height: int = WORK_SURFACE_TOP_MM - SURFACE_SLAB_MM
-	var dx: int = (length_mm - SURFACE_LEG_MM) / 2 - SURFACE_LEG_MM
-	var dz: int = (depth_mm - SURFACE_LEG_MM) / 2 - SURFACE_LEG_MM
+	@warning_ignore("integer_division") var dx: int = (length_mm - SURFACE_LEG_MM) / 2 - SURFACE_LEG_MM
+	@warning_ignore("integer_division") var dz: int = (depth_mm - SURFACE_LEG_MM) / 2 - SURFACE_LEG_MM
 	for corner: int in 4:
 		var sx: int = 1 if corner % 2 == 0 else -1
 		var sz: int = 1 if corner < 2 else -1
-		_add_box(node, "leg_%d" % corner,
+		@warning_ignore("integer_division") _add_box(node, "leg_%d" % corner,
 			Vector3i(SURFACE_LEG_MM, leg_height, SURFACE_LEG_MM),
 			Vector3i(sx * dx, leg_height / 2, sz * dz))
 	return node
@@ -314,17 +314,17 @@ static func _build_shelter() -> Node3D:
 	node.name = "building_workbench_reference"
 	node.position = Vector3(0.0, 0.0, SHELTER_Z_MM / MM_PER_METRE)
 	var post_height: int = SHELTER_HEIGHT_MM - SHELTER_ROOF_SLAB_MM
-	var half: int = (SHELTER_FOOTPRINT_MM - SHELTER_POST_MM) / 2
+	@warning_ignore("integer_division") var half: int = (SHELTER_FOOTPRINT_MM - SHELTER_POST_MM) / 2
 	for corner: int in 4:
 		var sx: int = 1 if corner % 2 == 0 else -1
 		var sz: int = 1 if corner < 2 else -1
-		_add_box(node, "post_%d" % corner,
+		@warning_ignore("integer_division") _add_box(node, "post_%d" % corner,
 			Vector3i(SHELTER_POST_MM, post_height, SHELTER_POST_MM),
 			Vector3i(sx * half, post_height / 2, sz * half))
 	var span: int = SHELTER_FOOTPRINT_MM + 2 * SHELTER_ROOF_OVERHANG_MM
-	_add_box(node, "roof", Vector3i(span, SHELTER_ROOF_SLAB_MM, span),
+	@warning_ignore("integer_division") _add_box(node, "roof", Vector3i(span, SHELTER_ROOF_SLAB_MM, span),
 		Vector3i(0, SHELTER_HEIGHT_MM - SHELTER_ROOF_SLAB_MM / 2, 0))
-	_add_box(node, "work_surface_top",
+	@warning_ignore("integer_division") _add_box(node, "work_surface_top",
 		Vector3i(WORK_SURFACE_LENGTH_MM, SURFACE_SLAB_MM, WORK_SURFACE_DEPTH_MM),
 		Vector3i(0, WORK_SURFACE_TOP_MM - SURFACE_SLAB_MM / 2, -2000))
 	return node
@@ -336,15 +336,15 @@ static func _build_scale_rule() -> Node3D:
 	node.name = "scale_rule"
 	node.position = Vector3(SCALE_RULE_X_MM / MM_PER_METRE, 0.0,
 		station_z_mm(POSE_STANDING) / MM_PER_METRE)
-	var bands: int = SCALE_RULE_TOP_MM / SCALE_RULE_BAND_MM
+	@warning_ignore("integer_division") var bands: int = SCALE_RULE_TOP_MM / SCALE_RULE_BAND_MM
 	for band: int in bands:
 		if band % 2 == 1:
 			continue
-		_add_box_with_material(node, "band_%04d" % (band * SCALE_RULE_BAND_MM),
+		@warning_ignore("integer_division") _add_box_with_material(node, "band_%04d" % (band * SCALE_RULE_BAND_MM),
 			Vector3i(SCALE_RULE_THICKNESS_MM, SCALE_RULE_BAND_MM, SCALE_RULE_THICKNESS_MM),
 			Vector3i(0, band * SCALE_RULE_BAND_MM + SCALE_RULE_BAND_MM / 2, 0),
 			_rule_material())
-	_add_box(node, "spine", Vector3i(SCALE_RULE_THICKNESS_MM / 3, SCALE_RULE_TOP_MM,
+	@warning_ignore("integer_division") _add_box(node, "spine", Vector3i(SCALE_RULE_THICKNESS_MM / 3, SCALE_RULE_TOP_MM,
 		SCALE_RULE_THICKNESS_MM / 3), Vector3i(0, SCALE_RULE_TOP_MM / 2, 0))
 	return node
 
@@ -372,7 +372,7 @@ static func _build_blockout(row: int, pose: int) -> Node3D:
 	var hip: int = landmark_mm(HIP_PERMILLE, row, height) - drop
 	var shoulder: int = landmark_mm(SHOULDER_PERMILLE, row, height) - drop
 	_add_legs(node, row, pose, width, hip)
-	_add_box(node, "torso", Vector3i(width, shoulder - hip, depth),
+	@warning_ignore("integer_division") _add_box(node, "torso", Vector3i(width, shoulder - hip, depth),
 		Vector3i(0, (shoulder + hip) / 2, 0))
 	_add_arms(node, row, pose, width, depth, drop)
 	_add_head(node, row, drop, width, depth)
@@ -386,11 +386,11 @@ static func _add_legs(node: Node3D, row: int, pose: int, width: int, hip: int) -
 	"""Two leg volumes from the ground to the hip, split fore and aft when walking."""
 	var stride: int = 0
 	if pose == POSE_WALKING:
-		stride = WALK_STRIDE_PERMILLE * Dimensions.SPECIES_HEIGHT_MM[row] / PERMILLE / 2
-	var leg: int = width / 3
+		@warning_ignore("integer_division") stride = WALK_STRIDE_PERMILLE * Dimensions.SPECIES_HEIGHT_MM[row] / PERMILLE / 2
+	@warning_ignore("integer_division") var leg: int = width / 3
 	for side: int in 2:
 		var sx: int = 1 if side == 0 else -1
-		_add_box(node, "leg_%d" % side, Vector3i(leg, hip, leg),
+		@warning_ignore("integer_division") _add_box(node, "leg_%d" % side, Vector3i(leg, hip, leg),
 			Vector3i(sx * width / 4, hip / 2, -sx * stride))
 
 
@@ -400,12 +400,12 @@ static func _add_arms(node: Node3D, row: int, pose: int, width: int, depth: int,
 	var height: int = Dimensions.SPECIES_HEIGHT_MM[row]
 	var shoulder: int = landmark_mm(SHOULDER_PERMILLE, row, height) - drop
 	var hip: int = landmark_mm(HIP_PERMILLE, row, height) - drop
-	var arm: int = width / 4
-	var swing: int = WALK_STRIDE_PERMILLE * height / PERMILLE / 3 if pose == POSE_WALKING else 0
+	@warning_ignore("integer_division") var arm: int = width / 4
+	@warning_ignore("integer_division") var swing: int = WALK_STRIDE_PERMILLE * height / PERMILLE / 3 if pose == POSE_WALKING else 0
 	var forward: int = depth if pose == POSE_CARRYING else 0
 	for side: int in 2:
 		var sx: int = 1 if side == 0 else -1
-		_add_box(node, "arm_%d" % side, Vector3i(arm, shoulder - hip, arm),
+		@warning_ignore("integer_division") _add_box(node, "arm_%d" % side, Vector3i(arm, shoulder - hip, arm),
 			Vector3i(sx * (width / 2 + arm / 2), (shoulder + hip) / 2, sx * swing - forward))
 
 
@@ -415,13 +415,13 @@ static func _add_head(node: Node3D, row: int, drop: int, width: int, depth: int)
 	var neck: int = landmark_mm(NECK_PERMILLE, row, height) - drop
 	var skull: int = landmark_mm(SKULL_TOP_PERMILLE, row, height) - drop
 	var shoulder: int = landmark_mm(SHOULDER_PERMILLE, row, height) - drop
-	var head_w: int = width * 4 / 5
-	_add_box(node, "neck", Vector3i(head_w / 2, neck - shoulder, head_w / 2),
+	@warning_ignore("integer_division") var head_w: int = width * 4 / 5
+	@warning_ignore("integer_division") _add_box(node, "neck", Vector3i(head_w / 2, neck - shoulder, head_w / 2),
 		Vector3i(0, (neck + shoulder) / 2, 0))
-	_add_box(node, "skull", Vector3i(head_w, skull - neck, depth * 4 / 5),
+	@warning_ignore("integer_division") _add_box(node, "skull", Vector3i(head_w, skull - neck, depth * 4 / 5),
 		Vector3i(0, (skull + neck) / 2, 0))
 	var muzzle: int = landmark_mm(MUZZLE_PERMILLE, row, height)
-	_add_box(node, "muzzle", Vector3i(head_w / 2, head_w / 2, muzzle),
+	@warning_ignore("integer_division") _add_box(node, "muzzle", Vector3i(head_w / 2, head_w / 2, muzzle),
 		Vector3i(0, landmark_mm(EYE_PERMILLE, row, height) - drop - head_w / 4,
 			-(depth * 2 / 5 + muzzle / 2)))
 	_add_ears(node, row, skull, head_w, drop)
@@ -435,7 +435,7 @@ static func _add_ears(node: Node3D, row: int, skull: int, head_w: int, drop: int
 		return
 	for side: int in 2:
 		var sx: int = 1 if side == 0 else -1
-		_add_box(node, "ear_%d" % side, Vector3i(head_w * 9 / 20, rise, head_w / 6),
+		@warning_ignore("integer_division") _add_box(node, "ear_%d" % side, Vector3i(head_w * 9 / 20, rise, head_w / 6),
 			Vector3i(sx * head_w / 2, skull + rise / 2, 0))
 
 
@@ -444,16 +444,16 @@ static func _add_tail(node: Node3D, row: int, hip: int, width: int) -> void:
 	var length: int = landmark_mm(TAIL_PERMILLE, row, Dimensions.SPECIES_HEIGHT_MM[row])
 	if length <= 0:
 		return
-	var thickness: int = width / 4
-	_add_box(node, "tail", Vector3i(thickness, thickness, length),
+	@warning_ignore("integer_division") var thickness: int = width / 4
+	@warning_ignore("integer_division") _add_box(node, "tail", Vector3i(thickness, thickness, length),
 		Vector3i(0, hip - thickness, length / 2 + width / 2))
 
 
 static func _add_carried_basket(node: Node3D, row: int, hip: int, depth: int) -> void:
 	"""The carried-load proxy for the carrying pose: a basket-sized box held in front."""
 	var height: int = Dimensions.SPECIES_HEIGHT_MM[row]
-	var size: int = 280 * height / PERMILLE
-	_add_box(node, "carried_load", Vector3i(size, size * 3 / 4, size),
+	@warning_ignore("integer_division") var size: int = 280 * height / PERMILLE
+	@warning_ignore("integer_division") _add_box(node, "carried_load", Vector3i(size, size * 3 / 4, size),
 		Vector3i(0, hip + size / 3, -(depth + size / 2)))
 
 

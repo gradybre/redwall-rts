@@ -583,10 +583,10 @@ func _init(p_directory: EntityDirectory = null, p_jobs: JobsScript = null) -> vo
 	A Job store may be supplied so this store can own forage claims; when it is, its directory is
 	adopted, because a claim validates its owning Job reference through exactly one directory.
 	"""
-	assert(HARVEST_ZONE_CAPACITY
+	@warning_ignore("assert_always_true") assert(HARVEST_ZONE_CAPACITY
 			== EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_HARVEST_ZONE],
 		"harvest-zone columns must match the directory's HARVEST_ZONE row capacity")
-	assert(FORAGE_CLAIM_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_JOB],
+	@warning_ignore("assert_always_true") assert(FORAGE_CLAIM_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_JOB],
 		"claim rows are Job rows: decision 0030 indexes them by owning Job typed row")
 	_assert_forage_table()
 	_assert_quota_contracts()
@@ -1274,10 +1274,10 @@ func _normalise_quota_mode(slot: int) -> void:
 	INTERPRETATION: the ruling states the valid-use table and the Inherit default, and this is the
 	only operation in this module that turns a basin into a designation.
 	"""
-	var is_designation: bool = _zone_basin_slot[slot] != _zone_ref_slot[slot]
-	if is_designation and _zone_quota_mode[slot] == QUOTA_MODE_AUTOMATIC:
+	var designated: bool = _zone_basin_slot[slot] != _zone_ref_slot[slot]
+	if designated and _zone_quota_mode[slot] == QUOTA_MODE_AUTOMATIC:
 		_zone_quota_mode[slot] = QUOTA_MODE_INHERIT
-	elif not is_designation and _zone_quota_mode[slot] == QUOTA_MODE_INHERIT:
+	elif not designated and _zone_quota_mode[slot] == QUOTA_MODE_INHERIT:
 		_zone_quota_mode[slot] = QUOTA_MODE_AUTOMATIC
 
 
@@ -1340,7 +1340,7 @@ func create_patch(ref: Vector2i, kind: int, item_id: int) -> OpResult:
 	_patch_zone_slot[row] = ref.x
 	_patch_zone_generation[row] = ref.y
 	_patch_capacity_milli[row] = capacity
-	_patch_stock_milli[row] = capacity * INITIAL_STOCK_NUMERATOR / INITIAL_STOCK_DENOMINATOR
+	@warning_ignore("integer_division") _patch_stock_milli[row] = capacity * INITIAL_STOCK_NUMERATOR / INITIAL_STOCK_DENOMINATOR
 	_patch_harvested_year_milli[row] = 0
 	_zone_patch_count[slot] += 1
 	return _succeed(row, ref)
@@ -1718,7 +1718,7 @@ func automatic_allowance_milli_into(kind: int, season: int, out: IntMath.IntResu
 	if availability == 0:
 		return out.succeed(0)
 	var capacity: int = PATCH_CAPACITY_U[kind] * MILLI_PER_UNIT
-	var target: int = capacity * AUTOMATIC_TARGET_PER_1000 / AUTOMATIC_TARGET_DENOMINATOR
+	@warning_ignore("integer_division") var target: int = capacity * AUTOMATIC_TARGET_PER_1000 / AUTOMATIC_TARGET_DENOMINATOR
 	var headroom: int = capacity - target
 	if not IntMath.checked_mul_into(headroom, PATCH_REGROWTH_PER_1000[kind], out):
 		return out.refuse(String(REFUSE_OVERFLOW))
@@ -1928,7 +1928,7 @@ func harvestable_milli(ref: Vector2i, kind: int, season: int, intensive: bool)\
 	var designation_slot: int = out.value
 	if not patch_row_for_zone_into(ref, kind, out):
 		return out
-	_harvestable_into(designation_slot, out.value / PATCHES_PER_ZONE, kind, season, intensive, out)
+	@warning_ignore("integer_division") _harvestable_into(designation_slot, out.value / PATCHES_PER_ZONE, kind, season, intensive, out)
 	return out
 
 
@@ -1983,7 +1983,7 @@ func harvest_into(ref: Vector2i, kind: int, amount_milli: int, season: int, inte
 	if not patch_row_for_zone_into(ref, kind, out):
 		return false
 	var row: int = out.value
-	var basin_slot: int = row / PATCHES_PER_ZONE
+	@warning_ignore("integer_division") var basin_slot: int = row / PATCHES_PER_ZONE
 	var code: StringName = _check_harvest(ref, row, kind, amount_milli, season, intensive)
 	if code != REFUSE_NONE:
 		return out.refuse(String(code))
@@ -2041,7 +2041,7 @@ func _check_harvest_limits(ref: Vector2i, row: int, kind: int, amount_milli: int
 	The floor is reported separately from the reservation so a caller can tell "the ecology says
 	no" from "another job already promised this".
 	"""
-	var basin_slot: int = row / PATCHES_PER_ZONE
+	@warning_ignore("integer_division") var basin_slot: int = row / PATCHES_PER_ZONE
 	if not harvest_floor_milli_into(row, intensive, _math_c):
 		return StringName(_math_c.error)
 	if _patch_stock_milli[row] - amount_milli < _math_c.value:
@@ -2231,7 +2231,7 @@ func _check_claim_request(designation_ref: Vector2i, kind: int, amount_milli: in
 	if not patch_row_for_zone_into(designation_ref, kind, _math_c):
 		return StringName(_math_c.error)
 	_pending_patch_row = _math_c.value
-	_pending_basin_slot = _pending_patch_row / PATCHES_PER_ZONE
+	@warning_ignore("integer_division") _pending_basin_slot = _pending_patch_row / PATCHES_PER_ZONE
 	if amount_milli <= 0:
 		return REFUSE_INVALID_AMOUNT
 	if not availability_per_1000_into(kind, season, _math_c):
@@ -2346,7 +2346,7 @@ func _check_collect(row: int, amount_milli: int, season: int, intensive: bool) -
 	if not patch_row_for_zone_into(designation_ref, kind, _math_c):
 		return StringName(_math_c.error)
 	_pending_patch_row = _math_c.value
-	_pending_basin_slot = _pending_patch_row / PATCHES_PER_ZONE
+	@warning_ignore("integer_division") _pending_basin_slot = _pending_patch_row / PATCHES_PER_ZONE
 	if not harvest_floor_milli_into(_pending_patch_row, intensive, _math_c):
 		return StringName(_math_c.error)
 	if _patch_stock_milli[_pending_patch_row] - amount_milli < _math_c.value:
@@ -2739,7 +2739,7 @@ func restore_claim(job_ref: Vector2i, designation_ref: Vector2i, kind: int,
 	if not patch_row_for_zone_into(designation_ref, kind, _math):
 		return _refuse(StringName(_math.error))
 	_pending_patch_row = _math.value
-	_pending_basin_slot = _pending_patch_row / PATCHES_PER_ZONE
+	@warning_ignore("integer_division") _pending_basin_slot = _pending_patch_row / PATCHES_PER_ZONE
 	var row: int = _directory.get_typed_row(job_ref)
 	_write_claim(row, job_ref, designation_ref, kind, remaining_milli)
 	return _succeed(row, job_ref)
@@ -2910,7 +2910,7 @@ func completed_exposure_segments_into(before_wu: int, after_wu: int,
 		return out.refuse(String(REFUSE_INVALID_WORK))
 	if not IntMath.fits_int32(after_wu):
 		return out.refuse(String(REFUSE_INVALID_WORK))
-	return out.succeed(after_wu / EXPOSURE_SEGMENT_WU - before_wu / EXPOSURE_SEGMENT_WU)
+	@warning_ignore("integer_division") return out.succeed(after_wu / EXPOSURE_SEGMENT_WU - before_wu / EXPOSURE_SEGMENT_WU)
 
 
 func roll_injury_into(rng: Rng, natural_danger: int, forage_level: int,

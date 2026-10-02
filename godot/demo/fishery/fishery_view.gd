@@ -100,7 +100,7 @@ func _ice_sheet() -> ArrayMesh:
 	tool.set_normal(Vector3.UP)
 	var lo := Vector2(INF, INF)
 	var hi := Vector2(-INF, -INF)
-	for k: int in WaterLayout.POND_CIRCLES.size() / 4:
+	@warning_ignore("integer_division") for k: int in WaterLayout.POND_CIRCLES.size() / 4:
 		var r: float = WaterRules.to_m(WaterLayout.POND_CIRCLES[k * 4 + 2])
 		var c := Vector2(WaterRules.to_m(WaterLayout.POND_CIRCLES[k * 4]), WaterRules.to_m(WaterLayout.POND_CIRCLES[k * 4 + 1]))
 		lo = lo.min(c - Vector2(r, r))
@@ -118,7 +118,7 @@ func _ice_sheet() -> ArrayMesh:
 
 static func _in_pond(at: Vector2) -> bool:
 	"""Whether `at` (m) lies inside a pond circle less ICE_INSET_M."""
-	for k: int in WaterLayout.POND_CIRCLES.size() / 4:
+	@warning_ignore("integer_division") for k: int in WaterLayout.POND_CIRCLES.size() / 4:
 		var c := Vector2(WaterRules.to_m(WaterLayout.POND_CIRCLES[k * 4]), WaterRules.to_m(WaterLayout.POND_CIRCLES[k * 4 + 1]))
 		if at.distance_to(c) <= WaterRules.to_m(WaterLayout.POND_CIRCLES[k * 4 + 2]) - ICE_INSET_M:
 			return true

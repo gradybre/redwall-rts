@@ -1008,7 +1008,7 @@ func _integrate_axis(row: int, is_x: bool) -> int:
 		else ORTHOGONAL_NUMERATOR_FACTOR
 	var accumulated: int = _speed_u_per_s[row] * factor
 	accumulated += _remainder_x[row] if is_x else _remainder_z[row]
-	var released: int = accumulated / REMAINDER_DENOMINATOR
+	@warning_ignore("integer_division") var released: int = accumulated / REMAINDER_DENOMINATOR
 	var remainder: int = accumulated % REMAINDER_DENOMINATOR
 	if is_x:
 		_remainder_x[row] = remainder
@@ -1293,7 +1293,7 @@ static func _column_row_refusal(image: Columns, row: int) -> StringName:
 	var speed: int = image.speed_u_per_s[row]
 	if speed != 0 and ResidentsScript.SIZE_MOVEMENT_U_PER_S.find(speed) < 0:
 		return REFUSE_COLUMN_SPEED
-	var limit: int = (speed + TICKS_PER_SECOND - 1) / TICKS_PER_SECOND
+	@warning_ignore("integer_division") var limit: int = (speed + TICKS_PER_SECOND - 1) / TICKS_PER_SECOND
 	if not _is_within(image.vx[row], limit) or not _is_within(image.vz[row], limit):
 		return REFUSE_COLUMN_VELOCITY
 	if not _is_cell(image.grid_cell[row]) or not _is_cell(image.grid_next[row]):

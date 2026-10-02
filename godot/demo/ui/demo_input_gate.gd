@@ -115,9 +115,9 @@ func _init() -> void:
 	name = "DemoInputGate"
 
 
-func yield_to(shown: Callable) -> void:
-	"""While `shown()` is true let Enter and Space through untouched (the stall banner takes them itself)."""
-	_yield_to = shown
+func yield_to(is_up: Callable) -> void:
+	"""While `is_up()` is true let Enter and Space through untouched (the stall banner takes them itself)."""
+	_yield_to = is_up
 
 
 func defer_to(holds_input: Callable) -> void:

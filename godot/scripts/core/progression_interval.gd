@@ -191,13 +191,13 @@ static func _same_season_block(tick_a: int, tick_b: int) -> bool:
 	numbers the seasons consecutively from the epoch and equality of that block index is exactly
 	"the same winter of the same year". No multiplication, so nothing here can overflow.
 	"""
-	return SimClockScript.day_index_at(tick_a) / SimClockScript.DAYS_PER_SEASON \
+	@warning_ignore("integer_division") return SimClockScript.day_index_at(tick_a) / SimClockScript.DAYS_PER_SEASON \
 		== SimClockScript.day_index_at(tick_b) / SimClockScript.DAYS_PER_SEASON
 
 
 static func _season_of_day(day_zero: int) -> int:
 	"""Season ordinal of a zero-based day index, as `Calendar.set_tick()` computes it."""
-	return (day_zero % SimClockScript.DAYS_PER_YEAR) / SimClockScript.DAYS_PER_SEASON
+	@warning_ignore("integer_division") return (day_zero % SimClockScript.DAYS_PER_YEAR) / SimClockScript.DAYS_PER_SEASON
 
 
 static func _season_day_of_day(day_zero: int) -> int:
@@ -207,7 +207,7 @@ static func _season_day_of_day(day_zero: int) -> int:
 
 static func _year_of_day(day_zero: int) -> int:
 	"""One-based year of a zero-based day index."""
-	return day_zero / SimClockScript.DAYS_PER_YEAR + 1
+	@warning_ignore("integer_division") return day_zero / SimClockScript.DAYS_PER_YEAR + 1
 
 
 static func _tick_of_day(tick: int) -> int:

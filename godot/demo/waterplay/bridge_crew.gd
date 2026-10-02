@@ -454,7 +454,7 @@ func _step_work(row: int, brain: BrainScript, usec: int) -> void:
 func _whole_wu(row: int, level: int) -> int:
 	"""Whole WU in the step's elapsed time at `level` (the remainder is kept)."""
 	var per: int = _usec_per_wu(level)
-	var wu: int = elapsed_usec[row] / per
+	@warning_ignore("integer_division") var wu: int = elapsed_usec[row] / per
 	elapsed_usec[row] -= wu * per
 	return wu
 
@@ -476,7 +476,7 @@ func _credit(row: int, wu: int, cap_stage_wu: int) -> void:
 func _usec_per_wu(level: int) -> int:
 	"""Demo microseconds one WU takes at `level`, slowed on a storm day (§5.10)."""
 	var event: int = _weather.event() if _weather != null else -1
-	return Rules.work_usec(1, level) * Rules.PERMILLE / ForestRules.weather_permille(event)
+	@warning_ignore("integer_division") return Rules.work_usec(1, level) * Rules.PERMILLE / ForestRules.weather_permille(event)
 
 
 func _finish(row: int) -> void:

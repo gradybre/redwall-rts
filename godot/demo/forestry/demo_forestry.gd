@@ -194,7 +194,7 @@ func _seed_zones() -> void:
 
 static func _tile_xz(tile: int) -> Vector2i:
 	"""A tile index as its (x, z)."""
-	return Vector2i(tile % ResourceNodes.MAP_TILES_X, tile / ResourceNodes.MAP_TILES_X)
+	@warning_ignore("integer_division") return Vector2i(tile % ResourceNodes.MAP_TILES_X, tile / ResourceNodes.MAP_TILES_X)
 
 
 func _build_views() -> void:
@@ -264,8 +264,8 @@ func _follow_calendar() -> void:
 	if hour_index == _hour_index:
 		return
 	_hour_index = hour_index
-	var day: int = services.calendar.now().absolute_day
-	while _day < day:
+	var today: int = services.calendar.now().absolute_day
+	while _day < today:
 		_day += 1
 		daily(_day)
 	if services.weather.event() == WeatherCore.EVENT_HEAVY_RAIN and _storm_day != _day:
@@ -274,11 +274,11 @@ func _follow_calendar() -> void:
 	crew.raise_routine_jobs()
 
 
-func daily(day: int) -> void:
+func daily(on_day: int) -> void:
 	"""A midnight: regrow every stump and sapling whose 48 days are up and whose spot is free (the
 	store's `regrow`), and drop the day's deadfall."""
 	_matured.clear()
-	var held: int = stand.regrow_due(day, _occupied, _matured)
+	var held: int = stand.regrow_due(on_day, _occupied, _matured)
 	if not _matured.is_empty():
 		_post(NoticesScript.LEVEL_NOTE, text.matured_line(_matured))
 	if held > 0:

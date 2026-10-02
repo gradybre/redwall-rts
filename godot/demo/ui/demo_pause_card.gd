@@ -120,9 +120,9 @@ func refresh() -> bool:
 		var note: String = String(run_note.call()) if run_note.is_valid() else ""
 		if not note.is_empty():
 			_reasons.append(note)
-		var text: String = PAUSED_PREFIX + " · ".join(_reasons)
-		if text != _text.text:
-			_text.text = text
+		var line: String = PAUSED_PREFIX + " · ".join(_reasons)
+		if line != _text.text:
+			_text.text = line
 			_place.call_deferred()
 		_paint_resume()
 	var over: bool = shown and modal_open.is_valid() and bool(modal_open.call())

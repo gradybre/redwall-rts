@@ -155,14 +155,14 @@ func _draw_planks(row: int, holder: Node3D, length: float, share: float) -> void
 	"""Boards laid across the deck line every PLANK_PITCH_M from the near footing, `share` of the way."""
 	var a: Vector2 = _bridges.deck_end(row, false)
 	var along: Vector2 = (_bridges.deck_end(row, true) - a).normalized()
-	var basis := Basis.looking_at(Vector3(along.orthogonal().x, 0.0, along.orthogonal().y), Vector3.UP)
+	var facing := Basis.looking_at(Vector3(along.orthogonal().x, 0.0, along.orthogonal().y), Vector3.UP)
 	var boards: int = floori(length / PLANK_PITCH_M * share)
 	for k: int in boards:
 		var d: float = (float(k) + 0.5) * PLANK_PITCH_M
 		var at: Vector2 = a + along * d
 		var board := MeshInstance3D.new()
 		board.mesh = _plank_mesh
-		board.transform = Transform3D(basis, Vector3(at.x, _bridges.deck_y_m(row, d / length) - 0.03, at.y))
+		board.transform = Transform3D(facing, Vector3(at.x, _bridges.deck_y_m(row, d / length) - 0.03, at.y))
 		holder.add_child(board)
 
 
@@ -184,13 +184,13 @@ func _segment(row: int, key: StringName, t0: float, t1: float, width: float, hei
 	var from: Vector2 = a.lerp(b, t0)
 	var to: Vector2 = a.lerp(b, t1)
 	var bound: AABB = _props.drawn_bound(key)
-	var scale := Vector3(from.distance_to(to) / maxf(bound.size.x, 1e-3), height / maxf(bound.size.y, 1e-3),
+	var stretch := Vector3(from.distance_to(to) / maxf(bound.size.x, 1e-3), height / maxf(bound.size.y, 1e-3),
 		width / maxf(bound.size.z, 1e-3))
 	var along := Vector3((to - from).normalized().x, 0.0, (to - from).normalized().y)
-	var basis := Basis(along, Vector3.UP, along.cross(Vector3.UP))
+	var facing := Basis(along, Vector3.UP, along.cross(Vector3.UP))
 	var ground: float = lerpf(_bridges.footing_y_a[row], _bridges.footing_y_b[row], (t0 + t1) * 0.5)
 	var node: MeshInstance3D = _props.instance(key)
-	node.transform = Transform3D(basis * Basis.from_scale(scale), Vector3((from.x + to.x) * 0.5, ground, (from.y + to.y) * 0.5)) * _props.fit_of(key)
+	node.transform = Transform3D(facing * Basis.from_scale(stretch), Vector3((from.x + to.x) * 0.5, ground, (from.y + to.y) * 0.5)) * _props.fit_of(key)
 	return node
 
 

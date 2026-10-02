@@ -57,6 +57,8 @@ var _nodes: Array[Object] = []
 var _services: ServicesScript = null
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _borrowed: WaterPlayTest = null
+## Every rig a test built: its farm crew holds a lambda that holds the rig, a cycle after_each breaks.
+var _rigs: Array[Rig] = []
 
 
 ## The whole rig: one cast in the village layout, the farm crew, the woods and the water over it, and the board.
@@ -85,6 +87,10 @@ func after_each() -> void:
 				(node as Node).get_parent().remove_child(node)
 			node.free()
 	_nodes.clear()
+	for rig: Rig in _rigs:
+		rig.farm = null
+		rig.board = null
+	_rigs.clear()
 	_borrowed = null
 
 
@@ -108,6 +114,7 @@ func _rig(manager: GameManagerScript = null) -> Rig:
 	var links: LinksScript = WaterplayScript.make_links(WaterPlayTest._map(), circles)
 	circles.append_array(links.band)
 	var rig := Rig.new()
+	_rigs.append(rig)
 	rig.cast = _keep(DemoCastScript.new()) as DemoCastScript
 	rig.cast.build({}, world.points_of_interest(), circles, links.area)
 	rig.cast.set_bounds(WaterplayScript.walk_bounds(world.bounds()))

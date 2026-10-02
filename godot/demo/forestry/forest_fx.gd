@@ -48,26 +48,26 @@ func build() -> void:
 		_dust.append(_dust_emitter())
 
 
-func _emitter(amount: int, size_m: float, colour: Color, burst: bool) -> CPUParticles3D:
+func _emitter(amount: int, size_m: float, colour: Color, is_burst: bool) -> CPUParticles3D:
 	"""One emitter of small tumbling quads of this colour: steady chips, or a one-shot leaf burst."""
 	var p := CPUParticles3D.new()
 	p.amount = amount
 	p.emitting = false
-	p.one_shot = burst
-	p.explosiveness = 0.85 if burst else 0.0
-	p.lifetime = 2.6 if burst else 0.9
+	p.one_shot = is_burst
+	p.explosiveness = 0.85 if is_burst else 0.0
+	p.lifetime = 2.6 if is_burst else 0.9
 	p.mesh = _quad(size_m, colour)
 	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
-	p.emission_sphere_radius = LEAF_SPREAD_M if burst else 0.25
+	p.emission_sphere_radius = LEAF_SPREAD_M if is_burst else 0.25
 	p.direction = Vector3.UP
-	p.spread = 70.0 if burst else 55.0
-	p.initial_velocity_min = 0.6 if burst else 1.8
-	p.initial_velocity_max = 2.4 if burst else 3.4
-	p.gravity = Vector3(0.0, -1.6 if burst else -9.0, 0.0)
+	p.spread = 70.0 if is_burst else 55.0
+	p.initial_velocity_min = 0.6 if is_burst else 1.8
+	p.initial_velocity_max = 2.4 if is_burst else 3.4
+	p.gravity = Vector3(0.0, -1.6 if is_burst else -9.0, 0.0)
 	p.angular_velocity_min = -360.0
 	p.angular_velocity_max = 360.0
-	p.damping_min = 0.8 if burst else 0.0
-	p.damping_max = 1.6 if burst else 0.0
+	p.damping_min = 0.8 if is_burst else 0.0
+	p.damping_max = 1.6 if is_burst else 0.0
 	p.scale_amount_min = 0.7
 	p.scale_amount_max = 1.3
 	add_child(p)

@@ -137,8 +137,8 @@ func _state_key(bed: int) -> int:
 	var stage: int = _sim.stage_of(bed)
 	var item: int = _sim.item_of(bed) + 1
 	var chosen: int = _sim.chosen_of(bed) + 1
-	var growth: int = _sim.growth_permille(bed) / BedVisualScript.GROWTH_STEP
-	var ripe: int = _ripe_hours(bed) / 24
+	@warning_ignore("integer_division") var growth: int = _sim.growth_permille(bed) / BedVisualScript.GROWTH_STEP
+	@warning_ignore("integer_division") var ripe: int = _ripe_hours(bed) / 24
 	var marks: int = (1 if _selected == bed else 0) + 2 * overlay_mode
 	var works: int = (1 if _sim.is_covered(bed) else 0) + (2 if _sim.is_raised(bed) else 0) \
 		+ (4 if _sim.is_banked(bed) else 0) + (8 if _sim.is_ditched(bed) else 0)

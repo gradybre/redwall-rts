@@ -218,9 +218,9 @@ func _push(cost: int, hops: int, node: int) -> void:
 	_heap_hops[i] = hops
 	_heap_node[i] = node
 	_heap_size += 1
-	while i > 0 and _before(i, (i - 1) / 2):
-		_swap(i, (i - 1) / 2)
-		i = (i - 1) / 2
+	@warning_ignore("integer_division") while i > 0 and _before(i, (i - 1) / 2):
+		@warning_ignore("integer_division") _swap(i, (i - 1) / 2)
+		@warning_ignore("integer_division") i = (i - 1) / 2
 
 
 func _pop() -> void:

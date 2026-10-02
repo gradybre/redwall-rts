@@ -311,7 +311,7 @@ func test_every_roll_of_every_season_maps_to_the_ruled_row() -> void:
 	"""Exhaustive: every roll in [0, weight_sum) lands in the ruled interval that contains it."""
 	for season: int in 4:
 		var map: Array[int] = _map_of(season)
-		for triple: int in map.size() / 3:
+		@warning_ignore("integer_division") for triple: int in map.size() / 3:
 			var event: int = map[triple * 3]
 			for roll: int in range(map[triple * 3 + 1], map[triple * 3 + 2] + 1):
 				var result: IntMath.IntResult = _weather.event_for_roll(season, roll)
@@ -323,7 +323,7 @@ func test_both_sides_of_every_interval_boundary() -> void:
 	"""Each interval's first and last roll select it; one below and one above select a neighbour."""
 	for season: int in 4:
 		var map: Array[int] = _map_of(season)
-		for triple: int in map.size() / 3:
+		@warning_ignore("integer_division") for triple: int in map.size() / 3:
 			_check_interval_edges(season, map, triple)
 
 
@@ -370,7 +370,7 @@ func test_each_interval_is_exactly_as_wide_as_its_raw_weight() -> void:
 	"""No percentage normalisation: an interval's width IS §5.10's raw integer weight."""
 	for season: int in 4:
 		var map: Array[int] = _map_of(season)
-		for triple: int in map.size() / 3:
+		@warning_ignore("integer_division") for triple: int in map.size() / 3:
 			var event: int = map[triple * 3]
 			var width: int = map[triple * 3 + 2] - map[triple * 3 + 1] + 1
 			assert_equal(width, WEIGHTS[event],
@@ -943,7 +943,7 @@ func test_the_published_moisture_probe_is_reproduced_day_by_day() -> void:
 	for day: int in range(2, PROBE_MOISTURE.size() + 1):
 		var calendar: SimClock.Calendar = SimClock.calendar_at(
 			(day - 1) * SimClock.TICKS_PER_DAY + SimClock.CALENDAR_OFFSET_TICKS)
-		var event: int = _weather.active_event_on((day - 1) / DAYS_PER_SEASON,
+		@warning_ignore("integer_division") var event: int = _weather.active_event_on((day - 1) / DAYS_PER_SEASON,
 			calendar.season_day)
 		var result: IntMath.IntResult = _weather.moisture_after_day(
 			moisture, calendar.season, event)

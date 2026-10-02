@@ -36,8 +36,8 @@ static func alcove_scale(angle: float, alcoves: PackedFloat32Array, depth_share:
 	for middle in alcoves:
 		var off := absf(angle_difference(angle, middle))
 		if off < ALCOVE_HALF_RAD:
-			var ease := cos(PI * 0.5 * off / ALCOVE_HALF_RAD)
-			bump = maxf(bump, ease * ease)
+			var swell := cos(PI * 0.5 * off / ALCOVE_HALF_RAD)
+			bump = maxf(bump, swell * swell)
 	var lobe := 0.0
 	for middle in nooks:
 		lobe = maxf(lobe, nook_bump(absf(angle_difference(angle, middle))))
@@ -50,8 +50,8 @@ static func nook_bump(off: float) -> float:
 		return 1.0
 	if off >= RoomsScript.NOOK_FLAT_RAD + RoomsScript.NOOK_EASE_RAD:
 		return 0.0
-	var ease := cos(PI * 0.5 * (off - RoomsScript.NOOK_FLAT_RAD) / RoomsScript.NOOK_EASE_RAD)
-	return ease * ease
+	var eased := cos(PI * 0.5 * (off - RoomsScript.NOOK_FLAT_RAD) / RoomsScript.NOOK_EASE_RAD)
+	return eased * eased
 
 
 static func build_round(mesh: ArrayMesh, centre: Vector3, radius: float, crown: float, openings: PackedFloat32Array,

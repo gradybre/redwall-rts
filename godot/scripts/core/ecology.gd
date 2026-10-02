@@ -236,11 +236,11 @@ func _adopt_directory(p_directory: EntityDirectory, p_jobs: JobsScript) -> Entit
 
 func _assert_calendar_contracts() -> void:
 	"""Prove the two calendar facts the year-boundary test hangs off, rather than trusting them."""
-	assert(SimClock.SEASON_NAMES[SEASON_SPRING] == "spring",
+	@warning_ignore("assert_always_true") assert(SimClock.SEASON_NAMES[SEASON_SPRING] == "spring",
 		"SEASON_SPRING must index the calendar's spring, which opens a year")
 	assert(SimClock.calendar_at(SimClock.FIRST_MIDNIGHT_TICK).absolute_day == 2,
 		"the first offset-calendar midnight must open absolute day 2")
-	assert(SimClock.DAYS_PER_YEAR == SimClock.DAYS_PER_SEASON * SimClock.SEASONS_PER_YEAR,
+	@warning_ignore("assert_always_true") assert(SimClock.DAYS_PER_YEAR == SimClock.DAYS_PER_SEASON * SimClock.SEASONS_PER_YEAR,
 		"a year must be exactly its four seasons, or the year boundary is not spring day 1")
 
 

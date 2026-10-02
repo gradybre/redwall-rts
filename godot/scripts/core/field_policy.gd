@@ -498,18 +498,18 @@ func _assert_borrowed_contracts() -> void:
 	Every number here belongs to another document or module. A drift assert is cheaper than a
 	store that silently addresses 128 rows of a 256-row owner class.
 	"""
-	assert(FIELD_CAPACITY == ForageScript.HARVEST_ZONE_CAPACITY,
+	@warning_ignore("assert_always_true") assert(FIELD_CAPACITY == ForageScript.HARVEST_ZONE_CAPACITY,
 		"FieldPolicy rows must equal §4.2's HarvestZone capacity")
-	assert(PLOT_CAPACITY == FarmingScript.FARM_PLOT_CAPACITY,
+	@warning_ignore("assert_always_true") assert(PLOT_CAPACITY == FarmingScript.FARM_PLOT_CAPACITY,
 		"the enrolment ledger must equal farming.gd's FarmPlot capacity")
 	assert(ROTATION_LENGTH == DEFAULT_ROTATION.size(),
 		"§4.2's rotation_ids is int32[3] and the default cycle has three entries")
 	assert(REQUEST_BLOCKED_REASONS.size() == REQUEST_STATE_COUNT,
 		"every request state must map to exactly one REQ-SET-077 reason")
-	assert(SEED_GATE_UNAVAILABLE != JobsScript.GATE_SATISFIED,
+	@warning_ignore("assert_always_true") assert(SEED_GATE_UNAVAILABLE != JobsScript.GATE_SATISFIED,
 		"REQ-SET-088's gate must never read as satisfied")
-	assert(not DEFAULT_AUTO_ROTATION, "the ruling's FieldPolicy default is auto_rotation=false")
-	assert(DEFAULT_SEED_RESERVE, "the ruling's FieldPolicy default is seed_reserve=true")
+	@warning_ignore("assert_always_true") assert(not DEFAULT_AUTO_ROTATION, "the ruling's FieldPolicy default is auto_rotation=false")
+	@warning_ignore("assert_always_true") assert(DEFAULT_SEED_RESERVE, "the ruling's FieldPolicy default is seed_reserve=true")
 
 
 func _allocate_columns() -> void:
@@ -1092,7 +1092,7 @@ func _classify_window(crop_id: int, tick: int) -> int:
 		return REQUEST_READY
 	var seen_any: bool = false
 	for ordinal: int in SimClock.DAYS_PER_YEAR:
-		if not _farming.is_plant_window(crop_id, ordinal / SimClock.DAYS_PER_SEASON,
+		@warning_ignore("integer_division") if not _farming.is_plant_window(crop_id, ordinal / SimClock.DAYS_PER_SEASON,
 				ordinal % SimClock.DAYS_PER_SEASON + 1):
 			continue
 		seen_any = true

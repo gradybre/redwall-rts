@@ -192,11 +192,11 @@ var _preview: Driver.Preview = Driver.Preview.new()
 var _tasks: Array = []
 
 
-func configure(cast: DemoCastScript, water_driver: Driver, p_pantry: PantryScript, p_takes: TakesScript,
+func configure(p_cast: DemoCastScript, water_driver: Driver, p_pantry: PantryScript, p_takes: TakesScript,
 		p_stores: StoresScript, p_calendar: CalendarScript, p_weather: DemoWeatherScript, water_map: WaterMapScript) -> void:
 	"""Wire the fishery into the village: its cast, the fishing driver (none: nobody fishes), the pantry and the
 	kitchen's takes, the stores, the calendar, the weather and the water map."""
-	_cast = cast
+	_cast = p_cast
 	driver = water_driver
 	pantry = p_pantry
 	takes = p_takes
@@ -207,8 +207,8 @@ func configure(cast: DemoCastScript, water_driver: Driver, p_pantry: PantryScrip
 	if not locker.open():
 		push_warning("fishery: the gear locker did not open (%s); no gear" % locker.error)
 	var keys: Array[StringName] = []
-	for who: int in cast.actor_count():
-		keys.append((cast.actor(who) as DemoActorScript).creature_key)
+	for who: int in p_cast.actor_count():
+		keys.append((p_cast.actor(who) as DemoActorScript).creature_key)
 	skills.setup(keys)
 	_tasks.resize(Tables.MAX_JOBS)
 	_find_places()
@@ -414,12 +414,12 @@ func _ice_refusal(method: int, site: int) -> String:
 	if method != Rules.METHOD_ICE:
 		if not ice.frozen():
 			return ""
-		return _refuse("ICE_COVERS", "ice covers the pond (%d mm): no boat, net or trap" % ice.millimetres(),
+		@warning_ignore("integer_division") return _refuse("ICE_COVERS", "ice covers the pond (%d mm): no boat, net or trap" % ice.millimetres(),
 			"Ice fishing, once the ice is safe (%d mm)" % (IceScript.SAFE_UM / 1000))
 	if not ice.frozen():
 		return _refuse("NO_ICE", "the pond is open water: ice fishing waits for winter ice", "net, trap or boat instead")
 	if not ice.safe():
-		return _refuse("THIN_ICE", "the ice is thin (%d mm; safe from %d mm)" % [ice.millimetres(), IceScript.SAFE_UM / 1000],
+		@warning_ignore("integer_division") return _refuse("THIN_ICE", "the ice is thin (%d mm; safe from %d mm)" % [ice.millimetres(), IceScript.SAFE_UM / 1000],
 			_thin_fix())
 	return ""
 
@@ -609,7 +609,7 @@ func _assign_selected(t: int, members: PackedInt32Array) -> void:
 func estimate_ticks(method: int) -> int:
 	"""Calendar ticks a trip of `method` is reckoned to take from authorising to landing, at FISH 0 (the card's
 	"about"; the deadline adds OVERDUE_MARGIN_TICKS): its work, a trap's soak, and a game hour for the walks (DEMO)."""
-	var work: int = Rules.METHOD_WORK_MWU[method] / Rules.METHOD_CREW[method]
+	@warning_ignore("integer_division") var work: int = Rules.METHOD_WORK_MWU[method] / Rules.METHOD_CREW[method]
 	var ticks: int = Rules.work_ticks(work, 0) + SimClock.TICKS_PER_HOUR
 	if method == Rules.METHOD_TRAP:
 		ticks += Rules.TRAP_SOAK_HOURS * SimClock.TICKS_PER_HOUR + Rules.work_ticks(Rules.TRAP_COLLECT_MWU, 0)
@@ -1123,7 +1123,7 @@ func _at_water(j: int, brain: BrainScript) -> void:
 	_refused_at_water(t, j, why)
 
 
-func _refused_at_water(t: int, j: int, why: String) -> void:
+func _refused_at_water(t: int, _j: int, why: String) -> void:
 	"""The recheck at the water refused: said once (until the reason changes), the crew stood down -- the gear back in
 	the locker -- and the trip left on the board to be checked again (REQ-SET-052: the queued order is preserved)."""
 	if tables.t_words[t] != why:
@@ -1189,7 +1189,7 @@ func _need_of(j: int) -> int:
 	match tables.j_kind[j]:
 		Tables.KIND_SEAT:
 			var method: int = tables.t_method[tables.j_trip[j]]
-			return Rules.METHOD_WORK_MWU[method] / Rules.METHOD_CREW[method]
+			@warning_ignore("integer_division") return Rules.METHOD_WORK_MWU[method] / Rules.METHOD_CREW[method]
 		Tables.KIND_COLLECT:
 			return Rules.TRAP_COLLECT_MWU
 		Tables.KIND_DRY:
@@ -1248,7 +1248,7 @@ func _credit_work(usec: int) -> void:
 		var fishing: bool = tables.j_kind[j] <= Tables.KIND_COLLECT
 		var who: int = tables.j_worker[j]
 		tables.j_num[j] += Rules.mwu_numerator(usec, skills.level_of(who) if fishing else 0)
-		var done: int = tables.j_num[j] / Rules.MWU_DENOMINATOR
+		@warning_ignore("integer_division") var done: int = tables.j_num[j] / Rules.MWU_DENOMINATOR
 		tables.j_num[j] -= done * Rules.MWU_DENOMINATOR
 		if fishing:
 			skills.add_work(who, done)
@@ -1478,7 +1478,7 @@ func _deck_walk(brain: BrainScript, target: Vector2, y_m: float, delta: float) -
 	return false
 
 
-func _afloat_frame(j: int, brain: BrainScript, delta: float) -> void:
+func _afloat_frame(j: int, brain: BrainScript, _delta: float) -> void:
 	"""Aboard: in its seat wherever the boat is; the helm sets off once both are seated (a called-off trip does not);
 	rowing, the helm pulls; on station both work the catch (credited in `update`); moored again, both step off."""
 	var t: int = tables.j_trip[j]
@@ -1532,7 +1532,7 @@ func _boat_catch(t: int) -> void:
 		if j >= 0 and tables.j_live[j] == 1 and tables.j_worker[j] != NONE:
 			levels.append(skills.level_of(tables.j_worker[j]))
 	var milli: int = complete_cycle(t, levels)
-	var first: int = (milli + 1) / 2
+	@warning_ignore("integer_division") var first: int = (milli + 1) / 2
 	_take_load(tables.t_seat_job[t * 2], tables.t_item[t], first)
 	var second: int = tables.t_seat_job[t * 2 + 1]
 	if second >= 0 and tables.j_live[second] == 1 and milli - first > 0:
@@ -1547,12 +1547,12 @@ func _boat_catch(t: int) -> void:
 
 func _row_boats(usec: int) -> void:
 	"""The boats row on the demo clock; the crews' work on station is credited with everyone else's."""
-	var arrived: int = fleet.step(usec)
+	var arrived_mask: int = fleet.step(usec)
 	_credit_work(usec)
-	if arrived != 0:
+	if arrived_mask != 0:
 		revision += 1
 	for boat: int in fleet.count:
-		if arrived & (1 << boat) and fleet.phase[boat] == FleetScript.PHASE_MOORED:
+		if arrived_mask & (1 << boat) and fleet.phase[boat] == FleetScript.PHASE_MOORED:
 			fleet.cargo_item[boat] = FleetScript.NO_ITEM
 			fleet.cargo_milli[boat] = 0
 
@@ -1957,7 +1957,7 @@ func _unwind_station(j: int) -> void:
 		pantry.release(tables.s_hold[slot])
 		tables.s_hold[slot] = NONE
 	if (kind == Tables.KIND_DRY or kind == Tables.KIND_MILL) and tables.j_started[j] == 1:
-		var spoil: int = (Rules.DRY_IN_MILLI if kind == Tables.KIND_DRY else Rules.MILL_IN_MILLI) * Rules.CANCEL_SPOIL_PERMILLE / 1000
+		@warning_ignore("integer_division") var spoil: int = (Rules.DRY_IN_MILLI if kind == Tables.KIND_DRY else Rules.MILL_IN_MILLI) * Rules.CANCEL_SPOIL_PERMILLE / 1000
 		pantry.spoiled_milli += spoil
 		spoiled_by_cancel_milli += spoil
 	if (kind == Tables.KIND_MAKE or kind == Tables.KIND_MEND) and tables.j_started[j] == 1:

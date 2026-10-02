@@ -123,14 +123,14 @@ func _oracle_local_to_global(local: int, hall_x: int, hall_z: int) -> int:
 	var interior_x: int = hall_x + 1
 	var interior_z: int = hall_z + 1
 	var lx: int = local % 10
-	var lz: int = local / 10
+	@warning_ignore("integer_division") var lz: int = local / 10
 	return (interior_z + lz) * 128 + (interior_x + lx)
 
 
 func _oracle_room_of_local(local: int) -> int:
 	"""Which room ordinal owns an interior-local tile, per the contract's own bounds table."""
 	var x: int = local % 10
-	var z: int = local / 10
+	@warning_ignore("integer_division") var z: int = local / 10
 	for ordinal in ROOM_BOUNDS.size():
 		var b: Array = ROOM_BOUNDS[ordinal]
 		if x >= b[0] and x <= b[1] and z >= b[2] and z <= b[3]:
@@ -764,16 +764,16 @@ func _load_layout_reference() -> Dictionary:
 	return parsed
 
 
-func _typed_array(reference: Dictionary, key: String) -> Array:
+func _typed_array(layout: Dictionary, key: String) -> Array:
 	"""The Array at `key`, guarded: key present and its value actually an Array. Empty, having
 	recorded a failure, otherwise -- never an unsafe subscript on a missing/wrong-typed key."""
-	if not reference.has(key):
+	if not layout.has(key):
 		fail("layout-reference.json must carry '%s'" % key)
 		return []
-	if not (reference[key] is Array):
+	if not (layout[key] is Array):
 		fail("layout-reference.json's '%s' must be an Array" % key)
 		return []
-	return reference[key]
+	return layout[key]
 
 
 func _int_or_fail(value: Variant, message: String) -> int:
@@ -797,8 +797,8 @@ func _int_array_guarded(values: Array, message: String) -> Array:
 
 func test_frozen_layout_reference_diagram_matches_the_oracle() -> void:
 	"""The reference's own 'diagram' rows must equal the eight frozen literal oracle rows."""
-	var reference: Dictionary = _load_layout_reference()
-	var loaded: Array = _typed_array(reference, "diagram")
+	var layout: Dictionary = _load_layout_reference()
+	var loaded: Array = _typed_array(layout, "diagram")
 	assert_equal(loaded.size(), DIAGRAM_ORACLE.size(), "diagram row count")
 	for row: int in range(mini(loaded.size(), DIAGRAM_ORACLE.size())):
 		if not (loaded[row] is String):
@@ -827,8 +827,8 @@ func _assert_reference_furniture_row(loaded: Dictionary, expected: Dictionary, r
 
 func test_frozen_layout_reference_furniture_matches_the_oracle() -> void:
 	"""All 31 floor_furniture rows, guarded row-by-row, must equal FURNITURE_ORACLE."""
-	var reference: Dictionary = _load_layout_reference()
-	var loaded: Array = _typed_array(reference, "floor_furniture")
+	var layout: Dictionary = _load_layout_reference()
+	var loaded: Array = _typed_array(layout, "floor_furniture")
 	assert_equal(loaded.size(), FURNITURE_ORACLE.size(), "furniture entry count agrees with the reference")
 	for row: int in range(mini(loaded.size(), FURNITURE_ORACLE.size())):
 		if not (loaded[row] is Dictionary):
@@ -837,11 +837,11 @@ func test_frozen_layout_reference_furniture_matches_the_oracle() -> void:
 		_assert_reference_furniture_row(loaded[row], FURNITURE_ORACLE[row], row)
 
 
-func _reference_edge_triples(reference: Dictionary) -> Array:
+func _reference_edge_triples(layout: Dictionary) -> Array:
 	"""Every partition + the one door edge, guarded (length-2 pairs only) and merged into
 	[a, b, kind_key] triples sorted ascending by tile_a, mirroring EDGE_ORACLE's own order."""
-	var partitions: Array = _typed_array(reference, "solid_partition_edges")
-	var door: Array = _typed_array(reference, "door_edge")
+	var partitions: Array = _typed_array(layout, "solid_partition_edges")
+	var door: Array = _typed_array(layout, "door_edge")
 	var triples: Array = []
 	for pair: Variant in partitions:
 		if not (pair is Array) or pair.size() != 2:
@@ -858,8 +858,8 @@ func _reference_edge_triples(reference: Dictionary) -> Array:
 
 func test_frozen_layout_reference_edges_match_the_oracle() -> void:
 	"""The reference's 7 partitions + 1 door, merged and sorted, must equal all 8 EDGE_ORACLE rows."""
-	var reference: Dictionary = _load_layout_reference()
-	var triples: Array = _reference_edge_triples(reference)
+	var layout: Dictionary = _load_layout_reference()
+	var triples: Array = _reference_edge_triples(layout)
 	assert_equal(triples.size(), EDGE_ORACLE.size(), "partition + door edge count agrees with the reference")
 	for row: int in range(mini(triples.size(), EDGE_ORACLE.size())):
 		var loaded_edge: Array = triples[row]
@@ -885,13 +885,13 @@ func _oracle_walk_tiles() -> Array:
 func test_frozen_layout_reference_exit_and_walk_tiles_match_the_oracle() -> void:
 	"""The reference's exit_interior_tile and walk/reachable tile sets, guarded, against the
 	literal oracle and against this suite's own footprint-derived reconstruction."""
-	var reference: Dictionary = _load_layout_reference()
-	if reference.has("exit_interior_tile"):
-		assert_equal(_int_or_fail(reference["exit_interior_tile"], "exit_interior_tile"), EXIT_INTERIOR_LOCAL, "reference exit interior tile agrees with the literal oracle")
+	var layout: Dictionary = _load_layout_reference()
+	if layout.has("exit_interior_tile"):
+		assert_equal(_int_or_fail(layout["exit_interior_tile"], "exit_interior_tile"), EXIT_INTERIOR_LOCAL, "reference exit interior tile agrees with the literal oracle")
 	else:
 		fail("layout-reference.json must carry 'exit_interior_tile'")
-	var loaded_walk: Array = _int_array_guarded(_typed_array(reference, "walk_tiles"), "walk_tiles")
-	var loaded_reachable: Array = _int_array_guarded(_typed_array(reference, "reachable_walk_tiles"), "reachable_walk_tiles")
+	var loaded_walk: Array = _int_array_guarded(_typed_array(layout, "walk_tiles"), "walk_tiles")
+	var loaded_reachable: Array = _int_array_guarded(_typed_array(layout, "reachable_walk_tiles"), "reachable_walk_tiles")
 	assert_equal(loaded_walk, loaded_reachable, "reference walk_tiles and reachable_walk_tiles agree with each other")
 	assert_equal(loaded_walk.size(), 47, "reference walk tile count matches the contract's 47")
 	assert_equal(loaded_walk, _oracle_walk_tiles(), "reference walk tiles equal 80 interior tiles minus this oracle's own footprints")

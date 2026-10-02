@@ -69,7 +69,7 @@ func row_cost_m(at: Vector2) -> float:
 	return ROW_WEIGHT * Routes.m_of(Routes.BERTH_U[boat]).distance_to(at)
 
 
-func make_task(motion: RefCounted, victim: RefCounted, victim_task: RefCounted, on_ashore: Callable) -> TaskBase:
+func make_task(_motion: RefCounted, victim: RefCounted, victim_task: RefCounted, on_ashore: Callable) -> TaskBase:
 	"""The task that sends a crew out to `victim` (held by `victim_task`) in the boat that can reach it; null when
 	none can now."""
 	var boat: int = boat_for(victim.get(&"position"))
@@ -185,7 +185,7 @@ class BoatRescue extends "res://demo/tunnel/tunnel_task.gd":
 			fleet.row_back(boat)
 			phase = PHASE_BACK
 
-	func _row_back(brain: RefCounted, fleet: FleetScript) -> void:
+	func _row_back(_brain: RefCounted, fleet: FleetScript) -> void:
 		"""Home to the berth, the victim aboard."""
 		if _with_victim:
 			_place_victim(fleet)

@@ -733,7 +733,7 @@ static func _patch_component_gate(zones: ForageComponents, out: Result) -> bool:
 							NULL_SLOT, NULL_GENERATION],
 					OWNER_FORAGE, SPACE_PATCH, row)
 			continue
-		var zone_row: int = row / PATCHES_PER_ZONE
+		@warning_ignore("integer_division") var zone_row: int = row / PATCHES_PER_ZONE
 		if zones.zone_present[zone_row] != 1:
 			return _refuse(out, CLAIM_CHECK_COMPONENT,
 				"present patch row %d is owned by zone row %d, which is absent" % [row, zone_row],

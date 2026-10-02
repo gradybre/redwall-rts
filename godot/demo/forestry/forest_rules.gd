@@ -93,8 +93,8 @@ static func tile_of_into(at: Vector2, out: IntMath.IntResult) -> bool:
 	var x_u: int = roundi(at.x * UNITS_PER_M)
 	var z_u: int = roundi(at.y * UNITS_PER_M)
 	var size: int = ResourceNodes.TILE_SIZE_UNITS
-	var tile_x: int = TILE_ORIGIN + (x_u - posmod(x_u, size)) / size
-	var tile_z: int = TILE_ORIGIN + (z_u - posmod(z_u, size)) / size
+	@warning_ignore("integer_division") var tile_x: int = TILE_ORIGIN + (x_u - posmod(x_u, size)) / size
+	@warning_ignore("integer_division") var tile_z: int = TILE_ORIGIN + (z_u - posmod(z_u, size)) / size
 	if tile_x < 0 or tile_z < 0 or tile_x >= ResourceNodes.MAP_TILES_X or tile_z >= ResourceNodes.MAP_TILES_Z:
 		return out.refuse(REFUSE_OFF_GRID)
 	return out.succeed(tile_z * ResourceNodes.MAP_TILES_X + tile_x)
@@ -103,7 +103,7 @@ static func tile_of_into(at: Vector2, out: IntMath.IntResult) -> bool:
 static func tile_centre_m(tile: int) -> Vector2:
 	"""A tile's centre as a demo point (presentation)."""
 	var x: int = tile % ResourceNodes.MAP_TILES_X - TILE_ORIGIN
-	var z: int = tile / ResourceNodes.MAP_TILES_X - TILE_ORIGIN
+	@warning_ignore("integer_division") var z: int = tile / ResourceNodes.MAP_TILES_X - TILE_ORIGIN
 	var half: float = float(ResourceNodes.TILE_CENTER_OFFSET_UNITS) / float(UNITS_PER_M)
 	var size: float = float(ResourceNodes.TILE_SIZE_UNITS) / float(UNITS_PER_M)
 	return Vector2(x * size + half, z * size + half)
@@ -137,14 +137,14 @@ static func weather_permille(event: int) -> int:
 static func work_usec(wu: int, level: int, season_pm: int, speed_pm: int) -> int:
 	"""Demo microseconds a job of `wu` WU takes: WU x USEC_PER_WU, divided by the skill factor and by
 	the weather's speed, times the season's share -- integer, never below MIN_WORK_USEC."""
-	var base: int = wu * USEC_PER_WU * season_pm / PERMILLE
-	var usec: int = base * PERMILLE / skill_factor_permille(level) * PERMILLE / maxi(speed_pm, 1)
+	@warning_ignore("integer_division") var base: int = wu * USEC_PER_WU * season_pm / PERMILLE
+	@warning_ignore("integer_division") var usec: int = base * PERMILLE / skill_factor_permille(level) * PERMILLE / maxi(speed_pm, 1)
 	return maxi(usec, MIN_WORK_USEC)
 
 
 static func floor_mature(total: int, percent: int) -> int:
 	"""The fewest mature trees a zone of `total` trees keeps at `percent`: ceil(total x percent / 100)."""
-	return (total * percent + 99) / 100
+	@warning_ignore("integer_division") return (total * percent + 99) / 100
 
 
 static func retention_allows(mature_after: int, total: int, percent: int) -> bool:
@@ -154,9 +154,9 @@ static func retention_allows(mature_after: int, total: int, percent: int) -> boo
 
 static func deadfall_wu(milli: int) -> int:
 	"""WU to gather a deadfall pile of `milli`: DEADFALL_WU_PER_U a U, rounded up."""
-	return (milli * DEADFALL_WU_PER_U + 999) / 1000
+	@warning_ignore("integer_division") return (milli * DEADFALL_WU_PER_U + 999) / 1000
 
 
 static func units_text(milli: int) -> String:
 	"""Milli-U as whole units and one decimal, floored ("12.5 U")."""
-	return "%d.%d U" % [milli / 1000, (milli % 1000) / 100]
+	@warning_ignore("integer_division") return "%d.%d U" % [milli / 1000, (milli % 1000) / 100]

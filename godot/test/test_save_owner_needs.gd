@@ -153,17 +153,17 @@ func test_retained_inactive_environment_and_departure_counter_are_not_zeroed() -
 func test_signed_extrema_and_both_remainder_edges() -> void:
 	"""Exercise signed lower limits and strict integration remainder bounds."""
 	for field: int in [1,3,8]:
-		var columns: Needs.Columns = _base()
-		_set_first(columns,field,-2147483648)
-		_parity(columns,CODES[field])
+		var cols: Needs.Columns = _base()
+		_set_first(cols,field,-2147483648)
+		_parity(cols,CODES[field])
 	for field: int in [2,4,6]:
 		var denominator: int = 750000 if field == 2 else 750
 		for sign_value: int in [-1,1]:
-			var columns: Needs.Columns = _base()
-			_set_first(columns,field,sign_value * (denominator-1))
-			_parity(columns,&"")
-			_set_first(columns,field,sign_value * denominator)
-			_parity(columns,&"COLUMN_REMAINDER")
+			var cols: Needs.Columns = _base()
+			_set_first(cols,field,sign_value * (denominator-1))
+			_parity(cols,&"")
+			_set_first(cols,field,sign_value * denominator)
+			_parity(cols,&"COLUMN_REMAINDER")
 	var columns: Needs.Columns = _base()
 	columns.departure_days[0] = 2147483647
 	columns.cold_milli_hours[0] = 9223372036854775807

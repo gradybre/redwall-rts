@@ -269,8 +269,8 @@ static func building_max_y_units_into(key: StringName, out: IntMath.IntResult) -
 static func millimetres_from_units(units: int) -> int:
 	"""Convert 1/1024 m to integer millimetres, half up. Derived column only; `_U` is authority."""
 	if units < 0:
-		return -((-units * MILLIMETRES_PER_METRE + UNITS_PER_METRE / 2) / UNITS_PER_METRE)
-	return (units * MILLIMETRES_PER_METRE + UNITS_PER_METRE / 2) / UNITS_PER_METRE
+		@warning_ignore("integer_division") return -((-units * MILLIMETRES_PER_METRE + UNITS_PER_METRE / 2) / UNITS_PER_METRE)
+	@warning_ignore("integer_division") return (units * MILLIMETRES_PER_METRE + UNITS_PER_METRE / 2) / UNITS_PER_METRE
 
 
 static func units_convert_to_millimetres_exactly(units: int) -> bool:

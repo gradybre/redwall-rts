@@ -109,7 +109,7 @@ func _lay_binding(sheet: Image, rect: Rect2i) -> void:
 	while y < rect.position.y + rect.size.y - 30:
 		_stretch(sheet, ring, Vector2i(10, 14), Vector2i(rect.position.x + 1, y))
 		y += 40
-	_stretch(sheet, ring + 1, Vector2i(14, 88),
+	@warning_ignore("integer_division") _stretch(sheet, ring + 1, Vector2i(14, 88),
 		Vector2i(rect.position.x + rect.size.x - 8, rect.position.y + (rect.size.y - 88) / 2))
 
 

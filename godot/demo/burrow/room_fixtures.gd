@@ -214,7 +214,7 @@ static func amounts_text(planks: int, wood: int, stone: int) -> String:
 	var parts := PackedStringArray()
 	for pair: Array in [[planks, "planks"], [wood, "wood"], [stone, "stone"]]:
 		if int(pair[0]) > 0:
-			parts.append("%d %s" % [int(pair[0]) / 1000, pair[1]])
+			@warning_ignore("integer_division") parts.append("%d %s" % [int(pair[0]) / 1000, pair[1]])
 	return ", ".join(parts) if not parts.is_empty() else "nothing"
 
 
@@ -665,7 +665,7 @@ func beds_into(graph: RefCounted, out: PackedInt32Array) -> int:
 				var at := bed_middle_u(graph, r, f)
 				out.append_array([r * PLACES + f, at.x, at.y, AllocationScript.SIZE_BIG if kind == RoomsScript.FIX_BIG_BED \
 					else AllocationScript.SIZE_SMALL])
-	return out.size() / 4
+	@warning_ignore("integer_division") return out.size() / 4
 
 
 func bed_middle_u(graph: RefCounted, r: int, f: int) -> Vector2i:

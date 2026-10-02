@@ -122,7 +122,7 @@ func test_the_cells_are_cut_out_from_the_door_two_quanta_each() -> void:
 	for k in range(0, 24, 2):
 		var d := RoomsScript.cell_local(RoomsScript.TEMPLATE_HOME, k) - door
 		var gap := d.x * d.x + d.y * d.y
-		assert_true(gap >= last, "cell %d no nearer the door than the one before" % (k / 2))
+		@warning_ignore("integer_division") assert_true(gap >= last, "cell %d no nearer the door than the one before" % (k / 2))
 		last = gap
 
 
@@ -300,7 +300,7 @@ func test_eight_rooms_fill_the_rooms_and_twenty_four_mouths_the_network() -> voi
 	assert_equal(graph.rooms.refusal(graph, _site(), RoomsScript.TEMPLATE_HOME, at, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_FULL, "full")
 	var full := GraphScript.new()
 	var ref := PackedInt32Array([-1, 0, -1])
-	for k in Rules.MAX_MOUTHS / 2:
+	@warning_ignore("integer_division") for k in Rules.MAX_MOUTHS / 2:
 		assert_true(full.add_into(_route([Vector2i(-19000, -19000 + 1500 * k), Vector2i(-10808, -19000 + 1500 * k)]), 2, 0, ref), "tunnel %d" % k)
 	assert_equal(full.rooms.refusal(full, _site(), RoomsScript.TEMPLATE_HOME, at, 0, Rules.TOP_LEVEL), RoomsScript.REFUSE_NETWORK_FULL,
 		"no mouth row left")
@@ -501,7 +501,7 @@ func test_every_refusal_has_its_own_words() -> void:
 
 # --- a tunnel joins a room at a free socket (tunnel_plan.gd ROOMS) -----------------------------
 
-func _passage_plan(graph: GraphScript, points: Array[Vector2i], start_kind: int, start_ref: int, end_ref: int) -> PlanScript:
+func _passage_plan(_graph: GraphScript, points: Array[Vector2i], start_kind: int, start_ref: int, end_ref: int) -> PlanScript:
 	"""A plan laid through `points`, its start snapped as given and its end onto node `end_ref`."""
 	var plan := PlanScript.new()
 	for k in points.size():
@@ -937,7 +937,7 @@ func test_a_room_s_crew_works_three_faces() -> void:
 		works.crew.set_present(i, true)
 	graph.start_dig(body, graph.generation[body], 0)
 	works.step(16000)
-	assert_equal(graph.rate_permille[body], CrewScript.pipeline_permille(4, RoomsScript.ROOM_FACES) * works.crew.skills.factor_permille(0) / 1000,
+	@warning_ignore("integer_division") assert_equal(graph.rate_permille[body], CrewScript.pipeline_permille(4, RoomsScript.ROOM_FACES) * works.crew.skills.factor_permille(0) / 1000,
 		"four at three faces")
 	assert_true(CrewScript.pipeline_permille(4, 3) > CrewScript.pipeline_permille(4, 1), "quicker than one face")
 	works.free()
@@ -990,9 +990,9 @@ func test_a_tunnel_may_not_cross_a_room_s_door_ramp() -> void:
 func test_the_digger_s_line_names_the_room_it_digs() -> void:
 	"""The party panel says "Digging Burrow home 1 — 43%" for a room, and "Digging tunnel — 43%" at a plain dig
 	site."""
-	var Panel: GDScript = load("res://demo/control/demo_party_panel.gd")
-	assert_equal(Panel.state_text(BrainScript.ACTIVITY_DIGGING, &"pull_radish", "Burrow home 1", 43), "Digging Burrow home 1 — 43%", "a room")
-	assert_equal(Panel.state_text(BrainScript.ACTIVITY_DIGGING, &"pull_radish", "dig site", 43), "Digging tunnel — 43%", "a tunnel")
+	var PanelScript: GDScript = load("res://demo/control/demo_party_panel.gd")
+	assert_equal(PanelScript.state_text(BrainScript.ACTIVITY_DIGGING, &"pull_radish", "Burrow home 1", 43), "Digging Burrow home 1 — 43%", "a room")
+	assert_equal(PanelScript.state_text(BrainScript.ACTIVITY_DIGGING, &"pull_radish", "dig site", 43), "Digging tunnel — 43%", "a tunnel")
 
 
 func test_a_bed_alcove_bows_the_wall_out() -> void:

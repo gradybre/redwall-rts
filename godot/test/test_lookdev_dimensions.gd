@@ -165,9 +165,9 @@ func test_an_unknown_building_refuses_instead_of_reporting_zero_height() -> void
 func test_settlement_l0_admission_carries_the_ruling_hysteresis() -> void:
 	"""64 px nominal, +/-10%, cap 24, 0.20 s. Battle's 180 px and cap 48 are untouched."""
 	assert_equal(Dimensions.SETTLEMENT_L0_NOMINAL_TENTHS_PX, 640, "nominal 64.0 px")
-	assert_equal(Dimensions.SETTLEMENT_L0_PROMOTE_TENTHS_PX,
+	@warning_ignore("integer_division") assert_equal(Dimensions.SETTLEMENT_L0_PROMOTE_TENTHS_PX,
 		Dimensions.SETTLEMENT_L0_NOMINAL_TENTHS_PX * 11 / 10, "promote is nominal + 10%")
-	assert_equal(Dimensions.SETTLEMENT_L0_DEMOTE_BELOW_TENTHS_PX,
+	@warning_ignore("integer_division") assert_equal(Dimensions.SETTLEMENT_L0_DEMOTE_BELOW_TENTHS_PX,
 		Dimensions.SETTLEMENT_L0_NOMINAL_TENTHS_PX * 9 / 10, "demote is nominal - 10%")
 	assert_equal(Dimensions.SETTLEMENT_L0_POOL_CAP, 24, "settlement pool cap")
 	assert_equal(Dimensions.SETTLEMENT_L0_RESIDENCE_MS, 200, "0.20 s residence")
@@ -177,13 +177,13 @@ func test_settlement_l0_admission_carries_the_ruling_hysteresis() -> void:
 
 func test_static_admission_carries_its_own_hysteresis() -> void:
 	"""Static near/mid thresholds are 180/48 px with the same 10% band, per GAP-04."""
-	assert_equal(Dimensions.STATIC_PROMOTE_NEAR_TENTHS_PX,
+	@warning_ignore("integer_division") assert_equal(Dimensions.STATIC_PROMOTE_NEAR_TENTHS_PX,
 		Dimensions.STATIC_INITIAL_NEAR_TENTHS_PX * 11 / 10, "near promote is 198.0 px")
-	assert_equal(Dimensions.STATIC_DEMOTE_NEAR_BELOW_TENTHS_PX,
+	@warning_ignore("integer_division") assert_equal(Dimensions.STATIC_DEMOTE_NEAR_BELOW_TENTHS_PX,
 		Dimensions.STATIC_INITIAL_NEAR_TENTHS_PX * 9 / 10, "near demote is 162.0 px")
-	assert_equal(Dimensions.STATIC_PROMOTE_MID_TENTHS_PX,
+	@warning_ignore("integer_division") assert_equal(Dimensions.STATIC_PROMOTE_MID_TENTHS_PX,
 		Dimensions.STATIC_INITIAL_MID_TENTHS_PX * 11 / 10, "mid promote is 52.8 px")
-	assert_equal(Dimensions.STATIC_DEMOTE_MID_BELOW_TENTHS_PX,
+	@warning_ignore("integer_division") assert_equal(Dimensions.STATIC_DEMOTE_MID_BELOW_TENTHS_PX,
 		Dimensions.STATIC_INITIAL_MID_TENTHS_PX * 9 / 10, "mid demote is 43.2 px")
 
 

@@ -441,7 +441,7 @@ func test_an_auto_fell_zone_is_worked_down_to_its_floor_and_no_further() -> void
 	var forestry := _forestry()
 	forestry.zones.set_auto(0, true)
 	var felled: int = 0
-	for round: int in 6:
+	for round_index: int in 6:
 		forestry.crew.raise_routine_jobs()
 		if not forestry.crew.jobs.find_into(JobsScript.KIND_FELL, _first_fell_target(forestry), _read):
 			break
@@ -997,7 +997,7 @@ func test_the_command_layer_asks_every_ground_handler_in_turn() -> void:
 	command.add_ground_handlers(func(_at: Vector2) -> bool: asked.append("woods"); return true,
 		func(_at: Vector2) -> bool: return false)
 	command.add_task_text(func(who: int) -> String: return "Felling the oak" if who == 1 else "")
-	command.set_skill_text(func(who: int, alone: bool) -> String: return "Felling 3" if alone else "fell 3")
+	command.set_skill_text(func(_who: int, alone: bool) -> String: return "Felling 3" if alone else "fell 3")
 	command.select(PackedInt32Array([1]))
 	assert_true(command._ground_clicked(Vector2.ZERO), "taken by the woods")
 	assert_equal(asked, ["farm", "woods"] as Array[String], "in turn")

@@ -36,7 +36,7 @@ const CalendarScript := preload("res://demo/demo_calendar.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 
 ## Ticks of the dig's 30 Hz clock in a demo-calendar hour.
-const TICKS_PER_CALENDAR_HOUR: int = CalendarScript.HOUR_USEC * Rules.TICKS_PER_SECOND / Rules.USEC_PER_SECOND
+@warning_ignore("integer_division") const TICKS_PER_CALENDAR_HOUR: int = CalendarScript.HOUR_USEC * Rules.TICKS_PER_SECOND / Rules.USEC_PER_SECOND
 const GROUND_WORDS: Array[String] = ["", "clay %d m (slow)", "sand %d m (weak: brace)", "rock %d m (needs a breaker)"]
 const WET_WORDS: String = "wet %d m (seeps: brace)"
 ## Tallies: quanta, ticks, spoil, then metres of loam, clay, sand, rock, wet.
@@ -55,10 +55,10 @@ static func text(plan: PlanScript, ground: GroundScript, rate_permille: int, cre
 	var tally := PackedInt64Array()
 	tally.resize(T_SIZE)
 	tally_into(plan, ground, tally)
-	var ticks: int = tally[T_TICKS] * Rules.PERMILLE / maxi(rate_permille, 1)
+	@warning_ignore("integer_division") var ticks: int = tally[T_TICKS] * Rules.PERMILLE / maxi(rate_permille, 1)
 	var first := PackedStringArray([PlanScript.length_text(plan.length_u()), "%d quanta" % tally[T_QUANTA],
 		"%s (%s)" % [time_text(ticks), "crew of %d" % crew if crew > 1 else "one digger"]])
-	var second := PackedStringArray(["%d U spoil" % (tally[T_SPOIL] / 1000), brace_text(tally[T_QUANTA])])
+	@warning_ignore("integer_division") var second := PackedStringArray(["%d U spoil" % (tally[T_SPOIL] / 1000), brace_text(tally[T_QUANTA])])
 	if plan.is_link():
 		first[0] = link_heading(plan.link_kind, plan.length_u())
 		second[1] = grade_text(plan.link_kind, plan.length_u())
@@ -77,7 +77,7 @@ static func grade_text(kind: int, run_u: int) -> String:
 	"""A link's grade in words: a ramp's steepest (1:2.5 at most), stairs' risers and pitch."""
 	var permille := Rules.link_grade_permille(kind, run_u)
 	var degrees := roundi(rad_to_deg(atan(float(permille) / float(Rules.PERMILLE))) * 10.0)
-	var pitch := "%d.%d°" % [degrees / 10, degrees % 10]
+	@warning_ignore("integer_division") var pitch := "%d.%d°" % [degrees / 10, degrees % 10]
 	if kind == Rules.LINK_STAIRS:
 		return "%d timber risers, pitch %s" % [Rules.STAIR_RISERS, pitch]
 	return "grade 1:%s (%s)" % [_ratio(permille), pitch]
@@ -85,14 +85,14 @@ static func grade_text(kind: int, run_u: int) -> String:
 
 static func _ratio(permille: int) -> String:
 	"""Run over rise for a grade in per mille, to the tenth (400 -> "2.5")."""
-	var tenths_value := Rules.PERMILLE * 10 / maxi(permille, 1)
-	return "%d.%d" % [tenths_value / 10, tenths_value % 10]
+	@warning_ignore("integer_division") var tenths_value := Rules.PERMILLE * 10 / maxi(permille, 1)
+	@warning_ignore("integer_division") return "%d.%d" % [tenths_value / 10, tenths_value % 10]
 
 
 static func _metres(u: int) -> String:
 	"""A length in u as metres to the tenth, rounded to the nearest ("11.9 m")."""
-	var tenths_value := (u * 10 + Rules.UNITS_PER_M / 2) / Rules.UNITS_PER_M
-	return "%d.%d m" % [tenths_value / 10, tenths_value % 10]
+	@warning_ignore("integer_division") var tenths_value := (u * 10 + Rules.UNITS_PER_M / 2) / Rules.UNITS_PER_M
+	@warning_ignore("integer_division") return "%d.%d m" % [tenths_value / 10, tenths_value % 10]
 
 
 static func brace_text(quanta: int) -> String:
@@ -103,7 +103,7 @@ static func brace_text(quanta: int) -> String:
 
 static func tenths(milli_u: int) -> String:
 	"""A quantity in milli-U as units to the tenth, rounded down ("4.0", "3.7")."""
-	return "%d.%d" % [milli_u / 1000, milli_u % 1000 / 100]
+	@warning_ignore("integer_division") return "%d.%d" % [milli_u / 1000, milli_u % 1000 / 100]
 
 
 static func tally_into(plan: PlanScript, ground: GroundScript, tally: PackedInt64Array) -> void:
@@ -118,7 +118,7 @@ static func tally_into(plan: PlanScript, ground: GroundScript, tally: PackedInt6
 		var run := cuts[i + 1] - cuts[i]
 		var q := Rules.bore_quanta(run)
 		for k in q:
-			var at := GraphScript.route_point_u(plan.points_u, plan.count, cuts[i] + (2 * k + 1) * run / (2 * q))
+			@warning_ignore("integer_division") var at := GraphScript.route_point_u(plan.points_u, plan.count, cuts[i] + (2 * k + 1) * run / (2 * q))
 			_count(ground, at, tally, true, plan.level)
 	if plan.starts_at_mouth():
 		_count(ground, plan.point_u(0), tally, false)
@@ -132,11 +132,11 @@ static func _link_tally(plan: PlanScript, ground: GroundScript, tally: PackedInt
 	var run := plan.length_u()
 	var q := Rules.link_quanta(run)
 	for k in q:
-		var along := (2 * k + 1) * run / (2 * q)
+		@warning_ignore("integer_division") var along := (2 * k + 1) * run / (2 * q)
 		var drop := Rules.link_drop_u(plan.link_kind, along, run)
 		var at_level := plan.level + (1 if 2 * drop >= Rules.LEVEL_SPACING_U else 0)
 		_count(ground, GraphScript.route_point_u(plan.points_u, plan.count, along), tally, true, at_level)
-	tally[T_TICKS] = tally[T_TICKS] * Rules.link_work_permille(plan.link_kind) / Rules.PERMILLE
+	@warning_ignore("integer_division") tally[T_TICKS] = tally[T_TICKS] * Rules.link_work_permille(plan.link_kind) / Rules.PERMILLE
 
 
 static func _cuts(plan: PlanScript) -> PackedInt32Array:
@@ -148,7 +148,7 @@ static func _cuts(plan: PlanScript) -> PackedInt32Array:
 		cuts.append(Rules.RAMP_RUN_U)
 	if plan.ends_at_mouth() and length - Rules.RAMP_RUN_U > 0:
 		cuts.append(length - Rules.RAMP_RUN_U)
-	for c in plan.crossings.size() / 3:
+	@warning_ignore("integer_division") for c in plan.crossings.size() / 3:
 		cuts.append(GraphScript.route_along_u(plan.points_u, plan.count, Vector2i(plan.crossings[3 * c + 1], plan.crossings[3 * c + 2])))
 	cuts.sort()
 	var unique := PackedInt32Array()
@@ -198,23 +198,23 @@ static func room_text(kind: int, centre: Vector2i, turns: int, passage: PlanScri
 	if passage.count >= 2:
 		tally_into(passage, ground, way)
 	var quanta := cells[T_QUANTA] + rest[T_QUANTA] + way[T_QUANTA]
-	var ticks: int = cells[T_TICKS] * Rules.PERMILLE / maxi(rate_room, 1) \
+	@warning_ignore("integer_division") var ticks: int = cells[T_TICKS] * Rules.PERMILLE / maxi(rate_room, 1) \
 		+ (rest[T_TICKS] + way[T_TICKS]) * Rules.PERMILLE / maxi(rate_one, 1)
 	var first := "%s · %d quanta · %s (%s)" % [RoomsScript.NAMES[kind], quanta, time_text(ticks),
 		"crew of %d" % crew if crew > 1 else "one digger"]
 	var joined := "passage %s to %s" % [PlanScript.length_text(passage.length_u()), passage_to] if passage.count >= 2 \
 			else "standalone: dig a tunnel to one of its sockets later"
-	return "%s\n%d U spoil · %s" % [first, (cells[T_SPOIL] + rest[T_SPOIL] + way[T_SPOIL]) / 1000, joined]
+	@warning_ignore("integer_division") return "%s\n%d U spoil · %s" % [first, (cells[T_SPOIL] + rest[T_SPOIL] + way[T_SPOIL]) / 1000, joined]
 
 
 static func time_text(ticks: int) -> String:
 	"""Dig ticks as time on the demo calendar (decision 0421: 750 a game hour): under an hour in whole minutes, rounded
 	up ("35 min"); from an hour in hours to the tenth, floored, never under "1.0 h" ("2.1 h")."""
-	var minutes: int = (ticks * 60 + TICKS_PER_CALENDAR_HOUR - 1) / TICKS_PER_CALENDAR_HOUR
+	@warning_ignore("integer_division") var minutes: int = (ticks * 60 + TICKS_PER_CALENDAR_HOUR - 1) / TICKS_PER_CALENDAR_HOUR
 	if minutes < 60:
 		return "%d min" % minutes
-	var tenths: int = maxi(ticks * 10 / TICKS_PER_CALENDAR_HOUR, 10)
-	return "%d.%d h" % [tenths / 10, tenths % 10]
+	@warning_ignore("integer_division") var tenth_hours: int = maxi(ticks * 10 / TICKS_PER_CALENDAR_HOUR, 10)
+	@warning_ignore("integer_division") return "%d.%d h" % [tenth_hours / 10, tenth_hours % 10]
 
 
 static func _tally() -> PackedInt64Array:
@@ -237,4 +237,4 @@ static func room_tally_into(kind: int, centre: Vector2i, turns: int, ground: Gro
 	_count(ground, hole, ramp, false)
 	var metres := Rules.bore_quanta(Rules.RAMP_RUN_U)
 	for k in metres:
-		_count(ground, hole + (door - hole) * (2 * k + 1) / (2 * metres), ramp, true)
+		@warning_ignore("integer_division") _count(ground, hole + (door - hole) * (2 * k + 1) / (2 * metres), ramp, true)

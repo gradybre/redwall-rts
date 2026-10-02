@@ -316,7 +316,7 @@ func test_long_run_matches_closed_form_arithmetic() -> void:
 			fail("tick refused mid-run: %s" % out.error)
 			return
 		accepted_total += out.accepted_mwu
-	var expected: int = ticks * WorkScript.BASE_MWU_PER_TICK * FACTOR_FRACTIONAL / 1000
+	@warning_ignore("integer_division") var expected: int = ticks * WorkScript.BASE_MWU_PER_TICK * FACTOR_FRACTIONAL / 1000
 	assert_equal(expected, 31701, "the closed form is the arithmetic §5.2 specifies")
 	assert_equal(accepted_total, expected, "777 carried ticks total the closed-form value")
 	assert_equal(_jobs.remaining_mwu_of(job).value, 100000 - expected,
@@ -1389,7 +1389,7 @@ func test_a_tool_claim_left_on_another_job_refuses_the_tick_and_moves_nothing() 
 	"""
 	_use_gear()
 	var worker: int = _base_rate_worker()
-	var first_job: int = _worked_job(worker, 1000000)
+	var _first_job: int = _worked_job(worker, 1000000)
 	var _tool: Vector2i = _claimed_tool(worker)
 	assert_true(_jobs.release_worker(worker).ok, "the worker leaves without releasing the claim")
 	var second_job: int = _worked_job(worker, 1000000)
@@ -1648,9 +1648,9 @@ func test_tip_work_rounds_up_and_matches_the_amendment_worked_examples() -> void
 	assert_equal(out.value, 4000, "for 4000 milli-WU")
 	for quantity: int in [1, 2, 3, 4, 5, 6, 7, 9, 4001]:
 		assert_true(_work.tip_compact_work_mwu_into(quantity, out), "every q>0 is priced")
-		assert_equal(out.value, (quantity + 3) / 4, "ceil(q/4) exactly, for q=%d" % quantity)
+		@warning_ignore("integer_division") assert_equal(out.value, (quantity + 3) / 4, "ceil(q/4) exactly, for q=%d" % quantity)
 		assert_true(_work.tip_reclaim_work_mwu_into(quantity, out), "and reclaim too")
-		assert_equal(out.value, (quantity + 1) / 2, "ceil(q/2) exactly, for q=%d" % quantity)
+		@warning_ignore("integer_division") assert_equal(out.value, (quantity + 1) / 2, "ceil(q/2) exactly, for q=%d" % quantity)
 
 
 func test_splitting_a_tip_order_can_only_ever_cost_more_work() -> void:

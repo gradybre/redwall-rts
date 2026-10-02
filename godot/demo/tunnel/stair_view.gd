@@ -167,9 +167,9 @@ func step_transform(slot: int, i: int, tread: float) -> Transform3D:
 	var along := (float(i) + 0.5) * tread
 	BoreCurveScript.of(_network, slot).sample(along, _sample)
 	var heading: Vector2 = _sample[1]
-	var basis := Basis(Vector3(-heading.y, 0.0, heading.x), Vector3.UP, Vector3(heading.x, 0.0, heading.y))
+	var tread_basis := Basis(Vector3(-heading.y, 0.0, heading.x), Vector3.UP, Vector3(heading.x, 0.0, heading.y))
 	var top := Vector3(_sample[0].x, _network.floor_y_at(slot, along), _sample[0].y)
-	return Transform3D(basis.scaled_local(Vector3(1.0, 1.0, tread)), top)
+	return Transform3D(tread_basis.scaled_local(Vector3(1.0, 1.0, tread)), top)
 
 
 func clear(slot: int) -> void:

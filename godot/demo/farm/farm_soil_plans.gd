@@ -205,7 +205,7 @@ static func _grow(plan: Plan, bed: int, item: int, fertility: int, start: Start)
 		plan.fertility_end = rest(fertility, plan.start_day, plan.end_day, start.legume_day)
 		return
 	var sown_at: int = rest(fertility, plan.start_day, plan.sow_day, start.legume_day)
-	plan.harvest_day = plan.sow_day + (FarmingScript.CROP_GROWTH_HOURS[crop] + SimClock.HOURS_PER_DAY - 1) / SimClock.HOURS_PER_DAY
+	@warning_ignore("integer_division") plan.harvest_day = plan.sow_day + (FarmingScript.CROP_GROWTH_HOURS[crop] + SimClock.HOURS_PER_DAY - 1) / SimClock.HOURS_PER_DAY
 	plan.harvest_milli = Text.estimate_milli(FarmingScript.CROP_BASE_YIELD_MILLI[crop], fertility_factor(sown_at),
 		FarmingScript._rotation_factor(Catalog.family_of(item), start.last_family, start.streak))
 	plan.work_usec += JobsScript.plan_work_usec(JobsScript.KIND_SOW, 0) + JobsScript.plan_work_usec(JobsScript.KIND_HARVEST, 0)
@@ -265,13 +265,13 @@ static func fallow_gain(day: int, legume_day: int) -> int:
 
 static func fertility_factor(fertility: int) -> int:
 	"""§5.6's fertility factor at a fertility (farming.gd's FERTILITY_FACTOR_* constants)."""
-	return clampi(FarmingScript.FERTILITY_FACTOR_BASE + fertility / FarmingScript.FERTILITY_FACTOR_DIVISOR,
+	@warning_ignore("integer_division") return clampi(FarmingScript.FERTILITY_FACTOR_BASE + fertility / FarmingScript.FERTILITY_FACTOR_DIVISOR,
 		FarmingScript.FERTILITY_FACTOR_MIN, FarmingScript.FERTILITY_FACTOR_MAX)
 
 
 static func season_of_day(day: int) -> int:
 	"""The season (0 spring .. 3 winter) of an absolute calendar day."""
-	return ((day - 1) / SimClock.DAYS_PER_SEASON) % SimClock.SEASONS_PER_YEAR
+	@warning_ignore("integer_division") return ((day - 1) / SimClock.DAYS_PER_SEASON) % SimClock.SEASONS_PER_YEAR
 
 
 static func season_day_of(day: int) -> int:
@@ -282,4 +282,4 @@ static func season_day_of(day: int) -> int:
 static func staff_hundredths(usec: int) -> int:
 	"""Work in demo microseconds as hundredths of a staff-day (see the header), rounded up."""
 	var per_day: int = CalendarScript.HOUR_USEC * WORK_HOURS_PER_STAFF_DAY
-	return (usec * 100 + per_day - 1) / per_day
+	@warning_ignore("integer_division") return (usec * 100 + per_day - 1) / per_day

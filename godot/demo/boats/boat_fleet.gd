@@ -92,8 +92,8 @@ func give_back(boat: int, serial: int) -> void:
 	"""`serial` lets its moored boat go (anyone else's is left alone); its crew seats are emptied."""
 	if is_boat(boat) and owner[boat] == serial and phase[boat] == PHASE_MOORED:
 		owner[boat] = 0
-		for seat: int in SEATS:
-			crew[boat * SEATS + seat] = NOBODY
+		for place: int in SEATS:
+			crew[boat * SEATS + place] = NOBODY
 		cargo_item[boat] = NO_ITEM
 		cargo_milli[boat] = 0
 		revision += 1
@@ -113,7 +113,7 @@ func crew_of(boat: int, which: int) -> int:
 func boat_of_crew(who: int) -> int:
 	"""The boat `who` sits in (-1: none)."""
 	var k: int = crew.find(who)
-	return k / SEATS if k >= 0 and who != NOBODY else -1
+	@warning_ignore("integer_division") return k / SEATS if k >= 0 and who != NOBODY else -1
 
 
 func set_course(boat: int, points: PackedInt32Array, map: WaterMapScript) -> bool:
@@ -124,7 +124,7 @@ func set_course(boat: int, points: PackedInt32Array, map: WaterMapScript) -> boo
 	if Vector2i(points[0], points[1]) != Routes.BERTH_U[boat]:
 		return false
 	var total: int = 0
-	for k: int in range(1, points.size() / 2):
+	@warning_ignore("integer_division") for k: int in range(1, points.size() / 2):
 		var a := Vector2i(points[k * 2 - 2], points[k * 2 - 1])
 		var b := Vector2i(points[k * 2], points[k * 2 + 1])
 		if map != null and not Routes.leg_is_water(map, a, b):
@@ -168,7 +168,7 @@ func step(usec: int) -> int:
 func _row(boat: int, usec: int) -> bool:
 	"""One boat's stroke: whole u along (or back down) its course, the fraction carried. True when it got there."""
 	_carry[boat] += usec * ROW_SPEED_U_S
-	var moved: int = _carry[boat] / USEC_PER_SECOND
+	@warning_ignore("integer_division") var moved: int = _carry[boat] / USEC_PER_SECOND
 	_carry[boat] -= moved * USEC_PER_SECOND
 	rowed_u += moved
 	if phase[boat] == PHASE_OUT:
@@ -209,11 +209,11 @@ func position_m(boat: int) -> Vector2:
 	"""The boat's centre in metres, along its course at `progress_u`."""
 	var points: PackedInt32Array = course[boat]
 	var left: int = progress_u[boat]
-	for k: int in range(1, points.size() / 2):
+	@warning_ignore("integer_division") for k: int in range(1, points.size() / 2):
 		var a := Vector2i(points[k * 2 - 2], points[k * 2 - 1])
 		var b := Vector2i(points[k * 2], points[k * 2 + 1])
 		var length: int = Routes.leg_length_u(a, b)
-		if left <= length or k == points.size() / 2 - 1:
+		@warning_ignore("integer_division") if left <= length or k == points.size() / 2 - 1:
 			var t: float = clampf(float(left) / float(maxi(length, 1)), 0.0, 1.0)
 			return Routes.m_of(a).lerp(Routes.m_of(b), t)
 		left -= length
@@ -233,7 +233,7 @@ func _leg_dir(boat: int) -> Vector2:
 	"""The unit direction (outward) of the leg the boat is on."""
 	var points: PackedInt32Array = course[boat]
 	var left: int = progress_u[boat]
-	var last: int = points.size() / 2 - 1
+	@warning_ignore("integer_division") var last: int = points.size() / 2 - 1
 	for k: int in range(1, last + 1):
 		var a := Vector2i(points[k * 2 - 2], points[k * 2 - 1])
 		var b := Vector2i(points[k * 2], points[k * 2 + 1])
@@ -256,5 +256,5 @@ func moving(boat: int) -> bool:
 
 func line_of(boat: int) -> String:
 	"""The Boats section's line: "Rowboat 1: rowing out · 940/1000 (62 trips left)"."""
-	return "Rowboat %d: %s · %d/%d (%d trips left)" % [boat + 1, PHASE_WORDS[phase[boat]], durability[boat], DURABILITY_CAP,
+	@warning_ignore("integer_division") return "Rowboat %d: %s · %d/%d (%d trips left)" % [boat + 1, PHASE_WORDS[phase[boat]], durability[boat], DURABILITY_CAP,
 		durability[boat] / WEAR_PER_CYCLE]

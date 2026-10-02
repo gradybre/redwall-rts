@@ -125,7 +125,7 @@ const CLOSED_FLOODED: int = 1
 const CLOSED_COLLAPSED: int = 2
 
 ## The longest timeline: a shaft, 64 bore quanta (MAX_LENGTH_U) and a shaft.
-const MAX_TIMELINE: int = Rules.MAX_LENGTH_U / Rules.QUANTUM_U + 2 * Rules.SHAFT_QUANTA
+@warning_ignore("integer_division") const MAX_TIMELINE: int = Rules.MAX_LENGTH_U / Rules.QUANTUM_U + 2 * Rules.SHAFT_QUANTA
 const DEGREE: int = Rules.JUNCTION_DEGREE
 ## Demo: a lit bore is walked at this per mille of walk speed (tunnel_jobs.gd LANTERNS).
 const LIT_SPEED_PERMILLE: int = 1100
@@ -254,7 +254,6 @@ var _q_kind: PackedByteArray = PackedByteArray()
 var _q_end: PackedInt32Array = PackedInt32Array()
 var _progress: PackedInt64Array = PackedInt64Array()
 var _piece_count: int = 0
-var _family: PackedInt32Array = PackedInt32Array()
 var _chain_node: PackedInt32Array = PackedInt32Array()
 var _chain_along: PackedInt32Array = PackedInt32Array()
 ## THE PIECE CHAINS (see `piece_offset_m`): every live piece's segments in dig order, each piece's run contiguous in
@@ -797,7 +796,7 @@ func _write_route(slot: int, spec: SpecScript, from_along: int, to_along: int) -
 
 func _set_route(slot: int, route: PackedInt32Array) -> void:
 	"""Write a flat (x, z) route as segment `slot`'s points and their distances from node A."""
-	var count := route.size() / 2
+	@warning_ignore("integer_division") var count := route.size() / 2
 	var base := slot * Rules.MAX_POINTS
 	for k in count:
 		points_u[2 * (base + k)] = route[2 * k]
@@ -840,7 +839,7 @@ static func route_point_u(route_u: PackedInt32Array, count: int, along: int) -> 
 			var into := clampi(along - run, 0, leg)
 			var ax := route_u[2 * k - 2]
 			var az := route_u[2 * k - 1]
-			return Vector2i(ax + (route_u[2 * k] - ax) * into / maxi(leg, 1), az + (route_u[2 * k + 1] - az) * into / maxi(leg, 1))
+			@warning_ignore("integer_division") return Vector2i(ax + (route_u[2 * k] - ax) * into / maxi(leg, 1), az + (route_u[2 * k + 1] - az) * into / maxi(leg, 1))
 		run += leg
 	return Vector2i(route_u[0], route_u[1])
 
@@ -860,7 +859,7 @@ static func route_along_u(route_u: PackedInt32Array, count: int, at: Vector2i) -
 			best_d = d
 			var ab := b - a
 			var ap := at - a
-			best_along = run + clampi((ab.x * ap.x + ab.y * ap.y) / maxi(leg, 1), 0, leg)
+			@warning_ignore("integer_division") best_along = run + clampi((ab.x * ap.x + ab.y * ap.y) / maxi(leg, 1), 0, leg)
 		run += leg
 	return best_along
 
@@ -889,7 +888,7 @@ func _holder_of(host: int, at: Vector2i) -> int:
 	`at`."""
 	var best := host
 	var best_d := _route_distance_u(host, at)
-	for i in last_splits.size() / 3:
+	@warning_ignore("integer_division") for i in last_splits.size() / 3:
 		var tail := last_splits[3 * i + 1]
 		var d := _route_distance_u(tail, at)
 		if d < best_d:
@@ -936,15 +935,15 @@ func _cut(slot: int, tail: int, route: PackedInt32Array, along: int, at: Vector2
 	its points beyond go to `tail`; junction `j` joins them where node B was."""
 	var head := PackedInt32Array()
 	var rest := PackedInt32Array([at.x, at.y])
-	var count := route.size() / 2
+	@warning_ignore("integer_division") var count := route.size() / 2
 	for k in count:
-		var point := Vector2i(route[2 * k], route[2 * k + 1])
-		if point == at:
+		var corner := Vector2i(route[2 * k], route[2 * k + 1])
+		if corner == at:
 			continue
 		if Rules.route_length_u(route, k + 1) < along:
-			head.append_array([point.x, point.y])
+			head.append_array([corner.x, corner.y])
 		else:
-			rest.append_array([point.x, point.y])
+			rest.append_array([corner.x, corner.y])
 	head.append_array([at.x, at.y])
 	var far := node_b[slot]
 	_detach_only(far, slot)
@@ -974,7 +973,7 @@ func _restore_open(slot: int) -> void:
 	cost_u[slot] = Rules.route_cost_u(route, point_count[slot])
 	quanta[slot] = Rules.bore_quanta(length_u[slot])
 	_lay_timeline(slot)
-	dig_usec[slot] = (total_ticks(slot) * Rules.USEC_PER_SECOND + Rules.TICKS_PER_SECOND - 1) / Rules.TICKS_PER_SECOND
+	@warning_ignore("integer_division") dig_usec[slot] = (total_ticks(slot) * Rules.USEC_PER_SECOND + Rules.TICKS_PER_SECOND - 1) / Rules.TICKS_PER_SECOND
 
 
 # --- the job list ---------------------------------------------------------------------------
@@ -1043,7 +1042,7 @@ func piece_percent(p: int) -> int:
 	"""Whole percent of piece `p` dug (floored, so 100 only when all of it is open)."""
 	var ticks := PackedInt32Array([0, 0])
 	piece_ticks_into(p, ticks)
-	return ticks[0] * 100 / maxi(ticks[1], 1)
+	@warning_ignore("integer_division") return ticks[0] * 100 / maxi(ticks[1], 1)
 
 
 func job_list_into(out: PackedInt32Array) -> void:
@@ -1247,7 +1246,7 @@ func _open_walks(r: int) -> void:
 	"""Room `r`'s body is dug: its walks to its sockets open with it (they are the room's own floor)."""
 	for k in RoomsScript.socket_count(rooms.template[r]):
 		var w := rooms.walk_of(r, k)
-		dig_usec[w] = (total_ticks(w) * Rules.USEC_PER_SECOND + Rules.TICKS_PER_SECOND - 1) / Rules.TICKS_PER_SECOND
+		@warning_ignore("integer_division") dig_usec[w] = (total_ticks(w) * Rules.USEC_PER_SECOND + Rules.TICKS_PER_SECOND - 1) / Rules.TICKS_PER_SECOND
 		_set_phase(w, PHASE_OPEN, -1)
 	rooms.revision += 1
 
@@ -1345,7 +1344,7 @@ func quantum_along_u(slot: int, k: int) -> int:
 	if k >= entry + quanta[slot]:
 		return length_u[slot]
 	var j := k - entry
-	return (2 * j + 1) * length_u[slot] / (2 * quanta[slot])
+	@warning_ignore("integer_division") return (2 * j + 1) * length_u[slot] / (2 * quanta[slot])
 
 
 func quantum_point_u(slot: int, k: int) -> Vector2i:
@@ -1376,7 +1375,7 @@ func done(slot: int) -> int:
 	"""Fixed ticks dug so far (F1000-equivalent), capped at the total; an open segment is all dug."""
 	if phase[slot] == PHASE_OPEN:
 		return total_ticks(slot)
-	return mini(total_ticks(slot), dig_usec[slot] * Rules.TICKS_PER_SECOND / Rules.USEC_PER_SECOND)
+	@warning_ignore("integer_division") return mini(total_ticks(slot), dig_usec[slot] * Rules.TICKS_PER_SECOND / Rules.USEC_PER_SECOND)
 
 
 func stage(slot: int) -> int:
@@ -1393,7 +1392,7 @@ func stage(slot: int) -> int:
 
 func percent(slot: int) -> int:
 	"""Whole percent of the segment dug (floored, so 100 only when it is open)."""
-	return done(slot) * 100 / total_ticks(slot)
+	@warning_ignore("integer_division") return done(slot) * 100 / total_ticks(slot)
 
 
 func progress_into(slot: int, ticks: int, repeat: int, out: PackedInt64Array) -> void:
@@ -1407,7 +1406,7 @@ func progress_into(slot: int, ticks: int, repeat: int, out: PackedInt64Array) ->
 		var kind := _q_kind[slot * MAX_TIMELINE + k]
 		var each := GroundScript.dig_ticks(kind)
 		var into := ticks - start
-		var whole := clampi(into / each, 0, repeat) if into > 0 else 0
+		@warning_ignore("integer_division") var whole := clampi(into / each, 0, repeat) if into > 0 else 0
 		var cuts := whole + (1 if whole < repeat and into > 0 and into % each >= GroundScript.cut_ticks(kind) else 0)
 		out[P_CUTS] += cuts
 		out[P_SPOIL] += cuts * GroundScript.spoil_of(kind)
@@ -1455,7 +1454,7 @@ func face_u(slot: int) -> int:
 	progress_into(slot, d, 1, _progress)
 	var j := int(_progress[P_QUANTUM]) - entry_shafts(slot)
 	var each := GroundScript.dig_ticks(_q_kind[slot * MAX_TIMELINE + _progress[P_QUANTUM]])
-	return (j * each + int(_progress[P_INTO])) * length_u[slot] / (q * each)
+	@warning_ignore("integer_division") return (j * each + int(_progress[P_INTO])) * length_u[slot] / (q * each)
 
 
 func face_m(slot: int) -> float:
@@ -1499,8 +1498,8 @@ func advance(slot: int, gen: int, usec: int) -> void:
 	left alone); its new cuts' spoil is posted, and it opens when the last tick is dug."""
 	if not is_ref(slot, gen) or phase[slot] != PHASE_DIGGING or usec <= 0:
 		return
-	var work := usec * rate_permille[slot] * Rules.PERMILLE / work_permille(slot) + dig_rem[slot]
-	dig_usec[slot] += work / Rules.PERMILLE
+	@warning_ignore("integer_division") var work := usec * rate_permille[slot] * Rules.PERMILLE / work_permille(slot) + dig_rem[slot]
+	@warning_ignore("integer_division") dig_usec[slot] += work / Rules.PERMILLE
 	dig_rem[slot] = work % Rules.PERMILLE
 	_post_spoil(slot)
 	if done(slot) >= total_ticks(slot):
@@ -1627,7 +1626,7 @@ func speed_permille(slot: int) -> int:
 	"""Walking speed in the bore, per mille of walk speed: faster when lit, and on a link at its kind's pace
 	along the slope (stairs slower; see LEVELS); weather never reaches it."""
 	var base := LIT_SPEED_PERMILLE if lit[slot] == 1 else Rules.PERMILLE
-	return base * Rules.link_speed_permille(seg_link[slot]) / Rules.PERMILLE
+	@warning_ignore("integer_division") return base * Rules.link_speed_permille(seg_link[slot]) / Rules.PERMILLE
 
 
 func work_permille(slot: int) -> int:
@@ -1650,7 +1649,7 @@ func point_at_u(slot: int, along: int) -> Vector2i:
 	var i0 := 2 * (base + k - 1)
 	var dx := points_u[i0 + 2] - points_u[i0]
 	var dz := points_u[i0 + 3] - points_u[i0 + 1]
-	return Vector2i(points_u[i0] + dx * (a - c0) / span, points_u[i0 + 1] + dz * (a - c0) / span)
+	@warning_ignore("integer_division") return Vector2i(points_u[i0] + dx * (a - c0) / span, points_u[i0 + 1] + dz * (a - c0) / span)
 
 
 func point(slot: int, k: int) -> Vector2:
@@ -1855,7 +1854,7 @@ func _offer_mouths(body: float, standing: PackedVector3Array, standing_count: in
 	if fit_class == PathsScript.CLASS_NONE:
 		return
 	for m in Rules.MAX_MOUTHS:
-		if mouth_usable(m) and paths.admits(self, mouth_ramp(m), fit_class) and leads_on(m, fit_class, goal_node) \
+		if mouth_usable(m) and PathsScript.admits(self, mouth_ramp(m), fit_class) and leads_on(m, fit_class, goal_node) \
 				and not mouth_occupied(m, body, standing, standing_count):
 			router.add_mouth(m, mouth_at(m), queue.wait_m(m))
 

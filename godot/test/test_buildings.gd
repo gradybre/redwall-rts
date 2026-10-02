@@ -347,9 +347,9 @@ func test_a_seventeenth_room_refuses() -> void:
 	"""GDD §4.2: "Up to 16 rooms/managed building"."""
 	_place_hall()
 	for index: int in 16:
-		var tiles: PackedInt32Array = PackedInt32Array()
-		tiles.append(_interior_tile(index % INTERIOR_WIDTH, index / INTERIOR_WIDTH))
-		assert_true(_store.designate_room(_hall, _room_type("CORRIDOR"), tiles).ok,
+		var room_tiles: PackedInt32Array = PackedInt32Array()
+		@warning_ignore("integer_division") room_tiles.append(_interior_tile(index % INTERIOR_WIDTH, index / INTERIOR_WIDTH))
+		assert_true(_store.designate_room(_hall, _room_type("CORRIDOR"), room_tiles).ok,
 			"room %d of sixteen designates" % index)
 	var tiles: PackedInt32Array = PackedInt32Array()
 	tiles.append(_interior_tile(6, 1))

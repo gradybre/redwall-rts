@@ -257,7 +257,7 @@ static func _aim_food(world: WorldScript, d: KitchenScript.Decision, out: Status
 
 # --- 4: ready the village for the frost --------------------------------------------------------------
 
-static func _season(world: WorldScript, facts: FactsScript, out: Status) -> void:
+static func _season(world: WorldScript, _facts: FactsScript, out: Status) -> void:
 	"""The frost ahead, the three ways each with where it stands, and the marker on the way furthest on."""
 	out.state = frost_line(world)
 	out.next = Text.NEXT_CHOOSE

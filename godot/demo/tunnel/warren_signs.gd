@@ -83,14 +83,14 @@ func configure(network: GraphScript, bores: BoreViewScript) -> void:
 	_seam_fresh.resize(Rules.MAX_SEGMENTS)
 	_newest.resize(Rules.MAX_SEGMENTS)
 	for slot in Rules.MAX_SEGMENTS:
-		var seam := MeshInstance3D.new()
-		seam.mesh = ArrayMesh.new()
-		seam.material_override = _material
-		seam.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		seam.layers = Layers.SURFACE
-		seam.visible = false
-		add_child(seam)
-		_seams.append(seam)
+		var seam_node := MeshInstance3D.new()
+		seam_node.mesh = ArrayMesh.new()
+		seam_node.material_override = _material
+		seam_node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		seam_node.layers = Layers.SURFACE
+		seam_node.visible = false
+		add_child(seam_node)
+		_seams.append(seam_node)
 	_arrays.resize(Mesh.ARRAY_MAX)
 	_vents = _vent_node()
 

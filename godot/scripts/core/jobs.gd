@@ -630,11 +630,11 @@ func _assert_shared_contracts() -> void:
 	"""Prove the capacities, strides and enum shapes this module reads from other documents."""
 	assert(JOB_CAPACITY == _directory.capacity_of_kind(EntityDirectory.KIND_JOB),
 		"the Job store must match the directory's KIND_JOB capacity")
-	assert(AGENT_CAPACITY == NeedsScript.RESIDENT_CAPACITY,
+	@warning_ignore("assert_always_true") assert(AGENT_CAPACITY == NeedsScript.RESIDENT_CAPACITY,
 		"JobAgent is one row per resident and must match the needs store's capacity")
-	assert(JOB_KIND_COUNT == PrioritiesScript.JOB_KIND_COUNT,
+	@warning_ignore("assert_always_true") assert(JOB_KIND_COUNT == PrioritiesScript.JOB_KIND_COUNT,
 		"the job-priority stride and the JobKind count are the same twelve")
-	assert(JOB_KIND_COUNT == ResidentsScript.SKILL_COUNT,
+	@warning_ignore("assert_always_true") assert(JOB_KIND_COUNT == ResidentsScript.SKILL_COUNT,
 		"GDD §4.3 makes JobKind and the skill index one enum")
 	assert(Catalog.JOB_STATE.size() == JOB_STATE_COUNT,
 		"GDD §4.3 JobState has exactly eight values")

@@ -259,7 +259,7 @@ func test_the_debt_domain_is_restore_r01s_whole_int64_range() -> void:
 	`sim_clock.restore_runtime()` accepts, which is a codec quietly narrowing stored debt.
 	"""
 	assert_equal(WorldRuntime.DEBT_MAX, SaveCodec.INT64_MAX, "the domain is the whole int64")
-	assert_true(WorldRuntime.DEBT_MAX > SaveCodec.INT64_MAX / SimClockScript.OVERLOAD_NUMERATOR,
+	@warning_ignore("integer_division") assert_true(WorldRuntime.DEBT_MAX > SaveCodec.INT64_MAX / SimClockScript.OVERLOAD_NUMERATOR,
 		"and it is strictly wider than the INT64_MAX/4 cap it replaces")
 	_record.debt = WorldRuntime.DEBT_MAX
 	assert_true(WorldRuntime.record_refusal(_record).is_ok(), "the ceiling itself is accepted")
@@ -393,11 +393,11 @@ func test_the_world_seed_spans_the_whole_signed_int32_range() -> void:
 	"""Built from bit conversions: 0x80000000 is POSITIVE in GDScript, INT32_MIN as an int32."""
 	assert_equal(SaveCodec.u32_bits_to_int32(SaveCodec.UINT32_SIGN_BIT), SaveCodec.INT32_MIN,
 		"the boundary is constructed, not typed")
-	for seed: int in [SaveCodec.INT32_MIN, -1, 0, 1, SaveCodec.INT32_MAX]:
-		_record.world_seed = seed
+	for seed_value: int in [SaveCodec.INT32_MIN, -1, 0, 1, SaveCodec.INT32_MAX]:
+		_record.world_seed = seed_value
 		var back: WorldRuntime.Record = WorldRuntime.Record.new()
 		assert_true(WorldRuntime.decode_into(_bytes_of(_record), 0, back).is_ok(), "decodes")
-		assert_equal(back.world_seed, seed, "seed %d survives as itself" % seed)
+		assert_equal(back.world_seed, seed_value, "seed %d survives as itself" % seed_value)
 
 
 func test_a_world_seed_outside_int32_refuses_at_encode_rather_than_truncating() -> void:

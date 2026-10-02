@@ -780,14 +780,14 @@ func _return_unpublished_row(row: int) -> void:
 	_free_count += 1
 
 
-func destroy_gear(inventory: Inventory, definitions: ItemDefinitions,
+func destroy_gear(inventory: Inventory, _definitions: ItemDefinitions,
 		lot_ref: Vector2i) -> Inventory.OpResult:
 	"""Destroy the gear record of a lot that has already retired. `.value` is 1 on success.
 
 	Gear records die with their lot: while the lot is still live this refuses LOT_STILL_LIVE, so
 	the call cannot be used to strip durability off a piece of gear somebody is still holding.
 	A claimed record refuses too -- releasing a Job's claim is that Job's business.
-	`definitions` is accepted for signature symmetry with the rest of the store and is not read.
+	`_definitions` is accepted for signature symmetry with the rest of the store and is not read.
 	"""
 	if inventory == null:
 		return _refuse(REFUSE_NO_INVENTORY)
@@ -1474,7 +1474,7 @@ func _debit_general_wear(row: int, completed_mwu: int, remainder_before: int,
 	if not IntMath.checked_add_into(remainder_before, completed_mwu, _wear_math):
 		return out.refuse(REFUSE_INVALID_WORK)
 	var total: int = _wear_math.value
-	var demanded: int = total / GENERAL_WEAR_MWU_PER_POINT
+	@warning_ignore("integer_division") var demanded: int = total / GENERAL_WEAR_MWU_PER_POINT
 	var remainder_after: int = total % GENERAL_WEAR_MWU_PER_POINT
 	var spent: int = mini(demanded, _durability[row])
 	_set_durability(row, _durability[row] - spent)
@@ -1496,7 +1496,7 @@ func _resolve_claimed_row(lot_ref: Vector2i, job_ref: Vector2i) -> int:
 	return row
 
 
-func _claim_refusal(lot_ref: Vector2i, job_ref: Vector2i) -> StringName:
+func _claim_refusal(lot_ref: Vector2i, _job_ref: Vector2i) -> StringName:
 	"""The explicit reason `_resolve_claimed_row()` found nothing: no gear, no claim, wrong Job."""
 	var row: int = _resolve_row(lot_ref)
 	if row == NULL_ROW:
@@ -1837,7 +1837,7 @@ func _push_free(row: int) -> void:
 	"""Insert a freed row into the min-heap so the next allocation still finds the lowest index."""
 	var index: int = _free_count
 	while index > 0:
-		var parent: int = (index - 1) / 2
+		@warning_ignore("integer_division") var parent: int = (index - 1) / 2
 		if _free_heap[parent] <= row:
 			break
 		_free_heap[index] = _free_heap[parent]

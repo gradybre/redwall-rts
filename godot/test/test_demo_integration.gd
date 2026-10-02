@@ -105,6 +105,20 @@ func _village(with_cellars: bool) -> DemoFarmScript:
 	return farm
 
 
+func _keep_detached_members(node: Node) -> void:
+	"""Free after the test every node `node` holds in a script member with no parent. demo_village.gd makes its child
+	nodes in member initialisers and adds them in _ready(), which a village that never enters the tree never runs:
+	freeing it alone leaked them all (decision 0501). Followed into those members too: the Run-until menu makes its
+	button's own layer, which the village parents beside the menu (demo_village.gd), so the menu holds it detached."""
+	for property: Dictionary in node.get_property_list():
+		if int(property["usage"]) & PROPERTY_USAGE_SCRIPT_VARIABLE == 0:
+			continue
+		var held: Variant = node.get(property["name"])
+		if held is Node and (held as Node).get_parent() == null and not _nodes.has(held):
+			_nodes.append(held)
+			_keep_detached_members(held as Node)
+
+
 func _works() -> WorksScript:
 	"""The tunnel works the command layer's tunnel tool built."""
 	return _command.tunnels().ext.works
@@ -285,7 +299,7 @@ func test_the_farm_adopts_the_calendar_only_before_either_runs() -> void:
 	assert_false(idle.share_calendar(started).ok, "refused when the shared calendar has run")
 	assert_false(idle.share_calendar(null).ok, "and with none")
 	var part := DemoFarmScript.SimScript.new()
-	part.advance_usec(HOUR_USEC / 2)
+	@warning_ignore("integer_division") part.advance_usec(HOUR_USEC / 2)
 	assert_equal(part.hours_run, 0, "half an hour: no hour run yet")
 	assert_false(part.share_calendar(CalendarScript.new()).ok, "but its calendar has moved: refused")
 	assert_true(farm.sim.calendar == _services.calendar, "kept")
@@ -467,6 +481,7 @@ func test_the_village_hands_the_tunnels_cellars_to_the_farm() -> void:
 	_village(false)
 	var village := VillageScript.new()
 	_nodes.append(village)
+	_keep_detached_members(village)
 	village._command = _command
 	var providers: Array[Callable] = village.storage_providers()
 	assert_equal(providers.size(), 2, "the cellars and the kitchen pantry")

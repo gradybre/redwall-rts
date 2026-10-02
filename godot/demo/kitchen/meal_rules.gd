@@ -152,7 +152,7 @@ const RAW_NP_PER_U: Dictionary = {FarmingScript.CROP_ROOTS: 800, FarmingScript.C
 
 static func batch_ticks(dish: int) -> int:
 	"""Calendar ticks one batch of `dish` takes at the step rate (12 WU: 150 ticks)."""
-	return WORK_MWU[dish] / MWU_PER_TICK
+	@warning_ignore("integer_division") return WORK_MWU[dish] / MWU_PER_TICK
 
 
 static func is_input(dish: int, item: int) -> bool:

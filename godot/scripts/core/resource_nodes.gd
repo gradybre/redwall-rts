@@ -275,7 +275,7 @@ func _init(p_directory: EntityDirectory = null) -> void:
 	Passing an existing directory shares it; passing none creates a private one, which is what a
 	test or a standalone fixture wants.
 	"""
-	assert(RESOURCE_NODE_CAPACITY
+	@warning_ignore("assert_always_true") assert(RESOURCE_NODE_CAPACITY
 			== EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_RESOURCE_NODE],
 		"resource-node columns must match the directory's RESOURCE_NODE row capacity")
 	_assert_deposit_constants()
@@ -291,21 +291,21 @@ func _assert_deposit_constants() -> void:
 	Every relation checked here is stated twice in the documents, so a drifting edit contradicts
 	the ruling rather than merely changing a number this module chose.
 	"""
-	assert(DEPOSIT_FOOTPRINT_SIZE * DEPOSIT_FOOTPRINT_SIZE == DEPOSIT_NODE_COUNT,
+	@warning_ignore("assert_always_true") assert(DEPOSIT_FOOTPRINT_SIZE * DEPOSIT_FOOTPRINT_SIZE == DEPOSIT_NODE_COUNT,
 		"a 4x4 deposit footprint must be exactly the ruling's 16 nodes")
-	assert(STONE_DEPOSIT_NODE_MILLI * DEPOSIT_NODE_COUNT == STONE_DEPOSIT_TOTAL_MILLI,
+	@warning_ignore("assert_always_true") assert(STONE_DEPOSIT_NODE_MILLI * DEPOSIT_NODE_COUNT == STONE_DEPOSIT_TOTAL_MILLI,
 		"the stone deposit's per-node quantity must sum to its stated 1200 U total")
-	assert(IRON_DEPOSIT_NODE_MILLI * DEPOSIT_NODE_COUNT == IRON_DEPOSIT_TOTAL_MILLI,
+	@warning_ignore("assert_always_true") assert(IRON_DEPOSIT_NODE_MILLI * DEPOSIT_NODE_COUNT == IRON_DEPOSIT_TOTAL_MILLI,
 		"the iron deposit's per-node quantity must sum to its stated 300 U total")
-	assert(STONE_DEPOSIT_ORIGIN_X >= 0 and IRON_DEPOSIT_ORIGIN_X >= 0
+	@warning_ignore("assert_always_true") assert(STONE_DEPOSIT_ORIGIN_X >= 0 and IRON_DEPOSIT_ORIGIN_X >= 0
 			and STONE_DEPOSIT_ORIGIN_X + DEPOSIT_FOOTPRINT_SIZE <= MAP_TILES_X
 			and IRON_DEPOSIT_ORIGIN_X + DEPOSIT_FOOTPRINT_SIZE <= MAP_TILES_X,
 		"both deposit footprints must fit the exterior grid on x")
-	assert(STONE_DEPOSIT_ORIGIN_Z >= 0 and IRON_DEPOSIT_ORIGIN_Z >= 0
+	@warning_ignore("assert_always_true") assert(STONE_DEPOSIT_ORIGIN_Z >= 0 and IRON_DEPOSIT_ORIGIN_Z >= 0
 			and STONE_DEPOSIT_ORIGIN_Z + DEPOSIT_FOOTPRINT_SIZE <= MAP_TILES_Z
 			and IRON_DEPOSIT_ORIGIN_Z + DEPOSIT_FOOTPRINT_SIZE <= MAP_TILES_Z,
 		"both deposit footprints must fit the exterior grid on z")
-	assert(2 * DEPOSIT_NODE_COUNT <= RESOURCE_NODE_CAPACITY,
+	@warning_ignore("assert_always_true") assert(2 * DEPOSIT_NODE_COUNT <= RESOURCE_NODE_CAPACITY,
 		"the ruling's 32 deposit rows must fit inside the 4096 ResourceNode rows")
 
 
@@ -404,7 +404,7 @@ func tile_z_of(tile: int) -> IntMath.IntResult:
 	if not is_tile_index(tile):
 		out.refuse(String(REFUSE_INVALID_TILE))
 		return out
-	out.succeed(tile / MAP_TILES_X)
+	@warning_ignore("integer_division") out.succeed(tile / MAP_TILES_X)
 	return out
 
 
@@ -424,7 +424,7 @@ func tile_center_z_units(tile: int) -> IntMath.IntResult:
 	if not is_tile_index(tile):
 		out.refuse(String(REFUSE_INVALID_TILE))
 		return out
-	out.succeed((tile / MAP_TILES_X) * TILE_SIZE_UNITS + TILE_CENTER_OFFSET_UNITS)
+	@warning_ignore("integer_division") out.succeed((tile / MAP_TILES_X) * TILE_SIZE_UNITS + TILE_CENTER_OFFSET_UNITS)
 	return out
 
 
@@ -689,9 +689,9 @@ func _reserve_deposit_rows() -> StringName:
 	return REFUSE_NONE
 
 
-func _release_reserved_rows(count: int) -> void:
-	"""Hand the first `count` reserved directory rows back; none of them reached a store row."""
-	for index: int in count:
+func _release_reserved_rows(row_count: int) -> void:
+	"""Hand the first `row_count` reserved directory rows back; none of them reached a store row."""
+	for index: int in row_count:
 		_directory.destroy(Vector2i(_deposit_ref_slot[index], _deposit_ref_generation[index]))
 
 

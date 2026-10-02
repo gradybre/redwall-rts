@@ -92,7 +92,6 @@ var job_busy: Callable = Callable()
 var level: int = Rules.TOP_LEVEL
 var link_kind: int = Rules.LINK_NONE
 
-var _snap: PackedInt32Array = PackedInt32Array([0, -1, 0, 0])
 var _cuts: PackedInt32Array = PackedInt32Array()
 ## The pillar check's segments near the piece, and their routes' boxes grown by their pillar gaps (reused).
 var _near: PackedInt32Array = PackedInt32Array()
@@ -156,7 +155,7 @@ func _leg_reason_and_count(under_u: PackedInt32Array) -> int:
 
 func _meets_water(a: Vector2i, b: Vector2i) -> bool:
 	"""Whether a bore from a to b (u) would pass under water (see WATER)."""
-	return water_crossing.is_valid() and bool(water_crossing.call(a, b, Rules.BORE_WIDTH_U / 2))
+	@warning_ignore("integer_division") return water_crossing.is_valid() and bool(water_crossing.call(a, b, Rules.BORE_WIDTH_U / 2))
 
 
 func _leg_meets_water(k: int) -> bool:
@@ -234,12 +233,12 @@ static func length_text(length_u_value: int) -> String:
 	"""A length in u as the panel shows it: metres to one decimal, e.g. "12.4 m". Rounded to the nearest
 	tenth -- except that a length the limits refuse is rounded AWAY from the limit, so a refused 7.99 m (too
 	short for its ramps) never reads "8.0 m" and a refused 64.04 m never reads "64.0 m"."""
-	var tenths := (length_u_value * 10 + Rules.UNITS_PER_M / 2) / Rules.UNITS_PER_M
+	@warning_ignore("integer_division") var tenths := (length_u_value * 10 + Rules.UNITS_PER_M / 2) / Rules.UNITS_PER_M
 	if length_u_value < 2 * Rules.RAMP_RUN_U:
-		tenths = length_u_value * 10 / Rules.UNITS_PER_M
+		@warning_ignore("integer_division") tenths = length_u_value * 10 / Rules.UNITS_PER_M
 	elif length_u_value > Rules.MAX_LENGTH_U:
 		tenths = Rules.ceil_div(length_u_value * 10, Rules.UNITS_PER_M)
-	return "%d.%d m" % [tenths / 10, tenths % 10]
+	@warning_ignore("integer_division") return "%d.%d m" % [tenths / 10, tenths % 10]
 
 
 # --- snapping -------------------------------------------------------------------------------
@@ -283,8 +282,8 @@ static func _nearest_on_route(graph: GraphScript, slot: int, at: Vector2i) -> Ve
 		best_d = d
 		var ab := b - a
 		var leg := maxi(Rules.isqrt(ab.x * ab.x + ab.y * ab.y), 1)
-		var into := clampi((ab.x * (at.x - a.x) + ab.y * (at.y - a.y)) / leg, 0, leg)
-		best = Vector2i(a.x + ab.x * into / leg, a.y + ab.y * into / leg)
+		@warning_ignore("integer_division") var into := clampi((ab.x * (at.x - a.x) + ab.y * (at.y - a.y)) / leg, 0, leg)
+		@warning_ignore("integer_division") best = Vector2i(a.x + ab.x * into / leg, a.y + ab.y * into / leg)
 	return best
 
 
@@ -556,7 +555,7 @@ func _crossing_reason(graph: GraphScript) -> int:
 func _sort_crossings() -> void:
 	"""Put `crossings` in route order (they are found leg by leg, and on each leg in slot order): an insertion
 	sort of (host, x, z) triples by how far along the piece each lies."""
-	for i in range(1, crossings.size() / 3):
+	@warning_ignore("integer_division") for i in range(1, crossings.size() / 3):
 		var triple := crossings.slice(3 * i, 3 * i + 3)
 		var along := _along_of_crossing(i)
 		var k := i
@@ -620,7 +619,7 @@ func _crossing_at(graph: GraphScript, slot: int, at: Vector2i, along_piece: Vect
 func _crossings_apart() -> int:
 	"""Two crossings closer than JUNCTION_GAP_U along the piece would crowd one hub into another."""
 	var last := -Rules.JUNCTION_GAP_U
-	for c in crossings.size() / 3:
+	@warning_ignore("integer_division") for c in crossings.size() / 3:
 		var along := GraphScript.route_along_u(points_u, count, Vector2i(crossings[3 * c + 1], crossings[3 * c + 2]))
 		if along - last < Rules.JUNCTION_GAP_U:
 			refused_slot = crossings[3 * c]
@@ -655,7 +654,7 @@ func _cut_points() -> void:
 		_cuts.append(Rules.RAMP_RUN_U)
 	if ends_at_mouth():
 		_cuts.append(length_u() - Rules.RAMP_RUN_U)
-	for c in crossings.size() / 3:
+	@warning_ignore("integer_division") for c in crossings.size() / 3:
 		_cuts.append(GraphScript.route_along_u(points_u, count, Vector2i(crossings[3 * c + 1], crossings[3 * c + 2])))
 
 
@@ -724,7 +723,7 @@ static func _along_straight(graph: GraphScript, slot: int, at: Vector2i) -> int:
 	var b := Vector2i(graph.points_u[base + 2], graph.points_u[base + 3])
 	var ab := b - a
 	var leg := maxi(Rules.isqrt(ab.x * ab.x + ab.y * ab.y), 1)
-	return clampi((ab.x * (at.x - a.x) + ab.y * (at.y - a.y)) / leg, 0, graph.length_u[slot])
+	@warning_ignore("integer_division") return clampi((ab.x * (at.x - a.x) + ab.y * (at.y - a.y)) / leg, 0, graph.length_u[slot])
 
 
 static func clear_in_height(graph: GraphScript, slot: int, at: Vector2i, depth: int) -> bool:
@@ -788,7 +787,7 @@ func _shares_near(graph: GraphScript, slot: int, at: Vector2i) -> bool:
 		var joins := (host >= 0 and _neighbours(graph, host, slot)) or (node >= 0 and _touches(graph, slot, node))
 		if joins and _within(point_u(k), at, Rules.JOIN_ZONE_U):
 			return true
-	for c in crossings.size() / 3:
+	@warning_ignore("integer_division") for c in crossings.size() / 3:
 		if _neighbours(graph, crossings[3 * c], slot) \
 				and _within(Vector2i(crossings[3 * c + 1], crossings[3 * c + 2]), at, Rules.JOIN_ZONE_U):
 			return true
@@ -823,7 +822,7 @@ func _self_gap(at: Vector2i, leg: int) -> int:
 func _room_void_reason(graph: GraphScript) -> int:
 	"""ROOMS (see THE WHOLE PIECE): 1 m of earth and half a bore from every room's void, but near a socket of
 	that room the piece joins."""
-	var reach := Rules.PILLAR_U + Rules.BORE_WIDTH_U / 2
+	@warning_ignore("integer_division") var reach := Rules.PILLAR_U + Rules.BORE_WIDTH_U / 2
 	var box := Rect2i(point_u(0), Vector2i.ONE)
 	for k in count:
 		box = box.expand(point_u(k))
@@ -862,7 +861,7 @@ func _leg_breaks_into(graph: GraphScript, r: int, k: int, reach: int) -> bool:
 	var leg := Rules.isqrt(Rules.leg_squared_u(points_u, k))
 	var along := 0
 	while true:
-		var at := a + (b - a) * mini(along, leg) / maxi(leg, 1)
+		@warning_ignore("integer_division") var at := a + (b - a) * mini(along, leg) / maxi(leg, 1)
 		if graph.rooms.gap_of(r, at) < reach and not _near_own_socket(graph, r, at):
 			return true
 		if along >= leg:

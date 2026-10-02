@@ -85,7 +85,7 @@ const SOURCE_TIPS: Array[String] = ["", "The sawhorse's planks: the Work screen'
 	"A log: fell a tree in the Woods panel, or haul logs to the log stack — nothing is ordered for you",
 	"This bridge's task on the Work screen: its builder, its step, why it waits"]
 ## A dig tick in demo microseconds (30 ticks a second at one F1000 digger: underground_graph.gd THE DIG TIMELINE).
-const TICK_USEC: int = 1000000 / Rules.TICKS_PER_SECOND
+@warning_ignore("integer_division") const TICK_USEC: int = 1000000 / Rules.TICKS_PER_SECOND
 const DIG_MATERIALS: String = "Materials: none to dig — its spoil goes to the heap at its mouth"
 
 var trips: TripsScript = TripsScript.new()

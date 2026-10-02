@@ -817,7 +817,7 @@ func test_state_image_is_row_history_independent() -> void:
 	"""Two stores holding the same gear compare equal whichever rows they used."""
 	var first_lot: Vector2i = _gear(&"tool")
 	var second_lot: Vector2i = _gear(&"net")
-	var reference: PackedByteArray = _store.state_bytes()
+	var reference_bytes: PackedByteArray = _store.state_bytes()
 	var other: GearScript = GearScript.new(SMALL_POOL)
 	assert_true(other.begin_restore(_defs).ok, "build the same gear at different rows")
 	assert_true(other.restore_row(40, second_lot, _id(&"net"), 1000, 1000, GearScript.NULL_REF,
@@ -825,9 +825,9 @@ func test_state_image_is_row_history_independent() -> void:
 	assert_true(other.restore_row(7, first_lot, _id(&"tool"), 1000, 1000, GearScript.NULL_REF,
 		GearScript.MANUFACTURE_BASIC, GearScript.NULL_REF).ok, "tool at row 7")
 	assert_true(other.finish_restore().ok, "and close the window")
-	assert_equal(other.state_bytes(), reference, "the canonical images match")
+	assert_equal(other.state_bytes(), reference_bytes, "the canonical images match")
 	assert_true(_store.claim_for_job(second_lot, JOB_A).ok, "a claim is runtime state")
-	assert_equal(_store.state_bytes(), reference, "so it does not move the image")
+	assert_equal(_store.state_bytes(), reference_bytes, "so it does not move the image")
 
 
 func test_a_created_gear_row_is_not_equipped_and_keeps_its_container() -> void:

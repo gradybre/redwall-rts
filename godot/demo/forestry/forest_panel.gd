@@ -154,25 +154,25 @@ func _label(text: String, px: int, colour: Color, font: Font) -> Label:
 
 func _button(key: StringName) -> Button:
 	"""A wood button that emits `action(key)`; takes keyboard focus (decision 0261)."""
-	var button := Button.new()
-	button.text = BUTTON_TEXT[key]
-	Styles.focusable(button, BUTTON_MARGINS)
-	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.custom_minimum_size.y = BUTTON_H
-	button.clip_text = true
-	button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	button.add_theme_font_size_override(&"font_size", SMALL_PX)
-	button.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, BUTTON_MARGINS))
-	button.add_theme_stylebox_override(&"hover", Styles.box(Styles.PIECE_WOOD_HOVER, BUTTON_MARGINS))
-	button.add_theme_stylebox_override(&"pressed", Styles.box(Styles.PIECE_BRASS, BUTTON_MARGINS))
-	button.add_theme_stylebox_override(&"disabled", Styles.box(Styles.PIECE_WOOD_DISABLED, BUTTON_MARGINS))
+	var new_button := Button.new()
+	new_button.text = BUTTON_TEXT[key]
+	Styles.focusable(new_button, BUTTON_MARGINS)
+	new_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	new_button.custom_minimum_size.y = BUTTON_H
+	new_button.clip_text = true
+	new_button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	new_button.add_theme_font_size_override(&"font_size", SMALL_PX)
+	new_button.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, BUTTON_MARGINS))
+	new_button.add_theme_stylebox_override(&"hover", Styles.box(Styles.PIECE_WOOD_HOVER, BUTTON_MARGINS))
+	new_button.add_theme_stylebox_override(&"pressed", Styles.box(Styles.PIECE_BRASS, BUTTON_MARGINS))
+	new_button.add_theme_stylebox_override(&"disabled", Styles.box(Styles.PIECE_WOOD_DISABLED, BUTTON_MARGINS))
 	for item: StringName in [&"font_color", &"font_hover_color"]:
-		button.add_theme_color_override(item, Palette.text_on(Palette.SURFACE_WOOD))
-	button.add_theme_color_override(&"font_pressed_color", Palette.text_on(Palette.SURFACE_BRASS))
-	button.add_theme_color_override(&"font_disabled_color", Palette.text_on(Palette.SURFACE_WOOD_DISABLED))
-	button.pressed.connect(func() -> void: action.emit(key))
-	_buttons[key] = button
-	return button
+		new_button.add_theme_color_override(item, Palette.text_on(Palette.SURFACE_WOOD))
+	new_button.add_theme_color_override(&"font_pressed_color", Palette.text_on(Palette.SURFACE_BRASS))
+	new_button.add_theme_color_override(&"font_disabled_color", Palette.text_on(Palette.SURFACE_WOOD_DISABLED))
+	new_button.pressed.connect(func() -> void: action.emit(key))
+	_buttons[key] = new_button
+	return new_button
 
 
 func button(key: StringName) -> Button:
@@ -185,13 +185,13 @@ func line(key: StringName) -> String:
 	return (_lines[key] as Label).text
 
 
-func show_status(stores: String, counts: String, season: String, queue: String, log: String) -> void:
+func show_status(stores: String, counts: String, season: String, queue: String, log_line: String) -> void:
 	"""The panel's standing lines."""
 	_set_line(&"stores", stores)
 	_set_line(&"counts", counts)
 	_set_line(&"season", season)
 	_set_line(&"queue", queue)
-	_set_line(&"log", log)
+	_set_line(&"log", log_line)
 
 
 func show_tree(title: String, text: String, enabled: Dictionary) -> void:

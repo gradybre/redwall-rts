@@ -403,10 +403,10 @@ func test_adapter_wire_golden_for_empty_sparse_and_full_blocks() -> void:
 			raw.append_array(prefix.to_bytes())
 			raw.append_array(Codec.column_slice(block,ordinal,0,n))
 		assert_equal(raw.size(),608353+4*count,"literal original owner block size")
-		var hash: HashingContext = HashingContext.new()
-		hash.start(HashingContext.HASH_SHA256)
-		hash.update(raw)
-		assert_equal(hash.finish().hex_encode(),hashes[case_index],"literal pre-change block hash")
+		var hasher: HashingContext = HashingContext.new()
+		hasher.start(HashingContext.HASH_SHA256)
+		hasher.update(raw)
+		assert_equal(hasher.finish().hex_encode(),hashes[case_index],"literal pre-change block hash")
 		case_index += 1
 
 func test_owner_and_codec_adversarial_payload_parity() -> void:

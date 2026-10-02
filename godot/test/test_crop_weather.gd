@@ -423,7 +423,7 @@ func test_frost_halves_for_a_tended_cabbage_plot_and_not_for_another_crop() -> v
 	assert_true(_crop.farming().tend(cabbage).ok, "the cabbage plot is tended today")
 	assert_true(_crop.farming().tend(roots).ok, "and so is the roots plot")
 	assert_true(_crop.run_hour(_hour(1)).ok, "one subzero hour passes")
-	assert_equal(_health(cabbage), HEALTH_MAX - CABBAGE_FROST_PER_HOUR / 2,
+	@warning_ignore("integer_division") assert_equal(_health(cabbage), HEALTH_MAX - CABBAGE_FROST_PER_HOUR / 2,
 		"cabbage's 150/hour is halved to 75 in a tended plot")
 	assert_equal(_health(roots), HEALTH_MAX - ROOTS_FROST_PER_HOUR,
 		"and roots takes its full 300, because the halving is cabbage's alone")

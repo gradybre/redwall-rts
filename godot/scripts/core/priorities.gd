@@ -163,7 +163,7 @@ var _present_count: int = 0
 
 func _init() -> void:
 	"""Assert the shared capacity and JobKind stride, then allocate every column once."""
-	assert(PRIORITY_CAPACITY == NeedsScript.RESIDENT_CAPACITY,
+	@warning_ignore("assert_always_true") assert(PRIORITY_CAPACITY == NeedsScript.RESIDENT_CAPACITY,
 		"priority columns must match the needs store's resident capacity")
 	assert(Catalog.JOB_KIND.size() == JOB_KIND_COUNT,
 		"GDD §4.3 JobKind has exactly twelve values, including the reserved gap")

@@ -113,7 +113,7 @@ func _read_ground() -> void:
 	_buckets.clear()
 	var lists := {}
 	var points: PackedVector3Array = _arrays[Mesh.ARRAY_VERTEX]
-	for t in _indices.size() / 3:
+	@warning_ignore("integer_division") for t in _indices.size() / 3:
 		var lo := Vector2(INF, INF)
 		var hi := Vector2(-INF, -INF)
 		for c in 3:

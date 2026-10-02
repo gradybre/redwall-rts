@@ -486,18 +486,18 @@ func _label_parts() -> void:
 	_part.fill(-1)
 	_part_queue.resize(statics)
 	_part_count = 0
-	for seed in statics:
-		if _part[seed] < 0:
-			_flood_part(seed)
+	for start in statics:
+		if _part[start] < 0:
+			_flood_part(start)
 			_part_count += 1
 
 
-func _flood_part(seed: int) -> void:
-	"""Give part `_part_count` to every static node joined to `seed`."""
+func _flood_part(start: int) -> void:
+	"""Give part `_part_count` to every static node joined to `start`."""
 	var head := 0
 	var tail := 1
-	_part_queue[0] = seed
-	_part[seed] = _part_count
+	_part_queue[0] = start
+	_part[start] = _part_count
 	while head < tail:
 		var u := _part_queue[head]
 		head += 1

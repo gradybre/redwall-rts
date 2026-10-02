@@ -131,7 +131,8 @@ static func amount_text(measure: int, value: int) -> String:
 	"""A measure's value as the player reads it: '12.0 U', '2.5 days', '3'."""
 	match UNITS[measure]:
 		UNIT_MILLI: return FarmText.units_text(maxi(value, 0))
-		UNIT_DAYS: return "%d.%d days" % [maxi(value, 0) / 1000, (maxi(value, 0) % 1000) / 100]
+		UNIT_DAYS:
+			@warning_ignore("integer_division") return "%d.%d days" % [maxi(value, 0) / 1000, (maxi(value, 0) % 1000) / 100]
 	return str(value)
 
 

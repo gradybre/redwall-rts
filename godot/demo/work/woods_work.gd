@@ -89,7 +89,7 @@ func fill(task: TaskScript, row: int) -> void:
 	else:
 		worker_state_into(task, _crew.brain_of(task.worker), code < JobsScript.STEP_WORK, jobs.issued[row] == 1)
 	if code >= JobsScript.STEP_WORK and jobs.issued[row] == 1 and jobs.work_usec[row] > 0:
-		task.percent = mini(100, int(jobs.elapsed_usec[row] * 100 / jobs.work_usec[row]))
+		@warning_ignore("integer_division") task.percent = mini(100, int(jobs.elapsed_usec[row] * 100 / jobs.work_usec[row]))
 	if task.carrying:
 		task.pause_refusal = WorkIds.CARRYING % (_crew.worker_name(row) if task.worker >= 0 else "the crew")
 		task.reassign_refusal = task.pause_refusal

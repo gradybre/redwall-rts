@@ -16,7 +16,7 @@ func _empty() -> Array:
 	"""A source-owned cleared image; raw framing zeros are not semantic defaults."""
 	var c: Array = []
 	for field: int in 10:
-		var values: Variant = PackedByteArray() if field == 0 or field == 6 else (PackedInt64Array() if field == 2 or field == 3 else PackedInt32Array())
+		var values: Variant = (PackedByteArray() as Variant) if field == 0 or field == 6 else ((PackedInt64Array() as Variant) if field == 2 or field == 3 else (PackedInt32Array() as Variant))
 		values.resize(4096)
 		if field == 7 or field == 8: values.fill(-1)
 		c.append(values)
@@ -136,14 +136,14 @@ func test_scalar_extrema_and_all_seventeen_clause_witnesses() -> void:
 	"""Exact codes detect omitted early clauses even when a later gate also refuses."""
 	for field: int in [1,2,3,4,5]:
 		for value: int in [-1,I64_MIN if field == 2 or field == 3 else -2147483648]:
-			var c: Array = _empty()
-			_put(c,field,4095,value)
-			_expect(c,CODES[field])
+			var cols: Array = _empty()
+			_put(cols,field,4095,value)
+			_expect(cols,CODES[field])
 	for field: int in [0,6]:
 		for value: int in [2,255]:
-			var c: Array = _empty()
-			_put(c,field,4095,value)
-			_expect(c,CODES[field])
+			var cols: Array = _empty()
+			_put(cols,field,4095,value)
+			_expect(cols,CODES[field])
 	var c: Array = _empty()
 	_present(c,4095)
 	_put(c,2,4095,-1)
@@ -197,10 +197,10 @@ func test_tile_and_global_directory_reference_boundaries() -> void:
 		_put(c,8,4095,ref.x)
 		_put(c,9,4095,ref.y)
 		_expect(c,&"COLUMN_REF")
-	var c: Array = _empty()
-	_present(c,4095)
-	_put(c,8,4095,87552)
-	_expect(c,&"")
+	var cols: Array = _empty()
+	_present(cols,4095)
+	_put(cols,8,4095,87552)
+	_expect(cols,&"")
 
 func _fault(c: Array, gate: int, row: int) -> StringName:
 	"""Each global gate has an isolated earlier-gate-valid witness."""

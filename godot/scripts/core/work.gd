@@ -256,7 +256,7 @@ const XP_PER_WU: int = 10
 ## §5.2's factor clamp, borrowed rather than restated, and the potential ceiling it implies.
 const WORK_FACTOR_MIN: int = NeedsScript.WORK_FACTOR_MIN
 const WORK_FACTOR_MAX: int = NeedsScript.WORK_FACTOR_MAX
-const MAX_POTENTIAL_MWU: int = BASE_MWU_PER_TICK * WORK_FACTOR_MAX / WORK_FACTOR_DENOMINATOR
+@warning_ignore("integer_division") const MAX_POTENTIAL_MWU: int = BASE_MWU_PER_TICK * WORK_FACTOR_MAX / WORK_FACTOR_DENOMINATOR
 
 const JOB_STATE_WORK: int = JobsScript.JOB_STATE_WORK
 const JOB_STATE_COMPLETE: int = JobsScript.JOB_STATE_COMPLETE
@@ -531,9 +531,9 @@ func _init(p_jobs: JobsScript = null) -> void:
 	_residents = _jobs.residents()
 	_needs = _jobs.needs()
 	_directory = _jobs.directory()
-	assert(RESIDENT_CAPACITY == JobsScript.AGENT_CAPACITY,
+	@warning_ignore("assert_always_true") assert(RESIDENT_CAPACITY == JobsScript.AGENT_CAPACITY,
 		"the work carries are one row per JobAgent row")
-	assert(SKILL_COUNT == JobsScript.JOB_KIND_COUNT,
+	@warning_ignore("assert_always_true") assert(SKILL_COUNT == JobsScript.JOB_KIND_COUNT,
 		"GDD §4.3 makes JobKind and the skill index one enum")
 	_allocate_columns()
 	clear()
@@ -930,7 +930,7 @@ func _produce_potential(resident_slot: int, factor: int) -> int:
 	limit, not the worker's rate.
 	"""
 	var accumulator: int = _potential_remainder[resident_slot] + BASE_MWU_PER_TICK * factor
-	var produced: int = accumulator / WORK_FACTOR_DENOMINATOR
+	@warning_ignore("integer_division") var produced: int = accumulator / WORK_FACTOR_DENOMINATOR
 	_potential_remainder[resident_slot] = accumulator - produced * WORK_FACTOR_DENOMINATOR
 	assert(produced <= MAX_POTENTIAL_MWU, "a tick cannot release more than the clamped ceiling")
 	return produced
@@ -1220,7 +1220,7 @@ func _allocate_shares(accepted: int, potential_total: int) -> StringName:
 	var distributed: int = 0
 	for index: int in _party_count:
 		var numerator: int = accepted * _party_potential[index]
-		var share: int = numerator / potential_total
+		@warning_ignore("integer_division") var share: int = numerator / potential_total
 		_party_share[index] = share
 		_party_fraction[index] = numerator - share * potential_total
 		distributed += share
@@ -1368,7 +1368,7 @@ func _credit_xp(resident_slot: int, skill: int, accepted: int) -> StringName:
 	"""
 	var index: int = resident_slot * SKILL_COUNT + skill
 	var accumulator: int = _xp_remainder[index] + accepted
-	var whole: int = accumulator / MILLI_WU_PER_WU
+	@warning_ignore("integer_division") var whole: int = accumulator / MILLI_WU_PER_WU
 	_xp_remainder[index] = accumulator - whole * MILLI_WU_PER_WU
 	if whole == 0:
 		return REFUSE_NONE

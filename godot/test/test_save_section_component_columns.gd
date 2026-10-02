@@ -180,9 +180,9 @@ func test_fragment_sizes_and_early_finish_do_not_advance() -> void:
 		assert_equal(decoder.consumed_bytes(),0,"bad fragment consumes nothing")
 		assert_equal(decoder.accept_chunk(PackedByteArray([18,0,0,0])).code,
 			&"SAVE_COMPONENT_CHUNK","later correct data cannot revive failed cursor")
-	var decoder: Section.DecodeCursor = Section.DecodeCursor.new(2,193184,12947565)
-	assert_equal(decoder.finish().code,&"SAVE_COMPONENT_TRUNCATED","early finish explicitly refuses")
-	assert_false(decoder.is_complete(),"empty input never complete")
+	var empty_decoder: Section.DecodeCursor = Section.DecodeCursor.new(2,193184,12947565)
+	assert_equal(empty_decoder.finish().code,&"SAVE_COMPONENT_TRUNCATED","early finish explicitly refuses")
+	assert_false(empty_decoder.is_complete(),"empty input never complete")
 
 func test_encoder_requires_expected_owner_and_complete_shape() -> void:
 	var encoder: Section.EncodeCursor = Section.EncodeCursor.new(2,193184)

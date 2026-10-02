@@ -442,9 +442,6 @@ var _cohort_slots: PackedInt32Array = PackedInt32Array()
 
 # --- scratch (not simulation state) ----------------------------------------------------------
 
-## Checked-arithmetic scratch for int_math's `_into` forms. Nothing here invokes a callback or
-## signal, so no public operation can re-enter while it holds a live value.
-var _math: IntMath.IntResult = IntMath.IntResult.new()
 ## The bulk-column namespace's own refusal code (decision 0132). Category 3: not state, not
 ## persisted, and excluded from `state_bytes()` so a refusal cannot alter the image that proves
 ## it changed nothing.
@@ -457,15 +454,15 @@ func _init(p_directory: EntityDirectory = null, p_needs: NeedsScript = null) -> 
 	Passing an existing directory and needs store shares them; passing neither creates a private
 	pair, which is what a test or a standalone settlement wants.
 	"""
-	assert(RESIDENT_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_RESIDENT],
+	@warning_ignore("assert_always_true") assert(RESIDENT_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_RESIDENT],
 		"resident columns must match the directory's RESIDENT row capacity")
-	assert(RESIDENT_LIVING_CAP == EntityDirectory.RESIDENT_LIVING_CAP,
+	@warning_ignore("assert_always_true") assert(RESIDENT_LIVING_CAP == EntityDirectory.RESIDENT_LIVING_CAP,
 		"resident living cap must match the directory's living cap")
 	_owns_collaborators = p_directory == null and p_needs == null
 	_directory = p_directory if p_directory != null else EntityDirectory.new()
 	_needs = p_needs if p_needs != null else NeedsScript.new()
 	_needs.require_life_stages()
-	assert(FamilyRules.DEMAND_BASE == BASE_NUTRITION_PER_DAY_NP
+	@warning_ignore("assert_always_true", "integer_division") assert(FamilyRules.DEMAND_BASE == BASE_NUTRITION_PER_DAY_NP
 		and FamilyRules.DENOM / FamilyRules.STAGE_MULT[LIFE_STAGE_ADULT] == DEMAND_DENOMINATOR,
 		"the stage table's ADULT demand row must equal the §4.1/§5.2 baseline")
 	assert(LIFE_STAGE_KEYS.size() == LIFE_STAGE_COUNT,
@@ -492,9 +489,9 @@ func _compile_species() -> void:
 	_species_key.resize(SPECIES_COUNT)
 	_species_size.resize(SPECIES_COUNT)
 	for key: StringName in keys:
-		var species_id: int = int(_species_ids[key])
-		_species_key[species_id] = String(key)
-		_species_size[species_id] = _declared_size_of(key)
+		var species_value: int = int(_species_ids[key])
+		_species_key[species_value] = String(key)
+		_species_size[species_value] = _declared_size_of(key)
 
 
 func _compile_rigs() -> void:
@@ -631,18 +628,18 @@ func catalog_error() -> String:
 	return _catalog_error
 
 
-func has_species(species_key: StringName) -> bool:
+func has_species(key_name: StringName) -> bool:
 	"""True when the key names one of the 16 release-1 species."""
-	return _species_ids.has(species_key)
+	return _species_ids.has(key_name)
 
 
-func species_id(species_key: StringName) -> IntMath.IntResult:
+func species_id(key_name: StringName) -> IntMath.IntResult:
 	"""Compiled ascending-ASCII id for a species key, or an explicit refusal."""
 	var out: IntMath.IntResult = IntMath.IntResult.new()
-	if not _species_ids.has(species_key):
+	if not _species_ids.has(key_name):
 		out.refuse(String(REFUSE_UNKNOWN_SPECIES))
 		return out
-	out.succeed(int(_species_ids[species_key]))
+	out.succeed(int(_species_ids[key_name]))
 	return out
 
 
@@ -2341,10 +2338,10 @@ func _column_live_row_refusal(columns: Columns) -> StringName:
 	"""
 	var slot: int = columns.present.find(1, 0)
 	while slot >= 0:
-		var species_id: int = columns.species[slot]
-		if not _species_id_in_range(species_id):
+		var species_value: int = columns.species[slot]
+		if not _species_id_in_range(species_value):
 			return REFUSE_COLUMN_SPECIES
-		if columns.size_class[slot] != _species_size[species_id]:
+		if columns.size_class[slot] != _species_size[species_value]:
 			return REFUSE_COLUMN_SIZE_CLASS
 		if not _arrival_tick_is_valid(columns.arrival_tick[slot]):
 			return REFUSE_COLUMN_ARRIVAL_TICK
